@@ -409,7 +409,6 @@ static const struct gpu_ops gv100_ops = {
 		.clear_sm_error_state = gv11b_gr_clear_sm_error_state,
 		.suspend_contexts = gr_gp10b_suspend_contexts,
 		.resume_contexts = gr_gk20a_resume_contexts,
-		.get_preemption_mode_flags = gr_gp10b_get_preemption_mode_flags,
 		.trigger_suspend = gv11b_gr_sm_trigger_suspend,
 		.wait_for_pause = gr_gk20a_wait_for_pause,
 		.resume_from_pause = gv11b_gr_resume_from_pause,
@@ -690,6 +689,10 @@ static const struct gpu_ops gv100_ops = {
 				gv11b_gr_init_get_max_subctx_count,
 			.get_patch_slots = gv11b_gr_init_get_patch_slots,
 			.detect_sm_arch = gv11b_gr_init_detect_sm_arch,
+			.get_supported__preemption_modes =
+				gp10b_gr_init_get_supported_preemption_modes,
+			.get_default_preemption_modes =
+				gp10b_gr_init_get_default_preemption_modes,
 		},
 		.intr = {
 			.set_shader_exceptions =

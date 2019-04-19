@@ -64,14 +64,6 @@ struct gk20a_cs_snapshot_client;
 struct gk20a_cs_snapshot;
 #endif
 
-struct nvgpu_preemption_modes_rec {
-	u32 graphics_preemption_mode_flags; /* supported preemption modes */
-	u32 compute_preemption_mode_flags; /* supported preemption modes */
-
-	u32 default_graphics_preempt_mode; /* default mode */
-	u32 default_compute_preempt_mode; /* default mode */
-};
-
 struct nvgpu_warpstate {
 	u64 valid_warps[2];
 	u64 trapped_warps[2];

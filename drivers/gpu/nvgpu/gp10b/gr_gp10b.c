@@ -1167,22 +1167,3 @@ enable_ch:
 	return err;
 }
 
-int gr_gp10b_get_preemption_mode_flags(struct gk20a *g,
-	struct nvgpu_preemption_modes_rec *preemption_modes_rec)
-{
-	preemption_modes_rec->graphics_preemption_mode_flags = (
-			NVGPU_PREEMPTION_MODE_GRAPHICS_WFI |
-			NVGPU_PREEMPTION_MODE_GRAPHICS_GFXP);
-	preemption_modes_rec->compute_preemption_mode_flags = (
-			NVGPU_PREEMPTION_MODE_COMPUTE_WFI |
-			NVGPU_PREEMPTION_MODE_COMPUTE_CTA |
-			NVGPU_PREEMPTION_MODE_COMPUTE_CILP);
-
-	preemption_modes_rec->default_graphics_preempt_mode =
-			NVGPU_PREEMPTION_MODE_GRAPHICS_WFI;
-	preemption_modes_rec->default_compute_preempt_mode =
-			NVGPU_PREEMPTION_MODE_COMPUTE_WFI;
-
-	return 0;
-}
-

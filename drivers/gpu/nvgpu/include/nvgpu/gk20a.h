@@ -372,8 +372,6 @@ struct gpu_ops {
 		int (*resume_contexts)(struct gk20a *g,
 				struct dbg_session_gk20a *dbg_s,
 				int *ctx_resident_ch_fd);
-		int (*get_preemption_mode_flags)(struct gk20a *g,
-		       struct nvgpu_preemption_modes_rec *preemption_modes_rec);
 		int (*set_ctxsw_preemption_mode)(struct gk20a *g,
 				struct nvgpu_gr_ctx *gr_ctx,
 				struct vm_gk20a *vm, u32 class,
@@ -782,6 +780,12 @@ struct gpu_ops {
 			u32 (*get_patch_slots)(struct gk20a *g,
 				struct nvgpu_gr_config *config);
 			void (*detect_sm_arch)(struct gk20a *g);
+			void (*get_supported__preemption_modes)(
+				u32 *graphics_preemption_mode_flags,
+				u32 *compute_preepmtion_mode_flags);
+			void (*get_default_preemption_modes)(
+				u32 *default_graphics_preempt_mode,
+				u32 *default_compute_preempt_mode);
 		} init;
 
 		struct {

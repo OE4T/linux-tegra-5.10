@@ -148,7 +148,6 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 		.clear_sm_error_state = vgpu_gr_clear_sm_error_state,
 		.suspend_contexts = vgpu_gr_suspend_contexts,
 		.resume_contexts = vgpu_gr_resume_contexts,
-		.get_preemption_mode_flags = gr_gp10b_get_preemption_mode_flags,
 		.trigger_suspend = NULL,
 		.wait_for_pause = gr_gk20a_wait_for_pause,
 		.resume_from_pause = NULL,
@@ -352,6 +351,10 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 			.commit_cbes_reserve =
 				gp10b_gr_init_commit_cbes_reserve,
 			.detect_sm_arch = vgpu_gr_detect_sm_arch,
+			.get_supported__preemption_modes =
+				gp10b_gr_init_get_supported_preemption_modes,
+			.get_default_preemption_modes =
+				gp10b_gr_init_get_default_preemption_modes,
 		},
 	},
 	.class = {

@@ -273,7 +273,6 @@ static const struct gpu_ops gm20b_ops = {
 		.clear_sm_error_state = gm20b_gr_clear_sm_error_state,
 		.suspend_contexts = gr_gk20a_suspend_contexts,
 		.resume_contexts = gr_gk20a_resume_contexts,
-		.get_preemption_mode_flags = gr_gm20b_get_preemption_mode_flags,
 		.trigger_suspend = gr_gk20a_trigger_suspend,
 		.wait_for_pause = gr_gk20a_wait_for_pause,
 		.resume_from_pause = gr_gk20a_resume_from_pause,
@@ -490,6 +489,10 @@ static const struct gpu_ops gm20b_ops = {
 			.get_gfxp_rtv_cb_size = NULL,
 			.get_patch_slots = gm20b_gr_init_get_patch_slots,
 			.detect_sm_arch = gm20b_gr_init_detect_sm_arch,
+			.get_supported__preemption_modes =
+				gm20b_gr_init_get_supported_preemption_modes,
+			.get_default_preemption_modes =
+				gm20b_gr_init_get_default_preemption_modes,
 		},
 		.intr = {
 			.set_shader_exceptions =

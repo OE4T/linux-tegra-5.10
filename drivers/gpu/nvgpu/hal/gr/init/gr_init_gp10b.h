@@ -71,4 +71,9 @@ void gp10b_gr_init_commit_ctxsw_spill(struct gk20a *g,
 void gp10b_gr_init_commit_cbes_reserve(struct gk20a *g,
 	struct nvgpu_gr_ctx *gr_ctx, bool patch);
 
+void gp10b_gr_init_get_supported_preemption_modes(
+	u32 *graphics_preemption_mode_flags, u32 *compute_preemption_mode_flags);
+void gp10b_gr_init_get_default_preemption_modes(
+	u32 *default_graphics_preempt_mode, u32 *default_compute_preempt_mode);
+
 #endif /* NVGPU_GR_INIT_GP10B_H */

@@ -591,3 +591,19 @@ void gp10b_gr_init_commit_cbes_reserve(struct gk20a *g,
 		patch);
 }
 
+void gp10b_gr_init_get_supported_preemption_modes(
+	u32 *graphics_preemption_mode_flags, u32 *compute_preemption_mode_flags)
+{
+	*graphics_preemption_mode_flags = (NVGPU_PREEMPTION_MODE_GRAPHICS_WFI |
+					  NVGPU_PREEMPTION_MODE_GRAPHICS_GFXP);
+	*compute_preemption_mode_flags = (NVGPU_PREEMPTION_MODE_COMPUTE_WFI |
+					 NVGPU_PREEMPTION_MODE_COMPUTE_CTA |
+					 NVGPU_PREEMPTION_MODE_COMPUTE_CILP);
+}
+
+void gp10b_gr_init_get_default_preemption_modes(
+	u32 *default_graphics_preempt_mode, u32 *default_compute_preempt_mode)
+{
+	*default_graphics_preempt_mode = NVGPU_PREEMPTION_MODE_GRAPHICS_WFI;
+	*default_compute_preempt_mode = NVGPU_PREEMPTION_MODE_COMPUTE_WFI;
+}

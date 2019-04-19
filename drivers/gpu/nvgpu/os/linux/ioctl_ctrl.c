@@ -250,23 +250,31 @@ static u64 nvgpu_ctrl_ioctl_gpu_characteristics_flags(struct gk20a *g)
 static void nvgpu_set_preemption_mode_flags(struct gk20a *g,
 	struct nvgpu_gpu_characteristics *gpu)
 {
-	struct nvgpu_preemption_modes_rec preemption_mode_rec;
+	u32 graphics_preemption_mode_flags = 0U;
+	u32 compute_preemption_mode_flags = 0U;
+	u32 default_graphics_preempt_mode = 0U;
+	u32 default_compute_preempt_mode = 0U;
 
-	g->ops.gr.get_preemption_mode_flags(g, &preemption_mode_rec);
+	g->ops.gr.init.get_supported__preemption_modes(
+			&graphics_preemption_mode_flags,
+			&compute_preemption_mode_flags);
+	g->ops.gr.init.get_default_preemption_modes(
+			&default_graphics_preempt_mode,
+			&default_compute_preempt_mode);
 
 	gpu->graphics_preemption_mode_flags =
 		nvgpu_get_ioctl_graphics_preempt_mode_flags(
-			preemption_mode_rec.graphics_preemption_mode_flags);
+			graphics_preemption_mode_flags);
 	gpu->compute_preemption_mode_flags =
 		nvgpu_get_ioctl_compute_preempt_mode_flags(
-			preemption_mode_rec.compute_preemption_mode_flags);
+			compute_preemption_mode_flags);
 
 	gpu->default_graphics_preempt_mode =
 		nvgpu_get_ioctl_graphics_preempt_mode(
-			preemption_mode_rec.default_graphics_preempt_mode);
+			default_graphics_preempt_mode);
 	gpu->default_compute_preempt_mode =
 		nvgpu_get_ioctl_compute_preempt_mode(
-			preemption_mode_rec.default_compute_preempt_mode);
+			default_compute_preempt_mode);
 }
 
 static long

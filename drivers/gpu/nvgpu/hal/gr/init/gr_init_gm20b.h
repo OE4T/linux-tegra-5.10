@@ -99,4 +99,9 @@ u32 gm20b_gr_init_get_patch_slots(struct gk20a *g,
 	struct nvgpu_gr_config *config);
 void gm20b_gr_init_detect_sm_arch(struct gk20a *g);
 
+void gm20b_gr_init_get_supported_preemption_modes(
+	u32 *graphics_preemption_mode_flags, u32 *compute_preemption_mode_flags);
+void gm20b_gr_init_get_default_preemption_modes(
+	u32 *default_graphics_preempt_mode, u32 *default_compute_preempt_mode);
+
 #endif /* NVGPU_GR_INIT_GM20B_H */

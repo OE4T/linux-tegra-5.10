@@ -723,23 +723,6 @@ fail:
 	return err;
 }
 
-int gr_gm20b_get_preemption_mode_flags(struct gk20a *g,
-		struct nvgpu_preemption_modes_rec *preemption_modes_rec)
-{
-	preemption_modes_rec->graphics_preemption_mode_flags =
-			NVGPU_PREEMPTION_MODE_GRAPHICS_WFI;
-	preemption_modes_rec->compute_preemption_mode_flags = (
-			NVGPU_PREEMPTION_MODE_COMPUTE_WFI |
-			NVGPU_PREEMPTION_MODE_COMPUTE_CTA);
-
-	preemption_modes_rec->default_graphics_preempt_mode =
-			NVGPU_PREEMPTION_MODE_GRAPHICS_WFI;
-	preemption_modes_rec->default_compute_preempt_mode =
-			NVGPU_PREEMPTION_MODE_COMPUTE_CTA;
-
-	return 0;
-}
-
 void gm20b_gr_clear_sm_hww(struct gk20a *g, u32 gpc, u32 tpc, u32 sm,
 			u32 global_esr)
 {
