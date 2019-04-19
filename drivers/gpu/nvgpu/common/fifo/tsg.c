@@ -557,14 +557,14 @@ u32 gk20a_tsg_get_timeslice(struct tsg_gk20a *tsg)
 	return tsg->timeslice_us;
 }
 
-void gk20a_tsg_enable_sched(struct gk20a *g, struct tsg_gk20a *tsg)
+void nvgpu_tsg_enable_sched(struct gk20a *g, struct tsg_gk20a *tsg)
 {
 	gk20a_fifo_set_runlist_state(g, BIT32(tsg->runlist_id),
 			RUNLIST_ENABLED);
 
 }
 
-void gk20a_tsg_disable_sched(struct gk20a *g, struct tsg_gk20a *tsg)
+void nvgpu_tsg_disable_sched(struct gk20a *g, struct tsg_gk20a *tsg)
 {
 	gk20a_fifo_set_runlist_state(g, BIT32(tsg->runlist_id),
 			RUNLIST_DISABLED);

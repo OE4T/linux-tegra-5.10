@@ -32,7 +32,7 @@ void gk20a_tsg_enable(struct tsg_gk20a *tsg)
 	struct gk20a *g = tsg->g;
 	struct channel_gk20a *ch;
 
-	gk20a_tsg_disable_sched(g, tsg);
+	nvgpu_tsg_disable_sched(g, tsg);
 
 	/*
 	 * Due to h/w bug that exists in Maxwell and Pascal,
@@ -63,5 +63,5 @@ void gk20a_tsg_enable(struct tsg_gk20a *tsg)
 	}
 	nvgpu_rwsem_up_read(&tsg->ch_list_lock);
 
-	gk20a_tsg_enable_sched(g, tsg);
+	nvgpu_tsg_enable_sched(g, tsg);
 }
