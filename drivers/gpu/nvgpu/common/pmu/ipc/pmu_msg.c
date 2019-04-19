@@ -537,28 +537,11 @@ int nvgpu_pmu_process_message(struct nvgpu_pmu *pmu)
 	return 0;
 }
 
-void nvgpu_pmu_rpc_handler(struct gk20a *g, struct pmu_msg *msg,
-		void *param, u32 status)
+static void pmu_rpc_handler(struct gk20a *g, struct pmu_msg *msg,
+			    struct nv_pmu_rpc_header rpc,
+			    struct rpc_handler_payload *rpc_payload)
 {
-	struct nv_pmu_rpc_header rpc;
 	struct nvgpu_pmu *pmu = &g->pmu;
-	struct rpc_handler_payload *rpc_payload =
-		(struct rpc_handler_payload *)param;
-
-	if (nvgpu_can_busy(g) == 0) {
-		return ;
-	}
-
-	(void) memset(&rpc, 0, sizeof(struct nv_pmu_rpc_header));
-	nvgpu_memcpy((u8 *)&rpc, (u8 *)rpc_payload->rpc_buff,
-		sizeof(struct nv_pmu_rpc_header));
-
-	if (rpc.flcn_status != 0U) {
-		nvgpu_err(g,
-			"failed RPC response, unit-id=0x%x, func=0x%x, status=0x%x",
-			rpc.unit_id, rpc.function, rpc.flcn_status);
-		goto exit;
-	}
 
 	switch (msg->hdr.unit_id) {
 	case PMU_UNIT_ACR:
@@ -589,6 +572,31 @@ void nvgpu_pmu_rpc_handler(struct gk20a *g, struct pmu_msg *msg,
 			rpc.flcn_status);
 		break;
 	}
+}
+
+void nvgpu_pmu_rpc_handler(struct gk20a *g, struct pmu_msg *msg,
+		void *param, u32 status)
+{
+	struct nv_pmu_rpc_header rpc;
+	struct rpc_handler_payload *rpc_payload =
+		(struct rpc_handler_payload *)param;
+
+	if (nvgpu_can_busy(g) == 0) {
+		return;
+	}
+
+	(void) memset(&rpc, 0, sizeof(struct nv_pmu_rpc_header));
+	nvgpu_memcpy((u8 *)&rpc, (u8 *)rpc_payload->rpc_buff,
+		sizeof(struct nv_pmu_rpc_header));
+
+	if (rpc.flcn_status != 0U) {
+		nvgpu_err(g,
+			"failed RPC response, unit-id=0x%x, func=0x%x, status=0x%x",
+			rpc.unit_id, rpc.function, rpc.flcn_status);
+		goto exit;
+	}
+
+	pmu_rpc_handler(g, msg, rpc, rpc_payload);
 
 exit:
 	rpc_payload->complete = true;
