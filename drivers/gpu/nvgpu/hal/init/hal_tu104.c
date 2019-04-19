@@ -83,6 +83,7 @@
 #include "hal/fifo/userd_gk20a.h"
 #include "hal/fifo/userd_gv11b.h"
 #include "hal/fifo/fifo_intr_gk20a.h"
+#include "hal/fifo/fifo_intr_gv100.h"
 #include "hal/fifo/fifo_intr_gv11b.h"
 #include "hal/fifo/ctxsw_timeout_gv11b.h"
 #include "hal/gr/ecc/ecc_tu104.h"
@@ -158,7 +159,6 @@
 #include "gv11b/mm_gv11b.h"
 #include "gv11b/fifo_gv11b.h"
 
-#include "gv100/fifo_gv100.h"
 #include "gv100/gr_gv100.h"
 
 #include "tu104/mm_tu104.h"

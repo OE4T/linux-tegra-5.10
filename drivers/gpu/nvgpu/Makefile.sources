@@ -254,7 +254,6 @@ srcs += common/sim/sim.c \
 	gp106/bios_gp106.c \
 	gv100/mm_gv100.c \
 	gv100/bios_gv100.c \
-	gv100/fifo_gv100.c \
 	gv100/gr_gv100.c \
 	tu104/bios_tu104.c \
 	tu104/fbpa_tu104.c \
@@ -391,6 +390,7 @@ srcs += common/sim/sim.c \
 	hal/fifo/userd_gk20a.c \
 	hal/fifo/userd_gv11b.c \
 	hal/fifo/fifo_intr_gk20a.c \
+	hal/fifo/fifo_intr_gv100.c \
 	hal/fifo/fifo_intr_gv11b.c \
 	hal/fifo/mmu_fault_gk20a.c \
 	hal/fifo/mmu_fault_gm20b.c \

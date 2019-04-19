@@ -279,6 +279,7 @@ nvgpu-y += \
 	hal/fifo/userd_gk20a.o \
 	hal/fifo/userd_gv11b.o \
 	hal/fifo/fifo_intr_gk20a.o \
+	hal/fifo/fifo_intr_gv100.o \
 	hal/fifo/fifo_intr_gv11b.o \
 	hal/fifo/mmu_fault_gk20a.o \
 	hal/fifo/mmu_fault_gm20b.o \
@@ -564,7 +565,6 @@ nvgpu-y += \
 	gv11b/mm_gv11b.o \
 	gv100/mm_gv100.o \
 	gv100/bios_gv100.o \
-	gv100/fifo_gv100.o \
 	gv100/gr_gv100.o \
 	tu104/mm_tu104.o \
 	tu104/fifo_tu104.o \

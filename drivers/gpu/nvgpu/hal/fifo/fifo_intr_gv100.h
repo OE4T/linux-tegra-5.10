@@ -1,6 +1,4 @@
 /*
- * GV100 Fifo
- *
  * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
@@ -22,12 +20,13 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef FIFO_GV100_H
-#define FIFO_GV100_H
+#ifndef NVGPU_FIFO_INTR_GV100_H
+#define NVGPU_FIFO_INTR_GV100_H
 
 #include <nvgpu/types.h>
 struct gk20a;
 
 void gv100_fifo_intr_set_recover_mask(struct gk20a *g);
 void gv100_fifo_intr_unset_recover_mask(struct gk20a *g);
-#endif
+
+#endif /* NVGPU_FIFO_INTR_GV100_H */

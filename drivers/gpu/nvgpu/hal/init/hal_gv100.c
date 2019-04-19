@@ -80,6 +80,7 @@
 #include "hal/fifo/userd_gv11b.h"
 #include "hal/fifo/usermode_gv11b.h"
 #include "hal/fifo/fifo_intr_gk20a.h"
+#include "hal/fifo/fifo_intr_gv100.h"
 #include "hal/fifo/fifo_intr_gv11b.h"
 #include "hal/fifo/ctxsw_timeout_gk20a.h"
 #include "hal/gr/fecs_trace/fecs_trace_gm20b.h"
@@ -146,7 +147,6 @@
 
 #include "hal_gv100.h"
 #include "gv100/bios_gv100.h"
-#include "gv100/fifo_gv100.h"
 #include "gv100/gr_gv100.h"
 #include "gv100/mm_gv100.h"
 #include "hal/clk/clk_gv100.h"
