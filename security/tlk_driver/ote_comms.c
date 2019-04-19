@@ -180,6 +180,7 @@ static void do_smc(struct te_request *request, struct tlk_device *dev)
 	 * Propagate the error code to NS user-app in case of such scenario.
 	 */
 	if ((retval != OTE_SUCCESS) && (request->result == OTE_SUCCESS)) {
+		pr_err("%s: overriding result_origin field\n", __func__);
 		request->result = retval;
 		request->result_origin = OTE_RESULT_ORIGIN_KERNEL;
 	}
