@@ -158,10 +158,6 @@ srcs += common/sim/sim.c \
 	common/sync/channel_sync.c \
 	common/sync/channel_sync_syncpt.c \
 	common/sync/channel_sync_semaphore.c \
-	common/sync/syncpt_cmdbuf_gk20a.c \
-	common/sync/syncpt_cmdbuf_gv11b.c \
-	common/sync/sema_cmdbuf_gk20a.c \
-	common/sync/sema_cmdbuf_gv11b.c \
 	common/semaphore/semaphore_sea.c \
 	common/semaphore/semaphore_pool.c \
 	common/semaphore/semaphore_hw.c \
@@ -412,6 +408,10 @@ srcs += common/sim/sim.c \
 	hal/gsp/gsp_gv100.c \
 	hal/sec2/sec2_gp106.c \
 	hal/sec2/sec2_tu104.c \
+	hal/sync/sema_cmdbuf_gk20a.c \
+	hal/sync/sema_cmdbuf_gv11b.c \
+	hal/sync/syncpt_cmdbuf_gk20a.c \
+	hal/sync/syncpt_cmdbuf_gv11b.c \
 	hal/pmu/pmu_gk20a.c \
 	hal/pmu/pmu_gm20b.c \
 	hal/pmu/pmu_gp10b.c \

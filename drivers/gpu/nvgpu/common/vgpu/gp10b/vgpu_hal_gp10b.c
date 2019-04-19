@@ -59,6 +59,8 @@
 #include "hal/gr/ctxsw_prog/ctxsw_prog_gp10b.h"
 #include "hal/netlist/netlist_gp10b.h"
 #include "hal/perf/perf_gm20b.h"
+#include "hal/sync/syncpt_cmdbuf_gk20a.h"
+#include "hal/sync/sema_cmdbuf_gk20a.h"
 #include "hal/init/hal_gp10b.h"
 
 #include "common/fifo/channel_gm20b.h"
@@ -80,9 +82,6 @@
 #include "common/vgpu/ptimer/ptimer_vgpu.h"
 #include "common/vgpu/init/init_vgpu.h"
 #include "vgpu_hal_gp10b.h"
-
-#include "common/sync/syncpt_cmdbuf_gk20a.h"
-#include "common/sync/sema_cmdbuf_gk20a.h"
 
 #include "gp10b/mm_gp10b.h"
 #include "gp10b/gr_gp10b.h"

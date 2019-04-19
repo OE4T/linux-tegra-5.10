@@ -112,6 +112,8 @@
 #include "hal/gsp/gsp_gv100.h"
 #include "hal/perf/perf_gv11b.h"
 #include "hal/sec2/sec2_gp106.h"
+#include "hal/sync/syncpt_cmdbuf_gv11b.h"
+#include "hal/sync/sema_cmdbuf_gv11b.h"
 #include "hal/netlist/netlist_gv100.h"
 
 #include "common/xve/xve_gp106.h"
@@ -125,8 +127,6 @@
 #include "hal/nvlink/link_mode_transitions_gv100.h"
 #include "common/nvlink/nvlink_gv100.h"
 #include "common/pmu/perf/perf_gv100.h"
-#include "common/sync/syncpt_cmdbuf_gv11b.h"
-#include "common/sync/sema_cmdbuf_gv11b.h"
 #include "common/fifo/channel_gk20a.h"
 #include "common/fifo/channel_gm20b.h"
 #include "common/fifo/channel_gv11b.h"

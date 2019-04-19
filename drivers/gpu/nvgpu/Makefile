@@ -45,8 +45,6 @@ nvgpu-y += \
 	common/mc/mc.o \
 	common/sync/channel_sync.o \
 	common/sync/channel_sync_semaphore.o \
-	common/sync/sema_cmdbuf_gk20a.o \
-	common/sync/sema_cmdbuf_gv11b.o \
 	common/semaphore/semaphore_sea.o \
 	common/semaphore/semaphore_pool.o \
 	common/semaphore/semaphore_hw.o \
@@ -301,6 +299,8 @@ nvgpu-y += \
 	hal/gsp/gsp_gv100.o \
 	hal/sec2/sec2_gp106.o \
 	hal/sec2/sec2_tu104.o \
+	hal/sync/sema_cmdbuf_gk20a.o \
+	hal/sync/sema_cmdbuf_gv11b.o \
 	hal/pmu/pmu_gk20a.o \
 	hal/pmu/pmu_gm20b.o \
 	hal/pmu/pmu_gp10b.o \
@@ -414,8 +414,8 @@ nvgpu-$(CONFIG_GK20A_PCI) += \
 
 nvgpu-$(CONFIG_TEGRA_GK20A_NVHOST) += \
 	os/linux/nvhost.o \
-	common/sync/syncpt_cmdbuf_gk20a.o \
-	common/sync/syncpt_cmdbuf_gv11b.o
+	hal/sync/syncpt_cmdbuf_gk20a.o \
+	hal/sync/syncpt_cmdbuf_gv11b.o
 
 nvgpu-$(CONFIG_TEGRA_GR_VIRTUALIZATION) += \
 	os/linux/vgpu/platform_vgpu_tegra.o \
