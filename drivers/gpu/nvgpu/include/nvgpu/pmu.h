@@ -95,13 +95,16 @@ struct pmu_rpc_desc {
 	u16 size_scratch;
 };
 
+struct pmu_in_out_payload_desc {
+	void *buf;
+	u32 offset;
+	u32 size;
+	u32 fb_size;
+};
+
 struct pmu_payload {
-	struct {
-		void *buf;
-		u32 offset;
-		u32 size;
-		u32 fb_size;
-	} in, out;
+	struct pmu_in_out_payload_desc in;
+	struct pmu_in_out_payload_desc out;
 	struct pmu_rpc_desc rpc;
 };
 

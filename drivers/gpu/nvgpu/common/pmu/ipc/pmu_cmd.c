@@ -37,17 +37,60 @@
 #include <nvgpu/pmu/fw.h>
 #include <nvgpu/pmu/allocator.h>
 
+static bool pmu_validate_in_out_payload(struct nvgpu_pmu *pmu, struct pmu_cmd *cmd,
+					struct pmu_in_out_payload_desc *payload)
+{
+	u32 size;
+
+	if (payload->offset != 0U && payload->buf == NULL) {
+		return false;
+	}
+
+	if (payload->buf == NULL) {
+		return true;
+	}
+
+	if (payload->size == 0U) {
+		return false;
+	}
+
+	size = PMU_CMD_HDR_SIZE;
+	size += payload->offset;
+	size += pmu->fw.ops.get_allocation_struct_size(pmu);
+
+	if (size > cmd->hdr.size) {
+		return false;
+	}
+
+	return true;
+}
+
+static bool pmu_validate_rpc_payload(struct pmu_payload *payload)
+{
+	if (payload->rpc.prpc == NULL) {
+		return true;
+	}
+
+	if (payload->rpc.size_rpc == 0U) {
+		goto invalid_cmd;
+	}
+
+	return true;
+
+invalid_cmd:
+
+	return false;
+}
+
 static bool pmu_validate_cmd(struct nvgpu_pmu *pmu, struct pmu_cmd *cmd,
 			struct pmu_payload *payload, u32 queue_id)
 {
 	struct gk20a *g = gk20a_from_pmu(pmu);
 	u32 queue_size;
-	u32 in_size, out_size;
 
 	if (!PMU_IS_SW_COMMAND_QUEUE(queue_id)) {
 		goto invalid_cmd;
 	}
-
 
 	if (cmd->hdr.size < PMU_CMD_HDR_SIZE) {
 		goto invalid_cmd;
@@ -72,31 +115,15 @@ static bool pmu_validate_cmd(struct nvgpu_pmu *pmu, struct pmu_cmd *cmd,
 		goto invalid_cmd;
 	}
 
-	if ((payload->in.buf != NULL && payload->in.size == 0U) ||
-	    (payload->out.buf != NULL && payload->out.size == 0U) ||
-		(payload->rpc.prpc != NULL && payload->rpc.size_rpc == 0U)) {
+	if (!pmu_validate_in_out_payload(pmu, cmd, &payload->in)) {
 		goto invalid_cmd;
 	}
 
-	in_size = PMU_CMD_HDR_SIZE;
-	if (payload->in.buf != NULL) {
-		in_size += payload->in.offset;
-		in_size += pmu->fw.ops.get_allocation_struct_size(pmu);
-	}
-
-	out_size = PMU_CMD_HDR_SIZE;
-	if (payload->out.buf != NULL) {
-		out_size += payload->out.offset;
-		out_size += pmu->fw.ops.get_allocation_struct_size(pmu);
-	}
-
-	if (in_size > cmd->hdr.size || out_size > cmd->hdr.size) {
+	if (!pmu_validate_in_out_payload(pmu, cmd, &payload->out)) {
 		goto invalid_cmd;
 	}
 
-
-	if ((payload->in.offset != 0U && payload->in.buf == NULL) ||
-	    (payload->out.offset != 0U && payload->out.buf == NULL)) {
+	if (!pmu_validate_rpc_payload(payload)) {
 		goto invalid_cmd;
 	}
 
