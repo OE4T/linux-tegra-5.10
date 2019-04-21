@@ -273,7 +273,7 @@ clean_up:
 	return err;
 }
 
-static int pmu_cmd_payload_setup(struct gk20a *g, struct pmu_cmd *cmd,
+static int pmu_cmd_in_payload_setup(struct gk20a *g, struct pmu_cmd *cmd,
 	struct pmu_payload *payload, struct pmu_sequence *seq)
 {
 	struct nvgpu_engine_fb_queue *fb_queue =
@@ -281,15 +281,9 @@ static int pmu_cmd_payload_setup(struct gk20a *g, struct pmu_cmd *cmd,
 	struct pmu_fw_ver_ops *fw_ops = &g->pmu.fw.ops;
 	struct falcon_payload_alloc alloc;
 	struct nvgpu_pmu *pmu = &g->pmu;
-	void *in = NULL, *out = NULL;
+	void *in = NULL;
 	int err = 0;
 	u32 offset;
-
-	nvgpu_log_fn(g, " ");
-
-	if (payload != NULL) {
-		nvgpu_pmu_seq_set_out_payload(seq, payload->out.buf);
-	}
 
 	memset(&alloc, 0, sizeof(struct falcon_payload_alloc));
 
@@ -313,7 +307,7 @@ static int pmu_cmd_payload_setup(struct gk20a *g, struct pmu_cmd *cmd,
 
 		err = pmu_payload_allocate(g, seq, &alloc);
 		if (err != 0) {
-			goto clean_up;
+			return err;
 		}
 
 		*(fw_ops->allocation_get_dmem_offset_addr(pmu, in)) =
@@ -368,6 +362,20 @@ static int pmu_cmd_payload_setup(struct gk20a *g, struct pmu_cmd *cmd,
 			fw_ops->allocation_get_dmem_offset(pmu, in));
 	}
 
+	return 0;
+}
+
+static int pmu_cmd_out_payload_setup(struct gk20a *g, struct pmu_cmd *cmd,
+	struct pmu_payload *payload, struct pmu_sequence *seq)
+{
+	struct pmu_fw_ver_ops *fw_ops = &g->pmu.fw.ops;
+	struct falcon_payload_alloc alloc;
+	struct nvgpu_pmu *pmu = &g->pmu;
+	void *in = NULL, *out = NULL;
+	int err = 0;
+
+	memset(&alloc, 0, sizeof(struct falcon_payload_alloc));
+
 	if (payload != NULL && payload->out.offset != 0U) {
 		fw_ops->set_allocation_ptr(pmu, &out,
 			((u8 *)&cmd->cmd + payload->out.offset));
@@ -384,14 +392,17 @@ static int pmu_cmd_payload_setup(struct gk20a *g, struct pmu_cmd *cmd,
 
 			err = pmu_payload_allocate(g, seq, &alloc);
 			if (err != 0) {
-				goto clean_up;
+				return err;
 			}
 
 			*(fw_ops->allocation_get_dmem_offset_addr(pmu,
 				out)) = alloc.dmem_offset;
 			nvgpu_pmu_seq_set_out_mem(seq, alloc.fb_surface);
 		} else {
-			WARN_ON(in == NULL);
+			WARN_ON(payload->in.offset == 0U);
+
+			fw_ops->set_allocation_ptr(pmu, &in,
+				((u8 *)&cmd->cmd + payload->in.offset));
 			nvgpu_pmu_seq_set_out_mem(seq,
 						nvgpu_pmu_seq_get_in_mem(seq));
 			fw_ops->allocation_set_dmem_offset(pmu, out,
@@ -425,19 +436,48 @@ static int pmu_cmd_payload_setup(struct gk20a *g, struct pmu_cmd *cmd,
 			fw_ops->allocation_get_dmem_offset(pmu, out));
 	}
 
+	return 0;
+}
+
+static int pmu_cmd_payload_setup(struct gk20a *g, struct pmu_cmd *cmd,
+	struct pmu_payload *payload, struct pmu_sequence *seq)
+{
+	struct pmu_fw_ver_ops *fw_ops = &g->pmu.fw.ops;
+	struct nvgpu_pmu *pmu = &g->pmu;
+	void *in = NULL;
+	int err = 0;
+
+	nvgpu_log_fn(g, " ");
+
+	if (payload != NULL) {
+		nvgpu_pmu_seq_set_out_payload(seq, payload->out.buf);
+	}
+
+	err = pmu_cmd_in_payload_setup(g, cmd, payload, seq);
+	if (err != 0) {
+		goto exit;
+	}
+
+	err = pmu_cmd_out_payload_setup(g, cmd, payload, seq);
+	if (err != 0) {
+		goto clean_up;
+	}
+
+	goto exit;
+
 clean_up:
+	if (payload->in.offset != 0U) {
+		fw_ops->set_allocation_ptr(pmu, &in,
+			((u8 *)&cmd->cmd + payload->in.offset));
+
+		nvgpu_free(&pmu->dmem,
+			fw_ops->allocation_get_dmem_offset(pmu,
+				in));
+	}
+
+exit:
 	if (err != 0) {
 		nvgpu_log_fn(g, "fail");
-		if (in != NULL) {
-			nvgpu_free(&pmu->dmem,
-				fw_ops->allocation_get_dmem_offset(pmu,
-					in));
-		}
-		if (out != NULL) {
-			nvgpu_free(&pmu->dmem,
-				fw_ops->allocation_get_dmem_offset(pmu,
-					out));
-		}
 	} else {
 		nvgpu_log_fn(g, "done");
 	}
