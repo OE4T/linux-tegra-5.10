@@ -34,6 +34,32 @@
 #include "engine_dmem_queue.h"
 #include "engine_emem_queue.h"
 
+static int mem_queue_get_head_tail(struct nvgpu_engine_mem_queue *queue,
+				   u32 *q_head, u32 *q_tail)
+{
+	int err = 0;
+
+	err = queue->head(queue->g, queue->id, queue->index,
+			  q_head, QUEUE_GET);
+	if (err != 0) {
+		nvgpu_err(queue->g, "flcn-%d, queue-%d, head GET failed",
+			  queue->flcn_id, queue->id);
+		goto exit;
+	}
+
+	err = queue->tail(queue->g, queue->id, queue->index,
+			  q_tail, QUEUE_GET);
+	if (err != 0) {
+		nvgpu_err(queue->g, "flcn-%d, queue-%d, tail GET failed",
+			  queue->flcn_id, queue->id);
+		goto exit;
+	}
+
+	return 0;
+exit:
+	return err;
+}
+
 /* common falcon queue ops */
 static bool engine_mem_queue_has_room(struct nvgpu_engine_mem_queue *queue,
 			u32 size, bool *need_rewind)
@@ -46,17 +72,8 @@ static bool engine_mem_queue_has_room(struct nvgpu_engine_mem_queue *queue,
 
 	size = ALIGN(size, QUEUE_ALIGNMENT);
 
-	err = queue->head(queue->g, queue->id, queue->index,
-			  &q_head, QUEUE_GET);
+	err = mem_queue_get_head_tail(queue, &q_head, &q_tail);
 	if (err != 0) {
-		nvgpu_err(queue->g, "queue head GET failed");
-		goto exit;
-	}
-
-	err = queue->tail(queue->g, queue->id, queue->index,
-			  &q_tail, QUEUE_GET);
-	if (err != 0) {
-		nvgpu_err(queue->g, "queue tail GET failed");
 		goto exit;
 	}
 
@@ -234,18 +251,8 @@ int nvgpu_engine_mem_queue_pop(struct nvgpu_falcon *flcn,
 	/* acquire mutex */
 	nvgpu_mutex_acquire(&queue->mutex);
 
-	err = queue->head(g, queue->id, queue->index, &q_head, QUEUE_GET);
+	err = mem_queue_get_head_tail(queue, &q_head, &queue->position);
 	if (err != 0) {
-		nvgpu_err(g, "flcn-%d, queue-%d, head GET failed",
-			queue->flcn_id, queue->id);
-		goto unlock_mutex;
-	}
-
-	err = queue->tail(g, queue->id, queue->index,
-			  &queue->position, QUEUE_GET);
-	if (err != 0) {
-		nvgpu_err(g, "flcn-%d queue-%d, position GET failed",
-			queue->flcn_id, queue->id);
 		goto unlock_mutex;
 	}
 
@@ -313,7 +320,6 @@ int nvgpu_engine_mem_queue_rewind(struct nvgpu_falcon *flcn,
 /* queue is_empty check with lock */
 bool nvgpu_engine_mem_queue_is_empty(struct nvgpu_engine_mem_queue *queue)
 {
-	struct gk20a *g;
 	u32 q_head = 0;
 	u32 q_tail = 0;
 	int err = 0;
@@ -322,22 +328,11 @@ bool nvgpu_engine_mem_queue_is_empty(struct nvgpu_engine_mem_queue *queue)
 		return true;
 	}
 
-	g = queue->g;
-
 	/* acquire mutex */
 	nvgpu_mutex_acquire(&queue->mutex);
 
-	err = queue->head(g, queue->id, queue->index, &q_head, QUEUE_GET);
+	err = mem_queue_get_head_tail(queue, &q_head, &q_tail);
 	if (err != 0) {
-		nvgpu_err(g, "flcn-%d queue-%d, head GET failed",
-			queue->flcn_id, queue->id);
-		goto exit;
-	}
-
-	err = queue->tail(g, queue->id, queue->index, &q_tail, QUEUE_GET);
-	if (err != 0) {
-		nvgpu_err(g, "flcn-%d queue-%d, tail GET failed",
-			queue->flcn_id, queue->id);
 		goto exit;
 	}
 
