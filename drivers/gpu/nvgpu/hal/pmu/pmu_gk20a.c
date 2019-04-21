@@ -487,35 +487,11 @@ bool gk20a_pmu_is_interrupted(struct nvgpu_pmu *pmu)
 	return false;
 }
 
-void gk20a_pmu_isr(struct gk20a *g)
+static void gk20a_pmu_handle_interrupts(struct gk20a *g, u32 intr)
 {
 	struct nvgpu_pmu *pmu = &g->pmu;
-	u32 intr, mask;
 	bool recheck = false;
 	int err = 0;
-
-	nvgpu_log_fn(g, " ");
-
-	nvgpu_mutex_acquire(&pmu->isr_mutex);
-	if (!pmu->isr_enabled) {
-		nvgpu_mutex_release(&pmu->isr_mutex);
-		return;
-	}
-
-	mask = gk20a_readl(g, pwr_falcon_irqmask_r()) &
-		gk20a_readl(g, pwr_falcon_irqdest_r());
-
-	intr = gk20a_readl(g, pwr_falcon_irqstat_r());
-
-	nvgpu_pmu_dbg(g, "received falcon interrupt: 0x%08x", intr);
-
-	intr = gk20a_readl(g, pwr_falcon_irqstat_r()) & mask;
-	if ((intr == 0U) || (nvgpu_pmu_get_fw_state(g, pmu)
-		== PMU_FW_STATE_OFF)) {
-		gk20a_writel(g, pwr_falcon_irqsclr_r(), intr);
-		nvgpu_mutex_release(&pmu->isr_mutex);
-		return;
-	}
 
 	if ((intr & pwr_falcon_irqstat_halt_true_f()) != 0U) {
 		nvgpu_err(g, "pmu halt intr not implemented");
@@ -560,8 +536,64 @@ void gk20a_pmu_isr(struct gk20a *g)
 				pwr_falcon_irqsset_swgen0_set_f());
 		}
 	}
+}
+
+void gk20a_pmu_isr(struct gk20a *g)
+{
+	struct nvgpu_pmu *pmu = &g->pmu;
+	u32 intr, mask;
+
+	nvgpu_log_fn(g, " ");
+
+	nvgpu_mutex_acquire(&pmu->isr_mutex);
+	if (!pmu->isr_enabled) {
+		nvgpu_mutex_release(&pmu->isr_mutex);
+		return;
+	}
+
+	mask = gk20a_readl(g, pwr_falcon_irqmask_r()) &
+		gk20a_readl(g, pwr_falcon_irqdest_r());
+
+	intr = gk20a_readl(g, pwr_falcon_irqstat_r());
+
+	nvgpu_pmu_dbg(g, "received falcon interrupt: 0x%08x", intr);
+
+	intr = gk20a_readl(g, pwr_falcon_irqstat_r()) & mask;
+	if ((intr == 0U) || (nvgpu_pmu_get_fw_state(g, pmu)
+		== PMU_FW_STATE_OFF)) {
+		gk20a_writel(g, pwr_falcon_irqsclr_r(), intr);
+		nvgpu_mutex_release(&pmu->isr_mutex);
+		return;
+	}
+
+	gk20a_pmu_handle_interrupts(g, intr);
 
 	nvgpu_mutex_release(&pmu->isr_mutex);
+}
+
+static u32 pmu_bar0_host_tout_etype(u32 val)
+{
+	return (val != 0U) ? PMU_BAR0_HOST_WRITE_TOUT : PMU_BAR0_HOST_READ_TOUT;
+}
+
+static u32 pmu_bar0_fecs_tout_etype(u32 val)
+{
+	return (val != 0U) ? PMU_BAR0_FECS_WRITE_TOUT : PMU_BAR0_FECS_READ_TOUT;
+}
+
+static u32 pmu_bar0_cmd_hwerr_etype(u32 val)
+{
+	return (val != 0U) ? PMU_BAR0_CMD_WRITE_HWERR : PMU_BAR0_CMD_READ_HWERR;
+}
+
+static u32 pmu_bar0_fecserr_etype(u32 val)
+{
+	return (val != 0U) ? PMU_BAR0_WRITE_FECSERR : PMU_BAR0_READ_FECSERR;
+}
+
+static u32 pmu_bar0_hosterr_etype(u32 val)
+{
+	return (val != 0U) ? PMU_BAR0_WRITE_HOSTERR : PMU_BAR0_READ_HOSTERR;
 }
 
 /* error handler */
@@ -570,6 +602,7 @@ int gk20a_pmu_bar0_error_status(struct gk20a *g, u32 *bar0_status,
 {
 	u32 val = 0;
 	u32 err_status = 0;
+	u32 err_cmd = 0;
 
 	val = gk20a_readl(g, pwr_pmu_bar0_error_status_r());
 	*bar0_status = val;
@@ -577,18 +610,16 @@ int gk20a_pmu_bar0_error_status(struct gk20a *g, u32 *bar0_status,
 		return 0;
 	}
 
+	err_cmd = val & pwr_pmu_bar0_error_status_err_cmd_m();
+
 	if ((val & pwr_pmu_bar0_error_status_timeout_host_m()) != 0U) {
-		*etype = ((val & pwr_pmu_bar0_error_status_err_cmd_m()) != 0U)
-			? PMU_BAR0_HOST_WRITE_TOUT : PMU_BAR0_HOST_READ_TOUT;
+		*etype = pmu_bar0_host_tout_etype(err_cmd);
 	} else if ((val & pwr_pmu_bar0_error_status_timeout_fecs_m()) != 0U) {
-		*etype = ((val & pwr_pmu_bar0_error_status_err_cmd_m()) != 0U)
-			? PMU_BAR0_FECS_WRITE_TOUT : PMU_BAR0_FECS_READ_TOUT;
+		*etype = pmu_bar0_fecs_tout_etype(err_cmd);
 	} else if ((val & pwr_pmu_bar0_error_status_cmd_hwerr_m()) != 0U) {
-		*etype = ((val & pwr_pmu_bar0_error_status_err_cmd_m()) != 0U)
-			? PMU_BAR0_CMD_WRITE_HWERR : PMU_BAR0_CMD_READ_HWERR;
+		*etype = pmu_bar0_cmd_hwerr_etype(err_cmd);
 	} else if ((val & pwr_pmu_bar0_error_status_fecserr_m()) != 0U) {
-		*etype = ((val & pwr_pmu_bar0_error_status_err_cmd_m()) != 0U)
-			? PMU_BAR0_WRITE_FECSERR : PMU_BAR0_READ_FECSERR;
+		*etype = pmu_bar0_fecserr_etype(err_cmd);
 		err_status = gk20a_readl(g, pwr_pmu_bar0_fecs_error_r());
 		/*
 		 * BAR0_FECS_ERROR would only record the first error code if
@@ -598,8 +629,7 @@ int gk20a_pmu_bar0_error_status(struct gk20a *g, u32 *bar0_status,
 		 */
 		gk20a_writel(g, pwr_pmu_bar0_fecs_error_r(), err_status);
 	} else if ((val & pwr_pmu_bar0_error_status_hosterr_m()) != 0U) {
-		*etype = ((val & pwr_pmu_bar0_error_status_err_cmd_m()) != 0U)
-			? PMU_BAR0_WRITE_HOSTERR : PMU_BAR0_READ_HOSTERR;
+		*etype = pmu_bar0_hosterr_etype(err_cmd);
 		/*
 		 * BAR0_HOST_ERROR would only record the first error code if
 		 * multiple HOST error happen. Once BAR0_HOST_ERROR is cleared,
