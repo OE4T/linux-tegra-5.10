@@ -88,6 +88,11 @@ static bool pmu_validate_cmd(struct nvgpu_pmu *pmu, struct pmu_cmd *cmd,
 	struct gk20a *g = gk20a_from_pmu(pmu);
 	u32 queue_size;
 
+	if (cmd == NULL) {
+		nvgpu_err(g, "PMU cmd buffer is NULL");
+		return false;
+	}
+
 	if (!PMU_IS_SW_COMMAND_QUEUE(queue_id)) {
 		goto invalid_cmd;
 	}
@@ -586,14 +591,8 @@ int nvgpu_pmu_cmd_post(struct gk20a *g, struct pmu_cmd *cmd,
 
 	nvgpu_log_fn(g, " ");
 
-	if (cmd == NULL || !nvgpu_pmu_get_fw_ready(g, pmu)) {
-		if (cmd == NULL) {
-			nvgpu_warn(g, "%s(): PMU cmd buffer is NULL", __func__);
-		} else {
-			nvgpu_warn(g, "%s(): PMU is not ready", __func__);
-		}
-
-		WARN_ON(true);
+	if (!nvgpu_pmu_get_fw_ready(g, pmu)) {
+		nvgpu_warn(g, "PMU is not ready");
 		return -EINVAL;
 	}
 
@@ -748,7 +747,7 @@ int nvgpu_pmu_rpc_execute(struct nvgpu_pmu *pmu, struct nv_pmu_rpc_header *rpc,
 	if (status != 0) {
 		nvgpu_err(g, "Failed to execute RPC status=0x%x, func=0x%x",
 				status, rpc->function);
-		goto exit;
+		goto cleanup;
 	}
 
 	/*
@@ -766,12 +765,10 @@ int nvgpu_pmu_rpc_execute(struct nvgpu_pmu *pmu, struct nv_pmu_rpc_header *rpc,
 		nvgpu_kfree(g, rpc_payload);
 	}
 
-exit:
-	if (status != 0) {
-		if (rpc_payload != NULL) {
-			nvgpu_kfree(g, rpc_payload);
-		}
-	}
+	return 0;
 
+cleanup:
+	nvgpu_kfree(g, rpc_payload);
+exit:
 	return status;
 }
