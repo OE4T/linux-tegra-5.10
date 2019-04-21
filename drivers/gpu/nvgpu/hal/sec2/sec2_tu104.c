@@ -50,19 +50,12 @@ int tu104_sec2_reset(struct gk20a *g)
 	return 0;
 }
 
-static int tu104_sec2_emem_transfer(struct gk20a *g, u32 dmem_addr, u8 *buf,
-	u32 size_in_bytes, u8 port, bool is_copy_from)
+static int sec2_memcpy_params_check(struct gk20a *g, u32 dmem_addr,
+				    u32 size_in_bytes, u8 port)
 {
-	u32 *data = (u32 *)(void *)buf;
-	u32 num_words = 0;
-	u32 num_bytes = 0;
+	u8 max_emem_ports = (u8)psec_ememc__size_1_v();
 	u32 start_emem = 0;
 	u32 end_emem = 0;
-	u32 reg = 0;
-	u32 i = 0;
-	u32 emem_c_offset = 0;
-	u32 emem_d_offset = 0;
-	u8 max_emem_ports = (u8)psec_ememc__size_1_v();
 	int status = 0;
 
 	if (size_in_bytes == 0U) {
@@ -85,13 +78,6 @@ static int tu104_sec2_emem_transfer(struct gk20a *g, u32 dmem_addr, u8 *buf,
 	}
 
 	/*
-	 * Get the EMEMC/D register addresses
-	 * for the specified port
-	 */
-	emem_c_offset = psec_ememc_r(port);
-	emem_d_offset = psec_ememd_r(port);
-
-	/*
 	 * EMEM is mapped at the top of DMEM VA space
 	 * START_EMEM = DMEM_VA_MAX = 2^(DMEM_TAG_WIDTH + 8)
 	 */
@@ -109,6 +95,44 @@ static int tu104_sec2_emem_transfer(struct gk20a *g, u32 dmem_addr, u8 *buf,
 		status = -EINVAL;
 		goto exit;
 	}
+
+	return 0;
+
+exit:
+	return status;
+}
+
+static int tu104_sec2_emem_transfer(struct gk20a *g, u32 dmem_addr, u8 *buf,
+	u32 size_in_bytes, u8 port, bool is_copy_from)
+{
+	u32 *data = (u32 *)(void *)buf;
+	u32 num_words = 0;
+	u32 num_bytes = 0;
+	u32 start_emem = 0;
+	u32 reg = 0;
+	u32 i = 0;
+	u32 emem_c_offset = 0;
+	u32 emem_d_offset = 0;
+	int status = 0;
+
+	status = sec2_memcpy_params_check(g, dmem_addr, size_in_bytes, port);
+	if (status != 0) {
+		goto exit;
+	}
+
+	/*
+	 * Get the EMEMC/D register addresses
+	 * for the specified port
+	 */
+	emem_c_offset = psec_ememc_r(port);
+	emem_d_offset = psec_ememd_r(port);
+
+	/*
+	 * EMEM is mapped at the top of DMEM VA space
+	 * START_EMEM = DMEM_VA_MAX = 2^(DMEM_TAG_WIDTH + 8)
+	 */
+	start_emem = (u32)1U << ((u32)psec_falcon_hwcfg1_dmem_tag_width_v(
+			gk20a_readl(g, psec_falcon_hwcfg1_r())) + (u32)8U);
 
 	/* Convert to emem offset for use by EMEMC/EMEMD */
 	dmem_addr -= start_emem;
