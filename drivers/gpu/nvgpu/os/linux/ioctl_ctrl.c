@@ -689,17 +689,16 @@ static int nvgpu_gpu_ioctl_wait_for_pause(struct gk20a *g,
 	int err;
 	struct warpstate *ioctl_w_state;
 	struct nvgpu_warpstate *w_state = NULL;
-	u32 sm_count, ioctl_size, size, sm_id, no_of_sm;
+	u32 ioctl_size, size, sm_id, no_of_sm;
 
-	sm_count = nvgpu_gr_config_get_gpc_count(g->gr->config) *
-		   nvgpu_gr_config_get_tpc_count(g->gr->config);
+	no_of_sm = nvgpu_gr_config_get_no_of_sm(g->gr->config);
 
-	ioctl_size = sm_count * sizeof(struct warpstate);
+	ioctl_size = no_of_sm * sizeof(struct warpstate);
 	ioctl_w_state = nvgpu_kzalloc(g, ioctl_size);
 	if (!ioctl_w_state)
 		return -ENOMEM;
 
-	size = sm_count * sizeof(struct nvgpu_warpstate);
+	size = no_of_sm * sizeof(struct nvgpu_warpstate);
 	w_state = nvgpu_kzalloc(g, size);
 	if (!w_state) {
 		err = -ENOMEM;
@@ -712,8 +711,6 @@ static int nvgpu_gpu_ioctl_wait_for_pause(struct gk20a *g,
 
 	nvgpu_mutex_acquire(&g->dbg_sessions_lock);
 	g->ops.gr.wait_for_pause(g, w_state);
-
-	no_of_sm = nvgpu_gr_config_get_no_of_sm(g->gr->config);
 
 	for (sm_id = 0; sm_id < no_of_sm; sm_id++) {
 		ioctl_w_state[sm_id].valid_warps[0] =
