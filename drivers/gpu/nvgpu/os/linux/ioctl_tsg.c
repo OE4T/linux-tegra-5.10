@@ -182,7 +182,8 @@ static int gk20a_tsg_get_event_data_from_id(struct tsg_gk20a *tsg,
  * Convert common event_id of the form NVGPU_EVENT_ID_* to Linux specific
  * event_id of the form NVGPU_IOCTL_CHANNEL_EVENT_ID_* which is used in IOCTLs
  */
-static u32 nvgpu_event_id_to_ioctl_channel_event_id(u32 event_id)
+static u32 nvgpu_event_id_to_ioctl_channel_event_id(
+					enum nvgpu_event_id_type event_id)
 {
 	switch (event_id) {
 	case NVGPU_EVENT_ID_BPT_INT:
@@ -197,13 +198,15 @@ static u32 nvgpu_event_id_to_ioctl_channel_event_id(u32 event_id)
 		return NVGPU_IOCTL_CHANNEL_EVENT_ID_CILP_PREEMPTION_COMPLETE;
 	case NVGPU_EVENT_ID_GR_SEMAPHORE_WRITE_AWAKEN:
 		return NVGPU_IOCTL_CHANNEL_EVENT_ID_GR_SEMAPHORE_WRITE_AWAKEN;
+	case NVGPU_EVENT_ID_MAX:
+		return NVGPU_IOCTL_CHANNEL_EVENT_ID_MAX;
 	}
 
 	return NVGPU_IOCTL_CHANNEL_EVENT_ID_MAX;
 }
 
 void nvgpu_tsg_post_event_id(struct tsg_gk20a *tsg,
-				       int event_id)
+			     enum nvgpu_event_id_type event_id)
 {
 	struct gk20a_event_id_data *channel_event_id_data;
 	u32 channel_event_id;

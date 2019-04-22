@@ -21,8 +21,9 @@
  */
 
 #include <nvgpu/tsg.h>
+#include <nvgpu/gk20a.h>
 
 void nvgpu_tsg_post_event_id(struct tsg_gk20a *tsg,
-				       int event_id)
+			     enum nvgpu_event_id_type event_id)
 {
 }

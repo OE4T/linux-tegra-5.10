@@ -43,22 +43,6 @@ struct nvgpu_dbg_reg_op;
 
 enum ctxsw_addr_type;
 
-enum {
-	ELCG_MODE = (1 << 0),
-	BLCG_MODE = (1 << 1),
-	INVALID_MODE = (1 << 2)
-};
-
-enum {
-	NVGPU_EVENT_ID_BPT_INT = 0U,
-	NVGPU_EVENT_ID_BPT_PAUSE = 1U,
-	NVGPU_EVENT_ID_BLOCKING_SYNC = 2U,
-	NVGPU_EVENT_ID_CILP_PREEMPTION_STARTED = 3U,
-	NVGPU_EVENT_ID_CILP_PREEMPTION_COMPLETE = 4U,
-	NVGPU_EVENT_ID_GR_SEMAPHORE_WRITE_AWAKEN = 5U,
-	NVGPU_EVENT_ID_MAX = 6U,
-};
-
 #if defined(CONFIG_GK20A_CYCLE_STATS)
 struct gk20a_cs_snapshot_client;
 struct gk20a_cs_snapshot;

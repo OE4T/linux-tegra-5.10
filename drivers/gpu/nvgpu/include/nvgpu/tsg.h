@@ -35,6 +35,8 @@ struct channel_gk20a;
 struct nvgpu_gr_ctx;
 struct nvgpu_channel_hw_state;
 
+enum nvgpu_event_id_type;
+
 struct nvgpu_tsg_sm_error_state {
 	u32 hww_global_esr;
 	u32 hww_warp_esr;
@@ -111,7 +113,7 @@ void nvgpu_tsg_set_ctx_mmu_error(struct gk20a *g,
 bool nvgpu_tsg_mark_error(struct gk20a *g, struct tsg_gk20a *tsg);
 
 void nvgpu_tsg_post_event_id(struct tsg_gk20a *tsg,
-				       int event_id);
+			     enum nvgpu_event_id_type event_id);
 bool nvgpu_tsg_check_ctxsw_timeout(struct tsg_gk20a *tsg,
 		bool *debug_dump, u32 *ms);
 int gk20a_tsg_set_runlist_interleave(struct tsg_gk20a *tsg, u32 level);

@@ -190,6 +190,16 @@ struct nvgpu_gpfifo_userdata {
 	struct _resmgr_context *context;
 };
 
+enum nvgpu_event_id_type {
+	NVGPU_EVENT_ID_BPT_INT = 0,
+	NVGPU_EVENT_ID_BPT_PAUSE = 1,
+	NVGPU_EVENT_ID_BLOCKING_SYNC = 2,
+	NVGPU_EVENT_ID_CILP_PREEMPTION_STARTED = 3,
+	NVGPU_EVENT_ID_CILP_PREEMPTION_COMPLETE = 4,
+	NVGPU_EVENT_ID_GR_SEMAPHORE_WRITE_AWAKEN = 5,
+	NVGPU_EVENT_ID_MAX = 6,
+};
+
 /*
  * gpu_ops should only contain function pointers! Non-function pointer members
  * should go in struct gk20a or be implemented with the boolean flag API defined
@@ -419,7 +429,8 @@ struct gpu_ops {
 		void (*set_debug_mode)(struct gk20a *g, bool enable);
 		void (*log_mme_exception)(struct gk20a *g);
 		int (*reset)(struct gk20a *g);
-		bool (*esr_bpt_pending_events)(u32 global_esr, u32 bpt_event);
+		bool (*esr_bpt_pending_events)(u32 global_esr,
+					enum nvgpu_event_id_type bpt_event);
 		int (*halt_pipe)(struct gk20a *g);
 		int (*disable_ctxsw)(struct gk20a *g);
 		int (*enable_ctxsw)(struct gk20a *g);
@@ -1203,7 +1214,8 @@ struct gpu_ops {
 				bool *verbose, u32 *ms);
 		int (*force_reset)(struct channel_gk20a *ch,
 					u32 err_code, bool verbose);
-		void (*post_event_id)(struct tsg_gk20a *tsg, int event_id);
+		void (*post_event_id)(struct tsg_gk20a *tsg,
+				      enum nvgpu_event_id_type event_id);
 	} tsg;
 	struct {
 		void (*setup_hw)(struct gk20a *g);

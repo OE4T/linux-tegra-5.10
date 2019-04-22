@@ -751,7 +751,8 @@ void gm20b_gr_set_debug_mode(struct gk20a *g, bool enable)
 	gk20a_writel(g, gr_gpcs_pri_mmu_debug_ctrl_r(), reg_val);
 }
 
-bool gm20b_gr_esr_bpt_pending_events(u32 global_esr, u32 bpt_event)
+bool gm20b_gr_esr_bpt_pending_events(u32 global_esr,
+				     enum nvgpu_event_id_type bpt_event)
 {
 	bool ret = false;
 
