@@ -634,8 +634,9 @@ u32 nvgpu_mm_get_available_big_page_sizes(struct gk20a *g)
 {
 	u32 available_big_page_sizes = 0;
 
-	if (g->mm.disable_bigpage)
+	if (g->mm.disable_bigpage) {
 		return available_big_page_sizes;
+	}
 
 	available_big_page_sizes = g->ops.mm.gmmu.get_default_big_page_size();
 	if (g->ops.mm.gmmu.get_big_page_sizes != NULL) {
