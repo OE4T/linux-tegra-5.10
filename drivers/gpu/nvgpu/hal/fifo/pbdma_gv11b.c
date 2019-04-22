@@ -253,3 +253,29 @@ void gv11b_pbdma_setup_hw(struct gk20a *g)
 		}
 	}
 }
+
+u32 gv11b_pbdma_get_fc_pb_header(void)
+{
+	return (pbdma_pb_header_method_zero_f() |
+		pbdma_pb_header_subchannel_zero_f() |
+		pbdma_pb_header_level_main_f() |
+		pbdma_pb_header_first_true_f() |
+		pbdma_pb_header_type_inc_f());
+}
+
+u32 gv11b_pbdma_get_fc_target(void)
+{
+	return (gm20b_pbdma_get_fc_target() |
+			pbdma_target_eng_ctx_valid_true_f() |
+			pbdma_target_ce_ctx_valid_true_f());
+}
+
+u32 gv11b_pbdma_set_channel_info_veid(u32 channel_id)
+{
+	return pbdma_set_channel_info_veid_f(channel_id);
+}
+
+u32 gv11b_pbdma_config_userd_writeback_enable(void)
+{
+	return pbdma_config_userd_writeback_enable_f();
+}

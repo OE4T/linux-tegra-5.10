@@ -21,6 +21,8 @@
  */
 
 #include <nvgpu/log.h>
+#include <nvgpu/log2.h>
+#include <nvgpu/utils.h>
 #include <nvgpu/io.h>
 #include <nvgpu/bitops.h>
 #include <nvgpu/bug.h>
@@ -34,6 +36,8 @@
 #include <nvgpu/hw/gm20b/hw_pbdma_gm20b.h>
 
 #include "pbdma_gm20b.h"
+
+#define PBDMA_SUBDEVICE_ID  1U
 
 static const char *const pbdma_intr_fault_type_desc[] = {
 	"MEMREQ timeout", "MEMACK_TIMEOUT", "MEMACK_EXTRA acks",
@@ -506,4 +510,68 @@ void gm20b_pbdma_setup_hw(struct gk20a *g)
 		nvgpu_log_info(g, "pbdma_timeout reg val = 0x%08x", timeout);
 		nvgpu_writel(g, pbdma_timeout_r(i), timeout);
 	}
+}
+
+u32 gm20b_pbdma_get_gp_base(u64 gpfifo_base)
+{
+	return pbdma_gp_base_offset_f(
+		u64_lo32(gpfifo_base >> pbdma_gp_base_rsvd_s()));
+}
+
+u32 gm20b_pbdma_get_gp_base_hi(u64 gpfifo_base, u32 gpfifo_entry)
+{
+	return 	(pbdma_gp_base_hi_offset_f(u64_hi32(gpfifo_base)) |
+		pbdma_gp_base_hi_limit2_f((u32)ilog2(gpfifo_entry)));
+}
+
+u32 gm20b_pbdma_get_fc_formats(void)
+{
+	return	(pbdma_formats_gp_fermi0_f() | pbdma_formats_pb_fermi1_f() |
+			pbdma_formats_mp_fermi0_f());
+}
+
+u32 gm20b_pbdma_get_fc_pb_header(void)
+{
+	return (pbdma_pb_header_priv_user_f() |
+		pbdma_pb_header_method_zero_f() |
+		pbdma_pb_header_subchannel_zero_f() |
+		pbdma_pb_header_level_main_f() |
+		pbdma_pb_header_first_true_f() |
+		pbdma_pb_header_type_inc_f());
+}
+
+u32 gm20b_pbdma_get_fc_subdevice(void)
+{
+	return (pbdma_subdevice_id_f(PBDMA_SUBDEVICE_ID) |
+		pbdma_subdevice_status_active_f() |
+		pbdma_subdevice_channel_dma_enable_f());
+}
+
+u32 gm20b_pbdma_get_fc_target(void)
+{
+	return pbdma_target_engine_sw_f();
+}
+
+u32 gm20b_pbdma_get_ctrl_hce_priv_mode_yes(void)
+{
+	return pbdma_hce_ctrl_hce_priv_mode_yes_f();
+}
+
+u32 gm20b_pbdma_get_userd_aperture_mask(struct gk20a *g,
+		struct nvgpu_mem *mem)
+{
+	return	(nvgpu_aperture_mask(g, mem,
+			pbdma_userd_target_sys_mem_ncoh_f(),
+			pbdma_userd_target_sys_mem_coh_f(),
+			pbdma_userd_target_vid_mem_f()));
+}
+
+u32 gm20b_pbdma_get_userd_addr(u32 addr_lo)
+{
+	return pbdma_userd_addr_f(addr_lo);
+}
+
+u32 gm20b_pbdma_get_userd_hi_addr(u32 addr_hi)
+{
+	return pbdma_userd_hi_addr_f(addr_hi);
 }

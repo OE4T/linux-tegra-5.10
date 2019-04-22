@@ -1136,6 +1136,24 @@ struct gpu_ops {
 		void (*format_gpfifo_entry)(struct gk20a *g,
 				struct nvgpu_gpfifo_entry *gpfifo_entry,
 				u64 pb_gpu_va, u32 method_size);
+		u32 (*get_gp_base)(u64 gpfifo_base);
+		u32 (*get_gp_base_hi)(u64 gpfifo_base, u32 gpfifo_entry);
+		u32 (*get_fc_formats)(void);
+		u32 (*get_fc_pb_header)(void);
+		u32 (*get_fc_subdevice)(void);
+		u32 (*get_fc_target)(void);
+		u32 (*get_ctrl_hce_priv_mode_yes)(void);
+		u32 (*get_userd_aperture_mask)(struct gk20a *g,
+				struct nvgpu_mem *mem);
+		u32 (*get_userd_addr)(u32 addr_lo);
+		u32 (*get_userd_hi_addr)(u32 addr_hi);
+		u32 (*get_fc_runlist_timeslice)(void);
+		u32 (*get_config_auth_level_privileged)(void);
+		u32 (*set_channel_info_veid)(u32 channel_id);
+		u32 (*config_userd_writeback_enable)(void);
+		u32 (*allowed_syncpoints_0_index_f)(u32 syncpt);
+		u32 (*allowed_syncpoints_0_valid_f)(void);
+		u32 (*allowed_syncpoints_0_index_v)(u32 offset);
 	} pbdma;
 
 	struct {

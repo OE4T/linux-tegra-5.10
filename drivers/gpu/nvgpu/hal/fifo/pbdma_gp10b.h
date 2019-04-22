@@ -29,5 +29,10 @@ struct gk20a;
 
 u32 gp10b_pbdma_get_signature(struct gk20a *g);
 u32 gp10b_pbdma_channel_fatal_0_intr_descs(void);
+u32 gp10b_pbdma_get_fc_runlist_timeslice(void);
+u32 gp10b_pbdma_get_config_auth_level_privileged(void);
+u32 gp10b_pbdma_allowed_syncpoints_0_index_f(u32 syncpt);
+u32 gp10b_pbdma_allowed_syncpoints_0_valid_f(void);
+u32 gp10b_pbdma_allowed_syncpoints_0_index_v(u32 offset);
 
 #endif /* NVGPU_PBDMA_GP10B_H */

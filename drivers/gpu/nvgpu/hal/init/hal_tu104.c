@@ -1004,6 +1004,24 @@ static const struct gpu_ops tu104_ops = {
 		.find_for_runlist = nvgpu_pbdma_find_for_runlist,
 		.format_gpfifo_entry =
 			gm20b_pbdma_format_gpfifo_entry,
+		.get_gp_base = gm20b_pbdma_get_gp_base,
+		.get_gp_base_hi = gm20b_pbdma_get_gp_base_hi,
+		.get_fc_formats = NULL,
+		.get_fc_pb_header = gv11b_pbdma_get_fc_pb_header,
+		.get_fc_subdevice = gm20b_pbdma_get_fc_subdevice,
+		.get_fc_target = gv11b_pbdma_get_fc_target,
+		.get_ctrl_hce_priv_mode_yes =
+			gm20b_pbdma_get_ctrl_hce_priv_mode_yes,
+		.get_userd_aperture_mask = gm20b_pbdma_get_userd_aperture_mask,
+		.get_userd_addr = gm20b_pbdma_get_userd_addr,
+		.get_userd_hi_addr = gm20b_pbdma_get_userd_hi_addr,
+		.get_fc_runlist_timeslice =
+			gp10b_pbdma_get_fc_runlist_timeslice,
+		.get_config_auth_level_privileged =
+			gp10b_pbdma_get_config_auth_level_privileged,
+		.set_channel_info_veid = gv11b_pbdma_set_channel_info_veid,
+		.config_userd_writeback_enable =
+			gv11b_pbdma_config_userd_writeback_enable,
 	},
 	.sync = {
 #ifdef CONFIG_TEGRA_GK20A_NVHOST

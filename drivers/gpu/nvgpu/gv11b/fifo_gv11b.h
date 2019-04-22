@@ -25,8 +25,6 @@
 #ifndef FIFO_GV11B_H
 #define FIFO_GV11B_H
 
-#define PBDMA_SUBDEVICE_ID  1U
-
 #define CHANNEL_INFO_VEID0		0U
 
 struct gpu_ops;

@@ -61,4 +61,15 @@ void gm20b_pbdma_syncpoint_debug_dump(struct gk20a *g,
 		     struct nvgpu_channel_dump_info *info);
 void gm20b_pbdma_setup_hw(struct gk20a *g);
 
+u32 gm20b_pbdma_get_gp_base(u64 gpfifo_base);
+u32 gm20b_pbdma_get_gp_base_hi(u64 gpfifo_base, u32 gpfifo_entry);
+u32 gm20b_pbdma_get_fc_formats(void);
+u32 gm20b_pbdma_get_fc_pb_header(void);
+u32 gm20b_pbdma_get_fc_subdevice(void);
+u32 gm20b_pbdma_get_fc_target(void);
+u32 gm20b_pbdma_get_ctrl_hce_priv_mode_yes(void);
+u32 gm20b_pbdma_get_userd_aperture_mask(struct gk20a *g, struct nvgpu_mem *mem);
+u32 gm20b_pbdma_get_userd_addr(u32 addr_lo);
+u32 gm20b_pbdma_get_userd_hi_addr(u32 addr_hi);
+
 #endif /* NVGPU_PBDMA_GM20B_H */

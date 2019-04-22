@@ -47,38 +47,28 @@ int tu104_ramfc_setup(struct channel_gk20a *ch, u64 gpfifo_base,
 	nvgpu_memset(g, mem, 0, 0, ram_fc_size_val_v());
 
 	nvgpu_mem_wr32(g, mem, ram_fc_gp_base_w(),
-		pbdma_gp_base_offset_f(
-			u64_lo32(gpfifo_base >> pbdma_gp_base_rsvd_s())));
+		g->ops.pbdma.get_gp_base(gpfifo_base));
 
 	nvgpu_mem_wr32(g, mem, ram_fc_gp_base_hi_w(),
-		pbdma_gp_base_hi_offset_f(u64_hi32(gpfifo_base)) |
-		pbdma_gp_base_hi_limit2_f(ilog2(gpfifo_entries)));
+		g->ops.pbdma.get_gp_base_hi(gpfifo_base, gpfifo_entries));
 
 	nvgpu_mem_wr32(g, mem, ram_fc_signature_w(),
 		g->ops.pbdma.get_signature(g));
 
 	nvgpu_mem_wr32(g, mem, ram_fc_pb_header_w(),
-		pbdma_pb_header_method_zero_f() |
-		pbdma_pb_header_subchannel_zero_f() |
-		pbdma_pb_header_level_main_f() |
-		pbdma_pb_header_first_true_f() |
-		pbdma_pb_header_type_inc_f());
+		g->ops.pbdma.get_fc_pb_header());
 
 	nvgpu_mem_wr32(g, mem, ram_fc_subdevice_w(),
-		pbdma_subdevice_id_f(PBDMA_SUBDEVICE_ID) |
-		pbdma_subdevice_status_active_f() |
-		pbdma_subdevice_channel_dma_enable_f());
+		g->ops.pbdma.get_fc_subdevice());
 
 	nvgpu_mem_wr32(g, mem, ram_fc_target_w(),
-		pbdma_target_eng_ctx_valid_true_f() |
-		pbdma_target_ce_ctx_valid_true_f() |
-		pbdma_target_engine_sw_f());
+		g->ops.pbdma.get_fc_target());
 
 	nvgpu_mem_wr32(g, mem, ram_fc_acquire_w(),
 		g->ops.pbdma.acquire_val(pbdma_acquire_timeout));
 
 	nvgpu_mem_wr32(g, mem, ram_fc_set_channel_info_w(),
-		pbdma_set_channel_info_veid_f(ch->subctx_id));
+		g->ops.pbdma.set_channel_info_veid(ch->subctx_id));
 
 	nvgpu_mem_wr32(g, mem, ram_in_engine_wfi_veid_w(),
 		ram_in_engine_wfi_veid_f(ch->subctx_id));
@@ -86,16 +76,16 @@ int tu104_ramfc_setup(struct channel_gk20a *ch, u64 gpfifo_base,
 	if (ch->is_privileged_channel) {
 		/* Set privilege level for channel */
 		nvgpu_mem_wr32(g, mem, ram_fc_config_w(),
-			pbdma_config_auth_level_privileged_f());
+			g->ops.pbdma.get_config_auth_level_privileged());
 
 		/* Enable HCE priv mode for phys mode transfer */
 		nvgpu_mem_wr32(g, mem, ram_fc_hce_ctrl_w(),
-			pbdma_hce_ctrl_hce_priv_mode_yes_f());
+			g->ops.pbdma.get_ctrl_hce_priv_mode_yes());
 	}
 
 	/* Enable userd writeback */
 	data = nvgpu_mem_rd32(g, mem, ram_fc_config_w());
-	data = data | pbdma_config_userd_writeback_enable_f();
+	data = data | g->ops.pbdma.config_userd_writeback_enable();
 	nvgpu_mem_wr32(g, mem, ram_fc_config_w(), data);
 
 	return g->ops.ramfc.commit_userd(ch);

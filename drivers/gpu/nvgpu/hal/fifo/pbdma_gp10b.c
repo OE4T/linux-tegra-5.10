@@ -56,3 +56,30 @@ u32 gp10b_pbdma_channel_fatal_0_intr_descs(void)
 
 	return channel_fatal_0_intr_descs;
 }
+
+u32 gp10b_pbdma_get_fc_runlist_timeslice(void)
+{
+	return (pbdma_runlist_timeslice_timeout_128_f() |
+		pbdma_runlist_timeslice_timescale_3_f() |
+		pbdma_runlist_timeslice_enable_true_f());
+}
+
+u32 gp10b_pbdma_get_config_auth_level_privileged(void)
+{
+	return pbdma_config_auth_level_privileged_f();
+}
+
+u32 gp10b_pbdma_allowed_syncpoints_0_index_f(u32 syncpt)
+{
+	return pbdma_allowed_syncpoints_0_index_f(syncpt);
+}
+
+u32 gp10b_pbdma_allowed_syncpoints_0_valid_f(void)
+{
+	return pbdma_allowed_syncpoints_0_valid_f(1);
+}
+
+u32 gp10b_pbdma_allowed_syncpoints_0_index_v(u32 offset)
+{
+	return pbdma_allowed_syncpoints_0_index_v(offset);
+}
