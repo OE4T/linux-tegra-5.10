@@ -1,6 +1,4 @@
 /*
- * GV11B Fifo
- *
  * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
@@ -21,17 +19,15 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
+#ifndef RC_GV11B_H
+#define RC_GV11B_H
 
-#ifndef FIFO_GV11B_H
-#define FIFO_GV11B_H
+#include <nvgpu/types.h>
 
-#define CHANNEL_INFO_VEID0		0U
+struct mmu_fault_info;
 
-struct gpu_ops;
+void gv11b_fifo_recover(struct gk20a *g, u32 act_eng_bitmask,
+			u32 id, unsigned int id_type, unsigned int rc_type,
+			 struct mmu_fault_info *mmufault);
 
-u32 gv11b_fifo_mmu_fault_id_to_pbdma_id(struct gk20a *g, u32 mmu_fault_id);
-
-int gv11b_init_fifo_reset_enable_hw(struct gk20a *g);
-int gv11b_init_fifo_setup_hw(struct gk20a *g);
-
-#endif
+#endif /* RC_GV11B_H */

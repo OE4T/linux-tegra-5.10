@@ -54,7 +54,7 @@ void nvgpu_rc_fifo_recover(struct gk20a *g, u32 eng_bitmask,
 		id_type = ID_TYPE_UNKNOWN;
 	}
 
-	g->ops.fifo.teardown_ch_tsg(g, eng_bitmask, hw_id, id_type,
+	g->ops.fifo.recover(g, eng_bitmask, hw_id, id_type,
 				 rc_type, NULL);
 }
 

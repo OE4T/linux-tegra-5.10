@@ -360,6 +360,7 @@ srcs += common/sim/sim.c \
 	hal/fuse/fuse_gp106.c \
 	hal/func/func_tu104.c \
 	hal/rc/rc_gk20a.c \
+	hal/rc/rc_gv11b.c \
 	hal/fifo/preempt_gk20a.c \
 	hal/fifo/preempt_gv11b.c \
 	hal/fifo/usermode_gv11b.c \

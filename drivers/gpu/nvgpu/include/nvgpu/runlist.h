@@ -38,7 +38,7 @@ u32 nvgpu_runlist_construct_locked(struct fifo_gk20a *f,
 				struct fifo_runlist_info_gk20a *runlist,
 				u32 buf_id,
 				u32 max_entries);
-int gk20a_runlist_update_locked(struct gk20a *g, u32 runlist_id,
+int nvgpu_runlist_update_locked(struct gk20a *g, u32 runlist_id,
 					    struct channel_gk20a *ch, bool add,
 					    bool wait_for_finish);
 

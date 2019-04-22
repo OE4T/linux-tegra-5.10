@@ -252,6 +252,7 @@ nvgpu-y += \
 	hal/fuse/fuse_gp106.o \
 	hal/func/func_tu104.o \
 	hal/rc/rc_gk20a.o \
+	hal/rc/rc_gv11b.o \
 	hal/fifo/preempt_gk20a.o \
 	hal/fifo/preempt_gv11b.o \
 	hal/fifo/usermode_gv11b.o \

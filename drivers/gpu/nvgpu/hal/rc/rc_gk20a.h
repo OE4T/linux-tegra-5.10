@@ -26,7 +26,7 @@
 
 struct mmu_fault_info;
 
-void gk20a_fifo_teardown_ch_tsg(struct gk20a *g, u32 eng_bitmask,
+void gk20a_fifo_recover(struct gk20a *g, u32 eng_bitmask,
 			u32 hw_id, unsigned int id_type, unsigned int rc_type,
 			 struct mmu_fault_info *mmufault);
 

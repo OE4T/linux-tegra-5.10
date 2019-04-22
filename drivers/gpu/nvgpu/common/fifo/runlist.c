@@ -376,7 +376,7 @@ static int gk20a_runlist_reconstruct_locked(struct gk20a *g, u32 runlist_id,
 	return 0;
 }
 
-int gk20a_runlist_update_locked(struct gk20a *g, u32 runlist_id,
+int nvgpu_runlist_update_locked(struct gk20a *g, u32 runlist_id,
 					    struct channel_gk20a *ch, bool add,
 					    bool wait_for_finish)
 {
@@ -490,7 +490,7 @@ static int gk20a_runlist_update(struct gk20a *g, u32 runlist_id,
 	mutex_ret = nvgpu_pmu_lock_acquire(g, &g->pmu,
 		PMU_MUTEX_ID_FIFO, &token);
 
-	ret = gk20a_runlist_update_locked(g, runlist_id, ch, add,
+	ret = nvgpu_runlist_update_locked(g, runlist_id, ch, add,
 					       wait_for_finish);
 
 	if (mutex_ret == 0) {

@@ -22,289 +22,19 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#include <nvgpu/bug.h>
-#include <nvgpu/semaphore.h>
-#include <nvgpu/timers.h>
 #include <nvgpu/log.h>
-#include <nvgpu/dma.h>
-#include <nvgpu/nvgpu_mem.h>
-#include <nvgpu/gmmu.h>
 #include <nvgpu/soc.h>
-#include <nvgpu/debug.h>
-#include <nvgpu/nvhost.h>
-#include <nvgpu/barrier.h>
-#include <nvgpu/mm.h>
-#include <nvgpu/log2.h>
-#include <nvgpu/io_usermode.h>
-#include <nvgpu/ptimer.h>
 #include <nvgpu/io.h>
-#include <nvgpu/utils.h>
 #include <nvgpu/fifo.h>
-#include <nvgpu/rc.h>
-#include <nvgpu/runlist.h>
 #include <nvgpu/gk20a.h>
-#include <nvgpu/channel.h>
 #include <nvgpu/unit.h>
-#include <nvgpu/nvgpu_err.h>
-#include <nvgpu/pbdma_status.h>
-#include <nvgpu/engine_status.h>
 #include <nvgpu/power_features/cg.h>
-#include <nvgpu/power_features/pg.h>
-#include <nvgpu/power_features/power_features.h>
-#include <nvgpu/gr/fecs_trace.h>
-#include <nvgpu/preempt.h>
 
 #include "gk20a/fifo_gk20a.h"
 
-#include <nvgpu/hw/gv11b/hw_pbdma_gv11b.h>
 #include <nvgpu/hw/gv11b/hw_fifo_gv11b.h>
-#include <nvgpu/hw/gv11b/hw_ram_gv11b.h>
-#include <nvgpu/hw/gv11b/hw_top_gv11b.h>
-#include <nvgpu/hw/gv11b/hw_gmmu_gv11b.h>
 
 #include "fifo_gv11b.h"
-#include "gr_gv11b.h"
-
-static void gv11b_fifo_locked_abort_runlist_active_tsgs(struct gk20a *g,
-			unsigned int rc_type,
-			u32 runlists_mask)
-{
-	struct fifo_gk20a *f = &g->fifo;
-	struct tsg_gk20a *tsg = NULL;
-	unsigned long tsgid;
-	struct fifo_runlist_info_gk20a *runlist = NULL;
-	u32 token = PMU_INVALID_MUTEX_OWNER_ID;
-	int mutex_ret = 0;
-	int err;
-	u32 i;
-
-	nvgpu_err(g, "runlist id unknown, abort active tsgs in runlists");
-
-	/* runlist_lock  are locked by teardown */
-	mutex_ret = nvgpu_pmu_lock_acquire(g, &g->pmu,
-			PMU_MUTEX_ID_FIFO, &token);
-
-	for (i = 0U; i < f->num_runlists; i++) {
-		runlist = &f->active_runlist_info[i];
-
-		if ((runlists_mask & BIT32(runlist->runlist_id)) == 0U) {
-			continue;
-		}
-		nvgpu_log(g, gpu_dbg_info, "abort runlist id %d",
-				runlist->runlist_id);
-
-		for_each_set_bit(tsgid, runlist->active_tsgs,
-			g->fifo.num_channels) {
-			tsg = &g->fifo.tsg[tsgid];
-
-			if (!tsg->abortable) {
-				nvgpu_log(g, gpu_dbg_info,
-					  "tsg %lu is not abortable, skipping",
-					  tsgid);
-				continue;
-			}
-			nvgpu_log(g, gpu_dbg_info, "abort tsg id %lu", tsgid);
-
-			g->ops.tsg.disable(tsg);
-
-			nvgpu_tsg_reset_faulted_eng_pbdma(g, tsg, true, true);
-
-#ifdef CONFIG_GK20A_CTXSW_TRACE
-			nvgpu_gr_fecs_trace_add_tsg_reset(g, tsg);
-#endif
-			if (!g->fifo.deferred_reset_pending) {
-				if (rc_type == RC_TYPE_MMU_FAULT) {
-					nvgpu_tsg_set_ctx_mmu_error(g, tsg);
-					/*
-					 * Mark error (returned verbose flag is
-					 * ignored since it is not needed here)
-					 */
-					(void) nvgpu_tsg_mark_error(g, tsg);
-				}
-			}
-
-			/*
-			 * remove all entries from this runlist; don't wait for
-			 * the update to finish on hw.
-			 */
-			err = gk20a_runlist_update_locked(g, runlist->runlist_id,
-					NULL, false, false);
-			if (err != 0) {
-				nvgpu_err(g, "runlist id %d is not cleaned up",
-					runlist->runlist_id);
-			}
-
-			nvgpu_tsg_abort(g, tsg, false);
-
-			nvgpu_log(g, gpu_dbg_info, "aborted tsg id %lu", tsgid);
-		}
-	}
-	if (mutex_ret == 0) {
-		err = nvgpu_pmu_lock_release(g, &g->pmu, PMU_MUTEX_ID_FIFO,
-				&token);
-		if (err != 0) {
-			nvgpu_err(g, "PMU_MUTEX_ID_FIFO not released err=%d",
-					err);
-		}
-	}
-}
-
-void gv11b_fifo_teardown_ch_tsg(struct gk20a *g, u32 act_eng_bitmask,
-			u32 id, unsigned int id_type, unsigned int rc_type,
-			 struct mmu_fault_info *mmfault)
-{
-	struct tsg_gk20a *tsg = NULL;
-	u32 runlists_mask, i;
-	unsigned long bit;
-	u32 pbdma_bitmask = 0U;
-	struct fifo_runlist_info_gk20a *runlist = NULL;
-	u32 engine_id;
-	u32 client_type = ~U32(0U);
-	struct fifo_gk20a *f = &g->fifo;
-	bool deferred_reset_pending = false;
-
-	nvgpu_log_info(g, "acquire engines_reset_mutex");
-	nvgpu_mutex_acquire(&g->fifo.engines_reset_mutex);
-
-	/* acquire runlist_lock for num_runlists */
-	nvgpu_log_fn(g, "acquire runlist_lock for active runlists");
-	nvgpu_fifo_lock_active_runlists(g);
-
-	g->ops.fifo.intr_set_recover_mask(g);
-
-	/* get runlist id and tsg */
-	if (id != INVAL_ID && id_type == ID_TYPE_TSG) {
-		tsg = &g->fifo.tsg[id];
-	}
-
-	/* get runlists mask */
-	nvgpu_log(g, gpu_dbg_info, "id = %d, id_type = %d, rc_type = %d, "
-			"act_eng_bitmask = 0x%x, mmfault ptr = 0x%p",
-			 id, id_type, rc_type, act_eng_bitmask, mmfault);
-
-	if (rc_type == RC_TYPE_MMU_FAULT && mmfault != NULL) {
-		if (mmfault->faulted_pbdma != INVAL_ID) {
-			pbdma_bitmask = BIT32(mmfault->faulted_pbdma);
-		}
-	}
-	runlists_mask = nvgpu_fifo_get_runlists_mask(g, id, id_type,
-				act_eng_bitmask, pbdma_bitmask);
-
-	/*
-	 * release runlist lock for the runlists that are not
-	 * being recovered
-	 */
-	nvgpu_fifo_unlock_runlists(g, ~runlists_mask);
-
-	/* Disable runlist scheduler */
-	nvgpu_fifo_runlist_set_state(g, runlists_mask, RUNLIST_DISABLED);
-
-	if (nvgpu_cg_pg_disable(g) != 0) {
-		nvgpu_warn(g, "fail to disable power mgmt");
-	}
-
-	if (rc_type == RC_TYPE_MMU_FAULT) {
-		gk20a_debug_dump(g);
-		client_type = mmfault->client_type;
-		nvgpu_tsg_reset_faulted_eng_pbdma(g, tsg, true, true);
-	}
-
-	if (tsg != NULL) {
-		g->ops.tsg.disable(tsg);
-	}
-
-	/*
-	 * Even though TSG preempt timed out, the RC sequence would by design
-	 * require s/w to issue another preempt.
-	 * If recovery includes an ENGINE_RESET, to not have race conditions,
-	 * use RUNLIST_PREEMPT to kick all work off, and cancel any context
-	 * load which may be pending. This is also needed to make sure
-	 * that all PBDMAs serving the engine are not loaded when engine is
-	 * reset.
-	 */
-	g->ops.fifo.preempt_runlists_for_rc(g, runlists_mask);
-	/*
-	 * For each PBDMA which serves the runlist, poll to verify the TSG is no
-	 * longer on the PBDMA and the engine phase of the preempt has started.
-	 */
-	if (tsg != NULL) {
-		nvgpu_preempt_poll_tsg_on_pbdma(g, tsg);
-	}
-
-	nvgpu_mutex_acquire(&f->deferred_reset_mutex);
-	g->fifo.deferred_reset_pending = false;
-	nvgpu_mutex_release(&f->deferred_reset_mutex);
-
-	/* check if engine reset should be deferred */
-	for (i = 0U; i < f->num_runlists; i++) {
-		runlist = &f->active_runlist_info[i];
-
-		if (((runlists_mask & BIT32(runlist->runlist_id)) != 0U) &&
-		    (runlist->reset_eng_bitmask != 0U)) {
-
-			unsigned long __reset_eng_bitmask =
-				 runlist->reset_eng_bitmask;
-
-			for_each_set_bit(bit, &__reset_eng_bitmask,
-							g->fifo.max_engines) {
-				engine_id = U32(bit);
-				if ((tsg != NULL) &&
-					 nvgpu_engine_should_defer_reset(g,
-					engine_id, client_type, false)) {
-
-					g->fifo.deferred_fault_engines |=
-							 BIT64(engine_id);
-
-					/* handled during channel free */
-					nvgpu_mutex_acquire(&f->deferred_reset_mutex);
-					g->fifo.deferred_reset_pending = true;
-					nvgpu_mutex_release(&f->deferred_reset_mutex);
-
-					deferred_reset_pending = true;
-
-					nvgpu_log(g, gpu_dbg_intr | gpu_dbg_gpu_dbg,
-					"sm debugger attached,"
-					" deferring channel recovery to channel free");
-				} else {
-					nvgpu_engine_reset(g, engine_id);
-				}
-			}
-		}
-	}
-
-#ifdef CONFIG_GK20A_CTXSW_TRACE
-	if (tsg != NULL)
-		nvgpu_gr_fecs_trace_add_tsg_reset(g, tsg);
-#endif
-	if (tsg != NULL) {
-		if (deferred_reset_pending) {
-			g->ops.tsg.disable(tsg);
-		} else {
-			if (rc_type == RC_TYPE_MMU_FAULT) {
-				nvgpu_tsg_set_ctx_mmu_error(g, tsg);
-			}
-			(void)nvgpu_tsg_mark_error(g, tsg);
-			nvgpu_tsg_abort(g, tsg, false);
-		}
-	} else {
-		gv11b_fifo_locked_abort_runlist_active_tsgs(g, rc_type,
-			runlists_mask);
-	}
-
-	nvgpu_fifo_runlist_set_state(g, runlists_mask, RUNLIST_ENABLED);
-
-	if (nvgpu_cg_pg_enable(g) != 0) {
-		nvgpu_warn(g, "fail to enable power mgmt");
-	}
-
-	g->ops.fifo.intr_unset_recover_mask(g);
-
-	/* release runlist_lock for the recovered runlists */
-	nvgpu_fifo_unlock_runlists(g, runlists_mask);
-
-	nvgpu_log_info(g, "release engines_reset_mutex");
-	nvgpu_mutex_release(&g->fifo.engines_reset_mutex);
-}
 
 int gv11b_init_fifo_reset_enable_hw(struct gk20a *g)
 {
@@ -321,7 +51,7 @@ int gv11b_init_fifo_reset_enable_hw(struct gk20a *g)
 
 	nvgpu_cg_blcg_fifo_load_enable(g);
 
-	timeout = gk20a_readl(g, fifo_fb_timeout_r());
+	timeout = nvgpu_readl(g, fifo_fb_timeout_r());
 	nvgpu_log_info(g, "fifo_fb_timeout reg val = 0x%08x", timeout);
 	if (!nvgpu_platform_is_silicon(g)) {
 		timeout = set_field(timeout, fifo_fb_timeout_period_m(),
@@ -330,7 +60,7 @@ int gv11b_init_fifo_reset_enable_hw(struct gk20a *g)
 					fifo_fb_timeout_detection_disabled_f());
 		nvgpu_log_info(g, "new fifo_fb_timeout reg val = 0x%08x",
 					timeout);
-		gk20a_writel(g, fifo_fb_timeout_r(), timeout);
+		nvgpu_writel(g, fifo_fb_timeout_r(), timeout);
 	}
 
 	g->ops.pbdma.setup_hw(g);

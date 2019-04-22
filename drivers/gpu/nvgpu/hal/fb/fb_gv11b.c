@@ -739,7 +739,7 @@ static void gv11b_fb_handle_mmu_fault_common(struct gk20a *g,
 		}
 
 		if (rc_type != RC_TYPE_NO_RC) {
-			g->ops.fifo.teardown_ch_tsg(g, act_eng_bitmask,
+			g->ops.fifo.recover(g, act_eng_bitmask,
 				id, id_type, rc_type, mmfault);
 		}
 	} else {
