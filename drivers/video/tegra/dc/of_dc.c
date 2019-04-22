@@ -1,7 +1,7 @@
 /*
  * of_dc.c: tegra dc of interface.
  *
- * Copyright (c) 2013-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2013-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -753,7 +753,7 @@ static int parse_disp_default_out(struct platform_device *ndev,
 	/*
 	 * construct fb
 	 */
-	fb->win = 0; /* set fb->win to 0 in default */
+	fb->win = TEGRA_FB_WIN_INVALID; /* set fb->win default */
 
 	if (!of_property_read_u32(out_np, "nvidia,out-xres", &temp)) {
 		fb->xres = (int)temp;
@@ -3281,12 +3281,6 @@ struct tegra_dc_platform_data *of_dc_parse_platform_data(
 		OF_DC_LOG("cmu enable %d\n", pdata->cmu_enable);
 	} else {
 		pdata->cmu_enable = false;
-	}
-
-	if (tegra_dc_is_nvdisplay()) {
-		/* no valid window set for device */
-		if (pdata->win_mask == 0)
-			pdata->fb->win = -1;
 	}
 
 	if ((def_out->type == TEGRA_DC_OUT_DP) ||
