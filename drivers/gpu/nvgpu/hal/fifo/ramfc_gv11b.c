@@ -26,12 +26,11 @@
 #include <nvgpu/io.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/channel.h>
+#include <nvgpu/fifo.h>
 
 #include <nvgpu/hw/gv11b/hw_ram_gv11b.h>
 
 #include "hal/fifo/ramfc_gv11b.h"
-
-#include "gv11b/fifo_gv11b.h"
 
 int gv11b_ramfc_setup(struct channel_gk20a *ch, u64 gpfifo_base,
 		u32 gpfifo_entries, u64 pbdma_acquire_timeout, u32 flags)

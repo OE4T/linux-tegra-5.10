@@ -26,11 +26,10 @@
 #include <nvgpu/io.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/channel.h>
+#include <nvgpu/fifo.h>
 
 #include "hal/fifo/ramfc_gk20a.h"
 #include "hal/fifo/ramfc_tu104.h"
-
-#include "gv11b/fifo_gv11b.h"
 
 #include <nvgpu/hw/tu104/hw_pbdma_tu104.h>
 #include <nvgpu/hw/tu104/hw_ram_tu104.h>

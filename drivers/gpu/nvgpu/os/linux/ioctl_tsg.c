@@ -29,10 +29,10 @@
 #include <nvgpu/gr/config.h>
 #include <nvgpu/channel.h>
 #include <nvgpu/tsg.h>
+#include <nvgpu/fifo.h>
 
 #include "common/gr/gr_priv.h"
 
-#include "gv11b/fifo_gv11b.h"
 #include "platform_gk20a.h"
 #include "ioctl_tsg.h"
 #include "ioctl_channel.h"

@@ -29,15 +29,14 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/channel.h>
 
-#include "gk20a/fifo_gk20a.h"
+#include "hal/fifo/fifo_gv11b.h"
 
-#include "gv11b/fifo_gv11b.h"
+#include "gk20a/fifo_gk20a.h"
 
 #include "tu104/fifo_tu104.h"
 #include "hal/func/func_tu104.h"
 
 #include <nvgpu/hw/tu104/hw_fifo_tu104.h>
-#include <nvgpu/hw/tu104/hw_pbdma_tu104.h>
 #include <nvgpu/hw/tu104/hw_ram_tu104.h>
 
 int tu104_init_fifo_setup_hw(struct gk20a *g)

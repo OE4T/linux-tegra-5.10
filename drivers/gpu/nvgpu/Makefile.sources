@@ -249,7 +249,6 @@ srcs += common/sim/sim.c \
 	gp10b/gr_gp10b.c  \
 	gp10b/mm_gp10b.c \
 	gv11b/gr_gv11b.c \
-	gv11b/fifo_gv11b.c \
 	gv11b/mm_gv11b.c \
 	gp106/bios_gp106.c \
 	gv100/mm_gv100.c \
@@ -361,6 +360,7 @@ srcs += common/sim/sim.c \
 	hal/func/func_tu104.c \
 	hal/rc/rc_gk20a.c \
 	hal/rc/rc_gv11b.c \
+	hal/fifo/fifo_gv11b.c \
 	hal/fifo/preempt_gk20a.c \
 	hal/fifo/preempt_gv11b.c \
 	hal/fifo/usermode_gv11b.c \

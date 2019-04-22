@@ -33,6 +33,10 @@
 
 #define CTXSW_TIMEOUT_PERIOD_MS		100U
 
+#define PBDMA_SUBDEVICE_ID		1U
+
+#define CHANNEL_INFO_VEID0		0U
+
 struct gk20a;
 
 int nvgpu_fifo_init_support(struct gk20a *g);

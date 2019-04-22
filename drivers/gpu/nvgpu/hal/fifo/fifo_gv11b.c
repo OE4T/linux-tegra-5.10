@@ -30,8 +30,6 @@
 #include <nvgpu/unit.h>
 #include <nvgpu/power_features/cg.h>
 
-#include "gk20a/fifo_gk20a.h"
-
 #include <nvgpu/hw/gv11b/hw_fifo_gv11b.h>
 
 #include "fifo_gv11b.h"

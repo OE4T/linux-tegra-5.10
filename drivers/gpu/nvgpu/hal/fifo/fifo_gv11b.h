@@ -22,16 +22,15 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef FIFO_GV11B_H
-#define FIFO_GV11B_H
+#ifndef NVGPU_FIFO_GV11B_H
+#define NVGPU_FIFO_GV11B_H
 
-#define CHANNEL_INFO_VEID0		0U
+#include <nvgpu/types.h>
 
-struct gpu_ops;
-
-u32 gv11b_fifo_mmu_fault_id_to_pbdma_id(struct gk20a *g, u32 mmu_fault_id);
+struct gk20a;
 
 int gv11b_init_fifo_reset_enable_hw(struct gk20a *g);
 int gv11b_init_fifo_setup_hw(struct gk20a *g);
+u32 gv11b_fifo_mmu_fault_id_to_pbdma_id(struct gk20a *g, u32 mmu_fault_id);
 
-#endif
+#endif /* NVGPU_FIFO_GV11B_H */

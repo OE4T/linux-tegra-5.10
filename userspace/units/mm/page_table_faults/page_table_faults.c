@@ -33,12 +33,12 @@
 #include <nvgpu/mm.h>
 #include <nvgpu/vm.h>
 #include <nvgpu/nvgpu_sgt.h>
+#include <nvgpu/fifo.h>
 #include "os/posix/os_posix.h"
 #include "gk20a/mm_gk20a.h"
 #include "gm20b/mm_gm20b.h"
 #include "gp10b/mm_gp10b.h"
 #include "gv11b/mm_gv11b.h"
-#include "gv11b/fifo_gv11b.h"
 #include "common/fifo/channel_gv11b.h"
 #include "nvgpu/hw/gv11b/hw_gmmu_gv11b.h"
 #include "nvgpu/hw/gv11b/hw_fb_gv11b.h"

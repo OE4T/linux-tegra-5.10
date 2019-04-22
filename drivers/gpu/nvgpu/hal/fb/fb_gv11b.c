@@ -43,8 +43,6 @@
 
 #include "gk20a/mm_gk20a.h"
 
-#include "gv11b/fifo_gv11b.h"
-
 #include "fb_gm20b.h"
 #include "fb_gp10b.h"
 #include "fb_gv11b.h"

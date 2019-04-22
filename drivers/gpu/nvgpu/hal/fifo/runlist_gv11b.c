@@ -24,8 +24,6 @@
 #include <nvgpu/runlist.h>
 #include <nvgpu/gk20a.h>
 
-#include <gv11b/fifo_gv11b.h>
-
 #include "runlist_gv11b.h"
 
 #include <nvgpu/hw/gv11b/hw_fifo_gv11b.h>
