@@ -28,7 +28,7 @@
 
 #include "usermode_tu104.h"
 
-#include "tu104/func_tu104.h"
+#include "hal/func/func_tu104.h"
 
 #include <nvgpu/hw/tu104/hw_usermode_tu104.h>
 #include <nvgpu/hw/tu104/hw_ctrl_tu104.h>

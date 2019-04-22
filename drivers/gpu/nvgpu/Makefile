@@ -247,6 +247,7 @@ nvgpu-y += \
 	hal/fuse/fuse_gm20b.o \
 	hal/fuse/fuse_gp10b.o \
 	hal/fuse/fuse_gp106.o \
+	hal/func/func_tu104.o \
 	hal/rc/rc_gk20a.o \
 	hal/fifo/preempt_gk20a.o \
 	hal/fifo/preempt_gv11b.o \
@@ -571,6 +572,5 @@ nvgpu-y += \
 	tu104/mm_tu104.o \
 	tu104/fifo_tu104.o \
 	tu104/gr_tu104.o \
-	tu104/func_tu104.o \
 	tu104/bios_tu104.o \
 	tu104/fbpa_tu104.o

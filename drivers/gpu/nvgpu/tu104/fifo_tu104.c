@@ -34,7 +34,7 @@
 #include "gv11b/fifo_gv11b.h"
 
 #include "tu104/fifo_tu104.h"
-#include "tu104/func_tu104.h"
+#include "hal/func/func_tu104.h"
 
 #include <nvgpu/hw/tu104/hw_fifo_tu104.h>
 #include <nvgpu/hw/tu104/hw_pbdma_tu104.h>

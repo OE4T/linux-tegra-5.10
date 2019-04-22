@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -24,7 +24,7 @@
 #include <nvgpu/io.h>
 #include <nvgpu/gk20a.h>
 
-#include "tu104/func_tu104.h"
+#include "func_tu104.h"
 
 #include <nvgpu/hw/tu104/hw_func_tu104.h>
 
