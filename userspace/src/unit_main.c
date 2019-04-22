@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -77,7 +77,8 @@ int main(int argc, char **argv)
 
 	core_print_test_status(fw);
 
-	if ((fw->results->nr_tests - fw->results->nr_passing) != 0) {
+	if ((fw->results->nr_tests - fw->results->nr_passing -
+					fw->results->nr_skipped) != 0) {
 		/* Some tests failed */
 		return -1;
 	}

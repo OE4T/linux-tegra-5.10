@@ -222,7 +222,8 @@ int core_exec(struct unit_fw *fw)
 	if (args(fw)->nvtest) {
 		/* special prints for NVTEST fw in GVS */
 		printf("[%s: %s]\n",
-			fw->results->nr_tests == fw->results->nr_passing ?
+			((fw->results->nr_tests - fw->results->nr_passing -
+					fw->results->nr_skipped) == 0) ?
 				"pass" : "fail",
 			args(fw)->binary_name);
 	}
