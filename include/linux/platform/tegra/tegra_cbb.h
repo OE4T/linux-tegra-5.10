@@ -174,5 +174,6 @@ int tegra_cbberr_register_hook_en(struct platform_device *pdev,
 		struct serr_hook *callback,
 		struct tegra_cbb_init_data cbb_init_data);
 
+int tegra_cbb_core_probed(void);
 
 #endif /* __TEGRA_CBBERR_H */

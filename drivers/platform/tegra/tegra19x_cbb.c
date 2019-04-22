@@ -634,6 +634,7 @@ MODULE_DEVICE_TABLE(of, tegra194_cbb_match);
 
 static int tegra194_cbb_noc_set_data(struct tegra_cbb_errlog_record *errlog)
 {
+	int err = 0;
 	if (!strcmp(errlog->name, "CBB-NOC")) {
 		errlog->tegra_cbb_master_id = t194_master_id;
 		errlog->noc_aperture = t194_cbbcentralnoc_aperture_lookup;
@@ -645,8 +646,7 @@ static int tegra194_cbb_noc_set_data(struct tegra_cbb_errlog_record *errlog)
 			t194_cbbcentralnoc_routeid_targflow;
 		errlog->tegra_noc_parse_routeid = cbbcentralnoc_parse_routeid;
 		errlog->tegra_noc_parse_userbits = cbbcentralnoc_parse_userbits;
-	}
-	if (!strcmp(errlog->name, "AON-NOC")) {
+	} else if (!strcmp(errlog->name, "AON-NOC")) {
 		errlog->tegra_cbb_master_id = t194_master_id;
 		errlog->noc_aperture = t194_aonnoc_aperture_lookup;
 		errlog->max_noc_aperture =
@@ -657,8 +657,7 @@ static int tegra194_cbb_noc_set_data(struct tegra_cbb_errlog_record *errlog)
 			t194_aonnoc_routeid_targflow;
 		errlog->tegra_noc_parse_routeid = aonnoc_parse_routeid;
 		errlog->tegra_noc_parse_userbits = clusternoc_parse_userbits;
-	}
-	if (!strcmp(errlog->name, "BPMP-NOC")) {
+	} else if (!strcmp(errlog->name, "BPMP-NOC")) {
 		errlog->tegra_cbb_master_id = t194_master_id;
 		errlog->noc_aperture = t194_bpmpnoc_aperture_lookup;
 		errlog->max_noc_aperture =
@@ -669,8 +668,7 @@ static int tegra194_cbb_noc_set_data(struct tegra_cbb_errlog_record *errlog)
 			t194_bpmpnoc_routeid_targflow;
 		errlog->tegra_noc_parse_routeid = bpmpnoc_parse_routeid;
 		errlog->tegra_noc_parse_userbits = clusternoc_parse_userbits;
-	}
-	if (!strcmp(errlog->name, "RCE-NOC")) {
+	} else if (!strcmp(errlog->name, "RCE-NOC")) {
 		errlog->tegra_cbb_master_id = t194_master_id;
 		errlog->noc_aperture = t194_scenoc_aperture_lookup;
 		errlog->max_noc_aperture =
@@ -681,8 +679,7 @@ static int tegra194_cbb_noc_set_data(struct tegra_cbb_errlog_record *errlog)
 			t194_scenoc_routeid_targflow;
 		errlog->tegra_noc_parse_routeid = scenoc_parse_routeid;
 		errlog->tegra_noc_parse_userbits = clusternoc_parse_userbits;
-	}
-	if (!strcmp(errlog->name, "SCE-NOC")) {
+	} else if (!strcmp(errlog->name, "SCE-NOC")) {
 		errlog->tegra_cbb_master_id = t194_master_id;
 		errlog->noc_aperture = t194_scenoc_aperture_lookup;
 		errlog->max_noc_aperture =
@@ -693,8 +690,7 @@ static int tegra194_cbb_noc_set_data(struct tegra_cbb_errlog_record *errlog)
 			t194_scenoc_routeid_targflow;
 		errlog->tegra_noc_parse_routeid = scenoc_parse_routeid;
 		errlog->tegra_noc_parse_userbits = clusternoc_parse_userbits;
-	}
-	if (!strcmp(errlog->name, "CV-NOC")) {
+	} else if (!strcmp(errlog->name, "CV-NOC")) {
 		errlog->tegra_cbb_master_id = t194_master_id;
 		errlog->noc_aperture = t194_cvnoc_aperture_lookup;
 		errlog->max_noc_aperture =
@@ -705,8 +701,10 @@ static int tegra194_cbb_noc_set_data(struct tegra_cbb_errlog_record *errlog)
 			t194_cvnoc_routeid_targflow;
 		errlog->tegra_noc_parse_routeid = cvnoc_parse_routeid;
 		errlog->tegra_noc_parse_userbits = clusternoc_parse_userbits;
-	}
-	return 0;
+	} else
+		return -EINVAL;
+
+	return err;
 }
 
 static void tegra194_cbb_noc_set_clk_en_ops(
@@ -751,15 +749,28 @@ static int tegra194_cbb_errlogger_init(struct platform_device *pdev,
 
 	tegra_cbberr_set_ops(&tegra194_cbb_errlogger_ops);
 	tegra194_cbb_noc_set_clk_en_ops(errlog, bdata);
-	tegra194_cbb_noc_set_data(errlog);
-
-	if (bdata->is_ax2apb_bridge_connected) {
-		tegra_cbb_axi2apb_bridge_data(pdev, &(errlog->apb_bridge_cnt),
-				&(errlog->axi2abp_bases));
+	err = tegra194_cbb_noc_set_data(errlog);
+	if (err) {
+		dev_err(&pdev->dev, "Err logger name mismatch\n");
+		return -EINVAL;
 	}
 
-	err = tegra_cbb_err_getirq(pdev, &errlog->noc_nonsecure_irq,
-			&errlog->noc_secure_irq, &errlog->num_intr);
+	if (bdata->is_ax2apb_bridge_connected) {
+		err = tegra_cbb_axi2apb_bridge_data(pdev,
+				&(errlog->apb_bridge_cnt),
+				&(errlog->axi2abp_bases));
+		if (err) {
+			dev_err(&pdev->dev, "axi2apb bridge read failed\n");
+			return -EINVAL;
+		}
+	}
+
+	err = tegra_cbb_err_getirq(pdev,
+				&errlog->noc_nonsecure_irq,
+				&errlog->noc_secure_irq, &errlog->num_intr);
+	if (err)
+		return -EINVAL;
+
 	cbb_init_data->secure_irq = errlog->noc_secure_irq;
 	cbb_init_data->nonsecure_irq = errlog->noc_nonsecure_irq;
 	cbb_init_data->vaddr = errlog->vaddr;
@@ -776,7 +787,7 @@ static int tegra194_cbb_errlogger_init(struct platform_device *pdev,
 	list_add(&errlog->node, &cbb_noc_list);
 	raw_spin_unlock_irqrestore(&cbb_noc_lock, flags);
 
-	return 0;
+	return err;
 };
 
 static int tegra194_cbb_probe(struct platform_device *pdev)
@@ -790,8 +801,11 @@ static int tegra194_cbb_probe(struct platform_device *pdev)
 	/*
 	 * CBB don't exist on the simulator
 	 */
-	if (tegra_cpu_is_asim())
-		return 0;
+	if (tegra_cpu_is_asim() || !tegra_cbb_core_probed()) {
+		dev_err(&pdev->dev,
+				"Running on asim or tegra_cbb core driver not initialized\n");
+		return -EINVAL;
+	}
 
 	bdata = of_device_get_match_data(&pdev->dev);
 	if (!bdata) {

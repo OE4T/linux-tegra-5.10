@@ -33,6 +33,7 @@
 
 static void __iomem **axi2apb_bases;
 static struct tegra_cbberr_ops *cbberr_ops;
+static bool is_cbb_core_probed;
 
 static char *tegra_axi2apb_errors[] = {
 	"SFIFONE - Status FIFO Not Empty interrupt",
@@ -118,7 +119,6 @@ void print_prot(struct seq_file *file, u32 prot)
 	print_cbb_err(file, "\t  Protection\t\t: 0x%x -- %s, %s, %s Access\n",
 			prot, priv_str, secure_str, data_str);
 }
-
 
 #ifdef CONFIG_DEBUG_FS
 static int created_root;
@@ -307,22 +307,29 @@ int tegra_cbberr_register_hook_en(struct platform_device *pdev,
 	return ret;
 }
 
+int tegra_cbb_core_probed(void)
+{
+	return is_cbb_core_probed;
+}
+EXPORT_SYMBOL(tegra_cbb_core_probed);
+
 static int __init tegra_cbb_init(void)
 {
 	int err = 0;
 
-        /*
-         * CBB don't exist on the simulator
-         */
-        if (tegra_cpu_is_asim() &&
+	/*
+	 * CBB don't exist on the simulator
+	 */
+	if (tegra_cpu_is_asim() &&
 		(tegra_get_chipid() != TEGRA_CHIPID_TEGRA19))
-		return 0;
+		return -EINVAL;
 
 	err = cbb_noc_dbgfs_init();
 	if (err)
 		return err;
 
-	return 0;
+	is_cbb_core_probed = 1;
+	return err;
 }
 
 static void __exit tegra_cbb_exit(void)
