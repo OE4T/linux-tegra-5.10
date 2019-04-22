@@ -226,48 +226,48 @@ void gm20b_ctxsw_prog_disable_verif_features(struct gk20a *g,
 	nvgpu_mem_wr(g, ctx_mem, ctxsw_prog_main_image_misc_options_o(), data);
 }
 
-bool gm20b_ctxsw_prog_check_main_image_header_magic(u8 *context)
+bool gm20b_ctxsw_prog_check_main_image_header_magic(u32 *context)
 {
-        u32 magic = *(u32 *)(context + ctxsw_prog_main_image_magic_value_o());
-        return magic == ctxsw_prog_main_image_magic_value_v_value_v();
+	u32 magic = *(context + (ctxsw_prog_main_image_magic_value_o() >> 2));
+	return magic == ctxsw_prog_main_image_magic_value_v_value_v();
 }
 
-bool gm20b_ctxsw_prog_check_local_header_magic(u8 *context)
+bool gm20b_ctxsw_prog_check_local_header_magic(u32 *context)
 {
-        u32 magic = *(u32 *)(context + ctxsw_prog_local_magic_value_o());
-        return magic == ctxsw_prog_local_magic_value_v_value_v();
+	u32 magic = *(context + (ctxsw_prog_local_magic_value_o() >> 2));
+	return magic == ctxsw_prog_local_magic_value_v_value_v();
 }
 
-u32 gm20b_ctxsw_prog_get_num_gpcs(u8 *context)
+u32 gm20b_ctxsw_prog_get_num_gpcs(u32 *context)
 {
-	return *(u32 *)(context + ctxsw_prog_main_image_num_gpcs_o());
+	return *(context + (ctxsw_prog_main_image_num_gpcs_o() >> 2));
 }
 
-u32 gm20b_ctxsw_prog_get_num_tpcs(u8 *context)
+u32 gm20b_ctxsw_prog_get_num_tpcs(u32 *context)
 {
-	return *(u32 *)(context + ctxsw_prog_local_image_num_tpcs_o());
+	return *(context + (ctxsw_prog_local_image_num_tpcs_o() >> 2));
 }
 
-void gm20b_ctxsw_prog_get_extended_buffer_size_offset(u8 *context,
+void gm20b_ctxsw_prog_get_extended_buffer_size_offset(u32 *context,
 	u32 *size, u32 *offset)
 {
-	u32 data = *(u32 *)(context + ctxsw_prog_main_extended_buffer_ctl_o());
+	u32 data = *(context + (ctxsw_prog_main_extended_buffer_ctl_o() >> 2));
 
 	*size = ctxsw_prog_main_extended_buffer_ctl_size_v(data);
 	*offset = ctxsw_prog_main_extended_buffer_ctl_offset_v(data);
 }
 
-void gm20b_ctxsw_prog_get_ppc_info(u8 *context, u32 *num_ppcs, u32 *ppc_mask)
+void gm20b_ctxsw_prog_get_ppc_info(u32 *context, u32 *num_ppcs, u32 *ppc_mask)
 {
-	u32 data = *(u32 *)(context + ctxsw_prog_local_image_ppc_info_o());
+	u32 data = *(context + (ctxsw_prog_local_image_ppc_info_o() >> 2));
 
 	*num_ppcs = ctxsw_prog_local_image_ppc_info_num_ppcs_v(data);
 	*ppc_mask = ctxsw_prog_local_image_ppc_info_ppc_mask_v(data);
 }
 
-u32 gm20b_ctxsw_prog_get_local_priv_register_ctl_offset(u8 *context)
+u32 gm20b_ctxsw_prog_get_local_priv_register_ctl_offset(u32 *context)
 {
-	u32 data = *(u32 *)(context + ctxsw_prog_local_priv_register_ctl_o());
+	u32 data = *(context + (ctxsw_prog_local_priv_register_ctl_o() >> 2));
 	return ctxsw_prog_local_priv_register_ctl_offset_v(data);
 }
 

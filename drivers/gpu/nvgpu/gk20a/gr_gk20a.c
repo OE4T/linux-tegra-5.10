@@ -738,7 +738,7 @@ static int gr_gk20a_find_priv_offset_in_ext_buffer(struct gk20a *g,
 	u32 num_gpcs;
 	u32 chk_addr;
 	u32 ext_priv_offset, ext_priv_size;
-	u8 *context;
+	u32 *context;
 	u32 offset_to_segment, offset_to_segment_end;
 	u32 sm_dsm_perf_reg_id = ILLEGAL_ID;
 	u32 sm_dsm_perf_ctrl_reg_id = ILLEGAL_ID;
@@ -788,7 +788,7 @@ static int gr_gk20a_find_priv_offset_in_ext_buffer(struct gk20a *g,
 	/* note below is in words/num_registers */
 	marker_size = g->ops.gr.ctxsw_prog.hw_extended_marker_size_in_bytes() >> 2;
 
-	context = (u8 *)context_buffer;
+	context = context_buffer;
 	/* sanity check main header */
 	if (!g->ops.gr.ctxsw_prog.check_main_image_header_magic(context)) {
 		nvgpu_err(g,
@@ -815,7 +815,7 @@ static int gr_gk20a_find_priv_offset_in_ext_buffer(struct gk20a *g,
 		(ext_priv_size * buffer_segments_size);
 
 	/* check local header magic */
-	context += g->ops.gr.ctxsw_prog.hw_get_fecs_header_size();
+	context += (g->ops.gr.ctxsw_prog.hw_get_fecs_header_size() >> 2);
 	if (!g->ops.gr.ctxsw_prog.check_local_header_magic(context)) {
 		nvgpu_err(g,
 			   "Invalid local header: magic value");
@@ -1104,7 +1104,7 @@ gr_gk20a_process_context_buffer_priv_segment(struct gk20a *g,
 }
 
 static int gr_gk20a_determine_ppc_configuration(struct gk20a *g,
-					       u8 *context,
+					       u32 *context,
 					       u32 *num_ppcs, u32 *ppc_mask,
 					       u32 *reg_ppc_count)
 {
@@ -1202,7 +1202,7 @@ static int gr_gk20a_find_priv_offset_in_buffer(struct gk20a *g,
 	u32 offset;
 	u32 sys_priv_offset, gpc_priv_offset;
 	u32 ppc_mask, reg_list_ppc_count;
-	u8 *context;
+	u32 *context;
 	u32 offset_to_segment, offset_in_segment = 0;
 
 	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gpu_dbg, "addr=0x%x", addr);
@@ -1217,7 +1217,7 @@ static int gr_gk20a_find_priv_offset_in_buffer(struct gk20a *g,
 		return err;
 	}
 
-	context = (u8 *)context_buffer;
+	context = context_buffer;
 	if (!g->ops.gr.ctxsw_prog.check_main_image_header_magic(context)) {
 		nvgpu_err(g,
 			   "Invalid main header: magic value");
@@ -1226,7 +1226,7 @@ static int gr_gk20a_find_priv_offset_in_buffer(struct gk20a *g,
 	num_gpcs = g->ops.gr.ctxsw_prog.get_num_gpcs(context);
 
 	/* Parse the FECS local header. */
-	context += g->ops.gr.ctxsw_prog.hw_get_fecs_header_size();
+	context += (g->ops.gr.ctxsw_prog.hw_get_fecs_header_size() >> 2);
 	if (!g->ops.gr.ctxsw_prog.check_local_header_magic(context)) {
 		nvgpu_err(g,
 			   "Invalid FECS local header: magic value");
@@ -1277,7 +1277,8 @@ static int gr_gk20a_find_priv_offset_in_buffer(struct gk20a *g,
 
 	/* Parse the GPCCS local header(s).*/
 	for (i = 0; i < num_gpcs; i++) {
-		context += g->ops.gr.ctxsw_prog.hw_get_gpccs_header_size();
+		context +=
+			(g->ops.gr.ctxsw_prog.hw_get_gpccs_header_size() >> 2);
 		if (!g->ops.gr.ctxsw_prog.check_local_header_magic(context)) {
 			nvgpu_err(g,
 				   "Invalid GPCCS local header: magic value");

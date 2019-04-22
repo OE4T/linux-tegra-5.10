@@ -480,15 +480,15 @@ struct gpu_ops {
 				struct nvgpu_mem *ctx_mem, u64 addr);
 			void (*disable_verif_features)(struct gk20a *g,
 				struct nvgpu_mem *ctx_mem);
-			bool (*check_main_image_header_magic)(u8 *context);
-			bool (*check_local_header_magic)(u8 *context);
-			u32 (*get_num_gpcs)(u8 *context);
-			u32 (*get_num_tpcs)(u8 *context);
-			void (*get_extended_buffer_size_offset)(u8 *context,
+			bool (*check_main_image_header_magic)(u32 *context);
+			bool (*check_local_header_magic)(u32 *context);
+			u32 (*get_num_gpcs)(u32 *context);
+			u32 (*get_num_tpcs)(u32 *context);
+			void (*get_extended_buffer_size_offset)(u32 *context,
 				u32 *size, u32 *offset);
-			void (*get_ppc_info)(u8 *context,
+			void (*get_ppc_info)(u32 *context,
 				u32 *num_ppcs, u32 *ppc_mask);
-			u32 (*get_local_priv_register_ctl_offset)(u8 *context);
+			u32 (*get_local_priv_register_ctl_offset)(u32 *context);
 			u32 (*hw_get_ts_tag_invalid_timestamp)(void);
 			u32 (*hw_get_ts_tag)(u64 ts);
 			u64 (*hw_record_ts_timestamp)(u64 ts);
