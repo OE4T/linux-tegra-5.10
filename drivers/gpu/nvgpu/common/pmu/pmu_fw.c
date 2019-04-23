@@ -31,7 +31,6 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/boardobj.h>
 #include <nvgpu/boardobjgrp.h>
-#include <nvgpu/pmu/pstate.h>
 #include <nvgpu/pmu/volt.h>
 #include <nvgpu/pmu/clk/clk.h>
 #include <nvgpu/pmu/pmu_perfmon.h>
@@ -39,6 +38,7 @@
 #include <nvgpu/pmu/lsfm.h>
 #include <nvgpu/pmu/super_surface.h>
 #include <nvgpu/pmu/pmu_pg.h>
+#include <nvgpu/pmu/pmu_pstate.h>
 
 /* PMU NS UCODE IMG */
 #define NVGPU_PMU_NS_UCODE_IMAGE	"gpmu_ucode.bin"

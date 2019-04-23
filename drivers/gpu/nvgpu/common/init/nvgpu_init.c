@@ -43,10 +43,10 @@
 #include <nvgpu/mc.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/channel_sync.h>
-#include <nvgpu/pmu/pstate.h>
 #include <nvgpu/gr/gr.h>
 
 #include <trace/events/gk20a.h>
+#include <nvgpu/pmu/pmu_pstate.h>
 
 bool is_nvgpu_gpu_state_valid(struct gk20a *g)
 {
@@ -380,14 +380,14 @@ int gk20a_finalize_poweron(struct gk20a *g)
 	nvgpu_mutex_release(&g->tpc_pg_lock);
 
 	if (nvgpu_is_enabled(g, NVGPU_PMU_PSTATE)) {
-		err = gk20a_init_pstate_support(g);
+		err = nvgpu_pmu_pstate_sw_setup(g);
 		if (err != 0) {
 			nvgpu_err(g, "failed to init pstates");
 			nvgpu_mutex_release(&g->tpc_pg_lock);
 			goto done;
 		}
 
-		err = gk20a_init_pstate_pmu_support(g);
+		err = nvgpu_pmu_pstate_pmu_setup(g);
 		if (err != 0) {
 			nvgpu_err(g, "failed to init pstates");
 			goto done;

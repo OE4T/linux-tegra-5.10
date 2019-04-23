@@ -49,15 +49,16 @@
 #include <nvgpu/engines.h>
 #include <nvgpu/channel.h>
 #include <nvgpu/gr/gr.h>
+#include <nvgpu/pmu/pmu_pstate.h>
 
 #include "common/gr/gr_priv.h"
-
 #include "platform_gk20a.h"
 #include "sysfs.h"
 #include "vgpu/vgpu_linux.h"
 #include "scale.h"
 #include "pci.h"
 #include "module.h"
+
 #include "module_usermode.h"
 #include "intr.h"
 #include "ioctl.h"
@@ -751,7 +752,7 @@ void gk20a_remove_support(struct gk20a *g)
 		g->pmu.remove_support(&g->pmu);
 
 	if (nvgpu_is_enabled(g, NVGPU_PMU_PSTATE)) {
-		gk20a_deinit_pstate_support(g);
+		nvgpu_pmu_pstate_deinit(g);
 	}
 
 	if (g->sec2.remove_support != NULL) {

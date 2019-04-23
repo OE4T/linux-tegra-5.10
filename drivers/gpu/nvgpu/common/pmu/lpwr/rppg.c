@@ -22,10 +22,10 @@
 
 #include <nvgpu/pmu.h>
 #include <nvgpu/gk20a.h>
-#include <nvgpu/pmu/pstate.h>
 #include <nvgpu/pmu/lpwr.h>
 #include <nvgpu/bug.h>
 #include <nvgpu/pmu/cmd.h>
+#include <nvgpu/pmu/pmu_pstate.h>
 
 #include "gp106/bios_gp106.h"
 

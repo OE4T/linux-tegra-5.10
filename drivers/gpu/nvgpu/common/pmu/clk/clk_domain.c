@@ -29,7 +29,7 @@
 #include <nvgpu/boardobjgrpmask.h>
 #include <nvgpu/pmu/pmuif/ctrlclk.h>
 #include <nvgpu/pmu/clk/clk_vf_point.h>
-#include <nvgpu/pmu/pstate.h>
+#include <nvgpu/pmu/perf_pstate.h>
 #include <nvgpu/string.h>
 #include <nvgpu/pmu/pmuif/ctrlvolt.h>
 #include <nvgpu/pmu/volt.h>
@@ -1455,7 +1455,7 @@ static int clk_set_boot_fll_clks_per_clk_domain(struct gk20a *g)
 	BOARDOBJGRP_FOR_EACH(&(g->clk_pmu->clk_domainobjs->super.super),
 		struct nvgpu_clk_domain *, pclk_domain, i) {
 
-		p0_clk_set_info = pstate_get_clk_set_info(g,
+		p0_clk_set_info = nvgpu_pmu_perf_pstate_get_clk_set_info(g,
 			CTRL_PERF_PSTATE_P0, pclk_domain->domain);
 
 		switch (pclk_domain->api_domain) {
@@ -1542,7 +1542,7 @@ static void clk_set_p0_clk_per_domain(struct gk20a *g, u8 *gpcclk_domain,
 			*gpcclk_domain = i;
 			*gpcclk_clkmhz = vf_point->gpc_mhz;
 
-			p0_info = pstate_get_clk_set_info(g,
+			p0_info = nvgpu_pmu_perf_pstate_get_clk_set_info(g,
 					CTRL_PERF_PSTATE_P0, CLKWHICH_GPCCLK);
 			if (p0_info == NULL) {
 				nvgpu_err(g, "failed to get GPCCLK P0 info");
@@ -1560,7 +1560,7 @@ static void clk_set_p0_clk_per_domain(struct gk20a *g, u8 *gpcclk_domain,
 					(u32) BIT(i);
 			break;
 		case CTRL_CLK_DOMAIN_XBARCLK:
-			p0_info = pstate_get_clk_set_info(g,
+			p0_info = nvgpu_pmu_perf_pstate_get_clk_set_info(g,
 					CTRL_PERF_PSTATE_P0, CLKWHICH_XBARCLK);
 			if (p0_info == NULL) {
 				nvgpu_err(g, "failed to get XBARCLK P0 info");
@@ -1586,7 +1586,7 @@ static void clk_set_p0_clk_per_domain(struct gk20a *g, u8 *gpcclk_domain,
 			}
 			break;
 		case CTRL_CLK_DOMAIN_SYSCLK:
-			p0_info = pstate_get_clk_set_info(g,
+			p0_info = nvgpu_pmu_perf_pstate_get_clk_set_info(g,
 					CTRL_PERF_PSTATE_P0, CLKWHICH_SYSCLK);
 			if (p0_info == NULL) {
 				nvgpu_err(g, "failed to get SYSCLK P0 info");
@@ -1612,7 +1612,7 @@ static void clk_set_p0_clk_per_domain(struct gk20a *g, u8 *gpcclk_domain,
 			}
 			break;
 		case CTRL_CLK_DOMAIN_NVDCLK:
-			p0_info = pstate_get_clk_set_info(g,
+			p0_info = nvgpu_pmu_perf_pstate_get_clk_set_info(g,
 					CTRL_PERF_PSTATE_P0, CLKWHICH_NVDCLK);
 			if (p0_info == NULL) {
 				nvgpu_err(g, "failed to get NVDCLK P0 info");
@@ -1638,7 +1638,7 @@ static void clk_set_p0_clk_per_domain(struct gk20a *g, u8 *gpcclk_domain,
 			}
 			break;
 		case CTRL_CLK_DOMAIN_HOSTCLK:
-			p0_info = pstate_get_clk_set_info(g,
+			p0_info = nvgpu_pmu_perf_pstate_get_clk_set_info(g,
 					CTRL_PERF_PSTATE_P0, CLKWHICH_HOSTCLK);
 			if (p0_info == NULL) {
 				nvgpu_err(g, "failed to get HOSTCLK P0 info");

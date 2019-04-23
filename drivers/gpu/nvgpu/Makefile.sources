@@ -194,7 +194,7 @@ srcs += common/sim/sim.c \
 	common/pmu/lsfm/lsfm_sw_gp10b.c \
 	common/pmu/lsfm/lsfm_sw_gv100.c \
 	common/pmu/lsfm/lsfm_sw_tu104.c \
-	common/pmu/pstate/pstate.c \
+	common/pmu/pmu_pstate.c \
 	common/pmu/volt/volt_dev.c \
 	common/pmu/volt/volt_pmu.c \
 	common/pmu/volt/volt_policy.c \
@@ -216,6 +216,7 @@ srcs += common/sim/sim.c \
 	common/pmu/perf/vfe_var.c \
 	common/pmu/perf/perf_gv100.c \
 	common/pmu/perf/perf_ps35.c \
+	common/pmu/perf/perf_pstate.c \
 	common/pmu/perf/change_seq.c \
 	common/pmu/pmgr/pmgr.c \
 	common/pmu/pmgr/pmgrpmu.c \

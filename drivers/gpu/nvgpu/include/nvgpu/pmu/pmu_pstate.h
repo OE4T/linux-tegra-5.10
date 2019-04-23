@@ -21,9 +21,15 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef NVGPU_PSTATE_PSTATE_H
-#define NVGPU_PSTATE_PSTATE_H
+#ifndef NVGPU_PMU_PSTATE_H
+#define NVGPU_PMU_PSTATE_H
 
-#define CTRL_PERF_PSTATE_TYPE_3X	0x3U
+#include <nvgpu/types.h>
 
-#endif /* NVGPU_PSTATE_PSTATE_H */
+struct gk20a;
+
+int nvgpu_pmu_pstate_sw_setup(struct gk20a *g);
+void nvgpu_pmu_pstate_deinit(struct gk20a *g);
+int nvgpu_pmu_pstate_pmu_setup(struct gk20a *g);
+
+#endif /* NVGPU_PMU_PSTATE_H */

@@ -25,15 +25,16 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/timers.h>
 #include <nvgpu/pmu/pmuif/ctrlclk.h>
-#include <nvgpu/pmu/pstate.h>
+#include <nvgpu/boardobj.h>
+#include <nvgpu/boardobjgrp_e32.h>
 #include <nvgpu/pmu/clk/clk.h>
 #include <nvgpu/pmu/clk/clk_domain.h>
 #include <nvgpu/pmu/perf.h>
 #include <nvgpu/pmu/cmd.h>
 #include <nvgpu/pmu/super_surface.h>
+#include <nvgpu/pmu/pmu_pstate.h>
 
 #include "pmu_perf.h"
-
 #include "change_seq.h"
 
 #define SEQ_SCRIPT_CURR  0x0U
@@ -133,8 +134,8 @@ static void build_change_seq_boot (struct gk20a *g)
 	BOARDOBJGRP_FOR_EACH(&(g->clk_pmu->clk_domainobjs->super.super),
 		struct nvgpu_clk_domain *, pdomain, i) {
 
-		p0_info = pstate_get_clk_set_info(g, CTRL_PERF_PSTATE_P0,
-			pdomain->domain);
+		p0_info = nvgpu_pmu_perf_pstate_get_clk_set_info(g,
+				CTRL_PERF_PSTATE_P0, pdomain->domain);
 
 		script_last->buf.change.data.clk_list.clk_domains[i].clk_domain =
 			pdomain->api_domain;

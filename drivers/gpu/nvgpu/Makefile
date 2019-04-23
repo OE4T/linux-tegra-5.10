@@ -112,6 +112,7 @@ nvgpu-y += \
 	common/pmu/perf/perf_gv100.o \
 	common/pmu/perf/perf_ps35.o \
 	common/pmu/perf/change_seq.o \
+	common/pmu/perf/perf_pstate.o \
 	common/pmu/pmgr/pwrdev.o \
 	common/pmu/pmgr/pmgr.o \
 	common/pmu/pmgr/pmgrpmu.o \
@@ -127,7 +128,7 @@ nvgpu-y += \
 	common/pmu/therm/thrmpmu.o \
 	common/pmu/lpwr/rppg.o \
 	common/pmu/lpwr/lpwr.o \
-	common/pmu/pstate/pstate.o \
+	common/pmu/pmu_pstate.o \
 	common/pmu/clk/clk_vin.o \
 	common/pmu/clk/clk_fll.o \
 	common/pmu/clk/clk_domain.o \

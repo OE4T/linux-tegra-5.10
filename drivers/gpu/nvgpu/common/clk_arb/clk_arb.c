@@ -33,7 +33,7 @@
 #include <nvgpu/clk_arb.h>
 #include <nvgpu/timers.h>
 #include <nvgpu/gk20a.h>
-#include <nvgpu/pmu/pstate.h>
+#include <nvgpu/pmu/perf_pstate.h>
 #include <nvgpu/pmu/volt.h>
 #include <nvgpu/pmu/clk/clk.h>
 #include <nvgpu/boardobjgrp_e255.h>
@@ -154,7 +154,7 @@ int nvgpu_clk_arb_update_vf_table(struct nvgpu_clk_arb *arb)
 	(void) memset(table->gpc2clk_points, 0,
 		table->gpc2clk_num_points*sizeof(struct nvgpu_clk_vf_point));
 
-	p0_info = pstate_get_clk_set_info(g,
+	p0_info = nvgpu_pmu_perf_pstate_get_clk_set_info(g,
 			CTRL_PERF_PSTATE_P0, CLKWHICH_GPCCLK);
 	if (!p0_info) {
 		status = -EINVAL;

@@ -27,12 +27,12 @@
 #include <nvgpu/pmu/pmuif/ctrlvolt.h>
 #include <nvgpu/bug.h>
 #include <nvgpu/pmu/pmuif/ctrlperf.h>
-#include <nvgpu/pmu/pstate.h>
 #include <nvgpu/pmu/volt.h>
 #include <nvgpu/pmu/perf.h>
 #include <nvgpu/pmu/clk/clk.h>
 #include <nvgpu/pmu/cmd.h>
 #include <nvgpu/timers.h>
+#include <nvgpu/pmu/pmu_pstate.h>
 
 void nvgpu_clkrpc_pmucmdhandler(struct gk20a *g, struct pmu_msg *msg,
 		void *param, u32 status)

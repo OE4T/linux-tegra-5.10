@@ -81,7 +81,7 @@ int gv100_get_arbiter_clk_range(struct gk20a *g, u32 api_domain,
 		return -EINVAL;
 	}
 
-	p0_info = pstate_get_clk_set_info(g,
+	p0_info = nvgpu_pmu_perf_pstate_get_clk_set_info(g,
 			CTRL_PERF_PSTATE_P0, clkwhich);
 	if (p0_info == NULL) {
 		return -EINVAL;
@@ -126,7 +126,7 @@ int gv100_get_arbiter_clk_default(struct gk20a *g, u32 api_domain,
 		return -EINVAL;
 	}
 
-	p0_info = pstate_get_clk_set_info(g,
+	p0_info = nvgpu_pmu_perf_pstate_get_clk_set_info(g,
 			CTRL_PERF_PSTATE_P0, clkwhich);
 	if (p0_info == NULL) {
 		return -EINVAL;

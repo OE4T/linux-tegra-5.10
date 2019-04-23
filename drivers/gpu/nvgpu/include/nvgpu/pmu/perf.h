@@ -25,7 +25,7 @@
 #include <nvgpu/types.h>
 #include <nvgpu/cond.h>
 #include <nvgpu/thread.h>
-#include <nvgpu/pmu/pstate.h>
+#include <nvgpu/pmu/perf_pstate.h>
 #include <nvgpu/pmu/volt.h>
 #include <nvgpu/pmu/lpwr.h>
 #include <nvgpu/boardobjgrp_e32.h>

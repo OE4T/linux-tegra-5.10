@@ -25,9 +25,9 @@
 #include <nvgpu/clk_arb.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/string.h>
-#include <nvgpu/pmu/pstate.h>
 #include <nvgpu/pmu/perf.h>
 #include <nvgpu/pmu/cmd.h>
+#include <nvgpu/pmu/pmu_pstate.h>
 
 #include "gp106/bios_gp106.h"
 #include "lpwr.h"
@@ -243,7 +243,7 @@ int nvgpu_lwpr_mclk_change(struct gk20a *g, u32 pstate)
 
 	nvgpu_log_fn(g, " ");
 
-	pstate_info = pstate_get_clk_set_info(g, pstate,
+	pstate_info = nvgpu_pmu_perf_pstate_get_clk_set_info(g, pstate,
 			CLKWHICH_MCLK);
 	if (pstate_info == NULL) {
 		return -EINVAL;
@@ -325,7 +325,7 @@ bool nvgpu_lpwr_is_mscg_supported(struct gk20a *g, u32 pstate_num)
 			&g->perf_pmu->lpwr.lwpr_bios_data.ms;
 	struct nvgpu_lpwr_bios_idx_data *pidx_data =
 			&g->perf_pmu->lpwr.lwpr_bios_data.idx;
-	struct pstate *pstate = pstate_find(g, pstate_num);
+	struct pstate *pstate = nvgpu_pmu_perf_pstate_find(g, pstate_num);
 	u32 ms_idx;
 
 	nvgpu_log_fn(g, " ");
@@ -348,7 +348,7 @@ bool nvgpu_lpwr_is_rppg_supported(struct gk20a *g, u32 pstate_num)
 			&g->perf_pmu->lpwr.lwpr_bios_data.gr;
 	struct nvgpu_lpwr_bios_idx_data *pidx_data =
 			&g->perf_pmu->lpwr.lwpr_bios_data.idx;
-	struct pstate *pstate = pstate_find(g, pstate_num);
+	struct pstate *pstate = nvgpu_pmu_perf_pstate_find(g, pstate_num);
 	u32 idx;
 
 	nvgpu_log_fn(g, " ");

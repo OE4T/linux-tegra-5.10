@@ -25,6 +25,8 @@
 #include <nvgpu/pmu.h>
 #include <nvgpu/bug.h>
 #include <nvgpu/gk20a.h>
+#include <nvgpu/boardobj.h>
+#include <nvgpu/boardobjgrp_e32.h>
 #include <nvgpu/pmu/clk/clk.h>
 #include <nvgpu/pmu/perf.h>
 #include <nvgpu/pmu/cmd.h>
