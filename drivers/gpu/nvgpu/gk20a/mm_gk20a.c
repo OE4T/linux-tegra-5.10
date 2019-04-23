@@ -82,45 +82,6 @@
  *
  */
 
-/* make sure gk20a_init_mm_support is called before */
-int gk20a_init_mm_setup_hw(struct gk20a *g)
-{
-	struct mm_gk20a *mm = &g->mm;
-	int err;
-
-	nvgpu_log_fn(g, " ");
-
-	if (g->ops.fb.set_mmu_page_size != NULL) {
-		g->ops.fb.set_mmu_page_size(g);
-	}
-
-	if (g->ops.fb.set_use_full_comp_tag_line != NULL) {
-		mm->use_full_comp_tag_line =
-			g->ops.fb.set_use_full_comp_tag_line(g);
-	}
-
-	g->ops.fb.init_hw(g);
-
-	if (g->ops.bus.bar1_bind != NULL) {
-		g->ops.bus.bar1_bind(g, &mm->bar1.inst_block);
-	}
-
-	if (g->ops.bus.bar2_bind != NULL) {
-		err = g->ops.bus.bar2_bind(g, &mm->bar2.inst_block);
-		if (err != 0) {
-			return err;
-		}
-	}
-
-	if (g->ops.mm.cache.fb_flush(g) != 0 ||
-	    g->ops.mm.cache.fb_flush(g) != 0) {
-		return -EBUSY;
-	}
-
-	nvgpu_log_fn(g, "done");
-	return 0;
-}
-
 void gk20a_init_inst_block(struct nvgpu_mem *inst_block, struct vm_gk20a *vm,
 		u32 big_page_size)
 {

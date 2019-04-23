@@ -31,8 +31,10 @@ struct vm_gk20a;
 bool gv11b_mm_is_bar1_supported(struct gk20a *g);
 void gv11b_init_inst_block(struct nvgpu_mem *inst_block,
 		struct vm_gk20a *vm, u32 big_page_size);
-int gv11b_init_mm_setup_hw(struct gk20a *g);
 void gv11b_mm_fault_info_mem_destroy(struct gk20a *g);
 void gv11b_mm_mmu_fault_disable_hw(struct gk20a *g);
+
+void gv11b_mm_mmu_fault_setup_hw(struct gk20a *g);
+int  gv11b_mm_mmu_fault_setup_sw(struct gk20a *g);
 
 #endif

@@ -51,7 +51,6 @@ gv11b_fb_is_fault_buf_enabled
 gv11b_fb_intr_is_mmu_fault_pending
 gv11b_gpu_phys_addr
 gv11b_init_inst_block
-gv11b_init_mm_setup_hw
 gv11b_mm_fault_info_mem_destroy
 gv11b_mm_is_bar1_supported
 gv11b_mm_l2_flush
@@ -116,6 +115,7 @@ nvgpu_mem_sgt_posix_create_from_list
 nvgpu_mem_wr
 nvgpu_mem_wr32
 nvgpu_mem_wr_n
+nvgpu_mm_setup_hw
 nvgpu_mutex_acquire
 nvgpu_mutex_destroy
 nvgpu_mutex_init

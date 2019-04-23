@@ -134,7 +134,7 @@ static int init_mm(struct unit_module *m, struct gk20a *g)
 	g->ops.mc.is_mmu_fault_pending = gv11b_mc_is_mmu_fault_pending;
 	g->ops.mm.fault_info_mem_destroy = gv11b_mm_fault_info_mem_destroy;
 	g->ops.mm.mmu_fault_disable_hw = gv11b_mm_mmu_fault_disable_hw;
-	g->ops.mm.init_mm_setup_hw = gv11b_init_mm_setup_hw;
+	g->ops.mm.setup_hw = nvgpu_mm_setup_hw;
 	g->ops.mm.cache.l2_flush = gv11b_mm_l2_flush;
 	g->ops.mm.cache.fb_flush = gk20a_mm_fb_flush;
 	g->ops.fb.init_hw = gv11b_fb_init_hw;
@@ -209,7 +209,7 @@ static int init_mm(struct unit_module *m, struct gk20a *g)
 	g->mm.mmu_rd_mem.aperture = APERTURE_SYSMEM;
 
 	/* Init MM H/W */
-	err = g->ops.mm.init_mm_setup_hw(g);
+	err = g->ops.mm.setup_hw(g);
 	if (err != 0) {
 		unit_return_fail(m, "init_mm_setup_hw failed code=%d\n", err);
 	}
@@ -218,7 +218,7 @@ static int init_mm(struct unit_module *m, struct gk20a *g)
 	 * Call the init function again to cover branches checking for already
 	 * initialized structures
 	 */
-	err = g->ops.mm.init_mm_setup_hw(g);
+	err = g->ops.mm.setup_hw(g);
 	if (err != 0) {
 		unit_return_fail(m, "init_mm_setup_hw/2 failed code=%d\n", err);
 	}

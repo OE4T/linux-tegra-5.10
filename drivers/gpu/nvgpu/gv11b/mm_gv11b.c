@@ -146,7 +146,7 @@ static void gv11b_mm_mmu_hw_fault_buf_init(struct gk20a *g)
 	}
 }
 
-static void gv11b_mm_mmu_fault_setup_hw(struct gk20a *g)
+void gv11b_mm_mmu_fault_setup_hw(struct gk20a *g)
 {
 	if (nvgpu_mem_is_valid(
 			&g->mm.hw_fault_buf[NVGPU_MM_MMU_FAULT_TYPE_OTHER_AND_NONREPLAY])) {
@@ -159,7 +159,7 @@ static void gv11b_mm_mmu_fault_setup_hw(struct gk20a *g)
 	}
 }
 
-static int gv11b_mm_mmu_fault_setup_sw(struct gk20a *g)
+int gv11b_mm_mmu_fault_setup_sw(struct gk20a *g)
 {
 	int err = 0;
 
@@ -176,24 +176,6 @@ static int gv11b_mm_mmu_fault_setup_sw(struct gk20a *g)
 	if (err == 0) {
 		gv11b_mm_mmu_hw_fault_buf_init(g);
 	}
-
-	return err;
-}
-
-int gv11b_init_mm_setup_hw(struct gk20a *g)
-{
-	int err = 0;
-
-	nvgpu_log_fn(g, " ");
-
-	err = gk20a_init_mm_setup_hw(g);
-
-	err = gv11b_mm_mmu_fault_setup_sw(g);
-	if (err == 0) {
-		gv11b_mm_mmu_fault_setup_hw(g);
-	}
-
-	nvgpu_log_fn(g, "end");
 
 	return err;
 }

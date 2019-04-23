@@ -562,6 +562,17 @@ static int nvgpu_init_mm_setup_sw(struct gk20a *g)
 		return err;
 	}
 
+	/*
+	 * Some chips support replayable MMU faults. For such chips make sure
+	 * SW is initialized.
+	 */
+	if (g->ops.mm.mmu_fault.setup_sw != NULL) {
+		err = g->ops.mm.mmu_fault.setup_sw(g);
+		if (err != 0) {
+			return err;
+		}
+	}
+
 	mm->remove_support = nvgpu_remove_mm_support;
 	mm->remove_ce_support = nvgpu_remove_mm_ce_support;
 
@@ -591,6 +602,52 @@ static int nvgpu_init_mm_pdb_cache_war(struct gk20a *g)
 	return 0;
 }
 
+/*
+ * Called through the HAL to handle vGPU: the vGPU doesn't have HW to initialize
+ * here.
+ */
+int nvgpu_mm_setup_hw(struct gk20a *g)
+{
+	struct mm_gk20a *mm = &g->mm;
+	int err;
+
+	nvgpu_log_fn(g, " ");
+
+	if (g->ops.fb.set_mmu_page_size != NULL) {
+		g->ops.fb.set_mmu_page_size(g);
+	}
+
+	if (g->ops.fb.set_use_full_comp_tag_line != NULL) {
+		mm->use_full_comp_tag_line =
+			g->ops.fb.set_use_full_comp_tag_line(g);
+	}
+
+	g->ops.fb.init_hw(g);
+
+	if (g->ops.bus.bar1_bind != NULL) {
+		g->ops.bus.bar1_bind(g, &mm->bar1.inst_block);
+	}
+
+	if (g->ops.bus.bar2_bind != NULL) {
+		err = g->ops.bus.bar2_bind(g, &mm->bar2.inst_block);
+		if (err != 0) {
+			return err;
+		}
+	}
+
+	if (g->ops.mm.cache.fb_flush(g) != 0 ||
+	    g->ops.mm.cache.fb_flush(g) != 0) {
+		return -EBUSY;
+	}
+
+	if (g->ops.mm.mmu_fault.setup_hw != NULL) {
+		g->ops.mm.mmu_fault.setup_hw(g);
+	}
+
+	nvgpu_log_fn(g, "done");
+	return 0;
+}
+
 int nvgpu_init_mm_support(struct gk20a *g)
 {
 	int err;
@@ -610,8 +667,8 @@ int nvgpu_init_mm_support(struct gk20a *g)
 		return err;
 	}
 
-	if (g->ops.mm.init_mm_setup_hw != NULL) {
-		err = g->ops.mm.init_mm_setup_hw(g);
+	if (g->ops.mm.setup_hw != NULL) {
+		err = g->ops.mm.setup_hw(g);
 	}
 
 	return err;

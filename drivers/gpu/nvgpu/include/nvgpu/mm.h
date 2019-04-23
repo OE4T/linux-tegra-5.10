@@ -221,4 +221,6 @@ int nvgpu_mm_suspend(struct gk20a *g);
 u32 nvgpu_mm_get_default_big_page_size(struct gk20a *g);
 u32 nvgpu_mm_get_available_big_page_sizes(struct gk20a *g);
 
+int nvgpu_mm_setup_hw(struct gk20a *g);
+
 #endif /* NVGPU_MM_H */

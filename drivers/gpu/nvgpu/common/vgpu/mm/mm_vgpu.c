@@ -77,10 +77,6 @@ int vgpu_init_mm_support(struct gk20a *g)
 		return err;
 	}
 
-	if (g->ops.mm.init_mm_setup_hw) {
-		err = g->ops.mm.init_mm_setup_hw(g);
-	}
-
 	return err;
 }
 

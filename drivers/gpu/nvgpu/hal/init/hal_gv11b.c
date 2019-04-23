@@ -1093,7 +1093,7 @@ static const struct gpu_ops gv11b_ops = {
 	},
 	.mm = {
 		.vm_bind_channel = nvgpu_vm_bind_channel,
-		.init_mm_setup_hw = gv11b_init_mm_setup_hw,
+		.setup_hw = nvgpu_mm_setup_hw,
 		.is_bar1_supported = gv11b_mm_is_bar1_supported,
 		.alloc_inst_block = gk20a_alloc_inst_block,
 		.init_inst_block = gv11b_init_inst_block,
@@ -1102,6 +1102,10 @@ static const struct gpu_ops gv11b_ops = {
 		.fault_info_mem_destroy = gv11b_mm_fault_info_mem_destroy,
 		.mmu_fault_disable_hw = gv11b_mm_mmu_fault_disable_hw,
 		.bar1_map_userd = NULL,
+		.mmu_fault = {
+			.setup_sw = gv11b_mm_mmu_fault_setup_sw,
+			.setup_hw = gv11b_mm_mmu_fault_setup_hw,
+		},
 		.cache = {
 			.fb_flush = gk20a_mm_fb_flush,
 			.l2_invalidate = gk20a_mm_l2_invalidate,

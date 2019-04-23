@@ -1265,7 +1265,7 @@ struct gpu_ops {
 	struct {
 		int (*vm_bind_channel)(struct vm_gk20a *vm,
 				struct channel_gk20a *ch);
-		int (*init_mm_setup_hw)(struct gk20a *g);
+		int (*setup_hw)(struct gk20a *g);
 		bool (*is_bar1_supported)(struct gk20a *g);
 		int (*init_bar2_vm)(struct gk20a *g);
 		void (*remove_bar2_vm)(struct gk20a *g);
@@ -1280,6 +1280,10 @@ struct gpu_ops {
 		u64 (*bar1_map_userd)(struct gk20a *g, struct nvgpu_mem *mem, u32 offset);
 		int (*vm_as_alloc_share)(struct gk20a *g, struct vm_gk20a *vm);
 		void (*vm_as_free_share)(struct vm_gk20a *vm);
+		struct {
+			int (*setup_sw)(struct gk20a *g);
+			void (*setup_hw)(struct gk20a *g);
+		} mmu_fault;
 		struct {
 			int (*fb_flush)(struct gk20a *g);
 			void (*l2_invalidate)(struct gk20a *g);

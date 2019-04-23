@@ -569,7 +569,7 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 	},
 	.mm = {
 		.vm_bind_channel = vgpu_vm_bind_channel,
-		.init_mm_setup_hw = NULL,
+		.setup_hw = NULL,
 		.is_bar1_supported = gm20b_mm_is_bar1_supported,
 		.init_inst_block = gk20a_init_inst_block,
 		.init_bar2_vm = gp10b_init_bar2_vm,
