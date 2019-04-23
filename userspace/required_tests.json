@@ -1,1169 +1,1451 @@
 [
     {
         "test": "atomic_add_32",
+        "test_level": 0,
         "unit": "atomic"
     },
     {
         "test": "atomic_add_32_threaded",
+        "test_level": 0,
         "unit": "atomic"
     },
     {
         "test": "atomic_add_64",
+        "test_level": 0,
         "unit": "atomic"
     },
     {
         "test": "atomic_add_64_threaded",
+        "test_level": 0,
         "unit": "atomic"
     },
     {
         "test": "atomic_add_unless_32",
+        "test_level": 0,
         "unit": "atomic"
     },
     {
         "test": "atomic_add_unless_32_threaded",
+        "test_level": 1,
         "unit": "atomic"
     },
     {
         "test": "atomic_add_unless_64",
+        "test_level": 0,
         "unit": "atomic"
     },
     {
         "test": "atomic_add_unless_64_threaded",
+        "test_level": 1,
         "unit": "atomic"
     },
     {
         "test": "atomic_cmpxchg_32",
+        "test_level": 0,
         "unit": "atomic"
     },
     {
         "test": "atomic_cmpxchg_64",
+        "test_level": 0,
         "unit": "atomic"
     },
     {
         "test": "atomic_dec_32",
+        "test_level": 0,
         "unit": "atomic"
     },
     {
         "test": "atomic_dec_32_threaded",
+        "test_level": 0,
         "unit": "atomic"
     },
     {
         "test": "atomic_dec_64",
+        "test_level": 0,
         "unit": "atomic"
     },
     {
         "test": "atomic_dec_64_threaded",
+        "test_level": 0,
         "unit": "atomic"
     },
     {
         "test": "atomic_dec_and_test_32",
+        "test_level": 0,
         "unit": "atomic"
     },
     {
         "test": "atomic_dec_and_test_32_threaded",
+        "test_level": 1,
         "unit": "atomic"
     },
     {
         "test": "atomic_dec_and_test_64",
+        "test_level": 0,
         "unit": "atomic"
     },
     {
         "test": "atomic_dec_and_test_64_threaded",
+        "test_level": 1,
         "unit": "atomic"
     },
     {
         "test": "atomic_dec_and_test_not_atomic_threaded",
+        "test_level": 1,
         "unit": "atomic"
     },
     {
         "test": "atomic_inc_32",
+        "test_level": 0,
         "unit": "atomic"
     },
     {
         "test": "atomic_inc_32_threaded",
+        "test_level": 0,
         "unit": "atomic"
     },
     {
         "test": "atomic_inc_64",
+        "test_level": 0,
         "unit": "atomic"
     },
     {
         "test": "atomic_inc_64_threaded",
+        "test_level": 0,
         "unit": "atomic"
     },
     {
         "test": "atomic_inc_and_test_32",
+        "test_level": 0,
         "unit": "atomic"
     },
     {
         "test": "atomic_inc_and_test_32_threaded",
+        "test_level": 1,
         "unit": "atomic"
     },
     {
         "test": "atomic_inc_and_test_64",
+        "test_level": 0,
         "unit": "atomic"
     },
     {
         "test": "atomic_inc_and_test_64_threaded",
+        "test_level": 1,
         "unit": "atomic"
     },
     {
         "test": "atomic_inc_and_test_not_atomic_threaded",
+        "test_level": 1,
         "unit": "atomic"
     },
     {
         "test": "atomic_set_and_read_32",
+        "test_level": 0,
         "unit": "atomic"
     },
     {
         "test": "atomic_set_and_read_64",
+        "test_level": 0,
         "unit": "atomic"
     },
     {
         "test": "atomic_sub_32",
+        "test_level": 0,
         "unit": "atomic"
     },
     {
         "test": "atomic_sub_32_threaded",
+        "test_level": 0,
         "unit": "atomic"
     },
     {
         "test": "atomic_sub_64",
+        "test_level": 0,
         "unit": "atomic"
     },
     {
         "test": "atomic_sub_64_threaded",
+        "test_level": 0,
         "unit": "atomic"
     },
     {
         "test": "atomic_sub_and_test_32",
+        "test_level": 0,
         "unit": "atomic"
     },
     {
         "test": "atomic_sub_and_test_32_threaded",
+        "test_level": 1,
         "unit": "atomic"
     },
     {
         "test": "atomic_sub_and_test_64",
+        "test_level": 0,
         "unit": "atomic"
     },
     {
         "test": "atomic_sub_and_test_64_threaded",
+        "test_level": 1,
         "unit": "atomic"
     },
     {
         "test": "atomic_sub_and_test_not_atomic_threaded",
+        "test_level": 1,
         "unit": "atomic"
     },
     {
         "test": "atomic_xchg_32",
+        "test_level": 0,
         "unit": "atomic"
     },
     {
         "test": "atomic_xchg_64",
+        "test_level": 0,
         "unit": "atomic"
     },
     {
         "test": "alloc",
+        "test_level": 0,
         "unit": "bitmap_allocator"
     },
     {
         "test": "critical",
+        "test_level": 0,
         "unit": "bitmap_allocator"
     },
     {
         "test": "free",
+        "test_level": 0,
         "unit": "bitmap_allocator"
     },
     {
         "test": "init",
+        "test_level": 0,
         "unit": "bitmap_allocator"
     },
     {
         "test": "ops",
+        "test_level": 0,
         "unit": "bitmap_allocator"
     },
     {
         "test": "alloc",
+        "test_level": 0,
         "unit": "buddy_allocator"
     },
     {
         "test": "basic_ops",
+        "test_level": 0,
         "unit": "buddy_allocator"
     },
     {
         "test": "carveout",
+        "test_level": 0,
         "unit": "buddy_allocator"
     },
     {
         "test": "destroy",
+        "test_level": 0,
         "unit": "buddy_allocator"
     },
     {
         "test": "init",
+        "test_level": 0,
         "unit": "buddy_allocator"
     },
     {
         "test": "ops_big_pages",
+        "test_level": 0,
         "unit": "buddy_allocator"
     },
     {
         "test": "ops_small_pages",
+        "test_level": 0,
         "unit": "buddy_allocator"
     },
     {
         "test": "enabled_flags_false_check",
+        "test_level": 0,
         "unit": "enabled"
     },
     {
         "test": "free",
+        "test_level": 0,
         "unit": "enabled"
     },
     {
         "test": "init",
+        "test_level": 0,
         "unit": "enabled"
     },
     {
         "test": "set_enabled",
+        "test_level": 0,
         "unit": "enabled"
     },
     {
         "test": "cache_default",
+        "test_level": 0,
         "unit": "fault_injection"
     },
     {
         "test": "cache_delayed_disable",
+        "test_level": 0,
         "unit": "fault_injection"
     },
     {
         "test": "cache_delayed_enable",
+        "test_level": 0,
         "unit": "fault_injection"
     },
     {
         "test": "cache_enabled",
+        "test_level": 0,
         "unit": "fault_injection"
     },
     {
         "test": "dma_alloc_default",
+        "test_level": 0,
         "unit": "fault_injection"
     },
     {
         "test": "dma_alloc_delayed_enable",
+        "test_level": 0,
         "unit": "fault_injection"
     },
     {
         "test": "dma_alloc_enabled",
+        "test_level": 0,
         "unit": "fault_injection"
     },
     {
         "test": "dma_alloc_init",
+        "test_level": 0,
         "unit": "fault_injection"
     },
     {
         "test": "fault_injection_init",
+        "test_level": 0,
         "unit": "fault_injection"
     },
     {
         "test": "init",
+        "test_level": 0,
         "unit": "fault_injection"
     },
     {
         "test": "kmalloc_default",
+        "test_level": 0,
         "unit": "fault_injection"
     },
     {
         "test": "kmalloc_delayed_disable",
+        "test_level": 0,
         "unit": "fault_injection"
     },
     {
         "test": "kmalloc_delayed_enable",
+        "test_level": 0,
         "unit": "fault_injection"
     },
     {
         "test": "kmalloc_enabled",
+        "test_level": 0,
         "unit": "fault_injection"
     },
     {
         "test": "fuse_gm20b_basic_fuses",
+        "test_level": 0,
         "unit": "fuse"
     },
     {
         "test": "fuse_gm20b_check_fmodel",
+        "test_level": 0,
         "unit": "fuse"
     },
     {
         "test": "fuse_gm20b_check_gcplex_fail",
+        "test_level": 0,
         "unit": "fuse"
     },
     {
         "test": "fuse_gm20b_check_non_sec",
+        "test_level": 0,
         "unit": "fuse"
     },
     {
         "test": "fuse_gm20b_check_sec",
+        "test_level": 0,
         "unit": "fuse"
     },
     {
         "test": "fuse_gm20b_check_sec_invalid_gcplex",
+        "test_level": 0,
         "unit": "fuse"
     },
     {
         "test": "fuse_gm20b_cleanup",
+        "test_level": 0,
         "unit": "fuse"
     },
     {
         "test": "fuse_gm20b_init",
+        "test_level": 0,
         "unit": "fuse"
     },
     {
         "test": "fuse_gp10b_check_fmodel",
+        "test_level": 0,
         "unit": "fuse"
     },
     {
         "test": "fuse_gp10b_check_gcplex_fail",
+        "test_level": 0,
         "unit": "fuse"
     },
     {
         "test": "fuse_gp10b_check_non_sec",
+        "test_level": 0,
         "unit": "fuse"
     },
     {
         "test": "fuse_gp10b_check_sec",
+        "test_level": 0,
         "unit": "fuse"
     },
     {
         "test": "fuse_gp10b_check_sec_invalid_gcplex",
+        "test_level": 0,
         "unit": "fuse"
     },
     {
         "test": "fuse_gp10b_cleanup",
+        "test_level": 0,
         "unit": "fuse"
     },
     {
         "test": "fuse_gp10b_ecc",
+        "test_level": 0,
         "unit": "fuse"
     },
     {
         "test": "fuse_gp10b_feature_override_disable",
+        "test_level": 0,
         "unit": "fuse"
     },
     {
         "test": "fuse_gp10b_init",
+        "test_level": 0,
         "unit": "fuse"
     },
     {
         "test": "fuse_gv100_cleanup",
+        "test_level": 0,
         "unit": "fuse"
     },
     {
         "test": "fuse_gv100_init",
+        "test_level": 0,
         "unit": "fuse"
     },
     {
         "test": "fuse_gv100_vin_cal_rev",
+        "test_level": 0,
         "unit": "fuse"
     },
     {
         "test": "fuse_gv100_vin_cal_slope_intercept",
+        "test_level": 0,
         "unit": "fuse"
     },
     {
         "test": "test_bsearch",
+        "test_level": 0,
         "unit": "interface_bsearch"
     },
     {
         "test": "mutex_acquire_release",
+        "test_level": 0,
         "unit": "interface_lock"
     },
     {
         "test": "mutex_init",
+        "test_level": 0,
         "unit": "interface_lock"
     },
     {
         "test": "mutex_tryacquire",
+        "test_level": 0,
         "unit": "interface_lock"
     },
     {
         "test": "raw_spinlock_acquire_release",
+        "test_level": 0,
         "unit": "interface_lock"
     },
     {
         "test": "spinlock_acquire_release",
+        "test_level": 0,
         "unit": "interface_lock"
     },
     {
         "test": "list_all_head",
+        "test_level": 0,
         "unit": "list"
     },
     {
         "test": "list_all_tail",
+        "test_level": 0,
         "unit": "list"
     },
     {
         "test": "list_move",
+        "test_level": 0,
         "unit": "list"
     },
     {
         "test": "list_replace",
+        "test_level": 0,
         "unit": "list"
     },
     {
         "test": "alloc_destroy",
+        "test_level": 0,
         "unit": "nvgpu_allocator"
     },
     {
         "test": "alloc_ops",
+        "test_level": 0,
         "unit": "nvgpu_allocator"
     },
     {
         "test": "common_init",
+        "test_level": 0,
         "unit": "nvgpu_allocator"
     },
     {
         "test": "mem_create_from_phys",
+        "test_level": 0,
         "unit": "nvgpu_mem"
     },
     {
         "test": "mem_iommu_translate",
+        "test_level": 0,
         "unit": "nvgpu_mem"
     },
     {
         "test": "nvgpu_aperture_mask",
+        "test_level": 0,
         "unit": "nvgpu_mem"
     },
     {
         "test": "nvgpu_mem_phys_ops",
+        "test_level": 0,
         "unit": "nvgpu_mem"
     },
     {
         "test": "nvgpu_mem_vidmem",
+        "test_level": 0,
         "unit": "nvgpu_mem"
     },
     {
         "test": "nvgpu_mem_wr_rd",
+        "test_level": 0,
         "unit": "nvgpu_mem"
     },
     {
         "test": "nvgpu_memset_sysmem",
+        "test_level": 0,
         "unit": "nvgpu_mem"
     },
     {
         "test": "test_free_nvgpu_mem",
+        "test_level": 0,
         "unit": "nvgpu_mem"
     },
     {
         "test": "flat",
+        "test_level": 0,
         "unit": "nvgpu_runlist"
     },
     {
         "test": "flat_oversize_end",
+        "test_level": 0,
         "unit": "nvgpu_runlist"
     },
     {
         "test": "flat_oversize_onehalf",
+        "test_level": 0,
         "unit": "nvgpu_runlist"
     },
     {
         "test": "flat_oversize_single",
+        "test_level": 0,
         "unit": "nvgpu_runlist"
     },
     {
         "test": "flat_oversize_tiny",
+        "test_level": 0,
         "unit": "nvgpu_runlist"
     },
     {
         "test": "flat_oversize_two",
+        "test_level": 0,
         "unit": "nvgpu_runlist"
     },
     {
         "test": "interleaving",
+        "test_level": 0,
         "unit": "nvgpu_runlist"
     },
     {
         "test": "interleaving_l0",
+        "test_level": 0,
         "unit": "nvgpu_runlist"
     },
     {
         "test": "interleaving_l0_l1",
+        "test_level": 0,
         "unit": "nvgpu_runlist"
     },
     {
         "test": "interleaving_l0_l2",
+        "test_level": 0,
         "unit": "nvgpu_runlist"
     },
     {
         "test": "interleaving_l1",
+        "test_level": 0,
         "unit": "nvgpu_runlist"
     },
     {
         "test": "interleaving_l1_l2",
+        "test_level": 0,
         "unit": "nvgpu_runlist"
     },
     {
         "test": "interleaving_l2",
+        "test_level": 0,
         "unit": "nvgpu_runlist"
     },
     {
         "test": "interleaving_oversize_l2",
+        "test_level": 0,
         "unit": "nvgpu_runlist"
     },
     {
         "test": "interleaving_oversize_l2_l1_l2",
+        "test_level": 0,
         "unit": "nvgpu_runlist"
     },
     {
         "test": "interleaving_oversize_l2_l1_l2_l1",
+        "test_level": 0,
         "unit": "nvgpu_runlist"
     },
     {
         "test": "interleaving_oversize_l2_l1_l2_l1_l2",
+        "test_level": 0,
         "unit": "nvgpu_runlist"
     },
     {
         "test": "interleaving_oversize_tiny",
+        "test_level": 0,
         "unit": "nvgpu_runlist"
     },
     {
         "test": "tsg_format_ch1",
+        "test_level": 0,
         "unit": "nvgpu_runlist"
     },
     {
         "test": "tsg_format_ch1_timeslice",
+        "test_level": 0,
         "unit": "nvgpu_runlist"
     },
     {
         "test": "tsg_format_ch2",
+        "test_level": 0,
         "unit": "nvgpu_runlist"
     },
     {
         "test": "tsg_format_ch3_inactive2",
+        "test_level": 0,
         "unit": "nvgpu_runlist"
     },
     {
         "test": "tsg_format_ch5",
+        "test_level": 0,
         "unit": "nvgpu_runlist"
     },
     {
         "test": "sgt_alignment_non_iommu",
+        "test_level": 0,
         "unit": "nvgpu_sgt"
     },
     {
         "test": "sgt_alignment_with_iommu",
+        "test_level": 0,
         "unit": "nvgpu_sgt"
     },
     {
         "test": "sgt_basic_apis",
+        "test_level": 0,
         "unit": "nvgpu_sgt"
     },
     {
         "test": "sgt_get_next",
+        "test_level": 0,
         "unit": "nvgpu_sgt"
     },
     {
         "test": "add_empty_slab",
+        "test_level": 0,
         "unit": "page_allocator"
     },
     {
         "test": "add_full_slab",
+        "test_level": 0,
         "unit": "page_allocator"
     },
     {
         "test": "add_partial_slab",
+        "test_level": 0,
         "unit": "page_allocator"
     },
     {
         "test": "add_second_full_slab",
+        "test_level": 0,
         "unit": "page_allocator"
     },
     {
         "test": "add_second_partial_slab",
+        "test_level": 0,
         "unit": "page_allocator"
     },
     {
         "test": "alloc_fault_at_alloc_cache",
+        "test_level": 0,
         "unit": "page_allocator"
     },
     {
         "test": "alloc_fault_at_nvgpu_alloc",
+        "test_level": 0,
         "unit": "page_allocator"
     },
     {
         "test": "alloc_fault_at_sgl_alloc",
+        "test_level": 0,
         "unit": "page_allocator"
     },
     {
         "test": "alloc_fixed_no_scatter_gather",
+        "test_level": 0,
         "unit": "page_allocator"
     },
     {
         "test": "alloc_more_than_available",
+        "test_level": 0,
         "unit": "page_allocator"
     },
     {
         "test": "alloc_no_scatter_gather",
+        "test_level": 0,
         "unit": "page_allocator"
     },
     {
         "test": "contiguous_alloc_512K",
+        "test_level": 0,
         "unit": "page_allocator"
     },
     {
         "test": "destroy",
+        "test_level": 0,
         "unit": "page_allocator"
     },
     {
         "test": "destroy_slabs",
+        "test_level": 0,
         "unit": "page_allocator"
     },
     {
         "test": "fixed_alloc_128K",
+        "test_level": 0,
         "unit": "page_allocator"
     },
     {
         "test": "fixed_alloc_8K",
+        "test_level": 0,
         "unit": "page_allocator"
     },
     {
         "test": "fixed_alloc_fault_at_alloc_cache",
+        "test_level": 0,
         "unit": "page_allocator"
     },
     {
         "test": "fixed_alloc_fault_at_sgl_alloc",
+        "test_level": 0,
         "unit": "page_allocator"
     },
     {
         "test": "free_32K_alloc",
+        "test_level": 0,
         "unit": "page_allocator"
     },
     {
         "test": "free_alloc_512K",
+        "test_level": 0,
         "unit": "page_allocator"
     },
     {
         "test": "free_fixed_128K",
+        "test_level": 0,
         "unit": "page_allocator"
     },
     {
         "test": "free_fixed_no_scatter_gather",
+        "test_level": 0,
         "unit": "page_allocator"
     },
     {
         "test": "free_fixed_no_scatter_gather_again",
+        "test_level": 0,
         "unit": "page_allocator"
     },
     {
         "test": "free_no_scatter_gather",
+        "test_level": 0,
         "unit": "page_allocator"
     },
     {
         "test": "free_no_scatter_gather_again",
+        "test_level": 0,
         "unit": "page_allocator"
     },
     {
         "test": "free_slab",
+        "test_level": 0,
         "unit": "page_allocator"
     },
     {
         "test": "init",
+        "test_level": 0,
         "unit": "page_allocator"
     },
     {
         "test": "init_slabs",
+        "test_level": 0,
         "unit": "page_allocator"
     },
     {
         "test": "no_more_slabs",
+        "test_level": 0,
         "unit": "page_allocator"
     },
     {
         "test": "ops",
+        "test_level": 0,
         "unit": "page_allocator"
     },
     {
         "test": "revert_partial_slab",
+        "test_level": 0,
         "unit": "page_allocator"
     },
     {
         "test": "revert_second_partial_slab",
+        "test_level": 0,
         "unit": "page_allocator"
     },
     {
         "test": "sgt_ops",
+        "test_level": 0,
         "unit": "page_allocator"
     },
     {
         "test": "simple_32K_alloc",
+        "test_level": 0,
         "unit": "page_allocator"
     },
     {
         "test": "simple_alloc_512K",
+        "test_level": 0,
         "unit": "page_allocator"
     },
     {
         "test": "slabs_alloc_32K",
+        "test_level": 0,
         "unit": "page_allocator"
     },
     {
         "test": "slabs_alloc_8K",
+        "test_level": 0,
         "unit": "page_allocator"
     },
     {
         "test": "slabs_fault_at_alloc_cache",
+        "test_level": 0,
         "unit": "page_allocator"
     },
     {
         "test": "slabs_fault_at_page_cache",
+        "test_level": 0,
         "unit": "page_allocator"
     },
     {
         "test": "slabs_fault_at_sgl_alloc",
+        "test_level": 0,
         "unit": "page_allocator"
     },
     {
         "test": "gmmu_clean",
+        "test_level": 0,
         "unit": "page_table"
     },
     {
         "test": "gmmu_init",
+        "test_level": 0,
         "unit": "page_table"
     },
     {
         "test": "gmmu_map_unmap_iommu_sysmem",
+        "test_level": 0,
         "unit": "page_table"
     },
     {
         "test": "gmmu_map_unmap_iommu_sysmem_adv_big_pages",
+        "test_level": 0,
         "unit": "page_table"
     },
     {
         "test": "gmmu_map_unmap_iommu_sysmem_adv_big_pages_batched",
+        "test_level": 0,
         "unit": "page_table"
     },
     {
         "test": "gmmu_map_unmap_iommu_sysmem_adv_big_pages_offset",
+        "test_level": 0,
         "unit": "page_table"
     },
     {
         "test": "gmmu_map_unmap_iommu_sysmem_adv_ctag",
+        "test_level": 0,
         "unit": "page_table"
     },
     {
         "test": "gmmu_map_unmap_iommu_sysmem_adv_kernel_pages",
+        "test_level": 0,
         "unit": "page_table"
     },
     {
         "test": "gmmu_map_unmap_iommu_sysmem_adv_sgl_skip",
+        "test_level": 0,
         "unit": "page_table"
     },
     {
         "test": "gmmu_map_unmap_iommu_sysmem_adv_small_pages_sparse",
+        "test_level": 0,
         "unit": "page_table"
     },
     {
         "test": "gmmu_map_unmap_iommu_sysmem_coh",
+        "test_level": 0,
         "unit": "page_table"
     },
     {
         "test": "gmmu_map_unmap_iommu_sysmem_ro",
+        "test_level": 0,
         "unit": "page_table"
     },
     {
         "test": "gmmu_map_unmap_iommu_sysmem_ro_f",
+        "test_level": 0,
         "unit": "page_table"
     },
     {
         "test": "gmmu_map_unmap_no_iommu_sysmem",
+        "test_level": 0,
         "unit": "page_table"
     },
     {
         "test": "gmmu_map_unmap_no_iommu_sysmem_adv_big_pages_offset_large",
+        "test_level": 0,
         "unit": "page_table"
     },
     {
         "test": "gmmu_map_unmap_no_iommu_sysmem_noncacheable",
+        "test_level": 0,
         "unit": "page_table"
     },
     {
         "test": "gmmu_map_unmap_sgt_iommu_sysmem",
+        "test_level": 0,
         "unit": "page_table"
     },
     {
         "test": "gmmu_map_unmap_unmapped",
+        "test_level": 0,
         "unit": "page_table"
     },
     {
         "test": "gmmu_map_unmap_vidmem",
+        "test_level": 0,
         "unit": "page_table"
     },
     {
         "test": "gmmu_set_pte",
+        "test_level": 0,
         "unit": "page_table"
     },
     {
         "test": "init_page_table_fail",
+        "test_level": 0,
         "unit": "page_table"
     },
     {
         "test": "map_fail_fi_null_sgt",
+        "test_level": 0,
         "unit": "page_table"
     },
     {
         "test": "map_fail_fi_vm_alloc",
+        "test_level": 0,
         "unit": "page_table"
     },
     {
         "test": "map_fail_pd_allocate",
+        "test_level": 0,
         "unit": "page_table"
     },
     {
         "test": "map_fail_pd_allocate_child",
+        "test_level": 0,
         "unit": "page_table"
     },
     {
-        "test": "req_fixed_address",
+        "vc": "V4",
+        "uid": "6439094",
         "req": "NVGPU-RQCD-45.C2",
-        "vc": "V4",
-        "uid": "6439094",
+        "test": "req_fixed_address",
+        "test_level": 0,
         "unit": "page_table"
     },
     {
-        "test": "req_multiple_alignments",
-        "req": "NVGPU-RQCD-45.C1",
         "vc": "V4",
         "uid": "6439094",
+        "req": "NVGPU-RQCD-45.C1",
+        "test": "req_multiple_alignments",
+        "test_level": 0,
         "unit": "page_table"
     },
     {
         "test": "clean",
+        "test_level": 0,
         "unit": "page_table_faults"
     },
     {
         "test": "disable_hw",
+        "test_level": 0,
         "unit": "page_table_faults"
     },
     {
         "test": "init",
+        "test_level": 0,
         "unit": "page_table_faults"
     },
     {
         "test": "inst_block_s0",
+        "test_level": 0,
         "unit": "page_table_faults"
     },
     {
         "test": "inst_block_s1",
+        "test_level": 0,
         "unit": "page_table_faults"
     },
     {
         "test": "inst_block_s2",
+        "test_level": 0,
         "unit": "page_table_faults"
     },
     {
         "test": "pending",
+        "test_level": 0,
         "unit": "page_table_faults"
     },
     {
         "test": "alloc_1024x256B_x11x3",
+        "test_level": 0,
         "unit": "pd_cache"
     },
     {
         "test": "alloc_1024x256B_x16x1",
+        "test_level": 0,
         "unit": "pd_cache"
     },
     {
         "test": "alloc_1024x256B_x16x15",
+        "test_level": 0,
         "unit": "pd_cache"
     },
     {
         "test": "alloc_1024x256B_x32x1",
+        "test_level": 0,
         "unit": "pd_cache"
     },
     {
         "test": "alloc_1x1024B",
+        "test_level": 0,
         "unit": "pd_cache"
     },
     {
         "test": "alloc_1x2048B",
+        "test_level": 0,
         "unit": "pd_cache"
     },
     {
         "test": "alloc_1x256B",
+        "test_level": 0,
         "unit": "pd_cache"
     },
     {
         "test": "alloc_1x512B",
+        "test_level": 0,
         "unit": "pd_cache"
     },
     {
         "test": "alloc_direct_1024x16PAGE",
+        "test_level": 0,
         "unit": "pd_cache"
     },
     {
         "test": "alloc_direct_1024xPAGE",
+        "test_level": 0,
         "unit": "pd_cache"
     },
     {
         "test": "alloc_direct_1024xPAGE_x16x1",
+        "test_level": 0,
         "unit": "pd_cache"
     },
     {
         "test": "alloc_direct_1024xPAGE_x16x15",
+        "test_level": 0,
         "unit": "pd_cache"
     },
     {
         "test": "alloc_direct_1024xPAGE_x16x4",
+        "test_level": 0,
         "unit": "pd_cache"
     },
     {
         "test": "alloc_direct_1024xPAGE_x32x24",
+        "test_level": 0,
         "unit": "pd_cache"
     },
     {
         "test": "alloc_direct_1x16PAGE",
+        "test_level": 0,
         "unit": "pd_cache"
     },
     {
         "test": "alloc_direct_1xPAGE",
+        "test_level": 0,
         "unit": "pd_cache"
     },
     {
         "test": "alloc_direct_oom",
+        "test_level": 0,
         "unit": "pd_cache"
     },
     {
         "test": "alloc_oom",
+        "test_level": 0,
         "unit": "pd_cache"
     },
     {
-        "test": "deinit",
-        "req": "NVGPU-RQCD-125.C1",
         "vc": "V2",
         "uid": "6962610",
+        "req": "NVGPU-RQCD-125.C1",
+        "test": "deinit",
+        "test_level": 0,
         "unit": "pd_cache"
     },
     {
         "test": "env_init",
+        "test_level": 0,
         "unit": "pd_cache"
     },
     {
         "test": "fini",
+        "test_level": 0,
         "unit": "pd_cache"
     },
     {
         "test": "free_empty",
+        "test_level": 0,
         "unit": "pd_cache"
     },
     {
-        "test": "gpu_address",
-        "req": "NVGPU-RQCD-123.C1",
         "vc": "V2",
         "uid": "6962424",
+        "req": "NVGPU-RQCD-123.C1",
+        "test": "gpu_address",
+        "test_level": 0,
         "unit": "pd_cache"
     },
     {
         "test": "init",
+        "test_level": 0,
         "unit": "pd_cache"
     },
     {
-        "test": "init_deinit",
-        "req": "NVGPU-RQCD-124.C1",
         "vc": "V3",
         "uid": "6962548",
+        "req": "NVGPU-RQCD-124.C1",
+        "test": "init_deinit",
+        "test_level": 0,
         "unit": "pd_cache"
     },
     {
         "test": "invalid_pd_alloc",
+        "test_level": 0,
         "unit": "pd_cache"
     },
     {
-        "test": "multi_init",
-        "req": "NVGPU-RQCD-155.C1",
         "vc": "V2",
         "uid": "7138651",
+        "req": "NVGPU-RQCD-155.C1",
+        "test": "multi_init",
+        "test_level": 0,
         "unit": "pd_cache"
     },
     {
-        "test": "offset_comp",
-        "req": "NVGPU-RQCD-126.C1,2",
         "vc": "V1",
         "uid": "6963067",
+        "req": "NVGPU-RQCD-126.C1,2",
+        "test": "offset_comp",
+        "test_level": 0,
         "unit": "pd_cache"
     },
     {
-        "test": "pd_packing",
-        "req": "NVGPU-RQCD-68.C3",
         "vc": "V4",
         "uid": "6439202",
+        "req": "NVGPU-RQCD-68.C3",
+        "test": "pd_packing",
+        "test_level": 0,
         "unit": "pd_cache"
     },
     {
-        "test": "pd_reusability",
-        "req": "NVGPU-RQCD-118.C1",
         "vc": "V3",
         "uid": "6898078",
+        "req": "NVGPU-RQCD-118.C1",
+        "test": "pd_reusability",
+        "test_level": 0,
         "unit": "pd_cache"
     },
     {
-        "test": "valid_alloc",
-        "req": "NVGPU-RQCD-68.C1,2",
         "vc": "V4",
         "uid": "6439202",
+        "req": "NVGPU-RQCD-68.C1,2",
+        "test": "valid_alloc",
+        "test_level": 0,
         "unit": "pd_cache"
     },
     {
-        "test": "write",
-        "req": "NVGPU-RQCD-122.C1",
         "vc": "V3",
         "uid": "6957786",
+        "req": "NVGPU-RQCD-122.C1",
+        "test": "write",
+        "test_level": 0,
         "unit": "pd_cache"
     },
     {
         "test": "bit_clear",
+        "test_level": 0,
         "unit": "posix_bitops"
     },
     {
         "test": "bit_set",
+        "test_level": 0,
         "unit": "posix_bitops"
     },
     {
         "test": "bitmap_clear",
+        "test_level": 0,
         "unit": "posix_bitops"
     },
     {
         "test": "bitmap_set",
+        "test_level": 0,
         "unit": "posix_bitops"
     },
     {
         "test": "ffs",
+        "test_level": 0,
         "unit": "posix_bitops"
     },
     {
         "test": "ffz",
+        "test_level": 0,
         "unit": "posix_bitops"
     },
     {
         "test": "find_first_bit",
+        "test_level": 0,
         "unit": "posix_bitops"
     },
     {
         "test": "find_first_zero_bit",
+        "test_level": 0,
         "unit": "posix_bitops"
     },
     {
         "test": "find_next_bit",
+        "test_level": 0,
         "unit": "posix_bitops"
     },
     {
         "test": "find_zero_area",
+        "test_level": 0,
         "unit": "posix_bitops"
     },
     {
         "test": "fls",
+        "test_level": 0,
         "unit": "posix_bitops"
     },
     {
         "test": "info",
+        "test_level": 0,
         "unit": "posix_bitops"
     },
     {
         "test": "single_bitops",
+        "test_level": 0,
         "unit": "posix_bitops"
     },
     {
         "test": "test_and_clear_bit",
+        "test_level": 0,
         "unit": "posix_bitops"
     },
     {
         "test": "test_and_set_bit",
+        "test_level": 0,
         "unit": "posix_bitops"
     },
     {
         "test": "endianness",
+        "test_level": 0,
         "unit": "posix_env"
     },
     {
         "test": "ptr_in_u64",
+        "test_level": 0,
         "unit": "posix_env"
     },
     {
         "test": "signage",
+        "test_level": 0,
         "unit": "posix_env"
     },
     {
         "test": "sizes",
+        "test_level": 0,
         "unit": "posix_env"
     },
     {
         "test": "type_max",
+        "test_level": 0,
         "unit": "posix_env"
     },
     {
         "test": "__readl",
+        "test_level": 0,
         "unit": "posix_mockio"
     },
     {
         "test": "bar1_readl",
+        "test_level": 0,
         "unit": "posix_mockio"
     },
     {
         "test": "bar1_writel",
+        "test_level": 0,
         "unit": "posix_mockio"
     },
     {
         "test": "readl",
+        "test_level": 0,
         "unit": "posix_mockio"
     },
     {
         "test": "register_io_callbacks",
+        "test_level": 0,
         "unit": "posix_mockio"
     },
     {
         "test": "test_register_space",
+        "test_level": 0,
         "unit": "posix_mockio"
     },
     {
         "test": "usermode_writel",
+        "test_level": 0,
         "unit": "posix_mockio"
     },
     {
         "test": "writel",
+        "test_level": 0,
         "unit": "posix_mockio"
     },
     {
         "test": "writel_check",
+        "test_level": 0,
         "unit": "posix_mockio"
     },
     {
         "test": "nvgpu_pramin_dying",
+        "test_level": 0,
         "unit": "pramin"
     },
     {
         "test": "nvgpu_pramin_free_test_env",
+        "test_level": 0,
         "unit": "pramin"
     },
     {
         "test": "nvgpu_pramin_memset",
+        "test_level": 0,
         "unit": "pramin"
     },
     {
         "test": "nvgpu_pramin_rd_n_1_sgl",
+        "test_level": 0,
         "unit": "pramin"
     },
     {
         "test": "nvgpu_pramin_wr_n_3_sgl",
+        "test_level": 0,
         "unit": "pramin"
     },
     {
-        "test": "map_buf",
-        "req": "NVGPU-RQCD-45.C1",
         "vc": "V5",
         "uid": "6434840",
+        "req": "NVGPU-RQCD-45.C1",
+        "test": "map_buf",
+        "test_level": 0,
         "unit": "vm"
     },
     {
-        "test": "map_buf_gpu_va",
-        "req": "NVGPU-RQCD-45.C2",
         "vc": "V5",
         "uid": "6434840",
+        "req": "NVGPU-RQCD-45.C2",
+        "test": "map_buf_gpu_va",
+        "test_level": 0,
         "unit": "vm"
     }
 ]

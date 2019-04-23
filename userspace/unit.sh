@@ -26,6 +26,8 @@
 # that unit tests are found and nvgpu-drv is found.
 #
 
+options=$(getopt -o t: --long test-level: -- "$@")
+
 this_script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" > /dev/null && pwd )"
 pushd $this_script_dir
 
@@ -48,8 +50,24 @@ echo "$ $NVGPU_UNIT $*"
 $NVGPU_UNIT $*
 rc=$?
 if [ $rc -eq "0" ]; then
+        #get the test level, if passed into this script
+        eval set -- $options
+        while true; do
+               case "$1" in
+               -t|--test-level)
+                      shift;
+                      testlevelparam="-t $1"
+                      ;;
+                --)
+                      shift;
+                      break;
+                      ;;
+                esac
+                shift
+        done
+        echo $testlevelparam
 	echo "Checking executed tests against list of required tests:"
-	./testlist.py --html
+	./testlist.py --html $testlevelparam
 	rc=$?
 fi
 popd

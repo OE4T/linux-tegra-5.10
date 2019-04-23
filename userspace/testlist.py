@@ -101,7 +101,7 @@ def regen():
 	test_count = 0
 	for unit, tests in sorted(test_dict.items(), key=lambda kv: kv[0], reverse=False):
 		for test in sorted(tests.items()):
-			entry = {"unit": unit, "test": test[0]}
+			entry = {"unit": unit, "test": test[0], 'test_level': test[1]['test_level']}
 			if test[1]['uid'] != "":
 				entry['uid'] = test[1]['uid']
 				entry['vc'] = test[1]['vc']
@@ -137,7 +137,7 @@ def format_html_test(unit, test, status, error, uid, req, vc):
 	ret += "</tr>\n"
 	return ret
 
-def check(html = False):
+def check(test_level, html = False):
 	#Check that tests in results.json cover required_tests.json
 	with open(RESULTS_FILE) as results_file:
 		results = json.loads(results_file.read())
@@ -158,14 +158,18 @@ def check(html = False):
 		test = reqd_test['test']
 		error = ""
 		status = False
+		skipped = False
 		if unit not in test_dict:
 			error = ("ERROR: Required unit %s is not in test results.\n" % unit)
 			log += error
 			errors += 1
 		elif test not in test_dict[unit]:
-			error = ("ERROR: Required test %s - %s is not in test results.\n" % (unit, test))
-			log += error
-			errors += 1
+			if req_dict[unit][test]['test_level'] <= test_level:
+				error = ("ERROR: Required test %s - %s is not in test results.\n" % (unit, test))
+				log += error
+				errors += 1
+			else:
+				skipped = True
 		elif test_dict[unit][test]['status'] is False:
 			log += ("ERROR: Required test %s - %s FAILED.\n" % (unit, test))
 			error = "FAILED"
@@ -173,8 +177,9 @@ def check(html = False):
 		else:
 			status = True
 			error = "PASS"
-		html += format_html_test(unit, test, status, error, reqd_test.get('uid', ''), reqd_test.get('req', ''), reqd_test.get('vc', ''))
-		test_count += 1
+		if not skipped:
+			html += format_html_test(unit, test, status, error, reqd_test.get('uid', ''), reqd_test.get('req', ''), reqd_test.get('vc', ''))
+			test_count += 1
 
 	#As a helpful hint, check to see if any tests were run without being in the list of required
 	#tests. This should not cause a failure, but just a warning for the developer to add the
@@ -208,12 +213,13 @@ def check(html = False):
 		print("PASS: All %d tests found in result log." % test_count)
 	return 0
 
-def html():
-	return check(html = True)
+def html(test_level):
+	return check(test_level, html = True)
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--regen", help="Regenerate list of expected test cases.", action="store_true")
 parser.add_argument("--check", help="Make sure all expected test cases were run.", action="store_true")
+parser.add_argument("--test-level", "-t", help="Test level used for checking results. Default=0", type=int, default=0)
 parser.add_argument("--html", help="Perform --check and export results in an HTML file.", action="store_true")
 
 args = parser.parse_args()
@@ -221,9 +227,9 @@ if args.regen:
 	regen()
 	exit(0)
 if args.check:
-	exit(check())
+	exit(check(args.test_level))
 if args.html:
-	exit(html())
+	exit(html(args.test_level))
 else:
 	parser.print_help()
 

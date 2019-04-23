@@ -131,7 +131,8 @@ static void dump_test_record(FILE *logfile, struct unit_test_record *rec,
 	fprintf(logfile, "\"uid\": \"%s\", ", rec->test->jama.unique_id);
 	fprintf(logfile, "\"vc\": \"%s\", ",
 		rec->test->jama.verification_criteria);
-	fprintf(logfile, "\"req\": \"%s\"", rec->test->jama.requirement);
+	fprintf(logfile, "\"req\": \"%s\", ", rec->test->jama.requirement);
+	fprintf(logfile, "\"test_level\": %d", rec->test->test_lvl);
 	fprintf(logfile, "}");
 }
 
