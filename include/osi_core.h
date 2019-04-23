@@ -68,6 +68,7 @@ struct  osi_core_avb_algorithm {
  *	@config_mac_loopback: Called to configure MAC in loopback mode.
  *	@set_avb_algorithm: Called to set av parameter.
  *	@get_avb_algorithm: Called to get av parameter,
+ *	@config_fw_err_pkts: Called to configure MTL RxQ to forward the err pkt.
  */
 struct osi_core_ops {
 	/* initialize MAC/MTL/DMA Common registers */
@@ -89,6 +90,8 @@ struct osi_core_ops {
 				 struct osi_core_avb_algorithm *avb);
 	int (*get_avb_algorithm)(struct osi_core_priv_data *osi_core,
 				 struct osi_core_avb_algorithm *avb);
+	int (*config_fw_err_pkts)(void *addr, unsigned int qinx,
+				  unsigned int fw_err);
 };
 
 /**
@@ -427,6 +430,36 @@ static inline int osi_get_avb(struct osi_core_priv_data *osi_core,
 	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
 	    (osi_core->ops->get_avb_algorithm != OSI_NULL)) {
 		ret = osi_core->ops->get_avb_algorithm(osi_core, avb);
+	}
+
+	return ret;
+}
+
+/**
+ *	osi_config_fw_err_pkts - Configure forwarding of error packets
+ *	@osi_core: OSI core private data structure.
+ *	@qinx: Q index
+ *	@fw_err: Enable or disable forwarding of error packets
+ *
+ *	Algorithm: Configure MAC to enable/disable forwarding of error packets.
+ *
+ *	Dependencies: MAC IP should be out of reset and need to be initialized
+ *	as per the requirements
+ *
+ *	Protection: None
+ *
+ *      Return: 0 - success, -1 - failure.
+ */
+static inline int osi_config_fw_err_pkts(struct osi_core_priv_data *osi_core,
+					 unsigned int qinx, unsigned int fw_err)
+{
+	int ret = -1;
+
+	/* Configure Forwarding of Error packets */
+	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
+	    (osi_core->ops->config_fw_err_pkts != OSI_NULL)) {
+		ret = osi_core->ops->config_fw_err_pkts(osi_core->base,
+							qinx, fw_err);
 	}
 
 	return ret;
