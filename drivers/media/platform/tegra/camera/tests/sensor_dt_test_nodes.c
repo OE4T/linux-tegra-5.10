@@ -1,7 +1,7 @@
 /*
  * sensor_dt_test_nodes - sensor device tree test node definitions
  *
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -68,6 +68,7 @@ int sv_dt_make_modeX_node_props(struct sv_dt_node *node)
 	MAKE_LINK_ALL(node, attrs, NULL, "dpcm_enable", LTYPE_REQUIRED);
 	MAKE_LINK_ALL(node, attrs, NULL, "active_h", LTYPE_REQUIRED);
 	MAKE_LINK_ALL(node, attrs, NULL, "active_w", LTYPE_REQUIRED);
+	MAKE_LINK_ALL(node, attrs, NULL, "readout_orientation", LTYPE_REQUIRED);
 
 	MAKE_LINK_ALL(node, attrs, NULL, "pixel_t", LTYPE_DEPRECATED);
 	MAKE_LINK_ALL(node, attrs, "pixel_t", "mode_type", LTYPE_ALTERNATIVE);
