@@ -24,7 +24,10 @@
 #define NVGPU_GR_FALCON_GV11B_H
 
 struct gk20a;
+struct nvgpu_fecs_ecc_status;
 
+void gv11b_gr_falcon_handle_fecs_ecc_error(struct gk20a *g,
+			struct nvgpu_fecs_ecc_status *fecs_ecc_status);
 void gv11b_gr_falcon_fecs_host_int_enable(struct gk20a *g);
 
 #endif /* NVGPU_GR_FALCON_GV11B_H */

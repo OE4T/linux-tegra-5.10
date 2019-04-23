@@ -85,6 +85,7 @@ struct gk20a_cs_snapshot;
 struct nvgpu_preemption_modes_rec;
 struct nvgpu_gr_ctx;
 struct nvgpu_fecs_host_intr_status;
+struct nvgpu_fecs_ecc_status;
 typedef void (*global_ctx_mem_destroy_fn)(struct gk20a *g,
 					struct nvgpu_mem *mem);
 
@@ -339,9 +340,6 @@ struct gpu_ops {
 					u64 sms, bool enable);
 		void (*bpt_reg_info)(struct gk20a *g,
 				struct nvgpu_warpstate *w_state);
-		int (*handle_fecs_error)(struct gk20a *g,
-				struct channel_gk20a *ch,
-				struct nvgpu_gr_isr_data *isr_data);
 		int (*pre_process_sm_exception)(struct gk20a *g,
 			u32 gpc, u32 tpc, u32 sm, u32 global_esr, u32 warp_esr,
 			bool sm_debugger_attached,
@@ -535,6 +533,8 @@ struct gpu_ops {
 		} config;
 
 		struct {
+			void (*handle_fecs_ecc_error)(struct gk20a *g,
+				struct nvgpu_fecs_ecc_status *fecs_ecc_status);
 			u32 (*read_fecs_ctxsw_mailbox)(struct gk20a *g,
 							u32 reg_index);
 			void (*fecs_host_clear_intr)(struct gk20a *g,
@@ -794,6 +794,9 @@ struct gpu_ops {
 		} init;
 
 		struct {
+			int (*handle_fecs_error)(struct gk20a *g,
+				struct channel_gk20a *ch,
+				struct nvgpu_gr_isr_data *isr_data);
 			int (*handle_sw_method)(struct gk20a *g, u32 addr,
 					 u32 class_num, u32 offset, u32 data);
 			void (*set_shader_exceptions)(struct gk20a *g,

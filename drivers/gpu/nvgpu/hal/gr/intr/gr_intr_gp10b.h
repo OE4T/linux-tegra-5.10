@@ -39,6 +39,9 @@ struct channel_gk20a;
 #define NVC0C0_SET_SHADER_EXCEPTIONS		0x1528U
 #define NVC0C0_SET_RD_COALESCE			0x0228U
 
+int gp10b_gr_intr_handle_fecs_error(struct gk20a *g,
+			struct channel_gk20a *__ch,
+			struct nvgpu_gr_isr_data *isr_data);
 void gp10b_gr_intr_set_coalesce_buffer_size(struct gk20a *g, u32 data);
 void gp10b_gr_intr_set_go_idle_timeout(struct gk20a *g, u32 data);
 void gp10b_gr_intr_handle_tex_exception(struct gk20a *g, u32 gpc, u32 tpc);

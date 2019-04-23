@@ -27,11 +27,73 @@
 #include <nvgpu/gr/config.h>
 #include <nvgpu/gr/gr.h>
 #include <nvgpu/gr/gr_intr.h>
+#include <nvgpu/gr/gr_falcon.h>
 
 #include "gr_intr_gp10b.h"
 #include "gr_intr_gv11b.h"
 
 #include <nvgpu/hw/gv11b/hw_gr_gv11b.h>
+
+static void gv11b_gr_intr_handle_fecs_ecc_error(struct gk20a *g)
+{
+	struct nvgpu_fecs_ecc_status fecs_ecc_status;
+
+	(void) memset(&fecs_ecc_status, 0, sizeof(fecs_ecc_status));
+
+	g->ops.gr.falcon.handle_fecs_ecc_error(g, &fecs_ecc_status);
+
+	g->ecc.gr.fecs_ecc_corrected_err_count[0].counter +=
+				fecs_ecc_status.corrected_delta;
+	g->ecc.gr.fecs_ecc_uncorrected_err_count[0].counter +=
+				fecs_ecc_status.uncorrected_delta;
+
+	if (fecs_ecc_status.imem_corrected_err) {
+		nvgpu_gr_report_ecc_error(g, NVGPU_ERR_MODULE_FECS, 0, 0,
+			GPU_FECS_FALCON_IMEM_ECC_CORRECTED,
+			fecs_ecc_status.ecc_addr,
+			g->ecc.gr.fecs_ecc_corrected_err_count[0].counter);
+		nvgpu_log(g, gpu_dbg_intr, "imem ecc error corrected");
+	}
+	if (fecs_ecc_status.imem_uncorrected_err) {
+		nvgpu_gr_report_ecc_error(g, NVGPU_ERR_MODULE_FECS, 0, 0,
+			GPU_FECS_FALCON_IMEM_ECC_UNCORRECTED,
+			fecs_ecc_status.ecc_addr,
+			g->ecc.gr.fecs_ecc_uncorrected_err_count[0].counter);
+		nvgpu_log(g, gpu_dbg_intr, "imem ecc error uncorrected");
+	}
+	if (fecs_ecc_status.dmem_corrected_err) {
+		nvgpu_gr_report_ecc_error(g, NVGPU_ERR_MODULE_FECS, 0, 0,
+			GPU_FECS_FALCON_DMEM_ECC_CORRECTED,
+			fecs_ecc_status.ecc_addr,
+			g->ecc.gr.fecs_ecc_corrected_err_count[0].counter);
+		nvgpu_log(g, gpu_dbg_intr, "dmem ecc error corrected");
+	}
+	if (fecs_ecc_status.dmem_uncorrected_err) {
+		nvgpu_gr_report_ecc_error(g, NVGPU_ERR_MODULE_FECS, 0, 0,
+			GPU_FECS_FALCON_DMEM_ECC_UNCORRECTED,
+			fecs_ecc_status.ecc_addr,
+			g->ecc.gr.fecs_ecc_uncorrected_err_count[0].counter);
+		nvgpu_log(g, gpu_dbg_intr,
+					"dmem ecc error uncorrected");
+	}
+
+	nvgpu_log(g, gpu_dbg_intr,
+		"ecc error count corrected: %d, uncorrected %d",
+		g->ecc.gr.fecs_ecc_corrected_err_count[0].counter,
+		g->ecc.gr.fecs_ecc_uncorrected_err_count[0].counter);
+}
+
+int gv11b_gr_intr_handle_fecs_error(struct gk20a *g,
+				struct channel_gk20a *__ch,
+				struct nvgpu_gr_isr_data *isr_data)
+{
+	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gpu_dbg | gpu_dbg_intr, " ");
+
+	/* Handle ECC errors */
+	gv11b_gr_intr_handle_fecs_ecc_error(g);
+
+	return gp10b_gr_intr_handle_fecs_error(g, __ch, isr_data);
+}
 
 void gv11b_gr_intr_set_tex_in_dbg(struct gk20a *g, u32 data)
 {

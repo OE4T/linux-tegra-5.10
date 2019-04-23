@@ -57,9 +57,6 @@ int gr_gv11b_pre_process_sm_exception(struct gk20a *g,
 		u32 gpc, u32 tpc, u32 sm, u32 global_esr, u32 warp_esr,
 		bool sm_debugger_attached, struct channel_gk20a *fault_ch,
 		bool *early_exit, bool *ignore_debugger);
-int gr_gv11b_handle_fecs_error(struct gk20a *g,
-				struct channel_gk20a *__ch,
-				struct nvgpu_gr_isr_data *isr_data);
 void gv11b_gr_get_esr_sm_sel(struct gk20a *g, u32 gpc, u32 tpc,
 				u32 *esr_sm_sel);
 int gv11b_gr_sm_trigger_suspend(struct gk20a *g);

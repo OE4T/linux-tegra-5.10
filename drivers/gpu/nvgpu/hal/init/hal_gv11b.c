@@ -368,7 +368,6 @@ static const struct gpu_ops gv11b_ops = {
 		.init_cyclestats = gr_gm20b_init_cyclestats,
 		.set_sm_debug_mode = gv11b_gr_set_sm_debug_mode,
 		.bpt_reg_info = gv11b_gr_bpt_reg_info,
-		.handle_fecs_error = gr_gv11b_handle_fecs_error,
 		.get_lrf_tex_ltc_dram_override = get_ecc_override_val,
 		.update_smpc_ctxsw_mode = gr_gk20a_update_smpc_ctxsw_mode,
 		.get_num_hwpm_perfmon = gr_gv100_get_num_hwpm_perfmon,
@@ -671,6 +670,7 @@ static const struct gpu_ops gv11b_ops = {
 				gp10b_gr_init_get_default_preemption_modes,
 		},
 		.intr = {
+			.handle_fecs_error = gv11b_gr_intr_handle_fecs_error,
 			.handle_sw_method = gv11b_gr_intr_handle_sw_method,
 			.set_shader_exceptions =
 					gv11b_gr_intr_set_shader_exceptions,
@@ -720,6 +720,8 @@ static const struct gpu_ops gv11b_ops = {
 			.stall_isr = nvgpu_gr_intr_stall_isr,
 		},
 		.falcon = {
+			.handle_fecs_ecc_error =
+				gv11b_gr_falcon_handle_fecs_ecc_error,
 			.read_fecs_ctxsw_mailbox =
 				gm20b_gr_falcon_read_fecs_ctxsw_mailbox,
 			.fecs_host_clear_intr =

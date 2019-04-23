@@ -38,9 +38,6 @@ struct gk20a_debug_output;
 
 void gr_gp10b_create_sysfs(struct gk20a *g);
 void gr_gp10b_remove_sysfs(struct gk20a *g);
-int gr_gp10b_handle_fecs_error(struct gk20a *g,
-			struct channel_gk20a *__ch,
-			struct nvgpu_gr_isr_data *isr_data);
 int gr_gp10b_set_cilp_preempt_pending(struct gk20a *g,
 		struct channel_gk20a *fault_ch);
 int gr_gp10b_commit_global_cb_manager(struct gk20a *g,

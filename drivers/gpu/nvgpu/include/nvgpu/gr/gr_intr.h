@@ -56,6 +56,8 @@ struct nvgpu_gr_isr_data {
 	u32 class_num;
 };
 
+int nvgpu_gr_intr_handle_fecs_error(struct gk20a *g, struct channel_gk20a *ch,
+					struct nvgpu_gr_isr_data *isr_data);
 int nvgpu_gr_intr_handle_gpc_exception(struct gk20a *g, bool *post_event,
 	struct nvgpu_gr_config *gr_config, struct channel_gk20a *fault_ch,
 	u32 *hww_global_esr);

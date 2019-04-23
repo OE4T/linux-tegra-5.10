@@ -72,6 +72,16 @@ struct nvgpu_fecs_host_intr_status {
 	bool watchdog_active;
 };
 
+struct nvgpu_fecs_ecc_status {
+	bool imem_corrected_err;
+	bool imem_uncorrected_err;
+	bool dmem_corrected_err;
+	bool dmem_uncorrected_err;
+	u32  ecc_addr;
+	u32  corrected_delta;
+	u32  uncorrected_delta;
+};
+
 struct nvgpu_gr_falcon *nvgpu_gr_falcon_init_support(struct gk20a *g);
 void nvgpu_gr_falcon_remove_support(struct gk20a *g,
 				struct nvgpu_gr_falcon *falcon);

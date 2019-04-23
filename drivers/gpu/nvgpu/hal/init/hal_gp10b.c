@@ -295,7 +295,6 @@ static const struct gpu_ops gp10b_ops = {
 		.init_cyclestats = gr_gm20b_init_cyclestats,
 		.set_sm_debug_mode = gr_gk20a_set_sm_debug_mode,
 		.bpt_reg_info = gr_gm20b_bpt_reg_info,
-		.handle_fecs_error = gr_gp10b_handle_fecs_error,
 		.get_lrf_tex_ltc_dram_override = get_ecc_override_val,
 		.update_smpc_ctxsw_mode = gr_gk20a_update_smpc_ctxsw_mode,
 		.update_hwpm_ctxsw_mode = gr_gk20a_update_hwpm_ctxsw_mode,
@@ -559,6 +558,7 @@ static const struct gpu_ops gp10b_ops = {
 				gp10b_gr_init_get_default_preemption_modes,
 		},
 		.intr = {
+			.handle_fecs_error = gp10b_gr_intr_handle_fecs_error,
 			.handle_sw_method = gp10b_gr_intr_handle_sw_method,
 			.set_shader_exceptions =
 					gm20b_gr_intr_set_shader_exceptions,

@@ -119,8 +119,6 @@ static inline void gr_gk20a_free_cyclestats_snapshot_data(struct gk20a *g)
 }
 #endif
 
-int gk20a_gr_handle_fecs_error(struct gk20a *g, struct channel_gk20a *ch,
-		struct nvgpu_gr_isr_data *isr_data);
 int gk20a_gr_lock_down_sm(struct gk20a *g,
 			 u32 gpc, u32 tpc, u32 sm, u32 global_esr_mask,
 			 bool check_errors);

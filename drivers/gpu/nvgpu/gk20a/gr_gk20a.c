@@ -36,7 +36,6 @@
 #include <nvgpu/mm.h>
 #include <nvgpu/debugger.h>
 #include <nvgpu/netlist.h>
-#include <nvgpu/error_notifier.h>
 #include <nvgpu/ecc.h>
 #include <nvgpu/io.h>
 #include <nvgpu/utils.h>
@@ -50,10 +49,8 @@
 #include <nvgpu/gr/ctx.h>
 #include <nvgpu/gr/gr.h>
 #include <nvgpu/gr/gr_intr.h>
-#include <nvgpu/gr/gr_falcon.h>
 #include <nvgpu/gr/obj_ctx.h>
 #include <nvgpu/gr/config.h>
-#include <nvgpu/gr/fecs_trace.h>
 #include <nvgpu/gr/hwpm_map.h>
 #include <nvgpu/engines.h>
 #include <nvgpu/engine_status.h>
@@ -67,29 +64,6 @@
 #include "common/gr/gr_priv.h"
 
 #include <nvgpu/hw/gk20a/hw_gr_gk20a.h>
-
-static void gr_report_ctxsw_error(struct gk20a *g, u32 err_type, u32 chid,
-		u32 mailbox_value)
-{
-	int ret = 0;
-	struct ctxsw_err_info err_info;
-
-	err_info.curr_ctx = g->ops.gr.falcon.get_current_ctx(g);
-	err_info.ctxsw_status0 = g->ops.gr.falcon.read_fecs_ctxsw_status0(g);
-	err_info.ctxsw_status1 = g->ops.gr.falcon.read_fecs_ctxsw_status1(g);
-	err_info.mailbox_value = mailbox_value;
-	err_info.chid = chid;
-
-	if (g->ops.gr.err_ops.report_ctxsw_err != NULL) {
-		ret = g->ops.gr.err_ops.report_ctxsw_err(g,
-				NVGPU_ERR_MODULE_FECS,
-				err_type, (void *)&err_info);
-		if (ret != 0) {
-			nvgpu_err(g, "Failed to report FECS CTXSW error: %d",
-					err_type);
-		}
-	}
-}
 
 int gr_gk20a_update_smpc_ctxsw_mode(struct gk20a *g,
 				    struct channel_gk20a *c,
@@ -202,93 +176,6 @@ int gr_gk20a_update_hwpm_ctxsw_mode(struct gk20a *g,
 
 	/* enable channel */
 	gk20a_enable_channel_tsg(g, c);
-
-	return ret;
-}
-
-int gk20a_gr_handle_fecs_error(struct gk20a *g, struct channel_gk20a *ch,
-					  struct nvgpu_gr_isr_data *isr_data)
-{
-	u32 gr_fecs_intr, mailbox_value;
-	int ret = 0;
-	struct nvgpu_fecs_host_intr_status fecs_host_intr;
-	u32 chid = isr_data->ch != NULL ?
-		isr_data->ch->chid : FIFO_INVAL_CHANNEL_ID;
-	u32 mailbox_id = NVGPU_GR_FALCON_FECS_CTXSW_MAILBOX6;
-
-	gr_fecs_intr = g->ops.gr.falcon.fecs_host_intr_status(g,
-						&fecs_host_intr);
-	if (gr_fecs_intr == 0U) {
-		return 0;
-	}
-
-	if (fecs_host_intr.unimp_fw_method_active) {
-		mailbox_value = g->ops.gr.falcon.read_fecs_ctxsw_mailbox(g,
-								mailbox_id);
-		nvgpu_gr_intr_set_error_notifier(g, isr_data,
-			 NVGPU_ERR_NOTIFIER_FECS_ERR_UNIMP_FIRMWARE_METHOD);
-		nvgpu_err(g,
-			  "firmware method error 0x%08x for offset 0x%04x",
-			  mailbox_value,
-			  isr_data->data_lo);
-		ret = -1;
-	} else if (fecs_host_intr.watchdog_active) {
-		gr_report_ctxsw_error(g, GPU_FECS_CTXSW_WATCHDOG_TIMEOUT,
-				chid, 0);
-		/* currently, recovery is not initiated */
-		nvgpu_err(g, "fecs watchdog triggered for channel %u, "
-				"cannot ctxsw anymore !!", chid);
-		g->ops.gr.falcon.dump_stats(g);
-	} else if (fecs_host_intr.ctxsw_intr0 != 0U) {
-		mailbox_value = g->ops.gr.falcon.read_fecs_ctxsw_mailbox(g,
-								mailbox_id);
-#ifdef CONFIG_GK20A_CTXSW_TRACE
-		if (mailbox_value ==
-			g->ops.gr.fecs_trace.get_buffer_full_mailbox_val()) {
-			nvgpu_info(g, "ctxsw intr0 set by ucode, "
-					"timestamp buffer full");
-			nvgpu_gr_fecs_trace_reset_buffer(g);
-		} else
-#endif
-		/*
-		 * The mailbox values may vary across chips hence keeping it
-		 * as a HAL.
-		 */
-		if ((g->ops.gr.get_ctxsw_checksum_mismatch_mailbox_val != NULL)
-			&& (mailbox_value ==
-			g->ops.gr.get_ctxsw_checksum_mismatch_mailbox_val())) {
-
-			gr_report_ctxsw_error(g, GPU_FECS_CTXSW_CRC_MISMATCH,
-					chid, mailbox_value);
-			nvgpu_err(g, "ctxsw intr0 set by ucode, "
-					"ctxsw checksum mismatch");
-			ret = -1;
-		} else {
-			/*
-			 * Other errors are also treated as fatal and channel
-			 * recovery is initiated and error is reported to
-			 * 3LSS.
-			 */
-			gr_report_ctxsw_error(g, GPU_FECS_FAULT_DURING_CTXSW,
-					chid, mailbox_value);
-			nvgpu_err(g,
-				 "ctxsw intr0 set by ucode, error_code: 0x%08x",
-				 mailbox_value);
-			ret = -1;
-		}
-	} else if (fecs_host_intr.fault_during_ctxsw_active) {
-		gr_report_ctxsw_error(g, GPU_FECS_FAULT_DURING_CTXSW,
-				chid, 0);
-		nvgpu_err(g, "fecs fault during ctxsw for channel %u", chid);
-		ret = -1;
-	} else {
-		nvgpu_err(g,
-			"unhandled fecs error interrupt 0x%08x for channel %u",
-			gr_fecs_intr, chid);
-		g->ops.gr.falcon.dump_stats(g);
-	}
-
-	g->ops.gr.falcon.fecs_host_clear_intr(g, gr_fecs_intr);
 
 	return ret;
 }
