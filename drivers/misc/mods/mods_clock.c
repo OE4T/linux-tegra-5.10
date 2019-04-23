@@ -38,6 +38,19 @@ struct clock_entry {
 	struct list_head list;
 };
 
+static LIST_HEAD(reset_handles);
+
+struct reset_data {
+	char name[MAX_DT_SIZE];
+	struct reset_control *rst;
+};
+
+struct reset_entry {
+	struct list_head list;
+	struct reset_data rst_data;
+	u32 handle;
+};
+
 static struct device_node *find_clocks_node(const char *name)
 {
 	const char *node_name = "mods-simple-bus";
@@ -92,15 +105,23 @@ err:
 
 void mods_shutdown_clock_api(void)
 {
-	struct list_head *head = &mods_clock_handles;
-	struct list_head *iter;
-	struct list_head *tmp;
+	struct list_head   *head       = &mods_clock_handles;
+	struct list_head   *reset_head = &reset_handles;
+	struct reset_entry *entry      = NULL;
+	struct list_head   *iter       = NULL;
+	struct list_head   *tmp        = NULL;
 
 	spin_lock(&mods_clock_lock);
 
 	list_for_each_safe(iter, tmp, head) {
 		struct clock_entry *entry
 			= list_entry(iter, struct clock_entry, list);
+		list_del(iter);
+		kfree(entry);
+	}
+
+	list_for_each_safe(iter, tmp, reset_head) {
+		entry = list_entry(iter, struct reset_entry, list);
 		list_del(iter);
 		kfree(entry);
 	}
@@ -145,7 +166,7 @@ static u32 mods_get_clock_handle(struct clk *pclk)
 static struct clk *mods_get_clock(u32 handle)
 {
 	struct list_head *head = &mods_clock_handles;
-	struct list_head *iter;
+	struct list_head *iter = NULL;
 	struct clk *pclk = 0;
 
 	spin_lock(&mods_clock_lock);
@@ -162,6 +183,60 @@ static struct clk *mods_get_clock(u32 handle)
 	spin_unlock(&mods_clock_lock);
 
 	return pclk;
+}
+
+static struct reset_data find_reset_data(u32 handle)
+{
+	struct list_head   *entry     = NULL;
+	struct reset_entry *rst_entry = NULL;
+	struct reset_data  reset_data = {"", NULL};
+
+	spin_lock(&mods_clock_lock);
+
+	list_for_each(entry, &reset_handles) {
+		rst_entry = list_entry(entry, struct reset_entry, list);
+		if (handle == rst_entry->handle) {
+			reset_data = rst_entry->rst_data;
+			break;
+		}
+	}
+
+	spin_unlock(&mods_clock_lock);
+
+	return reset_data;
+}
+
+static int get_reset_handle(struct reset_data reset_data)
+{
+	int    handle                 = -1;
+	struct list_head *entry       = NULL;
+	struct reset_entry *rst_entry = NULL;
+
+	spin_lock(&mods_clock_lock);
+
+	/* If entry has no rst structure, we are past last cached entry */
+	list_for_each(entry, &reset_handles) {
+		rst_entry = list_entry(entry, struct reset_entry, list);
+		handle = rst_entry->handle;
+		if (strcmp(rst_entry->rst_data.name,
+			   reset_data.name) == 0) {
+			return handle;
+		}
+	}
+
+	/* If reset not already in array, then we must add it */
+	rst_entry = kzalloc(sizeof(struct reset_entry), GFP_ATOMIC);
+	if (unlikely(!rst_entry)) {
+		spin_unlock(&mods_clock_lock);
+		return -1;
+	}
+	rst_entry->handle = ++handle;
+	rst_entry->rst_data = reset_data;
+	INIT_LIST_HEAD(&rst_entry->list);
+	list_add_tail(&rst_entry->list, &reset_handles);
+	spin_unlock(&mods_clock_lock);
+
+	return handle;
 }
 
 int esc_mods_get_clock_handle(struct mods_client *client,
@@ -194,6 +269,58 @@ int esc_mods_get_clock_handle(struct mods_client *client,
 		cl_error("clk (%s) not found\n", p->controller_name);
 	else {
 		p->clock_handle = mods_get_clock_handle(pclk);
+		ret = OK;
+	}
+err:
+	of_node_put(mods_np);
+	LOG_EXT();
+	return ret;
+}
+
+int esc_mods_get_rst_handle(struct mods_client *client,
+			    struct MODS_GET_RESET_HANDLE *p)
+{
+	struct reset_data reset_data = {{0}, NULL};
+	struct reset_control *p_reset_ctrl = NULL;
+	int ret = -EINVAL;
+
+	struct device_node *mods_np = NULL;
+	struct property *pp = NULL;
+
+	LOG_ENT();
+
+	mods_np = find_clocks_node("mods-clocks");
+	if (!mods_np || !of_device_is_available(mods_np)) {
+		cl_error("'mods-clocks' node not found in device tree\n");
+		goto err;
+	}
+	pp = of_find_property(mods_np, "reset-names", NULL);
+	if (IS_ERR(pp)) {
+		cl_error(
+		"No 'reset-names' prop in 'mods-clocks' node for dev %s\n",
+			p->reset_name);
+		goto err;
+	}
+
+	p_reset_ctrl = of_reset_control_get(mods_np, p->reset_name);
+
+	if (IS_ERR(p_reset_ctrl))
+		cl_error("reset (%s) not found\n", p->reset_name);
+	else {
+		strncpy(reset_data.name, p->reset_name,
+			sizeof(reset_data.name) - 1);
+		if (reset_data.name[sizeof(reset_data.name) - 1] != '\0') {
+			cl_error(
+			"reset name %sis too large to store in reset array\n",
+			reset_data.name);
+			goto err;
+		}
+		reset_data.rst = p_reset_ctrl;
+		p->reset_handle = get_reset_handle(reset_data);
+		if (p->reset_handle == -1) {
+			cl_error("no valid reset handle was acquired");
+			goto err;
+		}
 		ret = OK;
 	}
 err:
@@ -456,6 +583,45 @@ int esc_mods_is_clock_enabled(struct mods_client *client,
 
 	LOG_EXT();
 	return ret;
+}
+
+int esc_mods_reset_assert(struct mods_client *client,
+			  struct MODS_RESET_HANDLE *p)
+{
+	int err = -EINVAL;
+	const struct reset_data reset_data = find_reset_data(p->handle);
+	struct device_node *mods_np = NULL;
+
+	LOG_ENT();
+	mods_np = find_clocks_node("mods-clocks");
+	if (!mods_np || !of_device_is_available(mods_np)) {
+		cl_error("'mods-clocks' node not found in DTB\n");
+		goto error;
+	}
+
+	if (!reset_data.rst) {
+		cl_error("No reset corresponding to requested handle!\n");
+		goto error;
+	}
+
+	if (p->assert)
+		err = reset_control_assert(reset_data.rst);
+	else
+		err = reset_control_deassert(reset_data.rst);
+	if (err) {
+		cl_error("failed to %s reset on '%s'\n",
+			 (p->assert ? "asserted" : "deasserted"),
+			 reset_data.name);
+	} else {
+		cl_debug(DEBUG_CLOCK, "%s reset on '%s'",
+			 (p->assert ? "asserted" : "desasserted"),
+			 reset_data.name);
+	}
+error:
+	of_node_put(mods_np);
+
+	LOG_EXT();
+	return err;
 }
 
 int esc_mods_clock_reset_assert(struct mods_client *client,

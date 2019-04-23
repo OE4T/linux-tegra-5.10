@@ -2179,6 +2179,18 @@ static long mods_krnl_ioctl(struct file  *fp,
 				    esc_mods_clock_reset_deassert,
 				    MODS_CLOCK_HANDLE);
 		break;
+
+	case MODS_ESC_RESET_ASSERT:
+		MODS_IOCTL_NORETVAL(MODS_ESC_RESET_ASSERT,
+				    esc_mods_reset_assert,
+				    MODS_RESET_HANDLE);
+		break;
+
+	case MODS_ESC_GET_RESET_HANDLE:
+		MODS_IOCTL(MODS_ESC_GET_RESET_HANDLE,
+			   esc_mods_get_rst_handle,
+			   MODS_GET_RESET_HANDLE);
+		break;
 #endif
 #if defined(CONFIG_ARCH_TEGRA)
 	case MODS_ESC_FLUSH_CPU_CACHE_RANGE:

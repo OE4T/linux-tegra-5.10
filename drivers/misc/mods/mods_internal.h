@@ -600,14 +600,18 @@ int esc_mods_clock_reset_assert(struct mods_client       *client,
 				struct MODS_CLOCK_HANDLE *p);
 int esc_mods_clock_reset_deassert(struct mods_client       *client,
 				  struct MODS_CLOCK_HANDLE *p);
+int esc_mods_reset_assert(struct mods_client       *client,
+			  struct MODS_RESET_HANDLE *p);
+int esc_mods_get_rst_handle(struct mods_client          *client,
+			    struct MODS_GET_RESET_HANDLE *p);
 int esc_mods_flush_cpu_cache_range(struct mods_client                *client,
 				   struct MODS_FLUSH_CPU_CACHE_RANGE *p);
 int esc_mods_dma_alloc_coherent(struct mods_client                  *client,
 				struct MODS_DMA_COHERENT_MEM_HANDLE *p);
-int esc_mods_dma_free_coherent(struct mods_client                   *client,
-				struct MODS_DMA_COHERENT_MEM_HANDLE *p);
-int esc_mods_dma_copy_to_user(struct mods_client             *client,
-				struct MODS_DMA_COPY_TO_USER *p);
+int esc_mods_dma_free_coherent(struct mods_client                  *client,
+			       struct MODS_DMA_COHERENT_MEM_HANDLE *p);
+int esc_mods_dma_copy_to_user(struct mods_client           *client,
+			      struct MODS_DMA_COPY_TO_USER *p);
 
 #ifdef CONFIG_DMA_ENGINE
 int esc_mods_dma_request_channel(struct mods_client     *client,

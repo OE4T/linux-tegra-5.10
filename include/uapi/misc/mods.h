@@ -1235,6 +1235,26 @@ struct MODS_DEVICE_NUMA_INFO {
 	__u32 cpu_count;
 };
 
+/* Used by MODS_ESC_GET_RESET_HANDLE ioctl.
+ * Used to get an index in reset array corresponding to a reset name
+ * so that a client can reference it easily in future calls to toggle
+ * reset
+ */
+struct MODS_GET_RESET_HANDLE {
+	/* OUT */
+	__u32 reset_handle;
+
+	/* IN */
+	char  reset_name[MAX_DT_SIZE];
+};
+
+/* Used by MODS_ESC_RESET_ASSERT */
+struct MODS_RESET_HANDLE {
+	/* IN */
+	__u32 handle;
+	__u8  assert;
+};
+
 /* Used by legacy MODS_ESC_GET_SCREEN_INFO ioctl and as a member of
  * MODS_SCREEN_INFO_2.
  */
@@ -1901,5 +1921,7 @@ struct MODS_IOMMU_DMA_MAP_MEMORY {
 #define MODS_ESC_IOMMU_DMA_MAP_MEMORY MODSIO(W, 129, MODS_IOMMU_DMA_MAP_MEMORY)
 #define MODS_ESC_IOMMU_DMA_UNMAP_MEMORY MODSIO(W, 130, \
 					       MODS_IOMMU_DMA_MAP_MEMORY)
+#define MODS_ESC_RESET_ASSERT MODSIO(W, 131, MODS_RESET_HANDLE)
+#define MODS_ESC_GET_RESET_HANDLE MODSIO(WR, 132, MODS_GET_RESET_HANDLE)
 
 #endif /* _UAPI_MODS_H_  */
