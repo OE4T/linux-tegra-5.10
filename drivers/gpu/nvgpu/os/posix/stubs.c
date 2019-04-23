@@ -26,7 +26,6 @@
  */
 
 #include <nvgpu/ecc.h>
-#include <nvgpu/cbc.h>
 #include <nvgpu/debugger.h>
 
 
@@ -41,10 +40,4 @@ int nvgpu_ecc_sysfs_init(struct gk20a *g)
 
 void nvgpu_ecc_sysfs_remove(struct gk20a *g)
 {
-}
-
-int nvgpu_cbc_alloc(struct gk20a *g, size_t compbit_backing_size,
-			bool vidmem_alloc)
-{
-	return 0;
 }

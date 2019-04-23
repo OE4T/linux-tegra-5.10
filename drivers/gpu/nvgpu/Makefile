@@ -351,7 +351,6 @@ nvgpu-y += \
 	os/linux/nvlink.o \
 	os/linux/dt.o \
 	os/linux/ecc_sysfs.o \
-	os/linux/linux-cbc.o \
 	os/linux/os_ops_tu104.o \
 	os/linux/bsearch.o
 

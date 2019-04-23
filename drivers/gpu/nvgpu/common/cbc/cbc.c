@@ -75,3 +75,32 @@ int nvgpu_cbc_init_support(struct gk20a *g)
 
 	return err;
 }
+
+int nvgpu_cbc_alloc(struct gk20a *g, size_t compbit_backing_size,
+			bool vidmem_alloc)
+{
+	struct nvgpu_cbc *cbc = g->cbc;
+
+	if (nvgpu_mem_is_valid(&cbc->compbit_store.mem) != 0) {
+		return 0;
+	}
+
+	if (vidmem_alloc == true) {
+		/*
+		 * Backing store MUST be physically contiguous and allocated in
+		 * one chunk
+		 * Vidmem allocation API does not support FORCE_CONTIGUOUS like
+		 * flag to allocate contiguous memory
+		 * But this allocation will happen in vidmem bootstrap allocator
+		 * which always allocates contiguous memory
+		 */
+		return nvgpu_dma_alloc_vid(g,
+					 compbit_backing_size,
+					 &cbc->compbit_store.mem);
+	} else {
+		return nvgpu_dma_alloc_flags_sys(g,
+					 NVGPU_DMA_PHYSICALLY_ADDRESSED,
+					 compbit_backing_size,
+					 &cbc->compbit_store.mem);
+	}
+}
