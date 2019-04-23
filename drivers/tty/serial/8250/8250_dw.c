@@ -373,6 +373,7 @@ static void dw8250_quirks(struct uart_port *p, struct dw8250_data *data)
 		data->uart_16550_compatible = true;
 	} else if (acpi_dev_present("NVDA0100", NULL, -1)) {
 		data->skip_autocfg = true;
+		p->flags |= UPF_FIXED_TYPE;
 	}
 
 	/* Platforms with iDMA 64-bit */
