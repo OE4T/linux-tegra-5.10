@@ -1199,7 +1199,7 @@ struct gpu_ops {
 		void (*force_ctx_reload)(struct channel_gk20a *ch);
 		void (*abort_clean_up)(struct channel_gk20a *ch);
 		int (*suspend_all_serviceable_ch)(struct gk20a *g);
-		int (*resume_all_serviceable_ch)(struct gk20a *g);
+		void (*resume_all_serviceable_ch)(struct gk20a *g);
 		void (*set_error_notifier)(struct channel_gk20a *ch, u32 error);
 		void (*reset_faulted)(struct gk20a *g, struct channel_gk20a *ch,
 				bool eng, bool pbdma);

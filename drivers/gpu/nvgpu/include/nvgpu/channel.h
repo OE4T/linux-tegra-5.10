@@ -433,7 +433,7 @@ int gk20a_enable_channel_tsg(struct gk20a *g, struct channel_gk20a *ch);
 int gk20a_disable_channel_tsg(struct gk20a *g, struct channel_gk20a *ch);
 
 int nvgpu_channel_suspend_all_serviceable_ch(struct gk20a *g);
-int nvgpu_channel_resume_all_serviceable_ch(struct gk20a *g);
+void nvgpu_channel_resume_all_serviceable_ch(struct gk20a *g);
 
 void gk20a_channel_deterministic_idle(struct gk20a *g);
 void gk20a_channel_deterministic_unidle(struct gk20a *g);
