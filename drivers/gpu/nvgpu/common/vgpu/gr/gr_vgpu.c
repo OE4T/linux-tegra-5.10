@@ -752,7 +752,6 @@ static int vgpu_gr_init_gr_setup_sw(struct gk20a *g)
 		goto clean_up;
 	}
 
-	nvgpu_mutex_init(&gr->ctx_mutex);
 	nvgpu_spinlock_init(&gr->ch_tlb_lock);
 
 	gr->remove_support = vgpu_remove_gr_support;

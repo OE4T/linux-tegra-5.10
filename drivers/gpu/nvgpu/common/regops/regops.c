@@ -31,6 +31,7 @@
 #include <nvgpu/io.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/regops.h>
+#include <nvgpu/gr/obj_ctx.h>
 
 static int regop_bsearch_range_cmp(const void *pkey, const void *pelem)
 {
@@ -69,13 +70,7 @@ static inline bool linear_search(u32 offset, const u32 *list, u64 size)
  */
 static bool gr_context_info_available(struct nvgpu_gr *gr)
 {
-	bool initialized;
-
-	nvgpu_mutex_acquire(&gr->ctx_mutex);
-	initialized = gr->ctx_vars.golden_image_initialized;
-	nvgpu_mutex_release(&gr->ctx_mutex);
-
-	return initialized;
+	return nvgpu_gr_obj_ctx_is_golden_image_ready(gr->golden_image);
 }
 
 static bool validate_reg_ops(struct gk20a *g,

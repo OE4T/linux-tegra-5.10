@@ -33,8 +33,6 @@
 #include <nvgpu/dma.h>
 #include <nvgpu/pmu/fw.h>
 
-#include "common/gr/gr_priv.h"
-
 /* state transition :
  * OFF => [OFF_ON_PENDING optional] => ON_PENDING => ON => OFF
  * ON => OFF is always synchronized
@@ -251,7 +249,6 @@ static int pmu_enable_elpg_locked(struct gk20a *g, u8 pg_engine_id)
 int nvgpu_pmu_enable_elpg(struct gk20a *g)
 {
 	struct nvgpu_pmu *pmu = &g->pmu;
-	struct nvgpu_gr *gr = g->gr;
 	u8 pg_engine_id;
 	u32 pg_engine_id_list = 0;
 
@@ -281,7 +278,7 @@ int nvgpu_pmu_enable_elpg(struct gk20a *g)
 	/* do NOT enable elpg until golden ctx is created,
 	 * which is related with the ctx that ELPG save and restore.
 	*/
-	if (unlikely(!gr->ctx_vars.golden_image_initialized)) {
+	if (unlikely(!pmu->pmu_pg.golden_image_initialized)) {
 		goto exit_unlock;
 	}
 
@@ -900,4 +897,10 @@ void nvgpu_pmu_pg_free_seq_buf(struct nvgpu_pmu *pmu, struct vm_gk20a *vm)
 {
 	nvgpu_dma_unmap_free(vm, &pmu->pmu_pg.seq_buf);
 
+}
+
+void nvgpu_pmu_set_golden_image_initialized(struct gk20a *g, bool initialized)
+{
+	struct nvgpu_pmu *pmu = &g->pmu;
+	pmu->pmu_pg.golden_image_initialized = initialized;
 }

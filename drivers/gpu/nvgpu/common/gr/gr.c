@@ -280,7 +280,6 @@ static void gr_remove_support(struct gk20a *g)
 	nvgpu_gr_zbc_deinit(g, gr->zbc);
 	nvgpu_gr_zcull_deinit(g, gr->zcull);
 	nvgpu_gr_obj_ctx_deinit(g, gr->golden_image);
-	gr->ctx_vars.golden_image_initialized = false;
 }
 
 static int gr_init_access_map(struct gk20a *g, struct nvgpu_gr *gr)
@@ -368,6 +367,16 @@ clean_up:
 	return -ENOMEM;
 }
 
+static int nvgpu_gr_init_ctx_state(struct gk20a *g)
+{
+	if (g->gr->golden_image != NULL &&
+			nvgpu_gr_obj_ctx_is_golden_image_ready(g->gr->golden_image)) {
+		return 0;
+	}
+
+	return nvgpu_gr_falcon_init_ctx_state(g);
+}
+
 static int gr_init_setup_sw(struct gk20a *g)
 {
 	struct nvgpu_gr *gr = g->gr;
@@ -448,12 +457,6 @@ static int gr_init_setup_sw(struct gk20a *g)
 
 	err = nvgpu_gr_zbc_init(g, &gr->zbc);
 	if (err != 0) {
-		goto clean_up;
-	}
-
-	err = nvgpu_mutex_init(&gr->ctx_mutex);
-	if (err != 0) {
-		nvgpu_err(g, "Error in gr.ctx_mutex initialization");
 		goto clean_up;
 	}
 
@@ -603,7 +606,7 @@ int nvgpu_gr_reset(struct gk20a *g)
 
 	/* this appears query for sw states but fecs actually init
 	   ramchain, etc so this is hw init */
-	err = nvgpu_gr_falcon_init_ctx_state(g);
+	err = nvgpu_gr_init_ctx_state(g);
 	if (err != 0) {
 		return err;
 	}
@@ -640,7 +643,7 @@ int nvgpu_gr_init_support(struct gk20a *g)
 
 	/* this appears query for sw states but fecs actually init
 	   ramchain, etc so this is hw init */
-	err = nvgpu_gr_falcon_init_ctx_state(g);
+	err = nvgpu_gr_init_ctx_state(g);
 	if (err != 0) {
 		return err;
 	}

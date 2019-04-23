@@ -58,6 +58,7 @@ struct nvgpu_pmu_pg {
 	bool initialized;
 	u32 stat_dmem_offset[PMU_PG_ELPG_ENGINE_ID_INVALID_ENGINE];
 	struct nvgpu_mem seq_buf;
+	bool golden_image_initialized;
 };
 
 /*PG defines used by nvpgu-pmu*/
@@ -93,5 +94,7 @@ int nvgpu_pmu_ap_send_command(struct gk20a *g,
 		union pmu_ap_cmd *p_ap_cmd, bool b_block);
 int nvgpu_pmu_pg_init_seq_buf(struct nvgpu_pmu *pmu, struct vm_gk20a *vm);
 void nvgpu_pmu_pg_free_seq_buf(struct nvgpu_pmu *pmu, struct vm_gk20a *vm);
+
+void nvgpu_pmu_set_golden_image_initialized(struct gk20a *g, bool initialized);
 
 #endif /* NVGPU_PMU_PG_H */

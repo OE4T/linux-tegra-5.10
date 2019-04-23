@@ -490,7 +490,8 @@ int gr_gk20a_get_ctx_buffer_offsets(struct gk20a *g,
 		return -EINVAL;
 	}
 
-	if (!g->gr->ctx_vars.golden_image_initialized) {
+	if (!nvgpu_gr_obj_ctx_is_golden_image_ready(gr->golden_image)) {
+		nvgpu_log_fn(g, "no context switch header info to work with");
 		return -ENODEV;
 	}
 
@@ -516,12 +517,6 @@ int gr_gk20a_get_ctx_buffer_offsets(struct gk20a *g,
 
 	if ((max_offsets == 1U) && (num_registers > 1U)) {
 		num_registers = 1;
-	}
-
-	if (!g->gr->ctx_vars.golden_image_initialized) {
-		nvgpu_log_fn(g, "no context switch header info to work with");
-		err = -EINVAL;
-		goto cleanup;
 	}
 
 	for (i = 0; i < num_registers; i++) {
@@ -576,7 +571,8 @@ int gr_gk20a_get_pm_ctx_buffer_offsets(struct gk20a *g,
 		return -EINVAL;
 	}
 
-	if (!g->gr->ctx_vars.golden_image_initialized) {
+	if (!nvgpu_gr_obj_ctx_is_golden_image_ready(gr->golden_image)) {
+		nvgpu_log_fn(g, "no context switch header info to work with");
 		return -ENODEV;
 	}
 
@@ -599,12 +595,6 @@ int gr_gk20a_get_pm_ctx_buffer_offsets(struct gk20a *g,
 
 	if ((max_offsets == 1U) && (num_registers > 1U)) {
 		num_registers = 1;
-	}
-
-	if (!g->gr->ctx_vars.golden_image_initialized) {
-		nvgpu_log_fn(g, "no context switch header info to work with");
-		err = -EINVAL;
-		goto cleanup;
 	}
 
 	for (i = 0; i < num_registers; i++) {

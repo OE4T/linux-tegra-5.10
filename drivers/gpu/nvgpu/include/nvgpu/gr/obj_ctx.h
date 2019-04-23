@@ -86,6 +86,9 @@ size_t nvgpu_gr_obj_ctx_get_golden_image_size(
 u32 *nvgpu_gr_obj_ctx_get_local_golden_image_ptr(
 	struct nvgpu_gr_obj_ctx_golden_image *golden_image);
 
+bool nvgpu_gr_obj_ctx_is_golden_image_ready(
+	struct nvgpu_gr_obj_ctx_golden_image *golden_image);
+
 int nvgpu_gr_obj_ctx_init(struct gk20a *g,
 	struct nvgpu_gr_obj_ctx_golden_image **gr_golden_image, u32 size);
 void nvgpu_gr_obj_ctx_deinit(struct gk20a *g,

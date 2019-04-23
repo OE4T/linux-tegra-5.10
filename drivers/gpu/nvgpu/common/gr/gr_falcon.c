@@ -158,12 +158,10 @@ int nvgpu_gr_falcon_init_ctx_state(struct gk20a *g)
 
 	nvgpu_log_fn(g, " ");
 
-	if (!g->gr->ctx_vars.golden_image_initialized) {
-		/* fecs init ramchain */
-		err = g->ops.gr.falcon.init_ctx_state(g);
-		if (err != 0) {
-			goto out;
-		}
+	/* fecs init ramchain */
+	err = g->ops.gr.falcon.init_ctx_state(g);
+	if (err != 0) {
+		goto out;
 	}
 
 out:

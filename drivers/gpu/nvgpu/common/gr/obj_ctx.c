@@ -24,6 +24,7 @@
 #include <nvgpu/log.h>
 #include <nvgpu/io.h>
 #include <nvgpu/mm.h>
+#include <nvgpu/pmu/pmu_pg.h>
 #include <nvgpu/gr/ctx.h>
 #include <nvgpu/gr/subctx.h>
 #include <nvgpu/gr/global_ctx.h>
@@ -524,8 +525,8 @@ restore_fe_go_idle:
 	}
 
 	golden_image->ready = true;
-	g->gr->ctx_vars.golden_image_initialized = true;
 
+	nvgpu_pmu_set_golden_image_initialized(g, true);
 	g->ops.gr.falcon.set_current_ctx_invalid(g);
 
 clean_up:
@@ -678,6 +679,18 @@ u32 *nvgpu_gr_obj_ctx_get_local_golden_image_ptr(
 			golden_image->local_golden_image);
 }
 
+bool nvgpu_gr_obj_ctx_is_golden_image_ready(
+	struct nvgpu_gr_obj_ctx_golden_image *golden_image)
+{
+	bool ready;
+
+	nvgpu_mutex_acquire(&golden_image->ctx_mutex);
+	ready = golden_image->ready;
+	nvgpu_mutex_release(&golden_image->ctx_mutex);
+
+	return ready;
+}
+
 int nvgpu_gr_obj_ctx_init(struct gk20a *g,
 	struct nvgpu_gr_obj_ctx_golden_image **gr_golden_image, u32 size)
 {
@@ -711,6 +724,7 @@ void nvgpu_gr_obj_ctx_deinit(struct gk20a *g,
 		golden_image->local_golden_image = NULL;
 	}
 
+	nvgpu_pmu_set_golden_image_initialized(g, false);
 	golden_image->ready = false;
 	nvgpu_kfree(g, golden_image);
 }
