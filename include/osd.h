@@ -31,5 +31,5 @@ void osd_err(void *priv, const char *fmt, ...);
 void osd_receive_packet(void *priv, void *rxring, unsigned int chan,
 			unsigned int dma_buf_len, void *rxpkt_cx);
 void osd_transmit_complete(void *priv, void *buffer, unsigned long dmaaddr,
-			   unsigned int len);
+			   unsigned int len, int pkt_valid);
 #endif

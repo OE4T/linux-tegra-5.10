@@ -57,9 +57,32 @@
 #define TDES3_FD		OSI_BIT(29)
 #define TDES3_LD		OSI_BIT(28)
 #define TDES3_VLTV		OSI_BIT(16)
+
+/* Tx Errors */
+#define TDES3_IP_HEADER_ERR	OSI_BIT(0)
+#define TDES3_UNDER_FLOW_ERR	OSI_BIT(2)
+#define TDES3_EXCESSIVE_DEF_ERR	OSI_BIT(3)
+#define TDES3_EXCESSIVE_COL_ERR	OSI_BIT(8)
+#define TDES3_LATE_COL_ERR	OSI_BIT(9)
+#define TDES3_NO_CARRIER_ERR	OSI_BIT(10)
+#define TDES3_LOSS_CARRIER_ERR	OSI_BIT(11)
+#define TDES3_PL_CHK_SUM_ERR	OSI_BIT(12)
+#define TDES3_PKT_FLUSH_ERR	OSI_BIT(13)
+#define TDES3_JABBER_TIMEO_ERR	OSI_BIT(14)
+
 /* VTIR = 0x2 (Insert a VLAN tag with the tag value programmed in the
  * MAC_VLAN_Incl register or context descriptor.)
 */
 #define TDES2_VTIR		((unsigned int)0x2 << 14U)
 
+#define TDES3_ES_BITS		(TDES3_IP_HEADER_ERR     | \
+				 TDES3_UNDER_FLOW_ERR    | \
+				 TDES3_EXCESSIVE_DEF_ERR | \
+				 TDES3_EXCESSIVE_COL_ERR | \
+				 TDES3_LATE_COL_ERR      | \
+				 TDES3_NO_CARRIER_ERR    | \
+				 TDES3_LOSS_CARRIER_ERR  | \
+				 TDES3_PL_CHK_SUM_ERR    | \
+				 TDES3_PKT_FLUSH_ERR     | \
+				 TDES3_JABBER_TIMEO_ERR)
 #endif /* OSI_DMA_TXRX_H */

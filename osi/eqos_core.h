@@ -91,6 +91,7 @@
 #define EQOS_MTL_TXQ_ETS_HCR(x)		((0x0040U * (x)) + 0x0D20U)
 #define EQOS_MTL_TXQ_ETS_LCR(x)		((0x0040U * (x)) + 0x0D24U)
 #define EQOS_MTL_RXQ_DMA_MAP0		0x0C30
+#define EQOS_MTL_OP_MODE		0x0C00
 
 /* EQOS Wrapper registers*/
 #define EQOS_PAD_AUTO_CAL_CFG		0x8804U
@@ -170,4 +171,5 @@
 #define EQOS_MTL_TXQEN_MASK			(OSI_BIT(3) | OSI_BIT(2))
 #define EQOS_MTL_TXQEN_MASK_SHIFT		2U
 #define EQOS_MTL_RXQ_OP_MODE_FEP		OSI_BIT(4)
+#define EQOS_MTL_OP_MODE_DTXSTS			OSI_BIT(1)
 #endif

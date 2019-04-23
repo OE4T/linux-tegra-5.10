@@ -29,6 +29,33 @@
 #define OSI_PKT_CX_VLAN	OSI_BIT(0)
 
 /**
+ *	struct osi_pkt_err_stats: OSI packet error stats
+ *	@ip_header_error: IP Header Error
+ *	@jabber_timeout_error: Jabber time out Error
+ *	@pkt_flush_error: Packet Flush Error
+ *	@payload_cs_error: Payload Checksum Error
+ *	@loss_of_carrier_error: Loss of Carrier Error
+ *	@no_carrier_error: No Carrier Error
+ *	@late_collision_error: Late Collision Error
+ *	@excessive_collision_error: Excessive Collision Error
+ *	@excessive_deferal_error: Excessive Deferal Error
+ *	@underflow_error: Under Flow Error
+ */
+struct osi_pkt_err_stats {
+	/* Transmit errors */
+	unsigned long ip_header_error;
+	unsigned long jabber_timeout_error;
+	unsigned long pkt_flush_error;
+	unsigned long payload_cs_error;
+	unsigned long loss_of_carrier_error;
+	unsigned long no_carrier_error;
+	unsigned long late_collision_error;
+	unsigned long excessive_collision_error;
+	unsigned long excessive_deferal_error;
+	unsigned long underflow_error;
+};
+
+/**
  *	struct osi_rx_desc - Receive Descriptor
  *	@rdes0: Receive Descriptor 0
  *	@rdes1: Receive Descriptor 1
@@ -199,6 +226,7 @@ struct osi_dma_chan_ops {
  *	@dma_chans[]:	Array of supported DMA channels
  *	@rx_buf_len:	DMA Rx channel buffer length at HW level.
  *	@mtu:	MTU size
+ *	@osi_pkt_err_stats: Packet error stats
  */
 struct osi_dma_priv_data {
 	struct osi_tx_ring *tx_ring[OSI_EQOS_MAX_NUM_CHANS];
@@ -211,6 +239,7 @@ struct osi_dma_priv_data {
 	unsigned int dma_chans[OSI_EQOS_MAX_NUM_CHANS];
 	unsigned int rx_buf_len;
 	unsigned int mtu;
+	struct osi_pkt_err_stats pkt_err_stats;
 };
 
 /**
@@ -483,4 +512,5 @@ int osi_process_rx_completions(struct osi_dma_priv_data *osi,
 int osi_hw_dma_init(struct osi_dma_priv_data *osi_dma);
 void osi_hw_dma_deinit(struct osi_dma_priv_data *osi_dma);
 void osi_init_dma_ops(struct osi_dma_priv_data *osi_dma);
+void osi_clear_tx_pkt_err_stats(struct osi_dma_priv_data *osi_dma);
 #endif /* OSI_DMA_H */
