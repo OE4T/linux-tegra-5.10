@@ -85,7 +85,6 @@ int gk20a_init_mm_setup_hw(struct gk20a *g);
 struct nvgpu_as_alloc_space_args;
 struct nvgpu_as_free_space_args;
 int gk20a_vm_release_share(struct gk20a_as_share *as_share);
-int gk20a_vm_bind_channel(struct vm_gk20a *vm, struct channel_gk20a *ch);
 
 void pde_range_from_vaddr_range(struct vm_gk20a *vm,
 					      u64 addr_lo, u64 addr_hi,

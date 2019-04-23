@@ -1117,7 +1117,7 @@ static const struct gpu_ops gv100_ops = {
 		.is_fw_defined = gv100_netlist_is_firmware_defined,
 	},
 	.mm = {
-		.vm_bind_channel = gk20a_vm_bind_channel,
+		.vm_bind_channel = nvgpu_vm_bind_channel,
 		.init_mm_setup_hw = gv11b_init_mm_setup_hw,
 		.is_bar1_supported = gv11b_mm_is_bar1_supported,
 		.alloc_inst_block = gk20a_alloc_inst_block,

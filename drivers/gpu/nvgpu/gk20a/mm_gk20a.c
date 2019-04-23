@@ -121,25 +121,6 @@ int gk20a_init_mm_setup_hw(struct gk20a *g)
 	return 0;
 }
 
-int gk20a_vm_bind_channel(struct vm_gk20a *vm, struct channel_gk20a *ch)
-{
-	int err = 0;
-
-	nvgpu_log_fn(ch->g, " ");
-
-	nvgpu_vm_get(vm);
-	ch->vm = vm;
-	err = channel_gk20a_commit_va(ch);
-	if (err != 0) {
-		ch->vm = NULL;
-	}
-
-	nvgpu_log(gk20a_from_vm(vm), gpu_dbg_map, "Binding ch=%d -> VM:%s",
-		  ch->chid, vm->name);
-
-	return err;
-}
-
 void gk20a_init_inst_block(struct nvgpu_mem *inst_block, struct vm_gk20a *vm,
 		u32 big_page_size)
 {

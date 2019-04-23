@@ -63,6 +63,25 @@ int vm_aspace_id(struct vm_gk20a *vm)
 	return (vm->as_share != NULL) ? vm->as_share->id : -1;
 }
 
+int nvgpu_vm_bind_channel(struct vm_gk20a *vm, struct channel_gk20a *ch)
+{
+	int err = 0;
+
+	nvgpu_log_fn(ch->g, " ");
+
+	nvgpu_vm_get(vm);
+	ch->vm = vm;
+	err = channel_gk20a_commit_va(ch);
+	if (err != 0) {
+		ch->vm = NULL;
+	}
+
+	nvgpu_log(gk20a_from_vm(vm), gpu_dbg_map, "Binding ch=%d -> VM:%s",
+		  ch->chid, vm->name);
+
+	return err;
+}
+
 /*
  * Determine how many bits of the address space each last level PDE covers. For
  * example, for gp10b, with a last level address bit PDE range of 28 to 21 the

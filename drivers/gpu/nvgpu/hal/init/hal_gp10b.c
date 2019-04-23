@@ -928,7 +928,7 @@ static const struct gpu_ops gp10b_ops = {
 		.is_fw_defined = gp10b_netlist_is_firmware_defined,
 	},
 	.mm = {
-		.vm_bind_channel = gk20a_vm_bind_channel,
+		.vm_bind_channel = nvgpu_vm_bind_channel,
 		.init_mm_setup_hw = gk20a_init_mm_setup_hw,
 		.is_bar1_supported = gm20b_mm_is_bar1_supported,
 		.alloc_inst_block = gk20a_alloc_inst_block,
