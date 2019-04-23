@@ -26,6 +26,7 @@
 #include <nvgpu/regops.h>
 #include <nvgpu/rc.h>
 #include <nvgpu/error_notifier.h>
+#include <nvgpu/power_features/pg.h>
 
 #include <nvgpu/gr/gr.h>
 #include <nvgpu/gr/gr_intr.h>
@@ -71,7 +72,7 @@ static int gr_intr_handle_tpc_exception(struct gk20a *g, u32 gpc, u32 tpc,
 				"GPC%d TPC%d: SM%d exception pending",
 				 gpc, tpc, sm);
 
-			tmp_ret = g->ops.gr.handle_sm_exception(g,
+			tmp_ret = g->ops.gr.intr.handle_sm_exception(g,
 					gpc, tpc, sm, post_event, fault_ch,
 					hww_global_esr);
 			ret = (ret != 0) ? ret : tmp_ret;
@@ -151,6 +152,48 @@ static int gr_intr_handle_class_error(struct gk20a *g,
 			 NVGPU_ERR_NOTIFIER_GR_ERROR_SW_NOTIFY);
 
 	return -EINVAL;
+}
+
+static void gr_intr_report_sm_exception(struct gk20a *g, u32 gpc, u32 tpc,
+		u32 sm, u32 hww_warp_esr_status, u64 hww_warp_esr_pc)
+{
+	int ret;
+	struct gr_sm_mcerr_info err_info;
+	struct channel_gk20a *ch;
+	struct gr_err_info info;
+	u32 tsgid, chid, curr_ctx, inst = 0;
+
+	if (g->ops.gr.err_ops.report_gr_err == NULL) {
+		return;
+	}
+
+	tsgid = NVGPU_INVALID_TSG_ID;
+	curr_ctx = g->ops.gr.falcon.get_current_ctx(g);
+	ch = nvgpu_gr_intr_get_channel_from_ctx(g, curr_ctx, &tsgid);
+	chid = ch != NULL ? ch->chid : FIFO_INVAL_CHANNEL_ID;
+	if (ch != NULL) {
+		gk20a_channel_put(ch);
+	}
+
+	(void) memset(&err_info, 0, sizeof(err_info));
+	(void) memset(&info, 0, sizeof(info));
+	err_info.curr_ctx = curr_ctx;
+	err_info.chid = chid;
+	err_info.tsgid = tsgid;
+	err_info.hww_warp_esr_pc = hww_warp_esr_pc;
+	err_info.hww_warp_esr_status = hww_warp_esr_status;
+	err_info.gpc = gpc;
+	err_info.tpc = tpc;
+	err_info.sm = sm;
+	info.sm_mcerr_info = &err_info;
+	ret = g->ops.gr.err_ops.report_gr_err(g,
+			NVGPU_ERR_MODULE_SM, inst, GPU_SM_MACHINE_CHECK_ERROR,
+			&info);
+	if (ret != 0) {
+		nvgpu_err(g, "failed to report SM_EXCEPTION "
+				"gpc=%u, tpc=%u, sm=%u, esr_status=%x",
+				gpc, tpc, sm, hww_warp_esr_status);
+	}
 }
 
 /* Used by sw interrupt thread to translate current ctx to chid.
@@ -293,6 +336,112 @@ void nvgpu_gr_intr_set_error_notifier(struct gk20a *g,
 	} else {
 		nvgpu_err(g, "chid: %d is not bound to tsg", ch->chid);
 	}
+}
+
+int nvgpu_gr_intr_handle_sm_exception(struct gk20a *g, u32 gpc, u32 tpc, u32 sm,
+		bool *post_event, struct channel_gk20a *fault_ch,
+		u32 *hww_global_esr)
+{
+	int ret = 0;
+	bool do_warp_sync = false, early_exit = false, ignore_debugger = false;
+	bool disable_sm_exceptions = true;
+	u32 offset = nvgpu_gr_gpc_offset(g, gpc) + nvgpu_gr_tpc_offset(g, tpc);
+	bool sm_debugger_attached;
+	u32 global_esr, warp_esr, global_mask;
+	u64 hww_warp_esr_pc = 0;
+
+	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gpu_dbg, " ");
+
+	sm_debugger_attached = g->ops.gr.sm_debugger_attached(g);
+
+	global_esr = g->ops.gr.get_sm_hww_global_esr(g, gpc, tpc, sm);
+	*hww_global_esr = global_esr;
+	warp_esr = g->ops.gr.get_sm_hww_warp_esr(g, gpc, tpc, sm);
+	global_mask = g->ops.gr.get_sm_no_lock_down_hww_global_esr_mask(g);
+
+	if (!sm_debugger_attached) {
+		nvgpu_err(g, "sm hww global 0x%08x warp 0x%08x",
+			  global_esr, warp_esr);
+		return -EFAULT;
+	}
+
+	nvgpu_log(g, gpu_dbg_intr | gpu_dbg_gpu_dbg,
+		  "sm hww global 0x%08x warp 0x%08x", global_esr, warp_esr);
+
+	/*
+	 * Check and report any fatal wrap errors.
+	 */
+	if ((global_esr & ~global_mask) != 0U) {
+		if (g->ops.gr.get_sm_hww_warp_esr_pc != NULL) {
+			hww_warp_esr_pc = g->ops.gr.get_sm_hww_warp_esr_pc(g,
+					offset);
+		}
+		gr_intr_report_sm_exception(g, gpc, tpc, sm, warp_esr,
+				hww_warp_esr_pc);
+	}
+	nvgpu_pg_elpg_protected_call(g,
+		g->ops.gr.record_sm_error_state(g, gpc, tpc, sm, fault_ch));
+
+	if (g->ops.gr.pre_process_sm_exception != NULL) {
+		ret = g->ops.gr.pre_process_sm_exception(g, gpc, tpc, sm,
+				global_esr, warp_esr,
+				sm_debugger_attached,
+				fault_ch,
+				&early_exit,
+				&ignore_debugger);
+		if (ret != 0) {
+			nvgpu_err(g, "could not pre-process sm error!");
+			return ret;
+		}
+	}
+
+	if (early_exit) {
+		nvgpu_log(g, gpu_dbg_intr | gpu_dbg_gpu_dbg,
+				"returning early");
+		return ret;
+	}
+
+	/*
+	 * Disable forwarding of tpc exceptions,
+	 * the debugger will reenable exceptions after servicing them.
+	 *
+	 * Do not disable exceptions if the only SM exception is BPT_INT
+	 */
+	if ((g->ops.gr.esr_bpt_pending_events(global_esr,
+			NVGPU_EVENT_ID_BPT_INT)) && (warp_esr == 0U)) {
+		disable_sm_exceptions = false;
+	}
+
+	if (!ignore_debugger && disable_sm_exceptions) {
+		g->ops.gr.intr.tpc_exception_sm_disable(g, offset);
+		nvgpu_log(g, gpu_dbg_intr | gpu_dbg_gpu_dbg,
+			  "SM Exceptions disabled");
+	}
+
+	/* if a debugger is present and an error has occurred, do a warp sync */
+	if (!ignore_debugger &&
+	    ((warp_esr != 0U) || ((global_esr & ~global_mask) != 0U))) {
+		nvgpu_log(g, gpu_dbg_intr, "warp sync needed");
+		do_warp_sync = true;
+	}
+
+	if (do_warp_sync) {
+		ret = g->ops.gr.lock_down_sm(g, gpc, tpc, sm,
+				 global_mask, true);
+		if (ret != 0) {
+			nvgpu_err(g, "sm did not lock down!");
+			return ret;
+		}
+	}
+
+	if (ignore_debugger) {
+		nvgpu_log(g, gpu_dbg_intr | gpu_dbg_gpu_dbg,
+			"ignore_debugger set, skipping event posting");
+	} else {
+		*post_event = true;
+	}
+
+	return ret;
 }
 
 int nvgpu_gr_intr_handle_gpc_exception(struct gk20a *g, bool *post_event,

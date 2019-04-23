@@ -69,5 +69,8 @@ struct channel_gk20a *nvgpu_gr_intr_get_channel_from_ctx(struct gk20a *g,
 				u32 curr_ctx, u32 *curr_tsgid);
 void nvgpu_gr_intr_set_error_notifier(struct gk20a *g,
 		  struct nvgpu_gr_isr_data *isr_data, u32 error_notifier);
+int nvgpu_gr_intr_handle_sm_exception(struct gk20a *g, u32 gpc, u32 tpc, u32 sm,
+		bool *post_event, struct channel_gk20a *fault_ch,
+		u32 *hww_global_esr);
 int nvgpu_gr_intr_stall_isr(struct gk20a *g);
 #endif /* NVGPU_GR_INTR_H */

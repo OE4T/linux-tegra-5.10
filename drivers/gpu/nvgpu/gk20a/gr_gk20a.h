@@ -96,9 +96,6 @@ void gk20a_gr_suspend_all_sms(struct gk20a *g,
 int gr_gk20a_set_sm_debug_mode(struct gk20a *g,
 	struct channel_gk20a *ch, u64 sms, bool enable);
 bool gk20a_is_channel_ctx_resident(struct channel_gk20a *ch);
-int gr_gk20a_handle_sm_exception(struct gk20a *g, u32 gpc, u32 tpc, u32 sm,
-		bool *post_event, struct channel_gk20a *fault_ch,
-		u32 *hww_global_esr);
 
 #if defined(CONFIG_GK20A_CYCLE_STATS)
 int gr_gk20a_css_attach(struct channel_gk20a *ch,   /* in - main hw structure */

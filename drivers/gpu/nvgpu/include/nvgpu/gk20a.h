@@ -365,10 +365,6 @@ struct gpu_ops {
 			u32 gpc, u32 tpc,
 			bool *post_event, struct channel_gk20a *fault_ch,
 			u32 *hww_global_esr);
-		int (*handle_sm_exception)(struct gk20a *g,
-			u32 gpc, u32 tpc, u32 sm,
-			bool *post_event, struct channel_gk20a *fault_ch,
-			u32 *hww_global_esr);
 		u32 (*get_lrf_tex_ltc_dram_override)(struct gk20a *g);
 		int (*record_sm_error_state)(struct gk20a *g, u32 gpc, u32 tpc,
 				u32 sm, struct channel_gk20a *fault_ch);
@@ -845,6 +841,10 @@ struct gpu_ops {
 			void (*tpc_exception_sm_disable)(struct gk20a *g,
 							       u32 offset);
 			void (*tpc_exception_sm_enable)(struct gk20a *g);
+			int (*handle_sm_exception)(struct gk20a *g,
+				u32 gpc, u32 tpc, u32 sm,
+				bool *post_event, struct channel_gk20a *fault_ch,
+				u32 *hww_global_esr);
 			int (*stall_isr)(struct gk20a *g);
 		} intr;
 

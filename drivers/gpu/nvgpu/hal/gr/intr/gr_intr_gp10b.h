@@ -26,6 +26,7 @@
 #include <nvgpu/types.h>
 
 struct gk20a;
+struct channel_gk20a;
 
 #define NVC097_SET_GO_IDLE_TIMEOUT		0x022cU
 #define NVC097_SET_ALPHA_CIRCULAR_BUFFER_SIZE	0x02dcU
@@ -43,4 +44,8 @@ void gp10b_gr_intr_set_go_idle_timeout(struct gk20a *g, u32 data);
 void gp10b_gr_intr_handle_tex_exception(struct gk20a *g, u32 gpc, u32 tpc);
 int gp10b_gr_intr_handle_sw_method(struct gk20a *g, u32 addr,
 				     u32 class_num, u32 offset, u32 data);
+int gp10b_gr_intr_handle_sm_exception(struct gk20a *g,
+			u32 gpc, u32 tpc, u32 sm,
+			bool *post_event, struct channel_gk20a *fault_ch,
+			u32 *hww_global_esr);
 #endif /* NVGPU_GR_INTR_GP10B_H */

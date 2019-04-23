@@ -418,7 +418,6 @@ static const struct gpu_ops tu104_ops = {
 		.set_sm_debug_mode = gv11b_gr_set_sm_debug_mode,
 		.bpt_reg_info = gv11b_gr_bpt_reg_info,
 		.handle_fecs_error = gr_gv11b_handle_fecs_error,
-		.handle_sm_exception = gr_gk20a_handle_sm_exception,
 		.get_lrf_tex_ltc_dram_override = get_ecc_override_val,
 		.update_smpc_ctxsw_mode = gr_gk20a_update_smpc_ctxsw_mode,
 		.get_num_hwpm_perfmon = gr_gv100_get_num_hwpm_perfmon,
@@ -769,6 +768,8 @@ static const struct gpu_ops tu104_ops = {
 				gm20ab_gr_intr_tpc_exception_sm_enable,
 			.tpc_exception_sm_disable =
 				gm20ab_gr_intr_tpc_exception_sm_disable,
+			.handle_sm_exception =
+				nvgpu_gr_intr_handle_sm_exception,
 			.stall_isr = nvgpu_gr_intr_stall_isr,
 		},
 		.falcon = {

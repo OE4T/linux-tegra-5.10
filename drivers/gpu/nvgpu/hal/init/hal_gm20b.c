@@ -265,7 +265,6 @@ static const struct gpu_ops gm20b_ops = {
 		.set_sm_debug_mode = gr_gk20a_set_sm_debug_mode,
 		.bpt_reg_info = gr_gm20b_bpt_reg_info,
 		.handle_fecs_error = gk20a_gr_handle_fecs_error,
-		.handle_sm_exception = gr_gk20a_handle_sm_exception,
 		.get_lrf_tex_ltc_dram_override = NULL,
 		.update_smpc_ctxsw_mode = gr_gk20a_update_smpc_ctxsw_mode,
 		.update_hwpm_ctxsw_mode = gr_gk20a_update_hwpm_ctxsw_mode,
@@ -532,6 +531,8 @@ static const struct gpu_ops gm20b_ops = {
 				gm20ab_gr_intr_tpc_exception_sm_enable,
 			.tpc_exception_sm_disable =
 				gm20ab_gr_intr_tpc_exception_sm_disable,
+			.handle_sm_exception =
+				nvgpu_gr_intr_handle_sm_exception,
 			.stall_isr = nvgpu_gr_intr_stall_isr,
 		},
 		.falcon = {
