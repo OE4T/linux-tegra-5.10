@@ -24,7 +24,9 @@
 
 #include "hal/mm/cache/flush_gk20a.h"
 #include "hal/mm/cache/flush_gv11b.h"
-#include "hal/mm/gmmu/gmmu_gk20a.h"
+#include "hal/mm/gmmu/gmmu_gm20b.h"
+#include "hal/mm/gmmu/gmmu_gp10b.h"
+#include "hal/mm/gmmu/gmmu_gv11b.h"
 #include "hal/mc/mc_gm20b.h"
 #include "hal/mc/mc_gp10b.h"
 #include "hal/mc/mc_gv11b.h"

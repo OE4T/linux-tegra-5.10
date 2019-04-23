@@ -155,6 +155,9 @@ nvgpu-y += \
 	hal/mm/cache/flush_gk20a.o \
 	hal/mm/cache/flush_gv11b.o \
 	hal/mm/gmmu/gmmu_gk20a.o \
+	hal/mm/gmmu/gmmu_gm20b.o \
+	hal/mm/gmmu/gmmu_gp10b.o \
+	hal/mm/gmmu/gmmu_gv11b.o \
 	hal/mc/mc_gm20b.o \
 	hal/mc/mc_gp10b.o  \
 	hal/mc/mc_gv11b.o  \

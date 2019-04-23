@@ -1,7 +1,5 @@
 /*
- * GM20B MMU
- *
- * Copyright (c) 2014-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -22,14 +20,17 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#include <nvgpu/sizes.h>
-#include <nvgpu/gk20a.h>
+#ifndef HAL_MM_GMMU_GMMU_GM20B_H
+#define HAL_MM_GMMU_GMMU_GM20B_H
 
-#include "mm_gm20b.h"
+#include <nvgpu/types.h>
 
-#include <nvgpu/hw/gm20b/hw_gmmu_gm20b.h>
+struct gk20a;
+struct nvgpu_gmmu_attrs;
 
-bool gm20b_mm_is_bar1_supported(struct gk20a *g)
-{
-	return true;
-}
+u32 gm20b_mm_get_big_page_sizes(void);
+u32 gm20b_mm_get_default_big_page_size(void);
+u64 gm20b_gpu_phys_addr(struct gk20a *g,
+			struct nvgpu_gmmu_attrs *attrs, u64 phys);
+
+#endif

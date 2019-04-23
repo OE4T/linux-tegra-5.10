@@ -35,8 +35,9 @@
 #include <nvgpu/posix/posix-fault-injection.h>
 #include <os/posix/os_posix.h>
 
-#include <gp10b/mm_gp10b.h>
+#include <hal/mm/gmmu/gmmu_gp10b.h>
 #include <hal/bus/bus_gk20a.h>
+
 #include <nvgpu/hw/gk20a/hw_pram_gk20a.h>
 #include <nvgpu/hw/gk20a/hw_bus_gk20a.h>
 

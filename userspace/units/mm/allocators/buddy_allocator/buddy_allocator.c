@@ -32,8 +32,9 @@
 
 #include "common/mm/allocators/buddy_allocator_priv.h"
 
-#include <gp10b/mm_gp10b.h>
 #include <hal/bus/bus_gk20a.h>
+#include <hal/mm/gmmu/gmmu_gp10b.h>
+
 #include <nvgpu/hw/gk20a/hw_pram_gk20a.h>
 
 #define SZ_8K			(SZ_4K << 1)

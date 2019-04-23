@@ -27,10 +27,7 @@ struct gk20a;
 #define PDE_ADDR_START(x, y)	((x) &  ~((0x1UL << (y)) - 1))
 #define PDE_ADDR_END(x, y)	((x) | ((0x1UL << (y)) - 1))
 
-u32 gm20b_mm_get_big_page_sizes(void);
-u32 gm20b_mm_get_default_big_page_size(void);
 bool gm20b_mm_support_sparse(struct gk20a *g);
 bool gm20b_mm_is_bar1_supported(struct gk20a *g);
-u64 gm20b_gpu_phys_addr(struct gk20a *g,
-			struct nvgpu_gmmu_attrs *attrs, u64 phys);
+
 #endif /* NVGPU_GM20B_MM_GM20B_H */

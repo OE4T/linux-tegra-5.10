@@ -1,7 +1,5 @@
 /*
- * GM20B MMU
- *
- * Copyright (c) 2014-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -22,14 +20,24 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#include <nvgpu/sizes.h>
 #include <nvgpu/gk20a.h>
+#include <nvgpu/gmmu.h>
 
-#include "mm_gm20b.h"
+#include "gmmu_gv11b.h"
 
-#include <nvgpu/hw/gm20b/hw_gmmu_gm20b.h>
+#define NVGPU_L3_ALLOC_BIT	BIT64(36)
 
-bool gm20b_mm_is_bar1_supported(struct gk20a *g)
+/*
+ * On Volta the GPU determines whether to do L3 allocation for a mapping by
+ * checking bit 36 of the phsyical address. So if a mapping should allocte lines
+ * in the L3 this bit must be set.
+ */
+u64 gv11b_gpu_phys_addr(struct gk20a *g,
+			struct nvgpu_gmmu_attrs *attrs, u64 phys)
 {
-	return true;
+	if ((attrs != NULL) && attrs->l3_alloc) {
+		return phys | NVGPU_L3_ALLOC_BIT;
+	}
+
+	return phys;
 }

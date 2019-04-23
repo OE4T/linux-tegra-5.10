@@ -36,7 +36,7 @@
 
 #include "common/mm/gmmu/pd_cache_priv.h"
 
-#include "gp10b/mm_gp10b.h"
+#include "hal/mm/gmmu/gmmu_gp10b.h"
 
 /*
  * Direct allocs are allocs large enough to just pass straight on to the

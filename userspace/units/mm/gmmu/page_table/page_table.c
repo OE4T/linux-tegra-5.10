@@ -35,18 +35,18 @@
 #include <os/posix/os_posix.h>
 #include <nvgpu/posix/posix-fault-injection.h>
 
-#include <gk20a/mm_gk20a.h>
-#include <gm20b/mm_gm20b.h>
-#include <gp10b/mm_gp10b.h>
 #include <gv11b/mm_gv11b.h>
-#include <nvgpu/hw/gv11b/hw_gmmu_gv11b.h>
 
 #include <hal/mm/cache/flush_gk20a.h>
 #include <hal/mm/cache/flush_gv11b.h>
+#include <hal/mm/gmmu/gmmu_gp10b.h>
+#include <hal/mm/gmmu/gmmu_gv11b.h>
 #include <hal/fb/fb_gp10b.h>
 #include <hal/fb/fb_gm20b.h>
 #include <hal/fifo/ramin_gk20a.h>
 #include <hal/fifo/ramin_gp10b.h>
+
+#include <nvgpu/hw/gv11b/hw_gmmu_gv11b.h>
 
 #define TEST_PA_ADDRESS     0xEFAD80000000
 #define TEST_GPU_VA         0x102040600000

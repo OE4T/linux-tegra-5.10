@@ -28,11 +28,7 @@ struct gk20a_mmu_level;
 struct nvgpu_mem;
 struct vm_gk20a;
 
-u32 gp10b_mm_get_default_big_page_size(void);
-u32 gp10b_mm_get_iommu_bit(struct gk20a *g);
 int gp10b_init_bar2_vm(struct gk20a *g);
-const struct gk20a_mmu_level *gp10b_mm_get_mmu_levels(struct gk20a *g,
-	u32 big_page_size);
 void gp10b_remove_bar2_vm(struct gk20a *g);
 
 #endif

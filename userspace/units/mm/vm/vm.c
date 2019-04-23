@@ -35,9 +35,11 @@
 #include <gp10b/mm_gp10b.h>
 #include <hal/mm/cache/flush_gk20a.h>
 #include <hal/mm/cache/flush_gv11b.h>
+#include <hal/mm/gmmu/gmmu_gp10b.h>
+#include <hal/mm/gmmu/gmmu_gv11b.h>
 #include <hal/fb/fb_gp10b.h>
 #include <hal/fb/fb_gm20b.h>
-#include <gv11b/mm_gv11b.h>
+
 #include <nvgpu/hw/gv11b/hw_gmmu_gv11b.h>
 
 /* Random CPU physical address for the buffers we'll map */

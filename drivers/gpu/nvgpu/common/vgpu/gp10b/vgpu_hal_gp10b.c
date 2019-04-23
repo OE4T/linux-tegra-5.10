@@ -33,6 +33,8 @@
 
 #include "hal/bus/bus_gk20a.h"
 #include "hal/bus/bus_gm20b.h"
+#include "hal/mm/gmmu/gmmu_gm20b.h"
+#include "hal/mm/gmmu/gmmu_gp10b.h"
 #include "hal/regops/regops_gp10b.h"
 #include "hal/class/class_gp10b.h"
 #include "hal/fifo/engines_gm20b.h"

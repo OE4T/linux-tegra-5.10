@@ -43,6 +43,7 @@
 
 #include "hal/mm/cache/flush_gk20a.h"
 #include "hal/mm/gmmu/gmmu_gk20a.h"
+#include "hal/mm/gmmu/gmmu_gm20b.h"
 #include "hal/mc/mc_gm20b.h"
 #include "hal/bus/bus_gm20b.h"
 #include "hal/bus/bus_gk20a.h"
