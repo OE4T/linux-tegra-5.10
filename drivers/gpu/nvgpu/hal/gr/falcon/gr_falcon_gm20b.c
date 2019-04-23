@@ -32,7 +32,6 @@
 #include "common/gr/gr_priv.h"
 
 #include <nvgpu/hw/gm20b/hw_gr_gm20b.h>
-#include <nvgpu/hw/gm20b/hw_ram_gm20b.h>
 
 #define GR_FECS_POLL_INTERVAL	5U /* usec */
 
@@ -951,7 +950,8 @@ u32 gm20b_gr_falcon_get_fecs_current_ctx_data(struct gk20a *g,
 					struct nvgpu_mem *inst_block)
 {
 	u64 ptr = nvgpu_inst_block_addr(g, inst_block) >>
-		ram_in_base_shift_v();
+			g->ops.ramin.base_shift();
+
 	u32 aperture = nvgpu_aperture_mask(g, inst_block,
 				gr_fecs_current_ctx_target_sys_mem_ncoh_f(),
 				gr_fecs_current_ctx_target_sys_mem_coh_f(),
