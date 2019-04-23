@@ -28,6 +28,60 @@
 struct osi_core_ops *eqos_get_hw_core_ops(void);
 
 /**
+ *	eqos_config_fw_err_pkts - Configure forwarding of error packets
+ *	@addr: MAC base address.
+ *	@qinx: Q index
+ *	@fw_err: Enable or Disable the forwarding of error packets
+ *
+ *	Algorithm: When this bit is reset, the Rx queue drops packets with error
+ *	status (CRC error, GMII_ER, watchdog timeout, or overflow).
+ *	When this bit is set, all packets except the runt error packets
+ *	are forwarded to the application or DMA.
+ *
+ *	Dependencies: MAC has to be out of reset.
+ *
+ *	Protection: None.
+ *
+ *	Return: 0 - success, -1 - failure
+ */
+static int eqos_config_fw_err_pkts(void *addr, unsigned int qinx,
+				   unsigned int fw_err)
+{
+	unsigned int val;
+
+	/* Check for valid fw_err and qinx values */
+	if ((fw_err != OSI_ENABLE && fw_err != OSI_DISABLE) ||
+	    (qinx >= OSI_EQOS_MAX_NUM_CHANS)) {
+		return -1;
+	}
+
+	/* Read MTL RXQ Operation_Mode Register */
+	val = osi_readl((unsigned char *)addr + EQOS_MTL_CHX_RX_OP_MODE(qinx));
+
+	/* fw_err 1 is for enable and 0 is for disable */
+	if (fw_err == OSI_ENABLE) {
+		/* When fw_err bit is set, all packets except the runt error
+		 * packets are forwarded to the application or DMA.
+		 */
+		val |= EQOS_MTL_RXQ_OP_MODE_FEP;
+	} else if (fw_err == OSI_DISABLE) {
+		/* When this bit is reset, the Rx queue drops packets with error
+		 * status (CRC error, GMII_ER, watchdog timeout, or overflow)
+		 */
+		val &= ~EQOS_MTL_RXQ_OP_MODE_FEP;
+	} else {
+		/* Nothing here */
+	}
+
+	/* Write to FEP bit of MTL RXQ Operation Mode Register to enable or
+	 * disable the forwarding of error packets to DMA or application.
+	 */
+	osi_writel(val, (unsigned char *)addr + EQOS_MTL_CHX_RX_OP_MODE(qinx));
+
+	return 0;
+}
+
+/**
  *	eqos_config_mac_loopback - Configure MAC to support loopback
  *	@addr: MAC base address.
  *	@lb_mode: Enable or Disable MAC loopback mode
@@ -1063,6 +1117,7 @@ static struct osi_core_ops eqos_core_ops = {
 	.config_mac_loopback = eqos_config_mac_loopback,
 	.set_avb_algorithm = eqos_set_avb_algorithm,
 	.get_avb_algorithm = eqos_get_avb_algorithm,
+	.config_fw_err_pkts = eqos_config_fw_err_pkts,
 };
 
 struct osi_core_ops *eqos_get_hw_core_ops(void)
