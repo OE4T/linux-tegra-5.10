@@ -159,7 +159,7 @@ void gv11b_fb_fault_buf_set_state_hw(struct gk20a *g,
 	nvgpu_log_fn(g, " ");
 
 	reg_val = g->ops.fb.read_mmu_fault_buffer_size(g, index);
-	if (state == NVGPU_FB_MMU_FAULT_BUF_ENABLED) {
+	if (state == NVGPU_MMU_FAULT_BUF_ENABLED) {
 		if (gv11b_fb_is_fault_buf_enabled(g, index)) {
 			nvgpu_log_info(g, "fault buffer is already enabled");
 		} else {
@@ -208,7 +208,7 @@ void gv11b_fb_fault_buf_configure_hw(struct gk20a *g, u32 index)
 	nvgpu_log_fn(g, " ");
 
 	gv11b_fb_fault_buf_set_state_hw(g, index,
-					 NVGPU_FB_MMU_FAULT_BUF_DISABLED);
+					 NVGPU_MMU_FAULT_BUF_DISABLED);
 	addr_lo = u64_lo32(g->mm.hw_fault_buf[index].gpu_va >>
 					fb_mmu_fault_buffer_lo_addr_b());
 	addr_hi = u64_hi32(g->mm.hw_fault_buf[index].gpu_va);
@@ -221,7 +221,7 @@ void gv11b_fb_fault_buf_configure_hw(struct gk20a *g, u32 index)
 		fb_mmu_fault_buffer_size_val_f(g->ops.channel.count(g)) |
 		fb_mmu_fault_buffer_size_overflow_intr_enable_f());
 
-	gv11b_fb_fault_buf_set_state_hw(g, index, NVGPU_FB_MMU_FAULT_BUF_ENABLED);
+	gv11b_fb_fault_buf_set_state_hw(g, index, NVGPU_MMU_FAULT_BUF_ENABLED);
 }
 
 void gv11b_fb_write_mmu_fault_buffer_lo_hi(struct gk20a *g, u32 index,
@@ -441,7 +441,7 @@ void gv11b_fb_handle_replay_fault_overflow(struct gk20a *g,
 			 u32 fault_status)
 {
 	u32 reg_val;
-	u32 index = NVGPU_FB_MMU_FAULT_REPLAY_REG_INDEX;
+	u32 index = NVGPU_MMU_FAULT_REPLAY_REG_INDX;
 
 	reg_val = g->ops.fb.read_mmu_fault_buffer_get(g, index);
 
@@ -476,7 +476,7 @@ void gv11b_fb_handle_nonreplay_fault_overflow(struct gk20a *g,
 			 u32 fault_status)
 {
 	u32 reg_val;
-	u32 index = NVGPU_FB_MMU_FAULT_NONREPLAY_REG_INDEX;
+	u32 index = NVGPU_MMU_FAULT_NONREPLAY_REG_INDX;
 
 	reg_val = g->ops.fb.read_mmu_fault_buffer_get(g, index);
 
@@ -514,16 +514,17 @@ void gv11b_fb_handle_bar2_fault(struct gk20a *g,
 	if ((fault_status &
 	     fb_mmu_fault_status_non_replayable_error_m()) != 0U) {
 		if (gv11b_fb_is_fault_buf_enabled(g,
-				NVGPU_FB_MMU_FAULT_NONREPLAY_REG_INDEX)) {
-			gv11b_fb_fault_buf_configure_hw(g, NVGPU_FB_MMU_FAULT_NONREPLAY_REG_INDEX);
+				NVGPU_MMU_FAULT_NONREPLAY_REG_INDX)) {
+			gv11b_fb_fault_buf_configure_hw(g,
+				NVGPU_MMU_FAULT_NONREPLAY_REG_INDX);
 		}
 	}
 
 	if ((fault_status & fb_mmu_fault_status_replayable_error_m()) != 0U) {
 		if (gv11b_fb_is_fault_buf_enabled(g,
-				NVGPU_FB_MMU_FAULT_REPLAY_REG_INDEX)) {
+				NVGPU_MMU_FAULT_REPLAY_REG_INDX)) {
 			gv11b_fb_fault_buf_configure_hw(g,
-				NVGPU_FB_MMU_FAULT_REPLAY_REG_INDEX);
+				NVGPU_MMU_FAULT_REPLAY_REG_INDX);
 		}
 	}
 	g->ops.ce.mthd_buffer_fault_in_bar2_fault(g);
@@ -565,10 +566,10 @@ void gv11b_fb_handle_replayable_mmu_fault(struct gk20a *g)
 	}
 
 	if (gv11b_fb_is_fault_buf_enabled(g,
-			NVGPU_FB_MMU_FAULT_NONREPLAY_REG_INDEX)) {
+			NVGPU_MMU_FAULT_NONREPLAY_REG_INDX)) {
 		gv11b_gmmu_handle_mmu_nonreplay_replay_fault(g,
 				fault_status,
-				NVGPU_FB_MMU_FAULT_REPLAY_REG_INDEX);
+				NVGPU_MMU_FAULT_REPLAY_REG_INDX);
 	}
 }
 
@@ -586,14 +587,14 @@ void gv11b_fb_handle_mmu_fault(struct gk20a *g, u32 niso_intr)
 		gv11b_gmmu_handle_other_fault_notify(g, fault_status);
 	}
 
-	if (gv11b_fb_is_fault_buf_enabled(g, NVGPU_FB_MMU_FAULT_NONREPLAY_REG_INDEX)) {
+	if (gv11b_fb_is_fault_buf_enabled(g, NVGPU_MMU_FAULT_NONREPLAY_REG_INDX)) {
 
 		if ((niso_intr &
 		     fb_niso_intr_mmu_nonreplayable_fault_notify_m()) != 0U) {
 
 			gv11b_gmmu_handle_mmu_nonreplay_replay_fault(g,
 					fault_status,
-					NVGPU_FB_MMU_FAULT_NONREPLAY_REG_INDEX);
+					NVGPU_MMU_FAULT_NONREPLAY_REG_INDX);
 
 			/*
 			 * When all the faults are processed,
@@ -610,14 +611,14 @@ void gv11b_fb_handle_mmu_fault(struct gk20a *g, u32 niso_intr)
 
 	}
 
-	if (gv11b_fb_is_fault_buf_enabled(g, NVGPU_FB_MMU_FAULT_REPLAY_REG_INDEX)) {
+	if (gv11b_fb_is_fault_buf_enabled(g, NVGPU_MMU_FAULT_REPLAY_REG_INDX)) {
 
 		if ((niso_intr &
 		     fb_niso_intr_mmu_replayable_fault_notify_m()) != 0U) {
 
 			gv11b_gmmu_handle_mmu_nonreplay_replay_fault(g,
 					fault_status,
-					NVGPU_FB_MMU_FAULT_REPLAY_REG_INDEX);
+					NVGPU_MMU_FAULT_REPLAY_REG_INDX);
 		}
 		if ((niso_intr &
 		     fb_niso_intr_mmu_replayable_fault_overflow_m()) != 0U) {

@@ -295,11 +295,11 @@ static int test_page_faults_disable_hw(struct unit_module *m, struct gk20a *g,
 {
 	g->ops.mm.mmu_fault_disable_hw(g);
 	if (g->ops.fb.is_fault_buf_enabled(g,
-		NVGPU_FB_MMU_FAULT_NONREPLAY_REG_INDEX)) {
+		NVGPU_MMU_FAULT_NONREPLAY_REG_INDX)) {
 			unit_return_fail(m, "Non-replay buf still enabled\n");
 	}
 	if (g->ops.fb.is_fault_buf_enabled(g,
-		NVGPU_FB_MMU_FAULT_REPLAY_REG_INDEX)) {
+		NVGPU_MMU_FAULT_REPLAY_REG_INDX)) {
 			unit_return_fail(m, "Non-replay buf still enabled\n");
 	}
 

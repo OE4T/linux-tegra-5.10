@@ -67,17 +67,17 @@ void gv11b_mm_mmu_fault_disable_hw(struct gk20a *g)
 	nvgpu_mutex_acquire(&g->mm.hub_isr_mutex);
 
 	if ((g->ops.fb.is_fault_buf_enabled(g,
-			NVGPU_FB_MMU_FAULT_NONREPLAY_REG_INDEX))) {
+			NVGPU_MMU_FAULT_NONREPLAY_REG_INDX))) {
 		g->ops.fb.fault_buf_set_state_hw(g,
-				NVGPU_FB_MMU_FAULT_NONREPLAY_REG_INDEX,
-				NVGPU_FB_MMU_FAULT_BUF_DISABLED);
+				NVGPU_MMU_FAULT_NONREPLAY_REG_INDX,
+				NVGPU_MMU_FAULT_BUF_DISABLED);
 	}
 
 	if ((g->ops.fb.is_fault_buf_enabled(g,
-			NVGPU_FB_MMU_FAULT_REPLAY_REG_INDEX))) {
+			NVGPU_MMU_FAULT_REPLAY_REG_INDX))) {
 		g->ops.fb.fault_buf_set_state_hw(g,
-				NVGPU_FB_MMU_FAULT_REPLAY_REG_INDEX,
-				NVGPU_FB_MMU_FAULT_BUF_DISABLED);
+				NVGPU_MMU_FAULT_REPLAY_REG_INDX,
+				NVGPU_MMU_FAULT_BUF_DISABLED);
 	}
 
 	nvgpu_mutex_release(&g->mm.hub_isr_mutex);
@@ -92,13 +92,14 @@ void gv11b_mm_fault_info_mem_destroy(struct gk20a *g)
 	nvgpu_mutex_acquire(&g->mm.hub_isr_mutex);
 
 	if (nvgpu_mem_is_valid(
-		    &g->mm.hw_fault_buf[NVGPU_MM_MMU_FAULT_TYPE_OTHER_AND_NONREPLAY])) {
+		    &g->mm.hw_fault_buf[NVGPU_MMU_FAULT_NONREPLAY_INDX])) {
 		nvgpu_dma_unmap_free(vm,
-			 &g->mm.hw_fault_buf[NVGPU_MM_MMU_FAULT_TYPE_OTHER_AND_NONREPLAY]);
+			 &g->mm.hw_fault_buf[NVGPU_MMU_FAULT_NONREPLAY_INDX]);
 	}
-	if (nvgpu_mem_is_valid(&g->mm.hw_fault_buf[NVGPU_MM_MMU_FAULT_TYPE_REPLAY])) {
+	if (nvgpu_mem_is_valid(
+			&g->mm.hw_fault_buf[NVGPU_MMU_FAULT_REPLAY_INDX])) {
 		nvgpu_dma_unmap_free(vm,
-			 &g->mm.hw_fault_buf[NVGPU_MM_MMU_FAULT_TYPE_REPLAY]);
+			 &g->mm.hw_fault_buf[NVGPU_MMU_FAULT_REPLAY_INDX]);
 	}
 
 	nvgpu_mutex_release(&g->mm.hub_isr_mutex);
@@ -121,10 +122,10 @@ static void gv11b_mm_mmu_hw_fault_buf_init(struct gk20a *g)
 				 (size_t)gmmu_fault_buf_size_v();
 
 	if (!nvgpu_mem_is_valid(
-		&g->mm.hw_fault_buf[NVGPU_MM_MMU_FAULT_TYPE_OTHER_AND_NONREPLAY])) {
+		&g->mm.hw_fault_buf[NVGPU_MMU_FAULT_NONREPLAY_INDX])) {
 
 		err = nvgpu_dma_alloc_map_sys(vm, fb_size,
-			&g->mm.hw_fault_buf[NVGPU_MM_MMU_FAULT_TYPE_OTHER_AND_NONREPLAY]);
+			&g->mm.hw_fault_buf[NVGPU_MMU_FAULT_NONREPLAY_INDX]);
 		if (err != 0) {
 			nvgpu_err(g,
 			"Error in hw mmu fault buf [0] alloc in bar2 vm ");
@@ -134,9 +135,9 @@ static void gv11b_mm_mmu_hw_fault_buf_init(struct gk20a *g)
 	}
 
 	if (!nvgpu_mem_is_valid(
-		&g->mm.hw_fault_buf[NVGPU_MM_MMU_FAULT_TYPE_REPLAY])) {
+		&g->mm.hw_fault_buf[NVGPU_MMU_FAULT_REPLAY_INDX])) {
 		err = nvgpu_dma_alloc_map_sys(vm, fb_size,
-				&g->mm.hw_fault_buf[NVGPU_MM_MMU_FAULT_TYPE_REPLAY]);
+				&g->mm.hw_fault_buf[NVGPU_MMU_FAULT_REPLAY_INDX]);
 		if (err != 0) {
 			nvgpu_err(g,
 			"Error in hw mmu fault buf [1] alloc in bar2 vm ");
@@ -149,13 +150,14 @@ static void gv11b_mm_mmu_hw_fault_buf_init(struct gk20a *g)
 void gv11b_mm_mmu_fault_setup_hw(struct gk20a *g)
 {
 	if (nvgpu_mem_is_valid(
-			&g->mm.hw_fault_buf[NVGPU_MM_MMU_FAULT_TYPE_OTHER_AND_NONREPLAY])) {
+			&g->mm.hw_fault_buf[NVGPU_MMU_FAULT_NONREPLAY_INDX])) {
 		g->ops.fb.fault_buf_configure_hw(g,
-				NVGPU_FB_MMU_FAULT_NONREPLAY_REG_INDEX);
+				NVGPU_MMU_FAULT_NONREPLAY_REG_INDX);
 	}
-	if (nvgpu_mem_is_valid(&g->mm.hw_fault_buf[NVGPU_MM_MMU_FAULT_TYPE_REPLAY])) {
+	if (nvgpu_mem_is_valid(
+			&g->mm.hw_fault_buf[NVGPU_MMU_FAULT_REPLAY_INDX])) {
 		g->ops.fb.fault_buf_configure_hw(g,
-				NVGPU_FB_MMU_FAULT_REPLAY_REG_INDEX);
+				NVGPU_MMU_FAULT_REPLAY_REG_INDX);
 	}
 }
 

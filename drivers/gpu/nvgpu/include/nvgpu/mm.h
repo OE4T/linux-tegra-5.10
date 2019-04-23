@@ -32,43 +32,12 @@
 #include <nvgpu/allocator.h>
 #include <nvgpu/list.h>
 #include <nvgpu/sizes.h>
+#include <nvgpu/mmu_fault.h>
 
 struct gk20a;
 struct vm_gk20a;
 struct nvgpu_mem;
 struct nvgpu_pd_cache;
-
-#define	NVGPU_MM_MMU_FAULT_TYPE_OTHER_AND_NONREPLAY		0
-#define	NVGPU_MM_MMU_FAULT_TYPE_REPLAY				1
-
-#define FAULT_TYPE_NUM		2	/* replay and nonreplay faults */
-
-struct mmu_fault_info {
-	u64	inst_ptr;
-	u32	inst_aperture;
-	u64	fault_addr;
-	u32	fault_addr_aperture;
-	u32	timestamp_lo;
-	u32	timestamp_hi;
-	u32	mmu_engine_id;
-	u32	gpc_id;
-	u32	client_type;
-	u32	client_id;
-	u32	fault_type;
-	u32	access_type;
-	u32	protected_mode;
-	bool	replayable_fault;
-	u32	replay_fault_en;
-	bool	valid;
-	u32	faulted_pbdma;
-	u32	faulted_engine;
-	u32	faulted_subid;
-	u32	chid;
-	struct channel_gk20a *refch;
-	const char *client_type_desc;
-	const char *fault_type_desc;
-	const char *client_id_desc;
-};
 
 enum nvgpu_flush_op {
 	NVGPU_FLUSH_DEFAULT,
@@ -131,8 +100,8 @@ struct mm_gk20a {
 
 	struct nvgpu_mem bar2_desc;
 
-	struct nvgpu_mem hw_fault_buf[FAULT_TYPE_NUM];
-	struct mmu_fault_info fault_info[FAULT_TYPE_NUM];
+	struct nvgpu_mem hw_fault_buf[NVGPU_MMU_FAULT_TYPE_NUM];
+	struct mmu_fault_info fault_info[NVGPU_MMU_FAULT_TYPE_NUM];
 	struct nvgpu_mutex hub_isr_mutex;
 
 	/*

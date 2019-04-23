@@ -207,12 +207,6 @@ enum nvgpu_event_id_type {
  * in nvgpu/enabled.h
  */
 
-/* index for FB fault buffer functions */
-#define	NVGPU_FB_MMU_FAULT_NONREPLAY_REG_INDEX		0U
-#define	NVGPU_FB_MMU_FAULT_REPLAY_REG_INDEX		1U
-#define	NVGPU_FB_MMU_FAULT_BUF_DISABLED			0U
-#define	NVGPU_FB_MMU_FAULT_BUF_ENABLED			1U
-
 /* Parameters for init_elcg_mode/init_blcg_mode */
 enum {
 	ELCG_RUN,	/* clk always run, i.e. disable elcg */

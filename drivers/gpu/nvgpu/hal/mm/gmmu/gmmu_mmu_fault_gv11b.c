@@ -38,6 +38,7 @@
 #include <nvgpu/nvgpu_err.h>
 #include <nvgpu/ltc.h>
 #include <nvgpu/rc.h>
+#include <nvgpu/mmu_fault.h>
 
 #include <hal/fb/fb_mmu_fault_gv11b.h>
 #include <hal/mm/gmmu/gmmu_mmu_fault_gv11b.h>
@@ -441,7 +442,7 @@ void gv11b_gmmu_handle_mmu_nonreplay_replay_fault(struct gk20a *g,
 		return;
 	}
 	nvgpu_log(g, gpu_dbg_intr, "%s MMU FAULT",
-			index == NVGPU_FB_MMU_FAULT_REPLAY_REG_INDEX ?
+			index == NVGPU_MMU_FAULT_REPLAY_REG_INDX ?
 					"REPLAY" : "NON-REPLAY");
 
 	nvgpu_log(g, gpu_dbg_intr, "get ptr = %d", get_indx);
@@ -477,7 +478,7 @@ void gv11b_gmmu_handle_mmu_nonreplay_replay_fault(struct gk20a *g,
 		rd32_val = nvgpu_mem_rd32(g, mem,
 			 offset + gmmu_fault_buf_entry_valid_w());
 
-		if (index == NVGPU_FB_MMU_FAULT_REPLAY_REG_INDEX &&
+		if (index == NVGPU_MMU_FAULT_REPLAY_REG_INDX &&
 		    mmufault->fault_addr != 0ULL) {
 			/*
 			 * fault_addr "0" is not supposed to be fixed ever.
@@ -503,7 +504,7 @@ void gv11b_gmmu_handle_mmu_nonreplay_replay_fault(struct gk20a *g,
 				 &invalidate_replay_val);
 
 	}
-	if (index == NVGPU_FB_MMU_FAULT_REPLAY_REG_INDEX &&
+	if (index == NVGPU_MMU_FAULT_REPLAY_REG_INDX &&
 	    invalidate_replay_val != 0U) {
 		gv11b_fb_replay_or_cancel_faults(g, invalidate_replay_val);
 	}
@@ -515,7 +516,7 @@ void gv11b_gmmu_handle_other_fault_notify(struct gk20a *g,
 	struct mmu_fault_info *mmufault;
 	u32 invalidate_replay_val = 0U;
 
-	mmufault = &g->mm.fault_info[NVGPU_MM_MMU_FAULT_TYPE_OTHER_AND_NONREPLAY];
+	mmufault = &g->mm.fault_info[NVGPU_MMU_FAULT_NONREPLAY_INDX];
 
 	gv11b_mm_copy_from_fault_snap_reg(g, fault_status, mmufault);
 
