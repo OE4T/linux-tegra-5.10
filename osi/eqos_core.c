@@ -58,7 +58,7 @@ static int eqos_config_fw_err_pkts(void *addr, unsigned int qinx,
 	/* Read MTL RXQ Operation_Mode Register */
 	val = osi_readl((unsigned char *)addr + EQOS_MTL_CHX_RX_OP_MODE(qinx));
 
-	/* fw_err 1 is for enable and 0 is for disable */
+	/* fw_err, 1 is for enable and 0 is for disable */
 	if (fw_err == OSI_ENABLE) {
 		/* When fw_err bit is set, all packets except the runt error
 		 * packets are forwarded to the application or DMA.
@@ -77,6 +77,56 @@ static int eqos_config_fw_err_pkts(void *addr, unsigned int qinx,
 	 * disable the forwarding of error packets to DMA or application.
 	 */
 	osi_writel(val, (unsigned char *)addr + EQOS_MTL_CHX_RX_OP_MODE(qinx));
+
+	return 0;
+}
+
+/**
+ *	eqos_config_tx_status - Configure MAC to forward the tx pkt status
+ *	@addr: MAC base address.
+ *	@tx_status: Enable or Disable the forwarding of tx pkt status
+ *
+ *	Algorithm: When DTXSTS bit is reset, the Tx packet status received
+ *	from the MAC is forwarded to the application.
+ *	When DTXSTS bit is set, the Tx packet status received from the MAC
+ *	are dropped in MTL.
+ *
+ *	Dependencies: MAC has to be out of reset.
+ *
+ *	Protection: None.
+ *
+ *	Return: 0 - success, -1 - failure
+ */
+static int eqos_config_tx_status(void *addr, unsigned int tx_status)
+{
+	unsigned int val;
+
+	/* don't allow if tx_status is other than 0 or 1 */
+	if (tx_status != OSI_ENABLE && tx_status != OSI_DISABLE) {
+		return -1;
+	}
+
+	/* Read MTL Operation Mode Register */
+	val = osi_readl((unsigned char *)addr + EQOS_MTL_OP_MODE);
+
+	if (tx_status == OSI_ENABLE) {
+		/* When DTXSTS bit is reset, the Tx packet status received
+		 * from the MAC are forwarded to the application.
+		 */
+		val &= ~EQOS_MTL_OP_MODE_DTXSTS;
+	} else if (tx_status == OSI_DISABLE) {
+		/* When DTXSTS bit is set, the Tx packet status received from
+		 * the MAC are dropped in the MTL
+		 */
+		val |= EQOS_MTL_OP_MODE_DTXSTS;
+	} else {
+		/* Nothing here */
+	}
+
+	/* Write to DTXSTS bit of MTL Operation Mode Register to enable or
+	 * disable the Tx packet status
+	 */
+	osi_writel(val, (unsigned char *)addr + EQOS_MTL_OP_MODE);
 
 	return 0;
 }
@@ -1118,6 +1168,7 @@ static struct osi_core_ops eqos_core_ops = {
 	.set_avb_algorithm = eqos_set_avb_algorithm,
 	.get_avb_algorithm = eqos_get_avb_algorithm,
 	.config_fw_err_pkts = eqos_config_fw_err_pkts,
+	.config_tx_status = eqos_config_tx_status,
 };
 
 struct osi_core_ops *eqos_get_hw_core_ops(void)

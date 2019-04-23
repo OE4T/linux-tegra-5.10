@@ -110,6 +110,127 @@ int osi_process_rx_completions(struct osi_dma_priv_data *osi,
 }
 
 /**
+ *	get_tx_err_stats - Detect Errors from Tx Status
+ *	@tx_desc: Tx Descriptor.
+ *	@pkt_err_stats: Pakcet error stats which stores the errors reported
+ *
+ *	Algorimthm: This routine will be invoked by OSI layer itself which
+ *	checks for the Last Descriptor and updates the transmit status errors
+ *	accordingly.
+ *
+ *	Dependencies: None.
+ *
+ *	Protection: None.
+ *
+ *	Return: None.
+ */
+static inline void get_tx_err_stats(struct osi_tx_desc *tx_desc,
+				    struct osi_pkt_err_stats pkt_err_stats)
+{
+	/* IP Header Error */
+	if ((tx_desc->tdes3 & TDES3_IP_HEADER_ERR) == TDES3_IP_HEADER_ERR) {
+		if (pkt_err_stats.ip_header_error < ULONG_MAX) {
+			pkt_err_stats.ip_header_error++;
+		}
+	}
+
+	/* Jabber timeout Error */
+	if ((tx_desc->tdes3 & TDES3_JABBER_TIMEO_ERR) ==
+	    TDES3_JABBER_TIMEO_ERR) {
+		if (pkt_err_stats.jabber_timeout_error < ULONG_MAX) {
+			pkt_err_stats.jabber_timeout_error++;
+		}
+	}
+
+	/* Packet Flush Error */
+	if ((tx_desc->tdes3 & TDES3_PKT_FLUSH_ERR) == TDES3_PKT_FLUSH_ERR) {
+		if (pkt_err_stats.pkt_flush_error < ULONG_MAX) {
+			pkt_err_stats.pkt_flush_error++;
+		}
+	}
+
+	/* Payload Checksum Error */
+	if ((tx_desc->tdes3 & TDES3_PL_CHK_SUM_ERR) == TDES3_PL_CHK_SUM_ERR) {
+		if (pkt_err_stats.payload_cs_error < ULONG_MAX) {
+			pkt_err_stats.payload_cs_error++;
+		}
+	}
+
+	/* Loss of Carrier Error */
+	if ((tx_desc->tdes3 & TDES3_LOSS_CARRIER_ERR) ==
+	    TDES3_LOSS_CARRIER_ERR) {
+		if (pkt_err_stats.loss_of_carrier_error < ULONG_MAX) {
+			pkt_err_stats.loss_of_carrier_error++;
+		}
+	}
+
+	/* No Carrier Error */
+	if ((tx_desc->tdes3 & TDES3_NO_CARRIER_ERR) == TDES3_NO_CARRIER_ERR) {
+		if (pkt_err_stats.no_carrier_error < ULONG_MAX) {
+			pkt_err_stats.no_carrier_error++;
+		}
+	}
+
+	/* Late Collision Error */
+	if ((tx_desc->tdes3 & TDES3_LATE_COL_ERR) == TDES3_LATE_COL_ERR) {
+		if (pkt_err_stats.late_collision_error < ULONG_MAX) {
+			pkt_err_stats.late_collision_error++;
+		}
+	}
+
+	/* Execessive Collision Error */
+	if ((tx_desc->tdes3 & TDES3_EXCESSIVE_COL_ERR) ==
+	    TDES3_EXCESSIVE_COL_ERR) {
+		if (pkt_err_stats.excessive_collision_error < ULONG_MAX) {
+			pkt_err_stats.excessive_collision_error++;
+		}
+	}
+
+	/* Excessive Deferal Error */
+	if ((tx_desc->tdes3 & TDES3_EXCESSIVE_DEF_ERR) ==
+	    TDES3_EXCESSIVE_DEF_ERR) {
+		if (pkt_err_stats.excessive_deferal_error < ULONG_MAX) {
+			pkt_err_stats.excessive_deferal_error++;
+		}
+	}
+
+	/* Under Flow Error */
+	if ((tx_desc->tdes3 & TDES3_UNDER_FLOW_ERR) == TDES3_UNDER_FLOW_ERR) {
+		if (pkt_err_stats.underflow_error < ULONG_MAX) {
+			pkt_err_stats.underflow_error++;
+		}
+	}
+}
+
+/**
+ *	osi_clear_tx_pkt_err_stats - Clear tx packet error stats.
+ *	@osi: OSI dma private data structure.
+ *
+ *	Algorithm: This function will be invoked by OSD layer to clear the
+ *	tx packet error stats
+ *
+ *	Dependencies: None.
+ *
+ *	Protection: None
+ *
+ *	Return: None
+ */
+void osi_clear_tx_pkt_err_stats(struct osi_dma_priv_data *osi_dma)
+{
+	/* Reset tx packet errors */
+	osi_dma->pkt_err_stats.ip_header_error = 0U;
+	osi_dma->pkt_err_stats.jabber_timeout_error = 0U;
+	osi_dma->pkt_err_stats.pkt_flush_error = 0U;
+	osi_dma->pkt_err_stats.payload_cs_error = 0U;
+	osi_dma->pkt_err_stats.loss_of_carrier_error = 0U;
+	osi_dma->pkt_err_stats.no_carrier_error = 0U;
+	osi_dma->pkt_err_stats.late_collision_error = 0U;
+	osi_dma->pkt_err_stats.excessive_collision_error = 0U;
+	osi_dma->pkt_err_stats.excessive_deferal_error = 0U;
+	osi_dma->pkt_err_stats.underflow_error = 0U;
+}
+
+/**
  *	osi_process_tx_completions - Process Tx complete on DMA channel ring.
  *	@osi: OSI private data structure.
  *	@chan: Channel number on which Tx complete need to be done.
@@ -133,7 +254,7 @@ int osi_process_tx_completions(struct osi_dma_priv_data *osi,
 	struct osi_tx_swcx *tx_swcx = OSI_NULL;
 	struct osi_tx_desc *tx_desc = OSI_NULL;
 	unsigned int entry = tx_ring->clean_idx;
-	int processed = 0;
+	int processed = 0, pkt_valid = 1;
 
 	while (entry != tx_ring->cur_tx_idx) {
 		tx_desc = tx_ring->tx_desc + entry;
@@ -143,8 +264,18 @@ int osi_process_tx_completions(struct osi_dma_priv_data *osi,
 			break;
 		}
 
+		/* check for Last Descriptor */
+		if ((tx_desc->tdes3 & TDES3_LD) == TDES3_LD) {
+			if ((tx_desc->tdes3 & TDES3_ES_BITS) != 0U) {
+				pkt_valid = 0;
+				/* fill packet error stats */
+				get_tx_err_stats(tx_desc, osi->pkt_err_stats);
+			}
+		}
+
 		osd_transmit_complete(osi->osd, tx_swcx->buf_virt_addr,
-				      tx_swcx->buf_phy_addr, tx_swcx->len);
+				      tx_swcx->buf_phy_addr, tx_swcx->len,
+				      pkt_valid);
 
 		tx_desc->tdes3 = 0;
 		tx_desc->tdes2 = 0;

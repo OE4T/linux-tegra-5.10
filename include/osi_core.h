@@ -69,6 +69,7 @@ struct  osi_core_avb_algorithm {
  *	@set_avb_algorithm: Called to set av parameter.
  *	@get_avb_algorithm: Called to get av parameter,
  *	@config_fw_err_pkts: Called to configure MTL RxQ to forward the err pkt.
+ *	@config_tx_status: Called to configure the MTL to forward/drop tx status
  */
 struct osi_core_ops {
 	/* initialize MAC/MTL/DMA Common registers */
@@ -92,6 +93,7 @@ struct osi_core_ops {
 				 struct osi_core_avb_algorithm *avb);
 	int (*config_fw_err_pkts)(void *addr, unsigned int qinx,
 				  unsigned int fw_err);
+	int (*config_tx_status)(void *addr, unsigned int tx_status);
 };
 
 /**
@@ -430,6 +432,36 @@ static inline int osi_get_avb(struct osi_core_priv_data *osi_core,
 	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
 	    (osi_core->ops->get_avb_algorithm != OSI_NULL)) {
 		ret = osi_core->ops->get_avb_algorithm(osi_core, avb);
+	}
+
+	return ret;
+}
+
+/**
+ *	osi_configure_txstatus - Configure Tx packet status reporting
+ *	@osi_core: OSI private data structure.
+ *	@tx_status: Enable or disable tx packet status reporting
+ *
+ *	Algorithm: Configure MAC to enable/disable Tx status error
+ *	reporting.
+ *
+ *	Dependencies: MAC IP should be out of reset and need to be initialized
+ *	as per the requirements
+ *
+ *	Protection: None
+ *
+ *      Return: 0 - success, -1 - failure.
+ */
+static inline int osi_configure_txstatus(struct osi_core_priv_data *osi_core,
+					 unsigned int tx_status)
+{
+	int ret = -1;
+
+	/* Configure Drop Transmit Status */
+	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
+	    (osi_core->ops->config_tx_status != OSI_NULL)) {
+		ret = osi_core->ops->config_tx_status(osi_core->base,
+						      tx_status);
 	}
 
 	return ret;
