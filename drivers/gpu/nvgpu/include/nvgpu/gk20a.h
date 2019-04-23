@@ -282,8 +282,6 @@ struct gpu_ops {
 	} ce;
 	struct {
 		void (*access_smpc_reg)(struct gk20a *g, u32 quad, u32 offset);
-		int (*handle_sw_method)(struct gk20a *g, u32 addr,
-					 u32 class_num, u32 offset, u32 data);
 		void (*set_alpha_circular_buffer_size)(struct gk20a *g,
 							u32 data);
 		void (*set_circular_buffer_size)(struct gk20a *g, u32 data);
@@ -800,6 +798,8 @@ struct gpu_ops {
 		} init;
 
 		struct {
+			int (*handle_sw_method)(struct gk20a *g, u32 addr,
+					 u32 class_num, u32 offset, u32 data);
 			void (*set_shader_exceptions)(struct gk20a *g,
 						      u32 data);
 			void (*handle_class_error)(struct gk20a *g, u32 chid,

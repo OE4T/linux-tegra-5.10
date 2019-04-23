@@ -33,17 +33,6 @@ struct nvgpu_gr_ctx;
 struct nvgpu_preemption_modes_rec;
 struct gk20a_debug_output;
 
-#define NVC097_SET_GO_IDLE_TIMEOUT		0x022cU
-#define NVC097_SET_ALPHA_CIRCULAR_BUFFER_SIZE	0x02dcU
-#define NVC097_SET_COALESCE_BUFFER_SIZE		0x1028U
-#define NVC097_SET_RD_COALESCE			0x102cU
-#define NVC097_SET_CIRCULAR_BUFFER_SIZE		0x1280U
-#define NVC097_SET_SHADER_EXCEPTIONS		0x1528U
-#define NVC097_SET_BES_CROP_DEBUG3		0x10c4U
-#define NVC097_SET_BES_CROP_DEBUG4		0x10b0U
-#define NVC0C0_SET_SHADER_EXCEPTIONS		0x1528U
-#define NVC0C0_SET_RD_COALESCE			0x0228U
-
 #define NVC097_BES_CROP_DEBUG4_CLAMP_FP_BLEND_TO_INF	0x0U
 #define NVC097_BES_CROP_DEBUG4_CLAMP_FP_BLEND_TO_MAXVAL 0x1U
 
@@ -63,8 +52,6 @@ int gr_gp10b_commit_global_cb_manager(struct gk20a *g,
 			struct nvgpu_gr_ctx *gr_ctx, bool patch);
 void gr_gp10b_set_bes_crop_debug3(struct gk20a *g, u32 data);
 void gr_gp10b_set_bes_crop_debug4(struct gk20a *g, u32 data);
-int gr_gp10b_handle_sw_method(struct gk20a *g, u32 addr,
-				     u32 class_num, u32 offset, u32 data);
 void gr_gp10b_set_alpha_circular_buffer_size(struct gk20a *g, u32 data);
 void gr_gp10b_set_circular_buffer_size(struct gk20a *g, u32 data);
 int gr_gp10b_dump_gr_status_regs(struct gk20a *g,

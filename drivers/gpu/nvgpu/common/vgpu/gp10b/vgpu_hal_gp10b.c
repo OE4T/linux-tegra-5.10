@@ -123,7 +123,6 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 		.get_num_pce = vgpu_ce_get_num_pce,
 	},
 	.gr = {
-		.handle_sw_method = NULL,
 		.set_alpha_circular_buffer_size = NULL,
 		.set_circular_buffer_size = NULL,
 		.get_sm_dsm_perf_regs = gr_gm20b_get_sm_dsm_perf_regs,

@@ -351,7 +351,6 @@ static const struct gpu_ops gv11b_ops = {
 				gv11b_ce_mthd_buffer_fault_in_bar2_fault,
 	},
 	.gr = {
-		.handle_sw_method = gr_gv11b_handle_sw_method,
 		.set_alpha_circular_buffer_size =
 			gr_gv11b_set_alpha_circular_buffer_size,
 		.set_circular_buffer_size = gr_gv11b_set_circular_buffer_size,
@@ -673,8 +672,9 @@ static const struct gpu_ops gv11b_ops = {
 				gp10b_gr_init_get_default_preemption_modes,
 		},
 		.intr = {
+			.handle_sw_method = gv11b_gr_intr_handle_sw_method,
 			.set_shader_exceptions =
-					gm20b_gr_intr_set_shader_exceptions,
+					gv11b_gr_intr_set_shader_exceptions,
 			.handle_class_error =
 					gm20b_gr_intr_handle_class_error,
 			.clear_pending_interrupts =

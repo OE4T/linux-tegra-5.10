@@ -22,12 +22,109 @@
 
 #include <nvgpu/gk20a.h>
 #include <nvgpu/io.h>
+#include <nvgpu/class.h>
 
 #include <nvgpu/gr/config.h>
 
+#include "gr_intr_gp10b.h"
+#include "gr_intr_gv11b.h"
 #include "gr_intr_tu104.h"
 
 #include <nvgpu/hw/tu104/hw_gr_tu104.h>
+
+static void gr_tu104_set_sm_disp_ctrl(struct gk20a *g, u32 data)
+{
+	u32 reg_val;
+
+	nvgpu_log_fn(g, " ");
+
+	reg_val = nvgpu_readl(g, gr_gpcs_tpcs_sm_disp_ctrl_r());
+
+	if ((data & NVC5C0_SET_SM_DISP_CTRL_COMPUTE_SHADER_QUAD_MASK)
+	       == NVC5C0_SET_SM_DISP_CTRL_COMPUTE_SHADER_QUAD_DISABLE) {
+		reg_val = set_field(reg_val,
+		     gr_gpcs_tpcs_sm_disp_ctrl_compute_shader_quad_m(),
+		     gr_gpcs_tpcs_sm_disp_ctrl_compute_shader_quad_disable_f()
+		     );
+	} else if ((data & NVC5C0_SET_SM_DISP_CTRL_COMPUTE_SHADER_QUAD_MASK)
+		== NVC5C0_SET_SM_DISP_CTRL_COMPUTE_SHADER_QUAD_ENABLE) {
+		reg_val = set_field(reg_val,
+		     gr_gpcs_tpcs_sm_disp_ctrl_compute_shader_quad_m(),
+		     gr_gpcs_tpcs_sm_disp_ctrl_compute_shader_quad_enable_f()
+		     );
+	}
+
+	nvgpu_writel(g, gr_gpcs_tpcs_sm_disp_ctrl_r(), reg_val);
+}
+
+int tu104_gr_intr_handle_sw_method(struct gk20a *g, u32 addr,
+			      u32 class_num, u32 offset, u32 data)
+{
+	nvgpu_log_fn(g, " ");
+
+	if (class_num == TURING_COMPUTE_A) {
+		switch (offset << 2) {
+		case NVC5C0_SET_SHADER_EXCEPTIONS:
+			g->ops.gr.intr.set_shader_exceptions(g, data);
+			break;
+		case NVC5C0_SET_SKEDCHECK:
+			gv11b_gr_intr_set_skedcheck(g, data);
+			break;
+		case NVC5C0_SET_SM_DISP_CTRL:
+			gr_tu104_set_sm_disp_ctrl(g, data);
+			break;
+		case NVC5C0_SET_SHADER_CUT_COLLECTOR:
+			gv11b_gr_intr_set_shader_cut_collector(g, data);
+			break;
+		default:
+			goto fail;
+		}
+	}
+
+	if (class_num == TURING_A) {
+		switch (offset << 2) {
+		case NVC597_SET_SHADER_EXCEPTIONS:
+			g->ops.gr.intr.set_shader_exceptions(g, data);
+			break;
+		case NVC597_SET_CIRCULAR_BUFFER_SIZE:
+			g->ops.gr.set_circular_buffer_size(g, data);
+			break;
+		case NVC597_SET_ALPHA_CIRCULAR_BUFFER_SIZE:
+			g->ops.gr.set_alpha_circular_buffer_size(g, data);
+			break;
+		case NVC597_SET_GO_IDLE_TIMEOUT:
+			gp10b_gr_intr_set_go_idle_timeout(g, data);
+			break;
+		case NVC097_SET_COALESCE_BUFFER_SIZE:
+			gp10b_gr_intr_set_coalesce_buffer_size(g, data);
+			break;
+		case NVC597_SET_TEX_IN_DBG:
+			gv11b_gr_intr_set_tex_in_dbg(g, data);
+			break;
+		case NVC597_SET_SKEDCHECK:
+			gv11b_gr_intr_set_skedcheck(g, data);
+			break;
+		case NVC597_SET_BES_CROP_DEBUG3:
+			g->ops.gr.set_bes_crop_debug3(g, data);
+			break;
+		case NVC597_SET_BES_CROP_DEBUG4:
+			g->ops.gr.set_bes_crop_debug4(g, data);
+			break;
+		case NVC597_SET_SM_DISP_CTRL:
+			gr_tu104_set_sm_disp_ctrl(g, data);
+			break;
+		case NVC597_SET_SHADER_CUT_COLLECTOR:
+			gv11b_gr_intr_set_shader_cut_collector(g, data);
+			break;
+		default:
+			goto fail;
+		}
+	}
+	return 0;
+
+fail:
+	return -EINVAL;
+}
 
 void tu104_gr_intr_enable_gpc_exceptions(struct gk20a *g,
 					 struct nvgpu_gr_config *gr_config)

@@ -28,20 +28,9 @@
 struct gk20a;
 struct nvgpu_warpstate;
 
-#define NVB197_SET_ALPHA_CIRCULAR_BUFFER_SIZE	0x02dc
-#define NVB197_SET_CIRCULAR_BUFFER_SIZE		0x1280
-#define NVB197_SET_SHADER_EXCEPTIONS		0x1528
-#define NVB197_SET_RD_COALESCE			0x102c
-#define NVB1C0_SET_SHADER_EXCEPTIONS		0x1528
-#define NVB1C0_SET_RD_COALESCE			0x0228
-
-#define NVA297_SET_SHADER_EXCEPTIONS_ENABLE_FALSE	U32(0)
-
 int gm20b_gr_tpc_disable_override(struct gk20a *g, u32 mask);
 int gr_gm20b_commit_global_cb_manager(struct gk20a *g,
 			struct nvgpu_gr_ctx *gr_ctx, bool patch);
-int gr_gm20b_handle_sw_method(struct gk20a *g, u32 addr,
-					  u32 class_num, u32 offset, u32 data);
 void gr_gm20b_set_alpha_circular_buffer_size(struct gk20a *g, u32 data);
 void gr_gm20b_set_circular_buffer_size(struct gk20a *g, u32 data);
 void gr_gm20b_set_hww_esr_report_mask(struct gk20a *g);

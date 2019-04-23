@@ -31,6 +31,17 @@ struct nvgpu_gr_tpc_exception;
 struct nvgpu_gr_isr_data;
 struct nvgpu_gr_intr_info;
 
+#define NVB197_SET_ALPHA_CIRCULAR_BUFFER_SIZE	0x02dc
+#define NVB197_SET_CIRCULAR_BUFFER_SIZE		0x1280
+#define NVB197_SET_SHADER_EXCEPTIONS		0x1528
+#define NVB197_SET_RD_COALESCE			0x102c
+#define NVB1C0_SET_SHADER_EXCEPTIONS		0x1528
+#define NVB1C0_SET_RD_COALESCE			0x0228
+
+#define NVA297_SET_SHADER_EXCEPTIONS_ENABLE_FALSE	U32(0)
+
+int gm20b_gr_intr_handle_sw_method(struct gk20a *g, u32 addr,
+				  u32 class_num, u32 offset, u32 data);
 void gm20b_gr_intr_set_shader_exceptions(struct gk20a *g, u32 data);
 void gm20b_gr_intr_handle_class_error(struct gk20a *g, u32 chid,
 				       struct nvgpu_gr_isr_data *isr_data);

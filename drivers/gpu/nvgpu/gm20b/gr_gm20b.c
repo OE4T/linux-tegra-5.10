@@ -24,7 +24,6 @@
 
 #include <nvgpu/kmem.h>
 #include <nvgpu/log.h>
-#include <nvgpu/class.h>
 #include <nvgpu/enabled.h>
 #include <nvgpu/debug.h>
 #include <nvgpu/fuse.h>
@@ -47,48 +46,6 @@
 #include <nvgpu/hw/gm20b/hw_gr_gm20b.h>
 #include <nvgpu/hw/gm20b/hw_fifo_gm20b.h>
 #include <nvgpu/hw/gm20b/hw_perf_gm20b.h>
-
-int gr_gm20b_handle_sw_method(struct gk20a *g, u32 addr,
-					  u32 class_num, u32 offset, u32 data)
-{
-	nvgpu_log_fn(g, " ");
-
-	if (class_num == MAXWELL_COMPUTE_B) {
-		switch (offset << 2) {
-		case NVB1C0_SET_SHADER_EXCEPTIONS:
-			g->ops.gr.intr.set_shader_exceptions(g, data);
-			break;
-		case NVB1C0_SET_RD_COALESCE:
-			g->ops.gr.init.lg_coalesce(g, data);
-			break;
-		default:
-			goto fail;
-		}
-	}
-
-	if (class_num == MAXWELL_B) {
-		switch (offset << 2) {
-		case NVB197_SET_SHADER_EXCEPTIONS:
-			g->ops.gr.intr.set_shader_exceptions(g, data);
-			break;
-		case NVB197_SET_CIRCULAR_BUFFER_SIZE:
-			g->ops.gr.set_circular_buffer_size(g, data);
-			break;
-		case NVB197_SET_ALPHA_CIRCULAR_BUFFER_SIZE:
-			g->ops.gr.set_alpha_circular_buffer_size(g, data);
-			break;
-		case NVB197_SET_RD_COALESCE:
-			g->ops.gr.init.lg_coalesce(g, data);
-			break;
-		default:
-			goto fail;
-		}
-	}
-	return 0;
-
-fail:
-	return -EINVAL;
-}
 
 void gr_gm20b_set_alpha_circular_buffer_size(struct gk20a *g, u32 data)
 {

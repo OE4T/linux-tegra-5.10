@@ -39,33 +39,6 @@ struct gr_ctx_desc;
 struct nvgpu_gr_isr_data;
 struct gk20a_debug_output;
 
-#define NVC397_SET_SHADER_EXCEPTIONS		0x1528U
-#define NVC397_SET_CIRCULAR_BUFFER_SIZE 	0x1280U
-#define NVC397_SET_ALPHA_CIRCULAR_BUFFER_SIZE 	0x02dcU
-#define NVC397_SET_GO_IDLE_TIMEOUT 		0x022cU
-#define NVC397_SET_TEX_IN_DBG			0x10bcU
-#define NVC397_SET_SKEDCHECK			0x10c0U
-#define NVC397_SET_BES_CROP_DEBUG3		0x10c4U
-#define NVC397_SET_BES_CROP_DEBUG4		0x10b0U
-#define NVC397_SET_SHADER_CUT_COLLECTOR		0x10c8U
-
-#define NVC397_SET_TEX_IN_DBG_TSL1_RVCH_INVALIDATE		BIT32(0)
-#define NVC397_SET_TEX_IN_DBG_SM_L1TAG_CTRL_CACHE_SURFACE_LD	BIT32(1)
-#define NVC397_SET_TEX_IN_DBG_SM_L1TAG_CTRL_CACHE_SURFACE_ST	BIT32(2)
-
-#define NVC397_SET_SKEDCHECK_18_MASK				0x3U
-#define NVC397_SET_SKEDCHECK_18_DEFAULT				0x0U
-#define NVC397_SET_SKEDCHECK_18_DISABLE				0x1U
-#define NVC397_SET_SKEDCHECK_18_ENABLE				0x2U
-
-#define NVC397_SET_SHADER_CUT_COLLECTOR_STATE_DISABLE		0x0U
-#define NVC397_SET_SHADER_CUT_COLLECTOR_STATE_ENABLE		0x1U
-
-#define NVC3C0_SET_SKEDCHECK			0x23cU
-#define NVC3C0_SET_SHADER_CUT_COLLECTOR		0x250U
-
-#define NVA297_SET_SHADER_EXCEPTIONS_ENABLE_FALSE	U32(0)
-
 void gr_gv11b_create_sysfs(struct gk20a *g);
 void gr_gv11b_remove_sysfs(struct gk20a *g);
 u32 gr_gv11b_ctxsw_checksum_mismatch_mailbox_val(void);
@@ -75,8 +48,6 @@ int gr_gv11b_handle_tpc_sm_ecc_exception(struct gk20a *g,
 		bool *post_event, struct channel_gk20a *fault_ch,
 		u32 *hww_global_esr);
 void gr_gv11b_enable_gpc_exceptions(struct gk20a *g);
-int gr_gv11b_handle_sw_method(struct gk20a *g, u32 addr,
-				     u32 class_num, u32 offset, u32 data);
 void gr_gv11b_set_alpha_circular_buffer_size(struct gk20a *g, u32 data);
 void gr_gv11b_set_circular_buffer_size(struct gk20a *g, u32 data);
 int gr_gv11b_dump_gr_status_regs(struct gk20a *g,
@@ -165,12 +136,5 @@ int gr_gv11b_create_priv_addr_table(struct gk20a *g,
 	u32 *priv_addr_table,
 	u32 *num_registers);
 void gr_gv11b_powergate_tpc(struct gk20a *g);
-
-void gr_gv11b_set_shader_cut_collector(struct gk20a *g, u32 data);
-void gv11b_gr_set_shader_exceptions(struct gk20a *g, u32 data);
-void gr_gv11b_set_skedcheck(struct gk20a *g, u32 data);
-void gr_gv11b_set_go_idle_timeout(struct gk20a *g, u32 data);
-void gr_gv11b_set_coalesce_buffer_size(struct gk20a *g, u32 data);
-void gr_gv11b_set_tex_in_dbg(struct gk20a *g, u32 data);
 bool gv11b_gr_esr_bpt_pending_events(u32 global_esr, u32 bpt_event);
 #endif /* NVGPU_GR_GV11B_H */

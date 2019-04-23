@@ -22,6 +22,7 @@
 
 #include <nvgpu/gk20a.h>
 #include <nvgpu/io.h>
+#include <nvgpu/class.h>
 
 #include <nvgpu/gr/config.h>
 #include <nvgpu/gr/gr.h>
@@ -32,6 +33,48 @@
 #include <nvgpu/hw/gm20b/hw_gr_gm20b.h>
 
 #define NVA297_SET_SHADER_EXCEPTIONS_ENABLE_FALSE	U32(0)
+
+int gm20b_gr_intr_handle_sw_method(struct gk20a *g, u32 addr,
+					  u32 class_num, u32 offset, u32 data)
+{
+	nvgpu_log_fn(g, " ");
+
+	if (class_num == MAXWELL_COMPUTE_B) {
+		switch (offset << 2) {
+		case NVB1C0_SET_SHADER_EXCEPTIONS:
+			g->ops.gr.intr.set_shader_exceptions(g, data);
+			break;
+		case NVB1C0_SET_RD_COALESCE:
+			g->ops.gr.init.lg_coalesce(g, data);
+			break;
+		default:
+			goto fail;
+		}
+	}
+
+	if (class_num == MAXWELL_B) {
+		switch (offset << 2) {
+		case NVB197_SET_SHADER_EXCEPTIONS:
+			g->ops.gr.intr.set_shader_exceptions(g, data);
+			break;
+		case NVB197_SET_CIRCULAR_BUFFER_SIZE:
+			g->ops.gr.set_circular_buffer_size(g, data);
+			break;
+		case NVB197_SET_ALPHA_CIRCULAR_BUFFER_SIZE:
+			g->ops.gr.set_alpha_circular_buffer_size(g, data);
+			break;
+		case NVB197_SET_RD_COALESCE:
+			g->ops.gr.init.lg_coalesce(g, data);
+			break;
+		default:
+			goto fail;
+		}
+	}
+	return 0;
+
+fail:
+	return -EINVAL;
+}
 
 void gm20b_gr_intr_set_shader_exceptions(struct gk20a *g, u32 data)
 {

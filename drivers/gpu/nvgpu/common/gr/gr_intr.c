@@ -124,7 +124,7 @@ static void gr_intr_post_bpt_events(struct gk20a *g, struct tsg_gk20a *tsg,
 static int gr_intr_handle_illegal_method(struct gk20a *g,
 					  struct nvgpu_gr_isr_data *isr_data)
 {
-	int ret = g->ops.gr.handle_sw_method(g, isr_data->addr,
+	int ret = g->ops.gr.intr.handle_sw_method(g, isr_data->addr,
 			isr_data->class_num, isr_data->offset,
 			isr_data->data_lo);
 	if (ret != 0) {

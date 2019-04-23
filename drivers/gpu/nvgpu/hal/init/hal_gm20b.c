@@ -248,7 +248,6 @@ static const struct gpu_ops gm20b_ops = {
 		.isr_nonstall = gk20a_ce2_nonstall_isr,
 	},
 	.gr = {
-		.handle_sw_method = gr_gm20b_handle_sw_method,
 		.set_alpha_circular_buffer_size =
 			gr_gm20b_set_alpha_circular_buffer_size,
 		.set_circular_buffer_size = gr_gm20b_set_circular_buffer_size,
@@ -496,6 +495,7 @@ static const struct gpu_ops gm20b_ops = {
 				gm20b_gr_init_get_default_preemption_modes,
 		},
 		.intr = {
+			.handle_sw_method = gm20b_gr_intr_handle_sw_method,
 			.set_shader_exceptions =
 					gm20b_gr_intr_set_shader_exceptions,
 			.handle_class_error =

@@ -279,7 +279,6 @@ static const struct gpu_ops gp10b_ops = {
 		.isr_nonstall = gp10b_ce_nonstall_isr,
 	},
 	.gr = {
-		.handle_sw_method = gr_gp10b_handle_sw_method,
 		.set_alpha_circular_buffer_size =
 			gr_gp10b_set_alpha_circular_buffer_size,
 		.set_circular_buffer_size = gr_gp10b_set_circular_buffer_size,
@@ -561,6 +560,7 @@ static const struct gpu_ops gp10b_ops = {
 				gp10b_gr_init_get_default_preemption_modes,
 		},
 		.intr = {
+			.handle_sw_method = gp10b_gr_intr_handle_sw_method,
 			.set_shader_exceptions =
 					gm20b_gr_intr_set_shader_exceptions,
 			.handle_class_error =

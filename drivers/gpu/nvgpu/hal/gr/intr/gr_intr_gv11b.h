@@ -28,6 +28,39 @@
 struct gk20a;
 struct nvgpu_gr_config;
 
+#define NVC397_SET_SHADER_EXCEPTIONS		0x1528U
+#define NVC397_SET_CIRCULAR_BUFFER_SIZE 	0x1280U
+#define NVC397_SET_ALPHA_CIRCULAR_BUFFER_SIZE 	0x02dcU
+#define NVC397_SET_GO_IDLE_TIMEOUT 		0x022cU
+#define NVC397_SET_TEX_IN_DBG			0x10bcU
+#define NVC397_SET_SKEDCHECK			0x10c0U
+#define NVC397_SET_BES_CROP_DEBUG3		0x10c4U
+#define NVC397_SET_BES_CROP_DEBUG4		0x10b0U
+#define NVC397_SET_SHADER_CUT_COLLECTOR		0x10c8U
+
+#define NVC397_SET_TEX_IN_DBG_TSL1_RVCH_INVALIDATE		BIT32(0)
+#define NVC397_SET_TEX_IN_DBG_SM_L1TAG_CTRL_CACHE_SURFACE_LD	BIT32(1)
+#define NVC397_SET_TEX_IN_DBG_SM_L1TAG_CTRL_CACHE_SURFACE_ST	BIT32(2)
+
+#define NVC397_SET_SKEDCHECK_18_MASK				0x3U
+#define NVC397_SET_SKEDCHECK_18_DEFAULT				0x0U
+#define NVC397_SET_SKEDCHECK_18_DISABLE				0x1U
+#define NVC397_SET_SKEDCHECK_18_ENABLE				0x2U
+
+#define NVC397_SET_SHADER_CUT_COLLECTOR_STATE_DISABLE		0x0U
+#define NVC397_SET_SHADER_CUT_COLLECTOR_STATE_ENABLE		0x1U
+
+#define NVC3C0_SET_SKEDCHECK			0x23cU
+#define NVC3C0_SET_SHADER_CUT_COLLECTOR		0x250U
+
+#define NVA297_SET_SHADER_EXCEPTIONS_ENABLE_FALSE	U32(0)
+
+void gv11b_gr_intr_set_shader_cut_collector(struct gk20a *g, u32 data);
+void gv11b_gr_intr_set_skedcheck(struct gk20a *g, u32 data);
+void gv11b_gr_intr_set_tex_in_dbg(struct gk20a *g, u32 data);
+int gv11b_gr_intr_handle_sw_method(struct gk20a *g, u32 addr,
+				     u32 class_num, u32 offset, u32 data);
+void gv11b_gr_intr_set_shader_exceptions(struct gk20a *g, u32 data);
 void gv11b_gr_intr_handle_gcc_exception(struct gk20a *g, u32 gpc,
 			u32 tpc, u32 gpc_exception,
 			u32 *corrected_err, u32 *uncorrected_err);

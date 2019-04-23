@@ -23,7 +23,6 @@
  */
 
 #include <nvgpu/timers.h>
-#include <nvgpu/class.h>
 #include <nvgpu/kmem.h>
 #include <nvgpu/gmmu.h>
 #include <nvgpu/dma.h>
@@ -216,25 +215,6 @@ int gr_gp10b_handle_sm_exception(struct gk20a *g,
 	return ret;
 }
 
-static void gr_gp10b_set_go_idle_timeout(struct gk20a *g, u32 data)
-{
-	gk20a_writel(g, gr_fe_go_idle_timeout_r(), data);
-}
-
-static void gr_gp10b_set_coalesce_buffer_size(struct gk20a *g, u32 data)
-{
-	u32 val;
-
-	nvgpu_log_fn(g, " ");
-
-	val = gk20a_readl(g, gr_gpcs_tc_debug0_r());
-	val = set_field(val, gr_gpcs_tc_debug0_limit_coalesce_buffer_size_m(),
-			     gr_gpcs_tc_debug0_limit_coalesce_buffer_size_f(data));
-	gk20a_writel(g, gr_gpcs_tc_debug0_r(), val);
-
-	nvgpu_log_fn(g, "done");
-}
-
 void gr_gp10b_set_bes_crop_debug3(struct gk20a *g, u32 data)
 {
 	u32 val;
@@ -281,61 +261,6 @@ void gr_gp10b_set_bes_crop_debug4(struct gk20a *g, u32 data)
 		return;
 	}
 	gk20a_writel(g, gr_bes_crop_debug4_r(), val);
-}
-
-
-int gr_gp10b_handle_sw_method(struct gk20a *g, u32 addr,
-				     u32 class_num, u32 offset, u32 data)
-{
-	nvgpu_log_fn(g, " ");
-
-	if (class_num == PASCAL_COMPUTE_A) {
-		switch (offset << 2) {
-		case NVC0C0_SET_SHADER_EXCEPTIONS:
-			g->ops.gr.intr.set_shader_exceptions(g, data);
-			break;
-		case NVC0C0_SET_RD_COALESCE:
-			g->ops.gr.init.lg_coalesce(g, data);
-			break;
-		default:
-			goto fail;
-		}
-	}
-
-	if (class_num == PASCAL_A) {
-		switch (offset << 2) {
-		case NVC097_SET_SHADER_EXCEPTIONS:
-			g->ops.gr.intr.set_shader_exceptions(g, data);
-			break;
-		case NVC097_SET_CIRCULAR_BUFFER_SIZE:
-			g->ops.gr.set_circular_buffer_size(g, data);
-			break;
-		case NVC097_SET_ALPHA_CIRCULAR_BUFFER_SIZE:
-			g->ops.gr.set_alpha_circular_buffer_size(g, data);
-			break;
-		case NVC097_SET_GO_IDLE_TIMEOUT:
-			gr_gp10b_set_go_idle_timeout(g, data);
-			break;
-		case NVC097_SET_COALESCE_BUFFER_SIZE:
-			gr_gp10b_set_coalesce_buffer_size(g, data);
-			break;
-		case NVC097_SET_RD_COALESCE:
-			g->ops.gr.init.lg_coalesce(g, data);
-			break;
-		case NVC097_SET_BES_CROP_DEBUG3:
-			g->ops.gr.set_bes_crop_debug3(g, data);
-			break;
-		case NVC097_SET_BES_CROP_DEBUG4:
-			g->ops.gr.set_bes_crop_debug4(g, data);
-			break;
-		default:
-			goto fail;
-		}
-	}
-	return 0;
-
-fail:
-	return -EINVAL;
 }
 
 void gr_gp10b_set_alpha_circular_buffer_size(struct gk20a *g, u32 data)
