@@ -25,11 +25,11 @@
 
 #include <nvgpu/types.h>
 
-struct nvgpu_gr;
+struct gk20a;
 struct channel_gk20a;
 struct gk20a_cs_snapshot_client;
 
-void vgpu_css_release_snapshot_buffer(struct nvgpu_gr *gr);
+void vgpu_css_release_snapshot_buffer(struct gk20a *g);
 int vgpu_css_flush_snapshots(struct channel_gk20a *ch,
 			u32 *pending, bool *hw_overflow);
 int vgpu_css_detach(struct channel_gk20a *ch,

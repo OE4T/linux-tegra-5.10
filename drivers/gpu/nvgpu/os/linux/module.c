@@ -50,6 +50,7 @@
 #include <nvgpu/channel.h>
 #include <nvgpu/gr/gr.h>
 #include <nvgpu/pmu/pmu_pstate.h>
+#include <nvgpu/cyclestats_snapshot.h>
 
 #include "common/gr/gr_priv.h"
 #include "platform_gk20a.h"
@@ -778,6 +779,10 @@ void gk20a_remove_support(struct gk20a *g)
 		if (sim_linux->remove_support_linux)
 			sim_linux->remove_support_linux(g);
 	}
+
+#if defined(CONFIG_GK20A_CYCLE_STATS)
+	nvgpu_free_cyclestats_snapshot_data(g);
+#endif
 
 	nvgpu_remove_usermode_support(g);
 

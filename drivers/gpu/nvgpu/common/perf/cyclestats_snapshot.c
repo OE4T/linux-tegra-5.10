@@ -36,10 +36,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/channel.h>
 #include <nvgpu/unit.h>
-#include <nvgpu/gk20a.h>
 #include <nvgpu/cyclestats_snapshot.h>
-
-#include "common/gr/gr_priv.h"
 
 /* check client for pointed perfmon ownership */
 #define CONTAINS_PERFMON(cl, pm)				\
@@ -87,21 +84,21 @@ void nvgpu_css_set_handled_snapshots(struct gk20a *g, u32 done)
  * from locked context (protected by cs_lock)
  */
 
-static int css_gr_create_shared_data(struct nvgpu_gr *gr)
+static int css_gr_create_shared_data(struct gk20a *g)
 {
 	struct gk20a_cs_snapshot *data;
 
-	if (gr->cs_data) {
+	if (g->cs_data) {
 		return 0;
 	}
 
-	data = nvgpu_kzalloc(gr->g, sizeof(*data));
+	data = nvgpu_kzalloc(g, sizeof(*data));
 	if (!data) {
 		return -ENOMEM;
 	}
 
 	nvgpu_init_list_node(&data->clients);
-	gr->cs_data = data;
+	g->cs_data = data;
 
 	return 0;
 }
@@ -110,8 +107,7 @@ int nvgpu_css_enable_snapshot(struct channel_gk20a *ch,
 				struct gk20a_cs_snapshot_client *cs_client)
 {
 	struct gk20a *g = ch->g;
-	struct nvgpu_gr *gr = g->gr;
-	struct gk20a_cs_snapshot *data = gr->cs_data;
+	struct gk20a_cs_snapshot *data = g->cs_data;
 	u32 snapshot_size = cs_client->snapshot_size;
 	int ret;
 
@@ -163,10 +159,9 @@ failed_allocation:
 	return ret;
 }
 
-void nvgpu_css_disable_snapshot(struct nvgpu_gr *gr)
+void nvgpu_css_disable_snapshot(struct gk20a *g)
 {
-	struct gk20a *g = gr->g;
-	struct gk20a_cs_snapshot *data = gr->cs_data;
+	struct gk20a_cs_snapshot *data = g->cs_data;
 
 	if (!data->hw_snapshot) {
 		return;
@@ -182,17 +177,15 @@ void nvgpu_css_disable_snapshot(struct nvgpu_gr *gr)
 	nvgpu_log_info(g, "cyclestats: buffer for hardware snapshots disabled\n");
 }
 
-static void css_gr_free_shared_data(struct nvgpu_gr *gr)
+static void css_gr_free_shared_data(struct gk20a *g)
 {
-	struct gk20a *g = gr->g;
-
-	if (gr->cs_data) {
+	if (g->cs_data) {
 		/* the clients list is expected to be empty */
-		g->ops.css.disable_snapshot(gr);
+		g->ops.css.disable_snapshot(g);
 
 		/* release the objects */
-		nvgpu_kfree(gr->g, gr->cs_data);
-		gr->cs_data = NULL;
+		nvgpu_kfree(g, g->cs_data);
+		g->cs_data = NULL;
 	}
 }
 
@@ -215,8 +208,7 @@ nvgpu_css_gr_search_client(struct nvgpu_list_node *clients, u32 perfmon)
 static int css_gr_flush_snapshots(struct channel_gk20a *ch)
 {
 	struct gk20a *g = ch->g;
-	struct nvgpu_gr *gr = g->gr;
-	struct gk20a_cs_snapshot *css = gr->cs_data;
+	struct gk20a_cs_snapshot *css = g->cs_data;
 	struct gk20a_cs_snapshot_client *cur;
 	u32 pending, completed;
 	bool hw_overflow;
@@ -351,7 +343,7 @@ next_hw_fifo_entry:
 		(void) memset(css->hw_get, 0xff,
 				(css->hw_end - css->hw_get) * sizeof(*src));
 	}
-	gr->cs_data->hw_get = src;
+	g->cs_data->hw_get = src;
 
 	if (g->ops.css.set_handled_snapshots) {
 		g->ops.css.set_handled_snapshots(g, sid);
@@ -466,14 +458,13 @@ static int css_gr_create_client_data(struct gk20a *g,
 }
 
 
-int gr_gk20a_css_attach(struct channel_gk20a *ch,
+int nvgpu_css_attach(struct channel_gk20a *ch,
 			u32 perfmon_count,
 			u32 *perfmon_start,
 			struct gk20a_cs_snapshot_client *cs_client)
 {
 	int ret = 0;
 	struct gk20a *g = ch->g;
-	struct nvgpu_gr *gr;
 
 	/* we must have a placeholder to store pointer to client structure */
 	if (!cs_client) {
@@ -487,16 +478,14 @@ int gr_gk20a_css_attach(struct channel_gk20a *ch,
 
 	nvgpu_speculation_barrier();
 
-	gr = g->gr;
+	nvgpu_mutex_acquire(&g->cs_lock);
 
-	nvgpu_mutex_acquire(&gr->cs_lock);
-
-	ret = css_gr_create_shared_data(gr);
+	ret = css_gr_create_shared_data(g);
 	if (ret != 0) {
 		goto failed;
 	}
 
-	ret = css_gr_create_client_data(g, gr->cs_data,
+	ret = css_gr_create_client_data(g, g->cs_data,
 				     perfmon_count,
 				     cs_client);
 	if (ret != 0) {
@@ -512,22 +501,22 @@ int gr_gk20a_css_attach(struct channel_gk20a *ch,
 		*perfmon_start = cs_client->perfmon_start;
 	}
 
-	nvgpu_mutex_release(&gr->cs_lock);
+	nvgpu_mutex_release(&g->cs_lock);
 
 	return 0;
 
 failed:
-	if (gr->cs_data) {
+	if (g->cs_data) {
 		if (cs_client) {
-			css_gr_free_client_data(g, gr->cs_data, cs_client);
+			css_gr_free_client_data(g, g->cs_data, cs_client);
 			cs_client = NULL;
 		}
 
-		if (nvgpu_list_empty(&gr->cs_data->clients)) {
-			css_gr_free_shared_data(gr);
+		if (nvgpu_list_empty(&g->cs_data->clients)) {
+			css_gr_free_shared_data(g);
 		}
 	}
-	nvgpu_mutex_release(&gr->cs_lock);
+	nvgpu_mutex_release(&g->cs_lock);
 
 	if (perfmon_start) {
 		*perfmon_start = 0;
@@ -536,21 +525,19 @@ failed:
 	return ret;
 }
 
-int gr_gk20a_css_detach(struct channel_gk20a *ch,
+int nvgpu_css_detach(struct channel_gk20a *ch,
 				struct gk20a_cs_snapshot_client *cs_client)
 {
 	int ret = 0;
 	struct gk20a *g = ch->g;
-	struct nvgpu_gr *gr;
 
 	if (!cs_client) {
 		return -EINVAL;
 	}
 
-	gr = g->gr;
-	nvgpu_mutex_acquire(&gr->cs_lock);
-	if (gr->cs_data) {
-		struct gk20a_cs_snapshot *data = gr->cs_data;
+	nvgpu_mutex_acquire(&g->cs_lock);
+	if (g->cs_data) {
+		struct gk20a_cs_snapshot *data = g->cs_data;
 
 		if (g->ops.css.detach_snapshot) {
 			g->ops.css.detach_snapshot(ch, cs_client);
@@ -558,52 +545,47 @@ int gr_gk20a_css_detach(struct channel_gk20a *ch,
 
 		ret = css_gr_free_client_data(g, data, cs_client);
 		if (nvgpu_list_empty(&data->clients)) {
-			css_gr_free_shared_data(gr);
+			css_gr_free_shared_data(g);
 		}
 	} else {
 		ret = -EBADF;
 	}
-	nvgpu_mutex_release(&gr->cs_lock);
+	nvgpu_mutex_release(&g->cs_lock);
 
 	return ret;
 }
 
-int gr_gk20a_css_flush(struct channel_gk20a *ch,
+int nvgpu_css_flush(struct channel_gk20a *ch,
 				struct gk20a_cs_snapshot_client *cs_client)
 {
 	int ret = 0;
 	struct gk20a *g = ch->g;
-	struct nvgpu_gr *gr;
 
 	if (!cs_client) {
 		return -EINVAL;
 	}
 
-	gr = g->gr;
-	nvgpu_mutex_acquire(&gr->cs_lock);
+	nvgpu_mutex_acquire(&g->cs_lock);
 	ret = css_gr_flush_snapshots(ch);
-	nvgpu_mutex_release(&gr->cs_lock);
+	nvgpu_mutex_release(&g->cs_lock);
 
 	return ret;
 }
 
 /* helper function with locking to cleanup snapshot code code in gr_gk20a.c */
-void gr_gk20a_free_cyclestats_snapshot_data(struct gk20a *g)
+void nvgpu_free_cyclestats_snapshot_data(struct gk20a *g)
 {
-	struct nvgpu_gr *gr = g->gr;
-
-	nvgpu_mutex_acquire(&gr->cs_lock);
-	css_gr_free_shared_data(gr);
-	nvgpu_mutex_release(&gr->cs_lock);
-	nvgpu_mutex_destroy(&gr->cs_lock);
+	nvgpu_mutex_acquire(&g->cs_lock);
+	css_gr_free_shared_data(g);
+	nvgpu_mutex_release(&g->cs_lock);
+	nvgpu_mutex_destroy(&g->cs_lock);
 }
 
 int nvgpu_css_check_data_available(struct channel_gk20a *ch, u32 *pending,
 					bool *hw_overflow)
 {
 	struct gk20a *g = ch->g;
-	struct nvgpu_gr *gr = g->gr;
-	struct gk20a_cs_snapshot *css = gr->cs_data;
+	struct gk20a_cs_snapshot *css = g->cs_data;
 
 	if (!css->hw_snapshot) {
 		return -EINVAL;

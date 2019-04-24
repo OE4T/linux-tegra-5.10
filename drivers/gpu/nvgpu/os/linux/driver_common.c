@@ -66,6 +66,9 @@ static void nvgpu_init_vars(struct gk20a *g)
 	nvgpu_mutex_init(&g->tpc_pg_lock);
 	nvgpu_mutex_init(&g->clk_arb_enable_lock);
 	nvgpu_mutex_init(&g->cg_pg_lock);
+#if defined(CONFIG_GK20A_CYCLE_STATS)
+	nvgpu_mutex_init(&g->cs_lock);
+#endif
 
 	/* Init the clock req count to 0 */
 	nvgpu_atomic_set(&g->clk_arb_global_nr, 0);

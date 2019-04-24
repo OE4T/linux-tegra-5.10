@@ -175,7 +175,7 @@ int gk20a_flush_cycle_stats_snapshot(struct channel_gk20a *ch)
 
 	nvgpu_mutex_acquire(&ch->cs_client_mutex);
 	if (ch->cs_client)
-		ret = gr_gk20a_css_flush(ch, ch->cs_client);
+		ret = nvgpu_css_flush(ch, ch->cs_client);
 	else
 		ret = -EBADF;
 	nvgpu_mutex_release(&ch->cs_client_mutex);
@@ -229,7 +229,7 @@ int gk20a_attach_cycle_stats_snapshot(struct channel_gk20a *ch,
 
 	ch->cs_client = client;
 
-	ret = gr_gk20a_css_attach(ch,
+	ret = nvgpu_css_attach(ch,
 				perfmon_id_count,
 				perfmon_id_start,
 				ch->cs_client);
@@ -262,7 +262,7 @@ int gk20a_channel_free_cycle_stats_snapshot(struct channel_gk20a *ch)
 				struct gk20a_cs_snapshot_client_linux,
 				cs_client);
 
-	ret = gr_gk20a_css_detach(ch, ch->cs_client);
+	ret = nvgpu_css_detach(ch, ch->cs_client);
 
 	if (client_linux->dma_handler) {
 		if (ch->cs_client->snapshot)

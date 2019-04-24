@@ -1630,7 +1630,7 @@ struct gpu_ops {
 	struct {
 		int (*enable_snapshot)(struct channel_gk20a *ch,
 				struct gk20a_cs_snapshot_client *client);
-		void (*disable_snapshot)(struct nvgpu_gr *gr);
+		void (*disable_snapshot)(struct gk20a *g);
 		int (*check_data_available)(struct channel_gk20a *ch,
 						u32 *pending,
 						bool *hw_overflow);
@@ -2041,6 +2041,11 @@ struct gk20a {
 	/* must have dbg_sessions_lock before use */
 	struct nvgpu_dbg_reg_op *dbg_regops_tmp_buf;
 	u32 dbg_regops_tmp_buf_ops;
+
+#if defined(CONFIG_GK20A_CYCLE_STATS)
+	struct nvgpu_mutex		cs_lock;
+	struct gk20a_cs_snapshot	*cs_data;
+#endif
 
 	/* For perfbuf mapping */
 	struct {

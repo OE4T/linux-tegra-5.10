@@ -32,6 +32,7 @@
 #include <nvgpu/string.h>
 #include <nvgpu/ltc.h>
 #include <nvgpu/cbc.h>
+#include <nvgpu/cyclestats_snapshot.h>
 
 #include "init_vgpu.h"
 #include "init_hal_vgpu.h"
@@ -80,6 +81,10 @@ void vgpu_remove_support_common(struct gk20a *g)
 	if (g->mm.remove_support) {
 		g->mm.remove_support(&g->mm);
 	}
+
+#if defined(CONFIG_GK20A_CYCLE_STATS)
+	nvgpu_free_cyclestats_snapshot_data(g);
+#endif
 
 	msg.event = TEGRA_VGPU_EVENT_ABORT;
 	err = vgpu_ivc_send(vgpu_ivc_get_peer_self(), TEGRA_VGPU_QUEUE_INTR,

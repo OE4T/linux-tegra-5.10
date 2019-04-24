@@ -711,10 +711,6 @@ static int vgpu_gr_init_gr_setup_sw(struct gk20a *g)
 
 	gr->g = g;
 
-#if defined(CONFIG_GK20A_CYCLE_STATS)
-	nvgpu_mutex_init(&g->gr->cs_lock);
-#endif
-
 	if (gr->falcon == NULL) {
 		gr->falcon = nvgpu_gr_falcon_init_support(g);
 		if (gr->falcon == NULL) {

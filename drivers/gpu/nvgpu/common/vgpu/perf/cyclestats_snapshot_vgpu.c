@@ -32,7 +32,6 @@
 
 #include "cyclestats_snapshot_vgpu.h"
 #include "common/vgpu/ivc/comm_vgpu.h"
-#include "common/gr/gr_priv.h"
 
 static struct tegra_hv_ivm_cookie *css_cookie;
 
@@ -81,10 +80,9 @@ u32 vgpu_css_get_buffer_size(struct gk20a *g)
 	return size;
 }
 
-static int vgpu_css_init_snapshot_buffer(struct nvgpu_gr *gr)
+static int vgpu_css_init_snapshot_buffer(struct gk20a *g)
 {
-	struct gk20a *g = gr->g;
-	struct gk20a_cs_snapshot *data = gr->cs_data;
+	struct gk20a_cs_snapshot *data = g->cs_data;
 	void *buf = NULL;
 	int err;
 	u64 size;
@@ -127,10 +125,9 @@ fail:
 	return err;
 }
 
-void vgpu_css_release_snapshot_buffer(struct nvgpu_gr *gr)
+void vgpu_css_release_snapshot_buffer(struct gk20a *g)
 {
-	struct gk20a_cs_snapshot *data = gr->cs_data;
-	struct gk20a *g = gr->g;
+	struct gk20a_cs_snapshot *data = g->cs_data;
 
 	if (!data->hw_snapshot) {
 		return;
@@ -151,8 +148,7 @@ int vgpu_css_flush_snapshots(struct channel_gk20a *ch,
 	struct gk20a *g = ch->g;
 	struct tegra_vgpu_cmd_msg msg = {};
 	struct tegra_vgpu_channel_cyclestats_snapshot_params *p;
-	struct nvgpu_gr *gr = g->gr;
-	struct gk20a_cs_snapshot *data = gr->cs_data;
+	struct gk20a_cs_snapshot *data = g->cs_data;
 	int err;
 
 	nvgpu_log_fn(g, " ");
@@ -239,7 +235,7 @@ int vgpu_css_enable_snapshot_buffer(struct channel_gk20a *ch,
 		return ret;
 	}
 
-	ret = vgpu_css_init_snapshot_buffer(ch->g->gr);
+	ret = vgpu_css_init_snapshot_buffer(ch->g);
 	return ret;
 }
 

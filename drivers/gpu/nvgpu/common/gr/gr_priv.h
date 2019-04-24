@@ -81,10 +81,6 @@ struct nvgpu_gr {
 	u32 fbp_en_mask;
 	u32 *fbp_rop_l2_en_mask;
 
-#if defined(CONFIG_GK20A_CYCLE_STATS)
-	struct nvgpu_mutex		cs_lock;
-	struct gk20a_cs_snapshot	*cs_data;
-#endif
 	u32 max_css_buffer_size;
 	u32 max_ctxsw_ring_buffer_size;
 

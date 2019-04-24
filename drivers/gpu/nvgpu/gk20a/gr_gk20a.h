@@ -43,11 +43,6 @@ struct nvgpu_dbg_reg_op;
 
 enum ctxsw_addr_type;
 
-#if defined(CONFIG_GK20A_CYCLE_STATS)
-struct gk20a_cs_snapshot_client;
-struct gk20a_cs_snapshot;
-#endif
-
 struct nvgpu_warpstate {
 	u64 valid_warps[2];
 	u64 trapped_warps[2];
@@ -96,28 +91,6 @@ void gk20a_gr_suspend_all_sms(struct gk20a *g,
 int gr_gk20a_set_sm_debug_mode(struct gk20a *g,
 	struct channel_gk20a *ch, u64 sms, bool enable);
 bool gk20a_is_channel_ctx_resident(struct channel_gk20a *ch);
-
-#if defined(CONFIG_GK20A_CYCLE_STATS)
-int gr_gk20a_css_attach(struct channel_gk20a *ch,   /* in - main hw structure */
-			u32 perfmon_id_count,	    /* in - number of perfmons*/
-			u32 *perfmon_id_start,	    /* out- index of first pm */
-			/* in/out - pointer to client data used in later     */
-			struct gk20a_cs_snapshot_client *css_client);
-
-int gr_gk20a_css_detach(struct channel_gk20a *ch,
-				struct gk20a_cs_snapshot_client *css_client);
-int gr_gk20a_css_flush(struct channel_gk20a *ch,
-				struct gk20a_cs_snapshot_client *css_client);
-
-void gr_gk20a_free_cyclestats_snapshot_data(struct gk20a *g);
-
-#else
-/* fake empty cleanup function if no cyclestats snapshots enabled */
-static inline void gr_gk20a_free_cyclestats_snapshot_data(struct gk20a *g)
-{
-	(void)g;
-}
-#endif
 
 int gk20a_gr_lock_down_sm(struct gk20a *g,
 			 u32 gpc, u32 tpc, u32 sm, u32 global_esr_mask,

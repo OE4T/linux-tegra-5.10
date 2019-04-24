@@ -134,6 +134,9 @@ static int vgpu_init_support(struct platform_device *pdev)
 
 	nvgpu_mutex_init(&g->dbg_sessions_lock);
 	nvgpu_mutex_init(&g->client_lock);
+#if defined(CONFIG_GK20A_CYCLE_STATS)
+	nvgpu_mutex_init(&g->cs_lock);
+#endif
 
 	nvgpu_init_list_node(&g->profiler_objects);
 

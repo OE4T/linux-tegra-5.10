@@ -257,8 +257,6 @@ static void gr_remove_support(struct gk20a *g)
 
 	nvgpu_log_fn(g, " ");
 
-	gr_gk20a_free_cyclestats_snapshot_data(g);
-
 	nvgpu_gr_global_ctx_buffer_free(g, gr->global_ctx_buffer);
 	nvgpu_gr_global_ctx_desc_free(g, gr->global_ctx_buffer);
 
@@ -397,14 +395,6 @@ static int gr_init_setup_sw(struct gk20a *g)
 		return err;
 	}
 	gr->ctxsw_disable_count = 0;
-
-#if defined(CONFIG_GK20A_CYCLE_STATS)
-	err = nvgpu_mutex_init(&g->gr->cs_lock);
-	if (err != 0) {
-		nvgpu_err(g, "Error in gr.cs_lock mutex initialization");
-		return err;
-	}
-#endif
 
 	err = nvgpu_gr_obj_ctx_init(g, &gr->golden_image,
 			nvgpu_gr_falcon_get_golden_image_size(g->gr->falcon));
