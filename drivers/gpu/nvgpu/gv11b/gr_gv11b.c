@@ -2917,7 +2917,8 @@ fail:
 	return err;
 }
 
-bool gv11b_gr_esr_bpt_pending_events(u32 global_esr, u32 bpt_event)
+bool gv11b_gr_esr_bpt_pending_events(u32 global_esr,
+				enum nvgpu_event_id_type bpt_event)
 {
 	bool ret = false;
 

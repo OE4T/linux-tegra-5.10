@@ -59,7 +59,7 @@ struct nvgpu_gr_config *nvgpu_gr_config_init(struct gk20a *g)
 	if (g->ops.gr.config.get_gpc_mask != NULL) {
 		config->gpc_mask = g->ops.gr.config.get_gpc_mask(g, config);
 	} else {
-		config->gpc_mask = BIT32(config->gpc_count) - 1;
+		config->gpc_mask = BIT32(config->gpc_count) - 1U;
 	}
 
 	config->pe_count_per_gpc = nvgpu_get_litter_value(g,

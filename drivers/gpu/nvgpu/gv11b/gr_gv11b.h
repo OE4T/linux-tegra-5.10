@@ -133,5 +133,6 @@ int gr_gv11b_create_priv_addr_table(struct gk20a *g,
 	u32 *priv_addr_table,
 	u32 *num_registers);
 void gr_gv11b_powergate_tpc(struct gk20a *g);
-bool gv11b_gr_esr_bpt_pending_events(u32 global_esr, u32 bpt_event);
+bool gv11b_gr_esr_bpt_pending_events(u32 global_esr,
+				enum nvgpu_event_id_type bpt_event);
 #endif /* NVGPU_GR_GV11B_H */

@@ -35,18 +35,16 @@ struct nvgpu_gr_global_ctx_local_golden_image;
 typedef void (*global_ctx_mem_destroy_fn)(struct gk20a *g,
 				struct nvgpu_mem *mem);
 
-enum nvgpu_gr_global_ctx_index {
-	NVGPU_GR_GLOBAL_CTX_CIRCULAR			= 0,
-	NVGPU_GR_GLOBAL_CTX_PAGEPOOL			= 1,
-	NVGPU_GR_GLOBAL_CTX_ATTRIBUTE			= 2,
-	NVGPU_GR_GLOBAL_CTX_CIRCULAR_VPR		= 3,
-	NVGPU_GR_GLOBAL_CTX_PAGEPOOL_VPR		= 4,
-	NVGPU_GR_GLOBAL_CTX_ATTRIBUTE_VPR		= 5,
-	NVGPU_GR_GLOBAL_CTX_PRIV_ACCESS_MAP		= 6,
-	NVGPU_GR_GLOBAL_CTX_RTV_CIRCULAR_BUFFER		= 7,
-	NVGPU_GR_GLOBAL_CTX_FECS_TRACE_BUFFER		= 8,
-	NVGPU_GR_GLOBAL_CTX_COUNT 			= 9
-};
+#define NVGPU_GR_GLOBAL_CTX_CIRCULAR			0U
+#define NVGPU_GR_GLOBAL_CTX_PAGEPOOL			1U
+#define NVGPU_GR_GLOBAL_CTX_ATTRIBUTE			2U
+#define NVGPU_GR_GLOBAL_CTX_CIRCULAR_VPR		3U
+#define NVGPU_GR_GLOBAL_CTX_PAGEPOOL_VPR		4U
+#define NVGPU_GR_GLOBAL_CTX_ATTRIBUTE_VPR		5U
+#define NVGPU_GR_GLOBAL_CTX_PRIV_ACCESS_MAP		6U
+#define NVGPU_GR_GLOBAL_CTX_RTV_CIRCULAR_BUFFER		7U
+#define NVGPU_GR_GLOBAL_CTX_FECS_TRACE_BUFFER		8U
+#define NVGPU_GR_GLOBAL_CTX_COUNT			9U
 
 struct nvgpu_gr_global_ctx_buffer_desc *nvgpu_gr_global_ctx_desc_alloc(
 	struct gk20a *g);
@@ -54,9 +52,9 @@ void nvgpu_gr_global_ctx_desc_free(struct gk20a *g,
 	struct nvgpu_gr_global_ctx_buffer_desc *desc);
 
 void nvgpu_gr_global_ctx_set_size(struct nvgpu_gr_global_ctx_buffer_desc *desc,
-	enum nvgpu_gr_global_ctx_index index, size_t size);
+	u32 index, size_t size);
 size_t nvgpu_gr_global_ctx_get_size(struct nvgpu_gr_global_ctx_buffer_desc *desc,
-	enum nvgpu_gr_global_ctx_index index);
+	u32 index);
 
 int nvgpu_gr_global_ctx_buffer_alloc(struct gk20a *g,
 	struct nvgpu_gr_global_ctx_buffer_desc *desc);
@@ -64,19 +62,19 @@ void nvgpu_gr_global_ctx_buffer_free(struct gk20a *g,
 	struct nvgpu_gr_global_ctx_buffer_desc *desc);
 
 u64 nvgpu_gr_global_ctx_buffer_map(struct nvgpu_gr_global_ctx_buffer_desc *desc,
-	enum nvgpu_gr_global_ctx_index index,
+	u32 index,
 	struct vm_gk20a *vm, u32 flags, bool priv);
 void nvgpu_gr_global_ctx_buffer_unmap(
 	struct nvgpu_gr_global_ctx_buffer_desc *desc,
-	enum nvgpu_gr_global_ctx_index index,
+	u32 index,
 	struct vm_gk20a *vm, u64 gpu_va);
 
 struct nvgpu_mem *nvgpu_gr_global_ctx_buffer_get_mem(
 	struct nvgpu_gr_global_ctx_buffer_desc *desc,
-	enum nvgpu_gr_global_ctx_index index);
+	u32 index);
 bool nvgpu_gr_global_ctx_buffer_ready(
 	struct nvgpu_gr_global_ctx_buffer_desc *desc,
-	enum nvgpu_gr_global_ctx_index index);
+	u32 index);
 
 struct nvgpu_gr_global_ctx_local_golden_image *
 nvgpu_gr_global_ctx_init_local_golden_image(struct gk20a *g,

@@ -35,7 +35,8 @@ struct nvgpu_gr_global_ctx_buffer_desc *
 nvgpu_gr_global_ctx_desc_alloc(struct gk20a *g)
 {
 	struct nvgpu_gr_global_ctx_buffer_desc *desc =
-		nvgpu_kzalloc(g, sizeof(*desc) * NVGPU_GR_GLOBAL_CTX_COUNT);
+		nvgpu_kzalloc(g, sizeof(*desc) *
+					U64(NVGPU_GR_GLOBAL_CTX_COUNT));
 	return desc;
 }
 
@@ -47,13 +48,13 @@ void nvgpu_gr_global_ctx_desc_free(struct gk20a *g,
 
 
 void nvgpu_gr_global_ctx_set_size(struct nvgpu_gr_global_ctx_buffer_desc *desc,
-	enum nvgpu_gr_global_ctx_index index, size_t size)
+	u32 index, size_t size)
 {
 	desc[index].size = size;
 }
 
 size_t nvgpu_gr_global_ctx_get_size(struct nvgpu_gr_global_ctx_buffer_desc *desc,
-	enum nvgpu_gr_global_ctx_index index)
+	u32 index)
 {
 	return desc[index].size;
 }
@@ -69,7 +70,7 @@ void nvgpu_gr_global_ctx_buffer_free(struct gk20a *g,
 {
 	u32 i;
 
-	for (i = 0U; i < NVGPU_GR_GLOBAL_CTX_COUNT; i++) {
+	for (i = 0; i < NVGPU_GR_GLOBAL_CTX_COUNT; i++) {
 		if (desc[i].destroy != NULL) {
 			desc[i].destroy(g, &desc[i].mem);
 			desc[i].destroy = NULL;
@@ -81,7 +82,7 @@ void nvgpu_gr_global_ctx_buffer_free(struct gk20a *g,
 
 static int nvgpu_gr_global_ctx_buffer_alloc_sys(struct gk20a *g,
 	struct nvgpu_gr_global_ctx_buffer_desc *desc,
-	enum nvgpu_gr_global_ctx_index index)
+	u32 index)
 {
 	int err = 0;
 
@@ -104,7 +105,7 @@ static int nvgpu_gr_global_ctx_buffer_alloc_sys(struct gk20a *g,
 
 static int nvgpu_gr_global_ctx_buffer_alloc_vpr(struct gk20a *g,
 	struct nvgpu_gr_global_ctx_buffer_desc *desc,
-	enum nvgpu_gr_global_ctx_index index)
+	u32 index)
 {
 	int err = 0;
 
@@ -207,7 +208,7 @@ clean_up:
 }
 
 u64 nvgpu_gr_global_ctx_buffer_map(struct nvgpu_gr_global_ctx_buffer_desc *desc,
-	enum nvgpu_gr_global_ctx_index index,
+	u32 index,
 	struct vm_gk20a *vm, u32 flags, bool priv)
 {
 	u64 gpu_va;
@@ -224,7 +225,7 @@ u64 nvgpu_gr_global_ctx_buffer_map(struct nvgpu_gr_global_ctx_buffer_desc *desc,
 
 void nvgpu_gr_global_ctx_buffer_unmap(
 	struct nvgpu_gr_global_ctx_buffer_desc *desc,
-	enum nvgpu_gr_global_ctx_index index,
+	u32 index,
 	struct vm_gk20a *vm, u64 gpu_va)
 {
 	if (nvgpu_mem_is_valid(&desc[index].mem)) {
@@ -234,7 +235,7 @@ void nvgpu_gr_global_ctx_buffer_unmap(
 
 struct nvgpu_mem *nvgpu_gr_global_ctx_buffer_get_mem(
 	struct nvgpu_gr_global_ctx_buffer_desc *desc,
-	enum nvgpu_gr_global_ctx_index index)
+	u32 index)
 {
 	if (nvgpu_mem_is_valid(&desc[index].mem)) {
 		return &desc[index].mem;
@@ -244,7 +245,7 @@ struct nvgpu_mem *nvgpu_gr_global_ctx_buffer_get_mem(
 
 bool nvgpu_gr_global_ctx_buffer_ready(
 	struct nvgpu_gr_global_ctx_buffer_desc *desc,
-	enum nvgpu_gr_global_ctx_index index)
+	u32 index)
 {
 	if (nvgpu_mem_is_valid(&desc[index].mem)) {
 		return true;

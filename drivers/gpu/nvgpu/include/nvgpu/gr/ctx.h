@@ -53,30 +53,26 @@ struct zcull_ctx_desc;
 struct pm_ctx_desc;
 struct nvgpu_gr_ctx_desc;
 
-enum nvgpu_gr_ctx_index {
-	NVGPU_GR_CTX_CTX		= 0,
-	NVGPU_GR_CTX_PM_CTX		,
-	NVGPU_GR_CTX_PATCH_CTX		,
-	NVGPU_GR_CTX_PREEMPT_CTXSW	,
-	NVGPU_GR_CTX_SPILL_CTXSW	,
-	NVGPU_GR_CTX_BETACB_CTXSW	,
-	NVGPU_GR_CTX_PAGEPOOL_CTXSW	,
-	NVGPU_GR_CTX_GFXP_RTVCB_CTXSW	,
-	NVGPU_GR_CTX_COUNT
-};
+#define NVGPU_GR_CTX_CTX		0U
+#define NVGPU_GR_CTX_PM_CTX		1U
+#define NVGPU_GR_CTX_PATCH_CTX		2U
+#define NVGPU_GR_CTX_PREEMPT_CTXSW	3U
+#define NVGPU_GR_CTX_SPILL_CTXSW	4U
+#define NVGPU_GR_CTX_BETACB_CTXSW	5U
+#define NVGPU_GR_CTX_PAGEPOOL_CTXSW	6U
+#define NVGPU_GR_CTX_GFXP_RTVCB_CTXSW	7U
+#define NVGPU_GR_CTX_COUNT		8U
 
 /*
  * either ATTRIBUTE or ATTRIBUTE_VPR maps to NVGPU_GR_CTX_ATTRIBUTE_VA
 */
-enum nvgpu_gr_ctx_global_ctx_va {
-	NVGPU_GR_CTX_CIRCULAR_VA		= 0,
-	NVGPU_GR_CTX_PAGEPOOL_VA		= 1,
-	NVGPU_GR_CTX_ATTRIBUTE_VA		= 2,
-	NVGPU_GR_CTX_PRIV_ACCESS_MAP_VA		= 3,
-	NVGPU_GR_CTX_RTV_CIRCULAR_BUFFER_VA	= 4,
-	NVGPU_GR_CTX_FECS_TRACE_BUFFER_VA	= 5,
-	NVGPU_GR_CTX_VA_COUNT			= 6
-};
+#define NVGPU_GR_CTX_CIRCULAR_VA		0U
+#define NVGPU_GR_CTX_PAGEPOOL_VA		1U
+#define NVGPU_GR_CTX_ATTRIBUTE_VA		2U
+#define NVGPU_GR_CTX_PRIV_ACCESS_MAP_VA		3U
+#define NVGPU_GR_CTX_RTV_CIRCULAR_BUFFER_VA	4U
+#define NVGPU_GR_CTX_FECS_TRACE_BUFFER_VA	5U
+#define NVGPU_GR_CTX_VA_COUNT			6U
 
  /* PM Context Switch Mode */
 /*This mode says that the pms are not to be context switched. */
@@ -91,7 +87,7 @@ void nvgpu_gr_ctx_desc_free(struct gk20a *g,
 	struct nvgpu_gr_ctx_desc *desc);
 
 void nvgpu_gr_ctx_set_size(struct nvgpu_gr_ctx_desc *gr_ctx_desc,
-	enum nvgpu_gr_ctx_index index, u32 size);
+	u32 index, u32 size);
 
 int nvgpu_gr_ctx_alloc(struct gk20a *g,
 	struct nvgpu_gr_ctx *gr_ctx,
@@ -131,7 +127,7 @@ int nvgpu_gr_ctx_map_global_ctx_buffers(struct gk20a *g,
 	struct vm_gk20a *vm, bool vpr);
 
 u64 nvgpu_gr_ctx_get_global_ctx_va(struct nvgpu_gr_ctx *gr_ctx,
-	enum nvgpu_gr_ctx_global_ctx_va index);
+	u32 index);
 
 struct nvgpu_mem *nvgpu_gr_ctx_get_spill_ctxsw_buffer(
 	struct nvgpu_gr_ctx *gr_ctx);

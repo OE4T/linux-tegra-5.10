@@ -49,7 +49,7 @@ void nvgpu_gr_ctx_desc_free(struct gk20a *g,
 }
 
 void nvgpu_gr_ctx_set_size(struct nvgpu_gr_ctx_desc *gr_ctx_desc,
-	enum nvgpu_gr_ctx_index index, u32 size)
+	u32 index, u32 size)
 {
 	gr_ctx_desc->size[index] = size;
 }
@@ -330,13 +330,12 @@ static void nvgpu_gr_ctx_unmap_global_ctx_buffers(struct gk20a *g,
 	struct vm_gk20a *vm)
 {
 	u64 *g_bfr_va = gr_ctx->global_ctx_buffer_va;
-	enum nvgpu_gr_global_ctx_index *g_bfr_index =
-					gr_ctx->global_ctx_buffer_index;
+	u32 *g_bfr_index = gr_ctx->global_ctx_buffer_index;
 	u32 i;
 
 	nvgpu_log_fn(g, " ");
 
-	for (i = 0; i < NVGPU_GR_CTX_VA_COUNT; i++) {
+	for (i = 0U; i < NVGPU_GR_CTX_VA_COUNT; i++) {
 		nvgpu_gr_global_ctx_buffer_unmap(global_ctx_buffer,
 			g_bfr_index[i], vm, g_bfr_va[i]);
 	}
@@ -353,7 +352,7 @@ int nvgpu_gr_ctx_map_global_ctx_buffers(struct gk20a *g,
 	struct vm_gk20a *vm, bool vpr)
 {
 	u64 *g_bfr_va;
-	enum nvgpu_gr_global_ctx_index *g_bfr_index;
+	u32 *g_bfr_index;
 	u64 gpu_va = 0ULL;
 
 	nvgpu_log_fn(g, " ");
@@ -471,7 +470,7 @@ clean_up:
 }
 
 u64 nvgpu_gr_ctx_get_global_ctx_va(struct nvgpu_gr_ctx *gr_ctx,
-	enum nvgpu_gr_ctx_global_ctx_va index)
+	u32 index)
 {
 	return gr_ctx->global_ctx_buffer_va[index];
 }

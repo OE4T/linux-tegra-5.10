@@ -24,7 +24,6 @@
 #define NVGPU_GR_CTX_PRIV_H
 
 struct nvgpu_mem;
-enum nvgpu_gr_global_ctx_index;
 
 struct patch_desc {
 	struct nvgpu_mem mem;
@@ -78,7 +77,7 @@ struct nvgpu_gr_ctx {
 #endif
 
 	u64	global_ctx_buffer_va[NVGPU_GR_CTX_VA_COUNT];
-	enum nvgpu_gr_global_ctx_index	global_ctx_buffer_index[NVGPU_GR_CTX_VA_COUNT];
+	u32	global_ctx_buffer_index[NVGPU_GR_CTX_VA_COUNT];
 	bool	global_ctx_buffer_mapped;
 
 	u32 tsgid;
