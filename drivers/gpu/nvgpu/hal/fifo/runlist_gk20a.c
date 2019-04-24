@@ -26,6 +26,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/engine_status.h>
 #include <nvgpu/engines.h>
+#include <nvgpu/gr/gr_falcon.h>
 
 #include <gk20a/fifo_gk20a.h>
 
@@ -33,7 +34,6 @@
 
 #include <nvgpu/hw/gk20a/hw_fifo_gk20a.h>
 #include <nvgpu/hw/gk20a/hw_ram_gk20a.h>
-#include <nvgpu/hw/gk20a/hw_gr_gk20a.h>
 
 #define FECS_MAILBOX_0_ACK_RESTORE 0x4U
 
@@ -69,7 +69,8 @@ int gk20a_fifo_reschedule_preempt_next(struct channel_gk20a *ch,
 		return ret;
 	}
 
-	fecsstat0 = nvgpu_readl(g, gr_fecs_ctxsw_mailbox_r(0));
+	fecsstat0 = g->ops.gr.falcon.read_fecs_ctxsw_mailbox(g,
+			NVGPU_GR_FALCON_FECS_CTXSW_MAILBOX0);
 	g->ops.engine_status.read_engine_status_info(g, gr_eng_id, &engine_status);
 	if (nvgpu_engine_status_is_ctxsw_switch(&engine_status)) {
 		nvgpu_engine_status_get_next_ctx_id_type(&engine_status,
@@ -80,7 +81,8 @@ int gk20a_fifo_reschedule_preempt_next(struct channel_gk20a *ch,
 	if ((preempt_id == ch->tsgid) && (preempt_type != 0U)) {
 		return ret;
 	}
-	fecsstat1 = nvgpu_readl(g, gr_fecs_ctxsw_mailbox_r(0));
+	fecsstat1 = g->ops.gr.falcon.read_fecs_ctxsw_mailbox(g,
+			NVGPU_GR_FALCON_FECS_CTXSW_MAILBOX0);
 	if (fecsstat0 != FECS_MAILBOX_0_ACK_RESTORE ||
 		fecsstat1 != FECS_MAILBOX_0_ACK_RESTORE) {
 		/* preempt useless if FECS acked save and started restore */
@@ -90,8 +92,9 @@ int gk20a_fifo_reschedule_preempt_next(struct channel_gk20a *ch,
 	g->ops.fifo.preempt_trigger(g, preempt_id, preempt_type != 0U);
 #ifdef TRACEPOINTS_ENABLED
 	trace_gk20a_reschedule_preempt_next(ch->chid, fecsstat0,
-		engine_status.reg_data,
-		fecsstat1, nvgpu_readl(g, gr_fecs_ctxsw_mailbox_r(0)),
+		engine_status.reg_data, fecsstat1,
+		g->ops.gr.falcon.read_fecs_ctxsw_mailbox(g,
+			NVGPU_GR_FALCON_FECS_CTXSW_MAILBOX0),
 		nvgpu_readl(g, fifo_preempt_r()));
 #endif
 	if (wait_preempt) {
