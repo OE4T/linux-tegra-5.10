@@ -269,7 +269,8 @@ static int clk_get_freq_controller_table(struct gk20a *g,
 			BIOS_GET_FIELD(u8, entry.param0,
 				NV_VBIOS_FCT_1X_ENTRY_PARAM0_ID);
 
-		pclk_domain = g->clk_pmu->clk_get_clk_domain((g->clk_pmu),
+		pclk_domain = g->pmu.clk_pmu->clk_get_clk_domain(
+				(g->pmu.clk_pmu),
 				(u32)entry.clk_domain_idx);
 		freq_controller_data.freq_controller.clk_domain =
 			pclk_domain->api_domain;
@@ -361,7 +362,7 @@ int nvgpu_clk_freq_controller_pmu_setup(struct gk20a *g)
 
 	nvgpu_log_info(g, " ");
 
-	pboardobjgrp = &g->clk_pmu->clk_freq_controllers->super.super;
+	pboardobjgrp = &g->pmu.clk_pmu->clk_freq_controllers->super.super;
 
 	if (!pboardobjgrp->bconstructed) {
 		return -EINVAL;
@@ -425,7 +426,7 @@ int nvgpu_clk_freq_controller_sw_setup(struct gk20a *g)
 	int status = 0;
 	struct boardobjgrp *pboardobjgrp = NULL;
 	struct nvgpu_clk_freq_controllers *pclk_freq_controllers;
-	struct nvgpu_avfsfllobjs *pfllobjs = g->clk_pmu->avfs_fllobjs;
+	struct nvgpu_avfsfllobjs *pfllobjs = g->pmu.clk_pmu->avfs_fllobjs;
 	struct fll_device *pfll;
 	struct clk_freq_controller *pclkfreqctrl;
 	u8 i;
@@ -433,7 +434,7 @@ int nvgpu_clk_freq_controller_sw_setup(struct gk20a *g)
 
 	nvgpu_log_info(g, " ");
 
-	pclk_freq_controllers = g->clk_pmu->clk_freq_controllers;
+	pclk_freq_controllers = g->pmu.clk_pmu->clk_freq_controllers;
 	status = boardobjgrpconstruct_e32(g, &pclk_freq_controllers->super);
 	if (status != 0) {
 		nvgpu_err(g,
@@ -442,7 +443,7 @@ int nvgpu_clk_freq_controller_sw_setup(struct gk20a *g)
 		goto done;
 	}
 
-	pboardobjgrp = &g->clk_pmu->clk_freq_controllers->super.super;
+	pboardobjgrp = &g->pmu.clk_pmu->clk_freq_controllers->super.super;
 
 	pboardobjgrp->pmudatainit  = _clk_freq_controllers_pmudatainit;
 	pboardobjgrp->pmudatainstget  =
@@ -507,7 +508,7 @@ int nvgpu_clk_pmu_freq_controller_load(struct gk20a *g, bool bload, u8 bit_idx)
 	(void) memset(&handler, 0, sizeof(
 			struct clk_freq_ctlr_rpc_pmucmdhandler_params));
 
-	pclk_freq_controllers = g->clk_pmu->clk_freq_controllers;
+	pclk_freq_controllers = g->pmu.clk_pmu->clk_freq_controllers;
 	rpccall.function = NV_PMU_CLK_RPC_ID_LOAD;
 	clkload = &rpccall.params.clk_load;
 	clkload->feature = NV_PMU_CLK_LOAD_FEATURE_FREQ_CONTROLLER;
@@ -597,13 +598,13 @@ done:
 int nvgpu_clk_freq_controller_init_pmupstate(struct gk20a *g)
 {
 	/* If already allocated, do not re-allocate */
-	if (g->clk_pmu->clk_freq_controllers != NULL) {
+	if (g->pmu.clk_pmu->clk_freq_controllers != NULL) {
 		return 0;
 	}
 
-	g->clk_pmu->clk_freq_controllers = nvgpu_kzalloc(g,
-			sizeof(*g->clk_pmu->clk_freq_controllers));
-	if (g->clk_pmu->clk_freq_controllers == NULL) {
+	g->pmu.clk_pmu->clk_freq_controllers = nvgpu_kzalloc(g,
+			sizeof(*g->pmu.clk_pmu->clk_freq_controllers));
+	if (g->pmu.clk_pmu->clk_freq_controllers == NULL) {
 		return -ENOMEM;
 	}
 
@@ -612,6 +613,6 @@ int nvgpu_clk_freq_controller_init_pmupstate(struct gk20a *g)
 
 void nvgpu_clk_freq_controller_free_pmupstate(struct gk20a *g)
 {
-	nvgpu_kfree(g, g->clk_pmu->clk_freq_controllers);
-	g->clk_pmu->clk_freq_controllers = NULL;
+	nvgpu_kfree(g, g->pmu.clk_pmu->clk_freq_controllers);
+	g->pmu.clk_pmu->clk_freq_controllers = NULL;
 }

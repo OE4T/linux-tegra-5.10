@@ -154,11 +154,11 @@ int nvgpu_clk_freq_domain_sw_setup(struct gk20a *g)
 	nvgpu_assert(tmp_num_of_domains <= U8_MAX);
 	num_of_domains = (u8)tmp_num_of_domains;
 
-	pboardobjgrp = &g->clk_pmu->freq_domain_grp_objs->super.super;
-	pfreq_domain_grp = g->clk_pmu->freq_domain_grp_objs;
+	pboardobjgrp = &g->pmu.clk_pmu->freq_domain_grp_objs->super.super;
+	pfreq_domain_grp = g->pmu.clk_pmu->freq_domain_grp_objs;
 
 	status = boardobjgrpconstruct_e32(g,
-			&g->clk_pmu->freq_domain_grp_objs->super);
+			&g->pmu.clk_pmu->freq_domain_grp_objs->super);
 	if (status != 0) {
 		nvgpu_err(g,
 			"error creating boardobjgrp for clk freq domain, status - 0x%x",
@@ -225,7 +225,7 @@ int nvgpu_clk_freq_domain_pmu_setup(struct gk20a *g)
 
 	nvgpu_log_fn(g, " ");
 
-	pboardobjgrp = &g->clk_pmu->freq_domain_grp_objs->super.super;
+	pboardobjgrp = &g->pmu.clk_pmu->freq_domain_grp_objs->super.super;
 
 	if (!pboardobjgrp->bconstructed) {
 		return -EINVAL;
@@ -240,13 +240,13 @@ int nvgpu_clk_freq_domain_pmu_setup(struct gk20a *g)
 int nvgpu_clk_freq_domain_init_pmupstate(struct gk20a *g)
 {
 	/* If already allocated, do not re-allocate */
-	if (g->clk_pmu->freq_domain_grp_objs != NULL) {
+	if (g->pmu.clk_pmu->freq_domain_grp_objs != NULL) {
 		return 0;
 	}
 
-	g->clk_pmu->freq_domain_grp_objs = nvgpu_kzalloc(g,
-			sizeof(*g->clk_pmu->freq_domain_grp_objs));
-	if (g->clk_pmu->freq_domain_grp_objs == NULL) {
+	g->pmu.clk_pmu->freq_domain_grp_objs = nvgpu_kzalloc(g,
+			sizeof(*g->pmu.clk_pmu->freq_domain_grp_objs));
+	if (g->pmu.clk_pmu->freq_domain_grp_objs == NULL) {
 		return -ENOMEM;
 	}
 
@@ -255,6 +255,6 @@ int nvgpu_clk_freq_domain_init_pmupstate(struct gk20a *g)
 
 void nvgpu_clk_freq_domain_free_pmupstate(struct gk20a *g)
 {
-	nvgpu_kfree(g, g->clk_pmu->freq_domain_grp_objs);
-	g->clk_pmu->freq_domain_grp_objs = NULL;
+	nvgpu_kfree(g, g->pmu.clk_pmu->freq_domain_grp_objs);
+	g->pmu.clk_pmu->freq_domain_grp_objs = NULL;
 }

@@ -41,6 +41,8 @@
 #define nvgpu_pmu_dbg(g, fmt, args...) \
 	nvgpu_log(g, gpu_dbg_pmu, fmt, ##args)
 
+struct nvgpu_clk_pmupstate;
+
 /* defined by pmu hw spec */
 #define GK20A_PMU_VA_SIZE		(512U * 1024U * 1024U)
 #define GK20A_PMU_UCODE_SIZE_MAX	(256U * 1024U)
@@ -158,6 +160,7 @@ struct nvgpu_pmu {
 
 	struct nvgpu_pmu_pg *pg;
 	struct nvgpu_pmu_perfmon *pmu_perfmon;
+	struct nvgpu_clk_pmupstate *clk_pmu;
 
 	void (*remove_support)(struct nvgpu_pmu *pmu);
 	void (*volt_rpc_handler)(struct gk20a *g,

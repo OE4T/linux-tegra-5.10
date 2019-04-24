@@ -131,7 +131,7 @@ static void build_change_seq_boot (struct gk20a *g)
 
 	script_last->buf.change.data.flags = CTRL_PERF_CHANGE_SEQ_CHANGE_NONE;
 
-	BOARDOBJGRP_FOR_EACH(&(g->clk_pmu->clk_domainobjs->super.super),
+	BOARDOBJGRP_FOR_EACH(&(g->pmu.clk_pmu->clk_domainobjs->super.super),
 		struct nvgpu_clk_domain *, pdomain, i) {
 
 		p0_info = nvgpu_pmu_perf_pstate_get_clk_set_info(g,

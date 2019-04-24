@@ -214,7 +214,7 @@ int gv100_clk_domain_get_f_points(
 	int status = -EINVAL;
 	struct nvgpu_clk_domain *pdomain;
 	u8 i;
-	struct nvgpu_clk_pmupstate *pclk = g->clk_pmu;
+	struct nvgpu_clk_pmupstate *pclk = g->pmu.clk_pmu;
 	if (pfpointscount == NULL) {
 		return -EINVAL;
 	}

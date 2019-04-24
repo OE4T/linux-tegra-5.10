@@ -51,7 +51,6 @@ struct nvgpu_gpu_ctxsw_trace_filter;
 #endif
 struct priv_cmd_entry;
 struct nvgpu_setup_bind_args;
-struct nvgpu_clk_pmupstate;
 struct perf_pmupstate;
 struct boardobjgrp;
 struct boardobjgrp_pmu_cmd;
@@ -1971,7 +1970,6 @@ struct gk20a {
 	struct nvgpu_pmu pmu;
 	struct nvgpu_acr *acr;
 	struct nvgpu_ecc ecc;
-	struct nvgpu_clk_pmupstate *clk_pmu;
 	struct perf_pmupstate *perf_pmu;
 	struct pmgr_pmupstate *pmgr_pmu;
 	struct therm_pmupstate *therm_pmu;

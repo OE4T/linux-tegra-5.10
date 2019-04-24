@@ -131,7 +131,7 @@ int nvgpu_clk_vf_point_sw_setup(struct gk20a *g)
 	nvgpu_log_info(g, " ");
 
 	status = boardobjgrpconstruct_e255(g,
-		&g->clk_pmu->clk_vf_pointobjs->super);
+		&g->pmu.clk_pmu->clk_vf_pointobjs->super);
 	if (status != 0) {
 		nvgpu_err(g,
 		"error creating boardobjgrp for clk vfpoint, status - 0x%x",
@@ -139,7 +139,7 @@ int nvgpu_clk_vf_point_sw_setup(struct gk20a *g)
 		goto done;
 	}
 
-	pboardobjgrp = &g->clk_pmu->clk_vf_pointobjs->super.super;
+	pboardobjgrp = &g->pmu.clk_pmu->clk_vf_pointobjs->super.super;
 
 	BOARDOBJGRP_PMU_CONSTRUCT(pboardobjgrp, CLK, CLK_VF_POINT);
 
@@ -153,7 +153,7 @@ int nvgpu_clk_vf_point_sw_setup(struct gk20a *g)
 	}
 
 	status = BOARDOBJGRP_PMU_CMD_GRP_GET_STATUS_CONSTRUCT(g,
-			&g->clk_pmu->clk_vf_pointobjs->super.super,
+			&g->pmu.clk_pmu->clk_vf_pointobjs->super.super,
 			clk, CLK, clk_vf_point, CLK_VF_POINT);
 	if (status != 0) {
 		nvgpu_err(g,
@@ -178,7 +178,7 @@ int nvgpu_clk_vf_point_pmu_setup(struct gk20a *g)
 
 	nvgpu_log_info(g, " ");
 
-	pboardobjgrp = &g->clk_pmu->clk_vf_pointobjs->super.super;
+	pboardobjgrp = &g->pmu.clk_pmu->clk_vf_pointobjs->super.super;
 
 	if (!pboardobjgrp->bconstructed) {
 		return -EINVAL;
@@ -565,7 +565,7 @@ int nvgpu_clk_vf_point_cache(struct gk20a *g)
 	u32 ver = g->params.gpu_arch + g->params.gpu_impl;
 
 	nvgpu_log_info(g, " ");
-	pclk_vf_points = g->clk_pmu->clk_vf_pointobjs;
+	pclk_vf_points = g->pmu.clk_pmu->clk_vf_pointobjs;
 	pboardobjgrp = &pclk_vf_points->super.super;
 	pboardobjgrpmask = &pclk_vf_points->super.mask.super;
 
@@ -594,9 +594,9 @@ int nvgpu_clk_vf_point_cache(struct gk20a *g)
 
 		}
 	} else {
-		voltage_min_uv = g->clk_pmu->avfs_fllobjs->lut_min_voltage_uv;
+		voltage_min_uv = g->pmu.clk_pmu->avfs_fllobjs->lut_min_voltage_uv;
 		voltage_step_size_uv =
-				g->clk_pmu->avfs_fllobjs->lut_step_size_uv;
+				g->pmu.clk_pmu->avfs_fllobjs->lut_step_size_uv;
 		BOARDOBJGRP_FOR_EACH(pboardobjgrp, struct boardobj*, pboardobj, index) {
 			pclk_vf_point = (struct clk_vf_point *)(void *)pboardobj;
 			gpcclk_voltuv =
@@ -617,23 +617,23 @@ int nvgpu_clk_vf_point_cache(struct gk20a *g)
 int nvgpu_clk_vf_point_init_pmupstate(struct gk20a *g)
 {
 	/* If already allocated, do not re-allocate */
-	if (g->clk_pmu->clk_vf_pointobjs != NULL) {
+	if (g->pmu.clk_pmu->clk_vf_pointobjs != NULL) {
 		return 0;
 	}
 
-	g->clk_pmu->clk_vf_pointobjs = nvgpu_kzalloc(g,
-			sizeof(*g->clk_pmu->clk_vf_pointobjs));
-	if (g->clk_pmu->clk_vf_pointobjs == NULL) {
+	g->pmu.clk_pmu->clk_vf_pointobjs = nvgpu_kzalloc(g,
+			sizeof(*g->pmu.clk_pmu->clk_vf_pointobjs));
+	if (g->pmu.clk_pmu->clk_vf_pointobjs == NULL) {
 		return -ENOMEM;
 	}
 
-	g->clk_pmu->nvgpu_clk_vf_point_cache = nvgpu_clk_vf_point_cache;
+	g->pmu.clk_pmu->nvgpu_clk_vf_point_cache = nvgpu_clk_vf_point_cache;
 
 	return 0;
 }
 
 void nvgpu_clk_vf_point_free_pmupstate(struct gk20a *g)
 {
-	nvgpu_kfree(g, g->clk_pmu->clk_vf_pointobjs);
-	g->clk_pmu->clk_vf_pointobjs = NULL;
+	nvgpu_kfree(g, g->pmu.clk_pmu->clk_vf_pointobjs);
+	g->pmu.clk_pmu->clk_vf_pointobjs = NULL;
 }

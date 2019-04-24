@@ -115,7 +115,8 @@ int nvgpu_clk_prog_sw_setup(struct gk20a *g)
 
 	nvgpu_log_info(g, " ");
 
-	status = boardobjgrpconstruct_e255(g, &g->clk_pmu->clk_progobjs->super);
+	status = boardobjgrpconstruct_e255(g,
+			&g->pmu.clk_pmu->clk_progobjs->super);
 	if (status != 0) {
 		nvgpu_err(g,
 			"error creating boardobjgrp for clk prog, status - 0x%x",
@@ -123,8 +124,8 @@ int nvgpu_clk_prog_sw_setup(struct gk20a *g)
 		goto done;
 	}
 
-	pboardobjgrp = &g->clk_pmu->clk_progobjs->super.super;
-	pclkprogobjs = g->clk_pmu->clk_progobjs;
+	pboardobjgrp = &g->pmu.clk_pmu->clk_progobjs->super.super;
+	pclkprogobjs = g->pmu.clk_pmu->clk_progobjs;
 
 	BOARDOBJGRP_PMU_CONSTRUCT(pboardobjgrp, CLK, CLK_PROG);
 
@@ -146,7 +147,7 @@ int nvgpu_clk_prog_sw_setup(struct gk20a *g)
 		goto done;
 	}
 
-	status = g->clk_pmu->clk_domain_clk_prog_link(g, g->clk_pmu);
+	status = g->pmu.clk_pmu->clk_domain_clk_prog_link(g, g->pmu.clk_pmu);
 	if (status != 0) {
 		nvgpu_err(g, "error constructing VF point board objects");
 		goto done;
@@ -164,7 +165,7 @@ int nvgpu_clk_prog_pmu_setup(struct gk20a *g)
 
 	nvgpu_log_info(g, " ");
 
-	pboardobjgrp = &g->clk_pmu->clk_progobjs->super.super;
+	pboardobjgrp = &g->pmu.clk_pmu->clk_progobjs->super.super;
 
 	if (!pboardobjgrp->bconstructed) {
 		return -EINVAL;
@@ -518,7 +519,7 @@ static int clk_prog_pmudatainit_1x_master(struct gk20a *g,
 	struct clk_prog_1x_master *pclk_prog_1x_master;
 	struct nv_pmu_clk_clk_prog_1x_master_boardobj_set *pset;
 	size_t vfsize = sizeof(struct ctrl_clk_clk_prog_1x_master_vf_entry) *
-		g->clk_pmu->clk_progobjs->vf_entry_count;
+		g->pmu.clk_pmu->clk_progobjs->vf_entry_count;
 
 	nvgpu_log_info(g, " ");
 
@@ -551,7 +552,7 @@ static int clk_prog_pmudatainit_35_master(struct gk20a *g,
 	struct nv_pmu_clk_clk_prog_35_master_boardobj_set *pset;
 	size_t voltrail_sec_vfsize =
 		sizeof(struct ctrl_clk_clk_prog_35_master_sec_vf_entry_voltrail)
-			* g->clk_pmu->clk_progobjs->vf_sec_entry_count;
+			* g->pmu.clk_pmu->clk_progobjs->vf_sec_entry_count;
 
 	nvgpu_log_info(g, " ");
 
@@ -578,7 +579,7 @@ static int clk_prog_pmudatainit_35_master_ratio(struct gk20a *g,
 	struct clk_prog_35_master_ratio *pclk_prog_35_master_ratio;
 	struct nv_pmu_clk_clk_prog_35_master_ratio_boardobj_set *pset;
 	size_t slavesize = sizeof(struct ctrl_clk_clk_prog_1x_master_ratio_slave_entry) *
-		g->clk_pmu->clk_progobjs->slave_entry_count;
+		g->pmu.clk_pmu->clk_progobjs->slave_entry_count;
 
 	nvgpu_log_info(g, " ");
 
@@ -609,7 +610,7 @@ static int clk_prog_pmudatainit_35_master_table(struct gk20a *g,
 	struct nv_pmu_clk_clk_prog_35_master_table_boardobj_set *pset;
 	size_t slavesize = sizeof(
 			struct ctrl_clk_clk_prog_1x_master_ratio_slave_entry) *
-		g->clk_pmu->clk_progobjs->slave_entry_count;
+		g->pmu.clk_pmu->clk_progobjs->slave_entry_count;
 
 	nvgpu_log_info(g, " ");
 
@@ -746,7 +747,7 @@ static int clk_prog_construct_1x_master(struct gk20a *g,
 			(struct clk_prog_1x_master *)pargs;
 	int status = 0;
 	size_t vfsize = sizeof(struct ctrl_clk_clk_prog_1x_master_vf_entry) *
-		g->clk_pmu->clk_progobjs->vf_entry_count;
+		g->pmu.clk_pmu->clk_progobjs->vf_entry_count;
 	u8 railidx;
 
 	nvgpu_log_info(g, " type - %x", BOARDOBJ_GET_TYPE(pargs));
@@ -783,7 +784,7 @@ static int clk_prog_construct_1x_master(struct gk20a *g,
 	pclkprog->b_o_c_o_v_enabled = ptmpprog->b_o_c_o_v_enabled;
 
 	for (railidx = 0;
-	     railidx < g->clk_pmu->clk_progobjs->vf_entry_count;
+	     railidx < g->pmu.clk_pmu->clk_progobjs->vf_entry_count;
 	     railidx++) {
 		pclkprog->p_vf_entries[railidx].vf_point_idx_first =
 			CTRL_CLK_CLK_VF_POINT_IDX_INVALID;
@@ -842,7 +843,7 @@ static int clk_prog_construct_35_master_ratio(struct gk20a *g,
 	int status = 0;
 	size_t slavesize = sizeof(
 			struct ctrl_clk_clk_prog_1x_master_ratio_slave_entry) *
-		g->clk_pmu->clk_progobjs->slave_entry_count;
+		g->pmu.clk_pmu->clk_progobjs->slave_entry_count;
 
 	if (BOARDOBJ_GET_TYPE(pargs) != CTRL_CLK_CLK_PROG_TYPE_35_MASTER_RATIO) {
 		return -EINVAL;
@@ -885,7 +886,7 @@ static int clk_prog_construct_35_master_table(struct gk20a *g,
 	int status = 0;
 	size_t slavesize =
 		sizeof(struct ctrl_clk_clk_prog_1x_master_table_slave_entry) *
-		g->clk_pmu->clk_progobjs->slave_entry_count;
+		g->pmu.clk_pmu->clk_progobjs->slave_entry_count;
 
 	nvgpu_log_info(g, "type - %x", BOARDOBJ_GET_TYPE(pargs));
 
@@ -1036,10 +1037,11 @@ static int vfflatten_prog_1x_master(struct gk20a *g,
 			break;
 
 		case CTRL_CLK_PROG_1X_SOURCE_FLL:
-			voltage_min_uv = g->clk_pmu->get_fll_lut_min_volt(pclk);
+			voltage_min_uv =
+				g->pmu.clk_pmu->get_fll_lut_min_volt(pclk);
 			voltage_step_size_uv =
-					g->clk_pmu->get_fll_lut_step_size(pclk);
-			step_count = g->clk_pmu->
+				g->pmu.clk_pmu->get_fll_lut_step_size(pclk);
+			step_count = g->pmu.clk_pmu->
 				get_fll_lut_vf_num_entries(pclk);
 
 			/* FLL sources use a voltage-based VF_POINT.*/
@@ -1357,13 +1359,13 @@ static int getslaveclk_prog_1x_master(struct gk20a *g,
 int nvgpu_clk_prog_init_pmupstate(struct gk20a *g)
 {
 	/* If already allocated, do not re-allocate */
-	if (g->clk_pmu->clk_progobjs != NULL) {
+	if (g->pmu.clk_pmu->clk_progobjs != NULL) {
 		return 0;
 	}
 
-	g->clk_pmu->clk_progobjs = nvgpu_kzalloc(g,
-			sizeof(*g->clk_pmu->clk_progobjs));
-	if (g->clk_pmu->clk_progobjs == NULL) {
+	g->pmu.clk_pmu->clk_progobjs = nvgpu_kzalloc(g,
+			sizeof(*g->pmu.clk_pmu->clk_progobjs));
+	if (g->pmu.clk_pmu->clk_progobjs == NULL) {
 		return -ENOMEM;
 	}
 
@@ -1372,6 +1374,6 @@ int nvgpu_clk_prog_init_pmupstate(struct gk20a *g)
 
 void nvgpu_clk_prog_free_pmupstate(struct gk20a *g)
 {
-	nvgpu_kfree(g, g->clk_pmu->clk_progobjs);
-	g->clk_pmu->clk_progobjs = NULL;
+	nvgpu_kfree(g, g->pmu.clk_pmu->clk_progobjs);
+	g->pmu.clk_pmu->clk_progobjs = NULL;
 }

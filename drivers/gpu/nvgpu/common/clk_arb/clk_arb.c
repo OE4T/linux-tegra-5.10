@@ -233,7 +233,7 @@ static void nvgpu_clk_arb_run_vf_table_cb(struct nvgpu_clk_arb *arb)
 	int err;
 
 	/* get latest vf curve from pmu */
-	err = g->clk_pmu->nvgpu_clk_vf_point_cache(g);
+	err = g->pmu.clk_pmu->nvgpu_clk_vf_point_cache(g);
 	if (err != 0) {
 		nvgpu_err(g, "failed to cache VF table");
 		nvgpu_clk_arb_set_global_alarm(g,

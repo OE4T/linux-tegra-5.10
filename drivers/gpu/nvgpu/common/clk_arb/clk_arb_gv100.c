@@ -59,7 +59,7 @@ int gv100_get_arbiter_clk_range(struct gk20a *g, u32 api_domain,
 {
 	u32 clkwhich;
 	struct clk_set_info *p0_info;
-	struct nvgpu_avfsfllobjs *pfllobjs =  g->clk_pmu->avfs_fllobjs;
+	struct nvgpu_avfsfllobjs *pfllobjs =  g->pmu.clk_pmu->avfs_fllobjs;
 	u16 limit_min_mhz;
 	bool error_status = false;
 

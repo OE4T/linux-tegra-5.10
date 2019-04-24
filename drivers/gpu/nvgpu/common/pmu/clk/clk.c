@@ -188,31 +188,31 @@ int nvgpu_clk_set_fll_clks(struct gk20a *g,
 	int status = -EINVAL;
 
 	/*set regime ids */
-	status = g->clk_pmu->get_regime_id(g, CTRL_CLK_DOMAIN_GPCCLK,
+	status = g->pmu.clk_pmu->get_regime_id(g, CTRL_CLK_DOMAIN_GPCCLK,
 			&setfllclk->current_regime_id_gpc);
 	if (status != 0) {
 		goto done;
 	}
 
-	setfllclk->target_regime_id_gpc = g->clk_pmu->find_regime_id(g,
+	setfllclk->target_regime_id_gpc = g->pmu.clk_pmu->find_regime_id(g,
 			CTRL_CLK_DOMAIN_GPCCLK, setfllclk->gpc2clkmhz);
 
-	status = g->clk_pmu->get_regime_id(g, CTRL_CLK_DOMAIN_SYSCLK,
+	status = g->pmu.clk_pmu->get_regime_id(g, CTRL_CLK_DOMAIN_SYSCLK,
 			&setfllclk->current_regime_id_sys);
 	if (status != 0) {
 		goto done;
 	}
 
-	setfllclk->target_regime_id_sys = g->clk_pmu->find_regime_id(g,
+	setfllclk->target_regime_id_sys = g->pmu.clk_pmu->find_regime_id(g,
 			CTRL_CLK_DOMAIN_SYSCLK, setfllclk->sys2clkmhz);
 
-	status = g->clk_pmu->get_regime_id(g, CTRL_CLK_DOMAIN_XBARCLK,
+	status = g->pmu.clk_pmu->get_regime_id(g, CTRL_CLK_DOMAIN_XBARCLK,
 			&setfllclk->current_regime_id_xbar);
 	if (status != 0) {
 		goto done;
 	}
 
-	setfllclk->target_regime_id_xbar = g->clk_pmu->find_regime_id(g,
+	setfllclk->target_regime_id_xbar = g->pmu.clk_pmu->find_regime_id(g,
 			CTRL_CLK_DOMAIN_XBARCLK, setfllclk->xbar2clkmhz);
 
 	status = clk_pmu_vf_inject(g, setfllclk);
@@ -222,19 +222,19 @@ int nvgpu_clk_set_fll_clks(struct gk20a *g,
 	}
 
 	/* save regime ids */
-	status = g->clk_pmu->set_regime_id(g, CTRL_CLK_DOMAIN_XBARCLK,
+	status = g->pmu.clk_pmu->set_regime_id(g, CTRL_CLK_DOMAIN_XBARCLK,
 			setfllclk->target_regime_id_xbar);
 	if (status != 0) {
 		goto done;
 	}
 
-	status = g->clk_pmu->set_regime_id(g, CTRL_CLK_DOMAIN_GPCCLK,
+	status = g->pmu.clk_pmu->set_regime_id(g, CTRL_CLK_DOMAIN_GPCCLK,
 			setfllclk->target_regime_id_gpc);
 	if (status != 0) {
 		goto done;
 	}
 
-	status = g->clk_pmu->set_regime_id(g, CTRL_CLK_DOMAIN_SYSCLK,
+	status = g->pmu.clk_pmu->set_regime_id(g, CTRL_CLK_DOMAIN_SYSCLK,
 			setfllclk->target_regime_id_sys);
 	if (status != 0) {
 		goto done;
@@ -247,7 +247,7 @@ int nvgpu_clk_get_fll_clks(struct gk20a *g,
 		struct nvgpu_set_fll_clk *setfllclk)
 {
 	int status = -EINVAL;
-	status = g->clk_pmu->get_fll(g, setfllclk);
+	status = g->pmu.clk_pmu->get_fll(g, setfllclk);
 
 	return status;
 }
@@ -255,7 +255,7 @@ int nvgpu_clk_get_fll_clks(struct gk20a *g,
 int nvgpu_clk_set_boot_fll_clk_tu10x(struct gk20a *g)
 {
 	int status = -EINVAL;
-	status = g->clk_pmu->set_boot_fll(g);
+	status = g->pmu.clk_pmu->set_boot_fll(g);
 
 	return status;
 }
@@ -263,12 +263,12 @@ int nvgpu_clk_set_boot_fll_clk_tu10x(struct gk20a *g)
 int nvgpu_clk_init_pmupstate(struct gk20a *g)
 {
 	/* If already allocated, do not re-allocate */
-	if (g->clk_pmu != NULL) {
+	if (g->pmu.clk_pmu != NULL) {
 		return 0;
 	}
 
-	g->clk_pmu = nvgpu_kzalloc(g, sizeof(*g->clk_pmu));
-	if (g->clk_pmu == NULL) {
+	g->pmu.clk_pmu = nvgpu_kzalloc(g, sizeof(*g->pmu.clk_pmu));
+	if (g->pmu.clk_pmu == NULL) {
 		return -ENOMEM;
 	}
 
@@ -277,8 +277,8 @@ int nvgpu_clk_init_pmupstate(struct gk20a *g)
 
 void nvgpu_clk_free_pmupstate(struct gk20a *g)
 {
-	nvgpu_kfree(g, g->clk_pmu);
-	g->clk_pmu = NULL;
+	nvgpu_kfree(g, g->pmu.clk_pmu);
+	g->pmu.clk_pmu = NULL;
 }
 
 int nvgpu_clk_set_req_fll_clk_ps35(struct gk20a *g,
@@ -295,7 +295,7 @@ int nvgpu_clk_set_req_fll_clk_ps35(struct gk20a *g,
 	(void) memset(&change_input, 0,
 		sizeof(struct ctrl_perf_change_seq_change_input));
 
-	g->clk_pmu->set_p0_clks(g, &gpcclk_domain, &gpcclk_clkmhz,
+	g->pmu.clk_pmu->set_p0_clks(g, &gpcclk_domain, &gpcclk_clkmhz,
 			vf_point, &change_input);
 
 	change_input.pstate_index = 0U;

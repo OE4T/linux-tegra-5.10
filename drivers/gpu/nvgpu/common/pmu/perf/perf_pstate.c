@@ -124,7 +124,7 @@ static int parse_pstate_entry_6x(struct gk20a *g,
 
 		clk_domain = (struct nvgpu_clk_domain *)
 			BOARDOBJGRP_OBJ_GET_BY_IDX(
-			&g->clk_pmu->clk_domainobjs->super.super, clkidx);
+			&g->pmu.clk_pmu->clk_domainobjs->super.super, clkidx);
 
 		pclksetinfo = &pstate->clklist.clksetinfo[clkidx];
 		clk_entry = (struct vbios_pstate_entry_clock_6x *)p;
