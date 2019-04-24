@@ -254,6 +254,7 @@ static struct gk20a_platform nvgpu_pci_device[] = {
 	.unified_memory = false,
 	},
 	{ /* 0x1eba, 0x1efa, 0x1ebb, 0x1efb */
+	  /* 0x1eae, 0x1eaf (internal chip SKUs) */
 	/* ptimer src frequency in hz */
 	.ptimer_src_freq	= 31250000,
 
@@ -291,6 +292,11 @@ static struct gk20a_platform nvgpu_pci_device[] = {
 	.has_syncpoints = true,
 	},
 };
+
+#define PCI_DEVICE_INDEX(driver_data) ((driver_data) & 0x0000FFFFU)
+#define PCI_DEVICE_FLAGS(driver_data) ((driver_data) & 0xFFFF0000U)
+
+#define PCI_DEVICE_F_INTERNAL_CHIP_SKU	BIT(31)
 
 static struct pci_device_id nvgpu_pci_table[] = {
 	{
@@ -347,6 +353,19 @@ static struct pci_device_id nvgpu_pci_table[] = {
 		.class_mask = 0xff << 16,
 		.driver_data = 5,
 	},
+	{
+		PCI_DEVICE(PCI_VENDOR_ID_NVIDIA, 0x1eae),
+		.class = PCI_BASE_CLASS_DISPLAY << 16,
+		.class_mask = 0xff << 16,
+		.driver_data = 5 | PCI_DEVICE_F_INTERNAL_CHIP_SKU,
+	},
+	{
+		PCI_DEVICE(PCI_VENDOR_ID_NVIDIA, 0x1eaf),
+		.class = PCI_BASE_CLASS_DISPLAY << 16,
+		.class_mask = 0xff << 16,
+		.driver_data = 5 | PCI_DEVICE_F_INTERNAL_CHIP_SKU,
+	},
+
 	{}
 };
 
@@ -525,9 +544,11 @@ static int nvgpu_pci_probe(struct pci_dev *pdev,
 	int err;
 	char nodefmt[64];
 	struct device_node *np;
+	u32 device_index = PCI_DEVICE_INDEX(pent->driver_data);
+	u32 device_flags = PCI_DEVICE_FLAGS(pent->driver_data);
 
 	/* make sure driver_data is a sane index */
-	if (pent->driver_data >= sizeof(nvgpu_pci_device) /
+	if (device_index >= sizeof(nvgpu_pci_device) /
 				 sizeof(nvgpu_pci_device[0])) {
 		return -EINVAL;
 	}
@@ -559,7 +580,7 @@ static int nvgpu_pci_probe(struct pci_dev *pdev,
 
 	/* copy detected device data to allocated platform space*/
 	nvgpu_memcpy((u8 *)platform,
-		(u8 *)&nvgpu_pci_device[pent->driver_data],
+		(u8 *)&nvgpu_pci_device[device_index],
 		sizeof(struct gk20a_platform));
 
 	pci_set_drvdata(pdev, platform);
@@ -588,6 +609,12 @@ static int nvgpu_pci_probe(struct pci_dev *pdev,
 	g->pci_subsystem_device_id = pdev->subsystem_device;
 	g->pci_class = (pdev->class >> 8) & 0xFFFFU; // we only want base/sub
 	g->pci_revision = pdev->revision;
+
+	if ((device_flags & PCI_DEVICE_F_INTERNAL_CHIP_SKU) != 0U) {
+		nvgpu_err(g, "internal chip SKU %08x detected",
+				 g->pci_device_id);
+		nvgpu_err(g, "replace board, or use at your own risks");
+	}
 
 	g->ina3221_dcb_index = platform->ina3221_dcb_index;
 	g->ina3221_i2c_address = platform->ina3221_i2c_address;
