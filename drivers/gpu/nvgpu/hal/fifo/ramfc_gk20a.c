@@ -29,7 +29,6 @@
 
 #include "ramfc_gk20a.h"
 
-#include <nvgpu/hw/gk20a/hw_fifo_gk20a.h>
 #include <nvgpu/hw/gk20a/hw_ram_gk20a.h>
 
 int gk20a_ramfc_commit_userd(struct channel_gk20a *ch)
@@ -93,14 +92,10 @@ int gk20a_ramfc_setup(struct channel_gk20a *ch, u64 gpfifo_base,
 		g->ops.pbdma.acquire_val(pbdma_acquire_timeout));
 
 	nvgpu_mem_wr32(g, mem, ram_fc_runlist_timeslice_w(),
-		fifo_runlist_timeslice_timeout_128_f() |
-		fifo_runlist_timeslice_timescale_3_f() |
-		fifo_runlist_timeslice_enable_true_f());
+		g->ops.fifo.get_runlist_timeslice(g));
 
 	nvgpu_mem_wr32(g, mem, ram_fc_pb_timeslice_w(),
-		fifo_pb_timeslice_timeout_16_f() |
-		fifo_pb_timeslice_timescale_0_f() |
-		fifo_pb_timeslice_enable_true_f());
+		g->ops.fifo.get_pb_timeslice(g));
 
 	nvgpu_mem_wr32(g, mem, ram_fc_chid_w(), ram_fc_chid_id_f(ch->chid));
 

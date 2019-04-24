@@ -142,3 +142,16 @@ int gk20a_fifo_init_pbdma_map(struct gk20a *g, u32 *pbdma_map, u32 num_pbdma)
 
 	return 0;
 }
+
+u32 gk20a_fifo_get_runlist_timeslice(struct gk20a *g)
+{
+	return fifo_runlist_timeslice_timeout_128_f() |
+			fifo_runlist_timeslice_timescale_3_f() |
+			fifo_runlist_timeslice_enable_true_f();
+}
+
+u32 gk20a_fifo_get_pb_timeslice(struct gk20a *g) {
+	return fifo_pb_timeslice_timeout_16_f() |
+			fifo_pb_timeslice_timescale_0_f() |
+			fifo_pb_timeslice_enable_true_f();
+}

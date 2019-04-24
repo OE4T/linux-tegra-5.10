@@ -245,5 +245,7 @@ static inline void gk20a_fifo_profile_snapshot(
 u32 gk20a_fifo_default_timeslice_us(struct gk20a *g);
 
 int gk20a_fifo_init_pbdma_map(struct gk20a *g, u32 *pbdma_map, u32 num_pbdma);
+u32 gk20a_fifo_get_runlist_timeslice(struct gk20a *g);
+u32 gk20a_fifo_get_pb_timeslice(struct gk20a *g);
 
 #endif /* FIFO_GK20A_H */

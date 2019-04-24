@@ -940,6 +940,8 @@ static const struct gpu_ops gv100_ops = {
 		.get_mmu_fault_desc = NULL,
 		.get_mmu_fault_client_desc = NULL,
 		.get_mmu_fault_gpc_desc = NULL,
+		.get_runlist_timeslice = gk20a_fifo_get_runlist_timeslice,
+		.get_pb_timeslice = gk20a_fifo_get_pb_timeslice,
 		.mmu_fault_id_to_pbdma_id = gv11b_fifo_mmu_fault_id_to_pbdma_id,
 	},
 	.engine = {

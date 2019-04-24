@@ -1035,6 +1035,8 @@ struct gpu_ops {
 		void (*get_mmu_fault_client_desc)(
 					struct mmu_fault_info *mmfault);
 		void (*get_mmu_fault_gpc_desc)(struct mmu_fault_info *mmfault);
+		u32 (*get_runlist_timeslice)(struct gk20a *g);
+		u32 (*get_pb_timeslice)(struct gk20a *g);
 		bool (*is_mmu_fault_pending)(struct gk20a *g);
 		u32  (*mmu_fault_id_to_pbdma_id)(struct gk20a *g,
 					u32 mmu_fault_id);

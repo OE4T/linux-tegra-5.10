@@ -31,7 +31,6 @@
 #include "hal/fifo/ramfc_gk20a.h"
 #include "hal/fifo/ramfc_tu104.h"
 
-#include <nvgpu/hw/tu104/hw_pbdma_tu104.h>
 #include <nvgpu/hw/tu104/hw_ram_tu104.h>
 
 int tu104_ramfc_setup(struct channel_gk20a *ch, u64 gpfifo_base,

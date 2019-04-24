@@ -760,6 +760,8 @@ static const struct gpu_ops gp10b_ops = {
 		.get_mmu_fault_client_desc =
 			gp10b_fifo_get_mmu_fault_client_desc,
 		.get_mmu_fault_gpc_desc = gm20b_fifo_get_mmu_fault_gpc_desc,
+		.get_runlist_timeslice = gk20a_fifo_get_runlist_timeslice,
+		.get_pb_timeslice = gk20a_fifo_get_pb_timeslice,
 		.is_mmu_fault_pending = gk20a_fifo_is_mmu_fault_pending,
 	},
 	.engine = {
