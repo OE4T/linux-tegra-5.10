@@ -82,6 +82,7 @@ srcs += common/sim/sim.c \
 	common/therm/therm.c \
 	common/perf/perfbuf.c \
 	common/perf/cyclestats_snapshot.c \
+	common/cyclestats/cyclestats.c \
 	common/top/top_gm20b.c \
 	common/top/top_gp10b.c \
 	common/top/top_gv100.c \

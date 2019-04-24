@@ -2221,37 +2221,6 @@ static inline u32 nvgpu_get_poll_timeout(struct gk20a *g)
 		g->poll_timeout_default : U32_MAX;
 }
 
-#define MULTICHAR_TAG(a, b, c, d) (((a) << 24) | ((b) << 16) | ((c) << 8) | (d))
-enum BAR0_DEBUG_OPERATION {
-	BARO_ZERO_NOP = 0,
-	OP_END = MULTICHAR_TAG('D', 'O', 'N', 'E'),
-	BAR0_READ32 = MULTICHAR_TAG('0', 'R', '3', '2'),
-	BAR0_WRITE32 = MULTICHAR_TAG('0', 'W', '3', '2'),
-};
-
-struct share_buffer_head {
-	enum BAR0_DEBUG_OPERATION operation;
-/* size of the operation item */
-	u32 size;
-	u32 completed;
-	u32 failed;
-	u64 context;
-	u64 completion_callback;
-};
-
-struct gk20a_cyclestate_buffer_elem {
-	struct share_buffer_head	head;
-/* in */
-	u64 p_data;
-	u64 p_done;
-	u32 offset_bar0;
-	u16 first_bit;
-	u16 last_bit;
-/* out */
-/* keep 64 bits to be consistent */
-	u64 data;
-};
-
 /* operations that will need to be executed on non stall workqueue */
 #define GK20A_NONSTALL_OPS_WAKEUP_SEMAPHORE	BIT32(0)
 #define GK20A_NONSTALL_OPS_POST_EVENTS		BIT32(1)

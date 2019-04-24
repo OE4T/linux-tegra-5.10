@@ -23,10 +23,12 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/io.h>
 #include <nvgpu/channel.h>
-#include <nvgpu/regops.h>
 #include <nvgpu/rc.h>
 #include <nvgpu/error_notifier.h>
 #include <nvgpu/power_features/pg.h>
+#if defined(CONFIG_GK20A_CYCLE_STATS)
+#include <nvgpu/cyclestats.h>
+#endif
 
 #include <nvgpu/gr/gr.h>
 #include <nvgpu/gr/gr_intr.h>
@@ -628,156 +630,21 @@ int nvgpu_gr_intr_handle_gpc_exception(struct gk20a *g, bool *post_event,
 	return ret;
 }
 
-#if defined(CONFIG_GK20A_CYCLE_STATS)
-static inline bool is_valid_cyclestats_bar0_offset_gk20a(struct gk20a *g,
-							 u32 offset)
-{
-	/* support only 24-bit 4-byte aligned offsets */
-	bool valid = !(offset & 0xFF000003U);
-
-	if (g->allow_all) {
-		return true;
-	}
-
-	/* whitelist check */
-	valid = valid &&
-		is_bar0_global_offset_whitelisted_gk20a(g, offset);
-	/* resource size check in case there was a problem
-	 * with allocating the assumed size of bar0 */
-	valid = valid && nvgpu_io_valid_reg(g, offset);
-	return valid;
-}
-#endif
-
 void nvgpu_gr_intr_handle_notify_pending(struct gk20a *g,
 					struct nvgpu_gr_isr_data *isr_data)
 {
 	struct channel_gk20a *ch = isr_data->ch;
 
-#if defined(CONFIG_GK20A_CYCLE_STATS)
-	void *virtual_address;
-	u32 buffer_size;
-	u32 offset;
-	bool exit;
-#endif
 	if (ch == NULL || tsg_gk20a_from_ch(ch) == NULL) {
 		return;
 	}
 
-#if defined(CONFIG_GK20A_CYCLE_STATS)
-	/* GL will never use payload 0 for cycle state */
-	if ((ch->cyclestate.cyclestate_buffer == NULL) ||
-	    (isr_data->data_lo == 0)) {
-		return;
-	}
-
-	nvgpu_mutex_acquire(&ch->cyclestate.cyclestate_buffer_mutex);
-
-	virtual_address = ch->cyclestate.cyclestate_buffer;
-	buffer_size = ch->cyclestate.cyclestate_buffer_size;
-	offset = isr_data->data_lo;
-	exit = false;
-	while (!exit) {
-		struct share_buffer_head *sh_hdr;
-		u32 min_element_size;
-
-		/* validate offset */
-		if (offset + sizeof(struct share_buffer_head) > buffer_size ||
-		    offset + sizeof(struct share_buffer_head) < offset) {
-			nvgpu_err(g,
-				  "cyclestats buffer overrun at offset 0x%x",
-				  offset);
-			break;
-		}
-
-		sh_hdr = (struct share_buffer_head *)
-			 ((char *)virtual_address + offset);
-
-		min_element_size =
-			U32(sh_hdr->operation == OP_END ?
-			 sizeof(struct share_buffer_head) :
-			 sizeof(struct gk20a_cyclestate_buffer_elem));
-
-		/* validate sh_hdr->size */
-		if (sh_hdr->size < min_element_size ||
-		    offset + sh_hdr->size > buffer_size ||
-		    offset + sh_hdr->size < offset) {
-			nvgpu_err(g,
-				  "bad cyclestate buffer header size at offset 0x%x",
-				  offset);
-			sh_hdr->failed = U32(true);
-			break;
-		}
-
-		switch (sh_hdr->operation) {
-		case OP_END:
-			exit = true;
-			break;
-
-		case BAR0_READ32:
-		case BAR0_WRITE32:
-		{
-			struct gk20a_cyclestate_buffer_elem *op_elem =
-				(struct gk20a_cyclestate_buffer_elem *)sh_hdr;
-			bool valid = is_valid_cyclestats_bar0_offset_gk20a(
-						g, op_elem->offset_bar0);
-			u32 raw_reg;
-			u64 mask_orig;
-			u64 v;
-
-			if (!valid) {
-				nvgpu_err(g,
-					   "invalid cycletstats op offset: 0x%x",
-					   op_elem->offset_bar0);
-
-				exit = true;
-				sh_hdr->failed = U32(exit);
-				break;
-			}
-
-			mask_orig =
-				((1ULL << (op_elem->last_bit + 1)) - 1) &
-				~((1ULL << op_elem->first_bit) - 1);
-
-			raw_reg = nvgpu_readl(g, op_elem->offset_bar0);
-
-			switch (sh_hdr->operation) {
-			case BAR0_READ32:
-				op_elem->data =	((raw_reg & mask_orig)
-							>> op_elem->first_bit);
-				break;
-
-			case BAR0_WRITE32:
-				v = 0;
-				if ((unsigned int)mask_orig !=
-							~((unsigned int)0)) {
-					v = (unsigned int)
-						(raw_reg & ~mask_orig);
-				}
-
-				v |= ((op_elem->data << op_elem->first_bit)
-							& mask_orig);
-				nvgpu_writel(g,op_elem->offset_bar0,
-					     (unsigned int)v);
-				break;
-			default:
-				/* nop ok?*/
-				break;
-			}
-		}
-		break;
-
-		default:
-			/* no operation content case */
-			exit = true;
-			break;
-		}
-		sh_hdr->completed = U32(true);
-		offset += sh_hdr->size;
-	}
-	nvgpu_mutex_release(&ch->cyclestate.cyclestate_buffer_mutex);
-#endif
 	nvgpu_log_fn(g, " ");
+
+#if defined(CONFIG_GK20A_CYCLE_STATS)
+	nvgpu_cyclestats_exec(g, ch, isr_data->data_lo);
+#endif
+
 	nvgpu_cond_broadcast_interruptible(&ch->notifier_wq);
 }
 

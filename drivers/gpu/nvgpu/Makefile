@@ -561,7 +561,8 @@ nvgpu-$(CONFIG_TEGRA_GR_VIRTUALIZATION) += \
 	common/vgpu/gv11b/vgpu_tsg_gv11b.o \
 
 nvgpu-$(CONFIG_GK20A_CYCLE_STATS) += \
-	common/perf/cyclestats_snapshot.o
+	common/perf/cyclestats_snapshot.o \
+	common/cyclestats/cyclestats.o
 
 nvgpu-y += \
 	gp10b/gr_gp10b.o  \
