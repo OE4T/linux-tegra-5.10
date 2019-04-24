@@ -27,6 +27,7 @@
 #include "osi_dma_txrx.h"
 
 #define OSI_PKT_CX_VLAN	OSI_BIT(0)
+#define OSI_PKT_CX_VALID	OSI_BIT(10)
 
 /**
  *	struct osi_pkt_err_stats: OSI packet error stats
@@ -40,6 +41,7 @@
  *	@excessive_collision_error: Excessive Collision Error
  *	@excessive_deferal_error: Excessive Deferal Error
  *	@underflow_error: Under Flow Error
+ *	@rx_crc_error: Rx CRC Error
  */
 struct osi_pkt_err_stats {
 	/* Transmit errors */
@@ -53,6 +55,8 @@ struct osi_pkt_err_stats {
 	unsigned long excessive_collision_error;
 	unsigned long excessive_deferal_error;
 	unsigned long underflow_error;
+	/* Receive Errors */
+	unsigned long rx_crc_error;
 };
 
 /**
@@ -513,4 +517,5 @@ int osi_hw_dma_init(struct osi_dma_priv_data *osi_dma);
 void osi_hw_dma_deinit(struct osi_dma_priv_data *osi_dma);
 void osi_init_dma_ops(struct osi_dma_priv_data *osi_dma);
 void osi_clear_tx_pkt_err_stats(struct osi_dma_priv_data *osi_dma);
+void osi_clear_rx_pkt_err_stats(struct osi_dma_priv_data *osi_dma);
 #endif /* OSI_DMA_H */

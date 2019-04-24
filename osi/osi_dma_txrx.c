@@ -56,6 +56,32 @@ static inline void get_rx_vlan_from_desc(struct osi_rx_desc *rx_desc,
 }
 
 /**
+ *	get_rx_err_stats - Detect Errors from Rx Descriptor
+ *	@rx_desc: Rx Descriptor.
+ *	@pkt_err_stats: Packet error stats which stores the errors reported
+ *
+ *	Algorimthm: This routine will be invoked by OSI layer itself which
+ *	checks for the Last Descriptor and updates the receive status errors
+ *	accordingly.
+ *
+ *	Dependencies: None.
+ *
+ *	Protection: None.
+ *
+ *	Return: None.
+ */
+static inline void get_rx_err_stats(struct osi_rx_desc *rx_desc,
+				    struct osi_pkt_err_stats pkt_err_stats)
+{
+	/* increment rx crc if we see CE bit set */
+	if ((rx_desc->rdes3 & RDES3_ERR_CRC) == RDES3_ERR_CRC) {
+		if (pkt_err_stats.rx_crc_error < ULONG_MAX) {
+			pkt_err_stats.rx_crc_error++;
+		}
+	}
+}
+
+/**
  *	osi_process_rx_completions - Read data from receive channel descriptors
  *	@osi: OSI private data structure.
  *	@chan: Rx DMA channel number
@@ -96,8 +122,17 @@ int osi_process_rx_completions(struct osi_dma_priv_data *osi,
 		/* get the length of the packet */
 		rx_pkt_cx->pkt_len = rx_desc->rdes3 & RDES3_PKT_LEN;
 
-		if (((rx_desc->rdes3 & RDES3_ES_BITS) == 0U) &&
-		    ((rx_desc->rdes3 & RDES3_LD) == RDES3_LD)) {
+		/* Mark pkt as valid by default */
+		rx_pkt_cx->flags |= OSI_PKT_CX_VALID;
+
+		if ((rx_desc->rdes3 & RDES3_LD) == RDES3_LD) {
+			if ((rx_desc->rdes3 & RDES3_ES_BITS) != 0U) {
+				/* reset validity if any of the error bits
+				 * are set
+				 */
+				rx_pkt_cx->flags &= ~OSI_PKT_CX_VALID;
+				get_rx_err_stats(rx_desc, osi->pkt_err_stats);
+			}
 			get_rx_vlan_from_desc(rx_desc, rx_pkt_cx);
 			osd_receive_packet(osi->osd, rx_ring, chan,
 					   osi->rx_buf_len, rx_pkt_cx);
@@ -228,6 +263,25 @@ void osi_clear_tx_pkt_err_stats(struct osi_dma_priv_data *osi_dma)
 	osi_dma->pkt_err_stats.excessive_collision_error = 0U;
 	osi_dma->pkt_err_stats.excessive_deferal_error = 0U;
 	osi_dma->pkt_err_stats.underflow_error = 0U;
+}
+
+/**
+ *	osi_clear_rx_pkt_err_stats - Clear rx packet error stats.
+ *	@osi: OSI dma private data structure.
+ *
+ *	Algorithm: This function will be invoked by OSD layer to clear the
+ *	rx packet error stats
+ *
+ *	Dependencies: None.
+ *
+ *	Protection: None
+ *
+ *	Return: None
+ */
+void osi_clear_rx_pkt_err_stats(struct osi_dma_priv_data *osi_dma)
+{
+	/* Reset Rx packet errors */
+	osi_dma->pkt_err_stats.rx_crc_error = 0U;
 }
 
 /**
