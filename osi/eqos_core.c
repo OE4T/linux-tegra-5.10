@@ -28,6 +28,50 @@
 struct osi_core_ops *eqos_get_hw_core_ops(void);
 
 /**
+ *	eqos_osi_config_rx_crc_check - Configure CRC Checking for Rx Packets
+ *	@addr: MAC base address.
+ *	@crc_chk: Enable or disable checking of CRC field in received packets
+ *
+ *	Algorithm: When this bit is set, the MAC receiver does not check the CRC
+ *	field in the received packets. When this bit is reset, the MAC receiver
+ *	always checks the CRC field in the received packets.
+ *
+ *	Dependencies: MAC has to be out of reset.
+ *
+ *	Protection: None.
+ *
+ *	Return: 0 - success, -1 - failure
+ */
+static int eqos_config_rx_crc_check(void *addr, unsigned int crc_chk)
+{
+	unsigned int val;
+
+	/* return on invalid argument */
+	if (crc_chk != OSI_ENABLE && crc_chk != OSI_DISABLE) {
+		return -1;
+	}
+
+	/* Read MAC Extension Register */
+	val = osi_readl((unsigned char *)addr + EQOS_MAC_EXTR);
+
+	/* crc_chk: 1 is for enable and 0 is for disable */
+	if (crc_chk == OSI_ENABLE) {
+		/* Enable Rx packets CRC check */
+		val &= ~EQOS_MAC_EXTR_DCRCC;
+	} else if (crc_chk == OSI_DISABLE) {
+		/* Disable Rx packets CRC check */
+		val |= EQOS_MAC_EXTR_DCRCC;
+	} else {
+		/* Nothing here */
+	}
+
+	/* Write to MAC Extension Register */
+	osi_writel(val, (unsigned char *)addr + EQOS_MAC_EXTR);
+
+	return 0;
+}
+
+/**
  *	eqos_config_fw_err_pkts - Configure forwarding of error packets
  *	@addr: MAC base address.
  *	@qinx: Q index
@@ -1169,6 +1213,7 @@ static struct osi_core_ops eqos_core_ops = {
 	.get_avb_algorithm = eqos_get_avb_algorithm,
 	.config_fw_err_pkts = eqos_config_fw_err_pkts,
 	.config_tx_status = eqos_config_tx_status,
+	.config_rx_crc_check = eqos_config_rx_crc_check,
 };
 
 struct osi_core_ops *eqos_get_hw_core_ops(void)

@@ -70,6 +70,7 @@ struct  osi_core_avb_algorithm {
  *	@get_avb_algorithm: Called to get av parameter,
  *	@config_fw_err_pkts: Called to configure MTL RxQ to forward the err pkt.
  *	@config_tx_status: Called to configure the MTL to forward/drop tx status
+ *	@config_rx_crc_check: Called to configure the MAC rx crc.
  */
 struct osi_core_ops {
 	/* initialize MAC/MTL/DMA Common registers */
@@ -94,6 +95,7 @@ struct osi_core_ops {
 	int (*config_fw_err_pkts)(void *addr, unsigned int qinx,
 				  unsigned int fw_err);
 	int (*config_tx_status)(void *addr, unsigned int tx_status);
+	int (*config_rx_crc_check)(void *addr, unsigned int crc_chk);
 };
 
 /**
@@ -492,6 +494,37 @@ static inline int osi_config_fw_err_pkts(struct osi_core_priv_data *osi_core,
 	    (osi_core->ops->config_fw_err_pkts != OSI_NULL)) {
 		ret = osi_core->ops->config_fw_err_pkts(osi_core->base,
 							qinx, fw_err);
+	}
+
+	return ret;
+}
+
+/**
+ *	osi_config_rx_crc_check - Configure CRC Checking for Received Packets
+ *	@osi_core: OSI core private data structure.
+ *	@crc_chk: Enable or disable checking of CRC field in received packets
+ *
+ *	Algorithm: When this bit is set, the MAC receiver does not check the CRC
+ *	field in the received packets. When this bit is reset, the MAC receiver
+ *	always checks the CRC field in the received packets.
+ *
+ *	Dependencies: MAC IP should be out of reset and need to be initialized
+ *	as per the requirements
+ *
+ *	Protection: None
+ *
+ *      Return: 0 - success, -1 - failure.
+ */
+static inline int osi_config_rx_crc_check(struct osi_core_priv_data *osi_core,
+					  unsigned int crc_chk)
+{
+	int ret = -1;
+
+	/* Configure CRC Checking for Received Packets */
+	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
+	    (osi_core->ops->config_rx_crc_check != OSI_NULL)) {
+		ret = osi_core->ops->config_rx_crc_check(osi_core->base,
+							 crc_chk);
 	}
 
 	return ret;
