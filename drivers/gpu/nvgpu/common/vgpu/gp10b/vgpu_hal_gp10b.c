@@ -83,6 +83,8 @@
 #include "common/vgpu/init/init_vgpu.h"
 #include "vgpu_hal_gp10b.h"
 
+#include "gk20a/gr_gk20a.h"
+
 #include "gp10b/mm_gp10b.h"
 #include "gp10b/gr_gp10b.h"
 

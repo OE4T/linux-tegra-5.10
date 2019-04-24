@@ -135,6 +135,7 @@
 #include "common/fifo/channel_gv11b.h"
 #include "common/fifo/channel_gv100.h"
 
+#include "gk20a/gr_gk20a.h"
 
 #include "gm20b/gr_gm20b.h"
 #include "gm20b/mm_gm20b.h"

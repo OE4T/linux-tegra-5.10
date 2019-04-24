@@ -32,7 +32,6 @@
 #include <nvgpu/pbdma_status.h>
 #include <nvgpu/debug.h>
 #include <nvgpu/rc.h>
-#include "common/gr/gr_priv.h"
 
 void nvgpu_rc_fifo_recover(struct gk20a *g, u32 eng_bitmask,
 			u32 hw_id, bool id_is_tsg,

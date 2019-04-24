@@ -40,6 +40,7 @@
 #include <nvgpu/power_features/pg.h>
 #include <nvgpu/fence.h>
 
+#include "gk20a/gr_gk20a.h"
 #include "common/gr/gr_priv.h"
 
 #include "ioctl_ctrl.h"

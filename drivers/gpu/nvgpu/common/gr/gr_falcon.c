@@ -35,7 +35,6 @@
 #include <nvgpu/dma.h>
 
 #include "gr_falcon_priv.h"
-#include "common/gr/gr_priv.h"
 
 #define NVGPU_FECS_UCODE_IMAGE	"fecs.bin"
 #define NVGPU_GPCCS_UCODE_IMAGE	"gpccs.bin"
@@ -477,7 +476,6 @@ int nvgpu_gr_falcon_load_ctxsw_ucode(struct gk20a *g,
 					struct nvgpu_gr_falcon *falcon)
 {
 	int err;
-	struct nvgpu_gr *gr = g->gr;
 
 	nvgpu_log_fn(g, " ");
 
@@ -494,14 +492,14 @@ int nvgpu_gr_falcon_load_ctxsw_ucode(struct gk20a *g,
 		nvgpu_gr_falcon_load_imem(g);
 		g->ops.gr.falcon.start_ucode(g);
 	} else {
-		if (!gr->falcon->skip_ucode_init) {
+		if (!falcon->skip_ucode_init) {
 			err =  nvgpu_gr_falcon_init_ctxsw_ucode(g, falcon);
 			if (err != 0) {
 				return err;
 			}
 		}
 		nvgpu_gr_falcon_load_with_bootloader(g, falcon);
-		gr->falcon->skip_ucode_init = true;
+		falcon->skip_ucode_init = true;
 	}
 	nvgpu_log_fn(g, "done");
 	return 0;

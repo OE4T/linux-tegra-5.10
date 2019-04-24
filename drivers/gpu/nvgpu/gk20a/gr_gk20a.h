@@ -31,13 +31,6 @@
 struct nvgpu_gr_ctx;
 struct channel_gk20a;
 struct nvgpu_warpstate;
-struct nvgpu_gr_ctx_desc;
-struct nvgpu_gr_falcon;
-struct nvgpu_gr_global_ctx_buffer_desc;
-struct nvgpu_gr_zbc;
-struct nvgpu_gr_hwpm_map;
-struct nvgpu_gr_isr_data;
-struct nvgpu_gr_ctx_desc;
 struct dbg_session_gk20a;
 struct nvgpu_dbg_reg_op;
 

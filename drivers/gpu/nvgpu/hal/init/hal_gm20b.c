@@ -96,6 +96,7 @@
 #include "common/fifo/channel_gm20b.h"
 #include "common/pmu/pg/pg_sw_gm20b.h"
 
+#include "gk20a/gr_gk20a.h"
 #include "gm20b/gr_gm20b.h"
 #include "gm20b/mm_gm20b.h"
 #include "hal_gm20b.h"

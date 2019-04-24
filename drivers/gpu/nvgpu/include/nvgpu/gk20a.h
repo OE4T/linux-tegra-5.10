@@ -74,7 +74,6 @@ struct nvgpu_engine_status_info;
 struct nvgpu_pbdma_status_info;
 struct nvgpu_gr_config;
 struct nvgpu_fecs_method_op;
-enum nvgpu_nvlink_minion_dlcmd;
 struct nvgpu_cbc;
 struct nvgpu_mem;
 struct gk20a_cs_snapshot_client;
@@ -87,6 +86,15 @@ struct nvgpu_preemption_modes_rec;
 struct nvgpu_gr_ctx;
 struct nvgpu_fecs_host_intr_status;
 struct nvgpu_fecs_ecc_status;
+struct _resmgr_context;
+struct nvgpu_gpfifo_entry;
+
+enum nvgpu_unit;
+enum nvgpu_flush_op;
+enum gk20a_mem_rw_flag;
+enum nvgpu_nvlink_minion_dlcmd;
+enum ctxsw_addr_type;
+
 typedef void (*global_ctx_mem_destroy_fn)(struct gk20a *g,
 					struct nvgpu_mem *mem);
 
@@ -113,7 +121,6 @@ typedef void (*global_ctx_mem_destroy_fn)(struct gk20a *g,
 
 #include "hal/clk/clk_gk20a.h"
 #include "gk20a/fifo_gk20a.h"
-#include "gk20a/gr_gk20a.h"
 
 #ifdef CONFIG_DEBUG_FS
 struct railgate_stats {
@@ -179,14 +186,6 @@ struct railgate_stats {
 #define nvgpu_get_litter_value(g, v) ((g)->ops.get_litter_value((g), v))
 
 #define MAX_TPC_PG_CONFIGS      3
-
-enum nvgpu_unit;
-
-enum nvgpu_flush_op;
-enum gk20a_mem_rw_flag;
-
-struct _resmgr_context;
-struct nvgpu_gpfifo_entry;
 
 struct nvgpu_gpfifo_userdata {
 	struct nvgpu_gpfifo_entry __user *entries;

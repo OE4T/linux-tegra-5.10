@@ -93,6 +93,8 @@
 #include "common/vgpu/ptimer/ptimer_vgpu.h"
 #include "vgpu_hal_gv11b.h"
 
+#include "gk20a/gr_gk20a.h"
+
 #include <gm20b/gr_gm20b.h>
 #include <gm20b/mm_gm20b.h>
 

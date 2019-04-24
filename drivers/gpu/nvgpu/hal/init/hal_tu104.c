@@ -148,6 +148,7 @@
 #include "hal/fifo/pbdma_status_gm20b.h"
 #include "common/clk_arb/clk_arb_gv100.h"
 
+#include "gk20a/gr_gk20a.h"
 
 #include "gm20b/gr_gm20b.h"
 #include "gm20b/mm_gm20b.h"

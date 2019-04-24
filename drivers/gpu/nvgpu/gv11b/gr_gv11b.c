@@ -50,6 +50,8 @@
 #include "gk20a/gr_pri_gk20a.h"
 #include "common/gr/gr_priv.h"
 
+#include "gk20a/gr_gk20a.h"
+
 #include "gm20b/gr_gm20b.h"
 
 #include "gp10b/gr_gp10b.h"
