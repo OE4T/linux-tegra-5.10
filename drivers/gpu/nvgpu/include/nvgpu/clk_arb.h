@@ -91,7 +91,7 @@ struct nvgpu_clk_session;
 #define LOCAL_ALARM_MASK (EVENT(ALARM_LOCAL_TARGET_VF_NOT_POSSIBLE) | \
 				EVENT(VF_UPDATE))
 
-#define _WRAPGTEQ(a, b) ((a-b) > 0)
+#define _WRAPGTEQ(a, b) ((a-b) > (typeof(a))0)
 
 /*
  * NVGPU_POLL* defines equivalent to the POLL* linux defines

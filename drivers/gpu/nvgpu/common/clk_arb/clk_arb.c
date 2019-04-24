@@ -57,7 +57,7 @@ int nvgpu_clk_notification_queue_alloc(struct gk20a *g,
 
 void nvgpu_clk_notification_queue_free(struct gk20a *g,
 		struct nvgpu_clk_notification_queue *queue) {
-	if (queue->size > 0) {
+	if (queue->size > 0U) {
 		nvgpu_kfree(g, queue->notifications);
 		queue->size = 0;
 		nvgpu_atomic_set(&queue->head, 0);
@@ -72,7 +72,7 @@ static void nvgpu_clk_arb_queue_notification(struct gk20a *g,
 	u32 queue_index;
 	u64 timestamp;
 
-	queue_index = (nvgpu_atomic_inc_return(&queue->tail)) % queue->size;
+	queue_index = U32(nvgpu_atomic_inc_return(&queue->tail)) % queue->size;
 	/* get current timestamp */
 	timestamp = (u64) nvgpu_hr_timestamp();
 
@@ -94,8 +94,8 @@ void nvgpu_clk_arb_set_global_alarm(struct gk20a *g, u32 alarm)
 		current_mask = (u64)nvgpu_atomic64_read(&arb->alarm_mask);
 		/* atomic operations are strong so they do not need masks */
 
-		refcnt = ((u32) (current_mask >> 32)) + 1;
-		alarm_mask =  (u32) (current_mask &  ~0) | alarm;
+		refcnt = ((u32) (current_mask >> 32)) + 1U;
+		alarm_mask =  (u32) (current_mask &  ~U32(0)) | alarm;
 		new_mask = ((u64) refcnt << 32) | alarm_mask;
 
 	} while (unlikely(current_mask !=
@@ -359,7 +359,7 @@ void nvgpu_clk_arb_clear_global_alarm(struct gk20a *g, u32 alarm)
 		current_mask = (u64)nvgpu_atomic64_read(&arb->alarm_mask);
 		/* atomic operations are strong so they do not need masks */
 
-		refcnt = ((u32) (current_mask >> 32)) + 1;
+		refcnt = ((u32) (current_mask >> 32)) + 1U;
 		alarm_mask =  (u32) (current_mask & ~alarm);
 		new_mask = ((u64) refcnt << 32) | alarm_mask;
 
@@ -647,10 +647,10 @@ bool nvgpu_clk_arb_is_valid_domain(struct gk20a *g, u32 api_domain)
 
 	switch (api_domain) {
 	case NVGPU_CLK_DOMAIN_MCLK:
-		return (clk_domains & CTRL_CLK_DOMAIN_MCLK) != 0;
+		return (clk_domains & CTRL_CLK_DOMAIN_MCLK) != 0U;
 
 	case NVGPU_CLK_DOMAIN_GPCCLK:
-		return (clk_domains & CTRL_CLK_DOMAIN_GPCCLK) != 0;
+		return (clk_domains & CTRL_CLK_DOMAIN_GPCCLK) != 0U;
 
 	default:
 		return false;
