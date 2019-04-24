@@ -44,7 +44,6 @@
 #include <nvgpu/linux/vm.h>
 
 #include "gk20a/mm_gk20a.h"
-#include "gk20a/gr_gk20a.h"
 
 #include "cde.h"
 #include "os_linux.h"

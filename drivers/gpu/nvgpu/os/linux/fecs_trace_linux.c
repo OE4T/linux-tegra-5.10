@@ -29,14 +29,11 @@
 #include <nvgpu/gr/fecs_trace.h>
 #include <nvgpu/string.h>
 
-#include "gk20a/gr_gk20a.h"
 #include "common/gr/gr_priv.h"
 
 #include "platform_gk20a.h"
 #include "os_linux.h"
 #include "fecs_trace_linux.h"
-
-#include <nvgpu/hw/gk20a/hw_gr_gk20a.h>
 
 #define GK20A_CTXSW_TRACE_MAX_VM_RING_SIZE	(128*PAGE_SIZE)
 

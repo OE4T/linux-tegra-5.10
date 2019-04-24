@@ -36,8 +36,6 @@
 
 #include "common/gr/gr_priv.h"
 
-#include "gk20a/gr_gk20a.h"
-
 void nvgpu_tsg_disable(struct tsg_gk20a *tsg)
 {
 	struct gk20a *g = tsg->g;

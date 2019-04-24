@@ -55,7 +55,6 @@
 #include <nvgpu/preempt.h>
 
 #include "common/gr/gr_priv.h"
-#include "gk20a/gr_gk20a.h"
 
 static void free_channel(struct fifo_gk20a *f, struct channel_gk20a *ch);
 static void gk20a_channel_dump_ref_actions(struct channel_gk20a *ch);

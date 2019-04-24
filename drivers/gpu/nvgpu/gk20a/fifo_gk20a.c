@@ -64,7 +64,6 @@
 
 #include <nvgpu/hw/gk20a/hw_fifo_gk20a.h>
 #include <nvgpu/hw/gk20a/hw_pbdma_gk20a.h>
-#include <nvgpu/hw/gk20a/hw_gr_gk20a.h>
 
 #define FECS_METHOD_WFI_RESTORE 0x80000U
 

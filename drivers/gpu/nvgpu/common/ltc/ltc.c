@@ -25,8 +25,6 @@
 #include <nvgpu/nvgpu_mem.h>
 #include <nvgpu/gk20a.h>
 
-#include "gk20a/gr_gk20a.h"
-
 void nvgpu_ltc_remove_support(struct gk20a *g)
 {
 	struct nvgpu_ltc *ltc = g->ltc;

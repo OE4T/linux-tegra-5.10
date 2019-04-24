@@ -46,8 +46,6 @@
 #include <nvgpu/cyclestats_snapshot.h>
 #include <nvgpu/power_features/pg.h>
 
-#include <nvgpu/hw/gk20a/hw_gr_gk20a.h>
-
 #include "gr_vgpu.h"
 #include "ctx_vgpu.h"
 #include "subctx_vgpu.h"
