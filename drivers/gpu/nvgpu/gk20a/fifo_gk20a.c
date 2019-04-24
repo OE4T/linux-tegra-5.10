@@ -21,51 +21,18 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-
-#include <nvgpu/mm.h>
-#include <nvgpu/dma.h>
-#include <nvgpu/timers.h>
-#include <nvgpu/enabled.h>
-#include <nvgpu/semaphore.h>
-#include <nvgpu/kmem.h>
 #include <nvgpu/log.h>
 #include <nvgpu/soc.h>
-#include <nvgpu/atomic.h>
-#include <nvgpu/bug.h>
-#include <nvgpu/log2.h>
-#include <nvgpu/debug.h>
-#include <nvgpu/nvhost.h>
-#include <nvgpu/barrier.h>
-#include <nvgpu/error_notifier.h>
-#include <nvgpu/ptimer.h>
 #include <nvgpu/io.h>
-#include <nvgpu/utils.h>
 #include <nvgpu/fifo.h>
-#include <nvgpu/rc.h>
-#include <nvgpu/runlist.h>
 #include <nvgpu/gk20a.h>
-#include <nvgpu/channel.h>
 #include <nvgpu/unit.h>
-#include <nvgpu/types.h>
-#include <nvgpu/vm_area.h>
-#include <nvgpu/top.h>
-#include <nvgpu/nvgpu_err.h>
-#include <nvgpu/pbdma_status.h>
-#include <nvgpu/engine_status.h>
-#include <nvgpu/engines.h>
+#include <nvgpu/ptimer.h>
 #include <nvgpu/power_features/cg.h>
-#include <nvgpu/power_features/pg.h>
-#include <nvgpu/power_features/power_features.h>
-#include <nvgpu/gr/fecs_trace.h>
 
-#include "mm_gk20a.h"
-
-#include <hal/fifo/mmu_fault_gk20a.h>
+#include "fifo_gk20a.h"
 
 #include <nvgpu/hw/gk20a/hw_fifo_gk20a.h>
-#include <nvgpu/hw/gk20a/hw_pbdma_gk20a.h>
-
-#define FECS_METHOD_WFI_RESTORE 0x80000U
 
 int gk20a_init_fifo_reset_enable_hw(struct gk20a *g)
 {

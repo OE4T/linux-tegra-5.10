@@ -37,7 +37,6 @@
 #include <hal/fifo/mmu_fault_gk20a.h>
 
 #include <nvgpu/hw/gk20a/hw_fifo_gk20a.h>
-#include <nvgpu/hw/gk20a/hw_pbdma_gk20a.h> /* TODO: remove */
 
 static u32 gk20a_fifo_intr_0_error_mask(struct gk20a *g)
 {
