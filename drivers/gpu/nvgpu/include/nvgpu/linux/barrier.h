@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -26,9 +26,6 @@
 #define __nvgpu_smp_mb()	smp_mb()
 #define __nvgpu_smp_rmb()	smp_rmb()
 #define __nvgpu_smp_wmb()	smp_wmb()
-
-#define __nvgpu_read_barrier_depends()	read_barrier_depends()
-#define __nvgpu_smp_read_barrier_depends()	smp_read_barrier_depends()
 
 #define __NV_ACCESS_ONCE(x)	ACCESS_ONCE(x)
 
