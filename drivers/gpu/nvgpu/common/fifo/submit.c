@@ -326,7 +326,7 @@ static int nvgpu_submit_channel_gpfifo(struct channel_gk20a *c,
 				u32 flags,
 				struct nvgpu_channel_fence *fence,
 				struct nvgpu_fence_type **fence_out,
-				struct fifo_profile_gk20a *profile)
+				struct nvgpu_profile *profile)
 {
 	struct gk20a *g = c->g;
 	struct priv_cmd_entry *wait_cmd = NULL;
@@ -381,7 +381,7 @@ static int nvgpu_submit_channel_gpfifo(struct channel_gk20a *c,
 		return -EINVAL;
 	}
 
-	gk20a_fifo_profile_snapshot(profile, PROFILE_ENTRY);
+	nvgpu_profile_snapshot(profile, PROFILE_ENTRY);
 
 	/* update debug settings */
 	nvgpu_ltc_sync_enabled(g);
@@ -534,7 +534,7 @@ static int nvgpu_submit_channel_gpfifo(struct channel_gk20a *c,
 		}
 	}
 
-	gk20a_fifo_profile_snapshot(profile, PROFILE_JOB_TRACKING);
+	nvgpu_profile_snapshot(profile, PROFILE_JOB_TRACKING);
 
 	if (wait_cmd != NULL) {
 		nvgpu_submit_append_priv_cmdbuf(c, wait_cmd);
@@ -562,7 +562,7 @@ static int nvgpu_submit_channel_gpfifo(struct channel_gk20a *c,
 		/* TODO! Check for errors... */
 		gk20a_channel_add_job(c, job, skip_buffer_refcounting);
 	}
-	gk20a_fifo_profile_snapshot(profile, PROFILE_APPEND);
+	nvgpu_profile_snapshot(profile, PROFILE_APPEND);
 
 	g->ops.userd.gp_put(g, c);
 
@@ -581,7 +581,7 @@ static int nvgpu_submit_channel_gpfifo(struct channel_gk20a *c,
 	nvgpu_log_info(g, "post-submit put %d, get %d, size %d",
 		c->gpfifo.put, c->gpfifo.get, c->gpfifo.entry_num);
 
-	gk20a_fifo_profile_snapshot(profile, PROFILE_END);
+	nvgpu_profile_snapshot(profile, PROFILE_END);
 
 	nvgpu_log_fn(g, "done");
 	return err;
@@ -606,7 +606,7 @@ int nvgpu_submit_channel_gpfifo_user(struct channel_gk20a *c,
 				u32 flags,
 				struct nvgpu_channel_fence *fence,
 				struct nvgpu_fence_type **fence_out,
-				struct fifo_profile_gk20a *profile)
+				struct nvgpu_profile *profile)
 {
 	return nvgpu_submit_channel_gpfifo(c, NULL, userdata, num_entries,
 			flags, fence, fence_out, profile);

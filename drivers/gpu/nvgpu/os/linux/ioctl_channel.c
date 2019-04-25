@@ -43,6 +43,7 @@
 #include <nvgpu/gr/obj_ctx.h>
 #include <nvgpu/fence.h>
 #include <nvgpu/preempt.h>
+#include <nvgpu/profile.h>
 
 #include "platform_gk20a.h"
 #include "ioctl_channel.h"
@@ -771,7 +772,7 @@ static int gk20a_ioctl_channel_submit_gpfifo(
 {
 	struct nvgpu_channel_fence fence;
 	struct nvgpu_fence_type *fence_out;
-	struct fifo_profile_gk20a *profile = NULL;
+	struct nvgpu_profile *profile = NULL;
 	u32 submit_flags = 0;
 	int fd = -1;
 	struct gk20a *g = ch->g;
@@ -780,8 +781,8 @@ static int gk20a_ioctl_channel_submit_gpfifo(
 	int ret = 0;
 	nvgpu_log_fn(g, " ");
 
-	profile = gk20a_fifo_profile_acquire(ch->g);
-	gk20a_fifo_profile_snapshot(profile, PROFILE_IOCTL_ENTRY);
+	profile = nvgpu_profile_acquire(ch->g);
+	nvgpu_profile_snapshot(profile, PROFILE_IOCTL_ENTRY);
 
 	if (gk20a_channel_check_unserviceable(ch)) {
 		return -ETIMEDOUT;
@@ -828,9 +829,9 @@ static int gk20a_ioctl_channel_submit_gpfifo(
 	}
 	nvgpu_fence_put(fence_out);
 
-	gk20a_fifo_profile_snapshot(profile, PROFILE_IOCTL_EXIT);
+	nvgpu_profile_snapshot(profile, PROFILE_IOCTL_EXIT);
 	if (profile)
-		gk20a_fifo_profile_release(ch->g, profile);
+		nvgpu_profile_release(ch->g, profile);
 
 clean_up:
 	return ret;

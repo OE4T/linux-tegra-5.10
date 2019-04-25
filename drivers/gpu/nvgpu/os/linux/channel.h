@@ -26,7 +26,7 @@ struct nvgpu_gpfifo;
 struct nvgpu_submit_gpfifo_args;
 struct nvgpu_channel_fence;
 struct nvgpu_fence_type;
-struct fifo_profile_gk20a;
+struct nvgpu_profile;
 struct nvgpu_os_linux;
 
 struct sync_fence;

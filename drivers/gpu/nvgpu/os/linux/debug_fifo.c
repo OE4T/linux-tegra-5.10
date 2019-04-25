@@ -23,6 +23,7 @@
 #include <nvgpu/channel.h>
 #include <nvgpu/gr/ctx.h>
 #include <nvgpu/engines.h>
+#include <nvgpu/profile.h>
 
 void __gk20a_fifo_profile_free(struct nvgpu_ref *ref);
 
@@ -161,7 +162,7 @@ static int gk20a_fifo_profile_enable(void *data, u64 val)
 			if (!nvgpu_ref_get_unless_zero(&f->profile.ref)) {
 				f->profile.data = nvgpu_vzalloc(g,
 					FIFO_PROFILING_ENTRIES *
-					sizeof(struct fifo_profile_gk20a));
+					sizeof(struct nvgpu_profile));
 				f->profile.sorted  = nvgpu_vzalloc(g,
 					FIFO_PROFILING_ENTRIES *
 					sizeof(u64));
@@ -206,7 +207,7 @@ static unsigned int __gk20a_fifo_create_stats(struct gk20a *g,
 {
 	unsigned int nelem = 0;
 	unsigned int index;
-	struct fifo_profile_gk20a *profile;
+	struct nvgpu_profile *profile;
 
 	for (index = 0; index < FIFO_PROFILING_ENTRIES; index++) {
 		profile = &g->fifo.profile.data[index];
@@ -329,7 +330,7 @@ void gk20a_fifo_debugfs_init(struct gk20a *g)
 
 }
 
-void gk20a_fifo_profile_snapshot(struct fifo_profile_gk20a *profile, int idx)
+void nvgpu_profile_snapshot(struct nvgpu_profile *profile, int idx)
 {
 	if (profile)
 		profile->timestamp[idx] = nvgpu_current_time_ns();
@@ -346,10 +347,10 @@ void __gk20a_fifo_profile_free(struct nvgpu_ref *ref)
 /* Get the next element in the ring buffer of profile entries
  * and grab a reference to the structure
  */
-struct fifo_profile_gk20a *gk20a_fifo_profile_acquire(struct gk20a *g)
+struct nvgpu_profile *nvgpu_profile_acquire(struct gk20a *g)
 {
 	struct fifo_gk20a *f = &g->fifo;
-	struct fifo_profile_gk20a *profile;
+	struct nvgpu_profile *profile;
 	unsigned int index;
 
 	/* If kref is zero, profiling is not enabled */
@@ -362,8 +363,8 @@ struct fifo_profile_gk20a *gk20a_fifo_profile_acquire(struct gk20a *g)
 }
 
 /* Free the reference to the structure. This allows deferred cleanups */
-void gk20a_fifo_profile_release(struct gk20a *g,
-					struct fifo_profile_gk20a *profile)
+void nvgpu_profile_release(struct gk20a *g,
+					struct nvgpu_profile *profile)
 {
 	nvgpu_ref_put(&g->fifo.profile.ref, __gk20a_fifo_profile_free);
 }
