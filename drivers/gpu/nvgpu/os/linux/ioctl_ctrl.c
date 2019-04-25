@@ -336,7 +336,7 @@ gk20a_ctrl_ioctl_gpu_characteristics(
 	gpu.sm_arch_spa_version = g->params.sm_arch_spa_version;
 	gpu.sm_arch_warp_count = g->params.sm_arch_warp_count;
 
-	gpu.max_css_buffer_size = g->gr->max_css_buffer_size;
+	gpu.max_css_buffer_size = g->ops.css.get_max_buffer_size(g);;
 	gpu.max_ctxsw_ring_buffer_size = g->gr->max_ctxsw_ring_buffer_size;
 
 	gpu.gpu_ioctl_nr_last = NVGPU_GPU_IOCTL_LAST;

@@ -599,3 +599,8 @@ int nvgpu_css_check_data_available(struct channel_gk20a *ch, u32 *pending,
 	*hw_overflow = nvgpu_css_get_overflow_status(g);
 	return 0;
 }
+
+u32 nvgpu_css_get_max_buffer_size(struct gk20a *g)
+{
+	return 0xffffffffU;
+}

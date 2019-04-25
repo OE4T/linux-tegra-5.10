@@ -728,6 +728,7 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 		.set_handled_snapshots = NULL,
 		.allocate_perfmon_ids = NULL,
 		.release_perfmon_ids = NULL,
+		.get_max_buffer_size = vgpu_css_get_buffer_size,
 	},
 #endif
 	.priv_ring = {

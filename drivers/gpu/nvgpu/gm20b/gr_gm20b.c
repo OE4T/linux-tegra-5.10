@@ -492,7 +492,6 @@ void gr_gm20b_init_cyclestats(struct gk20a *g)
 #if defined(CONFIG_GK20A_CYCLE_STATS)
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_CYCLE_STATS, true);
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_CYCLE_STATS_SNAPSHOT, true);
-	g->gr->max_css_buffer_size = 0xffffffffU;
 #else
 	(void)g;
 #endif

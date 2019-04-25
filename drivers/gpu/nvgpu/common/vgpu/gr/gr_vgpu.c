@@ -1231,14 +1231,15 @@ void vgpu_gr_init_cyclestats(struct gk20a *g)
 {
 #if defined(CONFIG_GK20A_CYCLE_STATS)
 	bool snapshots_supported = true;
+	u32 max_css_buffer_size;
 
 	/* cyclestats not supported on vgpu */
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_CYCLE_STATS, false);
 
-	g->gr->max_css_buffer_size = vgpu_css_get_buffer_size(g);
+	max_css_buffer_size = vgpu_css_get_buffer_size(g);
 
 	/* snapshots not supported if the buffer size is 0 */
-	if (g->gr->max_css_buffer_size == 0) {
+	if (max_css_buffer_size == 0) {
 		snapshots_supported = false;
 	}
 

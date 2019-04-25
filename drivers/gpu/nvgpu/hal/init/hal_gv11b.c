@@ -1299,6 +1299,7 @@ static const struct gpu_ops gv11b_ops = {
 		.release_perfmon_ids = nvgpu_css_release_perfmon_ids,
 		.get_overflow_status = nvgpu_css_get_overflow_status,
 		.get_pending_snapshots = nvgpu_css_get_pending_snapshots,
+		.get_max_buffer_size = nvgpu_css_get_max_buffer_size,
 	},
 #endif
 	.falcon = {

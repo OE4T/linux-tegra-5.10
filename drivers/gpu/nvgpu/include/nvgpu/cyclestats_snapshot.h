@@ -162,4 +162,6 @@ int nvgpu_css_flush(struct channel_gk20a *ch,
 
 void nvgpu_free_cyclestats_snapshot_data(struct gk20a *g);
 
+u32 nvgpu_css_get_max_buffer_size(struct gk20a *g);
+
 #endif /* CYCLESTATS_SNAPSHOT_H */

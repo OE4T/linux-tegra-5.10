@@ -81,7 +81,6 @@ struct nvgpu_gr {
 	u32 fbp_en_mask;
 	u32 *fbp_rop_l2_en_mask;
 
-	u32 max_css_buffer_size;
 	u32 max_ctxsw_ring_buffer_size;
 
 	struct nvgpu_mutex ctxsw_disable_mutex;
