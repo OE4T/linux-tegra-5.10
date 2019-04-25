@@ -1,7 +1,7 @@
 /*
  * mods_dmabuf.c - This file is part of NVIDIA MODS kernel driver.
  *
- * Copyright (c) 2014-2017, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * NVIDIA MODS kernel driver is free software: you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -48,7 +48,7 @@ int esc_mods_dmabuf_get_phys_addr(struct file *filp,
 	u64                        total_size = 0;
 	u32                        total_segments = 0;
 	phys_addr_t                physical_address = 0;
-	unsigned int               segment_size = 0;
+	u64                        segment_size = 0;
 	struct scatterlist        *sg;
 	unsigned int               sg_index;
 
