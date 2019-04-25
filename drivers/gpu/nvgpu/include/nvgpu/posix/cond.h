@@ -91,7 +91,7 @@ void nvgpu_cond_unlock(struct nvgpu_cond *cond);
  * signal.
  */
 #define NVGPU_COND_WAIT_INTERRUPTIBLE(cond, condition, timeout_ms) \
-				NVGPU_COND_WAIT(cond, condition, timeout_ms)
+			NVGPU_COND_WAIT((cond), (condition), (timeout_ms))
 
 
 #define NVGPU_COND_WAIT_TIMEOUT_LOCKED(cond, condition, ret, timeout_ms)\
