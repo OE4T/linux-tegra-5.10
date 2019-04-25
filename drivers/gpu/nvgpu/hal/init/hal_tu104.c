@@ -81,6 +81,7 @@
 #include "hal/fifo/ramin_gm20b.h"
 #include "hal/fifo/ramin_gp10b.h"
 #include "hal/fifo/ramin_gv11b.h"
+#include "hal/fifo/ramin_tu104.h"
 #include "hal/fifo/runlist_gk20a.h"
 #include "hal/fifo/runlist_gv11b.h"
 #include "hal/fifo/runlist_tu104.h"
@@ -963,8 +964,6 @@ static const struct gpu_ops tu104_ops = {
 		.intr_unset_recover_mask = gv11b_fifo_intr_unset_recover_mask,
 		.setup_sw = nvgpu_fifo_setup_sw,
 		.cleanup_sw = nvgpu_fifo_cleanup_sw,
-		.init_pdb_cache_war = tu104_init_pdb_cache_war,
-		.deinit_pdb_cache_war = tu104_deinit_pdb_cache_war,
 		.set_sm_exception_type_mask = gk20a_tsg_set_sm_exception_type_mask,
 		.intr_0_enable = gv11b_fifo_intr_0_enable,
 		.intr_1_enable = gk20a_fifo_intr_1_enable,
@@ -1076,6 +1075,8 @@ static const struct gpu_ops tu104_ops = {
 		.base_shift = gk20a_ramin_base_shift,
 		.alloc_size = gk20a_ramin_alloc_size,
 		.set_eng_method_buffer = gv11b_ramin_set_eng_method_buffer,
+		.init_pdb_cache_war = tu104_ramin_init_pdb_cache_war,
+		.deinit_pdb_cache_war = tu104_ramin_deinit_pdb_cache_war,
 	},
 	.runlist = {
 		.update_for_channel = gk20a_runlist_update_for_channel,

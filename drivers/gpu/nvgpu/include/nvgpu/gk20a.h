@@ -1007,8 +1007,6 @@ struct gpu_ops {
 			 struct mmu_fault_info *mmfault);
 		void (*intr_set_recover_mask)(struct gk20a *g);
 		void (*intr_unset_recover_mask)(struct gk20a *g);
-		int (*init_pdb_cache_war)(struct gk20a *g);
-		void (*deinit_pdb_cache_war)(struct gk20a *g);
 		int (*set_sm_exception_type_mask)(struct channel_gk20a *ch,
 				u32 exception_mask);
 		struct {
@@ -1062,6 +1060,8 @@ struct gpu_ops {
 				struct nvgpu_mem *inst_block,
 				struct nvgpu_mem *pdb_mem,
 				bool replayable);
+		int (*init_pdb_cache_war)(struct gk20a *g);
+		void (*deinit_pdb_cache_war)(struct gk20a *g);
 		void (*set_adr_limit)(struct gk20a *g,
 				struct nvgpu_mem *inst_block, u64 va_limit);
 		u32 (*base_shift)(void);

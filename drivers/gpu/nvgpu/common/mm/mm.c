@@ -226,8 +226,8 @@ static void nvgpu_remove_mm_support(struct mm_gk20a *mm)
 	nvgpu_vidmem_destroy(g);
 	nvgpu_pd_cache_fini(g);
 
-	if (g->ops.fifo.deinit_pdb_cache_war != NULL) {
-		g->ops.fifo.deinit_pdb_cache_war(g);
+	if (g->ops.ramin.deinit_pdb_cache_war != NULL) {
+		g->ops.ramin.deinit_pdb_cache_war(g);
 	}
 }
 
@@ -585,8 +585,8 @@ static int nvgpu_init_mm_pdb_cache_war(struct gk20a *g)
 {
 	int err;
 
-	if (g->ops.fifo.init_pdb_cache_war != NULL) {
-		err = g->ops.fifo.init_pdb_cache_war(g);
+	if (g->ops.ramin.init_pdb_cache_war != NULL) {
+		err = g->ops.ramin.init_pdb_cache_war(g);
 		if (err != 0) {
 			return err;
 		}

@@ -20,13 +20,14 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NVGPU_FIFO_TU104_H
-#define NVGPU_FIFO_TU104_H
+#ifndef NVGPU_RAMIN_TU104_H
+#define NVGPU_RAMIN_TU104_H
 
 #include <nvgpu/types.h>
 
 struct gk20a;
 
-int tu104_init_fifo_setup_hw(struct gk20a *g);
+int tu104_ramin_init_pdb_cache_war(struct gk20a *g);
+void tu104_ramin_deinit_pdb_cache_war(struct gk20a *g);
 
-#endif /* NVGPU_FIFO_TU104_H */
+#endif /* NVGPU_RAMIN_TU104_H */
