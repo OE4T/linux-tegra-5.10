@@ -41,6 +41,7 @@
 #include <nvgpu/pmu/pmgr.h>
 #include <nvgpu/power_features/pg.h>
 #include <nvgpu/fence.h>
+#include <nvgpu/channel_sync_syncpt.h>
 
 #include "common/gr/gr_priv.h"
 
@@ -457,7 +458,7 @@ static int gk20a_ctrl_prepare_compressible_read(
 				args->fence.syncpt_value =
 						fence_out->syncpt_value;
 			} else {
-				args->fence.syncpt_id = FIFO_INVAL_SYNCPT_ID;
+				args->fence.syncpt_id = NVGPU_INVALID_SYNCPT_ID;
 				args->fence.syncpt_value = 0;
 			}
 		}

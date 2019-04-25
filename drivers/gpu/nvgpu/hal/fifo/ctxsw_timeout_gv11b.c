@@ -90,7 +90,7 @@ void gv11b_fifo_ctxsw_timeout_enable(struct gk20a *g, bool enable)
 static u32 gv11b_fifo_ctxsw_timeout_info(struct gk20a *g, u32 active_eng_id,
 						u32 *info_status)
 {
-	u32 tsgid = FIFO_INVAL_TSG_ID;
+	u32 tsgid = NVGPU_INVALID_TSG_ID;
 	u32 timeout_info;
 	u32 ctx_status;
 
@@ -158,14 +158,14 @@ static u32 gv11b_fifo_ctxsw_timeout_info(struct gk20a *g, u32 active_eng_id,
 
 		nvgpu_log_info(g, "ctxsw timeout info : ack received");
 		/* no need to recover */
-		tsgid = FIFO_INVAL_TSG_ID;
+		tsgid = NVGPU_INVALID_TSG_ID;
 
 	} else if (*info_status ==
 		fifo_intr_ctxsw_timeout_info_status_dropped_timeout_v()) {
 
 		nvgpu_log_info(g, "ctxsw timeout info : dropped timeout");
 		/* no need to recover */
-		tsgid = FIFO_INVAL_TSG_ID;
+		tsgid = NVGPU_INVALID_TSG_ID;
 
 	}
 	return tsgid;
@@ -174,7 +174,7 @@ static u32 gv11b_fifo_ctxsw_timeout_info(struct gk20a *g, u32 active_eng_id,
 bool gv11b_fifo_handle_ctxsw_timeout(struct gk20a *g)
 {
 	bool recover = false;
-	u32 tsgid = FIFO_INVAL_TSG_ID;
+	u32 tsgid = NVGPU_INVALID_TSG_ID;
 	u32 engine_id, active_eng_id;
 	u32 timeout_val, ctxsw_timeout_engines;
 	u32 info_status;

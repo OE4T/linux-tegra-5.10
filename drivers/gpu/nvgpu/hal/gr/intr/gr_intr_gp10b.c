@@ -23,6 +23,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/io.h>
 #include <nvgpu/class.h>
+#include <nvgpu/channel.h>
 
 #include <nvgpu/gr/config.h>
 #include <nvgpu/gr/gr.h>
@@ -35,8 +36,6 @@
 #include "gr_intr_gp10b.h"
 
 #include <nvgpu/hw/gp10b/hw_gr_gp10b.h>
-
-#define NVGPU_GR_FIFO_INVAL_CHANNEL_ID		(~U32(0U))
 
 static int gp10b_gr_intr_clear_cilp_preempt_pending(struct gk20a *g,
 					       struct channel_gk20a *fault_ch)
@@ -63,7 +62,7 @@ static int gp10b_gr_intr_clear_cilp_preempt_pending(struct gk20a *g,
 	}
 
 	nvgpu_gr_ctx_set_cilp_preempt_pending(gr_ctx, false);
-	g->gr->cilp_preempt_pending_chid = NVGPU_GR_FIFO_INVAL_CHANNEL_ID;
+	g->gr->cilp_preempt_pending_chid = NVGPU_INVALID_CHANNEL_ID;
 
 	return 0;
 }
@@ -78,7 +77,7 @@ static int gp10b_gr_intr_get_cilp_preempt_pending_chid(struct gk20a *g,
 	int ret = -EINVAL;
 
 	chid = g->gr->cilp_preempt_pending_chid;
-	if (chid == NVGPU_GR_FIFO_INVAL_CHANNEL_ID) {
+	if (chid == NVGPU_INVALID_CHANNEL_ID) {
 		return ret;
 	}
 
@@ -110,7 +109,7 @@ int gp10b_gr_intr_handle_fecs_error(struct gk20a *g,
 				struct nvgpu_gr_isr_data *isr_data)
 {
 	struct channel_gk20a *ch;
-	u32 chid = FIFO_INVAL_CHANNEL_ID;
+	u32 chid = NVGPU_INVALID_CHANNEL_ID;
 	int ret = 0;
 	struct tsg_gk20a *tsg;
 	struct nvgpu_fecs_host_intr_status fecs_host_intr;
@@ -137,7 +136,7 @@ int gp10b_gr_intr_handle_fecs_error(struct gk20a *g,
 					fecs_host_intr.ctxsw_intr1);
 
 		ret = gp10b_gr_intr_get_cilp_preempt_pending_chid(g, &chid);
-		if ((ret != 0) || (chid == FIFO_INVAL_CHANNEL_ID)) {
+		if ((ret != 0) || (chid == NVGPU_INVALID_CHANNEL_ID)) {
 			goto clean_up;
 		}
 

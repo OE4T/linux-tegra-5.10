@@ -623,7 +623,7 @@ void _gk20a_channel_put(struct channel_gk20a *ch, const char *caller)
 struct channel_gk20a *_gk20a_channel_from_id(struct gk20a *g, u32 chid,
 					 const char *caller)
 {
-	if (chid == FIFO_INVAL_CHANNEL_ID) {
+	if (chid == NVGPU_INVALID_CHANNEL_ID) {
 		return NULL;
 	}
 
@@ -1141,7 +1141,7 @@ int nvgpu_channel_set_syncpt(struct channel_gk20a *ch)
 			new_syncpt =
 			    nvgpu_channel_sync_get_syncpt_id(sync_syncpt);
 		} else {
-			new_syncpt = FIFO_INVAL_SYNCPT_ID;
+			new_syncpt = NVGPU_INVALID_SYNCPT_ID;
 		}
 	}
 

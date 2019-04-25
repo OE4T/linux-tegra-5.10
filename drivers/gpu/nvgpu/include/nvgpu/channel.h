@@ -32,6 +32,8 @@
 #include <nvgpu/allocator.h>
 #include <nvgpu/debug.h>
 
+#define NVGPU_INVALID_CHANNEL_ID	(~U32(0U))
+
 struct gk20a;
 struct dbg_session_gk20a;
 struct nvgpu_fence_type;

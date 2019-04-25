@@ -88,7 +88,7 @@ bool gk20a_fifo_handle_ctxsw_timeout(struct gk20a *g)
 	 * context caused the problem as maybe more switches occurred before
 	 * intr is handled.
 	 */
-	if (engine_id == FIFO_INVAL_ENGINE_ID) {
+	if (engine_id == NVGPU_INVALID_ENG_ID) {
 		nvgpu_info(g, "fifo ctxsw timeout: 0x%08x, failed to find engine "
 				"that is busy doing ctxsw. "
 				"May be ctxsw already happened", sched_error);

@@ -334,7 +334,7 @@ bool gk20a_fifo_handle_mmu_fault_locked(
 		}
 
 		/* check if engine reset should be deferred */
-		if (engine_id != FIFO_INVAL_ENGINE_ID) {
+		if (engine_id != NVGPU_INVALID_ENG_ID) {
 			bool defer = nvgpu_engine_should_defer_reset(g,
 					engine_id, mmfault_info.client_type,
 					fake_fault);

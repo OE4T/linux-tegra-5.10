@@ -31,16 +31,8 @@
 #include <nvgpu/runlist.h>
 #include <nvgpu/profile.h>
 
-struct gk20a_debug_output;
 struct channel_gk20a;
 struct tsg_gk20a;
-
-#define FIFO_INVAL_ENGINE_ID		(~U32(0U))
-#define FIFO_INVAL_MMU_ID		(~U32(0U))
-#define FIFO_INVAL_CHANNEL_ID		(~U32(0U))
-#define FIFO_INVAL_TSG_ID		(~U32(0U))
-#define FIFO_INVAL_RUNLIST_ID		(~U32(0U))
-#define FIFO_INVAL_SYNCPT_ID		(~U32(0U))
 
 struct fifo_gk20a {
 	struct gk20a *g;

@@ -138,7 +138,7 @@ void nvgpu_rc_gr_fault(struct gk20a *g, struct tsg_gk20a *tsg,
 	u32 gr_eng_bitmask = 0U;
 
 	gr_engine_id = nvgpu_engine_get_gr_id(g);
-	if (gr_engine_id != FIFO_INVAL_ENGINE_ID) {
+	if (gr_engine_id != NVGPU_INVALID_ENG_ID) {
 		gr_eng_bitmask = BIT32(gr_engine_id);
 	} else {
 		nvgpu_warn(g, "gr_engine_id is invalid");

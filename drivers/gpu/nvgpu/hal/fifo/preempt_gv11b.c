@@ -426,7 +426,7 @@ int gv11b_fifo_preempt_tsg(struct gk20a *g, struct tsg_gk20a *tsg)
 
 	runlist_id = tsg->runlist_id;
 	nvgpu_log_fn(g, "runlist_id: %d", runlist_id);
-	if (runlist_id == FIFO_INVAL_RUNLIST_ID) {
+	if (runlist_id == NVGPU_INVALID_RUNLIST_ID) {
 		return 0;
 	}
 

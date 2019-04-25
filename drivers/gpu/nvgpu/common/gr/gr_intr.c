@@ -171,7 +171,7 @@ static int gr_intr_handle_class_error(struct gk20a *g,
 				       struct nvgpu_gr_isr_data *isr_data)
 {
 	u32 chid = isr_data->ch != NULL ?
-		isr_data->ch->chid : FIFO_INVAL_CHANNEL_ID;
+		isr_data->ch->chid : NVGPU_INVALID_CHANNEL_ID;
 
 	nvgpu_log_fn(g, " ");
 
@@ -199,7 +199,7 @@ static void gr_intr_report_sm_exception(struct gk20a *g, u32 gpc, u32 tpc,
 	tsgid = NVGPU_INVALID_TSG_ID;
 	curr_ctx = g->ops.gr.falcon.get_current_ctx(g);
 	ch = nvgpu_gr_intr_get_channel_from_ctx(g, curr_ctx, &tsgid);
-	chid = ch != NULL ? ch->chid : FIFO_INVAL_CHANNEL_ID;
+	chid = ch != NULL ? ch->chid : NVGPU_INVALID_CHANNEL_ID;
 	if (ch != NULL) {
 		gk20a_channel_put(ch);
 	}
@@ -325,7 +325,7 @@ void nvgpu_gr_intr_report_exception(struct gk20a *g, u32 inst,
 	tsgid = NVGPU_INVALID_TSG_ID;
 	curr_ctx = g->ops.gr.falcon.get_current_ctx(g);
 	ch = nvgpu_gr_intr_get_channel_from_ctx(g, curr_ctx, &tsgid);
-	chid = ch != NULL ? ch->chid : FIFO_INVAL_CHANNEL_ID;
+	chid = ch != NULL ? ch->chid : NVGPU_INVALID_CHANNEL_ID;
 	if (ch != NULL) {
 		gk20a_channel_put(ch);
 	}
@@ -480,7 +480,7 @@ int nvgpu_gr_intr_handle_fecs_error(struct gk20a *g, struct channel_gk20a *ch,
 	int ret = 0;
 	struct nvgpu_fecs_host_intr_status fecs_host_intr;
 	u32 chid = isr_data->ch != NULL ?
-		isr_data->ch->chid : FIFO_INVAL_CHANNEL_ID;
+		isr_data->ch->chid : NVGPU_INVALID_CHANNEL_ID;
 	u32 mailbox_id = NVGPU_GR_FALCON_FECS_CTXSW_MAILBOX6;
 
 	gr_fecs_intr = g->ops.gr.falcon.fecs_host_intr_status(g,
@@ -712,7 +712,7 @@ int nvgpu_gr_intr_stall_isr(struct gk20a *g)
 
 	ch = nvgpu_gr_intr_get_channel_from_ctx(g, isr_data.curr_ctx, &tsgid);
 	isr_data.ch = ch;
-	chid = ch != NULL ? ch->chid : FIFO_INVAL_CHANNEL_ID;
+	chid = ch != NULL ? ch->chid : NVGPU_INVALID_CHANNEL_ID;
 
 	if (ch == NULL) {
 		nvgpu_err(g, "pgraph intr: 0x%08x, chid: INVALID", gr_intr);
@@ -788,7 +788,7 @@ int nvgpu_gr_intr_stall_isr(struct gk20a *g)
 	 * register using set_falcon[4] */
 	if (intr_info.fw_method != 0U) {
 		u32 ch_id = isr_data.ch != NULL ?
-			isr_data.ch->chid : FIFO_INVAL_CHANNEL_ID;
+			isr_data.ch->chid : NVGPU_INVALID_CHANNEL_ID;
 		nvgpu_err(g,
 		   "firmware method 0x%08x, offset 0x%08x for channel %u",
 		   isr_data.class_num, isr_data.offset,

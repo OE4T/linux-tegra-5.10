@@ -25,6 +25,8 @@
 
 #include <nvgpu/types.h>
 
+#define NVGPU_INVALID_ENG_ID		(~U32(0U))
+
 struct gk20a;
 struct fifo_gk20a;
 

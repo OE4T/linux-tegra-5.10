@@ -76,7 +76,7 @@ void gk20a_fifo_recover(struct gk20a *g, u32 eng_bitmask,
 			u32 mmu_id = nvgpu_engine_id_to_mmu_fault_id(g,
 							(u32)engine_id);
 
-			if (mmu_id != FIFO_INVAL_ENGINE_ID) {
+			if (mmu_id != NVGPU_INVALID_ENG_ID) {
 				mmu_fault_engines |= BIT(mmu_id);
 			}
 		}
@@ -106,7 +106,7 @@ void gk20a_fifo_recover(struct gk20a *g, u32 eng_bitmask,
 							active_engine_id);
 
 					engine_ids |= BIT(active_engine_id);
-					if (mmu_id != FIFO_INVAL_ENGINE_ID) {
+					if (mmu_id != NVGPU_INVALID_ENG_ID) {
 						mmu_fault_engines |= BIT(mmu_id);
 					}
 				}

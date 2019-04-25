@@ -184,7 +184,7 @@ static void gv11b_fb_copy_from_hw_fault_buf(struct gk20a *g,
 	u32 rd32_val;
 	u32 addr_lo, addr_hi;
 	u64 inst_ptr;
-	u32 chid = FIFO_INVAL_CHANNEL_ID;
+	u32 chid = NVGPU_INVALID_CHANNEL_ID;
 	struct channel_gk20a *refch;
 
 	(void) memset(mmufault, 0, sizeof(*mmufault));
@@ -287,7 +287,7 @@ void gv11b_gmmu_handle_mmu_fault_common(struct gk20a *g,
 	unsigned int id_type = ID_TYPE_UNKNOWN;
 	u32 num_lce, act_eng_bitmask = 0U;
 	int err = 0;
-	u32 id = FIFO_INVAL_TSG_ID;
+	u32 id = NVGPU_INVALID_TSG_ID;
 	unsigned int rc_type = RC_TYPE_NO_RC;
 	struct tsg_gk20a *tsg = NULL;
 
@@ -379,7 +379,7 @@ void gv11b_gmmu_handle_mmu_fault_common(struct gk20a *g,
 		}
 
 		/* engine is faulted */
-		if (mmufault->faulted_engine != FIFO_INVAL_ENGINE_ID) {
+		if (mmufault->faulted_engine != NVGPU_INVALID_ENG_ID) {
 			act_eng_bitmask = BIT32(mmufault->faulted_engine);
 			rc_type = RC_TYPE_MMU_FAULT;
 		}

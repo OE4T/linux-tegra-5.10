@@ -30,6 +30,8 @@
 #include <nvgpu/nvgpu_mem.h>
 #include <nvgpu/channel_sync.h>
 
+#define NVGPU_INVALID_SYNCPT_ID		(~U32(0U))
+
 struct channel_gk20a;
 struct nvgpu_channel_sync_syncpt;
 
@@ -72,7 +74,7 @@ nvgpu_channel_sync_syncpt_create(struct channel_gk20a *c,
 static inline u32 nvgpu_channel_sync_get_syncpt_id(
 	struct nvgpu_channel_sync_syncpt *s)
 {
-	return FIFO_INVAL_SYNCPT_ID;
+	return NVGPU_INVALID_SYNCPT_ID;
 }
 static inline u64 nvgpu_channel_sync_get_syncpt_address(
 	struct nvgpu_channel_sync_syncpt *s)

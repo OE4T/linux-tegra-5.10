@@ -45,6 +45,8 @@ struct channel_gk20a;
 
 #define MAX_RUNLIST_BUFFERS		2U
 
+#define NVGPU_INVALID_RUNLIST_ID		(~U32(0U))
+
 struct nvgpu_runlist_info {
 	u32 runlist_id;
 	unsigned long *active_channels;

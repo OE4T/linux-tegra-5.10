@@ -366,7 +366,7 @@ void gv11b_mm_copy_from_fault_snap_reg(struct gk20a *g,
 	u32 reg_val;
 	u32 addr_lo, addr_hi;
 	u64 inst_ptr;
-	u32 chid = FIFO_INVAL_CHANNEL_ID;
+	u32 chid = NVGPU_INVALID_CHANNEL_ID;
 	struct channel_gk20a *refch;
 
 	(void) memset(mmufault, 0, sizeof(*mmufault));

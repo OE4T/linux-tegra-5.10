@@ -29,6 +29,7 @@
 #include <nvgpu/channel.h>
 #include <nvgpu/semaphore.h>
 #include <nvgpu/fence.h>
+#include <nvgpu/channel_sync_syncpt.h>
 
 static struct nvgpu_fence_type *nvgpu_fence_from_ref(struct nvgpu_ref *ref)
 {
@@ -191,7 +192,7 @@ void nvgpu_fence_init(struct nvgpu_fence_type *f,
 		return;
 	}
 	f->ops = ops;
-	f->syncpt_id = FIFO_INVAL_SYNCPT_ID;
+	f->syncpt_id = NVGPU_INVALID_SYNCPT_ID;
 	f->semaphore = NULL;
 	f->os_fence = os_fence;
 }

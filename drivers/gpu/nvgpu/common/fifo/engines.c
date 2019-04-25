@@ -165,7 +165,7 @@ bool nvgpu_engine_check_valid_id(struct gk20a *g, u32 engine_id)
 u32 nvgpu_engine_get_gr_id(struct gk20a *g)
 {
 	u32 gr_engine_cnt = 0;
-	u32 gr_engine_id = FIFO_INVAL_ENGINE_ID;
+	u32 gr_engine_id = NVGPU_INVALID_ENG_ID;
 
 	/* Consider 1st available GR engine */
 	gr_engine_cnt = nvgpu_engine_get_ids(g, &gr_engine_id,
@@ -280,8 +280,8 @@ int nvgpu_engine_disable_activity(struct gk20a *g,
 				struct nvgpu_engine_info *eng_info,
 				bool wait_for_idle)
 {
-	u32 pbdma_chid = FIFO_INVAL_CHANNEL_ID;
-	u32 engine_chid = FIFO_INVAL_CHANNEL_ID;
+	u32 pbdma_chid = NVGPU_INVALID_CHANNEL_ID;
+	u32 engine_chid = NVGPU_INVALID_CHANNEL_ID;
 	u32 token = PMU_INVALID_MUTEX_OWNER_ID;
 	int mutex_ret = -EINVAL;
 	struct channel_gk20a *ch = NULL;
@@ -316,7 +316,7 @@ int nvgpu_engine_disable_activity(struct gk20a *g,
 		pbdma_chid = pbdma_status.next_id;
 	}
 
-	if (pbdma_chid != FIFO_INVAL_CHANNEL_ID) {
+	if (pbdma_chid != NVGPU_INVALID_CHANNEL_ID) {
 		ch = gk20a_channel_from_id(g, pbdma_chid);
 		if (ch != NULL) {
 			err = g->ops.fifo.preempt_channel(g, ch);
@@ -338,7 +338,7 @@ int nvgpu_engine_disable_activity(struct gk20a *g,
 		engine_chid = engine_status.ctx_next_id;
 	}
 
-	if (engine_chid != FIFO_INVAL_ENGINE_ID && engine_chid != pbdma_chid) {
+	if (engine_chid != NVGPU_INVALID_ENG_ID && engine_chid != pbdma_chid) {
 		ch = gk20a_channel_from_id(g, engine_chid);
 		if (ch != NULL) {
 			err = g->ops.fifo.preempt_channel(g, ch);
@@ -605,7 +605,7 @@ u32 nvgpu_engine_get_fast_ce_runlist_id(struct gk20a *g)
 u32 nvgpu_engine_get_gr_runlist_id(struct gk20a *g)
 {
 	u32 gr_engine_cnt = 0;
-	u32 gr_engine_id = FIFO_INVAL_ENGINE_ID;
+	u32 gr_engine_id = NVGPU_INVALID_ENG_ID;
 	struct nvgpu_engine_info *engine_info;
 	u32 gr_runlist_id = U32_MAX;
 
@@ -665,7 +665,7 @@ bool nvgpu_engine_is_valid_runlist_id(struct gk20a *g, u32 runlist_id)
  */
 u32 nvgpu_engine_id_to_mmu_fault_id(struct gk20a *g, u32 engine_id)
 {
-	u32 fault_id = FIFO_INVAL_ENGINE_ID;
+	u32 fault_id = NVGPU_INVALID_ENG_ID;
 	struct nvgpu_engine_info *engine_info;
 
 	engine_info = nvgpu_engine_get_active_eng_info(g, engine_id);
@@ -693,7 +693,7 @@ u32 nvgpu_engine_mmu_fault_id_to_engine_id(struct gk20a *g, u32 fault_id)
 		if (engine_info->fault_id == fault_id) {
 			break;
 		}
-		active_engine_id = FIFO_INVAL_ENGINE_ID;
+		active_engine_id = NVGPU_INVALID_ENG_ID;
 	}
 	return active_engine_id;
 }
@@ -827,7 +827,7 @@ u32 nvgpu_engine_find_busy_doing_ctxsw(struct gk20a *g,
 	u32 id = U32_MAX;
 	bool is_tsg = false;
 	u32 mailbox2;
-	u32 act_eng_id = FIFO_INVAL_ENGINE_ID;
+	u32 act_eng_id = NVGPU_INVALID_ENG_ID;
 	struct nvgpu_engine_status_info engine_status;
 
 	for (engine_id = 0U; engine_id < g->fifo.num_engines; engine_id++) {
@@ -845,7 +845,7 @@ u32 nvgpu_engine_find_busy_doing_ctxsw(struct gk20a *g,
 			nvgpu_engine_status_is_ctxsw(&engine_status);
 
 		if (!failing_engine) {
-			act_eng_id = FIFO_INVAL_ENGINE_ID;
+			act_eng_id = NVGPU_INVALID_ENG_ID;
 			continue;
 		}
 

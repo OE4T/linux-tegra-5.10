@@ -103,7 +103,7 @@ int nvgpu_tsg_bind_channel(struct tsg_gk20a *tsg, struct channel_gk20a *ch)
 	}
 
 	/* all the channel part of TSG should need to be same runlist_id */
-	if (tsg->runlist_id == FIFO_INVAL_TSG_ID) {
+	if (tsg->runlist_id == NVGPU_INVALID_TSG_ID) {
 		tsg->runlist_id = ch->runlist_id;
 	} else if (tsg->runlist_id != ch->runlist_id) {
 		nvgpu_err(tsg->g,
@@ -644,7 +644,7 @@ int nvgpu_tsg_open_common(struct gk20a *g, struct tsg_gk20a *tsg, pid_t pid)
 	tsg->vm = NULL;
 	tsg->interleave_level = NVGPU_FIFO_RUNLIST_INTERLEAVE_LEVEL_LOW;
 	tsg->timeslice_us = g->ops.tsg.default_timeslice_us(g);
-	tsg->runlist_id = FIFO_INVAL_TSG_ID;
+	tsg->runlist_id = NVGPU_INVALID_TSG_ID;
 	tsg->sm_exception_mask_type = NVGPU_SM_EXCEPTION_TYPE_MASK_NONE;
 	tsg->gr_ctx = nvgpu_alloc_gr_ctx_struct(g);
 	if (tsg->gr_ctx == NULL) {
