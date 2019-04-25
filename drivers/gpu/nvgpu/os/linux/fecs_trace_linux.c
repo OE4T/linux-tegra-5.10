@@ -35,8 +35,6 @@
 #include "os_linux.h"
 #include "fecs_trace_linux.h"
 
-#define GK20A_CTXSW_TRACE_MAX_VM_RING_SIZE	(128*PAGE_SIZE)
-
 /* Userland-facing FIFO (one global + eventually one per VM) */
 struct gk20a_ctxsw_dev {
 	struct gk20a *g;
@@ -601,8 +599,6 @@ int gk20a_ctxsw_trace_init(struct gk20a *g)
 	err = g->ops.gr.fecs_trace.init(g);
 	if (unlikely(err))
 		goto fail;
-
-	g->gr->max_ctxsw_ring_buffer_size = GK20A_CTXSW_TRACE_MAX_VM_RING_SIZE;
 
 	return 0;
 

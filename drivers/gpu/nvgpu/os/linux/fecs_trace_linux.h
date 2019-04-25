@@ -26,6 +26,7 @@
 #include <nvgpu/types.h>
 
 #define GK20A_CTXSW_TRACE_NUM_DEVS			1
+#define GK20A_CTXSW_TRACE_MAX_VM_RING_SIZE	(128*PAGE_SIZE)
 
 struct file;
 struct inode;

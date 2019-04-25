@@ -54,6 +54,7 @@
 #include "dmabuf.h"
 #include "channel.h"
 #include "dmabuf_vidmem.h"
+#include "fecs_trace_linux.h"
 
 #define HZ_TO_MHZ(a) ((a > 0xF414F9CD7ULL) ? 0xffff : (a >> 32) ? \
 	(u32) ((a * 0x10C8ULL) >> 32) : (u16) ((u32) a/MHZ))
@@ -337,7 +338,7 @@ gk20a_ctrl_ioctl_gpu_characteristics(
 	gpu.sm_arch_warp_count = g->params.sm_arch_warp_count;
 
 	gpu.max_css_buffer_size = g->ops.css.get_max_buffer_size(g);;
-	gpu.max_ctxsw_ring_buffer_size = g->gr->max_ctxsw_ring_buffer_size;
+	gpu.max_ctxsw_ring_buffer_size = GK20A_CTXSW_TRACE_MAX_VM_RING_SIZE;
 
 	gpu.gpu_ioctl_nr_last = NVGPU_GPU_IOCTL_LAST;
 	gpu.tsg_ioctl_nr_last = NVGPU_TSG_IOCTL_LAST;
