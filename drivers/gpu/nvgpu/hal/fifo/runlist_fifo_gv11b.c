@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,13 +20,22 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#include "runlist_tu104.h"
+#include <nvgpu/runlist.h>
 
-#include <nvgpu/hw/tu104/hw_ram_tu104.h>
+#include "runlist_fifo_gv11b.h"
 
-u32 tu104_runlist_entry_size(struct gk20a *g)
+#include <nvgpu/hw/gv11b/hw_fifo_gv11b.h>
+
+int gv11b_runlist_reschedule(struct channel_gk20a *ch, bool preempt_next)
 {
-	return ram_rl_entry_size_v();
+	/*
+	 * gv11b allows multiple outstanding preempts,
+	 * so always preempt next for best reschedule effect
+	 */
+	return nvgpu_runlist_reschedule(ch, true, false);
 }
 
-
+u32 gv11b_runlist_count_max(void)
+{
+	return fifo_eng_runlist_base__size_1_v();
+}

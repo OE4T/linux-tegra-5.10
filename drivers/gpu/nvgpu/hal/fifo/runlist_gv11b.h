@@ -21,14 +21,13 @@
  */
 
 #ifndef NVGPU_RUNLIST_GV11B_H
+#define NVGPU_RUNLIST_GV11B_H
 
 #include <nvgpu/types.h>
 
 struct channel_gk20a;
 struct tsg_gk20a;
 
-int gv11b_runlist_reschedule(struct channel_gk20a *ch, bool preempt_next);
-u32 gv11b_runlist_count_max(void);
 u32 gv11b_runlist_entry_size(struct gk20a *g);
 void gv11b_runlist_get_tsg_entry(struct tsg_gk20a *tsg,
 		u32 *runlist, u32 timeslice);

@@ -21,6 +21,7 @@
  */
 
 #ifndef NVGPU_RUNLIST_GK20A_H
+#define NVGPU_RUNLIST_GK20A_H
 
 #include <nvgpu/types.h>
 
@@ -28,19 +29,9 @@ struct channel_gk20a;
 struct tsg_gk20a;
 struct gk20a;
 
-int gk20a_runlist_reschedule(struct channel_gk20a *ch, bool preempt_next);
-int gk20a_fifo_reschedule_preempt_next(struct channel_gk20a *ch,
-		bool wait_preempt);
-u32 gk20a_runlist_count_max(void);
 u32 gk20a_runlist_entry_size(struct gk20a *g);
-u32 gk20a_runlist_length_max(struct gk20a *g);
 void gk20a_runlist_get_tsg_entry(struct tsg_gk20a *tsg,
 		u32 *runlist, u32 timeslice);
 void gk20a_runlist_get_ch_entry(struct channel_gk20a *ch, u32 *runlist);
-void gk20a_runlist_hw_submit(struct gk20a *g, u32 runlist_id,
-		u32 count, u32 buffer_index);
-int gk20a_runlist_wait_pending(struct gk20a *g, u32 runlist_id);
-void gk20a_runlist_write_state(struct gk20a *g, u32 runlists_mask,
-		u32 runlist_state);
 
 #endif /* NVGPU_RUNLIST_GK20A_H */

@@ -26,23 +26,10 @@
 
 #include "runlist_gv11b.h"
 
-#include <nvgpu/hw/gv11b/hw_fifo_gv11b.h>
 #include <nvgpu/hw/gv11b/hw_ram_gv11b.h>
 
 #define RL_MAX_TIMESLICE_TIMEOUT ram_rl_entry_tsg_timeslice_timeout_v(U32_MAX)
 #define RL_MAX_TIMESLICE_SCALE ram_rl_entry_tsg_timeslice_scale_v(U32_MAX)
-
-int gv11b_runlist_reschedule(struct channel_gk20a *ch, bool preempt_next)
-{
-	/* gv11b allows multiple outstanding preempts,
-	   so always preempt next for best reschedule effect */
-	return nvgpu_fifo_reschedule_runlist(ch, true, false);
-}
-
-u32 gv11b_runlist_count_max(void)
-{
-	return fifo_eng_runlist_base__size_1_v();
-}
 
 u32 gv11b_runlist_entry_size(struct gk20a *g)
 {

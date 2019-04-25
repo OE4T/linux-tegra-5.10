@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,13 +20,11 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#include "runlist_tu104.h"
+#include "runlist_fifo_gv100.h"
 
-#include <nvgpu/hw/tu104/hw_ram_tu104.h>
+#include <nvgpu/hw/gv100/hw_fifo_gv100.h>
 
-u32 tu104_runlist_entry_size(struct gk20a *g)
+u32 gv100_runlist_count_max(void)
 {
-	return ram_rl_entry_size_v();
+	return fifo_eng_runlist_base__size_1_v();
 }
-
-

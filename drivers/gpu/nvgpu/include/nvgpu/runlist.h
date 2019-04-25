@@ -47,7 +47,7 @@ int nvgpu_runlist_update_locked(struct gk20a *g, u32 runlist_id,
 					    struct channel_gk20a *ch, bool add,
 					    bool wait_for_finish);
 
-int nvgpu_fifo_reschedule_runlist(struct channel_gk20a *ch, bool preempt_next,
+int nvgpu_runlist_reschedule(struct channel_gk20a *ch, bool preempt_next,
 		bool wait_preempt);
 
 int gk20a_runlist_update_for_channel(struct gk20a *g, u32 runlist_id,

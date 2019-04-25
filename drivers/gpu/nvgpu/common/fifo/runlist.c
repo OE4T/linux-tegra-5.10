@@ -442,7 +442,7 @@ int nvgpu_runlist_update_locked(struct gk20a *g, u32 runlist_id,
 }
 
 /* trigger host to expire current timeslice and reschedule runlist from front */
-int nvgpu_fifo_reschedule_runlist(struct channel_gk20a *ch, bool preempt_next,
+int nvgpu_runlist_reschedule(struct channel_gk20a *ch, bool preempt_next,
 		bool wait_preempt)
 {
 	struct gk20a *g = ch->g;

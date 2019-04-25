@@ -285,8 +285,11 @@ nvgpu-y += \
 	hal/fifo/ramin_tu104.o \
 	hal/fifo/runlist_gk20a.o \
 	hal/fifo/runlist_gv11b.o \
-	hal/fifo/runlist_gv100.o \
 	hal/fifo/runlist_tu104.o \
+	hal/fifo/runlist_fifo_gk20a.o \
+	hal/fifo/runlist_fifo_gv11b.o \
+	hal/fifo/runlist_fifo_gv100.o \
+	hal/fifo/runlist_fifo_tu104.o \
 	hal/fifo/tsg_gk20a.o \
 	hal/fifo/tsg_gv11b.o \
 	hal/fifo/userd_gk20a.o \

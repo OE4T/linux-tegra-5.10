@@ -80,6 +80,7 @@
 #include "hal/fifo/ramin_gm20b.h"
 #include "hal/fifo/ramin_gp10b.h"
 #include "hal/fifo/runlist_gk20a.h"
+#include "hal/fifo/runlist_fifo_gk20a.h"
 #include "hal/fifo/tsg_gk20a.h"
 #include "hal/fifo/userd_gk20a.h"
 #include "hal/fifo/fifo_intr_gk20a.h"

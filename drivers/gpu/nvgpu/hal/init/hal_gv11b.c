@@ -82,6 +82,8 @@
 #include "hal/fifo/ramin_gv11b.h"
 #include "hal/fifo/runlist_gk20a.h"
 #include "hal/fifo/runlist_gv11b.h"
+#include "hal/fifo/runlist_fifo_gk20a.h"
+#include "hal/fifo/runlist_fifo_gv11b.h"
 #include "hal/fifo/tsg_gv11b.h"
 #include "hal/fifo/userd_gk20a.h"
 #include "hal/fifo/userd_gv11b.h"

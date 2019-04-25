@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,10 +20,16 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NVGPU_RUNLIST_GV100_H
+#ifndef NVGPU_RUNLIST_FIFO_TU104_H
+#define NVGPU_RUNLIST_FIFO_TU104_H
 
 #include <nvgpu/types.h>
 
-u32 gv100_runlist_count_max(void);
+struct gk20a;
 
-#endif /* NVGPU_RUNLIST_GV100_H */
+u32 tu104_runlist_count_max(void);
+void tu104_runlist_hw_submit(struct gk20a *g, u32 runlist_id,
+		u32 count, u32 buffer_index);
+int tu104_runlist_wait_pending(struct gk20a *g, u32 runlist_id);
+
+#endif /* NVGPU_RUNLIST_FIFO_TU104_H */

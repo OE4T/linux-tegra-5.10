@@ -20,11 +20,11 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#include "runlist_gv100.h"
+#ifndef NVGPU_RUNLIST_FIFO_GV100_H
+#define NVGPU_RUNLIST_FIFO_GV100_H
 
-#include <nvgpu/hw/gv100/hw_fifo_gv100.h>
+#include <nvgpu/types.h>
 
-u32 gv100_runlist_count_max(void)
-{
-	return fifo_eng_runlist_base__size_1_v();
-}
+u32 gv100_runlist_count_max(void);
+
+#endif /* NVGPU_RUNLIST_FIFO_GV100_H */
