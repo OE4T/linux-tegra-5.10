@@ -57,14 +57,14 @@ void gm20b_mc_isr_stall(struct gk20a *g)
 		}
 		engine_enum = g->fifo.engine_info[act_eng_id].engine_enum;
 		/* GR Engine */
-		if (engine_enum == NVGPU_ENGINE_GR_GK20A) {
+		if (engine_enum == NVGPU_ENGINE_GR) {
 			nvgpu_pg_elpg_protected_call(g,
 						g->ops.gr.intr.stall_isr(g));
 		}
 
 		/* CE Engine */
-		if (((engine_enum == NVGPU_ENGINE_GRCE_GK20A) ||
-				(engine_enum == NVGPU_ENGINE_ASYNC_CE_GK20A)) &&
+		if (((engine_enum == NVGPU_ENGINE_GRCE) ||
+				(engine_enum == NVGPU_ENGINE_ASYNC_CE)) &&
 				(g->ops.ce.isr_stall != NULL)) {
 			g->ops.ce.isr_stall(g,
 				g->fifo.engine_info[act_eng_id].inst_id,
@@ -103,7 +103,7 @@ u32 gm20b_mc_isr_nonstall(struct gk20a *g)
 	}
 
 	for (eng_id = 0U; eng_id < g->fifo.num_engines; eng_id++) {
-		struct fifo_engine_info_gk20a *engine_info;
+		struct nvgpu_engine_info *engine_info;
 
 		act_eng_id = g->fifo.active_engines_list[eng_id];
 		engine_info = &g->fifo.engine_info[act_eng_id];
@@ -111,12 +111,12 @@ u32 gm20b_mc_isr_nonstall(struct gk20a *g)
 		if ((mc_intr_1 & engine_info->intr_mask) != 0U) {
 			engine_enum = engine_info->engine_enum;
 			/* GR Engine */
-			if (engine_enum == NVGPU_ENGINE_GR_GK20A) {
+			if (engine_enum == NVGPU_ENGINE_GR) {
 				ops |= g->ops.gr.intr.nonstall_isr(g);
 			}
 			/* CE Engine */
-			if (((engine_enum == NVGPU_ENGINE_GRCE_GK20A) ||
-			     (engine_enum == NVGPU_ENGINE_ASYNC_CE_GK20A)) &&
+			if (((engine_enum == NVGPU_ENGINE_GRCE) ||
+			     (engine_enum == NVGPU_ENGINE_ASYNC_CE)) &&
 			      (g->ops.ce.isr_nonstall != NULL)) {
 				ops |= g->ops.ce.isr_nonstall(g,
 					engine_info->inst_id,

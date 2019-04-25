@@ -51,38 +51,6 @@ struct tsg_gk20a;
 #define FIFO_PROFILING_ENTRIES	16384U
 #endif
 
-/* generally corresponds to the "pbdma" engine */
-
-struct fifo_pbdma_exception_info_gk20a {
-	u32 status_r; /* raw register value from hardware */
-	u32 id, next_id;
-	u32 chan_status_v; /* raw value from hardware */
-	bool id_is_chid, next_id_is_chid;
-	bool chsw_in_progress;
-};
-
-struct fifo_engine_exception_info_gk20a {
-	u32 status_r; /* raw register value from hardware */
-	u32 id, next_id;
-	u32 ctx_status_v; /* raw value from hardware */
-	bool id_is_chid, next_id_is_chid;
-	bool faulted, idle, ctxsw_in_progress;
-};
-
-struct fifo_engine_info_gk20a {
-	u32 engine_id;
-	u32 runlist_id;
-	u32 intr_mask;
-	u32 reset_mask;
-	u32 pbdma_id;
-	u32 inst_id;
-	u32 pri_base;
-	u32 fault_id;
-	enum nvgpu_fifo_engine engine_enum;
-	struct fifo_pbdma_exception_info_gk20a pbdma_exception_info;
-	struct fifo_engine_exception_info_gk20a engine_exception_info;
-};
-
 enum {
 	PROFILE_IOCTL_ENTRY = 0U,
 	PROFILE_ENTRY,
@@ -106,7 +74,7 @@ struct fifo_gk20a {
 	unsigned int num_pbdma;
 	u32 *pbdma_map;
 
-	struct fifo_engine_info_gk20a *engine_info;
+	struct nvgpu_engine_info *engine_info;
 	u32 max_engines;
 	u32 num_engines;
 	u32 *active_engines_list;

@@ -26,20 +26,49 @@
 #include <nvgpu/types.h>
 
 struct gk20a;
-struct fifo_engine_info_gk20a;
 struct fifo_gk20a;
 
 enum nvgpu_fifo_engine {
-	NVGPU_ENGINE_GR_GK20A	     = 0U,
-	NVGPU_ENGINE_GRCE_GK20A      = 1U,
-	NVGPU_ENGINE_ASYNC_CE_GK20A  = 2U,
-	NVGPU_ENGINE_INVAL_GK20A     = 3U,
+	NVGPU_ENGINE_GR        = 0U,
+	NVGPU_ENGINE_GRCE      = 1U,
+	NVGPU_ENGINE_ASYNC_CE  = 2U,
+	NVGPU_ENGINE_INVAL     = 3U,
+};
+
+struct nvgpu_pbdma_exception_info {
+	u32 status_r; /* raw register value from hardware */
+	u32 id, next_id;
+	u32 chan_status_v; /* raw value from hardware */
+	bool id_is_chid, next_id_is_chid;
+	bool chsw_in_progress;
+};
+
+struct nvgpu_engine_exception_info {
+	u32 status_r; /* raw register value from hardware */
+	u32 id, next_id;
+	u32 ctx_status_v; /* raw value from hardware */
+	bool id_is_chid, next_id_is_chid;
+	bool faulted, idle, ctxsw_in_progress;
+};
+
+struct nvgpu_engine_info {
+	u32 engine_id;
+	u32 runlist_id;
+	u32 intr_mask;
+	u32 reset_mask;
+	u32 pbdma_id;
+	u32 inst_id;
+	u32 pri_base;
+	u32 fault_id;
+	enum nvgpu_fifo_engine engine_enum;
+	struct nvgpu_pbdma_exception_info pbdma_exception_info;
+	struct nvgpu_engine_exception_info engine_exception_info;
 };
 
 enum nvgpu_fifo_engine nvgpu_engine_enum_from_type(struct gk20a *g,
 		u32 engine_type);
 
-struct fifo_engine_info_gk20a *nvgpu_engine_get_active_eng_info(
+struct nvgpu_engine_info *nvgpu_engine_get_active_eng_info(
 		struct gk20a *g, u32 engine_id);
 
 u32 nvgpu_engine_get_ids(struct gk20a *g,
@@ -55,10 +84,10 @@ int nvgpu_engine_setup_sw(struct gk20a *g);
 void nvgpu_engine_cleanup_sw(struct gk20a *g);
 
 int nvgpu_engine_enable_activity(struct gk20a *g,
-			struct fifo_engine_info_gk20a *eng_info);
+			struct nvgpu_engine_info *eng_info);
 int nvgpu_engine_enable_activity_all(struct gk20a *g);
 int nvgpu_engine_disable_activity(struct gk20a *g,
-			struct fifo_engine_info_gk20a *eng_info,
+			struct nvgpu_engine_info *eng_info,
 			bool wait_for_idle);
 int nvgpu_engine_disable_activity_all(struct gk20a *g,
 				bool wait_for_idle);

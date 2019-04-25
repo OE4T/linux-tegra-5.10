@@ -658,7 +658,7 @@ void nvgpu_runlist_cleanup_sw(struct gk20a *g)
 static void nvgpu_init_runlist_enginfo(struct gk20a *g, struct fifo_gk20a *f)
 {
 	struct nvgpu_runlist_info *runlist;
-	struct fifo_engine_info_gk20a *engine_info;
+	struct nvgpu_engine_info *engine_info;
 	u32 i, active_engine_id, pbdma_id, engine_id;
 
 	nvgpu_log_fn(g, " ");

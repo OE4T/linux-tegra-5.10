@@ -52,7 +52,7 @@ int gp10b_engine_init_ce_info(struct fifo_gk20a *f)
 
 	for (i = 0; i < lce_num_entries; i++) {
 		struct nvgpu_device_info dev_info;
-		struct fifo_engine_info_gk20a *info;
+		struct nvgpu_engine_info *info;
 
 		ret = g->ops.top.get_device_info(g, &dev_info,
 						NVGPU_ENGINE_LCE, i);
@@ -78,10 +78,10 @@ int gp10b_engine_init_ce_info(struct fifo_gk20a *f)
 					g,
 					dev_info.engine_type);
 		/* GR and GR_COPY shares same runlist_id */
-		if ((engine_enum == NVGPU_ENGINE_ASYNC_CE_GK20A) &&
+		if ((engine_enum == NVGPU_ENGINE_ASYNC_CE) &&
 				(gr_runlist_id ==
 					dev_info.runlist_id)) {
-			engine_enum = NVGPU_ENGINE_GRCE_GK20A;
+			engine_enum = NVGPU_ENGINE_GRCE;
 		}
 		info->engine_enum = engine_enum;
 
@@ -91,7 +91,7 @@ int gp10b_engine_init_ce_info(struct fifo_gk20a *f)
 		}
 
 		if ((dev_info.fault_id == 0U) &&
-				(engine_enum == NVGPU_ENGINE_GRCE_GK20A)) {
+				(engine_enum == NVGPU_ENGINE_GRCE)) {
 			dev_info.fault_id = 0x1b;
 		}
 		info->fault_id = dev_info.fault_id;

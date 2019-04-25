@@ -67,7 +67,7 @@ static inline u32 gm20b_engine_id_to_fault_id(struct gk20a *g,
 			u32 engine_id)
 {
 	u32 fault_id = INVAL_ID;
-	struct fifo_engine_info_gk20a *engine_info;
+	struct nvgpu_engine_info *engine_info;
 
 	engine_info = nvgpu_engine_get_active_eng_info(g, engine_id);
 

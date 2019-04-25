@@ -150,7 +150,7 @@ int gk20a_fifo_reschedule_preempt_next(struct channel_gk20a *ch,
 	struct nvgpu_engine_status_info engine_status;
 
 	if (1U != nvgpu_engine_get_ids(
-		g, &gr_eng_id, 1, NVGPU_ENGINE_GR_GK20A)) {
+		g, &gr_eng_id, 1, NVGPU_ENGINE_GR)) {
 		return ret;
 	}
 	if ((runlist->eng_bitmask & BIT32(gr_eng_id)) == 0U) {

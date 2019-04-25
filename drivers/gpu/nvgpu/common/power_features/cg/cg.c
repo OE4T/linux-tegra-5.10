@@ -32,7 +32,7 @@ static void nvgpu_cg_set_mode(struct gk20a *g, int cgmode, int mode_config)
 {
 	u32 engine_idx;
 	u32 active_engine_id = 0;
-	struct fifo_engine_info_gk20a *engine_info = NULL;
+	struct nvgpu_engine_info *engine_info = NULL;
 	struct fifo_gk20a *f = &g->fifo;
 
 	nvgpu_log_fn(g, " ");
@@ -43,7 +43,7 @@ static void nvgpu_cg_set_mode(struct gk20a *g, int cgmode, int mode_config)
 
 		/* gr_engine supports both BLCG and ELCG */
 		if ((cgmode == BLCG_MODE) && (engine_info->engine_enum ==
-						NVGPU_ENGINE_GR_GK20A)) {
+						NVGPU_ENGINE_GR)) {
 			g->ops.therm.init_blcg_mode(g, (u32)mode_config,
 						active_engine_id);
 			break;

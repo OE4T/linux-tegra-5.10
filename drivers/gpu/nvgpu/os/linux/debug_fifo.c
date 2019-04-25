@@ -64,7 +64,7 @@ static int gk20a_fifo_sched_debugfs_seq_show(
 	struct channel_gk20a *ch = v;
 	struct tsg_gk20a *tsg = NULL;
 
-	struct fifo_engine_info_gk20a *engine_info;
+	struct nvgpu_engine_info *engine_info;
 	struct nvgpu_runlist_info *runlist;
 	u32 runlist_id;
 	int ret = SEQ_SKIP;

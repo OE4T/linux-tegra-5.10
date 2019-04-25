@@ -460,7 +460,7 @@ struct channel_gk20a *__must_check _gk20a_channel_from_id(struct gk20a *g,
 
 int gk20a_wait_channel_idle(struct channel_gk20a *ch);
 
-/* runlist_id -1 is synonym for NVGPU_ENGINE_GR_GK20A runlist id */
+/* runlist_id -1 is synonym for NVGPU_ENGINE_GR runlist id */
 struct channel_gk20a *gk20a_open_new_channel(struct gk20a *g,
 		u32 runlist_id,
 		bool is_privileged_channel,

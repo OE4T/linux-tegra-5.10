@@ -176,7 +176,7 @@ int vgpu_fifo_init_engine_info(struct fifo_gk20a *f)
 
 	f->num_engines = engines->num_engines;
 	for (i = 0; i < f->num_engines; i++) {
-		struct fifo_engine_info_gk20a *info =
+		struct nvgpu_engine_info *info =
 				&f->engine_info[engines->info[i].engine_id];
 
 		if (engines->info[i].engine_id >= f->max_engines) {
