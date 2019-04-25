@@ -439,6 +439,7 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 			gp10b_fifo_get_mmu_fault_client_desc,
 		.get_mmu_fault_gpc_desc = gm20b_fifo_get_mmu_fault_gpc_desc,
 		.is_mmu_fault_pending = NULL,
+		.bar1_snooping_disable = gk20a_fifo_bar1_snooping_disable,
 	},
 	.engine = {
 		.is_fault_engine_subid_gpc = gm20b_is_fault_engine_subid_gpc,

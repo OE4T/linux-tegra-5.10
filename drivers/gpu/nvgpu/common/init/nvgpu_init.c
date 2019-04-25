@@ -118,7 +118,7 @@ int gk20a_prepare_poweroff(struct gk20a *g)
 	if ((tmp_ret != 0) && (ret == 0)) {
 		ret = tmp_ret;
 	}
-	tmp_ret = gk20a_fifo_suspend(g);
+	tmp_ret = nvgpu_fifo_suspend(g);
 	if ((tmp_ret != 0) && (ret == 0)) {
 		ret = tmp_ret;
 	}

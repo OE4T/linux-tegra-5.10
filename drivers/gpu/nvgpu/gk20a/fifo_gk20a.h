@@ -24,6 +24,7 @@
 #ifndef FIFO_GK20A_H
 #define FIFO_GK20A_H
 
+#include <nvgpu/types.h>
 #include <nvgpu/kref.h>
 #include <nvgpu/fifo.h>
 #include <nvgpu/engines.h>
@@ -41,9 +42,6 @@ struct tsg_gk20a;
 #define FIFO_INVAL_TSG_ID		(~U32(0U))
 #define FIFO_INVAL_RUNLIST_ID		(~U32(0U))
 #define FIFO_INVAL_SYNCPT_ID		(~U32(0U))
-
-#define RC_YES				1U
-#define RC_NO				0U
 
 /*
  * Number of entries in the kickoff latency buffer, used to calculate
@@ -200,16 +198,12 @@ struct fifo_gk20a {
 	u32 channel_base;
 };
 
-int gk20a_init_fifo_setup_hw(struct gk20a *g);
-
-u32 gk20a_fifo_engines_on_ch(struct gk20a *g, u32 chid);
-
-int gk20a_fifo_suspend(struct gk20a *g);
-
 int gk20a_init_fifo_reset_enable_hw(struct gk20a *g);
-
-void fifo_gk20a_finish_mmu_fault_handling(struct gk20a *g,
-		unsigned long fault_id);
+int gk20a_init_fifo_setup_hw(struct gk20a *g);
+void gk20a_fifo_bar1_snooping_disable(struct gk20a *g);
+int gk20a_fifo_init_pbdma_map(struct gk20a *g, u32 *pbdma_map, u32 num_pbdma);
+u32 gk20a_fifo_get_runlist_timeslice(struct gk20a *g);
+u32 gk20a_fifo_get_pb_timeslice(struct gk20a *g);
 
 #ifdef CONFIG_DEBUG_FS
 struct fifo_profile_gk20a *gk20a_fifo_profile_acquire(struct gk20a *g);
@@ -231,9 +225,5 @@ static inline void gk20a_fifo_profile_snapshot(
 {
 }
 #endif
-
-int gk20a_fifo_init_pbdma_map(struct gk20a *g, u32 *pbdma_map, u32 num_pbdma);
-u32 gk20a_fifo_get_runlist_timeslice(struct gk20a *g);
-u32 gk20a_fifo_get_pb_timeslice(struct gk20a *g);
 
 #endif /* FIFO_GK20A_H */

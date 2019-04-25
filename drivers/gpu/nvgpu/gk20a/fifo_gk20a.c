@@ -47,11 +47,11 @@ int gk20a_init_fifo_reset_enable_hw(struct gk20a *g)
 
 	nvgpu_cg_blcg_fifo_load_enable(g);
 
-	timeout = gk20a_readl(g, fifo_fb_timeout_r());
+	timeout = nvgpu_readl(g, fifo_fb_timeout_r());
 	timeout = set_field(timeout, fifo_fb_timeout_period_m(),
 			fifo_fb_timeout_period_max_f());
 	nvgpu_log_info(g, "fifo_fb_timeout reg val = 0x%08x", timeout);
-	gk20a_writel(g, fifo_fb_timeout_r(), timeout);
+	nvgpu_writel(g, fifo_fb_timeout_r(), timeout);
 
 	g->ops.pbdma.setup_hw(g);
 
@@ -73,10 +73,10 @@ int gk20a_init_fifo_setup_hw(struct gk20a *g)
 	/* set the base for the userd region now */
 	shifted_addr = f->userd_gpu_va >> 12;
 	if ((shifted_addr >> 32) != 0U) {
-		nvgpu_err(g, "GPU VA > 32 bits %016llx\n", f->userd_gpu_va);
+		nvgpu_err(g, "GPU VA > 32 bits %016llx", f->userd_gpu_va);
 		return -EFAULT;
 	}
-	gk20a_writel(g, fifo_bar1_base_r(),
+	nvgpu_writel(g, fifo_bar1_base_r(),
 			fifo_bar1_base_ptr_f(u64_lo32(shifted_addr)) |
 			fifo_bar1_base_valid_true_f());
 
@@ -85,30 +85,18 @@ int gk20a_init_fifo_setup_hw(struct gk20a *g)
 	return 0;
 }
 
-int gk20a_fifo_suspend(struct gk20a *g)
+void gk20a_fifo_bar1_snooping_disable(struct gk20a *g)
 {
-	nvgpu_log_fn(g, " ");
-
-	/* stop bar1 snooping */
-	if (g->ops.mm.is_bar1_supported(g)) {
-		gk20a_writel(g, fifo_bar1_base_r(),
-			fifo_bar1_base_valid_false_f());
-	}
-
-	/* disable fifo intr */
-	g->ops.fifo.intr_0_enable(g, false);
-	g->ops.fifo.intr_1_enable(g, false);
-
-	nvgpu_log_fn(g, "done");
-	return 0;
+	nvgpu_writel(g, fifo_bar1_base_r(),
+		fifo_bar1_base_valid_false_f());
 }
 
 int gk20a_fifo_init_pbdma_map(struct gk20a *g, u32 *pbdma_map, u32 num_pbdma)
 {
 	u32 id;
 
-	for (id = 0; id < num_pbdma; ++id) {
-		pbdma_map[id] = gk20a_readl(g, fifo_pbdma_map_r(id));
+	for (id = 0U; id < num_pbdma; ++id) {
+		pbdma_map[id] = nvgpu_readl(g, fifo_pbdma_map_r(id));
 	}
 
 	return 0;

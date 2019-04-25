@@ -280,3 +280,19 @@ const char *nvgpu_fifo_decode_pbdma_ch_eng_status(u32 index)
 		return pbdma_ch_eng_status_str[index];
 	}
 }
+
+int nvgpu_fifo_suspend(struct gk20a *g)
+{
+	nvgpu_log_fn(g, " ");
+
+	if (g->ops.mm.is_bar1_supported(g)) {
+		g->ops.fifo.bar1_snooping_disable(g);
+	}
+
+	/* disable fifo intr */
+	g->ops.fifo.intr_0_enable(g, false);
+	g->ops.fifo.intr_1_enable(g, false);
+
+	nvgpu_log_fn(g, "done");
+	return 0;
+}

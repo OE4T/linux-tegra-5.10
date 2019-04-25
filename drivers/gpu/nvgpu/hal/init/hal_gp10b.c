@@ -648,6 +648,7 @@ static const struct gpu_ops gp10b_ops = {
 		.get_runlist_timeslice = gk20a_fifo_get_runlist_timeslice,
 		.get_pb_timeslice = gk20a_fifo_get_pb_timeslice,
 		.is_mmu_fault_pending = gk20a_fifo_is_mmu_fault_pending,
+		.bar1_snooping_disable = gk20a_fifo_bar1_snooping_disable,
 	},
 	.engine = {
 		.is_fault_engine_subid_gpc = gm20b_is_fault_engine_subid_gpc,
