@@ -84,7 +84,7 @@ static int gv11b_fifo_preempt_locked(struct gk20a *g, u32 id,
 void gv11b_fifo_preempt_runlists_for_rc(struct gk20a *g, u32 runlists_mask)
 {
 	struct fifo_gk20a *f = &g->fifo;
-	struct fifo_runlist_info_gk20a *runlist;
+	struct nvgpu_runlist_info *runlist;
 	u32 token = PMU_INVALID_MUTEX_OWNER_ID;
 	int mutex_ret = 0;
 	u32 i;

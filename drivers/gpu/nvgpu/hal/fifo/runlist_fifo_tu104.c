@@ -36,7 +36,7 @@ u32 tu104_runlist_count_max(void)
 void tu104_runlist_hw_submit(struct gk20a *g, u32 runlist_id,
 	u32 count, u32 buffer_index)
 {
-	struct fifo_runlist_info_gk20a *runlist = NULL;
+	struct nvgpu_runlist_info *runlist = NULL;
 	u64 runlist_iova;
 	u32 runlist_iova_lo, runlist_iova_hi;
 

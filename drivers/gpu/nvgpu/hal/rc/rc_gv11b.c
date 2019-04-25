@@ -49,7 +49,7 @@ static void gv11b_fifo_locked_abort_runlist_active_tsgs(struct gk20a *g,
 	struct fifo_gk20a *f = &g->fifo;
 	struct tsg_gk20a *tsg = NULL;
 	unsigned long tsgid;
-	struct fifo_runlist_info_gk20a *runlist = NULL;
+	struct nvgpu_runlist_info *runlist = NULL;
 	u32 token = PMU_INVALID_MUTEX_OWNER_ID;
 	int mutex_ret = 0;
 	int err;
@@ -135,7 +135,7 @@ void gv11b_fifo_recover(struct gk20a *g, u32 act_eng_bitmask,
 	unsigned long bit;
 	unsigned long bitmask;
 	u32 pbdma_bitmask = 0U;
-	struct fifo_runlist_info_gk20a *runlist = NULL;
+	struct nvgpu_runlist_info *runlist = NULL;
 	u32 engine_id;
 	u32 client_type = ~U32(0U);
 	struct fifo_gk20a *f = &g->fifo;

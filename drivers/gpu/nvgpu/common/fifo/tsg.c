@@ -67,7 +67,7 @@ struct tsg_gk20a *nvgpu_tsg_get_from_id(struct gk20a *g, u32 tsgid)
 static bool gk20a_is_channel_active(struct gk20a *g, struct channel_gk20a *ch)
 {
 	struct fifo_gk20a *f = &g->fifo;
-	struct fifo_runlist_info_gk20a *runlist;
+	struct nvgpu_runlist_info *runlist;
 	unsigned int i;
 
 	for (i = 0; i < f->num_runlists; ++i) {

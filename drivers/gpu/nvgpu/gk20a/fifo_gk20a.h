@@ -28,13 +28,12 @@
 #include <nvgpu/kref.h>
 #include <nvgpu/fifo.h>
 #include <nvgpu/engines.h>
+#include <nvgpu/runlist.h>
 
 struct gk20a_debug_output;
 struct nvgpu_semaphore;
 struct channel_gk20a;
 struct tsg_gk20a;
-
-#define MAX_RUNLIST_BUFFERS		2U
 
 #define FIFO_INVAL_ENGINE_ID		(~U32(0U))
 #define FIFO_INVAL_MMU_ID		(~U32(0U))
@@ -52,28 +51,7 @@ struct tsg_gk20a;
 #define FIFO_PROFILING_ENTRIES	16384U
 #endif
 
-#define	RUNLIST_DISABLED		0U
-#define	RUNLIST_ENABLED			1U
-
 /* generally corresponds to the "pbdma" engine */
-
-struct fifo_runlist_info_gk20a {
-	u32 runlist_id;
-	unsigned long *active_channels;
-	unsigned long *active_tsgs;
-	/* Each engine has its own SW and HW runlist buffer.*/
-	struct nvgpu_mem mem[MAX_RUNLIST_BUFFERS];
-	u32  cur_buffer;
-	u32  total_entries;
-	u32  pbdma_bitmask;      /* pbdmas supported for this runlist*/
-	u32  eng_bitmask;        /* engines using this runlist */
-	u32  reset_eng_bitmask;  /* engines to be reset during recovery */
-	u32  count;              /* cached hw_submit parameter */
-	bool stopped;
-	bool support_tsg;
-	/* protect ch/tsg/runlist preempt & runlist update */
-	struct nvgpu_mutex runlist_lock;
-};
 
 struct fifo_pbdma_exception_info_gk20a {
 	u32 status_r; /* raw register value from hardware */
@@ -137,11 +115,11 @@ struct fifo_gk20a {
 	 * If a runlist is active, then runlist_info[runlist_id] points
 	 * to one entry in active_runlist_info. Otherwise, it is NULL.
 	 */
-	struct fifo_runlist_info_gk20a **runlist_info;
+	struct nvgpu_runlist_info **runlist_info;
 	u32 max_runlists;
 
 	/* Array of runlists that are actually in use */
-	struct fifo_runlist_info_gk20a *active_runlist_info;
+	struct nvgpu_runlist_info *active_runlist_info;
 	u32 num_runlists; /* number of active runlists */
 #ifdef CONFIG_DEBUG_FS
 	struct {

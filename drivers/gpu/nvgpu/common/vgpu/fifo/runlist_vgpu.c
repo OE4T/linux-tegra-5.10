@@ -77,7 +77,7 @@ static bool vgpu_runlist_modify_active_locked(struct gk20a *g, u32 runlist_id,
 					    struct channel_gk20a *ch, bool add)
 {
 	struct fifo_gk20a *f = &g->fifo;
-	struct fifo_runlist_info_gk20a *runlist;
+	struct nvgpu_runlist_info *runlist;
 
 	runlist = f->runlist_info[runlist_id];
 
@@ -102,7 +102,7 @@ static void vgpu_runlist_reconstruct_locked(struct gk20a *g, u32 runlist_id,
 				     bool add_entries)
 {
 	struct fifo_gk20a *f = &g->fifo;
-	struct fifo_runlist_info_gk20a *runlist;
+	struct nvgpu_runlist_info *runlist;
 
 	runlist = f->runlist_info[runlist_id];
 
@@ -132,7 +132,7 @@ static int vgpu_runlist_update_locked(struct gk20a *g, u32 runlist_id,
 					bool wait_for_finish)
 {
 	struct fifo_gk20a *f = &g->fifo;
-	struct fifo_runlist_info_gk20a *runlist;
+	struct nvgpu_runlist_info *runlist;
 	bool add_entries;
 
 	nvgpu_log_fn(g, " ");
@@ -167,7 +167,7 @@ static int vgpu_runlist_update(struct gk20a *g, u32 runlist_id,
 				struct channel_gk20a *ch,
 				bool add, bool wait_for_finish)
 {
-	struct fifo_runlist_info_gk20a *runlist = NULL;
+	struct nvgpu_runlist_info *runlist = NULL;
 	struct fifo_gk20a *f = &g->fifo;
 	u32 ret = 0;
 

@@ -36,11 +36,11 @@ static void setup_fifo(struct gk20a *g, unsigned long *tsg_map,
 		unsigned long *ch_map, struct tsg_gk20a *tsgs,
 		struct channel_gk20a *chs, unsigned int num_tsgs,
 		unsigned int num_channels,
-		struct fifo_runlist_info_gk20a **runlists, u32 *rl_data,
+		struct nvgpu_runlist_info **runlists, u32 *rl_data,
 		bool interleave)
 {
 	struct fifo_gk20a *f = &g->fifo;
-	struct fifo_runlist_info_gk20a *runlist = runlists[0];
+	struct nvgpu_runlist_info *runlist = runlists[0];
 
 	/* we only use the runlist 0 here */
 	runlist->mem[0].cpu_va = rl_data;
@@ -173,8 +173,8 @@ static int test_tsg_format_gen(struct unit_module *m, struct gk20a *g,
 		void *args)
 {
 	struct fifo_gk20a *f = &g->fifo;
-	struct fifo_runlist_info_gk20a runlist;
-	struct fifo_runlist_info_gk20a *runlists = &runlist;
+	struct nvgpu_runlist_info runlist;
+	struct nvgpu_runlist_info *runlists = &runlist;
 	unsigned long active_tsgs_map = 0;
 	unsigned long active_chs_map = 0;
 	struct tsg_gk20a tsgs[1] = {{0}};
@@ -237,8 +237,8 @@ static int test_common_gen(struct unit_module *m, struct gk20a *g,
 		u32 *expected, u32 expect_count)
 {
 	struct fifo_gk20a *f = &g->fifo;
-	struct fifo_runlist_info_gk20a runlist;
-	struct fifo_runlist_info_gk20a *runlists = &runlist;
+	struct nvgpu_runlist_info runlist;
+	struct nvgpu_runlist_info *runlists = &runlist;
 	unsigned long active_tsgs_map = 0;
 	unsigned long active_chs_map = 0;
 	struct tsg_gk20a tsgs[6] = {{0}};

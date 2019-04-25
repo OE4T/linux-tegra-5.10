@@ -24,9 +24,10 @@
 #define NVGPU_RUNLIST_H
 
 #include <nvgpu/types.h>
+#include <nvgpu/nvgpu_mem.h>
+#include <nvgpu/lock.h>
 
 struct gk20a;
-struct fifo_runlist_info_gk20a;
 struct tsg_gk20a;
 struct fifo_gk20a;
 struct channel_gk20a;
@@ -39,8 +40,32 @@ struct channel_gk20a;
 #define RUNLIST_APPEND_FAILURE U32_MAX
 #define RUNLIST_INVALID_ID U32_MAX
 
+#define RUNLIST_DISABLED		0U
+#define RUNLIST_ENABLED			1U
+
+#define MAX_RUNLIST_BUFFERS		2U
+
+struct nvgpu_runlist_info {
+	u32 runlist_id;
+	unsigned long *active_channels;
+	unsigned long *active_tsgs;
+	/* Each engine has its own SW and HW runlist buffer.*/
+	struct nvgpu_mem mem[MAX_RUNLIST_BUFFERS];
+	u32  cur_buffer;
+	u32  total_entries;
+	u32  pbdma_bitmask;      /* pbdmas supported for this runlist*/
+	u32  eng_bitmask;        /* engines using this runlist */
+	u32  reset_eng_bitmask;  /* engines to be reset during recovery */
+	u32  count;              /* cached hw_submit parameter */
+	bool stopped;
+	bool support_tsg;
+	/* protect ch/tsg/runlist preempt & runlist update */
+	struct nvgpu_mutex runlist_lock;
+};
+
+
 u32 nvgpu_runlist_construct_locked(struct fifo_gk20a *f,
-				struct fifo_runlist_info_gk20a *runlist,
+				struct nvgpu_runlist_info *runlist,
 				u32 buf_id,
 				u32 max_entries);
 int nvgpu_runlist_update_locked(struct gk20a *g, u32 runlist_id,
