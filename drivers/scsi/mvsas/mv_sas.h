@@ -12,6 +12,7 @@
 
 #include <linux/kernel.h>
 #include <linux/module.h>
+#include <linux/stat.h>
 #include <linux/spinlock.h>
 #include <linux/delay.h>
 #include <linux/types.h>
