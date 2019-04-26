@@ -67,6 +67,7 @@
 #include "hal/fuse/fuse_gp106.h"
 #include "hal/rc/rc_gv11b.h"
 #include "hal/fifo/fifo_gv11b.h"
+#include "hal/fifo/fifo_tu104.h"
 #include "hal/fifo/preempt_gv11b.h"
 #include "hal/fifo/usermode_gv11b.h"
 #include "hal/fifo/usermode_tu104.h"
@@ -96,6 +97,8 @@
 #include "hal/fifo/fifo_intr_gk20a.h"
 #include "hal/fifo/fifo_intr_gv100.h"
 #include "hal/fifo/fifo_intr_gv11b.h"
+#include "hal/fifo/engine_status_gv100.h"
+#include "hal/fifo/pbdma_status_gm20b.h"
 #include "hal/fifo/ctxsw_timeout_gv11b.h"
 #include "hal/gr/ecc/ecc_tu104.h"
 #include "hal/gr/fecs_trace/fecs_trace_gm20b.h"
@@ -160,8 +163,6 @@
 #include "common/fifo/channel_gm20b.h"
 #include "common/fifo/channel_gv11b.h"
 #include "common/fifo/channel_gv100.h"
-#include "hal/fifo/engine_status_gv100.h"
-#include "hal/fifo/pbdma_status_gm20b.h"
 #include "common/clk_arb/clk_arb_gv100.h"
 
 #include "gm20b/mm_gm20b.h"
@@ -176,7 +177,6 @@
 #include "gv11b/mm_gv11b.h"
 
 #include "tu104/mm_tu104.h"
-#include "tu104/fifo_tu104.h"
 #include "hal/fbpa/fbpa_tu104.h"
 #include "hal_tu104.h"
 

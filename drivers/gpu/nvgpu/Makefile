@@ -263,6 +263,7 @@ nvgpu-y += \
 	hal/rc/rc_gk20a.o \
 	hal/rc/rc_gv11b.o \
 	hal/fifo/fifo_gv11b.o \
+	hal/fifo/fifo_tu104.o \
 	hal/fifo/preempt_gk20a.o \
 	hal/fifo/preempt_gv11b.o \
 	hal/fifo/usermode_gv11b.o \
@@ -591,4 +592,3 @@ nvgpu-y += \
 	gv11b/mm_gv11b.o \
 	gv100/mm_gv100.o \
 	tu104/mm_tu104.o \
-	tu104/fifo_tu104.o \

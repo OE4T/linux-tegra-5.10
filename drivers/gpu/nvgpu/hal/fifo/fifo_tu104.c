@@ -24,8 +24,7 @@
 #include <nvgpu/gk20a.h>
 
 #include "hal/fifo/fifo_gv11b.h"
-
-#include "tu104/fifo_tu104.h"
+#include "hal/fifo/fifo_tu104.h"
 
 int tu104_init_fifo_setup_hw(struct gk20a *g)
 {
