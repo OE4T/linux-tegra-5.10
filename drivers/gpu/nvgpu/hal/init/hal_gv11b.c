@@ -30,6 +30,8 @@
 #include <nvgpu/gr/gr.h>
 #include <nvgpu/pmu/pmu_perfmon.h>
 
+#include "hal/mm/mm_gp10b.h"
+#include "hal/mm/mm_gv11b.h"
 #include "hal/mm/cache/flush_gk20a.h"
 #include "hal/mm/cache/flush_gv11b.h"
 #include "hal/mm/gmmu/gmmu_gm20b.h"
@@ -139,9 +141,6 @@
 #include "common/fifo/channel_gm20b.h"
 #include "common/fifo/channel_gv11b.h"
 #include "common/clk_arb/clk_arb_gp10b.h"
-
-#include "gm20b/mm_gm20b.h"
-#include "gp10b/mm_gp10b.h"
 
 #include "hal_gv11b.h"
 #include "gv11b/mm_gv11b.h"
@@ -1095,9 +1094,9 @@ static const struct gpu_ops gv11b_ops = {
 		.vm_bind_channel = nvgpu_vm_bind_channel,
 		.setup_hw = nvgpu_mm_setup_hw,
 		.is_bar1_supported = gv11b_mm_is_bar1_supported,
-		.init_inst_block = gv11b_init_inst_block,
-		.init_bar2_vm = gp10b_init_bar2_vm,
-		.remove_bar2_vm = gp10b_remove_bar2_vm,
+		.init_inst_block = gv11b_mm_init_inst_block,
+		.init_bar2_vm = gp10b_mm_init_bar2_vm,
+		.remove_bar2_vm = gp10b_mm_remove_bar2_vm,
 		.fault_info_mem_destroy = gv11b_mm_fault_info_mem_destroy,
 		.mmu_fault_disable_hw = gv11b_mm_mmu_fault_disable_hw,
 		.bar1_map_userd = NULL,

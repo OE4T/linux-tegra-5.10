@@ -25,7 +25,6 @@
 #include <nvgpu/allocator.h>
 #include <nvgpu/gk20a.h>
 
-#include "gk20a/mm_gk20a.h"
 
 u64 nvgpu_alloc_length(struct nvgpu_allocator *a)
 {

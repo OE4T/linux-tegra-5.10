@@ -31,12 +31,13 @@
 #include <nvgpu/linux/vm.h>
 #include <nvgpu/linux/nvgpu_mem.h>
 
-#include "gk20a/mm_gk20a.h"
 
 #include "platform_gk20a.h"
 #include "os_linux.h"
 #include "dmabuf.h"
 #include "dmabuf_vidmem.h"
+
+#define dev_from_vm(vm) dev_from_gk20a(vm->mm->g)
 
 static u32 nvgpu_vm_translate_linux_flags(struct gk20a *g, u32 flags)
 {

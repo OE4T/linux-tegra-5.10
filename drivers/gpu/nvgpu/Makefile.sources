@@ -243,12 +243,13 @@ srcs += common/sim/sim.c \
 	common/nvlink/nvlink.c \
 	common/fence/fence.c \
 	gk20a/fifo_gk20a.c \
-	gk20a/mm_gk20a.c \
-	gm20b/mm_gm20b.c \
-	gp10b/mm_gp10b.c \
-	gv11b/mm_gv11b.c \
+	gv11b/mmu_fault_gv11b.c \
 	gv100/mm_gv100.c \
 	tu104/mm_tu104.c \
+	hal/mm/mm_gk20a.c \
+	hal/mm/mm_gm20b.c \
+	hal/mm/mm_gp10b.c \
+	hal/mm/mm_gv11b.c \
 	hal/mm/cache/flush_gk20a.c \
 	hal/mm/cache/flush_gv11b.c \
 	hal/mm/gmmu/gmmu_mmu_fault_gv11b.c \

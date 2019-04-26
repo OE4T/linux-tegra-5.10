@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -24,8 +24,6 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/channel.h>
 #include <nvgpu/channel_sync.h>
-
-#include "gk20a/mm_gk20a.h"
 
 #include "sync_sema_android.h"
 
@@ -101,4 +99,3 @@ int nvgpu_os_fence_sema_fdget(struct nvgpu_os_fence *fence_out,
 
 	return 0;
 }
-

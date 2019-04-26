@@ -22,6 +22,10 @@
 
 #include "hal/bus/bus_gk20a.h"
 #include "hal/bus/bus_gm20b.h"
+#include "hal/mm/mm_gm20b.h"
+#include "hal/mm/mm_gp10b.h"
+#include "hal/mm/mm_gv11b.h"
+#include "hal/mm/gmmu/gmmu_gk20a.h"
 #include "hal/mm/gmmu/gmmu_gm20b.h"
 #include "hal/mm/gmmu/gmmu_gp10b.h"
 #include "hal/regops/regops_gv11b.h"
@@ -101,10 +105,6 @@
 #include "common/vgpu/fifo/vgpu_fifo_gv11b.h"
 #include "common/vgpu/ptimer/ptimer_vgpu.h"
 #include "vgpu_hal_gv11b.h"
-
-#include <gm20b/mm_gm20b.h>
-
-#include <gp10b/mm_gp10b.h>
 
 #include <gv11b/mm_gv11b.h>
 
@@ -665,9 +665,9 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 		.vm_bind_channel = vgpu_vm_bind_channel,
 		.setup_hw = NULL,
 		.is_bar1_supported = gv11b_mm_is_bar1_supported,
-		.init_inst_block = gv11b_init_inst_block,
-		.init_bar2_vm = gp10b_init_bar2_vm,
-		.remove_bar2_vm = gp10b_remove_bar2_vm,
+		.init_inst_block = gv11b_mm_init_inst_block,
+		.init_bar2_vm = gp10b_mm_init_bar2_vm,
+		.remove_bar2_vm = gp10b_mm_remove_bar2_vm,
 		.fault_info_mem_destroy = gv11b_mm_fault_info_mem_destroy,
 		.bar1_map_userd = vgpu_mm_bar1_map_userd,
 		.vm_as_alloc_share = vgpu_vm_as_alloc_share,

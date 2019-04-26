@@ -35,12 +35,10 @@ gm20b_fb_tlb_invalidate
 gm20b_fuse_status_opt_gpc
 gm20b_ramin_set_big_page_size
 gp10b_fb_compression_page_size
-gp10b_init_bar2_vm
 gp10b_mm_get_default_big_page_size
 gp10b_mm_get_iommu_bit
 gp10b_mm_get_mmu_levels
 gp10b_ramin_init_pdb
-gp10b_remove_bar2_vm
 gv11b_channel_count
 gv11b_fb_intr_enable
 gv11b_fb_fault_buf_configure_hw
@@ -49,9 +47,9 @@ gv11b_fb_init_hw
 gv11b_fb_is_fault_buf_enabled
 gv11b_fb_intr_is_mmu_fault_pending
 gv11b_gpu_phys_addr
-gv11b_init_inst_block
 gv11b_mm_fault_info_mem_destroy
 gv11b_mm_is_bar1_supported
+gv11b_mm_init_inst_block
 gv11b_mm_l2_flush
 gv11b_mm_mmu_fault_disable_hw
 gv11b_mc_is_mmu_fault_pending

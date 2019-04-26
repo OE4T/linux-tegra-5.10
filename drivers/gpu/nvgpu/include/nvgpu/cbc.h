@@ -25,8 +25,7 @@
 
 #include <nvgpu/types.h>
 #include <nvgpu/comptags.h>
-
-#include "gk20a/mm_gk20a.h"
+#include <nvgpu/nvgpu_mem.h>
 
 struct gk20a;
 
@@ -36,6 +35,15 @@ enum nvgpu_cbc_op {
 	nvgpu_cbc_op_invalidate,
 };
 
+struct compbit_store_desc {
+	struct nvgpu_mem mem;
+
+	/*
+	 * The value that is written to the hardware. This depends on
+	 * on the number of ltcs and is not an address.
+	 */
+	u64 base_hw;
+};
 
 struct nvgpu_cbc {
 	u32 compbit_backing_size;

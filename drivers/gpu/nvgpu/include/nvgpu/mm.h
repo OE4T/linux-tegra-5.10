@@ -23,6 +23,7 @@
 #ifndef NVGPU_MM_H
 #define NVGPU_MM_H
 
+#include <nvgpu/vm.h>
 #include <nvgpu/types.h>
 #include <nvgpu/cond.h>
 #include <nvgpu/thread.h>

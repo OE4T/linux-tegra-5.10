@@ -32,7 +32,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/nvgpu_sgt.h>
 #include <nvgpu/vm_area.h>
-#include <gp10b/mm_gp10b.h>
+
 #include <hal/mm/cache/flush_gk20a.h>
 #include <hal/mm/cache/flush_gv11b.h>
 #include <hal/mm/gmmu/gmmu_gp10b.h>

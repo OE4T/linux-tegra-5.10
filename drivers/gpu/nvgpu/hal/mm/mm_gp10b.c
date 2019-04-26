@@ -1,7 +1,5 @@
 /*
- * GP10B MMU
- *
- * Copyright (c) 2014-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -22,19 +20,13 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#include <nvgpu/mm.h>
-#include <nvgpu/dma.h>
-#include <nvgpu/gmmu.h>
-#include <nvgpu/pd_cache.h>
-#include <nvgpu/sizes.h>
-#include <nvgpu/utils.h>
 #include <nvgpu/gk20a.h>
-#include <nvgpu/bug.h>
+#include <nvgpu/mm.h>
+#include <nvgpu/vm.h>
 
-#include "gm20b/mm_gm20b.h"
 #include "mm_gp10b.h"
 
-int gp10b_init_bar2_vm(struct gk20a *g)
+int gp10b_mm_init_bar2_vm(struct gk20a *g)
 {
 	int err;
 	struct mm_gk20a *mm = &g->mm;
@@ -68,7 +60,7 @@ clean_up_va:
 }
 
 
-void gp10b_remove_bar2_vm(struct gk20a *g)
+void gp10b_mm_remove_bar2_vm(struct gk20a *g)
 {
 	struct mm_gk20a *mm = &g->mm;
 

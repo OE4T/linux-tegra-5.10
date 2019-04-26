@@ -35,7 +35,6 @@
 #include "os_linux.h"
 #include "dmabuf_vidmem.h"
 
-#include "gk20a/mm_gk20a.h"
 #include "platform_gk20a.h"
 
 static u64 __nvgpu_sgl_ipa(struct gk20a *g, struct nvgpu_sgl *sgl)

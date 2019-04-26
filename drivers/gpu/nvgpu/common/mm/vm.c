@@ -39,7 +39,6 @@
 #include <nvgpu/vgpu/vm_vgpu.h>
 #include <nvgpu/cbc.h>
 
-#include "gk20a/mm_gk20a.h"
 
 struct nvgpu_ctag_buffer_info {
 	u64			size;

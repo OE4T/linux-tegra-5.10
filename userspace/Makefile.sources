@@ -28,8 +28,6 @@ HEADERS :=	\
 	$(NVGPU_SRC)/include/nvgpu/*.h		\
 	$(NVGPU_SRC)/include/nvgpu/hw/*/*.h	\
 	$(NVGPU_SRC)/gk20a/*.h			\
-	$(NVGPU_SRC)/gm20b/*.h			\
-	$(NVGPU_SRC)/gp10b/*.h			\
 	$(NVGPU_SRC)/gv11b/*.h			\
 	$(NVGPU_SRC)/tu104/*.h
 

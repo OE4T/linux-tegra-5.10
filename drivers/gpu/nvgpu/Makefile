@@ -148,6 +148,10 @@ nvgpu-y += \
 	common/nvlink/nvlink.o \
 	common/nvlink/nvlink_gv100.o \
 	common/nvlink/nvlink_tu104.o \
+	hal/mm/mm_gk20a.o \
+	hal/mm/mm_gm20b.o \
+	hal/mm/mm_gp10b.o \
+	hal/mm/mm_gv11b.o \
 	hal/mm/cache/flush_gk20a.o \
 	hal/mm/cache/flush_gv11b.o \
 	hal/mm/gmmu/gmmu_mmu_fault_gv11b.o \
@@ -542,8 +546,6 @@ nvgpu-y += \
 	common/ce/ce.o \
 	common/debugger.o \
 	gk20a/fifo_gk20a.o \
-	gk20a/mm_gk20a.o \
-	gm20b/mm_gm20b.o
 
 nvgpu-$(CONFIG_GK20A_VIDMEM) += \
 	common/mm/vidmem.o
@@ -588,7 +590,6 @@ nvgpu-$(CONFIG_GK20A_CYCLE_STATS) += \
 	common/cyclestats/cyclestats.o
 
 nvgpu-y += \
-	gp10b/mm_gp10b.o \
-	gv11b/mm_gv11b.o \
+	gv11b/mmu_fault_gv11b.o \
 	gv100/mm_gv100.o \
 	tu104/mm_tu104.o \

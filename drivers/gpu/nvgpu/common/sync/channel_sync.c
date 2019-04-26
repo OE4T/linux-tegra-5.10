@@ -38,7 +38,6 @@
 #include <nvgpu/fence.h>
 
 #include "channel_sync_priv.h"
-#include "gk20a/mm_gk20a.h"
 
 struct nvgpu_channel_sync *nvgpu_channel_sync_create(struct channel_gk20a *c,
 	bool user_managed)

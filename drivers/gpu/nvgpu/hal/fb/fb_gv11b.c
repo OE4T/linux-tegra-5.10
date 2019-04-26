@@ -38,7 +38,6 @@
 #include <nvgpu/nvgpu_err.h>
 #include <nvgpu/ltc.h>
 
-#include "gk20a/mm_gk20a.h"
 
 #include "fb_gm20b.h"
 #include "fb_gp10b.h"

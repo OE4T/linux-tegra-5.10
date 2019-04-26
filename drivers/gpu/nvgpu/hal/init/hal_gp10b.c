@@ -41,6 +41,9 @@
 #include <nvgpu/gr/gr_intr.h>
 #include <nvgpu/pmu/pmu_perfmon.h>
 
+#include "hal/mm/mm_gk20a.h"
+#include "hal/mm/mm_gm20b.h"
+#include "hal/mm/mm_gp10b.h"
 #include "hal/mm/cache/flush_gk20a.h"
 #include "hal/mm/gmmu/gmmu_gm20b.h"
 #include "hal/mm/gmmu/gmmu_gp10b.h"
@@ -120,9 +123,6 @@
 #include "common/fifo/channel_gk20a.h"
 #include "common/fifo/channel_gm20b.h"
 #include "common/clk_arb/clk_arb_gp10b.h"
-
-#include "gp10b/mm_gp10b.h"
-#include "gm20b/mm_gm20b.h"
 
 #include "hal_gp10b.h"
 
@@ -929,9 +929,9 @@ static const struct gpu_ops gp10b_ops = {
 		.vm_bind_channel = nvgpu_vm_bind_channel,
 		.setup_hw = nvgpu_mm_setup_hw,
 		.is_bar1_supported = gm20b_mm_is_bar1_supported,
-		.init_inst_block = gk20a_init_inst_block,
-		.init_bar2_vm = gp10b_init_bar2_vm,
-		.remove_bar2_vm = gp10b_remove_bar2_vm,
+		.init_inst_block = gk20a_mm_init_inst_block,
+		.init_bar2_vm = gp10b_mm_init_bar2_vm,
+		.remove_bar2_vm = gp10b_mm_remove_bar2_vm,
 		.bar1_map_userd = gk20a_mm_bar1_map_userd,
 		.cache = {
 			.fb_flush = gk20a_mm_fb_flush,

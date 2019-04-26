@@ -33,7 +33,6 @@
 
 #include "semaphore_priv.h"
 
-#include "gk20a/mm_gk20a.h"
 
 /*
  * Allocate a semaphore from the passed pool.

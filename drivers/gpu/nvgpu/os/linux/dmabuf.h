@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
+* Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -28,7 +28,35 @@ struct dma_buf_attachment;
 struct device;
 
 struct gk20a;
-struct gk20a_buffer_state;
+
+struct gk20a_buffer_state {
+	struct nvgpu_list_node list;
+
+	/* The valid compbits and the fence must be changed atomically. */
+	struct nvgpu_mutex lock;
+
+	/* Offset of the surface within the dma-buf whose state is
+	 * described by this struct (one dma-buf can contain multiple
+	 * surfaces with different states). */
+	size_t offset;
+
+	/* A bitmask of valid sets of compbits (0 = uncompressed). */
+	u32 valid_compbits;
+
+	/* The ZBC color used on this buffer. */
+	u32 zbc_color;
+
+	/* This struct reflects the state of the buffer when this
+	 * fence signals. */
+	struct nvgpu_fence_type *fence;
+};
+
+static inline struct gk20a_buffer_state *
+gk20a_buffer_state_from_list(struct nvgpu_list_node *node)
+{
+	return (struct gk20a_buffer_state *)
+		((uintptr_t)node - offsetof(struct gk20a_buffer_state, list));
+};
 
 struct gk20a_dmabuf_priv {
 	struct nvgpu_mutex lock;

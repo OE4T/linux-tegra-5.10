@@ -41,6 +41,8 @@
 #include <nvgpu/pmu/pmu_perfmon.h>
 #include <nvgpu/gr/fecs_trace.h>
 
+#include "hal/mm/mm_gk20a.h"
+#include "hal/mm/mm_gm20b.h"
 #include "hal/mm/cache/flush_gk20a.h"
 #include "hal/mm/gmmu/gmmu_gk20a.h"
 #include "hal/mm/gmmu/gmmu_gm20b.h"
@@ -99,8 +101,6 @@
 #include "common/fifo/channel_gk20a.h"
 #include "common/fifo/channel_gm20b.h"
 #include "common/pmu/pg/pg_sw_gm20b.h"
-
-#include "gm20b/mm_gm20b.h"
 
 #include "hal_gm20b.h"
 
@@ -852,7 +852,7 @@ static const struct gpu_ops gm20b_ops = {
 		.vm_bind_channel = nvgpu_vm_bind_channel,
 		.setup_hw = nvgpu_mm_setup_hw,
 		.is_bar1_supported = gm20b_mm_is_bar1_supported,
-		.init_inst_block = gk20a_init_inst_block,
+		.init_inst_block = gk20a_mm_init_inst_block,
 		.bar1_map_userd = gk20a_mm_bar1_map_userd,
 		.cache = {
 			.fb_flush = gk20a_mm_fb_flush,

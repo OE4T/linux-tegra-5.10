@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,14 +20,13 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NVGPU_GM20B_MM_GM20B_H
-#define NVGPU_GM20B_MM_GM20B_H
+#ifndef HAL_MM_MM_GM20B_H
+#define HAL_MM_MM_GM20B_H
+
+#include <nvgpu/types.h>
+
 struct gk20a;
 
-#define PDE_ADDR_START(x, y)	((x) &  ~((0x1UL << (y)) - 1))
-#define PDE_ADDR_END(x, y)	((x) | ((0x1UL << (y)) - 1))
-
-bool gm20b_mm_support_sparse(struct gk20a *g);
 bool gm20b_mm_is_bar1_supported(struct gk20a *g);
 
-#endif /* NVGPU_GM20B_MM_GM20B_H */
+#endif

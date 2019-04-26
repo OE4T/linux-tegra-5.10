@@ -43,5 +43,6 @@ u32 gk20a_get_pde_pgsz(struct gk20a *g, const struct gk20a_mmu_level *l,
 				struct nvgpu_gmmu_pd *pd, u32 pd_idx);
 u32 gk20a_get_pte_pgsz(struct gk20a *g, const struct gk20a_mmu_level *l,
 				struct nvgpu_gmmu_pd *pd, u32 pd_idx);
+u32 gk20a_mm_get_iommu_bit(struct gk20a *g);
 
 #endif

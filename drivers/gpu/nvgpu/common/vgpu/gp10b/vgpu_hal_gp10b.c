@@ -33,6 +33,10 @@
 
 #include "hal/bus/bus_gk20a.h"
 #include "hal/bus/bus_gm20b.h"
+#include "hal/mm/mm_gk20a.h"
+#include "hal/mm/mm_gm20b.h"
+#include "hal/mm/mm_gp10b.h"
+#include "hal/mm/gmmu/gmmu_gk20a.h"
 #include "hal/mm/gmmu/gmmu_gm20b.h"
 #include "hal/mm/gmmu/gmmu_gp10b.h"
 #include "hal/regops/regops_gp10b.h"
@@ -88,10 +92,6 @@
 #include "common/vgpu/ptimer/ptimer_vgpu.h"
 #include "common/vgpu/init/init_vgpu.h"
 #include "vgpu_hal_gp10b.h"
-
-#include "gp10b/mm_gp10b.h"
-
-#include "gm20b/mm_gm20b.h"
 
 #include <nvgpu/hw/gp10b/hw_pram_gp10b.h>
 #include <nvgpu/hw/gp10b/hw_pwr_gp10b.h>
@@ -571,9 +571,9 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 		.vm_bind_channel = vgpu_vm_bind_channel,
 		.setup_hw = NULL,
 		.is_bar1_supported = gm20b_mm_is_bar1_supported,
-		.init_inst_block = gk20a_init_inst_block,
-		.init_bar2_vm = gp10b_init_bar2_vm,
-		.remove_bar2_vm = gp10b_remove_bar2_vm,
+		.init_inst_block = gk20a_mm_init_inst_block,
+		.init_bar2_vm = gp10b_mm_init_bar2_vm,
+		.remove_bar2_vm = gp10b_mm_remove_bar2_vm,
 		.bar1_map_userd = vgpu_mm_bar1_map_userd,
 		.vm_as_alloc_share = vgpu_vm_as_alloc_share,
 		.vm_as_free_share = vgpu_vm_as_free_share,

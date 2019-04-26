@@ -36,7 +36,6 @@
 #include <nvgpu/types.h>
 #include <nvgpu/gk20a.h>
 
-#include "gk20a/mm_gk20a.h"
 
 #define __gmmu_dbg(g, attrs, fmt, args...)				\
 	do {								\

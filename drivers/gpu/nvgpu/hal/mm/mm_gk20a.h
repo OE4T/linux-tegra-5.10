@@ -1,6 +1,5 @@
 /*
- * GV11B MM
- * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -21,15 +20,16 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef MM_GV11B_H
-#define MM_GV11B_H
+#ifndef HAL_MM_MM_GK20A_H
+#define HAL_MM_MM_GK20A_H
 
-struct gk20a;
+#include <nvgpu/types.h>
 
-void gv11b_mm_fault_info_mem_destroy(struct gk20a *g);
-void gv11b_mm_mmu_fault_disable_hw(struct gk20a *g);
+struct nvgpu_mem;
+struct vm_gk20a;
 
-void gv11b_mm_mmu_fault_setup_hw(struct gk20a *g);
-int  gv11b_mm_mmu_fault_setup_sw(struct gk20a *g);
+void gk20a_mm_init_inst_block(struct nvgpu_mem *inst_block, struct vm_gk20a *vm,
+			      u32 big_page_size);
+u64 gk20a_mm_bar1_map_userd(struct gk20a *g, struct nvgpu_mem *mem, u32 offset);
 
 #endif
