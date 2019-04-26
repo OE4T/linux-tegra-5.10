@@ -784,3 +784,20 @@ int nvgpu_gr_halt_pipe(struct gk20a *g)
 	return g->ops.gr.falcon.ctrl_ctxsw(g,
 				NVGPU_GR_FALCON_METHOD_HALT_PIPELINE, 0U, NULL);
 }
+
+void nvgpu_gr_remove_support(struct gk20a *g)
+{
+	if (g->gr->remove_support != NULL) {
+		g->gr->remove_support(g);
+	}
+}
+
+void nvgpu_gr_sw_ready(struct gk20a *g, bool enable)
+{
+	g->gr->sw_ready = enable;
+}
+
+void nvgpu_gr_override_ecc_val(struct gk20a *g, u32 ecc_val)
+{
+	g->gr->fecs_feature_override_ecc_val = ecc_val;
+}

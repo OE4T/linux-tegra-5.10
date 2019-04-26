@@ -52,7 +52,6 @@
 #include <nvgpu/pmu/pmu_pstate.h>
 #include <nvgpu/cyclestats_snapshot.h>
 
-#include "common/gr/gr_priv.h"
 #include "platform_gk20a.h"
 #include "sysfs.h"
 #include "vgpu/vgpu_linux.h"
@@ -760,8 +759,7 @@ void gk20a_remove_support(struct gk20a *g)
 		g->sec2.remove_support(&g->sec2);
 	}
 
-	if (g->gr->remove_support)
-		g->gr->remove_support(g);
+	nvgpu_gr_remove_support(g);
 
 	if (g->mm.remove_ce_support)
 		g->mm.remove_ce_support(&g->mm);
@@ -1236,7 +1234,7 @@ void gk20a_driver_start_unload(struct gk20a *g)
 	nvgpu_set_enabled(g, NVGPU_DRIVER_IS_DYING, true);
 	/* GR SW ready needs to be invalidated at this time with the busy lock
 	 * held to prevent a racing condition on the gr/mm code */
-	g->gr->sw_ready = false;
+	nvgpu_gr_sw_ready(g, false);
 	g->sw_ready = false;
 	up_write(&l->busy_lock);
 
@@ -1286,7 +1284,7 @@ static int nvgpu_read_fuse_overrides(struct gk20a *g)
 			g->tpc_fs_mask_user = ~value;
 			break;
 		case GP10B_FUSE_OPT_ECC_EN:
-			g->gr->fecs_feature_override_ecc_val = value;
+			nvgpu_gr_override_ecc_val(g, value);
 			break;
 		default:
 			nvgpu_err(g, "ignore unknown fuse override %08x", fuse);

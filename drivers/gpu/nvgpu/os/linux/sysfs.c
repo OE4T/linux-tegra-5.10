@@ -26,6 +26,7 @@
 #include <nvgpu/gr/config.h>
 #include <nvgpu/gr/obj_ctx.h>
 #include <nvgpu/gr/gr_falcon.h>
+#include <nvgpu/gr/gr.h>
 #include <nvgpu/power_features/cg.h>
 #include <nvgpu/power_features/pg.h>
 #include <nvgpu/pmu/pmu_perfmon.h>
@@ -898,7 +899,7 @@ static ssize_t tpc_fs_mask_store(struct device *dev,
 
 		nvgpu_gr_config_deinit(g, g->gr->config);
 		/* Cause next poweron to reinit just gr */
-		g->gr->sw_ready = false;
+		nvgpu_gr_sw_ready(g, false);
 	}
 
 	return count;
