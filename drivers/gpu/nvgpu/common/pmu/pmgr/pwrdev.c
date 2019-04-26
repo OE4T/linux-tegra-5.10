@@ -63,7 +63,7 @@ static int _pwr_domains_pmudatainit_ina3221(struct gk20a *g,
 	int status = 0;
 	u32 indx;
 
-	status = boardobj_pmudatainit_super(g, board_obj_ptr, ppmudata);
+	status = nvgpu_boardobj_pmu_data_init_super(g, board_obj_ptr, ppmudata);
 	if (status != 0) {
 		nvgpu_err(g,
 			  "error updating pmu boardobjgrp for pwr domain 0x%x",
@@ -100,7 +100,7 @@ static struct boardobj *construct_pwr_device(struct gk20a *g,
 	struct pwr_device_ina3221 *pwrdev;
 	struct pwr_device_ina3221 *ina3221 = (struct pwr_device_ina3221*)pargs;
 
-	status = boardobj_construct_super(g, &board_obj_ptr,
+	status = nvgpu_boardobj_construct_super(g, &board_obj_ptr,
 		pargs_size, pargs);
 	if (status != 0) {
 		return NULL;
@@ -296,11 +296,12 @@ int pmgr_device_sw_setup(struct gk20a *g)
 	struct pwr_devices *ppwrdeviceobjs;
 
 	/* Construct the Super Class and override the Interfaces */
-	status = boardobjgrpconstruct_e32(g, &g->pmgr_pmu->pmgr_deviceobjs.super);
+	status = nvgpu_boardobjgrp_construct_e32(g,
+			&g->pmgr_pmu->pmgr_deviceobjs.super);
 	if (status != 0) {
 		nvgpu_err(g,
-			"error creating boardobjgrp for pmgr devices, status - 0x%x",
-			status);
+			"error creating boardobjgrp for pmgr devices, "
+			"status - 0x%x", status);
 		goto done;
 	}
 

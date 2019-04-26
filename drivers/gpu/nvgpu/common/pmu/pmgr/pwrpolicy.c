@@ -194,7 +194,7 @@ static int _pwr_domains_pmudatainit_hw_threshold(struct gk20a *g,
 	struct nv_pmu_pmgr_pwr_policy *pmu_pwr_policy;
 	int status = 0;
 
-	status = boardobj_pmudatainit_super(g, board_obj_ptr, ppmudata);
+	status = nvgpu_boardobj_pmu_data_init_super(g, board_obj_ptr, ppmudata);
 	if (status != 0) {
 		nvgpu_err(g,
 			"error updating pmu boardobjgrp for pwr sensor 0x%x",
@@ -265,7 +265,7 @@ static struct boardobj *construct_pwr_policy(struct gk20a *g,
 	struct pwr_policy *pwrpolicyparams = (struct pwr_policy*)pargs;
 	struct pwr_policy_hw_threshold *hwthreshold = (struct pwr_policy_hw_threshold*)pargs;
 
-	status = boardobj_construct_super(g, &board_obj_ptr,
+	status = nvgpu_boardobj_construct_super(g, &board_obj_ptr,
 		pargs_size, pargs);
 	if (status != 0) {
 		return NULL;
@@ -723,30 +723,30 @@ int pmgr_policy_sw_setup(struct gk20a *g)
 	u8 indx = 0;
 
 	/* Construct the Super Class and override the Interfaces */
-	status = boardobjgrpconstruct_e32(g,
+	status = nvgpu_boardobjgrp_construct_e32(g,
 			&g->pmgr_pmu->pmgr_policyobjs.pwr_policies);
 	if (status != 0) {
 		nvgpu_err(g,
-			"error creating boardobjgrp for pmgr policy, status - 0x%x",
-			status);
+			"error creating boardobjgrp for pmgr policy, "
+			"status - 0x%x", status);
 		goto done;
 	}
 
-	status = boardobjgrpconstruct_e32(g,
+	status = nvgpu_boardobjgrp_construct_e32(g,
 			&g->pmgr_pmu->pmgr_policyobjs.pwr_policy_rels);
 	if (status != 0) {
 		nvgpu_err(g,
-			"error creating boardobjgrp for pmgr policy rels, status - 0x%x",
-			status);
+			"error creating boardobjgrp for pmgr policy rels, "
+			"status - 0x%x", status);
 		goto done;
 	}
 
-	status = boardobjgrpconstruct_e32(g,
+	status = nvgpu_boardobjgrp_construct_e32(g,
 			&g->pmgr_pmu->pmgr_policyobjs.pwr_violations);
 	if (status != 0) {
 		nvgpu_err(g,
-			"error creating boardobjgrp for pmgr violations, status - 0x%x",
-			status);
+			"error creating boardobjgrp for pmgr violations, "
+			"status - 0x%x", status);
 		goto done;
 	}
 

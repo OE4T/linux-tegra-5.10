@@ -51,8 +51,10 @@ DEFINE_SIMPLE_ATTRIBUTE(get_rate_fops, gv100_get_rate_show, NULL, "%llu\n");
 static int sys_cfc_read(void *data , u64 *val)
 {
 	struct gk20a *g = (struct gk20a *)data;
-	bool bload = boardobjgrpmask_bitget(
-		&g->pmu.clk_pmu->clk_freq_controllers->freq_ctrl_load_mask.super,
+
+	bool bload = nvgpu_boardobjgrpmask_bit_get(
+			&g->pmu.clk_pmu->clk_freq_controllers->
+			freq_ctrl_load_mask.super,
 		CTRL_CLK_CLK_FREQ_CONTROLLER_ID_SYS);
 
 	/* val = 1 implies CLFC is loaded or enabled */
@@ -78,8 +80,10 @@ DEFINE_SIMPLE_ATTRIBUTE(sys_cfc_fops, sys_cfc_read, sys_cfc_write, "%llu\n");
 static int ltc_cfc_read(void *data , u64 *val)
 {
 	struct gk20a *g = (struct gk20a *)data;
-	bool bload = boardobjgrpmask_bitget(
-		&g->pmu.clk_pmu->clk_freq_controllers->freq_ctrl_load_mask.super,
+
+	bool bload = nvgpu_boardobjgrpmask_bit_get(
+			&g->pmu.clk_pmu->clk_freq_controllers->
+			freq_ctrl_load_mask.super,
 		CTRL_CLK_CLK_FREQ_CONTROLLER_ID_LTC);
 
 	/* val = 1 implies CLFC is loaded or enabled */
@@ -105,8 +109,10 @@ DEFINE_SIMPLE_ATTRIBUTE(ltc_cfc_fops, ltc_cfc_read, ltc_cfc_write, "%llu\n");
 static int xbar_cfc_read(void *data , u64 *val)
 {
 	struct gk20a *g = (struct gk20a *)data;
-	bool bload = boardobjgrpmask_bitget(
-		&g->pmu.clk_pmu->clk_freq_controllers->freq_ctrl_load_mask.super,
+
+	bool bload = nvgpu_boardobjgrpmask_bit_get(
+			&g->pmu.clk_pmu->clk_freq_controllers->
+			freq_ctrl_load_mask.super,
 		CTRL_CLK_CLK_FREQ_CONTROLLER_ID_XBAR);
 
 	/* val = 1 implies CLFC is loaded or enabled */
@@ -133,8 +139,10 @@ DEFINE_SIMPLE_ATTRIBUTE(xbar_cfc_fops, xbar_cfc_read,
 static int gpc_cfc_read(void *data , u64 *val)
 {
 	struct gk20a *g = (struct gk20a *)data;
-	bool bload = boardobjgrpmask_bitget(
-		&g->pmu.clk_pmu->clk_freq_controllers->freq_ctrl_load_mask.super,
+
+	bool bload = nvgpu_boardobjgrpmask_bit_get(
+			&g->pmu.clk_pmu->clk_freq_controllers->
+			freq_ctrl_load_mask.super,
 		CTRL_CLK_CLK_FREQ_CONTROLLER_ID_GPC0);
 
 	/* val = 1 implies CLFC is loaded or enabled */

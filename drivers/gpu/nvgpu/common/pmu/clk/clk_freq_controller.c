@@ -70,7 +70,7 @@ static int clk_freq_controller_pmudatainit_super(struct gk20a *g,
 	struct clk_freq_controller *pfreq_cntlr;
 	int status = 0;
 
-	status = boardobj_pmudatainit_super(g, board_obj_ptr, ppmudata);
+	status = nvgpu_boardobj_pmu_data_init_super(g, board_obj_ptr, ppmudata);
 	if (status != 0) {
 		return status;
 	}
@@ -132,7 +132,7 @@ static int clk_freq_controller_construct_super(struct gk20a *g,
 	struct clk_freq_controller *pfreq_cntlr_tmp = NULL;
 	int status = 0;
 
-	status = boardobj_construct_super(g, ppboardobj, size, pargs);
+	status = nvgpu_boardobj_construct_super(g, ppboardobj, size, pargs);
 	if (status != 0) {
 		return -EINVAL;
 	}
@@ -434,8 +434,10 @@ int nvgpu_clk_freq_controller_sw_setup(struct gk20a *g)
 
 	nvgpu_log_info(g, " ");
 
+
 	pclk_freq_controllers = g->pmu.clk_pmu->clk_freq_controllers;
-	status = boardobjgrpconstruct_e32(g, &pclk_freq_controllers->super);
+	status = nvgpu_boardobjgrp_construct_e32(g,
+			&pclk_freq_controllers->super);
 	if (status != 0) {
 		nvgpu_err(g,
 			"error creating boardobjgrp for clk FCT, status - 0x%x",
@@ -483,7 +485,7 @@ int nvgpu_clk_freq_controller_sw_setup(struct gk20a *g)
 				break;
 			}
 		}
-		boardobjgrpmask_bitset(&pclk_freq_controllers->
+		nvgpu_boardobjgrpmask_bit_set(&pclk_freq_controllers->
 			freq_ctrl_load_mask.super, i);
 	}
 done:
@@ -521,7 +523,7 @@ int nvgpu_clk_pmu_freq_controller_load(struct gk20a *g, bool bload, u8 bit_idx)
 	status = boardobjgrpmask_e32_init(&isolate_cfc_mask, NULL);
 
 	if (bit_idx == CTRL_CLK_CLK_FREQ_CONTROLLER_ID_ALL) {
-		status = boardobjgrpmask_export(
+		status = nvgpu_boardobjgrpmask_export(
 				&pclk_freq_controllers->
 					freq_ctrl_load_mask.super,
 				pclk_freq_controllers->
@@ -530,18 +532,18 @@ int nvgpu_clk_pmu_freq_controller_load(struct gk20a *g, bool bload, u8 bit_idx)
 
 
 	} else {
-		status = boardobjgrpmask_bitset(&isolate_cfc_mask.super,
+		status = nvgpu_boardobjgrpmask_bit_set(&isolate_cfc_mask.super,
 						bit_idx);
-		status = boardobjgrpmask_export(&isolate_cfc_mask.super,
+		status = nvgpu_boardobjgrpmask_export(&isolate_cfc_mask.super,
 					isolate_cfc_mask.super.bitcount,
 					&load_mask->super);
 		if (bload) {
-			status = boardobjgrpmask_bitset(
+			status = nvgpu_boardobjgrpmask_bit_set(
 					&pclk_freq_controllers->
 						freq_ctrl_load_mask.super,
 					bit_idx);
 		} else {
-			status = boardobjgrpmask_bitclr(
+			status = nvgpu_boardobjgrpmask_bit_clr(
 					&pclk_freq_controllers->
 						freq_ctrl_load_mask.super,
 					bit_idx);

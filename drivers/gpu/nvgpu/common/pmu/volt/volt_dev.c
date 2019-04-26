@@ -42,7 +42,7 @@ static int volt_device_pmu_data_init_super(struct gk20a *g,
 	struct voltage_device *pdev;
 	struct nv_pmu_volt_volt_device_boardobj_set *pset;
 
-	status = boardobj_pmudatainit_super(g, pboard_obj, ppmudata);
+	status = nvgpu_boardobj_pmu_data_init_super(g, pboard_obj, ppmudata);
 	if (status != 0) {
 		return status;
 	}
@@ -88,7 +88,7 @@ static int construct_volt_device(struct gk20a *g,
 	struct voltage_device *pvolt_dev = NULL;
 	int status = 0;
 
-	status = boardobj_construct_super(g, ppboardobj, size, pargs);
+	status = nvgpu_boardobj_construct_super(g, ppboardobj, size, pargs);
 	if (status != 0) {
 		return status;
 	}
@@ -546,12 +546,12 @@ int nvgpu_volt_dev_sw_setup(struct gk20a *g)
 
 	nvgpu_log_info(g, " ");
 
-	status = boardobjgrpconstruct_e32(g,
+	status = nvgpu_boardobjgrp_construct_e32(g,
 			&g->perf_pmu->volt.volt_dev_metadata.volt_devices);
 	if (status != 0) {
 		nvgpu_err(g,
-			"error creating boardobjgrp for volt rail, status - 0x%x",
-			status);
+			"error creating boardobjgrp for volt rail, "
+			"status - 0x%x", status);
 		goto done;
 	}
 

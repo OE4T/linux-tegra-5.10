@@ -46,7 +46,7 @@ static int vfe_equs_pmudatainit(struct gk20a *g,
 {
 	int status = 0;
 
-	status = boardobjgrp_pmudatainit_e255(g, pboardobjgrp, pboardobjgrppmu);
+	status = boardobjgrp_pmu_data_init_e255(g, pboardobjgrp, pboardobjgrppmu);
 	if (status != 0) {
 		nvgpu_err(g, "error updating pmu boardobjgrp for vfe equ 0x%x",
 			  status);
@@ -86,11 +86,12 @@ int nvgpu_vfe_equ_sw_setup(struct gk20a *g)
 
 	nvgpu_log_info(g, " ");
 
-	status = boardobjgrpconstruct_e255(g, &g->perf_pmu->vfe_equobjs.super);
+	status = nvgpu_boardobjgrp_construct_e255(g,
+			&g->perf_pmu->vfe_equobjs.super);
 	if (status != 0) {
 		nvgpu_err(g,
-			  "error creating boardobjgrp for clk domain, status - 0x%x",
-			  status);
+			  "error creating boardobjgrp for clk domain, "
+			  "status - 0x%x", status);
 		goto done;
 	}
 
@@ -419,7 +420,7 @@ static int vfe_equ_pmudatainit_super(struct gk20a *g,
 
 	nvgpu_log_info(g, " ");
 
-	status = boardobj_pmudatainit_super(g, board_obj_ptr, ppmudata);
+	status = nvgpu_boardobj_pmu_data_init_super(g, board_obj_ptr, ppmudata);
 	if (status != 0) {
 		return status;
 	}
@@ -446,7 +447,7 @@ static int vfe_equ_construct_super(struct gk20a *g,
 	struct vfe_equ *ptmpequ = (struct vfe_equ *)pargs;
 	int status = 0;
 
-	status = boardobj_construct_super(g, ppboardobj,
+	status = nvgpu_boardobj_construct_super(g, ppboardobj,
 		size, pargs);
 	if (status != 0) {
 		return -EINVAL;

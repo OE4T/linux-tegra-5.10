@@ -73,8 +73,8 @@ static int clk_freq_domain_grp_pmudatainit(struct gk20a *g,
 	status = boardobjgrp_pmudatainit_e32(g, pboardobjgrp, pboardobjgrppmu);
 	if (status != 0) {
 		nvgpu_err(g,
-			"error updating pmu boardobjgrp for clk freq domain 0x%x",
-			status);
+			"error updating pmu boardobjgrp for "
+			"clk freq domain 0x%x", status);
 		goto exit;
 	}
 
@@ -119,7 +119,7 @@ static int clk_freq_domain_pmudatainit(struct gk20a *g,
 
 	nvgpu_log_fn(g, " ");
 
-	status = boardobj_pmudatainit_super(g, board_obj_ptr, ppmudata);
+	status = nvgpu_boardobj_pmu_data_init_super(g, board_obj_ptr, ppmudata);
 	if(status != 0) {
 		nvgpu_err(g, "Failed pmudatainit freq_domain");
 		goto exit;
@@ -157,12 +157,12 @@ int nvgpu_clk_freq_domain_sw_setup(struct gk20a *g)
 	pboardobjgrp = &g->pmu.clk_pmu->freq_domain_grp_objs->super.super;
 	pfreq_domain_grp = g->pmu.clk_pmu->freq_domain_grp_objs;
 
-	status = boardobjgrpconstruct_e32(g,
+	status = nvgpu_boardobjgrp_construct_e32(g,
 			&g->pmu.clk_pmu->freq_domain_grp_objs->super);
 	if (status != 0) {
 		nvgpu_err(g,
-			"error creating boardobjgrp for clk freq domain, status - 0x%x",
-			status);
+			"error creating boardobjgrp for clk freq domain, "
+			"status - 0x%x", status);
 		goto exit;
 	}
 
@@ -180,8 +180,8 @@ int nvgpu_clk_freq_domain_sw_setup(struct gk20a *g)
 			clk, CLK, clk_freq_domain, CLK_FREQ_DOMAIN);
 	if (status != 0) {
 		nvgpu_err(g,
-			"error constructing PMU_BOARDOBJ_CMD_GRP_SET interface - 0x%x",
-			status);
+			"error constructing PMU_BOARDOBJ_CMD_GRP_SET "
+			"interface - 0x%x", status);
 		goto exit;
 	}
 
@@ -193,23 +193,26 @@ int nvgpu_clk_freq_domain_sw_setup(struct gk20a *g)
 			clk_freq_domain_type[idx].clk_domain;
 
 		pboardobj = NULL;
-		status = boardobj_construct_super(g,&pboardobj,
+		status = nvgpu_boardobj_construct_super(g,&pboardobj,
 			sizeof(struct nvgpu_clk_freq_domain),
 			(void*)&freq_domain_data);
 		if(status != 0) {
-			nvgpu_err(g, "Failed to construct nvgpu_clk_freq_domain Board obj");
+			nvgpu_err(g, "Failed to construct "
+					"nvgpu_clk_freq_domain Board obj");
 			goto exit;
 		}
 
 		pfreq_domain = (struct nvgpu_clk_freq_domain*)(void*) pboardobj;
 		pfreq_domain->super.pmudatainit = clk_freq_domain_pmudatainit;
-		pfreq_domain->clk_domain = freq_domain_data.freq_domain.clk_domain;
+		pfreq_domain->clk_domain =
+				freq_domain_data.freq_domain.clk_domain;
 
 		status = boardobjgrp_objinsert(&pfreq_domain_grp->super.super,
 				&pfreq_domain->super, idx);
 		if (status != 0) {
 			nvgpu_err(g,
-			"unable to insert clock freq domain boardobj for %d", idx);
+			"unable to insert clock freq domain "
+			"boardobj for %d", idx);
 			goto exit;
 		}
 	}

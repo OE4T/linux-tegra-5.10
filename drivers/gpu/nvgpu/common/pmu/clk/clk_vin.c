@@ -185,7 +185,7 @@ int nvgpu_clk_vin_sw_setup(struct gk20a *g)
 
 	nvgpu_log_info(g, " ");
 
-	status = boardobjgrpconstruct_e32(g,
+	status = nvgpu_boardobjgrp_construct_e32(g,
 			&g->pmu.clk_pmu->avfs_vinobjs->super);
 	if (status != 0) {
 		nvgpu_err(g,
@@ -383,7 +383,7 @@ static int vin_device_construct_super(struct gk20a *g,
 	struct nvgpu_vin_device *ptmpvin_device =
 		(struct nvgpu_vin_device *)pargs;
 	int status = 0;
-	status = boardobj_construct_super(g, ppboardobj, size, pargs);
+	status = nvgpu_boardobj_construct_super(g, ppboardobj, size, pargs);
 
 	if (status != 0) {
 		return -EINVAL;
@@ -463,7 +463,7 @@ static int vin_device_init_pmudata_super(struct gk20a *g,
 
 	nvgpu_log_info(g, " ");
 
-	status = boardobj_pmudatainit_super(g, board_obj_ptr, ppmudata);
+	status = nvgpu_boardobj_pmu_data_init_super(g, board_obj_ptr, ppmudata);
 	if (status != 0) {
 		return status;
 	}

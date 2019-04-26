@@ -75,7 +75,7 @@ static int volt_rail_init_pmudata_super(struct gk20a *g,
 
 	nvgpu_log_info(g, " ");
 
-	status = boardobj_pmudatainit_super(g, board_obj_ptr, ppmudata);
+	status = nvgpu_boardobj_pmu_data_init_super(g, board_obj_ptr, ppmudata);
 	if (status != 0) {
 		return status;
 	}
@@ -102,7 +102,7 @@ static int volt_rail_init_pmudata_super(struct gk20a *g,
 			(int)g->perf_pmu->volt.volt_rail_metadata.ext_rel_delta_uv[i];
 	}
 
-	status = boardobjgrpmask_export(&prail->volt_dev_mask.super,
+	status = nvgpu_boardobjgrpmask_export(&prail->volt_dev_mask.super,
 				prail->volt_dev_mask.super.bitcount,
 				&rail_pmu_data->volt_dev_mask.super);
 	if (status != 0) {
@@ -123,7 +123,7 @@ static struct voltage_rail *construct_volt_rail(struct gk20a *g, void *pargs)
 	int status;
 
 	nvgpu_log_info(g, " ");
-	status = boardobj_construct_super(g, &board_obj_ptr,
+	status = nvgpu_boardobj_construct_super(g, &board_obj_ptr,
 		sizeof(struct voltage_rail), pargs);
 	if (status != 0) {
 		return NULL;
@@ -378,12 +378,12 @@ int nvgpu_volt_rail_sw_setup(struct gk20a *g)
 
 	nvgpu_log_info(g, " ");
 
-	status = boardobjgrpconstruct_e32(g,
+	status = nvgpu_boardobjgrp_construct_e32(g,
 			&g->perf_pmu->volt.volt_rail_metadata.volt_rails);
 	if (status != 0) {
 		nvgpu_err(g,
-			"error creating boardobjgrp for volt rail, status - 0x%x",
-			status);
+			"error creating boardobjgrp for volt rail, "
+			"status - 0x%x", status);
 		goto done;
 	}
 
@@ -543,7 +543,7 @@ int nvgpu_volt_rail_volt_dev_register(struct gk20a *g, struct voltage_rail
 		goto exit;
 	}
 
-	status = boardobjgrpmask_bitset(&pvolt_rail->volt_dev_mask.super,
+	status = nvgpu_boardobjgrpmask_bit_set(&pvolt_rail->volt_dev_mask.super,
 			volt_dev_idx);
 
 exit:

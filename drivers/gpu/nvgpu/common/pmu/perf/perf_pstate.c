@@ -43,7 +43,7 @@ static int pstate_construct_super(struct gk20a *g, struct boardobj **ppboardobj,
 	struct pstate *pstate;
 	int err;
 
-	err = boardobj_construct_super(g, ppboardobj, size, args);
+	err = nvgpu_boardobj_construct_super(g, ppboardobj, size, args);
 	if (err != 0) {
 		return err;
 	}
@@ -215,7 +215,7 @@ int nvgpu_pmu_perf_pstate_sw_setup(struct gk20a *g)
 		return err;
 	}
 
-	err = boardobjgrpconstruct_e32(g, &g->perf_pmu->pstatesobjs.super);
+	err = nvgpu_boardobjgrp_construct_e32(g, &g->perf_pmu->pstatesobjs.super);
 	if (err != 0) {
 		nvgpu_err(g,
 			  "error creating boardobjgrp for pstates, err=%d",

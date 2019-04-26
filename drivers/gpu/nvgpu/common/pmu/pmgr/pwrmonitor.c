@@ -117,7 +117,7 @@ static int _pwr_domains_pmudatainit_sensor(struct gk20a *g,
 	struct pwr_channel_sensor *sensor;
 	int status = 0;
 
-	status = boardobj_pmudatainit_super(g, board_obj_ptr, ppmudata);
+	status = nvgpu_boardobj_pmu_data_init_super(g, board_obj_ptr, ppmudata);
 	if (status != 0) {
 		nvgpu_err(g,
 			  "error updating pmu boardobjgrp for pwr sensor 0x%x",
@@ -152,7 +152,7 @@ static struct boardobj *construct_pwr_topology(struct gk20a *g,
 	struct pwr_channel_sensor *pwrchannel;
 	struct pwr_channel_sensor *sensor = (struct pwr_channel_sensor*)pargs;
 
-	status = boardobj_construct_super(g, &board_obj_ptr,
+	status = nvgpu_boardobj_construct_super(g, &board_obj_ptr,
 		pargs_size, pargs);
 	if (status != 0) {
 		return NULL;
@@ -312,12 +312,12 @@ int pmgr_monitor_sw_setup(struct gk20a *g)
 	u8 indx = 0;
 
 	/* Construct the Super Class and override the Interfaces */
-	status = boardobjgrpconstruct_e32(g,
+	status = nvgpu_boardobjgrp_construct_e32(g,
 			&g->pmgr_pmu->pmgr_monitorobjs.pwr_channels);
 	if (status != 0) {
 		nvgpu_err(g,
-			"error creating boardobjgrp for pmgr channel, status - 0x%x",
-			status);
+			"error creating boardobjgrp for pmgr channel, "
+			"status - 0x%x", status);
 		goto done;
 	}
 
@@ -327,12 +327,12 @@ int pmgr_monitor_sw_setup(struct gk20a *g)
 	pboardobjgrp->pmudatainstget = _pwr_channel_pmudata_instget;
 
 	/* Construct the Super Class and override the Interfaces */
-	status = boardobjgrpconstruct_e32(g,
+	status = nvgpu_boardobjgrp_construct_e32(g,
 			&g->pmgr_pmu->pmgr_monitorobjs.pwr_ch_rels);
 	if (status != 0) {
 		nvgpu_err(g,
-			"error creating boardobjgrp for pmgr channel relationship, status - 0x%x",
-			status);
+			"error creating boardobjgrp for pmgr channel "
+			"relationship, status - 0x%x", status);
 		goto done;
 	}
 

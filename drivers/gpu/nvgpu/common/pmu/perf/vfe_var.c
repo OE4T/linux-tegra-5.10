@@ -190,11 +190,12 @@ int nvgpu_vfe_var_sw_setup(struct gk20a *g)
 
 	nvgpu_log_info(g, " ");
 
-	status = boardobjgrpconstruct_e32(g, &g->perf_pmu->vfe_varobjs.super);
+	status = nvgpu_boardobjgrp_construct_e32(g,
+			&g->perf_pmu->vfe_varobjs.super);
 	if (status != 0) {
 		nvgpu_err(g,
-			  "error creating boardobjgrp for clk domain, status - 0x%x",
-			  status);
+			  "error creating boardobjgrp for clk domain, "
+			  "status - 0x%x", status);
 		goto done;
 	}
 
@@ -392,7 +393,7 @@ static int vfe_var_pmudatainit_super(struct gk20a *g,
 
 	nvgpu_log_info(g, " ");
 
-	status = boardobj_pmudatainit_super(g, board_obj_ptr, ppmudata);
+	status = nvgpu_boardobj_pmu_data_init_super(g, board_obj_ptr, ppmudata);
 	if (status != 0) {
 		return status;
 	}
@@ -402,12 +403,14 @@ static int vfe_var_pmudatainit_super(struct gk20a *g,
 
 	pset->out_range_min = pvfe_var->out_range_min;
 	pset->out_range_max = pvfe_var->out_range_max;
-	status = boardobjgrpmask_export(&pvfe_var->mask_dependent_vars.super,
-					pvfe_var->mask_dependent_vars.super.bitcount,
-					&pset->mask_dependent_vars.super);
-	status = boardobjgrpmask_export(&pvfe_var->mask_dependent_equs.super,
-					pvfe_var->mask_dependent_equs.super.bitcount,
-					&pset->mask_dependent_equs.super);
+	status = nvgpu_boardobjgrpmask_export(&pvfe_var->
+			mask_dependent_vars.super,
+			pvfe_var->mask_dependent_vars.super.bitcount,
+			&pset->mask_dependent_vars.super);
+	status = nvgpu_boardobjgrpmask_export(&pvfe_var->
+			mask_dependent_equs.super,
+			pvfe_var->mask_dependent_equs.super.bitcount,
+			&pset->mask_dependent_equs.super);
 	return status;
 }
 
@@ -421,7 +424,7 @@ static int vfe_var_construct_super(struct gk20a *g,
 
 	nvgpu_log_info(g, " ");
 
-	status = boardobj_construct_super(g, ppboardobj, size, pargs);
+	status = nvgpu_boardobj_construct_super(g, ppboardobj, size, pargs);
 	if (status != 0) {
 		return -EINVAL;
 	}

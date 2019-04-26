@@ -53,7 +53,7 @@ static int perf_change_seq_sw_setup_super(struct gk20a *g,
 
 	p_change_seq->version = CTRL_PERF_CHANGE_SEQ_VERSION_35;
 
-	status = boardobjgrpmask_init(
+	status = nvgpu_boardobjgrpmask_init(
 		&p_change_seq->clk_domains_exclusion_mask.super,
 		32U, ((void*)0));
 	if (status != 0) {
@@ -62,7 +62,7 @@ static int perf_change_seq_sw_setup_super(struct gk20a *g,
 		goto perf_change_seq_sw_setup_super_exit;
 	}
 
-	status = boardobjgrpmask_init(
+	status = nvgpu_boardobjgrpmask_init(
 		&p_change_seq->clk_domains_inclusion_mask.super,
 		32U, ((void*)0));
 	if (status != 0) {
@@ -196,18 +196,20 @@ int nvgpu_perf_change_seq_pmu_setup(struct gk20a *g)
 
 	info_set.info_set.super.version = perf_change_seq_pmu->super.version;
 
-	status = boardobjgrpmask_export(
+	status = nvgpu_boardobjgrpmask_export(
 		&perf_change_seq_pmu->super.clk_domains_exclusion_mask.super,
-		perf_change_seq_pmu->super.clk_domains_exclusion_mask.super.bitcount,
+		perf_change_seq_pmu->
+		super.clk_domains_exclusion_mask.super.bitcount,
 		&info_set.info_set.super.clk_domains_exclusion_mask.super);
 	if ( status != 0 ) {
 		nvgpu_err(g, "Could not export clkdomains exclusion mask");
 		goto perf_change_seq_pmu_setup_exit;
 	}
 
-	status = boardobjgrpmask_export(
+	status = nvgpu_boardobjgrpmask_export(
 		&perf_change_seq_pmu->super.clk_domains_inclusion_mask.super,
-		perf_change_seq_pmu->super.clk_domains_inclusion_mask.super.bitcount,
+		perf_change_seq_pmu->
+		super.clk_domains_inclusion_mask.super.bitcount,
 		&info_set.info_set.super.clk_domains_inclusion_mask.super);
 	if ( status != 0 ) {
 		nvgpu_err(g, "Could not export clkdomains inclusion mask");

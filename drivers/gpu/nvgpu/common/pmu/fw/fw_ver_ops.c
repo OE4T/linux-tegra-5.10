@@ -1303,14 +1303,6 @@ int nvgpu_pmu_init_fw_ver_ops(struct gk20a *g,
 				pmu_get_init_msg_sw_mngd_area_off_v5;
 			fw_ops->get_init_msg_sw_mngd_area_size =
 				pmu_get_init_msg_sw_mngd_area_size_v5;
-			fw_ops->boardobj.boardobjgrp_pmucmd_construct_impl =
-				boardobjgrp_pmucmd_construct_impl_v1;
-			fw_ops->boardobj.boardobjgrp_pmuset_impl =
-				boardobjgrp_pmuset_impl_v1;
-			fw_ops->boardobj.boardobjgrp_pmugetstatus_impl =
-				boardobjgrp_pmugetstatus_impl_v1;
-			fw_ops->boardobj.is_boardobjgrp_pmucmd_id_valid =
-				is_boardobjgrp_pmucmd_id_valid_v1;
 			if (app_version == APP_VERSION_GV10X) {
 				fw_ops->clk.clk_set_boot_clk = NULL;
 			} else {

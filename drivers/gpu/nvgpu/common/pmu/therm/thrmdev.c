@@ -59,7 +59,7 @@ static int _therm_device_pmudata_instget(struct gk20a *g,
 static int construct_therm_device(struct gk20a *g,
 	struct boardobj **ppboardobj, size_t size, void *pargs)
 {
-	return boardobj_construct_super(g, ppboardobj, size, pargs);
+	return nvgpu_boardobj_construct_super(g, ppboardobj, size, pargs);
 }
 
 static int construct_therm_device_gpu(struct gk20a *g,
@@ -82,7 +82,7 @@ static int therm_device_pmu_data_init_gpu_gpc_tsosc(struct gk20a *g,
 	struct therm_device_gpu_gpc_tsosc *pdev = NULL;
 	struct nv_pmu_therm_therm_device_gpu_gpc_tsosc_boardobj_set *pset;
 
-	status = boardobj_pmudatainit_super(g, pboard_obj, ppmudata);
+	status = nvgpu_boardobj_pmu_data_init_super(g, pboard_obj, ppmudata);
 	if (status != 0) {
 		goto exit;
 	}
@@ -127,7 +127,7 @@ static int therm_device_pmu_data_init_hbm2_site(struct gk20a *g,
 	struct therm_device_hbm2_site *pdev = NULL;
 	struct nv_pmu_therm_therm_device_hbm2_site_boardobj_set *pset;
 
-	status = boardobj_pmudatainit_super(g, pboard_obj, ppmudata);
+	status = nvgpu_boardobj_pmu_data_init_super(g, pboard_obj, ppmudata);
 	if (status != 0) {
 		goto exit;
 	}
@@ -340,12 +340,12 @@ int therm_device_sw_setup(struct gk20a *g)
 	struct therm_devices *pthermdeviceobjs;
 
 	/* Construct the Super Class and override the Interfaces */
-	status = boardobjgrpconstruct_e32(g,
+	status = nvgpu_boardobjgrp_construct_e32(g,
 			&g->therm_pmu->therm_deviceobjs.super);
 	if (status != 0) {
 		nvgpu_err(g,
-			  "error creating boardobjgrp for therm devices, status - 0x%x",
-			  status);
+			  "error creating boardobjgrp for therm devices,"
+			  "status - 0x%x", status);
 		goto done;
 	}
 

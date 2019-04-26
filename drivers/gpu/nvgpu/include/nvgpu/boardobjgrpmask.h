@@ -23,8 +23,8 @@
 #ifndef NVGPU_BOARDOBJGRPMASK_H
 #define NVGPU_BOARDOBJGRPMASK_H
 
-#include <nvgpu/types.h>
-#include <nvgpu/pmu/pmuif/ctrlboardobj.h>
+struct ctrl_boardobjgrp_mask;
+
 
 /*
 * Board Object Group Mask super-structure.
@@ -66,54 +66,31 @@ struct boardobjgrpmask_e255 {
 };
 
 /* Init and I/O operations.*/
-int boardobjgrpmask_init(struct boardobjgrpmask *mask, u8 bitsize,
+int nvgpu_boardobjgrpmask_init(struct boardobjgrpmask *mask, u8 bitsize,
 		struct ctrl_boardobjgrp_mask *extmask);
-int boardobjgrpmask_import(struct boardobjgrpmask *mask, u8 bitsize,
-		struct ctrl_boardobjgrp_mask *extmask);
-int boardobjgrpmask_export(struct boardobjgrpmask *mask, u8 bitsize,
+int nvgpu_boardobjgrpmask_export(struct boardobjgrpmask *mask, u8 bitsize,
 		struct ctrl_boardobjgrp_mask *extmask);
 
 /* Operations on all bits of a single mask.*/
-int boardobjgrpmask_clr(struct boardobjgrpmask *mask);
-int boardobjgrpmask_set(struct boardobjgrpmask *mask);
-int boardobjgrpmask_inv(struct boardobjgrpmask *mask);
-bool boardobjgrpmask_iszero(struct boardobjgrpmask *mask);
-u8 boardobjgrpmask_bitsetcount(struct boardobjgrpmask *mask);
-u8 boardobjgrpmask_bitidxlowest(struct boardobjgrpmask *mask);
-u8 boardobjgrpmask_bitidxhighest(struct boardobjgrpmask *mask);
+u8 nvgpu_boardobjgrpmask_bit_set_count(struct boardobjgrpmask *mask);
+u8 nvgpu_boardobjgrpmask_bit_idx_highest(struct boardobjgrpmask *mask);
 
 /* Operations on a single bit of a single mask */
-int boardobjgrpmask_bitclr(struct boardobjgrpmask *mask, u8 bitidx);
-int boardobjgrpmask_bitset(struct boardobjgrpmask *mask, u8 bitidx);
-int boardobjgrpmask_bitinv(struct boardobjgrpmask *mask, u8 bitidx);
-bool boardobjgrpmask_bitget(struct boardobjgrpmask *mask, u8 bitidx);
-
-/* Operations on a multiple masks */
-int boardobjgrpmask_and(struct boardobjgrpmask *dst,
-			struct boardobjgrpmask *op1,
-			struct boardobjgrpmask *op2);
-int boardobjgrpmask_or(struct boardobjgrpmask *dst, struct boardobjgrpmask *op1,
-		       struct boardobjgrpmask *op2);
-int boardobjgrpmask_xor(struct boardobjgrpmask *dst,
-			struct boardobjgrpmask *op1,
-			struct boardobjgrpmask *op2);
+int nvgpu_boardobjgrpmask_bit_clr(struct boardobjgrpmask *mask, u8 bitidx);
+int nvgpu_boardobjgrpmask_bit_set(struct boardobjgrpmask *mask, u8 bitidx);
+bool nvgpu_boardobjgrpmask_bit_get(struct boardobjgrpmask *mask, u8 bitidx);
 
 /* Special interfaces */
-int boardobjgrpmask_copy(struct boardobjgrpmask *dst,
-		struct boardobjgrpmask *src);
-bool boardobjgrpmask_sizeeq(struct boardobjgrpmask *op1,
+bool nvgpu_boardobjgrpmask_sizeeq(struct boardobjgrpmask *op1,
 		struct boardobjgrpmask *op2);
-bool boardobjgrpmask_issubset(struct boardobjgrpmask *op1,
-		struct boardobjgrpmask *op2);
-
 /* init boardobjgrpmask_e32 structure */
 #define boardobjgrpmask_e32_init(pmaske32, pextmask)                           \
-	boardobjgrpmask_init(&(pmaske32)->super,                               \
+	nvgpu_boardobjgrpmask_init(&(pmaske32)->super,                         \
 		CTRL_BOARDOBJGRP_E32_MAX_OBJECTS, (pextmask))
 
 /* init boardobjgrpmask_e255 structure */
 #define boardobjgrpmask_e255_init(pmaske255, pextmask)                         \
-	boardobjgrpmask_init(&(pmaske255)->super,                              \
+	nvgpu_boardobjgrpmask_init(&(pmaske255)->super,                        \
 		CTRL_BOARDOBJGRP_E255_MAX_OBJECTS, (pextmask))
 
 #endif /* NVGPU_BOARDOBJGRPMASK_H */

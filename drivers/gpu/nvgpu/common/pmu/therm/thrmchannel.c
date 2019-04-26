@@ -39,7 +39,7 @@ static int _therm_channel_pmudatainit_device(struct gk20a *g,
 	struct therm_channel_device *ptherm_channel;
 	struct nv_pmu_therm_therm_channel_device_boardobj_set *pset;
 
-	status = boardobj_pmudatainit_super(g, board_obj_ptr, ppmudata);
+	status = nvgpu_boardobj_pmu_data_init_super(g, board_obj_ptr, ppmudata);
 	if (status != 0) {
 		nvgpu_err(g,
 			"error updating pmu boardobjgrp for therm channel 0x%x",
@@ -73,7 +73,7 @@ static struct boardobj *construct_channel_device(struct gk20a *g,
 	u16 scale_shift = BIT16(8);
 	struct therm_channel_device *therm_device = (struct therm_channel_device*)pargs;
 
-	status = boardobj_construct_super(g, &board_obj_ptr,
+	status = nvgpu_boardobj_construct_super(g, &board_obj_ptr,
 		pargs_size, pargs);
 	if (status != 0) {
 		return NULL;
@@ -221,12 +221,12 @@ int therm_channel_sw_setup(struct gk20a *g)
 	struct therm_channels *pthermchannelobjs;
 
 	/* Construct the Super Class and override the Interfaces */
-	status = boardobjgrpconstruct_e32(g,
+	status = nvgpu_boardobjgrp_construct_e32(g,
 			&g->therm_pmu->therm_channelobjs.super);
 	if (status != 0) {
 		nvgpu_err(g,
-			  "error creating boardobjgrp for therm devices, status - 0x%x",
-			  status);
+			  "error creating boardobjgrp for therm devices, "
+			  "status - 0x%x", status);
 		goto done;
 	}
 

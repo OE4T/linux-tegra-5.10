@@ -84,7 +84,7 @@ static int _clk_fll_devgrp_pmudatainit_super(struct gk20a *g,
 	pset->lut_min_voltage_uv = pfll_objs->lut_min_voltage_uv;
 	pset->max_min_freq_mhz = pfll_objs->max_min_freq_mhz;
 
-	status = boardobjgrpmask_export(
+	status = nvgpu_boardobjgrpmask_export(
 		&pfll_objs->lut_prog_master_mask.super,
 		pfll_objs->lut_prog_master_mask.super.bitcount,
 		&pset->lut_prog_master_mask.super);
@@ -148,7 +148,7 @@ int nvgpu_clk_fll_sw_setup(struct gk20a *g)
 
 	nvgpu_log_info(g, " ");
 
-	status = boardobjgrpconstruct_e32(g,
+	status = nvgpu_boardobjgrp_construct_e32(g,
 			&g->pmu.clk_pmu->avfs_fllobjs->super);
 	if (status != 0) {
 		nvgpu_err(g,
@@ -209,7 +209,7 @@ int nvgpu_clk_fll_sw_setup(struct gk20a *g)
 		}
 
 		if (pfll_master == NULL) {
-			status = boardobjgrpmask_bitset(
+			status = nvgpu_boardobjgrpmask_bit_set(
 				&pfllobjs->lut_prog_master_mask.super,
 				BOARDOBJ_GET_IDX(pfll));
 			if (status != 0) {
@@ -428,7 +428,7 @@ static int lutbroadcastslaveregister(struct gk20a *g,
 		return -EINVAL;
 	}
 
-	return boardobjgrpmask_bitset(&pfll->
+	return nvgpu_boardobjgrpmask_bit_set(&pfll->
 		lut_prog_broadcast_slave_mask.super,
 		BOARDOBJ_GET_IDX(pfll_slave));
 }
@@ -442,7 +442,7 @@ static struct fll_device *construct_fll_device(struct gk20a *g,
 	int status;
 
 	nvgpu_log_info(g, " ");
-	status = boardobj_construct_super(g, &board_obj_ptr,
+	status = nvgpu_boardobj_construct_super(g, &board_obj_ptr,
 		sizeof(struct fll_device), pargs);
 	if (status != 0) {
 		return NULL;
@@ -490,7 +490,7 @@ static int fll_device_init_pmudata_super(struct gk20a *g,
 
 	nvgpu_log_info(g, " ");
 
-	status = boardobj_pmudatainit_super(g, board_obj_ptr, ppmudata);
+	status = nvgpu_boardobj_pmu_data_init_super(g, board_obj_ptr, ppmudata);
 	if (status != 0) {
 		return status;
 	}
@@ -519,7 +519,7 @@ static int fll_device_init_pmudata_super(struct gk20a *g,
 		(u8 *)&pfll_dev->regime_desc,
 		sizeof(struct nv_pmu_clk_regime_desc));
 
-	status = boardobjgrpmask_export(
+	status = nvgpu_boardobjgrpmask_export(
 		&pfll_dev->lut_prog_broadcast_slave_mask.super,
 		pfll_dev->lut_prog_broadcast_slave_mask.super.bitcount,
 		&perf_pmu_data->lut_prog_broadcast_slave_mask.super);

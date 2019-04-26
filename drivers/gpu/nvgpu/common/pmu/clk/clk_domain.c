@@ -180,12 +180,12 @@ static int _clk_domains_pmudatainit_3x(struct gk20a *g,
 	} else {
 		pset->volt_rails_max = 1;
 	}
-	status = boardobjgrpmask_export(
+	status = nvgpu_boardobjgrpmask_export(
 				&pdomains->master_domains_mask.super,
 				pdomains->master_domains_mask.super.bitcount,
 				&pset->master_domains_mask.super);
 
-	status = boardobjgrpmask_export(
+	status = nvgpu_boardobjgrpmask_export(
 		&pdomains->prog_domains_mask.super,
 		pdomains->prog_domains_mask.super.bitcount,
 		&pset->prog_domains_mask.super);
@@ -230,8 +230,9 @@ int nvgpu_clk_domain_sw_setup(struct gk20a *g)
 
 	nvgpu_log_info(g, " ");
 
-	status = boardobjgrpconstruct_e32(g,
-		&g->pmu.clk_pmu->clk_domainobjs->super);
+
+	status = nvgpu_boardobjgrp_construct_e32(g,
+			&g->pmu.clk_pmu->clk_domainobjs->super);
 	if (status != 0) {
 		nvgpu_err(g,
 		     "error creating boardobjgrp for clk domain, status - 0x%x",
@@ -282,7 +283,7 @@ int nvgpu_clk_domain_sw_setup(struct gk20a *g)
 
 		if (pdomain->super.implements(g, &pdomain->super,
 				CTRL_CLK_CLK_DOMAIN_TYPE_35_PROG)) {
-			status = boardobjgrpmask_bitset(
+			status = nvgpu_boardobjgrpmask_bit_set(
 				&pclkdomainobjs->prog_domains_mask.super, i);
 			if (status != 0) {
 				goto done;
@@ -291,14 +292,15 @@ int nvgpu_clk_domain_sw_setup(struct gk20a *g)
 
 		if (pdomain->super.implements(g, &pdomain->super,
 				CTRL_CLK_CLK_DOMAIN_TYPE_35_MASTER)) {
-			status = boardobjgrpmask_bitset(
+			status = nvgpu_boardobjgrpmask_bit_set(
 				&pclkdomainobjs->master_domains_mask.super, i);
 			if (status != 0) {
 				goto done;
 			}
 			pdomain_master_35 =
 				(struct clk_domain_35_master *)pdomain;
-			status = boardobjgrpmask_bitset(&pdomain_master_35->
+			status = nvgpu_boardobjgrpmask_bit_set(
+					&pdomain_master_35->
 					master_slave_domains_grp_mask.super, i);
 			if (status != 0) {
 				goto done;
@@ -316,10 +318,10 @@ int nvgpu_clk_domain_sw_setup(struct gk20a *g)
 				pdomain_slave_35->slave.master_idx));
 			pdomain_master_35->master.slave_idxs_mask |= BIT32(i);
 			pdomain_slave_35->super.clk_pos =
-				boardobjgrpmask_bitsetcount(
+				nvgpu_boardobjgrpmask_bit_set_count(
 				&pdomain_master_35->
 				master_slave_domains_grp_mask.super);
-			status = boardobjgrpmask_bitset(
+			status = nvgpu_boardobjgrpmask_bit_set(
 				&pdomain_master_35->
 				master_slave_domains_grp_mask.super, i);
 			if (status != 0) {
@@ -602,7 +604,7 @@ static int clk_domain_construct_super(struct gk20a *g,
 	struct nvgpu_clk_domain *ptmpdomain = (struct nvgpu_clk_domain *)pargs;
 	int status = 0;
 
-	status = boardobj_construct_super(g, ppboardobj,
+	status = nvgpu_boardobj_construct_super(g, ppboardobj,
 		(u16)size, pargs);
 
 	if (status != 0) {
@@ -1115,7 +1117,7 @@ static int clk_domain_pmudatainit_35_master(struct gk20a *g,
 	pset->master.slave_idxs_mask =
 			pclk_domain_35_master->master.slave_idxs_mask;
 
-	status = boardobjgrpmask_export(
+	status = nvgpu_boardobjgrpmask_export(
 		&pclk_domain_35_master->master_slave_domains_grp_mask.super,
 		pclk_domain_35_master->
 			master_slave_domains_grp_mask.super.bitcount,
@@ -1270,7 +1272,7 @@ static int clk_domain_pmudatainit_super(struct gk20a *g,
 
 	nvgpu_log_info(g, " ");
 
-	status = boardobj_pmudatainit_super(g, board_obj_ptr, ppmudata);
+	status = nvgpu_boardobj_pmu_data_init_super(g, board_obj_ptr, ppmudata);
 	if (status != 0) {
 		return status;
 	}

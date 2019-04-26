@@ -200,10 +200,11 @@ static int pmgr_send_pwr_device_topology_to_pmu(struct gk20a *g)
 	ppwr_desc_header->ba_info.b_initialized_and_used = false;
 
 	/* populate the table */
-	boardobjgrpe32hdrset((struct nv_pmu_boardobjgrp *)&ppwr_desc_header->super,
+	nvgpu_boardobjgrp_e32_hdr_set((struct nv_pmu_boardobjgrp *)
+			&ppwr_desc_header->super,
 			g->pmgr_pmu->pmgr_deviceobjs.super.super.objmask);
 
-	status = boardobjgrp_pmudatainit_legacy(g,
+	status = nvgpu_boardobjgrp_pmu_data_init_legacy(g,
 			&g->pmgr_pmu->pmgr_deviceobjs.super.super,
 			(struct nv_pmu_boardobjgrp_super *)pwr_desc_table);
 
@@ -249,13 +250,16 @@ static int pmgr_send_pwr_mointer_to_pmu(struct gk20a *g)
 	pwr_channel_hdr = &(pwr_monitor_pack->channels.hdr.data);
 	*pwr_monitor_pack = g->pmgr_pmu->pmgr_monitorobjs.pmu_data;
 
-	boardobjgrpe32hdrset((struct nv_pmu_boardobjgrp *)&pwr_channel_hdr->super,
-			g->pmgr_pmu->pmgr_monitorobjs.pwr_channels.super.objmask);
+	nvgpu_boardobjgrp_e32_hdr_set(
+			(struct nv_pmu_boardobjgrp *)&pwr_channel_hdr->super,
+			g->pmgr_pmu->pmgr_monitorobjs.
+			pwr_channels.super.objmask);
 
 	/* Copy in each channel */
-	status = boardobjgrp_pmudatainit_legacy(g,
-			&g->pmgr_pmu->pmgr_monitorobjs.pwr_channels.super,
-			(struct nv_pmu_boardobjgrp_super *)&(pwr_monitor_pack->channels));
+	status = nvgpu_boardobjgrp_pmu_data_init_legacy(g,&g->pmgr_pmu->
+			pmgr_monitorobjs.pwr_channels.super,
+			(struct nv_pmu_boardobjgrp_super *)&
+			(pwr_monitor_pack->channels));
 
 	if (status != 0) {
 		nvgpu_err(g, "boardobjgrp_pmudatainit_legacy failed %x",
@@ -266,16 +270,19 @@ static int pmgr_send_pwr_mointer_to_pmu(struct gk20a *g)
 	/* Copy in each channel relationship */
 	pwr_chrelationship_header =  &(pwr_monitor_pack->ch_rels.hdr.data);
 
-	boardobjgrpe32hdrset((struct nv_pmu_boardobjgrp *)&pwr_chrelationship_header->super,
-			g->pmgr_pmu->pmgr_monitorobjs.pwr_ch_rels.super.objmask);
+	nvgpu_boardobjgrp_e32_hdr_set((struct nv_pmu_boardobjgrp *)
+			&pwr_chrelationship_header->super,
+			g->pmgr_pmu->pmgr_monitorobjs.
+			pwr_ch_rels.super.objmask);
 
 	pwr_channel_hdr->physical_channel_mask =
 			g->pmgr_pmu->pmgr_monitorobjs.physical_channel_mask;
 	pwr_channel_hdr->type = NV_PMU_PMGR_PWR_MONITOR_TYPE_NO_POLLING;
 
-	status = boardobjgrp_pmudatainit_legacy(g,
+	status = nvgpu_boardobjgrp_pmu_data_init_legacy(g,
 		&g->pmgr_pmu->pmgr_monitorobjs.pwr_ch_rels.super,
-		(struct nv_pmu_boardobjgrp_super *)&(pwr_monitor_pack->ch_rels));
+		(struct nv_pmu_boardobjgrp_super *)&
+		(pwr_monitor_pack->ch_rels));
 
 	if (status != 0) {
 		nvgpu_err(g, "boardobjgrp_pmudatainit_legacy failed %x",
@@ -323,9 +330,9 @@ static int pmgr_send_pwr_policy_to_pmu(struct gk20a *g)
 	ppwrpack->policies.hdr.data.version = g->pmgr_pmu->pmgr_policyobjs.version;
 	ppwrpack->policies.hdr.data.b_enabled = g->pmgr_pmu->pmgr_policyobjs.b_enabled;
 
-	boardobjgrpe32hdrset((struct nv_pmu_boardobjgrp *)
-			&ppwrpack->policies.hdr.data.super,
-			g->pmgr_pmu->pmgr_policyobjs.pwr_policies.super.objmask);
+	nvgpu_boardobjgrp_e32_hdr_set((struct nv_pmu_boardobjgrp *)
+			&ppwrpack->policies.hdr.data.super, g->pmgr_pmu->
+			pmgr_policyobjs.pwr_policies.super.objmask);
 
 	(void) memset(&ppwrpack->policies.hdr.data.reserved_pmu_policy_mask,
 			0,
@@ -361,13 +368,15 @@ static int pmgr_send_pwr_policy_to_pmu(struct gk20a *g)
 	}
 	BOARDOBJGRP_FOR_EACH_INDEX_IN_MASK_END;
 
-	boardobjgrpe32hdrset((struct nv_pmu_boardobjgrp *)
+	nvgpu_boardobjgrp_e32_hdr_set((struct nv_pmu_boardobjgrp *)
 			&ppwrpack->policy_rels.hdr.data.super,
-			g->pmgr_pmu->pmgr_policyobjs.pwr_policy_rels.super.objmask);
+			g->pmgr_pmu->pmgr_policyobjs.
+			pwr_policy_rels.super.objmask);
 
-	boardobjgrpe32hdrset((struct nv_pmu_boardobjgrp *)
+	nvgpu_boardobjgrp_e32_hdr_set((struct nv_pmu_boardobjgrp *)
 			&ppwrpack->violations.hdr.data.super,
-			g->pmgr_pmu->pmgr_policyobjs.pwr_violations.super.objmask);
+			g->pmgr_pmu->pmgr_policyobjs.
+			pwr_violations.super.objmask);
 
 	max_dmem_size = (u32)sizeof(union nv_pmu_pmgr_pwr_policy_dmem_size);
 
