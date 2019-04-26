@@ -643,7 +643,7 @@ int gm20b_gr_falcon_wait_ctxsw_ready(struct gk20a *g)
 
 				return -1;
 			}
-			nvgpu_info(g, "SYSCLK = %lu MHz", sysclk_freq_mhz);
+			nvgpu_log_info(g, "SYSCLK = %lu MHz", sysclk_freq_mhz);
 			if (g->ctxsw_wdt_period_us != 0U) {
 				wdt_val = (unsigned int)(sysclk_freq_mhz *
 						g->ctxsw_wdt_period_us);
@@ -651,7 +651,7 @@ int gm20b_gr_falcon_wait_ctxsw_ready(struct gk20a *g)
 		}
 	}
 
-	nvgpu_info(g, "configuring ctxsw_ucode wdt = 0x%x", wdt_val);
+	nvgpu_log_info(g, "configuring ctxsw_ucode wdt = 0x%x", wdt_val);
 	nvgpu_writel(g, gr_fecs_ctxsw_mailbox_clear_r(0), U32_MAX);
 	nvgpu_writel(g, gr_fecs_method_data_r(), wdt_val);
 	nvgpu_writel(g, gr_fecs_method_push_r(),
