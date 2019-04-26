@@ -35,13 +35,12 @@
 #include <nvgpu/gr/config.h>
 #include <nvgpu/gr/zbc.h>
 #include <nvgpu/gr/zcull.h>
+#include <nvgpu/gr/warpstate.h>
 #include <nvgpu/channel.h>
 #include <nvgpu/pmu/pmgr.h>
 #include <nvgpu/power_features/pg.h>
 #include <nvgpu/fence.h>
 
-/* remove gr_gk20a.h after moving nvgpu_warpstate to separate header */
-#include "hal/gr/gr/gr_gk20a.h"
 #include "common/gr/gr_priv.h"
 
 #include "ioctl_ctrl.h"

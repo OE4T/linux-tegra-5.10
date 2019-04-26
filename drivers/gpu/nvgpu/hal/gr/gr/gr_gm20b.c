@@ -34,6 +34,7 @@
 #include <nvgpu/gr/ctx.h>
 #include <nvgpu/gr/config.h>
 #include <nvgpu/gr/gr.h>
+#include <nvgpu/gr/warpstate.h>
 #include <nvgpu/engines.h>
 #include <nvgpu/engine_status.h>
 

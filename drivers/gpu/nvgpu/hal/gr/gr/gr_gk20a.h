@@ -34,12 +34,6 @@ struct nvgpu_dbg_reg_op;
 
 enum ctxsw_addr_type;
 
-struct nvgpu_warpstate {
-	u64 valid_warps[2];
-	u64 trapped_warps[2];
-	u64 paused_warps[2];
-};
-
 /* sm */
 bool gk20a_gr_sm_debugger_attached(struct gk20a *g);
 u32 gk20a_gr_get_sm_no_lock_down_hww_global_esr_mask(struct gk20a *g);
