@@ -68,16 +68,16 @@ static int test_ffs(struct unit_module *m, struct gk20a *g, void *args)
 
 	unsigned long i;
 
-	CHECK_FFS_WORD(single_ulong_maps[0], BITS_PER_LONG - 1UL);
-	CHECK_FFS_WORD(single_ulong_maps[1], 0UL);
-	CHECK_FFS_WORD(single_ulong_maps[2], 8UL);
-	CHECK_FFS_WORD(single_ulong_maps[3], 0UL);
-	CHECK_FFS_WORD(single_ulong_maps[4], 0UL);
-	CHECK_FFS_WORD(single_ulong_maps[5], 0UL);
-	CHECK_FFS_WORD(single_ulong_maps[6], 16UL);
-	CHECK_FFS_WORD(single_ulong_maps[7], 0UL);
-	CHECK_FFS_WORD(single_ulong_maps[8], 31UL);
-	CHECK_FFS_WORD(single_ulong_maps[9], 16UL);
+	CHECK_FFS_WORD(single_ulong_maps[0], 0UL);
+	CHECK_FFS_WORD(single_ulong_maps[1], 1UL);
+	CHECK_FFS_WORD(single_ulong_maps[2], 9UL);
+	CHECK_FFS_WORD(single_ulong_maps[3], 1UL);
+	CHECK_FFS_WORD(single_ulong_maps[4], 1UL);
+	CHECK_FFS_WORD(single_ulong_maps[5], 1UL);
+	CHECK_FFS_WORD(single_ulong_maps[6], 17UL);
+	CHECK_FFS_WORD(single_ulong_maps[7], 1UL);
+	CHECK_FFS_WORD(single_ulong_maps[8], 32UL);
+	CHECK_FFS_WORD(single_ulong_maps[9], 17UL);
 
 #undef CHECK_FFS_WORD
 
@@ -86,7 +86,7 @@ static int test_ffs(struct unit_module *m, struct gk20a *g, void *args)
 	 * possible return values of the function.
 	 */
 	for (i = 0; i < BITS_PER_LONG; i++) {
-		if (ffs(BIT(i)) != i)
+		if (ffs(BIT(i)) != (i + 1))
 			unit_return_fail(m, "ffs(1 << %lu) != %lu [%lu]!\n",
 					 i, i, ffs(BIT(i)));
 	}
