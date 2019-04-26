@@ -100,22 +100,6 @@ void gk20a_init_inst_block(struct nvgpu_mem *inst_block, struct vm_gk20a *vm,
 	}
 }
 
-int gk20a_alloc_inst_block(struct gk20a *g, struct nvgpu_mem *inst_block)
-{
-	int err;
-
-	nvgpu_log_fn(g, " ");
-
-	err = nvgpu_dma_alloc(g, g->ops.ramin.alloc_size(), inst_block);
-	if (err != 0) {
-		nvgpu_err(g, "%s: memory allocation failed", __func__);
-		return err;
-	}
-
-	nvgpu_log_fn(g, "done");
-	return 0;
-}
-
 u32 gk20a_mm_get_iommu_bit(struct gk20a *g)
 {
 	return 34;

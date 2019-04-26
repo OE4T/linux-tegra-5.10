@@ -20,6 +20,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
+#include <nvgpu/mm.h>
 #include <nvgpu/sizes.h>
 #include <nvgpu/perfbuf.h>
 #include <nvgpu/gk20a.h>
@@ -35,7 +36,7 @@ int nvgpu_perfbuf_enable_locked(struct gk20a *g, u64 offset, u32 size)
 		return err;
 	}
 
-	err = g->ops.mm.alloc_inst_block(g, &mm->perfbuf.inst_block);
+	err = nvgpu_alloc_inst_block(g, &mm->perfbuf.inst_block);
 	if (err != 0) {
 		return err;
 	}

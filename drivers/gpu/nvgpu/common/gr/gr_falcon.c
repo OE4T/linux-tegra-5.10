@@ -202,7 +202,7 @@ static int nvgpu_gr_falcon_init_ctxsw_ucode_vaspace(struct gk20a *g,
 	struct nvgpu_ctxsw_ucode_info *ucode_info = &falcon->ctxsw_ucode_info;
 	int err;
 
-	err = g->ops.mm.alloc_inst_block(g, &ucode_info->inst_blk_desc);
+	err = nvgpu_alloc_inst_block(g, &ucode_info->inst_blk_desc);
 	if (err != 0) {
 		return err;
 	}

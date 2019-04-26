@@ -1162,7 +1162,6 @@ static const struct gpu_ops tu104_ops = {
 		.vm_bind_channel = nvgpu_vm_bind_channel,
 		.setup_hw = nvgpu_mm_setup_hw,
 		.is_bar1_supported = gv11b_mm_is_bar1_supported,
-		.alloc_inst_block = gk20a_alloc_inst_block,
 		.init_inst_block = gv11b_init_inst_block,
 		.init_bar2_vm = gp10b_init_bar2_vm,
 		.remove_bar2_vm = gp10b_remove_bar2_vm,

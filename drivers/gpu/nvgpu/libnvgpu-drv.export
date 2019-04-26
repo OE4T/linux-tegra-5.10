@@ -24,7 +24,6 @@ gv11b_fb_write_mmu_fault_buffer_size
 find_first_bit
 find_first_zero_bit
 find_next_bit
-gk20a_alloc_inst_block
 gk20a_bus_set_bar0_window
 gk20a_runlist_get_ch_entry
 gk20a_runlist_get_tsg_entry
@@ -64,6 +63,7 @@ nvgpu_alloc_destroy
 nvgpu_alloc_end
 nvgpu_alloc_fixed
 nvgpu_alloc_initialized
+nvgpu_alloc_inst_block
 nvgpu_alloc_length
 nvgpu_alloc_pte
 nvgpu_alloc_release_carveout

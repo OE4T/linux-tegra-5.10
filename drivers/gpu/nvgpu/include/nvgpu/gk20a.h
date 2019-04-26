@@ -1263,8 +1263,6 @@ struct gpu_ops {
 		bool (*is_bar1_supported)(struct gk20a *g);
 		int (*init_bar2_vm)(struct gk20a *g);
 		void (*remove_bar2_vm)(struct gk20a *g);
-		int (*alloc_inst_block)(struct gk20a *g,
-					struct nvgpu_mem *inst_block);
 		void (*init_inst_block)(struct nvgpu_mem *inst_block,
 				struct vm_gk20a *vm, u32 big_page_size);
 		void (*fault_info_mem_destroy)(struct gk20a *g);

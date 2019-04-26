@@ -24,6 +24,7 @@
 
 #include <trace/events/gk20a.h>
 
+#include <nvgpu/mm.h>
 #include <nvgpu/semaphore.h>
 #include <nvgpu/timers.h>
 #include <nvgpu/kmem.h>
@@ -2503,7 +2504,7 @@ int nvgpu_channel_alloc_inst(struct gk20a *g, struct channel_gk20a *ch)
 
 	nvgpu_log_fn(g, " ");
 
-	err = g->ops.mm.alloc_inst_block(g, &ch->inst_block);
+	err = nvgpu_alloc_inst_block(g, &ch->inst_block);
 	if (err != 0) {
 		return err;
 	}

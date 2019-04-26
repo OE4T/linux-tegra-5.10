@@ -168,6 +168,22 @@ void nvgpu_free_inst_block(struct gk20a *g, struct nvgpu_mem *inst_block)
 	}
 }
 
+int nvgpu_alloc_inst_block(struct gk20a *g, struct nvgpu_mem *inst_block)
+{
+	int err;
+
+	nvgpu_log_fn(g, " ");
+
+	err = nvgpu_dma_alloc(g, g->ops.ramin.alloc_size(), inst_block);
+	if (err != 0) {
+		nvgpu_err(g, "%s: memory allocation failed", __func__);
+		return err;
+	}
+
+	nvgpu_log_fn(g, "done");
+	return 0;
+}
+
 static int nvgpu_alloc_sysmem_flush(struct gk20a *g)
 {
 	return nvgpu_dma_alloc_sys(g, SZ_4K, &g->mm.sysmem_flush);
@@ -269,7 +285,7 @@ static int nvgpu_init_system_vm(struct mm_gk20a *mm)
 		return -ENOMEM;
 	}
 
-	err = g->ops.mm.alloc_inst_block(g, inst_block);
+	err = nvgpu_alloc_inst_block(g, inst_block);
 	if (err != 0) {
 		goto clean_up_vm;
 	}
@@ -288,7 +304,7 @@ static int nvgpu_init_hwpm(struct mm_gk20a *mm)
 	struct gk20a *g = gk20a_from_mm(mm);
 	struct nvgpu_mem *inst_block = &mm->hwpm.inst_block;
 
-	err = g->ops.mm.alloc_inst_block(g, inst_block);
+	err = nvgpu_alloc_inst_block(g, inst_block);
 	if (err != 0) {
 		return err;
 	}
@@ -411,7 +427,7 @@ static int nvgpu_init_bar1_vm(struct mm_gk20a *mm)
 		return -ENOMEM;
 	}
 
-	err = g->ops.mm.alloc_inst_block(g, inst_block);
+	err = nvgpu_alloc_inst_block(g, inst_block);
 	if (err != 0) {
 		goto clean_up_vm;
 	}
@@ -444,7 +460,7 @@ static int nvgpu_init_engine_ucode_vm(struct gk20a *g,
 	}
 
 	/* allocate instance mem for engine ucode */
-	err = g->ops.mm.alloc_inst_block(g, inst_block);
+	err = nvgpu_alloc_inst_block(g, inst_block);
 	if (err != 0) {
 		goto clean_up_va;
 	}

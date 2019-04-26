@@ -182,6 +182,7 @@ void nvgpu_init_mm_ce_context(struct gk20a *g);
 int nvgpu_init_mm_support(struct gk20a *g);
 int nvgpu_init_mm_setup_hw(struct gk20a *g);
 
+int nvgpu_alloc_inst_block(struct gk20a *g, struct nvgpu_mem *inst_block);
 u64 nvgpu_inst_block_addr(struct gk20a *g, struct nvgpu_mem *inst_block);
 u32 nvgpu_inst_block_ptr(struct gk20a *g, struct nvgpu_mem *inst_block);
 void nvgpu_free_inst_block(struct gk20a *g, struct nvgpu_mem *inst_block);

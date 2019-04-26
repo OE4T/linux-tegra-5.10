@@ -53,7 +53,7 @@ int gp10b_init_bar2_vm(struct gk20a *g)
 	}
 
 	/* allocate instance mem for bar2 */
-	err = g->ops.mm.alloc_inst_block(g, inst_block);
+	err = nvgpu_alloc_inst_block(g, inst_block);
 	if (err != 0) {
 		goto clean_up_va;
 	}

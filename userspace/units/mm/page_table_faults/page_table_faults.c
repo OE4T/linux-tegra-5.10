@@ -121,7 +121,6 @@ static int init_mm(struct unit_module *m, struct gk20a *g)
 	g->ops.mm.gmmu.get_default_big_page_size =
 		gp10b_mm_get_default_big_page_size;
 	g->ops.mm.gmmu.get_mmu_levels = gp10b_mm_get_mmu_levels;
-	g->ops.mm.alloc_inst_block = gk20a_alloc_inst_block;
 	g->ops.mm.init_inst_block = gv11b_init_inst_block;
 	g->ops.mm.gmmu.map = nvgpu_gmmu_map_locked;
 	g->ops.mm.gmmu.unmap = nvgpu_gmmu_unmap_locked;
@@ -312,10 +311,10 @@ static int test_page_faults_disable_hw(struct unit_module *m, struct gk20a *g,
 /*
  * Test: test_page_faults_inst_block.
  * This test supports 3 types of scenario to cover corner cases:
- * 0 (default): regular alloc_inst_block with default values
- * 1: alloc_inst_block with large page size
- * 2: alloc_inst_block with large page size and set_big_page_size set to NULL to
- *	test a corner case in gv11b_init_inst_block (branch coverage)
+ * 0 (default): regular nvgpu_alloc_inst_block with default values
+ * 1: nvgpu_alloc_inst_block with large page size
+ * 2: nvgpu_alloc_inst_block with large page size and set_big_page_size set to
+ *      NULL to test a corner case in gv11b_init_inst_block (branch coverage)
  */
 static int test_page_faults_inst_block(struct unit_module *m, struct gk20a *g,
 					void *args)
@@ -334,8 +333,8 @@ static int test_page_faults_inst_block(struct unit_module *m, struct gk20a *g,
 		g->ops.ramin.set_big_page_size = NULL;
 	}
 
-	if (g->ops.mm.alloc_inst_block(g, &inst_blk_desc) != 0) {
-		unit_return_fail(m, "alloc_inst_block failed\n");
+	if (nvgpu_alloc_inst_block(g, &inst_blk_desc) != 0) {
+		unit_return_fail(m, "nvgpu_alloc_inst_block failed\n");
 	}
 
 	g->ops.mm.init_inst_block(&inst_blk_desc, g->mm.bar2.vm, big_page_size);
