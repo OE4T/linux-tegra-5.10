@@ -64,6 +64,11 @@
 #include "hal/gr/ctxsw_prog/ctxsw_prog_gm20b.h"
 #include "hal/gr/ctxsw_prog/ctxsw_prog_gp10b.h"
 #include "hal/gr/ctxsw_prog/ctxsw_prog_gv11b.h"
+#include "hal/gr/gr/gr_gk20a.h"
+#include "hal/gr/gr/gr_gm20b.h"
+#include "hal/gr/gr/gr_gp10b.h"
+#include "hal/gr/gr/gr_gv11b.h"
+#include "hal/gr/gr/gr_gv100.h"
 #include "hal/perf/perf_gv11b.h"
 #include "hal/netlist/netlist_gv11b.h"
 #include "hal/sync/syncpt_cmdbuf_gv11b.h"
@@ -95,18 +100,11 @@
 #include "common/vgpu/ptimer/ptimer_vgpu.h"
 #include "vgpu_hal_gv11b.h"
 
-#include "gk20a/gr_gk20a.h"
-
-#include <gm20b/gr_gm20b.h>
 #include <gm20b/mm_gm20b.h>
 
 #include <gp10b/mm_gp10b.h>
-#include "gp10b/gr_gp10b.h"
 
 #include <gv11b/mm_gv11b.h>
-#include <gv11b/gr_gv11b.h>
-
-#include <gv100/gr_gv100.h>
 
 #include <nvgpu/debugger.h>
 #include <nvgpu/enabled.h>

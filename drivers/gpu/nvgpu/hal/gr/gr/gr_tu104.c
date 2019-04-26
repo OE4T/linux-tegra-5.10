@@ -21,25 +21,12 @@
  */
 
 #include <nvgpu/types.h>
-#include <nvgpu/soc.h>
 #include <nvgpu/io.h>
-#include <nvgpu/utils.h>
 #include <nvgpu/gk20a.h>
-#include <nvgpu/channel.h>
 #include <nvgpu/netlist.h>
-#include <nvgpu/gr/global_ctx.h>
-#include <nvgpu/gr/ctx.h>
-#include <nvgpu/gr/config.h>
-#include <nvgpu/gr/gr.h>
 
-#include "gk20a/gr_gk20a.h"
-#include "gk20a/gr_pri_gk20a.h"
-
-#include "gp10b/gr_gp10b.h"
-
-#include "gv11b/gr_gv11b.h"
-
-#include "tu104/gr_tu104.h"
+#include "gr_pri_gk20a.h"
+#include "gr_tu104.h"
 
 #include <nvgpu/hw/tu104/hw_gr_tu104.h>
 

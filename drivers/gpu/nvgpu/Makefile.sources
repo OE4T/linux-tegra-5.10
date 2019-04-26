@@ -243,22 +243,16 @@ srcs += common/sim/sim.c \
 	common/nvlink/nvlink.c \
 	common/fence/fence.c \
 	gk20a/fifo_gk20a.c \
-	gk20a/gr_gk20a.c \
 	gk20a/mm_gk20a.c \
-	gm20b/gr_gm20b.c \
 	gm20b/mm_gm20b.c \
-	gp10b/gr_gp10b.c  \
 	gp10b/mm_gp10b.c \
-	gv11b/gr_gv11b.c \
 	gv11b/mm_gv11b.c \
 	gp106/bios_gp106.c \
 	gv100/mm_gv100.c \
 	gv100/bios_gv100.c \
-	gv100/gr_gv100.c \
 	tu104/bios_tu104.c \
 	tu104/fbpa_tu104.c \
 	tu104/fifo_tu104.c \
-	tu104/gr_tu104.c \
 	tu104/mm_tu104.c \
 	hal/mm/cache/flush_gk20a.c \
 	hal/mm/cache/flush_gv11b.c \
@@ -308,6 +302,12 @@ srcs += common/sim/sim.c \
 	hal/gr/zbc/zbc_gm20b.c \
 	hal/gr/zbc/zbc_gp10b.c \
 	hal/gr/zbc/zbc_gv11b.c \
+	hal/gr/gr/gr_gk20a.c \
+	hal/gr/gr/gr_gm20b.c \
+	hal/gr/gr/gr_gp10b.c \
+	hal/gr/gr/gr_gv100.c \
+	hal/gr/gr/gr_gv11b.c \
+	hal/gr/gr/gr_tu104.c \
 	hal/init/hal_gm20b.c \
 	hal/init/hal_gp10b.c \
 	hal/init/hal_gv100.c \

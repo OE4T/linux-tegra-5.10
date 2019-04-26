@@ -42,9 +42,10 @@
 
 #include <nvgpu/linux/vm.h>
 
-#include "common/gr/gr_priv.h"
+/* Access gr_gk20a_suspend_context and gr_gk20a_resume_context functions */
+#include "hal/gr/gr/gr_gk20a.h"
 
-#include "gk20a/gr_gk20a.h"
+#include "common/gr/gr_priv.h"
 #include "os_linux.h"
 #include "platform_gk20a.h"
 #include "ioctl_dbg.h"

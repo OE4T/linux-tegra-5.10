@@ -25,10 +25,11 @@
 #ifndef NVGPU_GR_GV100_H
 #define NVGPU_GR_GV100_H
 
+#include <nvgpu/types.h>
+
+struct gk20a;
+
 void gr_gv100_set_gpc_tpc_mask(struct gk20a *g, u32 gpc_index);
-void gr_gv100_program_sm_id_numbering(struct gk20a *g,
-					u32 gpc, u32 tpc, u32 smid);
-int gr_gv100_load_smid_config(struct gk20a *g);
 void gr_gv100_split_fbpa_broadcast_addr(struct gk20a *g, u32 addr,
 	u32 num_fbpas,
 	u32 *priv_addr_table, u32 *t);

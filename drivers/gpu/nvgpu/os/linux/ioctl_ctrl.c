@@ -40,7 +40,8 @@
 #include <nvgpu/power_features/pg.h>
 #include <nvgpu/fence.h>
 
-#include "gk20a/gr_gk20a.h"
+/* remove gr_gk20a.h after moving nvgpu_warpstate to separate header */
+#include "hal/gr/gr/gr_gk20a.h"
 #include "common/gr/gr_priv.h"
 
 #include "ioctl_ctrl.h"

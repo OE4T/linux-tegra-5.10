@@ -30,14 +30,13 @@
 #include <nvgpu/gr/ctx.h>
 #include <nvgpu/gr/config.h>
 
-#include "gk20a/gr_gk20a.h"
-#include "gk20a/gr_pri_gk20a.h"
+#include "gr_gk20a.h"
+#include "gr_pri_gk20a.h"
+#include "gr_gv100.h"
+
 #include "common/gr/gr_priv.h"
 
-#include "gv100/gr_gv100.h"
-
 #include <nvgpu/hw/gv100/hw_gr_gv100.h>
-#include <nvgpu/hw/gv100/hw_proj_gv100.h>
 #include <nvgpu/hw/gv100/hw_perf_gv100.h>
 
 void gr_gv100_set_gpc_tpc_mask(struct gk20a *g, u32 gpc_index)

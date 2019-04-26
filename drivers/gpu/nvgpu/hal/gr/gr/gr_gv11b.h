@@ -25,29 +25,15 @@
 #ifndef NVGPU_GR_GV11B_H
 #define NVGPU_GR_GV11B_H
 
-#define EGPC_PRI_BASE        0x580000U
-#define EGPC_PRI_SHARED_BASE 0x480000U
-
-#define PRI_BROADCAST_FLAGS_SMPC  BIT32(17)
-
 struct gk20a;
-struct gr_gk20a;
-struct nvgpu_gr_ctx;
 struct nvgpu_warpstate;
-struct nvgpu_tsg_sm_error_state;
-struct gr_ctx_desc;
-struct nvgpu_gr_isr_data;
 struct gk20a_debug_output;
 
-void gr_gv11b_create_sysfs(struct gk20a *g);
-void gr_gv11b_remove_sysfs(struct gk20a *g);
 u32 gr_gv11b_ctxsw_checksum_mismatch_mailbox_val(void);
-
-int gr_gv11b_handle_tpc_sm_ecc_exception(struct gk20a *g,
+void gr_gv11b_handle_tpc_sm_ecc_exception(struct gk20a *g,
 		u32 gpc, u32 tpc,
 		bool *post_event, struct channel_gk20a *fault_ch,
 		u32 *hww_global_esr);
-void gr_gv11b_enable_gpc_exceptions(struct gk20a *g);
 void gr_gv11b_set_alpha_circular_buffer_size(struct gk20a *g, u32 data);
 void gr_gv11b_set_circular_buffer_size(struct gk20a *g, u32 data);
 int gr_gv11b_dump_gr_status_regs(struct gk20a *g,
@@ -92,8 +78,6 @@ int gv11b_gr_lock_down_sm(struct gk20a *g,
 			 bool check_errors);
 void gv11b_gr_clear_sm_hww(struct gk20a *g, u32 gpc, u32 tpc, u32 sm,
 				u32 global_esr);
-int gr_gv11b_handle_tpc_mpc_exception(struct gk20a *g,
-		u32 gpc, u32 tpc, bool *post_event);
 void gv11b_gr_init_ovr_sm_dsm_perf(void);
 void gv11b_gr_init_sm_dsm_reg_info(void);
 void gv11b_gr_get_sm_dsm_perf_regs(struct gk20a *g,
@@ -118,12 +102,8 @@ void gv11b_gr_egpc_etpc_priv_addr_table(struct gk20a *g, u32 addr,
 				u32 gpc_num, u32 tpc_num, u32 broadcast_flags,
 				u32 *priv_addr_table, u32 *t);
 u32 gv11b_gr_get_egpc_base(struct gk20a *g);
-int gr_gv11b_init_preemption_state(struct gk20a *g);
-
 int gr_gv11b_handle_ssync_hww(struct gk20a *g, u32 *ssync_esr);
 u32 gv11b_gr_sm_offset(struct gk20a *g, u32 sm);
-
-u32 gr_gv11b_get_pmm_per_chiplet_offset(void);
 int gr_gv11b_decode_priv_addr(struct gk20a *g, u32 addr,
 	enum ctxsw_addr_type *addr_type,
 	u32 *gpc_num, u32 *tpc_num, u32 *ppc_num, u32 *be_num,

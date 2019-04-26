@@ -30,7 +30,7 @@
 #include <nvgpu/gr/hwpm_map.h>
 
 /* needed for pri_is_ppc_addr_shared */
-#include "gk20a/gr_pri_gk20a.h"
+#include "hal/gr/gr/gr_pri_gk20a.h"
 #include "gr_priv.h"
 
 #define NV_PCFG_BASE		0x00088000U

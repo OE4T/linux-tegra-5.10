@@ -34,17 +34,15 @@
 #include <nvgpu/gr/ctx.h>
 #include <nvgpu/gr/config.h>
 #include <nvgpu/gr/gr.h>
-#include <nvgpu/ltc.h>
 #include <nvgpu/engines.h>
 #include <nvgpu/engine_status.h>
 
-#include "gk20a/gr_gk20a.h"
-#include "common/gr/gr_priv.h"
-
+#include "gr_gk20a.h"
 #include "gr_gm20b.h"
 
+#include "common/gr/gr_priv.h"
+
 #include <nvgpu/hw/gm20b/hw_gr_gm20b.h>
-#include <nvgpu/hw/gm20b/hw_fifo_gm20b.h>
 #include <nvgpu/hw/gm20b/hw_perf_gm20b.h>
 
 void gr_gm20b_set_alpha_circular_buffer_size(struct gk20a *g, u32 data)

@@ -59,6 +59,9 @@
 #include "hal/gr/config/gr_config_gm20b.h"
 #include "hal/gr/ctxsw_prog/ctxsw_prog_gm20b.h"
 #include "hal/gr/ctxsw_prog/ctxsw_prog_gp10b.h"
+#include "hal/gr/gr/gr_gk20a.h"
+#include "hal/gr/gr/gr_gm20b.h"
+#include "hal/gr/gr/gr_gp10b.h"
 #include "hal/netlist/netlist_gp10b.h"
 #include "hal/perf/perf_gm20b.h"
 #include "hal/sync/syncpt_cmdbuf_gk20a.h"
@@ -85,12 +88,8 @@
 #include "common/vgpu/init/init_vgpu.h"
 #include "vgpu_hal_gp10b.h"
 
-#include "gk20a/gr_gk20a.h"
-
 #include "gp10b/mm_gp10b.h"
-#include "gp10b/gr_gp10b.h"
 
-#include "gm20b/gr_gm20b.h"
 #include "gm20b/mm_gm20b.h"
 
 #include <nvgpu/hw/gp10b/hw_pram_gp10b.h>

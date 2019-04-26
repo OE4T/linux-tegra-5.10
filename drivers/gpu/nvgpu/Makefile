@@ -197,6 +197,12 @@ nvgpu-y += \
 	hal/gr/zbc/zbc_gm20b.o \
 	hal/gr/zbc/zbc_gp10b.o \
 	hal/gr/zbc/zbc_gv11b.o \
+	hal/gr/gr/gr_gk20a.o \
+	hal/gr/gr/gr_gm20b.o \
+	hal/gr/gr/gr_gp10b.o \
+	hal/gr/gr/gr_gv100.o \
+	hal/gr/gr/gr_gv11b.o \
+	hal/gr/gr/gr_tu104.o \
 	hal/init/hal_gm20b.o \
 	hal/init/hal_gp10b.o \
 	hal/init/hal_gv100.o \
@@ -521,9 +527,7 @@ nvgpu-y += \
 	common/ce/ce.o \
 	common/debugger.o \
 	gk20a/fifo_gk20a.o \
-	gk20a/gr_gk20a.o \
 	gk20a/mm_gk20a.o \
-	gm20b/gr_gm20b.o \
 	gm20b/mm_gm20b.o
 
 nvgpu-$(CONFIG_GK20A_VIDMEM) += \
@@ -569,16 +573,12 @@ nvgpu-$(CONFIG_GK20A_CYCLE_STATS) += \
 	common/cyclestats/cyclestats.o
 
 nvgpu-y += \
-	gp10b/gr_gp10b.o  \
 	gp10b/mm_gp10b.o \
 	gp106/bios_gp106.o \
-	gv11b/gr_gv11b.o \
 	gv11b/mm_gv11b.o \
 	gv100/mm_gv100.o \
 	gv100/bios_gv100.o \
-	gv100/gr_gv100.o \
 	tu104/mm_tu104.o \
 	tu104/fifo_tu104.o \
-	tu104/gr_tu104.o \
 	tu104/bios_tu104.o \
 	tu104/fbpa_tu104.o

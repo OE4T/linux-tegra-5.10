@@ -22,9 +22,6 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#include "gk20a/gr_gk20a.h"
-#include "common/gr/gr_priv.h"
-
 #include <nvgpu/log.h>
 #include <nvgpu/bsearch.h>
 #include <nvgpu/bug.h>
@@ -32,6 +29,10 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/regops.h>
 #include <nvgpu/gr/obj_ctx.h>
+
+/* Access ctx buffer offset functions in gr_gk20a.h */
+#include "hal/gr/gr/gr_gk20a.h"
+#include "common/gr/gr_priv.h"
 
 static int regop_bsearch_range_cmp(const void *pkey, const void *pelem)
 {

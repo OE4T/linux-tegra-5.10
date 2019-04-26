@@ -26,18 +26,13 @@
 #include <nvgpu/types.h>
 
 struct gk20a;
-struct nvgpu_preemption_modes_rec;
-struct nvgpu_gr_ctx;
 
 int gr_tu104_init_sw_bundle64(struct gk20a *g);
-
 void gr_tu10x_create_sysfs(struct gk20a *g);
 void gr_tu10x_remove_sysfs(struct gk20a *g);
-
 int gr_tu104_get_offset_in_gpccs_segment(struct gk20a *g,
 	enum ctxsw_addr_type addr_type, u32 num_tpcs, u32 num_ppcs,
 	u32 reg_list_ppc_count, u32 *__offset_in_segment);
-
 void gr_tu104_init_sm_dsm_reg_info(void);
 void gr_tu104_get_sm_dsm_perf_ctrl_regs(struct gk20a *g,
 	u32 *num_sm_dsm_perf_ctrl_regs, u32 **sm_dsm_perf_ctrl_regs,

@@ -24,10 +24,8 @@
 
 #include <nvgpu/timers.h>
 #include <nvgpu/kmem.h>
-#include <nvgpu/gmmu.h>
 #include <nvgpu/dma.h>
 #include <nvgpu/bug.h>
-#include <nvgpu/debug.h>
 #include <nvgpu/debugger.h>
 #include <nvgpu/fuse.h>
 #include <nvgpu/enabled.h>
@@ -40,7 +38,6 @@
 #include <nvgpu/gr/subctx.h>
 #include <nvgpu/gr/ctx.h>
 #include <nvgpu/gr/gr.h>
-#include <nvgpu/gr/gr_intr.h>
 #include <nvgpu/gr/config.h>
 #include <nvgpu/gr/gr_falcon.h>
 #include <nvgpu/gr/obj_ctx.h>
@@ -48,14 +45,12 @@
 #include <nvgpu/engine_status.h>
 #include <nvgpu/preempt.h>
 
-#include "gk20a/gr_gk20a.h"
-#include "gm20b/gr_gm20b.h"
-#include "gp10b/gr_gp10b.h"
+#include "gr_gk20a.h"
+#include "gr_gp10b.h"
 
 #include "common/gr/gr_priv.h"
 
 #include <nvgpu/hw/gp10b/hw_gr_gp10b.h>
-#include <nvgpu/hw/gp10b/hw_fifo_gp10b.h>
 
 void gr_gp10b_set_bes_crop_debug3(struct gk20a *g, u32 data)
 {

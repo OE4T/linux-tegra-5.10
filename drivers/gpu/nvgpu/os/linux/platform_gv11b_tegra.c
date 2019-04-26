@@ -38,11 +38,9 @@
 #include "scale.h"
 
 #include "platform_gp10b.h"
-#include "platform_gp10b_tegra.h"
 
 #include "os_linux.h"
 #include "platform_gk20a_tegra.h"
-#include "gv11b/gr_gv11b.h"
 
 #define EMC3D_GV11B_RATIO 500
 

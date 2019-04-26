@@ -83,6 +83,8 @@
 #include "hal/gr/config/gr_config_gm20b.h"
 #include "hal/gr/ctxsw_prog/ctxsw_prog_gm20b.h"
 #include "hal/gr/fecs_trace/fecs_trace_gm20b.h"
+#include "hal/gr/gr/gr_gk20a.h"
+#include "hal/gr/gr/gr_gm20b.h"
 #include "hal/pmu/pmu_gk20a.h"
 #include "hal/pmu/pmu_gm20b.h"
 #include "hal/sync/syncpt_cmdbuf_gk20a.h"
@@ -97,9 +99,8 @@
 #include "common/fifo/channel_gm20b.h"
 #include "common/pmu/pg/pg_sw_gm20b.h"
 
-#include "gk20a/gr_gk20a.h"
-#include "gm20b/gr_gm20b.h"
 #include "gm20b/mm_gm20b.h"
+
 #include "hal_gm20b.h"
 
 #include <nvgpu/hw/gm20b/hw_proj_gm20b.h>

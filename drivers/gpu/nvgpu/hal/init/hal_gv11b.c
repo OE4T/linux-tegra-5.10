@@ -109,6 +109,11 @@
 #include "hal/gr/ctxsw_prog/ctxsw_prog_gm20b.h"
 #include "hal/gr/ctxsw_prog/ctxsw_prog_gp10b.h"
 #include "hal/gr/ctxsw_prog/ctxsw_prog_gv11b.h"
+#include "hal/gr/gr/gr_gk20a.h"
+#include "hal/gr/gr/gr_gm20b.h"
+#include "hal/gr/gr/gr_gp10b.h"
+#include "hal/gr/gr/gr_gv100.h"
+#include "hal/gr/gr/gr_gv11b.h"
 #include "hal/pmu/pmu_gk20a.h"
 #include "hal/pmu/pmu_gm20b.h"
 #include "hal/pmu/pmu_gp106.h"
@@ -131,18 +136,10 @@
 #include "common/fifo/channel_gv11b.h"
 #include "common/clk_arb/clk_arb_gp10b.h"
 
-#include "gk20a/gr_gk20a.h"
-
-#include "gm20b/gr_gm20b.h"
 #include "gm20b/mm_gm20b.h"
-
 #include "gp10b/mm_gp10b.h"
-#include "gp10b/gr_gp10b.h"
-
-#include "gv100/gr_gv100.h"
 
 #include "hal_gv11b.h"
-#include "gv11b/gr_gv11b.h"
 #include "gv11b/mm_gv11b.h"
 
 #include <nvgpu/ptimer.h>

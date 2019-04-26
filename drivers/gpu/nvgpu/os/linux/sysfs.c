@@ -36,7 +36,6 @@
 #include "os_linux.h"
 #include "sysfs.h"
 #include "platform_gk20a.h"
-#include "gv11b/gr_gv11b.h"
 
 #define PTIMER_FP_FACTOR			1000000
 

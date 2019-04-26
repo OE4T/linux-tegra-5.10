@@ -25,8 +25,11 @@
 #ifndef NVGPU_GM20B_GR_GM20B_H
 #define NVGPU_GM20B_GR_GM20B_H
 
+#include <nvgpu/types.h>
+
 struct gk20a;
 struct nvgpu_warpstate;
+enum nvgpu_event_id_type;
 
 int gm20b_gr_tpc_disable_override(struct gk20a *g, u32 mask);
 int gr_gm20b_commit_global_cb_manager(struct gk20a *g,

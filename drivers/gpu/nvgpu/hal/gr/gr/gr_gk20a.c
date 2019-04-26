@@ -24,19 +24,11 @@
 
 #include <nvgpu/dma.h>
 #include <nvgpu/kmem.h>
-#include <nvgpu/gmmu.h>
-#include <nvgpu/timers.h>
-#include <nvgpu/nvgpu_common.h>
 #include <nvgpu/log.h>
 #include <nvgpu/bug.h>
-#include <nvgpu/firmware.h>
 #include <nvgpu/enabled.h>
-#include <nvgpu/debug.h>
-#include <nvgpu/barrier.h>
-#include <nvgpu/mm.h>
 #include <nvgpu/debugger.h>
 #include <nvgpu/netlist.h>
-#include <nvgpu/ecc.h>
 #include <nvgpu/io.h>
 #include <nvgpu/utils.h>
 #include <nvgpu/fifo.h>
@@ -44,7 +36,6 @@
 #include <nvgpu/channel.h>
 #include <nvgpu/string.h>
 #include <nvgpu/regops.h>
-#include <nvgpu/gr/global_ctx.h>
 #include <nvgpu/gr/subctx.h>
 #include <nvgpu/gr/ctx.h>
 #include <nvgpu/gr/gr.h>
@@ -52,10 +43,6 @@
 #include <nvgpu/gr/obj_ctx.h>
 #include <nvgpu/gr/config.h>
 #include <nvgpu/gr/hwpm_map.h>
-#include <nvgpu/engines.h>
-#include <nvgpu/engine_status.h>
-#include <nvgpu/nvgpu_err.h>
-#include <nvgpu/power_features/cg.h>
 #include <nvgpu/preempt.h>
 
 #include "gr_gk20a.h"
@@ -1390,7 +1377,7 @@ bool gk20a_is_channel_ctx_resident(struct channel_gk20a *ch)
 	return ret;
 }
 
-int __gr_gk20a_exec_ctx_ops(struct channel_gk20a *ch,
+static int gr_exec_ctx_ops(struct channel_gk20a *ch,
 			    struct nvgpu_dbg_reg_op *ctx_ops, u32 num_ops,
 			    u32 num_ctx_wr_ops, u32 num_ctx_rd_ops,
 			    bool ch_is_curr_ctx)
@@ -1669,7 +1656,7 @@ int gr_gk20a_exec_ctx_ops(struct channel_gk20a *ch,
 	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gpu_dbg, "is curr ctx=%d",
 		  ch_is_curr_ctx);
 
-	err = __gr_gk20a_exec_ctx_ops(ch, ctx_ops, num_ops, num_ctx_wr_ops,
+	err = gr_exec_ctx_ops(ch, ctx_ops, num_ops, num_ctx_wr_ops,
 				      num_ctx_rd_ops, ch_is_curr_ctx);
 
 	tmp_err = g->ops.gr.enable_ctxsw(g);

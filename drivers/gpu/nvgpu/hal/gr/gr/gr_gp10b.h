@@ -25,23 +25,19 @@
 #ifndef NVGPU_GR_GP10B_H
 #define NVGPU_GR_GP10B_H
 
-#include "gk20a/mm_gk20a.h"
+#include <nvgpu/types.h>
 
 struct gk20a;
-struct nvgpu_gr_isr_data;
+struct channel_gk20a;
 struct nvgpu_gr_ctx;
-struct nvgpu_preemption_modes_rec;
+struct dbg_session_gk20a;
 struct gk20a_debug_output;
 
 #define NVC097_BES_CROP_DEBUG4_CLAMP_FP_BLEND_TO_INF	0x0U
 #define NVC097_BES_CROP_DEBUG4_CLAMP_FP_BLEND_TO_MAXVAL 0x1U
 
-void gr_gp10b_create_sysfs(struct gk20a *g);
-void gr_gp10b_remove_sysfs(struct gk20a *g);
 int gr_gp10b_set_cilp_preempt_pending(struct gk20a *g,
 		struct channel_gk20a *fault_ch);
-int gr_gp10b_commit_global_cb_manager(struct gk20a *g,
-			struct nvgpu_gr_ctx *gr_ctx, bool patch);
 void gr_gp10b_set_bes_crop_debug3(struct gk20a *g, u32 data);
 void gr_gp10b_set_bes_crop_debug4(struct gk20a *g, u32 data);
 void gr_gp10b_set_alpha_circular_buffer_size(struct gk20a *g, u32 data);
@@ -62,7 +58,6 @@ int gr_gp10b_suspend_contexts(struct gk20a *g,
 int gr_gp10b_set_boosted_ctx(struct channel_gk20a *ch,
 				    bool boost);
 int gp10b_gr_fuse_override(struct gk20a *g);
-int gr_gp10b_init_preemption_state(struct gk20a *g);
 bool gr_gp10b_suspend_context(struct channel_gk20a *ch,
 				bool *cilp_preempt_pending);
 #endif /* NVGPU_GR_GP10B_H */

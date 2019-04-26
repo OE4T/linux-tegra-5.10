@@ -22,48 +22,41 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#include <nvgpu/timers.h>
-#include <nvgpu/gmmu.h>
 #include <nvgpu/dma.h>
 #include <nvgpu/log.h>
 #include <nvgpu/debug.h>
 #include <nvgpu/enabled.h>
 #include <nvgpu/fuse.h>
-#include <nvgpu/bug.h>
 #include <nvgpu/debugger.h>
 #include <nvgpu/error_notifier.h>
-#include <nvgpu/soc.h>
 #include <nvgpu/io.h>
 #include <nvgpu/utils.h>
 #include <nvgpu/bitops.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/regops.h>
-#include <nvgpu/gr/subctx.h>
 #include <nvgpu/gr/ctx.h>
 #include <nvgpu/gr/config.h>
 #include <nvgpu/gr/gr.h>
 #include <nvgpu/channel.h>
-#include <nvgpu/nvgpu_err.h>
 #include <nvgpu/engines.h>
 #include <nvgpu/engine_status.h>
 
-#include "gk20a/gr_pri_gk20a.h"
+#include "gr_pri_gk20a.h"
+#include "gr_pri_gv11b.h"
+#include "gr_gk20a.h"
+#include "gr_gp10b.h"
+#include "gr_gv11b.h"
+
 #include "common/gr/gr_priv.h"
 
-#include "gk20a/gr_gk20a.h"
-
-#include "gm20b/gr_gm20b.h"
-
-#include "gp10b/gr_gp10b.h"
-
-#include "gv11b/gr_gv11b.h"
-#include "gv11b/mm_gv11b.h"
-#include "gv11b/gr_pri_gv11b.h"
-
 #include <nvgpu/hw/gv11b/hw_gr_gv11b.h>
-#include <nvgpu/hw/gv11b/hw_fifo_gv11b.h>
 #include <nvgpu/hw/gv11b/hw_proj_gv11b.h>
 #include <nvgpu/hw/gv11b/hw_perf_gv11b.h>
+
+#define EGPC_PRI_BASE        0x580000U
+#define EGPC_PRI_SHARED_BASE 0x480000U
+
+#define PRI_BROADCAST_FLAGS_SMPC  BIT32(17)
 
 u32 gr_gv11b_ctxsw_checksum_mismatch_mailbox_val(void)
 {
@@ -623,13 +616,11 @@ static void gr_gv11b_handle_icache_exception(struct gk20a *g, u32 gpc, u32 tpc,
 			gr_pri_gpc0_tpc0_sm_icache_ecc_status_reset_task_f());
 }
 
-int gr_gv11b_handle_tpc_sm_ecc_exception(struct gk20a *g,
+void gr_gv11b_handle_tpc_sm_ecc_exception(struct gk20a *g,
 		u32 gpc, u32 tpc,
 		bool *post_event, struct channel_gk20a *fault_ch,
 		u32 *hww_global_esr)
 {
-	int ret = 0;
-
 	/* Check for L1 tag ECC errors. */
 	gr_gv11b_handle_l1_tag_exception(g, gpc, tpc, post_event, fault_ch, hww_global_esr);
 
@@ -644,8 +635,6 @@ int gr_gv11b_handle_tpc_sm_ecc_exception(struct gk20a *g,
 
 	/* Check for L0 && L1 icache ECC errors. */
 	gr_gv11b_handle_icache_exception(g, gpc, tpc, post_event, fault_ch, hww_global_esr);
-
-	return ret;
 }
 
 void gr_gv11b_set_alpha_circular_buffer_size(struct gk20a *g, u32 data)
