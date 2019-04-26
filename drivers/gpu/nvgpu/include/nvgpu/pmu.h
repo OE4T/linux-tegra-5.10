@@ -204,6 +204,8 @@ int nvgpu_pmu_reset(struct gk20a *g);
 /* PMU debug */
 void nvgpu_pmu_dump_falcon_stats(struct nvgpu_pmu *pmu);
 bool nvgpu_find_hex_in_string(char *strings, struct gk20a *g, u32 *hex_pos);
+int nvgpu_pmu_debug_init(struct gk20a *g, struct nvgpu_pmu *pmu);
+void nvgpu_pmu_debug_deinit(struct gk20a *g, struct nvgpu_pmu *pmu);
 
 struct gk20a *gk20a_from_pmu(struct nvgpu_pmu *pmu);
 

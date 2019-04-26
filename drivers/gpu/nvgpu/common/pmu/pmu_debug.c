@@ -23,6 +23,7 @@
 #include <nvgpu/pmu.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/pmu/fw.h>
+#include <nvgpu/dma.h>
 
 bool nvgpu_find_hex_in_string(char *strings, struct gk20a *g, u32 *hex_pos)
 {
@@ -110,4 +111,29 @@ void nvgpu_pmu_dump_falcon_stats(struct nvgpu_pmu *pmu)
 
 	/* PMU may crash due to FECS crash. Dump FECS status */
 	g->ops.gr.falcon.dump_stats(g);
+}
+
+int nvgpu_pmu_debug_init(struct gk20a *g, struct nvgpu_pmu *pmu)
+{
+	struct mm_gk20a *mm = &g->mm;
+	struct vm_gk20a *vm = mm->pmu.vm;
+	int err = 0;
+
+	err = nvgpu_dma_alloc_map(vm, GK20A_PMU_TRACE_BUFSIZE,
+			&pmu->trace_buf);
+	if (err != 0) {
+		nvgpu_err(g, "failed to allocate pmu trace buffer\n");
+	}
+
+	return err;
+}
+
+void nvgpu_pmu_debug_deinit(struct gk20a *g, struct nvgpu_pmu *pmu)
+{
+	struct mm_gk20a *mm = &g->mm;
+	struct vm_gk20a *vm = mm->pmu.vm;
+
+	if (nvgpu_mem_is_valid(&pmu->trace_buf)) {
+		nvgpu_dma_unmap_free(vm, &pmu->trace_buf);
+	}
 }

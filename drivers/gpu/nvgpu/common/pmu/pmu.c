@@ -180,10 +180,9 @@ static int nvgpu_init_pmu_setup_sw(struct gk20a *g)
 		}
 	}
 
-	err = nvgpu_dma_alloc_map(vm, GK20A_PMU_TRACE_BUFSIZE,
-				&pmu->trace_buf);
+	/* alloc shared buffer to read PMU-RTOS debug message */
+	err = nvgpu_pmu_debug_init(g, pmu);
 	if (err != 0) {
-		nvgpu_err(g, "failed to allocate pmu trace buffer\n");
 		goto err_free_super_surface;
 	}
 
@@ -337,6 +336,7 @@ static void nvgpu_remove_pmu_support(struct nvgpu_pmu *pmu)
 		nvgpu_pmu_super_surface_deinit(g, pmu, pmu->super_surface);
 	}
 
+	nvgpu_pmu_debug_deinit(g, pmu);
 	nvgpu_pmu_lsfm_deinit(g, pmu, pmu->lsfm);
 	nvgpu_pmu_pg_deinit(g, pmu, pmu->pg);
 
