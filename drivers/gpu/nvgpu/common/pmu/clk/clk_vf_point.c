@@ -273,68 +273,6 @@ static int _clk_vf_point_pmudatainit_freq(struct gk20a *g,
 	return status;
 }
 
-static int clk_vf_point_construct_volt(struct gk20a *g,
-				       struct boardobj **ppboardobj,
-				       size_t size, void *pargs)
-{
-	struct boardobj *ptmpobj = (struct boardobj *)pargs;
-	struct clk_vf_point_volt *pclkvfpoint;
-	struct clk_vf_point_volt *ptmpvfpoint =
-			(struct clk_vf_point_volt *)pargs;
-	int status = 0;
-
-	if (BOARDOBJ_GET_TYPE(pargs) != CTRL_CLK_CLK_VF_POINT_TYPE_VOLT) {
-		return -EINVAL;
-	}
-
-	ptmpobj->type_mask = BIT32(CTRL_CLK_CLK_VF_POINT_TYPE_VOLT);
-	status = clk_vf_point_construct_super(g, ppboardobj, size, pargs);
-	if (status != 0) {
-		return -EINVAL;
-	}
-
-	pclkvfpoint = (struct clk_vf_point_volt *)*ppboardobj;
-
-	pclkvfpoint->super.super.pmudatainit =
-			_clk_vf_point_pmudatainit_volt;
-
-	pclkvfpoint->source_voltage_uv = ptmpvfpoint->source_voltage_uv;
-	pclkvfpoint->freq_delta = ptmpvfpoint->freq_delta;
-
-	return status;
-}
-
-static int clk_vf_point_construct_freq(struct gk20a *g,
-				       struct boardobj **ppboardobj,
-				       size_t size, void *pargs)
-{
-	struct boardobj *ptmpobj = (struct boardobj *)pargs;
-	struct clk_vf_point_freq *pclkvfpoint;
-	struct clk_vf_point_freq *ptmpvfpoint =
-			(struct clk_vf_point_freq *)pargs;
-	int status = 0;
-
-	if (BOARDOBJ_GET_TYPE(pargs) != CTRL_CLK_CLK_VF_POINT_TYPE_FREQ) {
-		return -EINVAL;
-	}
-
-	ptmpobj->type_mask = BIT32(CTRL_CLK_CLK_VF_POINT_TYPE_FREQ);
-	status = clk_vf_point_construct_super(g, ppboardobj, size, pargs);
-	if (status != 0) {
-		return -EINVAL;
-	}
-
-	pclkvfpoint = (struct clk_vf_point_freq *)*ppboardobj;
-
-	pclkvfpoint->super.super.pmudatainit =
-			_clk_vf_point_pmudatainit_freq;
-
-	clkvfpointfreqmhzset(g, &pclkvfpoint->super,
-		clkvfpointfreqmhzget(g, &ptmpvfpoint->super));
-
-	return status;
-}
-
 static int clk_vf_point_construct_volt_35(struct gk20a *g,
 				       struct boardobj **ppboardobj,
 				       size_t size, void *pargs)
@@ -404,15 +342,6 @@ struct clk_vf_point *nvgpu_construct_clk_vf_point(struct gk20a *g, void *pargs)
 
 	nvgpu_log_info(g, " ");
 	switch (BOARDOBJ_GET_TYPE(pargs)) {
-	case CTRL_CLK_CLK_VF_POINT_TYPE_FREQ:
-		status = clk_vf_point_construct_freq(g, &board_obj_ptr,
-			sizeof(struct clk_vf_point_freq), pargs);
-		break;
-
-	case CTRL_CLK_CLK_VF_POINT_TYPE_VOLT:
-		status = clk_vf_point_construct_volt(g, &board_obj_ptr,
-			sizeof(struct clk_vf_point_volt), pargs);
-		break;
 
 	case CTRL_CLK_CLK_VF_POINT_TYPE_35_FREQ:
 		status = clk_vf_point_construct_freq_35(g, &board_obj_ptr,
@@ -463,34 +392,6 @@ static int _clk_vf_point_pmudatainit_super(struct gk20a *g,
 	pset->vfe_equ_idx = pclk_vf_point->vfe_equ_idx;
 	pset->volt_rail_idx = pclk_vf_point->volt_rail_idx;
 	return status;
-}
-
-
-static int clk_vf_point_update(struct gk20a *g,
-				struct boardobj *board_obj_ptr,
-				struct nv_pmu_boardobj *ppmudata)
-{
-	struct clk_vf_point *pclk_vf_point;
-	struct nv_pmu_clk_clk_vf_point_boardobj_get_status *pstatus;
-
-	nvgpu_log_info(g, " ");
-
-
-	pclk_vf_point =
-		(struct clk_vf_point *)board_obj_ptr;
-
-	pstatus = (struct nv_pmu_clk_clk_vf_point_boardobj_get_status *)
-		ppmudata;
-
-	if (pstatus->super.type != pclk_vf_point->super.type) {
-		nvgpu_err(g,
-			"pmu data and boardobj type not matching");
-		return -EINVAL;
-	}
-	/* now copy VF pair */
-	nvgpu_memcpy((u8 *)&pclk_vf_point->pair, (u8 *)&pstatus->pair,
-		sizeof(struct ctrl_clk_vf_pair));
-	return 0;
 }
 
  int nvgpu_clk_arb_find_slave_points(struct nvgpu_clk_arb *arb,
@@ -553,63 +454,35 @@ int nvgpu_clk_vf_point_cache(struct gk20a *g)
 
 	struct nvgpu_clk_vf_points *pclk_vf_points;
 	struct boardobjgrp *pboardobjgrp;
-	struct boardobjgrpmask *pboardobjgrpmask;
-	struct nv_pmu_boardobjgrp_super *pboardobjgrppmu;
 	struct boardobj *pboardobj = NULL;
-	struct nv_pmu_boardobj_query *pboardobjpmustatus = NULL;
 	int status;
 	struct clk_vf_point *pclk_vf_point;
 	u8 index;
 	u32 voltage_min_uv,voltage_step_size_uv;
 	u32 gpcclk_clkmhz=0, gpcclk_voltuv=0;
-	u32 ver = g->params.gpu_arch + g->params.gpu_impl;
 
 	nvgpu_log_info(g, " ");
 	pclk_vf_points = g->pmu.clk_pmu->clk_vf_pointobjs;
 	pboardobjgrp = &pclk_vf_points->super.super;
-	pboardobjgrpmask = &pclk_vf_points->super.mask.super;
 
-	if (ver == NVGPU_GPUID_GV100) {
-		status = pboardobjgrp->pmugetstatus(g, pboardobjgrp, pboardobjgrpmask);
+
+	voltage_min_uv = g->pmu.clk_pmu->avfs_fllobjs->lut_min_voltage_uv;
+	voltage_step_size_uv =
+			g->pmu.clk_pmu->avfs_fllobjs->lut_step_size_uv;
+	BOARDOBJGRP_FOR_EACH(pboardobjgrp, struct boardobj*, pboardobj, index) {
+		pclk_vf_point = (struct clk_vf_point *)(void *)pboardobj;
+		gpcclk_voltuv =
+				voltage_min_uv + index * voltage_step_size_uv;
+		status = nvgpu_clk_domain_volt_to_freq(g, 0, &gpcclk_clkmhz,
+				&gpcclk_voltuv, CTRL_VOLT_DOMAIN_LOGIC);
 		if (status != 0) {
-			nvgpu_err(g, "err getting boardobjs from pmu");
+			nvgpu_err(g,
+				"Failed to get freq for requested voltage");
 			return status;
 		}
-		pboardobjgrppmu = pboardobjgrp->pmu.getstatus.buf;
 
-		BOARDOBJGRP_FOR_EACH(pboardobjgrp, struct boardobj*, pboardobj, index) {
-			status = pboardobjgrp->pmustatusinstget(g,
-					(struct nv_pmu_boardobjgrp *)(void *)pboardobjgrppmu,
-					&pboardobjpmustatus, index);
-			if (status != 0) {
-				nvgpu_err(g, "could not get status object instance");
-				return status;
-			}
-			status = clk_vf_point_update(g, pboardobj,
-				(struct nv_pmu_boardobj *)(void *)pboardobjpmustatus);
-			if (status != 0) {
-				nvgpu_err(g, "invalid data from pmu at %d", index);
-				return status;
-			}
-
-		}
-	} else {
-		voltage_min_uv = g->pmu.clk_pmu->avfs_fllobjs->lut_min_voltage_uv;
-		voltage_step_size_uv =
-				g->pmu.clk_pmu->avfs_fllobjs->lut_step_size_uv;
-		BOARDOBJGRP_FOR_EACH(pboardobjgrp, struct boardobj*, pboardobj, index) {
-			pclk_vf_point = (struct clk_vf_point *)(void *)pboardobj;
-			gpcclk_voltuv =
-					voltage_min_uv + index * voltage_step_size_uv;
-			status = nvgpu_clk_domain_volt_to_freq(g, 0,
-					&gpcclk_clkmhz, &gpcclk_voltuv, CTRL_VOLT_DOMAIN_LOGIC);
-			if (status != 0) {
-				nvgpu_err(g, "Failed to get freq for requested voltage");
-				return status;
-			}
 		pclk_vf_point->pair.freq_mhz = (u16)gpcclk_clkmhz;
 		pclk_vf_point->pair.voltage_uv = gpcclk_voltuv;
-		}
 	}
 	return status;
 }
