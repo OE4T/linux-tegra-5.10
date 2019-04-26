@@ -23,7 +23,6 @@
 #ifndef NVGPU_BOARDOBJGRP_E32_H
 #define NVGPU_BOARDOBJGRP_E32_H
 
-#include <nvgpu/boardobj.h>
 #include <nvgpu/boardobjgrp.h>
 #include <nvgpu/boardobjgrpmask.h>
 
@@ -53,15 +52,11 @@ struct boardobjgrp_e32 {
  * implement this interface.
  */
 #define boardobjgrp_pmudatainit_e32(g, pboardpbjgrp, pboardobjgrppmu) \
-		boardobjgrp_pmudatainit_super(g, pboardpbjgrp, pboardobjgrppmu)
+		nvgpu_boardobjgrp_pmu_data_init_super(g, pboardpbjgrp, \
+		pboardobjgrppmu)
 
 /* Constructor and destructor */
-int boardobjgrpconstruct_e32(struct gk20a *g,
+int nvgpu_boardobjgrp_construct_e32(struct gk20a *g,
 	struct boardobjgrp_e32 *pboardobjgrp_e32);
-int boardobjgrpdestruct_e32(struct boardobjgrp *pboardobjgrp);
-int boardobjgrp_pmuhdrdatainit_e32(struct gk20a *g,
-			struct boardobjgrp *pboardobjgrp,
-			struct nv_pmu_boardobjgrp_super *pboardobjgrppmu,
-			struct boardobjgrpmask *mask);
-
+int boardobjgrp_destruct_e32(struct boardobjgrp *pboardobjgrp);
 #endif /* NVGPU_BOARDOBJGRP_E32_H */

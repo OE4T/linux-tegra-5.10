@@ -31,34 +31,19 @@ struct nvgpu_list_node;
 struct gk20a;
 
 /*
-* check whether the specified BOARDOBJ object implements the queried
-* type/class enumeration.
-*/
-bool boardobj_implements_super(struct gk20a *g, struct boardobj *pboardobj,
-					u8 type);
-
-/*
 * Fills out the appropriate the nv_pmu_xxxx_device_desc_<xyz> driver->PMU
 * description structure, describing this BOARDOBJ board device to the PMU.
 *
 */
-int boardobj_pmudatainit_super(struct gk20a *g, struct boardobj *pboardobj,
-				struct nv_pmu_boardobj *pmudata);
+int nvgpu_boardobj_pmu_data_init_super(struct gk20a *g, struct boardobj
+		*pboardobj, struct nv_pmu_boardobj *pmudata);
 
 /*
 * Constructor for the base Board Object. Called by each device-specific
 * implementation of the BOARDOBJ interface to initialize the board object.
 */
-int boardobj_construct_super(struct gk20a *g, struct boardobj **ppboardobj,
-				size_t size, void *args);
-
-/*
-* Destructor for the base board object. Called by each device-Specific
-* implementation of the BOARDOBJ interface to destroy the board object.
-* This has to be explicitly set by each device that extends from the
-* board object.
-*/
-int boardobj_destruct_super(struct boardobj *pboardobj);
+int nvgpu_boardobj_construct_super(struct gk20a *g, struct boardobj
+		**ppboardobj, size_t size, void *args);
 
 /*
 * Base Class for all physical or logical device on the PCB.
@@ -87,8 +72,70 @@ struct boardobj {
 	struct nvgpu_list_node node;
 };
 
+struct boardobjgrp_pmucmdhandler_params {
+	/* Pointer to the BOARDOBJGRP associated with this CMD */
+	struct boardobjgrp *pboardobjgrp;
+	/* Pointer to structure representing this NV_PMU_BOARDOBJ_CMD_GRP */
+	struct boardobjgrp_pmu_cmd *pcmd;
+	/* Boolean indicating whether the PMU successfully handled the CMD */
+	u32 success;
+};
+
 #define BOARDOBJ_GET_TYPE(pobj) (((struct boardobj *)(pobj))->type)
 #define BOARDOBJ_GET_IDX(pobj) (((struct boardobj *)(pobj))->idx)
+
+#define HIGHESTBITIDX_32(n32)   \
+{                               \
+	u32 count = 0U;        \
+	while (((n32) >>= 1U) != 0U) {       \
+		count++;       \
+	}                      \
+	(n32) = count;            \
+}
+
+#define LOWESTBIT(x)            ((x) &  (((x)-1U) ^ (x)))
+
+#define HIGHESTBIT(n32)     \
+{                           \
+	HIGHESTBITIDX_32(n32);  \
+	n32 = NVBIT(n32);       \
+}
+
+#define ONEBITSET(x)            ((x) && (((x) & ((x)-1U)) == 0U))
+
+#define LOWESTBITIDX_32(n32)  \
+{                             \
+	n32 = LOWESTBIT(n32); \
+	IDX_32(n32);         \
+}
+
+#define NUMSETBITS_32(n32)                                         \
+{                                                                  \
+	(n32) = (n32) - (((n32) >> 1U) & 0x55555555U);                         \
+	(n32) = ((n32) & 0x33333333U) + (((n32) >> 2U) & 0x33333333U);         \
+	(n32) = ((((n32) + ((n32) >> 4U)) & 0x0F0F0F0FU) * 0x01010101U) >> 24U;\
+}
+
+#define IDX_32(n32)				\
+{						\
+	u32 idx = 0U;				\
+	if (((n32) & 0xFFFF0000U) != 0U) {  	\
+		idx += 16U;			\
+	}					\
+	if (((n32) & 0xFF00FF00U) != 0U) {	\
+		idx += 8U;			\
+	}					\
+	if (((n32) & 0xF0F0F0F0U) != 0U) {	\
+		idx += 4U;			\
+	}					\
+	if (((n32) & 0xCCCCCCCCU) != 0U) {	\
+		idx += 2U;			\
+	}					\
+	if (((n32) & 0xAAAAAAAAU) != 0U) {	\
+		idx += 1U;			\
+	}					\
+	(n32) = idx;				\
+}
 
 static inline struct boardobj *
 boardobj_from_node(struct nvgpu_list_node *node)

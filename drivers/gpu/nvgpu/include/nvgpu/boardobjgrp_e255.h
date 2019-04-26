@@ -23,7 +23,6 @@
 #ifndef NVGPU_BOARDOBJGRP_E255_H
 #define NVGPU_BOARDOBJGRP_E255_H
 
-#include <nvgpu/boardobj.h>
 #include <nvgpu/boardobjgrpmask.h>
 #include <nvgpu/boardobjgrp.h>
 
@@ -38,16 +37,13 @@ struct boardobjgrp_e255 {
 	struct boardobjgrpmask_e255  mask;
 };
 
-#define boardobjgrp_pmudatainit_e255(g, pboardpbjgrp, pboardobjgrppmu) \
-		boardobjgrp_pmudatainit_super(g, pboardpbjgrp, pboardobjgrppmu)
+#define boardobjgrp_pmu_data_init_e255(g, pboardpbjgrp, pboardobjgrppmu) \
+		nvgpu_boardobjgrp_pmu_data_init_super(g, \
+		pboardpbjgrp, pboardobjgrppmu)
 
 /* Constructor and destructor */
-int boardobjgrpconstruct_e255(struct gk20a *g,
+int nvgpu_boardobjgrp_construct_e255(struct gk20a *g,
 	struct boardobjgrp_e255 *pboardobjgrp_e255);
-int boardobjgrpdestruct_e255(struct boardobjgrp *pboardobjgrp);
-int boardobjgrp_pmuhdrdatainit_e255(struct gk20a *g,
-			struct boardobjgrp *pboardobjgrp,
-			struct nv_pmu_boardobjgrp_super *pboardobjgrppmu,
-			struct boardobjgrpmask *mask);
+int boardobjgrp_destruct_e255(struct boardobjgrp *pboardobjgrp);
 
 #endif /* NVGPU_BOARDOBJGRP_E255_H */

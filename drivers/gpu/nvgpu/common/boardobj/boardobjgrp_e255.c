@@ -21,50 +21,15 @@
  */
 
 #include <nvgpu/gk20a.h>
-#include <nvgpu/boardobj.h>
 #include <nvgpu/boardobjgrp_e255.h>
-#include <nvgpu/boardobjgrp.h>
-#include <nvgpu/boardobjgrpmask.h>
-#include <nvgpu/pmu/pmuif/ctrlboardobj.h>
 
-int boardobjgrpconstruct_e255(struct gk20a *g,
-			      struct boardobjgrp_e255 *pboardobjgrp_e255)
-{
-	int status = 0;
-	u8  objslots;
-
-	nvgpu_log_info(g, " ");
-
-	objslots = 255;
-	status = boardobjgrpmask_e255_init(&pboardobjgrp_e255->mask, NULL);
-	if (status != 0) {
-		goto boardobjgrpconstruct_e255_exit;
-	}
-
-	pboardobjgrp_e255->super.type      = CTRL_BOARDOBJGRP_TYPE_E255;
-	pboardobjgrp_e255->super.ppobjects = pboardobjgrp_e255->objects;
-	pboardobjgrp_e255->super.objslots  = objslots;
-	pboardobjgrp_e255->super.mask     = &(pboardobjgrp_e255->mask.super);
-
-	status = boardobjgrp_construct_super(g, &pboardobjgrp_e255->super);
-	if (status != 0) {
-		goto boardobjgrpconstruct_e255_exit;
-	}
-
-	pboardobjgrp_e255->super.pmuhdrdatainit =
-		boardobjgrp_pmuhdrdatainit_e255;
-
-boardobjgrpconstruct_e255_exit:
-	return status;
-}
-
-int boardobjgrp_pmuhdrdatainit_e255(struct gk20a *g,
+static int boardobjgrp_pmu_hdr_data_init_e255(struct gk20a *g,
 		struct boardobjgrp *pboardobjgrp,
 		struct nv_pmu_boardobjgrp_super *pboardobjgrppmu,
 		struct boardobjgrpmask *mask)
 {
 	struct nv_pmu_boardobjgrp_e255 *pgrpe255 =
-		(struct nv_pmu_boardobjgrp_e255 *)pboardobjgrppmu;
+		(struct nv_pmu_boardobjgrp_e255 *)(void *)pboardobjgrppmu;
 	int status;
 
 	nvgpu_log_info(g, " ");
@@ -77,7 +42,7 @@ int boardobjgrp_pmuhdrdatainit_e255(struct gk20a *g,
 		return -EINVAL;
 	}
 
-	status = boardobjgrpmask_export(mask,
+	status = nvgpu_boardobjgrpmask_export(mask,
 				mask->bitcount,
 				&pgrpe255->obj_mask.super);
 	if (status != 0) {
@@ -85,6 +50,38 @@ int boardobjgrp_pmuhdrdatainit_e255(struct gk20a *g,
 		return status;
 	}
 
-	return boardobjgrp_pmuhdrdatainit_super(g,
+	return nvgpu_boardobjgrp_pmu_hdr_data_init_super(g,
 			pboardobjgrp, pboardobjgrppmu, mask);
 }
+
+int nvgpu_boardobjgrp_construct_e255(struct gk20a *g,
+			      struct boardobjgrp_e255 *pboardobjgrp_e255)
+{
+	int status = 0;
+	u8  objslots;
+
+	nvgpu_log_info(g, " ");
+
+	objslots = 255;
+	status = boardobjgrpmask_e255_init(&pboardobjgrp_e255->mask, NULL);
+	if (status != 0) {
+		goto nvgpu_boardobjgrpconstruct_e255_exit;
+	}
+
+	pboardobjgrp_e255->super.type      = CTRL_BOARDOBJGRP_TYPE_E255;
+	pboardobjgrp_e255->super.ppobjects = pboardobjgrp_e255->objects;
+	pboardobjgrp_e255->super.objslots  = objslots;
+	pboardobjgrp_e255->super.mask     = &(pboardobjgrp_e255->mask.super);
+
+	status = nvgpu_boardobjgrp_construct_super(g, &pboardobjgrp_e255->super);
+	if (status != 0) {
+		goto nvgpu_boardobjgrpconstruct_e255_exit;
+	}
+
+	pboardobjgrp_e255->super.pmuhdrdatainit =
+		boardobjgrp_pmu_hdr_data_init_e255;
+
+nvgpu_boardobjgrpconstruct_e255_exit:
+	return status;
+}
+

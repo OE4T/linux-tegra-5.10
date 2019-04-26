@@ -19,460 +19,13 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
 */
-#include <nvgpu/bug.h>
+
 #include <nvgpu/gk20a.h>
 #include <nvgpu/boardobjgrp.h>
 #include <nvgpu/boardobj.h>
-#include <nvgpu/pmu/pmuif/ctrlboardobj.h>
 #include <nvgpu/pmu/cmd.h>
 #include <nvgpu/pmu/super_surface.h>
 #include <nvgpu/pmu/allocator.h>
-
-/*
- * Inserts a previously constructed Board Object into a Board Object Group for
- * tracking. Objects are inserted in the array based on the given index.
- */
-static int boardobjgrp_objinsert_final(struct boardobjgrp *pboardobjgrp,
-				struct boardobj *pboardobj, u8 index);
-/*
- * Retrieves a Board Object from a Board Object Group using the group's index.
- */
-static struct boardobj *boardobjgrp_objgetbyidx_final(
-			struct boardobjgrp *pboardobjgrp, u8 index);
-/*
- * Retrieve Board Object immediately following one pointed by @ref currentindex
- * filtered out by the provided mask. If (mask == NULL) => no filtering.
- */
-static struct boardobj *boardobjgrp_objgetnext_final(
-			struct boardobjgrp *pboardobjgrp,
-			u8 *currentindex, struct boardobjgrpmask *mask);
-static int  boardobjgrp_objremoveanddestroy_final(
-			struct boardobjgrp *pboardobjgrp,
-			u8 index);
-static int boardobjgrp_pmudatainstget_stub(struct gk20a *g,
-			struct nv_pmu_boardobjgrp  *boardobjgrppmu,
-			struct nv_pmu_boardobj **ppboardobjpmudata, u8 idx);
-static int boardobjgrp_pmustatusinstget_stub(struct gk20a *g,
-			void *pboardobjgrppmu,
-			struct nv_pmu_boardobj_query **ppBoardobjpmustatus,
-			u8 idx);
-static int boardobjgrp_pmucmdsend(struct gk20a *g,
-		struct boardobjgrp *pboardobjgrp,
-		struct boardobjgrp_pmu_cmd *pcmd);
-static int boardobjgrp_pmucmdsend_rpc(struct gk20a *g,
-		struct boardobjgrp *pboardobjgrp,
-		struct boardobjgrp_pmu_cmd *pcmd,
-		bool copy_out);
-struct boardobjgrp_pmucmdhandler_params {
-	/* Pointer to the BOARDOBJGRP associated with this CMD */
-	struct boardobjgrp *pboardobjgrp;
-	/* Pointer to structure representing this NV_PMU_BOARDOBJ_CMD_GRP */
-	struct boardobjgrp_pmu_cmd *pcmd;
-	/* Boolean indicating whether the PMU successfully handled the CMD */
-	bool success;
-};
-
-int boardobjgrp_construct_super(struct gk20a *g,
-	struct boardobjgrp *pboardobjgrp)
-{
-	nvgpu_log_info(g, " ");
-
-	if (pboardobjgrp == NULL) {
-		return -EINVAL;
-	}
-
-	if (pboardobjgrp->ppobjects == NULL) {
-		return -EINVAL;
-	}
-
-	if (pboardobjgrp->mask == NULL) {
-		return -EINVAL;
-	}
-
-	pboardobjgrp->g = g;
-	pboardobjgrp->objmask = 0;
-
-	pboardobjgrp->classid = 0;
-	pboardobjgrp->pmu.unitid = BOARDOBJGRP_UNIT_ID_INVALID;
-	pboardobjgrp->pmu.classid = BOARDOBJGRP_GRP_CLASS_ID_INVALID;
-	pboardobjgrp->pmu.bset = false;
-	pboardobjgrp->pmu.rpc_func_id = BOARDOBJGRP_GRP_RPC_FUNC_ID_INVALID;
-	pboardobjgrp->pmu.set.id = BOARDOBJGRP_GRP_CMD_ID_INVALID;
-	pboardobjgrp->pmu.getstatus.id = BOARDOBJGRP_GRP_CMD_ID_INVALID;
-
-	/* Initialize basic interfaces */
-	pboardobjgrp->destruct =  boardobjgrp_destruct_super;
-	pboardobjgrp->objinsert  = boardobjgrp_objinsert_final;
-	pboardobjgrp->objgetbyidx = boardobjgrp_objgetbyidx_final;
-	pboardobjgrp->objgetnext = boardobjgrp_objgetnext_final;
-	pboardobjgrp->objremoveanddestroy =
-		boardobjgrp_objremoveanddestroy_final;
-
-	pboardobjgrp->pmuinithandle = boardobjgrp_pmuinithandle_impl;
-	pboardobjgrp->pmuhdrdatainit = boardobjgrp_pmuhdrdatainit_super;
-	pboardobjgrp->pmudatainit = boardobjgrp_pmudatainit_super;
-	pboardobjgrp->pmuset =
-		g->pmu.fw.ops.boardobj.boardobjgrp_pmuset_impl;
-	pboardobjgrp->pmugetstatus =
-		g->pmu.fw.ops.boardobj.boardobjgrp_pmugetstatus_impl;
-
-	pboardobjgrp->pmudatainstget = boardobjgrp_pmudatainstget_stub;
-	pboardobjgrp->pmustatusinstget = boardobjgrp_pmustatusinstget_stub;
-
-	pboardobjgrp->objmaxidx = CTRL_BOARDOBJ_IDX_INVALID;
-	pboardobjgrp->bconstructed = true;
-
-	nvgpu_list_add(&pboardobjgrp->node, &g->boardobjgrp_head);
-
-	return 0;
-}
-
-int boardobjgrp_destruct_impl(struct boardobjgrp *pboardobjgrp)
-{
-	struct gk20a *g = pboardobjgrp->g;
-
-	nvgpu_log_info(g, " ");
-
-	if (pboardobjgrp == NULL) {
-		return -EINVAL;
-	}
-
-	if (!pboardobjgrp->bconstructed) {
-		return 0;
-	}
-
-	return pboardobjgrp->destruct(pboardobjgrp);
-}
-
-int boardobjgrp_destruct_super(struct boardobjgrp *pboardobjgrp)
-{
-	struct boardobj *pboardobj;
-	struct gk20a *g = pboardobjgrp->g;
-	int status = 0;
-	int stat;
-	u8  index;
-
-	nvgpu_log_info(g, " ");
-
-	if (pboardobjgrp->mask == NULL) {
-		return -EINVAL;
-	}
-	if (pboardobjgrp->ppobjects == NULL) {
-		return -EINVAL;
-	}
-
-	BOARDOBJGRP_FOR_EACH(pboardobjgrp, struct boardobj*, pboardobj, index) {
-		stat = pboardobjgrp->objremoveanddestroy(pboardobjgrp, index);
-		if (status == 0) {
-			status = stat;
-		}
-
-		pboardobjgrp->ppobjects[index] = NULL;
-		pboardobjgrp->objmask &= ~BIT32(index);
-	}
-
-	pboardobjgrp->objmask = 0;
-
-	if (pboardobjgrp->objmaxidx != CTRL_BOARDOBJ_IDX_INVALID) {
-		if (status == 0) {
-			status = -EINVAL;
-		}
-
-		WARN_ON(true);
-	}
-
-	/* Destroy the PMU CMD data */
-	stat = boardobjgrp_pmucmd_destroy_impl(g, &pboardobjgrp->pmu.set);
-	if (status == 0) {
-		status = stat;
-	}
-
-	stat = boardobjgrp_pmucmd_destroy_impl(g, &pboardobjgrp->pmu.getstatus);
-	if (status == 0) {
-		status = stat;
-	}
-
-	nvgpu_list_del(&pboardobjgrp->node);
-
-	pboardobjgrp->bconstructed = false;
-
-	return status;
-}
-
-int boardobjgrp_pmucmd_construct_impl(struct gk20a *g, struct boardobjgrp
-	*pboardobjgrp, struct boardobjgrp_pmu_cmd *cmd, u8 id, u8 msgid,
-	u16 hdrsize, u16 entrysize, u16 fbsize,  u32 ss_offset, u8 rpc_func_id)
-{
-	nvgpu_log_info(g, " ");
-
-	/* Copy the parameters into the CMD*/
-	cmd->id   = id;
-	cmd->msgid = msgid;
-	cmd->hdrsize   = (u8) hdrsize;
-	cmd->entrysize = (u8) entrysize;
-	cmd->fbsize    = fbsize;
-
-	return 0;
-}
-
-int boardobjgrp_pmucmd_construct_impl_v1(struct gk20a *g, struct boardobjgrp
-	*pboardobjgrp, struct boardobjgrp_pmu_cmd *cmd, u8 id, u8 msgid,
-	u16 hdrsize, u16 entrysize, u16 fbsize, u32 ss_offset, u8 rpc_func_id)
-{
-	nvgpu_log_fn(g, " ");
-
-	/* Copy the parameters into the CMD*/
-	cmd->dmem_buffer_size = ((hdrsize > entrysize) ? hdrsize : entrysize);
-	cmd->super_surface_offset = ss_offset;
-	pboardobjgrp->pmu.rpc_func_id = rpc_func_id;
-	cmd->fbsize = fbsize;
-
-	nvgpu_log_fn(g, "DONE");
-	return 0;
-}
-
-int boardobjgrp_pmucmd_destroy_impl(struct gk20a *g,
-	struct boardobjgrp_pmu_cmd *cmd)
-{
-	struct nvgpu_mem *mem = &cmd->surf.sysmem_desc;
-
-	nvgpu_pmu_surface_free(g, mem);
-	return 0;
-}
-
-int is_boardobjgrp_pmucmd_id_valid_v0(struct gk20a *g,
-		struct boardobjgrp *pboardobjgrp,
-		struct boardobjgrp_pmu_cmd *pcmd)
-{
-	int err = 0;
-
-	if (pcmd->id == BOARDOBJGRP_GRP_CMD_ID_INVALID) {
-		err = -EINVAL;
-	}
-
-	return err;
-}
-
-int is_boardobjgrp_pmucmd_id_valid_v1(struct gk20a *g,
-		struct boardobjgrp *pboardobjgrp,
-		struct boardobjgrp_pmu_cmd *cmd)
-{
-	int err = 0;
-
-	if (pboardobjgrp->pmu.rpc_func_id ==
-		BOARDOBJGRP_GRP_RPC_FUNC_ID_INVALID) {
-		err = -EINVAL;
-	}
-
-	return err;
-}
-
-int boardobjgrp_pmucmd_pmuinithandle_impl(struct gk20a *g,
-	struct boardobjgrp *pboardobjgrp,
-	struct boardobjgrp_pmu_cmd *pcmd)
-{
-	int status = 0;
-	struct nvgpu_mem *sysmem_desc = &pcmd->surf.sysmem_desc;
-
-	nvgpu_log_info(g, " ");
-
-	if (g->pmu.fw.ops.boardobj.is_boardobjgrp_pmucmd_id_valid(g,
-			pboardobjgrp, pcmd) != 0) {
-		goto boardobjgrp_pmucmd_pmuinithandle_exit;
-	}
-
-	if (pcmd->fbsize == 0U) {
-		goto boardobjgrp_pmucmd_pmuinithandle_exit;
-	}
-
-	nvgpu_pmu_sysmem_surface_alloc(g, sysmem_desc, pcmd->fbsize);
-	/* we only have got sysmem later this will get copied to vidmem
-	surface*/
-	pcmd->surf.vidmem_desc.size = 0;
-
-	pcmd->buf = (struct nv_pmu_boardobjgrp_super *)sysmem_desc->cpu_va;
-
-boardobjgrp_pmucmd_pmuinithandle_exit:
-	return status;
-}
-
-int boardobjgrp_pmuinithandle_impl(struct gk20a *g,
-		struct boardobjgrp *pboardobjgrp)
-{
-	int status = 0;
-
-	nvgpu_log_info(g, " ");
-
-	status = boardobjgrp_pmucmd_pmuinithandle_impl(g, pboardobjgrp,
-		&pboardobjgrp->pmu.set);
-	if (status != 0) {
-		nvgpu_err(g, "failed to init pmu set cmd");
-		goto boardobjgrp_pmuinithandle_exit;
-	}
-
-	status = boardobjgrp_pmucmd_pmuinithandle_impl(g, pboardobjgrp,
-		&pboardobjgrp->pmu.getstatus);
-	if (status != 0) {
-		nvgpu_err(g, "failed to init get status command");
-		goto boardobjgrp_pmuinithandle_exit;
-	}
-
-	/* If the GRP_SET CMD has not been allocated, nothing left to do. */
-	if ((g->pmu.fw.ops.boardobj.is_boardobjgrp_pmucmd_id_valid(g,
-			pboardobjgrp, &pboardobjgrp->pmu.set) != 0)||
-		(BOARDOBJGRP_IS_EMPTY(pboardobjgrp))) {
-		goto boardobjgrp_pmuinithandle_exit;
-	}
-
-	/* Send the BOARDOBJGRP to the pmu via RM_PMU_BOARDOBJ_CMD_GRP. */
-	status = pboardobjgrp->pmuset(g, pboardobjgrp);
-	if (status != 0) {
-		nvgpu_err(g, "failed to send boardobg grp to PMU");
-	}
-
-boardobjgrp_pmuinithandle_exit:
-	return status;
-}
-
-
-int boardobjgrp_pmuhdrdatainit_super(struct gk20a *g, struct boardobjgrp
-	*pboardobjgrp, struct nv_pmu_boardobjgrp_super *pboardobjgrppmu,
-	struct boardobjgrpmask *mask)
-{
-	nvgpu_log_info(g, " ");
-
-	if (pboardobjgrp == NULL) {
-		return -EINVAL;
-	}
-	if (pboardobjgrppmu == NULL) {
-		return -EINVAL;
-	}
-	pboardobjgrppmu->type = pboardobjgrp->type;
-	pboardobjgrppmu->class_id = pboardobjgrp->classid;
-	pboardobjgrppmu->obj_slots = BOARDOBJGRP_PMU_SLOTS_GET(pboardobjgrp);
-	pboardobjgrppmu->flags = 0;
-
-	nvgpu_log_info(g, " Done");
-	return 0;
-}
-
-static int boardobjgrp_pmudatainstget_stub(struct gk20a *g,
-	struct nv_pmu_boardobjgrp *boardobjgrppmu,
-	struct nv_pmu_boardobj **ppboardobjpmudata, u8 idx)
-{
-	nvgpu_log_info(g, " ");
-	return -EINVAL;
-}
-
-
-static int boardobjgrp_pmustatusinstget_stub(struct gk20a *g,
-	void *pboardobjgrppmu,
-	struct nv_pmu_boardobj_query **ppBoardobjpmustatus, u8 idx)
-{
-	nvgpu_log_info(g, " ");
-	return -EINVAL;
-}
-
-int boardobjgrp_pmudatainit_legacy(struct gk20a *g,
-	struct boardobjgrp 	*pboardobjgrp,
-	struct nv_pmu_boardobjgrp_super *pboardobjgrppmu)
-{
-	int status = 0;
-	struct boardobj *pboardobj = NULL;
-	struct nv_pmu_boardobj *ppmudata = NULL;
-	u8 index;
-
-	nvgpu_log_info(g, " ");
-
-	if (pboardobjgrp == NULL) {
-		return -EINVAL;
-	}
-	if (pboardobjgrppmu == NULL) {
-		return -EINVAL;
-	}
-
-	boardobjgrpe32hdrset((struct nv_pmu_boardobjgrp *)pboardobjgrppmu,
-							pboardobjgrp->objmask);
-
-	BOARDOBJGRP_FOR_EACH_INDEX_IN_MASK(32, index, pboardobjgrp->objmask) {
-		/* Obtain pointer to the current instance of the Object from the Group */
-		pboardobj = pboardobjgrp->objgetbyidx(pboardobjgrp, index);
-		if (NULL == pboardobj) {
-			nvgpu_err(g, "could not get object instance");
-			status = -EINVAL;
-			goto boardobjgrppmudatainit_legacy_done;
-		}
-
-		status = pboardobjgrp->pmudatainstget(g,
-				(struct nv_pmu_boardobjgrp *)pboardobjgrppmu,
-				&ppmudata, index);
-		if (status != 0) {
-			nvgpu_err(g, "could not get object instance");
-			goto boardobjgrppmudatainit_legacy_done;
-		}
-
-		/* Initialize the PMU Data */
-		status = pboardobj->pmudatainit(g, pboardobj, ppmudata);
-		if (status != 0) {
-			nvgpu_err(g,
-				"could not parse pmu for device %d", index);
-			goto boardobjgrppmudatainit_legacy_done;
-		}
-	}
-	BOARDOBJGRP_FOR_EACH_INDEX_IN_MASK_END
-
-boardobjgrppmudatainit_legacy_done:
-	nvgpu_log_info(g, " Done");
-	return status;
-}
-
-int boardobjgrp_pmudatainit_super(struct gk20a *g, struct boardobjgrp
-	*pboardobjgrp, struct nv_pmu_boardobjgrp_super *pboardobjgrppmu)
-{
-	int status = 0;
-	struct boardobj *pboardobj = NULL;
-	struct nv_pmu_boardobj	*ppmudata = NULL;
-	u8 index;
-
-	nvgpu_log_info(g, " ");
-
-	if (pboardobjgrp == NULL) {
-		return -EINVAL;
-	}
-	if (pboardobjgrppmu == NULL) {
-		return -EINVAL;
-	}
-
-	/* Initialize the PMU HDR data.*/
-	status = pboardobjgrp->pmuhdrdatainit(g, pboardobjgrp, pboardobjgrppmu,
-							pboardobjgrp->mask);
-	if (status != 0) {
-		nvgpu_err(g, "unable to init boardobjgrp pmuhdr data");
-		goto boardobjgrppmudatainit_super_done;
-	}
-
-	BOARDOBJGRP_FOR_EACH(pboardobjgrp, struct boardobj*, pboardobj, index) {
-		status = pboardobjgrp->pmudatainstget(g,
-				(struct nv_pmu_boardobjgrp *)pboardobjgrppmu,
-				&ppmudata, index);
-		if (status != 0) {
-			nvgpu_err(g, "could not get object instance");
-			goto boardobjgrppmudatainit_super_done;
-		}
-
-		/* Initialize the PMU Data and send to PMU */
-		status = pboardobj->pmudatainit(g, pboardobj, ppmudata);
-		if (status != 0) {
-			nvgpu_err(g,
-				"could not parse pmu for device %d", index);
-			goto boardobjgrppmudatainit_super_done;
-		}
-	}
-
-boardobjgrppmudatainit_super_done:
-	nvgpu_log_info(g, " Done");
-	return status;
-}
 
 static int check_boardobjgrp_param(struct gk20a *g,
 		struct boardobjgrp *pboardobjgrp)
@@ -501,266 +54,12 @@ static int check_boardobjgrp_param(struct gk20a *g,
 	return 0;
 }
 
-int boardobjgrp_pmuset_impl(struct gk20a *g, struct boardobjgrp *pboardobjgrp)
-{
-	int status = 0;
-	struct boardobjgrp_pmu_cmd *pcmd =
-		(struct boardobjgrp_pmu_cmd *)(&pboardobjgrp->pmu.set);
-
-	nvgpu_log_info(g, " ");
-
-	if (check_boardobjgrp_param(g, pboardobjgrp) != 0) {
-		return -EINVAL;
-	}
-
-	if (pboardobjgrp->pmu.set.id == BOARDOBJGRP_GRP_CMD_ID_INVALID) {
-		return -EINVAL;
-	}
-
-	if ((pcmd->hdrsize == 0U) ||
-		(pcmd->entrysize == 0U) ||
-		(pcmd->buf == NULL)) {
-		return -EINVAL;
-	}
-
-	/* Initialize PMU buffer with BOARDOBJGRP data. */
-	(void) memset(pcmd->buf, 0x0, pcmd->fbsize);
-	status = pboardobjgrp->pmudatainit(g, pboardobjgrp,
-			pcmd->buf);
-	if (status != 0) {
-		nvgpu_err(g, "could not parse pmu data");
-		goto boardobjgrp_pmuset_exit;
-	}
-
-	/*
-	 * Reset the boolean that indicates set status for most recent
-	 * instance of BOARDOBJGRP.
-	 */
-	pboardobjgrp->pmu.bset = false;
-
-	/*
-	 * alloc mem in vidmem & copy constructed pmu boardobjgrp data from
-	 * sysmem to vidmem
-	 */
-	if (pcmd->surf.vidmem_desc.size == 0U) {
-		nvgpu_pmu_vidmem_surface_alloc(g, &pcmd->surf.vidmem_desc,
-			pcmd->fbsize);
-	}
-	nvgpu_mem_wr_n(g, &pcmd->surf.vidmem_desc, 0, pcmd->buf, pcmd->fbsize);
-
-	/* Send the SET PMU CMD to the PMU */
-	status = boardobjgrp_pmucmdsend(g, pboardobjgrp,
-			pcmd);
-	if (status != 0) {
-		nvgpu_err(g, "could not send SET CMD to PMU");
-		goto boardobjgrp_pmuset_exit;
-	}
-
-	pboardobjgrp->pmu.bset = true;
-
-boardobjgrp_pmuset_exit:
-	return status;
-}
-
-int boardobjgrp_pmuset_impl_v1(struct gk20a *g,
-	struct boardobjgrp *pboardobjgrp)
-{
-	struct nvgpu_pmu *pmu = &g->pmu;
-	int status = 0;
-	struct boardobjgrp_pmu_cmd *pcmd =
-		(struct boardobjgrp_pmu_cmd *)(&pboardobjgrp->pmu.set);
-
-	nvgpu_log_info(g, " ");
-
-	if (check_boardobjgrp_param(g, pboardobjgrp) != 0) {
-		return -EINVAL;
-	}
-
-	if ((pcmd->buf == NULL) &&
-		(pboardobjgrp->pmu.rpc_func_id ==
-		BOARDOBJGRP_GRP_RPC_FUNC_ID_INVALID)) {
-		return -EINVAL;
-	}
-
-	/* Initialize PMU buffer with BOARDOBJGRP data. */
-	(void) memset(pcmd->buf, 0x0, pcmd->fbsize);
-	status = pboardobjgrp->pmudatainit(g, pboardobjgrp,
-			pcmd->buf);
-	if (status != 0) {
-		nvgpu_err(g, "could not parse pmu data");
-		goto boardobjgrp_pmuset_exit;
-	}
-
-	/*
-	 * Reset the boolean that indicates set status
-	 * for most recent instance of BOARDOBJGRP.
-	 */
-	pboardobjgrp->pmu.bset = false;
-
-	/*
-	 * copy constructed pmu boardobjgrp data from
-	 * sysmem to pmu super surface present in FB
-	 */
-	nvgpu_mem_wr_n(g, nvgpu_pmu_super_surface_mem(g,
-		pmu, pmu->super_surface),
-		pcmd->super_surface_offset, pcmd->buf,
-		pcmd->fbsize);
-
-	/* Send the SET PMU CMD to the PMU using RPC*/
-	status = boardobjgrp_pmucmdsend_rpc(g, pboardobjgrp,
-			pcmd, false);
-	if (status != 0) {
-		nvgpu_err(g, "could not send SET CMD to PMU");
-		goto boardobjgrp_pmuset_exit;
-	}
-
-	pboardobjgrp->pmu.bset = true;
-
-boardobjgrp_pmuset_exit:
-	return status;
-}
-
-int
-boardobjgrp_pmugetstatus_impl(struct gk20a *g, struct boardobjgrp *pboardobjgrp,
-	struct boardobjgrpmask *mask)
-{
-	int status  = 0;
-	struct boardobjgrp_pmu_cmd *pcmd =
-		(struct boardobjgrp_pmu_cmd *)(&pboardobjgrp->pmu.getstatus);
-	struct boardobjgrp_pmu_cmd *pset =
-		(struct boardobjgrp_pmu_cmd *)(&pboardobjgrp->pmu.set);
-
-	nvgpu_log_info(g, " ");
-
-	if (check_boardobjgrp_param(g, pboardobjgrp) != 0) {
-		return -EINVAL;
-	}
-
-	if (pset->id == BOARDOBJGRP_GRP_CMD_ID_INVALID) {
-		return -EINVAL;
-	}
-
-	if ((pcmd->hdrsize == 0U) ||
-		(pcmd->entrysize == 0U) ||
-		(pcmd->buf == NULL)) {
-		return -EINVAL;
-	}
-
-	/*
-	 * Can only GET_STATUS if the BOARDOBJGRP has been previously SET to the
-	 * PMU
-	 */
-	if (!pboardobjgrp->pmu.bset) {
-		return -EINVAL;
-	}
-
-	/*
-	 * alloc mem in vidmem & copy constructed pmu boardobjgrp data from
-	 * sysmem to vidmem
-	 */
-	if (pcmd->surf.vidmem_desc.size == 0U) {
-		nvgpu_pmu_vidmem_surface_alloc(g, &pcmd->surf.vidmem_desc,
-			pcmd->fbsize);
-	}
-
-	/*
-	 * Initialize PMU buffer with the mask of BOARDOBJGRPs for which to
-	 * retrieve status
-	 */
-
-	(void) memset(pcmd->buf, 0x0, pcmd->fbsize);
-	status = pboardobjgrp->pmuhdrdatainit(g, pboardobjgrp,
-					pcmd->buf, mask);
-	if (status != 0) {
-		nvgpu_err(g, "could not init PMU HDR data");
-		goto boardobjgrp_pmugetstatus_exit;
-	}
-
-	nvgpu_mem_wr_n(g, &pcmd->surf.vidmem_desc, 0, pset->buf, pset->hdrsize);
-	/* Send the GET_STATUS PMU CMD to the PMU */
-	status = boardobjgrp_pmucmdsend(g, pboardobjgrp,
-				&pboardobjgrp->pmu.getstatus);
-	if (status != 0) {
-		nvgpu_err(g, "could not send GET_STATUS cmd to PMU");
-		goto boardobjgrp_pmugetstatus_exit;
-	}
-
-	/*copy the data back to sysmem buffer that belongs to command*/
-	nvgpu_mem_rd_n(g, &pcmd->surf.vidmem_desc, 0, pcmd->buf, pcmd->fbsize);
-
-boardobjgrp_pmugetstatus_exit:
-	return status;
-}
-
-int
-boardobjgrp_pmugetstatus_impl_v1(struct gk20a *g, struct boardobjgrp *pboardobjgrp,
-	struct boardobjgrpmask *mask)
-{
-	struct nvgpu_pmu *pmu = &g->pmu;
-	int status  = 0;
-	struct boardobjgrp_pmu_cmd *pcmd =
-		(struct boardobjgrp_pmu_cmd *)(&pboardobjgrp->pmu.getstatus);
-
-	nvgpu_log_info(g, " ");
-
-	if (check_boardobjgrp_param(g, pboardobjgrp) != 0) {
-		return -EINVAL;
-	}
-
-	if ((pcmd->buf == NULL) &&
-		(pboardobjgrp->pmu.rpc_func_id ==
-		BOARDOBJGRP_GRP_RPC_FUNC_ID_INVALID)) {
-		return -EINVAL;
-	}
-
-	/*
-	 * Can only GET_STATUS if the BOARDOBJGRP has been
-	 * previously SET to the PMU
-	 */
-	if (!pboardobjgrp->pmu.bset) {
-		return -EINVAL;
-	}
-
-	/*
-	 * Initialize PMU buffer with the mask of
-	 * BOARDOBJGRPs for which to retrieve status
-	 */
-	(void) memset(pcmd->buf, 0x0, pcmd->fbsize);
-	status = pboardobjgrp->pmuhdrdatainit(g, pboardobjgrp,
-			pcmd->buf, mask);
-	if (status != 0) {
-		nvgpu_err(g, "could not init PMU HDR data");
-		goto boardobjgrp_pmugetstatus_exit;
-	}
-
-	/*
-	 * copy constructed pmu boardobjgrp data from
-	 * sysmem to pmu super surface present in FB
-	 */
-	nvgpu_mem_wr_n(g, nvgpu_pmu_super_surface_mem(g,
-			pmu, pmu->super_surface),
-			pcmd->super_surface_offset,
-			pcmd->buf, pcmd->fbsize);
-	/* Send the GET_STATUS PMU CMD to the PMU */
-	status = boardobjgrp_pmucmdsend_rpc(g, pboardobjgrp,
-			pcmd, true);
-	if (status != 0) {
-		nvgpu_err(g, "could not send GET_STATUS cmd to PMU");
-		goto boardobjgrp_pmugetstatus_exit;
-	}
-
-	/*copy the data back to sysmem buffer that belongs to command*/
-	nvgpu_mem_rd_n(g, nvgpu_pmu_super_surface_mem(g,
-		pmu, pmu->super_surface),
-		pcmd->super_surface_offset,
-		pcmd->buf, pcmd->fbsize);
-
-boardobjgrp_pmugetstatus_exit:
-	return status;
-}
-
+/*
+ * Inserts a previously constructed Board Object into a Board Object Group for
+ * tracking. Objects are inserted in the array based on the given index.
+ */
 static int
-boardobjgrp_objinsert_final(struct boardobjgrp *pboardobjgrp,
+obj_insert_final(struct boardobjgrp *pboardobjgrp,
 	struct boardobj *pboardobj, u8 index)
 {
 	struct gk20a *g = pboardobjgrp->g;
@@ -800,10 +99,13 @@ boardobjgrp_objinsert_final(struct boardobjgrp *pboardobjgrp,
 
 	nvgpu_log_info(g, " Done");
 
-	return boardobjgrpmask_bitset(pboardobjgrp->mask, index);
+	return nvgpu_boardobjgrpmask_bit_set(pboardobjgrp->mask, index);
 }
 
-static struct boardobj *boardobjgrp_objgetbyidx_final(
+/*
+ * Retrieves a Board Object from a Board Object Group using the group's index.
+ */
+static struct boardobj *obj_get_by_idx_final(
 		struct boardobjgrp *pboardobjgrp, u8 index)
 {
 	if (!boardobjgrp_idxisvalid(pboardobjgrp, index)) {
@@ -812,7 +114,11 @@ static struct boardobj *boardobjgrp_objgetbyidx_final(
 	return pboardobjgrp->ppobjects[index];
 }
 
-static struct boardobj *boardobjgrp_objgetnext_final(
+/*
+ * Retrieve Board Object immediately following one pointed by @ref currentindex
+ * filtered out by the provided mask. If (mask == NULL) => no filtering.
+ */
+static struct boardobj *obj_get_next_final(
 		struct boardobjgrp *pboardobjgrp, u8 *currentindex,
 		struct boardobjgrpmask *mask)
 {
@@ -838,7 +144,7 @@ static struct boardobj *boardobjgrp_objgetnext_final(
 
 	/* Validate provided mask */
 	if (mask != NULL) {
-		if (!(boardobjgrpmask_sizeeq(pboardobjgrp->mask, mask))) {
+		if (!(nvgpu_boardobjgrpmask_sizeeq(pboardobjgrp->mask, mask))) {
 			return NULL;
 		}
 	}
@@ -851,7 +157,7 @@ static struct boardobj *boardobjgrp_objgetnext_final(
 			if (pboardobjnext != NULL) {
 				/* Filter results using client provided mask.*/
 				if (mask != NULL) {
-					if (!boardobjgrpmask_bitget(mask,
+					if (!nvgpu_boardobjgrpmask_bit_get(mask,
 						index)) {
 						pboardobjnext = NULL;
 						continue;
@@ -866,7 +172,24 @@ static struct boardobj *boardobjgrp_objgetnext_final(
 	return pboardobjnext;
 }
 
-static int boardobjgrp_objremoveanddestroy_final(
+static int pmu_data_inst_get_stub(struct gk20a *g,
+	struct nv_pmu_boardobjgrp *boardobjgrppmu,
+	struct nv_pmu_boardobj **ppboardobjpmudata, u8 idx)
+{
+	nvgpu_log_info(g, " ");
+	return -EINVAL;
+}
+
+
+static int pmu_status_inst_get_stub(struct gk20a *g,
+	void *pboardobjgrppmu,
+	struct nv_pmu_boardobj_query **ppBoardobjpmustatus, u8 idx)
+{
+	nvgpu_log_info(g, " ");
+	return -EINVAL;
+}
+
+static int obj_remove_and_destroy_final(
 		struct boardobjgrp *pboardobjgrp,
 		u8 index)
 {
@@ -891,7 +214,7 @@ static int boardobjgrp_objremoveanddestroy_final(
 
 	pboardobjgrp->objmask &= ~BIT32(index);
 
-	stat = boardobjgrpmask_bitclr(pboardobjgrp->mask, index);
+	stat = nvgpu_boardobjgrpmask_bit_clr(pboardobjgrp->mask, index);
 	if (stat != 0) {
 		if (status == 0) {
 			status = stat;
@@ -901,147 +224,166 @@ static int boardobjgrp_objremoveanddestroy_final(
 	/* objmaxidx requires update only if that very object was removed */
 	if (pboardobjgrp->objmaxidx == index) {
 		pboardobjgrp->objmaxidx =
-			boardobjgrpmask_bitidxhighest(pboardobjgrp->mask);
+			nvgpu_boardobjgrpmask_bit_idx_highest(
+					pboardobjgrp->mask);
 	}
 
 	return status;
 }
 
-void boardobjgrpe32hdrset(struct nv_pmu_boardobjgrp *hdr, u32 objmask)
+static int pmu_cmd_destroy_impl(struct gk20a *g,
+	struct boardobjgrp_pmu_cmd *cmd)
 {
-	u32 slots = objmask;
+	struct nvgpu_mem *mem = &cmd->surf.sysmem_desc;
 
-	HIGHESTBITIDX_32(slots);
-	slots++;
-
-	hdr->super.type = CTRL_BOARDOBJGRP_TYPE_E32;
-	hdr->super.class_id  = 0;
-	hdr->super.obj_slots = (u8)slots;
-	hdr->obj_mask = objmask;
+	nvgpu_pmu_surface_free(g, mem);
+	return 0;
 }
 
-static void boardobjgrp_pmucmdhandler(struct gk20a *g, struct pmu_msg *msg,
-			void *param, u32 status)
+static int destruct_super(struct boardobjgrp *pboardobjgrp)
 {
-	struct nv_pmu_boardobj_msg_grp	*pgrpmsg;
-	struct boardobjgrp_pmucmdhandler_params *phandlerparams =
-		(struct boardobjgrp_pmucmdhandler_params *)param;
-	struct boardobjgrp *pboardobjgrp = phandlerparams->pboardobjgrp;
-	struct boardobjgrp_pmu_cmd *pgrpcmd = phandlerparams->pcmd;
-
-	nvgpu_log_info(g, " ");
-
-	pgrpmsg = &msg->msg.boardobj.grp;
-
-	if (pgrpmsg->class_id != pboardobjgrp->pmu.classid) {
-		nvgpu_err(g,
-			"Unrecognized GRP type: unit %x class id=0x%02x cmd id %x",
-			msg->hdr.unit_id, pboardobjgrp->pmu.classid,
-			pgrpcmd->id);
-		return;
-	}
-
-	if (msg->msg.boardobj.msg_type != pgrpcmd->msgid) {
-		nvgpu_err(g,
-			"unsupported msg for unit %x class %x cmd id %x msg %x",
-			msg->hdr.unit_id, pboardobjgrp->pmu.classid,
-			pgrpcmd->id, msg->msg.boardobj.msg_type);
-		return;
-	}
-
-	if (msg->msg.boardobj.grp_set.flcn_status != 0U) {
-		nvgpu_err(g,
-			"cmd abort for unit %x class %x cmd id %x status %x",
-			msg->hdr.unit_id, pboardobjgrp->pmu.classid,
-			pgrpcmd->id,
-			msg->msg.boardobj.grp_set.flcn_status);
-		return;
-	}
-
-	phandlerparams->success = pgrpmsg->b_success;
-
-	if (!pgrpmsg->b_success) {
-		nvgpu_err(g,
-			"failed GRPCMD: msgtype=0x%x, classid=0x%x, cmd id %x",
-			pgrpmsg->msg_type, pgrpmsg->class_id,
-			pgrpcmd->id);
-		return;
-	}
-}
-
-static int boardobjgrp_pmucmdsend(struct gk20a *g,
-				  struct boardobjgrp *pboardobjgrp,
-				  struct boardobjgrp_pmu_cmd *pcmd)
-{
-	struct boardobjgrp_pmucmdhandler_params handlerparams;
-	struct pmu_payload payload;
-	struct nv_pmu_boardobj_cmd_grp *pgrpcmd;
-	struct pmu_cmd cmd;
+	struct boardobj *pboardobj;
+	struct gk20a *g = pboardobjgrp->g;
 	int status = 0;
-	size_t tmp_size;
+	int stat;
+	u8  index;
 
 	nvgpu_log_info(g, " ");
 
-	(void) memset(&payload, 0, sizeof(payload));
-	(void) memset(&handlerparams, 0, sizeof(handlerparams));
-	(void) memset(&cmd, 0, sizeof(struct pmu_cmd));
-	cmd.hdr.unit_id	= pboardobjgrp->pmu.unitid;
-	tmp_size = sizeof(struct nv_pmu_boardobj_cmd_grp) +
-					sizeof(struct pmu_hdr);
-	nvgpu_assert(tmp_size <= (size_t)U8_MAX);
-	cmd.hdr.size = U8(tmp_size);
-
-	pgrpcmd  = &cmd.cmd.boardobj.grp;
-	pgrpcmd->cmd_type = pcmd->id;
-	pgrpcmd->class_id = pboardobjgrp->pmu.classid;
-	pgrpcmd->grp.hdr_size = pcmd->hdrsize;
-	pgrpcmd->grp.entry_size = pcmd->entrysize;
-
-	/*
-	 * copy vidmem information to boardobj_cmd_grp
-	 */
-	nvgpu_pmu_surface_describe(g, &pcmd->surf.vidmem_desc,
-			&pgrpcmd->grp.fb);
-
-	/*
-	 * PMU reads command from sysmem so assigned
-	 * "payload.in.buf = pcmd->buf"
-	 * but PMU access pmu boardobjgrp data from vidmem copied above
-	 */
-	payload.in.buf = pcmd->buf;
-	payload.in.size = U32(max(pcmd->hdrsize, pcmd->entrysize));
-	payload.in.fb_size = PMU_CMD_SUBMIT_PAYLOAD_PARAMS_FB_SIZE_UNUSED;
-	payload.in.offset = U32(offsetof(struct nv_pmu_boardobj_cmd_grp, grp));
-
-	/* Setup the handler params to communicate back results.*/
-	handlerparams.pboardobjgrp = pboardobjgrp;
-	handlerparams.pcmd = pcmd;
-	handlerparams.success = false;
-
-	status = nvgpu_pmu_cmd_post(g, &cmd, &payload,
-				PMU_COMMAND_QUEUE_LPQ,
-				boardobjgrp_pmucmdhandler,
-				(void *)&handlerparams);
-	if (status != 0) {
-		nvgpu_err(g,
-			"unable to post boardobj grp cmd for unit %x cmd id %x",
-			cmd.hdr.unit_id, pcmd->id);
-		goto boardobjgrp_pmucmdsend_exit;
+	if (pboardobjgrp->mask == NULL) {
+		return -EINVAL;
 	}
-	pmu_wait_message_cond(&g->pmu,
-			nvgpu_get_poll_timeout(g),
-			&handlerparams.success, 1);
-	if (!handlerparams.success) {
-		nvgpu_err(g, "could not process cmd");
-		status = -ETIMEDOUT;
-		goto boardobjgrp_pmucmdsend_exit;
+	if (pboardobjgrp->ppobjects == NULL) {
+		return -EINVAL;
 	}
 
-boardobjgrp_pmucmdsend_exit:
+	BOARDOBJGRP_FOR_EACH(pboardobjgrp, struct boardobj*, pboardobj, index) {
+		stat = pboardobjgrp->objremoveanddestroy(pboardobjgrp, index);
+		if (status == 0) {
+			status = stat;
+		}
+
+		pboardobjgrp->ppobjects[index] = NULL;
+		pboardobjgrp->objmask &= ~BIT32(index);
+	}
+
+	pboardobjgrp->objmask = 0;
+
+	if (pboardobjgrp->objmaxidx != CTRL_BOARDOBJ_IDX_INVALID) {
+		if (status == 0) {
+			status = -EINVAL;
+		}
+
+		WARN_ON(true);
+	}
+
+	/* Destroy the PMU CMD data */
+	stat = pmu_cmd_destroy_impl(g, &pboardobjgrp->pmu.set);
+	if (status == 0) {
+		status = stat;
+	}
+
+	stat = pmu_cmd_destroy_impl(g, &pboardobjgrp->pmu.getstatus);
+	if (status == 0) {
+		status = stat;
+	}
+
+	nvgpu_list_del(&pboardobjgrp->node);
+
+	pboardobjgrp->bconstructed = false;
+
 	return status;
 }
 
-static int boardobjgrp_pmucmdsend_rpc(struct gk20a *g,
+static int is_pmu_cmd_id_valid(struct gk20a *g,
+		struct boardobjgrp *pboardobjgrp,
+		struct boardobjgrp_pmu_cmd *cmd)
+{
+	int err = 0;
+
+	if (pboardobjgrp->pmu.rpc_func_id ==
+		BOARDOBJGRP_GRP_RPC_FUNC_ID_INVALID) {
+		err = -EINVAL;
+	}
+
+	return err;
+}
+
+static int pmu_cmd_pmu_init_handle_impl(struct gk20a *g,
+	struct boardobjgrp *pboardobjgrp,
+	struct boardobjgrp_pmu_cmd *pcmd)
+{
+	int status = 0;
+	struct nvgpu_mem *sysmem_desc = &pcmd->surf.sysmem_desc;
+
+	nvgpu_log_info(g, " ");
+
+
+	if (is_pmu_cmd_id_valid(g,
+			pboardobjgrp, pcmd) != 0) {
+		goto pmu_cmd_pmu_init_handle_impl_exit;
+	}
+
+	if (pcmd->fbsize == 0U) {
+		goto pmu_cmd_pmu_init_handle_impl_exit;
+	}
+
+	status = nvgpu_pmu_sysmem_surface_alloc(g, sysmem_desc, pcmd->fbsize);
+	if (status != 0) {
+		nvgpu_err(g, "failed to allocate memory\n");
+		return -ENOMEM;
+	}
+
+	/* we only have got sysmem later this will get copied to vidmem
+	surface*/
+	pcmd->surf.vidmem_desc.size = 0;
+
+	pcmd->buf = (struct nv_pmu_boardobjgrp_super *)sysmem_desc->cpu_va;
+
+	pmu_cmd_pmu_init_handle_impl_exit:
+	return status;
+}
+
+static int pmu_init_handle_impl(struct gk20a *g,
+		struct boardobjgrp *pboardobjgrp)
+{
+	int status = 0;
+
+	nvgpu_log_info(g, " ");
+
+	status = pmu_cmd_pmu_init_handle_impl(g, pboardobjgrp,
+		&pboardobjgrp->pmu.set);
+	if (status != 0) {
+		nvgpu_err(g, "failed to init pmu set cmd");
+		goto pmu_init_handle_impl_exit;
+	}
+
+	status = pmu_cmd_pmu_init_handle_impl(g, pboardobjgrp,
+		&pboardobjgrp->pmu.getstatus);
+	if (status != 0) {
+		nvgpu_err(g, "failed to init get status command");
+		goto pmu_init_handle_impl_exit;
+	}
+
+	/* If the GRP_SET CMD has not been allocated, nothing left to do. */
+
+	if ((is_pmu_cmd_id_valid(g,
+			pboardobjgrp, &pboardobjgrp->pmu.set) != 0)||
+		(BOARDOBJGRP_IS_EMPTY(pboardobjgrp))) {
+		goto pmu_init_handle_impl_exit;
+	}
+
+	/* Send the BOARDOBJGRP to the pmu via RM_PMU_BOARDOBJ_CMD_GRP. */
+	status = pboardobjgrp->pmuset(g, pboardobjgrp);
+	if (status != 0) {
+		nvgpu_err(g, "failed to send boardobg grp to PMU");
+	}
+
+	pmu_init_handle_impl_exit:
+	return status;
+}
+
+static int pmu_cmd_send_rpc(struct gk20a *g,
 	struct boardobjgrp *pboardobjgrp,
 	struct boardobjgrp_pmu_cmd *pcmd,
 	bool copy_out)
@@ -1075,3 +417,346 @@ static int boardobjgrp_pmucmdsend_rpc(struct gk20a *g,
 
 	return status;
 }
+
+/*
+* Sends a BOARDOBJGRP to the PMU via the PMU_BOARDOBJ_CMD_GRP interface.
+* This interface leverages @ref boardobjgrp_pmudatainit to populate the
+* structure.
+*/
+static int pmu_set_impl(struct gk20a *g,
+	struct boardobjgrp *pboardobjgrp)
+{
+	struct nvgpu_pmu *pmu = &g->pmu;
+	int status = 0;
+	struct boardobjgrp_pmu_cmd *pcmd =
+		(struct boardobjgrp_pmu_cmd *)(&pboardobjgrp->pmu.set);
+
+	nvgpu_log_info(g, " ");
+
+	if (check_boardobjgrp_param(g, pboardobjgrp) != 0) {
+		return -EINVAL;
+	}
+
+	if ((pcmd->buf == NULL) &&
+		(pboardobjgrp->pmu.rpc_func_id ==
+		BOARDOBJGRP_GRP_RPC_FUNC_ID_INVALID)) {
+		return -EINVAL;
+	}
+
+	/* Initialize PMU buffer with BOARDOBJGRP data. */
+	(void) memset(pcmd->buf, 0x0, pcmd->fbsize);
+	status = pboardobjgrp->pmudatainit(g, pboardobjgrp,
+			pcmd->buf);
+	if (status != 0) {
+		nvgpu_err(g, "could not parse pmu data");
+		goto pmu_set_impl_exit;
+	}
+
+	/*
+	 * Reset the boolean that indicates set status
+	 * for most recent instance of BOARDOBJGRP.
+	 */
+	pboardobjgrp->pmu.bset = false;
+
+	/*
+	 * copy constructed pmu boardobjgrp data from
+	 * sysmem to pmu super surface present in FB
+	 */
+	nvgpu_mem_wr_n(g, nvgpu_pmu_super_surface_mem(g,
+		pmu, pmu->super_surface),
+		pcmd->super_surface_offset, pcmd->buf,
+		pcmd->fbsize);
+
+	/* Send the SET PMU CMD to the PMU using RPC*/
+	status = pmu_cmd_send_rpc(g, pboardobjgrp,
+			pcmd, false);
+	if (status != 0) {
+		nvgpu_err(g, "could not send SET CMD to PMU");
+		goto pmu_set_impl_exit;
+	}
+
+	pboardobjgrp->pmu.bset = true;
+
+	pmu_set_impl_exit:
+	return status;
+}
+
+/*
+* Gets the dynamic status of the PMU BOARDOBJGRP via the
+* PMU_BOARDOBJ_CMD_GRP GET_STATUS interface.
+*/
+static int
+pmu_get_status_impl(struct gk20a *g, struct boardobjgrp *pboardobjgrp,
+	struct boardobjgrpmask *mask)
+{
+	struct nvgpu_pmu *pmu = &g->pmu;
+	int status  = 0;
+	struct boardobjgrp_pmu_cmd *pcmd =
+		(struct boardobjgrp_pmu_cmd *)(&pboardobjgrp->pmu.getstatus);
+
+	nvgpu_log_info(g, " ");
+
+	if (check_boardobjgrp_param(g, pboardobjgrp) != 0) {
+		return -EINVAL;
+	}
+
+	if ((pcmd->buf == NULL) &&
+		(pboardobjgrp->pmu.rpc_func_id ==
+		BOARDOBJGRP_GRP_RPC_FUNC_ID_INVALID)) {
+		return -EINVAL;
+	}
+
+	/*
+	 * Can only GET_STATUS if the BOARDOBJGRP has been
+	 * previously SET to the PMU
+	 */
+	if (!pboardobjgrp->pmu.bset) {
+		return -EINVAL;
+	}
+
+	/*
+	 * Initialize PMU buffer with the mask of
+	 * BOARDOBJGRPs for which to retrieve status
+	 */
+	(void) memset(pcmd->buf, 0x0, pcmd->fbsize);
+	status = pboardobjgrp->pmuhdrdatainit(g, pboardobjgrp,
+			pcmd->buf, mask);
+	if (status != 0) {
+		nvgpu_err(g, "could not init PMU HDR data");
+		goto pmu_get_status_impl_exit;
+	}
+
+	/*
+	 * copy constructed pmu boardobjgrp data from
+	 * sysmem to pmu super surface present in FB
+	 */
+	nvgpu_mem_wr_n(g, nvgpu_pmu_super_surface_mem(g,
+			pmu, pmu->super_surface),
+			pcmd->super_surface_offset,
+			pcmd->buf, pcmd->fbsize);
+	/* Send the GET_STATUS PMU CMD to the PMU */
+	status = pmu_cmd_send_rpc(g, pboardobjgrp,
+			pcmd, true);
+	if (status != 0) {
+		nvgpu_err(g, "could not send GET_STATUS cmd to PMU");
+		goto pmu_get_status_impl_exit;
+	}
+
+	/*copy the data back to sysmem buffer that belongs to command*/
+	nvgpu_mem_rd_n(g, nvgpu_pmu_super_surface_mem(g,
+		pmu, pmu->super_surface),
+		pcmd->super_surface_offset,
+		pcmd->buf, pcmd->fbsize);
+
+	pmu_get_status_impl_exit:
+	return status;
+}
+
+int nvgpu_boardobjgrp_construct_super(struct gk20a *g,
+	struct boardobjgrp *pboardobjgrp)
+{
+	nvgpu_log_info(g, " ");
+
+	if (pboardobjgrp == NULL) {
+		return -EINVAL;
+	}
+
+	if (pboardobjgrp->ppobjects == NULL) {
+		return -EINVAL;
+	}
+
+	if (pboardobjgrp->mask == NULL) {
+		return -EINVAL;
+	}
+
+	pboardobjgrp->g = g;
+	pboardobjgrp->objmask = 0;
+
+	pboardobjgrp->classid = 0;
+	pboardobjgrp->pmu.unitid = BOARDOBJGRP_UNIT_ID_INVALID;
+	pboardobjgrp->pmu.classid = BOARDOBJGRP_GRP_CLASS_ID_INVALID;
+	pboardobjgrp->pmu.bset = false;
+	pboardobjgrp->pmu.rpc_func_id = BOARDOBJGRP_GRP_RPC_FUNC_ID_INVALID;
+	pboardobjgrp->pmu.set.id = BOARDOBJGRP_GRP_CMD_ID_INVALID;
+	pboardobjgrp->pmu.getstatus.id = BOARDOBJGRP_GRP_CMD_ID_INVALID;
+
+	/* Initialize basic interfaces */
+	pboardobjgrp->destruct =  destruct_super;
+	pboardobjgrp->objinsert  = obj_insert_final;
+	pboardobjgrp->objgetbyidx = obj_get_by_idx_final;
+	pboardobjgrp->objgetnext = obj_get_next_final;
+	pboardobjgrp->objremoveanddestroy =
+		obj_remove_and_destroy_final;
+
+	pboardobjgrp->pmuinithandle = pmu_init_handle_impl;
+	pboardobjgrp->pmuhdrdatainit = nvgpu_boardobjgrp_pmu_hdr_data_init_super;
+	pboardobjgrp->pmudatainit = nvgpu_boardobjgrp_pmu_data_init_super;
+	pboardobjgrp->pmuset = pmu_set_impl;
+	pboardobjgrp->pmugetstatus = pmu_get_status_impl;
+
+	pboardobjgrp->pmudatainstget = pmu_data_inst_get_stub;
+	pboardobjgrp->pmustatusinstget = pmu_status_inst_get_stub;
+
+	pboardobjgrp->objmaxidx = CTRL_BOARDOBJ_IDX_INVALID;
+	pboardobjgrp->bconstructed = true;
+
+	nvgpu_list_add(&pboardobjgrp->node, &g->boardobjgrp_head);
+
+	return 0;
+}
+
+
+int nvgpu_boardobjgrp_pmucmd_construct_impl(struct gk20a *g, struct boardobjgrp
+	*pboardobjgrp, struct boardobjgrp_pmu_cmd *cmd, u8 id, u8 msgid,
+	u16 hdrsize, u16 entrysize, u32 fbsize, u32 ss_offset, u8 rpc_func_id)
+{
+	nvgpu_log_fn(g, " ");
+
+	/* Copy the parameters into the CMD*/
+	cmd->dmem_buffer_size = ((hdrsize > entrysize) ? hdrsize : entrysize);
+	cmd->super_surface_offset = ss_offset;
+	pboardobjgrp->pmu.rpc_func_id = rpc_func_id;
+	cmd->fbsize = fbsize;
+
+	nvgpu_log_fn(g, "DONE");
+	return 0;
+}
+
+int nvgpu_boardobjgrp_pmu_hdr_data_init_super(struct gk20a *g, struct boardobjgrp
+	*pboardobjgrp, struct nv_pmu_boardobjgrp_super *pboardobjgrppmu,
+	struct boardobjgrpmask *mask)
+{
+	nvgpu_log_info(g, " ");
+
+	if (pboardobjgrp == NULL) {
+		return -EINVAL;
+	}
+	if (pboardobjgrppmu == NULL) {
+		return -EINVAL;
+	}
+	pboardobjgrppmu->type = pboardobjgrp->type;
+	pboardobjgrppmu->class_id = pboardobjgrp->classid;
+	pboardobjgrppmu->obj_slots = BOARDOBJGRP_PMU_SLOTS_GET(pboardobjgrp);
+	pboardobjgrppmu->flags = 0;
+
+	nvgpu_log_info(g, " Done");
+	return 0;
+}
+
+int nvgpu_boardobjgrp_pmu_data_init_legacy(struct gk20a *g,
+	struct boardobjgrp 	*pboardobjgrp,
+	struct nv_pmu_boardobjgrp_super *pboardobjgrppmu)
+{
+	int status = 0;
+	struct boardobj *pboardobj = NULL;
+	struct nv_pmu_boardobj *ppmudata = NULL;
+	u8 index;
+
+	nvgpu_log_info(g, " ");
+
+	if (pboardobjgrp == NULL) {
+		return -EINVAL;
+	}
+	if (pboardobjgrppmu == NULL) {
+		return -EINVAL;
+	}
+
+	nvgpu_boardobjgrp_e32_hdr_set((struct nv_pmu_boardobjgrp *)
+			(void *)pboardobjgrppmu, pboardobjgrp->objmask);
+
+	BOARDOBJGRP_FOR_EACH_INDEX_IN_MASK(32, index, pboardobjgrp->objmask) {
+		/* Obtain pointer to the current instance of the
+		 * Object from the Group */
+		pboardobj = pboardobjgrp->objgetbyidx(pboardobjgrp, index);
+		if (NULL == pboardobj) {
+			nvgpu_err(g, "could not get object instance");
+			status = -EINVAL;
+			goto nvgpu_boardobjgrp_pmu_data_init_legacy_exit;
+		}
+
+		status = pboardobjgrp->pmudatainstget(g,
+				(struct nv_pmu_boardobjgrp *)
+				(void *)pboardobjgrppmu,
+				&ppmudata, index);
+		if (status != 0) {
+			nvgpu_err(g, "could not get object instance");
+			goto nvgpu_boardobjgrp_pmu_data_init_legacy_exit;
+		}
+
+		/* Initialize the PMU Data */
+		status = pboardobj->pmudatainit(g, pboardobj, ppmudata);
+		if (status != 0) {
+			nvgpu_err(g,
+				"could not parse pmu for device %d", index);
+			goto nvgpu_boardobjgrp_pmu_data_init_legacy_exit;
+		}
+	}
+	BOARDOBJGRP_FOR_EACH_INDEX_IN_MASK_END
+
+	nvgpu_boardobjgrp_pmu_data_init_legacy_exit:
+	nvgpu_log_info(g, " Done");
+	return status;
+}
+
+
+int nvgpu_boardobjgrp_pmu_data_init_super(struct gk20a *g, struct boardobjgrp
+	*pboardobjgrp, struct nv_pmu_boardobjgrp_super *pboardobjgrppmu)
+{
+	int status = 0;
+	struct boardobj *pboardobj = NULL;
+	struct nv_pmu_boardobj	*ppmudata = NULL;
+	u8 index;
+
+	nvgpu_log_info(g, " ");
+
+	if (pboardobjgrp == NULL) {
+		return -EINVAL;
+	}
+	if (pboardobjgrppmu == NULL) {
+		return -EINVAL;
+	}
+
+	/* Initialize the PMU HDR data.*/
+	status = pboardobjgrp->pmuhdrdatainit(g, pboardobjgrp, pboardobjgrppmu,
+							pboardobjgrp->mask);
+	if (status != 0) {
+		nvgpu_err(g, "unable to init boardobjgrp pmuhdr data");
+		goto boardobjgrp_pmu_data_init_super_exit;
+	}
+
+	BOARDOBJGRP_FOR_EACH(pboardobjgrp, struct boardobj*, pboardobj, index) {
+		status = pboardobjgrp->pmudatainstget(g,
+				(struct nv_pmu_boardobjgrp *)
+				(void *)pboardobjgrppmu, &ppmudata, index);
+		if (status != 0) {
+			nvgpu_err(g, "could not get object instance");
+			goto boardobjgrp_pmu_data_init_super_exit;
+		}
+
+		/* Initialize the PMU Data and send to PMU */
+		status = pboardobj->pmudatainit(g, pboardobj, ppmudata);
+		if (status != 0) {
+			nvgpu_err(g,
+				"could not parse pmu for device %d", index);
+			goto boardobjgrp_pmu_data_init_super_exit;
+		}
+	}
+
+	boardobjgrp_pmu_data_init_super_exit:
+	nvgpu_log_info(g, " Done");
+	return status;
+}
+
+void nvgpu_boardobjgrp_e32_hdr_set(struct nv_pmu_boardobjgrp *hdr, u32 objmask)
+{
+	u32 slots = objmask;
+
+	HIGHESTBITIDX_32(slots);
+	slots++;
+
+	hdr->super.type = CTRL_BOARDOBJGRP_TYPE_E32;
+	hdr->super.class_id  = 0;
+	hdr->super.obj_slots = (u8)slots;
+	hdr->obj_mask = objmask;
+}
+
