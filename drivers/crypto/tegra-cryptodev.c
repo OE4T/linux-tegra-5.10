@@ -1241,7 +1241,7 @@ static int tegra_crypto_sha(struct tegra_sha_req *sha_req)
 
 	struct crypto_ahash *tfm;
 	struct scatterlist sg[1];
-	char result[64];
+	char *result;
 	char algo[64];
 	struct ahash_request *req;
 	struct tegra_crypto_completion sha_complete;
@@ -1259,6 +1259,11 @@ static int tegra_crypto_sha(struct tegra_sha_req *sha_req)
 		return -EFAULT;
 	}
 	algo[sizeof(algo) - 1] = '\0';
+
+	result = kmalloc(64, GFP_KERNEL);
+	if (!result)
+		return -ENOMEM;
+	memset(result, 0, 64);
 
 	tfm = crypto_alloc_ahash(algo, 0, 0);
 	if (IS_ERR(tfm)) {
@@ -1284,8 +1289,6 @@ static int tegra_crypto_sha(struct tegra_sha_req *sha_req)
 
 	init_completion(&sha_complete.restart);
 	sha_complete.req_err = 0;
-
-	memset(result, 0, 64);
 
 	hash_buff = xbuf[0];
 
@@ -1344,6 +1347,7 @@ static int tegra_crypto_sha(struct tegra_sha_req *sha_req)
 	}
 
 out:
+	kfree(result);
 	free_bufs(xbuf);
 
 out_buf:
