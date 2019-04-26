@@ -344,11 +344,17 @@ void nvgpu_ecc_free(struct gk20a *g)
 	nvgpu_kfree(g, ecc->fbpa.fbpa_ecc_ded_err_count);
 
 	(void)memset(ecc, 0, sizeof(*ecc));
+
+	ecc->initialized = false;
 }
 
 int nvgpu_ecc_init_support(struct gk20a *g)
 {
 	int err;
+
+	if (g->ecc.initialized) {
+		return 0;
+	}
 
 	if (g->ops.gr.ecc.init == NULL) {
 		return 0;
@@ -365,6 +371,8 @@ int nvgpu_ecc_init_support(struct gk20a *g)
 		nvgpu_ecc_free(g);
 		return err;
 	}
+
+	g->ecc.initialized = true;
 
 	return 0;
 }

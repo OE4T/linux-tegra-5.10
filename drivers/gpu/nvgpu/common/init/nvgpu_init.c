@@ -35,6 +35,7 @@
 #include <nvgpu/gmmu.h>
 #include <nvgpu/ltc.h>
 #include <nvgpu/cbc.h>
+#include <nvgpu/ecc.h>
 #include <nvgpu/vidmem.h>
 #include <nvgpu/mm.h>
 #include <nvgpu/soc.h>
@@ -377,6 +378,13 @@ int gk20a_finalize_poweron(struct gk20a *g)
 		goto done;
 	}
 
+	err = nvgpu_ecc_init_support(g);
+	if (err != 0) {
+		nvgpu_err(g, "failed to init ecc");
+		nvgpu_mutex_release(&g->tpc_pg_lock);
+		goto done;
+	}
+
 	nvgpu_mutex_release(&g->tpc_pg_lock);
 
 	if (nvgpu_is_enabled(g, NVGPU_PMU_PSTATE)) {
@@ -581,6 +589,8 @@ static void gk20a_free_cb(struct nvgpu_ref *refcount)
 	nvgpu_ce_destroy(g);
 
 	nvgpu_cbc_remove_support(g);
+
+	nvgpu_ecc_remove_support(g);
 
 	if (g->remove_support != NULL) {
 		g->remove_support(g);

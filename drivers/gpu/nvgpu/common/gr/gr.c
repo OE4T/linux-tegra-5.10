@@ -274,7 +274,6 @@ static void gr_remove_support(struct gk20a *g)
 	nvgpu_gr_falcon_remove_support(g, gr->falcon);
 	gr->falcon = NULL;
 
-	nvgpu_ecc_remove_support(g);
 	nvgpu_gr_zbc_deinit(g, gr->zbc);
 	nvgpu_gr_zcull_deinit(g, gr->zcull);
 	nvgpu_gr_obj_ctx_deinit(g, gr->golden_image);
@@ -458,11 +457,6 @@ static int gr_init_setup_sw(struct gk20a *g)
 
 	gr->remove_support = gr_remove_support;
 	gr->sw_ready = true;
-
-	err = nvgpu_ecc_init_support(g);
-	if (err != 0) {
-		goto clean_up;
-	}
 
 	nvgpu_log_fn(g, "done");
 	return 0;
