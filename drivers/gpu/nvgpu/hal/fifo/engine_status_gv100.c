@@ -29,7 +29,6 @@
 
 #include "engine_status_gm20b.h"
 #include "engine_status_gv100.h"
-#include "gk20a/fifo_gk20a.h"
 
 void gv100_read_engine_status_info(struct gk20a *g, u32 engine_id,
 		struct nvgpu_engine_status_info *status)

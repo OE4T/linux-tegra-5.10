@@ -26,6 +26,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/debugger.h>
 #include <nvgpu/pbdma.h>
+#include <nvgpu/engines.h>
 #include <nvgpu/runlist.h>
 #include <nvgpu/fifo/userd.h>
 #include <nvgpu/perfbuf.h>
@@ -69,6 +70,7 @@
 #include "hal/fuse/fuse_gp10b.h"
 #include "hal/ptimer/ptimer_gk20a.h"
 #include "hal/regops/regops_gp10b.h"
+#include "hal/fifo/fifo_gk20a.h"
 #include "hal/fifo/preempt_gk20a.h"
 #include "hal/fifo/pbdma_gm20b.h"
 #include "hal/fifo/pbdma_gp10b.h"

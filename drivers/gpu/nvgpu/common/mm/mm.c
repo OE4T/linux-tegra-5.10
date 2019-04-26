@@ -32,6 +32,7 @@
 #include <nvgpu/enabled.h>
 #include <nvgpu/ce.h>
 #include <nvgpu/gk20a.h>
+#include <nvgpu/engines.h>
 #include <nvgpu/power_features/cg.h>
 
 /*

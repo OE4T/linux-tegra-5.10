@@ -36,8 +36,7 @@
 #include <nvgpu/soc.h>
 #include <nvgpu/top.h>
 #include <nvgpu/gr/gr_falcon.h>
-
-#include "gk20a/fifo_gk20a.h"
+#include <nvgpu/fifo.h>
 
 #define FECS_METHOD_WFI_RESTORE	0x80000U
 

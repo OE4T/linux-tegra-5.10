@@ -46,6 +46,7 @@
 #include <nvgpu/ptimer.h>
 #include <nvgpu/worker.h>
 #include <nvgpu/gk20a.h>
+#include <nvgpu/engines.h>
 #include <nvgpu/gr/gr.h>
 #include <nvgpu/channel.h>
 #include <nvgpu/channel_sync.h>

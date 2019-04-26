@@ -36,6 +36,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/channel.h>
 #include <nvgpu/fifo.h>
+#include <nvgpu/engines.h>
 #include <nvgpu/runlist.h>
 #include <nvgpu/string.h>
 #include <nvgpu/vm_area.h>

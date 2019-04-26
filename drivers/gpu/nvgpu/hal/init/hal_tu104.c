@@ -69,6 +69,7 @@
 #include "hal/fuse/fuse_gp10b.h"
 #include "hal/fuse/fuse_gp106.h"
 #include "hal/rc/rc_gv11b.h"
+#include "hal/fifo/fifo_gk20a.h"
 #include "hal/fifo/fifo_gv11b.h"
 #include "hal/fifo/fifo_tu104.h"
 #include "hal/fifo/preempt_gv11b.h"
@@ -186,6 +187,7 @@
 #include <nvgpu/class.h>
 #include <nvgpu/debugger.h>
 #include <nvgpu/pbdma.h>
+#include <nvgpu/engines.h>
 #include <nvgpu/runlist.h>
 #include <nvgpu/fifo/userd.h>
 #include <nvgpu/perfbuf.h>

@@ -24,6 +24,7 @@
 #include <nvgpu/channel.h>
 #include <nvgpu/runlist.h>
 #include <nvgpu/gk20a.h>
+#include <nvgpu/fifo.h>
 #include <nvgpu/engine_status.h>
 #include <nvgpu/engines.h>
 #include <nvgpu/gr/gr_falcon.h>

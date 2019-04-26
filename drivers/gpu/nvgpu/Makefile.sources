@@ -243,7 +243,6 @@ srcs += common/sim/sim.c \
 	common/nvlink/nvlink_tu104.c \
 	common/nvlink/nvlink.c \
 	common/fence/fence.c \
-	gk20a/fifo_gk20a.c \
 	gv11b/mmu_fault_gv11b.c \
 	gv100/mm_gv100.c \
 	tu104/mm_tu104.c \
@@ -370,6 +369,7 @@ srcs += common/sim/sim.c \
 	hal/func/func_tu104.c \
 	hal/rc/rc_gk20a.c \
 	hal/rc/rc_gv11b.c \
+	hal/fifo/fifo_gk20a.c \
 	hal/fifo/fifo_gv11b.c \
 	hal/fifo/fifo_tu104.c \
 	hal/fifo/preempt_gk20a.c \

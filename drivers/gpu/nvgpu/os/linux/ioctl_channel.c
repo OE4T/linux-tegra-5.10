@@ -35,6 +35,7 @@
 #include <nvgpu/nvhost.h>
 #include <nvgpu/os_sched.h>
 #include <nvgpu/gk20a.h>
+#include <nvgpu/engines.h>
 #include <nvgpu/channel.h>
 #include <nvgpu/channel_sync.h>
 #include <nvgpu/channel_sync_syncpt.h>

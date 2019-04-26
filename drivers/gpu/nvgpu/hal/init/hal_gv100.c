@@ -65,6 +65,7 @@
 #include "hal/ptimer/ptimer_gk20a.h"
 #include "hal/rc/rc_gv11b.h"
 #include "hal/regops/regops_gv100.h"
+#include "hal/fifo/fifo_gk20a.h"
 #include "hal/fifo/fifo_gv11b.h"
 #include "hal/fifo/preempt_gv11b.h"
 #include "hal/fifo/pbdma_gm20b.h"
@@ -164,6 +165,7 @@
 #include <nvgpu/error_notifier.h>
 #include <nvgpu/debugger.h>
 #include <nvgpu/pbdma.h>
+#include <nvgpu/engines.h>
 #include <nvgpu/runlist.h>
 #include <nvgpu/fifo/userd.h>
 #include <nvgpu/perfbuf.h>

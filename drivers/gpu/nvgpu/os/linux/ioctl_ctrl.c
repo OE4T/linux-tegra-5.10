@@ -33,6 +33,7 @@
 #include <nvgpu/fbp.h>
 #include <nvgpu/clk_arb.h>
 #include <nvgpu/gk20a.h>
+#include <nvgpu/engines.h>
 #include <nvgpu/gr/config.h>
 #include <nvgpu/gr/zbc.h>
 #include <nvgpu/gr/zcull.h>

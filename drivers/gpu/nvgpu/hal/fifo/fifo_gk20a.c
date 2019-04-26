@@ -27,10 +27,9 @@
 #include <nvgpu/fifo.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/unit.h>
-#include <nvgpu/ptimer.h>
 #include <nvgpu/power_features/cg.h>
 
-#include "fifo_gk20a.h"
+#include "hal/fifo/fifo_gk20a.h"
 
 #include <nvgpu/hw/gk20a/hw_fifo_gk20a.h>
 
@@ -99,7 +98,7 @@ int gk20a_fifo_init_pbdma_map(struct gk20a *g, u32 *pbdma_map, u32 num_pbdma)
 		pbdma_map[id] = nvgpu_readl(g, fifo_pbdma_map_r(id));
 	}
 
-	return 0;
+	return 0U;
 }
 
 u32 gk20a_fifo_get_runlist_timeslice(struct gk20a *g)

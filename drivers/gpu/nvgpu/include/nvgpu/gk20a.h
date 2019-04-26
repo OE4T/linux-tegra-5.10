@@ -120,9 +120,9 @@ typedef void (*global_ctx_mem_destroy_fn)(struct gk20a *g,
 #include <nvgpu/nvgpu_err.h>
 #include <nvgpu/worker.h>
 #include <nvgpu/semaphore.h>
+#include <nvgpu/fifo.h>
 
 #include "hal/clk/clk_gk20a.h"
-#include "gk20a/fifo_gk20a.h"
 
 #ifdef CONFIG_DEBUG_FS
 struct railgate_stats {

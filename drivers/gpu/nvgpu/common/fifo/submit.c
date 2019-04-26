@@ -29,6 +29,7 @@
 #include <nvgpu/channel_sync_syncpt.h>
 #include <nvgpu/bug.h>
 #include <nvgpu/fence.h>
+#include <nvgpu/profile.h>
 
 #include <trace/events/gk20a.h>
 

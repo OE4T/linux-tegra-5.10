@@ -24,11 +24,11 @@
 #include <nvgpu/debug.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/engine_status.h>
+#include <nvgpu/fifo.h>
 
 #include <nvgpu/hw/gm20b/hw_fifo_gm20b.h>
 
 #include "engine_status_gm20b.h"
-#include "gk20a/fifo_gk20a.h"
 
 static void populate_invalid_ctxsw_status_info(
 		struct nvgpu_engine_status_info *status_info)

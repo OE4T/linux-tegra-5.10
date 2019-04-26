@@ -26,6 +26,7 @@
 
 #include <nvgpu/dma.h>
 #include <nvgpu/fifo.h>
+#include <nvgpu/engines.h>
 #include <nvgpu/runlist.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/channel.h>
@@ -33,8 +34,6 @@
 #include <nvgpu/tsg.h>
 #include <nvgpu/vm_area.h>
 #include <nvgpu/nvgpu_err.h>
-
-#include <gk20a/fifo_gk20a.h>
 
 void nvgpu_fifo_cleanup_sw_common(struct gk20a *g)
 {

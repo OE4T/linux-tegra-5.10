@@ -27,6 +27,7 @@
 #include <nvgpu/debugger.h>
 #include <nvgpu/runlist.h>
 #include <nvgpu/pbdma.h>
+#include <nvgpu/engines.h>
 #include <nvgpu/perfbuf.h>
 #include <nvgpu/cyclestats_snapshot.h>
 #include <nvgpu/fifo/userd.h>
@@ -60,6 +61,7 @@
 #include "hal/fuse/fuse_gm20b.h"
 #include "hal/ptimer/ptimer_gk20a.h"
 #include "hal/regops/regops_gm20b.h"
+#include "hal/fifo/fifo_gk20a.h"
 #include "hal/fifo/preempt_gk20a.h"
 #include "hal/fifo/pbdma_gm20b.h"
 #include "hal/fifo/engines_gm20b.h"

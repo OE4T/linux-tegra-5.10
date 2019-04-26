@@ -23,6 +23,7 @@
 #include <nvgpu/channel.h>
 #include <nvgpu/gr/ctx.h>
 #include <nvgpu/engines.h>
+#include <nvgpu/runlist.h>
 #include <nvgpu/profile.h>
 
 void __gk20a_fifo_profile_free(struct nvgpu_ref *ref);

@@ -21,6 +21,7 @@
  */
 
 #include <nvgpu/gk20a.h>
+#include <nvgpu/engines.h>
 #include <nvgpu/enabled.h>
 #include <nvgpu/power_features/cg.h>
 

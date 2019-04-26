@@ -272,6 +272,7 @@ nvgpu-y += \
 	hal/func/func_tu104.o \
 	hal/rc/rc_gk20a.o \
 	hal/rc/rc_gv11b.o \
+	hal/fifo/fifo_gk20a.o \
 	hal/fifo/fifo_gv11b.o \
 	hal/fifo/fifo_tu104.o \
 	hal/fifo/preempt_gk20a.o \
@@ -551,7 +552,6 @@ nvgpu-y += \
 	common/ecc.o \
 	common/ce/ce.o \
 	common/debugger.o \
-	gk20a/fifo_gk20a.o \
 
 nvgpu-$(CONFIG_GK20A_VIDMEM) += \
 	common/mm/vidmem.o

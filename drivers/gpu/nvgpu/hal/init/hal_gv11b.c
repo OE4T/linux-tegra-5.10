@@ -24,6 +24,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/fuse.h>
 #include <nvgpu/pbdma.h>
+#include <nvgpu/engines.h>
 #include <nvgpu/regops.h>
 #include <nvgpu/gr/gr_falcon.h>
 #include <nvgpu/gr/gr.h>
@@ -67,6 +68,7 @@
 #include "hal/ptimer/ptimer_gk20a.h"
 #include "hal/regops/regops_gv11b.h"
 #include "hal/rc/rc_gv11b.h"
+#include "hal/fifo/fifo_gk20a.h"
 #include "hal/fifo/fifo_gv11b.h"
 #include "hal/fifo/pbdma_gm20b.h"
 #include "hal/fifo/preempt_gv11b.h"

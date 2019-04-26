@@ -26,6 +26,7 @@
 #include <nvgpu/bug.h>
 #include <nvgpu/timers.h>
 #include <nvgpu/enabled.h>
+#include <nvgpu/engines.h>
 #include <nvgpu/engine_status.h>
 #include <nvgpu/netlist.h>
 #include <nvgpu/gr/ctx.h>

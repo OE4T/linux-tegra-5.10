@@ -21,6 +21,7 @@
  */
 
 #include <nvgpu/gk20a.h>
+#include <nvgpu/runlist.h>
 #include <nvgpu/types.h>
 #include <nvgpu/channel.h>
 #include <nvgpu/tsg.h>

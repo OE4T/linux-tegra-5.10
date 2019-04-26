@@ -26,8 +26,7 @@
 #include <nvgpu/io.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/channel.h>
-
-#include "gk20a/fifo_gk20a.h"
+#include <nvgpu/fifo.h>
 
 #include "hal/fifo/ramfc_gk20a.h"
 #include "hal/fifo/ramfc_gp10b.h"
