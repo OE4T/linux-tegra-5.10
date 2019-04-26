@@ -203,6 +203,7 @@ nvgpu-y += \
 	hal/gr/gr/gr_gv100.o \
 	hal/gr/gr/gr_gv11b.o \
 	hal/gr/gr/gr_tu104.o \
+	hal/fbpa/fbpa_tu104.o \
 	hal/init/hal_gm20b.o \
 	hal/init/hal_gp10b.o \
 	hal/init/hal_gv100.o \
@@ -580,5 +581,4 @@ nvgpu-y += \
 	gv100/bios_gv100.o \
 	tu104/mm_tu104.o \
 	tu104/fifo_tu104.o \
-	tu104/bios_tu104.o \
-	tu104/fbpa_tu104.o
+	tu104/bios_tu104.o

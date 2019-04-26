@@ -168,7 +168,7 @@
 #include "tu104/mm_tu104.h"
 #include "tu104/fifo_tu104.h"
 #include "tu104/bios_tu104.h"
-#include "tu104/fbpa_tu104.h"
+#include "hal/fbpa/fbpa_tu104.h"
 #include "hal_tu104.h"
 
 #include <nvgpu/ptimer.h>

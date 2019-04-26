@@ -251,7 +251,6 @@ srcs += common/sim/sim.c \
 	gv100/mm_gv100.c \
 	gv100/bios_gv100.c \
 	tu104/bios_tu104.c \
-	tu104/fbpa_tu104.c \
 	tu104/fifo_tu104.c \
 	tu104/mm_tu104.c \
 	hal/mm/cache/flush_gk20a.c \
@@ -308,6 +307,7 @@ srcs += common/sim/sim.c \
 	hal/gr/gr/gr_gv100.c \
 	hal/gr/gr/gr_gv11b.c \
 	hal/gr/gr/gr_tu104.c \
+	hal/fbpa/fbpa_tu104.c \
 	hal/init/hal_gm20b.c \
 	hal/init/hal_gp10b.c \
 	hal/init/hal_gv100.c \
