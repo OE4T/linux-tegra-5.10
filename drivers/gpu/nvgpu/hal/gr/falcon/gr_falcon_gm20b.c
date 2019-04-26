@@ -47,14 +47,15 @@
 void gm20b_gr_falcon_load_gpccs_dmem(struct gk20a *g,
 			const u32 *ucode_u32_data, u32 ucode_u32_size)
 {
-	u32 i, checksum;
+	u32 i;
+	u32 checksum = 0;
 
 	/* enable access for gpccs dmem */
 	nvgpu_writel(g, gr_gpccs_dmemc_r(0), (gr_gpccs_dmemc_offs_f(0) |
 					gr_gpccs_dmemc_blk_f(0)  |
 					gr_gpccs_dmemc_aincw_f(1)));
 
-	for (i = 0, checksum = 0; i < ucode_u32_size; i++) {
+	for (i = 0; i < ucode_u32_size; i++) {
 		nvgpu_writel(g, gr_gpccs_dmemd_r(0), ucode_u32_data[i]);
 		checksum += ucode_u32_data[i];
 	}
@@ -64,14 +65,15 @@ void gm20b_gr_falcon_load_gpccs_dmem(struct gk20a *g,
 void gm20b_gr_falcon_load_fecs_dmem(struct gk20a *g,
 			const u32 *ucode_u32_data, u32 ucode_u32_size)
 {
-	u32 i, checksum;
+	u32 i;
+	u32 checksum = 0;
 
 	/* set access for fecs dmem */
 	nvgpu_writel(g, gr_fecs_dmemc_r(0), (gr_fecs_dmemc_offs_f(0) |
 					gr_fecs_dmemc_blk_f(0)  |
 					gr_fecs_dmemc_aincw_f(1)));
 
-	for (i = 0, checksum = 0; i < ucode_u32_size; i++) {
+	for (i = 0; i < ucode_u32_size; i++) {
 		nvgpu_writel(g, gr_fecs_dmemd_r(0), ucode_u32_data[i]);
 		checksum += ucode_u32_data[i];
 	}
@@ -83,7 +85,7 @@ void gm20b_gr_falcon_load_gpccs_imem(struct gk20a *g,
 {
 	u32 cfg, gpccs_imem_size;
 	u32 tag, i, pad_start, pad_end;
-	u32 checksum;
+	u32 checksum = 0;
 
 	/* enable access for gpccs imem */
 	nvgpu_writel(g, gr_gpccs_imemc_r(0), (gr_gpccs_imemc_offs_f(0) |
@@ -97,7 +99,7 @@ void gm20b_gr_falcon_load_gpccs_imem(struct gk20a *g,
 	tag = 0;
 	nvgpu_writel(g, gr_gpccs_imemt_r(0), gr_gpccs_imemt_tag_f(tag));
 
-	for (i = 0, checksum = 0; i < ucode_u32_size; i++) {
+	for (i = 0; i < ucode_u32_size; i++) {
 		if ((i != 0U) && ((i % (256U/sizeof(u32))) == 0U)) {
 			tag++;
 			nvgpu_writel(g, gr_gpccs_imemt_r(0),
@@ -127,7 +129,7 @@ void gm20b_gr_falcon_load_fecs_imem(struct gk20a *g,
 {
 	u32 cfg, fecs_imem_size;
 	u32 tag, i, pad_start, pad_end;
-	u32 checksum;
+	u32 checksum = 0;
 
 	/* set access for fecs imem */
 	nvgpu_writel(g, gr_fecs_imemc_r(0), (gr_fecs_imemc_offs_f(0) |
@@ -141,7 +143,7 @@ void gm20b_gr_falcon_load_fecs_imem(struct gk20a *g,
 	tag = 0;
 	nvgpu_writel(g, gr_fecs_imemt_r(0), gr_fecs_imemt_tag_f(tag));
 
-	for (i = 0, checksum = 0; i < ucode_u32_size; i++) {
+	for (i = 0; i < ucode_u32_size; i++) {
 		if ((i != 0U) && ((i % (256U/sizeof(u32))) == 0U)) {
 			tag++;
 			nvgpu_writel(g, gr_fecs_imemt_r(0),
