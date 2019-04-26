@@ -326,20 +326,28 @@ int nvgpu_gr_falcon_init_ctxsw_ucode(struct gk20a *g,
 		goto clean_up;
 	}
 
-	nvgpu_gr_falcon_copy_ctxsw_ucode_segments(g, &ucode_info->surface_desc,
+	err = nvgpu_gr_falcon_copy_ctxsw_ucode_segments(g,
+		&ucode_info->surface_desc,
 		&ucode_info->fecs,
 		fecs_boot_image,
 		nvgpu_netlist_get_fecs_inst_list(g),
 		nvgpu_netlist_get_fecs_data_list(g));
+	if (err != 0) {
+		goto clean_up;
+	}
 
 	nvgpu_release_firmware(g, fecs_fw);
 	fecs_fw = NULL;
 
-	nvgpu_gr_falcon_copy_ctxsw_ucode_segments(g, &ucode_info->surface_desc,
+	err = nvgpu_gr_falcon_copy_ctxsw_ucode_segments(g,
+		&ucode_info->surface_desc,
 		&ucode_info->gpccs,
 		gpccs_boot_image,
 		nvgpu_netlist_get_gpccs_inst_list(g),
 		nvgpu_netlist_get_gpccs_data_list(g));
+	if (err != 0) {
+		goto clean_up;
+	}
 
 	nvgpu_release_firmware(g, gpccs_fw);
 	gpccs_fw = NULL;
