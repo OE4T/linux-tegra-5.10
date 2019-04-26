@@ -38,20 +38,20 @@ struct __nvgpu_posix_lock {
 	pthread_mutex_t mutex;
 };
 
-static inline void __nvgpu_posix_lock_acquire(struct __nvgpu_posix_lock *lock)
+static inline void nvgpu_posix_lock_acquire(struct __nvgpu_posix_lock *lock)
 {
-	pthread_mutex_lock(&lock->mutex);
+	(void) pthread_mutex_lock(&lock->mutex);
 }
 
-static inline int __nvgpu_posix_lock_try_acquire(
+static inline int nvgpu_posix_lock_try_acquire(
 	struct __nvgpu_posix_lock *lock)
 {
 	return pthread_mutex_trylock(&lock->mutex);
 }
 
-static inline void __nvgpu_posix_lock_release(struct __nvgpu_posix_lock *lock)
+static inline void nvgpu_posix_lock_release(struct __nvgpu_posix_lock *lock)
 {
-	pthread_mutex_unlock(&lock->mutex);
+	(void) pthread_mutex_unlock(&lock->mutex);
 }
 
 struct nvgpu_mutex {

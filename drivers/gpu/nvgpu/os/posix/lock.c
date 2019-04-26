@@ -29,50 +29,50 @@ int nvgpu_mutex_init(struct nvgpu_mutex *mutex)
 
 void nvgpu_mutex_acquire(struct nvgpu_mutex *mutex)
 {
-	__nvgpu_posix_lock_acquire(&mutex->lock);
+	nvgpu_posix_lock_acquire(&mutex->lock);
 }
 
 void nvgpu_mutex_release(struct nvgpu_mutex *mutex)
 {
-	__nvgpu_posix_lock_release(&mutex->lock);
+	nvgpu_posix_lock_release(&mutex->lock);
 }
 
 int nvgpu_mutex_tryacquire(struct nvgpu_mutex *mutex)
 {
-	return ((__nvgpu_posix_lock_try_acquire(&mutex->lock) == 0) ? 1 : 0);
+	return ((nvgpu_posix_lock_try_acquire(&mutex->lock) == 0) ? 1 : 0);
 }
 
 void nvgpu_mutex_destroy(struct nvgpu_mutex *mutex)
 {
-	pthread_mutex_destroy(&mutex->lock.mutex);
+	(void) pthread_mutex_destroy(&mutex->lock.mutex);
 }
 
 void nvgpu_spinlock_init(struct nvgpu_spinlock *spinlock)
 {
-	pthread_mutex_init(&spinlock->lock.mutex, NULL);
+	(void) pthread_mutex_init(&spinlock->lock.mutex, NULL);
 }
 
 void nvgpu_spinlock_acquire(struct nvgpu_spinlock *spinlock)
 {
-	__nvgpu_posix_lock_acquire(&spinlock->lock);
+	nvgpu_posix_lock_acquire(&spinlock->lock);
 }
 
 void nvgpu_spinlock_release(struct nvgpu_spinlock *spinlock)
 {
-	__nvgpu_posix_lock_release(&spinlock->lock);
+	nvgpu_posix_lock_release(&spinlock->lock);
 }
 
 void nvgpu_raw_spinlock_init(struct nvgpu_raw_spinlock *spinlock)
 {
-	pthread_mutex_init(&spinlock->lock.mutex, NULL);
+	(void) pthread_mutex_init(&spinlock->lock.mutex, NULL);
 }
 
 void nvgpu_raw_spinlock_acquire(struct nvgpu_raw_spinlock *spinlock)
 {
-	__nvgpu_posix_lock_acquire(&spinlock->lock);
+	nvgpu_posix_lock_acquire(&spinlock->lock);
 }
 
 void nvgpu_raw_spinlock_release(struct nvgpu_raw_spinlock *spinlock)
 {
-	__nvgpu_posix_lock_release(&spinlock->lock);
+	nvgpu_posix_lock_release(&spinlock->lock);
 }
