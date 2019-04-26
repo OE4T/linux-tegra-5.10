@@ -7,10 +7,10 @@ __nvgpu_kmalloc
 __nvgpu_kzalloc
 __nvgpu_log_dbg
 __nvgpu_log_msg
-__nvgpu_posix_ffs
-__nvgpu_posix_fls
 __nvgpu_readl
 __nvgpu_set_pte
+nvgpu_posix_ffs
+nvgpu_posix_fls
 bitmap_clear
 bitmap_find_next_zero_area_off
 bitmap_set
