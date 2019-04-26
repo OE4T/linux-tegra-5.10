@@ -26,6 +26,7 @@
 #include <nvgpu/sort.h>
 #include <nvgpu/kmem.h>
 #include <nvgpu/bsearch.h>
+#include <nvgpu/fbp.h>
 #include <nvgpu/gr/config.h>
 #include <nvgpu/gr/hwpm_map.h>
 
@@ -380,6 +381,7 @@ static int nvgpu_gr_hwpm_map_create(struct gk20a *g,
 	u32 offset = 0;
 	int ret;
 	u32 active_fbpa_mask;
+	u32 num_fbps = nvgpu_fbp_get_num_fbps(g->fbp);
 	u32 ltc_stride = nvgpu_get_litter_value(g, GPU_LIT_LTC_STRIDE);
 	u32 num_fbpas = nvgpu_get_litter_value(g, GPU_LIT_NUM_FBPAS);
 	u32 fbpa_stride = nvgpu_get_litter_value(g, GPU_LIT_FBPA_STRIDE);
@@ -438,7 +440,7 @@ static int nvgpu_gr_hwpm_map_create(struct gk20a *g,
 	/* Add entries from _LIST_nv_perf_fbp_ctx_regs */
 	if (add_ctxsw_buffer_map_entries_subunits(map,
 		nvgpu_netlist_get_fbp_ctxsw_regs(g), &count, &offset,
-			hwpm_ctxsw_reg_count_max, 0, g->gr->num_fbps, ~U32(0U),
+			hwpm_ctxsw_reg_count_max, 0, num_fbps, ~U32(0U),
 			g->ops.perf.get_pmm_per_chiplet_offset(),
 			~U32(0U)) != 0) {
 		goto cleanup;
@@ -448,7 +450,7 @@ static int nvgpu_gr_hwpm_map_create(struct gk20a *g,
 	if (add_ctxsw_buffer_map_entries_subunits(map,
 			nvgpu_netlist_get_fbp_router_ctxsw_regs(g),
 			&count, &offset, hwpm_ctxsw_reg_count_max, 0,
-			g->gr->num_fbps, ~U32(0U), NV_PERF_PMM_FBP_ROUTER_STRIDE,
+			num_fbps, ~U32(0U), NV_PERF_PMM_FBP_ROUTER_STRIDE,
 			~U32(0U)) != 0) {
 		goto cleanup;
 	}

@@ -35,7 +35,6 @@ struct nvgpu_gr_config;
 struct netlist_av_list;
 struct nvgpu_gr_config;
 
-u32 gm20b_gr_init_get_fbp_en_mask(struct gk20a *g);
 void gm20b_gr_init_lg_coalesce(struct gk20a *g, u32 data);
 void gm20b_gr_init_su_coalesce(struct gk20a *g, u32 data);
 void gm20b_gr_init_pes_vsc_stream(struct gk20a *g);

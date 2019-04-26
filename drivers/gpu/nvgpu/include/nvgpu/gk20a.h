@@ -28,6 +28,7 @@ struct gk20a;
 struct fifo_gk20a;
 struct channel_gk20a;
 struct nvgpu_gr;
+struct nvgpu_fbp;
 struct sim_nvgpu;
 struct nvgpu_ce_app;
 struct gk20a_ctxsw_trace;
@@ -327,7 +328,6 @@ struct gpu_ops {
 				struct gk20a_debug_output *o);
 		int (*update_pc_sampling)(struct channel_gk20a *ch,
 					   bool enable);
-		u32* (*get_rop_l2_en_mask)(struct gk20a *g);
 		void (*init_sm_dsm_reg_info)(void);
 		void (*init_ovr_sm_dsm_perf)(void);
 		void (*init_cyclestats)(struct gk20a *g);
@@ -685,7 +685,6 @@ struct gpu_ops {
 			void (*wait_initialized)(struct gk20a *g);
 			void (*ecc_scrub_reg)(struct gk20a *g,
 				struct nvgpu_gr_config *gr_config);
-			u32 (*get_fbp_en_mask)(struct gk20a *g);
 			void (*lg_coalesce)(struct gk20a *g, u32 data);
 			void (*su_coalesce)(struct gk20a *g, u32 data);
 			void (*pes_vsc_stream)(struct gk20a *g);
@@ -1967,6 +1966,7 @@ struct gk20a {
 	struct fifo_gk20a fifo;
 	struct nvgpu_nvlink_dev nvlink;
 	struct nvgpu_gr *gr;
+	struct nvgpu_fbp *fbp;
 	struct sim_nvgpu *sim;
 	struct mm_gk20a mm;
 	struct nvgpu_pmu pmu;

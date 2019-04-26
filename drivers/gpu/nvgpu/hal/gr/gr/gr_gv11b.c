@@ -41,6 +41,7 @@
 #include <nvgpu/channel.h>
 #include <nvgpu/engines.h>
 #include <nvgpu/engine_status.h>
+#include <nvgpu/fbp.h>
 
 #include "gr_pri_gk20a.h"
 #include "gr_pri_gv11b.h"
@@ -2651,7 +2652,7 @@ static void gr_gv11b_split_pmm_fbp_broadcast_address(struct gk20a *g,
 	u32 fbp_num = 0;
 	u32 base = 0;
 
-	for (fbp_num = 0; fbp_num < g->gr->num_fbps; fbp_num++) {
+	for (fbp_num = 0; fbp_num < nvgpu_fbp_get_num_fbps(g->fbp); fbp_num++) {
 		base = perf_pmmfbp_base_v() +
 			(fbp_num * g->ops.perf.get_pmm_per_chiplet_offset());
 

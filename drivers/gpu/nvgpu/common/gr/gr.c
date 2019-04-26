@@ -261,9 +261,6 @@ static void gr_remove_support(struct gk20a *g)
 
 	nvgpu_gr_config_deinit(g, gr->config);
 
-	nvgpu_kfree(g, gr->fbp_rop_l2_en_mask);
-	gr->fbp_rop_l2_en_mask = NULL;
-
 	nvgpu_netlist_deinit_ctx_vars(g);
 
 	nvgpu_gr_hwpm_map_deinit(g, gr->hwpm_map);
@@ -322,25 +319,6 @@ static int gr_init_config(struct gk20a *g, struct nvgpu_gr *gr)
 		return -ENOMEM;
 	}
 
-	gr->num_fbps = g->ops.priv_ring.get_fbp_count(g);
-	gr->max_fbps_count = g->ops.top.get_max_fbps_count(g);
-
-	gr->fbp_en_mask = g->ops.gr.init.get_fbp_en_mask(g);
-
-	if (gr->fbp_rop_l2_en_mask == NULL) {
-		gr->fbp_rop_l2_en_mask =
-			nvgpu_kzalloc(g, gr->max_fbps_count * sizeof(u32));
-		if (gr->fbp_rop_l2_en_mask == NULL) {
-			goto clean_up;
-		}
-	} else {
-		(void) memset(gr->fbp_rop_l2_en_mask, 0, gr->max_fbps_count *
-				sizeof(u32));
-	}
-
-	nvgpu_log_info(g, "fbps: %d", gr->num_fbps);
-	nvgpu_log_info(g, "max_fbps_count: %d", gr->max_fbps_count);
-
 	nvgpu_log_info(g, "bundle_cb_default_size: %d",
 		g->ops.gr.init.get_bundle_cb_default_size(g));
 	nvgpu_log_info(g, "min_gpm_fifo_depth: %d",
@@ -359,9 +337,6 @@ static int gr_init_config(struct gk20a *g, struct nvgpu_gr *gr)
 			nvgpu_gr_config_get_tpc_count(gr->config)));
 
 	return 0;
-
-clean_up:
-	return -ENOMEM;
 }
 
 static int nvgpu_gr_init_ctx_state(struct gk20a *g)

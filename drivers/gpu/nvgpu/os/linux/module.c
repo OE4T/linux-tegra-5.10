@@ -40,6 +40,7 @@
 #include <nvgpu/kmem.h>
 #include <nvgpu/nvgpu_common.h>
 #include <nvgpu/soc.h>
+#include <nvgpu/fbp.h>
 #include <nvgpu/enabled.h>
 #include <nvgpu/debug.h>
 #include <nvgpu/vidmem.h>
@@ -781,6 +782,8 @@ void gk20a_remove_support(struct gk20a *g)
 #if defined(CONFIG_GK20A_CYCLE_STATS)
 	nvgpu_free_cyclestats_snapshot_data(g);
 #endif
+
+	nvgpu_fbp_remove_support(g);
 
 	nvgpu_remove_usermode_support(g);
 

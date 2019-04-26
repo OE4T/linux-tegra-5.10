@@ -556,15 +556,6 @@ u32 vgpu_gr_get_max_fbps_count(struct gk20a *g)
 	return priv->constants.num_fbps;
 }
 
-u32 vgpu_gr_get_fbp_en_mask(struct gk20a *g)
-{
-	struct vgpu_priv_data *priv = vgpu_get_priv_data(g);
-
-	nvgpu_log_fn(g, " ");
-
-	return priv->constants.fbp_en_mask;
-}
-
 u32 vgpu_gr_get_max_ltc_per_fbp(struct gk20a *g)
 {
 	struct vgpu_priv_data *priv = vgpu_get_priv_data(g);
@@ -581,29 +572,6 @@ u32 vgpu_gr_get_max_lts_per_ltc(struct gk20a *g)
 	nvgpu_log_fn(g, " ");
 
 	return priv->constants.max_lts_per_ltc;
-}
-
-u32 *vgpu_gr_rop_l2_en_mask(struct gk20a *g)
-{
-	struct vgpu_priv_data *priv = vgpu_get_priv_data(g);
-	u32 i, max_fbps_count = priv->constants.num_fbps;
-
-	nvgpu_log_fn(g, " ");
-
-	if (g->gr->fbp_rop_l2_en_mask == NULL) {
-		g->gr->fbp_rop_l2_en_mask =
-			nvgpu_kzalloc(g, max_fbps_count * sizeof(u32));
-		if (!g->gr->fbp_rop_l2_en_mask) {
-			return NULL;
-		}
-	}
-
-	g->gr->max_fbps_count = max_fbps_count;
-	for (i = 0; i < max_fbps_count; i++) {
-		g->gr->fbp_rop_l2_en_mask[i] = priv->constants.l2_en_mask[i];
-	}
-
-	return g->gr->fbp_rop_l2_en_mask;
 }
 
 int vgpu_gr_add_zbc(struct gk20a *g, struct nvgpu_gr_zbc *zbc,
@@ -694,9 +662,6 @@ static void vgpu_remove_gr_support(struct gk20a *g)
 	nvgpu_gr_config_deinit(gr->g, gr->config);
 
 	nvgpu_gr_zcull_deinit(gr->g, gr->zcull);
-
-	nvgpu_kfree(gr->g, gr->fbp_rop_l2_en_mask);
-	gr->fbp_rop_l2_en_mask = NULL;
 }
 
 static int vgpu_gr_init_gr_setup_sw(struct gk20a *g)

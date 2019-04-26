@@ -32,6 +32,7 @@
 #include <nvgpu/string.h>
 #include <nvgpu/ltc.h>
 #include <nvgpu/cbc.h>
+#include <nvgpu/fbp.h>
 #include <nvgpu/cyclestats_snapshot.h>
 
 #include "init_vgpu.h"
@@ -40,6 +41,7 @@
 #include "common/vgpu/fifo/fifo_vgpu.h"
 #include "common/vgpu/mm/mm_vgpu.h"
 #include "common/vgpu/gr/gr_vgpu.h"
+#include "common/vgpu/fbp/fbp_vgpu.h"
 #include "common/vgpu/ivc/comm_vgpu.h"
 #include "common/gr/gr_priv.h"
 
@@ -85,6 +87,8 @@ void vgpu_remove_support_common(struct gk20a *g)
 #if defined(CONFIG_GK20A_CYCLE_STATS)
 	nvgpu_free_cyclestats_snapshot_data(g);
 #endif
+
+	nvgpu_fbp_remove_support(g);
 
 	msg.event = TEGRA_VGPU_EVENT_ABORT;
 	err = vgpu_ivc_send(vgpu_ivc_get_peer_self(), TEGRA_VGPU_QUEUE_INTR,
@@ -171,6 +175,12 @@ int vgpu_finalize_poweron_common(struct gk20a *g)
 	err = nvgpu_fifo_init_support(g);
 	if (err != 0) {
 		nvgpu_err(g, "failed to init gk20a fifo");
+		return err;
+	}
+
+	err = vgpu_fbp_init_support(g);
+	if (err != 0) {
+		nvgpu_err(g, "failed to init gk20a fbp");
 		return err;
 	}
 

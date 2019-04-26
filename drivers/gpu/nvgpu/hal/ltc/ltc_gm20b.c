@@ -28,6 +28,7 @@
 #include <nvgpu/enabled.h>
 #include <nvgpu/bug.h>
 #include <nvgpu/ltc.h>
+#include <nvgpu/fbp.h>
 #include <nvgpu/io.h>
 #include <nvgpu/utils.h>
 #include <nvgpu/gk20a.h>
@@ -178,7 +179,7 @@ int gm20b_determine_L2_size_bytes(struct gk20a *g)
 		sets = 0U;
 	}
 
-	active_ltcs = g->gr->num_fbps;
+	active_ltcs = nvgpu_fbp_get_num_fbps(g->fbp);
 
 	/* chip-specific values */
 	lts_per_ltc = 2U;

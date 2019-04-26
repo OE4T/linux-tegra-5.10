@@ -464,28 +464,6 @@ int gr_gm20b_update_pc_sampling(struct channel_gk20a *c,
 	return 0;
 }
 
-u32 *gr_gm20b_rop_l2_en_mask(struct gk20a *g)
-{
-	struct nvgpu_gr *gr = g->gr;
-	unsigned long i;
-	u32 tmp, max_fbps_count, max_ltc_per_fbp;
-	unsigned long fbp_en_mask;
-	u32 rop_l2_all_en;
-
-	max_fbps_count = g->ops.top.get_max_fbps_count(g);
-	max_ltc_per_fbp = g->ops.top.get_max_ltc_per_fbp(g);
-	rop_l2_all_en = BIT32(max_ltc_per_fbp) - 1U;
-	fbp_en_mask = g->ops.gr.init.get_fbp_en_mask(g);
-
-	/* mask of Rop_L2 for each FBP */
-	for_each_set_bit(i, &fbp_en_mask, max_fbps_count) {
-		tmp = g->ops.fuse.fuse_status_opt_rop_l2_fbp(g, i);
-		gr->fbp_rop_l2_en_mask[i] = rop_l2_all_en ^ tmp;
-	}
-
-	return gr->fbp_rop_l2_en_mask;
-}
-
 void gr_gm20b_init_cyclestats(struct gk20a *g)
 {
 #if defined(CONFIG_GK20A_CYCLE_STATS)

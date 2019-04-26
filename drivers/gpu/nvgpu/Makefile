@@ -53,6 +53,7 @@ nvgpu-y += \
 	common/boardobj/boardobjgrp_e32.o \
 	common/regops/regops.o \
 	common/ltc/ltc.o \
+	common/fbp/fbp.o \
 	common/cbc/cbc.o \
 	common/gr/gr.o \
 	common/gr/gr_intr.o \
@@ -557,6 +558,7 @@ nvgpu-y += \
 nvgpu-$(CONFIG_TEGRA_GR_VIRTUALIZATION) += \
 	common/vgpu/ltc/ltc_vgpu.o \
 	common/vgpu/cbc/cbc_vgpu.o \
+	common/vgpu/fbp/fbp_vgpu.o \
 	common/vgpu/gr/gr_vgpu.o \
 	common/vgpu/gr/ctx_vgpu.o \
 	common/vgpu/gr/subctx_vgpu.o \

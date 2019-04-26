@@ -53,7 +53,6 @@ int gr_gm20b_dump_gr_status_regs(struct gk20a *g,
 			   struct gk20a_debug_output *o);
 int gr_gm20b_update_pc_sampling(struct channel_gk20a *c,
 				       bool enable);
-u32 *gr_gm20b_rop_l2_en_mask(struct gk20a *g);
 void gr_gm20b_init_cyclestats(struct gk20a *g);
 void gr_gm20b_bpt_reg_info(struct gk20a *g, struct nvgpu_warpstate *w_state);
 int gm20b_gr_record_sm_error_state(struct gk20a *g, u32 gpc,

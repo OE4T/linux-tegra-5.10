@@ -20,55 +20,44 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NVGPU_GR_PRIV_H
-#define NVGPU_GR_PRIV_H
+#include <nvgpu/vgpu/vgpu.h>
+#include <nvgpu/vgpu/tegra_vgpu.h>
+#include <nvgpu/gk20a.h>
 
-#include <nvgpu/types.h>
-#include <nvgpu/cond.h>
+#include "fbp_vgpu.h"
+#include "common/fbp/fbp_priv.h"
 
-struct nvgpu_gr_ctx_desc;
-struct nvgpu_gr_global_ctx_buffer_desc;
-struct nvgpu_gr_obj_ctx_golden_image;
-struct nvgpu_gr_config;
-struct nvgpu_gr_zbc;
-struct nvgpu_gr_hwpm_map;
-struct nvgpu_gr_zcull;
-struct gk20a_cs_snapshot;
+int vgpu_fbp_init_support(struct gk20a *g)
+{
+	struct vgpu_priv_data *priv = vgpu_get_priv_data(g);
+	struct nvgpu_fbp *fbp;
+	u32 i;
 
-struct nvgpu_gr {
-	struct gk20a *g;
+	if (g->fbp != NULL) {
+		return 0;
+	}
 
-	struct nvgpu_cond init_wq;
-	bool initialized;
+	fbp = nvgpu_kzalloc(g, sizeof(*fbp));
+	if (fbp == NULL) {
+		return -ENOMEM;
+	}
 
-	struct nvgpu_gr_global_ctx_buffer_desc *global_ctx_buffer;
+	fbp->num_fbps = priv->constants.num_fbps;
+	fbp->max_fbps_count = priv->constants.num_fbps;
+	fbp->fbp_en_mask = priv->constants.fbp_en_mask;
 
-	struct nvgpu_gr_obj_ctx_golden_image *golden_image;
+	fbp->fbp_rop_l2_en_mask =
+		nvgpu_kzalloc(g, fbp->max_fbps_count * sizeof(u32));
+	if (fbp->fbp_rop_l2_en_mask == NULL) {
+		nvgpu_kfree(g, fbp);
+		return -ENOMEM;
+	}
 
-	struct nvgpu_gr_ctx_desc *gr_ctx_desc;
+	for (i = 0U; i < fbp->max_fbps_count; i++) {
+		fbp->fbp_rop_l2_en_mask[i] = priv->constants.l2_en_mask[i];
+	}
 
-	struct nvgpu_gr_config *config;
+	g->fbp = fbp;
 
-	struct nvgpu_gr_hwpm_map *hwpm_map;
-
-	struct nvgpu_gr_zcull *zcull;
-
-	struct nvgpu_gr_zbc *zbc;
-
-	struct nvgpu_gr_falcon *falcon;
-
-	struct nvgpu_gr_intr *intr;
-
-	void (*remove_support)(struct gk20a *g);
-	bool sw_ready;
-
-	u32 fecs_feature_override_ecc_val;
-
-	u32 cilp_preempt_pending_chid;
-
-	struct nvgpu_mutex ctxsw_disable_mutex;
-	int ctxsw_disable_count;
-};
-
-#endif /* NVGPU_GR_PRIV_H */
-
+	return 0;
+}

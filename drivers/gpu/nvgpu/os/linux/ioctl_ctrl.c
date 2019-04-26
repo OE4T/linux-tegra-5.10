@@ -30,6 +30,7 @@
 #include <nvgpu/enabled.h>
 #include <nvgpu/sizes.h>
 #include <nvgpu/list.h>
+#include <nvgpu/fbp.h>
 #include <nvgpu/clk_arb.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/gr/config.h>
@@ -352,8 +353,8 @@ gk20a_ctrl_ioctl_gpu_characteristics(
 	gpu.gpu_va_bit_count = 40;
 
 	strlcpy(gpu.chipname, g->name, sizeof(gpu.chipname));
-	gpu.max_fbps_count = g->ops.top.get_max_fbps_count(g);
-	gpu.fbp_en_mask = g->ops.gr.init.get_fbp_en_mask(g);
+	gpu.max_fbps_count = nvgpu_fbp_get_max_fbps_count(g->fbp);
+	gpu.fbp_en_mask = nvgpu_fbp_get_fbp_en_mask(g->fbp);;
 	gpu.max_ltc_per_fbp =  g->ops.top.get_max_ltc_per_fbp(g);
 	gpu.max_lts_per_ltc = g->ops.top.get_max_lts_per_ltc(g);
 	gpu.gr_compbit_store_base_hw = g->cbc->compbit_store.base_hw;
@@ -592,9 +593,10 @@ static int gk20a_ctrl_get_tpc_masks(struct gk20a *g,
 static int gk20a_ctrl_get_fbp_l2_masks(
 	struct gk20a *g, struct nvgpu_gpu_get_fbp_l2_masks_args *args)
 {
-	struct nvgpu_gr *gr = g->gr;
 	int err = 0;
-	const u32 fbp_l2_mask_size = sizeof(u32) * gr->max_fbps_count;
+	const u32 fbp_l2_mask_size = sizeof(u32) *
+			nvgpu_fbp_get_max_fbps_count(g->fbp);
+	u32 *fbp_rop_l2_en_mask = nvgpu_fbp_get_rop_l2_en_mask(g->fbp);
 
 	if (args->mask_buf_size > 0) {
 		size_t write_size = fbp_l2_mask_size;
@@ -605,7 +607,7 @@ static int gk20a_ctrl_get_fbp_l2_masks(
 
 		err = copy_to_user((void __user *)(uintptr_t)
 				   args->mask_buf_addr,
-				   gr->fbp_rop_l2_en_mask, write_size);
+				   fbp_rop_l2_en_mask, write_size);
 	}
 
 	if (err == 0)

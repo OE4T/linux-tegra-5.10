@@ -36,6 +36,7 @@
 #include <nvgpu/ltc.h>
 #include <nvgpu/cbc.h>
 #include <nvgpu/ecc.h>
+#include <nvgpu/fbp.h>
 #include <nvgpu/vidmem.h>
 #include <nvgpu/mm.h>
 #include <nvgpu/soc.h>
@@ -371,6 +372,13 @@ int gk20a_finalize_poweron(struct gk20a *g)
 		goto done;
 	}
 
+	err = nvgpu_fbp_init_support(g);
+	if (err != 0) {
+		nvgpu_err(g, "failed to init gk20a fbp");
+		nvgpu_mutex_release(&g->tpc_pg_lock);
+		goto done;
+	}
+
 	err = nvgpu_gr_init_support(g);
 	if (err != 0) {
 		nvgpu_err(g, "failed to init gk20a gr");
@@ -570,8 +578,6 @@ void gk20a_init_gpu_characteristics(struct gk20a *g)
 	if (g->ops.gr.init_cyclestats != NULL) {
 		g->ops.gr.init_cyclestats(g);
 	}
-
-	g->ops.gr.get_rop_l2_en_mask(g);
 }
 
 static struct gk20a *gk20a_from_refcount(struct nvgpu_ref *refcount)
