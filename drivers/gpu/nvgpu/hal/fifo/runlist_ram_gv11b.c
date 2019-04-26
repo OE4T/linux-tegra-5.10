@@ -24,7 +24,7 @@
 #include <nvgpu/runlist.h>
 #include <nvgpu/gk20a.h>
 
-#include "runlist_gv11b.h"
+#include "runlist_ram_gv11b.h"
 
 #include <nvgpu/hw/gv11b/hw_ram_gv11b.h>
 
@@ -76,18 +76,17 @@ void gv11b_runlist_get_ch_entry(struct channel_gk20a *ch, u32 *runlist)
 
 	/* Time being use 0 pbdma sequencer */
 	runlist_entry = ram_rl_entry_type_channel_v() |
-			ram_rl_entry_chan_runqueue_selector_f(
-						ch->runqueue_sel) |
-			ram_rl_entry_chan_userd_target_f(
-				nvgpu_aperture_mask(g, ch->userd_mem,
-					ram_rl_entry_chan_userd_target_sys_mem_ncoh_v(),
-					ram_rl_entry_chan_userd_target_sys_mem_coh_v(),
-					ram_rl_entry_chan_userd_target_vid_mem_v())) |
-			ram_rl_entry_chan_inst_target_f(
-				nvgpu_aperture_mask(g, &ch->inst_block,
-					ram_rl_entry_chan_inst_target_sys_mem_ncoh_v(),
-					ram_rl_entry_chan_inst_target_sys_mem_coh_v(),
-					ram_rl_entry_chan_inst_target_vid_mem_v()));
+		ram_rl_entry_chan_runqueue_selector_f(ch->runqueue_sel) |
+		ram_rl_entry_chan_userd_target_f(
+			nvgpu_aperture_mask(g, ch->userd_mem,
+				ram_rl_entry_chan_userd_target_sys_mem_ncoh_v(),
+				ram_rl_entry_chan_userd_target_sys_mem_coh_v(),
+				ram_rl_entry_chan_userd_target_vid_mem_v())) |
+		ram_rl_entry_chan_inst_target_f(
+			nvgpu_aperture_mask(g, &ch->inst_block,
+				ram_rl_entry_chan_inst_target_sys_mem_ncoh_v(),
+				ram_rl_entry_chan_inst_target_sys_mem_coh_v(),
+				ram_rl_entry_chan_inst_target_vid_mem_v()));
 
 	addr_lo = u64_lo32(ch->userd_iova) >>
 			ram_rl_entry_chan_userd_ptr_align_shift_v();

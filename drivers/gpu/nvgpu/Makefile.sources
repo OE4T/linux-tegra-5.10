@@ -385,9 +385,9 @@ srcs += common/sim/sim.c \
 	hal/fifo/ramin_gp10b.c \
 	hal/fifo/ramin_gv11b.c \
 	hal/fifo/ramin_tu104.c \
-	hal/fifo/runlist_gk20a.c \
-	hal/fifo/runlist_gv11b.c \
-	hal/fifo/runlist_tu104.c \
+	hal/fifo/runlist_ram_gk20a.c \
+	hal/fifo/runlist_ram_gv11b.c \
+	hal/fifo/runlist_ram_tu104.c \
 	hal/fifo/runlist_fifo_gk20a.c \
 	hal/fifo/runlist_fifo_gv11b.c \
 	hal/fifo/runlist_fifo_gv100.c \

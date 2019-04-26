@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,17 +20,13 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NVGPU_RUNLIST_GV11B_H
-#define NVGPU_RUNLIST_GV11B_H
+#include "runlist_ram_tu104.h"
 
-#include <nvgpu/types.h>
+#include <nvgpu/hw/tu104/hw_ram_tu104.h>
 
-struct channel_gk20a;
-struct tsg_gk20a;
+u32 tu104_runlist_entry_size(struct gk20a *g)
+{
+	return ram_rl_entry_size_v();
+}
 
-u32 gv11b_runlist_entry_size(struct gk20a *g);
-void gv11b_runlist_get_tsg_entry(struct tsg_gk20a *tsg,
-		u32 *runlist, u32 timeslice);
-void gv11b_runlist_get_ch_entry(struct channel_gk20a *ch, u32 *runlist);
 
-#endif /* NVGPU_RUNLIST_GV11B_H */

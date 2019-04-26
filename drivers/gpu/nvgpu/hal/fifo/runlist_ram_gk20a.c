@@ -28,7 +28,7 @@
 #include <nvgpu/engines.h>
 #include <nvgpu/gr/gr_falcon.h>
 
-#include "runlist_gk20a.h"
+#include "runlist_ram_gk20a.h"
 
 #include <nvgpu/hw/gk20a/hw_ram_gk20a.h>
 

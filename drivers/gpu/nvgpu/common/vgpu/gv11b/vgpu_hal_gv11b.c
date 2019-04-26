@@ -36,7 +36,7 @@
 #include "hal/fifo/ramin_gm20b.h"
 #include "hal/fifo/ramin_gp10b.h"
 #include "hal/fifo/ramin_gv11b.h"
-#include "hal/fifo/runlist_gv11b.h"
+#include "hal/fifo/runlist_ram_gv11b.h"
 #include "hal/fifo/runlist_fifo_gv11b.h"
 #include "hal/fifo/tsg_gv11b.h"
 #include "hal/fifo/userd_gk20a.h"

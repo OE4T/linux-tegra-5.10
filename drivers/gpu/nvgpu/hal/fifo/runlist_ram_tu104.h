@@ -20,13 +20,13 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#include "runlist_tu104.h"
+#ifndef NVGPU_RUNLIST_RAM_TU104_H
+#define NVGPU_RUNLIST_RAM_TU104_H
 
-#include <nvgpu/hw/tu104/hw_ram_tu104.h>
+#include <nvgpu/types.h>
 
-u32 tu104_runlist_entry_size(struct gk20a *g)
-{
-	return ram_rl_entry_size_v();
-}
+struct gk20a;
 
+u32 tu104_runlist_entry_size(struct gk20a *g);
 
+#endif /* NVGPU_RUNLIST_RAM_TU104_H */
