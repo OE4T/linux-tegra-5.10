@@ -166,6 +166,8 @@ struct nvgpu_gpu_zbc_query_table_args {
 #define NVGPU_GPU_FLAGS_CAN_RAILGATE			(1ULL << 29)
 /* Usermode submit is available */
 #define NVGPU_GPU_FLAGS_SUPPORT_USERMODE_SUBMIT		(1ULL << 30)
+/* Reduced profile is enabled */
+#define NVGPU_GPU_FLAGS_DRIVER_REDUCED_PROFILE		(1ULL << 31)
 /* SM LRF ECC is enabled */
 #define NVGPU_GPU_FLAGS_ECC_ENABLED_SM_LRF	(1ULL << 60)
 /* SM SHM ECC is enabled */

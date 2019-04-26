@@ -196,10 +196,14 @@ struct gk20a;
 
 /* PMU Super surface */
 #define NVGPU_SUPPORT_PMU_SUPER_SURFACE		76
+
+/* Reduced profile of nvgpu driver */
+#define NVGPU_DRIVER_REDUCED_PROFILE		77
+
 /*
  * Must be greater than the largest bit offset in the above list.
  */
-#define NVGPU_MAX_ENABLED_BITS			77U
+#define NVGPU_MAX_ENABLED_BITS			78U
 
 /**
  * nvgpu_is_enabled - Check if the passed flag is enabled.

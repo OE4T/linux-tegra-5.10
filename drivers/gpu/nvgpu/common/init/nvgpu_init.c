@@ -528,6 +528,9 @@ int gk20a_wait_for_idle(struct gk20a *g)
 
 void gk20a_init_gpu_characteristics(struct gk20a *g)
 {
+#ifdef NVGPU_REDUCED
+	nvgpu_set_enabled(g, NVGPU_DRIVER_REDUCED_PROFILE, true);
+#endif
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_MAP_DIRECT_KIND_CTRL, true);
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_MAP_BUFFER_BATCH, true);
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_SPARSE_ALLOCS, true);
