@@ -186,7 +186,7 @@ int nvgpu_clk_freq_domain_sw_setup(struct gk20a *g)
 	}
 
 	for (idx = 0; idx < num_of_domains; idx++) {
-		memset(&freq_domain_data, 0, sizeof(freq_domain_data));
+		(void) memset(&freq_domain_data, 0, sizeof(freq_domain_data));
 
 		freq_domain_data.super.type = clk_freq_domain_type[idx].type;
 		freq_domain_data.freq_domain.clk_domain =

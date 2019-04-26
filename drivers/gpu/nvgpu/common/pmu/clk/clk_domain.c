@@ -258,8 +258,20 @@ int nvgpu_clk_domain_sw_setup(struct gk20a *g)
 	pboardobjgrp->pmudatainstget  = _clk_domains_pmudata_instget;
 
 	/* Initialize mask to zero.*/
-	boardobjgrpmask_e32_init(&pclkdomainobjs->prog_domains_mask, NULL);
-	boardobjgrpmask_e32_init(&pclkdomainobjs->master_domains_mask, NULL);
+	status = boardobjgrpmask_e32_init(&pclkdomainobjs->prog_domains_mask,
+			NULL);
+	if (status != 0) {
+		nvgpu_err(g, "boardobjgrpmask_e32_init(prog) failed err=%d",
+			status);
+		goto done;
+	}
+	status = boardobjgrpmask_e32_init(&pclkdomainobjs->master_domains_mask,
+			NULL);
+	if (status != 0) {
+		nvgpu_err(g, "boardobjgrpmask_e32_init(master) failed err=%d",
+			status);
+		goto done;
+	}
 	pclkdomainobjs->b_enforce_vf_monotonicity = true;
 	pclkdomainobjs->b_enforce_vf_smoothening = true;
 
@@ -589,7 +601,8 @@ static int devinit_get_clocks_table(struct gk20a *g,
 	nvgpu_memcpy((u8 *)&clocks_table_header, clocks_table_ptr,
 			VBIOS_CLOCKS_TABLE_35_HEADER_SIZE_09);
 
-	devinit_get_clocks_table_35(g, pclkdomainobjs, clocks_table_ptr);
+	status = devinit_get_clocks_table_35(g, pclkdomainobjs,
+			clocks_table_ptr);
 
 done:
 	return status;
@@ -1155,7 +1168,8 @@ static int clk_domain_construct_35_master(struct gk20a *g,
 	pdomain->master.slave_idxs_mask = 0;
 	pdomain->super.clk_pos = 0;
 
-	boardobjgrpmask_e32_init(&pdomain->master_slave_domains_grp_mask, NULL);
+	status = boardobjgrpmask_e32_init(
+			&pdomain->master_slave_domains_grp_mask, NULL);
 
 	return status;
 }

@@ -266,7 +266,7 @@ static int devinit_get_clk_prog_table_35(struct gk20a *g,
 	pclkprogobjs->vf_sec_entry_count = header.vf_sec_entry_count;
 
 	for (i = 0; i < header.entry_count; i++) {
-		memset(&prog_data, 0x0, (u32)sizeof(prog_data));
+		(void) memset(&prog_data, 0x0, (u32)sizeof(prog_data));
 
 		/* Read table entries*/
 		entry = clkprogs_tbl_ptr + hszfmt +
@@ -275,16 +275,16 @@ static int devinit_get_clk_prog_table_35(struct gk20a *g,
 			(header.vf_sec_entry_count * vfsecszfmt)));
 
 		nvgpu_memcpy((u8 *)&prog, entry, szfmt);
-		memset(vfentries, 0xFF,
+		(void) memset(vfentries, 0xFF,
 			sizeof(struct ctrl_clk_clk_prog_1x_master_vf_entry) *
 			CTRL_CLK_CLK_PROG_1X_MASTER_VF_ENTRY_MAX_ENTRIES);
-		memset(voltrailsecvfentries, 0xFF,
+		(void) memset(voltrailsecvfentries, 0xFF,
 			sizeof(struct ctrl_clk_clk_prog_35_master_sec_vf_entry_voltrail) *
 			CTRL_CLK_CLK_PROG_1X_MASTER_VF_ENTRY_MAX_ENTRIES);
-		memset(ratioslaveentries, 0xFF,
+		(void) memset(ratioslaveentries, 0xFF,
 			sizeof(struct ctrl_clk_clk_prog_1x_master_ratio_slave_entry) *
 			CTRL_CLK_PROG_1X_MASTER_MAX_SLAVE_ENTRIES);
-		memset(tableslaveentries, 0xFF,
+		(void) memset(tableslaveentries, 0xFF,
 			sizeof(struct ctrl_clk_clk_prog_1x_master_table_slave_entry) *
 			CTRL_CLK_PROG_1X_MASTER_MAX_SLAVE_ENTRIES);
 
@@ -824,7 +824,7 @@ static int clk_prog_construct_35_master(struct gk20a *g,
 		(struct ctrl_clk_clk_prog_35_master_sec_vf_entry_voltrail *)
 				nvgpu_kzalloc(g, voltrail_sec_vfsize);
 
-	memset(pclkprog->p_voltrail_sec_vf_entries,
+	(void) memset(pclkprog->p_voltrail_sec_vf_entries,
 		CTRL_CLK_CLK_DOMAIN_INDEX_INVALID, voltrail_sec_vfsize);
 
 	nvgpu_memcpy((u8 *)pclkprog->p_voltrail_sec_vf_entries,
@@ -914,7 +914,7 @@ static int clk_prog_construct_35_master_table(struct gk20a *g,
 		goto exit;
 	}
 
-	memset(pclkprog->table.p_slave_entries,
+	(void) memset(pclkprog->table.p_slave_entries,
 			CTRL_CLK_CLK_DOMAIN_INDEX_INVALID, slavesize);
 
 	nvgpu_memcpy((u8 *)pclkprog->table.p_slave_entries,
@@ -955,7 +955,10 @@ static struct clk_prog *construct_clk_prog(struct gk20a *g, void *pargs)
 
 	if (status != 0) {
 		if (board_obj_ptr != NULL) {
-			board_obj_ptr->destruct(board_obj_ptr);
+			status = board_obj_ptr->destruct(board_obj_ptr);
+			if (status != 0) {
+				nvgpu_err(g, "destruct failed err=%d", status);
+			}
 		}
 		return NULL;
 	}

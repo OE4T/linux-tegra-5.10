@@ -77,7 +77,7 @@ int nvgpu_clk_domain_freq_to_volt(struct gk20a *g, u8 clkdomain_idx,
 	return status;
 }
 
-static u32 nvgpu_clk_vf_change_inject_data_fill(struct gk20a *g,
+static void nvgpu_clk_vf_change_inject_data_fill(struct gk20a *g,
 	struct nv_pmu_clk_rpc *rpccall,
 	struct nvgpu_set_fll_clk *setfllclk)
 {
@@ -106,8 +106,6 @@ static u32 nvgpu_clk_vf_change_inject_data_fill(struct gk20a *g,
 	vfchange->volt_list.rails[0].voltage_uv = setfllclk->voltuv;
 	vfchange->volt_list.rails[0].voltage_min_noise_unaware_uv =
 		setfllclk->voltuv;
-
-	return 0;
 }
 
 static int clk_pmu_vf_inject(struct gk20a *g,

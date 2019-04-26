@@ -218,7 +218,12 @@ int nvgpu_clk_vin_sw_setup(struct gk20a *g)
 	}
 
 	/*update vin calibration to fuse */
-	nvgpu_clk_avfs_get_vin_cal_fuse_v20(g, pvinobjs, pvindev);
+	status = nvgpu_clk_avfs_get_vin_cal_fuse_v20(g, pvinobjs, pvindev);
+	if (status != 0) {
+		nvgpu_err(g, "clk_avfs_get_vin_cal_fuse_v20 failed err=%d",
+			status);
+		goto done;
+	}
 
 	status = BOARDOBJGRP_PMU_CMD_GRP_GET_STATUS_CONSTRUCT(g,
 				&g->pmu.clk_pmu->avfs_vinobjs->super.super,

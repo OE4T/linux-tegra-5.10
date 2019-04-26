@@ -178,7 +178,12 @@ int nvgpu_clk_fll_sw_setup(struct gk20a *g)
 	pfllobjs->lut_min_voltage_uv = CTRL_CLK_LUT_MIN_VOLTAGE_UV;
 
 	/* Initialize lut prog master mask to zero.*/
-	boardobjgrpmask_e32_init(&pfllobjs->lut_prog_master_mask, NULL);
+	status = boardobjgrpmask_e32_init(&pfllobjs->lut_prog_master_mask,
+			NULL);
+	if (status != 0) {
+		nvgpu_err(g, "boardobjgrpmask_e32_init failed err=%d", status);
+		goto done;
+	}
 
 	status = devinit_get_fll_device_table(g, pfllobjs);
 	if (status != 0) {
@@ -472,8 +477,17 @@ static struct fll_device *construct_fll_device(struct gk20a *g,
 		(u8 *)&pfll_dev->regime_desc,
 		sizeof(struct nv_pmu_clk_regime_desc));
 	board_obj_fll_ptr->b_dvco_1x=pfll_dev->b_dvco_1x;
-	boardobjgrpmask_e32_init(
+
+	status = boardobjgrpmask_e32_init(
 		&board_obj_fll_ptr->lut_prog_broadcast_slave_mask, NULL);
+	if (status != 0) {
+		nvgpu_err(g, "boardobjgrpmask_e32_init failed err=%d", status);
+		status = board_obj_ptr->destruct(board_obj_ptr);
+		if (status != 0) {
+			nvgpu_err(g, "destruct failed err=%d", status);
+		}
+		return NULL;
+	}
 
 	nvgpu_log_info(g, " Done");
 

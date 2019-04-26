@@ -453,8 +453,12 @@ int nvgpu_clk_freq_controller_sw_setup(struct gk20a *g)
 	pboardobjgrp->pmustatusinstget  = NULL;
 
 	/* Initialize mask to zero.*/
-	boardobjgrpmask_e32_init(&pclk_freq_controllers->freq_ctrl_load_mask,
-		NULL);
+	status = boardobjgrpmask_e32_init(
+			&pclk_freq_controllers->freq_ctrl_load_mask, NULL);
+	if (status != 0) {
+		nvgpu_err(g, "boardobjgrpmask_e32_init failed err=%d", status);
+		goto done;
+	}
 
 	BOARDOBJGRP_PMU_CONSTRUCT(pboardobjgrp, CLK, CLK_FREQ_CONTROLLER);
 
@@ -485,8 +489,13 @@ int nvgpu_clk_freq_controller_sw_setup(struct gk20a *g)
 				break;
 			}
 		}
-		nvgpu_boardobjgrpmask_bit_set(&pclk_freq_controllers->
+		status = nvgpu_boardobjgrpmask_bit_set(&pclk_freq_controllers->
 			freq_ctrl_load_mask.super, i);
+		if (status != 0) {
+			nvgpu_err(g, "boardobjgrpmask_bitset failed err=%d",
+				status);
+			goto done;
+		}
 	}
 done:
 		nvgpu_log_info(g, " done status %x", status);
