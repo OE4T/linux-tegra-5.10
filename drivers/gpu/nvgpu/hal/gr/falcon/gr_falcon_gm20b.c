@@ -229,18 +229,18 @@ void gm20b_gr_falcon_start_fecs(struct gk20a *g)
 
 static void gm20b_gr_falcon_wait_for_fecs_arb_idle(struct gk20a *g)
 {
-	int retries = FECS_ARB_CMD_TIMEOUT_MAX_US /
+	u32 retries = FECS_ARB_CMD_TIMEOUT_MAX_US /
 			FECS_ARB_CMD_TIMEOUT_DEFAULT_US;
 	u32 val;
 
 	val = nvgpu_readl(g, gr_fecs_arb_ctx_cmd_r());
-	while ((gr_fecs_arb_ctx_cmd_cmd_v(val) != 0U) && (retries != 0)) {
+	while ((gr_fecs_arb_ctx_cmd_cmd_v(val) != 0U) && (retries != 0U)) {
 		nvgpu_udelay(FECS_ARB_CMD_TIMEOUT_DEFAULT_US);
 		retries--;
 		val = nvgpu_readl(g, gr_fecs_arb_ctx_cmd_r());
 	}
 
-	if (retries == 0) {
+	if (retries == 0U) {
 		nvgpu_err(g, "arbiter cmd timeout, fecs arb ctx cmd: 0x%08x",
 				nvgpu_readl(g, gr_fecs_arb_ctx_cmd_r()));
 	}
@@ -249,11 +249,11 @@ static void gm20b_gr_falcon_wait_for_fecs_arb_idle(struct gk20a *g)
 			FECS_ARB_CMD_TIMEOUT_DEFAULT_US;
 	while (((nvgpu_readl(g, gr_fecs_ctxsw_status_1_r()) &
 			gr_fecs_ctxsw_status_1_arb_busy_m()) != 0U) &&
-	       (retries != 0)) {
+	       (retries != 0U)) {
 		nvgpu_udelay(FECS_ARB_CMD_TIMEOUT_DEFAULT_US);
 		retries--;
 	}
-	if (retries == 0) {
+	if (retries == 0U) {
 		nvgpu_err(g,
 			  "arbiter idle timeout, fecs ctxsw status: 0x%08x",
 			  nvgpu_readl(g, gr_fecs_ctxsw_status_1_r()));
@@ -271,11 +271,11 @@ void gm20b_gr_falcon_bind_instblk(struct gk20a *g,
 
 	while (((nvgpu_readl(g, gr_fecs_ctxsw_status_1_r()) &
 			gr_fecs_ctxsw_status_1_arb_busy_m()) != 0U) &&
-	       (retries != 0)) {
+	       (retries != 0U)) {
 		nvgpu_udelay(FECS_ARB_CMD_TIMEOUT_DEFAULT_US);
 		retries--;
 	}
-	if (retries == 0) {
+	if (retries == 0U) {
 		nvgpu_err(g,
 			  "arbiter idle timeout, status: %08x",
 			  nvgpu_readl(g, gr_fecs_ctxsw_status_1_r()));
