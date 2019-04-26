@@ -21,8 +21,6 @@ bios:
   gpu: dgpu
   owner: Tejal K
   sources: [ common/vbios/bios.c,
-             common/vbios/bios_sw_gp106.c,
-             common/vbios/bios_sw_gp106.h,
              common/vbios/bios_sw_gv100.c,
              common/vbios/bios_sw_gv100.h,
              common/vbios/bios_sw_tu104.c,

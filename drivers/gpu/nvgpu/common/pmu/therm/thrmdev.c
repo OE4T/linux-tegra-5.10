@@ -244,7 +244,8 @@ static int devinit_get_therm_device_table(struct gk20a *g,
 	nvgpu_log_info(g, " ");
 
 	therm_device_table_ptr = (u8 *)nvgpu_bios_get_perf_table_ptrs(g,
-			g->bios.perf_token, THERMAL_DEVICE_TABLE);
+			nvgpu_bios_get_bit_token(g, NVGPU_BIOS_PERF_TOKEN),
+			THERMAL_DEVICE_TABLE);
 	if (therm_device_table_ptr == NULL) {
 		status = -EINVAL;
 		goto done;

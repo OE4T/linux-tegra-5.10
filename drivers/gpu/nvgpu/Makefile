@@ -527,7 +527,6 @@ nvgpu-y += \
 	common/rbtree.o \
 	common/vbios/bios.o \
 	common/vbios/nvlink_bios.o \
-	common/vbios/bios_sw_gp106.o \
 	common/vbios/bios_sw_gv100.o \
 	common/vbios/bios_sw_tu104.o \
 	common/falcon/falcon.o \

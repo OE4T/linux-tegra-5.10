@@ -132,6 +132,11 @@ int gk20a_prepare_poweroff(struct gk20a *g)
 
 	nvgpu_ce_suspend(g);
 
+#ifdef NVGPU_DGPU_SUPPORT
+	/* deinit the bios */
+	nvgpu_bios_sw_deinit(g, g->bios);
+#endif
+
 	/* Disable GPCPLL */
 	if (g->ops.clk.suspend_clk_support != NULL) {
 		g->ops.clk.suspend_clk_support(g);
@@ -238,13 +243,11 @@ int gk20a_finalize_poweron(struct gk20a *g)
 		}
 	}
 
-	if (g->ops.bios.init != NULL) {
-		err = g->ops.bios.init(g);
-	}
+	err = nvgpu_bios_sw_init(g, &g->bios);
 	if (err != 0) {
+		nvgpu_err(g, "BIOS SW init failed %d", err);
 		goto done;
 	}
-
 	g->ops.bus.init_hw(g);
 
 	if (g->ops.clk.disable_slowboot != NULL) {

@@ -332,8 +332,8 @@ gk20a_ctrl_ioctl_gpu_characteristics(
 	gpu.dma_copy_class =
 		g->ops.get_litter_value(g, GPU_LIT_DMA_COPY_CLASS);
 
-	gpu.vbios_version = g->bios.vbios_version;
-	gpu.vbios_oem_version = g->bios.vbios_oem_version;
+	gpu.vbios_version = nvgpu_bios_get_vbios_version(g);
+	gpu.vbios_oem_version = nvgpu_bios_get_vbios_oem_version(g);
 
 	gpu.big_page_size = nvgpu_mm_get_default_big_page_size(g);
 	gpu.pde_coverage_bit_count =

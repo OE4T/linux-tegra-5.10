@@ -29,7 +29,6 @@
 
 #include "pwrpolicy.h"
 #include "pmgr.h"
-#include "common/vbios/bios_sw_gp106.h"
 
 #define _pwr_policy_limitarboutputget_helper(p_limit_arb) (p_limit_arb)->output
 #define _pwr_policy_limitdeltaapply(limit, delta) ((u32)max(((s32)limit) + (delta), 0))
@@ -536,7 +535,8 @@ static int devinit_get_pwr_policy_table(struct gk20a *g,
 	nvgpu_log_info(g, " ");
 
 	ptr = (u8 *)nvgpu_bios_get_perf_table_ptrs(g,
-			g->bios.perf_token, POWER_CAPPING_TABLE);
+			nvgpu_bios_get_bit_token(g, NVGPU_BIOS_PERF_TOKEN),
+						POWER_CAPPING_TABLE);
 	if (ptr == NULL) {
 		status = -EINVAL;
 		goto done;

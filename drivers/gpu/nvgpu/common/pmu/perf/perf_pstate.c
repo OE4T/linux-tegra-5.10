@@ -227,7 +227,8 @@ int nvgpu_pmu_perf_pstate_sw_setup(struct gk20a *g)
 
 	hdr = (struct vbios_pstate_header_6x *)
 			nvgpu_bios_get_perf_table_ptrs(g,
-			g->bios.perf_token, PERFORMANCE_TABLE);
+			nvgpu_bios_get_bit_token(g, NVGPU_BIOS_PERF_TOKEN),
+						PERFORMANCE_TABLE);
 
 	if (hdr == NULL) {
 		nvgpu_err(g, "performance table not found");

@@ -168,7 +168,7 @@ static int devinit_get_vfe_equ_table(struct gk20a *g,
 	nvgpu_log_info(g, " ");
 
 	vfeequs_tbl_ptr = (u8 *)nvgpu_bios_get_perf_table_ptrs(g,
-			g->bios.perf_token,
+			nvgpu_bios_get_bit_token(g, NVGPU_BIOS_PERF_TOKEN),
 			CONTINUOUS_VIRTUAL_BINNING_TABLE);
 
 	if (vfeequs_tbl_ptr == NULL) {

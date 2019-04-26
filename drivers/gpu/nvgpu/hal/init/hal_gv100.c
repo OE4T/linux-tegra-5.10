@@ -154,7 +154,6 @@
 #include "hal/fifo/channel_gm20b.h"
 #include "hal/fifo/channel_gv11b.h"
 #include "hal/fifo/channel_gv100.h"
-#include "common/vbios/bios_sw_gp106.h"
 #include "common/vbios/bios_sw_gv100.h"
 
 #include "hal_gv100.h"
@@ -201,14 +200,6 @@ static void gv100_init_gpu_characteristics(struct gk20a *g)
 
 
 static const struct gpu_ops gv100_ops = {
-	.bios = {
-		.init = gp106_bios_init,
-		.preos_wait_for_halt = gv100_bios_preos_wait_for_halt,
-		.preos_reload_check = gv100_bios_preos_reload_check,
-		.devinit = gp106_bios_devinit,
-		.preos = gp106_bios_preos,
-		.verify_devinit = NULL,
-	},
 	.ltc = {
 		.determine_L2_size_bytes = gp10b_determine_L2_size_bytes,
 		.set_zbc_s_entry = gv11b_ltc_set_zbc_stencil_entry,

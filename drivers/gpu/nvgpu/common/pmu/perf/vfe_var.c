@@ -275,14 +275,16 @@ static int dev_init_get_vfield_info(struct gk20a *g,
 	int status = 0;
 
 	vfieldregtableptr = (u8 *)nvgpu_bios_get_perf_table_ptrs(g,
-			g->bios.virt_token, VP_FIELD_REGISTER);
+			nvgpu_bios_get_bit_token(g, NVGPU_BIOS_VIRT_TOKEN),
+			VP_FIELD_REGISTER);
 	if (vfieldregtableptr == NULL) {
 		status = -EINVAL;
 		goto done;
 	}
 
 	vfieldtableptr = (u8 *)nvgpu_bios_get_perf_table_ptrs(g,
-			g->bios.virt_token, VP_FIELD_TABLE);
+			nvgpu_bios_get_bit_token(g, NVGPU_BIOS_VIRT_TOKEN),
+			VP_FIELD_TABLE);
 	if (vfieldtableptr == NULL) {
 		status = -EINVAL;
 		goto done;
@@ -1079,7 +1081,7 @@ static int devinit_get_vfe_var_table(struct gk20a *g,
 	nvgpu_log_info(g, " ");
 
 	vfevars_tbl_ptr = (u8 *)nvgpu_bios_get_perf_table_ptrs(g,
-			g->bios.perf_token,
+			nvgpu_bios_get_bit_token(g, NVGPU_BIOS_PERF_TOKEN),
 			CONTINUOUS_VIRTUAL_BINNING_TABLE);
 	if (vfevars_tbl_ptr == NULL) {
 		status = -EINVAL;

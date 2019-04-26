@@ -30,12 +30,12 @@ int nvgpu_bios_get_nvlink_config_data(struct gk20a *g)
 	int ret = 0;
 	struct nvlink_config_data_hdr_v1 config;
 
-	if (g->bios.nvlink_config_data_offset == 0U) {
+	if (g->bios->nvlink_config_data_offset == 0U) {
 		return -EINVAL;
 	}
 
 	nvgpu_memcpy((u8 *)&config,
-		&g->bios.data[g->bios.nvlink_config_data_offset],
+		&g->bios->data[g->bios->nvlink_config_data_offset],
 		sizeof(config));
 
 	if (config.version != NVLINK_CONFIG_DATA_HDR_VER_10) {
@@ -78,7 +78,8 @@ int nvgpu_bios_get_lpwr_nvlink_table_hdr(struct gk20a *g)
 	u8 *lpwr_nvlink_tbl_hdr_ptr = NULL;
 
 	lpwr_nvlink_tbl_hdr_ptr = (u8 *)nvgpu_bios_get_perf_table_ptrs(g,
-					g->bios.perf_token,
+					nvgpu_bios_get_bit_token(g,
+						NVGPU_BIOS_PERF_TOKEN),
 					LPWR_NVLINK_TABLE);
 	if (lpwr_nvlink_tbl_hdr_ptr == NULL) {
 		nvgpu_err(g, "Invalid pointer to LPWR_NVLINK_TABLE\n");

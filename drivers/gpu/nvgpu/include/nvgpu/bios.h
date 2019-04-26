@@ -31,6 +31,12 @@ struct gk20a;
 #define PERF_PTRS_WIDTH_16	U8(0x2)
 
 enum {
+	NVGPU_BIOS_CLOCK_TOKEN = 0,
+	NVGPU_BIOS_PERF_TOKEN,
+	NVGPU_BIOS_VIRT_TOKEN
+};
+
+enum {
 	CLOCKS_TABLE = 2,
 	CLOCK_PROGRAMMING_TABLE,
 	FLL_TABLE,
@@ -1390,6 +1396,60 @@ struct pci_ext_data_struct {
 	u8 flags;
 } __packed;
 
+struct nvgpu_bios_ucode {
+	u8 *bootloader;
+	u32 bootloader_phys_base;
+	u32 bootloader_size;
+	u8 *ucode;
+	u32 phys_base;
+	u32 size;
+	u8 *dmem;
+	u32 dmem_phys_base;
+	u32 dmem_size;
+	u32 code_entry_point;
+};
+
+struct nvgpu_bios {
+	u32 vbios_version;
+	u8 vbios_oem_version;
+
+	u8 *data;
+	size_t size;
+
+	struct nvgpu_bios_ucode devinit;
+	struct nvgpu_bios_ucode preos;
+
+	u8 *devinit_tables;
+	u32 devinit_tables_size;
+	u8 *bootscripts;
+	u32 bootscripts_size;
+
+	u8 mem_strap_data_count;
+	u16 mem_strap_xlat_tbl_ptr;
+
+	u32 condition_table_ptr;
+
+	u32 devinit_tables_phys_base;
+	u32 devinit_script_phys_base;
+
+	struct bit_token *perf_token;
+	struct bit_token *clock_token;
+	struct bit_token *virt_token;
+	u32 expansion_rom_offset;
+	u32 base_rom_size;
+
+	u32 nvlink_config_data_offset;
+	int (*init)(struct gk20a *g);
+	int (*preos_wait_for_halt)(struct gk20a *g);
+	void (*preos_reload_check)(struct gk20a *g);
+	int (*preos_bios)(struct gk20a *g);
+	int (*verify_devinit)(struct gk20a *g);
+	int (*devinit_bios)(struct gk20a *g);
+};
+int nvgpu_bios_devinit(struct gk20a *g, struct nvgpu_bios *bios);
+int nvgpu_bios_preos_wait_for_halt(struct gk20a *g, struct nvgpu_bios *bios);
+int nvgpu_bios_sw_init(struct gk20a *g, struct nvgpu_bios **bios);
+void nvgpu_bios_sw_deinit(struct gk20a *g, struct nvgpu_bios *bios);
 int nvgpu_bios_parse_rom(struct gk20a *g);
 u8 nvgpu_bios_read_u8(struct gk20a *g, u32 offset);
 s8 nvgpu_bios_read_s8(struct gk20a *g, u32 offset);
@@ -1397,5 +1457,9 @@ u16 nvgpu_bios_read_u16(struct gk20a *g, u32 offset);
 u32 nvgpu_bios_read_u32(struct gk20a *g, u32 offset);
 void *nvgpu_bios_get_perf_table_ptrs(struct gk20a *g,
 		struct bit_token *ptoken, u8 table_id);
-
+bool nvgpu_bios_check_dgpu(struct gk20a *g, u32 ver);
+u32  nvgpu_bios_get_vbios_version(struct gk20a *g);
+u8  nvgpu_bios_get_vbios_oem_version(struct gk20a *g);
+struct bit_token *nvgpu_bios_get_bit_token(struct gk20a *g,
+		u8 token_id);
 #endif

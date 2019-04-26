@@ -231,7 +231,7 @@ static int clk_get_freq_controller_table(struct gk20a *g,
 
 	pfreq_controller_table_ptr =
 		(u8 *)nvgpu_bios_get_perf_table_ptrs(g,
-			g->bios.clock_token,
+			nvgpu_bios_get_bit_token(g, NVGPU_BIOS_CLOCK_TOKEN),
 			FREQUENCY_CONTROLLER_TABLE);
 	if (pfreq_controller_table_ptr == NULL) {
 		status = -EINVAL;

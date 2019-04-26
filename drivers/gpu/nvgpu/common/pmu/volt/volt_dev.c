@@ -401,7 +401,8 @@ static int volt_get_volt_devices_table(struct gk20a *g,
 	u8 *entry_offset;
 
 	volt_device_table_ptr = (u8 *)nvgpu_bios_get_perf_table_ptrs(g,
-			g->bios.perf_token, VOLTAGE_DEVICE_TABLE);
+			nvgpu_bios_get_bit_token(g, NVGPU_BIOS_PERF_TOKEN),
+			VOLTAGE_DEVICE_TABLE);
 	if (volt_device_table_ptr == NULL) {
 		status = -EINVAL;
 		goto done;

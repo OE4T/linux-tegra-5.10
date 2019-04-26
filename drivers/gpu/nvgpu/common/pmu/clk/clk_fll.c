@@ -275,7 +275,8 @@ static int devinit_get_fll_device_table(struct gk20a *g,
 	nvgpu_log_info(g, " ");
 
 	fll_table_ptr = (u8 *)nvgpu_bios_get_perf_table_ptrs(g,
-			  g->bios.clock_token, FLL_TABLE);
+			  nvgpu_bios_get_bit_token(g, NVGPU_BIOS_CLOCK_TOKEN),
+							FLL_TABLE);
 	if (fll_table_ptr == NULL) {
 		status = -1;
 		goto done;

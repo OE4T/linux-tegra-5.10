@@ -96,7 +96,6 @@ srcs += common/sim/sim.c \
 	common/ecc.c \
 	common/ce/ce.c \
 	common/vbios/bios.c \
-	common/vbios/bios_sw_gp106.c \
 	common/falcon/falcon.c \
 	common/falcon/falcon_sw_gk20a.c \
 	common/falcon/falcon_sw_gp106.c \

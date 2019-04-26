@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 NVIDIA Corporation.  All rights reserved.
+ * Copyright (C) 2018-2019 NVIDIA Corporation.  All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -25,11 +25,11 @@ static int bios_version_show(struct seq_file *s, void *unused)
 	struct gk20a *g = s->private;
 
 	seq_printf(s, "Version %02X.%02X.%02X.%02X.%02X\n",
-		(g->bios.vbios_version >> 24) & 0xFF,
-		(g->bios.vbios_version >> 16) & 0xFF,
-		(g->bios.vbios_version >> 8) & 0xFF,
-		(g->bios.vbios_version >> 0) & 0xFF,
-		(g->bios.vbios_oem_version) & 0xFF);
+		(g->bios->vbios_version >> 24) & 0xFF,
+		(g->bios->vbios_version >> 16) & 0xFF,
+		(g->bios->vbios_version >> 8) & 0xFF,
+		(g->bios->vbios_version >> 0) & 0xFF,
+		(g->bios->vbios_oem_version) & 0xFF);
 
 	return 0;
 }

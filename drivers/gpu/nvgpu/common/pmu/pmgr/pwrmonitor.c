@@ -28,7 +28,6 @@
 
 #include "pwrdev.h"
 #include "pmgr.h"
-#include "common/vbios/bios_sw_gp106.h"
 
 static int _pwr_channel_pmudata_instget(struct gk20a *g,
 			struct nv_pmu_boardobjgrp *pmuboardobjgrp,
@@ -205,7 +204,8 @@ static int devinit_get_pwr_topology_table(struct gk20a *g,
 	nvgpu_log_info(g, " ");
 
 	pwr_topology_table_ptr = (u8 *)nvgpu_bios_get_perf_table_ptrs(g,
-			g->bios.perf_token, POWER_TOPOLOGY_TABLE);
+			nvgpu_bios_get_bit_token(g, NVGPU_BIOS_PERF_TOKEN),
+						POWER_TOPOLOGY_TABLE);
 	if (pwr_topology_table_ptr == NULL) {
 		status = -EINVAL;
 		goto done;

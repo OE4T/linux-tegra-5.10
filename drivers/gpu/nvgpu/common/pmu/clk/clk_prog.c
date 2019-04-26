@@ -457,7 +457,8 @@ static int devinit_get_clk_prog_table(struct gk20a *g,
 	nvgpu_log_info(g, " ");
 
 	clkprogs_tbl_ptr = (u8 *)nvgpu_bios_get_perf_table_ptrs(g,
-			g->bios.clock_token, CLOCK_PROGRAMMING_TABLE);
+			nvgpu_bios_get_bit_token(g, NVGPU_BIOS_CLOCK_TOKEN),
+						CLOCK_PROGRAMMING_TABLE);
 	if (clkprogs_tbl_ptr == NULL) {
 		return -EINVAL;
 	}

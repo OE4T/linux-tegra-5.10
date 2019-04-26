@@ -25,8 +25,8 @@
 #include <nvgpu/io.h>
 #include <nvgpu/gk20a.h>
 
+#include "bios_sw_gv100.h"
 #include "bios_sw_tu104.h"
-#include "bios_sw_gp106.h"
 
 #define NV_DEVINIT_VERIFY_TIMEOUT_MS		1000U
 #define NV_DEVINIT_VERIFY_TIMEOUT_DELAY_US	10U
@@ -71,5 +71,17 @@ int tu104_bios_init(struct gk20a *g)
 		return 0;
 	}
 
-	return gp106_bios_init(g);
+	return gv100_bios_init(g);
 }
+
+void nvgpu_tu104_bios_sw_init(struct gk20a *g,
+		struct nvgpu_bios *bios)
+{
+	bios->init = tu104_bios_init;
+	bios->preos_wait_for_halt = NULL;
+	bios->preos_reload_check = NULL;
+	bios->preos_bios = NULL;
+	bios->devinit_bios = NULL;
+	bios->verify_devinit = tu104_bios_verify_devinit;
+}
+

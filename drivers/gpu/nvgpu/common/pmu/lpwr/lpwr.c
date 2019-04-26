@@ -30,7 +30,6 @@
 #include <nvgpu/pmu/pmu_pstate.h>
 #include <nvgpu/pmu/pmu_pg.h>
 
-#include "common/vbios/bios_sw_gp106.h"
 #include "lpwr.h"
 
 static int get_lpwr_idx_table(struct gk20a *g)
@@ -44,7 +43,8 @@ static int get_lpwr_idx_table(struct gk20a *g)
 	struct nvgpu_bios_lpwr_idx_table_1x_entry entry = { 0 };
 
 	lpwr_idx_table_ptr = (u8 *)nvgpu_bios_get_perf_table_ptrs(g,
-		g->bios.perf_token, LOWPOWER_TABLE);
+		nvgpu_bios_get_bit_token(g, NVGPU_BIOS_PERF_TOKEN),
+					LOWPOWER_TABLE);
 	if (lpwr_idx_table_ptr == NULL) {
 		return -EINVAL;
 	}
@@ -88,7 +88,8 @@ static int get_lpwr_gr_table(struct gk20a *g)
 	struct nvgpu_bios_lpwr_gr_table_1x_entry entry = { 0 };
 
 	lpwr_gr_table_ptr = (u8 *)nvgpu_bios_get_perf_table_ptrs(g,
-		g->bios.perf_token, LOWPOWER_GR_TABLE);
+		nvgpu_bios_get_bit_token(g, NVGPU_BIOS_PERF_TOKEN),
+						LOWPOWER_GR_TABLE);
 	if (lpwr_gr_table_ptr == NULL) {
 		return -EINVAL;
 	}
@@ -134,7 +135,8 @@ static int get_lpwr_ms_table(struct gk20a *g)
 	struct nvgpu_bios_lpwr_ms_table_1x_entry entry = { 0 };
 
 	lpwr_ms_table_ptr = (u8 *)nvgpu_bios_get_perf_table_ptrs(g,
-		g->bios.perf_token, LOWPOWER_MS_TABLE);
+		nvgpu_bios_get_bit_token(g, NVGPU_BIOS_PERF_TOKEN),
+						LOWPOWER_MS_TABLE);
 	if (lpwr_ms_table_ptr == NULL) {
 		return -EINVAL;
 	}

@@ -318,7 +318,8 @@ static int volt_get_volt_policy_table(struct gk20a *g,
 
 	voltage_policy_table_ptr =
 		(u8 *)nvgpu_bios_get_perf_table_ptrs(g,
-			g->bios.perf_token, VOLTAGE_POLICY_TABLE);
+			nvgpu_bios_get_bit_token(g, NVGPU_BIOS_PERF_TOKEN),
+			VOLTAGE_POLICY_TABLE);
 	if (voltage_policy_table_ptr == NULL) {
 		status = -EINVAL;
 		goto done;

@@ -144,7 +144,8 @@ static int devinit_get_therm_channel_table(struct gk20a *g,
 	nvgpu_log_info(g, " ");
 
 	therm_channel_table_ptr = (u8 *)nvgpu_bios_get_perf_table_ptrs(g,
-			g->bios.perf_token, THERMAL_CHANNEL_TABLE);
+			nvgpu_bios_get_bit_token(g, NVGPU_BIOS_PERF_TOKEN),
+						THERMAL_CHANNEL_TABLE);
 	if (therm_channel_table_ptr == NULL) {
 		status = -EINVAL;
 		goto done;

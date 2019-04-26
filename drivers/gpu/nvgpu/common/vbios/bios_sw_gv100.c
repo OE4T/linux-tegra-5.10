@@ -26,8 +26,9 @@
 #include <nvgpu/io.h>
 #include <nvgpu/gk20a.h>
 
-#include "bios_sw_gp106.h"
 #include "bios_sw_gv100.h"
+
+#define BIOS_SIZE 0x90000
 
 #define PMU_BOOT_TIMEOUT_DEFAULT	100U /* usec */
 #define PMU_BOOT_TIMEOUT_MAX		2000000U /* usec */
@@ -103,4 +104,281 @@ int gv100_bios_preos_wait_for_halt(struct gk20a *g)
 	}
 
 	return err;
+}
+
+int gv100_bios_devinit(struct gk20a *g)
+{
+	int err = 0;
+	bool devinit_completed;
+	struct nvgpu_timeout timeout;
+	u32 top_scratch1_reg;
+
+	nvgpu_log_fn(g, " ");
+
+	if (nvgpu_falcon_reset(g->pmu->flcn) != 0) {
+		err = -ETIMEDOUT;
+		goto out;
+	}
+
+	err = nvgpu_falcon_copy_to_imem(g->pmu->flcn,
+			g->bios->devinit.bootloader_phys_base,
+			g->bios->devinit.bootloader,
+			g->bios->devinit.bootloader_size,
+			0, 0, g->bios->devinit.bootloader_phys_base >> 8);
+	if (err != 0) {
+		nvgpu_err(g, "bios devinit bootloader copy failed %d", err);
+		goto out;
+	}
+
+	err = nvgpu_falcon_copy_to_imem(g->pmu->flcn, g->bios->devinit.phys_base,
+					g->bios->devinit.ucode,
+					g->bios->devinit.size,
+					0, 1, g->bios->devinit.phys_base >> 8);
+	if (err != 0) {
+		nvgpu_err(g, "bios devinit ucode copy failed %d", err);
+		goto out;
+	}
+
+	err = nvgpu_falcon_copy_to_dmem(g->pmu->flcn,
+				g->bios->devinit.dmem_phys_base,
+				g->bios->devinit.dmem,
+				g->bios->devinit.dmem_size,
+				0);
+	if (err != 0) {
+		nvgpu_err(g, "bios devinit dmem copy failed %d", err);
+		goto out;
+	}
+
+	err = nvgpu_falcon_copy_to_dmem(g->pmu->flcn,
+				g->bios->devinit_tables_phys_base,
+				g->bios->devinit_tables,
+				g->bios->devinit_tables_size,
+				0);
+	if (err != 0) {
+		nvgpu_err(g, "fbios devinit tables copy failed %d", err);
+		goto out;
+	}
+
+	err = nvgpu_falcon_copy_to_dmem(g->pmu->flcn,
+		g->bios->devinit_script_phys_base,
+		g->bios->bootscripts,
+		g->bios->bootscripts_size,
+		0);
+	if (err != 0) {
+		nvgpu_err(g, "bios devinit bootscripts copy failed %d", err);
+		goto out;
+	}
+
+	err = nvgpu_falcon_bootstrap(g->pmu->flcn,
+				g->bios->devinit.code_entry_point);
+	if (err != 0) {
+		nvgpu_err(g, "falcon bootstrap failed %d", err);
+		goto out;
+	}
+
+	nvgpu_timeout_init(g, &timeout,
+					PMU_BOOT_TIMEOUT_MAX /
+						PMU_BOOT_TIMEOUT_DEFAULT,
+					NVGPU_TIMER_RETRY_TIMER);
+	do {
+		top_scratch1_reg = g->ops.top.read_top_scratch1_reg(g);
+		devinit_completed = ((g->ops.falcon.is_falcon_cpu_halted(
+				g->pmu->flcn) != 0U) &&
+				(g->ops.top.top_scratch1_devinit_completed(g,
+				top_scratch1_reg)) != 0U);
+
+		nvgpu_udelay(PMU_BOOT_TIMEOUT_DEFAULT);
+	} while (!devinit_completed && (nvgpu_timeout_expired(&timeout) == 0));
+
+	if (nvgpu_timeout_peek_expired(&timeout) != 0) {
+		err = -ETIMEDOUT;
+		goto out;
+	}
+
+	err = nvgpu_falcon_clear_halt_intr_status(g->pmu->flcn,
+		nvgpu_get_poll_timeout(g));
+	if (err != 0) {
+		nvgpu_err(g, "falcon_clear_halt_intr_status failed %d", err);
+		goto out;
+	}
+
+out:
+	nvgpu_log_fn(g, "done");
+	return err;
+}
+
+int gv100_bios_init(struct gk20a *g)
+{
+	unsigned int i;
+	int err;
+
+	nvgpu_log_fn(g, " ");
+
+	if (g->bios_is_init) {
+		return 0;
+	}
+
+	nvgpu_log_info(g, "reading bios from EEPROM");
+	g->bios->size = BIOS_SIZE;
+	g->bios->data = nvgpu_vmalloc(g, BIOS_SIZE);
+	if (g->bios->data == NULL) {
+		return -ENOMEM;
+	}
+
+	if (g->ops.xve.disable_shadow_rom != NULL) {
+		g->ops.xve.disable_shadow_rom(g);
+	}
+
+	for (i = 0U; i < g->bios->size/4U; i++) {
+		u32 val = be32_to_cpu(gk20a_readl(g, 0x300000U + i*4U));
+
+		g->bios->data[(i*4U)] = (val >> 24U) & 0xffU;
+		g->bios->data[(i*4U)+1U] = (val >> 16U) & 0xffU;
+		g->bios->data[(i*4U)+2U] = (val >> 8U) & 0xffU;
+		g->bios->data[(i*4U)+3U] = val & 0xffU;
+	}
+
+	if (g->ops.xve.enable_shadow_rom != NULL) {
+		g->ops.xve.enable_shadow_rom(g);
+	}
+
+	err = nvgpu_bios_parse_rom(g);
+	if (err != 0) {
+		goto free_firmware;
+	}
+
+	if (g->bios->vbios_version < g->vbios_min_version) {
+		nvgpu_err(g, "unsupported VBIOS version %08x",
+					g->bios->vbios_version);
+		err = -EINVAL;
+		goto free_firmware;
+	} else {
+		nvgpu_info(g, "VBIOS version %08x", g->bios->vbios_version);
+	}
+
+	if ((g->vbios_compatible_version != 0U) &&
+		(g->bios->vbios_version != g->vbios_compatible_version)) {
+			nvgpu_err(g, "VBIOS version %08x is not officially supported.",
+			g->bios->vbios_version);
+			nvgpu_err(g, "Update to VBIOS %08x, or use at your own risks.",
+				g->vbios_compatible_version);
+	}
+
+	nvgpu_log_fn(g, "done");
+
+	err = nvgpu_bios_devinit(g, g->bios);
+	if (err != 0) {
+		nvgpu_err(g, "devinit failed");
+		goto free_firmware;
+	}
+
+	if (nvgpu_is_enabled(g, NVGPU_PMU_RUN_PREOS) &&
+		(g->bios->preos_bios != NULL)) {
+			err = g->bios->preos_bios(g);
+			if (err != 0) {
+				nvgpu_err(g, "pre-os failed");
+				goto free_firmware;
+			}
+	}
+
+	if (g->bios->verify_devinit != NULL) {
+		err = g->bios->verify_devinit(g);
+		if (err != 0) {
+				nvgpu_err(g, "devinit status verification failed");
+				goto free_firmware;
+		}
+	}
+
+	g->bios_is_init = true;
+
+	return 0;
+
+free_firmware:
+	if (g->bios->data != NULL) {
+			nvgpu_vfree(g, g->bios->data);
+	}
+	return err;
+}
+
+int gv100_bios_preos(struct gk20a *g)
+{
+	int err = 0;
+
+	nvgpu_log_fn(g, " ");
+
+	if (nvgpu_falcon_reset(g->pmu->flcn) != 0) {
+		err = -ETIMEDOUT;
+		goto out;
+	}
+
+	if (g->bios->preos_reload_check != NULL) {
+		g->bios->preos_reload_check(g);
+	}
+
+	err = nvgpu_falcon_copy_to_imem(g->pmu->flcn,
+		g->bios->preos.bootloader_phys_base,
+		g->bios->preos.bootloader,
+		g->bios->preos.bootloader_size,
+		0, 0, g->bios->preos.bootloader_phys_base >> 8);
+
+	if (err != 0) {
+		nvgpu_err(g, "bios preos bootloader copy failed %d", err);
+		goto out;
+	}
+
+	err = nvgpu_falcon_copy_to_imem(g->pmu->flcn, g->bios->preos.phys_base,
+		g->bios->preos.ucode,
+		g->bios->preos.size,
+		0, 1, g->bios->preos.phys_base >> 8);
+
+	if (err != 0) {
+		nvgpu_err(g, "bios preos ucode copy failed %d", err);
+		goto out;
+	}
+
+	err = nvgpu_falcon_copy_to_dmem(g->pmu->flcn, g->bios->preos.dmem_phys_base,
+		g->bios->preos.dmem,
+		g->bios->preos.dmem_size,
+		0);
+
+	if (err != 0) {
+		nvgpu_err(g, "bios preos dmem copy failed %d", err);
+		goto out;
+	}
+
+	err = nvgpu_falcon_bootstrap(g->pmu->flcn,
+				g->bios->preos.code_entry_point);
+
+	if (err != 0) {
+		nvgpu_err(g, "falcon bootstrap failed %d", err);
+		goto out;
+	}
+
+	err = nvgpu_bios_preos_wait_for_halt(g, g->bios);
+	if (err != 0) {
+		nvgpu_err(g, "preos_wait_for_halt failed %d", err);
+		goto out;
+	}
+
+	err = nvgpu_falcon_clear_halt_intr_status(g->pmu->flcn,
+			nvgpu_get_poll_timeout(g));
+	if (err != 0) {
+		nvgpu_err(g, "falcon_clear_halt_intr_status failed %d", err);
+		goto out;
+	}
+
+out:
+	nvgpu_log_fn(g, "done");
+	return err;
+}
+
+void nvgpu_gv100_bios_sw_init(struct gk20a *g,
+		struct nvgpu_bios *bios)
+{
+	bios->init = gv100_bios_init;
+	bios->preos_wait_for_halt = gv100_bios_preos_wait_for_halt;
+	bios->preos_reload_check = gv100_bios_preos_reload_check;
+	bios->preos_bios = gv100_bios_preos;
+	bios->devinit_bios = gv100_bios_devinit;
+	bios->verify_devinit = NULL;
 }

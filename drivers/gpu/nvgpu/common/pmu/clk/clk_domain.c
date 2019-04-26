@@ -593,7 +593,8 @@ static int devinit_get_clocks_table(struct gk20a *g,
 	nvgpu_log_info(g, " ");
 
 	clocks_table_ptr = (u8 *)nvgpu_bios_get_perf_table_ptrs(g,
-			g->bios.clock_token, CLOCKS_TABLE);
+			nvgpu_bios_get_bit_token(g, NVGPU_BIOS_CLOCK_TOKEN),
+							CLOCKS_TABLE);
 	if (clocks_table_ptr == NULL) {
 		status = -EINVAL;
 		goto done;

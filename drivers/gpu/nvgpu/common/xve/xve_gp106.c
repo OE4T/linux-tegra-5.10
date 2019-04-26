@@ -26,8 +26,6 @@
 #include <nvgpu/timers.h>
 #include <nvgpu/gk20a.h>
 
-#include "common/vbios/bios_sw_gp106.h"
-
 #include "xve_gp106.h"
 
 #include <nvgpu/hw/gp106/hw_xp_gp106.h>

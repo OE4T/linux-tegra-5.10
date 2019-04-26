@@ -176,9 +176,6 @@
 
 #include "hal/clk/clk_gv100.h"
 
-#include "common/vbios/bios_sw_gp106.h"
-#include "common/vbios/bios_sw_tu104.h"
-
 #include "hal/fbpa/fbpa_tu104.h"
 #include "hal_tu104.h"
 #include "hal_tu104_litter.h"
@@ -224,12 +221,6 @@ static void tu104_init_gpu_characteristics(struct gk20a *g)
 
 static const struct gpu_ops tu104_ops = {
 	.bios = {
-		.init = tu104_bios_init,
-		.preos_wait_for_halt = NULL,
-		.preos_reload_check = NULL,
-		.devinit = NULL,
-		.preos = NULL,
-		.verify_devinit = tu104_bios_verify_devinit,
 		.get_aon_secure_scratch_reg = tu104_get_aon_secure_scratch_reg,
 	},
 	.ltc = {

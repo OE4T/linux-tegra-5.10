@@ -117,6 +117,7 @@ enum ctxsw_addr_type;
 #include <nvgpu/ltc.h>
 #include <nvgpu/nvgpu_err.h>
 #include <nvgpu/worker.h>
+#include <nvgpu/bios.h>
 #include <nvgpu/semaphore.h>
 #include <nvgpu/fifo.h>
 #include <nvgpu/unit.h>
@@ -1589,12 +1590,6 @@ struct gpu_ops {
 	} ptimer;
 
 	struct {
-		int (*init)(struct gk20a *g);
-		int (*preos_wait_for_halt)(struct gk20a *g);
-		void (*preos_reload_check)(struct gk20a *g);
-		int (*devinit)(struct gk20a *g);
-		int (*preos)(struct gk20a *g);
-		int (*verify_devinit)(struct gk20a *g);
 		u32 (*get_aon_secure_scratch_reg)(struct gk20a *g, u32 i);
 	} bios;
 
@@ -1834,51 +1829,6 @@ struct gpu_ops {
 		int (*gsp_reset)(struct gk20a *g);
 	} gsp;
 	void (*semaphore_wakeup)(struct gk20a *g, bool post_events);
-};
-
-struct nvgpu_bios_ucode {
-	u8 *bootloader;
-	u32 bootloader_phys_base;
-	u32 bootloader_size;
-	u8 *ucode;
-	u32 phys_base;
-	u32 size;
-	u8 *dmem;
-	u32 dmem_phys_base;
-	u32 dmem_size;
-	u32 code_entry_point;
-};
-
-struct nvgpu_bios {
-	u32 vbios_version;
-	u8 vbios_oem_version;
-
-	u8 *data;
-	size_t size;
-
-	struct nvgpu_bios_ucode devinit;
-	struct nvgpu_bios_ucode preos;
-
-	u8 *devinit_tables;
-	u32 devinit_tables_size;
-	u8 *bootscripts;
-	u32 bootscripts_size;
-
-	u8 mem_strap_data_count;
-	u16 mem_strap_xlat_tbl_ptr;
-
-	u32 condition_table_ptr;
-
-	u32 devinit_tables_phys_base;
-	u32 devinit_script_phys_base;
-
-	struct bit_token *perf_token;
-	struct bit_token *clock_token;
-	struct bit_token *virt_token;
-	u32 expansion_rom_offset;
-	u32 base_rom_size;
-
-	u32 nvlink_config_data_offset;
 };
 
 struct nvgpu_gpu_params {
@@ -2125,7 +2075,7 @@ struct gk20a {
 
 	u32 valid_tpc_mask[MAX_TPC_PG_CONFIGS];
 
-	struct nvgpu_bios bios;
+	struct nvgpu_bios *bios;
 	bool bios_is_init;
 
 	struct nvgpu_clk_arb *clk_arb;
