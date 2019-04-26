@@ -91,7 +91,7 @@ static int gp10b_pmu_lsfm_bootstrap_ls_falcon(struct gk20a *g,
 	lsfm->loaded_falcon_id = 0U;
 	/* check whether pmu is ready to bootstrap lsf if not wait for it */
 	if (!lsfm->is_wpr_init_done) {
-		pmu_wait_message_cond(&g->pmu,
+		pmu_wait_message_cond(g->pmu,
 				nvgpu_get_poll_timeout(g),
 				&lsfm->is_wpr_init_done, 1U);
 		/* check again if it still not ready indicate an error */
@@ -111,7 +111,7 @@ static int gp10b_pmu_lsfm_bootstrap_ls_falcon(struct gk20a *g,
 	}
 
 	nvgpu_assert(falcon_id_mask <= U8_MAX);
-	pmu_wait_message_cond(&g->pmu, nvgpu_get_poll_timeout(g),
+	pmu_wait_message_cond(g->pmu, nvgpu_get_poll_timeout(g),
 		&lsfm->loaded_falcon_id, (u8)falcon_id_mask);
 	if (lsfm->loaded_falcon_id != falcon_id_mask) {
 		err = -ETIMEDOUT;

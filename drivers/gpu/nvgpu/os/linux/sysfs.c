@@ -463,7 +463,7 @@ static ssize_t ldiv_slowdown_factor_store(struct device *dev,
 	struct device_attribute *attr, const char *buf, size_t count)
 {
 	struct gk20a *g = get_gk20a(dev);
-	struct nvgpu_pmu *pmu = &g->pmu;
+	struct nvgpu_pmu *pmu = g->pmu;
 	unsigned long val = 0;
 	int err;
 
@@ -516,7 +516,7 @@ static ssize_t mscg_enable_store(struct device *dev,
 	struct device_attribute *attr, const char *buf, size_t count)
 {
 	struct gk20a *g = get_gk20a(dev);
-	struct nvgpu_pmu *pmu = &g->pmu;
+	struct nvgpu_pmu *pmu = g->pmu;
 	unsigned long val = 0;
 	int err;
 
@@ -584,7 +584,7 @@ static ssize_t aelpg_param_store(struct device *dev,
 	struct gk20a *g = get_gk20a(dev);
 	int status = 0;
 	union pmu_ap_cmd ap_cmd;
-	int *paramlist = (int *)g->pmu.pg->aelpg_param;
+	int *paramlist = (int *)g->pmu->pg->aelpg_param;
 	u32 defaultparam[5] = {
 			APCTRL_SAMPLING_PERIOD_PG_DEFAULT_US,
 			APCTRL_MINIMUM_IDLE_FILTER_DEFAULT_US,
@@ -607,7 +607,7 @@ static ssize_t aelpg_param_store(struct device *dev,
 	/* If aelpg is enabled & pmu is ready then post values to
 	 * PMU else store then post later
 	 */
-	if (g->aelpg_enabled && nvgpu_pmu_get_fw_ready(g, &g->pmu)) {
+	if (g->aelpg_enabled && nvgpu_pmu_get_fw_ready(g, g->pmu)) {
 		/* Disable AELPG */
 		ap_cmd.disable_ctrl.cmd_id = PMU_AP_CMD_ID_DISABLE_CTRL;
 		ap_cmd.disable_ctrl.ctrl_id = PMU_AP_CTRL_ID_GRAPHICS;
@@ -627,9 +627,9 @@ static ssize_t aelpg_param_read(struct device *dev,
 	struct gk20a *g = get_gk20a(dev);
 
 	return snprintf(buf, PAGE_SIZE,
-		"%d %d %d %d %d\n", g->pmu.pg->aelpg_param[0],
-		g->pmu.pg->aelpg_param[1], g->pmu.pg->aelpg_param[2],
-		g->pmu.pg->aelpg_param[3], g->pmu.pg->aelpg_param[4]);
+		"%d %d %d %d %d\n", g->pmu->pg->aelpg_param[0],
+		g->pmu->pg->aelpg_param[1], g->pmu->pg->aelpg_param[2],
+		g->pmu->pg->aelpg_param[3], g->pmu->pg->aelpg_param[4]);
 }
 
 static DEVICE_ATTR(aelpg_param, ROOTRW,
@@ -652,7 +652,7 @@ static ssize_t aelpg_enable_store(struct device *dev,
 		return err;
 	}
 
-	if (nvgpu_pmu_get_fw_ready(g, &g->pmu)) {
+	if (nvgpu_pmu_get_fw_ready(g, g->pmu)) {
 		if (val && !g->aelpg_enabled) {
 			g->aelpg_enabled = true;
 			/* Enable AELPG */

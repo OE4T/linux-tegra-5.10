@@ -42,7 +42,7 @@ struct volt_rpc_pmucmdhandler_params {
 static int volt_set_voltage_rpc(struct gk20a *g, u8 client_id,
 		struct ctrl_volt_volt_rail_list_v1 *prail_list)
 {
-	struct nvgpu_pmu *pmu = &g->pmu;
+	struct nvgpu_pmu *pmu = g->pmu;
 	struct nv_pmu_rpc_struct_volt_volt_set_voltage rpc;
 	int status = 0;
 
@@ -63,7 +63,7 @@ static int volt_set_voltage_rpc(struct gk20a *g, u8 client_id,
 static int volt_rail_get_voltage(struct gk20a *g,
 	u8 volt_domain, u32 *pvoltage_uv)
 {
-	struct nvgpu_pmu *pmu = &g->pmu;
+	struct nvgpu_pmu *pmu = g->pmu;
 	struct nv_pmu_rpc_struct_volt_volt_rail_get_voltage rpc;
 	int status  = 0;
 	u8 rail_idx;
@@ -113,7 +113,7 @@ static int volt_set_voltage(struct gk20a *g, u32 logic_voltage_uv,
 
 int nvgpu_volt_send_load_cmd_to_pmu(struct gk20a *g)
 {
-	struct nvgpu_pmu *pmu = &g->pmu;
+	struct nvgpu_pmu *pmu = g->pmu;
 	struct nv_pmu_rpc_struct_volt_load rpc;
 	int status = 0;
 

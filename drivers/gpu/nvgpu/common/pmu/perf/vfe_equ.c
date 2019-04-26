@@ -746,7 +746,7 @@ static struct vfe_equ *construct_vfe_equ(struct gk20a *g, void *pargs)
 
 int nvgpu_vfe_get_volt_margin_limit(struct gk20a *g, u32 *vmargin_uv)
 {
-	struct nvgpu_pmu *pmu = &g->pmu;
+	struct nvgpu_pmu *pmu = g->pmu;
 	struct nv_pmu_rpc_struct_perf_vfe_eval rpc;
 	int status = 0;
 	u8 vmargin_idx;
@@ -773,11 +773,11 @@ int nvgpu_vfe_get_volt_margin_limit(struct gk20a *g, u32 *vmargin_uv)
 
 int nvgpu_vfe_get_freq_margin_limit(struct gk20a *g, u32 *fmargin_mhz)
 {
-	struct nvgpu_pmu *pmu = &g->pmu;
+	struct nvgpu_pmu *pmu = g->pmu;
 	struct nv_pmu_rpc_struct_perf_vfe_eval rpc;
 	int status = 0;
 	u8 fmargin_idx;
-	struct nvgpu_avfsfllobjs *pfllobjs =  g->pmu.clk_pmu->avfs_fllobjs;
+	struct nvgpu_avfsfllobjs *pfllobjs =  g->pmu->clk_pmu->avfs_fllobjs;
 
 	fmargin_idx = pfllobjs->freq_margin_vfe_idx;
 	if (fmargin_idx == 255U) {

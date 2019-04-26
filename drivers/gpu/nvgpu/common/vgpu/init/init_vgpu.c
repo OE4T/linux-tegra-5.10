@@ -68,15 +68,13 @@ void vgpu_remove_support_common(struct gk20a *g)
 		nvgpu_kfree(g, g->dbg_regops_tmp_buf);
 	}
 
-	if (g->pmu.remove_support) {
-		g->pmu.remove_support(&g->pmu);
-	}
-
 	nvgpu_gr_remove_support(g);
 
 	if (g->fifo.remove_support) {
 		g->fifo.remove_support(&g->fifo);
 	}
+
+	nvgpu_pmu_remove_support(g, g->pmu);
 
 	if (g->mm.remove_support) {
 		g->mm.remove_support(&g->mm);

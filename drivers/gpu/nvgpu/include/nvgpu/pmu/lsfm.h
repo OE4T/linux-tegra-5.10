@@ -45,6 +45,8 @@ int nvgpu_pmu_lsfm_ls_pmu_cmdline_args_copy(struct gk20a *g,
 void nvgpu_pmu_lsfm_rpc_handler(struct gk20a *g,
 	struct rpc_handler_payload *rpc_payload);
 int nvgpu_pmu_lsfm_init(struct gk20a *g, struct nvgpu_pmu_lsfm **lsfm);
+void nvgpu_pmu_lsfm_clean(struct gk20a *g, struct nvgpu_pmu *pmu,
+	struct nvgpu_pmu_lsfm *lsfm);
 void nvgpu_pmu_lsfm_deinit(struct gk20a *g, struct nvgpu_pmu *pmu,
 	struct nvgpu_pmu_lsfm *lsfm);
 

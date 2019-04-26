@@ -57,7 +57,7 @@ int nvgpu_clk_domain_freq_to_volt(struct gk20a *g, u8 clkdomain_idx,
 	u32 *pclkmhz, u32 *pvoltuv, u8 railidx)
 {
 	struct nv_pmu_rpc_clk_domain_35_prog_freq_to_volt  rpc;
-	struct nvgpu_pmu *pmu = &g->pmu;
+	struct nvgpu_pmu *pmu = g->pmu;
 	int status = -EINVAL;
 
 	(void)memset(&rpc, 0,
@@ -168,7 +168,7 @@ static int clk_pmu_vf_inject(struct gk20a *g,
 		goto done;
 	}
 
-	pmu_wait_message_cond(&g->pmu,
+	pmu_wait_message_cond(g->pmu,
 			nvgpu_get_poll_timeout(g),
 			&handler.success, 1);
 
@@ -186,31 +186,31 @@ int nvgpu_clk_set_fll_clks(struct gk20a *g,
 	int status = -EINVAL;
 
 	/*set regime ids */
-	status = g->pmu.clk_pmu->get_regime_id(g, CTRL_CLK_DOMAIN_GPCCLK,
+	status = g->pmu->clk_pmu->get_regime_id(g, CTRL_CLK_DOMAIN_GPCCLK,
 			&setfllclk->current_regime_id_gpc);
 	if (status != 0) {
 		goto done;
 	}
 
-	setfllclk->target_regime_id_gpc = g->pmu.clk_pmu->find_regime_id(g,
+	setfllclk->target_regime_id_gpc = g->pmu->clk_pmu->find_regime_id(g,
 			CTRL_CLK_DOMAIN_GPCCLK, setfllclk->gpc2clkmhz);
 
-	status = g->pmu.clk_pmu->get_regime_id(g, CTRL_CLK_DOMAIN_SYSCLK,
+	status = g->pmu->clk_pmu->get_regime_id(g, CTRL_CLK_DOMAIN_SYSCLK,
 			&setfllclk->current_regime_id_sys);
 	if (status != 0) {
 		goto done;
 	}
 
-	setfllclk->target_regime_id_sys = g->pmu.clk_pmu->find_regime_id(g,
+	setfllclk->target_regime_id_sys = g->pmu->clk_pmu->find_regime_id(g,
 			CTRL_CLK_DOMAIN_SYSCLK, setfllclk->sys2clkmhz);
 
-	status = g->pmu.clk_pmu->get_regime_id(g, CTRL_CLK_DOMAIN_XBARCLK,
+	status = g->pmu->clk_pmu->get_regime_id(g, CTRL_CLK_DOMAIN_XBARCLK,
 			&setfllclk->current_regime_id_xbar);
 	if (status != 0) {
 		goto done;
 	}
 
-	setfllclk->target_regime_id_xbar = g->pmu.clk_pmu->find_regime_id(g,
+	setfllclk->target_regime_id_xbar = g->pmu->clk_pmu->find_regime_id(g,
 			CTRL_CLK_DOMAIN_XBARCLK, setfllclk->xbar2clkmhz);
 
 	status = clk_pmu_vf_inject(g, setfllclk);
@@ -220,19 +220,19 @@ int nvgpu_clk_set_fll_clks(struct gk20a *g,
 	}
 
 	/* save regime ids */
-	status = g->pmu.clk_pmu->set_regime_id(g, CTRL_CLK_DOMAIN_XBARCLK,
+	status = g->pmu->clk_pmu->set_regime_id(g, CTRL_CLK_DOMAIN_XBARCLK,
 			setfllclk->target_regime_id_xbar);
 	if (status != 0) {
 		goto done;
 	}
 
-	status = g->pmu.clk_pmu->set_regime_id(g, CTRL_CLK_DOMAIN_GPCCLK,
+	status = g->pmu->clk_pmu->set_regime_id(g, CTRL_CLK_DOMAIN_GPCCLK,
 			setfllclk->target_regime_id_gpc);
 	if (status != 0) {
 		goto done;
 	}
 
-	status = g->pmu.clk_pmu->set_regime_id(g, CTRL_CLK_DOMAIN_SYSCLK,
+	status = g->pmu->clk_pmu->set_regime_id(g, CTRL_CLK_DOMAIN_SYSCLK,
 			setfllclk->target_regime_id_sys);
 	if (status != 0) {
 		goto done;
@@ -244,23 +244,23 @@ done:
 int nvgpu_clk_get_fll_clks(struct gk20a *g,
 		struct nvgpu_set_fll_clk *setfllclk)
 {
-	return g->pmu.clk_pmu->get_fll(g, setfllclk);
+	return g->pmu->clk_pmu->get_fll(g, setfllclk);
 }
 
 int nvgpu_clk_set_boot_fll_clk_tu10x(struct gk20a *g)
 {
-	return g->pmu.clk_pmu->set_boot_fll(g);
+	return g->pmu->clk_pmu->set_boot_fll(g);
 }
 
 int nvgpu_clk_init_pmupstate(struct gk20a *g)
 {
 	/* If already allocated, do not re-allocate */
-	if (g->pmu.clk_pmu != NULL) {
+	if (g->pmu->clk_pmu != NULL) {
 		return 0;
 	}
 
-	g->pmu.clk_pmu = nvgpu_kzalloc(g, sizeof(*g->pmu.clk_pmu));
-	if (g->pmu.clk_pmu == NULL) {
+	g->pmu->clk_pmu = nvgpu_kzalloc(g, sizeof(*g->pmu->clk_pmu));
+	if (g->pmu->clk_pmu == NULL) {
 		return -ENOMEM;
 	}
 
@@ -269,14 +269,14 @@ int nvgpu_clk_init_pmupstate(struct gk20a *g)
 
 void nvgpu_clk_free_pmupstate(struct gk20a *g)
 {
-	nvgpu_kfree(g, g->pmu.clk_pmu);
-	g->pmu.clk_pmu = NULL;
+	nvgpu_kfree(g, g->pmu->clk_pmu);
+	g->pmu->clk_pmu = NULL;
 }
 
 int nvgpu_clk_set_req_fll_clk_ps35(struct gk20a *g,
 		struct nvgpu_clk_slave_freq *vf_point)
 {
-	struct nvgpu_pmu *pmu = &g->pmu;
+	struct nvgpu_pmu *pmu = g->pmu;
 	struct nv_pmu_rpc_perf_change_seq_queue_change rpc;
 	struct ctrl_perf_change_seq_change_input change_input;
 	int status = 0;
@@ -287,7 +287,7 @@ int nvgpu_clk_set_req_fll_clk_ps35(struct gk20a *g,
 	(void) memset(&change_input, 0,
 		sizeof(struct ctrl_perf_change_seq_change_input));
 
-	g->pmu.clk_pmu->set_p0_clks(g, &gpcclk_domain, &gpcclk_clkmhz,
+	g->pmu->clk_pmu->set_p0_clks(g, &gpcclk_domain, &gpcclk_clkmhz,
 			vf_point, &change_input);
 
 	change_input.pstate_index = 0U;

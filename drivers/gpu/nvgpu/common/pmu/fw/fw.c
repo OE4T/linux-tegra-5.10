@@ -42,11 +42,11 @@
 void nvgpu_pmu_fw_get_cmd_line_args_offset(struct gk20a *g,
 	u32 *args_offset)
 {
-	struct nvgpu_pmu *pmu = &g->pmu;
+	struct nvgpu_pmu *pmu = g->pmu;
 	u32 dmem_size = 0;
 	int err = 0;
 
-	err = nvgpu_falcon_get_mem_size(&pmu->flcn, MEM_DMEM, &dmem_size);
+	err = nvgpu_falcon_get_mem_size(pmu->flcn, MEM_DMEM, &dmem_size);
 	if (err != 0) {
 		nvgpu_err(g, "dmem size request failed");
 		*args_offset = 0;

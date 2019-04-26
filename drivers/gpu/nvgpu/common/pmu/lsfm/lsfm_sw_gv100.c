@@ -69,7 +69,7 @@ static int gv100_pmu_lsfm_bootstrap_ls_falcon(struct gk20a *g,
 	lsfm->loaded_falcon_id = 0U;
 	/* check whether pmu is ready to bootstrap lsf if not wait for it */
 	if (!lsfm->is_wpr_init_done) {
-		pmu_wait_message_cond(&g->pmu,
+		pmu_wait_message_cond(g->pmu,
 			nvgpu_get_poll_timeout(g),
 			&lsfm->is_wpr_init_done, 1U);
 		/* check again if it still not ready indicate an error */
@@ -90,7 +90,7 @@ static int gv100_pmu_lsfm_bootstrap_ls_falcon(struct gk20a *g,
 		goto exit;
 	}
 
-	pmu_wait_message_cond(&g->pmu, nvgpu_get_poll_timeout(g),
+	pmu_wait_message_cond(g->pmu, nvgpu_get_poll_timeout(g),
 		&lsfm->loaded_falcon_id, 1U);
 
 	if (lsfm->loaded_falcon_id != 1U) {
@@ -108,7 +108,7 @@ int gv100_update_lspmu_cmdline_args_copy(struct gk20a *g,
 	u32 dmem_size = 0U;
 	int err = 0;
 
-	err = nvgpu_falcon_get_mem_size(&pmu->flcn, MEM_DMEM, &dmem_size);
+	err = nvgpu_falcon_get_mem_size(pmu->flcn, MEM_DMEM, &dmem_size);
 	if (err != 0) {
 		nvgpu_err(g, "dmem size request failed");
 		return -EINVAL;
@@ -129,7 +129,7 @@ int gv100_update_lspmu_cmdline_args_copy(struct gk20a *g,
 		pmu->fw->ops.config_cmd_line_args_super_surface(pmu);
 	}
 
-	return nvgpu_falcon_copy_to_dmem(&pmu->flcn, cmd_line_args_offset,
+	return nvgpu_falcon_copy_to_dmem(pmu->flcn, cmd_line_args_offset,
 		(u8 *)(pmu->fw->ops.get_cmd_line_args_ptr(pmu)),
 		pmu->fw->ops.get_cmd_line_args_size(pmu), 0U);
 }

@@ -184,7 +184,7 @@ static void pmu_handle_pg_elpg_msg(struct gk20a *g, struct pmu_msg *msg,
 /* PG enable/disable */
 int nvgpu_pmu_pg_global_enable(struct gk20a *g, bool enable_pg)
 {
-	struct nvgpu_pmu *pmu = &g->pmu;
+	struct nvgpu_pmu *pmu = g->pmu;
 	int status = 0;
 
 	if (!is_pg_supported(g, pmu->pg)) {
@@ -222,7 +222,7 @@ int nvgpu_pmu_pg_global_enable(struct gk20a *g, bool enable_pg)
 
 static int pmu_enable_elpg_locked(struct gk20a *g, u8 pg_engine_id)
 {
-	struct nvgpu_pmu *pmu = &g->pmu;
+	struct nvgpu_pmu *pmu = g->pmu;
 	struct pmu_cmd cmd;
 	int status;
 	u64 tmp;
@@ -264,7 +264,7 @@ static int pmu_enable_elpg_locked(struct gk20a *g, u8 pg_engine_id)
 
 int nvgpu_pmu_enable_elpg(struct gk20a *g)
 {
-	struct nvgpu_pmu *pmu = &g->pmu;
+	struct nvgpu_pmu *pmu = g->pmu;
 	u8 pg_engine_id;
 	u32 pg_engine_id_list = 0;
 
@@ -272,7 +272,7 @@ int nvgpu_pmu_enable_elpg(struct gk20a *g)
 
 	nvgpu_log_fn(g, " ");
 
-	if (!is_pg_supported(g, g->pmu.pg)) {
+	if (!is_pg_supported(g, g->pmu->pg)) {
 		return ret;
 	}
 
@@ -337,7 +337,7 @@ static void pmu_dump_elpg_stats(struct nvgpu_pmu *pmu)
 
 	/* Print PG stats */
 	nvgpu_err(g, "Print PG stats");
-	nvgpu_falcon_print_dmem(&pmu->flcn,
+	nvgpu_falcon_print_dmem(pmu->flcn,
 		pmu->pg->stat_dmem_offset[PMU_PG_ELPG_ENGINE_ID_GRAPHICS],
 		(u32)sizeof(struct pmu_pg_stats_v2));
 
@@ -347,7 +347,7 @@ static void pmu_dump_elpg_stats(struct nvgpu_pmu *pmu)
 
 int nvgpu_pmu_disable_elpg(struct gk20a *g)
 {
-	struct nvgpu_pmu *pmu = &g->pmu;
+	struct nvgpu_pmu *pmu = g->pmu;
 	struct pmu_cmd cmd;
 	int ret = 0;
 	u8 pg_engine_id;
@@ -494,7 +494,7 @@ static void pmu_handle_pg_stat_msg(struct gk20a *g, struct pmu_msg *msg,
 
 static int pmu_pg_init_send(struct gk20a *g, u8 pg_engine_id)
 {
-	struct nvgpu_pmu *pmu = &g->pmu;
+	struct nvgpu_pmu *pmu = g->pmu;
 	struct pmu_cmd cmd;
 	int err = 0;
 	u64 tmp;
@@ -744,7 +744,7 @@ static void pmu_pg_setup_hw_load_zbc(struct gk20a *g, struct nvgpu_pmu *pmu,
 int nvgpu_pmu_get_pg_stats(struct gk20a *g, u32 pg_engine_id,
 		struct pmu_pg_stats_data *pg_stat_data)
 {
-	struct nvgpu_pmu *pmu = &g->pmu;
+	struct nvgpu_pmu *pmu = g->pmu;
 	u32 pg_engine_id_list = 0;
 	int err = 0;
 
@@ -804,7 +804,7 @@ static void pmu_pg_kill_task(struct gk20a *g, struct nvgpu_pmu *pmu,
 static int pmu_pg_task(void *arg)
 {
 	struct gk20a *g = (struct gk20a *)arg;
-	struct nvgpu_pmu *pmu = &g->pmu;
+	struct nvgpu_pmu *pmu = g->pmu;
 	struct nvgpu_pg_init *pg_init = &pmu->pg->pg_init;
 	u32 pmu_state = 0;
 	int err = 0;
@@ -1053,7 +1053,7 @@ void nvgpu_pmu_pg_deinit(struct gk20a *g, struct nvgpu_pmu *pmu,
 
 void nvgpu_pmu_set_golden_image_initialized(struct gk20a *g, bool initialized)
 {
-	struct nvgpu_pmu *pmu = &g->pmu;
+	struct nvgpu_pmu *pmu = g->pmu;
 
 	if (!is_pg_supported(g, pmu->pg)) {
 		return;
@@ -1065,7 +1065,7 @@ void nvgpu_pmu_set_golden_image_initialized(struct gk20a *g, bool initialized)
 int nvgpu_pmu_elpg_statistics(struct gk20a *g, u32 pg_engine_id,
 			struct pmu_pg_stats_data *pg_stat_data)
 {
-	struct nvgpu_pmu *pmu = &g->pmu;
+	struct nvgpu_pmu *pmu = g->pmu;
 
 	if (!is_pg_supported(g, pmu->pg)) {
 		return 0;
@@ -1076,7 +1076,7 @@ int nvgpu_pmu_elpg_statistics(struct gk20a *g, u32 pg_engine_id,
 
 void nvgpu_pmu_save_zbc(struct gk20a *g, u32 entries)
 {
-	struct nvgpu_pmu *pmu = &g->pmu;
+	struct nvgpu_pmu *pmu = g->pmu;
 
 	if (!is_pg_supported(g, pmu->pg)) {
 		return;
@@ -1087,7 +1087,7 @@ void nvgpu_pmu_save_zbc(struct gk20a *g, u32 entries)
 
 bool nvgpu_pmu_is_lpwr_feature_supported(struct gk20a *g, u32 feature_id)
 {
-	struct nvgpu_pmu *pmu = &g->pmu;
+	struct nvgpu_pmu *pmu = g->pmu;
 
 	if (!is_pg_supported(g, pmu->pg)) {
 		return false;

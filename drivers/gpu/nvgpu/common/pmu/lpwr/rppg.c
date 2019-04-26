@@ -98,7 +98,7 @@ static int rppg_send_cmd(struct gk20a *g, struct nv_pmu_rppg_cmd *prppg_cmd)
 	}
 
 	if (prppg_cmd->cmn.cmd_id == NV_PMU_RPPG_CMD_ID_INIT_CTRL) {
-		pmu_wait_message_cond(&g->pmu, nvgpu_get_poll_timeout(g),
+		pmu_wait_message_cond(g->pmu, nvgpu_get_poll_timeout(g),
 			&success, 1);
 		if (success == 0U) {
 			status = -EINVAL;

@@ -46,7 +46,7 @@ static void pmu_handle_param_msg(struct gk20a *g, struct pmu_msg *msg,
 
 int gp106_pg_param_init(struct gk20a *g, u32 pg_engine_id)
 {
-	struct nvgpu_pmu *pmu = &g->pmu;
+	struct nvgpu_pmu *pmu = g->pmu;
 	struct pmu_cmd cmd;
 	int status;
 	u64 tmp_size;
@@ -102,11 +102,11 @@ int gp106_pg_param_init(struct gk20a *g, u32 pg_engine_id)
 int gp106_pmu_elpg_statistics(struct gk20a *g, u32 pg_engine_id,
 		struct pmu_pg_stats_data *pg_stat_data)
 {
-	struct nvgpu_pmu *pmu = &g->pmu;
+	struct nvgpu_pmu *pmu = g->pmu;
 	struct pmu_pg_stats_v2 stats;
 	int err;
 
-	err = nvgpu_falcon_copy_from_dmem(&pmu->flcn,
+	err = nvgpu_falcon_copy_from_dmem(pmu->flcn,
 		pmu->pg->stat_dmem_offset[pg_engine_id],
 			(u8 *)&stats, (u32)sizeof(struct pmu_pg_stats_v2), 0);
 	if (err != 0) {

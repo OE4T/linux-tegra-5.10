@@ -286,9 +286,9 @@ do {                                                                          \
 		_boardobjgrp_set_header_aligned), \
 	(u32)sizeof(union nv_pmu_##eng##_##class## \
 		_boardobj_set_union_aligned), \
-	(u32)nvgpu_pmu_get_ss_member_set_size(g, &g->pmu, \
+	(u32)nvgpu_pmu_get_ss_member_set_size(g, g->pmu, \
 		NV_PMU_SUPER_SURFACE_MEMBER_##CLASS##_GRP), \
-	(u32)nvgpu_pmu_get_ss_member_set_offset(g, &g->pmu, \
+	(u32)nvgpu_pmu_get_ss_member_set_offset(g, g->pmu, \
 	NV_PMU_SUPER_SURFACE_MEMBER_##CLASS##_GRP), \
 	NV_PMU_RPC_ID_##ENG##_BOARD_OBJ_GRP_CMD))
 
@@ -304,9 +304,9 @@ do {                                                                          \
 		_boardobjgrp_get_status_header_aligned), \
 	(u32)sizeof(union nv_pmu_##eng##_##class## \
 		_boardobj_get_status_union_aligned), \
-	(u32)nvgpu_pmu_get_ss_member_get_status_size(g, &g->pmu, \
+	(u32)nvgpu_pmu_get_ss_member_get_status_size(g, g->pmu, \
 		NV_PMU_SUPER_SURFACE_MEMBER_##CLASS##_GRP), \
-	(u32)nvgpu_pmu_get_ss_member_get_status_offset(g, &g->pmu, \
+	(u32)nvgpu_pmu_get_ss_member_get_status_offset(g, g->pmu, \
 	NV_PMU_SUPER_SURFACE_MEMBER_##CLASS##_GRP), \
 	NV_PMU_RPC_ID_##ENG##_BOARD_OBJ_GRP_CMD))
 

@@ -35,7 +35,7 @@ int nvgpu_aelpg_init(struct gk20a *g)
 	union pmu_ap_cmd ap_cmd;
 
 	ap_cmd.init.cmd_id = PMU_AP_CMD_ID_INIT;
-	ap_cmd.init.pg_sampling_period_us = g->pmu.pg->aelpg_param[0];
+	ap_cmd.init.pg_sampling_period_us = g->pmu->pg->aelpg_param[0];
 
 	status = nvgpu_pmu_ap_send_command(g, &ap_cmd, false);
 	return status;
@@ -43,7 +43,7 @@ int nvgpu_aelpg_init(struct gk20a *g)
 
 int nvgpu_aelpg_init_and_enable(struct gk20a *g, u8 ctrl_id)
 {
-	struct nvgpu_pmu *pmu = &g->pmu;
+	struct nvgpu_pmu *pmu = g->pmu;
 	int status = 0;
 	union pmu_ap_cmd ap_cmd;
 
@@ -95,7 +95,7 @@ static void ap_callback_init_and_enable_ctrl(
 int nvgpu_pmu_ap_send_command(struct gk20a *g,
 		union pmu_ap_cmd *p_ap_cmd, bool b_block)
 {
-	struct nvgpu_pmu *pmu = &g->pmu;
+	struct nvgpu_pmu *pmu = g->pmu;
 	int status = 0;
 	struct pmu_cmd cmd;
 	pmu_callback p_callback = NULL;

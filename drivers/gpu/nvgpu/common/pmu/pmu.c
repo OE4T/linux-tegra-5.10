@@ -40,6 +40,7 @@
 #include <nvgpu/pmu/debug.h>
 #include <nvgpu/boardobj.h>
 #include <nvgpu/boardobjgrp.h>
+#include <nvgpu/pmu/pmu_pstate.h>
 
 /* PMU locks used to sync with PMU-RTOS */
 int nvgpu_pmu_lock_acquire(struct gk20a *g, struct nvgpu_pmu *pmu,
@@ -100,6 +101,7 @@ int nvgpu_pmu_destroy(struct gk20a *g, struct nvgpu_pmu *pmu)
 
 	nvgpu_pmu_fw_state_change(g, pmu, PMU_FW_STATE_OFF, false);
 	nvgpu_pmu_set_fw_ready(g, pmu, false);
+	nvgpu_pmu_lsfm_clean(g, pmu, pmu->lsfm);
 	pmu->pmu_perfmon->perfmon_ready = false;
 
 	nvgpu_set_enabled(g, NVGPU_PMU_FECS_BOOTSTRAP_DONE, false);
@@ -139,6 +141,10 @@ static void remove_pmu_support(struct nvgpu_pmu *pmu)
 
 	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_PMU_SUPER_SURFACE)) {
 		nvgpu_pmu_super_surface_deinit(g, pmu, pmu->super_surface);
+	}
+
+	if (nvgpu_is_enabled(g, NVGPU_PMU_PSTATE)) {
+		nvgpu_pmu_pstate_deinit(g);
 	}
 
 	nvgpu_pmu_debug_deinit(g, pmu);
@@ -218,7 +224,7 @@ int nvgpu_pmu_init(struct gk20a *g, struct nvgpu_pmu *pmu)
 
 		if (nvgpu_is_enabled(g, NVGPU_SUPPORT_SEC2_RTOS)) {
 			/* Reset PMU engine */
-			err = nvgpu_falcon_reset(&g->pmu.flcn);
+			err = nvgpu_falcon_reset(g->pmu->flcn);
 
 			/* Bootstrap PMU from SEC2 RTOS*/
 			err = nvgpu_sec2_bootstrap_ls_falcons(g, &g->sec2,
@@ -232,7 +238,7 @@ int nvgpu_pmu_init(struct gk20a *g, struct nvgpu_pmu *pmu)
 		 * clear halt interrupt to avoid PMU-RTOS ucode
 		 * hitting breakpoint due to PMU halt
 		 */
-		err = nvgpu_falcon_clear_halt_intr_status(&g->pmu.flcn,
+		err = nvgpu_falcon_clear_halt_intr_status(g->pmu->flcn,
 			nvgpu_get_poll_timeout(g));
 		if (err != 0) {
 			goto exit;
@@ -249,10 +255,10 @@ int nvgpu_pmu_init(struct gk20a *g, struct nvgpu_pmu *pmu)
 		}
 
 		if (g->ops.pmu.pmu_enable_irq != NULL) {
-			nvgpu_mutex_acquire(&g->pmu.isr_mutex);
-			g->ops.pmu.pmu_enable_irq(&g->pmu, true);
-			g->pmu.isr_enabled = true;
-			nvgpu_mutex_release(&g->pmu.isr_mutex);
+			nvgpu_mutex_acquire(&g->pmu->isr_mutex);
+			g->ops.pmu.pmu_enable_irq(g->pmu, true);
+			g->pmu->isr_enabled = true;
+			nvgpu_mutex_release(&g->pmu->isr_mutex);
 		}
 
 		/*Once in LS mode, cpuctl_alias is only accessible*/
@@ -273,13 +279,28 @@ exit:
 	return err;
 }
 
-int nvgpu_pmu_early_init(struct gk20a *g, struct nvgpu_pmu *pmu)
+int nvgpu_pmu_early_init(struct gk20a *g, struct nvgpu_pmu **pmu_p)
 {
 	int err = 0;
+	struct nvgpu_pmu *pmu;
 
 	nvgpu_log_fn(g, " ");
 
+	if (*pmu_p != NULL) {
+		/* skip alloc/reinit for unrailgate sequence */
+		nvgpu_pmu_dbg(g, "skip pmu init for unrailgate sequence");
+		goto exit;
+	}
+
+	pmu = (struct nvgpu_pmu *) nvgpu_kzalloc(g, sizeof(struct nvgpu_pmu));
+	if (pmu == NULL) {
+		err = -ENOMEM;
+		goto exit;
+	}
+
+	*pmu_p = pmu;
 	pmu->g = g;
+	pmu->flcn = &g->pmu_flcn;
 
 	if (!g->support_ls_pmu) {
 		goto exit;
@@ -343,13 +364,24 @@ int nvgpu_pmu_early_init(struct gk20a *g, struct nvgpu_pmu *pmu)
 	}
 
 	pmu->remove_support = remove_pmu_support;
-
 	goto exit;
 
 init_failed:
 	remove_pmu_support(pmu);
 exit:
 	return err;
+}
+
+void nvgpu_pmu_remove_support(struct gk20a *g, struct nvgpu_pmu *pmu)
+{
+	if(pmu != NULL) {
+		if (pmu->remove_support != NULL) {
+			pmu->remove_support(g->pmu);
+		}
+
+		nvgpu_kfree(g, g->pmu);
+		g->pmu = NULL;
+	}
 }
 
 /* PMU H/W error functions */
@@ -392,7 +424,7 @@ static int pmu_enable_hw(struct nvgpu_pmu *pmu, bool enable)
 
 		nvgpu_cg_blcg_pmu_load_enable(g);
 
-		if (nvgpu_falcon_mem_scrub_wait(&pmu->flcn) != 0) {
+		if (nvgpu_falcon_mem_scrub_wait(pmu->flcn) != 0) {
 			/* keep PMU falcon/engine in reset
 			 * if IMEM/DMEM scrubbing fails
 			 */
@@ -427,7 +459,7 @@ static int pmu_enable(struct nvgpu_pmu *pmu, bool enable)
 			goto exit;
 		}
 
-		err = nvgpu_falcon_wait_idle(&pmu->flcn);
+		err = nvgpu_falcon_wait_idle(pmu->flcn);
 		if (err != 0) {
 			goto exit;
 		}
@@ -440,12 +472,12 @@ exit:
 
 int nvgpu_pmu_reset(struct gk20a *g)
 {
-	struct nvgpu_pmu *pmu = &g->pmu;
+	struct nvgpu_pmu *pmu = g->pmu;
 	int err = 0;
 
 	nvgpu_log_fn(g, " %s ", g->name);
 
-	err = nvgpu_falcon_wait_idle(&pmu->flcn);
+	err = nvgpu_falcon_wait_idle(pmu->flcn);
 	if (err != 0) {
 		goto exit;
 	}

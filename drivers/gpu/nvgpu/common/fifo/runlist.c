@@ -461,7 +461,7 @@ int nvgpu_runlist_reschedule(struct nvgpu_channel *ch, bool preempt_next,
 	}
 
 	mutex_ret = nvgpu_pmu_lock_acquire(
-		g, &g->pmu, PMU_MUTEX_ID_FIFO, &token);
+		g, g->pmu, PMU_MUTEX_ID_FIFO, &token);
 
 
 	g->ops.runlist.hw_submit(
@@ -480,7 +480,7 @@ int nvgpu_runlist_reschedule(struct nvgpu_channel *ch, bool preempt_next,
 	}
 
 	if (mutex_ret == 0) {
-		if (nvgpu_pmu_lock_release(g, &g->pmu,
+		if (nvgpu_pmu_lock_release(g, g->pmu,
 				PMU_MUTEX_ID_FIFO, &token) != 0) {
 			nvgpu_err(g, "failed to release PMU lock");
 		}
@@ -510,14 +510,14 @@ static int nvgpu_runlist_update(struct gk20a *g, u32 runlist_id,
 
 	nvgpu_mutex_acquire(&runlist->runlist_lock);
 
-	mutex_ret = nvgpu_pmu_lock_acquire(g, &g->pmu,
+	mutex_ret = nvgpu_pmu_lock_acquire(g, g->pmu,
 		PMU_MUTEX_ID_FIFO, &token);
 
 	ret = nvgpu_runlist_update_locked(g, runlist_id, ch, add,
 					       wait_for_finish);
 
 	if (mutex_ret == 0) {
-		if (nvgpu_pmu_lock_release(g, &g->pmu,
+		if (nvgpu_pmu_lock_release(g, g->pmu,
 				PMU_MUTEX_ID_FIFO, &token) != 0) {
 			nvgpu_err(g, "failed to release PMU lock");
 		}
@@ -608,13 +608,13 @@ void nvgpu_fifo_runlist_set_state(struct gk20a *g, u32 runlists_mask,
 			runlists_mask, runlist_state);
 
 
-	mutex_ret = nvgpu_pmu_lock_acquire(g, &g->pmu,
+	mutex_ret = nvgpu_pmu_lock_acquire(g, g->pmu,
 		PMU_MUTEX_ID_FIFO, &token);
 
 	g->ops.runlist.write_state(g, runlists_mask, runlist_state);
 
 	if (mutex_ret == 0) {
-		if (nvgpu_pmu_lock_release(g, &g->pmu,
+		if (nvgpu_pmu_lock_release(g, g->pmu,
 				PMU_MUTEX_ID_FIFO, &token) != 0) {
 			nvgpu_err(g, "failed to release PMU lock");
 		}

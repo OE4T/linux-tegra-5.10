@@ -97,7 +97,7 @@ static int nvgpu_clk_avfs_get_vin_cal_fuse_v20(struct gk20a *g,
 			gain = 0;
 			offset = 0;
 			pvindev = (struct vin_device_v20 *)(void *)
-				g->pmu.clk_pmu->clk_get_vin(pvinobjs, i);
+				g->pmu->clk_pmu->clk_get_vin(pvinobjs, i);
 			status = g->ops.fuse.read_vin_cal_gain_offset_fuse(g,
 					pvindev->super.id, &gain, &offset);
 			if (status != 0) {
@@ -186,7 +186,7 @@ int nvgpu_clk_vin_sw_setup(struct gk20a *g)
 	nvgpu_log_info(g, " ");
 
 	status = nvgpu_boardobjgrp_construct_e32(g,
-			&g->pmu.clk_pmu->avfs_vinobjs->super);
+			&g->pmu->clk_pmu->avfs_vinobjs->super);
 	if (status != 0) {
 		nvgpu_err(g,
 			"error creating boardobjgrp for clk vin, statu - 0x%x",
@@ -194,8 +194,8 @@ int nvgpu_clk_vin_sw_setup(struct gk20a *g)
 		goto done;
 	}
 
-	pboardobjgrp = &g->pmu.clk_pmu->avfs_vinobjs->super.super;
-	pvinobjs = g->pmu.clk_pmu->avfs_vinobjs;
+	pboardobjgrp = &g->pmu->clk_pmu->avfs_vinobjs->super.super;
+	pvinobjs = g->pmu->clk_pmu->avfs_vinobjs;
 
 	BOARDOBJGRP_PMU_CONSTRUCT(pboardobjgrp, CLK, VIN_DEVICE);
 
@@ -212,7 +212,7 @@ int nvgpu_clk_vin_sw_setup(struct gk20a *g)
 	pboardobjgrp->pmudatainstget  = _clk_vin_devgrp_pmudata_instget;
 	pboardobjgrp->pmustatusinstget  = _clk_vin_devgrp_pmustatus_instget;
 
-	status = devinit_get_vin_device_table(g, g->pmu.clk_pmu->avfs_vinobjs);
+	status = devinit_get_vin_device_table(g, g->pmu->clk_pmu->avfs_vinobjs);
 	if (status != 0) {
 		goto done;
 	}
@@ -226,7 +226,7 @@ int nvgpu_clk_vin_sw_setup(struct gk20a *g)
 	}
 
 	status = BOARDOBJGRP_PMU_CMD_GRP_GET_STATUS_CONSTRUCT(g,
-				&g->pmu.clk_pmu->avfs_vinobjs->super.super,
+				&g->pmu->clk_pmu->avfs_vinobjs->super.super,
 				clk, CLK, clk_vin_device, CLK_VIN_DEVICE);
 	if (status != 0) {
 		nvgpu_err(g,
@@ -247,7 +247,7 @@ int nvgpu_clk_vin_pmu_setup(struct gk20a *g)
 
 	nvgpu_log_info(g, " ");
 
-	pboardobjgrp = &g->pmu.clk_pmu->avfs_vinobjs->super.super;
+	pboardobjgrp = &g->pmu->clk_pmu->avfs_vinobjs->super.super;
 
 	if (!pboardobjgrp->bconstructed) {
 		return -EINVAL;
@@ -537,7 +537,7 @@ int nvgpu_clk_pmu_vin_load(struct gk20a *g)
 		goto done;
 	}
 
-	pmu_wait_message_cond(&g->pmu, nvgpu_get_poll_timeout(g),
+	pmu_wait_message_cond(g->pmu, nvgpu_get_poll_timeout(g),
 			&handler.success, 1);
 
 	if (handler.success == 0U) {
@@ -552,23 +552,23 @@ done:
 int nvgpu_clk_vin_init_pmupstate(struct gk20a *g)
 {
 	/* If already allocated, do not re-allocate */
-	if (g->pmu.clk_pmu->avfs_vinobjs != NULL) {
+	if (g->pmu->clk_pmu->avfs_vinobjs != NULL) {
 		return 0;
 	}
 
-	g->pmu.clk_pmu->avfs_vinobjs = nvgpu_kzalloc(g,
-			sizeof(*g->pmu.clk_pmu->avfs_vinobjs));
-	if (g->pmu.clk_pmu->avfs_vinobjs == NULL) {
+	g->pmu->clk_pmu->avfs_vinobjs = nvgpu_kzalloc(g,
+			sizeof(*g->pmu->clk_pmu->avfs_vinobjs));
+	if (g->pmu->clk_pmu->avfs_vinobjs == NULL) {
 		return -ENOMEM;
 	}
 
-	g->pmu.clk_pmu->clk_get_vin = clk_get_vin_from_index;
+	g->pmu->clk_pmu->clk_get_vin = clk_get_vin_from_index;
 
 	return 0;
 }
 
 void nvgpu_clk_vin_free_pmupstate(struct gk20a *g)
 {
-	nvgpu_kfree(g, g->pmu.clk_pmu->avfs_vinobjs);
-	g->pmu.clk_pmu->avfs_vinobjs = NULL;
+	nvgpu_kfree(g, g->pmu->clk_pmu->avfs_vinobjs);
+	g->pmu->clk_pmu->avfs_vinobjs = NULL;
 }

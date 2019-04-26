@@ -33,7 +33,7 @@ static int pmu_fb_queue_init(struct gk20a *g, struct pmu_queues *queues,
 		u32 id, union pmu_init_msg_pmu *init,
 		struct nvgpu_mem *super_surface_buf)
 {
-	struct nvgpu_pmu *pmu = &g->pmu;
+	struct nvgpu_pmu *pmu = g->pmu;
 	struct nvgpu_engine_fb_queue_params params = {0};
 	u32 oflag = 0;
 	int err = 0;
@@ -144,7 +144,7 @@ static int pmu_dmem_queue_init(struct gk20a *g, struct pmu_queues *queues,
 	params.queue_head = g->ops.pmu.pmu_queue_head;
 	params.queue_tail = g->ops.pmu.pmu_queue_tail;
 	params.queue_type = QUEUE_TYPE_DMEM;
-	g->pmu.fw->ops.get_init_msg_queue_params(id, init,
+	g->pmu->fw->ops.get_init_msg_queue_params(id, init,
 							 &params.index,
 							 &params.offset,
 							 &params.size);

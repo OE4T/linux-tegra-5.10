@@ -106,7 +106,7 @@ exit:
 
 static void build_change_seq_boot (struct gk20a *g)
 {
-	struct nvgpu_pmu *pmu = &g->pmu;
+	struct nvgpu_pmu *pmu = g->pmu;
 	struct change_seq_pmu *perf_change_seq_pmu =
 		&(g->perf_pmu->changeseq_pmu);
 	struct nvgpu_clk_domain *pdomain;
@@ -131,7 +131,7 @@ static void build_change_seq_boot (struct gk20a *g)
 
 	script_last->buf.change.data.flags = CTRL_PERF_CHANGE_SEQ_CHANGE_NONE;
 
-	BOARDOBJGRP_FOR_EACH(&(g->pmu.clk_pmu->clk_domainobjs->super.super),
+	BOARDOBJGRP_FOR_EACH(&(g->pmu->clk_pmu->clk_domainobjs->super.super),
 		struct nvgpu_clk_domain *, pdomain, i) {
 
 		p0_info = nvgpu_pmu_perf_pstate_get_clk_set_info(g,
@@ -173,7 +173,7 @@ int nvgpu_perf_change_seq_pmu_setup(struct gk20a *g)
 {
 	struct nv_pmu_rpc_perf_change_seq_info_get info_get;
 	struct nv_pmu_rpc_perf_change_seq_info_set info_set;
-	struct nvgpu_pmu *pmu = &g->pmu;
+	struct nvgpu_pmu *pmu = g->pmu;
 	struct change_seq_pmu *perf_change_seq_pmu =
 		&(g->perf_pmu->changeseq_pmu);
 	int status;

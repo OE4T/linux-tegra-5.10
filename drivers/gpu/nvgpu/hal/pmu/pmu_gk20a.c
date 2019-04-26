@@ -450,7 +450,7 @@ void gk20a_pmu_enable_irq(struct nvgpu_pmu *pmu, bool enable)
 	g->ops.mc.intr_unit_config(g, MC_INTR_UNIT_DISABLE, false,
 			mc_intr_mask_1_pmu_enabled_f());
 
-	nvgpu_falcon_set_irq(&pmu->flcn, false, 0x0, 0x0);
+	nvgpu_falcon_set_irq(pmu->flcn, false, 0x0, 0x0);
 
 	if (enable) {
 		intr_dest = g->ops.pmu.get_irqdest(g);
@@ -464,7 +464,7 @@ void gk20a_pmu_enable_irq(struct nvgpu_pmu *pmu, bool enable)
 			pwr_falcon_irqmset_swgen0_f(1) |
 			pwr_falcon_irqmset_swgen1_f(1);
 
-		nvgpu_falcon_set_irq(&pmu->flcn, true, intr_mask, intr_dest);
+		nvgpu_falcon_set_irq(pmu->flcn, true, intr_mask, intr_dest);
 
 		g->ops.mc.intr_unit_config(g, MC_INTR_UNIT_ENABLE, true,
 				mc_intr_mask_0_pmu_enabled_f());
@@ -491,7 +491,7 @@ bool gk20a_pmu_is_interrupted(struct nvgpu_pmu *pmu)
 
 static void gk20a_pmu_handle_interrupts(struct gk20a *g, u32 intr)
 {
-	struct nvgpu_pmu *pmu = &g->pmu;
+	struct nvgpu_pmu *pmu = g->pmu;
 	bool recheck = false;
 	int err = 0;
 
@@ -542,7 +542,7 @@ static void gk20a_pmu_handle_interrupts(struct gk20a *g, u32 intr)
 
 void gk20a_pmu_isr(struct gk20a *g)
 {
-	struct nvgpu_pmu *pmu = &g->pmu;
+	struct nvgpu_pmu *pmu = g->pmu;
 	u32 intr, mask;
 
 	nvgpu_log_fn(g, " ");
@@ -722,7 +722,7 @@ int gk20a_pmu_ns_bootstrap(struct gk20a *g, struct nvgpu_pmu *pmu,
 			pwr_falcon_dmatrfcmd_ctxdma_f(GK20A_PMU_DMAIDX_UCODE));
 	}
 
-	err = nvgpu_falcon_bootstrap(&g->pmu.flcn,
+	err = nvgpu_falcon_bootstrap(g->pmu->flcn,
 				     desc->bootloader_entry_point);
 
 	gk20a_writel(g, pwr_falcon_os_r(), desc->app_version);

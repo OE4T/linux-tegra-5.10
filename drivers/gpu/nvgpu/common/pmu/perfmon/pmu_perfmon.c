@@ -343,13 +343,13 @@ int nvgpu_pmu_perfmon_stop_sampling(struct nvgpu_pmu *pmu)
 
 int nvgpu_pmu_load_norm(struct gk20a *g, u32 *load)
 {
-	*load = g->pmu.pmu_perfmon->load_shadow;
+	*load = g->pmu->pmu_perfmon->load_shadow;
 	return 0;
 }
 
 int nvgpu_pmu_load_update(struct gk20a *g)
 {
-	struct nvgpu_pmu *pmu = &g->pmu;
+	struct nvgpu_pmu *pmu = g->pmu;
 	u32 load = 0;
 	int err = 0;
 	if (!pmu->pmu_perfmon->perfmon_ready) {
@@ -362,7 +362,7 @@ int nvgpu_pmu_load_update(struct gk20a *g)
 		nvgpu_pmu_perfmon_get_sample(g, pmu, pmu->pmu_perfmon);
 		load = pmu->pmu_perfmon->load;
 	} else {
-		err = nvgpu_falcon_copy_from_dmem(&pmu->flcn,
+		err = nvgpu_falcon_copy_from_dmem(pmu->flcn,
 			pmu->pmu_perfmon->sample_buffer, (u8 *)&load, 2 * 1, 0);
 		if (err != 0) {
 			nvgpu_err(g, "PMU falcon DMEM copy failed");

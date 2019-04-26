@@ -229,7 +229,7 @@ int gv11b_pmu_bootstrap(struct gk20a *g, struct nvgpu_pmu *pmu,
 			pwr_falcon_dmatrfcmd_ctxdma_f(GK20A_PMU_DMAIDX_UCODE));
 	}
 
-	err = nvgpu_falcon_bootstrap(&pmu->flcn, desc->bootloader_entry_point);
+	err = nvgpu_falcon_bootstrap(pmu->flcn, desc->bootloader_entry_point);
 
 	gk20a_writel(g, pwr_falcon_os_r(), desc->app_version);
 

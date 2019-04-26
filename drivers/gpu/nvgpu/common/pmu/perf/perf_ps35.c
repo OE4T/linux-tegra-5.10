@@ -100,7 +100,7 @@ static int perf_pmu_init_vfe_perf_event(struct gk20a *g)
 
 int nvgpu_perf_pmu_vfe_load_ps35(struct gk20a *g)
 {
-	struct nvgpu_pmu *pmu = &g->pmu;
+	struct nvgpu_pmu *pmu = g->pmu;
 	struct nv_pmu_rpc_struct_perf_load rpc;
 	int status = 0;
 

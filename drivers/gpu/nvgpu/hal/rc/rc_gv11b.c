@@ -61,7 +61,7 @@ static void gv11b_fifo_locked_abort_runlist_active_tsgs(struct gk20a *g,
 			"runlists_mask: 0x%08x", runlists_mask);
 
 	/* runlist_lock  are locked by teardown */
-	mutex_ret = nvgpu_pmu_lock_acquire(g, &g->pmu,
+	mutex_ret = nvgpu_pmu_lock_acquire(g, g->pmu,
 			PMU_MUTEX_ID_FIFO, &token);
 
 	for (i = 0U; i < f->num_runlists; i++) {
@@ -119,7 +119,7 @@ static void gv11b_fifo_locked_abort_runlist_active_tsgs(struct gk20a *g,
 		}
 	}
 	if (mutex_ret == 0) {
-		err = nvgpu_pmu_lock_release(g, &g->pmu, PMU_MUTEX_ID_FIFO,
+		err = nvgpu_pmu_lock_release(g, g->pmu, PMU_MUTEX_ID_FIFO,
 				&token);
 		if (err != 0) {
 			nvgpu_err(g, "PMU_MUTEX_ID_FIFO not released err=%d",

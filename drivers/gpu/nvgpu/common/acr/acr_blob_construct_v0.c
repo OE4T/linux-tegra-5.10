@@ -50,9 +50,9 @@ int nvgpu_acr_lsf_pmu_ucode_details_v0(struct gk20a *g, void *lsf_ucode_img)
 		goto exit;
 	}
 
-	fw_sig = nvgpu_pmu_fw_sig_desc(g, &g->pmu);
-	fw_desc = nvgpu_pmu_fw_desc_desc(g, &g->pmu);
-	fw_image = nvgpu_pmu_fw_image_desc(g, &g->pmu);
+	fw_sig = nvgpu_pmu_fw_sig_desc(g, g->pmu);
+	fw_desc = nvgpu_pmu_fw_desc_desc(g, g->pmu);
+	fw_image = nvgpu_pmu_fw_image_desc(g, g->pmu);
 
 	nvgpu_memcpy((u8 *)lsf_desc, (u8 *)fw_sig->data,
 		min_t(size_t, sizeof(*lsf_desc), fw_sig->size));

@@ -32,7 +32,7 @@
 static void lsfm_handle_acr_init_wpr_region_msg(struct gk20a *g,
 	struct pmu_msg *msg, void *param, u32 status)
 {
-	struct nvgpu_pmu *pmu = &g->pmu;
+	struct nvgpu_pmu *pmu = g->pmu;
 
 	nvgpu_log_fn(g, " ");
 
@@ -72,7 +72,7 @@ int gm20b_pmu_lsfm_init_acr_wpr_region(struct gk20a *g, struct nvgpu_pmu *pmu)
 void gm20b_pmu_lsfm_handle_bootstrap_falcon_msg(struct gk20a *g,
 	struct pmu_msg *msg, void *param, u32 status)
 {
-	struct nvgpu_pmu *pmu = &g->pmu;
+	struct nvgpu_pmu *pmu = g->pmu;
 
 	nvgpu_log_fn(g, " ");
 
@@ -130,7 +130,7 @@ static int gm20b_pmu_lsfm_bootstrap_ls_falcon(struct gk20a *g,
 
 	/* check whether pmu is ready to bootstrap lsf if not wait for it */
 	if (!lsfm->is_wpr_init_done) {
-		pmu_wait_message_cond(&g->pmu,
+		pmu_wait_message_cond(g->pmu,
 				nvgpu_get_poll_timeout(g),
 				&lsfm->is_wpr_init_done, 1U);
 		/* check again if it still not ready indicate an error */
@@ -150,7 +150,7 @@ static int gm20b_pmu_lsfm_bootstrap_ls_falcon(struct gk20a *g,
 	}
 
 	nvgpu_assert(falcon_id_mask <= U8_MAX);
-	pmu_wait_message_cond(&g->pmu, nvgpu_get_poll_timeout(g),
+	pmu_wait_message_cond(g->pmu, nvgpu_get_poll_timeout(g),
 		&lsfm->loaded_falcon_id, (u8)FALCON_ID_FECS);
 	if (lsfm->loaded_falcon_id != FALCON_ID_FECS) {
 		err = -ETIMEDOUT;
@@ -166,7 +166,7 @@ int gm20b_pmu_lsfm_pmu_cmd_line_args_copy(struct gk20a *g,
 	u32 dmem_size = 0U;
 	int err = 0;
 
-	err = nvgpu_falcon_get_mem_size(&pmu->flcn, MEM_DMEM, &dmem_size);
+	err = nvgpu_falcon_get_mem_size(pmu->flcn, MEM_DMEM, &dmem_size);
 	if (err != 0) {
 		nvgpu_err(g, "dmem size request failed");
 		return -EINVAL;
@@ -185,7 +185,7 @@ int gm20b_pmu_lsfm_pmu_cmd_line_args_copy(struct gk20a *g,
 	pmu->fw->ops.set_cmd_line_args_trace_dma_idx(
 		pmu, GK20A_PMU_DMAIDX_VIRT);
 
-	return nvgpu_falcon_copy_to_dmem(&pmu->flcn, cmd_line_args_offset,
+	return nvgpu_falcon_copy_to_dmem(pmu->flcn, cmd_line_args_offset,
 		(u8 *)(pmu->fw->ops.get_cmd_line_args_ptr(pmu)),
 		pmu->fw->ops.get_cmd_line_args_size(pmu), 0U);
 }

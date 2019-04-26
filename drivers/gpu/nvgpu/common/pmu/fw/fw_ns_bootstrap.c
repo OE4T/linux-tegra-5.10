@@ -28,7 +28,7 @@
 
 static int pmu_prepare_ns_ucode_blob(struct gk20a *g)
 {
-	struct nvgpu_pmu *pmu = &g->pmu;
+	struct nvgpu_pmu *pmu = g->pmu;
 	struct mm_gk20a *mm = &g->mm;
 	struct vm_gk20a *vm = mm->pmu.vm;
 	struct pmu_ucode_desc *desc;
@@ -41,10 +41,12 @@ static int pmu_prepare_ns_ucode_blob(struct gk20a *g)
 	desc = (struct pmu_ucode_desc *)(void *)rtos_fw->fw_image->data;
 	ucode_image = (u32 *)(void *)((u8 *)desc + desc->descriptor_size);
 
-	err = nvgpu_dma_alloc_map_sys(vm, GK20A_PMU_UCODE_SIZE_MAX,
-			&pmu->fw->ucode);
-	if (err != 0) {
-		goto exit;
+	if (!nvgpu_mem_is_valid(&rtos_fw->ucode)) {
+		err = nvgpu_dma_alloc_map_sys(vm, GK20A_PMU_UCODE_SIZE_MAX,
+				&rtos_fw->ucode);
+		if (err != 0) {
+			goto exit;
+		}
 	}
 
 	nvgpu_mem_wr_n(g, &pmu->fw->ucode, 0, ucode_image,
@@ -68,7 +70,7 @@ int nvgpu_pmu_ns_fw_bootstrap(struct gk20a *g, struct nvgpu_pmu *pmu)
 
 	/* Do non-secure PMU boot */
 	nvgpu_mutex_acquire(&pmu->isr_mutex);
-	nvgpu_falcon_reset(&pmu->flcn);
+	nvgpu_falcon_reset(pmu->flcn);
 	pmu->isr_enabled = true;
 	nvgpu_mutex_release(&pmu->isr_mutex);
 
@@ -85,9 +87,13 @@ int nvgpu_pmu_ns_fw_bootstrap(struct gk20a *g, struct nvgpu_pmu *pmu)
 
 	nvgpu_pmu_fw_get_cmd_line_args_offset(g, &args_offset);
 
-	nvgpu_falcon_copy_to_dmem(&pmu->flcn, args_offset,
+	err = nvgpu_falcon_copy_to_dmem(pmu->flcn, args_offset,
 		(u8 *)(pmu->fw->ops.get_cmd_line_args_ptr(pmu)),
 		pmu->fw->ops.get_cmd_line_args_size(pmu), 0);
+	if (err != 0) {
+		nvgpu_err(g, "cmd line args copy failed");
+		return err;
+	}
 
 	return g->ops.pmu.pmu_ns_bootstrap(g, pmu, args_offset);
 }

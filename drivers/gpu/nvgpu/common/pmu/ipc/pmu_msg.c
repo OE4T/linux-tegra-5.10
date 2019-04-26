@@ -37,7 +37,7 @@ static int pmu_payload_extract(struct nvgpu_pmu *pmu, struct pmu_sequence *seq)
 	struct nvgpu_engine_fb_queue *fb_queue =
 				nvgpu_pmu_seq_get_cmd_queue(seq);
 	struct gk20a *g = pmu->g;
-	struct pmu_fw_ver_ops *fw_ops = &g->pmu.fw->ops;
+	struct pmu_fw_ver_ops *fw_ops = &g->pmu->fw->ops;
 	u32 fbq_payload_offset = 0U;
 	int err = 0;
 
@@ -59,7 +59,7 @@ static int pmu_payload_extract(struct nvgpu_pmu *pmu, struct pmu_sequence *seq)
 	} else {
 		if (fw_ops->allocation_get_dmem_size(pmu,
 				fw_ops->get_seq_out_alloc_ptr(seq)) != 0U) {
-			err = nvgpu_falcon_copy_from_dmem(&pmu->flcn,
+			err = nvgpu_falcon_copy_from_dmem(pmu->flcn,
 					fw_ops->allocation_get_dmem_offset(pmu,
 					  fw_ops->get_seq_out_alloc_ptr(seq)),
 					nvgpu_pmu_seq_get_out_payload(seq),
@@ -81,7 +81,7 @@ static void pmu_payload_free(struct nvgpu_pmu *pmu, struct pmu_sequence *seq)
 	struct nvgpu_engine_fb_queue *fb_queue =
 				nvgpu_pmu_seq_get_cmd_queue(seq);
 	struct gk20a *g = pmu->g;
-	struct pmu_fw_ver_ops *fw_ops = &g->pmu.fw->ops;
+	struct pmu_fw_ver_ops *fw_ops = &g->pmu->fw->ops;
 	struct nvgpu_mem *in_mem = nvgpu_pmu_seq_get_in_mem(seq);
 	struct nvgpu_mem *out_mem = nvgpu_pmu_seq_get_out_mem(seq);
 	void *seq_in_ptr = fw_ops->get_seq_in_alloc_ptr(seq);
@@ -240,7 +240,7 @@ static bool pmu_engine_mem_queue_read(struct nvgpu_pmu *pmu,
 	u32 bytes_read;
 	int err;
 
-	err = nvgpu_pmu_queue_pop(&pmu->queues, &pmu->flcn, queue_id, data,
+	err = nvgpu_pmu_queue_pop(&pmu->queues, pmu->flcn, queue_id, data,
 				  bytes_to_read, &bytes_read);
 	if (err != 0) {
 		nvgpu_err(g, "fail to read msg: err %d", err);
@@ -279,7 +279,7 @@ static bool pmu_read_message(struct nvgpu_pmu *pmu, u32 queue_id,
 	if (msg->hdr.unit_id == PMU_UNIT_REWIND) {
 		if (!nvgpu_pmu_fb_queue_enabled(&pmu->queues)) {
 			err = nvgpu_pmu_queue_rewind(&pmu->queues, queue_id,
-						     &pmu->flcn);
+						     pmu->flcn);
 			if (err != 0) {
 				nvgpu_err(g, "fail to rewind queue %d",
 					  queue_id);
@@ -384,7 +384,7 @@ static int pmu_process_init_msg_dmem(struct gk20a *g, struct nvgpu_pmu *pmu,
 
 	g->ops.pmu.pmu_msgq_tail(pmu, &tail, QUEUE_GET);
 
-	err = nvgpu_falcon_copy_from_dmem(&pmu->flcn, tail,
+	err = nvgpu_falcon_copy_from_dmem(pmu->flcn, tail,
 		(u8 *)&msg->hdr, PMU_MSG_HDR_SIZE, 0);
 	if (err != 0) {
 		nvgpu_err(g, "PMU falcon DMEM copy failed");
@@ -396,7 +396,7 @@ static int pmu_process_init_msg_dmem(struct gk20a *g, struct nvgpu_pmu *pmu,
 		goto exit;
 	}
 
-	err = nvgpu_falcon_copy_from_dmem(&pmu->flcn, tail + PMU_MSG_HDR_SIZE,
+	err = nvgpu_falcon_copy_from_dmem(pmu->flcn, tail + PMU_MSG_HDR_SIZE,
 		(u8 *)&msg->msg, (u32)msg->hdr.size - PMU_MSG_HDR_SIZE, 0);
 	if (err != 0) {
 		nvgpu_err(g, "PMU falcon DMEM copy failed");
@@ -420,7 +420,7 @@ static int pmu_process_init_msg(struct nvgpu_pmu *pmu,
 			struct pmu_msg *msg)
 {
 	struct gk20a *g = pmu->g;
-	struct pmu_fw_ver_ops *fw_ops = &g->pmu.fw->ops;
+	struct pmu_fw_ver_ops *fw_ops = &g->pmu->fw->ops;
 	union pmu_init_msg_pmu *init;
 	struct pmu_sha1_gid_data gid_data;
 	int err = 0;
@@ -444,7 +444,7 @@ static int pmu_process_init_msg(struct nvgpu_pmu *pmu,
 	if (!pmu->gid_info.valid) {
 		u32 *gid_hdr_data = &gid_data.signature;
 
-		err = nvgpu_falcon_copy_from_dmem(&pmu->flcn,
+		err = nvgpu_falcon_copy_from_dmem(pmu->flcn,
 			fw_ops->get_init_msg_sw_mngd_area_off(init),
 			gid_data.sign_bytes,
 			(u32)sizeof(struct pmu_sha1_gid_data), 0);
@@ -554,7 +554,7 @@ static void pmu_rpc_handler(struct gk20a *g, struct pmu_msg *msg,
 			    struct nv_pmu_rpc_header rpc,
 			    struct rpc_handler_payload *rpc_payload)
 {
-	struct nvgpu_pmu *pmu = &g->pmu;
+	struct nvgpu_pmu *pmu = g->pmu;
 
 	switch (msg->hdr.unit_id) {
 	case PMU_UNIT_ACR:

@@ -752,13 +752,6 @@ void gk20a_remove_support(struct gk20a *g)
 
 	nvgpu_channel_remove_support_linux(l);
 
-	if (g->pmu.remove_support)
-		g->pmu.remove_support(&g->pmu);
-
-	if (nvgpu_is_enabled(g, NVGPU_PMU_PSTATE)) {
-		nvgpu_pmu_pstate_deinit(g);
-	}
-
 	if (g->sec2.remove_support != NULL) {
 		g->sec2.remove_support(&g->sec2);
 	}
@@ -770,6 +763,8 @@ void gk20a_remove_support(struct gk20a *g)
 
 	if (g->fifo.remove_support)
 		g->fifo.remove_support(&g->fifo);
+
+	nvgpu_pmu_remove_support(g, g->pmu);
 
 	if (g->mm.remove_support)
 		g->mm.remove_support(&g->mm);

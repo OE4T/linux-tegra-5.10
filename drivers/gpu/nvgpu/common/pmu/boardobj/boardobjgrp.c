@@ -318,7 +318,6 @@ static int pmu_cmd_pmu_init_handle_impl(struct gk20a *g,
 
 	nvgpu_log_info(g, " ");
 
-
 	if (is_pmu_cmd_id_valid(g,
 			pboardobjgrp, pcmd) != 0) {
 		goto pmu_cmd_pmu_init_handle_impl_exit;
@@ -366,7 +365,6 @@ static int pmu_init_handle_impl(struct gk20a *g,
 	}
 
 	/* If the GRP_SET CMD has not been allocated, nothing left to do. */
-
 	if ((is_pmu_cmd_id_valid(g,
 			pboardobjgrp, &pboardobjgrp->pmu.set) != 0)||
 		(BOARDOBJGRP_IS_EMPTY(pboardobjgrp))) {
@@ -388,7 +386,7 @@ static int pmu_cmd_send_rpc(struct gk20a *g,
 	struct boardobjgrp_pmu_cmd *pcmd,
 	bool copy_out)
 {
-	struct nvgpu_pmu *pmu = &g->pmu;
+	struct nvgpu_pmu *pmu = g->pmu;
 	struct nv_pmu_rpc_struct_board_obj_grp_cmd rpc;
 	int status = 0;
 
@@ -426,7 +424,7 @@ static int pmu_cmd_send_rpc(struct gk20a *g,
 static int pmu_set_impl(struct gk20a *g,
 	struct boardobjgrp *pboardobjgrp)
 {
-	struct nvgpu_pmu *pmu = &g->pmu;
+	struct nvgpu_pmu *pmu = g->pmu;
 	int status = 0;
 	struct boardobjgrp_pmu_cmd *pcmd =
 		(struct boardobjgrp_pmu_cmd *)(&pboardobjgrp->pmu.set);
@@ -489,7 +487,7 @@ static int
 pmu_get_status_impl(struct gk20a *g, struct boardobjgrp *pboardobjgrp,
 	struct boardobjgrpmask *mask)
 {
-	struct nvgpu_pmu *pmu = &g->pmu;
+	struct nvgpu_pmu *pmu = g->pmu;
 	int status  = 0;
 	struct boardobjgrp_pmu_cmd *pcmd =
 		(struct boardobjgrp_pmu_cmd *)(&pboardobjgrp->pmu.getstatus);

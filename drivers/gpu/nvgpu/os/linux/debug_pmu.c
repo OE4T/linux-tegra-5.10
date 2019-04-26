@@ -27,7 +27,7 @@
 static int lpwr_debug_show(struct seq_file *s, void *data)
 {
 	struct gk20a *g = s->private;
-	struct nvgpu_pmu *pmu = &g->pmu;
+	struct nvgpu_pmu *pmu = g->pmu;
 
 	if (pmu->pg->engines_feature_list &&
 		pmu->pg->engines_feature_list(g,
@@ -41,16 +41,16 @@ static int lpwr_debug_show(struct seq_file *s, void *data)
 			"MSCG pstate state: %u\n"
 			"MSCG transition state: %u\n",
 			g->ops.clk_arb.get_current_pstate(g),
-			g->elpg_enabled, g->pmu.pg->elpg_refcnt,
-			g->pmu.pg->elpg_stat, g->mscg_enabled,
-			g->pmu.pg->mscg_stat, g->pmu.pg->mscg_transition_state);
+			g->elpg_enabled, g->pmu->pg->elpg_refcnt,
+			g->pmu->pg->elpg_stat, g->mscg_enabled,
+			g->pmu->pg->mscg_stat, g->pmu->pg->mscg_transition_state);
 
 	} else
 		seq_printf(s, "ELPG Enabled: %u\n"
 			"ELPG ref count: %u\n"
 			"ELPG state: %u\n",
-			g->elpg_enabled, g->pmu.pg->elpg_refcnt,
-			g->pmu.pg->elpg_stat);
+			g->elpg_enabled, g->pmu->pg->elpg_refcnt,
+			g->pmu->pg->elpg_stat);
 
 	return 0;
 
@@ -258,7 +258,7 @@ static const struct file_operations elpg_transitions_fops = {
 static int falc_trace_show(struct seq_file *s, void *data)
 {
 	struct gk20a *g = s->private;
-	struct nvgpu_pmu *pmu = &g->pmu;
+	struct nvgpu_pmu *pmu = g->pmu;
 	u32 i = 0, j = 0, k, l, m;
 	char part_str[40];
 	void *tracebuffer;
@@ -320,7 +320,7 @@ static int perfmon_events_enable_show(struct seq_file *s, void *data)
 	struct gk20a *g = s->private;
 
 	seq_printf(s, "%u\n",
-		nvgpu_pmu_perfmon_get_sampling_enable_status(&(g->pmu)) ? 1 : 0);
+		nvgpu_pmu_perfmon_get_sampling_enable_status(g->pmu) ? 1 : 0);
 	return 0;
 
 }
@@ -356,24 +356,24 @@ static ssize_t perfmon_events_enable_write(struct file *file,
 		if (err)
 			return err;
 
-		if (val && !nvgpu_pmu_perfmon_get_sampling_enable_status(&(g->pmu))
+		if (val && !nvgpu_pmu_perfmon_get_sampling_enable_status(g->pmu)
 			&& nvgpu_is_enabled(g, NVGPU_PMU_PERFMON)) {
-			nvgpu_pmu_perfmon_set_sampling_enable_status(&(g->pmu),
+			nvgpu_pmu_perfmon_set_sampling_enable_status(g->pmu,
 									true);
-			nvgpu_pmu_perfmon_start_sample(g, &(g->pmu),
-							g->pmu.pmu_perfmon);
+			nvgpu_pmu_perfmon_start_sample(g, g->pmu,
+							g->pmu->pmu_perfmon);
 		} else if (!val
-			&& nvgpu_pmu_perfmon_get_sampling_enable_status(&(g->pmu))
+			&& nvgpu_pmu_perfmon_get_sampling_enable_status(g->pmu)
 			&& nvgpu_is_enabled(g, NVGPU_PMU_PERFMON)) {
-			nvgpu_pmu_perfmon_set_sampling_enable_status(&(g->pmu),
+			nvgpu_pmu_perfmon_set_sampling_enable_status(g->pmu,
 									false);
-			nvgpu_pmu_perfmon_stop_sample(g, &(g->pmu),
-							g->pmu.pmu_perfmon);
+			nvgpu_pmu_perfmon_stop_sample(g, g->pmu,
+							g->pmu->pmu_perfmon);
 		}
 		gk20a_idle(g);
 	} else {
 		status = val ? true : false;
-		nvgpu_pmu_perfmon_set_sampling_enable_status(&(g->pmu), status);
+		nvgpu_pmu_perfmon_set_sampling_enable_status(g->pmu, status);
 	}
 
 	return count;
@@ -391,7 +391,7 @@ static int perfmon_events_count_show(struct seq_file *s, void *data)
 {
 	struct gk20a *g = s->private;
 
-	seq_printf(s, "%llu\n", nvgpu_pmu_perfmon_get_events_count(&(g->pmu)));
+	seq_printf(s, "%llu\n", nvgpu_pmu_perfmon_get_events_count(g->pmu));
 	return 0;
 
 }

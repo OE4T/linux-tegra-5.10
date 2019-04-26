@@ -60,7 +60,7 @@ static void pmu_handle_pg_param_msg(struct gk20a *g, struct pmu_msg *msg,
 
 int gv11b_pg_gr_init(struct gk20a *g, u32 pg_engine_id)
 {
-	struct nvgpu_pmu *pmu = &g->pmu;
+	struct nvgpu_pmu *pmu = g->pmu;
 	struct pmu_cmd cmd;
 	size_t tmp_size;
 
@@ -91,7 +91,7 @@ int gv11b_pg_gr_init(struct gk20a *g, u32 pg_engine_id)
 
 int gv11b_pg_set_subfeature_mask(struct gk20a *g, u32 pg_engine_id)
 {
-	struct nvgpu_pmu *pmu = &g->pmu;
+	struct nvgpu_pmu *pmu = g->pmu;
 	struct pmu_cmd cmd;
 	size_t tmp_size;
 

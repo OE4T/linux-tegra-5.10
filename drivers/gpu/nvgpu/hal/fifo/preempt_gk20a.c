@@ -107,13 +107,13 @@ int gk20a_fifo_preempt_channel(struct gk20a *g, struct nvgpu_channel *ch)
 	/* we have no idea which runlist we are using. lock all */
 	nvgpu_runlist_lock_active_runlists(g);
 
-	mutex_ret = nvgpu_pmu_lock_acquire(g, &g->pmu,
+	mutex_ret = nvgpu_pmu_lock_acquire(g, g->pmu,
 		PMU_MUTEX_ID_FIFO, &token);
 
 	ret = gk20a_fifo_preempt_locked(g, ch->chid, ID_TYPE_CHANNEL);
 
 	if (mutex_ret == 0) {
-		if (nvgpu_pmu_lock_release(g, &g->pmu,
+		if (nvgpu_pmu_lock_release(g, g->pmu,
 				PMU_MUTEX_ID_FIFO, &token) != 0) {
 			nvgpu_err(g, "failed to release PMU lock");
 		}
@@ -155,13 +155,13 @@ int gk20a_fifo_preempt_tsg(struct gk20a *g, struct nvgpu_tsg *tsg)
 	/* we have no idea which runlist we are using. lock all */
 	nvgpu_runlist_lock_active_runlists(g);
 
-	mutex_ret = nvgpu_pmu_lock_acquire(g, &g->pmu,
+	mutex_ret = nvgpu_pmu_lock_acquire(g, g->pmu,
 			PMU_MUTEX_ID_FIFO, &token);
 
 	ret = gk20a_fifo_preempt_locked(g, tsg->tsgid, ID_TYPE_TSG);
 
 	if (mutex_ret == 0) {
-		if (nvgpu_pmu_lock_release(g, &g->pmu,
+		if (nvgpu_pmu_lock_release(g, g->pmu,
 				PMU_MUTEX_ID_FIFO, &token) != 0) {
 			nvgpu_err(g, "failed to release PMU lock");
 		}

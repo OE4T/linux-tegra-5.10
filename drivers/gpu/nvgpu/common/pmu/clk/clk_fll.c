@@ -149,14 +149,14 @@ int nvgpu_clk_fll_sw_setup(struct gk20a *g)
 	nvgpu_log_info(g, " ");
 
 	status = nvgpu_boardobjgrp_construct_e32(g,
-			&g->pmu.clk_pmu->avfs_fllobjs->super);
+			&g->pmu->clk_pmu->avfs_fllobjs->super);
 	if (status != 0) {
 		nvgpu_err(g,
 		"error creating boardobjgrp for fll, status - 0x%x", status);
 		goto done;
 	}
-	pfllobjs = g->pmu.clk_pmu->avfs_fllobjs;
-	pboardobjgrp = &(g->pmu.clk_pmu->avfs_fllobjs->super.super);
+	pfllobjs = g->pmu->clk_pmu->avfs_fllobjs;
+	pboardobjgrp = &(g->pmu->clk_pmu->avfs_fllobjs->super.super);
 
 	BOARDOBJGRP_PMU_CONSTRUCT(pboardobjgrp, CLK, FLL_DEVICE);
 
@@ -191,7 +191,7 @@ int nvgpu_clk_fll_sw_setup(struct gk20a *g)
 	}
 
 	status = BOARDOBJGRP_PMU_CMD_GRP_GET_STATUS_CONSTRUCT(g,
-				&g->pmu.clk_pmu->avfs_fllobjs->super.super,
+				&g->pmu->clk_pmu->avfs_fllobjs->super.super,
 				clk, CLK, clk_fll_device, CLK_FLL_DEVICE);
 	if (status != 0) {
 		nvgpu_err(g,
@@ -243,7 +243,7 @@ int nvgpu_clk_fll_pmu_setup(struct gk20a *g)
 
 	nvgpu_log_info(g, " ");
 
-	pboardobjgrp = &g->pmu.clk_pmu->avfs_fllobjs->super.super;
+	pboardobjgrp = &g->pmu->clk_pmu->avfs_fllobjs->super.super;
 
 	if (!pboardobjgrp->bconstructed) {
 		return -EINVAL;
@@ -270,7 +270,7 @@ static int devinit_get_fll_device_table(struct gk20a *g,
 	struct nvgpu_vin_device *pvin_dev;
 	u32 desctablesize;
 	u32 vbios_domain = NV_PERF_DOMAIN_4X_CLOCK_DOMAIN_SKIP;
-	struct nvgpu_avfsvinobjs *pvinobjs = g->pmu.clk_pmu->avfs_vinobjs;
+	struct nvgpu_avfsvinobjs *pvinobjs = g->pmu->clk_pmu->avfs_vinobjs;
 
 	nvgpu_log_info(g, " ");
 
@@ -320,7 +320,7 @@ static int devinit_get_fll_device_table(struct gk20a *g,
 
 		if ((u8)fll_desc_table_entry.vin_idx_logic !=
 				CTRL_CLK_VIN_ID_UNDEFINED) {
-			pvin_dev = g->pmu.clk_pmu->clk_get_vin(pvinobjs,
+			pvin_dev = g->pmu->clk_pmu->clk_get_vin(pvinobjs,
 					(u8)fll_desc_table_entry.vin_idx_logic);
 			if (pvin_dev == NULL) {
 				return -EINVAL;
@@ -339,7 +339,7 @@ static int devinit_get_fll_device_table(struct gk20a *g,
 
 		if ((u8)fll_desc_table_entry.vin_idx_sram !=
 				CTRL_CLK_VIN_ID_UNDEFINED) {
-			pvin_dev = g->pmu.clk_pmu->clk_get_vin(pvinobjs,
+			pvin_dev = g->pmu->clk_pmu->clk_get_vin(pvinobjs,
 					(u8)fll_desc_table_entry.vin_idx_sram);
 			if (pvin_dev == NULL) {
 				return -EINVAL;
@@ -547,7 +547,7 @@ static u8 find_regime_id(struct gk20a *g, u32 domain, u16 clkmhz)
 {
 	struct fll_device *pflldev;
 	u8 j;
-	struct nvgpu_clk_pmupstate *pclk = g->pmu.clk_pmu;
+	struct nvgpu_clk_pmupstate *pclk = g->pmu->clk_pmu;
 
 	BOARDOBJGRP_FOR_EACH(&(pclk->avfs_fllobjs->super.super),
 		struct fll_device *, pflldev, j) {
@@ -567,7 +567,7 @@ static int set_regime_id(struct gk20a *g, u32 domain, u8 regimeid)
 {
 	struct fll_device *pflldev;
 	u8 j;
-	struct nvgpu_clk_pmupstate *pclk = g->pmu.clk_pmu;
+	struct nvgpu_clk_pmupstate *pclk = g->pmu->clk_pmu;
 
 	BOARDOBJGRP_FOR_EACH(&(pclk->avfs_fllobjs->super.super),
 		struct fll_device *, pflldev, j) {
@@ -583,7 +583,7 @@ static int get_regime_id(struct gk20a *g, u32 domain, u8 *regimeid)
 {
 	struct fll_device *pflldev;
 	u8 j;
-	struct nvgpu_clk_pmupstate *pclk = g->pmu.clk_pmu;
+	struct nvgpu_clk_pmupstate *pclk = g->pmu->clk_pmu;
 
 	BOARDOBJGRP_FOR_EACH(&(pclk->avfs_fllobjs->super.super),
 		struct fll_device *, pflldev, j) {
@@ -598,24 +598,24 @@ static int get_regime_id(struct gk20a *g, u32 domain, u8 *regimeid)
 int nvgpu_clk_fll_init_pmupstate(struct gk20a *g)
 {
 	/* If already allocated, do not re-allocate */
-	if (g->pmu.clk_pmu->avfs_fllobjs != NULL) {
+	if (g->pmu->clk_pmu->avfs_fllobjs != NULL) {
 		return 0;
 	}
 
-	g->pmu.clk_pmu->avfs_fllobjs = nvgpu_kzalloc(g,
-			sizeof(*g->pmu.clk_pmu->avfs_fllobjs));
-	if (g->pmu.clk_pmu->avfs_fllobjs == NULL) {
+	g->pmu->clk_pmu->avfs_fllobjs = nvgpu_kzalloc(g,
+			sizeof(*g->pmu->clk_pmu->avfs_fllobjs));
+	if (g->pmu->clk_pmu->avfs_fllobjs == NULL) {
 		return -ENOMEM;
 	}
 
-	g->pmu.clk_pmu->find_regime_id = find_regime_id;
-	g->pmu.clk_pmu->get_regime_id = get_regime_id;
-	g->pmu.clk_pmu->set_regime_id = set_regime_id;
-	g->pmu.clk_pmu->get_fll_lut_vf_num_entries =
+	g->pmu->clk_pmu->find_regime_id = find_regime_id;
+	g->pmu->clk_pmu->get_regime_id = get_regime_id;
+	g->pmu->clk_pmu->set_regime_id = set_regime_id;
+	g->pmu->clk_pmu->get_fll_lut_vf_num_entries =
 			clk_get_fll_lut_vf_num_entries;
-	g->pmu.clk_pmu->get_fll_lut_min_volt =
+	g->pmu->clk_pmu->get_fll_lut_min_volt =
 			clk_get_fll_lut_min_volt;
-	g->pmu.clk_pmu->get_fll_lut_step_size =
+	g->pmu->clk_pmu->get_fll_lut_step_size =
 			clk_get_fll_lut_step_size;
 
 	return 0;
@@ -623,6 +623,6 @@ int nvgpu_clk_fll_init_pmupstate(struct gk20a *g)
 
 void nvgpu_clk_fll_free_pmupstate(struct gk20a *g)
 {
-	nvgpu_kfree(g, g->pmu.clk_pmu->avfs_fllobjs);
-	g->pmu.clk_pmu->avfs_fllobjs = NULL;
+	nvgpu_kfree(g, g->pmu->clk_pmu->avfs_fllobjs);
+	g->pmu->clk_pmu->avfs_fllobjs = NULL;
 }

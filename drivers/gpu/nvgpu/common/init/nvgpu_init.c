@@ -100,7 +100,7 @@ int gk20a_prepare_poweroff(struct gk20a *g)
 
 	/* disable elpg before gr or fifo suspend */
 	if (g->support_ls_pmu) {
-		ret = nvgpu_pmu_destroy(g, &g->pmu);
+		ret = nvgpu_pmu_destroy(g, g->pmu);
 	}
 
 	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_SEC2_RTOS)) {
@@ -368,7 +368,7 @@ int gk20a_finalize_poweron(struct gk20a *g)
 		}
 	}
 
-	err = nvgpu_pmu_init(g, &g->pmu);
+	err = nvgpu_pmu_init(g, g->pmu);
 	if (err != 0) {
 		nvgpu_err(g, "failed to init gk20a pmu");
 		nvgpu_mutex_release(&g->tpc_pg_lock);
@@ -414,8 +414,8 @@ int gk20a_finalize_poweron(struct gk20a *g)
 	}
 
 	if (nvgpu_is_enabled(g, NVGPU_PMU_PSTATE) &&
-		(g->pmu.fw->ops.clk.clk_set_boot_clk != NULL)) {
-		err = g->pmu.fw->ops.clk.clk_set_boot_clk(g);
+		(g->pmu->fw->ops.clk.clk_set_boot_clk != NULL)) {
+		err = g->pmu->fw->ops.clk.clk_set_boot_clk(g);
 		if (err != 0) {
 			nvgpu_err(g, "failed to set boot clk");
 			goto done;

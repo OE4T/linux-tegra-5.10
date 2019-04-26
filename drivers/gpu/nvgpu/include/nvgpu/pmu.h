@@ -149,7 +149,7 @@ struct nvgpu_pmu {
 	bool sw_ready;
 	bool isr_enabled;
 	struct nvgpu_mutex isr_mutex;
-	struct nvgpu_falcon flcn;
+	struct nvgpu_falcon *flcn;
 	struct nvgpu_allocator dmem;
 	struct nvgpu_mem trace_buf;
 	struct pmu_sha1_gid gid_info;
@@ -189,9 +189,10 @@ int nvgpu_pmu_lock_release(struct gk20a *g, struct nvgpu_pmu *pmu,
 	u32 id, u32 *token);
 
 /* PMU RTOS init/setup functions */
-int nvgpu_pmu_early_init(struct gk20a *g, struct nvgpu_pmu *pmu);
+int nvgpu_pmu_early_init(struct gk20a *g, struct nvgpu_pmu **pmu_p);
 int nvgpu_pmu_init(struct gk20a *g, struct nvgpu_pmu *pmu);
 int nvgpu_pmu_destroy(struct gk20a *g, struct nvgpu_pmu *pmu);
+void nvgpu_pmu_remove_support(struct gk20a *g, struct nvgpu_pmu *pmu);
 
 /* PMU H/W error functions */
 void nvgpu_pmu_report_bar0_pri_err_status(struct gk20a *g, u32 bar0_status,

@@ -592,7 +592,7 @@ int nvgpu_volt_dev_sw_setup(struct gk20a *g)
 		}
 	}
 
-	g->pmu.volt_rpc_handler = nvgpu_pmu_volt_rpc_handler;
+	g->pmu->volt_rpc_handler = nvgpu_pmu_volt_rpc_handler;
 
 done:
 	nvgpu_log_info(g, " done status %x", status);

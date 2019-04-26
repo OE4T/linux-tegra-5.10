@@ -275,7 +275,7 @@ int nvgpu_lwpr_mclk_change(struct gk20a *g, u32 pstate)
 			PMU_COMMAND_QUEUE_HPQ,
 			nvgpu_pmu_handle_param_lpwr_msg, &ack_status);
 
-		pmu_wait_message_cond(&g->pmu, nvgpu_get_poll_timeout(g),
+		pmu_wait_message_cond(g->pmu, nvgpu_get_poll_timeout(g),
 			&ack_status, 1);
 		if (ack_status == 0U) {
 			status = -EINVAL;
@@ -310,7 +310,7 @@ int nvgpu_lpwr_post_init(struct gk20a *g)
 		PMU_COMMAND_QUEUE_LPQ,
 		nvgpu_pmu_handle_param_lpwr_msg, &ack_status);
 
-	pmu_wait_message_cond(&g->pmu, nvgpu_get_poll_timeout(g),
+	pmu_wait_message_cond(g->pmu, nvgpu_get_poll_timeout(g),
 		&ack_status, 1);
 	if (ack_status == 0U) {
 		status = -EINVAL;
@@ -369,7 +369,7 @@ bool nvgpu_lpwr_is_rppg_supported(struct gk20a *g, u32 pstate_num)
 
 int nvgpu_lpwr_enable_pg(struct gk20a *g, bool pstate_lock)
 {
-	struct nvgpu_pmu *pmu = &g->pmu;
+	struct nvgpu_pmu *pmu = g->pmu;
 	int  status = 0;
 	bool is_mscg_supported = false;
 	bool is_rppg_supported = false;
@@ -410,7 +410,7 @@ int nvgpu_lpwr_enable_pg(struct gk20a *g, bool pstate_lock)
 
 int nvgpu_lpwr_disable_pg(struct gk20a *g, bool pstate_lock)
 {
-	struct nvgpu_pmu *pmu = &g->pmu;
+	struct nvgpu_pmu *pmu = g->pmu;
 	int status = 0;
 	bool is_mscg_supported = false;
 	bool is_rppg_supported = false;

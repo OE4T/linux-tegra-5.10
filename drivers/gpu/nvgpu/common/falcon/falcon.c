@@ -646,7 +646,7 @@ static struct nvgpu_falcon *falcon_get_instance(struct gk20a *g, u32 flcn_id)
 
 	switch (flcn_id) {
 	case FALCON_ID_PMU:
-		flcn = &g->pmu.flcn;
+		flcn = &g->pmu_flcn;
 		break;
 	case FALCON_ID_SEC2:
 		flcn = &g->sec2.flcn;

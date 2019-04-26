@@ -1931,6 +1931,7 @@ struct gk20a {
 	struct nvgpu_netlist_vars *netlist_vars;
 	bool netlist_valid;
 
+	struct nvgpu_falcon pmu_flcn;
 	struct nvgpu_falcon fecs_flcn;
 	struct nvgpu_falcon gpccs_flcn;
 	struct nvgpu_falcon nvdec_flcn;
@@ -1943,7 +1944,7 @@ struct gk20a {
 	struct nvgpu_fbp *fbp;
 	struct sim_nvgpu *sim;
 	struct mm_gk20a mm;
-	struct nvgpu_pmu pmu;
+	struct nvgpu_pmu *pmu;
 	struct nvgpu_acr *acr;
 	struct nvgpu_ecc ecc;
 	struct perf_pmupstate *perf_pmu;

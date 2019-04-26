@@ -49,12 +49,12 @@ int gp106_bios_devinit(struct gk20a *g)
 
 	nvgpu_log_fn(g, " ");
 
-	if (nvgpu_falcon_reset(&g->pmu.flcn) != 0) {
+	if (nvgpu_falcon_reset(g->pmu->flcn) != 0) {
 		err = -ETIMEDOUT;
 		goto out;
 	}
 
-	err = nvgpu_falcon_copy_to_imem(&g->pmu.flcn,
+	err = nvgpu_falcon_copy_to_imem(g->pmu->flcn,
 			g->bios.devinit.bootloader_phys_base,
 			g->bios.devinit.bootloader,
 			g->bios.devinit.bootloader_size,
@@ -64,7 +64,7 @@ int gp106_bios_devinit(struct gk20a *g)
 		goto out;
 	}
 
-	err = nvgpu_falcon_copy_to_imem(&g->pmu.flcn, g->bios.devinit.phys_base,
+	err = nvgpu_falcon_copy_to_imem(g->pmu->flcn, g->bios.devinit.phys_base,
 			g->bios.devinit.ucode,
 			g->bios.devinit.size,
 			0, 1, g->bios.devinit.phys_base >> 8);
@@ -73,7 +73,7 @@ int gp106_bios_devinit(struct gk20a *g)
 		goto out;
 	}
 
-	err = nvgpu_falcon_copy_to_dmem(&g->pmu.flcn, g->bios.devinit.dmem_phys_base,
+	err = nvgpu_falcon_copy_to_dmem(g->pmu->flcn, g->bios.devinit.dmem_phys_base,
 			g->bios.devinit.dmem,
 			g->bios.devinit.dmem_size,
 			0);
@@ -82,7 +82,7 @@ int gp106_bios_devinit(struct gk20a *g)
 		goto out;
 	}
 
-	err = nvgpu_falcon_copy_to_dmem(&g->pmu.flcn, g->bios.devinit_tables_phys_base,
+	err = nvgpu_falcon_copy_to_dmem(g->pmu->flcn, g->bios.devinit_tables_phys_base,
 			g->bios.devinit_tables,
 			g->bios.devinit_tables_size,
 			0);
@@ -91,7 +91,7 @@ int gp106_bios_devinit(struct gk20a *g)
 		goto out;
 	}
 
-	err = nvgpu_falcon_copy_to_dmem(&g->pmu.flcn, g->bios.devinit_script_phys_base,
+	err = nvgpu_falcon_copy_to_dmem(g->pmu->flcn, g->bios.devinit_script_phys_base,
 			g->bios.bootscripts,
 			g->bios.bootscripts_size,
 			0);
@@ -100,7 +100,7 @@ int gp106_bios_devinit(struct gk20a *g)
 		goto out;
 	}
 
-	err = nvgpu_falcon_bootstrap(&g->pmu.flcn,
+	err = nvgpu_falcon_bootstrap(g->pmu->flcn,
 					g->bios.devinit.code_entry_point);
 	if (err != 0) {
 		nvgpu_err(g, "falcon bootstrap failed %d", err);
@@ -114,7 +114,7 @@ int gp106_bios_devinit(struct gk20a *g)
 	do {
 		top_scratch1_reg = g->ops.top.read_top_scratch1_reg(g);
 		devinit_completed = ((g->ops.falcon.is_falcon_cpu_halted(
-				&g->pmu.flcn) != 0U) &&
+				g->pmu->flcn) != 0U) &&
 				(g->ops.top.top_scratch1_devinit_completed(g,
 				top_scratch1_reg)) != 0U);
 
@@ -126,7 +126,7 @@ int gp106_bios_devinit(struct gk20a *g)
 		goto out;
 	}
 
-	err = nvgpu_falcon_clear_halt_intr_status(&g->pmu.flcn,
+	err = nvgpu_falcon_clear_halt_intr_status(g->pmu->flcn,
 		nvgpu_get_poll_timeout(g));
 	if (err != 0) {
 		nvgpu_err(g, "falcon_clear_halt_intr_status failed %d", err);
@@ -140,7 +140,7 @@ out:
 
 int gp106_bios_preos_wait_for_halt(struct gk20a *g)
 {
-	return nvgpu_falcon_wait_for_halt(&g->pmu.flcn,
+	return nvgpu_falcon_wait_for_halt(g->pmu->flcn,
 					PMU_BOOT_TIMEOUT_MAX / 1000);
 }
 
@@ -150,7 +150,7 @@ int gp106_bios_preos(struct gk20a *g)
 
 	nvgpu_log_fn(g, " ");
 
-	if (nvgpu_falcon_reset(&g->pmu.flcn) != 0) {
+	if (nvgpu_falcon_reset(g->pmu->flcn) != 0) {
 		err = -ETIMEDOUT;
 		goto out;
 	}
@@ -159,7 +159,7 @@ int gp106_bios_preos(struct gk20a *g)
 		g->ops.bios.preos_reload_check(g);
 	}
 
-	err = nvgpu_falcon_copy_to_imem(&g->pmu.flcn,
+	err = nvgpu_falcon_copy_to_imem(g->pmu->flcn,
 			g->bios.preos.bootloader_phys_base,
 			g->bios.preos.bootloader,
 			g->bios.preos.bootloader_size,
@@ -169,7 +169,7 @@ int gp106_bios_preos(struct gk20a *g)
 		goto out;
 	}
 
-	err = nvgpu_falcon_copy_to_imem(&g->pmu.flcn, g->bios.preos.phys_base,
+	err = nvgpu_falcon_copy_to_imem(g->pmu->flcn, g->bios.preos.phys_base,
 			g->bios.preos.ucode,
 			g->bios.preos.size,
 			0, 1, g->bios.preos.phys_base >> 8);
@@ -178,7 +178,7 @@ int gp106_bios_preos(struct gk20a *g)
 		goto out;
 	}
 
-	err = nvgpu_falcon_copy_to_dmem(&g->pmu.flcn, g->bios.preos.dmem_phys_base,
+	err = nvgpu_falcon_copy_to_dmem(g->pmu->flcn, g->bios.preos.dmem_phys_base,
 			g->bios.preos.dmem,
 			g->bios.preos.dmem_size,
 			0);
@@ -187,7 +187,7 @@ int gp106_bios_preos(struct gk20a *g)
 		goto out;
 	}
 
-	err = nvgpu_falcon_bootstrap(&g->pmu.flcn,
+	err = nvgpu_falcon_bootstrap(g->pmu->flcn,
 					g->bios.preos.code_entry_point);
 	if (err != 0) {
 		nvgpu_err(g, "falcon bootstrap failed %d", err);
@@ -200,7 +200,7 @@ int gp106_bios_preos(struct gk20a *g)
 		goto out;
 	}
 
-	err = nvgpu_falcon_clear_halt_intr_status(&g->pmu.flcn,
+	err = nvgpu_falcon_clear_halt_intr_status(g->pmu->flcn,
 			nvgpu_get_poll_timeout(g));
 	if (err != 0) {
 		nvgpu_err(g, "falcon_clear_halt_intr_status failed %d", err);

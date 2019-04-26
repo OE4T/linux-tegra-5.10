@@ -40,7 +40,7 @@ int nvgpu_clk_domain_volt_to_freq(struct gk20a *g, u8 clkdomain_idx,
 	u32 *pclkmhz, u32 *pvoltuv, u8 railidx)
 {
 	struct nv_pmu_rpc_clk_domain_35_prog_freq_to_volt  rpc;
-	struct nvgpu_pmu *pmu = &g->pmu;
+	struct nvgpu_pmu *pmu = g->pmu;
 	int status = -EINVAL;
 
 	(void)memset(&rpc, 0,
@@ -129,7 +129,7 @@ int nvgpu_clk_vf_point_sw_setup(struct gk20a *g)
 	nvgpu_log_info(g, " ");
 
 	status = nvgpu_boardobjgrp_construct_e255(g,
-			&g->pmu.clk_pmu->clk_vf_pointobjs->super);
+			&g->pmu->clk_pmu->clk_vf_pointobjs->super);
 	if (status != 0) {
 		nvgpu_err(g,
 		"error creating boardobjgrp for clk vfpoint, status - 0x%x",
@@ -137,7 +137,7 @@ int nvgpu_clk_vf_point_sw_setup(struct gk20a *g)
 		goto done;
 	}
 
-	pboardobjgrp = &g->pmu.clk_pmu->clk_vf_pointobjs->super.super;
+	pboardobjgrp = &g->pmu->clk_pmu->clk_vf_pointobjs->super.super;
 
 	BOARDOBJGRP_PMU_CONSTRUCT(pboardobjgrp, CLK, CLK_VF_POINT);
 
@@ -151,7 +151,7 @@ int nvgpu_clk_vf_point_sw_setup(struct gk20a *g)
 	}
 
 	status = BOARDOBJGRP_PMU_CMD_GRP_GET_STATUS_CONSTRUCT(g,
-			&g->pmu.clk_pmu->clk_vf_pointobjs->super.super,
+			&g->pmu->clk_pmu->clk_vf_pointobjs->super.super,
 			clk, CLK, clk_vf_point, CLK_VF_POINT);
 	if (status != 0) {
 		nvgpu_err(g,
@@ -176,7 +176,7 @@ int nvgpu_clk_vf_point_pmu_setup(struct gk20a *g)
 
 	nvgpu_log_info(g, " ");
 
-	pboardobjgrp = &g->pmu.clk_pmu->clk_vf_pointobjs->super.super;
+	pboardobjgrp = &g->pmu->clk_pmu->clk_vf_pointobjs->super.super;
 
 	if (!pboardobjgrp->bconstructed) {
 		return -EINVAL;
@@ -456,12 +456,12 @@ int nvgpu_clk_vf_point_cache(struct gk20a *g)
 	u32 gpcclk_clkmhz=0, gpcclk_voltuv=0;
 
 	nvgpu_log_info(g, " ");
-	pclk_vf_points = g->pmu.clk_pmu->clk_vf_pointobjs;
+	pclk_vf_points = g->pmu->clk_pmu->clk_vf_pointobjs;
 	pboardobjgrp = &pclk_vf_points->super.super;
 
-	voltage_min_uv = g->pmu.clk_pmu->get_fll_lut_min_volt(g->pmu.clk_pmu);
+	voltage_min_uv = g->pmu->clk_pmu->get_fll_lut_min_volt(g->pmu->clk_pmu);
 	voltage_step_size_uv =
-			g->pmu.clk_pmu->get_fll_lut_step_size(g->pmu.clk_pmu);
+			g->pmu->clk_pmu->get_fll_lut_step_size(g->pmu->clk_pmu);
 	BOARDOBJGRP_FOR_EACH(pboardobjgrp, struct boardobj*, pboardobj, index) {
 		pclk_vf_point = (struct clk_vf_point *)(void *)pboardobj;
 		gpcclk_voltuv =
@@ -483,23 +483,23 @@ int nvgpu_clk_vf_point_cache(struct gk20a *g)
 int nvgpu_clk_vf_point_init_pmupstate(struct gk20a *g)
 {
 	/* If already allocated, do not re-allocate */
-	if (g->pmu.clk_pmu->clk_vf_pointobjs != NULL) {
+	if (g->pmu->clk_pmu->clk_vf_pointobjs != NULL) {
 		return 0;
 	}
 
-	g->pmu.clk_pmu->clk_vf_pointobjs = nvgpu_kzalloc(g,
-			sizeof(*g->pmu.clk_pmu->clk_vf_pointobjs));
-	if (g->pmu.clk_pmu->clk_vf_pointobjs == NULL) {
+	g->pmu->clk_pmu->clk_vf_pointobjs = nvgpu_kzalloc(g,
+			sizeof(*g->pmu->clk_pmu->clk_vf_pointobjs));
+	if (g->pmu->clk_pmu->clk_vf_pointobjs == NULL) {
 		return -ENOMEM;
 	}
 
-	g->pmu.clk_pmu->nvgpu_clk_vf_point_cache = nvgpu_clk_vf_point_cache;
+	g->pmu->clk_pmu->nvgpu_clk_vf_point_cache = nvgpu_clk_vf_point_cache;
 
 	return 0;
 }
 
 void nvgpu_clk_vf_point_free_pmupstate(struct gk20a *g)
 {
-	nvgpu_kfree(g, g->pmu.clk_pmu->clk_vf_pointobjs);
-	g->pmu.clk_pmu->clk_vf_pointobjs = NULL;
+	nvgpu_kfree(g, g->pmu->clk_pmu->clk_vf_pointobjs);
+	g->pmu->clk_pmu->clk_vf_pointobjs = NULL;
 }
