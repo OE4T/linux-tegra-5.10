@@ -36,7 +36,8 @@
 #include <nvgpu/gr/gr_falcon.h>
 #include <nvgpu/gr/fecs_trace.h>
 
-#include "common/gr/gr_priv.h"
+#include "gr_priv.h"
+#include "gr_intr_priv.h"
 
 static void gr_intr_report_ctxsw_error(struct gk20a *g, u32 err_type, u32 chid,
 		u32 mailbox_value)

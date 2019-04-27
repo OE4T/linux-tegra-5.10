@@ -27,6 +27,8 @@
 
 struct gk20a;
 struct nvgpu_gr_config;
+struct channel_gk20a;
+struct nvgpu_gr_isr_data;
 
 #define NVC397_SET_SHADER_EXCEPTIONS		0x1528U
 #define NVC397_SET_CIRCULAR_BUFFER_SIZE 	0x1280U

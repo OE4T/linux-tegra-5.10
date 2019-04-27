@@ -27,6 +27,7 @@
 
 struct gk20a;
 struct channel_gk20a;
+struct nvgpu_gr_isr_data;
 
 #define NVC097_SET_GO_IDLE_TIMEOUT		0x022cU
 #define NVC097_SET_ALPHA_CIRCULAR_BUFFER_SIZE	0x02dcU

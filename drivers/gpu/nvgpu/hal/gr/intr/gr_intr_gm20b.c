@@ -28,6 +28,8 @@
 #include <nvgpu/gr/gr.h>
 #include <nvgpu/gr/gr_intr.h>
 
+#include "common/gr/gr_intr_priv.h"
+
 #include "gr_intr_gm20b.h"
 
 #include <nvgpu/hw/gm20b/hw_gr_gm20b.h>
