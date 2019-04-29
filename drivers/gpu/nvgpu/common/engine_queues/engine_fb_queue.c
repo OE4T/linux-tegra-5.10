@@ -44,7 +44,7 @@ static int engine_fb_queue_tail(struct nvgpu_engine_fb_queue *queue,
 				u32 *tail, bool set)
 {
 	struct gk20a *g = queue->g;
-	int err = -EINVAL;
+	int err;
 
 	if (set == false && PMU_IS_COMMAND_QUEUE(queue->id)) {
 		*tail = queue->fbq.tail;
@@ -573,19 +573,19 @@ int nvgpu_engine_fb_queue_init(struct nvgpu_engine_fb_queue **queue_p,
 	/* init mutex */
 	err = nvgpu_mutex_init(&queue->mutex);
 	if (err != 0) {
-		goto exit;
+		goto free_queue;
 	}
 
 	/* init mutex */
 	err = nvgpu_mutex_init(&queue->fbq.work_buffer_mutex);
 	if (err != 0) {
-		goto exit;
+		goto free_mutex;
 	}
 
 	queue->fbq.work_buffer = nvgpu_kzalloc(g, queue->fbq.element_size);
 	if (queue->fbq.work_buffer == NULL) {
 		err = -ENOMEM;
-		goto exit;
+		goto free_work_mutex;
 	}
 
 	nvgpu_log_info(g,
@@ -595,6 +595,14 @@ int nvgpu_engine_fb_queue_init(struct nvgpu_engine_fb_queue **queue_p,
 
 	*queue_p = queue;
 
-exit:
+	return 0;
+
+free_work_mutex:
+	nvgpu_mutex_destroy(&queue->fbq.work_buffer_mutex);
+free_mutex:
+	nvgpu_mutex_destroy(&queue->mutex);
+free_queue:
+	nvgpu_kfree(g, queue);
+
 	return err;
 }
