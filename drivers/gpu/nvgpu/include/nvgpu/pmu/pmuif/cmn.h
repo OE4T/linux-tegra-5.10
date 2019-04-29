@@ -23,6 +23,7 @@
 #define NVGPU_PMUIF_CMN_H
 
 #include <nvgpu/types.h>
+#include <nvgpu/flcnif_cmn.h>
 
 /*
  * Defines the logical queue IDs that must be used when submitting
@@ -100,7 +101,7 @@ struct nv_pmu_rpc_header {
 	/* RPC call flags (@see PMU_RPC_FLAGS) */
 	u8  flags;
 	/* Falcon's status code to describe failures*/
-	u8  flcn_status;
+	falcon_status  flcn_status;
 	/* RPC's total exec. time (measured on nvgpu driver side)*/
 	u32  exec_time_nv_ns;
 	/* RPC's actual exec. time (measured on PMU side)*/

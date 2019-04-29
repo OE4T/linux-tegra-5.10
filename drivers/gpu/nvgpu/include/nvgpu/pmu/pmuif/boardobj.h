@@ -111,7 +111,7 @@ struct nv_pmu_boardobj_cmd {
 struct nv_pmu_boardobj_msg_grp {
 	u8 msg_type;
 	bool b_success;
-	flcn_status flcn_status;
+	falcon_status flcn_status;
 	u8 class_id;
 };
 

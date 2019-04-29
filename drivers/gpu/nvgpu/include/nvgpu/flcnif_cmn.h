@@ -112,7 +112,7 @@ struct pmu_hdr {
 #define PMU_CMD_HDR_SIZE	U32(sizeof(struct pmu_hdr))
 
 #define nv_pmu_hdr pmu_hdr
-typedef u8 flcn_status;
+typedef u8 falcon_status;
 
 #define PMU_DMEM_ALLOC_ALIGNMENT	32U
 #define PMU_DMEM_ALIGNMENT		4U

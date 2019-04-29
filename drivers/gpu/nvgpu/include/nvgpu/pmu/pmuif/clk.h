@@ -586,7 +586,7 @@ struct nv_pmu_clk_rpc {
 	u8 function;
 	bool b_supported;
 	bool b_success;
-	flcn_status flcn_status;
+	falcon_status flcn_status;
 	union {
 		struct nv_pmu_clk_vf_change_inject clk_vf_change_inject;
 		struct nv_pmu_clk_vf_change_inject_v1 clk_vf_change_inject_v1;

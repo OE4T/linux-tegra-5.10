@@ -37,12 +37,12 @@
 struct nv_pmu_therm_rpc_slct_event_temp_th_set {
 	s32 temp_threshold;
 	u8 event_id;
-	flcn_status flcn_stat;
+	falcon_status flcn_stat;
 };
 
 struct nv_pmu_therm_rpc_slct {
 	u32 mask_enabled;
-	flcn_status flcn_stat;
+	falcon_status flcn_stat;
 };
 
 struct nv_pmu_therm_rpc {

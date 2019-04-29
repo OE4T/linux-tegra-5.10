@@ -116,7 +116,7 @@ struct pmu_init_msg_pmu_v4 {
 
 struct pmu_init_msg_pmu_v5 {
 	u8 msg_type;
-	u8 flcn_status;
+	falcon_status flcn_status;
 	u8  queue_index[PMU_QUEUE_COUNT_FOR_V5];
 	u16 queue_size[PMU_QUEUE_COUNT_FOR_V5];
 	u16 queue_offset;

@@ -284,7 +284,7 @@ struct nv_pmu_volt_rpc {
 	u8 function;
 	bool b_supported;
 	bool b_success;
-	flcn_status flcn_status;
+	falcon_status flcn_status;
 	union {
 		struct nv_pmu_volt_policy_voltage_data volt_policy_voltage_data;
 		struct nv_pmu_volt_rail_get_voltage volt_rail_get_voltage;

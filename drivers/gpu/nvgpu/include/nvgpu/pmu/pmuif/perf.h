@@ -112,7 +112,7 @@ struct nv_pmu_perf_rpc {
 	u8 function;
 	bool b_supported;
 	bool b_success;
-	flcn_status flcn_status;
+	falcon_status flcn_status;
 	union {
 		struct nv_pmu_perf_rpc_vfe_equ_eval vfe_equ_eval;
 		struct nv_pmu_perf_rpc_vfe_load vfe_load;

@@ -412,21 +412,21 @@ struct nv_pmu_pmgr_cmd {
 struct nv_pmu_pmgr_msg_set_object {
 	u8 msg_type;
 	bool b_success;
-	flcn_status flcnstatus;
+	falcon_status flcnstatus;
 	u8 object_type;
 };
 
 struct nv_pmu_pmgr_msg_query {
 	u8 msg_type;
 	bool b_success;
-	flcn_status flcnstatus;
+	falcon_status flcnstatus;
 	u8 cmd_type;
 };
 
 struct nv_pmu_pmgr_msg_load {
 	u8 msg_type;
 	bool b_success;
-	flcn_status flcnstatus;
+	falcon_status flcnstatus;
 };
 
 struct nv_pmu_pmgr_msg_unload {
