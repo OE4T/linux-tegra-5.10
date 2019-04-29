@@ -37,7 +37,7 @@
  * wrapper takes the int returning nvgpu thread and instead passes that int back
  * through the void * pointer.
  */
-static void *__nvgpu_posix_thread_wrapper(void *data)
+static void *nvgpu_posix_thread_wrapper(void *data)
 {
 	struct nvgpu_posix_thread_data *nvgpu =
 				(struct nvgpu_posix_thread_data *)data;
@@ -78,7 +78,7 @@ int nvgpu_thread_create(struct nvgpu_thread *thread,
 	}
 
 	ret = pthread_create(&thread->thread, &attr,
-			     __nvgpu_posix_thread_wrapper,
+			     nvgpu_posix_thread_wrapper,
 			     &thread->nvgpu);
 	if (ret != 0) {
 		(void) pthread_attr_destroy(&attr);
@@ -148,7 +148,7 @@ int nvgpu_thread_create_priority(struct nvgpu_thread *thread,
 	}
 
 	ret = pthread_create(&thread->thread, &attr,
-			__nvgpu_posix_thread_wrapper, &thread->nvgpu);
+			nvgpu_posix_thread_wrapper, &thread->nvgpu);
 	if (ret != 0) {
 		(void) pthread_attr_destroy(&attr);
 		return ret;
