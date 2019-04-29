@@ -81,8 +81,8 @@ struct boardobjgrp_pmucmdhandler_params {
 	u32 success;
 };
 
-#define BOARDOBJ_GET_TYPE(pobj) (((struct boardobj *)(pobj))->type)
-#define BOARDOBJ_GET_IDX(pobj) (((struct boardobj *)(pobj))->idx)
+#define BOARDOBJ_GET_TYPE(pobj) (((struct boardobj *)(void *)(pobj))->type)
+#define BOARDOBJ_GET_IDX(pobj) (((struct boardobj *)(void *)(pobj))->idx)
 
 #define HIGHESTBITIDX_32(n32)   \
 {                               \
