@@ -308,10 +308,15 @@ srcs += common/sim/sim.c \
 	hal/gr/gr/gr_tu104.c \
 	hal/fbpa/fbpa_tu104.c \
 	hal/init/hal_gm20b.c \
+	hal/init/hal_gm20b_litter.c \
 	hal/init/hal_gp10b.c \
+	hal/init/hal_gp10b_litter.c \
 	hal/init/hal_gv100.c \
+	hal/init/hal_gv100_litter.c \
 	hal/init/hal_gv11b.c \
+	hal/init/hal_gv11b_litter.c \
 	hal/init/hal_tu104.c \
+	hal/init/hal_tu104_litter.c \
 	hal/init/hal_init.c \
 	hal/perf/perf_gm20b.c \
 	hal/perf/perf_gv11b.c \

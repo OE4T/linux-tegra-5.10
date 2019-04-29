@@ -178,6 +178,7 @@
 #include "tu104/mm_tu104.h"
 #include "hal/fbpa/fbpa_tu104.h"
 #include "hal_tu104.h"
+#include "hal_tu104_litter.h"
 
 #include <nvgpu/ptimer.h>
 #include <nvgpu/error_notifier.h>
@@ -199,157 +200,8 @@
 #include <nvgpu/gr/gr_intr.h>
 #include <nvgpu/pmu/pmu_perfmon.h>
 
-#include <nvgpu/hw/tu104/hw_proj_tu104.h>
 #include <nvgpu/hw/tu104/hw_pram_tu104.h>
 #include <nvgpu/hw/tu104/hw_pwr_tu104.h>
-
-static u32 tu104_get_litter_value(struct gk20a *g, int value)
-{
-	u32 ret = 0;
-	switch (value) {
-	case GPU_LIT_NUM_GPCS:
-		ret = proj_scal_litter_num_gpcs_v();
-		break;
-	case GPU_LIT_NUM_PES_PER_GPC:
-		ret = proj_scal_litter_num_pes_per_gpc_v();
-		break;
-	case GPU_LIT_NUM_ZCULL_BANKS:
-		ret = proj_scal_litter_num_zcull_banks_v();
-		break;
-	case GPU_LIT_NUM_TPC_PER_GPC:
-		ret = proj_scal_litter_num_tpc_per_gpc_v();
-		break;
-	case GPU_LIT_NUM_SM_PER_TPC:
-		ret = proj_scal_litter_num_sm_per_tpc_v();
-		break;
-	case GPU_LIT_NUM_FBPS:
-		ret = proj_scal_litter_num_fbps_v();
-		break;
-	case GPU_LIT_GPC_BASE:
-		ret = proj_gpc_base_v();
-		break;
-	case GPU_LIT_GPC_STRIDE:
-		ret = proj_gpc_stride_v();
-		break;
-	case GPU_LIT_GPC_SHARED_BASE:
-		ret = proj_gpc_shared_base_v();
-		break;
-	case GPU_LIT_TPC_IN_GPC_BASE:
-		ret = proj_tpc_in_gpc_base_v();
-		break;
-	case GPU_LIT_TPC_IN_GPC_STRIDE:
-		ret = proj_tpc_in_gpc_stride_v();
-		break;
-	case GPU_LIT_TPC_IN_GPC_SHARED_BASE:
-		ret = proj_tpc_in_gpc_shared_base_v();
-		break;
-	case GPU_LIT_PPC_IN_GPC_BASE:
-		ret = proj_ppc_in_gpc_base_v();
-		break;
-	case GPU_LIT_PPC_IN_GPC_STRIDE:
-		ret = proj_ppc_in_gpc_stride_v();
-		break;
-	case GPU_LIT_PPC_IN_GPC_SHARED_BASE:
-		ret = proj_ppc_in_gpc_shared_base_v();
-		break;
-	case GPU_LIT_ROP_BASE:
-		ret = proj_rop_base_v();
-		break;
-	case GPU_LIT_ROP_STRIDE:
-		ret = proj_rop_stride_v();
-		break;
-	case GPU_LIT_ROP_SHARED_BASE:
-		ret = proj_rop_shared_base_v();
-		break;
-	case GPU_LIT_HOST_NUM_ENGINES:
-		ret = proj_host_num_engines_v();
-		break;
-	case GPU_LIT_HOST_NUM_PBDMA:
-		ret = proj_host_num_pbdma_v();
-		break;
-	case GPU_LIT_LTC_STRIDE:
-		ret = proj_ltc_stride_v();
-		break;
-	case GPU_LIT_LTS_STRIDE:
-		ret = proj_lts_stride_v();
-		break;
-	case GPU_LIT_NUM_FBPAS:
-		ret = proj_scal_litter_num_fbpas_v();
-		break;
-	case GPU_LIT_FBPA_SHARED_BASE:
-		ret = proj_fbpa_shared_base_v();
-		break;
-	case GPU_LIT_FBPA_BASE:
-		ret = proj_fbpa_base_v();
-		break;
-	case GPU_LIT_FBPA_STRIDE:
-		ret = proj_fbpa_stride_v();
-		break;
-	case GPU_LIT_SM_PRI_STRIDE:
-		ret = proj_sm_stride_v();
-		break;
-	case GPU_LIT_SMPC_PRI_BASE:
-		ret = proj_smpc_base_v();
-		break;
-	case GPU_LIT_SMPC_PRI_SHARED_BASE:
-		ret = proj_smpc_shared_base_v();
-		break;
-	case GPU_LIT_SMPC_PRI_UNIQUE_BASE:
-		ret = proj_smpc_unique_base_v();
-		break;
-	case GPU_LIT_SMPC_PRI_STRIDE:
-		ret = proj_smpc_stride_v();
-		break;
-	case GPU_LIT_TWOD_CLASS:
-		ret = FERMI_TWOD_A;
-		break;
-	case GPU_LIT_THREED_CLASS:
-		ret = TURING_A;
-		break;
-	case GPU_LIT_COMPUTE_CLASS:
-		ret = TURING_COMPUTE_A;
-		break;
-	case GPU_LIT_GPFIFO_CLASS:
-		ret = TURING_CHANNEL_GPFIFO_A;
-		break;
-	case GPU_LIT_I2M_CLASS:
-		ret = KEPLER_INLINE_TO_MEMORY_B;
-		break;
-	case GPU_LIT_DMA_COPY_CLASS:
-		ret = TURING_DMA_COPY_A;
-		break;
-	case GPU_LIT_GPC_PRIV_STRIDE:
-		ret = proj_gpc_priv_stride_v();
-		break;
-	case GPU_LIT_PERFMON_PMMGPCTPCA_DOMAIN_START:
-		ret = 2;
-		break;
-	case GPU_LIT_PERFMON_PMMGPCTPCB_DOMAIN_START:
-		ret = 8;
-		break;
-	case GPU_LIT_PERFMON_PMMGPCTPC_DOMAIN_COUNT:
-		ret = 6;
-		break;
-	case GPU_LIT_PERFMON_PMMFBP_LTC_DOMAIN_START:
-		ret = 2;
-		break;
-	case GPU_LIT_PERFMON_PMMFBP_LTC_DOMAIN_COUNT:
-		ret = 8;
-		break;
-	case GPU_LIT_PERFMON_PMMFBP_ROP_DOMAIN_START:
-		ret = 10;
-		break;
-	case GPU_LIT_PERFMON_PMMFBP_ROP_DOMAIN_COUNT:
-		ret = 2;
-		break;
-	default:
-		nvgpu_err(g, "Missing definition %d", value);
-		BUG();
-		break;
-	}
-
-	return ret;
-}
 
 static void tu104_init_gpu_characteristics(struct gk20a *g)
 {

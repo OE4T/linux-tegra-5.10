@@ -73,6 +73,7 @@
 #include "hal/sync/syncpt_cmdbuf_gk20a.h"
 #include "hal/sync/sema_cmdbuf_gk20a.h"
 #include "hal/init/hal_gp10b.h"
+#include "hal/init/hal_gp10b_litter.h"
 
 #include "common/fifo/channel_gm20b.h"
 #include "common/clk_arb/clk_arb_gp10b.h"

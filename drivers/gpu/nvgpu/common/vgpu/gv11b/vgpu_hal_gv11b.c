@@ -80,6 +80,7 @@
 #include "hal/sync/syncpt_cmdbuf_gv11b.h"
 #include "hal/sync/sema_cmdbuf_gv11b.h"
 #include "hal/init/hal_gv11b.h"
+#include "hal/init/hal_gv11b_litter.h"
 
 #include "common/fifo/channel_gv11b.h"
 #include "common/clk_arb/clk_arb_gp10b.h"

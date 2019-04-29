@@ -21,7 +21,6 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#include <nvgpu/class.h>
 #include <nvgpu/ptimer.h>
 #include <nvgpu/error_notifier.h>
 #include <nvgpu/gk20a.h>
@@ -125,8 +124,8 @@
 #include "common/clk_arb/clk_arb_gp10b.h"
 
 #include "hal_gp10b.h"
+#include "hal_gp10b_litter.h"
 
-#include <nvgpu/hw/gp10b/hw_proj_gp10b.h>
 #include <nvgpu/hw/gp10b/hw_pram_gp10b.h>
 #include <nvgpu/hw/gp10b/hw_pwr_gp10b.h>
 
@@ -135,119 +134,6 @@ static void gp10b_init_gpu_characteristics(struct gk20a *g)
 	gk20a_init_gpu_characteristics(g);
 	g->ops.gr.ecc.detect(g);
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_RESCHEDULE_RUNLIST, true);
-}
-
-u32 gp10b_get_litter_value(struct gk20a *g, int value)
-{
-	u32 ret = 0;
-	switch (value) {
-	case GPU_LIT_NUM_GPCS:
-		ret = proj_scal_litter_num_gpcs_v();
-		break;
-	case GPU_LIT_NUM_PES_PER_GPC:
-		ret = proj_scal_litter_num_pes_per_gpc_v();
-		break;
-	case GPU_LIT_NUM_ZCULL_BANKS:
-		ret = proj_scal_litter_num_zcull_banks_v();
-		break;
-	case GPU_LIT_NUM_TPC_PER_GPC:
-		ret = proj_scal_litter_num_tpc_per_gpc_v();
-		break;
-	case GPU_LIT_NUM_SM_PER_TPC:
-		ret = proj_scal_litter_num_sm_per_tpc_v();
-		break;
-	case GPU_LIT_NUM_FBPS:
-		ret = proj_scal_litter_num_fbps_v();
-		break;
-	case GPU_LIT_GPC_BASE:
-		ret = proj_gpc_base_v();
-		break;
-	case GPU_LIT_GPC_STRIDE:
-		ret = proj_gpc_stride_v();
-		break;
-	case GPU_LIT_GPC_SHARED_BASE:
-		ret = proj_gpc_shared_base_v();
-		break;
-	case GPU_LIT_TPC_IN_GPC_BASE:
-		ret = proj_tpc_in_gpc_base_v();
-		break;
-	case GPU_LIT_TPC_IN_GPC_STRIDE:
-		ret = proj_tpc_in_gpc_stride_v();
-		break;
-	case GPU_LIT_TPC_IN_GPC_SHARED_BASE:
-		ret = proj_tpc_in_gpc_shared_base_v();
-		break;
-	case GPU_LIT_PPC_IN_GPC_BASE:
-		ret = proj_ppc_in_gpc_base_v();
-		break;
-	case GPU_LIT_PPC_IN_GPC_STRIDE:
-		ret = proj_ppc_in_gpc_stride_v();
-		break;
-	case GPU_LIT_PPC_IN_GPC_SHARED_BASE:
-		ret = proj_ppc_in_gpc_shared_base_v();
-		break;
-	case GPU_LIT_ROP_BASE:
-		ret = proj_rop_base_v();
-		break;
-	case GPU_LIT_ROP_STRIDE:
-		ret = proj_rop_stride_v();
-		break;
-	case GPU_LIT_ROP_SHARED_BASE:
-		ret = proj_rop_shared_base_v();
-		break;
-	case GPU_LIT_HOST_NUM_ENGINES:
-		ret = proj_host_num_engines_v();
-		break;
-	case GPU_LIT_HOST_NUM_PBDMA:
-		ret = proj_host_num_pbdma_v();
-		break;
-	case GPU_LIT_LTC_STRIDE:
-		ret = proj_ltc_stride_v();
-		break;
-	case GPU_LIT_LTS_STRIDE:
-		ret = proj_lts_stride_v();
-		break;
-	/* Even though GP10B doesn't have an FBPA unit, the HW reports one,
-	 * and the microcode as a result leaves space in the context buffer
-	 * for one, so make sure SW accounts for this also.
-	 */
-	case GPU_LIT_NUM_FBPAS:
-		ret = proj_scal_litter_num_fbpas_v();
-		break;
-	/* Hardcode FBPA values other than NUM_FBPAS to 0. */
-	case GPU_LIT_FBPA_STRIDE:
-	case GPU_LIT_FBPA_BASE:
-	case GPU_LIT_FBPA_SHARED_BASE:
-		ret = 0;
-		break;
-	case GPU_LIT_TWOD_CLASS:
-		ret = FERMI_TWOD_A;
-		break;
-	case GPU_LIT_THREED_CLASS:
-		ret = PASCAL_A;
-		break;
-	case GPU_LIT_COMPUTE_CLASS:
-		ret = PASCAL_COMPUTE_A;
-		break;
-	case GPU_LIT_GPFIFO_CLASS:
-		ret = PASCAL_CHANNEL_GPFIFO_A;
-		break;
-	case GPU_LIT_I2M_CLASS:
-		ret = KEPLER_INLINE_TO_MEMORY_B;
-		break;
-	case GPU_LIT_DMA_COPY_CLASS:
-		ret = PASCAL_DMA_COPY_A;
-		break;
-	case GPU_LIT_GPC_PRIV_STRIDE:
-		ret = proj_gpc_priv_stride_v();
-		break;
-	default:
-		nvgpu_err(g, "Missing definition %d", value);
-		BUG();
-		break;
-	}
-
-	return ret;
 }
 
 static const struct gpu_ops gp10b_ops = {

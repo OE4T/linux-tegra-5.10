@@ -1,7 +1,7 @@
 /*
  * GP10B Tegra HAL interface
  *
- * Copyright (c) 2014-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -27,5 +27,4 @@
 struct gk20a;
 
 int gp10b_init_hal(struct gk20a *g);
-u32 gp10b_get_litter_value(struct gk20a *g, int value);
 #endif /* NVGPU_HAL_GP10B_H */
