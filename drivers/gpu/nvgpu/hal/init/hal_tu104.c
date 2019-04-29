@@ -1084,8 +1084,8 @@ static const struct gpu_ops tu104_ops = {
 		.deinit_pdb_cache_war = tu104_ramin_deinit_pdb_cache_war,
 	},
 	.runlist = {
-		.update_for_channel = gk20a_runlist_update_for_channel,
-		.reload = gk20a_runlist_reload,
+		.update_for_channel = nvgpu_runlist_update_for_channel,
+		.reload = nvgpu_runlist_reload,
 		.count_max = tu104_runlist_count_max,
 		.entry_size = tu104_runlist_entry_size,
 		.length_max = gk20a_runlist_length_max,

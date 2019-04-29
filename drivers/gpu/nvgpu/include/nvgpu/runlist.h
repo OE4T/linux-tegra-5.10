@@ -50,14 +50,14 @@ int nvgpu_runlist_update_locked(struct gk20a *g, u32 runlist_id,
 int nvgpu_runlist_reschedule(struct channel_gk20a *ch, bool preempt_next,
 		bool wait_preempt);
 
-int gk20a_runlist_update_for_channel(struct gk20a *g, u32 runlist_id,
+int nvgpu_runlist_update_for_channel(struct gk20a *g, u32 runlist_id,
 			      struct channel_gk20a *ch,
 			      bool add, bool wait_for_finish);
-int gk20a_runlist_reload(struct gk20a *g, u32 runlist_id,
+int nvgpu_runlist_reload(struct gk20a *g, u32 runlist_id,
 			      bool add, bool wait_for_finish);
 int nvgpu_runlist_reload_ids(struct gk20a *g, u32 runlist_ids, bool add);
 
-const char *gk20a_fifo_interleave_level_name(u32 interleave_level);
+const char *nvgpu_runlist_interleave_level_name(u32 interleave_level);
 
 void nvgpu_fifo_runlist_set_state(struct gk20a *g, u32 runlists_mask,
 		 u32 runlist_state);
@@ -65,12 +65,12 @@ void nvgpu_fifo_runlist_set_state(struct gk20a *g, u32 runlists_mask,
 int nvgpu_runlist_setup_sw(struct gk20a *g);
 void nvgpu_runlist_cleanup_sw(struct gk20a *g);
 
-void nvgpu_fifo_lock_active_runlists(struct gk20a *g);
-void nvgpu_fifo_unlock_active_runlists(struct gk20a *g);
+void nvgpu_runlist_lock_active_runlists(struct gk20a *g);
+void nvgpu_runlist_unlock_active_runlists(struct gk20a *g);
 
-u32 nvgpu_fifo_get_runlists_mask(struct gk20a *g, u32 id,
+u32 nvgpu_runlist_get_runlists_mask(struct gk20a *g, u32 id,
 	unsigned int id_type, u32 act_eng_bitmask, u32 pbdma_bitmask);
 
-void nvgpu_fifo_unlock_runlists(struct gk20a *g, u32 runlists_mask);
+void nvgpu_runlist_unlock_runlists(struct gk20a *g, u32 runlists_mask);
 
 #endif /* NVGPU_RUNLIST_H */

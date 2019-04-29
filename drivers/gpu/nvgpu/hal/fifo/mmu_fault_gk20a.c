@@ -429,12 +429,12 @@ bool gk20a_fifo_handle_mmu_fault(
 	nvgpu_log_info(g, "acquire engines_reset_mutex");
 	nvgpu_mutex_acquire(&g->fifo.engines_reset_mutex);
 
-	nvgpu_fifo_lock_active_runlists(g);
+	nvgpu_runlist_lock_active_runlists(g);
 
 	debug_dump = gk20a_fifo_handle_mmu_fault_locked(g, mmu_fault_engines,
 			hw_id, id_is_tsg);
 
-	nvgpu_fifo_unlock_active_runlists(g);
+	nvgpu_runlist_unlock_active_runlists(g);
 
 	nvgpu_log_info(g, "release engines_reset_mutex");
 	nvgpu_mutex_release(&g->fifo.engines_reset_mutex);

@@ -91,7 +91,7 @@ static void gk20a_channel_trace_sched_param(
 	(trace)(ch->chid, ch->tsgid, ch->pid,
 		tsg_gk20a_from_ch(ch)->timeslice_us,
 		ch->ctxsw_timeout_max_ms,
-		gk20a_fifo_interleave_level_name(tsg->interleave_level),
+		nvgpu_runlist_interleave_level_name(tsg->interleave_level),
 		gr_gk20a_graphics_preempt_mode_name(
 			nvgpu_gr_ctx_get_graphics_preemption_mode(tsg->gr_ctx)),
 		gr_gk20a_compute_preempt_mode_name(

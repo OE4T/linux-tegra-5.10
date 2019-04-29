@@ -1047,8 +1047,8 @@ static const struct gpu_ops gv100_ops = {
 		.set_eng_method_buffer = gv11b_ramin_set_eng_method_buffer,
 	},
 	.runlist = {
-		.update_for_channel = gk20a_runlist_update_for_channel,
-		.reload = gk20a_runlist_reload,
+		.update_for_channel = nvgpu_runlist_update_for_channel,
+		.reload = nvgpu_runlist_reload,
 		.count_max = gv100_runlist_count_max,
 		.entry_size = gv11b_runlist_entry_size,
 		.length_max = gk20a_runlist_length_max,

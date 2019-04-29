@@ -146,7 +146,7 @@ void gv11b_fifo_recover(struct gk20a *g, u32 act_eng_bitmask,
 
 	/* acquire runlist_lock for num_runlists */
 	nvgpu_log_fn(g, "acquire runlist_lock for active runlists");
-	nvgpu_fifo_lock_active_runlists(g);
+	nvgpu_runlist_lock_active_runlists(g);
 
 	g->ops.fifo.intr_set_recover_mask(g);
 
@@ -165,14 +165,14 @@ void gv11b_fifo_recover(struct gk20a *g, u32 act_eng_bitmask,
 			pbdma_bitmask = BIT32(mmufault->faulted_pbdma);
 		}
 	}
-	runlists_mask = nvgpu_fifo_get_runlists_mask(g, id, id_type,
+	runlists_mask = nvgpu_runlist_get_runlists_mask(g, id, id_type,
 				act_eng_bitmask, pbdma_bitmask);
 
 	/*
 	 * release runlist lock for the runlists that are not
 	 * being recovered
 	 */
-	nvgpu_fifo_unlock_runlists(g, ~runlists_mask);
+	nvgpu_runlist_unlock_runlists(g, ~runlists_mask);
 
 	/* Disable runlist scheduler */
 	nvgpu_fifo_runlist_set_state(g, runlists_mask, RUNLIST_DISABLED);
@@ -277,7 +277,7 @@ void gv11b_fifo_recover(struct gk20a *g, u32 act_eng_bitmask,
 	g->ops.fifo.intr_unset_recover_mask(g);
 
 	/* release runlist_lock for the recovered runlists */
-	nvgpu_fifo_unlock_runlists(g, runlists_mask);
+	nvgpu_runlist_unlock_runlists(g, runlists_mask);
 
 	nvgpu_log_info(g, "release engines_reset_mutex");
 	nvgpu_mutex_release(&f->engines_reset_mutex);

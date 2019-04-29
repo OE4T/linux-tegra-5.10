@@ -788,8 +788,8 @@ static const struct gpu_ops gm20b_ops = {
 		.set_eng_method_buffer = NULL,
 	},
 	.runlist = {
-		.update_for_channel = gk20a_runlist_update_for_channel,
-		.reload = gk20a_runlist_reload,
+		.update_for_channel = nvgpu_runlist_update_for_channel,
+		.reload = nvgpu_runlist_reload,
 		.count_max = gk20a_runlist_count_max,
 		.entry_size = gk20a_runlist_entry_size,
 		.length_max = gk20a_runlist_length_max,

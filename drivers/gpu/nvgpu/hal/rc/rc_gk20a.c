@@ -60,7 +60,7 @@ void gk20a_fifo_recover(struct gk20a *g, u32 eng_bitmask,
 	nvgpu_log_info(g, "acquire engines_reset_mutex");
 	nvgpu_mutex_acquire(&g->fifo.engines_reset_mutex);
 
-	nvgpu_fifo_lock_active_runlists(g);
+	nvgpu_runlist_lock_active_runlists(g);
 
 	if (id_is_known) {
 		engine_ids = g->ops.engine.get_mask_on_id(g,
@@ -129,7 +129,7 @@ void gk20a_fifo_recover(struct gk20a *g, u32 eng_bitmask,
 		g->ops.fifo.intr_unset_recover_mask(g);
 	}
 
-	nvgpu_fifo_unlock_active_runlists(g);
+	nvgpu_runlist_unlock_active_runlists(g);
 
 	nvgpu_log_info(g, "release engines_reset_mutex");
 	nvgpu_mutex_release(&g->fifo.engines_reset_mutex);
