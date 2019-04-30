@@ -157,9 +157,12 @@ int gk20a_fifo_reschedule_preempt_next(struct channel_gk20a *ch,
 		return ret;
 	}
 
-	if (wait_preempt && ((nvgpu_readl(g, fifo_preempt_r()) &
-				fifo_preempt_pending_true_f()) != 0U)) {
-		return ret;
+	if (wait_preempt) {
+		u32 val = nvgpu_readl(g, fifo_preempt_r());
+
+		if ((val & fifo_preempt_pending_true_f()) != 0U) {
+			return ret;
+		}
 	}
 
 	fecsstat0 = g->ops.gr.falcon.read_fecs_ctxsw_mailbox(g,
