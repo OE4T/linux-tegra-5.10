@@ -30,8 +30,11 @@ struct channel_gk20a;
 
 int nvgpu_userd_setup_sw(struct gk20a *g);
 void nvgpu_userd_cleanup_sw(struct gk20a *g);
+int nvgpu_userd_init_channel(struct gk20a *g, struct channel_gk20a *c);
+
+#ifdef NVGPU_USERD
 int nvgpu_userd_init_slabs(struct gk20a *g);
 void nvgpu_userd_free_slabs(struct gk20a *g);
-int nvgpu_userd_init_channel(struct gk20a *g, struct channel_gk20a *c);
+#endif
 
 #endif /* NVGPU_FIFO_USERD_H */
