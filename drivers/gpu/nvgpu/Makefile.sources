@@ -24,7 +24,6 @@ srcs :=
 
 ifdef NVGPU_POSIX
 srcs +=	os/posix/nvgpu.c \
-	os/posix/bitmap.c \
 	os/posix/log.c \
 	os/posix/posix-io.c \
 	os/posix/posix-nvgpu_mem.c \
@@ -56,6 +55,7 @@ srcs += os/posix/bug.c \
 	os/posix/thread.c \
 	os/posix/bsearch.c \
 	os/posix/os_sched.c \
+	os/posix/bitmap.c \
 	os/posix/kmem.c
 
 srcs += common/sim/sim.c \

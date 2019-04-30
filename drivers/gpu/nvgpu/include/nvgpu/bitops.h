@@ -36,10 +36,8 @@
 #ifdef __KERNEL__
 #include <linux/bitops.h>
 #include <linux/bitmap.h>
-#elif defined(__NVGPU_POSIX__)
-#include <nvgpu/posix/bitops.h>
 #else
-#include <nvgpu_rmos/include/bitops.h>
+#include <nvgpu/posix/bitops.h>
 #endif
 
 static inline void nvgpu_bitmap_set(unsigned long *map, unsigned int start,

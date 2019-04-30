@@ -90,6 +90,7 @@ typedef signed long long	s64;
 #define MAX_SCHEDULE_TIMEOUT	LONG_MAX
 
 #define DIV_ROUND_UP(n, d)	(((n) + (d) - 1U) / (d))
+#define DIV_ROUND_UP_ULL	DIV_ROUND_UP
 
 #define DIV_ROUND_CLOSEST(a, divisor)(                  \
 {                                                       \
@@ -117,6 +118,15 @@ typedef signed long long	s64;
 #define ALIGN_MASK(x, mask)	(((x) + (mask)) & ~(mask))
 #define ALIGN(x, a)		ALIGN_MASK(x, (typeof(x))(a) - 1U)
 #define PAGE_ALIGN(x)		ALIGN(x, PAGE_SIZE)
+
+#define HZ_TO_KHZ(x) ((x) / KHZ)
+#define HZ_TO_MHZ(a) (u16)(a/MHZ)
+#define HZ_TO_MHZ_ULL(a) ((a > 0xF414F9CD7ULL) ? 0xffff : (a >> 32) ? \
+	(u32) ((a * 0x10C8ULL) >> 32) : (u16) ((u32) a/MHZ))
+#define KHZ_TO_HZ(x) ((x) * KHZ)
+#define MHZ_TO_KHZ(x) ((x) * KHZ)
+#define KHZ_TO_MHZ(a) (u16)(a/KHZ)
+#define MHZ_TO_HZ_ULL(a) ((u64)a * MHZ)
 
 /*
  * Caps return at the size of the buffer not what would have been written if buf

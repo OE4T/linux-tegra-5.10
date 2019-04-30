@@ -9,8 +9,6 @@ __nvgpu_log_dbg
 __nvgpu_log_msg
 __nvgpu_readl
 __nvgpu_set_pte
-nvgpu_posix_ffs
-nvgpu_posix_fls
 bitmap_clear
 bitmap_find_next_zero_area_off
 bitmap_set
@@ -129,6 +127,8 @@ nvgpu_pd_offset_from_index
 nvgpu_pd_write
 nvgpu_posix_cleanup
 nvgpu_posix_enable_fault_injection
+nvgpu_posix_ffs
+nvgpu_posix_fls
 nvgpu_posix_io_add_reg_space
 nvgpu_posix_io_check_sequence
 nvgpu_posix_io_delete_reg_space
