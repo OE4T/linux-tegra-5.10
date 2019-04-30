@@ -473,6 +473,7 @@ static const struct gpu_ops gp10b_ops = {
 			.program_zcull_mapping = gm20b_gr_program_zcull_mapping,
 		},
 		.init = {
+			.get_no_of_sm = nvgpu_gr_get_no_of_sm,
 			.wait_initialized = nvgpu_gr_wait_initialized,
 			.ecc_scrub_reg = NULL,
 			.get_fbp_en_mask = gm20b_gr_init_get_fbp_en_mask,

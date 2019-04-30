@@ -563,15 +563,15 @@ static int gk20a_tsg_ioctl_read_single_sm_error_state(struct gk20a *g,
 		struct tsg_gk20a *tsg,
 		struct nvgpu_tsg_read_single_sm_error_state_args *args)
 {
-	struct nvgpu_gr *gr = g->gr;
 	struct nvgpu_tsg_sm_error_state *sm_error_state;
 	struct nvgpu_tsg_sm_error_state_record sm_error_state_record;
 	u32 sm_id;
 	int err = 0;
 
 	sm_id = args->sm_id;
-	if (sm_id >= nvgpu_gr_config_get_no_of_sm(gr->config))
+	if (sm_id >= g->ops.gr.init.get_no_of_sm(g)) {
 		return -EINVAL;
+	}
 
 	nvgpu_speculation_barrier();
 

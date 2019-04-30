@@ -1102,7 +1102,7 @@ void vgpu_gr_handle_sm_esr_event(struct gk20a *g,
 {
 	struct nvgpu_tsg_sm_error_state *sm_error_states;
 	struct tsg_gk20a *tsg;
-	u32 no_of_sm = nvgpu_gr_config_get_no_of_sm(g->gr->config);
+	u32 no_of_sm = g->ops.gr.init.get_no_of_sm(g);
 
 	if (info->sm_id >= no_of_sm) {
 		nvgpu_err(g, "invalid smd_id %d / %d", info->sm_id, no_of_sm);

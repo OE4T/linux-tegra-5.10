@@ -1376,7 +1376,7 @@ void gv11b_gr_bpt_reg_info(struct gk20a *g, struct nvgpu_warpstate *w_state)
 	u32 gpc, tpc, sm, sm_id;
 	u32 offset;
 	u64 warps_valid = 0, warps_paused = 0, warps_trapped = 0;
-	u32 no_of_sm = nvgpu_gr_config_get_no_of_sm(gr->config);
+	u32 no_of_sm = g->ops.gr.init.get_no_of_sm(g);
 
 	for (sm_id = 0; sm_id < no_of_sm; sm_id++) {
 		struct sm_info *sm_info =
@@ -1443,7 +1443,7 @@ int gv11b_gr_set_sm_debug_mode(struct gk20a *g,
 {
 	struct nvgpu_dbg_reg_op *ops;
 	unsigned int i = 0, sm_id;
-	u32 no_of_sm = nvgpu_gr_config_get_no_of_sm(g->gr->config);
+	u32 no_of_sm = g->ops.gr.init.get_no_of_sm(g);
 	int err;
 
 	ops = nvgpu_kcalloc(g, no_of_sm, sizeof(*ops));

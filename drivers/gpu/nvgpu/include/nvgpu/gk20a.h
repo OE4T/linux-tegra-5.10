@@ -679,6 +679,7 @@ struct gpu_ops {
 		} hwpm_map;
 
 		struct {
+			u32 (*get_no_of_sm)(struct gk20a *g);
 			u32 (*get_nonpes_aware_tpc)(struct gk20a *g, u32 gpc,
 				u32 tpc, struct nvgpu_gr_config *gr_config);
 			void (*wait_initialized)(struct gk20a *g);

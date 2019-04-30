@@ -305,6 +305,7 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 		},
 #endif /* CONFIG_GK20A_CTXSW_TRACE */
 		.init = {
+			.get_no_of_sm = nvgpu_gr_get_no_of_sm,
 			.get_fbp_en_mask = vgpu_gr_get_fbp_en_mask,
 			.fs_state = vgpu_gr_init_fs_state,
 			.get_bundle_cb_default_size =

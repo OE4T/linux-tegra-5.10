@@ -355,6 +355,7 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 		},
 #endif /* CONFIG_GK20A_CTXSW_TRACE */
 		.init = {
+			.get_no_of_sm = nvgpu_gr_get_no_of_sm,
 			.get_nonpes_aware_tpc =
 					gv11b_gr_init_get_nonpes_aware_tpc,
 			.get_fbp_en_mask = vgpu_gr_get_fbp_en_mask,

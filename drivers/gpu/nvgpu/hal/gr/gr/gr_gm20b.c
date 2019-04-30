@@ -506,7 +506,7 @@ void gr_gm20b_bpt_reg_info(struct gk20a *g, struct nvgpu_warpstate *w_state)
 	u64 warps_valid = 0, warps_paused = 0, warps_trapped = 0;
 	u32 gpc_stride = nvgpu_get_litter_value(g, GPU_LIT_GPC_STRIDE);
 	u32 tpc_in_gpc_stride = nvgpu_get_litter_value(g, GPU_LIT_TPC_IN_GPC_STRIDE);
-	u32 no_of_sm = nvgpu_gr_config_get_no_of_sm(gr->config);
+	u32 no_of_sm = g->ops.gr.init.get_no_of_sm(g);
 
 	/* for maxwell & kepler */
 	u32 numSmPerTpc = 1;

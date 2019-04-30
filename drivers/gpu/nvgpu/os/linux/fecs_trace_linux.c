@@ -29,8 +29,6 @@
 #include <nvgpu/gr/fecs_trace.h>
 #include <nvgpu/string.h>
 
-#include "common/gr/gr_priv.h"
-
 #include "platform_gk20a.h"
 #include "os_linux.h"
 #include "fecs_trace_linux.h"

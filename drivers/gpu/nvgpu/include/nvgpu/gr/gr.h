@@ -27,6 +27,7 @@
 
 struct gk20a;
 
+u32 nvgpu_gr_get_no_of_sm(struct gk20a *g);
 int nvgpu_gr_prepare_sw(struct gk20a *g);
 int nvgpu_gr_enable_hw(struct gk20a *g);
 int nvgpu_gr_reset(struct gk20a *g);

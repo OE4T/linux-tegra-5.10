@@ -45,7 +45,6 @@
 /* Access gr_gk20a_suspend_context and gr_gk20a_resume_context functions */
 #include "hal/gr/gr/gr_gk20a.h"
 
-#include "common/gr/gr_priv.h"
 #include "os_linux.h"
 #include "platform_gk20a.h"
 #include "ioctl_dbg.h"
@@ -269,7 +268,6 @@ static int nvgpu_dbg_gpu_ioctl_read_single_sm_error_state(
 		struct nvgpu_dbg_gpu_read_single_sm_error_state_args *args)
 {
 	struct gk20a *g = dbg_s->g;
-	struct nvgpu_gr *gr = g->gr;
 	struct nvgpu_tsg_sm_error_state *sm_error_state;
 	struct nvgpu_dbg_gpu_sm_error_state_record sm_error_state_record;
 	struct channel_gk20a *ch;
@@ -289,7 +287,7 @@ static int nvgpu_dbg_gpu_ioctl_read_single_sm_error_state(
 	}
 
 	sm_id = args->sm_id;
-	if (sm_id >= nvgpu_gr_config_get_no_of_sm(gr->config)) {
+	if (sm_id >= g->ops.gr.init.get_no_of_sm(g)) {
 		return -EINVAL;
 	}
 
@@ -1454,7 +1452,6 @@ static int nvgpu_dbg_gpu_ioctl_clear_single_sm_error_state(
 		struct nvgpu_dbg_gpu_clear_single_sm_error_state_args *args)
 {
 	struct gk20a *g = dbg_s->g;
-	struct nvgpu_gr *gr = g->gr;
 	u32 sm_id;
 	struct channel_gk20a *ch;
 	int err = 0;
@@ -1465,8 +1462,9 @@ static int nvgpu_dbg_gpu_ioctl_clear_single_sm_error_state(
 	}
 
 	sm_id = args->sm_id;
-	if (sm_id >= nvgpu_gr_config_get_no_of_sm(gr->config))
+	if (sm_id >= g->ops.gr.init.get_no_of_sm(g)) {
 		return -EINVAL;
+	}
 
 	nvgpu_speculation_barrier();
 

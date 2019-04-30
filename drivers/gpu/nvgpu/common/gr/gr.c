@@ -104,6 +104,11 @@ static int gr_alloc_global_ctx_buffers(struct gk20a *g)
 	return 0;
 }
 
+u32 nvgpu_gr_get_no_of_sm(struct gk20a *g)
+{
+	return nvgpu_gr_config_get_no_of_sm(g->gr->config);
+}
+
 u32 nvgpu_gr_gpc_offset(struct gk20a *g, u32 gpc)
 {
 	u32 gpc_stride = nvgpu_get_litter_value(g, GPU_LIT_GPC_STRIDE);

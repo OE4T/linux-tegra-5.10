@@ -26,7 +26,6 @@
 #include "gr_falcon_gp10b.h"
 #include "gr_falcon_gm20b.h"
 #include "common/gr/gr_falcon_priv.h"
-#include "common/gr/gr_priv.h"
 
 #include <nvgpu/hw/gp10b/hw_gr_gp10b.h>
 

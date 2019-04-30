@@ -704,12 +704,13 @@ static int nvgpu_gpu_ioctl_wait_for_pause(struct gk20a *g,
 	struct nvgpu_warpstate *w_state = NULL;
 	u32 ioctl_size, size, sm_id, no_of_sm;
 
-	no_of_sm = nvgpu_gr_config_get_no_of_sm(g->gr->config);
+	no_of_sm = g->ops.gr.init.get_no_of_sm(g);
 
 	ioctl_size = no_of_sm * sizeof(struct warpstate);
 	ioctl_w_state = nvgpu_kzalloc(g, ioctl_size);
-	if (!ioctl_w_state)
+	if (!ioctl_w_state) {
 		return -ENOMEM;
+	}
 
 	size = no_of_sm * sizeof(struct nvgpu_warpstate);
 	w_state = nvgpu_kzalloc(g, size);
@@ -719,8 +720,9 @@ static int nvgpu_gpu_ioctl_wait_for_pause(struct gk20a *g,
 	}
 
 	err = gk20a_busy(g);
-	if (err)
+	if (err) {
 		goto out_free;
+	}
 
 	nvgpu_mutex_acquire(&g->dbg_sessions_lock);
 	g->ops.gr.wait_for_pause(g, w_state);
@@ -807,8 +809,7 @@ static int nvgpu_gpu_ioctl_has_any_exception(
 static int gk20a_ctrl_get_num_vsms(struct gk20a *g,
 				    struct nvgpu_gpu_num_vsms *args)
 {
-	struct nvgpu_gr *gr = g->gr;
-	args->num_vsms = nvgpu_gr_config_get_no_of_sm(gr->config);
+	args->num_vsms = g->ops.gr.init.get_no_of_sm(g);
 	return 0;
 }
 
@@ -817,7 +818,7 @@ static int gk20a_ctrl_vsm_mapping(struct gk20a *g,
 {
 	int err = 0;
 	struct nvgpu_gr *gr = g->gr;
-	u32 no_of_sm = nvgpu_gr_config_get_no_of_sm(gr->config);
+	u32 no_of_sm = g->ops.gr.init.get_no_of_sm(g);
 	size_t write_size = no_of_sm *
 		sizeof(struct nvgpu_gpu_vsms_mapping_entry);
 	struct nvgpu_gpu_vsms_mapping_entry *vsms_buf;

@@ -99,12 +99,12 @@ int nvgpu_gr_fs_state_init(struct gk20a *g, struct nvgpu_gr_config *config)
 		}
 
 		/* Is table empty ? */
-		if (nvgpu_gr_config_get_no_of_sm(config) == 0U) {
+		if (g->ops.gr.init.get_no_of_sm(g) == 0U) {
 			return -EINVAL;
 		}
 	}
 
-	for (sm_id = 0; sm_id < nvgpu_gr_config_get_no_of_sm(config);
+	for (sm_id = 0; sm_id < g->ops.gr.init.get_no_of_sm(g);
 	     sm_id++) {
 		struct sm_info *sm_info =
 			nvgpu_gr_config_get_sm_info(config, sm_id);

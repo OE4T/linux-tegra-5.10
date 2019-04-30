@@ -1902,7 +1902,7 @@ int gr_gk20a_set_sm_debug_mode(struct gk20a *g,
 	int err;
 	u32 gpc_stride = nvgpu_get_litter_value(g, GPU_LIT_GPC_STRIDE);
 	u32 tpc_in_gpc_stride = nvgpu_get_litter_value(g, GPU_LIT_TPC_IN_GPC_STRIDE);
-	u32 no_of_sm = nvgpu_gr_config_get_no_of_sm(g->gr->config);
+	u32 no_of_sm = g->ops.gr.init.get_no_of_sm(g);
 
 	ops = nvgpu_kcalloc(g, no_of_sm, sizeof(*ops));
 	if (ops == NULL) {
@@ -2100,10 +2100,9 @@ int gr_gk20a_trigger_suspend(struct gk20a *g)
 int gr_gk20a_wait_for_pause(struct gk20a *g, struct nvgpu_warpstate *w_state)
 {
 	int err = 0;
-	struct nvgpu_gr *gr = g->gr;
 	u32 gpc, tpc, sm, sm_id;
 	u32 global_mask;
-	u32 no_of_sm = nvgpu_gr_config_get_no_of_sm(gr->config);
+	u32 no_of_sm = g->ops.gr.init.get_no_of_sm(g);
 
 	/* Wait for the SMs to reach full stop. This condition is:
 	 * 1) All SMs with valid warps must be in the trap handler (SM_IN_TRAP_MODE)
@@ -2185,12 +2184,11 @@ int gr_gk20a_clear_sm_errors(struct gk20a *g)
 
 u32 gr_gk20a_tpc_enabled_exceptions(struct gk20a *g)
 {
-	struct nvgpu_gr *gr = g->gr;
 	u32 sm_id, tpc_exception_en = 0;
 	u32 offset, regval, tpc_offset, gpc_offset;
 	u32 gpc_stride = nvgpu_get_litter_value(g, GPU_LIT_GPC_STRIDE);
 	u32 tpc_in_gpc_stride = nvgpu_get_litter_value(g, GPU_LIT_TPC_IN_GPC_STRIDE);
-	u32 no_of_sm = nvgpu_gr_config_get_no_of_sm(gr->config);
+	u32 no_of_sm = g->ops.gr.init.get_no_of_sm(g);
 
 	for (sm_id = 0; sm_id < no_of_sm; sm_id++) {
 		struct sm_info *sm_info =

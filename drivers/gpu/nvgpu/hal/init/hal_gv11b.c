@@ -580,6 +580,7 @@ static const struct gpu_ops gv11b_ops = {
 				gv100_gr_hwpm_map_align_regs_perf_pma,
 		},
 		.init = {
+			.get_no_of_sm = nvgpu_gr_get_no_of_sm,
 			.get_nonpes_aware_tpc =
 					gv11b_gr_init_get_nonpes_aware_tpc,
 			.wait_initialized = nvgpu_gr_wait_initialized,
