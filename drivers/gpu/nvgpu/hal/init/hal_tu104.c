@@ -152,6 +152,7 @@
 #include "hal/top/top_gv100.h"
 #include "hal/top/top_gv11b.h"
 #include "hal/bios/bios_tu104.h"
+#include "hal/pramin/pramin_init.h"
 
 
 #include "common/xve/xve_gp106.h"
@@ -202,7 +203,6 @@
 #include <nvgpu/gr/gr_intr.h>
 #include <nvgpu/pmu/pmu_perfmon.h>
 
-#include <nvgpu/hw/tu104/hw_pram_tu104.h>
 #include <nvgpu/hw/tu104/hw_pwr_tu104.h>
 
 static void tu104_init_gpu_characteristics(struct gk20a *g)
@@ -1042,9 +1042,6 @@ static const struct gpu_ops tu104_ops = {
 			.gpu_phys_addr = gv11b_gpu_phys_addr,
 		}
 	},
-	.pramin = {
-		.data032_r = pram_data032_r,
-	},
 	.therm = {
 		/* PROD values match with H/W INIT values */
 		.init_elcg_mode = gv11b_therm_init_elcg_mode,
@@ -1405,7 +1402,6 @@ int tu104_init_hal(struct gk20a *g)
 	gops->pbdma_status = tu104_ops.pbdma_status;
 	gops->netlist = tu104_ops.netlist;
 	gops->mm = tu104_ops.mm;
-	gops->pramin = tu104_ops.pramin;
 	gops->therm = tu104_ops.therm;
 	gops->pmu = tu104_ops.pmu;
 	gops->regops = tu104_ops.regops;
@@ -1470,6 +1466,8 @@ int tu104_init_hal(struct gk20a *g)
 	gops->clk.support_vf_point = true;
 	gops->clk.lut_num_entries = CTRL_CLK_LUT_NUM_ENTRIES_GV10x;
 	gops->clk.perf_pmu_vfe_load = nvgpu_perf_pmu_vfe_load_ps35;
+
+	nvgpu_pramin_ops_init(g);
 
 	/* dGpu VDK support */
 	if (nvgpu_is_enabled(g, NVGPU_IS_FMODEL)){

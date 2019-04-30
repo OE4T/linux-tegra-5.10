@@ -136,6 +136,7 @@
 #include "hal/top/top_gp106.h"
 #include "hal/top/top_gv100.h"
 #include "hal/top/top_gv11b.h"
+#include "hal/pramin/pramin_init.h"
 
 
 #include "common/xve/xve_gp106.h"
@@ -180,7 +181,6 @@
 #include <nvgpu/gr/gr_intr.h>
 #include <nvgpu/pmu/lpwr.h>
 
-#include <nvgpu/hw/gv100/hw_pram_gv100.h>
 #include <nvgpu/hw/gv100/hw_pwr_gv100.h>
 
 static void gv100_init_gpu_characteristics(struct gk20a *g)
@@ -1002,9 +1002,6 @@ static const struct gpu_ops gv100_ops = {
 			.gpu_phys_addr = gv11b_gpu_phys_addr,
 		}
 	},
-	.pramin = {
-		.data032_r = pram_data032_r,
-	},
 	.therm = {
 		/* PROD values match with H/W INIT values */
 		.init_elcg_mode = gv11b_therm_init_elcg_mode,
@@ -1358,7 +1355,6 @@ int gv100_init_hal(struct gk20a *g)
 	gops->pbdma_status = gv100_ops.pbdma_status;
 	gops->netlist = gv100_ops.netlist;
 	gops->mm = gv100_ops.mm;
-	gops->pramin = gv100_ops.pramin;
 	gops->therm = gv100_ops.therm;
 	gops->pmu = gv100_ops.pmu;
 	gops->regops = gv100_ops.regops;
@@ -1426,6 +1422,8 @@ int gv100_init_hal(struct gk20a *g)
 	gops->pmu_perf.support_changeseq = false;
 	gops->pmu_perf.support_vfe = true;
 	gops->clk.support_vf_point = true;
+
+	nvgpu_pramin_ops_init(g);
 
 	g->name = "gv10x";
 

@@ -439,6 +439,10 @@ srcs += common/sim/sim.c \
 	hal/pmu/pmu_gp106.c \
 	hal/pmu/pmu_gv11b.c \
 	hal/pmu/pmu_tu104.c \
+	hal/pramin/pramin_gp10b.c \
+	hal/pramin/pramin_gv100.c \
+	hal/pramin/pramin_init.c \
+	hal/pramin/pramin_tu104.c \
 	hal/bios/bios_tu104.c \
 	hal/top/top_gm20b.c \
 	hal/top/top_gp10b.c \

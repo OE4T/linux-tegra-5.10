@@ -118,6 +118,7 @@
 #include "hal/netlist/netlist_gp10b.h"
 #include "hal/top/top_gm20b.h"
 #include "hal/top/top_gp10b.h"
+#include "hal/pramin/pramin_init.h"
 
 #include "common/pmu/pg/pg_sw_gm20b.h"
 #include "common/pmu/pg/pg_sw_gp10b.h"
@@ -128,7 +129,6 @@
 #include "hal_gp10b.h"
 #include "hal_gp10b_litter.h"
 
-#include <nvgpu/hw/gp10b/hw_pram_gp10b.h>
 #include <nvgpu/hw/gp10b/hw_pwr_gp10b.h>
 
 static void gp10b_init_gpu_characteristics(struct gk20a *g)
@@ -839,9 +839,6 @@ static const struct gpu_ops gp10b_ops = {
 			.gpu_phys_addr = gm20b_gpu_phys_addr,
 		}
 	},
-	.pramin = {
-		.data032_r = pram_data032_r,
-	},
 	.therm = {
 		.init_therm_setup_hw = gp10b_init_therm_setup_hw,
 		.init_elcg_mode = gm20b_therm_init_elcg_mode,
@@ -1093,7 +1090,6 @@ int gp10b_init_hal(struct gk20a *g)
 	gops->pbdma_status = gp10b_ops.pbdma_status;
 	gops->netlist = gp10b_ops.netlist;
 	gops->mm = gp10b_ops.mm;
-	gops->pramin = gp10b_ops.pramin;
 	gops->therm = gp10b_ops.therm;
 	gops->pmu = gp10b_ops.pmu;
 	gops->clk_arb = gp10b_ops.clk_arb;
@@ -1126,6 +1122,8 @@ int gp10b_init_hal(struct gk20a *g)
 	nvgpu_set_enabled(g, NVGPU_GR_USE_DMA_FOR_FW_BOOTSTRAP, true);
 	nvgpu_set_enabled(g, NVGPU_PMU_PSTATE, false);
 	nvgpu_set_enabled(g, NVGPU_FECS_TRACE_VA, false);
+
+	nvgpu_pramin_ops_init(g);
 
 	/* Read fuses to check if gpu needs to boot in secure/non-secure mode */
 	if (gops->fuse.check_priv_security(g) != 0) {

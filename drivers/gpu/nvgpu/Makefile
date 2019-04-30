@@ -340,6 +340,10 @@ nvgpu-y += \
 	hal/pmu/pmu_gp106.o \
 	hal/pmu/pmu_gv11b.o \
 	hal/pmu/pmu_tu104.o \
+	hal/pramin/pramin_gp10b.o \
+	hal/pramin/pramin_gv100.o \
+	hal/pramin/pramin_init.o \
+	hal/pramin/pramin_tu104.o \
 	hal/bios/bios_tu104.o \
 	hal/top/top_gm20b.o \
 	hal/top/top_gp10b.o \
