@@ -1085,7 +1085,7 @@ struct gpu_ops {
 	struct {
 		int (*setup_sw)(struct gk20a *g);
 		void (*cleanup_sw)(struct gk20a *g);
-		int (*init_mem)(struct gk20a *g, struct channel_gk20a *c);
+		void (*init_mem)(struct gk20a *g, struct channel_gk20a *c);
 		u32 (*gp_get)(struct gk20a *g, struct channel_gk20a *c);
 		void (*gp_put)(struct gk20a *g, struct channel_gk20a *c);
 		u64 (*pb_get)(struct gk20a *g, struct channel_gk20a *c);

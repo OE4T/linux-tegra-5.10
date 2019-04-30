@@ -26,7 +26,7 @@
 struct gk20a;
 struct channel_gk20a;
 
-int gk20a_userd_init_mem(struct gk20a *g, struct channel_gk20a *c);
+void gk20a_userd_init_mem(struct gk20a *g, struct channel_gk20a *c);
 u32 gk20a_userd_gp_get(struct gk20a *g, struct channel_gk20a *c);
 u64 gk20a_userd_pb_get(struct gk20a *g, struct channel_gk20a *c);
 void gk20a_userd_gp_put(struct gk20a *g, struct channel_gk20a *c);

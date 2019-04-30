@@ -32,7 +32,7 @@
 
 #include <nvgpu/hw/gk20a/hw_ram_gk20a.h>
 
-int gk20a_userd_init_mem(struct gk20a *g, struct channel_gk20a *c)
+void gk20a_userd_init_mem(struct gk20a *g, struct channel_gk20a *c)
 {
 	struct nvgpu_mem *mem = c->userd_mem;
 	u32 offset = c->userd_offset / U32(sizeof(u32));
@@ -48,8 +48,6 @@ int gk20a_userd_init_mem(struct gk20a *g, struct channel_gk20a *c)
 	nvgpu_mem_wr32(g, mem, offset + ram_userd_get_hi_w(), 0);
 	nvgpu_mem_wr32(g, mem, offset + ram_userd_gp_get_w(), 0);
 	nvgpu_mem_wr32(g, mem, offset + ram_userd_gp_put_w(), 0);
-
-	return 0;
 }
 
 u32 gk20a_userd_gp_get(struct gk20a *g, struct channel_gk20a *c)
