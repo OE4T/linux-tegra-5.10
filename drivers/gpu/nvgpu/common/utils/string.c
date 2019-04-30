@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -76,4 +76,14 @@ int nvgpu_strnadd_u32(char *dst, const u32 value, size_t size, u32 radix)
 	while (v > 0U);
 
 	return n;
+}
+
+bool nvgpu_mem_is_word_aligned(struct gk20a *g, u8 *addr)
+{
+	if ((unsigned long)addr % 4UL != 0UL) {
+		nvgpu_log_info(g, "addr (%p) not 4-byte aligned", addr);
+		return false;
+	}
+
+	return true;
 }

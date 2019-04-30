@@ -22,6 +22,7 @@
 #include <nvgpu/io.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/falcon.h>
+#include <nvgpu/string.h>
 
 #include "falcon_gk20a.h"
 
@@ -175,7 +176,7 @@ int gk20a_falcon_copy_from_dmem(struct nvgpu_falcon *flcn,
 
 	nvgpu_log_fn(g, " src dmem offset - %x, size - %x", src, size);
 
-	words = size >> 2;
+	words = size >> 2U;
 	bytes = size & 0x3U;
 
 	addr_mask = falcon_falcon_dmemc_offs_m() |
@@ -183,19 +184,25 @@ int gk20a_falcon_copy_from_dmem(struct nvgpu_falcon *flcn,
 
 	src &= addr_mask;
 
-	gk20a_writel(g, base_addr + falcon_falcon_dmemc_r(port),
+	nvgpu_writel(g, base_addr + falcon_falcon_dmemc_r(port),
 		src | falcon_falcon_dmemc_aincr_f(1));
 
-	for (i = 0; i < words; i++) {
-		dst_u32[i] = gk20a_readl(g,
-			base_addr + falcon_falcon_dmemd_r(port));
+	if (unlikely(!nvgpu_mem_is_word_aligned(g, dst))) {
+		for (i = 0; i < words; i++) {
+			data = nvgpu_readl(g,
+				base_addr + falcon_falcon_dmemd_r(port));
+			nvgpu_memcpy(&dst[i * 4U], (u8 *)&data, 4);
+		}
+	} else {
+		for (i = 0; i < words; i++) {
+			dst_u32[i] = nvgpu_readl(g,
+				base_addr + falcon_falcon_dmemd_r(port));
+		}
 	}
 
 	if (bytes > 0U) {
-		data = gk20a_readl(g, base_addr + falcon_falcon_dmemd_r(port));
-		for (i = 0; i < bytes; i++) {
-			dst[(words << 2) + i] = ((u8 *)&data)[i];
-		}
+		data = nvgpu_readl(g, base_addr + falcon_falcon_dmemd_r(port));
+		nvgpu_memcpy(&dst[words << 2U], (u8 *)&data, bytes);
 	}
 
 	return 0;
@@ -212,7 +219,7 @@ int gk20a_falcon_copy_to_dmem(struct nvgpu_falcon *flcn,
 
 	nvgpu_log_fn(g, "dest dmem offset - %x, size - %x", dst, size);
 
-	words = size >> 2;
+	words = size >> 2U;
 	bytes = size & 0x3U;
 
 	addr_mask = falcon_falcon_dmemc_offs_m() |
@@ -220,24 +227,30 @@ int gk20a_falcon_copy_to_dmem(struct nvgpu_falcon *flcn,
 
 	dst &= addr_mask;
 
-	gk20a_writel(g, base_addr + falcon_falcon_dmemc_r(port),
+	nvgpu_writel(g, base_addr + falcon_falcon_dmemc_r(port),
 		dst | falcon_falcon_dmemc_aincw_f(1));
 
-	for (i = 0; i < words; i++) {
-		gk20a_writel(g,
-			base_addr + falcon_falcon_dmemd_r(port), src_u32[i]);
+	if (unlikely(!nvgpu_mem_is_word_aligned(g, src))) {
+		for (i = 0; i < words; i++) {
+			nvgpu_memcpy((u8 *)&data, &src[i * 4U], 4);
+			nvgpu_writel(g, base_addr + falcon_falcon_dmemd_r(port),
+				     data);
+		}
+	} else {
+		for (i = 0; i < words; i++) {
+			nvgpu_writel(g, base_addr + falcon_falcon_dmemd_r(port),
+				     src_u32[i]);
+		}
 	}
 
 	if (bytes > 0U) {
 		data = 0;
-		for (i = 0; i < bytes; i++) {
-			((u8 *)&data)[i] = src[(words << 2) + i];
-		}
-		gk20a_writel(g, base_addr + falcon_falcon_dmemd_r(port), data);
+		nvgpu_memcpy((u8 *)&data, &src[words << 2U], bytes);
+		nvgpu_writel(g, base_addr + falcon_falcon_dmemd_r(port), data);
 	}
 
 	size = ALIGN(size, 4);
-	data = gk20a_readl(g,
+	data = nvgpu_readl(g,
 		base_addr + falcon_falcon_dmemc_r(port)) & addr_mask;
 	if (data != ((dst + size) & addr_mask)) {
 		nvgpu_warn(g, "copy failed. bytes written %d, expected %d",
@@ -261,28 +274,34 @@ int gk20a_falcon_copy_from_imem(struct nvgpu_falcon *flcn, u32 src,
 
 	nvgpu_log_info(g, "download %d bytes from 0x%x", size, src);
 
-	words = size >> 2;
+	words = size >> 2U;
 	bytes = size & 0x3U;
 	blk = src >> 8;
 
 	nvgpu_log_info(g, "download %d words from 0x%x block %d",
 			words, src, blk);
 
-	gk20a_writel(g, base_addr + falcon_falcon_imemc_r(port),
+	nvgpu_writel(g, base_addr + falcon_falcon_imemc_r(port),
 		falcon_falcon_imemc_offs_f(src >> 2) |
 		falcon_falcon_imemc_blk_f(blk) |
 		falcon_falcon_dmemc_aincr_f(1));
 
-	for (i = 0; i < words; i++) {
-		dst_u32[i] = gk20a_readl(g,
-			base_addr + falcon_falcon_imemd_r(port));
+	if (unlikely(!nvgpu_mem_is_word_aligned(g, dst))) {
+		for (i = 0; i < words; i++) {
+			data = nvgpu_readl(g,
+				base_addr + falcon_falcon_imemd_r(port));
+			nvgpu_memcpy(&dst[i * 4U], (u8 *)&data, 4);
+		}
+	} else {
+		for (i = 0; i < words; i++) {
+			dst_u32[i] = nvgpu_readl(g,
+				base_addr + falcon_falcon_imemd_r(port));
+		}
 	}
 
 	if (bytes > 0U) {
-		data = gk20a_readl(g, base_addr + falcon_falcon_imemd_r(port));
-		for (i = 0; i < bytes; i++) {
-			dst[(words << 2) + i] = ((u8 *)&data)[i];
-		}
+		data = nvgpu_readl(g, base_addr + falcon_falcon_imemd_r(port));
+		nvgpu_memcpy(&dst[words << 2U], (u8 *)&data, bytes);
 	}
 
 	return 0;
@@ -295,39 +314,58 @@ int gk20a_falcon_copy_to_imem(struct nvgpu_falcon *flcn, u32 dst,
 	u32 base_addr = flcn->flcn_base;
 	u32 *src_u32 = (u32 *)src;
 	u32 words = 0;
+	u32 data = 0;
 	u32 blk = 0;
 	u32 i = 0;
 
 	nvgpu_log_info(g, "upload %d bytes to 0x%x", size, dst);
 
-	words = size >> 2;
+	words = size >> 2U;
 	blk = dst >> 8;
 
 	nvgpu_log_info(g, "upload %d words to 0x%x block %d, tag 0x%x",
 			words, dst, blk, tag);
 
-	gk20a_writel(g, base_addr + falcon_falcon_imemc_r(port),
+	nvgpu_writel(g, base_addr + falcon_falcon_imemc_r(port),
 			falcon_falcon_imemc_offs_f(dst >> 2) |
 			falcon_falcon_imemc_blk_f(blk) |
 			/* Set Auto-Increment on write */
 			falcon_falcon_imemc_aincw_f(1) |
 			falcon_falcon_imemc_secure_f(sec ? 1U : 0U));
 
-	for (i = 0U; i < words; i++) {
-		if (i % 64U == 0U) {
-			/* tag is always 256B aligned */
-			gk20a_writel(g, base_addr + falcon_falcon_imemt_r(0),
-				tag);
-			tag++;
-		}
+	if (unlikely(!nvgpu_mem_is_word_aligned(g, src))) {
+		for (i = 0U; i < words; i++) {
+			if (i % 64U == 0U) {
+				/* tag is always 256B aligned */
+				nvgpu_writel(g,
+					base_addr + falcon_falcon_imemt_r(0),
+					tag);
+				tag++;
+			}
 
-		gk20a_writel(g, base_addr + falcon_falcon_imemd_r(port),
-			src_u32[i]);
+			nvgpu_memcpy((u8 *)&data, &src[i * 4U], 4);
+			nvgpu_writel(g,
+				     base_addr + falcon_falcon_imemd_r(port),
+				     data);
+		}
+	} else {
+		for (i = 0U; i < words; i++) {
+			if (i % 64U == 0U) {
+				/* tag is always 256B aligned */
+				nvgpu_writel(g,
+					base_addr + falcon_falcon_imemt_r(0),
+					tag);
+				tag++;
+			}
+
+			nvgpu_writel(g, base_addr + falcon_falcon_imemd_r(port),
+				     src_u32[i]);
+		}
 	}
 
 	/* WARNING : setting remaining bytes in block to 0x0 */
 	while (i % 64U != 0U) {
-		gk20a_writel(g, base_addr + falcon_falcon_imemd_r(port), 0);
+		nvgpu_writel(g, base_addr + falcon_falcon_imemd_r(port), 0);
 		i++;
 	}
 
