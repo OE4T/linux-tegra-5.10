@@ -1030,10 +1030,6 @@ static const struct gpu_ops gv11b_ops = {
 		.pmu_reset_idle_counter = gk20a_pmu_reset_idle_counter,
 		.pmu_read_idle_intr_status = gk20a_pmu_read_idle_intr_status,
 		.pmu_clear_idle_intr_status = gk20a_pmu_clear_idle_intr_status,
-		.pmu_init_perfmon = nvgpu_pmu_init_perfmon_rpc,
-		.pmu_perfmon_start_sampling = nvgpu_pmu_perfmon_start_sampling_rpc,
-		.pmu_perfmon_stop_sampling = nvgpu_pmu_perfmon_stop_sampling_rpc,
-		.pmu_perfmon_get_samples_rpc = nvgpu_pmu_perfmon_get_samples_rpc,
 		/* debug */
 		.dump_secure_fuses = pmu_dump_security_fuses_gm20b,
 		.pmu_dump_falcon_stats = gk20a_pmu_dump_falcon_stats,

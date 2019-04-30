@@ -32,6 +32,9 @@
 #include <nvgpu/pmu/pmuif/nvgpu_cmdif.h>
 #include <nvgpu/kmem.h>
 
+#include "pmu_perfmon_sw_gm20b.h"
+#include "pmu_perfmon_sw_gv11b.h"
+
 static u8 get_perfmon_id(struct nvgpu_pmu *pmu)
 {
 	struct gk20a *g = pmu->g;
@@ -93,25 +96,55 @@ void nvgpu_pmu_perfmon_rpc_handler(struct gk20a *g, struct nvgpu_pmu *pmu,
 	}
 }
 
-int nvgpu_pmu_initialize_perfmon(struct gk20a *g, struct nvgpu_pmu *pmu)
+int nvgpu_pmu_initialize_perfmon(struct gk20a *g, struct nvgpu_pmu *pmu,
+		struct nvgpu_pmu_perfmon **perfmon_ptr)
 {
-	if (pmu->pmu_perfmon != NULL) {
+	struct nvgpu_pmu_perfmon *perfmon;
+	int err = 0;
+	u32 ver = g->params.gpu_arch + g->params.gpu_impl;
+
+	if (*perfmon_ptr != NULL) {
 		/* Not to allocate a new buffer after railgating
-		   is done. Use the same memory for pmu_perfmon
+		is done. Use the same memory for pmu_perfmon
 		   after railgating.
 		*/
-		return 0;
+		nvgpu_pmu_dbg(g, "skip perfmon init for unrailgate sequence");
+		goto exit;
 
-	} else {
-		/* One-time memory allocation for pmu_perfmon */
-		pmu->pmu_perfmon = (struct nvgpu_pmu_perfmon *)(nvgpu_kzalloc(g,
-					sizeof(struct nvgpu_pmu_perfmon)));
-		if (pmu->pmu_perfmon == NULL) {
-			nvgpu_err(g, "failed to initialize  perfmon");
-			return -ENOMEM;
-		}
 	}
-	return 0;
+	/* One-time memory allocation for pmu_perfmon */
+	perfmon = (struct nvgpu_pmu_perfmon *)
+		nvgpu_kzalloc(g, sizeof(struct nvgpu_pmu_perfmon));
+
+	if (perfmon == NULL) {
+		nvgpu_err(g, "failed to initialize perfmon");
+		return -ENOMEM;
+	}
+
+	*perfmon_ptr = perfmon;
+
+	switch (ver) {
+	case GK20A_GPUID_GM20B:
+	case GK20A_GPUID_GM20B_B:
+	case NVGPU_GPUID_GP10B:
+	case NVGPU_GPUID_GV100:
+	case NVGPU_GPUID_TU104:
+		nvgpu_gm20b_perfmon_sw_init(g, *perfmon_ptr);
+		break;
+
+	case NVGPU_GPUID_GV11B:
+		nvgpu_gv11b_perfmon_sw_init(g, *perfmon_ptr);
+		break;
+
+	default:
+		nvgpu_kfree(g, *perfmon_ptr);
+		err = -EINVAL;
+		nvgpu_err(g, "no support for GPUID %x", ver);
+		break;
+	}
+
+exit:
+	return err;
 
 }
 
@@ -208,6 +241,7 @@ int nvgpu_pmu_init_perfmon(struct nvgpu_pmu *pmu)
 
 	return 0;
 }
+
 
 int nvgpu_pmu_perfmon_start_sampling(struct nvgpu_pmu *pmu)
 {
@@ -324,8 +358,8 @@ int nvgpu_pmu_load_update(struct gk20a *g)
 		return 0;
 	}
 
-	if (g->ops.pmu.pmu_perfmon_get_samples_rpc != NULL) {
-		nvgpu_pmu_perfmon_get_samples_rpc(pmu);
+	if (pmu->pmu_perfmon->get_samples_rpc != NULL) {
+		nvgpu_pmu_perfmon_get_sample(g, pmu, pmu->pmu_perfmon);
 		load = pmu->pmu_perfmon->load;
 	} else {
 		err = nvgpu_falcon_copy_from_dmem(&pmu->flcn,
@@ -444,7 +478,8 @@ int nvgpu_pmu_handle_perfmon_event(struct nvgpu_pmu *pmu,
 
 	/* restart sampling */
 	if (pmu->pmu_perfmon->perfmon_sampling_enabled) {
-		return g->ops.pmu.pmu_perfmon_start_sampling(&(g->pmu));
+		return nvgpu_pmu_perfmon_start_sample(g, pmu,
+					pmu->pmu_perfmon);
 	}
 
 	return 0;
@@ -598,4 +633,31 @@ u64 nvgpu_pmu_perfmon_get_events_count(struct nvgpu_pmu *pmu)
 u32 nvgpu_pmu_perfmon_get_load_avg(struct nvgpu_pmu *pmu)
 {
 	return pmu->pmu_perfmon->load_avg;
+}
+
+int nvgpu_pmu_perfmon_initialization(struct gk20a *g,
+	struct nvgpu_pmu *pmu, struct nvgpu_pmu_perfmon *perfmon)
+{
+	return perfmon->init_perfmon(pmu);
+}
+
+int nvgpu_pmu_perfmon_start_sample(struct gk20a *g,
+	struct nvgpu_pmu *pmu, struct nvgpu_pmu_perfmon *perfmon)
+{
+
+	return perfmon->start_sampling(pmu);
+}
+
+int nvgpu_pmu_perfmon_stop_sample(struct gk20a *g,
+	struct nvgpu_pmu *pmu, struct nvgpu_pmu_perfmon *perfmon)
+{
+
+	return perfmon->stop_sampling(pmu);
+}
+
+int nvgpu_pmu_perfmon_get_sample(struct gk20a *g,
+	struct nvgpu_pmu *pmu, struct nvgpu_pmu_perfmon *perfmon)
+{
+
+	return perfmon->get_samples_rpc(pmu);
 }

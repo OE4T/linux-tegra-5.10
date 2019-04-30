@@ -357,13 +357,15 @@ static ssize_t perfmon_events_enable_write(struct file *file,
 			&& nvgpu_is_enabled(g, NVGPU_PMU_PERFMON)) {
 			nvgpu_pmu_perfmon_set_sampling_enable_status(&(g->pmu),
 									true);
-			g->ops.pmu.pmu_perfmon_start_sampling(&(g->pmu));
+			nvgpu_pmu_perfmon_start_sample(g, &(g->pmu),
+							g->pmu.pmu_perfmon);
 		} else if (!val
 			&& nvgpu_pmu_perfmon_get_sampling_enable_status(&(g->pmu))
 			&& nvgpu_is_enabled(g, NVGPU_PMU_PERFMON)) {
 			nvgpu_pmu_perfmon_set_sampling_enable_status(&(g->pmu),
 									false);
-			g->ops.pmu.pmu_perfmon_stop_sampling(&(g->pmu));
+			nvgpu_pmu_perfmon_stop_sample(g, &(g->pmu),
+							g->pmu.pmu_perfmon);
 		}
 		gk20a_idle(g);
 	} else {

@@ -1423,11 +1423,6 @@ struct gpu_ops {
 		 * PMU RTOS FW version ops, should move under struct nvgpu_pmu's
 		 * pg/perfmon unit struct ops
 		 */
-		/* perfmon */
-		int (*pmu_init_perfmon)(struct nvgpu_pmu *pmu);
-		int (*pmu_perfmon_start_sampling)(struct nvgpu_pmu *pmu);
-		int (*pmu_perfmon_stop_sampling)(struct nvgpu_pmu *pmu);
-		int (*pmu_perfmon_get_samples_rpc)(struct nvgpu_pmu *pmu);
 		/* pg */
 		int (*pmu_elpg_statistics)(struct gk20a *g, u32 pg_engine_id,
 			struct pmu_pg_stats_data *pg_stat_data);

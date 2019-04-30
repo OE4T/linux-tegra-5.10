@@ -131,6 +131,8 @@ srcs += common/sim/sim.c \
 	common/pmu/pg/pmu_pg.c \
 	common/pmu/pg/pmu_aelpg.c \
 	common/pmu/perfmon/pmu_perfmon.c \
+	common/pmu/perfmon/pmu_perfmon_sw_gm20b.c \
+	common/pmu/perfmon/pmu_perfmon_sw_gv11b.c \
 	common/pmu/pmu_debug.c \
 	common/pmu/pg/pg_sw_gm20b.c \
 	common/pmu/pg/pg_sw_gp10b.c \

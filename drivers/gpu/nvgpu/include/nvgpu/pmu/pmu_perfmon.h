@@ -45,13 +45,18 @@ struct nvgpu_pmu_perfmon {
 	u32 load;
 	bool perfmon_ready;
 	bool perfmon_sampling_enabled;
+	int (*init_perfmon)(struct nvgpu_pmu *pmu);
+	int (*start_sampling)(struct nvgpu_pmu *pmu);
+	int (*stop_sampling)(struct nvgpu_pmu *pmu);
+	int (*get_samples_rpc)(struct nvgpu_pmu *pmu);
 };
 
 /* perfmon */
 void nvgpu_pmu_perfmon_rpc_handler(struct gk20a *g, struct nvgpu_pmu *pmu,
 		struct nv_pmu_rpc_header *rpc,
 		struct rpc_handler_payload *rpc_payload);
-int nvgpu_pmu_initialize_perfmon(struct gk20a *g, struct nvgpu_pmu *pmu);
+int nvgpu_pmu_initialize_perfmon(struct gk20a *g, struct nvgpu_pmu *pmu,
+		struct nvgpu_pmu_perfmon **perfmon_ptr);
 void nvgpu_pmu_deinitialize_perfmon(struct gk20a *g, struct nvgpu_pmu *pmu);
 int nvgpu_pmu_init_perfmon(struct nvgpu_pmu *pmu);
 int nvgpu_pmu_perfmon_start_sampling(struct nvgpu_pmu *pmu);
@@ -73,5 +78,15 @@ void nvgpu_pmu_perfmon_set_sampling_enable_status(struct nvgpu_pmu *pmu,
 		bool status);
 u64 nvgpu_pmu_perfmon_get_events_count(struct nvgpu_pmu *pmu);
 u32 nvgpu_pmu_perfmon_get_load_avg(struct nvgpu_pmu *pmu);
+
+/* perfmon SW Ops */
+int nvgpu_pmu_perfmon_initialization(struct gk20a *g,
+	struct nvgpu_pmu *pmu, struct nvgpu_pmu_perfmon *perfmon);
+int nvgpu_pmu_perfmon_start_sample(struct gk20a *g,
+	struct nvgpu_pmu *pmu, struct nvgpu_pmu_perfmon *perfmon);
+int nvgpu_pmu_perfmon_stop_sample(struct gk20a *g,
+	struct nvgpu_pmu *pmu, struct nvgpu_pmu_perfmon *perfmon);
+int nvgpu_pmu_perfmon_get_sample(struct gk20a *g,
+	struct nvgpu_pmu *pmu, struct nvgpu_pmu_perfmon *perfmon);
 
 #endif /* NVGPU_PMU_PERFMON_H */

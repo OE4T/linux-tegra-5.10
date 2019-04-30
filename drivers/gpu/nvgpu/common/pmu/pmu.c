@@ -374,7 +374,7 @@ int nvgpu_early_init_pmu_sw(struct gk20a *g, struct nvgpu_pmu *pmu)
 	}
 
 	/* Allocate memory for pmu_perfmon */
-	err = nvgpu_pmu_initialize_perfmon(g, pmu);
+	err = nvgpu_pmu_initialize_perfmon(g, pmu, &pmu->pmu_perfmon);
 	if (err != 0) {
 		goto exit;
 	}

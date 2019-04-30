@@ -507,7 +507,8 @@ int nvgpu_pmu_process_message(struct nvgpu_pmu *pmu)
 		nvgpu_pmu_lsfm_int_wpr_region(g, pmu, pmu->lsfm);
 
 		if (nvgpu_is_enabled(g, NVGPU_PMU_PERFMON)) {
-			g->ops.pmu.pmu_init_perfmon(pmu);
+			nvgpu_pmu_perfmon_initialization(g, pmu,
+						pmu->pmu_perfmon);
 		}
 
 		return 0;
