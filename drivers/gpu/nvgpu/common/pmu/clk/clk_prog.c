@@ -209,6 +209,7 @@ static int devinit_get_clk_prog_table_35(struct gk20a *g,
 		ratioslaveentries[CTRL_CLK_PROG_1X_MASTER_MAX_SLAVE_ENTRIES];
 	struct ctrl_clk_clk_prog_1x_master_table_slave_entry
 		tableslaveentries[CTRL_CLK_PROG_1X_MASTER_MAX_SLAVE_ENTRIES];
+	struct ctrl_clk_clk_prog_1x_source_pll *source_pll;
 	union {
 		struct boardobj board_obj;
 		struct clk_prog clkprog;
@@ -304,15 +305,16 @@ static int devinit_get_clk_prog_table_35(struct gk20a *g,
 		case NV_VBIOS_CLOCK_PROGRAMMING_TABLE_1X_ENTRY_FLAGS0_SOURCE_PLL:
 			nvgpu_log_info(g, "Source type is PLL");
 			prog_data.v1x.source = CTRL_CLK_PROG_1X_SOURCE_PLL;
-			prog_data.v1x.source_data.pll.pll_idx =
+			source_pll = &prog_data.v1x.source_data.source_pll;
+			source_pll->pll_idx =
 				BIOS_GET_FIELD(u8, prog.param0,
 					NV_VBIOS_CLOCK_PROGRAMMING_TABLE_1X_ENTRY_PARAM0_PLL_PLL_INDEX);
-			prog_data.v1x.source_data.pll.freq_step_size_mhz =
+			source_pll->freq_step_size_mhz =
 				BIOS_GET_FIELD(u8, prog.param1,
 					NV_VBIOS_CLOCK_PROGRAMMING_TABLE_1X_ENTRY_PARAM1_PLL_FREQ_STEP_SIZE);
 			nvgpu_log_info(g, "pll_index: 0x%x freq_step_size: %d",
-				prog_data.v1x.source_data.pll.pll_idx,
-				prog_data.v1x.source_data.pll.freq_step_size_mhz);
+				source_pll->pll_idx,
+				source_pll->freq_step_size_mhz);
 			break;
 
 		case NV_VBIOS_CLOCK_PROGRAMMING_TABLE_1X_ENTRY_FLAGS0_SOURCE_ONE_SOURCE:
@@ -974,6 +976,7 @@ static int vfflatten_prog_1x_master(struct gk20a *g,
 		u8 clk_domain_idx, u16 *pfreqmaxlastmhz)
 {
 	struct ctrl_clk_clk_prog_1x_master_vf_entry *p_vf_rail;
+	struct ctrl_clk_clk_prog_1x_source_pll *source_pll;
 	union {
 		struct boardobj board_obj;
 		struct clk_vf_point vf_point;
@@ -1013,8 +1016,8 @@ static int vfflatten_prog_1x_master(struct gk20a *g,
 
 		switch (p1xmaster->super.source) {
 		case CTRL_CLK_PROG_1X_SOURCE_PLL:
-			freq_step_size_mhz =
-				p1xmaster->super.source_data.pll.freq_step_size_mhz;
+			source_pll = &p1xmaster->super.source_data.source_pll;
+			freq_step_size_mhz = source_pll->freq_step_size_mhz;
 			step_count = (freq_step_size_mhz == 0U) ? 0U :
 					(u8)(p1xmaster->super.freq_max_mhz -
 						*pfreqmaxlastmhz - 1U) /

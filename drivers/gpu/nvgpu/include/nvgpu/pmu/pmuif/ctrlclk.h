@@ -192,7 +192,7 @@ struct ctrl_clk_vin_device_info_data_v20 {
 };
 
 union ctrl_clk_clk_prog_1x_source_data {
-	struct ctrl_clk_clk_prog_1x_source_pll pll;
+	struct ctrl_clk_clk_prog_1x_source_pll source_pll;
 };
 
 struct ctrl_clk_vf_pair {

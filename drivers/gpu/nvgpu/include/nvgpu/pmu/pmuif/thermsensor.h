@@ -67,7 +67,7 @@ struct nv_pmu_therm_therm_device_hbm2_combined_boardobj_set {
 
 union nv_pmu_therm_therm_device_boardobj_set_union {
 	struct nv_pmu_boardobj board_obj;
-	struct nv_pmu_therm_therm_device_boardobj_set therm_device;
+	struct nv_pmu_therm_therm_device_boardobj_set device;
 	struct nv_pmu_therm_therm_device_gpu_gpc_tsosc_boardobj_set
 							gpu_gpc_tsosc;
 	struct nv_pmu_therm_therm_device_gpu_sci_boardobj_set gpu_sci;
@@ -99,7 +99,7 @@ struct nv_pmu_therm_therm_channel_device_boardobj_set {
 
 union nv_pmu_therm_therm_channel_boardobj_set_union {
 	struct nv_pmu_boardobj board_obj;
-	struct nv_pmu_therm_therm_channel_boardobj_set therm_channel;
+	struct nv_pmu_therm_therm_channel_boardobj_set channel;
 	struct nv_pmu_therm_therm_channel_device_boardobj_set device;
 };
 

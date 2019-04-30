@@ -90,8 +90,9 @@ struct nv_pmu_pmgr_pwr_device_desc_table {
 };
 
 union nv_pmu_pmgr_pwr_device_dmem_size {
-	union nv_pmu_pmgr_pwr_device_desc_table_header_aligned pwr_device_hdr;
-	union nv_pmu_pmgr_pwr_device_desc_union_aligned pwr_device;
+	union nv_pmu_pmgr_pwr_device_desc_table_header_aligned
+		device_desc_table_hdr;
+	union nv_pmu_pmgr_pwr_device_desc_union_aligned device_desc;
 };
 
 struct nv_pmu_pmgr_pwr_channel {
@@ -122,7 +123,7 @@ struct nv_pmu_pmgr_pwr_channel_pmu_compactible {
 
 union nv_pmu_pmgr_pwr_channel_union {
 	struct nv_pmu_boardobj board_obj;
-	struct nv_pmu_pmgr_pwr_channel pwr_channel;
+	struct nv_pmu_pmgr_pwr_channel channel;
 	struct nv_pmu_pmgr_pwr_channel_sensor sensor;
 	struct nv_pmu_pmgr_pwr_channel_pmu_compactible pmu_pwr_channel;
 };
@@ -134,7 +135,7 @@ struct nv_pmu_pmgr_pwr_monitor_pstate {
 };
 
 union nv_pmu_pmgr_pwr_monitor_type_specific {
-	struct nv_pmu_pmgr_pwr_monitor_pstate pstate;
+	struct nv_pmu_pmgr_pwr_monitor_pstate pwr_pstate;
 };
 
 struct nv_pmu_pmgr_pwr_chrelationship_pmu_compactible {
@@ -236,7 +237,7 @@ struct nv_pmu_pmgr_pwr_policy_pmu_compactible {
 
 union nv_pmu_pmgr_pwr_policy_union {
 	struct nv_pmu_boardobj board_obj;
-	struct nv_pmu_pmgr_pwr_policy pwr_policy;
+	struct nv_pmu_pmgr_pwr_policy policy;
 	struct nv_pmu_pmgr_pwr_policy_hw_threshold hw_threshold;
 	struct nv_pmu_pmgr_pwr_policy_sw_threshold sw_threshold;
 	struct nv_pmu_pmgr_pwr_policy_pmu_compactible pmu_pwr_policy;

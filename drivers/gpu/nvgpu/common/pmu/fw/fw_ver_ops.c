@@ -873,10 +873,10 @@ static void pmu_perfmon_cmd_init_set_mov_avg_v1(struct pmu_perfmon_cmd *pc,
 }
 
 static void pmu_get_init_msg_queue_params_v1(
-	u32 id, void *pmu_init_msg, u32 *index, u32 *offset, u32 *size)
+	u32 id, void *init_msg, u32 *index, u32 *offset, u32 *size)
 {
 	struct pmu_init_msg_pmu_v1 *init =
-		(struct pmu_init_msg_pmu_v1 *)pmu_init_msg;
+		(struct pmu_init_msg_pmu_v1 *)init_msg;
 
 	*index = init->queue_info[id].index;
 	*offset = init->queue_info[id].offset;
@@ -884,9 +884,9 @@ static void pmu_get_init_msg_queue_params_v1(
 }
 
 static void pmu_get_init_msg_queue_params_v4(
-	u32 id, void *pmu_init_msg, u32 *index, u32 *offset, u32 *size)
+	u32 id, void *init_msg, u32 *index, u32 *offset, u32 *size)
 {
-	struct pmu_init_msg_pmu_v4 *init = pmu_init_msg;
+	struct pmu_init_msg_pmu_v4 *init = init_msg;
 	u32 current_ptr = 0;
 	u32 i;
 
@@ -911,9 +911,9 @@ static void pmu_get_init_msg_queue_params_v4(
 }
 
 static void pmu_get_init_msg_queue_params_v5(
-	u32 id, void *pmu_init_msg, u32 *index, u32 *offset, u32 *size)
+	u32 id, void *init_msg, u32 *index, u32 *offset, u32 *size)
 {
-	struct pmu_init_msg_pmu_v5 *init = pmu_init_msg;
+	struct pmu_init_msg_pmu_v5 *init = init_msg;
 	u32 current_ptr = 0;
 	u32 i;
 

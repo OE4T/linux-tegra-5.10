@@ -78,7 +78,7 @@ struct pmu_fw_ver_ops {
 		void *pmu_alloc_ptr);
 	u32 (*allocation_get_fb_size)(struct nvgpu_pmu *pmu,
 		void *pmu_alloc_ptr);
-	void (*get_init_msg_queue_params)(u32 id, void *pmu_init_msg,
+	void (*get_init_msg_queue_params)(u32 id, void *init_msg,
 		u32 *index, u32 *offset, u32 *size);
 	void *(*get_init_msg_ptr)(struct pmu_init_msg *init);
 	u16 (*get_init_msg_sw_mngd_area_off)(

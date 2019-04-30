@@ -50,7 +50,7 @@ static int _pwr_channel_pmudata_instget(struct gk20a *g,
 		&ppmgrchannel->channels[idx].data.board_obj;
 
 	/* handle Global/common data here as we need index */
-	ppmgrchannel->channels[idx].data.pwr_channel.ch_idx = idx;
+	ppmgrchannel->channels[idx].data.channel.ch_idx = idx;
 
 	nvgpu_log_info(g, " Done");
 

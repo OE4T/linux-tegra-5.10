@@ -269,7 +269,7 @@ struct ctrl_perf_change_seq_pmu_script_step_volt {
 union ctrl_perf_change_seq_pmu_script_step_data {
 	struct ctrl_perf_change_seq_pmu_script_step_super super;
 	struct ctrl_perf_change_seq_pmu_script_step_change change;
-	struct ctrl_perf_change_seq_pmu_script_step_pstate pstate;
+	struct ctrl_perf_change_seq_pmu_script_step_pstate ctrlperf_pstate;
 	struct ctrl_perf_change_seq_pmu_script_step_lpwr lpwr;
 	struct ctrl_perf_change_seq_pmu_script_step_bif bif;
 	struct ctrl_perf_change_seq_pmu_script_step_clks clk;
