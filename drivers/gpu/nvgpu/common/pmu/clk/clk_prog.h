@@ -124,8 +124,8 @@ struct clk_prog_35_master_table {
 	struct clk_prog_3x_master_table table;
 };
 
-#define CLK_CLK_PROG_GET(pclk, idx)                                            \
-	((struct clk_prog *)BOARDOBJGRP_OBJ_GET_BY_IDX(			\
+#define CLK_CLK_PROG_GET(pclk, idx)\
+	((struct clk_prog *)(void *)BOARDOBJGRP_OBJ_GET_BY_IDX(\
 		&pclk->clk_progobjs->super.super, (u8)(idx)))
 
 #endif /* NVGPU_CLK_PROG_H */

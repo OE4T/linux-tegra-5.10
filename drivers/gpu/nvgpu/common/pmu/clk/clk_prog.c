@@ -67,8 +67,9 @@ static int _clk_progs_pmudatainit(struct gk20a *g,
 {
 	struct nv_pmu_clk_clk_prog_boardobjgrp_set_header *pset =
 		(struct nv_pmu_clk_clk_prog_boardobjgrp_set_header *)
-		pboardobjgrppmu;
-	struct nvgpu_clk_progs *pprogs = (struct nvgpu_clk_progs *)pboardobjgrp;
+		(void *)pboardobjgrppmu;
+	struct nvgpu_clk_progs *pprogs = (struct nvgpu_clk_progs *)
+					(void *)pboardobjgrp;
 	int status = 0;
 
 	status = boardobjgrp_pmudatainit_e32(g, pboardobjgrp, pboardobjgrppmu);
@@ -91,7 +92,8 @@ static int _clk_progs_pmudata_instget(struct gk20a *g,
 		u8 idx)
 {
 	struct nv_pmu_clk_clk_prog_boardobj_grp_set  *pgrp_set =
-		(struct nv_pmu_clk_clk_prog_boardobj_grp_set *)pmuboardobjgrp;
+		(struct nv_pmu_clk_clk_prog_boardobj_grp_set *)
+		(void *)pmuboardobjgrp;
 
 	nvgpu_log_info(g, " ");
 
@@ -676,7 +678,7 @@ static int clk_prog_construct_super(struct gk20a *g,
 		return -EINVAL;
 	}
 
-	pclkprog = (struct clk_prog *)*ppboardobj;
+	pclkprog = (struct clk_prog *)(void *)*ppboardobj;
 
 	pclkprog->super.pmudatainit =
 			clk_prog_pmudatainit_super;
@@ -952,7 +954,9 @@ static struct clk_prog *construct_clk_prog(struct gk20a *g, void *pargs)
 			sizeof(struct clk_prog_35_master_ratio), pargs);
 		break;
 	default:
-		return NULL;
+		nvgpu_err(g, "Unsupported Clk_prog type in Vbios table");
+		status = -EINVAL;
+		break;
 	}
 
 	if (status != 0) {
@@ -967,7 +971,7 @@ static struct clk_prog *construct_clk_prog(struct gk20a *g, void *pargs)
 
 	nvgpu_log_info(g, " Done");
 
-	return (struct clk_prog *)board_obj_ptr;
+	return (struct clk_prog *)(void *)board_obj_ptr;
 }
 
 static int vfflatten_prog_1x_master(struct gk20a *g,
@@ -1065,6 +1069,8 @@ static int vfflatten_prog_1x_master(struct gk20a *g,
 				}
 			}
 			break;
+		default:
+			break;
 		}
 	}
 
@@ -1111,7 +1117,7 @@ static int vflookup_prog_1x_master(struct gk20a *g,
 
 	pvfentry =  p1xmaster->p_vf_entries;
 
-	pvfentry = (struct ctrl_clk_clk_prog_1x_master_vf_entry *)(
+	pvfentry = (struct ctrl_clk_clk_prog_1x_master_vf_entry *)(void *)(
 			(u8 *)pvfentry +
 			(sizeof(struct ctrl_clk_clk_prog_1x_master_vf_entry) *
 			rail));
@@ -1127,7 +1133,7 @@ static int vflookup_prog_1x_master(struct gk20a *g,
 			CTRL_CLK_CLK_PROG_TYPE_1X_MASTER_RATIO)) {
 
 			p1xmasterratio =
-			(struct clk_prog_1x_master_ratio *)p1xmaster;
+			(struct clk_prog_1x_master_ratio *)(void *)p1xmaster;
 			pslaveents = p1xmasterratio->p_slave_entries;
 			for (i = 0; i < slaveentrycount;  i++) {
 				if (pslaveents->clk_dom_idx ==
@@ -1204,7 +1210,7 @@ static int vflookup_prog_1x_master(struct gk20a *g,
 			CTRL_CLK_CLK_PROG_TYPE_1X_MASTER_RATIO)) {
 
 			p1xmasterratio =
-			(struct clk_prog_1x_master_ratio *)p1xmaster;
+			(struct clk_prog_1x_master_ratio *)(void *)p1xmaster;
 			pslaveents = p1xmasterratio->p_slave_entries;
 			for (i = 0; i < slaveentrycount;  i++) {
 				if (pslaveents->clk_dom_idx ==
@@ -1260,7 +1266,7 @@ static int getfpoints_prog_1x_master(struct gk20a *g,
 
 	pvfentry =  p1xmaster->p_vf_entries;
 
-	pvfentry = (struct ctrl_clk_clk_prog_1x_master_vf_entry *)(
+	pvfentry = (struct ctrl_clk_clk_prog_1x_master_vf_entry *)(void *)(
 			(u8 *)pvfentry +
 			((u8)sizeof(struct ctrl_clk_clk_prog_1x_master_vf_entry) *
 			rail));
@@ -1317,7 +1323,7 @@ static int getslaveclk_prog_1x_master(struct gk20a *g,
 			&p1xmaster->super.super.super,
 			CTRL_CLK_CLK_PROG_TYPE_1X_MASTER_RATIO)) {
 			p1xmasterratio =
-			(struct clk_prog_1x_master_ratio *)p1xmaster;
+			(struct clk_prog_1x_master_ratio *)(void *)p1xmaster;
 			pslaveents = p1xmasterratio->p_slave_entries;
 			for (i = 0; i < slaveentrycount;  i++) {
 				if (pslaveents->clk_dom_idx ==
@@ -1339,7 +1345,7 @@ static int getslaveclk_prog_1x_master(struct gk20a *g,
 			&p1xmaster->super.super.super,
 			CTRL_CLK_CLK_PROG_TYPE_35_MASTER_RATIO)) {
 			p35masterratio =
-			(struct clk_prog_35_master_ratio *)p1xmaster;
+			(struct clk_prog_35_master_ratio *)(void *)p1xmaster;
 			pslaveents = p35masterratio->ratio.p_slave_entries;
 			for (i = 0; i < slaveentrycount;  i++) {
 				if (pslaveents->clk_dom_idx ==
