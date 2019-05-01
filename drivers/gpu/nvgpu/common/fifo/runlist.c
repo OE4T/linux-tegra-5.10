@@ -431,8 +431,10 @@ int nvgpu_runlist_update_locked(struct gk20a *g, u32 runlist_id,
 			/* trigger runlist update timeout recovery */
 			return ret;
 
-		} else if (ret == -EINTR) {
-			nvgpu_err(g, "runlist update interrupted");
+		} else {
+			if (ret == -EINTR) {
+				nvgpu_err(g, "runlist update interrupted");
+			}
 		}
 	}
 
