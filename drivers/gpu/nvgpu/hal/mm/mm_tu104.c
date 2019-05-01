@@ -24,7 +24,7 @@
 
 #include <nvgpu/mm.h>
 
-#include "tu104/mm_tu104.h"
+#include "mm_tu104.h"
 
 u32 tu104_mm_get_flush_retries(struct gk20a *g, enum nvgpu_flush_op op)
 {
@@ -33,13 +33,13 @@ u32 tu104_mm_get_flush_retries(struct gk20a *g, enum nvgpu_flush_op op)
 	switch (op) {
 	/* TU104 has a large FB so it needs larger timeouts */
 	case NVGPU_FLUSH_FB:
-		retries = 2500;
+		retries = 2500U;
 		break;
 	case NVGPU_FLUSH_L2_FLUSH:
-		retries = 2000;
+		retries = 2000U;
 		break;
 	default:
-		retries = 200; /* Default retry timer */
+		retries = 200U; /* Default retry timer */
 		break;
 	}
 

@@ -1,7 +1,7 @@
 /*
- * GV100 memory management
+ * TU104 memory management
  *
- * Copyright (c) 2017, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -22,11 +22,12 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef MM_GV100_H
-#define MM_GV100_H
+#ifndef HAL_MM_MM_TU104_H
+#define HAL_MM_MM_TU104_H
 
 struct gk20a;
+enum nvgpu_flush_op;
 
-u32 gv100_mm_get_flush_retries(struct gk20a *g, enum nvgpu_flush_op op);
+u32 tu104_mm_get_flush_retries(struct gk20a *g, enum nvgpu_flush_op op);
 
 #endif

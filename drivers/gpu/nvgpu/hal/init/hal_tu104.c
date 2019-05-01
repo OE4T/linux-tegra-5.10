@@ -25,6 +25,7 @@
 #include "hal/mm/mm_gm20b.h"
 #include "hal/mm/mm_gp10b.h"
 #include "hal/mm/mm_gv11b.h"
+#include "hal/mm/mm_tu104.h"
 #include "hal/mm/cache/flush_gk20a.h"
 #include "hal/mm/cache/flush_gv11b.h"
 #include "hal/mm/gmmu/gmmu_gm20b.h"
@@ -176,7 +177,6 @@
 #include "common/vbios/bios_sw_gp106.h"
 #include "common/vbios/bios_sw_tu104.h"
 
-#include "tu104/mm_tu104.h"
 #include "hal/fbpa/fbpa_tu104.h"
 #include "hal_tu104.h"
 #include "hal_tu104_litter.h"

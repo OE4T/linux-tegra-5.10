@@ -153,6 +153,8 @@ nvgpu-y += \
 	hal/mm/mm_gm20b.o \
 	hal/mm/mm_gp10b.o \
 	hal/mm/mm_gv11b.o \
+	hal/mm/mm_gv100.o \
+	hal/mm/mm_tu104.o \
 	hal/mm/cache/flush_gk20a.o \
 	hal/mm/cache/flush_gv11b.o \
 	hal/mm/gmmu/gmmu_gk20a.o \
@@ -599,7 +601,3 @@ nvgpu-$(CONFIG_TEGRA_GR_VIRTUALIZATION) += \
 nvgpu-$(CONFIG_GK20A_CYCLE_STATS) += \
 	common/perf/cyclestats_snapshot.o \
 	common/cyclestats/cyclestats.o
-
-nvgpu-y += \
-	gv100/mm_gv100.o \
-	tu104/mm_tu104.o \

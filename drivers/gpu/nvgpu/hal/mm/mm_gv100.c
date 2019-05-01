@@ -1,7 +1,5 @@
 /*
- * GV100 memory management
- *
- * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -22,21 +20,19 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#include <nvgpu/sizes.h>
-#include <nvgpu/io.h>
-#include <nvgpu/gk20a.h>
+#include <nvgpu/mm.h>
 
-#include "gv100/mm_gv100.h"
+#include "mm_gv100.h"
 
 u32 gv100_mm_get_flush_retries(struct gk20a *g, enum nvgpu_flush_op op)
 {
 	switch (op) {
 	/* GV100 has a large FB so it needs larger timeouts */
 	case NVGPU_FLUSH_FB:
-		return 2000;
+		return 2000U;
 	case NVGPU_FLUSH_L2_FLUSH:
-		return 2000;
+		return 2000U;
 	default:
-		return 200; /* Default retry timer */
+		return 200U; /* Default retry timer */
 	}
 }

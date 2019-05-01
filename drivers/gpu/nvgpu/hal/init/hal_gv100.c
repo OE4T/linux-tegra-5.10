@@ -24,6 +24,7 @@
 
 #include "hal/mm/mm_gp10b.h"
 #include "hal/mm/mm_gv11b.h"
+#include "hal/mm/mm_gv100.h"
 #include "hal/mm/cache/flush_gk20a.h"
 #include "hal/mm/cache/flush_gv11b.h"
 #include "hal/mm/gmmu/gmmu_gm20b.h"
@@ -157,7 +158,6 @@
 #include "hal_gv100.h"
 #include "hal_gv100_litter.h"
 
-#include "gv100/mm_gv100.h"
 #include "hal/clk/clk_gv100.h"
 
 #include <nvgpu/gk20a.h>
