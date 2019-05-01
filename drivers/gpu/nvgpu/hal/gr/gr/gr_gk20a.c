@@ -1412,7 +1412,10 @@ static int gr_exec_ctx_ops(struct nvgpu_channel *ch,
 	if (ch_is_curr_ctx) {
 		for (pass = 0; pass < 2; pass++) {
 			ctx_op_nr = 0;
-			for (i = 0; (ctx_op_nr < num_ctx_ops[pass]) && (i < num_ops); ++i) {
+			for (i = 0; i < num_ops; ++i) {
+				if (ctx_op_nr >= num_ctx_ops[pass]) {
+					break;
+				}
 				/* only do ctx ops and only on the right pass */
 				if ((ctx_ops[i].type == REGOP(TYPE_GLOBAL)) ||
 				    (((pass == 0) && reg_op_is_read(ctx_ops[i].op)) ||
@@ -1500,8 +1503,12 @@ static int gr_exec_ctx_ops(struct nvgpu_channel *ch,
 	/* first pass is writes, second reads */
 	for (pass = 0; pass < 2; pass++) {
 		ctx_op_nr = 0;
-		for (i = 0; (ctx_op_nr < num_ctx_ops[pass]) && (i < num_ops); ++i) {
+		for (i = 0; i < num_ops; ++i) {
 			u32 num_offsets;
+
+			if (ctx_op_nr >= num_ctx_ops[pass]) {
+					break;
+			}
 
 			/* only do ctx ops and only on the right pass */
 			if ((ctx_ops[i].type == REGOP(TYPE_GLOBAL)) ||

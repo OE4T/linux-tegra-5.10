@@ -567,8 +567,7 @@ static int devinit_get_pwr_policy_table(struct gk20a *g,
 
 	ptr += (u32)hdr.header_size;
 
-	for (index = 0; index < hdr.num_table_entries;
-		index++, ptr += (u32)hdr.table_entry_size) {
+	for (index = 0; index < hdr.num_table_entries; index++) {
 
 		struct pwr_policy_3x_entry_struct *packed_entry;
 		struct pwr_policy_3x_entry_unpacked entry;
@@ -581,6 +580,7 @@ static int devinit_get_pwr_policy_table(struct gk20a *g,
 				NV_VBIOS_POWER_POLICY_3X_ENTRY_FLAGS0_CLASS);
 
 		if (class_type != NV_VBIOS_POWER_POLICY_3X_ENTRY_FLAGS0_CLASS_HW_THRESHOLD) {
+			ptr += (u32)hdr.table_entry_size;
 			continue;
 		}
 
@@ -691,8 +691,9 @@ static int devinit_get_pwr_policy_table(struct gk20a *g,
 			status = -EINVAL;
 			goto done;
 		}
-
 		++obj_index;
+
+		ptr += (u32)hdr.table_entry_size;
 	}
 
 	if (g->hardcode_sw_threshold) {

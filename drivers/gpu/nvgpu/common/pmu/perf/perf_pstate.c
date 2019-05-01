@@ -174,10 +174,11 @@ static int parse_pstate_table_6x(struct gk20a *g,
 			U32(hdr->clock_entry_count) *
 			U32(hdr->clock_entry_size);
 
-	for (i = 0; i < hdr->base_entry_count; i++, p += entry_size) {
+	for (i = 0; i < hdr->base_entry_count; i++) {
 		entry = (struct vbios_pstate_entry_6x *)p;
 
 		if (entry->pstate_level == VBIOS_PERFLEVEL_SKIP_ENTRY) {
+			p += entry_size;
 			continue;
 		}
 
@@ -195,6 +196,7 @@ static int parse_pstate_table_6x(struct gk20a *g,
 		if (err != 0) {
 			goto done;
 		}
+		p += entry_size;
 	}
 
 done:

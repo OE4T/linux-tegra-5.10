@@ -245,7 +245,8 @@ int gv100_gr_config_init_sm_id_table(struct gk20a *g,
 		gpc_tpc_mask[gpc_table[gtpc]] &= ~(BIT64(tpc_table[gtpc]));
 	}
 
-	for (tpc = 0, sm_id = 0;  sm_id < num_sm; tpc++, sm_id += sm_per_tpc) {
+	tpc = 0;
+	for (sm_id = 0; sm_id < num_sm; sm_id += sm_per_tpc) {
 		for (sm = 0; sm < sm_per_tpc; sm++) {
 			u32 index = sm_id + sm;
 			struct nvgpu_sm_info *sm_info =
@@ -265,6 +266,7 @@ int gv100_gr_config_init_sm_id_table(struct gk20a *g,
 				nvgpu_gr_config_get_sm_info_global_tpc_index(sm_info));
 
 		}
+		tpc++;
 	}
 
 	nvgpu_gr_config_set_no_of_sm(gr_config, num_sm);

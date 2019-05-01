@@ -168,8 +168,8 @@ int nvgpu_clk_arb_update_vf_table(struct nvgpu_clk_arb *arb)
 	 * second verifies that the clocks minimum is satisfied and sets
 	 * the voltages,the later part is done in nvgpu_clk_set_req_fll_clk_ps35
 	 */
-	for (i = 0, j = 0, num_points = 0, clk_cur = 0;
-			i < table->gpc2clk_num_points; i++) {
+	j = 0; num_points = 0; clk_cur = 0;
+	for (i = 0; i < table->gpc2clk_num_points; i++) {
 		struct nvgpu_set_fll_clk setfllclk;
 
 		if ((arb->gpc2clk_f_points[i] >= arb->gpc2clk_min) &&
