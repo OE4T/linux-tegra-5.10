@@ -50,7 +50,7 @@ bool gm20b_fb_debug_mode_enabled(struct gk20a *g)
 			fb_mmu_debug_ctrl_debug_enabled_v();
 }
 
-void gm20b_fb_set_debug_mode(struct gk20a *g, bool enable)
+void gm20b_fb_set_mmu_debug_mode(struct gk20a *g, bool enable)
 {
 	u32 reg_val, fb_debug_ctrl;
 
@@ -62,11 +62,15 @@ void gm20b_fb_set_debug_mode(struct gk20a *g, bool enable)
 		g->mmu_debug_ctrl = false;
 	}
 
-	reg_val = gk20a_readl(g, fb_mmu_debug_ctrl_r());
+	reg_val = nvgpu_readl(g, fb_mmu_debug_ctrl_r());
 	reg_val = set_field(reg_val,
 			fb_mmu_debug_ctrl_debug_m(), fb_debug_ctrl);
-	gk20a_writel(g, fb_mmu_debug_ctrl_r(), reg_val);
+	nvgpu_writel(g, fb_mmu_debug_ctrl_r(), reg_val);
+}
 
+void gm20b_fb_set_debug_mode(struct gk20a *g, bool enable)
+{
+	gm20b_fb_set_mmu_debug_mode(g, enable);
 	g->ops.gr.set_debug_mode(g, enable);
 }
 #endif

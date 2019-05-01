@@ -182,3 +182,27 @@ size_t gv100_fb_get_vidmem_size(struct gk20a *g)
 	return bytes;
 }
 #endif
+
+void gv100_fb_set_mmu_debug_mode(struct gk20a *g, bool enable)
+{
+	u32 data, fb_ctrl, hsmmu_ctrl;
+
+	if (enable) {
+		fb_ctrl = fb_mmu_debug_ctrl_debug_enabled_f();
+		hsmmu_ctrl = fb_hsmmu_pri_mmu_debug_ctrl_debug_enabled_f();
+		g->mmu_debug_ctrl = true;
+	} else {
+		fb_ctrl = fb_mmu_debug_ctrl_debug_disabled_f();
+		hsmmu_ctrl = fb_hsmmu_pri_mmu_debug_ctrl_debug_disabled_f();
+		g->mmu_debug_ctrl = false;
+	}
+
+	data = nvgpu_readl(g, fb_mmu_debug_ctrl_r());
+	data = set_field(data, fb_mmu_debug_ctrl_debug_m(), fb_ctrl);
+	nvgpu_writel(g, fb_mmu_debug_ctrl_r(), data);
+
+	data = nvgpu_readl(g, fb_hsmmu_pri_mmu_debug_ctrl_r());
+	data = set_field(data,
+			fb_hsmmu_pri_mmu_debug_ctrl_debug_m(), hsmmu_ctrl);
+	nvgpu_writel(g, fb_hsmmu_pri_mmu_debug_ctrl_r(), data);
+}

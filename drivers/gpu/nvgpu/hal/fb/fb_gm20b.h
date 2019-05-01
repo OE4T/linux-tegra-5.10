@@ -51,6 +51,7 @@ int gm20b_fb_vpr_info_fetch(struct gk20a *g);
 #ifdef CONFIG_NVGPU_DEBUGGER
 bool gm20b_fb_debug_mode_enabled(struct gk20a *g);
 void gm20b_fb_set_debug_mode(struct gk20a *g, bool enable);
+void gm20b_fb_set_mmu_debug_mode(struct gk20a *g, bool enable);
 #endif
 
 #endif

@@ -435,6 +435,7 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 #ifdef CONFIG_NVGPU_DEBUGGER
 		.is_debug_mode_enabled = NULL,
 		.set_debug_mode = vgpu_mm_mmu_set_debug_mode,
+		.set_mmu_debug_mode = NULL,
 #endif
 		.tlb_invalidate = vgpu_mm_tlb_invalidate,
 	},

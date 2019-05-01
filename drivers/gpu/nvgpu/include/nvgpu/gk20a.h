@@ -993,6 +993,7 @@ struct gpu_ops {
 #ifdef CONFIG_NVGPU_DEBUGGER
 		bool (*is_debug_mode_enabled)(struct gk20a *g);
 		void (*set_debug_mode)(struct gk20a *g, bool enable);
+		void (*set_mmu_debug_mode)(struct gk20a *g, bool enable);
 #endif
 		int (*tlb_invalidate)(struct gk20a *g, struct nvgpu_mem *pdb);
 		void (*handle_replayable_fault)(struct gk20a *g);
@@ -2125,6 +2126,7 @@ struct gk20a {
 	int profiler_reservation_count;
 
 	bool mmu_debug_ctrl;
+	u32 mmu_debug_mode_refcnt;
 #endif /* CONFIG_NVGPU_DEBUGGER */
 
 #ifdef CONFIG_NVGPU_FECS_TRACE

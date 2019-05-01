@@ -582,6 +582,7 @@ static const struct gpu_ops gm20b_ops = {
 #ifdef CONFIG_NVGPU_DEBUGGER
 		.is_debug_mode_enabled = gm20b_fb_debug_mode_enabled,
 		.set_debug_mode = gm20b_fb_set_debug_mode,
+		.set_mmu_debug_mode = gm20b_fb_set_mmu_debug_mode,
 #endif
 		.tlb_invalidate = gm20b_fb_tlb_invalidate,
 		.mem_unlock = NULL,
