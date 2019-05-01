@@ -667,8 +667,7 @@ static void nvgpu_init_runlist_enginfo(struct gk20a *g, struct fifo_gk20a *f)
 			active_engine_id = f->active_engines_list[engine_id];
 			engine_info = &f->engine_info[active_engine_id];
 
-			if ((engine_info != NULL) &&
-			    (engine_info->runlist_id == runlist->runlist_id)) {
+			if (engine_info->runlist_id == runlist->runlist_id) {
 				runlist->eng_bitmask |= BIT32(active_engine_id);
 			}
 		}
