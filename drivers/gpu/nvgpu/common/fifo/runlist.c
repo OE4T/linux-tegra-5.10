@@ -466,14 +466,22 @@ int nvgpu_runlist_reschedule(struct channel_gk20a *ch, bool preempt_next,
 		g, ch->runlist_id, runlist->count, runlist->cur_buffer);
 
 	if (preempt_next) {
-		g->ops.runlist.reschedule_preempt_next_locked(ch, wait_preempt);
+		if (g->ops.runlist.reschedule_preempt_next_locked(ch,
+				wait_preempt) != 0) {
+			nvgpu_err(g, "reschedule preempt next failed");
+		}
 	}
 
-	g->ops.runlist.wait_pending(g, ch->runlist_id);
+	if (g->ops.runlist.wait_pending(g, ch->runlist_id) != 0) {
+		nvgpu_err(g, "wait pending failed for runlist %u",
+				ch->runlist_id);
+	}
 
 	if (mutex_ret == 0) {
-		nvgpu_pmu_lock_release(
-			g, &g->pmu, PMU_MUTEX_ID_FIFO, &token);
+		if (nvgpu_pmu_lock_release(g, &g->pmu,
+				PMU_MUTEX_ID_FIFO, &token) != 0) {
+			nvgpu_err(g, "failed to release PMU lock");
+		}
 	}
 	nvgpu_mutex_release(&runlist->runlist_lock);
 
@@ -507,7 +515,10 @@ static int nvgpu_runlist_update(struct gk20a *g, u32 runlist_id,
 					       wait_for_finish);
 
 	if (mutex_ret == 0) {
-		nvgpu_pmu_lock_release(g, &g->pmu, PMU_MUTEX_ID_FIFO, &token);
+		if (nvgpu_pmu_lock_release(g, &g->pmu,
+				PMU_MUTEX_ID_FIFO, &token) != 0) {
+			nvgpu_err(g, "failed to release PMU lock");
+		}
 	}
 
 	nvgpu_mutex_release(&runlist->runlist_lock);
@@ -601,7 +612,10 @@ void nvgpu_fifo_runlist_set_state(struct gk20a *g, u32 runlists_mask,
 	g->ops.runlist.write_state(g, runlists_mask, runlist_state);
 
 	if (mutex_ret == 0) {
-		nvgpu_pmu_lock_release(g, &g->pmu, PMU_MUTEX_ID_FIFO, &token);
+		if (nvgpu_pmu_lock_release(g, &g->pmu,
+				PMU_MUTEX_ID_FIFO, &token) != 0) {
+			nvgpu_err(g, "failed to release PMU lock");
+		}
 	}
 }
 
