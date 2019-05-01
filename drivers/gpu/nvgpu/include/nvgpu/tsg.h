@@ -83,6 +83,9 @@ struct nvgpu_tsg {
 	bool in_use;
 	bool abortable;
 
+	/* MMU debug mode enabled if mmu_debug_mode_refcnt > 0 */
+	u32  mmu_debug_mode_refcnt;
+
 	struct nvgpu_tsg_sm_error_state *sm_error_states;
 
 #define NVGPU_SM_EXCEPTION_TYPE_MASK_NONE		(0x0U)
@@ -172,4 +175,6 @@ void nvgpu_tsg_set_ctxsw_timeout_accumulated_ms(struct nvgpu_tsg *tsg, u32 ms);
 void nvgpu_tsg_abort(struct gk20a *g, struct nvgpu_tsg *tsg, bool preempt);
 void nvgpu_tsg_reset_faulted_eng_pbdma(struct gk20a *g, struct nvgpu_tsg *tsg,
 		bool eng, bool pbdma);
+int nvgpu_tsg_set_mmu_debug_mode(struct nvgpu_tsg *tsg,
+		struct nvgpu_channel *ch, bool enable);
 #endif /* NVGPU_TSG_H */

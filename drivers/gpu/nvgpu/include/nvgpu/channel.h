@@ -382,6 +382,7 @@ struct nvgpu_channel {
 	bool has_os_fence_framework_support;
 
 	bool is_privileged_channel;
+	bool mmu_debug_mode_enabled;
 };
 static inline struct nvgpu_channel *
 nvgpu_channel_from_free_chs(struct nvgpu_list_node *node)
