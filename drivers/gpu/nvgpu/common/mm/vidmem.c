@@ -91,7 +91,7 @@ void nvgpu_vidmem_destroy(struct gk20a *g)
 	}
 }
 
-static int __nvgpu_vidmem_do_clear_all(struct gk20a *g)
+static int nvgpu_vidmem_do_clear_all(struct gk20a *g)
 {
 	struct mm_gk20a *mm = &g->mm;
 	struct nvgpu_fence_type *fence_out = NULL;
@@ -119,8 +119,9 @@ static int __nvgpu_vidmem_do_clear_all(struct gk20a *g)
 		return err;
 	}
 
-	if (fence_out) {
+	if (fence_out != NULL) {
 		struct nvgpu_timeout timeout;
+		bool done;
 
 		err = nvgpu_timeout_init(g, &timeout,
 				   nvgpu_get_poll_timeout(g),
@@ -133,8 +134,14 @@ static int __nvgpu_vidmem_do_clear_all(struct gk20a *g)
 		do {
 			err = nvgpu_fence_wait(g, fence_out,
 					       nvgpu_get_poll_timeout(g));
-		} while (err == -ERESTARTSYS &&
-			 (nvgpu_timeout_expired(&timeout) == 0));
+			if (err != -ERESTARTSYS) {
+				done = true;
+			} else if (nvgpu_timeout_expired(&timeout) != 0) {
+				done = true;
+			} else {
+				done = false;
+			}
+		} while (!done);
 
 		nvgpu_fence_put(fence_out);
 		if (err != 0) {
@@ -466,7 +473,7 @@ int nvgpu_vidmem_clear(struct gk20a *g, struct nvgpu_mem *mem)
 	alloc = mem->vidmem_alloc;
 
 	nvgpu_sgt_for_each_sgl(sgl, &alloc->sgt) {
-		if (last_fence) {
+		if (last_fence != NULL) {
 			nvgpu_fence_put(last_fence);
 		}
 
@@ -494,8 +501,9 @@ int nvgpu_vidmem_clear(struct gk20a *g, struct nvgpu_mem *mem)
 		last_fence = fence_out;
 	}
 
-	if (last_fence) {
+	if (last_fence != NULL) {
 		struct nvgpu_timeout timeout;
+		bool done;
 
 		err = nvgpu_timeout_init(g, &timeout,
 				   nvgpu_get_poll_timeout(g),
@@ -508,8 +516,14 @@ int nvgpu_vidmem_clear(struct gk20a *g, struct nvgpu_mem *mem)
 		do {
 			err = nvgpu_fence_wait(g, last_fence,
 					       nvgpu_get_poll_timeout(g));
-		} while (err == -ERESTARTSYS &&
-			 (nvgpu_timeout_expired(&timeout) == 0));
+			if (err != -ERESTARTSYS) {
+				done = true;
+			} else if (nvgpu_timeout_expired(&timeout) != 0) {
+				done = true;
+			} else {
+				done = false;
+			}
+		} while (!done);
 
 		nvgpu_fence_put(last_fence);
 		if (err != 0) {
@@ -533,7 +547,7 @@ static int nvgpu_vidmem_clear_all(struct gk20a *g)
 
 	nvgpu_mutex_acquire(&g->mm.vidmem.first_clear_mutex);
 	if (!g->mm.vidmem.cleared) {
-		err = __nvgpu_vidmem_do_clear_all(g);
+		err = nvgpu_vidmem_do_clear_all(g);
 		if (err != 0) {
 			nvgpu_mutex_release(&g->mm.vidmem.first_clear_mutex);
 			nvgpu_err(g, "failed to clear whole vidmem");
