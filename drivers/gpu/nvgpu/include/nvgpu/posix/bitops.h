@@ -56,8 +56,8 @@ unsigned long nvgpu_posix_fls(unsigned long word);
 #define ffs(word)	nvgpu_posix_ffs(word)
 #define fls(word)	nvgpu_posix_fls(word)
 
-#define __ffs(word)	((ffs(word)) - 1)
-#define __fls(word)	((fls(word)) - 1)
+#define __ffs(word)	((ffs(word)) - 1UL)
+#define __fls(word)	((fls(word)) - 1UL)
 
 #define ffz(word)	__ffs(~(word))
 
