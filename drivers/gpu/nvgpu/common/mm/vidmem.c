@@ -43,7 +43,7 @@ void nvgpu_vidmem_destroy(struct gk20a *g)
 	struct nvgpu_timeout timeout;
 	int err;
 
-	if (!g->ops.fb.get_vidmem_size) {
+	if (g->ops.fb.get_vidmem_size == NULL) {
 		return;
 	}
 
@@ -74,7 +74,7 @@ void nvgpu_vidmem_destroy(struct gk20a *g)
 		}
 
 		nvgpu_msleep(10);
-	} while (!nvgpu_timeout_expired(&timeout));
+	} while (nvgpu_timeout_expired(&timeout) == 0);
 
 	/*
 	 * Kill the vidmem clearing thread now. This will wake the thread up
@@ -134,7 +134,7 @@ static int __nvgpu_vidmem_do_clear_all(struct gk20a *g)
 			err = nvgpu_fence_wait(g, fence_out,
 					       nvgpu_get_poll_timeout(g));
 		} while (err == -ERESTARTSYS &&
-			 !nvgpu_timeout_expired(&timeout));
+			 (nvgpu_timeout_expired(&timeout) == 0));
 
 		nvgpu_fence_put(fence_out);
 		if (err != 0) {
@@ -292,7 +292,8 @@ static int nvgpu_vidmem_clear_pending_allocs_thr(void *mm_ptr)
 		 * lock some other code can prevent this thread from processing
 		 * work items.
 		 */
-		if (!nvgpu_mutex_tryacquire(&mm->vidmem.clearing_thread_lock)) {
+		if (nvgpu_mutex_tryacquire(&mm->vidmem.clearing_thread_lock)
+									== 0) {
 			continue;
 		}
 
@@ -315,9 +316,9 @@ int nvgpu_vidmem_init(struct mm_gk20a *mm)
 	static struct nvgpu_alloc_carveout bootstrap_co =
 		NVGPU_CARVEOUT("bootstrap-region", 0, 0);
 
-	size = g->ops.fb.get_vidmem_size ?
-			g->ops.fb.get_vidmem_size(g) : 0;
-	if (!size) {
+	size = (g->ops.fb.get_vidmem_size != NULL) ?
+			g->ops.fb.get_vidmem_size(g) : 0UL;
+	if (size == 0UL) {
 		return 0;
 	}
 
@@ -445,7 +446,7 @@ int nvgpu_vidmem_get_space(struct gk20a *g, u64 *space)
 
 	nvgpu_mutex_acquire(&g->mm.vidmem.clear_list_mutex);
 	*space = nvgpu_alloc_space(allocator) +
-		nvgpu_atomic64_read(&g->mm.vidmem.bytes_pending);
+		U64(nvgpu_atomic64_read(&g->mm.vidmem.bytes_pending));
 	nvgpu_mutex_release(&g->mm.vidmem.clear_list_mutex);
 	return 0;
 }
@@ -508,7 +509,7 @@ int nvgpu_vidmem_clear(struct gk20a *g, struct nvgpu_mem *mem)
 			err = nvgpu_fence_wait(g, last_fence,
 					       nvgpu_get_poll_timeout(g));
 		} while (err == -ERESTARTSYS &&
-			 !nvgpu_timeout_expired(&timeout));
+			 (nvgpu_timeout_expired(&timeout) == 0));
 
 		nvgpu_fence_put(last_fence);
 		if (err != 0) {
@@ -555,13 +556,13 @@ struct nvgpu_vidmem_buf *nvgpu_vidmem_user_alloc(struct gk20a *g, size_t bytes)
 	}
 
 	buf = nvgpu_kzalloc(g, sizeof(*buf));
-	if (!buf) {
+	if (buf == NULL) {
 		return ERR_PTR(-ENOMEM);
 	}
 
 	buf->g = g;
 	buf->mem = nvgpu_kzalloc(g, sizeof(*buf->mem));
-	if (!buf->mem) {
+	if (buf->mem == NULL) {
 		err = -ENOMEM;
 		goto fail;
 	}
