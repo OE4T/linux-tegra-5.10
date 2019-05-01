@@ -754,7 +754,7 @@ int nvgpu_runlist_setup_sw(struct gk20a *g)
 		for (j = 0; j < MAX_RUNLIST_BUFFERS; j++) {
 			err = nvgpu_dma_alloc_flags_sys(g,
 					g->is_virtual ?
-					  0 : NVGPU_DMA_PHYSICALLY_ADDRESSED,
+					  0ULL : NVGPU_DMA_PHYSICALLY_ADDRESSED,
 					runlist_size,
 					&runlist->mem[j]);
 			if (err != 0) {
