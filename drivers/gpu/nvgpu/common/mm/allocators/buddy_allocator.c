@@ -367,38 +367,33 @@ static void balloc_coalesce(struct nvgpu_buddy_allocator *a,
 {
 	struct nvgpu_buddy *parent;
 
-	if (buddy_is_alloced(b) || buddy_is_split(b)) {
-		return;
+	while (!buddy_is_alloced(b) && !buddy_is_split(b)) {
+		/*
+		 * If both our buddy and I are both not allocated and not split
+		 *  then we can coalesce ourselves.
+		 */
+		if (b->buddy == NULL) {
+			return;
+		}
+		if (buddy_is_alloced(b->buddy) || buddy_is_split(b->buddy)) {
+			return;
+		}
+
+		parent = b->parent;
+
+		balloc_blist_rem(a, b);
+		balloc_blist_rem(a, b->buddy);
+
+		buddy_clr_split(parent);
+		a->buddy_list_split[parent->order]--;
+		balloc_blist_add(a, parent);
+
+		/* Clean up the remains. */
+		nvgpu_kmem_cache_free(a->buddy_cache, b->buddy);
+		nvgpu_kmem_cache_free(a->buddy_cache, b);
+
+		b = parent;
 	}
-
-	/*
-	 * If both our buddy and I are both not allocated and not split then
-	 * we can coalesce ourselves.
-	 */
-	if (b->buddy == NULL) {
-		return;
-	}
-	if (buddy_is_alloced(b->buddy) || buddy_is_split(b->buddy)) {
-		return;
-	}
-
-	parent = b->parent;
-
-	balloc_blist_rem(a, b);
-	balloc_blist_rem(a, b->buddy);
-
-	buddy_clr_split(parent);
-	a->buddy_list_split[parent->order]--;
-	balloc_blist_add(a, parent);
-
-	/*
-	 * Recursively coalesce as far as we can go.
-	 */
-	balloc_coalesce(a, parent);
-
-	/* Clean up the remains. */
-	nvgpu_kmem_cache_free(a->buddy_cache, b->buddy);
-	nvgpu_kmem_cache_free(a->buddy_cache, b);
 }
 
 /*
