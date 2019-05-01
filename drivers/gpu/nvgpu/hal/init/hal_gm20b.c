@@ -159,6 +159,7 @@ static const struct gpu_ops gm20b_ops = {
 		.get_lrf_tex_ltc_dram_override = NULL,
 		.update_smpc_ctxsw_mode = gr_gk20a_update_smpc_ctxsw_mode,
 		.update_hwpm_ctxsw_mode = gr_gk20a_update_hwpm_ctxsw_mode,
+		.set_mmu_debug_mode = gm20b_gr_set_mmu_debug_mode,
 		.record_sm_error_state = gm20b_gr_record_sm_error_state,
 		.clear_sm_error_state = gm20b_gr_clear_sm_error_state,
 		.suspend_contexts = gr_gk20a_suspend_contexts,
@@ -1069,6 +1070,7 @@ int gm20b_init_hal(struct gk20a *g)
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_ZBC_STENCIL, false);
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_PREEMPTION_GFXP, false);
 	nvgpu_set_enabled(g, NVGPU_PMU_FECS_BOOTSTRAP_DONE, false);
+	nvgpu_set_enabled(g, NVGPU_SUPPORT_SET_CTX_MMU_DEBUG_MODE, false);
 
 	g->name = "gm20b";
 

@@ -114,6 +114,7 @@ void vgpu_init_gpu_characteristics(struct gk20a *g)
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_MAP_BUFFER_BATCH, false);
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_RESCHEDULE_RUNLIST, false);
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_SPARSE_ALLOCS, false);
+	nvgpu_set_enabled(g, NVGPU_SUPPORT_SET_CTX_MMU_DEBUG_MODE, false);
 }
 
 int vgpu_get_constants(struct gk20a *g)

@@ -275,6 +275,7 @@ static const struct gpu_ops gv11b_ops = {
 		.get_offset_in_gpccs_segment =
 			gr_gk20a_get_offset_in_gpccs_segment,
 		.set_debug_mode = gm20b_gr_set_debug_mode,
+		.set_mmu_debug_mode = gm20b_gr_set_mmu_debug_mode,
 		.log_mme_exception = NULL,
 		.get_ctxsw_checksum_mismatch_mailbox_val =
 				gr_gv11b_ctxsw_checksum_mismatch_mailbox_val,
@@ -1294,6 +1295,7 @@ int gv11b_init_hal(struct gk20a *g)
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_ZBC_STENCIL, true);
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_PREEMPTION_GFXP, true);
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_PLATFORM_ATOMIC, true);
+	nvgpu_set_enabled(g, NVGPU_SUPPORT_SET_CTX_MMU_DEBUG_MODE, false);
 
 	/*
 	 * gv11b bypasses the IOMMU since it uses a special nvlink path to

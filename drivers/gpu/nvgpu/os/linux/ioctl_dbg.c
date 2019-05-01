@@ -124,6 +124,10 @@ static int nvgpu_dbg_gpu_ioctl_smpc_ctxsw_mode(struct dbg_session_gk20a *dbg_s,
 static int nvgpu_dbg_gpu_ioctl_hwpm_ctxsw_mode(struct dbg_session_gk20a *dbg_s,
 			      struct nvgpu_dbg_gpu_hwpm_ctxsw_mode_args *args);
 
+static int nvgpu_dbg_gpu_ioctl_set_mmu_debug_mode(
+		struct dbg_session_gk20a *dbg_s,
+		struct nvgpu_dbg_gpu_set_ctx_mmu_debug_mode_args *args);
+
 static int nvgpu_dbg_gpu_ioctl_suspend_resume_sm(
 		struct dbg_session_gk20a *dbg_s,
 		struct nvgpu_dbg_gpu_suspend_resume_all_sms_args *args);
@@ -1077,6 +1081,51 @@ static int nvgpu_dbg_gpu_ioctl_hwpm_ctxsw_mode(struct dbg_session_gk20a *dbg_s,
 	nvgpu_mutex_release(&g->dbg_sessions_lock);
 	gk20a_idle(g);
 	return  err;
+}
+
+static int nvgpu_dbg_gpu_ioctl_set_mmu_debug_mode(
+		struct dbg_session_gk20a *dbg_s,
+		struct nvgpu_dbg_gpu_set_ctx_mmu_debug_mode_args *args)
+{
+	int err;
+	struct gk20a *g = dbg_s->g;
+	struct nvgpu_channel *ch;
+	bool enable = (args->mode == NVGPU_DBG_GPU_CTX_MMU_DEBUG_MODE_ENABLED);
+
+	nvgpu_log_fn(g, "mode=%u", args->mode);
+
+	if (args->reserved != 0U) {
+		return -EINVAL;
+	}
+
+	if (g->ops.gr.set_mmu_debug_mode == NULL) {
+		return -ENOSYS;
+	}
+
+	err = gk20a_busy(g);
+	if (err) {
+		nvgpu_err(g, "failed to poweron");
+		return err;
+	}
+
+	/* Take the global lock, since we'll be doing global regops */
+	nvgpu_mutex_acquire(&g->dbg_sessions_lock);
+
+	ch = nvgpu_dbg_gpu_get_session_channel(dbg_s);
+	if (!ch) {
+		nvgpu_err(g, "no bound channel for mmu debug mode");
+		goto clean_up;
+	}
+
+	err = g->ops.gr.set_mmu_debug_mode(g, ch, enable);
+	if (err) {
+		nvgpu_err(g, "set mmu debug mode failed, err=%d", err);
+	}
+
+clean_up:
+	nvgpu_mutex_release(&g->dbg_sessions_lock);
+	gk20a_idle(g);
+	return err;
 }
 
 static int nvgpu_dbg_gpu_ioctl_suspend_resume_sm(
@@ -2110,6 +2159,11 @@ long gk20a_dbg_gpu_dev_ioctl(struct file *filp, unsigned int cmd,
 				(struct nvgpu_dbg_gpu_cycle_stats_snapshot_args *)buf);
 		break;
 #endif
+	case NVGPU_DBG_GPU_IOCTL_SET_CTX_MMU_DEBUG_MODE:
+		err = nvgpu_dbg_gpu_ioctl_set_mmu_debug_mode(dbg_s,
+		   (struct nvgpu_dbg_gpu_set_ctx_mmu_debug_mode_args *)buf);
+		break;
+
 
 	default:
 		nvgpu_err(g,

@@ -201,10 +201,12 @@ struct gk20a;
 /* Reduced profile of nvgpu driver */
 #define NVGPU_DRIVER_REDUCED_PROFILE		77
 
+/* NVGPU_GPU_IOCTL_SET_MMU_DEBUG_MODE is available */
+#define NVGPU_SUPPORT_SET_CTX_MMU_DEBUG_MODE	78
 /*
  * Must be greater than the largest bit offset in the above list.
  */
-#define NVGPU_MAX_ENABLED_BITS			78U
+#define NVGPU_MAX_ENABLED_BITS			79U
 
 /**
  * nvgpu_is_enabled - Check if the passed flag is enabled.

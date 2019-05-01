@@ -182,6 +182,7 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 		.get_offset_in_gpccs_segment =
 			gr_gk20a_get_offset_in_gpccs_segment,
 		.set_debug_mode = gm20b_gr_set_debug_mode,
+		.set_mmu_debug_mode = NULL,
 		.reset = NULL,
 		.halt_pipe = NULL,
 		.disable_ctxsw = nvgpu_gr_disable_ctxsw,

@@ -31,6 +31,7 @@
 #include <nvgpu/utils.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/channel.h>
+#include <nvgpu/regops.h>
 #include <nvgpu/gr/ctx.h>
 #include <nvgpu/gr/config.h>
 #include <nvgpu/gr/gr.h>
@@ -671,6 +672,26 @@ void gm20b_gr_clear_sm_hww(struct gk20a *g, u32 gpc, u32 tpc, u32 sm,
 
 	/* clear the warp hww */
 	gk20a_writel(g, gr_gpc0_tpc0_sm_hww_warp_esr_r() + offset, 0);
+}
+
+int gm20b_gr_set_mmu_debug_mode(struct gk20a *g,
+		struct nvgpu_channel *ch, bool enable)
+{
+	struct nvgpu_dbg_reg_op ctx_ops = {
+		.op = REGOP(WRITE_32),
+		.type = REGOP(TYPE_GR_CTX),
+		.offset = gr_gpcs_pri_mmu_debug_ctrl_r(),
+		.value_lo = enable ?
+			gr_gpcs_pri_mmu_debug_ctrl_debug_enabled_f() :
+			gr_gpcs_pri_mmu_debug_ctrl_debug_disabled_f(),
+	};
+	int err;
+
+	err = gr_gk20a_exec_ctx_ops(ch, &ctx_ops, 1, 1, 0, NULL);
+	if (err != 0) {
+		nvgpu_err(g, "Failed to access register");
+	}
+	return err;
 }
 
 void gm20b_gr_set_debug_mode(struct gk20a *g, bool enable)

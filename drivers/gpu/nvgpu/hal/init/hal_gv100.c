@@ -305,6 +305,7 @@ static const struct gpu_ops gv100_ops = {
 		.get_offset_in_gpccs_segment =
 			gr_gk20a_get_offset_in_gpccs_segment,
 		.set_debug_mode = gm20b_gr_set_debug_mode,
+		.set_mmu_debug_mode = gm20b_gr_set_mmu_debug_mode,
 		.log_mme_exception = NULL,
 		.reset = nvgpu_gr_reset,
 		.esr_bpt_pending_events = gv11b_gr_esr_bpt_pending_events,
@@ -1401,6 +1402,7 @@ int gv100_init_hal(struct gk20a *g)
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_PREEMPTION_GFXP, true);
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_SEC2_VM, true);
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_PMU_SUPER_SURFACE, true);
+	nvgpu_set_enabled(g, NVGPU_SUPPORT_SET_CTX_MMU_DEBUG_MODE, false);
 
 	/*
 	 * gv100 bypasses the IOMMU since it uses the nvlink path memory.
