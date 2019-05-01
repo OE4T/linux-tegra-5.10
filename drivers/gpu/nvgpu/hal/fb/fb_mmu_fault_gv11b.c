@@ -432,7 +432,7 @@ void gv11b_mm_copy_from_fault_snap_reg(struct gk20a *g,
 	fault_status &= ~(fb_mmu_fault_status_valid_m());
 	g->ops.fb.write_mmu_fault_status(g, fault_status);
 
-	gv11b_gmmu_parse_mmu_fault_info(mmufault);
+	gv11b_mm_mmu_fault_parse_mmu_fault_info(mmufault);
 
 }
 
@@ -566,7 +566,7 @@ void gv11b_fb_handle_replayable_mmu_fault(struct gk20a *g)
 
 	if (gv11b_fb_is_fault_buf_enabled(g,
 			NVGPU_MMU_FAULT_NONREPLAY_REG_INDX)) {
-		gv11b_gmmu_handle_mmu_nonreplay_replay_fault(g,
+		gv11b_mm_mmu_fault_handle_nonreplay_replay_fault(g,
 				fault_status,
 				NVGPU_MMU_FAULT_REPLAY_REG_INDX);
 	}
@@ -583,7 +583,7 @@ void gv11b_fb_handle_mmu_fault(struct gk20a *g, u32 niso_intr)
 
 		gv11b_fb_handle_dropped_mmu_fault(g, fault_status);
 
-		gv11b_gmmu_handle_other_fault_notify(g, fault_status);
+		gv11b_mm_mmu_fault_handle_other_fault_notify(g, fault_status);
 	}
 
 	if (gv11b_fb_is_fault_buf_enabled(g, NVGPU_MMU_FAULT_NONREPLAY_REG_INDX)) {
@@ -591,7 +591,7 @@ void gv11b_fb_handle_mmu_fault(struct gk20a *g, u32 niso_intr)
 		if ((niso_intr &
 		     fb_niso_intr_mmu_nonreplayable_fault_notify_m()) != 0U) {
 
-			gv11b_gmmu_handle_mmu_nonreplay_replay_fault(g,
+			gv11b_mm_mmu_fault_handle_nonreplay_replay_fault(g,
 					fault_status,
 					NVGPU_MMU_FAULT_NONREPLAY_REG_INDX);
 
@@ -615,7 +615,7 @@ void gv11b_fb_handle_mmu_fault(struct gk20a *g, u32 niso_intr)
 		if ((niso_intr &
 		     fb_niso_intr_mmu_replayable_fault_notify_m()) != 0U) {
 
-			gv11b_gmmu_handle_mmu_nonreplay_replay_fault(g,
+			gv11b_mm_mmu_fault_handle_nonreplay_replay_fault(g,
 					fault_status,
 					NVGPU_MMU_FAULT_REPLAY_REG_INDX);
 		}

@@ -117,7 +117,7 @@ static const char *const gv11b_gpc_client_descs[] = {
 	"t1 36", "t1 37", "t1 38", "t1 39",
 };
 
-void gv11b_gmmu_parse_mmu_fault_info(struct mmu_fault_info *mmufault)
+void gv11b_mm_mmu_fault_parse_mmu_fault_info(struct mmu_fault_info *mmufault)
 {
 	if (mmufault->fault_type >= ARRAY_SIZE(gv11b_fault_type_descs)) {
 		nvgpu_do_assert();
@@ -279,10 +279,10 @@ static void gv11b_fb_copy_from_hw_fault_buf(struct gk20a *g,
 	nvgpu_mem_wr32(g, mem, offset + gmmu_fault_buf_entry_valid_w(),
 					 rd32_val);
 
-	gv11b_gmmu_parse_mmu_fault_info(mmufault);
+	gv11b_mm_mmu_fault_parse_mmu_fault_info(mmufault);
 }
 
-void gv11b_gmmu_handle_mmu_fault_common(struct gk20a *g,
+void gv11b_mm_mmu_fault_handle_mmu_fault_common(struct gk20a *g,
 		 struct mmu_fault_info *mmufault, u32 *invalidate_replay_val)
 {
 	unsigned int id_type = ID_TYPE_UNKNOWN;
@@ -425,7 +425,7 @@ void gv11b_gmmu_handle_mmu_fault_common(struct gk20a *g,
 	}
 }
 
-void gv11b_gmmu_handle_mmu_nonreplay_replay_fault(struct gk20a *g,
+void gv11b_mm_mmu_fault_handle_nonreplay_replay_fault(struct gk20a *g,
 		 u32 fault_status, u32 index)
 {
 	u32 get_indx, offset, rd32_val, entries;
@@ -499,7 +499,7 @@ void gv11b_gmmu_handle_mmu_nonreplay_replay_fault(struct gk20a *g,
 			}
 		}
 
-		gv11b_gmmu_handle_mmu_fault_common(g, mmufault,
+		gv11b_mm_mmu_fault_handle_mmu_fault_common(g, mmufault,
 				 &invalidate_replay_val);
 
 	}
@@ -509,7 +509,7 @@ void gv11b_gmmu_handle_mmu_nonreplay_replay_fault(struct gk20a *g,
 	}
 }
 
-void gv11b_gmmu_handle_other_fault_notify(struct gk20a *g,
+void gv11b_mm_mmu_fault_handle_other_fault_notify(struct gk20a *g,
 			 u32 fault_status)
 {
 	struct mmu_fault_info *mmufault;
@@ -530,7 +530,7 @@ void gv11b_gmmu_handle_other_fault_notify(struct gk20a *g,
 		nvgpu_err(g, "PHYSICAL MMU FAULT");
 
 	} else {
-		gv11b_gmmu_handle_mmu_fault_common(g, mmufault,
+		gv11b_mm_mmu_fault_handle_mmu_fault_common(g, mmufault,
 				 &invalidate_replay_val);
 
 		if (invalidate_replay_val != 0U) {

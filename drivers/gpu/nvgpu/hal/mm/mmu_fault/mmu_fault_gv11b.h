@@ -33,12 +33,13 @@ void gv11b_mm_mmu_fault_disable_hw(struct gk20a *g);
 void gv11b_mm_mmu_fault_setup_hw(struct gk20a *g);
 int  gv11b_mm_mmu_fault_setup_sw(struct gk20a *g);
 
-void gv11b_gmmu_handle_mmu_nonreplay_replay_fault(struct gk20a *g,
+void gv11b_mm_mmu_fault_handle_nonreplay_replay_fault(struct gk20a *g,
 		 u32 fault_status, u32 index);
-void gv11b_gmmu_handle_mmu_fault_common(struct gk20a *g,
+void gv11b_mm_mmu_fault_handle_mmu_fault_common(struct gk20a *g,
 		 struct mmu_fault_info *mmufault, u32 *invalidate_replay_val);
-void gv11b_gmmu_handle_other_fault_notify(struct gk20a *g, u32 fault_status);
+void gv11b_mm_mmu_fault_handle_other_fault_notify(struct gk20a *g,
+						  u32 fault_status);
 
-void gv11b_gmmu_parse_mmu_fault_info(struct mmu_fault_info *mmufault);
+void gv11b_mm_mmu_fault_parse_mmu_fault_info(struct mmu_fault_info *mmufault);
 
 #endif

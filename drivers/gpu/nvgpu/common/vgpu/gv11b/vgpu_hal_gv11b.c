@@ -109,8 +109,6 @@
 #include "common/vgpu/ptimer/ptimer_vgpu.h"
 #include "vgpu_hal_gv11b.h"
 
-#include <gv11b/mm_gv11b.h>
-
 #include <nvgpu/debugger.h>
 #include <nvgpu/enabled.h>
 #include <nvgpu/channel.h>
