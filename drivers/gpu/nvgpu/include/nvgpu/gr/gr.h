@@ -35,7 +35,7 @@ int nvgpu_gr_init_support(struct gk20a *g);
 u32 nvgpu_gr_gpc_offset(struct gk20a *g, u32 gpc);
 u32 nvgpu_gr_tpc_offset(struct gk20a *g, u32 tpc);
 int nvgpu_gr_suspend(struct gk20a *g);
-void nvgpu_gr_flush_channel_tlb(struct gk20a *g);
+
 void nvgpu_gr_wait_initialized(struct gk20a *g);
 void nvgpu_gr_init(struct gk20a *g);
 int nvgpu_gr_alloc(struct gk20a *g);

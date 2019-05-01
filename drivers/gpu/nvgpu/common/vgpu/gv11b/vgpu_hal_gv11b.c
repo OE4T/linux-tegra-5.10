@@ -86,6 +86,7 @@
 
 #include <nvgpu/gk20a.h>
 #include <nvgpu/gr/gr.h>
+#include <nvgpu/gr/gr_intr.h>
 #include <nvgpu/vgpu/vgpu.h>
 #include <nvgpu/error_notifier.h>
 
@@ -423,6 +424,7 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 			.handle_tpc_mpc_exception =
 					gv11b_gr_intr_handle_tpc_mpc_exception,
 			.handle_tex_exception = NULL,
+			.flush_channel_tlb = nvgpu_gr_intr_flush_channel_tlb,
 		},
 	},
 	.class = {

@@ -24,6 +24,7 @@
 #define NVGPU_GR_INTR_PRIV_H
 
 #include <nvgpu/types.h>
+#include <nvgpu/lock.h>
 
 struct channel_gk20a;
 
@@ -54,6 +55,21 @@ struct nvgpu_gr_isr_data {
 	u32 offset;
 	u32 sub_chan;
 	u32 class_num;
+};
+
+struct gr_channel_map_tlb_entry {
+	u32 curr_ctx;
+	u32 chid;
+	u32 tsgid;
+};
+
+struct nvgpu_gr_intr {
+
+#define GR_CHANNEL_MAP_TLB_SIZE		2U /* must of power of 2 */
+	struct gr_channel_map_tlb_entry chid_tlb[GR_CHANNEL_MAP_TLB_SIZE];
+	u32 channel_tlb_flush_index;
+	struct nvgpu_spinlock ch_tlb_lock;
+
 };
 
 #endif /* NVGPU_GR_INTR_PRIV_H */

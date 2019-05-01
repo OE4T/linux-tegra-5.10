@@ -30,6 +30,7 @@ struct channel_gk20a;
 struct nvgpu_gr_intr_info;
 struct nvgpu_gr_tpc_exception;
 struct nvgpu_gr_isr_data;
+struct nvgpu_gr_intr;
 
 int nvgpu_gr_intr_handle_fecs_error(struct gk20a *g, struct channel_gk20a *ch,
 					struct nvgpu_gr_isr_data *isr_data);
@@ -50,4 +51,8 @@ int nvgpu_gr_intr_handle_sm_exception(struct gk20a *g, u32 gpc, u32 tpc, u32 sm,
 		bool *post_event, struct channel_gk20a *fault_ch,
 		u32 *hww_global_esr);
 int nvgpu_gr_intr_stall_isr(struct gk20a *g);
+
+void nvgpu_gr_intr_flush_channel_tlb(struct gk20a *g);
+struct nvgpu_gr_intr *nvgpu_gr_intr_init_support(struct gk20a *g);
+void nvgpu_gr_intr_remove_support(struct gk20a *g, struct nvgpu_gr_intr *intr);
 #endif /* NVGPU_GR_INTR_H */

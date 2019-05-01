@@ -846,6 +846,7 @@ struct gpu_ops {
 				bool *post_event, struct channel_gk20a *fault_ch,
 				u32 *hww_global_esr);
 			int (*stall_isr)(struct gk20a *g);
+			void (*flush_channel_tlb)(struct gk20a *g);
 		} intr;
 
 		u32 (*get_ctxsw_checksum_mismatch_mailbox_val)(void);

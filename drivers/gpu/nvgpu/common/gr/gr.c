@@ -25,6 +25,7 @@
 #include <nvgpu/unit.h>
 #include <nvgpu/gr/gr.h>
 #include <nvgpu/gr/config.h>
+#include <nvgpu/gr/gr_intr.h>
 #include <nvgpu/gr/zbc.h>
 #include <nvgpu/gr/zcull.h>
 #include <nvgpu/netlist.h>
@@ -151,7 +152,7 @@ int nvgpu_gr_suspend(struct gk20a *g)
 	/* disable all exceptions */
 	g->ops.gr.intr.enable_exceptions(g, g->gr->config, false);
 
-	nvgpu_gr_flush_channel_tlb(g);
+	g->ops.gr.intr.flush_channel_tlb(g);
 
 	g->gr->initialized = false;
 
@@ -159,15 +160,6 @@ int nvgpu_gr_suspend(struct gk20a *g)
 	return ret;
 }
 
-/* invalidate channel lookup tlb */
-void nvgpu_gr_flush_channel_tlb(struct gk20a *g)
-{
-	nvgpu_spinlock_acquire(&g->gr->ch_tlb_lock);
-	(void) memset(g->gr->chid_tlb, 0,
-		sizeof(struct gr_channel_map_tlb_entry) *
-		GR_CHANNEL_MAP_TLB_SIZE);
-	nvgpu_spinlock_release(&g->gr->ch_tlb_lock);
-}
 
 static int gr_init_setup_hw(struct gk20a *g)
 {
@@ -278,6 +270,9 @@ static void gr_remove_support(struct gk20a *g)
 
 	nvgpu_gr_falcon_remove_support(g, gr->falcon);
 	gr->falcon = NULL;
+
+	nvgpu_gr_intr_remove_support(g, gr->intr);
+	gr->intr = NULL;
 
 	nvgpu_gr_zbc_deinit(g, gr->zbc);
 	nvgpu_gr_zcull_deinit(g, gr->zcull);
@@ -458,7 +453,11 @@ static int gr_init_setup_sw(struct gk20a *g)
 		goto clean_up;
 	}
 
-	nvgpu_spinlock_init(&gr->ch_tlb_lock);
+	gr->intr = nvgpu_gr_intr_init_support(g);
+	if (gr->intr == NULL) {
+		err = -ENOMEM;
+		goto clean_up;
+	}
 
 	gr->remove_support = gr_remove_support;
 	gr->sw_ready = true;

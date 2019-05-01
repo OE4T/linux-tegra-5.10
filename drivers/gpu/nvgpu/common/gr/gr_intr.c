@@ -236,7 +236,7 @@ struct channel_gk20a *nvgpu_gr_intr_get_channel_from_ctx(struct gk20a *g,
 			u32 curr_ctx, u32 *curr_tsgid)
 {
 	struct fifo_gk20a *f = &g->fifo;
-	struct nvgpu_gr *gr = g->gr;
+	struct nvgpu_gr_intr *intr = g->gr->intr;
 	u32 chid;
 	u32 tsgid = NVGPU_INVALID_TSG_ID;
 	u32 i;
@@ -248,13 +248,13 @@ struct channel_gk20a *nvgpu_gr_intr_get_channel_from_ctx(struct gk20a *g,
 	 * unloaded. No need to check ctx_valid bit
 	 */
 
-	nvgpu_spinlock_acquire(&gr->ch_tlb_lock);
+	nvgpu_spinlock_acquire(&intr->ch_tlb_lock);
 
 	/* check cache first */
 	for (i = 0; i < GR_CHANNEL_MAP_TLB_SIZE; i++) {
-		if (gr->chid_tlb[i].curr_ctx == curr_ctx) {
-			chid = gr->chid_tlb[i].chid;
-			tsgid = gr->chid_tlb[i].tsgid;
+		if (intr->chid_tlb[i].curr_ctx == curr_ctx) {
+			chid = intr->chid_tlb[i].chid;
+			tsgid = intr->chid_tlb[i].tsgid;
 			ret_ch = gk20a_channel_from_id(g, chid);
 			goto unlock;
 		}
@@ -284,25 +284,25 @@ struct channel_gk20a *nvgpu_gr_intr_get_channel_from_ctx(struct gk20a *g,
 
 	/* add to free tlb entry */
 	for (i = 0; i < GR_CHANNEL_MAP_TLB_SIZE; i++) {
-		if (gr->chid_tlb[i].curr_ctx == 0U) {
-			gr->chid_tlb[i].curr_ctx = curr_ctx;
-			gr->chid_tlb[i].chid = chid;
-			gr->chid_tlb[i].tsgid = tsgid;
+		if (intr->chid_tlb[i].curr_ctx == 0U) {
+			intr->chid_tlb[i].curr_ctx = curr_ctx;
+			intr->chid_tlb[i].chid = chid;
+			intr->chid_tlb[i].tsgid = tsgid;
 			goto unlock;
 		}
 	}
 
 	/* no free entry, flush one */
-	gr->chid_tlb[gr->channel_tlb_flush_index].curr_ctx = curr_ctx;
-	gr->chid_tlb[gr->channel_tlb_flush_index].chid = chid;
-	gr->chid_tlb[gr->channel_tlb_flush_index].tsgid = tsgid;
+	intr->chid_tlb[intr->channel_tlb_flush_index].curr_ctx = curr_ctx;
+	intr->chid_tlb[intr->channel_tlb_flush_index].chid = chid;
+	intr->chid_tlb[intr->channel_tlb_flush_index].tsgid = tsgid;
 
-	gr->channel_tlb_flush_index =
-		(gr->channel_tlb_flush_index + 1U) &
+	intr->channel_tlb_flush_index =
+		(intr->channel_tlb_flush_index + 1U) &
 		(GR_CHANNEL_MAP_TLB_SIZE - 1U);
 
 unlock:
-	nvgpu_spinlock_release(&gr->ch_tlb_lock);
+	nvgpu_spinlock_release(&intr->ch_tlb_lock);
 	if (curr_tsgid != NULL) {
 		*curr_tsgid = tsgid;
 	}
@@ -863,4 +863,42 @@ int nvgpu_gr_intr_stall_isr(struct gk20a *g)
 	}
 
 	return 0;
+}
+
+/* invalidate channel lookup tlb */
+void nvgpu_gr_intr_flush_channel_tlb(struct gk20a *g)
+{
+	struct nvgpu_gr_intr *intr = g->gr->intr;
+
+	nvgpu_spinlock_acquire(&intr->ch_tlb_lock);
+	(void) memset(intr->chid_tlb, 0,
+		sizeof(struct gr_channel_map_tlb_entry) *
+		GR_CHANNEL_MAP_TLB_SIZE);
+	nvgpu_spinlock_release(&intr->ch_tlb_lock);
+}
+
+struct nvgpu_gr_intr *nvgpu_gr_intr_init_support(struct gk20a *g)
+{
+	struct nvgpu_gr_intr *intr;
+
+	nvgpu_log_fn(g, " ");
+
+	intr = nvgpu_kzalloc(g, sizeof(*intr));
+	if (intr == NULL) {
+		return intr;
+	}
+
+	nvgpu_spinlock_init(&intr->ch_tlb_lock);
+
+	return intr;
+}
+
+void nvgpu_gr_intr_remove_support(struct gk20a *g, struct nvgpu_gr_intr *intr)
+{
+	nvgpu_log_fn(g, " ");
+
+	if (intr == NULL) {
+		return;
+	}
+	nvgpu_kfree(g, intr);
 }

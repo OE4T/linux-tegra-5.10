@@ -35,12 +35,6 @@ struct nvgpu_gr_hwpm_map;
 struct nvgpu_gr_zcull;
 struct gk20a_cs_snapshot;
 
-struct gr_channel_map_tlb_entry {
-	u32 curr_ctx;
-	u32 chid;
-	u32 tsgid;
-};
-
 struct nvgpu_gr {
 	struct gk20a *g;
 
@@ -66,10 +60,7 @@ struct nvgpu_gr {
 
 	struct nvgpu_gr_falcon *falcon;
 
-#define GR_CHANNEL_MAP_TLB_SIZE		2U /* must of power of 2 */
-	struct gr_channel_map_tlb_entry chid_tlb[GR_CHANNEL_MAP_TLB_SIZE];
-	u32 channel_tlb_flush_index;
-	struct nvgpu_spinlock ch_tlb_lock;
+	struct nvgpu_gr_intr *intr;
 
 	void (*remove_support)(struct gk20a *g);
 	bool sw_ready;

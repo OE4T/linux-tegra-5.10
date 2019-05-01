@@ -398,7 +398,7 @@ static void gk20a_free_channel(struct channel_gk20a *ch, bool force)
 		ch->usermode_submit_enabled = false;
 	}
 
-	nvgpu_gr_flush_channel_tlb(g);
+	g->ops.gr.intr.flush_channel_tlb(g);
 
 	nvgpu_dma_unmap_free(ch_vm, &ch->gpfifo.mem);
 	nvgpu_big_free(g, ch->gpfifo.pipe);

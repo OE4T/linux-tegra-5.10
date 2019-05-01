@@ -37,6 +37,7 @@
 #include <nvgpu/gr/global_ctx.h>
 #include <nvgpu/gr/ctx.h>
 #include <nvgpu/gr/config.h>
+#include <nvgpu/gr/gr_intr.h>
 #include <nvgpu/gr/gr_falcon.h>
 #include <nvgpu/gr/zbc.h>
 #include <nvgpu/gr/zcull.h>
@@ -55,6 +56,7 @@
 
 #include "common/gr/gr_config_priv.h"
 #include "common/gr/gr_falcon_priv.h"
+#include "common/gr/gr_intr_priv.h"
 #include "common/gr/ctx_priv.h"
 #include "common/gr/zcull_priv.h"
 #include "common/gr/zbc_priv.h"
@@ -711,6 +713,14 @@ static int vgpu_gr_init_gr_setup_sw(struct gk20a *g)
 
 	gr->g = g;
 
+	if (gr->intr == NULL) {
+		gr->intr = nvgpu_gr_intr_init_support(g);
+		if (gr->intr == NULL) {
+			err = -ENOMEM;
+			goto clean_up;
+		}
+	}
+
 	if (gr->falcon == NULL) {
 		gr->falcon = nvgpu_gr_falcon_init_support(g);
 		if (gr->falcon == NULL) {
@@ -761,7 +771,7 @@ static int vgpu_gr_init_gr_setup_sw(struct gk20a *g)
 	nvgpu_gr_ctx_set_size(gr->gr_ctx_desc, NVGPU_GR_CTX_PREEMPT_CTXSW,
 			nvgpu_gr_falcon_get_preempt_image_size(g->gr->falcon));
 
-	nvgpu_spinlock_init(&gr->ch_tlb_lock);
+	nvgpu_spinlock_init(&g->gr->intr->ch_tlb_lock);
 
 	gr->remove_support = vgpu_remove_gr_support;
 	gr->sw_ready = true;

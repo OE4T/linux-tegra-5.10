@@ -27,6 +27,7 @@
 #include <nvgpu/error_notifier.h>
 #include <nvgpu/channel.h>
 #include <nvgpu/gr/gr.h>
+#include <nvgpu/gr/gr_intr.h>
 
 #include <nvgpu/vgpu/ce_vgpu.h>
 #include <nvgpu/vgpu/vm_vgpu.h>
@@ -357,6 +358,10 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 				gp10b_gr_init_get_supported_preemption_modes,
 			.get_default_preemption_modes =
 				gp10b_gr_init_get_default_preemption_modes,
+		},
+
+		.intr = {
+			.flush_channel_tlb = nvgpu_gr_intr_flush_channel_tlb,
 		},
 	},
 	.class = {

@@ -539,6 +539,7 @@ static const struct gpu_ops gm20b_ops = {
 			.handle_sm_exception =
 				nvgpu_gr_intr_handle_sm_exception,
 			.stall_isr = nvgpu_gr_intr_stall_isr,
+			.flush_channel_tlb = nvgpu_gr_intr_flush_channel_tlb,
 		},
 		.falcon = {
 			.read_fecs_ctxsw_mailbox =
