@@ -32,7 +32,7 @@
 int vgpu_userd_setup_sw(struct gk20a *g)
 {
 #ifdef NVGPU_USERD
-	struct fifo_gk20a *f = &g->fifo;
+	struct nvgpu_fifo *f = &g->fifo;
 
 	f->userd_entry_size = g->ops.userd.entry_size(g);
 

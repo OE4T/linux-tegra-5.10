@@ -46,7 +46,7 @@ void gk20a_mm_init_inst_block(struct nvgpu_mem *inst_block, struct vm_gk20a *vm,
 
 u64 gk20a_mm_bar1_map_userd(struct gk20a *g, struct nvgpu_mem *mem, u32 offset)
 {
-	struct fifo_gk20a *f = &g->fifo;
+	struct nvgpu_fifo *f = &g->fifo;
 	u64 gpu_va = f->userd_gpu_va + offset;
 
 	return nvgpu_gmmu_map_fixed(g->mm.bar1.vm, mem, gpu_va,

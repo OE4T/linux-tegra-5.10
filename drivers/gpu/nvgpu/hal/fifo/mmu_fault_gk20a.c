@@ -241,7 +241,7 @@ bool gk20a_fifo_handle_mmu_fault_locked(
 	bool debug_dump = true;
 	struct nvgpu_engine_status_info engine_status;
 	bool deferred_reset_pending = false;
-	struct fifo_gk20a *f = &g->fifo;
+	struct nvgpu_fifo *f = &g->fifo;
 
 	nvgpu_log_fn(g, " ");
 

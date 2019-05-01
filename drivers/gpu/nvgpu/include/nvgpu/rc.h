@@ -38,14 +38,14 @@
 #define INVAL_ID			(~U32(0U))
 
 struct gk20a;
-struct fifo_gk20a;
+struct nvgpu_fifo;
 struct tsg_gk20a;
 struct channel_gk20a;
 
 void nvgpu_rc_ctxsw_timeout(struct gk20a *g, u32 eng_bitmask,
 				struct tsg_gk20a *tsg, bool debug_dump);
 
-void nvgpu_rc_pbdma_fault(struct gk20a *g, struct fifo_gk20a *f,
+void nvgpu_rc_pbdma_fault(struct gk20a *g, struct nvgpu_fifo *f,
 			u32 pbdma_id, u32 error_notifier);
 
 void nvgpu_rc_runlist_update(struct gk20a *g, u32 runlist_id);

@@ -206,7 +206,7 @@ void gk20a_fifo_intr_handle_runlist_event(struct gk20a *g)
 
 u32 gk20a_fifo_pbdma_isr(struct gk20a *g)
 {
-	struct fifo_gk20a *f = &g->fifo;
+	struct nvgpu_fifo *f = &g->fifo;
 	u32 pbdma_id;
 	u32 num_pbdma = nvgpu_get_litter_value(g, GPU_LIT_HOST_NUM_PBDMA);
 	u32 pbdma_pending_bitmask = nvgpu_readl(g, fifo_intr_pbdma_id_r());

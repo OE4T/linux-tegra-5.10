@@ -47,7 +47,7 @@ static void gv11b_fifo_locked_abort_runlist_active_tsgs(struct gk20a *g,
 			unsigned int rc_type,
 			u32 runlists_mask)
 {
-	struct fifo_gk20a *f = &g->fifo;
+	struct nvgpu_fifo *f = &g->fifo;
 	struct tsg_gk20a *tsg = NULL;
 	unsigned long tsgid;
 	struct nvgpu_runlist_info *runlist = NULL;
@@ -139,7 +139,7 @@ void gv11b_fifo_recover(struct gk20a *g, u32 act_eng_bitmask,
 	struct nvgpu_runlist_info *runlist = NULL;
 	u32 engine_id;
 	u32 client_type = ~U32(0U);
-	struct fifo_gk20a *f = &g->fifo;
+	struct nvgpu_fifo *f = &g->fifo;
 	bool deferred_reset_pending = false;
 
 	nvgpu_log_info(g, "acquire engines_reset_mutex");

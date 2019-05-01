@@ -35,7 +35,7 @@ bool gm20b_is_fault_engine_subid_gpc(struct gk20a *g, u32 engine_subid)
 	return (engine_subid == fifo_intr_mmu_fault_info_engine_subid_gpc_v());
 }
 
-int gm20b_engine_init_ce_info(struct fifo_gk20a *f)
+int gm20b_engine_init_ce_info(struct nvgpu_fifo *f)
 {
 	struct gk20a *g = f->g;
 	int ret = 0;

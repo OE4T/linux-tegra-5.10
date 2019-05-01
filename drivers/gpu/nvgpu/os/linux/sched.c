@@ -144,7 +144,7 @@ static int gk20a_sched_dev_ioctl_get_tsgs_by_pid(struct gk20a_sched_ctrl *sched,
 	struct nvgpu_sched_get_tsgs_by_pid_args *arg)
 {
 	struct gk20a *g = sched->g;
-	struct fifo_gk20a *f = &g->fifo;
+	struct nvgpu_fifo *f = &g->fifo;
 	struct tsg_gk20a *tsg;
 	u64 *bitmap;
 	unsigned int tsgid;
@@ -188,7 +188,7 @@ static int gk20a_sched_dev_ioctl_get_params(struct gk20a_sched_ctrl *sched,
 	struct nvgpu_sched_tsg_get_params_args *arg)
 {
 	struct gk20a *g = sched->g;
-	struct fifo_gk20a *f = &g->fifo;
+	struct nvgpu_fifo *f = &g->fifo;
 	struct tsg_gk20a *tsg;
 	u32 tsgid = arg->tsgid;
 
@@ -222,7 +222,7 @@ static int gk20a_sched_dev_ioctl_tsg_set_timeslice(
 	struct nvgpu_sched_tsg_timeslice_args *arg)
 {
 	struct gk20a *g = sched->g;
-	struct fifo_gk20a *f = &g->fifo;
+	struct nvgpu_fifo *f = &g->fifo;
 	struct tsg_gk20a *tsg;
 	u32 tsgid = arg->tsgid;
 	int err;
@@ -257,7 +257,7 @@ static int gk20a_sched_dev_ioctl_tsg_set_runlist_interleave(
 	struct nvgpu_sched_tsg_runlist_interleave_args *arg)
 {
 	struct gk20a *g = sched->g;
-	struct fifo_gk20a *f = &g->fifo;
+	struct nvgpu_fifo *f = &g->fifo;
 	struct tsg_gk20a *tsg;
 	u32 tsgid = arg->tsgid;
 	int err;
@@ -326,7 +326,7 @@ static int gk20a_sched_dev_ioctl_get_tsg(struct gk20a_sched_ctrl *sched,
 	struct nvgpu_sched_tsg_refcount_args *arg)
 {
 	struct gk20a *g = sched->g;
-	struct fifo_gk20a *f = &g->fifo;
+	struct nvgpu_fifo *f = &g->fifo;
 	struct tsg_gk20a *tsg;
 	u32 tsgid = arg->tsgid;
 
@@ -363,7 +363,7 @@ static int gk20a_sched_dev_ioctl_put_tsg(struct gk20a_sched_ctrl *sched,
 	struct nvgpu_sched_tsg_refcount_args *arg)
 {
 	struct gk20a *g = sched->g;
-	struct fifo_gk20a *f = &g->fifo;
+	struct nvgpu_fifo *f = &g->fifo;
 	struct tsg_gk20a *tsg;
 	u32 tsgid = arg->tsgid;
 
@@ -519,7 +519,7 @@ int gk20a_sched_dev_release(struct inode *inode, struct file *filp)
 {
 	struct gk20a_sched_ctrl *sched = filp->private_data;
 	struct gk20a *g = sched->g;
-	struct fifo_gk20a *f = &g->fifo;
+	struct nvgpu_fifo *f = &g->fifo;
 	struct tsg_gk20a *tsg;
 	unsigned int tsgid;
 
@@ -596,7 +596,7 @@ int gk20a_sched_ctrl_init(struct gk20a *g)
 {
 	struct nvgpu_os_linux *l = nvgpu_os_linux_from_gk20a(g);
 	struct gk20a_sched_ctrl *sched = &l->sched_ctrl;
-	struct fifo_gk20a *f = &g->fifo;
+	struct nvgpu_fifo *f = &g->fifo;
 	int err;
 
 	if (sched->sw_ready)

@@ -58,7 +58,7 @@ struct tsg_gk20a *nvgpu_tsg_check_and_get_from_id(struct gk20a *g, u32 tsgid)
 
 struct tsg_gk20a *nvgpu_tsg_get_from_id(struct gk20a *g, u32 tsgid)
 {
-	struct fifo_gk20a *f = &g->fifo;
+	struct nvgpu_fifo *f = &g->fifo;
 
 	return &f->tsg[tsgid];
 }
@@ -66,7 +66,7 @@ struct tsg_gk20a *nvgpu_tsg_get_from_id(struct gk20a *g, u32 tsgid)
 
 static bool gk20a_is_channel_active(struct gk20a *g, struct channel_gk20a *ch)
 {
-	struct fifo_gk20a *f = &g->fifo;
+	struct nvgpu_fifo *f = &g->fifo;
 	struct nvgpu_runlist_info *runlist;
 	unsigned int i;
 
@@ -306,7 +306,7 @@ int nvgpu_tsg_force_reset_ch(struct channel_gk20a *ch,
 
 void nvgpu_tsg_cleanup_sw(struct gk20a *g)
 {
-	struct fifo_gk20a *f = &g->fifo;
+	struct nvgpu_fifo *f = &g->fifo;
 	u32 tsgid;
 
 	for (tsgid = 0; tsgid < f->num_channels; tsgid++) {
@@ -344,7 +344,7 @@ int gk20a_init_tsg_support(struct gk20a *g, u32 tsgid)
 
 int nvgpu_tsg_setup_sw(struct gk20a *g)
 {
-	struct fifo_gk20a *f = &g->fifo;
+	struct nvgpu_fifo *f = &g->fifo;
 	u32 tsgid, i;
 	int err;
 
@@ -593,14 +593,14 @@ void nvgpu_tsg_disable_sched(struct gk20a *g, struct tsg_gk20a *tsg)
 			RUNLIST_DISABLED);
 }
 
-static void release_used_tsg(struct fifo_gk20a *f, struct tsg_gk20a *tsg)
+static void release_used_tsg(struct nvgpu_fifo *f, struct tsg_gk20a *tsg)
 {
 	nvgpu_mutex_acquire(&f->tsg_inuse_mutex);
 	f->tsg[tsg->tsgid].in_use = false;
 	nvgpu_mutex_release(&f->tsg_inuse_mutex);
 }
 
-static struct tsg_gk20a *gk20a_tsg_acquire_unused_tsg(struct fifo_gk20a *f)
+static struct tsg_gk20a *gk20a_tsg_acquire_unused_tsg(struct nvgpu_fifo *f)
 {
 	struct tsg_gk20a *tsg = NULL;
 	unsigned int tsgid;
@@ -762,7 +762,7 @@ struct tsg_gk20a *tsg_gk20a_from_ch(struct channel_gk20a *ch)
 
 	if (tsgid != NVGPU_INVALID_TSG_ID) {
 		struct gk20a *g = ch->g;
-		struct fifo_gk20a *f = &g->fifo;
+		struct nvgpu_fifo *f = &g->fifo;
 
 		tsg = &f->tsg[tsgid];
 	} else {

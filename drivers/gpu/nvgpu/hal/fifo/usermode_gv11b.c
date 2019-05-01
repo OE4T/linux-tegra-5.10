@@ -43,7 +43,7 @@ u64 gv11b_usermode_bus_base(struct gk20a *g)
 u32 gv11b_usermode_doorbell_token(struct channel_gk20a *ch)
 {
 	struct gk20a *g = ch->g;
-	struct fifo_gk20a *f = &g->fifo;
+	struct nvgpu_fifo *f = &g->fifo;
 	u32 hw_chid = f->channel_base + ch->chid;
 
 	return usermode_notify_channel_pending_id_f(hw_chid);

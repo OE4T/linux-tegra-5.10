@@ -27,7 +27,7 @@
 #include <nvgpu/types.h>
 
 struct gk20a;
-struct fifo_gk20a;
+struct nvgpu_fifo;
 
 void nvgpu_cg_init_gr_load_gating_prod(struct gk20a *g);
 void nvgpu_cg_elcg_enable(struct gk20a *g);

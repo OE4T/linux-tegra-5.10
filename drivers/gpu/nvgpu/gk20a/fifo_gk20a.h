@@ -34,7 +34,7 @@
 struct channel_gk20a;
 struct tsg_gk20a;
 
-struct fifo_gk20a {
+struct nvgpu_fifo {
 	struct gk20a *g;
 	unsigned int num_channels;
 	unsigned int runlist_entry_size;
@@ -86,7 +86,7 @@ struct fifo_gk20a {
 	struct tsg_gk20a *tsg;
 	struct nvgpu_mutex tsg_inuse_mutex;
 
-	void (*remove_support)(struct fifo_gk20a *f);
+	void (*remove_support)(struct nvgpu_fifo *f);
 	bool sw_ready;
 	struct {
 		/* share info between isrs and non-isr code */

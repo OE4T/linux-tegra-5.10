@@ -73,7 +73,7 @@ int gv11b_init_fifo_reset_enable_hw(struct gk20a *g)
 
 int gv11b_init_fifo_setup_hw(struct gk20a *g)
 {
-	struct fifo_gk20a *f = &g->fifo;
+	struct nvgpu_fifo *f = &g->fifo;
 
 	f->max_subctx_count = g->ops.gr.init.get_max_subctx_count();
 

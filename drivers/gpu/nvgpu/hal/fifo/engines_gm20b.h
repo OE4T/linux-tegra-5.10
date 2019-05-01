@@ -26,9 +26,9 @@
 #include <nvgpu/types.h>
 
 struct gk20a;
-struct fifo_gk20a;
+struct nvgpu_fifo;
 
 bool gm20b_is_fault_engine_subid_gpc(struct gk20a *g, u32 engine_subid);
-int  gm20b_engine_init_ce_info(struct fifo_gk20a *f);
+int  gm20b_engine_init_ce_info(struct nvgpu_fifo *f);
 
 #endif /* NVGPU_ENGINE_GM20B_H */

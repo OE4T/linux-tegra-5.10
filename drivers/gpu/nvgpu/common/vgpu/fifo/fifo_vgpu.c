@@ -160,7 +160,7 @@ void vgpu_channel_disable(struct channel_gk20a *ch)
 	WARN_ON(err || msg.ret);
 }
 
-int vgpu_fifo_init_engine_info(struct fifo_gk20a *f)
+int vgpu_fifo_init_engine_info(struct nvgpu_fifo *f)
 {
 	struct vgpu_priv_data *priv = vgpu_get_priv_data(f->g);
 	struct tegra_vgpu_engines_info *engines = &priv->constants.engines_info;
@@ -210,7 +210,7 @@ void vgpu_fifo_cleanup_sw(struct gk20a *g)
 
 int vgpu_fifo_setup_sw(struct gk20a *g)
 {
-	struct fifo_gk20a *f = &g->fifo;
+	struct nvgpu_fifo *f = &g->fifo;
 	struct vgpu_priv_data *priv = vgpu_get_priv_data(g);
 	int err = 0;
 
@@ -248,7 +248,7 @@ clean_up:
 
 int vgpu_init_fifo_setup_hw(struct gk20a *g)
 {
-	struct fifo_gk20a *f = &g->fifo;
+	struct nvgpu_fifo *f = &g->fifo;
 	u32 v, v1 = 0x33, v2 = 0x55;
 	struct nvgpu_mem *mem = &f->userd_slabs[0];
 	u32 bar1_vaddr;

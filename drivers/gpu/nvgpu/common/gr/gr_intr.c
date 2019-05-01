@@ -235,7 +235,7 @@ static void gr_intr_report_sm_exception(struct gk20a *g, u32 gpc, u32 tpc,
 struct channel_gk20a *nvgpu_gr_intr_get_channel_from_ctx(struct gk20a *g,
 			u32 curr_ctx, u32 *curr_tsgid)
 {
-	struct fifo_gk20a *f = &g->fifo;
+	struct nvgpu_fifo *f = &g->fifo;
 	struct nvgpu_gr_intr *intr = g->gr->intr;
 	u32 chid;
 	u32 tsgid = NVGPU_INVALID_TSG_ID;

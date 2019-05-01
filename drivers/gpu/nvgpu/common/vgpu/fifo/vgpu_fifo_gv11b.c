@@ -150,7 +150,7 @@ int vgpu_gv11b_fifo_get_sync_ro_map(struct vm_gk20a *vm,
 
 int vgpu_gv11b_init_fifo_setup_hw(struct gk20a *g)
 {
-	struct fifo_gk20a *f = &g->fifo;
+	struct nvgpu_fifo *f = &g->fifo;
 	struct vgpu_priv_data *priv = vgpu_get_priv_data(g);
 
 	f->max_subctx_count = priv->constants.max_subctx_count;

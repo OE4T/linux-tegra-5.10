@@ -32,7 +32,7 @@
 
 void nvgpu_runlist_lock_active_runlists(struct gk20a *g)
 {
-	struct fifo_gk20a *f = &g->fifo;
+	struct nvgpu_fifo *f = &g->fifo;
 	struct nvgpu_runlist_info *runlist;
 	u32 i;
 
@@ -45,7 +45,7 @@ void nvgpu_runlist_lock_active_runlists(struct gk20a *g)
 
 void nvgpu_runlist_unlock_active_runlists(struct gk20a *g)
 {
-	struct fifo_gk20a *f = &g->fifo;
+	struct nvgpu_fifo *f = &g->fifo;
 	struct nvgpu_runlist_info *runlist;
 	u32 i;
 
@@ -62,7 +62,7 @@ static u32 nvgpu_runlist_append_tsg(struct gk20a *g,
 		u32 *entries_left,
 		struct tsg_gk20a *tsg)
 {
-	struct fifo_gk20a *f = &g->fifo;
+	struct nvgpu_fifo *f = &g->fifo;
 	u32 runlist_entry_words = f->runlist_entry_size / (u32)sizeof(u32);
 	struct channel_gk20a *ch;
 	u32 count = 0;
@@ -123,7 +123,7 @@ static u32 nvgpu_runlist_append_tsg(struct gk20a *g,
 }
 
 
-static u32 nvgpu_runlist_append_prio(struct fifo_gk20a *f,
+static u32 nvgpu_runlist_append_prio(struct nvgpu_fifo *f,
 				struct nvgpu_runlist_info *runlist,
 				u32 **runlist_entry,
 				u32 *entries_left,
@@ -151,7 +151,7 @@ static u32 nvgpu_runlist_append_prio(struct fifo_gk20a *f,
 	return count;
 }
 
-static u32 nvgpu_runlist_append_hi(struct fifo_gk20a *f,
+static u32 nvgpu_runlist_append_hi(struct nvgpu_fifo *f,
 				struct nvgpu_runlist_info *runlist,
 				u32 **runlist_entry,
 				u32 *entries_left)
@@ -167,7 +167,7 @@ static u32 nvgpu_runlist_append_hi(struct fifo_gk20a *f,
 			NVGPU_FIFO_RUNLIST_INTERLEAVE_LEVEL_HIGH);
 }
 
-static u32 nvgpu_runlist_append_med(struct fifo_gk20a *f,
+static u32 nvgpu_runlist_append_med(struct nvgpu_fifo *f,
 				struct nvgpu_runlist_info *runlist,
 				u32 **runlist_entry,
 				u32 *entries_left)
@@ -206,7 +206,7 @@ static u32 nvgpu_runlist_append_med(struct fifo_gk20a *f,
 	return count;
 }
 
-static u32 nvgpu_runlist_append_low(struct fifo_gk20a *f,
+static u32 nvgpu_runlist_append_low(struct nvgpu_fifo *f,
 				struct nvgpu_runlist_info *runlist,
 				u32 **runlist_entry,
 				u32 *entries_left)
@@ -266,7 +266,7 @@ static u32 nvgpu_runlist_append_low(struct fifo_gk20a *f,
 	return count;
 }
 
-static u32 nvgpu_runlist_append_flat(struct fifo_gk20a *f,
+static u32 nvgpu_runlist_append_flat(struct nvgpu_fifo *f,
 				struct nvgpu_runlist_info *runlist,
 				u32 **runlist_entry,
 				u32 *entries_left)
@@ -291,7 +291,7 @@ static u32 nvgpu_runlist_append_flat(struct fifo_gk20a *f,
 	return count;
 }
 
-u32 nvgpu_runlist_construct_locked(struct fifo_gk20a *f,
+u32 nvgpu_runlist_construct_locked(struct nvgpu_fifo *f,
 				struct nvgpu_runlist_info *runlist,
 				u32 buf_id,
 				u32 max_entries)
@@ -317,7 +317,7 @@ u32 nvgpu_runlist_construct_locked(struct fifo_gk20a *f,
 static bool gk20a_runlist_modify_active_locked(struct gk20a *g, u32 runlist_id,
 					    struct channel_gk20a *ch, bool add)
 {
-	struct fifo_gk20a *f = &g->fifo;
+	struct nvgpu_fifo *f = &g->fifo;
 	struct nvgpu_runlist_info *runlist = NULL;
 	struct tsg_gk20a *tsg = NULL;
 
@@ -363,7 +363,7 @@ static bool gk20a_runlist_modify_active_locked(struct gk20a *g, u32 runlist_id,
 static int gk20a_runlist_reconstruct_locked(struct gk20a *g, u32 runlist_id,
 				     u32 buf_id, bool add_entries)
 {
-	struct fifo_gk20a *f = &g->fifo;
+	struct nvgpu_fifo *f = &g->fifo;
 	struct nvgpu_runlist_info *runlist = NULL;
 
 	runlist = f->runlist_info[runlist_id];
@@ -393,7 +393,7 @@ int nvgpu_runlist_update_locked(struct gk20a *g, u32 runlist_id,
 					    bool wait_for_finish)
 {
 	int ret = 0;
-	struct fifo_gk20a *f = &g->fifo;
+	struct nvgpu_fifo *f = &g->fifo;
 	struct nvgpu_runlist_info *runlist = NULL;
 	u32 buf_id;
 	bool add_entries;
@@ -498,7 +498,7 @@ static int nvgpu_runlist_update(struct gk20a *g, u32 runlist_id,
 			      bool add, bool wait_for_finish)
 {
 	struct nvgpu_runlist_info *runlist = NULL;
-	struct fifo_gk20a *f = &g->fifo;
+	struct nvgpu_fifo *f = &g->fifo;
 	u32 token = PMU_INVALID_MUTEX_OWNER_ID;
 	int mutex_ret = 0;
 	int ret = 0;
@@ -622,7 +622,7 @@ void nvgpu_fifo_runlist_set_state(struct gk20a *g, u32 runlists_mask,
 
 void nvgpu_runlist_cleanup_sw(struct gk20a *g)
 {
-	struct fifo_gk20a *f = &g->fifo;
+	struct nvgpu_fifo *f = &g->fifo;
 	u32 i, j;
 	struct nvgpu_runlist_info *runlist;
 
@@ -656,7 +656,7 @@ void nvgpu_runlist_cleanup_sw(struct gk20a *g)
 	f->max_runlists = 0;
 }
 
-static void nvgpu_init_runlist_enginfo(struct gk20a *g, struct fifo_gk20a *f)
+static void nvgpu_init_runlist_enginfo(struct gk20a *g, struct nvgpu_fifo *f)
 {
 	struct nvgpu_runlist_info *runlist;
 	struct nvgpu_engine_info *engine_info;
@@ -697,7 +697,7 @@ static void nvgpu_init_runlist_enginfo(struct gk20a *g, struct fifo_gk20a *f)
 
 int nvgpu_runlist_setup_sw(struct gk20a *g)
 {
-	struct fifo_gk20a *f = &g->fifo;
+	struct nvgpu_fifo *f = &g->fifo;
 	struct nvgpu_runlist_info *runlist;
 	unsigned int runlist_id;
 	u32 i, j;
@@ -806,7 +806,7 @@ u32 nvgpu_runlist_get_runlists_mask(struct gk20a *g, u32 id,
 	unsigned int id_type, u32 act_eng_bitmask, u32 pbdma_bitmask)
 {
 	u32 i, runlists_mask = 0;
-	struct fifo_gk20a *f = &g->fifo;
+	struct nvgpu_fifo *f = &g->fifo;
 	struct nvgpu_runlist_info *runlist;
 
 	/* engine and/or pbdma ids are known */
@@ -852,7 +852,7 @@ u32 nvgpu_runlist_get_runlists_mask(struct gk20a *g, u32 id,
 
 void nvgpu_runlist_unlock_runlists(struct gk20a *g, u32 runlists_mask)
 {
-	struct fifo_gk20a *f = &g->fifo;
+	struct nvgpu_fifo *f = &g->fifo;
 	struct nvgpu_runlist_info *runlist;
 	u32 i;
 

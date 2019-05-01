@@ -32,7 +32,7 @@ static void *gk20a_fifo_sched_debugfs_seq_start(
 		struct seq_file *s, loff_t *pos)
 {
 	struct gk20a *g = s->private;
-	struct fifo_gk20a *f = &g->fifo;
+	struct nvgpu_fifo *f = &g->fifo;
 
 	if (*pos >= f->num_channels)
 		return NULL;
@@ -44,7 +44,7 @@ static void *gk20a_fifo_sched_debugfs_seq_next(
 		struct seq_file *s, void *v, loff_t *pos)
 {
 	struct gk20a *g = s->private;
-	struct fifo_gk20a *f = &g->fifo;
+	struct nvgpu_fifo *f = &g->fifo;
 
 	++(*pos);
 	if (*pos >= f->num_channels)
@@ -62,7 +62,7 @@ static int gk20a_fifo_sched_debugfs_seq_show(
 		struct seq_file *s, void *v)
 {
 	struct gk20a *g = s->private;
-	struct fifo_gk20a *f = &g->fifo;
+	struct nvgpu_fifo *f = &g->fifo;
 	struct channel_gk20a *ch = v;
 	struct tsg_gk20a *tsg = NULL;
 
@@ -145,7 +145,7 @@ static const struct file_operations gk20a_fifo_sched_debugfs_fops = {
 static int gk20a_fifo_profile_enable(void *data, u64 val)
 {
 	struct gk20a *g = (struct gk20a *) data;
-	struct fifo_gk20a *f = &g->fifo;
+	struct nvgpu_fifo *f = &g->fifo;
 
 
 	nvgpu_mutex_acquire(&f->profile.lock);
@@ -339,7 +339,7 @@ void nvgpu_profile_snapshot(struct nvgpu_profile *profile, int idx)
 
 void __gk20a_fifo_profile_free(struct nvgpu_ref *ref)
 {
-	struct fifo_gk20a *f = container_of(ref, struct fifo_gk20a,
+	struct nvgpu_fifo *f = container_of(ref, struct nvgpu_fifo,
 						profile.ref);
 	nvgpu_vfree(f->g, f->profile.data);
 	nvgpu_vfree(f->g, f->profile.sorted);
@@ -350,7 +350,7 @@ void __gk20a_fifo_profile_free(struct nvgpu_ref *ref)
  */
 struct nvgpu_profile *nvgpu_profile_acquire(struct gk20a *g)
 {
-	struct fifo_gk20a *f = &g->fifo;
+	struct nvgpu_fifo *f = &g->fifo;
 	struct nvgpu_profile *profile;
 	unsigned int index;
 
@@ -372,7 +372,7 @@ void nvgpu_profile_release(struct gk20a *g,
 
 void gk20a_fifo_debugfs_deinit(struct gk20a *g)
 {
-	struct fifo_gk20a *f = &g->fifo;
+	struct nvgpu_fifo *f = &g->fifo;
 
 	nvgpu_mutex_acquire(&f->profile.lock);
 	if (f->profile.enabled) {

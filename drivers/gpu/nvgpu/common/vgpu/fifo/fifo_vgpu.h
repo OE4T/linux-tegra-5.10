@@ -27,7 +27,7 @@
 
 struct gk20a;
 struct channel_gk20a;
-struct fifo_gk20a;
+struct nvgpu_fifo;
 struct tsg_gk20a;
 struct tegra_vgpu_fifo_intr_info;
 struct tegra_vgpu_channel_event_info;
@@ -43,7 +43,7 @@ void vgpu_channel_free_inst(struct gk20a *g, struct channel_gk20a *ch);
 void vgpu_channel_enable(struct channel_gk20a *ch);
 void vgpu_channel_disable(struct channel_gk20a *ch);
 u32 vgpu_channel_count(struct gk20a *g);
-int vgpu_fifo_init_engine_info(struct fifo_gk20a *f);
+int vgpu_fifo_init_engine_info(struct nvgpu_fifo *f);
 int vgpu_fifo_preempt_channel(struct gk20a *g, struct channel_gk20a *ch);
 int vgpu_fifo_preempt_tsg(struct gk20a *g, struct tsg_gk20a *tsg);
 int vgpu_channel_set_timeslice(struct channel_gk20a *ch, u32 timeslice);

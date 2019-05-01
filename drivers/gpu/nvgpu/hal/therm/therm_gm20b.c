@@ -83,7 +83,7 @@ int gm20b_elcg_init_idle_filters(struct gk20a *g)
 	u32 gate_ctrl, idle_filter;
 	u32 engine_id;
 	u32 active_engine_id = 0;
-	struct fifo_gk20a *f = &g->fifo;
+	struct nvgpu_fifo *f = &g->fifo;
 
 	nvgpu_log_fn(g, " ");
 

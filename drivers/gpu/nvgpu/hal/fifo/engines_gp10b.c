@@ -30,7 +30,7 @@
 
 #include "engines_gp10b.h"
 
-int gp10b_engine_init_ce_info(struct fifo_gk20a *f)
+int gp10b_engine_init_ce_info(struct nvgpu_fifo *f)
 {
 	struct gk20a *g = f->g;
 	int ret = 0;

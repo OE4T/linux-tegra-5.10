@@ -34,7 +34,7 @@
 #ifdef NVGPU_USERD
 int nvgpu_userd_init_slabs(struct gk20a *g)
 {
-	struct fifo_gk20a *f = &g->fifo;
+	struct nvgpu_fifo *f = &g->fifo;
 	int err;
 
 	err = nvgpu_mutex_init(&f->userd_mutex);
@@ -65,7 +65,7 @@ clean_up:
 
 void nvgpu_userd_free_slabs(struct gk20a *g)
 {
-	struct fifo_gk20a *f = &g->fifo;
+	struct nvgpu_fifo *f = &g->fifo;
 	u32 slab;
 
 	for (slab = 0; slab < f->num_userd_slabs; slab++) {
@@ -81,7 +81,7 @@ void nvgpu_userd_free_slabs(struct gk20a *g)
 int nvgpu_userd_init_channel(struct gk20a *g, struct channel_gk20a *c)
 {
 #ifdef NVGPU_USERD
-	struct fifo_gk20a *f = &g->fifo;
+	struct nvgpu_fifo *f = &g->fifo;
 	struct nvgpu_mem *mem;
 	u32 slab = c->chid / f->num_channels_per_slab;
 	int err = 0;
@@ -129,7 +129,7 @@ done:
 int nvgpu_userd_setup_sw(struct gk20a *g)
 {
 #ifdef NVGPU_USERD
-	struct fifo_gk20a *f = &g->fifo;
+	struct nvgpu_fifo *f = &g->fifo;
 	int err;
 	u32 size, num_pages;
 
@@ -164,7 +164,7 @@ clean_up:
 void nvgpu_userd_cleanup_sw(struct gk20a *g)
 {
 #ifdef NVGPU_USERD
-	struct fifo_gk20a *f = &g->fifo;
+	struct nvgpu_fifo *f = &g->fifo;
 
 	if (f->userd_gpu_va != 0ULL) {
 		(void) nvgpu_vm_area_free(g->mm.bar1.vm, f->userd_gpu_va);

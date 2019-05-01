@@ -529,7 +529,7 @@ free_gpfifo:
 int nvgpu_channel_init_support_linux(struct nvgpu_os_linux *l)
 {
 	struct gk20a *g = &l->g;
-	struct fifo_gk20a *f = &g->fifo;
+	struct nvgpu_fifo *f = &g->fifo;
 	int chid;
 	int err;
 
@@ -580,7 +580,7 @@ err_clean:
 void nvgpu_channel_remove_support_linux(struct nvgpu_os_linux *l)
 {
 	struct gk20a *g = &l->g;
-	struct fifo_gk20a *f = &g->fifo;
+	struct nvgpu_fifo *f = &g->fifo;
 	unsigned int chid;
 
 	for (chid = 0; chid < f->num_channels; chid++) {

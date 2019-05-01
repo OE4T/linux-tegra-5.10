@@ -56,7 +56,7 @@ void tu104_usermode_setup_hw(struct gk20a *g)
 u32 tu104_usermode_doorbell_token(struct channel_gk20a *ch)
 {
 	struct gk20a *g = ch->g;
-	struct fifo_gk20a *f = &g->fifo;
+	struct nvgpu_fifo *f = &g->fifo;
 	u32 hw_chid = f->channel_base + ch->chid;
 
 	return ctrl_doorbell_vector_f(hw_chid) |

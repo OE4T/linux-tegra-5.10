@@ -51,7 +51,7 @@ int nvgpu_preempt_channel(struct gk20a *g, struct channel_gk20a *ch)
 void nvgpu_preempt_poll_tsg_on_pbdma(struct gk20a *g,
 		struct tsg_gk20a *tsg)
 {
-	struct fifo_gk20a *f = &g->fifo;
+	struct nvgpu_fifo *f = &g->fifo;
 	u32 runlist_id;
 	unsigned long runlist_served_pbdmas;
 	unsigned long pbdma_id_bit;

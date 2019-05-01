@@ -25,7 +25,7 @@
 #define GK20A_H
 
 struct gk20a;
-struct fifo_gk20a;
+struct nvgpu_fifo;
 struct channel_gk20a;
 struct nvgpu_gr;
 struct nvgpu_fbp;
@@ -1101,8 +1101,8 @@ struct gpu_ops {
 					 u32 engine_subid);
 		u32 (*get_mask_on_id)(struct gk20a *g,
 			u32 id, bool is_tsg);
-		int (*init_info)(struct fifo_gk20a *f);
-		int (*init_ce_info)(struct fifo_gk20a *f);
+		int (*init_info)(struct nvgpu_fifo *f);
+		int (*init_ce_info)(struct nvgpu_fifo *f);
 	} engine;
 
 	struct {
@@ -1965,7 +1965,7 @@ struct gk20a {
 	struct nvgpu_falcon minion_flcn;
 	struct nvgpu_falcon gsp_flcn;
 	struct clk_gk20a clk;
-	struct fifo_gk20a fifo;
+	struct nvgpu_fifo fifo;
 	struct nvgpu_nvlink_dev nvlink;
 	struct nvgpu_gr *gr;
 	struct nvgpu_fbp *fbp;

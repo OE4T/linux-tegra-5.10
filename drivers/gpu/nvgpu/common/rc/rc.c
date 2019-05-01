@@ -71,7 +71,7 @@ void nvgpu_rc_ctxsw_timeout(struct gk20a *g, u32 eng_bitmask,
 			RC_TYPE_CTXSW_TIMEOUT);
 }
 
-void nvgpu_rc_pbdma_fault(struct gk20a *g, struct fifo_gk20a *f,
+void nvgpu_rc_pbdma_fault(struct gk20a *g, struct nvgpu_fifo *f,
 			u32 pbdma_id, u32 error_notifier)
 {
 	u32 id;

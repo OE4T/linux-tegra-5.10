@@ -39,7 +39,7 @@ static void setup_fifo(struct gk20a *g, unsigned long *tsg_map,
 		struct nvgpu_runlist_info **runlists, u32 *rl_data,
 		bool interleave)
 {
-	struct fifo_gk20a *f = &g->fifo;
+	struct nvgpu_fifo *f = &g->fifo;
 	struct nvgpu_runlist_info *runlist = runlists[0];
 
 	/* we only use the runlist 0 here */
@@ -116,7 +116,7 @@ static void setup_tsg_multich(struct tsg_gk20a *tsgs, struct channel_gk20a *chs,
 	}
 }
 
-static int run_format_test(struct unit_module *m, struct fifo_gk20a *f,
+static int run_format_test(struct unit_module *m, struct nvgpu_fifo *f,
 		struct tsg_gk20a *tsg, struct channel_gk20a *chs,
 		u32 prio, u32 n_ch, u32 *rl_data,
 		u32 *expect_header, u32 *expect_channel)
@@ -172,7 +172,7 @@ static struct tsg_fmt_test_args {
 static int test_tsg_format_gen(struct unit_module *m, struct gk20a *g,
 		void *args)
 {
-	struct fifo_gk20a *f = &g->fifo;
+	struct nvgpu_fifo *f = &g->fifo;
 	struct nvgpu_runlist_info runlist;
 	struct nvgpu_runlist_info *runlists = &runlist;
 	unsigned long active_tsgs_map = 0;
@@ -236,7 +236,7 @@ static int test_common_gen(struct unit_module *m, struct gk20a *g,
 		u32 *levels, u32 levels_count,
 		u32 *expected, u32 expect_count)
 {
-	struct fifo_gk20a *f = &g->fifo;
+	struct nvgpu_fifo *f = &g->fifo;
 	struct nvgpu_runlist_info runlist;
 	struct nvgpu_runlist_info *runlists = &runlist;
 	unsigned long active_tsgs_map = 0;

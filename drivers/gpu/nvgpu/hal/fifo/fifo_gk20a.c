@@ -64,7 +64,7 @@ int gk20a_init_fifo_reset_enable_hw(struct gk20a *g)
 
 int gk20a_init_fifo_setup_hw(struct gk20a *g)
 {
-	struct fifo_gk20a *f = &g->fifo;
+	struct nvgpu_fifo *f = &g->fifo;
 	u64 shifted_addr;
 
 	nvgpu_log_fn(g, " ");

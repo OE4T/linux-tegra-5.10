@@ -26,7 +26,7 @@
 bool nvgpu_pbdma_find_for_runlist(struct gk20a *g,
 		u32 runlist_id, u32 *pbdma_id)
 {
-	struct fifo_gk20a *f = &g->fifo;
+	struct nvgpu_fifo *f = &g->fifo;
 	bool found_pbdma_for_runlist = false;
 	u32 runlist_bit;
 	u32 id;
@@ -46,7 +46,7 @@ bool nvgpu_pbdma_find_for_runlist(struct gk20a *g,
 
 static void nvgpu_pbdma_init_intr_descs(struct gk20a *g)
 {
-	struct fifo_gk20a *f = &g->fifo;
+	struct nvgpu_fifo *f = &g->fifo;
 
 	if (g->ops.pbdma.device_fatal_0_intr_descs != NULL) {
 		f->intr.pbdma.device_fatal_0 =
@@ -65,7 +65,7 @@ static void nvgpu_pbdma_init_intr_descs(struct gk20a *g)
 
 int nvgpu_pbdma_setup_sw(struct gk20a *g)
 {
-	struct fifo_gk20a *f = &g->fifo;
+	struct nvgpu_fifo *f = &g->fifo;
 
 	f->num_pbdma = nvgpu_get_litter_value(g, GPU_LIT_HOST_NUM_PBDMA);
 
@@ -83,7 +83,7 @@ int nvgpu_pbdma_setup_sw(struct gk20a *g)
 
 void nvgpu_pbdma_cleanup_sw(struct gk20a *g)
 {
-	struct fifo_gk20a *f = &g->fifo;
+	struct nvgpu_fifo *f = &g->fifo;
 
 	nvgpu_kfree(g, f->pbdma_map);
 	f->pbdma_map = NULL;

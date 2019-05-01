@@ -29,7 +29,7 @@
 
 struct gk20a;
 struct tsg_gk20a;
-struct fifo_gk20a;
+struct nvgpu_fifo;
 struct channel_gk20a;
 
 #define NVGPU_FIFO_RUNLIST_INTERLEAVE_LEVEL_LOW     0U
@@ -66,7 +66,7 @@ struct nvgpu_runlist_info {
 };
 
 
-u32 nvgpu_runlist_construct_locked(struct fifo_gk20a *f,
+u32 nvgpu_runlist_construct_locked(struct nvgpu_fifo *f,
 				struct nvgpu_runlist_info *runlist,
 				u32 buf_id,
 				u32 max_entries);

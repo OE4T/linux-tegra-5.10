@@ -25,8 +25,8 @@
 
 #include <nvgpu/types.h>
 
-struct fifo_gk20a;
+struct nvgpu_fifo;
 
-int gp10b_engine_init_ce_info(struct fifo_gk20a *f);
+int gp10b_engine_init_ce_info(struct nvgpu_fifo *f);
 
 #endif /* NVGPU_ENGINE_GP10B_H */

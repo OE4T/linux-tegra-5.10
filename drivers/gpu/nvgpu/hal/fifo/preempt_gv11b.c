@@ -83,7 +83,7 @@ static int gv11b_fifo_preempt_locked(struct gk20a *g, u32 id,
  */
 void gv11b_fifo_preempt_runlists_for_rc(struct gk20a *g, u32 runlists_mask)
 {
-	struct fifo_gk20a *f = &g->fifo;
+	struct nvgpu_fifo *f = &g->fifo;
 	struct nvgpu_runlist_info *runlist;
 	u32 token = PMU_INVALID_MUTEX_OWNER_ID;
 	int mutex_ret = 0;
@@ -357,7 +357,7 @@ static int gv11b_fifo_preempt_poll_eng(struct gk20a *g, u32 id,
 int gv11b_fifo_is_preempt_pending(struct gk20a *g, u32 id,
 		 unsigned int id_type)
 {
-	struct fifo_gk20a *f = &g->fifo;
+	struct nvgpu_fifo *f = &g->fifo;
 	unsigned long runlist_served_pbdmas;
 	unsigned long runlist_served_engines;
 	unsigned long bit;
@@ -416,7 +416,7 @@ int gv11b_fifo_preempt_channel(struct gk20a *g, struct channel_gk20a *ch)
 
 int gv11b_fifo_preempt_tsg(struct gk20a *g, struct tsg_gk20a *tsg)
 {
-	struct fifo_gk20a *f = &g->fifo;
+	struct nvgpu_fifo *f = &g->fifo;
 	int ret = 0;
 	u32 token = PMU_INVALID_MUTEX_OWNER_ID;
 	int mutex_ret = 0;

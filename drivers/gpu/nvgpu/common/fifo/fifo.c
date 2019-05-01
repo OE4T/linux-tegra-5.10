@@ -37,7 +37,7 @@
 
 void nvgpu_fifo_cleanup_sw_common(struct gk20a *g)
 {
-	struct fifo_gk20a *f = &g->fifo;
+	struct nvgpu_fifo *f = &g->fifo;
 
 	nvgpu_log_fn(g, " ");
 
@@ -60,14 +60,14 @@ void nvgpu_fifo_cleanup_sw(struct gk20a *g)
 	nvgpu_fifo_cleanup_sw_common(g);
 }
 
-static void nvgpu_fifo_remove_support(struct fifo_gk20a *f)
+static void nvgpu_fifo_remove_support(struct nvgpu_fifo *f)
 {
 	struct gk20a *g = f->g;
 
 	g->ops.fifo.cleanup_sw(g);
 }
 
-static int nvgpu_fifo_init_locks(struct gk20a *g, struct fifo_gk20a *f)
+static int nvgpu_fifo_init_locks(struct gk20a *g, struct nvgpu_fifo *f)
 {
 	int err;
 
@@ -101,7 +101,7 @@ destroy_0:
 
 int nvgpu_fifo_setup_sw_common(struct gk20a *g)
 {
-	struct fifo_gk20a *f = &g->fifo;
+	struct nvgpu_fifo *f = &g->fifo;
 	int err = 0;
 
 	nvgpu_log_fn(g, " ");
@@ -180,7 +180,7 @@ clean_up:
 
 int nvgpu_fifo_setup_sw(struct gk20a *g)
 {
-	struct fifo_gk20a *f = &g->fifo;
+	struct nvgpu_fifo *f = &g->fifo;
 	int err = 0;
 
 	nvgpu_log_fn(g, " ");

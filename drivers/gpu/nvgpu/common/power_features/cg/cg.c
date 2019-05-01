@@ -34,7 +34,7 @@ static void nvgpu_cg_set_mode(struct gk20a *g, int cgmode, int mode_config)
 	u32 engine_idx;
 	u32 active_engine_id = 0;
 	struct nvgpu_engine_info *engine_info = NULL;
-	struct fifo_gk20a *f = &g->fifo;
+	struct nvgpu_fifo *f = &g->fifo;
 
 	nvgpu_log_fn(g, " ");
 
