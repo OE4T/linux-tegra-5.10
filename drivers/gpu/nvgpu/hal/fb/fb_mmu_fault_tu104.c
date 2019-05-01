@@ -33,7 +33,7 @@
 #include "hal/mc/mc_tu104.h"
 #include "hal/fb/fb_mmu_fault_gv11b.h"
 #include "hal/fb/fb_mmu_fault_tu104.h"
-#include "hal/mm/gmmu/gmmu_mmu_fault_gv11b.h"
+#include "hal/mm/mmu_fault/mmu_fault_gv11b.h"
 #include "hal/func/func_tu104.h"
 
 #include "nvgpu/hw/tu104/hw_fb_tu104.h"

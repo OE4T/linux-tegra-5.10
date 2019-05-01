@@ -35,8 +35,7 @@
 #include <os/posix/os_posix.h>
 #include <nvgpu/posix/posix-fault-injection.h>
 
-#include <gv11b/mm_gv11b.h>
-
+#include "hal/mm/mmu_fault/mmu_fault_gv11b.h"
 #include <hal/mm/mm_gv11b.h>
 #include <hal/mm/cache/flush_gk20a.h>
 #include <hal/mm/cache/flush_gv11b.h>

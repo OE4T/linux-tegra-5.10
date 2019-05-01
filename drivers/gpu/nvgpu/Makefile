@@ -155,11 +155,11 @@ nvgpu-y += \
 	hal/mm/mm_gv11b.o \
 	hal/mm/cache/flush_gk20a.o \
 	hal/mm/cache/flush_gv11b.o \
-	hal/mm/gmmu/gmmu_mmu_fault_gv11b.o \
 	hal/mm/gmmu/gmmu_gk20a.o \
 	hal/mm/gmmu/gmmu_gm20b.o \
 	hal/mm/gmmu/gmmu_gp10b.o \
 	hal/mm/gmmu/gmmu_gv11b.o \
+	hal/mm/mmu_fault/mmu_fault_gv11b.o \
 	hal/mc/mc_gm20b.o \
 	hal/mc/mc_gp10b.o  \
 	hal/mc/mc_gv11b.o  \
@@ -601,6 +601,5 @@ nvgpu-$(CONFIG_GK20A_CYCLE_STATS) += \
 	common/cyclestats/cyclestats.o
 
 nvgpu-y += \
-	gv11b/mmu_fault_gv11b.o \
 	gv100/mm_gv100.o \
 	tu104/mm_tu104.o \

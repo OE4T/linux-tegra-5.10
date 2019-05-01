@@ -243,7 +243,6 @@ srcs += common/sim/sim.c \
 	common/nvlink/nvlink_tu104.c \
 	common/nvlink/nvlink.c \
 	common/fence/fence.c \
-	gv11b/mmu_fault_gv11b.c \
 	gv100/mm_gv100.c \
 	tu104/mm_tu104.c \
 	hal/mm/mm_gk20a.c \
@@ -252,7 +251,7 @@ srcs += common/sim/sim.c \
 	hal/mm/mm_gv11b.c \
 	hal/mm/cache/flush_gk20a.c \
 	hal/mm/cache/flush_gv11b.c \
-	hal/mm/gmmu/gmmu_mmu_fault_gv11b.c \
+	hal/mm/mmu_fault/mmu_fault_gv11b.c \
 	hal/mm/gmmu/gmmu_gk20a.c \
 	hal/mm/gmmu/gmmu_gm20b.c \
 	hal/mm/gmmu/gmmu_gp10b.c \

@@ -37,6 +37,7 @@
 #include "hal/mm/gmmu/gmmu_gm20b.h"
 #include "hal/mm/gmmu/gmmu_gp10b.h"
 #include "hal/mm/gmmu/gmmu_gv11b.h"
+#include "hal/mm/mmu_fault/mmu_fault_gv11b.h"
 #include "hal/mc/mc_gm20b.h"
 #include "hal/mc/mc_gp10b.h"
 #include "hal/mc/mc_gv11b.h"
@@ -145,7 +146,6 @@
 
 #include "hal_gv11b.h"
 #include "hal_gv11b_litter.h"
-#include "gv11b/mm_gv11b.h"
 
 #include <nvgpu/ptimer.h>
 #include <nvgpu/error_notifier.h>
@@ -949,12 +949,12 @@ static const struct gpu_ops gv11b_ops = {
 		.init_inst_block = gv11b_mm_init_inst_block,
 		.init_bar2_vm = gp10b_mm_init_bar2_vm,
 		.remove_bar2_vm = gp10b_mm_remove_bar2_vm,
-		.fault_info_mem_destroy = gv11b_mm_fault_info_mem_destroy,
-		.mmu_fault_disable_hw = gv11b_mm_mmu_fault_disable_hw,
 		.bar1_map_userd = NULL,
 		.mmu_fault = {
 			.setup_sw = gv11b_mm_mmu_fault_setup_sw,
 			.setup_hw = gv11b_mm_mmu_fault_setup_hw,
+			.info_mem_destroy = gv11b_mm_mmu_fault_info_mem_destroy,
+			.disable_hw = gv11b_mm_mmu_fault_disable_hw,
 		},
 		.cache = {
 			.fb_flush = gk20a_mm_fb_flush,

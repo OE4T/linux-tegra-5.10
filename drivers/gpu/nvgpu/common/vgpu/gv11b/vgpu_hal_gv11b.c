@@ -28,6 +28,7 @@
 #include "hal/mm/gmmu/gmmu_gk20a.h"
 #include "hal/mm/gmmu/gmmu_gm20b.h"
 #include "hal/mm/gmmu/gmmu_gp10b.h"
+#include "hal/mm/mmu_fault/mmu_fault_gv11b.h"
 #include "hal/regops/regops_gv11b.h"
 #include "hal/class/class_gv11b.h"
 #include "hal/fifo/fifo_gv11b.h"
@@ -670,10 +671,12 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 		.init_inst_block = gv11b_mm_init_inst_block,
 		.init_bar2_vm = gp10b_mm_init_bar2_vm,
 		.remove_bar2_vm = gp10b_mm_remove_bar2_vm,
-		.fault_info_mem_destroy = gv11b_mm_fault_info_mem_destroy,
 		.bar1_map_userd = vgpu_mm_bar1_map_userd,
 		.vm_as_alloc_share = vgpu_vm_as_alloc_share,
 		.vm_as_free_share = vgpu_vm_as_free_share,
+		.mmu_fault = {
+			.info_mem_destroy = gv11b_mm_mmu_fault_info_mem_destroy,
+		},
 		.cache = {
 			.fb_flush = vgpu_mm_fb_flush,
 			.l2_invalidate = vgpu_mm_l2_invalidate,

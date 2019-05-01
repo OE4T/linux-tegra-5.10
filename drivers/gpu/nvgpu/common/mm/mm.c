@@ -135,8 +135,8 @@ int nvgpu_mm_suspend(struct gk20a *g)
 		g->ops.fb.intr.disable(g);
 	}
 
-	if (g->ops.mm.mmu_fault_disable_hw != NULL) {
-		g->ops.mm.mmu_fault_disable_hw(g);
+	if (g->ops.mm.mmu_fault.disable_hw != NULL) {
+		g->ops.mm.mmu_fault.disable_hw(g);
 	}
 
 	nvgpu_log_info(g, "MM suspend done!");
@@ -210,8 +210,8 @@ static void nvgpu_remove_mm_support(struct mm_gk20a *mm)
 	nvgpu_dma_free(g, &mm->mmu_wr_mem);
 	nvgpu_dma_free(g, &mm->mmu_rd_mem);
 
-	if (g->ops.mm.fault_info_mem_destroy != NULL) {
-		g->ops.mm.fault_info_mem_destroy(g);
+	if (g->ops.mm.mmu_fault.info_mem_destroy != NULL) {
+		g->ops.mm.mmu_fault.info_mem_destroy(g);
 	}
 
 	if (g->ops.mm.remove_bar2_vm != NULL) {

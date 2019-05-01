@@ -35,9 +35,9 @@
 #include <nvgpu/nvgpu_sgt.h>
 #include <nvgpu/fifo.h>
 #include "os/posix/os_posix.h"
-#include "gv11b/mm_gv11b.h"
 #include "common/fifo/channel_gv11b.h"
 
+#include "hal/mm/mmu_fault/mmu_fault_gv11b.h"
 #include "hal/mm/mm_gv11b.h"
 #include "hal/mm/cache/flush_gk20a.h"
 #include "hal/mm/cache/flush_gv11b.h"
@@ -133,8 +133,9 @@ static int init_mm(struct unit_module *m, struct gk20a *g)
 
 	/* New HALs for fault testing */
 	g->ops.mc.is_mmu_fault_pending = gv11b_mc_is_mmu_fault_pending;
-	g->ops.mm.fault_info_mem_destroy = gv11b_mm_fault_info_mem_destroy;
-	g->ops.mm.mmu_fault_disable_hw = gv11b_mm_mmu_fault_disable_hw;
+	g->ops.mm.mmu_fault.info_mem_destroy =
+		gv11b_mm_mmu_fault_info_mem_destroy;
+	g->ops.mm.mmu_fault.disable_hw = gv11b_mm_mmu_fault_disable_hw;
 	g->ops.mm.setup_hw = nvgpu_mm_setup_hw;
 	g->ops.mm.cache.l2_flush = gv11b_mm_l2_flush;
 	g->ops.mm.cache.fb_flush = gk20a_mm_fb_flush;
@@ -293,7 +294,7 @@ static int test_page_faults_pending(struct unit_module *m, struct gk20a *g,
 static int test_page_faults_disable_hw(struct unit_module *m, struct gk20a *g,
 					void *args)
 {
-	g->ops.mm.mmu_fault_disable_hw(g);
+	g->ops.mm.mmu_fault.disable_hw(g);
 	if (g->ops.fb.is_fault_buf_enabled(g,
 		NVGPU_MMU_FAULT_NONREPLAY_REG_INDX)) {
 			unit_return_fail(m, "Non-replay buf still enabled\n");
@@ -304,7 +305,7 @@ static int test_page_faults_disable_hw(struct unit_module *m, struct gk20a *g,
 	}
 
 	/* Call disable again to test some branches */
-	g->ops.mm.mmu_fault_disable_hw(g);
+	g->ops.mm.mmu_fault.disable_hw(g);
 
 	return UNIT_SUCCESS;
 }
@@ -351,12 +352,12 @@ static int test_page_faults_clean(struct unit_module *m, struct gk20a *g,
 					void *args)
 {
 	g->log_mask = 0;
-	g->ops.mm.fault_info_mem_destroy(g);
+	g->ops.mm.mmu_fault.info_mem_destroy(g);
 	nvgpu_vm_put(g->mm.pmu.vm);
 	nvgpu_vm_put(g->mm.bar2.vm);
 
 	/* Call again to test some branches */
-	g->ops.mm.fault_info_mem_destroy(g);
+	g->ops.mm.mmu_fault.info_mem_destroy(g);
 
 	return UNIT_SUCCESS;
 }

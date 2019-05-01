@@ -1269,8 +1269,6 @@ struct gpu_ops {
 		void (*remove_bar2_vm)(struct gk20a *g);
 		void (*init_inst_block)(struct nvgpu_mem *inst_block,
 				struct vm_gk20a *vm, u32 big_page_size);
-		void (*fault_info_mem_destroy)(struct gk20a *g);
-		void (*mmu_fault_disable_hw)(struct gk20a *g);
 		u32 (*get_flush_retries)(struct gk20a *g,
 							enum nvgpu_flush_op op);
 		u64 (*bar1_map_userd)(struct gk20a *g, struct nvgpu_mem *mem, u32 offset);
@@ -1279,6 +1277,8 @@ struct gpu_ops {
 		struct {
 			int (*setup_sw)(struct gk20a *g);
 			void (*setup_hw)(struct gk20a *g);
+			void (*info_mem_destroy)(struct gk20a *g);
+			void (*disable_hw)(struct gk20a *g);
 		} mmu_fault;
 		struct {
 			int (*fb_flush)(struct gk20a *g);

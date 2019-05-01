@@ -1,4 +1,5 @@
 /*
+ * GV11B MM
  * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
@@ -20,11 +21,17 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NVGPU_MM_GMMU_MMU_FAULT_GV11B_H
-#define NVGPU_MM_GMMU_MMU_FAULT_GV11B_H
+#ifndef HAL_MM_MMU_FAULT_MMU_FAULT_GV11B_H
+#define HAL_MM_MMU_FAULT_MMU_FAULT_GV11B_H
 
 struct gk20a;
 struct mmu_fault_info;
+
+void gv11b_mm_mmu_fault_info_mem_destroy(struct gk20a *g);
+void gv11b_mm_mmu_fault_disable_hw(struct gk20a *g);
+
+void gv11b_mm_mmu_fault_setup_hw(struct gk20a *g);
+int  gv11b_mm_mmu_fault_setup_sw(struct gk20a *g);
 
 void gv11b_gmmu_handle_mmu_nonreplay_replay_fault(struct gk20a *g,
 		 u32 fault_status, u32 index);
@@ -34,4 +41,4 @@ void gv11b_gmmu_handle_other_fault_notify(struct gk20a *g, u32 fault_status);
 
 void gv11b_gmmu_parse_mmu_fault_info(struct mmu_fault_info *mmufault);
 
-#endif /* NVGPU_MM_GMMU_MMU_FAULT_GV11B_H */
+#endif

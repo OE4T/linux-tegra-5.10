@@ -41,7 +41,7 @@
 #include <nvgpu/rc.h>
 
 #include "hal/fb/fb_mmu_fault_gv11b.h"
-#include "hal/mm/gmmu/gmmu_mmu_fault_gv11b.h"
+#include "hal/mm/mmu_fault/mmu_fault_gv11b.h"
 
 #include "fb_gm20b.h"
 #include "fb_gp10b.h"
