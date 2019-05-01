@@ -27,7 +27,6 @@
 #include <nvgpu/string.h>
 #include <nvgpu/bug.h>
 #include <nvgpu/gr/gr_falcon.h>
-#include "common/gr/gr_priv.h"
 #include <nvgpu/pmu/fw.h>
 
 #include "common/gr/gr_priv.h"

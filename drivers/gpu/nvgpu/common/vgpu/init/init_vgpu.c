@@ -34,6 +34,7 @@
 #include <nvgpu/cbc.h>
 #include <nvgpu/fbp.h>
 #include <nvgpu/cyclestats_snapshot.h>
+#include <nvgpu/gr/gr.h>
 
 #include "init_vgpu.h"
 #include "init_hal_vgpu.h"
@@ -43,7 +44,6 @@
 #include "common/vgpu/gr/gr_vgpu.h"
 #include "common/vgpu/fbp/fbp_vgpu.h"
 #include "common/vgpu/ivc/comm_vgpu.h"
-#include "common/gr/gr_priv.h"
 
 u64 vgpu_connect(void)
 {
@@ -72,9 +72,7 @@ void vgpu_remove_support_common(struct gk20a *g)
 		g->pmu.remove_support(&g->pmu);
 	}
 
-	if (g->gr->remove_support) {
-		g->gr->remove_support(g);
-	}
+	nvgpu_gr_remove_support(g);
 
 	if (g->fifo.remove_support) {
 		g->fifo.remove_support(&g->fifo);
