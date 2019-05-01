@@ -221,22 +221,30 @@ void osd_receive_packet(void *priv, void *rxring, unsigned int chan,
 	struct sk_buff *skb = (struct sk_buff *)rx_swcx->buf_virt_addr;
 	dma_addr_t dma_addr = (dma_addr_t)rx_swcx->buf_phy_addr;
 	struct net_device *ndev = pdata->ndev;
+	struct osi_pkt_err_stats *pkt_err_stat = &pdata->osi_dma->pkt_err_stats;
 
 	dma_unmap_single(pdata->dev, dma_addr, dma_buf_len, DMA_FROM_DEVICE);
 
-	skb_put(skb, rx_pkt_cx->pkt_len);
+	/* Process only the Valid packets */
+	if (likely((rx_pkt_cx->flags & OSI_PKT_CX_VALID) ==
+		   OSI_PKT_CX_VALID)) {
+		skb_put(skb, rx_pkt_cx->pkt_len);
 
-	if ((rx_pkt_cx->flags & OSI_PKT_CX_VLAN) == OSI_PKT_CX_VLAN) {
-		__vlan_hwaccel_put_tag(skb, htons(ETH_P_8021Q),
-				       rx_pkt_cx->vlan_tag);
+		if ((rx_pkt_cx->flags & OSI_PKT_CX_VLAN) == OSI_PKT_CX_VLAN) {
+			__vlan_hwaccel_put_tag(skb, htons(ETH_P_8021Q),
+					       rx_pkt_cx->vlan_tag);
+		}
+
+		skb->dev = ndev;
+		skb->protocol = eth_type_trans(skb, ndev);
+		ndev->stats.rx_bytes += skb->len;
+		netif_receive_skb(skb);
+	} else {
+		ndev->stats.rx_crc_errors = pkt_err_stat->rx_crc_error;
+		ndev->stats.rx_errors++;
 	}
 
-	skb->dev = ndev;
-	skb->protocol = eth_type_trans(skb, ndev);
 	ndev->stats.rx_packets++;
-	ndev->stats.rx_bytes += skb->len;
-	netif_receive_skb(skb);
-
 	rx_swcx->buf_virt_addr = NULL;
 	rx_swcx->buf_phy_addr = 0;
 
@@ -252,6 +260,7 @@ void osd_receive_packet(void *priv, void *rxring, unsigned int chan,
  *	@buffer: Buffer address to free.
  *	@dmaaddr: DMA address to unmap.
  *	@len: Length of data.
+ *	@pkt_valid: Packet is valid or not
  *
  *	Algorithm:
  *	1) Updates stats for linux network stack.
@@ -265,7 +274,7 @@ void osd_receive_packet(void *priv, void *rxring, unsigned int chan,
  *	Return: None.
  */
 void osd_transmit_complete(void *priv, void *buffer, unsigned long dmaaddr,
-			   unsigned int len)
+			   unsigned int len, int pkt_valid)
 {
 	struct ether_priv_data *pdata = (struct ether_priv_data *)priv;
 	struct sk_buff *skb = (struct sk_buff *)buffer;
