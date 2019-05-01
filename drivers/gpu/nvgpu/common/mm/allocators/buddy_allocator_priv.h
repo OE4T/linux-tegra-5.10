@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -76,10 +76,10 @@ nvgpu_buddy_from_rbtree_node(struct nvgpu_rbtree_node *node)
 		((uintptr_t)node - offsetof(struct nvgpu_buddy, alloced_entry));
 };
 
-#define __buddy_flag_ops(flag, flag_up)					\
+#define nvgpu_buddy_allocator_flag_ops(flag, flag_up)			\
 	static inline bool buddy_is_ ## flag(struct nvgpu_buddy *b)	\
 	{								\
-		return (b->flags & BALLOC_BUDDY_ ## flag_up) != 0U;		\
+		return (b->flags & BALLOC_BUDDY_ ## flag_up) != 0U;	\
 	}								\
 	static inline void buddy_set_ ## flag(struct nvgpu_buddy *b)	\
 	{								\
@@ -103,9 +103,9 @@ nvgpu_buddy_from_rbtree_node(struct nvgpu_rbtree_node *node)
  * void buddy_set_in_list(struct nvgpu_buddy *b);
  * void buddy_clr_in_list(struct nvgpu_buddy *b);
  */
-__buddy_flag_ops(alloced, ALLOCED);
-__buddy_flag_ops(split,   SPLIT);
-__buddy_flag_ops(in_list, IN_LIST);
+nvgpu_buddy_allocator_flag_ops(alloced, ALLOCED);
+nvgpu_buddy_allocator_flag_ops(split,   SPLIT);
+nvgpu_buddy_allocator_flag_ops(in_list, IN_LIST);
 
 /*
  * Keeps info for a fixed allocation.
