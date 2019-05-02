@@ -26,6 +26,7 @@
 #include <nvgpu/types.h>
 
 struct gk20a;
+struct nvgpu_pmu;
 
 /* List of valid logical mutex identifiers */
 #define	PMU_MUTEX_ID_RSVD1		0U
@@ -62,11 +63,15 @@ struct pmu_mutexes {
 	u32 cnt;
 };
 
-int nvgpu_pmu_mutexes_alloc(struct gk20a *g, struct pmu_mutexes *mutexes);
-void nvgpu_pmu_mutexes_init(struct pmu_mutexes *mutexes);
-void nvgpu_pmu_mutexes_free(struct gk20a *g, struct pmu_mutexes *mutexes);
 int nvgpu_pmu_mutex_acquire(struct gk20a *g, struct pmu_mutexes *mutexes,
-			    u32 id, u32 *token);
+			u32 id, u32 *token);
 int nvgpu_pmu_mutex_release(struct gk20a *g, struct pmu_mutexes *mutexes,
-			    u32 id, u32 *token);
+			u32 id, u32 *token);
+
+void nvgpu_pmu_mutex_sw_setup(struct gk20a *g, struct nvgpu_pmu *pmu,
+	struct pmu_mutexes *mutexes);
+int nvgpu_pmu_init_mutexe(struct gk20a *g, struct nvgpu_pmu *pmu,
+	struct pmu_mutexes **mutexes_p);
+void nvgpu_pmu_mutexe_deinit(struct gk20a *g, struct nvgpu_pmu *pmu,
+	struct pmu_mutexes *mutexes);
 #endif /* NVGPU_PMU_MUTEX_H */

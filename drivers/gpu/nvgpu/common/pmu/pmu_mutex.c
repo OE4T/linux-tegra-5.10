@@ -23,34 +23,7 @@
 #include <nvgpu/pmu/mutex.h>
 #include <nvgpu/gk20a.h>
 
-int nvgpu_pmu_mutexes_alloc(struct gk20a *g, struct pmu_mutexes *mutexes)
-{
-	mutexes->cnt = g->ops.pmu.pmu_mutex_size();
-	mutexes->mutex = nvgpu_kzalloc(g, mutexes->cnt *
-		sizeof(struct pmu_mutex));
-	if (mutexes->mutex == NULL) {
-		return -ENOMEM;
-	}
-
-	return 0;
-}
-
-void nvgpu_pmu_mutexes_init(struct pmu_mutexes *mutexes)
-{
-	u32 i;
-
-	for (i = 0; i < mutexes->cnt; i++) {
-		mutexes->mutex[i].id    = i;
-		mutexes->mutex[i].index = i;
-	}
-}
-
-void nvgpu_pmu_mutexes_free(struct gk20a *g, struct pmu_mutexes *mutexes)
-{
-	if (mutexes->mutex) {
-		nvgpu_kfree(g, mutexes->mutex);
-	}
-}
+struct nvgpu_pmu *pmu;
 
 int nvgpu_pmu_mutex_acquire(struct gk20a *g, struct pmu_mutexes *mutexes,
 			    u32 id, u32 *token)
@@ -110,4 +83,69 @@ int nvgpu_pmu_mutex_release(struct gk20a *g, struct pmu_mutexes *mutexes,
 	g->ops.pmu.pmu_mutex_release(g, mutexes, id, token);
 
 	return 0;
+}
+
+void nvgpu_pmu_mutex_sw_setup(struct gk20a *g, struct nvgpu_pmu *pmu,
+	struct pmu_mutexes *mutexes)
+{
+	u32 i;
+
+	nvgpu_log_fn(g, " ");
+
+	for (i = 0; i < mutexes->cnt; i++) {
+		mutexes->mutex[i].id    = i;
+		mutexes->mutex[i].index = i;
+	}
+}
+
+int nvgpu_pmu_init_mutexe(struct gk20a *g, struct nvgpu_pmu *pmu,
+	struct pmu_mutexes **mutexes_p)
+{
+	struct pmu_mutexes *mutexes;
+	int err = 0;
+
+	nvgpu_log_fn(g, " ");
+
+	if (*mutexes_p != NULL) {
+		/* skip alloc/reinit for unrailgate sequence */
+		nvgpu_pmu_dbg(g, "skip mutex init for unrailgate sequence");
+		goto exit;
+	}
+
+	mutexes = (struct pmu_mutexes *)
+		nvgpu_kzalloc(g, sizeof(struct pmu_mutexes));
+	if (mutexes == NULL) {
+		err = -ENOMEM;
+		goto exit;
+	}
+
+	mutexes->cnt = g->ops.pmu.pmu_mutex_size();
+
+	mutexes->mutex = nvgpu_kzalloc(g, mutexes->cnt *
+		sizeof(struct pmu_mutex));
+	if (mutexes->mutex == NULL) {
+		nvgpu_kfree(g, mutexes);
+		err = -ENOMEM;
+		goto exit;
+	}
+
+	*mutexes_p = mutexes;
+
+exit:
+	return err;
+}
+
+void nvgpu_pmu_mutexe_deinit(struct gk20a *g, struct nvgpu_pmu *pmu,
+	struct pmu_mutexes *mutexes)
+{
+	nvgpu_log_fn(g, " ");
+
+	if (mutexes == NULL) {
+		return;
+	}
+
+	if (mutexes->mutex != NULL) {
+		nvgpu_kfree(g, mutexes->mutex);
+	}
+	nvgpu_kfree(g, mutexes);
 }

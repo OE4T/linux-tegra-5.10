@@ -161,28 +161,22 @@ static int nvgpu_init_pmu_setup_sw(struct gk20a *g)
 		}
 	}
 
+	/* set default value to mutexes */
+	nvgpu_pmu_mutex_sw_setup(g, pmu, pmu->mutexes);
+
 	/* set default value to sequences */
 	nvgpu_pmu_sequences_sw_setup(g, pmu, pmu->sequences);
 
 	if (pmu->sw_ready) {
-		nvgpu_pmu_mutexes_init(&pmu->mutexes);
-
 		nvgpu_log_fn(g, "skip init");
 		goto skip_init;
 	}
-
-	err = nvgpu_pmu_mutexes_alloc(g, &pmu->mutexes);
-	if (err != 0) {
-		goto err;
-	}
-
-	nvgpu_pmu_mutexes_init(&pmu->mutexes);
 
 	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_PMU_SUPER_SURFACE)) {
 		err = nvgpu_pmu_super_surface_buf_alloc(g,
 				pmu, pmu->super_surface);
 		if (err != 0) {
-			goto err_free_mutex;
+			goto err;
 		}
 	}
 
@@ -204,8 +198,6 @@ skip_init:
 			pmu, pmu->super_surface));
 	}
 
- err_free_mutex:
-	nvgpu_pmu_mutexes_free(g, &pmu->mutexes);
  err:
 	nvgpu_log_fn(g, "fail");
 	return err;
@@ -349,8 +341,8 @@ static void nvgpu_remove_pmu_support(struct nvgpu_pmu *pmu)
 	nvgpu_pmu_pg_deinit(g, pmu, pmu->pg);
 
 	nvgpu_mutex_destroy(&pmu->isr_mutex);
+	nvgpu_pmu_mutexe_deinit(g, pmu, pmu->mutexes);
 	nvgpu_pmu_sequences_deinit(g, pmu, pmu->sequences);
-	nvgpu_pmu_mutexes_free(g, &pmu->mutexes);
 }
 
 int nvgpu_early_init_pmu_sw(struct gk20a *g, struct nvgpu_pmu *pmu)
@@ -388,6 +380,11 @@ int nvgpu_early_init_pmu_sw(struct gk20a *g, struct nvgpu_pmu *pmu)
 	}
 
 	err = nvgpu_pmu_init_pmu_fw(g, pmu);
+	if (err != 0) {
+		goto init_failed;
+	}
+
+	err = nvgpu_pmu_init_mutexe(g, pmu, &pmu->mutexes);
 	if (err != 0) {
 		goto init_failed;
 	}
@@ -455,7 +452,7 @@ int nvgpu_pmu_lock_acquire(struct gk20a *g, struct nvgpu_pmu *pmu,
 		return -EINVAL;
 	}
 
-	return nvgpu_pmu_mutex_acquire(g, &pmu->mutexes, id, token);
+	return nvgpu_pmu_mutex_acquire(g, pmu->mutexes, id, token);
 }
 
 int nvgpu_pmu_lock_release(struct gk20a *g, struct nvgpu_pmu *pmu,
@@ -473,5 +470,5 @@ int nvgpu_pmu_lock_release(struct gk20a *g, struct nvgpu_pmu *pmu,
 		return -EINVAL;
 	}
 
-	return nvgpu_pmu_mutex_release(g, &pmu->mutexes, id, token);
+	return nvgpu_pmu_mutex_release(g, pmu->mutexes, id, token);
 }
