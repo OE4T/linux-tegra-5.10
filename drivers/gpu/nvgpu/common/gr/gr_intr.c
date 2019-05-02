@@ -635,8 +635,13 @@ void nvgpu_gr_intr_handle_notify_pending(struct gk20a *g,
 					struct nvgpu_gr_isr_data *isr_data)
 {
 	struct channel_gk20a *ch = isr_data->ch;
+	int err;
 
-	if (ch == NULL || tsg_gk20a_from_ch(ch) == NULL) {
+	if (ch == NULL) {
+		return;
+	}
+
+	if (tsg_gk20a_from_ch(ch) == NULL) {
 		return;
 	}
 
@@ -646,7 +651,10 @@ void nvgpu_gr_intr_handle_notify_pending(struct gk20a *g,
 	nvgpu_cyclestats_exec(g, ch, isr_data->data_lo);
 #endif
 
-	nvgpu_cond_broadcast_interruptible(&ch->notifier_wq);
+	err = nvgpu_cond_broadcast_interruptible(&ch->notifier_wq);
+	if (err != 0) {
+		nvgpu_log(g, gpu_dbg_intr, "failed to broadcast");
+	}
 }
 
 void nvgpu_gr_intr_handle_semaphore_pending(struct gk20a *g,
@@ -661,10 +669,15 @@ void nvgpu_gr_intr_handle_semaphore_pending(struct gk20a *g,
 
 	tsg = tsg_gk20a_from_ch(ch);
 	if (tsg != NULL) {
+		int err;
+
 		g->ops.tsg.post_event_id(tsg,
 			NVGPU_EVENT_ID_GR_SEMAPHORE_WRITE_AWAKEN);
 
-		nvgpu_cond_broadcast(&ch->semaphore_wq);
+		err = nvgpu_cond_broadcast(&ch->semaphore_wq);
+		if (err != 0) {
+			nvgpu_log(g, gpu_dbg_intr, "failed to broadcast");
+		}
 	} else {
 		nvgpu_err(g, "chid: %d is not bound to tsg", ch->chid);
 	}
