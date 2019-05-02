@@ -171,7 +171,7 @@ void gp10b_priv_ring_isr(struct gk20a *g)
 
 	if (status1 != 0U) {
 		gpc_stride = nvgpu_get_litter_value(g, GPU_LIT_GPC_PRIV_STRIDE);
-		for (gpc = 0; gpc < g->ops.priv_ring.get_gpc_count(g); gpc++) {
+		for (gpc = 0U; gpc < g->ops.priv_ring.get_gpc_count(g); gpc++) {
 			if ((status1 & BIT32(gpc)) == 0U) {
 				continue;
 			}
@@ -197,7 +197,7 @@ void gp10b_priv_ring_isr(struct gk20a *g)
 				g->ops.priv_ring.decode_error_code(g, error_code);
 			}
 
-			status1 = status1 & (~(BIT(gpc)));
+			status1 = status1 & (~(BIT32(gpc)));
 			if (status1 == 0U) {
 				break;
 			}
