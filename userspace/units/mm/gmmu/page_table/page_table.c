@@ -476,7 +476,7 @@ static int test_nvgpu_gmmu_map_unmap(struct unit_module *m,
 	 * Based on the VA returned from gmmu_map, lookup the corresponding
 	 * PTE
 	 */
-	result = __nvgpu_get_pte(g, g->mm.pmu.vm, mem.gpu_va, &pte[0]);
+	result = nvgpu_get_pte(g, g->mm.pmu.vm, mem.gpu_va, &pte[0]);
 	if (result != 0) {
 		unit_return_fail(m, "PTE lookup failed with code=%d\n", result);
 	}
@@ -532,7 +532,7 @@ static int test_nvgpu_gmmu_map_unmap(struct unit_module *m,
 	/* Now unmap the buffer and make sure the PTE is now invalid */
 	nvgpu_gmmu_unmap(g->mm.pmu.vm, &mem, mem.gpu_va);
 
-	result = __nvgpu_get_pte(g, g->mm.pmu.vm, mem.gpu_va, &pte[0]);
+	result = nvgpu_get_pte(g, g->mm.pmu.vm, mem.gpu_va, &pte[0]);
 	if (result != 0) {
 		unit_return_fail(m, "PTE lookup failed with code=%d\n", result);
 	}
@@ -636,7 +636,7 @@ static int test_nvgpu_gmmu_init_page_table_fail(struct unit_module *m,
 
 /*
  * Test: test_nvgpu_gmmu_set_pte
- * This test targets the __nvgpu_set_pte() function by mapping a buffer, and
+ * This test targets the nvgpu_set_pte() function by mapping a buffer, and
  * then trying to alter the validity bit of the corresponding PTE.
  */
 static int test_nvgpu_gmmu_set_pte(struct unit_module *m,
@@ -659,7 +659,7 @@ static int test_nvgpu_gmmu_set_pte(struct unit_module *m,
 		unit_return_fail(m, "Failed to map GMMU page");
 	}
 
-	result = __nvgpu_get_pte(g, g->mm.pmu.vm, mem.gpu_va, &pte[0]);
+	result = nvgpu_get_pte(g, g->mm.pmu.vm, mem.gpu_va, &pte[0]);
 	if (result != 0) {
 		unit_return_fail(m, "PTE lookup failed with code=%d\n", result);
 	}
@@ -668,19 +668,19 @@ static int test_nvgpu_gmmu_set_pte(struct unit_module *m,
 	pte[0] &= ~(gmmu_new_pte_valid_true_f());
 
 	/* Test error case where the VA is not mapped */
-	result = __nvgpu_set_pte(g, g->mm.pmu.vm, TEST_INVALID_ADDRESS,
+	result = nvgpu_set_pte(g, g->mm.pmu.vm, TEST_INVALID_ADDRESS,
 				&pte[0]);
 	if (result == 0) {
 		unit_return_fail(m, "Set PTE succeeded with invalid VA\n");
 	}
 
 	/* Now rewrite PTE of the already mapped page */
-	result = __nvgpu_set_pte(g, g->mm.pmu.vm, mem.gpu_va, &pte[0]);
+	result = nvgpu_set_pte(g, g->mm.pmu.vm, mem.gpu_va, &pte[0]);
 	if (result != 0) {
 		unit_return_fail(m, "Set PTE failed with code=%d\n", result);
 	}
 
-	result = __nvgpu_get_pte(g, g->mm.pmu.vm, mem.gpu_va, &pte[0]);
+	result = nvgpu_get_pte(g, g->mm.pmu.vm, mem.gpu_va, &pte[0]);
 	if (result != 0) {
 		unit_return_fail(m, "PTE lookup failed with code=%d\n", result);
 	}
@@ -919,7 +919,7 @@ static int check_pte_valid(struct unit_module *m, struct gk20a *g,
 	u32 pte[2];
 	int result;
 
-	result = __nvgpu_get_pte(g, vm, mem->gpu_va, &pte[0]);
+	result = nvgpu_get_pte(g, vm, mem->gpu_va, &pte[0]);
 	if (result != 0) {
 		unit_return_fail(m, "PTE lookup failed with code=%d\n", result);
 	}
@@ -939,7 +939,7 @@ static int check_pte_invalidated(struct unit_module *m, struct gk20a *g,
 	u32 pte[2];
 	int result;
 
-	result = __nvgpu_get_pte(g, vm, mem->gpu_va, &pte[0]);
+	result = nvgpu_get_pte(g, vm, mem->gpu_va, &pte[0]);
 	if (result != 0) {
 		unit_return_fail(m, "PTE lookup failed with code=%d\n", result);
 	}

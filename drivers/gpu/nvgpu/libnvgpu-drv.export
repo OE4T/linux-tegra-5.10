@@ -1,10 +1,8 @@
 # Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
 
-__nvgpu_get_pte
 __nvgpu_log_dbg
 __nvgpu_log_msg
 __nvgpu_readl
-__nvgpu_set_pte
 bitmap_clear
 bitmap_find_next_zero_area_off
 bitmap_set
@@ -73,6 +71,7 @@ nvgpu_dma_free
 nvgpu_free
 nvgpu_free_enabled_flags
 nvgpu_free_fixed
+nvgpu_get_pte
 nvgpu_gmmu_init_page_table
 nvgpu_gmmu_map
 nvgpu_gmmu_map_fixed
@@ -159,6 +158,7 @@ nvgpu_runlist_construct_locked
 nvgpu_rwsem_init
 nvgpu_tsg_default_timeslice_us
 nvgpu_set_enabled
+nvgpu_set_pte
 nvgpu_sgt_alignment
 nvgpu_sgt_create_from_mem
 nvgpu_sgt_free

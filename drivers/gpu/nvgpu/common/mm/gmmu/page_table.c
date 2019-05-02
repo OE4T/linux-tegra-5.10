@@ -37,7 +37,7 @@
 #include <nvgpu/gk20a.h>
 
 
-#define __gmmu_dbg(g, attrs, fmt, args...)				\
+#define nvgpu_gmmu_dbg(g, attrs, fmt, args...)				\
 	do {								\
 		if ((attrs)->debug) {					\
 			nvgpu_info(g, fmt, ##args);			\
@@ -46,7 +46,7 @@
 		}							\
 	} while (false)
 
-#define __gmmu_dbg_v(g, attrs, fmt, args...)				\
+#define nvgpu_gmmu_dbg_v(g, attrs, fmt, args...)			\
 	do {								\
 		if ((attrs)->debug) {					\
 			nvgpu_info(g, fmt, ##args);			\
@@ -66,14 +66,14 @@ static u32 pd_size(const struct gk20a_mmu_level *l,
  * VA will be allocated for you. If addr is non-zero then the buffer will be
  * mapped at @addr.
  */
-static u64 __nvgpu_gmmu_map(struct vm_gk20a *vm,
-			    struct nvgpu_mem *mem,
-			    u64 addr,
-			    u64 size,
-			    u32 flags,
-			    enum gk20a_mem_rw_flag rw_flag,
-			    bool priv,
-			    enum nvgpu_aperture aperture)
+static u64 nvgpu_gmmu_map_core(struct vm_gk20a *vm,
+			       struct nvgpu_mem *mem,
+			       u64 addr,
+			       u64 size,
+			       u32 flags,
+			       enum gk20a_mem_rw_flag rw_flag,
+			       bool priv,
+			       enum nvgpu_aperture aperture)
 {
 	struct gk20a *g = gk20a_from_vm(vm);
 	u64 vaddr;
@@ -134,8 +134,8 @@ u64 nvgpu_gmmu_map(struct vm_gk20a *vm,
 		   bool priv,
 		   enum nvgpu_aperture aperture)
 {
-	return __nvgpu_gmmu_map(vm, mem, 0, size, flags, rw_flag, priv,
-			aperture);
+	return nvgpu_gmmu_map_core(vm, mem, 0, size, flags, rw_flag, priv,
+				   aperture);
 }
 
 /*
@@ -150,8 +150,8 @@ u64 nvgpu_gmmu_map_fixed(struct vm_gk20a *vm,
 			 bool priv,
 			 enum nvgpu_aperture aperture)
 {
-	return __nvgpu_gmmu_map(vm, mem, addr, size, flags, rw_flag, priv,
-			aperture);
+	return nvgpu_gmmu_map_core(vm, mem, addr, size, flags, rw_flag, priv,
+				   aperture);
 }
 
 void nvgpu_gmmu_unmap(struct vm_gk20a *vm, struct nvgpu_mem *mem, u64 gpu_va)
@@ -371,12 +371,12 @@ static int pd_allocate_children(struct vm_gk20a *vm,
  * phys_addr will always point to a contiguous range - the discontiguous nature
  * of DMA buffers is taken care of at the layer above this.
  */
-static int __set_pd_level(struct vm_gk20a *vm,
-			  struct nvgpu_gmmu_pd *pd,
-			  int lvl,
-			  u64 phys_addr,
-			  u64 virt_addr, u64 length,
-			  struct nvgpu_gmmu_attrs *attrs)
+static int nvgpu_set_pd_level(struct vm_gk20a *vm,
+			      struct nvgpu_gmmu_pd *pd,
+			      int lvl,
+			      u64 phys_addr,
+			      u64 virt_addr, u64 length,
+			      struct nvgpu_gmmu_attrs *attrs)
 {
 	int err = 0;
 	u64 pde_range;
@@ -390,7 +390,7 @@ static int __set_pd_level(struct vm_gk20a *vm,
 	 * offsets into the page table debugging code which makes it easier to
 	 * see what level prints are from.
 	 */
-	static const char *__lvl_debug[] = {
+	static const char *lvl_debug[] = {
 		"",          /* L=0 */
 		"  ",        /* L=1 */
 		"    ",      /* L=2 */
@@ -400,13 +400,13 @@ static int __set_pd_level(struct vm_gk20a *vm,
 
 	pde_range = 1ULL << (u64)l->lo_bit[attrs->pgsz];
 
-	__gmmu_dbg_v(g, attrs,
-		     "L=%d   %sGPU virt %#-12llx +%#-9llx -> phys %#-12llx",
-		     lvl,
-		     __lvl_debug[lvl],
-		     virt_addr,
-		     length,
-		     phys_addr);
+	nvgpu_gmmu_dbg_v(g, attrs,
+			 "L=%d   %sGPU virt %#-12llx +%#-9llx -> phys %#-12llx",
+			 lvl,
+			 lvl_debug[lvl],
+			 virt_addr,
+			 length,
+			 phys_addr);
 
 	/*
 	 * Iterate across the mapping in chunks the size of this level's PDE.
@@ -468,12 +468,12 @@ static int __set_pd_level(struct vm_gk20a *vm,
 				attrs);
 
 		if (next_l->update_entry != NULL) {
-			err = __set_pd_level(vm, next_pd,
-					     lvl + 1,
-					     phys_addr,
-					     virt_addr,
-					     chunk_size,
-					     attrs);
+			err = nvgpu_set_pd_level(vm, next_pd,
+						 lvl + 1,
+						 phys_addr,
+						 virt_addr,
+						 chunk_size,
+						 attrs);
 
 			if (err != 0) {
 				return err;
@@ -494,17 +494,18 @@ static int __set_pd_level(struct vm_gk20a *vm,
 		length -= chunk_size;
 	}
 
-	__gmmu_dbg_v(g, attrs, "L=%d   %s%s", lvl, __lvl_debug[lvl], "ret!");
+	nvgpu_gmmu_dbg_v(g, attrs, "L=%d   %s%s", lvl, lvl_debug[lvl],
+			 "ret!");
 
 	return 0;
 }
 
-static int __nvgpu_gmmu_do_update_page_table(struct vm_gk20a *vm,
-					     struct nvgpu_sgt *sgt,
-					     u64 space_to_skip,
-					     u64 virt_addr,
-					     u64 length,
-					     struct nvgpu_gmmu_attrs *attrs)
+static int nvgpu_gmmu_do_update_page_table(struct vm_gk20a *vm,
+					   struct nvgpu_sgt *sgt,
+					   u64 space_to_skip,
+					   u64 virt_addr,
+					   u64 length,
+					   struct nvgpu_gmmu_attrs *attrs)
 {
 	struct gk20a *g = gk20a_from_vm(vm);
 	struct nvgpu_sgl *sgl;
@@ -515,11 +516,11 @@ static int __nvgpu_gmmu_do_update_page_table(struct vm_gk20a *vm,
 		 * This is considered an unmap. Just pass in 0 as the physical
 		 * address for the entire GPU range.
 		 */
-		err = __set_pd_level(vm, &vm->pdb,
-				     0,
-				     0,
-				     virt_addr, length,
-				     attrs);
+		err = nvgpu_set_pd_level(vm, &vm->pdb,
+					 0,
+					 0,
+					 virt_addr, length,
+					 attrs);
 		return err;
 	}
 
@@ -546,12 +547,12 @@ static int __nvgpu_gmmu_do_update_page_table(struct vm_gk20a *vm,
 
 		io_addr += space_to_skip;
 
-		err = __set_pd_level(vm, &vm->pdb,
-				     0,
-				     io_addr,
-				     virt_addr,
-				     length,
-				     attrs);
+		err = nvgpu_set_pd_level(vm, &vm->pdb,
+					 0,
+					 io_addr,
+					 virt_addr,
+					 length,
+					 attrs);
 
 		return err;
 	}
@@ -636,7 +637,7 @@ static int __nvgpu_gmmu_do_update_page_table(struct vm_gk20a *vm,
 			mapped_sgl_length = min(length, sgl_contiguous_length -
 					space_to_skip);
 
-			err = __set_pd_level(vm, &vm->pdb,
+			err = nvgpu_set_pd_level(vm, &vm->pdb,
 						 0,
 						 phys_addr,
 						 virt_addr,
@@ -684,12 +685,12 @@ static int __nvgpu_gmmu_do_update_page_table(struct vm_gk20a *vm,
  * [*] Note: the "physical" address may actually be an IO virtual address in the
  *     case of SMMU usage.
  */
-static int __nvgpu_gmmu_update_page_table(struct vm_gk20a *vm,
-					  struct nvgpu_sgt *sgt,
-					  u64 space_to_skip,
-					  u64 virt_addr,
-					  u64 length,
-					  struct nvgpu_gmmu_attrs *attrs)
+static int nvgpu_gmmu_update_page_table(struct vm_gk20a *vm,
+					struct nvgpu_sgt *sgt,
+					u64 space_to_skip,
+					u64 virt_addr,
+					u64 length,
+					struct nvgpu_gmmu_attrs *attrs)
 {
 	struct gk20a *g = gk20a_from_vm(vm);
 	u32 page_size;
@@ -712,37 +713,38 @@ static int __nvgpu_gmmu_update_page_table(struct vm_gk20a *vm,
 	 */
 	length = nvgpu_align_map_length(vm, length, attrs);
 
-	__gmmu_dbg(g, attrs,
-		   "vm=%s "
-		   "%-5s GPU virt %#-12llx +%#-9llx    phys %#-12llx "
-		   "phys offset: %#-4llx;  pgsz: %3dkb perm=%-2s | "
-		   "kind=%#02x APT=%-6s %c%c%c%c%c",
-		   vm->name,
-		   (sgt != NULL) ? "MAP" : "UNMAP",
-		   virt_addr,
-		   length,
-		   (sgt != NULL) ? nvgpu_sgt_get_phys(g, sgt, sgt->sgl) : 0ULL,
-		   space_to_skip,
-		   page_size >> 10,
-		   nvgpu_gmmu_perm_str(attrs->rw_flag),
-		   attrs->kind_v,
-		   nvgpu_aperture_str(g, attrs->aperture),
-		   attrs->cacheable ? 'C' : '-',
-		   attrs->sparse    ? 'S' : '-',
-		   attrs->priv      ? 'P' : '-',
-		   attrs->valid     ? 'V' : '-',
-		   attrs->platform_atomic ? 'A' : '-');
+	nvgpu_gmmu_dbg(g, attrs,
+		       "vm=%s "
+		       "%-5s GPU virt %#-12llx +%#-9llx    phys %#-12llx "
+		       "phys offset: %#-4llx;  pgsz: %3dkb perm=%-2s | "
+		       "kind=%#02x APT=%-6s %c%c%c%c%c",
+		       vm->name,
+		       (sgt != NULL) ? "MAP" : "UNMAP",
+		       virt_addr,
+		       length,
+		       (sgt != NULL) ?
+				nvgpu_sgt_get_phys(g, sgt, sgt->sgl) : 0ULL,
+		       space_to_skip,
+		       page_size >> 10,
+		       nvgpu_gmmu_perm_str(attrs->rw_flag),
+		       attrs->kind_v,
+		       nvgpu_aperture_str(g, attrs->aperture),
+		       attrs->cacheable ? 'C' : '-',
+		       attrs->sparse    ? 'S' : '-',
+		       attrs->priv      ? 'P' : '-',
+		       attrs->valid     ? 'V' : '-',
+		       attrs->platform_atomic ? 'A' : '-');
 
-	err = __nvgpu_gmmu_do_update_page_table(vm,
-						sgt,
-						space_to_skip,
-						virt_addr,
-						length,
-						attrs);
+	err = nvgpu_gmmu_do_update_page_table(vm,
+					      sgt,
+					      space_to_skip,
+					      virt_addr,
+					      length,
+					      attrs);
 
 	nvgpu_mb();
 
-	__gmmu_dbg(g, attrs, "%-5s Done!",
+	nvgpu_gmmu_dbg(g, attrs, "%-5s Done!",
 				(sgt != NULL) ? "MAP" : "UNMAP");
 
 	return err;
@@ -818,8 +820,8 @@ u64 nvgpu_gmmu_map_locked(struct vm_gk20a *vm,
 		allocated = true;
 	}
 
-	err = __nvgpu_gmmu_update_page_table(vm, sgt, buffer_offset,
-					     vaddr, size, &attrs);
+	err = nvgpu_gmmu_update_page_table(vm, sgt, buffer_offset,
+					   vaddr, size, &attrs);
 	if (err != 0) {
 		nvgpu_err(g, "failed to update ptes on map");
 		goto fail_validate;
@@ -874,8 +876,8 @@ void nvgpu_gmmu_unmap_locked(struct vm_gk20a *vm,
 	}
 
 	/* unmap here needs to know the page size we assigned at mapping */
-	err = __nvgpu_gmmu_update_page_table(vm, NULL, 0,
-					     vaddr, size, &attrs);
+	err = nvgpu_gmmu_update_page_table(vm, NULL, 0,
+					   vaddr, size, &attrs);
 	if (err != 0) {
 		nvgpu_err(g, "failed to update gmmu ptes on unmap");
 	}
@@ -899,7 +901,7 @@ void nvgpu_gmmu_unmap_locked(struct vm_gk20a *vm,
 	}
 }
 
-u32 __nvgpu_pte_words(struct gk20a *g)
+u32 nvgpu_pte_words(struct gk20a *g)
 {
 	const struct gk20a_mmu_level *l =
 		g->ops.mm.gmmu.get_mmu_levels(g, SZ_64K);
@@ -924,13 +926,13 @@ u32 __nvgpu_pte_words(struct gk20a *g)
 /*
  * Recursively walk the pages tables to find the PTE.
  */
-static int __nvgpu_locate_pte(struct gk20a *g, struct vm_gk20a *vm,
-			      struct nvgpu_gmmu_pd *pd,
-			      u64 vaddr, int lvl,
-			      struct nvgpu_gmmu_attrs *attrs,
-			      u32 *data,
-			      struct nvgpu_gmmu_pd **pd_out, u32 *pd_idx_out,
-			      u32 *pd_offs_out)
+static int nvgpu_locate_pte(struct gk20a *g, struct vm_gk20a *vm,
+			    struct nvgpu_gmmu_pd *pd,
+			    u64 vaddr, int lvl,
+			    struct nvgpu_gmmu_attrs *attrs,
+			    u32 *data,
+			    struct nvgpu_gmmu_pd **pd_out, u32 *pd_idx_out,
+			    u32 *pd_offs_out)
 {
 	const struct gk20a_mmu_level *l      = &vm->mmu_levels[lvl];
 	const struct gk20a_mmu_level *next_l = &vm->mmu_levels[lvl + 1];
@@ -957,10 +959,10 @@ static int __nvgpu_locate_pte(struct gk20a *g, struct vm_gk20a *vm,
 			return -EINVAL;
 		}
 
-		return __nvgpu_locate_pte(g, vm, pd_next,
-					  vaddr, lvl + 1, attrs,
-					  data, pd_out, pd_idx_out,
-					  pd_offs_out);
+		return nvgpu_locate_pte(g, vm, pd_next,
+					vaddr, lvl + 1, attrs,
+					data, pd_out, pd_idx_out,
+					pd_offs_out);
 	}
 
 	if (pd->mem == NULL) {
@@ -996,18 +998,18 @@ static int __nvgpu_locate_pte(struct gk20a *g, struct vm_gk20a *vm,
 	return 0;
 }
 
-int __nvgpu_get_pte(struct gk20a *g, struct vm_gk20a *vm, u64 vaddr, u32 *pte)
+int nvgpu_get_pte(struct gk20a *g, struct vm_gk20a *vm, u64 vaddr, u32 *pte)
 {
 	struct nvgpu_gmmu_attrs attrs = {
 		.pgsz = 0,
 	};
 
-	return __nvgpu_locate_pte(g, vm, &vm->pdb,
-				  vaddr, 0, &attrs,
-				  pte, NULL, NULL, NULL);
+	return nvgpu_locate_pte(g, vm, &vm->pdb,
+				vaddr, 0, &attrs,
+				pte, NULL, NULL, NULL);
 }
 
-int __nvgpu_set_pte(struct gk20a *g, struct vm_gk20a *vm, u64 vaddr, u32 *pte)
+int nvgpu_set_pte(struct gk20a *g, struct vm_gk20a *vm, u64 vaddr, u32 *pte)
 {
 	struct nvgpu_gmmu_pd *pd;
 	u32 pd_idx, pd_offs, pte_size, i;
@@ -1017,14 +1019,14 @@ int __nvgpu_set_pte(struct gk20a *g, struct vm_gk20a *vm, u64 vaddr, u32 *pte)
 	};
 	struct nvgpu_gmmu_attrs *attrs_ptr = &attrs;
 
-	err = __nvgpu_locate_pte(g, vm, &vm->pdb,
-				 vaddr, 0, &attrs,
-				 NULL, &pd, &pd_idx, &pd_offs);
+	err = nvgpu_locate_pte(g, vm, &vm->pdb,
+			       vaddr, 0, &attrs,
+			       NULL, &pd, &pd_idx, &pd_offs);
 	if (err != 0) {
 		return err;
 	}
 
-	pte_size = __nvgpu_pte_words(g);
+	pte_size = nvgpu_pte_words(g);
 
 	for (i = 0; i < pte_size; i++) {
 		nvgpu_pd_write(g, pd, (size_t)pd_offs + (size_t)i, pte[i]);

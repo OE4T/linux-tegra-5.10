@@ -165,16 +165,16 @@ void nvgpu_gmmu_unmap(struct vm_gk20a *vm,
 		      u64 gpu_va);
 
 /**
- * __nvgpu_pte_words - Compute number of words in a PTE.
+ * nvgpu_pte_words - Compute number of words in a PTE.
  *
  * @g  - The GPU.
  *
  * This computes and returns the size of a PTE for the passed chip.
  */
-u32 __nvgpu_pte_words(struct gk20a *g);
+u32 nvgpu_pte_words(struct gk20a *g);
 
 /**
- * __nvgpu_get_pte - Get the contents of a PTE by virtual address
+ * nvgpu_get_pte - Get the contents of a PTE by virtual address
  *
  * @g     - The GPU.
  * @vm    - VM to look in.
@@ -184,17 +184,17 @@ u32 __nvgpu_pte_words(struct gk20a *g);
  * Find a PTE in the passed VM based on the passed GPU virtual address. This
  * will @pte with a copy of the contents of the PTE. @pte must be an array of
  * u32s large enough to contain the PTE. This can be computed using
- * __nvgpu_pte_words().
+ * nvgpu_pte_words().
  *
  * If you wish to write to this PTE then you may modify @pte and then use the
- * __nvgpu_set_pte().
+ * nvgpu_set_pte().
  *
  * This function returns 0 if the PTE is found and -EINVAL otherwise.
  */
-int __nvgpu_get_pte(struct gk20a *g, struct vm_gk20a *vm, u64 vaddr, u32 *pte);
+int nvgpu_get_pte(struct gk20a *g, struct vm_gk20a *vm, u64 vaddr, u32 *pte);
 
 /**
- * __nvgpu_set_pte - Set a PTE based on virtual address
+ * nvgpu_set_pte - Set a PTE based on virtual address
  *
  * @g     - The GPU.
  * @vm    - VM to look in.
@@ -208,11 +208,11 @@ int __nvgpu_get_pte(struct gk20a *g, struct vm_gk20a *vm, u64 vaddr, u32 *pte);
  * the mapping (for instance changing invalid to valid).
  *
  * @pte must contain at least the required words for the PTE. See
- * __nvgpu_pte_words().
+ * nvgpu_pte_words().
  *
  * This function returns 0 on success and -EINVAL otherwise.
  */
-int __nvgpu_set_pte(struct gk20a *g, struct vm_gk20a *vm, u64 vaddr, u32 *pte);
+int nvgpu_set_pte(struct gk20a *g, struct vm_gk20a *vm, u64 vaddr, u32 *pte);
 
 /*
  * Native GPU "HAL" functions.

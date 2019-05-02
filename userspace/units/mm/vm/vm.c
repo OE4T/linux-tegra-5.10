@@ -262,7 +262,7 @@ static int map_buffer(struct unit_module *m,
 	/*
 	 * Based on the virtual address returned, lookup the corresponding PTE
 	 */
-	ret = __nvgpu_get_pte(g, vm, mapped_buf->addr, pte);
+	ret = nvgpu_get_pte(g, vm, mapped_buf->addr, pte);
 	if (ret != 0) {
 		unit_err(m, "PTE lookup failed\n");
 		ret = UNIT_FAIL;

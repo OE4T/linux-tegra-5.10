@@ -551,7 +551,7 @@ static int gv11b_fb_fix_page_fault(struct gk20a *g,
 		return -EINVAL;
 	}
 
-	err = __nvgpu_get_pte(g,
+	err = nvgpu_get_pte(g,
 			mmufault->refch->vm, mmufault->fault_addr, &pte[0]);
 	if (err != 0) {
 		nvgpu_log(g, gpu_dbg_intr | gpu_dbg_pte, "pte not found");
@@ -578,7 +578,7 @@ static int gv11b_fb_fix_page_fault(struct gk20a *g,
 	nvgpu_log(g, gpu_dbg_intr | gpu_dbg_pte,
 			"new pte: %#08x %#08x", pte[1], pte[0]);
 
-	err = __nvgpu_set_pte(g,
+	err = nvgpu_set_pte(g,
 			mmufault->refch->vm, mmufault->fault_addr, &pte[0]);
 	if (err != 0) {
 		nvgpu_log(g, gpu_dbg_intr | gpu_dbg_pte, "pte not fixed");
@@ -587,7 +587,7 @@ static int gv11b_fb_fix_page_fault(struct gk20a *g,
 	/* invalidate tlb so that GMMU does not use old cached translation */
 	g->ops.fb.tlb_invalidate(g, mmufault->refch->vm->pdb.mem);
 
-	err = __nvgpu_get_pte(g,
+	err = nvgpu_get_pte(g,
 			mmufault->refch->vm, mmufault->fault_addr, &pte[0]);
 	nvgpu_log(g, gpu_dbg_intr | gpu_dbg_pte,
 			"pte after tlb invalidate: %#08x %#08x",
