@@ -165,7 +165,6 @@ struct nvgpu_gr_config *nvgpu_gr_config_init(struct gk20a *g)
 
 		config->ppc_count += config->gpc_ppc_count[gpc_index];
 
-		gpc_new_skip_mask = 0;
 		if (config->pe_count_per_gpc > 1U &&
 		    config->pes_tpc_count[0][gpc_index] +
 		    config->pes_tpc_count[1][gpc_index] == 5U) {
@@ -191,6 +190,8 @@ struct nvgpu_gr_config *nvgpu_gr_config_init(struct gk20a *g)
 				config->pes_tpc_mask[pes_heavy_index][gpc_index] ^
 				   (config->pes_tpc_mask[pes_heavy_index][gpc_index] &
 				   (config->pes_tpc_mask[pes_heavy_index][gpc_index] - 1U));
+		} else {
+			 gpc_new_skip_mask = 0U;
 		}
 		config->gpc_skip_mask[gpc_index] = gpc_new_skip_mask;
 	}
