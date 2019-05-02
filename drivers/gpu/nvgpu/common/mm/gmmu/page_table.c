@@ -934,66 +934,74 @@ static int nvgpu_locate_pte(struct gk20a *g, struct vm_gk20a *vm,
 			    struct nvgpu_gmmu_pd **pd_out, u32 *pd_idx_out,
 			    u32 *pd_offs_out)
 {
-	const struct gk20a_mmu_level *l      = &vm->mmu_levels[lvl];
-	const struct gk20a_mmu_level *next_l = &vm->mmu_levels[lvl + 1];
-	u32 pd_idx = pd_index(l, vaddr, attrs);
+	const struct gk20a_mmu_level *l;
+	const struct gk20a_mmu_level *next_l;
+	u32 pd_idx;
 	u32 pte_base;
 	u32 pte_size;
 	u32 i;
+	bool done = false;
 
-	/*
-	 * If this isn't the final level (i.e there's a valid next level)
-	 * then find the next level PD and recurse.
-	 */
-	if (next_l->update_entry != NULL) {
-		struct nvgpu_gmmu_pd *pd_next = pd->entries + pd_idx;
+	do {
+		l = &vm->mmu_levels[lvl];
+		next_l = &vm->mmu_levels[lvl + 1];
+		pd_idx = pd_index(l, vaddr, attrs);
+		/*
+		 * If this isn't the final level (i.e there's a valid next level)
+		 * then find the next level PD and recurse.
+		 */
+		if (next_l->update_entry != NULL) {
+			struct nvgpu_gmmu_pd *pd_next = pd->entries + pd_idx;
 
-		/* Invalid entry! */
-		if (pd_next->mem == NULL) {
-			return -EINVAL;
+			/* Invalid entry! */
+			if (pd_next->mem == NULL) {
+				return -EINVAL;
+			}
+
+			attrs->pgsz = l->get_pgsz(g, l, pd, pd_idx);
+
+			if (attrs->pgsz >= GMMU_NR_PAGE_SIZES) {
+				return -EINVAL;
+			}
+
+			pd = pd_next;
+			lvl++;
+		} else {
+			if (pd->mem == NULL) {
+				return -EINVAL;
+			}
+
+			/*
+			 * Take into account the real offset into the nvgpu_mem
+			 * since the PD may be located at an offset other than 0
+			 * (due to PD packing).
+			 */
+			pte_base = (u32)(pd->mem_offs / sizeof(u32)) +
+				nvgpu_pd_offset_from_index(l, pd_idx);
+			pte_size = (u32)(l->entry_size / sizeof(u32));
+
+			if (data != NULL) {
+				for (i = 0; i < pte_size; i++) {
+					data[i] = nvgpu_mem_rd32(g, pd->mem,
+							pte_base + i);
+				}
+			}
+
+			if (pd_out != NULL) {
+				*pd_out = pd;
+			}
+
+			if (pd_idx_out != NULL) {
+				*pd_idx_out = pd_idx;
+			}
+
+			if (pd_offs_out != NULL) {
+				*pd_offs_out = nvgpu_pd_offset_from_index(l,
+						pd_idx);
+			}
+			done = true;
 		}
-
-		attrs->pgsz = l->get_pgsz(g, l, pd, pd_idx);
-
-		if (attrs->pgsz >= GMMU_NR_PAGE_SIZES) {
-			return -EINVAL;
-		}
-
-		return nvgpu_locate_pte(g, vm, pd_next,
-					vaddr, lvl + 1, attrs,
-					data, pd_out, pd_idx_out,
-					pd_offs_out);
-	}
-
-	if (pd->mem == NULL) {
-		return -EINVAL;
-	}
-
-	/*
-	 * Take into account the real offset into the nvgpu_mem since the PD
-	 * may be located at an offset other than 0 (due to PD packing).
-	 */
-	pte_base = (u32)(pd->mem_offs / sizeof(u32)) +
-		nvgpu_pd_offset_from_index(l, pd_idx);
-	pte_size = (u32)(l->entry_size / sizeof(u32));
-
-	if (data != NULL) {
-		for (i = 0; i < pte_size; i++) {
-			data[i] = nvgpu_mem_rd32(g, pd->mem, pte_base + i);
-		}
-	}
-
-	if (pd_out != NULL) {
-		*pd_out = pd;
-	}
-
-	if (pd_idx_out != NULL) {
-		*pd_idx_out = pd_idx;
-	}
-
-	if (pd_offs_out != NULL) {
-		*pd_offs_out = nvgpu_pd_offset_from_index(l, pd_idx);
-	}
+	} while (!done);
 
 	return 0;
 }
