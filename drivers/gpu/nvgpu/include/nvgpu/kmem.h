@@ -117,7 +117,7 @@ void nvgpu_kmem_cache_free(struct nvgpu_kmem_cache *cache, void *ptr);
  *
  * This function may sleep so cannot be used in IRQs.
  */
-#define nvgpu_kmalloc(g, size)		__nvgpu_kmalloc(g, size, _NVGPU_GET_IP_)
+#define nvgpu_kmalloc(g, size)	nvgpu_kmalloc_impl(g, size, _NVGPU_GET_IP_)
 
 /**
  * nvgpu_kzalloc - Allocate from the kernel's allocator.
@@ -128,7 +128,7 @@ void nvgpu_kmem_cache_free(struct nvgpu_kmem_cache *cache, void *ptr);
  * Identical to nvgpu_kalloc() except the memory will be zeroed before being
  * returned.
  */
-#define nvgpu_kzalloc(g, size)		__nvgpu_kzalloc(g, size, _NVGPU_GET_IP_)
+#define nvgpu_kzalloc(g, size)	nvgpu_kzalloc_impl(g, size, _NVGPU_GET_IP_)
 
 /**
  * nvgpu_kcalloc - Allocate from the kernel's allocator.
@@ -141,7 +141,7 @@ void nvgpu_kmem_cache_free(struct nvgpu_kmem_cache *cache, void *ptr);
  * @n * @size.
  */
 #define nvgpu_kcalloc(g, n, size)	\
-	__nvgpu_kcalloc(g, n, size, _NVGPU_GET_IP_)
+	nvgpu_kcalloc_impl(g, n, size, _NVGPU_GET_IP_)
 
 /**
  * nvgpu_vmalloc - Allocate memory and return a map to it.
@@ -157,7 +157,7 @@ void nvgpu_kmem_cache_free(struct nvgpu_kmem_cache *cache, void *ptr);
  *
  * This function may sleep.
  */
-#define nvgpu_vmalloc(g, size)		__nvgpu_vmalloc(g, size, _NVGPU_GET_IP_)
+#define nvgpu_vmalloc(g, size)	nvgpu_vmalloc_impl(g, size, _NVGPU_GET_IP_)
 
 /**
  * nvgpu_vzalloc - Allocate memory and return a map to it.
@@ -167,7 +167,7 @@ void nvgpu_kmem_cache_free(struct nvgpu_kmem_cache *cache, void *ptr);
  *
  * Identical to nvgpu_vmalloc() except this will return zero'ed memory.
  */
-#define nvgpu_vzalloc(g, size)		__nvgpu_vzalloc(g, size, _NVGPU_GET_IP_)
+#define nvgpu_vzalloc(g, size)	nvgpu_vzalloc_impl(g, size, _NVGPU_GET_IP_)
 
 /**
  * nvgpu_kfree - Frees an alloc from nvgpu_kmalloc, nvgpu_kzalloc,
@@ -176,7 +176,7 @@ void nvgpu_kmem_cache_free(struct nvgpu_kmem_cache *cache, void *ptr);
  * @g:		Current GPU.
  * @addr:	Address of object to free.
  */
-#define nvgpu_kfree(g, addr)		__nvgpu_kfree(g, addr)
+#define nvgpu_kfree(g, addr)	nvgpu_kfree_impl(g, addr)
 
 /**
  * nvgpu_vfree - Frees an alloc from nvgpu_vmalloc, nvgpu_vzalloc.
@@ -184,7 +184,7 @@ void nvgpu_kmem_cache_free(struct nvgpu_kmem_cache *cache, void *ptr);
  * @g:		Current GPU.
  * @addr:	Address of object to free.
  */
-#define nvgpu_vfree(g, addr)		__nvgpu_vfree(g, addr)
+#define nvgpu_vfree(g, addr)	nvgpu_vfree_impl(g, addr)
 
 #define kmem_dbg(g, fmt, args...)		\
 	nvgpu_log(g, gpu_dbg_kmem, fmt, ##args)
@@ -230,7 +230,7 @@ void nvgpu_kmem_fini(struct gk20a *g, int flags);
 /*
  * Implemented by the OS interface.
  */
-void *__nvgpu_big_alloc(struct gk20a *g, size_t size, bool clear);
+void *nvgpu_big_alloc_impl(struct gk20a *g, size_t size, bool clear);
 
 /**
  * nvgpu_big_malloc - Pick virtual or physical alloc based on @size
@@ -256,7 +256,7 @@ void *__nvgpu_big_alloc(struct gk20a *g, size_t size, bool clear);
  */
 static inline void *nvgpu_big_malloc(struct gk20a *g, size_t size)
 {
-	return __nvgpu_big_alloc(g, size, false);
+	return nvgpu_big_alloc_impl(g, size, false);
 }
 
 /**
@@ -269,7 +269,7 @@ static inline void *nvgpu_big_malloc(struct gk20a *g, size_t size)
  */
 static inline void *nvgpu_big_zalloc(struct gk20a *g, size_t size)
 {
-	return __nvgpu_big_alloc(g, size, true);
+	return nvgpu_big_alloc_impl(g, size, true);
 }
 
 /**

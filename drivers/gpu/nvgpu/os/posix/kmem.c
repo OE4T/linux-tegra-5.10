@@ -98,7 +98,7 @@ void nvgpu_kmem_cache_free(struct nvgpu_kmem_cache *cache, void *ptr)
 	free(ptr);
 }
 
-void *__nvgpu_kmalloc(struct gk20a *g, size_t size, void *ip)
+void *nvgpu_kmalloc_impl(struct gk20a *g, size_t size, void *ip)
 {
 #ifdef NVGPU_UNITTEST_FAULT_INJECTION_ENABLEMENT
 	if (nvgpu_posix_fault_injection_handle_call(&kmem_fi)) {
@@ -115,7 +115,7 @@ void *__nvgpu_kmalloc(struct gk20a *g, size_t size, void *ip)
 	return malloc(size);
 }
 
-void *__nvgpu_kzalloc(struct gk20a *g, size_t size, void *ip)
+void *nvgpu_kzalloc_impl(struct gk20a *g, size_t size, void *ip)
 {
 #ifdef NVGPU_UNITTEST_FAULT_INJECTION_ENABLEMENT
 	if (nvgpu_posix_fault_injection_handle_call(&kmem_fi)) {
@@ -125,7 +125,7 @@ void *__nvgpu_kzalloc(struct gk20a *g, size_t size, void *ip)
 	return calloc(1, size);
 }
 
-void *__nvgpu_kcalloc(struct gk20a *g, size_t n, size_t size, void *ip)
+void *nvgpu_kcalloc_impl(struct gk20a *g, size_t n, size_t size, void *ip)
 {
 #ifdef NVGPU_UNITTEST_FAULT_INJECTION_ENABLEMENT
 	if (nvgpu_posix_fault_injection_handle_call(&kmem_fi)) {
@@ -135,27 +135,27 @@ void *__nvgpu_kcalloc(struct gk20a *g, size_t n, size_t size, void *ip)
 	return calloc(1, n * size);
 }
 
-void *__nvgpu_vmalloc(struct gk20a *g, unsigned long size, void *ip)
+void *nvgpu_vmalloc_impl(struct gk20a *g, unsigned long size, void *ip)
 {
-	return __nvgpu_kmalloc(g, size, ip);
+	return nvgpu_kmalloc_impl(g, size, ip);
 }
 
-void *__nvgpu_vzalloc(struct gk20a *g, unsigned long size, void *ip)
+void *nvgpu_vzalloc_impl(struct gk20a *g, unsigned long size, void *ip)
 {
-	return __nvgpu_kzalloc(g, size, ip);
+	return nvgpu_kzalloc_impl(g, size, ip);
 }
 
-void __nvgpu_kfree(struct gk20a *g, void *addr)
+void nvgpu_kfree_impl(struct gk20a *g, void *addr)
 {
 	free(addr);
 }
 
-void __nvgpu_vfree(struct gk20a *g, void *addr)
+void nvgpu_vfree_impl(struct gk20a *g, void *addr)
 {
-	__nvgpu_kfree(g, addr);
+	nvgpu_kfree_impl(g, addr);
 }
 
-void *__nvgpu_big_alloc(struct gk20a *g, size_t size, bool clear)
+void *nvgpu_big_alloc_impl(struct gk20a *g, size_t size, bool clear)
 {
 	if (clear) {
 		return nvgpu_kzalloc(g, size);
@@ -166,7 +166,7 @@ void *__nvgpu_big_alloc(struct gk20a *g, size_t size, bool clear)
 
 void nvgpu_big_free(struct gk20a *g, void *p)
 {
-	__nvgpu_kfree(g, p);
+	nvgpu_kfree_impl(g, p);
 }
 
 int nvgpu_kmem_init(struct gk20a *g)

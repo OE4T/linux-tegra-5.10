@@ -36,7 +36,7 @@
  */
 static atomic_t kmem_cache_id;
 
-void *__nvgpu_big_alloc(struct gk20a *g, size_t size, bool clear)
+void *nvgpu_big_alloc_impl(struct gk20a *g, size_t size, bool clear)
 {
 	void *p;
 
@@ -68,7 +68,7 @@ void nvgpu_big_free(struct gk20a *g, void *p)
 		nvgpu_kfree(g, p);
 }
 
-void *__nvgpu_kmalloc(struct gk20a *g, size_t size, void *ip)
+void *nvgpu_kmalloc_impl(struct gk20a *g, size_t size, void *ip)
 {
 	void *alloc;
 
@@ -84,7 +84,7 @@ void *__nvgpu_kmalloc(struct gk20a *g, size_t size, void *ip)
 	return alloc;
 }
 
-void *__nvgpu_kzalloc(struct gk20a *g, size_t size, void *ip)
+void *nvgpu_kzalloc_impl(struct gk20a *g, size_t size, void *ip)
 {
 	void *alloc;
 
@@ -100,7 +100,7 @@ void *__nvgpu_kzalloc(struct gk20a *g, size_t size, void *ip)
 	return alloc;
 }
 
-void *__nvgpu_kcalloc(struct gk20a *g, size_t n, size_t size, void *ip)
+void *nvgpu_kcalloc_impl(struct gk20a *g, size_t n, size_t size, void *ip)
 {
 	void *alloc;
 
@@ -116,7 +116,7 @@ void *__nvgpu_kcalloc(struct gk20a *g, size_t n, size_t size, void *ip)
 	return alloc;
 }
 
-void *__nvgpu_vmalloc(struct gk20a *g, unsigned long size, void *ip)
+void *nvgpu_vmalloc_impl(struct gk20a *g, unsigned long size, void *ip)
 {
 	void *alloc;
 
@@ -131,7 +131,7 @@ void *__nvgpu_vmalloc(struct gk20a *g, unsigned long size, void *ip)
 	return alloc;
 }
 
-void *__nvgpu_vzalloc(struct gk20a *g, unsigned long size, void *ip)
+void *nvgpu_vzalloc_impl(struct gk20a *g, unsigned long size, void *ip)
 {
 	void *alloc;
 
@@ -146,7 +146,7 @@ void *__nvgpu_vzalloc(struct gk20a *g, unsigned long size, void *ip)
 	return alloc;
 }
 
-void __nvgpu_kfree(struct gk20a *g, void *addr)
+void nvgpu_kfree_impl(struct gk20a *g, void *addr)
 {
 	kmem_dbg(g, "kfree: addr=0x%p", addr);
 #ifdef CONFIG_NVGPU_TRACK_MEM_USAGE
@@ -156,7 +156,7 @@ void __nvgpu_kfree(struct gk20a *g, void *addr)
 #endif
 }
 
-void __nvgpu_vfree(struct gk20a *g, void *addr)
+void nvgpu_vfree_impl(struct gk20a *g, void *addr)
 {
 	kmem_dbg(g, "vfree: addr=0x%p", addr);
 #ifdef CONFIG_NVGPU_TRACK_MEM_USAGE

@@ -2,9 +2,6 @@
 
 __bug
 __nvgpu_get_pte
-__nvgpu_kfree
-__nvgpu_kmalloc
-__nvgpu_kzalloc
 __nvgpu_log_dbg
 __nvgpu_log_msg
 __nvgpu_readl
@@ -86,11 +83,14 @@ nvgpu_init_hal
 nvgpu_init_mm_support
 nvgpu_init_pramin
 nvgpu_is_enabled
+nvgpu_kfree_impl
+nvgpu_kmalloc_impl
 nvgpu_kmem_cache_alloc
 nvgpu_kmem_cache_create
 nvgpu_kmem_cache_destroy
 nvgpu_kmem_cache_free
 nvgpu_kmem_get_fault_injection
+nvgpu_kzalloc_impl
 nvgpu_memset
 nvgpu_mem_create_from_phys
 nvgpu_mem_iommu_translate
