@@ -38,7 +38,6 @@
 #include <nvgpu/hw/gm20b/hw_pri_ringmaster_gm20b.h>
 
 #include "ltc_gm20b.h"
-#include "common/gr/gr_priv.h"
 
 void gm20b_ltc_init_fs_state(struct gk20a *g)
 {
