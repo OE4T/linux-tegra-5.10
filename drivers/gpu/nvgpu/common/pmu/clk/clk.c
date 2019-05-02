@@ -244,18 +244,12 @@ done:
 int nvgpu_clk_get_fll_clks(struct gk20a *g,
 		struct nvgpu_set_fll_clk *setfllclk)
 {
-	int status = -EINVAL;
-	status = g->pmu.clk_pmu->get_fll(g, setfllclk);
-
-	return status;
+	return g->pmu.clk_pmu->get_fll(g, setfllclk);
 }
 
 int nvgpu_clk_set_boot_fll_clk_tu10x(struct gk20a *g)
 {
-	int status = -EINVAL;
-	status = g->pmu.clk_pmu->set_boot_fll(g);
-
-	return status;
+	return g->pmu.clk_pmu->set_boot_fll(g);
 }
 
 int nvgpu_clk_init_pmupstate(struct gk20a *g)

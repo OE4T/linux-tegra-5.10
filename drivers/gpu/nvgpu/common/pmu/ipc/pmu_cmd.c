@@ -246,7 +246,7 @@ static int pmu_cmd_payload_setup_rpc(struct gk20a *g, struct pmu_cmd *cmd,
 		nvgpu_memcpy((u8 *)
 			nvgpu_engine_fb_queue_get_work_buffer(queue) +
 			alloc.dmem_offset,
-			(u8 *)payload->rpc.prpc, payload->rpc.size_rpc);
+			(u8 *)payload->rpc.prpc, alloc.dmem_size);
 
 		alloc.dmem_offset += nvgpu_pmu_seq_get_fbq_heap_offset(seq);
 

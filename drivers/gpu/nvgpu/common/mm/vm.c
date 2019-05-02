@@ -1313,7 +1313,6 @@ static int nvgpu_vm_compute_compression(struct vm_gk20a *vm,
 				  "Unsupported page size for compressible "
 				  "kind, demoting to incompressible");
 			binfo->compr_kind = NVGPU_KIND_INVALID;
-			kind_compressible = false;
 		}
 	}
 

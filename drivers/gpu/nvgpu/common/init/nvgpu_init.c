@@ -52,9 +52,8 @@
 
 bool is_nvgpu_gpu_state_valid(struct gk20a *g)
 {
-	u32 boot_0 = 0xffffffffU;
+	u32 boot_0 = nvgpu_mc_boot_0(g, NULL, NULL, NULL);
 
-	boot_0 = nvgpu_mc_boot_0(g, NULL, NULL, NULL);
 	if (boot_0 == 0xffffffffU) {
 		nvgpu_err(g, "GPU has disappeared from bus!!");
 		return false;

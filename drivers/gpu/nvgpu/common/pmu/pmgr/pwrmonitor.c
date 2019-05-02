@@ -186,8 +186,8 @@ static int devinit_get_pwr_topology_table(struct gk20a *g,
 	u8 *pwr_topology_table_ptr = NULL;
 	u8 *curr_pwr_topology_table_ptr = NULL;
 	struct boardobj *boardobj;
-	struct pwr_topology_2x_header pwr_topology_table_header = { 0 };
-	struct pwr_topology_2x_entry pwr_topology_table_entry = { 0 };
+	struct pwr_topology_2x_header pwr_topology_table_header;
+	struct pwr_topology_2x_entry pwr_topology_table_entry;
 	u32 index;
 	u32 obj_index = 0;
 	size_t pwr_topology_size;
@@ -196,6 +196,11 @@ static int devinit_get_pwr_topology_table(struct gk20a *g,
 		struct pwr_channel pwrchannel;
 		struct pwr_channel_sensor sensor;
 	} pwr_topology_data;
+
+	(void) memset(&pwr_topology_table_header, 0U,
+					sizeof(struct pwr_topology_2x_header));
+	(void) memset(&pwr_topology_table_entry, 0U,
+					sizeof(struct pwr_topology_2x_entry));
 
 	nvgpu_log_info(g, " ");
 
