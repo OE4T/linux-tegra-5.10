@@ -347,7 +347,24 @@ void gm20b_gr_falcon_load_ctxsw_ucode_header(struct gk20a *g,
 		nvgpu_writel(g, reg_offset + gr_fecs_dmemd_r(0), 0);
 		nvgpu_writel(g, reg_offset + gr_fecs_dmemd_r(0), 0);
 		nvgpu_writel(g, reg_offset + gr_fecs_dmemd_r(0), 0);
-		/* fallthrough */
+		nvgpu_writel(g, reg_offset + gr_fecs_dmemd_r(0), 0);
+		nvgpu_writel(g, reg_offset + gr_fecs_dmemd_r(0), 0);
+		nvgpu_writel(g, reg_offset + gr_fecs_dmemd_r(0), 0);
+		nvgpu_writel(g, reg_offset + gr_fecs_dmemd_r(0), 0);
+		nvgpu_writel(g, reg_offset + gr_fecs_dmemd_r(0), 4);
+		nvgpu_writel(g, reg_offset + gr_fecs_dmemd_r(0),
+				addr_code32);
+		nvgpu_writel(g, reg_offset + gr_fecs_dmemd_r(0), 0);
+		nvgpu_writel(g, reg_offset + gr_fecs_dmemd_r(0),
+				code_size);
+		nvgpu_writel(g, reg_offset + gr_fecs_dmemd_r(0), 0);
+		nvgpu_writel(g, reg_offset + gr_fecs_dmemd_r(0), 0);
+		nvgpu_writel(g, reg_offset + gr_fecs_dmemd_r(0), 0);
+		nvgpu_writel(g, reg_offset + gr_fecs_dmemd_r(0),
+				addr_data32);
+		nvgpu_writel(g, reg_offset + gr_fecs_dmemd_r(0),
+				data_size);
+		break;
 	case FALCON_UCODE_SIG_T12X_FECS_WITHOUT_RESERVED:
 	case FALCON_UCODE_SIG_T12X_GPCCS_WITHOUT_RESERVED:
 	case FALCON_UCODE_SIG_T21X_FECS_WITHOUT_RESERVED:
@@ -395,6 +412,7 @@ void gm20b_gr_falcon_load_ctxsw_ucode_header(struct gk20a *g,
 				" with reg_offset 0x%08x",
 				boot_signature, reg_offset);
 		BUG();
+		break;
 	}
 }
 
