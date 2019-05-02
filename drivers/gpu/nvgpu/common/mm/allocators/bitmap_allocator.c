@@ -61,7 +61,7 @@ static u64 nvgpu_bitmap_alloc_end(struct nvgpu_allocator *a)
 /*
  * @page_size is ignored.
  */
-static u64 nvgpu_bitmap_alloc_fixed(struct nvgpu_allocator *na,
+static u64 nvgpu_bitmap_balloc_fixed(struct nvgpu_allocator *na,
 				    u64 base, u64 len, u32 page_size)
 {
 	struct nvgpu_bitmap_allocator *a = bitmap_allocator(na);
@@ -202,7 +202,7 @@ static int nvgpu_bitmap_store_alloc(struct nvgpu_bitmap_allocator *a,
  * @len is in bytes. This routine will figure out the right number of bits to
  * actually allocate. The return is the address in bytes as well.
  */
-static u64 nvgpu_bitmap_alloc(struct nvgpu_allocator *na, u64 len)
+static u64 nvgpu_bitmap_balloc(struct nvgpu_allocator *na, u64 len)
 {
 	u64 tmp_u64, addr;
 	u32 blks;
@@ -372,10 +372,10 @@ static void nvgpu_bitmap_print_stats(struct nvgpu_allocator *na,
 #endif
 
 static const struct nvgpu_allocator_ops bitmap_ops = {
-	.alloc		= nvgpu_bitmap_alloc,
+	.alloc		= nvgpu_bitmap_balloc,
 	.free		= nvgpu_bitmap_free,
 
-	.alloc_fixed	= nvgpu_bitmap_alloc_fixed,
+	.alloc_fixed	= nvgpu_bitmap_balloc_fixed,
 	.free_fixed	= nvgpu_bitmap_free_fixed,
 
 	.base		= nvgpu_bitmap_alloc_base,
