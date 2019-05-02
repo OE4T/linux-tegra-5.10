@@ -21,7 +21,7 @@
  */
 
 #ifndef GR_FALCON_PRIV_H
-#define GR_FALOCN_PRIV_H
+#define GR_FALCON_PRIV_H
 
 #include <nvgpu/types.h>
 #include <nvgpu/nvgpu_mem.h>
@@ -125,5 +125,5 @@ enum {
 #define FALCON_UCODE_SIG_T21X_GPCCS_WITHOUT_RESERVED	0x393161daU
 
 
-#endif /* GR_FALOCN_PRIV_H */
+#endif /* GR_FALCON_PRIV_H */
 
