@@ -29,7 +29,7 @@
 
 struct gk20a;
 
-struct sm_info {
+struct nvgpu_sm_info {
 	u32 gpc_index;
 	u32 tpc_index;
 	u32 sm_index;
@@ -67,7 +67,7 @@ struct nvgpu_gr_config {
 	u32 map_row_offset;
 
 	u32 no_of_sm;
-	struct sm_info *sm_to_cluster;
+	struct nvgpu_sm_info *sm_to_cluster;
 };
 
 #endif /* NVGPU_GR_CONFIG_PRIV_H */

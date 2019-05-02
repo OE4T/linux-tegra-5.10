@@ -106,7 +106,7 @@ int nvgpu_gr_fs_state_init(struct gk20a *g, struct nvgpu_gr_config *config)
 
 	for (sm_id = 0; sm_id < g->ops.gr.init.get_no_of_sm(g);
 	     sm_id++) {
-		struct sm_info *sm_info =
+		struct nvgpu_sm_info *sm_info =
 			nvgpu_gr_config_get_sm_info(config, sm_id);
 		tpc_index = nvgpu_gr_config_get_sm_info_tpc_index(sm_info);
 		gpc_index = nvgpu_gr_config_get_sm_info_gpc_index(sm_info);

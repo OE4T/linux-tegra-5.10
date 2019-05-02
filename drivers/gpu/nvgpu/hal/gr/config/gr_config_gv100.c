@@ -248,7 +248,7 @@ int gv100_gr_config_init_sm_id_table(struct gk20a *g,
 	for (tpc = 0, sm_id = 0;  sm_id < num_sm; tpc++, sm_id += sm_per_tpc) {
 		for (sm = 0; sm < sm_per_tpc; sm++) {
 			u32 index = sm_id + sm;
-			struct sm_info *sm_info =
+			struct nvgpu_sm_info *sm_info =
 				nvgpu_gr_config_get_sm_info(gr_config, index);
 			nvgpu_gr_config_set_sm_info_gpc_index(sm_info,
 							gpc_table[tpc]);

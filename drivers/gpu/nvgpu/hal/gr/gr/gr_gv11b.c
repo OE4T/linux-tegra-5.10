@@ -1380,7 +1380,7 @@ void gv11b_gr_bpt_reg_info(struct gk20a *g, struct nvgpu_warpstate *w_state)
 	u32 no_of_sm = g->ops.gr.init.get_no_of_sm(g);
 
 	for (sm_id = 0; sm_id < no_of_sm; sm_id++) {
-		struct sm_info *sm_info =
+		struct nvgpu_sm_info *sm_info =
 			nvgpu_gr_config_get_sm_info(gr->config, sm_id);
 		gpc = nvgpu_gr_config_get_sm_info_gpc_index(sm_info);
 		tpc = nvgpu_gr_config_get_sm_info_tpc_index(sm_info);
@@ -1454,7 +1454,7 @@ int gv11b_gr_set_sm_debug_mode(struct gk20a *g,
 	for (sm_id = 0; sm_id < no_of_sm; sm_id++) {
 		u32 gpc, tpc, sm;
 		u32 reg_offset, reg_mask, reg_val;
-		struct sm_info *sm_info;
+		struct nvgpu_sm_info *sm_info;
 
 		if ((sms & BIT64(sm_id)) == 0ULL) {
 			continue;
@@ -2881,7 +2881,7 @@ int gv11b_gr_clear_sm_error_state(struct gk20a *g,
 	}
 
 	if (gk20a_is_channel_ctx_resident(ch)) {
-		struct sm_info *sm_info =
+		struct nvgpu_sm_info *sm_info =
 			nvgpu_gr_config_get_sm_info(g->gr->config, sm_id);
 
 		gpc = nvgpu_gr_config_get_sm_info_gpc_index(sm_info);

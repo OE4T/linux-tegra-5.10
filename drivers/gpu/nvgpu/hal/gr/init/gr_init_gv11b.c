@@ -377,7 +377,7 @@ void gv11b_gr_init_sm_id_numbering(struct gk20a *g, u32 gpc, u32 tpc, u32 smid,
 	u32 gpc_offset = gpc_stride * gpc;
 	u32 global_tpc_index;
 	u32 tpc_offset;
-	struct sm_info *sm_info =
+	struct nvgpu_sm_info *sm_info =
 		nvgpu_gr_config_get_sm_info(gr_config, smid);
 
 	global_tpc_index =
@@ -414,7 +414,7 @@ int gv11b_gr_init_sm_id_config(struct gk20a *g, u32 *tpc_sm_id,
 		for (j = 0U; j < 4U; j++) {
 			u32 sm_id;
 			u32 bits;
-			struct sm_info *sm_info;
+			struct nvgpu_sm_info *sm_info;
 
 			tpc_id = (i << 2) + j;
 			sm_id = tpc_id * sm_per_tpc;

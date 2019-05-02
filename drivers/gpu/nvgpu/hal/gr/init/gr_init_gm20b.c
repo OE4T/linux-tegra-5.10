@@ -211,7 +211,7 @@ int gm20b_gr_init_sm_id_config(struct gk20a *g, u32 *tpc_sm_id,
 		for (j = 0U; j < 4U; j++) {
 			u32 sm_id = (i * 4U) + j;
 			u32 bits;
-			struct sm_info *sm_info;
+			struct nvgpu_sm_info *sm_info;
 
 			if (sm_id >=
 				nvgpu_gr_config_get_tpc_count(gr_config)) {

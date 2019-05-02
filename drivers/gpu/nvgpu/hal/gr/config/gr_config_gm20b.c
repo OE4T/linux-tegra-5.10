@@ -40,7 +40,7 @@ int gm20b_gr_config_init_sm_id_table(struct gk20a *g,
 		for (gpc = 0; gpc < nvgpu_gr_config_get_gpc_count(gr_config); gpc++) {
 
 			if (tpc < nvgpu_gr_config_get_gpc_tpc_count(gr_config, gpc)) {
-				struct sm_info *sm_info =
+				struct nvgpu_sm_info *sm_info =
 					nvgpu_gr_config_get_sm_info(gr_config, sm_id);
 				nvgpu_gr_config_set_sm_info_tpc_index(sm_info, tpc);
 				nvgpu_gr_config_set_sm_info_gpc_index(sm_info, gpc);

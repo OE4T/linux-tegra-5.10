@@ -833,7 +833,7 @@ static int gk20a_ctrl_vsm_mapping(struct gk20a *g,
 		return -ENOMEM;
 
 	for (i = 0; i < no_of_sm; i++) {
-		struct sm_info *sm_info =
+		struct nvgpu_sm_info *sm_info =
 			nvgpu_gr_config_get_sm_info(gr->config, i);
 
 		vsms_buf[i].gpc_index =

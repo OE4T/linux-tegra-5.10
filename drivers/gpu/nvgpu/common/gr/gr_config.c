@@ -24,7 +24,7 @@
 #include <nvgpu/io.h>
 #include <nvgpu/gr/config.h>
 
-#include "common/gr/gr_config_priv.h"
+#include "gr_config_priv.h"
 
 struct nvgpu_gr_config *nvgpu_gr_config_init(struct gk20a *g)
 {
@@ -80,7 +80,7 @@ struct nvgpu_gr_config *nvgpu_gr_config_init(struct gk20a *g)
 	sm_info_size = (size_t)config->gpc_count *
 		(size_t)config->max_tpc_per_gpc_count *
 		(size_t)config->sm_count_per_tpc *
-		sizeof(struct sm_info);
+		sizeof(struct nvgpu_sm_info);
 
 	if (config->sm_to_cluster == NULL) {
 		config->sm_to_cluster = nvgpu_kzalloc(g, sm_info_size);
@@ -608,51 +608,51 @@ void nvgpu_gr_config_set_no_of_sm(struct nvgpu_gr_config *config, u32 no_of_sm)
 	config->no_of_sm = no_of_sm;
 }
 
-struct sm_info *nvgpu_gr_config_get_sm_info(struct nvgpu_gr_config *config,
+struct nvgpu_sm_info *nvgpu_gr_config_get_sm_info(struct nvgpu_gr_config *config,
 	u32 sm_id)
 {
 	return &config->sm_to_cluster[sm_id];
 }
 
-u32 nvgpu_gr_config_get_sm_info_gpc_index(struct sm_info *sm_info)
+u32 nvgpu_gr_config_get_sm_info_gpc_index(struct nvgpu_sm_info *sm_info)
 {
 	return sm_info->gpc_index;
 }
 
-void nvgpu_gr_config_set_sm_info_gpc_index(struct sm_info *sm_info,
+void nvgpu_gr_config_set_sm_info_gpc_index(struct nvgpu_sm_info *sm_info,
 	u32 gpc_index)
 {
 	sm_info->gpc_index = gpc_index;
 }
 
-u32 nvgpu_gr_config_get_sm_info_tpc_index(struct sm_info *sm_info)
+u32 nvgpu_gr_config_get_sm_info_tpc_index(struct nvgpu_sm_info *sm_info)
 {
 	return sm_info->tpc_index;
 }
 
-void nvgpu_gr_config_set_sm_info_tpc_index(struct sm_info *sm_info,
+void nvgpu_gr_config_set_sm_info_tpc_index(struct nvgpu_sm_info *sm_info,
 	u32 tpc_index)
 {
 	sm_info->tpc_index = tpc_index;
 }
 
-u32 nvgpu_gr_config_get_sm_info_global_tpc_index(struct sm_info *sm_info)
+u32 nvgpu_gr_config_get_sm_info_global_tpc_index(struct nvgpu_sm_info *sm_info)
 {
 	return sm_info->global_tpc_index;
 }
 
-void nvgpu_gr_config_set_sm_info_global_tpc_index(struct sm_info *sm_info,
+void nvgpu_gr_config_set_sm_info_global_tpc_index(struct nvgpu_sm_info *sm_info,
 	u32 global_tpc_index)
 {
 	sm_info->global_tpc_index = global_tpc_index;
 }
 
-u32 nvgpu_gr_config_get_sm_info_sm_index(struct sm_info *sm_info)
+u32 nvgpu_gr_config_get_sm_info_sm_index(struct nvgpu_sm_info *sm_info)
 {
 	return sm_info->sm_index;
 }
 
-void nvgpu_gr_config_set_sm_info_sm_index(struct sm_info *sm_info,
+void nvgpu_gr_config_set_sm_info_sm_index(struct nvgpu_sm_info *sm_info,
 	u32 sm_index)
 {
 	sm_info->sm_index = sm_index;

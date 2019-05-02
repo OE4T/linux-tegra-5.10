@@ -375,7 +375,7 @@ static int vgpu_gr_init_gr_config(struct gk20a *g, struct nvgpu_gr *gr)
 	gr->config->sm_to_cluster = nvgpu_kzalloc(g, config->gpc_count *
 					  config->max_tpc_per_gpc_count *
 					  sm_per_tpc *
-					  sizeof(struct sm_info));
+					  sizeof(struct nvgpu_sm_info));
 	if (!gr->config->sm_to_cluster) {
 		goto cleanup;
 	}
@@ -1116,7 +1116,7 @@ int vgpu_gr_init_sm_id_table(struct gk20a *g, struct nvgpu_gr_config *gr_config)
 	struct tegra_vgpu_vsms_mapping_params *p = &msg.params.vsms_mapping;
 	struct tegra_vgpu_vsms_mapping_entry *entry;
 	struct vgpu_priv_data *priv = vgpu_get_priv_data(g);
-	struct sm_info *sm_info;
+	struct nvgpu_sm_info *sm_info;
 	int err;
 	size_t oob_size;
 	void *handle = NULL;
