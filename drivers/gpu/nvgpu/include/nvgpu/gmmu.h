@@ -114,16 +114,23 @@ struct gk20a_mmu_level {
 
 static inline const char *nvgpu_gmmu_perm_str(enum gk20a_mem_rw_flag p)
 {
+	const char *str;
+
 	switch (p) {
 	case gk20a_mem_flag_none:
-		return "RW";
+		str = "RW";
+		break;
 	case gk20a_mem_flag_write_only:
-		return "WO";
+		str = "WO";
+		break;
 	case gk20a_mem_flag_read_only:
-		return "RO";
+		str = "RO";
+		break;
 	default:
-		return "??";
+		str = "??";
+		break;
 	}
+	return str;
 }
 
 int nvgpu_gmmu_init_page_table(struct vm_gk20a *vm);
