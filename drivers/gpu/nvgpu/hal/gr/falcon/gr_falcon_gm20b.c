@@ -607,6 +607,8 @@ static int gm20b_gr_falcon_ctx_wait_ucode(struct gk20a *g, u32 mailbox_id,
 			   mailbox_id, reg);
 		g->ops.gr.falcon.dump_stats(g);
 		return -1;
+	} else {
+		nvgpu_log_info(g, "fecs mailbox return success");
 	}
 
 	nvgpu_log_fn(g, "done");
@@ -1006,6 +1008,8 @@ u32 gm20b_gr_falcon_fecs_host_intr_status(struct gk20a *g,
 	} else if ((gr_fecs_intr &
 		    gr_fecs_host_int_status_fault_during_ctxsw_f(1)) != 0U) {
 		fecs_host_intr->fault_during_ctxsw_active = true;
+	} else {
+		nvgpu_log_info(g, "un-handled fecs intr: 0x%x", gr_fecs_intr);
 	}
 
 	return gr_fecs_intr;
