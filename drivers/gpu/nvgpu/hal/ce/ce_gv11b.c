@@ -32,7 +32,6 @@
 #include "hal/ce/ce_gv11b.h"
 
 #include <nvgpu/hw/gv11b/hw_ce_gv11b.h>
-#include <nvgpu/hw/gv11b/hw_top_gv11b.h>
 
 void nvgpu_report_ce_error(struct gk20a *g, u32 inst,
 		u32 err_type, u32 status)
