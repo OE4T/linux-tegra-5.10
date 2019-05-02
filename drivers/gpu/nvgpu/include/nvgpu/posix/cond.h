@@ -69,14 +69,14 @@ void nvgpu_cond_unlock(struct nvgpu_cond *cond);
  * Wait for a condition to become true. Returns -ETIMEOUT if
  * the wait timed out with condition false.
  */
-#define NVGPU_COND_WAIT(cond, condition, timeout_ms)		\
-({								\
-	int ret = 0;						\
-	nvgpu_mutex_acquire(&(cond)->mutex);			\
-	NVGPU_COND_WAIT_TIMEOUT_LOCKED(cond, condition, ret,	\
-		timeout_ms ? timeout_ms : (unsigned int)-1);	\
-	nvgpu_mutex_release(&(cond)->mutex);			\
-	ret;							\
+#define NVGPU_COND_WAIT(cond, condition, timeout_ms)			\
+({									\
+	int ret = 0;							\
+	nvgpu_mutex_acquire(&(cond)->mutex);				\
+	NVGPU_COND_WAIT_TIMEOUT_LOCKED((cond), (condition), (ret),	\
+		(timeout_ms) ? (timeout_ms) : ((unsigned int)-1));	\
+	nvgpu_mutex_release(&(cond)->mutex);				\
+	ret;								\
 })
 
 /**
