@@ -26,7 +26,6 @@
 #define NVGPU_PMU_CLK_VF_POINT_H
 
 #include <nvgpu/types.h>
-#include <nvgpu/pmu/pmuif/ctrlclk.h>
 
 struct gk20a;
 struct boardobjgrp_e255;
