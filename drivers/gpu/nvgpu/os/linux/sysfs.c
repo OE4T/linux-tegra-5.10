@@ -463,6 +463,7 @@ static ssize_t ldiv_slowdown_factor_store(struct device *dev,
 	struct device_attribute *attr, const char *buf, size_t count)
 {
 	struct gk20a *g = get_gk20a(dev);
+	struct nvgpu_pmu *pmu = &g->pmu;
 	unsigned long val = 0;
 	int err;
 
@@ -489,10 +490,9 @@ static ssize_t ldiv_slowdown_factor_store(struct device *dev,
 
 		g->ldiv_slowdown_factor = val;
 
-		if (g->ops.pmu.pmu_pg_init_param)
-			g->ops.pmu.pmu_pg_init_param(g,
+		if (pmu->pg->init_param)
+			pmu->pg->init_param(g,
 				PMU_PG_ELPG_ENGINE_ID_GRAPHICS);
-
 		gk20a_idle(g);
 	}
 
@@ -536,7 +536,7 @@ static ssize_t mscg_enable_store(struct device *dev,
 		 */
 		if (val && !g->mscg_enabled) {
 			g->mscg_enabled = true;
-			if (g->ops.pmu.pmu_is_lpwr_feature_supported(g,
+			if (nvgpu_pmu_is_lpwr_feature_supported(g,
 					PMU_PG_LPWR_FEATURE_MSCG)) {
 				if (!ACCESS_ONCE(pmu->pg->mscg_stat)) {
 					WRITE_ONCE(pmu->pg->mscg_stat,
@@ -547,7 +547,7 @@ static ssize_t mscg_enable_store(struct device *dev,
 			}
 
 		} else if (!val && g->mscg_enabled) {
-			if (g->ops.pmu.pmu_is_lpwr_feature_supported(g,
+			if (nvgpu_pmu_is_lpwr_feature_supported(g,
 					PMU_PG_LPWR_FEATURE_MSCG)) {
 				nvgpu_pmu_pg_global_enable(g, false);
 				WRITE_ONCE(pmu->pg->mscg_stat, PMU_MSCG_DISABLED);

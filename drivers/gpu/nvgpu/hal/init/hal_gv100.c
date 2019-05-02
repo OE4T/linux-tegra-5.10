@@ -1034,7 +1034,6 @@ static const struct gpu_ops gv100_ops = {
 		.pmu_get_queue_head_size = pwr_pmu_queue_head__size_1_v,
 		.pmu_reset = nvgpu_pmu_reset,
 		.pmu_queue_head = gk20a_pmu_queue_head,
-		.pmu_pg_param_post_init = nvgpu_lpwr_post_init,
 		.pmu_get_queue_tail_size = pwr_pmu_queue_tail__size_1_v,
 		.reset_engine = gp106_pmu_engine_reset,
 		.write_dmatrfbase = gp10b_write_dmatrfbase,

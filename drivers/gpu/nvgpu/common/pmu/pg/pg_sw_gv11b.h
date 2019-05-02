@@ -20,8 +20,8 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NVGPU_PG_SW_GV11B_H
-#define NVGPU_PG_SW_GV11B_H
+#ifndef NVGPU_PMU_PG_SW_GV11B_H
+#define NVGPU_PMU_PG_SW_GV11B_H
 
 #include <nvgpu/types.h>
 
@@ -29,5 +29,6 @@ struct gk20a;
 
 int gv11b_pg_gr_init(struct gk20a *g, u32 pg_engine_id);
 int gv11b_pg_set_subfeature_mask(struct gk20a *g, u32 pg_engine_id);
+void nvgpu_gv11b_pg_sw_init(struct gk20a *g, struct nvgpu_pmu_pg *pg);
 
-#endif /* NVGPU_PG_SW_GV11B_H */
+#endif /* NVGPU_PMU_PG_SW_GV11B_H */

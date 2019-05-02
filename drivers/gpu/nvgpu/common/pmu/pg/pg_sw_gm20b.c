@@ -109,3 +109,17 @@ int gm20b_pmu_elpg_statistics(struct gk20a *g, u32 pg_engine_id,
 
 	return err;
 }
+
+void nvgpu_gm20b_pg_sw_init(struct gk20a *g,
+		struct nvgpu_pmu_pg *pg)
+{
+	pg->elpg_statistics = gm20b_pmu_elpg_statistics;
+	pg->init_param = NULL;
+	pg->supported_engines_list = gm20b_pmu_pg_engines_list;
+	pg->engines_feature_list = gm20b_pmu_pg_feature_list;
+	pg->is_lpwr_feature_supported = NULL;
+	pg->lpwr_enable_pg = NULL;
+	pg->lpwr_disable_pg = NULL;
+	pg->param_post_init = NULL;
+	pg->save_zbc = gm20b_pmu_save_zbc;
+}

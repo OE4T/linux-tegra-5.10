@@ -1016,13 +1016,8 @@ static const struct gpu_ops gv11b_ops = {
 		.pmu_mutex_acquire = gk20a_pmu_mutex_acquire,
 		.pmu_mutex_release = gk20a_pmu_mutex_release,
 		/* power-gating */
-		.pmu_pg_init_param = gv11b_pg_gr_init,
 		.pmu_setup_elpg = gv11b_pmu_setup_elpg,
 		.pmu_pg_idle_counter_config = gk20a_pmu_pg_idle_counter_config,
-		.pmu_pg_supported_engines_list = gm20b_pmu_pg_engines_list,
-		.pmu_pg_engines_feature_list = gm20b_pmu_pg_feature_list,
-		.pmu_pg_set_sub_feature_mask = gv11b_pg_set_subfeature_mask,
-		.pmu_elpg_statistics = gp106_pmu_elpg_statistics,
 		.pmu_dump_elpg_stats = gk20a_pmu_dump_elpg_stats,
 		/* perfmon */
 		.pmu_init_perfmon_counter = gk20a_pmu_init_perfmon_counter,
@@ -1033,8 +1028,7 @@ static const struct gpu_ops gv11b_ops = {
 		/* debug */
 		.dump_secure_fuses = pmu_dump_security_fuses_gm20b,
 		.pmu_dump_falcon_stats = gk20a_pmu_dump_falcon_stats,
-		/* PMU uocde */
-		.save_zbc = gm20b_pmu_save_zbc,
+		/* PMU ucode */
 		.pmu_clear_bar0_host_err_status =
 			gm20b_clear_pmu_bar0_host_err_status,
 		.bar0_error_status = gk20a_pmu_bar0_error_status,

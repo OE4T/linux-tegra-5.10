@@ -35,6 +35,7 @@
 
 struct nvgpu_pmu;
 struct vm_gk20a;
+struct pmu_pg_stats_data;
 
 /*PG defines used by nvpgu-pmu*/
 #define PMU_PG_IDLE_THRESHOLD_SIM		1000U
@@ -83,6 +84,20 @@ struct nvgpu_pmu_pg {
 	bool golden_image_initialized;
 	u32 mscg_stat;
 	u32 mscg_transition_state;
+	int (*elpg_statistics)(struct gk20a *g, u32 pg_engine_id,
+		struct pmu_pg_stats_data *pg_stat_data);
+	int (*init_param)(struct gk20a *g, u32 pg_engine_id);
+	int (*set_sub_feature_mask)(struct gk20a *g,
+		u32 pg_engine_id);
+	u32 (*supported_engines_list)(struct gk20a *g);
+	u32 (*engines_feature_list)(struct gk20a *g,
+		u32 pg_engine_id);
+	bool (*is_lpwr_feature_supported)(struct gk20a *g,
+		u32 feature_id);
+	int (*lpwr_enable_pg)(struct gk20a *g, bool pstate_lock);
+	int (*lpwr_disable_pg)(struct gk20a *g, bool pstate_lock);
+	int (*param_post_init)(struct gk20a *g);
+	void (*save_zbc)(struct gk20a *g, u32 entries);
 };
 
 /*PG defines used by nvpgu-pmu*/
@@ -119,5 +134,11 @@ int nvgpu_pmu_ap_send_command(struct gk20a *g,
 		union pmu_ap_cmd *p_ap_cmd, bool b_block);
 
 void nvgpu_pmu_set_golden_image_initialized(struct gk20a *g, bool initialized);
+
+/* PG ops*/
+int nvgpu_pmu_elpg_statistics(struct gk20a *g, u32 pg_engine_id,
+		struct pmu_pg_stats_data *pg_stat_data);
+void nvgpu_pmu_save_zbc(struct gk20a *g, u32 entries);
+bool nvgpu_pmu_is_lpwr_feature_supported(struct gk20a *g, u32 feature_id);
 
 #endif /* NVGPU_PMU_PG_H */

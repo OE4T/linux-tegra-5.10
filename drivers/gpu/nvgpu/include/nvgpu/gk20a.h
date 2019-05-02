@@ -1423,21 +1423,6 @@ struct gpu_ops {
 		 * PMU RTOS FW version ops, should move under struct nvgpu_pmu's
 		 * pg/perfmon unit struct ops
 		 */
-		/* pg */
-		int (*pmu_elpg_statistics)(struct gk20a *g, u32 pg_engine_id,
-			struct pmu_pg_stats_data *pg_stat_data);
-		int (*pmu_pg_init_param)(struct gk20a *g, u32 pg_engine_id);
-		int (*pmu_pg_set_sub_feature_mask)(struct gk20a *g,
-			u32 pg_engine_id);
-		u32 (*pmu_pg_supported_engines_list)(struct gk20a *g);
-		u32 (*pmu_pg_engines_feature_list)(struct gk20a *g,
-			u32 pg_engine_id);
-		bool (*pmu_is_lpwr_feature_supported)(struct gk20a *g,
-			u32 feature_id);
-		int (*pmu_lpwr_enable_pg)(struct gk20a *g, bool pstate_lock);
-		int (*pmu_lpwr_disable_pg)(struct gk20a *g, bool pstate_lock);
-		int (*pmu_pg_param_post_init)(struct gk20a *g);
-		void (*save_zbc)(struct gk20a *g, u32 entries);
 	} pmu;
 	struct {
 		int (*init_debugfs)(struct gk20a *g);

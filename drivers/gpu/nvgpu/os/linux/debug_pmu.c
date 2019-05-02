@@ -25,9 +25,10 @@
 static int lpwr_debug_show(struct seq_file *s, void *data)
 {
 	struct gk20a *g = s->private;
+	struct nvgpu_pmu *pmu = &g->pmu;
 
-	if (g->ops.pmu.pmu_pg_engines_feature_list &&
-		g->ops.pmu.pmu_pg_engines_feature_list(g,
+	if (pmu->pg->engines_feature_list &&
+		pmu->pg->engines_feature_list(g,
 		PMU_PG_ELPG_ENGINE_ID_GRAPHICS) !=
 		NVGPU_PMU_GR_FEATURE_MASK_POWER_GATING) {
 		seq_printf(s, "PSTATE: %u\n"

@@ -26,6 +26,8 @@
 #include <nvgpu/pmu/cmd.h>
 
 #include "pg_sw_gv11b.h"
+#include "pg_sw_gp106.h"
+#include "pg_sw_gm20b.h"
 
 static void pmu_handle_pg_sub_feature_msg(struct gk20a *g, struct pmu_msg *msg,
 			void *param, u32 status)
@@ -124,4 +126,15 @@ int gv11b_pg_set_subfeature_mask(struct gk20a *g, u32 pg_engine_id)
 	}
 
 	return 0;
+}
+
+void nvgpu_gv11b_pg_sw_init(struct gk20a *g,
+		struct nvgpu_pmu_pg *pg)
+{
+	pg->elpg_statistics = gp106_pmu_elpg_statistics;
+	pg->init_param = gv11b_pg_gr_init;
+	pg->supported_engines_list = gm20b_pmu_pg_engines_list;
+	pg->engines_feature_list = gm20b_pmu_pg_feature_list;
+	pg->set_sub_feature_mask = gv11b_pg_set_subfeature_mask;
+	pg->save_zbc = gm20b_pmu_save_zbc;
 }

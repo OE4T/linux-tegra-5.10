@@ -27,6 +27,7 @@
 #include <nvgpu/pmu/cmd.h>
 
 #include "pg_sw_gp10b.h"
+#include "pg_sw_gm20b.h"
 
 static void pmu_handle_gr_param_msg(struct gk20a *g, struct pmu_msg *msg,
 				void *param, u32 status)
@@ -99,4 +100,14 @@ int gp10b_pmu_elpg_statistics(struct gk20a *g, u32 pg_engine_id,
 	pg_stat_data->avg_exit_latency_us = stats.exitlatency_avgus;
 
 	return err;
+}
+
+void nvgpu_gp10b_pg_sw_init(struct gk20a *g,
+		struct nvgpu_pmu_pg *pg)
+{
+	pg->elpg_statistics = gp10b_pmu_elpg_statistics;
+	pg->init_param = gp10b_pg_gr_init;
+	pg->supported_engines_list = gm20b_pmu_pg_engines_list;
+	pg->engines_feature_list = gm20b_pmu_pg_feature_list;
+	pg->save_zbc = gm20b_pmu_save_zbc;
 }

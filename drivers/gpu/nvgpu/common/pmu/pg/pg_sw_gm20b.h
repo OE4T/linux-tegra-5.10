@@ -20,8 +20,8 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NVGPU_PG_SW_GM20B_H
-#define NVGPU_PG_SW_GM20B_H
+#ifndef NVGPU_PMU_PG_SW_GM20B_H
+#define NVGPU_PMU_PG_SW_GM20B_H
 
 #include <nvgpu/types.h>
 
@@ -35,5 +35,7 @@ u32 gm20b_pmu_pg_feature_list(struct gk20a *g, u32 pg_engine_id);
 void gm20b_pmu_save_zbc(struct gk20a *g, u32 entries);
 int gm20b_pmu_elpg_statistics(struct gk20a *g, u32 pg_engine_id,
 	struct pmu_pg_stats_data *pg_stat_data);
+void nvgpu_gm20b_pg_sw_init(struct gk20a *g,
+		struct nvgpu_pmu_pg *pg);
 
-#endif /* NVGPU_PG_SW_GM20B_H */
+#endif /* NVGPU_PMU_PG_SW_GM20B_H */
