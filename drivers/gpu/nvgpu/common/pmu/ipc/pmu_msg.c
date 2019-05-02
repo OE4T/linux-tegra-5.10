@@ -161,7 +161,7 @@ static int pmu_response_handle(struct nvgpu_pmu *pmu,
 
 	nvgpu_log_fn(g, " ");
 
-	seq = nvgpu_pmu_sequences_get_seq(&pmu->sequences, msg->hdr.seq_id);
+	seq = nvgpu_pmu_sequences_get_seq(pmu->sequences, msg->hdr.seq_id);
 	state = nvgpu_pmu_seq_get_state(seq);
 	id = nvgpu_pmu_seq_get_id(seq);
 
@@ -190,7 +190,7 @@ exit:
 
 	nvgpu_pmu_seq_callback(g, seq, msg, err);
 
-	nvgpu_pmu_seq_release(g, &pmu->sequences, seq);
+	nvgpu_pmu_seq_release(g, pmu->sequences, seq);
 
 	/* TBD: notify client waiting for available dmem */
 

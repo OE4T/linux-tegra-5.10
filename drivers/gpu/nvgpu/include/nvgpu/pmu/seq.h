@@ -30,6 +30,7 @@ struct nvgpu_engine_fb_queue;
 struct nvgpu_mem;
 struct pmu_msg;
 struct gk20a;
+struct nvgpu_pmu;;
 
 #define PMU_MAX_NUM_SEQUENCES		(256U)
 #define PMU_SEQ_BIT_SHIFT		(5U)
@@ -91,16 +92,13 @@ struct pmu_sequences {
 	unsigned long pmu_seq_tbl[PMU_SEQ_TBL_SIZE];
 };
 
-void *nvgpu_get_pmu_sequence_in_alloc_ptr_v3(struct pmu_sequence *seq);
-void *nvgpu_get_pmu_sequence_in_alloc_ptr_v1(struct pmu_sequence *seq);
-void *nvgpu_get_pmu_sequence_out_alloc_ptr_v3(struct pmu_sequence *seq);
-void *nvgpu_get_pmu_sequence_out_alloc_ptr_v1(struct pmu_sequence *seq);
+void nvgpu_pmu_sequences_sw_setup(struct gk20a *g, struct nvgpu_pmu *pmu,
+	struct pmu_sequences *sequences);
+int nvgpu_pmu_sequences_init(struct gk20a *g, struct nvgpu_pmu *pmu,
+	struct pmu_sequences **sequences_p);
+void nvgpu_pmu_sequences_deinit(struct gk20a *g, struct nvgpu_pmu *pmu,
+	struct pmu_sequences *sequences);
 
-int nvgpu_pmu_sequences_alloc(struct gk20a *g,
-			      struct pmu_sequences *sequences);
-void nvgpu_pmu_sequences_free(struct gk20a *g,
-			      struct pmu_sequences *sequences);
-void nvgpu_pmu_sequences_init(struct pmu_sequences *sequences);
 void nvgpu_pmu_seq_payload_free(struct gk20a *g, struct pmu_sequence *seq);
 int nvgpu_pmu_seq_acquire(struct gk20a *g,
 			  struct pmu_sequences *sequences,

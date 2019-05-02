@@ -25,59 +25,16 @@
 #include <nvgpu/errno.h>
 #include <nvgpu/kmem.h>
 #include <nvgpu/bug.h>
+#include <nvgpu/pmu.h>
 
-void *nvgpu_get_pmu_sequence_in_alloc_ptr_v3(struct pmu_sequence *seq)
-{
-	return (void *)(&seq->in_v3);
-}
+struct nvgpu_pmu;
 
-void *nvgpu_get_pmu_sequence_in_alloc_ptr_v1(struct pmu_sequence *seq)
-{
-	return (void *)(&seq->in_v1);
-}
-
-void *nvgpu_get_pmu_sequence_out_alloc_ptr_v3(struct pmu_sequence *seq)
-{
-	return (void *)(&seq->out_v3);
-}
-
-void *nvgpu_get_pmu_sequence_out_alloc_ptr_v1(struct pmu_sequence *seq)
-{
-	return (void *)(&seq->out_v1);
-}
-
-int nvgpu_pmu_sequences_alloc(struct gk20a *g,
-			      struct pmu_sequences *sequences)
-{
-	int err;
-
-	sequences->seq = nvgpu_kzalloc(g, PMU_MAX_NUM_SEQUENCES *
-				       sizeof(struct pmu_sequence));
-	if (sequences->seq == NULL) {
-		return -ENOMEM;
-	}
-
-	err = nvgpu_mutex_init(&sequences->pmu_seq_lock);
-	if (err != 0) {
-		nvgpu_kfree(g, sequences->seq);
-		return err;
-	}
-
-	return 0;
-}
-
-void nvgpu_pmu_sequences_free(struct gk20a *g,
-		struct pmu_sequences *sequences)
-{
-	nvgpu_mutex_destroy(&sequences->pmu_seq_lock);
-	if (sequences->seq != NULL) {
-		nvgpu_kfree(g, sequences->seq);
-	}
-}
-
-void nvgpu_pmu_sequences_init(struct pmu_sequences *sequences)
+void nvgpu_pmu_sequences_sw_setup(struct gk20a *g, struct nvgpu_pmu *pmu,
+	struct pmu_sequences *sequences)
 {
 	u32 i;
+
+	nvgpu_log_fn(g, " ");
 
 	(void) memset(sequences->seq, 0,
 		sizeof(struct pmu_sequence) * PMU_MAX_NUM_SEQUENCES);
@@ -87,6 +44,63 @@ void nvgpu_pmu_sequences_init(struct pmu_sequences *sequences)
 	for (i = 0; i < PMU_MAX_NUM_SEQUENCES; i++) {
 		sequences->seq[i].id = (u8)i;
 	}
+}
+
+int nvgpu_pmu_sequences_init(struct gk20a *g, struct nvgpu_pmu *pmu,
+	struct pmu_sequences **sequences_p)
+{
+	int err = 0;
+	struct pmu_sequences *sequences;
+
+	nvgpu_log_fn(g, " ");
+
+	if (*sequences_p != NULL) {
+		/* skip alloc/reinit for unrailgate sequence */
+		nvgpu_pmu_dbg(g, "skip sequences init for unrailgate sequence");
+		goto exit;
+	}
+
+	sequences = (struct pmu_sequences *)
+		nvgpu_kzalloc(g, sizeof(struct pmu_sequences));
+	if (sequences == NULL) {
+		err = -ENOMEM;
+		goto exit;
+	}
+
+	sequences->seq = (struct pmu_sequence *)
+		nvgpu_kzalloc(g, PMU_MAX_NUM_SEQUENCES *
+			sizeof(struct pmu_sequence));
+	if (sequences->seq == NULL) {
+		nvgpu_kfree(g, sequences);
+		return -ENOMEM;
+	}
+
+	err = nvgpu_mutex_init(&sequences->pmu_seq_lock);
+	if (err != 0) {
+		nvgpu_kfree(g, sequences->seq);
+		nvgpu_kfree(g, sequences);
+		return err;
+	}
+
+	*sequences_p = sequences;
+exit:
+	return err;
+}
+
+void nvgpu_pmu_sequences_deinit(struct gk20a *g, struct nvgpu_pmu *pmu,
+	struct pmu_sequences *sequences)
+{
+	nvgpu_log_fn(g, " ");
+
+	if (sequences == NULL) {
+		return;
+	}
+
+	nvgpu_mutex_destroy(&sequences->pmu_seq_lock);
+	if (sequences->seq != NULL) {
+		nvgpu_kfree(g, sequences->seq);
+	}
+	nvgpu_kfree(g, sequences);
 }
 
 void nvgpu_pmu_seq_payload_free(struct gk20a *g, struct pmu_sequence *seq)

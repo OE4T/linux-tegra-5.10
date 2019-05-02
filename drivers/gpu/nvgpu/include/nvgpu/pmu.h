@@ -155,7 +155,7 @@ struct nvgpu_pmu {
 	struct pmu_sha1_gid gid_info;
 
 	struct pmu_queues queues;
-	struct pmu_sequences sequences;
+	struct pmu_sequences *sequences;
 
 	struct pmu_mutexes mutexes;
 

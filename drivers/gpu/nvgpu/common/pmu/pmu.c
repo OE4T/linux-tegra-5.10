@@ -161,9 +161,11 @@ static int nvgpu_init_pmu_setup_sw(struct gk20a *g)
 		}
 	}
 
+	/* set default value to sequences */
+	nvgpu_pmu_sequences_sw_setup(g, pmu, pmu->sequences);
+
 	if (pmu->sw_ready) {
 		nvgpu_pmu_mutexes_init(&pmu->mutexes);
-		nvgpu_pmu_sequences_init(&pmu->sequences);
 
 		nvgpu_log_fn(g, "skip init");
 		goto skip_init;
@@ -176,23 +178,11 @@ static int nvgpu_init_pmu_setup_sw(struct gk20a *g)
 
 	nvgpu_pmu_mutexes_init(&pmu->mutexes);
 
-	err = nvgpu_pmu_sequences_alloc(g, &pmu->sequences);
-	if (err != 0) {
-		goto err_free_mutex;
-	}
-
-	nvgpu_pmu_sequences_init(&pmu->sequences);
-
-	if (err != 0) {
-		nvgpu_err(g, "failed to allocate memory");
-		goto err_free_seq;
-	}
-
 	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_PMU_SUPER_SURFACE)) {
 		err = nvgpu_pmu_super_surface_buf_alloc(g,
 				pmu, pmu->super_surface);
 		if (err != 0) {
-			goto err_free_seq;
+			goto err_free_mutex;
 		}
 	}
 
@@ -213,8 +203,7 @@ skip_init:
 		nvgpu_dma_unmap_free(vm, nvgpu_pmu_super_surface_mem(g,
 			pmu, pmu->super_surface));
 	}
- err_free_seq:
-	nvgpu_pmu_sequences_free(g, &pmu->sequences);
+
  err_free_mutex:
 	nvgpu_pmu_mutexes_free(g, &pmu->mutexes);
  err:
@@ -360,7 +349,7 @@ static void nvgpu_remove_pmu_support(struct nvgpu_pmu *pmu)
 	nvgpu_pmu_pg_deinit(g, pmu, pmu->pg);
 
 	nvgpu_mutex_destroy(&pmu->isr_mutex);
-	nvgpu_pmu_sequences_free(g, &pmu->sequences);
+	nvgpu_pmu_sequences_deinit(g, pmu, pmu->sequences);
 	nvgpu_pmu_mutexes_free(g, &pmu->mutexes);
 }
 
@@ -402,6 +391,12 @@ int nvgpu_early_init_pmu_sw(struct gk20a *g, struct nvgpu_pmu *pmu)
 	if (err != 0) {
 		goto init_failed;
 	}
+
+	err = nvgpu_pmu_sequences_init(g, pmu, &pmu->sequences);
+	if (err != 0) {
+		goto init_failed;
+	}
+
 	if (g->can_elpg) {
 		err = nvgpu_pmu_pg_init(g, pmu, &pmu->pg);
 		if (err != 0) {

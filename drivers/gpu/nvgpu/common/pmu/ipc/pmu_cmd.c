@@ -600,7 +600,7 @@ int nvgpu_pmu_cmd_post(struct gk20a *g, struct pmu_cmd *cmd,
 		return -EINVAL;
 	}
 
-	err = nvgpu_pmu_seq_acquire(g, &pmu->sequences, &seq, callback,
+	err = nvgpu_pmu_seq_acquire(g, pmu->sequences, &seq, callback,
 				    cb_param);
 	if (err != 0) {
 		return err;
@@ -624,7 +624,7 @@ int nvgpu_pmu_cmd_post(struct gk20a *g, struct pmu_cmd *cmd,
 		err = pmu_fbq_cmd_setup(g, cmd, fb_queue, payload, seq);
 		if (err != 0) {
 			nvgpu_err(g, "FBQ cmd setup failed");
-			nvgpu_pmu_seq_release(g, &pmu->sequences, seq);
+			nvgpu_pmu_seq_release(g, pmu->sequences, seq);
 			goto exit;
 		}
 
@@ -651,7 +651,7 @@ int nvgpu_pmu_cmd_post(struct gk20a *g, struct pmu_cmd *cmd,
 		pmu->fw.ops.allocation_set_dmem_size(pmu,
 			pmu->fw.ops.get_seq_out_alloc_ptr(seq), 0);
 
-		nvgpu_pmu_seq_release(g, &pmu->sequences, seq);
+		nvgpu_pmu_seq_release(g, pmu->sequences, seq);
 		goto exit;
 	}
 
