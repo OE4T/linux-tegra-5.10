@@ -31,6 +31,7 @@
 #include <nvgpu/mm.h>
 #include <nvgpu/acr.h>
 #include <nvgpu/pmu/lsfm.h>
+#include <nvgpu/pmu/pmu_pg.h>
 #include <nvgpu/sec2/lsfm.h>
 #include <nvgpu/dma.h>
 #include <nvgpu/safe_ops.h>

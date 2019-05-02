@@ -25,6 +25,7 @@
 #include <nvgpu/pmu/lpwr.h>
 #include <nvgpu/pmu/cmd.h>
 #include <nvgpu/bug.h>
+#include <nvgpu/pmu/pmu_pg.h>
 
 #include "pg_sw_gm20b.h"
 

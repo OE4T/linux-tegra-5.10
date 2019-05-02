@@ -36,6 +36,7 @@
 #include <nvgpu/pmu/msg.h>
 #include <nvgpu/pmu/fw.h>
 #include <nvgpu/pmu/allocator.h>
+#include <nvgpu/pmu/seq.h>
 
 static bool pmu_validate_in_out_payload(struct nvgpu_pmu *pmu, struct pmu_cmd *cmd,
 					struct pmu_in_out_payload_desc *payload)

@@ -32,6 +32,7 @@
 #include <nvgpu/power_features/pg.h>
 #include <nvgpu/pmu/pmu_perfmon.h>
 #include <nvgpu/pmu/fw.h>
+#include <nvgpu/pmu/pmu_pg.h>
 
 #include "os_linux.h"
 #include "sysfs.h"

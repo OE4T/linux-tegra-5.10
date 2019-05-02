@@ -26,6 +26,7 @@
 #include <nvgpu/bug.h>
 #include <nvgpu/pmu/cmd.h>
 #include <nvgpu/clk_arb.h>
+#include <nvgpu/pmu/pmu_pg.h>
 
 #include "pg_sw_gp106.h"
 

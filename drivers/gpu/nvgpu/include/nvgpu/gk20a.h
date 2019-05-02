@@ -89,6 +89,7 @@ struct nvgpu_fecs_ecc_status;
 struct _resmgr_context;
 struct nvgpu_gpfifo_entry;
 struct vm_gk20a_mapping_batch;
+struct pmu_pg_stats_data;
 
 enum nvgpu_unit;
 enum nvgpu_flush_op;

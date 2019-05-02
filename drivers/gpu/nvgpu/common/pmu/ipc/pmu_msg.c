@@ -30,6 +30,7 @@
 #include <nvgpu/pmu/super_surface.h>
 #include <nvgpu/pmu/pmu_perfmon.h>
 #include <nvgpu/pmu/fw.h>
+#include <nvgpu/pmu/seq.h>
 
 static int pmu_payload_extract(struct nvgpu_pmu *pmu, struct pmu_sequence *seq)
 {

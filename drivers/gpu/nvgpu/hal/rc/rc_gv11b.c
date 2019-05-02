@@ -38,6 +38,7 @@
 #include <nvgpu/power_features/power_features.h>
 #include <nvgpu/gr/fecs_trace.h>
 #include <nvgpu/preempt.h>
+#include <nvgpu/pmu/mutex.h>
 
 #include "rc_gv11b.h"
 

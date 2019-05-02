@@ -27,13 +27,10 @@
 #include <nvgpu/allocator.h>
 #include <nvgpu/lock.h>
 #include <nvgpu/nvgpu_common.h>
+#include <nvgpu/nvgpu_mem.h>
 #include <nvgpu/flcnif_cmn.h>
-#include <nvgpu/pmu/pmuif/nvgpu_cmdif.h>
 #include <nvgpu/falcon.h>
 #include <nvgpu/timers.h>
-#include <nvgpu/pmu/pmu_pg.h>
-#include <nvgpu/pmu/seq.h>
-#include <nvgpu/pmu/mutex.h>
 #include <nvgpu/pmu/queue.h>
 #include <nvgpu/pmu/msg.h>
 #include <nvgpu/pmu/fw.h>

@@ -15,6 +15,7 @@
 #include <nvgpu/enabled.h>
 #include <nvgpu/pmu/pmu_perfmon.h>
 #include <nvgpu/pmu/debug.h>
+#include <nvgpu/pmu/pmu_pg.h>
 
 #include "debug_pmu.h"
 #include "os_linux.h"

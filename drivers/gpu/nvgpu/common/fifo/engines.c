@@ -26,6 +26,7 @@
 #include <nvgpu/timers.h>
 #include <nvgpu/bitops.h>
 #include <nvgpu/pmu.h>
+#include <nvgpu/pmu/mutex.h>
 #include <nvgpu/runlist.h>
 #include <nvgpu/engines.h>
 #include <nvgpu/engine_status.h>

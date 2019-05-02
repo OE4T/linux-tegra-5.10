@@ -30,6 +30,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/pmu/allocator.h>
 #include <nvgpu/pmu/fw.h>
+#include <nvgpu/pmu/pmu_pg.h>
 
 /* PMU NS UCODE IMG */
 #define NVGPU_PMU_NS_UCODE_IMAGE	"gpmu_ucode.bin"

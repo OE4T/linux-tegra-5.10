@@ -33,6 +33,7 @@
 #include <nvgpu/dma.h>
 #include <nvgpu/pmu/fw.h>
 #include <nvgpu/pmu/debug.h>
+#include <nvgpu/pmu/pmu_pg.h>
 
 #include "pg_sw_gm20b.h"
 #include "pg_sw_gv11b.h"

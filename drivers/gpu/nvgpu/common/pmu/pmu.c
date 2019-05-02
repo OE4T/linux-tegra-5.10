@@ -22,19 +22,13 @@
 
 #include <nvgpu/pmu.h>
 #include <nvgpu/pmu/pmu_pg.h>
-#include <nvgpu/dma.h>
 #include <nvgpu/pmu/mutex.h>
 #include <nvgpu/pmu/seq.h>
 #include <nvgpu/log.h>
-#include <nvgpu/pmu/pmuif/nvgpu_cmdif.h>
 #include <nvgpu/enabled.h>
-#include <nvgpu/engine_queue.h>
-#include <nvgpu/barrier.h>
-#include <nvgpu/timers.h>
 #include <nvgpu/bug.h>
 #include <nvgpu/utils.h>
 #include <nvgpu/gk20a.h>
-#include <nvgpu/string.h>
 #include <nvgpu/power_features/cg.h>
 #include <nvgpu/nvgpu_err.h>
 #include <nvgpu/pmu/lsfm.h>
@@ -43,7 +37,6 @@
 #include <nvgpu/pmu/pmu_perfmon.h>
 #include <nvgpu/pmu/pmu_pg.h>
 #include <nvgpu/pmu/fw.h>
-#include <nvgpu/firmware.h>
 #include <nvgpu/pmu/debug.h>
 #include <nvgpu/boardobj.h>
 #include <nvgpu/boardobjgrp.h>

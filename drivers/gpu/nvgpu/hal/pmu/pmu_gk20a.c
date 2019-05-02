@@ -29,6 +29,7 @@
 #include <nvgpu/pmu/mutex.h>
 #include <nvgpu/pmu/fw.h>
 #include <nvgpu/pmu/debug.h>
+#include <nvgpu/pmu/pmu_pg.h>
 
 #include <nvgpu/hw/gk20a/hw_pwr_gk20a.h>
 #include <nvgpu/hw/gk20a/hw_mc_gk20a.h>
