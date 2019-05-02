@@ -88,6 +88,10 @@ out:
 
 static void intr_set_host_clocks_per_usec(struct nvhost_intr *intr, u32 cpm)
 {
+	struct nvhost_master *dev = intr_to_dev(intr);
+	/* program AXI timeout */
+	host1x_hypervisor_writel(dev->dev,
+			host1x_sync_ip_busy_timeout_r(), cpm * 10000);
 }
 
 static void intr_set_syncpt_threshold(struct nvhost_intr *intr,
