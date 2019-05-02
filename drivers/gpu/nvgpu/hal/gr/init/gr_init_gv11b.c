@@ -455,8 +455,9 @@ int gv11b_gr_init_rop_mapping(struct gk20a *g,
 			      struct nvgpu_gr_config *gr_config)
 {
 	u32 map;
-	u32 i, j;
-	u32 mapreg_num, base, offset, mapregs, tile_cnt, tpc_cnt;
+	u32 i, j = 1U;
+	u32 base = 0U;
+	u32 mapreg_num, offset, mapregs, tile_cnt, tpc_cnt;
 	u32 num_gpcs = nvgpu_get_litter_value(g, GPU_LIT_NUM_GPCS);
 	u32 num_tpc_per_gpc = nvgpu_get_litter_value(g,
 				GPU_LIT_NUM_TPC_PER_GPC);
@@ -481,12 +482,11 @@ int gv11b_gr_init_rop_mapping(struct gk20a *g,
 	 */
 	mapregs = DIV_ROUND_UP(num_tpcs, GR_TPCS_INFO_FOR_MAPREGISTER);
 
-	for (mapreg_num = 0U, base = 0U; mapreg_num < mapregs; mapreg_num++,
-				base = base + GR_TPCS_INFO_FOR_MAPREGISTER) {
+	for (mapreg_num = 0U; mapreg_num < mapregs; mapreg_num++) {
 		map = 0U;
-		for (offset = 0U;
-		      (offset < GR_TPCS_INFO_FOR_MAPREGISTER && num_tpcs > 0U);
-		      offset++, num_tpcs--) {
+		offset = 0U;
+		while ((offset < GR_TPCS_INFO_FOR_MAPREGISTER)
+			&& (num_tpcs > 0U)) {
 			tile_cnt = nvgpu_gr_config_get_map_tile_count(
 						gr_config, base + offset);
 			switch (offset) {
@@ -513,11 +513,15 @@ int gv11b_gr_init_rop_mapping(struct gk20a *g,
 					  offset);
 				break;
 			}
+			num_tpcs--;
+			offset++;
 		}
 
 		nvgpu_writel(g, gr_crstr_gpc_map_r(mapreg_num), map);
 		nvgpu_writel(g, gr_ppcs_wwdx_map_gpc_map_r(mapreg_num), map);
 		nvgpu_writel(g, gr_rstr2d_gpc_map_r(mapreg_num), map);
+
+		base = base + GR_TPCS_INFO_FOR_MAPREGISTER;
 	}
 
 	nvgpu_writel(g, gr_ppcs_wwdx_map_table_cfg_r(),
@@ -526,8 +530,7 @@ int gv11b_gr_init_rop_mapping(struct gk20a *g,
 		gr_ppcs_wwdx_map_table_cfg_num_entries_f(
 			nvgpu_gr_config_get_tpc_count(gr_config)));
 
-	for (i = 0U, j = 1U; i < gr_ppcs_wwdx_map_table_cfg_coeff__size_1_v();
-					i++, j = j + 4U) {
+	for (i = 0U; i < gr_ppcs_wwdx_map_table_cfg_coeff__size_1_v(); i++) {
 		tpc_cnt = nvgpu_gr_config_get_tpc_count(gr_config);
 		nvgpu_writel(g, gr_ppcs_wwdx_map_table_cfg_coeff_r(i),
 			gr_ppcs_wwdx_map_table_cfg_coeff_0_mod_value_f(
@@ -538,6 +541,7 @@ int gv11b_gr_init_rop_mapping(struct gk20a *g,
 				(BIT32(j + 2U) % tpc_cnt)) |
 			gr_ppcs_wwdx_map_table_cfg_coeff_3_mod_value_f(
 				(BIT32(j + 3U) % tpc_cnt)));
+			j = j + 4U;
 	}
 
 	nvgpu_writel(g, gr_rstr2d_map_table_cfg_r(),
