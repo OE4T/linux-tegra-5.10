@@ -431,7 +431,6 @@ static int nvgpu_submit_channel_gpfifo(struct nvgpu_channel *c,
 		 *   behavior of the clean-up operation non-deterministic
 		 *   (should not be performed in the submit path)
 		 * - channel wdt
-		 * - GPU rail-gating with non-deterministic channels
 		 * - buffer refcounting
 		 *
 		 * If none of the conditions are met, then deferred clean-up
@@ -441,8 +440,6 @@ static int nvgpu_submit_channel_gpfifo(struct nvgpu_channel *c,
 		need_deferred_cleanup = !c->deterministic ||
 					need_sync_framework ||
 					c->wdt.enabled ||
-					(nvgpu_is_enabled(g, NVGPU_CAN_RAILGATE) &&
-					 !c->deterministic) ||
 					!skip_buffer_refcounting;
 
 		/*
