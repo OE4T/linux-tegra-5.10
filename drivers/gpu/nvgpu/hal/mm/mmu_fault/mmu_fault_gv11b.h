@@ -1,5 +1,4 @@
 /*
- * GV11B MM
  * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
