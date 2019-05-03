@@ -56,7 +56,7 @@ static bool pmu_validate_in_out_payload(struct nvgpu_pmu *pmu, struct pmu_cmd *c
 
 	size = PMU_CMD_HDR_SIZE;
 	size += payload->offset;
-	size += pmu->fw.ops.get_allocation_struct_size(pmu);
+	size += pmu->fw->ops.get_allocation_struct_size(pmu);
 
 	if (size > cmd->hdr.size) {
 		return false;
@@ -248,7 +248,7 @@ static int pmu_cmd_payload_setup_rpc(struct gk20a *g, struct pmu_cmd *cmd,
 	struct pmu_payload *payload, struct pmu_sequence *seq)
 {
 	struct nvgpu_pmu *pmu = &g->pmu;
-	struct pmu_fw_ver_ops *fw_ops = &g->pmu.fw.ops;
+	struct pmu_fw_ver_ops *fw_ops = &g->pmu.fw->ops;
 	struct nvgpu_engine_fb_queue *queue = nvgpu_pmu_seq_get_cmd_queue(seq);
 	struct falcon_payload_alloc alloc;
 	int err = 0;
@@ -291,10 +291,10 @@ static int pmu_cmd_payload_setup_rpc(struct gk20a *g, struct pmu_cmd *cmd,
 	cmd->cmd.rpc.rpc_dmem_ptr  = alloc.dmem_offset;
 
 	nvgpu_pmu_seq_set_out_payload(seq, payload->rpc.prpc);
-	g->pmu.fw.ops.allocation_set_dmem_size(pmu,
+	g->pmu.fw->ops.allocation_set_dmem_size(pmu,
 		fw_ops->get_seq_out_alloc_ptr(seq),
 		payload->rpc.size_rpc);
-	g->pmu.fw.ops.allocation_set_dmem_offset(pmu,
+	g->pmu.fw->ops.allocation_set_dmem_offset(pmu,
 		fw_ops->get_seq_out_alloc_ptr(seq),
 		alloc.dmem_offset);
 
@@ -313,7 +313,7 @@ static int pmu_cmd_in_payload_setup(struct gk20a *g, struct pmu_cmd *cmd,
 {
 	struct nvgpu_engine_fb_queue *fb_queue =
 				nvgpu_pmu_seq_get_cmd_queue(seq);
-	struct pmu_fw_ver_ops *fw_ops = &g->pmu.fw.ops;
+	struct pmu_fw_ver_ops *fw_ops = &g->pmu.fw->ops;
 	struct falcon_payload_alloc alloc;
 	struct nvgpu_pmu *pmu = &g->pmu;
 	void *in = NULL;
@@ -407,7 +407,7 @@ static int pmu_cmd_in_payload_setup(struct gk20a *g, struct pmu_cmd *cmd,
 static int pmu_cmd_out_payload_setup(struct gk20a *g, struct pmu_cmd *cmd,
 	struct pmu_payload *payload, struct pmu_sequence *seq)
 {
-	struct pmu_fw_ver_ops *fw_ops = &g->pmu.fw.ops;
+	struct pmu_fw_ver_ops *fw_ops = &g->pmu.fw->ops;
 	struct falcon_payload_alloc alloc;
 	struct nvgpu_pmu *pmu = &g->pmu;
 	void *in = NULL, *out = NULL;
@@ -481,7 +481,7 @@ static int pmu_cmd_out_payload_setup(struct gk20a *g, struct pmu_cmd *cmd,
 static int pmu_cmd_payload_setup(struct gk20a *g, struct pmu_cmd *cmd,
 	struct pmu_payload *payload, struct pmu_sequence *seq)
 {
-	struct pmu_fw_ver_ops *fw_ops = &g->pmu.fw.ops;
+	struct pmu_fw_ver_ops *fw_ops = &g->pmu.fw->ops;
 	struct nvgpu_pmu *pmu = &g->pmu;
 	void *in = NULL;
 	int err = 0;
@@ -680,10 +680,10 @@ int nvgpu_pmu_cmd_post(struct gk20a *g, struct pmu_cmd *cmd,
 
 	if (err != 0) {
 		nvgpu_err(g, "payload setup failed");
-		pmu->fw.ops.allocation_set_dmem_size(pmu,
-			pmu->fw.ops.get_seq_in_alloc_ptr(seq), 0);
-		pmu->fw.ops.allocation_set_dmem_size(pmu,
-			pmu->fw.ops.get_seq_out_alloc_ptr(seq), 0);
+		pmu->fw->ops.allocation_set_dmem_size(pmu,
+			pmu->fw->ops.get_seq_in_alloc_ptr(seq), 0);
+		pmu->fw->ops.allocation_set_dmem_size(pmu,
+			pmu->fw->ops.get_seq_out_alloc_ptr(seq), 0);
 
 		nvgpu_pmu_seq_release(g, pmu->sequences, seq);
 		goto exit;

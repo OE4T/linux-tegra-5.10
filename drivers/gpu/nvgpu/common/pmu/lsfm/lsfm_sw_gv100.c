@@ -115,23 +115,23 @@ int gv100_update_lspmu_cmdline_args_copy(struct gk20a *g,
 	}
 
 	cmd_line_args_offset = dmem_size -
-		pmu->fw.ops.get_cmd_line_args_size(pmu);
+		pmu->fw->ops.get_cmd_line_args_size(pmu);
 
 	/*Copying pmu cmdline args*/
-	pmu->fw.ops.set_cmd_line_args_cpu_freq(pmu, 0U);
-	pmu->fw.ops.set_cmd_line_args_secure_mode(pmu, 1U);
-	pmu->fw.ops.set_cmd_line_args_trace_size(
+	pmu->fw->ops.set_cmd_line_args_cpu_freq(pmu, 0U);
+	pmu->fw->ops.set_cmd_line_args_secure_mode(pmu, 1U);
+	pmu->fw->ops.set_cmd_line_args_trace_size(
 		pmu, GK20A_PMU_TRACE_BUFSIZE);
-	pmu->fw.ops.set_cmd_line_args_trace_dma_base(pmu);
-	pmu->fw.ops.set_cmd_line_args_trace_dma_idx(
+	pmu->fw->ops.set_cmd_line_args_trace_dma_base(pmu);
+	pmu->fw->ops.set_cmd_line_args_trace_dma_idx(
 		pmu, GK20A_PMU_DMAIDX_VIRT);
-	if (pmu->fw.ops.config_cmd_line_args_super_surface != NULL) {
-		pmu->fw.ops.config_cmd_line_args_super_surface(pmu);
+	if (pmu->fw->ops.config_cmd_line_args_super_surface != NULL) {
+		pmu->fw->ops.config_cmd_line_args_super_surface(pmu);
 	}
 
 	return nvgpu_falcon_copy_to_dmem(&pmu->flcn, cmd_line_args_offset,
-		(u8 *)(pmu->fw.ops.get_cmd_line_args_ptr(pmu)),
-		pmu->fw.ops.get_cmd_line_args_size(pmu), 0U);
+		(u8 *)(pmu->fw->ops.get_cmd_line_args_ptr(pmu)),
+		pmu->fw->ops.get_cmd_line_args_size(pmu), 0U);
 }
 
 void nvgpu_gv100_lsfm_sw_init(struct gk20a *g, struct nvgpu_pmu_lsfm *lsfm)

@@ -52,7 +52,7 @@ void nvgpu_pmu_fw_get_cmd_line_args_offset(struct gk20a *g,
 		return;
 	}
 
-	*args_offset = dmem_size - pmu->fw.ops.get_cmd_line_args_size(pmu);
+	*args_offset = dmem_size - pmu->fw->ops.get_cmd_line_args_size(pmu);
 }
 
 void nvgpu_pmu_fw_state_change(struct gk20a *g, struct nvgpu_pmu *pmu,
@@ -61,7 +61,7 @@ void nvgpu_pmu_fw_state_change(struct gk20a *g, struct nvgpu_pmu *pmu,
 	nvgpu_pmu_dbg(g, "pmu_state - %d", pmu_state);
 
 	nvgpu_smp_wmb();
-	pmu->fw.state = pmu_state;
+	pmu->fw->state = pmu_state;
 
 	if (post_change_event) {
 		if (g->can_elpg) {
@@ -73,7 +73,7 @@ void nvgpu_pmu_fw_state_change(struct gk20a *g, struct nvgpu_pmu *pmu,
 
 u32 nvgpu_pmu_get_fw_state(struct gk20a *g, struct nvgpu_pmu *pmu)
 {
-	u32 state = pmu->fw.state;
+	u32 state = pmu->fw->state;
 	nvgpu_smp_rmb();
 
 	return state;
@@ -83,12 +83,12 @@ void nvgpu_pmu_set_fw_ready(struct gk20a *g, struct nvgpu_pmu *pmu,
 	bool status)
 {
 	nvgpu_smp_wmb();
-	pmu->fw.ready = status;
+	pmu->fw->ready = status;
 }
 
 bool nvgpu_pmu_get_fw_ready(struct gk20a *g, struct nvgpu_pmu *pmu)
 {
-	bool state = pmu->fw.ready;
+	bool state = pmu->fw->ready;
 	nvgpu_smp_rmb();
 
 	return state;
@@ -136,7 +136,7 @@ int nvgpu_pmu_wait_fw_ready(struct gk20a *g, struct nvgpu_pmu *pmu)
 
 	status = nvgpu_pmu_wait_fw_ack_status(g, pmu,
 				nvgpu_get_poll_timeout(g),
-				&pmu->fw.ready, (u8)true);
+				&pmu->fw->ready, (u8)true);
 	if (status != 0) {
 		nvgpu_err(g, "PMU is not ready yet");
 	}
@@ -144,59 +144,55 @@ int nvgpu_pmu_wait_fw_ready(struct gk20a *g, struct nvgpu_pmu *pmu)
 	return status;
 }
 
-void nvgpu_pmu_fw_release(struct gk20a *g, struct nvgpu_pmu *pmu)
+static void pmu_fw_release(struct gk20a *g, struct pmu_rtos_fw *rtos_fw)
 {
 	struct mm_gk20a *mm = &g->mm;
 	struct vm_gk20a *vm = mm->pmu.vm;
 
 	nvgpu_log_fn(g, " ");
 
-	if (pmu->fw.fw_sig != NULL) {
-		nvgpu_release_firmware(g, pmu->fw.fw_sig);
+	if (rtos_fw->fw_sig != NULL) {
+		nvgpu_release_firmware(g, rtos_fw->fw_sig);
 	}
 
-	if (pmu->fw.fw_desc != NULL) {
-		nvgpu_release_firmware(g, pmu->fw.fw_desc);
+	if (rtos_fw->fw_desc != NULL) {
+		nvgpu_release_firmware(g, rtos_fw->fw_desc);
 	}
 
-	if (pmu->fw.fw_image != NULL) {
-		nvgpu_release_firmware(g, pmu->fw.fw_image);
+	if (rtos_fw->fw_image != NULL) {
+		nvgpu_release_firmware(g, rtos_fw->fw_image);
 	}
 
-	if (nvgpu_mem_is_valid(&pmu->fw.ucode)) {
-		nvgpu_dma_unmap_free(vm, &pmu->fw.ucode);
+	if (nvgpu_mem_is_valid(&rtos_fw->ucode)) {
+		nvgpu_dma_unmap_free(vm, &rtos_fw->ucode);
 	}
 }
 
 struct nvgpu_firmware *nvgpu_pmu_fw_sig_desc(struct gk20a *g,
 	struct nvgpu_pmu *pmu)
 {
-	return pmu->fw.fw_sig;
+	return pmu->fw->fw_sig;
 }
 
 struct nvgpu_firmware *nvgpu_pmu_fw_desc_desc(struct gk20a *g,
 	struct nvgpu_pmu *pmu)
 {
-	return pmu->fw.fw_desc;
+	return pmu->fw->fw_desc;
 }
 
 struct nvgpu_firmware *nvgpu_pmu_fw_image_desc(struct gk20a *g,
 	struct nvgpu_pmu *pmu)
 {
-	return pmu->fw.fw_image;
+	return pmu->fw->fw_image;
 }
 
-int nvgpu_pmu_init_pmu_fw(struct gk20a *g, struct nvgpu_pmu *pmu)
+static int pmu_fw_read_and_init_ops(struct gk20a *g, struct nvgpu_pmu *pmu,
+	struct pmu_rtos_fw *rtos_fw)
 {
-	struct pmu_rtos_fw *rtos_fw = &pmu->fw;
 	struct pmu_ucode_desc *desc;
 	int err = 0;
 
 	nvgpu_log_fn(g, " ");
-
-	if (rtos_fw->fw_image != NULL) {
-		goto exit;
-	}
 
 	if (!nvgpu_is_enabled(g, NVGPU_SEC_PRIVSECURITY)) {
 		/* non-secure PMU boot uocde */
@@ -262,4 +258,45 @@ release_img_fw:
 	nvgpu_release_firmware(g, rtos_fw->fw_image);
 exit:
 	return err;
+}
+
+int nvgpu_pmu_init_pmu_fw(struct gk20a *g, struct nvgpu_pmu *pmu,
+	struct pmu_rtos_fw **rtos_fw_p)
+{
+	struct pmu_rtos_fw *rtos_fw = NULL;
+	int err;
+
+	if (*rtos_fw_p != NULL) {
+		/* skip alloc/reinit for unrailgate sequence */
+		nvgpu_pmu_dbg(g, "skip fw init for unrailgate sequence");
+		return 0;
+	}
+
+	rtos_fw = (struct pmu_rtos_fw *)
+		nvgpu_kzalloc(g, sizeof(struct pmu_rtos_fw));
+	if (rtos_fw == NULL) {
+		err = -ENOMEM;
+		goto exit;
+	}
+
+	*rtos_fw_p = rtos_fw;
+
+	err = pmu_fw_read_and_init_ops(g, pmu, rtos_fw);
+
+exit:
+	return err;
+}
+
+void nvgpu_pmu_fw_deinit(struct gk20a *g, struct nvgpu_pmu *pmu,
+	struct pmu_rtos_fw *rtos_fw)
+{
+	nvgpu_log_fn(g, " ");
+
+	if (rtos_fw == NULL) {
+		return;
+	}
+
+	pmu_fw_release(g, rtos_fw);
+
+	nvgpu_kfree(g, rtos_fw);
 }

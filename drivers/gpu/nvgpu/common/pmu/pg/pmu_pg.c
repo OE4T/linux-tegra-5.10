@@ -670,20 +670,20 @@ static int pmu_pg_init_bind_fecs(struct gk20a *g, struct nvgpu_pmu *pmu,
 	cmd.hdr.unit_id = PMU_UNIT_PG;
 	nvgpu_assert(PMU_CMD_HDR_SIZE < U32(U8_MAX));
 	cmd.hdr.size = U8(PMU_CMD_HDR_SIZE) +
-			pmu->fw.ops.pg_cmd_eng_buf_load_size(&cmd.cmd.pg);
-	pmu->fw.ops.pg_cmd_eng_buf_load_set_cmd_type(&cmd.cmd.pg,
+			pmu->fw->ops.pg_cmd_eng_buf_load_size(&cmd.cmd.pg);
+	pmu->fw->ops.pg_cmd_eng_buf_load_set_cmd_type(&cmd.cmd.pg,
 			PMU_PG_CMD_ID_ENG_BUF_LOAD);
-	pmu->fw.ops.pg_cmd_eng_buf_load_set_engine_id(&cmd.cmd.pg,
+	pmu->fw->ops.pg_cmd_eng_buf_load_set_engine_id(&cmd.cmd.pg,
 			gr_engine_id);
-	pmu->fw.ops.pg_cmd_eng_buf_load_set_buf_idx(&cmd.cmd.pg,
+	pmu->fw->ops.pg_cmd_eng_buf_load_set_buf_idx(&cmd.cmd.pg,
 			PMU_PGENG_GR_BUFFER_IDX_FECS);
-	pmu->fw.ops.pg_cmd_eng_buf_load_set_buf_size(&cmd.cmd.pg,
+	pmu->fw->ops.pg_cmd_eng_buf_load_set_buf_size(&cmd.cmd.pg,
 			pmu->pg->pg_buf.size);
-	pmu->fw.ops.pg_cmd_eng_buf_load_set_dma_base(&cmd.cmd.pg,
+	pmu->fw->ops.pg_cmd_eng_buf_load_set_dma_base(&cmd.cmd.pg,
 			u64_lo32(pmu->pg->pg_buf.gpu_va));
-	pmu->fw.ops.pg_cmd_eng_buf_load_set_dma_offset(&cmd.cmd.pg,
+	pmu->fw->ops.pg_cmd_eng_buf_load_set_dma_offset(&cmd.cmd.pg,
 			(u8)(pmu->pg->pg_buf.gpu_va & 0xFFU));
-	pmu->fw.ops.pg_cmd_eng_buf_load_set_dma_idx(&cmd.cmd.pg,
+	pmu->fw->ops.pg_cmd_eng_buf_load_set_dma_idx(&cmd.cmd.pg,
 			PMU_DMAIDX_VIRT);
 
 	pg->buf_loaded = false;
@@ -712,20 +712,20 @@ static void pmu_pg_setup_hw_load_zbc(struct gk20a *g, struct nvgpu_pmu *pmu,
 	cmd.hdr.unit_id = PMU_UNIT_PG;
 	nvgpu_assert(PMU_CMD_HDR_SIZE < U32(U8_MAX));
 	cmd.hdr.size = U8(PMU_CMD_HDR_SIZE) +
-			pmu->fw.ops.pg_cmd_eng_buf_load_size(&cmd.cmd.pg);
-	pmu->fw.ops.pg_cmd_eng_buf_load_set_cmd_type(&cmd.cmd.pg,
+			pmu->fw->ops.pg_cmd_eng_buf_load_size(&cmd.cmd.pg);
+	pmu->fw->ops.pg_cmd_eng_buf_load_set_cmd_type(&cmd.cmd.pg,
 			PMU_PG_CMD_ID_ENG_BUF_LOAD);
-	pmu->fw.ops.pg_cmd_eng_buf_load_set_engine_id(&cmd.cmd.pg,
+	pmu->fw->ops.pg_cmd_eng_buf_load_set_engine_id(&cmd.cmd.pg,
 			gr_engine_id);
-	pmu->fw.ops.pg_cmd_eng_buf_load_set_buf_idx(&cmd.cmd.pg,
+	pmu->fw->ops.pg_cmd_eng_buf_load_set_buf_idx(&cmd.cmd.pg,
 			PMU_PGENG_GR_BUFFER_IDX_ZBC);
-	pmu->fw.ops.pg_cmd_eng_buf_load_set_buf_size(&cmd.cmd.pg,
+	pmu->fw->ops.pg_cmd_eng_buf_load_set_buf_size(&cmd.cmd.pg,
 			pmu->pg->seq_buf.size);
-	pmu->fw.ops.pg_cmd_eng_buf_load_set_dma_base(&cmd.cmd.pg,
+	pmu->fw->ops.pg_cmd_eng_buf_load_set_dma_base(&cmd.cmd.pg,
 			u64_lo32(pmu->pg->seq_buf.gpu_va));
-	pmu->fw.ops.pg_cmd_eng_buf_load_set_dma_offset(&cmd.cmd.pg,
+	pmu->fw->ops.pg_cmd_eng_buf_load_set_dma_offset(&cmd.cmd.pg,
 			(u8)(pmu->pg->seq_buf.gpu_va & 0xFFU));
-	pmu->fw.ops.pg_cmd_eng_buf_load_set_dma_idx(&cmd.cmd.pg,
+	pmu->fw->ops.pg_cmd_eng_buf_load_set_dma_idx(&cmd.cmd.pg,
 			PMU_DMAIDX_VIRT);
 
 	pg->buf_loaded = false;

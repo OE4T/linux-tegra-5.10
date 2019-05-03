@@ -32,7 +32,7 @@ static int pmu_prepare_ns_ucode_blob(struct gk20a *g)
 	struct mm_gk20a *mm = &g->mm;
 	struct vm_gk20a *vm = mm->pmu.vm;
 	struct pmu_ucode_desc *desc;
-	struct pmu_rtos_fw *rtos_fw = &pmu->fw;
+	struct pmu_rtos_fw *rtos_fw = pmu->fw;
 	u32 *ucode_image = NULL;
 	int err = 0;
 
@@ -42,12 +42,12 @@ static int pmu_prepare_ns_ucode_blob(struct gk20a *g)
 	ucode_image = (u32 *)(void *)((u8 *)desc + desc->descriptor_size);
 
 	err = nvgpu_dma_alloc_map_sys(vm, GK20A_PMU_UCODE_SIZE_MAX,
-			&pmu->fw.ucode);
+			&pmu->fw->ucode);
 	if (err != 0) {
 		goto exit;
 	}
 
-	nvgpu_mem_wr_n(g, &pmu->fw.ucode, 0, ucode_image,
+	nvgpu_mem_wr_n(g, &pmu->fw->ucode, 0, ucode_image,
 		desc->app_start_offset + desc->app_size);
 
 exit:
@@ -74,20 +74,20 @@ int nvgpu_pmu_ns_fw_bootstrap(struct gk20a *g, struct nvgpu_pmu *pmu)
 
 	g->ops.pmu.setup_apertures(g);
 
-	pmu->fw.ops.set_cmd_line_args_trace_size(
+	pmu->fw->ops.set_cmd_line_args_trace_size(
 		pmu, GK20A_PMU_TRACE_BUFSIZE);
-	pmu->fw.ops.set_cmd_line_args_trace_dma_base(pmu);
-	pmu->fw.ops.set_cmd_line_args_trace_dma_idx(
+	pmu->fw->ops.set_cmd_line_args_trace_dma_base(pmu);
+	pmu->fw->ops.set_cmd_line_args_trace_dma_idx(
 		pmu, GK20A_PMU_DMAIDX_VIRT);
 
-	pmu->fw.ops.set_cmd_line_args_cpu_freq(pmu,
+	pmu->fw->ops.set_cmd_line_args_cpu_freq(pmu,
 		g->ops.clk.get_rate(g, CTRL_CLK_DOMAIN_PWRCLK));
 
 	nvgpu_pmu_fw_get_cmd_line_args_offset(g, &args_offset);
 
 	nvgpu_falcon_copy_to_dmem(&pmu->flcn, args_offset,
-		(u8 *)(pmu->fw.ops.get_cmd_line_args_ptr(pmu)),
-		pmu->fw.ops.get_cmd_line_args_size(pmu), 0);
+		(u8 *)(pmu->fw->ops.get_cmd_line_args_ptr(pmu)),
+		pmu->fw->ops.get_cmd_line_args_size(pmu), 0);
 
 	return g->ops.pmu.pmu_ns_bootstrap(g, pmu, args_offset);
 }

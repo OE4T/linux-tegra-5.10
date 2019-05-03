@@ -173,21 +173,21 @@ int gm20b_pmu_lsfm_pmu_cmd_line_args_copy(struct gk20a *g,
 	}
 
 	cmd_line_args_offset = dmem_size -
-		pmu->fw.ops.get_cmd_line_args_size(pmu);
+		pmu->fw->ops.get_cmd_line_args_size(pmu);
 
 	/* Copying pmu cmdline args */
-	pmu->fw.ops.set_cmd_line_args_cpu_freq(pmu,
+	pmu->fw->ops.set_cmd_line_args_cpu_freq(pmu,
 		g->ops.clk.get_rate(g, CTRL_CLK_DOMAIN_PWRCLK));
-	pmu->fw.ops.set_cmd_line_args_secure_mode(pmu, 1U);
-	pmu->fw.ops.set_cmd_line_args_trace_size(
+	pmu->fw->ops.set_cmd_line_args_secure_mode(pmu, 1U);
+	pmu->fw->ops.set_cmd_line_args_trace_size(
 		pmu, GK20A_PMU_TRACE_BUFSIZE);
-	pmu->fw.ops.set_cmd_line_args_trace_dma_base(pmu);
-	pmu->fw.ops.set_cmd_line_args_trace_dma_idx(
+	pmu->fw->ops.set_cmd_line_args_trace_dma_base(pmu);
+	pmu->fw->ops.set_cmd_line_args_trace_dma_idx(
 		pmu, GK20A_PMU_DMAIDX_VIRT);
 
 	return nvgpu_falcon_copy_to_dmem(&pmu->flcn, cmd_line_args_offset,
-		(u8 *)(pmu->fw.ops.get_cmd_line_args_ptr(pmu)),
-		pmu->fw.ops.get_cmd_line_args_size(pmu), 0U);
+		(u8 *)(pmu->fw->ops.get_cmd_line_args_ptr(pmu)),
+		pmu->fw->ops.get_cmd_line_args_size(pmu), 0U);
 }
 
 void nvgpu_gm20b_lsfm_sw_init(struct gk20a *g, struct nvgpu_pmu_lsfm *lsfm)

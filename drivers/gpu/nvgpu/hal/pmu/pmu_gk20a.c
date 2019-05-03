@@ -684,13 +684,13 @@ int gk20a_pmu_ns_bootstrap(struct gk20a *g, struct nvgpu_pmu *pmu,
 		pwr_falcon_dmemc_blk_f(0)  |
 		pwr_falcon_dmemc_aincw_f(1));
 
-	addr_code = u64_lo32((pmu->fw.ucode.gpu_va +
+	addr_code = u64_lo32((pmu->fw->ucode.gpu_va +
 			desc->app_start_offset +
 			desc->app_resident_code_offset) >> 8) ;
-	addr_data = u64_lo32((pmu->fw.ucode.gpu_va +
+	addr_data = u64_lo32((pmu->fw->ucode.gpu_va +
 			desc->app_start_offset +
 			desc->app_resident_data_offset) >> 8);
-	addr_load = u64_lo32((pmu->fw.ucode.gpu_va +
+	addr_load = u64_lo32((pmu->fw->ucode.gpu_va +
 			desc->bootloader_start_offset) >> 8);
 
 	gk20a_writel(g, pwr_falcon_dmemd_r(0), GK20A_PMU_DMAIDX_UCODE);

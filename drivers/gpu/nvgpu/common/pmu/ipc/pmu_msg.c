@@ -36,7 +36,7 @@ static int pmu_payload_extract(struct nvgpu_pmu *pmu, struct pmu_sequence *seq)
 	struct nvgpu_engine_fb_queue *fb_queue =
 				nvgpu_pmu_seq_get_cmd_queue(seq);
 	struct gk20a *g = pmu->g;
-	struct pmu_fw_ver_ops *fw_ops = &g->pmu.fw.ops;
+	struct pmu_fw_ver_ops *fw_ops = &g->pmu.fw->ops;
 	u32 fbq_payload_offset = 0U;
 	int err = 0;
 
@@ -80,7 +80,7 @@ static void pmu_payload_free(struct nvgpu_pmu *pmu, struct pmu_sequence *seq)
 	struct nvgpu_engine_fb_queue *fb_queue =
 				nvgpu_pmu_seq_get_cmd_queue(seq);
 	struct gk20a *g = pmu->g;
-	struct pmu_fw_ver_ops *fw_ops = &g->pmu.fw.ops;
+	struct pmu_fw_ver_ops *fw_ops = &g->pmu.fw->ops;
 	struct nvgpu_mem *in_mem = nvgpu_pmu_seq_get_in_mem(seq);
 	struct nvgpu_mem *out_mem = nvgpu_pmu_seq_get_out_mem(seq);
 	void *seq_in_ptr = fw_ops->get_seq_in_alloc_ptr(seq);
@@ -419,7 +419,7 @@ static int pmu_process_init_msg(struct nvgpu_pmu *pmu,
 			struct pmu_msg *msg)
 {
 	struct gk20a *g = pmu->g;
-	struct pmu_fw_ver_ops *fw_ops = &g->pmu.fw.ops;
+	struct pmu_fw_ver_ops *fw_ops = &g->pmu.fw->ops;
 	union pmu_init_msg_pmu *init;
 	struct pmu_sha1_gid_data gid_data;
 	int err = 0;

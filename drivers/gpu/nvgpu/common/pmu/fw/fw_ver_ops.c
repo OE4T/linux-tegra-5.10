@@ -31,7 +31,6 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/boardobj.h>
 #include <nvgpu/boardobjgrp.h>
-//#include <nvgpu/pmu/pstate.h>
 #include <nvgpu/pmu/volt.h>
 #include <nvgpu/pmu/clk/clk.h>
 #include <nvgpu/pmu/pmu_perfmon.h>
@@ -86,9 +85,10 @@ static void pmu_set_perfmon_cntr_group_id_v2(struct nvgpu_pmu *pmu, u8 gid)
 
 static void pmu_set_cmd_line_args_trace_dma_base_v4(struct nvgpu_pmu *pmu)
 {
-	pmu->fw.args_v4.dma_addr.dma_base = ((u32)pmu->trace_buf.gpu_va)/0x100U;
-	pmu->fw.args_v4.dma_addr.dma_base1 = 0;
-	pmu->fw.args_v4.dma_addr.dma_offset = 0;
+	pmu->fw->args_v4.dma_addr.dma_base =
+		((u32)pmu->trace_buf.gpu_va)/0x100U;
+	pmu->fw->args_v4.dma_addr.dma_base1 = 0;
+	pmu->fw->args_v4.dma_addr.dma_offset = 0;
 }
 
 static u32 pmu_cmd_line_size_v4(struct nvgpu_pmu *pmu)
@@ -98,22 +98,22 @@ static u32 pmu_cmd_line_size_v4(struct nvgpu_pmu *pmu)
 
 static void pmu_set_cmd_line_args_cpu_freq_v4(struct nvgpu_pmu *pmu, u32 freq)
 {
-	pmu->fw.args_v4.cpu_freq_hz = freq;
+	pmu->fw->args_v4.cpu_freq_hz = freq;
 }
 static void pmu_set_cmd_line_args_secure_mode_v4(struct nvgpu_pmu *pmu, u8 val)
 {
-	pmu->fw.args_v4.secure_mode = val;
+	pmu->fw->args_v4.secure_mode = val;
 }
 
 static void pmu_set_cmd_line_args_trace_size_v4(
 			struct nvgpu_pmu *pmu, u32 size)
 {
-	pmu->fw.args_v4.falc_trace_size = size;
+	pmu->fw->args_v4.falc_trace_size = size;
 }
 static void pmu_set_cmd_line_args_trace_dma_idx_v4(
 			struct nvgpu_pmu *pmu, u32 idx)
 {
-	pmu->fw.args_v4.falc_trace_dma_idx = idx;
+	pmu->fw->args_v4.falc_trace_dma_idx = idx;
 }
 
 static u32 pmu_cmd_line_size_v6(struct nvgpu_pmu *pmu)
@@ -123,11 +123,11 @@ static u32 pmu_cmd_line_size_v6(struct nvgpu_pmu *pmu)
 
 static void pmu_set_cmd_line_args_cpu_freq_v5(struct nvgpu_pmu *pmu, u32 freq)
 {
-	pmu->fw.args_v5.cpu_freq_hz = 204000000;
+	pmu->fw->args_v5.cpu_freq_hz = 204000000;
 }
 static void pmu_set_cmd_line_args_secure_mode_v5(struct nvgpu_pmu *pmu, u8 val)
 {
-	pmu->fw.args_v5.secure_mode = val;
+	pmu->fw->args_v5.secure_mode = val;
 }
 
 static void pmu_set_cmd_line_args_trace_size_v5(
@@ -141,7 +141,7 @@ static void pmu_set_cmd_line_args_trace_dma_base_v5(struct nvgpu_pmu *pmu)
 	struct gk20a *g = pmu->g;
 
 	nvgpu_pmu_surface_describe(g, &pmu->trace_buf,
-		&pmu->fw.args_v5.trace_buf);
+		&pmu->fw->args_v5.trace_buf);
 }
 
 static void config_cmd_line_args_super_surface_v6(struct nvgpu_pmu *pmu)
@@ -151,7 +151,7 @@ static void config_cmd_line_args_super_surface_v6(struct nvgpu_pmu *pmu)
 	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_PMU_SUPER_SURFACE)) {
 		nvgpu_pmu_surface_describe(g,
 			nvgpu_pmu_super_surface_mem(g, pmu, pmu->super_surface),
-			&pmu->fw.args_v6.super_surface);
+			&pmu->fw->args_v6.super_surface);
 	}
 }
 
@@ -168,44 +168,44 @@ static u32 pmu_cmd_line_size_v3(struct nvgpu_pmu *pmu)
 
 static void pmu_set_cmd_line_args_cpu_freq_v3(struct nvgpu_pmu *pmu, u32 freq)
 {
-	pmu->fw.args_v3.cpu_freq_hz = freq;
+	pmu->fw->args_v3.cpu_freq_hz = freq;
 }
 static void pmu_set_cmd_line_args_secure_mode_v3(struct nvgpu_pmu *pmu, u8 val)
 {
-	pmu->fw.args_v3.secure_mode = val;
+	pmu->fw->args_v3.secure_mode = val;
 }
 
 static void pmu_set_cmd_line_args_trace_size_v3(
 			struct nvgpu_pmu *pmu, u32 size)
 {
-	pmu->fw.args_v3.falc_trace_size = size;
+	pmu->fw->args_v3.falc_trace_size = size;
 }
 
 static void pmu_set_cmd_line_args_trace_dma_base_v3(struct nvgpu_pmu *pmu)
 {
-	pmu->fw.args_v3.falc_trace_dma_base =
+	pmu->fw->args_v3.falc_trace_dma_base =
 		((u32)pmu->trace_buf.gpu_va)/0x100U;
 }
 
 static void pmu_set_cmd_line_args_trace_dma_idx_v3(
 			struct nvgpu_pmu *pmu, u32 idx)
 {
-	pmu->fw.args_v3.falc_trace_dma_idx = idx;
+	pmu->fw->args_v3.falc_trace_dma_idx = idx;
 }
 
 static void *pmu_get_cmd_line_args_ptr_v4(struct nvgpu_pmu *pmu)
 {
-	return (void *)(&pmu->fw.args_v4);
+	return (void *)(&pmu->fw->args_v4);
 }
 
 static void *pmu_get_cmd_line_args_ptr_v3(struct nvgpu_pmu *pmu)
 {
-	return (void *)(&pmu->fw.args_v3);
+	return (void *)(&pmu->fw->args_v3);
 }
 
 static void *pmu_get_cmd_line_args_ptr_v5(struct nvgpu_pmu *pmu)
 {
-	return (void *)(&pmu->fw.args_v5);
+	return (void *)(&pmu->fw->args_v5);
 }
 
 static u32 pmu_get_allocation_size_v3(struct nvgpu_pmu *pmu)
@@ -1118,7 +1118,7 @@ static void pmu_pg_cmd_eng_buf_load_set_dma_idx_v2(struct pmu_pg_cmd *pg,
 int nvgpu_pmu_init_fw_ver_ops(struct gk20a *g,
 	struct nvgpu_pmu *pmu, u32 app_version)
 {
-	struct pmu_fw_ver_ops *fw_ops = &pmu->fw.ops;
+	struct pmu_fw_ver_ops *fw_ops = &pmu->fw->ops;
 	int err = 0;
 
 	nvgpu_log_fn(g, " ");

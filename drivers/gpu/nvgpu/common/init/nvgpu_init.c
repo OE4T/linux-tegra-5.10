@@ -413,9 +413,9 @@ int gk20a_finalize_poweron(struct gk20a *g)
 		}
 	}
 
-	if ((g->pmu.fw.ops.clk.clk_set_boot_clk != NULL) &&
-			nvgpu_is_enabled(g, NVGPU_PMU_PSTATE)) {
-		err = g->pmu.fw.ops.clk.clk_set_boot_clk(g);
+	if (nvgpu_is_enabled(g, NVGPU_PMU_PSTATE) &&
+		(g->pmu.fw->ops.clk.clk_set_boot_clk != NULL)) {
+		err = g->pmu.fw->ops.clk.clk_set_boot_clk(g);
 		if (err != 0) {
 			nvgpu_err(g, "failed to set boot clk");
 			goto done;

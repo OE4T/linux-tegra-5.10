@@ -203,8 +203,10 @@ struct nvgpu_firmware *nvgpu_pmu_fw_desc_desc(struct gk20a *g,
 	struct nvgpu_pmu *pmu);
 struct nvgpu_firmware *nvgpu_pmu_fw_image_desc(struct gk20a *g,
 	struct nvgpu_pmu *pmu);
-void nvgpu_pmu_fw_release(struct gk20a *g, struct nvgpu_pmu *pmu);
-int nvgpu_pmu_init_pmu_fw(struct gk20a *g, struct nvgpu_pmu *pmu);
+void nvgpu_pmu_fw_deinit(struct gk20a *g, struct nvgpu_pmu *pmu,
+	struct pmu_rtos_fw *rtos_fw);
+int nvgpu_pmu_init_pmu_fw(struct gk20a *g, struct nvgpu_pmu *pmu,
+	struct pmu_rtos_fw **rtos_fw_p);
 int nvgpu_pmu_ns_fw_bootstrap(struct gk20a *g, struct nvgpu_pmu *pmu);
 
 #endif /* NVGPU_PMU_FW_H */

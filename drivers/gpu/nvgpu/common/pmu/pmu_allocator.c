@@ -31,7 +31,7 @@ void nvgpu_pmu_dmem_allocator_init(struct gk20a *g,
 	struct nvgpu_pmu *pmu, struct nvgpu_allocator *dmem,
 	union pmu_init_msg_pmu *init)
 {
-	struct pmu_fw_ver_ops *fw_ops = &pmu->fw.ops;
+	struct pmu_fw_ver_ops *fw_ops = &pmu->fw->ops;
 
 	if (!nvgpu_alloc_initialized(dmem)) {
 		/* Align start and end addresses */

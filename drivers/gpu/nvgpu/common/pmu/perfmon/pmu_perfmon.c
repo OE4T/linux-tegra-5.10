@@ -160,7 +160,7 @@ void nvgpu_pmu_deinitialize_perfmon(struct gk20a *g, struct nvgpu_pmu *pmu)
 int nvgpu_pmu_init_perfmon(struct nvgpu_pmu *pmu)
 {
 	struct gk20a *g = pmu->g;
-	struct pmu_fw_ver_ops *fw_ops = &pmu->fw.ops;
+	struct pmu_fw_ver_ops *fw_ops = &pmu->fw->ops;
 
 	struct pmu_cmd cmd;
 	struct pmu_payload payload;
@@ -246,7 +246,7 @@ int nvgpu_pmu_init_perfmon(struct nvgpu_pmu *pmu)
 int nvgpu_pmu_perfmon_start_sampling(struct nvgpu_pmu *pmu)
 {
 	struct gk20a *g = pmu->g;
-	struct pmu_fw_ver_ops *fw_ops = &pmu->fw.ops;
+	struct pmu_fw_ver_ops *fw_ops = &pmu->fw->ops;
 	struct pmu_cmd cmd;
 	struct pmu_payload payload;
 	int status;
