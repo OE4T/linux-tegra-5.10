@@ -147,7 +147,10 @@ int nvgpu_tsg_unbind_channel(struct tsg_gk20a *tsg, struct channel_gk20a *ch)
 
 		nvgpu_tsg_abort(g, tsg, true);
 		/* If channel unbind fails, channel is still part of runlist */
-		channel_gk20a_update_runlist(ch, false);
+		if (channel_gk20a_update_runlist(ch, false) != 0) {
+			nvgpu_err(g,
+				"remove ch %u from runlist failed", ch->chid);
+		}
 
 		nvgpu_rwsem_down_write(&tsg->ch_list_lock);
 		nvgpu_list_del(&ch->ch_entry);
