@@ -42,7 +42,7 @@
 static bool dummy_op_called[OP_NUMBER];
 static const char *ops_str[] = {
 	"alloc",
-	"free",
+	"free_alloc",
 	"alloc_pte",
 	"alloc_fixed",
 	"free fixed",
@@ -135,7 +135,7 @@ static void dummy_fini(struct nvgpu_allocator *allocator)
 
 static struct nvgpu_allocator_ops dummy_ops = {
 	.alloc            = dummy_alloc,
-	.free             = dummy_free,
+	.free_alloc       = dummy_free,
 	.alloc_pte        = dummy_alloc_pte,
 	.alloc_fixed      = dummy_alloc_fixed,
 	.free_fixed       = dummy_free_fixed,
@@ -271,7 +271,7 @@ static int test_nvgpu_alloc_common_init(struct unit_module *m,
 		unit_return_fail(m,
 			"common_init passes despite missing free(),fini()\n");
 
-	ops.free = dummy_free;
+	ops.free_alloc = dummy_free;
 	if (nvgpu_alloc_common_init(&a, NULL, "test", NULL, false, &ops) == 0)
 		unit_return_fail(m,
 			"common_init passes despite missing fini()\n");
@@ -305,7 +305,7 @@ static int test_nvgpu_alloc_destroy(struct unit_module *m,
 	struct nvgpu_allocator zero_a = { };
 	struct nvgpu_allocator_ops ops = {
 		.alloc = dummy_alloc,
-		.free = dummy_free,
+		.free_alloc = dummy_free,
 		.fini = dummy_fini,
 	};
 

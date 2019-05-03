@@ -101,7 +101,7 @@ static int test_nvgpu_bitmap_allocator_critical(struct unit_module *m,
 		goto fail;
 	}
 
-	na->ops->free(na, addr1);
+	na->ops->free_alloc(na, addr1);
 
 	na->ops->free_fixed(na, SZ_4K, SZ_8K);
 
@@ -162,9 +162,9 @@ static int test_nvgpu_bitmap_allocator_alloc(struct unit_module *m,
 	}
 	nvgpu_posix_enable_fault_injection(kmem_fi, false, 0);
 
-	na->ops->free(na, alloc3k);
+	na->ops->free_alloc(na, alloc3k);
 
-	na->ops->free(na, alloc3k);
+	na->ops->free_alloc(na, alloc3k);
 
 	alloc4k = na->ops->alloc(na, SZ_4K);
 	if (alloc4k == 0) {
@@ -221,7 +221,7 @@ static int test_nvgpu_bitmap_allocator_alloc(struct unit_module *m,
 			"freeing unaligned base didn't trigger BUG()\n");
 	}
 
-	na->ops->free(na, alloc4k);
+	na->ops->free_alloc(na, alloc4k);
 
 	/*
 	 * Allocate 4K

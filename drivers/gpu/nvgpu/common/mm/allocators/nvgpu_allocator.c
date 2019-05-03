@@ -83,7 +83,7 @@ u64 nvgpu_alloc_pte(struct nvgpu_allocator *a, u64 len, u32 page_size)
 
 void nvgpu_free(struct nvgpu_allocator *a, u64 addr)
 {
-	a->ops->free(a, addr);
+	a->ops->free_alloc(a, addr);
 }
 
 u64 nvgpu_alloc_fixed(struct nvgpu_allocator *a, u64 base, u64 len,
@@ -158,7 +158,8 @@ int nvgpu_alloc_common_init(struct nvgpu_allocator *a, struct gk20a *g,
 	 * This is the bare minimum operations required for a sensible
 	 * allocator.
 	 */
-	if (ops->alloc == NULL || ops->free == NULL || ops->fini == NULL) {
+	if (ops->alloc == NULL || ops->free_alloc == NULL ||
+							ops->fini == NULL) {
 		return -EINVAL;
 	}
 

@@ -267,7 +267,7 @@ static int test_page_free(struct unit_module *m, struct gk20a *g, void *args)
 	struct nvgpu_page_allocator *pa = page_allocator(na);
 
 	pa->flags |= param->flags;
-	na->ops->free(na, param->ret_addr);
+	na->ops->free_alloc(na, param->ret_addr);
 	pa->flags &= ~(param->flags);
 
 	return UNIT_SUCCESS;
@@ -430,7 +430,7 @@ static int test_page_allocator_sgt_ops(struct unit_module *m,
 
 	alloc->sgt.ops->sgt_free(g, &alloc->sgt);
 
-	na->ops->free(na, addr);
+	na->ops->free_alloc(na, addr);
 
 	return UNIT_SUCCESS;
 }
@@ -490,7 +490,7 @@ static int test_nvgpu_page_allocator_ops(struct unit_module *m,
 		unit_return_fail(m, "reserved carveout after alloc\n");
 	}
 
-	na->ops->free(na, addr);
+	na->ops->free_alloc(na, addr);
 
 	return UNIT_SUCCESS;
 }

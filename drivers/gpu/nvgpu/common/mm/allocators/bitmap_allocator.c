@@ -373,7 +373,7 @@ static void nvgpu_bitmap_print_stats(struct nvgpu_allocator *na,
 
 static const struct nvgpu_allocator_ops bitmap_ops = {
 	.alloc		= nvgpu_bitmap_balloc,
-	.free		= nvgpu_bitmap_free,
+	.free_alloc	= nvgpu_bitmap_free,
 
 	.alloc_fixed	= nvgpu_bitmap_balloc_fixed,
 	.free_fixed	= nvgpu_bitmap_free_fixed,

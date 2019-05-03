@@ -181,7 +181,7 @@ static int test_buddy_allocator_with_big_pages(struct unit_module *m,
 		goto fail;
 	}
 
-	na->ops->free(na, addr1);
+	na->ops->free_alloc(na, addr1);
 
 	/*
 	 * alloc_pte()
@@ -734,11 +734,11 @@ static int test_nvgpu_buddy_allocator_basic_ops(struct unit_module *m,
 
 	addr = na->ops->alloc(na, (SZ_64K >> 1));
 
-	na->ops->free(na, addr);
+	na->ops->free_alloc(na, addr);
 
-	na->ops->free(na, addr);
+	na->ops->free_alloc(na, addr);
 
-	na->ops->free(na, 0ULL);
+	na->ops->free_alloc(na, 0ULL);
 
 	/*
 	 * len = 2M (requesting more than available memory)
@@ -751,7 +751,7 @@ static int test_nvgpu_buddy_allocator_basic_ops(struct unit_module *m,
 
 	addr = na->ops->alloc_pte(na, (SZ_4K << 2), SZ_1K << 1);
 
-	na->ops->free(na, addr);
+	na->ops->free_alloc(na, addr);
 
 	/*
 	 * Unaligned base

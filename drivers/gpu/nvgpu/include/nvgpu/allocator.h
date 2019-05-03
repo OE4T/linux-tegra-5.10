@@ -51,7 +51,7 @@ struct nvgpu_allocator_ops {
 	u64  (*alloc)(struct nvgpu_allocator *allocator, u64 len);
 	u64  (*alloc_pte)(struct nvgpu_allocator *allocator, u64 len,
 			  u32 page_size);
-	void (*free)(struct nvgpu_allocator *allocator, u64 addr);
+	void (*free_alloc)(struct nvgpu_allocator *allocator, u64 addr);
 
 	/*
 	 * Special interface to allocate a memory region with a specific

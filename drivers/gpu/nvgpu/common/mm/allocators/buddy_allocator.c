@@ -1262,7 +1262,7 @@ static void nvgpu_buddy_print_stats(struct nvgpu_allocator *na,
 static const struct nvgpu_allocator_ops buddy_ops = {
 	.alloc		= nvgpu_buddy_balloc,
 	.alloc_pte	= nvgpu_buddy_balloc_pte,
-	.free		= nvgpu_buddy_bfree,
+	.free_alloc	= nvgpu_buddy_bfree,
 
 	.alloc_fixed	= nvgpu_balloc_fixed_buddy,
 	/* .free_fixed not needed. */

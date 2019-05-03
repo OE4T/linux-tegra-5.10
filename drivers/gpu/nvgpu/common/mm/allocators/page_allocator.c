@@ -955,7 +955,7 @@ static void nvgpu_page_print_stats(struct nvgpu_allocator *na,
 
 static const struct nvgpu_allocator_ops page_ops = {
 	.alloc		= nvgpu_page_alloc,
-	.free		= nvgpu_page_free,
+	.free_alloc	= nvgpu_page_free,
 
 	.alloc_fixed	= nvgpu_page_alloc_fixed,
 	.free_fixed	= nvgpu_page_free_fixed,
