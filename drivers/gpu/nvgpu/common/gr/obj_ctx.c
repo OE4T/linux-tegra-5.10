@@ -180,6 +180,8 @@ int nvgpu_gr_obj_ctx_set_ctxsw_preemption_mode(struct gk20a *g,
 		break;
 
 	default:
+		nvgpu_log_info(g, "graphics_preempt_mode=%u",
+			graphics_preempt_mode);
 		break;
 	}
 
@@ -193,6 +195,8 @@ int nvgpu_gr_obj_ctx_set_ctxsw_preemption_mode(struct gk20a *g,
 				compute_preempt_mode);
 			break;
 		default:
+			nvgpu_log_info(g, "compute_preempt_mode=%u",
+				compute_preempt_mode);
 			break;
 		}
 	}
