@@ -101,13 +101,14 @@ void gv11b_tsg_bind_channel_eng_method_buffers(struct tsg_gk20a *tsg,
 	g->ops.ramin.set_eng_method_buffer(g, &ch->inst_block, gpu_va);
 }
 
-static unsigned int gv11b_tsg_get_eng_method_buffer_size(struct gk20a *g)
+static u32 gv11b_tsg_get_eng_method_buffer_size(struct gk20a *g)
 {
-	unsigned int buffer_size;
+	u32 buffer_size;
+	u32 page_size = U32(PAGE_SIZE);
 
 	buffer_size =  ((9U + 1U + 3U) * g->ops.ce.get_num_pce(g)) + 2U;
 	buffer_size = (27U * 5U * buffer_size);
-	buffer_size = roundup(buffer_size, PAGE_SIZE);
+	buffer_size = roundup(buffer_size, page_size);
 	nvgpu_log_info(g, "method buffer size in bytes %d", buffer_size);
 
 	return buffer_size;
