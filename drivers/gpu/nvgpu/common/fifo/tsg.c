@@ -731,7 +731,6 @@ void nvgpu_tsg_release(struct nvgpu_ref *ref)
 {
 	struct tsg_gk20a *tsg = tsg_gk20a_from_ref(ref);
 	struct gk20a *g = tsg->g;
-	struct gk20a_event_id_data *event_id_data, *event_id_data_temp;
 
 	if (tsg->gr_ctx != NULL && nvgpu_mem_is_valid(
 			nvgpu_gr_ctx_get_ctx_mem(tsg->gr_ctx)) &&
@@ -741,18 +740,15 @@ void nvgpu_tsg_release(struct nvgpu_ref *ref)
 
 	/* unhook all events created on this TSG */
 	nvgpu_mutex_acquire(&tsg->event_id_list_lock);
-	nvgpu_list_for_each_entry_safe(event_id_data, event_id_data_temp,
-				&tsg->event_id_list,
-				gk20a_event_id_data,
-				event_id_node) {
-		nvgpu_list_del(&event_id_data->event_id_node);
+	while (nvgpu_list_empty(&tsg->event_id_list) == false) {
+		nvgpu_list_del(tsg->event_id_list.next);
 	}
 	nvgpu_mutex_release(&tsg->event_id_list_lock);
 
 	nvgpu_tsg_release_common(g, tsg);
 	release_used_tsg(&g->fifo, tsg);
 
-	nvgpu_log(g, gpu_dbg_fn, "tsg released %d\n", tsg->tsgid);
+	nvgpu_log(g, gpu_dbg_fn, "tsg released %d", tsg->tsgid);
 }
 
 struct tsg_gk20a *tsg_gk20a_from_ch(struct channel_gk20a *ch)
