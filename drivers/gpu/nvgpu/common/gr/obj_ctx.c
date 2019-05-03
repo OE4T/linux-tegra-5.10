@@ -578,8 +578,7 @@ int nvgpu_gr_obj_ctx_alloc(struct gk20a *g,
 	err = nvgpu_gr_obj_ctx_gr_ctx_alloc(g, golden_image, gr_ctx_desc,
 		gr_ctx, vm);
 	if (err != 0) {
-		nvgpu_err(g,
-			"fail to allocate TSG gr ctx buffer");
+		nvgpu_err(g, "fail to allocate TSG gr ctx buffer");
 		goto out;
 	}
 
@@ -594,27 +593,30 @@ int nvgpu_gr_obj_ctx_alloc(struct gk20a *g,
 
 		err = nvgpu_gr_ctx_alloc_patch_ctx(g, gr_ctx, gr_ctx_desc, vm);
 		if (err != 0) {
-			nvgpu_err(g,
-				"fail to allocate patch buffer");
+			nvgpu_err(g, "fail to allocate patch buffer");
 			goto out;
 		}
 	}
 
-	nvgpu_gr_obj_ctx_init_ctxsw_preemption_mode(g, config, gr_ctx_desc,
-		gr_ctx, vm, class_num, flags);
+	err = nvgpu_gr_obj_ctx_init_ctxsw_preemption_mode(g, config,
+		gr_ctx_desc, gr_ctx, vm, class_num, flags);
+	if (err != 0) {
+		nvgpu_err(g, "fail to init preemption mode");
+		goto out;
+	}
 
 	/* map global buffer to channel gpu_va and commit */
 	err = nvgpu_gr_ctx_map_global_ctx_buffers(g, gr_ctx,
 			global_ctx_buffer, vm, vpr);
 	if (err != 0) {
-		nvgpu_err(g,
-			"fail to map global ctx buffer");
+		nvgpu_err(g, "fail to map global ctx buffer");
 		goto out;
 	}
 
 	err = nvgpu_gr_obj_ctx_commit_global_ctx_buffers(g, global_ctx_buffer,
 			config, gr_ctx, true);
 	if (err != 0) {
+		nvgpu_err(g, "fail to commit global ctx buffer");
 		goto out;
 	}
 
@@ -626,8 +628,7 @@ int nvgpu_gr_obj_ctx_alloc(struct gk20a *g,
 	err = nvgpu_gr_obj_ctx_alloc_golden_ctx_image(g, golden_image,
 		global_ctx_buffer, config, gr_ctx, inst_block);
 	if (err != 0) {
-		nvgpu_err(g,
-			"fail to init golden ctx image");
+		nvgpu_err(g, "fail to init golden ctx image");
 		goto out;
 	}
 
@@ -635,8 +636,7 @@ int nvgpu_gr_obj_ctx_alloc(struct gk20a *g,
 	err = nvgpu_gr_ctx_load_golden_ctx_image(g, gr_ctx,
 		golden_image->local_golden_image, cde);
 	if (err != 0) {
-		nvgpu_err(g,
-			"fail to load golden ctx image");
+		nvgpu_err(g, "fail to load golden ctx image");
 		goto out;
 	}
 
