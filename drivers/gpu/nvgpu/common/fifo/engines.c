@@ -972,8 +972,7 @@ u32 nvgpu_engine_mmu_fault_id_to_eng_id_and_veid(struct gk20a *g,
 		act_eng_id = f->active_engines_list[engine_id];
 		engine_info = &g->fifo.engine_info[act_eng_id];
 
-		if (act_eng_id == NVGPU_ENGINE_GR) {
-			/* get faulted subctx id */
+		if (engine_info->engine_enum == NVGPU_ENGINE_GR) {
 			*veid = nvgpu_engine_mmu_fault_id_to_veid(g,
 					mmu_fault_id, engine_info->fault_id);
 			if (*veid != INVAL_ID) {
