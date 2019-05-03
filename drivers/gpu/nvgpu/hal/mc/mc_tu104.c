@@ -47,7 +47,7 @@ void intr_tu104_leaf_en_set(struct gk20a *g, u32 leaf_reg_index,
 	val = nvgpu_func_readl(g,
 		func_priv_cpu_intr_leaf_en_set_r(leaf_reg_index));
 
-	val |= BIT(leaf_reg_bit);
+	val |= BIT32(leaf_reg_bit);
 	nvgpu_func_writel(g,
 		func_priv_cpu_intr_leaf_en_set_r(leaf_reg_index),
 		val);
@@ -62,7 +62,7 @@ void intr_tu104_leaf_en_clear(struct gk20a *g, u32 leaf_reg_index,
 	val = nvgpu_func_readl(g,
 		func_priv_cpu_intr_leaf_en_clear_r(leaf_reg_index));
 
-	val |= BIT(leaf_reg_bit);
+	val |= BIT32(leaf_reg_bit);
 	nvgpu_func_writel(g,
 		func_priv_cpu_intr_leaf_en_clear_r(leaf_reg_index),
 		val);
@@ -74,7 +74,7 @@ static void intr_tu104_leaf_clear(struct gk20a *g, u32 leaf_reg_index,
 {
 	nvgpu_func_writel(g,
 		func_priv_cpu_intr_leaf_r(leaf_reg_index),
-		BIT(leaf_reg_bit));
+		BIT32(leaf_reg_bit));
 }
 
 /* helper to set top_reg_bit in TOP_EN_SET(top_reg_index) register */
@@ -86,7 +86,7 @@ void intr_tu104_top_en_set(struct gk20a *g, u32 top_reg_index,
 	val = nvgpu_func_readl(g,
 		func_priv_cpu_intr_top_en_set_r(top_reg_index));
 
-	val |= BIT(top_reg_bit);
+	val |= BIT32(top_reg_bit);
 	nvgpu_func_writel(g,
 		func_priv_cpu_intr_top_en_set_r(top_reg_index),
 		val);
@@ -131,8 +131,8 @@ bool intr_tu104_vector_intr_pending(struct gk20a *g, u32 intr_vector)
 		func_priv_cpu_intr_leaf_r(
 			NV_CPU_INTR_GPU_VECTOR_TO_LEAF_REG(intr_vector)));
 
-	return leaf_val &
-		BIT32(NV_CPU_INTR_GPU_VECTOR_TO_LEAF_BIT(intr_vector));
+	return ((leaf_val &
+		BIT32(NV_CPU_INTR_GPU_VECTOR_TO_LEAF_BIT(intr_vector))) != 0U);
 }
 
 static void intr_tu104_stall_enable(struct gk20a *g)
@@ -332,7 +332,11 @@ u32 intr_tu104_stall(struct gk20a *g)
 	}
 
 	if (g->ops.mc.is_intr_hub_pending != NULL) {
-		return g->ops.mc.is_intr_hub_pending(g, 0);
+		if (g->ops.mc.is_intr_hub_pending(g, 0) == false) {
+			return 0U;
+		} else {
+			return 1U;
+		}
 	}
 
 	return 0U;

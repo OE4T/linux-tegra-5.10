@@ -262,7 +262,7 @@ void gm20b_mc_reset(struct gk20a *g, u32 units)
 bool gm20b_mc_is_intr1_pending(struct gk20a *g,
 			       enum nvgpu_unit unit, u32 mc_intr_1)
 {
-	u32 mask = 0U;
+	u32 mask;
 	bool is_pending;
 
 	switch (unit) {
@@ -270,6 +270,7 @@ bool gm20b_mc_is_intr1_pending(struct gk20a *g,
 		mask = mc_intr_pfifo_pending_f();
 		break;
 	default:
+		mask = 0U;
 		break;
 	}
 
