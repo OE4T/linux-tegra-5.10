@@ -265,11 +265,13 @@ int nvgpu_gr_setup_set_preemption_mode(struct nvgpu_channel *ch,
 
 	err = gk20a_disable_channel_tsg(g, ch);
 	if (err != 0) {
+		nvgpu_err(g, "failed to disable channel/TSG");
 		return err;
 	}
 
 	err = nvgpu_preempt_channel(g, ch);
 	if (err != 0) {
+		nvgpu_err(g, "failed to preempt channel/TSG");
 		goto enable_ch;
 	}
 
@@ -285,7 +287,16 @@ int nvgpu_gr_setup_set_preemption_mode(struct nvgpu_channel *ch,
 		true);
 	nvgpu_gr_ctx_patch_write_end(g, gr_ctx, true);
 
+	err = gk20a_enable_channel_tsg(g, ch);
+	if (err != 0) {
+		nvgpu_err(g, "failed to re-enable channel/TSG");
+	}
+
+	return err;
+
 enable_ch:
-	gk20a_enable_channel_tsg(g, ch);
+	if (gk20a_enable_channel_tsg(g, ch) != 0) {
+		nvgpu_err(g, "failed to re-enable channel/TSG");
+	}
 	return err;
 }
