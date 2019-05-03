@@ -105,11 +105,13 @@ int nvgpu_tsg_bind_channel(struct tsg_gk20a *tsg, struct channel_gk20a *ch)
 	/* all the channel part of TSG should need to be same runlist_id */
 	if (tsg->runlist_id == NVGPU_INVALID_TSG_ID) {
 		tsg->runlist_id = ch->runlist_id;
-	} else if (tsg->runlist_id != ch->runlist_id) {
-		nvgpu_err(tsg->g,
-			"runlist_id mismatch ch[%d] tsg[%d]",
-			ch->runlist_id, tsg->runlist_id);
-		return -EINVAL;
+	} else {
+		if (tsg->runlist_id != ch->runlist_id) {
+			nvgpu_err(tsg->g,
+				"runlist_id mismatch ch[%d] tsg[%d]",
+				ch->runlist_id, tsg->runlist_id);
+			return -EINVAL;
+		}
 	}
 
 	if (g->ops.tsg.bind_channel != NULL) {
@@ -501,18 +503,20 @@ bool nvgpu_tsg_check_ctxsw_timeout(struct tsg_gk20a *tsg,
 		gk20a_channel_put(ch);
 		*debug_dump = nvgpu_tsg_ctxsw_timeout_debug_dump_state(tsg);
 
-	} else if (progress) {
+	} else {
 		/*
 		 * if at least one channel in the TSG made some progress, reset
 		 * ctxsw_timeout_accumulated_ms for all channels in the TSG. In
 		 * particular, this resets ctxsw_timeout_accumulated_ms timeout
 		 * for channels that already completed their work.
 		 */
-		nvgpu_log_info(g, "progress on tsg=%d ch=%d",
-				tsg->tsgid, ch->chid);
-		gk20a_channel_put(ch);
-		*ms = g->ctxsw_timeout_period_ms;
-		nvgpu_tsg_set_ctxsw_timeout_accumulated_ms(tsg, *ms);
+		if (progress) {
+			nvgpu_log_info(g, "progress on tsg=%d ch=%d",
+					tsg->tsgid, ch->chid);
+			gk20a_channel_put(ch);
+			*ms = g->ctxsw_timeout_period_ms;
+			nvgpu_tsg_set_ctxsw_timeout_accumulated_ms(tsg, *ms);
+		}
 	}
 
 	/* if we could not detect progress on any of the channel, but none
