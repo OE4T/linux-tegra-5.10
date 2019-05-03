@@ -489,29 +489,21 @@ int gv11b_gr_init_rop_mapping(struct gk20a *g,
 			&& (num_tpcs > 0U)) {
 			tile_cnt = nvgpu_gr_config_get_map_tile_count(
 						gr_config, base + offset);
-			switch (offset) {
-			case 0:
+			if (offset == 0U) {
 				map = map | gr_crstr_gpc_map_tile0_f(tile_cnt);
-				break;
-			case 1:
+			} else if (offset == 1U) {
 				map = map | gr_crstr_gpc_map_tile1_f(tile_cnt);
-				break;
-			case 2:
+			} else if (offset == 2U) {
 				map = map | gr_crstr_gpc_map_tile2_f(tile_cnt);
-				break;
-			case 3:
+			} else if (offset == 3U) {
 				map = map | gr_crstr_gpc_map_tile3_f(tile_cnt);
-				break;
-			case 4:
+			} else if (offset == 4U) {
 				map = map | gr_crstr_gpc_map_tile4_f(tile_cnt);
-				break;
-			case 5:
+			} else if (offset == 5U) {
 				map = map | gr_crstr_gpc_map_tile5_f(tile_cnt);
-				break;
-			default:
+			} else {
 				nvgpu_err(g, "incorrect rop mapping %x",
 					  offset);
-				break;
 			}
 			num_tpcs--;
 			offset++;
