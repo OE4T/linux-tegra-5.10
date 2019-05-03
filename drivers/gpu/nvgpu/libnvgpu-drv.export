@@ -1,6 +1,5 @@
 # Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
 
-__bug
 __nvgpu_get_pte
 __nvgpu_log_dbg
 __nvgpu_log_msg
@@ -125,6 +124,7 @@ nvgpu_pd_free
 nvgpu_pd_gpu_addr
 nvgpu_pd_offset_from_index
 nvgpu_pd_write
+nvgpu_posix_bug
 nvgpu_posix_cleanup
 nvgpu_posix_enable_fault_injection
 nvgpu_posix_ffs

@@ -48,7 +48,7 @@ void bug_handler_cancel(void)
 	jmp_handler = NULL;
 }
 
-static void __dump_stack(int skip_frames)
+static void nvgpu_posix_dump_stack(int skip_frames)
 {
 #ifndef _QNX_SOURCE
 	void *trace[BACKTRACE_MAXSIZE];
@@ -67,14 +67,14 @@ static void __dump_stack(int skip_frames)
 
 void dump_stack(void)
 {
-	/* Skip this function and __dump_stack() */
-	__dump_stack(2);
+	/* Skip this function and nvgpu_posix_dump_stack() */
+	nvgpu_posix_dump_stack(2);
 }
 
 /*
  * Ahhh! A bug!
  */
-void __bug(const char *fmt, ...)
+void nvgpu_posix_bug(const char *fmt, ...)
 {
 	if (expect_bug) {
 		nvgpu_info(NULL, "Expected BUG detected!");
@@ -92,7 +92,7 @@ void __bug(const char *fmt, ...)
 	pthread_exit(NULL);
 }
 
-bool __warn(bool cond, const char *fmt, ...)
+bool nvgpu_posix_warn(bool cond, const char *fmt, ...)
 {
 	if (!cond) {
 		goto done;

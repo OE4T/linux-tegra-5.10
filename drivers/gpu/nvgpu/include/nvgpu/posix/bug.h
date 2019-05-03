@@ -26,7 +26,7 @@
 #include <nvgpu/types.h>
 #include <setjmp.h>
 
-#define BUG()					__bug("")
+#define BUG()					nvgpu_posix_bug("")
 #define BUG_ON(cond)				\
 	do {					\
 		if (cond) {			\
@@ -34,8 +34,10 @@
 		}				\
 	} while (false)
 
-#define WARN(cond, msg, arg...)		((void) __warn(cond, msg, ##arg))
-#define WARN_ON(cond)			((void) __warn(cond, ""))
+#define WARN(cond, msg, arg...)			\
+			((void) nvgpu_posix_warn(cond, msg, ##arg))
+#define WARN_ON(cond)				\
+			((void) nvgpu_posix_warn(cond, ""))
 
 #define WARN_ONCE(cond, msg, arg...)		\
 	({static bool warn_once_warned = false;	\
@@ -48,8 +50,8 @@
 
 void dump_stack(void);
 
-void __bug(const char *fmt, ...) __attribute__ ((noreturn));
-bool __warn(bool cond, const char *fmt, ...);
+void nvgpu_posix_bug(const char *fmt, ...) __attribute__ ((noreturn));
+bool nvgpu_posix_warn(bool cond, const char *fmt, ...);
 
 /* Provide a simple API for BUG() handling */
 void bug_handler_register(jmp_buf *handler);

@@ -29,7 +29,7 @@ static void sort(void *base, size_t num, size_t size,
 		 int (*cmp)(const void *a, const void *b),
 		 void (*swap)(void *a, void *b, int n))
 {
-	__bug("sort() not implemented yet!");
+	nvgpu_posix_bug("sort() not implemented yet!");
 }
 
 #endif /* NVGPU_POSIX_SORT_H */
