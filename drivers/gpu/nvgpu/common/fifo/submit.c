@@ -591,8 +591,10 @@ clean_up:
 	nvgpu_fence_put(post_fence);
 	if (c->deterministic) {
 		nvgpu_rwsem_up_read(&g->deterministic_busy);
-	} else if (need_deferred_cleanup) {
-		gk20a_idle(g);
+	} else {
+		if (need_deferred_cleanup) {
+			gk20a_idle(g);
+		}
 	}
 
 	return err;
