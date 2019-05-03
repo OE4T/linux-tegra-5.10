@@ -149,6 +149,11 @@ nvgpu_raw_spinlock_init
 nvgpu_raw_spinlock_release
 nvgpu_rbtree_enum_next
 nvgpu_rbtree_enum_start
+nvgpu_rbtree_insert
+nvgpu_rbtree_less_than_search
+nvgpu_rbtree_range_search
+nvgpu_rbtree_search
+nvgpu_rbtree_unlink
 nvgpu_readl
 nvgpu_runlist_construct_locked
 nvgpu_rwsem_init
