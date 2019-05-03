@@ -215,11 +215,11 @@ int nvgpu_gr_setup_set_preemption_mode(struct nvgpu_channel *ch,
 	struct gk20a *g = ch->g;
 	struct nvgpu_tsg *tsg;
 	struct vm_gk20a *vm;
-	u32 class;
+	u32 class_num;
 	int err = 0;
 
-	class = ch->obj_class;
-	if (class == 0U) {
+	class_num = ch->obj_class;
+	if (class_num == 0U) {
 		return -EINVAL;
 	}
 
@@ -256,7 +256,7 @@ int nvgpu_gr_setup_set_preemption_mode(struct nvgpu_channel *ch,
 			graphics_preempt_mode,
 			compute_preempt_mode);
 	err = nvgpu_gr_obj_ctx_set_ctxsw_preemption_mode(g, g->gr->config,
-			g->gr->gr_ctx_desc, gr_ctx, vm, class,
+			g->gr->gr_ctx_desc, gr_ctx, vm, class_num,
 			graphics_preempt_mode, compute_preempt_mode);
 	if (err != 0) {
 		nvgpu_err(g, "set_ctxsw_preemption_mode failed");
