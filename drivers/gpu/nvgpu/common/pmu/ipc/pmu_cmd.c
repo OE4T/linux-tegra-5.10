@@ -85,7 +85,7 @@ invalid_cmd:
 static bool pmu_validate_cmd(struct nvgpu_pmu *pmu, struct pmu_cmd *cmd,
 			struct pmu_payload *payload, u32 queue_id)
 {
-	struct gk20a *g = gk20a_from_pmu(pmu);
+	struct gk20a *g = pmu->g;
 	u32 queue_size;
 
 	if (cmd == NULL) {
@@ -150,7 +150,7 @@ invalid_cmd:
 static int pmu_write_cmd(struct nvgpu_pmu *pmu, struct pmu_cmd *cmd,
 			u32 queue_id)
 {
-	struct gk20a *g = gk20a_from_pmu(pmu);
+	struct gk20a *g = pmu->g;
 	struct nvgpu_timeout timeout;
 	int err;
 

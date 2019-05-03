@@ -35,7 +35,7 @@ static int pmu_payload_extract(struct nvgpu_pmu *pmu, struct pmu_sequence *seq)
 {
 	struct nvgpu_engine_fb_queue *fb_queue =
 				nvgpu_pmu_seq_get_cmd_queue(seq);
-	struct gk20a *g = gk20a_from_pmu(pmu);
+	struct gk20a *g = pmu->g;
 	struct pmu_fw_ver_ops *fw_ops = &g->pmu.fw.ops;
 	u32 fbq_payload_offset = 0U;
 	int err = 0;
@@ -79,7 +79,7 @@ static void pmu_payload_free(struct nvgpu_pmu *pmu, struct pmu_sequence *seq)
 {
 	struct nvgpu_engine_fb_queue *fb_queue =
 				nvgpu_pmu_seq_get_cmd_queue(seq);
-	struct gk20a *g = gk20a_from_pmu(pmu);
+	struct gk20a *g = pmu->g;
 	struct pmu_fw_ver_ops *fw_ops = &g->pmu.fw.ops;
 	struct nvgpu_mem *in_mem = nvgpu_pmu_seq_get_in_mem(seq);
 	struct nvgpu_mem *out_mem = nvgpu_pmu_seq_get_out_mem(seq);
@@ -153,7 +153,7 @@ static void pmu_payload_free(struct nvgpu_pmu *pmu, struct pmu_sequence *seq)
 static int pmu_response_handle(struct nvgpu_pmu *pmu,
 			struct pmu_msg *msg)
 {
-	struct gk20a *g = gk20a_from_pmu(pmu);
+	struct gk20a *g = pmu->g;
 	enum pmu_seq_state state;
 	struct pmu_sequence *seq;
 	int err = 0;
@@ -202,7 +202,7 @@ exit:
 static int pmu_handle_event(struct nvgpu_pmu *pmu, struct pmu_msg *msg)
 {
 	int err = 0;
-	struct gk20a *g = gk20a_from_pmu(pmu);
+	struct gk20a *g = pmu->g;
 
 	nvgpu_log_fn(g, " ");
 	switch (msg->hdr.unit_id) {
@@ -235,7 +235,7 @@ static bool pmu_engine_mem_queue_read(struct nvgpu_pmu *pmu,
 	u32 queue_id, void *data,
 	u32 bytes_to_read, int *status)
 {
-	struct gk20a *g = gk20a_from_pmu(pmu);
+	struct gk20a *g = pmu->g;
 	u32 bytes_read;
 	int err;
 
@@ -259,7 +259,7 @@ static bool pmu_engine_mem_queue_read(struct nvgpu_pmu *pmu,
 static bool pmu_read_message(struct nvgpu_pmu *pmu, u32 queue_id,
 	struct pmu_msg *msg, int *status)
 {
-	struct gk20a *g = gk20a_from_pmu(pmu);
+	struct gk20a *g = pmu->g;
 	u32 read_size;
 	int err;
 
@@ -418,7 +418,7 @@ exit:
 static int pmu_process_init_msg(struct nvgpu_pmu *pmu,
 			struct pmu_msg *msg)
 {
-	struct gk20a *g = gk20a_from_pmu(pmu);
+	struct gk20a *g = pmu->g;
 	struct pmu_fw_ver_ops *fw_ops = &g->pmu.fw.ops;
 	union pmu_init_msg_pmu *init;
 	struct pmu_sha1_gid_data gid_data;
@@ -492,7 +492,7 @@ int nvgpu_pmu_process_message(struct nvgpu_pmu *pmu)
 {
 	struct pmu_msg msg;
 	int status;
-	struct gk20a *g = gk20a_from_pmu(pmu);
+	struct gk20a *g = pmu->g;
 	int err;
 
 	if (nvgpu_can_busy(g) == 0) {
@@ -622,7 +622,7 @@ exit:
 void pmu_wait_message_cond(struct nvgpu_pmu *pmu, u32 timeout_ms,
 			void *var, u8 val)
 {
-	struct gk20a *g = gk20a_from_pmu(pmu);
+	struct gk20a *g = pmu->g;
 
 	if (nvgpu_pmu_wait_fw_ack_status(g, pmu, timeout_ms, var, val) != 0) {
 		nvgpu_err(g, "PMU wait timeout expired.");

@@ -117,7 +117,7 @@ int nvgpu_pmu_destroy(struct gk20a *g, struct nvgpu_pmu *pmu)
 
 static void remove_pmu_support(struct nvgpu_pmu *pmu)
 {
-	struct gk20a *g = gk20a_from_pmu(pmu);
+	struct gk20a *g = pmu->g;
 	struct boardobj *pboardobj, *pboardobj_tmp;
 	struct boardobjgrp *pboardobjgrp, *pboardobjgrp_tmp;
 	int err = 0;
@@ -357,11 +357,6 @@ init_failed:
 	remove_pmu_support(pmu);
 exit:
 	return err;
-}
-
-struct gk20a *gk20a_from_pmu(struct nvgpu_pmu *pmu)
-{
-	return pmu->g;
 }
 
 /* PMU H/W error functions */

@@ -37,7 +37,7 @@
 
 void gk20a_pmu_dump_falcon_stats(struct nvgpu_pmu *pmu)
 {
-	struct gk20a *g = gk20a_from_pmu(pmu);
+	struct gk20a *g = pmu->g;
 	unsigned int i;
 
 	for (i = 0; i < pwr_pmu_mailbox__size_1_v(); i++) {
@@ -195,7 +195,7 @@ void gk20a_pmu_clear_idle_intr_status(struct gk20a *g)
 /* ELPG */
 void gk20a_pmu_dump_elpg_stats(struct nvgpu_pmu *pmu)
 {
-	struct gk20a *g = gk20a_from_pmu(pmu);
+	struct gk20a *g = pmu->g;
 
 	nvgpu_pmu_dbg(g, "pwr_pmu_idle_mask_supp_r(3): 0x%08x",
 		gk20a_readl(g, pwr_pmu_idle_mask_supp_r(3)));
@@ -389,7 +389,7 @@ int gk20a_pmu_queue_tail(struct gk20a *g, u32 queue_id, u32 queue_index,
 
 void gk20a_pmu_msgq_tail(struct nvgpu_pmu *pmu, u32 *tail, bool set)
 {
-	struct gk20a *g = gk20a_from_pmu(pmu);
+	struct gk20a *g = pmu->g;
 	u32 queue_tail_size = 0;
 
 	if (g->ops.pmu.pmu_get_queue_tail_size != NULL) {
@@ -438,7 +438,7 @@ u32 gk20a_pmu_get_irqdest(struct gk20a *g)
 
 void gk20a_pmu_enable_irq(struct nvgpu_pmu *pmu, bool enable)
 {
-	struct gk20a *g = gk20a_from_pmu(pmu);
+	struct gk20a *g = pmu->g;
 	u32 intr_mask;
 	u32 intr_dest;
 
@@ -474,7 +474,7 @@ void gk20a_pmu_enable_irq(struct nvgpu_pmu *pmu, bool enable)
 
 bool gk20a_pmu_is_interrupted(struct nvgpu_pmu *pmu)
 {
-	struct gk20a *g = gk20a_from_pmu(pmu);
+	struct gk20a *g = pmu->g;
 	u32 servicedpmuint;
 
 	servicedpmuint = pwr_falcon_irqstat_halt_true_f() |

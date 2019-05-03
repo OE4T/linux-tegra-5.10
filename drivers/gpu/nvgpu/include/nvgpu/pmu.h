@@ -203,7 +203,5 @@ void nvgpu_pmu_report_bar0_pri_err_status(struct gk20a *g, u32 bar0_status,
 /* PMU engine reset function */
 int nvgpu_pmu_reset(struct gk20a *g);
 
-struct gk20a *gk20a_from_pmu(struct nvgpu_pmu *pmu);
-
 #endif /* NVGPU_PMU_H */
 
