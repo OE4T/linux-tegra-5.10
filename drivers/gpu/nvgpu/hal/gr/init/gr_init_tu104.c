@@ -158,8 +158,10 @@ int tu104_gr_init_load_sw_bundle64(struct gk20a *g,
 		if (gr_pipe_bundle_address_value_v(sw_bundle64_init->l[i].addr)
 				== GR_GO_IDLE_BUNDLE) {
 			err = g->ops.gr.init.wait_idle(g);
-		} else if (nvgpu_platform_is_silicon(g)) {
-			err = g->ops.gr.init.wait_fe_idle(g);
+		} else {
+			if (nvgpu_platform_is_silicon(g)) {
+				err = g->ops.gr.init.wait_fe_idle(g);
+			}
 		}
 		if (err != 0) {
 			break;
