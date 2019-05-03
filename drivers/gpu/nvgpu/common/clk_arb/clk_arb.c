@@ -368,13 +368,6 @@ void nvgpu_clk_arb_clear_global_alarm(struct gk20a *g, u32 alarm)
 				(long int)current_mask, (long int)new_mask)));
 }
 
-static inline struct nvgpu_clk_arb_worker *
-nvgpu_clk_arb_worker_from_worker(struct nvgpu_worker *worker)
-{
-	return (struct nvgpu_clk_arb_worker *)
-	   ((uintptr_t)worker - offsetof(struct nvgpu_clk_arb_worker, worker));
-};
-
 /*
  * Process one scheduled work item.
  */
