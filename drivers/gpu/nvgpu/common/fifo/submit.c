@@ -557,8 +557,10 @@ static int nvgpu_submit_channel_gpfifo(struct nvgpu_channel *c,
 	}
 
 	if (need_job_tracking) {
-		/* TODO! Check for errors... */
-		gk20a_channel_add_job(c, job, skip_buffer_refcounting);
+		err = gk20a_channel_add_job(c, job, skip_buffer_refcounting);
+		if (err != 0) {
+			goto clean_up_job;
+		}
 	}
 	nvgpu_profile_snapshot(profile, PROFILE_APPEND);
 
