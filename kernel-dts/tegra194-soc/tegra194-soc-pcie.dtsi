@@ -55,6 +55,175 @@
 		};
 	};
 
+#if LINUX_VERSION >= 500
+	cbb {
+		compatible = "simple-bus";
+		#address-cells = <1>;
+		#size-cells = <1>;
+		ranges = <0x0 0x0 0x0 0x40000000>;
+
+		p2u_hsio_0: p2u@3e10000 {
+			compatible = "nvidia,tegra194-p2u";
+			reg = <0x03e10000 0x10000>;
+			reg-names = "ctl";
+
+			#phy-cells = <0>;
+		};
+
+		p2u_hsio_1: p2u@3e20000 {
+			compatible = "nvidia,tegra194-p2u";
+			reg = <0x03e20000 0x10000>;
+			reg-names = "ctl";
+
+			#phy-cells = <0>;
+		};
+
+		p2u_hsio_2: p2u@3e30000 {
+			compatible = "nvidia,tegra194-p2u";
+			reg = <0x03e30000 0x10000>;
+			reg-names = "ctl";
+
+			#phy-cells = <0>;
+		};
+
+		p2u_hsio_3: p2u@3e40000 {
+			compatible = "nvidia,tegra194-p2u";
+			reg = <0x03e40000 0x10000>;
+			reg-names = "ctl";
+
+			#phy-cells = <0>;
+		};
+
+		p2u_hsio_4: p2u@3e50000 {
+			compatible = "nvidia,tegra194-p2u";
+			reg = <0x03e50000 0x10000>;
+			reg-names = "ctl";
+
+			#phy-cells = <0>;
+		};
+
+		p2u_hsio_5: p2u@3e60000 {
+			compatible = "nvidia,tegra194-p2u";
+			reg = <0x03e60000 0x10000>;
+			reg-names = "ctl";
+
+			#phy-cells = <0>;
+		};
+
+		p2u_hsio_6: p2u@3e70000 {
+			compatible = "nvidia,tegra194-p2u";
+			reg = <0x03e70000 0x10000>;
+			reg-names = "ctl";
+
+			#phy-cells = <0>;
+		};
+
+		p2u_hsio_7: p2u@3e80000 {
+			compatible = "nvidia,tegra194-p2u";
+			reg = <0x03e80000 0x10000>;
+			reg-names = "ctl";
+
+			#phy-cells = <0>;
+		};
+
+		p2u_hsio_8: p2u@3e90000 {
+			compatible = "nvidia,tegra194-p2u";
+			reg = <0x03e90000 0x10000>;
+			reg-names = "ctl";
+
+			#phy-cells = <0>;
+		};
+
+		p2u_hsio_9: p2u@3ea0000 {
+			compatible = "nvidia,tegra194-p2u";
+			reg = <0x03ea0000 0x10000>;
+			reg-names = "ctl";
+
+			#phy-cells = <0>;
+		};
+
+		p2u_nvhs_0: p2u@3eb0000 {
+			compatible = "nvidia,tegra194-p2u";
+			reg = <0x03eb0000 0x10000>;
+			reg-names = "ctl";
+
+			#phy-cells = <0>;
+		};
+
+		p2u_nvhs_1: p2u@3ec0000 {
+			compatible = "nvidia,tegra194-p2u";
+			reg = <0x03ec0000 0x10000>;
+			reg-names = "ctl";
+
+			#phy-cells = <0>;
+		};
+
+		p2u_nvhs_2: p2u@3ed0000 {
+			compatible = "nvidia,tegra194-p2u";
+			reg = <0x03ed0000 0x10000>;
+			reg-names = "ctl";
+
+			#phy-cells = <0>;
+		};
+
+		p2u_nvhs_3: p2u@3ee0000 {
+			compatible = "nvidia,tegra194-p2u";
+			reg = <0x03ee0000 0x10000>;
+			reg-names = "ctl";
+
+			#phy-cells = <0>;
+		};
+
+		p2u_nvhs_4: p2u@3ef0000 {
+			compatible = "nvidia,tegra194-p2u";
+			reg = <0x03ef0000 0x10000>;
+			reg-names = "ctl";
+
+			#phy-cells = <0>;
+		};
+
+		p2u_nvhs_5: p2u@3f00000 {
+			compatible = "nvidia,tegra194-p2u";
+			reg = <0x03f00000 0x10000>;
+			reg-names = "ctl";
+
+			#phy-cells = <0>;
+		};
+
+		p2u_nvhs_6: p2u@3f10000 {
+			compatible = "nvidia,tegra194-p2u";
+			reg = <0x03f10000 0x10000>;
+			reg-names = "ctl";
+
+			#phy-cells = <0>;
+		};
+
+		p2u_nvhs_7: p2u@3f20000 {
+			compatible = "nvidia,tegra194-p2u";
+			reg = <0x03f20000 0x10000>;
+			reg-names = "ctl";
+
+			#phy-cells = <0>;
+		};
+
+		p2u_hsio_10: p2u@3f30000 {
+			compatible = "nvidia,tegra194-p2u";
+			reg = <0x03f30000 0x10000>;
+			reg-names = "ctl";
+
+			#phy-cells = <0>;
+		};
+
+		p2u_hsio_11: p2u@3f40000 {
+			compatible = "nvidia,tegra194-p2u";
+			reg = <0x03f40000 0x10000>;
+			reg-names = "ctl";
+
+			#phy-cells = <0>;
+		};
+	};
+
+#else
 	hsio_p2u {
 		compatible = "simple-bus";
 		#address-cells = <2>;
@@ -308,6 +477,7 @@
 			#phy-cells = <0>;
 		};
 	};
+#endif
 
 	pcie_ep@14180000 {
 		compatible = "nvidia,tegra194-pcie-ep";
@@ -490,10 +660,18 @@
 	pcie@14180000 {
 		compatible = "nvidia,tegra194-pcie", "snps,dw-pcie";
 		power-domains = <&bpmp TEGRA194_POWER_DOMAIN_PCIEX8B>;
+#if LINUX_VERSION >= 500
+		reg = <0x00 0x14180000 0x0 0x00020000   /* appl registers (128K)      */
+		       0x00 0x38000000 0x0 0x00040000   /* configuration space (256K) */
+		       0x00 0x38040000 0x0 0x00040000   /* iATU_DMA reg space (256K)  */
+		       0x00 0x38080000 0x0 0x00040000>; /* DBI reg space (256K)       */
+		reg-names = "appl", "config", "atu_dma", "dbi";
+#else
 		reg = <0x00 0x14180000 0x0 0x00020000   /* appl registers (128K)      */
 		       0x00 0x38000000 0x0 0x00040000   /* configuration space (256K) */
 		       0x00 0x38040000 0x0 0x00040000>; /* iATU_DMA reg space (256K)  */
 		reg-names = "appl", "config", "atu_dma";
+#endif
 
 		status = "disabled";
 
@@ -501,15 +679,25 @@
 		#size-cells = <2>;
 		device_type = "pci";
 		num-lanes = <8>;
+		num-viewport = <8>;
+		supports-clkreq;
 		linux,pci-domain = <0>;
 
 		clocks = <&bpmp_clks TEGRA194_CLK_PEX0_CORE_0>,
 			<&bpmp_clks TEGRA194_CLK_PEX0_CORE_0M>;
+#if LINUX_VERSION >= 500
+		clock-names = "core", "core_m";
+#else
 		clock-names = "core_clk", "core_clk_m";
+#endif
 
 		resets = <&bpmp_resets TEGRA194_RESET_PEX0_CORE_0_APB>,
 			 <&bpmp_resets TEGRA194_RESET_PEX0_CORE_0>;
+#if LINUX_VERSION >= 500
+		reset-names = "core_apb", "core";
+#else
 		reset-names = "core_apb_rst", "core_rst";
+#endif
 
 		interrupts = <0 72 0x04>,	/* controller interrupt */
 					 <0 73 0x04>;	/* MSI interrupt */
@@ -530,20 +718,28 @@
 							204000000 204000000 408000000  666000000
 							204000000 408000000 666000000  1066000000
 							408000000 666000000 1066000000 2133000000 >;
+		nvidia,bpmp = <&bpmp>;
 		nvidia,max-speed = <4>;
 		nvidia,disable-aspm-states = <0xf>;
-		nvidia,controller-id = <&bpmp 0x0>;
 		nvidia,disable-l1-cpm;
 		nvidia,aux-clk-freq = <0x13>;
 		nvidia,preset-init = <0x5>;
+#if LINUX_VERSION >= 500
+		nvidia,controller-id = <0x0>;
+		nvidia,aspm-cmrt-us = <0x3C>;
+		nvidia,aspm-pwr-on-t-us = <0x14>;
+		nvidia,aspm-l0s-entrance-latency-us = <0x3>;
+#else
+		nvidia,controller-id = <&bpmp 0x0>;
 		nvidia,aspm-cmrt = <0x3C>;
 		nvidia,aspm-pwr-on-t = <0x14>;
 		nvidia,aspm-l0s-entrance-latency = <0x3>;
+#endif
 
 		bus-range = <0x0 0xff>;
 		ranges = <0x81000000 0x0 0x38100000 0x0 0x38100000 0x0 0x00100000      /* downstream I/O (1MB) */
-			  0x82000000 0x0 0x40000000 0x1B 0x40000000 0x0 0xC0000000     /* non-prefetchable memory (3GB) */
-			  0xc2000000 0x18 0x00000000 0x18 0x00000000 0x3 0x40000000>;  /* prefetchable memory (13GB) */
+			  0xc2000000 0x18 0x00000000 0x18 0x00000000 0x3 0x40000000    /* prefetchable memory (13GB) */
+			  0x82000000 0x0 0x40000000 0x1B 0x40000000 0x0 0xC0000000>;   /* non-prefetchable memory (3GB) */
 
 		nvidia,cfg-link-cap-l1sub = <0x1c4>;
 		nvidia,cap-pl16g-status = <0x174>;
@@ -556,10 +752,18 @@
 	pcie@14100000 {
 		compatible = "nvidia,tegra194-pcie", "snps,dw-pcie";
 		power-domains = <&bpmp TEGRA194_POWER_DOMAIN_PCIEX1A>;
+#if LINUX_VERSION >= 500
+		reg = <0x00 0x14100000 0x0 0x00020000   /* appl registers (128K)      */
+		       0x00 0x30000000 0x0 0x00040000   /* configuration space (256K) */
+		       0x00 0x30040000 0x0 0x00040000   /* iATU_DMA reg space (256K)  */
+		       0x00 0x30080000 0x0 0x00040000>; /* DBI reg space (256K)       */
+		reg-names = "appl", "config", "atu_dma", "dbi";
+#else
 		reg = <0x00 0x14100000 0x0 0x00020000   /* appl registers (128K)      */
 		       0x00 0x30000000 0x0 0x00040000   /* configuration space (256K) */
 		       0x00 0x30040000 0x0 0x00040000>; /* iATU_DMA reg space (256K)  */
 		reg-names = "appl", "config", "atu_dma";
+#endif
 
 		status = "disabled";
 
@@ -567,15 +771,25 @@
 		#size-cells = <2>;
 		device_type = "pci";
 		num-lanes = <1>;
+		num-viewport = <8>;
+		supports-clkreq;
 		linux,pci-domain = <1>;
 
 		clocks = <&bpmp_clks TEGRA194_CLK_PEX0_CORE_1>,
 			<&bpmp_clks TEGRA194_CLK_PEX0_CORE_1M>;
+#if LINUX_VERSION >= 500
+		clock-names = "core", "core_m";
+#else
 		clock-names = "core_clk", "core_clk_m";
+#endif
 
 		resets = <&bpmp_resets TEGRA194_RESET_PEX0_CORE_1_APB>,
 			 <&bpmp_resets TEGRA194_RESET_PEX0_CORE_1>;
+#if LINUX_VERSION >= 500
+		reset-names = "core_apb", "core";
+#else
 		reset-names = "core_apb_rst", "core_rst";
+#endif
 
 		interrupts = <0 45 0x04>,	/* controller interrupt */
 					 <0 46 0x04>;	/* MSI interrupt */
@@ -597,21 +811,29 @@
 							0         0         0          0
 							0         0         0          0 >;
 
+		nvidia,bpmp = <&bpmp>;
 		nvidia,max-speed = <4>;
 		nvidia,disable-aspm-states = <0xf>;
-		nvidia,controller-id = <&bpmp 0x1>;
 		nvidia,host1x = <&host1x>;
 		nvidia,disable-l1-cpm;
 		nvidia,aux-clk-freq = <0x13>;
 		nvidia,preset-init = <0x5>;
+#if LINUX_VERSION >= 500
+		nvidia,controller-id = <0x1>;
+		nvidia,aspm-cmrt-us = <0x3C>;
+		nvidia,aspm-pwr-on-t-us = <0x14>;
+		nvidia,aspm-l0s-entrance-latency-us = <0x3>;
+#else
+		nvidia,controller-id = <&bpmp 0x1>;
 		nvidia,aspm-cmrt = <0x3C>;
 		nvidia,aspm-pwr-on-t = <0x14>;
 		nvidia,aspm-l0s-entrance-latency = <0x3>;
+#endif
 
 		bus-range = <0x0 0xff>;
 		ranges = <0x81000000 0x0 0x30100000 0x0 0x30100000 0x0 0x00100000      /* downstream I/O (1MB) */
-			  0x82000000 0x0 0x40000000 0x12 0x30000000 0x0 0x10000000     /* non-prefetchable memory (256MB) */
-			  0xc2000000 0x12 0x00000000 0x12 0x00000000 0x0 0x30000000>;  /* prefetchable memory (768MB) */
+			  0xc2000000 0x12 0x00000000 0x12 0x00000000 0x0 0x30000000    /* prefetchable memory (768MB) */
+			  0x82000000 0x0 0x40000000 0x12 0x30000000 0x0 0x10000000>;   /* non-prefetchable memory (256MB) */
 
 		nvidia,cfg-link-cap-l1sub = <0x194>;
 		nvidia,cap-pl16g-status = <0x164>;
@@ -624,10 +846,18 @@
 	pcie@14120000 {
 		compatible = "nvidia,tegra194-pcie", "snps,dw-pcie";
 		power-domains = <&bpmp TEGRA194_POWER_DOMAIN_PCIEX1A>;
+#if LINUX_VERSION >= 500
+		reg = <0x00 0x14120000 0x0 0x00020000   /* appl registers (128K)      */
+		       0x00 0x32000000 0x0 0x00040000   /* configuration space (256K) */
+		       0x00 0x32040000 0x0 0x00040000   /* iATU_DMA reg space (256K)  */
+		       0x00 0x32080000 0x0 0x00040000>; /* DBI reg space (256K)       */
+		reg-names = "appl", "config", "atu_dma", "dbi";
+#else
 		reg = <0x00 0x14120000 0x0 0x00020000   /* appl registers (128K)      */
 		       0x00 0x32000000 0x0 0x00040000   /* configuration space (256K) */
 		       0x00 0x32040000 0x0 0x00040000>; /* iATU_DMA reg space (256K)  */
 		reg-names = "appl", "config", "atu_dma";
+#endif
 
 		status = "disabled";
 
@@ -635,15 +865,26 @@
 		#size-cells = <2>;
 		device_type = "pci";
 		num-lanes = <1>;
+		num-viewport = <8>;
+		supports-clkreq;
 		linux,pci-domain = <2>;
+
 
 		clocks = <&bpmp_clks TEGRA194_CLK_PEX0_CORE_2>,
 			<&bpmp_clks TEGRA194_CLK_PEX0_CORE_2M>;
+#if LINUX_VERSION >= 500
+		clock-names = "core", "core_m";
+#else
 		clock-names = "core_clk", "core_clk_m";
+#endif
 
 		resets = <&bpmp_resets TEGRA194_RESET_PEX0_CORE_2_APB>,
 			 <&bpmp_resets TEGRA194_RESET_PEX0_CORE_2>;
+#if LINUX_VERSION >= 500
+		reset-names = "core_apb", "core";
+#else
 		reset-names = "core_apb_rst", "core_rst";
+#endif
 
 		interrupts = <0 47 0x04>,	/* controller interrupt */
 					 <0 48 0x04>;	/* MSI interrupt */
@@ -665,20 +906,28 @@
 							0         0         0          0
 							0         0         0          0 >;
 
+		nvidia,bpmp = <&bpmp>;
 		nvidia,max-speed = <4>;
 		nvidia,disable-aspm-states = <0xf>;
-		nvidia,controller-id = <&bpmp 0x2>;
 		nvidia,disable-l1-cpm;
 		nvidia,aux-clk-freq = <0x13>;
 		nvidia,preset-init = <0x5>;
+#if LINUX_VERSION >= 500
+		nvidia,controller-id = <0x2>;
+		nvidia,aspm-cmrt-us = <0x3C>;
+		nvidia,aspm-pwr-on-t-us = <0x14>;
+		nvidia,aspm-l0s-entrance-latency-us = <0x3>;
+#else
+		nvidia,controller-id = <&bpmp 0x2>;
 		nvidia,aspm-cmrt = <0x3C>;
 		nvidia,aspm-pwr-on-t = <0x14>;
 		nvidia,aspm-l0s-entrance-latency = <0x3>;
+#endif
 
 		bus-range = <0x0 0xff>;
 		ranges = <0x81000000 0x0 0x32100000 0x0 0x32100000 0x0 0x00100000      /* downstream I/O (1MB) */
-			  0x82000000 0x0 0x40000000 0x12 0x70000000 0x0 0x10000000     /* non-prefetchable memory (256MB) */
-			  0xc2000000 0x12 0x40000000 0x12 0x40000000 0x0 0x30000000>;  /* prefetchable memory (768MB) */
+			  0xc2000000 0x12 0x40000000 0x12 0x40000000 0x0 0x30000000    /* prefetchable memory (768MB) */
+			  0x82000000 0x0 0x40000000 0x12 0x70000000 0x0 0x10000000>;   /* non-prefetchable memory (256MB) */
 
 		nvidia,cfg-link-cap-l1sub = <0x194>;
 		nvidia,cap-pl16g-status = <0x164>;
@@ -691,10 +940,18 @@
 	pcie@14140000 {
 		compatible = "nvidia,tegra194-pcie", "snps,dw-pcie";
 		power-domains = <&bpmp TEGRA194_POWER_DOMAIN_PCIEX1A>;
+#if LINUX_VERSION >= 500
+		reg = <0x00 0x14140000 0x0 0x00020000   /* appl registers (128K)      */
+		       0x00 0x34000000 0x0 0x00040000   /* configuration space (256K) */
+		       0x00 0x34040000 0x0 0x00040000   /* iATU_DMA reg space (256K)  */
+		       0x00 0x34080000 0x0 0x00040000>; /* DBI reg space (256K)       */
+		reg-names = "appl", "config", "atu_dma", "dbi";
+#else
 		reg = <0x00 0x14140000 0x0 0x00020000   /* appl registers (128K)      */
 		       0x00 0x34000000 0x0 0x00040000   /* configuration space (256K) */
 		       0x00 0x34040000 0x0 0x00040000>; /* iATU_DMA reg space (256K)  */
 		reg-names = "appl", "config", "atu_dma";
+#endif
 
 		status = "disabled";
 
@@ -702,15 +959,25 @@
 		#size-cells = <2>;
 		device_type = "pci";
 		num-lanes = <1>;
+		num-viewport = <8>;
+		supports-clkreq;
 		linux,pci-domain = <3>;
 
 		clocks = <&bpmp_clks TEGRA194_CLK_PEX0_CORE_3>,
 			<&bpmp_clks TEGRA194_CLK_PEX0_CORE_3M>;
+#if LINUX_VERSION >= 500
+		clock-names = "core", "core_m";
+#else
 		clock-names = "core_clk", "core_clk_m";
+#endif
 
 		resets = <&bpmp_resets TEGRA194_RESET_PEX0_CORE_3_APB>,
 			 <&bpmp_resets TEGRA194_RESET_PEX0_CORE_3>;
+#if LINUX_VERSION >= 500
+		reset-names = "core_apb", "core";
+#else
 		reset-names = "core_apb_rst", "core_rst";
+#endif
 
 		interrupts = <0 49 0x04>,	/* controller interrupt */
 					 <0 50 0x04>;	/* MSI interrupt */
@@ -732,20 +999,28 @@
 							0         0         0          0
 							0         0         0          0 >;
 
+		nvidia,bpmp = <&bpmp>;
 		nvidia,max-speed = <4>;
 		nvidia,disable-aspm-states = <0xf>;
-		nvidia,controller-id = <&bpmp 0x3>;
 		nvidia,disable-l1-cpm;
 		nvidia,aux-clk-freq = <0x13>;
 		nvidia,preset-init = <0x5>;
+#if LINUX_VERSION >= 500
+		nvidia,controller-id = <0x3>;
+		nvidia,aspm-cmrt-us = <0x3C>;
+		nvidia,aspm-pwr-on-t-us = <0x14>;
+		nvidia,aspm-l0s-entrance-latency-us = <0x3>;
+#else
+		nvidia,controller-id = <&bpmp 0x3>;
 		nvidia,aspm-cmrt = <0x3C>;
 		nvidia,aspm-pwr-on-t = <0x14>;
 		nvidia,aspm-l0s-entrance-latency = <0x3>;
+#endif
 
 		bus-range = <0x0 0xff>;
 		ranges = <0x81000000 0x0 0x34100000 0x0 0x34100000 0x0 0x00100000      /* downstream I/O (1MB) */
-			  0x82000000 0x0 0x40000000 0x12 0xB0000000 0x0 0x10000000     /* non-prefetchable memory (256MB) */
-			  0xc2000000 0x12 0x80000000 0x12 0x80000000 0x0 0x30000000>;  /* prefetchable memory (768MB) */
+			  0xc2000000 0x12 0x80000000 0x12 0x80000000 0x0 0x30000000    /* prefetchable memory (768MB) */
+			  0x82000000 0x0 0x40000000 0x12 0xB0000000 0x0 0x10000000>;   /* non-prefetchable memory (256MB) */
 
 		nvidia,cfg-link-cap-l1sub = <0x194>;
 		nvidia,cap-pl16g-status = <0x164>;
@@ -758,10 +1033,18 @@
 	pcie@14160000 {
 		compatible = "nvidia,tegra194-pcie", "snps,dw-pcie";
 		power-domains = <&bpmp TEGRA194_POWER_DOMAIN_PCIEX4A>;
+#if LINUX_VERSION >= 500
+		reg = <0x00 0x14160000 0x0 0x00020000   /* appl registers (128K)      */
+		       0x00 0x36000000 0x0 0x00040000   /* configuration space (256K) */
+		       0x00 0x36040000 0x0 0x00040000   /* iATU_DMA reg space (256K)  */
+		       0x00 0x36080000 0x0 0x00040000>; /* DBI reg space (256K)       */
+		reg-names = "appl", "config", "atu_dma", "dbi";
+#else
 		reg = <0x00 0x14160000 0x0 0x00020000   /* appl registers (128K)      */
 		       0x00 0x36000000 0x0 0x00040000   /* configuration space (256K) */
 		       0x00 0x36040000 0x0 0x00040000>; /* iATU_DMA reg space (256K)  */
 		reg-names = "appl", "config", "atu_dma";
+#endif
 
 		status = "disabled";
 
@@ -769,15 +1052,25 @@
 		#size-cells = <2>;
 		device_type = "pci";
 		num-lanes = <4>;
+		num-viewport = <8>;
+		supports-clkreq;
 		linux,pci-domain = <4>;
 
 		clocks = <&bpmp_clks TEGRA194_CLK_PEX0_CORE_4>,
 			<&bpmp_clks TEGRA194_CLK_PEX0_CORE_4M>;
+#if LINUX_VERSION >= 500
+		clock-names = "core", "core_m";
+#else
 		clock-names = "core_clk", "core_clk_m";
+#endif
 
 		resets = <&bpmp_resets TEGRA194_RESET_PEX0_CORE_4_APB>,
 			 <&bpmp_resets TEGRA194_RESET_PEX0_CORE_4>;
+#if LINUX_VERSION >= 500
+		reset-names = "core_apb", "core";
+#else
 		reset-names = "core_apb_rst", "core_rst";
+#endif
 
 		interrupts = <0 51 0x04>,	/* controller interrupt */
 					 <0 52 0x04>;	/* MSI interrupt */
@@ -799,20 +1092,28 @@
 							204000000 408000000 800000000  1600000000
 							0         0         0          0 >;
 
+		nvidia,bpmp = <&bpmp>;
 		nvidia,max-speed = <4>;
 		nvidia,disable-aspm-states = <0xf>;
-		nvidia,controller-id = <&bpmp 0x4>;
 		nvidia,disable-l1-cpm;
 		nvidia,aux-clk-freq = <0x13>;
 		nvidia,preset-init = <0x5>;
+#if LINUX_VERSION >= 500
+		nvidia,controller-id = <0x4>;
+		nvidia,aspm-cmrt-us = <0x3C>;
+		nvidia,aspm-pwr-on-t-us = <0x14>;
+		nvidia,aspm-l0s-entrance-latency-us = <0x3>;
+#else
+		nvidia,controller-id = <&bpmp 0x4>;
 		nvidia,aspm-cmrt = <0x3C>;
 		nvidia,aspm-pwr-on-t = <0x14>;
 		nvidia,aspm-l0s-entrance-latency = <0x3>;
+#endif
 
 		bus-range = <0x0 0xff>;
 		ranges = <0x81000000 0x0 0x36100000 0x0 0x36100000 0x0 0x00100000      /* downstream I/O (1MB) */
-			  0x82000000 0x0 0x40000000 0x17 0x40000000 0x0 0xC0000000      /* non-prefetchable memory (3GB) */
-			  0xc2000000 0x14 0x00000000 0x14 0x00000000 0x3 0x40000000>;  /* prefetchable memory (13GB) */
+			  0xc2000000 0x14 0x00000000 0x14 0x00000000 0x3 0x40000000    /* prefetchable memory (13GB) */
+			  0x82000000 0x0 0x40000000 0x17 0x40000000 0x0 0xC0000000>;   /* non-prefetchable memory (3GB) */
 
 		nvidia,cfg-link-cap-l1sub = <0x1b0>;
 		nvidia,cap-pl16g-status = <0x174>;
@@ -825,10 +1126,18 @@
 	pcie@141a0000 {
 		compatible = "nvidia,tegra194-pcie", "snps,dw-pcie";
 		power-domains = <&bpmp TEGRA194_POWER_DOMAIN_PCIEX8A>;
+#if LINUX_VERSION >= 500
+		reg = <0x00 0x141a0000 0x0 0x00020000   /* appl registers (128K)      */
+		       0x00 0x3a000000 0x0 0x00040000   /* configuration space (256K) */
+		       0x00 0x3a040000 0x0 0x00040000   /* iATU_DMA reg space (256K)  */
+		       0x00 0x3a080000 0x0 0x00040000>; /* DBI reg space (256K)       */
+		reg-names = "appl", "config", "atu_dma", "dbi";
+#else
 		reg = <0x00 0x141a0000 0x0 0x00020000   /* appl registers (128K)      */
 		       0x00 0x3a000000 0x0 0x00040000   /* configuration space (256K) */
 		       0x00 0x3a040000 0x0 0x00040000>; /* iATU_DMA reg space (256K)  */
 		reg-names = "appl", "config", "atu_dma";
+#endif
 
 		status = "disabled";
 
@@ -836,15 +1145,25 @@
 		#size-cells = <2>;
 		device_type = "pci";
 		num-lanes = <8>;
+		num-viewport = <8>;
+		supports-clkreq;
 		linux,pci-domain = <5>;
 
 		clocks = <&bpmp_clks TEGRA194_CLK_PEX1_CORE_5>,
 			<&bpmp_clks TEGRA194_CLK_PEX1_CORE_5M>;
+#if LINUX_VERSION >= 500
+		clock-names = "core", "core_m";
+#else
 		clock-names = "core_clk", "core_clk_m";
+#endif
 
 		resets = <&bpmp_resets TEGRA194_RESET_PEX1_CORE_5_APB>,
 			 <&bpmp_resets TEGRA194_RESET_PEX1_CORE_5>;
+#if LINUX_VERSION >= 500
+		reset-names = "core_apb", "core";
+#else
 		reset-names = "core_apb_rst", "core_rst";
+#endif
 
 		interrupts = <0 53 0x04>,	/* controller interrupt */
 					 <0 54 0x04>;	/* MSI interrupt */
@@ -875,21 +1194,29 @@
 							204000000 408000000 666000000  1066000000
 							408000000 666000000 1066000000 2133000000 >;
 
+		nvidia,bpmp = <&bpmp>;
 		nvidia,max-speed = <4>;
 		nvidia,disable-aspm-states = <0xf>;
-		nvidia,controller-id = <&bpmp 0x5>;
 		nvidia,tsa-config = <0x0200b004>;
 		nvidia,disable-l1-cpm;
 		nvidia,aux-clk-freq = <0x13>;
 		nvidia,preset-init = <0x5>;
+#if LINUX_VERSION >= 500
+		nvidia,controller-id = <0x5>;
+		nvidia,aspm-cmrt-us = <0x3C>;
+		nvidia,aspm-pwr-on-t-us = <0x14>;
+		nvidia,aspm-l0s-entrance-latency-us = <0x3>;
+#else
+		nvidia,controller-id = <&bpmp 0x5>;
 		nvidia,aspm-cmrt = <0x3C>;
 		nvidia,aspm-pwr-on-t = <0x14>;
 		nvidia,aspm-l0s-entrance-latency = <0x3>;
+#endif
 
 		bus-range = <0x0 0xff>;
 		ranges = <0x81000000 0x0 0x3a100000 0x0 0x3a100000 0x0 0x00100000      /* downstream I/O (1MB) */
-			  0x82000000 0x0 0x40000000 0x1f 0x40000000 0x0 0xC0000000     /* non-prefetchable memory (3GB) */
-			  0xc2000000 0x1c 0x00000000 0x1c 0x00000000 0x3 0x40000000>;  /* prefetchable memory (13GB) */
+			  0xc2000000 0x1c 0x00000000 0x1c 0x00000000 0x3 0x40000000    /* prefetchable memory (13GB) */
+			  0x82000000 0x0 0x40000000 0x1f 0x40000000 0x0 0xC0000000>;   /* non-prefetchable memory (3GB) */
 
 		nvidia,cfg-link-cap-l1sub = <0x1c4>;
 		nvidia,cap-pl16g-status = <0x174>;
