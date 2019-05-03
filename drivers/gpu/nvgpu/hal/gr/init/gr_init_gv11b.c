@@ -451,7 +451,7 @@ void gv11b_gr_init_tpc_mask(struct gk20a *g, u32 gpc_index, u32 pes_tpc_mask)
 	nvgpu_writel(g, gr_fe_tpc_fs_r(gpc_index), pes_tpc_mask);
 }
 
-int gv11b_gr_init_rop_mapping(struct gk20a *g,
+void gv11b_gr_init_rop_mapping(struct gk20a *g,
 			      struct nvgpu_gr_config *gr_config)
 {
 	u32 map;
@@ -464,10 +464,6 @@ int gv11b_gr_init_rop_mapping(struct gk20a *g,
 	u32 num_tpcs = num_gpcs * num_tpc_per_gpc;
 
 	nvgpu_log_fn(g, " ");
-
-	if (nvgpu_gr_config_get_map_tiles(gr_config) == NULL) {
-		return -1;
-	}
 
 	nvgpu_writel(g, gr_crstr_map_table_cfg_r(),
 		gr_crstr_map_table_cfg_row_offset_f(
@@ -541,8 +537,6 @@ int gv11b_gr_init_rop_mapping(struct gk20a *g,
 			nvgpu_gr_config_get_map_row_offset(gr_config)) |
 		gr_rstr2d_map_table_cfg_num_entries_f(
 			nvgpu_gr_config_get_tpc_count(gr_config)));
-
-	return 0;
 }
 
 int gv11b_gr_init_fs_state(struct gk20a *g)
