@@ -26,6 +26,5 @@
 struct tsg_gk20a;
 
 void gk20a_tsg_enable(struct tsg_gk20a *tsg);
-void gk20a_tsg_event_id_post_event(struct tsg_gk20a *tsg);
 
 #endif /* NVGPU_TSG_GK20A_H */
