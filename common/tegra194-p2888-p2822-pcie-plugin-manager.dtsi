@@ -34,6 +34,7 @@
 			};
 		};
 
+#if LINUX_VERSION < 500
 		fragment-disable-uphy-rx-idle {
 			ids = "<=2822-0000-300";
 			override@0 {
@@ -43,6 +44,7 @@
 				};
 			};
 		};
+#endif
 
 		fragment-pcie-c5-rp {
 			odm-anded-override;
