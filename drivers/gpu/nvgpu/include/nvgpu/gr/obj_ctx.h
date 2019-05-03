@@ -48,7 +48,7 @@ void nvgpu_gr_obj_ctx_commit_inst(struct gk20a *g, struct nvgpu_mem *inst_block,
 
 int nvgpu_gr_obj_ctx_set_ctxsw_preemption_mode(struct gk20a *g,
 	struct nvgpu_gr_config *config, struct nvgpu_gr_ctx_desc *gr_ctx_desc,
-	struct nvgpu_gr_ctx *gr_ctx, struct vm_gk20a *vm, u32 class,
+	struct nvgpu_gr_ctx *gr_ctx, struct vm_gk20a *vm, u32 class_num,
 	u32 graphics_preempt_mode, u32 compute_preempt_mode);
 void nvgpu_gr_obj_ctx_update_ctxsw_preemption_mode(struct gk20a *g,
 	struct nvgpu_gr_config *config,
