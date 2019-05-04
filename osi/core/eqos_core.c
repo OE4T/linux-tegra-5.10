@@ -28,7 +28,71 @@
 struct osi_core_ops *eqos_get_hw_core_ops(void);
 
 /**
- *	eqos_osi_config_rx_crc_check - Configure CRC Checking for Rx Packets
+ *	eqos_config_flow_control - Configure MAC flow control settings
+ *	@addr: MAC base address.
+ *	@flw_ctrl: flw_ctrl settings
+ *
+ *	Algorithm:
+ *
+ *	Dependencies: MAC has to be out of reset.
+ *
+ *	Protection: None.
+ *
+ *	Return: 0 - success, -1 - failure
+ */
+static int eqos_config_flow_control(void *addr, unsigned int flw_ctrl)
+{
+	unsigned int val;
+
+	/* return on invalid argument */
+	if (flw_ctrl > (OSI_FLOW_CTRL_RX | OSI_FLOW_CTRL_TX)) {
+		return -1;
+	}
+
+	/* Configure MAC Tx Flow control */
+	/* Read MAC Tx Flow control Register of Q0 */
+	val = osi_readl((unsigned char *)addr + EQOS_MAC_QX_TX_FLW_CTRL(0U));
+
+	/* flw_ctrl BIT0: 1 is for tx flow ctrl enable
+	 * flw_ctrl BIT0: 0 is for tx flow ctrl disable
+	 */
+	if ((flw_ctrl & OSI_FLOW_CTRL_TX) == OSI_FLOW_CTRL_TX) {
+		/* Enable Tx Flow Control */
+		val |= EQOS_MAC_QX_TX_FLW_CTRL_TFE;
+		/* Mask and set Pause Time */
+		val &= ~EQOS_MAC_PAUSE_TIME_MASK;
+		val |= EQOS_MAC_PAUSE_TIME & EQOS_MAC_PAUSE_TIME_MASK;
+	} else {
+		/* Disable Tx Flow Control */
+		val &= ~EQOS_MAC_QX_TX_FLW_CTRL_TFE;
+	}
+
+	/* Write to MAC Tx Flow control Register of Q0 */
+	osi_writel(val, (unsigned char *)addr + EQOS_MAC_QX_TX_FLW_CTRL(0U));
+
+	/* Configure MAC Rx Flow control*/
+	/* Read MAC Rx Flow control Register */
+	val = osi_readl((unsigned char *)addr + EQOS_MAC_RX_FLW_CTRL);
+
+	/* flw_ctrl BIT1: 1 is for rx flow ctrl enable
+	 * flw_ctrl BIT1: 0 is for rx flow ctrl disable
+	 */
+	if ((flw_ctrl & OSI_FLOW_CTRL_RX) == OSI_FLOW_CTRL_RX) {
+		/* Enable Rx Flow Control */
+		val |= EQOS_MAC_RX_FLW_CTRL_RFE;
+	} else {
+		/* Disable Rx Flow Control */
+		val &= ~EQOS_MAC_RX_FLW_CTRL_RFE;
+	}
+
+	/* Write to MAC Rx Flow control Register */
+	osi_writel(val, (unsigned char *)addr + EQOS_MAC_RX_FLW_CTRL);
+
+	return 0;
+}
+
+/**
+ *	eqos_config_rx_crc_check - Configure CRC Checking for Rx Packets
  *	@addr: MAC base address.
  *	@crc_chk: Enable or disable checking of CRC field in received packets
  *
@@ -528,7 +592,8 @@ static int eqos_pad_calibrate(void *ioaddr)
 		}
 		count++;
 		osd_usleep_range(10, 12);
-		value = osi_readl((unsigned char *)ioaddr + EQOS_PAD_AUTO_CAL_STAT);
+		value = osi_readl((unsigned char *)ioaddr +
+				  EQOS_PAD_AUTO_CAL_STAT);
 		/* calibration done when CAL_STAT_ACTIVE is zero */
 		if ((value & EQOS_PAD_AUTO_CAL_STAT_ACTIVE) == 0U) {
 			cond = 0;
@@ -566,9 +631,11 @@ static int eqos_flush_mtl_tx_queue(void *addr, unsigned int qinx)
 	int cond = 1;
 
 	/* Read Tx Q Operating Mode Register and flush TxQ */
-	value = osi_readl((unsigned char *)addr + EQOS_MTL_CHX_TX_OP_MODE(qinx));
+	value = osi_readl((unsigned char *)addr +
+			  EQOS_MTL_CHX_TX_OP_MODE(qinx));
 	value |= EQOS_MTL_QTOMR_FTQ;
-	osi_writel(value, (unsigned char *)addr + EQOS_MTL_CHX_TX_OP_MODE(qinx));
+	osi_writel(value, (unsigned char *)addr +
+		   EQOS_MTL_CHX_TX_OP_MODE(qinx));
 
 	/* Poll Until FTQ bit resets for Successful Tx Q flush */
 	count = 0;
@@ -580,7 +647,8 @@ static int eqos_flush_mtl_tx_queue(void *addr, unsigned int qinx)
 		count++;
 		osd_msleep(1);
 
-		value = osi_readl((unsigned char *)addr + EQOS_MTL_CHX_TX_OP_MODE(qinx));
+		value = osi_readl((unsigned char *)addr +
+				  EQOS_MTL_CHX_TX_OP_MODE(qinx));
 
 		if ((value & EQOS_MTL_QTOMR_FTQ_LPOS) == 0U) {
 			cond = 0;
@@ -588,6 +656,105 @@ static int eqos_flush_mtl_tx_queue(void *addr, unsigned int qinx)
 	}
 
 	return 0;
+}
+
+/**
+ *	update_ehfc_rfa_rfd - Update EHFC, RFD and RSA values
+ *	@rx_fifo: Rx FIFO size.
+ *	@value: Stores RFD and RSA values
+ *
+ *	Algorithm: Calulates and stores the RSD (Threshold for Dectivating
+ *	Flow control) and RSA (Threshold for Activating Flow Control) values
+ *	based on the Rx FIFO size and also enables HW flow control
+ *
+ *	Dependencies: None.
+ *
+ *	Protection: None.
+ *
+ *	Return: None.
+ */
+void update_ehfc_rfa_rfd(unsigned int rx_fifo, unsigned int *value)
+{
+	if (rx_fifo >= EQOS_4K) {
+		/* Enable HW Flow Control */
+		*value |= EQOS_MTL_RXQ_OP_MODE_EHFC;
+
+		switch (rx_fifo) {
+		case EQOS_4K:
+			/* Update RFD */
+			*value &= ~EQOS_MTL_RXQ_OP_MODE_RFD_MASK;
+			*value |= (FULL_MINUS_2_5K <<
+				   EQOS_MTL_RXQ_OP_MODE_RFD_SHIFT) &
+				   EQOS_MTL_RXQ_OP_MODE_RFD_MASK;
+			/* Update RFA */
+			*value &= ~EQOS_MTL_RXQ_OP_MODE_RFA_MASK;
+			*value |= (FULL_MINUS_1_5K <<
+				   EQOS_MTL_RXQ_OP_MODE_RFA_SHIFT) &
+				   EQOS_MTL_RXQ_OP_MODE_RFA_MASK;
+			break;
+		case EQOS_8K:
+			/* Update RFD */
+			*value &= ~EQOS_MTL_RXQ_OP_MODE_RFD_MASK;
+			*value |= (FULL_MINUS_4_K <<
+				   EQOS_MTL_RXQ_OP_MODE_RFD_SHIFT) &
+				   EQOS_MTL_RXQ_OP_MODE_RFD_MASK;
+			/* Update RFA */
+			*value &= ~EQOS_MTL_RXQ_OP_MODE_RFA_MASK;
+			*value |= (FULL_MINUS_6_K <<
+				   EQOS_MTL_RXQ_OP_MODE_RFA_SHIFT) &
+				   EQOS_MTL_RXQ_OP_MODE_RFA_MASK;
+			break;
+		case EQOS_9K:
+			/* Update RFD */
+			*value &= ~EQOS_MTL_RXQ_OP_MODE_RFD_MASK;
+			*value |= (FULL_MINUS_3_K <<
+				   EQOS_MTL_RXQ_OP_MODE_RFD_SHIFT) &
+				   EQOS_MTL_RXQ_OP_MODE_RFD_MASK;
+			/* Update RFA */
+			*value &= ~EQOS_MTL_RXQ_OP_MODE_RFA_MASK;
+			*value |= (FULL_MINUS_2_K <<
+				   EQOS_MTL_RXQ_OP_MODE_RFA_SHIFT) &
+				   EQOS_MTL_RXQ_OP_MODE_RFA_MASK;
+			break;
+		case EQOS_16K:
+			/* Update RFD */
+			*value &= ~EQOS_MTL_RXQ_OP_MODE_RFD_MASK;
+			*value |= (FULL_MINUS_4_K <<
+				   EQOS_MTL_RXQ_OP_MODE_RFD_SHIFT) &
+				   EQOS_MTL_RXQ_OP_MODE_RFD_MASK;
+			/* Update RFA */
+			*value &= ~EQOS_MTL_RXQ_OP_MODE_RFA_MASK;
+			*value |= (FULL_MINUS_10_K <<
+				   EQOS_MTL_RXQ_OP_MODE_RFA_SHIFT) &
+				   EQOS_MTL_RXQ_OP_MODE_RFA_MASK;
+			break;
+		case EQOS_32K:
+			/* Update RFD */
+			*value &= ~EQOS_MTL_RXQ_OP_MODE_RFD_MASK;
+			*value |= (FULL_MINUS_4_K <<
+				   EQOS_MTL_RXQ_OP_MODE_RFD_SHIFT) &
+				   EQOS_MTL_RXQ_OP_MODE_RFD_MASK;
+			/* Update RFA */
+			*value &= ~EQOS_MTL_RXQ_OP_MODE_RFA_MASK;
+			*value |= (FULL_MINUS_16_K <<
+				   EQOS_MTL_RXQ_OP_MODE_RFA_SHIFT) &
+				   EQOS_MTL_RXQ_OP_MODE_RFA_MASK;
+			break;
+		default:
+			/* Use 9K values */
+			/* Update RFD */
+			*value &= ~EQOS_MTL_RXQ_OP_MODE_RFD_MASK;
+			*value |= (FULL_MINUS_3_K <<
+				   EQOS_MTL_RXQ_OP_MODE_RFD_SHIFT) &
+				   EQOS_MTL_RXQ_OP_MODE_RFD_MASK;
+			/* Update RFA */
+			*value &= ~EQOS_MTL_RXQ_OP_MODE_RFA_MASK;
+			*value |= (FULL_MINUS_2_K <<
+				   EQOS_MTL_RXQ_OP_MODE_RFA_SHIFT) &
+				   EQOS_MTL_RXQ_OP_MODE_RFA_MASK;
+			break;
+		}
+	}
 }
 
 /**
@@ -630,24 +797,37 @@ static int eqos_configure_mtl_queue(unsigned int qinx,
 	value |= EQOS_MTL_TSF;
 	/* Enable TxQ */
 	value |= EQOS_MTL_TXQEN;
-	osi_writel(value, (unsigned char *)osi_core->base + EQOS_MTL_CHX_TX_OP_MODE(qinx));
+	osi_writel(value, (unsigned char *)osi_core->base +
+		   EQOS_MTL_CHX_TX_OP_MODE(qinx));
 
 	/* read RX Q0 Operating Mode Register */
-	value = osi_readl((unsigned char *)osi_core->base +  EQOS_MTL_CHX_RX_OP_MODE(qinx));
+	value = osi_readl((unsigned char *)osi_core->base +
+			  EQOS_MTL_CHX_RX_OP_MODE(qinx));
 	value |= (rx_fifo << EQOS_MTL_RXQ_SIZE_SHIFT);
 	/* Enable Store and Forward mode */
 	value |= EQOS_MTL_RSF;
-	osi_writel(value, (unsigned char *)osi_core->base + EQOS_MTL_CHX_RX_OP_MODE(qinx));
+	/* Update EHFL, RFA and RFD
+	 * EHFL: Enable HW Flow Control
+	 * RFA: Threshold for Activating Flow Control
+	 * RFD: Threshold for Deactivating Flow Control
+	 */
+	update_ehfc_rfa_rfd(rx_fifo, &value);
+	osi_writel(value, (unsigned char *)osi_core->base +
+		   EQOS_MTL_CHX_RX_OP_MODE(qinx));
 
 	/* Transmit Queue weight */
-	value = osi_readl((unsigned char *)osi_core->base + EQOS_MTL_TXQ_QW(qinx));
+	value = osi_readl((unsigned char *)osi_core->base +
+			  EQOS_MTL_TXQ_QW(qinx));
 	value |= (EQOS_MTL_TXQ_QW_ISCQW + qinx);
-	osi_writel(value, (unsigned char *)osi_core->base + EQOS_MTL_TXQ_QW(qinx));
+	osi_writel(value, (unsigned char *)osi_core->base +
+		   EQOS_MTL_TXQ_QW(qinx));
 
 	/* Enable Rx Queue Control */
-	value = osi_readl((unsigned char *)osi_core->base + EQOS_MAC_RQC0R);
+	value = osi_readl((unsigned char *)osi_core->base +
+			  EQOS_MAC_RQC0R);
 	value |= ((osi_core->rxq_ctrl[qinx] & 0x3U) << (qinx * 2U));
-	osi_writel(value, (unsigned char *)osi_core->base + EQOS_MAC_RQC0R);
+	osi_writel(value, (unsigned char *)osi_core->base +
+		   EQOS_MAC_RQC0R);
 
 	return 0;
 }
@@ -673,6 +853,7 @@ static int eqos_configure_mtl_queue(unsigned int qinx,
 static void eqos_configure_mac(struct osi_core_priv_data *osi_core)
 {
 	unsigned int value;
+
 	/* Update MAC address 0 high */
 	osi_writel((((unsigned int)osi_core->mac_addr[5] << 8U) |
 		   (unsigned int)(osi_core->mac_addr[4])),
@@ -709,11 +890,14 @@ static void eqos_configure_mac(struct osi_core_priv_data *osi_core)
 
 	/* Disable all MMC interrupts */
 	/* Disable all MMC Tx Interrupts */
-	osi_writel(0xFFFFFFFFU, (unsigned char *)osi_core->base + EQOS_MMC_TX_INTR_MASK);
+	osi_writel(0xFFFFFFFFU, (unsigned char *)osi_core->base +
+		   EQOS_MMC_TX_INTR_MASK);
 	/* Disable all MMC RX interrupts */
-	osi_writel(0xFFFFFFFFU, (unsigned char *)osi_core->base + EQOS_MMC_RX_INTR_MASK);
+	osi_writel(0xFFFFFFFFU, (unsigned char *)osi_core->base +
+		   EQOS_MMC_RX_INTR_MASK);
 	/* Disable MMC Rx interrupts for IPC */
-	osi_writel(0xFFFFFFFFU, (unsigned char *)osi_core->base + EQOS_MMC_IPC_RX_INTR_MASK);
+	osi_writel(0xFFFFFFFFU, (unsigned char *)osi_core->base +
+		   EQOS_MMC_IPC_RX_INTR_MASK);
 
 	/* Configure MMC counters */
 	value = osi_readl((unsigned char *)osi_core->base + EQOS_MMC_CNTRL);
@@ -749,6 +933,16 @@ static void eqos_configure_mac(struct osi_core_priv_data *osi_core)
 	/* insert/replace C_VLAN in 13th & 14th bytes of transmitted frames */
 	value &= ~EQOS_MAC_VLANTIRR_CSVL;
 	osi_writel(value, (unsigned char *)osi_core->base + EQOS_MAC_VLANTIR);
+
+	/* Configure default flow control settings */
+	if (osi_core->pause_frames == OSI_PAUSE_FRAMES_ENABLE) {
+		osi_core->flow_ctrl = (OSI_FLOW_CTRL_TX | OSI_FLOW_CTRL_RX);
+		if (eqos_config_flow_control(osi_core->base,
+					     osi_core->flow_ctrl) != 0) {
+			osd_err(osi_core->osd, "Failed to set flow control"
+				" configuration\n");
+		}
+	}
 }
 
 /**
@@ -821,13 +1015,16 @@ static int eqos_core_init(struct osi_core_priv_data *osi_core,
 	}
 
 	/* reset mmc counters */
-	osi_writel(EQOS_MMC_CNTRL_CNTRST, (unsigned char *)osi_core->base + EQOS_MMC_CNTRL);
+	osi_writel(EQOS_MMC_CNTRL_CNTRST, (unsigned char *)osi_core->base +
+		   EQOS_MMC_CNTRL);
 
 	/* Mapping MTL Rx queue and DMA Rx channel */
 	/* TODO: Need to add EQOS_MTL_RXQ_DMA_MAP1 for EQOS */
-	value = osi_readl((unsigned char *)osi_core->base + EQOS_MTL_RXQ_DMA_MAP0);
+	value = osi_readl((unsigned char *)osi_core->base +
+			  EQOS_MTL_RXQ_DMA_MAP0);
 	value |= EQOS_RXQ_TO_DMA_CHAN_MAP;
-	osi_writel(value, (unsigned char *)osi_core->base + EQOS_MTL_RXQ_DMA_MAP0);
+	osi_writel(value, (unsigned char *)osi_core->base +
+		   EQOS_MTL_RXQ_DMA_MAP0);
 
 	/* Calculate value of Transmit queue fifo size to be programmed */
 	tx_fifo = eqos_calculate_per_queue_fifo(tx_fifo_size,
@@ -909,9 +1106,11 @@ static void eqos_handle_mac_intrs(struct osi_core_priv_data *osi_core,
 	/* Maybe through workqueue for QNX */
 	if ((mac_pcs & EQOS_MAC_PCS_LNKSPEED) == EQOS_MAC_PCS_LNKSPEED_10) {
 		eqos_set_speed(osi_core->base, OSI_SPEED_10);
-	} else if ((mac_pcs & EQOS_MAC_PCS_LNKSPEED) == EQOS_MAC_PCS_LNKSPEED_100) {
+	} else if ((mac_pcs & EQOS_MAC_PCS_LNKSPEED) ==
+		   EQOS_MAC_PCS_LNKSPEED_100) {
 		eqos_set_speed(osi_core->base, OSI_SPEED_100);
-	} else if ((mac_pcs & EQOS_MAC_PCS_LNKSPEED) == EQOS_MAC_PCS_LNKSPEED_1000) {
+	} else if ((mac_pcs & EQOS_MAC_PCS_LNKSPEED) ==
+		   EQOS_MAC_PCS_LNKSPEED_1000) {
 		eqos_set_speed(osi_core->base, OSI_SPEED_1000);
 	} else {
 		/* Nothing here */
@@ -952,9 +1151,11 @@ static void eqos_handle_common_intr(struct osi_core_priv_data *osi_core)
 			qinx = osi_core->mtl_queues[i];
 
 			/* read dma channel status register */
-			dma_sr = osi_readl((unsigned char *)base + EQOS_DMA_CHX_STATUS(qinx));
+			dma_sr = osi_readl((unsigned char *)base +
+					   EQOS_DMA_CHX_STATUS(qinx));
 			/* read dma channel interrupt enable register */
-			dma_ier = osi_readl((unsigned char *)base + EQOS_DMA_CHX_IER(qinx));
+			dma_ier = osi_readl((unsigned char *)base +
+					    EQOS_DMA_CHX_IER(qinx));
 
 			/* process only those interrupts which we
 			 * have enabled.
@@ -968,7 +1169,8 @@ static void eqos_handle_common_intr(struct osi_core_priv_data *osi_core)
 			}
 
 			/* ack non ti/ri ints */
-			osi_writel(dma_sr, (unsigned char *)base + EQOS_DMA_CHX_STATUS(qinx));
+			osi_writel(dma_sr, (unsigned char *)base +
+				   EQOS_DMA_CHX_STATUS(qinx));
 		}
 	}
 
@@ -1215,6 +1417,7 @@ static struct osi_core_ops eqos_core_ops = {
 	.config_fw_err_pkts = eqos_config_fw_err_pkts,
 	.config_tx_status = eqos_config_tx_status,
 	.config_rx_crc_check = eqos_config_rx_crc_check,
+	.config_flow_control = eqos_config_flow_control,
 };
 
 struct osi_core_ops *eqos_get_hw_core_ops(void)

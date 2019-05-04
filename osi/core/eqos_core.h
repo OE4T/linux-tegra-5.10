@@ -23,6 +23,18 @@
 #ifndef EQOS_CORE_H_
 #define EQOS_CORE_H_
 
+/* These bits control the threshold (fill-level of Rx queue) at which
+ * the flow control is asserted or de-asserted
+ */
+#define FULL_MINUS_1_5K		(unsigned int)1
+#define FULL_MINUS_2_K		(unsigned int)2
+#define FULL_MINUS_2_5K		(unsigned int)3
+#define FULL_MINUS_3_K		(unsigned int)4
+#define FULL_MINUS_4_K		(unsigned int)6
+#define FULL_MINUS_6_K		(unsigned int)10
+#define FULL_MINUS_10_K		(unsigned int)18
+#define FULL_MINUS_16_K		(unsigned int)30
+
 /**
  *	MTL queue operation mode
  *	EQOS_MTL_QUEUE_DISABLED - queue disabled
@@ -82,6 +94,8 @@
 #define EQOS_MAC_ANS		0x00E4
 #define EQOS_RXQ_TO_DMA_CHAN_MAP	0x03020100U
 #define EQOS_MAC_EXTR		0x0004
+#define EQOS_MAC_RX_FLW_CTRL	0x0090
+#define EQOS_MAC_QX_TX_FLW_CTRL(x)	((0x0004U * (x)) + 0x0070U)
 
 /* EQOS MTL registers*/
 #define EQOS_MTL_CHX_TX_OP_MODE(x)	((0x0040U * (x)) + 0x0D00U)
@@ -174,4 +188,15 @@
 #define EQOS_MTL_RXQ_OP_MODE_FEP		OSI_BIT(4)
 #define EQOS_MTL_OP_MODE_DTXSTS			OSI_BIT(1)
 #define EQOS_MAC_EXTR_DCRCC			OSI_BIT(16)
+#define EQOS_MAC_QX_TX_FLW_CTRL_TFE		OSI_BIT(1)
+#define EQOS_MAC_RX_FLW_CTRL_RFE		OSI_BIT(0)
+#define EQOS_MAC_PAUSE_TIME			0xFFFF0000U
+#define EQOS_MAC_PAUSE_TIME_MASK		0xFFFF0000U
+#define EQOS_MTL_RXQ_OP_MODE_EHFC		OSI_BIT(7)
+#define EQOS_MTL_RXQ_OP_MODE_RFA_SHIFT		8U
+#define EQOS_MTL_RXQ_OP_MODE_RFA_MASK		0x00003F00U
+#define EQOS_MTL_RXQ_OP_MODE_RFD_SHIFT		14U
+#define EQOS_MTL_RXQ_OP_MODE_RFD_MASK		0x000FC000U
+
+void update_ehfc_rfa_rfd(unsigned int rx_fifo, unsigned int *value);
 #endif

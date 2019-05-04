@@ -383,6 +383,21 @@ int osi_configure_txstatus(struct osi_core_priv_data *osi_core,
 	return ret;
 }
 
+int osi_config_fw_err_pkts(struct osi_core_priv_data *osi_core,
+			   unsigned int qinx, unsigned int fw_err)
+{
+	int ret = -1;
+
+	/* Configure Forwarding of Error packets */
+	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
+	    (osi_core->ops->config_fw_err_pkts != OSI_NULL)) {
+		ret = osi_core->ops->config_fw_err_pkts(osi_core->base,
+							qinx, fw_err);
+	}
+
+	return ret;
+}
+
 int osi_config_rx_crc_check(struct osi_core_priv_data *osi_core,
 			    unsigned int crc_chk)
 {
@@ -393,6 +408,21 @@ int osi_config_rx_crc_check(struct osi_core_priv_data *osi_core,
 	    (osi_core->ops->config_rx_crc_check != OSI_NULL)) {
 		ret = osi_core->ops->config_rx_crc_check(osi_core->base,
 							 crc_chk);
+	}
+
+	return ret;
+}
+
+int osi_configure_flow_control(struct osi_core_priv_data *osi_core,
+			       unsigned int flw_ctrl)
+{
+	int ret = -1;
+
+	/* Configure Flow control settings */
+	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
+	    (osi_core->ops->config_flow_control != OSI_NULL)) {
+		ret = osi_core->ops->config_flow_control(osi_core->base,
+							 flw_ctrl);
 	}
 
 	return ret;
