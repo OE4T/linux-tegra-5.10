@@ -317,6 +317,25 @@ void gm20b_gr_falcon_bind_instblk(struct gk20a *g,
 
 }
 
+static void gm20b_gr_falcon_program_fecs_dmem_data(struct gk20a *g,
+			u32 reg_offset, u32 addr_code32, u32 addr_data32,
+			u32 code_size, u32 data_size)
+{
+	nvgpu_writel(g, reg_offset + gr_fecs_dmemd_r(0), 0);
+	nvgpu_writel(g, reg_offset + gr_fecs_dmemd_r(0), 0);
+	nvgpu_writel(g, reg_offset + gr_fecs_dmemd_r(0), 0);
+	nvgpu_writel(g, reg_offset + gr_fecs_dmemd_r(0), 0);
+	nvgpu_writel(g, reg_offset + gr_fecs_dmemd_r(0), 4);
+	nvgpu_writel(g, reg_offset + gr_fecs_dmemd_r(0), addr_code32);
+	nvgpu_writel(g, reg_offset + gr_fecs_dmemd_r(0), 0);
+	nvgpu_writel(g, reg_offset + gr_fecs_dmemd_r(0), code_size);
+	nvgpu_writel(g, reg_offset + gr_fecs_dmemd_r(0), 0);
+	nvgpu_writel(g, reg_offset + gr_fecs_dmemd_r(0), 0);
+	nvgpu_writel(g, reg_offset + gr_fecs_dmemd_r(0), 0);
+	nvgpu_writel(g, reg_offset + gr_fecs_dmemd_r(0), addr_data32);
+	nvgpu_writel(g, reg_offset + gr_fecs_dmemd_r(0), data_size);
+}
+
 void gm20b_gr_falcon_load_ctxsw_ucode_header(struct gk20a *g,
 	u32 reg_offset, u32 boot_signature, u32 addr_code32,
 	u32 addr_data32, u32 code_size, u32 data_size)
@@ -347,46 +366,16 @@ void gm20b_gr_falcon_load_ctxsw_ucode_header(struct gk20a *g,
 		nvgpu_writel(g, reg_offset + gr_fecs_dmemd_r(0), 0);
 		nvgpu_writel(g, reg_offset + gr_fecs_dmemd_r(0), 0);
 		nvgpu_writel(g, reg_offset + gr_fecs_dmemd_r(0), 0);
-		nvgpu_writel(g, reg_offset + gr_fecs_dmemd_r(0), 0);
-		nvgpu_writel(g, reg_offset + gr_fecs_dmemd_r(0), 0);
-		nvgpu_writel(g, reg_offset + gr_fecs_dmemd_r(0), 0);
-		nvgpu_writel(g, reg_offset + gr_fecs_dmemd_r(0), 0);
-		nvgpu_writel(g, reg_offset + gr_fecs_dmemd_r(0), 4);
-		nvgpu_writel(g, reg_offset + gr_fecs_dmemd_r(0),
-				addr_code32);
-		nvgpu_writel(g, reg_offset + gr_fecs_dmemd_r(0), 0);
-		nvgpu_writel(g, reg_offset + gr_fecs_dmemd_r(0),
-				code_size);
-		nvgpu_writel(g, reg_offset + gr_fecs_dmemd_r(0), 0);
-		nvgpu_writel(g, reg_offset + gr_fecs_dmemd_r(0), 0);
-		nvgpu_writel(g, reg_offset + gr_fecs_dmemd_r(0), 0);
-		nvgpu_writel(g, reg_offset + gr_fecs_dmemd_r(0),
-				addr_data32);
-		nvgpu_writel(g, reg_offset + gr_fecs_dmemd_r(0),
-				data_size);
+		gm20b_gr_falcon_program_fecs_dmem_data(g, reg_offset,
+			addr_code32, addr_data32, code_size, data_size);
 		break;
 	case FALCON_UCODE_SIG_T12X_FECS_WITHOUT_RESERVED:
 	case FALCON_UCODE_SIG_T12X_GPCCS_WITHOUT_RESERVED:
 	case FALCON_UCODE_SIG_T21X_FECS_WITHOUT_RESERVED:
 	case FALCON_UCODE_SIG_T21X_FECS_WITHOUT_RESERVED2:
 	case FALCON_UCODE_SIG_T21X_GPCCS_WITHOUT_RESERVED:
-		nvgpu_writel(g, reg_offset + gr_fecs_dmemd_r(0), 0);
-		nvgpu_writel(g, reg_offset + gr_fecs_dmemd_r(0), 0);
-		nvgpu_writel(g, reg_offset + gr_fecs_dmemd_r(0), 0);
-		nvgpu_writel(g, reg_offset + gr_fecs_dmemd_r(0), 0);
-		nvgpu_writel(g, reg_offset + gr_fecs_dmemd_r(0), 4);
-		nvgpu_writel(g, reg_offset + gr_fecs_dmemd_r(0),
-				addr_code32);
-		nvgpu_writel(g, reg_offset + gr_fecs_dmemd_r(0), 0);
-		nvgpu_writel(g, reg_offset + gr_fecs_dmemd_r(0),
-				code_size);
-		nvgpu_writel(g, reg_offset + gr_fecs_dmemd_r(0), 0);
-		nvgpu_writel(g, reg_offset + gr_fecs_dmemd_r(0), 0);
-		nvgpu_writel(g, reg_offset + gr_fecs_dmemd_r(0), 0);
-		nvgpu_writel(g, reg_offset + gr_fecs_dmemd_r(0),
-				addr_data32);
-		nvgpu_writel(g, reg_offset + gr_fecs_dmemd_r(0),
-				data_size);
+		gm20b_gr_falcon_program_fecs_dmem_data(g, reg_offset,
+			addr_code32, addr_data32, code_size, data_size);
 		break;
 	case FALCON_UCODE_SIG_T12X_FECS_OLDER:
 	case FALCON_UCODE_SIG_T12X_GPCCS_OLDER:
