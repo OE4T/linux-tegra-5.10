@@ -292,7 +292,7 @@ bool nvgpu_pmu_queue_is_empty(struct pmu_queues *queues, u32 queue_id)
 {
 	struct nvgpu_engine_mem_queue *queue = NULL;
 	struct nvgpu_engine_fb_queue *fb_queue = NULL;
-	bool empty = true;
+	bool empty;
 
 	if (queues->queue_type == QUEUE_TYPE_FB) {
 		fb_queue = queues->fb_queue[queue_id];

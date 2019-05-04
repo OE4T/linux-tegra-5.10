@@ -224,6 +224,7 @@ static int pmu_handle_event(struct nvgpu_pmu *pmu, struct pmu_msg *msg)
 		}
 		break;
 	default:
+		nvgpu_log_info(g, "Received invalid PMU unit event");
 		break;
 	}
 
@@ -303,7 +304,7 @@ static bool pmu_read_message(struct nvgpu_pmu *pmu, u32 queue_id,
 	}
 
 	if (msg->hdr.size > PMU_MSG_HDR_SIZE) {
-		read_size = msg->hdr.size - PMU_MSG_HDR_SIZE;
+		read_size = U32(msg->hdr.size) - PMU_MSG_HDR_SIZE;
 		if (!pmu_engine_mem_queue_read(pmu, queue_id, &msg->msg,
 					       read_size, status)) {
 			nvgpu_err(g, "fail to read msg from queue %d",
@@ -407,7 +408,7 @@ static int pmu_process_init_msg_dmem(struct gk20a *g, struct nvgpu_pmu *pmu,
 		goto exit;
 	}
 
-	tail += ALIGN(msg->hdr.size, PMU_DMEM_ALIGNMENT);
+	tail += ALIGN(U32(msg->hdr.size), PMU_DMEM_ALIGNMENT);
 	g->ops.pmu.pmu_msgq_tail(pmu, &tail, QUEUE_SET);
 
 exit:
@@ -504,11 +505,17 @@ int nvgpu_pmu_process_message(struct nvgpu_pmu *pmu)
 			return err;
 		}
 
-		nvgpu_pmu_lsfm_int_wpr_region(g, pmu, pmu->lsfm);
+		err = nvgpu_pmu_lsfm_int_wpr_region(g, pmu, pmu->lsfm);
+		if (err != 0) {
+			return err;
+		}
 
 		if (nvgpu_is_enabled(g, NVGPU_PMU_PERFMON)) {
-			nvgpu_pmu_perfmon_initialization(g, pmu,
+			err = nvgpu_pmu_perfmon_initialization(g, pmu,
 						pmu->pmu_perfmon);
+			if (err != 0) {
+				return err;
+			}
 		}
 
 		return 0;
@@ -529,9 +536,13 @@ int nvgpu_pmu_process_message(struct nvgpu_pmu *pmu)
 		msg.hdr.ctrl_flags &= ~PMU_CMD_FLAGS_PMU_MASK;
 
 		if (msg.hdr.ctrl_flags == PMU_CMD_FLAGS_EVENT) {
-			pmu_handle_event(pmu, &msg);
+			err = pmu_handle_event(pmu, &msg);
 		} else {
-			pmu_response_handle(pmu, &msg);
+			err = pmu_response_handle(pmu, &msg);
+		}
+
+		if (err != 0) {
+			return err;
 		}
 	}
 

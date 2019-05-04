@@ -72,9 +72,7 @@ struct pmu_cmdline_args_v6 {
 };
 
 /* PMU INIT MSG */
-enum {
-	PMU_INIT_MSG_TYPE_PMU_INIT = 0U,
-};
+#define PMU_INIT_MSG_TYPE_PMU_INIT	(u8)0
 
 struct pmu_init_msg_pmu_v1 {
 	u8 msg_type;
@@ -146,9 +144,7 @@ struct pmu_init_msg {
 };
 
 /* robust channel (RC) messages */
-enum {
-	PMU_RC_MSG_TYPE_UNHANDLED_CMD = 0,
-};
+#define	PMU_RC_MSG_TYPE_UNHANDLED_CMD	(u8)0
 
 struct pmu_rc_msg_unhandled_cmd {
 	u8 msg_type;
