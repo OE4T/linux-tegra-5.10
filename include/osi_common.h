@@ -23,11 +23,17 @@
 #ifndef OSI_COMMON_H
 #define OSI_COMMON_H
 
-#define OSI_ADDRESS_32BIT 0
-#define OSI_ADDRESS_40BIT 1
-#define OSI_ADDRESS_48BIT 2
+#define OSI_PAUSE_FRAMES_ENABLE		0U
+#define OSI_PAUSE_FRAMES_DISABLE	1U
+#define OSI_FLOW_CTRL_TX		OSI_BIT(0)
+#define OSI_FLOW_CTRL_RX		OSI_BIT(1)
+#define OSI_FLOW_CTRL_DISABLE		0U
 
-#define ULONG_MAX	(~0UL)
+#define OSI_ADDRESS_32BIT		0
+#define OSI_ADDRESS_40BIT		1
+#define OSI_ADDRESS_48BIT		2
+
+#define ULONG_MAX			(~0UL)
 
 /* Default maximum Gaint Packet Size Limit */
 #define OSI_MAX_MTU_SIZE	9000U

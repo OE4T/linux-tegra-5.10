@@ -71,6 +71,7 @@ struct  osi_core_avb_algorithm {
  *	@config_fw_err_pkts: Called to configure MTL RxQ to forward the err pkt.
  *	@config_tx_status: Called to configure the MTL to forward/drop tx status
  *	@config_rx_crc_check: Called to configure the MAC rx crc.
+ *	@config_flow_control: Called to configure the MAC flow control.
  */
 struct osi_core_ops {
 	/* initialize MAC/MTL/DMA Common registers */
@@ -96,6 +97,7 @@ struct osi_core_ops {
 				  unsigned int fw_err);
 	int (*config_tx_status)(void *addr, unsigned int tx_status);
 	int (*config_rx_crc_check)(void *addr, unsigned int crc_chk);
+	int (*config_flow_control)(void *addr, unsigned int flw_ctrl);
 };
 
 /**
@@ -112,6 +114,8 @@ struct osi_core_ops {
  *	@mdc_cr: MDC clock rate.
  *	@mtu: MTU size
  *	@mac_addr: Ethernet MAC address.
+ *	@pause_frames: DT entry to enable(0) or disable(1) pause frame support
+ *	@flow_ctrl: Current flow control settings
  */
 struct osi_core_priv_data {
 	void *base;
@@ -125,6 +129,8 @@ struct osi_core_priv_data {
 	unsigned int mdc_cr;
 	unsigned int mtu;
 	unsigned char mac_addr[OSI_ETH_ALEN];
+	unsigned int pause_frames;
+	unsigned int flow_ctrl;
 };
 
 /**
@@ -384,6 +390,25 @@ int osi_config_fw_err_pkts(struct osi_core_priv_data *osi_core,
  */
 int osi_config_rx_crc_check(struct osi_core_priv_data *osi_core,
 			    unsigned int crc_chk);
+
+/**
+ *	osi_configure_flow_ctrl - Configure flow control settings
+ *	@osi_core: OSI core private data structure.
+ *	@crc_chk: Enable or disable flow control settings
+ *
+ *	Algorithm: This will enable or disable the flow control.
+ *	flw_ctrl BIT0 is for tx flow ctrl enable/disable
+ *	flw_ctrl BIT1 is for rx flow ctrl enable/disable
+ *
+ *	Dependencies: MAC IP should be out of reset and need to be initialized
+ *	as per the requirements
+ *
+ *	Protection: None
+ *
+ *      Return: 0 - success, -1 - failure.
+ */
+int osi_configure_flow_control(struct osi_core_priv_data *osi_core,
+			       unsigned int flw_ctrl);
 
 int osi_write_phy_reg(struct osi_core_priv_data *osi_core, unsigned int phyaddr,
 		      unsigned int phyreg, unsigned short phydata);
