@@ -27,11 +27,10 @@
 #include <nvgpu/os_sched.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/gr/config.h>
+#include <nvgpu/gr/gr.h>
 #include <nvgpu/channel.h>
 #include <nvgpu/tsg.h>
 #include <nvgpu/fifo.h>
-
-#include "common/gr/gr_priv.h"
 
 #include "platform_gk20a.h"
 #include "ioctl_tsg.h"
@@ -64,7 +63,7 @@ static int gk20a_tsg_ioctl_bind_channel_ex(struct gk20a *g,
 	struct nvgpu_os_linux *l = nvgpu_os_linux_from_gk20a(g);
 	struct gk20a_sched_ctrl *sched = &l->sched_ctrl;
 	struct nvgpu_channel *ch;
-	struct nvgpu_gr *gr = g->gr;
+	struct nvgpu_gr_config *gr_config = nvgpu_gr_get_config_ptr(g);
 	int err = 0;
 
 	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_sched, "tsgid=%u", tsg->tsgid);
@@ -88,7 +87,7 @@ static int gk20a_tsg_ioctl_bind_channel_ex(struct gk20a *g,
 
 	if (arg->tpc_pg_enabled && (!tsg->tpc_num_initialized)) {
 		if ((arg->num_active_tpcs >
-				nvgpu_gr_config_get_max_tpc_count(gr->config)) ||
+				nvgpu_gr_config_get_max_tpc_count(gr_config)) ||
 		    !(arg->num_active_tpcs)) {
 			nvgpu_err(g, "Invalid num of active TPCs");
 			err = -EINVAL;

@@ -32,7 +32,6 @@
 
 /* needed for pri_is_ppc_addr_shared */
 #include "hal/gr/gr/gr_pri_gk20a.h"
-#include "gr_priv.h"
 
 #define NV_PCFG_BASE		0x00088000U
 #define NV_PERF_PMM_FBP_ROUTER_STRIDE 0x0200U

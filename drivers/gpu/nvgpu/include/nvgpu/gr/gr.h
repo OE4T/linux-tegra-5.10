@@ -26,6 +26,7 @@
 #include <nvgpu/types.h>
 
 struct gk20a;
+struct nvgpu_gr_config;
 
 u32 nvgpu_gr_get_no_of_sm(struct gk20a *g);
 int nvgpu_gr_prepare_sw(struct gk20a *g);
@@ -46,4 +47,5 @@ int nvgpu_gr_halt_pipe(struct gk20a *g);
 void nvgpu_gr_remove_support(struct gk20a *g);
 void nvgpu_gr_sw_ready(struct gk20a *g, bool enable);
 void nvgpu_gr_override_ecc_val(struct gk20a *g, u32 ecc_val);
+struct nvgpu_gr_config *nvgpu_gr_get_config_ptr(struct gk20a *g);
 #endif /* NVGPU_GR_H */

@@ -874,18 +874,18 @@ static ssize_t tpc_fs_mask_store(struct device *dev,
 	struct device_attribute *attr, const char *buf, size_t count)
 {
 	struct gk20a *g = get_gk20a(dev);
-	struct nvgpu_gr_config *config = g->gr->config;
+	struct nvgpu_gr_config *gr_config = nvgpu_gr_get_config_ptr(g);
 	unsigned long val = 0;
 
 	if (kstrtoul(buf, 10, &val) < 0)
 		return -EINVAL;
 
-	if (nvgpu_gr_config_get_gpc_tpc_mask_base(config) != NULL)
+	if (nvgpu_gr_config_get_gpc_tpc_mask_base(gr_config) != NULL)
 		return -ENODEV;
 
-	if (val && val != nvgpu_gr_config_get_gpc_tpc_mask(config, 0) &&
+	if (val && val != nvgpu_gr_config_get_gpc_tpc_mask(gr_config, 0) &&
 		g->ops.gr.set_gpc_tpc_mask) {
-		nvgpu_gr_config_set_gpc_tpc_mask(config, 0, val);
+		nvgpu_gr_config_set_gpc_tpc_mask(gr_config, 0, val);
 		g->tpc_fs_mask_user = val;
 
 		g->ops.gr.set_gpc_tpc_mask(g, 0);
@@ -897,7 +897,7 @@ static ssize_t tpc_fs_mask_store(struct device *dev,
 		nvgpu_gr_falcon_remove_support(g, g->gr->falcon);
 		g->gr->falcon = NULL;
 
-		nvgpu_gr_config_deinit(g, g->gr->config);
+		nvgpu_gr_config_deinit(g, gr_config);
 		/* Cause next poweron to reinit just gr */
 		nvgpu_gr_sw_ready(g, false);
 	}
@@ -909,7 +909,7 @@ static ssize_t tpc_fs_mask_read(struct device *dev,
 	struct device_attribute *attr, char *buf)
 {
 	struct gk20a *g = get_gk20a(dev);
-	struct nvgpu_gr *gr = g->gr;
+	struct nvgpu_gr_config *gr_config = nvgpu_gr_get_config_ptr(g);
 	u32 gpc_index;
 	u32 tpc_fs_mask = 0;
 	int err = 0;
@@ -919,12 +919,12 @@ static ssize_t tpc_fs_mask_read(struct device *dev,
 		return err;
 
 	for (gpc_index = 0;
-	     gpc_index < nvgpu_gr_config_get_gpc_count(gr->config);
+	     gpc_index < nvgpu_gr_config_get_gpc_count(gr_config);
 	     gpc_index++) {
 		if (g->ops.gr.config.get_gpc_tpc_mask)
 			tpc_fs_mask |=
-				g->ops.gr.config.get_gpc_tpc_mask(g, gr->config, gpc_index) <<
-				(nvgpu_gr_config_get_max_tpc_per_gpc_count(gr->config) * gpc_index);
+				g->ops.gr.config.get_gpc_tpc_mask(g, gr_config, gpc_index) <<
+				(nvgpu_gr_config_get_max_tpc_per_gpc_count(gr_config) * gpc_index);
 	}
 
 	gk20a_idle(g);

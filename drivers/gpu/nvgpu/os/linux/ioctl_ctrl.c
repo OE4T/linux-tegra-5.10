@@ -37,6 +37,7 @@
 #include <nvgpu/gr/config.h>
 #include <nvgpu/gr/zbc.h>
 #include <nvgpu/gr/zcull.h>
+#include <nvgpu/gr/gr.h>
 #include <nvgpu/gr/warpstate.h>
 #include <nvgpu/channel.h>
 #include <nvgpu/pmu/pmgr.h>
@@ -291,6 +292,7 @@ gk20a_ctrl_ioctl_gpu_characteristics(
 {
 	struct nvgpu_gpu_characteristics gpu;
 	long err = 0;
+	struct nvgpu_gr_config *gr_config = nvgpu_gr_get_config_ptr(g);
 
 	if (gk20a_busy(g)) {
 		nvgpu_err(g, "failed to power on gpu");
@@ -302,11 +304,11 @@ gk20a_ctrl_ioctl_gpu_characteristics(
 	gpu.L2_cache_size = g->ops.ltc.determine_L2_size_bytes(g);
 	gpu.on_board_video_memory_size = 0; /* integrated GPU */
 
-	gpu.num_gpc = nvgpu_gr_config_get_gpc_count(g->gr->config);
-	gpu.max_gpc_count = nvgpu_gr_config_get_max_gpc_count(g->gr->config);
-	gpu.gpc_mask = nvgpu_gr_config_get_gpc_mask(g->gr->config);
+	gpu.num_gpc = nvgpu_gr_config_get_gpc_count(gr_config);
+	gpu.max_gpc_count = nvgpu_gr_config_get_max_gpc_count(gr_config);
+	gpu.gpc_mask = nvgpu_gr_config_get_gpc_mask(gr_config);
 
-	gpu.num_tpc_per_gpc = nvgpu_gr_config_get_max_tpc_per_gpc_count(g->gr->config);
+	gpu.num_tpc_per_gpc = nvgpu_gr_config_get_max_tpc_per_gpc_count(gr_config);
 
 	gpu.bus_type = NVGPU_GPU_BUS_TYPE_AXI; /* always AXI for now */
 
@@ -568,10 +570,10 @@ clean_up:
 static int gk20a_ctrl_get_tpc_masks(struct gk20a *g,
 				    struct nvgpu_gpu_get_tpc_masks_args *args)
 {
-	struct nvgpu_gr *gr = g->gr;
 	int err = 0;
+	struct nvgpu_gr_config *gr_config = nvgpu_gr_get_config_ptr(g);
 	const u32 gpc_tpc_mask_size = sizeof(u32) *
-		nvgpu_gr_config_get_max_gpc_count(gr->config);
+		nvgpu_gr_config_get_max_gpc_count(gr_config);
 
 	if (args->mask_buf_size > 0) {
 		size_t write_size = gpc_tpc_mask_size;
@@ -582,7 +584,7 @@ static int gk20a_ctrl_get_tpc_masks(struct gk20a *g,
 
 		err = copy_to_user((void __user *)(uintptr_t)
 			args->mask_buf_addr,
-			nvgpu_gr_config_get_gpc_tpc_mask_base(gr->config),
+			nvgpu_gr_config_get_gpc_tpc_mask_base(gr_config),
 			write_size);
 	}
 
@@ -821,11 +823,11 @@ static int gk20a_ctrl_vsm_mapping(struct gk20a *g,
 				    struct nvgpu_gpu_vsms_mapping *args)
 {
 	int err = 0;
-	struct nvgpu_gr *gr = g->gr;
 	u32 no_of_sm = g->ops.gr.init.get_no_of_sm(g);
 	size_t write_size = no_of_sm *
 		sizeof(struct nvgpu_gpu_vsms_mapping_entry);
 	struct nvgpu_gpu_vsms_mapping_entry *vsms_buf;
+	struct nvgpu_gr_config *gr_config = nvgpu_gr_get_config_ptr(g);
 	u32 i;
 
 	vsms_buf = nvgpu_kzalloc(g, write_size);
@@ -834,7 +836,7 @@ static int gk20a_ctrl_vsm_mapping(struct gk20a *g,
 
 	for (i = 0; i < no_of_sm; i++) {
 		struct nvgpu_sm_info *sm_info =
-			nvgpu_gr_config_get_sm_info(gr->config, i);
+			nvgpu_gr_config_get_sm_info(gr_config, i);
 
 		vsms_buf[i].gpc_index =
 			nvgpu_gr_config_get_sm_info_gpc_index(sm_info);
@@ -843,7 +845,7 @@ static int gk20a_ctrl_vsm_mapping(struct gk20a *g,
 				g->ops.gr.init.get_nonpes_aware_tpc(g,
 				nvgpu_gr_config_get_sm_info_gpc_index(sm_info),
 				nvgpu_gr_config_get_sm_info_tpc_index(sm_info),
-					gr->config);
+					gr_config);
 		else
 			vsms_buf[i].tpc_index =
 				nvgpu_gr_config_get_sm_info_tpc_index(sm_info);
@@ -1664,6 +1666,7 @@ long gk20a_ctrl_dev_ioctl(struct file *filp, unsigned int cmd, unsigned long arg
 	struct nvgpu_gr_zcull_info *zcull_info;
 	struct nvgpu_gr_zbc_entry *zbc_val;
 	struct nvgpu_gr_zbc_query_params *zbc_tbl;
+	struct nvgpu_gr_config *gr_config = nvgpu_gr_get_config_ptr(g);
 	int err = 0;
 	u32 i;
 
@@ -1707,7 +1710,7 @@ long gk20a_ctrl_dev_ioctl(struct file *filp, unsigned int cmd, unsigned long arg
 		if (zcull_info == NULL)
 			return -ENOMEM;
 
-		err = g->ops.gr.zcull.get_zcull_info(g, g->gr->config,
+		err = g->ops.gr.zcull.get_zcull_info(g, gr_config,
 					g->gr->zcull, zcull_info);
 		if (err) {
 			nvgpu_kfree(g, zcull_info);
