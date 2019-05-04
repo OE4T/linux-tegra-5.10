@@ -1033,6 +1033,7 @@ static int tegra_pcie_dw_rd_other_conf(struct pcie_port *pp,
 #ifdef CONFIG_PCIE_TEGRA_DW_DMA_TEST
 static int dma_write(struct tegra_pcie_dw *pcie, struct dma_tx *tx)
 {
+	struct dw_pcie *pci = &pcie->pci;
 	struct device *dev = pcie->dev;
 	u32 val = 0, bit = 0;
 	int ret = 0;
@@ -1159,6 +1160,7 @@ exit:
 
 static int dma_read(struct tegra_pcie_dw *pcie, struct dma_tx *tx)
 {
+	struct dw_pcie *pci = &pcie->pci;
 	struct device *dev = pcie->dev;
 	u32 val = 0, bit = 0;
 	int ret = 0;
