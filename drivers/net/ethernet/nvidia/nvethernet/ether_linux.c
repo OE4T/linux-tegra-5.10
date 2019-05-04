@@ -40,6 +40,12 @@ static void ether_adjust_link(struct net_device *dev)
 		return;
 	}
 	if (phydev->link) {
+		if ((pdata->osi_core->pause_frames == OSI_PAUSE_FRAMES_ENABLE)
+		    && (phydev->pause || phydev->asym_pause)) {
+			osi_configure_flow_control(pdata->osi_core,
+						   pdata->osi_core->flow_ctrl);
+		}
+
 		if (phydev->duplex != pdata->oldduplex) {
 			new_state = 1;
 			osi_set_mode(pdata->osi_core, phydev->duplex);
@@ -128,6 +134,16 @@ static int ether_phy_init(struct net_device *dev)
 		phy_disconnect(phydev);
 		return -ENODEV;
 	}
+
+	/* In marvel phy driver pause is disabled. Instead of enabling
+	 * in PHY driver, handle this in eqos driver so that enabling/disabling
+	 * of the pause frame feature can be controlled based on the platform
+	 */
+	phydev->supported |= (SUPPORTED_Pause | SUPPORTED_Asym_Pause);
+	if (pdata->osi_core->pause_frames == OSI_PAUSE_FRAMES_DISABLE)
+		phydev->supported &= ~(SUPPORTED_Pause | SUPPORTED_Asym_Pause);
+
+	phydev->advertising = phydev->supported;
 
 	pdata->phydev = phydev;
 
@@ -1995,8 +2011,8 @@ static void ether_parse_queue_prio(struct ether_priv_data *pdata,
 
 	ret = of_property_read_u32_array(pnode, pdt_prop, pval, num_entries);
 	if (ret < 0) {
-		dev_err(pdata->dev, "%s(): \"%s\" read failed %d. Using default\n",
-			__func__, pdt_prop, ret);
+		dev_err(pdata->dev, "%s(): \"%s\" read failed %d."
+			"Using default\n", __func__, pdt_prop, ret);
 		for (i = 0; i < num_entries; i++) {
 			pval[i] = val_def;
 		}
@@ -2008,8 +2024,8 @@ static void ether_parse_queue_prio(struct ether_priv_data *pdata,
 	 */
 	for (i = 0; i < num_entries; i++) {
 		if ((pval[i] > val_max) || ((pmask & (1U << pval[i])) != 0U)) {
-			dev_err(pdata->dev, "%s():Wrong or duplicate priority in DT entry for Q(%d)\n",
-				__func__, i);
+			dev_err(pdata->dev, "%s():Wrong or duplicate priority"
+				" in DT entry for Q(%d)\n", __func__, i);
 			pval[i] = val_def;
 		}
 		pmask |= 1U << pval[i];
@@ -2036,6 +2052,15 @@ static int ether_parse_dt(struct ether_priv_data *pdata)
 	struct device_node *np = dev->of_node;
 	struct platform_device *pdev = to_platform_device(dev);
 	int ret = -EINVAL;
+
+	/* Read Pause frame feature support */
+	ret = of_property_read_u32(np, "nvidia,pause_frames",
+				   &pdata->osi_core->pause_frames);
+	if (ret < 0) {
+		dev_err(dev, "Failed to read nvida,pause_frames, so"
+			" setting to default support as enable\n");
+		pdata->osi_core->pause_frames = OSI_PAUSE_FRAMES_ENABLE;
+	}
 
 	/* Check if IOMMU is enabled */
 	if (pdev->dev.archdata.iommu != NULL) {
