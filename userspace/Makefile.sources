@@ -27,9 +27,7 @@ OBJS := $(srcs:%.c=$(NVGPU_OUT)/%.o)
 HEADERS :=	\
 	$(NVGPU_SRC)/include/nvgpu/*.h		\
 	$(NVGPU_SRC)/include/nvgpu/hw/*/*.h	\
-	$(NVGPU_SRC)/gk20a/*.h			\
-	$(NVGPU_SRC)/gv11b/*.h			\
-	$(NVGPU_SRC)/tu104/*.h
+	$(NVGPU_SRC)/gk20a/*.h
 
 CORE_OBJS :=	\
 	$(CORE_OUT)/unit_main.o			\
