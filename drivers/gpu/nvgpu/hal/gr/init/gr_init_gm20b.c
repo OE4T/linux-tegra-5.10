@@ -450,11 +450,11 @@ void gm20b_gr_init_pd_tpc_per_gpc(struct gk20a *g,
 {
 	u32 reg_index;
 	u32 tpc_per_gpc;
-	u32 gpc_id = 0;
+	u32 gpc_id = 0U;
 
-	for (reg_index = 0U, gpc_id = 0U;
+	for (reg_index = 0U;
 	     reg_index < gr_pd_num_tpc_per_gpc__size_1_v();
-	     reg_index++, gpc_id += 8U) {
+	     reg_index++) {
 
 		tpc_per_gpc =
 		 gr_pd_num_tpc_per_gpc_count0_f(
@@ -476,6 +476,7 @@ void gm20b_gr_init_pd_tpc_per_gpc(struct gk20a *g,
 
 		nvgpu_writel(g, gr_pd_num_tpc_per_gpc_r(reg_index), tpc_per_gpc);
 		nvgpu_writel(g, gr_ds_num_tpc_per_gpc_r(reg_index), tpc_per_gpc);
+		gpc_id += 8U;
 	}
 }
 
