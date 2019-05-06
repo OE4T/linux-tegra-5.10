@@ -35,3 +35,4 @@ void gm20b_read_engine_status_info(struct gk20a *g, u32 engine_id,
 void gm20b_dump_engine_status(struct gk20a *g, struct gk20a_debug_output *o);
 
 #endif /* NVGPU_ENGINE_STATUS_GM20B_H */
+

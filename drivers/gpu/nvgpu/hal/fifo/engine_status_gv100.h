@@ -35,3 +35,4 @@ void gv100_read_engine_status_info(struct gk20a *g, u32 engine_id,
 void gv100_dump_engine_status(struct gk20a *g, struct gk20a_debug_output *o);
 
 #endif /* NVGPU_ENGINE_STATUS_GV100_H */
+
