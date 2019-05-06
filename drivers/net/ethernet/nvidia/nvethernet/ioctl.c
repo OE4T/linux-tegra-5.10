@@ -31,8 +31,8 @@
  *
  *	Return: 0 - success, negative value - failure.
  */
-int ether_set_avb_algo(struct net_device *ndev,
-		       struct ether_ifr_data *ifdata)
+static int ether_set_avb_algo(struct net_device *ndev,
+			      struct ether_ifr_data *ifdata)
 {
 	struct ether_priv_data *pdata = netdev_priv(ndev);
 	struct osi_core_priv_data *osi_core = pdata->osi_core;
@@ -54,6 +54,59 @@ int ether_set_avb_algo(struct net_device *ndev,
 	}
 
 	return osi_set_avb(osi_core, &l_avb_struct);
+}
+
+/**
+ *	ether_get_avb_algo - function to get avb data from registers.
+ *	This function is called for EQOS_GET_AVB_ALGORITHM
+ *	@ndev: network device structure
+ *	@ifdata: interface private data structure
+ *
+ *	Algorithm:
+ *	- Call osi_get_avb with user passed data(qindex)
+ *
+ *	Dependencies: Ethernet interface need to be up. Caller should
+ *	check for return vlaue before using return value.
+ *
+ *	Protection: None.
+ *
+ *	Return: 0 - success, negative value - failure.
+ */
+static int ether_get_avb_algo(struct net_device *ndev,
+			      struct ether_ifr_data *ifdata)
+{
+	struct ether_priv_data *pdata = netdev_priv(ndev);
+	struct osi_core_priv_data *osi_core = pdata->osi_core;
+	struct osi_core_avb_algorithm avb_data;
+	int ret;
+
+	if (ifdata->ptr == NULL) {
+		dev_err(pdata->dev, "%s: Invalid data for priv ioctl %d\n",
+			__func__, ifdata->ifcmd);
+		return -EINVAL;
+	}
+
+	if (copy_from_user(&avb_data,
+			   (struct osi_core_avb_algorithm *)ifdata->ptr,
+			   sizeof(struct osi_core_avb_algorithm)) != 0U) {
+		dev_err(pdata->dev,
+			"Failed to fetch AVB Struct info from user\n");
+		return -EFAULT;
+	}
+
+	ret = osi_get_avb(osi_core, &avb_data);
+	if (ret != 0) {
+		dev_err(pdata->dev,
+			"Failed to get AVB Struct info from registers\n");
+		return ret;
+	}
+	if (copy_to_user(ifdata->ptr, &avb_data,
+			 sizeof(struct osi_core_avb_algorithm)) != 0U) {
+		dev_err(pdata->dev, "%s: copy_to_user failed\n", __func__);
+		return -EFAULT;
+	}
+
+	return ret;
 }
 
 /**
@@ -89,6 +142,9 @@ int ether_handle_priv_ioctl(struct net_device *ndev,
 	switch (ifdata.ifcmd) {
 	case ETHER_AVB_ALGORITHM:
 		ret = ether_set_avb_algo(ndev, &ifdata);
+		break;
+	case ETHER_GET_AVB_ALGORITHM:
+		ret = ether_get_avb_algo(ndev, &ifdata);
 		break;
 	default:
 		break;
