@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0
 /*
- * Copyright (c) 2014 - 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014 - 2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Author:
  *	Mikko Perttunen <mperttunen@nvidia.com>
@@ -1034,6 +1034,7 @@ static irqreturn_t soctherm_edp_isr_thread(int irq, void *arg)
 {
 	struct tegra_soctherm *ts = arg;
 	u32 st, ex, oc1, oc2, oc3, oc4;
+	static unsigned long j;
 
 	st = readl(ts->regs + OC_INTR_STATUS);
 
@@ -1044,7 +1045,10 @@ static irqreturn_t soctherm_edp_isr_thread(int irq, void *arg)
 	oc4 = st & OC_INTR_OC4_MASK;
 	ex = oc1 | oc2 | oc3 | oc4;
 
-	pr_err("soctherm: OC ALARM 0x%08x\n", ex);
+	/* rate limiting irq message to every one second */
+	if (printk_timed_ratelimit(&j,  1000)) {
+		pr_err("soctherm: OC ALARM 0x%08x\n", ex);
+	}
 	if (ex) {
 		writel(st, ts->regs + OC_INTR_STATUS);
 		st &= ~ex;
