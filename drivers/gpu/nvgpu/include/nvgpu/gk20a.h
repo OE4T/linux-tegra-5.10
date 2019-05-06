@@ -989,7 +989,7 @@ struct gpu_ops {
 				u32 id, unsigned int id_type);
 		int (*preempt_poll_pbdma)(struct gk20a *g, u32 tsgid,
 				 u32 pbdma_id);
-		int (*init_pbdma_map)(struct gk20a *g,
+		void (*init_pbdma_map)(struct gk20a *g,
 				u32 *pbdma_map, u32 num_pbdma);
 		int (*is_preempt_pending)(struct gk20a *g, u32 id,
 			unsigned int id_type);

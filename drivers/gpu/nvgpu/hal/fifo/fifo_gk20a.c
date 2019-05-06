@@ -90,15 +90,13 @@ void gk20a_fifo_bar1_snooping_disable(struct gk20a *g)
 		fifo_bar1_base_valid_false_f());
 }
 
-int gk20a_fifo_init_pbdma_map(struct gk20a *g, u32 *pbdma_map, u32 num_pbdma)
+void gk20a_fifo_init_pbdma_map(struct gk20a *g, u32 *pbdma_map, u32 num_pbdma)
 {
 	u32 id;
 
 	for (id = 0U; id < num_pbdma; ++id) {
 		pbdma_map[id] = nvgpu_readl(g, fifo_pbdma_map_r(id));
 	}
-
-	return 0U;
 }
 
 u32 gk20a_fifo_get_runlist_timeslice(struct gk20a *g)
