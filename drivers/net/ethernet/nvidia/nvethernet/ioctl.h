@@ -21,6 +21,7 @@
 #define EQOS_RWK_FILTER_LENGTH	8
 /* private ioctl number*/
 #define ETHER_AVB_ALGORITHM	27
+#define ETHER_GET_AVB_ALGORITHM	46
 
 /**
  *	struct ether_ifr_data - Private data of struct ifreq
@@ -56,8 +57,6 @@ struct ether_ifr_data {
 	void *ptr;
 };
 
-int ether_set_avb_algo(struct net_device *ndev,
-		       struct ether_ifr_data *ifdata);
 /* Private ioctl handler function */
 int ether_handle_priv_ioctl(struct net_device *ndev,
 			    struct ifreq *ifr);
