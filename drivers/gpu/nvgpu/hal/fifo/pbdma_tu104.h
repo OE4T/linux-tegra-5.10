@@ -31,3 +31,4 @@ void tu104_pbdma_reset_header(struct gk20a *g, u32 pbdma_id);
 u32 tu104_pbdma_read_data(struct gk20a *g, u32 pbdma_id);
 
 #endif /* NVGPU_PBDMA_TU104_H */
+

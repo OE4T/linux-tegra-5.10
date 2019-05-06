@@ -83,3 +83,4 @@ u32 gp10b_pbdma_allowed_syncpoints_0_index_v(u32 offset)
 {
 	return pbdma_allowed_syncpoints_0_index_v(offset);
 }
+
