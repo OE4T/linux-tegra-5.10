@@ -224,9 +224,14 @@ int gk20a_wait_channel_idle(struct nvgpu_channel *ch)
 {
 	bool channel_idle = false;
 	struct nvgpu_timeout timeout;
+	int ret;
 
-	nvgpu_timeout_init(ch->g, &timeout, nvgpu_get_poll_timeout(ch->g),
+	ret = nvgpu_timeout_init(ch->g, &timeout, nvgpu_get_poll_timeout(ch->g),
 			   NVGPU_TIMER_CPU_TIMER);
+	if (ret != 0) {
+		nvgpu_err(ch->g, "timeout_init failed: %d", ret);
+		return ret;
+	}
 
 	do {
 		channel_gk20a_joblist_lock(ch);
@@ -1463,18 +1468,24 @@ u32 nvgpu_get_gp_free_count(struct nvgpu_channel *c)
 static void nvgpu_channel_wdt_init(struct nvgpu_channel *ch)
 {
 	struct gk20a *g = ch->g;
+	int ret;
 
 	if (gk20a_channel_check_unserviceable(ch)) {
 		ch->wdt.running = false;
 		return;
 	}
 
+	ret = nvgpu_timeout_init(g, &ch->wdt.timer,
+			   ch->wdt.limit_ms,
+			   NVGPU_TIMER_CPU_TIMER);
+	if (ret != 0) {
+		nvgpu_err(g, "timeout_init failed: %d", ret);
+		return;
+	}
+
 	ch->wdt.gp_get = g->ops.userd.gp_get(g, ch);
 	ch->wdt.pb_get = g->ops.userd.pb_get(g, ch);
 	ch->wdt.running = true;
-	nvgpu_timeout_init(g, &ch->wdt.timer,
-			   ch->wdt.limit_ms,
-			   NVGPU_TIMER_CPU_TIMER);
 }
 
 /**
@@ -1705,11 +1716,15 @@ static void nvgpu_channel_worker_poll_init(struct nvgpu_worker *worker)
 {
 	struct nvgpu_channel_worker *ch_worker =
 		nvgpu_channel_worker_from_worker(worker);
+	int ret;
 
 	ch_worker->watchdog_interval = 100U;
 
-	nvgpu_timeout_init(worker->g, &ch_worker->timeout,
+	ret = nvgpu_timeout_init(worker->g, &ch_worker->timeout,
 			ch_worker->watchdog_interval, NVGPU_TIMER_CPU_TIMER);
+	if (ret != 0) {
+		nvgpu_err(worker->g, "timeout_init failed: %d", ret);
+	}
 }
 
 static void nvgpu_channel_worker_poll_wakeup_post_process_item(
@@ -1719,12 +1734,16 @@ static void nvgpu_channel_worker_poll_wakeup_post_process_item(
 
 	struct nvgpu_channel_worker *ch_worker =
 		nvgpu_channel_worker_from_worker(worker);
+	int ret;
 
 	if (nvgpu_timeout_peek_expired(&ch_worker->timeout) != 0) {
 		nvgpu_channel_poll_wdt(g);
-		nvgpu_timeout_init(g, &ch_worker->timeout,
+		ret = nvgpu_timeout_init(g, &ch_worker->timeout,
 				ch_worker->watchdog_interval,
 				NVGPU_TIMER_CPU_TIMER);
+		if (ret != 0) {
+			nvgpu_err(g, "timeout_init failed: %d", ret);
+		}
 	}
 }
 static void nvgpu_channel_worker_poll_wakeup_process_item(
