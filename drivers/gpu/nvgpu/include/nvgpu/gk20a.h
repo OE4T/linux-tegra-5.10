@@ -26,7 +26,7 @@
 
 struct gk20a;
 struct nvgpu_fifo;
-struct channel_gk20a;
+struct nvgpu_channel;
 struct nvgpu_gr;
 struct nvgpu_fbp;
 struct sim_nvgpu;
@@ -314,10 +314,10 @@ struct gpu_ops {
 		u32 (*get_egpc_base)(struct gk20a *g);
 		void (*powergate_tpc)(struct gk20a *g);
 		int (*update_smpc_ctxsw_mode)(struct gk20a *g,
-				struct channel_gk20a *c,
+				struct nvgpu_channel *c,
 				bool enable);
 		int (*update_hwpm_ctxsw_mode)(struct gk20a *g,
-				struct channel_gk20a *c,
+				struct nvgpu_channel *c,
 				u64 gpu_va,
 				u32 mode);
 		void (*init_hwpm_pmm_register)(struct gk20a *g);
@@ -327,19 +327,19 @@ struct gpu_ops {
 				u32 num_chiplets, u32 num_perfmons);
 		int (*dump_gr_regs)(struct gk20a *g,
 				struct gk20a_debug_output *o);
-		int (*update_pc_sampling)(struct channel_gk20a *ch,
+		int (*update_pc_sampling)(struct nvgpu_channel *ch,
 					   bool enable);
 		void (*init_sm_dsm_reg_info)(void);
 		void (*init_ovr_sm_dsm_perf)(void);
 		void (*init_cyclestats)(struct gk20a *g);
-		int (*set_sm_debug_mode)(struct gk20a *g, struct channel_gk20a *ch,
+		int (*set_sm_debug_mode)(struct gk20a *g, struct nvgpu_channel *ch,
 					u64 sms, bool enable);
 		void (*bpt_reg_info)(struct gk20a *g,
 				struct nvgpu_warpstate *w_state);
 		int (*pre_process_sm_exception)(struct gk20a *g,
 			u32 gpc, u32 tpc, u32 sm, u32 global_esr, u32 warp_esr,
 			bool sm_debugger_attached,
-			struct channel_gk20a *fault_ch,
+			struct nvgpu_channel *fault_ch,
 			bool *early_exit, bool *ignore_debugger);
 		u32 (*get_sm_hww_warp_esr)(struct gk20a *g,
 						u32 gpc, u32 tpc, u32 sm);
@@ -357,13 +357,13 @@ struct gpu_ops {
 					 u32 *esr_sm_sel);
 		void (*handle_tpc_sm_ecc_exception)(struct gk20a *g,
 			u32 gpc, u32 tpc,
-			bool *post_event, struct channel_gk20a *fault_ch,
+			bool *post_event, struct nvgpu_channel *fault_ch,
 			u32 *hww_global_esr);
 		u32 (*get_lrf_tex_ltc_dram_override)(struct gk20a *g);
 		int (*record_sm_error_state)(struct gk20a *g, u32 gpc, u32 tpc,
-				u32 sm, struct channel_gk20a *fault_ch);
+				u32 sm, struct nvgpu_channel *fault_ch);
 		int (*clear_sm_error_state)(struct gk20a *g,
-				struct channel_gk20a *ch, u32 sm_id);
+				struct nvgpu_channel *ch, u32 sm_id);
 		int (*suspend_contexts)(struct gk20a *g,
 				struct dbg_session_gk20a *dbg_s,
 				int *ctx_resident_ch_fd);
@@ -375,7 +375,7 @@ struct gpu_ops {
 				struct vm_gk20a *vm, u32 class,
 				u32 graphics_preempt_mode,
 				u32 compute_preempt_mode);
-		int (*set_boosted_ctx)(struct channel_gk20a *ch, bool boost);
+		int (*set_boosted_ctx)(struct nvgpu_channel *ch, bool boost);
 		int (*trigger_suspend)(struct gk20a *g);
 		int (*wait_for_pause)(struct gk20a *g, struct nvgpu_warpstate *w_state);
 		int (*resume_from_pause)(struct gk20a *g);
@@ -626,16 +626,16 @@ struct gpu_ops {
 
 		struct {
 			int (*bind_ctxsw_zcull)(struct gk20a *g,
-						struct channel_gk20a *c,
+						struct nvgpu_channel *c,
 						u64 zcull_va,
 						u32 mode);
-			int (*alloc_obj_ctx)(struct channel_gk20a  *c,
+			int (*alloc_obj_ctx)(struct nvgpu_channel  *c,
 				     u32 class_num, u32 flags);
 			void (*free_gr_ctx)(struct gk20a *g,
 				struct vm_gk20a *vm,
 				struct nvgpu_gr_ctx *gr_ctx);
-			void (*free_subctx)(struct channel_gk20a *c);
-			int (*set_preemption_mode)(struct channel_gk20a *ch,
+			void (*free_subctx)(struct nvgpu_channel *c);
+			int (*set_preemption_mode)(struct nvgpu_channel *ch,
 				u32 graphics_preempt_mode,
 				u32 compute_preempt_mode);
 		} setup;
@@ -792,7 +792,7 @@ struct gpu_ops {
 
 		struct {
 			int (*handle_fecs_error)(struct gk20a *g,
-				struct channel_gk20a *ch,
+				struct nvgpu_channel *ch,
 				struct nvgpu_gr_isr_data *isr_data);
 			int (*handle_sw_method)(struct gk20a *g, u32 addr,
 					 u32 class_num, u32 offset, u32 data);
@@ -843,7 +843,7 @@ struct gpu_ops {
 			void (*tpc_exception_sm_enable)(struct gk20a *g);
 			int (*handle_sm_exception)(struct gk20a *g,
 				u32 gpc, u32 tpc, u32 sm,
-				bool *post_event, struct channel_gk20a *fault_ch,
+				bool *post_event, struct nvgpu_channel *fault_ch,
 				u32 *hww_global_esr);
 			int (*stall_isr)(struct gk20a *g);
 			void (*flush_channel_tlb)(struct gk20a *g);
@@ -984,8 +984,8 @@ struct gpu_ops {
 		int (*setup_sw)(struct gk20a *g);
 		void (*cleanup_sw)(struct gk20a *g);
 		int (*init_fifo_setup_hw)(struct gk20a *g);
-		int (*preempt_channel)(struct gk20a *g, struct channel_gk20a *ch);
-		int (*preempt_tsg)(struct gk20a *g, struct tsg_gk20a *tsg);
+		int (*preempt_channel)(struct gk20a *g, struct nvgpu_channel *ch);
+		int (*preempt_tsg)(struct gk20a *g, struct nvgpu_tsg *tsg);
 		void (*preempt_runlists_for_rc)(struct gk20a *g,
 				u32 runlists_bitmask);
 		void (*preempt_trigger)(struct gk20a *g,
@@ -1002,7 +1002,7 @@ struct gpu_ops {
 			 struct mmu_fault_info *mmfault);
 		void (*intr_set_recover_mask)(struct gk20a *g);
 		void (*intr_unset_recover_mask)(struct gk20a *g);
-		int (*set_sm_exception_type_mask)(struct channel_gk20a *ch,
+		int (*set_sm_exception_type_mask)(struct nvgpu_channel *ch,
 				u32 exception_mask);
 		struct {
 			int (*report_host_err)(struct gk20a *g,
@@ -1035,15 +1035,15 @@ struct gpu_ops {
 
 	} fifo;
 	struct {
-		int (*setup)(struct channel_gk20a *ch, u64 gpfifo_base,
+		int (*setup)(struct nvgpu_channel *ch, u64 gpfifo_base,
 				u32 gpfifo_entries, u64 pbdma_acquire_timeout,
 				u32 flags);
 		void (*capture_ram_dump)(struct gk20a *g,
-				struct channel_gk20a *ch,
+				struct nvgpu_channel *ch,
 				struct nvgpu_channel_dump_info *info);
-		int (*commit_userd)(struct channel_gk20a *ch);
-		u32 (*get_syncpt)(struct channel_gk20a *ch);
-		void (*set_syncpt)(struct channel_gk20a *ch, u32 syncpt);
+		int (*commit_userd)(struct nvgpu_channel *ch);
+		u32 (*get_syncpt)(struct nvgpu_channel *ch);
+		void (*set_syncpt)(struct nvgpu_channel *ch, u32 syncpt);
 	} ramfc;
 	struct {
 		void (*set_gr_ptr)(struct gk20a *g,
@@ -1066,20 +1066,20 @@ struct gpu_ops {
 				struct nvgpu_mem *inst_block, u64 gpu_va);
 	} ramin;
 	struct {
-		int (*reschedule)(struct channel_gk20a *ch, bool preempt_next);
-		int (*reschedule_preempt_next_locked)(struct channel_gk20a *ch,
+		int (*reschedule)(struct nvgpu_channel *ch, bool preempt_next);
+		int (*reschedule_preempt_next_locked)(struct nvgpu_channel *ch,
 				bool wait_preempt);
 		int (*update_for_channel)(struct gk20a *g, u32 runlist_id,
-				struct channel_gk20a *ch, bool add,
+				struct nvgpu_channel *ch, bool add,
 				bool wait_for_finish);
 		int (*reload)(struct gk20a *g, u32 runlist_id,
 				bool add, bool wait_for_finish);
 		u32 (*count_max)(void);
 		u32 (*entry_size)(struct gk20a *g);
 		u32 (*length_max)(struct gk20a *g);
-		void (*get_tsg_entry)(struct tsg_gk20a *tsg,
+		void (*get_tsg_entry)(struct nvgpu_tsg *tsg,
 				u32 *runlist, u32 timeslice);
-		void (*get_ch_entry)(struct channel_gk20a *ch, u32 *runlist);
+		void (*get_ch_entry)(struct nvgpu_channel *ch, u32 *runlist);
 		void (*hw_submit)(struct gk20a *g, u32 runlist_id,
 			u32 count, u32 buffer_index);
 		int (*wait_pending)(struct gk20a *g, u32 runlist_id);
@@ -1089,10 +1089,10 @@ struct gpu_ops {
 	struct {
 		int (*setup_sw)(struct gk20a *g);
 		void (*cleanup_sw)(struct gk20a *g);
-		void (*init_mem)(struct gk20a *g, struct channel_gk20a *c);
-		u32 (*gp_get)(struct gk20a *g, struct channel_gk20a *c);
-		void (*gp_put)(struct gk20a *g, struct channel_gk20a *c);
-		u64 (*pb_get)(struct gk20a *g, struct channel_gk20a *c);
+		void (*init_mem)(struct gk20a *g, struct nvgpu_channel *c);
+		u32 (*gp_get)(struct gk20a *g, struct nvgpu_channel *c);
+		void (*gp_put)(struct gk20a *g, struct nvgpu_channel *c);
+		u64 (*pb_get)(struct gk20a *g, struct nvgpu_channel *c);
 		u32 (*entry_size)(struct gk20a *g);
 	} userd;
 
@@ -1156,10 +1156,10 @@ struct gpu_ops {
 	struct {
 #ifdef CONFIG_TEGRA_GK20A_NVHOST
 		struct {
-			int (*alloc_buf)(struct channel_gk20a *c,
+			int (*alloc_buf)(struct nvgpu_channel *c,
 					u32 syncpt_id,
 					struct nvgpu_mem *syncpt_buf);
-			void (*free_buf)(struct channel_gk20a *c,
+			void (*free_buf)(struct nvgpu_channel *c,
 					struct nvgpu_mem *syncpt_buf);
 			void (*add_wait_cmd)(struct gk20a *g,
 					struct priv_cmd_entry *cmd, u32 off,
@@ -1185,64 +1185,64 @@ struct gpu_ops {
 		} sema;
 	} sync;
 	struct {
-		int (*alloc_inst)(struct gk20a *g, struct channel_gk20a *ch);
-		void (*free_inst)(struct gk20a *g, struct channel_gk20a *ch);
-		void (*bind)(struct channel_gk20a *ch);
-		void (*unbind)(struct channel_gk20a *ch);
-		void (*enable)(struct channel_gk20a *ch);
-		void (*disable)(struct channel_gk20a *ch);
+		int (*alloc_inst)(struct gk20a *g, struct nvgpu_channel *ch);
+		void (*free_inst)(struct gk20a *g, struct nvgpu_channel *ch);
+		void (*bind)(struct nvgpu_channel *ch);
+		void (*unbind)(struct nvgpu_channel *ch);
+		void (*enable)(struct nvgpu_channel *ch);
+		void (*disable)(struct nvgpu_channel *ch);
 		u32 (*count)(struct gk20a *g);
-		void (*read_state)(struct gk20a *g, struct channel_gk20a *ch,
+		void (*read_state)(struct gk20a *g, struct nvgpu_channel *ch,
 				struct nvgpu_channel_hw_state *state);
-		void (*force_ctx_reload)(struct channel_gk20a *ch);
-		void (*abort_clean_up)(struct channel_gk20a *ch);
+		void (*force_ctx_reload)(struct nvgpu_channel *ch);
+		void (*abort_clean_up)(struct nvgpu_channel *ch);
 		int (*suspend_all_serviceable_ch)(struct gk20a *g);
 		void (*resume_all_serviceable_ch)(struct gk20a *g);
-		void (*set_error_notifier)(struct channel_gk20a *ch, u32 error);
-		void (*reset_faulted)(struct gk20a *g, struct channel_gk20a *ch,
+		void (*set_error_notifier)(struct nvgpu_channel *ch, u32 error);
+		void (*reset_faulted)(struct gk20a *g, struct nvgpu_channel *ch,
 				bool eng, bool pbdma);
-		int (*set_syncpt)(struct channel_gk20a *ch);
+		int (*set_syncpt)(struct nvgpu_channel *ch);
 		void (*debug_dump)(struct gk20a *g,
 				struct gk20a_debug_output *o,
 				struct nvgpu_channel_dump_info *info);
 	} channel;
 	struct {
-		int (*open)(struct tsg_gk20a *tsg);
-		void (*release)(struct tsg_gk20a *tsg);
+		int (*open)(struct nvgpu_tsg *tsg);
+		void (*release)(struct nvgpu_tsg *tsg);
 		void (*init_eng_method_buffers)(struct gk20a *g,
-				struct tsg_gk20a *tsg);
+				struct nvgpu_tsg *tsg);
 		void (*deinit_eng_method_buffers)(struct gk20a *g,
-				struct tsg_gk20a *tsg);
-		void (*enable)(struct tsg_gk20a *tsg);
-		void (*disable)(struct tsg_gk20a *tsg);
-		int (*bind_channel)(struct tsg_gk20a *tsg,
-				struct channel_gk20a *ch);
-		void (*bind_channel_eng_method_buffers)(struct tsg_gk20a *tsg,
-				struct channel_gk20a *ch);
-		int (*unbind_channel)(struct tsg_gk20a *tsg,
-				struct channel_gk20a *ch);
-		int (*unbind_channel_check_hw_state)(struct tsg_gk20a *tsg,
-				struct channel_gk20a *ch);
-		void (*unbind_channel_check_ctx_reload)(struct tsg_gk20a *tsg,
-				struct channel_gk20a *ch,
+				struct nvgpu_tsg *tsg);
+		void (*enable)(struct nvgpu_tsg *tsg);
+		void (*disable)(struct nvgpu_tsg *tsg);
+		int (*bind_channel)(struct nvgpu_tsg *tsg,
+				struct nvgpu_channel *ch);
+		void (*bind_channel_eng_method_buffers)(struct nvgpu_tsg *tsg,
+				struct nvgpu_channel *ch);
+		int (*unbind_channel)(struct nvgpu_tsg *tsg,
+				struct nvgpu_channel *ch);
+		int (*unbind_channel_check_hw_state)(struct nvgpu_tsg *tsg,
+				struct nvgpu_channel *ch);
+		void (*unbind_channel_check_ctx_reload)(struct nvgpu_tsg *tsg,
+				struct nvgpu_channel *ch,
 				struct nvgpu_channel_hw_state *state);
-		void (*unbind_channel_check_eng_faulted)(struct tsg_gk20a *tsg,
-				struct channel_gk20a *ch,
+		void (*unbind_channel_check_eng_faulted)(struct nvgpu_tsg *tsg,
+				struct nvgpu_channel *ch,
 				struct nvgpu_channel_hw_state *state);
-		bool (*check_ctxsw_timeout)(struct tsg_gk20a *tsg,
+		bool (*check_ctxsw_timeout)(struct nvgpu_tsg *tsg,
 				bool *verbose, u32 *ms);
-		int (*force_reset)(struct channel_gk20a *ch,
+		int (*force_reset)(struct nvgpu_channel *ch,
 					u32 err_code, bool verbose);
-		void (*post_event_id)(struct tsg_gk20a *tsg,
+		void (*post_event_id)(struct nvgpu_tsg *tsg,
 				      enum nvgpu_event_id_type event_id);
-		int (*set_timeslice)(struct tsg_gk20a *tsg, u32 timeslice_us);
+		int (*set_timeslice)(struct nvgpu_tsg *tsg, u32 timeslice_us);
 		u32 (*default_timeslice_us)(struct gk20a *g);
-		int (*set_interleave)(struct tsg_gk20a *tsg, u32 new_level);
+		int (*set_interleave)(struct nvgpu_tsg *tsg, u32 new_level);
 	} tsg;
 	struct {
 		void (*setup_hw)(struct gk20a *g);
-		void (*ring_doorbell)(struct channel_gk20a *ch);
-		u32 (*doorbell_token)(struct channel_gk20a *ch);
+		void (*ring_doorbell)(struct nvgpu_channel *ch);
+		u32 (*doorbell_token)(struct nvgpu_channel *ch);
 		u64 (*base)(struct gk20a *g);
 		u64 (*bus_base)(struct gk20a *g);
 	} usermode;
@@ -1262,7 +1262,7 @@ struct gpu_ops {
 	} netlist;
 	struct {
 		int (*vm_bind_channel)(struct vm_gk20a *vm,
-				struct channel_gk20a *ch);
+				struct nvgpu_channel *ch);
 		int (*setup_hw)(struct gk20a *g);
 		bool (*is_bar1_supported)(struct gk20a *g);
 		int (*init_bar2_vm)(struct gk20a *g);
@@ -1511,7 +1511,7 @@ struct gpu_ops {
 	} pmu_perf;
 	struct {
 		int (*exec_regops)(struct gk20a *g,
-			    struct channel_gk20a *ch,
+			    struct nvgpu_channel *ch,
 			    struct nvgpu_dbg_reg_op *ops,
 			    u32 num_ops,
 			    bool is_profiler,
@@ -1562,7 +1562,7 @@ struct gpu_ops {
 	} debug;
 #ifdef NVGPU_DEBUGGER
 	struct {
-		void (*post_events)(struct channel_gk20a *ch);
+		void (*post_events)(struct nvgpu_channel *ch);
 		int (*dbg_set_powergate)(struct dbg_session_gk20a *dbg_s,
 					bool disable_powergate);
 		bool (*check_and_set_global_reservation)(
@@ -1627,10 +1627,10 @@ struct gpu_ops {
 
 #if defined(CONFIG_GK20A_CYCLE_STATS)
 	struct {
-		int (*enable_snapshot)(struct channel_gk20a *ch,
+		int (*enable_snapshot)(struct nvgpu_channel *ch,
 				struct gk20a_cs_snapshot_client *client);
 		void (*disable_snapshot)(struct gk20a *g);
-		int (*check_data_available)(struct channel_gk20a *ch,
+		int (*check_data_available)(struct nvgpu_channel *ch,
 						u32 *pending,
 						bool *hw_overflow);
 		void (*set_handled_snapshots)(struct gk20a *g, u32 num);
@@ -1639,7 +1639,7 @@ struct gpu_ops {
 		u32 (*release_perfmon_ids)(struct gk20a_cs_snapshot *data,
 				      u32 start,
 				      u32 count);
-		int (*detach_snapshot)(struct channel_gk20a *ch,
+		int (*detach_snapshot)(struct nvgpu_channel *ch,
 				struct gk20a_cs_snapshot_client *client);
 		bool (*get_overflow_status)(struct gk20a *g);
 		u32 (*get_pending_snapshots)(struct gk20a *g);
@@ -2117,21 +2117,21 @@ struct gk20a {
 	} clk_arb_worker;
 
 	struct {
-		void (*open)(struct channel_gk20a *ch);
-		void (*close)(struct channel_gk20a *ch, bool force);
-		void (*work_completion_signal)(struct channel_gk20a *ch);
-		void (*work_completion_cancel_sync)(struct channel_gk20a *ch);
-		bool (*os_fence_framework_inst_exists)(struct channel_gk20a *ch);
+		void (*open)(struct nvgpu_channel *ch);
+		void (*close)(struct nvgpu_channel *ch, bool force);
+		void (*work_completion_signal)(struct nvgpu_channel *ch);
+		void (*work_completion_cancel_sync)(struct nvgpu_channel *ch);
+		bool (*os_fence_framework_inst_exists)(struct nvgpu_channel *ch);
 		int (*init_os_fence_framework)(
-			struct channel_gk20a *ch, const char *fmt, ...);
-		void (*signal_os_fence_framework)(struct channel_gk20a *ch);
-		void (*destroy_os_fence_framework)(struct channel_gk20a *ch);
+			struct nvgpu_channel *ch, const char *fmt, ...);
+		void (*signal_os_fence_framework)(struct nvgpu_channel *ch);
+		void (*destroy_os_fence_framework)(struct nvgpu_channel *ch);
 		int (*copy_user_gpfifo)(struct nvgpu_gpfifo_entry *dest,
 				struct nvgpu_gpfifo_userdata userdata,
 				u32 start, u32 length);
-		int (*alloc_usermode_buffers)(struct channel_gk20a *c,
+		int (*alloc_usermode_buffers)(struct nvgpu_channel *c,
 			struct nvgpu_setup_bind_args *args);
-		void (*free_usermode_buffers)(struct channel_gk20a *c);
+		void (*free_usermode_buffers)(struct nvgpu_channel *c);
 	} os_channel;
 
 	struct gk20a_scale_profile *scale_profile;

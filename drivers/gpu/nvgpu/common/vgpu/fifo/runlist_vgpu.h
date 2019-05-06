@@ -23,10 +23,10 @@
  */
 
 struct gk20a;
-struct channel_gk20a;
+struct nvgpu_channel;
 
 int vgpu_runlist_update_for_channel(struct gk20a *g, u32 runlist_id,
-					struct channel_gk20a *ch,
+					struct nvgpu_channel *ch,
 					bool add, bool wait_for_finish);
 int vgpu_runlist_reload(struct gk20a *g, u32 runlist_id,
 				bool add, bool wait_for_finish);

@@ -53,7 +53,7 @@ void tu104_usermode_setup_hw(struct gk20a *g)
 	nvgpu_writel(g, ctrl_virtual_channel_cfg_r(0), val);
 }
 
-u32 tu104_usermode_doorbell_token(struct channel_gk20a *ch)
+u32 tu104_usermode_doorbell_token(struct nvgpu_channel *ch)
 {
 	struct gk20a *g = ch->g;
 	struct nvgpu_fifo *f = &g->fifo;
@@ -63,7 +63,7 @@ u32 tu104_usermode_doorbell_token(struct channel_gk20a *ch)
 			ctrl_doorbell_runlist_id_f(ch->runlist_id);
 }
 
-void tu104_usermode_ring_doorbell(struct channel_gk20a *ch)
+void tu104_usermode_ring_doorbell(struct nvgpu_channel *ch)
 {
 	nvgpu_log_info(ch->g, "channel ring door bell %d, runlist %d",
 			ch->chid, ch->runlist_id);

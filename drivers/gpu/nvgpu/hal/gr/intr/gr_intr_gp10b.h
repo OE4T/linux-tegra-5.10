@@ -26,7 +26,7 @@
 #include <nvgpu/types.h>
 
 struct gk20a;
-struct channel_gk20a;
+struct nvgpu_channel;
 struct nvgpu_gr_isr_data;
 
 #define NVC097_SET_GO_IDLE_TIMEOUT		0x022cU
@@ -41,7 +41,7 @@ struct nvgpu_gr_isr_data;
 #define NVC0C0_SET_RD_COALESCE			0x0228U
 
 int gp10b_gr_intr_handle_fecs_error(struct gk20a *g,
-			struct channel_gk20a *__ch,
+			struct nvgpu_channel *__ch,
 			struct nvgpu_gr_isr_data *isr_data);
 void gp10b_gr_intr_set_coalesce_buffer_size(struct gk20a *g, u32 data);
 void gp10b_gr_intr_set_go_idle_timeout(struct gk20a *g, u32 data);
@@ -50,6 +50,6 @@ int gp10b_gr_intr_handle_sw_method(struct gk20a *g, u32 addr,
 				     u32 class_num, u32 offset, u32 data);
 int gp10b_gr_intr_handle_sm_exception(struct gk20a *g,
 			u32 gpc, u32 tpc, u32 sm,
-			bool *post_event, struct channel_gk20a *fault_ch,
+			bool *post_event, struct nvgpu_channel *fault_ch,
 			u32 *hww_global_esr);
 #endif /* NVGPU_GR_INTR_GP10B_H */

@@ -270,8 +270,8 @@ static int nvgpu_dbg_gpu_ioctl_read_single_sm_error_state(
 	struct gk20a *g = dbg_s->g;
 	struct nvgpu_tsg_sm_error_state *sm_error_state;
 	struct nvgpu_dbg_gpu_sm_error_state_record sm_error_state_record;
-	struct channel_gk20a *ch;
-	struct tsg_gk20a *tsg;
+	struct nvgpu_channel *ch;
+	struct nvgpu_tsg *tsg;
 	u32 sm_id;
 	int err = 0;
 
@@ -505,7 +505,7 @@ static int dbg_bind_channel_gk20a(struct dbg_session_gk20a *dbg_s,
 {
 	struct file *f;
 	struct gk20a *g = dbg_s->g;
-	struct channel_gk20a *ch;
+	struct nvgpu_channel *ch;
 	struct dbg_session_channel_data_linux *ch_data_linux;
 	struct dbg_session_data *session_data;
 	int err = 0;
@@ -799,7 +799,7 @@ static int nvgpu_ioctl_channel_reg_ops(struct dbg_session_gk20a *dbg_s,
 	bool is_pg_disabled = false;
 
 	struct gk20a *g = dbg_s->g;
-	struct channel_gk20a *ch;
+	struct nvgpu_channel *ch;
 
 	bool is_current_ctx = false;
 
@@ -967,7 +967,7 @@ static int nvgpu_dbg_gpu_ioctl_smpc_ctxsw_mode(struct dbg_session_gk20a *dbg_s,
 {
 	int err;
 	struct gk20a *g = dbg_s->g;
-	struct channel_gk20a *ch_gk20a;
+	struct nvgpu_channel *ch_gk20a;
 
 	nvgpu_log_fn(g, "%s smpc ctxsw mode = %d",
 		     g->name, args->mode);
@@ -1028,7 +1028,7 @@ static int nvgpu_dbg_gpu_ioctl_hwpm_ctxsw_mode(struct dbg_session_gk20a *dbg_s,
 {
 	int err;
 	struct gk20a *g = dbg_s->g;
-	struct channel_gk20a *ch_gk20a;
+	struct nvgpu_channel *ch_gk20a;
 	u32 mode = nvgpu_hwpm_ctxsw_mode_to_common_mode(args->mode);
 
 	nvgpu_log_fn(g, "%s pm ctxsw mode = %d", g->name, args->mode);
@@ -1084,7 +1084,7 @@ static int nvgpu_dbg_gpu_ioctl_suspend_resume_sm(
 		struct nvgpu_dbg_gpu_suspend_resume_all_sms_args *args)
 {
 	struct gk20a *g = dbg_s->g;
-	struct channel_gk20a *ch;
+	struct nvgpu_channel *ch;
 	int err = 0, action = args->mode;
 
 	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gpu_dbg, "action: %d", args->mode);
@@ -1246,7 +1246,7 @@ static struct dbg_profiler_object_data *find_matching_prof_obj(
  * since it might not have an associated channel. */
 static void gk20a_dbg_session_nvgpu_mutex_acquire(struct dbg_session_gk20a *dbg_s)
 {
-	struct channel_gk20a *ch = nvgpu_dbg_gpu_get_session_channel(dbg_s);
+	struct nvgpu_channel *ch = nvgpu_dbg_gpu_get_session_channel(dbg_s);
 
 	if (dbg_s->is_profiler || !ch)
 		nvgpu_mutex_acquire(&dbg_s->g->dbg_sessions_lock);
@@ -1256,7 +1256,7 @@ static void gk20a_dbg_session_nvgpu_mutex_acquire(struct dbg_session_gk20a *dbg_
 
 static void gk20a_dbg_session_nvgpu_mutex_release(struct dbg_session_gk20a *dbg_s)
 {
-	struct channel_gk20a *ch = nvgpu_dbg_gpu_get_session_channel(dbg_s);
+	struct nvgpu_channel *ch = nvgpu_dbg_gpu_get_session_channel(dbg_s);
 
 	if (dbg_s->is_profiler || !ch)
 		nvgpu_mutex_release(&dbg_s->g->dbg_sessions_lock);
@@ -1312,7 +1312,7 @@ static int gk20a_dbg_gpu_events_ctrl(struct dbg_session_gk20a *dbg_s,
 			  struct nvgpu_dbg_gpu_events_ctrl_args *args)
 {
 	int ret = 0;
-	struct channel_gk20a *ch;
+	struct nvgpu_channel *ch;
 	struct gk20a *g = dbg_s->g;
 
 	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gpu_dbg, "dbg events ctrl cmd %d", args->cmd);
@@ -1434,7 +1434,7 @@ static int gk20a_perfbuf_unmap(struct dbg_session_gk20a *dbg_s,
 static int gk20a_dbg_pc_sampling(struct dbg_session_gk20a *dbg_s,
 			  struct nvgpu_dbg_gpu_pc_sampling_args *args)
 {
-	struct channel_gk20a *ch;
+	struct nvgpu_channel *ch;
 	struct gk20a *g = dbg_s->g;
 
 	ch = nvgpu_dbg_gpu_get_session_channel(dbg_s);
@@ -1453,7 +1453,7 @@ static int nvgpu_dbg_gpu_ioctl_clear_single_sm_error_state(
 {
 	struct gk20a *g = dbg_s->g;
 	u32 sm_id;
-	struct channel_gk20a *ch;
+	struct nvgpu_channel *ch;
 	int err = 0;
 
 	ch = nvgpu_dbg_gpu_get_session_channel(dbg_s);
@@ -1677,7 +1677,7 @@ static int nvgpu_profiler_reserve_acquire(struct dbg_session_gk20a *dbg_s,
 	struct gk20a *g = dbg_s->g;
 	struct dbg_profiler_object_data *prof_obj, *my_prof_obj;
 	int err = 0;
-	struct tsg_gk20a *tsg;
+	struct nvgpu_tsg *tsg;
 
 	nvgpu_log_fn(g, "%s profiler_handle = %x", g->name, profiler_handle);
 
@@ -1748,7 +1748,7 @@ static int nvgpu_profiler_reserve_acquire(struct dbg_session_gk20a *dbg_s,
 		/* channel: check that some other profiler object doesn't
 		 * already have the reservation.
 		 */
-		struct channel_gk20a *my_ch = my_prof_obj->ch;
+		struct nvgpu_channel *my_ch = my_prof_obj->ch;
 
 		nvgpu_list_for_each_entry(prof_obj, &g->profiler_objects,
 				dbg_profiler_object_data, prof_obj_entry) {
@@ -1780,7 +1780,7 @@ static int dbg_unbind_channel_gk20a(struct dbg_session_gk20a *dbg_s,
 	struct dbg_session_channel_data *ch_data;
 	struct gk20a *g = dbg_s->g;
 	bool channel_found = false;
-	struct channel_gk20a *ch;
+	struct nvgpu_channel *ch;
 	int err;
 
 	nvgpu_log(g, gpu_dbg_fn|gpu_dbg_gpu_dbg, "%s fd=%d",
@@ -1825,7 +1825,7 @@ static int nvgpu_dbg_gpu_set_sm_exception_type_mask(struct dbg_session_gk20a *db
 	int err = 0;
 	struct gk20a *g = dbg_s->g;
 	u32 sm_exception_mask_type = NVGPU_SM_EXCEPTION_TYPE_MASK_NONE;
-	struct channel_gk20a *ch = NULL;
+	struct nvgpu_channel *ch = NULL;
 
 	nvgpu_speculation_barrier();
 	switch (args->exception_type_mask) {
@@ -1866,7 +1866,7 @@ static int nvgpu_dbg_gpu_set_sm_exception_type_mask(struct dbg_session_gk20a *db
 static int nvgpu_dbg_gpu_cycle_stats(struct dbg_session_gk20a *dbg_s,
 			struct nvgpu_dbg_gpu_cycle_stats_args *args)
 {
-	struct channel_gk20a *ch = NULL;
+	struct nvgpu_channel *ch = NULL;
 	int err;
 
 	ch = nvgpu_dbg_gpu_get_session_channel(dbg_s);
@@ -1888,7 +1888,7 @@ static int nvgpu_dbg_gpu_cycle_stats(struct dbg_session_gk20a *dbg_s,
 static int nvgpu_dbg_gpu_cycle_stats_snapshot(struct dbg_session_gk20a *dbg_s,
 		struct nvgpu_dbg_gpu_cycle_stats_snapshot_args *args)
 {
-	struct channel_gk20a *ch = NULL;
+	struct nvgpu_channel *ch = NULL;
 	int err;
 
 	if (!args->dmabuf_fd) {

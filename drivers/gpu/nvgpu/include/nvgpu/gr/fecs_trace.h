@@ -60,7 +60,7 @@ struct gk20a;
 struct nvgpu_mem;
 struct nvgpu_gr_subctx;
 struct nvgpu_gr_ctx;
-struct tsg_gk20a;
+struct nvgpu_tsg;
 struct vm_area_struct;
 
 struct nvgpu_gr_fecs_trace {
@@ -178,7 +178,7 @@ int nvgpu_gr_fecs_trace_ring_alloc(struct gk20a *g, void **buf, size_t *size);
 int nvgpu_gr_fecs_trace_ring_free(struct gk20a *g);
 void nvgpu_gr_fecs_trace_get_mmap_buffer_info(struct gk20a *g,
 				void **mmapaddr, size_t *mmapsize);
-void nvgpu_gr_fecs_trace_add_tsg_reset(struct gk20a *g, struct tsg_gk20a *tsg);
+void nvgpu_gr_fecs_trace_add_tsg_reset(struct gk20a *g, struct nvgpu_tsg *tsg);
 u8 nvgpu_gpu_ctxsw_tags_to_common_tags(u8 tags);
 int nvgpu_gr_fecs_trace_write_entry(struct gk20a *g,
 			    struct nvgpu_gpu_ctxsw_trace_entry *entry);

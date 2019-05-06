@@ -38,9 +38,9 @@
 #include <nvgpu/hw/gp10b/hw_gr_gp10b.h>
 
 static int gp10b_gr_intr_clear_cilp_preempt_pending(struct gk20a *g,
-					       struct channel_gk20a *fault_ch)
+					       struct nvgpu_channel *fault_ch)
 {
-	struct tsg_gk20a *tsg;
+	struct nvgpu_tsg *tsg;
 	struct nvgpu_gr_ctx *gr_ctx;
 
 	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gpu_dbg | gpu_dbg_intr, " ");
@@ -71,8 +71,8 @@ static int gp10b_gr_intr_get_cilp_preempt_pending_chid(struct gk20a *g,
 					u32 *__chid)
 {
 	struct nvgpu_gr_ctx *gr_ctx;
-	struct channel_gk20a *ch;
-	struct tsg_gk20a *tsg;
+	struct nvgpu_channel *ch;
+	struct nvgpu_tsg *tsg;
 	u32 chid;
 	int ret = -EINVAL;
 
@@ -105,13 +105,13 @@ static int gp10b_gr_intr_get_cilp_preempt_pending_chid(struct gk20a *g,
 }
 
 int gp10b_gr_intr_handle_fecs_error(struct gk20a *g,
-				struct channel_gk20a *__ch,
+				struct nvgpu_channel *__ch,
 				struct nvgpu_gr_isr_data *isr_data)
 {
-	struct channel_gk20a *ch;
+	struct nvgpu_channel *ch;
 	u32 chid = NVGPU_INVALID_CHANNEL_ID;
 	int ret = 0;
-	struct tsg_gk20a *tsg;
+	struct nvgpu_tsg *tsg;
 	struct nvgpu_fecs_host_intr_status fecs_host_intr;
 	u32 gr_fecs_intr = g->ops.gr.falcon.fecs_host_intr_status(g,
 						&fecs_host_intr);
@@ -280,7 +280,7 @@ static void gr_gp10b_sm_lrf_ecc_overcount_war(bool single_err,
 
 int gp10b_gr_intr_handle_sm_exception(struct gk20a *g,
 			u32 gpc, u32 tpc, u32 sm,
-			bool *post_event, struct channel_gk20a *fault_ch,
+			bool *post_event, struct nvgpu_channel *fault_ch,
 			u32 *hww_global_esr)
 {
 	int ret = 0;

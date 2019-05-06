@@ -30,7 +30,7 @@
 
 #include "semaphore_priv.h"
 
-int nvgpu_hw_semaphore_init(struct channel_gk20a *ch)
+int nvgpu_hw_semaphore_init(struct nvgpu_channel *ch)
 {
 	int hw_sema_idx;
 	int ret = 0;
@@ -78,7 +78,7 @@ fail:
 /*
  * Free the channel used semaphore index
  */
-void nvgpu_hw_semaphore_free(struct channel_gk20a *ch)
+void nvgpu_hw_semaphore_free(struct nvgpu_channel *ch)
 {
 	struct nvgpu_semaphore_pool *p = ch->vm->sema_pool;
 	struct nvgpu_hw_semaphore *hw_sema = ch->hw_sema;

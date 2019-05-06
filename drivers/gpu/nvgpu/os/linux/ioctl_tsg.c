@@ -40,12 +40,12 @@
 
 struct tsg_private {
 	struct gk20a *g;
-	struct tsg_gk20a *tsg;
+	struct nvgpu_tsg *tsg;
 };
 
-static int nvgpu_tsg_bind_channel_fd(struct tsg_gk20a *tsg, int ch_fd)
+static int nvgpu_tsg_bind_channel_fd(struct nvgpu_tsg *tsg, int ch_fd)
 {
-	struct channel_gk20a *ch;
+	struct nvgpu_channel *ch;
 	int err;
 
 	ch = gk20a_get_channel_from_file(ch_fd);
@@ -59,11 +59,11 @@ static int nvgpu_tsg_bind_channel_fd(struct tsg_gk20a *tsg, int ch_fd)
 }
 
 static int gk20a_tsg_ioctl_bind_channel_ex(struct gk20a *g,
-	struct tsg_gk20a *tsg, struct nvgpu_tsg_bind_channel_ex_args *arg)
+	struct nvgpu_tsg *tsg, struct nvgpu_tsg_bind_channel_ex_args *arg)
 {
 	struct nvgpu_os_linux *l = nvgpu_os_linux_from_gk20a(g);
 	struct gk20a_sched_ctrl *sched = &l->sched_ctrl;
-	struct channel_gk20a *ch;
+	struct nvgpu_channel *ch;
 	struct nvgpu_gr *gr = g->gr;
 	int err = 0;
 
@@ -125,9 +125,9 @@ mutex_release:
 	return err;
 }
 
-static int nvgpu_tsg_unbind_channel_fd(struct tsg_gk20a *tsg, int ch_fd)
+static int nvgpu_tsg_unbind_channel_fd(struct nvgpu_tsg *tsg, int ch_fd)
 {
-	struct channel_gk20a *ch;
+	struct nvgpu_channel *ch;
 	int err = 0;
 
 	ch = gk20a_get_channel_from_file(ch_fd);
@@ -153,7 +153,7 @@ out:
 	return err;
 }
 
-static int gk20a_tsg_get_event_data_from_id(struct tsg_gk20a *tsg,
+static int gk20a_tsg_get_event_data_from_id(struct nvgpu_tsg *tsg,
 				unsigned int event_id,
 				struct gk20a_event_id_data **event_id_data)
 {
@@ -205,7 +205,7 @@ static u32 nvgpu_event_id_to_ioctl_channel_event_id(
 	return NVGPU_IOCTL_CHANNEL_EVENT_ID_MAX;
 }
 
-void nvgpu_tsg_post_event_id(struct tsg_gk20a *tsg,
+void nvgpu_tsg_post_event_id(struct nvgpu_tsg *tsg,
 			     enum nvgpu_event_id_type event_id)
 {
 	struct gk20a_event_id_data *channel_event_id_data;
@@ -240,7 +240,7 @@ static unsigned int gk20a_event_id_poll(struct file *filep, poll_table *wait)
 	struct gk20a_event_id_data *event_id_data = filep->private_data;
 	struct gk20a *g = event_id_data->g;
 	u32 event_id = event_id_data->event_id;
-	struct tsg_gk20a *tsg = g->fifo.tsg + event_id_data->id;
+	struct nvgpu_tsg *tsg = g->fifo.tsg + event_id_data->id;
 
 	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_info, " ");
 
@@ -265,7 +265,7 @@ static int gk20a_event_id_release(struct inode *inode, struct file *filp)
 {
 	struct gk20a_event_id_data *event_id_data = filp->private_data;
 	struct gk20a *g;
-	struct tsg_gk20a *tsg;
+	struct nvgpu_tsg *tsg;
 
 	if (event_id_data == NULL)
 		return -EINVAL;
@@ -291,7 +291,7 @@ const struct file_operations gk20a_event_id_ops = {
 	.release = gk20a_event_id_release,
 };
 
-static int gk20a_tsg_event_id_enable(struct tsg_gk20a *tsg,
+static int gk20a_tsg_event_id_enable(struct nvgpu_tsg *tsg,
 					 int event_id,
 					 int *fd)
 {
@@ -367,7 +367,7 @@ free_ref:
 	return err;
 }
 
-static int gk20a_tsg_event_id_ctrl(struct gk20a *g, struct tsg_gk20a *tsg,
+static int gk20a_tsg_event_id_ctrl(struct gk20a *g, struct nvgpu_tsg *tsg,
 		struct nvgpu_event_id_ctrl_args *args)
 {
 	int err = 0;
@@ -397,7 +397,7 @@ static int gk20a_tsg_event_id_ctrl(struct gk20a *g, struct tsg_gk20a *tsg,
 int nvgpu_ioctl_tsg_open(struct gk20a *g, struct file *filp)
 {
 	struct tsg_private *priv;
-	struct tsg_gk20a *tsg;
+	struct nvgpu_tsg *tsg;
 	struct device *dev;
 	int err;
 
@@ -470,7 +470,7 @@ int nvgpu_ioctl_tsg_dev_open(struct inode *inode, struct file *filp)
 
 void nvgpu_ioctl_tsg_release(struct nvgpu_ref *ref)
 {
-	struct tsg_gk20a *tsg = container_of(ref, struct tsg_gk20a, refcount);
+	struct nvgpu_tsg *tsg = container_of(ref, struct nvgpu_tsg, refcount);
 	struct gk20a *g = tsg->g;
 
 	gk20a_sched_ctrl_tsg_removed(g, tsg);
@@ -482,7 +482,7 @@ void nvgpu_ioctl_tsg_release(struct nvgpu_ref *ref)
 int nvgpu_ioctl_tsg_dev_release(struct inode *inode, struct file *filp)
 {
 	struct tsg_private *priv = filp->private_data;
-	struct tsg_gk20a *tsg;
+	struct nvgpu_tsg *tsg;
 
 	if (!priv) {
 		/* open failed, never got a tsg for this file */
@@ -497,7 +497,7 @@ int nvgpu_ioctl_tsg_dev_release(struct inode *inode, struct file *filp)
 }
 
 static int gk20a_tsg_ioctl_set_runlist_interleave(struct gk20a *g,
-	struct tsg_gk20a *tsg, struct nvgpu_runlist_interleave_args *arg)
+	struct nvgpu_tsg *tsg, struct nvgpu_runlist_interleave_args *arg)
 {
 	struct nvgpu_os_linux *l = nvgpu_os_linux_from_gk20a(g);
 	struct gk20a_sched_ctrl *sched = &l->sched_ctrl;
@@ -527,7 +527,7 @@ done:
 }
 
 static int gk20a_tsg_ioctl_set_timeslice(struct gk20a *g,
-	struct tsg_gk20a *tsg, struct nvgpu_timeslice_args *arg)
+	struct nvgpu_tsg *tsg, struct nvgpu_timeslice_args *arg)
 {
 	struct nvgpu_os_linux *l = nvgpu_os_linux_from_gk20a(g);
 	struct gk20a_sched_ctrl *sched = &l->sched_ctrl;
@@ -553,14 +553,14 @@ done:
 }
 
 static int gk20a_tsg_ioctl_get_timeslice(struct gk20a *g,
-	struct tsg_gk20a *tsg, struct nvgpu_timeslice_args *arg)
+	struct nvgpu_tsg *tsg, struct nvgpu_timeslice_args *arg)
 {
 	arg->timeslice_us = nvgpu_tsg_get_timeslice(tsg);
 	return 0;
 }
 
 static int gk20a_tsg_ioctl_read_single_sm_error_state(struct gk20a *g,
-		struct tsg_gk20a *tsg,
+		struct nvgpu_tsg *tsg,
 		struct nvgpu_tsg_read_single_sm_error_state_args *args)
 {
 	struct nvgpu_tsg_sm_error_state *sm_error_state;
@@ -615,7 +615,7 @@ long nvgpu_ioctl_tsg_dev_ioctl(struct file *filp, unsigned int cmd,
 			     unsigned long arg)
 {
 	struct tsg_private *priv = filp->private_data;
-	struct tsg_gk20a *tsg = priv->tsg;
+	struct nvgpu_tsg *tsg = priv->tsg;
 	struct gk20a *g = tsg->g;
 	u8 __maybe_unused buf[NVGPU_TSG_IOCTL_MAX_ARG_SIZE];
 	int err = 0;

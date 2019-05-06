@@ -87,7 +87,7 @@ void vgpu_gr_detect_sm_arch(struct gk20a *g)
 			priv->constants.sm_arch_warp_count;
 }
 
-static int vgpu_gr_commit_inst(struct channel_gk20a *c, u64 gpu_va)
+static int vgpu_gr_commit_inst(struct nvgpu_channel *c, u64 gpu_va)
 {
 	struct tegra_vgpu_cmd_msg msg;
 	struct tegra_vgpu_ch_ctx_params *p = &msg.params.ch_ctx;
@@ -121,7 +121,7 @@ static int vgpu_gr_commit_inst(struct channel_gk20a *c, u64 gpu_va)
 }
 
 static int vgpu_gr_commit_global_ctx_buffers(struct gk20a *g,
-					struct channel_gk20a *c, bool patch)
+					struct nvgpu_channel *c, bool patch)
 {
 	struct tegra_vgpu_cmd_msg msg;
 	struct tegra_vgpu_ch_ctx_params *p = &msg.params.ch_ctx;
@@ -213,12 +213,12 @@ int vgpu_gr_alloc_global_ctx_buffers(struct gk20a *g)
 	return 0;
 }
 
-int vgpu_gr_alloc_obj_ctx(struct channel_gk20a  *c, u32 class_num, u32 flags)
+int vgpu_gr_alloc_obj_ctx(struct nvgpu_channel  *c, u32 class_num, u32 flags)
 {
 	struct gk20a *g = c->g;
 	struct nvgpu_gr_ctx *gr_ctx = NULL;
 	struct nvgpu_gr *gr = g->gr;
-	struct tsg_gk20a *tsg = NULL;
+	struct nvgpu_tsg *tsg = NULL;
 	int err = 0;
 
 	nvgpu_log_fn(g, " ");
@@ -486,7 +486,7 @@ static int vgpu_gr_init_gr_zcull(struct gk20a *g, struct nvgpu_gr *gr,
 
 	return 0;
 }
-int vgpu_gr_bind_ctxsw_zcull(struct gk20a *g, struct channel_gk20a *c,
+int vgpu_gr_bind_ctxsw_zcull(struct gk20a *g, struct nvgpu_channel *c,
 			u64 zcull_va, u32 mode)
 {
 	struct tegra_vgpu_cmd_msg msg;
@@ -759,7 +759,7 @@ int vgpu_init_gr_support(struct gk20a *g)
 
 int vgpu_gr_isr(struct gk20a *g, struct tegra_vgpu_gr_intr_info *info)
 {
-	struct channel_gk20a *ch = gk20a_channel_from_id(g, info->chid);
+	struct nvgpu_channel *ch = gk20a_channel_from_id(g, info->chid);
 
 	nvgpu_log_fn(g, " ");
 
@@ -821,7 +821,7 @@ int vgpu_gr_isr(struct gk20a *g, struct tegra_vgpu_gr_intr_info *info)
 }
 
 int vgpu_gr_set_sm_debug_mode(struct gk20a *g,
-	struct channel_gk20a *ch, u64 sms, bool enable)
+	struct nvgpu_channel *ch, u64 sms, bool enable)
 {
 	struct tegra_vgpu_cmd_msg msg;
 	struct tegra_vgpu_sm_debug_mode *p = &msg.params.sm_debug_mode;
@@ -841,7 +841,7 @@ int vgpu_gr_set_sm_debug_mode(struct gk20a *g,
 }
 
 int vgpu_gr_update_smpc_ctxsw_mode(struct gk20a *g,
-	struct channel_gk20a *ch, bool enable)
+	struct nvgpu_channel *ch, bool enable)
 {
 	struct tegra_vgpu_cmd_msg msg;
 	struct tegra_vgpu_channel_set_ctxsw_mode *p = &msg.params.set_ctxsw_mode;
@@ -866,9 +866,9 @@ int vgpu_gr_update_smpc_ctxsw_mode(struct gk20a *g,
 }
 
 int vgpu_gr_update_hwpm_ctxsw_mode(struct gk20a *g,
-	struct channel_gk20a *ch, u64 gpu_va, u32 mode)
+	struct nvgpu_channel *ch, u64 gpu_va, u32 mode)
 {
-	struct tsg_gk20a *tsg;
+	struct nvgpu_tsg *tsg;
 	struct nvgpu_gr_ctx *gr_ctx;
 	struct tegra_vgpu_cmd_msg msg;
 	struct tegra_vgpu_channel_set_ctxsw_mode *p = &msg.params.set_ctxsw_mode;
@@ -952,12 +952,12 @@ int vgpu_gr_update_hwpm_ctxsw_mode(struct gk20a *g,
 }
 
 int vgpu_gr_clear_sm_error_state(struct gk20a *g,
-		struct channel_gk20a *ch, u32 sm_id)
+		struct nvgpu_channel *ch, u32 sm_id)
 {
 	struct tegra_vgpu_cmd_msg msg;
 	struct tegra_vgpu_clear_sm_error_state *p =
 			&msg.params.clear_sm_error_state;
-	struct tsg_gk20a *tsg;
+	struct nvgpu_tsg *tsg;
 	int err;
 
 	tsg = tsg_gk20a_from_ch(ch);
@@ -1076,7 +1076,7 @@ void vgpu_gr_handle_sm_esr_event(struct gk20a *g,
 			struct tegra_vgpu_sm_esr_info *info)
 {
 	struct nvgpu_tsg_sm_error_state *sm_error_states;
-	struct tsg_gk20a *tsg;
+	struct nvgpu_tsg *tsg;
 	u32 no_of_sm = g->ops.gr.init.get_no_of_sm(g);
 
 	if (info->sm_id >= no_of_sm) {
@@ -1173,7 +1173,7 @@ int vgpu_gr_init_fs_state(struct gk20a *g)
 	return g->ops.gr.config.init_sm_id_table(g, g->gr->config);
 }
 
-int vgpu_gr_update_pc_sampling(struct channel_gk20a *ch, bool enable)
+int vgpu_gr_update_pc_sampling(struct nvgpu_channel *ch, bool enable)
 {
 	struct tegra_vgpu_cmd_msg msg;
 	struct tegra_vgpu_channel_update_pc_sampling *p =
@@ -1406,13 +1406,13 @@ fail:
 	return err;
 }
 
-int vgpu_gr_set_preemption_mode(struct channel_gk20a *ch,
+int vgpu_gr_set_preemption_mode(struct nvgpu_channel *ch,
 				u32 graphics_preempt_mode,
 				u32 compute_preempt_mode)
 {
 	struct nvgpu_gr_ctx *gr_ctx;
 	struct gk20a *g = ch->g;
-	struct tsg_gk20a *tsg;
+	struct nvgpu_tsg *tsg;
 	struct vm_gk20a *vm;
 	u32 class;
 	int err;

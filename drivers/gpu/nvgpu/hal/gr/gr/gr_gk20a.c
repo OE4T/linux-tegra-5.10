@@ -53,10 +53,10 @@
 #include <nvgpu/hw/gk20a/hw_gr_gk20a.h>
 
 int gr_gk20a_update_smpc_ctxsw_mode(struct gk20a *g,
-				    struct channel_gk20a *c,
+				    struct nvgpu_channel *c,
 				    bool enable_smpc_ctxsw)
 {
-	struct tsg_gk20a *tsg;
+	struct nvgpu_tsg *tsg;
 	int ret;
 
 	nvgpu_log_fn(g, " ");
@@ -86,11 +86,11 @@ out:
 }
 
 int gr_gk20a_update_hwpm_ctxsw_mode(struct gk20a *g,
-				  struct channel_gk20a *c,
+				  struct nvgpu_channel *c,
 				  u64 gpu_va,
 				  u32 mode)
 {
-	struct tsg_gk20a *tsg;
+	struct nvgpu_tsg *tsg;
 	struct nvgpu_gr_ctx *gr_ctx;
 	bool skip_update = false;
 	int ret;
@@ -146,7 +146,7 @@ int gr_gk20a_update_hwpm_ctxsw_mode(struct gk20a *g,
 	}
 
 	if (c->subctx != NULL) {
-		struct channel_gk20a *ch;
+		struct nvgpu_channel *ch;
 
 		nvgpu_rwsem_down_read(&tsg->ch_list_lock);
 		nvgpu_list_for_each_entry(ch, &tsg->ch_list, channel_gk20a, ch_entry) {
@@ -647,7 +647,7 @@ void gk20a_gr_init_ovr_sm_dsm_perf(void)
  * write will actually occur. so later we should put a lazy,
  *  map-and-hold system in the patch write state */
 static int gr_gk20a_ctx_patch_smpc(struct gk20a *g,
-			    struct channel_gk20a *ch,
+			    struct nvgpu_channel *ch,
 			    u32 addr, u32 data,
 			    struct nvgpu_gr_ctx *gr_ctx)
 {
@@ -1329,14 +1329,14 @@ static int gr_gk20a_find_priv_offset_in_buffer(struct gk20a *g,
 	return -EINVAL;
 }
 
-bool gk20a_is_channel_ctx_resident(struct channel_gk20a *ch)
+bool gk20a_is_channel_ctx_resident(struct nvgpu_channel *ch)
 {
 	u32 curr_gr_ctx;
 	u32 curr_gr_tsgid;
 	struct gk20a *g = ch->g;
-	struct channel_gk20a *curr_ch;
+	struct nvgpu_channel *curr_ch;
 	bool ret = false;
-	struct tsg_gk20a *tsg;
+	struct nvgpu_tsg *tsg;
 
 	curr_gr_ctx = g->ops.gr.falcon.get_current_ctx(g);
 
@@ -1377,13 +1377,13 @@ bool gk20a_is_channel_ctx_resident(struct channel_gk20a *ch)
 	return ret;
 }
 
-static int gr_exec_ctx_ops(struct channel_gk20a *ch,
+static int gr_exec_ctx_ops(struct nvgpu_channel *ch,
 			    struct nvgpu_dbg_reg_op *ctx_ops, u32 num_ops,
 			    u32 num_ctx_wr_ops, u32 num_ctx_rd_ops,
 			    bool ch_is_curr_ctx)
 {
 	struct gk20a *g = ch->g;
-	struct tsg_gk20a *tsg;
+	struct nvgpu_tsg *tsg;
 	struct nvgpu_gr_ctx *gr_ctx;
 	bool gr_ctx_ready = false;
 	bool pm_ctx_ready = false;
@@ -1629,7 +1629,7 @@ static int gr_exec_ctx_ops(struct channel_gk20a *ch,
 	return err;
 }
 
-int gr_gk20a_exec_ctx_ops(struct channel_gk20a *ch,
+int gr_gk20a_exec_ctx_ops(struct nvgpu_channel *ch,
 			  struct nvgpu_dbg_reg_op *ctx_ops, u32 num_ops,
 			  u32 num_ctx_wr_ops, u32 num_ctx_rd_ops,
 			  bool *is_curr_ctx)
@@ -1895,7 +1895,7 @@ void gk20a_gr_resume_all_sms(struct gk20a *g)
 }
 
 int gr_gk20a_set_sm_debug_mode(struct gk20a *g,
-	struct channel_gk20a *ch, u64 sms, bool enable)
+	struct nvgpu_channel *ch, u64 sms, bool enable)
 {
 	struct nvgpu_dbg_reg_op *ops;
 	unsigned int i = 0, sm_id;
@@ -1963,7 +1963,7 @@ int gr_gk20a_set_sm_debug_mode(struct gk20a *g,
  * Returns bool value indicating if context was resident
  * or not
  */
-bool gr_gk20a_suspend_context(struct channel_gk20a *ch)
+bool gr_gk20a_suspend_context(struct nvgpu_channel *ch)
 {
 	struct gk20a *g = ch->g;
 	bool ctx_resident = false;
@@ -1978,7 +1978,7 @@ bool gr_gk20a_suspend_context(struct channel_gk20a *ch)
 	return ctx_resident;
 }
 
-bool gr_gk20a_resume_context(struct channel_gk20a *ch)
+bool gr_gk20a_resume_context(struct nvgpu_channel *ch)
 {
 	struct gk20a *g = ch->g;
 	bool ctx_resident = false;
@@ -1999,7 +1999,7 @@ int gr_gk20a_suspend_contexts(struct gk20a *g,
 {
 	int local_ctx_resident_ch_fd = -1;
 	bool ctx_resident;
-	struct channel_gk20a *ch;
+	struct nvgpu_channel *ch;
 	struct dbg_session_channel_data *ch_data;
 	int err = 0;
 
@@ -2044,7 +2044,7 @@ int gr_gk20a_resume_contexts(struct gk20a *g,
 {
 	int local_ctx_resident_ch_fd = -1;
 	bool ctx_resident;
-	struct channel_gk20a *ch;
+	struct nvgpu_channel *ch;
 	int err = 0;
 	struct dbg_session_channel_data *ch_data;
 

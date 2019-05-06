@@ -63,7 +63,7 @@ static void gr_intr_report_ctxsw_error(struct gk20a *g, u32 err_type, u32 chid,
 }
 
 static int gr_intr_handle_tpc_exception(struct gk20a *g, u32 gpc, u32 tpc,
-		bool *post_event, struct channel_gk20a *fault_ch,
+		bool *post_event, struct nvgpu_channel *fault_ch,
 		u32 *hww_global_esr)
 {
 	int tmp_ret, ret = 0;
@@ -137,7 +137,7 @@ static int gr_intr_handle_tpc_exception(struct gk20a *g, u32 gpc, u32 tpc,
 	return ret;
 }
 
-static void gr_intr_post_bpt_events(struct gk20a *g, struct tsg_gk20a *tsg,
+static void gr_intr_post_bpt_events(struct gk20a *g, struct nvgpu_tsg *tsg,
 				    u32 global_esr)
 {
 	if (g->ops.gr.esr_bpt_pending_events(global_esr,
@@ -188,7 +188,7 @@ static void gr_intr_report_sm_exception(struct gk20a *g, u32 gpc, u32 tpc,
 {
 	int ret;
 	struct gr_sm_mcerr_info err_info;
-	struct channel_gk20a *ch;
+	struct nvgpu_channel *ch;
 	struct gr_err_info info;
 	u32 tsgid, chid, curr_ctx, inst = 0;
 
@@ -232,7 +232,7 @@ static void gr_intr_report_sm_exception(struct gk20a *g, u32 gpc, u32 tpc,
  * A small tlb is used here to cache translation.
  *
  * Returned channel must be freed with gk20a_channel_put() */
-struct channel_gk20a *nvgpu_gr_intr_get_channel_from_ctx(struct gk20a *g,
+struct nvgpu_channel *nvgpu_gr_intr_get_channel_from_ctx(struct gk20a *g,
 			u32 curr_ctx, u32 *curr_tsgid)
 {
 	struct nvgpu_fifo *f = &g->fifo;
@@ -240,7 +240,7 @@ struct channel_gk20a *nvgpu_gr_intr_get_channel_from_ctx(struct gk20a *g,
 	u32 chid;
 	u32 tsgid = NVGPU_INVALID_TSG_ID;
 	u32 i;
-	struct channel_gk20a *ret_ch = NULL;
+	struct nvgpu_channel *ret_ch = NULL;
 
 	/* when contexts are unloaded from GR, the valid bit is reset
 	 * but the instance pointer information remains intact.
@@ -262,7 +262,7 @@ struct channel_gk20a *nvgpu_gr_intr_get_channel_from_ctx(struct gk20a *g,
 
 	/* slow path */
 	for (chid = 0; chid < f->num_channels; chid++) {
-		struct channel_gk20a *ch = gk20a_channel_from_id(g, chid);
+		struct nvgpu_channel *ch = gk20a_channel_from_id(g, chid);
 
 		if (ch == NULL) {
 			continue;
@@ -313,7 +313,7 @@ void nvgpu_gr_intr_report_exception(struct gk20a *g, u32 inst,
 		u32 err_type, u32 status)
 {
 	int ret = 0;
-	struct channel_gk20a *ch;
+	struct nvgpu_channel *ch;
 	struct gr_exception_info err_info;
 	struct gr_err_info info;
 	u32 tsgid, chid, curr_ctx;
@@ -350,8 +350,8 @@ void nvgpu_gr_intr_report_exception(struct gk20a *g, u32 inst,
 void nvgpu_gr_intr_set_error_notifier(struct gk20a *g,
 		  struct nvgpu_gr_isr_data *isr_data, u32 error_notifier)
 {
-	struct channel_gk20a *ch;
-	struct tsg_gk20a *tsg;
+	struct nvgpu_channel *ch;
+	struct nvgpu_tsg *tsg;
 
 	ch = isr_data->ch;
 
@@ -368,7 +368,7 @@ void nvgpu_gr_intr_set_error_notifier(struct gk20a *g,
 }
 
 int nvgpu_gr_intr_handle_sm_exception(struct gk20a *g, u32 gpc, u32 tpc, u32 sm,
-		bool *post_event, struct channel_gk20a *fault_ch,
+		bool *post_event, struct nvgpu_channel *fault_ch,
 		u32 *hww_global_esr)
 {
 	int ret = 0;
@@ -473,7 +473,7 @@ int nvgpu_gr_intr_handle_sm_exception(struct gk20a *g, u32 gpc, u32 tpc, u32 sm,
 	return ret;
 }
 
-int nvgpu_gr_intr_handle_fecs_error(struct gk20a *g, struct channel_gk20a *ch,
+int nvgpu_gr_intr_handle_fecs_error(struct gk20a *g, struct nvgpu_channel *ch,
 					struct nvgpu_gr_isr_data *isr_data)
 {
 	u32 gr_fecs_intr, mailbox_value;
@@ -565,7 +565,7 @@ int nvgpu_gr_intr_handle_fecs_error(struct gk20a *g, struct channel_gk20a *ch,
 }
 
 int nvgpu_gr_intr_handle_gpc_exception(struct gk20a *g, bool *post_event,
-	struct nvgpu_gr_config *gr_config, struct channel_gk20a *fault_ch,
+	struct nvgpu_gr_config *gr_config, struct nvgpu_channel *fault_ch,
 	u32 *hww_global_esr)
 {
 	int tmp_ret, ret = 0;
@@ -634,7 +634,7 @@ int nvgpu_gr_intr_handle_gpc_exception(struct gk20a *g, bool *post_event,
 void nvgpu_gr_intr_handle_notify_pending(struct gk20a *g,
 					struct nvgpu_gr_isr_data *isr_data)
 {
-	struct channel_gk20a *ch = isr_data->ch;
+	struct nvgpu_channel *ch = isr_data->ch;
 	int err;
 
 	if (ch == NULL) {
@@ -660,8 +660,8 @@ void nvgpu_gr_intr_handle_notify_pending(struct gk20a *g,
 void nvgpu_gr_intr_handle_semaphore_pending(struct gk20a *g,
 					   struct nvgpu_gr_isr_data *isr_data)
 {
-	struct channel_gk20a *ch = isr_data->ch;
-	struct tsg_gk20a *tsg;
+	struct nvgpu_channel *ch = isr_data->ch;
+	struct nvgpu_tsg *tsg;
 
 	if (ch == NULL) {
 		return;
@@ -688,10 +688,10 @@ int nvgpu_gr_intr_stall_isr(struct gk20a *g)
 	struct nvgpu_gr_isr_data isr_data;
 	struct nvgpu_gr_intr_info intr_info;
 	bool need_reset = false;
-	struct channel_gk20a *ch = NULL;
-	struct channel_gk20a *fault_ch = NULL;
+	struct nvgpu_channel *ch = NULL;
+	struct nvgpu_channel *fault_ch = NULL;
 	u32 tsgid = NVGPU_INVALID_TSG_ID;
-	struct tsg_gk20a *tsg = NULL;
+	struct nvgpu_tsg *tsg = NULL;
 	u32 global_esr = 0;
 	u32 chid;
 	struct nvgpu_gr_config *gr_config = g->gr->config;

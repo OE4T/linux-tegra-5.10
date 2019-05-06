@@ -42,7 +42,7 @@ u32 gk20a_runlist_entry_size(struct gk20a *g)
 	return ram_rl_entry_size_v();
 }
 
-void gk20a_runlist_get_tsg_entry(struct tsg_gk20a *tsg,
+void gk20a_runlist_get_tsg_entry(struct nvgpu_tsg *tsg,
 		u32 *runlist, u32 timeslice)
 {
 	struct gk20a *g = tsg->g;
@@ -70,7 +70,7 @@ void gk20a_runlist_get_tsg_entry(struct tsg_gk20a *tsg,
 	runlist[1] = 0;
 }
 
-void gk20a_runlist_get_ch_entry(struct channel_gk20a *ch, u32 *runlist)
+void gk20a_runlist_get_ch_entry(struct nvgpu_channel *ch, u32 *runlist)
 {
 	runlist[0] = ram_rl_entry_chid_f(ch->chid);
 	runlist[1] = 0;

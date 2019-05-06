@@ -39,22 +39,22 @@
 
 struct gk20a;
 struct nvgpu_fifo;
-struct tsg_gk20a;
-struct channel_gk20a;
+struct nvgpu_tsg;
+struct nvgpu_channel;
 
 void nvgpu_rc_ctxsw_timeout(struct gk20a *g, u32 eng_bitmask,
-				struct tsg_gk20a *tsg, bool debug_dump);
+				struct nvgpu_tsg *tsg, bool debug_dump);
 
 void nvgpu_rc_pbdma_fault(struct gk20a *g, struct nvgpu_fifo *f,
 			u32 pbdma_id, u32 error_notifier);
 
 void nvgpu_rc_runlist_update(struct gk20a *g, u32 runlist_id);
 
-void nvgpu_rc_preempt_timeout(struct gk20a *g, struct tsg_gk20a *tsg);
+void nvgpu_rc_preempt_timeout(struct gk20a *g, struct nvgpu_tsg *tsg);
 void nvgpu_rc_gr_fault(struct gk20a *g,
-			struct tsg_gk20a *tsg, struct channel_gk20a *ch);
+			struct nvgpu_tsg *tsg, struct nvgpu_channel *ch);
 void nvgpu_rc_sched_error_bad_tsg(struct gk20a *g);
-void nvgpu_rc_tsg_and_related_engines(struct gk20a *g, struct tsg_gk20a *tsg,
+void nvgpu_rc_tsg_and_related_engines(struct gk20a *g, struct nvgpu_tsg *tsg,
 			 bool debug_dump, u32 rc_type);
 
 void nvgpu_rc_fifo_recover(struct gk20a *g,

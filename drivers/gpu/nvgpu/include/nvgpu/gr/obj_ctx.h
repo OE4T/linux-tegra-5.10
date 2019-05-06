@@ -37,7 +37,7 @@ struct nvgpu_gr_ctx_desc;
 struct vm_gk20a;
 struct nvgpu_gr_global_ctx_buffer_desc;
 struct nvgpu_mem;
-struct channel_gk20a;
+struct nvgpu_channel;
 struct nvgpu_gr_obj_ctx_golden_image;
 
 void nvgpu_gr_obj_ctx_commit_inst_gpu_va(struct gk20a *g,

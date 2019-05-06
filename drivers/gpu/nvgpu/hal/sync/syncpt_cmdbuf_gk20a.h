@@ -39,10 +39,10 @@ void gk20a_syncpt_add_incr_cmd(struct gk20a *g,
 		bool wfi_cmd, struct priv_cmd_entry *cmd,
 		u32 id, u64 gpu_va);
 u32 gk20a_syncpt_get_incr_cmd_size(bool wfi_cmd);
-void gk20a_syncpt_free_buf(struct channel_gk20a *c,
+void gk20a_syncpt_free_buf(struct nvgpu_channel *c,
 		struct nvgpu_mem *syncpt_buf);
 
-int gk20a_syncpt_alloc_buf(struct channel_gk20a *c,
+int gk20a_syncpt_alloc_buf(struct nvgpu_channel *c,
 		u32 syncpt_id, struct nvgpu_mem *syncpt_buf);
 
 #else
@@ -69,12 +69,12 @@ static inline u32 gk20a_syncpt_get_incr_cmd_size(bool wfi_cmd)
 {
 	return 0U;
 }
-static inline void gk20a_syncpt_free_buf(struct channel_gk20a *c,
+static inline void gk20a_syncpt_free_buf(struct nvgpu_channel *c,
 		struct nvgpu_mem *syncpt_buf)
 {
 }
 
-static inline int gk20a_syncpt_alloc_buf(struct channel_gk20a *c,
+static inline int gk20a_syncpt_alloc_buf(struct nvgpu_channel *c,
 		u32 syncpt_id, struct nvgpu_mem *syncpt_buf)
 {
 	return -ENOSYS;

@@ -24,12 +24,12 @@
 #define USERD_GK20A_H
 
 struct gk20a;
-struct channel_gk20a;
+struct nvgpu_channel;
 
-void gk20a_userd_init_mem(struct gk20a *g, struct channel_gk20a *c);
-u32 gk20a_userd_gp_get(struct gk20a *g, struct channel_gk20a *c);
-u64 gk20a_userd_pb_get(struct gk20a *g, struct channel_gk20a *c);
-void gk20a_userd_gp_put(struct gk20a *g, struct channel_gk20a *c);
+void gk20a_userd_init_mem(struct gk20a *g, struct nvgpu_channel *c);
+u32 gk20a_userd_gp_get(struct gk20a *g, struct nvgpu_channel *c);
+u64 gk20a_userd_pb_get(struct gk20a *g, struct nvgpu_channel *c);
+void gk20a_userd_gp_put(struct gk20a *g, struct nvgpu_channel *c);
 u32 gk20a_userd_entry_size(struct gk20a *g);
 
 #endif /* USERD_GK20A_H */

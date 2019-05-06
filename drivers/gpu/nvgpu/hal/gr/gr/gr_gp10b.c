@@ -380,10 +380,10 @@ void gr_gp10b_set_gpc_tpc_mask(struct gk20a *g, u32 gpc_index)
 	}
 }
 
-static int gr_gp10b_disable_channel_or_tsg(struct gk20a *g, struct channel_gk20a *fault_ch)
+static int gr_gp10b_disable_channel_or_tsg(struct gk20a *g, struct nvgpu_channel *fault_ch)
 {
 	int ret = 0;
-	struct tsg_gk20a *tsg;
+	struct nvgpu_tsg *tsg;
 
 	tsg = tsg_gk20a_from_ch(fault_ch);
 	if (tsg == NULL) {
@@ -420,10 +420,10 @@ static int gr_gp10b_disable_channel_or_tsg(struct gk20a *g, struct channel_gk20a
 }
 
 int gr_gp10b_set_cilp_preempt_pending(struct gk20a *g,
-			struct channel_gk20a *fault_ch)
+			struct nvgpu_channel *fault_ch)
 {
 	int ret;
-	struct tsg_gk20a *tsg;
+	struct nvgpu_tsg *tsg;
 	struct nvgpu_gr_ctx *gr_ctx;
 
 	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gpu_dbg | gpu_dbg_intr, " ");
@@ -483,12 +483,12 @@ int gr_gp10b_set_cilp_preempt_pending(struct gk20a *g,
  */
 int gr_gp10b_pre_process_sm_exception(struct gk20a *g,
 		u32 gpc, u32 tpc, u32 sm, u32 global_esr, u32 warp_esr,
-		bool sm_debugger_attached, struct channel_gk20a *fault_ch,
+		bool sm_debugger_attached, struct nvgpu_channel *fault_ch,
 		bool *early_exit, bool *ignore_debugger)
 {
 #ifdef NVGPU_DEBUGGER
 	bool cilp_enabled = false;
-	struct tsg_gk20a *tsg;
+	struct nvgpu_tsg *tsg;
 
 	*early_exit = false;
 	*ignore_debugger = false;
@@ -624,11 +624,11 @@ u32 get_ecc_override_val(struct gk20a *g)
 	return 0;
 }
 
-bool gr_gp10b_suspend_context(struct channel_gk20a *ch,
+bool gr_gp10b_suspend_context(struct nvgpu_channel *ch,
 				bool *cilp_preempt_pending)
 {
 	struct gk20a *g = ch->g;
-	struct tsg_gk20a *tsg;
+	struct nvgpu_tsg *tsg;
 	struct nvgpu_gr_ctx *gr_ctx;
 	bool ctx_resident = false;
 	int err = 0;
@@ -671,8 +671,8 @@ int gr_gp10b_suspend_contexts(struct gk20a *g,
 {
 	u32 delay = POLL_DELAY_MIN_US;
 	bool cilp_preempt_pending = false;
-	struct channel_gk20a *cilp_preempt_pending_ch = NULL;
-	struct channel_gk20a *ch;
+	struct nvgpu_channel *cilp_preempt_pending_ch = NULL;
+	struct nvgpu_channel *ch;
 	struct dbg_session_channel_data *ch_data;
 	int err = 0;
 	int local_ctx_resident_ch_fd = -1;
@@ -714,7 +714,7 @@ int gr_gp10b_suspend_contexts(struct gk20a *g,
 	nvgpu_mutex_release(&g->dbg_sessions_lock);
 
 	if (cilp_preempt_pending_ch != NULL) {
-		struct tsg_gk20a *tsg;
+		struct nvgpu_tsg *tsg;
 		struct nvgpu_gr_ctx *gr_ctx;
 		struct nvgpu_timeout timeout;
 
@@ -753,10 +753,10 @@ clean_up:
 	return err;
 }
 
-int gr_gp10b_set_boosted_ctx(struct channel_gk20a *ch,
+int gr_gp10b_set_boosted_ctx(struct nvgpu_channel *ch,
 				    bool boost)
 {
-	struct tsg_gk20a *tsg;
+	struct nvgpu_tsg *tsg;
 	struct nvgpu_gr_ctx *gr_ctx;
 	struct gk20a *g = ch->g;
 	struct nvgpu_mem *mem;

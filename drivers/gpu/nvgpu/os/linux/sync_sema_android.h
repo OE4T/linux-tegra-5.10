@@ -30,7 +30,7 @@ struct sync_timeline *gk20a_sync_timeline_create(const char *name);
 void gk20a_sync_timeline_destroy(struct sync_timeline *);
 void gk20a_sync_timeline_signal(struct sync_timeline *);
 struct sync_fence *gk20a_sync_fence_create(
-		struct channel_gk20a *c,
+		struct nvgpu_channel *c,
 		struct nvgpu_semaphore *,
 		const char *fmt, ...);
 struct sync_fence *gk20a_sync_fence_fdget(int fd);

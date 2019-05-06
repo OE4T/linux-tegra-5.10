@@ -40,7 +40,7 @@
 
 struct nvgpu_channel_sync_syncpt {
 	struct nvgpu_channel_sync ops;
-	struct channel_gk20a *c;
+	struct nvgpu_channel *c;
 	struct nvgpu_nvhost_dev *nvhost_dev;
 	u32 id;
 	struct nvgpu_mem syncpt_buf;
@@ -54,7 +54,7 @@ nvgpu_channel_sync_syncpt_from_ops(struct nvgpu_channel_sync *ops)
 			offsetof(struct nvgpu_channel_sync_syncpt, ops));
 }
 
-static int channel_sync_syncpt_gen_wait_cmd(struct channel_gk20a *c,
+static int channel_sync_syncpt_gen_wait_cmd(struct nvgpu_channel *c,
 	u32 id, u32 thresh, struct priv_cmd_entry *wait_cmd,
 	u32 wait_cmd_size, u32 pos, bool preallocated)
 {
@@ -91,7 +91,7 @@ static int channel_sync_syncpt_gen_wait_cmd(struct channel_gk20a *c,
 static int channel_sync_syncpt_wait_raw(struct nvgpu_channel_sync_syncpt *s,
 		u32 id, u32 thresh, struct priv_cmd_entry *wait_cmd)
 {
-	struct channel_gk20a *c = s->c;
+	struct nvgpu_channel *c = s->c;
 	int err = 0;
 	u32 wait_cmd_size = c->g->ops.sync.syncpt.get_wait_cmd_size();
 
@@ -112,7 +112,7 @@ static int channel_sync_syncpt_wait_fd(struct nvgpu_channel_sync *s, int fd,
 	struct nvgpu_os_fence_syncpt os_fence_syncpt = {0};
 	struct nvgpu_channel_sync_syncpt *sp =
 		nvgpu_channel_sync_syncpt_from_ops(s);
-	struct channel_gk20a *c = sp->c;
+	struct nvgpu_channel *c = sp->c;
 	int err = 0;
 	u32 i, num_fences, wait_cmd_size;
 	u32 syncpt_id = 0U;
@@ -172,7 +172,7 @@ cleanup:
 
 static void channel_sync_syncpt_update(void *priv, int nr_completed)
 {
-	struct channel_gk20a *ch = priv;
+	struct nvgpu_channel *ch = priv;
 
 	gk20a_channel_update(ch);
 
@@ -191,7 +191,7 @@ static int channel_sync_syncpt_incr_common(struct nvgpu_channel_sync *s,
 	int err;
 	struct nvgpu_channel_sync_syncpt *sp =
 		nvgpu_channel_sync_syncpt_from_ops(s);
-	struct channel_gk20a *c = sp->c;
+	struct nvgpu_channel *c = sp->c;
 	struct nvgpu_os_fence os_fence = {0};
 
 	err = gk20a_channel_alloc_priv_cmdbuf(c,
@@ -210,7 +210,7 @@ static int channel_sync_syncpt_incr_common(struct nvgpu_channel_sync *s,
 			c->g->ops.sync.syncpt.get_incr_per_release());
 
 	if (register_irq) {
-		struct channel_gk20a *referenced = gk20a_channel_get(c);
+		struct nvgpu_channel *referenced = gk20a_channel_get(c);
 
 		WARN_ON(!referenced);
 
@@ -358,7 +358,7 @@ nvgpu_channel_sync_to_syncpt(struct nvgpu_channel_sync *sync)
 }
 
 struct nvgpu_channel_sync *
-nvgpu_channel_sync_syncpt_create(struct channel_gk20a *c, bool user_managed)
+nvgpu_channel_sync_syncpt_create(struct nvgpu_channel *c, bool user_managed)
 {
 	struct nvgpu_channel_sync_syncpt *sp;
 	char syncpt_name[32];

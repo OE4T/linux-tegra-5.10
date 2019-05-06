@@ -30,7 +30,7 @@
 
 struct nvgpu_channel_sync;
 struct priv_cmd_entry;
-struct channel_gk20a;
+struct nvgpu_channel;
 struct nvgpu_fence_type;
 struct gk20a;
 
@@ -102,7 +102,7 @@ bool nvgpu_channel_sync_put_ref_and_check(struct nvgpu_channel_sync *s);
  * if CONFIG_TEGRA_GK20A_NVHOST is defined, otherwise the channel_sync
  * is constructed as backed by a semaphore.
  */
-struct nvgpu_channel_sync *nvgpu_channel_sync_create(struct channel_gk20a *c,
+struct nvgpu_channel_sync *nvgpu_channel_sync_create(struct nvgpu_channel *c,
 	bool user_managed);
 bool nvgpu_channel_sync_needs_os_fence_framework(struct gk20a *g);
 

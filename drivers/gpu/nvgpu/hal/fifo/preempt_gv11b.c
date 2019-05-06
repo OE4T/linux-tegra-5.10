@@ -397,9 +397,9 @@ int gv11b_fifo_is_preempt_pending(struct gk20a *g, u32 id,
 	return ret;
 }
 
-int gv11b_fifo_preempt_channel(struct gk20a *g, struct channel_gk20a *ch)
+int gv11b_fifo_preempt_channel(struct gk20a *g, struct nvgpu_channel *ch)
 {
-	struct tsg_gk20a *tsg = NULL;
+	struct nvgpu_tsg *tsg = NULL;
 
 	tsg = tsg_gk20a_from_ch(ch);
 
@@ -414,7 +414,7 @@ int gv11b_fifo_preempt_channel(struct gk20a *g, struct channel_gk20a *ch)
 	return g->ops.fifo.preempt_tsg(g, tsg);
 }
 
-int gv11b_fifo_preempt_tsg(struct gk20a *g, struct tsg_gk20a *tsg)
+int gv11b_fifo_preempt_tsg(struct gk20a *g, struct nvgpu_tsg *tsg)
 {
 	struct nvgpu_fifo *f = &g->fifo;
 	int ret = 0;

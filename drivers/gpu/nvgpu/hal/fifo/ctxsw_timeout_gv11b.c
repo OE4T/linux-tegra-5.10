@@ -179,7 +179,7 @@ bool gv11b_fifo_handle_ctxsw_timeout(struct gk20a *g)
 	u32 timeout_val, ctxsw_timeout_engines;
 	u32 info_status;
 	const char *info_status_str;
-	struct tsg_gk20a *tsg = NULL;
+	struct nvgpu_tsg *tsg = NULL;
 
 
 	/* get ctxsw timedout engines */

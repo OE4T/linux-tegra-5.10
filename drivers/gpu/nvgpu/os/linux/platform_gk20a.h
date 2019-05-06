@@ -24,7 +24,7 @@
 #define GK20A_CLKS_MAX		4
 
 struct gk20a;
-struct channel_gk20a;
+struct nvgpu_channel;
 struct gr_ctx_buffer_desc;
 struct gk20a_scale_profile;
 

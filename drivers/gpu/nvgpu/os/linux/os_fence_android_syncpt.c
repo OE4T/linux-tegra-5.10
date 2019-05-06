@@ -35,7 +35,7 @@ static const struct nvgpu_os_fence_ops syncpt_ops = {
 };
 
 int nvgpu_os_fence_syncpt_create(
-	struct nvgpu_os_fence *fence_out, struct channel_gk20a *c,
+	struct nvgpu_os_fence *fence_out, struct nvgpu_channel *c,
 	struct nvgpu_nvhost_dev *nvhost_dev, u32 id, u32 thresh)
 {
 	struct sync_fence *fence = nvgpu_nvhost_sync_create_fence(
@@ -53,7 +53,7 @@ int nvgpu_os_fence_syncpt_create(
 }
 
 int nvgpu_os_fence_syncpt_fdget(struct nvgpu_os_fence *fence_out,
-	struct channel_gk20a *c, int fd)
+	struct nvgpu_channel *c, int fd)
 {
 	struct sync_fence *fence = nvgpu_nvhost_sync_fdget(fd);
 

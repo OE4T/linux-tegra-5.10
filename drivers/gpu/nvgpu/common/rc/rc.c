@@ -58,7 +58,7 @@ void nvgpu_rc_fifo_recover(struct gk20a *g, u32 eng_bitmask,
 }
 
 void nvgpu_rc_ctxsw_timeout(struct gk20a *g, u32 eng_bitmask,
-				struct tsg_gk20a *tsg, bool debug_dump)
+				struct nvgpu_tsg *tsg, bool debug_dump)
 {
 	nvgpu_tsg_set_error_notifier(g, tsg,
 		NVGPU_ERR_NOTIFIER_FIFO_ERROR_IDLE_TIMEOUT);
@@ -85,14 +85,14 @@ void nvgpu_rc_pbdma_fault(struct gk20a *g, struct nvgpu_fifo *f,
 	/* Remove channel from runlist */
 	id = pbdma_status.id;
 	if (pbdma_status.id_type == PBDMA_STATUS_ID_TYPE_TSGID) {
-		struct tsg_gk20a *tsg = nvgpu_tsg_get_from_id(g, id);
+		struct nvgpu_tsg *tsg = nvgpu_tsg_get_from_id(g, id);
 
 		nvgpu_tsg_set_error_notifier(g, tsg, error_notifier);
 		nvgpu_rc_tsg_and_related_engines(g, tsg, true,
 			RC_TYPE_PBDMA_FAULT);
 	} else if(pbdma_status.id_type == PBDMA_STATUS_ID_TYPE_CHID) {
-		struct channel_gk20a *ch = gk20a_channel_from_id(g, id);
-		struct tsg_gk20a *tsg;
+		struct nvgpu_channel *ch = gk20a_channel_from_id(g, id);
+		struct nvgpu_tsg *tsg;
 		if (ch == NULL) {
 			nvgpu_err(g, "channel is not referenceable");
 			return;
@@ -123,7 +123,7 @@ void nvgpu_rc_runlist_update(struct gk20a *g, u32 runlist_id)
 	}
 }
 
-void nvgpu_rc_preempt_timeout(struct gk20a *g, struct tsg_gk20a *tsg)
+void nvgpu_rc_preempt_timeout(struct gk20a *g, struct nvgpu_tsg *tsg)
 {
 	nvgpu_tsg_set_error_notifier(g, tsg,
 		NVGPU_ERR_NOTIFIER_FIFO_ERROR_IDLE_TIMEOUT);
@@ -131,8 +131,8 @@ void nvgpu_rc_preempt_timeout(struct gk20a *g, struct tsg_gk20a *tsg)
 	nvgpu_rc_tsg_and_related_engines(g, tsg, true, RC_TYPE_PREEMPT_TIMEOUT);
 }
 
-void nvgpu_rc_gr_fault(struct gk20a *g, struct tsg_gk20a *tsg,
-		struct channel_gk20a *ch)
+void nvgpu_rc_gr_fault(struct gk20a *g, struct nvgpu_tsg *tsg,
+		struct nvgpu_channel *ch)
 {
 	u32 gr_engine_id;
 	u32 gr_eng_bitmask = 0U;
@@ -164,7 +164,7 @@ void nvgpu_rc_sched_error_bad_tsg(struct gk20a *g)
 		RC_TYPE_SCHED_ERR);
 }
 
-void nvgpu_rc_tsg_and_related_engines(struct gk20a *g, struct tsg_gk20a *tsg,
+void nvgpu_rc_tsg_and_related_engines(struct gk20a *g, struct nvgpu_tsg *tsg,
 			 bool debug_dump, u32 rc_type)
 {
 	u32 eng_bitmask = 0U;

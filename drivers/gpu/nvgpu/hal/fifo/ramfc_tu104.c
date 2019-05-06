@@ -33,7 +33,7 @@
 
 #include <nvgpu/hw/tu104/hw_ram_tu104.h>
 
-int tu104_ramfc_setup(struct channel_gk20a *ch, u64 gpfifo_base,
+int tu104_ramfc_setup(struct nvgpu_channel *ch, u64 gpfifo_base,
 		u32 gpfifo_entries, u64 pbdma_acquire_timeout, u32 flags)
 {
 	struct gk20a *g = ch->g;

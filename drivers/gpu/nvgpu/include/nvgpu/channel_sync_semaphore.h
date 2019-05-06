@@ -29,7 +29,7 @@
 #include <nvgpu/types.h>
 #include <nvgpu/channel_sync.h>
 
-struct channel_gk20a;
+struct nvgpu_channel;
 struct nvgpu_channel_sync_semaphore;
 /*
  * Converts a valid struct nvgpu_channel_sync ptr to
@@ -44,6 +44,6 @@ nvgpu_channel_sync_to_semaphore(struct nvgpu_channel_sync *sync);
  */
 struct nvgpu_channel_sync *
 nvgpu_channel_sync_semaphore_create(
-	struct channel_gk20a *c, bool user_managed);
+	struct nvgpu_channel *c, bool user_managed);
 
 #endif /* NVGPU_CHANNEL_SYNC_SEMAPHORE_H */

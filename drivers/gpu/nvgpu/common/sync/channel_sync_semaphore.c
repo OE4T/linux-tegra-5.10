@@ -41,7 +41,7 @@
 
 struct nvgpu_channel_sync_semaphore {
 	struct nvgpu_channel_sync ops;
-	struct channel_gk20a *c;
+	struct nvgpu_channel *c;
 
 	/* A semaphore pool owned by this channel. */
 	struct nvgpu_semaphore_pool *pool;
@@ -55,7 +55,7 @@ nvgpu_channel_sync_semaphore_from_ops(struct nvgpu_channel_sync *ops)
 			offsetof(struct nvgpu_channel_sync_semaphore, ops));
 }
 
-static void add_sema_cmd(struct gk20a *g, struct channel_gk20a *c,
+static void add_sema_cmd(struct gk20a *g, struct nvgpu_channel *c,
 			 struct nvgpu_semaphore *s, struct priv_cmd_entry *cmd,
 			 u32 offset, bool acquire, bool wfi)
 {
@@ -98,7 +98,7 @@ static void add_sema_cmd(struct gk20a *g, struct channel_gk20a *c,
 	}
 }
 
-static void channel_sync_semaphore_gen_wait_cmd(struct channel_gk20a *c,
+static void channel_sync_semaphore_gen_wait_cmd(struct nvgpu_channel *c,
 	struct nvgpu_semaphore *sema, struct priv_cmd_entry *wait_cmd,
 	u32 wait_cmd_size, u32 pos)
 {
@@ -124,7 +124,7 @@ static int channel_sync_semaphore_wait_fd(
 {
 	struct nvgpu_channel_sync_semaphore *sema =
 		nvgpu_channel_sync_semaphore_from_ops(s);
-	struct channel_gk20a *c = sema->c;
+	struct nvgpu_channel *c = sema->c;
 
 	struct nvgpu_os_fence os_fence = {0};
 	struct nvgpu_os_fence_sema os_fence_sema = {0};
@@ -182,7 +182,7 @@ static int channel_sync_semaphore_incr_common(
 	u32 incr_cmd_size;
 	struct nvgpu_channel_sync_semaphore *sp =
 		nvgpu_channel_sync_semaphore_from_ops(s);
-	struct channel_gk20a *c = sp->c;
+	struct nvgpu_channel *c = sp->c;
 	struct nvgpu_semaphore *semaphore;
 	int err = 0;
 	struct nvgpu_os_fence os_fence = {0};
@@ -279,7 +279,7 @@ static void channel_sync_semaphore_set_min_eq_max(struct nvgpu_channel_sync *s)
 {
 	struct nvgpu_channel_sync_semaphore *sp =
 		nvgpu_channel_sync_semaphore_from_ops(s);
-	struct channel_gk20a *c = sp->c;
+	struct nvgpu_channel *c = sp->c;
 	bool updated;
 
 	if (c->hw_sema == NULL) {
@@ -303,7 +303,7 @@ static void channel_sync_semaphore_destroy(struct nvgpu_channel_sync *s)
 	struct nvgpu_channel_sync_semaphore *sema =
 		nvgpu_channel_sync_semaphore_from_ops(s);
 
-	struct channel_gk20a *c = sema->c;
+	struct nvgpu_channel *c = sema->c;
 	struct gk20a *g = c->g;
 
 	if (c->has_os_fence_framework_support &&
@@ -333,7 +333,7 @@ struct nvgpu_channel_sync_semaphore *
 
 struct nvgpu_channel_sync *
 nvgpu_channel_sync_semaphore_create(
-	struct channel_gk20a *c, bool user_managed)
+	struct nvgpu_channel *c, bool user_managed)
 {
 	struct nvgpu_channel_sync_semaphore *sema;
 	struct gk20a *g = c->g;

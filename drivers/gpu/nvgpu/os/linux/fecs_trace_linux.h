@@ -31,8 +31,8 @@
 struct file;
 struct inode;
 struct gk20a;
-struct tsg_gk20a;
-struct channel_gk20a;
+struct nvgpu_tsg;
+struct nvgpu_channel;
 struct vm_area_struct;
 struct poll_table_struct;
 

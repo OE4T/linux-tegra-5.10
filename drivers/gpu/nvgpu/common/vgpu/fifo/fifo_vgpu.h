@@ -26,9 +26,9 @@
 #include <nvgpu/types.h>
 
 struct gk20a;
-struct channel_gk20a;
+struct nvgpu_channel;
 struct nvgpu_fifo;
-struct tsg_gk20a;
+struct nvgpu_tsg;
 struct tegra_vgpu_fifo_intr_info;
 struct tegra_vgpu_channel_event_info;
 struct tegra_vgpu_channel_set_error_notifier;
@@ -36,29 +36,29 @@ struct tegra_vgpu_channel_set_error_notifier;
 int vgpu_fifo_setup_sw(struct gk20a *g);
 void vgpu_fifo_cleanup_sw(struct gk20a *g);
 int vgpu_init_fifo_setup_hw(struct gk20a *g);
-void vgpu_channel_bind(struct channel_gk20a *ch);
-void vgpu_channel_unbind(struct channel_gk20a *ch);
-int vgpu_channel_alloc_inst(struct gk20a *g, struct channel_gk20a *ch);
-void vgpu_channel_free_inst(struct gk20a *g, struct channel_gk20a *ch);
-void vgpu_channel_enable(struct channel_gk20a *ch);
-void vgpu_channel_disable(struct channel_gk20a *ch);
+void vgpu_channel_bind(struct nvgpu_channel *ch);
+void vgpu_channel_unbind(struct nvgpu_channel *ch);
+int vgpu_channel_alloc_inst(struct gk20a *g, struct nvgpu_channel *ch);
+void vgpu_channel_free_inst(struct gk20a *g, struct nvgpu_channel *ch);
+void vgpu_channel_enable(struct nvgpu_channel *ch);
+void vgpu_channel_disable(struct nvgpu_channel *ch);
 u32 vgpu_channel_count(struct gk20a *g);
 int vgpu_fifo_init_engine_info(struct nvgpu_fifo *f);
-int vgpu_fifo_preempt_channel(struct gk20a *g, struct channel_gk20a *ch);
-int vgpu_fifo_preempt_tsg(struct gk20a *g, struct tsg_gk20a *tsg);
-int vgpu_channel_set_timeslice(struct channel_gk20a *ch, u32 timeslice);
-int vgpu_tsg_force_reset_ch(struct channel_gk20a *ch,
+int vgpu_fifo_preempt_channel(struct gk20a *g, struct nvgpu_channel *ch);
+int vgpu_fifo_preempt_tsg(struct gk20a *g, struct nvgpu_tsg *tsg);
+int vgpu_channel_set_timeslice(struct nvgpu_channel *ch, u32 timeslice);
+int vgpu_tsg_force_reset_ch(struct nvgpu_channel *ch,
 					u32 err_code, bool verbose);
 u32 vgpu_tsg_default_timeslice_us(struct gk20a *g);
-int vgpu_tsg_open(struct tsg_gk20a *tsg);
-void vgpu_tsg_release(struct tsg_gk20a *tsg);
-int vgpu_tsg_bind_channel(struct tsg_gk20a *tsg, struct channel_gk20a *ch);
-int vgpu_tsg_unbind_channel(struct tsg_gk20a *tsg, struct channel_gk20a *ch);
-int vgpu_tsg_set_timeslice(struct tsg_gk20a *tsg, u32 timeslice);
-int vgpu_tsg_set_interleave(struct tsg_gk20a *tsg, u32 level);
-void vgpu_tsg_enable(struct tsg_gk20a *tsg);
-int vgpu_set_sm_exception_type_mask(struct channel_gk20a *ch, u32 mask);
-void vgpu_channel_free_ctx_header(struct channel_gk20a *c);
+int vgpu_tsg_open(struct nvgpu_tsg *tsg);
+void vgpu_tsg_release(struct nvgpu_tsg *tsg);
+int vgpu_tsg_bind_channel(struct nvgpu_tsg *tsg, struct nvgpu_channel *ch);
+int vgpu_tsg_unbind_channel(struct nvgpu_tsg *tsg, struct nvgpu_channel *ch);
+int vgpu_tsg_set_timeslice(struct nvgpu_tsg *tsg, u32 timeslice);
+int vgpu_tsg_set_interleave(struct nvgpu_tsg *tsg, u32 level);
+void vgpu_tsg_enable(struct nvgpu_tsg *tsg);
+int vgpu_set_sm_exception_type_mask(struct nvgpu_channel *ch, u32 mask);
+void vgpu_channel_free_ctx_header(struct nvgpu_channel *c);
 int vgpu_fifo_isr(struct gk20a *g, struct tegra_vgpu_fifo_intr_info *info);
 void vgpu_handle_channel_event(struct gk20a *g,
 			struct tegra_vgpu_channel_event_info *info);

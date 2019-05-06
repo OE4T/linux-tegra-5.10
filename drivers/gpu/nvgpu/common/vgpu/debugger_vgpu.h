@@ -27,10 +27,10 @@ struct dbg_session_gk20a;
 struct nvgpu_dbg_reg_op;
 struct dbg_profiler_object_data;
 struct gk20a;
-struct channel_gk20a;
+struct nvgpu_channel;
 
 int vgpu_exec_regops(struct gk20a *g,
-		     struct channel_gk20a *ch,
+		     struct nvgpu_channel *ch,
 		     struct nvgpu_dbg_reg_op *ops,
 		     u32 num_ops,
 		     bool is_profiler,

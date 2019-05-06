@@ -25,12 +25,12 @@
 
 #include <nvgpu/types.h>
 
-struct channel_gk20a;
+struct nvgpu_channel;
 
-int gp10b_ramfc_setup(struct channel_gk20a *ch, u64 gpfifo_base,
+int gp10b_ramfc_setup(struct nvgpu_channel *ch, u64 gpfifo_base,
 		u32 gpfifo_entries, u64 pbdma_acquire_timeout, u32 flags);
-int gp10b_ramfc_commit_userd(struct channel_gk20a *ch);
-u32 gp10b_ramfc_get_syncpt(struct channel_gk20a *ch);
-void gp10b_ramfc_set_syncpt(struct channel_gk20a *ch, u32 syncpt);
+int gp10b_ramfc_commit_userd(struct nvgpu_channel *ch);
+u32 gp10b_ramfc_get_syncpt(struct nvgpu_channel *ch);
+void gp10b_ramfc_set_syncpt(struct nvgpu_channel *ch, u32 syncpt);
 
 #endif /* NVGPU_RAMFC_GP10B_H */

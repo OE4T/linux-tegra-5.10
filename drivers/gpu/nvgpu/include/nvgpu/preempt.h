@@ -25,12 +25,12 @@
 #include <nvgpu/types.h>
 
 struct gk20a;
-struct channel_gk20a;
-struct tsg_gk20a;
+struct nvgpu_channel;
+struct nvgpu_tsg;
 
 u32 nvgpu_preempt_get_timeout(struct gk20a *g);
-int nvgpu_preempt_channel(struct gk20a *g, struct channel_gk20a *ch);
+int nvgpu_preempt_channel(struct gk20a *g, struct nvgpu_channel *ch);
 
 void nvgpu_preempt_poll_tsg_on_pbdma(struct gk20a *g,
-		struct tsg_gk20a *tsg);
+		struct nvgpu_tsg *tsg);
 #endif /* NVGPU_PREEMPT_H */

@@ -33,10 +33,10 @@ u32 nvgpu_preempt_get_timeout(struct gk20a *g)
 	return g->ctxsw_timeout_period_ms;
 }
 
-int nvgpu_preempt_channel(struct gk20a *g, struct channel_gk20a *ch)
+int nvgpu_preempt_channel(struct gk20a *g, struct nvgpu_channel *ch)
 {
 	int err;
-	struct tsg_gk20a *tsg = tsg_gk20a_from_ch(ch);
+	struct nvgpu_tsg *tsg = tsg_gk20a_from_ch(ch);
 
 	if (tsg != NULL) {
 		err = g->ops.fifo.preempt_tsg(ch->g, tsg);
@@ -49,7 +49,7 @@ int nvgpu_preempt_channel(struct gk20a *g, struct channel_gk20a *ch)
 
 /* called from rc */
 void nvgpu_preempt_poll_tsg_on_pbdma(struct gk20a *g,
-		struct tsg_gk20a *tsg)
+		struct nvgpu_tsg *tsg)
 {
 	struct nvgpu_fifo *f = &g->fifo;
 	u32 runlist_id;

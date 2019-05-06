@@ -28,9 +28,9 @@
 #include <nvgpu/lock.h>
 
 struct gk20a;
-struct tsg_gk20a;
+struct nvgpu_tsg;
 struct nvgpu_fifo;
-struct channel_gk20a;
+struct nvgpu_channel;
 
 #define NVGPU_FIFO_RUNLIST_INTERLEAVE_LEVEL_LOW     0U
 #define NVGPU_FIFO_RUNLIST_INTERLEAVE_LEVEL_MEDIUM  1U
@@ -71,14 +71,14 @@ u32 nvgpu_runlist_construct_locked(struct nvgpu_fifo *f,
 				u32 buf_id,
 				u32 max_entries);
 int nvgpu_runlist_update_locked(struct gk20a *g, u32 runlist_id,
-					    struct channel_gk20a *ch, bool add,
+					    struct nvgpu_channel *ch, bool add,
 					    bool wait_for_finish);
 
-int nvgpu_runlist_reschedule(struct channel_gk20a *ch, bool preempt_next,
+int nvgpu_runlist_reschedule(struct nvgpu_channel *ch, bool preempt_next,
 		bool wait_preempt);
 
 int nvgpu_runlist_update_for_channel(struct gk20a *g, u32 runlist_id,
-			      struct channel_gk20a *ch,
+			      struct nvgpu_channel *ch,
 			      bool add, bool wait_for_finish);
 int nvgpu_runlist_reload(struct gk20a *g, u32 runlist_id,
 			      bool add, bool wait_for_finish);

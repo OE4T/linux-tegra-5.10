@@ -40,11 +40,11 @@
  * API to get first channel from the list of all channels
  * bound to the debug session
  */
-struct channel_gk20a *
+struct nvgpu_channel *
 nvgpu_dbg_gpu_get_session_channel(struct dbg_session_gk20a *dbg_s)
 {
 	struct dbg_session_channel_data *ch_data;
-	struct channel_gk20a *ch;
+	struct nvgpu_channel *ch;
 	struct gk20a *g = dbg_s->g;
 
 	nvgpu_mutex_acquire(&dbg_s->ch_list_lock);
@@ -63,7 +63,7 @@ nvgpu_dbg_gpu_get_session_channel(struct dbg_session_gk20a *dbg_s)
 	return ch;
 }
 
-void nvgpu_dbg_gpu_post_events(struct channel_gk20a *ch)
+void nvgpu_dbg_gpu_post_events(struct nvgpu_channel *ch)
 {
 	struct dbg_session_data *session_data;
 	struct dbg_session_gk20a *dbg_s;
@@ -92,7 +92,7 @@ void nvgpu_dbg_gpu_post_events(struct channel_gk20a *ch)
 	nvgpu_mutex_release(&ch->dbg_s_lock);
 }
 
-bool nvgpu_dbg_gpu_broadcast_stop_trigger(struct channel_gk20a *ch)
+bool nvgpu_dbg_gpu_broadcast_stop_trigger(struct nvgpu_channel *ch)
 {
 	struct dbg_session_data *session_data;
 	struct dbg_session_gk20a *dbg_s;
@@ -120,7 +120,7 @@ bool nvgpu_dbg_gpu_broadcast_stop_trigger(struct channel_gk20a *ch)
 	return broadcast;
 }
 
-void nvgpu_dbg_gpu_clear_broadcast_stop_trigger(struct channel_gk20a *ch)
+void nvgpu_dbg_gpu_clear_broadcast_stop_trigger(struct nvgpu_channel *ch)
 {
 	struct dbg_session_data *session_data;
 	struct dbg_session_gk20a *dbg_s;

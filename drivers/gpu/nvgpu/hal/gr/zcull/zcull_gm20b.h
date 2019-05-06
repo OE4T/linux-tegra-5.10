@@ -29,7 +29,7 @@ struct gk20a;
 struct nvgpu_gr_config;
 struct nvgpu_gr_zcull;
 struct nvgpu_gr_zcull_info;
-struct channel_gk20a;
+struct nvgpu_channel;
 
 int gm20b_gr_init_zcull_hw(struct gk20a *g,
 			struct nvgpu_gr_zcull *gr_zcull,

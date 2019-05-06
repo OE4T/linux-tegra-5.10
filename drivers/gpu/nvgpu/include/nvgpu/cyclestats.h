@@ -26,9 +26,9 @@
 #include <nvgpu/types.h>
 
 struct gk20a;
-struct channel_gk20a;
+struct nvgpu_channel;
 
 void nvgpu_cyclestats_exec(struct gk20a *g,
-		struct channel_gk20a *ch, u32 offset);
+		struct nvgpu_channel *ch, u32 offset);
 
 #endif

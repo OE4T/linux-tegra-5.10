@@ -32,7 +32,7 @@
 
 #define NVGPU_INVALID_SYNCPT_ID		(~U32(0U))
 
-struct channel_gk20a;
+struct nvgpu_channel;
 struct nvgpu_channel_sync_syncpt;
 
 #ifdef CONFIG_TEGRA_GK20A_NVHOST
@@ -66,7 +66,7 @@ nvgpu_channel_sync_to_syncpt(struct nvgpu_channel_sync *sync);
  * pointer to the struct nvgpu_channel_sync associated with it.
  */
 struct nvgpu_channel_sync *
-nvgpu_channel_sync_syncpt_create(struct channel_gk20a *c,
+nvgpu_channel_sync_syncpt_create(struct nvgpu_channel *c,
 	bool user_managed);
 
 #else
@@ -96,7 +96,7 @@ nvgpu_channel_sync_to_syncpt(struct nvgpu_channel_sync *sync)
 }
 
 static inline struct nvgpu_channel_sync *
-nvgpu_channel_sync_syncpt_create(struct channel_gk20a *c, bool user_managed)
+nvgpu_channel_sync_syncpt_create(struct nvgpu_channel *c, bool user_managed)
 {
 	return NULL;
 }

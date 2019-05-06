@@ -54,7 +54,7 @@ static int set_syncpt_ro_map_gpu_va_locked(struct vm_gk20a *vm)
 	return 0;
 }
 
-int gv11b_syncpt_alloc_buf(struct channel_gk20a *c,
+int gv11b_syncpt_alloc_buf(struct nvgpu_channel *c,
 		u32 syncpt_id, struct nvgpu_mem *syncpt_buf)
 {
 	u32 nr_pages;
@@ -90,7 +90,7 @@ int gv11b_syncpt_alloc_buf(struct channel_gk20a *c,
 	return err;
 }
 
-void gv11b_syncpt_free_buf(struct channel_gk20a *c,
+void gv11b_syncpt_free_buf(struct nvgpu_channel *c,
 		struct nvgpu_mem *syncpt_buf)
 {
 	nvgpu_gmmu_unmap(c->vm, syncpt_buf, syncpt_buf->gpu_va);

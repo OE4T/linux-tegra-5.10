@@ -67,7 +67,7 @@ void nvgpu_os_fence_sema_extract_nth_semaphore(
 
 int nvgpu_os_fence_sema_create(
 	struct nvgpu_os_fence *fence_out,
-	struct channel_gk20a *c,
+	struct nvgpu_channel *c,
 	struct nvgpu_semaphore *sema)
 {
 	struct sync_fence *fence;
@@ -88,7 +88,7 @@ int nvgpu_os_fence_sema_create(
 }
 
 int nvgpu_os_fence_sema_fdget(struct nvgpu_os_fence *fence_out,
-	struct channel_gk20a *c, int fd)
+	struct nvgpu_channel *c, int fd)
 {
 	struct sync_fence *fence = gk20a_sync_fence_fdget(fd);
 

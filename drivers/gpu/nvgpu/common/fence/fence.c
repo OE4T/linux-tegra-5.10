@@ -115,7 +115,7 @@ bool nvgpu_fence_is_expired(struct nvgpu_fence_type *f)
 	}
 }
 
-int nvgpu_fence_pool_alloc(struct channel_gk20a *ch, unsigned int count)
+int nvgpu_fence_pool_alloc(struct nvgpu_channel *ch, unsigned int count)
 {
 	int err;
 	size_t size;
@@ -145,7 +145,7 @@ fail:
 	return err;
 }
 
-void nvgpu_fence_pool_free(struct channel_gk20a *ch)
+void nvgpu_fence_pool_free(struct nvgpu_channel *ch)
 {
 	if (nvgpu_alloc_initialized(&ch->fence_allocator)) {
 		struct nvgpu_fence_type *fence_pool;
@@ -156,7 +156,7 @@ void nvgpu_fence_pool_free(struct channel_gk20a *ch)
 	}
 }
 
-struct nvgpu_fence_type *nvgpu_fence_alloc(struct channel_gk20a *ch)
+struct nvgpu_fence_type *nvgpu_fence_alloc(struct nvgpu_channel *ch)
 {
 	struct nvgpu_fence_type *fence = NULL;
 

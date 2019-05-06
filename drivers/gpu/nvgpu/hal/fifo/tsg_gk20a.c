@@ -27,10 +27,10 @@
 
 #include "hal/fifo/tsg_gk20a.h"
 
-void gk20a_tsg_enable(struct tsg_gk20a *tsg)
+void gk20a_tsg_enable(struct nvgpu_tsg *tsg)
 {
 	struct gk20a *g = tsg->g;
-	struct channel_gk20a *ch;
+	struct nvgpu_channel *ch;
 
 	nvgpu_tsg_disable_sched(g, tsg);
 

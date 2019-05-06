@@ -742,7 +742,7 @@ void nvgpu_gr_fecs_trace_wake_up(struct gk20a *g, int vmid)
 	nvgpu_cond_signal_interruptible(&dev->readout_wq);
 }
 
-void nvgpu_gr_fecs_trace_add_tsg_reset(struct gk20a *g, struct tsg_gk20a *tsg)
+void nvgpu_gr_fecs_trace_add_tsg_reset(struct gk20a *g, struct nvgpu_tsg *tsg)
 {
 #ifdef CONFIG_GK20A_CTXSW_TRACE
 	struct nvgpu_gpu_ctxsw_trace_entry entry = {

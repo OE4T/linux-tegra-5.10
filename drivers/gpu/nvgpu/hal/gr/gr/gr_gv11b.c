@@ -92,7 +92,7 @@ u32 gv11b_gr_sm_offset(struct gk20a *g, u32 sm)
 }
 
 static void gr_gv11b_handle_l1_tag_exception(struct gk20a *g, u32 gpc, u32 tpc,
-			bool *post_event, struct channel_gk20a *fault_ch,
+			bool *post_event, struct nvgpu_channel *fault_ch,
 			u32 *hww_global_esr)
 {
 	u32 gpc_stride = nvgpu_get_litter_value(g, GPU_LIT_GPC_STRIDE);
@@ -214,7 +214,7 @@ static void gr_gv11b_handle_l1_tag_exception(struct gk20a *g, u32 gpc, u32 tpc,
 }
 
 static void gr_gv11b_handle_lrf_exception(struct gk20a *g, u32 gpc, u32 tpc,
-			bool *post_event, struct channel_gk20a *fault_ch,
+			bool *post_event, struct nvgpu_channel *fault_ch,
 			u32 *hww_global_esr)
 {
 	u32 gpc_stride = nvgpu_get_litter_value(g, GPU_LIT_GPC_STRIDE);
@@ -312,7 +312,7 @@ static void gr_gv11b_handle_lrf_exception(struct gk20a *g, u32 gpc, u32 tpc,
 }
 
 static void gr_gv11b_handle_cbu_exception(struct gk20a *g, u32 gpc, u32 tpc,
-			bool *post_event, struct channel_gk20a *fault_ch,
+			bool *post_event, struct nvgpu_channel *fault_ch,
 			u32 *hww_global_esr)
 {
 	u32 gpc_stride = nvgpu_get_litter_value(g, GPU_LIT_GPC_STRIDE);
@@ -402,7 +402,7 @@ static void gr_gv11b_handle_cbu_exception(struct gk20a *g, u32 gpc, u32 tpc,
 }
 
 static void gr_gv11b_handle_l1_data_exception(struct gk20a *g, u32 gpc, u32 tpc,
-			bool *post_event, struct channel_gk20a *fault_ch,
+			bool *post_event, struct nvgpu_channel *fault_ch,
 			u32 *hww_global_esr)
 {
 	u32 gpc_stride = nvgpu_get_litter_value(g, GPU_LIT_GPC_STRIDE);
@@ -487,7 +487,7 @@ static void gr_gv11b_handle_l1_data_exception(struct gk20a *g, u32 gpc, u32 tpc,
 }
 
 static void gr_gv11b_handle_icache_exception(struct gk20a *g, u32 gpc, u32 tpc,
-			bool *post_event, struct channel_gk20a *fault_ch,
+			bool *post_event, struct nvgpu_channel *fault_ch,
 			u32 *hww_global_esr)
 {
 	u32 gpc_stride = nvgpu_get_litter_value(g, GPU_LIT_GPC_STRIDE);
@@ -620,7 +620,7 @@ static void gr_gv11b_handle_icache_exception(struct gk20a *g, u32 gpc, u32 tpc,
 
 void gr_gv11b_handle_tpc_sm_ecc_exception(struct gk20a *g,
 		u32 gpc, u32 tpc,
-		bool *post_event, struct channel_gk20a *fault_ch,
+		bool *post_event, struct nvgpu_channel *fault_ch,
 		u32 *hww_global_esr)
 {
 	/* Check for L1 tag ECC errors. */
@@ -1019,7 +1019,7 @@ void gr_gv11b_set_gpc_tpc_mask(struct gk20a *g, u32 gpc_index)
 static int gr_gv11b_handle_warp_esr_error_mmu_nack(struct gk20a *g,
 	u32 gpc, u32 tpc, u32 sm,
 	u32 warp_esr_error,
-	struct channel_gk20a *fault_ch)
+	struct nvgpu_channel *fault_ch)
 {
 	u32 offset;
 	int err = 0;
@@ -1125,9 +1125,9 @@ static bool gr_gv11b_check_warp_esr_error(struct gk20a *g, u32 warp_esr_error)
 static int gr_gv11b_handle_all_warp_esr_errors(struct gk20a *g,
 						u32 gpc, u32 tpc, u32 sm,
 						u32 warp_esr_error,
-						struct channel_gk20a *fault_ch)
+						struct nvgpu_channel *fault_ch)
 {
-	struct tsg_gk20a *tsg;
+	struct nvgpu_tsg *tsg;
 	u32 offset = 0U;
 	bool is_esr_error = false;
 
@@ -1186,14 +1186,14 @@ clear_intr:
  */
 int gr_gv11b_pre_process_sm_exception(struct gk20a *g,
 		u32 gpc, u32 tpc, u32 sm, u32 global_esr, u32 warp_esr,
-		bool sm_debugger_attached, struct channel_gk20a *fault_ch,
+		bool sm_debugger_attached, struct nvgpu_channel *fault_ch,
 		bool *early_exit, bool *ignore_debugger)
 {
 #ifdef NVGPU_DEBUGGER
 	int ret;
 	bool cilp_enabled = false;
 	u32 warp_esr_error = gr_gpc0_tpc0_sm0_hww_warp_esr_error_v(warp_esr);
-	struct tsg_gk20a *tsg;
+	struct nvgpu_tsg *tsg;
 
 	*early_exit = false;
 	*ignore_debugger = false;
@@ -1440,7 +1440,7 @@ void gv11b_gr_bpt_reg_info(struct gk20a *g, struct nvgpu_warpstate *w_state)
 }
 
 int gv11b_gr_set_sm_debug_mode(struct gk20a *g,
-	struct channel_gk20a *ch, u64 sms, bool enable)
+	struct nvgpu_channel *ch, u64 sms, bool enable)
 {
 	struct nvgpu_dbg_reg_op *ops;
 	unsigned int i = 0, sm_id;
@@ -1545,14 +1545,14 @@ u64 gv11b_gr_get_sm_hww_warp_esr_pc(struct gk20a *g, u32 offset)
 }
 
 int gv11b_gr_record_sm_error_state(struct gk20a *g, u32 gpc, u32 tpc, u32 sm,
-				struct channel_gk20a *fault_ch)
+				struct nvgpu_channel *fault_ch)
 {
 	int ret = 0;
 	u32 sm_id;
 	u32 offset, sm_per_tpc, tpc_id;
 	u32 gpc_offset, gpc_tpc_offset;
 	struct nvgpu_tsg_sm_error_state *sm_error_states = NULL;
-	struct tsg_gk20a *tsg = NULL;
+	struct nvgpu_tsg *tsg = NULL;
 
 	nvgpu_mutex_acquire(&g->dbg_sessions_lock);
 
@@ -2857,11 +2857,11 @@ int gr_gv11b_create_priv_addr_table(struct gk20a *g,
 }
 
 int gv11b_gr_clear_sm_error_state(struct gk20a *g,
-		struct channel_gk20a *ch, u32 sm_id)
+		struct nvgpu_channel *ch, u32 sm_id)
 {
 	u32 gpc, tpc, sm, offset;
 	u32 val;
-	struct tsg_gk20a *tsg;
+	struct nvgpu_tsg *tsg;
 
 	int err = 0;
 

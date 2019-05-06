@@ -32,7 +32,7 @@
 
 #include "hal/fifo/ramfc_gv11b.h"
 
-int gv11b_ramfc_setup(struct channel_gk20a *ch, u64 gpfifo_base,
+int gv11b_ramfc_setup(struct nvgpu_channel *ch, u64 gpfifo_base,
 		u32 gpfifo_entries, u64 pbdma_acquire_timeout, u32 flags)
 {
 	struct gk20a *g = ch->g;
@@ -100,7 +100,7 @@ int gv11b_ramfc_setup(struct channel_gk20a *ch, u64 gpfifo_base,
 	return g->ops.ramfc.commit_userd(ch);
 }
 
-void gv11b_ramfc_capture_ram_dump(struct gk20a *g, struct channel_gk20a *ch,
+void gv11b_ramfc_capture_ram_dump(struct gk20a *g, struct nvgpu_channel *ch,
 		struct nvgpu_channel_dump_info *info)
 {
 	struct nvgpu_mem *mem = &ch->inst_block;

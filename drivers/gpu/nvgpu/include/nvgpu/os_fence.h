@@ -28,7 +28,7 @@
 #include <nvgpu/errno.h>
 
 struct nvgpu_semaphore;
-struct channel_gk20a;
+struct nvgpu_channel;
 struct priv_cmd_entry;
 struct nvgpu_nvhost_dev;
 
@@ -83,25 +83,25 @@ static inline bool nvgpu_os_fence_is_initialized(struct nvgpu_os_fence *fence)
 
 int nvgpu_os_fence_sema_create(
 	struct nvgpu_os_fence *fence_out,
-	struct channel_gk20a *c,
+	struct nvgpu_channel *c,
 	struct nvgpu_semaphore *sema);
 
 int nvgpu_os_fence_fdget(
 	struct nvgpu_os_fence *fence_out,
-	struct channel_gk20a *c, int fd);
+	struct nvgpu_channel *c, int fd);
 
 #else
 
 static inline int nvgpu_os_fence_sema_create(
 	struct nvgpu_os_fence *fence_out,
-	struct channel_gk20a *c,
+	struct nvgpu_channel *c,
 	struct nvgpu_semaphore *sema)
 {
 	return -ENOSYS;
 }
 static inline int nvgpu_os_fence_fdget(
 	struct nvgpu_os_fence *fence_out,
-	struct channel_gk20a *c, int fd)
+	struct nvgpu_channel *c, int fd)
 {
 	return -ENOSYS;
 }
@@ -111,13 +111,13 @@ static inline int nvgpu_os_fence_fdget(
 #if defined(CONFIG_TEGRA_GK20A_NVHOST) && defined(CONFIG_SYNC)
 
 int nvgpu_os_fence_syncpt_create(struct nvgpu_os_fence *fence_out,
-	struct channel_gk20a *c, struct nvgpu_nvhost_dev *nvhost_dev,
+	struct nvgpu_channel *c, struct nvgpu_nvhost_dev *nvhost_dev,
 	u32 id, u32 thresh);
 
 #else
 
 static inline int nvgpu_os_fence_syncpt_create(
-	struct nvgpu_os_fence *fence_out, struct channel_gk20a *c,
+	struct nvgpu_os_fence *fence_out, struct nvgpu_channel *c,
 	struct nvgpu_nvhost_dev *nvhost_dev,
 	u32 id, u32 thresh)
 {

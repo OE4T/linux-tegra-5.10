@@ -25,7 +25,7 @@
 
 #include <nvgpu/types.h>
 
-struct channel_gk20a;
+struct nvgpu_channel;
 
 enum {
 	NVGPU_ERR_NOTIFIER_FIFO_ERROR_IDLE_TIMEOUT = 0,
@@ -41,9 +41,9 @@ enum {
 	NVGPU_ERR_NOTIFIER_PBDMA_PUSHBUFFER_CRC_MISMATCH,
 };
 
-void nvgpu_set_error_notifier_locked(struct channel_gk20a *ch, u32 error);
-void nvgpu_set_error_notifier(struct channel_gk20a *ch, u32 error);
-void nvgpu_set_error_notifier_if_empty(struct channel_gk20a *ch, u32 error);
-bool nvgpu_is_error_notifier_set(struct channel_gk20a *ch, u32 error_notifier);
+void nvgpu_set_error_notifier_locked(struct nvgpu_channel *ch, u32 error);
+void nvgpu_set_error_notifier(struct nvgpu_channel *ch, u32 error);
+void nvgpu_set_error_notifier_if_empty(struct nvgpu_channel *ch, u32 error);
+bool nvgpu_is_error_notifier_set(struct nvgpu_channel *ch, u32 error_notifier);
 
 #endif /* NVGPU_ERROR_NOTIFIER_H */

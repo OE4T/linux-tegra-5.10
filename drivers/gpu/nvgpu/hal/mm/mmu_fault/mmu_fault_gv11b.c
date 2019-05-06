@@ -186,7 +186,7 @@ static void gv11b_fb_copy_from_hw_fault_buf(struct gk20a *g,
 	u32 addr_lo, addr_hi;
 	u64 inst_ptr;
 	u32 chid = NVGPU_INVALID_CHANNEL_ID;
-	struct channel_gk20a *refch;
+	struct nvgpu_channel *refch;
 
 	(void) memset(mmufault, 0, sizeof(*mmufault));
 
@@ -290,7 +290,7 @@ void gv11b_mm_mmu_fault_handle_mmu_fault_common(struct gk20a *g,
 	int err = 0;
 	u32 id = NVGPU_INVALID_TSG_ID;
 	unsigned int rc_type = RC_TYPE_NO_RC;
-	struct tsg_gk20a *tsg = NULL;
+	struct nvgpu_tsg *tsg = NULL;
 
 	if (!mmufault->valid) {
 		return;

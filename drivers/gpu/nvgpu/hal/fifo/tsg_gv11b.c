@@ -35,11 +35,11 @@
 #define ASYNC_CE_RUNQUE			2U	/* pbdma 2 */
 
 /* TSG enable sequence applicable for Volta and onwards */
-void gv11b_tsg_enable(struct tsg_gk20a *tsg)
+void gv11b_tsg_enable(struct nvgpu_tsg *tsg)
 {
 	struct gk20a *g = tsg->g;
-	struct channel_gk20a *ch;
-	struct channel_gk20a *last_ch = NULL;
+	struct nvgpu_channel *ch;
+	struct nvgpu_channel *last_ch = NULL;
 
 	nvgpu_rwsem_down_read(&tsg->ch_list_lock);
 	nvgpu_list_for_each_entry(ch, &tsg->ch_list, channel_gk20a, ch_entry) {
@@ -53,8 +53,8 @@ void gv11b_tsg_enable(struct tsg_gk20a *tsg)
 	}
 }
 
-void gv11b_tsg_unbind_channel_check_eng_faulted(struct tsg_gk20a *tsg,
-		struct channel_gk20a *ch,
+void gv11b_tsg_unbind_channel_check_eng_faulted(struct nvgpu_tsg *tsg,
+		struct nvgpu_channel *ch,
 		struct nvgpu_channel_hw_state *hw_state)
 {
 	struct gk20a *g = tsg->g;
@@ -81,8 +81,8 @@ void gv11b_tsg_unbind_channel_check_eng_faulted(struct tsg_gk20a *tsg,
 	}
 }
 
-void gv11b_tsg_bind_channel_eng_method_buffers(struct tsg_gk20a *tsg,
-		struct channel_gk20a *ch)
+void gv11b_tsg_bind_channel_eng_method_buffers(struct nvgpu_tsg *tsg,
+		struct nvgpu_channel *ch)
 {
 	struct gk20a *g = tsg->g;
 	u64 gpu_va;
@@ -114,7 +114,7 @@ static u32 gv11b_tsg_get_eng_method_buffer_size(struct gk20a *g)
 	return buffer_size;
 }
 
-void gv11b_tsg_init_eng_method_buffers(struct gk20a *g, struct tsg_gk20a *tsg)
+void gv11b_tsg_init_eng_method_buffers(struct gk20a *g, struct nvgpu_tsg *tsg)
 {
 	struct vm_gk20a *vm = g->mm.bar2.vm;
 	int err = 0;
@@ -158,7 +158,7 @@ void gv11b_tsg_init_eng_method_buffers(struct gk20a *g, struct tsg_gk20a *tsg)
 }
 
 void gv11b_tsg_deinit_eng_method_buffers(struct gk20a *g,
-		struct tsg_gk20a *tsg)
+		struct nvgpu_tsg *tsg)
 {
 	struct vm_gk20a *vm = g->mm.bar2.vm;
 	unsigned int runque;

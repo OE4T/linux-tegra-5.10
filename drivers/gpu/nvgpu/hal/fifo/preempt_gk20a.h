@@ -25,12 +25,12 @@
 #include <nvgpu/types.h>
 
 struct gk20a;
-struct channel_gk20a;
-struct tsg_gk20a;
+struct nvgpu_channel;
+struct nvgpu_tsg;
 
 void gk20a_fifo_preempt_trigger(struct gk20a *g, u32 id, unsigned int id_type);
-int  gk20a_fifo_preempt_channel(struct gk20a *g, struct channel_gk20a *ch);
-int  gk20a_fifo_preempt_tsg(struct gk20a *g, struct tsg_gk20a *tsg);
+int  gk20a_fifo_preempt_channel(struct gk20a *g, struct nvgpu_channel *ch);
+int  gk20a_fifo_preempt_tsg(struct gk20a *g, struct nvgpu_tsg *tsg);
 int  gk20a_fifo_is_preempt_pending(struct gk20a *g, u32 id,
 			unsigned int id_type);
 

@@ -50,7 +50,7 @@ static inline bool is_valid_cyclestats_bar0_offset_gk20a(struct gk20a *g,
 }
 
 void nvgpu_cyclestats_exec(struct gk20a *g,
-		struct channel_gk20a *ch, u32 offset)
+		struct nvgpu_channel *ch, u32 offset)
 {
 	void *virtual_address;
 	u32 buffer_size;

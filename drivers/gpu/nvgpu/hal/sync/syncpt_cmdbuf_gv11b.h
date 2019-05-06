@@ -27,7 +27,7 @@
 struct gk20a;
 struct priv_cmd_entry;
 struct nvgpu_mem;
-struct channel_gk20a;
+struct nvgpu_channel;
 struct vm_gk20a;
 
 #ifdef CONFIG_TEGRA_GK20A_NVHOST
@@ -41,10 +41,10 @@ void gv11b_syncpt_add_incr_cmd(struct gk20a *g,
 		bool wfi_cmd, struct priv_cmd_entry *cmd,
 		u32 id, u64 gpu_va);
 u32 gv11b_syncpt_get_incr_cmd_size(bool wfi_cmd);
-void gv11b_syncpt_free_buf(struct channel_gk20a *c,
+void gv11b_syncpt_free_buf(struct nvgpu_channel *c,
 		struct nvgpu_mem *syncpt_buf);
 
-int gv11b_syncpt_alloc_buf(struct channel_gk20a *c,
+int gv11b_syncpt_alloc_buf(struct nvgpu_channel *c,
 		u32 syncpt_id, struct nvgpu_mem *syncpt_buf);
 
 int gv11b_syncpt_get_sync_ro_map(struct vm_gk20a *vm,
@@ -74,12 +74,12 @@ static inline u32 gv11b_syncpt_get_incr_cmd_size(bool wfi_cmd)
 {
 	return 0U;
 }
-static inline void gv11b_syncpt_free_buf(struct channel_gk20a *c,
+static inline void gv11b_syncpt_free_buf(struct nvgpu_channel *c,
 		struct nvgpu_mem *syncpt_buf)
 {
 }
 
-static inline int gv11b_syncpt_alloc_buf(struct channel_gk20a *c,
+static inline int gv11b_syncpt_alloc_buf(struct nvgpu_channel *c,
 		u32 syncpt_id, struct nvgpu_mem *syncpt_buf)
 {
 	return -EINVAL;

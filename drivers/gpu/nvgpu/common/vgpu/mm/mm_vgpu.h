@@ -24,7 +24,7 @@
 #define NVGPU_MM_VGPU_H
 
 struct nvgpu_mem;
-struct channel_gk20a;
+struct nvgpu_channel;
 struct vm_gk20a_mapping_batch;
 struct gk20a_as_share;
 struct vm_gk20a;
@@ -41,7 +41,7 @@ void vgpu_locked_gmmu_unmap(struct vm_gk20a *vm,
 				bool sparse,
 				struct vm_gk20a_mapping_batch *batch);
 int vgpu_vm_bind_channel(struct vm_gk20a *vm,
-				struct channel_gk20a *ch);
+				struct nvgpu_channel *ch);
 int vgpu_mm_fb_flush(struct gk20a *g);
 void vgpu_mm_l2_invalidate(struct gk20a *g);
 int vgpu_mm_l2_flush(struct gk20a *g, bool invalidate);

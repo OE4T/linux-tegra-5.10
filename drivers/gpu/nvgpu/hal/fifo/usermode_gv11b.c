@@ -40,7 +40,7 @@ u64 gv11b_usermode_bus_base(struct gk20a *g)
 	return usermode_cfg0_r();
 }
 
-u32 gv11b_usermode_doorbell_token(struct channel_gk20a *ch)
+u32 gv11b_usermode_doorbell_token(struct nvgpu_channel *ch)
 {
 	struct gk20a *g = ch->g;
 	struct nvgpu_fifo *f = &g->fifo;
@@ -49,7 +49,7 @@ u32 gv11b_usermode_doorbell_token(struct channel_gk20a *ch)
 	return usermode_notify_channel_pending_id_f(hw_chid);
 }
 
-void gv11b_usermode_ring_doorbell(struct channel_gk20a *ch)
+void gv11b_usermode_ring_doorbell(struct nvgpu_channel *ch)
 {
 	nvgpu_log_info(ch->g, "channel ring door bell %d", ch->chid);
 

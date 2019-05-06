@@ -21,7 +21,7 @@
 
 #include <nvgpu/types.h>
 
-struct channel_gk20a;
+struct nvgpu_channel;
 struct nvgpu_gpfifo;
 struct nvgpu_submit_gpfifo_args;
 struct nvgpu_channel_fence;
@@ -38,7 +38,7 @@ struct nvgpu_channel_completion_cb {
 	 * schedule_work. Means that something finished on the channel (perhaps
 	 * more than one job).
 	 */
-	void (*fn)(struct channel_gk20a *, void *);
+	void (*fn)(struct nvgpu_channel *, void *);
 	void *user_data;
 	/* Make access to the two above atomic */
 	struct nvgpu_spinlock lock;
@@ -77,7 +77,7 @@ struct nvgpu_usermode_bufs_linux {
 };
 
 struct nvgpu_channel_linux {
-	struct channel_gk20a *ch;
+	struct nvgpu_channel *ch;
 
 	struct nvgpu_os_fence_framework fence_framework;
 
@@ -93,8 +93,8 @@ u32 nvgpu_submit_gpfifo_user_flags_to_common_flags(u32 user_flags);
 int nvgpu_channel_init_support_linux(struct nvgpu_os_linux *l);
 void nvgpu_channel_remove_support_linux(struct nvgpu_os_linux *l);
 
-struct channel_gk20a *gk20a_open_new_channel_with_cb(struct gk20a *g,
-		void (*update_fn)(struct channel_gk20a *, void *),
+struct nvgpu_channel *gk20a_open_new_channel_with_cb(struct gk20a *g,
+		void (*update_fn)(struct nvgpu_channel *, void *),
 		void *update_fn_data,
 		u32 runlist_id,
 		bool is_privileged_channel);

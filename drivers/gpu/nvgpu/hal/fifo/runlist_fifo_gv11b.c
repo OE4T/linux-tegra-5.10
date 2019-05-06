@@ -26,7 +26,7 @@
 
 #include <nvgpu/hw/gv11b/hw_fifo_gv11b.h>
 
-int gv11b_runlist_reschedule(struct channel_gk20a *ch, bool preempt_next)
+int gv11b_runlist_reschedule(struct nvgpu_channel *ch, bool preempt_next)
 {
 	/*
 	 * gv11b allows multiple outstanding preempts,

@@ -36,7 +36,7 @@
 #define NVGPU_MMU_FAULT_BUF_DISABLED			0U
 #define NVGPU_MMU_FAULT_BUF_ENABLED			1U
 
-struct channel_gk20a;
+struct nvgpu_channel;
 
 struct mmu_fault_info {
 	u64	inst_ptr;
@@ -59,7 +59,7 @@ struct mmu_fault_info {
 	u32	faulted_engine;
 	u32	faulted_subid;
 	u32	chid;
-	struct channel_gk20a *refch;
+	struct nvgpu_channel *refch;
 	const char *client_type_desc;
 	const char *fault_type_desc;
 	const char *client_id_desc;

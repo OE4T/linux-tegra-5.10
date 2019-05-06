@@ -29,10 +29,10 @@
 #include <nvgpu/list.h>
 
 struct gk20a;
-struct channel_gk20a;
+struct nvgpu_channel;
 struct dbg_session_gk20a;
 
-struct channel_gk20a *
+struct nvgpu_channel *
 nvgpu_dbg_gpu_get_session_channel(struct dbg_session_gk20a *dbg_s);
 
 struct dbg_gpu_session_events {
@@ -102,7 +102,7 @@ dbg_session_channel_data_from_ch_entry(struct nvgpu_list_node *node)
 struct dbg_profiler_object_data {
 	int session_id;
 	u32 prof_handle;
-	struct channel_gk20a *ch;
+	struct nvgpu_channel *ch;
 	bool has_reservation;
 	struct nvgpu_list_node prof_obj_entry;
 };
@@ -115,10 +115,10 @@ dbg_profiler_object_data_from_prof_obj_entry(struct nvgpu_list_node *node)
 };
 
 /* used by the interrupt handler to post events */
-void nvgpu_dbg_gpu_post_events(struct channel_gk20a *ch);
+void nvgpu_dbg_gpu_post_events(struct nvgpu_channel *ch);
 
-bool nvgpu_dbg_gpu_broadcast_stop_trigger(struct channel_gk20a *ch);
-void nvgpu_dbg_gpu_clear_broadcast_stop_trigger(struct channel_gk20a *ch);
+bool nvgpu_dbg_gpu_broadcast_stop_trigger(struct nvgpu_channel *ch);
+void nvgpu_dbg_gpu_clear_broadcast_stop_trigger(struct nvgpu_channel *ch);
 
 int nvgpu_dbg_set_powergate(struct dbg_session_gk20a *dbg_s, bool disable_powergate);
 bool nvgpu_check_and_set_global_reservation(

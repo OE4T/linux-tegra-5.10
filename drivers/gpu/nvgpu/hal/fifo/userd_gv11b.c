@@ -31,7 +31,7 @@
 
 #include "userd_gv11b.h"
 
-u32 gv11b_userd_gp_get(struct gk20a *g, struct channel_gk20a *ch)
+u32 gv11b_userd_gp_get(struct gk20a *g, struct nvgpu_channel *ch)
 {
 	struct nvgpu_mem *mem = ch->userd_mem;
 	u32 offset = ch->userd_offset / U32(sizeof(u32));
@@ -39,7 +39,7 @@ u32 gv11b_userd_gp_get(struct gk20a *g, struct channel_gk20a *ch)
 	return nvgpu_mem_rd32(g, mem, offset + ram_userd_gp_get_w());
 }
 
-u64 gv11b_userd_pb_get(struct gk20a *g, struct channel_gk20a *ch)
+u64 gv11b_userd_pb_get(struct gk20a *g, struct nvgpu_channel *ch)
 {
 	struct nvgpu_mem *mem = ch->userd_mem;
 	u32 offset = ch->userd_offset / U32(sizeof(u32));
@@ -51,7 +51,7 @@ u64 gv11b_userd_pb_get(struct gk20a *g, struct channel_gk20a *ch)
 	return ((u64)hi << 32) | lo;
 }
 
-void gv11b_userd_gp_put(struct gk20a *g, struct channel_gk20a *ch)
+void gv11b_userd_gp_put(struct gk20a *g, struct nvgpu_channel *ch)
 {
 	struct nvgpu_mem *mem = ch->userd_mem;
 	u32 offset = ch->userd_offset / U32(sizeof(u32));

@@ -26,12 +26,12 @@
 #include <nvgpu/types.h>
 
 struct gk20a;
-struct channel_gk20a;
+struct nvgpu_channel;
 
 u64 tu104_usermode_base(struct gk20a *g);
 u64 tu104_usermode_bus_base(struct gk20a *g);
 void tu104_usermode_setup_hw(struct gk20a *g);
-u32 tu104_usermode_doorbell_token(struct channel_gk20a *ch);
-void tu104_usermode_ring_doorbell(struct channel_gk20a *ch);
+u32 tu104_usermode_doorbell_token(struct nvgpu_channel *ch);
+void tu104_usermode_ring_doorbell(struct nvgpu_channel *ch);
 
 #endif /* NVGPU_USERMODE_TU104_H */

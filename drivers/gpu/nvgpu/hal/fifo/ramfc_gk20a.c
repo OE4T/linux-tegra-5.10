@@ -31,7 +31,7 @@
 
 #include <nvgpu/hw/gk20a/hw_ram_gk20a.h>
 
-int gk20a_ramfc_commit_userd(struct channel_gk20a *ch)
+int gk20a_ramfc_commit_userd(struct nvgpu_channel *ch)
 {
 	u32 addr_lo;
 	u32 addr_hi;
@@ -57,7 +57,7 @@ int gk20a_ramfc_commit_userd(struct channel_gk20a *ch)
 	return 0;
 }
 
-int gk20a_ramfc_setup(struct channel_gk20a *ch, u64 gpfifo_base,
+int gk20a_ramfc_setup(struct nvgpu_channel *ch, u64 gpfifo_base,
 		u32 gpfifo_entries, u64 pbdma_acquire_timeout, u32 flags)
 {
 	struct gk20a *g = ch->g;
@@ -108,7 +108,7 @@ int gk20a_ramfc_setup(struct channel_gk20a *ch, u64 gpfifo_base,
 	return g->ops.ramfc.commit_userd(ch);
 }
 
-void gk20a_ramfc_capture_ram_dump(struct gk20a *g, struct channel_gk20a *ch,
+void gk20a_ramfc_capture_ram_dump(struct gk20a *g, struct nvgpu_channel *ch,
 		struct nvgpu_channel_dump_info *info)
 {
 	struct nvgpu_mem *mem = &ch->inst_block;

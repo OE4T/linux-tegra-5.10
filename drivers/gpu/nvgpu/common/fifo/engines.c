@@ -283,7 +283,7 @@ int nvgpu_engine_disable_activity(struct gk20a *g,
 	u32 engine_chid = NVGPU_INVALID_CHANNEL_ID;
 	u32 token = PMU_INVALID_MUTEX_OWNER_ID;
 	int mutex_ret = -EINVAL;
-	struct channel_gk20a *ch = NULL;
+	struct nvgpu_channel *ch = NULL;
 	int err = 0;
 	struct nvgpu_engine_status_info engine_status;
 	struct nvgpu_pbdma_status_info pbdma_status;

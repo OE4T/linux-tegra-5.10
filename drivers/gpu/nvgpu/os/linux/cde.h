@@ -45,7 +45,7 @@ struct nvgpu_os_linux;
 struct gk20a;
 struct nvgpu_fence_type;
 struct nvgpu_channel_fence;
-struct channel_gk20a;
+struct nvgpu_channel;
 struct vm_gk20a;
 struct nvgpu_gpfifo_entry;
 
@@ -231,8 +231,8 @@ struct gk20a_cde_ctx {
 	struct device *dev;
 
 	/* channel related data */
-	struct channel_gk20a *ch;
-	struct tsg_gk20a *tsg;
+	struct nvgpu_channel *ch;
+	struct nvgpu_tsg *tsg;
 	struct vm_gk20a *vm;
 
 	/* buf converter configuration */

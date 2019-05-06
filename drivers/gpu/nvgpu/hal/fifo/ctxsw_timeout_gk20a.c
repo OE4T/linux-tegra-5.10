@@ -57,8 +57,8 @@ bool gk20a_fifo_handle_ctxsw_timeout(struct gk20a *g)
 	u32 id = U32_MAX;
 	bool is_tsg = false;
 	bool recover = false;
-	struct channel_gk20a *ch = NULL;
-	struct tsg_gk20a *tsg = NULL;
+	struct nvgpu_channel *ch = NULL;
+	struct nvgpu_tsg *tsg = NULL;
 	struct nvgpu_fifo *f = &g->fifo;
 	u32 ms = 0;
 	bool debug_dump = false;

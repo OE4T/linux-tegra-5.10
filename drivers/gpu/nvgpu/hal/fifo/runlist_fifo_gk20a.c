@@ -35,7 +35,7 @@
 
 #define FECS_MAILBOX_0_ACK_RESTORE 0x4U
 
-int gk20a_runlist_reschedule(struct channel_gk20a *ch, bool preempt_next)
+int gk20a_runlist_reschedule(struct nvgpu_channel *ch, bool preempt_next)
 {
 	return nvgpu_runlist_reschedule(ch, preempt_next, true);
 }
@@ -137,7 +137,7 @@ void gk20a_runlist_write_state(struct gk20a *g, u32 runlists_mask,
 }
 
 /* trigger host preempt of GR pending load ctx if that ctx is not for ch */
-int gk20a_fifo_reschedule_preempt_next(struct channel_gk20a *ch,
+int gk20a_fifo_reschedule_preempt_next(struct nvgpu_channel *ch,
 		bool wait_preempt)
 {
 	struct gk20a *g = ch->g;

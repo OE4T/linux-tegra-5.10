@@ -47,7 +47,7 @@
 #include "common/vgpu/gr/subctx_vgpu.h"
 #include "common/vgpu/ivc/comm_vgpu.h"
 
-void vgpu_channel_bind(struct channel_gk20a *ch)
+void vgpu_channel_bind(struct nvgpu_channel *ch)
 {
 	struct tegra_vgpu_cmd_msg msg;
 	struct tegra_vgpu_channel_config_params *p =
@@ -67,7 +67,7 @@ void vgpu_channel_bind(struct channel_gk20a *ch)
 	nvgpu_atomic_set(&ch->bound, true);
 }
 
-void vgpu_channel_unbind(struct channel_gk20a *ch)
+void vgpu_channel_unbind(struct nvgpu_channel *ch)
 {
 	struct gk20a *g = ch->g;
 
@@ -88,7 +88,7 @@ void vgpu_channel_unbind(struct channel_gk20a *ch)
 
 }
 
-int vgpu_channel_alloc_inst(struct gk20a *g, struct channel_gk20a *ch)
+int vgpu_channel_alloc_inst(struct gk20a *g, struct nvgpu_channel *ch)
 {
 	struct tegra_vgpu_cmd_msg msg;
 	struct tegra_vgpu_channel_hwctx_params *p = &msg.params.channel_hwctx;
@@ -111,7 +111,7 @@ int vgpu_channel_alloc_inst(struct gk20a *g, struct channel_gk20a *ch)
 	return 0;
 }
 
-void vgpu_channel_free_inst(struct gk20a *g, struct channel_gk20a *ch)
+void vgpu_channel_free_inst(struct gk20a *g, struct nvgpu_channel *ch)
 {
 	struct tegra_vgpu_cmd_msg msg;
 	struct tegra_vgpu_channel_hwctx_params *p = &msg.params.channel_hwctx;
@@ -126,7 +126,7 @@ void vgpu_channel_free_inst(struct gk20a *g, struct channel_gk20a *ch)
 	WARN_ON(err || msg.ret);
 }
 
-void vgpu_channel_enable(struct channel_gk20a *ch)
+void vgpu_channel_enable(struct nvgpu_channel *ch)
 {
 	struct tegra_vgpu_cmd_msg msg;
 	struct tegra_vgpu_channel_config_params *p =
@@ -143,7 +143,7 @@ void vgpu_channel_enable(struct channel_gk20a *ch)
 	WARN_ON(err || msg.ret);
 }
 
-void vgpu_channel_disable(struct channel_gk20a *ch)
+void vgpu_channel_disable(struct nvgpu_channel *ch)
 {
 	struct tegra_vgpu_cmd_msg msg;
 	struct tegra_vgpu_channel_config_params *p =
@@ -306,7 +306,7 @@ int vgpu_init_fifo_setup_hw(struct gk20a *g)
 	return 0;
 }
 
-int vgpu_fifo_preempt_channel(struct gk20a *g, struct channel_gk20a *ch)
+int vgpu_fifo_preempt_channel(struct gk20a *g, struct nvgpu_channel *ch)
 {
 	struct tegra_vgpu_cmd_msg msg;
 	struct tegra_vgpu_channel_config_params *p =
@@ -333,7 +333,7 @@ int vgpu_fifo_preempt_channel(struct gk20a *g, struct channel_gk20a *ch)
 	return err;
 }
 
-int vgpu_fifo_preempt_tsg(struct gk20a *g, struct tsg_gk20a *tsg)
+int vgpu_fifo_preempt_tsg(struct gk20a *g, struct nvgpu_tsg *tsg)
 {
 	struct tegra_vgpu_cmd_msg msg;
 	struct tegra_vgpu_tsg_preempt_params *p =
@@ -356,11 +356,11 @@ int vgpu_fifo_preempt_tsg(struct gk20a *g, struct tsg_gk20a *tsg)
 	return err;
 }
 
-int vgpu_tsg_force_reset_ch(struct channel_gk20a *ch,
+int vgpu_tsg_force_reset_ch(struct nvgpu_channel *ch,
 					u32 err_code, bool verbose)
 {
-	struct tsg_gk20a *tsg = NULL;
-	struct channel_gk20a *ch_tsg = NULL;
+	struct nvgpu_tsg *tsg = NULL;
+	struct nvgpu_channel *ch_tsg = NULL;
 	struct gk20a *g = ch->g;
 	struct tegra_vgpu_cmd_msg msg = {0};
 	struct tegra_vgpu_channel_config_params *p =
@@ -400,7 +400,7 @@ int vgpu_tsg_force_reset_ch(struct channel_gk20a *ch,
 }
 
 static void vgpu_fifo_set_ctx_mmu_error_ch(struct gk20a *g,
-		struct channel_gk20a *ch)
+		struct nvgpu_channel *ch)
 {
 	/*
 	 * If error code is already set, this mmu fault
@@ -420,10 +420,10 @@ static void vgpu_fifo_set_ctx_mmu_error_ch(struct gk20a *g,
 }
 
 static void vgpu_fifo_set_ctx_mmu_error_ch_tsg(struct gk20a *g,
-		struct channel_gk20a *ch)
+		struct nvgpu_channel *ch)
 {
-	struct tsg_gk20a *tsg = NULL;
-	struct channel_gk20a *ch_tsg = NULL;
+	struct nvgpu_tsg *tsg = NULL;
+	struct nvgpu_channel *ch_tsg = NULL;
 
 	tsg = tsg_gk20a_from_ch(ch);
 	if (tsg != NULL) {
@@ -445,7 +445,7 @@ static void vgpu_fifo_set_ctx_mmu_error_ch_tsg(struct gk20a *g,
 
 int vgpu_fifo_isr(struct gk20a *g, struct tegra_vgpu_fifo_intr_info *info)
 {
-	struct channel_gk20a *ch = gk20a_channel_from_id(g, info->chid);
+	struct nvgpu_channel *ch = gk20a_channel_from_id(g, info->chid);
 
 	nvgpu_log_fn(g, " ");
 	if (!ch) {
@@ -493,7 +493,7 @@ u32 vgpu_channel_count(struct gk20a *g)
 	return priv->constants.num_channels;
 }
 
-void vgpu_channel_free_ctx_header(struct channel_gk20a *c)
+void vgpu_channel_free_ctx_header(struct nvgpu_channel *c)
 {
 	vgpu_free_subctx_header(c->g, c->subctx, c->vm, c->virt_ctx);
 }
@@ -501,7 +501,7 @@ void vgpu_channel_free_ctx_header(struct channel_gk20a *c)
 void vgpu_handle_channel_event(struct gk20a *g,
 			struct tegra_vgpu_channel_event_info *info)
 {
-	struct tsg_gk20a *tsg;
+	struct nvgpu_tsg *tsg;
 
 	if (!info->is_tsg) {
 		nvgpu_err(g, "channel event posted");
@@ -521,7 +521,7 @@ void vgpu_handle_channel_event(struct gk20a *g,
 
 void vgpu_channel_abort_cleanup(struct gk20a *g, u32 chid)
 {
-	struct channel_gk20a *ch = gk20a_channel_from_id(g, chid);
+	struct nvgpu_channel *ch = gk20a_channel_from_id(g, chid);
 
 	if (ch == NULL) {
 		nvgpu_err(g, "invalid channel id %d", chid);
@@ -536,7 +536,7 @@ void vgpu_channel_abort_cleanup(struct gk20a *g, u32 chid)
 void vgpu_set_error_notifier(struct gk20a *g,
 		struct tegra_vgpu_channel_set_error_notifier *p)
 {
-	struct channel_gk20a *ch;
+	struct nvgpu_channel *ch;
 
 	if (p->chid >= g->fifo.num_channels) {
 		nvgpu_err(g, "invalid chid %d", p->chid);

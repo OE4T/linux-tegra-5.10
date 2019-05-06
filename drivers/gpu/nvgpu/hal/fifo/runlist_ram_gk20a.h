@@ -25,13 +25,13 @@
 
 #include <nvgpu/types.h>
 
-struct channel_gk20a;
-struct tsg_gk20a;
+struct nvgpu_channel;
+struct nvgpu_tsg;
 struct gk20a;
 
 u32 gk20a_runlist_entry_size(struct gk20a *g);
-void gk20a_runlist_get_tsg_entry(struct tsg_gk20a *tsg,
+void gk20a_runlist_get_tsg_entry(struct nvgpu_tsg *tsg,
 		u32 *runlist, u32 timeslice);
-void gk20a_runlist_get_ch_entry(struct channel_gk20a *ch, u32 *runlist);
+void gk20a_runlist_get_ch_entry(struct nvgpu_channel *ch, u32 *runlist);
 
 #endif /* NVGPU_RUNLIST_RAM_GK20A_H */

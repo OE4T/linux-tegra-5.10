@@ -36,9 +36,9 @@
 /*
  * Handle the submit synchronization - pre-fences and post-fences.
  */
-static int nvgpu_submit_prepare_syncs(struct channel_gk20a *c,
+static int nvgpu_submit_prepare_syncs(struct nvgpu_channel *c,
 				      struct nvgpu_channel_fence *fence,
-				      struct channel_gk20a_job *job,
+				      struct nvgpu_channel_job *job,
 				      struct priv_cmd_entry **wait_cmd,
 				      struct priv_cmd_entry **incr_cmd,
 				      struct nvgpu_fence_type **post_fence,
@@ -183,7 +183,7 @@ fail:
 	return err;
 }
 
-static void nvgpu_submit_append_priv_cmdbuf(struct channel_gk20a *c,
+static void nvgpu_submit_append_priv_cmdbuf(struct nvgpu_channel *c,
 		struct priv_cmd_entry *cmd)
 {
 	struct gk20a *g = c->g;
@@ -205,7 +205,7 @@ static void nvgpu_submit_append_priv_cmdbuf(struct channel_gk20a *c,
 	c->gpfifo.put = (c->gpfifo.put + 1U) & (c->gpfifo.entry_num - 1U);
 }
 
-static int nvgpu_submit_append_gpfifo_user_direct(struct channel_gk20a *c,
+static int nvgpu_submit_append_gpfifo_user_direct(struct nvgpu_channel *c,
 		struct nvgpu_gpfifo_userdata userdata,
 		u32 num_entries)
 {
@@ -248,7 +248,7 @@ static int nvgpu_submit_append_gpfifo_user_direct(struct channel_gk20a *c,
 	return 0;
 }
 
-static void nvgpu_submit_append_gpfifo_common(struct channel_gk20a *c,
+static void nvgpu_submit_append_gpfifo_common(struct nvgpu_channel *c,
 		struct nvgpu_gpfifo_entry *src, u32 num_entries)
 {
 	struct gk20a *g = c->g;
@@ -277,7 +277,7 @@ static void nvgpu_submit_append_gpfifo_common(struct channel_gk20a *c,
  * Copy source gpfifo entries into the gpfifo ring buffer, potentially
  * splitting into two memcpys to handle wrap-around.
  */
-static int nvgpu_submit_append_gpfifo(struct channel_gk20a *c,
+static int nvgpu_submit_append_gpfifo(struct nvgpu_channel *c,
 		struct nvgpu_gpfifo_entry *kern_gpfifo,
 		struct nvgpu_gpfifo_userdata userdata,
 		u32 num_entries)
@@ -320,7 +320,7 @@ static int nvgpu_submit_append_gpfifo(struct channel_gk20a *c,
 	return 0;
 }
 
-static int nvgpu_submit_channel_gpfifo(struct channel_gk20a *c,
+static int nvgpu_submit_channel_gpfifo(struct nvgpu_channel *c,
 				struct nvgpu_gpfifo_entry *gpfifo,
 				struct nvgpu_gpfifo_userdata userdata,
 				u32 num_entries,
@@ -333,7 +333,7 @@ static int nvgpu_submit_channel_gpfifo(struct channel_gk20a *c,
 	struct priv_cmd_entry *wait_cmd = NULL;
 	struct priv_cmd_entry *incr_cmd = NULL;
 	struct nvgpu_fence_type *post_fence = NULL;
-	struct channel_gk20a_job *job = NULL;
+	struct nvgpu_channel_job *job = NULL;
 	/* we might need two extra gpfifo entries - one for pre fence
 	 * and one for post fence. */
 	const u32 extra_entries = 2U;
@@ -601,7 +601,7 @@ clean_up:
 	return err;
 }
 
-int nvgpu_submit_channel_gpfifo_user(struct channel_gk20a *c,
+int nvgpu_submit_channel_gpfifo_user(struct nvgpu_channel *c,
 				struct nvgpu_gpfifo_userdata userdata,
 				u32 num_entries,
 				u32 flags,
@@ -613,7 +613,7 @@ int nvgpu_submit_channel_gpfifo_user(struct channel_gk20a *c,
 			flags, fence, fence_out, profile);
 }
 
-int nvgpu_submit_channel_gpfifo_kernel(struct channel_gk20a *c,
+int nvgpu_submit_channel_gpfifo_kernel(struct nvgpu_channel *c,
 				struct nvgpu_gpfifo_entry *gpfifo,
 				u32 num_entries,
 				u32 flags,

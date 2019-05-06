@@ -27,12 +27,12 @@
 #define PREEMPT_PENDING_POLL_PRE_SI_RETRIES	200000U	/* 1G/500KHz * 100 */
 
 struct gk20a;
-struct channel_gk20a;
-struct tsg_gk20a;
+struct nvgpu_channel;
+struct nvgpu_tsg;
 
 void gv11b_fifo_preempt_trigger(struct gk20a *g, u32 id, unsigned int id_type);
-int  gv11b_fifo_preempt_channel(struct gk20a *g, struct channel_gk20a *ch);
-int  gv11b_fifo_preempt_tsg(struct gk20a *g, struct tsg_gk20a *tsg);
+int  gv11b_fifo_preempt_channel(struct gk20a *g, struct nvgpu_channel *ch);
+int  gv11b_fifo_preempt_tsg(struct gk20a *g, struct nvgpu_tsg *tsg);
 int  gv11b_fifo_is_preempt_pending(struct gk20a *g, u32 id,
 			unsigned int id_type);
 void gv11b_fifo_preempt_runlists_for_rc(struct gk20a *g, u32 runlists_mask);

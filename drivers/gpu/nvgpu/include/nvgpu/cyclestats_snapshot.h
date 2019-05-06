@@ -34,7 +34,7 @@
 #define CSS_MIN_HW_SNAPSHOT_SIZE	(8 * 1024 * 1024)
 
 struct gk20a;
-struct channel_gk20a;
+struct nvgpu_channel;
 
 /* cycle stats fifo header (must match NvSnapshotBufferFifo) */
 struct gk20a_cs_snapshot_fifo {
@@ -136,7 +136,7 @@ struct gk20a_cs_snapshot {
 bool nvgpu_css_get_overflow_status(struct gk20a *g);
 u32 nvgpu_css_get_pending_snapshots(struct gk20a *g);
 void nvgpu_css_set_handled_snapshots(struct gk20a *g, u32 done);
-int nvgpu_css_enable_snapshot(struct channel_gk20a *ch,
+int nvgpu_css_enable_snapshot(struct nvgpu_channel *ch,
 				struct gk20a_cs_snapshot_client *cs_client);
 void nvgpu_css_disable_snapshot(struct gk20a *g);
 u32 nvgpu_css_allocate_perfmon_ids(struct gk20a_cs_snapshot *data,
@@ -144,20 +144,20 @@ u32 nvgpu_css_allocate_perfmon_ids(struct gk20a_cs_snapshot *data,
 u32 nvgpu_css_release_perfmon_ids(struct gk20a_cs_snapshot *data,
 				      u32 start,
 				      u32 count);
-int nvgpu_css_check_data_available(struct channel_gk20a *ch, u32 *pending,
+int nvgpu_css_check_data_available(struct nvgpu_channel *ch, u32 *pending,
 					bool *hw_overflow);
 struct gk20a_cs_snapshot_client *
 nvgpu_css_gr_search_client(struct nvgpu_list_node *clients, u32 perfmon);
 
-int nvgpu_css_attach(struct channel_gk20a *ch,   /* in - main hw structure */
+int nvgpu_css_attach(struct nvgpu_channel *ch,   /* in - main hw structure */
 			u32 perfmon_id_count,	    /* in - number of perfmons*/
 			u32 *perfmon_id_start,	    /* out- index of first pm */
 			/* in/out - pointer to client data used in later     */
 			struct gk20a_cs_snapshot_client *css_client);
 
-int nvgpu_css_detach(struct channel_gk20a *ch,
+int nvgpu_css_detach(struct nvgpu_channel *ch,
 				struct gk20a_cs_snapshot_client *css_client);
-int nvgpu_css_flush(struct channel_gk20a *ch,
+int nvgpu_css_flush(struct nvgpu_channel *ch,
 				struct gk20a_cs_snapshot_client *css_client);
 
 void nvgpu_free_cyclestats_snapshot_data(struct gk20a *g);

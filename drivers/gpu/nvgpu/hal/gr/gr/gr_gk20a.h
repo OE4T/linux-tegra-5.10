@@ -27,7 +27,7 @@
 #include <nvgpu/types.h>
 
 struct gk20a;
-struct channel_gk20a;
+struct nvgpu_channel;
 struct nvgpu_warpstate;
 struct dbg_session_gk20a;
 struct nvgpu_dbg_reg_op;
@@ -37,7 +37,7 @@ enum ctxsw_addr_type;
 /* sm */
 bool gk20a_gr_sm_debugger_attached(struct gk20a *g);
 u32 gk20a_gr_get_sm_no_lock_down_hww_global_esr_mask(struct gk20a *g);
-int gr_gk20a_exec_ctx_ops(struct channel_gk20a *ch,
+int gr_gk20a_exec_ctx_ops(struct nvgpu_channel *ch,
 			  struct nvgpu_dbg_reg_op *ctx_ops, u32 num_ops,
 			  u32 num_ctx_wr_ops, u32 num_ctx_rd_ops,
 			  bool *is_curr_ctx);
@@ -50,10 +50,10 @@ int gr_gk20a_get_pm_ctx_buffer_offsets(struct gk20a *g,
 				       u32 *offsets, u32 *offset_addrs,
 				       u32 *num_offsets);
 int gr_gk20a_update_smpc_ctxsw_mode(struct gk20a *g,
-				    struct channel_gk20a *c,
+				    struct nvgpu_channel *c,
 				    bool enable_smpc_ctxsw);
 int gr_gk20a_update_hwpm_ctxsw_mode(struct gk20a *g,
-				  struct channel_gk20a *c,
+				  struct nvgpu_channel *c,
 				  u64 gpu_va, u32 mode);
 void gk20a_gr_resume_single_sm(struct gk20a *g,
 				u32 gpc, u32 tpc, u32 sm);
@@ -64,8 +64,8 @@ void gk20a_gr_suspend_single_sm(struct gk20a *g,
 void gk20a_gr_suspend_all_sms(struct gk20a *g,
 		u32 global_esr_mask, bool check_errors);
 int gr_gk20a_set_sm_debug_mode(struct gk20a *g,
-	struct channel_gk20a *ch, u64 sms, bool enable);
-bool gk20a_is_channel_ctx_resident(struct channel_gk20a *ch);
+	struct nvgpu_channel *ch, u64 sms, bool enable);
+bool gk20a_is_channel_ctx_resident(struct nvgpu_channel *ch);
 int gk20a_gr_lock_down_sm(struct gk20a *g,
 			 u32 gpc, u32 tpc, u32 sm, u32 global_esr_mask,
 			 bool check_errors);
@@ -73,8 +73,8 @@ int gk20a_gr_wait_for_sm_lock_down(struct gk20a *g, u32 gpc, u32 tpc, u32 sm,
 		u32 global_esr_mask, bool check_errors);
 u32 gk20a_gr_get_sm_hww_warp_esr(struct gk20a *g, u32 gpc, u32 tpc, u32 sm);
 u32 gk20a_gr_get_sm_hww_global_esr(struct gk20a *g, u32 gpc, u32 tpc, u32 sm);
-bool gr_gk20a_suspend_context(struct channel_gk20a *ch);
-bool gr_gk20a_resume_context(struct channel_gk20a *ch);
+bool gr_gk20a_suspend_context(struct nvgpu_channel *ch);
+bool gr_gk20a_resume_context(struct nvgpu_channel *ch);
 int gr_gk20a_suspend_contexts(struct gk20a *g,
 			      struct dbg_session_gk20a *dbg_s,
 			      int *ctx_resident_ch_fd);

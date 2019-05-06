@@ -73,7 +73,7 @@ static int set_syncpt_ro_map_gpu_va_locked(struct vm_gk20a *vm)
 	return 0;
 }
 
-int vgpu_gv11b_fifo_alloc_buf(struct channel_gk20a *c,
+int vgpu_gv11b_fifo_alloc_buf(struct nvgpu_channel *c,
 				u32 syncpt_id, struct nvgpu_mem *syncpt_buf)
 {
 	int err;
@@ -120,7 +120,7 @@ int vgpu_gv11b_fifo_alloc_buf(struct channel_gk20a *c,
 	return 0;
 }
 
-void vgpu_gv11b_fifo_free_buf(struct channel_gk20a *c,
+void vgpu_gv11b_fifo_free_buf(struct nvgpu_channel *c,
 					struct nvgpu_mem *syncpt_buf)
 {
 	nvgpu_gmmu_unmap(c->vm, syncpt_buf, syncpt_buf->gpu_va);

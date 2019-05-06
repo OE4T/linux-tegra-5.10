@@ -388,7 +388,7 @@ struct sync_timeline *gk20a_sync_timeline_create(
 }
 
 struct sync_fence *gk20a_sync_fence_create(
-		struct channel_gk20a *c,
+		struct nvgpu_channel *c,
 		struct nvgpu_semaphore *sema,
 		const char *fmt, ...)
 {

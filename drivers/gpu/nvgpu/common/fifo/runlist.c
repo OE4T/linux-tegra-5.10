@@ -60,11 +60,11 @@ static u32 nvgpu_runlist_append_tsg(struct gk20a *g,
 		struct nvgpu_runlist_info *runlist,
 		u32 **runlist_entry,
 		u32 *entries_left,
-		struct tsg_gk20a *tsg)
+		struct nvgpu_tsg *tsg)
 {
 	struct nvgpu_fifo *f = &g->fifo;
 	u32 runlist_entry_words = f->runlist_entry_size / (u32)sizeof(u32);
-	struct channel_gk20a *ch;
+	struct nvgpu_channel *ch;
 	u32 count = 0;
 	u32 timeslice;
 
@@ -135,7 +135,7 @@ static u32 nvgpu_runlist_append_prio(struct nvgpu_fifo *f,
 	nvgpu_log_fn(f->g, " ");
 
 	for_each_set_bit(tsgid, runlist->active_tsgs, f->num_channels) {
-		struct tsg_gk20a *tsg = nvgpu_tsg_get_from_id(f->g, (u32)tsgid);
+		struct nvgpu_tsg *tsg = nvgpu_tsg_get_from_id(f->g, (u32)tsgid);
 		u32 entries;
 
 		if (tsg->interleave_level == interleave_level) {
@@ -178,7 +178,7 @@ static u32 nvgpu_runlist_append_med(struct nvgpu_fifo *f,
 	nvgpu_log_fn(f->g, " ");
 
 	for_each_set_bit(tsgid, runlist->active_tsgs, f->num_channels) {
-		struct tsg_gk20a *tsg = nvgpu_tsg_get_from_id(f->g, (u32)tsgid);
+		struct nvgpu_tsg *tsg = nvgpu_tsg_get_from_id(f->g, (u32)tsgid);
 		u32 entries;
 
 		if (tsg->interleave_level !=
@@ -217,7 +217,7 @@ static u32 nvgpu_runlist_append_low(struct nvgpu_fifo *f,
 	nvgpu_log_fn(f->g, " ");
 
 	for_each_set_bit(tsgid, runlist->active_tsgs, f->num_channels) {
-		struct tsg_gk20a *tsg = nvgpu_tsg_get_from_id(f->g, (u32)tsgid);
+		struct nvgpu_tsg *tsg = nvgpu_tsg_get_from_id(f->g, (u32)tsgid);
 		u32 entries;
 
 		if (tsg->interleave_level !=
@@ -315,11 +315,11 @@ u32 nvgpu_runlist_construct_locked(struct nvgpu_fifo *f,
 }
 
 static bool gk20a_runlist_modify_active_locked(struct gk20a *g, u32 runlist_id,
-					    struct channel_gk20a *ch, bool add)
+					    struct nvgpu_channel *ch, bool add)
 {
 	struct nvgpu_fifo *f = &g->fifo;
 	struct nvgpu_runlist_info *runlist = NULL;
-	struct tsg_gk20a *tsg = NULL;
+	struct nvgpu_tsg *tsg = NULL;
 
 	runlist = f->runlist_info[runlist_id];
 	tsg = tsg_gk20a_from_ch(ch);
@@ -389,7 +389,7 @@ static int gk20a_runlist_reconstruct_locked(struct gk20a *g, u32 runlist_id,
 }
 
 int nvgpu_runlist_update_locked(struct gk20a *g, u32 runlist_id,
-					    struct channel_gk20a *ch, bool add,
+					    struct nvgpu_channel *ch, bool add,
 					    bool wait_for_finish)
 {
 	int ret = 0;
@@ -445,7 +445,7 @@ int nvgpu_runlist_update_locked(struct gk20a *g, u32 runlist_id,
 }
 
 /* trigger host to expire current timeslice and reschedule runlist from front */
-int nvgpu_runlist_reschedule(struct channel_gk20a *ch, bool preempt_next,
+int nvgpu_runlist_reschedule(struct nvgpu_channel *ch, bool preempt_next,
 		bool wait_preempt)
 {
 	struct gk20a *g = ch->g;
@@ -494,7 +494,7 @@ int nvgpu_runlist_reschedule(struct channel_gk20a *ch, bool preempt_next,
    (ch == NULL && !add) means remove all active channels from runlist.
    (ch == NULL &&  add) means restore all active channels on runlist. */
 static int nvgpu_runlist_update(struct gk20a *g, u32 runlist_id,
-			      struct channel_gk20a *ch,
+			      struct nvgpu_channel *ch,
 			      bool add, bool wait_for_finish)
 {
 	struct nvgpu_runlist_info *runlist = NULL;
@@ -532,7 +532,7 @@ static int nvgpu_runlist_update(struct gk20a *g, u32 runlist_id,
 }
 
 int nvgpu_runlist_update_for_channel(struct gk20a *g, u32 runlist_id,
-			      struct channel_gk20a *ch,
+			      struct nvgpu_channel *ch,
 			      bool add, bool wait_for_finish)
 {
 	nvgpu_assert(ch != NULL);

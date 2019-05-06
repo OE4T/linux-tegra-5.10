@@ -272,9 +272,9 @@ bool gk20a_fifo_handle_mmu_fault_locked(
 		u32 engine_id = nvgpu_engine_mmu_fault_id_to_engine_id(g,
 					(u32)engine_mmu_fault_id);
 		struct mmu_fault_info mmfault_info;
-		struct channel_gk20a *ch = NULL;
-		struct tsg_gk20a *tsg = NULL;
-		struct channel_gk20a *refch = NULL;
+		struct nvgpu_channel *ch = NULL;
+		struct nvgpu_tsg *tsg = NULL;
+		struct nvgpu_channel *refch = NULL;
 		bool ctxsw;
 
 		/* read and parse engine status */

@@ -45,8 +45,8 @@
 struct gk20a;
 struct nvgpu_engine_info;
 struct nvgpu_runlist_info;
-struct channel_gk20a;
-struct tsg_gk20a;
+struct nvgpu_channel;
+struct nvgpu_tsg;
 
 struct nvgpu_fifo {
 	struct gk20a *g;
@@ -90,14 +90,14 @@ struct nvgpu_fifo {
 	u64 userd_gpu_va;
 
 	unsigned int used_channels;
-	struct channel_gk20a *channel;
+	struct nvgpu_channel *channel;
 	/* zero-kref'd channels here */
 	struct nvgpu_list_node free_chs;
 	struct nvgpu_mutex free_chs_mutex;
 	struct nvgpu_mutex engines_reset_mutex;
 	struct nvgpu_spinlock runlist_submit_lock;
 
-	struct tsg_gk20a *tsg;
+	struct nvgpu_tsg *tsg;
 	struct nvgpu_mutex tsg_inuse_mutex;
 
 	void (*remove_support)(struct nvgpu_fifo *f);

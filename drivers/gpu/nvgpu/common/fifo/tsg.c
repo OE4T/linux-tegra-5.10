@@ -34,10 +34,10 @@
 #include <nvgpu/gr/ctx.h>
 #include <nvgpu/runlist.h>
 
-void nvgpu_tsg_disable(struct tsg_gk20a *tsg)
+void nvgpu_tsg_disable(struct nvgpu_tsg *tsg)
 {
 	struct gk20a *g = tsg->g;
-	struct channel_gk20a *ch;
+	struct nvgpu_channel *ch;
 
 	nvgpu_rwsem_down_read(&tsg->ch_list_lock);
 	nvgpu_list_for_each_entry(ch, &tsg->ch_list, channel_gk20a, ch_entry) {
@@ -46,7 +46,7 @@ void nvgpu_tsg_disable(struct tsg_gk20a *tsg)
 	nvgpu_rwsem_up_read(&tsg->ch_list_lock);
 }
 
-struct tsg_gk20a *nvgpu_tsg_check_and_get_from_id(struct gk20a *g, u32 tsgid)
+struct nvgpu_tsg *nvgpu_tsg_check_and_get_from_id(struct gk20a *g, u32 tsgid)
 {
 	if (tsgid == NVGPU_INVALID_TSG_ID) {
 		return NULL;
@@ -56,7 +56,7 @@ struct tsg_gk20a *nvgpu_tsg_check_and_get_from_id(struct gk20a *g, u32 tsgid)
 }
 
 
-struct tsg_gk20a *nvgpu_tsg_get_from_id(struct gk20a *g, u32 tsgid)
+struct nvgpu_tsg *nvgpu_tsg_get_from_id(struct gk20a *g, u32 tsgid)
 {
 	struct nvgpu_fifo *f = &g->fifo;
 
@@ -64,7 +64,7 @@ struct tsg_gk20a *nvgpu_tsg_get_from_id(struct gk20a *g, u32 tsgid)
 }
 
 
-static bool gk20a_is_channel_active(struct gk20a *g, struct channel_gk20a *ch)
+static bool gk20a_is_channel_active(struct gk20a *g, struct nvgpu_channel *ch)
 {
 	struct nvgpu_fifo *f = &g->fifo;
 	struct nvgpu_runlist_info *runlist;
@@ -85,7 +85,7 @@ static bool gk20a_is_channel_active(struct gk20a *g, struct channel_gk20a *ch)
  *
  * Note that channel is not runnable when we bind it to TSG
  */
-int nvgpu_tsg_bind_channel(struct tsg_gk20a *tsg, struct channel_gk20a *ch)
+int nvgpu_tsg_bind_channel(struct nvgpu_tsg *tsg, struct nvgpu_channel *ch)
 {
 	struct gk20a *g = ch->g;
 	int err = 0;
@@ -133,7 +133,7 @@ int nvgpu_tsg_bind_channel(struct tsg_gk20a *tsg, struct channel_gk20a *ch)
 }
 
 /* The caller must ensure that channel belongs to a tsg */
-int nvgpu_tsg_unbind_channel(struct tsg_gk20a *tsg, struct channel_gk20a *ch)
+int nvgpu_tsg_unbind_channel(struct nvgpu_tsg *tsg, struct nvgpu_channel *ch)
 {
 	struct gk20a *g = ch->g;
 	int err;
@@ -167,8 +167,8 @@ int nvgpu_tsg_unbind_channel(struct tsg_gk20a *tsg, struct channel_gk20a *ch)
 	return 0;
 }
 
-int nvgpu_tsg_unbind_channel_common(struct tsg_gk20a *tsg,
-		struct channel_gk20a *ch)
+int nvgpu_tsg_unbind_channel_common(struct nvgpu_tsg *tsg,
+		struct nvgpu_channel *ch)
 {
 	struct gk20a *g = ch->g;
 	int err;
@@ -238,8 +238,8 @@ fail_enable_tsg:
 	return err;
 }
 
-int nvgpu_tsg_unbind_channel_check_hw_state(struct tsg_gk20a *tsg,
-		struct channel_gk20a *ch)
+int nvgpu_tsg_unbind_channel_check_hw_state(struct nvgpu_tsg *tsg,
+		struct nvgpu_channel *ch)
 {
 	struct gk20a *g = ch->g;
 	struct nvgpu_channel_hw_state hw_state;
@@ -264,12 +264,12 @@ int nvgpu_tsg_unbind_channel_check_hw_state(struct tsg_gk20a *tsg,
 	return 0;
 }
 
-void nvgpu_tsg_unbind_channel_check_ctx_reload(struct tsg_gk20a *tsg,
-	struct channel_gk20a *ch,
+void nvgpu_tsg_unbind_channel_check_ctx_reload(struct nvgpu_tsg *tsg,
+	struct nvgpu_channel *ch,
 	struct nvgpu_channel_hw_state *hw_state)
 {
 	struct gk20a *g = ch->g;
-	struct channel_gk20a *temp_ch;
+	struct nvgpu_channel *temp_ch;
 
 	/* If CTX_RELOAD is set on a channel, move it to some other channel */
 	if (hw_state->ctx_reload) {
@@ -285,18 +285,18 @@ void nvgpu_tsg_unbind_channel_check_ctx_reload(struct tsg_gk20a *tsg,
 	}
 }
 
-static void nvgpu_tsg_destroy(struct gk20a *g, struct tsg_gk20a *tsg)
+static void nvgpu_tsg_destroy(struct gk20a *g, struct nvgpu_tsg *tsg)
 {
 	nvgpu_mutex_destroy(&tsg->event_id_list_lock);
 }
 
 /* force reset tsg that the channel is bound to */
-int nvgpu_tsg_force_reset_ch(struct channel_gk20a *ch,
+int nvgpu_tsg_force_reset_ch(struct nvgpu_channel *ch,
 				u32 err_code, bool verbose)
 {
 	struct gk20a *g = ch->g;
 
-	struct tsg_gk20a *tsg = tsg_gk20a_from_ch(ch);
+	struct nvgpu_tsg *tsg = tsg_gk20a_from_ch(ch);
 
 	if (tsg != NULL) {
 		nvgpu_tsg_set_error_notifier(g, tsg, err_code);
@@ -315,7 +315,7 @@ void nvgpu_tsg_cleanup_sw(struct gk20a *g)
 	u32 tsgid;
 
 	for (tsgid = 0; tsgid < f->num_channels; tsgid++) {
-		struct tsg_gk20a *tsg = &f->tsg[tsgid];
+		struct nvgpu_tsg *tsg = &f->tsg[tsgid];
 
 		nvgpu_tsg_destroy(g, tsg);
 	}
@@ -327,7 +327,7 @@ void nvgpu_tsg_cleanup_sw(struct gk20a *g)
 
 int gk20a_init_tsg_support(struct gk20a *g, u32 tsgid)
 {
-	struct tsg_gk20a *tsg = NULL;
+	struct nvgpu_tsg *tsg = NULL;
 
 	if (tsgid >= g->fifo.num_channels) {
 		return -EINVAL;
@@ -378,7 +378,7 @@ int nvgpu_tsg_setup_sw(struct gk20a *g)
 
 clean_up:
 	for (i = 0; i < tsgid; i++) {
-		struct tsg_gk20a *tsg = &g->fifo.tsg[i];
+		struct nvgpu_tsg *tsg = &g->fifo.tsg[i];
 
 		nvgpu_tsg_destroy(g, tsg);
 	}
@@ -391,9 +391,9 @@ clean_up_mutex:
 }
 
 bool nvgpu_tsg_mark_error(struct gk20a *g,
-		struct tsg_gk20a *tsg)
+		struct nvgpu_tsg *tsg)
 {
-	struct channel_gk20a *ch = NULL;
+	struct nvgpu_channel *ch = NULL;
 	bool verbose = false;
 
 	nvgpu_rwsem_down_read(&tsg->ch_list_lock);
@@ -411,9 +411,9 @@ bool nvgpu_tsg_mark_error(struct gk20a *g,
 
 }
 
-void nvgpu_tsg_set_ctxsw_timeout_accumulated_ms(struct tsg_gk20a *tsg, u32 ms)
+void nvgpu_tsg_set_ctxsw_timeout_accumulated_ms(struct nvgpu_tsg *tsg, u32 ms)
 {
-	struct channel_gk20a *ch = NULL;
+	struct nvgpu_channel *ch = NULL;
 
 	nvgpu_rwsem_down_read(&tsg->ch_list_lock);
 	nvgpu_list_for_each_entry(ch, &tsg->ch_list, channel_gk20a, ch_entry) {
@@ -425,9 +425,9 @@ void nvgpu_tsg_set_ctxsw_timeout_accumulated_ms(struct tsg_gk20a *tsg, u32 ms)
 	nvgpu_rwsem_up_read(&tsg->ch_list_lock);
 }
 
-bool nvgpu_tsg_ctxsw_timeout_debug_dump_state(struct tsg_gk20a *tsg)
+bool nvgpu_tsg_ctxsw_timeout_debug_dump_state(struct nvgpu_tsg *tsg)
 {
-	struct channel_gk20a *ch = NULL;
+	struct nvgpu_channel *ch = NULL;
 	bool verbose = false;
 
 	nvgpu_rwsem_down_read(&tsg->ch_list_lock);
@@ -444,10 +444,10 @@ bool nvgpu_tsg_ctxsw_timeout_debug_dump_state(struct tsg_gk20a *tsg)
 	return verbose;
 }
 
-void nvgpu_tsg_set_error_notifier(struct gk20a *g, struct tsg_gk20a *tsg,
+void nvgpu_tsg_set_error_notifier(struct gk20a *g, struct nvgpu_tsg *tsg,
 		u32 error_notifier)
 {
-	struct channel_gk20a *ch = NULL;
+	struct nvgpu_channel *ch = NULL;
 
 	nvgpu_rwsem_down_read(&tsg->ch_list_lock);
 	nvgpu_list_for_each_entry(ch, &tsg->ch_list, channel_gk20a, ch_entry) {
@@ -459,7 +459,7 @@ void nvgpu_tsg_set_error_notifier(struct gk20a *g, struct tsg_gk20a *tsg,
 	nvgpu_rwsem_up_read(&tsg->ch_list_lock);
 }
 
-void nvgpu_tsg_set_ctx_mmu_error(struct gk20a *g, struct tsg_gk20a *tsg)
+void nvgpu_tsg_set_ctx_mmu_error(struct gk20a *g, struct nvgpu_tsg *tsg)
 {
 	nvgpu_err(g, "TSG %d generated a mmu fault", tsg->tsgid);
 
@@ -467,10 +467,10 @@ void nvgpu_tsg_set_ctx_mmu_error(struct gk20a *g, struct tsg_gk20a *tsg)
 		NVGPU_ERR_NOTIFIER_FIFO_ERROR_MMU_ERR_FLT);
 }
 
-bool nvgpu_tsg_check_ctxsw_timeout(struct tsg_gk20a *tsg,
+bool nvgpu_tsg_check_ctxsw_timeout(struct nvgpu_tsg *tsg,
 		bool *debug_dump, u32 *ms)
 {
-	struct channel_gk20a *ch;
+	struct nvgpu_channel *ch;
 	bool recover = false;
 	bool progress = false;
 	struct gk20a *g = tsg->g;
@@ -530,7 +530,7 @@ bool nvgpu_tsg_check_ctxsw_timeout(struct tsg_gk20a *tsg,
 	return recover;
 }
 
-int nvgpu_tsg_set_interleave(struct tsg_gk20a *tsg, u32 level)
+int nvgpu_tsg_set_interleave(struct nvgpu_tsg *tsg, u32 level)
 {
 	struct gk20a *g = tsg->g;
 	int ret;
@@ -560,7 +560,7 @@ int nvgpu_tsg_set_interleave(struct tsg_gk20a *tsg, u32 level)
 	return g->ops.runlist.reload(g, tsg->runlist_id, true, true);
 }
 
-int nvgpu_tsg_set_timeslice(struct tsg_gk20a *tsg, u32 timeslice_us)
+int nvgpu_tsg_set_timeslice(struct nvgpu_tsg *tsg, u32 timeslice_us)
 {
 	struct gk20a *g = tsg->g;
 
@@ -577,7 +577,7 @@ int nvgpu_tsg_set_timeslice(struct tsg_gk20a *tsg, u32 timeslice_us)
 	return g->ops.runlist.reload(g, tsg->runlist_id, true, true);
 }
 
-u32 nvgpu_tsg_get_timeslice(struct tsg_gk20a *tsg)
+u32 nvgpu_tsg_get_timeslice(struct nvgpu_tsg *tsg)
 {
 	return tsg->timeslice_us;
 }
@@ -587,29 +587,29 @@ u32 nvgpu_tsg_default_timeslice_us(struct gk20a *g)
 	return NVGPU_TSG_TIMESLICE_DEFAULT_US;
 }
 
-void nvgpu_tsg_enable_sched(struct gk20a *g, struct tsg_gk20a *tsg)
+void nvgpu_tsg_enable_sched(struct gk20a *g, struct nvgpu_tsg *tsg)
 {
 	nvgpu_fifo_runlist_set_state(g, BIT32(tsg->runlist_id),
 			RUNLIST_ENABLED);
 
 }
 
-void nvgpu_tsg_disable_sched(struct gk20a *g, struct tsg_gk20a *tsg)
+void nvgpu_tsg_disable_sched(struct gk20a *g, struct nvgpu_tsg *tsg)
 {
 	nvgpu_fifo_runlist_set_state(g, BIT32(tsg->runlist_id),
 			RUNLIST_DISABLED);
 }
 
-static void release_used_tsg(struct nvgpu_fifo *f, struct tsg_gk20a *tsg)
+static void release_used_tsg(struct nvgpu_fifo *f, struct nvgpu_tsg *tsg)
 {
 	nvgpu_mutex_acquire(&f->tsg_inuse_mutex);
 	f->tsg[tsg->tsgid].in_use = false;
 	nvgpu_mutex_release(&f->tsg_inuse_mutex);
 }
 
-static struct tsg_gk20a *gk20a_tsg_acquire_unused_tsg(struct nvgpu_fifo *f)
+static struct nvgpu_tsg *gk20a_tsg_acquire_unused_tsg(struct nvgpu_fifo *f)
 {
-	struct tsg_gk20a *tsg = NULL;
+	struct nvgpu_tsg *tsg = NULL;
 	unsigned int tsgid;
 
 	nvgpu_mutex_acquire(&f->tsg_inuse_mutex);
@@ -625,7 +625,7 @@ static struct tsg_gk20a *gk20a_tsg_acquire_unused_tsg(struct nvgpu_fifo *f)
 	return tsg;
 }
 
-int nvgpu_tsg_open_common(struct gk20a *g, struct tsg_gk20a *tsg, pid_t pid)
+int nvgpu_tsg_open_common(struct gk20a *g, struct nvgpu_tsg *tsg, pid_t pid)
 {
 	u32 no_of_sm = g->ops.gr.init.get_no_of_sm(g);
 	int err;
@@ -681,9 +681,9 @@ clean_up:
 	return err;
 }
 
-struct tsg_gk20a *nvgpu_tsg_open(struct gk20a *g, pid_t pid)
+struct nvgpu_tsg *nvgpu_tsg_open(struct gk20a *g, pid_t pid)
 {
-	struct tsg_gk20a *tsg;
+	struct nvgpu_tsg *tsg;
 	int err;
 
 	tsg = gk20a_tsg_acquire_unused_tsg(&g->fifo);
@@ -703,7 +703,7 @@ struct tsg_gk20a *nvgpu_tsg_open(struct gk20a *g, pid_t pid)
 	return tsg;
 }
 
-void nvgpu_tsg_release_common(struct gk20a *g, struct tsg_gk20a *tsg)
+void nvgpu_tsg_release_common(struct gk20a *g, struct nvgpu_tsg *tsg)
 {
 	if (g->ops.tsg.release != NULL) {
 		g->ops.tsg.release(tsg);
@@ -728,15 +728,15 @@ void nvgpu_tsg_release_common(struct gk20a *g, struct tsg_gk20a *tsg)
 	}
 }
 
-static struct tsg_gk20a *tsg_gk20a_from_ref(struct nvgpu_ref *ref)
+static struct nvgpu_tsg *tsg_gk20a_from_ref(struct nvgpu_ref *ref)
 {
-	return (struct tsg_gk20a *)
-		((uintptr_t)ref - offsetof(struct tsg_gk20a, refcount));
+	return (struct nvgpu_tsg *)
+		((uintptr_t)ref - offsetof(struct nvgpu_tsg, refcount));
 }
 
 void nvgpu_tsg_release(struct nvgpu_ref *ref)
 {
-	struct tsg_gk20a *tsg = tsg_gk20a_from_ref(ref);
+	struct nvgpu_tsg *tsg = tsg_gk20a_from_ref(ref);
 	struct gk20a *g = tsg->g;
 
 	if (tsg->gr_ctx != NULL && nvgpu_mem_is_valid(
@@ -758,9 +758,9 @@ void nvgpu_tsg_release(struct nvgpu_ref *ref)
 	nvgpu_log(g, gpu_dbg_fn, "tsg released %d", tsg->tsgid);
 }
 
-struct tsg_gk20a *tsg_gk20a_from_ch(struct channel_gk20a *ch)
+struct nvgpu_tsg *tsg_gk20a_from_ch(struct nvgpu_channel *ch)
 {
-	struct tsg_gk20a *tsg = NULL;
+	struct nvgpu_tsg *tsg = NULL;
 	u32 tsgid = ch->tsgid;
 
 	if (tsgid != NVGPU_INVALID_TSG_ID) {
@@ -776,7 +776,7 @@ struct tsg_gk20a *tsg_gk20a_from_ch(struct channel_gk20a *ch)
 }
 
 int gk20a_tsg_alloc_sm_error_states_mem(struct gk20a *g,
-					struct tsg_gk20a *tsg,
+					struct nvgpu_tsg *tsg,
 					u32 num_sm)
 {
 	int err = 0;
@@ -802,7 +802,7 @@ int gk20a_tsg_alloc_sm_error_states_mem(struct gk20a *g,
 	return err;
 }
 
-void gk20a_tsg_update_sm_error_state_locked(struct tsg_gk20a *tsg,
+void gk20a_tsg_update_sm_error_state_locked(struct nvgpu_tsg *tsg,
 				u32 sm_id,
 				struct nvgpu_tsg_sm_error_state *sm_error_state)
 {
@@ -822,10 +822,10 @@ void gk20a_tsg_update_sm_error_state_locked(struct tsg_gk20a *tsg,
 			sm_error_state->hww_warp_esr_report_mask;
 }
 
-int gk20a_tsg_set_sm_exception_type_mask(struct channel_gk20a *ch,
+int gk20a_tsg_set_sm_exception_type_mask(struct nvgpu_channel *ch,
 		u32 exception_mask)
 {
-	struct tsg_gk20a *tsg;
+	struct nvgpu_tsg *tsg;
 
 	tsg = tsg_gk20a_from_ch(ch);
 	if (tsg == NULL) {
@@ -839,9 +839,9 @@ int gk20a_tsg_set_sm_exception_type_mask(struct channel_gk20a *ch,
 	return 0;
 }
 
-void nvgpu_tsg_abort(struct gk20a *g, struct tsg_gk20a *tsg, bool preempt)
+void nvgpu_tsg_abort(struct gk20a *g, struct nvgpu_tsg *tsg, bool preempt)
 {
-	struct channel_gk20a *ch = NULL;
+	struct nvgpu_channel *ch = NULL;
 
 	nvgpu_log_fn(g, " ");
 
@@ -871,10 +871,10 @@ void nvgpu_tsg_abort(struct gk20a *g, struct tsg_gk20a *tsg, bool preempt)
 	nvgpu_rwsem_up_read(&tsg->ch_list_lock);
 }
 
-void nvgpu_tsg_reset_faulted_eng_pbdma(struct gk20a *g, struct tsg_gk20a *tsg,
+void nvgpu_tsg_reset_faulted_eng_pbdma(struct gk20a *g, struct nvgpu_tsg *tsg,
 		bool eng, bool pbdma)
 {
-	struct channel_gk20a *ch;
+	struct nvgpu_channel *ch;
 
 	if (g->ops.channel.reset_faulted == NULL) {
 		return;

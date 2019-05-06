@@ -32,7 +32,7 @@
 
 #include <nvgpu/hw/gk20a/hw_ram_gk20a.h>
 
-void gk20a_userd_init_mem(struct gk20a *g, struct channel_gk20a *c)
+void gk20a_userd_init_mem(struct gk20a *g, struct nvgpu_channel *c)
 {
 	struct nvgpu_mem *mem = c->userd_mem;
 	u32 offset = c->userd_offset / U32(sizeof(u32));
@@ -50,7 +50,7 @@ void gk20a_userd_init_mem(struct gk20a *g, struct channel_gk20a *c)
 	nvgpu_mem_wr32(g, mem, offset + ram_userd_gp_put_w(), 0);
 }
 
-u32 gk20a_userd_gp_get(struct gk20a *g, struct channel_gk20a *c)
+u32 gk20a_userd_gp_get(struct gk20a *g, struct nvgpu_channel *c)
 {
 	u64 userd_gpu_va = gk20a_channel_userd_gpu_va(c);
 	u64 addr = userd_gpu_va + sizeof(u32) * ram_userd_gp_get_w();
@@ -60,7 +60,7 @@ u32 gk20a_userd_gp_get(struct gk20a *g, struct channel_gk20a *c)
 	return nvgpu_bar1_readl(g, (u32)addr);
 }
 
-u64 gk20a_userd_pb_get(struct gk20a *g, struct channel_gk20a *c)
+u64 gk20a_userd_pb_get(struct gk20a *g, struct nvgpu_channel *c)
 {
 	u64 userd_gpu_va = gk20a_channel_userd_gpu_va(c);
 	u64 lo_addr = userd_gpu_va + sizeof(u32) * ram_userd_get_w();
@@ -74,7 +74,7 @@ u64 gk20a_userd_pb_get(struct gk20a *g, struct channel_gk20a *c)
 	return ((u64)hi << 32) | lo;
 }
 
-void gk20a_userd_gp_put(struct gk20a *g, struct channel_gk20a *c)
+void gk20a_userd_gp_put(struct gk20a *g, struct nvgpu_channel *c)
 {
 	u64 userd_gpu_va = gk20a_channel_userd_gpu_va(c);
 	u64 addr = userd_gpu_va + sizeof(u32) * ram_userd_gp_put_w();

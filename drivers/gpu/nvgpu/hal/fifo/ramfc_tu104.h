@@ -25,9 +25,9 @@
 
 #include <nvgpu/types.h>
 
-struct channel_gk20a;
+struct nvgpu_channel;
 
-int tu104_ramfc_setup(struct channel_gk20a *ch, u64 gpfifo_base,
+int tu104_ramfc_setup(struct nvgpu_channel *ch, u64 gpfifo_base,
 		u32 gpfifo_entries, u64 pbdma_acquire_timeout, u32 flags);
 
 #endif /* NVGPU_RAMFC_TU104_H */

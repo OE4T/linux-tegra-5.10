@@ -61,7 +61,7 @@ void nvgpu_os_fence_android_install_fd(struct nvgpu_os_fence *s, int fd)
 }
 
 int nvgpu_os_fence_fdget(struct nvgpu_os_fence *fence_out,
-	struct channel_gk20a *c, int fd)
+	struct nvgpu_channel *c, int fd)
 {
 	int err = -ENOSYS;
 

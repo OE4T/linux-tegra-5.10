@@ -63,8 +63,8 @@ static int gk20a_fifo_sched_debugfs_seq_show(
 {
 	struct gk20a *g = s->private;
 	struct nvgpu_fifo *f = &g->fifo;
-	struct channel_gk20a *ch = v;
-	struct tsg_gk20a *tsg = NULL;
+	struct nvgpu_channel *ch = v;
+	struct nvgpu_tsg *tsg = NULL;
 
 	struct nvgpu_engine_info *engine_info;
 	struct nvgpu_runlist_info *runlist;

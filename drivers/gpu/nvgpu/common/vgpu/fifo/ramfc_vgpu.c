@@ -29,7 +29,7 @@
 #include "ramfc_vgpu.h"
 #include "common/vgpu/ivc/comm_vgpu.h"
 
-int vgpu_ramfc_setup(struct channel_gk20a *ch, u64 gpfifo_base,
+int vgpu_ramfc_setup(struct nvgpu_channel *ch, u64 gpfifo_base,
 		u32 gpfifo_entries, u64 pbdma_acquire_timeout, u32 flags)
 {
 	struct tegra_vgpu_cmd_msg msg;

@@ -25,9 +25,9 @@
 
 #include <nvgpu/types.h>
 
-struct channel_gk20a;
+struct nvgpu_channel;
 
-int gv11b_runlist_reschedule(struct channel_gk20a *ch, bool preempt_next);
+int gv11b_runlist_reschedule(struct nvgpu_channel *ch, bool preempt_next);
 u32 gv11b_runlist_count_max(void);
 
 #endif /* NVGPU_RUNLIST_FIFO_GV11B_H */

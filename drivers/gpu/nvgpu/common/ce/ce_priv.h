@@ -44,10 +44,10 @@ struct nvgpu_ce_gpu_ctx {
 	int gpu_ctx_state;
 
 	/* tsg related data */
-	struct tsg_gk20a *tsg;
+	struct nvgpu_tsg *tsg;
 
 	/* channel related data */
-	struct channel_gk20a *ch;
+	struct nvgpu_channel *ch;
 	struct vm_gk20a *vm;
 
 	/* cmd buf mem_desc */

@@ -103,7 +103,7 @@ static int css_gr_create_shared_data(struct gk20a *g)
 	return 0;
 }
 
-int nvgpu_css_enable_snapshot(struct channel_gk20a *ch,
+int nvgpu_css_enable_snapshot(struct nvgpu_channel *ch,
 				struct gk20a_cs_snapshot_client *cs_client)
 {
 	struct gk20a *g = ch->g;
@@ -205,7 +205,7 @@ nvgpu_css_gr_search_client(struct nvgpu_list_node *clients, u32 perfmon)
 	return NULL;
 }
 
-static int css_gr_flush_snapshots(struct channel_gk20a *ch)
+static int css_gr_flush_snapshots(struct nvgpu_channel *ch)
 {
 	struct gk20a *g = ch->g;
 	struct gk20a_cs_snapshot *css = g->cs_data;
@@ -458,7 +458,7 @@ static int css_gr_create_client_data(struct gk20a *g,
 }
 
 
-int nvgpu_css_attach(struct channel_gk20a *ch,
+int nvgpu_css_attach(struct nvgpu_channel *ch,
 			u32 perfmon_count,
 			u32 *perfmon_start,
 			struct gk20a_cs_snapshot_client *cs_client)
@@ -525,7 +525,7 @@ failed:
 	return ret;
 }
 
-int nvgpu_css_detach(struct channel_gk20a *ch,
+int nvgpu_css_detach(struct nvgpu_channel *ch,
 				struct gk20a_cs_snapshot_client *cs_client)
 {
 	int ret = 0;
@@ -555,7 +555,7 @@ int nvgpu_css_detach(struct channel_gk20a *ch,
 	return ret;
 }
 
-int nvgpu_css_flush(struct channel_gk20a *ch,
+int nvgpu_css_flush(struct nvgpu_channel *ch,
 				struct gk20a_cs_snapshot_client *cs_client)
 {
 	int ret = 0;
@@ -581,7 +581,7 @@ void nvgpu_free_cyclestats_snapshot_data(struct gk20a *g)
 	nvgpu_mutex_destroy(&g->cs_lock);
 }
 
-int nvgpu_css_check_data_available(struct channel_gk20a *ch, u32 *pending,
+int nvgpu_css_check_data_available(struct nvgpu_channel *ch, u32 *pending,
 					bool *hw_overflow)
 {
 	struct gk20a *g = ch->g;

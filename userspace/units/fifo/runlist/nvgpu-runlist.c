@@ -33,8 +33,8 @@
 #include "hal/fifo/tsg_gk20a.h"
 
 static void setup_fifo(struct gk20a *g, unsigned long *tsg_map,
-		unsigned long *ch_map, struct tsg_gk20a *tsgs,
-		struct channel_gk20a *chs, unsigned int num_tsgs,
+		unsigned long *ch_map, struct nvgpu_tsg *tsgs,
+		struct nvgpu_channel *chs, unsigned int num_tsgs,
 		unsigned int num_channels,
 		struct nvgpu_runlist_info **runlists, u32 *rl_data,
 		bool interleave)
@@ -81,11 +81,11 @@ static void setup_fifo(struct gk20a *g, unsigned long *tsg_map,
 
 }
 
-static void setup_tsg(struct tsg_gk20a *tsgs, struct channel_gk20a *chs,
+static void setup_tsg(struct nvgpu_tsg *tsgs, struct nvgpu_channel *chs,
 		u32 i, u32 level)
 {
-	struct tsg_gk20a *tsg = &tsgs[i];
-	struct channel_gk20a *ch = &chs[i];
+	struct nvgpu_tsg *tsg = &tsgs[i];
+	struct nvgpu_channel *ch = &chs[i];
 
 	tsg->tsgid = i;
 	nvgpu_rwsem_init(&tsg->ch_list_lock);
@@ -98,11 +98,11 @@ static void setup_tsg(struct tsg_gk20a *tsgs, struct channel_gk20a *chs,
 	nvgpu_list_add_tail(&ch->ch_entry, &tsg->ch_list);
 }
 
-static void setup_tsg_multich(struct tsg_gk20a *tsgs, struct channel_gk20a *chs,
+static void setup_tsg_multich(struct nvgpu_tsg *tsgs, struct nvgpu_channel *chs,
 		u32 i, u32 level, u32 ch_capacity, u32 ch_active)
 {
-	struct tsg_gk20a *tsg = &tsgs[i];
-	struct channel_gk20a *ch = &chs[i + 1];
+	struct nvgpu_tsg *tsg = &tsgs[i];
+	struct nvgpu_channel *ch = &chs[i + 1];
 	u32 c;
 
 	setup_tsg(tsgs, chs, i, level);
@@ -117,7 +117,7 @@ static void setup_tsg_multich(struct tsg_gk20a *tsgs, struct channel_gk20a *chs,
 }
 
 static int run_format_test(struct unit_module *m, struct nvgpu_fifo *f,
-		struct tsg_gk20a *tsg, struct channel_gk20a *chs,
+		struct nvgpu_tsg *tsg, struct nvgpu_channel *chs,
 		u32 prio, u32 n_ch, u32 *rl_data,
 		u32 *expect_header, u32 *expect_channel)
 {
@@ -177,8 +177,8 @@ static int test_tsg_format_gen(struct unit_module *m, struct gk20a *g,
 	struct nvgpu_runlist_info *runlists = &runlist;
 	unsigned long active_tsgs_map = 0;
 	unsigned long active_chs_map = 0;
-	struct tsg_gk20a tsgs[1] = {{0}};
-	struct channel_gk20a chs[5] = {{0}};
+	struct nvgpu_tsg tsgs[1] = {{0}};
+	struct nvgpu_channel chs[5] = {{0}};
 	/* header + at most five channels */
 	const u32 entries_in_list_max = 1 + 5;
 	u32 rl_data[2 * entries_in_list_max];
@@ -241,8 +241,8 @@ static int test_common_gen(struct unit_module *m, struct gk20a *g,
 	struct nvgpu_runlist_info *runlists = &runlist;
 	unsigned long active_tsgs_map = 0;
 	unsigned long active_chs_map = 0;
-	struct tsg_gk20a tsgs[6] = {{0}};
-	struct channel_gk20a chs[6] = {{0}};
+	struct nvgpu_tsg tsgs[6] = {{0}};
+	struct nvgpu_channel chs[6] = {{0}};
 	u32 tsgs_in_list = expect_count;
 	/* a tsg header and a channel entry for each */
 	const u32 entries_in_list = 2 * tsgs_in_list;

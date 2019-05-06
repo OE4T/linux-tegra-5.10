@@ -39,7 +39,7 @@
 
 #include "channel_sync_priv.h"
 
-struct nvgpu_channel_sync *nvgpu_channel_sync_create(struct channel_gk20a *c,
+struct nvgpu_channel_sync *nvgpu_channel_sync_create(struct nvgpu_channel *c,
 	bool user_managed)
 {
 	if (nvgpu_has_syncpoints(c->g)) {

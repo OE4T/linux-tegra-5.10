@@ -23,7 +23,7 @@
 #ifndef NVGPU_VGPU_TSG_GV11B_H
 #define NVGPU_VGPU_TSG_GV11B_H
 
-int vgpu_gv11b_tsg_bind_channel(struct tsg_gk20a *tsg,
-				struct channel_gk20a *ch);
+int vgpu_gv11b_tsg_bind_channel(struct nvgpu_tsg *tsg,
+				struct nvgpu_channel *ch);
 
 #endif /* NVGPU_VGPU_TSG_GV11B_H */

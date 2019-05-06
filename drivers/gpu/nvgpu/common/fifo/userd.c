@@ -78,7 +78,7 @@ void nvgpu_userd_free_slabs(struct gk20a *g)
 }
 #endif
 
-int nvgpu_userd_init_channel(struct gk20a *g, struct channel_gk20a *c)
+int nvgpu_userd_init_channel(struct gk20a *g, struct nvgpu_channel *c)
 {
 #ifdef NVGPU_USERD
 	struct nvgpu_fifo *f = &g->fifo;

@@ -84,7 +84,7 @@ static void gv11b_gr_intr_handle_fecs_ecc_error(struct gk20a *g)
 }
 
 int gv11b_gr_intr_handle_fecs_error(struct gk20a *g,
-				struct channel_gk20a *__ch,
+				struct nvgpu_channel *__ch,
 				struct nvgpu_gr_isr_data *isr_data)
 {
 	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gpu_dbg | gpu_dbg_intr, " ");

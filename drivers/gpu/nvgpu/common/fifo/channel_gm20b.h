@@ -25,11 +25,11 @@
 
 #include <nvgpu/types.h>
 
-struct channel_gk20a;
+struct nvgpu_channel;
 struct gk20a;
 
-void gm20b_channel_bind(struct channel_gk20a *c);
+void gm20b_channel_bind(struct nvgpu_channel *c);
 u32 gm20b_channel_count(struct gk20a *g);
-void gm20b_channel_force_ctx_reload(struct channel_gk20a *ch);
+void gm20b_channel_force_ctx_reload(struct nvgpu_channel *ch);
 
 #endif /* FIFO_CHANNEL_GM20B_H */

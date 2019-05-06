@@ -50,7 +50,7 @@ static int gk20a_as_ioctl_bind_channel(
 		struct nvgpu_as_bind_channel_args *args)
 {
 	int err = 0;
-	struct channel_gk20a *ch;
+	struct nvgpu_channel *ch;
 	struct gk20a *g = gk20a_from_vm(as_share->vm);
 
 	nvgpu_log_fn(g, " ");

@@ -74,7 +74,7 @@ done:
 }
 
 static bool vgpu_runlist_modify_active_locked(struct gk20a *g, u32 runlist_id,
-					    struct channel_gk20a *ch, bool add)
+					    struct nvgpu_channel *ch, bool add)
 {
 	struct nvgpu_fifo *f = &g->fifo;
 	struct nvgpu_runlist_info *runlist;
@@ -128,7 +128,7 @@ static void vgpu_runlist_reconstruct_locked(struct gk20a *g, u32 runlist_id,
 }
 
 static int vgpu_runlist_update_locked(struct gk20a *g, u32 runlist_id,
-					struct channel_gk20a *ch, bool add,
+					struct nvgpu_channel *ch, bool add,
 					bool wait_for_finish)
 {
 	struct nvgpu_fifo *f = &g->fifo;
@@ -164,7 +164,7 @@ static int vgpu_runlist_update_locked(struct gk20a *g, u32 runlist_id,
    (ch == NULL && !add) means remove all active channels from runlist.
    (ch == NULL &&  add) means restore all active channels on runlist. */
 static int vgpu_runlist_update(struct gk20a *g, u32 runlist_id,
-				struct channel_gk20a *ch,
+				struct nvgpu_channel *ch,
 				bool add, bool wait_for_finish)
 {
 	struct nvgpu_runlist_info *runlist = NULL;
@@ -185,7 +185,7 @@ static int vgpu_runlist_update(struct gk20a *g, u32 runlist_id,
 }
 
 int vgpu_runlist_update_for_channel(struct gk20a *g, u32 runlist_id,
-			      struct channel_gk20a *ch,
+			      struct nvgpu_channel *ch,
 			      bool add, bool wait_for_finish)
 {
 	nvgpu_assert(ch != NULL);

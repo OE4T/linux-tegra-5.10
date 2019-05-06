@@ -32,7 +32,7 @@
 
 #include "gr_priv.h"
 
-static int nvgpu_gr_setup_zcull(struct gk20a *g, struct channel_gk20a *c,
+static int nvgpu_gr_setup_zcull(struct gk20a *g, struct nvgpu_channel *c,
 				struct nvgpu_gr_ctx *gr_ctx)
 {
 	int ret = 0;
@@ -67,10 +67,10 @@ static int nvgpu_gr_setup_zcull(struct gk20a *g, struct channel_gk20a *c,
 	return ret;
 }
 
-int nvgpu_gr_setup_bind_ctxsw_zcull(struct gk20a *g, struct channel_gk20a *c,
+int nvgpu_gr_setup_bind_ctxsw_zcull(struct gk20a *g, struct nvgpu_channel *c,
 			u64 zcull_va, u32 mode)
 {
-	struct tsg_gk20a *tsg;
+	struct nvgpu_tsg *tsg;
 	struct nvgpu_gr_ctx *gr_ctx;
 
 	tsg = tsg_gk20a_from_ch(c);
@@ -84,12 +84,12 @@ int nvgpu_gr_setup_bind_ctxsw_zcull(struct gk20a *g, struct channel_gk20a *c,
 	return nvgpu_gr_setup_zcull(g, c, gr_ctx);
 }
 
-int nvgpu_gr_setup_alloc_obj_ctx(struct channel_gk20a *c, u32 class_num,
+int nvgpu_gr_setup_alloc_obj_ctx(struct nvgpu_channel *c, u32 class_num,
 		u32 flags)
 {
 	struct gk20a *g = c->g;
 	struct nvgpu_gr_ctx *gr_ctx;
-	struct tsg_gk20a *tsg = NULL;
+	struct nvgpu_tsg *tsg = NULL;
 	int err = 0;
 
 	nvgpu_log_fn(g, " ");
@@ -194,7 +194,7 @@ void nvgpu_gr_setup_free_gr_ctx(struct gk20a *g,
 	}
 }
 
-void nvgpu_gr_setup_free_subctx(struct channel_gk20a *c)
+void nvgpu_gr_setup_free_subctx(struct nvgpu_channel *c)
 {
 	nvgpu_log_fn(c->g, " ");
 
@@ -207,13 +207,13 @@ void nvgpu_gr_setup_free_subctx(struct channel_gk20a *c)
 	}
 }
 
-int nvgpu_gr_setup_set_preemption_mode(struct channel_gk20a *ch,
+int nvgpu_gr_setup_set_preemption_mode(struct nvgpu_channel *ch,
 					u32 graphics_preempt_mode,
 					u32 compute_preempt_mode)
 {
 	struct nvgpu_gr_ctx *gr_ctx;
 	struct gk20a *g = ch->g;
-	struct tsg_gk20a *tsg;
+	struct nvgpu_tsg *tsg;
 	struct vm_gk20a *vm;
 	u32 class;
 	int err = 0;

@@ -25,12 +25,12 @@
 
 #include <nvgpu/types.h>
 
-struct channel_gk20a;
-struct tsg_gk20a;
+struct nvgpu_channel;
+struct nvgpu_tsg;
 struct gk20a;
 
-int gk20a_runlist_reschedule(struct channel_gk20a *ch, bool preempt_next);
-int gk20a_fifo_reschedule_preempt_next(struct channel_gk20a *ch,
+int gk20a_runlist_reschedule(struct nvgpu_channel *ch, bool preempt_next);
+int gk20a_fifo_reschedule_preempt_next(struct nvgpu_channel *ch,
 		bool wait_preempt);
 u32 gk20a_runlist_count_max(void);
 u32 gk20a_runlist_length_max(struct gk20a *g);

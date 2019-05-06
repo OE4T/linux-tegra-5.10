@@ -62,7 +62,7 @@ int vm_aspace_id(struct vm_gk20a *vm)
 	return (vm->as_share != NULL) ? vm->as_share->id : -1;
 }
 
-int nvgpu_vm_bind_channel(struct vm_gk20a *vm, struct channel_gk20a *ch)
+int nvgpu_vm_bind_channel(struct vm_gk20a *vm, struct nvgpu_channel *ch)
 {
 	int err = 0;
 

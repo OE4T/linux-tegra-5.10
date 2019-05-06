@@ -34,7 +34,7 @@
 #include "common/vgpu/ivc/comm_vgpu.h"
 
 int vgpu_exec_regops(struct gk20a *g,
-		     struct channel_gk20a *ch,
+		     struct nvgpu_channel *ch,
 		     struct nvgpu_dbg_reg_op *ops,
 		     u32 num_ops,
 		     bool is_profiler,

@@ -34,14 +34,14 @@
 
 #include <nvgpu/hw/gk20a/hw_ccsr_gk20a.h>
 
-void gk20a_channel_enable(struct channel_gk20a *ch)
+void gk20a_channel_enable(struct nvgpu_channel *ch)
 {
 	gk20a_writel(ch->g, ccsr_channel_r(ch->chid),
 		gk20a_readl(ch->g, ccsr_channel_r(ch->chid)) |
 		ccsr_channel_enable_set_true_f());
 }
 
-void gk20a_channel_disable(struct channel_gk20a *ch)
+void gk20a_channel_disable(struct nvgpu_channel *ch)
 {
 	gk20a_writel(ch->g, ccsr_channel_r(ch->chid),
 		gk20a_readl(ch->g,
@@ -49,7 +49,7 @@ void gk20a_channel_disable(struct channel_gk20a *ch)
 			ccsr_channel_enable_clr_true_f());
 }
 
-void gk20a_channel_unbind(struct channel_gk20a *ch)
+void gk20a_channel_unbind(struct nvgpu_channel *ch)
 {
 	struct gk20a *g = ch->g;
 
@@ -82,7 +82,7 @@ static const char * const ccsr_chan_status_str[] = {
 	"N/A",
 };
 
-void gk20a_channel_read_state(struct gk20a *g, struct channel_gk20a *ch,
+void gk20a_channel_read_state(struct gk20a *g, struct nvgpu_channel *ch,
 		struct nvgpu_channel_hw_state *state)
 {
 	u32 reg = gk20a_readl(g, ccsr_channel_r(ch->chid));

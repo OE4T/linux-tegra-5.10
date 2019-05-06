@@ -89,7 +89,7 @@ int gk20a_fifo_is_preempt_pending(struct gk20a *g, u32 id,
 	return ret;
 }
 
-int gk20a_fifo_preempt_channel(struct gk20a *g, struct channel_gk20a *ch)
+int gk20a_fifo_preempt_channel(struct gk20a *g, struct nvgpu_channel *ch)
 {
 	int ret = 0;
 	u32 token = PMU_INVALID_MUTEX_OWNER_ID;
@@ -117,7 +117,7 @@ int gk20a_fifo_preempt_channel(struct gk20a *g, struct channel_gk20a *ch)
 			"ctxsw timeout will trigger recovery if needed",
 			ch->chid);
 		} else {
-			struct tsg_gk20a *tsg;
+			struct nvgpu_tsg *tsg;
 
 			nvgpu_err(g, "preempt channel %d timeout", ch->chid);
 			tsg = tsg_gk20a_from_ch(ch);
@@ -134,7 +134,7 @@ int gk20a_fifo_preempt_channel(struct gk20a *g, struct channel_gk20a *ch)
 	return ret;
 }
 
-int gk20a_fifo_preempt_tsg(struct gk20a *g, struct tsg_gk20a *tsg)
+int gk20a_fifo_preempt_tsg(struct gk20a *g, struct nvgpu_tsg *tsg)
 {
 	int ret = 0;
 	u32 token = PMU_INVALID_MUTEX_OWNER_ID;

@@ -22,19 +22,19 @@
 
 #include <nvgpu/error_notifier.h>
 
-void nvgpu_set_error_notifier_locked(struct channel_gk20a *ch, u32 error)
+void nvgpu_set_error_notifier_locked(struct nvgpu_channel *ch, u32 error)
 {
 }
 
-void nvgpu_set_error_notifier(struct channel_gk20a *ch, u32 error)
+void nvgpu_set_error_notifier(struct nvgpu_channel *ch, u32 error)
 {
 }
 
-void nvgpu_set_error_notifier_if_empty(struct channel_gk20a *ch, u32 error)
+void nvgpu_set_error_notifier_if_empty(struct nvgpu_channel *ch, u32 error)
 {
 }
 
-bool nvgpu_is_error_notifier_set(struct channel_gk20a *ch, u32 error_notifier)
+bool nvgpu_is_error_notifier_set(struct nvgpu_channel *ch, u32 error_notifier)
 {
 	return false;
 }

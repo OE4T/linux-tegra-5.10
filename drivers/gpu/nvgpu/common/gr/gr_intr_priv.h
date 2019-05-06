@@ -26,7 +26,7 @@
 #include <nvgpu/types.h>
 #include <nvgpu/lock.h>
 
-struct channel_gk20a;
+struct nvgpu_channel;
 
 struct nvgpu_gr_intr_info {
 	u32 notify;
@@ -51,7 +51,7 @@ struct nvgpu_gr_isr_data {
 	u32 data_lo;
 	u32 data_hi;
 	u32 curr_ctx;
-	struct channel_gk20a *ch;
+	struct nvgpu_channel *ch;
 	u32 offset;
 	u32 sub_chan;
 	u32 class_num;

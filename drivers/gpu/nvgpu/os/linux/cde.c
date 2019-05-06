@@ -98,7 +98,7 @@ __must_hold(&cde_app->mutex)
 {
 	struct nvgpu_os_linux *l = cde_ctx->l;
 	struct gk20a *g = &l->g;
-	struct channel_gk20a *ch = cde_ctx->ch;
+	struct nvgpu_channel *ch = cde_ctx->ch;
 	struct vm_gk20a *vm = ch->vm;
 	struct nvgpu_cbc *cbc = g->cbc;
 
@@ -1248,7 +1248,7 @@ exit_idle:
 	return err;
 }
 
-static void gk20a_cde_finished_ctx_cb(struct channel_gk20a *ch, void *data)
+static void gk20a_cde_finished_ctx_cb(struct nvgpu_channel *ch, void *data)
 __acquires(&cde_app->mutex)
 __releases(&cde_app->mutex)
 {
@@ -1309,8 +1309,8 @@ static int gk20a_cde_load(struct gk20a_cde_ctx *cde_ctx)
 	struct gk20a *g = &l->g;
 	struct nvgpu_cbc *cbc = g->cbc;
 	struct nvgpu_firmware *img;
-	struct channel_gk20a *ch;
-	struct tsg_gk20a *tsg;
+	struct nvgpu_channel *ch;
+	struct nvgpu_tsg *tsg;
 	struct nvgpu_setup_bind_args setup_bind_args;
 	int err = 0;
 	u64 vaddr;

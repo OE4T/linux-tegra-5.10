@@ -125,7 +125,7 @@ struct nvgpu_semaphore_loc {
 struct nvgpu_hw_semaphore {
 	struct nvgpu_semaphore_loc location;
 	nvgpu_atomic_t next_value;	/* Next available value. */
-	struct channel_gk20a *ch;	/* Channel that owns this sema. */
+	struct nvgpu_channel *ch;	/* Channel that owns this sema. */
 };
 
 /*

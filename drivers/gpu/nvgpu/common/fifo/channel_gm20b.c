@@ -33,7 +33,7 @@
 #include <nvgpu/hw/gm20b/hw_ccsr_gm20b.h>
 #include <nvgpu/hw/gm20b/hw_ram_gm20b.h>
 
-void gm20b_channel_bind(struct channel_gk20a *c)
+void gm20b_channel_bind(struct nvgpu_channel *c)
 {
 	struct gk20a *g = c->g;
 
@@ -63,7 +63,7 @@ u32 gm20b_channel_count(struct gk20a *g)
 	return ccsr_channel__size_1_v();
 }
 
-void gm20b_channel_force_ctx_reload(struct channel_gk20a *ch)
+void gm20b_channel_force_ctx_reload(struct nvgpu_channel *ch)
 {
 	struct gk20a *g = ch->g;
 	u32 reg = gk20a_readl(g, ccsr_channel_r(ch->chid));

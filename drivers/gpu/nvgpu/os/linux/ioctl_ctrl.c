@@ -664,7 +664,7 @@ static int nvgpu_gpu_ioctl_set_debug_mode(
 		struct gk20a *g,
 		struct nvgpu_gpu_sm_debug_mode_args *args)
 {
-	struct channel_gk20a *ch;
+	struct nvgpu_channel *ch;
 	int err;
 
 	ch = gk20a_get_channel_from_file(args->channel_fd);
@@ -1543,7 +1543,7 @@ static int nvgpu_gpu_set_therm_alert_limit(struct gk20a *g,
 	return err;
 }
 
-static int nvgpu_gpu_set_deterministic_ch_railgate(struct channel_gk20a *ch,
+static int nvgpu_gpu_set_deterministic_ch_railgate(struct nvgpu_channel *ch,
 		u32 flags)
 {
 	int err = 0;
@@ -1585,7 +1585,7 @@ static int nvgpu_gpu_set_deterministic_ch_railgate(struct channel_gk20a *ch,
 	return err;
 }
 
-static int nvgpu_gpu_set_deterministic_ch(struct channel_gk20a *ch, u32 flags)
+static int nvgpu_gpu_set_deterministic_ch(struct nvgpu_channel *ch, u32 flags)
 {
 	if (!ch->deterministic)
 		return -EINVAL;
@@ -1622,7 +1622,7 @@ static int nvgpu_gpu_set_deterministic_opts(struct gk20a *g,
 	/* note: we exit at the first failure */
 	for (; i < args->num_channels; i++) {
 		int ch_fd = 0;
-		struct channel_gk20a *ch;
+		struct nvgpu_channel *ch;
 
 		if (copy_from_user(&ch_fd, &user_channels[i], sizeof(int))) {
 			/* User raced with above access_ok */

@@ -40,7 +40,7 @@
  * Since semaphores are ref-counted there's no explicit free for external code
  * to use. When the ref-count hits 0 the internal free will happen.
  */
-struct nvgpu_semaphore *nvgpu_semaphore_alloc(struct channel_gk20a *ch)
+struct nvgpu_semaphore *nvgpu_semaphore_alloc(struct nvgpu_channel *ch)
 {
 	struct nvgpu_semaphore *s;
 	int ret;

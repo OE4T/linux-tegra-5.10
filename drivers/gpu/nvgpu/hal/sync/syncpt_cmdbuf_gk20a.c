@@ -92,13 +92,13 @@ u32 gk20a_syncpt_get_incr_cmd_size(bool wfi_cmd)
 	}
 }
 
-void gk20a_syncpt_free_buf(struct channel_gk20a *c,
+void gk20a_syncpt_free_buf(struct nvgpu_channel *c,
 		struct nvgpu_mem *syncpt_buf)
 {
 
 }
 
-int gk20a_syncpt_alloc_buf(struct channel_gk20a *c,
+int gk20a_syncpt_alloc_buf(struct nvgpu_channel *c,
 		u32 syncpt_id, struct nvgpu_mem *syncpt_buf)
 {
 	return 0;

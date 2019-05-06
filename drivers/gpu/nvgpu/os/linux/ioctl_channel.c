@@ -83,9 +83,9 @@ static void gk20a_channel_trace_sched_param(
 		u32 timeout, const char *interleave,
 		const char *graphics_preempt_mode,
 		const char *compute_preempt_mode),
-	struct channel_gk20a *ch)
+	struct nvgpu_channel *ch)
 {
-	struct tsg_gk20a *tsg = tsg_gk20a_from_ch(ch);
+	struct nvgpu_tsg *tsg = tsg_gk20a_from_ch(ch);
 
 	if (!tsg)
 		return;
@@ -110,12 +110,12 @@ static void gk20a_channel_trace_sched_param(
  */
 struct channel_priv {
 	struct gk20a *g;
-	struct channel_gk20a *c;
+	struct nvgpu_channel *c;
 };
 
 #if defined(CONFIG_GK20A_CYCLE_STATS)
 
-void gk20a_channel_free_cycle_stats_buffer(struct channel_gk20a *ch)
+void gk20a_channel_free_cycle_stats_buffer(struct nvgpu_channel *ch)
 {
 	struct nvgpu_channel_linux *priv = ch->os_priv;
 
@@ -132,7 +132,7 @@ void gk20a_channel_free_cycle_stats_buffer(struct channel_gk20a *ch)
 	nvgpu_mutex_release(&ch->cyclestate.cyclestate_buffer_mutex);
 }
 
-int gk20a_channel_cycle_stats(struct channel_gk20a *ch, int dmabuf_fd)
+int gk20a_channel_cycle_stats(struct nvgpu_channel *ch, int dmabuf_fd)
 {
 	struct dma_buf *dmabuf;
 	void *virtual_address;
@@ -171,7 +171,7 @@ int gk20a_channel_cycle_stats(struct channel_gk20a *ch, int dmabuf_fd)
 	}
 }
 
-int gk20a_flush_cycle_stats_snapshot(struct channel_gk20a *ch)
+int gk20a_flush_cycle_stats_snapshot(struct nvgpu_channel *ch)
 {
 	int ret;
 
@@ -185,7 +185,7 @@ int gk20a_flush_cycle_stats_snapshot(struct channel_gk20a *ch)
 	return ret;
 }
 
-int gk20a_attach_cycle_stats_snapshot(struct channel_gk20a *ch,
+int gk20a_attach_cycle_stats_snapshot(struct nvgpu_channel *ch,
 				u32 dmabuf_fd,
 				u32 perfmon_id_count,
 				u32 *perfmon_id_start)
@@ -249,7 +249,7 @@ err:
 	return ret;
 }
 
-int gk20a_channel_free_cycle_stats_snapshot(struct channel_gk20a *ch)
+int gk20a_channel_free_cycle_stats_snapshot(struct nvgpu_channel *ch)
 {
 	int ret;
 	struct gk20a_cs_snapshot_client_linux *client_linux;
@@ -282,7 +282,7 @@ int gk20a_channel_free_cycle_stats_snapshot(struct channel_gk20a *ch)
 }
 #endif
 
-static int gk20a_channel_set_wdt_status(struct channel_gk20a *ch,
+static int gk20a_channel_set_wdt_status(struct nvgpu_channel *ch,
 		struct nvgpu_channel_wdt_args *args)
 {
 	u32 status = args->wdt_status & (NVGPU_IOCTL_CHANNEL_DISABLE_WDT |
@@ -304,7 +304,7 @@ static int gk20a_channel_set_wdt_status(struct channel_gk20a *ch,
 	return 0;
 }
 
-static void gk20a_channel_free_error_notifiers(struct channel_gk20a *ch)
+static void gk20a_channel_free_error_notifiers(struct nvgpu_channel *ch)
 {
 	struct nvgpu_channel_linux *priv = ch->os_priv;
 
@@ -319,7 +319,7 @@ static void gk20a_channel_free_error_notifiers(struct channel_gk20a *ch)
 	nvgpu_mutex_release(&priv->error_notifier.mutex);
 }
 
-static int gk20a_init_error_notifier(struct channel_gk20a *ch,
+static int gk20a_init_error_notifier(struct nvgpu_channel *ch,
 		struct nvgpu_set_error_notifier *args)
 {
 	struct dma_buf *dmabuf;
@@ -376,9 +376,9 @@ static int gk20a_init_error_notifier(struct channel_gk20a *ch,
  *
  * NULL is returned if the channel was not found.
  */
-struct channel_gk20a *gk20a_get_channel_from_file(int fd)
+struct nvgpu_channel *gk20a_get_channel_from_file(int fd)
 {
-	struct channel_gk20a *ch;
+	struct nvgpu_channel *ch;
 	struct channel_priv *priv;
 	struct file *f = fget(fd);
 
@@ -399,7 +399,7 @@ struct channel_gk20a *gk20a_get_channel_from_file(int fd)
 int gk20a_channel_release(struct inode *inode, struct file *filp)
 {
 	struct channel_priv *priv = filp->private_data;
-	struct channel_gk20a *ch;
+	struct nvgpu_channel *ch;
 	struct gk20a *g;
 
 	int err;
@@ -438,7 +438,7 @@ static int __gk20a_channel_open(struct gk20a *g,
 				struct file *filp, s32 runlist_id)
 {
 	int err;
-	struct channel_gk20a *ch;
+	struct nvgpu_channel *ch;
 	struct channel_priv *priv;
 	u32 tmp_runlist_id;
 
@@ -622,7 +622,7 @@ static void nvgpu_get_fence_args(
 	fence_args_out->value = fence_args_in->value;
 }
 
-static int gk20a_channel_wait_semaphore(struct channel_gk20a *ch,
+static int gk20a_channel_wait_semaphore(struct nvgpu_channel *ch,
 					ulong id, u32 offset,
 					u32 payload, u32 timeout)
 {
@@ -663,7 +663,7 @@ cleanup_put:
 	return ret;
 }
 
-static int gk20a_channel_wait(struct channel_gk20a *ch,
+static int gk20a_channel_wait(struct nvgpu_channel *ch,
 			      struct nvgpu_wait_args *args)
 {
 	struct dma_buf *dmabuf;
@@ -756,7 +756,7 @@ notif_clean_up:
 	return ret;
 }
 
-static int gk20a_channel_zcull_bind(struct channel_gk20a *ch,
+static int gk20a_channel_zcull_bind(struct nvgpu_channel *ch,
 			    struct nvgpu_zcull_bind_args *args)
 {
 	struct gk20a *g = ch->g;
@@ -768,7 +768,7 @@ static int gk20a_channel_zcull_bind(struct channel_gk20a *ch,
 }
 
 static int gk20a_ioctl_channel_submit_gpfifo(
-	struct channel_gk20a *ch,
+	struct nvgpu_channel *ch,
 	struct nvgpu_submit_gpfifo_args *args)
 {
 	struct nvgpu_channel_fence fence;
@@ -872,7 +872,7 @@ static u32 nvgpu_obj_ctx_user_flags_to_common_flags(u32 user_flags)
 	return flags;
 }
 
-static int nvgpu_ioctl_channel_alloc_obj_ctx(struct channel_gk20a *ch,
+static int nvgpu_ioctl_channel_alloc_obj_ctx(struct nvgpu_channel *ch,
 	u32 class_num, u32 user_flags)
 {
 	return ch->g->ops.gr.setup.alloc_obj_ctx(ch, class_num,
@@ -983,7 +983,7 @@ static u32 nvgpu_get_common_compute_preempt_mode(u32 compute_preempt_mode)
 	return compute_preempt_mode;
 }
 
-static int nvgpu_ioctl_channel_set_preemption_mode(struct channel_gk20a *ch,
+static int nvgpu_ioctl_channel_set_preemption_mode(struct nvgpu_channel *ch,
 	u32 graphics_preempt_mode, u32 compute_preempt_mode)
 {
 	int err;
@@ -1005,7 +1005,7 @@ static int nvgpu_ioctl_channel_set_preemption_mode(struct channel_gk20a *ch,
 	return err;
 }
 
-static int nvgpu_ioctl_channel_get_user_syncpoint(struct channel_gk20a *ch,
+static int nvgpu_ioctl_channel_get_user_syncpoint(struct nvgpu_channel *ch,
 	struct nvgpu_get_user_syncpoint_args *args)
 {
 #ifdef CONFIG_TEGRA_GK20A_NVHOST
@@ -1070,7 +1070,7 @@ long gk20a_channel_ioctl(struct file *filp,
 	unsigned int cmd, unsigned long arg)
 {
 	struct channel_priv *priv = filp->private_data;
-	struct channel_gk20a *ch = priv->c;
+	struct nvgpu_channel *ch = priv->c;
 	struct device *dev = dev_from_gk20a(ch->g);
 	u8 buf[NVGPU_IOCTL_CHANNEL_MAX_ARG_SIZE] = {0};
 	int err = 0;

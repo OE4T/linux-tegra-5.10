@@ -36,7 +36,7 @@ struct vm_gk20a;
 struct nvgpu_vm_area;
 struct nvgpu_sgt;
 struct gk20a_comptag_allocator;
-struct channel_gk20a;
+struct nvgpu_channel;
 
 /*
  * Defined by each OS. Allows the common VM code do things to the OS specific
@@ -226,7 +226,7 @@ void nvgpu_vm_put(struct vm_gk20a *vm);
 
 int vm_aspace_id(struct vm_gk20a *vm);
 
-int nvgpu_vm_bind_channel(struct vm_gk20a *vm, struct channel_gk20a *ch);
+int nvgpu_vm_bind_channel(struct vm_gk20a *vm, struct nvgpu_channel *ch);
 
 bool nvgpu_big_pages_possible(struct vm_gk20a *vm, u64 base, u64 size);
 

@@ -29,7 +29,7 @@
 #include <nvgpu/os_fence.h>
 
 struct gk20a;
-struct channel_gk20a;
+struct nvgpu_channel;
 struct platform_device;
 struct nvgpu_semaphore;
 struct nvgpu_os_fence;
@@ -76,11 +76,11 @@ int nvgpu_fence_from_syncpt(
 		u32 id, u32 value,
 		struct nvgpu_os_fence os_fence);
 
-int nvgpu_fence_pool_alloc(struct channel_gk20a *ch, unsigned int count);
+int nvgpu_fence_pool_alloc(struct nvgpu_channel *ch, unsigned int count);
 
-void nvgpu_fence_pool_free(struct channel_gk20a *ch);
+void nvgpu_fence_pool_free(struct nvgpu_channel *ch);
 
-struct nvgpu_fence_type *nvgpu_fence_alloc(struct channel_gk20a *ch);
+struct nvgpu_fence_type *nvgpu_fence_alloc(struct nvgpu_channel *ch);
 
 void nvgpu_fence_init(struct nvgpu_fence_type *f,
 		const struct nvgpu_fence_ops *ops,

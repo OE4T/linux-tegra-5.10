@@ -23,8 +23,8 @@
 #ifndef NVGPU_TSG_GK20A_H
 #define NVGPU_TSG_GK20A_H
 
-struct tsg_gk20a;
+struct nvgpu_tsg;
 
-void gk20a_tsg_enable(struct tsg_gk20a *tsg);
+void gk20a_tsg_enable(struct nvgpu_tsg *tsg);
 
 #endif /* NVGPU_TSG_GK20A_H */

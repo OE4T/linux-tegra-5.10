@@ -33,7 +33,7 @@
 
 #include <nvgpu/hw/gp10b/hw_ram_gp10b.h>
 
-int gp10b_ramfc_commit_userd(struct channel_gk20a *ch)
+int gp10b_ramfc_commit_userd(struct nvgpu_channel *ch)
 {
 	u32 addr_lo;
 	u32 addr_hi;
@@ -59,7 +59,7 @@ int gp10b_ramfc_commit_userd(struct channel_gk20a *ch)
 	return 0;
 }
 
-int gp10b_ramfc_setup(struct channel_gk20a *ch, u64 gpfifo_base,
+int gp10b_ramfc_setup(struct nvgpu_channel *ch, u64 gpfifo_base,
 		u32 gpfifo_entries, u64 pbdma_acquire_timeout, u32 flags)
 {
 	struct gk20a *g = ch->g;
@@ -111,7 +111,7 @@ int gp10b_ramfc_setup(struct channel_gk20a *ch, u64 gpfifo_base,
 	return g->ops.ramfc.commit_userd(ch);
 }
 
-u32 gp10b_ramfc_get_syncpt(struct channel_gk20a *ch)
+u32 gp10b_ramfc_get_syncpt(struct nvgpu_channel *ch)
 {
 	struct gk20a *g = ch->g;
 	u32 v, syncpt;
@@ -122,7 +122,7 @@ u32 gp10b_ramfc_get_syncpt(struct channel_gk20a *ch)
 	return syncpt;
 }
 
-void gp10b_ramfc_set_syncpt(struct channel_gk20a *ch, u32 syncpt)
+void gp10b_ramfc_set_syncpt(struct nvgpu_channel *ch, u32 syncpt)
 {
 	struct gk20a *g = ch->g;
 	u32 v = g->ops.pbdma.allowed_syncpoints_0_valid_f() |

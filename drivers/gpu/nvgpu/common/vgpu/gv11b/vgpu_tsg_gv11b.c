@@ -28,8 +28,8 @@
 #include "vgpu_tsg_gv11b.h"
 #include "common/vgpu/ivc/comm_vgpu.h"
 
-int vgpu_gv11b_tsg_bind_channel(struct tsg_gk20a *tsg,
-				struct channel_gk20a *ch)
+int vgpu_gv11b_tsg_bind_channel(struct nvgpu_tsg *tsg,
+				struct nvgpu_channel *ch)
 {
 	struct tegra_vgpu_cmd_msg msg = {};
 	struct tegra_vgpu_tsg_bind_channel_ex_params *p =
