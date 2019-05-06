@@ -20,22 +20,26 @@
 # DEALINGS IN THE SOFTWARE.
 #
 
-ifeq ($(NVGPU_REDUCED), 0)
-# Enable debugger APIs for normal builds
-NVGPU_DEBUGGER                  := 1
-# Enable iGPU LS PMU for normal builds
-NVGPU_LS_PMU                    := 1
-NV_COMPONENT_CFLAGS             += -DNVGPU_DEBUGGER
-NV_COMPONENT_CFLAGS             += -DNVGPU_LS_PMU
-NV_COMPONENT_CFLAGS             += -DNVGPU_ENGINE
-NV_COMPONENT_CFLAGS             += -DNVGPU_USERD
-# Support iGPU Virt for normal builds
+# Support iGPU Virt for safety build until rmserver dependency is resolved
 IGPU_VIRT_SUPPORT               := 1
 NV_COMPONENT_CFLAGS             += -DIGPU_VIRT_SUPPORT
-# Enable dgpu support for normal builds
+
+# Enable debugger APIs for safety build until devctl whitelisting is done
+NVGPU_DEBUGGER                  := 1
+NV_COMPONENT_CFLAGS             += -DNVGPU_DEBUGGER
+
+# Enable USERD for safety build until we switch to user mode submits only
+NV_COMPONENT_CFLAGS             += -DNVGPU_USERD
+
+# Enable iGPU LS PMU for safety build until devctl whitelisting is done
+NVGPU_LS_PMU                    := 1
+NV_COMPONENT_CFLAGS             += -DNVGPU_LS_PMU
+
+NV_COMPONENT_CFLAGS             += -DNVGPU_ENGINE
+
+# Enable dgpu support for safety build for now. To be removed.
 NVGPU_DGPU_SUPPORT              := 1
 NV_COMPONENT_CFLAGS             += -DNVGPU_DGPU_SUPPORT
-else
-# Enable USERD until we switch to user mode submit only
-NV_COMPONENT_CFLAGS             += -DNVGPU_USERD
+
+ifeq ($(NVGPU_REDUCED), 0)
 endif
