@@ -45,7 +45,7 @@ int nvgpu_current_tid(struct gk20a *g)
 	return (int)pthread_self();
 }
 
-void __nvgpu_print_current(struct gk20a *g, const char *func_name, int line,
+void nvgpu_print_current_impl(struct gk20a *g, const char *func_name, int line,
 		void *ctx, enum nvgpu_log_type type)
 {
 	char current_tname[CURRENT_NAME_LEN];

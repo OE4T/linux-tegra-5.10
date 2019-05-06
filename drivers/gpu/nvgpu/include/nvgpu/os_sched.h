@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -39,13 +39,13 @@ int nvgpu_current_tid(struct gk20a *g);
  */
 int nvgpu_current_pid(struct gk20a *g);
 
-void __nvgpu_print_current(struct gk20a *g, const char *func_name, int line,
+void nvgpu_print_current_impl(struct gk20a *g, const char *func_name, int line,
 		void *ctx, enum nvgpu_log_type type);
 /**
  * nvgpu_print_current - print the name of current calling process
  *
  */
 #define nvgpu_print_current(g, ctx, type) \
-	__nvgpu_print_current(g, __func__, __LINE__, ctx, type)
+	nvgpu_print_current_impl(g, __func__, __LINE__, ctx, type)
 
 #endif /* NVGPU_OS_SCHED_H */
