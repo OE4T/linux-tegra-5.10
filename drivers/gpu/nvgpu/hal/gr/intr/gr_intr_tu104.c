@@ -46,12 +46,14 @@ static void gr_tu104_set_sm_disp_ctrl(struct gk20a *g, u32 data)
 		     gr_gpcs_tpcs_sm_disp_ctrl_compute_shader_quad_m(),
 		     gr_gpcs_tpcs_sm_disp_ctrl_compute_shader_quad_disable_f()
 		     );
-	} else if ((data & NVC5C0_SET_SM_DISP_CTRL_COMPUTE_SHADER_QUAD_MASK)
-		== NVC5C0_SET_SM_DISP_CTRL_COMPUTE_SHADER_QUAD_ENABLE) {
-		reg_val = set_field(reg_val,
-		     gr_gpcs_tpcs_sm_disp_ctrl_compute_shader_quad_m(),
-		     gr_gpcs_tpcs_sm_disp_ctrl_compute_shader_quad_enable_f()
-		     );
+	} else {
+		if ((data & NVC5C0_SET_SM_DISP_CTRL_COMPUTE_SHADER_QUAD_MASK)
+		     == NVC5C0_SET_SM_DISP_CTRL_COMPUTE_SHADER_QUAD_ENABLE) {
+			reg_val = set_field(reg_val,
+			     gr_gpcs_tpcs_sm_disp_ctrl_compute_shader_quad_m(),
+			     gr_gpcs_tpcs_sm_disp_ctrl_compute_shader_quad_enable_f()
+			     );
+		}
 	}
 
 	nvgpu_writel(g, gr_gpcs_tpcs_sm_disp_ctrl_r(), reg_val);

@@ -136,12 +136,14 @@ void gv11b_gr_intr_set_skedcheck(struct gk20a *g, u32 data)
 		 gr_sked_hww_esr_en_skedcheck18_l1_config_too_small_m(),
 		 gr_sked_hww_esr_en_skedcheck18_l1_config_too_small_disabled_f()
 		 );
-	} else if ((data & NVC397_SET_SKEDCHECK_18_MASK) ==
-			NVC397_SET_SKEDCHECK_18_ENABLE) {
-		reg_val = set_field(reg_val,
-		 gr_sked_hww_esr_en_skedcheck18_l1_config_too_small_m(),
-		 gr_sked_hww_esr_en_skedcheck18_l1_config_too_small_enabled_f()
-		 );
+	} else {
+		if ((data & NVC397_SET_SKEDCHECK_18_MASK) ==
+				NVC397_SET_SKEDCHECK_18_ENABLE) {
+			reg_val = set_field(reg_val,
+			 gr_sked_hww_esr_en_skedcheck18_l1_config_too_small_m(),
+			 gr_sked_hww_esr_en_skedcheck18_l1_config_too_small_enabled_f()
+			 );
+		}
 	}
 	nvgpu_log_info(g, "sked_hww_esr_en = 0x%x", reg_val);
 	nvgpu_writel(g, gr_sked_hww_esr_en_r(), reg_val);
