@@ -1,0 +1,94 @@
+# Copyright (c) 2019, NVIDIA CORPORATION.  All Rights Reserved.
+#
+# HAL units. These are the units that have access to HW.
+#
+
+init:
+  safe: yes
+  owner: Terje B
+  sources: [ include/nvgpu/hal_init.h ]
+
+gr:
+  safe: yes
+  owner: Deepak N
+  children:
+    err_ops:
+      safe: yes
+      sources: [ ]
+
+pmu_ver:
+  safe: yes
+  children:
+    boardobj:
+      safe: yes
+      owner: Mahantesh K
+      gpu: dgpu
+      sources: [ ]
+
+    volt:
+      safe: yes
+      owner: Mahantesh K
+      gpu: dgpu
+      sources: [ ]
+
+    clk:
+      safe: yes
+      owner: Ramesh M
+      gpu: dgpu
+      sources: [ ]
+
+
+pramin:
+  safe: yes
+  owner: Terje B
+  sources: [ ]
+
+pmu:
+  children:
+    err_ops:
+      safe: yes
+      owner: Mahantesh K
+      sources: [ ]
+
+pmu_perf:
+  safe: yes
+  owner: Abdul S
+  gpu: dgpu
+  sources: [ ]
+
+debug:
+  safe: yes
+  owner: Deepak N
+  sources: [ ]
+
+debugger:
+  safe: no
+  owner: Deepak N
+  sources: [ ]
+
+perfbuf:
+  safe: no
+  owner: Deepak N
+  sources: [ ]
+
+css:
+  safe: no
+  owner: Deepak N
+  sources: [ ]
+
+xve:
+  safe: yes
+  owner: Alex W
+  gpu: dgpu
+  sources: [ include/nvgpu/xve.h,
+             common/xve/xve_gp106.c,
+             common/xve/xve_gp106.h ]
+
+nvlink:
+  safe: yes
+  owner: Tejal K
+  gpu: dgpu
+  sources: [ common/nvlink/nvlink_gv100.c,
+             common/nvlink/nvlink_gv100.h,
+             common/nvlink/nvlink_tu104.c,
+             common/nvlink/nvlink_tu104.h ]
