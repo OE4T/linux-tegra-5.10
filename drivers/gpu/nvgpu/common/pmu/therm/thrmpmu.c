@@ -59,8 +59,8 @@ int therm_send_pmgr_tables_to_pmu(struct gk20a *g)
 	int status = 0;
 	struct boardobjgrp *pboardobjgrp = NULL;
 
-	if (!BOARDOBJGRP_IS_EMPTY(&g->therm_pmu->therm_deviceobjs.super.super)) {
-		pboardobjgrp = &g->therm_pmu->therm_deviceobjs.super.super;
+	if (!BOARDOBJGRP_IS_EMPTY(&g->pmu.therm_pmu->therm_deviceobjs.super.super)) {
+		pboardobjgrp = &g->pmu.therm_pmu->therm_deviceobjs.super.super;
 		status = pboardobjgrp->pmuinithandle(g, pboardobjgrp);
 		if (status != 0) {
 			nvgpu_err(g,
@@ -71,8 +71,8 @@ int therm_send_pmgr_tables_to_pmu(struct gk20a *g)
 	}
 
 	if (!BOARDOBJGRP_IS_EMPTY(
-			&g->therm_pmu->therm_channelobjs.super.super)) {
-		pboardobjgrp = &g->therm_pmu->therm_channelobjs.super.super;
+			&g->pmu.therm_pmu->therm_channelobjs.super.super)) {
+		pboardobjgrp = &g->pmu.therm_pmu->therm_channelobjs.super.super;
 		status = pboardobjgrp->pmuinithandle(g, pboardobjgrp);
 		if (status != 0) {
 			nvgpu_err(g,

@@ -341,7 +341,7 @@ int therm_device_sw_setup(struct gk20a *g)
 
 	/* Construct the Super Class and override the Interfaces */
 	status = nvgpu_boardobjgrp_construct_e32(g,
-			&g->therm_pmu->therm_deviceobjs.super);
+			&g->pmu.therm_pmu->therm_deviceobjs.super);
 	if (status != 0) {
 		nvgpu_err(g,
 			  "error creating boardobjgrp for therm devices,"
@@ -349,8 +349,8 @@ int therm_device_sw_setup(struct gk20a *g)
 		goto done;
 	}
 
-	pboardobjgrp = &g->therm_pmu->therm_deviceobjs.super.super;
-	pthermdeviceobjs = &(g->therm_pmu->therm_deviceobjs);
+	pboardobjgrp = &g->pmu.therm_pmu->therm_deviceobjs.super.super;
+	pthermdeviceobjs = &(g->pmu.therm_pmu->therm_deviceobjs);
 
 	/* Override the Interfaces */
 	pboardobjgrp->pmudatainstget = _therm_device_pmudata_instget;

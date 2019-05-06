@@ -92,12 +92,12 @@ int nvgpu_therm_domain_pmu_setup(struct gk20a *g)
 int nvgpu_therm_pmu_init_pmupstate(struct gk20a *g)
 {
 	/* If already allocated, do not re-allocate */
-	if (g->therm_pmu != NULL) {
+	if (g->pmu.therm_pmu != NULL) {
 		return 0;
 	}
 
-	g->therm_pmu = nvgpu_kzalloc(g, sizeof(*g->therm_pmu));
-	if (g->therm_pmu == NULL) {
+	g->pmu.therm_pmu = nvgpu_kzalloc(g, sizeof(*g->pmu.therm_pmu));
+	if (g->pmu.therm_pmu == NULL) {
 		return -ENOMEM;
 	}
 
@@ -106,6 +106,6 @@ int nvgpu_therm_pmu_init_pmupstate(struct gk20a *g)
 
 void nvgpu_therm_pmu_free_pmupstate(struct gk20a *g)
 {
-	nvgpu_kfree(g, g->therm_pmu);
-	g->therm_pmu = NULL;
+	nvgpu_kfree(g, g->pmu.therm_pmu);
+	g->pmu.therm_pmu = NULL;
 }

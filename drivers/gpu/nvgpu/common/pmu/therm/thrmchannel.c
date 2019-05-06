@@ -222,7 +222,7 @@ int therm_channel_sw_setup(struct gk20a *g)
 
 	/* Construct the Super Class and override the Interfaces */
 	status = nvgpu_boardobjgrp_construct_e32(g,
-			&g->therm_pmu->therm_channelobjs.super);
+			&g->pmu.therm_pmu->therm_channelobjs.super);
 	if (status != 0) {
 		nvgpu_err(g,
 			  "error creating boardobjgrp for therm devices, "
@@ -230,8 +230,8 @@ int therm_channel_sw_setup(struct gk20a *g)
 		goto done;
 	}
 
-	pboardobjgrp = &g->therm_pmu->therm_channelobjs.super.super;
-	pthermchannelobjs = &(g->therm_pmu->therm_channelobjs);
+	pboardobjgrp = &g->pmu.therm_pmu->therm_channelobjs.super.super;
+	pthermchannelobjs = &(g->pmu.therm_pmu->therm_channelobjs);
 
 	/* Override the Interfaces */
 	pboardobjgrp->pmudatainstget = _therm_channel_pmudata_instget;

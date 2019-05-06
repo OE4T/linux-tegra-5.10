@@ -1975,7 +1975,6 @@ struct gk20a {
 	struct nvgpu_ecc ecc;
 	struct perf_pmupstate *perf_pmu;
 	struct pmgr_pmupstate *pmgr_pmu;
-	struct therm_pmupstate *therm_pmu;
 	struct nvgpu_sec2 sec2;
 
 #ifdef CONFIG_DEBUG_FS
