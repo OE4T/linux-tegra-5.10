@@ -67,10 +67,16 @@ int gk20a_fifo_is_preempt_pending(struct gk20a *g, u32 id,
 {
 	struct nvgpu_timeout timeout;
 	u32 delay = POLL_DELAY_MIN_US;
-	int ret = -EBUSY;
+	int ret;
 
-	nvgpu_timeout_init(g, &timeout, nvgpu_preempt_get_timeout(g),
+	ret = nvgpu_timeout_init(g, &timeout, nvgpu_preempt_get_timeout(g),
 			   NVGPU_TIMER_CPU_TIMER);
+	if (ret != 0) {
+		nvgpu_err(g, "timeout_init failed: %d", ret);
+		return ret;
+	}
+
+	ret = -EBUSY;
 	do {
 		if ((nvgpu_readl(g, fifo_preempt_r()) &
 				fifo_preempt_pending_true_f()) == 0U) {
@@ -106,7 +112,10 @@ int gk20a_fifo_preempt_channel(struct gk20a *g, struct nvgpu_channel *ch)
 	ret = gk20a_fifo_preempt_locked(g, ch->chid, ID_TYPE_CHANNEL);
 
 	if (mutex_ret == 0) {
-		nvgpu_pmu_lock_release(g, &g->pmu, PMU_MUTEX_ID_FIFO, &token);
+		if (nvgpu_pmu_lock_release(g, &g->pmu,
+				PMU_MUTEX_ID_FIFO, &token) != 0) {
+			nvgpu_err(g, "failed to release PMU lock");
+		}
 	}
 
 	nvgpu_runlist_unlock_active_runlists(g);
@@ -151,7 +160,10 @@ int gk20a_fifo_preempt_tsg(struct gk20a *g, struct nvgpu_tsg *tsg)
 	ret = gk20a_fifo_preempt_locked(g, tsg->tsgid, ID_TYPE_TSG);
 
 	if (mutex_ret == 0) {
-		nvgpu_pmu_lock_release(g, &g->pmu, PMU_MUTEX_ID_FIFO, &token);
+		if (nvgpu_pmu_lock_release(g, &g->pmu,
+				PMU_MUTEX_ID_FIFO, &token) != 0) {
+			nvgpu_err(g, "failed to release PMU lock");
+		}
 	}
 
 	nvgpu_runlist_unlock_active_runlists(g);
