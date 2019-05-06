@@ -129,7 +129,7 @@ u32 nvgpu_gr_tpc_offset(struct gk20a *g, u32 tpc)
 
 void nvgpu_gr_init(struct gk20a *g)
 {
-	nvgpu_cond_init(&g->gr->init_wq);
+	(void)nvgpu_cond_init(&g->gr->init_wq);
 }
 
 int nvgpu_gr_suspend(struct gk20a *g)
