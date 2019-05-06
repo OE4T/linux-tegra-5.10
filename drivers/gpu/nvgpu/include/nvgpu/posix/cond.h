@@ -77,7 +77,7 @@ void nvgpu_cond_unlock(struct nvgpu_cond *cond);
 	NVGPU_COND_WAIT_TIMEOUT_LOCKED((cond), (condition),		\
 		(cond_wait_ret),					\
 		(cond_wait_timeout != 0U) ?				\
-			cond_wait_timeout : (unsigned int)-1);		\
+			(cond_wait_timeout) : (unsigned int)-1);	\
 	nvgpu_mutex_release(&(cond)->mutex);				\
 	cond_wait_ret;							\
 })
@@ -99,9 +99,9 @@ void nvgpu_cond_unlock(struct nvgpu_cond *cond);
 
 #define NVGPU_COND_WAIT_TIMEOUT_LOCKED(cond, condition, ret, timeout_ms)\
 do {									\
-	unsigned int cond_wait_timeout_timeout = timeout_ms;		\
+	unsigned int cond_wait_timeout_timeout = (timeout_ms);		\
 	ret = 0;							\
-	while (!(condition) && ret == 0) {				\
+	while (!(condition) && ((ret) == 0)) {				\
 		ret = nvgpu_cond_timedwait(cond,			\
 				&cond_wait_timeout_timeout);		\
 	}								\
