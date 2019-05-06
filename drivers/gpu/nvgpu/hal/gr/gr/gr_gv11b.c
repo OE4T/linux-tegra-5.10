@@ -154,7 +154,7 @@ static void gr_gv11b_handle_l1_tag_exception(struct gk20a *g, u32 gpc, u32 tpc,
 		if ((l1_tag_ecc_status &
 			(gr_pri_gpc0_tpc0_sm_l1_tag_ecc_status_corrected_err_el1_0_m() |
 			 gr_pri_gpc0_tpc0_sm_l1_tag_ecc_status_corrected_err_el1_1_m())) != 0U) {
-				(void) nvgpu_report_ecc_parity_err(g,
+				(void) nvgpu_report_ecc_err(g,
 					NVGPU_ERR_MODULE_SM,
 					(gpc << 8) | tpc,
 					GPU_SM_L1_TAG_ECC_CORRECTED, 0,
@@ -162,7 +162,7 @@ static void gr_gv11b_handle_l1_tag_exception(struct gk20a *g, u32 gpc, u32 tpc,
 		}
 		if ((l1_tag_ecc_status &
 			gr_pri_gpc0_tpc0_sm_l1_tag_ecc_status_corrected_err_miss_fifo_m()) != 0U) {
-				(void) nvgpu_report_ecc_parity_err(g,
+				(void) nvgpu_report_ecc_err(g,
 					NVGPU_ERR_MODULE_SM,
 					(gpc << 8) | tpc,
 					GPU_SM_L1_TAG_MISS_FIFO_ECC_CORRECTED, 0,
@@ -170,7 +170,7 @@ static void gr_gv11b_handle_l1_tag_exception(struct gk20a *g, u32 gpc, u32 tpc,
 		}
 		if ((l1_tag_ecc_status &
 			gr_pri_gpc0_tpc0_sm_l1_tag_ecc_status_corrected_err_pixrpf_m()) != 0U) {
-				(void) nvgpu_report_ecc_parity_err(g,
+				(void) nvgpu_report_ecc_err(g,
 					NVGPU_ERR_MODULE_SM,
 					(gpc << 8) | tpc,
 					GPU_SM_L1_TAG_S2R_PIXPRF_ECC_CORRECTED, 0,
@@ -195,7 +195,7 @@ static void gr_gv11b_handle_l1_tag_exception(struct gk20a *g, u32 gpc, u32 tpc,
 		if ((l1_tag_ecc_status &
 			(gr_pri_gpc0_tpc0_sm_l1_tag_ecc_status_uncorrected_err_el1_0_m() |
 			 gr_pri_gpc0_tpc0_sm_l1_tag_ecc_status_uncorrected_err_el1_1_m())) != 0U) {
-				(void) nvgpu_report_ecc_parity_err(g,
+				(void) nvgpu_report_ecc_err(g,
 					NVGPU_ERR_MODULE_SM,
 					(gpc << 8) | tpc,
 					GPU_SM_L1_TAG_ECC_UNCORRECTED, 0,
@@ -203,7 +203,7 @@ static void gr_gv11b_handle_l1_tag_exception(struct gk20a *g, u32 gpc, u32 tpc,
 		}
 		if ((l1_tag_ecc_status &
 			gr_pri_gpc0_tpc0_sm_l1_tag_ecc_status_uncorrected_err_miss_fifo_m()) != 0U) {
-				(void) nvgpu_report_ecc_parity_err(g,
+				(void) nvgpu_report_ecc_err(g,
 					NVGPU_ERR_MODULE_SM,
 					(gpc << 8) | tpc,
 					GPU_SM_L1_TAG_MISS_FIFO_ECC_UNCORRECTED, 0,
@@ -211,7 +211,7 @@ static void gr_gv11b_handle_l1_tag_exception(struct gk20a *g, u32 gpc, u32 tpc,
 		}
 		if ((l1_tag_ecc_status &
 			gr_pri_gpc0_tpc0_sm_l1_tag_ecc_status_uncorrected_err_pixrpf_m()) != 0U) {
-				(void) nvgpu_report_ecc_parity_err(g,
+				(void) nvgpu_report_ecc_err(g,
 					NVGPU_ERR_MODULE_SM,
 					(gpc << 8) | tpc,
 					GPU_SM_L1_TAG_S2R_PIXPRF_ECC_UNCORRECTED, 0,
@@ -293,7 +293,7 @@ static void gr_gv11b_handle_lrf_exception(struct gk20a *g, u32 gpc, u32 tpc,
 		}
 		g->ecc.gr.sm_lrf_ecc_single_err_count[gpc][tpc].counter +=
 							lrf_corrected_err_count_delta;
-		(void) nvgpu_report_ecc_parity_err(g,
+		(void) nvgpu_report_ecc_err(g,
 				NVGPU_ERR_MODULE_SM,
 				(gpc << 8) | tpc,
 				GPU_SM_LRF_ECC_CORRECTED, 0,
@@ -314,7 +314,7 @@ static void gr_gv11b_handle_lrf_exception(struct gk20a *g, u32 gpc, u32 tpc,
 		}
 		g->ecc.gr.sm_lrf_ecc_double_err_count[gpc][tpc].counter +=
 							lrf_uncorrected_err_count_delta;
-		(void) nvgpu_report_ecc_parity_err(g,
+		(void) nvgpu_report_ecc_err(g,
 				NVGPU_ERR_MODULE_SM,
 				(gpc << 8) | tpc,
 				GPU_SM_LRF_ECC_UNCORRECTED, 0,
@@ -387,7 +387,7 @@ static void gr_gv11b_handle_cbu_exception(struct gk20a *g, u32 gpc, u32 tpc,
 		}
 		g->ecc.gr.sm_cbu_ecc_corrected_err_count[gpc][tpc].counter +=
 							cbu_corrected_err_count_delta;
-		(void) nvgpu_report_ecc_parity_err(g,
+		(void) nvgpu_report_ecc_err(g,
 				NVGPU_ERR_MODULE_SM,
 				(gpc << 8) | tpc,
 				GPU_SM_CBU_ECC_CORRECTED,
@@ -408,7 +408,7 @@ static void gr_gv11b_handle_cbu_exception(struct gk20a *g, u32 gpc, u32 tpc,
 		}
 		g->ecc.gr.sm_cbu_ecc_uncorrected_err_count[gpc][tpc].counter +=
 							cbu_uncorrected_err_count_delta;
-		(void) nvgpu_report_ecc_parity_err(g,
+		(void) nvgpu_report_ecc_err(g,
 				NVGPU_ERR_MODULE_SM,
 				(gpc << 8) | tpc,
 				GPU_SM_CBU_ECC_UNCORRECTED,
@@ -477,7 +477,7 @@ static void gr_gv11b_handle_l1_data_exception(struct gk20a *g, u32 gpc, u32 tpc,
 		}
 		g->ecc.gr.sm_l1_data_ecc_corrected_err_count[gpc][tpc].counter +=
 							l1_data_corrected_err_count_delta;
-		(void) nvgpu_report_ecc_parity_err(g,
+		(void) nvgpu_report_ecc_err(g,
 				NVGPU_ERR_MODULE_SM,
 				(gpc << 8) | tpc,
 				GPU_SM_L1_DATA_ECC_CORRECTED,
@@ -498,7 +498,7 @@ static void gr_gv11b_handle_l1_data_exception(struct gk20a *g, u32 gpc, u32 tpc,
 		}
 		g->ecc.gr.sm_l1_data_ecc_uncorrected_err_count[gpc][tpc].counter +=
 							l1_data_uncorrected_err_count_delta;
-		(void) nvgpu_report_ecc_parity_err(g,
+		(void) nvgpu_report_ecc_err(g,
 				NVGPU_ERR_MODULE_SM,
 				(gpc << 8) | tpc,
 				GPU_SM_L1_DATA_ECC_UNCORRECTED,
@@ -575,7 +575,7 @@ static void gr_gv11b_handle_icache_exception(struct gk20a *g, u32 gpc, u32 tpc,
 			0);
 		if ((icache_ecc_status &
 			   gr_pri_gpc0_tpc0_sm_icache_ecc_status_corrected_err_l0_data_m()) != 0U) {
-			(void) nvgpu_report_ecc_parity_err(g,
+			(void) nvgpu_report_ecc_err(g,
 					NVGPU_ERR_MODULE_SM,
 					(gpc << 8) | tpc,
 					GPU_SM_ICACHE_L0_DATA_ECC_CORRECTED,
@@ -583,7 +583,7 @@ static void gr_gv11b_handle_icache_exception(struct gk20a *g, u32 gpc, u32 tpc,
 		}
 		if ((icache_ecc_status &
 		      gr_pri_gpc0_tpc0_sm_icache_ecc_status_corrected_err_l0_predecode_m()) != 0U) {
-			(void) nvgpu_report_ecc_parity_err(g,
+			(void) nvgpu_report_ecc_err(g,
 					NVGPU_ERR_MODULE_SM,
 					(gpc << 8) | tpc,
 					GPU_SM_ICACHE_L0_PREDECODE_ECC_CORRECTED,
@@ -591,7 +591,7 @@ static void gr_gv11b_handle_icache_exception(struct gk20a *g, u32 gpc, u32 tpc,
 		}
 		if ((icache_ecc_status  &
 			   gr_pri_gpc0_tpc0_sm_icache_ecc_status_corrected_err_l1_data_m()) != 0U) {
-			(void) nvgpu_report_ecc_parity_err(g,
+			(void) nvgpu_report_ecc_err(g,
 					NVGPU_ERR_MODULE_SM,
 					(gpc << 8) | tpc,
 					GPU_SM_ICACHE_L1_DATA_ECC_CORRECTED,
@@ -599,7 +599,7 @@ static void gr_gv11b_handle_icache_exception(struct gk20a *g, u32 gpc, u32 tpc,
 		}
 		if ((icache_ecc_status &
 		      gr_pri_gpc0_tpc0_sm_icache_ecc_status_corrected_err_l1_predecode_m()) != 0U) {
-			(void) nvgpu_report_ecc_parity_err(g,
+			(void) nvgpu_report_ecc_err(g,
 					NVGPU_ERR_MODULE_SM,
 					(gpc << 8) | tpc,
 					GPU_SM_ICACHE_L1_PREDECODE_ECC_CORRECTED,
@@ -623,7 +623,7 @@ static void gr_gv11b_handle_icache_exception(struct gk20a *g, u32 gpc, u32 tpc,
 			0);
 		if ((icache_ecc_status &
 			  gr_pri_gpc0_tpc0_sm_icache_ecc_status_uncorrected_err_l0_data_m()) != 0U) {
-			(void) nvgpu_report_ecc_parity_err(g,
+			(void) nvgpu_report_ecc_err(g,
 					NVGPU_ERR_MODULE_SM,
 					(gpc << 8) | tpc,
 					GPU_SM_ICACHE_L0_DATA_ECC_UNCORRECTED,
@@ -631,7 +631,7 @@ static void gr_gv11b_handle_icache_exception(struct gk20a *g, u32 gpc, u32 tpc,
 		}
 		if ((icache_ecc_status &
 		     gr_pri_gpc0_tpc0_sm_icache_ecc_status_uncorrected_err_l0_predecode_m()) != 0U) {
-			(void) nvgpu_report_ecc_parity_err(g,
+			(void) nvgpu_report_ecc_err(g,
 					NVGPU_ERR_MODULE_SM,
 					(gpc << 8) | tpc,
 					GPU_SM_ICACHE_L0_PREDECODE_ECC_UNCORRECTED,
@@ -639,7 +639,7 @@ static void gr_gv11b_handle_icache_exception(struct gk20a *g, u32 gpc, u32 tpc,
 		}
 		if ((icache_ecc_status  &
 			  gr_pri_gpc0_tpc0_sm_icache_ecc_status_uncorrected_err_l1_data_m()) != 0U) {
-			(void) nvgpu_report_ecc_parity_err(g,
+			(void) nvgpu_report_ecc_err(g,
 					NVGPU_ERR_MODULE_SM,
 					(gpc << 8) | tpc,
 					GPU_SM_ICACHE_L1_DATA_ECC_UNCORRECTED,
@@ -647,7 +647,7 @@ static void gr_gv11b_handle_icache_exception(struct gk20a *g, u32 gpc, u32 tpc,
 		}
 		if ((icache_ecc_status &
 		     gr_pri_gpc0_tpc0_sm_icache_ecc_status_uncorrected_err_l1_predecode_m()) != 0U) {
-			(void) nvgpu_report_ecc_parity_err(g,
+			(void) nvgpu_report_ecc_err(g,
 					NVGPU_ERR_MODULE_SM,
 					(gpc << 8) | tpc,
 					GPU_SM_ICACHE_L1_PREDECODE_ECC_UNCORRECTED,

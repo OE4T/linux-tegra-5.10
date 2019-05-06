@@ -64,6 +64,7 @@
 #include "hal/fb/fb_gv11b.h"
 #include "hal/fb/fb_mmu_fault_gv11b.h"
 #include "hal/fb/intr/fb_intr_gv11b.h"
+#include "hal/fb/intr/fb_intr_ecc_gv11b.h"
 #include "hal/fuse/fuse_gm20b.h"
 #include "hal/fuse/fuse_gp10b.h"
 #include "hal/ptimer/ptimer_gk20a.h"
@@ -179,6 +180,8 @@ static void gv11b_init_gpu_characteristics(struct gk20a *g)
 
 static const struct gpu_ops gv11b_ops = {
 	.ltc = {
+		.get_ltc_err_desc =
+			gv11b_ltc_get_err_desc,
 		.determine_L2_size_bytes = gp10b_determine_L2_size_bytes,
 #ifdef NVGPU_GRAPHICS
 		.set_zbc_s_entry = gv11b_ltc_set_zbc_stencil_entry,
@@ -295,6 +298,16 @@ static const struct gpu_ops gv11b_ops = {
 		.ecc = {
 			.detect = gv11b_ecc_detect_enabled_units,
 			.init = gv11b_ecc_init,
+			.get_mmu_err_desc =
+				gv11b_gr_intr_get_mmu_err_desc,
+			.get_gcc_err_desc =
+				gv11b_gr_intr_get_gcc_err_desc,
+			.get_sm_err_desc =
+				gv11b_gr_intr_get_sm_err_desc,
+			.get_gpccs_err_desc =
+				gv11b_gr_intr_get_gpccs_err_desc,
+			.get_fecs_err_desc =
+				gv11b_gr_intr_get_fecs_err_desc,
 		},
 		.ctxsw_prog = {
 			.hw_get_fecs_header_size =
@@ -651,6 +664,8 @@ static const struct gpu_ops gv11b_ops = {
 		.is_valid_compute = gv11b_class_is_valid_compute,
 	},
 	.fb = {
+		.get_hubmmu_err_desc =
+			gv11b_fb_intr_get_hubmmu_err_desc,
 		.init_hw = gv11b_fb_init_hw,
 		.init_fs_state = gv11b_fb_init_fs_state,
 		.cbc_configure = gv11b_fb_cbc_configure,
@@ -998,6 +1013,8 @@ static const struct gpu_ops gv11b_ops = {
 		.elcg_init_idle_filters = gv11b_elcg_init_idle_filters,
 	},
 	.pmu = {
+		.get_pmu_err_desc =
+			gv11b_pmu_intr_get_err_desc,
 		/*
 		 * Basic init ops are must, as PMU engine used by ACR to
 		 * load & bootstrap GR LS falcons without LS PMU, remaining

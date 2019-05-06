@@ -22,7 +22,13 @@
 
 #ifndef LTC_GV11B_H
 #define LTC_GV11B_H
+
+#include <nvgpu/types.h>
+#include <nvgpu/nvgpu_err.h>
+
 struct gk20a;
+struct nvgpu_hw_err_inject_info;
+struct nvgpu_hw_err_inject_info_desc;
 
 #ifdef NVGPU_GRAPHICS
 void gv11b_ltc_set_zbc_stencil_entry(struct gk20a *g,
@@ -30,5 +36,8 @@ void gv11b_ltc_set_zbc_stencil_entry(struct gk20a *g,
 					  u32 index);
 #endif /* NVGPU_GRAPHICS */
 void gv11b_ltc_init_fs_state(struct gk20a *g);
+struct nvgpu_hw_err_inject_info_desc * gv11b_ltc_get_err_desc(struct gk20a *g);
+int gv11b_ltc_inject_ecc_error(struct gk20a *g,
+		struct nvgpu_hw_err_inject_info *err, u32 error_info);
 
 #endif

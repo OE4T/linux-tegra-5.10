@@ -175,6 +175,27 @@ struct gr_err_info {
 	struct gr_exception_info *exception_info;
 };
 
+#define NVGPU_ECC_ERR(err_name, inject_fn, addr, val)	\
+{							\
+		.name = (err_name),			\
+		.inject_hw_fault = (inject_fn),		\
+		.get_reg_addr = (addr),			\
+		.get_reg_val = (val)			\
+}
+
+struct nvgpu_hw_err_inject_info {
+	const char *name;
+	int (*inject_hw_fault)(struct gk20a *g,
+			struct nvgpu_hw_err_inject_info *err, u32 err_info);
+	u32 (*get_reg_addr)(void);
+	u32 (*get_reg_val)(u32 val);
+};
+
+struct nvgpu_hw_err_inject_info_desc {
+	struct nvgpu_hw_err_inject_info *info_ptr;
+	u32 info_size;
+};
+
 /* Functions to report errors to 3LSS */
 int nvgpu_report_host_err(struct gk20a *g, u32 hw_unit,
 	u32 inst, u32 err_id, u32 intr_info);
@@ -182,7 +203,7 @@ int nvgpu_report_host_err(struct gk20a *g, u32 hw_unit,
 int nvgpu_report_ce_err(struct gk20a *g, u32 hw_unit,
 	u32 inst, u32 err_id, u32 intr_info);
 
-int nvgpu_report_ecc_parity_err(struct gk20a *g, u32 hw_unit, u32 inst,
+int nvgpu_report_ecc_err(struct gk20a *g, u32 hw_unit, u32 inst,
 		u32 err_type, u64 err_addr, u64 err_count);
 
 int nvgpu_report_ctxsw_err(struct gk20a *g, u32 hw_unit, u32 err_id,

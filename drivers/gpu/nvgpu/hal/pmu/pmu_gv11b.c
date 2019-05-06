@@ -39,6 +39,39 @@ static int gv11b_pmu_correct_ecc(struct gk20a *g, u32 ecc_status, u32 ecc_addr);
 
 #define ALIGN_4KB     12
 
+static struct nvgpu_hw_err_inject_info pmu_ecc_err_desc[] = {
+	NVGPU_ECC_ERR("falcon_imem_ecc_corrected",
+			gv11b_pmu_inject_ecc_error,
+			pwr_pmu_falcon_ecc_control_r,
+			pwr_pmu_falcon_ecc_control_inject_corrected_err_f),
+	NVGPU_ECC_ERR("falcon_imem_ecc_uncorrected",
+			gv11b_pmu_inject_ecc_error,
+			pwr_pmu_falcon_ecc_control_r,
+			pwr_pmu_falcon_ecc_control_inject_uncorrected_err_f),
+};
+
+static struct nvgpu_hw_err_inject_info_desc pmu_err_desc;
+
+struct nvgpu_hw_err_inject_info_desc *
+gv11b_pmu_intr_get_err_desc(struct gk20a *g)
+{
+	pmu_err_desc.info_ptr = pmu_ecc_err_desc;
+	pmu_err_desc.info_size = nvgpu_safe_cast_u64_to_u32(
+			sizeof(pmu_ecc_err_desc) /
+			sizeof(struct nvgpu_hw_err_inject_info));
+
+	return &pmu_err_desc;
+}
+
+int gv11b_pmu_inject_ecc_error(struct gk20a *g,
+		struct nvgpu_hw_err_inject_info *err, u32 error_info)
+{
+	nvgpu_info(g, "Injecting PMU fault %s", err->name);
+	nvgpu_writel(g, err->get_reg_addr(), err->get_reg_val(1U));
+
+	return 0;
+}
+
 #ifdef NVGPU_FEATURE_LS_PMU
 /* PROD settings for ELPG sequencing registers*/
 static struct pg_init_sequence_list _pginitseq_gv11b[] = {
@@ -443,7 +476,7 @@ static int gv11b_pmu_correct_ecc(struct gk20a *g, u32 ecc_status, u32 ecc_addr)
 
 	if ((ecc_status &
 		pwr_pmu_falcon_ecc_status_corrected_err_imem_m()) != 0U) {
-		(void) nvgpu_report_ecc_parity_err(g, NVGPU_ERR_MODULE_PMU, 0,
+		(void) nvgpu_report_ecc_err(g, NVGPU_ERR_MODULE_PMU, 0,
 			GPU_PMU_FALCON_IMEM_ECC_CORRECTED,
 			ecc_addr,
 			g->ecc.pmu.pmu_ecc_corrected_err_count[0].counter);
@@ -451,7 +484,7 @@ static int gv11b_pmu_correct_ecc(struct gk20a *g, u32 ecc_status, u32 ecc_addr)
 	}
 	if ((ecc_status &
 		pwr_pmu_falcon_ecc_status_uncorrected_err_imem_m()) != 0U) {
-		(void) nvgpu_report_ecc_parity_err(g, NVGPU_ERR_MODULE_PMU, 0,
+		(void) nvgpu_report_ecc_err(g, NVGPU_ERR_MODULE_PMU, 0,
 			GPU_PMU_FALCON_IMEM_ECC_UNCORRECTED,
 			ecc_addr,
 			g->ecc.pmu.pmu_ecc_uncorrected_err_count[0].counter);
@@ -460,7 +493,7 @@ static int gv11b_pmu_correct_ecc(struct gk20a *g, u32 ecc_status, u32 ecc_addr)
 	}
 	if ((ecc_status &
 		pwr_pmu_falcon_ecc_status_corrected_err_dmem_m()) != 0U) {
-		(void) nvgpu_report_ecc_parity_err(g, NVGPU_ERR_MODULE_PMU, 0,
+		(void) nvgpu_report_ecc_err(g, NVGPU_ERR_MODULE_PMU, 0,
 			GPU_PMU_FALCON_DMEM_ECC_CORRECTED,
 			ecc_addr,
 			g->ecc.pmu.pmu_ecc_corrected_err_count[0].counter);
@@ -468,7 +501,7 @@ static int gv11b_pmu_correct_ecc(struct gk20a *g, u32 ecc_status, u32 ecc_addr)
 	}
 	if ((ecc_status &
 		pwr_pmu_falcon_ecc_status_uncorrected_err_dmem_m()) != 0U) {
-		(void) nvgpu_report_ecc_parity_err(g, NVGPU_ERR_MODULE_PMU, 0,
+		(void) nvgpu_report_ecc_err(g, NVGPU_ERR_MODULE_PMU, 0,
 			GPU_PMU_FALCON_DMEM_ECC_UNCORRECTED,
 			ecc_addr,
 			g->ecc.pmu.pmu_ecc_uncorrected_err_count[0].counter);

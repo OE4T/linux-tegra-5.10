@@ -214,6 +214,8 @@ enum nvgpu_event_id_type {
 struct gpu_ops {
 	struct {
 		u64 (*determine_L2_size_bytes)(struct gk20a *gk20a);
+		struct nvgpu_hw_err_inject_info_desc * (*get_ltc_err_desc)
+			(struct gk20a *g);
 #ifdef NVGPU_GRAPHICS
 		void (*set_zbc_color_entry)(struct gk20a *g,
 					    u32 *color_val_l2,
@@ -411,6 +413,16 @@ struct gpu_ops {
 		struct {
 			void (*detect)(struct gk20a *g);
 			int (*init)(struct gk20a *g);
+			struct nvgpu_hw_err_inject_info_desc * (*get_mmu_err_desc)
+				(struct gk20a *g);
+			struct nvgpu_hw_err_inject_info_desc * (*get_gcc_err_desc)
+				(struct gk20a *g);
+			struct nvgpu_hw_err_inject_info_desc * (*get_sm_err_desc)
+				(struct gk20a *g);
+			struct nvgpu_hw_err_inject_info_desc * (*get_gpccs_err_desc)
+				(struct gk20a *g);
+			struct nvgpu_hw_err_inject_info_desc * (*get_fecs_err_desc)
+				(struct gk20a *g);
 		} ecc;
 		struct {
 			u32 (*hw_get_fecs_header_size)(void);
@@ -847,6 +859,8 @@ struct gpu_ops {
 	} gpu_class;
 
 	struct {
+		struct nvgpu_hw_err_inject_info_desc * (*get_hubmmu_err_desc)
+			(struct gk20a *g);
 		void (*init_hw)(struct gk20a *g);
 		void (*cbc_configure)(struct gk20a *g, struct nvgpu_cbc *cbc);
 		void (*init_fs_state)(struct gk20a *g);
@@ -1317,6 +1331,8 @@ struct gpu_ops {
 		u32 (*idle_slowdown_disable)(struct gk20a *g);
 	} therm;
 	struct {
+		struct nvgpu_hw_err_inject_info_desc * (*get_pmu_err_desc)
+			(struct gk20a *g);
 		bool (*is_pmu_supported)(struct gk20a *g);
 		u32 (*falcon_base_addr)(void);
 		/* reset */

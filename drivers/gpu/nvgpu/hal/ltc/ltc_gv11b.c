@@ -33,6 +33,46 @@
 
 #include <nvgpu/utils.h>
 
+static struct nvgpu_hw_err_inject_info ltc_ecc_err_desc[] = {
+	NVGPU_ECC_ERR("cache_rstg_ecc_corrected",
+			gv11b_ltc_inject_ecc_error,
+			ltc_ltc0_lts0_l1_cache_ecc_control_r,
+			ltc_ltc0_lts0_l1_cache_ecc_control_inject_corrected_err_f),
+	NVGPU_ECC_ERR("cache_rstg_ecc_uncorrected",
+			gv11b_ltc_inject_ecc_error,
+			ltc_ltc0_lts0_l1_cache_ecc_control_r,
+			ltc_ltc0_lts0_l1_cache_ecc_control_inject_uncorrected_err_f),
+};
+
+static struct nvgpu_hw_err_inject_info_desc ltc_err_desc;
+
+struct nvgpu_hw_err_inject_info_desc * gv11b_ltc_get_err_desc(struct gk20a *g)
+{
+	ltc_err_desc.info_ptr = ltc_ecc_err_desc;
+	ltc_err_desc.info_size = nvgpu_safe_cast_u64_to_u32(
+			sizeof(ltc_ecc_err_desc) /
+			sizeof(struct nvgpu_hw_err_inject_info));
+
+	return &ltc_err_desc;
+}
+
+int gv11b_ltc_inject_ecc_error(struct gk20a *g,
+		struct nvgpu_hw_err_inject_info *err, u32 error_info)
+{
+	unsigned int ltc_stride = nvgpu_get_litter_value(g, GPU_LIT_LTC_STRIDE);
+	unsigned int lts_stride = nvgpu_get_litter_value(g, GPU_LIT_LTS_STRIDE);
+	unsigned int ltc = (error_info & 0xFF00U) >> 8U;
+	unsigned int lts = (error_info & 0xFFU);
+	unsigned int reg_addr = err->get_reg_addr() + ltc * ltc_stride +
+		lts * lts_stride;
+
+	nvgpu_info(g, "Injecting LTC fault %s for ltc: %d, lts: %d",
+			err->name, ltc, lts);
+	nvgpu_writel(g, reg_addr, err->get_reg_val(1U));
+
+	return 0;
+}
+
 #ifdef NVGPU_GRAPHICS
 /*
  * Sets the ZBC stencil for the passed index.

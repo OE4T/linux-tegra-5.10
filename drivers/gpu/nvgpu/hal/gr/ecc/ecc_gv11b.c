@@ -28,6 +28,203 @@
 
 #include "ecc_gv11b.h"
 
+static struct nvgpu_hw_err_inject_info fecs_ecc_err_desc[] = {
+	NVGPU_ECC_ERR("falcon_imem_ecc_corrected",
+			gv11b_gr_intr_inject_fecs_ecc_error,
+			gr_fecs_falcon_ecc_control_r,
+			gr_fecs_falcon_ecc_control_inject_corrected_err_f),
+	NVGPU_ECC_ERR("falcon_imem_ecc_uncorrected",
+			gv11b_gr_intr_inject_fecs_ecc_error,
+			gr_fecs_falcon_ecc_control_r,
+			gr_fecs_falcon_ecc_control_inject_uncorrected_err_f),
+};
+
+static struct nvgpu_hw_err_inject_info_desc fecs_err_desc;
+
+struct nvgpu_hw_err_inject_info_desc *
+gv11b_gr_intr_get_fecs_err_desc(struct gk20a *g)
+{
+	fecs_err_desc.info_ptr = fecs_ecc_err_desc;
+	fecs_err_desc.info_size = nvgpu_safe_cast_u64_to_u32(
+			sizeof(fecs_ecc_err_desc) /
+			sizeof(struct nvgpu_hw_err_inject_info));
+
+	return &fecs_err_desc;
+}
+
+int gv11b_gr_intr_inject_fecs_ecc_error(struct gk20a *g,
+		struct nvgpu_hw_err_inject_info *err, u32 error_info)
+{
+	nvgpu_info(g, "Injecting FECS fault %s", err->name);
+	nvgpu_writel(g, err->get_reg_addr(), err->get_reg_val(1U));
+
+	return 0;
+}
+
+static struct nvgpu_hw_err_inject_info gpccs_ecc_err_desc[] = {
+	NVGPU_ECC_ERR("falcon_imem_ecc_corrected",
+			gv11b_gr_intr_inject_gpccs_ecc_error,
+			gr_gpccs_falcon_ecc_control_r,
+			gr_gpccs_falcon_ecc_control_inject_corrected_err_f),
+	NVGPU_ECC_ERR("falcon_imem_ecc_uncorrected",
+			gv11b_gr_intr_inject_gpccs_ecc_error,
+			gr_gpccs_falcon_ecc_control_r,
+			gr_gpccs_falcon_ecc_control_inject_uncorrected_err_f),
+};
+
+static struct nvgpu_hw_err_inject_info_desc gpccs_err_desc;
+
+struct nvgpu_hw_err_inject_info_desc *
+gv11b_gr_intr_get_gpccs_err_desc(struct gk20a *g)
+{
+	gpccs_err_desc.info_ptr = gpccs_ecc_err_desc;
+	gpccs_err_desc.info_size = nvgpu_safe_cast_u64_to_u32(
+			sizeof(gpccs_ecc_err_desc) /
+			sizeof(struct nvgpu_hw_err_inject_info));
+
+	return &gpccs_err_desc;
+}
+
+int gv11b_gr_intr_inject_gpccs_ecc_error(struct gk20a *g,
+		struct nvgpu_hw_err_inject_info *err, u32 error_info)
+{
+	unsigned int gpc_stride = nvgpu_get_litter_value(g, GPU_LIT_GPC_STRIDE);
+	unsigned int gpc = (error_info & 0xFFU);
+	unsigned int reg_addr = err->get_reg_addr() + gpc * gpc_stride;
+
+	nvgpu_info(g, "Injecting GPCCS fault %s for gpc: %d", err->name, gpc);
+	nvgpu_writel(g, reg_addr, err->get_reg_val(1U));
+
+	return 0;
+}
+
+static struct nvgpu_hw_err_inject_info sm_ecc_err_desc[] = {
+	NVGPU_ECC_ERR("l1_tag_ecc_corrected",
+			gv11b_gr_intr_inject_sm_ecc_error,
+			gr_pri_gpc0_tpc0_sm_l1_tag_ecc_control_r,
+			gr_pri_gpc0_tpc0_sm_l1_tag_ecc_control_inject_corrected_err_f),
+	NVGPU_ECC_ERR("l1_tag_ecc_uncorrected",
+			gv11b_gr_intr_inject_sm_ecc_error,
+			gr_pri_gpc0_tpc0_sm_l1_tag_ecc_control_r,
+			gr_pri_gpc0_tpc0_sm_l1_tag_ecc_control_inject_uncorrected_err_f),
+	NVGPU_ECC_ERR("cbu_ecc_uncorrected",
+			gv11b_gr_intr_inject_sm_ecc_error,
+			gr_pri_gpc0_tpc0_sm_cbu_ecc_control_r,
+			gr_pri_gpc0_tpc0_sm_cbu_ecc_control_inject_uncorrected_err_f),
+	NVGPU_ECC_ERR("lrf_ecc_uncorrected",
+			gv11b_gr_intr_inject_sm_ecc_error,
+			gr_pri_gpc0_tpc0_sm_lrf_ecc_control_r,
+			gr_pri_gpc0_tpc0_sm_lrf_ecc_control_inject_uncorrected_err_f),
+	NVGPU_ECC_ERR("l1_data_ecc_uncorrected",
+			gv11b_gr_intr_inject_sm_ecc_error,
+			gr_pri_gpc0_tpc0_sm_l1_data_ecc_control_r,
+			gr_pri_gpc0_tpc0_sm_l1_data_ecc_control_inject_uncorrected_err_f),
+	NVGPU_ECC_ERR("icache_l0_data_ecc_uncorrected",
+			gv11b_gr_intr_inject_sm_ecc_error,
+			gr_pri_gpc0_tpc0_sm_icache_ecc_control_r,
+			gr_pri_gpc0_tpc0_sm_icache_ecc_control_inject_uncorrected_err_f),
+};
+
+static struct nvgpu_hw_err_inject_info_desc sm_err_desc;
+
+struct nvgpu_hw_err_inject_info_desc *
+gv11b_gr_intr_get_sm_err_desc(struct gk20a *g)
+{
+	sm_err_desc.info_ptr = sm_ecc_err_desc;
+	sm_err_desc.info_size = nvgpu_safe_cast_u64_to_u32(
+			sizeof(sm_ecc_err_desc) /
+			sizeof(struct nvgpu_hw_err_inject_info));
+
+	return &sm_err_desc;
+}
+
+int gv11b_gr_intr_inject_sm_ecc_error(struct gk20a *g,
+		struct nvgpu_hw_err_inject_info *err,
+		u32 error_info)
+{
+	unsigned int gpc_stride = nvgpu_get_litter_value(g, GPU_LIT_GPC_STRIDE);
+	unsigned int tpc_stride =
+		nvgpu_get_litter_value(g, GPU_LIT_TPC_IN_GPC_STRIDE);
+	unsigned int gpc = (error_info & 0xFF00U) >> 8U;
+	unsigned int tpc = (error_info & 0xFFU);
+	unsigned int reg_addr = err->get_reg_addr() + gpc * gpc_stride
+		+ tpc * tpc_stride;
+
+	nvgpu_info(g, "Injecting SM fault %s for gpc: %d, tpc: %d",
+			err->name, gpc, tpc);
+	nvgpu_writel(g, reg_addr, err->get_reg_val(1U));
+
+	return 0;
+}
+
+static struct nvgpu_hw_err_inject_info mmu_ecc_err_desc[] = {
+	NVGPU_ECC_ERR("l1tlb_sa_data_ecc_uncorrected",
+			gv11b_gr_intr_inject_mmu_ecc_error,
+			gr_gpc0_mmu_l1tlb_ecc_control_r,
+			gr_gpc0_mmu_l1tlb_ecc_control_inject_uncorrected_err_f),
+};
+
+static struct nvgpu_hw_err_inject_info_desc mmu_err_desc;
+
+struct nvgpu_hw_err_inject_info_desc *
+gv11b_gr_intr_get_mmu_err_desc(struct gk20a *g)
+{
+	mmu_err_desc.info_ptr = mmu_ecc_err_desc;
+	mmu_err_desc.info_size = nvgpu_safe_cast_u64_to_u32(
+			sizeof(mmu_ecc_err_desc) /
+			sizeof(struct nvgpu_hw_err_inject_info));
+
+	return &mmu_err_desc;
+}
+
+int gv11b_gr_intr_inject_mmu_ecc_error(struct gk20a *g,
+		struct nvgpu_hw_err_inject_info *err, u32 error_info)
+{
+	unsigned int gpc_stride = nvgpu_get_litter_value(g, GPU_LIT_GPC_STRIDE);
+	unsigned int gpc = (error_info & 0xFFU);
+	unsigned int reg_addr = err->get_reg_addr() + gpc * gpc_stride;
+
+	nvgpu_info(g, "Injecting MMU fault %s for gpc: %d", err->name, gpc);
+	nvgpu_writel(g, reg_addr, err->get_reg_val(1U));
+
+	return 0;
+}
+
+static struct nvgpu_hw_err_inject_info gcc_ecc_err_desc[] = {
+	NVGPU_ECC_ERR("l15_ecc_uncorrected",
+			gv11b_gr_intr_inject_gcc_ecc_error,
+			gr_pri_gpc0_gcc_l15_ecc_control_r,
+			gr_pri_gpc0_gcc_l15_ecc_control_inject_uncorrected_err_f),
+};
+
+static struct nvgpu_hw_err_inject_info_desc gcc_err_desc;
+
+struct nvgpu_hw_err_inject_info_desc *
+gv11b_gr_intr_get_gcc_err_desc(struct gk20a *g)
+{
+	gcc_err_desc.info_ptr = gcc_ecc_err_desc;
+	gcc_err_desc.info_size = nvgpu_safe_cast_u64_to_u32(
+			sizeof(gcc_ecc_err_desc) /
+			sizeof(struct nvgpu_hw_err_inject_info));
+
+	return &gcc_err_desc;
+}
+
+int gv11b_gr_intr_inject_gcc_ecc_error(struct gk20a *g,
+		struct nvgpu_hw_err_inject_info *err, u32 error_info)
+{
+	unsigned int gpc_stride = nvgpu_get_litter_value(g,
+			GPU_LIT_GPC_STRIDE);
+	unsigned int gpc = (error_info & 0xFFU);
+	unsigned int reg_addr = err->get_reg_addr()
+		+ gpc * gpc_stride;
+
+	nvgpu_info(g, "Injecting GCC fault %s for gpc: %d", err->name, gpc);
+	nvgpu_writel(g, reg_addr, err->get_reg_val(1U));
+
+	return 0;
+}
+
 void gv11b_ecc_detect_enabled_units(struct gk20a *g)
 {
 	bool opt_ecc_en = g->ops.fuse.is_opt_ecc_enable(g);

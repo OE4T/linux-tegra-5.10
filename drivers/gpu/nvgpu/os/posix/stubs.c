@@ -50,7 +50,7 @@ int nvgpu_report_host_err(struct gk20a *g, u32 hw_unit,
 	return 0;
 }
 
-int nvgpu_report_ecc_parity_err(struct gk20a *g, u32 hw_unit, u32 inst,
+int nvgpu_report_ecc_err(struct gk20a *g, u32 hw_unit, u32 inst,
 		u32 err_type, u64 err_addr, u64 err_count)
 {
 	return 0;
