@@ -894,7 +894,7 @@ u32 nvgpu_engine_get_runlist_busy_engines(struct gk20a *g, u32 runlist_id)
 		engine_busy = engine_status.is_busy;
 
 		if (engine_busy && engine_runlist == runlist_id) {
-			eng_bitmask |= BIT(act_eng_id);
+			eng_bitmask |= BIT32(act_eng_id);
 		}
 	}
 
