@@ -96,9 +96,6 @@ enum gk20a_mem_rw_flag;
 enum nvgpu_nvlink_minion_dlcmd;
 enum ctxsw_addr_type;
 
-typedef void (*global_ctx_mem_destroy_fn)(struct gk20a *g,
-					struct nvgpu_mem *mem);
-
 #include <nvgpu/lock.h>
 #include <nvgpu/thread.h>
 
@@ -1328,7 +1325,9 @@ struct gpu_ops {
 	 * size).
 	 */
 	int (*secure_alloc)(struct gk20a *g, struct nvgpu_mem *desc_mem,
-			size_t size, global_ctx_mem_destroy_fn *destroy);
+			size_t size,
+			void (**)(struct gk20a *g, struct nvgpu_mem *mem));
+
 	struct {
 		void (*exit)(struct gk20a *g, struct nvgpu_mem *mem,
 			struct nvgpu_sgl *sgl);
