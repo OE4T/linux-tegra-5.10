@@ -46,11 +46,6 @@ nvgpu-y += \
 	common/semaphore/semaphore_pool.o \
 	common/semaphore/semaphore_hw.o \
 	common/semaphore/semaphore.o \
-	common/boardobj/boardobj.o \
-	common/boardobj/boardobjgrp.o \
-	common/boardobj/boardobjgrpmask.o \
-	common/boardobj/boardobjgrp_e255.o \
-	common/boardobj/boardobjgrp_e32.o \
 	common/regops/regops.o \
 	common/ltc/ltc.o \
 	common/fbp/fbp.o \
@@ -137,6 +132,11 @@ nvgpu-y += \
 	common/pmu/clk/clk_vf_point.o \
 	common/pmu/clk/clk_freq_controller.o \
 	common/pmu/clk/clk.o \
+	common/pmu/boardobj/boardobj.o \
+	common/pmu/boardobj/boardobjgrp.o \
+	common/pmu/boardobj/boardobjgrpmask.o \
+	common/pmu/boardobj/boardobjgrp_e255.o \
+	common/pmu/boardobj/boardobjgrp_e32.o \
 	common/clk_arb/clk_arb.o \
 	common/clk_arb/clk_arb_gp10b.o \
 	common/clk_arb/clk_arb_gv100.o \

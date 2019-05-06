@@ -187,11 +187,6 @@ srcs += common/sim/sim.c \
 	common/fifo/pbdma_status.c \
 	common/fifo/userd.c \
 	common/mc/mc.c \
-	common/boardobj/boardobj.c \
-	common/boardobj/boardobjgrp.c \
-	common/boardobj/boardobjgrpmask.c \
-	common/boardobj/boardobjgrp_e255.c \
-	common/boardobj/boardobjgrp_e32.c \
 	common/regops/regops.c \
 	common/pmu/super_surface/super_surface.c \
 	common/pmu/lsfm/lsfm.c \
@@ -230,6 +225,11 @@ srcs += common/sim/sim.c \
 	common/pmu/pmgr/pwrpolicy.c \
 	common/pmu/lpwr/lpwr.c \
 	common/pmu/lpwr/rppg.c \
+	common/pmu/boardobj/boardobj.c \
+	common/pmu/boardobj/boardobjgrp.c \
+	common/pmu/boardobj/boardobjgrpmask.c \
+	common/pmu/boardobj/boardobjgrp_e255.c \
+	common/pmu/boardobj/boardobjgrp_e32.c \
 	common/clk_arb/clk_arb.c \
 	common/clk_arb/clk_arb_gp10b.c \
 	common/clk_arb/clk_arb_gv100.c \
