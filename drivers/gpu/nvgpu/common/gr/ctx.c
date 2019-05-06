@@ -767,6 +767,7 @@ int nvgpu_gr_ctx_prepare_hwpm_mode(struct gk20a *g, struct nvgpu_gr_ctx *gr_ctx,
 	u32 mode, bool *skip_update)
 {
 	struct pm_ctx_desc *pm_ctx = &gr_ctx->pm_ctx;
+	int ret = 0;
 
 	*skip_update = false;
 
@@ -814,10 +815,11 @@ int nvgpu_gr_ctx_prepare_hwpm_mode(struct gk20a *g, struct nvgpu_gr_ctx *gr_ctx,
 		break;
 	default:
 		nvgpu_err(g, "invalid hwpm context switch mode");
-		return -EINVAL;
+		ret = -EINVAL;
+		break;
 	}
 
-	return 0;
+	return ret;
 }
 
 int nvgpu_gr_ctx_set_hwpm_mode(struct gk20a *g, struct nvgpu_gr_ctx *gr_ctx,
