@@ -31,13 +31,13 @@
 
 /* nvgpu_sgt_ops overrides for basic api testing */
 #define EXPECTED_U64 0x123456789ABCDEF0ULL
-static u64 ops_sgl_gpu_addr(struct gk20a *g, struct nvgpu_sgl *sgl,
+static u64 ops_sgl_gpu_addr(struct gk20a *g, void *sgl,
 				   struct nvgpu_gmmu_attrs *attrs)
 {
 	return EXPECTED_U64;
 }
 
-static u64 ops_sgl_ipa(struct gk20a *g, struct nvgpu_sgl *sgl)
+static u64 ops_sgl_ipa(struct gk20a *g, void *sgl)
 {
 	return EXPECTED_U64;
 }

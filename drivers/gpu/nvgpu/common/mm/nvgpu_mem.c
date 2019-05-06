@@ -39,6 +39,7 @@ u32 nvgpu_aperture_mask_raw(struct gk20a *g, enum nvgpu_aperture aperture,
 			    u32 sysmem_mask, u32 sysmem_coh_mask,
 			    u32 vidmem_mask)
 {
+	u32 ret_mask = 0;
 	if ((aperture == APERTURE_INVALID) || (aperture >= APERTURE_MAX_ENUM)) {
 		nvgpu_do_assert_print(g, "Bad aperture");
 		return 0;
@@ -53,17 +54,22 @@ u32 nvgpu_aperture_mask_raw(struct gk20a *g, enum nvgpu_aperture aperture,
 
 	switch (aperture) {
 	case APERTURE_SYSMEM_COH:
-		return sysmem_coh_mask;
+		ret_mask = sysmem_coh_mask;
+		break;
 	case APERTURE_SYSMEM:
-		return sysmem_mask;
+		ret_mask = sysmem_mask;
+		break;
 	case APERTURE_VIDMEM:
-		return vidmem_mask;
+		ret_mask = vidmem_mask;
+		break;
 	case APERTURE_INVALID:
 	case APERTURE_MAX_ENUM:
 	default:
 		nvgpu_do_assert_print(g, "Bad aperture");
-		return 0;
+		ret_mask = 0;
+		break;
 	}
+	return ret_mask;
 }
 
 u32 nvgpu_aperture_mask(struct gk20a *g, struct nvgpu_mem *mem,
@@ -221,25 +227,25 @@ void nvgpu_memset(struct gk20a *g, struct nvgpu_mem *mem, u32 offset,
 	}
 }
 
-static struct nvgpu_sgl *nvgpu_mem_phys_sgl_next(struct nvgpu_sgl *sgl)
+static struct nvgpu_sgl *nvgpu_mem_phys_sgl_next(void *sgl)
 {
 	struct nvgpu_mem_sgl *sgl_impl = (struct nvgpu_mem_sgl *)sgl;
 
-	return (struct nvgpu_sgl *)sgl_impl->next;
+	return (struct nvgpu_sgl *)(void *)sgl_impl->next;
 }
 
 /*
  * Provided for compatibility - the DMA address is the same as the phys address
  * for these nvgpu_mem's.
  */
-static u64 nvgpu_mem_phys_sgl_dma(struct nvgpu_sgl *sgl)
+static u64 nvgpu_mem_phys_sgl_dma(void *sgl)
 {
 	struct nvgpu_mem_sgl *sgl_impl = (struct nvgpu_mem_sgl *)sgl;
 
 	return sgl_impl->phys;
 }
 
-static u64 nvgpu_mem_phys_sgl_phys(struct gk20a *g, struct nvgpu_sgl *sgl)
+static u64 nvgpu_mem_phys_sgl_phys(struct gk20a *g, void *sgl)
 {
 	struct nvgpu_mem_sgl *sgl_impl = (struct nvgpu_mem_sgl *)sgl;
 
@@ -252,15 +258,14 @@ static u64 nvgpu_mem_phys_sgl_ipa_to_pa(struct gk20a *g,
 	return ipa;
 }
 
-static u64 nvgpu_mem_phys_sgl_length(struct nvgpu_sgl *sgl)
+static u64 nvgpu_mem_phys_sgl_length(void *sgl)
 {
 	struct nvgpu_mem_sgl *sgl_impl = (struct nvgpu_mem_sgl *)sgl;
 
 	return sgl_impl->length;
 }
 
-static u64 nvgpu_mem_phys_sgl_gpu_addr(struct gk20a *g,
-					 struct nvgpu_sgl *sgl,
+static u64 nvgpu_mem_phys_sgl_gpu_addr(struct gk20a *g, void *sgl,
 					 struct nvgpu_gmmu_attrs *attrs)
 {
 	struct nvgpu_mem_sgl *sgl_impl = (struct nvgpu_mem_sgl *)sgl;
@@ -320,7 +325,7 @@ int nvgpu_mem_create_from_phys(struct gk20a *g, struct nvgpu_mem *dest,
 	sgl->next   = NULL;
 	sgl->phys   = src_phys;
 	sgl->length = dest->size;
-	sgt->sgl    = (struct nvgpu_sgl *)sgl;
+	sgt->sgl    = (struct nvgpu_sgl *)(void *)sgl;
 	sgt->ops    = &nvgpu_mem_phys_ops;
 
 	return ret;

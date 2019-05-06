@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -39,14 +39,14 @@ struct nvgpu_sgt;
 struct nvgpu_sgl;
 
 struct nvgpu_sgt_ops {
-	struct nvgpu_sgl *(*sgl_next)(struct nvgpu_sgl *sgl);
-	u64   (*sgl_phys)(struct gk20a *g, struct nvgpu_sgl *sgl);
-	u64   (*sgl_ipa)(struct gk20a *g, struct nvgpu_sgl *sgl);
+	struct nvgpu_sgl *(*sgl_next)(void *sgl);
+	u64   (*sgl_phys)(struct gk20a *g, void *sgl);
+	u64   (*sgl_ipa)(struct gk20a *g, void *sgl);
 	u64   (*sgl_ipa_to_pa)(struct gk20a *g, struct nvgpu_sgl *sgl,
 			      u64 ipa, u64 *pa_len);
-	u64   (*sgl_dma)(struct nvgpu_sgl *sgl);
-	u64   (*sgl_length)(struct nvgpu_sgl *sgl);
-	u64   (*sgl_gpu_addr)(struct gk20a *g, struct nvgpu_sgl *sgl,
+	u64   (*sgl_dma)(void *sgl);
+	u64   (*sgl_length)(void *sgl);
+	u64   (*sgl_gpu_addr)(struct gk20a *g, void *sgl,
 			      struct nvgpu_gmmu_attrs *attrs);
 	/*
 	 * If left NULL then iommuable is assumed to be false.
@@ -137,13 +137,13 @@ void nvgpu_sgt_free(struct gk20a *g, struct nvgpu_sgt *sgt);
 bool nvgpu_sgt_iommuable(struct gk20a *g, struct nvgpu_sgt *sgt);
 u64 nvgpu_sgt_alignment(struct gk20a *g, struct nvgpu_sgt *sgt);
 
-struct nvgpu_sgl *nvgpu_mem_sgl_next(struct nvgpu_sgl *sgl);
-u64 nvgpu_mem_sgl_phys(struct gk20a *g, struct nvgpu_sgl *sgl);
+struct nvgpu_sgl *nvgpu_mem_sgl_next(void *sgl);
+u64 nvgpu_mem_sgl_phys(struct gk20a *g, void *sgl);
 u64 nvgpu_mem_sgl_ipa_to_pa(struct gk20a *g, struct nvgpu_sgl *sgl, u64 ipa,
 				u64 *pa_len);
-u64 nvgpu_mem_sgl_dma(struct nvgpu_sgl *sgl);
-u64 nvgpu_mem_sgl_length(struct nvgpu_sgl *sgl);
-u64 nvgpu_mem_sgl_gpu_addr(struct gk20a *g, struct nvgpu_sgl *sgl,
+u64 nvgpu_mem_sgl_dma(void *sgl);
+u64 nvgpu_mem_sgl_length(void *sgl);
+u64 nvgpu_mem_sgl_gpu_addr(struct gk20a *g, void *sgl,
 				  struct nvgpu_gmmu_attrs *attrs);
 bool nvgpu_mem_sgt_iommuable(struct gk20a *g, struct nvgpu_sgt *sgt);
 void nvgpu_mem_sgt_free(struct gk20a *g, struct nvgpu_sgt *sgt);
