@@ -34,7 +34,7 @@
 #define NSEC_PER_MSEC   1000000
 #define NSEC_PER_SEC    1000000000
 
-static inline s64 __nvgpu_current_time_us(void)
+static inline s64 nvgpu_current_time_us(void)
 {
 	struct timeval now;
 	s64 time_now;
@@ -95,7 +95,7 @@ int nvgpu_timeout_init(struct gk20a *g, struct nvgpu_timeout *timeout,
 	return 0;
 }
 
-static int __nvgpu_timeout_expired_msg_cpu(struct nvgpu_timeout *timeout,
+static int nvgpu_timeout_expired_msg_cpu(struct nvgpu_timeout *timeout,
 					 void *caller,
 					 const char *fmt, va_list args)
 {
@@ -116,7 +116,7 @@ static int __nvgpu_timeout_expired_msg_cpu(struct nvgpu_timeout *timeout,
 	return 0;
 }
 
-static int __nvgpu_timeout_expired_msg_retry(struct nvgpu_timeout *timeout,
+static int nvgpu_timeout_expired_msg_retry(struct nvgpu_timeout *timeout,
 					   void *caller,
 					   const char *fmt, va_list args)
 {
@@ -139,7 +139,7 @@ static int __nvgpu_timeout_expired_msg_retry(struct nvgpu_timeout *timeout,
 	return 0;
 }
 
-int __nvgpu_timeout_expired_msg(struct nvgpu_timeout *timeout,
+int nvgpu_timeout_expired_msg_impl(struct nvgpu_timeout *timeout,
 			      void *caller, const char *fmt, ...)
 {
 	int ret;
@@ -147,10 +147,10 @@ int __nvgpu_timeout_expired_msg(struct nvgpu_timeout *timeout,
 
 	va_start(args, fmt);
 	if ((timeout->flags & NVGPU_TIMER_RETRY_TIMER) != 0U) {
-		ret = __nvgpu_timeout_expired_msg_retry(timeout, caller, fmt,
+		ret = nvgpu_timeout_expired_msg_retry(timeout, caller, fmt,
 						      args);
 	} else {
-		ret = __nvgpu_timeout_expired_msg_cpu(timeout, caller, fmt,
+		ret = nvgpu_timeout_expired_msg_cpu(timeout, caller, fmt,
 						    args);
 	}
 	va_end(args);
@@ -226,5 +226,5 @@ s64 nvgpu_current_time_ns(void)
 
 u64 nvgpu_hr_timestamp(void)
 {
-	return (u64)__nvgpu_current_time_us();
+	return (u64)nvgpu_current_time_us();
 }

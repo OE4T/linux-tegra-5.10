@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -86,16 +86,16 @@ int nvgpu_timeout_init(struct gk20a *g, struct nvgpu_timeout *timeout,
 int nvgpu_timeout_peek_expired(struct nvgpu_timeout *timeout);
 
 #define nvgpu_timeout_expired(__timeout)				\
-	__nvgpu_timeout_expired_msg(__timeout, _NVGPU_GET_IP_, "")
+	nvgpu_timeout_expired_msg_impl(__timeout, _NVGPU_GET_IP_, "")
 
 #define nvgpu_timeout_expired_msg(__timeout, fmt, args...)		\
-	__nvgpu_timeout_expired_msg(__timeout, _NVGPU_GET_IP_,		\
+	nvgpu_timeout_expired_msg_impl(__timeout, _NVGPU_GET_IP_,	\
 				    fmt, ##args)
 
 /*
  * Don't use this directly.
  */
-int __nvgpu_timeout_expired_msg(struct nvgpu_timeout *timeout,
+int nvgpu_timeout_expired_msg_impl(struct nvgpu_timeout *timeout,
 			      void *caller, const char *fmt, ...);
 
 

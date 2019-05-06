@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -75,7 +75,7 @@ int nvgpu_timeout_init(struct gk20a *g, struct nvgpu_timeout *timeout,
 	return 0;
 }
 
-static int __nvgpu_timeout_expired_msg_cpu(struct nvgpu_timeout *timeout,
+static int nvgpu_timeout_expired_msg_cpu(struct nvgpu_timeout *timeout,
 					 void *caller,
 					 const char *fmt, va_list args)
 {
@@ -100,7 +100,7 @@ static int __nvgpu_timeout_expired_msg_cpu(struct nvgpu_timeout *timeout,
 	return 0;
 }
 
-static int __nvgpu_timeout_expired_msg_retry(struct nvgpu_timeout *timeout,
+static int nvgpu_timeout_expired_msg_retry(struct nvgpu_timeout *timeout,
 					   void *caller,
 					   const char *fmt, va_list args)
 {
@@ -127,7 +127,7 @@ static int __nvgpu_timeout_expired_msg_retry(struct nvgpu_timeout *timeout,
 }
 
 /**
- * __nvgpu_timeout_expired_msg - Check if a timeout has expired.
+ * nvgpu_timeout_expired_msg_impl - Check if a timeout has expired.
  *
  * @timeout - The timeout to check.
  * @caller  - Address of the caller of this function.
@@ -138,7 +138,7 @@ static int __nvgpu_timeout_expired_msg_retry(struct nvgpu_timeout *timeout,
  * If a timeout occurs and %NVGPU_TIMER_SILENT_TIMEOUT is not set in the timeout
  * then a message is printed based on %fmt.
  */
-int __nvgpu_timeout_expired_msg(struct nvgpu_timeout *timeout,
+int nvgpu_timeout_expired_msg_impl(struct nvgpu_timeout *timeout,
 			      void *caller, const char *fmt, ...)
 {
 	int ret;
@@ -146,10 +146,10 @@ int __nvgpu_timeout_expired_msg(struct nvgpu_timeout *timeout,
 
 	va_start(args, fmt);
 	if (timeout->flags & NVGPU_TIMER_RETRY_TIMER)
-		ret = __nvgpu_timeout_expired_msg_retry(timeout, caller, fmt,
+		ret = nvgpu_timeout_expired_msg_retry(timeout, caller, fmt,
 						      args);
 	else
-		ret = __nvgpu_timeout_expired_msg_cpu(timeout, caller, fmt,
+		ret = nvgpu_timeout_expired_msg_cpu(timeout, caller, fmt,
 						    args);
 	va_end(args);
 
