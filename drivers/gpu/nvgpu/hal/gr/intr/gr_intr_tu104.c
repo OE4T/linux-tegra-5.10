@@ -62,6 +62,8 @@ static void gr_tu104_set_sm_disp_ctrl(struct gk20a *g, u32 data)
 int tu104_gr_intr_handle_sw_method(struct gk20a *g, u32 addr,
 			      u32 class_num, u32 offset, u32 data)
 {
+	int ret = 0;
+
 	nvgpu_log_fn(g, " ");
 
 	if (class_num == TURING_COMPUTE_A) {
@@ -79,8 +81,13 @@ int tu104_gr_intr_handle_sw_method(struct gk20a *g, u32 addr,
 			gv11b_gr_intr_set_shader_cut_collector(g, data);
 			break;
 		default:
-			goto fail;
+			ret = -EINVAL;
+			break;
 		}
+	}
+
+	if (ret != 0) {
+		goto fail;
 	}
 
 	if (class_num == TURING_A) {
@@ -119,13 +126,13 @@ int tu104_gr_intr_handle_sw_method(struct gk20a *g, u32 addr,
 			gv11b_gr_intr_set_shader_cut_collector(g, data);
 			break;
 		default:
-			goto fail;
+			ret = -EINVAL;
+			break;
 		}
 	}
-	return 0;
 
 fail:
-	return -EINVAL;
+	return ret;
 }
 
 void tu104_gr_intr_enable_gpc_exceptions(struct gk20a *g,

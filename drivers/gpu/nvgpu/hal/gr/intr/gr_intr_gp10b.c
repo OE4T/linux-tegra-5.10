@@ -194,6 +194,8 @@ void gp10b_gr_intr_set_coalesce_buffer_size(struct gk20a *g, u32 data)
 int gp10b_gr_intr_handle_sw_method(struct gk20a *g, u32 addr,
 				     u32 class_num, u32 offset, u32 data)
 {
+	int ret = 0;
+
 	nvgpu_log_fn(g, " ");
 
 	if (class_num == PASCAL_COMPUTE_A) {
@@ -205,8 +207,13 @@ int gp10b_gr_intr_handle_sw_method(struct gk20a *g, u32 addr,
 			g->ops.gr.init.lg_coalesce(g, data);
 			break;
 		default:
-			goto fail;
+			ret = -EINVAL;
+			break;
 		}
+	}
+
+	if (ret != 0) {
+		goto fail;
 	}
 
 	if (class_num == PASCAL_A) {
@@ -236,13 +243,13 @@ int gp10b_gr_intr_handle_sw_method(struct gk20a *g, u32 addr,
 			g->ops.gr.set_bes_crop_debug4(g, data);
 			break;
 		default:
-			goto fail;
+			ret = -EINVAL;
+			break;
 		}
 	}
-	return 0;
 
 fail:
-	return -EINVAL;
+	return ret;
 }
 
 static void gr_gp10b_sm_lrf_ecc_overcount_war(bool single_err,

@@ -39,6 +39,8 @@
 int gm20b_gr_intr_handle_sw_method(struct gk20a *g, u32 addr,
 					  u32 class_num, u32 offset, u32 data)
 {
+	int ret = 0;
+
 	nvgpu_log_fn(g, " ");
 
 	if (class_num == MAXWELL_COMPUTE_B) {
@@ -50,8 +52,13 @@ int gm20b_gr_intr_handle_sw_method(struct gk20a *g, u32 addr,
 			g->ops.gr.init.lg_coalesce(g, data);
 			break;
 		default:
-			goto fail;
+			ret = -EINVAL;
+			break;
 		}
+	}
+
+	if (ret != 0) {
+		goto fail;
 	}
 
 	if (class_num == MAXWELL_B) {
@@ -69,13 +76,13 @@ int gm20b_gr_intr_handle_sw_method(struct gk20a *g, u32 addr,
 			g->ops.gr.init.lg_coalesce(g, data);
 			break;
 		default:
-			goto fail;
+			ret = -EINVAL;
+			break;
 		}
 	}
-	return 0;
 
 fail:
-	return -EINVAL;
+	return ret;
 }
 
 void gm20b_gr_intr_set_shader_exceptions(struct gk20a *g, u32 data)
