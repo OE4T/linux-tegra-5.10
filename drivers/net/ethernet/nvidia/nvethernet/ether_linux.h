@@ -40,6 +40,7 @@
 
 #include <osi_core.h>
 #include <osi_dma.h>
+#include <mmc.h>
 #include "ioctl.h"
 
 #define ETHER_MAX_IRQS			4

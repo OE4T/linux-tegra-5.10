@@ -35,6 +35,7 @@ static void ether_adjust_link(struct net_device *dev)
 	struct ether_priv_data *pdata = netdev_priv(dev);
 	struct phy_device *phydev = pdata->phydev;
 	int new_state = 0, speed_changed = 0;
+	unsigned long val;
 
 	if (phydev == NULL) {
 		return;
@@ -62,12 +63,18 @@ static void ether_adjust_link(struct net_device *dev)
 		if (!pdata->oldlink) {
 			new_state = 1;
 			pdata->oldlink = 1;
+			val = pdata->osi_core->xstats.link_connect_count;
+			pdata->osi_core->xstats.link_connect_count =
+				osi_update_stats_counter(val, 1UL);
 		}
 	} else if (pdata->oldlink) {
 		new_state = 1;
 		pdata->oldlink = 0;
 		pdata->speed = 0;
 		pdata->oldduplex = -1;
+		val = pdata->osi_core->xstats.link_disconnect_count;
+		pdata->osi_core->xstats.link_disconnect_count =
+			osi_update_stats_counter(val, 1UL);
 	} else {
 		/* Nothing here */
 	}
@@ -172,9 +179,15 @@ static irqreturn_t ether_tx_chan_isr(int irq, void *data)
 	struct ether_tx_napi *tx_napi = (struct ether_tx_napi *)data;
 	struct ether_priv_data *pdata = tx_napi->pdata;
 	struct osi_dma_priv_data *osi_dma = pdata->osi_dma;
+	struct osi_core_priv_data *osi_core = pdata->osi_core;
 	unsigned int chan = tx_napi->chan;
+	unsigned long val;
+
 
 	osi_clear_tx_intr(osi_dma, chan);
+	val = osi_core->xstats.tx_normal_irq_n[chan];
+	osi_core->xstats.tx_normal_irq_n[chan] =
+		osi_update_stats_counter(val, 1U);
 
 	if (likely(napi_schedule_prep(&tx_napi->napi))) {
 		osi_disable_chan_tx_intr(osi_dma, chan);
@@ -208,9 +221,15 @@ static irqreturn_t ether_rx_chan_isr(int irq, void *data)
 	struct ether_rx_napi *rx_napi = (struct ether_rx_napi *)data;
 	struct ether_priv_data *pdata = rx_napi->pdata;
 	struct osi_dma_priv_data *osi_dma = pdata->osi_dma;
+	struct osi_core_priv_data *osi_core = pdata->osi_core;
 	unsigned int chan = rx_napi->chan;
+	unsigned long val;
 
 	osi_clear_rx_intr(osi_dma, chan);
+	val = osi_core->xstats.rx_normal_irq_n[chan];
+	osi_core->xstats.rx_normal_irq_n[chan] =
+		osi_update_stats_counter(val, 1U);
+
 
 	if (likely(napi_schedule_prep(&rx_napi->napi))) {
 		osi_disable_chan_rx_intr(osi_dma, chan);
@@ -3091,6 +3110,11 @@ static int ether_probe(struct platform_device *pdev)
 	osi_core->mtu = ndev->mtu;
 	osi_dma->mtu = ndev->mtu;
 	ndev->max_mtu = OSI_MAX_MTU_SIZE;
+
+	memset(&osi_core->xstats, 0,
+	       sizeof(struct osi_xtra_stat_counters));
+	memset(&osi_dma->dstats, 0,
+	       sizeof(struct osi_xtra_dma_stat_counters));
 
 	/* Initialize core and DMA ops based on MAC type */
 	osi_init_core_ops(osi_core);

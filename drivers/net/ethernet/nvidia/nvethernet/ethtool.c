@@ -16,6 +16,354 @@
 
 #include "ether_linux.h"
 
+#define OSI_ARRAY_SIZE(x)  ((int)sizeof((x)) / (int)sizeof((x)[0]))
+#define EQOS_MMC_STATS_LEN OSI_ARRAY_SIZE(eqos_mmc)
+
+struct eqos_stats {
+	char stat_string[ETH_GSTRING_LEN];
+	size_t sizeof_stat;
+	size_t stat_offset;
+};
+
+/* DMA extra status */
+/* Structure variable name MUST up to MAX length of ETH_GSTRING_LEN */
+#define EQOS_DMA_EXTRA_STAT(a) \
+{ (#a), FIELD_SIZEOF(struct osi_xtra_dma_stat_counters, a), \
+	offsetof(struct osi_dma_priv_data, dstats.a)}
+
+static const struct eqos_stats eqos_dstrings_stats[] = {
+	EQOS_DMA_EXTRA_STAT(tx_clean_n[0]),
+	EQOS_DMA_EXTRA_STAT(tx_clean_n[1]),
+	EQOS_DMA_EXTRA_STAT(tx_clean_n[2]),
+	EQOS_DMA_EXTRA_STAT(tx_clean_n[3]),
+
+	/* Tx/Rx frames */
+	EQOS_DMA_EXTRA_STAT(tx_pkt_n),
+	EQOS_DMA_EXTRA_STAT(rx_pkt_n),
+	EQOS_DMA_EXTRA_STAT(tx_vlan_pkt_n),
+	EQOS_DMA_EXTRA_STAT(rx_vlan_pkt_n),
+	EQOS_DMA_EXTRA_STAT(tx_tso_pkt_n),
+
+	/* Tx/Rx frames per channels/queues */
+	EQOS_DMA_EXTRA_STAT(q_tx_pkt_n[0]),
+	EQOS_DMA_EXTRA_STAT(q_tx_pkt_n[1]),
+	EQOS_DMA_EXTRA_STAT(q_tx_pkt_n[2]),
+	EQOS_DMA_EXTRA_STAT(q_tx_pkt_n[3]),
+	EQOS_DMA_EXTRA_STAT(q_rx_pkt_n[0]),
+	EQOS_DMA_EXTRA_STAT(q_rx_pkt_n[1]),
+	EQOS_DMA_EXTRA_STAT(q_rx_pkt_n[2]),
+	EQOS_DMA_EXTRA_STAT(q_rx_pkt_n[3]),
+};
+
+#define EQOS_EXTRA_DMA_STAT_LEN OSI_ARRAY_SIZE(eqos_dstrings_stats)
+
+/* core extra status */
+/* Structure variable name MUST up to MAX length of ETH_GSTRING_LEN */
+#define EQOS_EXTRA_STAT(b) \
+{ #b, FIELD_SIZEOF(struct osi_xtra_stat_counters, b), \
+	offsetof(struct osi_core_priv_data, xstats.b)}
+
+static const struct eqos_stats eqos_gstrings_stats[] = {
+	EQOS_EXTRA_STAT(re_alloc_rxbuf_failed[0]),
+	EQOS_EXTRA_STAT(re_alloc_rxbuf_failed[1]),
+	EQOS_EXTRA_STAT(re_alloc_rxbuf_failed[2]),
+	EQOS_EXTRA_STAT(re_alloc_rxbuf_failed[3]),
+
+	/* Tx/Rx IRQ error info */
+	EQOS_EXTRA_STAT(tx_proc_stopped_irq_n[0]),
+	EQOS_EXTRA_STAT(tx_proc_stopped_irq_n[1]),
+	EQOS_EXTRA_STAT(tx_proc_stopped_irq_n[2]),
+	EQOS_EXTRA_STAT(tx_proc_stopped_irq_n[3]),
+	EQOS_EXTRA_STAT(rx_proc_stopped_irq_n[0]),
+	EQOS_EXTRA_STAT(rx_proc_stopped_irq_n[1]),
+	EQOS_EXTRA_STAT(rx_proc_stopped_irq_n[2]),
+	EQOS_EXTRA_STAT(rx_proc_stopped_irq_n[3]),
+	EQOS_EXTRA_STAT(tx_buf_unavail_irq_n[0]),
+	EQOS_EXTRA_STAT(tx_buf_unavail_irq_n[1]),
+	EQOS_EXTRA_STAT(tx_buf_unavail_irq_n[2]),
+	EQOS_EXTRA_STAT(tx_buf_unavail_irq_n[3]),
+	EQOS_EXTRA_STAT(rx_buf_unavail_irq_n[0]),
+	EQOS_EXTRA_STAT(rx_buf_unavail_irq_n[1]),
+	EQOS_EXTRA_STAT(rx_buf_unavail_irq_n[2]),
+	EQOS_EXTRA_STAT(rx_buf_unavail_irq_n[3]),
+	EQOS_EXTRA_STAT(rx_watchdog_irq_n),
+	EQOS_EXTRA_STAT(fatal_bus_error_irq_n),
+
+	/* Tx/Rx IRQ Events */
+	EQOS_EXTRA_STAT(tx_normal_irq_n[0]),
+	EQOS_EXTRA_STAT(tx_normal_irq_n[1]),
+	EQOS_EXTRA_STAT(tx_normal_irq_n[2]),
+	EQOS_EXTRA_STAT(tx_normal_irq_n[3]),
+	EQOS_EXTRA_STAT(rx_normal_irq_n[0]),
+	EQOS_EXTRA_STAT(rx_normal_irq_n[1]),
+	EQOS_EXTRA_STAT(rx_normal_irq_n[2]),
+	EQOS_EXTRA_STAT(rx_normal_irq_n[3]),
+	EQOS_EXTRA_STAT(link_disconnect_count),
+	EQOS_EXTRA_STAT(link_connect_count),
+};
+
+#define EQOS_EXTRA_STAT_LEN OSI_ARRAY_SIZE(eqos_gstrings_stats)
+
+/* HW MAC Management counters */
+/* Structure variable name MUST up to MAX length of ETH_GSTRING_LEN */
+#define EQOS_MMC_STAT(c) \
+{ #c, FIELD_SIZEOF(struct osi_mmc_counters, c), \
+	offsetof(struct osi_core_priv_data, mmc.c)}
+
+static const struct eqos_stats eqos_mmc[] = {
+	/* MMC TX counters */
+	EQOS_MMC_STAT(mmc_tx_octetcount_gb),
+	EQOS_MMC_STAT(mmc_tx_framecount_gb),
+	EQOS_MMC_STAT(mmc_tx_broadcastframe_g),
+	EQOS_MMC_STAT(mmc_tx_multicastframe_g),
+	EQOS_MMC_STAT(mmc_tx_64_octets_gb),
+	EQOS_MMC_STAT(mmc_tx_65_to_127_octets_gb),
+	EQOS_MMC_STAT(mmc_tx_128_to_255_octets_gb),
+	EQOS_MMC_STAT(mmc_tx_256_to_511_octets_gb),
+	EQOS_MMC_STAT(mmc_tx_512_to_1023_octets_gb),
+	EQOS_MMC_STAT(mmc_tx_1024_to_max_octets_gb),
+	EQOS_MMC_STAT(mmc_tx_unicast_gb),
+	EQOS_MMC_STAT(mmc_tx_multicast_gb),
+	EQOS_MMC_STAT(mmc_tx_broadcast_gb),
+	EQOS_MMC_STAT(mmc_tx_underflow_error),
+	EQOS_MMC_STAT(mmc_tx_singlecol_g),
+	EQOS_MMC_STAT(mmc_tx_multicol_g),
+	EQOS_MMC_STAT(mmc_tx_deferred),
+	EQOS_MMC_STAT(mmc_tx_latecol),
+	EQOS_MMC_STAT(mmc_tx_exesscol),
+	EQOS_MMC_STAT(mmc_tx_carrier_error),
+	EQOS_MMC_STAT(mmc_tx_octetcount_g),
+	EQOS_MMC_STAT(mmc_tx_framecount_g),
+	EQOS_MMC_STAT(mmc_tx_excessdef),
+	EQOS_MMC_STAT(mmc_tx_pause_frame),
+	EQOS_MMC_STAT(mmc_tx_vlan_frame_g),
+
+	/* MMC RX counters */
+	EQOS_MMC_STAT(mmc_rx_framecount_gb),
+	EQOS_MMC_STAT(mmc_rx_octetcount_gb),
+	EQOS_MMC_STAT(mmc_rx_octetcount_g),
+	EQOS_MMC_STAT(mmc_rx_broadcastframe_g),
+	EQOS_MMC_STAT(mmc_rx_multicastframe_g),
+	EQOS_MMC_STAT(mmc_rx_crc_error),
+	EQOS_MMC_STAT(mmc_rx_align_error),
+	EQOS_MMC_STAT(mmc_rx_runt_error),
+	EQOS_MMC_STAT(mmc_rx_jabber_error),
+	EQOS_MMC_STAT(mmc_rx_undersize_g),
+	EQOS_MMC_STAT(mmc_rx_oversize_g),
+	EQOS_MMC_STAT(mmc_rx_64_octets_gb),
+	EQOS_MMC_STAT(mmc_rx_65_to_127_octets_gb),
+	EQOS_MMC_STAT(mmc_rx_128_to_255_octets_gb),
+	EQOS_MMC_STAT(mmc_rx_256_to_511_octets_gb),
+	EQOS_MMC_STAT(mmc_rx_512_to_1023_octets_gb),
+	EQOS_MMC_STAT(mmc_rx_1024_to_max_octets_gb),
+	EQOS_MMC_STAT(mmc_rx_unicast_g),
+	EQOS_MMC_STAT(mmc_rx_length_error),
+	EQOS_MMC_STAT(mmc_rx_outofrangetype),
+	EQOS_MMC_STAT(mmc_rx_pause_frames),
+	EQOS_MMC_STAT(mmc_rx_fifo_overflow),
+	EQOS_MMC_STAT(mmc_rx_vlan_frames_gb),
+	EQOS_MMC_STAT(mmc_rx_watchdog_error),
+
+	/* IPv4 */
+	EQOS_MMC_STAT(mmc_rx_ipv4_gd),
+	EQOS_MMC_STAT(mmc_rx_ipv4_hderr),
+	EQOS_MMC_STAT(mmc_rx_ipv4_nopay),
+	EQOS_MMC_STAT(mmc_rx_ipv4_frag),
+	EQOS_MMC_STAT(mmc_rx_ipv4_udsbl),
+
+	/* IPV6 */
+	EQOS_MMC_STAT(mmc_rx_ipv6_gd_octets),
+	EQOS_MMC_STAT(mmc_rx_ipv6_hderr_octets),
+	EQOS_MMC_STAT(mmc_rx_ipv6_nopay_octets),
+
+	/* Protocols */
+	EQOS_MMC_STAT(mmc_rx_udp_gd),
+	EQOS_MMC_STAT(mmc_rx_udp_err),
+	EQOS_MMC_STAT(mmc_rx_tcp_gd),
+	EQOS_MMC_STAT(mmc_rx_tcp_err),
+	EQOS_MMC_STAT(mmc_rx_icmp_gd),
+	EQOS_MMC_STAT(mmc_rx_icmp_err),
+
+	/* IPv4 */
+	EQOS_MMC_STAT(mmc_rx_ipv4_gd_octets),
+	EQOS_MMC_STAT(mmc_rx_ipv4_hderr_octets),
+	EQOS_MMC_STAT(mmc_rx_ipv4_nopay_octets),
+	EQOS_MMC_STAT(mmc_rx_ipv4_frag_octets),
+	EQOS_MMC_STAT(mmc_rx_ipv4_udsbl_octets),
+
+	/* IPV6 */
+	EQOS_MMC_STAT(mmc_rx_ipv6_gd),
+	EQOS_MMC_STAT(mmc_rx_ipv6_hderr),
+	EQOS_MMC_STAT(mmc_rx_ipv6_nopay),
+
+	/* Protocols */
+	EQOS_MMC_STAT(mmc_rx_udp_gd_octets),
+	EQOS_MMC_STAT(mmc_rx_udp_err_octets),
+	EQOS_MMC_STAT(mmc_rx_tcp_gd_octets),
+	EQOS_MMC_STAT(mmc_rx_tcp_err_octets),
+	EQOS_MMC_STAT(mmc_rx_icmp_gd_octets),
+	EQOS_MMC_STAT(mmc_rx_icmp_err_octets),
+};
+
+/**
+ *	ether_get_ethtool_stats: This function is invoked by kernel when user
+ *	requests to get the extended statistics about the device.
+ *
+ *	@dev: pointer to net device structure.
+ *	@dummy: dummy parameter of ethtool_stats type.
+ *	@data: Pointer in which MMC statistics should be put.
+ *
+ *	Algorithm: read mmc register and create sctrings
+ *
+ *	Dependencies: Network device needs to created.
+ *
+ *	Protection: None.
+ *
+ *	Return: void
+ */
+static void ether_get_ethtool_stats(struct net_device *dev,
+				    struct ethtool_stats *dummy,
+				    u64 *data)
+{
+	struct ether_priv_data *pdata = netdev_priv(dev);
+	struct osi_core_priv_data *osi_core = pdata->osi_core;
+	struct osi_dma_priv_data *osi_dma = pdata->osi_dma;
+	int i, j = 0;
+	int ret;
+
+	if (pdata->hw_feat.mmc_sel == 1U) {
+		ret = osi_read_mmc(osi_core);
+		if (ret == -1) {
+			dev_err(pdata->dev, "Error in reading MMC counter\n");
+			return;
+		}
+
+		for (i = 0; i < EQOS_MMC_STATS_LEN; i++) {
+			char *p = (char *)osi_core + eqos_mmc[i].stat_offset;
+
+			data[j++] = (eqos_mmc[i].sizeof_stat ==
+					sizeof(u64)) ? (*(u64 *)p) :
+				     (*(u32 *)p);
+		}
+
+		for (i = 0; i < EQOS_EXTRA_STAT_LEN; i++) {
+			char *p = (char *)osi_core +
+				  eqos_gstrings_stats[i].stat_offset;
+
+			data[j++] = (eqos_gstrings_stats[i].sizeof_stat ==
+				     sizeof(u64)) ? (*(u64 *)p) : (*(u32 *)p);
+		}
+
+		for (i = 0; i < EQOS_EXTRA_DMA_STAT_LEN; i++) {
+			char *p = (char *)osi_dma +
+				  eqos_dstrings_stats[i].stat_offset;
+
+			data[j++] = (eqos_dstrings_stats[i].sizeof_stat ==
+				     sizeof(u64)) ? (*(u64 *)p) : (*(u32 *)p);
+		}
+	}
+}
+
+/**
+ *	ether_get_sset_count- This function gets number of strings that
+ *	@get_strings will write.
+ *
+ *	@dev: Pointer to net device structure.
+ *	@sset: String set value.
+ *
+ *	Algorithm: retrun number of strings.
+ *
+ *	Dependencies: Network device needs to created.
+ *
+ *	Protection: None.
+ *
+ *	Return: Success- >0, failure - 0
+ */
+static int ether_get_sset_count(struct net_device *dev, int sset)
+{
+	struct ether_priv_data *pdata = netdev_priv(dev);
+	int len = 0;
+
+	if (sset == ETH_SS_STATS) {
+		if (pdata->hw_feat.mmc_sel == OSI_ENABLE) {
+			if (INT_MAX < EQOS_MMC_STATS_LEN) {
+				/* do nothing*/
+			} else {
+				len = EQOS_MMC_STATS_LEN;
+			}
+		}
+		if (INT_MAX - EQOS_EXTRA_STAT_LEN < len) {
+			/* do nothing */
+		} else {
+			len += EQOS_EXTRA_STAT_LEN;
+		}
+		if (INT_MAX - EQOS_EXTRA_DMA_STAT_LEN < len) {
+			/* do nothing */
+		} else {
+			len += EQOS_EXTRA_DMA_STAT_LEN;
+		}
+	} else {
+		len = -EOPNOTSUPP;
+	}
+
+	return len;
+}
+
+/**	ether_get_strings - This function returns a set of strings that describe
+ *	the requested objects.
+ *
+ *	@dev: Pointer to net device structure.
+ *	@stringset:  String set value.
+ *	@data: Pointer in which requested string should be put.
+ *
+ *	Algorithm: retrun number of strings.
+ *
+ *	Dependencies: Network device needs to created.
+ *
+ *	Protection: None.
+ *
+ *	Return: Success - >0, failure - 0
+ */
+static void ether_get_strings(struct net_device *dev, u32 stringset, u8 *data)
+{
+	struct ether_priv_data *pdata = netdev_priv(dev);
+	u8 *p = data;
+	u8 *str;
+	int i;
+
+	if (stringset == (u32)ETH_SS_STATS) {
+		if (pdata->hw_feat.mmc_sel == OSI_ENABLE) {
+			for (i = 0; i < EQOS_MMC_STATS_LEN; i++) {
+				str = (u8 *)eqos_mmc[i].stat_string;
+				if (memcpy(p, str, ETH_GSTRING_LEN) ==
+				    OSI_NULL) {
+					return;
+				}
+				p += ETH_GSTRING_LEN;
+			}
+
+			for (i = 0; i < EQOS_EXTRA_STAT_LEN; i++) {
+				str = (u8 *)eqos_gstrings_stats[i].stat_string;
+				if (memcpy(p, str, ETH_GSTRING_LEN) ==
+				    OSI_NULL) {
+					return;
+				}
+				p += ETH_GSTRING_LEN;
+			}
+			for (i = 0; i < EQOS_EXTRA_DMA_STAT_LEN; i++) {
+				str = (u8 *)eqos_dstrings_stats[i].stat_string;
+				if (memcpy(p, str, ETH_GSTRING_LEN) ==
+				    OSI_NULL) {
+					return;
+				}
+				p += ETH_GSTRING_LEN;
+			}
+		}
+	} else {
+		dev_err(pdata->dev, "%s() Unsupported stringset\n", __func__);
+	}
+}
+
 /**
  *	ether_get_pauseparam - Get pause frame settings
  *	@ndev: network device instance
@@ -141,7 +489,6 @@ static int ether_set_pauseparam(struct net_device *ndev,
  *
  *	Return: Return can't be a -ve value.
  */
-
 static int ether_get_ts_info(struct net_device *net,
 		struct ethtool_ts_info *info)
 {
@@ -174,6 +521,9 @@ static const struct ethtool_ops ether_ethtool_ops = {
 	.get_pauseparam = ether_get_pauseparam,
 	.set_pauseparam = ether_set_pauseparam,
 	.get_ts_info = ether_get_ts_info,
+	.get_strings = ether_get_strings,
+	.get_ethtool_stats = ether_get_ethtool_stats,
+	.get_sset_count = ether_get_sset_count,
 };
 
 /**
