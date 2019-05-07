@@ -21,7 +21,7 @@
  */
 
 #ifndef NVGPU_CLASS_TU104
-#define NVGPU_CALSS_TU104
+#define NVGPU_CLASS_TU104
 
 #include <nvgpu/types.h>
 
@@ -29,4 +29,4 @@ bool tu104_class_is_valid(u32 class_num);
 bool tu104_class_is_valid_gfx(u32 class_num);
 bool tu104_class_is_valid_compute(u32 class_num);
 
-#endif
+#endif /* NVGPU_CLASS_TU104 */

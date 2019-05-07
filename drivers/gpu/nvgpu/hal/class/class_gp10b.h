@@ -21,7 +21,7 @@
  */
 
 #ifndef NVGPU_CLASS_GP10B
-#define NVGPU_CALSS_GP10B
+#define NVGPU_CLASS_GP10B
 
 #include <nvgpu/types.h>
 
@@ -29,4 +29,4 @@ bool gp10b_class_is_valid(u32 class_num);
 bool gp10b_class_is_valid_gfx(u32 class_num);
 bool gp10b_class_is_valid_compute(u32 class_num);
 
-#endif
+#endif /* NVGPU_CLASS_GP10B */
