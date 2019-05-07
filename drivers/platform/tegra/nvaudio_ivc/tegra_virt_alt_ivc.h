@@ -60,5 +60,6 @@ int tegra124_virt_xbar_get_ivc(struct nvaudio_ivc_ctxt *ictxt,
 					int rx_idx,
 					int *tx_idx);
 
+struct nvaudio_ivc_ctxt *nvaudio_get_ivc_alloc_ctxt(void);
 
 #endif

@@ -201,6 +201,16 @@ fail:
 }
 EXPORT_SYMBOL_GPL(nvaudio_ivc_alloc_ctxt);
 
+struct nvaudio_ivc_ctxt *nvaudio_get_ivc_alloc_ctxt(void)
+{
+	if (saved_ivc_ctxt)
+		return saved_ivc_ctxt;
+
+	pr_err("%s: ivc ctxt not allocated\n", __func__);
+	return NULL;
+}
+EXPORT_SYMBOL_GPL(nvaudio_get_ivc_alloc_ctxt);
+
 /* hook to domain destroy */
 void nvaudio_ivc_free_ctxt(struct device *dev)
 {

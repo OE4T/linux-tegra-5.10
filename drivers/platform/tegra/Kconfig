@@ -259,3 +259,4 @@ config TEGRA_PM_DEBUG
 	  during suspend entry and some debugfs functionality).
 
 source "drivers/platform/tegra/nvadsp/Kconfig"
+source "drivers/platform/tegra/nvaudio_ivc/Kconfig"

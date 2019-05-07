@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2018, NVIDIA Corporation. All rights reserved.
+ * Copyright (c) 2015-2019, NVIDIA Corporation. All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -18,6 +18,12 @@
 #include <linux/clk.h>
 
 #include <linux/delay.h>
+#include <linux/tegra_nvadsp.h>
+
+#ifdef CONFIG_TEGRA_VIRT_AUDIO_IVC
+#include "tegra_virt_alt_ivc_common.h"
+#include "tegra_virt_alt_ivc.h"
+#endif
 
 #include "dev.h"
 #include "dev-t18x.h"
@@ -199,11 +205,74 @@ static int __deassert_t18x_adsp(struct nvadsp_drv_data *d)
 	return ret;
 }
 
+#ifdef CONFIG_TEGRA_VIRT_AUDIO_IVC
+static int __virt_assert_t18x_adsp(struct nvadsp_drv_data *d)
+{
+	int err;
+	struct nvaudio_ivc_msg	msg;
+	struct nvaudio_ivc_ctxt *hivc_client = nvaudio_get_ivc_alloc_ctxt();
+
+	if (!hivc_client) {
+		pr_err("%s: Failed to allocate IVC context\n", __func__);
+		return -ENODEV;
+	}
+
+	memset(&msg, 0, sizeof(struct nvaudio_ivc_msg));
+	msg.cmd = NVAUDIO_ADSP_RESET;
+	msg.params.adsp_reset_info.reset_req = ASSERT;
+	msg.ack_required = true;
+
+	err = nvaudio_ivc_send_receive(hivc_client,
+			&msg,
+			sizeof(struct nvaudio_ivc_msg));
+	if (err < 0)
+		pr_err("%s: error on ivc_send_receive\n", __func__);
+
+	return 0;
+}
+
+static int __virt_deassert_t18x_adsp(struct nvadsp_drv_data *d)
+{
+	int err;
+	struct nvaudio_ivc_msg	msg;
+	struct nvaudio_ivc_ctxt *hivc_client = nvaudio_get_ivc_alloc_ctxt();
+
+	if (!hivc_client) {
+		pr_err("%s: Failed to allocate IVC context\n", __func__);
+		return -ENODEV;
+	}
+
+	memset(&msg, 0, sizeof(struct nvaudio_ivc_msg));
+	msg.cmd = NVAUDIO_ADSP_RESET;
+	msg.params.adsp_reset_info.reset_req = DEASSERT;
+	msg.ack_required = true;
+
+	err = nvaudio_ivc_send_receive(hivc_client,
+			&msg,
+			sizeof(struct nvaudio_ivc_msg));
+	if (err < 0)
+		pr_err("%s: error on ivc_send_receive\n", __func__);
+
+	return 0;
+}
+#endif
+
 int nvadsp_reset_t18x_init(struct platform_device *pdev)
 {
 	struct nvadsp_drv_data *d = platform_get_drvdata(pdev);
 	struct device *dev = &pdev->dev;
 	int ret = 0;
+
+#ifdef CONFIG_TEGRA_VIRT_AUDIO_IVC
+	struct device_node *node = dev->of_node;
+
+	if (of_device_is_compatible(node, "nvidia,tegra18x-adsp-hv")) {
+		d->assert_adsp = __virt_assert_t18x_adsp;
+		d->deassert_adsp = __virt_deassert_t18x_adsp;
+		d->adspall_rst = NULL;
+		return 0;
+	}
+#endif
 
 	d->assert_adsp = __assert_t18x_adsp;
 	d->deassert_adsp = __deassert_t18x_adsp;

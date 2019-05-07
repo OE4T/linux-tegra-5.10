@@ -50,6 +50,8 @@ obj-$(CONFIG_PSTORE_RAM) += tegra_ramoops.o
 
 obj-$(CONFIG_TEGRA_NVADSP) += nvadsp/
 
+obj-$(CONFIG_TEGRA_VIRT_AUDIO_IVC) += nvaudio_ivc/
+
 obj-$(CONFIG_TEGRA_VPR) += tegra_vpr.o
 obj-y += smc-calls.o
 
