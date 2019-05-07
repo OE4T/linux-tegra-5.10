@@ -816,7 +816,7 @@ int vgpu_gr_isr(struct gk20a *g, struct tegra_vgpu_gr_intr_info *info)
 		break;
 	}
 
-	gk20a_channel_put(ch);
+	nvgpu_channel_put(ch);
 	return 0;
 }
 

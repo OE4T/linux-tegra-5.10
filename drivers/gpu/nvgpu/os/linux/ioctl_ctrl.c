@@ -681,7 +681,7 @@ static int nvgpu_gpu_ioctl_set_debug_mode(
 		err = -ENOSYS;
 	nvgpu_mutex_release(&g->dbg_sessions_lock);
 
-	gk20a_channel_put(ch);
+	nvgpu_channel_put(ch);
 	return err;
 }
 
@@ -1640,7 +1640,7 @@ static int nvgpu_gpu_set_deterministic_opts(struct gk20a *g,
 
 		err = nvgpu_gpu_set_deterministic_ch(ch, args->flags);
 
-		gk20a_channel_put(ch);
+		nvgpu_channel_put(ch);
 
 		if (err)
 			break;

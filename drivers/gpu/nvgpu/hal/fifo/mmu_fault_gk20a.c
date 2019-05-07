@@ -316,7 +316,7 @@ bool gk20a_fifo_handle_mmu_fault_locked(
 				tsg = nvgpu_tsg_get_from_id(g, id);
 			} else if (type == ENGINE_STATUS_CTX_ID_TYPE_CHID) {
 				ch = &g->fifo.channel[id];
-				refch = gk20a_channel_get(ch);
+				refch = nvgpu_channel_get(ch);
 				if (refch != NULL) {
 					tsg = tsg_gk20a_from_ch(refch);
 				}
@@ -375,12 +375,12 @@ bool gk20a_fifo_handle_mmu_fault_locked(
 
 			/* put back the ref taken early above */
 			if (refch != NULL) {
-				gk20a_channel_put(ch);
+				nvgpu_channel_put(ch);
 			}
 		} else if (refch != NULL) {
 			nvgpu_err(g, "mmu error in unbound channel %d",
 					  ch->chid);
-			gk20a_channel_put(ch);
+			nvgpu_channel_put(ch);
 		} else if (mmfault_info.inst_ptr ==
 				nvgpu_inst_block_addr(g,
 					&g->mm.bar1.inst_block)) {

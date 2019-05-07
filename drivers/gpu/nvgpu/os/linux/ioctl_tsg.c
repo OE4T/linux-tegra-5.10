@@ -53,7 +53,7 @@ static int nvgpu_tsg_bind_channel_fd(struct nvgpu_tsg *tsg, int ch_fd)
 
 	err = nvgpu_tsg_bind_channel(tsg, ch);
 
-	gk20a_channel_put(ch);
+	nvgpu_channel_put(ch);
 	return err;
 }
 
@@ -116,7 +116,7 @@ static int gk20a_tsg_ioctl_bind_channel_ex(struct gk20a *g,
 
 	err = nvgpu_tsg_bind_channel(tsg, ch);
 ch_put:
-	gk20a_channel_put(ch);
+	nvgpu_channel_put(ch);
 idle:
 	gk20a_idle(g);
 mutex_release:
@@ -148,7 +148,7 @@ static int nvgpu_tsg_unbind_channel_fd(struct nvgpu_tsg *tsg, int ch_fd)
 	gk20a_channel_set_unserviceable(ch);
 
 out:
-	gk20a_channel_put(ch);
+	nvgpu_channel_put(ch);
 	return err;
 }
 

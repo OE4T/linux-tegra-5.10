@@ -177,7 +177,7 @@ static void channel_sync_syncpt_update(void *priv, int nr_completed)
 	gk20a_channel_update(ch);
 
 	/* note: channel_get() is in channel_sync_syncpt_incr_common() */
-	gk20a_channel_put(ch);
+	nvgpu_channel_put(ch);
 }
 
 static int channel_sync_syncpt_incr_common(struct nvgpu_channel_sync *s,
@@ -210,7 +210,7 @@ static int channel_sync_syncpt_incr_common(struct nvgpu_channel_sync *s,
 			c->g->ops.sync.syncpt.get_incr_per_release());
 
 	if (register_irq) {
-		struct nvgpu_channel *referenced = gk20a_channel_get(c);
+		struct nvgpu_channel *referenced = nvgpu_channel_get(c);
 
 		WARN_ON(!referenced);
 
@@ -223,7 +223,7 @@ static int channel_sync_syncpt_incr_common(struct nvgpu_channel_sync *s,
 				sp->id, thresh,
 				channel_sync_syncpt_update, c);
 			if (err != 0) {
-				gk20a_channel_put(referenced);
+				nvgpu_channel_put(referenced);
 			}
 
 			/* Adding interrupt action should

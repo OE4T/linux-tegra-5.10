@@ -107,7 +107,7 @@ void nvgpu_rc_pbdma_fault(struct gk20a *g, struct nvgpu_fifo *f,
 			nvgpu_err(g, "chid: %d is not bound to tsg", ch->chid);
 		}
 
-		gk20a_channel_put(ch);
+		nvgpu_channel_put(ch);
 	} else {
 		nvgpu_err(g, "Invalid pbdma_status.id_type");
 	}

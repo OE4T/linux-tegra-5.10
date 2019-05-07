@@ -563,14 +563,14 @@ static int dbg_bind_channel_gk20a(struct dbg_session_gk20a *dbg_s,
 	nvgpu_mutex_release(&ch->dbg_s_lock);
 	nvgpu_mutex_release(&g->dbg_sessions_lock);
 
-	gk20a_channel_put(ch);
+	nvgpu_channel_put(ch);
 
 	return 0;
 
 out_kfree:
 	nvgpu_kfree(g, ch_data_linux);
 out_chput:
-	gk20a_channel_put(ch);
+	nvgpu_channel_put(ch);
 	nvgpu_mutex_release(&ch->dbg_s_lock);
 	nvgpu_mutex_release(&g->dbg_sessions_lock);
 out_fput:
@@ -1815,7 +1815,7 @@ static int dbg_unbind_channel_gk20a(struct dbg_session_gk20a *dbg_s,
 	nvgpu_mutex_release(&g->dbg_sessions_lock);
 
 out:
-	gk20a_channel_put(ch);
+	nvgpu_channel_put(ch);
 	return err;
 }
 

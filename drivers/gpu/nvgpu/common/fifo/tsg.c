@@ -398,11 +398,11 @@ bool nvgpu_tsg_mark_error(struct gk20a *g,
 
 	nvgpu_rwsem_down_read(&tsg->ch_list_lock);
 	nvgpu_list_for_each_entry(ch, &tsg->ch_list, channel_gk20a, ch_entry) {
-		if (gk20a_channel_get(ch) != NULL) {
+		if (nvgpu_channel_get(ch) != NULL) {
 			if (nvgpu_channel_mark_error(g, ch)) {
 				verbose = true;
 			}
-			gk20a_channel_put(ch);
+			nvgpu_channel_put(ch);
 		}
 	}
 	nvgpu_rwsem_up_read(&tsg->ch_list_lock);
@@ -417,9 +417,9 @@ void nvgpu_tsg_set_ctxsw_timeout_accumulated_ms(struct nvgpu_tsg *tsg, u32 ms)
 
 	nvgpu_rwsem_down_read(&tsg->ch_list_lock);
 	nvgpu_list_for_each_entry(ch, &tsg->ch_list, channel_gk20a, ch_entry) {
-		if (gk20a_channel_get(ch) != NULL) {
+		if (nvgpu_channel_get(ch) != NULL) {
 			ch->ctxsw_timeout_accumulated_ms = ms;
-			gk20a_channel_put(ch);
+			nvgpu_channel_put(ch);
 		}
 	}
 	nvgpu_rwsem_up_read(&tsg->ch_list_lock);
@@ -432,11 +432,11 @@ bool nvgpu_tsg_ctxsw_timeout_debug_dump_state(struct nvgpu_tsg *tsg)
 
 	nvgpu_rwsem_down_read(&tsg->ch_list_lock);
 	nvgpu_list_for_each_entry(ch, &tsg->ch_list, channel_gk20a, ch_entry) {
-		if (gk20a_channel_get(ch) != NULL) {
+		if (nvgpu_channel_get(ch) != NULL) {
 			if (ch->ctxsw_timeout_debug_dump) {
 				verbose = true;
 			}
-			gk20a_channel_put(ch);
+			nvgpu_channel_put(ch);
 		}
 	}
 	nvgpu_rwsem_up_read(&tsg->ch_list_lock);
@@ -451,9 +451,9 @@ void nvgpu_tsg_set_error_notifier(struct gk20a *g, struct nvgpu_tsg *tsg,
 
 	nvgpu_rwsem_down_read(&tsg->ch_list_lock);
 	nvgpu_list_for_each_entry(ch, &tsg->ch_list, channel_gk20a, ch_entry) {
-		if (gk20a_channel_get(ch) != NULL) {
+		if (nvgpu_channel_get(ch) != NULL) {
 			nvgpu_channel_set_error_notifier(g, ch, error_notifier);
-			gk20a_channel_put(ch);
+			nvgpu_channel_put(ch);
 		}
 	}
 	nvgpu_rwsem_up_read(&tsg->ch_list_lock);
@@ -485,13 +485,13 @@ bool nvgpu_tsg_check_ctxsw_timeout(struct nvgpu_tsg *tsg,
 	 * maximum timeout without progress (update in gpfifo pointers).
 	 */
 	nvgpu_list_for_each_entry(ch, &tsg->ch_list, channel_gk20a, ch_entry) {
-		if (gk20a_channel_get(ch) != NULL) {
+		if (nvgpu_channel_get(ch) != NULL) {
 			recover = nvgpu_channel_update_and_check_ctxsw_timeout(ch,
 					*ms, &progress);
 			if (progress || recover) {
 				break;
 			}
-			gk20a_channel_put(ch);
+			nvgpu_channel_put(ch);
 		}
 	}
 
@@ -503,7 +503,7 @@ bool nvgpu_tsg_check_ctxsw_timeout(struct nvgpu_tsg *tsg,
 		 * notifier for all channels.
 		 */
 		*ms = ch->ctxsw_timeout_accumulated_ms;
-		gk20a_channel_put(ch);
+		nvgpu_channel_put(ch);
 		*debug_dump = nvgpu_tsg_ctxsw_timeout_debug_dump_state(tsg);
 
 	} else {
@@ -516,7 +516,7 @@ bool nvgpu_tsg_check_ctxsw_timeout(struct nvgpu_tsg *tsg,
 		if (progress) {
 			nvgpu_log_info(g, "progress on tsg=%d ch=%d",
 					tsg->tsgid, ch->chid);
-			gk20a_channel_put(ch);
+			nvgpu_channel_put(ch);
 			*ms = g->ctxsw_timeout_period_ms;
 			nvgpu_tsg_set_ctxsw_timeout_accumulated_ms(tsg, *ms);
 		}
@@ -860,12 +860,12 @@ void nvgpu_tsg_abort(struct gk20a *g, struct nvgpu_tsg *tsg, bool preempt)
 
 	nvgpu_rwsem_down_read(&tsg->ch_list_lock);
 	nvgpu_list_for_each_entry(ch, &tsg->ch_list, channel_gk20a, ch_entry) {
-		if (gk20a_channel_get(ch) != NULL) {
+		if (nvgpu_channel_get(ch) != NULL) {
 			gk20a_channel_set_unserviceable(ch);
 			if (g->ops.channel.abort_clean_up != NULL) {
 				g->ops.channel.abort_clean_up(ch);
 			}
-			gk20a_channel_put(ch);
+			nvgpu_channel_put(ch);
 		}
 	}
 	nvgpu_rwsem_up_read(&tsg->ch_list_lock);

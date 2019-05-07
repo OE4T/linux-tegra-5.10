@@ -134,7 +134,7 @@ static void vgpu_channel_abort_cleanup(struct gk20a *g, u32 chid)
 
 	gk20a_channel_set_unserviceable(ch);
 	g->ops.fifo.ch_abort_clean_up(ch);
-	gk20a_channel_put(ch);
+	nvgpu_channel_put(ch);
 }
 
 static void vgpu_set_error_notifier(struct gk20a *g,

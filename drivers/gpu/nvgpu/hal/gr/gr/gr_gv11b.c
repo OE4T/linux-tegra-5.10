@@ -1024,7 +1024,7 @@ static int gr_gv11b_handle_warp_esr_error_mmu_nack(struct gk20a *g,
 	u32 offset;
 	int err = 0;
 
-	fault_ch = gk20a_channel_get(fault_ch);
+	fault_ch = nvgpu_channel_get(fault_ch);
 	if (fault_ch != NULL) {
 		if (!fault_ch->mmu_nack_handled) {
 			/* recovery is not done for the channel implying mmu
@@ -1044,7 +1044,7 @@ static int gr_gv11b_handle_warp_esr_error_mmu_nack(struct gk20a *g,
 	 * for teardown value in mmu fault handler.
 	 */
 	if (err == 0 && fault_ch != NULL) {
-		gk20a_channel_put(fault_ch);
+		nvgpu_channel_put(fault_ch);
 	}
 
 	/* clear interrupt */

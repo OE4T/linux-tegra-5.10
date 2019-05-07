@@ -68,7 +68,7 @@ static int gk20a_as_ioctl_bind_channel(
 	err = ch->g->ops.mm.vm_bind_channel(as_share->vm, ch);
 
 out:
-	gk20a_channel_put(ch);
+	nvgpu_channel_put(ch);
 	return err;
 }
 

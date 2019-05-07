@@ -531,7 +531,7 @@ void gv11b_fb_handle_bar2_fault(struct gk20a *g,
 	g->ops.bus.bar2_bind(g, &g->mm.bar2.inst_block);
 
 	if (mmufault->refch != NULL) {
-		gk20a_channel_put(mmufault->refch);
+		nvgpu_channel_put(mmufault->refch);
 		mmufault->refch = NULL;
 	}
 }

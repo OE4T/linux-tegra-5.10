@@ -372,7 +372,7 @@ static int gk20a_init_error_notifier(struct nvgpu_channel *ch,
 
 /*
  * This returns the channel with a reference. The caller must
- * gk20a_channel_put() the ref back after use.
+ * nvgpu_channel_put() the ref back after use.
  *
  * NULL is returned if the channel was not found.
  */
@@ -391,7 +391,7 @@ struct nvgpu_channel *gk20a_get_channel_from_file(int fd)
 	}
 
 	priv = (struct channel_priv *)f->private_data;
-	ch = gk20a_channel_get(priv->c);
+	ch = nvgpu_channel_get(priv->c);
 	fput(f);
 	return ch;
 }
@@ -1090,7 +1090,7 @@ long gk20a_channel_ioctl(struct file *filp,
 	}
 
 	/* take a ref or return timeout if channel refs can't be taken */
-	ch = gk20a_channel_get(ch);
+	ch = nvgpu_channel_get(ch);
 	if (!ch)
 		return -ETIMEDOUT;
 
@@ -1398,7 +1398,7 @@ long gk20a_channel_ioctl(struct file *filp,
 
 	nvgpu_mutex_release(&ch->ioctl_lock);
 
-	gk20a_channel_put(ch);
+	nvgpu_channel_put(ch);
 
 	nvgpu_log_fn(g, "end");
 

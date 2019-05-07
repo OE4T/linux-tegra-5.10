@@ -319,7 +319,7 @@ int nvgpu_engine_disable_activity(struct gk20a *g,
 		ch = nvgpu_channel_from_id(g, pbdma_chid);
 		if (ch != NULL) {
 			err = g->ops.fifo.preempt_channel(g, ch);
-			gk20a_channel_put(ch);
+			nvgpu_channel_put(ch);
 		}
 		if (err != 0) {
 			goto clean_up;
@@ -341,7 +341,7 @@ int nvgpu_engine_disable_activity(struct gk20a *g,
 		ch = nvgpu_channel_from_id(g, engine_chid);
 		if (ch != NULL) {
 			err = g->ops.fifo.preempt_channel(g, ch);
-			gk20a_channel_put(ch);
+			nvgpu_channel_put(ch);
 		}
 		if (err != 0) {
 			goto clean_up;

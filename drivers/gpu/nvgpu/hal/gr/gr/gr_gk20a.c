@@ -1373,7 +1373,7 @@ bool gk20a_is_channel_ctx_resident(struct nvgpu_channel *ch)
 		ret = true;
 	}
 
-	gk20a_channel_put(curr_ch);
+	nvgpu_channel_put(curr_ch);
 	return ret;
 }
 

@@ -86,7 +86,7 @@ static int gk20a_fifo_sched_debugfs_seq_show(
 	if (!test_bit(ch->chid, runlist->active_channels))
 		return ret;
 
-	if (gk20a_channel_get(ch)) {
+	if (nvgpu_channel_get(ch)) {
 		tsg = tsg_gk20a_from_ch(ch);
 
 		if (tsg)
@@ -99,7 +99,7 @@ static int gk20a_fifo_sched_debugfs_seq_show(
 				tsg->interleave_level,
 				nvgpu_gr_ctx_get_graphics_preemption_mode(tsg->gr_ctx),
 				nvgpu_gr_ctx_get_compute_preemption_mode(tsg->gr_ctx));
-		gk20a_channel_put(ch);
+		nvgpu_channel_put(ch);
 	}
 	return 0;
 }

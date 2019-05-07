@@ -88,7 +88,7 @@ static int gp10b_gr_intr_get_cilp_preempt_pending_chid(struct gk20a *g,
 
 	tsg = tsg_gk20a_from_ch(ch);
 	if (tsg == NULL) {
-		gk20a_channel_put(ch);
+		nvgpu_channel_put(ch);
 		return -EINVAL;
 	}
 
@@ -99,7 +99,7 @@ static int gp10b_gr_intr_get_cilp_preempt_pending_chid(struct gk20a *g,
 		ret = 0;
 	}
 
-	gk20a_channel_put(ch);
+	nvgpu_channel_put(ch);
 
 	return ret;
 }
@@ -150,7 +150,7 @@ int gp10b_gr_intr_handle_fecs_error(struct gk20a *g,
 		ret = gp10b_gr_intr_clear_cilp_preempt_pending(g, ch);
 		if (ret != 0) {
 			nvgpu_err(g, "CILP: error while unsetting CILP preempt pending!");
-			gk20a_channel_put(ch);
+			nvgpu_channel_put(ch);
 			goto clean_up;
 		}
 
@@ -164,7 +164,7 @@ int gp10b_gr_intr_handle_fecs_error(struct gk20a *g,
 		g->ops.tsg.post_event_id(tsg,
 				NVGPU_EVENT_ID_CILP_PREEMPTION_COMPLETE);
 
-		gk20a_channel_put(ch);
+		nvgpu_channel_put(ch);
 	}
 
 clean_up:

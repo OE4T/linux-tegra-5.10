@@ -585,8 +585,9 @@ static void gk20a_channel_save_ref_source(struct nvgpu_channel *ch,
  * Most global functions in this file require a reference to be held by the
  * caller.
  */
-struct nvgpu_channel *_gk20a_channel_get(struct nvgpu_channel *ch,
-					 const char *caller) {
+struct nvgpu_channel *nvgpu_channel_get__func(struct nvgpu_channel *ch,
+					 const char *caller)
+{
 	struct nvgpu_channel *ret;
 
 	nvgpu_spinlock_acquire(&ch->ref_obtain_lock);
@@ -602,16 +603,16 @@ struct nvgpu_channel *_gk20a_channel_get(struct nvgpu_channel *ch,
 	nvgpu_spinlock_release(&ch->ref_obtain_lock);
 
 	if (ret != NULL) {
-		trace_gk20a_channel_get(ch->chid, caller);
+		trace_nvgpu_channel_get(ch->chid, caller);
 	}
 
 	return ret;
 }
 
-void _gk20a_channel_put(struct nvgpu_channel *ch, const char *caller)
+void nvgpu_channel_put__func(struct nvgpu_channel *ch, const char *caller)
 {
 	gk20a_channel_save_ref_source(ch, channel_gk20a_ref_action_put);
-	trace_gk20a_channel_put(ch->chid, caller);
+	trace_nvgpu_channel_put(ch->chid, caller);
 	nvgpu_atomic_dec(&ch->ref_count);
 	nvgpu_cond_broadcast(&ch->ref_count_dec_wq);
 
@@ -632,7 +633,7 @@ struct nvgpu_channel *nvgpu_channel_from_id__func(struct gk20a *g,
 		return NULL;
 	}
 
-	return _gk20a_channel_get(&g->fifo.channel[chid], caller);
+	return nvgpu_channel_get__func(&g->fifo.channel[chid], caller);
 }
 
 void gk20a_channel_close(struct nvgpu_channel *ch)
@@ -1600,7 +1601,7 @@ void nvgpu_channel_wdt_restart_all_channels(struct gk20a *g)
 			if (!gk20a_channel_check_unserviceable(ch)) {
 				nvgpu_channel_wdt_rewind(ch);
 			}
-			gk20a_channel_put(ch);
+			nvgpu_channel_put(ch);
 		}
 	}
 }
@@ -1699,7 +1700,7 @@ static void nvgpu_channel_poll_wdt(struct gk20a *g)
 			if (!gk20a_channel_check_unserviceable(ch)) {
 				nvgpu_channel_wdt_check(ch);
 			}
-			gk20a_channel_put(ch);
+			nvgpu_channel_put(ch);
 		}
 	}
 }
@@ -1758,7 +1759,7 @@ static void nvgpu_channel_worker_poll_wakeup_process_item(
 	gk20a_channel_clean_up_jobs(ch, true);
 
 	/* ref taken when enqueued */
-	gk20a_channel_put(ch);
+	nvgpu_channel_put(ch);
 }
 
 static u32 nvgpu_channel_worker_poll_wakeup_condition_get_timeout(
@@ -1824,7 +1825,7 @@ static void gk20a_channel_worker_enqueue(struct nvgpu_channel *ch)
 	 * the time we end up here (e.g., if the client got killed); if so, just
 	 * return.
 	 */
-	if (gk20a_channel_get(ch) == NULL) {
+	if (nvgpu_channel_get(ch) == NULL) {
 		nvgpu_info(g, "cannot get ch ref for worker!");
 		return;
 	}
@@ -1832,7 +1833,7 @@ static void gk20a_channel_worker_enqueue(struct nvgpu_channel *ch)
 	ret = nvgpu_worker_enqueue(&g->channel_worker.worker,
 			&ch->worker_item);
 	if (ret != 0) {
-		gk20a_channel_put(ch);
+		nvgpu_channel_put(ch);
 		return;
 	}
 }
@@ -1882,7 +1883,7 @@ int gk20a_channel_add_job(struct nvgpu_channel *c,
 	 * Ref to hold the channel open during the job lifetime. This is
 	 * released by job cleanup launched via syncpt or sema interrupt.
 	 */
-	c = gk20a_channel_get(c);
+	c = nvgpu_channel_get(c);
 
 	if (c != NULL) {
 		job->num_mapped_buffers = num_mapped_buffers;
@@ -1937,13 +1938,13 @@ void gk20a_channel_clean_up_jobs(struct nvgpu_channel *c,
 	bool job_finished = false;
 	bool watchdog_on = false;
 
-	c = gk20a_channel_get(c);
+	c = nvgpu_channel_get(c);
 	if (c == NULL) {
 		return;
 	}
 
 	if (!c->g->power_on) { /* shutdown case */
-		gk20a_channel_put(c);
+		nvgpu_channel_put(c);
 		return;
 	}
 
@@ -2042,7 +2043,7 @@ void gk20a_channel_clean_up_jobs(struct nvgpu_channel *c,
 
 		/* another bookkeeping taken in add_job. caller must hold a ref
 		 * so this wouldn't get freed here. */
-		gk20a_channel_put(c);
+		nvgpu_channel_put(c);
 
 		/*
 		 * ensure all pending writes complete before freeing up the job.
@@ -2074,7 +2075,7 @@ void gk20a_channel_clean_up_jobs(struct nvgpu_channel *c,
 		g->os_channel.work_completion_signal(c);
 	}
 
-	gk20a_channel_put(c);
+	nvgpu_channel_put(c);
 }
 
 /**
@@ -2137,7 +2138,7 @@ void gk20a_channel_deterministic_idle(struct gk20a *g)
 			gk20a_idle(g);
 		} else {
 			/* Not interesting, carry on. */
-			gk20a_channel_put(ch);
+			nvgpu_channel_put(ch);
 		}
 	}
 }
@@ -2168,10 +2169,10 @@ void gk20a_channel_deterministic_unidle(struct gk20a *g)
 				nvgpu_err(g, "cannot busy() again!");
 			}
 			/* Took this in idle() */
-			gk20a_channel_put(ch);
+			nvgpu_channel_put(ch);
 		}
 
-		gk20a_channel_put(ch);
+		nvgpu_channel_put(ch);
 	}
 
 	/* Release submits, new deterministic channels and frees */
@@ -2380,7 +2381,7 @@ int nvgpu_channel_suspend_all_serviceable_ch(struct gk20a *g)
 			active_runlist_ids |= (u32) BIT64(ch->runlist_id);
 		}
 
-		gk20a_channel_put(ch);
+		nvgpu_channel_put(ch);
 	}
 
 	if (channels_in_use) {
@@ -2398,7 +2399,7 @@ int nvgpu_channel_suspend_all_serviceable_ch(struct gk20a *g)
 				} else {
 					g->ops.channel.unbind(ch);
 				}
-				gk20a_channel_put(ch);
+				nvgpu_channel_put(ch);
 			}
 		}
 	}
@@ -2431,7 +2432,7 @@ void nvgpu_channel_resume_all_serviceable_ch(struct gk20a *g)
 			channels_in_use = true;
 			active_runlist_ids |= (u32) BIT64(ch->runlist_id);
 		}
-		gk20a_channel_put(ch);
+		nvgpu_channel_put(ch);
 	}
 
 	if (channels_in_use) {
@@ -2456,7 +2457,7 @@ void gk20a_channel_semaphore_wakeup(struct gk20a *g, bool post_events)
 
 	for (chid = 0; chid < f->num_channels; chid++) {
 		struct nvgpu_channel *c = g->fifo.channel+chid;
-		if (gk20a_channel_get(c) != NULL) {
+		if (nvgpu_channel_get(c) != NULL) {
 			if (nvgpu_atomic_read(&c->bound) != 0) {
 				nvgpu_cond_broadcast_interruptible(
 						&c->semaphore_wq);
@@ -2483,7 +2484,7 @@ void gk20a_channel_semaphore_wakeup(struct gk20a *g, bool post_events)
 					gk20a_channel_update(c);
 				}
 			}
-			gk20a_channel_put(c);
+			nvgpu_channel_put(c);
 		}
 	}
 }
@@ -2513,7 +2514,7 @@ struct nvgpu_channel *nvgpu_channel_refch_from_inst_ptr(struct gk20a *g,
 			return ch;
 		}
 
-		gk20a_channel_put(ch);
+		nvgpu_channel_put(ch);
 	}
 	return NULL;
 }
@@ -2567,7 +2568,7 @@ void nvgpu_channel_debug_dump_all(struct gk20a *g,
 			 * successful allocs
 			 */
 			if (info == NULL) {
-				gk20a_channel_put(ch);
+				nvgpu_channel_put(ch);
 			} else {
 				infos[chid] = info;
 			}
@@ -2600,7 +2601,7 @@ void nvgpu_channel_debug_dump_all(struct gk20a *g,
 		g->ops.channel.read_state(g, ch, &info->hw_state);
 		g->ops.ramfc.capture_ram_dump(g, ch, info);
 
-		gk20a_channel_put(ch);
+		nvgpu_channel_put(ch);
 	}
 
 	gk20a_debug_output(o, "Channel Status - chip %-5s", g->name);

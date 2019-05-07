@@ -315,7 +315,7 @@ void gv11b_mm_mmu_fault_handle_mmu_fault_common(struct gk20a *g,
 			nvgpu_log(g, gpu_dbg_intr, "CE Page Fault Fixed");
 			*invalidate_replay_val = 0;
 			if (mmufault->refch != NULL) {
-				gk20a_channel_put(mmufault->refch);
+				nvgpu_channel_put(mmufault->refch);
 				mmufault->refch = NULL;
 			}
 			return;
@@ -349,13 +349,13 @@ void gv11b_mm_mmu_fault_handle_mmu_fault_common(struct gk20a *g,
 				 * closing the channel by userspace. Decrement
 				 * channel reference.
 				 */
-				gk20a_channel_put(mmufault->refch);
+				nvgpu_channel_put(mmufault->refch);
 				/*
 				 * refch in mmufault is assigned at the time
 				 * of copying fault info from snap reg or bar2
 				 * fault buf.
 				 */
-				gk20a_channel_put(mmufault->refch);
+				nvgpu_channel_put(mmufault->refch);
 				return;
 			} else {
 				/*
@@ -390,7 +390,7 @@ void gv11b_mm_mmu_fault_handle_mmu_fault_common(struct gk20a *g,
 		 * fault info from snap reg or bar2 fault buf
 		 */
 		if (mmufault->refch != NULL) {
-			gk20a_channel_put(mmufault->refch);
+			nvgpu_channel_put(mmufault->refch);
 			mmufault->refch = NULL;
 		}
 
@@ -419,7 +419,7 @@ void gv11b_mm_mmu_fault_handle_mmu_fault_common(struct gk20a *g,
 		 * fault info from snap reg or bar2 fault buf
 		 */
 		if (mmufault->refch != NULL) {
-			gk20a_channel_put(mmufault->refch);
+			nvgpu_channel_put(mmufault->refch);
 			mmufault->refch = NULL;
 		}
 	}
@@ -492,7 +492,7 @@ void gv11b_mm_mmu_fault_handle_nonreplay_replay_fault(struct gk20a *g,
 				nvgpu_log(g, gpu_dbg_intr,
 					"pte already scanned");
 				if (mmufault->refch != NULL) {
-					gk20a_channel_put(mmufault->refch);
+					nvgpu_channel_put(mmufault->refch);
 					mmufault->refch = NULL;
 				}
 				continue;

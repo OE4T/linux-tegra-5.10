@@ -375,11 +375,11 @@ int vgpu_tsg_force_reset_ch(struct nvgpu_channel *ch,
 
 		nvgpu_list_for_each_entry(ch_tsg, &tsg->ch_list,
 				channel_gk20a, ch_entry) {
-			if (gk20a_channel_get(ch_tsg)) {
+			if (nvgpu_channel_get(ch_tsg)) {
 				nvgpu_channel_set_error_notifier(g, ch_tsg,
 								err_code);
 				gk20a_channel_set_unserviceable(ch_tsg);
-				gk20a_channel_put(ch_tsg);
+				nvgpu_channel_put(ch_tsg);
 			}
 		}
 
@@ -431,9 +431,9 @@ static void vgpu_fifo_set_ctx_mmu_error_ch_tsg(struct gk20a *g,
 
 		nvgpu_list_for_each_entry(ch_tsg, &tsg->ch_list,
 				channel_gk20a, ch_entry) {
-			if (gk20a_channel_get(ch_tsg)) {
+			if (nvgpu_channel_get(ch_tsg)) {
 				vgpu_fifo_set_ctx_mmu_error_ch(g, ch_tsg);
-				gk20a_channel_put(ch_tsg);
+				nvgpu_channel_put(ch_tsg);
 			}
 		}
 
@@ -475,7 +475,7 @@ int vgpu_fifo_isr(struct gk20a *g, struct tegra_vgpu_fifo_intr_info *info)
 		break;
 	}
 
-	gk20a_channel_put(ch);
+	nvgpu_channel_put(ch);
 	return 0;
 }
 
@@ -530,7 +530,7 @@ void vgpu_channel_abort_cleanup(struct gk20a *g, u32 chid)
 
 	gk20a_channel_set_unserviceable(ch);
 	g->ops.channel.abort_clean_up(ch);
-	gk20a_channel_put(ch);
+	nvgpu_channel_put(ch);
 }
 
 void vgpu_set_error_notifier(struct gk20a *g,

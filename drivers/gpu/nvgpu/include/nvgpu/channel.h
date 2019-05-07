@@ -447,13 +447,13 @@ struct nvgpu_channel *gk20a_get_channel_from_file(int fd);
 void gk20a_channel_update(struct nvgpu_channel *c);
 
 /* returns ch if reference was obtained */
-struct nvgpu_channel *__must_check _gk20a_channel_get(struct nvgpu_channel *ch,
-						      const char *caller);
-#define gk20a_channel_get(ch) _gk20a_channel_get(ch, __func__)
+struct nvgpu_channel *__must_check nvgpu_channel_get__func(
+		struct nvgpu_channel *ch, const char *caller);
+#define nvgpu_channel_get(ch) nvgpu_channel_get__func(ch, __func__)
 
 
-void _gk20a_channel_put(struct nvgpu_channel *ch, const char *caller);
-#define gk20a_channel_put(ch) _gk20a_channel_put(ch, __func__)
+void nvgpu_channel_put__func(struct nvgpu_channel *ch, const char *caller);
+#define nvgpu_channel_put(ch) nvgpu_channel_put__func(ch, __func__)
 
 /* returns NULL if could not take a ref to the channel */
 struct nvgpu_channel *__must_check nvgpu_channel_from_id__func(
@@ -480,9 +480,6 @@ void channel_gk20a_joblist_unlock(struct nvgpu_channel *c);
 bool channel_gk20a_joblist_is_empty(struct nvgpu_channel *c);
 
 int channel_gk20a_update_runlist(struct nvgpu_channel *c, bool add);
-void gk20a_channel_get_timescale_from_timeslice(struct gk20a *g,
-		unsigned int timeslice_period,
-		unsigned int *__timeslice_timeout, unsigned int *__timeslice_scale);
 
 void gk20a_wait_until_counter_is_N(
 	struct nvgpu_channel *ch, nvgpu_atomic_t *counter, int wait_value,

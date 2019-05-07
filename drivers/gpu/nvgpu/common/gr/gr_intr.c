@@ -201,7 +201,7 @@ static void gr_intr_report_sm_exception(struct gk20a *g, u32 gpc, u32 tpc,
 	ch = nvgpu_gr_intr_get_channel_from_ctx(g, curr_ctx, &tsgid);
 	chid = ch != NULL ? ch->chid : NVGPU_INVALID_CHANNEL_ID;
 	if (ch != NULL) {
-		gk20a_channel_put(ch);
+		nvgpu_channel_put(ch);
 	}
 
 	(void) memset(&err_info, 0, sizeof(err_info));
@@ -231,7 +231,7 @@ static void gr_intr_report_sm_exception(struct gk20a *g, u32 gpc, u32 tpc,
  * curr_ctx should be the value read from gr falcon get_current_ctx op
  * A small tlb is used here to cache translation.
  *
- * Returned channel must be freed with gk20a_channel_put() */
+ * Returned channel must be freed with nvgpu_channel_put() */
 struct nvgpu_channel *nvgpu_gr_intr_get_channel_from_ctx(struct gk20a *g,
 			u32 curr_ctx, u32 *curr_tsgid)
 {
@@ -275,7 +275,7 @@ struct nvgpu_channel *nvgpu_gr_intr_get_channel_from_ctx(struct gk20a *g,
 			ret_ch = ch;
 			break;
 		}
-		gk20a_channel_put(ch);
+		nvgpu_channel_put(ch);
 	}
 
 	if (ret_ch == NULL) {
@@ -327,7 +327,7 @@ void nvgpu_gr_intr_report_exception(struct gk20a *g, u32 inst,
 	ch = nvgpu_gr_intr_get_channel_from_ctx(g, curr_ctx, &tsgid);
 	chid = ch != NULL ? ch->chid : NVGPU_INVALID_CHANNEL_ID;
 	if (ch != NULL) {
-		gk20a_channel_put(ch);
+		nvgpu_channel_put(ch);
 	}
 
 	(void) memset(&err_info, 0, sizeof(err_info));
@@ -872,7 +872,7 @@ int nvgpu_gr_intr_stall_isr(struct gk20a *g)
 	}
 
 	if (ch != NULL) {
-		gk20a_channel_put(ch);
+		nvgpu_channel_put(ch);
 	}
 
 	return 0;

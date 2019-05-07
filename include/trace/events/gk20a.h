@@ -159,11 +159,11 @@ DECLARE_EVENT_CLASS(gk20a_channel_getput,
 	),
 	TP_printk("channel %d caller %s", __entry->channel, __entry->caller)
 );
-DEFINE_EVENT(gk20a_channel_getput, gk20a_channel_get,
+DEFINE_EVENT(gk20a_channel_getput, nvgpu_channel_get,
 	TP_PROTO(int channel, const char *caller),
 	TP_ARGS(channel, caller)
 );
-DEFINE_EVENT(gk20a_channel_getput, gk20a_channel_put,
+DEFINE_EVENT(gk20a_channel_getput, nvgpu_channel_put,
 	TP_PROTO(int channel, const char *caller),
 	TP_ARGS(channel, caller)
 );
@@ -630,8 +630,8 @@ DEFINE_EVENT(gk20a_cde, gk20a_cde_finished_ctx_cb,
 #define trace_gk20a_mmu_fault(arg...)			((void)(NULL))
 #define trace_gk20a_release_used_channel(arg...)	((void)(NULL))
 #define trace_gk20a_free_channel(arg...)		((void)(NULL))
-#define trace_gk20a_channel_get(arg...)			((void)(NULL))
-#define trace_gk20a_channel_put(arg...)			((void)(NULL))
+#define trace_nvgpu_channel_get(arg...)			((void)(NULL))
+#define trace_nvgpu_channel_put(arg...)			((void)(NULL))
 #define trace_gk20a_open_new_channel(arg...)		((void)(NULL))
 #define trace_gk20a_channel_update(arg...)		((void)(NULL))
 #define trace_gk20a_channel_reset(arg...)		((void)(NULL))
