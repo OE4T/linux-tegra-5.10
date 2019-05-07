@@ -28,42 +28,54 @@
 
 bool tu104_class_is_valid(u32 class_num)
 {
+	bool valid;
+
 	nvgpu_speculation_barrier();
+
 	switch (class_num) {
 	case TURING_CHANNEL_GPFIFO_A:
 	case TURING_A:
 	case TURING_COMPUTE_A:
 	case TURING_DMA_COPY_A:
-		return true;
+		valid = true;
+		break;
 	default:
+		valid = gv11b_class_is_valid(class_num);
 		break;
 	}
-
-	return gv11b_class_is_valid(class_num);
+	return valid;
 };
 
 bool tu104_class_is_valid_gfx(u32 class_num)
 {
+	bool valid;
+
 	nvgpu_speculation_barrier();
+
 	switch (class_num) {
 	case TURING_A:
-		return true;
+		valid = true;
+		break;
 	default:
+		valid = gv11b_class_is_valid_gfx(class_num);
 		break;
 	}
-
-	return gv11b_class_is_valid_gfx(class_num);
+	return valid;
 }
 
 bool tu104_class_is_valid_compute(u32 class_num)
 {
+	bool valid;
+
 	nvgpu_speculation_barrier();
+
 	switch (class_num) {
 	case TURING_COMPUTE_A:
-		return true;
+		valid = true;
+		break;
 	default:
+		valid = gv11b_class_is_valid_compute(class_num);
 		break;
 	}
-
-	return gv11b_class_is_valid_compute(class_num);
+	return valid;
 }

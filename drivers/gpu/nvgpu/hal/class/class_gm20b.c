@@ -26,7 +26,7 @@
 
 bool gm20b_class_is_valid(u32 class_num)
 {
-	bool valid = false;
+	bool valid;
 
 	switch (class_num) {
 	case MAXWELL_COMPUTE_B:
@@ -38,6 +38,7 @@ bool gm20b_class_is_valid(u32 class_num)
 		break;
 
 	default:
+		valid = false;
 		break;
 	}
 

@@ -23,11 +23,12 @@
 #include <nvgpu/class.h>
 #include <nvgpu/barrier.h>
 
+#include "class_gm20b.h"
 #include "class_gp10b.h"
 
 bool gp10b_class_is_valid(u32 class_num)
 {
-	bool valid = false;
+	bool valid;
 
 	nvgpu_speculation_barrier();
 	switch (class_num) {
@@ -36,16 +37,8 @@ bool gp10b_class_is_valid(u32 class_num)
 	case PASCAL_DMA_COPY_A:
 		valid = true;
 		break;
-
-	case MAXWELL_COMPUTE_B:
-	case MAXWELL_B:
-	case FERMI_TWOD_A:
-	case KEPLER_DMA_COPY_A:
-	case MAXWELL_DMA_COPY_A:
-		valid = true;
-		break;
-
 	default:
+		valid = gm20b_class_is_valid(class_num);
 		break;
 	}
 	return valid;

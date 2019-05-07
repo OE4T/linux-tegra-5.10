@@ -23,32 +23,23 @@
 #include <nvgpu/class.h>
 #include <nvgpu/barrier.h>
 
+#include "class_gp10b.h"
 #include "class_gv11b.h"
 
 bool gv11b_class_is_valid(u32 class_num)
 {
-	bool valid = false;
+	bool valid;
 
 	nvgpu_speculation_barrier();
+
 	switch (class_num) {
 	case VOLTA_COMPUTE_A:
 	case VOLTA_A:
 	case VOLTA_DMA_COPY_A:
 		valid = true;
 		break;
-
-	case MAXWELL_COMPUTE_B:
-	case MAXWELL_B:
-	case FERMI_TWOD_A:
-	case KEPLER_DMA_COPY_A:
-	case MAXWELL_DMA_COPY_A:
-	case PASCAL_COMPUTE_A:
-	case PASCAL_A:
-	case PASCAL_DMA_COPY_A:
-		valid = true;
-		break;
-
 	default:
+		valid = gp10b_class_is_valid(class_num);
 		break;
 	}
 	return valid;
@@ -56,17 +47,16 @@ bool gv11b_class_is_valid(u32 class_num)
 
 bool gv11b_class_is_valid_gfx(u32 class_num)
 {
-	bool valid = false;
+	bool valid;
 
 	nvgpu_speculation_barrier();
+
 	switch (class_num) {
 	case VOLTA_A:
-	case PASCAL_A:
-	case MAXWELL_B:
 		valid = true;
 		break;
-
 	default:
+		valid = gp10b_class_is_valid_gfx(class_num);
 		break;
 	}
 	return valid;
@@ -74,17 +64,17 @@ bool gv11b_class_is_valid_gfx(u32 class_num)
 
 bool gv11b_class_is_valid_compute(u32 class_num)
 {
-	bool valid = false;
+	bool valid;
 
 	nvgpu_speculation_barrier();
+
 	switch (class_num) {
 	case VOLTA_COMPUTE_A:
-	case PASCAL_COMPUTE_A:
-	case MAXWELL_COMPUTE_B:
 		valid = true;
 		break;
 
 	default:
+		valid = gp10b_class_is_valid_compute(class_num);
 		break;
 	}
 	return valid;
