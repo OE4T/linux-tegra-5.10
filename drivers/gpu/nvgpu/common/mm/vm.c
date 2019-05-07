@@ -923,12 +923,13 @@ struct nvgpu_mapped_buf *nvgpu_vm_map(struct vm_gk20a *vm,
 						      map_addr,
 						      flags,
 						      map_key_kind);
-		nvgpu_mutex_release(&vm->update_gmmu_lock);
 
 		if (mapped_buffer != NULL) {
 			nvgpu_ref_get(&mapped_buffer->ref);
+			nvgpu_mutex_release(&vm->update_gmmu_lock);
 			return mapped_buffer;
 		}
+		nvgpu_mutex_release(&vm->update_gmmu_lock);
 	}
 
 	/*
