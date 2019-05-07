@@ -1162,7 +1162,7 @@ static int eqos_get_avb_algorithm(struct osi_core_priv_data *osi_core,
 			  EQOS_MTL_CHX_TX_OP_MODE(qinx));
 
 	/* Get TxQ/TC mode as per input struct after masking 3:2 bit */
-	value = (value & EQOS_MTL_TXQEN) >> EQOS_MTL_TXQEN_MASK_SHIFT;
+	value = (value & EQOS_MTL_TXQEN_MASK) >> EQOS_MTL_TXQEN_MASK_SHIFT;
 	avb->oper_mode = value;
 
 	/* Get Algo and Credit control */
