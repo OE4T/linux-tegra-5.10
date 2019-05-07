@@ -109,7 +109,7 @@ bool gk20a_fifo_handle_ctxsw_timeout(struct gk20a *g)
 	if (is_tsg) {
 		tsg = nvgpu_tsg_check_and_get_from_id(g, id);
 	} else {
-		ch = gk20a_channel_from_id(g, id);
+		ch = nvgpu_channel_from_id(g, id);
 		if (ch != NULL) {
 			tsg = tsg_gk20a_from_ch(ch);
 			gk20a_channel_put(ch);

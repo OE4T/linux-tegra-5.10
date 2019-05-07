@@ -625,8 +625,8 @@ void _gk20a_channel_put(struct nvgpu_channel *ch, const char *caller)
 	WARN_ON(nvgpu_atomic_read(&ch->ref_count) == 0 && ch->referenceable);
 }
 
-struct nvgpu_channel *_gk20a_channel_from_id(struct gk20a *g, u32 chid,
-					 const char *caller)
+struct nvgpu_channel *nvgpu_channel_from_id__func(struct gk20a *g,
+				u32 chid, const char *caller)
 {
 	if (chid == NVGPU_INVALID_CHANNEL_ID) {
 		return NULL;
@@ -645,7 +645,7 @@ void gk20a_channel_close(struct nvgpu_channel *ch)
  * driver is otherwise dying. Ref counts and the like are ignored by this
  * version of the cleanup.
  */
-void __gk20a_channel_kill(struct nvgpu_channel *ch)
+void nvgpu_channel_kill(struct nvgpu_channel *ch)
 {
 	gk20a_free_channel(ch, true);
 }
@@ -1594,7 +1594,7 @@ void nvgpu_channel_wdt_restart_all_channels(struct gk20a *g)
 	u32 chid;
 
 	for (chid = 0; chid < f->num_channels; chid++) {
-		struct nvgpu_channel *ch = gk20a_channel_from_id(g, chid);
+		struct nvgpu_channel *ch = nvgpu_channel_from_id(g, chid);
 
 		if (ch != NULL) {
 			if (!gk20a_channel_check_unserviceable(ch)) {
@@ -1693,7 +1693,7 @@ static void nvgpu_channel_poll_wdt(struct gk20a *g)
 
 
 	for (chid = 0; chid < g->fifo.num_channels; chid++) {
-		struct nvgpu_channel *ch = gk20a_channel_from_id(g, chid);
+		struct nvgpu_channel *ch = nvgpu_channel_from_id(g, chid);
 
 		if (ch != NULL) {
 			if (!gk20a_channel_check_unserviceable(ch)) {
@@ -2115,7 +2115,7 @@ void gk20a_channel_deterministic_idle(struct gk20a *g)
 	nvgpu_rwsem_down_write(&g->deterministic_busy);
 
 	for (chid = 0; chid < f->num_channels; chid++) {
-		struct nvgpu_channel *ch = gk20a_channel_from_id(g, chid);
+		struct nvgpu_channel *ch = nvgpu_channel_from_id(g, chid);
 
 		if (ch == NULL) {
 			continue;
@@ -2153,7 +2153,7 @@ void gk20a_channel_deterministic_unidle(struct gk20a *g)
 	u32 chid;
 
 	for (chid = 0; chid < f->num_channels; chid++) {
-		struct nvgpu_channel *ch = gk20a_channel_from_id(g, chid);
+		struct nvgpu_channel *ch = nvgpu_channel_from_id(g, chid);
 
 		if (ch == NULL) {
 			continue;
@@ -2207,7 +2207,7 @@ void nvgpu_channel_cleanup_sw(struct gk20a *g)
 		 * from gk20a_free_channel() complaining about multiple closes.
 		 */
 		if (ch->referenceable) {
-			__gk20a_channel_kill(ch);
+			nvgpu_channel_kill(ch);
 		}
 
 		nvgpu_channel_destroy(g, ch);
@@ -2356,7 +2356,7 @@ int nvgpu_channel_suspend_all_serviceable_ch(struct gk20a *g)
 	nvgpu_log_fn(g, " ");
 
 	for (chid = 0; chid < f->num_channels; chid++) {
-		struct nvgpu_channel *ch = gk20a_channel_from_id(g, chid);
+		struct nvgpu_channel *ch = nvgpu_channel_from_id(g, chid);
 
 		if (ch == NULL) {
 			continue;
@@ -2387,7 +2387,8 @@ int nvgpu_channel_suspend_all_serviceable_ch(struct gk20a *g)
 		nvgpu_runlist_reload_ids(g, active_runlist_ids, false);
 
 		for (chid = 0; chid < f->num_channels; chid++) {
-			struct nvgpu_channel *ch = gk20a_channel_from_id(g, chid);
+			struct nvgpu_channel *ch =
+				nvgpu_channel_from_id(g, chid);
 
 			if (ch != NULL) {
 				if (gk20a_channel_check_unserviceable(ch)) {
@@ -2416,7 +2417,7 @@ void nvgpu_channel_resume_all_serviceable_ch(struct gk20a *g)
 	nvgpu_log_fn(g, " ");
 
 	for (chid = 0; chid < f->num_channels; chid++) {
-		struct nvgpu_channel *ch = gk20a_channel_from_id(g, chid);
+		struct nvgpu_channel *ch = nvgpu_channel_from_id(g, chid);
 
 		if (ch == NULL) {
 			continue;
@@ -2501,7 +2502,7 @@ struct nvgpu_channel *nvgpu_channel_refch_from_inst_ptr(struct gk20a *g,
 		struct nvgpu_channel *ch;
 		u64 ch_inst_ptr;
 
-		ch = gk20a_channel_from_id(g, ci);
+		ch = nvgpu_channel_from_id(g, ci);
 		/* only alive channels are searched */
 		if (ch == NULL) {
 			continue;
@@ -2554,7 +2555,7 @@ void nvgpu_channel_debug_dump_all(struct gk20a *g,
 	}
 
 	for (chid = 0U; chid < f->num_channels; chid++) {
-		struct nvgpu_channel *ch = gk20a_channel_from_id(g, chid);
+		struct nvgpu_channel *ch = nvgpu_channel_from_id(g, chid);
 
 		if (ch != NULL) {
 			struct nvgpu_channel_dump_info *info;

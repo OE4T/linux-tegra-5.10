@@ -316,7 +316,7 @@ int nvgpu_engine_disable_activity(struct gk20a *g,
 	}
 
 	if (pbdma_chid != NVGPU_INVALID_CHANNEL_ID) {
-		ch = gk20a_channel_from_id(g, pbdma_chid);
+		ch = nvgpu_channel_from_id(g, pbdma_chid);
 		if (ch != NULL) {
 			err = g->ops.fifo.preempt_channel(g, ch);
 			gk20a_channel_put(ch);
@@ -338,7 +338,7 @@ int nvgpu_engine_disable_activity(struct gk20a *g,
 	}
 
 	if (engine_chid != NVGPU_INVALID_ENG_ID && engine_chid != pbdma_chid) {
-		ch = gk20a_channel_from_id(g, engine_chid);
+		ch = nvgpu_channel_from_id(g, engine_chid);
 		if (ch != NULL) {
 			err = g->ops.fifo.preempt_channel(g, ch);
 			gk20a_channel_put(ch);

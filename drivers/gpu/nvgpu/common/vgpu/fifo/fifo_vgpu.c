@@ -445,7 +445,7 @@ static void vgpu_fifo_set_ctx_mmu_error_ch_tsg(struct gk20a *g,
 
 int vgpu_fifo_isr(struct gk20a *g, struct tegra_vgpu_fifo_intr_info *info)
 {
-	struct nvgpu_channel *ch = gk20a_channel_from_id(g, info->chid);
+	struct nvgpu_channel *ch = nvgpu_channel_from_id(g, info->chid);
 
 	nvgpu_log_fn(g, " ");
 	if (!ch) {
@@ -521,7 +521,7 @@ void vgpu_handle_channel_event(struct gk20a *g,
 
 void vgpu_channel_abort_cleanup(struct gk20a *g, u32 chid)
 {
-	struct nvgpu_channel *ch = gk20a_channel_from_id(g, chid);
+	struct nvgpu_channel *ch = nvgpu_channel_from_id(g, chid);
 
 	if (ch == NULL) {
 		nvgpu_err(g, "invalid channel id %d", chid);

@@ -255,14 +255,14 @@ struct nvgpu_channel *nvgpu_gr_intr_get_channel_from_ctx(struct gk20a *g,
 		if (intr->chid_tlb[i].curr_ctx == curr_ctx) {
 			chid = intr->chid_tlb[i].chid;
 			tsgid = intr->chid_tlb[i].tsgid;
-			ret_ch = gk20a_channel_from_id(g, chid);
+			ret_ch = nvgpu_channel_from_id(g, chid);
 			goto unlock;
 		}
 	}
 
 	/* slow path */
 	for (chid = 0; chid < f->num_channels; chid++) {
-		struct nvgpu_channel *ch = gk20a_channel_from_id(g, chid);
+		struct nvgpu_channel *ch = nvgpu_channel_from_id(g, chid);
 
 		if (ch == NULL) {
 			continue;

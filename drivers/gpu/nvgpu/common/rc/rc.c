@@ -91,7 +91,7 @@ void nvgpu_rc_pbdma_fault(struct gk20a *g, struct nvgpu_fifo *f,
 		nvgpu_rc_tsg_and_related_engines(g, tsg, true,
 			RC_TYPE_PBDMA_FAULT);
 	} else if(pbdma_status.id_type == PBDMA_STATUS_ID_TYPE_CHID) {
-		struct nvgpu_channel *ch = gk20a_channel_from_id(g, id);
+		struct nvgpu_channel *ch = nvgpu_channel_from_id(g, id);
 		struct nvgpu_tsg *tsg;
 		if (ch == NULL) {
 			nvgpu_err(g, "channel is not referenceable");

@@ -412,7 +412,7 @@ void nvgpu_channel_cleanup_sw(struct gk20a *g);
 
 /* must be inside gk20a_busy()..gk20a_idle() */
 void gk20a_channel_close(struct nvgpu_channel *ch);
-void __gk20a_channel_kill(struct nvgpu_channel *ch);
+void nvgpu_channel_kill(struct nvgpu_channel *ch);
 
 void nvgpu_channel_set_ctx_mmu_error(struct gk20a *g,
 		struct nvgpu_channel *ch);
@@ -456,9 +456,10 @@ void _gk20a_channel_put(struct nvgpu_channel *ch, const char *caller);
 #define gk20a_channel_put(ch) _gk20a_channel_put(ch, __func__)
 
 /* returns NULL if could not take a ref to the channel */
-struct nvgpu_channel *__must_check _gk20a_channel_from_id(struct gk20a *g,
-		u32 chid, const char *caller);
-#define gk20a_channel_from_id(g, chid) _gk20a_channel_from_id(g, chid, __func__)
+struct nvgpu_channel *__must_check nvgpu_channel_from_id__func(
+		struct gk20a *g, u32 chid, const char *caller);
+#define nvgpu_channel_from_id(g, chid)	\
+	nvgpu_channel_from_id__func(g, chid, __func__)
 
 int gk20a_wait_channel_idle(struct nvgpu_channel *ch);
 

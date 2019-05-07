@@ -81,7 +81,7 @@ static int gp10b_gr_intr_get_cilp_preempt_pending_chid(struct gk20a *g,
 		return ret;
 	}
 
-	ch = gk20a_channel_from_id(g, chid);
+	ch = nvgpu_channel_from_id(g, chid);
 	if (ch == NULL) {
 		return ret;
 	}
@@ -140,7 +140,7 @@ int gp10b_gr_intr_handle_fecs_error(struct gk20a *g,
 			goto clean_up;
 		}
 
-		ch = gk20a_channel_from_id(g, chid);
+		ch = nvgpu_channel_from_id(g, chid);
 		if (ch == NULL) {
 			goto clean_up;
 		}

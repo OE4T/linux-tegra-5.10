@@ -125,7 +125,7 @@ static void vgpu_handle_channel_event(struct gk20a *g,
 
 static void vgpu_channel_abort_cleanup(struct gk20a *g, u32 chid)
 {
-	struct nvgpu_channel *ch = gk20a_channel_from_id(g, chid);
+	struct nvgpu_channel *ch = nvgpu_channel_from_id(g, chid);
 
 	if (ch == NULL) {
 		nvgpu_err(g, "invalid channel id %d", chid);
