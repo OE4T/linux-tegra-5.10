@@ -12,7 +12,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-OSI := ../../../../../../nvethernetrm/osi
+OSI_CORE := ../../../../../../nvethernetrm/osi/core
+OSI_DMA := ../../../../../../nvethernetrm/osi/dma
 
 obj-$(CONFIG_NVETHERNET) += nvethernet.o
 
@@ -21,9 +22,9 @@ nvethernet-objs:= ether_linux.o \
 		  ethtool.o \
 		  sysfs.o \
 		  ioctl.o \
-		  $(OSI)/osi_core.o \
-		  $(OSI)/osi_common.o \
-		  $(OSI)/osi_dma.o \
-		  $(OSI)/osi_dma_txrx.o \
-		  $(OSI)/eqos_core.o \
-		  $(OSI)/eqos_dma.o
+		  $(OSI_CORE)/osi_core.o \
+		  $(OSI_CORE)/osi_common.o \
+		  $(OSI_DMA)/osi_dma.o \
+		  $(OSI_DMA)/osi_dma_txrx.o \
+		  $(OSI_CORE)/eqos_core.o \
+		  $(OSI_DMA)/eqos_dma.o
