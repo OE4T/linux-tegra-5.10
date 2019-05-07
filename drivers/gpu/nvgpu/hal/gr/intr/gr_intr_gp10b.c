@@ -68,7 +68,7 @@ static int gp10b_gr_intr_clear_cilp_preempt_pending(struct gk20a *g,
 }
 
 static int gp10b_gr_intr_get_cilp_preempt_pending_chid(struct gk20a *g,
-					u32 *__chid)
+					u32 *chid_ptr)
 {
 	struct nvgpu_gr_ctx *gr_ctx;
 	struct nvgpu_channel *ch;
@@ -95,7 +95,7 @@ static int gp10b_gr_intr_get_cilp_preempt_pending_chid(struct gk20a *g,
 	gr_ctx = tsg->gr_ctx;
 
 	if (nvgpu_gr_ctx_get_cilp_preempt_pending(gr_ctx)) {
-		*__chid = chid;
+		*chid_ptr = chid;
 		ret = 0;
 	}
 
@@ -105,7 +105,7 @@ static int gp10b_gr_intr_get_cilp_preempt_pending_chid(struct gk20a *g,
 }
 
 int gp10b_gr_intr_handle_fecs_error(struct gk20a *g,
-				struct nvgpu_channel *__ch,
+				struct nvgpu_channel *ch_ptr,
 				struct nvgpu_gr_isr_data *isr_data)
 {
 	struct nvgpu_channel *ch;
@@ -169,7 +169,7 @@ int gp10b_gr_intr_handle_fecs_error(struct gk20a *g,
 
 clean_up:
 	/* handle any remaining interrupts */
-	return nvgpu_gr_intr_handle_fecs_error(g, __ch, isr_data);
+	return nvgpu_gr_intr_handle_fecs_error(g, ch_ptr, isr_data);
 }
 
 void gp10b_gr_intr_set_go_idle_timeout(struct gk20a *g, u32 data)

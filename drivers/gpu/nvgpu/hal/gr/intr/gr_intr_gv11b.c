@@ -84,7 +84,7 @@ static void gv11b_gr_intr_handle_fecs_ecc_error(struct gk20a *g)
 }
 
 int gv11b_gr_intr_handle_fecs_error(struct gk20a *g,
-				struct nvgpu_channel *__ch,
+				struct nvgpu_channel *ch_ptr,
 				struct nvgpu_gr_isr_data *isr_data)
 {
 	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gpu_dbg | gpu_dbg_intr, " ");
@@ -92,7 +92,7 @@ int gv11b_gr_intr_handle_fecs_error(struct gk20a *g,
 	/* Handle ECC errors */
 	gv11b_gr_intr_handle_fecs_ecc_error(g);
 
-	return gp10b_gr_intr_handle_fecs_error(g, __ch, isr_data);
+	return gp10b_gr_intr_handle_fecs_error(g, ch_ptr, isr_data);
 }
 
 void gv11b_gr_intr_set_tex_in_dbg(struct gk20a *g, u32 data)

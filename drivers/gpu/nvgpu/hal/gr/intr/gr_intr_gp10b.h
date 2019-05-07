@@ -41,7 +41,7 @@ struct nvgpu_gr_isr_data;
 #define NVC0C0_SET_RD_COALESCE			0x0228U
 
 int gp10b_gr_intr_handle_fecs_error(struct gk20a *g,
-			struct nvgpu_channel *__ch,
+			struct nvgpu_channel *ch_ptr,
 			struct nvgpu_gr_isr_data *isr_data);
 void gp10b_gr_intr_set_coalesce_buffer_size(struct gk20a *g, u32 data);
 void gp10b_gr_intr_set_go_idle_timeout(struct gk20a *g, u32 data);
