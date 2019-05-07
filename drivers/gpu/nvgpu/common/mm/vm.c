@@ -621,14 +621,16 @@ struct vm_gk20a *nvgpu_vm_init(struct gk20a *g,
 			       const char *name)
 {
 	struct vm_gk20a *vm = nvgpu_kzalloc(g, sizeof(*vm));
+	int err;
 
 	if (vm == NULL) {
 		return NULL;
 	}
 
-	if (nvgpu_vm_do_init(&g->mm, vm, big_page_size, low_hole,
+	err = nvgpu_vm_do_init(&g->mm, vm, big_page_size, low_hole,
 			     kernel_reserved, aperture_size, big_pages,
-			     userspace_managed, unified_va, name) != 0) {
+			     userspace_managed, unified_va, name);
+	if (err != 0) {
 		nvgpu_kfree(g, vm);
 		return NULL;
 	}
@@ -642,9 +644,10 @@ struct vm_gk20a *nvgpu_vm_init(struct gk20a *g,
 static void nvgpu_vm_remove(struct vm_gk20a *vm)
 {
 	struct nvgpu_mapped_buf *mapped_buffer;
-	struct nvgpu_vm_area *vm_area, *vm_area_tmp;
+	struct nvgpu_vm_area *vm_area;
 	struct nvgpu_rbtree_node *node = NULL;
 	struct gk20a *g = vm->mm->g;
+	bool done;
 
 	/*
 	 * Do this outside of the update_gmmu_lock since unmapping the semaphore
@@ -674,12 +677,18 @@ static void nvgpu_vm_remove(struct vm_gk20a *vm)
 	}
 
 	/* destroy remaining reserved memory areas */
-	nvgpu_list_for_each_entry_safe(vm_area, vm_area_tmp,
-			&vm->vm_area_list,
-			nvgpu_vm_area, vm_area_list) {
-		nvgpu_list_del(&vm_area->vm_area_list);
-		nvgpu_kfree(vm->mm->g, vm_area);
-	}
+	done = false;
+	do {
+		if (nvgpu_list_empty(&vm->vm_area_list)) {
+			done = true;
+		} else {
+			vm_area = nvgpu_list_first_entry(&vm->vm_area_list,
+							 nvgpu_vm_area,
+							 vm_area_list);
+			nvgpu_list_del(&vm_area->vm_area_list);
+			nvgpu_kfree(vm->mm->g, vm_area);
+		}
+	} while (!done);
 
 	if (nvgpu_alloc_initialized(&vm->kernel)) {
 		nvgpu_alloc_destroy(&vm->kernel);
@@ -1231,6 +1240,7 @@ static int nvgpu_vm_unmap_sync_buffer(struct vm_gk20a *vm,
 {
 	struct nvgpu_timeout timeout;
 	int ret = 0;
+	bool done = false;
 
 	/*
 	 * 100ms timer.
@@ -1244,11 +1254,17 @@ static int nvgpu_vm_unmap_sync_buffer(struct vm_gk20a *vm,
 
 	nvgpu_mutex_release(&vm->update_gmmu_lock);
 
-	while (nvgpu_atomic_read(&mapped_buffer->ref.refcount) > 1 &&
-		nvgpu_timeout_expired_msg(&timeout,
-		"sync-unmap failed on 0x%llx", mapped_buffer->addr) == 0) {
-		nvgpu_msleep(10);
-	}
+	do {
+		if (nvgpu_atomic_read(&mapped_buffer->ref.refcount) <= 1) {
+			done = true;
+		} else if (nvgpu_timeout_expired_msg(&timeout,
+			   "sync-unmap failed on 0x%llx",
+			   mapped_buffer->addr) != 0) {
+			done = true;
+		} else {
+			nvgpu_msleep(10);
+		}
+	} while (!done);
 
 	if (nvgpu_atomic_read(&mapped_buffer->ref.refcount) > 1) {
 		ret = -ETIMEDOUT;
