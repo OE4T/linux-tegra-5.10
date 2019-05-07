@@ -850,9 +850,14 @@
 					 <0 54 0x04>;	/* MSI interrupt */
 		interrupt-names = "intr", "msi";
 
+#if LINUX_VERSION >= 500
+		pinctrl-names = "default";
+		pinctrl-0 = <&pex_rst_c5_out_state>, <&clkreq_c5_bi_dir_state>;
+#else
 		pinctrl-names = "pex_rst", "clkreq";
 		pinctrl-0 = <&pex_rst_c5_out_state>;
 		pinctrl-1 = <&clkreq_c5_bi_dir_state>;
+#endif
 
 		iommus = <&smmu TEGRA_SID_PCIE5>;
 		dma-coherent;
