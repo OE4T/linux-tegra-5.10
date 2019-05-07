@@ -544,7 +544,7 @@ static const struct gpu_ops gp10b_ops = {
 				gm20b_gr_falcon_read_fecs_ctxsw_status1,
 		},
 	},
-	.class = {
+	.gpu_class = {
 		.is_valid = gp10b_class_is_valid,
 		.is_valid_gfx = gp10b_class_is_valid_gfx,
 		.is_valid_compute = gp10b_class_is_valid_compute,
@@ -1064,7 +1064,7 @@ int gp10b_init_hal(struct gk20a *g)
 	gops->cbc = gp10b_ops.cbc;
 	gops->ce = gp10b_ops.ce;
 	gops->gr = gp10b_ops.gr;
-	gops->class = gp10b_ops.class;
+	gops->gpu_class = gp10b_ops.gpu_class;
 	gops->gr.ctxsw_prog = gp10b_ops.gr.ctxsw_prog;
 	gops->gr.config = gp10b_ops.gr.config;
 	gops->fb = gp10b_ops.fb;

@@ -364,7 +364,7 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 			.flush_channel_tlb = nvgpu_gr_intr_flush_channel_tlb,
 		},
 	},
-	.class = {
+	.gpu_class = {
 		.is_valid = gp10b_class_is_valid,
 		.is_valid_gfx = gp10b_class_is_valid_gfx,
 		.is_valid_compute = gp10b_class_is_valid_compute,
@@ -769,7 +769,7 @@ int vgpu_gp10b_init_hal(struct gk20a *g)
 	gops->cbc = vgpu_gp10b_ops.cbc;
 	gops->ce = vgpu_gp10b_ops.ce;
 	gops->gr = vgpu_gp10b_ops.gr;
-	gops->class = vgpu_gp10b_ops.class;
+	gops->gpu_class = vgpu_gp10b_ops.gpu_class;
 	gops->gr.ctxsw_prog = vgpu_gp10b_ops.gr.ctxsw_prog;
 	gops->gr.config = vgpu_gp10b_ops.gr.config;
 	gops->fb = vgpu_gp10b_ops.fb;

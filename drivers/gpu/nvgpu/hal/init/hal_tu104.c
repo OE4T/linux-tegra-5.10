@@ -693,7 +693,7 @@ static const struct gpu_ops tu104_ops = {
 				gm20b_gr_falcon_read_fecs_ctxsw_status1,
 		},
 	},
-	.class = {
+	.gpu_class = {
 		.is_valid = tu104_class_is_valid,
 		.is_valid_gfx = tu104_class_is_valid_gfx,
 		.is_valid_compute = tu104_class_is_valid_compute,
@@ -1377,7 +1377,7 @@ int tu104_init_hal(struct gk20a *g)
 	gops->cbc = tu104_ops.cbc;
 	gops->ce = tu104_ops.ce;
 	gops->gr = tu104_ops.gr;
-	gops->class = tu104_ops.class;
+	gops->gpu_class = tu104_ops.gpu_class;
 	gops->gr.ctxsw_prog = tu104_ops.gr.ctxsw_prog;
 	gops->gr.config = tu104_ops.gr.config;
 	gops->fb = tu104_ops.fb;

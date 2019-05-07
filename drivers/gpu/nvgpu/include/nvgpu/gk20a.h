@@ -866,7 +866,7 @@ struct gpu_ops {
 		bool (*is_valid)(u32 class_num);
 		bool (*is_valid_gfx)(u32 class_num);
 		bool (*is_valid_compute)(u32 class_num);
-	} class;
+	} gpu_class;
 
 	struct {
 		void (*init_hw)(struct gk20a *g);
