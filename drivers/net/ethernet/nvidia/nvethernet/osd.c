@@ -171,8 +171,10 @@ static void ether_realloc_rx_skb(struct ether_priv_data *pdata,
 				 unsigned int chan)
 {
 	struct osi_dma_priv_data *osi_dma = pdata->osi_dma;
+	struct osi_core_priv_data *osi_core = pdata->osi_core;
 	struct osi_rx_swcx *rx_swcx = NULL;
 	struct osi_rx_desc *rx_desc = NULL;
+	unsigned long val;
 	int ret = 0;
 
 	while (rx_ring->refill_idx != rx_ring->cur_rx_idx) {
@@ -180,8 +182,12 @@ static void ether_realloc_rx_skb(struct ether_priv_data *pdata,
 		rx_desc = rx_ring->rx_desc + rx_ring->refill_idx;
 
 		ret = ether_alloc_skb(pdata, rx_swcx, osi_dma->rx_buf_len);
-		if (ret < 0)
+		if (ret < 0) {
+			val = osi_core->xstats.re_alloc_rxbuf_failed[chan];
+			osi_core->xstats.re_alloc_rxbuf_failed[chan] =
+				osi_update_stats_counter(val, 1UL);
 			break;
+		}
 
 		osi_rx_dma_desc_init(rx_swcx, rx_desc);
 		INCR_RX_DESC_INDEX(rx_ring->refill_idx, 1U);
@@ -225,6 +231,7 @@ void osd_receive_packet(void *priv, void *rxring, unsigned int chan,
 	struct net_device *ndev = pdata->ndev;
 	struct osi_pkt_err_stats *pkt_err_stat = &pdata->osi_dma->pkt_err_stats;
 	struct skb_shared_hwtstamps *shhwtstamp;
+	unsigned long val;
 
 	dma_unmap_single(pdata->dev, dma_addr, dma_buf_len, DMA_FROM_DEVICE);
 
@@ -240,6 +247,9 @@ void osd_receive_packet(void *priv, void *rxring, unsigned int chan,
 		}
 
 		if ((rx_pkt_cx->flags & OSI_PKT_CX_VLAN) == OSI_PKT_CX_VLAN) {
+			val = pdata->osi_dma->dstats.rx_vlan_pkt_n;
+			pdata->osi_dma->dstats.rx_vlan_pkt_n =
+				osi_update_stats_counter(val, 1UL);
 			__vlan_hwaccel_put_tag(skb, htons(ETH_P_8021Q),
 					       rx_pkt_cx->vlan_tag);
 		}
