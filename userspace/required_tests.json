@@ -520,6 +520,36 @@
         "unit": "interface_lock"
     },
     {
+        "test": "enum",
+        "test_level": 0,
+        "unit": "interface_rbtree"
+    },
+    {
+        "test": "enum_next",
+        "test_level": 0,
+        "unit": "interface_rbtree"
+    },
+    {
+        "test": "insert",
+        "test_level": 0,
+        "unit": "interface_rbtree"
+    },
+    {
+        "test": "search",
+        "test_level": 0,
+        "unit": "interface_rbtree"
+    },
+    {
+        "test": "search_less_than",
+        "test_level": 0,
+        "unit": "interface_rbtree"
+    },
+    {
+        "test": "unlink",
+        "test_level": 0,
+        "unit": "interface_rbtree"
+    },
+    {
         "test": "list_all_head",
         "test_level": 0,
         "unit": "list"
