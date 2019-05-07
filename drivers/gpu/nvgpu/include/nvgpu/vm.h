@@ -255,18 +255,19 @@ struct nvgpu_mapped_buf *nvgpu_vm_find_mapping(struct vm_gk20a *vm,
 					       u32 flags,
 					       int kind);
 
-struct nvgpu_mapped_buf *nvgpu_vm_map(struct vm_gk20a *vm,
-				      struct nvgpu_os_buffer *os_buf,
-				      struct nvgpu_sgt *sgt,
-				      u64 map_addr,
-				      u64 map_size,
-				      u64 phys_offset,
-				      enum gk20a_mem_rw_flag rw,
-				      u32 flags,
-				      s16 compr_kind,
-				      s16 incompr_kind,
-				      struct vm_gk20a_mapping_batch *batch,
-				      enum nvgpu_aperture aperture);
+int nvgpu_vm_map(struct vm_gk20a *vm,
+		 struct nvgpu_os_buffer *os_buf,
+		 struct nvgpu_sgt *sgt,
+		 u64 map_addr,
+		 u64 map_size,
+		 u64 phys_offset,
+		 enum gk20a_mem_rw_flag rw,
+		 u32 flags,
+		 s16 compr_kind,
+		 s16 incompr_kind,
+		 struct vm_gk20a_mapping_batch *batch,
+		 enum nvgpu_aperture aperture,
+		 struct nvgpu_mapped_buf **mapped_buffer_arg);
 
 void nvgpu_vm_unmap(struct vm_gk20a *vm, u64 offset,
 		    struct vm_gk20a_mapping_batch *batch);

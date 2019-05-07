@@ -227,19 +227,20 @@ static int map_buffer(struct unit_module *m,
 		}
 	}
 
-	mapped_buf = nvgpu_vm_map(vm,
-				  &os_buf,
-				  sgt,
-				  gpu_va,
-				  buf_size,
-				  0,
-				  gk20a_mem_flag_none,
-				  NVGPU_VM_MAP_CACHEABLE,
-				  0,
-				  0,
-				  NULL,
-				  APERTURE_SYSMEM);
-	if (mapped_buf == NULL) {
+	ret = nvgpu_vm_map(vm,
+			   &os_buf,
+			   sgt,
+			   gpu_va,
+			   buf_size,
+			   0,
+			   gk20a_mem_flag_none,
+			   NVGPU_VM_MAP_CACHEABLE,
+			   0,
+			   0,
+			   NULL,
+			   APERTURE_SYSMEM,
+			   &mapped_buf);
+	if (ret != 0) {
 		unit_err(m, "Failed to map buffer into the GPU virtual address"
 			    " space\n");
 		ret = UNIT_FAIL;

@@ -866,18 +866,19 @@ void nvgpu_vm_put_buffers(struct vm_gk20a *vm,
 	nvgpu_big_free(vm->mm->g, mapped_buffers);
 }
 
-struct nvgpu_mapped_buf *nvgpu_vm_map(struct vm_gk20a *vm,
-				      struct nvgpu_os_buffer *os_buf,
-				      struct nvgpu_sgt *sgt,
-				      u64 map_addr,
-				      u64 map_size,
-				      u64 phys_offset,
-				      enum gk20a_mem_rw_flag rw,
-				      u32 flags,
-				      s16 compr_kind,
-				      s16 incompr_kind,
-				      struct vm_gk20a_mapping_batch *batch,
-				      enum nvgpu_aperture aperture)
+int nvgpu_vm_map(struct vm_gk20a *vm,
+		 struct nvgpu_os_buffer *os_buf,
+		 struct nvgpu_sgt *sgt,
+		 u64 map_addr,
+		 u64 map_size,
+		 u64 phys_offset,
+		 enum gk20a_mem_rw_flag rw,
+		 u32 flags,
+		 s16 compr_kind,
+		 s16 incompr_kind,
+		 struct vm_gk20a_mapping_batch *batch,
+		 enum nvgpu_aperture aperture,
+		 struct nvgpu_mapped_buf **mapped_buffer_arg)
 {
 	struct gk20a *g = gk20a_from_vm(vm);
 	struct nvgpu_mapped_buf *mapped_buffer = NULL;
@@ -901,12 +902,14 @@ struct nvgpu_mapped_buf *nvgpu_vm_map(struct vm_gk20a *vm,
 	 */
 	u8 pte_kind;
 
+	*mapped_buffer_arg = NULL;
+
 	if (vm->userspace_managed &&
 	    (flags & NVGPU_VM_MAP_FIXED_OFFSET) == 0U) {
 		nvgpu_err(g,
 			  "non-fixed-offset mapping not available on "
 			  "userspace managed address spaces");
-		return ERR_PTR(-EINVAL);
+		return -EINVAL;
 	}
 
 	binfo.flags = flags;
@@ -936,7 +939,8 @@ struct nvgpu_mapped_buf *nvgpu_vm_map(struct vm_gk20a *vm,
 		if (mapped_buffer != NULL) {
 			nvgpu_ref_get(&mapped_buffer->ref);
 			nvgpu_mutex_release(&vm->update_gmmu_lock);
-			return mapped_buffer;
+			*mapped_buffer_arg = mapped_buffer;
+			return 0;
 		}
 		nvgpu_mutex_release(&vm->update_gmmu_lock);
 	}
@@ -947,8 +951,9 @@ struct nvgpu_mapped_buf *nvgpu_vm_map(struct vm_gk20a *vm,
 	mapped_buffer = nvgpu_kzalloc(g, sizeof(*mapped_buffer));
 	if (mapped_buffer == NULL) {
 		nvgpu_warn(g, "oom allocating tracking buffer");
-		return ERR_PTR(-ENOMEM);
+		return -ENOMEM;
 	}
+	*mapped_buffer_arg = mapped_buffer;
 
 	align = nvgpu_sgt_alignment(g, sgt);
 	if (g->mm.disable_bigpage) {
@@ -1151,7 +1156,7 @@ struct nvgpu_mapped_buf *nvgpu_vm_map(struct vm_gk20a *vm,
 
 	nvgpu_mutex_release(&vm->update_gmmu_lock);
 
-	return mapped_buffer;
+	return 0;
 
 clean_up:
 	if (mapped_buffer->addr != 0ULL) {
@@ -1169,7 +1174,7 @@ clean_up:
 clean_up_nolock:
 	nvgpu_kfree(g, mapped_buffer);
 
-	return ERR_PTR(err);
+	return err;
 }
 
 /*

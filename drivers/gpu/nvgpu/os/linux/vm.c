@@ -219,23 +219,23 @@ int nvgpu_vm_map_linux(struct vm_gk20a *vm,
 		goto clean_up;
 	}
 
-	mapped_buffer = nvgpu_vm_map(vm,
-				     &os_buf,
-				     nvgpu_sgt,
-				     map_addr,
-				     mapping_size,
-				     buffer_offset,
-				     rw_flag,
-				     flags,
-				     compr_kind,
-				     incompr_kind,
-				     batch,
-				     gk20a_dmabuf_aperture(g, dmabuf));
+	err = nvgpu_vm_map(vm,
+			   &os_buf,
+			   nvgpu_sgt,
+			   map_addr,
+			   mapping_size,
+			   buffer_offset,
+			   rw_flag,
+			   flags,
+			   compr_kind,
+			   incompr_kind,
+			   batch,
+			   gk20a_dmabuf_aperture(g, dmabuf),
+			   &mapped_buffer);
 
 	nvgpu_sgt_free(g, nvgpu_sgt);
 
-	if (IS_ERR(mapped_buffer)) {
-		err = PTR_ERR(mapped_buffer);
+	if (err != 0) {
 		goto clean_up;
 	}
 
