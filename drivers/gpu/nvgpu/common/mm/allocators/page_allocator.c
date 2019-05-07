@@ -1064,9 +1064,9 @@ int nvgpu_page_allocator_init(struct gk20a *g, struct nvgpu_allocator *na,
 
 	(void) snprintf(buddy_name, sizeof(buddy_name), "%s-src", name);
 
-	err = nvgpu_allocator_init(g, &a->source_allocator, NULL, buddy_name,
-					base, length, blk_size, 0ULL, 0ULL,
-					BUDDY_ALLOCATOR);
+	err = nvgpu_buddy_allocator_init(g, &a->source_allocator, NULL,
+					 buddy_name, base, length, blk_size,
+					 0ULL, 0ULL);
 	if (err != 0) {
 		goto fail;
 	}
