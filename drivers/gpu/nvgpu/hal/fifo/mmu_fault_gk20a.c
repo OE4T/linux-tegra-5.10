@@ -40,8 +40,6 @@
 #include <hal/fifo/mmu_fault_gk20a.h>
 
 #include <nvgpu/hw/gk20a/hw_fifo_gk20a.h>
-/* TODO: remove gr_status_r */
-#include <nvgpu/hw/gk20a/hw_gr_gk20a.h>
 
 /* fault info/descriptions */
 
@@ -290,7 +288,7 @@ bool gk20a_fifo_handle_mmu_fault_locked(
 		if (ctxsw) {
 			g->ops.gr.falcon.dump_stats(g);
 			nvgpu_err(g, "  gr_status_r: 0x%x",
-				  nvgpu_readl(g, gr_status_r()));
+				  g->ops.gr.get_gr_status(g));
 		}
 
 		/* get the channel/TSG */

@@ -265,6 +265,7 @@ static const struct gpu_ops tu104_ops = {
 				gv11b_ce_mthd_buffer_fault_in_bar2_fault,
 	},
 	.gr = {
+		.get_gr_status = gr_gm20b_get_gr_status,
 		.set_alpha_circular_buffer_size =
 			gr_gv11b_set_alpha_circular_buffer_size,
 		.set_circular_buffer_size = gr_gv11b_set_circular_buffer_size,

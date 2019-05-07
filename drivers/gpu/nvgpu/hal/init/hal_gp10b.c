@@ -168,6 +168,7 @@ static const struct gpu_ops gp10b_ops = {
 		.isr_nonstall = gp10b_ce_nonstall_isr,
 	},
 	.gr = {
+		.get_gr_status = gr_gm20b_get_gr_status,
 		.set_alpha_circular_buffer_size =
 			gr_gp10b_set_alpha_circular_buffer_size,
 		.set_circular_buffer_size = gr_gp10b_set_circular_buffer_size,

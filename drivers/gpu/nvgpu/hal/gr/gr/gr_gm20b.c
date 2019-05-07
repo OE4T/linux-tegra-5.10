@@ -46,6 +46,11 @@
 #include <nvgpu/hw/gm20b/hw_gr_gm20b.h>
 #include <nvgpu/hw/gm20b/hw_perf_gm20b.h>
 
+u32 gr_gm20b_get_gr_status(struct gk20a *g)
+{
+	return nvgpu_readl(g, gr_status_r());
+}
+
 void gr_gm20b_set_alpha_circular_buffer_size(struct gk20a *g, u32 data)
 {
 	struct nvgpu_gr *gr = g->gr;

@@ -140,6 +140,7 @@ static const struct gpu_ops gm20b_ops = {
 		.isr_nonstall = gk20a_ce2_nonstall_isr,
 	},
 	.gr = {
+		.get_gr_status = gr_gm20b_get_gr_status,
 		.set_alpha_circular_buffer_size =
 			gr_gm20b_set_alpha_circular_buffer_size,
 		.set_circular_buffer_size = gr_gm20b_set_circular_buffer_size,

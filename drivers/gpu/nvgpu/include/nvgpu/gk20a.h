@@ -276,6 +276,7 @@ struct gpu_ops {
 		} err_ops;
 	} ce;
 	struct {
+		u32 (*get_gr_status)(struct gk20a *g);
 		void (*access_smpc_reg)(struct gk20a *g, u32 quad, u32 offset);
 		void (*set_alpha_circular_buffer_size)(struct gk20a *g,
 							u32 data);
