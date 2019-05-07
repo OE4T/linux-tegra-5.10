@@ -3,7 +3,7 @@
  *
  * Tegra ISP Driver
  *
- * Copyright (c) 2013-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2013-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -41,7 +41,7 @@ struct isp_emc {
 
 struct isp_la_bw {
 	/* Total ISP write BW in MBps, either ISO peak BW or non-ISO avg BW */
-	u32 isp_la_bw;
+	__u32 isp_la_bw;
 	/* is ISO or non-ISO */
 	bool is_iso;
 };

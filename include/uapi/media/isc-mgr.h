@@ -31,7 +31,7 @@
 #define ISC_MGR_IOCTL_PWM_CONFIG	_IOW('o', 9, struct isc_mgr_pwm_info)
 #define ISC_MGR_IOCTL_WAIT_ERR		_IO('o', 10)
 #define ISC_MGR_IOCTL_ABORT_WAIT_ERR	_IO('o', 11)
-#define ISC_MGR_IOCTL_GET_EXT_PWR_CTRL	_IOR('o', 12, u8)
+#define ISC_MGR_IOCTL_GET_EXT_PWR_CTRL	_IOR('o', 12, __u8)
 
 #define ISC_MGR_POWER_ALL	5
 #define MAX_ISC_NAME_LENGTH	32
