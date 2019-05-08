@@ -40,7 +40,7 @@ u32 tu104_gr_init_get_rtv_cb_size(struct gk20a *g)
 
 static void tu104_gr_init_patch_rtv_cb(struct gk20a *g,
 	struct nvgpu_gr_ctx *gr_ctx,
-	u64 addr, u32 size, u32 gfxpAddSize, bool patch)
+	u32 addr, u32 size, u32 gfxpAddSize, bool patch)
 {
 	nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_scc_rm_rtv_cb_base_r(),
 		gr_scc_rm_rtv_cb_base_addr_39_8_f(addr), patch);
@@ -56,21 +56,19 @@ static void tu104_gr_init_patch_rtv_cb(struct gk20a *g,
 void tu104_gr_init_commit_rtv_cb(struct gk20a *g, u64 addr,
 	struct nvgpu_gr_ctx *gr_ctx, bool patch)
 {
-	u32 size;
-
-	addr = addr >> U64(gr_scc_rm_rtv_cb_base_addr_39_8_align_bits_f());
-	size = (gr_scc_rm_rtv_cb_size_div_256b_default_f() +
+	u32 size = (gr_scc_rm_rtv_cb_size_div_256b_default_f() +
 			gr_scc_rm_rtv_cb_size_div_256b_db_adder_f());
 
-	tu104_gr_init_patch_rtv_cb(g, gr_ctx, addr, size, 0, patch);
+	addr = addr >> gr_scc_rm_rtv_cb_base_addr_39_8_align_bits_f();
+
+	nvgpu_assert(u64_hi32(addr) == 0U);
+	tu104_gr_init_patch_rtv_cb(g, gr_ctx, (u32)addr, size, 0, patch);
 }
 
 void tu104_gr_init_commit_gfxp_rtv_cb(struct gk20a *g,
 	struct nvgpu_gr_ctx *gr_ctx, bool patch)
 {
 	u64 addr;
-	u64 addr_lo;
-	u64 addr_hi;
 	u32 rtv_cb_size;
 	u32 gfxp_addr_size;
 	struct nvgpu_mem *buf_mem;
@@ -85,14 +83,11 @@ void tu104_gr_init_commit_gfxp_rtv_cb(struct gk20a *g,
 
 	/* GFXP RTV circular buffer */
 	buf_mem = nvgpu_gr_ctx_get_gfxp_rtvcb_ctxsw_buffer(gr_ctx);
-	addr_lo = (u64)(u64_lo32(buf_mem->gpu_va) >>
-			gr_scc_rm_rtv_cb_base_addr_39_8_align_bits_f());
-	addr_hi = (u64)(buf_mem->gpu_va);
-	addr = addr_lo |
-	       (addr_hi <<
-	       (32U - gr_scc_rm_rtv_cb_base_addr_39_8_align_bits_f()));
+	addr = buf_mem->gpu_va >>
+			gr_scc_rm_rtv_cb_base_addr_39_8_align_bits_f();
 
-	tu104_gr_init_patch_rtv_cb(g, gr_ctx, addr,
+	nvgpu_assert(u64_hi32(addr) == 0U);
+	tu104_gr_init_patch_rtv_cb(g, gr_ctx, (u32)addr,
 		rtv_cb_size, gfxp_addr_size, patch);
 }
 
