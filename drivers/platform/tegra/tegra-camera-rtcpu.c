@@ -492,8 +492,8 @@ static void tegra_sce_cam_assert_resets(struct device *dev)
 
 	tegra_camrtc_set_fwloaddone(dev, false);
 
-	camrtc_reset_group_assert(rtcpu->resets[0]);
 	camrtc_reset_group_assert(rtcpu->resets[1]);
+	camrtc_reset_group_assert(rtcpu->resets[0]);
 }
 
 static int tegra_sce_cam_wait_for_wfi(struct device *dev, long *timeout)
