@@ -23,8 +23,6 @@
 #include <nvgpu/pmu/mutex.h>
 #include <nvgpu/gk20a.h>
 
-struct nvgpu_pmu *pmu;
-
 int nvgpu_pmu_mutex_acquire(struct gk20a *g, struct pmu_mutexes *mutexes,
 			    u32 id, u32 *token)
 {
