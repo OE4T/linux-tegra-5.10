@@ -69,6 +69,8 @@ static void channel_gk20a_joblist_delete(struct nvgpu_channel *c,
 static struct nvgpu_channel_job *channel_gk20a_joblist_peek(
 		struct nvgpu_channel *c);
 
+static const struct nvgpu_worker_ops channel_worker_ops;
+
 /* allocate GPU channel */
 static struct nvgpu_channel *allocate_channel(struct nvgpu_fifo *f)
 {
@@ -1773,7 +1775,7 @@ static u32 nvgpu_channel_worker_poll_wakeup_condition_get_timeout(
 	return ch_worker->watchdog_interval;
 }
 
-const struct nvgpu_worker_ops channel_worker_ops = {
+static const struct nvgpu_worker_ops channel_worker_ops = {
 	.pre_process = nvgpu_channel_worker_poll_init,
 	.wakeup_early_exit = NULL,
 	.wakeup_post_process =
