@@ -546,20 +546,20 @@ static void nvgpu_bios_parse_bit(struct gk20a *g, u32 offset)
 	nvgpu_log_fn(g, "done");
 }
 
-static u32 __nvgpu_bios_readbyte(struct gk20a *g, u32 offset)
+static u32 nvgpu_bios_readbyte_impl(struct gk20a *g, u32 offset)
 {
 	return g->bios.data[offset];
 }
 
 u8 nvgpu_bios_read_u8(struct gk20a *g, u32 offset)
 {
-	return (u8)__nvgpu_bios_readbyte(g, offset);
+	return (u8)nvgpu_bios_readbyte_impl(g, offset);
 }
 
 s8 nvgpu_bios_read_s8(struct gk20a *g, u32 offset)
 {
 	u32 val;
-	val = __nvgpu_bios_readbyte(g, offset);
+	val = nvgpu_bios_readbyte_impl(g, offset);
 	val = ((val & 0x80U) != 0U) ? (val | ~0xffU) : val;
 
 	return (s8) val;
@@ -569,8 +569,8 @@ u16 nvgpu_bios_read_u16(struct gk20a *g, u32 offset)
 {
 	u16 val;
 
-	val = U16(__nvgpu_bios_readbyte(g, offset) |
-		(__nvgpu_bios_readbyte(g, offset+1U) << 8U));
+	val = U16(nvgpu_bios_readbyte_impl(g, offset) |
+		(nvgpu_bios_readbyte_impl(g, offset+1U) << 8U));
 
 	return val;
 }
@@ -579,10 +579,10 @@ u32 nvgpu_bios_read_u32(struct gk20a *g, u32 offset)
 {
 	u32 val;
 
-	val = U32(__nvgpu_bios_readbyte(g, offset) |
-		(__nvgpu_bios_readbyte(g, offset+1U) << 8U) |
-		(__nvgpu_bios_readbyte(g, offset+2U) << 16U) |
-		(__nvgpu_bios_readbyte(g, offset+3U) << 24U));
+	val = U32(nvgpu_bios_readbyte_impl(g, offset) |
+		(nvgpu_bios_readbyte_impl(g, offset+1U) << 8U) |
+		(nvgpu_bios_readbyte_impl(g, offset+2U) << 16U) |
+		(nvgpu_bios_readbyte_impl(g, offset+3U) << 24U));
 
 	return val;
 }
