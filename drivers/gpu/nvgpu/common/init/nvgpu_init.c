@@ -93,7 +93,7 @@ int gk20a_prepare_poweroff(struct gk20a *g)
 
 	if (g->ops.channel.suspend_all_serviceable_ch != NULL) {
 		ret = g->ops.channel.suspend_all_serviceable_ch(g);
-		if (ret != 0U) {
+		if (ret != 0) {
 			return ret;
 		}
 	}
@@ -459,7 +459,7 @@ int gk20a_finalize_poweron(struct gk20a *g)
 	}
 
 #if defined(CONFIG_TEGRA_GK20A_NVHOST)
-	if (nvgpu_has_syncpoints(g) && g->syncpt_unit_size) {
+	if (nvgpu_has_syncpoints(g) && (g->syncpt_unit_size != 0UL)) {
 		if (!nvgpu_mem_is_valid(&g->syncpt_mem)) {
 			nr_pages = U32(DIV_ROUND_UP(g->syncpt_unit_size,
 						    PAGE_SIZE));
