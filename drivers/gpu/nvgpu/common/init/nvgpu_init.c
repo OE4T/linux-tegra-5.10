@@ -61,7 +61,7 @@ bool is_nvgpu_gpu_state_valid(struct gk20a *g)
 	return true;
 }
 
-void __nvgpu_check_gpu_state(struct gk20a *g)
+void nvgpu_check_gpu_state(struct gk20a *g)
 {
 	if (!is_nvgpu_gpu_state_valid(g)) {
 		nvgpu_err(g, "Rebooting system!!");
@@ -69,7 +69,7 @@ void __nvgpu_check_gpu_state(struct gk20a *g)
 	}
 }
 
-void __gk20a_warn_on_no_regs(void)
+void gk20a_warn_on_no_regs(void)
 {
 	WARN_ONCE(true, "Attempted access to GPU regs after unmapping!");
 }

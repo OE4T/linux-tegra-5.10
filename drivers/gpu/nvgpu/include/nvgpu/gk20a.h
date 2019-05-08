@@ -2213,8 +2213,8 @@ static inline u32 nvgpu_get_poll_timeout(struct gk20a *g)
 #define GK20A_NONSTALL_OPS_POST_EVENTS		BIT32(1)
 
 /* register accessors */
-void __nvgpu_check_gpu_state(struct gk20a *g);
-void __gk20a_warn_on_no_regs(void);
+void nvgpu_check_gpu_state(struct gk20a *g);
+void gk20a_warn_on_no_regs(void);
 
 bool is_nvgpu_gpu_state_valid(struct gk20a *g);
 
