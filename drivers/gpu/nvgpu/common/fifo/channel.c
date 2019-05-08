@@ -914,8 +914,8 @@ int channel_gk20a_alloc_job(struct nvgpu_channel *c,
 	int err = 0;
 
 	if (channel_gk20a_is_prealloc_enabled(c)) {
-		u32 put = c->joblist.pre_alloc.put;
-		u32 get = c->joblist.pre_alloc.get;
+		unsigned int put = c->joblist.pre_alloc.put;
+		unsigned int get = c->joblist.pre_alloc.get;
 
 		/*
 		 * ensure all subsequent reads happen after reading get.
@@ -924,7 +924,7 @@ int channel_gk20a_alloc_job(struct nvgpu_channel *c,
 		 */
 		nvgpu_smp_rmb();
 
-		if (CIRC_SPACE(put, get, c->joblist.pre_alloc.length) != 0) {
+		if (CIRC_SPACE(put, get, c->joblist.pre_alloc.length) != 0U) {
 			*job_out = &c->joblist.pre_alloc.jobs[put];
 		} else {
 			nvgpu_warn(c->g,
@@ -1025,8 +1025,10 @@ static void channel_gk20a_joblist_delete(struct nvgpu_channel *c,
 bool channel_gk20a_joblist_is_empty(struct nvgpu_channel *c)
 {
 	if (channel_gk20a_is_prealloc_enabled(c)) {
-		u32 get = c->joblist.pre_alloc.get;
-		u32 put = c->joblist.pre_alloc.put;
+
+		unsigned int get = c->joblist.pre_alloc.get;
+		unsigned int put = c->joblist.pre_alloc.put;
+
 		return (CIRC_CNT(put, get, c->joblist.pre_alloc.length) == 0U);
 	}
 
@@ -1042,7 +1044,7 @@ bool channel_gk20a_is_prealloc_enabled(struct nvgpu_channel *c)
 }
 
 static int channel_gk20a_prealloc_resources(struct nvgpu_channel *ch,
-	       unsigned int num_jobs)
+	       u32 num_jobs)
 {
 	unsigned int i;
 	int err;
@@ -1059,7 +1061,7 @@ static int channel_gk20a_prealloc_resources(struct nvgpu_channel *ch,
 	 * to make sure we don't hit an overflow condition
 	 */
 	size = sizeof(struct nvgpu_channel_job);
-	if (num_jobs <= ULONG_MAX / size) {
+	if (num_jobs <= U32_MAX / size) {
 		ch->joblist.pre_alloc.jobs = nvgpu_vzalloc(ch->g,
 							  num_jobs * size);
 	}
@@ -1074,7 +1076,7 @@ static int channel_gk20a_prealloc_resources(struct nvgpu_channel *ch,
 	 * to make sure we don't hit an overflow condition
 	 */
 	size = sizeof(struct priv_cmd_entry);
-	if (num_jobs <= ULONG_MAX / (size << 1)) {
+	if (num_jobs <= U32_MAX / (size << 1)) {
 		entries = nvgpu_vzalloc(ch->g,
 					((unsigned long)num_jobs << 1UL) *
 					(unsigned long)size);
