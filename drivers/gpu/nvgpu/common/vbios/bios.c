@@ -143,34 +143,35 @@ int nvgpu_bios_parse_rom(struct gk20a *g)
 
 static void nvgpu_bios_parse_biosdata(struct gk20a *g, u32 offset)
 {
-	struct biosdata biosdata;
+	struct biosdata bios_data;
 
-	nvgpu_memcpy((u8 *)&biosdata, &g->bios.data[offset], sizeof(biosdata));
+	nvgpu_memcpy((u8 *)&bios_data, &g->bios.data[offset],
+			sizeof(bios_data));
 	nvgpu_log_fn(g, "bios version %x, oem version %x",
-			biosdata.version,
-			biosdata.oem_version);
+			bios_data.version,
+			bios_data.oem_version);
 
-	g->bios.vbios_version = biosdata.version;
-	g->bios.vbios_oem_version = biosdata.oem_version;
+	g->bios.vbios_version = bios_data.version;
+	g->bios.vbios_oem_version = bios_data.oem_version;
 }
 
 static void nvgpu_bios_parse_nvinit_ptrs(struct gk20a *g, u32 offset)
 {
-	struct nvinit_ptrs nvinit_ptrs;
+	struct nvinit_ptrs init_ptrs;
 
-	nvgpu_memcpy((u8 *)&nvinit_ptrs, &g->bios.data[offset],
-		sizeof(nvinit_ptrs));
-	nvgpu_log_fn(g, "devinit ptr %x size %d", nvinit_ptrs.devinit_tables_ptr,
-			nvinit_ptrs.devinit_tables_size);
-	nvgpu_log_fn(g, "bootscripts ptr %x size %d", nvinit_ptrs.bootscripts_ptr,
-			nvinit_ptrs.bootscripts_size);
+	nvgpu_memcpy((u8 *)&init_ptrs, &g->bios.data[offset],
+		sizeof(init_ptrs));
+	nvgpu_log_fn(g, "devinit ptr %x size %d", init_ptrs.devinit_tables_ptr,
+			init_ptrs.devinit_tables_size);
+	nvgpu_log_fn(g, "bootscripts ptr %x size %d", init_ptrs.bootscripts_ptr,
+			init_ptrs.bootscripts_size);
 
-	g->bios.devinit_tables = &g->bios.data[nvinit_ptrs.devinit_tables_ptr];
-	g->bios.devinit_tables_size = nvinit_ptrs.devinit_tables_size;
-	g->bios.bootscripts = &g->bios.data[nvinit_ptrs.bootscripts_ptr];
-	g->bios.bootscripts_size = nvinit_ptrs.bootscripts_size;
-	g->bios.condition_table_ptr = nvinit_ptrs.condition_table_ptr;
-	g->bios.nvlink_config_data_offset = nvinit_ptrs.nvlink_config_data_ptr;
+	g->bios.devinit_tables = &g->bios.data[init_ptrs.devinit_tables_ptr];
+	g->bios.devinit_tables_size = init_ptrs.devinit_tables_size;
+	g->bios.bootscripts = &g->bios.data[init_ptrs.bootscripts_ptr];
+	g->bios.bootscripts_size = init_ptrs.bootscripts_size;
+	g->bios.condition_table_ptr = init_ptrs.condition_table_ptr;
+	g->bios.nvlink_config_data_offset = init_ptrs.nvlink_config_data_ptr;
 }
 static void nvgpu_bios_parse_memory_ptrs(struct gk20a *g, u16 offset, u8 version)
 {
@@ -487,7 +488,7 @@ void *nvgpu_bios_get_perf_table_ptrs(struct gk20a *g,
 static void nvgpu_bios_parse_bit(struct gk20a *g, u32 offset)
 {
 	struct bios_bit bit;
-	struct bit_token bit_token;
+	struct bit_token token;
 	u32 i;
 
 	nvgpu_log_fn(g, " ");
@@ -499,24 +500,24 @@ static void nvgpu_bios_parse_bit(struct gk20a *g, u32 offset)
 
 	offset += bit.header_size;
 	for (i = 0U; i < bit.token_entries; i++) {
-		nvgpu_memcpy((u8 *)&bit_token, &g->bios.data[offset],
-			sizeof(bit_token));
+		nvgpu_memcpy((u8 *)&token, &g->bios.data[offset],
+			sizeof(token));
 
 		nvgpu_log_info(g, "BIT token id %d ptr %d size %d ver %d",
-				bit_token.token_id, bit_token.data_ptr,
-				bit_token.data_size, bit_token.data_version);
+				token.token_id, token.data_ptr,
+				token.data_size, token.data_version);
 
-		switch (bit_token.token_id) {
+		switch (token.token_id) {
 		case TOKEN_ID_BIOSDATA:
-			nvgpu_bios_parse_biosdata(g, bit_token.data_ptr);
+			nvgpu_bios_parse_biosdata(g, token.data_ptr);
 			break;
 		case TOKEN_ID_NVINIT_PTRS:
-			nvgpu_bios_parse_nvinit_ptrs(g, bit_token.data_ptr);
+			nvgpu_bios_parse_nvinit_ptrs(g, token.data_ptr);
 			break;
 		case TOKEN_ID_FALCON_DATA:
-			if (bit_token.data_version == 2U) {
+			if (token.data_version == 2U) {
 				nvgpu_bios_parse_falcon_data_v2(g,
-						bit_token.data_ptr);
+						token.data_ptr);
 			}
 			break;
 		case TOKEN_ID_PERF_PTRS:
@@ -532,12 +533,12 @@ static void nvgpu_bios_parse_bit(struct gk20a *g, u32 offset)
 				(struct bit_token *)&g->bios.data[offset];
 			break;
 		case TOKEN_ID_MEMORY_PTRS:
-			nvgpu_bios_parse_memory_ptrs(g, bit_token.data_ptr,
-				bit_token.data_version);
+			nvgpu_bios_parse_memory_ptrs(g, token.data_ptr,
+				token.data_version);
 			break;
 		default:
 			nvgpu_log_info(g, "Token id %d not supported",
-							bit_token.token_id);
+							token.token_id);
 			break;
 		}
 
