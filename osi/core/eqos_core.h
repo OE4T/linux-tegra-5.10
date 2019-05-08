@@ -292,5 +292,13 @@
 #define EQOS_MAC_TCR_TSCTRLSSR			OSI_BIT(9)
 #define EQOS_MAC_SSIR_SSINC_SHIFT		16U
 #define EQOS_MAC_STNSR_TSSS_MASK		0x7FFFFFFFU
+
+#define EQOS_DMA_CHX_STATUS_TPS			OSI_BIT(1)
+#define EQOS_DMA_CHX_STATUS_TBU			OSI_BIT(2)
+#define EQOS_DMA_CHX_STATUS_RBU			OSI_BIT(7)
+#define EQOS_DMA_CHX_STATUS_RPS			OSI_BIT(8)
+#define EQOS_DMA_CHX_STATUS_RWT			OSI_BIT(9)
+#define EQOS_DMA_CHX_STATUS_FBE			OSI_BIT(10)
+
 void update_ehfc_rfa_rfd(unsigned int rx_fifo, unsigned int *value);
 #endif

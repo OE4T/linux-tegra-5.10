@@ -65,6 +65,8 @@
 #define OSI_MAC_TCR_SNAPTYPSEL_3	(OSI_BIT(16) | OSI_BIT(17))
 #define OSI_MAC_TCR_AV8021ASMEN		OSI_BIT(28)
 
+#define OSI_UCHAR_MAX			0xFFU
+
 /* Default maximum Gaint Packet Size Limit */
 #define OSI_MAX_MTU_SIZE	9000U
 #define OSI_DFLT_MTU_SIZE	1500U
@@ -102,7 +104,9 @@
 #define OSI_IP4_FILTER		0U
 #define OSI_IP6_FILTER		1U
 
+/* FIXME add logic based on HW version */
 #define OSI_EQOS_MAX_NUM_CHANS	4U
+#define OSI_EQOS_MAX_NUM_QUEUES	4U
 
 #define OSI_BIT(nr)             ((unsigned int)1 << (nr))
 
@@ -407,6 +411,35 @@ static inline int is_valid_mac_version(unsigned int mac_ver)
 }
 
 /**
+ *	osi_update_stats_counter - update value by increment passed as parameter
+ *	@last_value: last value of stat counter
+ *	@incr: increment value
+ *
+ *	Algorithm: Check for boundary and return sum
+ *
+ *	Dependencies: Input parameter should be only unsigned long type
+ *
+ *	Protection: None
+ *
+ *      Return: unsigned long value
+ */
+static inline unsigned long osi_update_stats_counter(unsigned long last_value,
+						     unsigned long incr)
+{
+	unsigned long long temp;
+
+	temp = (unsigned long long)last_value;
+	temp = temp + incr;
+	if (temp > ULONG_MAX) {
+		/* Do nothing */
+	} else {
+		return (unsigned long)temp;
+	}
+
+	return last_value;
+}
+
+/**
  *      osi_get_mac_version - Reading MAC version
  *      @addr: io-remap MAC base address.
  *	@mac_ver: holds mac version.
@@ -422,4 +455,5 @@ static inline int is_valid_mac_version(unsigned int mac_ver)
 int osi_get_mac_version(void *addr, unsigned int *mac_ver);
 
 void osi_get_hw_features(void *base, struct osi_hw_features *hw_feat);
+void osi_memset(void *s, unsigned int c, unsigned long count);
 #endif /* OSI_COMMON_H */

@@ -824,3 +824,29 @@ void osi_ptp_configuration(struct osi_core_priv_data *osi_core,
 						osi_core->ptp_config.nsec);
 	}
 }
+
+int osi_read_mmc(struct osi_core_priv_data *osi_core)
+{
+	int ret = -1;
+
+	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
+	    (osi_core->ops->read_mmc != OSI_NULL)) {
+		osi_core->ops->read_mmc(osi_core);
+		ret = 0;
+	}
+
+	return ret;
+}
+
+int osi_reset_mmc(struct osi_core_priv_data *osi_core)
+{
+	int ret = -1;
+
+	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
+	    (osi_core->ops->reset_mmc != OSI_NULL)) {
+		osi_core->ops->reset_mmc(osi_core);
+		ret = 0;
+	}
+
+	return ret;
+}

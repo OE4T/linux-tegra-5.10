@@ -63,3 +63,5 @@ osi_get_systime_from_mac
 osi_adjust_time
 osi_adjust_freq
 osi_set_systime_to_mac
+osi_read_mmc
+osi_reset_mmc

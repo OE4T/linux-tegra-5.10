@@ -26,21 +26,6 @@
 
 int dma_desc_init(struct osi_dma_priv_data *osi_dma);
 
-static inline void osi_memset(void *s, int c, unsigned long count)
-{
-	char *xs = s;
-	int brk = 1;
-
-	while (brk != 0) {
-		*xs++ = (char)c;
-		count--;
-
-		if (count == 0U) {
-			brk = 0;
-		}
-	}
-}
-
 /**
  *	get_rx_csum - Get the Rx checksum from descriptor if valid
  *	@rx_desc: Rx descriptor
@@ -236,7 +221,7 @@ int osi_process_rx_completions(struct osi_dma_priv_data *osi,
 	int ret = 0;
 
 	while (received < budget) {
-		osi_memset(rx_pkt_cx, 0, sizeof(*rx_pkt_cx));
+		osi_memset(rx_pkt_cx, 0U, sizeof(*rx_pkt_cx));
 		rx_desc = rx_ring->rx_desc + rx_ring->cur_rx_idx;
 		rx_swcx = rx_ring->rx_swcx + rx_ring->cur_rx_idx;
 
@@ -278,7 +263,11 @@ int osi_process_rx_completions(struct osi_dma_priv_data *osi,
 			osd_receive_packet(osi->osd, rx_ring, chan,
 					   osi->rx_buf_len, rx_pkt_cx, rx_swcx);
 		}
-
+		osi->dstats.q_rx_pkt_n[chan] =
+			osi_update_stats_counter(osi->dstats.q_rx_pkt_n[chan],
+						 1UL);
+		osi->dstats.rx_pkt_n =
+			osi_update_stats_counter(osi->dstats.rx_pkt_n, 1UL);
 		received++;
 	}
 
@@ -454,8 +443,11 @@ int osi_process_tx_completions(struct osi_dma_priv_data *osi,
 	unsigned long long ns;
 	int processed = 0;
 
+	osi->dstats.tx_clean_n[chan] =
+		osi_update_stats_counter(osi->dstats.tx_clean_n[chan], 1U);
+
 	while (entry != tx_ring->cur_tx_idx) {
-		osi_memset(txdone_pkt_cx, 0, sizeof(*txdone_pkt_cx));
+		osi_memset(txdone_pkt_cx, 0U, sizeof(*txdone_pkt_cx));
 
 		tx_desc = tx_ring->tx_desc + entry;
 		tx_swcx = tx_ring->tx_swcx + entry;
@@ -516,6 +508,11 @@ int osi_process_tx_completions(struct osi_dma_priv_data *osi,
 		 * wake the corresponding transmit queue in OS layer.
 		 */
 		tx_ring->clean_idx = entry;
+		osi->dstats.q_tx_pkt_n[chan] =
+			osi_update_stats_counter(osi->dstats.q_tx_pkt_n[chan],
+						 1UL);
+		osi->dstats.tx_pkt_n =
+			osi_update_stats_counter(osi->dstats.tx_pkt_n, 1UL);
 	}
 
 	return processed;
@@ -669,6 +666,17 @@ void osi_hw_transmit(struct osi_dma_priv_data *osi, unsigned int chan)
 	int cntx_desc_consumed;
 
 	/* Context decriptor for VLAN/TSO */
+	if ((tx_pkt_cx->flags & OSI_PKT_CX_VLAN) == OSI_PKT_CX_VLAN) {
+		osi->dstats.tx_vlan_pkt_n =
+			osi_update_stats_counter(osi->dstats.tx_vlan_pkt_n,
+						 1UL);
+	}
+
+	if ((tx_pkt_cx->flags & OSI_PKT_CX_TSO) == OSI_PKT_CX_TSO) {
+		osi->dstats.tx_tso_pkt_n =
+			osi_update_stats_counter(osi->dstats.tx_tso_pkt_n, 1UL);
+	}
+
 	cntx_desc_consumed = need_cntx_desc(tx_pkt_cx, tx_desc);
 	if (cntx_desc_consumed == 1) {
 		INCR_TX_DESC_INDEX(entry, 1U);

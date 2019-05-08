@@ -29,8 +29,9 @@ NV_COMPONENT_NAME              := nvethernetrm
 NV_COMPONENT_OWN_INTERFACE_DIR := .
 NV_COMPONENT_SOURCES           := \
 	eqos_core.c \
-	osi_common.c \
-	osi_core.c
+	eqos_mmc.c \
+	osi_core.c \
+	$(NV_SOURCE)/nvethernetrm/osi/common/osi_common.c
 
 NV_COMPONENT_NEEDED_INTERFACE_DIRS := \
 	$(NV_SOURCE)/qnx/src/libs/nvethernet/osi_dependencies

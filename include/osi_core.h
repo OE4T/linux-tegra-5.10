@@ -24,6 +24,7 @@
 #define OSI_CORE_H
 
 #include "osi_common.h"
+#include "mmc.h"
 
 struct osi_core_priv_data;
 
@@ -152,6 +153,8 @@ struct  osi_core_avb_algorithm {
  *	@get_systime_from_mac: Called to get the current time from MAC.
  *	@config_tscr: Called to configure the TimeStampControl register.
  *	@config_ssir: Called to configure the sub second increment register.
+ *	@read_mmc: called to update MMC counter from HW register
+ *	@reset_mmc: called to reset MMC HW counter and Structure
  */
 struct osi_core_ops {
 	/* initialize MAC/MTL/DMA Common registers */
@@ -224,6 +227,8 @@ struct osi_core_ops {
 	unsigned long long (*get_systime_from_mac)(void *addr);
 	void (*config_tscr)(void *addr, unsigned int ptp_filter);
 	void (*config_ssir)(void *addr, unsigned int ptp_clock);
+	void (*read_mmc)(struct osi_core_priv_data *osi_core);
+	void (*reset_mmc)(struct osi_core_priv_data *osi_core);
 };
 
 /**
@@ -278,6 +283,8 @@ struct osi_ptp_config {
  *	@flow_ctrl: Current flow control settings
  *	@ptp_config: PTP configuration settings.
  *	@default_addend: Default addend value.
+ *	@mmc: mmc counter structure
+ *	@xstats: xtra sw error counters
  */
 struct osi_core_priv_data {
 	void *base;
@@ -296,6 +303,8 @@ struct osi_core_priv_data {
 	unsigned int flow_ctrl;
 	struct osi_ptp_config ptp_config;
 	unsigned int default_addend;
+	struct osi_mmc_counters mmc;
+	struct osi_xtra_stat_counters xstats;
 };
 
 /**
@@ -849,6 +858,7 @@ int  osi_config_l2_da_perfect_inverse_match(struct osi_core_priv_data *osi_core,
  */
 int  osi_update_vlan_id(struct osi_core_priv_data *osi_core,
 			unsigned int vid);
+
 /**
  *	osi_write_phy_reg - Write to a PHY register through MAC over MDIO bus.
  *	@osi_core: OSI private data structure.
@@ -874,6 +884,41 @@ int  osi_update_vlan_id(struct osi_core_priv_data *osi_core,
  */
 int osi_write_phy_reg(struct osi_core_priv_data *osi_core, unsigned int phyaddr,
 		      unsigned int phyreg, unsigned short phydata);
+
+/**
+ *	osi_read_mmc - invoke function to read actual registers and update
+ *	structure variable mmc
+ *
+ *	@osi_core: OSI core private data structure.
+ *
+ *	Algorithm: Read the registers, mask reserve bits if requied, update
+ *	structure.
+ *
+ *	Dependencies: MAC IP should be out of reset and need to be initialized
+ *	as per the requirements
+ *
+ *	Protection: None
+ *
+ *	Return: 0 - success, -1 - failure.
+ */
+int osi_read_mmc(struct osi_core_priv_data *osi_core);
+
+/**
+ *	osi_reset_mmc - invoke function to rest MMC counter and data structure
+ *
+ *	@osi_core: OSI core private data structure.
+ *
+ *	Algorithm: Read the registers, mask reserve bits if requied, update
+ *	structure.
+ *
+ *	Dependencies: MAC IP should be out of reset and need to be initialized
+ *	as per the requirements
+ *
+ *	Protection: None
+ *
+ *	Return: 0 - success, -1 - failure.
+ */
+int osi_reset_mmc(struct osi_core_priv_data *osi_core);
 
 /**
  *	osi_read_phy_reg - Read from a PHY register through MAC over MDIO bus.
@@ -999,7 +1044,7 @@ void osi_get_systime_from_mac(struct osi_core_priv_data *osi_core,
  *
  *	Return: None
  */
-
 void osi_ptp_configuration(struct osi_core_priv_data *osi_core,
 			   unsigned int enable);
+
 #endif /* OSI_CORE_H */
