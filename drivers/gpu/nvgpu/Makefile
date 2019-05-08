@@ -50,6 +50,7 @@ nvgpu-y += \
 	common/ltc/ltc.o \
 	common/fbp/fbp.o \
 	common/cbc/cbc.o \
+	common/gr/gr_utils.o \
 	common/gr/gr.o \
 	common/gr/gr_intr.o \
 	common/gr/global_ctx.o \

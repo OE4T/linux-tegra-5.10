@@ -28,8 +28,8 @@
 #include <nvgpu/bug.h>
 #include <nvgpu/gr/gr_falcon.h>
 #include <nvgpu/pmu/fw.h>
+#include <nvgpu/gr/gr_utils.h>
 
-#include "common/gr/gr_priv.h"
 #include "acr_blob_construct_v0.h"
 #include "acr_falcon_bl.h"
 #include "acr_wpr.h"
@@ -75,8 +75,9 @@ int nvgpu_acr_lsf_fecs_ucode_details_v0(struct gk20a *g, void *lsf_ucode_img)
 	struct lsf_ucode_desc *lsf_desc;
 	struct nvgpu_firmware *fecs_sig;
 	struct flcn_ucode_img *p_img = (struct flcn_ucode_img *)lsf_ucode_img;
+	struct nvgpu_gr_falcon *gr_falcon = nvgpu_gr_get_falcon_ptr(g);
 	struct nvgpu_ctxsw_ucode_segments *fecs =
-			nvgpu_gr_falcon_get_fecs_ucode_segments(g->gr->falcon);
+			nvgpu_gr_falcon_get_fecs_ucode_segments(gr_falcon);
 	int err;
 
 	fecs_sig = nvgpu_request_firmware(g, GM20B_FECS_UCODE_SIG, 0);
@@ -118,7 +119,7 @@ int nvgpu_acr_lsf_fecs_ucode_details_v0(struct gk20a *g, void *lsf_ucode_img)
 	p_img->desc->app_resident_data_offset =
 				fecs->data.offset - fecs->code.offset;
 	p_img->desc->app_resident_data_size = fecs->data.size;
-	p_img->data = nvgpu_gr_falcon_get_surface_desc_cpu_va(g->gr->falcon);
+	p_img->data = nvgpu_gr_falcon_get_surface_desc_cpu_va(gr_falcon);
 	p_img->data_size = p_img->desc->image_size;
 
 	p_img->fw_ver = NULL;
@@ -139,8 +140,9 @@ int nvgpu_acr_lsf_gpccs_ucode_details_v0(struct gk20a *g, void *lsf_ucode_img)
 	struct lsf_ucode_desc *lsf_desc;
 	struct nvgpu_firmware *gpccs_sig;
 	struct flcn_ucode_img *p_img = (struct flcn_ucode_img *)lsf_ucode_img;
+	struct nvgpu_gr_falcon *gr_falcon = nvgpu_gr_get_falcon_ptr(g);
 	struct nvgpu_ctxsw_ucode_segments *gpccs =
-			nvgpu_gr_falcon_get_gpccs_ucode_segments(g->gr->falcon);
+			nvgpu_gr_falcon_get_gpccs_ucode_segments(gr_falcon);
 	int err;
 
 	if (!nvgpu_is_enabled(g, NVGPU_SEC_SECUREGPCCS)) {
@@ -187,7 +189,7 @@ int nvgpu_acr_lsf_gpccs_ucode_details_v0(struct gk20a *g, void *lsf_ucode_img)
 						ALIGN(gpccs->code.offset, 256);
 	p_img->desc->app_resident_data_size = ALIGN(gpccs->data.size, 256);
 	p_img->data = (u32 *)
-		((u8 *)nvgpu_gr_falcon_get_surface_desc_cpu_va(g->gr->falcon) +
+		((u8 *)nvgpu_gr_falcon_get_surface_desc_cpu_va(gr_falcon) +
 							gpccs->boot.offset);
 	p_img->data_size = ALIGN(p_img->desc->image_size, 256);
 	p_img->fw_ver = NULL;
@@ -802,6 +804,7 @@ int nvgpu_acr_prepare_ucode_blob_v0(struct gk20a *g)
 	int err = 0;
 	struct ls_flcn_mgr lsfm_l, *plsfm;
 	struct wpr_carveout_info wpr_inf;
+	struct nvgpu_gr_falcon *gr_falcon = nvgpu_gr_get_falcon_ptr(g);
 
 	if (g->acr->ucode_blob.cpu_va != NULL) {
 		/* Recovery case, we do not need to form non WPR blob */
@@ -816,7 +819,7 @@ int nvgpu_acr_prepare_ucode_blob_v0(struct gk20a *g)
 		return err;
 	}
 
-	err = nvgpu_gr_falcon_init_ctxsw_ucode(g, g->gr->falcon);
+	err = nvgpu_gr_falcon_init_ctxsw_ucode(g, gr_falcon);
 	if (err != 0) {
 		nvgpu_err(g, "gr_falcon_init_ctxsw_ucode failed err=%d", err);
 		return err;

@@ -108,6 +108,7 @@ srcs += common/sim/sim.c \
 	common/engine_queues/engine_emem_queue.c \
 	common/engine_queues/engine_fb_queue.c \
 	common/gr/gr.c \
+	common/gr/gr_utils.c \
 	common/gr/gr_intr.c \
 	common/gr/global_ctx.c \
 	common/gr/subctx.c \
