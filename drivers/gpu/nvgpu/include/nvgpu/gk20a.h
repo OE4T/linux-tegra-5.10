@@ -753,7 +753,7 @@ struct gpu_ops {
 				bool patch);
 			u32 (*pagepool_default_size)(struct gk20a *g);
 			void (*commit_global_pagepool)(struct gk20a *g,
-				struct nvgpu_gr_ctx *ch_ctx, u64 addr, u32 size,
+				struct nvgpu_gr_ctx *ch_ctx, u64 addr, size_t size,
 				bool patch, bool global_ctx);
 			void (*commit_global_attrib_cb)(struct gk20a *g,
 				struct nvgpu_gr_ctx *ch_ctx, u32 tpc_count,

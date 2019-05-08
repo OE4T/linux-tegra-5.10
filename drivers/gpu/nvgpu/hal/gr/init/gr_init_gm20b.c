@@ -912,7 +912,7 @@ u32 gm20b_gr_init_pagepool_default_size(struct gk20a *g)
 }
 
 void gm20b_gr_init_commit_global_pagepool(struct gk20a *g,
-	struct nvgpu_gr_ctx *gr_ctx, u64 addr, u32 size, bool patch,
+	struct nvgpu_gr_ctx *gr_ctx, u64 addr, size_t size, bool patch,
 	bool global_ctx)
 {
 	addr = (u64_lo32(addr) >>
@@ -929,7 +929,7 @@ void gm20b_gr_init_commit_global_pagepool(struct gk20a *g,
 	}
 
 	nvgpu_assert(u64_hi32(addr) == 0U);
-	nvgpu_log_info(g, "pagepool buffer addr : 0x%016llx, size : %d",
+	nvgpu_log_info(g, "pagepool buffer addr : 0x%016llx, size : %lu",
 		addr, size);
 
 	nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_scc_pagepool_base_r(),

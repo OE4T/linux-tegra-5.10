@@ -284,7 +284,7 @@ int nvgpu_gr_obj_ctx_commit_global_ctx_buffers(struct gk20a *g,
 	struct nvgpu_gr_config *config,	struct nvgpu_gr_ctx *gr_ctx, bool patch)
 {
 	u64 addr;
-	u32 size;
+	size_t size;
 
 	nvgpu_log_fn(g, " ");
 
@@ -298,7 +298,7 @@ int nvgpu_gr_obj_ctx_commit_global_ctx_buffers(struct gk20a *g,
 
 	/* global pagepool buffer */
 	addr = nvgpu_gr_ctx_get_global_ctx_va(gr_ctx, NVGPU_GR_CTX_PAGEPOOL_VA);
-	size = (u32)nvgpu_gr_global_ctx_get_size(global_ctx_buffer,
+	size = nvgpu_gr_global_ctx_get_size(global_ctx_buffer,
 			NVGPU_GR_GLOBAL_CTX_PAGEPOOL);
 
 	g->ops.gr.init.commit_global_pagepool(g, gr_ctx, addr, size, patch,

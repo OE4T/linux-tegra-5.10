@@ -51,7 +51,7 @@ void gp10b_gr_init_commit_global_bundle_cb(struct gk20a *g,
 	struct nvgpu_gr_ctx *gr_ctx, u64 addr, u64 size, bool patch);
 u32 gp10b_gr_init_pagepool_default_size(struct gk20a *g);
 void gp10b_gr_init_commit_global_pagepool(struct gk20a *g,
-	struct nvgpu_gr_ctx *gr_ctx, u64 addr, u32 size, bool patch,
+	struct nvgpu_gr_ctx *gr_ctx, u64 addr, size_t size, bool patch,
 	bool global_ctx);
 void gp10b_gr_init_commit_global_attrib_cb(struct gk20a *g,
 	struct nvgpu_gr_ctx *gr_ctx, u32 tpc_count, u32 max_tpc, u64 addr,
