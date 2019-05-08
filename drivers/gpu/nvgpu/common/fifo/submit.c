@@ -164,7 +164,7 @@ static int nvgpu_submit_prepare_syncs(struct nvgpu_channel *c,
 	return 0;
 
 clean_up_incr_cmd:
-	free_priv_cmdbuf(c, job->incr_cmd);
+	nvgpu_channel_free_priv_cmd_entry(c, job->incr_cmd);
 	if (!pre_alloc_enabled) {
 		job->incr_cmd = NULL;
 	}
@@ -173,7 +173,7 @@ clean_up_post_fence:
 	job->post_fence = NULL;
 clean_up_wait_cmd:
 	if (job->wait_cmd != NULL) {
-		free_priv_cmdbuf(c, job->wait_cmd);
+		nvgpu_channel_free_priv_cmd_entry(c, job->wait_cmd);
 	}
 	if (!pre_alloc_enabled) {
 		job->wait_cmd = NULL;

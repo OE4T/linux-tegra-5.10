@@ -58,7 +58,7 @@
 static void free_channel(struct nvgpu_fifo *f, struct nvgpu_channel *ch);
 static void gk20a_channel_dump_ref_actions(struct nvgpu_channel *ch);
 
-static void channel_gk20a_free_priv_cmdbuf(struct nvgpu_channel *ch);
+static void nvgpu_channel_free_priv_cmd_q(struct nvgpu_channel *ch);
 
 static void channel_gk20a_free_prealloc_resources(struct nvgpu_channel *c);
 
@@ -411,7 +411,7 @@ static void gk20a_free_channel(struct nvgpu_channel *ch, bool force)
 	nvgpu_big_free(g, ch->gpfifo.pipe);
 	(void) memset(&ch->gpfifo, 0, sizeof(struct gpfifo_desc));
 
-	channel_gk20a_free_priv_cmdbuf(ch);
+	nvgpu_channel_free_priv_cmd_q(ch);
 
 	/* sync must be destroyed before releasing channel vm */
 	nvgpu_mutex_acquire(&ch->sync_lock);
@@ -831,11 +831,11 @@ static int channel_gk20a_alloc_priv_cmdbuf(struct nvgpu_channel *ch,
 	return 0;
 
 clean_up:
-	channel_gk20a_free_priv_cmdbuf(ch);
+	nvgpu_channel_free_priv_cmd_q(ch);
 	return err;
 }
 
-static void channel_gk20a_free_priv_cmdbuf(struct nvgpu_channel *ch)
+static void nvgpu_channel_free_priv_cmd_q(struct nvgpu_channel *ch)
 {
 	struct vm_gk20a *ch_vm = ch->vm;
 	struct priv_cmd_queue *q = &ch->priv_cmd_q;
@@ -901,7 +901,8 @@ int gk20a_channel_alloc_priv_cmdbuf(struct nvgpu_channel *c, u32 orig_size,
 
 	/*
 	 * commit the previous writes before making the entry valid.
-	 * see the corresponding nvgpu_smp_rmb() in gk20a_free_priv_cmdbuf().
+	 * see the corresponding nvgpu_smp_rmb() in
+	 * nvgpu_channel_update_priv_cmd_q_and_free_entry().
 	 */
 	nvgpu_smp_wmb();
 
@@ -911,9 +912,11 @@ int gk20a_channel_alloc_priv_cmdbuf(struct nvgpu_channel *c, u32 orig_size,
 	return 0;
 }
 
-/* Don't call this to free an explict cmd entry.
- * It doesn't update priv_cmd_queue get/put */
-void free_priv_cmdbuf(struct nvgpu_channel *c,
+/*
+ * Don't call this to free an explicit cmd entry.
+ * It doesn't update priv_cmd_queue get/put.
+ */
+void nvgpu_channel_free_priv_cmd_entry(struct nvgpu_channel *c,
 			     struct priv_cmd_entry *e)
 {
 	if (channel_gk20a_is_prealloc_enabled(c)) {
@@ -1345,7 +1348,7 @@ int nvgpu_channel_setup_bind(struct nvgpu_channel *c,
 	return 0;
 
 clean_up_priv_cmd:
-	channel_gk20a_free_priv_cmdbuf(c);
+	nvgpu_channel_free_priv_cmd_q(c);
 clean_up_prealloc:
 	if (c->deterministic && args->num_inflight_jobs != 0U) {
 		channel_gk20a_free_prealloc_resources(c);
@@ -1856,13 +1859,14 @@ static void gk20a_channel_worker_enqueue(struct nvgpu_channel *ch)
 	}
 }
 
-int gk20a_free_priv_cmdbuf(struct nvgpu_channel *c, struct priv_cmd_entry *e)
+void nvgpu_channel_update_priv_cmd_q_and_free_entry(
+		struct nvgpu_channel *ch, struct priv_cmd_entry *e)
 {
-	struct priv_cmd_queue *q = &c->priv_cmd_q;
-	struct gk20a *g = c->g;
+	struct priv_cmd_queue *q = &ch->priv_cmd_q;
+	struct gk20a *g = ch->g;
 
 	if (e == NULL) {
-		return 0;
+		return;
 	}
 
 	if (e->valid) {
@@ -1870,14 +1874,12 @@ int gk20a_free_priv_cmdbuf(struct nvgpu_channel *c, struct priv_cmd_entry *e)
 		nvgpu_smp_rmb();
 		if ((q->get != e->off) && e->off != 0U) {
 			nvgpu_err(g, "requests out-of-order, ch=%d",
-				  c->chid);
+				  ch->chid);
 		}
 		q->get = e->off + e->size;
 	}
 
-	free_priv_cmdbuf(c, e);
-
-	return 0;
+	nvgpu_channel_free_priv_cmd_entry(ch, e);
 }
 
 int gk20a_channel_add_job(struct nvgpu_channel *c,
@@ -2042,7 +2044,8 @@ void gk20a_channel_clean_up_jobs(struct nvgpu_channel *c,
 				job->num_mapped_buffers);
 		}
 
-		/* Remove job from channel's job list before we close the
+		/*
+		 * Remove job from channel's job list before we close the
 		 * fences, to prevent other callers (gk20a_channel_abort) from
 		 * trying to dereference post_fence when it no longer exists.
 		 */
@@ -2054,13 +2057,19 @@ void gk20a_channel_clean_up_jobs(struct nvgpu_channel *c,
 		 * it to the pool). */
 		nvgpu_fence_put(job->post_fence);
 
-		/* Free the private command buffers (wait_cmd first and
-		 * then incr_cmd i.e. order of allocation) */
-		gk20a_free_priv_cmdbuf(c, job->wait_cmd);
-		gk20a_free_priv_cmdbuf(c, job->incr_cmd);
+		/*
+		 * Free the private command buffers (wait_cmd first and
+		 * then incr_cmd i.e. order of allocation)
+		 */
+		nvgpu_channel_update_priv_cmd_q_and_free_entry(c,
+			job->wait_cmd);
+		nvgpu_channel_update_priv_cmd_q_and_free_entry(c,
+			job->incr_cmd);
 
-		/* another bookkeeping taken in add_job. caller must hold a ref
-		 * so this wouldn't get freed here. */
+		/*
+		 * another bookkeeping taken in add_job. caller must hold a ref
+		 * so this wouldn't get freed here.
+		 */
 		nvgpu_channel_put(c);
 
 		/*

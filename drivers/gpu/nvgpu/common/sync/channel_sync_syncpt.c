@@ -258,7 +258,7 @@ static int channel_sync_syncpt_incr_common(struct nvgpu_channel_sync *s,
 	return 0;
 
 clean_up_priv_cmd:
-	gk20a_free_priv_cmdbuf(c, incr_cmd);
+	nvgpu_channel_update_priv_cmd_q_and_free_entry(c, incr_cmd);
 	return err;
 }
 

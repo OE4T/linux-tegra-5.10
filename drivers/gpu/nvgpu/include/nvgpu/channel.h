@@ -427,7 +427,8 @@ void nvgpu_channel_abort_clean_up(struct nvgpu_channel *ch);
 void gk20a_channel_semaphore_wakeup(struct gk20a *g, bool post_events);
 int gk20a_channel_alloc_priv_cmdbuf(struct nvgpu_channel *c, u32 orig_size,
 			     struct priv_cmd_entry *e);
-int gk20a_free_priv_cmdbuf(struct nvgpu_channel *c, struct priv_cmd_entry *e);
+void nvgpu_channel_update_priv_cmd_q_and_free_entry(
+	struct nvgpu_channel *ch, struct priv_cmd_entry *e);
 
 int gk20a_enable_channel_tsg(struct gk20a *g, struct nvgpu_channel *ch);
 int gk20a_disable_channel_tsg(struct gk20a *g, struct nvgpu_channel *ch);
@@ -491,7 +492,7 @@ u32 nvgpu_gp_free_count(struct nvgpu_channel *c);
 int gk20a_channel_add_job(struct nvgpu_channel *c,
 				 struct nvgpu_channel_job *job,
 				 bool skip_buffer_refcounting);
-void free_priv_cmdbuf(struct nvgpu_channel *c,
+void nvgpu_channel_free_priv_cmd_entry(struct nvgpu_channel *c,
 			     struct priv_cmd_entry *e);
 void gk20a_channel_clean_up_jobs(struct nvgpu_channel *c,
 					bool clean_all);
