@@ -616,7 +616,9 @@ void nvgpu_channel_put__func(struct nvgpu_channel *ch, const char *caller)
 	gk20a_channel_save_ref_source(ch, channel_gk20a_ref_action_put);
 	trace_nvgpu_channel_put(ch->chid, caller);
 	nvgpu_atomic_dec(&ch->ref_count);
-	nvgpu_cond_broadcast(&ch->ref_count_dec_wq);
+	if (nvgpu_cond_broadcast(&ch->ref_count_dec_wq) != 0) {
+		nvgpu_warn(ch->g, "failed to broadcast");
+	}
 
 	/* More puts than gets. Channel is probably going to get
 	 * stuck. */
@@ -727,8 +729,14 @@ struct nvgpu_channel *gk20a_open_new_channel(struct gk20a *g,
 	/* The channel is *not* runnable at this point. It still needs to have
 	 * an address space bound and allocate a gpfifo and grctx. */
 
-	nvgpu_cond_init(&ch->notifier_wq);
-	nvgpu_cond_init(&ch->semaphore_wq);
+	if (nvgpu_cond_init(&ch->notifier_wq) != 0) {
+		nvgpu_err(g, "cond init failed");
+		goto clean_up;
+	}
+	if (nvgpu_cond_init(&ch->semaphore_wq) != 0) {
+		nvgpu_err(g, "cond init failed");
+		goto clean_up;
+	}
 
 	if (g->os_channel.open != NULL) {
 		g->os_channel.open(ch);
@@ -1414,8 +1422,12 @@ static void nvgpu_channel_set_has_timedout_and_wakeup_wqs(struct gk20a *g,
 	gk20a_channel_set_unserviceable(ch);
 
 	/* unblock pending waits */
-	nvgpu_cond_broadcast_interruptible(&ch->semaphore_wq);
-	nvgpu_cond_broadcast_interruptible(&ch->notifier_wq);
+	if (nvgpu_cond_broadcast_interruptible(&ch->semaphore_wq) != 0) {
+		nvgpu_warn(g, "failed to broadcast");
+	}
+	if (nvgpu_cond_broadcast_interruptible(&ch->notifier_wq) != 0) {
+		nvgpu_warn(g, "failed to broadcast");
+	}
 }
 
 bool nvgpu_channel_mark_error(struct gk20a *g, struct nvgpu_channel *ch)
@@ -2234,7 +2246,11 @@ int gk20a_init_channel_support(struct gk20a *g, u32 chid)
 	nvgpu_spinlock_init(&c->ref_obtain_lock);
 	nvgpu_atomic_set(&c->ref_count, 0);
 	c->referenceable = false;
-	nvgpu_cond_init(&c->ref_count_dec_wq);
+	err = nvgpu_cond_init(&c->ref_count_dec_wq);
+	if (err != 0) {
+		nvgpu_err(g, "cond_init failed");
+		return err;
+	}
 
 	nvgpu_spinlock_init(&c->unserviceable_lock);
 
@@ -2463,8 +2479,12 @@ void gk20a_channel_semaphore_wakeup(struct gk20a *g, bool post_events)
 		struct nvgpu_channel *c = g->fifo.channel+chid;
 		if (nvgpu_channel_get(c) != NULL) {
 			if (nvgpu_atomic_read(&c->bound) != 0) {
-				nvgpu_cond_broadcast_interruptible(
-						&c->semaphore_wq);
+
+				if (nvgpu_cond_broadcast_interruptible(
+						&c->semaphore_wq) != 0) {
+					nvgpu_warn(g, "failed to broadcast");
+				}
+
 				if (post_events) {
 					struct nvgpu_tsg *tsg =
 							tsg_gk20a_from_ch(c);
