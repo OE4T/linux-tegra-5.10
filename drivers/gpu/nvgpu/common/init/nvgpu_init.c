@@ -307,7 +307,11 @@ int gk20a_finalize_poweron(struct gk20a *g)
 	}
 
 	if (g->ops.therm.elcg_init_idle_filters != NULL) {
-		g->ops.therm.elcg_init_idle_filters(g);
+		err = g->ops.therm.elcg_init_idle_filters(g);
+		if (err != 0) {
+			nvgpu_err(g, "failed to init elcg idle filters");
+			goto done;
+		}
 	}
 
 	g->ops.mc.intr_enable(g);
@@ -411,7 +415,11 @@ int gk20a_finalize_poweron(struct gk20a *g)
 
 	if ((g->pmu.fw.ops.clk.clk_set_boot_clk != NULL) &&
 			nvgpu_is_enabled(g, NVGPU_PMU_PSTATE)) {
-		g->pmu.fw.ops.clk.clk_set_boot_clk(g);
+		err = g->pmu.fw.ops.clk.clk_set_boot_clk(g);
+		if (err != 0) {
+			nvgpu_err(g, "failed to set boot clk");
+			goto done;
+		}
 	} else {
 		err = nvgpu_clk_arb_init_arbiter(g);
 		if (err != 0) {
@@ -437,7 +445,11 @@ int gk20a_finalize_poweron(struct gk20a *g)
 	/* Restore the debug setting */
 	g->ops.fb.set_debug_mode(g, g->mmu_debug_ctrl);
 
-	nvgpu_ce_init_support(g);
+	err = nvgpu_ce_init_support(g);
+	if (err != 0) {
+		nvgpu_err(g, "failed to init ce");
+		goto done;
+	}
 
 	if (g->ops.xve.available_speeds != NULL) {
 		u32 speed;
@@ -463,8 +475,12 @@ int gk20a_finalize_poweron(struct gk20a *g)
 		if (!nvgpu_mem_is_valid(&g->syncpt_mem)) {
 			nr_pages = U32(DIV_ROUND_UP(g->syncpt_unit_size,
 						    PAGE_SIZE));
-			nvgpu_mem_create_from_phys(g, &g->syncpt_mem,
+			err = nvgpu_mem_create_from_phys(g, &g->syncpt_mem,
 					g->syncpt_unit_base, nr_pages);
+			if (err != 0) {
+				nvgpu_err(g, "Failed to create syncpt mem");
+				goto done;
+			}
 		}
 	}
 #endif
