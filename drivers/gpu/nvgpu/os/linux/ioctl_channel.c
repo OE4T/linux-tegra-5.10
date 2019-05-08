@@ -285,6 +285,7 @@ int gk20a_channel_free_cycle_stats_snapshot(struct nvgpu_channel *ch)
 static int gk20a_channel_set_wdt_status(struct nvgpu_channel *ch,
 		struct nvgpu_channel_wdt_args *args)
 {
+#ifdef NVGPU_CHANNEL_WDT
 	u32 status = args->wdt_status & (NVGPU_IOCTL_CHANNEL_DISABLE_WDT |
 			NVGPU_IOCTL_CHANNEL_ENABLE_WDT);
 
@@ -302,6 +303,9 @@ static int gk20a_channel_set_wdt_status(struct nvgpu_channel *ch,
 			NVGPU_IOCTL_CHANNEL_WDT_FLAG_DISABLE_DUMP) == 0;
 
 	return 0;
+#else
+	return -EINVAL;
+#endif
 }
 
 static void gk20a_channel_free_error_notifiers(struct nvgpu_channel *ch)

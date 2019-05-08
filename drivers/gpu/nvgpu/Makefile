@@ -27,6 +27,7 @@ endif
 
 ccflags-y += -DNVGPU_ENGINE
 ccflags-y += -DNVGPU_USERD
+ccflags-y += -DNVGPU_CHANNEL_WDT
 
 obj-$(CONFIG_GK20A) := nvgpu.o
 

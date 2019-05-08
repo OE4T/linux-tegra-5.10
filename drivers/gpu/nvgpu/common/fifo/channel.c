@@ -724,10 +724,12 @@ struct nvgpu_channel *gk20a_open_new_channel(struct gk20a *g,
 	ch->ctxsw_timeout_debug_dump = true;
 	ch->unserviceable = false;
 
+#ifdef NVGPU_CHANNEL_WDT
 	/* init kernel watchdog timeout */
 	ch->wdt.enabled = true;
 	ch->wdt.limit_ms = g->ch_wdt_init_limit_ms;
 	ch->wdt.debug_dump = true;
+#endif
 
 	ch->obj_class = 0;
 	ch->subctx_id = 0;
@@ -1220,7 +1222,7 @@ int nvgpu_channel_setup_bind(struct nvgpu_channel *c,
 	u32 gpfifo_size, gpfifo_entry_size;
 	u64 gpfifo_gpu_va;
 	int err = 0;
-	u64 pbdma_acquire_timeout;
+	u64 pbdma_acquire_timeout = 0ULL;
 
 	gpfifo_size = args->num_gpfifo_entries;
 	gpfifo_entry_size = nvgpu_get_gpfifo_entry_size();
@@ -1332,11 +1334,14 @@ int nvgpu_channel_setup_bind(struct nvgpu_channel *c,
 		}
 	}
 
-	if (!nvgpu_is_timeouts_enabled(c->g) || !c->wdt.enabled) {
-		pbdma_acquire_timeout = 0;
-	} else {
+#ifdef NVGPU_CHANNEL_WDT
+	if (c->wdt.enabled && nvgpu_is_timeouts_enabled(c->g)) {
 		pbdma_acquire_timeout = c->wdt.limit_ms;
 	}
+#else
+	if (nvgpu_is_timeouts_enabled(c->g)) {
+        	pbdma_acquire_timeout = g->ch_wdt_init_limit_ms;
+#endif
 
 	err = g->ops.ramfc.setup(c, gpfifo_gpu_va,
 			c->gpfifo.entry_num, pbdma_acquire_timeout,
@@ -1509,6 +1514,8 @@ u32 nvgpu_channel_update_gpfifo_get_and_get_free_count(struct nvgpu_channel *ch)
 	(void)nvgpu_channel_update_gpfifo_get(ch->g, ch);
 	return nvgpu_channel_get_gpfifo_free_count(ch);
 }
+
+#ifdef NVGPU_CHANNEL_WDT
 
 static void nvgpu_channel_wdt_init(struct nvgpu_channel *ch)
 {
@@ -1755,6 +1762,8 @@ static void nvgpu_channel_poll_wdt(struct gk20a *g)
 	}
 }
 
+#endif
+
 static inline struct nvgpu_channel_worker *
 nvgpu_channel_worker_from_worker(struct nvgpu_worker *worker)
 {
@@ -1762,6 +1771,7 @@ nvgpu_channel_worker_from_worker(struct nvgpu_worker *worker)
 	   ((uintptr_t)worker - offsetof(struct nvgpu_channel_worker, worker));
 };
 
+#ifdef NVGPU_CHANNEL_WDT
 
 static void nvgpu_channel_worker_poll_init(struct nvgpu_worker *worker)
 {
@@ -1797,6 +1807,18 @@ static void nvgpu_channel_worker_poll_wakeup_post_process_item(
 		}
 	}
 }
+
+static u32 nvgpu_channel_worker_poll_wakeup_condition_get_timeout(
+		struct nvgpu_worker *worker)
+{
+	struct nvgpu_channel_worker *ch_worker =
+		nvgpu_channel_worker_from_worker(worker);
+
+	return ch_worker->watchdog_interval;
+}
+
+#endif
+
 static void nvgpu_channel_worker_poll_wakeup_process_item(
 		struct nvgpu_list_node *work_item)
 {
@@ -1812,25 +1834,18 @@ static void nvgpu_channel_worker_poll_wakeup_process_item(
 	nvgpu_channel_put(ch);
 }
 
-static u32 nvgpu_channel_worker_poll_wakeup_condition_get_timeout(
-		struct nvgpu_worker *worker)
-{
-	struct nvgpu_channel_worker *ch_worker =
-		nvgpu_channel_worker_from_worker(worker);
-
-	return ch_worker->watchdog_interval;
-}
-
 static const struct nvgpu_worker_ops channel_worker_ops = {
+#ifdef NVGPU_CHANNEL_WDT
 	.pre_process = nvgpu_channel_worker_poll_init,
-	.wakeup_early_exit = NULL,
 	.wakeup_post_process =
 		nvgpu_channel_worker_poll_wakeup_post_process_item,
+	.wakeup_timeout =
+		nvgpu_channel_worker_poll_wakeup_condition_get_timeout,
+#endif
+	.wakeup_early_exit = NULL,
 	.wakeup_process_item =
 		nvgpu_channel_worker_poll_wakeup_process_item,
 	.wakeup_condition = NULL,
-	.wakeup_timeout =
-		nvgpu_channel_worker_poll_wakeup_condition_get_timeout,
 };
 
 /**
@@ -1938,7 +1953,9 @@ int gk20a_channel_add_job(struct nvgpu_channel *c,
 		job->num_mapped_buffers = num_mapped_buffers;
 		job->mapped_buffers = mapped_buffers;
 
+#ifdef NVGPU_CHANNEL_WDT
 		nvgpu_channel_wdt_start(c);
+#endif
 
 		if (!pre_alloc_enabled) {
 			channel_gk20a_joblist_lock(c);
@@ -1985,7 +2002,9 @@ void gk20a_channel_clean_up_jobs(struct nvgpu_channel *c,
 	struct nvgpu_channel_job *job;
 	struct gk20a *g;
 	bool job_finished = false;
+#ifdef NVGPU_CHANNEL_WDT
 	bool watchdog_on = false;
+#endif
 
 	c = nvgpu_channel_get(c);
 	if (c == NULL) {
@@ -2000,6 +2019,7 @@ void gk20a_channel_clean_up_jobs(struct nvgpu_channel *c,
 	vm = c->vm;
 	g = c->g;
 
+#ifdef NVGPU_CHANNEL_WDT
 	/*
 	 * If !clean_all, we're in a condition where watchdog isn't supported
 	 * anyway (this would be a no-op).
@@ -2007,6 +2027,7 @@ void gk20a_channel_clean_up_jobs(struct nvgpu_channel *c,
 	if (clean_all) {
 		watchdog_on = nvgpu_channel_wdt_stop(c);
 	}
+#endif
 
 	/* Synchronize with abort cleanup that needs the jobs. */
 	nvgpu_mutex_acquire(&c->joblist.cleanup_lock);
@@ -2035,6 +2056,7 @@ void gk20a_channel_clean_up_jobs(struct nvgpu_channel *c,
 
 		completed = nvgpu_fence_is_expired(job->post_fence);
 		if (!completed) {
+#ifdef NVGPU_CHANNEL_WDT
 			/*
 			 * The watchdog eventually sees an updated gp_get if
 			 * something happened in this loop. A new job can have
@@ -2045,6 +2067,7 @@ void gk20a_channel_clean_up_jobs(struct nvgpu_channel *c,
 			if (clean_all && watchdog_on) {
 				nvgpu_channel_wdt_continue(c);
 			}
+#endif
 			break;
 		}
 
@@ -2298,7 +2321,9 @@ int gk20a_init_channel_support(struct gk20a *g, u32 chid)
 	nvgpu_spinlock_init(&c->ref_actions_lock);
 #endif
 	nvgpu_spinlock_init(&c->joblist.dynamic.lock);
+#ifdef NVGPU_CHANNEL_WDT
 	nvgpu_spinlock_init(&c->wdt.lock);
+#endif
 
 	nvgpu_init_list_node(&c->joblist.dynamic.jobs);
 	nvgpu_init_list_node(&c->dbg_s_list);

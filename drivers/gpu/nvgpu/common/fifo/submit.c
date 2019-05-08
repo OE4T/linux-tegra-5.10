@@ -402,10 +402,13 @@ static int nvgpu_submit_channel_gpfifo(struct nvgpu_channel *c,
 	 */
 	need_job_tracking = (flag_fence_wait ||
 			flag_fence_get ||
-			c->wdt.enabled ||
 			(nvgpu_is_enabled(g, NVGPU_CAN_RAILGATE)
 			 && !c->deterministic) ||
 			!skip_buffer_refcounting);
+
+#ifdef NVGPU_CHANNEL_WDT
+       need_job_tracking = need_job_tracking || c->wdt.enabled;
+#endif
 
 	if (need_job_tracking) {
 		bool need_sync_framework = false;
@@ -439,8 +442,11 @@ static int nvgpu_submit_channel_gpfifo(struct nvgpu_channel *c,
 		 */
 		need_deferred_cleanup = !c->deterministic ||
 					need_sync_framework ||
-					c->wdt.enabled ||
 					!skip_buffer_refcounting;
+
+#ifdef NVGPU_CHANNEL_WDT
+		need_deferred_cleanup = need_deferred_cleanup || c->wdt.enabled;
+#endif
 
 		/*
 		 * For deterministic channels, we don't allow deferred clean_up

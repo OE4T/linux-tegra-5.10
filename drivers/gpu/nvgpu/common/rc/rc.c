@@ -62,11 +62,15 @@ void nvgpu_rc_ctxsw_timeout(struct gk20a *g, u32 eng_bitmask,
 {
 	nvgpu_tsg_set_error_notifier(g, tsg,
 		NVGPU_ERR_NOTIFIER_FIFO_ERROR_IDLE_TIMEOUT);
+
+#ifdef NVGPU_CHANNEL_WDT
 	/*
 	 * Cancel all channels' wdt since ctxsw timeout might
 	 * trigger multiple watchdogs at a time
 	 */
 	nvgpu_channel_wdt_restart_all_channels(g);
+#endif
+
 	nvgpu_rc_fifo_recover(g, eng_bitmask, tsg->tsgid, true, true, debug_dump,
 			RC_TYPE_CTXSW_TIMEOUT);
 }

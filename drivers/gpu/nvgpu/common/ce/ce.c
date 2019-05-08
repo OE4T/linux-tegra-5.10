@@ -545,7 +545,10 @@ u32 nvgpu_ce_create_context(struct gk20a *g,
 		nvgpu_err(g, "ce: gk20a channel not available");
 		goto end;
 	}
+
+#ifdef NVGPU_CHANNEL_WDT
 	ce_ctx->ch->wdt.enabled = false;
+#endif
 
 	/* bind the channel to the vm */
 	err = g->ops.mm.vm_bind_channel(g->mm.ce.vm, ce_ctx->ch);

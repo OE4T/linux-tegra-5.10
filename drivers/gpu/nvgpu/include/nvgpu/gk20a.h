@@ -2075,9 +2075,12 @@ struct gk20a {
 	struct nvgpu_ltc *ltc;
 
 	struct nvgpu_channel_worker {
-		u32 watchdog_interval;
 		struct nvgpu_worker worker;
+
+#ifdef NVGPU_CHANNEL_WDT
+		u32 watchdog_interval;
 		struct nvgpu_timeout timeout;
+#endif
 	} channel_worker;
 
 	struct nvgpu_clk_arb_worker {
