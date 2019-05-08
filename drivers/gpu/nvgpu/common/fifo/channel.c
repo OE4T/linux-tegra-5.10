@@ -1027,7 +1027,7 @@ bool channel_gk20a_joblist_is_empty(struct nvgpu_channel *c)
 	if (channel_gk20a_is_prealloc_enabled(c)) {
 		u32 get = c->joblist.pre_alloc.get;
 		u32 put = c->joblist.pre_alloc.put;
-		return !(CIRC_CNT(put, get, c->joblist.pre_alloc.length));
+		return (CIRC_CNT(put, get, c->joblist.pre_alloc.length) == 0U);
 	}
 
 	return nvgpu_list_empty(&c->joblist.dynamic.jobs);
