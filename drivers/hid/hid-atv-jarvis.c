@@ -1408,7 +1408,7 @@ static snd_pcm_uframes_t snd_atvr_pcm_pointer(
 	return atvr_snd->write_index;
 }
 
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 14, 0)
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 10, 0)
 static int snd_atvr_pcm_copy(struct snd_pcm_substream *substream, int channel,
 			unsigned long pos, void __user *dst,
 			unsigned long count)
@@ -1757,7 +1757,11 @@ static void atvr_process_debug_info(struct hid_debug_data *debug_info, u8 seq,
 				debug_info->seq_num, seq);
 
 	/* Ignore first packet time diff */
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 14, 0))
+	if (debug_info->time &&
+#else
 	if (debug_info->time.tv64 &&
+#endif
 			time_diff < MAX_TIME_BETWEEN_PACKETS &&
 			packet_delay > MAX_PACKET_DIFF_TOLERANCE)
 		pr_warn("%s: id:%d Packet delay:%d ms at seq %d host diff :%lli ms fw diff %d",
