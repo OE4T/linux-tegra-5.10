@@ -26,6 +26,7 @@
 int gv100_netlist_get_name(struct gk20a *g, int index, char *name)
 {
 	u32 ver = g->params.gpu_arch + g->params.gpu_impl;
+	int valid = 0;
 
 	switch (ver) {
 	case NVGPU_GPUID_GV100:
@@ -34,9 +35,11 @@ int gv100_netlist_get_name(struct gk20a *g, int index, char *name)
 		break;
 	default:
 		nvgpu_err(g, "no support for GPUID %x", ver);
+		valid = -1;
+		break;
 	}
 
-	return 0;
+	return valid;
 }
 
 bool gv100_netlist_is_firmware_defined(void)

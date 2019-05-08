@@ -26,37 +26,41 @@
 
 int gv11b_netlist_get_name(struct gk20a *g, int index, char *name)
 {
+	int ret = 0;
+
 	switch (index) {
 #ifdef GV11B_NETLIST_IMAGE_FW_NAME
 	case NETLIST_FINAL:
 		(void) sprintf(name, GV11B_NETLIST_IMAGE_FW_NAME);
-		return 0;
+		break;
 #endif
 #ifdef NVGPU_NETLIST_IMAGE_A
 	case NETLIST_SLOT_A:
 		(void) sprintf(name, NVGPU_NETLIST_IMAGE_A);
-		return 0;
+		break;
 #endif
 #ifdef NVGPU_NETLIST_IMAGE_B
 	case NETLIST_SLOT_B:
 		(void) sprintf(name, NVGPU_NETLIST_IMAGE_B);
-		return 0;
+		break;
 #endif
 #ifdef NVGPU_NETLIST_IMAGE_C
 	case NETLIST_SLOT_C:
 		(void) sprintf(name, NVGPU_NETLIST_IMAGE_C);
-		return 0;
+		break;
 #endif
 #ifdef NVGPU_NETLIST_IMAGE_D
 	case NETLIST_SLOT_D:
 		(void) sprintf(name, NVGPU_NETLIST_IMAGE_D);
-		return 0;
+		break;
 #endif
 	default:
-		return -1;
+		ret = -1;
+		break;
+
 	}
 
-	return -1;
+	return ret;
 }
 
 bool gv11b_netlist_is_firmware_defined(void)
