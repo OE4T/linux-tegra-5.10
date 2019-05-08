@@ -15,6 +15,10 @@
 ifdef NV_COMPONENT_FLAG_SHARED_LIBRARY_SECTION
 include $(NV_BUILD_START_COMPONENT)
 
+# Architecture script. This validates our YAML architecture against the
+# source code we have.
+ARCH_PY				:= $(NV_SOURCE)/core-private/tools/arch/arch.py
+
 #
 # Include the nvgpu-next repo, if it's present. It's expected to be
 # located in the same directory as nvgpu, like so:
@@ -32,6 +36,8 @@ NVGPU_NEXT_SOURCE := \
 		$(NV_COMPONENT_DIR)/../../../../nvgpu-next/drivers/gpu/nvgpu
 
 NVGPU_POSIX			:= -D__NVGPU_POSIX__
+NVGPU_ARCH			:= $(NV_COMPONENT_DIR)/../../../arch
+NVGPU_ARCH_YAML                 := $(NVGPU_ARCH)/*.yaml
 
 NV_COMPONENT_NAME		:= nvgpu-drv
 NV_COMPONENT_OWN_INTERFACE_DIR	:= .
@@ -73,6 +79,34 @@ _NV_TOOLCHAIN_CFLAGS            += -rdynamic -g
 NV_COMPONENT_SOURCES		:=				\
 		$(srcs)			   			\
 		$(addprefix $(NVGPU_NEXT_SOURCE)/,$(srcs_next))
+
+# $(srcs_next) already has the NV_COMPONENT_DIR prefix so we already have the
+# absolute path to those files. srcs are all relative, so we have to prefix
+# those with the absolute path.
+SRC_DEPS                        := srcs_next
+SRC_DEPS                        +=				\
+		$(addprefix $(NV_COMPONENT_DIR)/,$(srcs))
+
+#
+# A little bit of magic to get tmake to execute the arch.py python script
+# before we build the driver. Currently it ensures that the source code matches
+# the arch.
+#
+# The way this works is we define a special target $(SRC_DEPS) which contains
+# each .c file in the driver. Then when each .o target requires the
+# corresponding .c file, this target is triggered. It in turn depends on the
+# YAML files. Those files, then depend on a phony target (nvgpu-arch) that
+# actually executes the check.
+#
+$(SRC_DEPS):        $(NVGPU_ARCH_YAML)
+$(NVGPU_ARCH_YAML): nvgpu-arch
+nvgpu-arch: $(ARCH_PY)
+	$(PYTHON2) $(ARCH_PY)				\
+		--arch-file $(NVGPU_ARCH)/nvgpu.yaml	\
+		--source    $(NV_COMPONENT_DIR)		\
+		sources --check
+
+.PHONY: nvgpu-arch
 
 NV_COMPONENT_SYSTEMIMAGE_DIR    := $(NV_SYSTEMIMAGE_TEST_EXECUTABLE_DIR)/nvgpu_unit
 systemimage:: $(NV_COMPONENT_SYSTEMIMAGE_DIR)
