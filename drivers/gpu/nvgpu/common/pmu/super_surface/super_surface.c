@@ -179,13 +179,11 @@ void nvgpu_pmu_super_surface_deinit(struct gk20a *g, struct nvgpu_pmu *pmu,
 int nvgpu_pmu_super_surface_init(struct gk20a *g, struct nvgpu_pmu *pmu,
 	struct pmu_super_surface **super_surface)
 {
-	int err = 0;
-
 	*super_surface = (struct pmu_super_surface *) nvgpu_kzalloc(g,
 		sizeof(struct pmu_super_surface));
 	if (*super_surface == NULL) {
-		err = -ENOMEM;
+		return -ENOMEM;
 	}
 
-	return err;
+	return 0;
 }

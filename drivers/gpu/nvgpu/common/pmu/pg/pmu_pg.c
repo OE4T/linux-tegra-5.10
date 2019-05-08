@@ -32,6 +32,7 @@
 #include <nvgpu/pmu/cmd.h>
 #include <nvgpu/dma.h>
 #include <nvgpu/pmu/fw.h>
+#include <nvgpu/pmu/debug.h>
 
 #include "pg_sw_gm20b.h"
 #include "pg_sw_gv11b.h"
@@ -1041,7 +1042,9 @@ void nvgpu_pmu_pg_deinit(struct gk20a *g, struct nvgpu_pmu *pmu,
 		return;
 	}
 
-	nvgpu_dma_unmap_free(vm, &pg->seq_buf);
+	if (nvgpu_mem_is_valid(&pg->seq_buf)) {
+		nvgpu_dma_unmap_free(vm, &pg->seq_buf);
+	}
 	nvgpu_mutex_destroy(&pg->elpg_mutex);
 	nvgpu_mutex_destroy(&pg->pg_mutex);
 	nvgpu_kfree(g, pg);

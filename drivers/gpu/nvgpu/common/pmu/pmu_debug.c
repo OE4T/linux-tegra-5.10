@@ -24,6 +24,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/pmu/fw.h>
 #include <nvgpu/dma.h>
+#include <nvgpu/pmu/debug.h>
 
 bool nvgpu_find_hex_in_string(char *strings, struct gk20a *g, u32 *hex_pos)
 {

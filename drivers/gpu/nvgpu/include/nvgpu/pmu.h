@@ -38,6 +38,13 @@
 #include <nvgpu/pmu/msg.h>
 #include <nvgpu/pmu/fw.h>
 
+struct pmu_sequences;
+struct pmu_mutexes;
+struct nvgpu_pmu_lsfm;
+struct pmu_super_surface;
+struct nvgpu_pmu_pg;
+struct nvgpu_pmu_perfmon;
+
 #define nvgpu_pmu_dbg(g, fmt, args...) \
 	nvgpu_log(g, gpu_dbg_pmu, fmt, ##args)
 
@@ -142,25 +149,21 @@ struct pmu_ucode_desc {
 
 struct nvgpu_pmu {
 	struct gk20a *g;
+	bool sw_ready;
+	bool isr_enabled;
+	struct nvgpu_mutex isr_mutex;
 	struct nvgpu_falcon flcn;
-
-	struct pmu_rtos_fw fw;
-
-	struct nvgpu_pmu_lsfm *lsfm;
-
+	struct nvgpu_allocator dmem;
 	struct nvgpu_mem trace_buf;
-
-	struct pmu_super_surface *super_surface;
-
 	struct pmu_sha1_gid gid_info;
 
+	struct pmu_rtos_fw fw;
 	struct pmu_queues queues;
 	struct pmu_sequences *sequences;
-
 	struct pmu_mutexes *mutexes;
 
-	struct nvgpu_allocator dmem;
-
+	struct nvgpu_pmu_lsfm *lsfm;
+	struct pmu_super_surface *super_surface;
 	struct nvgpu_pmu_pg *pg;
 	struct nvgpu_pmu_perfmon *pmu_perfmon;
 	struct nvgpu_clk_pmupstate *clk_pmu;
@@ -171,10 +174,6 @@ struct nvgpu_pmu {
 			struct nv_pmu_rpc_header *rpc);
 	void (*therm_event_handler)(struct gk20a *g, struct nvgpu_pmu *pmu,
 		struct pmu_msg *msg, struct nv_pmu_rpc_header *rpc);
-	bool sw_ready;
-
-	struct nvgpu_mutex isr_mutex;
-	bool isr_enabled;
 };
 
 /*!
@@ -186,32 +185,25 @@ struct pg_init_sequence_list {
 	u32 writeval;
 };
 
+/* PMU locks used along with PMU-RTOS */
 int nvgpu_pmu_lock_acquire(struct gk20a *g, struct nvgpu_pmu *pmu,
-			   u32 id, u32 *token);
+	u32 id, u32 *token);
 int nvgpu_pmu_lock_release(struct gk20a *g, struct nvgpu_pmu *pmu,
-			   u32 id, u32 *token);
+	u32 id, u32 *token);
 
-/* PMU init */
-int nvgpu_init_pmu_support(struct gk20a *g);
-int nvgpu_pmu_destroy(struct gk20a *g);
-int nvgpu_pmu_super_surface_alloc(struct gk20a *g,
-	struct nvgpu_mem *mem_surface, u32 size);
+/* PMU RTOS init/setup functions */
+int nvgpu_pmu_early_init(struct gk20a *g, struct nvgpu_pmu *pmu);
+int nvgpu_pmu_init(struct gk20a *g, struct nvgpu_pmu *pmu);
+int nvgpu_pmu_destroy(struct gk20a *g, struct nvgpu_pmu *pmu);
 
-int nvgpu_early_init_pmu_sw(struct gk20a *g, struct nvgpu_pmu *pmu);
-
-/* PMU reset */
-int nvgpu_pmu_reset(struct gk20a *g);
-
-/* PMU debug */
-void nvgpu_pmu_dump_falcon_stats(struct nvgpu_pmu *pmu);
-bool nvgpu_find_hex_in_string(char *strings, struct gk20a *g, u32 *hex_pos);
-int nvgpu_pmu_debug_init(struct gk20a *g, struct nvgpu_pmu *pmu);
-void nvgpu_pmu_debug_deinit(struct gk20a *g, struct nvgpu_pmu *pmu);
-
-struct gk20a *gk20a_from_pmu(struct nvgpu_pmu *pmu);
-
+/* PMU H/W error functions */
 void nvgpu_pmu_report_bar0_pri_err_status(struct gk20a *g, u32 bar0_status,
 	u32 error_type);
+
+/* PMU engine reset function */
+int nvgpu_pmu_reset(struct gk20a *g);
+
+struct gk20a *gk20a_from_pmu(struct nvgpu_pmu *pmu);
 
 #endif /* NVGPU_PMU_H */
 
