@@ -514,15 +514,21 @@ int gk20a_wait_for_idle(struct gk20a *g)
 {
 	int wait_length = 150; /* 3 second overall max wait. */
 	int target_usage_count = 0;
+	bool done = false;
 
 	if (g == NULL) {
 		return -ENODEV;
 	}
 
-	while ((nvgpu_atomic_read(&g->usage_count) != target_usage_count)
-			&& (wait_length-- >= 0)) {
-		nvgpu_msleep(20);
-	}
+	do {
+		if (nvgpu_atomic_read(&g->usage_count) == target_usage_count) {
+			done = true;
+		} else if (wait_length-- < 0) {
+			done = true;
+		} else {
+			nvgpu_msleep(20);
+		}
+	} while (!done);
 
 	if (wait_length < 0) {
 		nvgpu_warn(g, "Timed out waiting for idle (%d)!\n",
