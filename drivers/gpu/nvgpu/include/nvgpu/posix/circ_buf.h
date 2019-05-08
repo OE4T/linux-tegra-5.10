@@ -25,7 +25,7 @@
 
 #include <nvgpu/bug.h>
 
-#define CIRC_CNT(head, tail, size) (((head) - (tail)) & ((size)-1))
-#define CIRC_SPACE(head, tail, size) CIRC_CNT((tail), ((head)+1), (size))
+#define CIRC_CNT(head, tail, size) (((head) - (tail)) & ((size)-1U))
+#define CIRC_SPACE(head, tail, size) CIRC_CNT((tail), ((head)+1U), (size))
 
 #endif /* NVGPU_POSIX_CIRC_BUF_H */
