@@ -84,9 +84,6 @@ static int gv100_pmu_lsfm_bootstrap_ls_falcon(struct gk20a *g,
 		sizeof(struct nv_pmu_rpc_struct_acr_bootstrap_gr_falcons));
 	rpc.falcon_id_mask = falcon_id_mask;
 	rpc.flags = flags;
-	rpc.falcon_va_mask = 0U;
-	rpc.wpr_base_virtual.lo = 0U;
-	rpc.wpr_base_virtual.hi = 0U;
 	PMU_RPC_EXECUTE(status, pmu, ACR, BOOTSTRAP_GR_FALCONS, &rpc, 0);
 	if (status != 0) {
 		nvgpu_err(g, "Failed to execute RPC, status=0x%x", status);
