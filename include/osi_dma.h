@@ -25,6 +25,7 @@
 
 #include "osi_common.h"
 #include "osi_dma_txrx.h"
+#include "mmc.h"
 
 #define OSI_PKT_CX_VLAN			OSI_BIT(0)
 #define OSI_PKT_CX_VALID		OSI_BIT(10)
@@ -274,7 +275,8 @@ struct osi_dma_chan_ops {
  *	@dma_chans[]:	Array of supported DMA channels
  *	@rx_buf_len:	DMA Rx channel buffer length at HW level.
  *	@mtu:	MTU size
- *	@osi_pkt_err_stats: Packet error stats
+ *	@pkt_err_stats: Packet error stats
+ *	@dstats: Extra DMA stats
  */
 struct osi_dma_priv_data {
 	struct osi_tx_ring *tx_ring[OSI_EQOS_MAX_NUM_CHANS];
@@ -288,6 +290,7 @@ struct osi_dma_priv_data {
 	unsigned int rx_buf_len;
 	unsigned int mtu;
 	struct osi_pkt_err_stats pkt_err_stats;
+	struct osi_xtra_dma_stat_counters dstats;
 };
 
 /**

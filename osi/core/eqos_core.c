@@ -24,6 +24,7 @@
 #include <osi_core.h>
 #include <osd.h>
 #include "eqos_core.h"
+#include "eqos_mmc.h"
 
 struct osi_core_ops *eqos_get_hw_core_ops(void);
 
@@ -1214,6 +1215,57 @@ static void eqos_handle_mac_intrs(struct osi_core_priv_data *osi_core,
 }
 
 /**
+ *	update_dma_sr_stats - stats for dma_status error
+ *	@osi_core: OSI core private data structure.
+ *	@dma_sr: Dma status register read value
+ *	@qinx: Queue index
+ *
+ *	Algorithm: increament error stats based on corresponding bit filed.
+ *
+ *	Dependencies: None
+ *
+ *	Protection: None.
+ *
+ *	Return: None.
+ */
+static inline void update_dma_sr_stats(struct osi_core_priv_data *osi_core,
+				       unsigned int dma_sr, unsigned int qinx)
+{
+	unsigned long val;
+
+	if ((dma_sr & EQOS_DMA_CHX_STATUS_RBU) == EQOS_DMA_CHX_STATUS_RBU) {
+		val = osi_core->xstats.rx_buf_unavail_irq_n[qinx];
+		osi_core->xstats.rx_buf_unavail_irq_n[qinx] =
+			osi_update_stats_counter(val, 1U);
+	}
+	if ((dma_sr & EQOS_DMA_CHX_STATUS_TPS) == EQOS_DMA_CHX_STATUS_TPS) {
+		val = osi_core->xstats.tx_proc_stopped_irq_n[qinx];
+		osi_core->xstats.tx_proc_stopped_irq_n[qinx] =
+			osi_update_stats_counter(val, 1U);
+	}
+	if ((dma_sr & EQOS_DMA_CHX_STATUS_TBU) == EQOS_DMA_CHX_STATUS_TBU) {
+		val = osi_core->xstats.tx_buf_unavail_irq_n[qinx];
+		osi_core->xstats.tx_buf_unavail_irq_n[qinx] =
+			osi_update_stats_counter(val, 1U);
+	}
+	if ((dma_sr & EQOS_DMA_CHX_STATUS_RPS) == EQOS_DMA_CHX_STATUS_RPS) {
+		val = osi_core->xstats.rx_proc_stopped_irq_n[qinx];
+		osi_core->xstats.rx_proc_stopped_irq_n[qinx] =
+			osi_update_stats_counter(val, 1U);
+	}
+	if ((dma_sr & EQOS_DMA_CHX_STATUS_RWT) == EQOS_DMA_CHX_STATUS_RWT) {
+		val = osi_core->xstats.rx_watchdog_irq_n;
+		osi_core->xstats.rx_watchdog_irq_n =
+			osi_update_stats_counter(val, 1U);
+	}
+	if ((dma_sr & EQOS_DMA_CHX_STATUS_FBE) == EQOS_DMA_CHX_STATUS_FBE) {
+		val = osi_core->xstats.fatal_bus_error_irq_n;
+		osi_core->xstats.fatal_bus_error_irq_n =
+			osi_update_stats_counter(val, 1U);
+	}
+}
+
+/**
  *	eqos_handle_common_intr - Handles common interrupt.
  *	@osi_core: OSI core private data structure.
  *
@@ -1267,6 +1319,7 @@ static void eqos_handle_common_intr(struct osi_core_priv_data *osi_core)
 			/* ack non ti/ri ints */
 			osi_writel(dma_sr, (unsigned char *)base +
 				   EQOS_DMA_CHX_STATUS(qinx));
+			update_dma_sr_stats(osi_core, dma_sr, qinx);
 		}
 	}
 
@@ -2659,6 +2712,8 @@ static struct osi_core_ops eqos_core_ops = {
 	.get_systime_from_mac = eqos_get_systime_from_mac,
 	.config_tscr = eqos_config_tscr,
 	.config_ssir = eqos_config_ssir,
+	.read_mmc = eqos_read_mmc,
+	.reset_mmc = eqos_reset_mmc,
 };
 
 struct osi_core_ops *eqos_get_hw_core_ops(void)

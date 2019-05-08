@@ -30,7 +30,8 @@ NV_COMPONENT_OWN_INTERFACE_DIR := .
 NV_COMPONENT_SOURCES           := \
 	eqos_dma.c \
 	osi_dma.c \
-	osi_dma_txrx.c
+	osi_dma_txrx.c \
+	$(NV_SOURCE)/nvethernetrm/osi/common/osi_common.c
 
 NV_COMPONENT_NEEDED_INTERFACE_DIRS := \
 	$(NV_SOURCE)/qnx/src/libs/nvethernet/osi_dependencies
