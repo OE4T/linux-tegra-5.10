@@ -87,12 +87,18 @@ int nvgpu_init_hal(struct gk20a *g)
 int nvgpu_detect_chip(struct gk20a *g)
 {
 	struct nvgpu_gpu_params *p = &g->params;
+	u32 boot_0;
+	int err;
 
 	if (p->gpu_arch != 0U) {
 		return 0;
 	}
 
-	nvgpu_mc_boot_0(g, &p->gpu_arch, &p->gpu_impl, &p->gpu_rev);
+	boot_0 = nvgpu_mc_boot_0(g, &p->gpu_arch, &p->gpu_impl, &p->gpu_rev);
+	if (boot_0 == U32_MAX) {
+		nvgpu_err(g, "nvgpu_mc_boot_0 failure!");
+		return -ENODEV;
+	}
 
 	if ((p->gpu_arch + p->gpu_impl) == (u32)NVGPU_GPUID_GV11B) {
 		/* overwrite gpu revison for A02  */
@@ -105,5 +111,11 @@ int nvgpu_detect_chip(struct gk20a *g)
 			g->params.gpu_impl,
 			g->params.gpu_rev);
 
-	return nvgpu_init_hal(g);
+	err = nvgpu_init_hal(g);
+	if (err != 0) {
+		nvgpu_err(g, "nvgpu_init_hal failure!");
+		return err;
+	}
+
+	return 0;
 }
