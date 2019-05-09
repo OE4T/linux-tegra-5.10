@@ -482,7 +482,12 @@ unbind:
 		nvgpu_list_for_each_entry_safe(ch_data, tmp, &dbg_s->ch_list,
 				dbg_session_channel_data, ch_entry) {
 			if (ch_data->chid == ch->chid) {
-				ch_data->unbind_single_channel(dbg_s, ch_data);
+				if (ch_data->unbind_single_channel(dbg_s,
+						ch_data) != 0) {
+					nvgpu_err(g,
+						"unbind failed for chid: %d",
+						ch_data->chid);
+				}
 			}
 		}
 		nvgpu_mutex_release(&dbg_s->ch_list_lock);
