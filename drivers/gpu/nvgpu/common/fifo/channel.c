@@ -1176,7 +1176,7 @@ int nvgpu_channel_set_syncpt(struct nvgpu_channel *ch)
 		gk20a_disable_channel_tsg(g, ch);
 
 		/* preempt the channel */
-		WARN_ON(nvgpu_preempt_channel(g, ch) != 0);
+		nvgpu_assert(nvgpu_preempt_channel(g, ch) == 0);
 
 		g->ops.ramfc.set_syncpt(ch, new_syncpt);
 	}
@@ -2382,8 +2382,6 @@ clean_up_mutex:
 	return err;
 }
 
-/* in this context the "channel" is the host1x channel which
- * maps to *all* gk20a channels */
 int nvgpu_channel_suspend_all_serviceable_ch(struct gk20a *g)
 {
 	struct nvgpu_fifo *f = &g->fifo;
@@ -2407,7 +2405,7 @@ int nvgpu_channel_suspend_all_serviceable_ch(struct gk20a *g)
 			/* disable channel */
 			gk20a_disable_channel_tsg(g, ch);
 			/* preempt the channel */
-			nvgpu_preempt_channel(g, ch);
+			nvgpu_assert(nvgpu_preempt_channel(g, ch) == 0);
 			/* wait for channel update notifiers */
 			if (g->os_channel.work_completion_cancel_sync != NULL) {
 				g->os_channel.work_completion_cancel_sync(ch);
