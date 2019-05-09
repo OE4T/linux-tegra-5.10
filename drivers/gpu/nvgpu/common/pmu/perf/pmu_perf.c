@@ -57,7 +57,6 @@ void nvgpu_perf_pmu_free_pmupstate(struct gk20a *g)
 				vfe_thread_stop_cb, &g->perf_pmu->vfe_init.wq);
 	}
 	nvgpu_cond_destroy(&g->perf_pmu->vfe_init.wq);
-	nvgpu_mutex_destroy(&g->perf_pmu->pstatesobjs.pstate_mutex);
 	nvgpu_kfree(g, g->perf_pmu);
 	g->perf_pmu = NULL;
 }

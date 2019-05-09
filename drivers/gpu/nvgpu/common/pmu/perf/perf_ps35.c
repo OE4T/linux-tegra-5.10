@@ -68,6 +68,9 @@ static int tu104_pmu_handle_perf_event(struct gk20a *g, void *pmumsg)
 	case NV_PMU_PERF_MSG_ID_CHANGE_SEQ_COMPLETION:
 		nvgpu_log_fn(g, "Change Seq Completed");
 		break;
+	case NV_PMU_PERF_MSG_ID_PSTATES_INVALIDATE:
+		nvgpu_log_fn(g, "Pstate Invalidated");
+		break;
 	default:
 		WARN_ON(true);
 		break;
@@ -104,18 +107,22 @@ int nvgpu_perf_pmu_vfe_load_ps35(struct gk20a *g)
 	struct nv_pmu_rpc_struct_perf_load rpc;
 	int status = 0;
 
+	status = perf_pmu_init_vfe_perf_event(g);
+	if (status != 0) {
+		return status;
+	}
+
+	/*register call back for future VFE updates*/
+	g->ops.pmu_perf.handle_pmu_perf_event = tu104_pmu_handle_perf_event;
+
 	(void) memset(&rpc, 0, sizeof(struct nv_pmu_rpc_struct_perf_load));
 	rpc.b_load = true;
 	PMU_RPC_EXECUTE_CPB(status, pmu, PERF, LOAD, &rpc, 0);
 	if (status != 0) {
 		nvgpu_err(g, "Failed to execute RPC status=0x%x",
 			status);
+		nvgpu_thread_stop(&g->perf_pmu->vfe_init.state_task);
 	}
-
-	status = perf_pmu_init_vfe_perf_event(g);
-
-	/*register call back for future VFE updates*/
-	g->ops.pmu_perf.handle_pmu_perf_event = tu104_pmu_handle_perf_event;
 
 	return status;
 }

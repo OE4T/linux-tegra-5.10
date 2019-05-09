@@ -33,49 +33,119 @@
 #include <nvgpu/pmu/perf_pstate.h>
 #include <nvgpu/pmu/clk/clk.h>
 #include <nvgpu/pmu/clk/clk_domain.h>
+#include <nvgpu/pmu/pmuif/perfpstate.h>
 
 #include "perf_pstate.h"
+
+static int pstate_init_pmudata_super(struct gk20a *g,
+		struct boardobj *board_obj_ptr,
+		struct nv_pmu_boardobj *ppmudata)
+{
+	return nvgpu_boardobj_pmu_data_init_super(g, board_obj_ptr, ppmudata);
+}
+
+static int pstate_init_pmudata(struct gk20a *g,
+		struct boardobj *board_obj_ptr,
+		struct nv_pmu_boardobj *ppmudata)
+{
+	int status = 0;
+	u32 clkidx;
+	struct pstate *pstate;
+	struct nv_pmu_perf_pstate_35 *pstate_pmu_data;
+
+	status = pstate_init_pmudata_super(g, board_obj_ptr, ppmudata);
+	if (status != 0) {
+		return status;
+	}
+
+	pstate = (struct pstate *)board_obj_ptr;
+	pstate_pmu_data = (struct nv_pmu_perf_pstate_35 *)ppmudata;
+
+	pstate_pmu_data->super.super.lpwrEntryIdx = pstate->lpwr_entry_idx;
+	pstate_pmu_data->super.super.flags = pstate->flags;
+	pstate_pmu_data->nvlinkIdx = pstate->nvlink_idx;
+	pstate_pmu_data->pcieIdx = pstate->pcie_idx;
+
+	for (clkidx = 0; clkidx < pstate->clklist.num_info; clkidx++) {
+		pstate_pmu_data->clkEntries[clkidx].max.baseFreqKhz =
+			pstate->clklist.clksetinfo[clkidx].max_mhz*1000;
+		pstate_pmu_data->clkEntries[clkidx].max.freqKz =
+			pstate->clklist.clksetinfo[clkidx].max_mhz*1000;
+		pstate_pmu_data->clkEntries[clkidx].max.origFreqKhz =
+			pstate->clklist.clksetinfo[clkidx].max_mhz*1000;
+		pstate_pmu_data->clkEntries[clkidx].max.porFreqKhz =
+			pstate->clklist.clksetinfo[clkidx].max_mhz*1000;
+
+		pstate_pmu_data->clkEntries[clkidx].min.baseFreqKhz =
+			pstate->clklist.clksetinfo[clkidx].min_mhz*1000;
+		pstate_pmu_data->clkEntries[clkidx].min.freqKz =
+			pstate->clklist.clksetinfo[clkidx].min_mhz*1000;
+		pstate_pmu_data->clkEntries[clkidx].min.origFreqKhz =
+			pstate->clklist.clksetinfo[clkidx].min_mhz*1000;
+		pstate_pmu_data->clkEntries[clkidx].min.porFreqKhz =
+			pstate->clklist.clksetinfo[clkidx].min_mhz*1000;
+
+		pstate_pmu_data->clkEntries[clkidx].nom.baseFreqKhz =
+			pstate->clklist.clksetinfo[clkidx].nominal_mhz*1000;
+		pstate_pmu_data->clkEntries[clkidx].nom.freqKz =
+			pstate->clklist.clksetinfo[clkidx].nominal_mhz*1000;
+		pstate_pmu_data->clkEntries[clkidx].nom.origFreqKhz =
+			pstate->clklist.clksetinfo[clkidx].nominal_mhz*1000;
+		pstate_pmu_data->clkEntries[clkidx].nom.porFreqKhz =
+			pstate->clklist.clksetinfo[clkidx].nominal_mhz*1000;
+	}
+
+	return status;
+}
 
 static int pstate_construct_super(struct gk20a *g, struct boardobj **ppboardobj,
 				size_t size, void *args)
 {
-	struct pstate *ptmppstate = (struct pstate *)args;
-	struct pstate *pstate;
-	int err;
+	return nvgpu_boardobj_construct_super(g, ppboardobj, size, args);
 
-	err = nvgpu_boardobj_construct_super(g, ppboardobj, size, args);
-	if (err != 0) {
-		return err;
-	}
-
-	pstate = (struct pstate *)*ppboardobj;
-
-	pstate->num = ptmppstate->num;
-	pstate->clklist = ptmppstate->clklist;
-	pstate->lpwr_entry_idx = ptmppstate->lpwr_entry_idx;
-
-	return 0;
 }
 
-static int pstate_construct_3x(struct gk20a *g, struct boardobj **ppboardobj,
-				size_t size, void *args)
+static int pstate_construct_35(struct gk20a *g, struct boardobj **ppboardobj,
+				u16 size, void *args)
 {
 	struct boardobj  *ptmpobj = (struct boardobj *)args;
 
-	ptmpobj->type_mask |= BIT32(CTRL_PERF_PSTATE_TYPE_3X);
+	ptmpobj->type_mask |= BIT32(CTRL_PERF_PSTATE_TYPE_35);
 	return pstate_construct_super(g, ppboardobj, size, args);
 }
 
 static struct pstate *pstate_construct(struct gk20a *g, void *args)
 {
 	struct pstate *pstate = NULL;
-	struct pstate *tmp = (struct pstate *)args;
+	struct pstate *ptmppstate = (struct pstate *)args;
+	int status;
+	u32 clkidx;
 
-	if ((tmp->super.type != CTRL_PERF_PSTATE_TYPE_3X) ||
-	    (pstate_construct_3x(g, (struct boardobj **)&pstate,
-			    sizeof(struct pstate), args) != 0)) {
+	status = pstate_construct_35(g, (struct boardobj **)&pstate,
+			(u16)sizeof(struct pstate), args);
+	if (status != 0) {
 		nvgpu_err(g,
-			"error constructing pstate num=%u", tmp->num);
+			"error constructing pstate num=%u", ptmppstate->num);
+		return NULL;
+	}
+
+	pstate->super.pmudatainit = pstate_init_pmudata;
+	pstate->num = ptmppstate->num;
+	pstate->flags = ptmppstate->flags;
+	pstate->lpwr_entry_idx = ptmppstate->lpwr_entry_idx;
+	pstate->pcie_idx = ptmppstate->pcie_idx;
+	pstate->nvlink_idx = ptmppstate->nvlink_idx;
+	pstate->clklist.num_info = ptmppstate->clklist.num_info;
+
+	for (clkidx = 0; clkidx < ptmppstate->clklist.num_info; clkidx++) {
+		pstate->clklist.clksetinfo[clkidx].clkwhich =
+			ptmppstate->clklist.clksetinfo[clkidx].clkwhich;
+		pstate->clklist.clksetinfo[clkidx].max_mhz =
+			ptmppstate->clklist.clksetinfo[clkidx].max_mhz;
+		pstate->clklist.clksetinfo[clkidx].min_mhz =
+			ptmppstate->clklist.clksetinfo[clkidx].min_mhz;
+		pstate->clklist.clksetinfo[clkidx].nominal_mhz =
+			ptmppstate->clklist.clksetinfo[clkidx].nominal_mhz;
 	}
 
 	return pstate;
@@ -94,7 +164,7 @@ static int pstate_insert(struct gk20a *g, struct pstate *pstate, u8 index)
 		return err;
 	}
 
-	pstates->num_levels++;
+	pstates->num_clk_domains++;
 
 	return err;
 }
@@ -108,14 +178,14 @@ static int parse_pstate_entry_6x(struct gk20a *g,
 	u32 clkidx;
 
 	p += hdr->base_entry_size;
-
 	(void) memset(pstate, 0, sizeof(struct pstate));
-	pstate->super.type = CTRL_PERF_PSTATE_TYPE_3X;
+	pstate->super.type = CTRL_PERF_PSTATE_TYPE_35;
 	pstate->num = 0x0FU - U32(entry->pstate_level);
 	pstate->clklist.num_info = hdr->clock_entry_count;
 	pstate->lpwr_entry_idx = entry->lpwr_entry_idx;
-
-	nvgpu_log_info(g, "pstate P%u", pstate->num);
+	pstate->flags = entry->flags0;
+	pstate->nvlink_idx = entry->nvlink_idx;
+	pstate->pcie_idx = entry->pcie_idx;
 
 	for (clkidx = 0; clkidx < hdr->clock_entry_count; clkidx++) {
 		struct clk_set_info *pclksetinfo;
@@ -203,24 +273,10 @@ done:
 	return err;
 }
 
-int nvgpu_pmu_perf_pstate_sw_setup(struct gk20a *g)
+static int devinit_get_pstate_table(struct gk20a *g)
 {
 	struct vbios_pstate_header_6x *hdr = NULL;
 	int err = 0;
-
-	nvgpu_log_fn(g, " ");
-
-	nvgpu_cond_init(&g->perf_pmu->pstatesobjs.pstate_notifier_wq);
-
-	nvgpu_mutex_init(&g->perf_pmu->pstatesobjs.pstate_mutex);
-
-	err = nvgpu_boardobjgrp_construct_e32(g, &g->perf_pmu->pstatesobjs.super);
-	if (err != 0) {
-		nvgpu_err(g,
-			  "error creating boardobjgrp for pstates, err=%d",
-			  err);
-		goto done;
-	}
 
 	hdr = (struct vbios_pstate_header_6x *)
 			nvgpu_bios_get_perf_table_ptrs(g,
@@ -242,19 +298,144 @@ int nvgpu_pmu_perf_pstate_sw_setup(struct gk20a *g)
 
 	err = parse_pstate_table_6x(g, hdr);
 done:
-	if (err != 0) {
-		nvgpu_mutex_destroy(&g->perf_pmu->pstatesobjs.pstate_mutex);
-	}
 	return err;
 }
+
+static int perf_pstate_pmudatainit(struct gk20a *g,
+		struct boardobjgrp *pboardobjgrp,
+		struct nv_pmu_boardobjgrp_super *pboardobjgrppmu)
+{
+	int status = 0;
+	struct nv_pmu_perf_pstate_boardobjgrp_set_header *pset =
+			(struct nv_pmu_perf_pstate_boardobjgrp_set_header *)
+			(void *)pboardobjgrppmu;
+	struct pstates *pprogs = (struct pstates *)(void *)pboardobjgrp;
+
+	status = boardobjgrp_pmudatainit_e32(g, pboardobjgrp, pboardobjgrppmu);
+	if (status != 0) {
+		nvgpu_err(g, "error updating pmu boardobjgrp for vfe equ 0x%x",
+			  status);
+		goto done;
+	}
+
+	pset->numClkDomains = pprogs->num_clk_domains;
+
+done:
+	return status;
+}
+
+static int perf_pstate_pmudata_instget(struct gk20a *g,
+		struct nv_pmu_boardobjgrp *pmuboardobjgrp,
+		struct nv_pmu_boardobj **ppboardobjpmudata, u8 idx)
+{
+	struct nv_pmu_perf_pstate_boardobj_grp_set  *pgrp_set =
+		(struct nv_pmu_perf_pstate_boardobj_grp_set *)
+		(void *)pmuboardobjgrp;
+
+	/* check whether pmuboardobjgrp has a valid boardobj in index */
+	if (idx >= CTRL_BOARDOBJGRP_E32_MAX_OBJECTS) {
+		return -EINVAL;
+	}
+
+	*ppboardobjpmudata = (struct nv_pmu_boardobj *)
+		&pgrp_set->objects[idx].data.boardObj;
+
+	return 0;
+}
+
+static int perf_pstate_pmustatus_instget(struct gk20a *g,
+		void *pboardobjgrppmu,
+		struct nv_pmu_boardobj_query **ppboardobjpmustatus, u8 idx)
+{
+	struct nv_pmu_perf_pstate_boardobj_grp_get_status *pgrp_get_status =
+		(struct nv_pmu_perf_pstate_boardobj_grp_get_status *)(void *)
+		pboardobjgrppmu;
+
+	/*Check for valid pmuboardobjgrp index*/
+	if ((BIT32(idx) &
+		pgrp_get_status->hdr.data.super.obj_mask.super.data[0]) == 0U) {
+		return -EINVAL;
+	}
+
+	*ppboardobjpmustatus = (struct nv_pmu_boardobj_query *)
+			&pgrp_get_status->objects[idx].data.board_obj;
+	return 0;
+}
+
+int nvgpu_pmu_perf_pstate_sw_setup(struct gk20a *g)
+{
+	int status;
+	struct boardobjgrp *pboardobjgrp = NULL;
+
+	status = nvgpu_boardobjgrp_construct_e32(g,
+			&g->perf_pmu->pstatesobjs.super);
+	if (status != 0) {
+		nvgpu_err(g,
+			"error creating boardobjgrp for pstate, status - 0x%x",
+			status);
+		goto done;
+	}
+
+	pboardobjgrp = &g->perf_pmu->pstatesobjs.super.super;
+
+	BOARDOBJGRP_PMU_CONSTRUCT(pboardobjgrp, PERF, PSTATE);
+
+	status = BOARDOBJGRP_PMU_CMD_GRP_SET_CONSTRUCT(g, pboardobjgrp,
+			perf, PERF, pstate, PSTATE);
+	if (status != 0) {
+		nvgpu_err(g,
+			"error constructing PSTATE_SET interface - 0x%x",
+			status);
+		goto done;
+	}
+
+	g->perf_pmu->pstatesobjs.num_clk_domains =
+			VBIOS_PSTATE_CLOCK_ENTRY_6X_COUNT;
+
+	status = BOARDOBJGRP_PMU_CMD_GRP_GET_STATUS_CONSTRUCT(g, pboardobjgrp,
+			perf, PERF, pstate, PSTATE);
+	if (status != 0) {
+		nvgpu_err(g,
+			"error constructing PSTATE_GET_STATUS interface - 0x%x",
+			status);
+		goto done;
+	}
+
+	pboardobjgrp->pmudatainit = perf_pstate_pmudatainit;
+	pboardobjgrp->pmudatainstget  = perf_pstate_pmudata_instget;
+	pboardobjgrp->pmustatusinstget  = perf_pstate_pmustatus_instget;
+
+	status = devinit_get_pstate_table(g);
+	if (status != 0) {
+		nvgpu_err(g, "Error parsing the performance Vbios tables");
+		goto done;
+	}
+
+done:
+	return status;
+}
+
+int nvgpu_pmu_perf_pstate_pmu_setup(struct gk20a *g)
+{
+	int status;
+	struct boardobjgrp *pboardobjgrp = NULL;
+
+	pboardobjgrp = &g->perf_pmu->pstatesobjs.super.super;
+	if (!pboardobjgrp->bconstructed) {
+		return -EINVAL;
+	}
+
+	status = pboardobjgrp->pmuinithandle(g, pboardobjgrp);
+
+	return status;
+}
+
 
 struct pstate *nvgpu_pmu_perf_pstate_find(struct gk20a *g, u32 num)
 {
 	struct pstates *pstates = &(g->perf_pmu->pstatesobjs);
 	struct pstate *pstate;
 	u8 i;
-
-	nvgpu_log_info(g, "pstates = %p", pstates);
 
 	BOARDOBJGRP_FOR_EACH(&pstates->super.super,
 			struct pstate *, pstate, i) {
@@ -273,8 +454,6 @@ struct clk_set_info *nvgpu_pmu_perf_pstate_get_clk_set_info(struct gk20a *g,
 	struct pstate *pstate = nvgpu_pmu_perf_pstate_find(g, pstate_num);
 	struct clk_set_info *info;
 	u32 clkidx;
-
-	nvgpu_log_info(g, "pstate = %p", pstate);
 
 	if (pstate == NULL) {
 		return NULL;

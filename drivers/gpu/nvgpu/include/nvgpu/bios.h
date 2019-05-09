@@ -587,8 +587,19 @@ struct vbios_pstate_header_6x {
 	u8 cpi_features;
 } __packed;
 
-#define VBIOS_PSTATE_CLOCK_ENTRY_6X_SIZE_6	6U
-#define VBIOS_PSTATE_BASE_ENTRY_6X_SIZE_5	0x5U
+#define VBIOS_PSTATE_HEADER_6X_FLAGS0_PSTATES_MASK                0x1U
+#define VBIOS_PSTATE_HEADER_6X_FLAGS0_PSTATES_SHIFT               0x0U
+#define VBIOS_PSTATE_HEADER_6X_FLAGS0_PSTATES_NOT_REQUIRED        0x0U
+#define VBIOS_PSTATE_HEADER_6X_FLAGS0_PSTATES_REQUIRED            0x1U
+#define VBIOS_PSTATE_HEADER_6X_FLAGS0_ARBITER_LOCK_MASK           0x2U
+#define VBIOS_PSTATE_HEADER_6X_FLAGS0_ARBITER_LOCK_SHIFT          0x1U
+#define VBIOS_PSTATE_HEADER_6X_FLAGS0_ARBITER_LOCK_DISABLED       0x0U
+#define VBIOS_PSTATE_HEADER_6X_FLAGS0_ARBITER_LOCK_ENABLED        0x1U
+
+#define VBIOS_PSTATE_CLOCK_ENTRY_6X_SIZE_6                        6U
+#define VBIOS_PSTATE_BASE_ENTRY_6X_SIZE_5                         0x5U
+#define VBIOS_PSTATE_CLOCK_ENTRY_6X_COUNT                         10U
+
 
 struct vbios_pstate_entry_clock_6x {
 	u16 param0;
@@ -599,9 +610,33 @@ struct vbios_pstate_entry_6x {
 	u8 pstate_level;
 	u8 flags0;
 	u8 lpwr_entry_idx;
+	u8 pcie_idx;
+	u8 nvlink_idx;
 	struct vbios_pstate_entry_clock_6x
 		nvgpu_clockEntry[PERF_CLK_DOMAINS_IDX_MAX];
 } __packed;
+
+#define VBIOS_PSTATE_6X_FLAGS0_PSTATE_CAP_MASK                     0x3U
+#define VBIOS_PSTATE_6X_FLAGS0_PSTATE_CAP_SHIFT                    0x0U
+#define VBIOS_PSTATE_6X_FLAGS0_PSTATE_CAP_RM_DEFAULT               0x0U
+#define VBIOS_PSTATE_6X_FLAGS0_PSTATE_CAP_GLITCHY                  0x1U
+#define VBIOS_PSTATE_6X_FLAGS0_PSTATE_CAP_WAIT_VBLANK              0x2U
+
+#define VBIOS_PSTATE_6X_FLAGS0_CUDA_MASK                           0x4U
+#define VBIOS_PSTATE_6X_FLAGS0_CUDA_SHIFT                          0x2U
+#define VBIOS_PSTATE_6X_FLAGS0_CUDA_SAFE                           0x0U
+#define VBIOS_PSTATE_6X_FLAGS0_CUDA_NOT_SAFE                       0x1U
+
+#define VBIOS_PSTATE_6X_FLAGS0_OVOC_MASK                           0x8U
+#define VBIOS_PSTATE_6X_FLAGS0_OVOC_SHIFT                          0x3U
+#define VBIOS_PSTATE_6X_FLAGS0_OVOC_DISABLED                       0x0U
+#define VBIOS_PSTATE_6X_FLAGS0_OVOC_ENABLED                        0x1U
+
+#define VBIOS_PSTATE_6X_FLAGS0_DECREASE_THRESHOLD_MASK             0x10U
+#define VBIOS_PSTATE_6X_FLAGS0_DECREASE_THRESHOLD_SHIFT            0x4U
+#define VBIOS_PSTATE_6X_FLAGS0_DECREASE_THRESHOLD_DEFAULT          0x0U
+#define VBIOS_PSTATE_6X_FLAGS0_DECREASE_THRESHOLD_IGNORE_FB        0x1U
+
 
 #define VBIOS_PSTATE_6X_CLOCK_PROG_PARAM0_NOM_FREQ_MHZ_SHIFT		      0U
 #define VBIOS_PSTATE_6X_CLOCK_PROG_PARAM0_NOM_FREQ_MHZ_MASK	     0x00003FFFU

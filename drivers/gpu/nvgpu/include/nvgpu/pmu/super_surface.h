@@ -51,8 +51,9 @@ struct pmu_super_surface;
 #define NV_PMU_SUPER_SURFACE_MEMBER_CLK_FREQ_CONTROLLER_GRP   0x18U
 #define NV_PMU_SUPER_SURFACE_MEMBER_CLK_FREQ_DOMAIN_GRP       0x19U
 #define NV_PMU_SUPER_SURFACE_MEMBER_CHANGE_SEQ_GRP            0x1EU
+#define NV_PMU_SUPER_SURFACE_MEMBER_PSTATE_GRP                0x1FU
 
-#define NV_PMU_SUPER_SURFACE_MEMBER_COUNT                    0x1FU
+#define NV_PMU_SUPER_SURFACE_MEMBER_COUNT                     0x20U
 
 u32 nvgpu_pmu_get_ss_member_set_offset(struct gk20a *g,
 	struct nvgpu_pmu *pmu, u32 member_id);

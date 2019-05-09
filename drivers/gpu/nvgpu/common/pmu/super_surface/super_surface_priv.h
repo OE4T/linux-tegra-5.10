@@ -151,6 +151,10 @@ struct nv_pmu_super_surface {
 				vfe_var_grp_set;
 			struct nv_pmu_perf_vfe_var_boardobj_grp_get_status_pack
 				vfe_var_grp_get_status;
+			struct nv_pmu_perf_pstate_boardobj_grp_set
+				pstate_grp_set;
+			struct nv_pmu_perf_pstate_boardobj_grp_get_status
+				pstate_grp_get_status;
 		} perf;
 		struct {
 			struct nv_pmu_therm_therm_channel_boardobj_grp_set

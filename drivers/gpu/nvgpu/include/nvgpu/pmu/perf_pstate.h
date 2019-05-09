@@ -53,15 +53,15 @@ struct pstate {
 	struct boardobj super;
 	u32 num;
 	u8 lpwr_entry_idx;
+	u32 flags;
+	u8 pcie_idx;
+	u8 nvlink_idx;
 	struct clk_set_info_list clklist;
 };
 
 struct pstates {
 	struct boardobjgrp_e32 super;
-	u32  num_levels;
-	struct nvgpu_cond pstate_notifier_wq;
-	u32 is_pstate_switch_on;
-	struct nvgpu_mutex pstate_mutex; /* protect is_pstate_switch_on */
+	u8 num_clk_domains;
 };
 
 struct clk_set_info *nvgpu_pmu_perf_pstate_get_clk_set_info(struct gk20a *g,
@@ -69,5 +69,6 @@ struct clk_set_info *nvgpu_pmu_perf_pstate_get_clk_set_info(struct gk20a *g,
 			u32 clkwhich);
 struct pstate *nvgpu_pmu_perf_pstate_find(struct gk20a *g, u32 num);
 int nvgpu_pmu_perf_pstate_sw_setup(struct gk20a *g);
+int nvgpu_pmu_perf_pstate_pmu_setup(struct gk20a *g);
 
 #endif /* NVGPU_PMU_PERF_PSTATE_H_ */

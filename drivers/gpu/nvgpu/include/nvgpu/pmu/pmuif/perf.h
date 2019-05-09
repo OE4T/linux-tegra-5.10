@@ -24,6 +24,7 @@
 
 #include "volt.h"
 #include "perfvfe.h"
+#include "perfpstate.h"
 
 /*
  * Enumeration of BOARDOBJGRP class IDs within OBJPERF.  Used as "classId"
@@ -32,6 +33,7 @@
  */
 #define NV_PMU_PERF_BOARDOBJGRP_CLASS_ID_VFE_VAR                 0x00U
 #define NV_PMU_PERF_BOARDOBJGRP_CLASS_ID_VFE_EQU                 0x01U
+#define NV_PMU_PERF_BOARDOBJGRP_CLASS_ID_PSTATE                  0x03U
 
 #define NV_PMU_PERF_CMD_ID_RPC                                   (0x00000002U)
 #define NV_PMU_PERF_CMD_ID_BOARDOBJ_GRP_SET                      (0x00000003U)
@@ -126,6 +128,7 @@ struct nv_pmu_perf_rpc {
 #define NV_PMU_PERF_MSG_ID_BOARDOBJ_GRP_GET_STATUS               (0x00000006U)
 #define NV_PMU_PERF_MSG_ID_VFE_CALLBACK                          (0x00000005U)
 #define NV_PMU_PERF_MSG_ID_CHANGE_SEQ_COMPLETION                 (0x00000007U)
+#define NV_PMU_PERF_MSG_ID_PSTATES_INVALIDATE                    (0x00000008U)
 
 /*
  * Message carrying the result of the perf RPC execution.

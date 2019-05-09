@@ -600,6 +600,7 @@ pmu:
                  include/nvgpu/pmu/pmuif/clk.h,
                  include/nvgpu/pmu/pmuif/perf.h,
                  include/nvgpu/pmu/pmuif/perfvfe.h,
+                 include/nvgpu/pmu/pmuif/perfpstate.h,
                  include/nvgpu/pmu/pmuif/pmgr.h,
                  include/nvgpu/pmu/pmuif/seq.h,
                  include/nvgpu/pmu/pmuif/therm.h,

@@ -439,6 +439,11 @@ static int pmu_pstate_perf_pmu_setup(struct gk20a *g)
 		}
 	}
 
+	err = nvgpu_pmu_perf_pstate_pmu_setup(g);
+	if (err != 0) {
+		return err;
+	}
+
 	if (g->ops.pmu_perf.support_changeseq) {
 		err = nvgpu_perf_change_seq_pmu_setup(g);
 		if (err != 0) {
