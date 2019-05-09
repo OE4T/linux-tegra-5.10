@@ -32,7 +32,7 @@
  */
 static int gr_gv100_scg_estimate_perf(struct gk20a *g,
 					struct nvgpu_gr_config *gr_config,
-					unsigned long *gpc_tpc_mask,
+					u32 *gpc_tpc_mask,
 					u32 disable_gpc_id, u32 disable_tpc_id,
 					int *perf)
 {
@@ -179,15 +179,16 @@ free_resources:
 int gv100_gr_config_init_sm_id_table(struct gk20a *g,
 		struct nvgpu_gr_config *gr_config)
 {
-	unsigned long tpc;
-	u32 gpc, sm, pes, gtpc;
+	u32 gpc, tpc, sm, pes, gtpc;
 	u32 sm_id = 0;
 	u32 sm_per_tpc = nvgpu_gr_config_get_sm_count_per_tpc(gr_config);
 	u32 num_sm = sm_per_tpc * nvgpu_gr_config_get_tpc_count(gr_config);
 	int perf, maxperf;
 	int err = 0;
-	unsigned long *gpc_tpc_mask;
+	u32 *gpc_tpc_mask;
 	u32 *tpc_table, *gpc_table;
+	unsigned long gpc_tpc_mask_tmp;
+	unsigned long tpc_tmp;
 
 	if (gr_config == NULL) {
 		return -ENOMEM;
@@ -200,7 +201,7 @@ int gv100_gr_config_init_sm_id_table(struct gk20a *g,
 				nvgpu_gr_config_get_tpc_count(gr_config) *
 				sizeof(u32));
 	gpc_tpc_mask = nvgpu_kzalloc(g,
-				sizeof(unsigned long) *
+				sizeof(u32) *
 				nvgpu_get_litter_value(g, GPU_LIT_NUM_GPCS));
 
 	if ((gpc_table == NULL) ||
@@ -223,9 +224,13 @@ int gv100_gr_config_init_sm_id_table(struct gk20a *g,
 	for (gtpc = 0; gtpc < nvgpu_gr_config_get_tpc_count(gr_config); gtpc++) {
 		maxperf = -1;
 		for (gpc = 0; gpc < nvgpu_gr_config_get_gpc_count(gr_config); gpc++) {
-			for_each_set_bit(tpc, &gpc_tpc_mask[gpc],
+			gpc_tpc_mask_tmp = (unsigned long)gpc_tpc_mask[gpc];
+
+			for_each_set_bit(tpc_tmp, &gpc_tpc_mask_tmp,
 					nvgpu_gr_config_get_gpc_tpc_count(gr_config, gpc)) {
 				perf = -1;
+				tpc = (u32)tpc_tmp;
+
 				err = gr_gv100_scg_estimate_perf(g, gr_config,
 						gpc_tpc_mask, gpc, tpc, &perf);
 
@@ -242,7 +247,7 @@ int gv100_gr_config_init_sm_id_table(struct gk20a *g,
 				}
 			}
 		}
-		gpc_tpc_mask[gpc_table[gtpc]] &= ~(BIT64(tpc_table[gtpc]));
+		gpc_tpc_mask[gpc_table[gtpc]] &= ~(BIT32(tpc_table[gtpc]));
 	}
 
 	tpc = 0;
