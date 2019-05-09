@@ -487,8 +487,9 @@ int channel_gk20a_alloc_job(struct nvgpu_channel *c,
 		struct nvgpu_channel_job **job_out);
 void channel_gk20a_free_job(struct nvgpu_channel *c,
 		struct nvgpu_channel_job *job);
-u32 nvgpu_get_gp_free_count(struct nvgpu_channel *c);
-u32 nvgpu_gp_free_count(struct nvgpu_channel *c);
+u32 nvgpu_channel_update_gpfifo_get_and_get_free_count(
+		struct nvgpu_channel *ch);
+u32 nvgpu_channel_get_gpfifo_free_count(struct nvgpu_channel *ch);
 int gk20a_channel_add_job(struct nvgpu_channel *c,
 				 struct nvgpu_channel_job *job,
 				 bool skip_buffer_refcounting);

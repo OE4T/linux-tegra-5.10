@@ -1393,7 +1393,7 @@ void gk20a_channel_free_usermode_buffers(struct nvgpu_channel *c)
 }
 
 /* Update with this periodically to determine how the gpfifo is draining. */
-static inline u32 update_gp_get(struct gk20a *g,
+static inline u32 nvgpu_channel_update_gpfifo_get(struct gk20a *g,
 				struct nvgpu_channel *c)
 {
 	u32 new_get = g->ops.userd.gp_get(g, c);
@@ -1402,10 +1402,10 @@ static inline u32 update_gp_get(struct gk20a *g,
 	return new_get;
 }
 
-u32 nvgpu_gp_free_count(struct nvgpu_channel *c)
+u32 nvgpu_channel_get_gpfifo_free_count(struct nvgpu_channel *ch)
 {
-	return (c->gpfifo.entry_num - (c->gpfifo.put - c->gpfifo.get) - 1U) %
-		c->gpfifo.entry_num;
+	return (ch->gpfifo.entry_num - (ch->gpfifo.put - ch->gpfifo.get) - 1U) %
+		ch->gpfifo.entry_num;
 }
 
 static bool nvgpu_channel_ctxsw_timeout_debug_dump_state(struct gk20a *g,
@@ -1463,7 +1463,7 @@ void nvgpu_channel_set_ctx_mmu_error(struct gk20a *g,
 bool nvgpu_channel_update_and_check_ctxsw_timeout(struct nvgpu_channel *ch,
 		u32 timeout_delta_ms, bool *progress)
 {
-	u32 gpfifo_get = update_gp_get(ch->g, ch);
+	u32 gpfifo_get = nvgpu_channel_update_gpfifo_get(ch->g, ch);
 
 	if (gpfifo_get == ch->ctxsw_timeout_gpfifo_get) {
 		/* didn't advance since previous ctxsw timeout check */
@@ -1481,10 +1481,10 @@ bool nvgpu_channel_update_and_check_ctxsw_timeout(struct nvgpu_channel *ch,
 		ch->ctxsw_timeout_accumulated_ms > ch->ctxsw_timeout_max_ms;
 }
 
-u32 nvgpu_get_gp_free_count(struct nvgpu_channel *c)
+u32 nvgpu_channel_update_gpfifo_get_and_get_free_count(struct nvgpu_channel *ch)
 {
-	update_gp_get(c->g, c);
-	return nvgpu_gp_free_count(c);
+	(void)nvgpu_channel_update_gpfifo_get(ch->g, ch);
+	return nvgpu_channel_get_gpfifo_free_count(ch);
 }
 
 static void nvgpu_channel_wdt_init(struct nvgpu_channel *ch)

@@ -504,8 +504,10 @@ static int nvgpu_submit_channel_gpfifo(struct nvgpu_channel *c,
 	 * values first and then read from HW. If no space, return EAGAIN
 	 * and let userpace decide to re-try request or not.
 	 */
-	if (nvgpu_gp_free_count(c) < num_entries + extra_entries) {
-		if (nvgpu_get_gp_free_count(c) < num_entries + extra_entries) {
+	if (nvgpu_channel_get_gpfifo_free_count(c) <
+			num_entries + extra_entries) {
+		if (nvgpu_channel_update_gpfifo_get_and_get_free_count(c) <
+				num_entries + extra_entries) {
 			err = -EAGAIN;
 			goto clean_up;
 		}
