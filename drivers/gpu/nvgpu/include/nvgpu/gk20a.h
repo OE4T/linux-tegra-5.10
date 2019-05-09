@@ -2057,8 +2057,8 @@ struct gk20a {
 	nvgpu_atomic_t sw_irq_nonstall_last_handled;
 
 	int irqs_enabled;
-	int irq_stall; /* can be same as irq_nonstall in case of PCI */
-	int irq_nonstall;
+	u32 irq_stall; /* can be same as irq_nonstall in case of PCI */
+	u32 irq_nonstall;
 
 	/*
 	 * The deductible memory size for max_comptag_mem (in MBytes)

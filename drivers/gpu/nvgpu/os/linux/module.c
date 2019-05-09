@@ -1362,7 +1362,7 @@ static int gk20a_probe(struct platform_device *dev)
 
 	gk20a->irq_stall = platform_get_irq(dev, 0);
 	gk20a->irq_nonstall = platform_get_irq(dev, 1);
-	if (gk20a->irq_stall < 0 || gk20a->irq_nonstall < 0) {
+	if ((int)gk20a->irq_stall < 0 || (int)gk20a->irq_nonstall < 0) {
 		err = -ENXIO;
 		goto return_err;
 	}

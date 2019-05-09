@@ -633,7 +633,7 @@ static int nvgpu_pci_probe(struct pci_dev *pdev,
 
 	g->irq_stall = pdev->irq;
 	g->irq_nonstall = pdev->irq;
-	if (g->irq_stall < 0) {
+	if ((int)g->irq_stall < 0) {
 		err = -ENXIO;
 		goto err_disable_msi;
 	}
