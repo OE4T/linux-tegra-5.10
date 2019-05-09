@@ -25,11 +25,7 @@
 #include <nvgpu/enabled.h>
 #include <nvgpu/power_features/cg.h>
 
-#define ELCG_MODE	(1 << 0)
-#define BLCG_MODE	(1 << 1)
-#define INVALID_MODE	(1 << 2)
-
-static void nvgpu_cg_set_mode(struct gk20a *g, int cgmode, int mode_config)
+static void nvgpu_cg_set_mode(struct gk20a *g, u32 cgmode, u32 mode_config)
 {
 	u32 engine_idx;
 	u32 active_engine_id = 0;

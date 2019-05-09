@@ -41,7 +41,7 @@ int gp106_get_internal_sensor_curr_temp(struct gk20a *g, u32 *temp_f24_8)
 	int err = 0;
 	u32 readval;
 
-	readval = gk20a_readl(g, therm_temp_sensor_tsense_r());
+	readval = nvgpu_readl(g, therm_temp_sensor_tsense_r());
 
 	if ((therm_temp_sensor_tsense_state_v(readval) &
 		therm_temp_sensor_tsense_state_valid_v()) == 0U) {
@@ -74,7 +74,7 @@ int gp106_elcg_init_idle_filters(struct gk20a *g)
 
 	for (engine_id = 0; engine_id < f->num_engines; engine_id++) {
 		active_engine_id = f->active_engines_list[engine_id];
-		gate_ctrl = gk20a_readl(g, therm_gate_ctrl_r(active_engine_id));
+		gate_ctrl = nvgpu_readl(g, therm_gate_ctrl_r(active_engine_id));
 
 		gate_ctrl = set_field(gate_ctrl,
 			therm_gate_ctrl_eng_idle_filt_exp_m(),
@@ -85,17 +85,17 @@ int gp106_elcg_init_idle_filters(struct gk20a *g)
 		gate_ctrl = set_field(gate_ctrl,
 			therm_gate_ctrl_eng_delay_before_m(),
 			therm_gate_ctrl_eng_delay_before_f(0));
-		gk20a_writel(g, therm_gate_ctrl_r(active_engine_id), gate_ctrl);
+		nvgpu_writel(g, therm_gate_ctrl_r(active_engine_id), gate_ctrl);
 	}
 
 	/* default fecs_idle_filter to 0 */
-	idle_filter = gk20a_readl(g, therm_fecs_idle_filter_r());
+	idle_filter = nvgpu_readl(g, therm_fecs_idle_filter_r());
 	idle_filter &= ~therm_fecs_idle_filter_value_m();
-	gk20a_writel(g, therm_fecs_idle_filter_r(), idle_filter);
+	nvgpu_writel(g, therm_fecs_idle_filter_r(), idle_filter);
 	/* default hubmmu_idle_filter to 0 */
-	idle_filter = gk20a_readl(g, therm_hubmmu_idle_filter_r());
+	idle_filter = nvgpu_readl(g, therm_hubmmu_idle_filter_r());
 	idle_filter &= ~therm_hubmmu_idle_filter_value_m();
-	gk20a_writel(g, therm_hubmmu_idle_filter_r(), idle_filter);
+	nvgpu_writel(g, therm_hubmmu_idle_filter_r(), idle_filter);
 
 	nvgpu_log_fn(g, "done");
 	return 0;

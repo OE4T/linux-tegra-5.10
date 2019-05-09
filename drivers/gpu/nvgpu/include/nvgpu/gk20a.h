@@ -207,18 +207,6 @@ enum nvgpu_event_id_type {
  * in nvgpu/enabled.h
  */
 
-/* Parameters for init_elcg_mode/init_blcg_mode */
-enum {
-	ELCG_RUN,	/* clk always run, i.e. disable elcg */
-	ELCG_STOP,	/* clk is stopped */
-	ELCG_AUTO	/* clk will run when non-idle, standard elcg mode */
-};
-
-enum {
-	BLCG_RUN,	/* clk always run, i.e. disable blcg */
-	BLCG_AUTO	/* clk will run when non-idle, standard blcg mode */
-};
-
 struct gpu_ops {
 	struct {
 		int (*determine_L2_size_bytes)(struct gk20a *gk20a);

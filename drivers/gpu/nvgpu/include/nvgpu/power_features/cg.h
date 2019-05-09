@@ -25,6 +25,25 @@
 #define NVGPU_POWER_FEATURES_CG_H
 
 #include <nvgpu/types.h>
+#include <nvgpu/bitops.h>
+
+/* Parameters for init_elcg_mode/init_blcg_mode */
+
+/* clk always run, i.e. disable elcg */
+#define ELCG_RUN	BIT32(0U)
+/* clk is stopped */
+#define ELCG_STOP	BIT32(1U)
+/* clk will run when non-idle, standard elcg mode */
+#define ELCG_AUTO	BIT32(2U)
+
+/* clk always run, i.e. disable blcg */
+#define BLCG_RUN	BIT32(0U)
+/* clk will run when non-idle, standard blcg mode */
+#define BLCG_AUTO	BIT32(1U)
+
+#define ELCG_MODE	BIT32(0U)
+#define BLCG_MODE	BIT32(1U)
+#define INVALID_MODE	BIT32(2U)
 
 struct gk20a;
 struct nvgpu_fifo;

@@ -23,6 +23,10 @@
  */
 
 #include <nvgpu/io.h>
+#include <nvgpu/utils.h>
+#include <nvgpu/enabled.h>
+#include <nvgpu/fifo.h>
+#include <nvgpu/power_features/cg.h>
 #include <nvgpu/gk20a.h>
 
 #include "therm_gm20b.h"
@@ -36,44 +40,44 @@ int gm20b_init_therm_setup_hw(struct gk20a *g)
 	nvgpu_log_fn(g, " ");
 
 	/* program NV_THERM registers */
-	gk20a_writel(g, therm_use_a_r(), therm_use_a_ext_therm_0_enable_f() |
+	nvgpu_writel(g, therm_use_a_r(), therm_use_a_ext_therm_0_enable_f() |
 			therm_use_a_ext_therm_1_enable_f()  |
 			therm_use_a_ext_therm_2_enable_f());
-	gk20a_writel(g, therm_evt_ext_therm_0_r(),
+	nvgpu_writel(g, therm_evt_ext_therm_0_r(),
 			therm_evt_ext_therm_0_slow_factor_f(0x2));
-	gk20a_writel(g, therm_evt_ext_therm_1_r(),
+	nvgpu_writel(g, therm_evt_ext_therm_1_r(),
 			therm_evt_ext_therm_1_slow_factor_f(0x6));
-	gk20a_writel(g, therm_evt_ext_therm_2_r(),
+	nvgpu_writel(g, therm_evt_ext_therm_2_r(),
 			therm_evt_ext_therm_2_slow_factor_f(0xe));
 
-	gk20a_writel(g, therm_grad_stepping_table_r(0),
+	nvgpu_writel(g, therm_grad_stepping_table_r(0),
 		therm_grad_stepping_table_slowdown_factor0_f(therm_grad_stepping_table_slowdown_factor0_fpdiv_by1p5_f()) |
 		therm_grad_stepping_table_slowdown_factor1_f(therm_grad_stepping_table_slowdown_factor0_fpdiv_by2_f()) |
 		therm_grad_stepping_table_slowdown_factor2_f(therm_grad_stepping_table_slowdown_factor0_fpdiv_by4_f()) |
 		therm_grad_stepping_table_slowdown_factor3_f(therm_grad_stepping_table_slowdown_factor0_fpdiv_by8_f()) |
 		therm_grad_stepping_table_slowdown_factor4_f(therm_grad_stepping_table_slowdown_factor0_fpdiv_by8_f()));
-	gk20a_writel(g, therm_grad_stepping_table_r(1),
+	nvgpu_writel(g, therm_grad_stepping_table_r(1),
 		therm_grad_stepping_table_slowdown_factor0_f(therm_grad_stepping_table_slowdown_factor0_fpdiv_by8_f()) |
 		therm_grad_stepping_table_slowdown_factor1_f(therm_grad_stepping_table_slowdown_factor0_fpdiv_by8_f()) |
 		therm_grad_stepping_table_slowdown_factor2_f(therm_grad_stepping_table_slowdown_factor0_fpdiv_by8_f()) |
 		therm_grad_stepping_table_slowdown_factor3_f(therm_grad_stepping_table_slowdown_factor0_fpdiv_by8_f()) |
 		therm_grad_stepping_table_slowdown_factor4_f(therm_grad_stepping_table_slowdown_factor0_fpdiv_by8_f()));
 
-	v = gk20a_readl(g, therm_clk_timing_r(0));
+	v = nvgpu_readl(g, therm_clk_timing_r(0));
 	v |= therm_clk_timing_grad_slowdown_enabled_f();
-	gk20a_writel(g, therm_clk_timing_r(0), v);
+	nvgpu_writel(g, therm_clk_timing_r(0), v);
 
-	v = gk20a_readl(g, therm_config2_r());
+	v = nvgpu_readl(g, therm_config2_r());
 	v |= therm_config2_grad_enable_f(1);
 	v |= therm_config2_slowdown_factor_extended_f(1);
-	gk20a_writel(g, therm_config2_r(), v);
+	nvgpu_writel(g, therm_config2_r(), v);
 
-	gk20a_writel(g, therm_grad_stepping1_r(),
+	nvgpu_writel(g, therm_grad_stepping1_r(),
 			therm_grad_stepping1_pdiv_duration_f(32));
 
-	v = gk20a_readl(g, therm_grad_stepping0_r());
+	v = nvgpu_readl(g, therm_grad_stepping0_r());
 	v |= therm_grad_stepping0_feature_enable_f();
-	gk20a_writel(g, therm_grad_stepping0_r(), v);
+	nvgpu_writel(g, therm_grad_stepping0_r(), v);
 
 	return 0;
 }
@@ -89,7 +93,7 @@ int gm20b_elcg_init_idle_filters(struct gk20a *g)
 
 	for (engine_id = 0; engine_id < f->num_engines; engine_id++) {
 		active_engine_id = f->active_engines_list[engine_id];
-		gate_ctrl = gk20a_readl(g, therm_gate_ctrl_r(active_engine_id));
+		gate_ctrl = nvgpu_readl(g, therm_gate_ctrl_r(active_engine_id));
 
 		if (nvgpu_is_enabled(g, NVGPU_IS_FMODEL)) {
 			gate_ctrl = set_field(gate_ctrl,
@@ -104,17 +108,17 @@ int gm20b_elcg_init_idle_filters(struct gk20a *g)
 		gate_ctrl = set_field(gate_ctrl,
 			therm_gate_ctrl_eng_idle_filt_mant_m(),
 			therm_gate_ctrl_eng_idle_filt_mant_f(2));
-		gk20a_writel(g, therm_gate_ctrl_r(active_engine_id), gate_ctrl);
+		nvgpu_writel(g, therm_gate_ctrl_r(active_engine_id), gate_ctrl);
 	}
 
 	/* default fecs_idle_filter to 0 */
-	idle_filter = gk20a_readl(g, therm_fecs_idle_filter_r());
+	idle_filter = nvgpu_readl(g, therm_fecs_idle_filter_r());
 	idle_filter &= ~therm_fecs_idle_filter_value_m();
-	gk20a_writel(g, therm_fecs_idle_filter_r(), idle_filter);
+	nvgpu_writel(g, therm_fecs_idle_filter_r(), idle_filter);
 	/* default hubmmu_idle_filter to 0 */
-	idle_filter = gk20a_readl(g, therm_hubmmu_idle_filter_r());
+	idle_filter = nvgpu_readl(g, therm_hubmmu_idle_filter_r());
 	idle_filter &= ~therm_hubmmu_idle_filter_value_m();
-	gk20a_writel(g, therm_hubmmu_idle_filter_r(), idle_filter);
+	nvgpu_writel(g, therm_hubmmu_idle_filter_r(), idle_filter);
 
 	nvgpu_log_fn(g, "done");
 	return 0;
@@ -129,7 +133,7 @@ void gm20b_therm_init_blcg_mode(struct gk20a *g, u32 mode, u32 engine)
 		return;
 	}
 
-	gate_ctrl = gk20a_readl(g, therm_gate_ctrl_r(engine));
+	gate_ctrl = nvgpu_readl(g, therm_gate_ctrl_r(engine));
 
 	switch (mode) {
 	case BLCG_RUN:
@@ -153,14 +157,14 @@ void gm20b_therm_init_blcg_mode(struct gk20a *g, u32 mode, u32 engine)
 		return;
 	}
 
-	gk20a_writel(g, therm_gate_ctrl_r(engine), gate_ctrl);
+	nvgpu_writel(g, therm_gate_ctrl_r(engine), gate_ctrl);
 }
 
 void gm20b_therm_init_elcg_mode(struct gk20a *g, u32 mode, u32 engine)
 {
 	u32 gate_ctrl;
 
-	gate_ctrl = gk20a_readl(g, therm_gate_ctrl_r(engine));
+	gate_ctrl = nvgpu_readl(g, therm_gate_ctrl_r(engine));
 
 	if (!nvgpu_is_enabled(g, NVGPU_GPU_CAN_ELCG)) {
 		return;
@@ -192,29 +196,30 @@ void gm20b_therm_init_elcg_mode(struct gk20a *g, u32 mode, u32 engine)
 		break;
 	}
 
-	gk20a_writel(g, therm_gate_ctrl_r(engine), gate_ctrl);
+	nvgpu_writel(g, therm_gate_ctrl_r(engine), gate_ctrl);
 }
 
 void gm20b_therm_throttle_enable(struct gk20a *g, u32 val)
 {
-	gk20a_writel(g, therm_use_a_r(), val);
+	nvgpu_writel(g, therm_use_a_r(), val);
 }
 
 u32 gm20b_therm_throttle_disable(struct gk20a *g)
 {
-	u32 val = gk20a_readl(g, therm_use_a_r());
-	gk20a_writel(g, therm_use_a_r(), 0);
+	u32 val = nvgpu_readl(g, therm_use_a_r());
+
+	nvgpu_writel(g, therm_use_a_r(), 0);
 	return val;
 }
 
 void gm20b_therm_idle_slowdown_enable(struct gk20a *g, u32 val)
 {
-	gk20a_writel(g, therm_clk_slowdown_r(0), val);
+	nvgpu_writel(g, therm_clk_slowdown_r(0), val);
 }
 
 u32 gm20b_therm_idle_slowdown_disable(struct gk20a *g)
 {
-	u32 saved_val = gk20a_readl(g, therm_clk_slowdown_r(0));
+	u32 saved_val = nvgpu_readl(g, therm_clk_slowdown_r(0));
 	u32 val = set_field(saved_val, therm_clk_slowdown_idle_factor_m(),
 			therm_clk_slowdown_idle_factor_disabled_f());
 	nvgpu_writel_check(g, therm_clk_slowdown_r(0), val);

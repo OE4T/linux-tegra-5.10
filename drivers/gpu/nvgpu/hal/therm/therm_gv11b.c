@@ -24,6 +24,9 @@
 #include <nvgpu/soc.h>
 #include <nvgpu/io.h>
 #include <nvgpu/utils.h>
+#include <nvgpu/enabled.h>
+#include <nvgpu/fifo.h>
+#include <nvgpu/power_features/cg.h>
 #include <nvgpu/gk20a.h>
 
 #include "therm_gv11b.h"
