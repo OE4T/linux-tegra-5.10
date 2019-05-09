@@ -997,6 +997,9 @@ int eqos_probe(struct platform_device *pdev)
 
 	platform_set_drvdata(pdev, ndev);
 	pdata->pdev = pdev;
+#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 14, 0)
+	ndev->max_mtu = 9000;
+#endif
 
 	pdata->dev = ndev;
 
