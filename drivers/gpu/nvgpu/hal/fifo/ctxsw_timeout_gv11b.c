@@ -210,6 +210,10 @@ bool gv11b_fifo_handle_ctxsw_timeout(struct gk20a *g)
 				continue;
 			}
 
+			nvgpu_report_host_error(g, 0,
+					GPU_HOST_PFIFO_CTXSW_TIMEOUT_ERROR,
+					tsgid);
+
 			recover = g->ops.tsg.check_ctxsw_timeout(tsg,
 					&debug_dump, &ms);
 			if (recover) {
