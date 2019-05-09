@@ -34,7 +34,7 @@ static int gr_gv100_scg_estimate_perf(struct gk20a *g,
 					struct nvgpu_gr_config *gr_config,
 					u32 *gpc_tpc_mask,
 					u32 disable_gpc_id, u32 disable_tpc_id,
-					int *perf)
+					u32 *perf)
 {
 	int err = 0;
 	u32 scale_factor = 512U; /* Use fx23.9 */
@@ -186,7 +186,7 @@ int gv100_gr_config_init_sm_id_table(struct gk20a *g,
 	u32 sm_id = 0;
 	u32 sm_per_tpc = nvgpu_gr_config_get_sm_count_per_tpc(gr_config);
 	u32 num_sm = sm_per_tpc * nvgpu_gr_config_get_tpc_count(gr_config);
-	int perf, maxperf;
+	u32 perf, maxperf;
 	int err = 0;
 	u32 *gpc_tpc_mask;
 	u32 *tpc_table, *gpc_table;
@@ -225,13 +225,13 @@ int gv100_gr_config_init_sm_id_table(struct gk20a *g,
 	}
 
 	for (gtpc = 0; gtpc < nvgpu_gr_config_get_tpc_count(gr_config); gtpc++) {
-		maxperf = -1;
+		maxperf = 0U;
 		for (gpc = 0; gpc < nvgpu_gr_config_get_gpc_count(gr_config); gpc++) {
 			gpc_tpc_mask_tmp = (unsigned long)gpc_tpc_mask[gpc];
 
 			for_each_set_bit(tpc_tmp, &gpc_tpc_mask_tmp,
 					nvgpu_gr_config_get_gpc_tpc_count(gr_config, gpc)) {
-				perf = -1;
+				perf = 0U;
 				tpc = (u32)tpc_tmp;
 
 				err = gr_gv100_scg_estimate_perf(g, gr_config,
