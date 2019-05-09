@@ -107,7 +107,7 @@ int gp106_configure_therm_alert(struct gk20a *g, s32 curr_warn_temp)
 
 	if (g->curr_warn_temp != curr_warn_temp) {
 		g->curr_warn_temp = curr_warn_temp;
-		err = nvgpu_therm_configure_therm_alert(g);
+		err = nvgpu_therm_configure_therm_alert(g, &g->pmu);
 	}
 
 	return err;

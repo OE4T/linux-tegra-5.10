@@ -35,7 +35,7 @@ void nvgpu_pmu_handle_therm_event(struct gk20a *g, struct nvgpu_pmu *pmu,
 	nvgpu_log_fn(g, " ");
 
 	if (rpc != NULL) {
-		nvgpu_pmu_therm_rpc_handler(g, rpc);
+		nvgpu_pmu_therm_rpc_handler(g, pmu, rpc);
 	} else {
 
 		switch (msg_therm->msg_type) {
@@ -58,7 +58,7 @@ void nvgpu_pmu_handle_therm_event(struct gk20a *g, struct nvgpu_pmu *pmu,
 	}
 }
 
-int nvgpu_therm_domain_sw_setup(struct gk20a *g)
+int nvgpu_therm_domain_sw_setup(struct gk20a *g, struct nvgpu_pmu *pmu)
 {
 	int status;
 
@@ -78,34 +78,34 @@ int nvgpu_therm_domain_sw_setup(struct gk20a *g)
 		goto exit;
 	}
 
-	g->pmu.therm_event_handler = nvgpu_pmu_handle_therm_event;
+	pmu->therm_event_handler = nvgpu_pmu_handle_therm_event;
 
 exit:
 	return status;
 }
 
-int nvgpu_therm_domain_pmu_setup(struct gk20a *g)
+int nvgpu_therm_domain_pmu_setup(struct gk20a *g, struct nvgpu_pmu *pmu)
 {
 	return therm_send_pmgr_tables_to_pmu(g);
 }
 
-int nvgpu_therm_pmu_init_pmupstate(struct gk20a *g)
+int nvgpu_therm_pmu_init_pmupstate(struct gk20a *g, struct nvgpu_pmu *pmu)
 {
 	/* If already allocated, do not re-allocate */
-	if (g->pmu.therm_pmu != NULL) {
+	if (pmu->therm_pmu != NULL) {
 		return 0;
 	}
 
-	g->pmu.therm_pmu = nvgpu_kzalloc(g, sizeof(*g->pmu.therm_pmu));
-	if (g->pmu.therm_pmu == NULL) {
+	pmu->therm_pmu = nvgpu_kzalloc(g, sizeof(*(pmu->therm_pmu)));
+	if (pmu->therm_pmu == NULL) {
 		return -ENOMEM;
 	}
 
 	return 0;
 }
 
-void nvgpu_therm_pmu_free_pmupstate(struct gk20a *g)
+void nvgpu_therm_pmu_free_pmupstate(struct gk20a *g, struct nvgpu_pmu *pmu)
 {
-	nvgpu_kfree(g, g->pmu.therm_pmu);
-	g->pmu.therm_pmu = NULL;
+	nvgpu_kfree(g, pmu->therm_pmu);
+	pmu->therm_pmu = NULL;
 }
