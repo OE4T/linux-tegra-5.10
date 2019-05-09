@@ -2484,7 +2484,7 @@ void gk20a_channel_semaphore_wakeup(struct gk20a *g, bool post_events)
 	 * Ensure that all pending writes are actually done  before trying to
 	 * read semaphore values from DRAM.
 	 */
-	g->ops.mm.cache.fb_flush(g);
+	nvgpu_assert(g->ops.mm.cache.fb_flush(g) == 0);
 
 	for (chid = 0; chid < f->num_channels; chid++) {
 		struct nvgpu_channel *c = g->fifo.channel+chid;
