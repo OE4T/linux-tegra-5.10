@@ -126,7 +126,7 @@ bool gk20a_fifo_handle_ctxsw_timeout(struct gk20a *g)
 			"engine=%u, %s=%d, ms=%u",
 			engine_id, is_tsg ? "tsg" : "ch", id, ms);
 
-		nvgpu_rc_ctxsw_timeout(g, BIT(engine_id), tsg, debug_dump);
+		nvgpu_rc_ctxsw_timeout(g, BIT32(engine_id), tsg, debug_dump);
 	} else {
 		nvgpu_log_info(g,
 			"fifo is waiting for ctxsw switch for %d ms, "
