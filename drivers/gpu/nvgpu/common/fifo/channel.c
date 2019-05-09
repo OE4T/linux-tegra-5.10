@@ -1649,7 +1649,10 @@ static void nvgpu_channel_wdt_handler(struct nvgpu_channel *ch)
 
 	if (gk20a_channel_check_unserviceable(ch)) {
 		/* channel is already recovered */
-		nvgpu_channel_wdt_stop(ch);
+		if (nvgpu_channel_wdt_stop(ch) == true) {
+			nvgpu_info(g, "chid: %d unserviceable but wdt was ON",
+			ch->chid);
+		}
 		return;
 	}
 
@@ -1676,9 +1679,12 @@ static void nvgpu_channel_wdt_handler(struct nvgpu_channel *ch)
 			gk20a_gr_debug_dump(g);
 		}
 
-		g->ops.tsg.force_reset(ch,
+		if (g->ops.tsg.force_reset(ch,
 			NVGPU_ERR_NOTIFIER_FIFO_ERROR_IDLE_TIMEOUT,
-			ch->wdt.debug_dump);
+			ch->wdt.debug_dump) != 0) {
+			nvgpu_err(g, "failed tsg force reset for chid: %d",
+				ch->chid);
+		}
 	}
 }
 
