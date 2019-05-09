@@ -364,7 +364,7 @@ int gv11b_fifo_is_preempt_pending(struct gk20a *g, u32 id,
 	u32 pbdma_id;
 	u32 act_eng_id;
 	u32 runlist_id;
-	int ret = 0;
+	int err, ret = 0;
 	u32 tsgid;
 
 	if (id_type == ID_TYPE_TSG) {
@@ -382,17 +382,23 @@ int gv11b_fifo_is_preempt_pending(struct gk20a *g, u32 id,
 
 	for_each_set_bit(bit, &runlist_served_pbdmas, f->num_pbdma) {
 		pbdma_id = U32(bit);
-		ret |= gv11b_fifo_preempt_poll_pbdma(g, tsgid,
+		err = gv11b_fifo_preempt_poll_pbdma(g, tsgid,
 				pbdma_id);
+		if (err != 0) {
+			ret = err;
+		}
 	}
 
 	f->runlist_info[runlist_id]->reset_eng_bitmask = 0U;
 
 	for_each_set_bit(bit, &runlist_served_engines, f->max_engines) {
 		act_eng_id = U32(bit);
-		ret |= gv11b_fifo_preempt_poll_eng(g,
+		err = gv11b_fifo_preempt_poll_eng(g,
 			tsgid, act_eng_id,
 			&f->runlist_info[runlist_id]->reset_eng_bitmask);
+		if (err != 0 && ret == 0) {
+			ret = err;
+		}
 	}
 	return ret;
 }
