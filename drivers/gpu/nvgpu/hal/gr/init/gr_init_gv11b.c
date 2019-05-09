@@ -30,7 +30,7 @@
 #include <nvgpu/netlist.h>
 
 #include <nvgpu/gr/config.h>
-#include "common/gr/gr_priv.h"
+#include <nvgpu/gr/gr_utils.h>
 
 #include "gr_init_gm20b.h"
 #include "gr_init_gv11b.h"
@@ -542,6 +542,7 @@ void gv11b_gr_init_rop_mapping(struct gk20a *g,
 int gv11b_gr_init_fs_state(struct gk20a *g)
 {
 	u32 data;
+	u32 ecc_val;
 	int err = 0;
 	u32 ver = g->params.gpu_arch + g->params.gpu_impl;
 
@@ -586,10 +587,9 @@ int gv11b_gr_init_fs_state(struct gk20a *g)
 			 gr_gpcs_tpcs_sm_disp_ctrl_re_suppress_disable_f());
 	nvgpu_writel(g, gr_gpcs_tpcs_sm_disp_ctrl_r(), data);
 
-	if (g->gr->fecs_feature_override_ecc_val != 0U) {
-		nvgpu_writel(g,
-			gr_fecs_feature_override_ecc_r(),
-			g->gr->fecs_feature_override_ecc_val);
+	ecc_val = nvgpu_gr_get_override_ecc_val(g);
+	if (ecc_val != 0U) {
+		nvgpu_writel(g, gr_fecs_feature_override_ecc_r(), ecc_val);
 	}
 
 	data = nvgpu_readl(g, gr_debug_0_r());

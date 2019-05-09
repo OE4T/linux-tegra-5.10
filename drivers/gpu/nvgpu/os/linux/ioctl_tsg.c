@@ -28,6 +28,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/gr/config.h>
 #include <nvgpu/gr/gr.h>
+#include <nvgpu/gr/gr_utils.h>
 #include <nvgpu/channel.h>
 #include <nvgpu/tsg.h>
 #include <nvgpu/fifo.h>

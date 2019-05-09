@@ -50,6 +50,7 @@
 #include <nvgpu/engines.h>
 #include <nvgpu/channel.h>
 #include <nvgpu/gr/gr.h>
+#include <nvgpu/gr/gr_utils.h>
 #include <nvgpu/pmu/pmu_pstate.h>
 #include <nvgpu/cyclestats_snapshot.h>
 

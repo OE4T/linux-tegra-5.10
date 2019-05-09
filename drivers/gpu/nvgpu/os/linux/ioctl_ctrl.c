@@ -38,14 +38,13 @@
 #include <nvgpu/gr/zbc.h>
 #include <nvgpu/gr/zcull.h>
 #include <nvgpu/gr/gr.h>
+#include <nvgpu/gr/gr_utils.h>
 #include <nvgpu/gr/warpstate.h>
 #include <nvgpu/channel.h>
 #include <nvgpu/pmu/pmgr.h>
 #include <nvgpu/power_features/pg.h>
 #include <nvgpu/fence.h>
 #include <nvgpu/channel_sync_syncpt.h>
-
-#include "common/gr/gr_priv.h"
 
 #include "ioctl_ctrl.h"
 #include "ioctl_dbg.h"
@@ -1667,6 +1666,8 @@ long gk20a_ctrl_dev_ioctl(struct file *filp, unsigned int cmd, unsigned long arg
 	struct nvgpu_gr_zbc_entry *zbc_val;
 	struct nvgpu_gr_zbc_query_params *zbc_tbl;
 	struct nvgpu_gr_config *gr_config = nvgpu_gr_get_config_ptr(g);
+	struct nvgpu_gr_zcull *gr_zcull = nvgpu_gr_get_zcull_ptr(g);
+	struct nvgpu_gr_zbc *gr_zbc = nvgpu_gr_get_zbc_ptr(g);
 	int err = 0;
 	u32 i;
 
@@ -1697,7 +1698,7 @@ long gk20a_ctrl_dev_ioctl(struct file *filp, unsigned int cmd, unsigned long arg
 	case NVGPU_GPU_IOCTL_ZCULL_GET_CTX_SIZE:
 		get_ctx_size_args = (struct nvgpu_gpu_zcull_get_ctx_size_args *)buf;
 
-		get_ctx_size_args->size = nvgpu_gr_get_ctxsw_zcull_size(g, g->gr->zcull);
+		get_ctx_size_args->size = nvgpu_gr_get_ctxsw_zcull_size(g, gr_zcull);
 
 		break;
 	case NVGPU_GPU_IOCTL_ZCULL_GET_INFO:
@@ -1711,7 +1712,7 @@ long gk20a_ctrl_dev_ioctl(struct file *filp, unsigned int cmd, unsigned long arg
 			return -ENOMEM;
 
 		err = g->ops.gr.zcull.get_zcull_info(g, gr_config,
-					g->gr->zcull, zcull_info);
+					gr_zcull, zcull_info);
 		if (err) {
 			nvgpu_kfree(g, zcull_info);
 			break;
@@ -1762,7 +1763,7 @@ long gk20a_ctrl_dev_ioctl(struct file *filp, unsigned int cmd, unsigned long arg
 		if (!err) {
 			err = gk20a_busy(g);
 			if (!err) {
-				err = g->ops.gr.zbc.set_table(g, g->gr->zbc,
+				err = g->ops.gr.zbc.set_table(g, gr_zbc,
 							     zbc_val);
 				gk20a_idle(g);
 			}
@@ -1781,7 +1782,7 @@ long gk20a_ctrl_dev_ioctl(struct file *filp, unsigned int cmd, unsigned long arg
 		zbc_tbl->type = query_table_args->type;
 		zbc_tbl->index_size = query_table_args->index_size;
 
-		err = g->ops.gr.zbc.query_table(g, g->gr->zbc, zbc_tbl);
+		err = g->ops.gr.zbc.query_table(g, gr_zbc, zbc_tbl);
 
 		if (!err) {
 			switch (zbc_tbl->type) {

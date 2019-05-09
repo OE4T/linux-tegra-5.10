@@ -33,12 +33,12 @@
 #include <nvgpu/gr/ctx.h>
 #include <nvgpu/gr/obj_ctx.h>
 #include <nvgpu/gr/hwpm_map.h>
+#include <nvgpu/gr/gr_utils.h>
 
 #include "common/gr/ctx_priv.h"
 
 #include "ctx_vgpu.h"
 #include "common/vgpu/ivc/comm_vgpu.h"
-#include "common/gr/gr_priv.h"
 
 int vgpu_gr_alloc_gr_ctx(struct gk20a *g,
 			struct nvgpu_gr_ctx *gr_ctx,
@@ -46,14 +46,15 @@ int vgpu_gr_alloc_gr_ctx(struct gk20a *g,
 {
 	struct tegra_vgpu_cmd_msg msg = {0};
 	struct tegra_vgpu_gr_ctx_params *p = &msg.params.gr_ctx;
-	struct nvgpu_gr *gr = g->gr;
+	struct nvgpu_gr_obj_ctx_golden_image *gr_golden_image =
+					nvgpu_gr_get_golden_image_ptr(g);
 	u32 golden_image_size;
 	int err;
 
 	nvgpu_log_fn(g, " ");
 
 	golden_image_size =
-		nvgpu_gr_obj_ctx_get_golden_image_size(gr->golden_image);
+		nvgpu_gr_obj_ctx_get_golden_image_size(gr_golden_image);
 	if (golden_image_size == 0) {
 		return -EINVAL;
 	}
@@ -171,6 +172,7 @@ int vgpu_gr_alloc_pm_ctx(struct gk20a *g, struct nvgpu_gr_ctx *gr_ctx,
 			struct vm_gk20a *vm)
 {
 	struct pm_ctx_desc *pm_ctx = &gr_ctx->pm_ctx;
+	struct nvgpu_gr_hwpm_map *gr_hwpm_map = nvgpu_gr_get_hwpm_map_ptr(g);
 
 	nvgpu_log_fn(g, " ");
 
@@ -179,7 +181,7 @@ int vgpu_gr_alloc_pm_ctx(struct gk20a *g, struct nvgpu_gr_ctx *gr_ctx,
 	}
 
 	pm_ctx->mem.gpu_va = nvgpu_vm_alloc_va(vm,
-			nvgpu_gr_hwpm_map_get_size(g->gr->hwpm_map),
+			nvgpu_gr_hwpm_map_get_size(gr_hwpm_map),
 			GMMU_PAGE_SIZE_KERNEL);
 
 	if (!pm_ctx->mem.gpu_va) {
@@ -187,7 +189,7 @@ int vgpu_gr_alloc_pm_ctx(struct gk20a *g, struct nvgpu_gr_ctx *gr_ctx,
 		return -ENOMEM;
 	}
 
-	pm_ctx->mem.size = nvgpu_gr_hwpm_map_get_size(g->gr->hwpm_map);
+	pm_ctx->mem.size = nvgpu_gr_hwpm_map_get_size(gr_hwpm_map);
 	return 0;
 }
 

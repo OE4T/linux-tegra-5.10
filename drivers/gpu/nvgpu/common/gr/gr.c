@@ -769,13 +769,3 @@ void nvgpu_gr_sw_ready(struct gk20a *g, bool enable)
 {
 	g->gr->sw_ready = enable;
 }
-
-void nvgpu_gr_override_ecc_val(struct gk20a *g, u32 ecc_val)
-{
-	g->gr->fecs_feature_override_ecc_val = ecc_val;
-}
-
-struct nvgpu_gr_config *nvgpu_gr_get_config_ptr(struct gk20a *g)
-{
-	return g->gr->config;
-}

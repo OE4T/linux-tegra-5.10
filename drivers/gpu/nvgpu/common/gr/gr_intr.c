@@ -35,8 +35,8 @@
 #include <nvgpu/gr/config.h>
 #include <nvgpu/gr/gr_falcon.h>
 #include <nvgpu/gr/fecs_trace.h>
+#include <nvgpu/gr/gr_utils.h>
 
-#include "gr_priv.h"
 #include "gr_intr_priv.h"
 
 static void gr_intr_report_ctxsw_error(struct gk20a *g, u32 err_type, u32 chid,
@@ -236,7 +236,7 @@ struct nvgpu_channel *nvgpu_gr_intr_get_channel_from_ctx(struct gk20a *g,
 			u32 curr_ctx, u32 *curr_tsgid)
 {
 	struct nvgpu_fifo *f = &g->fifo;
-	struct nvgpu_gr_intr *intr = g->gr->intr;
+	struct nvgpu_gr_intr *intr = nvgpu_gr_get_intr_ptr(g);
 	u32 chid;
 	u32 tsgid = NVGPU_INVALID_TSG_ID;
 	u32 i;
@@ -694,7 +694,7 @@ int nvgpu_gr_intr_stall_isr(struct gk20a *g)
 	struct nvgpu_tsg *tsg = NULL;
 	u32 global_esr = 0;
 	u32 chid;
-	struct nvgpu_gr_config *gr_config = g->gr->config;
+	struct nvgpu_gr_config *gr_config = nvgpu_gr_get_config_ptr(g);
 	u32 gr_intr = g->ops.gr.intr.read_pending_interrupts(g, &intr_info);
 	u32 clear_intr = gr_intr;
 
@@ -881,7 +881,7 @@ int nvgpu_gr_intr_stall_isr(struct gk20a *g)
 /* invalidate channel lookup tlb */
 void nvgpu_gr_intr_flush_channel_tlb(struct gk20a *g)
 {
-	struct nvgpu_gr_intr *intr = g->gr->intr;
+	struct nvgpu_gr_intr *intr = nvgpu_gr_get_intr_ptr(g);
 
 	nvgpu_spinlock_acquire(&intr->ch_tlb_lock);
 	(void) memset(intr->chid_tlb, 0,

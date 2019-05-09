@@ -32,8 +32,7 @@
 #include <nvgpu/gr/ctx.h>
 #include <nvgpu/gr/subctx.h>
 #include <nvgpu/gr/fecs_trace.h>
-
-#include "common/gr/gr_priv.h"
+#include <nvgpu/gr/gr_utils.h>
 
 #ifdef CONFIG_GK20A_CTXSW_TRACE
 
@@ -215,8 +214,10 @@ int nvgpu_gr_fecs_trace_num_ts(struct gk20a *g)
 struct nvgpu_fecs_trace_record *nvgpu_gr_fecs_trace_get_record(
 	struct gk20a *g, int idx)
 {
+	struct nvgpu_gr_global_ctx_buffer_desc *gr_global_ctx_buffer =
+				nvgpu_gr_get_global_ctx_buffer_ptr(g);
 	struct nvgpu_mem *mem = nvgpu_gr_global_ctx_buffer_get_mem(
-					g->gr->global_ctx_buffer,
+					gr_global_ctx_buffer,
 					NVGPU_GR_GLOBAL_CTX_FECS_TRACE_BUFFER);
 	if (mem == NULL) {
 		return NULL;
@@ -621,6 +622,8 @@ int nvgpu_gr_fecs_trace_bind_channel(struct gk20a *g,
 	u64 addr = 0ULL;
 	struct nvgpu_gr_fecs_trace *trace = g->fecs_trace;
 	struct nvgpu_mem *mem;
+	struct nvgpu_gr_global_ctx_buffer_desc *gr_global_ctx_buffer =
+				nvgpu_gr_get_global_ctx_buffer_ptr(g);
 	u32 context_ptr;
 	u32 aperture_mask;
 	int ret;
@@ -636,7 +639,7 @@ int nvgpu_gr_fecs_trace_bind_channel(struct gk20a *g,
 			pid, context_ptr,
 			nvgpu_inst_block_addr(g, inst_block));
 
-	mem = nvgpu_gr_global_ctx_buffer_get_mem(g->gr->global_ctx_buffer,
+	mem = nvgpu_gr_global_ctx_buffer_get_mem(gr_global_ctx_buffer,
 					NVGPU_GR_GLOBAL_CTX_FECS_TRACE_BUFFER);
 	if (mem == NULL) {
 		return -EINVAL;

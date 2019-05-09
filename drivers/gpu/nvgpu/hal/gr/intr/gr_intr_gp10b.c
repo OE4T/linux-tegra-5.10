@@ -30,8 +30,7 @@
 #include <nvgpu/gr/ctx.h>
 #include <nvgpu/gr/gr_falcon.h>
 #include <nvgpu/gr/gr_intr.h>
-
-#include "common/gr/gr_priv.h"
+#include <nvgpu/gr/gr_utils.h>
 
 #include "gr_intr_gp10b.h"
 
@@ -62,7 +61,7 @@ static int gp10b_gr_intr_clear_cilp_preempt_pending(struct gk20a *g,
 	}
 
 	nvgpu_gr_ctx_set_cilp_preempt_pending(gr_ctx, false);
-	g->gr->cilp_preempt_pending_chid = NVGPU_INVALID_CHANNEL_ID;
+	nvgpu_gr_clear_cilp_preempt_pending_chid(g);
 
 	return 0;
 }
@@ -76,7 +75,7 @@ static int gp10b_gr_intr_get_cilp_preempt_pending_chid(struct gk20a *g,
 	u32 chid;
 	int ret = -EINVAL;
 
-	chid = g->gr->cilp_preempt_pending_chid;
+	chid = nvgpu_gr_get_cilp_preempt_pending_chid(g);
 	if (chid == NVGPU_INVALID_CHANNEL_ID) {
 		return ret;
 	}

@@ -29,10 +29,10 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/regops.h>
 #include <nvgpu/gr/obj_ctx.h>
+#include <nvgpu/gr/gr_utils.h>
 
 /* Access ctx buffer offset functions in gr_gk20a.h */
 #include "hal/gr/gr/gr_gk20a.h"
-#include "common/gr/gr_priv.h"
 
 static int regop_bsearch_range_cmp(const void *pkey, const void *pelem)
 {
@@ -69,9 +69,12 @@ static inline bool linear_search(u32 offset, const u32 *list, u64 size)
  * But note: while the dbg_gpu bind requires the a channel fd,
  * it doesn't require an allocated gr/compute obj at that point...
  */
-static bool gr_context_info_available(struct nvgpu_gr *gr)
+static bool gr_context_info_available(struct gk20a *g)
 {
-	return nvgpu_gr_obj_ctx_is_golden_image_ready(gr->golden_image);
+	struct nvgpu_gr_obj_ctx_golden_image *gr_golden_image =
+					nvgpu_gr_get_golden_image_ptr(g);
+
+	return nvgpu_gr_obj_ctx_is_golden_image_ready(gr_golden_image);
 }
 
 static bool validate_reg_ops(struct gk20a *g,
@@ -119,7 +122,7 @@ int exec_regops_gk20a(struct gk20a *g,
 
 	/* be sure that ctx info is in place if there are ctx ops */
 	if ((ctx_wr_count | ctx_rd_count) != 0U) {
-		if (!gr_context_info_available(g->gr)) {
+		if (!gr_context_info_available(g)) {
 			nvgpu_err(g, "gr context data not available");
 			return -ENODEV;
 		}

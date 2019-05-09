@@ -27,12 +27,11 @@
 #include <nvgpu/gr/obj_ctx.h>
 #include <nvgpu/gr/gr_falcon.h>
 #include <nvgpu/gr/gr.h>
+#include <nvgpu/gr/gr_utils.h>
 #include <nvgpu/power_features/cg.h>
 #include <nvgpu/power_features/pg.h>
 #include <nvgpu/pmu/pmu_perfmon.h>
 #include <nvgpu/pmu/fw.h>
-
-#include "common/gr/gr_priv.h"
 
 #include "os_linux.h"
 #include "sysfs.h"
@@ -828,8 +827,9 @@ static ssize_t tpc_pg_mask_store(struct device *dev,
 	struct device_attribute *attr, const char *buf, size_t count)
 {
 	struct gk20a *g = get_gk20a(dev);
-	struct nvgpu_gr *gr = g->gr;
 	unsigned long val = 0;
+	struct nvgpu_gr_obj_ctx_golden_image *gr_golden_image =
+					nvgpu_gr_get_golden_image_ptr(g);
 
 	nvgpu_mutex_acquire(&g->tpc_pg_lock);
 
@@ -849,7 +849,7 @@ static ssize_t tpc_pg_mask_store(struct device *dev,
 		goto exit;
 	}
 
-	if (nvgpu_gr_obj_ctx_get_golden_image_size(gr->golden_image) != 0) {
+	if (nvgpu_gr_obj_ctx_get_golden_image_size(gr_golden_image) != 0) {
 		nvgpu_err(g, "golden image size already initialized");
 		nvgpu_mutex_release(&g->tpc_pg_lock);
 		return -ENODEV;
@@ -875,6 +875,10 @@ static ssize_t tpc_fs_mask_store(struct device *dev,
 {
 	struct gk20a *g = get_gk20a(dev);
 	struct nvgpu_gr_config *gr_config = nvgpu_gr_get_config_ptr(g);
+	struct nvgpu_gr_obj_ctx_golden_image *gr_golden_image =
+					nvgpu_gr_get_golden_image_ptr(g);
+	struct nvgpu_gr_falcon *gr_falcon =
+					nvgpu_gr_get_falcon_ptr(g);
 	unsigned long val = 0;
 
 	if (kstrtoul(buf, 10, &val) < 0)
@@ -890,12 +894,12 @@ static ssize_t tpc_fs_mask_store(struct device *dev,
 
 		g->ops.gr.set_gpc_tpc_mask(g, 0);
 
-		nvgpu_gr_obj_ctx_set_golden_image_size(g->gr->golden_image, 0);
-		nvgpu_gr_obj_ctx_deinit(g, g->gr->golden_image);
-		g->gr->golden_image = NULL;
+		nvgpu_gr_obj_ctx_set_golden_image_size(gr_golden_image, 0);
+		nvgpu_gr_obj_ctx_deinit(g, gr_golden_image);
+		nvgpu_gr_reset_golden_image_ptr(g);
 
-		nvgpu_gr_falcon_remove_support(g, g->gr->falcon);
-		g->gr->falcon = NULL;
+		nvgpu_gr_falcon_remove_support(g, gr_falcon);
+		nvgpu_gr_reset_falcon_ptr(g);
 
 		nvgpu_gr_config_deinit(g, gr_config);
 		/* Cause next poweron to reinit just gr */

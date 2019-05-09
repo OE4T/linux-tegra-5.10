@@ -36,7 +36,6 @@
 #include <nvgpu/power_features/cg.h>
 
 #include "obj_ctx_priv.h"
-#include "gr_priv.h"
 
 void nvgpu_gr_obj_ctx_commit_inst_gpu_va(struct gk20a *g,
 	struct nvgpu_mem *inst_block, u64 gpu_va)
