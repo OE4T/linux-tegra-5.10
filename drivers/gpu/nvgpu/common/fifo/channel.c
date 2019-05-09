@@ -2420,7 +2420,8 @@ int nvgpu_channel_suspend_all_serviceable_ch(struct gk20a *g)
 	}
 
 	if (channels_in_use) {
-		nvgpu_runlist_reload_ids(g, active_runlist_ids, false);
+		nvgpu_assert(nvgpu_runlist_reload_ids(g,
+				active_runlist_ids, false) == 0);
 
 		for (chid = 0; chid < f->num_channels; chid++) {
 			struct nvgpu_channel *ch =
@@ -2471,7 +2472,8 @@ void nvgpu_channel_resume_all_serviceable_ch(struct gk20a *g)
 	}
 
 	if (channels_in_use) {
-		nvgpu_runlist_reload_ids(g, active_runlist_ids, true);
+		nvgpu_assert(nvgpu_runlist_reload_ids(g,
+				active_runlist_ids, true) == 0);
 	}
 
 	nvgpu_log_fn(g, "done");
