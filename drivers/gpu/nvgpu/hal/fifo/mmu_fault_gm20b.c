@@ -83,7 +83,7 @@ static inline u32 gm20b_engine_id_to_fault_id(struct gk20a *g,
 void gm20b_fifo_trigger_mmu_fault(struct gk20a *g,
 		unsigned long engine_ids_bitmask)
 {
-	unsigned long poll_delay = POLL_DELAY_MIN_US;
+	unsigned int poll_delay = POLL_DELAY_MIN_US;
 	unsigned long engine_id;
 	int ret;
 	struct nvgpu_timeout timeout;
@@ -119,8 +119,8 @@ void gm20b_fifo_trigger_mmu_fault(struct gk20a *g,
 			break;
 		}
 
-		nvgpu_usleep_range(poll_delay, poll_delay * 2UL);
-		poll_delay = min_t(u32, poll_delay << 1, POLL_DELAY_MAX_US);
+		nvgpu_usleep_range(poll_delay, poll_delay * 2U);
+		poll_delay = min_t(u32, poll_delay << 1U, POLL_DELAY_MAX_US);
 	} while (nvgpu_timeout_expired(&timeout) == 0);
 
 	if (ret != 0) {
@@ -129,6 +129,6 @@ void gm20b_fifo_trigger_mmu_fault(struct gk20a *g,
 
 	/* release trigger mmu fault */
 	for_each_set_bit(engine_id, &engine_ids_bitmask, 32UL) {
-		nvgpu_writel(g, fifo_trigger_mmu_fault_r(engine_id), 0);
+		nvgpu_writel(g, fifo_trigger_mmu_fault_r((u32)engine_id), 0U);
 	}
 }
