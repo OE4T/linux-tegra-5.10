@@ -378,7 +378,9 @@ static void gk20a_free_channel(struct nvgpu_channel *ch, bool force)
 		nvgpu_log(g, gpu_dbg_intr | gpu_dbg_gpu_dbg, "engine reset was"
 				" deferred, running now");
 		nvgpu_mutex_acquire(&g->fifo.engines_reset_mutex);
-		nvgpu_channel_deferred_reset_engines(g, ch);
+
+		nvgpu_assert(nvgpu_channel_deferred_reset_engines(g, ch) == 0);
+
 		nvgpu_mutex_release(&g->fifo.engines_reset_mutex);
 	}
 
