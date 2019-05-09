@@ -141,7 +141,7 @@ int channel_gk20a_update_runlist(struct nvgpu_channel *c, bool add)
 			c, add, true);
 }
 
-int gk20a_enable_channel_tsg(struct gk20a *g, struct nvgpu_channel *ch)
+int nvgpu_channel_enable_tsg(struct gk20a *g, struct nvgpu_channel *ch)
 {
 	struct nvgpu_tsg *tsg;
 
@@ -150,11 +150,12 @@ int gk20a_enable_channel_tsg(struct gk20a *g, struct nvgpu_channel *ch)
 		g->ops.tsg.enable(tsg);
 		return 0;
 	} else {
+		nvgpu_err(ch->g, "chid: %d is not bound to tsg", ch->chid);
 		return -EINVAL;
 	}
 }
 
-int gk20a_disable_channel_tsg(struct gk20a *g, struct nvgpu_channel *ch)
+int nvgpu_channel_disable_tsg(struct gk20a *g, struct nvgpu_channel *ch)
 {
 	struct nvgpu_tsg *tsg;
 
@@ -163,6 +164,7 @@ int gk20a_disable_channel_tsg(struct gk20a *g, struct nvgpu_channel *ch)
 		g->ops.tsg.disable(tsg);
 		return 0;
 	} else {
+		nvgpu_err(ch->g, "chid: %d is not bound to tsg", ch->chid);
 		return -EINVAL;
 	}
 }
@@ -1162,6 +1164,7 @@ int nvgpu_channel_set_syncpt(struct nvgpu_channel *ch)
 	struct nvgpu_channel_sync_syncpt *sync_syncpt;
 	u32 new_syncpt = 0U;
 	u32 old_syncpt = g->ops.ramfc.get_syncpt(ch);
+	int err = 0;
 
 	if (ch->sync != NULL) {
 		sync_syncpt = nvgpu_channel_sync_to_syncpt(ch->sync);
@@ -1170,25 +1173,43 @@ int nvgpu_channel_set_syncpt(struct nvgpu_channel *ch)
 			    nvgpu_channel_sync_get_syncpt_id(sync_syncpt);
 		} else {
 			new_syncpt = NVGPU_INVALID_SYNCPT_ID;
+			/* ??? */
+			return -EINVAL;
 		}
+	} else {
+		return -EINVAL;
 	}
 
 	if ((new_syncpt != 0U) && (new_syncpt != old_syncpt)) {
 		/* disable channel */
-		gk20a_disable_channel_tsg(g, ch);
+		err = nvgpu_channel_disable_tsg(g, ch);
+		if (err != 0) {
+			nvgpu_err(g, "failed to disable channel/TSG");
+			return err;
+		}
 
 		/* preempt the channel */
-		nvgpu_assert(nvgpu_preempt_channel(g, ch) == 0);
-
+		err = nvgpu_preempt_channel(g, ch);
+		nvgpu_assert(err == 0);
+		if (err != 0 ) {
+			goto out;
+		}
+		/* no error at this point */
 		g->ops.ramfc.set_syncpt(ch, new_syncpt);
+
+		err =  nvgpu_channel_enable_tsg(g, ch);
+		if (err != 0) {
+			nvgpu_err(g, "failed to enable channel/TSG");
+		}
 	}
 
-	/* enable channel */
-	gk20a_enable_channel_tsg(g, ch);
-
 	nvgpu_log_fn(g, "done");
-
-	return 0;
+	return err;
+out:
+	if (nvgpu_channel_enable_tsg(g, ch) != 0) {
+		nvgpu_err(g, "failed to enable channel/TSG");
+	}
+	return err;
 }
 
 int nvgpu_channel_setup_bind(struct nvgpu_channel *c,
@@ -2405,7 +2426,9 @@ int nvgpu_channel_suspend_all_serviceable_ch(struct gk20a *g)
 		} else {
 			nvgpu_log_info(g, "suspend channel %d", chid);
 			/* disable channel */
-			gk20a_disable_channel_tsg(g, ch);
+			if (nvgpu_channel_disable_tsg(g, ch) != 0) {
+				nvgpu_err(g, "failed to disable channel/TSG");
+			}
 			/* preempt the channel */
 			nvgpu_assert(nvgpu_preempt_channel(g, ch) == 0);
 			/* wait for channel update notifiers */

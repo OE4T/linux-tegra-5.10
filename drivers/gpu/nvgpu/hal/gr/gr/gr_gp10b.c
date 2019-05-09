@@ -394,21 +394,20 @@ static int gr_gp10b_disable_channel_or_tsg(struct gk20a *g, struct nvgpu_channel
 
 	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gpu_dbg | gpu_dbg_intr, " ");
 
-	ret = gk20a_disable_channel_tsg(g, fault_ch);
+	ret = nvgpu_channel_disable_tsg(g, fault_ch);
 	if (ret != 0) {
-		nvgpu_err(g,
-				"CILP: failed to disable channel/TSG!");
+		nvgpu_err(g, "CILP: failed to disable channel/TSG!");
 		return ret;
 	}
 
 	ret = g->ops.runlist.reload(g, fault_ch->runlist_id, true, false);
 	if (ret != 0) {
-		nvgpu_err(g,
-				"CILP: failed to restart runlist 0!");
+		nvgpu_err(g, "CILP: failed to restart runlist 0!");
 		return ret;
 	}
 
-	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gpu_dbg | gpu_dbg_intr, "CILP: restarted runlist");
+	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gpu_dbg | gpu_dbg_intr,
+			"CILP: restarted runlist");
 
 	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gpu_dbg | gpu_dbg_intr,
 			"CILP: tsgid: 0x%x", tsg->tsgid);
@@ -659,7 +658,10 @@ bool gr_gp10b_suspend_context(struct nvgpu_channel *ch,
 
 		ctx_resident = true;
 	} else {
-		gk20a_disable_channel_tsg(g, ch);
+		if (nvgpu_channel_disable_tsg(g, ch) != 0) {
+			/* ch might not be bound to tsg anymore */
+			nvgpu_err(g, "failed to disable channel/TSG");
+		}
 	}
 
 	return ctx_resident;
@@ -771,14 +773,14 @@ int gr_gp10b_set_boosted_ctx(struct nvgpu_channel *ch,
 	nvgpu_gr_ctx_set_boosted_ctx(gr_ctx, boost);
 	mem = nvgpu_gr_ctx_get_ctx_mem(gr_ctx);
 
-	err = gk20a_disable_channel_tsg(g, ch);
+	err = nvgpu_channel_disable_tsg(g, ch);
 	if (err != 0) {
 		return err;
 	}
 
 	err = nvgpu_preempt_channel(g, ch);
 	if (err != 0) {
-		goto enable_ch;
+		goto out;
 	}
 
 	if (g->ops.gr.ctxsw_prog.set_pmu_options_boost_clock_frequencies !=
@@ -787,11 +789,26 @@ int gr_gp10b_set_boosted_ctx(struct nvgpu_channel *ch,
 			mem, nvgpu_gr_ctx_get_boosted_ctx(gr_ctx));
 	} else {
 		err = -ENOSYS;
+		goto out;
 	}
+	/* no error at this point */
+	err = nvgpu_channel_enable_tsg(g, ch);
+	if (err != 0) {
+		nvgpu_err(g, "failed to enable channel/TSG");
+	}
+	return err;
 
-enable_ch:
-	gk20a_enable_channel_tsg(g, ch);
-
+out:
+	/*
+	 * control reaches here if preempt failed or
+	 * set_pmu_options_boost_clock_frequencies fn pointer is NULL.
+	 * Propagate preempt failure err or err for
+	 * set_pmu_options_boost_clock_frequencies fn pointer being NULL
+	 */
+	if (nvgpu_channel_enable_tsg(g, ch) != 0) {
+		/* ch might not be bound to tsg anymore */
+		nvgpu_err(g, "failed to enable channel/TSG");
+	}
 	return err;
 }
 

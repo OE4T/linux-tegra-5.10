@@ -66,22 +66,39 @@ int gr_gk20a_update_smpc_ctxsw_mode(struct gk20a *g,
 		return -EINVAL;
 	}
 
-	ret = gk20a_disable_channel_tsg(g, c);
+	ret = nvgpu_channel_disable_tsg(g, c);
 	if (ret != 0) {
+		/* ch might not be bound to tsg anymore */
 		nvgpu_err(g, "failed to disable channel/TSG");
-		goto out;
+		return ret;
 	}
+
 	ret = nvgpu_preempt_channel(g, c);
 	if (ret != 0) {
-		gk20a_enable_channel_tsg(g, c);
-		nvgpu_err(g, "failed to preempt channel/TSG");
 		goto out;
 	}
 
 	ret = nvgpu_gr_ctx_set_smpc_mode(g, tsg->gr_ctx, enable_smpc_ctxsw);
+	if (ret != 0) {
+		goto out;
+	}
+	/* no error at this point */
+	ret = nvgpu_channel_enable_tsg(g, c);
+	if (ret != 0) {
+		nvgpu_err(g, "failed to enable channel/TSG");
+	}
+	return ret;
 
 out:
-	gk20a_enable_channel_tsg(g, c);
+	/*
+	 * control reaches here if preempt failed or nvgpu_gr_ctx_set_smpc_mode
+	 * failed. Propagate preempt failure err or err for
+	 * nvgpu_gr_ctx_set_smpc_mode
+	 */
+	if (nvgpu_channel_enable_tsg(g, c) != 0) {
+		/* ch might not be bound to tsg anymore */
+		nvgpu_err(g, "failed to enable channel/TSG");
+	}
 	return ret;
 }
 
@@ -132,37 +149,65 @@ int gr_gk20a_update_hwpm_ctxsw_mode(struct gk20a *g,
 		return 0;
 	}
 
-	ret = gk20a_disable_channel_tsg(g, c);
+	ret = nvgpu_channel_disable_tsg(g, c);
 	if (ret != 0) {
+		/* ch might not be bound to tsg anymore */
 		nvgpu_err(g, "failed to disable channel/TSG");
 		return ret;
 	}
 
 	ret = nvgpu_preempt_channel(g, c);
 	if (ret != 0) {
-		gk20a_enable_channel_tsg(g, c);
 		nvgpu_err(g, "failed to preempt channel/TSG");
-		return ret;
+		goto out;
 	}
 
 	if (c->subctx != NULL) {
 		struct nvgpu_channel *ch;
+		int err;
 
 		nvgpu_rwsem_down_read(&tsg->ch_list_lock);
+
 		nvgpu_list_for_each_entry(ch, &tsg->ch_list, channel_gk20a, ch_entry) {
-			ret = nvgpu_gr_ctx_set_hwpm_mode(g, gr_ctx, false);
-			if (ret == 0) {
-				nvgpu_gr_subctx_set_hwpm_mode(g, ch->subctx,
-					gr_ctx);
+			err = nvgpu_gr_ctx_set_hwpm_mode(g, gr_ctx, false);
+			if (err != 0) {
+				nvgpu_err(g, "chid: %d set_hwpm_mode failed",
+					ch->chid);
+				ret = err;
+				continue;
 			}
+			nvgpu_gr_subctx_set_hwpm_mode(g, ch->subctx, gr_ctx);
 		}
+
 		nvgpu_rwsem_up_read(&tsg->ch_list_lock);
+
+		if (ret != 0) {
+			goto out;
+		}
 	} else {
 		ret = nvgpu_gr_ctx_set_hwpm_mode(g, gr_ctx, true);
+		if (ret != 0) {
+			goto out;
+		}
 	}
+	/* no error at this point */
+	ret = nvgpu_channel_enable_tsg(g, c);
+	if (ret != 0) {
+		nvgpu_err(g, "failed to enable channel/TSG");
+	}
+	return ret;
 
-	/* enable channel */
-	gk20a_enable_channel_tsg(g, c);
+out:
+	/*
+	 * control reaches here if preempt failed or
+	 * set_hwpm_mode failed. Propagate preempt failure err or err for
+	 * set_hwpm_mode
+	 */
+
+	if (nvgpu_channel_enable_tsg(g, c) != 0) {
+		/* ch might not be bound to tsg anymore */
+		nvgpu_err(g, "failed to enable channel/TSG");
+	}
 
 	return ret;
 }
@@ -1979,7 +2024,10 @@ bool gr_gk20a_suspend_context(struct nvgpu_channel *ch)
 		g->ops.gr.suspend_all_sms(g, 0, false);
 		ctx_resident = true;
 	} else {
-		gk20a_disable_channel_tsg(g, ch);
+		if (nvgpu_channel_disable_tsg(g, ch) != 0) {
+			/* ch might not be bound to tsg anymore */
+			nvgpu_err(g, "failed to disable channel/TSG");
+		}
 	}
 
 	return ctx_resident;
@@ -1994,7 +2042,10 @@ bool gr_gk20a_resume_context(struct nvgpu_channel *ch)
 		g->ops.gr.resume_all_sms(g);
 		ctx_resident = true;
 	} else {
-		gk20a_enable_channel_tsg(g, ch);
+		if (nvgpu_channel_enable_tsg(g, ch) != 0) {
+			/* ch might not be bound to tsg anymore */
+			nvgpu_err(g, "failed to enable channel/TSG");
+		}
 	}
 
 	return ctx_resident;

@@ -39,7 +39,7 @@ static int nvgpu_gr_setup_zcull(struct gk20a *g, struct nvgpu_channel *c,
 
 	nvgpu_log_fn(g, " ");
 
-	ret = gk20a_disable_channel_tsg(g, c);
+	ret = nvgpu_channel_disable_tsg(g, c);
 	if (ret != 0) {
 		nvgpu_err(g, "failed to disable channel/TSG");
 		return ret;
@@ -47,20 +47,31 @@ static int nvgpu_gr_setup_zcull(struct gk20a *g, struct nvgpu_channel *c,
 
 	ret = nvgpu_preempt_channel(g, c);
 	if (ret != 0) {
-		if (gk20a_enable_channel_tsg(g, c) != 0) {
-			nvgpu_err(g, "failed to re-enable channel/TSG");
-		}
 		nvgpu_err(g, "failed to preempt channel/TSG");
-		return ret;
+		goto out;
 	}
 
 	ret = nvgpu_gr_zcull_ctx_setup(g, c->subctx, gr_ctx);
 	if (ret != 0) {
 		nvgpu_err(g, "failed to setup zcull");
+		goto out;
+	}
+	/* no error at this point */
+	ret = nvgpu_channel_enable_tsg(g, c);
+	if (ret != 0) {
+		nvgpu_err(g, "failed to re-enable channel/TSG");
 	}
 
-	ret = gk20a_enable_channel_tsg(g, c);
-	if (ret != 0) {
+	return ret;
+
+out:
+	/*
+	 * control reaches here if preempt failed or nvgpu_gr_zcull_ctx_setup
+	 * failed. Propagate preempt failure err or err for
+	 * nvgpu_gr_zcull_ctx_setup
+	 */
+	if (nvgpu_channel_enable_tsg(g, c) != 0) {
+		/* ch might not be bound to tsg */
 		nvgpu_err(g, "failed to enable channel/TSG");
 	}
 
@@ -263,7 +274,7 @@ int nvgpu_gr_setup_set_preemption_mode(struct nvgpu_channel *ch,
 		return err;
 	}
 
-	err = gk20a_disable_channel_tsg(g, ch);
+	err = nvgpu_channel_disable_tsg(g, ch);
 	if (err != 0) {
 		nvgpu_err(g, "failed to disable channel/TSG");
 		return err;
@@ -287,7 +298,7 @@ int nvgpu_gr_setup_set_preemption_mode(struct nvgpu_channel *ch,
 		true);
 	nvgpu_gr_ctx_patch_write_end(g, gr_ctx, true);
 
-	err = gk20a_enable_channel_tsg(g, ch);
+	err = nvgpu_channel_enable_tsg(g, ch);
 	if (err != 0) {
 		nvgpu_err(g, "failed to re-enable channel/TSG");
 	}
@@ -295,7 +306,7 @@ int nvgpu_gr_setup_set_preemption_mode(struct nvgpu_channel *ch,
 	return err;
 
 enable_ch:
-	if (gk20a_enable_channel_tsg(g, ch) != 0) {
+	if (nvgpu_channel_enable_tsg(g, ch) != 0) {
 		nvgpu_err(g, "failed to re-enable channel/TSG");
 	}
 	return err;
