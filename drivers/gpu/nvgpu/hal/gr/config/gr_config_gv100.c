@@ -53,7 +53,7 @@ static int gr_gv100_scg_estimate_perf(struct gk20a *g,
 	u32 scg_world_perf;
 	u32 gpc_id;
 	u32 pes_id;
-	int diff;
+	u32 diff;
 	bool is_tpc_removed_gpc = false;
 	bool is_tpc_removed_pes = false;
 	u32 max_tpc_gpc = 0U;
@@ -147,11 +147,14 @@ static int gr_gv100_scg_estimate_perf(struct gk20a *g,
 	for (gpc_id =0;
 	     gpc_id < nvgpu_gr_config_get_gpc_count(gr_config);
 	     gpc_id++) {
-		diff = average_tpcs - scale_factor * num_tpc_gpc[gpc_id];
-		if (diff < 0) {
-			diff = -diff;
+		if (average_tpcs > (scale_factor * num_tpc_gpc[gpc_id])) {
+			diff = average_tpcs -
+				(scale_factor * num_tpc_gpc[gpc_id]);
+		} else {
+			diff = (scale_factor * num_tpc_gpc[gpc_id]) -
+				average_tpcs;
 		}
-		deviation += U32(diff);
+		deviation += diff;
 	}
 
 	deviation /= nvgpu_gr_config_get_gpc_count(gr_config);
