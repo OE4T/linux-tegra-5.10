@@ -114,6 +114,9 @@ static u32 gv11b_fifo_ctxsw_timeout_info(struct gk20a *g, u32 active_eng_id,
 			fifo_intr_ctxsw_timeout_info_ctxsw_state_save_v()) {
 
 		tsgid = fifo_intr_ctxsw_timeout_info_prev_tsgid_v(timeout_info);
+	} else {
+		nvgpu_log_info(g, "ctxsw_timeout_info_ctxsw_state: 0x%08x",
+			ctx_status);
 	}
 	nvgpu_log_info(g, "ctxsw timeout info: tsgid = %d", tsgid);
 
@@ -156,18 +159,22 @@ static u32 gv11b_fifo_ctxsw_timeout_info(struct gk20a *g, u32 active_eng_id,
 	if (*info_status ==
 		 fifo_intr_ctxsw_timeout_info_status_ack_received_v()) {
 
-		nvgpu_log_info(g, "ctxsw timeout info : ack received");
+		nvgpu_log_info(g, "ctxsw timeout info: ack received");
 		/* no need to recover */
 		tsgid = NVGPU_INVALID_TSG_ID;
 
 	} else if (*info_status ==
 		fifo_intr_ctxsw_timeout_info_status_dropped_timeout_v()) {
 
-		nvgpu_log_info(g, "ctxsw timeout info : dropped timeout");
+		nvgpu_log_info(g, "ctxsw timeout info: dropped timeout");
 		/* no need to recover */
 		tsgid = NVGPU_INVALID_TSG_ID;
 
+	} else {
+		nvgpu_log_info(g, "ctxsw timeout info status: 0x%08x",
+			*info_status);
 	}
+
 	return tsgid;
 }
 

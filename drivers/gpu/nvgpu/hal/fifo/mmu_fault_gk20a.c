@@ -158,6 +158,8 @@ static void gk20a_fifo_parse_mmu_fault_info(struct gk20a *g, u32 mmu_fault_id,
 			fifo_intr_mmu_fault_info_engine_subid_gpc_v())
 			&& (g->ops.fifo.get_mmu_fault_gpc_desc != NULL)) {
 		g->ops.fifo.get_mmu_fault_gpc_desc(mmufault);
+	} else {
+		mmufault->client_id_desc = does_not_exist[0];
 	}
 }
 
@@ -320,6 +322,8 @@ bool gk20a_fifo_handle_mmu_fault_locked(
 				if (refch != NULL) {
 					tsg = tsg_gk20a_from_ch(refch);
 				}
+			} else {
+				nvgpu_err(g, "ctx_id_type is not chid/tsgid");
 			}
 		} else {
 			/* Look up channel from the inst block pointer. */
