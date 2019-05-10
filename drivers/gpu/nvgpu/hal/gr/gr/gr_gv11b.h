@@ -27,7 +27,7 @@
 
 struct gk20a;
 struct nvgpu_warpstate;
-struct gk20a_debug_output;
+struct nvgpu_debug_context;
 
 u32 gr_gv11b_ctxsw_checksum_mismatch_mailbox_val(void);
 void gr_gv11b_handle_tpc_sm_ecc_exception(struct gk20a *g,
@@ -37,7 +37,7 @@ void gr_gv11b_handle_tpc_sm_ecc_exception(struct gk20a *g,
 void gr_gv11b_set_alpha_circular_buffer_size(struct gk20a *g, u32 data);
 void gr_gv11b_set_circular_buffer_size(struct gk20a *g, u32 data);
 int gr_gv11b_dump_gr_status_regs(struct gk20a *g,
-			   struct gk20a_debug_output *o);
+			   struct nvgpu_debug_context *o);
 void gr_gv11b_set_gpc_tpc_mask(struct gk20a *g, u32 gpc_index);
 int gr_gv11b_pre_process_sm_exception(struct gk20a *g,
 		u32 gpc, u32 tpc, u32 sm, u32 global_esr, u32 warp_esr,

@@ -231,7 +231,7 @@ void gr_gp10b_set_circular_buffer_size(struct gk20a *g, u32 data)
 
 
 int gr_gp10b_dump_gr_status_regs(struct gk20a *g,
-			   struct gk20a_debug_output *o)
+			   struct nvgpu_debug_context *o)
 {
 	struct nvgpu_gr *gr = g->gr;
 	u32 gr_engine_id;

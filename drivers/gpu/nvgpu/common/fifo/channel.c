@@ -2586,7 +2586,7 @@ void nvgpu_channel_free_inst(struct gk20a *g, struct nvgpu_channel *ch)
 }
 
 void nvgpu_channel_debug_dump_all(struct gk20a *g,
-		 struct gk20a_debug_output *o)
+		 struct nvgpu_debug_context *o)
 {
 	struct nvgpu_fifo *f = &g->fifo;
 	u32 chid;

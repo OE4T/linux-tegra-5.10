@@ -34,7 +34,7 @@ struct nvgpu_ce_app;
 struct gk20a_ctxsw_trace;
 struct nvgpu_mem_alloc_tracker;
 struct dbg_profiler_object_data;
-struct gk20a_debug_output;
+struct nvgpu_debug_context;
 struct nvgpu_clk_pll_debug_data;
 struct nvgpu_nvhost_dev;
 struct nvgpu_netlist_vars;
@@ -312,7 +312,7 @@ struct gpu_ops {
 		void (*set_pmm_register)(struct gk20a *g, u32 offset, u32 val,
 				u32 num_chiplets, u32 num_perfmons);
 		int (*dump_gr_regs)(struct gk20a *g,
-				struct gk20a_debug_output *o);
+				struct nvgpu_debug_context *o);
 		int (*update_pc_sampling)(struct nvgpu_channel *ch,
 					   bool enable);
 		void (*init_sm_dsm_reg_info)(void);
@@ -1107,7 +1107,7 @@ struct gpu_ops {
 				u32 *error_notifier);
 		u32 (*get_signature)(struct gk20a *g);
 		void (*dump_status)(struct gk20a *g,
-				struct gk20a_debug_output *o);
+				struct nvgpu_debug_context *o);
 		u32 (*acquire_val)(u64 timeout);
 		u32 (*read_data)(struct gk20a *g, u32 pbdma_id);
 		void (*reset_header)(struct gk20a *g, u32 pbdma_id);
@@ -1189,7 +1189,7 @@ struct gpu_ops {
 				bool eng, bool pbdma);
 		int (*set_syncpt)(struct nvgpu_channel *ch);
 		void (*debug_dump)(struct gk20a *g,
-				struct gk20a_debug_output *o,
+				struct nvgpu_debug_context *o,
 				struct nvgpu_channel_dump_info *info);
 	} channel;
 	struct {
@@ -1236,7 +1236,7 @@ struct gpu_ops {
 		void (*read_engine_status_info) (struct gk20a *g,
 			u32 engine_id, struct nvgpu_engine_status_info *status);
 		void (*dump_engine_status)(struct gk20a *g,
-				struct gk20a_debug_output *o);
+				struct nvgpu_debug_context *o);
 	} engine_status;
 	struct {
 		void (*read_pbdma_status_info) (struct gk20a *g,
@@ -1526,7 +1526,7 @@ struct gpu_ops {
 	} mc;
 	struct {
 		void (*show_dump)(struct gk20a *g,
-				struct gk20a_debug_output *o);
+				struct nvgpu_debug_context *o);
 	} debug;
 #ifdef NVGPU_DEBUGGER
 	struct {

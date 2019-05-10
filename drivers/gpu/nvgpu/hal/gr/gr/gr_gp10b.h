@@ -31,7 +31,7 @@ struct gk20a;
 struct nvgpu_channel;
 struct nvgpu_gr_ctx;
 struct dbg_session_gk20a;
-struct gk20a_debug_output;
+struct nvgpu_debug_context;
 
 #define NVC097_BES_CROP_DEBUG4_CLAMP_FP_BLEND_TO_INF	0x0U
 #define NVC097_BES_CROP_DEBUG4_CLAMP_FP_BLEND_TO_MAXVAL 0x1U
@@ -43,7 +43,7 @@ void gr_gp10b_set_bes_crop_debug4(struct gk20a *g, u32 data);
 void gr_gp10b_set_alpha_circular_buffer_size(struct gk20a *g, u32 data);
 void gr_gp10b_set_circular_buffer_size(struct gk20a *g, u32 data);
 int gr_gp10b_dump_gr_status_regs(struct gk20a *g,
-			   struct gk20a_debug_output *o);
+			   struct nvgpu_debug_context *o);
 void gr_gp10b_set_gpc_tpc_mask(struct gk20a *g, u32 gpc_index);
 int gr_gp10b_pre_process_sm_exception(struct gk20a *g,
 		u32 gpc, u32 tpc, u32 sm, u32 global_esr, u32 warp_esr,

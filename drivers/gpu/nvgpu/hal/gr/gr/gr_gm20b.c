@@ -303,7 +303,7 @@ u32 gr_gm20b_get_tpc_num(struct gk20a *g, u32 addr)
 }
 
 int gr_gm20b_dump_gr_status_regs(struct gk20a *g,
-			   struct gk20a_debug_output *o)
+			   struct nvgpu_debug_context *o)
 {
 	struct nvgpu_gr *gr = g->gr;
 	u32 gr_engine_id;

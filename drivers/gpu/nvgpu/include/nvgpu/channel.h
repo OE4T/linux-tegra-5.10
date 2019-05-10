@@ -42,7 +42,7 @@ struct nvgpu_channel_sync;
 struct nvgpu_gpfifo_userdata;
 struct nvgpu_gr_subctx;
 struct nvgpu_gr_ctx;
-struct gk20a_debug_output;
+struct nvgpu_debug_context;
 
 /* Flags to be passed to nvgpu_channel_setup_bind() */
 #define NVGPU_SETUP_BIND_FLAGS_SUPPORT_VPR		BIT32(0)
@@ -546,7 +546,7 @@ int nvgpu_channel_set_syncpt(struct nvgpu_channel *ch);
 struct nvgpu_channel *nvgpu_channel_refch_from_inst_ptr(struct gk20a *g,
 			u64 inst_ptr);
 void nvgpu_channel_debug_dump_all(struct gk20a *g,
-		 struct gk20a_debug_output *o);
+		 struct nvgpu_debug_context *o);
 int nvgpu_channel_deferred_reset_engines(struct gk20a *g,
 		struct nvgpu_channel *ch);
 

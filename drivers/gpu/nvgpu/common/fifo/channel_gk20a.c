@@ -107,7 +107,7 @@ void gk20a_channel_read_state(struct gk20a *g, struct nvgpu_channel *ch,
 }
 
 void gk20a_channel_debug_dump(struct gk20a *g,
-				struct gk20a_debug_output *o,
+				struct nvgpu_debug_context *o,
 				struct nvgpu_channel_dump_info *info)
 {
 	gk20a_debug_output(o, "Channel ID: %d, TSG ID: %u, pid %d, refs %d; "

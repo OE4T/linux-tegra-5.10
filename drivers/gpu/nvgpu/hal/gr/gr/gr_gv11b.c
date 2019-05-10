@@ -764,7 +764,7 @@ void gr_gv11b_set_circular_buffer_size(struct gk20a *g, u32 data)
 }
 
 static void gr_gv11b_dump_gr_per_sm_regs(struct gk20a *g,
-			struct gk20a_debug_output *o,
+			struct nvgpu_debug_context *o,
 			u32 gpc, u32 tpc, u32 sm, u32 offset)
 {
 
@@ -800,7 +800,7 @@ static void gr_gv11b_dump_gr_per_sm_regs(struct gk20a *g,
 }
 
 static void gr_gv11b_dump_gr_sm_regs(struct gk20a *g,
-			   struct gk20a_debug_output *o)
+			   struct nvgpu_debug_context *o)
 {
 	u32 gpc, tpc, sm, sm_per_tpc;
 	u32 gpc_offset, tpc_offset, offset;
@@ -849,7 +849,7 @@ static void gr_gv11b_dump_gr_sm_regs(struct gk20a *g,
 }
 
 int gr_gv11b_dump_gr_status_regs(struct gk20a *g,
-			   struct gk20a_debug_output *o)
+			   struct nvgpu_debug_context *o)
 {
 	struct nvgpu_gr *gr = g->gr;
 	u32 gr_engine_id;

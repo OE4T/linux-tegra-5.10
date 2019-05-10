@@ -1,7 +1,7 @@
 /*
  * GK20A Debug functionality
  *
- * Copyright (c) 2014-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -30,7 +30,7 @@
 struct gk20a;
 struct gpu_ops;
 
-struct gk20a_debug_output {
+struct nvgpu_debug_context {
 	void (*fn)(void *ctx, const char *str, size_t len);
 	void *ctx;
 	char buf[256];
@@ -40,11 +40,11 @@ struct gk20a_debug_output {
 extern unsigned int gk20a_debug_trace_cmdbuf;
 
 __attribute__((format (printf, 2, 3)))
-void gk20a_debug_output(struct gk20a_debug_output *o,
+void gk20a_debug_output(struct nvgpu_debug_context *o,
 					const char *fmt, ...);
 
 void gk20a_debug_dump(struct gk20a *g);
-void gk20a_debug_show_dump(struct gk20a *g, struct gk20a_debug_output *o);
+void gk20a_debug_show_dump(struct gk20a *g, struct nvgpu_debug_context *o);
 void gk20a_gr_debug_dump(struct gk20a *g);
 void gk20a_init_debug_ops(struct gpu_ops *gops);
 
@@ -52,11 +52,12 @@ void gk20a_debug_init(struct gk20a *g, const char *debugfs_symlink);
 void gk20a_debug_deinit(struct gk20a *g);
 #else
 __attribute__((format (printf, 2, 3)))
-static inline void gk20a_debug_output(struct gk20a_debug_output *o,
+static inline void gk20a_debug_output(struct nvgpu_debug_context *o,
 					const char *fmt, ...) {}
 
 static inline void gk20a_debug_dump(struct gk20a *g) {}
-static inline void gk20a_debug_show_dump(struct gk20a *g, struct gk20a_debug_output *o) {}
+static inline void gk20a_debug_show_dump(struct gk20a *g,
+					 struct nvgpu_debug_context *o) {}
 static inline void gk20a_gr_debug_dump(struct gk20a *g) {}
 static inline void gk20a_debug_init(struct gk20a *g, const char *debugfs_symlink) {}
 static inline void gk20a_debug_deinit(struct gk20a *g) {}

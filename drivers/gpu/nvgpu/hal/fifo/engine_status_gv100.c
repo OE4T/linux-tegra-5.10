@@ -44,7 +44,7 @@ void gv100_read_engine_status_info(struct gk20a *g, u32 engine_id,
 	return;
 }
 
-void gv100_dump_engine_status(struct gk20a *g, struct gk20a_debug_output *o)
+void gv100_dump_engine_status(struct gk20a *g, struct nvgpu_debug_context *o)
 {
 	u32 i, host_num_engines;
 	struct nvgpu_engine_status_info engine_status;

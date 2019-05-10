@@ -26,7 +26,7 @@
 #include <nvgpu/types.h>
 
 struct gk20a;
-struct gk20a_debug_output;
+struct nvgpu_debug_context;
 struct nvgpu_channel_dump_info;
 struct nvgpu_gpfifo_entry;
 
@@ -44,7 +44,7 @@ void gm20b_pbdma_reset_header(struct gk20a *g, u32 pbdma_id);
 void gm20b_pbdma_reset_method(struct gk20a *g, u32 pbdma_id,
 			u32 pbdma_method_index);
 u32 gm20b_pbdma_acquire_val(u64 timeout);
-void gm20b_pbdma_dump_status(struct gk20a *g, struct gk20a_debug_output *o);
+void gm20b_pbdma_dump_status(struct gk20a *g, struct nvgpu_debug_context *o);
 
 void gm20b_pbdma_format_gpfifo_entry(struct gk20a *g,
 		struct nvgpu_gpfifo_entry *gpfifo_entry,
@@ -57,7 +57,7 @@ u32 gm20b_pbdma_restartable_0_intr_descs(void);
 void gm20b_pbdma_clear_all_intr(struct gk20a *g, u32 pbdma_id);
 void gm20b_pbdma_disable_and_clear_all_intr(struct gk20a *g);
 void gm20b_pbdma_syncpoint_debug_dump(struct gk20a *g,
-		     struct gk20a_debug_output *o,
+		     struct nvgpu_debug_context *o,
 		     struct nvgpu_channel_dump_info *info);
 void gm20b_pbdma_setup_hw(struct gk20a *g);
 

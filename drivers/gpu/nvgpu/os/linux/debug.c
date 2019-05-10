@@ -52,7 +52,7 @@ static inline void gk20a_debug_write_to_seqfile(void *ctx, const char *str,
 	seq_write((struct seq_file *)ctx, str, len);
 }
 
-void gk20a_debug_output(struct gk20a_debug_output *o, const char *fmt, ...)
+void gk20a_debug_output(struct nvgpu_debug_context *o, const char *fmt, ...)
 {
 	va_list args;
 	int len;
@@ -63,7 +63,7 @@ void gk20a_debug_output(struct gk20a_debug_output *o, const char *fmt, ...)
 	o->fn(o->ctx, o->buf, len);
 }
 
-void gk20a_debug_show_dump(struct gk20a *g, struct gk20a_debug_output *o)
+void gk20a_debug_show_dump(struct gk20a *g, struct nvgpu_debug_context *o)
 {
 	nvgpu_channel_debug_dump_all(g, o);
 	g->ops.pbdma.dump_status(g, o);
@@ -71,7 +71,7 @@ void gk20a_debug_show_dump(struct gk20a *g, struct gk20a_debug_output *o)
 }
 
 static int gk20a_gr_dump_regs(struct gk20a *g,
-		struct gk20a_debug_output *o)
+		struct nvgpu_debug_context *o)
 {
 	if (g->ops.gr.dump_gr_regs)
 		nvgpu_pg_elpg_protected_call(g, g->ops.gr.dump_gr_regs(g, o));
@@ -81,7 +81,7 @@ static int gk20a_gr_dump_regs(struct gk20a *g,
 
 void gk20a_gr_debug_dump(struct gk20a *g)
 {
-	struct gk20a_debug_output o = {
+	struct nvgpu_debug_context o = {
 		.fn = gk20a_debug_write_printk,
 		.ctx = g,
 	};
@@ -93,7 +93,7 @@ static int gk20a_gr_debug_show(struct seq_file *s, void *unused)
 {
 	struct device *dev = s->private;
 	struct gk20a *g = gk20a_get_platform(dev)->g;
-	struct gk20a_debug_output o = {
+	struct nvgpu_debug_context o = {
 		.fn = gk20a_debug_write_to_seqfile,
 		.ctx = s,
 	};
@@ -115,7 +115,7 @@ static int gk20a_gr_debug_show(struct seq_file *s, void *unused)
 void gk20a_debug_dump(struct gk20a *g)
 {
 	struct gk20a_platform *platform = gk20a_get_platform(dev_from_gk20a(g));
-	struct gk20a_debug_output o = {
+	struct nvgpu_debug_context o = {
 		.fn = gk20a_debug_write_printk,
 		.ctx = g,
 	};
@@ -131,7 +131,7 @@ void gk20a_debug_dump(struct gk20a *g)
 static int gk20a_debug_show(struct seq_file *s, void *unused)
 {
 	struct device *dev = s->private;
-	struct gk20a_debug_output o = {
+	struct nvgpu_debug_context o = {
 		.fn = gk20a_debug_write_to_seqfile,
 		.ctx = s,
 	};

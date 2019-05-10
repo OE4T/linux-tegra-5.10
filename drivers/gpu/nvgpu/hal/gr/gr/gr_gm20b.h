@@ -51,7 +51,7 @@ void gr_gm20b_set_gpc_tpc_mask(struct gk20a *g, u32 gpc_index);
 bool gr_gm20b_is_tpc_addr(struct gk20a *g, u32 addr);
 u32 gr_gm20b_get_tpc_num(struct gk20a *g, u32 addr);
 int gr_gm20b_dump_gr_status_regs(struct gk20a *g,
-			   struct gk20a_debug_output *o);
+			   struct nvgpu_debug_context *o);
 int gr_gm20b_update_pc_sampling(struct nvgpu_channel *c,
 				       bool enable);
 void gr_gm20b_init_cyclestats(struct gk20a *g);

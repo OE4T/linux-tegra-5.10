@@ -314,7 +314,7 @@ u32 gm20b_pbdma_acquire_val(u64 timeout)
 	return val;
 }
 
-void gm20b_pbdma_dump_status(struct gk20a *g, struct gk20a_debug_output *o)
+void gm20b_pbdma_dump_status(struct gk20a *g, struct nvgpu_debug_context *o)
 {
 	u32 i, host_num_pbdma;
 	struct nvgpu_pbdma_status_info pbdma_status;
@@ -475,7 +475,7 @@ bool gm20b_pbdma_handle_intr(struct gk20a *g, u32 pbdma_id,
 }
 
 void gm20b_pbdma_syncpoint_debug_dump(struct gk20a *g,
-			     struct gk20a_debug_output *o,
+			     struct nvgpu_debug_context *o,
 			     struct nvgpu_channel_dump_info *info)
 {
 #ifdef CONFIG_TEGRA_GK20A_NVHOST

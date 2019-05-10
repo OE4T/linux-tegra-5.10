@@ -26,7 +26,7 @@
 struct gk20a;
 struct nvgpu_channel;
 struct nvgpu_channel_hw_state;
-struct gk20a_debug_output;
+struct nvgpu_debug_context;
 struct nvgpu_channel_dump_info;
 
 void gk20a_channel_enable(struct nvgpu_channel *ch);
@@ -36,6 +36,6 @@ void gk20a_channel_read_state(struct gk20a *g, struct nvgpu_channel *ch,
 		struct nvgpu_channel_hw_state *state);
 
 void gk20a_channel_debug_dump(struct gk20a *g,
-	     struct gk20a_debug_output *o,
+	     struct nvgpu_debug_context *o,
 	     struct nvgpu_channel_dump_info *info);
 #endif /* FIFO_CHANNEL_GK20A_H */
