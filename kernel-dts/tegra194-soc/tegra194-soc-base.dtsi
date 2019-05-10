@@ -134,10 +134,18 @@
 #endif
 
 	tegra_rtc: rtc@c2a0000 {
+#if TEGRA_RTC_DT_VERSION >= DT_VERSION_2
+		compatible = "nvidia,tegra20-rtc";
+		interrupt-parent = <&tegra_pmc>;
+		interrupts = <73 IRQ_TYPE_LEVEL_HIGH>;
+		clocks = <&bpmp TEGRA194_CLK_CLK_32K>;
+		clock-names = "rtc";
+#else
 		compatible = "nvidia,tegra18-rtc";
-		reg = <0x0 0x0c2a0000 0x0 0x00010000>;
 		interrupt-parent = <&tegra_pm_irq>;
 		interrupts = <0 10 0x04>;
+#endif
+		reg = <0x0 0x0c2a0000 0x0 0x00010000>;
 		status = "disabled";
 	};
 
