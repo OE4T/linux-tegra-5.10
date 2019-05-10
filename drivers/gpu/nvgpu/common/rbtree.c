@@ -185,7 +185,7 @@ void nvgpu_rbtree_insert(struct nvgpu_rbtree_node *new_node,
 /*
  * maintain red-black tree balance after deleting node x
  */
-static void _delete_fixup(struct nvgpu_rbtree_node **root,
+static void delete_fixup(struct nvgpu_rbtree_node **root,
 			  struct nvgpu_rbtree_node *parent_of_x,
 			  struct nvgpu_rbtree_node *x)
 {
@@ -350,7 +350,7 @@ void nvgpu_rbtree_unlink(struct nvgpu_rbtree_node *node,
 	}
 
 	if (y_was_black) {
-		_delete_fixup(root, parent_of_x, x);
+		delete_fixup(root, parent_of_x, x);
 	}
 }
 
