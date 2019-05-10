@@ -32,7 +32,6 @@ NVGPU_NEXT_SOURCE := \
 		$(NV_COMPONENT_DIR)/../../../../nvgpu-next/drivers/gpu/nvgpu
 
 NVGPU_POSIX			:= -D__NVGPU_POSIX__
-NVGPU_REDUCED			:= 1
 
 NV_COMPONENT_NAME		:= nvgpu-drv
 NV_COMPONENT_OWN_INTERFACE_DIR	:= .
