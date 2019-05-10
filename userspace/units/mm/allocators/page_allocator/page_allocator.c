@@ -345,8 +345,8 @@ static int test_page_allocator_init_slabs(struct unit_module *m,
 
 	/* Fault injection at init_slabs */
 	nvgpu_posix_enable_fault_injection(kmem_fi, true, 3);
-	if (nvgpu_page_allocator_init(g, na, "test_page", base,
-					length, blk_size, flags) == 0) {
+	if (nvgpu_allocator_init(g, na, NULL, "test_page", base, length,
+			blk_size, 0ULL, flags, PAGE_ALLOCATOR) == 0) {
 		unit_return_fail(m,
 			"pa with slabs inited despite fault injection\n");
 	}
@@ -355,14 +355,14 @@ static int test_page_allocator_init_slabs(struct unit_module *m,
 	/*
 	 * Expect to fail as blk_size is odd
 	 */
-	if (nvgpu_page_allocator_init(g, na, "test_page", base,
-					length, SZ_4K + 1ULL, flags) == 0) {
+	if (nvgpu_allocator_init(g, na, NULL, "test_page", base, length,
+			SZ_4K + 1ULL, 0ULL, flags, PAGE_ALLOCATOR) == 0) {
 		unit_return_fail(m,
 			"vidmem page allocator inited with odd blk_size\n");
 	}
 
-	if (nvgpu_page_allocator_init(g, na, "test_page", base,
-					length, SZ_4K, flags) != 0) {
+	if (nvgpu_allocator_init(g, na, NULL, "test_page", base, length,
+			SZ_4K, 0ULL, flags, PAGE_ALLOCATOR) != 0) {
 		unit_return_fail(m,
 			"vidmem page allocator inited with odd blk_size\n");
 	} else {
@@ -373,8 +373,8 @@ static int test_page_allocator_init_slabs(struct unit_module *m,
 	 * Initialize page allocator
 	 * This will be used for further tests.
 	 */
-	if (nvgpu_page_allocator_init(g, na, "test_page", base,
-					length, blk_size, flags) != 0) {
+	if (nvgpu_allocator_init(g, na, NULL, "test_page", base, length,
+			blk_size, 0ULL, flags, PAGE_ALLOCATOR) != 0) {
 		unit_return_fail(m, "init with slabs failed\n");
 	}
 
@@ -530,15 +530,15 @@ static int test_nvgpu_page_allocator_init(struct unit_module *m,
 	/*
 	 * expect to fail as blk_size < SZ_4K
 	 */
-	if (nvgpu_page_allocator_init(g, na, "test_page", base,
-					length, 0ULL, flags) == 0) {
+	if (nvgpu_allocator_init(g, na, NULL, "test_page", base, length,
+			0ULL, 0ULL, flags, PAGE_ALLOCATOR) == 0) {
 		unit_return_fail(m, "inited despite blk_size = 0\n");
 	}
 
 	/* Fault injection at nvgpu_page_allocator allocation */
 	nvgpu_posix_enable_fault_injection(kmem_fi, true, 0);
-	if (nvgpu_page_allocator_init(g, na, "test_page", base,
-					length, blk_size, flags) == 0) {
+	if (nvgpu_allocator_init(g, na, NULL, "test_page", base, length,
+			blk_size, 0ULL, flags, PAGE_ALLOCATOR) == 0) {
 		unit_return_fail(m,
 			"inited despite fault injection at page_allocator\n");
 	}
@@ -546,8 +546,8 @@ static int test_nvgpu_page_allocator_init(struct unit_module *m,
 
 	/* Fault injection at alloc_cache */
 	nvgpu_posix_enable_fault_injection(kmem_fi, true, 1);
-	if (nvgpu_page_allocator_init(g, na, "test_page", base,
-					length, blk_size, flags) == 0) {
+	if (nvgpu_allocator_init(g, na, NULL, "test_page", base, length,
+			blk_size, 0ULL, flags, PAGE_ALLOCATOR) == 0) {
 		unit_return_fail(m,
 			"inited despite fault injection at alloc_cache\n");
 	}
@@ -555,8 +555,8 @@ static int test_nvgpu_page_allocator_init(struct unit_module *m,
 
 	/* Fault injection at slab_page_cache */
 	nvgpu_posix_enable_fault_injection(kmem_fi, true, 2);
-	if (nvgpu_page_allocator_init(g, na, "test_page", base,
-					length, blk_size, flags) == 0) {
+	if (nvgpu_allocator_init(g, na, NULL, "test_page", base, length,
+			blk_size, 0ULL, flags, PAGE_ALLOCATOR) == 0) {
 		unit_return_fail(m,
 			"inited despite fault injection at slab_page_cache\n");
 	}
@@ -565,14 +565,14 @@ static int test_nvgpu_page_allocator_init(struct unit_module *m,
 	/*
 	 * expect to fail as blk_size is odd
 	 */
-	if (nvgpu_page_allocator_init(g, na, "test_page", base,
-					length, SZ_4K + 3ULL, flags) == 0) {
+	if (nvgpu_allocator_init(g, na, NULL, "test_page", base, length,
+			SZ_4K + 3ULL, 0ULL, flags, PAGE_ALLOCATOR) == 0) {
 		unit_return_fail(m, "inited despite odd blk_size\n");
 	}
 
 	/* base = 0 */
-	if (nvgpu_page_allocator_init(g, na, "test_page", 0ULL,
-					length, blk_size, flags) != 0) {
+	if (nvgpu_allocator_init(g, na, NULL, "test_page", 0ULL, length,
+			blk_size, 0ULL, flags, PAGE_ALLOCATOR) != 0) {
 		unit_return_fail(m, "init failed with base = 0\n");
 	} else {
 		na->ops->fini(na);
@@ -582,8 +582,8 @@ static int test_nvgpu_page_allocator_init(struct unit_module *m,
 	 * Initialize page allocator
 	 * This will be used for further tests.
 	 */
-	if (nvgpu_page_allocator_init(g, na, "test_page", base,
-					length, blk_size, flags) != 0) {
+	if (nvgpu_allocator_init(g, na, NULL, "test_page", base, length,
+			blk_size, 0ULL, flags, PAGE_ALLOCATOR) != 0) {
 		unit_return_fail(m, "init failed\n");
 	}
 
