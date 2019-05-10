@@ -196,8 +196,12 @@ static void _delete_fixup(struct nvgpu_rbtree_node **root,
 		 * Hence, parent_of_x == NULL with
 		 * x==NULL is never possible (tree invariant)
 		 */
+		if (parent_of_x == NULL) {
+			parent_of_x = x->parent;
+			continue;
+		}
 
-		if ((parent_of_x != NULL) && (x == parent_of_x->left)) {
+		if (x == parent_of_x->left) {
 			struct nvgpu_rbtree_node *w = parent_of_x->right;
 
 			if ((w != NULL) && (w->is_red)) {
@@ -207,8 +211,9 @@ static void _delete_fixup(struct nvgpu_rbtree_node **root,
 				w = parent_of_x->right;
 			}
 
-			if ((w == NULL) || (((w->left == NULL) || (!w->left->is_red)) &&
-					    ((w->right == NULL) || (!w->right->is_red)))) {
+			if ((w == NULL) ||
+				(((w->left == NULL) || (!w->left->is_red)) &&
+				 ((w->right == NULL) || (!w->right->is_red)))) {
 				if (w != NULL) {
 					w->is_red = true;
 				}
@@ -226,7 +231,7 @@ static void _delete_fixup(struct nvgpu_rbtree_node **root,
 				rotate_left(root, parent_of_x);
 				x = *root;
 			}
-		} else if (parent_of_x != NULL) {
+		} else {
 			struct nvgpu_rbtree_node *w = parent_of_x->left;
 
 			if ((w != NULL) && (w->is_red)) {
@@ -236,8 +241,9 @@ static void _delete_fixup(struct nvgpu_rbtree_node **root,
 				w = parent_of_x->left;
 			}
 
-			if ((w == NULL) || (((w->right == NULL) || (!w->right->is_red)) &&
-					    ((w->left == NULL) || (!w->left->is_red)))) {
+			if ((w == NULL) ||
+				(((w->right == NULL) || (!w->right->is_red)) &&
+				 ((w->left == NULL) || (!w->left->is_red)))) {
 				if (w != NULL) {
 					w->is_red = true;
 				}
