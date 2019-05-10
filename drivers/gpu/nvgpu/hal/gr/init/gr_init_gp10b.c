@@ -352,6 +352,7 @@ void gp10b_gr_init_commit_global_pagepool(struct gk20a *g,
 	bool global_ctx)
 {
 	u32 pp_addr;
+	u32 pp_size;
 
 	addr = addr >> gr_scc_pagepool_base_addr_39_8_align_bits_v();
 
@@ -368,18 +369,19 @@ void gp10b_gr_init_commit_global_pagepool(struct gk20a *g,
 		addr, size);
 
 	pp_addr = (u32)addr;
+	pp_size = (u32)size;
 	nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_scc_pagepool_base_r(),
 		gr_scc_pagepool_base_addr_39_8_f(pp_addr), patch);
 
 	nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_scc_pagepool_r(),
-		gr_scc_pagepool_total_pages_f(size) |
+		gr_scc_pagepool_total_pages_f(pp_size) |
 		gr_scc_pagepool_valid_true_f(), patch);
 
 	nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_gpcs_gcc_pagepool_base_r(),
 		gr_gpcs_gcc_pagepool_base_addr_39_8_f(pp_addr), patch);
 
 	nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_gpcs_gcc_pagepool_r(),
-		gr_gpcs_gcc_pagepool_total_pages_f(size), patch);
+		gr_gpcs_gcc_pagepool_total_pages_f(pp_size), patch);
 }
 
 void gp10b_gr_init_commit_global_attrib_cb(struct gk20a *g,
