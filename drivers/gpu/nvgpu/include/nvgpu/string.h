@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -53,5 +53,14 @@ void nvgpu_memcpy(u8 *destb, const u8 *srcb, size_t n);
  * are greater than b2 then a value greater than zero is returned.
  */
 int nvgpu_memcmp(const u8 *b1, const u8 *b2, size_t n);
+
+/**
+ * nvgpu_strnadd_u32 - formats u32 into null-terminated string
+ *
+ * Returns number of digits added to string (not including '\0')
+ * Returns 0 in case of invalid dst or radix, or insufficient space.
+ * Returns 0 if there was no room to add '\0'
+ */
+int nvgpu_strnadd_u32(char *dst, const u32 value, size_t size, u32 radix);
 
 #endif /* NVGPU_STRING_H */

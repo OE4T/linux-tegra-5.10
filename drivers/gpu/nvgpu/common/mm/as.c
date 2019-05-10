@@ -28,6 +28,7 @@
 #include <nvgpu/vm.h>
 #include <nvgpu/log2.h>
 #include <nvgpu/gk20a.h>
+#include <nvgpu/string.h>
 
 /* dumb allocator... */
 static int generate_as_share_id(struct gk20a_as *as)
@@ -55,6 +56,7 @@ static int gk20a_vm_alloc_share(struct gk20a_as_share *as_share,
 	struct mm_gk20a *mm = &g->mm;
 	struct vm_gk20a *vm;
 	char name[32];
+	char *p;
 	const bool userspace_managed =
 		(flags & NVGPU_AS_ALLOC_USERSPACE_MANAGED) != 0U;
 	const bool unified_va =
@@ -76,7 +78,8 @@ static int gk20a_vm_alloc_share(struct gk20a_as_share *as_share,
 		}
 	}
 
-	(void) snprintf(name, sizeof(name), "as_%d", as_share->id);
+	p = strncpy(name, "as_", sizeof(name) - 1);
+	(void) nvgpu_strnadd_u32(p, as_share->id, sizeof(name) - (p-name), 10U);
 
 	vm = nvgpu_vm_init(g, big_page_size,
 			   U64(big_page_size) << U64(10),
