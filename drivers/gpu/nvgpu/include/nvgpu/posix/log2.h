@@ -31,7 +31,7 @@
 #define rounddown_pow_of_two(x)		(1UL << (fls(x) - 1UL))
 
 #define is_power_of_2(x)					\
-	({							\
+	(bool)({						\
 		typeof(x) __x__ = (x);				\
 		(__x__ != 0U && ((__x__ & (__x__ - 1U)) == 0U));\
 	})
