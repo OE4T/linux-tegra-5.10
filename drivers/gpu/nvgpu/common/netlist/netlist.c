@@ -133,24 +133,24 @@ static int nvgpu_netlist_init_ctx_vars_fw(struct gk20a *g)
 	struct netlist_image *netlist = NULL;
 	char name[MAX_NETLIST_NAME];
 	u32 i, major_v = ~U32(0U), major_v_hw, netlist_num;
-	int net, max, err = -ENOENT;
+	int net, max_netlist_num, err = -ENOENT;
 
 	nvgpu_log_fn(g, " ");
 
 	if (g->ops.netlist.is_fw_defined()) {
 		net = NETLIST_FINAL;
-		max = 0;
+		max_netlist_num = 0;
 		major_v_hw = ~U32(0U);
 		netlist_vars->dynamic = false;
 	} else {
 		net = NETLIST_SLOT_A;
-		max = MAX_NETLIST;
+		max_netlist_num = MAX_NETLIST;
 		major_v_hw =
 		g->ops.gr.falcon.get_fecs_ctx_state_store_major_rev_id(g);
 		netlist_vars->dynamic = true;
 	}
 
-	for (; net < max; net++) {
+	for (; net < max_netlist_num; net++) {
 		if (g->ops.netlist.get_netlist_name(g, net, name) != 0) {
 			nvgpu_warn(g, "invalid netlist index %d", net);
 			continue;
