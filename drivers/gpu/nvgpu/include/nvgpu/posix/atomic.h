@@ -47,49 +47,49 @@ typedef struct __nvgpu_posix_atomic64 {
  * between the 32bit and 64bit cases.
  * The static inline functions are maintained to provide type checking.
  */
-#define NVGPU_POSIX_ATOMIC_SET(v, i) atomic_store(&(v->v), i)
+#define NVGPU_POSIX_ATOMIC_SET(v, i) atomic_store(&((v)->v), (i))
 
-#define NVGPU_POSIX_ATOMIC_READ(v) atomic_load(&(v->v))
+#define NVGPU_POSIX_ATOMIC_READ(v) atomic_load(&((v)->v))
 
 #define NVGPU_POSIX_ATOMIC_ADD_RETURN(v, i)				\
 	({								\
-		typeof(v->v) tmp;					\
+		typeof((v)->v) tmp;					\
 									\
-		tmp = atomic_fetch_add(&(v->v), i);			\
-		tmp += i;						\
+		tmp = (typeof((v)->v))atomic_fetch_add(&((v)->v), (i));	\
+		tmp += (i);						\
 		tmp;							\
 	})
 
 #define NVGPU_POSIX_ATOMIC_SUB_RETURN(v, i)				\
 	({								\
-		typeof(v->v) tmp;					\
+		typeof((v)->v) tmp;					\
 									\
-		tmp = atomic_fetch_sub(&(v->v), i);			\
-		tmp -= i;						\
+		tmp = (typeof((v)->v))atomic_fetch_sub(&((v)->v), (i));	\
+		tmp -= (i);						\
 		tmp;							\
 	})
 
-#define NVGPU_POSIX_ATOMIC_CMPXCHG(v, old, new)			\
+#define NVGPU_POSIX_ATOMIC_CMPXCHG(v, old, new)				\
 	({								\
-		typeof(v->v) tmp = old;					\
+		typeof((v)->v) tmp = (old);				\
 									\
-		atomic_compare_exchange_strong(&(v->v), &tmp, new);	\
+		atomic_compare_exchange_strong(&((v)->v), &tmp, (new));	\
 		tmp;							\
 	})
 
-#define NVGPU_POSIX_ATOMIC_XCHG(v, new) atomic_exchange(&(v->v), new)
+#define NVGPU_POSIX_ATOMIC_XCHG(v, new) atomic_exchange(&((v)->v), (new))
 
-#define NVGPU_POSIX_ATOMIC_ADD_UNLESS(v, a, u)			\
+#define NVGPU_POSIX_ATOMIC_ADD_UNLESS(v, a, u)				\
 	({								\
-		typeof(v->v) old;					\
+		typeof((v)->v) old;					\
 									\
 		do {							\
-			old = atomic_load(&(v->v));			\
-			if (old == u) {					\
+			old = atomic_load(&((v)->v));			\
+			if (old == (u)) {				\
 				break;					\
 			}						\
-		} while (!atomic_compare_exchange_strong(&(v->v), &old,	\
-				old + a));				\
+		} while (!atomic_compare_exchange_strong(&((v)->v),	\
+				&old, old + (a)));			\
 		old;							\
 	})
 
@@ -262,10 +262,10 @@ static inline bool nvgpu_atomic64_sub_and_test_impl(long x, nvgpu_atomic64_t *v)
  */
 #define cmpxchg(p, old, new) 						\
 	({								\
-		typeof(*(p)) tmp = old;					\
+		typeof(*(p)) tmp = (old);				\
 									\
-		(void) nvgpu_atomic_cmpxchg((nvgpu_atomic_t *) p, tmp,	\
-			new);						\
+		(void) nvgpu_atomic_cmpxchg((nvgpu_atomic_t *) (p), tmp,\
+			(new));						\
 		tmp;							\
 	})
 
