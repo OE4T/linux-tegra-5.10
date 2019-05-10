@@ -162,7 +162,7 @@ static int nvgpu_netlist_init_ctx_vars_fw(struct gk20a *g)
 			continue;
 		}
 
-		netlist = (struct netlist_image *)netlist_fw->data;
+		netlist = (struct netlist_image *)(uintptr_t)netlist_fw->data;
 
 		for (i = 0; i < netlist->header.regions; i++) {
 			u8 *src = ((u8 *)netlist + netlist->regions[i].data_offset);
