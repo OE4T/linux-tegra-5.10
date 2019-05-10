@@ -60,22 +60,7 @@ NV_COMPONENT_CFLAGS            	+= \
 	-DCONFIG_PCI_MSI \
 	-DCONFIG_TEGRA_NVLINK
 
-ifeq ($(NVGPU_REDUCED), 0)
-# Enable debugger APIs for normal builds
-NVGPU_DEBUGGER                  := 1
-# Enable iGPU LS PMU for normal builds
-NVGPU_LS_PMU                    := 1
-NV_COMPONENT_CFLAGS             += -DNVGPU_DEBUGGER
-NV_COMPONENT_CFLAGS             += -DNVGPU_LS_PMU
-NV_COMPONENT_CFLAGS             += -DNVGPU_ENGINE
-NV_COMPONENT_CFLAGS             += -DNVGPU_USERD
-# Support iGPU Virt for normal builds
-IGPU_VIRT_SUPPORT              := 1
-NV_COMPONENT_CFLAGS            += -DIGPU_VIRT_SUPPORT
-else
-# Enable USERD until we switch to user mode submit only
-NV_COMPONENT_CFLAGS             += -DNVGPU_USERD
-endif
+-include $(NV_COMPONENT_DIR)/Makefile.shared.configs
 
 NVGPU_FAULT_INJECTION_ENABLEMENT := 1
 NV_COMPONENT_CFLAGS              += -DNVGPU_UNITTEST_FAULT_INJECTION_ENABLEMENT

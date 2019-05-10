@@ -53,6 +53,8 @@ else
 NV_COMPONENT_CFLAGS		+= -D__NVGPU_POSIX__
 endif
 
+NVGPU_REDUCED			:= 1
+
 NV_COMPONENT_CFLAGS            	+= \
 	-DCONFIG_TEGRA_19x_GPU \
 	-DCONFIG_TEGRA_GK20A_NVHOST \
@@ -69,6 +71,8 @@ NV_COMPONENT_CFLAGS            	+= \
 	-DCONFIG_PCI_MSI \
 	-DCONFIG_SUPPORT_PMU_PSTATE \
 	-DCONFIG_TEGRA_NVLINK
+
+-include $(NV_SOURCE)/kernel/nvgpu/drivers/gpu/nvgpu/Makefile.shared.configs
 
 NV_COMPONENT_NEEDED_INTERFACE_DIRS := \
                                 $(NV_SOURCE)/kernel/nvgpu/userspace
