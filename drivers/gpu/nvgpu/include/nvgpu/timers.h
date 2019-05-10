@@ -86,10 +86,10 @@ int nvgpu_timeout_init(struct gk20a *g, struct nvgpu_timeout *timeout,
 int nvgpu_timeout_peek_expired(struct nvgpu_timeout *timeout);
 
 #define nvgpu_timeout_expired(__timeout)				\
-	nvgpu_timeout_expired_msg_impl(__timeout, _NVGPU_GET_IP_, "")
+	nvgpu_timeout_expired_msg_impl(__timeout, NVGPU_GET_IP, "")
 
 #define nvgpu_timeout_expired_msg(__timeout, fmt, args...)		\
-	nvgpu_timeout_expired_msg_impl(__timeout, _NVGPU_GET_IP_,	\
+	nvgpu_timeout_expired_msg_impl(__timeout, NVGPU_GET_IP,	\
 				    fmt, ##args)
 
 /*

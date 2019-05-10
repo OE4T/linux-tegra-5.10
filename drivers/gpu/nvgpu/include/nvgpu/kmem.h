@@ -117,7 +117,7 @@ void nvgpu_kmem_cache_free(struct nvgpu_kmem_cache *cache, void *ptr);
  *
  * This function may sleep so cannot be used in IRQs.
  */
-#define nvgpu_kmalloc(g, size)	nvgpu_kmalloc_impl(g, size, _NVGPU_GET_IP_)
+#define nvgpu_kmalloc(g, size)	nvgpu_kmalloc_impl(g, size, NVGPU_GET_IP)
 
 /**
  * nvgpu_kzalloc - Allocate from the kernel's allocator.
@@ -128,7 +128,7 @@ void nvgpu_kmem_cache_free(struct nvgpu_kmem_cache *cache, void *ptr);
  * Identical to nvgpu_kalloc() except the memory will be zeroed before being
  * returned.
  */
-#define nvgpu_kzalloc(g, size)	nvgpu_kzalloc_impl(g, size, _NVGPU_GET_IP_)
+#define nvgpu_kzalloc(g, size)	nvgpu_kzalloc_impl(g, size, NVGPU_GET_IP)
 
 /**
  * nvgpu_kcalloc - Allocate from the kernel's allocator.
@@ -141,7 +141,7 @@ void nvgpu_kmem_cache_free(struct nvgpu_kmem_cache *cache, void *ptr);
  * @n * @size.
  */
 #define nvgpu_kcalloc(g, n, size)	\
-	nvgpu_kcalloc_impl(g, n, size, _NVGPU_GET_IP_)
+	nvgpu_kcalloc_impl(g, n, size, NVGPU_GET_IP)
 
 /**
  * nvgpu_vmalloc - Allocate memory and return a map to it.
@@ -157,7 +157,7 @@ void nvgpu_kmem_cache_free(struct nvgpu_kmem_cache *cache, void *ptr);
  *
  * This function may sleep.
  */
-#define nvgpu_vmalloc(g, size)	nvgpu_vmalloc_impl(g, size, _NVGPU_GET_IP_)
+#define nvgpu_vmalloc(g, size)	nvgpu_vmalloc_impl(g, size, NVGPU_GET_IP)
 
 /**
  * nvgpu_vzalloc - Allocate memory and return a map to it.
@@ -167,7 +167,7 @@ void nvgpu_kmem_cache_free(struct nvgpu_kmem_cache *cache, void *ptr);
  *
  * Identical to nvgpu_vmalloc() except this will return zero'ed memory.
  */
-#define nvgpu_vzalloc(g, size)	nvgpu_vzalloc_impl(g, size, _NVGPU_GET_IP_)
+#define nvgpu_vzalloc(g, size)	nvgpu_vzalloc_impl(g, size, NVGPU_GET_IP)
 
 /**
  * nvgpu_kfree - Frees an alloc from nvgpu_kmalloc, nvgpu_kzalloc,
