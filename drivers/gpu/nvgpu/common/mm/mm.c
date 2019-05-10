@@ -642,7 +642,10 @@ int nvgpu_mm_setup_hw(struct gk20a *g)
 	g->ops.fb.init_hw(g);
 
 	if (g->ops.bus.bar1_bind != NULL) {
-		g->ops.bus.bar1_bind(g, &mm->bar1.inst_block);
+		err = g->ops.bus.bar1_bind(g, &mm->bar1.inst_block);
+		if (err != 0) {
+			return err;
+		}
 	}
 
 	if (g->ops.bus.bar2_bind != NULL) {
