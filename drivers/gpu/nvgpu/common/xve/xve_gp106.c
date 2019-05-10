@@ -201,7 +201,7 @@ static void enable_aspm_gp106(struct gk20a *g)
 /*
  * Error checking is done in xve_set_speed_gp106.
  */
-static int __do_xve_set_speed_gp106(struct gk20a *g, u32 next_link_speed)
+static int do_xve_set_speed_gp106(struct gk20a *g, u32 next_link_speed)
 {
 	u32 current_link_speed, new_link_speed;
 	u32 dl_mgr, saved_dl_mgr;
@@ -210,7 +210,11 @@ static int __do_xve_set_speed_gp106(struct gk20a *g, u32 next_link_speed)
 	struct nvgpu_timeout timeout;
 	int attempts = 10, err_status = 0;
 
-	g->ops.xve.get_speed(g, &current_link_speed);
+	err_status = g->ops.xve.get_speed(g, &current_link_speed);
+	if (err_status != 0) {
+		nvgpu_err(g, "failed to get speed");
+		return err_status;
+	}
 	xv_sc_dbg(g, PRE_CHANGE, "Executing PCIe link change.");
 	xv_sc_dbg(g, PRE_CHANGE, "  Current speed:  %s",
 		  xve_speed_to_str(current_link_speed));
@@ -234,8 +238,11 @@ static int __do_xve_set_speed_gp106(struct gk20a *g, u32 next_link_speed)
 	gk20a_writel(g, xp_dl_mgr_r(0), dl_mgr);
 	xv_sc_dbg(g, DL_SAFE_MODE, "  Done!");
 
-	nvgpu_timeout_init(g, &timeout, GPU_XVE_TIMEOUT_MS,
-			NVGPU_TIMER_CPU_TIMER);
+	if (nvgpu_timeout_init(g, &timeout, GPU_XVE_TIMEOUT_MS,
+				NVGPU_TIMER_CPU_TIMER) != 0) {
+		nvgpu_err(g, "failed to init timeout");
+		goto done;
+	}
 
 	xv_sc_dbg(g, CHECK_LINK, "Checking for link idle...");
 	do {
@@ -313,8 +320,11 @@ static int __do_xve_set_speed_gp106(struct gk20a *g, u32 next_link_speed)
 
 	xv_sc_dbg(g, EXEC_CHANGE, "Running link speed change...");
 
-	nvgpu_timeout_init(g, &timeout, GPU_XVE_TIMEOUT_MS,
-			NVGPU_TIMER_CPU_TIMER);
+	if (nvgpu_timeout_init(g, &timeout, GPU_XVE_TIMEOUT_MS,
+				NVGPU_TIMER_CPU_TIMER) != 0) {
+		nvgpu_err(g, "failed to init timeout");
+		goto done;
+	}
 	do {
 		gk20a_writel(g, xp_pl_link_config_r(0), pl_link_config);
 		if (pl_link_config ==
@@ -346,8 +356,11 @@ static int __do_xve_set_speed_gp106(struct gk20a *g, u32 next_link_speed)
 		 * Read NV_XP_PL_LINK_CONFIG until the link has swapped to
 		 * the target speed.
 		 */
-		nvgpu_timeout_init(g, &timeout, GPU_XVE_TIMEOUT_MS,
-				NVGPU_TIMER_CPU_TIMER);
+		if (nvgpu_timeout_init(g, &timeout, GPU_XVE_TIMEOUT_MS,
+					NVGPU_TIMER_CPU_TIMER)  != 0) {
+			nvgpu_err(g, "failed to init timeout");
+			goto done;
+		}
 		do {
 			pl_link_config = gk20a_readl(g, xp_pl_link_config_r(0));
 			if (pl_link_config != 0xfffffffU &&
@@ -476,7 +489,12 @@ int xve_set_speed_gp106(struct gk20a *g, u32 next_link_speed)
 		return 0;
 	}
 
-	return __do_xve_set_speed_gp106(g, next_link_speed);
+	err = do_xve_set_speed_gp106(g, next_link_speed);
+	if (err != 0) {
+		nvgpu_err(g, "failed to set speed");
+	}
+
+	return err;
 }
 
 /**
