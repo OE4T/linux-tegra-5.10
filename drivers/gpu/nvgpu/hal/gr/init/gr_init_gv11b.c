@@ -728,14 +728,12 @@ void gv11b_gr_init_commit_global_attrib_cb(struct gk20a *g,
 	bool patch)
 {
 	u32 attrBufferSize;
+	u32 cb_addr;
 
 	gm20b_gr_init_commit_global_attrib_cb(g, gr_ctx, tpc_count, max_tpc,
 		addr, patch);
 
-	addr = (u64_lo32(addr) >>
-			gr_gpcs_setup_attrib_cb_base_addr_39_12_align_bits_v()) |
-		(u64_hi32(addr) <<
-			(32U - gr_gpcs_setup_attrib_cb_base_addr_39_12_align_bits_v()));
+	addr = addr >> gr_gpcs_setup_attrib_cb_base_addr_39_12_align_bits_v();
 
 	if (nvgpu_gr_ctx_get_preempt_ctxsw_buffer(gr_ctx)->gpu_va != 0ULL) {
 		attrBufferSize =
@@ -748,12 +746,14 @@ void gv11b_gr_init_commit_global_attrib_cb(struct gk20a *g,
 	attrBufferSize /= gr_gpcs_tpcs_tex_rm_cb_1_size_div_128b_granularity_f();
 
 	nvgpu_assert(u64_hi32(addr) == 0U);
+
+	cb_addr = (u32)addr;
 	nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_gpcs_tpcs_mpc_vtg_cb_global_base_addr_r(),
-		gr_gpcs_tpcs_mpc_vtg_cb_global_base_addr_v_f((u32)addr) |
+		gr_gpcs_tpcs_mpc_vtg_cb_global_base_addr_v_f(cb_addr) |
 		gr_gpcs_tpcs_mpc_vtg_cb_global_base_addr_valid_true_f(), patch);
 
 	nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_gpcs_tpcs_tex_rm_cb_0_r(),
-		gr_gpcs_tpcs_tex_rm_cb_0_base_addr_43_12_f((u32)addr), patch);
+		gr_gpcs_tpcs_tex_rm_cb_0_base_addr_43_12_f(cb_addr), patch);
 
 	nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_gpcs_tpcs_tex_rm_cb_1_r(),
 		gr_gpcs_tpcs_tex_rm_cb_1_size_div_128b_f(attrBufferSize) |
@@ -836,17 +836,14 @@ u32 gv11b_gr_init_get_ctx_betacb_size(struct gk20a *g)
 void gv11b_gr_init_commit_ctxsw_spill(struct gk20a *g,
 	struct nvgpu_gr_ctx *gr_ctx, u64 addr, u32 size, bool patch)
 {
-	addr = (u64_lo32(addr) >>
-			gr_gpc0_swdx_rm_spill_buffer_addr_39_8_align_bits_v()) |
-		(u64_hi32(addr) <<
-			(32U - gr_gpc0_swdx_rm_spill_buffer_addr_39_8_align_bits_v()));
+	addr = addr >> gr_gpc0_swdx_rm_spill_buffer_addr_39_8_align_bits_v();
 
 	size /=	gr_gpc0_swdx_rm_spill_buffer_size_256b_byte_granularity_v();
 
 	nvgpu_assert(u64_hi32(addr) == 0U);
 	nvgpu_gr_ctx_patch_write(g, gr_ctx,
 			gr_gpc0_swdx_rm_spill_buffer_addr_r(),
-			gr_gpc0_swdx_rm_spill_buffer_addr_39_8_f(U32(addr)),
+			gr_gpc0_swdx_rm_spill_buffer_addr_39_8_f((u32)addr),
 			patch);
 	nvgpu_gr_ctx_patch_write(g, gr_ctx,
 			gr_gpc0_swdx_rm_spill_buffer_size_r(),
@@ -884,7 +881,8 @@ u32 gv11b_gr_init_get_max_subctx_count(void)
 u32 gv11b_gr_init_get_patch_slots(struct gk20a *g,
 	struct nvgpu_gr_config *config)
 {
-	u32 size = 0;
+	u32 size = 0U;
+	u32 slot_size = PATCH_CTX_SLOTS_PER_PAGE;
 
 	/*
 	 * CMD to update PE table
@@ -923,12 +921,12 @@ u32 gv11b_gr_init_get_patch_slots(struct gk20a *g,
 	/*
 	 * Align to 4K size
 	 */
-	size = ALIGN(size, PATCH_CTX_SLOTS_PER_PAGE);
+	size = ALIGN(size, slot_size);
 
 	/*
 	 * Increase the size to accommodate for additional TPC partition update
 	 */
-	size += 2U * PATCH_CTX_SLOTS_PER_PAGE;
+	size += 2U * slot_size;
 
 	return size;
 }
