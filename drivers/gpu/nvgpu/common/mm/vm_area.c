@@ -209,7 +209,7 @@ clean_up_err:
 int nvgpu_vm_area_free(struct vm_gk20a *vm, u64 addr)
 {
 	struct gk20a *g = gk20a_from_vm(vm);
-	struct nvgpu_mapped_buf *buffer, *n;
+	struct nvgpu_mapped_buf *buffer;
 	struct nvgpu_vm_area *vm_area;
 
 	nvgpu_mutex_acquire(&vm->update_gmmu_lock);
@@ -231,9 +231,9 @@ int nvgpu_vm_area_free(struct vm_gk20a *vm, u64 addr)
 	/* Decrement the ref count on all buffers in this vm_area. This
 	 * allows userspace to let the kernel free mappings that are
 	 * only used by this vm_area. */
-	nvgpu_list_for_each_entry_safe(buffer, n,
-				       &vm_area->buffer_list_head,
-				       nvgpu_mapped_buf, buffer_list) {
+	while (!nvgpu_list_empty(&vm_area->buffer_list_head)) {
+		buffer = nvgpu_list_first_entry(&vm_area->buffer_list_head,
+					nvgpu_mapped_buf, buffer_list);
 		nvgpu_list_del(&buffer->buffer_list);
 		nvgpu_ref_put(&buffer->ref, nvgpu_vm_unmap_ref_internal);
 	}
