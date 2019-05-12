@@ -359,6 +359,9 @@ struct hdac_bus {
 	/* link management */
 	struct list_head hlink_list;
 	bool cmd_dma_state;
+
+	/* WAR for SDO limitation */
+	bool avoid_compact_sdo_bw;
 };
 
 int snd_hdac_bus_init(struct hdac_bus *bus, struct device *dev,
