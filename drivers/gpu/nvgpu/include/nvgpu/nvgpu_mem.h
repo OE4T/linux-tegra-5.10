@@ -243,7 +243,7 @@ int nvgpu_mem_create_from_mem(struct gk20a *g,
  * Returns 0 on success, or a relevant error otherwise.
  */
 int nvgpu_mem_create_from_phys(struct gk20a *g, struct nvgpu_mem *dest,
-			       u64 src_phys, u32 nr_pages);
+			       u64 src_phys, u64 nr_pages);
 
 /*
  * Really free a vidmem buffer. There's a fair amount of work involved in

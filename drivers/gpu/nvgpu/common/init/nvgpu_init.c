@@ -149,7 +149,7 @@ int gk20a_finalize_poweron(struct gk20a *g)
 {
 	int err = 0;
 #if defined(CONFIG_TEGRA_GK20A_NVHOST)
-	u32 nr_pages;
+	u64 nr_pages;
 #endif
 
 	nvgpu_log_fn(g, " ");
@@ -473,7 +473,7 @@ int gk20a_finalize_poweron(struct gk20a *g)
 #if defined(CONFIG_TEGRA_GK20A_NVHOST)
 	if (nvgpu_has_syncpoints(g) && (g->syncpt_unit_size != 0UL)) {
 		if (!nvgpu_mem_is_valid(&g->syncpt_mem)) {
-			nr_pages = U32(DIV_ROUND_UP(g->syncpt_unit_size,
+			nr_pages = U64(DIV_ROUND_UP(g->syncpt_unit_size,
 						    PAGE_SIZE));
 			err = nvgpu_mem_create_from_phys(g, &g->syncpt_mem,
 					g->syncpt_unit_base, nr_pages);

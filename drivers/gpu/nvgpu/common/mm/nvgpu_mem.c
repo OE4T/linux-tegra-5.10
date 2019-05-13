@@ -297,7 +297,7 @@ static const struct nvgpu_sgt_ops nvgpu_mem_phys_ops = {
 };
 
 int nvgpu_mem_create_from_phys(struct gk20a *g, struct nvgpu_mem *dest,
-			       u64 src_phys, u32 nr_pages)
+			       u64 src_phys, u64 nr_pages)
 {
 	int ret = 0;
 	struct nvgpu_sgt *sgt;
@@ -317,7 +317,7 @@ int nvgpu_mem_create_from_phys(struct gk20a *g, struct nvgpu_mem *dest,
 	(void) memset(dest, 0, sizeof(*dest));
 
 	dest->aperture     = APERTURE_SYSMEM;
-	dest->size         = (u64)nr_pages * SZ_4K;
+	dest->size         = nr_pages * SZ_4K;
 	dest->aligned_size = dest->size;
 	dest->mem_flags    = __NVGPU_MEM_FLAG_NO_DMA;
 	dest->phys_sgt     = sgt;

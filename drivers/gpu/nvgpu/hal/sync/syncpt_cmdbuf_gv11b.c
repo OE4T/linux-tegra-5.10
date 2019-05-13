@@ -57,7 +57,7 @@ static int set_syncpt_ro_map_gpu_va_locked(struct vm_gk20a *vm)
 int gv11b_syncpt_alloc_buf(struct nvgpu_channel *c,
 		u32 syncpt_id, struct nvgpu_mem *syncpt_buf)
 {
-	u32 nr_pages;
+	u64 nr_pages;
 	int err = 0;
 	struct gk20a *g = c->g;
 
