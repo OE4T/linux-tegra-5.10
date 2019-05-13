@@ -527,8 +527,9 @@ restore_fe_go_idle:
 	}
 
 	golden_image->ready = true;
-
+#ifdef NVGPU_LS_PMU
 	nvgpu_pmu_set_golden_image_initialized(g, true);
+#endif
 	g->ops.gr.falcon.set_current_ctx_invalid(g);
 
 clean_up:
@@ -726,8 +727,9 @@ void nvgpu_gr_obj_ctx_deinit(struct gk20a *g,
 			golden_image->local_golden_image);
 		golden_image->local_golden_image = NULL;
 	}
-
+#ifdef NVGPU_LS_PMU
 	nvgpu_pmu_set_golden_image_initialized(g, false);
+#endif
 	golden_image->ready = false;
 	nvgpu_kfree(g, golden_image);
 }

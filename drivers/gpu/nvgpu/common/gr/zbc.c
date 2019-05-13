@@ -37,7 +37,9 @@ static int nvgpu_gr_zbc_add(struct gk20a *g, struct nvgpu_gr_zbc *zbc,
 	u32 i;
 	int ret = -ENOSPC;
 	bool added = false;
+#ifdef NVGPU_LS_PMU
 	u32 entries;
+#endif
 
 	/* no endian swap ? */
 
@@ -130,6 +132,7 @@ static int nvgpu_gr_zbc_add(struct gk20a *g, struct nvgpu_gr_zbc *zbc,
 		goto err_mutex;
 	}
 
+#ifdef NVGPU_LS_PMU
 	if (!added && ret == 0) {
 		/* update zbc for elpg only when new entry is added */
 		entries = max(zbc->max_used_color_index,
@@ -138,6 +141,7 @@ static int nvgpu_gr_zbc_add(struct gk20a *g, struct nvgpu_gr_zbc *zbc,
 			nvgpu_pmu_save_zbc(g, entries);
 		}
 	}
+#endif
 
 err_mutex:
 	nvgpu_mutex_release(&zbc->zbc_lock);

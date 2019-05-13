@@ -116,9 +116,10 @@ static u32 gm20b_acr_lsf_pmu(struct gk20a *g,
 	lsf->falcon_dma_idx = GK20A_PMU_DMAIDX_UCODE;
 	lsf->is_lazy_bootstrap = false;
 	lsf->is_priv_load = false;
+#ifdef NVGPU_LS_PMU
 	lsf->get_lsf_ucode_details = nvgpu_acr_lsf_pmu_ucode_details_v0;
 	lsf->get_cmd_line_args_offset = nvgpu_pmu_fw_get_cmd_line_args_offset;
-
+#endif
 	return BIT32(lsf->falcon_id);
 }
 

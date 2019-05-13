@@ -35,6 +35,7 @@
 #include "acr_wpr.h"
 #include "acr_priv.h"
 
+#ifdef NVGPU_LS_PMU
 int nvgpu_acr_lsf_pmu_ucode_details_v0(struct gk20a *g, void *lsf_ucode_img)
 {
 	struct lsf_ucode_desc *lsf_desc;
@@ -69,6 +70,7 @@ int nvgpu_acr_lsf_pmu_ucode_details_v0(struct gk20a *g, void *lsf_ucode_img)
 exit:
 	return err;
 }
+#endif
 
 int nvgpu_acr_lsf_fecs_ucode_details_v0(struct gk20a *g, void *lsf_ucode_img)
 {
@@ -555,8 +557,9 @@ static int gm20b_pmu_populate_loader_cfg(struct gk20a *g,
 
 	/* Update the argc/argv members*/
 	ldr_cfg->argc = 1;
+#ifdef NVGPU_LS_PMU
 	nvgpu_pmu_fw_get_cmd_line_args_offset(g, &ldr_cfg->argv);
-
+#endif
 	*p_bl_gen_desc_size = (u32)sizeof(struct loader_config);
 	return 0;
 }

@@ -96,9 +96,8 @@ static u32 gv100_acr_lsf_pmu(struct gk20a *g,
 	lsf->is_priv_load = false;
 #ifdef NVGPU_LS_PMU
 	lsf->get_lsf_ucode_details = nvgpu_acr_lsf_pmu_ucode_details_v1;
-#endif
 	lsf->get_cmd_line_args_offset = nvgpu_pmu_fw_get_cmd_line_args_offset;
-
+#endif
 	return BIT32(lsf->falcon_id);
 }
 
