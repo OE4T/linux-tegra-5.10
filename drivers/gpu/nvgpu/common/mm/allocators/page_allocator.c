@@ -56,50 +56,50 @@
  * Handle the book-keeping for these operations.
  */
 static inline void add_slab_page_to_empty(struct page_alloc_slab *slab,
-					  struct page_alloc_slab_page *page)
+					struct page_alloc_slab_page *page_ptr)
 {
-	BUG_ON(page->state != SP_NONE);
-	nvgpu_list_add(&page->list_entry, &slab->empty);
+	BUG_ON(page_ptr->state != SP_NONE);
+	nvgpu_list_add(&page_ptr->list_entry, &slab->empty);
 	slab->nr_empty++;
-	page->state = SP_EMPTY;
+	page_ptr->state = SP_EMPTY;
 }
 static inline void add_slab_page_to_partial(struct page_alloc_slab *slab,
-					    struct page_alloc_slab_page *page)
+					struct page_alloc_slab_page *page_ptr)
 {
-	BUG_ON(page->state != SP_NONE);
-	nvgpu_list_add(&page->list_entry, &slab->partial);
+	BUG_ON(page_ptr->state != SP_NONE);
+	nvgpu_list_add(&page_ptr->list_entry, &slab->partial);
 	slab->nr_partial++;
-	page->state = SP_PARTIAL;
+	page_ptr->state = SP_PARTIAL;
 }
 static inline void add_slab_page_to_full(struct page_alloc_slab *slab,
-					 struct page_alloc_slab_page *page)
+					struct page_alloc_slab_page *page_ptr)
 {
-	BUG_ON(page->state != SP_NONE);
-	nvgpu_list_add(&page->list_entry, &slab->full);
+	BUG_ON(page_ptr->state != SP_NONE);
+	nvgpu_list_add(&page_ptr->list_entry, &slab->full);
 	slab->nr_full++;
-	page->state = SP_FULL;
+	page_ptr->state = SP_FULL;
 }
 
 static inline void del_slab_page_from_empty(struct page_alloc_slab *slab,
-					    struct page_alloc_slab_page *page)
+					struct page_alloc_slab_page *page_ptr)
 {
-	nvgpu_list_del(&page->list_entry);
+	nvgpu_list_del(&page_ptr->list_entry);
 	slab->nr_empty--;
-	page->state = SP_NONE;
+	page_ptr->state = SP_NONE;
 }
 static inline void del_slab_page_from_partial(struct page_alloc_slab *slab,
-					      struct page_alloc_slab_page *page)
+					struct page_alloc_slab_page *page_ptr)
 {
-	nvgpu_list_del(&page->list_entry);
+	nvgpu_list_del(&page_ptr->list_entry);
 	slab->nr_partial--;
-	page->state = SP_NONE;
+	page_ptr->state = SP_NONE;
 }
 static inline void del_slab_page_from_full(struct page_alloc_slab *slab,
-					   struct page_alloc_slab_page *page)
+					struct page_alloc_slab_page *page_ptr)
 {
-	nvgpu_list_del(&page->list_entry);
+	nvgpu_list_del(&page_ptr->list_entry);
 	slab->nr_full--;
-	page->state = SP_NONE;
+	page_ptr->state = SP_NONE;
 }
 
 static u64 nvgpu_page_alloc_length(struct nvgpu_allocator *a)
@@ -322,7 +322,8 @@ static void free_slab_page(struct nvgpu_page_allocator *a,
 {
 	palloc_dbg(a, "Freeing slab page @ 0x%012llx", slab_page->page_addr);
 
-	BUG_ON((slab_page->state != SP_NONE && slab_page->state != SP_EMPTY) ||
+	BUG_ON(((slab_page->state != SP_NONE) &&
+				(slab_page->state != SP_EMPTY)) ||
 	       slab_page->nr_objects_alloced != 0U ||
 	       slab_page->bitmap != 0U);
 
@@ -353,11 +354,13 @@ static int do_slab_alloc(struct nvgpu_page_allocator *a,
 					     page_alloc_slab_page,
 					     list_entry);
 		del_slab_page_from_partial(slab, slab_page);
-	} else if (!nvgpu_list_empty(&slab->empty)) {
-		slab_page = nvgpu_list_first_entry(&slab->empty,
+	} else {
+		if (!nvgpu_list_empty(&slab->empty)) {
+			slab_page = nvgpu_list_first_entry(&slab->empty,
 					     page_alloc_slab_page,
 					     list_entry);
-		del_slab_page_from_empty(slab, slab_page);
+			del_slab_page_from_empty(slab, slab_page);
+		}
 	}
 
 	if (slab_page == NULL) {
@@ -417,7 +420,8 @@ static int do_slab_alloc(struct nvgpu_page_allocator *a,
 static struct nvgpu_page_alloc *nvgpu_alloc_slab(
 	struct nvgpu_page_allocator *a, u64 len)
 {
-	int err, slab_nr;
+	int err;
+	u64 slab_nr;
 	struct page_alloc_slab *slab;
 	struct nvgpu_page_alloc *alloc = NULL;
 	struct nvgpu_mem_sgl *sgl = NULL;
@@ -426,7 +430,7 @@ static struct nvgpu_page_alloc *nvgpu_alloc_slab(
 	 * Align the length to a page and then divide by the page size (4k for
 	 * this code). ilog2() of that then gets us the correct slab to use.
 	 */
-	slab_nr = (int)ilog2(PAGE_ALIGN(len) >> 12);
+	slab_nr = ilog2(PAGE_ALIGN(len) >> 12);
 	slab = &a->slabs[slab_nr];
 
 	alloc = nvgpu_kmem_cache_alloc(a->alloc_cache);
@@ -449,7 +453,7 @@ static struct nvgpu_page_alloc *nvgpu_alloc_slab(
 		goto fail;
 	}
 
-	palloc_dbg(a, "Alloc 0x%04llx sr=%d id=0x%010llx [slab]",
+	palloc_dbg(a, "Alloc 0x%04llx sr=%llu id=0x%010llx [slab]",
 		   len, slab_nr, alloc->base);
 	a->nr_slab_allocs++;
 
@@ -676,7 +680,7 @@ static struct nvgpu_page_alloc *nvgpu_alloc_pages(
  * precedent in the dma_alloc APIs, though, it's really just an annoying
  * artifact of the fact that the nvgpu_alloc() API requires a u64 return type.
  */
-static u64 nvgpu_page_alloc(struct nvgpu_allocator *na, u64 len)
+static u64 nvgpu_page_palloc(struct nvgpu_allocator *na, u64 len)
 {
 	struct nvgpu_page_allocator *a = page_allocator(na);
 	struct nvgpu_page_alloc *alloc = NULL;
@@ -803,7 +807,7 @@ fail:
 /*
  * @page_size is ignored.
  */
-static u64 nvgpu_page_alloc_fixed(struct nvgpu_allocator *na,
+static u64 nvgpu_page_palloc_fixed(struct nvgpu_allocator *na,
 				  u64 base, u64 len, u32 page_size)
 {
 	struct nvgpu_page_allocator *a = page_allocator(na);
@@ -953,10 +957,10 @@ static void nvgpu_page_print_stats(struct nvgpu_allocator *na,
 #endif
 
 static const struct nvgpu_allocator_ops page_ops = {
-	.alloc		= nvgpu_page_alloc,
+	.alloc		= nvgpu_page_palloc,
 	.free_alloc	= nvgpu_page_free,
 
-	.alloc_fixed	= nvgpu_page_alloc_fixed,
+	.alloc_fixed	= nvgpu_page_palloc_fixed,
 	.free_fixed	= nvgpu_page_free_fixed,
 
 	.reserve_carveout	= nvgpu_page_reserve_co,
@@ -992,6 +996,16 @@ static int nvgpu_page_alloc_init_slabs(struct nvgpu_page_allocator *a)
 	u32 nr_slabs = U32(tmp_nr_slabs);
 	u32 i;
 
+	/*
+	 * As slab_size is 32-bits wide, maximum possible slab_size
+	 * is 2^32 i.e. 4Gb
+	 * So, we can have maximum 20 buckets of slabs starting at 4K.
+	 * Return error if number of slabs is greater than 20.
+	 */
+	if (nr_slabs > 20U) {
+		return -EINVAL;
+	}
+
 	a->slabs = nvgpu_kcalloc(nvgpu_alloc_to_gpu(a->owner),
 				 (size_t)nr_slabs,
 				 sizeof(struct page_alloc_slab));
@@ -1003,7 +1017,8 @@ static int nvgpu_page_alloc_init_slabs(struct nvgpu_page_allocator *a)
 	for (i = 0; i < nr_slabs; i++) {
 		struct page_alloc_slab *slab = &a->slabs[i];
 
-		slab->slab_size = U32(SZ_4K) * BIT32(i);
+		/* Slab_size starts from 4K */
+		slab->slab_size = BIT32(i + 12U);
 		nvgpu_init_list_node(&slab->empty);
 		nvgpu_init_list_node(&slab->partial);
 		nvgpu_init_list_node(&slab->full);
@@ -1062,11 +1077,13 @@ int nvgpu_page_allocator_init(struct gk20a *g, struct nvgpu_allocator *na,
 		}
 	}
 
-	(void) snprintf(buddy_name, sizeof(buddy_name), "%s-src", name);
+	(void) strncpy(buddy_name, name,
+				(sizeof(buddy_name)) - (sizeof("-src")));
+	(void) strcat(buddy_name, "-src");
 
 	err = nvgpu_buddy_allocator_init(g, &a->source_allocator, NULL,
-					 buddy_name, base, length, blk_size,
-					 0ULL, 0ULL);
+					buddy_name, base, length, blk_size,
+					0ULL, 0ULL);
 	if (err != 0) {
 		goto fail;
 	}
