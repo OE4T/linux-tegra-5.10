@@ -457,8 +457,8 @@ int nvgpu_vm_do_init(struct mm_gk20a *mm,
 	 * User VMA.
 	 */
 	if (user_vma_start < user_vma_limit) {
-		(void) snprintf(alloc_name, sizeof(alloc_name), "gk20a_%s",
-			name);
+		(void) strcpy(alloc_name, "gk20a_");
+		(void) strcat(alloc_name, name);
 		err = nvgpu_allocator_init(g, &vm->user,
 						 vm, alloc_name,
 						 user_vma_start,
@@ -485,8 +485,9 @@ int nvgpu_vm_do_init(struct mm_gk20a *mm,
 	 * User VMA for large pages when a split address range is used.
 	 */
 	if (user_lp_vma_start < user_lp_vma_limit) {
-		(void) snprintf(alloc_name, sizeof(alloc_name), "gk20a_%s_lp",
-			name);
+		(void) strcpy(alloc_name, "gk20a_");
+		(void) strcat(alloc_name, name);
+		(void) strcat(alloc_name, "_lp");
 		err = nvgpu_allocator_init(g, &vm->user_lp,
 						 vm, alloc_name,
 						 user_lp_vma_start,
@@ -504,7 +505,9 @@ int nvgpu_vm_do_init(struct mm_gk20a *mm,
 	/*
 	 * Kernel VMA. Must always exist for an address space.
 	 */
-	(void) snprintf(alloc_name, sizeof(alloc_name), "gk20a_%s-sys", name);
+	(void) strcpy(alloc_name, "gk20a_");
+	(void) strcat(alloc_name, name);
+	(void) strcat(alloc_name, "-sys");
 	err = nvgpu_allocator_init(g, &vm->kernel,
 					 vm, alloc_name,
 					 kernel_vma_start,
