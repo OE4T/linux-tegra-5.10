@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -105,7 +105,6 @@ nvgpu_posix_io_reg_access_from_link(struct nvgpu_list_node *node)
 };
 
 void nvgpu_posix_io_start_recorder(struct gk20a *g);
-void nvgpu_posix_io_reset_recorder(struct gk20a *g);
 void nvgpu_posix_io_record_access(struct gk20a *g,
 	struct nvgpu_reg_access *access);
 bool nvgpu_posix_io_check_sequence(struct gk20a *g,
