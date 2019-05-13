@@ -110,10 +110,10 @@ typedef signed long long	s64;
 
 #define div64_u64(a, b)		((a) / (b))
 
-#define __round_mask(x, y)	((__typeof__(x))((y) - 1U))
-#define round_up(x, y)		((((x) - 1U) | __round_mask(x, y)) + 1U)
+#define round_mask(x, y)	((__typeof__(x))((y) - 1U))
+#define round_up(x, y)		((((x) - 1U) | round_mask(x, y)) + 1U)
 #define roundup(x, y)		round_up(x, y)
-#define round_down(x, y)	((x) & ~__round_mask(x, y))
+#define round_down(x, y)	((x) & ~round_mask(x, y))
 
 #define ALIGN_MASK(x, mask)	(((x) + (mask)) & ~(mask))
 #define ALIGN(x, a)		ALIGN_MASK(x, (typeof(x))(a) - 1U)
@@ -138,10 +138,10 @@ static inline int scnprintf(char *buf, size_t size, const char *format, ...)
 	va_list args;
 
 	va_start(args, format);
-	ret = vsnprintf(buf, size, format, args);
+	ret = (size_t)vsnprintf(buf, size, format, args);
 	va_end(args);
 
-	return ret <= size ? ret : size;
+	return ret <= size ? (int)ret : (int)size;
 }
 
 static inline u32 be32_to_cpu(u32 x)
@@ -156,38 +156,50 @@ static inline u32 be32_to_cpu(u32 x)
 /*
  * Hamming weights.
  */
-static inline unsigned long __hweight8(uint8_t x)
+static inline unsigned long nvgpu_posix_hweight8(uint8_t x)
 {
-	return (unsigned long)(!!(x & (1 << 0)) +
-			       !!(x & (1 << 1)) +
-			       !!(x & (1 << 2)) +
-			       !!(x & (1 << 3)) +
-			       !!(x & (1 << 4)) +
-			       !!(x & (1 << 5)) +
-			       !!(x & (1 << 6)) +
-			       !!(x & (1 << 7)));
+	unsigned long ret;
+	uint8_t result = x - ((x >> 1) & 0x55U);
+
+	result = (result & 0x33U) + ((result >> 2) & 0x33U);
+	result = (result + (result >> 4)) & 0x0FU;
+	ret = (unsigned long)result;
+
+	return ret;
+}
+static inline unsigned long nvgpu_posix_hweight16(uint16_t x)
+{
+	unsigned long ret;
+
+	ret = nvgpu_posix_hweight8((uint8_t)x);
+	ret += nvgpu_posix_hweight8((uint8_t)((x & 0xff00U) >> 8));
+
+	return ret;
 }
 
-static inline unsigned long __hweight16(uint16_t x)
+static inline unsigned long nvgpu_posix_hweight32(uint32_t x)
 {
-	return __hweight8((uint8_t)x) +
-		__hweight8((uint8_t)((x & 0xff00) >> 8));
+	unsigned long ret;
+
+	ret = nvgpu_posix_hweight16((uint16_t)x);
+	ret += nvgpu_posix_hweight16((uint16_t)((x & 0xffff0000U) >> 16));
+
+	return ret;
 }
 
-static inline unsigned long __hweight32(uint32_t x)
+static inline unsigned long nvgpu_posix_hweight64(uint64_t x)
 {
-	return __hweight16((uint16_t)x) +
-		__hweight16((uint16_t)((x & 0xffff0000U) >> 16));
+	unsigned long ret;
+
+	ret =  nvgpu_posix_hweight32((uint32_t)x);
+	ret += nvgpu_posix_hweight32((uint32_t)((x &
+					0xffffffff00000000U) >> 32));
+
+	return ret;
 }
 
-static inline unsigned long __hweight64(uint64_t x)
-{
-	return __hweight32((uint32_t)x) +
-		__hweight32((uint32_t)((x & 0xffffffff00000000U) >> 32));
-}
-
-#define hweight32		__hweight32
-#define hweight_long		__hweight64
+#define hweight32		nvgpu_posix_hweight32
+#define hweight_long		nvgpu_posix_hweight64
 
 /*
  * Better suited under a compiler.h type header file, but for now these can live
