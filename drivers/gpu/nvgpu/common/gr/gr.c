@@ -23,6 +23,8 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/io.h>
 #include <nvgpu/unit.h>
+#include <nvgpu/errno.h>
+#include <nvgpu/secure_ops.h>
 #include <nvgpu/gr/gr.h>
 #include <nvgpu/gr/config.h>
 #include <nvgpu/gr/gr_intr.h>
@@ -113,7 +115,7 @@ u32 nvgpu_gr_get_no_of_sm(struct gk20a *g)
 u32 nvgpu_gr_gpc_offset(struct gk20a *g, u32 gpc)
 {
 	u32 gpc_stride = nvgpu_get_litter_value(g, GPU_LIT_GPC_STRIDE);
-	u32 gpc_offset = gpc_stride * gpc;
+	u32 gpc_offset = nvgpu_secure_mult_u32(gpc_stride , gpc);
 
 	return gpc_offset;
 }
@@ -122,7 +124,7 @@ u32 nvgpu_gr_tpc_offset(struct gk20a *g, u32 tpc)
 {
 	u32 tpc_in_gpc_stride = nvgpu_get_litter_value(g,
 					GPU_LIT_TPC_IN_GPC_STRIDE);
-	u32 tpc_offset = tpc_in_gpc_stride * tpc;
+	u32 tpc_offset = nvgpu_secure_mult_u32(tpc_in_gpc_stride, tpc);
 
 	return tpc_offset;
 }
@@ -695,6 +697,13 @@ int nvgpu_gr_disable_ctxsw(struct gk20a *g)
 	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gpu_dbg, " ");
 
 	nvgpu_mutex_acquire(&gr->ctxsw_disable_mutex);
+
+	/* check for gr->ctxsw_disable_count overflow */
+	if (INT_MAX < gr->ctxsw_disable_count) {
+		nvgpu_err(g, "ctxsw_disable_count overflow");
+		return -ERANGE;
+	}
+
 	gr->ctxsw_disable_count++;
 	if (gr->ctxsw_disable_count == 1) {
 		err = nvgpu_pg_elpg_disable(g);
