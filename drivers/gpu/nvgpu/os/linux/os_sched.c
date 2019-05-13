@@ -28,5 +28,5 @@ int nvgpu_current_pid(struct gk20a *g)
 void nvgpu_print_current_impl(struct gk20a *g, const char *func_name, int line,
 		void *ctx, enum nvgpu_log_type type)
 {
-	__nvgpu_log_msg(g, func_name, line, type, current->comm);
+	nvgpu_log_msg_impl(g, func_name, line, type, current->comm);
 }

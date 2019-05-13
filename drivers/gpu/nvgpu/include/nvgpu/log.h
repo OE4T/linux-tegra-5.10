@@ -40,13 +40,13 @@ enum nvgpu_log_type {
  * of printing data to a UART, log, whatever.
  */
 __attribute__((format (printf, 5, 6)))
-void __nvgpu_log_msg(struct gk20a *g, const char *func_name, int line,
-		     enum nvgpu_log_type type, const char *fmt, ...);
+void nvgpu_log_msg_impl(struct gk20a *g, const char *func_name, int line,
+			enum nvgpu_log_type type, const char *fmt, ...);
 
 __attribute__((format (printf, 5, 6)))
-void __nvgpu_log_dbg(struct gk20a *g, u64 log_mask,
-		     const char *func_name, int line,
-		     const char *fmt, ...);
+void nvgpu_log_dbg_impl(struct gk20a *g, u64 log_mask,
+			const char *func_name, int line,
+			const char *fmt, ...);
 
 /*
  * Use this define to set a default mask.
@@ -109,7 +109,7 @@ bool nvgpu_log_mask_enabled(struct gk20a *g, u64 log_mask);
  * Print a message if the log_mask matches the enabled debugging.
  */
 #define nvgpu_log(g, log_mask, fmt, arg...)				\
-	__nvgpu_log_dbg(g, log_mask, __func__, __LINE__, fmt, ##arg)
+	nvgpu_log_dbg_impl(g, log_mask, __func__, __LINE__, fmt, ##arg)
 
 /**
  * nvgpu_err - Print an error
@@ -121,7 +121,7 @@ bool nvgpu_log_mask_enabled(struct gk20a *g, u64 log_mask);
  * Uncondtionally print an error message.
  */
 #define nvgpu_err(g, fmt, arg...)					\
-	__nvgpu_log_msg(g, __func__, __LINE__, NVGPU_ERROR, fmt, ##arg)
+	nvgpu_log_msg_impl(g, __func__, __LINE__, NVGPU_ERROR, fmt, ##arg)
 
 /**
  * nvgpu_err - Print a warning
@@ -133,7 +133,7 @@ bool nvgpu_log_mask_enabled(struct gk20a *g, u64 log_mask);
  * Uncondtionally print a warming message.
  */
 #define nvgpu_warn(g, fmt, arg...)					\
-	__nvgpu_log_msg(g, __func__, __LINE__, NVGPU_WARNING, fmt, ##arg)
+	nvgpu_log_msg_impl(g, __func__, __LINE__, NVGPU_WARNING, fmt, ##arg)
 
 /**
  * nvgpu_info - Print an info message
@@ -145,7 +145,7 @@ bool nvgpu_log_mask_enabled(struct gk20a *g, u64 log_mask);
  * Unconditionally print an information message.
  */
 #define nvgpu_info(g, fmt, arg...)					\
-	__nvgpu_log_msg(g, __func__, __LINE__, NVGPU_INFO, fmt, ##arg)
+	nvgpu_log_msg_impl(g, __func__, __LINE__, NVGPU_INFO, fmt, ##arg)
 
 /*
  * Some convenience macros.
@@ -172,7 +172,7 @@ extern u64 nvgpu_dbg_mask;
 #define gk20a_dbg(log_mask, fmt, arg...)				\
 	do {								\
 		if (((log_mask) & nvgpu_dbg_mask) != 0)	{		\
-			__nvgpu_log_msg(NULL, __func__, __LINE__,	\
+			nvgpu_log_msg_impl(NULL, __func__, __LINE__,	\
 					NVGPU_DEBUG, fmt "\n", ##arg);	\
 		}							\
 	} while (false)

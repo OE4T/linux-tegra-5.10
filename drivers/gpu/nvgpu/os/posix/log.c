@@ -66,8 +66,8 @@ static void __nvgpu_really_print_log(const char *gpu_name,
 }
 
 __attribute__((format (printf, 5, 6)))
-void __nvgpu_log_msg(struct gk20a *g, const char *func_name, int line,
-		     enum nvgpu_log_type type, const char *fmt, ...)
+void nvgpu_log_msg_impl(struct gk20a *g, const char *func_name, int line,
+			enum nvgpu_log_type type, const char *fmt, ...)
 {
 	char log[LOG_BUFFER_LENGTH];
 	va_list args;
@@ -81,9 +81,9 @@ void __nvgpu_log_msg(struct gk20a *g, const char *func_name, int line,
 }
 
 __attribute__((format (printf, 5, 6)))
-void __nvgpu_log_dbg(struct gk20a *g, u64 log_mask,
-		     const char *func_name, int line,
-		     const char *fmt, ...)
+void nvgpu_log_dbg_impl(struct gk20a *g, u64 log_mask,
+			const char *func_name, int line,
+			const char *fmt, ...)
 {
 	char log[LOG_BUFFER_LENGTH];
 	va_list args;

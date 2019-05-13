@@ -93,7 +93,7 @@ static void __dma_dbg(struct gk20a *g, size_t size, unsigned long flags,
 
 	nvgpu_dma_flags_to_str(g, flags, flags_str);
 
-	__nvgpu_log_dbg(g, gpu_dbg_dma,
+	nvgpu_log_dbg_impl(g, gpu_dbg_dma,
 			func, line,
 			"DMA %s: [%s] size=%-7zu "
 			"aligned=%-7zu total=%-10llukB %s",
