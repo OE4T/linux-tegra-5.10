@@ -304,7 +304,7 @@ static int gr_init_access_map(struct gk20a *g, struct nvgpu_gr *gr)
 			       whitelist[w], map_byte, map_shift);
 		x = nvgpu_mem_rd32(g, mem, map_byte / (u32)sizeof(u32));
 		x |= BIT32(
-			   (map_byte % sizeof(u32) * BITS_PER_BYTE)
+			   (map_byte % (u32)sizeof(u32) * BITS_PER_BYTE_U32)
 			  + map_shift);
 		nvgpu_mem_wr32(g, mem, map_byte / (u32)sizeof(u32), x);
 	}
@@ -651,8 +651,12 @@ int nvgpu_gr_alloc(struct gk20a *g)
 {
 	struct nvgpu_gr *gr = NULL;
 
+	if (g == NULL) {
+		return -EINVAL;
+	}
+
 	/* if gr exists return */
-	if ((g != NULL) && (g->gr != NULL)) {
+	if (g->gr != NULL) {
 		return 0;
 	}
 

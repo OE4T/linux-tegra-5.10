@@ -40,6 +40,13 @@
 #include <nvgpu/posix/bitops.h>
 #endif
 
+/*
+ * BITS_PER_BYTE is U64 data type.
+ * Casting U64 to U32 results in certc_violation.
+ * To avoid violation, define BITS_PER_BYTE_U32 as U32 data type
+ */
+#define BITS_PER_BYTE_U32	8U
+
 static inline void nvgpu_bitmap_set(unsigned long *map, unsigned int start,
 				    unsigned int len)
 {
