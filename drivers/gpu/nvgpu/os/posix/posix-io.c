@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -94,7 +94,7 @@ void nvgpu_writel_loop(struct gk20a *g, u32 r, u32 v)
 	BUG();
 }
 
-u32 __nvgpu_readl(struct gk20a *g, u32 r)
+u32 nvgpu_readl_impl(struct gk20a *g, u32 r)
 {
 	struct nvgpu_posix_io_callbacks *callbacks =
 		nvgpu_os_posix_from_gk20a(g)->callbacks;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -38,7 +38,7 @@ struct gk20a;
 void nvgpu_writel(struct gk20a *g, u32 r, u32 v);
 void nvgpu_writel_relaxed(struct gk20a *g, u32 r, u32 v);
 u32 nvgpu_readl(struct gk20a *g, u32 r);
-u32 __nvgpu_readl(struct gk20a *g, u32 r);
+u32 nvgpu_readl_impl(struct gk20a *g, u32 r);
 void nvgpu_writel_check(struct gk20a *g, u32 r, u32 v);
 void nvgpu_writel_loop(struct gk20a *g, u32 r, u32 v);
 void nvgpu_bar1_writel(struct gk20a *g, u32 b, u32 v);

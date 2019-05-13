@@ -191,9 +191,9 @@ struct readl_test_args nvgpu_readl_args = {
 	.fn   = nvgpu_readl
 };
 
-struct readl_test_args __nvgpu_readl_args = {
-	.name = "__nvgpu_readl",
-	.fn   = __nvgpu_readl
+struct readl_test_args nvgpu_readl_impl_args = {
+	.name = "nvgpu_readl_impl",
+	.fn   = nvgpu_readl_impl
 };
 
 struct readl_test_args nvgpu_bar1_readl_args = {
@@ -333,7 +333,7 @@ struct unit_module_test posix_mockio_tests[] = {
 	UNIT_TEST(usermode_writel,	 test_writel,
 		  &nvgpu_usermode_writel_args, 0),
 	UNIT_TEST(readl,		 test_readl, &nvgpu_readl_args, 0),
-	UNIT_TEST(__readl,		 test_readl, &__nvgpu_readl_args, 0),
+	UNIT_TEST(readl_impl,		 test_readl, &nvgpu_readl_impl_args, 0),
 	UNIT_TEST(bar1_readl,		 test_readl, &nvgpu_bar1_readl_args, 0),
 	UNIT_TEST(test_register_space,	 test_register_space, NULL, 0),
 };

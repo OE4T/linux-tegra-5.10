@@ -1423,7 +1423,7 @@
         "unit": "posix_env"
     },
     {
-        "test": "__readl",
+        "test": "readl_impl",
         "test_level": 0,
         "unit": "posix_mockio"
     },

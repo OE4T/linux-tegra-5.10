@@ -45,7 +45,7 @@ void nvgpu_writel_relaxed(struct gk20a *g, u32 r, u32 v)
 
 u32 nvgpu_readl(struct gk20a *g, u32 r)
 {
-	u32 v = __nvgpu_readl(g, r);
+	u32 v = nvgpu_readl_impl(g, r);
 
 	if (v == 0xffffffff)
 		nvgpu_check_gpu_state(g);
@@ -53,7 +53,7 @@ u32 nvgpu_readl(struct gk20a *g, u32 r)
 	return v;
 }
 
-u32 __nvgpu_readl(struct gk20a *g, u32 r)
+u32 nvgpu_readl_impl(struct gk20a *g, u32 r)
 {
 	struct nvgpu_os_linux *l = nvgpu_os_linux_from_gk20a(g);
 	u32 v = 0xffffffff;

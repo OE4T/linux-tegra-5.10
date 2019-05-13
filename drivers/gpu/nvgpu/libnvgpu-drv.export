@@ -2,7 +2,6 @@
 
 __nvgpu_log_dbg
 __nvgpu_log_msg
-__nvgpu_readl
 bitmap_clear
 bitmap_find_next_zero_area_off
 bitmap_set
@@ -154,6 +153,7 @@ nvgpu_rbtree_range_search
 nvgpu_rbtree_search
 nvgpu_rbtree_unlink
 nvgpu_readl
+nvgpu_readl_impl
 nvgpu_runlist_construct_locked
 nvgpu_rwsem_init
 nvgpu_tsg_default_timeslice_us
