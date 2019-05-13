@@ -243,7 +243,7 @@ static void nvgpu_init_mm_vars(struct gk20a *g)
 int nvgpu_probe(struct gk20a *g,
 		const char *debugfs_symlink,
 		const char *interface_name,
-		struct class *class)
+		struct class *device_class)
 {
 	struct device *dev = dev_from_gk20a(g);
 	struct gk20a_platform *platform = dev_get_drvdata(dev);
@@ -275,7 +275,7 @@ int nvgpu_probe(struct gk20a *g,
 	nvgpu_init_mm_vars(g);
 
 	/* platform probe can defer do user init only if probe succeeds */
-	err = gk20a_user_init(dev, interface_name, class);
+	err = gk20a_user_init(dev, interface_name, device_class);
 	if (err)
 		return err;
 
@@ -317,5 +317,5 @@ static void nvgpu_free_gk20a(struct gk20a *g)
 
 void nvgpu_init_gk20a(struct gk20a *g)
 {
-	g->free = nvgpu_free_gk20a;
+	g->gfree = nvgpu_free_gk20a;
 }

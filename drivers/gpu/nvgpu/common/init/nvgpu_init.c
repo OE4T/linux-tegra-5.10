@@ -628,8 +628,8 @@ static void gk20a_free_cb(struct nvgpu_ref *refcount)
 
 	nvgpu_ltc_remove_support(g);
 
-	if (g->free != NULL) {
-		g->free(g);
+	if (g->gfree != NULL) {
+		g->gfree(g);
 	}
 }
 

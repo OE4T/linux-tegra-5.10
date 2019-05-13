@@ -1315,11 +1315,9 @@ struct gpu_ops {
 	 */
 	int (*secure_alloc)(struct gk20a *g, struct nvgpu_mem *desc_mem,
 			size_t size,
-			void (**)(struct gk20a *g, struct nvgpu_mem *mem));
+			void (**fn)(struct gk20a *g, struct nvgpu_mem *mem));
 
 	struct {
-		void (*exit)(struct gk20a *g, struct nvgpu_mem *mem,
-			struct nvgpu_sgl *sgl);
 		u32 (*data032_r)(u32 i);
 	} pramin;
 	struct {
@@ -1891,7 +1889,7 @@ struct nvgpu_gpu_params {
 };
 
 struct gk20a {
-	void (*free)(struct gk20a *g);
+	void (*gfree)(struct gk20a *g);
 	struct nvgpu_nvhost_dev *nvhost_dev;
 
 	/*
@@ -2214,8 +2212,10 @@ void gk20a_busy_noresume(struct gk20a *g);
 void gk20a_idle_nosuspend(struct gk20a *g);
 int __must_check gk20a_busy(struct gk20a *g);
 void gk20a_idle(struct gk20a *g);
-int __gk20a_do_idle(struct gk20a *g, bool force_reset);
-int __gk20a_do_unidle(struct gk20a *g);
+#ifdef CONFIG_PM
+int gk20a_do_idle_impl(struct gk20a *g, bool force_reset);
+int gk20a_do_unidle_impl(struct gk20a *g);
+#endif
 
 int nvgpu_can_busy(struct gk20a *g);
 int gk20a_wait_for_idle(struct gk20a *g);

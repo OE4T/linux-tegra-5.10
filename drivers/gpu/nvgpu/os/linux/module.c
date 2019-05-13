@@ -495,15 +495,15 @@ MODULE_DEVICE_TABLE(of, tegra_gk20a_of_match);
 
 #ifdef CONFIG_PM
 /**
- * __gk20a_do_idle() - force the GPU to idle and railgate
+ * gk20a_do_idle_impl() - force the GPU to idle and railgate
  *
- * In success, this call MUST be balanced by caller with __gk20a_do_unidle()
+ * In success, this call MUST be balanced by caller with gk20a_do_unidle_impl()
  *
  * Acquires two locks : &l->busy_lock and &platform->railgate_lock
  * In success, we hold these locks and return
  * In failure, we release these locks and return
  */
-int __gk20a_do_idle(struct gk20a *g, bool force_reset)
+int gk20a_do_idle_impl(struct gk20a *g, bool force_reset)
 {
 	struct nvgpu_os_linux *l = nvgpu_os_linux_from_gk20a(g);
 	struct device *dev = dev_from_gk20a(g);
@@ -601,7 +601,7 @@ int __gk20a_do_idle(struct gk20a *g, bool force_reset)
 		 * if GPU is now idle, call prepare_poweroff() to save the
 		 * state and then do explicit railgate
 		 *
-		 * __gk20a_do_unidle() needs to unrailgate, call
+		 * gk20a_do_unidle_impl() needs to unrailgate, call
 		 * finalize_poweron(), and then call pm_runtime_put_sync()
 		 * to balance the GPU usage counter
 		 */
@@ -630,7 +630,7 @@ fail_timeout:
 }
 
 /**
- * gk20a_do_idle() - wrap up for __gk20a_do_idle() to be called
+ * gk20a_do_idle() - wrap up for gk20a_do_idle_impl() to be called
  * from outside of GPU driver
  *
  * In success, this call MUST be balanced by caller with gk20a_do_unidle()
@@ -639,13 +639,14 @@ static int gk20a_do_idle(void *_g)
 {
 	struct gk20a *g = (struct gk20a *)_g;
 
-	return __gk20a_do_idle(g, true);
+	return gk20a_do_idle_impl(g, true);
 }
 
 /**
- * __gk20a_do_unidle() - unblock all the tasks blocked by __gk20a_do_idle()
+ * gk20a_do_unidle_impl() - unblock all the tasks blocked by
+ * gk20a_do_idle_impl()
  */
-int __gk20a_do_unidle(struct gk20a *g)
+int gk20a_do_unidle_impl(struct gk20a *g)
 {
 	struct nvgpu_os_linux *l = nvgpu_os_linux_from_gk20a(g);
 	struct device *dev = dev_from_gk20a(g);
@@ -680,13 +681,13 @@ int __gk20a_do_unidle(struct gk20a *g)
 }
 
 /**
- * gk20a_do_unidle() - wrap up for __gk20a_do_unidle()
+ * gk20a_do_unidle() - wrap up for gk20a_do_unidle_impl()
  */
 static int gk20a_do_unidle(void *_g)
 {
 	struct gk20a *g = (struct gk20a *)_g;
 
-	return __gk20a_do_unidle(g);
+	return gk20a_do_unidle_impl(g);
 }
 #endif
 

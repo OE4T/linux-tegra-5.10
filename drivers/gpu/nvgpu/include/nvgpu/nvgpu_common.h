@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -29,7 +29,7 @@ struct class;
 int nvgpu_probe(struct gk20a *g,
 		const char *debugfs_symlink,
 		const char *interface_name,
-		struct class *class);
+		struct class *device_class);
 
 void nvgpu_kernel_restart(void *cmd);
 
