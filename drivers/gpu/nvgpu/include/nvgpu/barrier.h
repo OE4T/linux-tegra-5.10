@@ -36,21 +36,21 @@
 #include <nvgpu_rmos/include/barrier.h>
 #endif
 
-#define nvgpu_mb()	__nvgpu_mb()
-#define nvgpu_rmb()	__nvgpu_rmb()
-#define nvgpu_wmb()	__nvgpu_wmb()
+#define nvgpu_mb()	nvgpu_mb_impl()
+#define nvgpu_rmb()	nvgpu_rmb_impl()
+#define nvgpu_wmb()	nvgpu_wmb_impl()
 
-#define nvgpu_smp_mb()	__nvgpu_smp_mb()
-#define nvgpu_smp_rmb()	__nvgpu_smp_rmb()
-#define nvgpu_smp_wmb()	__nvgpu_smp_wmb()
+#define nvgpu_smp_mb()	nvgpu_smp_mb_impl()
+#define nvgpu_smp_rmb()	nvgpu_smp_rmb_impl()
+#define nvgpu_smp_wmb()	nvgpu_smp_wmb_impl()
 
-#define NV_ACCESS_ONCE(x)	__NV_ACCESS_ONCE((x))
+#define NV_ACCESS_ONCE(x)	NV_ACCESS((x))
 
 /*
  * Sometimes we want to prevent speculation.
  */
 #ifdef __NVGPU_PREVENT_UNTRUSTED_SPECULATION
-#define nvgpu_speculation_barrier()	__nvgpu_speculation_barrier()
+#define nvgpu_speculation_barrier()	nvgpu_speculation_barrier_impl()
 #else
 #define nvgpu_speculation_barrier()
 #endif

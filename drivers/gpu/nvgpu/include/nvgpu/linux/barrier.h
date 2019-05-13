@@ -19,16 +19,16 @@
 
 #include <asm/barrier.h>
 
-#define __nvgpu_mb()	mb()
-#define __nvgpu_rmb()	rmb()
-#define __nvgpu_wmb()	wmb()
+#define nvgpu_mb_impl()	mb()
+#define nvgpu_rmb_impl()	rmb()
+#define nvgpu_wmb_impl()	wmb()
 
-#define __nvgpu_smp_mb()	smp_mb()
-#define __nvgpu_smp_rmb()	smp_rmb()
-#define __nvgpu_smp_wmb()	smp_wmb()
+#define nvgpu_smp_mb_impl()	smp_mb()
+#define nvgpu_smp_rmb_impl()	smp_rmb()
+#define nvgpu_smp_wmb_impl()	smp_wmb()
 
-#define __NV_ACCESS_ONCE(x)	ACCESS_ONCE(x)
+#define NV_ACCESS(x)	ACCESS_ONCE(x)
 
-#define __nvgpu_speculation_barrier() speculation_barrier()
+#define nvgpu_speculation_barrier_impl() speculation_barrier()
 
 #endif /* __NVGPU_BARRIER_LINUX_H__ */

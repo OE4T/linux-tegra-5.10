@@ -28,14 +28,14 @@
 /*
  * TODO: implement all these!
  */
-#define __nvgpu_mb()
-#define __nvgpu_rmb()
-#define __nvgpu_wmb()
+#define nvgpu_mb_impl()
+#define nvgpu_rmb_impl()
+#define nvgpu_wmb_impl()
 
-#define __nvgpu_smp_mb()
-#define __nvgpu_smp_rmb()
-#define __nvgpu_smp_wmb()
+#define nvgpu_smp_mb_impl()
+#define nvgpu_smp_rmb_impl()
+#define nvgpu_smp_wmb_impl()
 
-#define __NV_ACCESS_ONCE(x)	ACCESS_ONCE(x)
+#define NV_ACCESS(x)	ACCESS_ONCE(x)
 
 #endif /* NVGPU_POSIX_BARRIER_H */
