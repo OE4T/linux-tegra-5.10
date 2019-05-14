@@ -97,8 +97,8 @@ int nvgpu_gr_falcon_bind_fecs_elpg(struct gk20a *g)
 		return err;
 	}
 
-	if (pmu->pg->pg_buf.cpu_va == NULL) {
-		err = nvgpu_dma_alloc_map_sys(vm, size, &pmu->pg->pg_buf);
+	if (nvgpu_pmu_pg_buf_get_cpu_va(pmu) == NULL) {
+		err = nvgpu_dma_alloc_map_sys(vm, size, nvgpu_pmu_pg_buf(pmu));
 		if (err != 0) {
 			nvgpu_err(g, "failed to allocate memory");
 			return -ENOMEM;
@@ -115,7 +115,7 @@ int nvgpu_gr_falcon_bind_fecs_elpg(struct gk20a *g)
 		return err;
 	}
 
-	data = u64_lo32(pmu->pg->pg_buf.gpu_va >> 8);
+	data = u64_lo32(nvgpu_pmu_pg_buf_get_gpu_va(pmu) >> 8);
 	err = g->ops.gr.falcon.ctrl_ctxsw(g,
 		NVGPU_GR_FALCON_METHOD_REGLIST_SET_VIRTUAL_ADDRESS, data, NULL);
 	if (err != 0) {
