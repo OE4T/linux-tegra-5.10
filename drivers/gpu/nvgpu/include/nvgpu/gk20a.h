@@ -367,7 +367,7 @@ struct gpu_ops {
 		int (*wait_for_pause)(struct gk20a *g, struct nvgpu_warpstate *w_state);
 		int (*resume_from_pause)(struct gk20a *g);
 		int (*clear_sm_errors)(struct gk20a *g);
-		u32 (*tpc_enabled_exceptions)(struct gk20a *g);
+		u64 (*tpc_enabled_exceptions)(struct gk20a *g);
 		bool (*sm_debugger_attached)(struct gk20a *g);
 		void (*suspend_single_sm)(struct gk20a *g,
 				u32 gpc, u32 tpc, u32 sm,

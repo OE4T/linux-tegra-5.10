@@ -1457,3 +1457,25 @@ int vgpu_gr_set_preemption_mode(struct nvgpu_channel *ch,
 
 	return err;
 }
+
+u64 vgpu_gr_gk20a_tpc_enabled_exceptions(struct gk20a *g)
+{
+	struct tegra_vgpu_cmd_msg msg = {};
+	struct tegra_vgpu_get_tpc_exception_en_status_params *p =
+				&msg.params.get_tpc_exception_status;
+	u64 tpc_exception_en = 0U;
+	int err = 0;
+
+	msg.cmd = TEGRA_VGPU_CMD_GET_TPC_EXCEPTION_EN_STATUS;
+	msg.handle = vgpu_get_handle(g);
+	err = vgpu_comm_sendrecv(&msg, sizeof(msg), sizeof(msg));
+	err = err ? err : msg.ret;
+	if (err) {
+		nvgpu_err(g,
+			"get tpc enabled exception failed err %d", err);
+		return err;
+	}
+
+	tpc_exception_en = p->tpc_exception_en_sm_mask;
+	return tpc_exception_en;
+}

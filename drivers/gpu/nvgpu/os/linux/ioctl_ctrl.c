@@ -802,7 +802,7 @@ static int nvgpu_gpu_ioctl_has_any_exception(
 		struct gk20a *g,
 		struct nvgpu_gpu_tpc_exception_en_status_args *args)
 {
-	u32 tpc_exception_en;
+	u64 tpc_exception_en;
 
 	nvgpu_mutex_acquire(&g->dbg_sessions_lock);
 	tpc_exception_en = g->ops.gr.tpc_enabled_exceptions(g);

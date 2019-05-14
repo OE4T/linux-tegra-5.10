@@ -2240,9 +2240,10 @@ int gr_gk20a_clear_sm_errors(struct gk20a *g)
 	return ret;
 }
 
-u32 gr_gk20a_tpc_enabled_exceptions(struct gk20a *g)
+u64 gr_gk20a_tpc_enabled_exceptions(struct gk20a *g)
 {
-	u32 sm_id, tpc_exception_en = 0;
+	u32 sm_id;
+	u64 tpc_exception_en = 0;
 	u32 offset, regval, tpc_offset, gpc_offset;
 	u32 gpc_stride = nvgpu_get_litter_value(g, GPU_LIT_GPC_STRIDE);
 	u32 tpc_in_gpc_stride = nvgpu_get_litter_value(g, GPU_LIT_TPC_IN_GPC_STRIDE);

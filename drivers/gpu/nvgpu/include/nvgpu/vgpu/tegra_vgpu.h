@@ -122,6 +122,7 @@ enum {
 	TEGRA_VGPU_CMD_GET_ECC_INFO = 84,
 	TEGRA_VGPU_CMD_GET_ECC_COUNTER_VALUE = 85,
 	TEGRA_VGPU_CMD_SET_SM_EXCEPTION_TYPE_MASK = 86,
+	TEGRA_VGPU_CMD_GET_TPC_EXCEPTION_EN_STATUS = 87,
 };
 
 struct tegra_vgpu_connect_params {
@@ -618,6 +619,10 @@ struct tegra_vgpu_tsg_bind_channel_ex_params {
 	u32 runqueue_sel;
 };
 
+struct tegra_vgpu_get_tpc_exception_en_status_params {
+	u64 tpc_exception_en_sm_mask;
+};
+
 struct tegra_vgpu_cmd_msg {
 	u32 cmd;
 	int ret;
@@ -679,7 +684,8 @@ struct tegra_vgpu_cmd_msg {
 		struct tegra_vgpu_ecc_info_params ecc_info;
 		struct tegra_vgpu_ecc_counter_params ecc_counter;
 		struct tegra_vgpu_set_sm_exception_type_mask_params set_sm_exception_mask;
-		char padding[192];
+		struct tegra_vgpu_get_tpc_exception_en_status_params get_tpc_exception_status;
+		char padding[184];
 	} params;
 };
 
