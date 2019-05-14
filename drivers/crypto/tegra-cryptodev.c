@@ -1248,11 +1248,7 @@ static int tegra_crypto_sha(struct tegra_sha_req *sha_req)
 	void *hash_buff;
 	unsigned long *xbuf[XBUFSIZE];
 	int ret = -ENOMEM;
-
-	if (sha_req->plaintext_sz > PAGE_SIZE) {
-		pr_err("alg:hash: invalid plaintext_sz for sha_req\n");
-		return -EINVAL;
-	}
+	unsigned long size = 0, total = 0;
 
 	if (strncpy_from_user(algo, sha_req->algo, sizeof(algo) - 1) < 0) {
 		pr_err("alg:hash: invalid algo for sha_req\n");
@@ -1260,10 +1256,16 @@ static int tegra_crypto_sha(struct tegra_sha_req *sha_req)
 	}
 	algo[sizeof(algo) - 1] = '\0';
 
-	result = kmalloc(64, GFP_KERNEL);
+	if (strncmp(algo, "cmac(aes)", 9) == 0) {
+		if (sha_req->plaintext_sz > PAGE_SIZE) {
+			pr_err("alg:hash: invalid plaintext_sz for sha_req\n");
+			return -EINVAL;
+		}
+	}
+
+	result = kzalloc(64, GFP_KERNEL);
 	if (!result)
 		return -ENOMEM;
-	memset(result, 0, 64);
 
 	tfm = crypto_alloc_ahash(algo, 0, 0);
 	if (IS_ERR(tfm)) {
@@ -1290,19 +1292,6 @@ static int tegra_crypto_sha(struct tegra_sha_req *sha_req)
 	init_completion(&sha_complete.restart);
 	sha_complete.req_err = 0;
 
-	hash_buff = xbuf[0];
-
-	ret = copy_from_user((void *)hash_buff,
-			     (void __user *)sha_req->plaintext,
-			     sha_req->plaintext_sz);
-	if (ret) {
-		ret = -EFAULT;
-		pr_err("%s: copy_from_user failed (%d)\n", __func__, ret);
-			goto out;
-	}
-
-	sg_init_one(&sg[0], hash_buff, sha_req->plaintext_sz);
-
 	if (sha_req->keylen) {
 		crypto_ahash_clear_flags(tfm, ~0);
 		ret = crypto_ahash_setkey(tfm, sha_req->key,
@@ -1315,8 +1304,6 @@ static int tegra_crypto_sha(struct tegra_sha_req *sha_req)
 		}
 	}
 
-	ahash_request_set_crypt(req, sg, result, sha_req->plaintext_sz);
-
 	ret = wait_async_op(&sha_complete, crypto_ahash_init(req));
 	if (ret) {
 		pr_err("alg: hash: init failed for %s: ret=%d\n",
@@ -1324,18 +1311,42 @@ static int tegra_crypto_sha(struct tegra_sha_req *sha_req)
 		goto out;
 	}
 
-	ret = wait_async_op(&sha_complete, crypto_ahash_update(req));
-	if (ret) {
-		pr_err("alg: hash: update failed for %s: ret=%d\n",
-			sha_req->algo, ret);
-		goto out;
-	}
+	hash_buff = xbuf[0];
+	total = sha_req->plaintext_sz;
+	while (total >= 0) {
+		size = min(total, PAGE_SIZE);
+		ret = copy_from_user((void *)hash_buff,
+			     (void __user *)sha_req->plaintext,
+			     size);
+		if (ret) {
+			ret = -EFAULT;
+			pr_err("%s: copy_from_user failed (%d)\n",
+					__func__, ret);
+			goto out;
+		}
 
-	ret = wait_async_op(&sha_complete, crypto_ahash_final(req));
-	if (ret) {
-		pr_err("alg: hash: final failed for %s: ret=%d\n",
-			sha_req->algo, ret);
-		goto out;
+		sg_init_one(&sg[0], hash_buff, size);
+		ahash_request_set_crypt(req, sg, result, size);
+
+		ret = wait_async_op(&sha_complete, crypto_ahash_update(req));
+		if (ret) {
+			pr_err("alg: hash: update failed for %s: ret=%d\n",
+				sha_req->algo, ret);
+			goto out;
+		}
+
+		if (size == total) {
+			ret = wait_async_op(&sha_complete,
+					crypto_ahash_final(req));
+			if (ret) {
+				pr_err("alg: hash: final failed for %s: ret=%d\n", sha_req->algo, ret);
+				goto out;
+			}
+			break;
+		}
+
+		total -= size;
+		sha_req->plaintext += size;
 	}
 
 	ret = copy_to_user((void __user *)sha_req->result,
