@@ -16,7 +16,11 @@
 
 ifdef NV_INTERFACE_FLAG_SHARED_LIBRARY_SECTION
 NV_INTERFACE_NAME             := nvgpu-drv
-NV_INTERFACE_EXPORTS          := libnvgpu-drv
+ifeq ($(NV_BUILD_CONFIGURATION_IS_SAFETY),0)
+NV_INTERFACE_EXPORTS         := lib$(NV_INTERFACE_NAME)
+else
+NV_INTERFACE_EXPORTS         := lib$(NV_INTERFACE_NAME)_safe
+endif
 NV_INTERFACE_PUBLIC_INCLUDES  := . include
 endif
 
