@@ -26,6 +26,8 @@
 #include <nvgpu/bug.h>
 #include <nvgpu/lock.h>
 
+#define NVGPU_COND_WAIT_TIMEOUT_MAX_MS	~0U
+
 struct nvgpu_cond {
 	bool initialized;
 	struct nvgpu_mutex mutex;
@@ -54,7 +56,8 @@ void nvgpu_cond_unlock(struct nvgpu_cond *cond);
 ({								\
 	int ret = 0;						\
 	NVGPU_COND_WAIT_TIMEOUT_LOCKED(cond, condition, ret,	\
-		timeout_ms ? timeout_ms : (unsigned int)-1);	\
+		timeout_ms ? timeout_ms :			\
+		NVGPU_COND_WAIT_TIMEOUT_MAX_MS);		\
 	ret;							\
 })
 
@@ -77,7 +80,8 @@ void nvgpu_cond_unlock(struct nvgpu_cond *cond);
 	NVGPU_COND_WAIT_TIMEOUT_LOCKED((cond), (condition),		\
 		(cond_wait_ret),					\
 		(cond_wait_timeout != 0U) ?				\
-			(cond_wait_timeout) : (unsigned int)-1);	\
+			(cond_wait_timeout) :				\
+			NVGPU_COND_WAIT_TIMEOUT_MAX_MS);		\
 	nvgpu_mutex_release(&(cond)->mutex);				\
 	cond_wait_ret;							\
 })

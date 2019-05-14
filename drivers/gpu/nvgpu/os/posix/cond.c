@@ -143,7 +143,7 @@ int nvgpu_cond_timedwait(struct nvgpu_cond *c, unsigned int *ms)
 	s64 t_start_ns, t_ns;
 	struct timespec ts;
 
-	if (*ms == (unsigned int)-1) {
+	if (*ms == NVGPU_COND_WAIT_TIMEOUT_MAX_MS) {
 		return pthread_cond_wait(&c->cond, &c->mutex.lock.mutex);
 	}
 
