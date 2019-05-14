@@ -59,7 +59,7 @@ struct nvgpu_timeout {
 	union {
 		s64		 time;
 		struct {
-			u32	 max;
+			u32	 max_attempts;
 			u32	 attempted;
 		} retries;
 	};

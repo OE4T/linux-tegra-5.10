@@ -67,7 +67,7 @@ int nvgpu_timeout_init(struct gk20a *g, struct nvgpu_timeout *timeout,
 	timeout->flags = flags;
 
 	if (flags & NVGPU_TIMER_RETRY_TIMER)
-		timeout->retries.max = duration;
+		timeout->retries.max_attempts = duration;
 	else
 		timeout->time = ktime_to_ns(ktime_add_ns(ktime_get(),
 					(s64)NSEC_PER_MSEC * duration));
@@ -109,7 +109,7 @@ static int nvgpu_timeout_expired_msg_retry(struct nvgpu_timeout *timeout,
 	if (nvgpu_timeout_is_pre_silicon(timeout))
 		return 0;
 
-	if (timeout->retries.attempted >= timeout->retries.max) {
+	if (timeout->retries.attempted >= timeout->retries.max_attempts) {
 		if (!(timeout->flags & NVGPU_TIMER_SILENT_TIMEOUT)) {
 			char buf[128];
 
@@ -173,7 +173,8 @@ int nvgpu_timeout_peek_expired(struct nvgpu_timeout *timeout)
 		return 0;
 
 	if (timeout->flags & NVGPU_TIMER_RETRY_TIMER)
-		return timeout->retries.attempted >= timeout->retries.max;
+		return timeout->retries.attempted >=
+					timeout->retries.max_attempts;
 	else
 		return ktime_after(ktime_get(), ns_to_ktime(timeout->time));
 }
