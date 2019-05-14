@@ -34,6 +34,7 @@
 #include <nvgpu/gr/gr_falcon.h>
 #include <nvgpu/gr/fs_state.h>
 #include <nvgpu/power_features/cg.h>
+#include <nvgpu/secure_ops.h>
 
 #include "obj_ctx_priv.h"
 
@@ -283,7 +284,7 @@ int nvgpu_gr_obj_ctx_commit_global_ctx_buffers(struct gk20a *g,
 	struct nvgpu_gr_config *config,	struct nvgpu_gr_ctx *gr_ctx, bool patch)
 {
 	u64 addr;
-	size_t size;
+	u32 size;
 
 	nvgpu_log_fn(g, " ");
 
@@ -297,15 +298,16 @@ int nvgpu_gr_obj_ctx_commit_global_ctx_buffers(struct gk20a *g,
 
 	/* global pagepool buffer */
 	addr = nvgpu_gr_ctx_get_global_ctx_va(gr_ctx, NVGPU_GR_CTX_PAGEPOOL_VA);
-	size = nvgpu_gr_global_ctx_get_size(global_ctx_buffer,
-			NVGPU_GR_GLOBAL_CTX_PAGEPOOL);
+	size = nvgpu_secure_cast_u64_to_u32(nvgpu_gr_global_ctx_get_size(
+			global_ctx_buffer, NVGPU_GR_GLOBAL_CTX_PAGEPOOL));
 
 	g->ops.gr.init.commit_global_pagepool(g, gr_ctx, addr, size, patch,
 		true);
 
 	/* global bundle cb */
 	addr = nvgpu_gr_ctx_get_global_ctx_va(gr_ctx, NVGPU_GR_CTX_CIRCULAR_VA);
-	size = g->ops.gr.init.get_bundle_cb_default_size(g);
+	size = nvgpu_secure_cast_u64_to_u32(
+			g->ops.gr.init.get_bundle_cb_default_size(g));
 
 	g->ops.gr.init.commit_global_bundle_cb(g, gr_ctx, addr, size, patch);
 
@@ -591,8 +593,9 @@ int nvgpu_gr_obj_ctx_alloc(struct gk20a *g,
 
 		nvgpu_gr_ctx_set_size(gr_ctx_desc,
 			NVGPU_GR_CTX_PATCH_CTX,
-			g->ops.gr.init.get_patch_slots(g, config) *
-				PATCH_CTX_SLOTS_REQUIRED_PER_ENTRY);
+			nvgpu_secure_mult_u32(
+				g->ops.gr.init.get_patch_slots(g, config),
+				PATCH_CTX_SLOTS_REQUIRED_PER_ENTRY));
 
 		err = nvgpu_gr_ctx_alloc_patch_ctx(g, gr_ctx, gr_ctx_desc, vm);
 		if (err != 0) {
