@@ -85,6 +85,8 @@ struct tegra_cbb_noc_data {
 	void __iomem    **axi2abp_bases;
 	int  apb_bridge_cnt;
 	bool is_clk_rst;
+	bool erd_mask_inband_err;
+	u64  off_erd_err_config;
 	int  (*is_cluster_probed)(void);
 	int  (*is_clk_enabled)(void);
 	int  (*tegra_noc_en_clk_rpm)(void);

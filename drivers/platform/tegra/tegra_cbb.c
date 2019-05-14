@@ -289,10 +289,22 @@ int tegra_cbberr_register_hook_en(struct platform_device *pdev,
 {
 	int ret = 0;
 
-	/* register handler for CBB errors due to CCPLEX master*/
+	if (bdata->erd_mask_inband_err) {
+		/* set Error Response Disable to mask SError/inband errors */
+		ret = tegra_set_erd(bdata->off_erd_err_config);
+		if (ret) {
+			dev_err(&pdev->dev, "couldn't mask inband errors\n");
+			return ret;
+		}
+	}
+
+	/* register SError handler for CBB errors due to CCPLEX master */
 	register_serr_hook(callback);
 
-	/* register handler for CBB errors due to masters other than CCPLEX*/
+	/* register interrupt handler for CBB errors due to different masters.
+	 * If ERD bit is set then CBB NOC error will not generate SErrors for
+	 * CCPLEX. It will only trigger LIC interrupts to print error info.
+	 */
 	ret = cbberr_ops->cbb_enable_interrupt(pdev, cbb_init_data.secure_irq,
 				cbb_init_data.nonsecure_irq);
 	if (ret < 0) {

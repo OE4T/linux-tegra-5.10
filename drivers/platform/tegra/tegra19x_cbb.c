@@ -35,9 +35,10 @@
 #include <linux/platform/tegra/tegra_cbb.h>
 #include <linux/platform/tegra/tegra19x_cbb.h>
 
-
 static LIST_HEAD(cbb_noc_list);
 static DEFINE_RAW_SPINLOCK(cbb_noc_lock);
+
+#define get_mstr_id(userbits) get_noc_errlog_subfield(userbits, 21, 18)-1;
 
 static void cbbcentralnoc_parse_routeid
 		(struct tegra_lookup_noc_aperture *noc_trans_info, u64 routeid)
@@ -383,7 +384,8 @@ static void print_errloggerX_info(
 			errlog->max_noc_aperture);
 
 	print_cbb_err(file, "\tErrLog5\t\t\t: 0x%x\n", errlog->errlog5);
-	print_errlog5(file, errlog);
+	if(errlog->errlog5)
+		print_errlog5(file, errlog);
 }
 
 static void print_errlog(struct seq_file *file,
@@ -462,6 +464,8 @@ static irqreturn_t tegra194_cbb_error_isr(int irq, void *dev_id)
 	struct tegra_cbb_errlog_record *errlog;
 	unsigned int errvld_status = 0;
 	unsigned long flags;
+	bool is_inband_err = 0;
+	u8 mstr_id = 0;
 
 	raw_spin_lock_irqsave(&cbb_noc_lock, flags);
 
@@ -477,10 +481,20 @@ static irqreturn_t tegra194_cbb_error_isr(int irq, void *dev_id)
 				errlog->start, irq);
 
 				print_errlog(NULL, errlog, errvld_status);
+
+				mstr_id = get_mstr_id(errlog->errlog5);
+				/* If illegal request is from CCPLEX(id:0x1)
+				 * master then call BUG() to crash system.
+				 */
+				if(mstr_id == 0x1)
+					is_inband_err = 1;
 			}
 		}
 	}
 	raw_spin_unlock_irqrestore(&cbb_noc_lock, flags);
+
+	if(is_inband_err)
+		BUG();
 
 	return IRQ_HANDLED;
 }
@@ -576,37 +590,44 @@ static struct tegra_cbberr_ops tegra194_cbb_errlogger_ops = {
 static struct tegra_cbb_noc_data tegra194_cbb_central_noc_data = {
 	.name   = "CBB-NOC",
 	.is_ax2apb_bridge_connected = 1,
-	.is_clk_rst = false
+	.is_clk_rst = false,
+	.erd_mask_inband_err = true,
+	.off_erd_err_config = 0x120c
 };
 
 static struct tegra_cbb_noc_data tegra194_aon_noc_data = {
 	.name   = "AON-NOC",
 	.is_ax2apb_bridge_connected = 0,
-	.is_clk_rst = false
+	.is_clk_rst = false,
+	.erd_mask_inband_err = false
 };
 
 static struct tegra_cbb_noc_data tegra194_bpmp_noc_data = {
 	.name   = "BPMP-NOC",
 	.is_ax2apb_bridge_connected = 1,
-	.is_clk_rst = false
+	.is_clk_rst = false,
+	.erd_mask_inband_err = false
 };
 
 static struct tegra_cbb_noc_data tegra194_rce_noc_data = {
 	.name   = "RCE-NOC",
 	.is_ax2apb_bridge_connected = 1,
-	.is_clk_rst = false
+	.is_clk_rst = false,
+	.erd_mask_inband_err = false
 };
 
 static struct tegra_cbb_noc_data tegra194_sce_noc_data = {
 	.name   = "SCE-NOC",
 	.is_ax2apb_bridge_connected = 1,
-	.is_clk_rst = false
+	.is_clk_rst = false,
+	.erd_mask_inband_err = false
 };
 
 static struct tegra_cbb_noc_data tegra194_cv_noc_data = {
 	.name   = "CV-NOC",
 	.is_ax2apb_bridge_connected = 1,
 	.is_clk_rst = true,
+	.erd_mask_inband_err = false,
 	.is_cluster_probed = is_nvcvnas_probed,
 	.is_clk_enabled = is_nvcvnas_clk_enabled,
 	.tegra_noc_en_clk_rpm = nvcvnas_busy,
