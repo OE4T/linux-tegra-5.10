@@ -26,13 +26,17 @@
 
 u32 gv100_mm_get_flush_retries(struct gk20a *g, enum nvgpu_flush_op op)
 {
+	u32 retries;
+
 	switch (op) {
 	/* GV100 has a large FB so it needs larger timeouts */
 	case NVGPU_FLUSH_FB:
-		return 2000U;
 	case NVGPU_FLUSH_L2_FLUSH:
-		return 2000U;
+		retries = 2000U;
+		break;
 	default:
-		return 200U; /* Default retry timer */
+		retries = 200U; /* Default retry timer */
+		break;
 	}
+	return retries;
 }
