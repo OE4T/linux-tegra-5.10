@@ -1055,10 +1055,12 @@ static const struct gpu_ops tu104_ops = {
 		.init_elcg_mode = gv11b_therm_init_elcg_mode,
 		.init_blcg_mode = gm20b_therm_init_blcg_mode,
 		.elcg_init_idle_filters = NULL,
+#ifdef NVGPU_LS_PMU
 		.get_internal_sensor_curr_temp =
 			gp106_get_internal_sensor_curr_temp,
 		.get_internal_sensor_limits =
 			gp106_get_internal_sensor_limits,
+#endif
 	},
 #ifdef NVGPU_LS_PMU
 	.pmu = {
@@ -1099,7 +1101,6 @@ static const struct gpu_ops tu104_ops = {
 		.pmu_clear_bar0_host_err_status =
 			gm20b_clear_pmu_bar0_host_err_status,
 	},
-#endif
 	.clk = {
 		.init_clk_support = gv100_init_clk_support,
 		.get_crystal_clk_hz = gv100_crystal_clk_hz,
@@ -1121,6 +1122,7 @@ static const struct gpu_ops tu104_ops = {
 		.clk_arb_cleanup = gv100_clk_arb_cleanup,
 		.stop_clk_arb_threads = gv100_stop_clk_arb_threads,
 	},
+#endif
 	.regops = {
 		.exec_regops = exec_regops_gk20a,
 		.get_global_whitelist_ranges =
@@ -1480,8 +1482,9 @@ int tu104_init_hal(struct gk20a *g)
 	gops->pmu_perf.support_vfe = true;
 	gops->clk.support_vf_point = true;
 	gops->clk.lut_num_entries = CTRL_CLK_LUT_NUM_ENTRIES_GV10x;
+#ifdef NVGPU_LS_PMU
 	gops->clk.perf_pmu_vfe_load = nvgpu_perf_pmu_vfe_load_ps35;
-
+#endif
 	nvgpu_pramin_ops_init(g);
 
 	/* dGpu VDK support */
