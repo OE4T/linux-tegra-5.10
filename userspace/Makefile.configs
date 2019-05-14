@@ -44,7 +44,6 @@ CONFIGS :=				\
         -DCONFIG_GK20A_VIDMEM=1         \
         -DCONFIG_PCI_MSI                \
         -DCONFIG_SUPPORT_PMU_PSTATE	\
-	-DCONFIG_TEGRA_NVLINK		\
 	-DNVGPU_UNITTEST_FAULT_INJECTION_ENABLEMENT
 
 # Uncomment these to enable the config.

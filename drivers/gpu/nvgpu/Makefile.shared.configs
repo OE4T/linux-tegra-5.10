@@ -51,4 +51,8 @@ NVGPU_COMMON_CFLAGS             += -DCONFIG_GK20A_CTXSW_TRACE
 
 IGPU_VIRT_SUPPORT               := 1
 NVGPU_COMMON_CFLAGS             += -DIGPU_VIRT_SUPPORT
+
+# Enable nvlink support for normal build.
+NVGPU_NVLINK_SUPPORT            := 1
+NVGPU_COMMON_CFLAGS             += -DCONFIG_TEGRA_NVLINK
 endif

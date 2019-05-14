@@ -37,7 +37,6 @@ srcs +=	os/posix/nvgpu.c \
 	os/posix/posix-clk_arb.c \
 	os/posix/posix-channel.c \
 	os/posix/posix-tsg.c \
-	os/posix/posix-nvlink.c \
 	os/posix/stubs.c \
 	os/posix/posix-sim.c \
 	os/posix/posix-nvhost.c \
@@ -45,6 +44,10 @@ srcs +=	os/posix/nvgpu.c \
 	os/posix/posix-dt.c \
 	os/posix/posix-vidmem.c \
 	os/posix/fecs_trace_posix.c
+
+ifdef NVGPU_NVLINK_SUPPORT
+srcs +=	os/posix/posix-nvlink.c
+endif
 endif
 
 # POSIX sources shared between the POSIX and QNX builds.
@@ -95,7 +98,6 @@ srcs += common/sim/sim.c \
 	common/ecc.c \
 	common/ce/ce.c \
 	common/vbios/bios.c \
-	common/vbios/nvlink_bios.c \
 	common/vbios/bios_sw_gp106.c \
 	common/vbios/bios_sw_gv100.c \
 	common/vbios/bios_sw_tu104.c \
@@ -232,15 +234,6 @@ srcs += common/sim/sim.c \
 	common/clk_arb/clk_arb.c \
 	common/clk_arb/clk_arb_gp10b.c \
 	common/clk_arb/clk_arb_gv100.c \
-	common/nvlink/probe.c \
-	common/nvlink/init/device_reginit.c \
-	common/nvlink/init/device_reginit_gv100.c \
-	common/nvlink/intr_and_err_handling_gv100.c \
-	common/nvlink/minion.c \
-	common/nvlink/link_mode_transitions.c \
-	common/nvlink/nvlink_gv100.c \
-	common/nvlink/nvlink_tu104.c \
-	common/nvlink/nvlink.c \
 	common/fence/fence.c \
 	hal/mm/mm_gk20a.c \
 	hal/mm/mm_gm20b.c \
@@ -422,10 +415,6 @@ srcs += common/sim/sim.c \
 	hal/netlist/netlist_tu104.c \
 	hal/nvdec/nvdec_gp106.c \
 	hal/nvdec/nvdec_tu104.c \
-	hal/nvlink/minion_gv100.c \
-	hal/nvlink/minion_tu104.c \
-	hal/nvlink/link_mode_transitions_gv100.c \
-	hal/nvlink/link_mode_transitions_tu104.c \
 	hal/gsp/gsp_gv100.c \
 	hal/sec2/sec2_gp106.c \
 	hal/sec2/sec2_tu104.c \
@@ -509,4 +498,21 @@ srcs += common/vgpu/init/init_vgpu.c \
 	common/vgpu/gv11b/vgpu_hal_gv11b.c \
 	common/vgpu/gv11b/vgpu_tsg_gv11b.c \
 	common/vgpu/gp10b/vgpu_hal_gp10b.c
+endif
+
+ifeq ($(NVGPU_NVLINK_SUPPORT), 1)
+srcs += common/vbios/nvlink_bios.c \
+	common/nvlink/probe.c \
+	common/nvlink/init/device_reginit.c \
+	common/nvlink/init/device_reginit_gv100.c \
+	common/nvlink/intr_and_err_handling_gv100.c \
+	common/nvlink/minion.c \
+	common/nvlink/link_mode_transitions.c \
+	common/nvlink/nvlink_gv100.c \
+	common/nvlink/nvlink_tu104.c \
+	common/nvlink/nvlink.c \
+	hal/nvlink/minion_gv100.c \
+	hal/nvlink/minion_tu104.c \
+	hal/nvlink/link_mode_transitions_gv100.c \
+	hal/nvlink/link_mode_transitions_tu104.c
 endif

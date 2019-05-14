@@ -251,7 +251,6 @@ int nvgpu_nvlink_minion_load_ucode(struct gk20a *g,
 
 	return err;
 }
-#endif /* CONFIG_TEGRA_NVLINK */
 
 void nvgpu_mss_nvlink_init_credits(struct gk20a *g)
 {
@@ -287,6 +286,7 @@ void nvgpu_mss_nvlink_init_credits(struct gk20a *g)
 		val = readl_relaxed(soc4 + 4);
 		writel_relaxed(val, soc4 + 4);
 }
+#endif /* CONFIG_TEGRA_NVLINK */
 
 int nvgpu_nvlink_deinit(struct gk20a *g)
 {
