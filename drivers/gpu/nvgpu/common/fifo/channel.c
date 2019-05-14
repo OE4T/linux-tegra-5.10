@@ -1395,9 +1395,6 @@ static inline u32 update_gp_get(struct gk20a *g,
 {
 	u32 new_get = g->ops.userd.gp_get(g, c);
 
-	if (new_get < c->gpfifo.get) {
-		c->gpfifo.wrap = !c->gpfifo.wrap;
-	}
 	c->gpfifo.get = new_get;
 	return new_get;
 }

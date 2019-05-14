@@ -90,8 +90,6 @@ struct gpfifo_desc {
 	u32 get;
 	u32 put;
 
-	bool wrap;
-
 	/* if gpfifo lives in vidmem or is forced to go via PRAMIN, first copy
 	 * from userspace to pipe and then from pipe to gpu buffer */
 	void *pipe;
