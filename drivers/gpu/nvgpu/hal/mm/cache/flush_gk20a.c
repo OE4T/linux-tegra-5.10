@@ -53,7 +53,8 @@ int gk20a_mm_fb_flush(struct gk20a *g)
 		retries = g->ops.mm.get_flush_retries(g, NVGPU_FLUSH_FB);
 	}
 
-	nvgpu_timeout_init(g, &timeout, retries, NVGPU_TIMER_RETRY_TIMER);
+	nvgpu_assert(nvgpu_timeout_init(g, &timeout, retries,
+			NVGPU_TIMER_RETRY_TIMER) == 0);
 
 	nvgpu_mutex_acquire(&mm->l2_op_lock);
 
@@ -111,7 +112,8 @@ static void gk20a_mm_l2_invalidate_locked(struct gk20a *g)
 		retries = g->ops.mm.get_flush_retries(g, NVGPU_FLUSH_L2_INV);
 	}
 
-	nvgpu_timeout_init(g, &timeout, retries, NVGPU_TIMER_RETRY_TIMER);
+	nvgpu_assert(nvgpu_timeout_init(g, &timeout, retries,
+			NVGPU_TIMER_RETRY_TIMER) == 0);
 
 	/* Invalidate any clean lines from the L2 so subsequent reads go to
 	   DRAM. Dirty lines are not affected by this operation. */
@@ -171,7 +173,8 @@ int gk20a_mm_l2_flush(struct gk20a *g, bool invalidate)
 		retries = g->ops.mm.get_flush_retries(g, NVGPU_FLUSH_L2_FLUSH);
 	}
 
-	nvgpu_timeout_init(g, &timeout, retries, NVGPU_TIMER_RETRY_TIMER);
+	nvgpu_assert(nvgpu_timeout_init(g, &timeout, retries,
+			NVGPU_TIMER_RETRY_TIMER) == 0);
 
 	nvgpu_mutex_acquire(&mm->l2_op_lock);
 
@@ -230,7 +233,8 @@ void gk20a_mm_cbc_clean(struct gk20a *g)
 		retries = g->ops.mm.get_flush_retries(g, NVGPU_FLUSH_CBC_CLEAN);
 	}
 
-	nvgpu_timeout_init(g, &timeout, retries, NVGPU_TIMER_RETRY_TIMER);
+	nvgpu_assert(nvgpu_timeout_init(g, &timeout, retries,
+			NVGPU_TIMER_RETRY_TIMER) == 0);
 
 	nvgpu_mutex_acquire(&mm->l2_op_lock);
 
