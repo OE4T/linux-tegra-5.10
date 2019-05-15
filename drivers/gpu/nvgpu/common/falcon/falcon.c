@@ -24,8 +24,10 @@
 #include <nvgpu/falcon.h>
 
 #include "falcon_sw_gk20a.h"
+#ifdef NVGPU_DGPU_SUPPORT
 #include "falcon_sw_gv100.h"
 #include "falcon_sw_tu104.h"
+#endif
 
 /* Delay depends on memory size and pwr_clk
  * delay = (MAX {IMEM_SIZE, DMEM_SIZE} * 64 + 1) / pwr_clk
@@ -690,12 +692,14 @@ static int falcon_sw_init(struct gk20a *g, struct nvgpu_falcon *flcn)
 	case NVGPU_GPUID_GV11B:
 		gk20a_falcon_sw_init(flcn);
 		break;
+#ifdef NVGPU_DGPU_SUPPORT
 	case NVGPU_GPUID_GV100:
 		gv100_falcon_sw_init(flcn);
 		break;
 	case NVGPU_GPUID_TU104:
 		tu104_falcon_sw_init(flcn);
 		break;
+#endif
 	default:
 		err = -EINVAL;
 		nvgpu_err(g, "no support for GPUID %x", ver);

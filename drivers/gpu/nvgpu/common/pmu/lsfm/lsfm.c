@@ -29,8 +29,10 @@
 
 #include "lsfm_sw_gm20b.h"
 #include "lsfm_sw_gp10b.h"
+#ifdef NVGPU_DGPU_SUPPORT
 #include "lsfm_sw_gv100.h"
 #include "lsfm_sw_tu104.h"
+#endif
 
 static bool is_lsfm_supported(struct gk20a *g,
 	struct nvgpu_pmu *pmu, struct nvgpu_pmu_lsfm *lsfm)
@@ -151,12 +153,14 @@ int nvgpu_pmu_lsfm_init(struct gk20a *g, struct nvgpu_pmu_lsfm **lsfm)
 	case NVGPU_GPUID_GV11B:
 			nvgpu_gp10b_lsfm_sw_init(g, *lsfm);
 		break;
+#ifdef NVGPU_DGPU_SUPPORT
 	case NVGPU_GPUID_GV100:
 			nvgpu_gv100_lsfm_sw_init(g, *lsfm);
 		break;
 	case NVGPU_GPUID_TU104:
 			nvgpu_tu104_lsfm_sw_init(g, *lsfm);
 		break;
+#endif
 	default:
 		nvgpu_kfree(g, *lsfm);
 		err = -EINVAL;

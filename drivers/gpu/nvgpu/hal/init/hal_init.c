@@ -30,9 +30,11 @@
 
 #include "hal_gm20b.h"
 #include "hal_gp10b.h"
-#include "hal_gv100.h"
 #include "hal_gv11b.h"
+#ifdef NVGPU_DGPU_SUPPORT
+#include "hal_gv100.h"
 #include "hal_tu104.h"
+#endif
 
 int nvgpu_init_hal(struct gk20a *g)
 {
@@ -62,6 +64,7 @@ int nvgpu_init_hal(struct gk20a *g)
 			return -ENODEV;
 		}
 		break;
+#ifdef NVGPU_DGPU_SUPPORT
 	case NVGPU_GPUID_GV100:
 		if (gv100_init_hal(g) != 0) {
 			return -ENODEV;
@@ -73,6 +76,7 @@ int nvgpu_init_hal(struct gk20a *g)
 			return -ENODEV;
 		}
 		break;
+#endif
 #endif
 	default:
 		nvgpu_err(g, "no support for %x", ver);

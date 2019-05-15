@@ -30,9 +30,11 @@
 #include "acr_priv.h"
 #include "acr_sw_gm20b.h"
 #include "acr_sw_gp10b.h"
-#include "acr_sw_gv100.h"
 #include "acr_sw_gv11b.h"
+#ifdef NVGPU_DGPU_SUPPORT
+#include "acr_sw_gv100.h"
 #include "acr_sw_tu104.h"
+#endif
 
 /* ACR public API's */
 bool nvgpu_acr_is_lsf_lazy_bootstrap(struct gk20a *g, struct nvgpu_acr *acr,
@@ -140,12 +142,14 @@ int nvgpu_acr_init(struct gk20a *g, struct nvgpu_acr **acr)
 	case NVGPU_GPUID_GV11B:
 		nvgpu_gv11b_acr_sw_init(g, *acr);
 		break;
+#ifdef NVGPU_DGPU_SUPPORT
 	case NVGPU_GPUID_GV100:
 		nvgpu_gv100_acr_sw_init(g, *acr);
 		break;
 	case NVGPU_GPUID_TU104:
 		nvgpu_tu104_acr_sw_init(g, *acr);
 		break;
+#endif
 	default:
 		nvgpu_kfree(g, *acr);
 		err = -EINVAL;
