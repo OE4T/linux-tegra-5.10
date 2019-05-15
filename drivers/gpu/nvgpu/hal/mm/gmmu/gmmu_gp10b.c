@@ -210,8 +210,10 @@ static void update_pte(struct vm_gk20a *vm,
 
 	if (!attrs->valid && !attrs->cacheable) {
 		pte_w[0] |= gmmu_new_pte_read_only_true_f();
-	} else if (!attrs->cacheable) {
-		pte_w[0] |= gmmu_new_pte_vol_true_f();
+	} else {
+		if (!attrs->cacheable) {
+			pte_w[0] |= gmmu_new_pte_vol_true_f();
+		}
 	}
 
 	if (attrs->ctag != 0ULL) {
@@ -241,8 +243,10 @@ static void update_gmmu_pte_locked(struct vm_gk20a *vm,
 
 	if (phys_addr != 0ULL) {
 		update_pte(vm, pte_w, phys_addr, attrs);
-	} else if (attrs->sparse) {
-		update_pte_sparse(pte_w);
+	} else {
+		if (attrs->sparse) {
+			update_pte_sparse(pte_w);
+		}
 	}
 
 	pte_dbg(g, attrs,

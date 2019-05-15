@@ -152,8 +152,10 @@ static void __update_pte(struct vm_gk20a *vm,
 	if (attrs->rw_flag == gk20a_mem_flag_read_only) {
 		pte_w[0] |= gmmu_pte_read_only_true_f();
 		pte_w[1] |= gmmu_pte_write_disable_true_f();
-	} else if (attrs->rw_flag == gk20a_mem_flag_write_only) {
-		pte_w[1] |= gmmu_pte_read_disable_true_f();
+	} else {
+		if (attrs->rw_flag == gk20a_mem_flag_write_only) {
+			pte_w[1] |= gmmu_pte_read_disable_true_f();
+		}
 	}
 
 	if (!attrs->cacheable) {
@@ -188,8 +190,10 @@ static void update_gmmu_pte_locked(struct vm_gk20a *vm,
 
 	if (phys_addr != 0ULL) {
 		__update_pte(vm, pte_w, phys_addr, attrs);
-	} else if (attrs->sparse) {
-		__update_pte_sparse(pte_w);
+	} else {
+		if (attrs->sparse) {
+			__update_pte_sparse(pte_w);
+		}
 	}
 
 	pte_dbg(g, attrs,
