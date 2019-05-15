@@ -60,11 +60,12 @@ u32 gv100_nvlink_minion_base_addr(struct gk20a *g)
 bool gv100_nvlink_minion_is_running(struct gk20a *g)
 {
 	/* if minion is booted and not halted, it is running */
-	if (((MINION_REG_RD32(g, minion_minion_status_r()) &
-				minion_minion_status_status_f(1)) != 0U) &&
-		((minion_falcon_irqstat_halt_v(
-		MINION_REG_RD32(g, minion_falcon_irqstat_r()))) == 0U)) {
-		return true;
+	if ((MINION_REG_RD32(g, minion_minion_status_r()) &
+				minion_minion_status_status_f(1)) != 0U) {
+		if (minion_falcon_irqstat_halt_v(
+		MINION_REG_RD32(g, minion_falcon_irqstat_r())) == 0U) {
+			return true;
+		}
 	}
 
 	return false;
