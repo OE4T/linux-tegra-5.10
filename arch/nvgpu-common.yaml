@@ -20,13 +20,21 @@ bios:
   gpu: dgpu
   owner: Tejal K
   sources: [ common/vbios/bios.c,
-             include/nvgpu/bios.h ]
+             common/vbios/bios_sw_gp106.c,
+             common/vbios/bios_sw_gp106.h,
+             common/vbios/bios_sw_gv100.c,
+             common/vbios/bios_sw_gv100.h,
+             common/vbios/bios_sw_tu104.c,
+             common/vbios/bios_sw_tu104.h,
+             common/vbios/nvlink_bios.c,
+             include/nvgpu/bios.h,
+             include/nvgpu/nvlink_bios.h]
 
 ce:
   safe: yes
   gpu: dgpu
   owner: Thomas F
-  sources: [ common/ce.c,
+  sources: [ common/ce/ce.c,
              common/ce/ce_priv.h,
              include/nvgpu/ce.h ]
   deps:
@@ -67,7 +75,8 @@ enabled:
 fence:
   safe: no
   owner: Seema K
-  sources: [ common/fence/fence.c ]
+  sources: [ common/fence/fence.c,
+             include/nvgpu/fence.h ]
 
 io:
   safe: yes
@@ -202,6 +211,11 @@ utils:
   owner: Terje B
   sources: [ include/nvgpu/utils.h ]
 
+worker:
+  safe: yes
+  sources: [ common/worker.c,
+             include/nvgpu/worker.h ]
+
 ##
 ## Common elements.
 ##
@@ -301,8 +315,16 @@ fifo:
   children:
     channel:
       safe: yes
-      sources: [ common/fifo/channel.c,
-                 include/nvgpu/fifo.h,
+      # Note: the chip channel code should be moved to hal/fifo/.
+      sources: [ common/fifo/channel_gk20a.c,
+                 common/fifo/channel_gk20a.h,
+                 common/fifo/channel_gm20b.c,
+                 common/fifo/channel_gm20b.h,
+                 common/fifo/channel_gv100.c,
+                 common/fifo/channel_gv100.h,
+                 common/fifo/channel_gv11b.c,
+                 common/fifo/channel_gv11b.h,
+                 common/fifo/channel.c,
                  include/nvgpu/channel.h,
                  include/nvgpu/error_notifier.h ]
       deps: [ ]
@@ -313,7 +335,8 @@ fifo:
       deps: [ ]
     submit:
       safe: yes
-      sources: [ common/fifo/submit.c ]
+      sources: [ common/fifo/submit.c,
+                 include/nvgpu/profile.h ]
       deps: [ ]
     runlist:
       safe: yes
@@ -324,6 +347,11 @@ fifo:
       safe: no
       sources: [ common/fifo/userd.c,
                  include/nvgpu/fifo/userd.h ]
+      deps: [ ]
+    pbdma:
+      safe: yes
+      sources: [ common/fifo/pbdma.c,
+                 include/nvgpu/pbdma.h ]
       deps: [ ]
     pbdma_status:
       safe: yes
@@ -347,6 +375,11 @@ fifo:
                  include/nvgpu/preempt.h ]
       deps: []
 
+    fifo:
+      safe: yes
+      sources: [ common/fifo/fifo.c,
+                 include/nvgpu/fifo.h ]
+
 gr:
   safe: yes
   owner: Deepak N
@@ -355,6 +388,8 @@ gr:
       safe: yes
       sources: [ common/gr/gr.c,
                  common/gr/gr_priv.h,
+                 common/gr/gr_utils.c,
+                 include/nvgpu/gr/gr_utils.h,
                  include/nvgpu/gr/gr.h ]
     global_ctx:
       safe: yes
@@ -364,6 +399,7 @@ gr:
     ctx:
       safe: yes
       sources: [ common/gr/ctx.c,
+                 common/gr/ctx_priv.h,
                  include/nvgpu/gr/ctx.h ]
     obj_ctx:
       safe: yes
@@ -373,6 +409,7 @@ gr:
     subctx:
       safe: yes
       sources: [ common/gr/subctx.c,
+                 common/gr/subctx_priv.h,
                  include/nvgpu/gr/subctx.h ]
     fs_state:
       safe: yes
@@ -381,6 +418,7 @@ gr:
     config:
       safe: yes
       sources: [ common/gr/gr_config.c,
+                 common/gr/gr_config_priv.h,
                  include/nvgpu/gr/config.h ]
     fecs_trace:
       safe: no
@@ -554,6 +592,16 @@ cyclestats:
              common/cyclestats/cyclestats_priv.h,
              include/nvgpu/cyclestats.h ]
 
+clk_arb:
+  safe: yes
+  gpu: dgpu
+  sources: [ include/nvgpu/clk_arb.h,
+             common/clk_arb/clk_arb.c,
+             common/clk_arb/clk_arb_gp10b.c,
+             common/clk_arb/clk_arb_gp10b.h,
+             common/clk_arb/clk_arb_gv100.c,
+             common/clk_arb/clk_arb_gv100.h ]
+
 pmu:
   children:
     pmuif:
@@ -614,7 +662,29 @@ pmu:
       safe: yes
       owner: Mahantesh K
       sources: [ common/pmu/pmu.c,
-                 include/nvgpu/pmu.h ]
+                 common/pmu/pmu_pstate.c,
+                 include/nvgpu/pmu.h,
+                 include/nvgpu/pmu/pmu_pstate.h ]
+
+    fw:
+      safe: yes
+      sources: [ common/pmu/fw/fw.c,
+                 common/pmu/fw/fw_ns_bootstrap.c,
+                 common/pmu/fw/fw_ver_ops.c,
+                 include/nvgpu/pmu/fw.h ]
+
+    lsfm:
+      safe: yes
+      sources: [ common/pmu/lsfm/lsfm.c,
+                 common/pmu/lsfm/lsfm_sw_gm20b.c,
+                 common/pmu/lsfm/lsfm_sw_gm20b.h,
+                 common/pmu/lsfm/lsfm_sw_gp10b.c,
+                 common/pmu/lsfm/lsfm_sw_gp10b.h,
+                 common/pmu/lsfm/lsfm_sw_gv100.c,
+                 common/pmu/lsfm/lsfm_sw_gv100.h,
+                 common/pmu/lsfm/lsfm_sw_tu104.c,
+                 common/pmu/lsfm/lsfm_sw_tu104.h,
+                 include/nvgpu/pmu/lsfm.h ]
 
     perf:
       safe: yes
@@ -628,7 +698,28 @@ pmu:
                  common/pmu/perf/vfe_equ.h,
                  common/pmu/perf/vfe_var.c,
                  common/pmu/perf/vfe_var.h,
-                 include/nvgpu/pmu/perf.h ]
+                 common/pmu/perf/perf_gv100.c,
+                 common/pmu/perf/perf_gv100.h,
+                 common/pmu/perf/perf_ps35.c,
+                 common/pmu/perf/perf_pstate.c,
+                 common/pmu/perf/perf_pstate.h,
+                 include/nvgpu/pmu/perf.h,
+                 include/nvgpu/pmu/perf_pstate.h ]
+
+    super_surface:
+      safe: yes
+      sources: [ common/pmu/super_surface/super_surface.c,
+                 common/pmu/super_surface/super_surface_priv.h,
+                 include/nvgpu/pmu/super_surface.h ]
+
+    perfmon:
+      safe: yes
+      sources: [ common/pmu/perfmon/pmu_perfmon.c,
+                 common/pmu/perfmon/pmu_perfmon_sw_gm20b.c,
+                 common/pmu/perfmon/pmu_perfmon_sw_gm20b.h,
+                 common/pmu/perfmon/pmu_perfmon_sw_gv11b.c,
+                 common/pmu/perfmon/pmu_perfmon_sw_gv11b.h,
+                 include/nvgpu/pmu/pmu_perfmon.h ]
 
     clk:
       safe: yes
@@ -640,15 +731,12 @@ pmu:
           sources: [ common/pmu/clk/clk.c,
                      include/nvgpu/clk.h,
                      include/nvgpu/pmu/clk/clk.h ]
-        arb:
-          safe: yes
-          gpu: dgpu
-          sources: [ include/nvgpu/clk_arb.h ]
 
         domain:
           safe: yes
           gpu: dgpu
           sources: [ common/pmu/clk/clk_domain.c,
+                     common/pmu/clk/clk_domain.h,
                      include/nvgpu/pmu/clk/clk_domain.h ]
 
         fll:
@@ -661,11 +749,13 @@ pmu:
           safe: yes
           gpu: dgpu
           sources: [ common/pmu/clk/clk_freq_controller.c,
+                     common/pmu/clk/clk_freq_controller.h,
                      include/nvgpu/pmu/clk/clk_freq_controller.h ]
         prog:
           safe: yes
           gpu: dgpu
           sources: [ common/pmu/clk/clk_prog.c,
+                     common/pmu/clk/clk_prog.h,
                      include/nvgpu/pmu/clk/clk_prog.h ]
 
         vf_point:
@@ -677,6 +767,7 @@ pmu:
           safe: yes
           gpu: dgpu
           sources: [ common/pmu/clk/clk_vin.c,
+                     common/pmu/clk/clk_vin.h,
                      include/nvgpu/pmu/clk/clk_vin.h ]
 
         freq_domain:
@@ -721,7 +812,17 @@ pmu:
       safe: no
       gpu: igpu
       owner: Divya S
-      sources: [ include/nvgpu/pmu/pmu_pg.h ]
+      sources: [ common/pmu/pg/pg_sw_gm20b.c,
+                 common/pmu/pg/pg_sw_gm20b.h,
+                 common/pmu/pg/pg_sw_gp106.c,
+                 common/pmu/pg/pg_sw_gp106.h,
+                 common/pmu/pg/pg_sw_gp10b.c,
+                 common/pmu/pg/pg_sw_gp10b.h,
+                 common/pmu/pg/pg_sw_gv11b.c,
+                 common/pmu/pg/pg_sw_gv11b.h,
+                 common/pmu/pg/pmu_aelpg.c,
+                 common/pmu/pg/pmu_pg.c,
+                 include/nvgpu/pmu/pmu_pg.h ]
 
     pmgr:
       safe: yes
@@ -742,12 +843,9 @@ pmu:
     debug:
       safe: yes
       owner: Sagar K
-      sources: [ common/pmu/pmu_debug.c ]
+      sources: [ common/pmu/pmu_debug.c,
+                 include/nvgpu/pmu/debug.h ]
 
-    fw:
-      safe: yes
-      owner: Mahantesh K
-      sources: [ common/pmu/pmu_fw.c ]
 
     allocator:
       safe: yes
@@ -763,19 +861,14 @@ pmu:
       sources: [ common/pmu/pmu_mutex.c,
                  include/nvgpu/pmu/mutex.h ]
 
-    pstate:
-      safe: yes
-      gpu: dgpu
-      owner: Ramesh M
-      sources: [ common/pmu/pstate/pstate.c,
-                 common/pmu/pstate/pstate.h,
-                 include/nvgpu/pmu/pstate.h ]
-
     therm:
       safe: yes
       gpu: dgpu
       owner: Abdul S
-      sources: [ common/pmu/therm/thrm.c,
+      # This common/therm/therm.c file should most likely just be deleted. It has one
+      # function that just calls some HALs and that's it.
+      sources: [ common/therm/therm.c,
+                 common/pmu/therm/thrm.c,
                  common/pmu/therm/thrm.h,
                  common/pmu/therm/thrmchannel.c,
                  common/pmu/therm/thrmchannel.h,

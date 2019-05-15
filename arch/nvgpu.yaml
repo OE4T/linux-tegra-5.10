@@ -22,10 +22,10 @@ nvgpu:
         !include nvgpu-hal-new.yaml
 
     # The QNX OS layer implementation units. TODO: place in QNX directory.
-    qnx:
-      safe: yes
-      children:
-        !include nvgpu-qnx.yaml
+    # qnx:
+    #   safe: yes
+    #   children:
+    #     !include nvgpu-qnx.yaml
 
     # And the Linux version of the OS implementation units.
     linux:

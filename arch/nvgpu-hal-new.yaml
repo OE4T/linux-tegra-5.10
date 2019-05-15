@@ -15,14 +15,23 @@ bus:
 ltc:
   safe: yes
   owner: Seshendra G
-  sources: [ hal/ltc/ltc_gm20b.c,
-             hal/ltc/ltc_gm20b.h,
-             hal/ltc/ltc_gp10b.c,
-             hal/ltc/ltc_gp10b.h,
-             hal/ltc/ltc_gv11b.c,
-             hal/ltc/ltc_gv11b.h,
-             hal/ltc/ltc_tu104.c,
-             hal/ltc/ltc_tu104.h ]
+  children:
+    ltc:
+      sources: [ hal/ltc/ltc_gm20b.c,
+                 hal/ltc/ltc_gm20b.h,
+                 hal/ltc/ltc_gp10b.c,
+                 hal/ltc/ltc_gp10b.h,
+                 hal/ltc/ltc_gv11b.c,
+                 hal/ltc/ltc_gv11b.h,
+                 hal/ltc/ltc_tu104.c,
+                 hal/ltc/ltc_tu104.h ]
+    intr:
+      sources: [ hal/ltc/intr/ltc_intr_gm20b.c,
+                 hal/ltc/intr/ltc_intr_gm20b.h,
+                 hal/ltc/intr/ltc_intr_gp10b.c,
+                 hal/ltc/intr/ltc_intr_gp10b.h,
+                 hal/ltc/intr/ltc_intr_gv11b.c,
+                 hal/ltc/intr/ltc_intr_gv11b.h ]
 
 init:
   safe: yes
@@ -37,7 +46,17 @@ init:
              hal/init/hal_gv11b.h,
              hal/init/hal_init.c,
              hal/init/hal_tu104.c,
-             hal/init/hal_tu104.h ]
+             hal/init/hal_tu104.h,
+             hal/init/hal_gm20b_litter.c,
+             hal/init/hal_gm20b_litter.h,
+             hal/init/hal_gp10b_litter.c,
+             hal/init/hal_gp10b_litter.h,
+             hal/init/hal_gv100_litter.c,
+             hal/init/hal_gv100_litter.h,
+             hal/init/hal_gv11b_litter.c,
+             hal/init/hal_gv11b_litter.h,
+             hal/init/hal_tu104_litter.c,
+             hal/init/hal_tu104_litter.h ]
 
 priv_ring:
   safe: yes
@@ -190,12 +209,34 @@ fifo:
       safe: yes
       sources: [ hal/fifo/pbdma_status_gm20b.c,
                  hal/fifo/pbdma_status_gm20b.h ]
+
+    pbdma:
+      safe: yes
+      sources: [ hal/fifo/pbdma_gm20b.c,
+                 hal/fifo/pbdma_gm20b.h,
+                 hal/fifo/pbdma_gp10b.c,
+                 hal/fifo/pbdma_gp10b.h,
+                 hal/fifo/pbdma_gv11b.c,
+                 hal/fifo/pbdma_gv11b.h,
+                 hal/fifo/pbdma_tu104.c,
+                 hal/fifo/pbdma_tu104.h,
+                 hal/fifo/ramin_tu104.c,
+                 hal/fifo/ramin_tu104.h ]
+
     preempt:
      safe: yes
      sources: [ hal/fifo/preempt_gk20a.c,
                 hal/fifo/preempt_gk20a.h,
                 hal/fifo/preempt_gv11b.c,
                 hal/fifo/preempt_gv11b.h ]
+
+    usermode:
+      safe: yes
+      sources: [ hal/fifo/usermode_gv11b.c,
+                 hal/fifo/usermode_gv11b.h,
+                 hal/fifo/usermode_tu104.c,
+                 hal/fifo/usermode_tu104.h ]
+
 fuse:
   safe: yes
   owner: Seema K
@@ -205,6 +246,11 @@ fuse:
              hal/fuse/fuse_gp106.h,
              hal/fuse/fuse_gp10b.c,
              hal/fuse/fuse_gp10b.h ]
+
+gsp:
+  safe: no
+  sources: [ hal/gsp/gsp_gv100.c,
+             hal/gsp/gsp_gv100.h ]
 
 mm:
   safe: yes
@@ -355,8 +401,6 @@ gr:
       sources: [ hal/gr/fecs_trace/fecs_trace_gm20b.c,
                  hal/gr/fecs_trace/fecs_trace_gm20b.h,
                  hal/gr/fecs_trace/fecs_trace_gm20b.h,
-                 hal/gr/fecs_trace/fecs_trace_gp10b.c,
-                 hal/gr/fecs_trace/fecs_trace_gp10b.h,
                  hal/gr/fecs_trace/fecs_trace_gv11b.c,
                  hal/gr/fecs_trace/fecs_trace_gv11b.h ]
     hwpm_map:
@@ -436,7 +480,8 @@ fb:
              hal/fb/intr/fb_intr_gv11b.h, hal/fb/intr/fb_intr_gv11b.c,
              hal/fb/fb_mmu_fault_gv11b.h, hal/fb/fb_mmu_fault_gv11b.c,
              hal/fb/fb_mmu_fault_tu104.h, hal/fb/fb_mmu_fault_tu104.c,
-             hal/fb/intr/fb_intr_ecc_gv11b.h, hal/fb/intr/fb_intr_ecc_gv11b.c ]
+             hal/fb/intr/fb_intr_ecc_gv11b.h, hal/fb/intr/fb_intr_ecc_gv11b.c,
+             hal/fb/intr/fb_intr_tu104.c, hal/fb/intr/fb_intr_tu104.h ]
 
 pmu:
   safe: yes
@@ -499,6 +544,13 @@ netlist:
              hal/netlist/netlist_tu104.c,
              hal/netlist/netlist_tu104.h ]
 
+nvdec:
+  safe: no
+  sources: [ hal/nvdec/nvdec_gp106.c,
+             hal/nvdec/nvdec_gp106.h,
+             hal/nvdec/nvdec_tu104.c,
+             hal/nvdec/nvdec_tu104.h ]
+
 perf:
   safe: no
   owner: Deepak N
@@ -506,6 +558,17 @@ perf:
              hal/perf/perf_gm20b.h,
              hal/perf/perf_gv11b.c,
              hal/perf/perf_gv11b.h ]
+
+pramin:
+  safe: yes
+  sources: [ hal/pramin/pramin_gp10b.c,
+             hal/pramin/pramin_gp10b.h,
+             hal/pramin/pramin_gv100.c,
+             hal/pramin/pramin_gv100.h,
+             hal/pramin/pramin_init.c,
+             hal/pramin/pramin_init.h,
+             hal/pramin/pramin_tu104.c,
+             hal/pramin/pramin_tu104.h ]
 
 class:
   safe: yes
@@ -534,6 +597,8 @@ top:
              hal/top/top_gm20b.h,
              hal/top/top_gp10b.c,
              hal/top/top_gp10b.h,
+             hal/top/top_gp106.c,
+             hal/top/top_gp106.h,
              hal/top/top_gv100.c,
              hal/top/top_gv100.h,
              hal/top/top_gv11b.c,

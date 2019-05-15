@@ -85,7 +85,6 @@ debug:
              os/linux/debug_volt.h,
              os/linux/fecs_trace_linux.c,
              os/linux/fecs_trace_linux.h,
-             os/linux/linux-cbc.c,
              os/linux/nvlink_probe.c ]
 
 firmware:
@@ -98,7 +97,8 @@ intr:
   sources: [ os/linux/intr.c, os/linux/intr.h ]
 
 io:
-  sources: [ os/linux/io_usermode.c ]
+  sources: [ os/linux/io_usermode.c,
+             os/linux/linux-io.c ]
 
 ioctl:
   sources: [ os/linux/ioctl.c,
@@ -170,7 +170,6 @@ platform:
              os/linux/platform_gk20a_tegra.h,
              os/linux/platform_gp10b.h,
              os/linux/platform_gp10b_tegra.c,
-             os/linux/platform_gp10b_tegra.h,
              os/linux/platform_gv11b_tegra.c ]
 
 rwsem:
