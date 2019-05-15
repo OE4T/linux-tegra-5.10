@@ -17,8 +17,10 @@
 #ifndef ETHER_LINUX_H
 #define ETHER_LINUX_H
 
+#include <linux/ptp_clock_kernel.h>
 #include <linux/platform_device.h>
 #include <linux/etherdevice.h>
+#include <linux/net_tstamp.h>
 #include <linux/interrupt.h>
 #include <linux/spinlock.h>
 #include <linux/of_gpio.h>
@@ -34,6 +36,7 @@
 #include <linux/tcp.h>
 #include <linux/udp.h>
 #include <linux/of.h>
+#include <linux/ktime.h>
 
 #include <osi_core.h>
 #include <osi_dma.h>
@@ -45,6 +48,7 @@
 #define ETHER_QUEUE_PRIO_DEFAULT	0U
 #define ETHER_QUEUE_PRIO_MAX		7U
 #define ETHER_QUEUE_PRIO_INVALID	0xFFU
+#define ETHER_DFLT_PTP_CLK		312500000U
 
 #define EQOS_CONFIG_FAIL		-3
 #define EQOS_CONFIG_SUCCESS		0
@@ -172,6 +176,11 @@ struct ether_rx_napi {
  *	@l3_l4_filter:		L3_l4 filter enabled 1: enabled
  *	@vlan_hash_filtering:	vlan hash filter 1: hash, 0: perfect
  *	@l2_filtering_mode:	l2 filter mode 1: hash 0: perfect
+ *	@ptp_clock_ops:		PTP clock operations structure.
+ *	@ptp_clock:		PTP system clock
+ *	@ptp_ref_clock_speed:	PTP reference clock supported by platform
+ *	@hwts_tx_en:		HW tx time stamping enable
+ *	@hwts_rx_en:		HW rx time stamping enable
  */
 struct ether_priv_data {
 	struct osi_core_priv_data *osi_core;
@@ -231,9 +240,20 @@ struct ether_priv_data {
 	unsigned int l3_l4_filter;
 	unsigned int vlan_hash_filtering;
 	unsigned int l2_filtering_mode;
+
+	/* for PTP */
+	struct ptp_clock_info ptp_clock_ops;
+	struct ptp_clock *ptp_clock;
+	unsigned int ptp_ref_clock_speed;
+	unsigned int hwts_tx_en;
+	unsigned int hwts_rx_en;
 };
 
 void ether_set_ethtool_ops(struct net_device *ndev);
 int ether_sysfs_register(struct device *dev);
 void ether_sysfs_unregister(struct device *dev);
+int ether_ptp_init(struct ether_priv_data *pdata);
+void ether_ptp_remove(struct ether_priv_data *pdata);
+int ether_handle_hwtstamp_ioctl(struct ether_priv_data *pdata,
+				struct ifreq *ifr);
 #endif /* ETHER_LINUX_H */

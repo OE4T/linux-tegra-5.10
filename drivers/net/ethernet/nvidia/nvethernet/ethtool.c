@@ -128,6 +128,44 @@ static int ether_set_pauseparam(struct net_device *ndev,
 	return ret;
 }
 
+/**
+ *	ether_get_ts_info: Get HW supported time stamping.
+ *	@net: Net device data.
+ *	@info: Holds device supported timestamping types
+ *
+ *	Algorithm: Function used to query the PTP capabilities for given netdev.
+ *
+ *	Dependencies: HW need to support PTP functionality.
+ *
+ *	Protection: None.
+ *
+ *	Return: Return can't be a -ve value.
+ */
+
+static int ether_get_ts_info(struct net_device *net,
+		struct ethtool_ts_info *info)
+{
+	info->so_timestamping = SOF_TIMESTAMPING_TX_HARDWARE |
+				SOF_TIMESTAMPING_RX_HARDWARE |
+				SOF_TIMESTAMPING_TX_SOFTWARE |
+				SOF_TIMESTAMPING_RX_SOFTWARE |
+				SOF_TIMESTAMPING_RAW_HARDWARE |
+				SOF_TIMESTAMPING_SOFTWARE;
+	info->phc_index = 0;
+
+	info->tx_types = (1 << HWTSTAMP_TX_OFF) | (1 << HWTSTAMP_TX_ON);
+
+	info->rx_filters |= ((1 << HWTSTAMP_FILTER_PTP_V1_L4_SYNC) |
+			     (1 << HWTSTAMP_FILTER_PTP_V2_L2_SYNC) |
+			     (1 << HWTSTAMP_FILTER_PTP_V2_L4_SYNC) |
+			     (1 << HWTSTAMP_FILTER_PTP_V1_L4_DELAY_REQ) |
+			     (1 << HWTSTAMP_FILTER_PTP_V2_L2_DELAY_REQ) |
+			     (1 << HWTSTAMP_FILTER_PTP_V2_L4_DELAY_REQ) |
+			     (1 << HWTSTAMP_FILTER_PTP_V2_EVENT) |
+			     (1 << HWTSTAMP_FILTER_NONE));
+
+	return 0;
+}
 
 static const struct ethtool_ops ether_ethtool_ops = {
 	.get_link = ethtool_op_get_link,
@@ -135,6 +173,7 @@ static const struct ethtool_ops ether_ethtool_ops = {
 	.set_link_ksettings = phy_ethtool_set_link_ksettings,
 	.get_pauseparam = ether_get_pauseparam,
 	.set_pauseparam = ether_set_pauseparam,
+	.get_ts_info = ether_get_ts_info,
 };
 
 /**
