@@ -77,6 +77,7 @@ void gm20b_flush_ltc(struct gk20a *g)
 	u32 ltc_stride = nvgpu_get_litter_value(g, GPU_LIT_LTC_STRIDE);
 	bool is_clean_pending_set = false;
 	bool is_invalidate_pending_set = false;
+	int err;
 
 	/* Clean... */
 	nvgpu_writel_check(g, ltc_ltcs_ltss_tstg_cmgmt1_r(),
@@ -108,7 +109,11 @@ void gm20b_flush_ltc(struct gk20a *g)
 		 *
 		 * So 5ms timeout here should be more than sufficient.
 		 */
-		nvgpu_timeout_init(g, &timeout, 5, NVGPU_TIMER_CPU_TIMER);
+		err = nvgpu_timeout_init(g, &timeout, 5, NVGPU_TIMER_CPU_TIMER);
+		if (err != 0) {
+			nvgpu_err(g, "nvgpu_timeout_init failed err=%d", err);
+			return;
+		}
 
 		do {
 			int cmgmt1 = ltc_ltc0_ltss_tstg_cmgmt1_r() +
@@ -134,7 +139,11 @@ void gm20b_flush_ltc(struct gk20a *g)
 		u32 op_pending;
 
 		/* Again, 5ms. */
-		nvgpu_timeout_init(g, &timeout, 5, NVGPU_TIMER_CPU_TIMER);
+		err = nvgpu_timeout_init(g, &timeout, 5, NVGPU_TIMER_CPU_TIMER);
+		if (err != 0) {
+			nvgpu_err(g, "nvgpu_timeout_init failed err=%d", err);
+			return;
+		}
 
 		do {
 			int cmgmt0 = ltc_ltc0_ltss_tstg_cmgmt0_r() +
