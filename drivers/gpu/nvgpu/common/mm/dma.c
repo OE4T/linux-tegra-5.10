@@ -191,7 +191,8 @@ void nvgpu_dma_free(struct gk20a *g, struct nvgpu_mem *mem)
 		nvgpu_dma_free_vid(g, mem);
 		break;
 	default:
-		break; /* like free() on "null" memory */
+		/* like free() on "null" memory */
+		break;
 	}
 }
 
