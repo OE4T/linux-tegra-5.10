@@ -32,7 +32,9 @@
 #include <nvgpu/power_features/cg.h>
 #include <nvgpu/nvgpu_err.h>
 #include <nvgpu/pmu/lsfm.h>
+#ifdef NVGPU_DGPU_SUPPORT
 #include <nvgpu/sec2/lsfm.h>
+#endif
 #include <nvgpu/pmu/super_surface.h>
 #include <nvgpu/pmu/pmu_perfmon.h>
 #include <nvgpu/pmu/pmu_pg.h>
@@ -221,7 +223,7 @@ int nvgpu_pmu_init(struct gk20a *g, struct nvgpu_pmu *pmu)
 	}
 
 	if (nvgpu_is_enabled(g, NVGPU_SEC_PRIVSECURITY)) {
-
+#ifdef NVGPU_DGPU_SUPPORT
 		if (nvgpu_is_enabled(g, NVGPU_SUPPORT_SEC2_RTOS)) {
 			/* Reset PMU engine */
 			err = nvgpu_falcon_reset(g->pmu->flcn);
@@ -233,7 +235,7 @@ int nvgpu_pmu_init(struct gk20a *g, struct nvgpu_pmu *pmu)
 				goto exit;
 			}
 		}
-
+#endif
 		/*
 		 * clear halt interrupt to avoid PMU-RTOS ucode
 		 * hitting breakpoint due to PMU halt

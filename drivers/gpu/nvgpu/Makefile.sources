@@ -108,7 +108,6 @@ srcs += common/sim/sim.c \
 	common/falcon/falcon_sw_tu104.c \
 	common/engine_queues/engine_mem_queue.c \
 	common/engine_queues/engine_dmem_queue.c \
-	common/engine_queues/engine_emem_queue.c \
 	common/engine_queues/engine_fb_queue.c \
 	common/gr/gr.c \
 	common/gr/gr_utils.c \
@@ -156,13 +155,6 @@ srcs += common/sim/sim.c \
 	common/acr/acr_sw_gv100.c \
 	common/acr/acr_sw_gv11b.c \
 	common/acr/acr_sw_tu104.c \
-	common/sec2/sec2.c \
-	common/sec2/sec2_allocator.c \
-	common/sec2/sec2_lsfm.c \
-	common/sec2/ipc/sec2_cmd.c \
-	common/sec2/ipc/sec2_msg.c \
-	common/sec2/ipc/sec2_queue.c \
-	common/sec2/ipc/sec2_seq.c \
 	common/ptimer/ptimer.c \
 	common/worker.c \
 	common/sync/channel_sync.c \
@@ -416,8 +408,6 @@ srcs += common/sim/sim.c \
 	hal/nvdec/nvdec_gp106.c \
 	hal/nvdec/nvdec_tu104.c \
 	hal/gsp/gsp_gv100.c \
-	hal/sec2/sec2_gp106.c \
-	hal/sec2/sec2_tu104.c \
 	hal/sync/sema_cmdbuf_gk20a.c \
 	hal/sync/sema_cmdbuf_gv11b.c \
 	hal/sync/syncpt_cmdbuf_gk20a.c \
@@ -515,4 +505,17 @@ srcs += common/vbios/nvlink_bios.c \
 	hal/nvlink/minion_tu104.c \
 	hal/nvlink/link_mode_transitions_gv100.c \
 	hal/nvlink/link_mode_transitions_tu104.c
+endif
+
+ifeq ($(NVGPU_DGPU_SUPPORT), 1)
+srcs +=	common/engine_queues/engine_emem_queue.c \
+	common/sec2/sec2.c \
+	common/sec2/sec2_allocator.c \
+	common/sec2/sec2_lsfm.c \
+	common/sec2/ipc/sec2_cmd.c \
+	common/sec2/ipc/sec2_msg.c \
+	common/sec2/ipc/sec2_queue.c \
+	common/sec2/ipc/sec2_seq.c \
+	hal/sec2/sec2_gp106.c \
+	hal/sec2/sec2_tu104.c
 endif

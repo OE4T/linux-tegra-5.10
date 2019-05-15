@@ -32,7 +32,9 @@
 #include <nvgpu/acr.h>
 #include <nvgpu/pmu/lsfm.h>
 #include <nvgpu/pmu/pmu_pg.h>
+#ifdef NVGPU_DGPU_SUPPORT
 #include <nvgpu/sec2/lsfm.h>
+#endif
 #include <nvgpu/dma.h>
 #include <nvgpu/safe_ops.h>
 
@@ -554,12 +556,15 @@ int nvgpu_gr_falcon_load_secure_ctxsw_ucode(struct gk20a *g,
 		} else {
 			/* bind WPR VA inst block */
 			nvgpu_gr_falcon_bind_instblk(g, falcon);
+#ifdef NVGPU_DGPU_SUPPORT
 			if (nvgpu_is_enabled(g, NVGPU_SUPPORT_SEC2_RTOS)) {
 				err = nvgpu_sec2_bootstrap_ls_falcons(g,
 					&g->sec2, FALCON_ID_FECS);
 				err = nvgpu_sec2_bootstrap_ls_falcons(g,
 					&g->sec2, FALCON_ID_GPCCS);
-			} else if (g->support_ls_pmu) {
+			} else
+#endif
+			if (g->support_ls_pmu) {
 				err = nvgpu_pmu_lsfm_bootstrap_ls_falcon(g,
 						g->pmu, g->pmu->lsfm,
 						BIT32(FALCON_ID_FECS) |
@@ -594,12 +599,15 @@ int nvgpu_gr_falcon_load_secure_ctxsw_ucode(struct gk20a *g,
 				falcon_id_mask |= BIT8(FALCON_ID_GPCCS);
 			}
 
+#ifdef NVGPU_DGPU_SUPPORT
 			if (nvgpu_is_enabled(g, NVGPU_SUPPORT_SEC2_RTOS)) {
 				err = nvgpu_sec2_bootstrap_ls_falcons(g,
 					&g->sec2, FALCON_ID_FECS);
 				err = nvgpu_sec2_bootstrap_ls_falcons(g,
 					&g->sec2, FALCON_ID_GPCCS);
-			} else if (g->support_ls_pmu) {
+			} else
+#endif
+			if (g->support_ls_pmu) {
 				err = nvgpu_pmu_lsfm_bootstrap_ls_falcon(g,
 						g->pmu, g->pmu->lsfm,
 						falcon_id_mask);

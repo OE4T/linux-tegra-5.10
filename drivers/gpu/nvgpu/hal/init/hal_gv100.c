@@ -129,7 +129,9 @@
 #include "hal/nvdec/nvdec_gp106.h"
 #include "hal/gsp/gsp_gv100.h"
 #include "hal/perf/perf_gv11b.h"
+#ifdef NVGPU_DGPU_SUPPORT
 #include "hal/sec2/sec2_gp106.h"
+#endif
 #include "hal/sync/syncpt_cmdbuf_gv11b.h"
 #include "hal/sync/sema_cmdbuf_gv11b.h"
 #include "hal/netlist/netlist_gv100.h"
@@ -1310,11 +1312,13 @@ static const struct gpu_ops gv100_ops = {
 				gp106_top_scratch1_devinit_completed,
 
 	},
+#ifdef NVGPU_DGPU_SUPPORT
 	.sec2 = {
 		.falcon_base_addr = gp106_sec2_falcon_base_addr,
 		.sec2_reset = gp106_sec2_reset,
 		.flcn_setup_boot_config = gp106_sec2_flcn_setup_boot_config,
 	},
+#endif
 	.gsp = {
 		.falcon_base_addr = gv100_gsp_falcon_base_addr,
 		.falcon_setup_boot_config = gv100_gsp_flcn_setup_boot_config,
@@ -1375,7 +1379,9 @@ int gv100_init_hal(struct gk20a *g)
 	gops->fuse = gv100_ops.fuse;
 	gops->nvlink = gv100_ops.nvlink;
 	gops->top = gv100_ops.top;
+#ifdef NVGPU_DGPU_SUPPORT
 	gops->sec2 = gv100_ops.sec2;
+#endif
 	gops->gsp = gv100_ops.gsp;
 
 	/* clocks */

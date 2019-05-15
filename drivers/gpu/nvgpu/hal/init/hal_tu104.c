@@ -145,7 +145,9 @@
 #include "hal/nvdec/nvdec_tu104.h"
 #include "hal/gsp/gsp_gv100.h"
 #include "hal/perf/perf_gv11b.h"
+#ifdef NVGPU_DGPU_SUPPORT
 #include "hal/sec2/sec2_tu104.h"
+#endif
 #include "hal/sync/syncpt_cmdbuf_gv11b.h"
 #include "hal/sync/sema_cmdbuf_gv11b.h"
 #include "hal/netlist/netlist_tu104.h"
@@ -1326,6 +1328,7 @@ static const struct gpu_ops tu104_ops = {
 		}
 	},
 #endif
+#ifdef NVGPU_DGPU_SUPPORT
 	.sec2 = {
 		.secured_sec2_start = tu104_start_sec2_secure,
 		.enable_irq = tu104_sec2_enable_irq,
@@ -1344,6 +1347,7 @@ static const struct gpu_ops tu104_ops = {
 		.sec2_queue_tail = tu104_sec2_queue_tail,
 		.flcn_setup_boot_config = tu104_sec2_flcn_setup_boot_config,
 	},
+#endif
 	.gsp = {
 		.falcon_base_addr = gv100_gsp_falcon_base_addr,
 		.falcon_setup_boot_config = gv100_gsp_flcn_setup_boot_config,
@@ -1421,7 +1425,9 @@ int tu104_init_hal(struct gk20a *g)
 	gops->priv_ring = tu104_ops.priv_ring;
 	gops->fuse = tu104_ops.fuse;
 	gops->nvlink = tu104_ops.nvlink;
+#ifdef NVGPU_DGPU_SUPPORT
 	gops->sec2 = tu104_ops.sec2;
+#endif
 	gops->gsp = tu104_ops.gsp;
 	gops->top = tu104_ops.top;
 

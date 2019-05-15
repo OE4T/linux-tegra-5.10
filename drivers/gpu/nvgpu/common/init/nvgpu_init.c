@@ -103,13 +103,14 @@ int gk20a_prepare_poweroff(struct gk20a *g)
 		ret = nvgpu_pmu_destroy(g, g->pmu);
 	}
 
+#ifdef NVGPU_DGPU_SUPPORT
 	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_SEC2_RTOS)) {
 		tmp_ret = nvgpu_sec2_destroy(g);
 		if ((tmp_ret != 0) && (ret == 0)) {
 			ret = tmp_ret;
 		}
 	}
-
+#endif
 	tmp_ret = nvgpu_gr_suspend(g);
 	if ((tmp_ret != 0) && (ret == 0)) {
 		ret = tmp_ret;
@@ -184,15 +185,23 @@ int gk20a_finalize_poweron(struct gk20a *g)
 		nvgpu_err(g, "failed to sw init FALCON_ID_PMU");
 		goto exit;
 	}
+
+#ifdef NVGPU_DGPU_SUPPORT
 	err = nvgpu_falcon_sw_init(g, FALCON_ID_SEC2);
 	if (err != 0) {
 		nvgpu_err(g, "failed to sw init FALCON_ID_SEC2");
 		goto done_pmu;
 	}
+#endif
+
 	err = nvgpu_falcon_sw_init(g, FALCON_ID_NVDEC);
 	if (err != 0) {
 		nvgpu_err(g, "failed to sw init FALCON_ID_NVDEC");
+#ifdef NVGPU_DGPU_SUPPORT
 		goto done_sec2;
+#else
+		goto done_pmu;
+#endif
 	}
 	err = nvgpu_falcon_sw_init(g, FALCON_ID_GSPLITE);
 	if (err != 0) {
@@ -211,6 +220,7 @@ int gk20a_finalize_poweron(struct gk20a *g)
 		goto done;
 	}
 
+#ifdef NVGPU_DGPU_SUPPORT
 	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_SEC2_RTOS)) {
 		err = nvgpu_init_sec2_setup_sw(g, &g->sec2);
 		if (err != 0) {
@@ -218,7 +228,7 @@ int gk20a_finalize_poweron(struct gk20a *g)
 			goto done;
 		}
 	}
-
+#endif
 	if (nvgpu_is_enabled(g, NVGPU_SEC_PRIVSECURITY)) {
 		/* Init chip specific ACR properties */
 		err = nvgpu_acr_init(g, &g->acr);
@@ -359,6 +369,7 @@ int gk20a_finalize_poweron(struct gk20a *g)
 		}
 	}
 
+#ifdef NVGPU_DGPU_SUPPORT
 	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_SEC2_RTOS)) {
 		err = nvgpu_init_sec2_support(g);
 		if (err != 0) {
@@ -367,6 +378,7 @@ int gk20a_finalize_poweron(struct gk20a *g)
 			goto done;
 		}
 	}
+#endif
 
 	err = nvgpu_pmu_init(g, g->pmu);
 	if (err != 0) {
@@ -497,8 +509,10 @@ done_gsp:
 	nvgpu_falcon_sw_free(g, FALCON_ID_GSPLITE);
 done_nvdec:
 	nvgpu_falcon_sw_free(g, FALCON_ID_NVDEC);
+#ifdef NVGPU_DGPU_SUPPORT
 done_sec2:
 	nvgpu_falcon_sw_free(g, FALCON_ID_SEC2);
+#endif
 done_pmu:
 	nvgpu_falcon_sw_free(g, FALCON_ID_PMU);
 exit:

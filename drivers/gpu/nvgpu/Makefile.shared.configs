@@ -41,10 +41,6 @@ NVGPU_COMMON_CFLAGS             += -DNVGPU_LS_PMU
 
 NVGPU_COMMON_CFLAGS             += -DNVGPU_ENGINE
 
-# Enable dgpu support for safety build for now. To be removed.
-NVGPU_DGPU_SUPPORT              := 1
-NVGPU_COMMON_CFLAGS             += -DNVGPU_DGPU_SUPPORT
-
 ifeq ($(NV_BUILD_CONFIGURATION_IS_SAFETY),0)
 NVGPU_FECS_TRACE_SUPPORT        := 1
 NVGPU_COMMON_CFLAGS             += -DCONFIG_GK20A_CTXSW_TRACE
@@ -55,4 +51,8 @@ NVGPU_COMMON_CFLAGS             += -DIGPU_VIRT_SUPPORT
 # Enable nvlink support for normal build.
 NVGPU_NVLINK_SUPPORT            := 1
 NVGPU_COMMON_CFLAGS             += -DCONFIG_TEGRA_NVLINK
+
+# Enable dgpu support for normal build.
+NVGPU_DGPU_SUPPORT              := 1
+NVGPU_COMMON_CFLAGS             += -DNVGPU_DGPU_SUPPORT
 endif

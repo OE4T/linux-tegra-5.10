@@ -411,9 +411,11 @@ int nvgpu_engine_mem_queue_init(struct nvgpu_engine_mem_queue **queue_p,
 	case QUEUE_TYPE_DMEM:
 		engine_dmem_queue_init(queue);
 		break;
+#ifdef NVGPU_DGPU_SUPPORT
 	case QUEUE_TYPE_EMEM:
 		engine_emem_queue_init(queue);
 		break;
+#endif
 	default:
 		err = -EINVAL;
 		break;
