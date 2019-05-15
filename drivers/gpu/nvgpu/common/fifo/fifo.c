@@ -239,23 +239,6 @@ clean_up:
 	return err;
 }
 
-void nvgpu_report_host_error(struct gk20a *g, u32 inst,
-		u32 err_id, u32 intr_info)
-{
-	int ret;
-
-	if (g->ops.fifo.err_ops.report_host_err == NULL) {
-		return;
-	}
-	ret = g->ops.fifo.err_ops.report_host_err(g,
-			NVGPU_ERR_MODULE_HOST, inst, err_id, intr_info);
-	if (ret != 0) {
-		nvgpu_err(g, "Failed to report HOST error: \
-				inst=%u, err_id=%u, intr_info=%u, ret=%d",
-				inst, err_id, intr_info, ret);
-	}
-}
-
 static const char * const pbdma_ch_eng_status_str[] = {
 	"invalid",
 	"valid",

@@ -115,7 +115,6 @@ enum ctxsw_addr_type;
 #include <nvgpu/sec2/sec2.h>
 #include <nvgpu/cbc.h>
 #include <nvgpu/ltc.h>
-#include <nvgpu/nvgpu_err.h>
 #include <nvgpu/worker.h>
 #include <nvgpu/bios.h>
 #include <nvgpu/semaphore.h>
@@ -240,11 +239,6 @@ struct gpu_ops {
 			void (*en_illegal_compstat)(struct gk20a *g,
 								bool enable);
 		} intr;
-		struct {
-			int (*report_ecc_parity_err)(struct gk20a *g,
-					u32 hw_id, u32 inst, u32 err_id,
-					u64 err_addr, u64 count);
-		} err_ops;
 	} ltc;
 	struct {
 		void (*init)(struct gk20a *g, struct nvgpu_cbc *cbc);
@@ -260,11 +254,6 @@ struct gpu_ops {
 		u32 (*isr_nonstall)(struct gk20a *g, u32 inst_id, u32 pri_base);
 		u32 (*get_num_pce)(struct gk20a *g);
 		void (*mthd_buffer_fault_in_bar2_fault)(struct gk20a *g);
-		struct {
-			int (*report_ce_err)(struct gk20a *g,
-					u32 hw_id, u32 inst, u32 err_id,
-					u32 status);
-		} err_ops;
 	} ce;
 	struct {
 		u32 (*get_gr_status)(struct gk20a *g);
@@ -845,18 +834,6 @@ struct gpu_ops {
 		} intr;
 
 		u32 (*get_ctxsw_checksum_mismatch_mailbox_val)(void);
-		struct {
-			int (*report_ecc_parity_err)(struct gk20a *g,
-					u32 hw_id, u32 inst, u32 err_id,
-					u64 err_addr,
-					u64 err_count);
-			int (*report_gr_err)(struct gk20a *g,
-					u32 hw_id, u32 inst, u32 err_id,
-					struct gr_err_info *err_info);
-			int (*report_ctxsw_err)(struct gk20a *g,
-					u32 hw_id, u32 err_id,
-					void *data);
-		} err_ops;
 	} gr;
 
 	struct {
@@ -934,12 +911,6 @@ struct gpu_ops {
 		size_t (*get_vidmem_size)(struct gk20a *g);
 		int (*apply_pdb_cache_war)(struct gk20a *g);
 		struct {
-			int (*report_ecc_parity_err)(struct gk20a *g,
-					u32 hw_id, u32 inst,
-					u32 err_id, u64 err_addr,
-					u64 err_cnt);
-		} err_ops;
-		struct {
 			void (*enable)(struct gk20a *g);
 			void (*disable)(struct gk20a *g);
 			void (*isr)(struct gk20a *g);
@@ -999,11 +970,6 @@ struct gpu_ops {
 		void (*intr_unset_recover_mask)(struct gk20a *g);
 		int (*set_sm_exception_type_mask)(struct nvgpu_channel *ch,
 				u32 exception_mask);
-		struct {
-			int (*report_host_err)(struct gk20a *g,
-					u32 hw_id, u32 inst, u32 err_id,
-					u32 intr_info);
-		} err_ops;
 
 		void (*intr_0_enable)(struct gk20a *g, bool enable);
 		void (*intr_0_isr)(struct gk20a *g);
@@ -1400,15 +1366,6 @@ struct gpu_ops {
 		void (*pmu_reset_idle_counter)(struct gk20a *g, u32 counter_id);
 		/* PG */
 		void (*pmu_setup_elpg)(struct gk20a *g);
-		struct {
-			int (*report_ecc_parity_err)(struct gk20a *g,
-					u32 hw_id, u32 inst,
-					u32 err_id, u64 err_addr,
-					u64 err_cnt);
-			int (*report_pmu_err)(struct gk20a *g,
-					u32 hw_id, u32 err_id, u32 status,
-					u32 pmu_err_type);
-		} err_ops;
 		void (*pmu_clear_bar0_host_err_status)(struct gk20a *g);
 		int (*bar0_error_status)(struct gk20a *g, u32 *bar0_status,
 			u32 *etype);
@@ -1670,14 +1627,6 @@ struct gpu_ops {
 		u32 (*enum_ltc)(struct gk20a *g);
 		u32 (*get_gpc_count)(struct gk20a *g);
 		u32 (*get_fbp_count)(struct gk20a *g);
-		struct {
-			int (*report_access_violation)(struct gk20a *g,
-					u32 hw_id, u32 inst, u32 err_id,
-					u32 err_addr, u32 error_code);
-			int (*report_timeout_err)(struct gk20a *g,
-					u32 hw_id, u32 inst, u32 err_id,
-					u32 err_addr, u32 error_code);
-		} err_ops;
 	} priv_ring;
 	struct {
 		int (*check_priv_security)(struct gk20a *g);

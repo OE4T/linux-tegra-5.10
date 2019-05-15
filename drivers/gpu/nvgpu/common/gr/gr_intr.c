@@ -21,6 +21,7 @@
  */
 
 #include <nvgpu/gk20a.h>
+#include <nvgpu/nvgpu_err.h>
 #include <nvgpu/io.h>
 #include <nvgpu/channel.h>
 #include <nvgpu/rc.h>
@@ -43,7 +44,6 @@
 static void gr_intr_report_ctxsw_error(struct gk20a *g, u32 err_type, u32 chid,
 		u32 mailbox_value)
 {
-	int ret = 0;
 	struct ctxsw_err_info err_info;
 
 	err_info.curr_ctx = g->ops.gr.falcon.get_current_ctx(g);
@@ -52,15 +52,8 @@ static void gr_intr_report_ctxsw_error(struct gk20a *g, u32 err_type, u32 chid,
 	err_info.mailbox_value = mailbox_value;
 	err_info.chid = chid;
 
-	if (g->ops.gr.err_ops.report_ctxsw_err != NULL) {
-		ret = g->ops.gr.err_ops.report_ctxsw_err(g,
-				NVGPU_ERR_MODULE_FECS,
-				err_type, (void *)&err_info);
-		if (ret != 0) {
-			nvgpu_err(g, "Failed to report FECS CTXSW error: %d",
-					err_type);
-		}
-	}
+	(void) nvgpu_report_ctxsw_err(g, NVGPU_ERR_MODULE_FECS,
+		err_type, (void *)&err_info);
 }
 
 static int gr_intr_handle_tpc_exception(struct gk20a *g, u32 gpc, u32 tpc,
@@ -188,15 +181,10 @@ static int gr_intr_handle_class_error(struct gk20a *g,
 static void gr_intr_report_sm_exception(struct gk20a *g, u32 gpc, u32 tpc,
 		u32 sm, u32 hww_warp_esr_status, u64 hww_warp_esr_pc)
 {
-	int ret;
 	struct gr_sm_mcerr_info err_info;
 	struct nvgpu_channel *ch;
 	struct gr_err_info info;
 	u32 tsgid, chid, curr_ctx, inst = 0;
-
-	if (g->ops.gr.err_ops.report_gr_err == NULL) {
-		return;
-	}
 
 	tsgid = NVGPU_INVALID_TSG_ID;
 	curr_ctx = g->ops.gr.falcon.get_current_ctx(g);
@@ -217,14 +205,8 @@ static void gr_intr_report_sm_exception(struct gk20a *g, u32 gpc, u32 tpc,
 	err_info.tpc = tpc;
 	err_info.sm = sm;
 	info.sm_mcerr_info = &err_info;
-	ret = g->ops.gr.err_ops.report_gr_err(g,
-			NVGPU_ERR_MODULE_SM, inst, GPU_SM_MACHINE_CHECK_ERROR,
-			&info);
-	if (ret != 0) {
-		nvgpu_err(g, "failed to report SM_EXCEPTION "
-				"gpc=%u, tpc=%u, sm=%u, esr_status=%x",
-				gpc, tpc, sm, hww_warp_esr_status);
-	}
+	(void) nvgpu_report_gr_err(g, NVGPU_ERR_MODULE_SM, inst,
+			GPU_SM_MACHINE_CHECK_ERROR, &info);
 }
 
 /* Used by sw interrupt thread to translate current ctx to chid.
@@ -314,15 +296,10 @@ unlock:
 void nvgpu_gr_intr_report_exception(struct gk20a *g, u32 inst,
 		u32 err_type, u32 status)
 {
-	int ret = 0;
 	struct nvgpu_channel *ch;
 	struct gr_exception_info err_info;
 	struct gr_err_info info;
 	u32 tsgid, chid, curr_ctx;
-
-	if (g->ops.gr.err_ops.report_gr_err == NULL) {
-		return;
-	}
 
 	tsgid = NVGPU_INVALID_TSG_ID;
 	curr_ctx = g->ops.gr.falcon.get_current_ctx(g);
@@ -339,14 +316,8 @@ void nvgpu_gr_intr_report_exception(struct gk20a *g, u32 inst,
 	err_info.tsgid = tsgid;
 	err_info.status = status;
 	info.exception_info = &err_info;
-	ret = g->ops.gr.err_ops.report_gr_err(g,
-			NVGPU_ERR_MODULE_PGRAPH, inst, err_type,
-			&info);
-	if (ret != 0) {
-		nvgpu_err(g, "Failed to report PGRAPH exception: "
-				"inst=%u, err_type=%u, status=%u",
-				inst, err_type, status);
-	}
+	(void) nvgpu_report_gr_err(g, NVGPU_ERR_MODULE_PGRAPH,
+			inst, err_type, &info);
 }
 
 void nvgpu_gr_intr_set_error_notifier(struct gk20a *g,

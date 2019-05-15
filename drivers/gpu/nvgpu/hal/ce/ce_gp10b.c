@@ -39,14 +39,14 @@ void gp10b_ce_stall_isr(struct gk20a *g, u32 inst_id, u32 pri_base)
 
 	/* clear blocking interrupts: they exibit broken behavior */
 	if ((ce_intr & ce_intr_status_blockpipe_pending_f()) != 0U) {
-		nvgpu_report_ce_error(g, inst_id,
+		(void) nvgpu_report_ce_err(g, NVGPU_ERR_MODULE_CE, inst_id,
 				GPU_CE_BLOCK_PIPE, ce_intr);
 		nvgpu_log(g, gpu_dbg_intr, "ce blocking pipe interrupt");
 		clear_intr |= ce_intr_status_blockpipe_pending_f();
 	}
 
 	if ((ce_intr & ce_intr_status_launcherr_pending_f()) != 0U) {
-		nvgpu_report_ce_error(g, inst_id,
+		(void) nvgpu_report_ce_err(g, NVGPU_ERR_MODULE_CE, inst_id,
 				GPU_CE_LAUNCH_ERROR, ce_intr);
 		nvgpu_log(g, gpu_dbg_intr, "ce launch error interrupt");
 		clear_intr |= ce_intr_status_launcherr_pending_f();
@@ -65,7 +65,7 @@ u32 gp10b_ce_nonstall_isr(struct gk20a *g, u32 inst_id, u32 pri_base)
 			ce_intr, inst_id);
 
 	if ((ce_intr & ce_intr_status_nonblockpipe_pending_f()) != 0U) {
-		nvgpu_report_ce_error(g, inst_id,
+		(void) nvgpu_report_ce_err(g, NVGPU_ERR_MODULE_CE, inst_id,
 				GPU_CE_NONBLOCK_PIPE, ce_intr);
 		nvgpu_writel(g, ce_intr_status_r(inst_id),
 			ce_intr_status_nonblockpipe_pending_f());

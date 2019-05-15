@@ -26,6 +26,7 @@
 #include <nvgpu/channel.h>
 #include <nvgpu/tsg.h>
 #include <nvgpu/preempt.h>
+#include <nvgpu/nvgpu_err.h>
 
 
 u32 nvgpu_preempt_get_timeout(struct gk20a *g)
@@ -78,9 +79,9 @@ void nvgpu_preempt_poll_tsg_on_pbdma(struct gk20a *g,
 		 */
 		if (g->ops.fifo.preempt_poll_pbdma(g, tsgid,
 				pbdma_id) != 0) {
-			nvgpu_report_host_error(g, 0,
-					GPU_HOST_PBDMA_PREEMPT_ERROR,
-					pbdma_id);
+			(void) nvgpu_report_host_err(g, NVGPU_ERR_MODULE_HOST,
+					pbdma_id,
+					GPU_HOST_PBDMA_PREEMPT_ERROR, 0);
 			nvgpu_err(g, "PBDMA preempt failed");
 		}
 	}

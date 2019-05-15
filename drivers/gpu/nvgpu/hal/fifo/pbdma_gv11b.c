@@ -86,8 +86,8 @@ static void report_pbdma_error(struct gk20a *g, u32 pbdma_id,
 			err_type = GPU_HOST_PBDMA_SIGNATURE_ERROR;
 	}
 	if (err_type != GPU_HOST_INVALID_ERROR) {
-		nvgpu_report_host_error(g, pbdma_id,
-				err_type, pbdma_intr_0);
+		(void) nvgpu_report_host_err(g, NVGPU_ERR_MODULE_HOST,
+				pbdma_id, err_type, pbdma_intr_0);
 	}
 	return;
 }
@@ -188,7 +188,7 @@ bool gv11b_pbdma_handle_intr_1(struct gk20a *g, u32 pbdma_id, u32 pbdma_intr_1,
 
 	recover = true;
 
-	nvgpu_report_host_error(g, pbdma_id,
+	(void) nvgpu_report_host_err(g, NVGPU_ERR_MODULE_HOST, pbdma_id,
 			GPU_HOST_PBDMA_HCE_ERROR, pbdma_intr_1);
 
 	if ((pbdma_intr_1 & pbdma_intr_1_ctxnotvalid_pending_f()) != 0U) {

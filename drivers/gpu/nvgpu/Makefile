@@ -403,7 +403,8 @@ nvgpu-y += \
 	os/linux/dt.o \
 	os/linux/ecc_sysfs.o \
 	os/linux/os_ops_tu104.o \
-	os/linux/bsearch.o
+	os/linux/bsearch.o \
+	os/linux/sdl/sdl_stub.o
 
 nvgpu-$(CONFIG_GK20A_VIDMEM) += \
 	os/linux/dmabuf_vidmem.o

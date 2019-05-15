@@ -24,6 +24,7 @@
 #include <nvgpu/io.h>
 #include <nvgpu/class.h>
 #include <nvgpu/safe_ops.h>
+#include <nvgpu/nvgpu_err.h>
 
 #include <nvgpu/gr/config.h>
 #include <nvgpu/gr/gr.h>

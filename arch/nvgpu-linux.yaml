@@ -213,6 +213,9 @@ vgpu:
 vm:
   sources: [ os/linux/vm.c ]
 
+sdl:
+  sources: [ os/linux/sdl/sdl_stub.c ]
+
 # Group all the Linux headers for now.
 headers:
   sources: [ include/nvgpu/linux/atomic.h,

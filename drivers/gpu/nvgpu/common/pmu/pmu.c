@@ -43,6 +43,7 @@
 #include <nvgpu/boardobj.h>
 #include <nvgpu/boardobjgrp.h>
 #include <nvgpu/pmu/pmu_pstate.h>
+#include <nvgpu/nvgpu_err.h>
 
 /* PMU locks used to sync with PMU-RTOS */
 int nvgpu_pmu_lock_acquire(struct gk20a *g, struct nvgpu_pmu *pmu,
@@ -387,27 +388,11 @@ void nvgpu_pmu_remove_support(struct gk20a *g, struct nvgpu_pmu *pmu)
 }
 
 /* PMU H/W error functions */
-static void pmu_report_error(struct gk20a *g, u32 err_type,
-		u32 status, u32 pmu_err_type)
-{
-	int ret = 0;
-
-	if (g->ops.pmu.err_ops.report_pmu_err != NULL) {
-		ret = g->ops.pmu.err_ops.report_pmu_err(g,
-			NVGPU_ERR_MODULE_PWR, err_type, status, pmu_err_type);
-		if (ret != 0) {
-			nvgpu_err(g, "Failed to report PMU error: %d",
-					err_type);
-		}
-	}
-}
-
 void nvgpu_pmu_report_bar0_pri_err_status(struct gk20a *g, u32 bar0_status,
 	u32 error_type)
 {
-	pmu_report_error(g,
-		GPU_PMU_BAR0_ERROR_TIMEOUT, bar0_status, error_type);
-	return;
+	(void) nvgpu_report_pmu_err(g, NVGPU_ERR_MODULE_PMU,
+		GPU_PMU_BAR0_ERROR_TIMEOUT, error_type, bar0_status);
 }
 
 /* PMU engine reset functions */

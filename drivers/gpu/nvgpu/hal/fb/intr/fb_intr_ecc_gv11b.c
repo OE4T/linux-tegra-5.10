@@ -83,8 +83,8 @@ static void gv11b_fb_intr_handle_ecc_l2tlb(struct gk20a *g, u32 ecc_status)
 	if ((ecc_status &
 		fb_mmu_l2tlb_ecc_status_corrected_err_l2tlb_sa_data_m())
 									!= 0U) {
-		nvgpu_hubmmu_report_ecc_error(g, 0,
-			GPU_HUBMMU_L2TLB_SA_DATA_ECC_CORRECTED,
+		(void) nvgpu_report_ecc_parity_err(g, NVGPU_ERR_MODULE_HUBMMU,
+			0, GPU_HUBMMU_L2TLB_SA_DATA_ECC_CORRECTED,
 			ecc_addr,
 			g->ecc.fb.mmu_l2tlb_ecc_corrected_err_count[0].counter);
 		nvgpu_log(g, gpu_dbg_intr, "corrected ecc sa data error");
@@ -92,8 +92,8 @@ static void gv11b_fb_intr_handle_ecc_l2tlb(struct gk20a *g, u32 ecc_status)
 	if ((ecc_status &
 		fb_mmu_l2tlb_ecc_status_uncorrected_err_l2tlb_sa_data_m())
 									!= 0U) {
-		nvgpu_hubmmu_report_ecc_error(g, 0,
-			GPU_HUBMMU_L2TLB_SA_DATA_ECC_UNCORRECTED,
+		(void) nvgpu_report_ecc_parity_err(g, NVGPU_ERR_MODULE_HUBMMU,
+			0, GPU_HUBMMU_L2TLB_SA_DATA_ECC_UNCORRECTED,
 			ecc_addr,
 			g->ecc.fb.mmu_l2tlb_ecc_uncorrected_err_count[0].counter);
 		nvgpu_log(g, gpu_dbg_intr, "uncorrected ecc sa data error");
@@ -161,16 +161,16 @@ static void gv11b_fb_intr_handle_ecc_hubtlb(struct gk20a *g, u32 ecc_status)
 
 	if ((ecc_status &
 	     fb_mmu_hubtlb_ecc_status_corrected_err_sa_data_m()) != 0U) {
-		nvgpu_hubmmu_report_ecc_error(g, 0,
-				GPU_HUBMMU_TLB_SA_DATA_ECC_CORRECTED,
+		(void) nvgpu_report_ecc_parity_err(g, NVGPU_ERR_MODULE_HUBMMU,
+				0, GPU_HUBMMU_TLB_SA_DATA_ECC_CORRECTED,
 				ecc_addr,
 				g->ecc.fb.mmu_hubtlb_ecc_corrected_err_count[0].counter);
 		nvgpu_log(g, gpu_dbg_intr, "corrected ecc sa data error");
 	}
 	if ((ecc_status &
 	     fb_mmu_hubtlb_ecc_status_uncorrected_err_sa_data_m()) != 0U) {
-		nvgpu_hubmmu_report_ecc_error(g, 0,
-				GPU_HUBMMU_TLB_SA_DATA_ECC_UNCORRECTED,
+		(void) nvgpu_report_ecc_parity_err(g, NVGPU_ERR_MODULE_HUBMMU,
+				0, GPU_HUBMMU_TLB_SA_DATA_ECC_UNCORRECTED,
 				ecc_addr,
 				g->ecc.fb.mmu_hubtlb_ecc_uncorrected_err_count[0].counter);
 		nvgpu_log(g, gpu_dbg_intr, "uncorrected ecc sa data error");
@@ -239,8 +239,8 @@ static void gv11b_fb_intr_handle_ecc_fillunit(struct gk20a *g, u32 ecc_status)
 
 	if ((ecc_status &
 		fb_mmu_fillunit_ecc_status_corrected_err_pte_data_m()) != 0U) {
-		nvgpu_hubmmu_report_ecc_error(g, 0,
-			GPU_HUBMMU_PTE_DATA_ECC_CORRECTED,
+		(void) nvgpu_report_ecc_parity_err(g, NVGPU_ERR_MODULE_HUBMMU,
+			0, GPU_HUBMMU_PTE_DATA_ECC_CORRECTED,
 			ecc_addr,
 			g->ecc.fb.mmu_fillunit_ecc_corrected_err_count[0].counter);
 		nvgpu_log(g, gpu_dbg_intr, "corrected ecc pte data error");
@@ -248,16 +248,16 @@ static void gv11b_fb_intr_handle_ecc_fillunit(struct gk20a *g, u32 ecc_status)
 	if ((ecc_status &
 		fb_mmu_fillunit_ecc_status_uncorrected_err_pte_data_m())
 									!= 0U) {
-		nvgpu_hubmmu_report_ecc_error(g, 0,
-			GPU_HUBMMU_PTE_DATA_ECC_UNCORRECTED,
+		(void) nvgpu_report_ecc_parity_err(g, NVGPU_ERR_MODULE_HUBMMU,
+			0, GPU_HUBMMU_PTE_DATA_ECC_UNCORRECTED,
 			ecc_addr,
 			g->ecc.fb.mmu_fillunit_ecc_uncorrected_err_count[0].counter);
 		nvgpu_log(g, gpu_dbg_intr, "uncorrected ecc pte data error");
 	}
 	if ((ecc_status &
 		fb_mmu_fillunit_ecc_status_corrected_err_pde0_data_m()) != 0U) {
-		nvgpu_hubmmu_report_ecc_error(g, 0,
-			GPU_HUBMMU_PDE0_DATA_ECC_CORRECTED,
+		(void) nvgpu_report_ecc_parity_err(g, NVGPU_ERR_MODULE_HUBMMU,
+			0, GPU_HUBMMU_PDE0_DATA_ECC_CORRECTED,
 			ecc_addr,
 			g->ecc.fb.mmu_fillunit_ecc_corrected_err_count[0].counter);
 		nvgpu_log(g, gpu_dbg_intr, "corrected ecc pde0 data error");
@@ -265,8 +265,8 @@ static void gv11b_fb_intr_handle_ecc_fillunit(struct gk20a *g, u32 ecc_status)
 	if ((ecc_status &
 		fb_mmu_fillunit_ecc_status_uncorrected_err_pde0_data_m())
 									!= 0U) {
-		nvgpu_hubmmu_report_ecc_error(g, 0,
-			GPU_HUBMMU_PDE0_DATA_ECC_UNCORRECTED,
+		(void) nvgpu_report_ecc_parity_err(g, NVGPU_ERR_MODULE_HUBMMU,
+			0, GPU_HUBMMU_PDE0_DATA_ECC_UNCORRECTED,
 			ecc_addr,
 			g->ecc.fb.mmu_fillunit_ecc_uncorrected_err_count[0].counter);
 		nvgpu_log(g, gpu_dbg_intr, "uncorrected ecc pde0 data error");

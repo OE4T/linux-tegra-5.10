@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -32,7 +32,6 @@
 void gk20a_ptimer_isr(struct gk20a *g)
 {
 	u32 save0, save1, fecs_errcode = 0;
-	int ret = 0;
 	u32 inst = 0U;
 	u32 error_addr;
 
@@ -69,19 +68,9 @@ void gk20a_ptimer_isr(struct gk20a *g)
 		error_addr = 0U;
 	}
 
-	if (g->ops.priv_ring.err_ops.report_timeout_err != NULL) {
-		ret = g->ops.priv_ring.err_ops.report_timeout_err(g,
-				NVGPU_ERR_MODULE_PRI,
-				inst,
-				GPU_PRI_TIMEOUT_ERROR,
-				error_addr,
-				fecs_errcode);
-		if (ret != 0) {
-			nvgpu_err(g, "Failed to report PRI Timout error: "
-					"inst=%u, err_addr=%u, err_code=%u",
-					inst, error_addr, fecs_errcode);
-		}
-	}
+	(void) nvgpu_report_pri_err(g, NVGPU_ERR_MODULE_PRI,
+		inst, GPU_PRI_TIMEOUT_ERROR,
+		error_addr, fecs_errcode);
 }
 
 int gk20a_read_ptimer(struct gk20a *g, u64 *value)

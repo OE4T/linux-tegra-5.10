@@ -23,13 +23,17 @@
 #ifndef NVGPU_NVGPU_ERR_H
 #define NVGPU_NVGPU_ERR_H
 
+#include <nvgpu/types.h>
+
+struct gk20a;
+
 #define NVGPU_ERR_MODULE_HOST		0U
 #define NVGPU_ERR_MODULE_SM		1U
 #define NVGPU_ERR_MODULE_FECS		2U
 #define NVGPU_ERR_MODULE_GPCCS		3U
 #define NVGPU_ERR_MODULE_MMU		4U
 #define NVGPU_ERR_MODULE_GCC		5U
-#define NVGPU_ERR_MODULE_PWR		6U
+#define NVGPU_ERR_MODULE_PMU		6U
 #define NVGPU_ERR_MODULE_PGRAPH		7U
 #define NVGPU_ERR_MODULE_LTC		8U
 #define NVGPU_ERR_MODULE_HUBMMU		9U
@@ -171,22 +175,26 @@ struct gr_err_info {
 	struct gr_exception_info *exception_info;
 };
 
-void nvgpu_report_host_error(struct gk20a *g,
-		u32 inst, u32 err_id, u32 intr_info);
+/* Functions to report errors to 3LSS */
+int nvgpu_report_host_err(struct gk20a *g, u32 hw_unit,
+	u32 inst, u32 err_id, u32 intr_info);
 
-void nvgpu_report_ce_error(struct gk20a *g, u32 inst,
-		u32 err_type, u32 status);
+int nvgpu_report_ce_err(struct gk20a *g, u32 hw_unit,
+	u32 inst, u32 err_id, u32 intr_info);
 
-void nvgpu_hubmmu_report_ecc_error(struct gk20a *g, u32 inst,
-		u32 err_type, u64 err_addr, u64 err_cnt);
+int nvgpu_report_ecc_parity_err(struct gk20a *g, u32 hw_unit, u32 inst,
+		u32 err_type, u64 err_addr, u64 err_count);
 
-void nvgpu_ltc_report_ecc_error(struct gk20a *g, u32 ltc, u32 slice,
-		u32 err_type, u64 err_addr, u64 err_cnt);
+int nvgpu_report_ctxsw_err(struct gk20a *g, u32 hw_unit, u32 err_id,
+		void *data);
 
-void nvgpu_pmu_report_ecc_error(struct gk20a *g, u32 inst,
-		u32 err_type, u64 err_addr, u64 err_cnt);
+int nvgpu_report_gr_err(struct gk20a *g, u32 hw_unit, u32 inst,
+		u32 err_type, struct gr_err_info *err_info);
 
-void nvgpu_gr_report_ecc_error(struct gk20a *g, u32 hw_module,
-		u32 gpc, u32 tpc, u32 err_type,
-		u64 err_addr, u64 err_cnt);
+int nvgpu_report_pmu_err(struct gk20a *g, u32 hw_unit, u32 err_id,
+	u32 sub_err_type, u32 status);
+
+int nvgpu_report_pri_err(struct gk20a *g, u32 hw_unit, u32 inst,
+		u32 err_type, u32 err_addr, u32 err_code);
+
 #endif

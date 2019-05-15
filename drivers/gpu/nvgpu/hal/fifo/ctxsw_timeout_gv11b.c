@@ -27,6 +27,7 @@
 #include <nvgpu/ptimer.h>
 #include <nvgpu/tsg.h>
 #include <nvgpu/rc.h>
+#include <nvgpu/nvgpu_err.h>
 
 #include <hal/fifo/ctxsw_timeout_gv11b.h>
 
@@ -188,7 +189,6 @@ bool gv11b_fifo_handle_ctxsw_timeout(struct gk20a *g)
 	const char *info_status_str;
 	struct nvgpu_tsg *tsg = NULL;
 
-
 	/* get ctxsw timedout engines */
 	ctxsw_timeout_engines = nvgpu_readl(g, fifo_intr_ctxsw_timeout_r());
 	if (ctxsw_timeout_engines == 0U) {
@@ -217,8 +217,8 @@ bool gv11b_fifo_handle_ctxsw_timeout(struct gk20a *g)
 				continue;
 			}
 
-			nvgpu_report_host_error(g, 0,
-					GPU_HOST_PFIFO_CTXSW_TIMEOUT_ERROR,
+			(void) nvgpu_report_host_err(g, NVGPU_ERR_MODULE_HOST,
+					0, GPU_HOST_PFIFO_CTXSW_TIMEOUT_ERROR,
 					tsgid);
 
 			recover = g->ops.tsg.check_ctxsw_timeout(tsg,
