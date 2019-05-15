@@ -212,17 +212,19 @@ static void ether_realloc_rx_skb(struct ether_priv_data *pdata,
  *	Return: None.
  */
 void osd_receive_packet(void *priv, void *rxring, unsigned int chan,
-			unsigned int dma_buf_len, void *rxpkt_cx)
+			unsigned int dma_buf_len, void *rxpkt_cx,
+			void *rx_pkt_swcx)
 {
 	struct ether_priv_data *pdata = (struct ether_priv_data *)priv;
 	struct ether_rx_napi *rx_napi = pdata->rx_napi[chan];
 	struct osi_rx_ring *rx_ring = (struct osi_rx_ring *)rxring;
-	struct osi_rx_swcx *rx_swcx = rx_ring->rx_swcx + rx_ring->cur_rx_idx;
+	struct osi_rx_swcx *rx_swcx = (struct osi_rx_swcx *)rx_pkt_swcx;
 	struct osi_rx_pkt_cx *rx_pkt_cx = (struct osi_rx_pkt_cx *)rxpkt_cx;
 	struct sk_buff *skb = (struct sk_buff *)rx_swcx->buf_virt_addr;
 	dma_addr_t dma_addr = (dma_addr_t)rx_swcx->buf_phy_addr;
 	struct net_device *ndev = pdata->ndev;
 	struct osi_pkt_err_stats *pkt_err_stat = &pdata->osi_dma->pkt_err_stats;
+	struct skb_shared_hwtstamps *shhwtstamp;
 
 	dma_unmap_single(pdata->dev, dma_addr, dma_buf_len, DMA_FROM_DEVICE);
 
@@ -242,6 +244,14 @@ void osd_receive_packet(void *priv, void *rxring, unsigned int chan,
 					       rx_pkt_cx->vlan_tag);
 		}
 
+		/* Handle time stamp */
+		if ((rx_pkt_cx->flags & OSI_PKT_CX_PTP) == OSI_PKT_CX_PTP) {
+			shhwtstamp = skb_hwtstamps(skb);
+			memset(shhwtstamp, 0,
+			       sizeof(struct skb_shared_hwtstamps));
+			shhwtstamp->hwtstamp = ns_to_ktime(rx_pkt_cx->ns);
+		}
+
 		skb->dev = ndev;
 		skb->protocol = eth_type_trans(skb, ndev);
 		ndev->stats.rx_bytes += skb->len;
@@ -258,8 +268,6 @@ void osd_receive_packet(void *priv, void *rxring, unsigned int chan,
 	ndev->stats.rx_packets++;
 	rx_swcx->buf_virt_addr = NULL;
 	rx_swcx->buf_phy_addr = 0;
-
-	INCR_RX_DESC_INDEX(rx_ring->cur_rx_idx, 1U);
 
 	if (osi_get_refill_rx_desc_cnt(rx_ring) >= 16U)
 		ether_realloc_rx_skb(pdata, rx_ring, chan);
@@ -278,6 +286,7 @@ void osd_receive_packet(void *priv, void *rxring, unsigned int chan,
  *	Algorithm:
  *	1) Updates stats for linux network stack.
  *	2) unmap and free the buffer DMA address and buffer.
+ *	3) Time stamp will be update to stack if available.
  *
  *	Dependencies: Tx completion need to make sure that Tx descriptors
  *	processed properly.
@@ -295,6 +304,7 @@ void osd_transmit_complete(void *priv, void *buffer, unsigned long dmaaddr,
 	struct osi_dma_priv_data *osi_dma = pdata->osi_dma;
 	struct sk_buff *skb = (struct sk_buff *)buffer;
 	dma_addr_t dma_addr = (dma_addr_t)dmaaddr;
+	struct skb_shared_hwtstamps shhwtstamp;
 	struct net_device *ndev = pdata->ndev;
 	struct osi_tx_ring *tx_ring;
 	struct netdev_queue *txq;
@@ -302,6 +312,13 @@ void osd_transmit_complete(void *priv, void *buffer, unsigned long dmaaddr,
 
 	ndev->stats.tx_packets++;
 	ndev->stats.tx_bytes += len;
+
+	if ((txdone_pkt_cx->flags & OSI_TXDONE_CX_TS) == OSI_TXDONE_CX_TS) {
+		memset(&shhwtstamp, 0, sizeof(struct skb_shared_hwtstamps));
+		shhwtstamp.hwtstamp = ns_to_ktime(txdone_pkt_cx->ns);
+		/* pass tstamp to stack */
+		skb_tstamp_tx(skb, &shhwtstamp);
+	}
 
 	if (dma_addr) {
 		if ((txdone_pkt_cx->flags & OSI_TXDONE_CX_PAGED_BUF) ==

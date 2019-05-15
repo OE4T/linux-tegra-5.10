@@ -24,6 +24,7 @@ nvethernet-objs:= ether_linux.o \
 		  ethtool.o \
 		  sysfs.o \
 		  ioctl.o \
+		  ptp.o \
 		  $(OSI_CORE)/osi_core.o \
 		  $(OSI_CORE)/osi_common.o \
 		  $(OSI_DMA)/osi_dma.o \

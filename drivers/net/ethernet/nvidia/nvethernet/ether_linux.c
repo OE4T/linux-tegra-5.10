@@ -925,6 +925,15 @@ static int ether_open(struct net_device *dev)
 	/* Start the MAC */
 	osi_start_mac(pdata->osi_core);
 
+	/* Initialize PTP */
+	ret = ether_ptp_init(pdata);
+	if (ret < 0) {
+		dev_err(pdata->dev,
+			"%s:failed to initialize PTP with reason %d\n",
+			__func__, ret);
+		goto err_hw_init;
+	}
+
 	ether_napi_enable(pdata);
 
 	/* start PHY */
@@ -987,6 +996,9 @@ static int ether_close(struct net_device *dev)
 
 	/* free DMA resources after DMA stop */
 	free_dma_resources(pdata->osi_dma, pdata->dev);
+
+	/* PTP de-init */
+	ether_ptp_remove(pdata);
 
 	/* Stop the MAC */
 	osi_stop_mac(pdata->osi_core);
@@ -1102,6 +1114,11 @@ static int ether_tx_swcx_alloc(struct device *dev,
 		tx_pkt_cx->vtag_id = skb_vlan_tag_get(skb);
 		tx_pkt_cx->vtag_id |= (skb->priority << VLAN_PRIO_SHIFT);
 		tx_pkt_cx->flags |= OSI_PKT_CX_VLAN;
+	}
+
+	if (unlikely(skb_shinfo(skb)->tx_flags & SKBTX_HW_TSTAMP)) {
+		skb_shinfo(skb)->tx_flags |= SKBTX_IN_PROGRESS;
+		tx_pkt_cx->flags |= OSI_PKT_CX_PTP;
 	}
 
 	if (((tx_pkt_cx->flags & OSI_PKT_CX_VLAN) == OSI_PKT_CX_VLAN) ||
@@ -1575,6 +1592,10 @@ static int ether_ioctl(struct net_device *dev, struct ifreq *rq, int cmd)
 
 	case SIOCDEVPRIVATE:
 		ret = ether_handle_priv_ioctl(dev, rq);
+		break;
+
+	case SIOCSHWTSTAMP:
+		ret = ether_handle_hwtstamp_ioctl(pdata, rq);
 		break;
 
 	default:
@@ -2384,6 +2405,15 @@ static int ether_configure_car(struct platform_device *pdev,
 		return ret;
 	}
 
+	/* set PTP clock rate*/
+	ret = clk_set_rate(pdata->ptp_ref_clk, pdata->ptp_ref_clock_speed);
+	if (ret < 0) {
+		dev_err(&pdev->dev, "failed to set ptp clk rate\n");
+		return ret;
+	} else {
+		osi_core->ptp_config.ptp_ref_clk_rate = pdata->ptp_ref_clock_speed;
+	}
+
 	ret = ether_enable_clks(pdata);
 	if (ret < 0) {
 		dev_err(&pdev->dev, "failed to enable clks\n");
@@ -2576,20 +2606,27 @@ static void ether_parse_queue_prio(struct ether_priv_data *pdata,
  */
 static int ether_parse_dt(struct ether_priv_data *pdata)
 {
+	struct device *dev = pdata->dev;
+	struct platform_device *pdev = to_platform_device(dev);
 	struct osi_core_priv_data *osi_core = pdata->osi_core;
 	struct osi_dma_priv_data *osi_dma = pdata->osi_dma;
-	struct device *dev = pdata->dev;
 	struct device_node *np = dev->of_node;
-	struct platform_device *pdev = to_platform_device(dev);
 	int ret = -EINVAL;
 
+	/* read ptp clock */
+	ret = of_property_read_u32(np, "nvidia,ptp_ref_clock_speed",
+				   &pdata->ptp_ref_clock_speed);
+	if (ret != 0) {
+		dev_err(dev, "setting default PTP clk rate as 312.5MHz\n");
+		pdata->ptp_ref_clock_speed = ETHER_DFLT_PTP_CLK;
+	}
 	/* Read Pause frame feature support */
 	ret = of_property_read_u32(np, "nvidia,pause_frames",
 				   &pdata->osi_core->pause_frames);
 	if (ret < 0) {
 		dev_err(dev, "Failed to read nvida,pause_frames, so"
-			" setting to default support as enable\n");
-		pdata->osi_core->pause_frames = OSI_PAUSE_FRAMES_ENABLE;
+			" setting to default support as disable\n");
+		pdata->osi_core->pause_frames = OSI_PAUSE_FRAMES_DISABLE;
 	}
 
 	/* Check if IOMMU is enabled */
