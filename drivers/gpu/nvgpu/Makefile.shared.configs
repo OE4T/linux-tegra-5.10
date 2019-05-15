@@ -20,29 +20,34 @@
 # DEALINGS IN THE SOFTWARE.
 #
 
+# This file defines the make variables and cflags applicable to nvgpu common
+# shared by qnx, nvgpu userspace, test builds. Note that cflags are added to
+# variable NVGPU_COMMON_CFLAGS that needs to be used by the parent Makefile
+# to update corresponding cflags variable.
+
 # Support iGPU Virt for safety build until rmserver dependency is resolved
 IGPU_VIRT_SUPPORT               := 1
-NV_COMPONENT_CFLAGS             += -DIGPU_VIRT_SUPPORT
+NVGPU_COMMON_CFLAGS             := -DIGPU_VIRT_SUPPORT
 
 # Enable debugger APIs for safety build until devctl whitelisting is done
 NVGPU_DEBUGGER                  := 1
-NV_COMPONENT_CFLAGS             += -DNVGPU_DEBUGGER
+NVGPU_COMMON_CFLAGS             += -DNVGPU_DEBUGGER
 
 # Enable USERD for safety build until we switch to user mode submits only
-NV_COMPONENT_CFLAGS             += -DNVGPU_USERD
+NVGPU_COMMON_CFLAGS             += -DNVGPU_USERD
 
 # Enable Channel WDT for safety build until we switch to user mode submits only
 NV_COMPONENT_CFLAGS		+= -DNVGPU_CHANNEL_WDT
 
 # Enable iGPU LS PMU for safety build until devctl whitelisting is done
 NVGPU_LS_PMU                    := 1
-NV_COMPONENT_CFLAGS             += -DNVGPU_LS_PMU
+NVGPU_COMMON_CFLAGS             += -DNVGPU_LS_PMU
 
-NV_COMPONENT_CFLAGS             += -DNVGPU_ENGINE
+NVGPU_COMMON_CFLAGS             += -DNVGPU_ENGINE
 
 # Enable dgpu support for safety build for now. To be removed.
 NVGPU_DGPU_SUPPORT              := 1
-NV_COMPONENT_CFLAGS             += -DNVGPU_DGPU_SUPPORT
+NVGPU_COMMON_CFLAGS             += -DNVGPU_DGPU_SUPPORT
 
 ifeq ($(NV_BUILD_CONFIGURATION_IS_SAFETY),0)
 endif
