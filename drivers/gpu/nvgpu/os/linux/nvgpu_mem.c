@@ -141,7 +141,7 @@ u64 nvgpu_mem_get_phys_addr(struct gk20a *g, struct nvgpu_mem *mem)
  */
 int nvgpu_mem_create_from_mem(struct gk20a *g,
 			      struct nvgpu_mem *dest, struct nvgpu_mem *src,
-			      u64 start_page, int nr_pages)
+			      u64 start_page, size_t nr_pages)
 {
 	int ret;
 	u64 start = start_page * PAGE_SIZE;

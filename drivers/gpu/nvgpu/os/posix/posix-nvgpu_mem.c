@@ -242,7 +242,7 @@ struct nvgpu_sgt *nvgpu_sgt_os_create_from_mem(struct gk20a *g,
 
 int nvgpu_mem_create_from_mem(struct gk20a *g,
 			      struct nvgpu_mem *dest, struct nvgpu_mem *src,
-			      u64 start_page, int nr_pages)
+			      u64 start_page, size_t nr_pages)
 {
 	u64 start = start_page * U64(PAGE_SIZE);
 	u64 size = U64(nr_pages) * U64(PAGE_SIZE);

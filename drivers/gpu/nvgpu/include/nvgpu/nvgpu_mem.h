@@ -220,7 +220,7 @@ static inline bool nvgpu_mem_is_valid(struct nvgpu_mem *mem)
  */
 int nvgpu_mem_create_from_mem(struct gk20a *g,
 			      struct nvgpu_mem *dest, struct nvgpu_mem *src,
-			      u64 start_page, int nr_pages);
+			      u64 start_page, size_t nr_pages);
 
 /**
  * nvgpu_mem_create_from_phys - Create an nvgpu_mem from physical mem.

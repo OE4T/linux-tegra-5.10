@@ -134,7 +134,7 @@ int nvgpu_semaphore_pool_map(struct nvgpu_semaphore_pool *p,
 	 */
 	err = nvgpu_mem_create_from_mem(vm->mm->g,
 					&p->rw_mem, &p->sema_sea->sea_mem,
-					p->page_idx, 1);
+					p->page_idx, 1UL);
 	if (err != 0) {
 		goto fail_unmap;
 	}
