@@ -121,9 +121,11 @@ void gm20b_flush_ltc(struct gk20a *g)
 			op_pending = gk20a_readl(g, cmgmt1);
 			is_clean_pending_set = (op_pending &
 				ltc_ltc0_ltss_tstg_cmgmt1_clean_pending_f()) != 0U;
-		} while (is_clean_pending_set &&
-			(nvgpu_timeout_expired_msg(&timeout,
-					"L2 flush timeout!") == 0));
+			if (nvgpu_timeout_expired_msg(&timeout,
+					"L2 flush timeout!") != 0) {
+				err = -ETIMEDOUT;
+			}
+		} while (is_clean_pending_set && (err == 0));
 	}
 
 	/* And invalidate. */
@@ -151,9 +153,11 @@ void gm20b_flush_ltc(struct gk20a *g)
 			op_pending = gk20a_readl(g, cmgmt0);
 			is_invalidate_pending_set = (op_pending &
 				ltc_ltc0_ltss_tstg_cmgmt0_invalidate_pending_f()) != 0U;
-		} while (is_invalidate_pending_set &&
-			(nvgpu_timeout_expired_msg(&timeout,
-					"L2 flush timeout!") == 0));
+			if (nvgpu_timeout_expired_msg(&timeout,
+					"L2 flush timeout!") != 0) {
+				err = -ETIMEDOUT;
+			}
+		} while (is_invalidate_pending_set && (err == 0));
 	}
 }
 
