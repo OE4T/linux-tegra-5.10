@@ -268,12 +268,18 @@
 		 * prevent guest owning ADSP peripheral from
 		 * toggling APE clocks. These clocks are owned and
 		 * controlled only by Audio Server
+		 *
+		 * ADSP_ALL reset will be owned by Audio Server only
+		 * since multiple VMs can't own ADSP reset
 		 */
 		adsp@2993000 {
 			clocks = <&bpmp_clks TEGRA194_CLK_ADSPNEON>,
 				<&bpmp_clks TEGRA194_CLK_ADSP>,
 				<&bpmp_clks TEGRA194_CLK_ACLK>;
 			clock-names = "adspneon", "adsp", "aclk";
+
+			/delete-property/ resets;
+			/delete-property/ reset-names;
 		};
 
 		/* Add ADSP reset information to AHUB node to allow
