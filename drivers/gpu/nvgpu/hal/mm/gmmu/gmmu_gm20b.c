@@ -29,12 +29,12 @@
 
 u32 gm20b_mm_get_big_page_sizes(void)
 {
-	return SZ_64K | SZ_128K;
+	return U32(SZ_64K | SZ_128K);
 }
 
 u32 gm20b_mm_get_default_big_page_size(void)
 {
-	return SZ_64K;
+	return U32(SZ_64K);
 }
 
 u64 gm20b_gpu_phys_addr(struct gk20a *g,
