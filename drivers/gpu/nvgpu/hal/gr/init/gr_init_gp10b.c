@@ -24,6 +24,7 @@
 #include <nvgpu/io.h>
 #include <nvgpu/log.h>
 #include <nvgpu/bug.h>
+#include <nvgpu/safe_ops.h>
 #include <nvgpu/gr/ctx.h>
 #include <nvgpu/gr/config.h>
 #include <nvgpu/gr/gr.h>
@@ -37,7 +38,7 @@
 #define GFXP_WFI_TIMEOUT_COUNT_DEFAULT 100000U
 
 void gp10b_gr_init_get_access_map(struct gk20a *g,
-				   u32 **whitelist, int *num_entries)
+				   u32 **whitelist, u32 *num_entries)
 {
 	static u32 wl_addr_gp10b[] = {
 		/* this list must be sorted (low to high) */
@@ -76,7 +77,7 @@ void gp10b_gr_init_get_access_map(struct gk20a *g,
 
 	*whitelist = wl_addr_gp10b;
 	array_size = ARRAY_SIZE(wl_addr_gp10b);
-	*num_entries = (int)array_size;
+	*num_entries = nvgpu_safe_cast_u64_to_u32(array_size);
 }
 
 u32 gp10b_gr_init_get_sm_id_size(void)

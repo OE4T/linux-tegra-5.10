@@ -41,7 +41,7 @@ void gm20b_gr_init_pes_vsc_stream(struct gk20a *g);
 void gm20b_gr_init_gpc_mmu(struct gk20a *g);
 void gm20b_gr_init_fifo_access(struct gk20a *g, bool enable);
 void gm20b_gr_init_get_access_map(struct gk20a *g,
-				   u32 **whitelist, int *num_entries);
+				   u32 **whitelist, u32 *num_entries);
 void gm20b_gr_init_sm_id_numbering(struct gk20a *g, u32 gpc, u32 tpc, u32 smid,
 				   struct nvgpu_gr_config *gr_config);
 u32 gm20b_gr_init_get_sm_id_size(void);

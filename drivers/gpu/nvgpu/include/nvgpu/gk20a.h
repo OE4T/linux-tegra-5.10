@@ -683,7 +683,7 @@ struct gpu_ops {
 			void (*gpc_mmu)(struct gk20a *g);
 			void (*fifo_access)(struct gk20a *g, bool enable);
 			void (*get_access_map)(struct gk20a *g,
-				      u32 **whitelist, int *num_entries);
+				      u32 **whitelist, u32 *num_entries);
 			u32 (*get_sm_id_size)(void);
 			int (*sm_id_config)(struct gk20a *g, u32 *tpc_sm_id,
 					    struct nvgpu_gr_config *gr_config);

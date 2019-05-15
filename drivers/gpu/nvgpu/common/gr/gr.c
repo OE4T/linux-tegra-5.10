@@ -285,7 +285,7 @@ static int gr_init_access_map(struct gk20a *g, struct nvgpu_gr *gr)
 		DIV_ROUND_UP(NVGPU_GR_GLOBAL_CTX_PRIV_ACCESS_MAP_SIZE,
 			     PAGE_SIZE);
 	u32 *whitelist = NULL;
-	int w, num_entries = 0;
+	u32 w, num_entries = 0U;
 
 	mem = nvgpu_gr_global_ctx_buffer_get_mem(gr->global_ctx_buffer,
 			NVGPU_GR_GLOBAL_CTX_PRIV_ACCESS_MAP);
@@ -297,7 +297,7 @@ static int gr_init_access_map(struct gk20a *g, struct nvgpu_gr *gr)
 
 	g->ops.gr.init.get_access_map(g, &whitelist, &num_entries);
 
-	for (w = 0; w < num_entries; w++) {
+	for (w = 0U; w < num_entries; w++) {
 		u32 map_bit, map_byte, map_shift, x;
 		map_bit = whitelist[w] >> 2;
 		map_byte = map_bit >> 3;

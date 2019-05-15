@@ -30,7 +30,7 @@ struct nvgpu_gr_ctx;
 struct nvgpu_gr_config;
 
 void gp10b_gr_init_get_access_map(struct gk20a *g,
-				   u32 **whitelist, int *num_entries);
+				   u32 **whitelist, u32 *num_entries);
 u32 gp10b_gr_init_get_sm_id_size(void);
 int gp10b_gr_init_sm_id_config(struct gk20a *g, u32 *tpc_sm_id,
 			       struct nvgpu_gr_config *gr_config);

@@ -24,6 +24,7 @@
 #include <nvgpu/io.h>
 #include <nvgpu/log.h>
 #include <nvgpu/bug.h>
+#include <nvgpu/safe_ops.h>
 #include <nvgpu/timers.h>
 #include <nvgpu/enabled.h>
 #include <nvgpu/engines.h>
@@ -130,7 +131,7 @@ void gm20b_gr_init_fifo_access(struct gk20a *g, bool enable)
 }
 
 void gm20b_gr_init_get_access_map(struct gk20a *g,
-				   u32 **whitelist, int *num_entries)
+				   u32 **whitelist, u32 *num_entries)
 {
 	static u32 wl_addr_gm20b[] = {
 		/* this list must be sorted (low to high) */
@@ -169,7 +170,7 @@ void gm20b_gr_init_get_access_map(struct gk20a *g,
 
 	*whitelist = wl_addr_gm20b;
 	array_size = ARRAY_SIZE(wl_addr_gm20b);
-	*num_entries = (int)array_size;
+	*num_entries = nvgpu_safe_cast_u64_to_u32(array_size);
 }
 
 void gm20b_gr_init_sm_id_numbering(struct gk20a *g, u32 gpc, u32 tpc, u32 smid,
