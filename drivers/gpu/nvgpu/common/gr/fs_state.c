@@ -21,6 +21,7 @@
  */
 
 #include <nvgpu/gk20a.h>
+#include <nvgpu/secure_ops.h>
 
 #include <nvgpu/gr/config.h>
 #include <nvgpu/gr/fs_state.h>
@@ -58,7 +59,7 @@ static void gr_load_tpc_mask(struct gk20a *g, struct nvgpu_gr_config *config)
 		     pes++) {
 			pes_tpc_mask |= nvgpu_gr_config_get_pes_tpc_mask(
 						config, gpc, pes) <<
-					num_tpc_per_gpc * gpc;
+				nvgpu_secure_mult_u32(num_tpc_per_gpc, gpc);
 		}
 	}
 
@@ -67,11 +68,12 @@ static void gr_load_tpc_mask(struct gk20a *g, struct nvgpu_gr_config *config)
 	fuse_tpc_mask = g->ops.gr.config.get_gpc_tpc_mask(g, config, 0);
 	if ((g->tpc_fs_mask_user != 0U) &&
 	    (g->tpc_fs_mask_user != fuse_tpc_mask) &&
-	    (fuse_tpc_mask == BIT32(max_tpc_count) - U32(1))) {
+	    (fuse_tpc_mask ==
+		    nvgpu_secure_sub_u32(BIT32(max_tpc_count), U32(1)))) {
 		val = g->tpc_fs_mask_user;
-		val &= BIT32(max_tpc_count) - U32(1);
+		val &= nvgpu_secure_sub_u32(BIT32(max_tpc_count), U32(1));
 		/* skip tpc to disable the other tpc cause channel timeout */
-		val = BIT32(hweight32(val)) - U32(1);
+		val = nvgpu_secure_sub_u32(BIT32(hweight32(val)), U32(1));
 		pes_tpc_mask = val;
 	}
 	g->ops.gr.init.tpc_mask(g, 0, pes_tpc_mask);
@@ -128,9 +130,10 @@ int nvgpu_gr_fs_state_init(struct gk20a *g, struct nvgpu_gr_config *config)
 	max_tpc_cnt = nvgpu_gr_config_get_max_tpc_count(config);
 
 	if ((g->tpc_fs_mask_user != 0U) &&
-		(fuse_tpc_mask == BIT32(max_tpc_cnt) - 1U)) {
+		(fuse_tpc_mask ==
+			nvgpu_secure_sub_u32(BIT32(max_tpc_cnt), U32(1)))) {
 		u32 val = g->tpc_fs_mask_user;
-		val &= BIT32(max_tpc_cnt) - U32(1);
+		val &= nvgpu_secure_sub_u32(BIT32(max_tpc_cnt), U32(1));
 		tpc_cnt = (u32)hweight32(val);
 	}
 	g->ops.gr.init.cwd_gpcs_tpcs_num(g, gpc_cnt, tpc_cnt);
