@@ -100,13 +100,13 @@ static void update_gmmu_pde_locked(struct vm_gk20a *vm,
 	nvgpu_pd_write(g, &vm->pdb, (size_t)pd_offset + (size_t)1, pde_v[1]);
 }
 
-static void __update_pte_sparse(u32 *pte_w)
+static void update_pte_sparse(u32 *pte_w)
 {
 	pte_w[0]  = gmmu_pte_valid_false_f();
 	pte_w[1] |= gmmu_pte_vol_true_f();
 }
 
-static void __update_pte(struct vm_gk20a *vm,
+static void update_pte(struct vm_gk20a *vm,
 			 u32 *pte_w,
 			 u64 phys_addr,
 			 struct nvgpu_gmmu_attrs *attrs)
@@ -189,10 +189,10 @@ static void update_gmmu_pte_locked(struct vm_gk20a *vm,
 	}
 
 	if (phys_addr != 0ULL) {
-		__update_pte(vm, pte_w, phys_addr, attrs);
+		update_pte(vm, pte_w, phys_addr, attrs);
 	} else {
 		if (attrs->sparse) {
-			__update_pte_sparse(pte_w);
+			update_pte_sparse(pte_w);
 		}
 	}
 
