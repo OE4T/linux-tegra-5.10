@@ -25,13 +25,9 @@
 # variable NVGPU_COMMON_CFLAGS that needs to be used by the parent Makefile
 # to update corresponding cflags variable.
 
-# Support iGPU Virt for safety build until rmserver dependency is resolved
-IGPU_VIRT_SUPPORT               := 1
-NVGPU_COMMON_CFLAGS             := -DIGPU_VIRT_SUPPORT
-
 # Enable debugger APIs for safety build until devctl whitelisting is done
 NVGPU_DEBUGGER                  := 1
-NVGPU_COMMON_CFLAGS             += -DNVGPU_DEBUGGER
+NVGPU_COMMON_CFLAGS             := -DNVGPU_DEBUGGER
 
 # Enable USERD for safety build until we switch to user mode submits only
 NVGPU_COMMON_CFLAGS             += -DNVGPU_USERD
@@ -52,4 +48,7 @@ NVGPU_COMMON_CFLAGS             += -DNVGPU_DGPU_SUPPORT
 ifeq ($(NV_BUILD_CONFIGURATION_IS_SAFETY),0)
 NVGPU_FECS_TRACE_SUPPORT        := 1
 NVGPU_COMMON_CFLAGS             += -DCONFIG_GK20A_CTXSW_TRACE
+
+IGPU_VIRT_SUPPORT               := 1
+NV_COMPONENT_CFLAGS             += -DIGPU_VIRT_SUPPORT
 endif
