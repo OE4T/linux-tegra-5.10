@@ -276,6 +276,7 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 			.get_ppc_info = gm20b_ctxsw_prog_get_ppc_info,
 			.get_local_priv_register_ctl_offset =
 				gm20b_ctxsw_prog_get_local_priv_register_ctl_offset,
+#ifdef CONFIG_GK20A_CTXSW_TRACE
 			.hw_get_ts_tag_invalid_timestamp =
 				gm20b_ctxsw_prog_hw_get_ts_tag_invalid_timestamp,
 			.hw_get_ts_tag = gm20b_ctxsw_prog_hw_get_ts_tag,
@@ -288,6 +289,7 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 				gm20b_ctxsw_prog_get_ts_buffer_aperture_mask,
 			.set_ts_num_records = gm20b_ctxsw_prog_set_ts_num_records,
 			.set_ts_buffer_ptr = gm20b_ctxsw_prog_set_ts_buffer_ptr,
+#endif
 			.set_pmu_options_boost_clock_frequencies = NULL,
 			.set_full_preemption_ptr =
 				gv11b_ctxsw_prog_set_full_preemption_ptr,

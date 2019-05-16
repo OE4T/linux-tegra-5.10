@@ -74,11 +74,13 @@ struct nvgpu_gr_intr *nvgpu_gr_get_intr_ptr(struct gk20a *g)
 	return g->gr->intr;
 }
 
+#ifdef CONFIG_GK20A_CTXSW_TRACE
 struct nvgpu_gr_global_ctx_buffer_desc *nvgpu_gr_get_global_ctx_buffer_ptr(
 							struct gk20a *g)
 {
 	return g->gr->global_ctx_buffer;
 }
+#endif
 
 u32 nvgpu_gr_get_override_ecc_val(struct gk20a *g)
 {

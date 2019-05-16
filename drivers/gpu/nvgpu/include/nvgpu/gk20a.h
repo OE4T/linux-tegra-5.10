@@ -473,6 +473,7 @@ struct gpu_ops {
 			void (*get_ppc_info)(u32 *context,
 				u32 *num_ppcs, u32 *ppc_mask);
 			u32 (*get_local_priv_register_ctl_offset)(u32 *context);
+#ifdef CONFIG_GK20A_CTXSW_TRACE
 			u32 (*hw_get_ts_tag_invalid_timestamp)(void);
 			u32 (*hw_get_ts_tag)(u64 ts);
 			u64 (*hw_record_ts_timestamp)(u64 ts);
@@ -485,6 +486,7 @@ struct gpu_ops {
 			void (*set_ts_buffer_ptr)(struct gk20a *g,
 				struct nvgpu_mem *ctx_mem, u64 addr,
 				u32 aperture_mask);
+#endif
 			void (*set_pmu_options_boost_clock_frequencies)(
 				struct gk20a *g,
 				struct nvgpu_mem *ctx_mem, u32 boosted_ctx);
