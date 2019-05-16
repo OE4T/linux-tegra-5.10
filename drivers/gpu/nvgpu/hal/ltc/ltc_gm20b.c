@@ -162,20 +162,20 @@ void gm20b_flush_ltc(struct gk20a *g)
 	}
 }
 
-int gm20b_determine_L2_size_bytes(struct gk20a *g)
+u64 gm20b_determine_L2_size_bytes(struct gk20a *g)
 {
 	u32 lts_per_ltc;
 	u32 ways;
 	u32 sets;
 	u32 bytes_per_line;
 	u32 active_ltcs;
-	u32 cache_size;
+	u64 cache_size;
 
 	u32 tmp;
 	u32 active_sets_value;
 
 	tmp = gk20a_readl(g, ltc_ltc0_lts0_tstg_cfg1_r());
-	ways = hweight32(ltc_ltc0_lts0_tstg_cfg1_active_ways_v(tmp));
+	ways = (u32)hweight32(ltc_ltc0_lts0_tstg_cfg1_active_ways_v(tmp));
 
 	active_sets_value = ltc_ltc0_lts0_tstg_cfg1_active_sets_v(tmp);
 	if (active_sets_value == ltc_ltc0_lts0_tstg_cfg1_active_sets_all_v()) {
@@ -197,7 +197,8 @@ int gm20b_determine_L2_size_bytes(struct gk20a *g)
 	/* chip-specific values */
 	lts_per_ltc = 2U;
 	bytes_per_line = 128U;
-	cache_size = active_ltcs * lts_per_ltc * ways * sets * bytes_per_line;
+	cache_size = active_ltcs * (u64)lts_per_ltc * ways *
+					(u64) sets * bytes_per_line;
 
 	return cache_size;
 }

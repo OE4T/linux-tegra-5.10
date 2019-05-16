@@ -24,7 +24,7 @@
 #define LTC_GP10B_H
 struct gk20a;
 
-int gp10b_determine_L2_size_bytes(struct gk20a *g);
+u64 gp10b_determine_L2_size_bytes(struct gk20a *g);
 void gp10b_ltc_init_fs_state(struct gk20a *g);
 void gp10b_ltc_set_enabled(struct gk20a *g, bool enabled);
 #endif

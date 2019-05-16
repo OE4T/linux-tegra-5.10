@@ -32,20 +32,20 @@
 #include "ltc_gm20b.h"
 #include "ltc_gp10b.h"
 
-int gp10b_determine_L2_size_bytes(struct gk20a *g)
+u64 gp10b_determine_L2_size_bytes(struct gk20a *g)
 {
 	u32 tmp;
-	int ret;
+	u64 ret;
 
 	nvgpu_log_fn(g, " ");
 
 	tmp = gk20a_readl(g, ltc_ltc0_lts0_tstg_info_1_r());
 
-	ret = g->ltc->ltc_count *
+	ret = (u64)g->ltc->ltc_count *
 		ltc_ltc0_lts0_tstg_info_1_slice_size_in_kb_v(tmp) * 1024U *
-		ltc_ltc0_lts0_tstg_info_1_slices_per_l2_v(tmp);
+		(u64)ltc_ltc0_lts0_tstg_info_1_slices_per_l2_v(tmp);
 
-	nvgpu_log(g, gpu_dbg_info, "L2 size: %d\n", ret);
+	nvgpu_log(g, gpu_dbg_info, "L2 size: %llu\n", ret);
 
 	nvgpu_log_fn(g, "done");
 

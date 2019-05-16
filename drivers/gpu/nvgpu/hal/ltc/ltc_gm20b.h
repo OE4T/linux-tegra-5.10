@@ -30,7 +30,7 @@
 struct gk20a;
 struct gr_gk20a;
 
-int gm20b_determine_L2_size_bytes(struct gk20a *g);
+u64 gm20b_determine_L2_size_bytes(struct gk20a *g);
 void gm20b_ltc_set_zbc_color_entry(struct gk20a *g,
 					  u32 *color_l2,
 					  u32 index);

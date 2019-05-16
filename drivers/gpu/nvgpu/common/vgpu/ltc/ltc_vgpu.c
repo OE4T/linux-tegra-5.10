@@ -27,7 +27,7 @@
 
 #include "ltc_vgpu.h"
 
-int vgpu_determine_L2_size_bytes(struct gk20a *g)
+u64 vgpu_determine_L2_size_bytes(struct gk20a *g)
 {
 	struct vgpu_priv_data *priv = vgpu_get_priv_data(g);
 

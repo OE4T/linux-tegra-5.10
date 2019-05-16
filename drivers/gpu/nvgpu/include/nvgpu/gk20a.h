@@ -209,7 +209,7 @@ enum nvgpu_event_id_type {
 
 struct gpu_ops {
 	struct {
-		int (*determine_L2_size_bytes)(struct gk20a *gk20a);
+		u64 (*determine_L2_size_bytes)(struct gk20a *gk20a);
 		void (*set_zbc_color_entry)(struct gk20a *g,
 					    u32 *color_val_l2,
 					    u32 index);
