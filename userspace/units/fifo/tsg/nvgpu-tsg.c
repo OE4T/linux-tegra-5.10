@@ -36,7 +36,7 @@
 
 #include "hal/init/hal_gv11b.h"
 
-#include "nvgpu-fifo-gv11b.h"
+#include "../nvgpu-fifo-gv11b.h"
 
 struct test_tsg_args {
 	bool init_done;

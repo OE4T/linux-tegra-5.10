@@ -20,7 +20,7 @@
 
 .SUFFIXES:
 
-OBJS   = nvgpu-tsg.o nvgpu-fifo-gv11b.o
+OBJS   = nvgpu-tsg.o ../nvgpu-fifo-gv11b.o
 MODULE = nvgpu-tsg
 
 include ../../Makefile.units
