@@ -156,20 +156,20 @@ static inline u32 be32_to_cpu(u32 x)
 /*
  * Hamming weights.
  */
-static inline unsigned long nvgpu_posix_hweight8(uint8_t x)
+static inline unsigned int nvgpu_posix_hweight8(uint8_t x)
 {
-	unsigned long ret;
+	unsigned int ret;
 	uint8_t result = x - ((x >> 1) & 0x55U);
 
 	result = (result & 0x33U) + ((result >> 2) & 0x33U);
 	result = (result + (result >> 4)) & 0x0FU;
-	ret = (unsigned long)result;
+	ret = (unsigned int)result;
 
 	return ret;
 }
-static inline unsigned long nvgpu_posix_hweight16(uint16_t x)
+static inline unsigned int nvgpu_posix_hweight16(uint16_t x)
 {
-	unsigned long ret;
+	unsigned int ret;
 
 	ret = nvgpu_posix_hweight8((uint8_t)x);
 	ret += nvgpu_posix_hweight8((uint8_t)((x & 0xff00U) >> 8));
@@ -177,9 +177,9 @@ static inline unsigned long nvgpu_posix_hweight16(uint16_t x)
 	return ret;
 }
 
-static inline unsigned long nvgpu_posix_hweight32(uint32_t x)
+static inline unsigned int nvgpu_posix_hweight32(uint32_t x)
 {
-	unsigned long ret;
+	unsigned int ret;
 
 	ret = nvgpu_posix_hweight16((uint16_t)x);
 	ret += nvgpu_posix_hweight16((uint16_t)((x & 0xffff0000U) >> 16));
@@ -187,9 +187,9 @@ static inline unsigned long nvgpu_posix_hweight32(uint32_t x)
 	return ret;
 }
 
-static inline unsigned long nvgpu_posix_hweight64(uint64_t x)
+static inline unsigned int nvgpu_posix_hweight64(uint64_t x)
 {
-	unsigned long ret;
+	unsigned int ret;
 
 	ret =  nvgpu_posix_hweight32((uint32_t)x);
 	ret += nvgpu_posix_hweight32((uint32_t)((x &
