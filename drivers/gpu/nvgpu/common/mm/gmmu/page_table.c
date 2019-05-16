@@ -509,6 +509,7 @@ static int nvgpu_gmmu_do_update_page_table(struct vm_gk20a *vm,
 {
 	struct gk20a *g = gk20a_from_vm(vm);
 	struct nvgpu_sgl *sgl;
+	bool is_iommuable, sgt_is_iommuable;
 	int err = 0;
 
 	if (sgt == NULL) {
@@ -540,9 +541,10 @@ static int nvgpu_gmmu_do_update_page_table(struct vm_gk20a *vm,
 	 * for (2), (3) and (4) we have to actually go through each SG entry and
 	 * map each chunk individually.
 	 */
+	is_iommuable = nvgpu_iommuable(g);
+	sgt_is_iommuable = nvgpu_sgt_iommuable(g, sgt);
 	if (nvgpu_aperture_is_sysmem(attrs->aperture) &&
-	    nvgpu_iommuable(g) &&
-	    nvgpu_sgt_iommuable(g, sgt)) {
+	    is_iommuable && sgt_is_iommuable) {
 		u64 io_addr = nvgpu_sgt_get_gpu_addr(g, sgt, sgt->sgl, attrs);
 
 		io_addr += space_to_skip;
