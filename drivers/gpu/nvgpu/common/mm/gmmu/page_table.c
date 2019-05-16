@@ -1024,8 +1024,10 @@ int nvgpu_get_pte(struct gk20a *g, struct vm_gk20a *vm, u64 vaddr, u32 *pte)
 
 int nvgpu_set_pte(struct gk20a *g, struct vm_gk20a *vm, u64 vaddr, u32 *pte)
 {
-	struct nvgpu_gmmu_pd *pd;
-	u32 pd_idx, pd_offs, pte_size, i;
+	struct nvgpu_gmmu_pd *pd = NULL;
+	u32 pd_idx = 0;
+	u32 pd_offs = 0;
+	u32 pte_size, i;
 	int err;
 	struct nvgpu_gmmu_attrs attrs = {
 		.pgsz = 0,
