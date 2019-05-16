@@ -38,6 +38,7 @@
 void ltc_tu104_init_fs_state(struct gk20a *g)
 {
 	u32 reg;
+	u32 line_size = 512U;
 
 	gv11b_ltc_init_fs_state(g);
 
@@ -45,7 +46,7 @@ void ltc_tu104_init_fs_state(struct gk20a *g)
 	g->ltc->slices_per_ltc =
 		ltc_ltcs_ltss_cbc_param2_slices_per_ltc_v(reg);
 	g->ltc->cacheline_size =
-		U32(512) << ltc_ltcs_ltss_cbc_param2_cache_line_size_v(reg);
+		line_size << ltc_ltcs_ltss_cbc_param2_cache_line_size_v(reg);
 
 	/* disable PLC compression */
 	reg = nvgpu_readl(g, ltc_ltcs_ltss_tstg_set_mgmt_1_r());

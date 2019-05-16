@@ -42,6 +42,7 @@
 void gm20b_ltc_init_fs_state(struct gk20a *g)
 {
 	u32 reg;
+	u32 line_size = 512U;
 
 	nvgpu_log_info(g, "initialize gm20b l2");
 
@@ -53,7 +54,7 @@ void gm20b_ltc_init_fs_state(struct gk20a *g)
 	reg = gk20a_readl(g, ltc_ltcs_ltss_cbc_param_r());
 	g->ltc->slices_per_ltc = ltc_ltcs_ltss_cbc_param_slices_per_ltc_v(reg);
 	g->ltc->cacheline_size =
-		U32(512) << ltc_ltcs_ltss_cbc_param_cache_line_size_v(reg);
+		line_size << ltc_ltcs_ltss_cbc_param_cache_line_size_v(reg);
 
 	gk20a_writel(g, ltc_ltcs_ltss_cbc_num_active_ltcs_r(),
 	g->ltc->ltc_count);
@@ -116,8 +117,8 @@ void gm20b_flush_ltc(struct gk20a *g)
 		}
 
 		do {
-			int cmgmt1 = ltc_ltc0_ltss_tstg_cmgmt1_r() +
-				     ltc * ltc_stride;
+			u32 cmgmt1 = (u32)(ltc_ltc0_ltss_tstg_cmgmt1_r() +
+							(ltc * ltc_stride));
 			op_pending = gk20a_readl(g, cmgmt1);
 			is_clean_pending_set = (op_pending &
 				ltc_ltc0_ltss_tstg_cmgmt1_clean_pending_f()) != 0U;
@@ -148,8 +149,8 @@ void gm20b_flush_ltc(struct gk20a *g)
 		}
 
 		do {
-			int cmgmt0 = ltc_ltc0_ltss_tstg_cmgmt0_r() +
-				     ltc * ltc_stride;
+			u32 cmgmt0 = (u32)(ltc_ltc0_ltss_tstg_cmgmt0_r() +
+							(ltc * ltc_stride));
 			op_pending = gk20a_readl(g, cmgmt0);
 			is_invalidate_pending_set = (op_pending &
 				ltc_ltc0_ltss_tstg_cmgmt0_invalidate_pending_f()) != 0U;

@@ -51,6 +51,7 @@ void gv11b_ltc_set_zbc_stencil_entry(struct gk20a *g,
 void gv11b_ltc_init_fs_state(struct gk20a *g)
 {
 	u32 reg;
+	u32 line_size = 512U;
 
 	nvgpu_log_info(g, "initialize gv11b l2");
 
@@ -62,7 +63,7 @@ void gv11b_ltc_init_fs_state(struct gk20a *g)
 	reg = gk20a_readl(g, ltc_ltcs_ltss_cbc_param_r());
 	g->ltc->slices_per_ltc = ltc_ltcs_ltss_cbc_param_slices_per_ltc_v(reg);;
 	g->ltc->cacheline_size =
-		U32(512) << ltc_ltcs_ltss_cbc_param_cache_line_size_v(reg);
+		line_size << ltc_ltcs_ltss_cbc_param_cache_line_size_v(reg);
 
 	g->ops.ltc.intr.configure(g);
 
