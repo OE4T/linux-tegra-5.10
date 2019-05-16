@@ -108,6 +108,7 @@ enum ctxsw_addr_type;
 #include <nvgpu/barrier.h>
 #include <nvgpu/rwsem.h>
 #include <nvgpu/nvlink.h>
+#include <nvgpu/nvlink_link_mode_transitions.h>
 #include <nvgpu/ecc.h>
 #include <nvgpu/channel.h>
 #include <nvgpu/tsg.h>
