@@ -741,6 +741,9 @@ static int nvgpu_gmmu_update_page_table(struct vm_gk20a *vm,
 					      virt_addr,
 					      length,
 					      attrs);
+	if (err != 0) {
+		nvgpu_err(g, "nvgpu_gmmu_do_update_page_table returned error");
+	}
 
 	nvgpu_mb();
 
