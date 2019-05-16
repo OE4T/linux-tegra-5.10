@@ -237,7 +237,7 @@ int vgpu_gr_alloc_obj_ctx(struct nvgpu_channel  *c, u32 class_num, u32 flags)
 	}
 	c->obj_class = class_num;
 
-	tsg = tsg_gk20a_from_ch(c);
+	tsg = nvgpu_tsg_from_ch(c);
 	if (tsg == NULL) {
 		return -EINVAL;
 	}
@@ -876,7 +876,7 @@ int vgpu_gr_update_hwpm_ctxsw_mode(struct gk20a *g,
 
 	nvgpu_log_fn(g, " ");
 
-	tsg = tsg_gk20a_from_ch(ch);
+	tsg = nvgpu_tsg_from_ch(ch);
 	if (!tsg) {
 		return -EINVAL;
 	}
@@ -960,7 +960,7 @@ int vgpu_gr_clear_sm_error_state(struct gk20a *g,
 	struct nvgpu_tsg *tsg;
 	int err;
 
-	tsg = tsg_gk20a_from_ch(ch);
+	tsg = nvgpu_tsg_from_ch(ch);
 	if (!tsg) {
 		return -EINVAL;
 	}
@@ -1422,7 +1422,7 @@ int vgpu_gr_set_preemption_mode(struct nvgpu_channel *ch,
 		return -EINVAL;
 	}
 
-	tsg = tsg_gk20a_from_ch(ch);
+	tsg = nvgpu_tsg_from_ch(ch);
 	if (!tsg) {
 		return -EINVAL;
 	}

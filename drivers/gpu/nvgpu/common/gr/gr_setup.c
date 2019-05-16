@@ -84,7 +84,7 @@ int nvgpu_gr_setup_bind_ctxsw_zcull(struct gk20a *g, struct nvgpu_channel *c,
 	struct nvgpu_tsg *tsg;
 	struct nvgpu_gr_ctx *gr_ctx;
 
-	tsg = tsg_gk20a_from_ch(c);
+	tsg = nvgpu_tsg_from_ch(c);
 	if (tsg == NULL) {
 		return -EINVAL;
 	}
@@ -121,7 +121,7 @@ int nvgpu_gr_setup_alloc_obj_ctx(struct nvgpu_channel *c, u32 class_num,
 	}
 	c->obj_class = class_num;
 
-	tsg = tsg_gk20a_from_ch(c);
+	tsg = nvgpu_tsg_from_ch(c);
 	if (tsg == NULL) {
 		return -EINVAL;
 	}
@@ -234,7 +234,7 @@ int nvgpu_gr_setup_set_preemption_mode(struct nvgpu_channel *ch,
 		return -EINVAL;
 	}
 
-	tsg = tsg_gk20a_from_ch(ch);
+	tsg = nvgpu_tsg_from_ch(ch);
 	if (tsg == NULL) {
 		return -EINVAL;
 	}

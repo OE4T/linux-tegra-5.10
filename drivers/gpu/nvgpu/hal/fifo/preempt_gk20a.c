@@ -129,7 +129,7 @@ int gk20a_fifo_preempt_channel(struct gk20a *g, struct nvgpu_channel *ch)
 			struct nvgpu_tsg *tsg;
 
 			nvgpu_err(g, "preempt channel %d timeout", ch->chid);
-			tsg = tsg_gk20a_from_ch(ch);
+			tsg = nvgpu_tsg_from_ch(ch);
 			if (tsg != NULL) {
 				nvgpu_rc_preempt_timeout(g, tsg);
 			} else {

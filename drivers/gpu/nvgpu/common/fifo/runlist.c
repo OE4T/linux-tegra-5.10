@@ -322,7 +322,7 @@ static bool gk20a_runlist_modify_active_locked(struct gk20a *g, u32 runlist_id,
 	struct nvgpu_tsg *tsg = NULL;
 
 	runlist = f->runlist_info[runlist_id];
-	tsg = tsg_gk20a_from_ch(ch);
+	tsg = nvgpu_tsg_from_ch(ch);
 
 	if (tsg == NULL) {
 		/*

@@ -385,7 +385,7 @@ static int gr_gp10b_disable_channel_or_tsg(struct gk20a *g, struct nvgpu_channel
 	int ret = 0;
 	struct nvgpu_tsg *tsg;
 
-	tsg = tsg_gk20a_from_ch(fault_ch);
+	tsg = nvgpu_tsg_from_ch(fault_ch);
 	if (tsg == NULL) {
 		nvgpu_err(g, "CILP: chid: %d is not bound to tsg",
 				fault_ch->chid);
@@ -427,7 +427,7 @@ int gr_gp10b_set_cilp_preempt_pending(struct gk20a *g,
 
 	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gpu_dbg | gpu_dbg_intr, " ");
 
-	tsg = tsg_gk20a_from_ch(fault_ch);
+	tsg = nvgpu_tsg_from_ch(fault_ch);
 	if (tsg == NULL) {
 		return -EINVAL;
 	}
@@ -493,7 +493,7 @@ int gr_gp10b_pre_process_sm_exception(struct gk20a *g,
 	*ignore_debugger = false;
 
 	if (fault_ch != NULL) {
-		tsg = tsg_gk20a_from_ch(fault_ch);
+		tsg = nvgpu_tsg_from_ch(fault_ch);
 		if (tsg  == NULL) {
 			return -EINVAL;
 		}
@@ -632,7 +632,7 @@ bool gr_gp10b_suspend_context(struct nvgpu_channel *ch,
 	bool ctx_resident = false;
 	int err = 0;
 
-	tsg = tsg_gk20a_from_ch(ch);
+	tsg = nvgpu_tsg_from_ch(ch);
 	if (tsg == NULL) {
 		return -EINVAL;
 	}
@@ -724,7 +724,7 @@ int gr_gp10b_suspend_contexts(struct gk20a *g,
 			"CILP preempt pending, waiting %u msecs for preemption",
 			nvgpu_get_poll_timeout(g));
 
-		tsg = tsg_gk20a_from_ch(cilp_preempt_pending_ch);
+		tsg = nvgpu_tsg_from_ch(cilp_preempt_pending_ch);
 		if (tsg == NULL) {
 			err = -EINVAL;
 			goto clean_up;
@@ -764,7 +764,7 @@ int gr_gp10b_set_boosted_ctx(struct nvgpu_channel *ch,
 	struct nvgpu_mem *mem;
 	int err = 0;
 
-	tsg = tsg_gk20a_from_ch(ch);
+	tsg = nvgpu_tsg_from_ch(ch);
 	if (tsg == NULL) {
 		return -EINVAL;
 	}

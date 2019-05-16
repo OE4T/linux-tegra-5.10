@@ -369,7 +369,7 @@ int vgpu_tsg_force_reset_ch(struct nvgpu_channel *ch,
 
 	nvgpu_log_fn(g, " ");
 
-	tsg = tsg_gk20a_from_ch(ch);
+	tsg = nvgpu_tsg_from_ch(ch);
 	if (tsg != NULL) {
 		nvgpu_rwsem_down_read(&tsg->ch_list_lock);
 
@@ -425,7 +425,7 @@ static void vgpu_fifo_set_ctx_mmu_error_ch_tsg(struct gk20a *g,
 	struct nvgpu_tsg *tsg = NULL;
 	struct nvgpu_channel *ch_tsg = NULL;
 
-	tsg = tsg_gk20a_from_ch(ch);
+	tsg = nvgpu_tsg_from_ch(ch);
 	if (tsg != NULL) {
 		nvgpu_rwsem_down_read(&tsg->ch_list_lock);
 

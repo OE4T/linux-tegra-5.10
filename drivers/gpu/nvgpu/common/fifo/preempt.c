@@ -36,7 +36,7 @@ u32 nvgpu_preempt_get_timeout(struct gk20a *g)
 int nvgpu_preempt_channel(struct gk20a *g, struct nvgpu_channel *ch)
 {
 	int err;
-	struct nvgpu_tsg *tsg = tsg_gk20a_from_ch(ch);
+	struct nvgpu_tsg *tsg = nvgpu_tsg_from_ch(ch);
 
 	if (tsg != NULL) {
 		err = g->ops.fifo.preempt_tsg(ch->g, tsg);

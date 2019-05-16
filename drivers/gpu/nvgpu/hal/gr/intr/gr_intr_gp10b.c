@@ -44,7 +44,7 @@ static int gp10b_gr_intr_clear_cilp_preempt_pending(struct gk20a *g,
 
 	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gpu_dbg | gpu_dbg_intr, " ");
 
-	tsg = tsg_gk20a_from_ch(fault_ch);
+	tsg = nvgpu_tsg_from_ch(fault_ch);
 	if (tsg == NULL) {
 		return -EINVAL;
 	}
@@ -85,7 +85,7 @@ static int gp10b_gr_intr_get_cilp_preempt_pending_chid(struct gk20a *g,
 		return ret;
 	}
 
-	tsg = tsg_gk20a_from_ch(ch);
+	tsg = nvgpu_tsg_from_ch(ch);
 	if (tsg == NULL) {
 		nvgpu_channel_put(ch);
 		return -EINVAL;

@@ -61,7 +61,7 @@ int gr_gk20a_update_smpc_ctxsw_mode(struct gk20a *g,
 
 	nvgpu_log_fn(g, " ");
 
-	tsg = tsg_gk20a_from_ch(c);
+	tsg = nvgpu_tsg_from_ch(c);
 	if (tsg == NULL) {
 		return -EINVAL;
 	}
@@ -114,7 +114,7 @@ int gr_gk20a_update_hwpm_ctxsw_mode(struct gk20a *g,
 
 	nvgpu_log_fn(g, " ");
 
-	tsg = tsg_gk20a_from_ch(c);
+	tsg = nvgpu_tsg_from_ch(c);
 	if (tsg == NULL) {
 		return -EINVAL;
 	}
@@ -1413,7 +1413,7 @@ bool gk20a_is_channel_ctx_resident(struct nvgpu_channel *ch)
 		ret = true;
 	}
 
-	tsg = tsg_gk20a_from_ch(ch);
+	tsg = nvgpu_tsg_from_ch(ch);
 	if ((tsg != NULL) && (tsg->tsgid == curr_gr_tsgid)) {
 		ret = true;
 	}
@@ -1447,7 +1447,7 @@ static int gr_exec_ctx_ops(struct nvgpu_channel *ch,
 	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gpu_dbg, "wr_ops=%d rd_ops=%d",
 		   num_ctx_wr_ops, num_ctx_rd_ops);
 
-	tsg = tsg_gk20a_from_ch(ch);
+	tsg = nvgpu_tsg_from_ch(ch);
 	if (tsg == NULL) {
 		return -EINVAL;
 	}

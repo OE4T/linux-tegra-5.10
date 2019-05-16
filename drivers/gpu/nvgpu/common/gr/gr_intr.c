@@ -359,7 +359,7 @@ void nvgpu_gr_intr_set_error_notifier(struct gk20a *g,
 		return;
 	}
 
-	tsg = tsg_gk20a_from_ch(ch);
+	tsg = nvgpu_tsg_from_ch(ch);
 	if (tsg != NULL) {
 		nvgpu_tsg_set_error_notifier(g, tsg, error_notifier);
 	} else {
@@ -641,7 +641,7 @@ void nvgpu_gr_intr_handle_notify_pending(struct gk20a *g,
 		return;
 	}
 
-	if (tsg_gk20a_from_ch(ch) == NULL) {
+	if (nvgpu_tsg_from_ch(ch) == NULL) {
 		return;
 	}
 
@@ -667,7 +667,7 @@ void nvgpu_gr_intr_handle_semaphore_pending(struct gk20a *g,
 		return;
 	}
 
-	tsg = tsg_gk20a_from_ch(ch);
+	tsg = nvgpu_tsg_from_ch(ch);
 	if (tsg != NULL) {
 		int err;
 
@@ -717,7 +717,7 @@ int nvgpu_gr_intr_stall_isr(struct gk20a *g)
 	if (ch == NULL) {
 		nvgpu_err(g, "pgraph intr: 0x%08x, chid: INVALID", gr_intr);
 	} else {
-		tsg = tsg_gk20a_from_ch(ch);
+		tsg = nvgpu_tsg_from_ch(ch);
 		if (tsg == NULL) {
 			nvgpu_err(g, "pgraph intr: 0x%08x, chid: %d "
 				"not bound to tsg", gr_intr, chid);

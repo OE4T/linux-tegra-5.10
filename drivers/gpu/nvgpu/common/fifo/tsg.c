@@ -93,7 +93,7 @@ int nvgpu_tsg_bind_channel(struct nvgpu_tsg *tsg, struct nvgpu_channel *ch)
 	nvgpu_log_fn(g, "bind tsg:%u ch:%u\n", tsg->tsgid, ch->chid);
 
 	/* check if channel is already bound to some TSG */
-	if (tsg_gk20a_from_ch(ch) != NULL) {
+	if (nvgpu_tsg_from_ch(ch) != NULL) {
 		return -EINVAL;
 	}
 
@@ -296,7 +296,7 @@ int nvgpu_tsg_force_reset_ch(struct nvgpu_channel *ch,
 {
 	struct gk20a *g = ch->g;
 
-	struct nvgpu_tsg *tsg = tsg_gk20a_from_ch(ch);
+	struct nvgpu_tsg *tsg = nvgpu_tsg_from_ch(ch);
 
 	if (tsg != NULL) {
 		nvgpu_tsg_set_error_notifier(g, tsg, err_code);
@@ -325,7 +325,7 @@ void nvgpu_tsg_cleanup_sw(struct gk20a *g)
 	nvgpu_mutex_destroy(&f->tsg_inuse_mutex);
 }
 
-int gk20a_init_tsg_support(struct gk20a *g, u32 tsgid)
+int nvgpu_tsg_init_support(struct gk20a *g, u32 tsgid)
 {
 	struct nvgpu_tsg *tsg = NULL;
 
@@ -367,7 +367,7 @@ int nvgpu_tsg_setup_sw(struct gk20a *g)
 	}
 
 	for (tsgid = 0; tsgid < f->num_channels; tsgid++) {
-		err = gk20a_init_tsg_support(g, tsgid);
+		err = nvgpu_tsg_init_support(g, tsgid);
 		if (err != 0) {
 			nvgpu_err(g, "tsg init failed, tsgid=%u", tsgid);
 			goto clean_up;
@@ -638,7 +638,7 @@ int nvgpu_tsg_open_common(struct gk20a *g, struct nvgpu_tsg *tsg, pid_t pid)
 		return -EINVAL;
 	}
 
-	err = gk20a_tsg_alloc_sm_error_states_mem(g, tsg, no_of_sm);
+	err = nvgpu_tsg_alloc_sm_error_states_mem(g, tsg, no_of_sm);
 	if (err != 0) {
 		return err;
 	}
@@ -758,7 +758,7 @@ void nvgpu_tsg_release(struct nvgpu_ref *ref)
 	nvgpu_log(g, gpu_dbg_fn, "tsg released %d", tsg->tsgid);
 }
 
-struct nvgpu_tsg *tsg_gk20a_from_ch(struct nvgpu_channel *ch)
+struct nvgpu_tsg *nvgpu_tsg_from_ch(struct nvgpu_channel *ch)
 {
 	struct nvgpu_tsg *tsg = NULL;
 	u32 tsgid = ch->tsgid;
@@ -775,7 +775,7 @@ struct nvgpu_tsg *tsg_gk20a_from_ch(struct nvgpu_channel *ch)
 	return tsg;
 }
 
-int gk20a_tsg_alloc_sm_error_states_mem(struct gk20a *g,
+int nvgpu_tsg_alloc_sm_error_states_mem(struct gk20a *g,
 					struct nvgpu_tsg *tsg,
 					u32 num_sm)
 {
@@ -802,7 +802,7 @@ int gk20a_tsg_alloc_sm_error_states_mem(struct gk20a *g,
 	return err;
 }
 
-void gk20a_tsg_update_sm_error_state_locked(struct nvgpu_tsg *tsg,
+void nvgpu_tsg_update_sm_error_state_locked(struct nvgpu_tsg *tsg,
 				u32 sm_id,
 				struct nvgpu_tsg_sm_error_state *sm_error_state)
 {
@@ -822,12 +822,12 @@ void gk20a_tsg_update_sm_error_state_locked(struct nvgpu_tsg *tsg,
 			sm_error_state->hww_warp_esr_report_mask;
 }
 
-int gk20a_tsg_set_sm_exception_type_mask(struct nvgpu_channel *ch,
+int nvgpu_tsg_set_sm_exception_type_mask(struct nvgpu_channel *ch,
 		u32 exception_mask)
 {
 	struct nvgpu_tsg *tsg;
 
-	tsg = tsg_gk20a_from_ch(ch);
+	tsg = nvgpu_tsg_from_ch(ch);
 	if (tsg == NULL) {
 		return -EINVAL;
 	}

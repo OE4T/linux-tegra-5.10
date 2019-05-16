@@ -102,7 +102,7 @@ void nvgpu_rc_pbdma_fault(struct gk20a *g, struct nvgpu_fifo *f,
 			return;
 		}
 
-		tsg = tsg_gk20a_from_ch(ch);
+		tsg = nvgpu_tsg_from_ch(ch);
 		if (tsg != NULL) {
 			nvgpu_tsg_set_error_notifier(g, tsg, error_notifier);
 			nvgpu_rc_tsg_and_related_engines(g, tsg, true,

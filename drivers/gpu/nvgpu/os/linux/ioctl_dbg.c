@@ -284,7 +284,7 @@ static int nvgpu_dbg_gpu_ioctl_read_single_sm_error_state(
 		return -EINVAL;
 	}
 
-	tsg = tsg_gk20a_from_ch(ch);
+	tsg = nvgpu_tsg_from_ch(ch);
 	if (tsg == NULL) {
 		nvgpu_err(g, "no valid tsg from ch");
 		return -EINVAL;
@@ -1769,7 +1769,7 @@ static int nvgpu_profiler_reserve_acquire(struct dbg_session_gk20a *dbg_s,
 		nvgpu_err(g,
 			"per-ctxt reserve: global reservation in effect");
 		err = -EBUSY;
-	} else if ((tsg = tsg_gk20a_from_ch(my_prof_obj->ch)) != NULL) {
+	} else if ((tsg = nvgpu_tsg_from_ch(my_prof_obj->ch)) != NULL) {
 		/* TSG: check that another channel in the TSG
 		 * doesn't already have the reservation
 		 */

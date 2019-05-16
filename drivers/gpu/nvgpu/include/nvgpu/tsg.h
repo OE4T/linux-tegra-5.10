@@ -96,11 +96,11 @@ struct nvgpu_tsg *nvgpu_tsg_open(struct gk20a *g, pid_t pid);
 void nvgpu_tsg_release_common(struct gk20a *g, struct nvgpu_tsg *tsg);
 void nvgpu_tsg_release(struct nvgpu_ref *ref);
 
-int gk20a_init_tsg_support(struct gk20a *g, u32 tsgid);
+int nvgpu_tsg_init_support(struct gk20a *g, u32 tsgid);
 int nvgpu_tsg_setup_sw(struct gk20a *g);
 void nvgpu_tsg_cleanup_sw(struct gk20a *g);
 
-struct nvgpu_tsg *tsg_gk20a_from_ch(struct nvgpu_channel *ch);
+struct nvgpu_tsg *nvgpu_tsg_from_ch(struct nvgpu_channel *ch);
 
 void nvgpu_tsg_disable(struct nvgpu_tsg *tsg);
 int nvgpu_tsg_bind_channel(struct nvgpu_tsg *tsg,
@@ -125,22 +125,22 @@ void nvgpu_tsg_post_event_id(struct nvgpu_tsg *tsg,
 			     enum nvgpu_event_id_type event_id);
 bool nvgpu_tsg_check_ctxsw_timeout(struct nvgpu_tsg *tsg,
 		bool *debug_dump, u32 *ms);
-int gk20a_tsg_set_runlist_interleave(struct nvgpu_tsg *tsg, u32 level);
+int nvgpu_tsg_set_runlist_interleave(struct nvgpu_tsg *tsg, u32 level);
 int nvgpu_tsg_set_timeslice(struct nvgpu_tsg *tsg, u32 timeslice_us);
 u32 nvgpu_tsg_get_timeslice(struct nvgpu_tsg *tsg);
 u32 nvgpu_tsg_default_timeslice_us(struct gk20a *g);
 void nvgpu_tsg_enable_sched(struct gk20a *g, struct nvgpu_tsg *tsg);
 void nvgpu_tsg_disable_sched(struct gk20a *g, struct nvgpu_tsg *tsg);
 int nvgpu_tsg_set_interleave(struct nvgpu_tsg *tsg, u32 level);
-int gk20a_tsg_set_priority(struct gk20a *g, struct nvgpu_tsg *tsg,
+int nvgpu_tsg_set_priority(struct gk20a *g, struct nvgpu_tsg *tsg,
 				u32 priority);
-int gk20a_tsg_alloc_sm_error_states_mem(struct gk20a *g,
+int nvgpu_tsg_alloc_sm_error_states_mem(struct gk20a *g,
 					struct nvgpu_tsg *tsg,
 					u32 num_sm);
-void gk20a_tsg_update_sm_error_state_locked(struct nvgpu_tsg *tsg,
+void nvgpu_tsg_update_sm_error_state_locked(struct nvgpu_tsg *tsg,
 			u32 sm_id,
 			struct nvgpu_tsg_sm_error_state *sm_error_state);
-int gk20a_tsg_set_sm_exception_type_mask(struct nvgpu_channel *ch,
+int nvgpu_tsg_set_sm_exception_type_mask(struct nvgpu_channel *ch,
 		u32 exception_mask);
 
 struct gk20a_event_id_data {

@@ -407,7 +407,7 @@ int gv11b_fifo_preempt_channel(struct gk20a *g, struct nvgpu_channel *ch)
 {
 	struct nvgpu_tsg *tsg = NULL;
 
-	tsg = tsg_gk20a_from_ch(ch);
+	tsg = nvgpu_tsg_from_ch(ch);
 
 	if (tsg == NULL) {
 		nvgpu_log_info(g, "chid: %d is not bound to tsg", ch->chid);

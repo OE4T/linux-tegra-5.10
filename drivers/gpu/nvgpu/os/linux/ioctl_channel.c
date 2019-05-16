@@ -85,13 +85,13 @@ static void gk20a_channel_trace_sched_param(
 		const char *compute_preempt_mode),
 	struct nvgpu_channel *ch)
 {
-	struct nvgpu_tsg *tsg = tsg_gk20a_from_ch(ch);
+	struct nvgpu_tsg *tsg = nvgpu_tsg_from_ch(ch);
 
 	if (!tsg)
 		return;
 
 	(trace)(ch->chid, ch->tsgid, ch->pid,
-		tsg_gk20a_from_ch(ch)->timeslice_us,
+		nvgpu_tsg_from_ch(ch)->timeslice_us,
 		ch->ctxsw_timeout_max_ms,
 		nvgpu_runlist_interleave_level_name(tsg->interleave_level),
 		gr_gk20a_graphics_preempt_mode_name(

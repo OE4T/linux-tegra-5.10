@@ -308,7 +308,7 @@ void gv11b_mm_mmu_fault_handle_mmu_fault_common(struct gk20a *g,
 		err = gv11b_fb_fix_page_fault(g, mmufault);
 
 		if (mmufault->refch != NULL) {
-			tsg = tsg_gk20a_from_ch(mmufault->refch);
+			tsg = nvgpu_tsg_from_ch(mmufault->refch);
 			nvgpu_tsg_reset_faulted_eng_pbdma(g, tsg, true, true);
 		}
 		if (err == 0) {
@@ -365,7 +365,7 @@ void gv11b_mm_mmu_fault_handle_mmu_fault_common(struct gk20a *g,
 				mmufault->refch->mmu_nack_handled = true;
 			}
 
-			tsg = tsg_gk20a_from_ch(mmufault->refch);
+			tsg = nvgpu_tsg_from_ch(mmufault->refch);
 			if (tsg != NULL) {
 				id = mmufault->refch->tsgid;
 				id_type = ID_TYPE_TSG;

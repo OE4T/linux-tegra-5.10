@@ -87,7 +87,7 @@ static int gk20a_fifo_sched_debugfs_seq_show(
 		return ret;
 
 	if (nvgpu_channel_get(ch)) {
-		tsg = tsg_gk20a_from_ch(ch);
+		tsg = nvgpu_tsg_from_ch(ch);
 
 		if (tsg)
 			seq_printf(s, "%-8d %-8d %-8d %-9d %-8d %-10d %-8d %-8d\n",

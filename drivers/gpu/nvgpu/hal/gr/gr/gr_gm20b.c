@@ -452,7 +452,7 @@ int gr_gm20b_update_pc_sampling(struct nvgpu_channel *c,
 
 	nvgpu_log_fn(c->g, " ");
 
-	tsg = tsg_gk20a_from_ch(c);
+	tsg = nvgpu_tsg_from_ch(c);
 	if (tsg == NULL) {
 		return -EINVAL;
 	}
@@ -596,7 +596,7 @@ int gm20b_gr_record_sm_error_state(struct gk20a *g, u32 gpc, u32 tpc, u32 sm,
 			gr_gpc0_tpc0_sm_cfg_r() + offset));
 
 	if (fault_ch != NULL) {
-		tsg = tsg_gk20a_from_ch(fault_ch);
+		tsg = nvgpu_tsg_from_ch(fault_ch);
 	}
 
 	if (tsg == NULL) {
@@ -624,7 +624,7 @@ int gm20b_gr_clear_sm_error_state(struct gk20a *g,
 					       GPU_LIT_TPC_IN_GPC_STRIDE);
 	int err = 0;
 
-	tsg = tsg_gk20a_from_ch(ch);
+	tsg = nvgpu_tsg_from_ch(ch);
 	if (tsg == NULL) {
 		return -EINVAL;
 	}

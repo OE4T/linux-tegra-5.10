@@ -1218,7 +1218,7 @@ int gr_gv11b_pre_process_sm_exception(struct gk20a *g,
 	}
 
 	if (fault_ch != NULL) {
-		tsg = tsg_gk20a_from_ch(fault_ch);
+		tsg = nvgpu_tsg_from_ch(fault_ch);
 		if (tsg == NULL) {
 			return -EINVAL;
 		}
@@ -1566,7 +1566,7 @@ int gv11b_gr_record_sm_error_state(struct gk20a *g, u32 gpc, u32 tpc, u32 sm,
 	offset = gpc_tpc_offset + gv11b_gr_sm_offset(g, sm);
 
 	if (fault_ch != NULL) {
-		tsg = tsg_gk20a_from_ch(fault_ch);
+		tsg = nvgpu_tsg_from_ch(fault_ch);
 	}
 
 	if (tsg == NULL) {
@@ -2865,7 +2865,7 @@ int gv11b_gr_clear_sm_error_state(struct gk20a *g,
 
 	int err = 0;
 
-	tsg = tsg_gk20a_from_ch(ch);
+	tsg = nvgpu_tsg_from_ch(ch);
 	if (tsg == NULL) {
 		return -EINVAL;
 	}

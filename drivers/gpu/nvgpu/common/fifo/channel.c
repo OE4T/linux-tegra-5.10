@@ -145,7 +145,7 @@ int nvgpu_channel_enable_tsg(struct gk20a *g, struct nvgpu_channel *ch)
 {
 	struct nvgpu_tsg *tsg;
 
-	tsg = tsg_gk20a_from_ch(ch);
+	tsg = nvgpu_tsg_from_ch(ch);
 	if (tsg != NULL) {
 		g->ops.tsg.enable(tsg);
 		return 0;
@@ -159,7 +159,7 @@ int nvgpu_channel_disable_tsg(struct gk20a *g, struct nvgpu_channel *ch)
 {
 	struct nvgpu_tsg *tsg;
 
-	tsg = tsg_gk20a_from_ch(ch);
+	tsg = nvgpu_tsg_from_ch(ch);
 	if (tsg != NULL) {
 		g->ops.tsg.disable(tsg);
 		return 0;
@@ -213,7 +213,7 @@ bool  gk20a_channel_check_unserviceable(struct nvgpu_channel *ch)
 
 void gk20a_channel_abort(struct nvgpu_channel *ch, bool channel_preempt)
 {
-	struct nvgpu_tsg *tsg = tsg_gk20a_from_ch(ch);
+	struct nvgpu_tsg *tsg = nvgpu_tsg_from_ch(ch);
 
 	nvgpu_log_fn(ch->g, " ");
 
@@ -305,7 +305,7 @@ static void gk20a_free_channel(struct nvgpu_channel *ch, bool force)
 	 */
 	if (!nvgpu_is_enabled(g, NVGPU_DRIVER_IS_DYING)) {
 		/* abort channel and remove from runlist */
-		tsg = tsg_gk20a_from_ch(ch);
+		tsg = nvgpu_tsg_from_ch(ch);
 		if (tsg != NULL) {
 			/* Between tsg is not null and unbind_channel call,
 			 * ioctl cannot be called anymore because user doesn't
@@ -2554,7 +2554,7 @@ void gk20a_channel_semaphore_wakeup(struct gk20a *g, bool post_events)
 
 				if (post_events) {
 					struct nvgpu_tsg *tsg =
-							tsg_gk20a_from_ch(c);
+							nvgpu_tsg_from_ch(c);
 					if (tsg != NULL) {
 						g->ops.tsg.post_event_id(tsg,
 						    NVGPU_EVENT_ID_BLOCKING_SYNC);
@@ -2736,7 +2736,7 @@ int nvgpu_channel_deferred_reset_engines(struct gk20a *g,
 		goto fail;
 	}
 
-	tsg = tsg_gk20a_from_ch(ch);
+	tsg = nvgpu_tsg_from_ch(ch);
 	if (tsg != NULL) {
 		engines = g->ops.engine.get_mask_on_id(g,
 				tsg->tsgid, true);

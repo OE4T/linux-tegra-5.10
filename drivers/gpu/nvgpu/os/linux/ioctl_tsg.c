@@ -135,7 +135,7 @@ static int nvgpu_tsg_unbind_channel_fd(struct nvgpu_tsg *tsg, int ch_fd)
 		return -EINVAL;
 	}
 
-	if (tsg != tsg_gk20a_from_ch(ch)) {
+	if (tsg != nvgpu_tsg_from_ch(ch)) {
 		err = -EINVAL;
 		goto out;
 	}

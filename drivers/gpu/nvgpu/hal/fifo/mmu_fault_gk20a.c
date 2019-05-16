@@ -320,7 +320,7 @@ bool gk20a_fifo_handle_mmu_fault_locked(
 				ch = &g->fifo.channel[id];
 				refch = nvgpu_channel_get(ch);
 				if (refch != NULL) {
-					tsg = tsg_gk20a_from_ch(refch);
+					tsg = nvgpu_tsg_from_ch(refch);
 				}
 			} else {
 				nvgpu_err(g, "ctx_id_type is not chid/tsgid");
@@ -331,7 +331,7 @@ bool gk20a_fifo_handle_mmu_fault_locked(
 					mmfault_info.inst_ptr);
 			refch = ch;
 			if (refch != NULL) {
-				tsg = tsg_gk20a_from_ch(refch);
+				tsg = nvgpu_tsg_from_ch(refch);
 			}
 		}
 
