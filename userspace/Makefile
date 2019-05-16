@@ -51,6 +51,8 @@ INCLUDES= 				\
 	-I$(TWD)/../include/uapi	\
 	-I$(TWD)/include
 
+# This is safety build by default.
+NV_BUILD_CONFIGURATION_IS_SAFETY=1
 # This Makefile is only for host POSIX builds
 NVGPU_POSIX=1
 # Enable fault injection for unit tests
