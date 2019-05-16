@@ -121,12 +121,13 @@ typedef signed long long	s64;
 
 #define HZ_TO_KHZ(x) ((x) / KHZ)
 #define HZ_TO_MHZ(a) (u16)(a/MHZ)
-#define HZ_TO_MHZ_ULL(a) ((a > 0xF414F9CD7ULL) ? 0xffff : (a >> 32) ? \
-	(u32) ((a * 0x10C8ULL) >> 32) : (u16) ((u32) a/MHZ))
+#define HZ_TO_MHZ_ULL(a) (((a) > 0xF414F9CD7ULL) ? (u16) 0xffffU :\
+		(((a) >> 32) > 0U) ? (u16) (((a) * 0x10C8ULL) >> 32) :\
+		(u16) ((u32) (a)/MHZ))
 #define KHZ_TO_HZ(x) ((x) * KHZ)
 #define MHZ_TO_KHZ(x) ((x) * KHZ)
 #define KHZ_TO_MHZ(a) (u16)(a/KHZ)
-#define MHZ_TO_HZ_ULL(a) ((u64)a * MHZ)
+#define MHZ_TO_HZ_ULL(a) ((u64)(a) * MHZ)
 
 /*
  * Caps return at the size of the buffer not what would have been written if buf
