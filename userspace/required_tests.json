@@ -470,26 +470,6 @@
         "unit": "fuse"
     },
     {
-        "test": "fuse_gv100_cleanup",
-        "test_level": 0,
-        "unit": "fuse"
-    },
-    {
-        "test": "fuse_gv100_init",
-        "test_level": 0,
-        "unit": "fuse"
-    },
-    {
-        "test": "fuse_gv100_vin_cal_rev",
-        "test_level": 0,
-        "unit": "fuse"
-    },
-    {
-        "test": "fuse_gv100_vin_cal_slope_intercept",
-        "test_level": 0,
-        "unit": "fuse"
-    },
-    {
         "test": "test_bsearch",
         "test_level": 0,
         "unit": "interface_bsearch"

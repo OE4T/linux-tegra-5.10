@@ -31,7 +31,9 @@
 #include "nvgpu-fuse-priv.h"
 #include "nvgpu-fuse-gp10b.h"
 #include "nvgpu-fuse-gm20b.h"
+#ifdef NVGPU_DGPU_SUPPORT
 #include "nvgpu-fuse-gv100.h"
+#endif
 
 /*
  * Mock I/O
@@ -180,6 +182,7 @@ struct unit_module_test fuse_tests[] = {
 	UNIT_TEST(fuse_gm20b_cleanup, test_fuse_device_common_cleanup,
 		  &gm20b_init_args, 0),
 
+#ifdef NVGPU_DGPU_SUPPORT
 	UNIT_TEST(fuse_gv100_init, test_fuse_device_common_init,
 		  &gv100_init_args, 0),
 	UNIT_TEST(fuse_gv100_vin_cal_rev, test_fuse_gv100_vin_cal_rev, NULL, 0),
@@ -189,6 +192,7 @@ struct unit_module_test fuse_tests[] = {
 		  0),
 	UNIT_TEST(fuse_gv100_cleanup, test_fuse_device_common_cleanup,
 		  &gv100_init_args, 0),
+#endif
 };
 
 UNIT_MODULE(fuse, fuse_tests, UNIT_PRIO_NVGPU_TEST);
