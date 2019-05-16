@@ -63,5 +63,6 @@ UNITS :=				\
 	$(UNIT_SRC)/mm/nvgpu_mem	\
 	$(UNIT_SRC)/mm/vm		\
 	$(UNIT_SRC)/fifo/runlist	\
+	$(UNIT_SRC)/fifo/tsg		\
 	$(UNIT_SRC)/list		\
 	$(UNIT_SRC)/enabled
