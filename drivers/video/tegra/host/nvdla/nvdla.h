@@ -99,6 +99,8 @@
  */
 #define MAX_NUM_NVDLA_PREFENCES		32
 #define MAX_NUM_NVDLA_POSTFENCES	32
+#define MAX_NUM_NVDLA_EMU_PREFENCES	16
+#define MAX_NUM_NVDLA_EMU_POSTFENCES	16
 #define MAX_NUM_NVDLA_IN_TASK_STATUS	MAX_NUM_NVDLA_PREFENCES
 #define MAX_NUM_NVDLA_OUT_TASK_STATUS	MAX_NUM_NVDLA_POSTFENCES
 #define NUM_PROFILING_POSTACTION	1
@@ -219,7 +221,9 @@ struct nvdla_device {
  *
  * @queue		Queue in which task submitted
  * @sp			pointer to syncpt
+ * @prefences		pointer to pre fences
  * @postfences		pointer to post fences
+ * @num_prefences	Number of prefences in task
  * @num_postfences	Number of postfences in task
  * @fence		Fence tracking for current task
  * @fence_counter	Counter used to track fence value
@@ -228,7 +232,9 @@ struct nvdla_device {
 struct nvdla_emu_task {
 	struct nvdla_queue *queue;
 	struct nvhost_syncpt *sp;
-	struct nvdev_fence postfences[MAX_NUM_NVDLA_POSTFENCES];
+	struct nvdev_fence prefences[MAX_NUM_NVDLA_EMU_PREFENCES];
+	struct nvdev_fence postfences[MAX_NUM_NVDLA_EMU_POSTFENCES];
+	u32 num_prefences;
 	u32 num_postfences;
 	u32 fence;
 	u32 fence_counter;
@@ -402,7 +408,7 @@ int nvdla_free_gcov_region(struct platform_device *pdev, bool update_region);
 int nvdla_emulator_submit(struct nvdla_queue *queue,
 				struct nvdla_emu_task *task);
 void task_free(struct kref *ref);
-int nvdla_get_postfences(struct nvdla_queue *queue, void *in_task);
+int nvdla_get_signal_fences(struct nvdla_queue *queue, void *in_task);
 int nvdla_send_gos_region(struct platform_device *pdev);
 
 #endif /* End of __NVHOST_NVDLA_H__ */
