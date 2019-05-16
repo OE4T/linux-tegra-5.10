@@ -201,12 +201,34 @@ void nvgpu_posix_io_reset_error_code(struct gk20a *g)
 }
 
 /*
- * Add a new register space to the list of spaces, defined by a base
- * address and a size.
+ * Register a pre-initialized register space to the list of spaces.
+ * This allows registering a space with statically initialized data.
+ */
+int nvgpu_posix_io_register_reg_space(struct gk20a *g,
+		struct nvgpu_posix_io_reg_space *reg_space)
+{
+	struct nvgpu_os_posix *p = nvgpu_os_posix_from_gk20a(g);
+
+	if (reg_space == NULL || reg_space->data == NULL) {
+		return -ENOMEM;
+	}
+
+	nvgpu_list_add_tail(&reg_space->link, &p->reg_space_head);
+	return 0;
+}
+
+void nvgpu_posix_io_unregister_reg_space(struct gk20a *g,
+		struct nvgpu_posix_io_reg_space *reg_space)
+{
+	nvgpu_list_del(&reg_space->link);
+}
+
+/*
+ * Allocate and register a new register space to the list of spaces,
+ * defined by a base address and a size.
  */
 int nvgpu_posix_io_add_reg_space(struct gk20a *g, u32 base, u32 size)
 {
-	struct nvgpu_os_posix *p = nvgpu_os_posix_from_gk20a(g);
 	struct nvgpu_posix_io_reg_space *new_reg_space =
 		nvgpu_kzalloc(g, sizeof(struct nvgpu_posix_io_reg_space));
 
@@ -219,11 +241,11 @@ int nvgpu_posix_io_add_reg_space(struct gk20a *g, u32 base, u32 size)
 
 	new_reg_space->data = nvgpu_vzalloc(g, size);
 	if (new_reg_space->data == NULL) {
+		nvgpu_vfree(g, new_reg_space);
 		return -ENOMEM;
 	}
 
-	nvgpu_list_add_tail(&new_reg_space->link, &p->reg_space_head);
-	return 0;
+	return nvgpu_posix_io_register_reg_space(g, new_reg_space);
 }
 
 void nvgpu_posix_io_delete_reg_space(struct gk20a *g, u32 base)
@@ -234,7 +256,8 @@ void nvgpu_posix_io_delete_reg_space(struct gk20a *g, u32 base)
 		/* Invalid space, or already de-allocated */
 		return;
 	}
-	nvgpu_list_del(&reg_space->link);
+
+	nvgpu_posix_io_unregister_reg_space(g, reg_space);
 	nvgpu_vfree(g, reg_space->data);
 	nvgpu_kfree(g, reg_space);
 }

@@ -85,10 +85,21 @@ nvgpu_posix_io_reg_space_from_link(struct nvgpu_list_node *node)
 void nvgpu_posix_io_init_reg_space(struct gk20a *g);
 int nvgpu_posix_io_get_error_code(struct gk20a *g);
 void nvgpu_posix_io_reset_error_code(struct gk20a *g);
+
+/* allocate and register reg_space */
 int nvgpu_posix_io_add_reg_space(struct gk20a *g, u32 base, u32 size);
+int nvgpu_posix_io_add_reg_space_ext(struct gk20a *g, u32 base, u32 size,
+	u32 *data);
 struct nvgpu_posix_io_reg_space *nvgpu_posix_io_get_reg_space(struct gk20a *g,
 	u32 addr);
 void nvgpu_posix_io_delete_reg_space(struct gk20a *g, u32 base);
+
+/* register/unregister pre-initialized reg_space */
+int nvgpu_posix_io_register_reg_space(struct gk20a *g,
+		struct nvgpu_posix_io_reg_space *reg_space);
+void nvgpu_posix_io_unregister_reg_space(struct gk20a *g,
+		struct nvgpu_posix_io_reg_space *reg_space);
+
 void nvgpu_posix_io_writel_reg_space(struct gk20a *g, u32 addr, u32 data);
 u32 nvgpu_posix_io_readl_reg_space(struct gk20a *g, u32 addr);
 
