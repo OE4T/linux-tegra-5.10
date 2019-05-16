@@ -547,7 +547,6 @@ int gk20a_ctxsw_dev_mmap(struct file *filp, struct vm_area_struct *vma)
 	return ret;
 }
 
-#ifdef CONFIG_GK20A_CTXSW_TRACE
 static int gk20a_ctxsw_init_devs(struct gk20a *g)
 {
 	struct gk20a_ctxsw_trace *trace = g->ctxsw_trace;
@@ -568,11 +567,9 @@ static int gk20a_ctxsw_init_devs(struct gk20a *g)
 	}
 	return 0;
 }
-#endif
 
 int gk20a_ctxsw_trace_init(struct gk20a *g)
 {
-#ifdef CONFIG_GK20A_CTXSW_TRACE
 	struct gk20a_ctxsw_trace *trace = g->ctxsw_trace;
 	int err;
 
@@ -605,14 +602,10 @@ fail:
 	nvgpu_kfree(g, trace);
 	g->ctxsw_trace = NULL;
 	return err;
-#else
-	return 0;
-#endif
 }
 
 void gk20a_ctxsw_trace_cleanup(struct gk20a *g)
 {
-#ifdef CONFIG_GK20A_CTXSW_TRACE
 	struct gk20a_ctxsw_trace *trace;
 	struct gk20a_ctxsw_dev *dev;
 	int i;
@@ -632,7 +625,6 @@ void gk20a_ctxsw_trace_cleanup(struct gk20a *g)
 	g->ctxsw_trace = NULL;
 
 	g->ops.gr.fecs_trace.deinit(g);
-#endif
 }
 
 int nvgpu_gr_fecs_trace_write_entry(struct gk20a *g,
@@ -744,7 +736,6 @@ void nvgpu_gr_fecs_trace_wake_up(struct gk20a *g, int vmid)
 
 void nvgpu_gr_fecs_trace_add_tsg_reset(struct gk20a *g, struct nvgpu_tsg *tsg)
 {
-#ifdef CONFIG_GK20A_CTXSW_TRACE
 	struct nvgpu_gpu_ctxsw_trace_entry entry = {
 		.vmid = 0,
 		.tag = NVGPU_CTXSW_TAG_ENGINE_RESET,
@@ -758,7 +749,7 @@ void nvgpu_gr_fecs_trace_add_tsg_reset(struct gk20a *g, struct nvgpu_tsg *tsg)
 	g->ops.ptimer.read_ptimer(g, &entry.timestamp);
 	nvgpu_gr_fecs_trace_write_entry(g, &entry);
 	nvgpu_gr_fecs_trace_wake_up(g, 0);
-#endif
+
 	trace_gk20a_channel_reset(~0, tsg->tsgid);
 }
 

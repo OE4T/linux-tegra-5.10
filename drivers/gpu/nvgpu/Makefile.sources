@@ -43,7 +43,8 @@ srcs +=	os/posix/nvgpu.c \
 	os/posix/posix-nvhost.c \
 	os/posix/posix-vgpu.c \
 	os/posix/posix-dt.c \
-	os/posix/posix-vidmem.c
+	os/posix/posix-vidmem.c \
+	os/posix/fecs_trace_posix.c
 endif
 
 # POSIX sources shared between the POSIX and QNX builds.
@@ -116,7 +117,6 @@ srcs += common/sim/sim.c \
 	common/gr/gr_falcon.c \
 	common/gr/zcull.c \
 	common/gr/gr_config.c \
-	common/gr/fecs_trace.c \
 	common/gr/zbc.c \
 	common/gr/gr_setup.c \
 	common/gr/hwpm_map.c \
@@ -278,8 +278,6 @@ srcs += common/sim/sim.c \
 	hal/gr/ecc/ecc_gp10b.c \
 	hal/gr/ecc/ecc_gv11b.c \
 	hal/gr/ecc/ecc_tu104.c \
-	hal/gr/fecs_trace/fecs_trace_gm20b.c \
-	hal/gr/fecs_trace/fecs_trace_gv11b.c \
 	hal/gr/zcull/zcull_gm20b.c \
 	hal/gr/zcull/zcull_gv11b.c \
 	hal/gr/ctxsw_prog/ctxsw_prog_gm20b.c \
@@ -456,6 +454,18 @@ ifeq ($(NVGPU_DEBUGGER),1)
 srcs += common/debugger.c
 endif
 
+ifeq ($(NVGPU_FECS_TRACE_SUPPORT),1)
+srcs += common/gr/fecs_trace.c \
+	hal/gr/fecs_trace/fecs_trace_gm20b.c \
+	hal/gr/fecs_trace/fecs_trace_gv11b.c
+endif
+
+ifeq ($(NVGPU_FECS_TRACE_SUPPORT),1)
+ifeq ($(IGPU_VIRT_SUPPORT), 1)
+srcs +=	common/vgpu/gr/fecs_trace_vgpu.c
+endif
+endif
+
 # POSIX file used for unit testing for both qnx and linux
 ifdef NVGPU_FAULT_INJECTION_ENABLEMENT
 srcs += os/posix/posix-fault-injection.c
@@ -484,7 +494,6 @@ srcs += common/vgpu/init/init_vgpu.c \
 	common/vgpu/tsg_vgpu.c \
 	common/vgpu/perf/cyclestats_snapshot_vgpu.c \
 	common/vgpu/perf/perf_vgpu.c \
-	common/vgpu/gr/fecs_trace_vgpu.c \
 	common/vgpu/mm/mm_vgpu.c \
 	common/vgpu/mm/vm_vgpu.c \
 	common/vgpu/gr/gr_vgpu.c \

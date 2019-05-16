@@ -22,11 +22,7 @@
 
 #include "fecs_trace_gv11b.h"
 
-#ifdef CONFIG_GK20A_CTXSW_TRACE
-
 u32 gv11b_fecs_trace_get_buffer_full_mailbox_val(void)
 {
 	return 0x32;
 }
-
-#endif /* CONFIG_GK20A_CTXSW_TRACE */

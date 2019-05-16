@@ -30,8 +30,6 @@
 
 #include <nvgpu/hw/gm20b/hw_gr_gm20b.h>
 
-#ifdef CONFIG_GK20A_CTXSW_TRACE
-
 int gm20b_fecs_trace_flush(struct gk20a *g)
 {
 	int err;
@@ -70,5 +68,3 @@ u32 gm20b_fecs_trace_get_buffer_full_mailbox_val(void)
 {
 	return 0x26;
 }
-
-#endif /* CONFIG_GK20A_CTXSW_TRACE */

@@ -32,6 +32,7 @@ all:
              os/posix/posix-sim.c,
              os/posix/posix-vgpu.c,
              os/posix/posix-vidmem.c,
+             os/posix/fecs_trace_posix.c,
              os/posix/stubs.c ]
 
 headers:

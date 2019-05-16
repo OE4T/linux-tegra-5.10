@@ -34,8 +34,6 @@
 #include <nvgpu/gr/fecs_trace.h>
 #include <nvgpu/gr/gr_utils.h>
 
-#ifdef CONFIG_GK20A_CTXSW_TRACE
-
 static int nvgpu_gr_fecs_trace_periodic_polling(void *arg);
 
 int nvgpu_gr_fecs_trace_add_context(struct gk20a *g, u32 context_ptr,
@@ -707,5 +705,3 @@ int nvgpu_gr_fecs_trace_unbind_channel(struct gk20a *g,
 
 	return 0;
 }
-
-#endif /* CONFIG_GK20A_CTXSW_TRACE */

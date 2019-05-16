@@ -60,7 +60,6 @@ nvgpu-y += \
 	common/gr/subctx.o \
 	common/gr/zcull.o \
 	common/gr/gr_config.o \
-	common/gr/fecs_trace.o \
 	common/gr/zbc.o \
 	common/gr/gr_setup.o \
 	common/gr/hwpm_map.o \
@@ -185,8 +184,6 @@ nvgpu-y += \
 	hal/gr/ecc/ecc_gp10b.o \
 	hal/gr/ecc/ecc_gv11b.o \
 	hal/gr/ecc/ecc_tu104.o \
-	hal/gr/fecs_trace/fecs_trace_gm20b.o \
-	hal/gr/fecs_trace/fecs_trace_gv11b.o \
 	hal/gr/zcull/zcull_gm20b.o \
 	hal/gr/zcull/zcull_gv11b.o \
 	hal/gr/ctxsw_prog/ctxsw_prog_gm20b.o \
@@ -429,6 +426,9 @@ nvgpu-$(CONFIG_DEBUG_FS) += \
 endif
 
 nvgpu-$(CONFIG_GK20A_CTXSW_TRACE) += \
+	common/gr/fecs_trace.o \
+	hal/gr/fecs_trace/fecs_trace_gm20b.o \
+	hal/gr/fecs_trace/fecs_trace_gv11b.o \
 	os/linux/fecs_trace_linux.o
 
 ifeq ($(CONFIG_GK20A_CTXSW_TRACE),y)
@@ -472,8 +472,12 @@ nvgpu-$(CONFIG_TEGRA_GR_VIRTUALIZATION) += \
 	os/linux/vgpu/vgpu_ivc.o \
 	os/linux/vgpu/vgpu_ivm.o \
 	os/linux/vgpu/vgpu_linux.o \
-	os/linux/vgpu/fecs_trace_vgpu_linux.o \
 	os/linux/vgpu/gv11b/platform_gv11b_vgpu_tegra.o
+
+ifeq ($(CONFIG_GK20A_CTXSW_TRACE),y)
+nvgpu-$(CONFIG_TEGRA_GR_VIRTUALIZATION) += \
+	os/linux/vgpu/fecs_trace_vgpu_linux.o
+endif
 
 nvgpu-$(CONFIG_COMMON_CLK) += \
 	os/linux/clk.o
