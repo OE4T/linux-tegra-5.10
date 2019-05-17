@@ -29,7 +29,7 @@
 
 #include "gr_falcon_gm20b.h"
 #include "common/gr/gr_falcon_priv.h"
-#include "common/gr/gr_priv.h"
+#include <nvgpu/gr/gr_utils.h>
 
 #include <nvgpu/hw/gm20b/hw_gr_gm20b.h>
 
@@ -754,9 +754,9 @@ int gm20b_gr_falcon_submit_fecs_method_op(struct gk20a *g,
 				   bool sleepduringwait)
 {
 	int ret;
-	struct nvgpu_gr *gr = g->gr;
+	struct nvgpu_gr_falcon *gr_falcon = nvgpu_gr_get_falcon_ptr(g);
 
-	nvgpu_mutex_acquire(&gr->falcon->fecs_mutex);
+	nvgpu_mutex_acquire(&gr_falcon->fecs_mutex);
 
 	if (op.mailbox.id != 0U) {
 		nvgpu_writel(g, gr_fecs_ctxsw_mailbox_r(op.mailbox.id),
@@ -786,7 +786,7 @@ int gm20b_gr_falcon_submit_fecs_method_op(struct gk20a *g,
 			op.method.data, op.method.addr);
 	}
 
-	nvgpu_mutex_release(&gr->falcon->fecs_mutex);
+	nvgpu_mutex_release(&gr_falcon->fecs_mutex);
 
 	return ret;
 }
@@ -796,9 +796,9 @@ int gm20b_gr_falcon_submit_fecs_sideband_method_op(struct gk20a *g,
 		struct nvgpu_fecs_method_op op)
 {
 	int ret;
-	struct nvgpu_gr *gr = g->gr;
+	struct nvgpu_gr_falcon *gr_falcon = nvgpu_gr_get_falcon_ptr(g);
 
-	nvgpu_mutex_acquire(&gr->falcon->fecs_mutex);
+	nvgpu_mutex_acquire(&gr_falcon->fecs_mutex);
 
 	nvgpu_writel(g, gr_fecs_ctxsw_mailbox_clear_r(op.mailbox.id),
 		gr_fecs_ctxsw_mailbox_clear_value_f(op.mailbox.clr));
@@ -816,7 +816,7 @@ int gm20b_gr_falcon_submit_fecs_sideband_method_op(struct gk20a *g,
 			op.method.data, op.method.addr);
 	}
 
-	nvgpu_mutex_release(&gr->falcon->fecs_mutex);
+	nvgpu_mutex_release(&gr_falcon->fecs_mutex);
 
 	return ret;
 }
