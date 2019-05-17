@@ -2455,7 +2455,7 @@ int nvgpu_channel_suspend_all_serviceable_ch(struct gk20a *g)
 				nvgpu_err(g, "failed to disable channel/TSG");
 			}
 			/* preempt the channel */
-			nvgpu_assert(nvgpu_preempt_channel(g, ch) == 0);
+			nvgpu_preempt_channel(g, ch);
 			/* wait for channel update notifiers */
 			if (g->os_channel.work_completion_cancel_sync != NULL) {
 				g->os_channel.work_completion_cancel_sync(ch);
