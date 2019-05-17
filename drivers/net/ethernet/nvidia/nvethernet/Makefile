@@ -17,6 +17,8 @@ OSI_DMA := ../../../../../../nvethernetrm/osi/dma
 
 obj-$(CONFIG_NVETHERNET) += nvethernet.o
 
+EXTRA_CFLAGS += -DTHERMAL_CAL
+
 nvethernet-objs:= ether_linux.o \
 		  osd.o \
 		  ethtool.o \

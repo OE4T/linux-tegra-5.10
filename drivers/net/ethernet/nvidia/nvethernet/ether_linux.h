@@ -23,6 +23,7 @@
 #include <linux/of_gpio.h>
 #include <linux/of_mdio.h>
 #include <linux/if_vlan.h>
+#include <linux/thermal.h>
 #include <linux/of_net.h>
 #include <linux/module.h>
 #include <linux/reset.h>
@@ -70,6 +71,13 @@ static inline int ether_avail_txdesc_cnt(struct osi_tx_ring *tx_ring)
 	return ((tx_ring->clean_idx - tx_ring->cur_tx_idx - 1) &
 		(TX_DESC_CNT - 1));
 }
+
+#ifdef THERMAL_CAL
+/* The DT binding for ethernet device has 5 thermal zones in steps of
+ * 35 degress from -40C to 110C. Each zone corresponds to a state.
+ */
+#define ETHER_MAX_THERM_STATE		5UL
+#endif /* THERMAL_CAL */
 
 /**
  *	struct ether_tx_napi - DMA Transmit Channel NAPI
@@ -131,6 +139,13 @@ struct ether_rx_napi {
  *	@mac_loopback_mode:	MAC loopback mode
  *	@q_prio:	Array of MTL queue TX priority
  *	@hw_feat_cur_state:	Current state of features enabled in HW
+ *	@tcd:		Pointer to thermal cooling device which this driver
+ *			registers with the kernel. Kernel will invoke the
+ *			callback ops for this cooling device when temperate
+ *			in thermal zone defined in DT binding for this driver
+ *			is tripped.
+ *	@therm_state:	Atomic variable to hold the current temperature zone
+ *			which has triggered.
  */
 struct ether_priv_data {
 	struct osi_core_priv_data *osi_core;
@@ -174,6 +189,11 @@ struct ether_priv_data {
 	/* for MAC loopback */
 	unsigned int mac_loopback_mode;
 	unsigned int q_prio[OSI_EQOS_MAX_NUM_CHANS];
+
+#ifdef THERMAL_CAL
+	struct thermal_cooling_device *tcd;
+	atomic_t therm_state;
+#endif /* THERMAL_CAL */
 };
 
 void ether_set_ethtool_ops(struct net_device *ndev);
