@@ -500,6 +500,7 @@ static int pmu_get_perfmon_cmd_start_offset_of_var_v3(
 
 	default:
 		status = -EINVAL;
+		break;
 	}
 
 	return status;
@@ -518,6 +519,7 @@ static int pmu_get_perfmon_cmd_start_offset_of_var_v2(
 
 	default:
 		status = -EINVAL;
+		break;
 	}
 
 	return status;
@@ -536,6 +538,7 @@ static int pmu_get_perfmon_cmd_start_offset_of_var_v1(
 
 	default:
 		status = -EINVAL;
+		break;
 	}
 
 	return status;
@@ -569,6 +572,7 @@ static int pmu_get_perfmon_cmd_init_offset_of_var_v3(
 
 	default:
 		status = -EINVAL;
+		break;
 	}
 
 	return status;
@@ -587,6 +591,7 @@ static int pmu_get_perfmon_cmd_init_offset_of_var_v2(
 
 	default:
 		status = -EINVAL;
+		break;
 	}
 
 	return status;
@@ -605,6 +610,7 @@ static int pmu_get_perfmon_cmd_init_offset_of_var_v1(
 
 	default:
 		status = -EINVAL;
+		break;
 	}
 
 	return status;
