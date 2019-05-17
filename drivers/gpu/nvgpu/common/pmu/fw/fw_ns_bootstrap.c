@@ -56,6 +56,20 @@ exit:
 	return err;
 }
 
+static void pmu_free_ns_ucode_blob(struct gk20a *g)
+{
+	struct nvgpu_pmu *pmu = g->pmu;
+	struct mm_gk20a *mm = &g->mm;
+	struct vm_gk20a *vm = mm->pmu.vm;
+	struct pmu_rtos_fw *rtos_fw = pmu->fw;
+
+	nvgpu_log_fn(g, " ");
+
+	if (nvgpu_mem_is_valid(&rtos_fw->ucode)) {
+		nvgpu_dma_unmap_free(vm, &rtos_fw->ucode);
+	}
+}
+
 int nvgpu_pmu_ns_fw_bootstrap(struct gk20a *g, struct nvgpu_pmu *pmu)
 {
 	int err;
@@ -70,7 +84,14 @@ int nvgpu_pmu_ns_fw_bootstrap(struct gk20a *g, struct nvgpu_pmu *pmu)
 
 	/* Do non-secure PMU boot */
 	nvgpu_mutex_acquire(&pmu->isr_mutex);
-	nvgpu_falcon_reset(pmu->flcn);
+	err = nvgpu_falcon_reset(pmu->flcn);
+	if (err != 0) {
+		nvgpu_err(g, "falcon reset failed");
+		/* free the ns ucode blob */
+		pmu_free_ns_ucode_blob(g);
+		nvgpu_mutex_release(&pmu->isr_mutex);
+		return err;
+	}
 	pmu->isr_enabled = true;
 	nvgpu_mutex_release(&pmu->isr_mutex);
 
