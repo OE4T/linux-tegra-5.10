@@ -1340,7 +1340,8 @@ int nvgpu_channel_setup_bind(struct nvgpu_channel *c,
 	}
 #else
 	if (nvgpu_is_timeouts_enabled(c->g)) {
-        	pbdma_acquire_timeout = g->ch_wdt_init_limit_ms;
+		pbdma_acquire_timeout = g->ch_wdt_init_limit_ms;
+	}
 #endif
 
 	err = g->ops.ramfc.setup(c, gpfifo_gpu_va,
