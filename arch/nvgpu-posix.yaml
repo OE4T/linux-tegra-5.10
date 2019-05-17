@@ -47,6 +47,7 @@ headers:
              include/nvgpu/posix/pci.h,
              include/nvgpu/posix/posix-fault-injection.h,
              include/nvgpu/posix/probe.h,
+             include/nvgpu/posix/soc_fuse.h,
              include/nvgpu/posix/sort.h,
              include/nvgpu/posix/vm.h,
              include/nvgpu/posix/posix_vidmem.h ]

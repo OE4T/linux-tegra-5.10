@@ -27,8 +27,11 @@
 #include <unit/unit.h>
 
 #include <nvgpu/posix/io.h>
+#include <nvgpu/posix/soc_fuse.h>
 
 #include <nvgpu/gk20a.h>
+
+#include "hal/fuse/fuse_gm20b.h"
 
 #include "nvgpu-fifo-gv11b.h"
 
@@ -13490,6 +13493,14 @@ static void readl_access_reg_fn(struct gk20a *g,
 	access->value = nvgpu_posix_io_readl_reg_space(g, access->addr);
 }
 
+static int tegra_fuse_readl_access_reg_fn(unsigned long offset, u32 *value)
+{
+	if (offset == FUSE_GCPLEX_CONFIG_FUSE_0) {
+		*value = GCPLEX_CONFIG_WPR_ENABLED_MASK;
+	}
+	return 0;
+}
+
 static struct nvgpu_posix_io_callbacks test_reg_callbacks = {
 	/* Write APIs all can use the same accessor. */
 	.writel          = writel_access_reg_fn,
@@ -13501,6 +13512,8 @@ static struct nvgpu_posix_io_callbacks test_reg_callbacks = {
 	.__readl         = readl_access_reg_fn,
 	.readl           = readl_access_reg_fn,
 	.bar1_readl      = readl_access_reg_fn,
+
+	.tegra_fuse_readl = tegra_fuse_readl_access_reg_fn,
 };
 
 int test_fifo_setup_gv11b_reg_space(struct unit_module *m, struct gk20a *g)
@@ -13583,7 +13596,7 @@ clean_up_top:
 	nvgpu_posix_io_unregister_reg_space(g, &gv11b_top_reg_space);
 clean_up_master:
 	nvgpu_posix_io_unregister_reg_space(g, &gv11b_master_reg_space);
-	return UNIT_FAIL;
+	return -ENOMEM;
 }
 
 void test_fifo_cleanup_gv11b_reg_space(struct unit_module *m, struct gk20a *g)

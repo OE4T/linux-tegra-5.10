@@ -62,6 +62,10 @@ struct nvgpu_posix_io_callbacks {
 	void (*bar1_readl)(struct gk20a *g, struct nvgpu_reg_access *access);
 	void (*usermode_writel)(struct gk20a *g,
 				struct nvgpu_reg_access *access);
+	void (*tegra_fuse_control_write)(u32 value, unsigned long offset);
+	int  (*tegra_fuse_control_read)(unsigned long offset, u32 *value);
+	void (*tegra_fuse_writel)(u32 value, unsigned long offset);
+	int  (*tegra_fuse_readl)(unsigned long offset, u32 *value);
 };
 
 struct nvgpu_posix_io_callbacks *nvgpu_posix_register_io(

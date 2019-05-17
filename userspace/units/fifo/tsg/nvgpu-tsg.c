@@ -31,6 +31,7 @@
 #include <nvgpu/tsg.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/fifo/userd.h>
+#include <nvgpu/fuse.h>
 
 #include "hal/fifo/tsg_gk20a.h"
 
@@ -86,14 +87,8 @@ static int test_fifo_init_support(struct unit_module *m,
 		goto fail;
 	}
 
-	/*
-	 * set IS_FMODEL to avoid reading fuses
-	 * TODO: add fuses reg space to avoid this
-	 */
-	nvgpu_set_enabled(g, NVGPU_IS_FMODEL, true);
 	gv11b_init_hal(g);
 	g->ops.fifo.init_fifo_setup_hw = NULL;
-	nvgpu_set_enabled(g, NVGPU_IS_FMODEL, false);
 
 #ifdef NVGPU_USERD
 	/*
@@ -140,7 +135,7 @@ static int test_tsg_release(struct unit_module *m,
 	struct test_tsg_args *t = args;
 
 	if (t->tsg == NULL) {
-		unit_return_fail(m, "tsg in NULL");
+		unit_return_fail(m, "tsg is NULL");
 	}
 
 	nvgpu_ref_put(&t->tsg->refcount, nvgpu_tsg_release);
