@@ -376,13 +376,23 @@ static int nvdla_get_actions(struct nvdla_ioctl_submit_task *user_task,
 		goto fail;
 	}
 
-	/* get output task status */
-	if (copy_from_user(task->out_task_status,
-		(void __user *)user_task->output_task_status,
-		(task->num_out_task_status *
+	/* get sof task status */
+	if (copy_from_user(task->sof_task_status,
+		(void __user *)user_task->sof_task_status,
+		(task->num_sof_task_status *
 			sizeof(struct nvdla_status_notify)))) {
 		err = -EFAULT;
-		nvdla_dbg_err(pdev, "failed to copy output task status");
+		nvdla_dbg_err(pdev, "failed to copy sof task status");
+		goto fail;
+	}
+
+	/* get eof task status */
+	if (copy_from_user(task->eof_task_status,
+		(void __user *)user_task->eof_task_status,
+		(task->num_eof_task_status *
+			sizeof(struct nvdla_status_notify)))) {
+		err = -EFAULT;
+		nvdla_dbg_err(pdev, "failed to copy eof task status");
 		goto fail;
 	}
 
@@ -618,9 +628,15 @@ static int nvdla_val_task_submit_input(struct nvdla_ioctl_submit_task *in_task)
 			MAX_NUM_NVDLA_IN_TASK_STATUS);
 		return -EINVAL;
 	}
-	if (in_task->num_output_task_status > MAX_NUM_NVDLA_OUT_TASK_STATUS) {
-		pr_err("out task status[%u] crossing expected[%d]\n",
-			in_task->num_output_task_status,
+	if (in_task->num_sof_task_status > MAX_NUM_NVDLA_OUT_TASK_STATUS) {
+		pr_err("sof task status[%u] crossing expected[%d]\n",
+			in_task->num_sof_task_status,
+			MAX_NUM_NVDLA_OUT_TASK_STATUS);
+		return -EINVAL;
+	}
+	if (in_task->num_eof_task_status > MAX_NUM_NVDLA_OUT_TASK_STATUS) {
+		pr_err("eof task status[%u] crossing expected[%d]\n",
+			in_task->num_eof_task_status,
 			MAX_NUM_NVDLA_OUT_TASK_STATUS);
 		return -EINVAL;
 	}
@@ -665,7 +681,8 @@ static int nvdla_fill_task(struct nvdla_queue *queue,
 	task->num_prefences = local_task->num_prefences;
 	task->num_postfences = local_task->num_postfences;
 	task->num_in_task_status = local_task->num_input_task_status;
-	task->num_out_task_status = local_task->num_output_task_status;
+	task->num_sof_task_status = local_task->num_sof_task_status;
+	task->num_eof_task_status = local_task->num_eof_task_status;
 	task->num_addresses = local_task->num_addresses;
 	task->timeout = local_task->timeout;
 
@@ -709,8 +726,11 @@ static void nvdla_dump_task(struct nvdla_task *task)
 	nvdla_dbg_info(pdev, "dumping input task [%p] parameters:", task);
 	nvdla_dbg_info(pdev, "num_prefences[%u] num_postfences[%u]",
 			task->num_prefences, task->num_postfences);
-	nvdla_dbg_info(pdev, "num_in_status[%u] num_out_task_status[%u]",
-			task->num_in_task_status, task->num_out_task_status);
+	nvdla_dbg_info(pdev, "num_in_status[%u] num_sof_task_status[%u] "
+			"num_eof_task_status[%u]",
+			task->num_in_task_status,
+			task->num_sof_task_status,
+			task->num_eof_task_status);
 	nvdla_dbg_info(pdev, "num_addresses[%u]", task->num_addresses);
 
 	for (i = 0; i < task->num_prefences; i++) {
@@ -747,12 +767,20 @@ static void nvdla_dump_task(struct nvdla_task *task)
 				task->in_task_status[i].status);
 	}
 
-	for (i = 0; i < task->num_out_task_status; i++) {
-		nvdla_dbg_info(pdev, "Output task status[%d]:"
+	for (i = 0; i < task->num_sof_task_status; i++) {
+		nvdla_dbg_info(pdev, "SOF task status[%d]:"
 				"handle[%u] offset[%u] status[%u]",
-				i, task->out_task_status[i].handle,
-				task->out_task_status[i].offset,
-				task->out_task_status[i].status);
+				i, task->sof_task_status[i].handle,
+				task->sof_task_status[i].offset,
+				task->sof_task_status[i].status);
+	}
+
+	for (i = 0; i < task->num_eof_task_status; i++) {
+		nvdla_dbg_info(pdev, "EOF task status[%d]:"
+				"handle[%u] offset[%u] status[%u]",
+				i, task->eof_task_status[i].handle,
+				task->eof_task_status[i].offset,
+				task->eof_task_status[i].status);
 	}
 
 	for (i = 0; i < task->num_addresses; i++) {

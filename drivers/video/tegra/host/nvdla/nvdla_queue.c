@@ -210,12 +210,20 @@ static int nvdla_unmap_task_memory(struct nvdla_task *task)
 	}
 	nvdla_dbg_fn(pdev, "all postfences unmaped");
 
-	/* unpin input task status memory */
-	for (ii = 0; ii < task->num_out_task_status; ii++) {
-		if (task->out_task_status[ii].handle) {
+	/* unpin output task status memory */
+	for (ii = 0; ii < task->num_sof_task_status; ii++) {
+		if (task->sof_task_status[ii].handle) {
 			nvdla_buffer_submit_unpin(task->buffers,
-				&task->out_task_status_dmabuf[ii], 1);
-			dma_buf_put(task->out_task_status_dmabuf[ii]);
+				&task->sof_task_status_dmabuf[ii], 1);
+			dma_buf_put(task->sof_task_status_dmabuf[ii]);
+		}
+	}
+
+	for (ii = 0; ii < task->num_eof_task_status; ii++) {
+		if (task->eof_task_status[ii].handle) {
+			nvdla_buffer_submit_unpin(task->buffers,
+				&task->eof_task_status_dmabuf[ii], 1);
+			dma_buf_put(task->eof_task_status_dmabuf[ii]);
 		}
 	}
 	nvdla_dbg_fn(pdev, "all out task status unmaped");
@@ -252,11 +260,12 @@ static void nvdla_task_syncpt_reset(struct nvhost_syncpt *syncpt,
 
 static inline int nvdla_get_max_preaction_size(void)
 {
-	return (((MAX_NUM_NVDLA_PREFENCES + MAX_NUM_NVDLA_IN_TASK_STATUS) *
+	return (((MAX_NUM_NVDLA_PREFENCES + MAX_NUM_NVDLA_IN_TASK_STATUS +
+			MAX_NUM_NVDLA_OUT_TASK_STATUS) *
 		sizeof(struct dla_action_opcode)) +
 		(MAX_NUM_NVDLA_PREFENCES *
 			sizeof(struct dla_action_semaphore)) +
-		(MAX_NUM_NVDLA_IN_TASK_STATUS *
+		((MAX_NUM_NVDLA_IN_TASK_STATUS + MAX_NUM_NVDLA_OUT_TASK_STATUS) *
 			sizeof(struct dla_action_task_status)) +
 		sizeof(struct dla_action_opcode));
 }
@@ -933,13 +942,15 @@ static int nvdla_fill_postactions(struct nvdla_task *task)
 		task->task_desc_pa + nvdla_profile_status_offset(task), 0);
 
 	/* fill output task status */
-	for (i = 0; i < task->num_out_task_status; i++) {
+	for (i = 0; i < task->num_eof_task_status; i++) {
 		err = nvdla_fill_taskstatus_write_action(task,
-				&task->out_task_status[i],
-				&task->out_task_status_dmabuf[i],
+				&task->eof_task_status[i],
+				&task->eof_task_status_dmabuf[i],
 				&next);
 		if (err < 0) {
-			nvdla_dbg_info(pdev, "failed to fill out task status[%u]", i);
+			nvdla_dbg_err(pdev,
+				"failed to fill eof taskstatus[%d]",
+				i);
 			goto fail;
 		}
 	}
@@ -1004,14 +1015,30 @@ static int nvdla_fill_preactions(struct nvdla_task *task)
 		}
 	}
 
-	/* fill input status after filling sem/synpt/gos */
+	/* fill input status after filling sem/syncpt/gos */
 	for (i = 0; i < task->num_in_task_status; i++) {
 		err = nvdla_fill_taskstatus_read_action(task,
 				&task->in_task_status[i],
 				&task->in_task_status_dmabuf[i],
 				&next);
 		if (err < 0) {
-			nvdla_dbg_info(pdev, "failed to fill in task status[%u]", i);
+			nvdla_dbg_err(pdev,
+				"failed to fill in taskstatus[%d]",
+				i);
+			goto fail;
+		}
+	}
+
+	/* fill sof task status actions */
+	for (i = 0; i < task->num_sof_task_status; i++) {
+		err = nvdla_fill_taskstatus_write_action(task,
+				&task->sof_task_status[i],
+				&task->sof_task_status_dmabuf[i],
+				&next);
+		if (err < 0) {
+			nvdla_dbg_err(pdev,
+				"failed to fill sof taskstatus[%d]",
+				i);
 			goto fail;
 		}
 	}
