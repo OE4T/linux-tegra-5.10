@@ -20,6 +20,50 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
+/**
+ * @file
+ *
+ * This header contains the OS agnostic APIs for dealing with VMs. Most of the
+ * VM implementation is system specific - it must translate from a platform's
+ * representation of DMA'able memory to our nvgpu_mem notion.
+ *
+ * However, some stuff is platform agnostic. VM ref-counting and the VM struct
+ * itself are platform agnostic. Also, the initialization and destruction of
+ * VMs is the same across all platforms (for now).
+ *
+ * VM Design:
+ * ----------------
+ *
+ *   The VM managment in nvgpu is split up as follows: a vm_gk20a struct which
+ * defines an address space. Each address space is a set of page tables and a
+ * GPU Virtual Address (GVA) allocator. Any number of channels may bind to a VM.
+ *
+ *     +----+  +----+     +----+     +-----+     +-----+
+ *     | C1 |  | C2 | ... | Cn |     | VM1 | ... | VMn |
+ *     +-+--+  +-+--+     +-+--+     +--+--+     +--+--+
+ *       |       |          |           |           |
+ *       |       |          +----->-----+           |
+ *       |       +---------------->-----+           |
+ *       +------------------------>-----------------+
+ *
+ *   Each VM also manages a set of mapped buffers (struct nvgpu_mapped_buf)
+ * which corresponds to _user space_ buffers which have been mapped into this VM.
+ * Kernel space mappings (created by nvgpu_gmmu_map()) are not tracked by VMs.
+ * This may be an architectural bug, but for now it seems to be OK. VMs can be
+ * closed in various ways - refs counts hitting zero, direct calls to the remove
+ * routine, etc. Note: this is going to change. VM cleanup is going to be
+ * homogonized around ref-counts. When a VM is closed all mapped buffers in the
+ * VM are unmapped from the GMMU. This means that those mappings will no longer
+ * be valid and any subsequent access by the GPU will fault. That means one must
+ * ensure the VM is not in use before closing it.
+ *
+ *   VMs may also contain VM areas (struct nvgpu_vm_area) which are created for
+ * the purpose of sparse and/or fixed mappings. If userspace wishes to create a
+ * fixed mapping it must first create a VM area - either with a fixed address or
+ * not. VM areas are reserved - other mapping operations will not use the space.
+ * Userspace may then create fixed mappings within that VM area.
+ */
+
 #ifndef NVGPU_VM_H
 #define NVGPU_VM_H
 
@@ -52,48 +96,6 @@ struct nvgpu_os_buffer;
 /* QNX include goes here. */
 #include <nvgpu_rmos/include/vm.h>
 #endif
-
-/**
- * This header contains the OS agnostic APIs for dealing with VMs. Most of the
- * VM implementation is system specific - it must translate from a platform's
- * representation of DMA'able memory to our nvgpu_mem notion.
- *
- * However, some stuff is platform agnostic. VM ref-counting and the VM struct
- * itself are platform agnostic. Also, the initialization and destruction of
- * VMs is the same across all platforms (for now).
- *
- * VM Architecture:
- * ----------------
- *
- *   The VM managment in nvgpu is split up as follows: a vm_gk20a struct which
- * defines an address space. Each address space is a set of page tables and a
- * GPU Virtual Address (GVA) allocator. Any number of channels may bind to a VM.
- *
- *     +----+  +----+     +----+     +-----+     +-----+
- *     | C1 |  | C2 | ... | Cn |     | VM1 | ... | VMn |
- *     +-+--+  +-+--+     +-+--+     +--+--+     +--+--+
- *       |       |          |           |           |
- *       |       |          +----->-----+           |
- *       |       +---------------->-----+           |
- *       +------------------------>-----------------+
- *
- *   Each VM also manages a set of mapped buffers (struct nvgpu_mapped_buf)
- * which corresponds to _user space_ buffers which have been mapped into this VM.
- * Kernel space mappings (created by nvgpu_gmmu_map()) are not tracked by VMs.
- * This may be an architectural bug, but for now it seems to be OK. VMs can be
- * closed in various ways - refs counts hitting zero, direct calls to the remove
- * routine, etc. Note: this is going to change. VM cleanup is going to be
- * homogonized around ref-counts. When a VM is closed all mapped buffers in the
- * VM are unmapped from the GMMU. This means that those mappings will no longer
- * be valid and any subsequent access by the GPU will fault. That means one must
- * ensure the VM is not in use before closing it.
- *
- *   VMs may also contain VM areas (struct nvgpu_vm_area) which are created for
- * the purpose of sparse and/or fixed mappings. If userspace wishes to create a
- * fixed mapping it must first create a VM area - either with a fixed address or
- * not. VM areas are reserved - other mapping operations will not use the space.
- * Userspace may then create fixed mappings within that VM area.
- */
 
 /* map/unmap batch state */
 struct vm_gk20a_mapping_batch {
@@ -143,6 +145,9 @@ mapped_buffer_from_rbtree_node(struct nvgpu_rbtree_node *node)
 		  ((uintptr_t)node - offsetof(struct nvgpu_mapped_buf, node));
 }
 
+/**
+ * Virtual Memory context.
+ */
 struct vm_gk20a {
 	struct mm_gk20a *mm;
 	struct gk20a_as_share *as_share; /* as_share this represents */
@@ -255,6 +260,11 @@ struct nvgpu_mapped_buf *nvgpu_vm_find_mapping(struct vm_gk20a *vm,
 					       u32 flags,
 					       int kind);
 
+/**
+ * Map a DMA buffer into the passed VM context.
+ *
+ * @g - the GPU.
+ */
 int nvgpu_vm_map(struct vm_gk20a *vm,
 		 struct nvgpu_os_buffer *os_buf,
 		 struct nvgpu_sgt *sgt,

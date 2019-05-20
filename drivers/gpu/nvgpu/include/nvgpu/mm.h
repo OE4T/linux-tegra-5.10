@@ -23,6 +23,148 @@
 #ifndef NVGPU_MM_H
 #define NVGPU_MM_H
 
+/**
+ * @file
+ * @page unit-mm Unit MM
+ *
+ * Overview
+ * ========
+ *
+ * The MM unit is responsible for managing memory in nvgpu. Memory consists
+ * primarily of two types:
+ *
+ *   + Regular kernel memory
+ *   + Device accessible memory (DMA memory)
+ *
+ * The MM code also makes sure that all of the necessary SW and HW
+ * initialization for any memory subsystems are taken care of before the GPU
+ * begins executing work.
+ *
+ * Regular Kernel Memory
+ * ---------------------
+ *
+ * The MM unit generally relies on the underlying system to manage kernel
+ * memory. The nvgpu_kmalloc() and friends implementation is handled by
+ * kmalloc() on Linux for example.
+ *
+ * See include/nvgpu/kmem.h for more details.
+ *
+ * DMA
+ * ---
+ *
+ * DMA memory is more complex since it depends on both the GPU hardware and the
+ * underlying operating system to handle mapping of DMA memory into the GMMU
+ * (GPU Memory Management Unit). See the following documents for a reference
+ * describing DMA support in nvgpu-driver:
+ *
+ *   + include/nvgpu/dma.h
+ *   + include/nvgpu/vm.h
+ *   + include/nvgpu/gmmu.h
+ *   + include/nvgpu/nvgpu_mem.h
+ *   + include/nvgpu/nvgpu_sgt.h
+ *
+ * Data Structures
+ * ===============
+ *
+ * The major data structures exposed to users of the MM unit in nvgpu all relate
+ * to managing DMA buffers and mapping DMA buffers into a GMMU context. The
+ * following is a list of these structures:
+ *
+ *   + struct mm_gk20a
+ *
+ *       struct mm_gk20a defines a single GPU's memory context. It contains
+ *       descriptions of various system GMMU contexts and other GPU global
+ *       locks, descriptions, etc.
+ *
+ *   + struct vm_gk20a
+ *
+ *       struct vm_gk20a describes a single GMMU context. This is made up of a
+ *       page directory base (PDB) and other meta data necessary for managing
+ *       GPU memory mappings within this context.
+ *
+ *   + struct nvgpu_mem
+ *
+ *       struct nvgpu_mem abstracts all forms of GPU accessible memory which may
+ *       or may not be backed by an SGT/SGL. This structure forms the basis for
+ *       all GPU accessible memory within nvgpu-common.
+ *
+ *   + struct nvgpu_sgt
+ *
+ *       In most modern operating systems a DMA buffer may actually be comprised
+ *       of many smaller buffers. This is because in a system running for
+ *       extended periods of time the memory starts to become fragmented at page
+ *       level granularity. Thus when trying to allocate a buffer larger than a
+ *       page it's possible that there won't be a large enough contiguous region
+ *       capable of satisfying the allocation despite there apparently being
+ *       more than enough available space.
+ *
+ *       This classic fragmentation problem is solved by using lists or tables
+ *       of sub-allocations, that together, form a single DMA buffer. To manage
+ *       these buffers the notion of a scatter-gather list or scatter gather
+ *       table (SGL and SGT, respectively) are introduced.
+ *
+ *   + struct nvgpu_mapped_buf
+ *
+ *       This describes a mapping of a userspace provided buffer.
+ *
+ * Static Design
+ * =============
+ *
+ * Details of static design.
+ *
+ * Resource utilization
+ * --------------------
+ *
+ * External APIs
+ * -------------
+ *
+ *   + nvgpu_mm_setup_hw()
+ *
+ *
+ * Supporting Functionality
+ * ========================
+ *
+ * There's a fair amount of supporting functionality:
+ *
+ *   + Allocators
+ *     - Buddy allocator
+ *     - Page allocator
+ *     - Bitmap allocator
+ *   + vm_area
+ *   + gmmu
+ *     # pd_cache
+ *     # page_table
+ *
+ * Documentation for this will be filled in!
+ *
+ * Dependencies
+ * ------------
+ *
+ * Dynamic Design
+ * ==============
+ *
+ * Use case descriptions go here. Some potentials:
+ *
+ *   - nvgpu_vm_map()
+ *   - nvgpu_gmmu_map()
+ *   - nvgpu_dma_alloc()
+ *
+ * Requirements
+ * ============
+ *
+ * I added this section to link to unit level requirements. Seems like it's
+ * missing from the IPP template.
+ *
+ * Requirement    | Link
+ * -----------    | ---------------------------------------------------------------------------
+ * NVGPU-RQCD-45  | https://nvidia.jamacloud.com/perspective.req#/items/6434840?projectId=20460
+ *
+ * Open Items
+ * ==========
+ *
+ * Any open items can go here.
+ */
+
 #include <nvgpu/vm.h>
 #include <nvgpu/types.h>
 #include <nvgpu/cond.h>
@@ -48,6 +190,12 @@ enum nvgpu_flush_op {
 	NVGPU_FLUSH_CBC_CLEAN,
 };
 
+/**
+ * This struct keeps track of a given GPU's memory management state. Each GPU
+ * has exactly one of these structs embedded directly in the gk20a struct. Some
+ * memory state is tracked on a per-context basis in the <nvgpu/vm.h> header but
+ * for state that's global to a given GPU this is used.
+ */
 struct mm_gk20a {
 	struct gk20a *g;
 
@@ -192,6 +340,11 @@ int nvgpu_mm_suspend(struct gk20a *g);
 u32 nvgpu_mm_get_default_big_page_size(struct gk20a *g);
 u32 nvgpu_mm_get_available_big_page_sizes(struct gk20a *g);
 
+/**
+ * Setup MM.
+ *
+ * @param g - The GPU.
+ */
 int nvgpu_mm_setup_hw(struct gk20a *g);
 
 #endif /* NVGPU_MM_H */

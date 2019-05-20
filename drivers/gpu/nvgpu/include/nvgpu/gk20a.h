@@ -24,6 +24,24 @@
 #ifndef GK20A_H
 #define GK20A_H
 
+/**
+ * @mainpage
+ *
+ * NVGPU Design Documentation
+ * ==========================
+ *
+ * Welcome to the nvgpu unit design documentation. The following pages document
+ * the major top level units within nvgpu-common:
+ *
+ *   - @ref unit-mm
+ *   - Etc, etc.
+ *
+ * nvgpu-driver Level Requirements Table
+ * =====================================
+ *
+ * ...
+ */
+
 struct gk20a;
 struct nvgpu_fifo;
 struct nvgpu_channel;

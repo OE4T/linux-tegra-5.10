@@ -23,6 +23,12 @@
 #ifndef NVGPU_KMEM_H
 #define NVGPU_KMEM_H
 
+/**
+ * @file
+ *
+ * Abstract interface for interacting with general kernel memory.
+ */
+
 #include <nvgpu/types.h>
 #include <nvgpu/utils.h>
 
@@ -39,7 +45,10 @@ struct gk20a;
 #endif
 
 /**
- * DOC: Kmem cache support
+ * @file
+ *
+ * Kmem cache support
+ * ------------------
  *
  * In Linux there is support for the notion of a kmem_cache. It gives better
  * memory usage characteristics for lots of allocations of the same size. Think
@@ -70,11 +79,11 @@ struct nvgpu_mem_alloc_tracker;
 /**
  * nvgpu_kmem_cache_create - create an nvgpu kernel memory cache.
  *
- * @g		The GPU driver struct using this cache.
- * @size	Size of the object allocated by the cache.
+ * @param g	The GPU driver struct using this cache.
+ * @param size	Size of the object allocated by the cache.
  *
- * This cache can be used to allocate objects of size @size. Common usage would
- * be for a struct that gets allocated a lot. In that case @size should be
+ * This cache can be used to allocate objects of size #size. Common usage would
+ * be for a struct that gets allocated a lot. In that case #size should be
  * sizeof(struct my_struct).
  *
  * A given implementation of this need not do anything special. The allocation
@@ -87,30 +96,30 @@ struct nvgpu_kmem_cache *nvgpu_kmem_cache_create(struct gk20a *g, size_t size);
  * nvgpu_kmem_cache_destroy - destroy a cache created by
  *                            nvgpu_kmem_cache_create().
  *
- * @cache	The cache to destroy.
+ * @param cache	The cache to destroy.
  */
 void nvgpu_kmem_cache_destroy(struct nvgpu_kmem_cache *cache);
 
 /**
  * nvgpu_kmem_cache_alloc - Allocate an object from the cache
  *
- * @cache	The cache to alloc from.
+ * @param cache	The cache to alloc from.
  */
 void *nvgpu_kmem_cache_alloc(struct nvgpu_kmem_cache *cache);
 
 /**
  * nvgpu_kmem_cache_free - Free an object back to a cache
  *
- * @cache	The cache to return the object to.
- * @ptr		Pointer to the object to free.
+ * @param cache	The cache to return the object to.
+ * @param ptr	Pointer to the object to free.
  */
 void nvgpu_kmem_cache_free(struct nvgpu_kmem_cache *cache, void *ptr);
 
 /**
  * nvgpu_kmalloc - Allocate from the kernel's allocator.
  *
- * @g:		Current GPU.
- * @size:	Size of the allocation.
+ * @param g	Current GPU.
+ * @param size	Size of the allocation.
  *
  * Allocate a chunk of system memory from the kernel. Allocations larger than 1
  * page may fail even when there may appear to be enough memory.
@@ -122,8 +131,8 @@ void nvgpu_kmem_cache_free(struct nvgpu_kmem_cache *cache, void *ptr);
 /**
  * nvgpu_kzalloc - Allocate from the kernel's allocator.
  *
- * @g:		Current GPU.
- * @size:	Size of the allocation.
+ * @param g	Current GPU.
+ * @param size	Size of the allocation.
  *
  * Identical to nvgpu_kalloc() except the memory will be zeroed before being
  * returned.
@@ -133,12 +142,12 @@ void nvgpu_kmem_cache_free(struct nvgpu_kmem_cache *cache, void *ptr);
 /**
  * nvgpu_kcalloc - Allocate from the kernel's allocator.
  *
- * @g:		Current GPU.
- * @n:          Number of objects.
- * @size:	Size of each object.
+ * @param g	Current GPU.
+ * @param n	Number of objects.
+ * @param size	Size of each object.
  *
  * Identical to nvgpu_kalloc() except the size of the memory chunk returned is
- * @n * @size.
+ * #n * #size.
  */
 #define nvgpu_kcalloc(g, n, size)	\
 	nvgpu_kcalloc_impl(g, n, size, NVGPU_GET_IP)
@@ -146,8 +155,8 @@ void nvgpu_kmem_cache_free(struct nvgpu_kmem_cache *cache, void *ptr);
 /**
  * nvgpu_vmalloc - Allocate memory and return a map to it.
  *
- * @g:		Current GPU.
- * @size:	Size of the allocation.
+ * @param g	Current GPU.
+ * @param size	Size of the allocation.
  *
  * Allocate some memory and return a pointer to a virtual memory mapping of
  * that memory in the kernel's virtual address space. The underlying physical
@@ -162,8 +171,8 @@ void nvgpu_kmem_cache_free(struct nvgpu_kmem_cache *cache, void *ptr);
 /**
  * nvgpu_vzalloc - Allocate memory and return a map to it.
  *
- * @g:		Current GPU.
- * @size:	Size of the allocation.
+ * @param g	Current GPU.
+ * @param size	Size of the allocation.
  *
  * Identical to nvgpu_vmalloc() except this will return zero'ed memory.
  */
@@ -173,16 +182,16 @@ void nvgpu_kmem_cache_free(struct nvgpu_kmem_cache *cache, void *ptr);
  * nvgpu_kfree - Frees an alloc from nvgpu_kmalloc, nvgpu_kzalloc,
  *               nvgpu_kcalloc.
  *
- * @g:		Current GPU.
- * @addr:	Address of object to free.
+ * @param g	Current GPU.
+ * @param addr	Address of object to free.
  */
 #define nvgpu_kfree(g, addr)	nvgpu_kfree_impl(g, addr)
 
 /**
  * nvgpu_vfree - Frees an alloc from nvgpu_vmalloc, nvgpu_vzalloc.
  *
- * @g:		Current GPU.
- * @addr:	Address of object to free.
+ * @param g	Current GPU.
+ * @param addr	Address of object to free.
  */
 #define nvgpu_vfree(g, addr)	nvgpu_vfree_impl(g, addr)
 
@@ -192,7 +201,7 @@ void nvgpu_kmem_cache_free(struct nvgpu_kmem_cache *cache, void *ptr);
 /**
  * nvgpu_kmem_init - Initialize the kmem tracking stuff.
  *
- *@g: The driver to init.
+ * @param g	The driver to init.
  *
  * Returns non-zero on failure.
  */
@@ -201,19 +210,19 @@ int nvgpu_kmem_init(struct gk20a *g);
 /**
  * nvgpu_kmem_fini - Finalize the kmem tracking code
  *
- * @g     - The GPU.
- * @flags - Flags that control operation of this finalization.
+ * @param g	The GPU.
+ * @param flags	Flags that control operation of this finalization.
  *
  * Cleanup resources used by nvgpu_kmem. Available flags for cleanup are:
  *
- *   %NVGPU_KMEM_FINI_DO_NOTHING
- *   %NVGPU_KMEM_FINI_FORCE_CLEANUP
- *   %NVGPU_KMEM_FINI_DUMP_ALLOCS
- *   %NVGPU_KMEM_FINI_WARN
- *   %NVGPU_KMEM_FINI_BUG
+ *   - NVGPU_KMEM_FINI_DO_NOTHING
+ *   - NVGPU_KMEM_FINI_FORCE_CLEANUP
+ *   - NVGPU_KMEM_FINI_DUMP_ALLOCS
+ *   - NVGPU_KMEM_FINI_WARN
+ *   - NVGPU_KMEM_FINI_BUG
  *
- * %NVGPU_KMEM_FINI_DO_NOTHING will be overridden by anything else specified.
- * Put another way don't just add %NVGPU_KMEM_FINI_DO_NOTHING and expect that
+ * NVGPU_KMEM_FINI_DO_NOTHING will be overridden by anything else specified.
+ * Put another way don't just add NVGPU_KMEM_FINI_DO_NOTHING and expect that
  * to suppress other flags from doing anything.
  */
 void nvgpu_kmem_fini(struct gk20a *g, int flags);
@@ -235,8 +244,8 @@ void *nvgpu_big_alloc_impl(struct gk20a *g, size_t size, bool clear);
 /**
  * nvgpu_big_malloc - Pick virtual or physical alloc based on @size
  *
- * @g - The GPU.
- * @size - Size of the allocation.
+ * @param g	The GPU.
+ * @param size	Size of the allocation.
  *
  * On some platforms (i.e Linux) it is possible to allocate memory directly
  * mapped into the kernel's address space (kmalloc) or allocate discontiguous
@@ -262,8 +271,8 @@ static inline void *nvgpu_big_malloc(struct gk20a *g, size_t size)
 /**
  * nvgpu_big_malloc - Pick virtual or physical alloc based on @size
  *
- * @g - The GPU.
- * @size - Size of the allocation.
+ * @param g	The GPU.
+ * @param size	Size of the allocation.
  *
  * Zeroed memory version of nvgpu_big_malloc().
  */
@@ -275,8 +284,8 @@ static inline void *nvgpu_big_zalloc(struct gk20a *g, size_t size)
 /**
  * nvgpu_big_free - Free and alloc from nvgpu_big_zalloc() or
  *                  nvgpu_big_malloc().
- * @g - The GPU.
- * @p - A pointer allocated by nvgpu_big_zalloc() or nvgpu_big_malloc().
+ * @param g	The GPU.
+ * @param p	A pointer allocated by nvgpu_big_zalloc() or nvgpu_big_malloc().
  */
 void nvgpu_big_free(struct gk20a *g, void *p);
 
