@@ -37,7 +37,7 @@ struct sim_nvgpu {
 	void (*sim_init_late)(struct gk20a *g);
 	void (*remove_support)(struct gk20a *g);
 	void (*esc_readl)(
-		struct gk20a *g, char *path, u32 index, u32 *data);
+		struct gk20a *g, const char *path, u32 index, u32 *data);
 };
 #ifdef __KERNEL__
 #include "linux/sim.h"

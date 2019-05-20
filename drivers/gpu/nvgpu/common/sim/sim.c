@@ -219,7 +219,7 @@ static int issue_rpc_and_wait(struct gk20a *g)
 }
 
 static void nvgpu_sim_esc_readl(struct gk20a *g,
-		char *path, u32 index, u32 *data)
+		const char *path, u32 index, u32 *data)
 {
 	int err;
 	size_t pathlen = strlen(path);
