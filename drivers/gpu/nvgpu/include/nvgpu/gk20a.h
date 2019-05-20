@@ -91,7 +91,6 @@ struct nvgpu_gpfifo_entry;
 struct vm_gk20a_mapping_batch;
 struct pmu_pg_stats_data;
 
-enum nvgpu_unit;
 enum nvgpu_flush_op;
 enum gk20a_mem_rw_flag;
 enum nvgpu_nvlink_minion_dlcmd;
@@ -120,6 +119,7 @@ enum ctxsw_addr_type;
 #include <nvgpu/worker.h>
 #include <nvgpu/semaphore.h>
 #include <nvgpu/fifo.h>
+#include <nvgpu/unit.h>
 
 #include "hal/clk/clk_gk20a.h"
 
