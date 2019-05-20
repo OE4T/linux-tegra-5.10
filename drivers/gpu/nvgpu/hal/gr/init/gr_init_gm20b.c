@@ -179,15 +179,21 @@ void gm20b_gr_init_sm_id_numbering(struct gk20a *g, u32 gpc, u32 tpc, u32 smid,
 	u32 gpc_stride = nvgpu_get_litter_value(g, GPU_LIT_GPC_STRIDE);
 	u32 tpc_in_gpc_stride = nvgpu_get_litter_value(g,
 						GPU_LIT_TPC_IN_GPC_STRIDE);
-	u32 gpc_offset = gpc_stride * gpc;
-	u32 tpc_offset = tpc_in_gpc_stride * tpc;
+	u32 gpc_offset = nvgpu_safe_mult_u32(gpc_stride, gpc);
+	u32 tpc_offset = nvgpu_safe_mult_u32(tpc_in_gpc_stride, tpc);
+	u32 offset_sum = nvgpu_safe_add_u32(gpc_offset, tpc_offset);
 
-	nvgpu_writel(g, gr_gpc0_tpc0_sm_cfg_r() + gpc_offset + tpc_offset,
-			gr_gpc0_tpc0_sm_cfg_sm_id_f(smid));
-	nvgpu_writel(g, gr_gpc0_gpm_pd_sm_id_r(tpc) + gpc_offset,
-			gr_gpc0_gpm_pd_sm_id_id_f(smid));
-	nvgpu_writel(g, gr_gpc0_tpc0_pe_cfg_smid_r() + gpc_offset + tpc_offset,
-			gr_gpc0_tpc0_pe_cfg_smid_value_f(smid));
+	nvgpu_writel(g,
+		     nvgpu_safe_add_u32(gr_gpc0_tpc0_sm_cfg_r(), offset_sum),
+		     gr_gpc0_tpc0_sm_cfg_sm_id_f(smid));
+	nvgpu_writel(g,
+		     nvgpu_safe_add_u32(gr_gpc0_gpm_pd_sm_id_r(tpc),
+								gpc_offset),
+		     gr_gpc0_gpm_pd_sm_id_id_f(smid));
+	nvgpu_writel(g,
+		     nvgpu_safe_add_u32(gr_gpc0_tpc0_pe_cfg_smid_r(),
+								offset_sum),
+		     gr_gpc0_tpc0_pe_cfg_smid_value_f(smid));
 }
 
 u32 gm20b_gr_init_get_sm_id_size(void)
@@ -200,17 +206,21 @@ int gm20b_gr_init_sm_id_config(struct gk20a *g, u32 *tpc_sm_id,
 {
 	u32 i, j;
 	u32 tpc_index, gpc_index;
+	u32 tpc_cnt = nvgpu_safe_sub_u32(
+			nvgpu_gr_config_get_tpc_count(gr_config), 1U);
 
 	/* Each NV_PGRAPH_PRI_CWD_GPC_TPC_ID can store 4 TPCs.*/
 	for (i = 0U;
-	     i <= ((nvgpu_gr_config_get_tpc_count(gr_config) - 1U) / 4U);
+	     i <= (tpc_cnt / 4U);
 	     i++) {
 		u32 reg = 0;
-		u32 bit_stride = gr_cwd_gpc_tpc_id_gpc0_s() +
-				 gr_cwd_gpc_tpc_id_tpc0_s();
+		u32 bit_stride = nvgpu_safe_add_u32(
+					gr_cwd_gpc_tpc_id_gpc0_s(),
+					gr_cwd_gpc_tpc_id_tpc0_s());
 
 		for (j = 0U; j < 4U; j++) {
-			u32 sm_id = (i * 4U) + j;
+			u32 sm_id = nvgpu_safe_add_u32(
+					nvgpu_safe_mult_u32(i, 4U), j);
 			u32 bits;
 			struct nvgpu_sm_info *sm_info;
 
@@ -227,10 +237,11 @@ int gm20b_gr_init_sm_id_config(struct gk20a *g, u32 *tpc_sm_id,
 
 			bits = gr_cwd_gpc_tpc_id_gpc0_f(gpc_index) |
 			       gr_cwd_gpc_tpc_id_tpc0_f(tpc_index);
-			reg |= bits << (j * bit_stride);
+			reg |= bits << nvgpu_safe_mult_u32(j, bit_stride);
 
 			tpc_sm_id[gpc_index] |=
-					(sm_id << tpc_index * bit_stride);
+				(sm_id <<
+				nvgpu_safe_mult_u32(tpc_index, bit_stride));
 		}
 		nvgpu_writel(g, gr_cwd_gpc_tpc_id_r(i), reg);
 	}
@@ -555,7 +566,7 @@ int gm20b_gr_init_wait_idle(struct gk20a *g)
 			return 0;
 		}
 
-		nvgpu_usleep_range(delay, delay * 2U);
+		nvgpu_usleep_range(delay, nvgpu_safe_mult_u32(delay, 2U));
 		delay = min_t(u32, delay << 1, POLL_DELAY_MAX_US);
 
 	} while (nvgpu_timeout_expired(&timeout) == 0);
@@ -593,7 +604,7 @@ int gm20b_gr_init_wait_fe_idle(struct gk20a *g)
 			return 0;
 		}
 
-		nvgpu_usleep_range(delay, delay * 2U);
+		nvgpu_usleep_range(delay, nvgpu_safe_mult_u32(delay, 2U));
 		delay = min_t(u32, delay << 1, POLL_DELAY_MAX_US);
 	} while (nvgpu_timeout_expired(&timeout) == 0);
 
@@ -831,14 +842,16 @@ u32 gm20b_gr_init_get_alpha_cb_default_size(struct gk20a *g)
 
 u32 gm20b_gr_init_get_attrib_cb_size(struct gk20a *g, u32 tpc_count)
 {
-	return g->ops.gr.init.get_attrib_cb_default_size(g)
-		+ (g->ops.gr.init.get_attrib_cb_default_size(g) >> 1);
+	return nvgpu_safe_add_u32(
+		g->ops.gr.init.get_attrib_cb_default_size(g),
+		(g->ops.gr.init.get_attrib_cb_default_size(g) >> 1));
 }
 
 u32 gm20b_gr_init_get_alpha_cb_size(struct gk20a *g, u32 tpc_count)
 {
-	return g->ops.gr.init.get_alpha_cb_default_size(g)
-		+ (g->ops.gr.init.get_alpha_cb_default_size(g) >> 1);
+	return nvgpu_safe_add_u32(
+		g->ops.gr.init.get_alpha_cb_default_size(g),
+		(g->ops.gr.init.get_alpha_cb_default_size(g) >> 1));
 }
 
 u32 gm20b_gr_init_get_global_attr_cb_size(struct gk20a *g, u32 tpc_count,
@@ -846,25 +859,33 @@ u32 gm20b_gr_init_get_global_attr_cb_size(struct gk20a *g, u32 tpc_count,
 {
 	u32 size;
 
-	size = g->ops.gr.init.get_attrib_cb_size(g, tpc_count) *
-		gr_gpc0_ppc0_cbm_beta_cb_size_v_granularity_v() * max_tpc;
+	size = nvgpu_safe_mult_u32(
+		g->ops.gr.init.get_attrib_cb_size(g, tpc_count),
+		nvgpu_safe_mult_u32(
+			gr_gpc0_ppc0_cbm_beta_cb_size_v_granularity_v(),
+			max_tpc));
 
-	size += g->ops.gr.init.get_alpha_cb_size(g, tpc_count) *
-		gr_gpc0_ppc0_cbm_alpha_cb_size_v_granularity_v() * max_tpc;
+	size += nvgpu_safe_mult_u32(
+		g->ops.gr.init.get_alpha_cb_size(g, tpc_count),
+		nvgpu_safe_mult_u32(
+			gr_gpc0_ppc0_cbm_alpha_cb_size_v_granularity_v(),
+			max_tpc));
 
 	return size;
 }
 
 u32 gm20b_gr_init_get_global_ctx_cb_buffer_size(struct gk20a *g)
 {
-	return g->ops.gr.init.get_bundle_cb_default_size(g) *
-		gr_scc_bundle_cb_size_div_256b_byte_granularity_v();
+	return nvgpu_safe_mult_u32(
+		g->ops.gr.init.get_bundle_cb_default_size(g),
+		gr_scc_bundle_cb_size_div_256b_byte_granularity_v());
 }
 
 u32 gm20b_gr_init_get_global_ctx_pagepool_buffer_size(struct gk20a *g)
 {
-	return g->ops.gr.init.pagepool_default_size(g) *
-		gr_scc_pagepool_total_pages_byte_granularity_v();
+	return nvgpu_safe_mult_u32(
+		g->ops.gr.init.pagepool_default_size(g),
+		gr_scc_pagepool_total_pages_byte_granularity_v());
 }
 
 void gm20b_gr_init_commit_global_bundle_cb(struct gk20a *g,
@@ -896,7 +917,8 @@ void gm20b_gr_init_commit_global_bundle_cb(struct gk20a *g,
 		gr_gpcs_swdx_bundle_cb_size_valid_true_f(), patch);
 
 	/* data for state_limit */
-	data = (g->ops.gr.init.get_bundle_cb_default_size(g) *
+	data = nvgpu_safe_mult_u32(
+		g->ops.gr.init.get_bundle_cb_default_size(g),
 		gr_scc_bundle_cb_size_div_256b_byte_granularity_v()) /
 		gr_pd_ab_dist_cfg2_state_limit_scc_bundle_granularity_v();
 
@@ -937,7 +959,7 @@ void gm20b_gr_init_commit_global_pagepool(struct gk20a *g,
 		addr, size);
 
 	pp_addr = (u32)addr;
-	pp_size = (u32)size;
+	pp_size = nvgpu_safe_cast_u64_to_u32(size);
 	nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_scc_pagepool_base_r(),
 		gr_scc_pagepool_base_addr_39_8_f(pp_addr), patch);
 
@@ -1011,7 +1033,7 @@ void gm20b_gr_init_commit_global_cb_manager(struct gk20a *g,
 		gr_ds_tga_constraintlogic_alpha_cbsize_f(alpha_cb_default_size),
 		patch);
 
-	pd_ab_max_output = (alpha_cb_default_size *
+	pd_ab_max_output = nvgpu_safe_mult_u32(alpha_cb_default_size,
 		gr_gpc0_ppc0_cbm_beta_cb_size_v_granularity_v()) /
 		gr_pd_ab_dist_cfg1_max_output_granularity_v();
 
@@ -1019,55 +1041,70 @@ void gm20b_gr_init_commit_global_cb_manager(struct gk20a *g,
 		gr_pd_ab_dist_cfg1_max_output_f(pd_ab_max_output) |
 		gr_pd_ab_dist_cfg1_max_batches_init_f(), patch);
 
-	alpha_offset_in_chunk = attrib_offset_in_chunk +
-		nvgpu_gr_config_get_tpc_count(config) * attrib_cb_size;
+	alpha_offset_in_chunk =
+		nvgpu_safe_add_u32(attrib_offset_in_chunk,
+			nvgpu_safe_mult_u32(
+				nvgpu_gr_config_get_tpc_count(config),
+				attrib_cb_size));
 
 	for (gpc_index = 0;
 	     gpc_index < nvgpu_gr_config_get_gpc_count(config);
 	     gpc_index++) {
-		u32 temp = gpc_stride * gpc_index;
-		u32 temp2 = num_pes_per_gpc * gpc_index;
+		u32 temp = nvgpu_safe_mult_u32(gpc_stride, gpc_index);
+		u32 temp2 = nvgpu_safe_mult_u32(num_pes_per_gpc, gpc_index);
 		for (ppc_index = 0;
 		     ppc_index < nvgpu_gr_config_get_gpc_ppc_count(config,
 		     gpc_index);
 		     ppc_index++) {
-			cbm_cfg_size1 = attrib_cb_default_size *
+			u32 pes_tpc_count =
 				nvgpu_gr_config_get_pes_tpc_count(config,
 					gpc_index, ppc_index);
-			cbm_cfg_size2 = alpha_cb_default_size *
-				nvgpu_gr_config_get_pes_tpc_count(config,
-					gpc_index, ppc_index);
+			u32 ppc_posn = nvgpu_safe_mult_u32(ppc_in_gpc_stride,
+							ppc_index);
+			u32 sum_temp_pcc = nvgpu_safe_add_u32(temp, ppc_posn);
+
+			cbm_cfg_size1 =
+				nvgpu_safe_mult_u32(attrib_cb_default_size,
+							pes_tpc_count);
+			cbm_cfg_size2 =
+				nvgpu_safe_mult_u32(alpha_cb_default_size,
+							pes_tpc_count);
 
 			nvgpu_gr_ctx_patch_write(g, gr_ctx,
-				gr_gpc0_ppc0_cbm_beta_cb_size_r() + temp +
-				ppc_in_gpc_stride * ppc_index,
+				nvgpu_safe_add_u32(
+					gr_gpc0_ppc0_cbm_beta_cb_size_r(),
+					sum_temp_pcc),
 				cbm_cfg_size1, patch);
 
 			nvgpu_gr_ctx_patch_write(g, gr_ctx,
-				gr_gpc0_ppc0_cbm_beta_cb_offset_r() + temp +
-				ppc_in_gpc_stride * ppc_index,
+				nvgpu_safe_add_u32(
+					gr_gpc0_ppc0_cbm_beta_cb_offset_r(),
+					sum_temp_pcc),
 				attrib_offset_in_chunk, patch);
 
-			attrib_offset_in_chunk += attrib_cb_size *
-				nvgpu_gr_config_get_pes_tpc_count(config,
-					gpc_index, ppc_index);
+			attrib_offset_in_chunk +=
+				nvgpu_safe_mult_u32(attrib_cb_size,
+						pes_tpc_count);
 
 			nvgpu_gr_ctx_patch_write(g, gr_ctx,
-				gr_gpc0_ppc0_cbm_alpha_cb_size_r() + temp +
-				ppc_in_gpc_stride * ppc_index,
+				nvgpu_safe_add_u32(
+					gr_gpc0_ppc0_cbm_alpha_cb_size_r(),
+					sum_temp_pcc),
 				cbm_cfg_size2, patch);
 
 			nvgpu_gr_ctx_patch_write(g, gr_ctx,
-				gr_gpc0_ppc0_cbm_alpha_cb_offset_r() + temp +
-				ppc_in_gpc_stride * ppc_index,
+				nvgpu_safe_add_u32(
+					gr_gpc0_ppc0_cbm_alpha_cb_offset_r(),
+					sum_temp_pcc),
 				alpha_offset_in_chunk, patch);
 
-			alpha_offset_in_chunk += alpha_cb_size *
-				nvgpu_gr_config_get_pes_tpc_count(config,
-					gpc_index, ppc_index);
+			alpha_offset_in_chunk +=
+				nvgpu_safe_mult_u32(alpha_cb_size,
+						pes_tpc_count);
 
 			nvgpu_gr_ctx_patch_write(g, gr_ctx,
-				gr_gpcs_swdx_tc_beta_cb_size_r(ppc_index + temp2),
+				gr_gpcs_swdx_tc_beta_cb_size_r(
+					nvgpu_safe_add_u32(ppc_index, temp2)),
 				gr_gpcs_swdx_tc_beta_cb_size_v_f(cbm_cfg_size1) |
 				gr_gpcs_swdx_tc_beta_cb_size_div3_f(cbm_cfg_size1/3U),
 				patch);

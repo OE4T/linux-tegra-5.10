@@ -23,6 +23,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/soc.h>
 #include <nvgpu/io.h>
+#include <nvgpu/safe_ops.h>
 #include <nvgpu/netlist.h>
 #include <nvgpu/gr/ctx.h>
 
@@ -33,9 +34,11 @@
 
 u32 tu104_gr_init_get_rtv_cb_size(struct gk20a *g)
 {
-	return (gr_scc_rm_rtv_cb_size_div_256b_default_f() +
-			gr_scc_rm_rtv_cb_size_div_256b_db_adder_f()) *
-		gr_scc_bundle_cb_size_div_256b_byte_granularity_v();
+	return nvgpu_safe_mult_u32(
+		nvgpu_safe_add_u32(
+			gr_scc_rm_rtv_cb_size_div_256b_default_f(),
+			gr_scc_rm_rtv_cb_size_div_256b_db_adder_f()),
+		gr_scc_bundle_cb_size_div_256b_byte_granularity_v());
 }
 
 static void tu104_gr_init_patch_rtv_cb(struct gk20a *g,
@@ -56,7 +59,8 @@ static void tu104_gr_init_patch_rtv_cb(struct gk20a *g,
 void tu104_gr_init_commit_rtv_cb(struct gk20a *g, u64 addr,
 	struct nvgpu_gr_ctx *gr_ctx, bool patch)
 {
-	u32 size = (gr_scc_rm_rtv_cb_size_div_256b_default_f() +
+	u32 size = nvgpu_safe_add_u32(
+			gr_scc_rm_rtv_cb_size_div_256b_default_f(),
 			gr_scc_rm_rtv_cb_size_div_256b_db_adder_f());
 
 	addr = addr >> gr_scc_rm_rtv_cb_base_addr_39_8_align_bits_f();
@@ -75,9 +79,10 @@ void tu104_gr_init_commit_gfxp_rtv_cb(struct gk20a *g,
 
 	nvgpu_log_fn(g, " ");
 
-	rtv_cb_size =
-		(gr_scc_rm_rtv_cb_size_div_256b_default_f() +
-		gr_scc_rm_rtv_cb_size_div_256b_db_adder_f() +
+	rtv_cb_size = nvgpu_safe_add_u32(
+		nvgpu_safe_add_u32(
+			gr_scc_rm_rtv_cb_size_div_256b_default_f(),
+			gr_scc_rm_rtv_cb_size_div_256b_db_adder_f()),
 		gr_scc_rm_rtv_cb_size_div_256b_gfxp_adder_f());
 	gfxp_addr_size = gr_scc_rm_rtv_cb_size_div_256b_gfxp_adder_f();
 
@@ -168,22 +173,28 @@ int tu104_gr_init_load_sw_bundle64(struct gk20a *g,
 
 u32 tu104_gr_init_get_ctx_spill_size(struct gk20a *g)
 {
-	return  gr_gpc0_swdx_rm_spill_buffer_size_256b_default_v() *
-		gr_gpc0_swdx_rm_spill_buffer_size_256b_byte_granularity_v();
+	return  nvgpu_safe_mult_u32(
+		gr_gpc0_swdx_rm_spill_buffer_size_256b_default_v(),
+		gr_gpc0_swdx_rm_spill_buffer_size_256b_byte_granularity_v());
 }
 
 u32 tu104_gr_init_get_ctx_betacb_size(struct gk20a *g)
 {
-	return g->ops.gr.init.get_attrib_cb_default_size(g) +
-		(gr_gpc0_ppc0_cbm_beta_cb_size_v_gfxp_v() -
-		 gr_gpc0_ppc0_cbm_beta_cb_size_v_default_v());
+	return nvgpu_safe_add_u32(
+		g->ops.gr.init.get_attrib_cb_default_size(g),
+		nvgpu_safe_sub_u32(
+			gr_gpc0_ppc0_cbm_beta_cb_size_v_gfxp_v(),
+			gr_gpc0_ppc0_cbm_beta_cb_size_v_default_v()));
 }
 
 u32 tu104_gr_init_get_gfxp_rtv_cb_size(struct gk20a *g)
 {
-	return (gr_scc_rm_rtv_cb_size_div_256b_default_f() +
-		gr_scc_rm_rtv_cb_size_div_256b_db_adder_f() +
-		gr_scc_rm_rtv_cb_size_div_256b_gfxp_adder_f()) *
-		gr_scc_rm_rtv_cb_size_div_256b_byte_granularity_v();
+	return nvgpu_safe_mult_u32(
+		nvgpu_safe_add_u32(
+			nvgpu_safe_add_u32(
+				gr_scc_rm_rtv_cb_size_div_256b_default_f(),
+				gr_scc_rm_rtv_cb_size_div_256b_db_adder_f()),
+			gr_scc_rm_rtv_cb_size_div_256b_gfxp_adder_f()),
+		gr_scc_rm_rtv_cb_size_div_256b_byte_granularity_v());
 }
 
