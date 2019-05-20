@@ -31,6 +31,7 @@
 #include <nvgpu/tsg.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/fifo/userd.h>
+#include <nvgpu/runlist.h>
 #include <nvgpu/fuse.h>
 #include <nvgpu/dma.h>
 #include <nvgpu/gr/ctx.h>
@@ -107,6 +108,40 @@ static char *branches_str(u32 branches, const char *labels[])
 	memset(buf, 0, sizeof(buf));
 	branches_strn(buf, sizeof(buf), labels, branches);
 	return buf;
+}
+
+/*
+ * If taken, some branches are final, e.g. the function exits.
+ * There is no need to test subsequent branches combinations,
+ * if one final branch is taken.
+ *
+ * We want to skip the subtest if:
+ * - it has at least one final branch
+ * - it is supposed to test some branches after this final branch
+ *
+ * Parameters:
+ * branches		bitmask of branches to be taken for one subtest
+ * final_branches	bitmask of final branches
+ *
+ * Note: the assumption is that branches are numbered in their
+ * order of appearance in the function to be tested.
+ */
+static bool pruned(u32 branches, u32 final_branches)
+{
+	u32 match = branches & final_branches;
+	int bit;
+
+	/* Does the subtest have one final branch ? */
+	if (match == 0U) {
+		return false;
+	}
+	bit = ffs(match) - 1;
+
+	/*
+	 * Skip the test if it attempts to test some branches
+	 * after this final branch.
+	 */
+	return (branches > BIT(bit));
 }
 
 /* test implementations of some hals */
@@ -249,6 +284,292 @@ done:
 	return rc;
 }
 
+#define F_TSG_BIND_CHANNEL_CH_BOUND		BIT(0)
+#define F_TSG_BIND_CHANNEL_RL_MISMATCH		BIT(1)
+#define F_TSG_BIND_CHANNEL_ACTIVE		BIT(2)
+#define F_TSG_BIND_CHANNEL_BIND_HAL		BIT(3)
+#define F_TSG_BIND_CHANNEL_ENG_METHOD_BUFFER	BIT(3)
+#define F_TSG_BIND_CHANNEL_LAST			BIT(4)
+
+static const char const *f_tsg_bind[] = {
+	"ch_bound",
+	"rl_mismatch",
+	"active",
+	"bind_hal",
+	"eng_method_buffer",
+};
+
+static int test_tsg_bind_channel(struct unit_module *m,
+		struct gk20a *g, void *args)
+{
+	struct nvgpu_fifo *f = &g->fifo;
+	struct gpu_ops gops = g->ops;
+	struct nvgpu_tsg *tsg, tsg_save;
+	struct nvgpu_channel *chA, *chB, *ch;
+	struct nvgpu_runlist_info *runlist;
+	u32 branches;
+	int rc = UNIT_FAIL;
+	int err;
+	u32 prune = F_TSG_BIND_CHANNEL_CH_BOUND |
+		    F_TSG_BIND_CHANNEL_RL_MISMATCH |
+		    F_TSG_BIND_CHANNEL_ACTIVE;
+
+	tsg = nvgpu_tsg_open(g, getpid());
+	chA = gk20a_open_new_channel(g, ~0U, false, getpid(), getpid());
+	chB = gk20a_open_new_channel(g, ~0U, false, getpid(), getpid());
+
+	if ((tsg == NULL) || (chA == NULL) || (chB == NULL)) {
+		goto done;
+	}
+
+	if (nvgpu_tsg_bind_channel(tsg, chA) != 0) {
+		unit_err(m, "%s failed to bind chA", __func__);
+		goto done;
+	}
+
+	tsg_save = *tsg;
+
+	for (branches = 0U; branches < F_TSG_BIND_CHANNEL_LAST; branches++) {
+
+		if (pruned(branches, prune)) {
+			unit_verbose(m, "%s branches=%s (pruned)\n", __func__,
+				branches_str(branches, f_tsg_bind));
+			continue;
+		}
+		reset_stub_rc();
+		ch = chB;
+
+		/* ch already bound */
+		if (branches & F_TSG_BIND_CHANNEL_CH_BOUND) {
+			ch = chA;
+		}
+
+		/* runlist id mismatch */
+		tsg->runlist_id =
+			branches & F_TSG_BIND_CHANNEL_RL_MISMATCH ?
+			ch->runlist_id + 1 : tsg_save.runlist_id;
+
+		/* ch already already active */
+		runlist = &f->active_runlist_info[tsg->runlist_id];
+		if (branches & F_TSG_BIND_CHANNEL_ACTIVE) {
+			set_bit((int)ch->chid, runlist->active_channels);
+		} else {
+			clear_bit((int)ch->chid, runlist->active_channels);
+		}
+
+		g->ops.tsg.bind_channel =
+			branches & F_TSG_BIND_CHANNEL_BIND_HAL ?
+			gops.tsg.bind_channel : NULL;
+
+		g->ops.tsg.bind_channel_eng_method_buffers =
+			branches & F_TSG_BIND_CHANNEL_ENG_METHOD_BUFFER ?
+			gops.tsg.bind_channel_eng_method_buffers : NULL;
+
+		unit_verbose(m, "%s branches=%s\n", __func__,
+			branches_str(branches, f_tsg_bind));
+
+		err = nvgpu_tsg_bind_channel(tsg, ch);
+
+		if (branches & (F_TSG_BIND_CHANNEL_CH_BOUND|
+				F_TSG_BIND_CHANNEL_RL_MISMATCH|
+				F_TSG_BIND_CHANNEL_ACTIVE)) {
+			if (err == 0) {
+				goto done;
+			}
+		} else {
+			if (err != 0) {
+				goto done;
+			}
+
+			if (nvgpu_list_empty(&tsg->ch_list)) {
+				goto done;
+			}
+
+			err = nvgpu_tsg_unbind_channel(tsg, ch);
+			if (err != 0 || ch->tsgid != NVGPU_INVALID_TSG_ID) {
+				unit_err(m, "%s failed to unbind", __func__);
+				goto done;
+			}
+		}
+	}
+
+	rc = UNIT_SUCCESS;
+
+done:
+	if (rc != UNIT_SUCCESS) {
+		unit_err(m, "%s branches=%s\n", __func__,
+			branches_str(branches, f_tsg_bind));
+	}
+
+	if (chA != NULL) {
+		nvgpu_channel_close(chA);
+	}
+	if (chB != NULL) {
+		nvgpu_channel_close(chB);
+	}
+	if (tsg != NULL) {
+		nvgpu_ref_put(&tsg->refcount, nvgpu_tsg_release);
+	}
+	g->ops = gops;
+	return rc;
+}
+
+#define F_TSG_UNBIND_CHANNEL_UNSERVICEABLE		BIT(0)
+#define F_TSG_UNBIND_CHANNEL_PREEMPT_TSG_FAIL		BIT(1)
+#define F_TSG_UNBIND_CHANNEL_CHECK_HW_STATE_FAIL	BIT(2)
+#define F_TSG_UNBIND_CHANNEL_RUNLIST_UPDATE_FAIL	BIT(3)
+#define F_TSG_UNBIND_CHANNEL_UNBIND_HAL			BIT(4)
+#define F_TSG_UNBIND_CHANNEL_LAST			BIT(5)
+
+static const char const *f_tsg_unbind[] = {
+	"ch_timedout",
+	"preempt_tsg_fail",
+	"check_hw_state_fail",
+	"runlist_update_fail"
+};
+
+static int stub_fifo_preempt_tsg_EINVAL(
+		struct gk20a *g, struct nvgpu_tsg *tsg)
+{
+	return -EINVAL;
+}
+
+static int stub_tsg_unbind_channel_check_hw_state_EINVAL(
+		struct nvgpu_tsg *tsg, struct nvgpu_channel *ch)
+{
+	return -EINVAL;
+}
+
+static int stub_tsg_unbind_channel(struct nvgpu_tsg *tsg,
+		struct nvgpu_channel *ch)
+{
+	if (ch->tsgid != tsg->tsgid) {
+		return -EINVAL;
+	}
+
+	return 0;
+}
+
+static int stub_runlist_update_for_channel_EINVAL(
+		struct gk20a *g, u32 runlist_id,
+		struct nvgpu_channel *ch, bool add, bool wait_for_finish)
+{
+	return -EINVAL;
+}
+
+static int test_tsg_unbind_channel(struct unit_module *m,
+		struct gk20a *g, void *args)
+{
+	struct gpu_ops gops = g->ops;
+	struct nvgpu_tsg *tsg;
+	struct nvgpu_channel *chA, *chB;
+	u32 f, branches;
+	int rc = UNIT_FAIL;
+	u32 prune = F_TSG_UNBIND_CHANNEL_PREEMPT_TSG_FAIL;
+
+	for (f = 0U; f < F_TSG_BIND_CHANNEL_LAST; f++) {
+
+		reset_stub_rc();
+
+		branches = f;
+
+		if (pruned(branches, prune) ||
+			/* hw_state is not checked if ch is unserviceable */
+			(branches & F_TSG_UNBIND_CHANNEL_UNSERVICEABLE &&
+			 branches & F_TSG_UNBIND_CHANNEL_CHECK_HW_STATE_FAIL)) {
+			unit_verbose(m, "%s branches=%s (pruned)\n", __func__,
+				branches_str(branches, f_tsg_unbind));
+			continue;
+		}
+
+		/*
+		 * tsg unbind tears down TSG in case of failure:
+		 * we need to create tsg + bind channel for each test
+		 */
+		tsg = nvgpu_tsg_open(g, getpid());
+		chA = gk20a_open_new_channel(g, ~0U, false, getpid(), getpid());
+		chB = gk20a_open_new_channel(g, ~0U, false, getpid(), getpid());
+		if (tsg == NULL || chA == NULL || chB == NULL) {
+			goto done;
+		}
+
+		if (nvgpu_tsg_bind_channel(tsg, chA) != 0 ||
+			nvgpu_tsg_bind_channel(tsg, chB) != 0) {
+			goto done;
+		}
+
+		chA->unserviceable =
+			branches & F_TSG_UNBIND_CHANNEL_UNSERVICEABLE ?
+			true : false;
+
+		g->ops.fifo.preempt_tsg =
+			branches & F_TSG_UNBIND_CHANNEL_PREEMPT_TSG_FAIL ?
+			stub_fifo_preempt_tsg_EINVAL :
+			gops.fifo.preempt_tsg;
+
+		g->ops.tsg.unbind_channel_check_hw_state =
+			branches & F_TSG_UNBIND_CHANNEL_CHECK_HW_STATE_FAIL ?
+			stub_tsg_unbind_channel_check_hw_state_EINVAL :
+			gops.tsg.unbind_channel_check_hw_state;
+
+		g->ops.runlist.update_for_channel =
+			branches & F_TSG_UNBIND_CHANNEL_RUNLIST_UPDATE_FAIL ?
+			stub_runlist_update_for_channel_EINVAL :
+			gops.runlist.update_for_channel;
+
+		g->ops.tsg.unbind_channel =
+			branches & F_TSG_UNBIND_CHANNEL_UNBIND_HAL ?
+			stub_tsg_unbind_channel : NULL;
+
+		unit_verbose(m, "%s branches=%s\n", __func__,
+			branches_str(branches, f_tsg_unbind));
+
+		(void) nvgpu_tsg_unbind_channel(tsg, chA);
+
+		if (branches & (F_TSG_UNBIND_CHANNEL_PREEMPT_TSG_FAIL|
+				F_TSG_UNBIND_CHANNEL_CHECK_HW_STATE_FAIL|
+				F_TSG_UNBIND_CHANNEL_RUNLIST_UPDATE_FAIL)) {
+			/* check that TSG has been torn down */
+			if (!chA->unserviceable || !chB->unserviceable ||
+					chA->tsgid != NVGPU_INVALID_TSG_ID) {
+				goto done;
+			}
+		} else {
+			/* check that TSG has not been torn down */
+			if (chB->unserviceable ||
+				nvgpu_list_empty(&tsg->ch_list)) {
+				goto done;
+			}
+		}
+
+		nvgpu_channel_close(chA);
+		nvgpu_channel_close(chB);
+		nvgpu_ref_put(&tsg->refcount, nvgpu_tsg_release);
+		chA = NULL;
+		chB = NULL;
+		tsg = NULL;
+	}
+
+	rc = UNIT_SUCCESS;
+
+done:
+	if (rc == UNIT_FAIL) {
+		unit_err(m, "%s branches=%s\n", __func__,
+			branches_str(branches, f_tsg_unbind));
+	}
+	if (chA != NULL) {
+		nvgpu_channel_close(chA);
+	}
+	if (chB != NULL) {
+		nvgpu_channel_close(chB);
+	}
+	if (tsg != NULL) {
+		nvgpu_ref_put(&tsg->refcount, nvgpu_tsg_release);
+	}
+	g->ops = gops;
+	return rc;
+}
+
 #define F_TSG_RELEASE_GR_CTX		BIT(0)
 #define F_TSG_RELEASE_MEM		BIT(1)
 #define F_TSG_RELEASE_VM		BIT(2)
@@ -296,13 +617,13 @@ static int test_tsg_release(struct unit_module *m,
 
 	for (branches = 0U; branches < F_TSG_RELEASE_LAST; branches++) {
 
-		reset_stub_rc();
 		if (!(branches & F_TSG_RELEASE_GR_CTX) &&
 				(branches & F_TSG_RELEASE_MEM)) {
 			unit_verbose(m, "%s branches=%s (pruned)\n", __func__,
 				branches_str(branches, f_tsg_release));
 			continue;
 		}
+		reset_stub_rc();
 		unit_verbose(m, "%s branches=%s\n", __func__,
 			branches_str(branches, f_tsg_release));
 
@@ -404,7 +725,6 @@ done:
 		unit_err(m, "%s branches=%s\n", __func__,
 			branches_str(branches, f_tsg_release));
 	}
-
 	g->ops = gops;
 	return rc;
 }
@@ -425,10 +745,39 @@ static int test_fifo_remove_support(struct unit_module *m,
 	return UNIT_SUCCESS;
 }
 
+static int test_tsg_check_and_get_from_id(struct unit_module *m,
+		struct gk20a *g, void *args)
+{
+	struct nvgpu_tsg *tsg;
+	int rc = UNIT_FAIL;
+
+	tsg = nvgpu_tsg_check_and_get_from_id(g, NVGPU_INVALID_TSG_ID);
+	if (tsg != NULL) {
+		goto done;
+	}
+
+	tsg = nvgpu_tsg_open(g, getpid());
+	if (tsg == NULL) {
+		goto done;
+	}
+
+	if (nvgpu_tsg_check_and_get_from_id(g, tsg->tsgid) != tsg) {
+		goto done;
+	}
+	nvgpu_ref_put(&tsg->refcount, nvgpu_tsg_release);
+
+	rc = UNIT_SUCCESS;
+done:
+	return rc;
+}
+
 struct unit_module_test nvgpu_tsg_tests[] = {
 	UNIT_TEST(init_support, test_fifo_init_support, &test_args, 0),
 	UNIT_TEST(open, test_tsg_open, &test_args, 0),
 	UNIT_TEST(release, test_tsg_release, &test_args, 0),
+	UNIT_TEST(get_from_id, test_tsg_check_and_get_from_id, &test_args, 0),
+	UNIT_TEST(bind_channel, test_tsg_bind_channel, &test_args, 0),
+	UNIT_TEST(unbind_channel, test_tsg_unbind_channel, &test_args, 0),
 	UNIT_TEST(remove_support, test_fifo_remove_support, &test_args, 0),
 };
 
