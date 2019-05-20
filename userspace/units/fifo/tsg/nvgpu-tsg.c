@@ -30,6 +30,7 @@
 #include <nvgpu/channel.h>
 #include <nvgpu/tsg.h>
 #include <nvgpu/gk20a.h>
+#include <nvgpu/fifo/userd.h>
 
 #include "hal/fifo/tsg_gk20a.h"
 
@@ -51,6 +52,24 @@ static u32 test_gv11b_gr_init_get_no_of_sm(struct gk20a *g)
 {
 	return 8;
 }
+
+#ifdef NVGPU_USERD
+static int stub_userd_setup_sw(struct gk20a *g)
+{
+	struct nvgpu_fifo *f = &g->fifo;
+	int err;
+
+	f->userd_entry_size = g->ops.userd.entry_size(g);
+
+	err = nvgpu_userd_init_slabs(g);
+	if (err != 0) {
+		nvgpu_err(g, "failed to init userd support");
+		return err;
+	}
+
+	return 0;
+}
+#endif
 
 static int test_fifo_init_support(struct unit_module *m,
 		struct gk20a *g, void *args)
@@ -75,6 +94,15 @@ static int test_fifo_init_support(struct unit_module *m,
 	gv11b_init_hal(g);
 	g->ops.fifo.init_fifo_setup_hw = NULL;
 	nvgpu_set_enabled(g, NVGPU_IS_FMODEL, false);
+
+#ifdef NVGPU_USERD
+	/*
+	 * Regular USERD init requires bar1.vm to be initialized
+	 * Use a stub in unit tests, since it will be disabled in
+	 * safety build anyway.
+	 */
+	g->ops.userd.setup_sw = stub_userd_setup_sw;
+#endif
 
 	err = nvgpu_fifo_init_support(g);
 	if (err != 0) {
