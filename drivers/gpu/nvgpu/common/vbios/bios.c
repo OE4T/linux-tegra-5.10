@@ -51,36 +51,35 @@ int nvgpu_bios_parse_rom(struct gk20a *g)
 	unsigned int i;
 
 	while (last == 0U) {
-		struct pci_exp_rom *pci_rom;
-		struct pci_data_struct *pci_data;
-		struct pci_ext_data_struct *pci_ext_data;
+		struct pci_exp_rom pci_rom;
+		struct pci_data_struct pci_data;
+		struct pci_ext_data_struct pci_ext_data;
 
-		pci_rom = (struct pci_exp_rom *)((uintptr_t)g->bios.data +
-				offset);
+		nvgpu_memcpy((u8 *)&pci_rom, (u8 *)(g->bios.data + offset),
+				sizeof(struct pci_exp_rom));
 		nvgpu_log_fn(g, "pci rom sig %04x ptr %04x block %x",
-				pci_rom->sig, pci_rom->pci_data_struct_ptr,
-				pci_rom->size_of_block);
+				pci_rom.sig, pci_rom.pci_data_struct_ptr,
+				pci_rom.size_of_block);
 
-		if (pci_rom->sig != PCI_EXP_ROM_SIG &&
-		    pci_rom->sig != PCI_EXP_ROM_SIG_NV) {
+		if (pci_rom.sig != PCI_EXP_ROM_SIG &&
+		    pci_rom.sig != PCI_EXP_ROM_SIG_NV) {
 			nvgpu_err(g, "invalid VBIOS signature");
 			return -EINVAL;
 		}
 
-		pci_data =
-			(struct pci_data_struct *)
-			((uintptr_t)g->bios.data + offset +
-			 pci_rom->pci_data_struct_ptr);
+		nvgpu_memcpy((u8 *)&pci_data, (u8 *)(g->bios.data + offset +
+				pci_rom.pci_data_struct_ptr),
+				sizeof(struct pci_data_struct));
 		nvgpu_log_fn(g, "pci data sig %08x len %d image len %x type %x last %d max %08x",
-				pci_data->sig, pci_data->pci_data_struct_len,
-				pci_data->image_len, pci_data->code_type,
-				pci_data->last_image,
-				pci_data->max_runtime_image_len);
+				pci_data.sig, pci_data.pci_data_struct_len,
+				pci_data.image_len, pci_data.code_type,
+				pci_data.last_image,
+				pci_data.max_runtime_image_len);
 
 		/* Get Base ROM Size */
-		if (pci_data->code_type ==
+		if (pci_data.code_type ==
 				PCI_DATA_STRUCTURE_CODE_TYPE_VBIOS_BASE) {
-			g->bios.base_rom_size = (u32)pci_data->image_len *
+			g->bios.base_rom_size = (u32)pci_data.image_len *
 						PCI_ROM_IMAGE_BLOCK_SIZE;
 			nvgpu_log_fn(g, "Base ROM Size: %x",
 						g->bios.base_rom_size);
@@ -95,35 +94,36 @@ int nvgpu_bios_parse_rom(struct gk20a *g)
 		 * need to add the UEFI ROM size to offsets within the
 		 * expansion ROM.
 		 */
-		if (pci_data->code_type ==
+		if (pci_data.code_type ==
 				PCI_DATA_STRUCTURE_CODE_TYPE_VBIOS_UEFI) {
 			u32 ext_offset = (offset +
-					  pci_rom->pci_data_struct_ptr +
-					  pci_data->pci_data_struct_len +
+					  pci_rom.pci_data_struct_ptr +
+					  pci_data.pci_data_struct_len +
 					  0xfU) & ~0xfU;
-			pci_ext_data = (struct pci_ext_data_struct *)
-				((uintptr_t)g->bios.data + ext_offset);
+			nvgpu_memcpy((u8 *)&pci_ext_data, (u8 *)(g->bios.data +
+					ext_offset),
+					sizeof(struct pci_ext_data_struct));
 			nvgpu_log_fn(g, "pci ext data sig %08x rev %x len %x sub_image_len %x priv_last %d flags %x",
-					pci_ext_data->sig,
-					pci_ext_data->nv_pci_data_ext_rev,
-					pci_ext_data->nv_pci_data_ext_len,
-					pci_ext_data->sub_image_len,
-					pci_ext_data->priv_last_image,
-					pci_ext_data->flags);
+					pci_ext_data.sig,
+					pci_ext_data.nv_pci_data_ext_rev,
+					pci_ext_data.nv_pci_data_ext_len,
+					pci_ext_data.sub_image_len,
+					pci_ext_data.priv_last_image,
+					pci_ext_data.flags);
 
 			nvgpu_log_fn(g, "expansion rom offset %x",
-					pci_data->image_len *
+					pci_data.image_len *
 						PCI_ROM_IMAGE_BLOCK_SIZE);
 			g->bios.expansion_rom_offset =
-					(u32)pci_data->image_len *
+					(u32)pci_data.image_len *
 						PCI_ROM_IMAGE_BLOCK_SIZE;
-			offset += (u32)pci_ext_data->sub_image_len *
+			offset += (u32)pci_ext_data.sub_image_len *
 						PCI_ROM_IMAGE_BLOCK_SIZE;
-			last = pci_ext_data->priv_last_image;
+			last = pci_ext_data.priv_last_image;
 		} else {
-			offset += (u32)pci_data->image_len *
+			offset += (u32)pci_data.image_len *
 						PCI_ROM_IMAGE_BLOCK_SIZE;
-			last = pci_data->last_image;
+			last = pci_data.last_image;
 		}
 	}
 
