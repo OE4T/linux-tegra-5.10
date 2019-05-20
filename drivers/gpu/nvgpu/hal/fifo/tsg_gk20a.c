@@ -40,7 +40,7 @@ void gk20a_tsg_enable(struct nvgpu_tsg *tsg)
 	 * and then rest of the channels should be enabled
 	 */
 	nvgpu_rwsem_down_read(&tsg->ch_list_lock);
-	nvgpu_list_for_each_entry(ch, &tsg->ch_list, channel_gk20a, ch_entry) {
+	nvgpu_list_for_each_entry(ch, &tsg->ch_list, nvgpu_channel, ch_entry) {
 		struct nvgpu_channel_hw_state hw_state;
 
 		g->ops.channel.read_state(g, ch, &hw_state);
@@ -50,7 +50,7 @@ void gk20a_tsg_enable(struct nvgpu_tsg *tsg)
 		}
 	}
 
-	nvgpu_list_for_each_entry(ch, &tsg->ch_list, channel_gk20a, ch_entry) {
+	nvgpu_list_for_each_entry(ch, &tsg->ch_list, nvgpu_channel, ch_entry) {
 		struct nvgpu_channel_hw_state hw_state;
 
 		g->ops.channel.read_state(g, ch, &hw_state);

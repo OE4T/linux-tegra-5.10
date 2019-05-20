@@ -70,7 +70,7 @@ int nvgpu_vm_bind_channel(struct vm_gk20a *vm, struct nvgpu_channel *ch)
 
 	nvgpu_vm_get(vm);
 	ch->vm = vm;
-	err = channel_gk20a_commit_va(ch);
+	err = nvgpu_channel_commit_va(ch);
 	if (err != 0) {
 		ch->vm = NULL;
 	}

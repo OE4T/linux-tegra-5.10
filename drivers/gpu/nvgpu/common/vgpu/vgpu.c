@@ -132,7 +132,7 @@ static void vgpu_channel_abort_cleanup(struct gk20a *g, u32 chid)
 		return;
 	}
 
-	gk20a_channel_set_unserviceable(ch);
+	nvgpu_channel_set_unserviceable(ch);
 	g->ops.fifo.ch_abort_clean_up(ch);
 	nvgpu_channel_put(ch);
 }

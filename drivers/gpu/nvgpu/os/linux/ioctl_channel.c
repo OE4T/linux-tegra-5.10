@@ -380,7 +380,7 @@ static int gk20a_init_error_notifier(struct nvgpu_channel *ch,
  *
  * NULL is returned if the channel was not found.
  */
-struct nvgpu_channel *gk20a_get_channel_from_file(int fd)
+struct nvgpu_channel *nvgpu_channel_get_from_file(int fd)
 {
 	struct nvgpu_channel *ch;
 	struct channel_priv *priv;
@@ -425,7 +425,7 @@ int gk20a_channel_release(struct inode *inode, struct file *filp)
 
 	trace_gk20a_channel_release(dev_name(dev_from_gk20a(g)));
 
-	gk20a_channel_close(ch);
+	nvgpu_channel_close(ch);
 	gk20a_channel_free_error_notifiers(ch);
 
 	gk20a_idle(g);
@@ -636,7 +636,7 @@ static int gk20a_channel_wait_semaphore(struct nvgpu_channel *ch,
 	int ret = 0;
 
 	/* do not wait if channel has timed out */
-	if (gk20a_channel_check_unserviceable(ch)) {
+	if (nvgpu_channel_check_unserviceable(ch)) {
 		return -ETIMEDOUT;
 	}
 
@@ -658,7 +658,7 @@ static int gk20a_channel_wait_semaphore(struct nvgpu_channel *ch,
 	ret = NVGPU_COND_WAIT_INTERRUPTIBLE(
 			&ch->semaphore_wq,
 			*semaphore == payload ||
-			gk20a_channel_check_unserviceable(ch),
+			nvgpu_channel_check_unserviceable(ch),
 			timeout);
 
 	dma_buf_kunmap(dmabuf, offset >> PAGE_SHIFT, data);
@@ -682,7 +682,7 @@ static int gk20a_channel_wait(struct nvgpu_channel *ch,
 
 	nvgpu_log_fn(g, " ");
 
-	if (gk20a_channel_check_unserviceable(ch)) {
+	if (nvgpu_channel_check_unserviceable(ch)) {
 		return -ETIMEDOUT;
 	}
 
@@ -720,7 +720,7 @@ static int gk20a_channel_wait(struct nvgpu_channel *ch,
 		remain = NVGPU_COND_WAIT_INTERRUPTIBLE(
 				&ch->notifier_wq,
 				notif->status == 0 ||
-				gk20a_channel_check_unserviceable(ch),
+				nvgpu_channel_check_unserviceable(ch),
 				args->timeout);
 
 		if (remain == 0 && notif->status != 0) {
@@ -789,7 +789,7 @@ static int gk20a_ioctl_channel_submit_gpfifo(
 	profile = nvgpu_profile_acquire(ch->g);
 	nvgpu_profile_snapshot(profile, PROFILE_IOCTL_ENTRY);
 
-	if (gk20a_channel_check_unserviceable(ch)) {
+	if (nvgpu_channel_check_unserviceable(ch)) {
 		return -ETIMEDOUT;
 	}
 
@@ -1278,7 +1278,7 @@ long gk20a_channel_ioctl(struct file *filp,
 	}
 	case NVGPU_IOCTL_CHANNEL_GET_TIMEDOUT:
 		((struct nvgpu_get_param_args *)buf)->value =
-			gk20a_channel_check_unserviceable(ch);
+			nvgpu_channel_check_unserviceable(ch);
 		break;
 	case NVGPU_IOCTL_CHANNEL_ENABLE:
 		err = gk20a_busy(ch->g);

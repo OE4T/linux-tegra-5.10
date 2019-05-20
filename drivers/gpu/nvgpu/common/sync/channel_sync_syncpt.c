@@ -70,7 +70,7 @@ static int channel_sync_syncpt_gen_wait_cmd(struct nvgpu_channel *c,
 		}
 	} else {
 		if (!preallocated) {
-			err = gk20a_channel_alloc_priv_cmdbuf(c,
+			err = nvgpu_channel_alloc_priv_cmdbuf(c,
 				c->g->ops.sync.syncpt.get_wait_cmd_size(),
 				wait_cmd);
 			if (err != 0) {
@@ -150,7 +150,7 @@ static int channel_sync_syncpt_wait_fd(struct nvgpu_channel_sync *s, int fd,
 	}
 
 	wait_cmd_size = c->g->ops.sync.syncpt.get_wait_cmd_size();
-	err = gk20a_channel_alloc_priv_cmdbuf(c,
+	err = nvgpu_channel_alloc_priv_cmdbuf(c,
 		wait_cmd_size * num_fences, wait_cmd);
 	if (err != 0) {
 		nvgpu_err(c->g, "not enough priv cmd buffer space");
@@ -174,7 +174,7 @@ static void channel_sync_syncpt_update(void *priv, int nr_completed)
 {
 	struct nvgpu_channel *ch = priv;
 
-	gk20a_channel_update(ch);
+	nvgpu_channel_update(ch);
 
 	/* note: channel_get() is in channel_sync_syncpt_incr_common() */
 	nvgpu_channel_put(ch);
@@ -194,7 +194,7 @@ static int channel_sync_syncpt_incr_common(struct nvgpu_channel_sync *s,
 	struct nvgpu_channel *c = sp->c;
 	struct nvgpu_os_fence os_fence = {0};
 
-	err = gk20a_channel_alloc_priv_cmdbuf(c,
+	err = nvgpu_channel_alloc_priv_cmdbuf(c,
 			c->g->ops.sync.syncpt.get_incr_cmd_size(wfi_cmd),
 			incr_cmd);
 	if (err != 0) {

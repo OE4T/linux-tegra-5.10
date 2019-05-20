@@ -51,7 +51,7 @@ static int nvgpu_submit_prepare_syncs(struct nvgpu_channel *c,
 	int wait_fence_fd = -1;
 	int err = 0;
 	bool need_wfi = (flags & NVGPU_SUBMIT_FLAGS_SUPPRESS_WFI) == 0U;
-	bool pre_alloc_enabled = channel_gk20a_is_prealloc_enabled(c);
+	bool pre_alloc_enabled = nvgpu_channel_is_prealloc_enabled(c);
 	struct nvgpu_channel_sync_syncpt *sync_syncpt = NULL;
 	bool flag_fence_get = (flags & NVGPU_SUBMIT_FLAGS_FENCE_GET) != 0U;
 	bool flag_sync_fence = (flags & NVGPU_SUBMIT_FLAGS_SYNC_FENCE) != 0U;
@@ -349,7 +349,7 @@ static int nvgpu_submit_channel_gpfifo(struct nvgpu_channel *c,
 		return -ENODEV;
 	}
 
-	if (gk20a_channel_check_unserviceable(c)) {
+	if (nvgpu_channel_check_unserviceable(c)) {
 		return -ETIMEDOUT;
 	}
 
@@ -375,7 +375,7 @@ static int nvgpu_submit_channel_gpfifo(struct nvgpu_channel *c,
 	}
 
 	/* an address space needs to have been bound at this point. */
-	if (!gk20a_channel_as_bound(c)) {
+	if (!nvgpu_channel_as_bound(c)) {
 		nvgpu_err(g,
 			    "not bound to an address space at time of gpfifo"
 			    " submission.");
@@ -418,7 +418,7 @@ static int nvgpu_submit_channel_gpfifo(struct nvgpu_channel *c,
 		 * job tracking is required, the channel must have
 		 * pre-allocated resources. Otherwise, we fail the submit here
 		 */
-		if (c->deterministic && !channel_gk20a_is_prealloc_enabled(c)) {
+		if (c->deterministic && !nvgpu_channel_is_prealloc_enabled(c)) {
 			return -EINVAL;
 		}
 
@@ -460,7 +460,7 @@ static int nvgpu_submit_channel_gpfifo(struct nvgpu_channel *c,
 			/*
 			 * Get a power ref unless this is a deterministic
 			 * channel that holds them during the channel lifetime.
-			 * This one is released by gk20a_channel_clean_up_jobs,
+			 * This one is released by nvgpu_channel_clean_up_jobs,
 			 * via syncpt or sema interrupt, whichever is used.
 			 */
 			err = gk20a_busy(g);
@@ -474,7 +474,7 @@ static int nvgpu_submit_channel_gpfifo(struct nvgpu_channel *c,
 
 		if (!need_deferred_cleanup) {
 			/* clean up a single job */
-			gk20a_channel_clean_up_jobs(c, false);
+			nvgpu_channel_clean_up_jobs(c, false);
 		}
 	}
 
@@ -519,13 +519,13 @@ static int nvgpu_submit_channel_gpfifo(struct nvgpu_channel *c,
 		}
 	}
 
-	if (gk20a_channel_check_unserviceable(c)) {
+	if (nvgpu_channel_check_unserviceable(c)) {
 		err = -ETIMEDOUT;
 		goto clean_up;
 	}
 
 	if (need_job_tracking) {
-		err = channel_gk20a_alloc_job(c, &job);
+		err = nvgpu_gk20a_alloc_job(c, &job);
 		if (err != 0) {
 			goto clean_up;
 		}
@@ -565,7 +565,7 @@ static int nvgpu_submit_channel_gpfifo(struct nvgpu_channel *c,
 	}
 
 	if (need_job_tracking) {
-		err = gk20a_channel_add_job(c, job, skip_buffer_refcounting);
+		err = nvgpu_channel_add_job(c, job, skip_buffer_refcounting);
 		if (err != 0) {
 			goto clean_up_job;
 		}
@@ -595,7 +595,7 @@ static int nvgpu_submit_channel_gpfifo(struct nvgpu_channel *c,
 	return err;
 
 clean_up_job:
-	channel_gk20a_free_job(c, job);
+	nvgpu_channel_free_job(c, job);
 clean_up:
 	nvgpu_log_fn(g, "fail");
 	nvgpu_fence_put(post_fence);

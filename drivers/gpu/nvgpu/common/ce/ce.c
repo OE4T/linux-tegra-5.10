@@ -203,9 +203,9 @@ static void nvgpu_ce_delete_gpu_context_locked(struct nvgpu_ce_gpu_ctx *ce_ctx)
 
 	/*
 	 * free the channel
-	 * gk20a_channel_close() will also unbind the channel from TSG
+	 * nvgpu_channel_close() will also unbind the channel from TSG
 	 */
-	gk20a_channel_close(ce_ctx->ch);
+	nvgpu_channel_close(ce_ctx->ch);
 	nvgpu_ref_put(&ce_ctx->tsg->refcount, nvgpu_tsg_release);
 
 	/* housekeeping on app */

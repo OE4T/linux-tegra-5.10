@@ -42,7 +42,7 @@ void gv11b_tsg_enable(struct nvgpu_tsg *tsg)
 	struct nvgpu_channel *last_ch = NULL;
 
 	nvgpu_rwsem_down_read(&tsg->ch_list_lock);
-	nvgpu_list_for_each_entry(ch, &tsg->ch_list, channel_gk20a, ch_entry) {
+	nvgpu_list_for_each_entry(ch, &tsg->ch_list, nvgpu_channel, ch_entry) {
 		g->ops.channel.enable(ch);
 		last_ch = ch;
 	}

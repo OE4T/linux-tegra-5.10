@@ -160,7 +160,7 @@ struct nvgpu_fence_type *nvgpu_fence_alloc(struct nvgpu_channel *ch)
 {
 	struct nvgpu_fence_type *fence = NULL;
 
-	if (channel_gk20a_is_prealloc_enabled(ch)) {
+	if (nvgpu_channel_is_prealloc_enabled(ch)) {
 		if (nvgpu_alloc_initialized(&ch->fence_allocator)) {
 			fence = (struct nvgpu_fence_type *)(uintptr_t)
 				nvgpu_alloc(&ch->fence_allocator,

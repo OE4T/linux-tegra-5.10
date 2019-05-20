@@ -129,7 +129,7 @@ DECLARE_EVENT_CLASS(gk20a_channel,
 	TP_fast_assign(__entry->channel = channel;),
 	TP_printk("ch id %d", __entry->channel)
 );
-DEFINE_EVENT(gk20a_channel, gk20a_channel_update,
+DEFINE_EVENT(gk20a_channel, nvgpu_channel_update,
 	TP_PROTO(int channel),
 	TP_ARGS(channel)
 );
@@ -633,7 +633,7 @@ DEFINE_EVENT(gk20a_cde, gk20a_cde_finished_ctx_cb,
 #define trace_nvgpu_channel_get(arg...)			((void)(NULL))
 #define trace_nvgpu_channel_put(arg...)			((void)(NULL))
 #define trace_gk20a_open_new_channel(arg...)		((void)(NULL))
-#define trace_gk20a_channel_update(arg...)		((void)(NULL))
+#define trace_nvgpu_channel_update(arg...)		((void)(NULL))
 #define trace_gk20a_channel_reset(arg...)		((void)(NULL))
 
 #define trace_gk20a_mm_fb_flush(arg...)			((void)(NULL))

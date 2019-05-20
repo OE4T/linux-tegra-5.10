@@ -110,13 +110,13 @@ int nvgpu_userd_init_channel(struct gk20a *g, struct nvgpu_channel *c)
 	c->userd_mem = mem;
 	c->userd_offset = (c->chid % f->num_channels_per_slab) *
 				f->userd_entry_size;
-	c->userd_iova = gk20a_channel_userd_addr(c);
+	c->userd_iova = nvgpu_channel_userd_addr(c);
 
 	nvgpu_log(g, gpu_dbg_info,
 		"chid=%u slab=%u mem=%p offset=%u addr=%llx gpu_va=%llx",
 		c->chid, slab, mem, c->userd_offset,
-		gk20a_channel_userd_addr(c),
-		gk20a_channel_userd_gpu_va(c));
+		nvgpu_channel_userd_addr(c),
+		nvgpu_channel_userd_gpu_va(c));
 
 done:
 	nvgpu_mutex_release(&f->userd_mutex);

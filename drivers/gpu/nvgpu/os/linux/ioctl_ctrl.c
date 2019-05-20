@@ -670,7 +670,7 @@ static int nvgpu_gpu_ioctl_set_debug_mode(
 	struct nvgpu_channel *ch;
 	int err;
 
-	ch = gk20a_get_channel_from_file(args->channel_fd);
+	ch = nvgpu_channel_get_from_file(args->channel_fd);
 	if (!ch)
 		return -EINVAL;
 
@@ -1633,7 +1633,7 @@ static int nvgpu_gpu_set_deterministic_opts(struct gk20a *g,
 			break;
 		}
 
-		ch = gk20a_get_channel_from_file(ch_fd);
+		ch = nvgpu_channel_get_from_file(ch_fd);
 		if (!ch) {
 			err = -EINVAL;
 			break;

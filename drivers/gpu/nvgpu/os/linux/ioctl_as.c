@@ -55,16 +55,16 @@ static int gk20a_as_ioctl_bind_channel(
 
 	nvgpu_log_fn(g, " ");
 
-	ch = gk20a_get_channel_from_file(args->channel_fd);
+	ch = nvgpu_channel_get_from_file(args->channel_fd);
 	if (!ch)
 		return -EINVAL;
 
-	if (gk20a_channel_as_bound(ch)) {
+	if (nvgpu_channel_as_bound(ch)) {
 		err = -EINVAL;
 		goto out;
 	}
 
-	/* this will set channel_gk20a->vm */
+	/* this will set nvgpu_channel->vm */
 	err = ch->g->ops.mm.vm_bind_channel(as_share->vm, ch);
 
 out:

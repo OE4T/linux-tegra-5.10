@@ -168,7 +168,7 @@ int gr_gk20a_update_hwpm_ctxsw_mode(struct gk20a *g,
 
 		nvgpu_rwsem_down_read(&tsg->ch_list_lock);
 
-		nvgpu_list_for_each_entry(ch, &tsg->ch_list, channel_gk20a, ch_entry) {
+		nvgpu_list_for_each_entry(ch, &tsg->ch_list, nvgpu_channel, ch_entry) {
 			err = nvgpu_gr_ctx_set_hwpm_mode(g, gr_ctx, false);
 			if (err != 0) {
 				nvgpu_err(g, "chid: %d set_hwpm_mode failed",

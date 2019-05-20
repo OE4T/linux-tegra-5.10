@@ -154,7 +154,7 @@ static int channel_sync_semaphore_wait_fd(
 	}
 
 	wait_cmd_size = c->g->ops.sync.sema.get_wait_cmd_size();
-	err = gk20a_channel_alloc_priv_cmdbuf(c,
+	err = nvgpu_channel_alloc_priv_cmdbuf(c,
 		wait_cmd_size * num_fences, entry);
 	if (err != 0) {
 		nvgpu_err(c->g, "not enough priv cmd buffer space");
@@ -195,7 +195,7 @@ static int channel_sync_semaphore_incr_common(
 	}
 
 	incr_cmd_size = c->g->ops.sync.sema.get_incr_cmd_size();
-	err = gk20a_channel_alloc_priv_cmdbuf(c, incr_cmd_size, incr_cmd);
+	err = nvgpu_channel_alloc_priv_cmdbuf(c, incr_cmd_size, incr_cmd);
 	if (err != 0) {
 		nvgpu_err(c->g,
 				"not enough priv cmd buffer space");

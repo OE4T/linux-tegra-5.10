@@ -247,7 +247,7 @@ struct nvgpu_channel_wdt {
  * These are zeroed when a channel is closed, so a new one starts fresh.
  */
 
-enum channel_gk20a_ref_action_type {
+enum nvgpu_channel_ref_action_type {
 	channel_gk20a_ref_action_get,
 	channel_gk20a_ref_action_put
 };
@@ -257,7 +257,7 @@ enum channel_gk20a_ref_action_type {
 #include <linux/stacktrace.h>
 
 struct nvgpu_channel_ref_action {
-	enum channel_gk20a_ref_action_type type;
+	enum nvgpu_channel_ref_action_type type;
 	s64 timestamp_ms;
 	/*
 	 * Many of these traces will be similar. Simpler to just capture
@@ -383,39 +383,38 @@ struct nvgpu_channel {
 
 	bool is_privileged_channel;
 };
-
 static inline struct nvgpu_channel *
-channel_gk20a_from_free_chs(struct nvgpu_list_node *node)
+nvgpu_channel_from_free_chs(struct nvgpu_list_node *node)
 {
-	return (struct nvgpu_channel *)
-		   ((uintptr_t)node - offsetof(struct nvgpu_channel, free_chs));
+       return (struct nvgpu_channel *)
+                  ((uintptr_t)node - offsetof(struct nvgpu_channel, free_chs));
 };
 
 static inline struct nvgpu_channel *
-channel_gk20a_from_ch_entry(struct nvgpu_list_node *node)
+nvgpu_channel_from_ch_entry(struct nvgpu_list_node *node)
 {
-	return (struct nvgpu_channel *)
-	   ((uintptr_t)node - offsetof(struct nvgpu_channel, ch_entry));
+       return (struct nvgpu_channel *)
+          ((uintptr_t)node - offsetof(struct nvgpu_channel, ch_entry));
 };
 
 static inline struct nvgpu_channel *
-channel_gk20a_from_worker_item(struct nvgpu_list_node *node)
+nvgpu_channel_from_worker_item(struct nvgpu_list_node *node)
 {
 	return (struct nvgpu_channel *)
 	   ((uintptr_t)node - offsetof(struct nvgpu_channel, worker_item));
 };
 
-static inline bool gk20a_channel_as_bound(struct nvgpu_channel *ch)
+static inline bool nvgpu_channel_as_bound(struct nvgpu_channel *ch)
 {
 	return (ch->vm != NULL);
 }
-int channel_gk20a_commit_va(struct nvgpu_channel *c);
-int gk20a_init_channel_support(struct gk20a *g, u32 chid);
+int nvgpu_channel_commit_va(struct nvgpu_channel *c);
+int nvgpu_channel_init_support(struct gk20a *g, u32 chid);
 int nvgpu_channel_setup_sw(struct gk20a *g);
 void nvgpu_channel_cleanup_sw(struct gk20a *g);
 
 /* must be inside gk20a_busy()..gk20a_idle() */
-void gk20a_channel_close(struct nvgpu_channel *ch);
+void nvgpu_channel_close(struct nvgpu_channel *ch);
 void nvgpu_channel_kill(struct nvgpu_channel *ch);
 
 void nvgpu_channel_set_ctx_mmu_error(struct gk20a *g,
@@ -428,10 +427,10 @@ bool nvgpu_channel_update_and_check_ctxsw_timeout(struct nvgpu_channel *ch,
 void nvgpu_channel_recover(struct gk20a *g, struct nvgpu_channel *ch,
 	bool verbose, u32 rc_type);
 
-void gk20a_channel_abort(struct nvgpu_channel *ch, bool channel_preempt);
+void nvgpu_channel_abort(struct nvgpu_channel *ch, bool channel_preempt);
 void nvgpu_channel_abort_clean_up(struct nvgpu_channel *ch);
 void gk20a_channel_semaphore_wakeup(struct gk20a *g, bool post_events);
-int gk20a_channel_alloc_priv_cmdbuf(struct nvgpu_channel *c, u32 orig_size,
+int nvgpu_channel_alloc_priv_cmdbuf(struct nvgpu_channel *c, u32 orig_size,
 			     struct priv_cmd_entry *e);
 void nvgpu_channel_update_priv_cmd_q_and_free_entry(
 	struct nvgpu_channel *ch, struct priv_cmd_entry *e);
@@ -448,8 +447,8 @@ void gk20a_channel_deterministic_unidle(struct gk20a *g);
 int nvgpu_channel_worker_init(struct gk20a *g);
 void nvgpu_channel_worker_deinit(struct gk20a *g);
 
-struct nvgpu_channel *gk20a_get_channel_from_file(int fd);
-void gk20a_channel_update(struct nvgpu_channel *c);
+struct nvgpu_channel *nvgpu_channel_get_from_file(int fd);
+void nvgpu_channel_update(struct nvgpu_channel *c);
 
 /* returns ch if reference was obtained */
 struct nvgpu_channel *__must_check nvgpu_channel_get__func(
@@ -466,8 +465,6 @@ struct nvgpu_channel *__must_check nvgpu_channel_from_id__func(
 #define nvgpu_channel_from_id(g, chid)	\
 	nvgpu_channel_from_id__func(g, chid, __func__)
 
-int gk20a_wait_channel_idle(struct nvgpu_channel *ch);
-
 /* runlist_id -1 is synonym for NVGPU_ENGINE_GR runlist id */
 struct nvgpu_channel *gk20a_open_new_channel(struct gk20a *g,
 		u32 runlist_id,
@@ -479,32 +476,32 @@ int nvgpu_channel_setup_bind(struct nvgpu_channel *c,
 
 void nvgpu_channel_wdt_restart_all_channels(struct gk20a *g);
 
-bool channel_gk20a_is_prealloc_enabled(struct nvgpu_channel *c);
-void channel_gk20a_joblist_lock(struct nvgpu_channel *c);
-void channel_gk20a_joblist_unlock(struct nvgpu_channel *c);
-bool channel_gk20a_joblist_is_empty(struct nvgpu_channel *c);
+bool nvgpu_channel_is_prealloc_enabled(struct nvgpu_channel *c);
+void nvgpu_channel_joblist_lock(struct nvgpu_channel *c);
+void nvgpu_channel_joblist_unlock(struct nvgpu_channel *c);
+bool nvgpu_channel_joblist_is_empty(struct nvgpu_channel *c);
 
-int channel_gk20a_update_runlist(struct nvgpu_channel *c, bool add);
+int nvgpu_channel_update_runlist(struct nvgpu_channel *c, bool add);
 
 void gk20a_wait_until_counter_is_N(
 	struct nvgpu_channel *ch, nvgpu_atomic_t *counter, int wait_value,
 	struct nvgpu_cond *c, const char *caller, const char *counter_name);
-int channel_gk20a_alloc_job(struct nvgpu_channel *c,
+int nvgpu_gk20a_alloc_job(struct nvgpu_channel *c,
 		struct nvgpu_channel_job **job_out);
-void channel_gk20a_free_job(struct nvgpu_channel *c,
+void nvgpu_channel_free_job(struct nvgpu_channel *c,
 		struct nvgpu_channel_job *job);
 u32 nvgpu_channel_update_gpfifo_get_and_get_free_count(
 		struct nvgpu_channel *ch);
 u32 nvgpu_channel_get_gpfifo_free_count(struct nvgpu_channel *ch);
-int gk20a_channel_add_job(struct nvgpu_channel *c,
+int nvgpu_channel_add_job(struct nvgpu_channel *c,
 				 struct nvgpu_channel_job *job,
 				 bool skip_buffer_refcounting);
 void nvgpu_channel_free_priv_cmd_entry(struct nvgpu_channel *c,
 			     struct priv_cmd_entry *e);
-void gk20a_channel_clean_up_jobs(struct nvgpu_channel *c,
+void nvgpu_channel_clean_up_jobs(struct nvgpu_channel *c,
 					bool clean_all);
 
-void gk20a_channel_free_usermode_buffers(struct nvgpu_channel *c);
+void nvgpu_channel_free_usermode_buffers(struct nvgpu_channel *c);
 u32 nvgpu_get_gpfifo_entry_size(void);
 
 int nvgpu_submit_channel_gpfifo_user(struct nvgpu_channel *c,
@@ -530,15 +527,15 @@ static inline void trace_write_pushbuffers(struct nvgpu_channel *c, u32 count)
 }
 #endif
 
-void gk20a_channel_set_unserviceable(struct nvgpu_channel *ch);
-bool gk20a_channel_check_unserviceable(struct nvgpu_channel *ch);
+void nvgpu_channel_set_unserviceable(struct nvgpu_channel *ch);
+bool nvgpu_channel_check_unserviceable(struct nvgpu_channel *ch);
 
-static inline u64 gk20a_channel_userd_addr(struct nvgpu_channel *c)
+static inline u64 nvgpu_channel_userd_addr(struct nvgpu_channel *c)
 {
 	return nvgpu_mem_get_addr(c->g, c->userd_mem) + c->userd_offset;
 }
 
-static inline u64 gk20a_channel_userd_gpu_va(struct nvgpu_channel *c)
+static inline u64 nvgpu_channel_userd_gpu_va(struct nvgpu_channel *c)
 {
 	struct nvgpu_mem *mem = c->userd_mem;
 	return (mem->gpu_va != 0ULL) ? mem->gpu_va + c->userd_offset : 0ULL;

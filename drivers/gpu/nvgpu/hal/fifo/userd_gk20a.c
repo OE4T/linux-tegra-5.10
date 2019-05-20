@@ -52,7 +52,7 @@ void gk20a_userd_init_mem(struct gk20a *g, struct nvgpu_channel *c)
 
 u32 gk20a_userd_gp_get(struct gk20a *g, struct nvgpu_channel *c)
 {
-	u64 userd_gpu_va = gk20a_channel_userd_gpu_va(c);
+	u64 userd_gpu_va = nvgpu_channel_userd_gpu_va(c);
 	u64 addr = userd_gpu_va + sizeof(u32) * ram_userd_gp_get_w();
 
 	BUG_ON(u64_hi32(addr) != 0U);
@@ -62,7 +62,7 @@ u32 gk20a_userd_gp_get(struct gk20a *g, struct nvgpu_channel *c)
 
 u64 gk20a_userd_pb_get(struct gk20a *g, struct nvgpu_channel *c)
 {
-	u64 userd_gpu_va = gk20a_channel_userd_gpu_va(c);
+	u64 userd_gpu_va = nvgpu_channel_userd_gpu_va(c);
 	u64 lo_addr = userd_gpu_va + sizeof(u32) * ram_userd_get_w();
 	u64 hi_addr = userd_gpu_va + sizeof(u32) * ram_userd_get_hi_w();
 	u32 lo, hi;
@@ -76,7 +76,7 @@ u64 gk20a_userd_pb_get(struct gk20a *g, struct nvgpu_channel *c)
 
 void gk20a_userd_gp_put(struct gk20a *g, struct nvgpu_channel *c)
 {
-	u64 userd_gpu_va = gk20a_channel_userd_gpu_va(c);
+	u64 userd_gpu_va = nvgpu_channel_userd_gpu_va(c);
 	u64 addr = userd_gpu_va + sizeof(u32) * ram_userd_gp_put_w();
 
 	BUG_ON(u64_hi32(addr) != 0U);

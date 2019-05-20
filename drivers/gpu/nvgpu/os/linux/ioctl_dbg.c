@@ -518,7 +518,7 @@ static int dbg_bind_channel_gk20a(struct dbg_session_gk20a *dbg_s,
 		   g->name, args->channel_fd);
 
 	/*
-	 * Although gk20a_get_channel_from_file gives us a channel ref, need to
+	 * Although nvgpu_channel_get_from_file gives us a channel ref, need to
 	 * hold a ref to the file during the session lifetime. See comment in
 	 * struct dbg_session_channel_data.
 	 */
@@ -526,7 +526,7 @@ static int dbg_bind_channel_gk20a(struct dbg_session_gk20a *dbg_s,
 	if (!f)
 		return -ENODEV;
 
-	ch = gk20a_get_channel_from_file(args->channel_fd);
+	ch = nvgpu_channel_get_from_file(args->channel_fd);
 	if (!ch) {
 		nvgpu_log_fn(g, "no channel found for fd");
 		err = -EINVAL;
@@ -1835,7 +1835,7 @@ static int dbg_unbind_channel_gk20a(struct dbg_session_gk20a *dbg_s,
 	nvgpu_log(g, gpu_dbg_fn|gpu_dbg_gpu_dbg, "%s fd=%d",
 		   g->name, args->channel_fd);
 
-	ch = gk20a_get_channel_from_file(args->channel_fd);
+	ch = nvgpu_channel_get_from_file(args->channel_fd);
 	if (!ch) {
 		nvgpu_log_fn(g, "no channel found for fd");
 		return -EINVAL;

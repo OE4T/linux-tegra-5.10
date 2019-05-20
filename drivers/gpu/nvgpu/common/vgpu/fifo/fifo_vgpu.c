@@ -374,11 +374,11 @@ int vgpu_tsg_force_reset_ch(struct nvgpu_channel *ch,
 		nvgpu_rwsem_down_read(&tsg->ch_list_lock);
 
 		nvgpu_list_for_each_entry(ch_tsg, &tsg->ch_list,
-				channel_gk20a, ch_entry) {
+				nvgpu_channel, ch_entry) {
 			if (nvgpu_channel_get(ch_tsg)) {
 				nvgpu_channel_set_error_notifier(g, ch_tsg,
 								err_code);
-				gk20a_channel_set_unserviceable(ch_tsg);
+				nvgpu_channel_set_unserviceable(ch_tsg);
 				nvgpu_channel_put(ch_tsg);
 			}
 		}
@@ -394,7 +394,7 @@ int vgpu_tsg_force_reset_ch(struct nvgpu_channel *ch,
 	err = vgpu_comm_sendrecv(&msg, sizeof(msg), sizeof(msg));
 	WARN_ON(err || msg.ret);
 	if (!err) {
-		gk20a_channel_abort(ch, false);
+		nvgpu_channel_abort(ch, false);
 	}
 	return err ? err : msg.ret;
 }
@@ -412,7 +412,7 @@ static void vgpu_fifo_set_ctx_mmu_error_ch(struct gk20a *g,
 		NVGPU_ERR_NOTIFIER_FIFO_ERROR_MMU_ERR_FLT);
 
 	/* mark channel as faulted */
-	gk20a_channel_set_unserviceable(ch);
+	nvgpu_channel_set_unserviceable(ch);
 
 	/* unblock pending waits */
 	nvgpu_cond_broadcast_interruptible(&ch->semaphore_wq);
@@ -430,7 +430,7 @@ static void vgpu_fifo_set_ctx_mmu_error_ch_tsg(struct gk20a *g,
 		nvgpu_rwsem_down_read(&tsg->ch_list_lock);
 
 		nvgpu_list_for_each_entry(ch_tsg, &tsg->ch_list,
-				channel_gk20a, ch_entry) {
+				nvgpu_channel, ch_entry) {
 			if (nvgpu_channel_get(ch_tsg)) {
 				vgpu_fifo_set_ctx_mmu_error_ch(g, ch_tsg);
 				nvgpu_channel_put(ch_tsg);
@@ -468,7 +468,7 @@ int vgpu_fifo_isr(struct gk20a *g, struct tegra_vgpu_fifo_intr_info *info)
 		break;
 	case TEGRA_VGPU_FIFO_INTR_MMU_FAULT:
 		vgpu_fifo_set_ctx_mmu_error_ch_tsg(g, ch);
-		gk20a_channel_abort(ch, false);
+		nvgpu_channel_abort(ch, false);
 		break;
 	default:
 		WARN_ON(1);
@@ -528,7 +528,7 @@ void vgpu_channel_abort_cleanup(struct gk20a *g, u32 chid)
 		return;
 	}
 
-	gk20a_channel_set_unserviceable(ch);
+	nvgpu_channel_set_unserviceable(ch);
 	g->ops.channel.abort_clean_up(ch);
 	nvgpu_channel_put(ch);
 }

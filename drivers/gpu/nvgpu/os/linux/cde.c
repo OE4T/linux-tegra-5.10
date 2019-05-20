@@ -111,9 +111,9 @@ __must_hold(&cde_app->mutex)
 
 	/*
 	 * free the channel
-	 * gk20a_channel_close() will also unbind the channel from TSG
+	 * nvgpu_channel_close() will also unbind the channel from TSG
 	 */
-	gk20a_channel_close(ch);
+	nvgpu_channel_close(ch);
 	nvgpu_ref_put(&cde_ctx->tsg->refcount, nvgpu_tsg_release);
 
 	/* housekeeping on app */
@@ -1258,9 +1258,9 @@ __releases(&cde_app->mutex)
 	struct gk20a_cde_app *cde_app = &l->cde_app;
 	bool channel_idle;
 
-	channel_gk20a_joblist_lock(ch);
-	channel_idle = channel_gk20a_joblist_is_empty(ch);
-	channel_gk20a_joblist_unlock(ch);
+	nvgpu_channel_joblist_lock(ch);
+	channel_idle = nvgpu_channel_joblist_is_empty(ch);
+	nvgpu_channel_joblist_unlock(ch);
 
 	if (!channel_idle)
 		return;
@@ -1271,7 +1271,7 @@ __releases(&cde_app->mutex)
 		nvgpu_log_info(g, "double finish cde context %p on channel %p",
 				cde_ctx, ch);
 
-	if (gk20a_channel_check_unserviceable(ch)) {
+	if (nvgpu_channel_check_unserviceable(ch)) {
 		if (cde_ctx->is_temporary) {
 			nvgpu_warn(g,
 					"cde: channel had timed out"
@@ -1298,7 +1298,7 @@ __releases(&cde_app->mutex)
 			msecs_to_jiffies(CTX_DELETE_TIME));
 	}
 
-	if (!gk20a_channel_check_unserviceable(ch)) {
+	if (!nvgpu_channel_check_unserviceable(ch)) {
 		gk20a_cde_ctx_release(cde_ctx);
 	}
 }

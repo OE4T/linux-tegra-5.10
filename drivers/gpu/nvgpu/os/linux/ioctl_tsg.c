@@ -48,7 +48,7 @@ static int nvgpu_tsg_bind_channel_fd(struct nvgpu_tsg *tsg, int ch_fd)
 	struct nvgpu_channel *ch;
 	int err;
 
-	ch = gk20a_get_channel_from_file(ch_fd);
+	ch = nvgpu_channel_get_from_file(ch_fd);
 	if (!ch)
 		return -EINVAL;
 
@@ -80,7 +80,7 @@ static int gk20a_tsg_ioctl_bind_channel_ex(struct gk20a *g,
 		goto mutex_release;
 	}
 
-	ch = gk20a_get_channel_from_file(arg->channel_fd);
+	ch = nvgpu_channel_get_from_file(arg->channel_fd);
 	if (!ch) {
 		err = -EINVAL;
 		goto idle;
@@ -130,7 +130,7 @@ static int nvgpu_tsg_unbind_channel_fd(struct nvgpu_tsg *tsg, int ch_fd)
 	struct nvgpu_channel *ch;
 	int err = 0;
 
-	ch = gk20a_get_channel_from_file(ch_fd);
+	ch = nvgpu_channel_get_from_file(ch_fd);
 	if (!ch) {
 		return -EINVAL;
 	}
@@ -146,7 +146,7 @@ static int nvgpu_tsg_unbind_channel_fd(struct nvgpu_tsg *tsg, int ch_fd)
 	 * Mark the channel unserviceable since channel unbound from TSG
 	 * has no context of its own so it can't serve any job
 	 */
-	gk20a_channel_set_unserviceable(ch);
+	nvgpu_channel_set_unserviceable(ch);
 
 out:
 	nvgpu_channel_put(ch);

@@ -106,7 +106,7 @@ int nvgpu_gr_setup_alloc_obj_ctx(struct nvgpu_channel *c, u32 class_num,
 	nvgpu_log_fn(g, " ");
 
 	/* an address space needs to have been bound at this point.*/
-	if (!gk20a_channel_as_bound(c) && (c->vm == NULL)) {
+	if (!nvgpu_channel_as_bound(c) && (c->vm == NULL)) {
 		nvgpu_err(g,
 			   "not bound to address space at time"
 			   " of grctx allocation");

@@ -96,7 +96,7 @@ static u32 nvgpu_runlist_append_tsg(struct gk20a *g,
 	nvgpu_rwsem_down_read(&tsg->ch_list_lock);
 	/* add runnable channels bound to this TSG */
 	nvgpu_list_for_each_entry(ch, &tsg->ch_list,
-			channel_gk20a, ch_entry) {
+			nvgpu_channel, ch_entry) {
 		if (!test_bit((int)ch->chid,
 			      runlist->active_channels)) {
 			continue;

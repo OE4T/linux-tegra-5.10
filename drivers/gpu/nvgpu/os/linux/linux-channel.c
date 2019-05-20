@@ -440,7 +440,7 @@ put_dmabuf:
 	return err;
 }
 
-void nvgpu_channel_free_usermode_buffers(struct nvgpu_channel *c)
+void nvgpu_os_channel_free_usermode_buffers(struct nvgpu_channel *c)
 {
 	struct nvgpu_channel_linux *priv = c->os_priv;
 	struct gk20a *g = c->g;
@@ -564,7 +564,7 @@ int nvgpu_channel_init_support_linux(struct nvgpu_os_linux *l)
 		nvgpu_channel_alloc_usermode_buffers;
 
 	g->os_channel.free_usermode_buffers =
-		nvgpu_channel_free_usermode_buffers;
+		nvgpu_os_channel_free_usermode_buffers;
 
 	return 0;
 
