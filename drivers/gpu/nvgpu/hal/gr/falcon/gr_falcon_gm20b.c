@@ -26,6 +26,7 @@
 #include <nvgpu/debug.h>
 #include <nvgpu/power_features/pg.h>
 #include <nvgpu/soc.h>
+#include <nvgpu/safe_ops.h>
 
 #include "gr_falcon_gm20b.h"
 #include "common/gr/gr_falcon_priv.h"
@@ -321,27 +322,30 @@ static void gm20b_gr_falcon_program_fecs_dmem_data(struct gk20a *g,
 			u32 reg_offset, u32 addr_code32, u32 addr_data32,
 			u32 code_size, u32 data_size)
 {
-	nvgpu_writel(g, reg_offset + gr_fecs_dmemd_r(0), 0);
-	nvgpu_writel(g, reg_offset + gr_fecs_dmemd_r(0), 0);
-	nvgpu_writel(g, reg_offset + gr_fecs_dmemd_r(0), 0);
-	nvgpu_writel(g, reg_offset + gr_fecs_dmemd_r(0), 0);
-	nvgpu_writel(g, reg_offset + gr_fecs_dmemd_r(0), 4);
-	nvgpu_writel(g, reg_offset + gr_fecs_dmemd_r(0), addr_code32);
-	nvgpu_writel(g, reg_offset + gr_fecs_dmemd_r(0), 0);
-	nvgpu_writel(g, reg_offset + gr_fecs_dmemd_r(0), code_size);
-	nvgpu_writel(g, reg_offset + gr_fecs_dmemd_r(0), 0);
-	nvgpu_writel(g, reg_offset + gr_fecs_dmemd_r(0), 0);
-	nvgpu_writel(g, reg_offset + gr_fecs_dmemd_r(0), 0);
-	nvgpu_writel(g, reg_offset + gr_fecs_dmemd_r(0), addr_data32);
-	nvgpu_writel(g, reg_offset + gr_fecs_dmemd_r(0), data_size);
+	u32 offset = nvgpu_safe_add_u32(reg_offset, gr_fecs_dmemd_r(0));
+
+	nvgpu_writel(g, offset, 0);
+	nvgpu_writel(g, offset, 0);
+	nvgpu_writel(g, offset, 0);
+	nvgpu_writel(g, offset, 0);
+	nvgpu_writel(g, offset, 4);
+	nvgpu_writel(g, offset, addr_code32);
+	nvgpu_writel(g, offset, 0);
+	nvgpu_writel(g, offset, code_size);
+	nvgpu_writel(g, offset, 0);
+	nvgpu_writel(g, offset, 0);
+	nvgpu_writel(g, offset, 0);
+	nvgpu_writel(g, offset, addr_data32);
+	nvgpu_writel(g, offset, data_size);
 }
 
 void gm20b_gr_falcon_load_ctxsw_ucode_header(struct gk20a *g,
 	u32 reg_offset, u32 boot_signature, u32 addr_code32,
 	u32 addr_data32, u32 code_size, u32 data_size)
 {
+	u32 offset = nvgpu_safe_add_u32(reg_offset, gr_fecs_dmemd_r(0));
 
-	nvgpu_writel(g, reg_offset + gr_fecs_dmactl_r(),
+	nvgpu_writel(g, nvgpu_safe_add_u32(reg_offset, gr_fecs_dmactl_r()),
 			gr_fecs_dmactl_require_ctx_f(0));
 
 	/*
@@ -349,7 +353,7 @@ void gm20b_gr_falcon_load_ctxsw_ucode_header(struct gk20a *g,
 	 * Configure dmem port 0 for auto-incrementing writes starting at dmem
 	 * offset 0.
 	 */
-	nvgpu_writel(g, reg_offset + gr_fecs_dmemc_r(0),
+	nvgpu_writel(g, nvgpu_safe_add_u32(reg_offset, gr_fecs_dmemc_r(0)),
 			gr_fecs_dmemc_offs_f(0) |
 			gr_fecs_dmemc_blk_f(0) |
 			gr_fecs_dmemc_aincw_f(1));
@@ -362,10 +366,10 @@ void gm20b_gr_falcon_load_ctxsw_ucode_header(struct gk20a *g,
 	case FALCON_UCODE_SIG_T21X_GPCCS_WITH_RESERVED:
 	case FALCON_UCODE_SIG_T12X_FECS_WITH_RESERVED:
 	case FALCON_UCODE_SIG_T12X_GPCCS_WITH_RESERVED:
-		nvgpu_writel(g, reg_offset + gr_fecs_dmemd_r(0), 0);
-		nvgpu_writel(g, reg_offset + gr_fecs_dmemd_r(0), 0);
-		nvgpu_writel(g, reg_offset + gr_fecs_dmemd_r(0), 0);
-		nvgpu_writel(g, reg_offset + gr_fecs_dmemd_r(0), 0);
+		nvgpu_writel(g, offset, 0);
+		nvgpu_writel(g, offset, 0);
+		nvgpu_writel(g, offset, 0);
+		nvgpu_writel(g, offset, 0);
 		gm20b_gr_falcon_program_fecs_dmem_data(g, reg_offset,
 			addr_code32, addr_data32, code_size, data_size);
 		break;
@@ -379,21 +383,16 @@ void gm20b_gr_falcon_load_ctxsw_ucode_header(struct gk20a *g,
 		break;
 	case FALCON_UCODE_SIG_T12X_FECS_OLDER:
 	case FALCON_UCODE_SIG_T12X_GPCCS_OLDER:
-		nvgpu_writel(g, reg_offset + gr_fecs_dmemd_r(0), 0);
-		nvgpu_writel(g, reg_offset + gr_fecs_dmemd_r(0),
-				addr_code32);
-		nvgpu_writel(g, reg_offset + gr_fecs_dmemd_r(0), 0);
-		nvgpu_writel(g, reg_offset + gr_fecs_dmemd_r(0),
-				code_size);
-		nvgpu_writel(g, reg_offset + gr_fecs_dmemd_r(0), 0);
-		nvgpu_writel(g, reg_offset + gr_fecs_dmemd_r(0),
-				addr_data32);
-		nvgpu_writel(g, reg_offset + gr_fecs_dmemd_r(0),
-				data_size);
-		nvgpu_writel(g, reg_offset + gr_fecs_dmemd_r(0),
-				addr_code32);
-		nvgpu_writel(g, reg_offset + gr_fecs_dmemd_r(0), 0);
-		nvgpu_writel(g, reg_offset + gr_fecs_dmemd_r(0), 0);
+		nvgpu_writel(g, offset, 0);
+		nvgpu_writel(g, offset, addr_code32);
+		nvgpu_writel(g, offset, 0);
+		nvgpu_writel(g, offset, code_size);
+		nvgpu_writel(g, offset, 0);
+		nvgpu_writel(g, offset, addr_data32);
+		nvgpu_writel(g, offset, data_size);
+		nvgpu_writel(g, offset, addr_code32);
+		nvgpu_writel(g, offset, 0);
+		nvgpu_writel(g, offset, 0);
 		break;
 	default:
 		nvgpu_err(g,
@@ -416,19 +415,23 @@ void gm20b_gr_falcon_load_ctxsw_ucode_boot(struct gk20a *g, u32 reg_offset,
 	 * match, allowing the IMEM tags to be properly created.
 	 */
 
-	nvgpu_writel(g, reg_offset + gr_fecs_dmatrfbase_r(),
-			(addr_load32 - (dst >> 8)));
+	nvgpu_writel(g, nvgpu_safe_add_u32(reg_offset,
+				gr_fecs_dmatrfbase_r()),
+			nvgpu_safe_sub_u32(addr_load32, (dst >> 8)));
 
 	for (b = 0; b < blocks; b++) {
 		/* Setup destination IMEM offset */
-		nvgpu_writel(g, reg_offset + gr_fecs_dmatrfmoffs_r(),
-				dst + (b << 8));
+		nvgpu_writel(g, nvgpu_safe_add_u32(reg_offset,
+					gr_fecs_dmatrfmoffs_r()),
+				nvgpu_safe_add_u32(dst, (b << 8)));
 
 		/* Setup source offset (relative to BASE) */
-		nvgpu_writel(g, reg_offset + gr_fecs_dmatrffboffs_r(),
-				dst + (b << 8));
+		nvgpu_writel(g, nvgpu_safe_add_u32(reg_offset,
+					gr_fecs_dmatrffboffs_r()),
+				nvgpu_safe_add_u32(dst, (b << 8)));
 
-		nvgpu_writel(g, reg_offset + gr_fecs_dmatrfcmd_r(),
+		nvgpu_writel(g, nvgpu_safe_add_u32(reg_offset,
+						gr_fecs_dmatrfcmd_r()),
 				gr_fecs_dmatrfcmd_imem_f(0x01) |
 				gr_fecs_dmatrfcmd_write_f(0x00) |
 				gr_fecs_dmatrfcmd_size_f(0x06) |
@@ -436,12 +439,13 @@ void gm20b_gr_falcon_load_ctxsw_ucode_boot(struct gk20a *g, u32 reg_offset,
 	}
 
 	/* Specify the falcon boot vector */
-	nvgpu_writel(g, reg_offset + gr_fecs_bootvec_r(),
+	nvgpu_writel(g, nvgpu_safe_add_u32(reg_offset, gr_fecs_bootvec_r()),
 			gr_fecs_bootvec_vec_f(boot_entry));
 
 	/* start the falcon immediately if PRIV security is disabled*/
 	if (!nvgpu_is_enabled(g, NVGPU_SEC_PRIVSECURITY)) {
-		nvgpu_writel(g, reg_offset + gr_fecs_cpuctl_r(),
+		nvgpu_writel(g, nvgpu_safe_add_u32(reg_offset,
+						gr_fecs_cpuctl_r()),
 				gr_fecs_cpuctl_startcpu_f(0x01));
 	}
 }
