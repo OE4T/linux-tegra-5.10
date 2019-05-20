@@ -24,6 +24,7 @@
 #include <nvgpu/io.h>
 #include <nvgpu/channel.h>
 #include <nvgpu/rc.h>
+#include <nvgpu/safe_ops.h>
 #include <nvgpu/error_notifier.h>
 #include <nvgpu/power_features/pg.h>
 #if defined(CONFIG_GK20A_CYCLE_STATS)
@@ -68,7 +69,8 @@ static int gr_intr_handle_tpc_exception(struct gk20a *g, u32 gpc, u32 tpc,
 {
 	int tmp_ret, ret = 0;
 	struct nvgpu_gr_tpc_exception pending_tpc;
-	u32 offset = nvgpu_gr_gpc_offset(g, gpc) + nvgpu_gr_tpc_offset(g, tpc);
+	u32 offset = nvgpu_safe_add_u32(nvgpu_gr_gpc_offset(g, gpc),
+					nvgpu_gr_tpc_offset(g, tpc));
 	u32 tpc_exception = g->ops.gr.intr.get_tpc_exception(g, offset,
 							&pending_tpc);
 	u32 sm_per_tpc = nvgpu_get_litter_value(g, GPU_LIT_NUM_SM_PER_TPC);
@@ -298,8 +300,8 @@ struct nvgpu_channel *nvgpu_gr_intr_get_channel_from_ctx(struct gk20a *g,
 	intr->chid_tlb[intr->channel_tlb_flush_index].tsgid = tsgid;
 
 	intr->channel_tlb_flush_index =
-		(intr->channel_tlb_flush_index + 1U) &
-		(GR_CHANNEL_MAP_TLB_SIZE - 1U);
+		(nvgpu_safe_add_u32(intr->channel_tlb_flush_index, 1U)) &
+		(nvgpu_safe_sub_u32(GR_CHANNEL_MAP_TLB_SIZE, 1U));
 
 unlock:
 	nvgpu_spinlock_release(&intr->ch_tlb_lock);
@@ -374,7 +376,8 @@ int nvgpu_gr_intr_handle_sm_exception(struct gk20a *g, u32 gpc, u32 tpc, u32 sm,
 	int ret = 0;
 	bool do_warp_sync = false, early_exit = false, ignore_debugger = false;
 	bool disable_sm_exceptions = true;
-	u32 offset = nvgpu_gr_gpc_offset(g, gpc) + nvgpu_gr_tpc_offset(g, tpc);
+	u32 offset = nvgpu_safe_add_u32(nvgpu_gr_gpc_offset(g, gpc),
+					  nvgpu_gr_tpc_offset(g, tpc));
 	bool sm_debugger_attached;
 	u32 global_esr, warp_esr, global_mask;
 	u64 hww_warp_esr_pc = 0;

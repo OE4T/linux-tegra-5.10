@@ -23,6 +23,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/io.h>
 #include <nvgpu/class.h>
+#include <nvgpu/safe_ops.h>
 
 #include <nvgpu/gr/config.h>
 #include <nvgpu/gr/gr.h>
@@ -345,7 +346,10 @@ u32 gm20b_gr_intr_read_gpc_exception(struct gk20a *g, u32 gpc)
 {
 	u32 gpc_offset = nvgpu_gr_gpc_offset(g, gpc);
 
-	return nvgpu_readl(g, gr_gpc0_gpccs_gpc_exception_r() + gpc_offset);
+	return nvgpu_readl(g,
+			nvgpu_safe_add_u32(
+				gr_gpc0_gpccs_gpc_exception_r(),
+				gpc_offset));
 }
 
 u32 gm20b_gr_intr_read_exception1(struct gk20a *g)
@@ -397,18 +401,21 @@ u32 gm20b_gr_intr_get_tpc_exception(struct gk20a *g, u32 offset,
 
 void gm20b_gr_intr_handle_tex_exception(struct gk20a *g, u32 gpc, u32 tpc)
 {
-	u32 offset = nvgpu_gr_gpc_offset(g, gpc) + nvgpu_gr_tpc_offset(g, tpc);
+	u32 offset = nvgpu_safe_add_u32(
+			nvgpu_gr_gpc_offset(g, gpc),
+			nvgpu_gr_tpc_offset(g, tpc));
 	u32 esr;
 
 	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gpu_dbg, " ");
 
 	esr = nvgpu_readl(g,
-			  gr_gpc0_tpc0_tex_m_hww_esr_r() + offset);
+			  nvgpu_safe_add_u32(
+				gr_gpc0_tpc0_tex_m_hww_esr_r(), offset));
 	nvgpu_log(g, gpu_dbg_intr | gpu_dbg_gpu_dbg, "0x%08x", esr);
 
 	nvgpu_writel(g,
-		     gr_gpc0_tpc0_tex_m_hww_esr_r() + offset,
-		     esr);
+		     nvgpu_safe_add_u32(
+			gr_gpc0_tpc0_tex_m_hww_esr_r(), offset), esr);
 }
 
 void gm20b_gr_intr_enable_hww_exceptions(struct gk20a *g)
@@ -455,21 +462,22 @@ void gm20b_gr_intr_enable_gpc_exceptions(struct gk20a *g,
 
 	tpc_mask_calc = (u32)BIT32(
 			 nvgpu_gr_config_get_max_tpc_per_gpc_count(gr_config));
-	tpc_mask = gr_gpcs_gpccs_gpc_exception_en_tpc_f(tpc_mask_calc - 1U);
+	tpc_mask = gr_gpcs_gpccs_gpc_exception_en_tpc_f(
+				nvgpu_safe_sub_u32(tpc_mask_calc, 1U));
 
 	nvgpu_writel(g, gr_gpcs_gpccs_gpc_exception_en_r(), tpc_mask);
 }
 
 void gm20ab_gr_intr_tpc_exception_sm_disable(struct gk20a *g, u32 offset)
 {
-	u32 tpc_exception_en = nvgpu_readl(g,
-				gr_gpc0_tpc0_tpccs_tpc_exception_en_r() +
-				offset);
+	u32 tpc_exception_en = nvgpu_readl(g, nvgpu_safe_add_u32(
+				gr_gpc0_tpc0_tpccs_tpc_exception_en_r(),
+				offset));
 
 	tpc_exception_en &=
 			~gr_gpc0_tpc0_tpccs_tpc_exception_en_sm_enabled_f();
-	nvgpu_writel(g,
-		     gr_gpc0_tpc0_tpccs_tpc_exception_en_r() + offset,
+	nvgpu_writel(g, nvgpu_safe_add_u32(
+		     gr_gpc0_tpc0_tpccs_tpc_exception_en_r(), offset),
 		     tpc_exception_en);
 }
 

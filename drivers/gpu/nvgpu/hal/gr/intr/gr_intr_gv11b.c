@@ -23,6 +23,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/io.h>
 #include <nvgpu/class.h>
+#include <nvgpu/safe_ops.h>
 
 #include <nvgpu/gr/config.h>
 #include <nvgpu/gr/gr.h>
@@ -271,7 +272,8 @@ void gv11b_gr_intr_handle_gcc_exception(struct gk20a *g, u32 gpc,
 
 	/* Check for gcc l15 ECC errors. */
 	gcc_l15_ecc_status = nvgpu_readl(g,
-		gr_pri_gpc0_gcc_l15_ecc_status_r() + offset);
+		nvgpu_safe_add_u32(
+			gr_pri_gpc0_gcc_l15_ecc_status_r(), offset));
 	gcc_l15_ecc_corrected_err_status = gcc_l15_ecc_status &
 		(gr_pri_gpc0_gcc_l15_ecc_status_corrected_err_bank0_m() |
 		 gr_pri_gpc0_gcc_l15_ecc_status_corrected_err_bank1_m());
@@ -364,7 +366,9 @@ void gv11b_gr_intr_handle_gpc_gpcmmu_exception(struct gk20a *g, u32 gpc,
 		return;
 	}
 
-	hww_esr = nvgpu_readl(g, gr_gpc0_mmu_gpcmmu_global_esr_r() + offset);
+	hww_esr = nvgpu_readl(g,
+			nvgpu_safe_add_u32(gr_gpc0_mmu_gpcmmu_global_esr_r(),
+						offset));
 
 	if ((hww_esr & (gr_gpc0_mmu_gpcmmu_global_esr_ecc_corrected_m() |
 		gr_gpc0_mmu_gpcmmu_global_esr_ecc_uncorrected_m())) == 0U) {
@@ -478,7 +482,9 @@ void gv11b_gr_intr_handle_gpc_gpccs_exception(struct gk20a *g, u32 gpc,
 		return;
 	}
 
-	hww_esr = nvgpu_readl(g, gr_gpc0_gpccs_hww_esr_r() + offset);
+	hww_esr = nvgpu_readl(g,
+			nvgpu_safe_add_u32(gr_gpc0_gpccs_hww_esr_r(),
+						offset));
 
 	if ((hww_esr & (gr_gpc0_gpccs_hww_esr_ecc_uncorrected_m() |
 			gr_gpc0_gpccs_hww_esr_ecc_corrected_m())) == 0U) {
@@ -572,21 +578,28 @@ void gv11b_gr_intr_handle_gpc_gpccs_exception(struct gk20a *g, u32 gpc,
 void gv11b_gr_intr_handle_tpc_mpc_exception(struct gk20a *g, u32 gpc, u32 tpc)
 {
 	u32 esr;
-	u32 offset = nvgpu_gr_gpc_offset(g, gpc) + nvgpu_gr_tpc_offset(g, tpc);
+	u32 offset = nvgpu_safe_add_u32(nvgpu_gr_gpc_offset(g, gpc),
+					nvgpu_gr_tpc_offset(g, tpc));
 
-	esr = nvgpu_readl(g, gr_gpc0_tpc0_mpc_hww_esr_r() + offset);
+	esr = nvgpu_readl(g,
+			nvgpu_safe_add_u32(gr_gpc0_tpc0_mpc_hww_esr_r(),
+						offset));
 	nvgpu_log(g, gpu_dbg_intr | gpu_dbg_gpu_dbg, "mpc hww esr 0x%08x", esr);
 
 	nvgpu_gr_intr_report_exception(g, ((gpc << 8U) | tpc),
 			GPU_PGRAPH_MPC_EXCEPTION,
 			esr);
 
-	esr = nvgpu_readl(g, gr_gpc0_tpc0_mpc_hww_esr_info_r() + offset);
+	esr = nvgpu_readl(g,
+			nvgpu_safe_add_u32(gr_gpc0_tpc0_mpc_hww_esr_info_r(),
+						offset));
 	nvgpu_log(g, gpu_dbg_intr | gpu_dbg_gpu_dbg,
 			"mpc hww esr info: veid 0x%08x",
 			gr_gpc0_tpc0_mpc_hww_esr_info_veid_v(esr));
 
-	nvgpu_writel(g, gr_gpc0_tpc0_mpc_hww_esr_r() + offset,
+	nvgpu_writel(g,
+		     nvgpu_safe_add_u32(gr_gpc0_tpc0_mpc_hww_esr_r(),
+						offset),
 		     gr_gpc0_tpc0_mpc_hww_esr_reset_trigger_f());
 }
 
@@ -644,7 +657,8 @@ void gv11b_gr_intr_enable_exceptions(struct gk20a *g,
 	nvgpu_writel(g, gr_exception2_en_r(), 0x0U); /* BE not enabled */
 
 	reg_val = (u32)BIT32(nvgpu_gr_config_get_gpc_count(gr_config));
-	nvgpu_writel(g, gr_exception1_en_r(), (reg_val - 1U));
+	nvgpu_writel(g, gr_exception1_en_r(),
+				nvgpu_safe_sub_u32(reg_val, 1U));
 
 	reg_val = gr_exception_en_fe_enabled_f() |
 			gr_exception_en_memfmt_enabled_f() |
@@ -673,7 +687,8 @@ void gv11b_gr_intr_enable_gpc_exceptions(struct gk20a *g,
 	tpc_mask_calc = (u32)BIT32(
 			 nvgpu_gr_config_get_max_tpc_per_gpc_count(gr_config));
 	tpc_mask =
-		gr_gpcs_gpccs_gpc_exception_en_tpc_f(tpc_mask_calc - 1U);
+		gr_gpcs_gpccs_gpc_exception_en_tpc_f(
+			nvgpu_safe_sub_u32(tpc_mask_calc, 1U));
 
 	nvgpu_writel(g, gr_gpcs_gpccs_gpc_exception_en_r(),
 		(tpc_mask | gr_gpcs_gpccs_gpc_exception_en_gcc_f(1U) |

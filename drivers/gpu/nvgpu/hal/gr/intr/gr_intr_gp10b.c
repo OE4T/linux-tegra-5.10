@@ -24,6 +24,7 @@
 #include <nvgpu/io.h>
 #include <nvgpu/class.h>
 #include <nvgpu/channel.h>
+#include <nvgpu/safe_ops.h>
 
 #include <nvgpu/gr/config.h>
 #include <nvgpu/gr/gr.h>
@@ -290,7 +291,8 @@ int gp10b_gr_intr_handle_sm_exception(struct gk20a *g,
 			u32 *hww_global_esr)
 {
 	int ret = 0;
-	u32 offset = nvgpu_gr_gpc_offset(g, gpc) + nvgpu_gr_tpc_offset(g, tpc);
+	u32 offset = nvgpu_safe_add_u32(nvgpu_gr_gpc_offset(g, gpc),
+					  nvgpu_gr_tpc_offset(g, tpc));
 	u32 lrf_ecc_status, lrf_ecc_sed_status, lrf_ecc_ded_status;
 	u32 lrf_single_count_delta, lrf_double_count_delta;
 	u32 shm_ecc_status;
@@ -300,7 +302,9 @@ int gp10b_gr_intr_handle_sm_exception(struct gk20a *g,
 
 	/* Check for LRF ECC errors. */
         lrf_ecc_status = nvgpu_readl(g,
-			gr_pri_gpc0_tpc0_sm_lrf_ecc_status_r() + offset);
+				nvgpu_safe_add_u32(
+					gr_pri_gpc0_tpc0_sm_lrf_ecc_status_r(),
+					offset));
 	lrf_ecc_sed_status =
 		lrf_ecc_status &
 		(gr_pri_gpc0_tpc0_sm_lrf_ecc_status_single_err_detected_qrfdp0_pending_f() |
@@ -314,17 +318,17 @@ int gp10b_gr_intr_handle_sm_exception(struct gk20a *g,
 		 gr_pri_gpc0_tpc0_sm_lrf_ecc_status_double_err_detected_qrfdp2_pending_f() |
 		 gr_pri_gpc0_tpc0_sm_lrf_ecc_status_double_err_detected_qrfdp3_pending_f());
 	lrf_single_count_delta =
-		nvgpu_readl(g,
-			gr_pri_gpc0_tpc0_sm_lrf_ecc_single_err_count_r() +
-			offset);
+		nvgpu_readl(g, nvgpu_safe_add_u32(
+			    gr_pri_gpc0_tpc0_sm_lrf_ecc_single_err_count_r(),
+			    offset));
 	lrf_double_count_delta =
-		nvgpu_readl(g,
-			gr_pri_gpc0_tpc0_sm_lrf_ecc_double_err_count_r() +
-			offset);
-	nvgpu_writel(g,
-		gr_pri_gpc0_tpc0_sm_lrf_ecc_single_err_count_r() + offset, 0);
-	nvgpu_writel(g,
-		gr_pri_gpc0_tpc0_sm_lrf_ecc_double_err_count_r() + offset, 0);
+		nvgpu_readl(g, nvgpu_safe_add_u32(
+			    gr_pri_gpc0_tpc0_sm_lrf_ecc_double_err_count_r(),
+			    offset));
+	nvgpu_writel(g, nvgpu_safe_add_u32(
+		gr_pri_gpc0_tpc0_sm_lrf_ecc_single_err_count_r(), offset), 0);
+	nvgpu_writel(g, nvgpu_safe_add_u32(
+		gr_pri_gpc0_tpc0_sm_lrf_ecc_double_err_count_r(), offset), 0);
 	if (lrf_ecc_sed_status != 0U) {
 		nvgpu_log(g, gpu_dbg_fn | gpu_dbg_intr,
 			"Single bit error detected in SM LRF!");
@@ -349,12 +353,14 @@ int gp10b_gr_intr_handle_sm_exception(struct gk20a *g,
 		g->ecc.gr.sm_lrf_ecc_double_err_count[gpc][tpc].counter +=
 							lrf_double_count_delta;
 	}
-	nvgpu_writel(g, gr_pri_gpc0_tpc0_sm_lrf_ecc_status_r() + offset,
+	nvgpu_writel(g, nvgpu_safe_add_u32(
+			gr_pri_gpc0_tpc0_sm_lrf_ecc_status_r(), offset),
 			lrf_ecc_status);
 
 	/* Check for SHM ECC errors. */
-        shm_ecc_status = nvgpu_readl(g,
-			gr_pri_gpc0_tpc0_sm_shm_ecc_status_r() + offset);
+	shm_ecc_status = nvgpu_readl(g, nvgpu_safe_add_u32(
+				     gr_pri_gpc0_tpc0_sm_shm_ecc_status_r(),
+				     offset));
 	if ((shm_ecc_status &
 		gr_pri_gpc0_tpc0_sm_shm_ecc_status_single_err_corrected_shm0_pending_f()) != 0U ||
 		(shm_ecc_status &
@@ -369,17 +375,18 @@ int gp10b_gr_intr_handle_sm_exception(struct gk20a *g,
 			"Single bit error detected in SM SHM!");
 
 		ecc_stats_reg_val =
-			nvgpu_readl(g,
-				gr_pri_gpc0_tpc0_sm_shm_ecc_err_count_r() + offset);
+			nvgpu_readl(g, nvgpu_safe_add_u32(
+				    gr_pri_gpc0_tpc0_sm_shm_ecc_err_count_r(),
+				    offset));
 		g->ecc.gr.sm_shm_ecc_sec_count[gpc][tpc].counter +=
 			gr_pri_gpc0_tpc0_sm_shm_ecc_err_count_single_corrected_v(ecc_stats_reg_val);
 		g->ecc.gr.sm_shm_ecc_sed_count[gpc][tpc].counter +=
 			gr_pri_gpc0_tpc0_sm_shm_ecc_err_count_single_detected_v(ecc_stats_reg_val);
 		ecc_stats_reg_val &= ~(gr_pri_gpc0_tpc0_sm_shm_ecc_err_count_single_corrected_m() |
 					gr_pri_gpc0_tpc0_sm_shm_ecc_err_count_single_detected_m());
-		nvgpu_writel(g,
-			gr_pri_gpc0_tpc0_sm_shm_ecc_err_count_r() + offset,
-			ecc_stats_reg_val);
+		nvgpu_writel(g, nvgpu_safe_add_u32(
+			     gr_pri_gpc0_tpc0_sm_shm_ecc_err_count_r(),
+			     offset), ecc_stats_reg_val);
 	}
 	if ((shm_ecc_status &
 		gr_pri_gpc0_tpc0_sm_shm_ecc_status_double_err_detected_shm0_pending_f()) != 0U ||
@@ -391,17 +398,19 @@ int gp10b_gr_intr_handle_sm_exception(struct gk20a *g,
 			"Double bit error detected in SM SHM!");
 
 		ecc_stats_reg_val =
-			nvgpu_readl(g,
-				gr_pri_gpc0_tpc0_sm_shm_ecc_err_count_r() + offset);
+			nvgpu_readl(g, nvgpu_safe_add_u32(
+				    gr_pri_gpc0_tpc0_sm_shm_ecc_err_count_r(),
+				    offset));
 		g->ecc.gr.sm_shm_ecc_ded_count[gpc][tpc].counter +=
 			gr_pri_gpc0_tpc0_sm_shm_ecc_err_count_double_detected_v(ecc_stats_reg_val);
 		ecc_stats_reg_val &= ~(gr_pri_gpc0_tpc0_sm_shm_ecc_err_count_double_detected_m());
-		nvgpu_writel(g,
-			gr_pri_gpc0_tpc0_sm_shm_ecc_err_count_r() + offset,
-			ecc_stats_reg_val);
+		nvgpu_writel(g, nvgpu_safe_add_u32(
+			     gr_pri_gpc0_tpc0_sm_shm_ecc_err_count_r(),
+			     offset), ecc_stats_reg_val);
 	}
-	nvgpu_writel(g, gr_pri_gpc0_tpc0_sm_shm_ecc_status_r() + offset,
-			shm_ecc_status);
+	nvgpu_writel(g, nvgpu_safe_add_u32(
+				gr_pri_gpc0_tpc0_sm_shm_ecc_status_r(),
+				offset), shm_ecc_status);
 
 
 	return ret;
@@ -539,8 +548,9 @@ void gp10b_gr_intr_handle_tex_exception(struct gk20a *g, u32 gpc, u32 tpc)
 							ecc_stats_reg_val);
 		ecc_stats_reg_val &=
 			~gr_pri_gpc0_tpc0_tex_m_ecc_cnt_unique_ded_m();
-		nvgpu_writel(g,
-			gr_pri_gpc0_tpc0_tex_m_ecc_cnt_unique_r() + offset,
+		nvgpu_writel(g, nvgpu_safe_add_u32(
+				gr_pri_gpc0_tpc0_tex_m_ecc_cnt_unique_r(),
+				offset),
 			ecc_stats_reg_val);
 
 
@@ -549,8 +559,8 @@ void gp10b_gr_intr_handle_tex_exception(struct gk20a *g, u32 gpc, u32 tpc)
 			gr_pri_gpc0_tpc0_tex_m_routing_sel_default_f());
 	}
 
-	nvgpu_writel(g,
-		     gr_gpc0_tpc0_tex_m_hww_esr_r() + offset,
+	nvgpu_writel(g, nvgpu_safe_add_u32(
+				gr_gpc0_tpc0_tex_m_hww_esr_r(), offset),
 		     esr | gr_gpc0_tpc0_tex_m_hww_esr_reset_active_f());
 
 }

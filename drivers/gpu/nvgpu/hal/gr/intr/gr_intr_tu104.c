@@ -23,6 +23,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/io.h>
 #include <nvgpu/class.h>
+#include <nvgpu/safe_ops.h>
 
 #include <nvgpu/gr/config.h>
 
@@ -146,7 +147,8 @@ void tu104_gr_intr_enable_gpc_exceptions(struct gk20a *g,
 	tpc_mask_calc = (u32)BIT32(
 			 nvgpu_gr_config_get_max_tpc_per_gpc_count(gr_config));
 	tpc_mask =
-		gr_gpcs_gpccs_gpc_exception_en_tpc_f(tpc_mask_calc - 1U);
+		gr_gpcs_gpccs_gpc_exception_en_tpc_f(
+				nvgpu_safe_sub_u32(tpc_mask_calc, 1U));
 
 	nvgpu_writel(g, gr_gpcs_gpccs_gpc_exception_en_r(),
 		(tpc_mask | gr_gpcs_gpccs_gpc_exception_en_gcc_f(1U) |
