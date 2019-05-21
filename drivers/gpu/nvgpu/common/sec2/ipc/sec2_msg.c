@@ -158,7 +158,11 @@ static int sec2_process_init_msg(struct nvgpu_sec2 *sec2,
 		return err;
 	}
 
-	nvgpu_sec2_dmem_allocator_init(g, &sec2->dmem, sec2_init);
+	err = nvgpu_sec2_dmem_allocator_init(g, &sec2->dmem, sec2_init);
+	if (err != 0) {
+		nvgpu_sec2_queues_free(g, sec2->queues);
+		return err;
+	}
 
 	sec2->sec2_ready = true;
 
