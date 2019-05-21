@@ -376,9 +376,8 @@ void gm20b_gr_intr_get_trapped_method_info(struct gk20a *g,
 u32 gm20b_gr_intr_get_tpc_exception(struct gk20a *g, u32 offset,
 				    struct nvgpu_gr_tpc_exception *pending_tpc)
 {
-	u32 tpc_exception = nvgpu_readl(g,
-				gr_gpc0_tpc0_tpccs_tpc_exception_r()
-				+ offset);
+	u32 tpc_exception = nvgpu_readl(g, nvgpu_safe_add_u32(
+				gr_gpc0_tpc0_tpccs_tpc_exception_r(), offset));
 
 	(void) memset(pending_tpc, 0, sizeof(struct nvgpu_gr_tpc_exception));
 

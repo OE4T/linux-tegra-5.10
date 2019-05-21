@@ -418,14 +418,15 @@ int gp10b_gr_intr_handle_sm_exception(struct gk20a *g,
 
 void gp10b_gr_intr_handle_tex_exception(struct gk20a *g, u32 gpc, u32 tpc)
 {
-	u32 offset = nvgpu_gr_gpc_offset(g, gpc) + nvgpu_gr_tpc_offset(g, tpc);
+	u32 offset = nvgpu_safe_add_u32(nvgpu_gr_gpc_offset(g, gpc),
+					nvgpu_gr_tpc_offset(g, tpc));
 	u32 esr;
 	u32 ecc_stats_reg_val;
 
 	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gpu_dbg, " ");
 
-	esr = nvgpu_readl(g,
-			 gr_gpc0_tpc0_tex_m_hww_esr_r() + offset);
+	esr = nvgpu_readl(g, nvgpu_safe_add_u32(
+			 gr_gpc0_tpc0_tex_m_hww_esr_r(), offset));
 	nvgpu_log(g, gpu_dbg_intr | gpu_dbg_gpu_dbg, "0x%08x", esr);
 
 	if ((esr & gr_gpc0_tpc0_tex_m_hww_esr_ecc_sec_pending_f()) != 0U) {
@@ -433,30 +434,30 @@ void gp10b_gr_intr_handle_tex_exception(struct gk20a *g, u32 gpc, u32 tpc)
 			"Single bit error detected in TEX!");
 
 		/* Pipe 0 counters */
-		nvgpu_writel(g,
-			gr_pri_gpc0_tpc0_tex_m_routing_r() + offset,
+		nvgpu_writel(g, nvgpu_safe_add_u32(
+			gr_pri_gpc0_tpc0_tex_m_routing_r(), offset),
 			gr_pri_gpc0_tpc0_tex_m_routing_sel_pipe0_f());
 
-		ecc_stats_reg_val = nvgpu_readl(g,
-			gr_pri_gpc0_tpc0_tex_m_ecc_cnt_total_r() + offset);
+		ecc_stats_reg_val = nvgpu_readl(g, nvgpu_safe_add_u32(
+			gr_pri_gpc0_tpc0_tex_m_ecc_cnt_total_r(), offset));
 		g->ecc.gr.tex_ecc_total_sec_pipe0_count[gpc][tpc].counter +=
 			gr_pri_gpc0_tpc0_tex_m_ecc_cnt_total_sec_v(
 							ecc_stats_reg_val);
 		ecc_stats_reg_val &=
 			~gr_pri_gpc0_tpc0_tex_m_ecc_cnt_total_sec_m();
-		nvgpu_writel(g,
-			gr_pri_gpc0_tpc0_tex_m_ecc_cnt_total_r() + offset,
+		nvgpu_writel(g, nvgpu_safe_add_u32(
+			gr_pri_gpc0_tpc0_tex_m_ecc_cnt_total_r(), offset),
 			ecc_stats_reg_val);
 
-		ecc_stats_reg_val = nvgpu_readl(g,
-			gr_pri_gpc0_tpc0_tex_m_ecc_cnt_unique_r() + offset);
+		ecc_stats_reg_val = nvgpu_readl(g, nvgpu_safe_add_u32(
+			gr_pri_gpc0_tpc0_tex_m_ecc_cnt_unique_r(), offset));
 		g->ecc.gr.tex_unique_ecc_sec_pipe0_count[gpc][tpc].counter +=
 			gr_pri_gpc0_tpc0_tex_m_ecc_cnt_unique_sec_v(
 							ecc_stats_reg_val);
 		ecc_stats_reg_val &=
 			~gr_pri_gpc0_tpc0_tex_m_ecc_cnt_unique_sec_m();
-		nvgpu_writel(g,
-			gr_pri_gpc0_tpc0_tex_m_ecc_cnt_unique_r() + offset,
+		nvgpu_writel(g, nvgpu_safe_add_u32(
+			gr_pri_gpc0_tpc0_tex_m_ecc_cnt_unique_r(), offset),
 			ecc_stats_reg_val);
 
 
@@ -526,23 +527,23 @@ void gp10b_gr_intr_handle_tex_exception(struct gk20a *g, u32 gpc, u32 tpc)
 
 
 		/* Pipe 1 counters */
-		nvgpu_writel(g,
-			gr_pri_gpc0_tpc0_tex_m_routing_r() + offset,
+		nvgpu_writel(g, nvgpu_safe_add_u32(
+			gr_pri_gpc0_tpc0_tex_m_routing_r(), offset),
 			gr_pri_gpc0_tpc0_tex_m_routing_sel_pipe1_f());
 
-		ecc_stats_reg_val = nvgpu_readl(g,
-			gr_pri_gpc0_tpc0_tex_m_ecc_cnt_total_r() + offset);
+		ecc_stats_reg_val = nvgpu_readl(g, nvgpu_safe_add_u32(
+			gr_pri_gpc0_tpc0_tex_m_ecc_cnt_total_r(), offset));
 		g->ecc.gr.tex_ecc_total_ded_pipe1_count[gpc][tpc].counter +=
 			gr_pri_gpc0_tpc0_tex_m_ecc_cnt_total_ded_v(
 							ecc_stats_reg_val);
 		ecc_stats_reg_val &=
 			~gr_pri_gpc0_tpc0_tex_m_ecc_cnt_total_ded_m();
-		nvgpu_writel(g,
-			gr_pri_gpc0_tpc0_tex_m_ecc_cnt_total_r() + offset,
+		nvgpu_writel(g, nvgpu_safe_add_u32(
+			gr_pri_gpc0_tpc0_tex_m_ecc_cnt_total_r(), offset),
 			ecc_stats_reg_val);
 
-		ecc_stats_reg_val = nvgpu_readl(g,
-			gr_pri_gpc0_tpc0_tex_m_ecc_cnt_unique_r() + offset);
+		ecc_stats_reg_val = nvgpu_readl(g, nvgpu_safe_add_u32(
+			gr_pri_gpc0_tpc0_tex_m_ecc_cnt_unique_r(), offset));
 		g->ecc.gr.tex_unique_ecc_ded_pipe1_count[gpc][tpc].counter +=
 			gr_pri_gpc0_tpc0_tex_m_ecc_cnt_unique_ded_v(
 							ecc_stats_reg_val);
@@ -554,8 +555,8 @@ void gp10b_gr_intr_handle_tex_exception(struct gk20a *g, u32 gpc, u32 tpc)
 			ecc_stats_reg_val);
 
 
-		nvgpu_writel(g,
-			gr_pri_gpc0_tpc0_tex_m_routing_r() + offset,
+		nvgpu_writel(g, nvgpu_safe_add_u32(
+			gr_pri_gpc0_tpc0_tex_m_routing_r(), offset),
 			gr_pri_gpc0_tpc0_tex_m_routing_sel_default_f());
 	}
 
