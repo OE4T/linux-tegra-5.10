@@ -143,7 +143,7 @@ struct nvgpu_mem_sgl *nvgpu_mem_sgl_posix_create_from_list(struct gk20a *g,
 		tptr = (struct nvgpu_mem_sgl *)nvgpu_kzalloc(g,
 						sizeof(struct nvgpu_mem_sgl));
 		if (tptr == NULL) {
-			return NULL;
+			goto err;
 		}
 
 		if (i == 0U) {
@@ -161,6 +161,14 @@ struct nvgpu_mem_sgl *nvgpu_mem_sgl_posix_create_from_list(struct gk20a *g,
 	}
 
 	return head;
+
+err:
+	while (head != NULL) {
+		struct nvgpu_mem_sgl *tmp = head;
+		head = tmp->next;
+		nvgpu_kfree(g, tmp);
+	}
+	return NULL;
 }
 
 struct nvgpu_sgt *nvgpu_mem_sgt_posix_create_from_list(struct gk20a *g,
