@@ -21,7 +21,7 @@
  */
 
 #include <nvgpu/gk20a.h>
-#include <nvgpu/secure_ops.h>
+#include <nvgpu/safe_ops.h>
 #include <nvgpu/gr/global_ctx.h>
 #include <nvgpu/gr/ctx.h>
 #include <nvgpu/vm.h>
@@ -579,7 +579,7 @@ int nvgpu_gr_ctx_load_golden_ctx_image(struct gk20a *g,
 	if (g->ops.gr.ctxsw_prog.set_pmu_options_boost_clock_frequencies !=
 			NULL) {
 		g->ops.gr.ctxsw_prog.set_pmu_options_boost_clock_frequencies(g,
-			mem, nvgpu_secure_cast_bool_to_u32(gr_ctx->boosted_ctx));
+			mem, nvgpu_safe_cast_bool_to_u32(gr_ctx->boosted_ctx));
 	}
 
 	nvgpu_log(g, gpu_dbg_info, "write patch count = %d",
@@ -640,10 +640,10 @@ void nvgpu_gr_ctx_patch_write(struct gk20a *g,
 {
 	if (patch) {
 		u32 patch_slot =
-			nvgpu_secure_mult_u32(gr_ctx->patch_ctx.data_count,
+			nvgpu_safe_mult_u32(gr_ctx->patch_ctx.data_count,
 					PATCH_CTX_SLOTS_REQUIRED_PER_ENTRY);
 		u64 patch_slot_max =
-			nvgpu_secure_sub_u64(
+			nvgpu_safe_sub_u64(
 				PATCH_CTX_ENTRIES_FROM_SIZE(gr_ctx->patch_ctx.mem.size),
 				PATCH_CTX_SLOTS_REQUIRED_PER_ENTRY);
 

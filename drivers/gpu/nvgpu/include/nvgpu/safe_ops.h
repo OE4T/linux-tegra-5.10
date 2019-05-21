@@ -20,10 +20,10 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NVGPU_SECURE_OPS_H
-#define NVGPU_SECURE_OPS_H
+#ifndef NVGPU_SAFE_OPS_H
+#define NVGPU_SAFE_OPS_H
 
-static inline u32 nvgpu_secure_add_u32(u32 ui_a, u32 ui_b)
+static inline u32 nvgpu_safe_add_u32(u32 ui_a, u32 ui_b)
 {
 	if (UINT_MAX - ui_a < ui_b) {
 		BUG();
@@ -32,7 +32,7 @@ static inline u32 nvgpu_secure_add_u32(u32 ui_a, u32 ui_b)
 	}
 }
 
-static inline u64 nvgpu_secure_add_u64(u64 ul_a, u64 ul_b)
+static inline u64 nvgpu_safe_add_u64(u64 ul_a, u64 ul_b)
 {
 	if (ULONG_MAX - ul_a < ul_b) {
 		BUG();
@@ -41,7 +41,7 @@ static inline u64 nvgpu_secure_add_u64(u64 ul_a, u64 ul_b)
 	}
 }
 
-static inline u32 nvgpu_secure_sub_u32(u32 ui_a, u32 ui_b)
+static inline u32 nvgpu_safe_sub_u32(u32 ui_a, u32 ui_b)
 {
 	if (ui_a < ui_b) {
 		BUG();
@@ -50,7 +50,7 @@ static inline u32 nvgpu_secure_sub_u32(u32 ui_a, u32 ui_b)
 	}
 }
 
-static inline u64 nvgpu_secure_sub_u64(u64 ul_a, u64 ul_b)
+static inline u64 nvgpu_safe_sub_u64(u64 ul_a, u64 ul_b)
 {
 	if (ul_a < ul_b) {
 		BUG();
@@ -59,7 +59,7 @@ static inline u64 nvgpu_secure_sub_u64(u64 ul_a, u64 ul_b)
 	}
 }
 
-static inline u32 nvgpu_secure_mult_u32(u32 ui_a, u32 ui_b)
+static inline u32 nvgpu_safe_mult_u32(u32 ui_a, u32 ui_b)
 {
 	if (ui_a == 0 || ui_b == 0) {
 		return 0U;
@@ -70,7 +70,7 @@ static inline u32 nvgpu_secure_mult_u32(u32 ui_a, u32 ui_b)
 	}
 }
 
-static inline u64 nvgpu_secure_mult_u64(u64 ul_a, u64 ul_b)
+static inline u64 nvgpu_safe_mult_u64(u64 ul_a, u64 ul_b)
 {
 	if (ul_a == 0 || ul_b == 0) {
 		return 0UL;
@@ -81,7 +81,7 @@ static inline u64 nvgpu_secure_mult_u64(u64 ul_a, u64 ul_b)
 	}
 }
 
-static inline u32 nvgpu_secure_cast_u64_to_u32(u64 ul_a)
+static inline u32 nvgpu_safe_cast_u64_to_u32(u64 ul_a)
 {
 	if (ul_a > UINT_MAX) {
 		BUG();
@@ -90,9 +90,9 @@ static inline u32 nvgpu_secure_cast_u64_to_u32(u64 ul_a)
 	}
 }
 
-static inline u32 nvgpu_secure_cast_bool_to_u32(bool bl_a)
+static inline u32 nvgpu_safe_cast_bool_to_u32(bool bl_a)
 {
 	return bl_a == true ? 1U : 0U;
 }
 
-#endif /* NVGPU_SECURE_OPS_H */
+#endif /* NVGPU_SAFE_OPS_H */

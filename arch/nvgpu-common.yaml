@@ -14,7 +14,7 @@ nvgpu:
   owner: Alex W
   sources: [ include/nvgpu/gk20a.h,
              include/nvgpu/nvgpu_common.h,
-             include/nvgpu/secure_ops.h ]
+             include/nvgpu/safe_ops.h ]
 
 bios:
   safe: yes

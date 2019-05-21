@@ -23,7 +23,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/utils.h>
 #include <nvgpu/nvgpu_mem.h>
-#include <nvgpu/secure_ops.h>
+#include <nvgpu/safe_ops.h>
 
 #include "ctxsw_prog_gm20b.h"
 
@@ -185,7 +185,7 @@ void gm20b_ctxsw_prog_set_pc_sampling(struct gk20a *g,
 
 	data &= ~ctxsw_prog_main_image_pm_pc_sampling_m();
 	data |= ctxsw_prog_main_image_pm_pc_sampling_f(
-		nvgpu_secure_cast_bool_to_u32(enable));
+		nvgpu_safe_cast_bool_to_u32(enable));
 
 	nvgpu_mem_wr(g, ctx_mem, ctxsw_prog_main_image_pm_o(), data);
 }
@@ -282,7 +282,7 @@ u32 gm20b_ctxsw_prog_hw_get_ts_tag_invalid_timestamp(void)
 u32 gm20b_ctxsw_prog_hw_get_ts_tag(u64 ts)
 {
 	return ctxsw_prog_record_timestamp_timestamp_hi_tag_v(
-		nvgpu_secure_cast_u64_to_u32(ts >> 32));
+		nvgpu_safe_cast_u64_to_u32(ts >> 32));
 }
 
 u64 gm20b_ctxsw_prog_hw_record_ts_timestamp(u64 ts)
