@@ -39,6 +39,10 @@ NVGPU_COMMON_CFLAGS             += -DNVGPU_USERD
 # Enable Channel WDT for safety build until we switch to user mode submits only
 NVGPU_COMMON_CFLAGS		+= -DNVGPU_CHANNEL_WDT
 
+# Enable Grpahics support for safety build until we switch to compute only
+NVGPU_GRAPHICS                  := 1
+NVGPU_COMMON_CFLAGS             += -DNVGPU_GRAPHICS
+
 # Enable iGPU LS PMU for safety build until devctl whitelisting is done
 NVGPU_LS_PMU                    := 1
 NVGPU_COMMON_CFLAGS             += -DNVGPU_LS_PMU
