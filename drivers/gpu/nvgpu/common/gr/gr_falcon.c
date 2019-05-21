@@ -33,6 +33,7 @@
 #include <nvgpu/pmu/lsfm.h>
 #include <nvgpu/sec2/lsfm.h>
 #include <nvgpu/dma.h>
+#include <nvgpu/safe_ops.h>
 
 #include "gr_falcon_priv.h"
 
@@ -429,8 +430,10 @@ static void nvgpu_gr_falcon_load_ctxsw_ucode_header(struct gk20a *g,
 	u64 addr_base, struct nvgpu_ctxsw_ucode_segments *segments,
 	u32 reg_offset)
 {
-	u32 addr_code32 = u64_lo32((addr_base + segments->code.offset) >> 8);
-	u32 addr_data32 = u64_lo32((addr_base + segments->data.offset) >> 8);
+	u32 addr_code32 = u64_lo32(nvgpu_safe_add_u64(addr_base,
+					segments->code.offset) >> 8);
+	u32 addr_data32 = u64_lo32(nvgpu_safe_add_u64(addr_base,
+					segments->data.offset) >> 8);
 
 	g->ops.gr.falcon.load_ctxsw_ucode_header(g, reg_offset,
 		segments->boot_signature, addr_code32, addr_data32,
@@ -441,8 +444,10 @@ static void nvgpu_gr_falcon_load_ctxsw_ucode_boot(struct gk20a *g,
 	u64 addr_base, struct nvgpu_ctxsw_ucode_segments *segments,
 	u32 reg_offset)
 {
-	u32 addr_load32 = u64_lo32((addr_base + segments->boot.offset) >> 8);
-	u32 blocks = ((segments->boot.size + 0xFFU) & ~0xFFU) >> 8;
+	u32 addr_load32 = u64_lo32(nvgpu_safe_add_u64(addr_base,
+				segments->boot.offset) >> 8);
+	u32 blocks = (nvgpu_safe_add_u32(segments->boot.size, 0xFFU)
+								& ~0xFFU) >> 8;
 	u32 dst = segments->boot_imem_offset;
 
 	g->ops.gr.falcon.load_ctxsw_ucode_boot(g, reg_offset,
