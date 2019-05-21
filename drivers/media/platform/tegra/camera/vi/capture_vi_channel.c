@@ -1,5 +1,5 @@
 /*
- * VI channel driver for T186/T194
+ * VI channel character device driver for T186/T194
  *
  * Copyright (c) 2017-2019 NVIDIA Corporation.  All rights reserved.
  *
