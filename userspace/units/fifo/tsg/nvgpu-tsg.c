@@ -400,7 +400,6 @@ done:
 		unit_err(m, "%s branches=%s\n", __func__,
 			branches_str(branches, f_tsg_bind));
 	}
-
 	if (chA != NULL) {
 		nvgpu_channel_close(chA);
 	}
@@ -819,6 +818,94 @@ done:
 	return rc;
 }
 
+#define F_UNBIND_CHANNEL_CHECK_CTX_RELOAD_SET		BIT(0)
+#define F_UNBIND_CHANNEL_CHECK_CTX_RELOAD_CHID_MATCH	BIT(1)
+#define F_UNBIND_CHANNEL_CHECK_CTX_RELOAD_LAST		BIT(2)
+
+static const char const *f_unbind_channel_check_ctx_reload[] = {
+	"reload_set",
+	"chid_match",
+};
+
+static void stub_channel_force_ctx_reload(struct nvgpu_channel *ch)
+{
+	stub_rc.branches |= F_UNBIND_CHANNEL_CHECK_CTX_RELOAD_CHID_MATCH;
+	stub_rc.chid = ch->chid;
+}
+
+
+static int test_tsg_unbind_channel_check_ctx_reload(struct unit_module *m,
+		struct gk20a *g, void *args)
+{
+	struct gpu_ops gops = g->ops;
+	u32 branches;
+	int rc = UNIT_FAIL;
+	struct nvgpu_channel_hw_state hw_state;
+	struct nvgpu_tsg *tsg;
+	struct nvgpu_channel *chA, *chB;
+
+	tsg = nvgpu_tsg_open(g, getpid());
+	chA = gk20a_open_new_channel(g, ~0U, false, getpid(), getpid());
+	chB = gk20a_open_new_channel(g, ~0U, false, getpid(), getpid());
+	if (tsg == NULL || chA == NULL || chB == NULL ||
+		nvgpu_tsg_bind_channel(tsg, chA) != 0) {
+		goto done;
+	}
+
+	g->ops.channel.force_ctx_reload = stub_channel_force_ctx_reload;
+
+	for (branches = 0; branches < F_UNBIND_CHANNEL_CHECK_CTX_RELOAD_LAST;
+			branches++) {
+
+		reset_stub_rc();
+
+		hw_state.ctx_reload =
+			branches & F_UNBIND_CHANNEL_CHECK_CTX_RELOAD_SET ?
+			true : false;
+
+		if ((branches & F_UNBIND_CHANNEL_CHECK_CTX_RELOAD_SET) &&
+		    (branches & F_UNBIND_CHANNEL_CHECK_CTX_RELOAD_CHID_MATCH)) {
+			if (nvgpu_tsg_bind_channel(tsg, chB) != 0) {
+				goto done;
+			}
+		}
+
+		unit_verbose(m, "%s branches=%s\n", __func__,
+			branches_str(branches,
+				f_unbind_channel_check_ctx_reload));
+
+		nvgpu_tsg_unbind_channel_check_ctx_reload(tsg, chA, &hw_state);
+
+		if ((branches & F_UNBIND_CHANNEL_CHECK_CTX_RELOAD_SET) &&
+		    (branches & F_UNBIND_CHANNEL_CHECK_CTX_RELOAD_CHID_MATCH)) {
+			nvgpu_tsg_unbind_channel(tsg, chB);
+
+			if (stub_rc.chid != chB->chid) {
+				goto done;
+			}
+		}
+	}
+	rc = UNIT_SUCCESS;
+
+done:
+	if (rc != UNIT_SUCCESS) {
+		unit_err(m, "%s branches=%s\n", __func__,
+			branches_str(branches,
+				f_unbind_channel_check_ctx_reload));
+	}
+	if (chA != NULL) {
+		nvgpu_channel_close(chA);
+	}
+	if (chB != NULL) {
+		nvgpu_channel_close(chB);
+	}
+	if (tsg != NULL) {
+		nvgpu_ref_put(&tsg->refcount, nvgpu_tsg_release);
+	}
+	g->ops = gops;
+	return rc;
+}
+
 static int test_fifo_remove_support(struct unit_module *m,
 		struct gk20a *g, void *args)
 {
@@ -869,7 +956,9 @@ struct unit_module_test nvgpu_tsg_tests[] = {
 	UNIT_TEST(bind_channel, test_tsg_bind_channel, &test_args, 0),
 	UNIT_TEST(unbind_channel, test_tsg_unbind_channel, &test_args, 0),
 	UNIT_TEST(unbind_channel_check_hw_state,
-			test_tsg_unbind_channel_check_hw_state, &test_args, 0),
+		test_tsg_unbind_channel_check_hw_state, &test_args, 0),
+	UNIT_TEST(unbind_channel_check_ctx_reload,
+		test_tsg_unbind_channel_check_ctx_reload, &test_args, 0),
 	UNIT_TEST(remove_support, test_fifo_remove_support, &test_args, 0),
 };
 
