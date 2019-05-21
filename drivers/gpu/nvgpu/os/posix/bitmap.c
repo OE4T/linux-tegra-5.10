@@ -216,7 +216,8 @@ bool test_and_set_bit(int nr, volatile unsigned long *addr)
 bool test_and_clear_bit(int nr, volatile unsigned long *addr)
 {
 	unsigned long mask = BIT_MASK(nr);
-	unsigned long *p = ((unsigned long *)addr) + BIT_WORD(nr);
+	volatile unsigned long *p =
+		((volatile unsigned long *)addr) + BIT_WORD(nr);
 
 	return (atomic_fetch_and(p, ~mask) & mask) != 0ULL;
 }
