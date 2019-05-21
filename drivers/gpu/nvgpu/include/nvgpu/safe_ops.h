@@ -35,6 +35,16 @@ static inline u32 nvgpu_safe_add_u32(u32 ui_a, u32 ui_b)
 	}
 }
 
+static inline s32 nvgpu_safe_add_s32(s32 si_a, s32 si_b)
+{
+	if (((si_b > 0) && (si_a > (INT_MAX - si_b))) ||
+		((si_b < 0) && (si_a < (INT_MIN - si_b)))) {
+		BUG();
+	} else {
+		return si_a + si_b;
+	}
+}
+
 static inline u64 nvgpu_safe_add_u64(u64 ul_a, u64 ul_b)
 {
 	if (ULONG_MAX - ul_a < ul_b) {
@@ -50,6 +60,16 @@ static inline u32 nvgpu_safe_sub_u32(u32 ui_a, u32 ui_b)
 		BUG();
 	} else {
 		return ui_a - ui_b;
+	}
+}
+
+static inline s32 nvgpu_safe_sub_s32(s32 si_a, s32 si_b)
+{
+	if ((si_b > 0 && si_a < INT_MIN + si_b) ||
+		(si_b < 0 && si_a > INT_MAX + si_b)) {
+		BUG();
+	} else {
+		return si_a - si_b;
 	}
 }
 
