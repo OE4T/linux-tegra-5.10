@@ -60,9 +60,12 @@ static void __nvgpu_really_print_log(const char *gpu_name,
 				     enum nvgpu_log_type type, const char *log)
 {
 	const char *name = gpu_name ? gpu_name : "";
-	const char *log_type = log_types[type];
+	const char *log_type;
 
-	printf(LOG_FMT, name, func_name, line, log_type, log);
+	if (type >= NVGPU_ERROR) {
+		log_type = log_types[type];
+		printf(LOG_FMT, name, func_name, line, log_type, log);
+	}
 }
 
 __attribute__((format (printf, 5, 6)))

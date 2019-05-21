@@ -29,7 +29,7 @@
 struct gk20a;
 
 enum nvgpu_log_type {
-	NVGPU_ERROR,
+	NVGPU_ERROR = 0,
 	NVGPU_WARNING,
 	NVGPU_DEBUG,
 	NVGPU_INFO,

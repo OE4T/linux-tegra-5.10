@@ -94,6 +94,8 @@ static void __nvgpu_really_print_log(u32 trace, const char *gpu_name,
 	case NVGPU_ERROR:
 		pr_err(LOG_FMT, name, func_name, line, log_type, log);
 		break;
+	default:
+		break;
 	}
 }
 
