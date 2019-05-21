@@ -729,6 +729,96 @@ done:
 	return rc;
 }
 
+#define F_TSG_UNBIND_CHANNEL_CHECK_HW_NEXT		BIT(0)
+#define F_TSG_UNBIND_CHANNEL_CHECK_HW_CTX_RELOAD	BIT(1)
+#define F_TSG_UNBIND_CHANNEL_CHECK_HW_ENG_FAULTED	BIT(2)
+#define F_TSG_UNBIND_CHANNEL_CHECK_HW_LAST		BIT(3)
+
+static const char const *f_tsg_unbind_channel_check_hw[] = {
+	"next",
+	"ctx_reload",
+	"eng_faulted",
+};
+
+static void stub_channel_read_state_NEXT(struct gk20a *g,
+		struct nvgpu_channel *ch, struct nvgpu_channel_hw_state *state)
+{
+	state->next = true;
+}
+
+static int test_tsg_unbind_channel_check_hw_state(struct unit_module *m,
+		struct gk20a *g, void *args)
+{
+	struct gpu_ops gops = g->ops;
+	struct nvgpu_channel *ch;
+	struct nvgpu_tsg *tsg;
+	u32 branches;
+	int rc = UNIT_FAIL;
+	int err;
+	u32 prune = F_TSG_UNBIND_CHANNEL_CHECK_HW_NEXT;
+
+	tsg = nvgpu_tsg_open(g, getpid());
+	ch = gk20a_open_new_channel(g, ~0U, false, getpid(), getpid());
+	if (tsg == NULL || ch == NULL ||
+		nvgpu_tsg_bind_channel(tsg, ch) != 0) {
+		goto done;
+	}
+
+	for (branches = 0; branches < F_TSG_UNBIND_CHANNEL_CHECK_HW_LAST;
+			branches++) {
+
+		if (pruned(branches, prune)) {
+			unit_verbose(m, "%s branches=%s (pruned)\n", __func__,
+				branches_str(branches,
+					f_tsg_unbind_channel_check_hw));
+			continue;
+		}
+		reset_stub_rc();
+
+		g->ops.channel.read_state =
+			branches & F_TSG_UNBIND_CHANNEL_CHECK_HW_NEXT ?
+			stub_channel_read_state_NEXT : gops.channel.read_state;
+
+		g->ops.tsg.unbind_channel_check_ctx_reload =
+			branches & F_TSG_UNBIND_CHANNEL_CHECK_HW_CTX_RELOAD ?
+			gops.tsg.unbind_channel_check_ctx_reload : NULL;
+
+		g->ops.tsg.unbind_channel_check_eng_faulted =
+			branches & F_TSG_UNBIND_CHANNEL_CHECK_HW_ENG_FAULTED ?
+			gops.tsg.unbind_channel_check_eng_faulted : NULL;
+
+		unit_verbose(m, "%s branches=%s\n", __func__,
+			branches_str(branches, f_tsg_unbind_channel_check_hw));
+
+		err = nvgpu_tsg_unbind_channel_check_hw_state(tsg, ch);
+
+		if (branches & F_TSG_UNBIND_CHANNEL_CHECK_HW_NEXT) {
+			if (err == 0) {
+				goto done;
+			}
+		} else {
+			if (err != 0) {
+				goto done;
+			}
+		}
+	}
+	rc = UNIT_SUCCESS;
+
+done:
+	if (rc == UNIT_FAIL) {
+		unit_err(m, "%s branches=%s\n", __func__,
+			branches_str(branches, f_tsg_unbind_channel_check_hw));
+	}
+	if (ch != NULL) {
+		nvgpu_channel_close(ch);
+	}
+	if (tsg != NULL) {
+		nvgpu_ref_put(&tsg->refcount, nvgpu_tsg_release);
+	}
+	g->ops = gops;
+	return rc;
+}
+
 static int test_fifo_remove_support(struct unit_module *m,
 		struct gk20a *g, void *args)
 {
@@ -778,6 +868,8 @@ struct unit_module_test nvgpu_tsg_tests[] = {
 	UNIT_TEST(get_from_id, test_tsg_check_and_get_from_id, &test_args, 0),
 	UNIT_TEST(bind_channel, test_tsg_bind_channel, &test_args, 0),
 	UNIT_TEST(unbind_channel, test_tsg_unbind_channel, &test_args, 0),
+	UNIT_TEST(unbind_channel_check_hw_state,
+			test_tsg_unbind_channel_check_hw_state, &test_args, 0),
 	UNIT_TEST(remove_support, test_fifo_remove_support, &test_args, 0),
 };
 
