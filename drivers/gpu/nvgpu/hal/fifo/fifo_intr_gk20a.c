@@ -223,6 +223,7 @@ u32 gk20a_fifo_pbdma_isr(struct gk20a *g)
 				nvgpu_rc_pbdma_fault(g, f, pbdma_id,
 					error_notifier);
 			}
+			g->ops.pbdma.intr_clear_all(g, pbdma_id);
 		}
 	}
 	return fifo_intr_0_pbdma_intr_pending_f();
