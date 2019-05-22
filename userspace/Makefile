@@ -60,8 +60,10 @@ NVGPU_FAULT_INJECTION_ENABLEMENT=1
 
 # Linux configs. We want these so that we can mirror builds from the actual
 # Linux kernel.
-include Makefile.configs
+# include Makefile.configs
+CONFIGS := -D__NVGPU_POSIX__
 
+NVGPU_FORCE_SAFETY_PROFILE	:= 1
 include $(NVGPU_SRC)/Makefile.shared.configs
 CONFIGS+=$(NVGPU_COMMON_CFLAGS)
 
