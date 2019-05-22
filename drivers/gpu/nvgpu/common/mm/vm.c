@@ -896,6 +896,11 @@ int nvgpu_vm_get_buffers(struct vm_gk20a *vm,
 
 	nvgpu_mutex_acquire(&vm->update_gmmu_lock);
 
+	if (vm->num_user_mapped_buffers == 0U) {
+		nvgpu_mutex_release(&vm->update_gmmu_lock);
+		return 0;
+	}
+
 	buffer_list = nvgpu_big_zalloc(vm->mm->g,
 				nvgpu_safe_mult_u64(sizeof(*buffer_list),
 						vm->num_user_mapped_buffers));
