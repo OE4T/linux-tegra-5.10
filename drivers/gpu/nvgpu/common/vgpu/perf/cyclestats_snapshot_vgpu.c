@@ -19,7 +19,6 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#if defined(CONFIG_GK20A_CYCLE_STATS)
 
 #include <nvgpu/vgpu/vgpu_ivm.h>
 #include <nvgpu/vgpu/vgpu.h>
@@ -238,5 +237,3 @@ int vgpu_css_enable_snapshot_buffer(struct nvgpu_channel *ch,
 	ret = vgpu_css_init_snapshot_buffer(ch->g);
 	return ret;
 }
-
-#endif /* CONFIG_GK20A_CYCLE_STATS */

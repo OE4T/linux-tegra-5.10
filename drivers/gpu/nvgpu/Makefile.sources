@@ -85,8 +85,6 @@ srcs += common/sim/sim.c \
 	common/xve/xve_gp106.c \
 	common/therm/therm.c \
 	common/perf/perfbuf.c \
-	common/perf/cyclestats_snapshot.c \
-	common/cyclestats/cyclestats.c \
 	common/enabled.c \
 	common/pramin.c \
 	common/string.c \
@@ -379,11 +377,16 @@ ifeq ($(NVGPU_FECS_TRACE_SUPPORT),1)
 srcs += common/gr/fecs_trace.c \
 	hal/gr/fecs_trace/fecs_trace_gm20b.c \
 	hal/gr/fecs_trace/fecs_trace_gv11b.c
+ifeq ($(IGPU_VIRT_SUPPORT), 1)
+srcs += common/vgpu/gr/fecs_trace_vgpu.c
+endif
 endif
 
-ifeq ($(NVGPU_FECS_TRACE_SUPPORT),1)
+ifeq ($(NVGPU_CYCLESTATS_SUPPORT),1)
+srcs += common/perf/cyclestats_snapshot.c \
+	common/cyclestats/cyclestats.c
 ifeq ($(IGPU_VIRT_SUPPORT), 1)
-srcs +=	common/vgpu/gr/fecs_trace_vgpu.c
+srcs += common/vgpu/perf/cyclestats_snapshot_vgpu.c
 endif
 endif
 
@@ -413,7 +416,6 @@ srcs += common/vgpu/init/init_vgpu.c \
 	common/vgpu/fifo/ramfc_vgpu.c \
 	common/vgpu/fifo/userd_vgpu.c \
 	common/vgpu/tsg_vgpu.c \
-	common/vgpu/perf/cyclestats_snapshot_vgpu.c \
 	common/vgpu/perf/perf_vgpu.c \
 	common/vgpu/mm/mm_vgpu.c \
 	common/vgpu/mm/vm_vgpu.c \

@@ -32,7 +32,6 @@ CONFIGS :=				\
         -D__NVGPU_POSIX__               \
         -DCONFIG_TEGRA_19x_GPU          \
         -DCONFIG_TEGRA_GK20A_NVHOST     \
-        -DCONFIG_GK20A_CYCLE_STATS      \
         -DCONFIG_TEGRA_T19X_GRHOST      \
         -DCONFIG_NVGPU_SUPPORT_TURING   \
         -DCONFIG_TEGRA_GK20A_PMU=1      \

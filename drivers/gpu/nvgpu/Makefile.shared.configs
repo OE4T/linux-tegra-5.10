@@ -29,6 +29,10 @@
 NVGPU_DEBUGGER                  := 1
 NVGPU_COMMON_CFLAGS             := -DNVGPU_DEBUGGER
 
+# Enable cyclestats APIs for safety build until complete debugger support is enabled
+NVGPU_CYCLESTATS_SUPPORT        := 1
+NVGPU_COMMON_CFLAGS             += -DCONFIG_GK20A_CYCLE_STATS
+
 # Enable USERD for safety build until we switch to user mode submits only
 NVGPU_COMMON_CFLAGS             += -DNVGPU_USERD
 
