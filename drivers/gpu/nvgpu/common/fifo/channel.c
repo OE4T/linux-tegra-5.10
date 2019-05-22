@@ -1194,9 +1194,13 @@ int nvgpu_channel_setup_bind(struct nvgpu_channel *c,
 	gpfifo_size = args->num_gpfifo_entries;
 	gpfifo_entry_size = nvgpu_get_gpfifo_entry_size();
 
+#ifdef NVGPU_VPR
 	if ((args->flags & NVGPU_SETUP_BIND_FLAGS_SUPPORT_VPR) != 0U) {
 		c->vpr = true;
 	}
+#else
+	c->vpr = false;
+#endif
 
 	if ((args->flags & NVGPU_SETUP_BIND_FLAGS_SUPPORT_DETERMINISTIC) != 0U) {
 		nvgpu_rwsem_down_read(&g->deterministic_busy);

@@ -55,4 +55,7 @@ NVGPU_COMMON_CFLAGS             += -DCONFIG_TEGRA_NVLINK
 # Enable dgpu support for normal build.
 NVGPU_DGPU_SUPPORT              := 1
 NVGPU_COMMON_CFLAGS             += -DNVGPU_DGPU_SUPPORT
+
+NVGPU_VPR                       := 1
+NVGPU_COMMON_CFLAGS             += -DNVGPU_VPR
 endif

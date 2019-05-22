@@ -103,6 +103,7 @@ static int nvgpu_gr_global_ctx_buffer_alloc_sys(struct gk20a *g,
 	return err;
 }
 
+#ifdef NVGPU_VPR
 static int nvgpu_gr_global_ctx_buffer_alloc_vpr(struct gk20a *g,
 	struct nvgpu_gr_global_ctx_buffer_desc *desc,
 	u32 index)
@@ -126,6 +127,7 @@ static int nvgpu_gr_global_ctx_buffer_alloc_vpr(struct gk20a *g,
 
 	return err;
 }
+#endif
 
 int nvgpu_gr_global_ctx_buffer_alloc(struct gk20a *g,
 	struct nvgpu_gr_global_ctx_buffer_desc *desc)
@@ -135,9 +137,11 @@ int nvgpu_gr_global_ctx_buffer_alloc(struct gk20a *g,
 	if (desc[NVGPU_GR_GLOBAL_CTX_CIRCULAR].size == 0U ||
 	    desc[NVGPU_GR_GLOBAL_CTX_PAGEPOOL].size == 0U ||
 	    desc[NVGPU_GR_GLOBAL_CTX_ATTRIBUTE].size == 0U ||
+#ifdef NVGPU_VPR
 	    desc[NVGPU_GR_GLOBAL_CTX_CIRCULAR_VPR].size == 0U ||
 	    desc[NVGPU_GR_GLOBAL_CTX_PAGEPOOL_VPR].size == 0U ||
 	    desc[NVGPU_GR_GLOBAL_CTX_ATTRIBUTE_VPR].size == 0U ||
+#endif
 	    desc[NVGPU_GR_GLOBAL_CTX_PRIV_ACCESS_MAP].size == 0U) {
 		return -EINVAL;
 	}
@@ -181,7 +185,7 @@ int nvgpu_gr_global_ctx_buffer_alloc(struct gk20a *g,
 			goto clean_up;
 		}
 	}
-
+#ifdef NVGPU_VPR
 	err = nvgpu_gr_global_ctx_buffer_alloc_vpr(g, desc,
 		NVGPU_GR_GLOBAL_CTX_CIRCULAR_VPR);
 	if (err != 0) {
@@ -199,6 +203,7 @@ int nvgpu_gr_global_ctx_buffer_alloc(struct gk20a *g,
 	if (err != 0) {
 		goto clean_up;
 	}
+#endif
 
 	return err;
 

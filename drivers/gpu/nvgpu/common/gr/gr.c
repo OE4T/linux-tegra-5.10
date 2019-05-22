@@ -55,17 +55,20 @@ static int gr_alloc_global_ctx_buffers(struct gk20a *g)
 
 	nvgpu_gr_global_ctx_set_size(gr->global_ctx_buffer,
 		NVGPU_GR_GLOBAL_CTX_CIRCULAR, size);
+#ifdef NVGPU_VPR
 	nvgpu_gr_global_ctx_set_size(gr->global_ctx_buffer,
 		NVGPU_GR_GLOBAL_CTX_CIRCULAR_VPR, size);
+#endif
 
 	size = g->ops.gr.init.get_global_ctx_pagepool_buffer_size(g);
 	nvgpu_log_info(g, "pagepool_buffer_size : %d", size);
 
 	nvgpu_gr_global_ctx_set_size(gr->global_ctx_buffer,
 		NVGPU_GR_GLOBAL_CTX_PAGEPOOL, size);
+#ifdef NVGPU_VPR
 	nvgpu_gr_global_ctx_set_size(gr->global_ctx_buffer,
 		NVGPU_GR_GLOBAL_CTX_PAGEPOOL_VPR, size);
-
+#endif
 	size = g->ops.gr.init.get_global_attr_cb_size(g,
 			nvgpu_gr_config_get_tpc_count(g->gr->config),
 			nvgpu_gr_config_get_max_tpc_count(g->gr->config));
@@ -73,9 +76,10 @@ static int gr_alloc_global_ctx_buffers(struct gk20a *g)
 
 	nvgpu_gr_global_ctx_set_size(gr->global_ctx_buffer,
 		NVGPU_GR_GLOBAL_CTX_ATTRIBUTE, size);
+#ifdef NVGPU_VPR
 	nvgpu_gr_global_ctx_set_size(gr->global_ctx_buffer,
 		NVGPU_GR_GLOBAL_CTX_ATTRIBUTE_VPR, size);
-
+#endif
 	size = NVGPU_GR_GLOBAL_CTX_PRIV_ACCESS_MAP_SIZE;
 	nvgpu_log_info(g, "priv_access_map_size : %d", size);
 

@@ -362,6 +362,7 @@ int nvgpu_gr_ctx_map_global_ctx_buffers(struct gk20a *g,
 	g_bfr_index = gr_ctx->global_ctx_buffer_index;
 
 	/* Circular Buffer */
+#ifdef NVGPU_VPR
 	if (vpr && nvgpu_gr_global_ctx_buffer_ready(global_ctx_buffer,
 			NVGPU_GR_GLOBAL_CTX_CIRCULAR_VPR)) {
 		gpu_va = nvgpu_gr_global_ctx_buffer_map(global_ctx_buffer,
@@ -369,11 +370,14 @@ int nvgpu_gr_ctx_map_global_ctx_buffers(struct gk20a *g,
 				vm, NVGPU_VM_MAP_CACHEABLE, true);
 		g_bfr_index[NVGPU_GR_CTX_CIRCULAR_VA] = NVGPU_GR_GLOBAL_CTX_CIRCULAR_VPR;
 	} else {
+#endif
 		gpu_va = nvgpu_gr_global_ctx_buffer_map(global_ctx_buffer,
 				NVGPU_GR_GLOBAL_CTX_CIRCULAR,
 				vm, NVGPU_VM_MAP_CACHEABLE, true);
 		g_bfr_index[NVGPU_GR_CTX_CIRCULAR_VA] = NVGPU_GR_GLOBAL_CTX_CIRCULAR;
+#ifdef NVGPU_VPR
 	}
+#endif
 	if (gpu_va == 0ULL) {
 		goto clean_up;
 	}
@@ -381,6 +385,7 @@ int nvgpu_gr_ctx_map_global_ctx_buffers(struct gk20a *g,
 	g_bfr_va[NVGPU_GR_CTX_CIRCULAR_VA] = gpu_va;
 
 	/* Attribute Buffer */
+#ifdef NVGPU_VPR
 	if (vpr && nvgpu_gr_global_ctx_buffer_ready(global_ctx_buffer,
 			NVGPU_GR_GLOBAL_CTX_ATTRIBUTE_VPR)) {
 		gpu_va = nvgpu_gr_global_ctx_buffer_map(global_ctx_buffer,
@@ -388,11 +393,14 @@ int nvgpu_gr_ctx_map_global_ctx_buffers(struct gk20a *g,
 				vm, NVGPU_VM_MAP_CACHEABLE, false);
 		g_bfr_index[NVGPU_GR_CTX_ATTRIBUTE_VA] = NVGPU_GR_GLOBAL_CTX_ATTRIBUTE_VPR;
 	} else {
+#endif
 		gpu_va = nvgpu_gr_global_ctx_buffer_map(global_ctx_buffer,
 				NVGPU_GR_GLOBAL_CTX_ATTRIBUTE,
 				vm, NVGPU_VM_MAP_CACHEABLE, false);
 		g_bfr_index[NVGPU_GR_CTX_ATTRIBUTE_VA] = NVGPU_GR_GLOBAL_CTX_ATTRIBUTE;
+#ifdef NVGPU_VPR
 	}
+#endif
 	if (gpu_va == 0ULL) {
 		goto clean_up;
 	}
@@ -400,6 +408,7 @@ int nvgpu_gr_ctx_map_global_ctx_buffers(struct gk20a *g,
 	g_bfr_va[NVGPU_GR_CTX_ATTRIBUTE_VA] = gpu_va;
 
 	/* Page Pool */
+#ifdef NVGPU_VPR
 	if (vpr && nvgpu_gr_global_ctx_buffer_ready(global_ctx_buffer,
 			NVGPU_GR_GLOBAL_CTX_PAGEPOOL_VPR)) {
 		gpu_va = nvgpu_gr_global_ctx_buffer_map(global_ctx_buffer,
@@ -407,11 +416,14 @@ int nvgpu_gr_ctx_map_global_ctx_buffers(struct gk20a *g,
 				vm, NVGPU_VM_MAP_CACHEABLE, true);
 		g_bfr_index[NVGPU_GR_CTX_PAGEPOOL_VA] = NVGPU_GR_GLOBAL_CTX_PAGEPOOL_VPR;
 	} else {
+#endif
 		gpu_va = nvgpu_gr_global_ctx_buffer_map(global_ctx_buffer,
 				NVGPU_GR_GLOBAL_CTX_PAGEPOOL,
 				vm, NVGPU_VM_MAP_CACHEABLE, true);
 		g_bfr_index[NVGPU_GR_CTX_PAGEPOOL_VA] = NVGPU_GR_GLOBAL_CTX_PAGEPOOL;
+#ifdef NVGPU_VPR
 	}
+#endif
 	if (gpu_va == 0ULL) {
 		goto clean_up;
 	}
