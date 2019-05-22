@@ -308,6 +308,10 @@ nvgpu-y += \
 	hal/fifo/runlist_fifo_gv11b.o \
 	hal/fifo/runlist_fifo_gv100.o \
 	hal/fifo/runlist_fifo_tu104.o \
+	hal/fifo/channel_gk20a.o \
+	hal/fifo/channel_gm20b.o \
+	hal/fifo/channel_gv11b.o \
+	hal/fifo/channel_gv100.o \
 	hal/fifo/tsg_gk20a.o \
 	hal/fifo/tsg_gv11b.o \
 	hal/fifo/userd_gk20a.o \
@@ -554,10 +558,6 @@ nvgpu-y += \
 	common/fifo/submit.o \
 	common/fifo/tsg.o \
 	common/fifo/runlist.o \
-	common/fifo/channel_gk20a.o \
-	common/fifo/channel_gm20b.o \
-	common/fifo/channel_gv11b.o \
-	common/fifo/channel_gv100.o \
 	common/fifo/engine_status.o \
 	common/fifo/engines.o \
 	common/fifo/pbdma_status.o \

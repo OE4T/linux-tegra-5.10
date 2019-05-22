@@ -316,16 +316,7 @@ fifo:
   children:
     channel:
       safe: yes
-      # Note: the chip channel code should be moved to hal/fifo/.
-      sources: [ common/fifo/channel_gk20a.c,
-                 common/fifo/channel_gk20a.h,
-                 common/fifo/channel_gm20b.c,
-                 common/fifo/channel_gm20b.h,
-                 common/fifo/channel_gv100.c,
-                 common/fifo/channel_gv100.h,
-                 common/fifo/channel_gv11b.c,
-                 common/fifo/channel_gv11b.h,
-                 common/fifo/channel.c,
+      sources: [ common/fifo/channel.c,
                  include/nvgpu/channel.h,
                  include/nvgpu/error_notifier.h ]
       deps: [ ]

@@ -181,10 +181,6 @@ srcs += common/sim/sim.c \
 	common/fifo/submit.c \
 	common/fifo/tsg.c \
 	common/fifo/runlist.c \
-	common/fifo/channel_gk20a.c \
-	common/fifo/channel_gm20b.c \
-	common/fifo/channel_gv11b.c \
-	common/fifo/channel_gv100.c \
 	common/fifo/engine_status.c \
 	common/fifo/engines.c \
 	common/fifo/pbdma_status.c \
@@ -402,6 +398,10 @@ srcs += common/sim/sim.c \
 	hal/fifo/runlist_fifo_gv11b.c \
 	hal/fifo/runlist_fifo_gv100.c \
 	hal/fifo/runlist_fifo_tu104.c \
+	hal/fifo/channel_gk20a.c \
+	hal/fifo/channel_gm20b.c \
+	hal/fifo/channel_gv11b.c \
+	hal/fifo/channel_gv100.c \
 	hal/fifo/tsg_gk20a.c \
 	hal/fifo/tsg_gv11b.c \
 	hal/fifo/userd_gk20a.c \

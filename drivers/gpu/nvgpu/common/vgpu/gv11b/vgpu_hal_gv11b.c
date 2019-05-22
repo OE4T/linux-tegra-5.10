@@ -83,7 +83,7 @@
 #include "hal/init/hal_gv11b.h"
 #include "hal/init/hal_gv11b_litter.h"
 
-#include "common/fifo/channel_gv11b.h"
+#include "hal/fifo/channel_gv11b.h"
 #include "common/clk_arb/clk_arb_gp10b.h"
 
 #include <nvgpu/gk20a.h>

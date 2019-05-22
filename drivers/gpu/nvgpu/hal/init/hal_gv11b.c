@@ -139,9 +139,9 @@
 #include "common/pmu/pg/pg_sw_gm20b.h"
 #include "common/pmu/pg/pg_sw_gp106.h"
 #include "common/pmu/pg/pg_sw_gv11b.h"
-#include "common/fifo/channel_gk20a.h"
-#include "common/fifo/channel_gm20b.h"
-#include "common/fifo/channel_gv11b.h"
+#include "hal/fifo/channel_gk20a.h"
+#include "hal/fifo/channel_gm20b.h"
+#include "hal/fifo/channel_gv11b.h"
 #include "common/clk_arb/clk_arb_gp10b.h"
 
 #include "hal_gv11b.h"

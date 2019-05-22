@@ -76,7 +76,7 @@
 #include "hal/init/hal_gp10b.h"
 #include "hal/init/hal_gp10b_litter.h"
 
-#include "common/fifo/channel_gm20b.h"
+#include "hal/fifo/channel_gm20b.h"
 #include "common/clk_arb/clk_arb_gp10b.h"
 
 #include "common/vgpu/fifo/fifo_vgpu.h"

@@ -99,8 +99,8 @@
 #include "hal/top/top_gm20b.h"
 #include "hal/clk/clk_gm20b.h"
 
-#include "common/fifo/channel_gk20a.h"
-#include "common/fifo/channel_gm20b.h"
+#include "hal/fifo/channel_gk20a.h"
+#include "hal/fifo/channel_gm20b.h"
 #include "common/pmu/pg/pg_sw_gm20b.h"
 
 #include "hal_gm20b.h"
