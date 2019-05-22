@@ -110,10 +110,12 @@ void gm20b_gr_falcon_load_gpccs_imem(struct gk20a *g,
 		checksum += ucode_u32_data[i];
 	}
 
-	pad_start = i * 4U;
-	pad_end = pad_start + (256U - pad_start % 256U) + 256U;
+	pad_start = nvgpu_safe_mult_u32(i, 4U);
+	pad_end = nvgpu_safe_add_u32(pad_start, nvgpu_safe_add_u32(
+			nvgpu_safe_sub_u32(256U, (pad_start % 256U)), 256U));
 	for (i = pad_start;
-		(i < gpccs_imem_size * 256U) && (i < pad_end); i += 4U) {
+		(i < nvgpu_safe_mult_u32(gpccs_imem_size, 256U)) &&
+						(i < pad_end); i += 4U) {
 		if ((i != 0U) && ((i % 256U) == 0U)) {
 			tag++;
 			nvgpu_writel(g, gr_gpccs_imemt_r(0),
@@ -154,10 +156,11 @@ void gm20b_gr_falcon_load_fecs_imem(struct gk20a *g,
 		checksum += ucode_u32_data[i];
 	}
 
-	pad_start = i * 4U;
-	pad_end = pad_start + (256U - pad_start % 256U) + 256U;
+	pad_start = nvgpu_safe_mult_u32(i, 4U);
+	pad_end = nvgpu_safe_add_u32(pad_start, nvgpu_safe_add_u32(
+			nvgpu_safe_sub_u32(256U, (pad_start % 256U)), 256U));
 	for (i = pad_start;
-	     (i < fecs_imem_size * 256U) && i < pad_end;
+	     (i < nvgpu_safe_mult_u32(fecs_imem_size, 256U)) && i < pad_end;
 	     i += 4U) {
 		if ((i != 0U) && ((i % 256U) == 0U)) {
 			tag++;
@@ -598,7 +601,8 @@ static int gm20b_gr_falcon_ctx_wait_ucode(struct gk20a *g, u32 mailbox_id,
 		}
 
 		if (sleepduringwait) {
-			nvgpu_usleep_range(delay, delay * 2U);
+			nvgpu_usleep_range(delay,
+					nvgpu_safe_mult_u32(delay, 2U));
 			delay = min_t(u32, delay << 1, POLL_DELAY_MAX_US);
 		} else {
 			nvgpu_udelay(delay);
