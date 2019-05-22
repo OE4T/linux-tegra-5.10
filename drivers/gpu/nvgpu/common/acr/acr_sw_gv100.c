@@ -33,12 +33,7 @@
 #include "acr_blob_alloc.h"
 #include "acr_bootstrap.h"
 #include "acr_blob_construct_v1.h"
-
-static void flcn64_set_dma(struct falc_u64 *dma_addr, u64 value)
-{
-	dma_addr->lo |= u64_lo32(value);
-	dma_addr->hi |= u64_hi32(value);
-}
+#include "acr_sw_gv11b.h"
 
 static void gv100_acr_patch_wpr_info_to_ucode(struct gk20a *g,
 	struct nvgpu_acr *acr, struct hs_acr *acr_desc,
@@ -90,39 +85,6 @@ static void gv100_acr_patch_wpr_info_to_ucode(struct gk20a *g,
 		U32(tmp_addr);
 }
 
-void gv100_acr_fill_bl_dmem_desc(struct gk20a *g,
-	struct nvgpu_acr *acr, struct hs_acr *acr_desc,
-	u32 *acr_ucode_header)
-{
-	struct nvgpu_mem *acr_ucode_mem = &acr_desc->acr_ucode;
-	struct flcn_bl_dmem_desc_v1 *bl_dmem_desc =
-		&acr_desc->bl_dmem_desc_v1;
-
-	nvgpu_log_fn(g, " ");
-
-	(void) memset(bl_dmem_desc, 0, sizeof(struct flcn_bl_dmem_desc_v1));
-
-	bl_dmem_desc->signature[0] = 0U;
-	bl_dmem_desc->signature[1] = 0U;
-	bl_dmem_desc->signature[2] = 0U;
-	bl_dmem_desc->signature[3] = 0U;
-	bl_dmem_desc->ctx_dma = GK20A_PMU_DMAIDX_VIRT;
-
-	flcn64_set_dma(&bl_dmem_desc->code_dma_base,
-		acr_ucode_mem->gpu_va);
-
-	bl_dmem_desc->non_sec_code_off  = acr_ucode_header[0U];
-	bl_dmem_desc->non_sec_code_size = acr_ucode_header[1U];
-	bl_dmem_desc->sec_code_off = acr_ucode_header[5U];
-	bl_dmem_desc->sec_code_size = acr_ucode_header[6U];
-	bl_dmem_desc->code_entry_point = 0U;
-
-	flcn64_set_dma(&bl_dmem_desc->data_dma_base,
-		acr_ucode_mem->gpu_va + acr_ucode_header[2U]);
-
-	bl_dmem_desc->data_size = acr_ucode_header[3U];
-}
-
 /* LSF init */
 static u32 gv100_acr_lsf_pmu(struct gk20a *g,
 		struct acr_lsf_config *lsf)
@@ -132,7 +94,9 @@ static u32 gv100_acr_lsf_pmu(struct gk20a *g,
 	lsf->falcon_dma_idx = GK20A_PMU_DMAIDX_UCODE;
 	lsf->is_lazy_bootstrap = false;
 	lsf->is_priv_load = false;
+#ifdef NVGPU_LS_PMU
 	lsf->get_lsf_ucode_details = nvgpu_acr_lsf_pmu_ucode_details_v1;
+#endif
 	lsf->get_cmd_line_args_offset = nvgpu_pmu_fw_get_cmd_line_args_offset;
 
 	return BIT32(lsf->falcon_id);
@@ -170,7 +134,6 @@ static u32 gv100_acr_lsf_conifg(struct gk20a *g,
 	struct nvgpu_acr *acr)
 {
 	u32 lsf_enable_mask = 0;
-
 	lsf_enable_mask |= gv100_acr_lsf_pmu(g, &acr->lsf[FALCON_ID_PMU]);
 	lsf_enable_mask |= gv100_acr_lsf_fecs(g, &acr->lsf[FALCON_ID_FECS]);
 	lsf_enable_mask |= gv100_acr_lsf_gpccs(g, &acr->lsf[FALCON_ID_GPCCS]);
@@ -216,5 +179,5 @@ void nvgpu_gv100_acr_sw_init(struct gk20a *g, struct nvgpu_acr *acr)
 	acr->bootstrap_hs_acr = nvgpu_acr_bootstrap_hs_ucode;
 	acr->patch_wpr_info_to_ucode =
 		gv100_acr_patch_wpr_info_to_ucode;
-	acr->acr_fill_bl_dmem_desc = gv100_acr_fill_bl_dmem_desc;
+	acr->acr_fill_bl_dmem_desc = gv11b_acr_fill_bl_dmem_desc;
 }

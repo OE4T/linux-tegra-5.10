@@ -39,6 +39,7 @@ static void flcn64_set_dma(struct falc_u64 *dma_addr, u64 value)
 	dma_addr->hi |= u64_hi32(value);
 }
 
+#ifdef NVGPU_LS_PMU
 int nvgpu_acr_lsf_pmu_ucode_details_v1(struct gk20a *g, void *lsf_ucode_img)
 {
 	struct lsf_ucode_desc_v1 *lsf_desc;
@@ -74,6 +75,7 @@ int nvgpu_acr_lsf_pmu_ucode_details_v1(struct gk20a *g, void *lsf_ucode_img)
 exit:
 	return err;
 }
+#endif
 
 int nvgpu_acr_lsf_fecs_ucode_details_v1(struct gk20a *g, void *lsf_ucode_img)
 {

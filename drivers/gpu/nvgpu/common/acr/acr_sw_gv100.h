@@ -29,9 +29,6 @@ struct gk20a;
 struct nvgpu_acr;
 struct hs_acr;
 
-void gv100_acr_fill_bl_dmem_desc(struct gk20a *g, struct nvgpu_acr *acr,
-	struct hs_acr *acr_desc, u32 *acr_ucode_header);
-
 void nvgpu_gv100_acr_sw_init(struct gk20a *g, struct nvgpu_acr *acr);
 
 #endif /* ACR_SW_GV100_H */
