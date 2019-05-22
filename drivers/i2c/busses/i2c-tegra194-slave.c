@@ -1,7 +1,7 @@
 /*
  * NVIDIA tegra i2c slave driver
  *
- * Copyright (C) 2017-2018 NVIDIA CORPORATION. All rights reserved.
+ * Copyright (C) 2017-2019 NVIDIA CORPORATION. All rights reserved.
  *
  * Author: Shardar Shariff Md <smohammed@nvidia.com>
  *
@@ -358,21 +358,19 @@ void tegra_i2cslv_handle_tx(struct tegra_i2cslv_dev *i2cslv_dev,
 	i2cslv_dev->tx_buffer = (u32 *)data.buf;
 	i2cslv_dev->tx_in_progress = true;
 
-	/* Data size is greater than FIFO depth */
-	if (data.size > I2C_FIFO_DEPTH) {
-		tegra_i2cslv_unmask_irq(i2cslv_dev,
-				I2C_INTERRUPT_SLV_TFIFO_DATA_REQ_EN);
-	} else {
+	/* Data size is less than FIFO depth */
+	if (data.size <= I2C_FIFO_DEPTH) {
 		/* Rounds down to not include partial word at the end of buf */
 		words_to_transfer = ALIGN(data.size, BYTES_PER_FIFO_WORD);
-
 		/* Fill the data to TFIFO */
 		for (cnt = 0; cnt < words_to_transfer; cnt++)
 			tegra_i2cslv_writel(i2cslv_dev,
-					    i2cslv_dev->tx_buffer[cnt],
-					    I2C_SLV_TX_FIFO);
+					i2cslv_dev->tx_buffer[cnt],
+					I2C_SLV_TX_FIFO);
 		i2cslv_dev->tx_buffer += words_to_transfer;
 	}
+	tegra_i2cslv_unmask_irq(i2cslv_dev,
+			I2C_INTERRUPT_SLV_TFIFO_DATA_REQ_EN);
 
 	/*  Clear the TX Buffer request interrupt */
 	tegra_i2cslv_writel(i2cslv_dev, I2C_INTERRUPT_SLV_TX_BUFFER_REQ,
