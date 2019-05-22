@@ -224,7 +224,7 @@ void nvgpu_channel_abort(struct nvgpu_channel *ch, bool channel_preempt)
 	}
 }
 
-void gk20a_wait_until_counter_is_N(
+void nvgpu_channel_wait_until_counter_is_N(
 	struct nvgpu_channel *ch, nvgpu_atomic_t *counter, int wait_value,
 	struct nvgpu_cond *c, const char *caller, const char *counter_name)
 {
@@ -307,7 +307,7 @@ static void gk20a_free_channel(struct nvgpu_channel *ch, bool force)
 
 	/* wait until there's only our ref to the channel */
 	if (!force) {
-		gk20a_wait_until_counter_is_N(
+		nvgpu_channel_wait_until_counter_is_N(
 			ch, &ch->ref_count, 1, &ch->ref_count_dec_wq,
 			__func__, "references");
 	}
@@ -333,7 +333,7 @@ static void gk20a_free_channel(struct nvgpu_channel *ch, bool force)
 
 	/* wait until no more refs to the channel */
 	if (!force) {
-		gk20a_wait_until_counter_is_N(
+		nvgpu_channel_wait_until_counter_is_N(
 			ch, &ch->ref_count, 0, &ch->ref_count_dec_wq,
 			__func__, "references");
 	}
@@ -899,7 +899,7 @@ void nvgpu_channel_free_priv_cmd_entry(struct nvgpu_channel *c,
 	}
 }
 
-int nvgpu_gk20a_alloc_job(struct nvgpu_channel *c,
+int nvgpu_channel_alloc_job(struct nvgpu_channel *c,
 		struct nvgpu_channel_job **job_out)
 {
 	int err = 0;
@@ -2094,7 +2094,7 @@ void nvgpu_channel_clean_up_jobs(struct nvgpu_channel *c,
 
 		/*
 		 * ensure all pending writes complete before freeing up the job.
-		 * see corresponding nvgpu_smp_rmb in nvgpu_gk20a_alloc_job().
+		 * see corresponding nvgpu_smp_rmb in nvgpu_channel_alloc_job().
 		 */
 		nvgpu_smp_wmb();
 
@@ -2152,9 +2152,9 @@ void nvgpu_channel_update(struct nvgpu_channel *c)
  *
  * Takes write access on g->deterministic_busy.
  *
- * Must be paired with gk20a_channel_deterministic_unidle().
+ * Must be paired with nvgpu_channel_deterministic_unidle().
  */
-void gk20a_channel_deterministic_idle(struct gk20a *g)
+void nvgpu_channel_deterministic_idle(struct gk20a *g)
 {
 	struct nvgpu_fifo *f = &g->fifo;
 	u32 chid;
@@ -2195,7 +2195,7 @@ void gk20a_channel_deterministic_idle(struct gk20a *g)
  *
  * This releases write access on g->deterministic_busy.
  */
-void gk20a_channel_deterministic_unidle(struct gk20a *g)
+void nvgpu_channel_deterministic_unidle(struct gk20a *g)
 {
 	struct nvgpu_fifo *f = &g->fifo;
 	u32 chid;

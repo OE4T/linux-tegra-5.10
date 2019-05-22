@@ -525,7 +525,7 @@ static int nvgpu_submit_channel_gpfifo(struct nvgpu_channel *c,
 	}
 
 	if (need_job_tracking) {
-		err = nvgpu_gk20a_alloc_job(c, &job);
+		err = nvgpu_channel_alloc_job(c, &job);
 		if (err != 0) {
 			goto clean_up;
 		}

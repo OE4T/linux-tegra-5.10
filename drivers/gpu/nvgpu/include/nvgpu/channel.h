@@ -441,8 +441,8 @@ int nvgpu_channel_disable_tsg(struct gk20a *g, struct nvgpu_channel *ch);
 int nvgpu_channel_suspend_all_serviceable_ch(struct gk20a *g);
 void nvgpu_channel_resume_all_serviceable_ch(struct gk20a *g);
 
-void gk20a_channel_deterministic_idle(struct gk20a *g);
-void gk20a_channel_deterministic_unidle(struct gk20a *g);
+void nvgpu_channel_deterministic_idle(struct gk20a *g);
+void nvgpu_channel_deterministic_unidle(struct gk20a *g);
 
 int nvgpu_channel_worker_init(struct gk20a *g);
 void nvgpu_channel_worker_deinit(struct gk20a *g);
@@ -483,10 +483,10 @@ bool nvgpu_channel_joblist_is_empty(struct nvgpu_channel *c);
 
 int nvgpu_channel_update_runlist(struct nvgpu_channel *c, bool add);
 
-void gk20a_wait_until_counter_is_N(
+void nvgpu_channel_wait_until_counter_is_N(
 	struct nvgpu_channel *ch, nvgpu_atomic_t *counter, int wait_value,
 	struct nvgpu_cond *c, const char *caller, const char *counter_name);
-int nvgpu_gk20a_alloc_job(struct nvgpu_channel *c,
+int nvgpu_channel_alloc_job(struct nvgpu_channel *c,
 		struct nvgpu_channel_job **job_out);
 void nvgpu_channel_free_job(struct nvgpu_channel *c,
 		struct nvgpu_channel_job *job);
