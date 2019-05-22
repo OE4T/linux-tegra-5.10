@@ -37,10 +37,7 @@ struct nvgpu_engine_mem_queue;
 #define nvgpu_sec2_dbg(g, fmt, args...) \
 	nvgpu_log(g, gpu_dbg_pmu, fmt, ##args)
 
-#define NVGPU_SEC2_TRACE_BUFSIZE	(32U*1024U)
-
-typedef void (*sec2_callback)(struct gk20a *g, struct nv_flcn_msg_sec2 *msg,
-	void *param, u32 status);
+#define NVGPU_SEC2_TRACE_BUFSIZE	(32U * 1024U)
 
 struct nvgpu_sec2 {
 	struct gk20a *g;
