@@ -337,13 +337,9 @@ void nvgpu_tsg_cleanup_sw(struct gk20a *g)
 	nvgpu_mutex_destroy(&f->tsg_inuse_mutex);
 }
 
-int nvgpu_tsg_init_support(struct gk20a *g, u32 tsgid)
+static void nvgpu_tsg_init_support(struct gk20a *g, u32 tsgid)
 {
 	struct nvgpu_tsg *tsg = NULL;
-
-	if (tsgid >= g->fifo.num_channels) {
-		return -EINVAL;
-	}
 
 	tsg = &g->fifo.tsg[tsgid];
 
@@ -357,13 +353,12 @@ int nvgpu_tsg_init_support(struct gk20a *g, u32 tsgid)
 	nvgpu_init_list_node(&tsg->event_id_list);
 
 	nvgpu_mutex_init(&tsg->event_id_list_lock);
-	return 0;
 }
 
 int nvgpu_tsg_setup_sw(struct gk20a *g)
 {
 	struct nvgpu_fifo *f = &g->fifo;
-	u32 tsgid, i;
+	u32 tsgid;
 	int err;
 
 	nvgpu_mutex_init(&f->tsg_inuse_mutex);
@@ -376,23 +371,10 @@ int nvgpu_tsg_setup_sw(struct gk20a *g)
 	}
 
 	for (tsgid = 0; tsgid < f->num_channels; tsgid++) {
-		err = nvgpu_tsg_init_support(g, tsgid);
-		if (err != 0) {
-			nvgpu_err(g, "tsg init failed, tsgid=%u", tsgid);
-			goto clean_up;
-		}
+		nvgpu_tsg_init_support(g, tsgid);
 	}
 
 	return 0;
-
-clean_up:
-	for (i = 0; i < tsgid; i++) {
-		struct nvgpu_tsg *tsg = &g->fifo.tsg[i];
-
-		nvgpu_tsg_destroy(g, tsg);
-	}
-	nvgpu_vfree(g, f->tsg);
-	f->tsg = NULL;
 
 clean_up_mutex:
 	nvgpu_mutex_destroy(&f->tsg_inuse_mutex);

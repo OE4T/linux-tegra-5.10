@@ -166,9 +166,11 @@ nvgpu_rwsem_init
 nvgpu_tsg_abort
 nvgpu_tsg_bind_channel
 nvgpu_tsg_check_and_get_from_id
+nvgpu_tsg_cleanup_sw
 nvgpu_tsg_default_timeslice_us
 nvgpu_tsg_open
 nvgpu_tsg_release
+nvgpu_tsg_setup_sw
 nvgpu_tsg_unbind_channel
 nvgpu_tsg_unbind_channel_check_hw_state
 nvgpu_tsg_unbind_channel_check_ctx_reload

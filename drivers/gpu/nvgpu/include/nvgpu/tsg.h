@@ -99,7 +99,6 @@ struct nvgpu_tsg *nvgpu_tsg_open(struct gk20a *g, pid_t pid);
 void nvgpu_tsg_release_common(struct gk20a *g, struct nvgpu_tsg *tsg);
 void nvgpu_tsg_release(struct nvgpu_ref *ref);
 
-int nvgpu_tsg_init_support(struct gk20a *g, u32 tsgid);
 int nvgpu_tsg_setup_sw(struct gk20a *g);
 void nvgpu_tsg_cleanup_sw(struct gk20a *g);
 

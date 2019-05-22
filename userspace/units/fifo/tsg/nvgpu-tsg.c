@@ -37,6 +37,7 @@
 #include <nvgpu/gr/ctx.h>
 
 #include "common/gr/ctx_priv.h"
+#include <nvgpu/posix/posix-fault-injection.h>
 
 #include "hal/fifo/tsg_gk20a.h"
 
@@ -1135,7 +1136,64 @@ done:
 	return rc;
 }
 
+#define F_TSG_SETUP_SW_VZALLOC_FAIL		BIT(0)
+#define F_TSG_SETUP_SW_LAST			BIT(1)
+
+static const char *f_tsg_setup_sw[] = {
+	"vzalloc_fail",
+};
+
+static int test_tsg_setup_sw(struct unit_module *m,
+		struct gk20a *g, void *args)
+{
+	struct gpu_ops gops = g->ops;
+	struct nvgpu_posix_fault_inj *kmem_fi;
+	u32 branches = 0U;
+	int rc = UNIT_FAIL;
+	int err;
+	u32 fail = F_TSG_SETUP_SW_VZALLOC_FAIL;
+	u32 prune = fail;
+
+	kmem_fi = nvgpu_kmem_get_fault_injection();
+
+	for (branches = 0U; branches < F_TSG_SETUP_SW_LAST; branches++) {
+
+		if (pruned(branches, prune)) {
+			unit_verbose(m, "%s branches=%s (pruned)\n", __func__,
+				branches_str(branches, f_tsg_setup_sw));
+			continue;
+		}
+		subtest_setup(branches);
+		unit_verbose(m, "%s branches=%s\n", __func__,
+			branches_str(branches, f_tsg_setup_sw));
+
+		nvgpu_posix_enable_fault_injection(kmem_fi,
+			branches & F_TSG_SETUP_SW_VZALLOC_FAIL ?
+			true : false, 0);
+
+		err = nvgpu_tsg_setup_sw(g);
+
+		if (branches & fail) {
+			assert(err != 0);
+		} else {
+			assert(err == 0);
+			nvgpu_tsg_cleanup_sw(g);
+		}
+	}
+
+	rc = UNIT_SUCCESS;
+done:
+	nvgpu_posix_enable_fault_injection(kmem_fi, false, 0);
+	if (rc != UNIT_SUCCESS) {
+		unit_err(m, "%s branches=%s\n", __func__,
+			branches_str(branches, f_tsg_setup_sw));
+	}
+	g->ops = gops;
+	return rc;
+}
+
 struct unit_module_test nvgpu_tsg_tests[] = {
+	UNIT_TEST(setup_sw, test_tsg_setup_sw, &unit_ctx, 0),
 	UNIT_TEST(init_support, test_fifo_init_support, &unit_ctx, 0),
 	UNIT_TEST(open, test_tsg_open, &unit_ctx, 0),
 	UNIT_TEST(release, test_tsg_release, &unit_ctx, 0),
