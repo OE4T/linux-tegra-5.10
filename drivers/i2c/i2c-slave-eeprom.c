@@ -106,7 +106,16 @@ static int i2c_slave_eeprom_slave_cb(struct i2c_client *client,
 		spin_unlock(&eeprom->buffer_lock);
 		break;
 	case I2C_SLAVE_READ_BUFFER_COUNT:
-		eeprom->buffer_idx = eeprom->buffer_idx + sdata->size;
+		/* if number of bytes read from slave device is beyond
+		 * EEPROM_SIZE then wrap around the buffer_idx to the
+		 * beginning of the buffer and set buffer_idx with
+		 * remaining number of read bytes to read.
+		 */
+		if (sdata->size >= (EEPROM_SIZE - eeprom->buffer_idx))
+			eeprom->buffer_idx = (sdata->size -
+					(EEPROM_SIZE - eeprom->buffer_idx));
+		else
+			eeprom->buffer_idx = eeprom->buffer_idx + sdata->size;
 		break;
 
 	case I2C_SLAVE_WRITE_BUFFER_REQUESTED:
