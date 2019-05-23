@@ -163,6 +163,7 @@ nvgpu_readl
 nvgpu_readl_impl
 nvgpu_runlist_construct_locked
 nvgpu_rwsem_init
+nvgpu_tsg_abort
 nvgpu_tsg_bind_channel
 nvgpu_tsg_check_and_get_from_id
 nvgpu_tsg_default_timeslice_us

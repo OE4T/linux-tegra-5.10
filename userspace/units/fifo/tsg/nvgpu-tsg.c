@@ -1005,6 +1005,136 @@ done:
 	return rc;
 }
 
+#define F_TSG_ABORT_STUB			BIT(0)
+#define F_TSG_ABORT_PREEMPT			BIT(1)
+#define F_TSG_ABORT_CH				BIT(2)
+#define F_TSG_ABORT_CH_ABORT_CLEANUP_NULL	BIT(3)
+#define F_TSG_ABORT_NON_ABORTABLE		BIT(4)
+#define F_TSG_ABORT_LAST			BIT(5)
+
+static const char *f_tsg_abort[] = {
+	"stub",
+	"preempt",
+	"ch",
+	"ch_abort_cleanup_null",
+	"non_abortable",
+};
+
+static int stub_fifo_preempt_tsg(struct gk20a *g, struct nvgpu_tsg *tsg)
+{
+	stub[0].tsgid = tsg->tsgid;
+	return 0;
+}
+
+static void stub_channel_abort_clean_up(struct nvgpu_channel *ch)
+{
+	stub[1].chid = ch->chid;
+}
+
+static int test_tsg_abort(struct unit_module *m, struct gk20a *g, void *args)
+{
+	struct gpu_ops gops = g->ops;
+	struct nvgpu_tsg *tsgA = NULL;
+	struct nvgpu_tsg *tsgB = NULL;
+	struct nvgpu_tsg *tsg = NULL;
+	struct nvgpu_channel *chA = NULL;
+	bool preempt = false;
+	u32 branches = 0U;
+	int rc = UNIT_FAIL;
+	u32 prune = F_TSG_ABORT_NON_ABORTABLE;
+	int err;
+
+	tsgA = nvgpu_tsg_open(g, getpid());
+	assert(tsgA != NULL);
+
+	tsgB = nvgpu_tsg_open(g, getpid());
+	assert(tsgB != NULL);
+
+	chA = gk20a_open_new_channel(g, ~0U, false, getpid(), getpid());
+	assert(chA != NULL);
+
+	err = nvgpu_tsg_bind_channel(tsgA, chA);
+	assert(err == 0);
+
+	for (branches = 0U; branches < F_TSG_ABORT_LAST; branches++) {
+
+		if (pruned(branches, prune)) {
+			unit_verbose(m, "%s branches=%s (pruned)\n", __func__,
+				branches_str(branches, f_tsg_abort));
+			continue;
+		}
+		subtest_setup(branches);
+		unit_verbose(m, "%s branches=%s\n", __func__,
+			branches_str(branches, f_tsg_abort));
+
+		g->ops.channel.abort_clean_up =
+			branches & F_TSG_ABORT_STUB ?
+			stub_channel_abort_clean_up :
+			gops.channel.abort_clean_up;
+
+		g->ops.fifo.preempt_tsg =
+			branches & F_TSG_ABORT_STUB ?
+			stub_fifo_preempt_tsg :
+			gops.fifo.preempt_tsg;
+
+		tsg = branches & F_TSG_ABORT_CH ? tsgA : tsgB;
+
+		tsg->abortable =
+			branches & F_TSG_ABORT_NON_ABORTABLE ? false : true;
+
+		preempt = branches & F_TSG_ABORT_PREEMPT ? true : false;
+
+		if (branches & F_TSG_ABORT_CH_ABORT_CLEANUP_NULL) {
+			g->ops.channel.abort_clean_up = NULL;
+		}
+
+		nvgpu_tsg_abort(g, tsg, preempt);
+
+		if (branches & F_TSG_ABORT_STUB) {
+			if (preempt) {
+				assert(stub[0].tsgid == tsg->tsgid);
+			}
+
+			if (!(branches & F_TSG_ABORT_CH_ABORT_CLEANUP_NULL)) {
+				if (tsg == tsgA) {
+					assert(stub[1].chid == chA->chid);
+				}
+
+				if (tsg == tsgB) {
+					assert(stub[1].chid ==
+						NVGPU_INVALID_CHANNEL_ID);
+				}
+			}
+
+		}
+		if (tsg == tsgA) {
+			assert(chA->unserviceable);
+		}
+
+		tsg->abortable = true;
+		chA->unserviceable = false;
+	}
+
+	rc = UNIT_SUCCESS;
+
+done:
+	if (rc == UNIT_FAIL) {
+		unit_err(m, "%s branches=%s\n", __func__,
+			branches_str(branches, f_tsg_abort));
+	}
+	if (chA != NULL) {
+		nvgpu_channel_close(chA);
+	}
+	if (tsgA != NULL) {
+		nvgpu_ref_put(&tsgA->refcount, nvgpu_tsg_release);
+	}
+	if (tsgB != NULL) {
+		nvgpu_ref_put(&tsgB->refcount, nvgpu_tsg_release);
+	}
+	g->ops = gops;
+	return rc;
+}
+
 struct unit_module_test nvgpu_tsg_tests[] = {
 	UNIT_TEST(init_support, test_fifo_init_support, &unit_ctx, 0),
 	UNIT_TEST(open, test_tsg_open, &unit_ctx, 0),
@@ -1017,6 +1147,7 @@ struct unit_module_test nvgpu_tsg_tests[] = {
 	UNIT_TEST(unbind_channel_check_ctx_reload,
 		test_tsg_unbind_channel_check_ctx_reload, &unit_ctx, 0),
 	UNIT_TEST(enable_disable, test_tsg_enable, &unit_ctx, 0),
+	UNIT_TEST(abort, test_tsg_abort, &unit_ctx, 0),
 	UNIT_TEST(remove_support, test_fifo_remove_support, &unit_ctx, 0),
 };
 
