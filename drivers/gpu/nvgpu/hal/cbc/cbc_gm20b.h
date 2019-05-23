@@ -25,6 +25,8 @@
 #ifndef NVGPU_CBC_GM20B
 #define NVGPU_CBC_GM20B
 
+#ifdef CONFIG_NVGPU_COMPRESSION
+
 #include <nvgpu/types.h>
 
 struct gk20a;
@@ -42,4 +44,5 @@ int gm20b_cbc_alloc_phys(struct gk20a *g,
 int gm20b_cbc_alloc_virtc(struct gk20a *g,
 			     size_t compbit_backing_size);
 
+#endif
 #endif

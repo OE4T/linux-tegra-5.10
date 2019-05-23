@@ -174,3 +174,10 @@ config NVGPU_LS_PMU
 	default y
 	help
 	  Support for iGPU LS PMU enable/disable
+
+config NVGPU_COMPRESSION
+	bool "Compression support"
+	depends on GK20A
+	default y
+	help
+	  Support for compression

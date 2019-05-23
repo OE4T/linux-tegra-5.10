@@ -22,7 +22,6 @@
 
 #include <nvgpu/types.h>
 #include <nvgpu/ltc.h>
-#include <nvgpu/comptags.h>
 #include <nvgpu/io.h>
 #include <nvgpu/timers.h>
 #include <nvgpu/gk20a.h>

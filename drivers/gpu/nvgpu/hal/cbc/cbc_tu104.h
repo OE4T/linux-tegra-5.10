@@ -23,6 +23,8 @@
 #ifndef CBC_TU104_H
 #define CBC_TU104_H
 
+#ifdef CONFIG_NVGPU_COMPRESSION
+
 #include <nvgpu/types.h>
 
 enum nvgpu_cbc_op;
@@ -35,4 +37,5 @@ int tu104_cbc_ctrl(struct gk20a *g, enum nvgpu_cbc_op op,
 		       u32 min, u32 max);
 void tu104_cbc_init(struct gk20a *g, struct nvgpu_cbc *cbc);
 
+#endif
 #endif

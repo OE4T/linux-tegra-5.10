@@ -215,6 +215,7 @@ hw_was_off:
 	return err;
 }
 
+#ifdef CONFIG_NVGPU_COMPRESSION
 void gk20a_mm_cbc_clean(struct gk20a *g)
 {
 	struct mm_gk20a *mm = &g->mm;
@@ -262,3 +263,4 @@ void gk20a_mm_cbc_clean(struct gk20a *g)
 hw_was_off:
 	gk20a_idle_nosuspend(g);
 }
+#endif

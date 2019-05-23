@@ -29,7 +29,6 @@ srcs +=	os/posix/nvgpu.c \
 	os/posix/posix-nvgpu_mem.c \
 	os/posix/posix-dma.c \
 	os/posix/posix-vm.c \
-	os/posix/posix-comptags.c \
 	os/posix/firmware.c \
 	os/posix/soc.c \
 	os/posix/error_notifier.c \
@@ -47,6 +46,10 @@ srcs +=	os/posix/nvgpu.c \
 
 ifdef CONFIG_NVGPU_NVLINK
 srcs +=	os/posix/posix-nvlink.c
+endif
+
+ifeq ($(CONFIG_NVGPU_COMPRESSION),1)
+srcs += os/posix/posix-comptags.c
 endif
 endif
 
@@ -82,7 +85,6 @@ srcs += common/utils/enabled.c \
 	common/mm/vm_area.c \
 	common/mm/nvgpu_mem.c \
 	common/mm/nvgpu_sgt.c \
-	common/mm/comptags.c \
 	common/mm/mm.c \
 	common/mm/dma.c \
 	common/mm/vidmem.c \
@@ -90,7 +92,6 @@ srcs += common/utils/enabled.c \
 	common/therm/therm.c \
 	common/pramin.c \
 	common/ltc/ltc.c \
-	common/cbc/cbc.c \
 	common/fbp/fbp.c \
 	common/io/io.c \
 	common/ecc.c \
@@ -190,9 +191,6 @@ srcs += common/utils/enabled.c \
 	hal/power_features/cg/gp10b_gating_reglist.c \
 	hal/power_features/cg/gv11b_gating_reglist.c \
 	hal/power_features/cg/gp106_gating_reglist.c \
-	hal/cbc/cbc_gm20b.c \
-	hal/cbc/cbc_gp10b.c \
-	hal/cbc/cbc_gv11b.c \
 	hal/ptimer/ptimer_gk20a.c \
 	hal/ce/ce2_gk20a.c \
 	hal/ce/ce_gp10b.c \
@@ -445,13 +443,24 @@ srcs += common/vgpu/init/init_vgpu.c \
 	common/vgpu/clk_vgpu.c \
 	common/vgpu/debugger_vgpu.c \
 	common/vgpu/ltc/ltc_vgpu.c \
-	common/vgpu/cbc/cbc_vgpu.c \
 	common/vgpu/fbp/fbp_vgpu.c \
 	common/vgpu/ce_vgpu.c \
 	common/vgpu/gv11b/vgpu_gv11b.c \
 	common/vgpu/gv11b/vgpu_hal_gv11b.c \
 	common/vgpu/gv11b/vgpu_tsg_gv11b.c \
 	common/vgpu/gp10b/vgpu_hal_gp10b.c
+
+ifeq ($(CONFIG_NVGPU_COMPRESSION),1)
+srcs += common/vgpu/cbc/cbc_vgpu.c
+endif
+endif
+
+ifeq ($(CONFIG_NVGPU_COMPRESSION),1)
+srcs += common/mm/comptags.c \
+	common/cbc/cbc.c \
+	hal/cbc/cbc_gm20b.c \
+	hal/cbc/cbc_gp10b.c \
+	hal/cbc/cbc_gv11b.c
 endif
 
 ifeq ($(CONFIG_NVGPU_NVLINK),1)
@@ -503,7 +512,6 @@ srcs += common/sec2/sec2.c \
 	hal/init/hal_tu104_litter.c \
 	hal/power_features/cg/gv100_gating_reglist.c \
 	hal/power_features/cg/tu104_gating_reglist.c \
-	hal/cbc/cbc_tu104.c \
 	hal/ltc/ltc_tu104.c \
 	hal/fb/fb_gv100.c \
 	hal/fb/fb_tu104.c \
@@ -532,4 +540,8 @@ srcs += common/sec2/sec2.c \
 	hal/pramin/pramin_tu104.c \
 	hal/bios/bios_tu104.c \
 	hal/top/top_gv100.c
+
+ifeq ($(CONFIG_NVGPU_COMPRESSION),1)
+srcs +=	hal/cbc/cbc_tu104.c
+endif
 endif

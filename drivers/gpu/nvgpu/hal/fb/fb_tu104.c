@@ -101,6 +101,7 @@ int fb_tu104_tlb_invalidate(struct gk20a *g, struct nvgpu_mem *pdb)
 	return err;
 }
 
+#ifdef CONFIG_NVGPU_COMPRESSION
 void tu104_fb_cbc_configure(struct gk20a *g, struct nvgpu_cbc *cbc)
 {
 	u64 base_divisor;
@@ -147,6 +148,7 @@ void tu104_fb_cbc_configure(struct gk20a *g, struct nvgpu_cbc *cbc)
 	cbc->compbit_store.base_hw = compbit_store_base;
 
 }
+#endif
 
 static int tu104_fb_wait_mmu_bind(struct gk20a *g)
 {

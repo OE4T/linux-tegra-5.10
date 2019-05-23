@@ -117,6 +117,7 @@ void gv11b_fb_init_fs_state(struct gk20a *g)
 	}
 }
 
+#ifdef CONFIG_NVGPU_COMPRESSION
 void gv11b_fb_cbc_configure(struct gk20a *g, struct nvgpu_cbc *cbc)
 {
 	u32 compbit_base_post_divide;
@@ -167,3 +168,4 @@ void gv11b_fb_cbc_configure(struct gk20a *g, struct nvgpu_cbc *cbc)
 	cbc->compbit_store.base_hw = compbit_base_post_divide;
 
 }
+#endif

@@ -87,6 +87,10 @@ NVGPU_COMMON_CFLAGS                  += -DCONFIG_NVGPU_CHANNEL_TSG_SCHEDULING
 CONFIG_NVGPU_CHANNEL_TSG_CONTROL     := 1
 NVGPU_COMMON_CFLAGS                  += -DCONFIG_NVGPU_CHANNEL_TSG_CONTROL
 
+# Enable compression support for safety build for now. To be removed.
+CONFIG_NVGPU_COMPRESSION             := 1
+NVGPU_COMMON_CFLAGS                  += -DCONFIG_NVGPU_COMPRESSION
+
 #
 # Flags enabled for only the regular build profile.
 #

@@ -176,16 +176,6 @@ void gm20b_fb_set_mmu_page_size(struct gk20a *g)
 	gk20a_writel(g, fb_mmu_ctrl_r(), fb_mmu_ctrl);
 }
 
-bool gm20b_fb_set_use_full_comp_tag_line(struct gk20a *g)
-{
-	/* set large page size in fb */
-	u32 fb_mmu_ctrl = gk20a_readl(g, fb_mmu_ctrl_r());
-	fb_mmu_ctrl |= fb_mmu_ctrl_use_full_comp_tag_line_true_f();
-	gk20a_writel(g, fb_mmu_ctrl_r(), fb_mmu_ctrl);
-
-	return true;
-}
-
 u32 gm20b_fb_mmu_ctrl(struct gk20a *g)
 {
 	return gk20a_readl(g, fb_mmu_ctrl_r());
@@ -206,6 +196,18 @@ u32 gm20b_fb_mmu_debug_rd(struct gk20a *g)
 	return gk20a_readl(g, fb_mmu_debug_rd_r());
 }
 
+#ifdef CONFIG_NVGPU_COMPRESSION
+bool gm20b_fb_set_use_full_comp_tag_line(struct gk20a *g)
+{
+	/* set large page size in fb */
+	u32 fb_mmu_ctrl = gk20a_readl(g, fb_mmu_ctrl_r());
+
+	fb_mmu_ctrl |= fb_mmu_ctrl_use_full_comp_tag_line_true_f();
+	gk20a_writel(g, fb_mmu_ctrl_r(), fb_mmu_ctrl);
+
+	return true;
+}
+
 u64 gm20b_fb_compression_page_size(struct gk20a *g)
 {
 	return SZ_128K;
@@ -220,6 +222,7 @@ u64 gm20b_fb_compression_align_mask(struct gk20a *g)
 {
 	return SZ_64K - 1UL;
 }
+#endif
 
 void gm20b_fb_dump_vpr_info(struct gk20a *g)
 {

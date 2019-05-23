@@ -249,6 +249,7 @@ static const struct gpu_ops tu104_ops = {
 				gv11b_ltc_intr_en_illegal_compstat,
 		}
 	},
+#ifdef CONFIG_NVGPU_COMPRESSION
 	.cbc = {
 		.init = tu104_cbc_init,
 		.get_base_divisor = tu104_cbc_get_base_divisor,
@@ -256,6 +257,7 @@ static const struct gpu_ops tu104_ops = {
 		.ctrl = tu104_cbc_ctrl,
 		.fix_config = NULL,
 	},
+#endif
 	.ce = {
 		.isr_stall = gv11b_ce_stall_isr,
 		.isr_nonstall = NULL,
@@ -726,17 +728,19 @@ static const struct gpu_ops tu104_ops = {
 	.fb = {
 		.init_hw = gv11b_fb_init_hw,
 		.init_fs_state = gp106_fb_init_fs_state,
-		.cbc_configure = tu104_fb_cbc_configure,
 		.set_mmu_page_size = NULL,
-		.set_use_full_comp_tag_line =
-			gm20b_fb_set_use_full_comp_tag_line,
 		.mmu_ctrl = gm20b_fb_mmu_ctrl,
 		.mmu_debug_ctrl = gm20b_fb_mmu_debug_ctrl,
 		.mmu_debug_wr = gm20b_fb_mmu_debug_wr,
 		.mmu_debug_rd = gm20b_fb_mmu_debug_rd,
+#ifdef CONFIG_NVGPU_COMPRESSION
+		.cbc_configure = tu104_fb_cbc_configure,
+		.set_use_full_comp_tag_line =
+			gm20b_fb_set_use_full_comp_tag_line,
 		.compression_page_size = gp10b_fb_compression_page_size,
 		.compressible_page_size = gp10b_fb_compressible_page_size,
 		.compression_align_mask = gm20b_fb_compression_align_mask,
+#endif
 		.vpr_info_fetch = NULL,
 		.dump_vpr_info = NULL,
 		.dump_wpr_info = gm20b_fb_dump_wpr_info,
@@ -1059,7 +1063,9 @@ static const struct gpu_ops tu104_ops = {
 			.fb_flush = gk20a_mm_fb_flush,
 			.l2_invalidate = gk20a_mm_l2_invalidate,
 			.l2_flush = gv11b_mm_l2_flush,
+#ifdef CONFIG_NVGPU_COMPRESSION
 			.cbc_clean = gk20a_mm_cbc_clean,
+#endif
 		},
 		.gmmu = {
 			.get_mmu_levels = gp10b_mm_get_mmu_levels,
@@ -1412,7 +1418,9 @@ int tu104_init_hal(struct gk20a *g)
 
 	gops->bios = tu104_ops.bios;
 	gops->ltc = tu104_ops.ltc;
+#ifdef CONFIG_NVGPU_COMPRESSION
 	gops->cbc = tu104_ops.cbc;
+#endif
 	gops->ce = tu104_ops.ce;
 	gops->gr = tu104_ops.gr;
 	gops->gpu_class = tu104_ops.gpu_class;
@@ -1514,9 +1522,11 @@ int tu104_init_hal(struct gk20a *g)
 	/* dGpu VDK support */
 	if (nvgpu_is_enabled(g, NVGPU_IS_FMODEL)){
 		/* Disable compression */
+#ifdef CONFIG_NVGPU_COMPRESSION
 		gops->cbc.init = NULL;
 		gops->cbc.ctrl = NULL;
 		gops->cbc.alloc_comptags = NULL;
+#endif
 
 		gops->gr.falcon.load_ctxsw_ucode =
 			nvgpu_gr_falcon_load_ctxsw_ucode;

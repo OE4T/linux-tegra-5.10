@@ -29,7 +29,9 @@ struct gk20a;
 
 int gk20a_mm_fb_flush(struct gk20a *g);
 int gk20a_mm_l2_flush(struct gk20a *g, bool invalidate);
+#ifdef CONFIG_NVGPU_COMPRESSION
 void gk20a_mm_cbc_clean(struct gk20a *g);
+#endif
 void gk20a_mm_l2_invalidate(struct gk20a *g);
 
 #endif

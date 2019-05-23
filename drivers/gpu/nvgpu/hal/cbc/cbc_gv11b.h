@@ -22,9 +22,13 @@
 
 #ifndef CBC_GV11B_H
 #define CBC_GV11B_H
+
+#ifdef CONFIG_NVGPU_COMPRESSION
+
 struct gk20a;
 struct nvgpu_cbc;
 
 void gv11b_cbc_init(struct gk20a *g, struct nvgpu_cbc *cbc);
 
+#endif
 #endif

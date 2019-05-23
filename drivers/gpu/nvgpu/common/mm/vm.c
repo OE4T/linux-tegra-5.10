@@ -45,14 +45,18 @@ struct nvgpu_ctag_buffer_info {
 	u32			pgsz_idx;
 	u32			flags;
 
+#ifdef CONFIG_NVGPU_COMPRESSION
 	s16			compr_kind;
+#endif
 	s16			incompr_kind;
 
 	u32			ctag_lines;
 };
 
+#ifdef CONFIG_NVGPU_COMPRESSION
 static int nvgpu_vm_compute_compression(struct vm_gk20a *vm,
 					struct nvgpu_ctag_buffer_info *binfo);
+#endif
 
 static void nvgpu_vm_do_unmap(struct nvgpu_mapped_buf *mapped_buffer,
 			      struct vm_gk20a_mapping_batch *batch);
@@ -1004,18 +1008,23 @@ int nvgpu_vm_map(struct vm_gk20a *vm,
 
 	binfo.flags = flags;
 	binfo.size = nvgpu_os_buf_get_size(os_buf);
+	binfo.incompr_kind = incompr_kind;
+
+#ifdef CONFIG_NVGPU_COMPRESSION
 	if (vm->enable_ctag && compr_kind != NVGPU_KIND_INVALID) {
 		binfo.compr_kind = compr_kind;
 	} else {
 		binfo.compr_kind = NVGPU_KIND_INVALID;
 	}
-	binfo.incompr_kind = incompr_kind;
 
 	if (compr_kind != NVGPU_KIND_INVALID) {
 		map_key_kind = compr_kind;
 	} else {
 		map_key_kind = incompr_kind;
 	}
+#else
+	map_key_kind = incompr_kind;
+#endif
 
 	/*
 	 * Check if this buffer is already mapped.
@@ -1081,6 +1090,7 @@ int nvgpu_vm_map(struct vm_gk20a *vm,
 		va_allocated = false;
 	}
 
+#ifdef CONFIG_NVGPU_COMPRESSION
 	err = nvgpu_vm_compute_compression(vm, &binfo);
 	if (err != 0) {
 		nvgpu_err(g, "failure setting up compression");
@@ -1176,7 +1186,9 @@ int nvgpu_vm_map(struct vm_gk20a *vm,
 		nvgpu_assert((binfo.compr_kind >= 0) &&
 			     (binfo.compr_kind <= (s16)U8_MAX));
 		pte_kind = (u8)binfo.compr_kind;
-	} else if (binfo.incompr_kind != NVGPU_KIND_INVALID) {
+	} else
+#endif
+	if (binfo.incompr_kind != NVGPU_KIND_INVALID) {
 		/*
 		 * Incompressible kind, ctag offset will not be programmed
 		 */
@@ -1193,9 +1205,11 @@ int nvgpu_vm_map(struct vm_gk20a *vm,
 		goto clean_up;
 	}
 
+#ifdef CONFIG_NVGPU_COMPRESSION
 	if (clear_ctags) {
 		clear_ctags = gk20a_comptags_start_clear(os_buf);
 	}
+#endif
 
 	map_addr = g->ops.mm.gmmu.map(vm,
 				      map_addr,
@@ -1213,9 +1227,11 @@ int nvgpu_vm_map(struct vm_gk20a *vm,
 				      batch,
 				      aperture);
 
+#ifdef CONFIG_NVGPU_COMPRESSION
 	if (clear_ctags) {
 		gk20a_comptags_finish_clear(os_buf, map_addr != 0U);
 	}
+#endif
 
 	if (map_addr == 0ULL) {
 		err = -ENOMEM;
@@ -1405,6 +1421,7 @@ done:
 	return;
 }
 
+#ifdef CONFIG_NVGPU_COMPRESSION
 static int nvgpu_vm_compute_compression(struct vm_gk20a *vm,
 					struct nvgpu_ctag_buffer_info *binfo)
 {
@@ -1432,3 +1449,4 @@ static int nvgpu_vm_compute_compression(struct vm_gk20a *vm,
 
 	return 0;
 }
+#endif

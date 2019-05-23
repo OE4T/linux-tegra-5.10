@@ -39,6 +39,7 @@ ccflags-y += -DCONFIG_NVGPU_CHANNEL_TSG_SCHEDULING
 ccflags-y += -DCONFIG_NVGPU_CHANNEL_TSG_CONTROL
 ccflags-y += -DCONFIG_NVGPU_POWER_PG
 ccflags-y += -DCONFIG_NVGPU_CE
+ccflags-y += -DCONFIG_NVGPU_COMPRESSION
 
 obj-$(CONFIG_GK20A) := nvgpu.o
 
@@ -64,7 +65,6 @@ nvgpu-y += \
 	common/regops/regops.o \
 	common/ltc/ltc.o \
 	common/fbp/fbp.o \
-	common/cbc/cbc.o \
 	common/gr/gr_utils.o \
 	common/gr/gr.o \
 	common/gr/gr_intr.o \
@@ -242,10 +242,6 @@ nvgpu-y += \
 	hal/power_features/cg/gv100_gating_reglist.o \
 	hal/power_features/cg/gv11b_gating_reglist.o \
 	hal/power_features/cg/tu104_gating_reglist.o \
-	hal/cbc/cbc_gm20b.o \
-	hal/cbc/cbc_gp10b.o \
-	hal/cbc/cbc_gv11b.o \
-	hal/cbc/cbc_tu104.o \
 	hal/ptimer/ptimer_gk20a.o \
 	hal/regops/regops_gm20b.o \
 	hal/regops/regops_gp10b.o \
@@ -400,7 +396,6 @@ nvgpu-y += \
 	os/linux/linux-io.o \
 	os/linux/io_usermode.o \
 	os/linux/rwsem.o \
-	os/linux/comptags.o \
 	os/linux/dmabuf.o \
 	os/linux/sched.o \
 	os/linux/linux-channel.o \
@@ -528,7 +523,6 @@ nvgpu-y += \
 	common/mm/vm_area.o \
 	common/mm/nvgpu_mem.o \
 	common/mm/nvgpu_sgt.o \
-	common/mm/comptags.o \
 	common/mm/mm.o \
 	common/mm/dma.o \
 	common/pramin.o \
@@ -585,7 +579,6 @@ nvgpu-y += \
 
 nvgpu-$(CONFIG_TEGRA_GR_VIRTUALIZATION) += \
 	common/vgpu/ltc/ltc_vgpu.o \
-	common/vgpu/cbc/cbc_vgpu.o \
 	common/vgpu/fbp/fbp_vgpu.o \
 	common/vgpu/gr/gr_vgpu.o \
 	common/vgpu/gr/ctx_vgpu.o \
@@ -621,4 +614,15 @@ nvgpu-$(CONFIG_NVGPU_CYCLESTATS) += \
 ifeq ($(CONFIG_TEGRA_GR_VIRTUALIZATION),y)
 nvgpu-$(CONFIG_NVGPU_CYCLESTATS) += \
 	common/vgpu/perf/cyclestats_snapshot_vgpu.o
+nvgpu-$(CONFIG_NVGPU_COMPRESSION) += \
+	common/vgpu/cbc/cbc_vgpu.o
 endif
+
+nvgpu-$(CONFIG_NVGPU_COMPRESSION) += \
+	os/linux/comptags.o \
+	common/mm/comptags.o \
+	common/cbc/cbc.o \
+	hal/cbc/cbc_gm20b.o \
+	hal/cbc/cbc_gp10b.o \
+	hal/cbc/cbc_gv11b.o \
+	hal/cbc/cbc_tu104.o \

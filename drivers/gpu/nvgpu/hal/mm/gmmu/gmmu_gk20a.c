@@ -112,7 +112,6 @@ static void update_pte(struct vm_gk20a *vm,
 			 struct nvgpu_gmmu_attrs *attrs)
 {
 	struct gk20a *g = gk20a_from_vm(vm);
-	u32 page_size = vm->gmmu_page_sizes[attrs->pgsz];
 	u32 pte_valid = attrs->valid ?
 		gmmu_pte_valid_true_f() :
 		gmmu_pte_valid_false_f();
@@ -120,14 +119,19 @@ static void update_pte(struct vm_gk20a *vm,
 	u32 addr = attrs->aperture == APERTURE_SYSMEM ?
 		gmmu_pte_address_sys_f(phys_shifted) :
 		gmmu_pte_address_vid_f(phys_shifted);
+#ifdef CONFIG_NVGPU_COMPRESSION
+	u32 page_size = vm->gmmu_page_sizes[attrs->pgsz];
 	u32 ctag_shift = 0;
-	u64 compression_page_size = g->ops.fb.compression_page_size(g);
+	u64 compression_page_size;
 
-	if (compression_page_size == 0U) {
+	compression_page_size = g->ops.fb.compression_page_size(g);
+
+	if (compression_page_size == 0ULL) {
 		nvgpu_err(g, "compression_page_size is 0");
 	} else {
 		ctag_shift = (u32)ilog2(compression_page_size);
 	}
+#endif
 
 	pte_w[0] = pte_valid | addr;
 
@@ -139,15 +143,22 @@ static void update_pte(struct vm_gk20a *vm,
 					 gmmu_pte_aperture_sys_mem_ncoh_f(),
 					 gmmu_pte_aperture_sys_mem_coh_f(),
 					 gmmu_pte_aperture_video_memory_f()) |
-		gmmu_pte_kind_f(attrs->kind_v) |
-		gmmu_pte_comptagline_f((U32(attrs->ctag) >> U32(ctag_shift)));
+		gmmu_pte_kind_f(attrs->kind_v);
 
+#ifdef CONFIG_NVGPU_COMPRESSION
+	pte_w[1] |=
+		gmmu_pte_comptagline_f((U32(attrs->ctag) >> U32(ctag_shift)));
 	if ((attrs->ctag != 0ULL) &&
 	     vm->mm->use_full_comp_tag_line &&
 	    ((phys_addr & 0x10000ULL) != 0ULL)) {
 		pte_w[1] |= gmmu_pte_comptagline_f(
 			BIT32(gmmu_pte_comptagline_s() - 1U));
 	}
+
+	if (attrs->ctag != 0ULL) {
+		attrs->ctag += page_size;
+	}
+#endif
 
 	if (attrs->rw_flag == gk20a_mem_flag_read_only) {
 		pte_w[0] |= gmmu_pte_read_only_true_f();
@@ -160,10 +171,6 @@ static void update_pte(struct vm_gk20a *vm,
 
 	if (!attrs->cacheable) {
 		pte_w[1] |= gmmu_pte_vol_true_f();
-	}
-
-	if (attrs->ctag != 0ULL) {
-		attrs->ctag += page_size;
 	}
 }
 
@@ -179,14 +186,19 @@ static void update_gmmu_pte_locked(struct vm_gk20a *vm,
 	u32 page_size  = vm->gmmu_page_sizes[attrs->pgsz];
 	u32 pd_offset = nvgpu_pd_offset_from_index(l, pd_idx);
 	u32 pte_w[2] = {0, 0};
-	u32 ctag_shift = 0;
-	u64 compression_page_size = g->ops.fb.compression_page_size(g);
 
-	if (compression_page_size == 0U) {
+#ifdef CONFIG_NVGPU_COMPRESSION
+	u64 compression_page_size;
+	u32 ctag_shift = 0;
+
+	compression_page_size = g->ops.fb.compression_page_size(g);
+
+	if (compression_page_size == 0ULL) {
 		nvgpu_err(g, "compression_page_size is 0");
 	} else {
 		ctag_shift = (u32)ilog2(compression_page_size);
 	}
+#endif
 
 	if (phys_addr != 0ULL) {
 		update_pte(vm, pte_w, phys_addr, attrs);
@@ -200,7 +212,9 @@ static void update_gmmu_pte_locked(struct vm_gk20a *vm,
 		"PTE: i=%-4u size=%-2u offs=%-4u | "
 		"GPU %#-12llx  phys %#-12llx "
 		"pgsz: %3dkb perm=%-2s kind=%#02x APT=%-6s %c%c%c%c "
+#ifdef CONFIG_NVGPU_COMPRESSION
 		"ctag=0x%08x "
+#endif
 		"[0x%08x, 0x%08x]",
 		pd_idx, l->entry_size, pd_offset,
 		virt_addr, phys_addr,
@@ -212,7 +226,9 @@ static void update_gmmu_pte_locked(struct vm_gk20a *vm,
 		attrs->sparse    ? 'S' : '-',
 		attrs->priv      ? 'P' : '-',
 		attrs->valid     ? 'V' : '-',
+#ifdef CONFIG_NVGPU_COMPRESSION
 		U32(attrs->ctag) >> U32(ctag_shift),
+#endif
 		pte_w[1], pte_w[0]);
 
 	nvgpu_pd_write(g, pd, (size_t)pd_offset + (size_t)0, pte_w[0]);

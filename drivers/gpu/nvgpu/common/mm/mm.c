@@ -43,7 +43,9 @@ int nvgpu_mm_suspend(struct gk20a *g)
 
 	nvgpu_vidmem_thread_pause_sync(&g->mm);
 
+#ifdef CONFIG_NVGPU_COMPRESSION
 	g->ops.mm.cache.cbc_clean(g);
+#endif
 	err = g->ops.mm.cache.l2_flush(g, false);
 	if (err != 0) {
 		nvgpu_err(g, "l2_flush failed");
@@ -554,10 +556,12 @@ int nvgpu_mm_setup_hw(struct gk20a *g)
 		g->ops.fb.set_mmu_page_size(g);
 	}
 
+#ifdef CONFIG_NVGPU_COMPRESSION
 	if (g->ops.fb.set_use_full_comp_tag_line != NULL) {
 		mm->use_full_comp_tag_line =
 			g->ops.fb.set_use_full_comp_tag_line(g);
 	}
+#endif
 
 	g->ops.fb.init_hw(g);
 

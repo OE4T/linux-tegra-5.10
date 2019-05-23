@@ -78,7 +78,9 @@ enum gk20a_mem_rw_flag {
 struct nvgpu_gmmu_attrs {
 	u32			 pgsz;
 	u32			 kind_v;
+#ifdef CONFIG_NVGPU_COMPRESSION
 	u64			 ctag;
+#endif
 	bool			 cacheable;
 	enum gk20a_mem_rw_flag	 rw_flag;
 	bool			 sparse;

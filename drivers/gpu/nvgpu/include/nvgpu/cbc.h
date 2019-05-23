@@ -23,6 +23,8 @@
 #ifndef NVGPU_CBC_H
 #define NVGPU_CBC_H
 
+#ifdef CONFIG_NVGPU_COMPRESSION
+
 #include <nvgpu/types.h>
 #include <nvgpu/comptags.h>
 #include <nvgpu/nvgpu_mem.h>
@@ -58,5 +60,5 @@ int nvgpu_cbc_init_support(struct gk20a *g);
 void nvgpu_cbc_remove_support(struct gk20a *g);
 int nvgpu_cbc_alloc(struct gk20a *g, size_t compbit_backing_size,
 			bool vidmem_alloc);
-
+#endif
 #endif /* NVGPU_CBC_H */

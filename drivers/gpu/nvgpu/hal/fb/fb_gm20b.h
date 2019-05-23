@@ -34,14 +34,16 @@ void gm20b_fb_init_hw(struct gk20a *g);
 int gm20b_fb_tlb_invalidate(struct gk20a *g, struct nvgpu_mem *pdb);
 void fb_gm20b_init_fs_state(struct gk20a *g);
 void gm20b_fb_set_mmu_page_size(struct gk20a *g);
-bool gm20b_fb_set_use_full_comp_tag_line(struct gk20a *g);
 u32 gm20b_fb_mmu_ctrl(struct gk20a *g);
 u32 gm20b_fb_mmu_debug_ctrl(struct gk20a *g);
 u32 gm20b_fb_mmu_debug_wr(struct gk20a *g);
 u32 gm20b_fb_mmu_debug_rd(struct gk20a *g);
+#ifdef CONFIG_NVGPU_COMPRESSION
+bool gm20b_fb_set_use_full_comp_tag_line(struct gk20a *g);
 u64 gm20b_fb_compression_page_size(struct gk20a *g);
 unsigned int gm20b_fb_compressible_page_size(struct gk20a *g);
 u64 gm20b_fb_compression_align_mask(struct gk20a *g);
+#endif
 void gm20b_fb_dump_vpr_info(struct gk20a *g);
 void gm20b_fb_dump_wpr_info(struct gk20a *g);
 void gm20b_fb_read_wpr_info(struct gk20a *g, u64 *wpr_base, u64 *wpr_size);

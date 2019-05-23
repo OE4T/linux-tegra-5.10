@@ -126,7 +126,9 @@ static int init_mm(struct unit_module *m, struct gk20a *g)
 	g->ops.mm.gmmu.map = nvgpu_gmmu_map_locked;
 	g->ops.mm.gmmu.unmap = nvgpu_gmmu_unmap_locked;
 	g->ops.mm.gmmu.gpu_phys_addr = gv11b_gpu_phys_addr;
+#ifdef CONFIG_NVGPU_COMPRESSION
 	g->ops.fb.compression_page_size = gp10b_fb_compression_page_size;
+#endif
 	g->ops.fb.tlb_invalidate = gm20b_fb_tlb_invalidate;
 	g->ops.ramin.init_pdb = gp10b_ramin_init_pdb;
 	g->ops.ramin.alloc_size = gk20a_ramin_alloc_size;

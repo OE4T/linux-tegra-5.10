@@ -174,8 +174,10 @@ static void update_pte(struct vm_gk20a *vm,
 		       struct nvgpu_gmmu_attrs *attrs)
 {
 	struct gk20a *g = gk20a_from_vm(vm);
+#ifdef CONFIG_NVGPU_COMPRESSION
 	u64 ctag_granularity = g->ops.fb.compression_page_size(g);
 	u32 page_size = vm->gmmu_page_sizes[attrs->pgsz];
+#endif
 	u32 pte_valid = attrs->valid ?
 		gmmu_new_pte_valid_true_f() :
 		gmmu_new_pte_valid_false_f();
@@ -200,9 +202,16 @@ static void update_pte(struct vm_gk20a *vm,
 	tmp_addr = phys_addr >> (24U + gmmu_new_pte_address_shift_v());
 	nvgpu_assert(u64_hi32(tmp_addr) == 0U);
 	pte_w[1] = (u32)tmp_addr |
-		gmmu_new_pte_kind_f(attrs->kind_v) |
-		gmmu_new_pte_comptagline_f((u32)(attrs->ctag /
-						 ctag_granularity));
+		gmmu_new_pte_kind_f(attrs->kind_v);
+
+#ifdef CONFIG_NVGPU_COMPRESSION
+	pte_w[1] |= gmmu_new_pte_comptagline_f((u32)(attrs->ctag /
+						     ctag_granularity));
+
+	if (attrs->ctag != 0ULL) {
+		attrs->ctag += page_size;
+	}
+#endif
 
 	if (attrs->rw_flag == gk20a_mem_flag_read_only) {
 		pte_w[0] |= gmmu_new_pte_read_only_true_f();
@@ -215,11 +224,6 @@ static void update_pte(struct vm_gk20a *vm,
 			pte_w[0] |= gmmu_new_pte_vol_true_f();
 		}
 	}
-
-	if (attrs->ctag != 0ULL) {
-		attrs->ctag += page_size;
-	}
-
 }
 
 static void update_pte_sparse(u32 *pte_w)
@@ -254,7 +258,9 @@ static void update_gmmu_pte_locked(struct vm_gk20a *vm,
 		"PTE: i=%-4u size=%-2u | "
 		"GPU %#-12llx  phys %#-12llx "
 		"pgsz: %3dkb perm=%-2s kind=%#02x APT=%-6s %c%c%c%c%c "
+#ifdef CONFIG_NVGPU_COMPRESSION
 		"ctag=0x%08llx "
+#endif
 		"[0x%08x, 0x%08x]",
 		vm->name,
 		pd_idx, l->entry_size,
@@ -268,7 +274,9 @@ static void update_gmmu_pte_locked(struct vm_gk20a *vm,
 		attrs->priv      ? 'P' : '-',
 		attrs->valid     ? 'V' : '-',
 		attrs->platform_atomic ? 'A' : '-',
+#ifdef CONFIG_NVGPU_COMPRESSION
 		attrs->ctag / g->ops.fb.compression_page_size(g),
+#endif
 		pte_w[1], pte_w[0]);
 
 	nvgpu_pd_write(g, pd, (size_t)pd_offset + (size_t)0, pte_w[0]);

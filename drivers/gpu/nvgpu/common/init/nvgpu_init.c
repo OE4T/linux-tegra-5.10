@@ -464,11 +464,13 @@ int gk20a_finalize_poweron(struct gk20a *g)
 		goto done;
 	}
 
+#ifdef CONFIG_NVGPU_COMPRESSION
 	err = nvgpu_cbc_init_support(g);
 	if (err != 0) {
 		nvgpu_err(g, "failed to init cbc");
 		goto done;
 	}
+#endif
 
 	g->ops.chip_init_gpu_characteristics(g);
 
@@ -656,7 +658,9 @@ static void gk20a_free_cb(struct nvgpu_ref *refcount)
 	nvgpu_ce_destroy(g);
 #endif
 
+#ifdef CONFIG_NVGPU_COMPRESSION
 	nvgpu_cbc_remove_support(g);
+#endif
 
 	nvgpu_ecc_remove_support(g);
 

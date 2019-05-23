@@ -814,11 +814,9 @@ u64 nvgpu_gmmu_map_locked(struct vm_gk20a *vm,
 	struct gk20a *g = gk20a_from_vm(vm);
 	int err = 0;
 	bool allocated = false;
-	u64 ctag_granularity = g->ops.fb.compression_page_size(g);
 	struct nvgpu_gmmu_attrs attrs = {
 		.pgsz      = pgsz_idx,
 		.kind_v    = kind_v,
-		.ctag      = (u64)ctag_offset * ctag_granularity,
 		.cacheable = ((flags & NVGPU_VM_MAP_CACHEABLE) != 0U),
 		.rw_flag   = rw_flag,
 		.sparse    = sparse,
@@ -827,6 +825,10 @@ u64 nvgpu_gmmu_map_locked(struct vm_gk20a *vm,
 		.aperture  = aperture,
 		.platform_atomic = (flags & NVGPU_VM_MAP_PLATFORM_ATOMIC) != 0U
 	};
+#ifdef CONFIG_NVGPU_COMPRESSION
+	u64 ctag_granularity = g->ops.fb.compression_page_size(g);
+
+	attrs.ctag      = (u64)ctag_offset * ctag_granularity;
 
 	/*
 	 * We need to add the buffer_offset within compression_page_size so that
@@ -838,6 +840,7 @@ u64 nvgpu_gmmu_map_locked(struct vm_gk20a *vm,
 		attrs.ctag = nvgpu_safe_add_u64(attrs.ctag,
 				buffer_offset & (ctag_granularity - U64(1)));
 	}
+#endif
 
 	attrs.l3_alloc = (bool)(flags & NVGPU_VM_MAP_L3_ALLOC);
 
@@ -897,7 +900,9 @@ void nvgpu_gmmu_unmap_locked(struct vm_gk20a *vm,
 	struct nvgpu_gmmu_attrs attrs = {
 		.pgsz      = pgsz_idx,
 		.kind_v    = 0,
+#ifdef CONFIG_NVGPU_COMPRESSION
 		.ctag      = 0,
+#endif
 		.cacheable = false,
 		.rw_flag   = rw_flag,
 		.sparse    = sparse,

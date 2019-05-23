@@ -76,7 +76,6 @@ struct nvgpu_engine_status_info;
 struct nvgpu_pbdma_status_info;
 struct nvgpu_gr_config;
 struct nvgpu_fecs_method_op;
-struct nvgpu_cbc;
 struct nvgpu_mem;
 struct gk20a_cs_snapshot_client;
 struct dbg_session_gk20a;
@@ -247,6 +246,7 @@ struct gpu_ops {
 								bool enable);
 		} intr;
 	} ltc;
+#ifdef CONFIG_NVGPU_COMPRESSION
 	struct {
 		void (*init)(struct gk20a *g, struct nvgpu_cbc *cbc);
 		u64 (*get_base_divisor)(struct gk20a *g);
@@ -256,6 +256,7 @@ struct gpu_ops {
 				u32 min, u32 max);
 		u32 (*fix_config)(struct gk20a *g, int base);
 	} cbc;
+#endif
 	struct {
 		void (*isr_stall)(struct gk20a *g, u32 inst_id, u32 pri_base);
 		u32 (*isr_nonstall)(struct gk20a *g, u32 inst_id, u32 pri_base);
@@ -880,16 +881,18 @@ struct gpu_ops {
 		struct nvgpu_hw_err_inject_info_desc * (*get_hubmmu_err_desc)
 			(struct gk20a *g);
 		void (*init_hw)(struct gk20a *g);
-		void (*cbc_configure)(struct gk20a *g, struct nvgpu_cbc *cbc);
 		void (*init_fs_state)(struct gk20a *g);
 		void (*init_uncompressed_kind_map)(struct gk20a *g);
 		void (*init_kind_attr)(struct gk20a *g);
 		void (*set_mmu_page_size)(struct gk20a *g);
-		bool (*set_use_full_comp_tag_line)(struct gk20a *g);
 		u32 (*mmu_ctrl)(struct gk20a *g);
 		u32 (*mmu_debug_ctrl)(struct gk20a *g);
 		u32 (*mmu_debug_wr)(struct gk20a *g);
 		u32 (*mmu_debug_rd)(struct gk20a *g);
+
+#ifdef CONFIG_NVGPU_COMPRESSION
+		void (*cbc_configure)(struct gk20a *g, struct nvgpu_cbc *cbc);
+		bool (*set_use_full_comp_tag_line)(struct gk20a *g);
 
 		/*
 		 * Compression tag line coverage. When mapping a compressible
@@ -908,6 +911,7 @@ struct gpu_ops {
 		 * address bits that must match.
 		 */
 		u64 (*compression_align_mask)(struct gk20a *g);
+#endif
 
 		void (*dump_vpr_info)(struct gk20a *g);
 		void (*dump_wpr_info)(struct gk20a *g);
@@ -1283,7 +1287,9 @@ struct gpu_ops {
 			int (*fb_flush)(struct gk20a *g);
 			void (*l2_invalidate)(struct gk20a *g);
 			int (*l2_flush)(struct gk20a *g, bool invalidate);
+#ifdef CONFIG_NVGPU_COMPRESSION
 			void (*cbc_clean)(struct gk20a *g);
+#endif
 		} cache;
 		struct {
 			const struct gk20a_mmu_level *

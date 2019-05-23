@@ -133,7 +133,9 @@ static int init_test_env(struct unit_module *m, struct gk20a *g)
 	nvgpu_set_enabled(g, NVGPU_MM_UNIFIED_MEMORY, true);
 	nvgpu_set_enabled(g, NVGPU_HAS_SYNCPOINTS, true);
 
+#ifdef CONFIG_NVGPU_COMPRESSION
 	g->ops.fb.compression_page_size = gp10b_fb_compression_page_size;
+#endif
 	g->ops.fb.tlb_invalidate = gm20b_fb_tlb_invalidate;
 
 	g->ops.mm.gmmu.get_default_big_page_size =
@@ -147,6 +149,8 @@ static int init_test_env(struct unit_module *m, struct gk20a *g)
 
 	return UNIT_SUCCESS;
 }
+
+#define NV_KIND_INVALID -1
 
 /*
  * Try mapping a buffer into the GPU virtual address space:
@@ -175,6 +179,7 @@ static int map_buffer(struct unit_module *m,
 	struct nvgpu_mem mem = {0};
 	struct nvgpu_sgt *sgt = NULL;
 	bool fixed_gpu_va = (gpu_va != 0);
+	s16 compr_kind;
 	u32 pte[2];
 
 	if (vm == NULL) {
@@ -229,6 +234,12 @@ static int map_buffer(struct unit_module *m,
 		}
 	}
 
+#ifdef CONFIG_NVGPU_COMPRESSION
+	compr_kind = 0;
+#else
+	compr_kind = NV_KIND_INVALID;
+#endif
+
 	ret = nvgpu_vm_map(vm,
 			   &os_buf,
 			   sgt,
@@ -237,7 +248,7 @@ static int map_buffer(struct unit_module *m,
 			   0,
 			   gk20a_mem_flag_none,
 			   NVGPU_VM_MAP_CACHEABLE,
-			   0,
+			   compr_kind,
 			   0,
 			   batch,
 			   APERTURE_SYSMEM,

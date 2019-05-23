@@ -195,11 +195,13 @@ int vgpu_finalize_poweron_common(struct gk20a *g)
 		return err;
 	}
 
+#ifdef CONFIG_NVGPU_COMPRESSION
 	err = nvgpu_cbc_init_support(g);
 	if (err != 0) {
 		nvgpu_err(g, "failed to init cbc");
 		return err;
 	}
+#endif
 
 	g->ops.chip_init_gpu_characteristics(g);
 

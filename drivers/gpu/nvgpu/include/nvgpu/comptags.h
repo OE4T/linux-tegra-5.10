@@ -23,6 +23,8 @@
 #ifndef NVGPU_COMPTAGS_H
 #define NVGPU_COMPTAGS_H
 
+#ifdef CONFIG_NVGPU_COMPRESSION
+
 #include <nvgpu/lock.h>
 #include <nvgpu/types.h>
 
@@ -99,5 +101,5 @@ void gk20a_get_comptags(struct nvgpu_os_buffer *buf,
 bool gk20a_comptags_start_clear(struct nvgpu_os_buffer *buf);
 void gk20a_comptags_finish_clear(struct nvgpu_os_buffer *buf,
 				 bool clear_successful);
-
+#endif
 #endif /* NVGPU_COMPTAGS_H */

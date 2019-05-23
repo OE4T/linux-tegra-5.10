@@ -306,7 +306,9 @@ static int init_mm(struct unit_module *m, struct gk20a *g)
 	g->ops.mm.is_bar1_supported = gv11b_mm_is_bar1_supported;
 	g->ops.mm.cache.l2_flush = gv11b_mm_l2_flush;
 	g->ops.mm.cache.fb_flush = gk20a_mm_fb_flush;
+#ifdef CONFIG_NVGPU_COMPRESSION
 	g->ops.fb.compression_page_size = gp10b_fb_compression_page_size;
+#endif
 	g->ops.fb.tlb_invalidate = gm20b_fb_tlb_invalidate;
 	g->ops.ramin.init_pdb = gp10b_ramin_init_pdb;
 	g->ops.ramin.alloc_size = gk20a_ramin_alloc_size;

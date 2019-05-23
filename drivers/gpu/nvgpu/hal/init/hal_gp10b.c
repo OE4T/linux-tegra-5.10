@@ -168,12 +168,14 @@ static const struct gpu_ops gp10b_ops = {
 			.en_illegal_compstat = NULL,
 		},
 	},
+#ifdef CONFIG_NVGPU_COMPRESSION
 	.cbc = {
 		.init = gm20b_cbc_init,
 		.alloc_comptags = gp10b_cbc_alloc_comptags,
 		.ctrl = gp10b_cbc_ctrl,
 		.fix_config = gm20b_cbc_fix_config,
 	},
+#endif
 	.ce = {
 		.isr_stall = gp10b_ce_stall_isr,
 		.isr_nonstall = gp10b_ce_nonstall_isr,
@@ -585,15 +587,17 @@ static const struct gpu_ops gp10b_ops = {
 		.init_hw = gm20b_fb_init_hw,
 		.init_fs_state = fb_gm20b_init_fs_state,
 		.set_mmu_page_size = NULL,
-		.set_use_full_comp_tag_line =
-			gm20b_fb_set_use_full_comp_tag_line,
 		.mmu_ctrl = gm20b_fb_mmu_ctrl,
 		.mmu_debug_ctrl = gm20b_fb_mmu_debug_ctrl,
 		.mmu_debug_wr = gm20b_fb_mmu_debug_wr,
 		.mmu_debug_rd = gm20b_fb_mmu_debug_rd,
+#ifdef CONFIG_NVGPU_COMPRESSION
+		.set_use_full_comp_tag_line =
+			gm20b_fb_set_use_full_comp_tag_line,
 		.compression_page_size = gp10b_fb_compression_page_size,
 		.compressible_page_size = gp10b_fb_compressible_page_size,
 		.compression_align_mask = gm20b_fb_compression_align_mask,
+#endif
 		.vpr_info_fetch = gm20b_fb_vpr_info_fetch,
 		.dump_vpr_info = gm20b_fb_dump_vpr_info,
 		.dump_wpr_info = gm20b_fb_dump_wpr_info,
@@ -865,7 +869,9 @@ static const struct gpu_ops gp10b_ops = {
 			.fb_flush = gk20a_mm_fb_flush,
 			.l2_invalidate = gk20a_mm_l2_invalidate,
 			.l2_flush = gk20a_mm_l2_flush,
+#ifdef CONFIG_NVGPU_COMPRESSION
 			.cbc_clean = gk20a_mm_cbc_clean,
+#endif
 		},
 		.gmmu = {
 			.get_mmu_levels = gp10b_mm_get_mmu_levels,
@@ -1106,7 +1112,9 @@ int gp10b_init_hal(struct gk20a *g)
 	struct gpu_ops *gops = &g->ops;
 
 	gops->ltc = gp10b_ops.ltc;
+#ifdef CONFIG_NVGPU_COMPRESSION
 	gops->cbc = gp10b_ops.cbc;
+#endif
 	gops->ce = gp10b_ops.ce;
 	gops->gr = gp10b_ops.gr;
 	gops->gpu_class = gp10b_ops.gpu_class;

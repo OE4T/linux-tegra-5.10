@@ -27,6 +27,7 @@
 
 #include "fb_gp10b.h"
 
+#ifdef CONFIG_NVGPU_COMPRESSION
 u64 gp10b_fb_compression_page_size(struct gk20a *g)
 {
 	return SZ_64K;
@@ -36,3 +37,4 @@ unsigned int gp10b_fb_compressible_page_size(struct gk20a *g)
 {
 	return (unsigned int)SZ_4K;
 }
+#endif

@@ -121,12 +121,14 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 			.en_illegal_compstat = NULL,
 		},
 	},
+#ifdef CONFIG_NVGPU_COMPRESSION
 	.cbc = {
 		.init = NULL,
 		.alloc_comptags = vgpu_cbc_alloc_comptags,
 		.ctrl = NULL,
 		.fix_config = NULL,
 	},
+#endif
 	.ce = {
 		.isr_stall = NULL,
 		.isr_nonstall = NULL,
@@ -378,10 +380,12 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 		.init_hw = NULL,
 		.init_fs_state = NULL,
 		.set_mmu_page_size = NULL,
+#ifdef CONFIG_NVGPU_COMPRESSION
 		.set_use_full_comp_tag_line = NULL,
 		.compression_page_size = gp10b_fb_compression_page_size,
 		.compressible_page_size = gp10b_fb_compressible_page_size,
 		.compression_align_mask = gm20b_fb_compression_align_mask,
+#endif
 		.vpr_info_fetch = NULL,
 		.dump_vpr_info = NULL,
 		.dump_wpr_info = NULL,
@@ -589,7 +593,9 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 			.fb_flush = vgpu_mm_fb_flush,
 			.l2_invalidate = vgpu_mm_l2_invalidate,
 			.l2_flush = vgpu_mm_l2_flush,
+#ifdef CONFIG_NVGPU_COMPRESSION
 			.cbc_clean = NULL,
+#endif
 		},
 		.gmmu = {
 			.map = vgpu_locked_gmmu_map,
@@ -775,7 +781,9 @@ int vgpu_gp10b_init_hal(struct gk20a *g)
 	struct vgpu_priv_data *priv = vgpu_get_priv_data(g);
 
 	gops->ltc = vgpu_gp10b_ops.ltc;
+#ifdef CONFIG_NVGPU_COMPRESSION
 	gops->cbc = vgpu_gp10b_ops.cbc;
+#endif
 	gops->ce = vgpu_gp10b_ops.ce;
 	gops->gr = vgpu_gp10b_ops.gr;
 	gops->gpu_class = vgpu_gp10b_ops.gpu_class;
