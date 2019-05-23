@@ -104,6 +104,9 @@ NVGPU_COMMON_CFLAGS             += -DCONFIG_NVGPU_LOGGING
 CONFIG_NVGPU_TRACE              := 1
 NVGPU_COMMON_CFLAGS             += -DCONFIG_NVGPU_TRACE
 
+CONFIG_NVGPU_SYSFS              := 1
+NVGPU_COMMON_CFLAGS             += -DCONFIG_NVGPU_SYSFS
+
 #
 # Flags enabled only for regular build profile.
 #

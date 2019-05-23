@@ -366,11 +366,13 @@ int nvgpu_ecc_init_support(struct gk20a *g)
 		return err;
 	}
 
+#ifdef CONFIG_NVGPU_SYSFS
 	err = nvgpu_ecc_sysfs_init(g);
 	if (err != 0) {
 		nvgpu_ecc_free(g);
 		return err;
 	}
+#endif
 
 	g->ecc.initialized = true;
 
@@ -383,6 +385,8 @@ void nvgpu_ecc_remove_support(struct gk20a *g)
 		return;
 	}
 
+#ifdef CONFIG_NVGPU_SYSFS
 	nvgpu_ecc_sysfs_remove(g);
+#endif
 	nvgpu_ecc_free(g);
 }
