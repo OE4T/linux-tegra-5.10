@@ -22,6 +22,7 @@
 
 #include <nvgpu/gk20a.h>
 #include <nvgpu/types.h>
+#include <nvgpu/safe_ops.h>
 #include <nvgpu/gr/config.h>
 
 #include "gr_config_gv100.h"
@@ -49,7 +50,7 @@ static int gr_gv100_scg_estimate_perf(struct gk20a *g,
 					 */
 	u32 norm_tpc_deviation;		/* deviation/max_tpc_per_gpc */
 	u32 tpc_balance;
-	u32 scg_gpc_pix_perf;
+	u32 scg_gpc_pix_perf = 0U;
 	u32 scg_world_perf;
 	u32 gpc_id;
 	u32 pes_id;
@@ -58,8 +59,10 @@ static int gr_gv100_scg_estimate_perf(struct gk20a *g,
 	bool is_tpc_removed_pes = false;
 	u32 max_tpc_gpc = 0U;
 	u32 num_tpc_mask;
-	u32 *num_tpc_gpc = nvgpu_kzalloc(g, sizeof(u32) *
+	u32 temp, temp1, temp2, temp3;
+	u32 tpc_cnt = nvgpu_safe_mult_u32((u32)sizeof(u32),
 				nvgpu_get_litter_value(g, GPU_LIT_NUM_GPCS));
+	u32 *num_tpc_gpc = nvgpu_kzalloc(g, tpc_cnt);
 
 	if (num_tpc_gpc == NULL) {
 		return -ENOMEM;
@@ -96,8 +99,11 @@ static int gr_gv100_scg_estimate_perf(struct gk20a *g,
 		 *
 		 * ratio represents relative throughput of the GPC
 		 */
-		scg_gpc_pix_perf = scale_factor * num_tpc_gpc[gpc_id] /
-				nvgpu_gr_config_get_gpc_tpc_count(gr_config, gpc_id);
+		tpc_cnt = nvgpu_gr_config_get_gpc_tpc_count(gr_config, gpc_id);
+		if (tpc_cnt > 0U) {
+			scg_gpc_pix_perf = nvgpu_safe_mult_u32(scale_factor,
+						num_tpc_gpc[gpc_id]) / tpc_cnt;
+		}
 
 		if (min_scg_gpc_pix_perf > scg_gpc_pix_perf) {
 			min_scg_gpc_pix_perf = scg_gpc_pix_perf;
@@ -139,20 +145,19 @@ static int gr_gv100_scg_estimate_perf(struct gk20a *g,
 	}
 
 	/* Now calculate perf */
-	scg_world_perf = (scale_factor * scg_num_pes) /
+	scg_world_perf = nvgpu_safe_mult_u32(scale_factor, scg_num_pes) /
 		nvgpu_gr_config_get_ppc_count(gr_config);
 	deviation = 0;
-	average_tpcs = scale_factor * average_tpcs /
+	average_tpcs = nvgpu_safe_mult_u32(scale_factor, average_tpcs) /
 			nvgpu_gr_config_get_gpc_count(gr_config);
 	for (gpc_id =0;
 	     gpc_id < nvgpu_gr_config_get_gpc_count(gr_config);
 	     gpc_id++) {
-		if (average_tpcs > (scale_factor * num_tpc_gpc[gpc_id])) {
-			diff = average_tpcs -
-				(scale_factor * num_tpc_gpc[gpc_id]);
+		temp = nvgpu_safe_mult_u32(scale_factor, num_tpc_gpc[gpc_id]);
+		if (average_tpcs > temp) {
+			diff = nvgpu_safe_sub_u32(average_tpcs, temp);
 		} else {
-			diff = (scale_factor * num_tpc_gpc[gpc_id]) -
-				average_tpcs;
+			diff = nvgpu_safe_sub_u32(temp, average_tpcs);
 		}
 		deviation += diff;
 	}
@@ -161,7 +166,7 @@ static int gr_gv100_scg_estimate_perf(struct gk20a *g,
 
 	norm_tpc_deviation = deviation / max_tpc_gpc;
 
-	tpc_balance = scale_factor - norm_tpc_deviation;
+	tpc_balance = nvgpu_safe_sub_u32(scale_factor, norm_tpc_deviation);
 
 	if ((tpc_balance > scale_factor)          ||
 	    (scg_world_perf > scale_factor)       ||
@@ -171,9 +176,11 @@ static int gr_gv100_scg_estimate_perf(struct gk20a *g,
 		goto free_resources;
 	}
 
-	*perf = (pix_scale * min_scg_gpc_pix_perf) +
-		(world_scale * scg_world_perf) +
-		(tpc_scale * tpc_balance);
+	temp = nvgpu_safe_mult_u32(pix_scale, min_scg_gpc_pix_perf);
+	temp1 = nvgpu_safe_mult_u32(world_scale, scg_world_perf);
+	temp2 = nvgpu_safe_mult_u32(tpc_scale, tpc_balance);
+	temp3 = nvgpu_safe_add_u32(temp, temp1);
+	*perf = nvgpu_safe_add_u32(temp3, temp2);
 free_resources:
 	nvgpu_kfree(g, num_tpc_gpc);
 	return err;
@@ -185,27 +192,27 @@ int gv100_gr_config_init_sm_id_table(struct gk20a *g,
 	u32 gpc, tpc, sm, pes, gtpc;
 	u32 sm_id = 0;
 	u32 sm_per_tpc = nvgpu_gr_config_get_sm_count_per_tpc(gr_config);
-	u32 num_sm = sm_per_tpc * nvgpu_gr_config_get_tpc_count(gr_config);
+	u32 tpc_cnt = nvgpu_gr_config_get_tpc_count(gr_config);
+	u32 num_sm = nvgpu_safe_mult_u32(sm_per_tpc, tpc_cnt);
 	u32 perf, maxperf;
 	int err = 0;
 	u32 *gpc_tpc_mask;
 	u32 *tpc_table, *gpc_table;
 	unsigned long gpc_tpc_mask_tmp;
 	unsigned long tpc_tmp;
+	u32 tbl_size = 0U;
+	u32 temp = 0U;
 
 	if (gr_config == NULL) {
 		return -ENOMEM;
 	}
 
-	gpc_table = nvgpu_kzalloc(g,
-				nvgpu_gr_config_get_tpc_count(gr_config) *
-				sizeof(u32));
-	tpc_table = nvgpu_kzalloc(g,
-				nvgpu_gr_config_get_tpc_count(gr_config) *
-				sizeof(u32));
-	gpc_tpc_mask = nvgpu_kzalloc(g,
-				sizeof(u32) *
+	tbl_size = nvgpu_safe_mult_u32(tpc_cnt, (u32)sizeof(u32));
+	gpc_table = nvgpu_kzalloc(g, tbl_size);
+	tpc_table = nvgpu_kzalloc(g, tbl_size);
+	temp = nvgpu_safe_mult_u32((u32)sizeof(u32),
 				nvgpu_get_litter_value(g, GPU_LIT_NUM_GPCS));
+	gpc_tpc_mask = nvgpu_kzalloc(g, temp);
 
 	if ((gpc_table == NULL) ||
 	    (tpc_table == NULL) ||
@@ -256,7 +263,7 @@ int gv100_gr_config_init_sm_id_table(struct gk20a *g,
 	tpc = 0;
 	for (sm_id = 0; sm_id < num_sm; sm_id += sm_per_tpc) {
 		for (sm = 0; sm < sm_per_tpc; sm++) {
-			u32 index = sm_id + sm;
+			u32 index = nvgpu_safe_add_u32(sm_id, sm);
 			struct nvgpu_sm_info *sm_info =
 				nvgpu_gr_config_get_sm_info(gr_config, index);
 			nvgpu_gr_config_set_sm_info_gpc_index(sm_info,
