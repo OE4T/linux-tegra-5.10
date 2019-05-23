@@ -137,9 +137,6 @@ int nvgpu_tsg_set_priority(struct gk20a *g, struct nvgpu_tsg *tsg,
 int nvgpu_tsg_alloc_sm_error_states_mem(struct gk20a *g,
 					struct nvgpu_tsg *tsg,
 					u32 num_sm);
-void nvgpu_tsg_update_sm_error_state_locked(struct nvgpu_tsg *tsg,
-			u32 sm_id,
-			struct nvgpu_tsg_sm_error_state *sm_error_state);
 int nvgpu_tsg_set_sm_exception_type_mask(struct nvgpu_channel *ch,
 		u32 exception_mask);
 

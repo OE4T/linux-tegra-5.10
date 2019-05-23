@@ -802,26 +802,6 @@ int nvgpu_tsg_alloc_sm_error_states_mem(struct gk20a *g,
 	return err;
 }
 
-void nvgpu_tsg_update_sm_error_state_locked(struct nvgpu_tsg *tsg,
-				u32 sm_id,
-				struct nvgpu_tsg_sm_error_state *sm_error_state)
-{
-	struct nvgpu_tsg_sm_error_state *tsg_sm_error_states;
-
-	tsg_sm_error_states = tsg->sm_error_states + sm_id;
-
-	tsg_sm_error_states->hww_global_esr =
-			sm_error_state->hww_global_esr;
-	tsg_sm_error_states->hww_warp_esr =
-			sm_error_state->hww_warp_esr;
-	tsg_sm_error_states->hww_warp_esr_pc =
-			sm_error_state->hww_warp_esr_pc;
-	tsg_sm_error_states->hww_global_esr_report_mask =
-			sm_error_state->hww_global_esr_report_mask;
-	tsg_sm_error_states->hww_warp_esr_report_mask =
-			sm_error_state->hww_warp_esr_report_mask;
-}
-
 int nvgpu_tsg_set_sm_exception_type_mask(struct nvgpu_channel *ch,
 		u32 exception_mask)
 {
