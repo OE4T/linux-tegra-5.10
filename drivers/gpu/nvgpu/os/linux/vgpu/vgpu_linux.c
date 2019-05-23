@@ -140,6 +140,7 @@ static int vgpu_init_support(struct platform_device *pdev)
 
 	nvgpu_init_list_node(&g->profiler_objects);
 
+#ifdef NVGPU_DEBUGGER
 	g->dbg_regops_tmp_buf = nvgpu_kzalloc(g, SZ_4K);
 	if (!g->dbg_regops_tmp_buf) {
 		nvgpu_err(g, "couldn't allocate regops tmp buf");
@@ -147,6 +148,7 @@ static int vgpu_init_support(struct platform_device *pdev)
 	}
 	g->dbg_regops_tmp_buf_ops =
 		SZ_4K / sizeof(g->dbg_regops_tmp_buf[0]);
+#endif
 
 	err = nvgpu_gr_alloc(g);
 	if (err != 0) {

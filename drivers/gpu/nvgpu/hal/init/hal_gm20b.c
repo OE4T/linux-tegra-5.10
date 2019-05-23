@@ -851,6 +851,7 @@ static const struct gpu_ops gm20b_ops = {
 		.pll_reg_write = gm20b_clk_pll_reg_write,
 		.get_pll_debug_data = gm20b_clk_get_pll_debug_data,
 	},
+#ifdef NVGPU_DEBUGGER
 	.regops = {
 		.exec_regops = exec_regops_gk20a,
 		.get_global_whitelist_ranges =
@@ -867,6 +868,7 @@ static const struct gpu_ops gm20b_ops = {
 		.get_qctl_whitelist = gm20b_get_qctl_whitelist,
 		.get_qctl_whitelist_count = gm20b_get_qctl_whitelist_count,
 	},
+#endif
 	.mc = {
 		.intr_mask = gm20b_mc_intr_mask,
 		.intr_enable = gm20b_mc_intr_enable,
@@ -1050,13 +1052,13 @@ int gm20b_init_hal(struct gk20a *g)
 	gops->clk.pll_reg_write = gm20b_ops.clk.pll_reg_write;
 	gops->clk.get_pll_debug_data = gm20b_ops.clk.get_pll_debug_data;
 
-	gops->regops = gm20b_ops.regops;
 	gops->mc = gm20b_ops.mc;
 	gops->perf = gm20b_ops.perf;
 	gops->perfbuf = gm20b_ops.perfbuf;
 	gops->debug = gm20b_ops.debug;
 #ifdef NVGPU_DEBUGGER
 	gops->debugger = gm20b_ops.debugger;
+	gops->regops = gm20b_ops.regops;
 #endif
 	gops->bus = gm20b_ops.bus;
 	gops->ptimer = gm20b_ops.ptimer;

@@ -1473,6 +1473,7 @@ struct gpu_ops {
 		bool support_changeseq;
 		bool support_vfe;
 	} pmu_perf;
+#ifdef NVGPU_DEBUGGER
 	struct {
 		int (*exec_regops)(struct gk20a *g,
 			    struct nvgpu_channel *ch,
@@ -1491,6 +1492,7 @@ struct gpu_ops {
 		const u32* (*get_qctl_whitelist)(void);
 		u64 (*get_qctl_whitelist_count)(void);
 	} regops;
+#endif
 	struct {
 		void (*intr_mask)(struct gk20a *g);
 		void (*intr_enable)(struct gk20a *g);
@@ -1946,9 +1948,11 @@ struct gk20a {
 	/*refcount for timeout disable */
 	nvgpu_atomic_t timeouts_disabled_refcount;
 
+#ifdef NVGPU_DEBUGGER
 	/* must have dbg_sessions_lock before use */
 	struct nvgpu_dbg_reg_op *dbg_regops_tmp_buf;
 	u32 dbg_regops_tmp_buf_ops;
+#endif
 
 #if defined(CONFIG_GK20A_CYCLE_STATS)
 	struct nvgpu_mutex		cs_lock;

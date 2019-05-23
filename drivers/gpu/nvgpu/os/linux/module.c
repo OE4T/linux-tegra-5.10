@@ -833,7 +833,9 @@ void gk20a_remove_support(struct gk20a *g)
 
 	tegra_unregister_idle_unidle(gk20a_do_idle);
 
+#ifdef NVGPU_DEBUGGER
 	nvgpu_kfree(g, g->dbg_regops_tmp_buf);
+#endif
 
 	nvgpu_channel_remove_support_linux(l);
 

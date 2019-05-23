@@ -935,6 +935,7 @@ static const struct gpu_ops gp10b_ops = {
 		.clk_arb_run_arbiter_cb = gp10b_clk_arb_run_arbiter_cb,
 		.clk_arb_cleanup = gp10b_clk_arb_cleanup,
 	},
+#ifdef NVGPU_DEBUGGER
 	.regops = {
 		.exec_regops = exec_regops_gk20a,
 		.get_global_whitelist_ranges =
@@ -951,6 +952,7 @@ static const struct gpu_ops gp10b_ops = {
 		.get_qctl_whitelist = gp10b_get_qctl_whitelist,
 		.get_qctl_whitelist_count = gp10b_get_qctl_whitelist_count,
 	},
+#endif
 	.mc = {
 		.intr_mask = mc_gp10b_intr_mask,
 		.intr_enable = mc_gp10b_intr_enable,
@@ -1129,11 +1131,11 @@ int gp10b_init_hal(struct gk20a *g)
 	gops->pmu = gp10b_ops.pmu;
 #endif
 	gops->clk_arb = gp10b_ops.clk_arb;
-	gops->regops = gp10b_ops.regops;
 	gops->mc = gp10b_ops.mc;
 	gops->debug = gp10b_ops.debug;
 #ifdef NVGPU_DEBUGGER
 	gops->debugger = gp10b_ops.debugger;
+	gops->regops = gp10b_ops.regops;
 #endif
 	gops->perf = gp10b_ops.perf;
 	gops->perfbuf = gp10b_ops.perfbuf;

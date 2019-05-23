@@ -141,7 +141,6 @@ srcs += common/utils/enabled.c \
 	common/fifo/pbdma_status.c \
 	common/fifo/userd.c \
 	common/mc/mc.c \
-	common/regops/regops.c \
 	common/clk_arb/clk_arb.c \
 	common/clk_arb/clk_arb_gp10b.c \
 	common/fence/fence.c \
@@ -205,9 +204,6 @@ srcs += common/utils/enabled.c \
 	hal/cbc/cbc_gp10b.c \
 	hal/cbc/cbc_gv11b.c \
 	hal/ptimer/ptimer_gk20a.c \
-	hal/regops/regops_gm20b.c \
-	hal/regops/regops_gp10b.c \
-	hal/regops/regops_gv11b.c \
 	hal/ce/ce2_gk20a.c \
 	hal/ce/ce_gp10b.c \
 	hal/ce/ce_gv11b.c \
@@ -313,7 +309,13 @@ srcs += common/gr/zbc.c \
 endif
 
 ifeq ($(NVGPU_DEBUGGER),1)
-srcs += common/debugger.c
+srcs += common/debugger.c \
+	common/regops/regops.c \
+	hal/regops/regops_gm20b.c \
+	hal/regops/regops_gp10b.c \
+	hal/regops/regops_gv11b.c \
+	hal/regops/regops_gv100.c \
+	hal/regops/regops_tu104.c
 endif
 
 ifeq ($(NVGPU_FEATURE_CE),1)
@@ -502,8 +504,6 @@ srcs += common/sec2/sec2.c \
 	hal/power_features/cg/gv100_gating_reglist.c \
 	hal/power_features/cg/tu104_gating_reglist.c \
 	hal/cbc/cbc_tu104.c \
-	hal/regops/regops_gv100.c \
-	hal/regops/regops_tu104.c \
 	hal/ltc/ltc_tu104.c \
 	hal/fb/fb_gv100.c \
 	hal/fb/fb_tu104.c \

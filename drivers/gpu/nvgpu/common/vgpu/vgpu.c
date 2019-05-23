@@ -230,9 +230,11 @@ void vgpu_remove_support_common(struct gk20a *g)
 	struct tegra_vgpu_intr_msg msg;
 	int err;
 
+#ifdef NVGPU_DEBUGGER
 	if (g->dbg_regops_tmp_buf) {
 		nvgpu_kfree(g, g->dbg_regops_tmp_buf);
 	}
+#endif
 
 	if (g->gr->remove_support) {
 		g->gr->remove_support(g);

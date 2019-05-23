@@ -1140,6 +1140,7 @@ static const struct gpu_ops tu104_ops = {
 		.stop_clk_arb_threads = gv100_stop_clk_arb_threads,
 	},
 #endif
+#ifdef NVGPU_DEBUGGER
 	.regops = {
 		.exec_regops = exec_regops_gk20a,
 		.get_global_whitelist_ranges =
@@ -1156,6 +1157,7 @@ static const struct gpu_ops tu104_ops = {
 		.get_qctl_whitelist = tu104_get_qctl_whitelist,
 		.get_qctl_whitelist_count = tu104_get_qctl_whitelist_count,
 	},
+#endif
 	.mc = {
 		.intr_enable = intr_tu104_enable,
 		.intr_mask = intr_tu104_mask,
@@ -1433,11 +1435,11 @@ int tu104_init_hal(struct gk20a *g)
 #ifdef NVGPU_FEATURE_LS_PMU
 	gops->pmu = tu104_ops.pmu;
 #endif
-	gops->regops = tu104_ops.regops;
 	gops->mc = tu104_ops.mc;
 	gops->debug = tu104_ops.debug;
 #ifdef NVGPU_DEBUGGER
 	gops->debugger = tu104_ops.debugger;
+	gops->regops = tu104_ops.regops;
 #endif
 	gops->perf = tu104_ops.perf;
 	gops->perfbuf = tu104_ops.perfbuf;
