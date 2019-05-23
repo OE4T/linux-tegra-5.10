@@ -33,7 +33,9 @@
 #define OSI_ADDRESS_40BIT		1
 #define OSI_ADDRESS_48BIT		2
 
+#ifndef ULONG_MAX
 #define ULONG_MAX			(~0UL)
+#endif
 
 /* Default maximum Gaint Packet Size Limit */
 #define OSI_MAX_MTU_SIZE	9000U
