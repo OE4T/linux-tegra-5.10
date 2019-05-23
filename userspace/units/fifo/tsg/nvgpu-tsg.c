@@ -152,13 +152,17 @@ static bool pruned(u32 branches, u32 final_branches)
 	return (branches > BIT(bit));
 }
 
-#define F_TSG_OPEN_ACQUIRE_CH_FAIL	BIT(0)
-#define F_TSG_OPEN_SM_FAIL		BIT(1)
-#define F_TSG_OPEN_LAST			BIT(2)
+#define F_TSG_OPEN_ACQUIRE_CH_FAIL		BIT(0)
+#define F_TSG_OPEN_SM_FAIL			BIT(1)
+#define F_TSG_OPEN_ALLOC_SM_FAIL		BIT(2)
+#define F_TSG_OPEN_ALLOC_SM_KZALLOC_FAIL	BIT(3)
+#define F_TSG_OPEN_LAST				BIT(4)
 
 static const char *f_tsg_open[] = {
 	"acquire_ch_fail",
 	"sm_fail",
+	"alloc_sm_fail",
+	"alloc_sm_kzalloc_fail",
 };
 
 static u32 stub_gr_init_get_no_of_sm_0(struct gk20a *g)
@@ -173,10 +177,18 @@ static int test_tsg_open(struct unit_module *m,
 	struct gpu_ops gops = g->ops;
 	u32 num_channels = f->num_channels;
 	struct nvgpu_tsg *tsg = NULL;
+	struct nvgpu_tsg *next_tsg = NULL;
+	struct nvgpu_posix_fault_inj *kmem_fi;
 	u32 branches = 0U;
 	int rc = UNIT_FAIL;
-	u32 fail = F_TSG_OPEN_ACQUIRE_CH_FAIL | F_TSG_OPEN_SM_FAIL;
+	u32 fail = F_TSG_OPEN_ACQUIRE_CH_FAIL |
+		   F_TSG_OPEN_SM_FAIL |
+		   F_TSG_OPEN_ALLOC_SM_FAIL |
+		   F_TSG_OPEN_ALLOC_SM_KZALLOC_FAIL;
 	u32 prune = fail;
+	u32 tsgid;
+
+	kmem_fi = nvgpu_kmem_get_fault_injection();
 
 	for (branches = 0U; branches < F_TSG_OPEN_LAST; branches++) {
 
@@ -189,17 +201,39 @@ static int test_tsg_open(struct unit_module *m,
 			branches_str(branches, f_tsg_open));
 		subtest_setup(branches);
 
+		/* find next tsg (if acquire succeeds) */
+		next_tsg = NULL;
+		for (tsgid = 0U; tsgid < f->num_channels; tsgid++) {
+			if (!f->tsg[tsgid].in_use) {
+				next_tsg = &f->tsg[tsgid];
+				break;
+			}
+		}
+		assert(next_tsg != NULL);
+
 		f->num_channels =
 			branches & F_TSG_OPEN_ACQUIRE_CH_FAIL ?
 			0U : num_channels;
 
 		g->ops.gr.init.get_no_of_sm =
 			branches & F_TSG_OPEN_SM_FAIL ?
-			stub_gr_init_get_no_of_sm_0 : gops.gr.init.get_no_of_sm;
+			stub_gr_init_get_no_of_sm_0 :
+			gops.gr.init.get_no_of_sm;
+
+		next_tsg->sm_error_states =
+			branches & F_TSG_OPEN_ALLOC_SM_FAIL ?
+			(void*)1 : NULL;
+
+		nvgpu_posix_enable_fault_injection(kmem_fi,
+			branches & F_TSG_OPEN_ALLOC_SM_KZALLOC_FAIL ?
+				true : false, 0);
 
 		tsg = nvgpu_tsg_open(g, getpid());
 
+		f->tsg[tsgid].sm_error_states = NULL;
+
 		if (branches & fail) {
+			f->num_channels = num_channels;
 			assert(tsg == NULL);
 		} else {
 			assert(tsg != NULL);
@@ -214,7 +248,7 @@ done:
 		unit_err(m, "%s branches=%s\n", __func__,
 			branches_str(branches, f_tsg_open));
 	}
-
+	nvgpu_posix_enable_fault_injection(kmem_fi, false, 0);
 	if (tsg != NULL) {
 		nvgpu_ref_put(&tsg->refcount, nvgpu_tsg_release);
 	}
