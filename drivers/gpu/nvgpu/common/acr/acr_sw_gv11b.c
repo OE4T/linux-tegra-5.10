@@ -208,6 +208,7 @@ static void gv11b_acr_default_sw_init(struct gk20a *g, struct hs_acr *hs_acr)
 		nvgpu_pmu_report_bar0_pri_err_status;
 	hs_acr->acr_engine_bus_err_status =
 		g->ops.pmu.bar0_error_status;;
+	hs_acr->acr_validate_mem_integrity = g->ops.pmu.validate_mem_integrity;
 }
 
 void nvgpu_gv11b_acr_sw_init(struct gk20a *g, struct nvgpu_acr *acr)

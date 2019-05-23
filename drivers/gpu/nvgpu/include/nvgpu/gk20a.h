@@ -1386,6 +1386,7 @@ struct gpu_ops {
 		void (*set_irqmask)(struct gk20a *g);
 		u32 (*get_irqdest)(struct gk20a *g);
 		void (*pmu_enable_irq)(struct nvgpu_pmu *pmu, bool enable);
+		bool (*validate_mem_integrity)(struct gk20a *g);
 		void (*handle_ext_irq)(struct gk20a *g, u32 intr);
 		/* perfmon */
 		void (*pmu_init_perfmon_counter)(struct gk20a *g);

@@ -196,6 +196,7 @@ struct hs_acr {
 		u32 bar0_status, u32 error_type);
 	int (*acr_engine_bus_err_status)(struct gk20a *g, u32 *bar0_status,
 		u32 *error_type);
+	bool (*acr_validate_mem_integrity)(struct gk20a *g);
 };
 
 int nvgpu_acr_bootstrap_hs_ucode(struct gk20a *g, struct nvgpu_acr *acr,

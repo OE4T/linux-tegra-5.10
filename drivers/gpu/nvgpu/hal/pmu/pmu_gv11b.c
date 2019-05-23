@@ -236,8 +236,10 @@ int gv11b_pmu_bootstrap(struct gk20a *g, struct nvgpu_pmu *pmu,
 	return err;
 }
 
-static void gv11b_pmu_correct_ecc(struct gk20a *g, u32 ecc_status, u32 ecc_addr)
+static int gv11b_pmu_correct_ecc(struct gk20a *g, u32 ecc_status, u32 ecc_addr)
 {
+	int ret = 0;
+
 	if ((ecc_status &
 	     pwr_pmu_falcon_ecc_status_corrected_err_imem_m()) != 0U) {
 		nvgpu_pmu_report_ecc_error(g, 0,
@@ -253,6 +255,7 @@ static void gv11b_pmu_correct_ecc(struct gk20a *g, u32 ecc_status, u32 ecc_addr)
 			ecc_addr,
 			g->ecc.pmu.pmu_ecc_uncorrected_err_count[0].counter);
 		nvgpu_log(g, gpu_dbg_intr, "imem ecc error uncorrected");
+		ret = -EFAULT;
 	}
 	if ((ecc_status &
 	     pwr_pmu_falcon_ecc_status_corrected_err_dmem_m()) != 0U) {
@@ -269,7 +272,10 @@ static void gv11b_pmu_correct_ecc(struct gk20a *g, u32 ecc_status, u32 ecc_addr)
 			ecc_addr,
 			g->ecc.pmu.pmu_ecc_uncorrected_err_count[0].counter);
 		nvgpu_log(g, gpu_dbg_intr, "dmem ecc error uncorrected");
+		ret = -EFAULT;
 	}
+
+	return ret;
 }
 
 static void gv11b_pmu_handle_ecc_irq(struct gk20a *g)
@@ -338,7 +344,7 @@ static void gv11b_pmu_handle_ecc_irq(struct gk20a *g)
 	nvgpu_log(g, gpu_dbg_intr,
 		"pmu ecc interrupt intr1: 0x%x", intr1);
 
-	gv11b_pmu_correct_ecc(g, ecc_status, ecc_addr);
+	(void)gv11b_pmu_correct_ecc(g, ecc_status, ecc_addr);
 
 	if ((corrected_overflow != 0U) || (uncorrected_overflow != 0U)) {
 		nvgpu_info(g, "ecc counter overflow!");
@@ -352,6 +358,17 @@ static void gv11b_pmu_handle_ecc_irq(struct gk20a *g)
 		"ecc error count corrected: %d, uncorrected %d",
 		g->ecc.pmu.pmu_ecc_corrected_err_count[0].counter,
 		g->ecc.pmu.pmu_ecc_uncorrected_err_count[0].counter);
+}
+
+bool gv11b_pmu_validate_mem_integrity(struct gk20a *g)
+{
+	u32 ecc_status, ecc_addr;
+
+	ecc_status = nvgpu_readl(g, pwr_pmu_falcon_ecc_status_r());
+	ecc_addr = nvgpu_readl(g, pwr_pmu_falcon_ecc_address_r());
+
+	return ((gv11b_pmu_correct_ecc(g, ecc_status, ecc_addr) == 0) ? true :
+			false);
 }
 
 void gv11b_pmu_handle_ext_irq(struct gk20a *g, u32 intr0)

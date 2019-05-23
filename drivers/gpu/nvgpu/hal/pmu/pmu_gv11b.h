@@ -34,5 +34,6 @@ void gv11b_pmu_setup_elpg(struct gk20a *g);
 u32 gv11b_pmu_get_irqdest(struct gk20a *g);
 void gv11b_pmu_handle_ext_irq(struct gk20a *g, u32 intr0);
 void gv11b_setup_apertures(struct gk20a *g);
+bool gv11b_pmu_validate_mem_integrity(struct gk20a *g);
 
 #endif /* PMU_GV11B_H */

@@ -1001,6 +1001,7 @@ static const struct gpu_ops gv11b_ops = {
 		.write_dmatrfbase = gp10b_write_dmatrfbase,
 		/* ISR */
 		.pmu_enable_irq = gk20a_pmu_enable_irq,
+		.validate_mem_integrity = gv11b_pmu_validate_mem_integrity,
 #ifdef NVGPU_LS_PMU
 		.get_irqdest = gv11b_pmu_get_irqdest,
 		.handle_ext_irq = gv11b_pmu_handle_ext_irq,

@@ -83,6 +83,17 @@ static int acr_wait_for_completion(struct gk20a *g,
 	nvgpu_acr_dbg(g, "flcn-%d: sctl reg %x cpuctl reg %x",
 			flcn_id, sctl, cpuctl);
 
+	/*
+	 * When engine-falcon is used for ACR bootstrap, validate the integrity
+	 * of falcon IMEM and DMEM.
+	 */
+	if (g->acr->acr.acr_validate_mem_integrity != NULL) {
+		if (!g->acr->acr.acr_validate_mem_integrity(g)) {
+			nvgpu_err(g, "flcn-%d: memcheck failed", flcn_id);
+			completion = -EAGAIN;
+			error_type = ACR_BOOT_FAILED;
+		}
+	}
 exit:
 	if (completion != 0) {
 		if (g->acr->acr.report_acr_engine_bus_err_status != NULL) {
