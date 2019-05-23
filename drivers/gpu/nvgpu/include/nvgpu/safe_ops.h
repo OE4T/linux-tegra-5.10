@@ -95,4 +95,21 @@ static inline u32 nvgpu_safe_cast_bool_to_u32(bool bl_a)
 	return bl_a == true ? 1U : 0U;
 }
 
+static inline u8 nvgpu_safe_cast_s8_to_u8(s8 sc_a)
+{
+	if (sc_a < 0) {
+		BUG();
+	} else {
+		return (u8)sc_a;
+	}
+}
+
+static inline u32 nvgpu_safe_cast_s32_to_u32(s32 si_a)
+{
+	if (si_a < 0) {
+		BUG();
+	} else {
+		return (u32)si_a;
+	}
+}
 #endif /* NVGPU_SAFE_OPS_H */
