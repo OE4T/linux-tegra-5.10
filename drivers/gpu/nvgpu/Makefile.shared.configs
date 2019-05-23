@@ -62,4 +62,7 @@ NVGPU_COMMON_CFLAGS             += -DNVGPU_DGPU_SUPPORT
 
 NVGPU_VPR                       := 1
 NVGPU_COMMON_CFLAGS             += -DNVGPU_VPR
+
+NVGPU_REPLAYABLE_FAULT          := 1
+NVGPU_COMMON_CFLAGS             += -DNVGPU_REPLAYABLE_FAULT
 endif
