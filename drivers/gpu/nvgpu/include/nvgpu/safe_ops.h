@@ -23,6 +23,9 @@
 #ifndef NVGPU_SAFE_OPS_H
 #define NVGPU_SAFE_OPS_H
 
+#include <nvgpu/types.h>
+#include <nvgpu/bug.h>
+
 static inline u32 nvgpu_safe_add_u32(u32 ui_a, u32 ui_b)
 {
 	if (UINT_MAX - ui_a < ui_b) {
