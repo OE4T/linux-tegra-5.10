@@ -1155,6 +1155,7 @@ static const struct gpu_ops tu104_ops = {
 		.clk_domain_get_f_points = gv100_clk_domain_get_f_points,
 		.get_maxrate = gv100_clk_maxrate,
 	},
+#ifdef CONFIG_NVGPU_CLK_ARB
 	.clk_arb = {
 		.check_clk_arb_support = gv100_check_clk_arb_support,
 		.get_arbiter_clk_domains = gv100_get_arbiter_clk_domains,
@@ -1167,6 +1168,7 @@ static const struct gpu_ops tu104_ops = {
 		.clk_arb_cleanup = gv100_clk_arb_cleanup,
 		.stop_clk_arb_threads = gv100_stop_clk_arb_threads,
 	},
+#endif
 #endif
 #ifdef CONFIG_NVGPU_DEBUGGER
 	.regops = {
@@ -1497,7 +1499,9 @@ int tu104_init_hal(struct gk20a *g)
 	gops->clk.get_crystal_clk_hz = tu104_ops.clk.get_crystal_clk_hz;
 	gops->clk.measure_freq = tu104_ops.clk.measure_freq;
 	gops->clk.suspend_clk_support = tu104_ops.clk.suspend_clk_support;
+#ifdef CONFIG_NVGPU_CLK_ARB
 	gops->clk_arb = tu104_ops.clk_arb;
+#endif
 	gops->clk.clk_domain_get_f_points = tu104_ops.clk.clk_domain_get_f_points;
 	gops->clk = tu104_ops.clk;
 
@@ -1565,7 +1569,9 @@ int tu104_init_hal(struct gk20a *g)
 		gops->fb.mem_unlock = NULL;
 
 		/* Disable clock support */
+#ifdef CONFIG_NVGPU_CLK_ARB
 		gops->clk_arb.get_arbiter_clk_domains = NULL;
+#endif
 		gops->clk.support_clk_freq_controller = false;
 
 	} else

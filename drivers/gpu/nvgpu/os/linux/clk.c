@@ -36,6 +36,7 @@ static unsigned long nvgpu_linux_clk_get_rate(struct gk20a *g, u32 api_domain)
 	unsigned long ret;
 
 	switch (api_domain) {
+	case CTRL_CLK_DOMAIN_SYSCLK:
 	case CTRL_CLK_DOMAIN_GPCCLK:
 		if (g->clk.tegra_clk)
 			ret = clk_get_rate(g->clk.tegra_clk);

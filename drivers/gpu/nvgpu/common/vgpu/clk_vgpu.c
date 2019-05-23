@@ -38,6 +38,7 @@ static unsigned long vgpu_clk_get_rate(struct gk20a *g, u32 api_domain)
 	nvgpu_log_fn(g, " ");
 
 	switch (api_domain) {
+	case CTRL_CLK_DOMAIN_SYSCLK:
 	case CTRL_CLK_DOMAIN_GPCCLK:
 		msg.cmd = TEGRA_VGPU_CMD_GET_GPU_CLK_RATE;
 		msg.handle = vgpu_get_handle(g);

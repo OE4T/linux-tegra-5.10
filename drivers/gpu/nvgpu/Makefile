@@ -45,6 +45,7 @@ ccflags-y += -DCONFIG_NVGPU_COMPRESSION
 ccflags-y += -DCONFIG_NVGPU_SIM
 ccflags-y += -DCONFIG_NVGPU_TRACE
 ccflags-y += -DCONFIG_NVGPU_SYSFS
+ccflags-y += -DCONFIG_NVGPU_CLK_ARB
 
 ifeq ($(CONFIG_NVGPU_LOGGING),y)
 ccflags-y += -DCONFIG_NVGPU_LOGGING=1

@@ -1117,6 +1117,7 @@ static const struct gpu_ops gv11b_ops = {
 		.pmu_ns_bootstrap = gv11b_pmu_bootstrap,
 #endif
 	},
+#ifdef CONFIG_NVGPU_CLK_ARB
 	.clk_arb = {
 		.check_clk_arb_support = gp10b_check_clk_arb_support,
 		.get_arbiter_clk_domains = gp10b_get_arbiter_clk_domains,
@@ -1127,6 +1128,7 @@ static const struct gpu_ops gv11b_ops = {
 		.clk_arb_run_arbiter_cb = gp10b_clk_arb_run_arbiter_cb,
 		.clk_arb_cleanup = gp10b_clk_arb_cleanup,
 	},
+#endif
 #ifdef CONFIG_NVGPU_DEBUGGER
 	.regops = {
 		.exec_regops = exec_regops_gk20a,
@@ -1345,7 +1347,9 @@ int gv11b_init_hal(struct gk20a *g)
 	gops->falcon = gv11b_ops.falcon;
 	gops->priv_ring = gv11b_ops.priv_ring;
 	gops->fuse = gv11b_ops.fuse;
+#ifdef CONFIG_NVGPU_CLK_ARB
 	gops->clk_arb = gv11b_ops.clk_arb;
+#endif
 	gops->top = gv11b_ops.top;
 
 	/* Lone functions */

@@ -32,7 +32,6 @@ srcs +=	os/posix/nvgpu.c \
 	os/posix/soc.c \
 	os/posix/error_notifier.c \
 	os/posix/fuse.c \
-	os/posix/posix-clk_arb.c \
 	os/posix/posix-channel.c \
 	os/posix/posix-tsg.c \
 	os/posix/stubs.c \
@@ -42,6 +41,10 @@ srcs +=	os/posix/nvgpu.c \
 
 ifdef CONFIG_NVGPU_FECS_TRACE
 srcs += os/posix/fecs_trace_posix.c
+endif
+
+ifeq ($(CONFIG_NVGPU_CLK_ARB),1)
+srcs += os/posix/posix-clk_arb.c
 endif
 
 ifdef CONFIG_NVGPU_NVLINK
@@ -143,8 +146,6 @@ srcs += common/utils/enabled.c \
 	common/fifo/pbdma_status.c \
 	common/fifo/userd.c \
 	common/mc/mc.c \
-	common/clk_arb/clk_arb.c \
-	common/clk_arb/clk_arb_gp10b.c \
 	common/fence/fence.c \
 	hal/mc/mc_gm20b.c  \
 	hal/mc/mc_gp10b.c  \
@@ -276,6 +277,12 @@ srcs += hal/init/hal_gp10b.c \
 	hal/mm/mm_gk20a.c \
 	hal/mm/gmmu/gmmu_gk20a.c \
 	hal/mm/gmmu/gmmu_gm20b.c
+endif
+
+ifeq ($(CONFIG_NVGPU_CLK_ARB),1)
+srcs += \
+	common/clk_arb/clk_arb.c \
+	common/clk_arb/clk_arb_gp10b.c
 endif
 
 ifeq ($(CONFIG_NVGPU_ACR_LEGACY),1)
@@ -424,12 +431,16 @@ srcs += \
 	common/pmu/pmu_debug.c \
 	common/pmu/pmu_mutex.c \
 	common/pmu/pmu_pstate.c \
-	common/clk_arb/clk_arb_gv100.c \
 	hal/therm/therm_tu104.c \
 	hal/pmu/pmu_gk20a.c \
 	hal/pmu/pmu_gm20b.c \
 	hal/pmu/pmu_gp10b.c \
 	hal/pmu/pmu_tu104.c
+
+ifeq ($(CONFIG_NVGPU_CLK_ARB),1)
+srcs += common/clk_arb/clk_arb_gv100.c
+endif
+
 endif
 
 ifeq ($(CONFIG_NVGPU_POWER_PG),1)

@@ -152,9 +152,11 @@ int gk20a_prepare_poweroff(struct gk20a *g)
 	if (g->ops.clk.suspend_clk_support != NULL) {
 		g->ops.clk.suspend_clk_support(g);
 	}
+#ifdef CONFIG_NVGPU_CLK_ARB
 	if (g->ops.clk_arb.stop_clk_arb_threads != NULL) {
 		g->ops.clk_arb.stop_clk_arb_threads(g);
 	}
+#endif
 	gk20a_mask_interrupts(g);
 
 	g->power_on = false;
@@ -454,11 +456,13 @@ int gk20a_finalize_poweron(struct gk20a *g)
 	} else
 #endif
 	{
+#ifdef CONFIG_NVGPU_CLK_ARB
 		err = nvgpu_clk_arb_init_arbiter(g);
 		if (err != 0) {
 			nvgpu_err(g, "failed to init clk arb");
 			goto done;
 		}
+#endif
 	}
 
 	err = nvgpu_init_therm_support(g);
@@ -628,12 +632,14 @@ void gk20a_init_gpu_characteristics(struct gk20a *g)
 
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_TSG, true);
 
+#ifdef CONFIG_NVGPU_CLK_ARB
 	if (g->ops.clk_arb.check_clk_arb_support != NULL) {
 		if (g->ops.clk_arb.check_clk_arb_support(g)) {
 			nvgpu_set_enabled(g, NVGPU_SUPPORT_CLOCK_CONTROLS,
 					true);
 		}
 	}
+#endif
 
 	g->ops.gr.init.detect_sm_arch(g);
 

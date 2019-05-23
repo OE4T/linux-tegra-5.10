@@ -64,7 +64,9 @@ struct nvgpu_gr_isr_data;
 struct nvgpu_gpu_ctxsw_trace_entry;
 struct nvgpu_cpu_time_correlation_sample;
 struct nvgpu_warpstate;
+#ifdef CONFIG_NVGPU_CLK_ARB
 struct nvgpu_clk_arb;
+#endif
 #ifdef CONFIG_NVGPU_FECS_TRACE
 struct nvgpu_gpu_ctxsw_trace_filter;
 #endif
@@ -1502,6 +1504,7 @@ struct gpu_ops {
 		bool support_vf_point;
 		u8 lut_num_entries;
 	} clk;
+#ifdef CONFIG_NVGPU_CLK_ARB
 	struct {
 		int (*arbiter_clk_init)(struct gk20a *g);
 		bool (*check_clk_arb_support)(struct gk20a *g);
@@ -1520,6 +1523,7 @@ struct gpu_ops {
 		void (*clk_arb_cleanup)(struct nvgpu_clk_arb *arb);
 		void (*stop_clk_arb_threads)(struct gk20a *g);
 	} clk_arb;
+#endif
 	struct {
 		int (*handle_pmu_perf_event)(struct gk20a *g, void *pmu_msg);
 		bool support_changeseq;

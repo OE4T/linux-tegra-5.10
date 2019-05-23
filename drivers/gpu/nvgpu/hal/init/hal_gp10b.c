@@ -950,6 +950,7 @@ static const struct gpu_ops gp10b_ops = {
 		.pmu_ns_bootstrap = gk20a_pmu_ns_bootstrap,
 	},
 #endif
+#ifdef CONFIG_NVGPU_CLK_ARB
 	.clk_arb = {
 		.check_clk_arb_support = gp10b_check_clk_arb_support,
 		.get_arbiter_clk_domains = gp10b_get_arbiter_clk_domains,
@@ -960,6 +961,7 @@ static const struct gpu_ops gp10b_ops = {
 		.clk_arb_run_arbiter_cb = gp10b_clk_arb_run_arbiter_cb,
 		.clk_arb_cleanup = gp10b_clk_arb_cleanup,
 	},
+#endif
 #ifdef CONFIG_NVGPU_DEBUGGER
 	.regops = {
 		.exec_regops = exec_regops_gk20a,

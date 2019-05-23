@@ -658,8 +658,8 @@ int gm20b_gr_falcon_wait_ctxsw_ready(struct gk20a *g)
 	}
 
 	if (nvgpu_platform_is_silicon(g)) {
-		if (g->ops.clk.measure_freq != NULL) {
-			sysclk_freq_mhz = g->ops.clk.measure_freq(g,
+		if (g->ops.clk.get_rate != NULL) {
+			sysclk_freq_mhz = g->ops.clk.get_rate(g,
 					CTRL_CLK_DOMAIN_SYSCLK) / MHZ;
 			if (sysclk_freq_mhz == 0UL) {
 				nvgpu_err(g, "failed to get SYSCLK freq");
