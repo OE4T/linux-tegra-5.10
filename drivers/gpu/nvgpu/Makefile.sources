@@ -88,7 +88,6 @@ srcs += common/utils/enabled.c \
 	common/mm/vidmem.c \
 	common/xve/xve_gp106.c \
 	common/therm/therm.c \
-	common/perf/perfbuf.c \
 	common/pramin.c \
 	common/ltc/ltc.c \
 	common/cbc/cbc.c \
@@ -190,8 +189,6 @@ srcs += common/utils/enabled.c \
 	hal/init/hal_gv11b.c \
 	hal/init/hal_gv11b_litter.c \
 	hal/init/hal_init.c \
-	hal/perf/perf_gm20b.c \
-	hal/perf/perf_gv11b.c \
 	hal/priv_ring/priv_ring_gm20b.c \
 	hal/priv_ring/priv_ring_gp10b.c \
 	hal/power_features/cg/gm20b_gating_reglist.c \
@@ -310,12 +307,15 @@ ifeq ($(NVGPU_DEBUGGER),1)
 srcs += common/debugger.c \
 	common/regops/regops.c \
 	common/gr/hwpm_map.c \
+	common/perf/perfbuf.c \
 	hal/regops/regops_gm20b.c \
 	hal/regops/regops_gp10b.c \
 	hal/regops/regops_gv11b.c \
 	hal/regops/regops_gv100.c \
 	hal/regops/regops_tu104.c \
-	hal/gr/hwpm_map/hwpm_map_gv100.c
+	hal/gr/hwpm_map/hwpm_map_gv100.c \
+	hal/perf/perf_gm20b.c \
+	hal/perf/perf_gv11b.c
 endif
 
 ifeq ($(NVGPU_FEATURE_CE),1)

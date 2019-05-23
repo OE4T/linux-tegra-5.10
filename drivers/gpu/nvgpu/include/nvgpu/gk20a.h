@@ -1543,7 +1543,6 @@ struct gpu_ops {
 				struct dbg_session_gk20a *dbg_s,
 				struct dbg_profiler_object_data *prof_obj);
 	} debugger;
-#endif
 	struct {
 		void (*enable_membuf)(struct gk20a *g, u32 size,
 			u64 buf_addr, struct nvgpu_mem *inst_block);
@@ -1559,6 +1558,7 @@ struct gpu_ops {
 		int (*perfbuf_enable)(struct gk20a *g, u64 offset, u32 size);
 		int (*perfbuf_disable)(struct gk20a *g);
 	} perfbuf;
+#endif
 
 	u32 (*get_litter_value)(struct gk20a *g, int value);
 	void (*chip_init_gpu_characteristics)(struct gk20a *g);

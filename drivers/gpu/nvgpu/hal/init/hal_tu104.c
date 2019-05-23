@@ -1202,7 +1202,6 @@ static const struct gpu_ops tu104_ops = {
 		.release_profiler_reservation =
 			nvgpu_release_profiler_reservation,
 	},
-#endif
 	.perf = {
 		.enable_membuf = gv11b_perf_enable_membuf,
 		.disable_membuf = gv11b_perf_disable_membuf,
@@ -1218,6 +1217,7 @@ static const struct gpu_ops tu104_ops = {
 		.perfbuf_enable = nvgpu_perfbuf_enable_locked,
 		.perfbuf_disable = nvgpu_perfbuf_disable_locked,
 	},
+#endif
 	.bus = {
 		.init_hw = gk20a_bus_init_hw,
 		.isr = gk20a_bus_isr,
@@ -1442,9 +1442,9 @@ int tu104_init_hal(struct gk20a *g)
 #ifdef NVGPU_DEBUGGER
 	gops->debugger = tu104_ops.debugger;
 	gops->regops = tu104_ops.regops;
-#endif
 	gops->perf = tu104_ops.perf;
 	gops->perfbuf = tu104_ops.perfbuf;
+#endif
 	gops->bus = tu104_ops.bus;
 	gops->ptimer = tu104_ops.ptimer;
 #if defined(CONFIG_GK20A_CYCLE_STATS)

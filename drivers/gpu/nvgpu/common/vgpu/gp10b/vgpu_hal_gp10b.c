@@ -372,10 +372,6 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 		.is_valid_gfx = gp10b_class_is_valid_gfx,
 		.is_valid_compute = gp10b_class_is_valid_compute,
 	},
-	.perf = {
-		.get_pmm_per_chiplet_offset =
-			gm20b_perf_get_pmm_per_chiplet_offset,
-	},
 	.fb = {
 		.init_hw = NULL,
 		.init_fs_state = NULL,
@@ -708,11 +704,15 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 		.release_profiler_reservation =
 			vgpu_release_profiler_reservation,
 	},
-#endif
+	.perf = {
+		.get_pmm_per_chiplet_offset =
+			gm20b_perf_get_pmm_per_chiplet_offset,
+	},
 	.perfbuf = {
 		.perfbuf_enable = vgpu_perfbuffer_enable,
 		.perfbuf_disable = vgpu_perfbuffer_disable,
 	},
+#endif
 	.bus = {
 		.init_hw = NULL,
 		.isr = NULL,
@@ -780,7 +780,6 @@ int vgpu_gp10b_init_hal(struct gk20a *g)
 	gops->gr.ctxsw_prog = vgpu_gp10b_ops.gr.ctxsw_prog;
 	gops->gr.config = vgpu_gp10b_ops.gr.config;
 	gops->fb = vgpu_gp10b_ops.fb;
-	gops->perf = vgpu_gp10b_ops.perf;
 	gops->cg = vgpu_gp10b_ops.cg;
 	gops->fifo = vgpu_gp10b_ops.fifo;
 	gops->engine = vgpu_gp10b_ops.engine;
@@ -807,8 +806,9 @@ int vgpu_gp10b_init_hal(struct gk20a *g)
 #ifdef NVGPU_DEBUGGER
 	gops->debugger = vgpu_gp10b_ops.debugger;
 	gops->regops = vgpu_gp10b_ops.regops;
-#endif
+	gops->perf = vgpu_gp10b_ops.perf;
 	gops->perfbuf = vgpu_gp10b_ops.perfbuf;
+#endif
 	gops->bus = vgpu_gp10b_ops.bus;
 	gops->ptimer = vgpu_gp10b_ops.ptimer;
 #if defined(CONFIG_GK20A_CYCLE_STATS)
