@@ -40,4 +40,7 @@ int test_fifo_init_support(struct unit_module *m,
 int test_fifo_remove_support(struct unit_module *m,
 		struct gk20a *g, void *args);
 
+bool test_fifo_subtest_pruned(u32 branches, u32 final_branches);
+char *test_fifo_flags_str(u32 flags, const char *labels[]);
+
 #endif /* UNIT_NVGPU_FIFO_H */

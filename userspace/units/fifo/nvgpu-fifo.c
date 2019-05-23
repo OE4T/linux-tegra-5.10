@@ -36,6 +36,47 @@
 #include "nvgpu-fifo.h"
 #include "nvgpu-fifo-gv11b.h"
 
+bool test_fifo_subtest_pruned(u32 branches, u32 final_branches)
+{
+	u32 match = branches & final_branches;
+	int bit;
+
+	if (match == 0U) {
+		return false;
+	}
+	bit = ffs(match) - 1;
+
+	return (branches > BIT(bit));
+}
+
+static int test_fifo_flags_strn(char *dst, size_t size,
+		const char *labels[], u32 flags)
+{
+	int i;
+	char *p = dst;
+	int len;
+
+	for (i = 0; i < 32; i++) {
+		if (flags & BIT(i)) {
+			len = snprintf(p, size, "%s ", labels[i]);
+			size -= len;
+			p += len;
+		}
+	}
+
+	return (p - dst);
+}
+
+/* not MT-safe */
+char *test_fifo_flags_str(u32 flags, const char *labels[])
+{
+	static char buf[256];
+
+	memset(buf, 0, sizeof(buf));
+	test_fifo_flags_strn(buf, sizeof(buf), labels, flags);
+	return buf;
+}
+
 static u32 stub_gv11b_gr_init_get_no_of_sm(struct gk20a *g)
 {
 	return 8;
