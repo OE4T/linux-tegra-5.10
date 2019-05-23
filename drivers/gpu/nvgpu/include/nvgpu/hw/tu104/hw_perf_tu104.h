@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -57,6 +57,7 @@
 #define NVGPU_HW_PERF_TU104_H
 
 #include <nvgpu/types.h>
+#include <nvgpu/safe_ops.h>
 
 static inline u32 perf_pmmgpc_perdomain_offset_v(void)
 {
@@ -240,7 +241,7 @@ static inline u32 perf_pmasys_enginestatus_rbufempty_empty_f(void)
 }
 static inline u32 perf_pmmsys_engine_sel_r(u32 i)
 {
-	return 0x0024006cU + i*512U;
+	return nvgpu_safe_add_u32(0x0024006cU, nvgpu_safe_mult_u32(i, 512U));
 }
 static inline u32 perf_pmmsys_engine_sel__size_1_v(void)
 {
@@ -248,7 +249,7 @@ static inline u32 perf_pmmsys_engine_sel__size_1_v(void)
 }
 static inline u32 perf_pmmfbp_engine_sel_r(u32 i)
 {
-	return 0x0020006cU + i*512U;
+	return nvgpu_safe_add_u32(0x0020006cU, nvgpu_safe_mult_u32(i, 512U));
 }
 static inline u32 perf_pmmfbp_engine_sel__size_1_v(void)
 {
@@ -256,7 +257,7 @@ static inline u32 perf_pmmfbp_engine_sel__size_1_v(void)
 }
 static inline u32 perf_pmmgpc_engine_sel_r(u32 i)
 {
-	return 0x0018006cU + i*512U;
+	return nvgpu_safe_add_u32(0x0018006cU, nvgpu_safe_mult_u32(i, 512U));
 }
 static inline u32 perf_pmmgpc_engine_sel__size_1_v(void)
 {

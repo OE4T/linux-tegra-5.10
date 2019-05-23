@@ -57,6 +57,7 @@
 #define NVGPU_HW_PBDMA_TU104_H
 
 #include <nvgpu/types.h>
+#include <nvgpu/safe_ops.h>
 
 static inline u32 pbdma_gp_entry1_r(void)
 {
@@ -76,7 +77,7 @@ static inline u32 pbdma_gp_entry1_length_v(u32 r)
 }
 static inline u32 pbdma_gp_base_r(u32 i)
 {
-	return 0x00040048U + i*8192U;
+	return nvgpu_safe_add_u32(0x00040048U, nvgpu_safe_mult_u32(i, 8192U));
 }
 static inline u32 pbdma_gp_base__size_1_v(void)
 {
@@ -92,7 +93,7 @@ static inline u32 pbdma_gp_base_rsvd_s(void)
 }
 static inline u32 pbdma_gp_base_hi_r(u32 i)
 {
-	return 0x0004004cU + i*8192U;
+	return nvgpu_safe_add_u32(0x0004004cU, nvgpu_safe_mult_u32(i, 8192U));
 }
 static inline u32 pbdma_gp_base_hi_offset_f(u32 v)
 {
@@ -104,43 +105,43 @@ static inline u32 pbdma_gp_base_hi_limit2_f(u32 v)
 }
 static inline u32 pbdma_gp_fetch_r(u32 i)
 {
-	return 0x00040050U + i*8192U;
+	return nvgpu_safe_add_u32(0x00040050U, nvgpu_safe_mult_u32(i, 8192U));
 }
 static inline u32 pbdma_gp_get_r(u32 i)
 {
-	return 0x00040014U + i*8192U;
+	return nvgpu_safe_add_u32(0x00040014U, nvgpu_safe_mult_u32(i, 8192U));
 }
 static inline u32 pbdma_gp_put_r(u32 i)
 {
-	return 0x00040000U + i*8192U;
+	return nvgpu_safe_add_u32(0x00040000U, nvgpu_safe_mult_u32(i, 8192U));
 }
 static inline u32 pbdma_pb_fetch_r(u32 i)
 {
-	return 0x00040054U + i*8192U;
+	return nvgpu_safe_add_u32(0x00040054U, nvgpu_safe_mult_u32(i, 8192U));
 }
 static inline u32 pbdma_pb_fetch_hi_r(u32 i)
 {
-	return 0x00040058U + i*8192U;
+	return nvgpu_safe_add_u32(0x00040058U, nvgpu_safe_mult_u32(i, 8192U));
 }
 static inline u32 pbdma_get_r(u32 i)
 {
-	return 0x00040018U + i*8192U;
+	return nvgpu_safe_add_u32(0x00040018U, nvgpu_safe_mult_u32(i, 8192U));
 }
 static inline u32 pbdma_get_hi_r(u32 i)
 {
-	return 0x0004001cU + i*8192U;
+	return nvgpu_safe_add_u32(0x0004001cU, nvgpu_safe_mult_u32(i, 8192U));
 }
 static inline u32 pbdma_put_r(u32 i)
 {
-	return 0x0004005cU + i*8192U;
+	return nvgpu_safe_add_u32(0x0004005cU, nvgpu_safe_mult_u32(i, 8192U));
 }
 static inline u32 pbdma_put_hi_r(u32 i)
 {
-	return 0x00040060U + i*8192U;
+	return nvgpu_safe_add_u32(0x00040060U, nvgpu_safe_mult_u32(i, 8192U));
 }
 static inline u32 pbdma_pb_header_r(u32 i)
 {
-	return 0x00040084U + i*8192U;
+	return nvgpu_safe_add_u32(0x00040084U, nvgpu_safe_mult_u32(i, 8192U));
 }
 static inline u32 pbdma_pb_header_method_zero_f(void)
 {
@@ -176,19 +177,19 @@ static inline u32 pbdma_pb_header_type_immd_f(void)
 }
 static inline u32 pbdma_hdr_shadow_r(u32 i)
 {
-	return 0x00040118U + i*8192U;
+	return nvgpu_safe_add_u32(0x00040118U, nvgpu_safe_mult_u32(i, 8192U));
 }
 static inline u32 pbdma_gp_shadow_0_r(u32 i)
 {
-	return 0x00040110U + i*8192U;
+	return nvgpu_safe_add_u32(0x00040110U, nvgpu_safe_mult_u32(i, 8192U));
 }
 static inline u32 pbdma_gp_shadow_1_r(u32 i)
 {
-	return 0x00040114U + i*8192U;
+	return nvgpu_safe_add_u32(0x00040114U, nvgpu_safe_mult_u32(i, 8192U));
 }
 static inline u32 pbdma_subdevice_r(u32 i)
 {
-	return 0x00040094U + i*8192U;
+	return nvgpu_safe_add_u32(0x00040094U, nvgpu_safe_mult_u32(i, 8192U));
 }
 static inline u32 pbdma_subdevice_id_f(u32 v)
 {
@@ -204,7 +205,7 @@ static inline u32 pbdma_subdevice_channel_dma_enable_f(void)
 }
 static inline u32 pbdma_method0_r(u32 i)
 {
-	return 0x000400c0U + i*8192U;
+	return nvgpu_safe_add_u32(0x000400c0U, nvgpu_safe_mult_u32(i, 8192U));
 }
 static inline u32 pbdma_method0_fifo_size_v(void)
 {
@@ -232,19 +233,19 @@ static inline u32 pbdma_method0_valid_true_f(void)
 }
 static inline u32 pbdma_method1_r(u32 i)
 {
-	return 0x000400c8U + i*8192U;
+	return nvgpu_safe_add_u32(0x000400c8U, nvgpu_safe_mult_u32(i, 8192U));
 }
 static inline u32 pbdma_method2_r(u32 i)
 {
-	return 0x000400d0U + i*8192U;
+	return nvgpu_safe_add_u32(0x000400d0U, nvgpu_safe_mult_u32(i, 8192U));
 }
 static inline u32 pbdma_method3_r(u32 i)
 {
-	return 0x000400d8U + i*8192U;
+	return nvgpu_safe_add_u32(0x000400d8U, nvgpu_safe_mult_u32(i, 8192U));
 }
 static inline u32 pbdma_pb_count_r(u32 i)
 {
-	return 0x00040088U + i*8192U;
+	return nvgpu_safe_add_u32(0x00040088U, nvgpu_safe_mult_u32(i, 8192U));
 }
 static inline u32 pbdma_pb_count_value_v(u32 r)
 {
@@ -256,11 +257,11 @@ static inline u32 pbdma_pb_count_value_zero_f(void)
 }
 static inline u32 pbdma_data0_r(u32 i)
 {
-	return 0x000400c4U + i*8192U;
+	return nvgpu_safe_add_u32(0x000400c4U, nvgpu_safe_mult_u32(i, 8192U));
 }
 static inline u32 pbdma_acquire_r(u32 i)
 {
-	return 0x00040030U + i*8192U;
+	return nvgpu_safe_add_u32(0x00040030U, nvgpu_safe_mult_u32(i, 8192U));
 }
 static inline u32 pbdma_acquire_retry_man_2_f(void)
 {
@@ -304,15 +305,15 @@ static inline u32 pbdma_acquire_timeout_en_disable_f(void)
 }
 static inline u32 pbdma_status_r(u32 i)
 {
-	return 0x00040100U + i*8192U;
+	return nvgpu_safe_add_u32(0x00040100U, nvgpu_safe_mult_u32(i, 8192U));
 }
 static inline u32 pbdma_channel_r(u32 i)
 {
-	return 0x00040120U + i*8192U;
+	return nvgpu_safe_add_u32(0x00040120U, nvgpu_safe_mult_u32(i, 8192U));
 }
 static inline u32 pbdma_signature_r(u32 i)
 {
-	return 0x00040010U + i*8192U;
+	return nvgpu_safe_add_u32(0x00040010U, nvgpu_safe_mult_u32(i, 8192U));
 }
 static inline u32 pbdma_signature_hw_valid_f(void)
 {
@@ -324,7 +325,7 @@ static inline u32 pbdma_signature_sw_zero_f(void)
 }
 static inline u32 pbdma_userd_r(u32 i)
 {
-	return 0x00040008U + i*8192U;
+	return nvgpu_safe_add_u32(0x00040008U, nvgpu_safe_mult_u32(i, 8192U));
 }
 static inline u32 pbdma_userd_target_vid_mem_f(void)
 {
@@ -344,7 +345,7 @@ static inline u32 pbdma_userd_addr_f(u32 v)
 }
 static inline u32 pbdma_config_r(u32 i)
 {
-	return 0x000400f4U + i*8192U;
+	return nvgpu_safe_add_u32(0x000400f4U, nvgpu_safe_mult_u32(i, 8192U));
 }
 static inline u32 pbdma_config_l2_evict_first_f(void)
 {
@@ -380,7 +381,7 @@ static inline u32 pbdma_config_userd_writeback_enable_f(void)
 }
 static inline u32 pbdma_userd_hi_r(u32 i)
 {
-	return 0x0004000cU + i*8192U;
+	return nvgpu_safe_add_u32(0x0004000cU, nvgpu_safe_mult_u32(i, 8192U));
 }
 static inline u32 pbdma_userd_hi_addr_f(u32 v)
 {
@@ -388,7 +389,7 @@ static inline u32 pbdma_userd_hi_addr_f(u32 v)
 }
 static inline u32 pbdma_hce_ctrl_r(u32 i)
 {
-	return 0x000400e4U + i*8192U;
+	return nvgpu_safe_add_u32(0x000400e4U, nvgpu_safe_mult_u32(i, 8192U));
 }
 static inline u32 pbdma_hce_ctrl_hce_priv_mode_yes_f(void)
 {
@@ -396,7 +397,7 @@ static inline u32 pbdma_hce_ctrl_hce_priv_mode_yes_f(void)
 }
 static inline u32 pbdma_intr_0_r(u32 i)
 {
-	return 0x00040108U + i*8192U;
+	return nvgpu_safe_add_u32(0x00040108U, nvgpu_safe_mult_u32(i, 8192U));
 }
 static inline u32 pbdma_intr_0_memreq_v(u32 r)
 {
@@ -524,7 +525,7 @@ static inline u32 pbdma_intr_0_signature_pending_f(void)
 }
 static inline u32 pbdma_intr_1_r(u32 i)
 {
-	return 0x00040148U + i*8192U;
+	return nvgpu_safe_add_u32(0x00040148U, nvgpu_safe_mult_u32(i, 8192U));
 }
 static inline u32 pbdma_intr_1_ctxnotvalid_m(void)
 {
@@ -536,19 +537,19 @@ static inline u32 pbdma_intr_1_ctxnotvalid_pending_f(void)
 }
 static inline u32 pbdma_intr_en_0_r(u32 i)
 {
-	return 0x0004010cU + i*8192U;
+	return nvgpu_safe_add_u32(0x0004010cU, nvgpu_safe_mult_u32(i, 8192U));
 }
 static inline u32 pbdma_intr_en_1_r(u32 i)
 {
-	return 0x0004014cU + i*8192U;
+	return nvgpu_safe_add_u32(0x0004014cU, nvgpu_safe_mult_u32(i, 8192U));
 }
 static inline u32 pbdma_intr_stall_r(u32 i)
 {
-	return 0x0004013cU + i*8192U;
+	return nvgpu_safe_add_u32(0x0004013cU, nvgpu_safe_mult_u32(i, 8192U));
 }
 static inline u32 pbdma_intr_stall_1_r(u32 i)
 {
-	return 0x00040140U + i*8192U;
+	return nvgpu_safe_add_u32(0x00040140U, nvgpu_safe_mult_u32(i, 8192U));
 }
 static inline u32 pbdma_intr_stall_1_hce_illegal_op_enabled_f(void)
 {
@@ -560,7 +561,7 @@ static inline u32 pbdma_udma_nop_r(void)
 }
 static inline u32 pbdma_target_r(u32 i)
 {
-	return 0x000400acU + i*8192U;
+	return nvgpu_safe_add_u32(0x000400acU, nvgpu_safe_mult_u32(i, 8192U));
 }
 static inline u32 pbdma_target_engine_sw_f(void)
 {
@@ -616,7 +617,7 @@ static inline u32 pbdma_target_needs_host_tsg_event_false_f(void)
 }
 static inline u32 pbdma_set_channel_info_r(u32 i)
 {
-	return 0x000400fcU + i*8192U;
+	return nvgpu_safe_add_u32(0x000400fcU, nvgpu_safe_mult_u32(i, 8192U));
 }
 static inline u32 pbdma_set_channel_info_veid_f(u32 v)
 {
@@ -624,7 +625,7 @@ static inline u32 pbdma_set_channel_info_veid_f(u32 v)
 }
 static inline u32 pbdma_timeout_r(u32 i)
 {
-	return 0x0004012cU + i*8192U;
+	return nvgpu_safe_add_u32(0x0004012cU, nvgpu_safe_mult_u32(i, 8192U));
 }
 static inline u32 pbdma_timeout_period_m(void)
 {

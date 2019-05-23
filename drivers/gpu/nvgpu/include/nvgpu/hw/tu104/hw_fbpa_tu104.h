@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -57,6 +57,7 @@
 #define NVGPU_HW_FBPA_TU104_H
 
 #include <nvgpu/types.h>
+#include <nvgpu/safe_ops.h>
 
 static inline u32 fbpa_0_intr_status_r(void)
 {
@@ -100,7 +101,7 @@ static inline u32 fbpa_ecc_intr_ctrl_ded_intr_en_enabled_f(void)
 }
 static inline u32 fbpa_0_ecc_status_r(u32 i)
 {
-	return 0x00900478U + i*4U;
+	return nvgpu_safe_add_u32(0x00900478U, nvgpu_safe_mult_u32(i, 4U));
 }
 static inline u32 fbpa_0_ecc_status_sec_intr_pending_f(void)
 {
@@ -120,10 +121,10 @@ static inline u32 fbpa_0_ecc_status_ded_counter_overflow_pending_f(void)
 }
 static inline u32 fbpa_0_ecc_sec_count_r(u32 i)
 {
-	return 0x00900480U + i*4U;
+	return nvgpu_safe_add_u32(0x00900480U, nvgpu_safe_mult_u32(i, 4U));
 }
 static inline u32 fbpa_0_ecc_ded_count_r(u32 i)
 {
-	return 0x00900488U + i*4U;
+	return nvgpu_safe_add_u32(0x00900488U, nvgpu_safe_mult_u32(i, 4U));
 }
 #endif

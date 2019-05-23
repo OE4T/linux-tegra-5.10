@@ -57,6 +57,7 @@
 #define NVGPU_HW_FB_TU104_H
 
 #include <nvgpu/types.h>
+#include <nvgpu/safe_ops.h>
 
 static inline u32 fb_fbhub_num_active_ltcs_r(void)
 {
@@ -1104,7 +1105,7 @@ static inline u32 fb_niso_intr_mmu_other_fault_notify_pending_f(void)
 }
 static inline u32 fb_niso_intr_en_r(u32 i)
 {
-	return 0x00100a24U + i*4U;
+	return nvgpu_safe_add_u32(0x00100a24U, nvgpu_safe_mult_u32(i, 4U));
 }
 static inline u32 fb_niso_intr_en__size_1_v(void)
 {
@@ -1168,7 +1169,7 @@ static inline u32 fb_niso_intr_en_mmu_other_fault_notify_enabled_f(void)
 }
 static inline u32 fb_niso_intr_en_set_r(u32 i)
 {
-	return 0x00100a2cU + i*4U;
+	return nvgpu_safe_add_u32(0x00100a2cU, nvgpu_safe_mult_u32(i, 4U));
 }
 static inline u32 fb_niso_intr_en_set__size_1_v(void)
 {
@@ -1232,7 +1233,7 @@ static inline u32 fb_niso_intr_en_set_mmu_other_fault_notify_set_f(void)
 }
 static inline u32 fb_niso_intr_en_clr_r(u32 i)
 {
-	return 0x00100a34U + i*4U;
+	return nvgpu_safe_add_u32(0x00100a34U, nvgpu_safe_mult_u32(i, 4U));
 }
 static inline u32 fb_niso_intr_en_clr__size_1_v(void)
 {
@@ -1304,7 +1305,7 @@ static inline u32 fb_niso_intr_en_clr_mmu_replay_fault_buffer_v(void)
 }
 static inline u32 fb_mmu_fault_buffer_lo_r(u32 i)
 {
-	return 0x00100e24U + i*20U;
+	return nvgpu_safe_add_u32(0x00100e24U, nvgpu_safe_mult_u32(i, 20U));
 }
 static inline u32 fb_mmu_fault_buffer_lo__size_1_v(void)
 {
@@ -1376,7 +1377,7 @@ static inline u32 fb_mmu_fault_buffer_lo_addr_v(u32 r)
 }
 static inline u32 fb_mmu_fault_buffer_hi_r(u32 i)
 {
-	return 0x00100e28U + i*20U;
+	return nvgpu_safe_add_u32(0x00100e28U, nvgpu_safe_mult_u32(i, 20U));
 }
 static inline u32 fb_mmu_fault_buffer_hi__size_1_v(void)
 {
@@ -1392,7 +1393,7 @@ static inline u32 fb_mmu_fault_buffer_hi_addr_v(u32 r)
 }
 static inline u32 fb_mmu_fault_buffer_get_r(u32 i)
 {
-	return 0x00100e2cU + i*20U;
+	return nvgpu_safe_add_u32(0x00100e2cU, nvgpu_safe_mult_u32(i, 20U));
 }
 static inline u32 fb_mmu_fault_buffer_get__size_1_v(void)
 {
@@ -1444,7 +1445,7 @@ static inline u32 fb_mmu_fault_buffer_get_overflow_clear_f(void)
 }
 static inline u32 fb_mmu_fault_buffer_put_r(u32 i)
 {
-	return 0x00100e30U + i*20U;
+	return nvgpu_safe_add_u32(0x00100e30U, nvgpu_safe_mult_u32(i, 20U));
 }
 static inline u32 fb_mmu_fault_buffer_put__size_1_v(void)
 {
@@ -1500,7 +1501,7 @@ static inline u32 fb_mmu_fault_buffer_put_overflow_yes_f(void)
 }
 static inline u32 fb_mmu_fault_buffer_size_r(u32 i)
 {
-	return 0x00100e34U + i*20U;
+	return nvgpu_safe_add_u32(0x00100e34U, nvgpu_safe_mult_u32(i, 20U));
 }
 static inline u32 fb_mmu_fault_buffer_size__size_1_v(void)
 {
@@ -2244,7 +2245,7 @@ static inline u32 fb_mmu_int_vector_ecc_error_vector_v(u32 r)
 }
 static inline u32 fb_mmu_int_vector_fault_r(u32 i)
 {
-	return 0x00100ee4U + i*4U;
+	return nvgpu_safe_add_u32(0x00100ee4U, nvgpu_safe_mult_u32(i, 4U));
 }
 static inline u32 fb_mmu_int_vector_fault_error_v(u32 r)
 {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -57,10 +57,11 @@
 #define NVGPU_HW_CE_TU104_H
 
 #include <nvgpu/types.h>
+#include <nvgpu/safe_ops.h>
 
 static inline u32 ce_intr_status_r(u32 i)
 {
-	return 0x00104410U + i*128U;
+	return nvgpu_safe_add_u32(0x00104410U, nvgpu_safe_mult_u32(i, 128U));
 }
 static inline u32 ce_intr_status_blockpipe_pending_f(void)
 {

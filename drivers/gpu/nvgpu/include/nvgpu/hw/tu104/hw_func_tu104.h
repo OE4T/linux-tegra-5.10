@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -57,6 +57,7 @@
 #define NVGPU_HW_FUNC_TU104_H
 
 #include <nvgpu/types.h>
+#include <nvgpu/safe_ops.h>
 
 static inline u32 func_full_phys_offset_v(void)
 {
@@ -72,11 +73,11 @@ static inline u32 func_cfg0_r(void)
 }
 static inline u32 func_priv_cpu_intr_top_en_set_r(u32 i)
 {
-	return 0x00001608U + i*4U;
+	return nvgpu_safe_add_u32(0x00001608U, nvgpu_safe_mult_u32(i, 4U));
 }
 static inline u32 func_priv_cpu_intr_top_en_clear_r(u32 i)
 {
-	return 0x00001610U + i*4U;
+	return nvgpu_safe_add_u32(0x00001610U, nvgpu_safe_mult_u32(i, 4U));
 }
 static inline u32 func_priv_cpu_intr_top_en_clear__size_1_v(void)
 {
@@ -84,11 +85,11 @@ static inline u32 func_priv_cpu_intr_top_en_clear__size_1_v(void)
 }
 static inline u32 func_priv_cpu_intr_leaf_en_set_r(u32 i)
 {
-	return 0x00001200U + i*4U;
+	return nvgpu_safe_add_u32(0x00001200U, nvgpu_safe_mult_u32(i, 4U));
 }
 static inline u32 func_priv_cpu_intr_leaf_en_clear_r(u32 i)
 {
-	return 0x00001400U + i*4U;
+	return nvgpu_safe_add_u32(0x00001400U, nvgpu_safe_mult_u32(i, 4U));
 }
 static inline u32 func_priv_cpu_intr_leaf_en_clear__size_1_v(void)
 {
@@ -96,31 +97,31 @@ static inline u32 func_priv_cpu_intr_leaf_en_clear__size_1_v(void)
 }
 static inline u32 func_priv_cpu_intr_top_r(u32 i)
 {
-	return 0x00001600U + i*4U;
+	return nvgpu_safe_add_u32(0x00001600U, nvgpu_safe_mult_u32(i, 4U));
 }
 static inline u32 func_priv_cpu_intr_leaf_r(u32 i)
 {
-	return 0x00001000U + i*4U;
+	return nvgpu_safe_add_u32(0x00001000U, nvgpu_safe_mult_u32(i, 4U));
 }
 static inline u32 func_priv_mmu_fault_buffer_lo_r(u32 i)
 {
-	return 0x00003000U + i*32U;
+	return nvgpu_safe_add_u32(0x00003000U, nvgpu_safe_mult_u32(i, 32U));
 }
 static inline u32 func_priv_mmu_fault_buffer_hi_r(u32 i)
 {
-	return 0x00003004U + i*32U;
+	return nvgpu_safe_add_u32(0x00003004U, nvgpu_safe_mult_u32(i, 32U));
 }
 static inline u32 func_priv_mmu_fault_buffer_get_r(u32 i)
 {
-	return 0x00003008U + i*32U;
+	return nvgpu_safe_add_u32(0x00003008U, nvgpu_safe_mult_u32(i, 32U));
 }
 static inline u32 func_priv_mmu_fault_buffer_put_r(u32 i)
 {
-	return 0x0000300cU + i*32U;
+	return nvgpu_safe_add_u32(0x0000300cU, nvgpu_safe_mult_u32(i, 32U));
 }
 static inline u32 func_priv_mmu_fault_buffer_size_r(u32 i)
 {
-	return 0x00003010U + i*32U;
+	return nvgpu_safe_add_u32(0x00003010U, nvgpu_safe_mult_u32(i, 32U));
 }
 static inline u32 func_priv_mmu_fault_addr_lo_r(void)
 {

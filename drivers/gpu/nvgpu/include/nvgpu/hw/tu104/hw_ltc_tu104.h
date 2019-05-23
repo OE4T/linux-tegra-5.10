@@ -57,6 +57,7 @@
 #define NVGPU_HW_LTC_TU104_H
 
 #include <nvgpu/types.h>
+#include <nvgpu/safe_ops.h>
 
 static inline u32 ltc_pltcg_base_v(void)
 {
@@ -260,7 +261,7 @@ static inline u32 ltc_ltcs_ltss_dstg_zbc_index_address_f(u32 v)
 }
 static inline u32 ltc_ltcs_ltss_dstg_zbc_color_clear_value_r(u32 i)
 {
-	return 0x0017e33cU + i*4U;
+	return nvgpu_safe_add_u32(0x0017e33cU, nvgpu_safe_mult_u32(i, 4U));
 }
 static inline u32 ltc_ltcs_ltss_dstg_zbc_color_clear_value__size_1_v(void)
 {

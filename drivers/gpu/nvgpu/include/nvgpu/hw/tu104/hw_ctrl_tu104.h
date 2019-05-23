@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -57,10 +57,11 @@
 #define NVGPU_HW_CTRL_TU104_H
 
 #include <nvgpu/types.h>
+#include <nvgpu/safe_ops.h>
 
 static inline u32 ctrl_doorbell_r(u32 i)
 {
-	return 0x00b64000U + i*8U;
+	return nvgpu_safe_add_u32(0x00b64000U, nvgpu_safe_mult_u32(i, 8U));
 }
 static inline u32 ctrl_doorbell_vector_f(u32 v)
 {
@@ -72,7 +73,7 @@ static inline u32 ctrl_doorbell_runlist_id_f(u32 v)
 }
 static inline u32 ctrl_virtual_channel_cfg_r(u32 i)
 {
-	return 0x00b65000U + i*4U;
+	return nvgpu_safe_add_u32(0x00b65000U, nvgpu_safe_mult_u32(i, 4U));
 }
 static inline u32 ctrl_virtual_channel_cfg_pending_enable_true_f(void)
 {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -57,6 +57,7 @@
 #define NVGPU_HW_FIFO_TU104_H
 
 #include <nvgpu/types.h>
+#include <nvgpu/safe_ops.h>
 
 static inline u32 fifo_userd_writeback_r(void)
 {
@@ -88,7 +89,7 @@ static inline u32 fifo_userd_writeback_timescale_0_v(void)
 }
 static inline u32 fifo_runlist_base_lo_r(u32 i)
 {
-	return 0x00002b00U + i*16U;
+	return nvgpu_safe_add_u32(0x00002b00U, nvgpu_safe_mult_u32(i, 16U));
 }
 static inline u32 fifo_runlist_base_lo__size_1_v(void)
 {
@@ -116,7 +117,7 @@ static inline u32 fifo_runlist_base_lo_target_sys_mem_ncoh_f(void)
 }
 static inline u32 fifo_runlist_base_hi_r(u32 i)
 {
-	return 0x00002b04U + i*16U;
+	return nvgpu_safe_add_u32(0x00002b04U, nvgpu_safe_mult_u32(i, 16U));
 }
 static inline u32 fifo_runlist_base_hi_ptr_hi_f(u32 v)
 {
@@ -124,7 +125,7 @@ static inline u32 fifo_runlist_base_hi_ptr_hi_f(u32 v)
 }
 static inline u32 fifo_runlist_submit_r(u32 i)
 {
-	return 0x00002b08U + i*16U;
+	return nvgpu_safe_add_u32(0x00002b08U, nvgpu_safe_mult_u32(i, 16U));
 }
 static inline u32 fifo_runlist_submit_length_f(u32 v)
 {
@@ -132,7 +133,7 @@ static inline u32 fifo_runlist_submit_length_f(u32 v)
 }
 static inline u32 fifo_runlist_submit_info_r(u32 i)
 {
-	return 0x00002b0cU + i*16U;
+	return nvgpu_safe_add_u32(0x00002b0cU, nvgpu_safe_mult_u32(i, 16U));
 }
 static inline u32 fifo_runlist_submit_info_pending_true_f(void)
 {
@@ -140,7 +141,7 @@ static inline u32 fifo_runlist_submit_info_pending_true_f(void)
 }
 static inline u32 fifo_pbdma_map_r(u32 i)
 {
-	return 0x00002390U + i*4U;
+	return nvgpu_safe_add_u32(0x00002390U, nvgpu_safe_mult_u32(i, 4U));
 }
 static inline u32 fifo_intr_0_r(void)
 {
@@ -328,7 +329,7 @@ static inline u32 fifo_preempt_id_f(u32 v)
 }
 static inline u32 fifo_engine_status_r(u32 i)
 {
-	return 0x00002640U + i*8U;
+	return nvgpu_safe_add_u32(0x00002640U, nvgpu_safe_mult_u32(i, 8U));
 }
 static inline u32 fifo_engine_status__size_1_v(void)
 {
@@ -424,7 +425,7 @@ static inline u32 fifo_engine_status_ctxsw_in_progress_f(void)
 }
 static inline u32 fifo_pbdma_status_r(u32 i)
 {
-	return 0x00003080U + i*4U;
+	return nvgpu_safe_add_u32(0x00003080U, nvgpu_safe_mult_u32(i, 4U));
 }
 static inline u32 fifo_pbdma_status__size_1_v(void)
 {
