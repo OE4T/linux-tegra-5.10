@@ -326,10 +326,12 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 			.program_zcull_mapping = NULL,
 		},
 #endif /* NVGPU_GRAPHICS */
+#ifdef NVGPU_DEBUGGER
 		.hwpm_map = {
 			.align_regs_perf_pma =
 				gv100_gr_hwpm_map_align_regs_perf_pma,
 		},
+#endif
 		.falcon = {
 			.init_ctx_state = vgpu_gr_init_ctx_state,
 			.load_ctxsw_ucode = NULL,

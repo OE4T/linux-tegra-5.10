@@ -107,7 +107,6 @@ srcs += common/utils/enabled.c \
 	common/gr/gr_falcon.c \
 	common/gr/gr_config.c \
 	common/gr/gr_setup.c \
-	common/gr/hwpm_map.c \
 	common/gr/obj_ctx.c \
 	common/gr/fs_state.c \
 	common/netlist/netlist.c \
@@ -176,7 +175,6 @@ srcs += common/utils/enabled.c \
 	hal/gr/intr/gr_intr_gm20b.c \
 	hal/gr/intr/gr_intr_gp10b.c \
 	hal/gr/intr/gr_intr_gv11b.c \
-	hal/gr/hwpm_map/hwpm_map_gv100.c \
 	hal/gr/falcon/gr_falcon_gm20b.c \
 	hal/gr/falcon/gr_falcon_gp10b.c \
 	hal/gr/falcon/gr_falcon_gv11b.c \
@@ -311,11 +309,13 @@ endif
 ifeq ($(NVGPU_DEBUGGER),1)
 srcs += common/debugger.c \
 	common/regops/regops.c \
+	common/gr/hwpm_map.c \
 	hal/regops/regops_gm20b.c \
 	hal/regops/regops_gp10b.c \
 	hal/regops/regops_gv11b.c \
 	hal/regops/regops_gv100.c \
-	hal/regops/regops_tu104.c
+	hal/regops/regops_tu104.c \
+	hal/gr/hwpm_map/hwpm_map_gv100.c
 endif
 
 ifeq ($(NVGPU_FEATURE_CE),1)

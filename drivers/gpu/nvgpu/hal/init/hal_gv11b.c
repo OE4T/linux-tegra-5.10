@@ -448,10 +448,12 @@ static const struct gpu_ops gv11b_ops = {
 			.program_zcull_mapping = gv11b_gr_program_zcull_mapping,
 		},
 #endif /* NVGPU_GRAPHICS */
+#ifdef NVGPU_DEBUGGER
 		.hwpm_map = {
 			.align_regs_perf_pma =
 				gv100_gr_hwpm_map_align_regs_perf_pma,
 		},
+#endif
 		.init = {
 			.get_no_of_sm = nvgpu_gr_get_no_of_sm,
 			.get_nonpes_aware_tpc =

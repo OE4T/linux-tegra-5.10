@@ -66,10 +66,12 @@ struct nvgpu_gr_config *nvgpu_gr_get_config_ptr(struct gk20a *g)
 	return g->gr->config;
 }
 
+#ifdef NVGPU_DEBUGGER
 struct nvgpu_gr_hwpm_map *nvgpu_gr_get_hwpm_map_ptr(struct gk20a *g)
 {
 	return g->gr->hwpm_map;
 }
+#endif
 
 struct nvgpu_gr_intr *nvgpu_gr_get_intr_ptr(struct gk20a *g)
 {

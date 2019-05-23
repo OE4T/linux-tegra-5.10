@@ -662,10 +662,12 @@ struct gpu_ops {
 		} zcull;
 #endif /* NVGPU_GRAPHICS */
 
+#ifdef NVGPU_DEBUGGER
 		struct {
 			void (*align_regs_perf_pma)(u32 *offset);
 			u32 (*get_active_fbpa_mask)(struct gk20a *g);
 		} hwpm_map;
+#endif
 
 		struct {
 			u32 (*get_no_of_sm)(struct gk20a *g);

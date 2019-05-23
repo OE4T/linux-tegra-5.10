@@ -722,12 +722,14 @@ static int vgpu_gr_init_gr_setup_sw(struct gk20a *g)
 		goto clean_up;
 	}
 
+#ifdef NVGPU_DEBUGGER
 	err = nvgpu_gr_hwpm_map_init(g, &g->gr->hwpm_map,
 			nvgpu_gr_falcon_get_pm_ctxsw_image_size(g->gr->falcon));
 	if (err != 0) {
 		nvgpu_err(g, "hwpm_map init failed");
 		goto clean_up;
 	}
+#endif
 
 #ifdef NVGPU_GRAPHICS
 	err = vgpu_gr_init_gr_zcull(g, gr,

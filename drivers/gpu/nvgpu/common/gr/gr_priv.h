@@ -51,7 +51,9 @@ struct nvgpu_gr {
 
 	struct nvgpu_gr_config *config;
 
+#ifdef NVGPU_DEBUGGER
 	struct nvgpu_gr_hwpm_map *hwpm_map;
+#endif
 
 #ifdef NVGPU_GRAPHICS
 	struct nvgpu_gr_zcull *zcull;
