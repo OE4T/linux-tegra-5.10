@@ -203,10 +203,14 @@ struct gk20a;
 
 /* NVGPU_GPU_IOCTL_SET_MMU_DEBUG_MODE is available */
 #define NVGPU_SUPPORT_SET_CTX_MMU_DEBUG_MODE	78
+
+/* DGPU Thermal Alert */
+#define NVGPU_SUPPORT_DGPU_THERMAL_ALERT	79
+
 /*
  * Must be greater than the largest bit offset in the above list.
  */
-#define NVGPU_MAX_ENABLED_BITS			79U
+#define NVGPU_MAX_ENABLED_BITS			80U
 
 /**
  * nvgpu_is_enabled - Check if the passed flag is enabled.

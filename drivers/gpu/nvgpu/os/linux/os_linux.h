@@ -62,10 +62,17 @@ struct nvgpu_os_linux_ops {
 	} s_param;
 };
 
+struct dgpu_thermal_alert {
+        struct workqueue_struct *workqueue;
+        struct work_struct work;
+        u32 therm_alert_irq;
+        u32 event_delay;
+};
+
 struct nvgpu_os_linux {
 	struct gk20a g;
 	struct device *dev;
-
+	struct dgpu_thermal_alert thermal_alert;
 	struct {
 		struct cdev cdev;
 		struct device *node;

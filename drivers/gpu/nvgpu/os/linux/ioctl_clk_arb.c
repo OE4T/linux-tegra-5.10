@@ -175,7 +175,7 @@ static inline u32 __pending_event(struct nvgpu_clk_dev *dev,
 	if (_WRAPGTEQ(tail, head) && info) {
 		head++;
 		p_notif = &dev->queue.notifications[head % dev->queue.size];
-		events |= nvgpu_convert_gpu_event(p_notif->notification);
+		events = p_notif->notification;
 		info->event_id = ffs(events) - 1;
 		info->timestamp = p_notif->timestamp;
 		nvgpu_atomic_set(&dev->queue.head, head);

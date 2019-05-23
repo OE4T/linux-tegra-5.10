@@ -1453,6 +1453,7 @@ int tu104_init_hal(struct gk20a *g)
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_GSP_VM, true);
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_PMU_SUPER_SURFACE, true);
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_SET_CTX_MMU_DEBUG_MODE, true);
+	nvgpu_set_enabled(g, NVGPU_SUPPORT_DGPU_THERMAL_ALERT, true);
 
 	/* for now */
 	gops->clk.support_clk_freq_controller = false;

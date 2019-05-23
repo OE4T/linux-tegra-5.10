@@ -558,6 +558,19 @@ err_free_l:
 	return err;
 }
 
+static void nvgpu_thermal_deinit(struct gk20a *g)
+{
+	struct nvgpu_os_linux *l = nvgpu_os_linux_from_gk20a(g);
+	struct device *dev = dev_from_gk20a(g);
+
+	devm_free_irq(dev, l->thermal_alert.therm_alert_irq, g);
+	if (l->thermal_alert.workqueue != NULL) {
+		cancel_work_sync(&l->thermal_alert.work);
+		destroy_workqueue(l->thermal_alert.workqueue);
+		l->thermal_alert.workqueue = NULL;
+	}
+}
+
 static void nvgpu_pci_remove(struct pci_dev *pdev)
 {
 	struct gk20a *g = get_gk20a(&pdev->dev);
@@ -575,6 +588,11 @@ static void nvgpu_pci_remove(struct pci_dev *pdev)
 	WARN(err, "gpu failed to remove nvlink");
 
 	gk20a_driver_start_unload(g);
+
+	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_DGPU_THERMAL_ALERT) &&
+			nvgpu_platform_is_silicon(g)) {
+		nvgpu_thermal_deinit(g);
+	}
 
 	err = nvgpu_quiesce(g);
 	/* TODO: handle failure to idle */

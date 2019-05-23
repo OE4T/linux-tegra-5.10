@@ -28,6 +28,7 @@
 #include <linux/notifier.h>
 #include <linux/platform/tegra/common.h>
 #include <linux/pci.h>
+#include <linux/of_gpio.h>
 
 #include <uapi/linux/nvgpu.h>
 #include <dt-bindings/soc/gm20b-fuse.h>
@@ -284,6 +285,78 @@ void gk20a_init_linux_characteristics(struct gk20a *g)
 	}
 }
 
+static void therm_alert_work_queue(struct work_struct *work)
+{
+
+	struct dgpu_thermal_alert *thermal_alert =
+		container_of(work, struct dgpu_thermal_alert, work);
+	struct nvgpu_os_linux *l =
+		container_of(thermal_alert, struct nvgpu_os_linux,
+				thermal_alert);
+	struct gk20a *g = &l->g;
+
+	nvgpu_clk_arb_send_thermal_alarm(g);
+	nvgpu_msleep(l->thermal_alert.event_delay * 1000U);
+	enable_irq(l->thermal_alert.therm_alert_irq);
+}
+
+static irqreturn_t therm_irq(int irq, void *dev_id)
+{
+	struct nvgpu_os_linux *l = (struct nvgpu_os_linux *)dev_id;
+
+        disable_irq_nosync(irq);
+        queue_work(l->thermal_alert.workqueue, &l->thermal_alert.work);
+        return IRQ_HANDLED;
+}
+
+static int nvgpu_request_therm_irq(struct nvgpu_os_linux *l)
+{
+	struct device_node *np;
+	int ret = 0, gpio, index = 0;
+	u32 irq_flags = IRQ_TYPE_NONE;
+	u32 event_delay = 10U;
+
+	if (l->thermal_alert.workqueue != NULL) {
+		return ret;
+	}
+	np = of_find_node_by_name(NULL, "nvgpu");
+	if (!np) {
+		return -ENOENT;
+	}
+
+	gpio = of_get_named_gpio(np, "nvgpu-therm-gpios", index);
+	if (gpio < 0) {
+		nvgpu_err(&l->g, "failed to get GPIO %d ", gpio);
+		return gpio;
+	}
+
+	l->thermal_alert.therm_alert_irq = gpio_to_irq(gpio);
+
+	if (of_property_read_u32(np, "alert-interrupt-level", &irq_flags))
+		nvgpu_info(&l->g, "Missing interrupt-level "
+				"prop using %d", irq_flags);
+	if (of_property_read_u32(np, "alert-event-interval", &event_delay))
+		nvgpu_info(&l->g, "Missing event-interval "
+				"prop using %d seconds ", event_delay);
+
+	l->thermal_alert.event_delay = event_delay;
+
+	if (!l->thermal_alert.workqueue) {
+		l->thermal_alert.workqueue = alloc_workqueue("%s",
+					WQ_HIGHPRI, 1, "dgpu_thermal_alert");
+		INIT_WORK(&l->thermal_alert.work, therm_alert_work_queue);
+	}
+
+	ret = devm_request_irq(l->dev, l->thermal_alert.therm_alert_irq ,
+			therm_irq, irq_flags, "dgpu_therm", l);
+	if (ret != 0) {
+		nvgpu_err(&l->g, "IRQ request failed");
+	}
+
+	return ret;
+}
+
+
 int gk20a_pm_finalize_poweron(struct device *dev)
 {
 	struct gk20a *g = get_gk20a(dev);
@@ -329,6 +402,16 @@ int gk20a_pm_finalize_poweron(struct device *dev)
 	if (g->sim) {
 		if (g->sim->sim_init_late)
 			g->sim->sim_init_late(g);
+	}
+
+	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_DGPU_THERMAL_ALERT) &&
+		nvgpu_platform_is_silicon(g)) {
+		err = nvgpu_request_therm_irq(l);
+		if (err) {
+			nvgpu_err(g, "thermal interrupt request failed %d",
+				err);
+			goto done;
+		}
 	}
 
 	err = gk20a_finalize_poweron(g);
