@@ -213,7 +213,9 @@ static const struct gpu_ops gp10b_ops = {
 		.clear_sm_hww = gm20b_gr_clear_sm_hww,
 		.init_ovr_sm_dsm_perf =  gk20a_gr_init_ovr_sm_dsm_perf,
 		.get_ovr_perf_regs = gk20a_gr_get_ovr_perf_regs,
+#ifdef NVGPU_FEATURE_CHANNEL_TSG_SCHEDULING
 		.set_boosted_ctx = gr_gp10b_set_boosted_ctx,
+#endif
 		.pre_process_sm_exception = gr_gp10b_pre_process_sm_exception,
 		.set_bes_crop_debug3 = gr_gp10b_set_bes_crop_debug3,
 		.decode_priv_addr = gr_gk20a_decode_priv_addr,
@@ -755,8 +757,10 @@ static const struct gpu_ops gp10b_ops = {
 		.set_eng_method_buffer = NULL,
 	},
 	.runlist = {
+#ifdef NVGPU_FEATURE_CHANNEL_TSG_SCHEDULING
 		.reschedule = gk20a_runlist_reschedule,
 		.reschedule_preempt_next_locked = gk20a_fifo_reschedule_preempt_next,
+#endif
 		.update_for_channel = nvgpu_runlist_update_for_channel,
 		.reload = nvgpu_runlist_reload,
 		.count_max = gk20a_runlist_count_max,
@@ -811,7 +815,9 @@ static const struct gpu_ops gp10b_ops = {
 		.check_ctxsw_timeout = nvgpu_tsg_check_ctxsw_timeout,
 		.force_reset = nvgpu_tsg_force_reset_ch,
 		.post_event_id = nvgpu_tsg_post_event_id,
+#ifdef NVGPU_FEATURE_CHANNEL_TSG_SCHEDULING
 		.set_timeslice = nvgpu_tsg_set_timeslice,
+#endif
 		.default_timeslice_us = nvgpu_tsg_default_timeslice_us,
 	},
 	.netlist = {

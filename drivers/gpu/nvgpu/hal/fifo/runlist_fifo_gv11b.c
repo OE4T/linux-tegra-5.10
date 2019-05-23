@@ -26,6 +26,7 @@
 
 #include <nvgpu/hw/gv11b/hw_fifo_gv11b.h>
 
+#ifdef NVGPU_FEATURE_CHANNEL_TSG_SCHEDULING
 int gv11b_runlist_reschedule(struct nvgpu_channel *ch, bool preempt_next)
 {
 	/*
@@ -34,6 +35,7 @@ int gv11b_runlist_reschedule(struct nvgpu_channel *ch, bool preempt_next)
 	 */
 	return nvgpu_runlist_reschedule(ch, true, false);
 }
+#endif
 
 u32 gv11b_runlist_count_max(void)
 {

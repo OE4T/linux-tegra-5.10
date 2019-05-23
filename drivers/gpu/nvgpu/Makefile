@@ -32,6 +32,7 @@ ccflags-y += -DNVGPU_DGPU_SUPPORT
 ccflags-y += -DNVGPU_VPR
 ccflags-y += -DNVGPU_REPLAYABLE_FAULT
 ccflags-y += -DNVGPU_GRAPHICS
+ccflags-y += -DNVGPU_FEATURE_CHANNEL_TSG_SCHEDULING
 
 obj-$(CONFIG_GK20A) := nvgpu.o
 

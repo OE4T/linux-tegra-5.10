@@ -55,8 +55,10 @@ u32 get_ecc_override_val(struct gk20a *g);
 int gr_gp10b_suspend_contexts(struct gk20a *g,
 				struct dbg_session_gk20a *dbg_s,
 				int *ctx_resident_ch_fd);
+#ifdef NVGPU_FEATURE_CHANNEL_TSG_SCHEDULING
 int gr_gp10b_set_boosted_ctx(struct nvgpu_channel *ch,
 				    bool boost);
+#endif
 int gp10b_gr_fuse_override(struct gk20a *g);
 bool gr_gp10b_suspend_context(struct nvgpu_channel *ch,
 				bool *cilp_preempt_pending);

@@ -306,7 +306,9 @@ static const struct gpu_ops tu104_ops = {
 		.clear_sm_hww = gv11b_gr_clear_sm_hww,
 		.init_ovr_sm_dsm_perf =  gv11b_gr_init_ovr_sm_dsm_perf,
 		.get_ovr_perf_regs = gv11b_gr_get_ovr_perf_regs,
+#ifdef NVGPU_FEATURE_CHANNEL_TSG_SCHEDULING
 		.set_boosted_ctx = gr_gp10b_set_boosted_ctx,
+#endif
 		.pre_process_sm_exception = gr_gv11b_pre_process_sm_exception,
 		.set_bes_crop_debug3 = gr_gp10b_set_bes_crop_debug3,
 		.set_bes_crop_debug4 = gr_gp10b_set_bes_crop_debug4,
@@ -993,7 +995,9 @@ static const struct gpu_ops tu104_ops = {
 		.check_ctxsw_timeout = nvgpu_tsg_check_ctxsw_timeout,
 		.force_reset = nvgpu_tsg_force_reset_ch,
 		.post_event_id = nvgpu_tsg_post_event_id,
+#ifdef NVGPU_FEATURE_CHANNEL_TSG_SCHEDULING
 		.set_timeslice = nvgpu_tsg_set_timeslice,
+#endif
 		.default_timeslice_us = nvgpu_tsg_default_timeslice_us,
 	},
 	.usermode = {

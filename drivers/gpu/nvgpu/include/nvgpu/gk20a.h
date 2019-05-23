@@ -364,7 +364,9 @@ struct gpu_ops {
 				struct vm_gk20a *vm, u32 class,
 				u32 graphics_preempt_mode,
 				u32 compute_preempt_mode);
+#ifdef NVGPU_FEATURE_CHANNEL_TSG_SCHEDULING
 		int (*set_boosted_ctx)(struct nvgpu_channel *ch, bool boost);
+#endif
 		int (*trigger_suspend)(struct gk20a *g);
 		int (*wait_for_pause)(struct gk20a *g, struct nvgpu_warpstate *w_state);
 		int (*resume_from_pause)(struct gk20a *g);

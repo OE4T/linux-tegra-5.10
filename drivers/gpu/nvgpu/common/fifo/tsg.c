@@ -530,6 +530,7 @@ bool nvgpu_tsg_check_ctxsw_timeout(struct nvgpu_tsg *tsg,
 	return recover;
 }
 
+#ifdef NVGPU_FEATURE_CHANNEL_TSG_SCHEDULING
 int nvgpu_tsg_set_interleave(struct nvgpu_tsg *tsg, u32 level)
 {
 	struct gk20a *g = tsg->g;
@@ -581,6 +582,7 @@ u32 nvgpu_tsg_get_timeslice(struct nvgpu_tsg *tsg)
 {
 	return tsg->timeslice_us;
 }
+#endif
 
 u32 nvgpu_tsg_default_timeslice_us(struct gk20a *g)
 {

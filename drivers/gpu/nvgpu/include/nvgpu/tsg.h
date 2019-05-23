@@ -126,14 +126,16 @@ void nvgpu_tsg_post_event_id(struct nvgpu_tsg *tsg,
 bool nvgpu_tsg_check_ctxsw_timeout(struct nvgpu_tsg *tsg,
 		bool *debug_dump, u32 *ms);
 int nvgpu_tsg_set_runlist_interleave(struct nvgpu_tsg *tsg, u32 level);
+#ifdef NVGPU_FEATURE_CHANNEL_TSG_SCHEDULING
 int nvgpu_tsg_set_timeslice(struct nvgpu_tsg *tsg, u32 timeslice_us);
 u32 nvgpu_tsg_get_timeslice(struct nvgpu_tsg *tsg);
+int nvgpu_tsg_set_priority(struct gk20a *g, struct nvgpu_tsg *tsg,
+				u32 priority);
+int nvgpu_tsg_set_interleave(struct nvgpu_tsg *tsg, u32 level);
+#endif
 u32 nvgpu_tsg_default_timeslice_us(struct gk20a *g);
 void nvgpu_tsg_enable_sched(struct gk20a *g, struct nvgpu_tsg *tsg);
 void nvgpu_tsg_disable_sched(struct gk20a *g, struct nvgpu_tsg *tsg);
-int nvgpu_tsg_set_interleave(struct nvgpu_tsg *tsg, u32 level);
-int nvgpu_tsg_set_priority(struct gk20a *g, struct nvgpu_tsg *tsg,
-				u32 priority);
 int nvgpu_tsg_alloc_sm_error_states_mem(struct gk20a *g,
 					struct nvgpu_tsg *tsg,
 					u32 num_sm);

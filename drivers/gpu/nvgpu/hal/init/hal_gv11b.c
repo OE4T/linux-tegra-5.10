@@ -167,7 +167,9 @@ static void gv11b_init_gpu_characteristics(struct gk20a *g)
 	g->ops.gr.ecc.detect(g);
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_TSG_SUBCONTEXTS, true);
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_SCG, true);
+#ifdef NVGPU_FEATURE_CHANNEL_TSG_SCHEDULING
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_RESCHEDULE_RUNLIST, true);
+#endif
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_SYNCPOINT_ADDRESS, true);
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_USER_SYNCPOINT, true);
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_USERMODE_SUBMIT, true);
@@ -255,7 +257,9 @@ static const struct gpu_ops gv11b_ops = {
 		.clear_sm_hww = gv11b_gr_clear_sm_hww,
 		.init_ovr_sm_dsm_perf =  gv11b_gr_init_ovr_sm_dsm_perf,
 		.get_ovr_perf_regs = gv11b_gr_get_ovr_perf_regs,
+#ifdef NVGPU_FEATURE_CHANNEL_TSG_SCHEDULING
 		.set_boosted_ctx = gr_gp10b_set_boosted_ctx,
+#endif
 		.pre_process_sm_exception = gr_gv11b_pre_process_sm_exception,
 		.set_bes_crop_debug3 = gr_gp10b_set_bes_crop_debug3,
 		.set_bes_crop_debug4 = gr_gp10b_set_bes_crop_debug4,
@@ -870,8 +874,10 @@ static const struct gpu_ops gv11b_ops = {
 		.set_eng_method_buffer = gv11b_ramin_set_eng_method_buffer,
 	},
 	.runlist = {
+#ifdef NVGPU_CHANNEL_TSG_SCHEULING
 		.reschedule = gv11b_runlist_reschedule,
 		.reschedule_preempt_next_locked = gk20a_fifo_reschedule_preempt_next,
+#endif
 		.update_for_channel = nvgpu_runlist_update_for_channel,
 		.reload = nvgpu_runlist_reload,
 		.count_max = gv11b_runlist_count_max,
@@ -932,7 +938,9 @@ static const struct gpu_ops gv11b_ops = {
 		.check_ctxsw_timeout = nvgpu_tsg_check_ctxsw_timeout,
 		.force_reset = nvgpu_tsg_force_reset_ch,
 		.post_event_id = nvgpu_tsg_post_event_id,
+#ifdef NVGPU_FEATURE_CHANNEL_TSG_SCHEDULING
 		.set_timeslice = nvgpu_tsg_set_timeslice,
+#endif
 		.default_timeslice_us = nvgpu_tsg_default_timeslice_us,
 	},
 	.usermode = {

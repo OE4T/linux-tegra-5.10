@@ -755,6 +755,7 @@ clean_up:
 	return err;
 }
 
+#ifdef NVGPU_FEATURE_CHANNEL_TSG_SCHEDULING
 int gr_gp10b_set_boosted_ctx(struct nvgpu_channel *ch,
 				    bool boost)
 {
@@ -811,4 +812,5 @@ out:
 	}
 	return err;
 }
+#endif
 

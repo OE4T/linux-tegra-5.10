@@ -445,6 +445,7 @@ int nvgpu_runlist_update_locked(struct gk20a *g, u32 runlist_id,
 	return ret;
 }
 
+#ifdef NVGPU_FEATURE_CHANNEL_TSG_SCHEDULING
 /* trigger host to expire current timeslice and reschedule runlist from front */
 int nvgpu_runlist_reschedule(struct nvgpu_channel *ch, bool preempt_next,
 		bool wait_preempt)
@@ -489,6 +490,7 @@ int nvgpu_runlist_reschedule(struct nvgpu_channel *ch, bool preempt_next,
 
 	return ret;
 }
+#endif
 
 /* add/remove a channel from runlist
    special cases below: runlist->active_channels will NOT be changed.

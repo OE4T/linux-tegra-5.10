@@ -734,7 +734,9 @@ static const struct gpu_ops gm20b_ops = {
 		.check_ctxsw_timeout = nvgpu_tsg_check_ctxsw_timeout,
 		.force_reset = nvgpu_tsg_force_reset_ch,
 		.post_event_id = nvgpu_tsg_post_event_id,
+#ifdef NVGPU_FEATURE_CHANNEL_TSG_SCHEDULING
 		.set_timeslice = nvgpu_tsg_set_timeslice,
+#endif
 		.default_timeslice_us = nvgpu_tsg_default_timeslice_us,
 	},
 	.netlist = {
