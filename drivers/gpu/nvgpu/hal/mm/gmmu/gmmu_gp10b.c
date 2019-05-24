@@ -372,7 +372,7 @@ static const struct gk20a_mmu_level gp10b_mm_levels[] = {
 };
 
 const struct gk20a_mmu_level *gp10b_mm_get_mmu_levels(struct gk20a *g,
-	u32 big_page_size)
+	u64 big_page_size)
 {
 	return gp10b_mm_levels;
 }

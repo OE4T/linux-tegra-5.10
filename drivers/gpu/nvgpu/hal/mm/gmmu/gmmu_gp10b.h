@@ -31,6 +31,6 @@ struct gk20a_mmu_level;
 u32 gp10b_mm_get_default_big_page_size(void);
 u32 gp10b_mm_get_iommu_bit(struct gk20a *g);
 const struct gk20a_mmu_level *gp10b_mm_get_mmu_levels(
-	struct gk20a *g, u32 big_page_size);
+	struct gk20a *g, u64 big_page_size);
 
 #endif

@@ -1282,7 +1282,7 @@ struct gpu_ops {
 		struct {
 			const struct gk20a_mmu_level *
 				(*get_mmu_levels)(struct gk20a *g,
-						  u32 big_page_size);
+						  u64 big_page_size);
 			u64 (*map)(struct vm_gk20a *vm,
 				   u64 map_offset,
 				   struct nvgpu_sgt *sgt,
