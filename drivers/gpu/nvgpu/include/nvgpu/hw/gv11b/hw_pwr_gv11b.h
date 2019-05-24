@@ -57,6 +57,7 @@
 #define NVGPU_HW_PWR_GV11B_H
 
 #include <nvgpu/types.h>
+#include <nvgpu/safe_ops.h>
 
 static inline u32 pwr_falcon_irqsset_r(void)
 {
@@ -508,7 +509,7 @@ static inline u32 pwr_pmu_scpctl_stat_debug_mode_v(u32 r)
 }
 static inline u32 pwr_falcon_imemc_r(u32 i)
 {
-	return 0x0010a180U + i*16U;
+	return nvgpu_safe_add_u32(0x0010a180U, nvgpu_safe_mult_u32(i, 16U));
 }
 static inline u32 pwr_falcon_imemc_offs_f(u32 v)
 {
@@ -524,11 +525,11 @@ static inline u32 pwr_falcon_imemc_aincw_f(u32 v)
 }
 static inline u32 pwr_falcon_imemd_r(u32 i)
 {
-	return 0x0010a184U + i*16U;
+	return nvgpu_safe_add_u32(0x0010a184U, nvgpu_safe_mult_u32(i, 16U));
 }
 static inline u32 pwr_falcon_imemt_r(u32 i)
 {
-	return 0x0010a188U + i*16U;
+	return nvgpu_safe_add_u32(0x0010a188U, nvgpu_safe_mult_u32(i, 16U));
 }
 static inline u32 pwr_falcon_sctl_r(void)
 {
@@ -664,7 +665,7 @@ static inline u32 pwr_pmu_falcon_icd_rdata_r(void)
 }
 static inline u32 pwr_falcon_dmemc_r(u32 i)
 {
-	return 0x0010a1c0U + i*8U;
+	return nvgpu_safe_add_u32(0x0010a1c0U, nvgpu_safe_mult_u32(i, 8U));
 }
 static inline u32 pwr_falcon_dmemc_offs_f(u32 v)
 {
@@ -692,7 +693,7 @@ static inline u32 pwr_falcon_dmemc_aincr_f(u32 v)
 }
 static inline u32 pwr_falcon_dmemd_r(u32 i)
 {
-	return 0x0010a1c4U + i*8U;
+	return nvgpu_safe_add_u32(0x0010a1c4U, nvgpu_safe_mult_u32(i, 8U));
 }
 static inline u32 pwr_pmu_new_instblk_r(void)
 {
@@ -756,7 +757,7 @@ static inline u32 pwr_pmu_mutex_id_release_value_init_f(void)
 }
 static inline u32 pwr_pmu_mutex_r(u32 i)
 {
-	return 0x0010a580U + i*4U;
+	return nvgpu_safe_add_u32(0x0010a580U, nvgpu_safe_mult_u32(i, 4U));
 }
 static inline u32 pwr_pmu_mutex__size_1_v(void)
 {
@@ -776,7 +777,7 @@ static inline u32 pwr_pmu_mutex_value_initial_lock_f(void)
 }
 static inline u32 pwr_pmu_queue_head_r(u32 i)
 {
-	return 0x0010a800U + i*4U;
+	return nvgpu_safe_add_u32(0x0010a800U, nvgpu_safe_mult_u32(i, 4U));
 }
 static inline u32 pwr_pmu_queue_head__size_1_v(void)
 {
@@ -792,7 +793,7 @@ static inline u32 pwr_pmu_queue_head_address_v(u32 r)
 }
 static inline u32 pwr_pmu_queue_tail_r(u32 i)
 {
-	return 0x0010a820U + i*4U;
+	return nvgpu_safe_add_u32(0x0010a820U, nvgpu_safe_mult_u32(i, 4U));
 }
 static inline u32 pwr_pmu_queue_tail__size_1_v(void)
 {
@@ -832,7 +833,7 @@ static inline u32 pwr_pmu_msgq_tail_val_v(u32 r)
 }
 static inline u32 pwr_pmu_idle_mask_r(u32 i)
 {
-	return 0x0010a504U + i*16U;
+	return nvgpu_safe_add_u32(0x0010a504U, nvgpu_safe_mult_u32(i, 16U));
 }
 static inline u32 pwr_pmu_idle_mask_gr_enabled_f(void)
 {
@@ -844,7 +845,7 @@ static inline u32 pwr_pmu_idle_mask_ce_2_enabled_f(void)
 }
 static inline u32 pwr_pmu_idle_count_r(u32 i)
 {
-	return 0x0010a508U + i*16U;
+	return nvgpu_safe_add_u32(0x0010a508U, nvgpu_safe_mult_u32(i, 16U));
 }
 static inline u32 pwr_pmu_idle_count_value_f(u32 v)
 {
@@ -860,7 +861,7 @@ static inline u32 pwr_pmu_idle_count_reset_f(u32 v)
 }
 static inline u32 pwr_pmu_idle_ctrl_r(u32 i)
 {
-	return 0x0010a50cU + i*16U;
+	return nvgpu_safe_add_u32(0x0010a50cU, nvgpu_safe_mult_u32(i, 16U));
 }
 static inline u32 pwr_pmu_idle_ctrl_value_m(void)
 {
@@ -884,7 +885,7 @@ static inline u32 pwr_pmu_idle_ctrl_filter_disabled_f(void)
 }
 static inline u32 pwr_pmu_idle_threshold_r(u32 i)
 {
-	return 0x0010a8a0U + i*4U;
+	return nvgpu_safe_add_u32(0x0010a8a0U, nvgpu_safe_mult_u32(i, 4U));
 }
 static inline u32 pwr_pmu_idle_threshold_value_f(u32 v)
 {
@@ -932,19 +933,19 @@ static inline u32 pwr_pmu_idle_intr_status_intr_clear_v(void)
 }
 static inline u32 pwr_pmu_idle_mask_supp_r(u32 i)
 {
-	return 0x0010a9f0U + i*8U;
+	return nvgpu_safe_add_u32(0x0010a9f0U, nvgpu_safe_mult_u32(i, 8U));
 }
 static inline u32 pwr_pmu_idle_mask_1_supp_r(u32 i)
 {
-	return 0x0010a9f4U + i*8U;
+	return nvgpu_safe_add_u32(0x0010a9f4U, nvgpu_safe_mult_u32(i, 8U));
 }
 static inline u32 pwr_pmu_idle_ctrl_supp_r(u32 i)
 {
-	return 0x0010aa30U + i*8U;
+	return nvgpu_safe_add_u32(0x0010aa30U, nvgpu_safe_mult_u32(i, 8U));
 }
 static inline u32 pwr_pmu_debug_r(u32 i)
 {
-	return 0x0010a5c0U + i*4U;
+	return nvgpu_safe_add_u32(0x0010a5c0U, nvgpu_safe_mult_u32(i, 4U));
 }
 static inline u32 pwr_pmu_debug__size_1_v(void)
 {
@@ -952,7 +953,7 @@ static inline u32 pwr_pmu_debug__size_1_v(void)
 }
 static inline u32 pwr_pmu_mailbox_r(u32 i)
 {
-	return 0x0010a450U + i*4U;
+	return nvgpu_safe_add_u32(0x0010a450U, nvgpu_safe_mult_u32(i, 4U));
 }
 static inline u32 pwr_pmu_mailbox__size_1_v(void)
 {
@@ -1012,19 +1013,19 @@ static inline u32 pwr_pmu_bar0_error_status_fecserr_m(void)
 }
 static inline u32 pwr_pmu_pg_idlefilth_r(u32 i)
 {
-	return 0x0010a6c0U + i*4U;
+	return nvgpu_safe_add_u32(0x0010a6c0U, nvgpu_safe_mult_u32(i, 4U));
 }
 static inline u32 pwr_pmu_pg_ppuidlefilth_r(u32 i)
 {
-	return 0x0010a6e8U + i*4U;
+	return nvgpu_safe_add_u32(0x0010a6e8U, nvgpu_safe_mult_u32(i, 4U));
 }
 static inline u32 pwr_pmu_pg_idle_cnt_r(u32 i)
 {
-	return 0x0010a710U + i*4U;
+	return nvgpu_safe_add_u32(0x0010a710U, nvgpu_safe_mult_u32(i, 4U));
 }
 static inline u32 pwr_pmu_pg_intren_r(u32 i)
 {
-	return 0x0010a760U + i*4U;
+	return nvgpu_safe_add_u32(0x0010a760U, nvgpu_safe_mult_u32(i, 4U));
 }
 static inline u32 pwr_pmu_falcon_ecc_control_r(void)
 {
@@ -1208,7 +1209,7 @@ static inline u32 pwr_pmu_falcon_ecc_uncorrected_err_count_unique_total_v(u32 r)
 }
 static inline u32 pwr_fbif_transcfg_r(u32 i)
 {
-	return 0x0010ae00U + i*4U;
+	return nvgpu_safe_add_u32(0x0010ae00U, nvgpu_safe_mult_u32(i, 4U));
 }
 static inline u32 pwr_fbif_transcfg_target_local_fb_f(void)
 {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -57,6 +57,7 @@
 #define NVGPU_HW_PROJ_GV11B_H
 
 #include <nvgpu/types.h>
+#include <nvgpu/safe_ops.h>
 
 static inline u32 proj_gpc_base_v(void)
 {

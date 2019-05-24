@@ -57,6 +57,7 @@
 #define NVGPU_HW_RAM_GV11B_H
 
 #include <nvgpu/types.h>
+#include <nvgpu/safe_ops.h>
 
 static inline u32 ram_in_ramfc_s(void)
 {

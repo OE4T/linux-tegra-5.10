@@ -57,6 +57,7 @@
 #define NVGPU_HW_FIFO_GV11B_H
 
 #include <nvgpu/types.h>
+#include <nvgpu/safe_ops.h>
 
 static inline u32 fifo_userd_writeback_r(void)
 {
@@ -116,7 +117,7 @@ static inline u32 fifo_runlist_engine_f(u32 v)
 }
 static inline u32 fifo_eng_runlist_base_r(u32 i)
 {
-	return 0x00002280U + i*8U;
+	return nvgpu_safe_add_u32(0x00002280U, nvgpu_safe_mult_u32(i, 8U));
 }
 static inline u32 fifo_eng_runlist_base__size_1_v(void)
 {
@@ -124,7 +125,7 @@ static inline u32 fifo_eng_runlist_base__size_1_v(void)
 }
 static inline u32 fifo_eng_runlist_r(u32 i)
 {
-	return 0x00002284U + i*8U;
+	return nvgpu_safe_add_u32(0x00002284U, nvgpu_safe_mult_u32(i, 8U));
 }
 static inline u32 fifo_eng_runlist__size_1_v(void)
 {
@@ -144,7 +145,7 @@ static inline u32 fifo_eng_runlist_pending_true_f(void)
 }
 static inline u32 fifo_pb_timeslice_r(u32 i)
 {
-	return 0x00002350U + i*4U;
+	return nvgpu_safe_add_u32(0x00002350U, nvgpu_safe_mult_u32(i, 4U));
 }
 static inline u32 fifo_pb_timeslice_timeout_16_f(void)
 {
@@ -160,7 +161,7 @@ static inline u32 fifo_pb_timeslice_enable_true_f(void)
 }
 static inline u32 fifo_pbdma_map_r(u32 i)
 {
-	return 0x00002390U + i*4U;
+	return nvgpu_safe_add_u32(0x00002390U, nvgpu_safe_mult_u32(i, 4U));
 }
 static inline u32 fifo_intr_0_r(void)
 {
@@ -288,7 +289,7 @@ static inline u32 fifo_intr_ctxsw_timeout_engine_pending_f(u32 i)
 }
 static inline u32 fifo_intr_ctxsw_timeout_info_r(u32 i)
 {
-	return 0x00003200U + i*4U;
+	return nvgpu_safe_add_u32(0x00003200U, nvgpu_safe_mult_u32(i, 4U));
 }
 static inline u32 fifo_intr_ctxsw_timeout_info__size_1_v(void)
 {
@@ -444,7 +445,7 @@ static inline u32 fifo_preempt_id_f(u32 v)
 }
 static inline u32 fifo_engine_status_r(u32 i)
 {
-	return 0x00002640U + i*8U;
+	return nvgpu_safe_add_u32(0x00002640U, nvgpu_safe_mult_u32(i, 8U));
 }
 static inline u32 fifo_engine_status__size_1_v(void)
 {
@@ -580,7 +581,7 @@ static inline u32 fifo_eng_ctxsw_timeout_detection_disabled_f(void)
 }
 static inline u32 fifo_pbdma_status_r(u32 i)
 {
-	return 0x00003080U + i*4U;
+	return nvgpu_safe_add_u32(0x00003080U, nvgpu_safe_mult_u32(i, 4U));
 }
 static inline u32 fifo_pbdma_status__size_1_v(void)
 {

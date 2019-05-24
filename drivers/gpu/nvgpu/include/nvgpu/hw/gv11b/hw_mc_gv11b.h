@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -57,6 +57,7 @@
 #define NVGPU_HW_MC_GV11B_H
 
 #include <nvgpu/types.h>
+#include <nvgpu/safe_ops.h>
 
 static inline u32 mc_boot_0_r(void)
 {
@@ -80,7 +81,7 @@ static inline u32 mc_boot_0_minor_revision_v(u32 r)
 }
 static inline u32 mc_intr_r(u32 i)
 {
-	return 0x00000100U + i*4U;
+	return nvgpu_safe_add_u32(0x00000100U, nvgpu_safe_mult_u32(i, 4U));
 }
 static inline u32 mc_intr_pfifo_pending_f(void)
 {
@@ -112,15 +113,15 @@ static inline u32 mc_intr_pbus_pending_f(void)
 }
 static inline u32 mc_intr_en_r(u32 i)
 {
-	return 0x00000140U + i*4U;
+	return nvgpu_safe_add_u32(0x00000140U, nvgpu_safe_mult_u32(i, 4U));
 }
 static inline u32 mc_intr_en_set_r(u32 i)
 {
-	return 0x00000160U + i*4U;
+	return nvgpu_safe_add_u32(0x00000160U, nvgpu_safe_mult_u32(i, 4U));
 }
 static inline u32 mc_intr_en_clear_r(u32 i)
 {
-	return 0x00000180U + i*4U;
+	return nvgpu_safe_add_u32(0x00000180U, nvgpu_safe_mult_u32(i, 4U));
 }
 static inline u32 mc_enable_r(void)
 {

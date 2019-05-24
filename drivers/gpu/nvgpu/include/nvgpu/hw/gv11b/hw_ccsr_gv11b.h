@@ -57,10 +57,11 @@
 #define NVGPU_HW_CCSR_GV11B_H
 
 #include <nvgpu/types.h>
+#include <nvgpu/safe_ops.h>
 
 static inline u32 ccsr_channel_inst_r(u32 i)
 {
-	return 0x00800000U + i*8U;
+	return nvgpu_safe_add_u32(0x00800000U, nvgpu_safe_mult_u32(i, 8U));
 }
 static inline u32 ccsr_channel_inst__size_1_v(void)
 {
@@ -92,7 +93,7 @@ static inline u32 ccsr_channel_inst_bind_true_f(void)
 }
 static inline u32 ccsr_channel_r(u32 i)
 {
-	return 0x00800004U + i*8U;
+	return nvgpu_safe_add_u32(0x00800004U, nvgpu_safe_mult_u32(i, 8U));
 }
 static inline u32 ccsr_channel__size_1_v(void)
 {
