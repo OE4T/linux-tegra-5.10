@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -57,6 +57,7 @@
 #define NVGPU_HW_FIFO_GM20B_H
 
 #include <nvgpu/types.h>
+#include <nvgpu/safe_ops.h>
 
 static inline u32 fifo_bar1_base_r(void)
 {
@@ -108,7 +109,7 @@ static inline u32 fifo_runlist_engine_f(u32 v)
 }
 static inline u32 fifo_eng_runlist_base_r(u32 i)
 {
-	return 0x00002280U + i*8U;
+	return nvgpu_safe_add_u32(0x00002280U, nvgpu_safe_mult_u32(i, 8U));
 }
 static inline u32 fifo_eng_runlist_base__size_1_v(void)
 {
@@ -116,7 +117,7 @@ static inline u32 fifo_eng_runlist_base__size_1_v(void)
 }
 static inline u32 fifo_eng_runlist_r(u32 i)
 {
-	return 0x00002284U + i*8U;
+	return nvgpu_safe_add_u32(0x00002284U, nvgpu_safe_mult_u32(i, 8U));
 }
 static inline u32 fifo_eng_runlist__size_1_v(void)
 {
@@ -136,7 +137,7 @@ static inline u32 fifo_eng_runlist_pending_true_f(void)
 }
 static inline u32 fifo_pb_timeslice_r(u32 i)
 {
-	return 0x00002350U + i*4U;
+	return nvgpu_safe_add_u32(0x00002350U, nvgpu_safe_mult_u32(i, 4U));
 }
 static inline u32 fifo_pb_timeslice_timeout_16_f(void)
 {
@@ -152,7 +153,7 @@ static inline u32 fifo_pb_timeslice_enable_true_f(void)
 }
 static inline u32 fifo_pbdma_map_r(u32 i)
 {
-	return 0x00002390U + i*4U;
+	return nvgpu_safe_add_u32(0x00002390U, nvgpu_safe_mult_u32(i, 4U));
 }
 static inline u32 fifo_intr_0_r(void)
 {
@@ -280,7 +281,7 @@ static inline u32 fifo_intr_mmu_fault_eng_id_graphics_f(void)
 }
 static inline u32 fifo_intr_mmu_fault_inst_r(u32 i)
 {
-	return 0x00002800U + i*16U;
+	return nvgpu_safe_add_u32(0x00002800U, nvgpu_safe_mult_u32(i, 16U));
 }
 static inline u32 fifo_intr_mmu_fault_inst_ptr_v(u32 r)
 {
@@ -292,15 +293,15 @@ static inline u32 fifo_intr_mmu_fault_inst_ptr_align_shift_v(void)
 }
 static inline u32 fifo_intr_mmu_fault_lo_r(u32 i)
 {
-	return 0x00002804U + i*16U;
+	return nvgpu_safe_add_u32(0x00002804U, nvgpu_safe_mult_u32(i, 16U));
 }
 static inline u32 fifo_intr_mmu_fault_hi_r(u32 i)
 {
-	return 0x00002808U + i*16U;
+	return nvgpu_safe_add_u32(0x00002808U, nvgpu_safe_mult_u32(i, 16U));
 }
 static inline u32 fifo_intr_mmu_fault_info_r(u32 i)
 {
-	return 0x0000280cU + i*16U;
+	return nvgpu_safe_add_u32(0x0000280cU, nvgpu_safe_mult_u32(i, 16U));
 }
 static inline u32 fifo_intr_mmu_fault_info_type_v(u32 r)
 {
@@ -404,7 +405,7 @@ static inline u32 fifo_preempt_id_f(u32 v)
 }
 static inline u32 fifo_trigger_mmu_fault_r(u32 i)
 {
-	return 0x00002a30U + i*4U;
+	return nvgpu_safe_add_u32(0x00002a30U, nvgpu_safe_mult_u32(i, 4U));
 }
 static inline u32 fifo_trigger_mmu_fault_id_f(u32 v)
 {
@@ -416,7 +417,7 @@ static inline u32 fifo_trigger_mmu_fault_enable_f(u32 v)
 }
 static inline u32 fifo_engine_status_r(u32 i)
 {
-	return 0x00002640U + i*8U;
+	return nvgpu_safe_add_u32(0x00002640U, nvgpu_safe_mult_u32(i, 8U));
 }
 static inline u32 fifo_engine_status__size_1_v(void)
 {
@@ -512,7 +513,7 @@ static inline u32 fifo_engine_status_ctxsw_in_progress_f(void)
 }
 static inline u32 fifo_pbdma_status_r(u32 i)
 {
-	return 0x00003080U + i*4U;
+	return nvgpu_safe_add_u32(0x00003080U, nvgpu_safe_mult_u32(i, 4U));
 }
 static inline u32 fifo_pbdma_status__size_1_v(void)
 {

@@ -57,6 +57,7 @@
 #define NVGPU_HW_FALCON_GM20B_H
 
 #include <nvgpu/types.h>
+#include <nvgpu/safe_ops.h>
 
 static inline u32 falcon_falcon_irqsset_r(void)
 {
@@ -344,7 +345,7 @@ static inline u32 falcon_falcon_cpuctl_alias_startcpu_f(u32 v)
 }
 static inline u32 falcon_falcon_imemc_r(u32 i)
 {
-	return 0x00000180U + i*16U;
+	return nvgpu_safe_add_u32(0x00000180U, nvgpu_safe_mult_u32(i, 16U));
 }
 static inline u32 falcon_falcon_imemc_offs_f(u32 v)
 {
@@ -364,11 +365,11 @@ static inline u32 falcon_falcon_imemc_secure_f(u32 v)
 }
 static inline u32 falcon_falcon_imemd_r(u32 i)
 {
-	return 0x00000184U + i*16U;
+	return nvgpu_safe_add_u32(0x00000184U, nvgpu_safe_mult_u32(i, 16U));
 }
 static inline u32 falcon_falcon_imemt_r(u32 i)
 {
-	return 0x00000188U + i*16U;
+	return nvgpu_safe_add_u32(0x00000188U, nvgpu_safe_mult_u32(i, 16U));
 }
 static inline u32 falcon_falcon_sctl_r(void)
 {
@@ -552,7 +553,7 @@ static inline u32 falcon_falcon_icd_rdata_r(void)
 }
 static inline u32 falcon_falcon_dmemc_r(u32 i)
 {
-	return 0x000001c0U + i*8U;
+	return nvgpu_safe_add_u32(0x000001c0U, nvgpu_safe_mult_u32(i, 8U));
 }
 static inline u32 falcon_falcon_dmemc_offs_f(u32 v)
 {
@@ -580,7 +581,7 @@ static inline u32 falcon_falcon_dmemc_aincr_f(u32 v)
 }
 static inline u32 falcon_falcon_dmemd_r(u32 i)
 {
-	return 0x000001c4U + i*8U;
+	return nvgpu_safe_add_u32(0x000001c4U, nvgpu_safe_mult_u32(i, 8U));
 }
 static inline u32 falcon_falcon_debug1_r(void)
 {
