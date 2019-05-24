@@ -384,7 +384,7 @@ static int pd_allocate_children(struct vm_gk20a *vm,
  */
 static int nvgpu_set_pd_level(struct vm_gk20a *vm,
 			      struct nvgpu_gmmu_pd *pd,
-			      int lvl,
+			      u32 lvl,
 			      u64 phys_addr,
 			      u64 virt_addr, u64 length,
 			      struct nvgpu_gmmu_attrs *attrs)
@@ -394,7 +394,8 @@ static int nvgpu_set_pd_level(struct vm_gk20a *vm,
 	struct gk20a *g = gk20a_from_vm(vm);
 	struct nvgpu_gmmu_pd *next_pd = NULL;
 	const struct gk20a_mmu_level *l      = &vm->mmu_levels[lvl];
-	const struct gk20a_mmu_level *next_l = &vm->mmu_levels[lvl + 1];
+	const struct gk20a_mmu_level *next_l =
+				&vm->mmu_levels[nvgpu_safe_add_u32(lvl, 1)];
 
 	/*
 	 * 5 levels for Pascal+. For pre-pascal we only have 2. This puts
@@ -483,7 +484,7 @@ static int nvgpu_set_pd_level(struct vm_gk20a *vm,
 
 		if (next_l->update_entry != NULL) {
 			err = nvgpu_set_pd_level(vm, next_pd,
-						 lvl + 1,
+						 nvgpu_safe_add_u32(lvl, 1U),
 						 phys_addr,
 						 virt_addr,
 						 chunk_size,
@@ -532,7 +533,7 @@ static int nvgpu_gmmu_do_update_page_table(struct vm_gk20a *vm,
 		 * address for the entire GPU range.
 		 */
 		err = nvgpu_set_pd_level(vm, &vm->pdb,
-					 0,
+					 0U,
 					 0,
 					 virt_addr, length,
 					 attrs);
@@ -564,7 +565,7 @@ static int nvgpu_gmmu_do_update_page_table(struct vm_gk20a *vm,
 		io_addr = nvgpu_safe_add_u64(io_addr, space_to_skip);
 
 		err = nvgpu_set_pd_level(vm, &vm->pdb,
-					 0,
+					 0U,
 					 io_addr,
 					 virt_addr,
 					 length,
@@ -657,7 +658,7 @@ static int nvgpu_gmmu_do_update_page_table(struct vm_gk20a *vm,
 					space_to_skip);
 
 			err = nvgpu_set_pd_level(vm, &vm->pdb,
-						 0,
+						 0U,
 						 phys_addr,
 						 virt_addr,
 						 mapped_sgl_length,
@@ -959,7 +960,7 @@ u32 nvgpu_pte_words(struct gk20a *g)
  */
 static int nvgpu_locate_pte(struct gk20a *g, struct vm_gk20a *vm,
 			    struct nvgpu_gmmu_pd *pd,
-			    u64 vaddr, int lvl,
+			    u64 vaddr, u32 lvl,
 			    struct nvgpu_gmmu_attrs *attrs,
 			    u32 *data,
 			    struct nvgpu_gmmu_pd **pd_out, u32 *pd_idx_out,
@@ -975,7 +976,7 @@ static int nvgpu_locate_pte(struct gk20a *g, struct vm_gk20a *vm,
 
 	do {
 		l = &vm->mmu_levels[lvl];
-		next_l = &vm->mmu_levels[lvl + 1];
+		next_l = &vm->mmu_levels[nvgpu_safe_add_u32(lvl, 1)];
 		pd_idx = pd_index(l, vaddr, attrs);
 		/*
 		 * If this isn't the final level (i.e there's a valid next level)
@@ -996,7 +997,7 @@ static int nvgpu_locate_pte(struct gk20a *g, struct vm_gk20a *vm,
 			}
 
 			pd = pd_next;
-			lvl++;
+			lvl = nvgpu_safe_add_u32(lvl, 1);
 		} else {
 			if (pd->mem == NULL) {
 				return -EINVAL;
@@ -1047,7 +1048,7 @@ int nvgpu_get_pte(struct gk20a *g, struct vm_gk20a *vm, u64 vaddr, u32 *pte)
 	};
 
 	return nvgpu_locate_pte(g, vm, &vm->pdb,
-				vaddr, 0, &attrs,
+				vaddr, 0U, &attrs,
 				pte, NULL, NULL, NULL);
 }
 
@@ -1064,7 +1065,7 @@ int nvgpu_set_pte(struct gk20a *g, struct vm_gk20a *vm, u64 vaddr, u32 *pte)
 	struct nvgpu_gmmu_attrs *attrs_ptr = &attrs;
 
 	err = nvgpu_locate_pte(g, vm, &vm->pdb,
-			       vaddr, 0, &attrs,
+			       vaddr, 0U, &attrs,
 			       NULL, &pd, &pd_idx, &pd_offs);
 	if (err != 0) {
 		return err;
