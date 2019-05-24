@@ -57,6 +57,7 @@
 #define NVGPU_HW_GR_GV100_H
 
 #include <nvgpu/types.h>
+#include <nvgpu/safe_ops.h>
 
 static inline u32 gr_intr_r(void)
 {
@@ -1008,7 +1009,7 @@ static inline u32 gr_fe_go_idle_timeout_count_prod_f(void)
 }
 static inline u32 gr_fe_object_table_r(u32 i)
 {
-	return 0x00404200U + i*4U;
+	return nvgpu_safe_add_u32(0x00404200U, nvgpu_safe_mult_u32(i, 4U));
 }
 static inline u32 gr_fe_object_table_nvclass_v(u32 r)
 {
@@ -1016,7 +1017,7 @@ static inline u32 gr_fe_object_table_nvclass_v(u32 r)
 }
 static inline u32 gr_fe_tpc_fs_r(u32 i)
 {
-	return 0x0040a200U + i*4U;
+	return nvgpu_safe_add_u32(0x0040a200U, nvgpu_safe_mult_u32(i, 4U));
 }
 static inline u32 gr_pri_mme_shadow_raw_index_r(void)
 {
@@ -1180,7 +1181,7 @@ static inline u32 gr_fecs_icd_rdata_r(void)
 }
 static inline u32 gr_fecs_imemc_r(u32 i)
 {
-	return 0x00409180U + i*16U;
+	return nvgpu_safe_add_u32(0x00409180U, nvgpu_safe_mult_u32(i, 16U));
 }
 static inline u32 gr_fecs_imemc_offs_f(u32 v)
 {
@@ -1196,11 +1197,11 @@ static inline u32 gr_fecs_imemc_aincw_f(u32 v)
 }
 static inline u32 gr_fecs_imemd_r(u32 i)
 {
-	return 0x00409184U + i*16U;
+	return nvgpu_safe_add_u32(0x00409184U, nvgpu_safe_mult_u32(i, 16U));
 }
 static inline u32 gr_fecs_imemt_r(u32 i)
 {
-	return 0x00409188U + i*16U;
+	return nvgpu_safe_add_u32(0x00409188U, nvgpu_safe_mult_u32(i, 16U));
 }
 static inline u32 gr_fecs_imemt_tag_f(u32 v)
 {
@@ -1208,7 +1209,7 @@ static inline u32 gr_fecs_imemt_tag_f(u32 v)
 }
 static inline u32 gr_fecs_dmemc_r(u32 i)
 {
-	return 0x004091c0U + i*8U;
+	return nvgpu_safe_add_u32(0x004091c0U, nvgpu_safe_mult_u32(i, 8U));
 }
 static inline u32 gr_fecs_dmemc_offs_s(void)
 {
@@ -1236,7 +1237,7 @@ static inline u32 gr_fecs_dmemc_aincw_f(u32 v)
 }
 static inline u32 gr_fecs_dmemd_r(u32 i)
 {
-	return 0x004091c4U + i*8U;
+	return nvgpu_safe_add_u32(0x004091c4U, nvgpu_safe_mult_u32(i, 8U));
 }
 static inline u32 gr_fecs_dmatrfbase_r(void)
 {
@@ -1564,7 +1565,7 @@ static inline u32 gr_fecs_ctx_state_store_major_rev_id_r(void)
 }
 static inline u32 gr_fecs_ctxsw_mailbox_r(u32 i)
 {
-	return 0x00409800U + i*4U;
+	return nvgpu_safe_add_u32(0x00409800U, nvgpu_safe_mult_u32(i, 4U));
 }
 static inline u32 gr_fecs_ctxsw_mailbox__size_1_v(void)
 {
@@ -1584,7 +1585,7 @@ static inline u32 gr_fecs_ctxsw_mailbox_value_fail_v(void)
 }
 static inline u32 gr_fecs_ctxsw_mailbox_set_r(u32 i)
 {
-	return 0x004098c0U + i*4U;
+	return nvgpu_safe_add_u32(0x004098c0U, nvgpu_safe_mult_u32(i, 4U));
 }
 static inline u32 gr_fecs_ctxsw_mailbox_set_value_f(u32 v)
 {
@@ -1592,7 +1593,7 @@ static inline u32 gr_fecs_ctxsw_mailbox_set_value_f(u32 v)
 }
 static inline u32 gr_fecs_ctxsw_mailbox_clear_r(u32 i)
 {
-	return 0x00409840U + i*4U;
+	return nvgpu_safe_add_u32(0x00409840U, nvgpu_safe_mult_u32(i, 4U));
 }
 static inline u32 gr_fecs_ctxsw_mailbox_clear_value_f(u32 v)
 {
@@ -1836,7 +1837,7 @@ static inline u32 gr_gpc0_gpccs_ctxsw_idlestate_r(void)
 }
 static inline u32 gr_rstr2d_gpc_map_r(u32 i)
 {
-	return 0x0040780cU + i*4U;
+	return nvgpu_safe_add_u32(0x0040780cU, nvgpu_safe_mult_u32(i, 4U));
 }
 static inline u32 gr_rstr2d_map_table_cfg_r(void)
 {
@@ -1864,7 +1865,7 @@ static inline u32 gr_pd_hww_esr_en_enable_f(void)
 }
 static inline u32 gr_pd_num_tpc_per_gpc_r(u32 i)
 {
-	return 0x00406028U + i*4U;
+	return nvgpu_safe_add_u32(0x00406028U, nvgpu_safe_mult_u32(i, 4U));
 }
 static inline u32 gr_pd_num_tpc_per_gpc__size_1_v(void)
 {
@@ -1956,7 +1957,7 @@ static inline u32 gr_pd_ab_dist_cfg2_state_limit_min_gpm_fifo_depths_v(void)
 }
 static inline u32 gr_pd_dist_skip_table_r(u32 i)
 {
-	return 0x004064d0U + i*4U;
+	return nvgpu_safe_add_u32(0x004064d0U, nvgpu_safe_mult_u32(i, 4U));
 }
 static inline u32 gr_pd_dist_skip_table__size_1_v(void)
 {
@@ -2312,7 +2313,7 @@ static inline u32 gr_ds_hww_report_mask_2_sph24_err_report_f(void)
 }
 static inline u32 gr_ds_num_tpc_per_gpc_r(u32 i)
 {
-	return 0x00405870U + i*4U;
+	return nvgpu_safe_add_u32(0x00405870U, nvgpu_safe_mult_u32(i, 4U));
 }
 static inline u32 gr_scc_bundle_cb_base_r(void)
 {
@@ -2468,7 +2469,7 @@ static inline u32 gr_cwd_fs_num_tpcs_f(u32 v)
 }
 static inline u32 gr_cwd_gpc_tpc_id_r(u32 i)
 {
-	return 0x00405b60U + i*4U;
+	return nvgpu_safe_add_u32(0x00405b60U, nvgpu_safe_mult_u32(i, 4U));
 }
 static inline u32 gr_cwd_gpc_tpc_id_tpc0_s(void)
 {
@@ -2492,7 +2493,7 @@ static inline u32 gr_cwd_gpc_tpc_id_tpc1_f(u32 v)
 }
 static inline u32 gr_cwd_sm_id_r(u32 i)
 {
-	return 0x00405ba0U + i*4U;
+	return nvgpu_safe_add_u32(0x00405ba0U, nvgpu_safe_mult_u32(i, 4U));
 }
 static inline u32 gr_cwd_sm_id__size_1_v(void)
 {
@@ -2620,7 +2621,7 @@ static inline u32 gr_gpc0_zcull_total_ram_size_num_aliquots_f(u32 v)
 }
 static inline u32 gr_gpc0_zcull_zcsize_r(u32 i)
 {
-	return 0x00500a04U + i*32U;
+	return nvgpu_safe_add_u32(0x00500a04U, nvgpu_safe_mult_u32(i, 32U));
 }
 static inline u32 gr_gpc0_zcull_zcsize_height_subregion__multiple_v(void)
 {
@@ -2632,7 +2633,7 @@ static inline u32 gr_gpc0_zcull_zcsize_width_subregion__multiple_v(void)
 }
 static inline u32 gr_gpc0_gpm_pd_sm_id_r(u32 i)
 {
-	return 0x00500c10U + i*4U;
+	return nvgpu_safe_add_u32(0x00500c10U, nvgpu_safe_mult_u32(i, 4U));
 }
 static inline u32 gr_gpc0_gpm_pd_sm_id_id_f(u32 v)
 {
@@ -2640,7 +2641,7 @@ static inline u32 gr_gpc0_gpm_pd_sm_id_id_f(u32 v)
 }
 static inline u32 gr_gpc0_gpm_pd_pes_tpc_id_mask_r(u32 i)
 {
-	return 0x00500c30U + i*4U;
+	return nvgpu_safe_add_u32(0x00500c30U, nvgpu_safe_mult_u32(i, 4U));
 }
 static inline u32 gr_gpc0_gpm_pd_pes_tpc_id_mask_mask_v(u32 r)
 {
@@ -2904,7 +2905,7 @@ static inline u32 gr_gpccs_dmactl_imem_scrubbing_m(void)
 }
 static inline u32 gr_gpccs_imemc_r(u32 i)
 {
-	return 0x0041a180U + i*16U;
+	return nvgpu_safe_add_u32(0x0041a180U, nvgpu_safe_mult_u32(i, 16U));
 }
 static inline u32 gr_gpccs_imemc_offs_f(u32 v)
 {
@@ -2920,11 +2921,11 @@ static inline u32 gr_gpccs_imemc_aincw_f(u32 v)
 }
 static inline u32 gr_gpccs_imemd_r(u32 i)
 {
-	return 0x0041a184U + i*16U;
+	return nvgpu_safe_add_u32(0x0041a184U, nvgpu_safe_mult_u32(i, 16U));
 }
 static inline u32 gr_gpccs_imemt_r(u32 i)
 {
-	return 0x0041a188U + i*16U;
+	return nvgpu_safe_add_u32(0x0041a188U, nvgpu_safe_mult_u32(i, 16U));
 }
 static inline u32 gr_gpccs_imemt__size_1_v(void)
 {
@@ -2936,7 +2937,7 @@ static inline u32 gr_gpccs_imemt_tag_f(u32 v)
 }
 static inline u32 gr_gpccs_dmemc_r(u32 i)
 {
-	return 0x0041a1c0U + i*8U;
+	return nvgpu_safe_add_u32(0x0041a1c0U, nvgpu_safe_mult_u32(i, 8U));
 }
 static inline u32 gr_gpccs_dmemc_offs_f(u32 v)
 {
@@ -2952,11 +2953,11 @@ static inline u32 gr_gpccs_dmemc_aincw_f(u32 v)
 }
 static inline u32 gr_gpccs_dmemd_r(u32 i)
 {
-	return 0x0041a1c4U + i*8U;
+	return nvgpu_safe_add_u32(0x0041a1c4U, nvgpu_safe_mult_u32(i, 8U));
 }
 static inline u32 gr_gpccs_ctxsw_mailbox_r(u32 i)
 {
-	return 0x0041a800U + i*4U;
+	return nvgpu_safe_add_u32(0x0041a800U, nvgpu_safe_mult_u32(i, 4U));
 }
 static inline u32 gr_gpccs_ctxsw_mailbox_value_f(u32 v)
 {
@@ -3100,7 +3101,7 @@ static inline u32 gr_gpcs_ppcs_cbm_beta_cb_ctrl_cbes_reserve_f(u32 v)
 }
 static inline u32 gr_gpcs_swdx_tc_beta_cb_size_r(u32 i)
 {
-	return 0x00418ea0U + i*4U;
+	return nvgpu_safe_add_u32(0x00418ea0U, nvgpu_safe_mult_u32(i, 4U));
 }
 static inline u32 gr_gpcs_swdx_tc_beta_cb_size_v_f(u32 v)
 {
@@ -3112,7 +3113,7 @@ static inline u32 gr_gpcs_swdx_tc_beta_cb_size_v_m(void)
 }
 static inline u32 gr_gpcs_swdx_dss_zbc_color_r_r(u32 i)
 {
-	return 0x00418010U + i*4U;
+	return nvgpu_safe_add_u32(0x00418010U, nvgpu_safe_mult_u32(i, 4U));
 }
 static inline u32 gr_gpcs_swdx_dss_zbc_color_r_val_f(u32 v)
 {
@@ -3120,7 +3121,7 @@ static inline u32 gr_gpcs_swdx_dss_zbc_color_r_val_f(u32 v)
 }
 static inline u32 gr_gpcs_swdx_dss_zbc_color_g_r(u32 i)
 {
-	return 0x0041804cU + i*4U;
+	return nvgpu_safe_add_u32(0x0041804cU, nvgpu_safe_mult_u32(i, 4U));
 }
 static inline u32 gr_gpcs_swdx_dss_zbc_color_g_val_f(u32 v)
 {
@@ -3128,7 +3129,7 @@ static inline u32 gr_gpcs_swdx_dss_zbc_color_g_val_f(u32 v)
 }
 static inline u32 gr_gpcs_swdx_dss_zbc_color_b_r(u32 i)
 {
-	return 0x00418088U + i*4U;
+	return nvgpu_safe_add_u32(0x00418088U, nvgpu_safe_mult_u32(i, 4U));
 }
 static inline u32 gr_gpcs_swdx_dss_zbc_color_b_val_f(u32 v)
 {
@@ -3136,7 +3137,7 @@ static inline u32 gr_gpcs_swdx_dss_zbc_color_b_val_f(u32 v)
 }
 static inline u32 gr_gpcs_swdx_dss_zbc_color_a_r(u32 i)
 {
-	return 0x004180c4U + i*4U;
+	return nvgpu_safe_add_u32(0x004180c4U, nvgpu_safe_mult_u32(i, 4U));
 }
 static inline u32 gr_gpcs_swdx_dss_zbc_color_a_val_f(u32 v)
 {
@@ -3148,7 +3149,7 @@ static inline u32 gr_gpcs_swdx_dss_zbc_c_01_to_04_format_r(void)
 }
 static inline u32 gr_gpcs_swdx_dss_zbc_z_r(u32 i)
 {
-	return 0x00418110U + i*4U;
+	return nvgpu_safe_add_u32(0x00418110U, nvgpu_safe_mult_u32(i, 4U));
 }
 static inline u32 gr_gpcs_swdx_dss_zbc_z_val_f(u32 v)
 {
@@ -3160,7 +3161,7 @@ static inline u32 gr_gpcs_swdx_dss_zbc_z_01_to_04_format_r(void)
 }
 static inline u32 gr_gpcs_swdx_dss_zbc_s_r(u32 i)
 {
-	return 0x0041815cU + i*4U;
+	return nvgpu_safe_add_u32(0x0041815cU, nvgpu_safe_mult_u32(i, 4U));
 }
 static inline u32 gr_gpcs_swdx_dss_zbc_s_val_f(u32 v)
 {
@@ -3188,7 +3189,7 @@ static inline u32 gr_gpcs_setup_attrib_cb_base_valid_true_f(void)
 }
 static inline u32 gr_crstr_gpc_map_r(u32 i)
 {
-	return 0x00418b08U + i*4U;
+	return nvgpu_safe_add_u32(0x00418b08U, nvgpu_safe_mult_u32(i, 4U));
 }
 static inline u32 gr_crstr_gpc_map_tile0_f(u32 v)
 {
@@ -3228,7 +3229,7 @@ static inline u32 gr_crstr_map_table_cfg_num_entries_f(u32 v)
 }
 static inline u32 gr_gpcs_zcull_sm_in_gpc_number_map_r(u32 i)
 {
-	return 0x00418980U + i*4U;
+	return nvgpu_safe_add_u32(0x00418980U, nvgpu_safe_mult_u32(i, 4U));
 }
 static inline u32 gr_gpcs_zcull_sm_in_gpc_number_map_tile_0_f(u32 v)
 {
@@ -3764,7 +3765,7 @@ static inline u32 gr_gpcs_tpcs_pes_vsc_vpc_fast_mode_switch_true_f(void)
 }
 static inline u32 gr_ppcs_wwdx_map_gpc_map_r(u32 i)
 {
-	return 0x0041bf00U + i*4U;
+	return nvgpu_safe_add_u32(0x0041bf00U, nvgpu_safe_mult_u32(i, 4U));
 }
 static inline u32 gr_ppcs_wwdx_map_table_cfg_r(void)
 {
@@ -3796,7 +3797,7 @@ static inline u32 gr_gpcs_ppcs_wwdx_sm_num_rcp_conservative_f(u32 v)
 }
 static inline u32 gr_ppcs_wwdx_map_table_cfg_coeff_r(u32 i)
 {
-	return 0x0041bfb0U + i*4U;
+	return nvgpu_safe_add_u32(0x0041bfb0U, nvgpu_safe_mult_u32(i, 4U));
 }
 static inline u32 gr_ppcs_wwdx_map_table_cfg_coeff__size_1_v(void)
 {
@@ -4009,6 +4010,14 @@ static inline u32 gr_gpcs_pri_mmu_ctrl_mmu_vol_m(void)
 static inline u32 gr_gpcs_pri_mmu_ctrl_mmu_disable_m(void)
 {
 	return U32(0x1U) << 31U;
+}
+static inline u32 gr_gpcs_pri_mmu_ctrl_atomic_capability_mode_m(void)
+{
+	return U32(0x3U) << 24U;
+}
+static inline u32 gr_gpcs_pri_mmu_ctrl_atomic_capability_mode_rmw_f(void)
+{
+	return 0x2000000U;
 }
 static inline u32 gr_gpcs_pri_mmu_pm_unit_mask_r(void)
 {

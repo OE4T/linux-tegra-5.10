@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -57,6 +57,7 @@
 #define NVGPU_HW_IOCTRL_GV100_H
 
 #include <nvgpu/types.h>
+#include <nvgpu/safe_ops.h>
 
 static inline u32 ioctrl_reset_r(void)
 {
@@ -108,7 +109,7 @@ static inline u32 ioctrl_debug_reset_common_v(u32 r)
 }
 static inline u32 ioctrl_clock_control_r(u32 i)
 {
-	return 0x00000180U + i*4U;
+	return nvgpu_safe_add_u32(0x00000180U, nvgpu_safe_mult_u32(i, 4U));
 }
 static inline u32 ioctrl_clock_control__size_1_v(void)
 {
@@ -244,7 +245,7 @@ static inline u32 ioctrl_common_intr_0_status_intrb_v(u32 r)
 }
 static inline u32 ioctrl_link_intr_0_mask_r(u32 i)
 {
-	return 0x00000240U + i*20U;
+	return nvgpu_safe_add_u32(0x00000240U, nvgpu_safe_mult_u32(i, 20U));
 }
 static inline u32 ioctrl_link_intr_0_mask_fatal_f(u32 v)
 {
@@ -288,7 +289,7 @@ static inline u32 ioctrl_link_intr_0_mask_intrb_v(u32 r)
 }
 static inline u32 ioctrl_link_intr_0_status_r(u32 i)
 {
-	return 0x00000244U + i*20U;
+	return nvgpu_safe_add_u32(0x00000244U, nvgpu_safe_mult_u32(i, 20U));
 }
 static inline u32 ioctrl_link_intr_0_status_fatal_f(u32 v)
 {
