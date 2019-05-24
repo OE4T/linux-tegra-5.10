@@ -25,6 +25,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/string.h>
 #include <nvgpu/soc.h>
+#include <nvgpu/safe_ops.h>
 
 #include "bios_sw_gv100.h"
 #include "bios_sw_tu104.h"
@@ -80,7 +81,7 @@ bool nvgpu_bios_check_dgpu(struct gk20a *g, u32 ver)
 
 u32  nvgpu_bios_get_vbios_version(struct gk20a *g)
 {
-	u32 ver = g->params.gpu_arch + g->params.gpu_impl;
+	u32 ver = nvgpu_safe_add_u32(g->params.gpu_arch, g->params.gpu_impl);
 	u32 vbios_version;
 
 	switch (ver) {
@@ -104,7 +105,7 @@ u32  nvgpu_bios_get_vbios_version(struct gk20a *g)
 
 u8  nvgpu_bios_get_vbios_oem_version(struct gk20a *g)
 {
-	u32 ver = g->params.gpu_arch + g->params.gpu_impl;
+	u32 ver = nvgpu_safe_add_u32(g->params.gpu_arch, g->params.gpu_impl);
 	u8 vbios_oem_version;
 
 	switch (ver) {
@@ -153,7 +154,7 @@ struct bit_token *nvgpu_bios_get_bit_token(struct gk20a *g, u8 token_id)
 int nvgpu_bios_sw_init(struct gk20a *g,
 		struct nvgpu_bios **bios)
 {
-	u32 ver = g->params.gpu_arch + g->params.gpu_impl;
+	u32 ver = nvgpu_safe_add_u32(g->params.gpu_arch, g->params.gpu_impl);
 	int err = 0;
 
 	if (nvgpu_is_enabled(g, NVGPU_IS_FMODEL)) {
@@ -215,17 +216,23 @@ void nvgpu_bios_sw_deinit(struct gk20a *g, struct nvgpu_bios *bios)
 
 static u16 nvgpu_bios_rdu16(struct gk20a *g, u32 offset)
 {
-	u16 val = (U16(g->bios->data[offset+1U]) << U16(8)) +
+	u16 val;
+
+	nvgpu_assert(offset < U32_MAX);
+	val = (U16(g->bios->data[offset+1U]) << U16(8)) +
 		U16(g->bios->data[offset]);
 	return val;
 }
 
 static u32 nvgpu_bios_rdu32(struct gk20a *g, u32 offset)
 {
-	u32 val = (U32(g->bios->data[offset+3U]) << U32(24)) +
-		  (U32(g->bios->data[offset+2U]) << U32(16)) +
-		  (U32(g->bios->data[offset+1U]) << U32(8)) +
-		  U32(g->bios->data[offset]);
+	u32 val;
+
+	nvgpu_assert(offset <= (U32_MAX - 3U));
+	val = nvgpu_safe_add_u32(U32(g->bios->data[offset+3U]) << U32(24),
+		  U32(g->bios->data[offset+2U]) << U32(16));
+	val = nvgpu_safe_add_u32(val, U32(g->bios->data[offset+1U]) << U32(8));
+	val = nvgpu_safe_add_u32(val, U32(g->bios->data[offset]));
 	return val;
 }
 
@@ -265,8 +272,9 @@ int nvgpu_bios_parse_rom(struct gk20a *g)
 		/* Get Base ROM Size */
 		if (pci_data.code_type ==
 				PCI_DATA_STRUCTURE_CODE_TYPE_VBIOS_BASE) {
-			g->bios->base_rom_size = (u32)pci_data.image_len *
-						PCI_ROM_IMAGE_BLOCK_SIZE;
+			g->bios->base_rom_size = nvgpu_safe_mult_u32(
+						(u32)pci_data.image_len,
+						PCI_ROM_IMAGE_BLOCK_SIZE);
 			nvgpu_log_fn(g, "Base ROM Size: %x",
 						g->bios->base_rom_size);
 		}
@@ -282,9 +290,13 @@ int nvgpu_bios_parse_rom(struct gk20a *g)
 		 */
 		if (pci_data.code_type ==
 				PCI_DATA_STRUCTURE_CODE_TYPE_VBIOS_UEFI) {
-			u32 ext_offset = (offset +
-					  pci_rom.pci_data_struct_ptr +
-					  pci_data.pci_data_struct_len +
+			u32 ext_offset;
+
+			ext_offset = nvgpu_safe_add_u32(offset,
+					  pci_rom.pci_data_struct_ptr);
+			ext_offset = nvgpu_safe_add_u32(ext_offset,
+					  pci_data.pci_data_struct_len);
+			ext_offset = nvgpu_safe_add_u32(ext_offset,
 					  0xfU) & ~0xfU;
 			nvgpu_memcpy((u8 *)&pci_ext_data, (u8 *)(g->bios->data +
 					ext_offset),
@@ -298,23 +310,27 @@ int nvgpu_bios_parse_rom(struct gk20a *g)
 					pci_ext_data.flags);
 
 			nvgpu_log_fn(g, "expansion rom offset %x",
-					pci_data.image_len *
+				nvgpu_safe_mult_u32((u32)pci_data.image_len,
+						PCI_ROM_IMAGE_BLOCK_SIZE));
+			g->bios->expansion_rom_offset = nvgpu_safe_mult_u32(
+					(u32)pci_data.image_len,
 						PCI_ROM_IMAGE_BLOCK_SIZE);
-			g->bios->expansion_rom_offset =
-					(u32)pci_data.image_len *
-						PCI_ROM_IMAGE_BLOCK_SIZE;
-			offset += (u32)pci_ext_data.sub_image_len *
-						PCI_ROM_IMAGE_BLOCK_SIZE;
+			offset = nvgpu_safe_add_u32(offset,
+					nvgpu_safe_mult_u32(
+						(u32)pci_ext_data.sub_image_len,
+						PCI_ROM_IMAGE_BLOCK_SIZE));
 			last = pci_ext_data.priv_last_image;
 		} else {
-			offset += (u32)pci_data.image_len *
-						PCI_ROM_IMAGE_BLOCK_SIZE;
+			offset = nvgpu_safe_add_u32(offset,
+					nvgpu_safe_mult_u32(
+					(u32)pci_data.image_len,
+						PCI_ROM_IMAGE_BLOCK_SIZE));
 			last = pci_data.last_image;
 		}
 	}
 
 	nvgpu_log_info(g, "read bios");
-	for (i = 0; i < g->bios->size - 6U; i++) {
+	for (i = 0; i < nvgpu_safe_sub_u64(g->bios->size, 6ULL); i++) {
 		if (nvgpu_bios_rdu16(g, i) == BIT_HEADER_ID &&
 		    nvgpu_bios_rdu32(g, i+2U) ==  BIT_HEADER_SIGNATURE) {
 			nvgpu_bios_parse_bit(g, i);
@@ -419,7 +435,7 @@ static int nvgpu_bios_parse_appinfo_table(struct gk20a *g, u32 offset)
 		return 0;
 	}
 
-	offset += U32(sizeof(hdr));
+	offset = nvgpu_safe_add_u32(offset, U32(sizeof(hdr)));
 	for (i = 0U; i < hdr.entry_count; i++) {
 		struct application_interface_entry_v1 entry;
 
@@ -433,7 +449,7 @@ static int nvgpu_bios_parse_appinfo_table(struct gk20a *g, u32 offset)
 			nvgpu_bios_parse_devinit_appinfo(g, entry.dmem_offset);
 		}
 
-		offset += hdr.entry_size;
+		offset = nvgpu_safe_add_u32(offset, hdr.entry_size);
 	}
 
 	return 0;
@@ -510,17 +526,20 @@ static int nvgpu_bios_parse_falcon_ucode_desc(struct gk20a *g,
 	ucode->code_entry_point = desc.virtual_entry;
 	ucode->bootloader = &g->bios->data[offset] + desc_size;
 	ucode->bootloader_phys_base = desc.imem_phys_base;
-	ucode->bootloader_size = desc.imem_load_size - desc.imem_sec_size;
+	ucode->bootloader_size = nvgpu_safe_sub_u32(desc.imem_load_size,
+						desc.imem_sec_size);
 	ucode->ucode = ucode->bootloader + ucode->bootloader_size;
-	ucode->phys_base = ucode->bootloader_phys_base + ucode->bootloader_size;
+	ucode->phys_base = nvgpu_safe_add_u32(ucode->bootloader_phys_base,
+					ucode->bootloader_size);
 	ucode->size = desc.imem_sec_size;
 	ucode->dmem = ucode->bootloader + desc.dmem_offset;
 	ucode->dmem_phys_base = desc.dmem_phys_base;
 	ucode->dmem_size = desc.dmem_load_size;
 
-	ret = nvgpu_bios_parse_appinfo_table(g,
-			offset + U32(desc_size) +
-			desc.dmem_offset + desc.interface_offset);
+	offset = nvgpu_safe_add_u32(offset, U32(desc_size));
+	offset = nvgpu_safe_add_u32(offset, desc.dmem_offset);
+	offset = nvgpu_safe_add_u32(offset, desc.interface_offset);
+	ret = nvgpu_bios_parse_appinfo_table(g, offset);
 
 	return ret;
 }
@@ -540,7 +559,7 @@ static int nvgpu_bios_parse_falcon_ucode_table(struct gk20a *g, u32 offset)
 		return -EINVAL;
 	}
 
-	offset += hdr.header_size;
+	offset = nvgpu_safe_add_u32(offset, hdr.header_size);
 
 	for (i = 0U; i < hdr.entry_count; i++) {
 		struct falcon_ucode_table_entry_v1 entry;
@@ -561,8 +580,8 @@ static int nvgpu_bios_parse_falcon_ucode_table(struct gk20a *g, u32 offset)
 			if (err != 0) {
 				err = nvgpu_bios_parse_falcon_ucode_desc(g,
 					&g->bios->devinit,
-					entry.desc_ptr +
-					 g->bios->expansion_rom_offset);
+					nvgpu_safe_add_u32(entry.desc_ptr,
+						g->bios->expansion_rom_offset));
 			}
 
 			if (err != 0) {
@@ -578,8 +597,8 @@ static int nvgpu_bios_parse_falcon_ucode_table(struct gk20a *g, u32 offset)
 			if (err != 0) {
 				err = nvgpu_bios_parse_falcon_ucode_desc(g,
 					&g->bios->preos,
-					entry.desc_ptr +
-					 g->bios->expansion_rom_offset);
+					nvgpu_safe_add_u32(entry.desc_ptr,
+						g->bios->expansion_rom_offset));
 			}
 
 			if (err != 0) {
@@ -593,7 +612,7 @@ static int nvgpu_bios_parse_falcon_ucode_table(struct gk20a *g, u32 offset)
 					entry.target_id);
 		}
 
-		offset += hdr.entry_size;
+		offset = nvgpu_safe_add_u32(offset, hdr.entry_size);
 	}
 
 	return 0;
@@ -612,8 +631,8 @@ static void nvgpu_bios_parse_falcon_data_v2(struct gk20a *g, u32 offset)
 			falcon_data.falcon_ucode_table_ptr);
 	if (err != 0) {
 		err = nvgpu_bios_parse_falcon_ucode_table(g,
-				falcon_data.falcon_ucode_table_ptr +
-			g->bios->expansion_rom_offset);
+			nvgpu_safe_add_u32(falcon_data.falcon_ucode_table_ptr,
+			g->bios->expansion_rom_offset));
 	}
 
 	if (err != 0) {
@@ -659,9 +678,10 @@ void *nvgpu_bios_get_perf_table_ptrs(struct gk20a *g,
 		if (perf_table_id_offset != 0U) {
 			/* check if perf_table_id_offset is beyond base rom */
 			if (perf_table_id_offset > g->bios->base_rom_size) {
-				perf_table_ptr =
-					&g->bios->data[g->bios->expansion_rom_offset +
-						perf_table_id_offset];
+				u32 tmp_index = nvgpu_safe_add_u32(
+						g->bios->expansion_rom_offset,
+						perf_table_id_offset);
+				perf_table_ptr = &g->bios->data[tmp_index];
 			} else {
 				perf_table_ptr =
 					&g->bios->data[perf_table_id_offset];
@@ -690,7 +710,7 @@ static void nvgpu_bios_parse_bit(struct gk20a *g, u32 offset)
 	nvgpu_log_info(g, "tokens: %d entries * %d bytes",
 			bit.token_entries, bit.token_size);
 
-	offset += bit.header_size;
+	offset = nvgpu_safe_add_u32(offset, bit.header_size);
 	for (i = 0U; i < bit.token_entries; i++) {
 		nvgpu_memcpy((u8 *)&token, &g->bios->data[offset],
 			sizeof(token));
@@ -737,7 +757,7 @@ static void nvgpu_bios_parse_bit(struct gk20a *g, u32 offset)
 			break;
 		}
 
-		offset += bit.token_size;
+		offset = nvgpu_safe_add_u32(offset, bit.token_size);
 	}
 	nvgpu_log_fn(g, "done");
 }
@@ -765,6 +785,7 @@ u16 nvgpu_bios_read_u16(struct gk20a *g, u32 offset)
 {
 	u16 val;
 
+	nvgpu_assert(offset < U32_MAX);
 	val = U16(nvgpu_bios_readbyte_impl(g, offset) |
 		(nvgpu_bios_readbyte_impl(g, offset+1U) << 8U));
 
@@ -775,6 +796,7 @@ u32 nvgpu_bios_read_u32(struct gk20a *g, u32 offset)
 {
 	u32 val;
 
+	nvgpu_assert(offset < (U32_MAX - 3U));
 	val = U32(nvgpu_bios_readbyte_impl(g, offset) |
 		(nvgpu_bios_readbyte_impl(g, offset+1U) << 8U) |
 		(nvgpu_bios_readbyte_impl(g, offset+2U) << 16U) |
