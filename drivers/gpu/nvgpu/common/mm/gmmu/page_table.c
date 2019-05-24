@@ -35,6 +35,7 @@
 #include <nvgpu/sizes.h>
 #include <nvgpu/types.h>
 #include <nvgpu/gk20a.h>
+#include <nvgpu/safe_ops.h>
 
 
 #define nvgpu_gmmu_dbg(g, attrs, fmt, args...)				\
@@ -230,7 +231,13 @@ static u32 pd_entries(const struct gk20a_mmu_level *l,
 	 * used to index the page directory. That is simply 2 raised to the
 	 * number of bits.
 	 */
-	return BIT32(l->hi_bit[attrs->pgsz] - l->lo_bit[attrs->pgsz] + 1U);
+
+	u32 bit;
+
+	bit = nvgpu_safe_sub_u32(l->hi_bit[attrs->pgsz],
+			l->lo_bit[attrs->pgsz]);
+	bit = nvgpu_safe_add_u32(bit, 1U);
+	return BIT32(bit);
 }
 
 /*
@@ -239,7 +246,7 @@ static u32 pd_entries(const struct gk20a_mmu_level *l,
 static u32 pd_size(const struct gk20a_mmu_level *l,
 		   struct nvgpu_gmmu_attrs *attrs)
 {
-	return pd_entries(l, attrs) * l->entry_size;
+	return nvgpu_safe_mult_u32(pd_entries(l, attrs), l->entry_size);
 }
 
 /*
@@ -290,9 +297,12 @@ static int pd_allocate(struct vm_gk20a *vm,
 static u32 pd_index(const struct gk20a_mmu_level *l, u64 virt,
 		    struct nvgpu_gmmu_attrs *attrs)
 {
-	u64 pd_mask = (1ULL << ((u64)l->hi_bit[attrs->pgsz] + 1U)) - 1ULL;
+	u64 pd_mask;
 	u32 pd_shift = l->lo_bit[attrs->pgsz];
 	u64 tmp_index;
+
+	pd_mask = BIT64(nvgpu_safe_add_u64((u64)l->hi_bit[attrs->pgsz], 1ULL));
+	pd_mask = nvgpu_safe_sub_u64(pd_mask, 1ULL);
 
 	/*
 	 * For convenience we don't bother computing the lower bound of the
@@ -345,8 +355,9 @@ static int pd_allocate_children(struct vm_gk20a *vm,
 	}
 
 	pd->num_entries = pd_entries(l, attrs);
-	pd->entries = nvgpu_vzalloc(g, sizeof(struct nvgpu_gmmu_pd) *
-				(unsigned long)pd->num_entries);
+	pd->entries = nvgpu_vzalloc(g,
+		nvgpu_safe_mult_u64(sizeof(struct nvgpu_gmmu_pd),
+				(unsigned long)pd->num_entries));
 	if (pd->entries == NULL) {
 		pd->num_entries = 0;
 		return -ENOMEM;
@@ -417,13 +428,16 @@ static int nvgpu_set_pd_level(struct vm_gk20a *vm,
 		u32 pd_idx = pd_index(l, virt_addr, attrs);
 		u64 chunk_size;
 		u64 target_addr;
+		u64 tmp_len;
 
 		/*
 		 * Truncate the pde_range when the virtual address does not
 		 * start at a PDE boundary.
 		 */
-		chunk_size = min(length,
-				 pde_range - (virt_addr & (pde_range - 1U)));
+		nvgpu_assert(pde_range >= 1ULL);
+		tmp_len = nvgpu_safe_sub_u64(pde_range,
+				virt_addr & (pde_range - 1U));
+		chunk_size = min(length, tmp_len);
 
 		/*
 		 * If the next level has an update_entry function then we know
@@ -480,7 +494,7 @@ static int nvgpu_set_pd_level(struct vm_gk20a *vm,
 			}
 		}
 
-		virt_addr += chunk_size;
+		virt_addr = nvgpu_safe_add_u64(virt_addr, chunk_size);
 
 		/*
 		 * Only add to phys_addr if it's non-zero. A zero value implies
@@ -547,7 +561,7 @@ static int nvgpu_gmmu_do_update_page_table(struct vm_gk20a *vm,
 	    is_iommuable && sgt_is_iommuable) {
 		u64 io_addr = nvgpu_sgt_get_gpu_addr(g, sgt, sgt->sgl, attrs);
 
-		io_addr += space_to_skip;
+		io_addr = nvgpu_safe_add_u64(io_addr, space_to_skip);
 
 		err = nvgpu_set_pd_level(vm, &vm->pdb,
 					 0,
@@ -620,8 +634,10 @@ static int nvgpu_gmmu_do_update_page_table(struct vm_gk20a *vm,
 			 */
 			phys_addr = nvgpu_sgt_ipa_to_pa(g, sgt, sgl, ipa_addr,
 					&phys_length);
-			phys_addr = g->ops.mm.gmmu.gpu_phys_addr(g, attrs, phys_addr)
-				+ space_to_skip;
+			phys_addr = nvgpu_safe_add_u64(
+					g->ops.mm.gmmu.gpu_phys_addr(g, attrs,
+								     phys_addr),
+					space_to_skip);
 
 			/*
 			 * For virtualized OSes when phys_length is less than
@@ -630,7 +646,8 @@ static int nvgpu_gmmu_do_update_page_table(struct vm_gk20a *vm,
 			 */
 			if (space_to_skip >= phys_length) {
 				space_to_skip -= phys_length;
-				ipa_addr += phys_length;
+				ipa_addr = nvgpu_safe_add_u64(ipa_addr,
+							      phys_length);
 				sgl_length -= phys_length;
 				continue;
 			}
@@ -652,10 +669,16 @@ static int nvgpu_gmmu_do_update_page_table(struct vm_gk20a *vm,
 			/*
 			 * Update the map pointer and the remaining length.
 			 */
-			virt_addr  += mapped_sgl_length;
-			length     -= mapped_sgl_length;
-			sgl_length -= mapped_sgl_length + space_to_skip;
-			ipa_addr   += mapped_sgl_length + space_to_skip;
+			virt_addr  = nvgpu_safe_add_u64(virt_addr,
+							mapped_sgl_length);
+			length     = nvgpu_safe_sub_u64(length,
+							mapped_sgl_length);
+			sgl_length = nvgpu_safe_sub_u64(sgl_length,
+					nvgpu_safe_add_u64(mapped_sgl_length,
+							   space_to_skip));
+			ipa_addr   = nvgpu_safe_add_u64(ipa_addr,
+					nvgpu_safe_add_u64(mapped_sgl_length,
+							   space_to_skip));
 
 			/*
 			 * Space has been skipped so zero this for future
@@ -706,7 +729,8 @@ static int nvgpu_gmmu_update_page_table(struct vm_gk20a *vm,
 
 	page_size = vm->gmmu_page_sizes[attrs->pgsz];
 
-	if ((space_to_skip & (U64(page_size) - U64(1))) != 0ULL) {
+	if ((page_size == 0U) ||
+	    (space_to_skip & (U64(page_size) - U64(1))) != 0ULL) {
 		return -EINVAL;
 	}
 
@@ -806,7 +830,9 @@ u64 nvgpu_gmmu_map_locked(struct vm_gk20a *vm,
 	 * boundaries.
 	 */
 	if (attrs.ctag != 0ULL) {
-		attrs.ctag += buffer_offset & (ctag_granularity - U64(1));
+		nvgpu_assert(ctag_granularity >= 1ULL);
+		attrs.ctag = nvgpu_safe_add_u64(attrs.ctag,
+				buffer_offset & (ctag_granularity - U64(1)));
 	}
 
 	attrs.l3_alloc = (bool)(flags & NVGPU_VM_MAP_L3_ALLOC);
@@ -981,14 +1007,17 @@ static int nvgpu_locate_pte(struct gk20a *g, struct vm_gk20a *vm,
 			 * since the PD may be located at an offset other than 0
 			 * (due to PD packing).
 			 */
-			pte_base = (u32)(pd->mem_offs / sizeof(u32)) +
-				nvgpu_pd_offset_from_index(l, pd_idx);
+			pte_base = nvgpu_safe_add_u32(
+					(u32)(pd->mem_offs / sizeof(u32)),
+					nvgpu_pd_offset_from_index(l, pd_idx));
 			pte_size = (u32)(l->entry_size / sizeof(u32));
 
 			if (data != NULL) {
 				for (i = 0; i < pte_size; i++) {
+					u32 tmp_word = nvgpu_safe_add_u32(i,
+								pte_base);
 					data[i] = nvgpu_mem_rd32(g, pd->mem,
-							pte_base + i);
+							tmp_word);
 				}
 			}
 
