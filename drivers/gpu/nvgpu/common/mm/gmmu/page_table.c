@@ -951,7 +951,7 @@ u32 nvgpu_pte_words(struct gk20a *g)
 		l++;
 	} while (true);
 
-	return (u32)(l->entry_size / sizeof(u32));
+	return l->entry_size / (u32)sizeof(u32);
 }
 
 /*
@@ -1008,9 +1008,9 @@ static int nvgpu_locate_pte(struct gk20a *g, struct vm_gk20a *vm,
 			 * (due to PD packing).
 			 */
 			pte_base = nvgpu_safe_add_u32(
-					(u32)(pd->mem_offs / sizeof(u32)),
-					nvgpu_pd_offset_from_index(l, pd_idx));
-			pte_size = (u32)(l->entry_size / sizeof(u32));
+				pd->mem_offs / (u32)sizeof(u32),
+				nvgpu_pd_offset_from_index(l, pd_idx));
+			pte_size = l->entry_size / (u32)sizeof(u32);
 
 			if (data != NULL) {
 				for (i = 0; i < pte_size; i++) {
