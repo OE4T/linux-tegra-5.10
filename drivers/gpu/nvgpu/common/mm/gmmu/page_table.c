@@ -298,8 +298,11 @@ static u32 pd_index(const struct gk20a_mmu_level *l, u64 virt,
 		    struct nvgpu_gmmu_attrs *attrs)
 {
 	u64 pd_mask;
-	u32 pd_shift = l->lo_bit[attrs->pgsz];
+	u32 pd_shift;
 	u64 tmp_index;
+
+	nvgpu_assert(attrs->pgsz < ARRAY_SIZE(l->lo_bit));
+	pd_shift = l->lo_bit[attrs->pgsz];
 
 	pd_mask = BIT64(nvgpu_safe_add_u64((u64)l->hi_bit[attrs->pgsz], 1ULL));
 	pd_mask = nvgpu_safe_sub_u64(pd_mask, 1ULL);
