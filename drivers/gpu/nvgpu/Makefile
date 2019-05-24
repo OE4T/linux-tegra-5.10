@@ -21,13 +21,10 @@ ifeq ($(CONFIG_NVGPU_DEBUGGER),y)
 ccflags-y += -DNVGPU_DEBUGGER
 endif
 
-ifeq ($(CONFIG_NVGPU_LS_PMU),y)
-ccflags-y += -DNVGPU_LS_PMU
-endif
-
 ccflags-y += -DNVGPU_ENGINE
 ccflags-y += -DNVGPU_USERD
 ccflags-y += -DNVGPU_CHANNEL_WDT
+ccflags-y += -DNVGPU_LS_PMU
 ccflags-y += -DNVGPU_DGPU_SUPPORT
 ccflags-y += -DNVGPU_VPR
 ccflags-y += -DNVGPU_REPLAYABLE_FAULT

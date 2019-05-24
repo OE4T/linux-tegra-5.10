@@ -117,25 +117,6 @@ srcs += common/sim/sim.c \
 	common/gr/fs_state.c \
 	common/netlist/netlist.c \
 	common/pmu/pmu.c \
-	common/pmu/pmu_allocator.c \
-	common/pmu/pmu_mutex.c \
-	common/pmu/fw/fw.c \
-	common/pmu/fw/fw_ver_ops.c \
-	common/pmu/fw/fw_ns_bootstrap.c \
-	common/pmu/pg/pmu_pg.c \
-	common/pmu/pg/pmu_aelpg.c \
-	common/pmu/perfmon/pmu_perfmon.c \
-	common/pmu/perfmon/pmu_perfmon_sw_gm20b.c \
-	common/pmu/perfmon/pmu_perfmon_sw_gv11b.c \
-	common/pmu/pmu_debug.c \
-	common/pmu/pg/pg_sw_gm20b.c \
-	common/pmu/pg/pg_sw_gp10b.c \
-	common/pmu/pg/pg_sw_gp106.c \
-	common/pmu/pg/pg_sw_gv11b.c \
-	common/pmu/ipc/pmu_cmd.c \
-	common/pmu/ipc/pmu_msg.c \
-	common/pmu/ipc/pmu_queue.c \
-	common/pmu/ipc/pmu_seq.c \
 	common/acr/acr.c \
 	common/acr/acr_wpr.c \
 	common/acr/acr_blob_alloc.c \
@@ -172,45 +153,6 @@ srcs += common/sim/sim.c \
 	common/fifo/userd.c \
 	common/mc/mc.c \
 	common/regops/regops.c \
-	common/pmu/super_surface/super_surface.c \
-	common/pmu/lsfm/lsfm.c \
-	common/pmu/lsfm/lsfm_sw_gm20b.c \
-	common/pmu/lsfm/lsfm_sw_gp10b.c \
-	common/pmu/pmu_pstate.c \
-	common/pmu/volt/volt_dev.c \
-	common/pmu/volt/volt_pmu.c \
-	common/pmu/volt/volt_policy.c \
-	common/pmu/volt/volt_rail.c \
-	common/pmu/clk/clk.c \
-	common/pmu/clk/clk_domain.c \
-	common/pmu/clk/clk_freq_domain.c \
-	common/pmu/clk/clk_fll.c \
-	common/pmu/clk/clk_freq_controller.c \
-	common/pmu/clk/clk_prog.c \
-	common/pmu/clk/clk_vf_point.c \
-	common/pmu/clk/clk_vin.c \
-	common/pmu/therm/thrm.c \
-	common/pmu/therm/thrmchannel.c \
-	common/pmu/therm/thrmdev.c \
-	common/pmu/therm/thrmpmu.c \
-	common/pmu/perf/pmu_perf.c \
-	common/pmu/perf/vfe_equ.c \
-	common/pmu/perf/vfe_var.c \
-	common/pmu/perf/perf_ps35.c \
-	common/pmu/perf/perf_pstate.c \
-	common/pmu/perf/change_seq.c \
-	common/pmu/pmgr/pmgr.c \
-	common/pmu/pmgr/pmgrpmu.c \
-	common/pmu/pmgr/pwrdev.c \
-	common/pmu/pmgr/pwrmonitor.c \
-	common/pmu/pmgr/pwrpolicy.c \
-	common/pmu/lpwr/lpwr.c \
-	common/pmu/lpwr/rppg.c \
-	common/pmu/boardobj/boardobj.c \
-	common/pmu/boardobj/boardobjgrp.c \
-	common/pmu/boardobj/boardobjgrpmask.c \
-	common/pmu/boardobj/boardobjgrp_e255.c \
-	common/pmu/boardobj/boardobjgrp_e32.c \
 	common/clk_arb/clk_arb.c \
 	common/clk_arb/clk_arb_gp10b.c \
 	common/fence/fence.c \
@@ -285,7 +227,6 @@ srcs += common/sim/sim.c \
 	hal/therm/therm_gm20b.c \
 	hal/therm/therm_gp10b.c \
 	hal/therm/therm_gv11b.c \
-	hal/therm/therm_gp106.c \
 	hal/ltc/ltc_gm20b.c \
 	hal/ltc/ltc_gp10b.c \
 	hal/ltc/ltc_gv11b.c \
@@ -352,9 +293,6 @@ srcs += common/sim/sim.c \
 	hal/sync/sema_cmdbuf_gv11b.c \
 	hal/sync/syncpt_cmdbuf_gk20a.c \
 	hal/sync/syncpt_cmdbuf_gv11b.c \
-	hal/pmu/pmu_gk20a.c \
-	hal/pmu/pmu_gm20b.c \
-	hal/pmu/pmu_gp10b.c \
 	hal/pmu/pmu_gp106.c \
 	hal/pmu/pmu_gv11b.c \
 	hal/pramin/pramin_gp10b.c \
@@ -402,8 +340,74 @@ srcs += hal/gr/config/gr_config_gm20b.c \
 
 ifeq ($(NVGPU_LS_PMU),1)
 # Add LS PMU files which are required for normal build
-# TBD: currently LS PMU unit files are dependent on another unit, files can be
-# added once refactored & removed dependency
+srcs += \
+	common/pmu/boardobj/boardobj.c \
+	common/pmu/boardobj/boardobjgrp.c \
+	common/pmu/boardobj/boardobjgrpmask.c \
+	common/pmu/boardobj/boardobjgrp_e255.c \
+	common/pmu/boardobj/boardobjgrp_e32.c \
+	common/pmu/clk/clk.c \
+	common/pmu/clk/clk_domain.c \
+	common/pmu/clk/clk_freq_domain.c \
+	common/pmu/clk/clk_fll.c \
+	common/pmu/clk/clk_freq_controller.c \
+	common/pmu/clk/clk_prog.c \
+	common/pmu/clk/clk_vf_point.c \
+	common/pmu/clk/clk_vin.c \
+	common/pmu/fw/fw.c \
+	common/pmu/fw/fw_ver_ops.c \
+	common/pmu/fw/fw_ns_bootstrap.c \
+	common/pmu/ipc/pmu_cmd.c \
+	common/pmu/ipc/pmu_msg.c \
+	common/pmu/ipc/pmu_queue.c \
+	common/pmu/ipc/pmu_seq.c \
+	common/pmu/lpwr/lpwr.c \
+	common/pmu/lpwr/rppg.c \
+	common/pmu/lsfm/lsfm.c \
+	common/pmu/lsfm/lsfm_sw_gm20b.c \
+	common/pmu/lsfm/lsfm_sw_gp10b.c \
+	common/pmu/lsfm/lsfm_sw_gv100.c \
+	common/pmu/lsfm/lsfm_sw_tu104.c \
+	common/pmu/perf/pmu_perf.c \
+	common/pmu/perf/vfe_equ.c \
+	common/pmu/perf/vfe_var.c \
+	common/pmu/perf/perf_gv100.c \
+	common/pmu/perf/perf_ps35.c \
+	common/pmu/perf/perf_pstate.c \
+	common/pmu/perf/change_seq.c \
+	common/pmu/perfmon/pmu_perfmon.c \
+	common/pmu/perfmon/pmu_perfmon_sw_gm20b.c \
+	common/pmu/perfmon/pmu_perfmon_sw_gv11b.c \
+	common/pmu/pg/pg_sw_gm20b.c \
+	common/pmu/pg/pg_sw_gp10b.c \
+	common/pmu/pg/pg_sw_gp106.c \
+	common/pmu/pg/pg_sw_gv11b.c \
+	common/pmu/pg/pmu_pg.c \
+	common/pmu/pg/pmu_aelpg.c \
+	common/pmu/pmgr/pmgr.c \
+	common/pmu/pmgr/pmgrpmu.c \
+	common/pmu/pmgr/pwrdev.c \
+	common/pmu/pmgr/pwrmonitor.c \
+	common/pmu/pmgr/pwrpolicy.c \
+	common/pmu/super_surface/super_surface.c \
+	common/pmu/therm/thrm.c \
+	common/pmu/therm/thrmchannel.c \
+	common/pmu/therm/thrmdev.c \
+	common/pmu/therm/thrmpmu.c \
+	common/pmu/volt/volt_dev.c \
+	common/pmu/volt/volt_pmu.c \
+	common/pmu/volt/volt_policy.c \
+	common/pmu/volt/volt_rail.c \
+	common/pmu/pmu_allocator.c \
+	common/pmu/pmu_debug.c \
+	common/pmu/pmu_mutex.c \
+	common/pmu/pmu_pstate.c \
+	common/clk_arb/clk_arb_gv100.c \
+	hal/therm/therm_gp106.c \
+	hal/pmu/pmu_gk20a.c \
+	hal/pmu/pmu_gm20b.c \
+	hal/pmu/pmu_gp10b.c \
+	hal/pmu/pmu_tu104.c
 endif
 
 ifeq ($(IGPU_VIRT_SUPPORT), 1)
@@ -467,10 +471,6 @@ srcs +=	common/engine_queues/engine_emem_queue.c \
 	common/falcon/falcon_sw_gv100.c \
 	common/falcon/falcon_sw_tu104.c \
 	common/acr/acr_sw_tu104.c \
-	common/pmu/lsfm/lsfm_sw_gv100.c \
-	common/pmu/lsfm/lsfm_sw_tu104.c \
-	common/pmu/perf/perf_gv100.c \
-	common/clk_arb/clk_arb_gv100.c \
 	hal/mm/mm_gv100.c \
 	hal/mm/mm_tu104.c \
 	hal/mc/mc_gv100.c  \
@@ -515,7 +515,6 @@ srcs +=	common/engine_queues/engine_emem_queue.c \
 	hal/gsp/gsp_gv100.c \
 	hal/sec2/sec2_gp106.c \
 	hal/sec2/sec2_tu104.c \
-	hal/pmu/pmu_tu104.c \
 	hal/pramin/pramin_gv100.c \
 	hal/pramin/pramin_tu104.c \
 	hal/bios/bios_tu104.c \

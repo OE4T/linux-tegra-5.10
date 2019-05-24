@@ -74,10 +74,6 @@ NVGPU_COMMON_CFLAGS		+= -DNVGPU_CHANNEL_WDT
 NVGPU_GRAPHICS                  := 1
 NVGPU_COMMON_CFLAGS             += -DNVGPU_GRAPHICS
 
-# Enable iGPU LS PMU for safety build until devctl whitelisting is done
-NVGPU_LS_PMU                    := 1
-NVGPU_COMMON_CFLAGS             += -DNVGPU_LS_PMU
-
 NVGPU_COMMON_CFLAGS             += -DNVGPU_ENGINE
 
 # Enable Channel/TSG Scheduling for safety build until devctl whitelisting is done
@@ -107,4 +103,8 @@ NVGPU_COMMON_CFLAGS             += -DNVGPU_VPR
 
 NVGPU_REPLAYABLE_FAULT          := 1
 NVGPU_COMMON_CFLAGS             += -DNVGPU_REPLAYABLE_FAULT
+
+# Enable LS PMU support for normal build
+NVGPU_LS_PMU                    := 1
+NVGPU_COMMON_CFLAGS             += -DNVGPU_LS_PMU
 endif
