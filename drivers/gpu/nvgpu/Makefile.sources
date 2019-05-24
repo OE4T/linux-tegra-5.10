@@ -482,8 +482,6 @@ srcs +=	common/engine_queues/engine_emem_queue.c \
 	hal/gr/intr/gr_intr_tu104.c \
 	hal/gr/gr/gr_tu104.c \
 	hal/fbpa/fbpa_tu104.c \
-	hal/init/hal_gv100.c \
-	hal/init/hal_gv100_litter.c \
 	hal/init/hal_tu104.c \
 	hal/init/hal_tu104_litter.c \
 	hal/power_features/cg/gv100_gating_reglist.c \

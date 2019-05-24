@@ -217,8 +217,6 @@ nvgpu-y += \
 	hal/init/hal_gm20b_litter.o \
 	hal/init/hal_gp10b.o \
 	hal/init/hal_gp10b_litter.o \
-	hal/init/hal_gv100.o \
-	hal/init/hal_gv100_litter.o \
 	hal/init/hal_gv11b.o \
 	hal/init/hal_gv11b_litter.o \
 	hal/init/hal_tu104.o \
