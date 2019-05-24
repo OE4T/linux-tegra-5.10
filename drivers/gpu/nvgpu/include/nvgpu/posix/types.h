@@ -115,8 +115,23 @@ typedef signed long long	s64;
 #define roundup(x, y)		round_up(x, y)
 #define round_down(x, y)	((x) & ~round_mask(x, y))
 
-#define ALIGN_MASK(x, mask)	(((x) + (mask)) & ~(mask))
-#define ALIGN(x, a)		ALIGN_MASK(x, (typeof(x))(a) - 1U)
+#define ALIGN_MASK(x, mask)						\
+		({							\
+			typeof(x) ret;					\
+			typeof(x) sum = (x) + (mask);			\
+									\
+			if ((sum >= (x)) && (sum >= (mask))) {		\
+				ret = sum & ~(mask);			\
+			} else {					\
+				ret = (typeof(x))~(typeof(x))0 & ~(mask); \
+			}						\
+			ret;						\
+		})
+
+#define ALIGN(x, a)		ALIGN_MASK(x,				\
+					(a) > (typeof(a))0 ?		\
+						(typeof(x))(a) - 1U :	\
+						(typeof(x))0)
 #define PAGE_ALIGN(x)		ALIGN(x, PAGE_SIZE)
 
 #define HZ_TO_KHZ(x) ((x) / KHZ)
