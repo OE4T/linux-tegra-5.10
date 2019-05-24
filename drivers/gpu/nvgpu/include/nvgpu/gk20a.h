@@ -1102,7 +1102,6 @@ struct gpu_ops {
 		void (*cleanup_sw)(struct gk20a *g);
 		void (*setup_hw)(struct gk20a *g);
 		void (*intr_enable)(struct gk20a *g, bool enable);
-		void (*intr_clear_all)(struct gk20a *g, u32 pbdma_id);
 		bool (*handle_intr_0)(struct gk20a *g,
 				u32 pbdma_id, u32 pbdma_intr_0,
 				u32 *error_notifier);

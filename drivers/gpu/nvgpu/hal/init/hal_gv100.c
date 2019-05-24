@@ -817,7 +817,6 @@ static const struct gpu_ops gv100_ops = {
 		.cleanup_sw = nvgpu_pbdma_cleanup_sw,
 		.setup_hw = gm20b_pbdma_setup_hw,
 		.intr_enable = gv11b_pbdma_intr_enable,
-		.intr_clear_all = gm20b_pbdma_clear_all_intr,
 		.acquire_val = gm20b_pbdma_acquire_val,
 		.get_signature = gp10b_pbdma_get_signature,
 		.dump_status = gm20b_pbdma_dump_status,

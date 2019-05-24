@@ -452,6 +452,7 @@ bool gm20b_pbdma_handle_intr(struct gk20a *g, u32 pbdma_id,
 			&intr_error_notifier)) {
 			recover = true;
 		}
+		nvgpu_writel(g, pbdma_intr_0_r(pbdma_id), pbdma_intr_0);
 	}
 
 	if (pbdma_intr_1 != 0U) {
@@ -463,6 +464,7 @@ bool gm20b_pbdma_handle_intr(struct gk20a *g, u32 pbdma_id,
 			&intr_error_notifier)) {
 			recover = true;
 		}
+		nvgpu_writel(g, pbdma_intr_1_r(pbdma_id), pbdma_intr_1);
 	}
 
 	if (error_notifier != NULL) {
