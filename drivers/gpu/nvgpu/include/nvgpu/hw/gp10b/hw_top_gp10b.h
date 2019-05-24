@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -57,6 +57,7 @@
 #define NVGPU_HW_TOP_GP10B_H
 
 #include <nvgpu/types.h>
+#include <nvgpu/safe_ops.h>
 
 static inline u32 top_num_gpcs_r(void)
 {
@@ -104,7 +105,7 @@ static inline u32 top_num_ltcs_r(void)
 }
 static inline u32 top_device_info_r(u32 i)
 {
-	return 0x00022700U + i*4U;
+	return nvgpu_safe_add_u32(0x00022700U, nvgpu_safe_mult_u32(i, 4U));
 }
 static inline u32 top_device_info__size_1_v(void)
 {
