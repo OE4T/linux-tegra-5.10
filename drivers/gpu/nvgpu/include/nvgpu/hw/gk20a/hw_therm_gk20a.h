@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2012-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -57,6 +57,7 @@
 #define NVGPU_HW_THERM_GK20A_H
 
 #include <nvgpu/types.h>
+#include <nvgpu/safe_ops.h>
 
 static inline u32 therm_use_a_r(void)
 {
@@ -144,7 +145,7 @@ static inline u32 therm_config2_grad_enable_f(u32 v)
 }
 static inline u32 therm_gate_ctrl_r(u32 i)
 {
-	return 0x00020200U + i*4U;
+	return nvgpu_safe_add_u32(0x00020200U, nvgpu_safe_mult_u32(i, 4U));
 }
 static inline u32 therm_gate_ctrl_eng_clk_m(void)
 {
@@ -240,7 +241,7 @@ static inline u32 therm_hubmmu_idle_filter_value_m(void)
 }
 static inline u32 therm_clk_slowdown_r(u32 i)
 {
-	return 0x00020160U + i*4U;
+	return nvgpu_safe_add_u32(0x00020160U, nvgpu_safe_mult_u32(i, 4U));
 }
 static inline u32 therm_clk_slowdown_idle_factor_f(u32 v)
 {
@@ -260,7 +261,7 @@ static inline u32 therm_clk_slowdown_idle_factor_disabled_f(void)
 }
 static inline u32 therm_grad_stepping_table_r(u32 i)
 {
-	return 0x000202c8U + i*4U;
+	return nvgpu_safe_add_u32(0x000202c8U, nvgpu_safe_mult_u32(i, 4U));
 }
 static inline u32 therm_grad_stepping_table_slowdown_factor0_f(u32 v)
 {
@@ -352,7 +353,7 @@ static inline u32 therm_grad_stepping1_pdiv_duration_f(u32 v)
 }
 static inline u32 therm_clk_timing_r(u32 i)
 {
-	return 0x000203c0U + i*4U;
+	return nvgpu_safe_add_u32(0x000203c0U, nvgpu_safe_mult_u32(i, 4U));
 }
 static inline u32 therm_clk_timing_grad_slowdown_f(u32 v)
 {

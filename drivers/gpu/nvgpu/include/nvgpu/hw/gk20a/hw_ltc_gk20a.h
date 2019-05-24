@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2012-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -57,6 +57,7 @@
 #define NVGPU_HW_LTC_GK20A_H
 
 #include <nvgpu/types.h>
+#include <nvgpu/safe_ops.h>
 
 static inline u32 ltc_pltcg_base_v(void)
 {
@@ -196,7 +197,7 @@ static inline u32 ltc_ltcs_ltss_dstg_zbc_index_address_f(u32 v)
 }
 static inline u32 ltc_ltcs_ltss_dstg_zbc_color_clear_value_r(u32 i)
 {
-	return 0x0017ea48U + i*4U;
+	return nvgpu_safe_add_u32(0x0017ea48U, nvgpu_safe_mult_u32(i, 4U));
 }
 static inline u32 ltc_ltcs_ltss_dstg_zbc_color_clear_value__size_1_v(void)
 {

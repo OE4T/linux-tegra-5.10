@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2012-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -57,6 +57,7 @@
 #define NVGPU_HW_TRIM_GK20A_H
 
 #include <nvgpu/types.h>
+#include <nvgpu/safe_ops.h>
 
 static inline u32 trim_sys_gpcpll_cfg_r(void)
 {
@@ -228,7 +229,7 @@ static inline u32 trim_sys_gpc2clk_out_sdiv14_indiv4_mode_f(void)
 }
 static inline u32 trim_gpc_clk_cntr_ncgpcclk_cfg_r(u32 i)
 {
-	return 0x00134124U + i*512U;
+	return nvgpu_safe_add_u32(0x00134124U, nvgpu_safe_mult_u32(i, 512U));
 }
 static inline u32 trim_gpc_clk_cntr_ncgpcclk_cfg_noofipclks_f(u32 v)
 {
@@ -248,7 +249,7 @@ static inline u32 trim_gpc_clk_cntr_ncgpcclk_cfg_reset_asserted_f(void)
 }
 static inline u32 trim_gpc_clk_cntr_ncgpcclk_cnt_r(u32 i)
 {
-	return 0x00134128U + i*512U;
+	return nvgpu_safe_add_u32(0x00134128U, nvgpu_safe_mult_u32(i, 512U));
 }
 static inline u32 trim_gpc_clk_cntr_ncgpcclk_cnt_value_v(u32 r)
 {
