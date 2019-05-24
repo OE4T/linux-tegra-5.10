@@ -81,6 +81,9 @@ static int mttcan_hw_init(struct mttcan_priv *priv)
 	if (err)
 		return err;
 
+	/* initialize mttcan message RAM with 0s */
+	ttcan_mesg_ram_init(ttcan);
+
 	err = ttcan_set_config_change_enable(ttcan);
 	if (err)
 		return err;
@@ -761,6 +764,14 @@ static int mttcan_poll_ir(struct napi_struct *napi, int quota)
 			if (ir & MTT_IR_WDI_MASK)
 				netdev_warn(dev,
 					"Message RAM watchdog not handled\n");
+
+			if (ir & MTT_IR_BEC_MASK)
+				netdev_warn(dev, "mram Bit error detected"
+						"and corrected\n");
+
+			if (ir & MTT_IR_BEU_MASK)
+				netdev_warn(dev, "mram Bit error detected"
+						"and uncorrected\n");
 		}
 
 		if (ir & MTT_IR_TOO_MASK) {
@@ -1818,6 +1829,7 @@ static int mttcan_probe(struct platform_device *pdev)
 	priv->ttcan->base = regs;
 	priv->ttcan->xbase = xregs;
 	priv->ttcan->mram_base = mesg_ram->start;
+	priv->ttcan->mram_size = mesg_ram->end - mesg_ram->start + 1;
 	priv->ttcan->id = priv->instance;
 	priv->ttcan->mram_vbase = mram_addr;
 	INIT_LIST_HEAD(&priv->ttcan->rx_q0);
