@@ -82,7 +82,6 @@ int nvgpu_pmu_lock_release(struct gk20a *g, struct nvgpu_pmu *pmu,
 
 	return nvgpu_pmu_mutex_release(g, pmu->mutexes, id, token);
 }
-#endif
 
 /* PMU RTOS init/setup functions */
 int nvgpu_pmu_destroy(struct gk20a *g, struct nvgpu_pmu *pmu)
@@ -283,6 +282,7 @@ int nvgpu_pmu_init(struct gk20a *g, struct nvgpu_pmu *pmu)
 exit:
 	return err;
 }
+#endif
 
 int nvgpu_pmu_early_init(struct gk20a *g, struct nvgpu_pmu **pmu_p)
 {
@@ -321,7 +321,7 @@ int nvgpu_pmu_early_init(struct gk20a *g, struct nvgpu_pmu **pmu_p)
 		nvgpu_set_enabled(g, NVGPU_PMU_PERFMON, false);
 		goto exit;
 	}
-
+#ifdef NVGPU_LS_PMU
 	err = nvgpu_mutex_init(&pmu->isr_mutex);
 	if (err != 0) {
 		goto init_failed;
@@ -373,6 +373,7 @@ int nvgpu_pmu_early_init(struct gk20a *g, struct nvgpu_pmu **pmu_p)
 
 init_failed:
 	remove_pmu_support(pmu);
+#endif
 exit:
 	return err;
 }
@@ -439,7 +440,9 @@ static int pmu_enable(struct nvgpu_pmu *pmu, bool enable)
 
 	if (!enable) {
 		if (!g->ops.pmu.is_engine_in_reset(g)) {
+#ifdef NVGPU_LS_PMU
 			g->ops.pmu.pmu_enable_irq(pmu, false);
+#endif
 			pmu_enable_hw(pmu, false);
 		}
 	} else {

@@ -98,10 +98,12 @@ int gk20a_prepare_poweroff(struct gk20a *g)
 		}
 	}
 
+#ifdef NVGPU_LS_PMU
 	/* disable elpg before gr or fifo suspend */
 	if (g->support_ls_pmu) {
 		ret = nvgpu_pmu_destroy(g, g->pmu);
 	}
+#endif
 
 #ifdef NVGPU_DGPU_SUPPORT
 	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_SEC2_RTOS)) {
@@ -383,12 +385,14 @@ int gk20a_finalize_poweron(struct gk20a *g)
 	}
 #endif
 
+#ifdef NVGPU_LS_PMU
 	err = nvgpu_pmu_init(g, g->pmu);
 	if (err != 0) {
 		nvgpu_err(g, "failed to init gk20a pmu");
 		nvgpu_mutex_release(&g->tpc_pg_lock);
 		goto done;
 	}
+#endif
 
 	err = nvgpu_fbp_init_support(g);
 	if (err != 0) {
@@ -413,6 +417,7 @@ int gk20a_finalize_poweron(struct gk20a *g)
 
 	nvgpu_mutex_release(&g->tpc_pg_lock);
 
+#ifdef NVGPU_LS_PMU
 	if (nvgpu_is_enabled(g, NVGPU_PMU_PSTATE)) {
 		err = nvgpu_pmu_pstate_sw_setup(g);
 		if (err != 0) {
@@ -435,7 +440,9 @@ int gk20a_finalize_poweron(struct gk20a *g)
 			nvgpu_err(g, "failed to set boot clk");
 			goto done;
 		}
-	} else {
+	} else
+#endif
+	{
 		err = nvgpu_clk_arb_init_arbiter(g);
 		if (err != 0) {
 			nvgpu_err(g, "failed to init clk arb");
