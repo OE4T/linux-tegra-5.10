@@ -1325,10 +1325,8 @@ int nvgpu_buddy_allocator_init(struct gk20a *g, struct nvgpu_allocator *na,
 		return -EINVAL;
 	}
 
-	/* Needs to be fixed, return -EINVAL*/
 	if (size == 0U) {
-		/* Setting to fixed size 1G to avoid further issues */
-		size = 0x40000000;
+		return -EINVAL;
 	}
 
 	/* If this is to manage a GVA space we need a VM. */

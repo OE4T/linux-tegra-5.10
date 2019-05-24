@@ -503,21 +503,25 @@ int nvgpu_vm_do_init(struct mm_gk20a *mm,
 	}
 
 	/*
-	 * Kernel VMA. Must always exist for an address space.
+	 * Kernel VMA.
+	 * Note: Kernel VMA does not exist for VGPU.
 	 */
-	(void) strcpy(alloc_name, "gk20a_");
-	(void) strcat(alloc_name, name);
-	(void) strcat(alloc_name, "-sys");
-	err = nvgpu_allocator_init(g, &vm->kernel,
-					 vm, alloc_name,
-					 kernel_vma_start,
-					 kernel_vma_limit - kernel_vma_start,
-					 SZ_4K,
-					 GPU_BALLOC_MAX_ORDER,
-					 kernel_vma_flags,
-					 BUDDY_ALLOCATOR);
-	if (err != 0) {
-		goto clean_up_allocators;
+	if (kernel_vma_start < kernel_vma_limit) {
+		(void) strcpy(alloc_name, "gk20a_");
+		(void) strcat(alloc_name, name);
+		(void) strcat(alloc_name, "-sys");
+		err = nvgpu_allocator_init(g, &vm->kernel,
+						 vm, alloc_name,
+						 kernel_vma_start,
+						 kernel_vma_limit -
+						 kernel_vma_start,
+						 SZ_4K,
+						 GPU_BALLOC_MAX_ORDER,
+						 kernel_vma_flags,
+						 BUDDY_ALLOCATOR);
+		if (err != 0) {
+			goto clean_up_allocators;
+		}
 	}
 
 	vm->mapped_buffers = NULL;
