@@ -2677,7 +2677,7 @@ static int tegra_hv_vse_cmac_finup(struct ahash_request *req)
 	if (atomic_read(&se_dev->se_suspended))
 		return -ENODEV;
 
-	return 0;
+	return tegra_hv_vse_cmac_final(req);
 }
 
 static int tegra_hv_vse_cmac_digest(struct ahash_request *req)

@@ -3015,7 +3015,7 @@ static int tegra_se_aes_cmac_digest(struct ahash_request *req)
 
 static int tegra_se_aes_cmac_finup(struct ahash_request *req)
 {
-	return 0;
+	return tegra_se_aes_cmac_final(req);
 }
 
 static int tegra_se_aes_cmac_cra_init(struct crypto_tfm *tfm)

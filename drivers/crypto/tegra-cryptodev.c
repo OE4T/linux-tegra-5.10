@@ -52,6 +52,8 @@
 #define MAX_RSA_MSG_LEN 256
 #define MAX_RSA1_MSG_LEN 512
 
+#define get_driver_name(tfm_type, tfm) crypto_tfm_alg_driver_name(tfm_type ## _tfm(tfm))
+
 enum tegra_se_pka1_ecc_type {
 	ECC_POINT_MUL,
 	ECC_POINT_ADD,
@@ -1243,6 +1245,7 @@ static int tegra_crypto_sha(struct tegra_sha_req *sha_req)
 	struct scatterlist sg[1];
 	char *result;
 	char algo[64];
+	const char *driver_name;
 	struct ahash_request *req;
 	struct tegra_crypto_completion sha_complete;
 	void *hash_buff;
@@ -1256,12 +1259,6 @@ static int tegra_crypto_sha(struct tegra_sha_req *sha_req)
 	}
 	algo[sizeof(algo) - 1] = '\0';
 
-	if (strncmp(algo, "cmac(aes)", 9) == 0) {
-		if (sha_req->plaintext_sz > PAGE_SIZE) {
-			pr_err("alg:hash: invalid plaintext_sz for sha_req\n");
-			return -EINVAL;
-		}
-	}
 
 	result = kzalloc(64, GFP_KERNEL);
 	if (!result)
@@ -1271,7 +1268,25 @@ static int tegra_crypto_sha(struct tegra_sha_req *sha_req)
 	if (IS_ERR(tfm)) {
 		pr_err("alg:hash:Failed to load transform for %s:%ld\n",
 			algo, PTR_ERR(tfm));
+		ret = PTR_ERR(tfm);
 		goto out_alloc;
+	}
+
+	driver_name = get_driver_name(crypto_ahash, tfm);
+	if (driver_name == NULL) {
+		pr_err("alg:hash: get_driver_name returned NULL");
+		goto out_noreq;
+	}
+
+	if (
+		strncmp(algo, "cmac(aes)", 9) == 0
+		&& strcmp(driver_name, "tegra-hv-vse-safety-cmac(aes)") != 0
+	) {
+		if (sha_req->plaintext_sz > PAGE_SIZE) {
+			pr_err("alg:hash: invalid plaintext_sz for sha_req\n");
+			ret = -EINVAL;
+			goto out_noreq;
+		}
 	}
 
 	req = ahash_request_alloc(tfm, GFP_KERNEL);
@@ -1328,19 +1343,39 @@ static int tegra_crypto_sha(struct tegra_sha_req *sha_req)
 		sg_init_one(&sg[0], hash_buff, size);
 		ahash_request_set_crypt(req, sg, result, size);
 
-		ret = wait_async_op(&sha_complete, crypto_ahash_update(req));
-		if (ret) {
-			pr_err("alg: hash: update failed for %s: ret=%d\n",
-				sha_req->algo, ret);
-			goto out;
-		}
-
-		if (size == total) {
+		if (size < total) {
 			ret = wait_async_op(&sha_complete,
-					crypto_ahash_final(req));
+					crypto_ahash_update(req));
 			if (ret) {
-				pr_err("alg: hash: final failed for %s: ret=%d\n", sha_req->algo, ret);
+				pr_err("alg: hash: update failed for %s: ret=%d\n",
+					sha_req->algo, ret);
 				goto out;
+			}
+		} else {
+			if (strncmp(algo, "cmac(aes)", 9) == 0) {
+				ret = wait_async_op(&sha_complete,
+						crypto_ahash_finup(req));
+				if (ret) {
+					pr_err("alg: hash: finup failed for %s: ret=%d\n",
+						sha_req->algo, ret);
+					goto out;
+				}
+			} else {
+				ret = wait_async_op(&sha_complete,
+						crypto_ahash_update(req));
+				if (ret) {
+					pr_err("alg: hash: update failed for %s: ret=%d\n",
+						sha_req->algo, ret);
+					goto out;
+				}
+
+				ret = wait_async_op(&sha_complete,
+						crypto_ahash_final(req));
+				if (ret) {
+					pr_err("alg: hash: final failed for %s: ret=%d\n",
+						sha_req->algo, ret);
+					goto out;
+				}
 			}
 			break;
 		}
