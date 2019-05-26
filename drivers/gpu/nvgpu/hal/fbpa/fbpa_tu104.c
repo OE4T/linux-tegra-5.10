@@ -52,6 +52,11 @@ static void tu104_fbpa_handle_ecc_intr(struct gk20a *g,
 
 	status = gk20a_readl(g, offset + fbpa_0_ecc_status_r(subp_id));
 
+	if (!g->ecc.initialized) {
+		nvgpu_info(g, "ecc support is not initialized");
+		goto out;
+	}
+
 	if ((status & fbpa_0_ecc_status_sec_counter_overflow_pending_f()) != 0U) {
 		nvgpu_err(g, "fbpa %u subp %u ecc sec counter overflow",
 				fbpa_id, subp_id);
@@ -76,6 +81,7 @@ static void tu104_fbpa_handle_ecc_intr(struct gk20a *g,
 		g->ecc.fbpa.fbpa_ecc_ded_err_count[cnt_idx].counter += ded_cnt;
 	}
 
+out:
 	gk20a_writel(g, offset + fbpa_0_ecc_status_r(subp_id), status);
 }
 
