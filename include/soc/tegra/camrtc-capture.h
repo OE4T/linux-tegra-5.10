@@ -154,12 +154,10 @@ typedef struct syncpoint_info {
  * <dt>ISPB:	<dd>Channel outputs to ISPB
  * <dt>ISP_DIRECT: <dd>Channel outputs directly to selected ISP (ISO mode)
  * <dt>ISPSW:	<dd>Channel outputs to software ISP (reserved)
- * <dt>ENABLE_ERROR_ACTIONS_MASKS:  <dd>Channel handles errors according to
+ * <dt>ENABLE_HSM_ERROR_MASKS:  <dd>Channel reports errors to HSM according to
  *     error_mask_correctable and error_mask_uncorrectable.
- *     This flag take precedence over RESET_ON_ERROR.
- * <dt>RESET_ON_ERROR:	<dd>Channel treats all errors as uncorrectable
- *	and requires reset for recovery. This flag is ignored if
- *	ENABLE_ERROR_ACTIONS_MASKS is set.
+ * <dt>RESET_ON_ERROR:	<dd>Channel treats all errors as stop-on-error
+ *	and requires reset for recovery.
  * <dt>ENABLE_VI_PFSD: <dd>Capture with VI PFSD enabled
  *
  * </dl>
@@ -214,14 +212,19 @@ struct capture_channel_config {
 	struct syncpoint_info linetimer_sp;
 
 	/**
-	 * Errors NOT defined in error_mask_uncorrectable are reported and stop channel.
-	 * User reset is required for channel recovery.
+	 * User-defined HSM error reporting policy is specified by error masks bits
+	 *
+	 * CAPTURE_CHANNEL_FLAG_ENABLE_HSM_ERROR_MASKS must be set to enable these error masks,
+	 * otherwise default HSM reporting policy is used.
+	 *
+	 * VI-falcon reports error to EC/HSM as uncorrectable if error is not masked
+	 * in uncorrectable mask.
+	 * VI-falcon reports error to EC/HSM as correctable if error is masked
+	 * in uncorrectable mask and not masked in correctable mask.
+	 * VI-falcon does not report error to EC/HSM if error masked
+	 * in both correctable and uncorrectable masks.
 	 */
 	uint32_t error_mask_uncorrectable;
-	/**
-	 * Errors NOT defined in error_mask_correctable are reported, but
-	 * don't stop the channel.
-	 */
 	uint32_t error_mask_correctable;
 #define CAPTURE_CHANNEL_ERROR_VI_FRAME_START_TIMEOUT	(U32_C(1) << 23)
 #define CAPTURE_CHANNEL_ERROR_VI_PFSD_FAULT		(U32_C(1) << 22)
@@ -777,9 +780,10 @@ struct vi_hsm_chansel_error_mask_config {
 #define NVCSI_VIRTUAL_CHANNEL_14	U32_C(0xE)
 #define NVCSI_VIRTUAL_CHANNEL_15	U32_C(0xF)
 
-/* NVCSI config flag */
+/* NVCSI config flags */
 #define NVCSI_CONFIG_FLAG_BRICK		(U32_C(1) << 0)
 #define NVCSI_CONFIG_FLAG_CIL		(U32_C(1) << 1)
+/* Enable user-provided error handling configuration */
 #define NVCSI_CONFIG_FLAG_ERROR		(U32_C(1) << 2)
 
 /* Number of lanes/trios per brick */
@@ -970,6 +974,11 @@ struct vi_hsm_csimux_error_mask_config {
 #define NVCSI_INTR_CONFIG_SHIFT_STREAM_NOVC	U32_C(0x0)
 #define NVCSI_INTR_CONFIG_SHIFT_STREAM_VC	U32_C(0x2)
 
+/*
+ * User-defined error configuration.
+ * Flag NVCSI_CONFIG_FLAG_ERROR must be set to enable these settings,
+ * otherwise default settings will be used.
+ */
 struct nvcsi_error_config {
 	/* Mask Host1x timeout intr*/
 	uint32_t host1x_intr_mask;
