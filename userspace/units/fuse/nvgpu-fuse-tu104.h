@@ -20,14 +20,14 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef __UNIT_NVGPU_FUSE_GV100_H__
-#define __UNIT_NVGPU_FUSE_GV100_H__
+#ifndef __UNIT_NVGPU_FUSE_TU104_H__
+#define __UNIT_NVGPU_FUSE_TU104_H__
 
-extern struct fuse_test_args gv100_init_args;
+extern struct fuse_test_args tu104_init_args;
 
-int test_fuse_gv100_vin_cal_rev(struct unit_module *m,
+int test_fuse_tu104_vin_cal_rev(struct unit_module *m,
 				struct gk20a *g, void *__args);
-int test_fuse_gv100_vin_cal_slope_intercept(struct unit_module *m,
+int test_fuse_tu104_vin_cal_slope_intercept(struct unit_module *m,
 					    struct gk20a *g, void *__args);
 
-#endif /* __UNIT_NVGPU_FUSE_GV100_H__ */
+#endif /* __UNIT_NVGPU_FUSE_TU104_H__ */

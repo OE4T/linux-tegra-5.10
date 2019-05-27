@@ -30,39 +30,39 @@
 #include "hal/fuse/fuse_gm20b.h"
 
 #include "nvgpu-fuse-priv.h"
-#include "nvgpu-fuse-gv100.h"
+#include "nvgpu-fuse-tu104.h"
 
 
 /* register definitions for this block */
-#define GV100_FUSE_REG_BASE			0x00021000U
-#define GV100_FUSE_STATUS_OPT_PRIV_SEC_EN	(GV100_FUSE_REG_BASE+0x434U)
-#define GV100_FUSE_OPT_ADC_CAL_FUSE_REV		(GV100_FUSE_REG_BASE+0x64CU)
-#define GV100_FUSE_OPT_ADC_CAL_GPC0		(GV100_FUSE_REG_BASE+0x650U)
-#define GV100_FUSE_OPT_ADC_CAL_GPC1_DELTA	(GV100_FUSE_REG_BASE+0x654U)
-#define GV100_FUSE_OPT_ADC_CAL_GPC2_DELTA	(GV100_FUSE_REG_BASE+0x658U)
-#define GV100_FUSE_OPT_ADC_CAL_GPC3_DELTA	(GV100_FUSE_REG_BASE+0x65CU)
-#define GV100_FUSE_OPT_ADC_CAL_GPC4_DELTA	(GV100_FUSE_REG_BASE+0x660U)
-#define GV100_FUSE_OPT_ADC_CAL_GPC5_DELTA	(GV100_FUSE_REG_BASE+0x664U)
-#define GV100_FUSE_OPT_ADC_CAL_SHARED_DELTA	(GV100_FUSE_REG_BASE+0x668U)
+#define TU104_FUSE_REG_BASE			0x00021000U
+#define TU104_FUSE_STATUS_OPT_PRIV_SEC_EN	(TU104_FUSE_REG_BASE+0x434U)
+#define TU104_FUSE_OPT_ADC_CAL_FUSE_REV		(TU104_FUSE_REG_BASE+0x64CU)
+#define TU104_FUSE_OPT_ADC_CAL_GPC0		(TU104_FUSE_REG_BASE+0x650U)
+#define TU104_FUSE_OPT_ADC_CAL_GPC1_DELTA	(TU104_FUSE_REG_BASE+0x654U)
+#define TU104_FUSE_OPT_ADC_CAL_GPC2_DELTA	(TU104_FUSE_REG_BASE+0x658U)
+#define TU104_FUSE_OPT_ADC_CAL_GPC3_DELTA	(TU104_FUSE_REG_BASE+0x65CU)
+#define TU104_FUSE_OPT_ADC_CAL_GPC4_DELTA	(TU104_FUSE_REG_BASE+0x660U)
+#define TU104_FUSE_OPT_ADC_CAL_GPC5_DELTA	(TU104_FUSE_REG_BASE+0x664U)
+#define TU104_FUSE_OPT_ADC_CAL_SHARED_DELTA	(TU104_FUSE_REG_BASE+0x668U)
 
 
 /* for common init args */
-struct fuse_test_args gv100_init_args = {
-	.gpu_arch = 0x14,
-	.gpu_impl = 0x0,
-	.fuse_base_addr = GV100_FUSE_REG_BASE,
-	.sec_fuse_addr = GV100_FUSE_STATUS_OPT_PRIV_SEC_EN,
+struct fuse_test_args tu104_init_args = {
+	.gpu_arch = 0x16,
+	.gpu_impl = 0x4,
+	.fuse_base_addr = TU104_FUSE_REG_BASE,
+	.sec_fuse_addr = TU104_FUSE_STATUS_OPT_PRIV_SEC_EN,
 };
 
 /* Verify fuse API to read cal fuse revision */
-int test_fuse_gv100_vin_cal_rev(struct unit_module *m,
+int test_fuse_tu104_vin_cal_rev(struct unit_module *m,
 				struct gk20a *g, void *__args)
 {
 	const u32 rev = 0x3;
 	u32 val;
 	int ret = UNIT_SUCCESS;
 
-	nvgpu_posix_io_writel_reg_space(g, GV100_FUSE_OPT_ADC_CAL_FUSE_REV,
+	nvgpu_posix_io_writel_reg_space(g, TU104_FUSE_OPT_ADC_CAL_FUSE_REV,
 					rev);
 
 	val = g->ops.fuse.read_vin_cal_fuse_rev(g);
@@ -149,7 +149,7 @@ static s8 fuse_expected_offset(u32 this_fuse)
  *   Loops through table of fuse values and expected results
  *   Validates invalid data checks
  */
-int test_fuse_gv100_vin_cal_slope_intercept(struct unit_module *m,
+int test_fuse_tu104_vin_cal_slope_intercept(struct unit_module *m,
 					    struct gk20a *g, void *__args)
 {
 	int result;
@@ -168,47 +168,47 @@ int test_fuse_gv100_vin_cal_slope_intercept(struct unit_module *m,
 	};
 	struct vin_test_struct vin_test_table[] = {
 		{
-		 CTRL_CLK_VIN_ID_GPC0, GV100_FUSE_OPT_ADC_CAL_GPC0,
+		 CTRL_CLK_VIN_ID_GPC0, TU104_FUSE_OPT_ADC_CAL_GPC0,
 		 0x00214421, 0x00214421,
 		 gpc0_expected_slope, gpc0_expected_intercept,
 		},
 		{
-		 CTRL_CLK_VIN_ID_GPC1, GV100_FUSE_OPT_ADC_CAL_GPC1_DELTA,
+		 CTRL_CLK_VIN_ID_GPC1, TU104_FUSE_OPT_ADC_CAL_GPC1_DELTA,
 		 0x00214421, 0x00214421,
 		 gpc1_expected_slope, gpc1_expected_intercept,
 		},
 		{
-		 CTRL_CLK_VIN_ID_GPC2, GV100_FUSE_OPT_ADC_CAL_GPC2_DELTA,
+		 CTRL_CLK_VIN_ID_GPC2, TU104_FUSE_OPT_ADC_CAL_GPC2_DELTA,
 		 0x00000000, 0x00614c21,
 		 gpc1_expected_slope, gpc1_expected_intercept,
 		},
 		{
-		 CTRL_CLK_VIN_ID_GPC3, GV100_FUSE_OPT_ADC_CAL_GPC3_DELTA,
+		 CTRL_CLK_VIN_ID_GPC3, TU104_FUSE_OPT_ADC_CAL_GPC3_DELTA,
 		 0x00214421, 0xaaaaaaaa,
 		 gpc1_expected_slope, gpc1_expected_intercept,
 		},
 		{
-		 CTRL_CLK_VIN_ID_GPC4, GV100_FUSE_OPT_ADC_CAL_GPC4_DELTA,
+		 CTRL_CLK_VIN_ID_GPC4, TU104_FUSE_OPT_ADC_CAL_GPC4_DELTA,
 		 0x00214421, 0x55555555,
 		 gpc1_expected_slope, gpc1_expected_intercept,
 		},
 		{
-		 CTRL_CLK_VIN_ID_GPC5, GV100_FUSE_OPT_ADC_CAL_GPC5_DELTA,
+		 CTRL_CLK_VIN_ID_GPC5, TU104_FUSE_OPT_ADC_CAL_GPC5_DELTA,
 		 0x00214421, 0xefffffff,
 		 gpc1_expected_slope, gpc1_expected_intercept,
 		},
 		{
-		 CTRL_CLK_VIN_ID_SYS, GV100_FUSE_OPT_ADC_CAL_SHARED_DELTA,
+		 CTRL_CLK_VIN_ID_SYS, TU104_FUSE_OPT_ADC_CAL_SHARED_DELTA,
 		 0x00214421, 0xfffffffe,
 		 gpc1_expected_slope, gpc1_expected_intercept,
 		},
 		{
-		 CTRL_CLK_VIN_ID_XBAR, GV100_FUSE_OPT_ADC_CAL_SHARED_DELTA,
+		 CTRL_CLK_VIN_ID_XBAR, TU104_FUSE_OPT_ADC_CAL_SHARED_DELTA,
 		 0x00214421, 0x11111111,
 		 gpc1_expected_slope, gpc1_expected_intercept,
 		},
 		{
-		 CTRL_CLK_VIN_ID_LTC, GV100_FUSE_OPT_ADC_CAL_SHARED_DELTA,
+		 CTRL_CLK_VIN_ID_LTC, TU104_FUSE_OPT_ADC_CAL_SHARED_DELTA,
 		 0x00214421, 0x00000001,
 		 gpc1_expected_slope, gpc1_expected_intercept,
 		},
@@ -222,7 +222,7 @@ int test_fuse_gv100_vin_cal_slope_intercept(struct unit_module *m,
 		u32 expected_slope, expected_intercept;
 		s8 expected_gain, expected_offset;
 
-		nvgpu_posix_io_writel_reg_space(g, GV100_FUSE_OPT_ADC_CAL_GPC0,
+		nvgpu_posix_io_writel_reg_space(g, TU104_FUSE_OPT_ADC_CAL_GPC0,
 						gpc0_fuse_val);
 		nvgpu_posix_io_writel_reg_space(g,
 					vin_test_table[i].fuse_addr,
@@ -285,7 +285,7 @@ int test_fuse_gv100_vin_cal_slope_intercept(struct unit_module *m,
 	}
 
 	/* test invalid GPC0 data special case */
-	nvgpu_posix_io_writel_reg_space(g, GV100_FUSE_OPT_ADC_CAL_GPC0,
+	nvgpu_posix_io_writel_reg_space(g, TU104_FUSE_OPT_ADC_CAL_GPC0,
 					~0U);
 	result = g->ops.fuse.read_vin_cal_slope_intercept_fuse(g,
 						CTRL_CLK_VIN_ID_GPC0,
@@ -304,11 +304,11 @@ int test_fuse_gv100_vin_cal_slope_intercept(struct unit_module *m,
 		ret = UNIT_FAIL;
 	}
 	/* restore valid data */
-	nvgpu_posix_io_writel_reg_space(g, GV100_FUSE_OPT_ADC_CAL_GPC0,
+	nvgpu_posix_io_writel_reg_space(g, TU104_FUSE_OPT_ADC_CAL_GPC0,
 					0U);
 
 	/* test invalid GPC1 data for the bad delta data case */
-	nvgpu_posix_io_writel_reg_space(g, GV100_FUSE_OPT_ADC_CAL_GPC1_DELTA,
+	nvgpu_posix_io_writel_reg_space(g, TU104_FUSE_OPT_ADC_CAL_GPC1_DELTA,
 					~0U);
 	result = g->ops.fuse.read_vin_cal_slope_intercept_fuse(g,
 						CTRL_CLK_VIN_ID_GPC1,
@@ -319,7 +319,7 @@ int test_fuse_gv100_vin_cal_slope_intercept(struct unit_module *m,
 		ret = UNIT_FAIL;
 	}
 	/* restore valid data */
-	nvgpu_posix_io_writel_reg_space(g, GV100_FUSE_OPT_ADC_CAL_GPC1_DELTA,
+	nvgpu_posix_io_writel_reg_space(g, TU104_FUSE_OPT_ADC_CAL_GPC1_DELTA,
 					0U);
 	/* test invalid VIN ID */
 	result = g->ops.fuse.read_vin_cal_slope_intercept_fuse(g,

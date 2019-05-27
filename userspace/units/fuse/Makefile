@@ -23,7 +23,7 @@
 OBJS   = nvgpu-fuse.o \
 	 nvgpu-fuse-gm20b.o \
 	 nvgpu-fuse-gp10b.o \
-	 nvgpu-fuse-gv100.o
+	 nvgpu-fuse-tu104.o
 MODULE = nvgpu-fuse
 
 include ../Makefile.units
