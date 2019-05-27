@@ -45,6 +45,7 @@
 #include <nvgpu/pmu/pmu_pstate.h>
 #include <nvgpu/nvgpu_err.h>
 
+#ifdef NVGPU_LS_PMU
 /* PMU locks used to sync with PMU-RTOS */
 int nvgpu_pmu_lock_acquire(struct gk20a *g, struct nvgpu_pmu *pmu,
 			u32 id, u32 *token)
@@ -81,6 +82,7 @@ int nvgpu_pmu_lock_release(struct gk20a *g, struct nvgpu_pmu *pmu,
 
 	return nvgpu_pmu_mutex_release(g, pmu->mutexes, id, token);
 }
+#endif
 
 /* PMU RTOS init/setup functions */
 int nvgpu_pmu_destroy(struct gk20a *g, struct nvgpu_pmu *pmu)

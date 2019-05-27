@@ -52,18 +52,20 @@ static void gv11b_fifo_locked_abort_runlist_active_tsgs(struct gk20a *g,
 	struct nvgpu_tsg *tsg = NULL;
 	unsigned long tsgid;
 	struct nvgpu_runlist_info *runlist = NULL;
+#ifdef NVGPU_LS_PMU
 	u32 token = PMU_INVALID_MUTEX_OWNER_ID;
 	int mutex_ret = 0;
+#endif
 	int err;
 	u32 i;
 
 	nvgpu_err(g, "abort active tsgs of runlists set in "
 			"runlists_mask: 0x%08x", runlists_mask);
-
+#ifdef NVGPU_LS_PMU
 	/* runlist_lock  are locked by teardown */
 	mutex_ret = nvgpu_pmu_lock_acquire(g, g->pmu,
 			PMU_MUTEX_ID_FIFO, &token);
-
+#endif
 	for (i = 0U; i < f->num_runlists; i++) {
 		runlist = &f->active_runlist_info[i];
 
@@ -118,6 +120,7 @@ static void gv11b_fifo_locked_abort_runlist_active_tsgs(struct gk20a *g,
 			nvgpu_log(g, gpu_dbg_info, "aborted tsg id %lu", tsgid);
 		}
 	}
+#ifdef NVGPU_LS_PMU
 	if (mutex_ret == 0) {
 		err = nvgpu_pmu_lock_release(g, g->pmu, PMU_MUTEX_ID_FIFO,
 				&token);
@@ -126,6 +129,7 @@ static void gv11b_fifo_locked_abort_runlist_active_tsgs(struct gk20a *g,
 					err);
 		}
 	}
+#endif
 }
 
 void gv11b_fifo_recover(struct gk20a *g, u32 act_eng_bitmask,

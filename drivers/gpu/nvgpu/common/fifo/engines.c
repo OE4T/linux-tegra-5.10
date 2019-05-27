@@ -282,8 +282,10 @@ int nvgpu_engine_disable_activity(struct gk20a *g,
 {
 	u32 pbdma_chid = NVGPU_INVALID_CHANNEL_ID;
 	u32 engine_chid = NVGPU_INVALID_CHANNEL_ID;
+#ifdef NVGPU_LS_PMU
 	u32 token = PMU_INVALID_MUTEX_OWNER_ID;
 	int mutex_ret = -EINVAL;
+#endif
 	struct nvgpu_channel *ch = NULL;
 	int err = 0;
 	struct nvgpu_engine_status_info engine_status;
@@ -297,10 +299,12 @@ int nvgpu_engine_disable_activity(struct gk20a *g,
 		return -EBUSY;
 	}
 
+#ifdef NVGPU_LS_PMU
 	if (g->ops.pmu.is_pmu_supported(g)) {
 		mutex_ret = nvgpu_pmu_lock_acquire(g, g->pmu,
 						PMU_MUTEX_ID_FIFO, &token);
 	}
+#endif
 
 	nvgpu_fifo_runlist_set_state(g, BIT32(eng_info->runlist_id),
 			RUNLIST_DISABLED);
@@ -350,13 +354,14 @@ int nvgpu_engine_disable_activity(struct gk20a *g,
 	}
 
 clean_up:
+#ifdef NVGPU_LS_PMU
 	if (mutex_ret == 0) {
 		if (nvgpu_pmu_lock_release(g, g->pmu,
 			PMU_MUTEX_ID_FIFO, &token) != 0){
 			nvgpu_err(g, "failed to release PMU lock");
 		}
 	}
-
+#endif
 	if (err != 0) {
 		nvgpu_log_fn(g, "failed");
 		if (nvgpu_engine_enable_activity(g, eng_info) != 0) {
