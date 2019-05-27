@@ -37,6 +37,7 @@ struct nvgpu_gr_config *nvgpu_gr_config_init(struct gk20a *g)
 	u32 gpc_new_skip_mask;
 	size_t sm_info_size;
 	u32 temp = 0U, temp1 = 0U;
+	size_t gpc_size, temp2, temp3;
 
 	config = nvgpu_kzalloc(g, sizeof(*config));
 	if (config == NULL) {
@@ -79,11 +80,12 @@ struct nvgpu_gr_config *nvgpu_gr_config_init(struct gk20a *g)
 		goto clean_up;
 	}
 
+	temp1 = nvgpu_safe_mult_u32(config->gpc_count,
+				config->max_tpc_per_gpc_count);
+	temp2 = nvgpu_safe_mult_u64((size_t)config->sm_count_per_tpc,
+				sizeof(struct nvgpu_sm_info));
 	/* allocate for max tpc per gpc */
-	sm_info_size = (size_t)config->gpc_count *
-		(size_t)config->max_tpc_per_gpc_count *
-		(size_t)config->sm_count_per_tpc *
-		sizeof(struct nvgpu_sm_info);
+	sm_info_size = nvgpu_safe_mult_u64((size_t)temp1, temp2);
 
 	if (config->sm_to_cluster == NULL) {
 		config->sm_to_cluster = nvgpu_kzalloc(g, sm_info_size);
@@ -99,17 +101,18 @@ struct nvgpu_gr_config *nvgpu_gr_config_init(struct gk20a *g)
 	config->max_zcull_per_gpc_count = nvgpu_get_litter_value(g,
 		GPU_LIT_NUM_ZCULL_BANKS);
 
-	config->gpc_tpc_count = nvgpu_kzalloc(g, config->gpc_count *
-					sizeof(u32));
-	config->gpc_tpc_mask = nvgpu_kzalloc(g, config->max_gpc_count *
-					sizeof(u32));
-	config->gpc_zcb_count = nvgpu_kzalloc(g, config->gpc_count *
-					sizeof(u32));
-	config->gpc_ppc_count = nvgpu_kzalloc(g, config->gpc_count *
-					sizeof(u32));
-	config->gpc_skip_mask = nvgpu_kzalloc(g,
-			(size_t)g->ops.gr.config.get_pd_dist_skip_table_size() *
-			(size_t)4 * sizeof(u32));
+	gpc_size = nvgpu_safe_mult_u64((size_t)config->gpc_count, sizeof(u32));
+	temp2 = nvgpu_safe_mult_u64((size_t)config->max_gpc_count, sizeof(u32));
+	config->gpc_tpc_count = nvgpu_kzalloc(g, gpc_size);
+	config->gpc_tpc_mask = nvgpu_kzalloc(g, temp2);
+	config->gpc_zcb_count = nvgpu_kzalloc(g, gpc_size);
+	config->gpc_ppc_count = nvgpu_kzalloc(g, gpc_size);
+
+	temp2 = nvgpu_safe_mult_u64(
+			(size_t)g->ops.gr.config.get_pd_dist_skip_table_size(),
+			sizeof(u32));
+	temp3 = nvgpu_safe_mult_u64(temp2, 4UL);
+	config->gpc_skip_mask = nvgpu_kzalloc(g, temp3);
 
 	if ((config->gpc_tpc_count == NULL) || (config->gpc_tpc_mask == NULL) ||
 	    (config->gpc_zcb_count == NULL) || (config->gpc_ppc_count == NULL) ||
@@ -125,10 +128,8 @@ struct nvgpu_gr_config *nvgpu_gr_config_init(struct gk20a *g)
 	}
 
 	for (pes_index = 0; pes_index < config->pe_count_per_gpc; pes_index++) {
-		config->pes_tpc_count[pes_index] = nvgpu_kzalloc(g,
-			config->gpc_count * sizeof(u32));
-		config->pes_tpc_mask[pes_index] = nvgpu_kzalloc(g,
-			config->gpc_count * sizeof(u32));
+		config->pes_tpc_count[pes_index] = nvgpu_kzalloc(g, gpc_size);
+		config->pes_tpc_mask[pes_index] = nvgpu_kzalloc(g, gpc_size);
 		if ((config->pes_tpc_count[pes_index] == NULL) ||
 		    (config->pes_tpc_mask[pes_index] == NULL)) {
 			goto clean_up;
@@ -365,6 +366,8 @@ int nvgpu_gr_config_init_map_tiles(struct gk20a *g,
 		config->map_row_offset = 1;
 		break;
 	default:
+		nvgpu_log_info(g, "unsupported tpc count = %d=u",
+				config->tpc_count);
 		break;
 	}
 
