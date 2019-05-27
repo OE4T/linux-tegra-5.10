@@ -613,9 +613,11 @@ void gk20a_init_gpu_characteristics(struct gk20a *g)
 
 	g->ops.gr.init.detect_sm_arch(g);
 
+#ifdef CONFIG_GK20A_CYCLE_STATS
 	if (g->ops.gr.init_cyclestats != NULL) {
 		g->ops.gr.init_cyclestats(g);
 	}
+#endif
 }
 
 static struct gk20a *gk20a_from_refcount(struct nvgpu_ref *refcount)
