@@ -535,6 +535,8 @@ struct capture_status {
 	/* ATOMP_FRAME_TOSSED   (TAG 0x16) Frame data not written */
 	#define CAPTURE_STATUS_NOTIFY_BIT_ATOMP_FRAME_TOSSED			(U64_C(1) << 48U)
 
+	/* Non-classified error */
+	#define CAPTURE_STATUS_NOTIFY_BIT_NON_CLASSIFIED_0			(U64_C(1) << 63U)
 } __CAPTURE_IVC_ALIGN;
 
 #define VI_AFM_NUM_ROI			8
