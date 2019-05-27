@@ -142,8 +142,11 @@ struct bit_token *nvgpu_bios_get_bit_token(struct gk20a *g, u8 token_id)
 	case NVGPU_BIOS_VIRT_TOKEN:
 		token = g->bios->virt_token;
 		break;
-	}
 
+	default:
+		token = NULL;
+		break;
+	}
 	return token;
 }
 
