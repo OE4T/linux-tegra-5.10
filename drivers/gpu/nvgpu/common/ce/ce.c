@@ -233,7 +233,7 @@ static inline unsigned int nvgpu_ce_get_method_size(u32 request_operation,
 		iterations++;
 
 		shift = (MAX_CE_ALIGN(chunk) != 0ULL) ?
-				__ffs(MAX_CE_ALIGN(chunk)) : MAX_CE_SHIFT;
+				(ffs(MAX_CE_ALIGN(chunk)) - 1UL) : MAX_CE_SHIFT;
 		width = chunk >> shift;
 		height = BIT32(shift);
 		width = MAX_CE_ALIGN(width);
@@ -307,7 +307,7 @@ u32 nvgpu_ce_prepare_submit(u64 src_buf,
 		 */
 
 		shift = (MAX_CE_ALIGN(chunk) != 0ULL) ?
-				__ffs(MAX_CE_ALIGN(chunk)) : MAX_CE_SHIFT;
+				(ffs(MAX_CE_ALIGN(chunk)) - 1UL) : MAX_CE_SHIFT;
 		height = chunk >> shift;
 		width = BIT32(shift);
 		height = MAX_CE_ALIGN(height);

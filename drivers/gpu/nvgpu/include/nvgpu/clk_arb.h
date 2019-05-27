@@ -51,10 +51,11 @@ struct nvgpu_clk_session;
 #define VF_POINT_INVALID_PSTATE ~0U
 #define VF_POINT_SET_PSTATE_SUPPORTED(a, b) ((a)->pstates |= (BIT16(b)))
 #define VF_POINT_GET_PSTATE(a)	(((a)->pstates) ?\
-	__fls((a)->pstates) :\
+	(fls((a)->pstates) - 1UL) :\
 	VF_POINT_INVALID_PSTATE)
 #define VF_POINT_COMMON_PSTATE(a, b)   (((a)->pstates & (b)->pstates) != 0U ?\
-	__fls((unsigned long)((a)->pstates) & (unsigned long)((b)->pstates)) :\
+	(fls((unsigned long)((a)->pstates) & \
+	(unsigned long)((b)->pstates)) - 1UL) :\
 	VF_POINT_INVALID_PSTATE)
 
 /*

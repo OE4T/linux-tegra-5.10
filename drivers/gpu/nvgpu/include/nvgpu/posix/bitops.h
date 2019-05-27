@@ -56,10 +56,7 @@ unsigned long nvgpu_posix_fls(unsigned long word);
 #define ffs(word)	nvgpu_posix_ffs(word)
 #define fls(word)	nvgpu_posix_fls(word)
 
-#define __ffs(word)	((ffs(word)) - 1UL)
-#define __fls(word)	((fls(word)) - 1UL)
-
-#define ffz(word)	__ffs(~(word))
+#define ffz(word)	(ffs(~(word)) - 1UL)
 
 unsigned long find_first_bit(const unsigned long *addr, unsigned long size);
 unsigned long find_next_bit(const unsigned long *addr, unsigned long size,

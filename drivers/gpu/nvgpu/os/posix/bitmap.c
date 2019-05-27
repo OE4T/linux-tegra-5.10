@@ -103,7 +103,7 @@ static unsigned long __find_next_bit(const unsigned long *addr,
 		w = addr[idx] ^ invert_mask;
 	}
 
-	return min(n, __ffs(w) + idx * BITS_PER_LONG);
+	return min(n, (ffs(w) - 1UL) + idx * BITS_PER_LONG);
 }
 
 unsigned long find_first_bit(const unsigned long *addr, unsigned long size)

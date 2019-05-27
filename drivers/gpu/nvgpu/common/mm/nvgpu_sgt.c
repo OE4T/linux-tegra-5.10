@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -103,7 +103,7 @@ u64 nvgpu_sgt_alignment(struct gk20a *g, struct nvgpu_sgt *sgt)
 	if (nvgpu_iommuable(g) &&
 	    nvgpu_sgt_iommuable(g, sgt) &&
 	    nvgpu_sgt_get_dma(sgt, sgt->sgl) != 0ULL) {
-		return 1ULL << __ffs(nvgpu_sgt_get_dma(sgt, sgt->sgl));
+		return 1ULL << (ffs(nvgpu_sgt_get_dma(sgt, sgt->sgl)) - 1UL);
 	}
 
 	/*
@@ -112,8 +112,9 @@ u64 nvgpu_sgt_alignment(struct gk20a *g, struct nvgpu_sgt *sgt)
 	 * of the SGT.
 	 */
 	nvgpu_sgt_for_each_sgl(sgl, sgt) {
-		chunk_align = 1ULL << __ffs(nvgpu_sgt_get_phys(g, sgt, sgl) |
-					    nvgpu_sgt_get_length(sgt, sgl));
+		chunk_align = 1ULL << (ffs(nvgpu_sgt_get_phys(g, sgt, sgl) |
+					    nvgpu_sgt_get_length(sgt, sgl)) -
+						1UL);
 
 		if (align != 0ULL) {
 			align = min(align, chunk_align);

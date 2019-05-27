@@ -546,7 +546,7 @@ static struct nvgpu_page_alloc *do_nvgpu_alloc_pages(
 
 	while (pages != 0ULL) {
 		u64 chunk_addr = 0;
-		u64 chunk_pages = (u64)1 << __fls(pages);
+		u64 chunk_pages = (u64)1 << (fls(pages) - 1UL);
 		u64 chunk_len = chunk_pages << a->page_shift;
 
 		/*
@@ -1064,7 +1064,7 @@ int nvgpu_page_allocator_init(struct gk20a *g, struct nvgpu_allocator *na,
 	a->base = base;
 	a->length = length;
 	a->page_size = blk_size;
-	a->page_shift = U32(__ffs(blk_size));
+	a->page_shift = U32((ffs(blk_size) - 1UL));
 	a->allocs = NULL;
 	a->owner = na;
 	a->flags = flags;
