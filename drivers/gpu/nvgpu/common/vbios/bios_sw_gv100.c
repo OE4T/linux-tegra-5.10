@@ -93,8 +93,8 @@ int gv100_bios_preos_wait_for_halt(struct gk20a *g)
 		do {
 			progress = g->ops.bus.read_sw_scratch(g,
 							SCRATCH_PREOS_PROGRESS);
-			preos_completed = (g->ops.falcon.is_falcon_cpu_halted(
-					g->pmu->flcn) != 0U) &&
+			preos_completed = g->ops.falcon.is_falcon_cpu_halted(
+					g->pmu->flcn) &&
 					(PREOS_PROGRESS_MASK(progress) ==
 					PREOS_PROGRESS_EXIT);
 

@@ -216,12 +216,16 @@ void nvgpu_bios_sw_deinit(struct gk20a *g, struct nvgpu_bios *bios)
 
 static u16 nvgpu_bios_rdu16(struct gk20a *g, u32 offset)
 {
-	u16 val;
+	u32 val;
 
 	nvgpu_assert(offset < U32_MAX);
-	val = (U16(g->bios->data[offset+1U]) << U16(8)) +
-		U16(g->bios->data[offset]);
-	return val;
+	/*
+	 * cast up to u32 because cast to u16 promotes into an int and
+	 * causes a CERT-C INT31 violation
+	 */
+	val = nvgpu_safe_add_u32(U32(g->bios->data[offset+1U]) << U32(8),
+		U32(g->bios->data[offset]));
+	return nvgpu_safe_cast_u32_to_u16(val);
 }
 
 static u32 nvgpu_bios_rdu32(struct gk20a *g, u32 offset)
@@ -435,7 +439,8 @@ static int nvgpu_bios_parse_appinfo_table(struct gk20a *g, u32 offset)
 		return 0;
 	}
 
-	offset = nvgpu_safe_add_u32(offset, U32(sizeof(hdr)));
+	offset = nvgpu_safe_add_u32(offset,
+			nvgpu_safe_cast_u64_to_u32(sizeof(hdr)));
 	for (i = 0U; i < hdr.entry_count; i++) {
 		struct application_interface_entry_v1 entry;
 
@@ -769,27 +774,34 @@ static u32 nvgpu_bios_readbyte_impl(struct gk20a *g, u32 offset)
 
 u8 nvgpu_bios_read_u8(struct gk20a *g, u32 offset)
 {
-	return (u8)nvgpu_bios_readbyte_impl(g, offset);
+	u32 val = nvgpu_bios_readbyte_impl(g, offset);
+
+	return nvgpu_safe_cast_u32_to_u8(val);
 }
 
 s8 nvgpu_bios_read_s8(struct gk20a *g, u32 offset)
 {
 	u32 val;
+
 	val = nvgpu_bios_readbyte_impl(g, offset);
 	val = ((val & 0x80U) != 0U) ? (val | ~0xffU) : val;
 
-	return (s8) val;
+	return nvgpu_safe_cast_u32_to_s8(val);
 }
 
 u16 nvgpu_bios_read_u16(struct gk20a *g, u32 offset)
 {
-	u16 val;
+	u32 val;
 
 	nvgpu_assert(offset < U32_MAX);
-	val = U16(nvgpu_bios_readbyte_impl(g, offset) |
-		(nvgpu_bios_readbyte_impl(g, offset+1U) << 8U));
+	/*
+	 * cast up to u32 because cast to u16 promotes into an int and
+	 * causes a CERT-C INT31 violation
+	 */
+	val = U32(nvgpu_bios_readbyte_impl(g, offset) |
+		(U32(nvgpu_bios_readbyte_impl(g, offset+1U)) << 8U));
 
-	return val;
+	return nvgpu_safe_cast_u32_to_u16(val);
 }
 
 u32 nvgpu_bios_read_u32(struct gk20a *g, u32 offset)
