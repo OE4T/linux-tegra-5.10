@@ -67,8 +67,8 @@
  * them here for non-Linux OSes
  */
 #if !defined(__KERNEL__) && !defined(U8_MAX)
-#define U8_MAX		U8(~U8(0))
-#define U16_MAX		U16(~U16(0))
+#define U8_MAX		U8(0xff)
+#define U16_MAX		U16(0xffff)
 #define U32_MAX		U32(~U32(0))
 #define U64_MAX		U64(~U64(0))
 #endif
