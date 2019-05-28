@@ -286,7 +286,7 @@ static void gk20a_free_channel(struct nvgpu_channel *ch, bool force)
 	struct nvgpu_tsg *tsg;
 	struct nvgpu_fifo *f = &g->fifo;
 	struct vm_gk20a *ch_vm = ch->vm;
-	unsigned long timeout = nvgpu_get_poll_timeout(g);
+	unsigned long timeout;
 	struct dbg_session_gk20a *dbg_s;
 	struct dbg_session_data *session_data, *tmp_s;
 	struct dbg_session_channel_data *ch_data, *tmp;
@@ -295,9 +295,14 @@ static void gk20a_free_channel(struct nvgpu_channel *ch, bool force)
 	bool deferred_reset_pending;
 #endif
 
+	if (g == NULL) {
+		nvgpu_do_assert_print(g, "ch already freed");
+		return;
+	}
+
 	nvgpu_log_fn(g, " ");
 
-	WARN_ON(ch->g == NULL);
+	timeout = nvgpu_get_poll_timeout(g);
 
 	trace_gk20a_free_channel(ch->chid);
 

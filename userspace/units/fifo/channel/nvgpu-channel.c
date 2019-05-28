@@ -27,6 +27,7 @@
 #include <unit/unit.h>
 
 #include <nvgpu/channel.h>
+#include <nvgpu/channel_sync.h>
 #include <nvgpu/engines.h>
 #include <nvgpu/tsg.h>
 #include <nvgpu/gk20a.h>
@@ -220,8 +221,7 @@ static int test_channel_open(struct unit_module *m,
 
 		runlist_id =
 			branches & F_CHANNEL_OPEN_ENGINE_NOT_VALID ?
-			NVGPU_INVALID_RUNLIST_ID :
-			NVGPU_ENGINE_GR;
+			NVGPU_INVALID_RUNLIST_ID : NVGPU_ENGINE_GR;
 
 		privileged =
 			branches & F_CHANNEL_OPEN_PRIVILEGED ?
@@ -310,10 +310,257 @@ done:
 	return rc;
 }
 
+#define F_CHANNEL_CLOSE_ALREADY_FREED		BIT(0)
+#define F_CHANNEL_CLOSE_FORCE			BIT(1)
+#define F_CHANNEL_CLOSE_DYING			BIT(2)
+#define F_CHANNEL_CLOSE_TSG_BOUND		BIT(3)
+#define F_CHANNEL_CLOSE_TSG_UNBIND_FAIL		BIT(4)
+#define F_CHANNEL_CLOSE_OS_CLOSE		BIT(5)
+#define F_CHANNEL_CLOSE_NON_REFERENCEABLE	BIT(6)
+#define F_CHANNEL_CLOSE_AS_BOUND		BIT(7)
+#define F_CHANNEL_CLOSE_FREE_SUBCTX		BIT(8)
+#define F_CHANNEL_CLOSE_USER_SYNC		BIT(9)
+#define F_CHANNEL_CLOSE_HW_SEMA			BIT(10)
+#define F_CHANNEL_CLOSE_LAST			BIT(11)
+
+/* nvgpu_tsg_unbind_channel always return 0 */
+
+static const char *f_channel_close[] = {
+	"already_freed",
+	"force",
+	"dying",
+	"tsg_bound",
+	"tsg_unbind_fail",
+	"os_close",
+	"non_referenceable",
+	"as_bound",
+	"free_subctx",
+	"user_sync",
+	"hw_sema",
+};
+
+static void stub_os_channel_close(struct nvgpu_channel *ch, bool force)
+{
+	stub[0].chid = ch->chid;
+}
+
+static void stub_gr_intr_flush_channel_tlb(struct gk20a *g)
+{
+}
+
+static bool channel_close_pruned(u32 branches, u32 final)
+{
+	u32 branches_init = branches;
+
+	if (subtest_pruned(branches, final)) {
+		return true;
+	}
+
+	/* TODO: nvgpu_tsg_unbind_channel always returns 0 */
+	branches &= ~F_CHANNEL_CLOSE_TSG_UNBIND_FAIL;
+
+
+	if ((branches & F_CHANNEL_CLOSE_AS_BOUND) == 0) {
+		branches &= ~F_CHANNEL_CLOSE_FREE_SUBCTX;
+		branches &= ~F_CHANNEL_CLOSE_USER_SYNC;
+		branches &= ~F_CHANNEL_CLOSE_HW_SEMA;
+	}
+
+	/* TODO: add semaphore pool init to support this */
+	branches &= ~F_CHANNEL_CLOSE_HW_SEMA;
+
+	if (branches < branches_init) {
+		return true;
+	}
+
+	return false;
+}
+
+static int test_channel_close(struct unit_module *m,
+		struct gk20a *g, void *args)
+{
+	struct gpu_ops gops = g->ops;
+	struct nvgpu_channel *ch;
+	struct nvgpu_tsg *tsg;
+	u32 branches = 0U;
+	int rc = UNIT_FAIL;
+	u32 fail = F_CHANNEL_CLOSE_ALREADY_FREED |
+		   F_CHANNEL_CLOSE_NON_REFERENCEABLE;
+	u32 prune = fail;
+	u32 runlist_id = NVGPU_INVALID_RUNLIST_ID;
+	void (*os_channel_close)(struct nvgpu_channel *ch, bool force) =
+		g->os_channel.close;
+	bool privileged = false;
+	bool force;
+	int err = 0;
+	struct mm_gk20a mm;
+	struct vm_gk20a vm;
+
+	tsg = nvgpu_tsg_open(g, getpid());
+	assert(tsg != NULL);
+
+	g->ops.gr.intr.flush_channel_tlb = stub_gr_intr_flush_channel_tlb;
+
+	for (branches = 0U; branches < F_CHANNEL_CLOSE_LAST; branches++) {
+
+		if (channel_close_pruned(branches, prune)) {
+			unit_verbose(m, "%s branches=%s (pruned)\n", __func__,
+				branches_str(branches, f_channel_close));
+			continue;
+		}
+		subtest_setup(branches);
+
+		unit_verbose(m, "%s branches=%s\n", __func__,
+			branches_str(branches, f_channel_close));
+
+		ch = gk20a_open_new_channel(g, runlist_id,
+				privileged, getpid(), getpid());
+		assert(ch != NULL);
+		assert(ch->hw_sema == NULL);
+
+		ch->usermode_submit_enabled = true;
+
+		force = branches & F_CHANNEL_CLOSE_FORCE ? true : false;
+
+		nvgpu_set_enabled(g, NVGPU_DRIVER_IS_DYING,
+			branches & F_CHANNEL_CLOSE_DYING ?  true : false);
+
+		g->os_channel.close = branches & F_CHANNEL_CLOSE_OS_CLOSE ?
+			stub_os_channel_close : NULL;
+
+		if (branches & F_CHANNEL_CLOSE_TSG_BOUND) {
+			err = nvgpu_tsg_bind_channel(tsg, ch);
+			assert(err == 0);
+		}
+
+		ch->referenceable =
+			branches & F_CHANNEL_CLOSE_NON_REFERENCEABLE ?
+			false : true;
+
+		if (branches & F_CHANNEL_CLOSE_AS_BOUND) {
+			mm.g = g;
+			vm.mm = &mm;
+			ch->vm = &vm;
+			nvgpu_ref_init(&vm.ref);
+			nvgpu_ref_get(&vm.ref);
+		} else {
+			ch->vm = NULL;
+		}
+
+		g->ops.gr.setup.free_subctx =
+			branches & F_CHANNEL_CLOSE_FREE_SUBCTX ?
+			gops.gr.setup.free_subctx : NULL;
+
+		if (branches & F_CHANNEL_CLOSE_USER_SYNC) {
+			ch->user_sync = nvgpu_channel_sync_create(ch, true);
+			assert(err == 0);
+		}
+
+		if (branches & F_CHANNEL_CLOSE_HW_SEMA) {
+			err = nvgpu_hw_semaphore_init(ch);
+			assert(err == 0);
+		}
+
+		if (branches & F_CHANNEL_CLOSE_ALREADY_FREED) {
+			nvgpu_channel_close(ch);
+		}
+
+		if (force) {
+			err = EXPECT_BUG(nvgpu_channel_kill(ch));
+		} else {
+			err = EXPECT_BUG(nvgpu_channel_close(ch));
+		}
+
+		if (branches & F_CHANNEL_CLOSE_ALREADY_FREED) {
+			assert(err != 0);
+			assert(ch->g == NULL);
+			continue;
+		}
+
+		if (branches & fail) {
+			assert(ch->g != NULL);
+			assert(nvgpu_list_empty(&ch->free_chs));
+
+			if (branches & F_CHANNEL_CLOSE_ALREADY_FREED) {
+				continue;
+			}
+			ch->referenceable = true;
+			nvgpu_channel_kill(ch);
+			continue;
+		}
+
+		if (branches & F_CHANNEL_CLOSE_DYING) {
+			/* when driver is dying, tsg unbind is skipped */
+			nvgpu_init_list_node(&tsg->ch_list);
+			nvgpu_ref_put(&tsg->refcount, nvgpu_tsg_release);
+		} else {
+			assert(!nvgpu_list_empty(&ch->free_chs));
+			assert(nvgpu_list_empty(&tsg->ch_list));
+		}
+
+		if (branches & F_CHANNEL_CLOSE_OS_CLOSE) {
+			assert(stub[0].chid == ch->chid);
+		}
+
+		if (!(branches & F_CHANNEL_CLOSE_AS_BOUND)) {
+			goto unbind;
+		}
+
+		if (branches & F_CHANNEL_CLOSE_FREE_SUBCTX) {
+			assert(ch->subctx == NULL);
+		}
+
+		if (ch->subctx != NULL) {
+			if (g->ops.gr.setup.free_subctx != NULL) {
+				g->ops.gr.setup.free_subctx(ch);
+			}
+			ch->subctx = NULL;
+		}
+
+		assert(ch->usermode_submit_enabled == false);
+
+		/* we took an extra reference to avoid nvgpu_vm_remove_ref */
+		assert(nvgpu_ref_put_return(&vm.ref, NULL));
+
+		assert(ch->user_sync == NULL);
+		assert(ch->hw_sema == NULL);
+
+unbind:
+		/*
+		 * branches not taken in safety build:
+		 * - ch->sync != NULL
+		 * - allow railgate for deterministic channel
+		 * - unlink all debug sessions
+		 * - free pre-allocated resources
+		 * - channel refcount tracking
+		 */
+		assert(ch->g == NULL);
+		assert(!ch->referenceable);
+		assert(!nvgpu_list_empty(&ch->free_chs));
+
+		ch = NULL;
+	}
+	rc = UNIT_SUCCESS;
+
+done:
+	if (rc != UNIT_SUCCESS) {
+		unit_err(m, "%s branches=%s\n", __func__,
+			branches_str(branches, f_channel_close));
+	}
+	nvgpu_set_enabled(g, NVGPU_DRIVER_IS_DYING, false);
+	if (ch != NULL) {
+		nvgpu_channel_close(ch);
+	}
+	g->ops = gops;
+	g->os_channel.close = os_channel_close;
+	return rc;
+}
+
 struct unit_module_test nvgpu_channel_tests[] = {
 	UNIT_TEST(setup_sw, test_channel_setup_sw, &unit_ctx, 0),
 	UNIT_TEST(init_support, test_fifo_init_support, &unit_ctx, 0),
 	UNIT_TEST(open, test_channel_open, &unit_ctx, 0),
+	UNIT_TEST(close, test_channel_close, &unit_ctx, 0),
 	UNIT_TEST(remove_support, test_fifo_remove_support, &unit_ctx, 0),
 };
 

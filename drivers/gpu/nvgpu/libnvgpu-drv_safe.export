@@ -65,7 +65,9 @@ nvgpu_bar1_writel
 nvgpu_bsearch
 nvgpu_channel_cleanup_sw
 nvgpu_channel_close
+nvgpu_channel_kill
 nvgpu_channel_setup_sw
+nvgpu_channel_sync_create
 nvgpu_dma_alloc
 nvgpu_dma_alloc_get_fault_injection
 nvgpu_dma_alloc_vid_at
@@ -80,6 +82,7 @@ nvgpu_gmmu_init_page_table
 nvgpu_gmmu_map
 nvgpu_gmmu_map_fixed
 nvgpu_gmmu_unmap
+nvgpu_hw_semaphore_init
 nvgpu_init_enabled_flags
 nvgpu_init_hal
 nvgpu_init_mm_support
