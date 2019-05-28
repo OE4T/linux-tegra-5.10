@@ -290,6 +290,7 @@ static void nvgpu_tsg_destroy(struct gk20a *g, struct nvgpu_tsg *tsg)
 	nvgpu_mutex_destroy(&tsg->event_id_list_lock);
 }
 
+#ifdef NVGPU_FEATURE_CHANNEL_TSG_CONTROL
 /* force reset tsg that the channel is bound to */
 int nvgpu_tsg_force_reset_ch(struct nvgpu_channel *ch,
 				u32 err_code, bool verbose)
@@ -308,6 +309,7 @@ int nvgpu_tsg_force_reset_ch(struct nvgpu_channel *ch,
 
 	return 0;
 }
+#endif
 
 void nvgpu_tsg_cleanup_sw(struct gk20a *g)
 {

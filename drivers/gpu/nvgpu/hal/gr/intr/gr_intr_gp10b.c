@@ -111,7 +111,9 @@ int gp10b_gr_intr_handle_fecs_error(struct gk20a *g,
 	struct nvgpu_channel *ch;
 	u32 chid = NVGPU_INVALID_CHANNEL_ID;
 	int ret = 0;
+#ifdef NVGPU_FEATURE_CHANNEL_TSG_CONTROL
 	struct nvgpu_tsg *tsg;
+#endif
 	struct nvgpu_fecs_host_intr_status fecs_host_intr;
 	u32 gr_fecs_intr = g->ops.gr.falcon.fecs_host_intr_status(g,
 						&fecs_host_intr);
@@ -159,10 +161,11 @@ int gp10b_gr_intr_handle_fecs_error(struct gk20a *g,
 		g->ops.debugger.post_events(ch);
 #endif
 
+#ifdef NVGPU_FEATURE_CHANNEL_TSG_CONTROL
 		tsg = &g->fifo.tsg[ch->tsgid];
-
 		g->ops.tsg.post_event_id(tsg,
 				NVGPU_EVENT_ID_CILP_PREEMPTION_COMPLETE);
+#endif
 
 		nvgpu_channel_put(ch);
 	}

@@ -641,9 +641,11 @@ struct gpu_ops {
 				struct vm_gk20a *vm,
 				struct nvgpu_gr_ctx *gr_ctx);
 			void (*free_subctx)(struct nvgpu_channel *c);
+#ifdef NVGPU_FEATURE_CHANNEL_TSG_CONTROL
 			int (*set_preemption_mode)(struct nvgpu_channel *ch,
 				u32 graphics_preempt_mode,
 				u32 compute_preempt_mode);
+#endif
 		} setup;
 #ifdef NVGPU_GRAPHICS
 		struct {
@@ -1217,10 +1219,12 @@ struct gpu_ops {
 				struct nvgpu_channel_hw_state *state);
 		bool (*check_ctxsw_timeout)(struct nvgpu_tsg *tsg,
 				bool *verbose, u32 *ms);
+#ifdef NVGPU_FEATURE_CHANNEL_TSG_CONTROL
 		int (*force_reset)(struct nvgpu_channel *ch,
 					u32 err_code, bool verbose);
 		void (*post_event_id)(struct nvgpu_tsg *tsg,
 				      enum nvgpu_event_id_type event_id);
+#endif
 		int (*set_timeslice)(struct nvgpu_tsg *tsg, u32 timeslice_us);
 		u32 (*default_timeslice_us)(struct gk20a *g);
 		int (*set_interleave)(struct nvgpu_tsg *tsg, u32 new_level);

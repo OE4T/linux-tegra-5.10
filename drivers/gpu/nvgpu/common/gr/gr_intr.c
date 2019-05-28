@@ -132,6 +132,7 @@ static int gr_intr_handle_tpc_exception(struct gk20a *g, u32 gpc, u32 tpc,
 	return ret;
 }
 
+#ifdef NVGPU_FEATURE_CHANNEL_TSG_CONTROL
 static void gr_intr_post_bpt_events(struct gk20a *g, struct nvgpu_tsg *tsg,
 				    u32 global_esr)
 {
@@ -145,6 +146,7 @@ static void gr_intr_post_bpt_events(struct gk20a *g, struct nvgpu_tsg *tsg,
 		g->ops.tsg.post_event_id(tsg, NVGPU_EVENT_ID_BPT_PAUSE);
 	}
 }
+#endif
 
 static int gr_intr_handle_illegal_method(struct gk20a *g,
 					  struct nvgpu_gr_isr_data *isr_data)
@@ -645,8 +647,10 @@ void nvgpu_gr_intr_handle_semaphore_pending(struct gk20a *g,
 	if (tsg != NULL) {
 		int err;
 
+#ifdef NVGPU_FEATURE_CHANNEL_TSG_CONTROL
 		g->ops.tsg.post_event_id(tsg,
 			NVGPU_EVENT_ID_GR_SEMAPHORE_WRITE_AWAKEN);
+#endif
 
 		err = nvgpu_cond_broadcast(&ch->semaphore_wq);
 		if (err != 0) {
@@ -840,10 +844,12 @@ int nvgpu_gr_intr_stall_isr(struct gk20a *g)
 	/* Enable fifo access */
 	g->ops.gr.init.fifo_access(g, true);
 
+#ifdef NVGPU_FEATURE_CHANNEL_TSG_CONTROL
 	/* Posting of BPT events should be the last thing in this function */
 	if ((global_esr != 0U) && (tsg != NULL) && (need_reset == false)) {
 		gr_intr_post_bpt_events(g, tsg, global_esr);
 	}
+#endif
 
 	if (ch != NULL) {
 		nvgpu_channel_put(ch);

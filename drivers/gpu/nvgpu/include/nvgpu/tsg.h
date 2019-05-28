@@ -115,14 +115,16 @@ int nvgpu_tsg_unbind_channel_check_hw_state(struct nvgpu_tsg *tsg,
 void nvgpu_tsg_unbind_channel_check_ctx_reload(struct nvgpu_tsg *tsg,
 		struct nvgpu_channel *ch,
 		struct nvgpu_channel_hw_state *hw_state);
+#ifdef NVGPU_FEATURE_CHANNEL_TSG_CONTROL
 int nvgpu_tsg_force_reset_ch(struct nvgpu_channel *ch,
 				u32 err_code, bool verbose);
+#endif
+void nvgpu_tsg_post_event_id(struct nvgpu_tsg *tsg,
+			     enum nvgpu_event_id_type event_id);
 void nvgpu_tsg_set_ctx_mmu_error(struct gk20a *g,
 		struct nvgpu_tsg *tsg);
 bool nvgpu_tsg_mark_error(struct gk20a *g, struct nvgpu_tsg *tsg);
 
-void nvgpu_tsg_post_event_id(struct nvgpu_tsg *tsg,
-			     enum nvgpu_event_id_type event_id);
 bool nvgpu_tsg_check_ctxsw_timeout(struct nvgpu_tsg *tsg,
 		bool *debug_dump, u32 *ms);
 int nvgpu_tsg_set_runlist_interleave(struct nvgpu_tsg *tsg, u32 level);

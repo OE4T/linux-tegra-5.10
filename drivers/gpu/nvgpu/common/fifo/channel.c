@@ -1754,12 +1754,14 @@ static void nvgpu_channel_wdt_handler(struct nvgpu_channel *ch)
 			gk20a_gr_debug_dump(g);
 		}
 
+#ifdef NVGPU_FEATURE_CHANNEL_TSG_CONTROL
 		if (g->ops.tsg.force_reset(ch,
 			NVGPU_ERR_NOTIFIER_FIFO_ERROR_IDLE_TIMEOUT,
 			ch->wdt.debug_dump) != 0) {
 			nvgpu_err(g, "failed tsg force reset for chid: %d",
 				ch->chid);
 		}
+#endif
 	}
 }
 
@@ -2597,6 +2599,7 @@ void gk20a_channel_semaphore_wakeup(struct gk20a *g, bool post_events)
 					nvgpu_warn(g, "failed to broadcast");
 				}
 
+#ifdef NVGPU_FEATURE_CHANNEL_TSG_CONTROL
 				if (post_events) {
 					struct nvgpu_tsg *tsg =
 							nvgpu_tsg_from_ch(c);
@@ -2605,6 +2608,7 @@ void gk20a_channel_semaphore_wakeup(struct gk20a *g, bool post_events)
 						    NVGPU_EVENT_ID_BLOCKING_SYNC);
 					}
 				}
+#endif
 				/*
 				 * Only non-deterministic channels get the
 				 * channel_update callback. We don't allow

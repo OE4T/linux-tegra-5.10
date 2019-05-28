@@ -475,7 +475,9 @@ static const struct gpu_ops tu104_ops = {
 			.alloc_obj_ctx = nvgpu_gr_setup_alloc_obj_ctx,
 			.free_gr_ctx = nvgpu_gr_setup_free_gr_ctx,
 			.free_subctx = nvgpu_gr_setup_free_subctx,
+#ifdef NVGPU_FEATURE_CHANNEL_TSG_CONTROL
 			.set_preemption_mode = nvgpu_gr_setup_set_preemption_mode,
+#endif
 		},
 #ifdef NVGPU_GRAPHICS
 		.zbc = {
@@ -1007,8 +1009,10 @@ static const struct gpu_ops tu104_ops = {
 		.unbind_channel_check_eng_faulted =
 				gv11b_tsg_unbind_channel_check_eng_faulted,
 		.check_ctxsw_timeout = nvgpu_tsg_check_ctxsw_timeout,
+#ifdef NVGPU_FEATURE_CHANNEL_TSG_CONTROL
 		.force_reset = nvgpu_tsg_force_reset_ch,
 		.post_event_id = nvgpu_tsg_post_event_id,
+#endif
 #ifdef NVGPU_FEATURE_CHANNEL_TSG_SCHEDULING
 		.set_timeslice = nvgpu_tsg_set_timeslice,
 #endif

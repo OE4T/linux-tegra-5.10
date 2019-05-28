@@ -471,7 +471,9 @@ int gr_gp10b_set_cilp_preempt_pending(struct gk20a *g,
 	nvgpu_gr_ctx_set_cilp_preempt_pending(gr_ctx, true);
 	g->gr->cilp_preempt_pending_chid = fault_ch->chid;
 
+#ifdef NVGPU_FEATURE_CHANNEL_TSG_CONTROL
 	g->ops.tsg.post_event_id(tsg, NVGPU_EVENT_ID_CILP_PREEMPTION_STARTED);
+#endif
 
 	return 0;
 }

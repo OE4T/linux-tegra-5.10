@@ -80,6 +80,10 @@ NVGPU_COMMON_CFLAGS             += -DNVGPU_ENGINE
 NVGPU_FEATURE_CHANNEL_TSG_SCHEDULING := 1
 NVGPU_COMMON_CFLAGS                  += -DNVGPU_FEATURE_CHANNEL_TSG_SCHEDULING
 
+# Enable Channel/TSG Control for safety build until devctl whitelisting is done
+NVGPU_FEATURE_CHANNEL_TSG_CONTROL    := 1
+NVGPU_COMMON_CFLAGS                  += -DNVGPU_FEATURE_CHANNEL_TSG_CONTROL
+
 #
 # Flags enabled for only the regular build profile.
 #

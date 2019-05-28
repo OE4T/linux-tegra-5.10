@@ -222,6 +222,7 @@ void nvgpu_gr_setup_free_subctx(struct nvgpu_channel *c)
 	}
 }
 
+#ifdef NVGPU_FEATURE_CHANNEL_TSG_CONTROL
 int nvgpu_gr_setup_set_preemption_mode(struct nvgpu_channel *ch,
 					u32 graphics_preempt_mode,
 					u32 compute_preempt_mode)
@@ -315,3 +316,4 @@ enable_ch:
 	}
 	return err;
 }
+#endif

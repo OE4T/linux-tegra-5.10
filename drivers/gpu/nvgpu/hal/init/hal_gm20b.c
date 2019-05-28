@@ -746,8 +746,10 @@ static const struct gpu_ops gm20b_ops = {
 				nvgpu_tsg_unbind_channel_check_ctx_reload,
 		.unbind_channel_check_eng_faulted = NULL,
 		.check_ctxsw_timeout = nvgpu_tsg_check_ctxsw_timeout,
+#ifdef NVGPU_FEATURE_CHANNEL_TSG_CONTROL
 		.force_reset = nvgpu_tsg_force_reset_ch,
 		.post_event_id = nvgpu_tsg_post_event_id,
+#endif
 #ifdef NVGPU_FEATURE_CHANNEL_TSG_SCHEDULING
 		.set_timeslice = nvgpu_tsg_set_timeslice,
 #endif
