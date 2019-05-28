@@ -172,6 +172,24 @@ static inline u16 nvgpu_safe_cast_u32_to_u16(u32 ui_a)
 	}
 }
 
+static inline u8 nvgpu_safe_cast_u32_to_u8(u32 ui_a)
+{
+	if (ui_a > UCHAR_MAX) {
+		BUG();
+	} else {
+		return (u8)ui_a;
+	}
+}
+
+static inline s8 nvgpu_safe_cast_u32_to_s8(u32 ui_a)
+{
+	if (ui_a > SCHAR_MAX) {
+		BUG();
+	} else {
+		return (s8)ui_a;
+	}
+}
+
 static inline s32 nvgpu_safe_cast_u32_to_s32(u32 ui_a)
 {
 	if (ui_a > INT_MAX) {

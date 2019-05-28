@@ -73,4 +73,10 @@
 #define U64_MAX		U64(~U64(0))
 #endif
 
+#if defined(__KERNEL__) && !defined(UCHAR_MAX)
+/* Linux doesn't define these max values, and we can't use limits.h */
+#define UCHAR_MAX U8_MAX
+#define SCHAR_MAX (U8_MAX/2)
+#endif
+
 #endif /* NVGPU_TYPES_H */
