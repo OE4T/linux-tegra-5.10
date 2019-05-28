@@ -245,6 +245,40 @@ void nvgpu_channel_wait_until_counter_is_N(
 	}
 }
 
+static void nvgpu_channel_usermode_deinit(struct nvgpu_channel *ch)
+{
+	struct gk20a *g = ch->g;
+
+	nvgpu_channel_free_usermode_buffers(ch);
+	(void) nvgpu_userd_init_channel(g, ch);
+	ch->usermode_submit_enabled = false;
+}
+
+static void nvgpu_channel_kernelmode_deinit(struct nvgpu_channel *ch)
+{
+	struct gk20a *g = ch->g;
+	struct vm_gk20a *ch_vm = ch->vm;
+
+	nvgpu_dma_unmap_free(ch_vm, &ch->gpfifo.mem);
+	nvgpu_big_free(g, ch->gpfifo.pipe);
+	(void) memset(&ch->gpfifo, 0, sizeof(struct gpfifo_desc));
+
+	nvgpu_channel_free_priv_cmd_q(ch);
+
+	/* free pre-allocated resources, if applicable */
+	if (nvgpu_channel_is_prealloc_enabled(ch)) {
+		channel_gk20a_free_prealloc_resources(ch);
+	}
+
+	/* sync must be destroyed before releasing channel vm */
+	nvgpu_mutex_acquire(&ch->sync_lock);
+	if (ch->sync != NULL) {
+		nvgpu_channel_sync_destroy(ch->sync, false);
+		ch->sync = NULL;
+	}
+	nvgpu_mutex_release(&ch->sync_lock);
+}
+
 /* call ONLY when no references to the channel exist: after the last put */
 static void gk20a_free_channel(struct nvgpu_channel *ch, bool force)
 {
@@ -370,26 +404,14 @@ static void gk20a_free_channel(struct nvgpu_channel *ch, bool force)
 		ch->subctx = NULL;
 	}
 
-	if (ch->usermode_submit_enabled) {
-		nvgpu_channel_free_usermode_buffers(ch);
-		(void) nvgpu_userd_init_channel(g, ch);
-		ch->usermode_submit_enabled = false;
-	}
-
 	g->ops.gr.intr.flush_channel_tlb(g);
 
-	nvgpu_dma_unmap_free(ch_vm, &ch->gpfifo.mem);
-	nvgpu_big_free(g, ch->gpfifo.pipe);
-	(void) memset(&ch->gpfifo, 0, sizeof(struct gpfifo_desc));
-
-	nvgpu_channel_free_priv_cmd_q(ch);
-
-	/* sync must be destroyed before releasing channel vm */
-	nvgpu_mutex_acquire(&ch->sync_lock);
-	if (ch->sync != NULL) {
-		nvgpu_channel_sync_destroy(ch->sync, false);
-		ch->sync = NULL;
+	if (ch->usermode_submit_enabled) {
+		nvgpu_channel_usermode_deinit(ch);
+	} else {
+		nvgpu_channel_kernelmode_deinit(ch);
 	}
+
 	if (ch->user_sync != NULL) {
 		/*
 		 * Set user managed syncpoint to safe state
@@ -465,11 +487,6 @@ unbind:
 	}
 
 	nvgpu_mutex_release(&g->dbg_sessions_lock);
-
-	/* free pre-allocated resources, if applicable */
-	if (nvgpu_channel_is_prealloc_enabled(ch)) {
-		channel_gk20a_free_prealloc_resources(ch);
-	}
 
 #if GK20A_CHANNEL_REFCOUNT_TRACKING
 	(void) memset(ch->ref_actions, 0, sizeof(ch->ref_actions));
@@ -1181,18 +1198,188 @@ out:
 	return err;
 }
 
+static int nvgpu_channel_setup_ramfc(struct nvgpu_channel *c,
+		struct nvgpu_setup_bind_args *args,
+		u64 gpfifo_gpu_va, u32 gpfifo_size)
+{
+	int err = 0;
+	u64 pbdma_acquire_timeout = 0ULL;
+	struct gk20a *g = c->g;
+
+#ifdef NVGPU_CHANNEL_WDT
+	if (c->wdt.enabled && nvgpu_is_timeouts_enabled(c->g)) {
+		pbdma_acquire_timeout = c->wdt.limit_ms;
+	}
+#else
+	if (nvgpu_is_timeouts_enabled(c->g)) {
+		pbdma_acquire_timeout = g->ch_wdt_init_limit_ms;
+	}
+#endif
+
+	err = g->ops.ramfc.setup(c, gpfifo_gpu_va, gpfifo_size,
+			pbdma_acquire_timeout, args->flags);
+
+	return err;
+}
+
+static int nvgpu_channel_setup_usermode(struct nvgpu_channel *c,
+		struct nvgpu_setup_bind_args *args)
+{
+	u32 gpfifo_size = args->num_gpfifo_entries;
+	int err = 0;
+	struct gk20a *g = c->g;
+	u64 gpfifo_gpu_va;
+
+	if (g->os_channel.alloc_usermode_buffers != NULL) {
+		err = g->os_channel.alloc_usermode_buffers(c, args);
+		if (err != 0) {
+			nvgpu_err(g, "Usermode buffer alloc failed");
+			goto clean_up;
+		}
+		c->userd_iova = nvgpu_mem_get_addr(g,
+			&c->usermode_userd);
+		c->usermode_submit_enabled = true;
+	} else {
+		nvgpu_err(g, "Usermode submit not supported");
+		err = -EINVAL;
+		goto clean_up;
+	}
+	gpfifo_gpu_va = c->usermode_gpfifo.gpu_va;
+
+	nvgpu_log_info(g, "channel %d : gpfifo_base 0x%016llx, size %d",
+		c->chid, gpfifo_gpu_va, gpfifo_size);
+
+	err = nvgpu_channel_setup_ramfc(c, args, gpfifo_gpu_va, gpfifo_size);
+
+	if (err != 0) {
+		goto clean_up_unmap;
+	}
+
+	err = nvgpu_channel_update_runlist(c, true);
+	if (err != 0) {
+		goto clean_up_unmap;
+	}
+
+	return 0;
+
+clean_up_unmap:
+	nvgpu_channel_free_usermode_buffers(c);
+	(void) nvgpu_userd_init_channel(g, c);
+	c->usermode_submit_enabled = false;
+clean_up:
+	return err;
+}
+
+static int nvgpu_channel_setup_kernelmode(struct nvgpu_channel *c,
+		struct nvgpu_setup_bind_args *args)
+{
+	u32 gpfifo_size, gpfifo_entry_size;
+	u64 gpfifo_gpu_va;
+
+	int err = 0;
+	struct gk20a *g = c->g;
+
+	gpfifo_size = args->num_gpfifo_entries;
+	gpfifo_entry_size = nvgpu_get_gpfifo_entry_size();
+
+	err = nvgpu_dma_alloc_map_sys(c->vm,
+			(size_t)gpfifo_size * (size_t)gpfifo_entry_size,
+			&c->gpfifo.mem);
+	if (err != 0) {
+		nvgpu_err(g, "memory allocation failed");
+		goto clean_up;
+	}
+
+	if (c->gpfifo.mem.aperture == APERTURE_VIDMEM) {
+		c->gpfifo.pipe = nvgpu_big_malloc(g,
+					(size_t)gpfifo_size *
+					(size_t)gpfifo_entry_size);
+		if (c->gpfifo.pipe == NULL) {
+			err = -ENOMEM;
+			goto clean_up_unmap;
+		}
+	}
+	gpfifo_gpu_va = c->gpfifo.mem.gpu_va;
+
+	c->gpfifo.entry_num = gpfifo_size;
+	c->gpfifo.get = c->gpfifo.put = 0;
+
+	nvgpu_log_info(g, "channel %d : gpfifo_base 0x%016llx, size %d",
+		c->chid, gpfifo_gpu_va, c->gpfifo.entry_num);
+
+	g->ops.userd.init_mem(g, c);
+
+	if (g->aggressive_sync_destroy_thresh == 0U) {
+		nvgpu_mutex_acquire(&c->sync_lock);
+		c->sync = nvgpu_channel_sync_create(c, false);
+		if (c->sync == NULL) {
+			err = -ENOMEM;
+			nvgpu_mutex_release(&c->sync_lock);
+			goto clean_up_unmap;
+		}
+		nvgpu_mutex_release(&c->sync_lock);
+
+		if (g->ops.channel.set_syncpt != NULL) {
+			err = g->ops.channel.set_syncpt(c);
+			if (err != 0) {
+				goto clean_up_sync;
+			}
+		}
+	}
+
+	err = nvgpu_channel_setup_ramfc(c, args, gpfifo_gpu_va,
+		c->gpfifo.entry_num);
+
+	if (err != 0) {
+		goto clean_up_sync;
+	}
+
+	if (c->deterministic && args->num_inflight_jobs != 0U) {
+		err = channel_gk20a_prealloc_resources(c,
+				args->num_inflight_jobs);
+		if (err != 0) {
+			goto clean_up_sync;
+		}
+	}
+
+	err = channel_gk20a_alloc_priv_cmdbuf(c, args->num_inflight_jobs);
+	if (err != 0) {
+		goto clean_up_prealloc;
+	}
+
+	err = nvgpu_channel_update_runlist(c, true);
+	if (err != 0) {
+		goto clean_up_priv_cmd;
+	}
+
+	return 0;
+
+clean_up_priv_cmd:
+	nvgpu_channel_free_priv_cmd_q(c);
+clean_up_prealloc:
+	if (c->deterministic && args->num_inflight_jobs != 0U) {
+		channel_gk20a_free_prealloc_resources(c);
+	}
+clean_up_sync:
+	if (c->sync != NULL) {
+		nvgpu_channel_sync_destroy(c->sync, false);
+		c->sync = NULL;
+	}
+clean_up_unmap:
+	nvgpu_big_free(g, c->gpfifo.pipe);
+	nvgpu_dma_unmap_free(c->vm, &c->gpfifo.mem);
+clean_up:
+	(void) memset(&c->gpfifo, 0, sizeof(struct gpfifo_desc));
+
+	return err;
+
+}
+
 int nvgpu_channel_setup_bind(struct nvgpu_channel *c,
 		struct nvgpu_setup_bind_args *args)
 {
 	struct gk20a *g = c->g;
-	struct vm_gk20a *ch_vm;
-	u32 gpfifo_size, gpfifo_entry_size;
-	u64 gpfifo_gpu_va;
 	int err = 0;
-	u64 pbdma_acquire_timeout = 0ULL;
-
-	gpfifo_size = args->num_gpfifo_entries;
-	gpfifo_entry_size = nvgpu_get_gpfifo_entry_size();
 
 #ifdef NVGPU_VPR
 	if ((args->flags & NVGPU_SETUP_BIND_FLAGS_SUPPORT_VPR) != 0U) {
@@ -1230,7 +1417,6 @@ int nvgpu_channel_setup_bind(struct nvgpu_channel *c,
 		err = -EINVAL;
 		goto clean_up_idle;
 	}
-	ch_vm = c->vm;
 
 	if (nvgpu_mem_is_valid(&c->gpfifo.mem) ||
 			c->usermode_submit_enabled) {
@@ -1241,105 +1427,13 @@ int nvgpu_channel_setup_bind(struct nvgpu_channel *c,
 	}
 
 	if ((args->flags & NVGPU_SETUP_BIND_FLAGS_USERMODE_SUPPORT) != 0U) {
-		if (g->os_channel.alloc_usermode_buffers != NULL) {
-			err = g->os_channel.alloc_usermode_buffers(c, args);
-			if (err != 0) {
-				nvgpu_err(g, "Usermode buffer alloc failed");
-				goto clean_up;
-			}
-			c->userd_iova = nvgpu_mem_get_addr(g,
-				&c->usermode_userd);
-			c->usermode_submit_enabled = true;
-		} else {
-			nvgpu_err(g, "Usermode submit not supported");
-			err = -EINVAL;
-			goto clean_up;
-		}
-		gpfifo_gpu_va = c->usermode_gpfifo.gpu_va;
+		err = nvgpu_channel_setup_usermode(c, args);
 	} else {
-		err = nvgpu_dma_alloc_map_sys(ch_vm,
-				(size_t)gpfifo_size * (size_t)gpfifo_entry_size,
-				&c->gpfifo.mem);
-		if (err != 0) {
-			nvgpu_err(g, "memory allocation failed");
-			goto clean_up;
-		}
-
-		if (c->gpfifo.mem.aperture == APERTURE_VIDMEM) {
-			c->gpfifo.pipe = nvgpu_big_malloc(g,
-						(size_t)gpfifo_size *
-						(size_t)gpfifo_entry_size);
-			if (c->gpfifo.pipe == NULL) {
-				err = -ENOMEM;
-				goto clean_up_unmap;
-			}
-		}
-		gpfifo_gpu_va = c->gpfifo.mem.gpu_va;
+		err = nvgpu_channel_setup_kernelmode(c, args);
 	}
 
-	c->gpfifo.entry_num = gpfifo_size;
-	c->gpfifo.get = c->gpfifo.put = 0;
-
-	nvgpu_log_info(g, "channel %d : gpfifo_base 0x%016llx, size %d",
-		c->chid, gpfifo_gpu_va, c->gpfifo.entry_num);
-
-	if (!c->usermode_submit_enabled) {
-		g->ops.userd.init_mem(g, c);
-
-		if (g->aggressive_sync_destroy_thresh == 0U) {
-			nvgpu_mutex_acquire(&c->sync_lock);
-			c->sync = nvgpu_channel_sync_create(c, false);
-			if (c->sync == NULL) {
-				err = -ENOMEM;
-				nvgpu_mutex_release(&c->sync_lock);
-				goto clean_up_unmap;
-			}
-			nvgpu_mutex_release(&c->sync_lock);
-
-			if (g->ops.channel.set_syncpt != NULL) {
-				err = g->ops.channel.set_syncpt(c);
-				if (err != 0) {
-					goto clean_up_sync;
-				}
-			}
-		}
-	}
-
-#ifdef NVGPU_CHANNEL_WDT
-	if (c->wdt.enabled && nvgpu_is_timeouts_enabled(c->g)) {
-		pbdma_acquire_timeout = c->wdt.limit_ms;
-	}
-#else
-	if (nvgpu_is_timeouts_enabled(c->g)) {
-		pbdma_acquire_timeout = g->ch_wdt_init_limit_ms;
-	}
-#endif
-
-	err = g->ops.ramfc.setup(c, gpfifo_gpu_va,
-			c->gpfifo.entry_num, pbdma_acquire_timeout,
-			args->flags);
 	if (err != 0) {
-		goto clean_up_sync;
-	}
-
-	/* TBD: setup engine contexts */
-
-	if (c->deterministic && args->num_inflight_jobs != 0U) {
-		err = channel_gk20a_prealloc_resources(c,
-				args->num_inflight_jobs);
-		if (err != 0) {
-			goto clean_up_sync;
-		}
-	}
-
-	err = channel_gk20a_alloc_priv_cmdbuf(c, args->num_inflight_jobs);
-	if (err != 0) {
-		goto clean_up_prealloc;
-	}
-
-	err = nvgpu_channel_update_runlist(c, true);
-	if (err != 0) {
-		goto clean_up_priv_cmd;
+		goto clean_up_idle;
 	}
 
 	g->ops.channel.bind(c);
@@ -1347,27 +1441,6 @@ int nvgpu_channel_setup_bind(struct nvgpu_channel *c,
 	nvgpu_log_fn(g, "done");
 	return 0;
 
-clean_up_priv_cmd:
-	nvgpu_channel_free_priv_cmd_q(c);
-clean_up_prealloc:
-	if (c->deterministic && args->num_inflight_jobs != 0U) {
-		channel_gk20a_free_prealloc_resources(c);
-	}
-clean_up_sync:
-	if (c->sync != NULL) {
-		nvgpu_channel_sync_destroy(c->sync, false);
-		c->sync = NULL;
-	}
-clean_up_unmap:
-	nvgpu_big_free(g, c->gpfifo.pipe);
-	nvgpu_dma_unmap_free(ch_vm, &c->gpfifo.mem);
-	if (c->usermode_submit_enabled) {
-		nvgpu_channel_free_usermode_buffers(c);
-		(void) nvgpu_userd_init_channel(g, c);
-		c->usermode_submit_enabled = false;
-	}
-clean_up:
-	(void) memset(&c->gpfifo, 0, sizeof(struct gpfifo_desc));
 clean_up_idle:
 	if (c->deterministic) {
 		nvgpu_rwsem_down_read(&g->deterministic_busy);
