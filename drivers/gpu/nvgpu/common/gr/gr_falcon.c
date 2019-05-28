@@ -237,9 +237,12 @@ static int nvgpu_gr_falcon_init_ctxsw_ucode_vaspace(struct gk20a *g,
 static void nvgpu_gr_falcon_init_ctxsw_ucode_segment(
 	struct nvgpu_ctxsw_ucode_segment *p_seg, u32 *offset, u32 size)
 {
+	u32 ucode_offset;
+
 	p_seg->offset = *offset;
 	p_seg->size = size;
-	*offset = ALIGN(*offset + size, SZ_256);
+	ucode_offset = nvgpu_safe_add_u32(*offset, size);
+	*offset = ALIGN(ucode_offset, 256U);
 }
 
 static void nvgpu_gr_falcon_init_ctxsw_ucode_segments(
