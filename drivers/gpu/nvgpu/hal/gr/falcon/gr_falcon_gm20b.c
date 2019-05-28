@@ -695,6 +695,7 @@ int gm20b_gr_falcon_init_ctx_state(struct gk20a *g,
 			   "query golden image size failed");
 		return ret;
 	}
+#ifdef NVGPU_DEBUGGER
 	ret = gm20b_gr_falcon_ctrl_ctxsw(g,
 		NVGPU_GR_FALCON_METHOD_CTXSW_DISCOVER_PM_IMAGE_SIZE,
 		0, &sizes->pm_ctxsw_image_size);
@@ -703,6 +704,9 @@ int gm20b_gr_falcon_init_ctx_state(struct gk20a *g,
 			   "query pm ctx image size failed");
 		return ret;
 	}
+#endif
+
+#ifdef NVGPU_GRAPHICS
 	ret = gm20b_gr_falcon_ctrl_ctxsw(g,
 		NVGPU_GR_FALCON_METHOD_CTXSW_DISCOVER_ZCULL_IMAGE_SIZE,
 		0, &sizes->zcull_image_size);
@@ -711,6 +715,7 @@ int gm20b_gr_falcon_init_ctx_state(struct gk20a *g,
 			"query zcull ctx image size failed");
 		return ret;
 	}
+#endif
 
 	nvgpu_log_fn(g, "done");
 	return 0;
@@ -845,6 +850,7 @@ int gm20b_gr_falcon_ctrl_ctxsw(struct gk20a *g, u32 fecs_method,
 						fecs_method, data, ret_val);
 
 	switch (fecs_method) {
+#ifdef NVGPU_DEBUGGER
 	case NVGPU_GR_FALCON_METHOD_CTXSW_STOP:
 		op.method.addr =
 				gr_fecs_method_push_adr_stop_ctxsw_v();
@@ -868,6 +874,7 @@ int gm20b_gr_falcon_ctrl_ctxsw(struct gk20a *g, u32 fecs_method,
 		op.cond.fail = GR_IS_UCODE_OP_EQUAL;
 		sleepduringwait = true;
 	break;
+#endif
 
 	case NVGPU_GR_FALCON_METHOD_HALT_PIPELINE:
 		op.method.addr =
@@ -884,17 +891,24 @@ int gm20b_gr_falcon_ctrl_ctxsw(struct gk20a *g, u32 fecs_method,
 			gr_fecs_method_push_adr_discover_image_size_v();
 		op.mailbox.ret = ret_val;
 		break;
+#ifdef NVGPU_GRAPHICS
 	case NVGPU_GR_FALCON_METHOD_CTXSW_DISCOVER_ZCULL_IMAGE_SIZE:
 		op.method.addr =
 			gr_fecs_method_push_adr_discover_zcull_image_size_v();
 		op.mailbox.ret = ret_val;
 		break;
+#endif
+
+#ifdef NVGPU_DEBUGGER
 	case NVGPU_GR_FALCON_METHOD_CTXSW_DISCOVER_PM_IMAGE_SIZE:
 		op.method.addr =
 			gr_fecs_method_push_adr_discover_pm_image_size_v();
 		op.mailbox.ret = ret_val;
 		sleepduringwait = true;
 		break;
+#endif
+/* Replace NVGPU_GRAPHICS switch here with relevant power feature switch */
+#ifdef NVGPU_GRAPHICS
 	case NVGPU_GR_FALCON_METHOD_REGLIST_DISCOVER_IMAGE_SIZE:
 		op.method.addr =
 			gr_fecs_method_push_adr_discover_reglist_image_size_v();
@@ -919,7 +933,7 @@ int gm20b_gr_falcon_ctrl_ctxsw(struct gk20a *g, u32 fecs_method,
 		op.mailbox.ok = 1U;
 		op.cond.ok = GR_IS_UCODE_OP_EQUAL;
 		break;
-
+#endif
 	case NVGPU_GR_FALCON_METHOD_ADDRESS_BIND_PTR:
 		op.method.addr = gr_fecs_method_push_adr_bind_pointer_v();
 		op.method.data = data;
@@ -941,11 +955,12 @@ int gm20b_gr_falcon_ctrl_ctxsw(struct gk20a *g, u32 fecs_method,
 		op.cond.fail = GR_IS_UCODE_OP_AND;
 		sleepduringwait = true;
 		break;
-
+#ifdef CONFIG_GK20A_CTXSW_TRACE
 	case NVGPU_GR_FALCON_METHOD_FECS_TRACE_FLUSH:
 		op.method.addr =
 			gr_fecs_method_push_adr_write_timestamp_record_v();
 		break;
+#endif
 
 	default:
 		nvgpu_err(g, "unsupported fecs mode %d", fecs_method);

@@ -40,7 +40,7 @@ int gp10b_gr_falcon_init_ctx_state(struct gk20a *g,
 	if (err != 0) {
 		return err;
 	}
-
+#ifdef NVGPU_GRAPHICS
 	err = g->ops.gr.falcon.ctrl_ctxsw(g,
 		NVGPU_GR_FALCON_METHOD_PREEMPT_IMAGE_SIZE, 0U,
 		&sizes->preempt_image_size);
@@ -48,9 +48,8 @@ int gp10b_gr_falcon_init_ctx_state(struct gk20a *g,
 		nvgpu_err(g, "query preempt image size failed");
 		return err;
 	}
-
 	nvgpu_log_info(g, "preempt image size: %u", sizes->preempt_image_size);
-
+#endif
 	nvgpu_log_fn(g, "done");
 
 	return err;
@@ -59,6 +58,7 @@ int gp10b_gr_falcon_init_ctx_state(struct gk20a *g,
 int gp10b_gr_falcon_ctrl_ctxsw(struct gk20a *g, u32 fecs_method,
 						u32 data, u32 *ret_val)
 {
+#ifdef NVGPU_GRAPHICS
 	struct nvgpu_fecs_method_op op = {
 		.mailbox = { .id = 0U, .data = 0U, .ret = NULL,
 			     .clr = ~U32(0U), .ok = 0U, .fail = 0U},
@@ -66,12 +66,14 @@ int gp10b_gr_falcon_ctrl_ctxsw(struct gk20a *g, u32 fecs_method,
 		.cond.ok = GR_IS_UCODE_OP_NOT_EQUAL,
 		.cond.fail = GR_IS_UCODE_OP_SKIP,
 		};
+#endif
 	int ret;
 
 	nvgpu_log_info(g, "fecs method %d data 0x%x ret_val %p",
 				fecs_method, data, ret_val);
 
 	switch (fecs_method) {
+#ifdef NVGPU_GRAPHICS
 	case NVGPU_GR_FALCON_METHOD_PREEMPT_IMAGE_SIZE:
 		op.method.addr =
 			gr_fecs_method_push_adr_discover_preemption_image_size_v();
@@ -88,7 +90,7 @@ int gp10b_gr_falcon_ctrl_ctxsw(struct gk20a *g, u32 fecs_method,
 		op.cond.ok = GR_IS_UCODE_OP_EQUAL;
 		ret = gm20b_gr_falcon_submit_fecs_sideband_method_op(g, op);
 	break;
-
+#endif
 	default:
 		ret = gm20b_gr_falcon_ctrl_ctxsw(g, fecs_method, data, ret_val);
 	break;
