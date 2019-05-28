@@ -3448,6 +3448,24 @@ static int do_test(const char *alg, u32 type, u32 mask, int m, u32 num_mb)
 			return -EIO;
 		break;
 
+	case 557:
+		if (customized_test_acipher_speed("ctr(aes)", bsize, bcnt,
+		    enc_target, dec_target))
+			return -EIO;
+		break;
+
+	case 558:
+		if (customized_test_acipher_speed("ecb(aes)", bsize, bcnt,
+		    enc_target, dec_target))
+			return -EIO;
+		break;
+
+	case 559:
+		if (customized_test_acipher_speed("gcm(aes)", bsize, bcnt,
+		    enc_target, dec_target))
+			return -EIO;
+		break;
+
 	case 560:
 		ret += tcrypt_test("ecdsa");
 		break;
