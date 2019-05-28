@@ -22,6 +22,7 @@
 
 #include <nvgpu/bug.h>
 #include <nvgpu/thread.h>
+#include <nvgpu/os_sched.h>
 
 /**
  * Use pthreads to mostly emulate the Linux kernel APIs. There are some things
@@ -31,18 +32,21 @@
  *
  * This could use some nice debugging some day as well.
  */
-
-/*
- * nvgpu thread functions return int. POSIX threads return void *. This little
- * wrapper takes the int returning nvgpu thread and instead passes that int back
- * through the void * pointer.
- */
 static void *nvgpu_posix_thread_wrapper(void *data)
 {
+	long ret;
+
 	struct nvgpu_posix_thread_data *nvgpu =
 				(struct nvgpu_posix_thread_data *)data;
 
-	return ERR_PTR(nvgpu->fn(nvgpu->data));
+	ret = nvgpu->fn(nvgpu->data);
+
+	if (ret != 0L) {
+		nvgpu_info(NULL, "Error %ld return from thread: %d",
+				ret, nvgpu_current_tid(NULL));
+	}
+
+	return NULL;
 }
 
 static void nvgpu_thread_cancel_sync(struct nvgpu_thread *thread)
