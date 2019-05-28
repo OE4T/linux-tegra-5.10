@@ -807,7 +807,7 @@ static int nvgpu_gpu_ioctl_has_any_exception(
 	u64 tpc_exception_en;
 
 	nvgpu_mutex_acquire(&g->dbg_sessions_lock);
-	tpc_exception_en = g->ops.gr.tpc_enabled_exceptions(g);
+	tpc_exception_en = g->ops.gr.intr.tpc_enabled_exceptions(g);
 	nvgpu_mutex_release(&g->dbg_sessions_lock);
 
 	args->tpc_exception_en_sm_mask = tpc_exception_en;

@@ -280,7 +280,6 @@ struct gpu_ops {
 		void (*get_ovr_perf_regs)(struct gk20a *g,
 						  u32 *num_ovr_perf_regs,
 						  u32 **ovr_perf_regsr);
-		void (*set_hww_esr_report_mask)(struct gk20a *g);
 		void (*set_gpc_tpc_mask)(struct gk20a *g, u32 gpc_index);
 		int (*decode_egpc_addr)(struct gk20a *g,
 			u32 addr, enum ctxsw_addr_type *addr_type,
@@ -325,27 +324,11 @@ struct gpu_ops {
 			bool sm_debugger_attached,
 			struct nvgpu_channel *fault_ch,
 			bool *early_exit, bool *ignore_debugger);
-		u32 (*get_sm_hww_warp_esr)(struct gk20a *g,
-						u32 gpc, u32 tpc, u32 sm);
-		u32 (*get_sm_hww_global_esr)(struct gk20a *g,
-						u32 gpc, u32 tpc, u32 sm);
-		u64 (*get_sm_hww_warp_esr_pc)(struct gk20a *g, u32 offset);
-		u32 (*get_sm_no_lock_down_hww_global_esr_mask)(struct gk20a *g);
 		int  (*lock_down_sm)(struct gk20a *g, u32 gpc, u32 tpc, u32 sm,
 				u32 global_esr_mask, bool check_errors);
 		int  (*wait_for_sm_lock_down)(struct gk20a *g, u32 gpc, u32 tpc,
 				u32 sm, u32 global_esr_mask, bool check_errors);
-		void (*clear_sm_hww)(struct gk20a *g, u32 gpc, u32 tpc, u32 sm,
-					 u32 global_esr);
-		void (*get_esr_sm_sel)(struct gk20a *g, u32 gpc, u32 tpc,
-					 u32 *esr_sm_sel);
-		void (*handle_tpc_sm_ecc_exception)(struct gk20a *g,
-			u32 gpc, u32 tpc,
-			bool *post_event, struct nvgpu_channel *fault_ch,
-			u32 *hww_global_esr);
 		u32 (*get_lrf_tex_ltc_dram_override)(struct gk20a *g);
-		int (*record_sm_error_state)(struct gk20a *g, u32 gpc, u32 tpc,
-				u32 sm, struct nvgpu_channel *fault_ch);
 		int (*clear_sm_error_state)(struct gk20a *g,
 				struct nvgpu_channel *ch, u32 sm_id);
 		int (*suspend_contexts)(struct gk20a *g,
@@ -366,7 +349,6 @@ struct gpu_ops {
 		int (*wait_for_pause)(struct gk20a *g, struct nvgpu_warpstate *w_state);
 		int (*resume_from_pause)(struct gk20a *g);
 		int (*clear_sm_errors)(struct gk20a *g);
-		u64 (*tpc_enabled_exceptions)(struct gk20a *g);
 		bool (*sm_debugger_attached)(struct gk20a *g);
 		void (*suspend_single_sm)(struct gk20a *g,
 				u32 gpc, u32 tpc, u32 sm,
@@ -376,7 +358,6 @@ struct gpu_ops {
 		void (*resume_single_sm)(struct gk20a *g,
 				u32 gpc, u32 tpc, u32 sm);
 		void (*resume_all_sms)(struct gk20a *g);
-		int (*handle_ssync_hww)(struct gk20a *g, u32 *ssync_esr);
 		int (*add_ctxsw_reg_pm_fbpa)(struct gk20a *g,
 				struct ctxsw_buf_offset_map_entry *map,
 				struct netlist_aiv_list *regs,
@@ -403,7 +384,6 @@ struct gpu_ops {
 		void (*set_debug_mode)(struct gk20a *g, bool enable);
 		int (*set_mmu_debug_mode)(struct gk20a *g,
 			struct nvgpu_channel *ch, bool enable);
-		void (*log_mme_exception)(struct gk20a *g);
 		int (*reset)(struct gk20a *g);
 		bool (*esr_bpt_pending_events)(u32 global_esr,
 					enum nvgpu_event_id_type bpt_event);
@@ -856,9 +836,30 @@ struct gpu_ops {
 				u32 *hww_global_esr);
 			int (*stall_isr)(struct gk20a *g);
 			void (*flush_channel_tlb)(struct gk20a *g);
+			void (*set_hww_esr_report_mask)(struct gk20a *g);
+			void (*handle_tpc_sm_ecc_exception)(struct gk20a *g,
+				u32 gpc, u32 tpc,
+				bool *post_event, struct nvgpu_channel *fault_ch,
+				u32 *hww_global_esr);
+			void (*get_esr_sm_sel)(struct gk20a *g, u32 gpc, u32 tpc,
+					 u32 *esr_sm_sel);
+			void (*clear_sm_hww)(struct gk20a *g, u32 gpc, u32 tpc,
+				u32 sm, u32 global_esr);
+			int (*handle_ssync_hww)(struct gk20a *g, u32 *ssync_esr);
+			void (*log_mme_exception)(struct gk20a *g);
+			u32 (*record_sm_error_state)(struct gk20a *g, u32 gpc,
+				u32 tpc, u32 sm, struct nvgpu_channel *fault_ch);
+			u32 (*get_sm_hww_warp_esr)(struct gk20a *g,
+				u32 gpc, u32 tpc, u32 sm);
+			u32 (*get_sm_hww_global_esr)(struct gk20a *g,
+				u32 gpc, u32 tpc, u32 sm);
+			u64 (*get_sm_hww_warp_esr_pc)(struct gk20a *g,
+				u32 offset);
+			u32 (*get_sm_no_lock_down_hww_global_esr_mask)(
+				struct gk20a *g);
+			u64 (*tpc_enabled_exceptions)(struct gk20a *g);
+			u32 (*get_ctxsw_checksum_mismatch_mailbox_val)(void);
 		} intr;
-
-		u32 (*get_ctxsw_checksum_mismatch_mailbox_val)(void);
 	} gr;
 
 	struct {

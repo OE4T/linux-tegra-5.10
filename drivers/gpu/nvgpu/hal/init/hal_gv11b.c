@@ -222,7 +222,6 @@ static const struct gpu_ops gv11b_ops = {
 		.set_circular_buffer_size = gr_gv11b_set_circular_buffer_size,
 		.get_sm_dsm_perf_regs = gv11b_gr_get_sm_dsm_perf_regs,
 		.get_sm_dsm_perf_ctrl_regs = gv11b_gr_get_sm_dsm_perf_ctrl_regs,
-		.set_hww_esr_report_mask = gv11b_gr_set_hww_esr_report_mask,
 		.set_gpc_tpc_mask = gr_gv11b_set_gpc_tpc_mask,
 		.is_tpc_addr = gr_gm20b_is_tpc_addr,
 		.get_tpc_num = gr_gm20b_get_tpc_num,
@@ -239,7 +238,6 @@ static const struct gpu_ops gv11b_ops = {
 		.set_pmm_register = gr_gv100_set_pmm_register,
 		.update_hwpm_ctxsw_mode = gr_gk20a_update_hwpm_ctxsw_mode,
 		.init_hwpm_pmm_register = gr_gv100_init_hwpm_pmm_register,
-		.record_sm_error_state = gv11b_gr_record_sm_error_state,
 		.clear_sm_error_state = gv11b_gr_clear_sm_error_state,
 		.suspend_contexts = gr_gp10b_suspend_contexts,
 		.resume_contexts = gr_gk20a_resume_contexts,
@@ -247,21 +245,13 @@ static const struct gpu_ops gv11b_ops = {
 		.wait_for_pause = gr_gk20a_wait_for_pause,
 		.resume_from_pause = gv11b_gr_resume_from_pause,
 		.clear_sm_errors = gr_gk20a_clear_sm_errors,
-		.tpc_enabled_exceptions = gr_gk20a_tpc_enabled_exceptions,
-		.get_esr_sm_sel = gv11b_gr_get_esr_sm_sel,
 		.sm_debugger_attached = gv11b_gr_sm_debugger_attached,
 		.suspend_single_sm = gv11b_gr_suspend_single_sm,
 		.suspend_all_sms = gv11b_gr_suspend_all_sms,
 		.resume_single_sm = gv11b_gr_resume_single_sm,
 		.resume_all_sms = gv11b_gr_resume_all_sms,
-		.get_sm_hww_warp_esr = gv11b_gr_get_sm_hww_warp_esr,
-		.get_sm_hww_global_esr = gv11b_gr_get_sm_hww_global_esr,
-		.get_sm_hww_warp_esr_pc = gv11b_gr_get_sm_hww_warp_esr_pc,
-		.get_sm_no_lock_down_hww_global_esr_mask =
-			gv11b_gr_get_sm_no_lock_down_hww_global_esr_mask,
 		.lock_down_sm = gv11b_gr_lock_down_sm,
 		.wait_for_sm_lock_down = gv11b_gr_wait_for_sm_lock_down,
-		.clear_sm_hww = gv11b_gr_clear_sm_hww,
 		.init_ovr_sm_dsm_perf =  gv11b_gr_init_ovr_sm_dsm_perf,
 		.get_ovr_perf_regs = gv11b_gr_get_ovr_perf_regs,
 #ifdef NVGPU_FEATURE_CHANNEL_TSG_SCHEDULING
@@ -276,10 +266,7 @@ static const struct gpu_ops gv11b_ops = {
 		.get_egpc_etpc_num = gv11b_gr_get_egpc_etpc_num,
 		.access_smpc_reg = gv11b_gr_access_smpc_reg,
 		.is_egpc_addr = gv11b_gr_pri_is_egpc_addr,
-		.handle_tpc_sm_ecc_exception =
-			gr_gv11b_handle_tpc_sm_ecc_exception,
 		.decode_egpc_addr = gv11b_gr_decode_egpc_addr,
-		.handle_ssync_hww = gr_gv11b_handle_ssync_hww,
 		.decode_priv_addr = gr_gv11b_decode_priv_addr,
 		.create_priv_addr_table = gr_gv11b_create_priv_addr_table,
 		.split_fbpa_broadcast_addr = gr_gk20a_split_fbpa_broadcast_addr,
@@ -287,9 +274,6 @@ static const struct gpu_ops gv11b_ops = {
 			gr_gk20a_get_offset_in_gpccs_segment,
 		.set_debug_mode = gm20b_gr_set_debug_mode,
 		.set_mmu_debug_mode = gm20b_gr_set_mmu_debug_mode,
-		.log_mme_exception = NULL,
-		.get_ctxsw_checksum_mismatch_mailbox_val =
-				gr_gv11b_ctxsw_checksum_mismatch_mailbox_val,
 		.reset = nvgpu_gr_reset,
 		.esr_bpt_pending_events = gv11b_gr_esr_bpt_pending_events,
 		.halt_pipe = nvgpu_gr_halt_pipe,
@@ -609,6 +593,27 @@ static const struct gpu_ops gv11b_ops = {
 				nvgpu_gr_intr_handle_sm_exception,
 			.stall_isr = nvgpu_gr_intr_stall_isr,
 			.flush_channel_tlb = nvgpu_gr_intr_flush_channel_tlb,
+			.set_hww_esr_report_mask =
+				gv11b_gr_intr_set_hww_esr_report_mask,
+			.handle_tpc_sm_ecc_exception =
+				gv11b_gr_intr_handle_tpc_sm_ecc_exception,
+			.get_esr_sm_sel = gv11b_gr_intr_get_esr_sm_sel,
+			.clear_sm_hww = gv11b_gr_intr_clear_sm_hww,
+			.handle_ssync_hww = gv11b_gr_intr_handle_ssync_hww,
+			.record_sm_error_state =
+				gv11b_gr_intr_record_sm_error_state,
+			.get_sm_hww_warp_esr =
+				gv11b_gr_intr_get_sm_hww_warp_esr,
+			.get_sm_hww_warp_esr_pc =
+				gv11b_gr_intr_get_sm_hww_warp_esr_pc,
+			.get_sm_hww_global_esr =
+				gv11b_gr_intr_get_sm_hww_global_esr,
+			.get_sm_no_lock_down_hww_global_esr_mask =
+				gv11b_gr_intr_get_sm_no_lock_down_hww_global_esr_mask,
+			.tpc_enabled_exceptions =
+				gm20b_gr_intr_tpc_enabled_exceptions,
+			.get_ctxsw_checksum_mismatch_mailbox_val =
+				gv11b_gr_intr_ctxsw_checksum_mismatch_mailbox_val,
 		},
 		.falcon = {
 			.handle_fecs_ecc_error =

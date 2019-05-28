@@ -171,40 +171,6 @@ void gr_gm20b_set_circular_buffer_size(struct gk20a *g, u32 data)
 	}
 }
 
-void gr_gm20b_set_hww_esr_report_mask(struct gk20a *g)
-{
-	/* setup sm warp esr report masks */
-	gk20a_writel(g, gr_gpcs_tpcs_sm_hww_warp_esr_report_mask_r(),
-		gr_gpcs_tpcs_sm_hww_warp_esr_report_mask_stack_error_report_f()	|
-		gr_gpcs_tpcs_sm_hww_warp_esr_report_mask_api_stack_error_report_f() |
-		gr_gpcs_tpcs_sm_hww_warp_esr_report_mask_ret_empty_stack_error_report_f() |
-		gr_gpcs_tpcs_sm_hww_warp_esr_report_mask_pc_wrap_report_f() |
-		gr_gpcs_tpcs_sm_hww_warp_esr_report_mask_misaligned_pc_report_f() |
-		gr_gpcs_tpcs_sm_hww_warp_esr_report_mask_pc_overflow_report_f() |
-		gr_gpcs_tpcs_sm_hww_warp_esr_report_mask_misaligned_immc_addr_report_f() |
-		gr_gpcs_tpcs_sm_hww_warp_esr_report_mask_misaligned_reg_report_f() |
-		gr_gpcs_tpcs_sm_hww_warp_esr_report_mask_illegal_instr_encoding_report_f() |
-		gr_gpcs_tpcs_sm_hww_warp_esr_report_mask_illegal_sph_instr_combo_report_f() |
-		gr_gpcs_tpcs_sm_hww_warp_esr_report_mask_illegal_instr_param_report_f() |
-		gr_gpcs_tpcs_sm_hww_warp_esr_report_mask_invalid_const_addr_report_f() |
-		gr_gpcs_tpcs_sm_hww_warp_esr_report_mask_oor_reg_report_f() |
-		gr_gpcs_tpcs_sm_hww_warp_esr_report_mask_oor_addr_report_f() |
-		gr_gpcs_tpcs_sm_hww_warp_esr_report_mask_misaligned_addr_report_f() |
-		gr_gpcs_tpcs_sm_hww_warp_esr_report_mask_invalid_addr_space_report_f() |
-		gr_gpcs_tpcs_sm_hww_warp_esr_report_mask_illegal_instr_param2_report_f() |
-		gr_gpcs_tpcs_sm_hww_warp_esr_report_mask_invalid_const_addr_ldc_report_f() |
-		gr_gpcs_tpcs_sm_hww_warp_esr_report_mask_mmu_fault_report_f() |
-		gr_gpcs_tpcs_sm_hww_warp_esr_report_mask_stack_overflow_report_f() |
-		gr_gpcs_tpcs_sm_hww_warp_esr_report_mask_geometry_sm_error_report_f() |
-		gr_gpcs_tpcs_sm_hww_warp_esr_report_mask_divergent_report_f());
-
-	/* setup sm global esr report mask */
-	gk20a_writel(g, gr_gpcs_tpcs_sm_hww_global_esr_report_mask_r(),
-		gr_gpcs_tpcs_sm_hww_global_esr_report_mask_sm_to_sm_fault_report_f() |
-		gr_gpcs_tpcs_sm_hww_global_esr_report_mask_multiple_warp_errors_report_f());
-}
-
-
 /* Following are the blocks of registers that the ucode
  stores in the extended region.*/
 /* ==  ctxsw_extended_sm_dsm_perf_counter_register_stride_v() ? */
@@ -562,57 +528,6 @@ void gr_gm20b_bpt_reg_info(struct gk20a *g, struct nvgpu_warpstate *w_state)
 	}
 }
 
-static void gm20b_gr_read_sm_error_state(struct gk20a *g,
-			u32 offset,
-			struct nvgpu_tsg_sm_error_state *sm_error_states)
-{
-	sm_error_states->hww_global_esr = gk20a_readl(g,
-			gr_gpc0_tpc0_sm_hww_global_esr_r() + offset);
-	sm_error_states->hww_warp_esr = gk20a_readl(g,
-			gr_gpc0_tpc0_sm_hww_warp_esr_r() + offset);
-	sm_error_states->hww_warp_esr_pc = (u64)(gk20a_readl(g,
-			gr_gpc0_tpc0_sm_hww_warp_esr_pc_r() + offset));
-	sm_error_states->hww_global_esr_report_mask = gk20a_readl(g,
-		       gr_gpc0_tpc0_sm_hww_global_esr_report_mask_r() + offset);
-	sm_error_states->hww_warp_esr_report_mask = gk20a_readl(g,
-			gr_gpc0_tpc0_sm_hww_warp_esr_report_mask_r() + offset);
-
-}
-
-int gm20b_gr_record_sm_error_state(struct gk20a *g, u32 gpc, u32 tpc, u32 sm,
-				struct nvgpu_channel *fault_ch)
-{
-	int sm_id;
-	u32 gpc_stride = nvgpu_get_litter_value(g, GPU_LIT_GPC_STRIDE);
-	u32 tpc_in_gpc_stride = nvgpu_get_litter_value(g,
-					       GPU_LIT_TPC_IN_GPC_STRIDE);
-	u32 offset = gpc_stride * gpc + tpc_in_gpc_stride * tpc;
-	struct nvgpu_tsg_sm_error_state *sm_error_states = NULL;
-	struct nvgpu_tsg *tsg = NULL;
-
-	nvgpu_mutex_acquire(&g->dbg_sessions_lock);
-
-	sm_id = gr_gpc0_tpc0_sm_cfg_sm_id_v(gk20a_readl(g,
-			gr_gpc0_tpc0_sm_cfg_r() + offset));
-
-	if (fault_ch != NULL) {
-		tsg = nvgpu_tsg_from_ch(fault_ch);
-	}
-
-	if (tsg == NULL) {
-		nvgpu_err(g, "no valid tsg");
-		goto record_fail;
-	}
-
-	sm_error_states = tsg->sm_error_states + sm_id;
-	gm20b_gr_read_sm_error_state(g, offset, sm_error_states);
-
-record_fail:
-	nvgpu_mutex_release(&g->dbg_sessions_lock);
-
-	return sm_id;
-}
-
 int gm20b_gr_clear_sm_error_state(struct gk20a *g,
 		struct nvgpu_channel *ch, u32 sm_id)
 {
@@ -660,18 +575,6 @@ int gm20b_gr_clear_sm_error_state(struct gk20a *g,
 fail:
 	nvgpu_mutex_release(&g->dbg_sessions_lock);
 	return err;
-}
-
-void gm20b_gr_clear_sm_hww(struct gk20a *g, u32 gpc, u32 tpc, u32 sm,
-			u32 global_esr)
-{
-	u32 offset = nvgpu_gr_gpc_offset(g, gpc) + nvgpu_gr_tpc_offset(g, tpc);
-
-	gk20a_writel(g, gr_gpc0_tpc0_sm_hww_global_esr_r() + offset,
-			global_esr);
-
-	/* clear the warp hww */
-	gk20a_writel(g, gr_gpc0_tpc0_sm_hww_warp_esr_r() + offset, 0);
 }
 
 int gm20b_gr_set_mmu_debug_mode(struct gk20a *g,

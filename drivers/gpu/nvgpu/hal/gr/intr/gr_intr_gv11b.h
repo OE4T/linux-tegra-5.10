@@ -81,4 +81,26 @@ void gv11b_gr_intr_enable_exceptions(struct gk20a *g,
 void gv11b_gr_intr_enable_gpc_exceptions(struct gk20a *g,
 					 struct nvgpu_gr_config *gr_config);
 
+void gv11b_gr_intr_set_hww_esr_report_mask(struct gk20a *g);
+void gv11b_gr_intr_handle_tpc_sm_ecc_exception(struct gk20a *g,
+		u32 gpc, u32 tpc,
+		bool *post_event, struct nvgpu_channel *fault_ch,
+		u32 *hww_global_esr);
+void gv11b_gr_intr_get_esr_sm_sel(struct gk20a *g, u32 gpc, u32 tpc,
+				u32 *esr_sm_sel);
+void gv11b_gr_intr_clear_sm_hww(struct gk20a *g, u32 gpc, u32 tpc, u32 sm,
+				u32 global_esr);
+int gv11b_gr_intr_handle_ssync_hww(struct gk20a *g, u32 *ssync_esr);
+u32 gv11b_gr_intr_record_sm_error_state(struct gk20a *g, u32 gpc, u32 tpc, u32 sm,
+				struct nvgpu_channel *fault_ch);
+
+u32 gv11b_gr_intr_get_sm_hww_warp_esr(struct gk20a *g,
+			u32 gpc, u32 tpc, u32 sm);
+u32 gv11b_gr_intr_get_sm_hww_global_esr(struct gk20a *g,
+			u32 gpc, u32 tpc, u32 sm);
+u32 gv11b_gr_intr_get_sm_no_lock_down_hww_global_esr_mask(struct gk20a *g);
+u64 gv11b_gr_intr_get_sm_hww_warp_esr_pc(struct gk20a *g, u32 offset);
+
+u32 gv11b_gr_intr_ctxsw_checksum_mismatch_mailbox_val(void);
+
 #endif /* NVGPU_GR_INTR_GV11B_H */

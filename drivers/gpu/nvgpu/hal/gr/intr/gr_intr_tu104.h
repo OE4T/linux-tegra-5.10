@@ -52,5 +52,6 @@ int tu104_gr_intr_handle_sw_method(struct gk20a *g, u32 addr,
 			      u32 class_num, u32 offset, u32 data);
 void tu104_gr_intr_enable_gpc_exceptions(struct gk20a *g,
 					 struct nvgpu_gr_config *gr_config);
+void tu104_gr_intr_log_mme_exception(struct gk20a *g);
 
 #endif /* NVGPU_GR_INTR_TU104_H */

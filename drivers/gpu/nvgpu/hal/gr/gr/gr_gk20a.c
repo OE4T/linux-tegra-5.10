@@ -248,12 +248,6 @@ bool gk20a_gr_sm_debugger_attached(struct gk20a *g)
 	return false;
 }
 
-void gk20a_gr_get_esr_sm_sel(struct gk20a *g, u32 gpc, u32 tpc,
-				u32 *esr_sm_sel)
-{
-	*esr_sm_sel = 1;
-}
-
 static int gr_gk20a_find_priv_offset_in_buffer(struct gk20a *g,
 					       u32 addr,
 					       bool is_quad, u32 quad,
@@ -1741,12 +1735,12 @@ int gk20a_gr_wait_for_sm_lock_down(struct gk20a *g, u32 gpc, u32 tpc, u32 sm,
 
 	/* wait for the sm to lock down */
 	do {
-		u32 global_esr = g->ops.gr.get_sm_hww_global_esr(g,
+		u32 global_esr = g->ops.gr.intr.get_sm_hww_global_esr(g,
 						gpc, tpc, sm);
 		dbgr_status0 = gk20a_readl(g,
 				gr_gpc0_tpc0_sm_dbgr_status0_r() + offset);
 
-		warp_esr = g->ops.gr.get_sm_hww_warp_esr(g, gpc, tpc, sm);
+		warp_esr = g->ops.gr.intr.get_sm_hww_warp_esr(g, gpc, tpc, sm);
 
 		locked_down =
 		    (gr_gpc0_tpc0_sm_dbgr_status0_locked_down_v(dbgr_status0) ==
@@ -2167,7 +2161,7 @@ int gr_gk20a_wait_for_pause(struct gk20a *g, struct nvgpu_warpstate *w_state)
 	 * 2) All SMs in the trap handler must have equivalent VALID and PAUSED warp
 	 *    masks.
 	*/
-	global_mask = g->ops.gr.get_sm_no_lock_down_hww_global_esr_mask(g);
+	global_mask = g->ops.gr.intr.get_sm_no_lock_down_hww_global_esr_mask(g);
 
 	/* Lock down all SMs */
 	for (sm_id = 0; sm_id < no_of_sm; sm_id++) {
@@ -2225,13 +2219,13 @@ int gr_gk20a_clear_sm_errors(struct gk20a *g)
 		     tpc++) {
 
 			for (sm = 0; sm < sm_per_tpc; sm++) {
-				global_esr = g->ops.gr.get_sm_hww_global_esr(g,
+				global_esr = g->ops.gr.intr.get_sm_hww_global_esr(g,
 							 gpc, tpc, sm);
 
 				/* clearing hwws, also causes tpc and gpc
 				 * exceptions to be cleared
 				 */
-				g->ops.gr.clear_sm_hww(g,
+				g->ops.gr.intr.clear_sm_hww(g,
 					gpc, tpc, sm, global_esr);
 			}
 		}
@@ -2240,64 +2234,3 @@ int gr_gk20a_clear_sm_errors(struct gk20a *g)
 	return ret;
 }
 
-u64 gr_gk20a_tpc_enabled_exceptions(struct gk20a *g)
-{
-	u32 sm_id;
-	u64 tpc_exception_en = 0;
-	u32 offset, regval, tpc_offset, gpc_offset;
-	u32 gpc_stride = nvgpu_get_litter_value(g, GPU_LIT_GPC_STRIDE);
-	u32 tpc_in_gpc_stride = nvgpu_get_litter_value(g, GPU_LIT_TPC_IN_GPC_STRIDE);
-	u32 no_of_sm = g->ops.gr.init.get_no_of_sm(g);
-
-	for (sm_id = 0; sm_id < no_of_sm; sm_id++) {
-		struct nvgpu_sm_info *sm_info =
-			nvgpu_gr_config_get_sm_info(g->gr->config, sm_id);
-		tpc_offset = tpc_in_gpc_stride *
-			nvgpu_gr_config_get_sm_info_tpc_index(sm_info);
-		gpc_offset = gpc_stride *
-			nvgpu_gr_config_get_sm_info_gpc_index(sm_info);
-		offset = tpc_offset + gpc_offset;
-
-		regval = gk20a_readl(g,	gr_gpc0_tpc0_tpccs_tpc_exception_en_r() +
-								offset);
-		/* Each bit represents corresponding enablement state, bit 0 corrsponds to SM0 */
-		tpc_exception_en |= gr_gpc0_tpc0_tpccs_tpc_exception_en_sm_v(regval) << sm_id;
-	}
-
-	return tpc_exception_en;
-}
-
-u32 gk20a_gr_get_sm_hww_warp_esr(struct gk20a *g, u32 gpc, u32 tpc, u32 sm)
-{
-	u32 offset = nvgpu_gr_gpc_offset(g, gpc) + nvgpu_gr_tpc_offset(g, tpc);
-	u32 hww_warp_esr = gk20a_readl(g,
-			 gr_gpc0_tpc0_sm_hww_warp_esr_r() + offset);
-	return hww_warp_esr;
-}
-
-u32 gk20a_gr_get_sm_hww_global_esr(struct gk20a *g, u32 gpc, u32 tpc, u32 sm)
-{
-	u32 offset = nvgpu_gr_gpc_offset(g, gpc) + nvgpu_gr_tpc_offset(g, tpc);
-
-	u32 hww_global_esr = gk20a_readl(g,
-				 gr_gpc0_tpc0_sm_hww_global_esr_r() + offset);
-
-	return hww_global_esr;
-}
-
-u32 gk20a_gr_get_sm_no_lock_down_hww_global_esr_mask(struct gk20a *g)
-{
-	/*
-	 * These three interrupts don't require locking down the SM. They can
-	 * be handled by usermode clients as they aren't fatal. Additionally,
-	 * usermode clients may wish to allow some warps to execute while others
-	 * are at breakpoints, as opposed to fatal errors where all warps should
-	 * halt.
-	 */
-	u32 global_esr_mask =
-		gr_gpc0_tpc0_sm_hww_global_esr_bpt_int_pending_f() |
-		gr_gpc0_tpc0_sm_hww_global_esr_bpt_pause_pending_f() |
-		gr_gpc0_tpc0_sm_hww_global_esr_single_step_complete_pending_f();
-
-	return global_esr_mask;
-}

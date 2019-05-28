@@ -37,7 +37,6 @@ int gr_gm20b_commit_global_cb_manager(struct gk20a *g,
 			struct nvgpu_gr_ctx *gr_ctx, bool patch);
 void gr_gm20b_set_alpha_circular_buffer_size(struct gk20a *g, u32 data);
 void gr_gm20b_set_circular_buffer_size(struct gk20a *g, u32 data);
-void gr_gm20b_set_hww_esr_report_mask(struct gk20a *g);
 void gr_gm20b_init_sm_dsm_reg_info(void);
 void gr_gm20b_get_sm_dsm_perf_regs(struct gk20a *g,
 					  u32 *num_sm_dsm_perf_regs,
@@ -56,12 +55,8 @@ int gr_gm20b_update_pc_sampling(struct nvgpu_channel *c,
 				       bool enable);
 void gr_gm20b_init_cyclestats(struct gk20a *g);
 void gr_gm20b_bpt_reg_info(struct gk20a *g, struct nvgpu_warpstate *w_state);
-int gm20b_gr_record_sm_error_state(struct gk20a *g, u32 gpc,
-		u32 tpc, u32 sm, struct nvgpu_channel *fault_ch);
 int gm20b_gr_clear_sm_error_state(struct gk20a *g,
 		struct nvgpu_channel *ch, u32 sm_id);
-void gm20b_gr_clear_sm_hww(struct gk20a *g, u32 gpc, u32 tpc, u32 sm,
-			u32 global_esr);
 u32 gr_gm20b_get_pmm_per_chiplet_offset(void);
 void gm20b_gr_set_debug_mode(struct gk20a *g, bool enable);
 int gm20b_gr_set_mmu_debug_mode(struct gk20a *g,

@@ -554,9 +554,9 @@ int gr_gp10b_pre_process_sm_exception(struct gk20a *g,
 			}
 
 			/* reset the HWW errors after locking down */
-			global_esr_copy = g->ops.gr.get_sm_hww_global_esr(g,
+			global_esr_copy = g->ops.gr.intr.get_sm_hww_global_esr(g,
 							gpc, tpc, sm);
-			g->ops.gr.clear_sm_hww(g,
+			g->ops.gr.intr.clear_sm_hww(g,
 						gpc, tpc, sm, global_esr_copy);
 			nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gpu_dbg,
 					"CILP: HWWs cleared for gpc %d tpc %d\n",

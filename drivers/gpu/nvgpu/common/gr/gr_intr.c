@@ -79,12 +79,12 @@ static int gr_intr_handle_tpc_exception(struct gk20a *g, u32 gpc, u32 tpc,
 		nvgpu_log(g, gpu_dbg_intr | gpu_dbg_gpu_dbg,
 				"GPC%d TPC%d: SM exception pending", gpc, tpc);
 
-		if (g->ops.gr.handle_tpc_sm_ecc_exception != NULL) {
-			g->ops.gr.handle_tpc_sm_ecc_exception(g, gpc, tpc,
+		if (g->ops.gr.intr.handle_tpc_sm_ecc_exception != NULL) {
+			g->ops.gr.intr.handle_tpc_sm_ecc_exception(g, gpc, tpc,
 				post_event, fault_ch, hww_global_esr);
 		}
 
-		g->ops.gr.get_esr_sm_sel(g, gpc, tpc, &esr_sm_sel);
+		g->ops.gr.intr.get_esr_sm_sel(g, gpc, tpc, &esr_sm_sel);
 
 		for (sm = 0; sm < sm_per_tpc; sm++) {
 
@@ -105,7 +105,7 @@ static int gr_intr_handle_tpc_exception(struct gk20a *g, u32 gpc, u32 tpc,
 			 * exceptions to be cleared. Should be cleared
 			 * only if SM is locked down or empty.
 			 */
-			g->ops.gr.clear_sm_hww(g,
+			g->ops.gr.intr.clear_sm_hww(g,
 				gpc, tpc, sm, *hww_global_esr);
 
 		}
@@ -359,10 +359,10 @@ int nvgpu_gr_intr_handle_sm_exception(struct gk20a *g, u32 gpc, u32 tpc, u32 sm,
 
 	sm_debugger_attached = g->ops.gr.sm_debugger_attached(g);
 
-	global_esr = g->ops.gr.get_sm_hww_global_esr(g, gpc, tpc, sm);
+	global_esr = g->ops.gr.intr.get_sm_hww_global_esr(g, gpc, tpc, sm);
 	*hww_global_esr = global_esr;
-	warp_esr = g->ops.gr.get_sm_hww_warp_esr(g, gpc, tpc, sm);
-	global_mask = g->ops.gr.get_sm_no_lock_down_hww_global_esr_mask(g);
+	warp_esr = g->ops.gr.intr.get_sm_hww_warp_esr(g, gpc, tpc, sm);
+	global_mask = g->ops.gr.intr.get_sm_no_lock_down_hww_global_esr_mask(g);
 
 	if (!sm_debugger_attached) {
 		nvgpu_err(g, "sm hww global 0x%08x warp 0x%08x",
@@ -377,15 +377,15 @@ int nvgpu_gr_intr_handle_sm_exception(struct gk20a *g, u32 gpc, u32 tpc, u32 sm,
 	 * Check and report any fatal wrap errors.
 	 */
 	if ((global_esr & ~global_mask) != 0U) {
-		if (g->ops.gr.get_sm_hww_warp_esr_pc != NULL) {
-			hww_warp_esr_pc = g->ops.gr.get_sm_hww_warp_esr_pc(g,
+		if (g->ops.gr.intr.get_sm_hww_warp_esr_pc != NULL) {
+			hww_warp_esr_pc = g->ops.gr.intr.get_sm_hww_warp_esr_pc(g,
 					offset);
 		}
 		gr_intr_report_sm_exception(g, gpc, tpc, sm, warp_esr,
 				hww_warp_esr_pc);
 	}
 	nvgpu_pg_elpg_protected_call(g,
-		g->ops.gr.record_sm_error_state(g, gpc, tpc, sm, fault_ch));
+		g->ops.gr.intr.record_sm_error_state(g, gpc, tpc, sm, fault_ch));
 
 	if (g->ops.gr.pre_process_sm_exception != NULL) {
 		ret = g->ops.gr.pre_process_sm_exception(g, gpc, tpc, sm,
@@ -498,9 +498,9 @@ int nvgpu_gr_intr_handle_fecs_error(struct gk20a *g, struct nvgpu_channel *ch,
 		 * The mailbox values may vary across chips hence keeping it
 		 * as a HAL.
 		 */
-		if ((g->ops.gr.get_ctxsw_checksum_mismatch_mailbox_val != NULL)
+		if ((g->ops.gr.intr.get_ctxsw_checksum_mismatch_mailbox_val != NULL)
 			&& (mailbox_value ==
-			g->ops.gr.get_ctxsw_checksum_mismatch_mailbox_val())) {
+			g->ops.gr.intr.get_ctxsw_checksum_mismatch_mailbox_val())) {
 
 			gr_intr_report_ctxsw_error(g,
 					GPU_FECS_CTXSW_CRC_MISMATCH,

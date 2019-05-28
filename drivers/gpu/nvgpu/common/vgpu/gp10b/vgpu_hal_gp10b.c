@@ -63,6 +63,7 @@
 #include "hal/gr/fecs_trace/fecs_trace_gm20b.h"
 #include "hal/gr/init/gr_init_gm20b.h"
 #include "hal/gr/init/gr_init_gp10b.h"
+#include "hal/gr/intr/gr_intr_gm20b.h"
 #include "hal/gr/config/gr_config_gm20b.h"
 #include "hal/gr/ctxsw_prog/ctxsw_prog_gm20b.h"
 #include "hal/gr/ctxsw_prog/ctxsw_prog_gp10b.h"
@@ -136,7 +137,6 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 		.set_circular_buffer_size = NULL,
 		.get_sm_dsm_perf_regs = gr_gm20b_get_sm_dsm_perf_regs,
 		.get_sm_dsm_perf_ctrl_regs = gr_gm20b_get_sm_dsm_perf_ctrl_regs,
-		.set_hww_esr_report_mask = NULL,
 		.set_gpc_tpc_mask = NULL,
 		.is_tpc_addr = gr_gm20b_is_tpc_addr,
 		.get_tpc_num = gr_gm20b_get_tpc_num,
@@ -149,7 +149,6 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 		.get_lrf_tex_ltc_dram_override = NULL,
 		.update_smpc_ctxsw_mode = vgpu_gr_update_smpc_ctxsw_mode,
 		.update_hwpm_ctxsw_mode = vgpu_gr_update_hwpm_ctxsw_mode,
-		.record_sm_error_state = gm20b_gr_record_sm_error_state,
 		.clear_sm_error_state = vgpu_gr_clear_sm_error_state,
 		.suspend_contexts = vgpu_gr_suspend_contexts,
 		.resume_contexts = vgpu_gr_resume_contexts,
@@ -157,21 +156,13 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 		.wait_for_pause = gr_gk20a_wait_for_pause,
 		.resume_from_pause = NULL,
 		.clear_sm_errors = gr_gk20a_clear_sm_errors,
-		.tpc_enabled_exceptions = NULL,
-		.get_esr_sm_sel = gk20a_gr_get_esr_sm_sel,
 		.sm_debugger_attached = NULL,
 		.suspend_single_sm = NULL,
 		.suspend_all_sms = NULL,
 		.resume_single_sm = NULL,
 		.resume_all_sms = NULL,
-		.get_sm_hww_warp_esr = NULL,
-		.get_sm_hww_global_esr = NULL,
-		.get_sm_hww_warp_esr_pc = NULL,
-		.get_sm_no_lock_down_hww_global_esr_mask =
-			gk20a_gr_get_sm_no_lock_down_hww_global_esr_mask,
 		.lock_down_sm = NULL,
 		.wait_for_sm_lock_down = NULL,
-		.clear_sm_hww = NULL,
 		.init_ovr_sm_dsm_perf =  gk20a_gr_init_ovr_sm_dsm_perf,
 		.get_ovr_perf_regs = gk20a_gr_get_ovr_perf_regs,
 		.set_boosted_ctx = NULL,
@@ -373,6 +364,8 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 
 		.intr = {
 			.flush_channel_tlb = nvgpu_gr_intr_flush_channel_tlb,
+			.get_sm_no_lock_down_hww_global_esr_mask =
+				gm20b_gr_intr_get_sm_no_lock_down_hww_global_esr_mask,
 		},
 	},
 	.gpu_class = {

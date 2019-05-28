@@ -135,6 +135,15 @@ u32 nvgpu_gr_tpc_offset(struct gk20a *g, u32 tpc)
 	return tpc_offset;
 }
 
+u32 nvgpu_gr_sm_offset(struct gk20a *g, u32 sm)
+{
+
+	u32 sm_pri_stride = nvgpu_get_litter_value(g, GPU_LIT_SM_PRI_STRIDE);
+	u32 sm_offset = nvgpu_safe_mult_u32(sm_pri_stride, sm);
+
+	return sm_offset;
+}
+
 void nvgpu_gr_init(struct gk20a *g)
 {
 	(void)nvgpu_cond_init(&g->gr->init_wq);
@@ -206,7 +215,7 @@ static int gr_init_setup_hw(struct gk20a *g)
 	g->ops.gr.falcon.fecs_host_int_enable(g);
 
 	g->ops.gr.intr.enable_hww_exceptions(g);
-	g->ops.gr.set_hww_esr_report_mask(g);
+	g->ops.gr.intr.set_hww_esr_report_mask(g);
 
 	/* enable TPC exceptions per GPC */
 	if (g->ops.gr.intr.enable_gpc_exceptions != NULL) {

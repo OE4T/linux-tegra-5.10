@@ -180,7 +180,6 @@ static const struct gpu_ops gp10b_ops = {
 		.set_circular_buffer_size = gr_gp10b_set_circular_buffer_size,
 		.get_sm_dsm_perf_regs = gr_gm20b_get_sm_dsm_perf_regs,
 		.get_sm_dsm_perf_ctrl_regs = gr_gm20b_get_sm_dsm_perf_ctrl_regs,
-		.set_hww_esr_report_mask = gr_gm20b_set_hww_esr_report_mask,
 		.set_gpc_tpc_mask = gr_gp10b_set_gpc_tpc_mask,
 		.is_tpc_addr = gr_gm20b_is_tpc_addr,
 		.get_tpc_num = gr_gm20b_get_tpc_num,
@@ -194,7 +193,6 @@ static const struct gpu_ops gp10b_ops = {
 		.update_smpc_ctxsw_mode = gr_gk20a_update_smpc_ctxsw_mode,
 		.update_hwpm_ctxsw_mode = gr_gk20a_update_hwpm_ctxsw_mode,
 		.set_mmu_debug_mode = NULL,
-		.record_sm_error_state = gm20b_gr_record_sm_error_state,
 		.clear_sm_error_state = gm20b_gr_clear_sm_error_state,
 		.suspend_contexts = gr_gp10b_suspend_contexts,
 		.resume_contexts = gr_gk20a_resume_contexts,
@@ -202,21 +200,13 @@ static const struct gpu_ops gp10b_ops = {
 		.wait_for_pause = gr_gk20a_wait_for_pause,
 		.resume_from_pause = gr_gk20a_resume_from_pause,
 		.clear_sm_errors = gr_gk20a_clear_sm_errors,
-		.tpc_enabled_exceptions = gr_gk20a_tpc_enabled_exceptions,
-		.get_esr_sm_sel = gk20a_gr_get_esr_sm_sel,
 		.sm_debugger_attached = gk20a_gr_sm_debugger_attached,
 		.suspend_single_sm = gk20a_gr_suspend_single_sm,
 		.suspend_all_sms = gk20a_gr_suspend_all_sms,
 		.resume_single_sm = gk20a_gr_resume_single_sm,
 		.resume_all_sms = gk20a_gr_resume_all_sms,
-		.get_sm_hww_warp_esr = gp10b_gr_get_sm_hww_warp_esr,
-		.get_sm_hww_global_esr = gk20a_gr_get_sm_hww_global_esr,
-		.get_sm_hww_warp_esr_pc = NULL,
-		.get_sm_no_lock_down_hww_global_esr_mask =
-			gk20a_gr_get_sm_no_lock_down_hww_global_esr_mask,
 		.lock_down_sm = gk20a_gr_lock_down_sm,
 		.wait_for_sm_lock_down = gk20a_gr_wait_for_sm_lock_down,
-		.clear_sm_hww = gm20b_gr_clear_sm_hww,
 		.init_ovr_sm_dsm_perf =  gk20a_gr_init_ovr_sm_dsm_perf,
 		.get_ovr_perf_regs = gk20a_gr_get_ovr_perf_regs,
 #ifdef NVGPU_FEATURE_CHANNEL_TSG_SCHEDULING
@@ -230,7 +220,6 @@ static const struct gpu_ops gp10b_ops = {
 		.get_offset_in_gpccs_segment =
 			gr_gk20a_get_offset_in_gpccs_segment,
 		.set_debug_mode = gm20b_gr_set_debug_mode,
-		.log_mme_exception = NULL,
 		.reset = nvgpu_gr_reset,
 		.esr_bpt_pending_events = gm20b_gr_esr_bpt_pending_events,
 		.halt_pipe = nvgpu_gr_halt_pipe,
@@ -510,6 +499,20 @@ static const struct gpu_ops gp10b_ops = {
 				gp10b_gr_intr_handle_sm_exception,
 			.stall_isr = nvgpu_gr_intr_stall_isr,
 			.flush_channel_tlb = nvgpu_gr_intr_flush_channel_tlb,
+			.set_hww_esr_report_mask =
+				gm20b_gr_intr_set_hww_esr_report_mask,
+			.get_esr_sm_sel = gm20b_gr_intr_get_esr_sm_sel,
+			.clear_sm_hww = gm20b_gr_intr_clear_sm_hww,
+			.record_sm_error_state =
+				gm20b_gr_intr_record_sm_error_state,
+			.get_sm_hww_warp_esr =
+				gm20b_gr_intr_get_sm_hww_warp_esr,
+			.get_sm_hww_global_esr =
+				gm20b_gr_intr_get_sm_hww_global_esr,
+			.get_sm_no_lock_down_hww_global_esr_mask =
+				gm20b_gr_intr_get_sm_no_lock_down_hww_global_esr_mask,
+			.tpc_enabled_exceptions =
+				gm20b_gr_intr_tpc_enabled_exceptions,
 		},
 		.falcon = {
 			.read_fecs_ctxsw_mailbox =

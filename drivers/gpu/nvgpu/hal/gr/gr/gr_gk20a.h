@@ -36,7 +36,6 @@ enum ctxsw_addr_type;
 
 /* sm */
 bool gk20a_gr_sm_debugger_attached(struct gk20a *g);
-u32 gk20a_gr_get_sm_no_lock_down_hww_global_esr_mask(struct gk20a *g);
 int gr_gk20a_exec_ctx_ops(struct nvgpu_channel *ch,
 			  struct nvgpu_dbg_reg_op *ctx_ops, u32 num_ops,
 			  u32 num_ctx_wr_ops, u32 num_ctx_rd_ops,
@@ -71,8 +70,6 @@ int gk20a_gr_lock_down_sm(struct gk20a *g,
 			 bool check_errors);
 int gk20a_gr_wait_for_sm_lock_down(struct gk20a *g, u32 gpc, u32 tpc, u32 sm,
 		u32 global_esr_mask, bool check_errors);
-u32 gk20a_gr_get_sm_hww_warp_esr(struct gk20a *g, u32 gpc, u32 tpc, u32 sm);
-u32 gk20a_gr_get_sm_hww_global_esr(struct gk20a *g, u32 gpc, u32 tpc, u32 sm);
 bool gr_gk20a_suspend_context(struct nvgpu_channel *ch);
 bool gr_gk20a_resume_context(struct nvgpu_channel *ch);
 int gr_gk20a_suspend_contexts(struct gk20a *g,
@@ -85,9 +82,6 @@ int gr_gk20a_trigger_suspend(struct gk20a *g);
 int gr_gk20a_wait_for_pause(struct gk20a *g, struct nvgpu_warpstate *w_state);
 int gr_gk20a_resume_from_pause(struct gk20a *g);
 int gr_gk20a_clear_sm_errors(struct gk20a *g);
-u64 gr_gk20a_tpc_enabled_exceptions(struct gk20a *g);
-void gk20a_gr_get_esr_sm_sel(struct gk20a *g, u32 gpc, u32 tpc,
-				u32 *esr_sm_sel);
 void gk20a_gr_init_ovr_sm_dsm_perf(void);
 void gk20a_gr_get_ovr_perf_regs(struct gk20a *g, u32 *num_ovr_perf_regs,
 					       u32 **ovr_perf_regs);

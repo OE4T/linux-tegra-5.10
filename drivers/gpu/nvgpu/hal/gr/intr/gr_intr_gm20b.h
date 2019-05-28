@@ -67,4 +67,19 @@ void gm20b_gr_intr_enable_gpc_exceptions(struct gk20a *g,
 u32 gm20b_gr_intr_nonstall_isr(struct gk20a *g);
 void gm20ab_gr_intr_tpc_exception_sm_disable(struct gk20a *g, u32 offset);
 void gm20ab_gr_intr_tpc_exception_sm_enable(struct gk20a *g);
+
+void gm20b_gr_intr_set_hww_esr_report_mask(struct gk20a *g);
+void gm20b_gr_intr_get_esr_sm_sel(struct gk20a *g, u32 gpc, u32 tpc,
+				u32 *esr_sm_sel);
+void gm20b_gr_intr_clear_sm_hww(struct gk20a *g, u32 gpc, u32 tpc, u32 sm,
+			u32 global_esr);
+u32 gm20b_gr_intr_record_sm_error_state(struct gk20a *g, u32 gpc, u32 tpc, u32 sm,
+				struct nvgpu_channel *fault_ch);
+
+u32 gm20b_gr_intr_get_sm_hww_global_esr(struct gk20a *g, u32 gpc, u32 tpc,
+		u32 sm);
+u32 gm20b_gr_intr_get_sm_hww_warp_esr(struct gk20a *g, u32 gpc, u32 tpc, u32 sm);
+u32 gm20b_gr_intr_get_sm_no_lock_down_hww_global_esr_mask(struct gk20a *g);
+u64 gm20b_gr_intr_tpc_enabled_exceptions(struct gk20a *g);
+
 #endif /* NVGPU_GR_INTR_GM20B_H */
