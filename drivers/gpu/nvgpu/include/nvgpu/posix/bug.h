@@ -70,8 +70,8 @@ void bug_handler_cancel(void);
 #define EXPECT_BUG(code_to_run)				\
 	({						\
 		jmp_buf handler;			\
-		bool bug_result = true;			\
-		if (setjmp(handler) != 0) {		\
+		volatile bool bug_result = true;	\
+		if (setjmp(handler) == 0) {		\
 			bug_handler_register(&handler);	\
 			code_to_run;			\
 			bug_handler_cancel();		\
