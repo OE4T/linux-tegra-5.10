@@ -504,7 +504,6 @@ int nvgpu_vm_do_init(struct mm_gk20a *mm,
 
 	/*
 	 * Kernel VMA.
-	 * Note: Kernel VMA does not exist for VGPU.
 	 */
 	if (kernel_vma_start < kernel_vma_limit) {
 		(void) strcpy(alloc_name, "gk20a_");
