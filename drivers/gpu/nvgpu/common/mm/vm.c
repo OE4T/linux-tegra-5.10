@@ -376,7 +376,8 @@ int nvgpu_vm_do_init(struct mm_gk20a *mm,
 	}
 
 	/* Initialize the page table data structures. */
-	(void) strncpy(vm->name, name, min(strlen(name), sizeof(vm->name)));
+	(void) strncpy(vm->name, name,
+		       min(strlen(name), (size_t)(sizeof(vm->name)-1ULL)));
 	err = nvgpu_gmmu_init_page_table(vm);
 	if (err != 0) {
 		goto clean_up_gpu_vm;
