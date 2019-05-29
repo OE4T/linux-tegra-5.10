@@ -104,7 +104,7 @@ u32 nvgpu_vm_pde_coverage_bit_count(struct vm_gk20a *vm)
 
 static void nvgpu_vm_do_free_entries(struct vm_gk20a *vm,
 				     struct nvgpu_gmmu_pd *pd,
-				     int level)
+				     u32 level)
 {
 	u32 i;
 
@@ -115,6 +115,7 @@ static void nvgpu_vm_do_free_entries(struct vm_gk20a *vm,
 
 	if (pd->entries != NULL) {
 		for (i = 0; i < pd->num_entries; i++) {
+			nvgpu_assert(level < U32_MAX);
 			nvgpu_vm_do_free_entries(vm, &pd->entries[i],
 						 level + 1);
 		}
@@ -136,7 +137,7 @@ static void nvgpu_vm_free_entries(struct vm_gk20a *vm,
 	}
 
 	for (i = 0; i < pdb->num_entries; i++) {
-		nvgpu_vm_do_free_entries(vm, &pdb->entries[i], 1);
+		nvgpu_vm_do_free_entries(vm, &pdb->entries[i], 1U);
 	}
 
 	nvgpu_vfree(g, pdb->entries);
