@@ -38,7 +38,7 @@
 #include <nvgpu/nvgpu_sgt.h>
 #include <nvgpu/vgpu/vm_vgpu.h>
 #include <nvgpu/cbc.h>
-
+#include <nvgpu/safe_ops.h>
 
 struct nvgpu_ctag_buffer_info {
 	u64			size;
@@ -168,7 +168,7 @@ u64 nvgpu_vm_alloc_va(struct vm_gk20a *vm, u64 size, u32 pgsz_idx)
 	}
 
 	/* Be certain we round up to page_size if needed */
-	size = (size + ((u64)page_size - 1U)) & ~((u64)page_size - 1U);
+	size = ALIGN(size, page_size);
 
 	addr = nvgpu_alloc_pte(vma, size, page_size);
 	if (addr == 0ULL) {
@@ -223,7 +223,7 @@ void nvgpu_vm_mapping_batch_finish(struct vm_gk20a *vm,
  */
 bool nvgpu_big_pages_possible(struct vm_gk20a *vm, u64 base, u64 size)
 {
-	u64 mask = ((u64)vm->big_page_size << 10ULL) - 1ULL;
+	u64 mask = nvgpu_safe_sub_u64((u64)vm->big_page_size << 10ULL, 1ULL);
 	u64 base_big_page = base & mask;
 	u64 size_big_page = size & mask;
 
@@ -273,10 +273,10 @@ static int nvgpu_init_sema_pool(struct vm_gk20a *vm)
 	 * !!! TODO: cleanup.
 	 */
 	nvgpu_semaphore_sea_allocate_gpu_va(sema_sea, &vm->kernel,
-					     vm->va_limit -
-					     mm->channel.kernel_size,
-					     512U * PAGE_SIZE,
-					     (u32)SZ_4K);
+					nvgpu_safe_sub_u64(vm->va_limit,
+						mm->channel.kernel_size),
+					512U * PAGE_SIZE,
+					(u32)SZ_4K);
 	if (nvgpu_semaphore_sea_get_gpu_va(sema_sea) == 0ULL) {
 		nvgpu_free(&vm->kernel,
 			nvgpu_semaphore_sea_get_gpu_va(sema_sea));
@@ -317,7 +317,7 @@ int nvgpu_vm_do_init(struct mm_gk20a *mm,
 	struct gk20a *g = gk20a_from_mm(mm);
 	int err = 0;
 
-	if (kernel_reserved + low_hole > aperture_size) {
+	if (nvgpu_safe_add_u64(kernel_reserved, low_hole) > aperture_size) {
 		nvgpu_do_assert_print(g,
 			"Overlap between user and kernel spaces");
 		return -ENOMEM;
@@ -745,7 +745,8 @@ int nvgpu_insert_mapped_buf(struct vm_gk20a *vm,
 			    struct nvgpu_mapped_buf *mapped_buffer)
 {
 	mapped_buffer->node.key_start = mapped_buffer->addr;
-	mapped_buffer->node.key_end = mapped_buffer->addr + mapped_buffer->size;
+	mapped_buffer->node.key_end = nvgpu_safe_add_u64(mapped_buffer->addr,
+						mapped_buffer->size);
 
 	nvgpu_rbtree_insert(&mapped_buffer->node, &vm->mapped_buffers);
 	vm->num_user_mapped_buffers++;
