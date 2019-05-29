@@ -36,7 +36,7 @@ if [ -f nvgpu_unit ]; then
         # target, so use that dir structure
         LD_LIBRARY_PATH=".:units"
         cores=$(cat /proc/cpuinfo |grep processor |wc -l)
-        NVGPU_UNIT="./nvgpu_unit -v --nvtest --unit-load-path units/ --no-color \
+        NVGPU_UNIT="./nvgpu_unit --nvtest --unit-load-path units/ --no-color \
                  --num-threads $cores"
 else
         # running on host
