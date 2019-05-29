@@ -151,7 +151,7 @@ struct vm_gk20a {
 	u64 va_start;
 	u64 va_limit;
 
-	int num_user_mapped_buffers;
+	u32 num_user_mapped_buffers;
 
 	bool big_pages;   /* enable large page support */
 	bool enable_ctag;
@@ -243,11 +243,11 @@ void nvgpu_vm_mapping_batch_finish_locked(
 /* get reference to all currently mapped buffers */
 int nvgpu_vm_get_buffers(struct vm_gk20a *vm,
 			 struct nvgpu_mapped_buf ***mapped_buffers,
-			 int *num_buffers);
+			 u32 *num_buffers);
 /* put references on the given buffers */
 void nvgpu_vm_put_buffers(struct vm_gk20a *vm,
 			  struct nvgpu_mapped_buf **mapped_buffers,
-			  int num_buffers);
+			  u32 num_buffers);
 
 struct nvgpu_mapped_buf *nvgpu_vm_find_mapping(struct vm_gk20a *vm,
 					       struct nvgpu_os_buffer *os_buf,

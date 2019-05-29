@@ -117,7 +117,7 @@ static void nvgpu_vm_do_free_entries(struct vm_gk20a *vm,
 		for (i = 0; i < pd->num_entries; i++) {
 			nvgpu_assert(level < U32_MAX);
 			nvgpu_vm_do_free_entries(vm, &pd->entries[i],
-						 level + 1);
+						 level + 1U);
 		}
 		nvgpu_vfree(vm->mm->g, pd->entries);
 		pd->entries = NULL;
@@ -752,6 +752,7 @@ int nvgpu_insert_mapped_buf(struct vm_gk20a *vm,
 						mapped_buffer->size);
 
 	nvgpu_rbtree_insert(&mapped_buffer->node, &vm->mapped_buffers);
+	nvgpu_assert(vm->num_user_mapped_buffers < U32_MAX);
 	vm->num_user_mapped_buffers++;
 
 	return 0;
@@ -761,6 +762,7 @@ static void nvgpu_remove_mapped_buf(struct vm_gk20a *vm,
 				    struct nvgpu_mapped_buf *mapped_buffer)
 {
 	nvgpu_rbtree_unlink(&mapped_buffer->node, &vm->mapped_buffers);
+	nvgpu_assert(vm->num_user_mapped_buffers > 0U);
 	vm->num_user_mapped_buffers--;
 }
 
@@ -808,12 +810,12 @@ struct nvgpu_mapped_buf *nvgpu_vm_find_mapped_buf_less_than(
 
 int nvgpu_vm_get_buffers(struct vm_gk20a *vm,
 			 struct nvgpu_mapped_buf ***mapped_buffers,
-			 int *num_buffers)
+			 u32 *num_buffers)
 {
 	struct nvgpu_mapped_buf *mapped_buffer;
 	struct nvgpu_mapped_buf **buffer_list;
 	struct nvgpu_rbtree_node *node = NULL;
-	int i = 0;
+	u32 i = 0;
 
 	if (vm->userspace_managed) {
 		*mapped_buffers = NULL;
@@ -823,8 +825,9 @@ int nvgpu_vm_get_buffers(struct vm_gk20a *vm,
 
 	nvgpu_mutex_acquire(&vm->update_gmmu_lock);
 
-	buffer_list = nvgpu_big_zalloc(vm->mm->g, sizeof(*buffer_list) *
-					(size_t)vm->num_user_mapped_buffers);
+	buffer_list = nvgpu_big_zalloc(vm->mm->g,
+				nvgpu_safe_mult_u64(sizeof(*buffer_list),
+						vm->num_user_mapped_buffers));
 	if (buffer_list == NULL) {
 		nvgpu_mutex_release(&vm->update_gmmu_lock);
 		return -ENOMEM;
@@ -835,6 +838,7 @@ int nvgpu_vm_get_buffers(struct vm_gk20a *vm,
 		mapped_buffer = mapped_buffer_from_rbtree_node(node);
 		buffer_list[i] = mapped_buffer;
 		nvgpu_ref_get(&mapped_buffer->ref);
+		nvgpu_assert(i < U32_MAX);
 		i++;
 		nvgpu_rbtree_enum_next(&node, node);
 	}
@@ -851,12 +855,12 @@ int nvgpu_vm_get_buffers(struct vm_gk20a *vm,
 
 void nvgpu_vm_put_buffers(struct vm_gk20a *vm,
 				 struct nvgpu_mapped_buf **mapped_buffers,
-				 int num_buffers)
+				 u32 num_buffers)
 {
-	int i;
+	u32 i;
 	struct vm_gk20a_mapping_batch batch;
 
-	if (num_buffers == 0) {
+	if (num_buffers == 0U) {
 		return;
 	}
 
@@ -864,7 +868,7 @@ void nvgpu_vm_put_buffers(struct vm_gk20a *vm,
 	nvgpu_vm_mapping_batch_start(&batch);
 	vm->kref_put_batch = &batch;
 
-	for (i = 0; i < num_buffers; ++i) {
+	for (i = 0U; i < num_buffers; ++i) {
 		nvgpu_ref_put(&mapped_buffers[i]->ref,
 			      nvgpu_vm_unmap_ref_internal);
 	}

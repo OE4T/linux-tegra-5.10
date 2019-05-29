@@ -174,7 +174,7 @@ struct priv_cmd_entry {
 
 struct nvgpu_channel_job {
 	struct nvgpu_mapped_buf **mapped_buffers;
-	int num_mapped_buffers;
+	u32 num_mapped_buffers;
 	struct nvgpu_fence_type *post_fence;
 	struct priv_cmd_entry *wait_cmd;
 	struct priv_cmd_entry *incr_cmd;

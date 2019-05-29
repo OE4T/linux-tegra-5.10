@@ -1979,7 +1979,8 @@ int nvgpu_channel_add_job(struct nvgpu_channel *c,
 {
 	struct vm_gk20a *vm = c->vm;
 	struct nvgpu_mapped_buf **mapped_buffers = NULL;
-	int err = 0, num_mapped_buffers = 0;
+	int err = 0;
+	u32 num_mapped_buffers = 0;
 	bool pre_alloc_enabled = nvgpu_channel_is_prealloc_enabled(c);
 
 	if (!skip_buffer_refcounting) {
@@ -2138,7 +2139,7 @@ void nvgpu_channel_clean_up_jobs(struct nvgpu_channel *c,
 			}
 		}
 
-		if (job->num_mapped_buffers != 0) {
+		if (job->num_mapped_buffers != 0U) {
 			nvgpu_vm_put_buffers(vm, job->mapped_buffers,
 				job->num_mapped_buffers);
 		}
