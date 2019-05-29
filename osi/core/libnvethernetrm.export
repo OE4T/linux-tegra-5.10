@@ -58,3 +58,8 @@ osi_config_vlan_filtering
 osi_config_l2_da_perfect_inverse_match
 osi_update_vlan_id
 osi_config_fw_err_pkts
+osi_ptp_configuration
+osi_get_systime_from_mac
+osi_adjust_time
+osi_adjust_freq
+osi_set_systime_to_mac

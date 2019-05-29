@@ -111,6 +111,13 @@
 #define EQOS_MAC_L3_AD2R(x)		((0x0030U * (x)) + 0x0918U)
 #define EQOS_MAC_L3_AD3R(x)		((0x0030U * (x)) + 0x091CU)
 #define EQOS_MAC_PFR			0x0008U
+#define EQOS_MAC_TCR			0x0B00
+#define EQOS_MAC_SSIR			0x0B04
+#define EQOS_MAC_STSR			0x0B08
+#define EQOS_MAC_STNSR			0x0B0C
+#define EQOS_MAC_STSUR			0x0B10
+#define EQOS_MAC_STNSUR			0x0B14
+#define EQOS_MAC_TAR			0x0B18
 
 /* EQOS MTL registers*/
 #define EQOS_MTL_CHX_TX_OP_MODE(x)	((0x0040U * (x)) + 0x0D00U)
@@ -178,6 +185,7 @@
 #define EQOS_DMA_SBUS_EAME			OSI_BIT(11)
 #define EQOS_DMA_BMR_SWR			OSI_BIT(0)
 #define EQOS_DMA_BMR_DPSW			OSI_BIT(8)
+#define EQOS_MAC_RQC1R_MCBCQ1			OSI_BIT(16)
 #define EQOS_MAC_RQC1R_MCBCQEN			OSI_BIT(20)
 #define EQOS_MTL_QTOMR_FTQ_LPOS			OSI_BIT(0)
 #define EQOS_DMA_ISR_MACIS			OSI_BIT(17)
@@ -276,6 +284,13 @@
 #define EQOS_MAC_RQC2_PSRQ_SHIFT		8U
 #define EQOS_MAC_VLAN_TR_ETV_SHIFT		16U
 #define EQOS_MAC_MAX_HTR_REG_LEN		8U
-
+#define EQOS_MAC_TCR_TSADDREG			OSI_BIT(5)
+#define EQOS_MAC_TCR_TSINIT			OSI_BIT(2)
+#define EQOS_MAC_TCR_TSUPDT			OSI_BIT(3)
+#define EQOS_MAC_STNSUR_ADDSUB_SHIFT		31U
+#define EQOS_MAC_TCR_TSCFUPDT			OSI_BIT(1)
+#define EQOS_MAC_TCR_TSCTRLSSR			OSI_BIT(9)
+#define EQOS_MAC_SSIR_SSINC_SHIFT		16U
+#define EQOS_MAC_STNSR_TSSS_MASK		0x7FFFFFFFU
 void update_ehfc_rfa_rfd(unsigned int rx_fifo, unsigned int *value);
 #endif

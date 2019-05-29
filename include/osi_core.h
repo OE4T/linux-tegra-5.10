@@ -146,6 +146,12 @@ struct  osi_core_avb_algorithm {
  *	@update_l4_port_no: Called to update L4 Port for filter packet.
  *	@config_vlan_filtering: Called to configure VLAN filtering.
  *	@update_vlan_id: called to update VLAN id.
+ *	@set_systime_to_mac: Called to set current system time to MAC.
+ *	@config_addend: Called to set the addend value to adjust the time.
+ *	@adjust_systime: Called to adjust the system time.
+ *	@get_systime_from_mac: Called to get the current time from MAC.
+ *	@config_tscr: Called to configure the TimeStampControl register.
+ *	@config_ssir: Called to configure the sub second increment register.
  */
 struct osi_core_ops {
 	/* initialize MAC/MTL/DMA Common registers */
@@ -209,6 +215,48 @@ struct osi_core_ops {
 				     unsigned int perfect_hash_filtering,
 				     unsigned int perfect_inverse_match);
 	int (*update_vlan_id)(void *base, unsigned int vid);
+	int (*set_systime_to_mac)(void *addr, unsigned int sec,
+				  unsigned int nsec);
+	int (*config_addend)(void *addr, unsigned int addend);
+	int (*adjust_systime)(void *addr, unsigned int sec, unsigned int nsec,
+			      unsigned int neg_adj,
+			      unsigned int one_nsec_accuracy);
+	unsigned long long (*get_systime_from_mac)(void *addr);
+	void (*config_tscr)(void *addr, unsigned int ptp_filter);
+	void (*config_ssir)(void *addr, unsigned int ptp_clock);
+};
+
+/**
+ *	struct osi_ptp_config - PTP configuration
+ *	@ptp_filter: PTP filter parameters bit fields.
+ *	Enable Time stamp,Fine Timestamp,1 nanosecond accuracy are enabled by
+ *	default.
+ *	Need to set below bit fields accordingly as per the requirements.
+ *	Enable Timestamp for All Packets			OSI_BIT(8)
+ *	Enable PTP Packet Processing for Version 2 Format	OSI_BIT(10)
+ *	Enable Processing of PTP over Ethernet Packets		OSI_BIT(11)
+ *	Enable Processing of PTP Packets Sent over IPv6-UDP	OSI_BIT(12)
+ *	Enable Processing of PTP Packets Sent over IPv4-UDP	OSI_BIT(13)
+ *	Enable Timestamp Snapshot for Event Messages		OSI_BIT(14)
+ *	Enable Snapshot for Messages Relevant to Master		OSI_BIT(15)
+ *	Select PTP packets for Taking Snapshots			OSI_BIT(16)
+ *	Select PTP packets for Taking Snapshots			OSI_BIT(17)
+ *	Select PTP packets for Taking Snapshots	(OSI_BIT(16) | OSI_BIT(17))
+ *	AV 802.1AS Mode Enable					OSI_BIT(28)
+ *	if ptp_fitler is set to Zero then Time stamping is disabled.
+ *	@sec: Seconds
+ *	@nsec: Nano seconds
+ *	@ptp_ref_clk_rate: PTP reference clock read from DT
+ *	@one_nsec_accuracy: Use one nsec accuracy (need to set 1)
+ *	@ptp_clock: PTP system clock which is 62500000Hz
+ */
+struct osi_ptp_config {
+	unsigned int ptp_filter;
+	unsigned int sec;
+	unsigned int nsec;
+	unsigned int ptp_ref_clk_rate;
+	unsigned int one_nsec_accuracy;
+	unsigned int ptp_clock;
 };
 
 /**
@@ -228,6 +276,8 @@ struct osi_core_ops {
  *	@mac_addr: Ethernet MAC address.
  *	@pause_frames: DT entry to enable(0) or disable(1) pause frame support
  *	@flow_ctrl: Current flow control settings
+ *	@ptp_config: PTP configuration settings.
+ *	@default_addend: Default addend value.
  */
 struct osi_core_priv_data {
 	void *base;
@@ -244,6 +294,8 @@ struct osi_core_priv_data {
 	unsigned char mac_addr[OSI_ETH_ALEN];
 	unsigned int pause_frames;
 	unsigned int flow_ctrl;
+	struct osi_ptp_config ptp_config;
+	unsigned int default_addend;
 };
 
 /**
@@ -797,10 +849,157 @@ int  osi_config_l2_da_perfect_inverse_match(struct osi_core_priv_data *osi_core,
  */
 int  osi_update_vlan_id(struct osi_core_priv_data *osi_core,
 			unsigned int vid);
-
+/**
+ *	osi_write_phy_reg - Write to a PHY register through MAC over MDIO bus.
+ *	@osi_core: OSI private data structure.
+ *	@phyaddr: PHY address (PHY ID) associated with PHY
+ *	@phyreg: Register which needs to be write to PHY.
+ *	@phydata: Data to write to a PHY register.
+ *
+ *	Algorithm:
+ *	1) Before proceding for reading for PHY register check whether any MII
+ *	operation going on MDIO bus by polling MAC_GMII_BUSY bit.
+ *	2) Program data into MAC MDIO data register.
+ *	3) Populate required parameters like phy address, phy register etc,,
+ *	in MAC MDIO Address register. write and GMII busy bits needs to be set
+ *	in this operation.
+ *	4) Write into MAC MDIO address register poll for GMII busy for MDIO
+ *	operation to complete.
+ *
+ *	Dependencies: MAC IP should be out of reset
+ *
+ *	Protection: None
+ *
+ *	Return: 0 - success, -1 - failure
+ */
 int osi_write_phy_reg(struct osi_core_priv_data *osi_core, unsigned int phyaddr,
 		      unsigned int phyreg, unsigned short phydata);
+
+/**
+ *	osi_read_phy_reg - Read from a PHY register through MAC over MDIO bus.
+ *	@osi_core: OSI private data structure.
+ *	@phyaddr: PHY address (PHY ID) associated with PHY
+ *	@phyreg: Register which needs to be read from PHY.
+ *
+ *	Algorithm:
+ *	1) Before proceding for reading for PHY register check whether any MII
+ *	operation going on MDIO bus by polling MAC_GMII_BUSY bit.
+ *	2) Populate required parameters like phy address, phy register etc,,
+ *	in program it in MAC MDIO Address register. Read and GMII busy bits
+ *	needs to be set in this operation.
+ *	3) Write into MAC MDIO address register poll for GMII busy for MDIO
+ *	operation to complete. After this data will be available at MAC MDIO
+ *	data register.
+ *
+ *	Dependencies: MAC IP should be out of reset
+ *
+ *	Protection: None
+ *
+ *	Return: data from PHY register - success, -1 - failure
+ */
 int osi_read_phy_reg(struct osi_core_priv_data *osi_core, unsigned int phyaddr,
 		     unsigned int phyreg);
 void osi_init_core_ops(struct osi_core_priv_data *osi_core);
+
+/**
+ *	osi_set_systime_to_mac - Handles setting of system time.
+ *	@osi_core: OSI private data structure.
+ *	@sec: Seconds to be configured.
+ *	@nsec: Nano seconds to be configured.
+ *
+ *	Algorithm: Set current system time to MAC.
+ *
+ *	Dependencies: MAC init should be complete. See osi_hw_core_init() and
+ *	osi_hw_dma_init()
+ *
+ *	Protection: None.
+ *
+ *	Return: 0 - success, -1 - failure.
+ */
+int osi_set_systime_to_mac(struct osi_core_priv_data *osi_core,
+			   unsigned int sec, unsigned int nsec);
+/**
+ *	osi_adjust_freq - Adjust frequency
+ *	@osi: OSI private data structure.
+ *	@ppb: Parts per Billion
+ *
+ *	Algorithm: Adjust a drift of +/- comp nanoseconds per second.
+ *	"Compensation" is the difference in frequency between
+ *	the master and slave clocks in Parts Per Billion.
+ *
+ *	Dependencies: MAC IP should be out of reset and need to be
+ *	initialized as the requirements
+ *
+ *	Protection: None
+ *
+ *	Return: 0 - success, -1 - failure
+ */
+int osi_adjust_freq(struct osi_core_priv_data *osi_core, int ppb);
+
+/**
+ *
+ *	osi_adjust_time - Adjust time
+ *	@osi_core: OSI private data structure.
+ *	@delta: Delta time
+ *
+ *	Algorithm: Adjust/update the MAC system time (delta passed in
+ *		   nanoseconds, can be + or -).
+ *
+ *	Dependencies: MAC IP should be out of reset
+ *	and need to be initialized as the requirements
+ *	1) osi_core->ptp_config.one_nsec_accuracy need to be set to 1
+ *
+ *	Protection: None
+ *
+ *	Return: 0 - success, -1 - failure
+ */
+int osi_adjust_time(struct osi_core_priv_data *osi_core, long delta);
+
+/**
+ *	osi_get_systime - Get system time
+ *	@osi: OSI private data structure.
+ *	@sec: Value read in Seconds
+ *	@nsec: Value read in Nano seconds
+ *
+ *	Algorithm: Gets the current system time
+ *
+ *	Dependencies: MAC IP should be out of reset and need to be
+ *	initialized as the requirements.
+ *
+ *	Protection: None
+ *
+ *	Return: None (sec and nsec stores the read seconds and nanoseconds
+ *	values from MAC)
+ */
+void osi_get_systime_from_mac(struct osi_core_priv_data *osi_core,
+			      unsigned int *sec,
+			      unsigned int *nsec);
+/**
+ *	osi_ptp_configuration - Configure PTP
+ *	@osi: OSI private data structure.
+ *	@enable: Enable or disable Time Stamping.
+ *		 0: Disable 1: Enable
+ *
+ *	Algorithm: Configure the PTP registers that are required for PTP.
+ *
+ *	Dependencies: MAC IP should be out of reset and need to be initialized
+ *	as the requirements.
+ *	1) osi->ptp_config.ptp_filter need to be filled accordingly to the
+ *	filter that need to be set for PTP packets. Please check osi_ptp_config
+ *	structure declaration on the bit fields that need to be filled.
+ *	2) osi->ptp_config.ptp_clock need to be filled with the ptp system clk.
+ *	Currently it is set to 62500000Hz.
+ *	3) osi->ptp_config.ptp_ref_clk_rate need to be filled with the ptp
+ *	reference clock that platform supports.
+ *	4) osi->ptp_config.sec need to be filled with current time of seconds
+ *	5) osi->ptp_config.nsec need to be filled with current time of nseconds
+ *	6) osi->base need to be filled with the ioremapped base address
+ *
+ *	Protection: None
+ *
+ *	Return: None
+ */
+
+void osi_ptp_configuration(struct osi_core_priv_data *osi_core,
+			   unsigned int enable);
 #endif /* OSI_CORE_H */

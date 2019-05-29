@@ -34,6 +34,7 @@
 #define DECR_RX_DESC_INDEX(idx, i) ((idx) = ((idx) - (i)) & (RX_DESC_CNT - 1U))
 
 #define RDES3_OWN		OSI_BIT(31)
+#define RDES3_CTXT		OSI_BIT(30)
 #define RDES3_IOC		OSI_BIT(30)
 #define RDES3_B1V		OSI_BIT(24)
 #define RDES3_LD		OSI_BIT(28)
@@ -50,6 +51,8 @@
 #define RDES3_RS0V		OSI_BIT(25)
 #define RDES3_RS1V		OSI_BIT(26)
 #define RDES0_OVT		0x0000FFFFU
+#define RDES1_TSA		OSI_BIT(14) /* Timestamp available */
+#define RDES1_TD		OSI_BIT(15) /* Timestamp Dropped */
 
 #define RDES1_IPCE		OSI_BIT(7)
 #define RDES1_IPCB		OSI_BIT(6)
@@ -73,6 +76,7 @@
 #define TDES3_TPL_MASK		0x3FFFFU
 #define TDES3_THL_SHIFT		19U
 #define TDES3_VLTV		OSI_BIT(16)
+#define TDES3_TTSS		OSI_BIT(17)
 
 /* Tx Errors */
 #define TDES3_IP_HEADER_ERR	OSI_BIT(0)
@@ -90,6 +94,7 @@
  * MAC_VLAN_Incl register or context descriptor.)
 */
 #define TDES2_VTIR		((unsigned int)0x2 << 14U)
+#define TDES2_TTSE		((unsigned int)0x1 << 30U)
 
 #define TDES3_ES_BITS		(TDES3_IP_HEADER_ERR     | \
 				 TDES3_UNDER_FLOW_ERR    | \
