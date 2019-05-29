@@ -46,6 +46,7 @@ UNITS :=				\
 	$(UNIT_SRC)/posix/bitops	\
 	$(UNIT_SRC)/posix/mockio	\
 	$(UNIT_SRC)/posix/fault-injection \
+	$(UNIT_SRC)/posix/bug		\
 	$(UNIT_SRC)/pramin		\
 	$(UNIT_SRC)/fuse		\
 	$(UNIT_SRC)/interface/bsearch	\
