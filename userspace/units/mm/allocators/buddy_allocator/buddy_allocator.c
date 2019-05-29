@@ -431,6 +431,7 @@ static int test_nvgpu_buddy_allocator_alloc(struct unit_module *m,
 	struct nvgpu_buddy_allocator *ba;
 	struct nvgpu_posix_fault_inj *kmem_fi =
 		nvgpu_kmem_get_fault_injection();
+	int result = UNIT_FAIL;
 
 	na = (struct nvgpu_allocator *)
 			nvgpu_kzalloc(g, sizeof(struct nvgpu_allocator));
@@ -456,7 +457,7 @@ static int test_nvgpu_buddy_allocator_alloc(struct unit_module *m,
 	if (addr != 0) {
 		unit_err(m, "%d: alloced despite fault injection at 3\n",
 			__LINE__);
-		goto fail;
+		goto cleanup;
 	}
 	nvgpu_posix_enable_fault_injection(kmem_fi, false, 0);
 
@@ -469,7 +470,7 @@ static int test_nvgpu_buddy_allocator_alloc(struct unit_module *m,
 	if (addr != 0) {
 		unit_err(m, "%d: alloced despite fault injection at 2\n",
 			__LINE__);
-		goto fail;
+		goto cleanup;
 	}
 	nvgpu_posix_enable_fault_injection(kmem_fi, false, 0);
 
@@ -482,14 +483,14 @@ static int test_nvgpu_buddy_allocator_alloc(struct unit_module *m,
 	if (addr != 0) {
 		unit_err(m, "%d: alloc_fixed alloced despite fault injection\n",
 			__LINE__);
-		goto fail;
+		goto cleanup;
 	}
 	nvgpu_posix_enable_fault_injection(kmem_fi, false, 0);
 
 	addr = na->ops->alloc_fixed(na, SZ_8K, SZ_8K, SZ_4K);
 	if (addr == 0) {
 		unit_err(m, "%d: alloc_fixed couldn't allocate\n", __LINE__);
-		goto fail;
+		goto cleanup;
 	}
 
 	/*
@@ -503,7 +504,7 @@ static int test_nvgpu_buddy_allocator_alloc(struct unit_module *m,
 	if (addr != 0) {
 		unit_err(m, "%d: Alloced 6K to 22K despite overlap\n",
 			__LINE__);
-		goto fail;
+		goto cleanup;
 	}
 
 	/*
@@ -514,13 +515,13 @@ static int test_nvgpu_buddy_allocator_alloc(struct unit_module *m,
 	if (addr != 0) {
 		unit_err(m, "%d: Alloced 6K to 14K despite overlap\n",
 			__LINE__);
-		goto fail;
+		goto cleanup;
 	}
 
 	addr = na->ops->alloc_fixed(na, 0x1800, SZ_1K, SZ_4K);
 	if (addr == 0) {
 		unit_err(m, "%d: Couldn't allocate range 6K to 7K\n", __LINE__);
-		goto fail;
+		goto cleanup;
 	}
 
 	/*
@@ -531,7 +532,7 @@ static int test_nvgpu_buddy_allocator_alloc(struct unit_module *m,
 	if (addr != 0) {
 		unit_err(m, "%d: Alloced 10K to 11K despite overlap\n",
 			__LINE__);
-		goto fail;
+		goto cleanup;
 	}
 
 	/*
@@ -542,7 +543,7 @@ static int test_nvgpu_buddy_allocator_alloc(struct unit_module *m,
 	if (addr != 0) {
 		unit_err(m, "%d: Alloced 12K to 20K despite overlap\n",
 			__LINE__);
-		goto fail;
+		goto cleanup;
 	}
 
 	/*
@@ -551,38 +552,47 @@ static int test_nvgpu_buddy_allocator_alloc(struct unit_module *m,
 	len_orig = ba->buddy_list_len[max_order/2];
 	ba->buddy_list_len[max_order/2] = 100;
 	if (!EXPECT_BUG(na->ops->fini(na))) {
-		unit_err(m, "%d: Excess buddies didn't trigger BUG()",
+		unit_err(m, "%d: Excess buddies didn't trigger BUG()\n",
 			__LINE__);
-		goto fail;
+		goto cleanup;
 	}
+	/*
+	 * Release the mutex that was left locked when fini() was interrupted
+	 * by BUG()
+	 */
+	alloc_unlock(na);
+
 	ba->buddy_list_len[max_order/2] = len_orig;
 
 	split_orig = ba->buddy_list_split[max_order/3];
 	ba->buddy_list_split[max_order/3] = 100;
 	if (!EXPECT_BUG(na->ops->fini(na))) {
-		unit_err(m, "%d: Excess split nodes didn't trigger BUG()",
+		unit_err(m, "%d: Excess split nodes didn't trigger BUG()\n",
 			__LINE__);
-		goto fail;
+		goto cleanup;
 	}
+	/* Release mutex again */
+	alloc_unlock(na);
+
 	ba->buddy_list_split[max_order/3] = split_orig;
 
 	alloced_orig = ba->buddy_list_alloced[max_order/4];
 	ba->buddy_list_alloced[max_order/4] = 100;
 	if (!EXPECT_BUG(na->ops->fini(na))) {
-		unit_err(m, "%d: Excess alloced nodes didn't trigger BUG()",
+		unit_err(m, "%d: Excess alloced nodes didn't trigger BUG()\n",
 			__LINE__);
-		goto fail;
+		goto cleanup;
 	}
 	ba->buddy_list_alloced[max_order/4] = alloced_orig;
 
-	na->ops->fini(na);
-	nvgpu_kfree(g, na);
-	return UNIT_SUCCESS;
+	result = UNIT_SUCCESS;
 
-fail:
-	na->ops->fini(na);
+cleanup:
+	/* Clean up might BUG() so protect it with EXPECT_BUG */
+	alloc_unlock(na);
+	EXPECT_BUG(na->ops->fini(na));
 	nvgpu_kfree(g, na);
-	return UNIT_FAIL;
+	return result;
 }
 
 /*
