@@ -534,9 +534,11 @@ void nvgpu_engine_reset(struct gk20a *g, u32 engine_id)
 	}
 
 	if (engine_enum == NVGPU_ENGINE_GR) {
+#ifdef NVGPU_FEATURE_POWER_PG
 		if (nvgpu_pg_elpg_disable(g) != 0 ) {
 			nvgpu_err(g, "failed to set disable elpg");
 		}
+#endif
 
 #ifdef CONFIG_GK20A_CTXSW_TRACE
 		/*
@@ -575,9 +577,11 @@ void nvgpu_engine_reset(struct gk20a *g, u32 engine_id)
 				"gr cannot be reset without halting gr pipe");
 		}
 
+#ifdef NVGPU_FEATURE_POWER_PG
 		if (nvgpu_pg_elpg_enable(g) != 0 ) {
 			nvgpu_err(g, "failed to set enable elpg");
 		}
+#endif
 	}
 
 	if ((engine_enum == NVGPU_ENGINE_GRCE) ||

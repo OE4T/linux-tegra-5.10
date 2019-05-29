@@ -122,4 +122,8 @@ NVGPU_COMMON_CFLAGS             += -DNVGPU_REPLAYABLE_FAULT
 # Enable LS PMU support for normal build
 NVGPU_FEATURE_LS_PMU                    := 1
 NVGPU_COMMON_CFLAGS             += -DNVGPU_FEATURE_LS_PMU
+
+# Enable elpg support for normal build
+NVGPU_FEATURE_POWER_PG          := 1
+NVGPU_COMMON_CFLAGS             += -DNVGPU_FEATURE_POWER_PG
 endif

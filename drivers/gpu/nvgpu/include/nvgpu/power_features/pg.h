@@ -28,6 +28,7 @@
 
 struct gk20a;
 
+#ifdef NVGPU_FEATURE_POWER_PG
 #define nvgpu_pg_elpg_protected_call(g, func) \
 	({ \
 		int err = 0; \
@@ -41,6 +42,9 @@ struct gk20a;
 		} \
 		err; \
 	})
+#else
+#define nvgpu_pg_elpg_protected_call(g, func) func
+#endif
 
 int nvgpu_pg_elpg_disable(struct gk20a *g);
 int nvgpu_pg_elpg_enable(struct gk20a *g);

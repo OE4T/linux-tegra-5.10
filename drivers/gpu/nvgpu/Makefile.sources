@@ -128,7 +128,6 @@ srcs += common/utils/enabled.c \
 	common/semaphore/semaphore.c \
 	common/power_features/power_features.c \
 	common/power_features/cg/cg.c \
-	common/power_features/pg/pg.c \
 	common/fifo/preempt.c \
 	common/fifo/channel.c \
 	common/rc/rc.c \
@@ -417,6 +416,10 @@ srcs += \
 	hal/pmu/pmu_gm20b.c \
 	hal/pmu/pmu_gp10b.c \
 	hal/pmu/pmu_tu104.c
+endif
+
+ifeq ($(NVGPU_FEATURE_POWER_PG), 1)
+srcs += common/power_features/pg/pg.c
 endif
 
 ifeq ($(IGPU_VIRT_SUPPORT), 1)

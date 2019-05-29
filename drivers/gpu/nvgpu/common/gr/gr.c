@@ -732,13 +732,16 @@ int nvgpu_gr_disable_ctxsw(struct gk20a *g)
 
 	gr->ctxsw_disable_count++;
 	if (gr->ctxsw_disable_count == 1) {
+#ifdef NVGPU_FEATURE_POWER_PG
 		err = nvgpu_pg_elpg_disable(g);
 		if (err != 0) {
 			nvgpu_err(g,
 				"failed to disable elpg for stop_ctxsw");
 			/* stop ctxsw command is not sent */
 			gr->ctxsw_disable_count--;
-		} else {
+		} else
+#endif
+		{
 			err = g->ops.gr.falcon.ctrl_ctxsw(g,
 				NVGPU_GR_FALCON_METHOD_CTXSW_STOP, 0U, NULL);
 			if (err != 0) {
@@ -775,12 +778,15 @@ int nvgpu_gr_enable_ctxsw(struct gk20a *g)
 				NVGPU_GR_FALCON_METHOD_CTXSW_START, 0U, NULL);
 		if (err != 0) {
 			nvgpu_err(g, "failed to start fecs ctxsw");
-		} else {
+		}
+#ifdef NVGPU_FEATURE_POWER_PG
+		else {
 			if (nvgpu_pg_elpg_enable(g) != 0) {
 				nvgpu_err(g,
 					"failed to enable elpg for start_ctxsw");
 			}
 		}
+#endif
 	} else {
 		nvgpu_log_info(g, "ctxsw_disable_count: %d is not 0 yet",
 			gr->ctxsw_disable_count);

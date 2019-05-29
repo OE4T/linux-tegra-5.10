@@ -33,11 +33,13 @@ int nvgpu_cg_pg_disable(struct gk20a *g)
 
 	g->ops.gr.init.wait_initialized(g);
 
+#ifdef NVGPU_FEATURE_POWER_PG
 	/* disable elpg before clock gating */
 	err = nvgpu_pg_elpg_disable(g);
 	if (err != 0) {
 		nvgpu_err(g, "failed to set disable elpg");
 	}
+#endif
 	nvgpu_cg_slcg_gr_perf_ltc_load_disable(g);
 
 	nvgpu_cg_blcg_mode_disable(g);
@@ -61,10 +63,12 @@ int nvgpu_cg_pg_enable(struct gk20a *g)
 
 	nvgpu_cg_slcg_gr_perf_ltc_load_enable(g);
 
+#ifdef NVGPU_FEATURE_POWER_PG
 	err = nvgpu_pg_elpg_enable(g);
 	if (err != 0) {
 		nvgpu_err(g, "failed to set enable elpg");
 	}
+#endif
 
 	return err;
 }
