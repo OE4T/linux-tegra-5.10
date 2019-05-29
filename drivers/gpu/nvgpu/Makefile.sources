@@ -95,7 +95,6 @@ srcs += common/utils/enabled.c \
 	common/fbp/fbp.c \
 	common/io/io.c \
 	common/ecc.c \
-	common/ce/ce.c \
 	common/vbios/bios.c \
 	common/falcon/falcon.c \
 	common/falcon/falcon_sw_gk20a.c \
@@ -314,6 +313,10 @@ endif
 
 ifeq ($(NVGPU_DEBUGGER),1)
 srcs += common/debugger.c
+endif
+
+ifeq ($(NVGPU_FEATURE_CE),1)
+srcs += common/ce/ce.c
 endif
 
 ifeq ($(NVGPU_FECS_TRACE_SUPPORT),1)

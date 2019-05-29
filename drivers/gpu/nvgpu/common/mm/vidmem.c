@@ -103,6 +103,7 @@ static int nvgpu_vidmem_do_clear_all(struct gk20a *g)
 
 	vidmem_dbg(g, "Clearing all VIDMEM:");
 
+#ifdef NVGPU_FEATURE_CE
 	err = nvgpu_ce_execute_ops(g,
 			mm->vidmem.ce_ctx_id,
 			0,
@@ -118,6 +119,7 @@ static int nvgpu_vidmem_do_clear_all(struct gk20a *g)
 			"Failed to clear vidmem : %d", err);
 		return err;
 	}
+#endif
 
 	if (fence_out != NULL) {
 		struct nvgpu_timeout timeout;
@@ -477,6 +479,7 @@ int nvgpu_vidmem_clear(struct gk20a *g, struct nvgpu_mem *mem)
 			nvgpu_fence_put(last_fence);
 		}
 
+#ifdef NVGPU_FEATURE_CE
 		err = nvgpu_ce_execute_ops(g,
 			g->mm.vidmem.ce_ctx_id,
 			0,
@@ -487,10 +490,16 @@ int nvgpu_vidmem_clear(struct gk20a *g, struct nvgpu_mem *mem)
 			NVGPU_CE_MEMSET,
 			0,
 			&fence_out);
+#else
+		/* fail due to lack of ce support */
+		err = -ENOSYS;
+#endif
 
 		if (err != 0) {
+#ifdef NVGPU_FEATURE_CE
 			nvgpu_err(g,
 				"Failed nvgpu_ce_execute_ops[%d]", err);
+#endif
 			return err;
 		}
 

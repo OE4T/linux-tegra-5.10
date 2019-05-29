@@ -190,6 +190,7 @@ static int nvgpu_alloc_sysmem_flush(struct gk20a *g)
 	return nvgpu_dma_alloc_sys(g, SZ_4K, &g->mm.sysmem_flush);
 }
 
+#ifdef NVGPU_FEATURE_CE
 static void nvgpu_remove_mm_ce_support(struct mm_gk20a *mm)
 {
 	struct gk20a *g = gk20a_from_mm(mm);
@@ -197,11 +198,11 @@ static void nvgpu_remove_mm_ce_support(struct mm_gk20a *mm)
 	if (mm->vidmem.ce_ctx_id != NVGPU_CE_INVAL_CTX_ID) {
 		nvgpu_ce_delete_context(g, mm->vidmem.ce_ctx_id);
 	}
-
 	mm->vidmem.ce_ctx_id = NVGPU_CE_INVAL_CTX_ID;
 
 	nvgpu_vm_put(mm->ce.vm);
 }
+#endif
 
 static void nvgpu_remove_mm_support(struct mm_gk20a *mm)
 {
@@ -372,6 +373,7 @@ static int nvgpu_init_mmu_debug(struct mm_gk20a *mm)
 	return -ENOMEM;
 }
 
+#ifdef NVGPU_FEATURE_CE
 void nvgpu_init_mm_ce_context(struct gk20a *g)
 {
 #if defined(CONFIG_GK20A_VIDMEM)
@@ -390,6 +392,7 @@ void nvgpu_init_mm_ce_context(struct gk20a *g)
 	}
 #endif
 }
+#endif /* NVGPU_FENCE_CE */
 
 static int nvgpu_init_mm_reset_enable_hw(struct gk20a *g)
 {
@@ -591,7 +594,9 @@ static int nvgpu_init_mm_setup_sw(struct gk20a *g)
 	}
 
 	mm->remove_support = nvgpu_remove_mm_support;
+#ifdef NVGPU_FEATURE_CE
 	mm->remove_ce_support = nvgpu_remove_mm_ce_support;
+#endif
 
 	mm->sw_ready = true;
 

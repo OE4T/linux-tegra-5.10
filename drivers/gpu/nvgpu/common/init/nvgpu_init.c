@@ -132,7 +132,9 @@ int gk20a_prepare_poweroff(struct gk20a *g)
 	nvgpu_falcon_sw_free(g, FALCON_ID_SEC2);
 	nvgpu_falcon_sw_free(g, FALCON_ID_PMU);
 
+#ifdef NVGPU_FEATURE_CE
 	nvgpu_ce_suspend(g);
+#endif
 
 #ifdef NVGPU_DGPU_SUPPORT
 	/* deinit the bios */
@@ -467,11 +469,13 @@ int gk20a_finalize_poweron(struct gk20a *g)
 	/* Restore the debug setting */
 	g->ops.fb.set_debug_mode(g, g->mmu_debug_ctrl);
 
+#ifdef NVGPU_FEATURE_CE
 	err = nvgpu_ce_init_support(g);
 	if (err != 0) {
 		nvgpu_err(g, "failed to init ce");
 		goto done;
 	}
+#endif
 
 	if (g->ops.xve.available_speeds != NULL) {
 		u32 speed;
@@ -642,7 +646,9 @@ static void gk20a_free_cb(struct nvgpu_ref *refcount)
 
 	nvgpu_log(g, gpu_dbg_shutdown, "Freeing GK20A struct!");
 
+#ifdef NVGPU_FEATURE_CE
 	nvgpu_ce_destroy(g);
+#endif
 
 	nvgpu_cbc_remove_support(g);
 
