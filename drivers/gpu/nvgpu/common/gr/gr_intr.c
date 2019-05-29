@@ -132,7 +132,7 @@ static int gr_intr_handle_tpc_exception(struct gk20a *g, u32 gpc, u32 tpc,
 	return ret;
 }
 
-#ifdef NVGPU_FEATURE_CHANNEL_TSG_CONTROL
+#if defined(NVGPU_FEATURE_CHANNEL_TSG_CONTROL) && defined(NVGPU_DEBUGGER)
 static void gr_intr_post_bpt_events(struct gk20a *g, struct nvgpu_tsg *tsg,
 				    u32 global_esr)
 {
@@ -347,34 +347,29 @@ int nvgpu_gr_intr_handle_sm_exception(struct gk20a *g, u32 gpc, u32 tpc, u32 sm,
 		u32 *hww_global_esr)
 {
 	int ret = 0;
-	bool do_warp_sync = false, early_exit = false, ignore_debugger = false;
-	bool disable_sm_exceptions = true;
 	u32 offset = nvgpu_safe_add_u32(nvgpu_gr_gpc_offset(g, gpc),
 					  nvgpu_gr_tpc_offset(g, tpc));
-	bool sm_debugger_attached;
 	u32 global_esr, warp_esr, global_mask;
 	u64 hww_warp_esr_pc = 0;
+#ifdef NVGPU_DEBUGGER
+	bool sm_debugger_attached;
+	bool do_warp_sync = false, early_exit = false, ignore_debugger = false;
+	bool disable_sm_exceptions = true;
+#endif
 
 	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gpu_dbg, " ");
 
-	sm_debugger_attached = g->ops.gr.sm_debugger_attached(g);
-
 	global_esr = g->ops.gr.intr.get_sm_hww_global_esr(g, gpc, tpc, sm);
 	*hww_global_esr = global_esr;
+
 	warp_esr = g->ops.gr.intr.get_sm_hww_warp_esr(g, gpc, tpc, sm);
 	global_mask = g->ops.gr.intr.get_sm_no_lock_down_hww_global_esr_mask(g);
-
-	if (!sm_debugger_attached) {
-		nvgpu_err(g, "sm hww global 0x%08x warp 0x%08x",
-			  global_esr, warp_esr);
-		return -EFAULT;
-	}
 
 	nvgpu_log(g, gpu_dbg_intr | gpu_dbg_gpu_dbg,
 		  "sm hww global 0x%08x warp 0x%08x", global_esr, warp_esr);
 
 	/*
-	 * Check and report any fatal wrap errors.
+	 * Check and report any fatal warp errors.
 	 */
 	if ((global_esr & ~global_mask) != 0U) {
 		if (g->ops.gr.intr.get_sm_hww_warp_esr_pc != NULL) {
@@ -384,8 +379,17 @@ int nvgpu_gr_intr_handle_sm_exception(struct gk20a *g, u32 gpc, u32 tpc, u32 sm,
 		gr_intr_report_sm_exception(g, gpc, tpc, sm, warp_esr,
 				hww_warp_esr_pc);
 	}
+
 	nvgpu_pg_elpg_protected_call(g,
 		g->ops.gr.intr.record_sm_error_state(g, gpc, tpc, sm, fault_ch));
+
+#ifdef NVGPU_DEBUGGER
+	sm_debugger_attached = g->ops.gr.sm_debugger_attached(g);
+	if (!sm_debugger_attached) {
+		nvgpu_err(g, "sm hww global 0x%08x warp 0x%08x",
+			  global_esr, warp_esr);
+		return -EFAULT;
+	}
 
 	if (g->ops.gr.pre_process_sm_exception != NULL) {
 		ret = g->ops.gr.pre_process_sm_exception(g, gpc, tpc, sm,
@@ -445,6 +449,10 @@ int nvgpu_gr_intr_handle_sm_exception(struct gk20a *g, u32 gpc, u32 tpc, u32 sm,
 	} else {
 		*post_event = true;
 	}
+#else
+	/* Return error so that recovery is triggered */
+	ret = -EFAULT;
+#endif
 
 	return ret;
 }
@@ -844,7 +852,7 @@ int nvgpu_gr_intr_stall_isr(struct gk20a *g)
 	/* Enable fifo access */
 	g->ops.gr.init.fifo_access(g, true);
 
-#ifdef NVGPU_FEATURE_CHANNEL_TSG_CONTROL
+#if defined(NVGPU_FEATURE_CHANNEL_TSG_CONTROL) && defined(NVGPU_DEBUGGER)
 	/* Posting of BPT events should be the last thing in this function */
 	if ((global_esr != 0U) && (tsg != NULL) && (need_reset == false)) {
 		gr_intr_post_bpt_events(g, tsg, global_esr);
