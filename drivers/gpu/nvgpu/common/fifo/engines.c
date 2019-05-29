@@ -563,6 +563,7 @@ void nvgpu_engine_reset(struct gk20a *g, u32 engine_id)
 				nvgpu_err(g, "failed to halt gr pipe");
 			}
 
+#ifdef NVGPU_DEBUGGER
 			/*
 			 * resetting engine using mc_enable_r() is not
 			 * enough, we do full init sequence
@@ -573,6 +574,7 @@ void nvgpu_engine_reset(struct gk20a *g, u32 engine_id)
 			if (err != 0) {
 				nvgpu_err(g, "failed to reset gr engine");
 			}
+#endif
 		} else {
 			nvgpu_log(g, gpu_dbg_info,
 				"HALT gr pipe not supported and "
@@ -922,6 +924,7 @@ u32 nvgpu_engine_get_runlist_busy_engines(struct gk20a *g, u32 runlist_id)
 	return eng_bitmask;
 }
 
+#ifdef NVGPU_DEBUGGER
 bool nvgpu_engine_should_defer_reset(struct gk20a *g, u32 engine_id,
 		u32 engine_subid, bool fake_fault)
 {
@@ -962,6 +965,7 @@ bool nvgpu_engine_should_defer_reset(struct gk20a *g, u32 engine_id,
 
 	return g->ops.engine.is_fault_engine_subid_gpc(g, engine_subid);
 }
+#endif
 
 u32 nvgpu_engine_mmu_fault_id_to_veid(struct gk20a *g, u32 mmu_fault_id,
 			u32 gr_eng_fault_id)

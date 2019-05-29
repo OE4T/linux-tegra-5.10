@@ -179,6 +179,7 @@ static const struct gpu_ops gp10b_ops = {
 		.isr_nonstall = gp10b_ce_nonstall_isr,
 	},
 	.gr = {
+#ifdef NVGPU_DEBUGGER
 		.get_gr_status = gr_gm20b_get_gr_status,
 		.set_alpha_circular_buffer_size =
 			gr_gp10b_set_alpha_circular_buffer_size,
@@ -229,6 +230,7 @@ static const struct gpu_ops gp10b_ops = {
 		.esr_bpt_pending_events = gm20b_gr_esr_bpt_pending_events,
 		.disable_ctxsw = nvgpu_gr_disable_ctxsw,
 		.enable_ctxsw = nvgpu_gr_enable_ctxsw,
+#endif /* NVGPU_DEBUGGER */
 		.ecc = {
 			.detect = gp10b_ecc_detect_enabled_units,
 			.init = gp10b_ecc_init,

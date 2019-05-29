@@ -175,6 +175,8 @@ void nvgpu_tsg_set_ctxsw_timeout_accumulated_ms(struct nvgpu_tsg *tsg, u32 ms);
 void nvgpu_tsg_abort(struct gk20a *g, struct nvgpu_tsg *tsg, bool preempt);
 void nvgpu_tsg_reset_faulted_eng_pbdma(struct gk20a *g, struct nvgpu_tsg *tsg,
 		bool eng, bool pbdma);
+#ifdef NVGPU_DEBUGGER
 int nvgpu_tsg_set_mmu_debug_mode(struct nvgpu_tsg *tsg,
 		struct nvgpu_channel *ch, bool enable);
+#endif
 #endif /* NVGPU_TSG_H */

@@ -219,6 +219,7 @@ int gp10b_gr_intr_handle_sw_method(struct gk20a *g, u32 addr,
 		goto fail;
 	}
 
+#if defined(NVGPU_DEBUGGER) && defined(NVGPU_GRAPHICS)
 	if (class_num == PASCAL_A) {
 		switch (offset << 2) {
 		case NVC097_SET_SHADER_EXCEPTIONS:
@@ -250,6 +251,7 @@ int gp10b_gr_intr_handle_sw_method(struct gk20a *g, u32 addr,
 			break;
 		}
 	}
+#endif
 
 fail:
 	return ret;

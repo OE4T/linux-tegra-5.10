@@ -160,6 +160,7 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 		.get_num_pce = vgpu_ce_get_num_pce,
 	},
 	.gr = {
+#ifdef NVGPU_DEBUGGER
 		.set_alpha_circular_buffer_size = NULL,
 		.set_circular_buffer_size = NULL,
 		.get_sm_dsm_perf_regs = gv11b_gr_get_sm_dsm_perf_regs,
@@ -213,6 +214,7 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 		.reset = NULL,
 		.disable_ctxsw = nvgpu_gr_disable_ctxsw,
 		.enable_ctxsw = nvgpu_gr_enable_ctxsw,
+#endif
 		.ctxsw_prog = {
 			.hw_get_fecs_header_size =
 				gm20b_ctxsw_prog_hw_get_fecs_header_size,

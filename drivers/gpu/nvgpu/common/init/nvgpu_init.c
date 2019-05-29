@@ -350,11 +350,13 @@ int gk20a_finalize_poweron(struct gk20a *g)
 
 	nvgpu_mutex_acquire(&g->tpc_pg_lock);
 
+#ifdef NVGPU_DEBUGGER
 	if (g->can_tpc_powergate) {
 		if (g->ops.gr.powergate_tpc != NULL) {
 			g->ops.gr.powergate_tpc(g);
 		}
 	}
+#endif
 
 	/* prepare portion of sw required for enable hw */
 	err = nvgpu_gr_prepare_sw(g);

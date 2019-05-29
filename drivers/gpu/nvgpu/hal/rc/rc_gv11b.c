@@ -95,7 +95,9 @@ static void gv11b_fifo_locked_abort_runlist_active_tsgs(struct gk20a *g,
 #ifdef CONFIG_GK20A_CTXSW_TRACE
 			nvgpu_gr_fecs_trace_add_tsg_reset(g, tsg);
 #endif
+#ifdef NVGPU_DEBUGGER
 			if (!g->fifo.deferred_reset_pending) {
+#endif
 				if (rc_type == RC_TYPE_MMU_FAULT) {
 					nvgpu_tsg_set_ctx_mmu_error(g, tsg);
 					/*
@@ -104,7 +106,9 @@ static void gv11b_fifo_locked_abort_runlist_active_tsgs(struct gk20a *g,
 					 */
 					(void) nvgpu_tsg_mark_error(g, tsg);
 				}
+#ifdef NVGPU_DEBUGGER
 			}
+#endif
 
 			/*
 			 * remove all entries from this runlist; don't wait for
@@ -145,9 +149,11 @@ void gv11b_fifo_recover(struct gk20a *g, u32 act_eng_bitmask,
 	u32 pbdma_bitmask = 0U;
 	struct nvgpu_runlist_info *runlist = NULL;
 	u32 engine_id;
-	u32 client_type = ~U32(0U);
 	struct nvgpu_fifo *f = &g->fifo;
+#ifdef NVGPU_DEBUGGER
+	u32 client_type = ~U32(0U);
 	bool deferred_reset_pending = false;
+#endif
 
 	nvgpu_log_info(g, "acquire engines_reset_mutex");
 	nvgpu_mutex_acquire(&f->engines_reset_mutex);
@@ -191,7 +197,9 @@ void gv11b_fifo_recover(struct gk20a *g, u32 act_eng_bitmask,
 
 	if (rc_type == RC_TYPE_MMU_FAULT) {
 		gk20a_debug_dump(g);
+#ifdef NVGPU_DEBUGGER
 		client_type = mmufault->client_type;
+#endif
 		nvgpu_tsg_reset_faulted_eng_pbdma(g, tsg, true, true);
 	}
 
@@ -217,9 +225,11 @@ void gv11b_fifo_recover(struct gk20a *g, u32 act_eng_bitmask,
 		nvgpu_preempt_poll_tsg_on_pbdma(g, tsg);
 	}
 
+#ifdef NVGPU_DEBUGGER
 	nvgpu_mutex_acquire(&f->deferred_reset_mutex);
 	g->fifo.deferred_reset_pending = false;
 	nvgpu_mutex_release(&f->deferred_reset_mutex);
+#endif
 
 	/* check if engine reset should be deferred */
 	for (i = 0U; i < f->num_runlists; i++) {
@@ -236,6 +246,7 @@ void gv11b_fifo_recover(struct gk20a *g, u32 act_eng_bitmask,
 
 			engine_id = U32(bit);
 
+#ifdef NVGPU_DEBUGGER
 			if ((tsg != NULL) && nvgpu_engine_should_defer_reset(g,
 					engine_id, client_type, false)) {
 
@@ -252,8 +263,11 @@ void gv11b_fifo_recover(struct gk20a *g, u32 act_eng_bitmask,
 					"sm debugger attached, deferring "
 					"channel recovery to channel free");
 			} else {
+#endif
 				nvgpu_engine_reset(g, engine_id);
+#ifdef NVGPU_DEBUGGER
 			}
+#endif
 		}
 	}
 
@@ -262,15 +276,19 @@ void gv11b_fifo_recover(struct gk20a *g, u32 act_eng_bitmask,
 		nvgpu_gr_fecs_trace_add_tsg_reset(g, tsg);
 #endif
 	if (tsg != NULL) {
+#ifdef NVGPU_DEBUGGER
 		if (deferred_reset_pending) {
 			g->ops.tsg.disable(tsg);
 		} else {
+#endif
 			if (rc_type == RC_TYPE_MMU_FAULT) {
 				nvgpu_tsg_set_ctx_mmu_error(g, tsg);
 			}
 			(void)nvgpu_tsg_mark_error(g, tsg);
 			nvgpu_tsg_abort(g, tsg, false);
+#ifdef NVGPU_DEBUGGER
 		}
+#endif
 	} else {
 		gv11b_fifo_locked_abort_runlist_active_tsgs(g, rc_type,
 			runlists_mask);

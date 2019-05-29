@@ -262,6 +262,7 @@ struct gpu_ops {
 		void (*mthd_buffer_fault_in_bar2_fault)(struct gk20a *g);
 	} ce;
 	struct {
+#ifdef NVGPU_DEBUGGER
 		u32 (*get_gr_status)(struct gk20a *g);
 		void (*access_smpc_reg)(struct gk20a *g, u32 quad, u32 offset);
 		void (*set_alpha_circular_buffer_size)(struct gk20a *g,
@@ -389,6 +390,8 @@ struct gpu_ops {
 					enum nvgpu_event_id_type bpt_event);
 		int (*disable_ctxsw)(struct gk20a *g);
 		int (*enable_ctxsw)(struct gk20a *g);
+#endif
+
 		struct {
 			void (*detect)(struct gk20a *g);
 			int (*init)(struct gk20a *g);
@@ -403,6 +406,7 @@ struct gpu_ops {
 			struct nvgpu_hw_err_inject_info_desc * (*get_fecs_err_desc)
 				(struct gk20a *g);
 		} ecc;
+
 		struct {
 			u32 (*hw_get_fecs_header_size)(void);
 			u32 (*hw_get_gpccs_header_size)(void);

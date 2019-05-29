@@ -215,6 +215,7 @@ int nvgpu_tsg_unbind_channel_common(struct nvgpu_tsg *tsg,
 	g->ops.channel.disable(ch);
 	nvgpu_rwsem_up_write(&tsg->ch_list_lock);
 
+#ifdef NVGPU_DEBUGGER
 	if (ch->mmu_debug_mode_enabled) {
 		err = nvgpu_tsg_set_mmu_debug_mode(tsg, ch, false);
 		if (err != 0) {
@@ -222,6 +223,7 @@ int nvgpu_tsg_unbind_channel_common(struct nvgpu_tsg *tsg,
 				ch->chid);
 		}
 	}
+#endif
 
 	/*
 	 * Don't re-enable all channels if TSG has timed out already
@@ -879,6 +881,7 @@ void nvgpu_tsg_reset_faulted_eng_pbdma(struct gk20a *g, struct nvgpu_tsg *tsg,
 	nvgpu_rwsem_up_read(&tsg->ch_list_lock);
 }
 
+#ifdef NVGPU_DEBUGGER
 int nvgpu_tsg_set_mmu_debug_mode(struct nvgpu_tsg *tsg,
 		struct nvgpu_channel *ch, bool enable)
 {
@@ -924,3 +927,4 @@ int nvgpu_tsg_set_mmu_debug_mode(struct nvgpu_tsg *tsg,
 
 	return err;
 }
+#endif

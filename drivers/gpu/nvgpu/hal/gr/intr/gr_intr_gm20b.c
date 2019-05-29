@@ -64,6 +64,7 @@ int gm20b_gr_intr_handle_sw_method(struct gk20a *g, u32 addr,
 		goto fail;
 	}
 
+#if defined(NVGPU_DEBUGGER) && defined(NVGPU_GRAPHICS)
 	if (class_num == MAXWELL_B) {
 		switch (offset << 2) {
 		case NVB197_SET_SHADER_EXCEPTIONS:
@@ -83,6 +84,7 @@ int gm20b_gr_intr_handle_sw_method(struct gk20a *g, u32 addr,
 			break;
 		}
 	}
+#endif
 
 fail:
 	return ret;

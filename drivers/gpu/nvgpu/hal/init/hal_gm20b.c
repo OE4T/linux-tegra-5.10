@@ -150,6 +150,7 @@ static const struct gpu_ops gm20b_ops = {
 		.isr_nonstall = gk20a_ce2_nonstall_isr,
 	},
 	.gr = {
+#ifdef NVGPU_DEBUGGER
 		.get_gr_status = gr_gm20b_get_gr_status,
 		.set_alpha_circular_buffer_size =
 			gr_gm20b_set_alpha_circular_buffer_size,
@@ -195,6 +196,7 @@ static const struct gpu_ops gm20b_ops = {
 		.esr_bpt_pending_events = gm20b_gr_esr_bpt_pending_events,
 		.disable_ctxsw = nvgpu_gr_disable_ctxsw,
 		.enable_ctxsw = nvgpu_gr_enable_ctxsw,
+#endif /* NVGPU_DEBUGGER */
 		.ctxsw_prog = {
 			.hw_get_fecs_header_size =
 				gm20b_ctxsw_prog_hw_get_fecs_header_size,

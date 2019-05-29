@@ -241,7 +241,6 @@ bool gk20a_fifo_handle_mmu_fault_locked(
 	bool debug_dump = true;
 	struct nvgpu_engine_status_info engine_status;
 	bool deferred_reset_pending = false;
-	struct nvgpu_fifo *f = &g->fifo;
 
 	nvgpu_log_fn(g, " ");
 
@@ -259,9 +258,11 @@ bool gk20a_fifo_handle_mmu_fault_locked(
 		fault_id = nvgpu_readl(g, fifo_intr_mmu_fault_id_r());
 		fake_fault = false;
 	}
-	nvgpu_mutex_acquire(&f->deferred_reset_mutex);
+#ifdef NVGPU_DEBUGGER
+	nvgpu_mutex_acquire(&g->fifo.deferred_reset_mutex);
 	g->fifo.deferred_reset_pending = false;
-	nvgpu_mutex_release(&f->deferred_reset_mutex);
+	nvgpu_mutex_release(&g->fifo.deferred_reset_mutex);
+#endif
 
 	/* go through all faulted engines */
 	for_each_set_bit(engine_mmu_fault_id, &fault_id, 32U) {
@@ -289,8 +290,10 @@ bool gk20a_fifo_handle_mmu_fault_locked(
 
 		if (ctxsw) {
 			g->ops.gr.falcon.dump_stats(g);
+#ifdef NVGPU_DEBUGGER
 			nvgpu_err(g, "  gr_status_r: 0x%x",
 				  g->ops.gr.get_gr_status(g));
+#endif
 		}
 
 		/* get the channel/TSG */
@@ -337,6 +340,7 @@ bool gk20a_fifo_handle_mmu_fault_locked(
 
 		/* check if engine reset should be deferred */
 		if (engine_id != NVGPU_INVALID_ENG_ID) {
+#ifdef NVGPU_DEBUGGER
 			bool defer = nvgpu_engine_should_defer_reset(g,
 					engine_id, mmfault_info.client_type,
 					fake_fault);
@@ -344,9 +348,9 @@ bool gk20a_fifo_handle_mmu_fault_locked(
 				g->fifo.deferred_fault_engines |= BIT(engine_id);
 
 				/* handled during channel free */
-				nvgpu_mutex_acquire(&f->deferred_reset_mutex);
+				nvgpu_mutex_acquire(&g->fifo.deferred_reset_mutex);
 				g->fifo.deferred_reset_pending = true;
-				nvgpu_mutex_release(&f->deferred_reset_mutex);
+				nvgpu_mutex_release(&g->fifo.deferred_reset_mutex);
 
 				deferred_reset_pending = true;
 
@@ -354,8 +358,11 @@ bool gk20a_fifo_handle_mmu_fault_locked(
 					   "sm debugger attached,"
 					   " deferring channel recovery to channel free");
 			} else {
+#endif
 				nvgpu_engine_reset(g, engine_id);
+#ifdef NVGPU_DEBUGGER
 			}
+#endif
 		}
 
 #ifdef CONFIG_GK20A_CTXSW_TRACE

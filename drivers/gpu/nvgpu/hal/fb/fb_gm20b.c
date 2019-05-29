@@ -347,5 +347,7 @@ void gm20b_fb_set_debug_mode(struct gk20a *g, bool enable)
 			fb_mmu_debug_ctrl_debug_m(), fb_debug_ctrl);
 	gk20a_writel(g, fb_mmu_debug_ctrl_r(), reg_val);
 
+#ifdef NVGPU_DEBUGGER
 	g->ops.gr.set_debug_mode(g, enable);
+#endif
 }

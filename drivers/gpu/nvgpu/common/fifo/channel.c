@@ -291,7 +291,9 @@ static void gk20a_free_channel(struct nvgpu_channel *ch, bool force)
 	struct dbg_session_data *session_data, *tmp_s;
 	struct dbg_session_channel_data *ch_data, *tmp;
 	int err;
+#ifdef NVGPU_DEBUGGER
 	bool deferred_reset_pending;
+#endif
 
 	nvgpu_log_fn(g, " ");
 
@@ -372,6 +374,7 @@ static void gk20a_free_channel(struct nvgpu_channel *ch, bool force)
 			__func__, "references");
 	}
 
+#ifdef NVGPU_DEBUGGER
 	/* if engine reset was deferred, perform it now */
 	nvgpu_mutex_acquire(&f->deferred_reset_mutex);
 	deferred_reset_pending = g->fifo.deferred_reset_pending;
@@ -386,6 +389,7 @@ static void gk20a_free_channel(struct nvgpu_channel *ch, bool force)
 
 		nvgpu_mutex_release(&g->fifo.engines_reset_mutex);
 	}
+#endif
 
 	if (!nvgpu_channel_as_bound(ch)) {
 		goto unbind;
@@ -2718,6 +2722,7 @@ void nvgpu_channel_debug_dump_all(struct gk20a *g,
 	nvgpu_kfree(g, infos);
 }
 
+#ifdef NVGPU_DEBUGGER
 int nvgpu_channel_deferred_reset_engines(struct gk20a *g,
 		struct nvgpu_channel *ch)
 {
@@ -2782,3 +2787,4 @@ fail:
 
 	return err;
 }
+#endif

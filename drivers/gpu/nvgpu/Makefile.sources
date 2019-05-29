@@ -177,11 +177,6 @@ srcs += common/utils/enabled.c \
 	hal/gr/falcon/gr_falcon_gm20b.c \
 	hal/gr/falcon/gr_falcon_gp10b.c \
 	hal/gr/falcon/gr_falcon_gv11b.c \
-	hal/gr/gr/gr_gk20a.c \
-	hal/gr/gr/gr_gm20b.c \
-	hal/gr/gr/gr_gp10b.c \
-	hal/gr/gr/gr_gv100.c \
-	hal/gr/gr/gr_gv11b.c \
 	hal/init/hal_gm20b.c \
 	hal/init/hal_gm20b_litter.c \
 	hal/init/hal_gp10b.c \
@@ -315,7 +310,13 @@ srcs += common/debugger.c \
 	hal/regops/regops_tu104.c \
 	hal/gr/hwpm_map/hwpm_map_gv100.c \
 	hal/perf/perf_gm20b.c \
-	hal/perf/perf_gv11b.c
+	hal/perf/perf_gv11b.c \
+	hal/gr/gr/gr_gk20a.c \
+	hal/gr/gr/gr_gm20b.c \
+	hal/gr/gr/gr_gp10b.c \
+	hal/gr/gr/gr_gv11b.c \
+	hal/gr/gr/gr_gv100.c \
+	hal/gr/gr/gr_tu104.c
 endif
 
 ifeq ($(NVGPU_FEATURE_CE),1)
@@ -497,7 +498,6 @@ srcs += common/sec2/sec2.c \
 	hal/gr/init/gr_init_gv100.c \
 	hal/gr/init/gr_init_tu104.c \
 	hal/gr/intr/gr_intr_tu104.c \
-	hal/gr/gr/gr_tu104.c \
 	hal/fbpa/fbpa_tu104.c \
 	hal/init/hal_tu104.c \
 	hal/init/hal_tu104_litter.c \

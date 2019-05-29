@@ -264,6 +264,7 @@ static const struct gpu_ops tu104_ops = {
 				gv11b_ce_mthd_buffer_fault_in_bar2_fault,
 	},
 	.gr = {
+#ifdef NVGPU_DEBUGGER
 		.get_gr_status = gr_gm20b_get_gr_status,
 		.set_alpha_circular_buffer_size =
 			gr_gv11b_set_alpha_circular_buffer_size,
@@ -325,6 +326,7 @@ static const struct gpu_ops tu104_ops = {
 		.esr_bpt_pending_events = gv11b_gr_esr_bpt_pending_events,
 		.disable_ctxsw = nvgpu_gr_disable_ctxsw,
 		.enable_ctxsw = nvgpu_gr_enable_ctxsw,
+#endif /* NVGPU_DEBUGGER */
 		.ecc = {
 			.detect = NULL,
 			.init = tu104_ecc_init,
