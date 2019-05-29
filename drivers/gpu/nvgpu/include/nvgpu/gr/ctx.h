@@ -49,9 +49,12 @@ struct nvgpu_gr_ctx;
 struct nvgpu_gr_global_ctx_buffer_desc;
 struct nvgpu_gr_global_ctx_local_golden_image;
 struct patch_desc;
-struct zcull_ctx_desc;
 struct pm_ctx_desc;
 struct nvgpu_gr_ctx_desc;
+
+#ifdef NVGPU_GRAPHICS
+struct zcull_ctx_desc;
+#endif
 
 #define NVGPU_GR_CTX_CTX		0U
 #define NVGPU_GR_CTX_PM_CTX		1U
@@ -113,9 +116,6 @@ int nvgpu_gr_ctx_alloc_patch_ctx(struct gk20a *g,
 void nvgpu_gr_ctx_free_patch_ctx(struct gk20a *g, struct vm_gk20a *vm,
 	struct nvgpu_gr_ctx *gr_ctx);
 
-void nvgpu_gr_ctx_set_zcull_ctx(struct gk20a *g, struct nvgpu_gr_ctx *gr_ctx,
-	u32 mode, u64 gpu_va);
-
 int nvgpu_gr_ctx_alloc_ctxsw_buffers(struct gk20a *g,
 	struct nvgpu_gr_ctx *gr_ctx,
 	struct nvgpu_gr_ctx_desc *gr_ctx_desc,
@@ -151,8 +151,6 @@ void nvgpu_gr_ctx_set_patch_ctx_data_count(struct nvgpu_gr_ctx *gr_ctx,
 
 struct nvgpu_mem *nvgpu_gr_ctx_get_pm_ctx_mem(struct nvgpu_gr_ctx *gr_ctx);
 
-u64 nvgpu_gr_ctx_get_zcull_ctx_va(struct nvgpu_gr_ctx *gr_ctx);
-
 struct nvgpu_mem *nvgpu_gr_ctx_get_ctx_mem(struct nvgpu_gr_ctx *gr_ctx);
 
 int nvgpu_gr_ctx_load_golden_ctx_image(struct gk20a *g,
@@ -177,9 +175,17 @@ void nvgpu_gr_ctx_set_patch_ctx(struct gk20a *g, struct nvgpu_gr_ctx *gr_ctx,
 
 u32 nvgpu_gr_ctx_get_ctx_id(struct gk20a *g, struct nvgpu_gr_ctx *gr_ctx);
 
+#ifdef NVGPU_GRAPHICS
+void nvgpu_gr_ctx_set_zcull_ctx(struct gk20a *g, struct nvgpu_gr_ctx *gr_ctx,
+	u32 mode, u64 gpu_va);
+
+u64 nvgpu_gr_ctx_get_zcull_ctx_va(struct nvgpu_gr_ctx *gr_ctx);
+
 int nvgpu_gr_ctx_init_zcull(struct gk20a *g, struct nvgpu_gr_ctx *gr_ctx);
+
 int nvgpu_gr_ctx_zcull_setup(struct gk20a *g, struct nvgpu_gr_ctx *gr_ctx,
 	bool set_zcull_ptr);
+#endif
 
 int nvgpu_gr_ctx_set_smpc_mode(struct gk20a *g, struct nvgpu_gr_ctx *gr_ctx,
 	bool enable);

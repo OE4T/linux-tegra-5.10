@@ -760,6 +760,7 @@ notif_clean_up:
 	return ret;
 }
 
+#ifdef NVGPU_GRAPHICS
 static int gk20a_channel_zcull_bind(struct nvgpu_channel *ch,
 			    struct nvgpu_zcull_bind_args *args)
 {
@@ -770,6 +771,7 @@ static int gk20a_channel_zcull_bind(struct nvgpu_channel *ch,
 	return g->ops.gr.setup.bind_ctxsw_zcull(g, ch,
 				args->gpu_va, args->mode);
 }
+#endif
 
 static int gk20a_ioctl_channel_submit_gpfifo(
 	struct nvgpu_channel *ch,
@@ -1226,6 +1228,7 @@ long gk20a_channel_ioctl(struct file *filp,
 
 		gk20a_idle(ch->g);
 		break;
+#ifdef NVGPU_GRAPHICS
 	case NVGPU_IOCTL_CHANNEL_ZCULL_BIND:
 		err = gk20a_busy(ch->g);
 		if (err) {
@@ -1238,6 +1241,7 @@ long gk20a_channel_ioctl(struct file *filp,
 				(struct nvgpu_zcull_bind_args *)buf);
 		gk20a_idle(ch->g);
 		break;
+#endif
 	case NVGPU_IOCTL_CHANNEL_SET_ERROR_NOTIFIER:
 		err = gk20a_busy(ch->g);
 		if (err) {

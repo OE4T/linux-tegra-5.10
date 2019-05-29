@@ -32,9 +32,9 @@ struct nvgpu_gr_obj_ctx_golden_image;
 struct nvgpu_gr_config;
 #ifdef NVGPU_GRAPHICS
 struct nvgpu_gr_zbc;
+struct nvgpu_gr_zcull;
 #endif
 struct nvgpu_gr_hwpm_map;
-struct nvgpu_gr_zcull;
 struct gk20a_cs_snapshot;
 
 struct nvgpu_gr {
@@ -53,9 +53,9 @@ struct nvgpu_gr {
 
 	struct nvgpu_gr_hwpm_map *hwpm_map;
 
+#ifdef NVGPU_GRAPHICS
 	struct nvgpu_gr_zcull *zcull;
 
-#ifdef NVGPU_GRAPHICS
 	struct nvgpu_gr_zbc *zbc;
 #endif
 

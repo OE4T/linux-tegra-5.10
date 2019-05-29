@@ -216,15 +216,6 @@ void nvgpu_gr_ctx_free_patch_ctx(struct gk20a *g, struct vm_gk20a *vm,
 	patch_ctx->data_count = 0;
 }
 
-void nvgpu_gr_ctx_set_zcull_ctx(struct gk20a *g, struct nvgpu_gr_ctx *gr_ctx,
-	u32 mode, u64 gpu_va)
-{
-	struct zcull_ctx_desc *zcull_ctx = &gr_ctx->zcull_ctx;
-
-	zcull_ctx->ctx_sw_mode = mode;
-	zcull_ctx->gpu_va = gpu_va;
-}
-
 static int nvgpu_gr_ctx_alloc_ctxsw_buffer(struct vm_gk20a *vm, size_t size,
 	struct nvgpu_mem *mem)
 {
@@ -514,11 +505,6 @@ u32 nvgpu_gr_ctx_get_pm_ctx_pm_mode(struct nvgpu_gr_ctx *gr_ctx)
 	return gr_ctx->pm_ctx.pm_mode;
 }
 
-u64 nvgpu_gr_ctx_get_zcull_ctx_va(struct nvgpu_gr_ctx *gr_ctx)
-{
-	return gr_ctx->zcull_ctx.gpu_va;
-}
-
 struct nvgpu_mem *nvgpu_gr_ctx_get_preempt_ctxsw_buffer(
 	struct nvgpu_gr_ctx *gr_ctx)
 {
@@ -718,6 +704,21 @@ u32 nvgpu_gr_ctx_get_ctx_id(struct gk20a *g, struct nvgpu_gr_ctx *gr_ctx)
 	return gr_ctx->ctx_id;
 }
 
+#ifdef NVGPU_GRAPHICS
+void nvgpu_gr_ctx_set_zcull_ctx(struct gk20a *g, struct nvgpu_gr_ctx *gr_ctx,
+	u32 mode, u64 gpu_va)
+{
+	struct zcull_ctx_desc *zcull_ctx = &gr_ctx->zcull_ctx;
+
+	zcull_ctx->ctx_sw_mode = mode;
+	zcull_ctx->gpu_va = gpu_va;
+}
+
+u64 nvgpu_gr_ctx_get_zcull_ctx_va(struct nvgpu_gr_ctx *gr_ctx)
+{
+	return gr_ctx->zcull_ctx.gpu_va;
+}
+
 int nvgpu_gr_ctx_init_zcull(struct gk20a *g, struct nvgpu_gr_ctx *gr_ctx)
 {
 	int err;
@@ -755,6 +756,7 @@ int nvgpu_gr_ctx_zcull_setup(struct gk20a *g, struct nvgpu_gr_ctx *gr_ctx,
 
 	return 0;
 }
+#endif
 
 int nvgpu_gr_ctx_set_smpc_mode(struct gk20a *g, struct nvgpu_gr_ctx *gr_ctx,
 	bool enable)

@@ -220,12 +220,6 @@ struct tegra_vgpu_ch_ctx_params {
 	u32 class_num;
 };
 
-struct tegra_vgpu_zcull_bind_params {
-	u64 handle;
-	u64 zcull_va;
-	u32 mode;
-};
-
 enum {
 	TEGRA_VGPU_L2_MAINT_FLUSH = 0,
 	TEGRA_VGPU_L2_MAINT_INV,
@@ -244,6 +238,13 @@ struct tegra_vgpu_runlist_params {
 
 struct tegra_vgpu_golden_ctx_params {
 	u32 size;
+};
+
+#ifdef NVGPU_GRAPHICS
+struct tegra_vgpu_zcull_bind_params {
+	u64 handle;
+	u64 zcull_va;
+	u32 mode;
 };
 
 struct tegra_vgpu_zcull_info_params {
@@ -281,6 +282,7 @@ struct tegra_vgpu_zbc_query_table_params {
 	u32 type;             /* color or depth */
 	u32 index_size;       /* [out] size, [in] index */
 };
+#endif
 
 enum {
 	TEGRA_VGPU_GR_BIND_CTXSW_BUFFER_MAIN,
@@ -638,13 +640,15 @@ struct tegra_vgpu_cmd_msg {
 		struct tegra_vgpu_channel_config_params channel_config;
 		struct tegra_vgpu_ramfc_params ramfc;
 		struct tegra_vgpu_ch_ctx_params ch_ctx;
-		struct tegra_vgpu_zcull_bind_params zcull_bind;
 		struct tegra_vgpu_cache_maint_params cache_maint;
 		struct tegra_vgpu_runlist_params runlist;
 		struct tegra_vgpu_golden_ctx_params golden_ctx;
+#ifdef NVGPU_GRAPHICS
+		struct tegra_vgpu_zcull_bind_params zcull_bind;
 		struct tegra_vgpu_zcull_info_params zcull_info;
 		struct tegra_vgpu_zbc_set_table_params zbc_set_table;
 		struct tegra_vgpu_zbc_query_table_params zbc_query_table;
+#endif
 		struct tegra_vgpu_gr_bind_ctxsw_buffers_params gr_bind_ctxsw_buffers;
 		struct tegra_vgpu_mmu_debug_mode mmu_debug_mode;
 		struct tegra_vgpu_sm_debug_mode sm_debug_mode;

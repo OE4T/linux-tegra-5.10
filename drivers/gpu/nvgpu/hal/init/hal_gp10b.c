@@ -256,12 +256,14 @@ static const struct gpu_ops gp10b_ops = {
 			.get_patch_count = gm20b_ctxsw_prog_get_patch_count,
 			.set_patch_count = gm20b_ctxsw_prog_set_patch_count,
 			.set_patch_addr = gm20b_ctxsw_prog_set_patch_addr,
+#ifdef NVGPU_GRAPHICS
 			.set_zcull_ptr = gm20b_ctxsw_prog_set_zcull_ptr,
 			.set_zcull = gm20b_ctxsw_prog_set_zcull,
 			.set_zcull_mode_no_ctxsw =
 				gm20b_ctxsw_prog_set_zcull_mode_no_ctxsw,
 			.is_zcull_mode_separate_buffer =
 				gm20b_ctxsw_prog_is_zcull_mode_separate_buffer,
+#endif /* NVGPU_GRAPHICS */
 			.set_pm_ptr = gm20b_ctxsw_prog_set_pm_ptr,
 			.set_pm_mode = gm20b_ctxsw_prog_set_pm_mode,
 			.set_pm_smpc_mode = gm20b_ctxsw_prog_set_pm_smpc_mode,
@@ -318,8 +320,10 @@ static const struct gpu_ops gp10b_ops = {
 			.get_gpc_tpc_mask = gm20b_gr_config_get_gpc_tpc_mask,
 			.get_tpc_count_in_gpc =
 				gm20b_gr_config_get_tpc_count_in_gpc,
+#ifdef NVGPU_GRAPHICS
 			.get_zcull_count_in_gpc =
 				gm20b_gr_config_get_zcull_count_in_gpc,
+#endif /* NVGPU_GRAPHICS */
 			.get_pes_tpc_mask = gm20b_gr_config_get_pes_tpc_mask,
 			.get_pd_dist_skip_table_size =
 				gm20b_gr_config_get_pd_dist_skip_table_size,
@@ -350,7 +354,9 @@ static const struct gpu_ops gp10b_ops = {
 		},
 #endif /* CONFIG_GK20A_CTXSW_TRACE */
 		.setup = {
+#ifdef NVGPU_GRAPHICS
 			.bind_ctxsw_zcull = nvgpu_gr_setup_bind_ctxsw_zcull,
+#endif /* NVGPU_GRAPHICS */
 			.alloc_obj_ctx = nvgpu_gr_setup_alloc_obj_ctx,
 			.free_gr_ctx = nvgpu_gr_setup_free_gr_ctx,
 			.set_preemption_mode = nvgpu_gr_setup_set_preemption_mode,
@@ -367,12 +373,12 @@ static const struct gpu_ops gp10b_ops = {
 			.get_gpcs_swdx_dss_zbc_z_format_reg =
 				gp10b_gr_zbc_get_gpcs_swdx_dss_zbc_z_format_reg,
 		},
-#endif /* NVGPU_GRAPHICS */
 		.zcull = {
 			.init_zcull_hw = gm20b_gr_init_zcull_hw,
 			.get_zcull_info = gm20b_gr_get_zcull_info,
 			.program_zcull_mapping = gm20b_gr_program_zcull_mapping,
 		},
+#endif /* NVGPU_GRAPHICS */
 		.init = {
 			.get_no_of_sm = nvgpu_gr_get_no_of_sm,
 			.wait_initialized = nvgpu_gr_wait_initialized,

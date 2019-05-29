@@ -104,14 +104,17 @@ void nvgpu_gr_subctx_load_ctx_header(struct gk20a *g,
 	g->ops.gr.ctxsw_prog.set_pm_ptr(g, ctxheader,
 		nvgpu_gr_ctx_get_pm_ctx_mem(gr_ctx)->gpu_va);
 
+#ifdef NVGPU_GRAPHICS
 	g->ops.gr.ctxsw_prog.set_zcull_ptr(g, ctxheader,
 		nvgpu_gr_ctx_get_zcull_ctx_va(gr_ctx));
+#endif
 
 	g->ops.gr.ctxsw_prog.set_context_buffer_ptr(g, ctxheader, gpu_va);
 
 	g->ops.gr.ctxsw_prog.set_type_per_veid_header(g, ctxheader);
 }
 
+#ifdef NVGPU_GRAPHICS
 void nvgpu_gr_subctx_zcull_setup(struct gk20a *g, struct nvgpu_gr_subctx *subctx,
 		struct nvgpu_gr_ctx *gr_ctx)
 {
@@ -121,6 +124,7 @@ void nvgpu_gr_subctx_zcull_setup(struct gk20a *g, struct nvgpu_gr_subctx *subctx
 	g->ops.gr.ctxsw_prog.set_zcull_ptr(g, &subctx->ctx_header,
 		nvgpu_gr_ctx_get_zcull_ctx_va(gr_ctx));
 }
+#endif
 
 void nvgpu_gr_subctx_set_hwpm_mode(struct gk20a *g,
 	struct nvgpu_gr_subctx *subctx, struct nvgpu_gr_ctx *gr_ctx)

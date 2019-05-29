@@ -30,8 +30,8 @@
 #include <nvgpu/gr/gr_intr.h>
 #ifdef NVGPU_GRAPHICS
 #include <nvgpu/gr/zbc.h>
-#endif
 #include <nvgpu/gr/zcull.h>
+#endif
 #include <nvgpu/netlist.h>
 #include <nvgpu/gr/gr_falcon.h>
 #include <nvgpu/gr/ctx.h>
@@ -183,10 +183,12 @@ static int gr_init_setup_hw(struct gk20a *g)
 	/* load gr floorsweeping registers */
 	g->ops.gr.init.pes_vsc_stream(g);
 
+#ifdef NVGPU_GRAPHICS
 	err = nvgpu_gr_zcull_init_hw(g, gr->zcull, gr->config);
 	if (err != 0) {
 		goto out;
 	}
+#endif /* NVGPU_GRAPHICS */
 
 	if (g->ops.priv_ring.set_ppriv_timeout_settings != NULL) {
 		g->ops.priv_ring.set_ppriv_timeout_settings(g);
@@ -283,9 +285,9 @@ static void gr_remove_support(struct gk20a *g)
 
 #ifdef NVGPU_GRAPHICS
 	nvgpu_gr_zbc_deinit(g, gr->zbc);
+	nvgpu_gr_zcull_deinit(g, gr->zcull);
 #endif /* NVGPU_GRAPHICS */
 
-	nvgpu_gr_zcull_deinit(g, gr->zcull);
 	nvgpu_gr_obj_ctx_deinit(g, gr->golden_image);
 }
 
@@ -406,12 +408,14 @@ static int gr_init_setup_sw(struct gk20a *g)
 		goto clean_up;
 	}
 
+#ifdef NVGPU_GRAPHICS
 	err = nvgpu_gr_zcull_init(g, &gr->zcull,
 			nvgpu_gr_falcon_get_zcull_image_size(g->gr->falcon),
 			g->gr->config);
 	if (err != 0) {
 		goto clean_up;
 	}
+#endif /* NVGPU_GRAPHICS */
 
 	gr->gr_ctx_desc = nvgpu_gr_ctx_desc_alloc(g);
 	if (gr->gr_ctx_desc == NULL) {

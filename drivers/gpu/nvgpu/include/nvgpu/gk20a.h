@@ -66,9 +66,9 @@ struct nvgpu_gr_subctx;
 struct nvgpu_gr_zbc;
 struct nvgpu_gr_zbc_entry;
 struct nvgpu_gr_zbc_query_params;
-#endif
 struct nvgpu_gr_zcull;
 struct nvgpu_gr_zcull_info;
+#endif
 struct nvgpu_gr_tpc_exception;
 struct nvgpu_gr_intr_info;
 struct nvgpu_channel_hw_state;
@@ -439,6 +439,7 @@ struct gpu_ops {
 				struct nvgpu_mem *ctx_mem, u32 count);
 			void (*set_patch_addr)(struct gk20a *g,
 				struct nvgpu_mem *ctx_mem, u64 addr);
+#ifdef NVGPU_GRAPHICS
 			void (*set_zcull_ptr)(struct gk20a *g,
 				struct nvgpu_mem *ctx_mem, u64 addr);
 			void (*set_zcull)(struct gk20a *g,
@@ -446,6 +447,7 @@ struct gpu_ops {
 			void (*set_zcull_mode_no_ctxsw)(struct gk20a *g,
 				struct nvgpu_mem *ctx_mem);
 			bool (*is_zcull_mode_separate_buffer)(u32 mode);
+#endif
 			void (*set_pm_ptr)(struct gk20a *g,
 				struct nvgpu_mem *ctx_mem, u64 addr);
 			void (*set_pm_mode)(struct gk20a *g,
@@ -518,8 +520,10 @@ struct gpu_ops {
 				struct nvgpu_gr_config *config, u32 gpc_index);
 			u32 (*get_tpc_count_in_gpc)(struct gk20a *g,
 				struct nvgpu_gr_config *config, u32 gpc_index);
+#ifdef NVGPU_GRAPHICS
 			u32 (*get_zcull_count_in_gpc)(struct gk20a *g,
 				struct nvgpu_gr_config *config, u32 gpc_index);
+#endif
 			u32 (*get_pes_tpc_mask)(struct gk20a *g,
 				struct nvgpu_gr_config *config, u32 gpc_index,
 				u32 pes_index);
@@ -625,10 +629,12 @@ struct gpu_ops {
 #endif
 
 		struct {
+#ifdef NVGPU_GRAPHICS
 			int (*bind_ctxsw_zcull)(struct gk20a *g,
 						struct nvgpu_channel *c,
 						u64 zcull_va,
 						u32 mode);
+#endif
 			int (*alloc_obj_ctx)(struct nvgpu_channel  *c,
 				     u32 class_num, u32 flags);
 			void (*free_gr_ctx)(struct gk20a *g,
@@ -660,7 +666,7 @@ struct gpu_ops {
 			u32 (*get_gpcs_swdx_dss_zbc_z_format_reg)(
 				struct gk20a *g);
 		} zbc;
-#endif
+
 		struct {
 			int (*init_zcull_hw)(struct gk20a *g,
 					struct nvgpu_gr_zcull *gr_zcull,
@@ -673,6 +679,7 @@ struct gpu_ops {
 						u32 zcull_alloc_num,
 						u32 *zcull_map_tiles);
 		} zcull;
+#endif /* NVGPU_GRAPHICS */
 
 		struct {
 			void (*align_regs_perf_pma)(u32 *offset);

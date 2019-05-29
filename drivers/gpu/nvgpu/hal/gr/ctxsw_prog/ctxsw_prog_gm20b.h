@@ -39,6 +39,7 @@ void gm20b_ctxsw_prog_set_patch_count(struct gk20a *g,
 	struct nvgpu_mem *ctx_mem, u32 count);
 void gm20b_ctxsw_prog_set_patch_addr(struct gk20a *g,
 	struct nvgpu_mem *ctx_mem, u64 addr);
+#ifdef NVGPU_GRAPHICS
 void gm20b_ctxsw_prog_set_zcull_ptr(struct gk20a *g, struct nvgpu_mem *ctx_mem,
 	u64 addr);
 void gm20b_ctxsw_prog_set_zcull(struct gk20a *g, struct nvgpu_mem *ctx_mem,
@@ -46,6 +47,7 @@ void gm20b_ctxsw_prog_set_zcull(struct gk20a *g, struct nvgpu_mem *ctx_mem,
 void gm20b_ctxsw_prog_set_zcull_mode_no_ctxsw(struct gk20a *g,
 	struct nvgpu_mem *ctx_mem);
 bool gm20b_ctxsw_prog_is_zcull_mode_separate_buffer(u32 mode);
+#endif
 void gm20b_ctxsw_prog_set_pm_ptr(struct gk20a *g, struct nvgpu_mem *ctx_mem,
 	u64 addr);
 void gm20b_ctxsw_prog_set_pm_mode(struct gk20a *g,

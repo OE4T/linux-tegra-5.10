@@ -117,7 +117,9 @@
 
 #include <nvgpu/vgpu/ce_vgpu.h>
 #include <nvgpu/vgpu/vm_vgpu.h>
+#ifdef NVGPU_GRAPHICS
 #include <nvgpu/gr/zbc.h>
+#endif
 
 #include "vgpu_gv11b.h"
 
@@ -240,12 +242,14 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 			.get_patch_count = gm20b_ctxsw_prog_get_patch_count,
 			.set_patch_count = gm20b_ctxsw_prog_set_patch_count,
 			.set_patch_addr = gm20b_ctxsw_prog_set_patch_addr,
+#ifdef NVGPU_GRAPHICS
 			.set_zcull_ptr = gv11b_ctxsw_prog_set_zcull_ptr,
 			.set_zcull = gm20b_ctxsw_prog_set_zcull,
 			.set_zcull_mode_no_ctxsw =
 				gm20b_ctxsw_prog_set_zcull_mode_no_ctxsw,
 			.is_zcull_mode_separate_buffer =
 				gm20b_ctxsw_prog_is_zcull_mode_separate_buffer,
+#endif
 			.set_pm_ptr = gv11b_ctxsw_prog_set_pm_ptr,
 			.set_pm_mode = gm20b_ctxsw_prog_set_pm_mode,
 			.set_pm_smpc_mode = gm20b_ctxsw_prog_set_pm_smpc_mode,
@@ -312,7 +316,9 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 			.init_sm_id_table = vgpu_gr_init_sm_id_table,
 		},
 		.setup = {
+#ifdef NVGPU_GRAPHICS
 			.bind_ctxsw_zcull = vgpu_gr_bind_ctxsw_zcull,
+#endif
 			.alloc_obj_ctx = vgpu_gr_alloc_obj_ctx,
 			.free_gr_ctx = vgpu_gr_free_gr_ctx,
 			.free_subctx = vgpu_channel_free_ctx_header,
@@ -328,11 +334,11 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 			.get_gpcs_swdx_dss_zbc_c_format_reg = NULL,
 			.get_gpcs_swdx_dss_zbc_z_format_reg = NULL,
 		},
-#endif /* NVGPU_GRAPHICS */
 		.zcull = {
 			.get_zcull_info = vgpu_gr_get_zcull_info,
 			.program_zcull_mapping = NULL,
 		},
+#endif /* NVGPU_GRAPHICS */
 		.hwpm_map = {
 			.align_regs_perf_pma =
 				gv100_gr_hwpm_map_align_regs_perf_pma,

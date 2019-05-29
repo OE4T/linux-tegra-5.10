@@ -145,10 +145,12 @@ struct nvgpu_gr_config *nvgpu_gr_config_init(struct gk20a *g)
 				gpc_index);
 		config->tpc_count += config->gpc_tpc_count[gpc_index];
 
+#ifdef NVGPU_GRAPHICS
 		config->gpc_zcb_count[gpc_index] =
 			g->ops.gr.config.get_zcull_count_in_gpc(g, config,
 				gpc_index);
 		config->zcb_count += config->gpc_zcb_count[gpc_index];
+#endif
 
 		for (pes_index = 0; pes_index < config->pe_count_per_gpc;
 				    pes_index++) {

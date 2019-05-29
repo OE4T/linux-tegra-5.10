@@ -28,8 +28,9 @@
 struct gk20a;
 struct nvgpu_channel;
 struct gr_gk20a;
-struct nvgpu_gr_zcull_info;
 #ifdef NVGPU_GRAPHICS
+struct nvgpu_gr_zcull_info;
+struct nvgpu_gr_zcull;
 struct nvgpu_gr_zbc;
 struct nvgpu_gr_zbc_entry;
 struct nvgpu_gr_zbc_query_params;
@@ -38,7 +39,6 @@ struct dbg_session_gk20a;
 struct nvgpu_tsg;
 struct vm_gk20a;
 struct nvgpu_gr_ctx;
-struct nvgpu_gr_zcull;
 struct tegra_vgpu_gr_intr_info;
 struct tegra_vgpu_sm_esr_info;
 struct nvgpu_gr_falcon_query_sizes;
@@ -50,18 +50,18 @@ int vgpu_gr_alloc_global_ctx_buffers(struct gk20a *g);
 void vgpu_gr_free_channel_ctx(struct nvgpu_channel *c, bool is_tsg);
 void vgpu_gr_free_tsg_ctx(struct nvgpu_tsg *tsg);
 int vgpu_gr_alloc_obj_ctx(struct nvgpu_channel  *c, u32 class_num, u32 flags);
-int vgpu_gr_bind_ctxsw_zcull(struct gk20a *g, struct nvgpu_channel *c,
-			u64 zcull_va, u32 mode);
-int vgpu_gr_get_zcull_info(struct gk20a *g,
-			struct nvgpu_gr_config *gr_config,
-			struct nvgpu_gr_zcull *zcull,
-			struct nvgpu_gr_zcull_info *zcull_params);
 u32 vgpu_gr_get_gpc_tpc_mask(struct gk20a *g, struct nvgpu_gr_config *config,
 	u32 gpc_index);
 u32 vgpu_gr_get_max_fbps_count(struct gk20a *g);
 u32 vgpu_gr_get_max_ltc_per_fbp(struct gk20a *g);
 u32 vgpu_gr_get_max_lts_per_ltc(struct gk20a *g);
 #ifdef NVGPU_GRAPHICS
+int vgpu_gr_bind_ctxsw_zcull(struct gk20a *g, struct nvgpu_channel *c,
+			u64 zcull_va, u32 mode);
+int vgpu_gr_get_zcull_info(struct gk20a *g,
+			struct nvgpu_gr_config *gr_config,
+			struct nvgpu_gr_zcull *zcull,
+			struct nvgpu_gr_zcull_info *zcull_params);
 int vgpu_gr_add_zbc(struct gk20a *g, struct nvgpu_gr_zbc *zbc,
 			   struct nvgpu_gr_zbc_entry *zbc_val);
 int vgpu_gr_query_zbc(struct gk20a *g, struct nvgpu_gr_zbc *zbc,

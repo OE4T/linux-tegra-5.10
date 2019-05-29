@@ -25,13 +25,16 @@
 #include <nvgpu/gr/ctx.h>
 #include <nvgpu/gr/subctx.h>
 #include <nvgpu/gr/obj_ctx.h>
+#ifdef NVGPU_GRAPHICS
 #include <nvgpu/gr/zcull.h>
+#endif
 #include <nvgpu/gr/setup.h>
 #include <nvgpu/channel.h>
 #include <nvgpu/preempt.h>
 
 #include "gr_priv.h"
 
+#ifdef NVGPU_GRAPHICS
 static int nvgpu_gr_setup_zcull(struct gk20a *g, struct nvgpu_channel *c,
 				struct nvgpu_gr_ctx *gr_ctx)
 {
@@ -94,6 +97,7 @@ int nvgpu_gr_setup_bind_ctxsw_zcull(struct gk20a *g, struct nvgpu_channel *c,
 
 	return nvgpu_gr_setup_zcull(g, c, gr_ctx);
 }
+#endif
 
 int nvgpu_gr_setup_alloc_obj_ctx(struct nvgpu_channel *c, u32 class_num,
 		u32 flags)

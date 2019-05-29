@@ -37,8 +37,8 @@
 #include <nvgpu/gr/config.h>
 #ifdef NVGPU_GRAPHICS
 #include <nvgpu/gr/zbc.h>
-#endif
 #include <nvgpu/gr/zcull.h>
+#endif
 #include <nvgpu/gr/gr.h>
 #include <nvgpu/gr/gr_utils.h>
 #include <nvgpu/gr/warpstate.h>
@@ -1661,13 +1661,13 @@ long gk20a_ctrl_dev_ioctl(struct file *filp, unsigned int cmd, unsigned long arg
 {
 	struct gk20a_ctrl_priv *priv = filp->private_data;
 	struct gk20a *g = priv->g;
+	u8 buf[NVGPU_GPU_IOCTL_MAX_ARG_SIZE];
+	struct nvgpu_gr_config *gr_config = nvgpu_gr_get_config_ptr(g);
+#ifdef NVGPU_GRAPHICS
 	struct nvgpu_gpu_zcull_get_ctx_size_args *get_ctx_size_args;
 	struct nvgpu_gpu_zcull_get_info_args *get_info_args;
-	u8 buf[NVGPU_GPU_IOCTL_MAX_ARG_SIZE];
 	struct nvgpu_gr_zcull_info *zcull_info;
-	struct nvgpu_gr_config *gr_config = nvgpu_gr_get_config_ptr(g);
 	struct nvgpu_gr_zcull *gr_zcull = nvgpu_gr_get_zcull_ptr(g);
-#ifdef NVGPU_GRAPHICS
 	struct nvgpu_gr_zbc *gr_zbc = nvgpu_gr_get_zbc_ptr(g);
 	struct nvgpu_gr_zbc_entry *zbc_val;
 	struct nvgpu_gr_zbc_query_params *zbc_tbl;
@@ -1701,6 +1701,7 @@ long gk20a_ctrl_dev_ioctl(struct file *filp, unsigned int cmd, unsigned long arg
 
 	nvgpu_speculation_barrier();
 	switch (cmd) {
+#ifdef NVGPU_GRAPHICS
 	case NVGPU_GPU_IOCTL_ZCULL_GET_CTX_SIZE:
 		get_ctx_size_args = (struct nvgpu_gpu_zcull_get_ctx_size_args *)buf;
 
@@ -1737,7 +1738,6 @@ long gk20a_ctrl_dev_ioctl(struct file *filp, unsigned int cmd, unsigned long arg
 
 		nvgpu_kfree(g, zcull_info);
 		break;
-#ifdef NVGPU_GRAPHICS
 	case NVGPU_GPU_IOCTL_ZBC_SET_TABLE:
 		set_table_args = (struct nvgpu_gpu_zbc_set_table_args *)buf;
 

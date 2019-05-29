@@ -41,8 +41,8 @@
 #include <nvgpu/gr/gr_falcon.h>
 #ifdef NVGPU_GRAPHICS
 #include <nvgpu/gr/zbc.h>
-#endif
 #include <nvgpu/gr/zcull.h>
+#endif
 #include <nvgpu/gr/fecs_trace.h>
 #include <nvgpu/gr/hwpm_map.h>
 #include <nvgpu/gr/obj_ctx.h>
@@ -60,8 +60,8 @@
 #include "common/gr/gr_falcon_priv.h"
 #include "common/gr/gr_intr_priv.h"
 #include "common/gr/ctx_priv.h"
-#include "common/gr/zcull_priv.h"
 #ifdef NVGPU_GRAPHICS
+#include "common/gr/zcull_priv.h"
 #include "common/gr/zbc_priv.h"
 #endif
 #include "common/gr/gr_priv.h"
@@ -155,10 +155,12 @@ int vgpu_gr_init_ctx_state(struct gk20a *g,
 		return -ENXIO;
 	}
 
+#ifdef NVGPU_GRAPHICS
 	sizes->zcull_image_size = priv->constants.zcull_ctx_size;
 	if (sizes->zcull_image_size == 0U) {
 		return -ENXIO;
 	}
+#endif
 
 	sizes->preempt_image_size =
 			priv->constants.preempt_ctx_size;
@@ -476,6 +478,7 @@ cleanup:
 	return err;
 }
 
+#ifdef NVGPU_GRAPHICS
 static int vgpu_gr_init_gr_zcull(struct gk20a *g, struct nvgpu_gr *gr,
 		u32 size)
 {
@@ -542,6 +545,7 @@ int vgpu_gr_get_zcull_info(struct gk20a *g,
 
 	return 0;
 }
+#endif
 
 u32 vgpu_gr_get_gpc_tpc_mask(struct gk20a *g, struct nvgpu_gr_config *config,
 	u32 gpc_index)
@@ -667,7 +671,9 @@ static void vgpu_remove_gr_support(struct gk20a *g)
 
 	nvgpu_gr_config_deinit(gr->g, gr->config);
 
+#ifdef NVGPU_GRAPHICS
 	nvgpu_gr_zcull_deinit(gr->g, gr->zcull);
+#endif
 }
 
 static int vgpu_gr_init_gr_setup_sw(struct gk20a *g)
@@ -723,11 +729,13 @@ static int vgpu_gr_init_gr_setup_sw(struct gk20a *g)
 		goto clean_up;
 	}
 
+#ifdef NVGPU_GRAPHICS
 	err = vgpu_gr_init_gr_zcull(g, gr,
 			nvgpu_gr_falcon_get_zcull_image_size(g->gr->falcon));
 	if (err) {
 		goto clean_up;
 	}
+#endif
 
 	err = vgpu_gr_alloc_global_ctx_buffers(g);
 	if (err) {

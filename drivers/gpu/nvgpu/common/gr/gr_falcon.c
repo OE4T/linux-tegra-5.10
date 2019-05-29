@@ -196,10 +196,12 @@ u32 nvgpu_gr_falcon_get_preempt_image_size(struct nvgpu_gr_falcon *falcon)
 	return falcon->sizes.preempt_image_size;
 }
 
+#ifdef NVGPU_GRAPHICS
 u32 nvgpu_gr_falcon_get_zcull_image_size(struct nvgpu_gr_falcon *falcon)
 {
 	return falcon->sizes.zcull_image_size;
 }
+#endif
 
 static int nvgpu_gr_falcon_init_ctxsw_ucode_vaspace(struct gk20a *g,
 					struct nvgpu_gr_falcon *falcon)

@@ -27,8 +27,11 @@ struct gk20a;
 struct nvgpu_gr_falcon;
 struct nvgpu_gr_obj_ctx_golden_image;
 struct nvgpu_gr_config;
+
+#ifdef NVGPU_GRAPHICS
 struct nvgpu_gr_zbc;
 struct nvgpu_gr_zcull;
+#endif
 struct nvgpu_gr_hwpm_map;
 struct nvgpu_gr_intr;
 struct nvgpu_gr_global_ctx_buffer_desc;
@@ -37,8 +40,10 @@ struct nvgpu_gr_global_ctx_buffer_desc;
 struct nvgpu_gr_falcon *nvgpu_gr_get_falcon_ptr(struct gk20a *g);
 struct nvgpu_gr_obj_ctx_golden_image *nvgpu_gr_get_golden_image_ptr(
 							struct gk20a *g);
+#ifdef NVGPU_GRAPHICS
 struct nvgpu_gr_zcull *nvgpu_gr_get_zcull_ptr(struct gk20a *g);
 struct nvgpu_gr_zbc *nvgpu_gr_get_zbc_ptr(struct gk20a *g);
+#endif
 struct nvgpu_gr_config *nvgpu_gr_get_config_ptr(struct gk20a *g);
 struct nvgpu_gr_hwpm_map *nvgpu_gr_get_hwpm_map_ptr(struct gk20a *g);
 struct nvgpu_gr_intr *nvgpu_gr_get_intr_ptr(struct gk20a *g);

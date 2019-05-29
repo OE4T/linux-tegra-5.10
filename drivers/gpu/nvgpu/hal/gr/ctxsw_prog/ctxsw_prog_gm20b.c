@@ -80,6 +80,7 @@ void gm20b_ctxsw_prog_set_patch_addr(struct gk20a *g,
 		ctxsw_prog_main_image_patch_adr_hi_o(), u64_hi32(addr));
 }
 
+#ifdef NVGPU_GRAPHICS
 void gm20b_ctxsw_prog_set_zcull_ptr(struct gk20a *g, struct nvgpu_mem *ctx_mem,
 	u64 addr)
 {
@@ -105,6 +106,7 @@ bool gm20b_ctxsw_prog_is_zcull_mode_separate_buffer(u32 mode)
 {
 	return mode == ctxsw_prog_main_image_zcull_mode_separate_buffer_v();
 }
+#endif
 
 void gm20b_ctxsw_prog_set_pm_ptr(struct gk20a *g, struct nvgpu_mem *ctx_mem,
 	u64 addr)

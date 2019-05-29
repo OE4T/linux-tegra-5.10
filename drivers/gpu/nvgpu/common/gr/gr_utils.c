@@ -49,12 +49,12 @@ void nvgpu_gr_reset_golden_image_ptr(struct gk20a *g)
 	g->gr->golden_image = NULL;
 }
 
+#ifdef NVGPU_GRAPHICS
 struct nvgpu_gr_zcull *nvgpu_gr_get_zcull_ptr(struct gk20a *g)
 {
 	return g->gr->zcull;
 }
 
-#ifdef NVGPU_GRAPHICS
 struct nvgpu_gr_zbc *nvgpu_gr_get_zbc_ptr(struct gk20a *g)
 {
 	return g->gr->zbc;

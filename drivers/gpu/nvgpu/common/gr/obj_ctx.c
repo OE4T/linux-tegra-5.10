@@ -505,10 +505,12 @@ restore_fe_go_idle:
 		goto clean_up;
 	}
 
+#ifdef NVGPU_GRAPHICS
 	err = nvgpu_gr_ctx_init_zcull(g, gr_ctx);
 	if (err != 0) {
 		goto clean_up;
 	}
+#endif
 
 	data = g->ops.gr.falcon.get_fecs_current_ctx_data(g, inst_block);
 	err = g->ops.gr.falcon.ctrl_ctxsw(g,
