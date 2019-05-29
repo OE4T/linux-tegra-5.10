@@ -93,6 +93,92 @@ static inline void get_rx_vlan_from_desc(struct osi_rx_desc *rx_desc,
 }
 
 /**
+ *	get_rx_tstamp_status - Get Tx Time stamp status
+ *	@context_desc: Rx context descriptor
+ *
+ *	Algorithm:
+ *	1) Check if the received descriptor is a context descriptor.
+ *	2) If yes, check whether the time stamp is valid or not.
+ *
+ *	Dependencies: None
+ *
+ *	Protection: None
+ *
+ *	Return: -1 if TS is not valid and 0 if TS is valid.
+ */
+static inline int get_rx_tstamp_status(struct osi_rx_desc *context_desc)
+{
+	if (((context_desc->rdes3 & RDES3_OWN) == 0U) &&
+			((context_desc->rdes3 & RDES3_CTXT) == RDES3_CTXT)) {
+		if (((context_desc->rdes0 == OSI_INVALID_VALUE) &&
+		    (context_desc->rdes1 == OSI_INVALID_VALUE))) {
+			/* Invalid time stamp */
+			return -1;
+		}
+		/* tstamp can be read */
+		return 0;
+	}
+	/* Busy */
+	return -2;
+}
+
+/**
+ *	get_rx_hwstamp - Get Rx HW Time stamp
+ *	@rx_desc: Rx descriptor
+ *	@context_desc: Rx context descriptor
+ *	@rx_pkt_cx: Rx packet context
+ *
+ *	Algorithm:
+ *	1) Check for TS availability.
+ *	2) call get_tx_tstamp_status if TS is valid or not.
+ *	3) If yes, set a bit and update nano seconds in rx_pkt_cx so that OSD
+ *	layer can extract the time by checking this bit.
+ *
+ *	Dependencies: None
+ *
+ *	Protection: None
+ *
+ *	Return: -1 if TS is not available and 0 if TS is available.
+ */
+static int get_rx_hwstamp(struct osi_rx_desc *rx_desc,
+			  struct osi_rx_desc *context_desc,
+			  struct osi_rx_pkt_cx *rx_pkt_cx)
+{
+	int retry, ret = -1;
+
+	/* Check for RS1V/TSA/TD valid */
+	if (((rx_desc->rdes3 & RDES3_RS1V) == RDES3_RS1V) ||
+	    ((rx_desc->rdes1 & RDES1_TSA) == RDES1_TSA) ||
+	    ((rx_desc->rdes1 & RDES1_TD) == 0U)) {
+
+		for (retry = 0; retry < 10; retry++) {
+			ret = get_rx_tstamp_status(context_desc);
+			if (ret == 0) {
+				/* Update rx pkt context flags to indicate PTP */
+				rx_pkt_cx->flags |= OSI_PKT_CX_PTP;
+				/* Time Stamp can be read */
+				break;
+			} else if (ret != -2) {
+				/* Failed to get Rx timestamp */
+				return ret;
+			} else {
+				/* Do nothing here */
+			}
+			/* TS not available yet, so retrying */
+		}
+		if (ret != 0) {
+			/* Timed out waiting for Rx timestamp */
+			return ret;
+		}
+
+		rx_pkt_cx->ns = context_desc->rdes0 +
+				(OSI_NSEC_PER_SEC * context_desc->rdes1);
+	}
+	return ret;
+}
+
+
+/**
  *	get_rx_err_stats - Detect Errors from Rx Descriptor
  *	@rx_desc: Rx Descriptor.
  *	@pkt_err_stats: Packet error stats which stores the errors reported
@@ -144,16 +230,22 @@ int osi_process_rx_completions(struct osi_dma_priv_data *osi,
 	struct osi_rx_ring *rx_ring = osi->rx_ring[chan];
 	struct osi_rx_pkt_cx *rx_pkt_cx = &rx_ring->rx_pkt_cx;
 	struct osi_rx_desc *rx_desc = OSI_NULL;
+	struct osi_rx_swcx *rx_swcx = OSI_NULL;
+	struct osi_rx_desc *context_desc = OSI_NULL;
 	int received = 0;
+	int ret = 0;
 
 	while (received < budget) {
 		osi_memset(rx_pkt_cx, 0, sizeof(*rx_pkt_cx));
 		rx_desc = rx_ring->rx_desc + rx_ring->cur_rx_idx;
+		rx_swcx = rx_ring->rx_swcx + rx_ring->cur_rx_idx;
 
 		/* check for data availability */
 		if ((rx_desc->rdes3 & RDES3_OWN) == RDES3_OWN) {
 			break;
 		}
+
+		INCR_RX_DESC_INDEX(rx_ring->cur_rx_idx, 1U);
 
 		/* get the length of the packet */
 		rx_pkt_cx->pkt_len = rx_desc->rdes3 & RDES3_PKT_LEN;
@@ -174,8 +266,17 @@ int osi_process_rx_completions(struct osi_dma_priv_data *osi,
 			get_rx_csum(rx_desc, rx_pkt_cx);
 
 			get_rx_vlan_from_desc(rx_desc, rx_pkt_cx);
+			context_desc = rx_ring->rx_desc + rx_ring->cur_rx_idx;
+			/* Get rx time stamp */
+			ret = get_rx_hwstamp(rx_desc, context_desc, rx_pkt_cx);
+			if (ret == 0) {
+				/* Context descriptor was consumed. Its skb
+				 * and DMA mapping will be recycled
+				 */
+				INCR_RX_DESC_INDEX(rx_ring->cur_rx_idx, 1U);
+			}
 			osd_receive_packet(osi->osd, rx_ring, chan,
-					   osi->rx_buf_len, rx_pkt_cx);
+					   osi->rx_buf_len, rx_pkt_cx, rx_swcx);
 		}
 
 		received++;
@@ -349,6 +450,8 @@ int osi_process_tx_completions(struct osi_dma_priv_data *osi,
 	struct osi_tx_swcx *tx_swcx = OSI_NULL;
 	struct osi_tx_desc *tx_desc = OSI_NULL;
 	unsigned int entry = tx_ring->clean_idx;
+	unsigned long vartdes1;
+	unsigned long long ns;
 	int processed = 0;
 
 	while (entry != tx_ring->cur_tx_idx) {
@@ -367,6 +470,23 @@ int osi_process_tx_completions(struct osi_dma_priv_data *osi,
 				txdone_pkt_cx->flags |= OSI_TXDONE_CX_ERROR;
 				/* fill packet error stats */
 				get_tx_err_stats(tx_desc, osi->pkt_err_stats);
+			}
+		}
+
+		if (((tx_desc->tdes3 & TDES3_LD) == TDES3_LD) &&
+		    ((tx_desc->tdes3 & TDES3_CTXT) == 0U)) {
+			/* check tx tstamp status */
+			if ((tx_desc->tdes3 & TDES3_TTSS) != 0U) {
+				txdone_pkt_cx->flags |= OSI_TXDONE_CX_TS;
+				/* tx timestamp captured for this packet */
+				ns = tx_desc->tdes0;
+				vartdes1 = tx_desc->tdes1;
+				if (vartdes1 < UINT_MAX) {
+					ns = ns + (vartdes1 * OSI_NSEC_PER_SEC);
+				}
+				txdone_pkt_cx->ns = ns;
+			} else {
+				/* Do nothing here */
 			}
 		}
 
@@ -488,6 +608,11 @@ static inline void fill_first_desc(struct osi_tx_pkt_cx *tx_pkt_cx,
 	/* Enable VTIR in normal descriptor for VLAN packet */
 	if ((tx_pkt_cx->flags & OSI_PKT_CX_VLAN) == OSI_PKT_CX_VLAN) {
 		tx_desc->tdes2 |= TDES2_VTIR;
+	}
+
+	/* if TS is set enable timestamping */
+	if ((tx_pkt_cx->flags & OSI_PKT_CX_PTP) == OSI_PKT_CX_PTP) {
+		tx_desc->tdes2 |= TDES2_TTSE;
 	}
 
 	/* Enable TSE bit and update TCP hdr, payload len */

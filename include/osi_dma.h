@@ -30,6 +30,7 @@
 #define OSI_PKT_CX_VALID		OSI_BIT(10)
 #define OSI_PKT_CX_CSUM			OSI_BIT(1)
 #define OSI_PKT_CX_TSO			OSI_BIT(2)
+#define OSI_PKT_CX_PTP			OSI_BIT(3)
 
 /* Flag to indicate if buffer programmed in desc. is DMA map'd from
  * linear/Paged buffer from OS layer.
@@ -37,6 +38,7 @@
 #define OSI_TXDONE_CX_PAGED_BUF		OSI_BIT(0)
 /* Flag to indicate if there was any tx error */
 #define OSI_TXDONE_CX_ERROR		OSI_BIT(1)
+#define OSI_TXDONE_CX_TS		OSI_BIT(2)
 
 /* Checksum offload result flags */
 #define OSI_CHECKSUM_NONE		0x0U
@@ -104,12 +106,14 @@ struct osi_rx_swcx {
  *	@rxcsum: Stores the Rx csum
  *	@vlan_tag: Stores the VLAN tag ID in received packet.
  *	@pkt_len: Length of received packet.
+ *	@ns: TS in nsec for the received packet
  */
 struct osi_rx_pkt_cx {
 	unsigned int flags;
 	unsigned int rxcsum;
 	unsigned int vlan_tag;
 	unsigned int pkt_len;
+	unsigned long long ns;
 };
 
 /**
@@ -183,9 +187,12 @@ struct osi_tx_pkt_cx {
  *	struct osi_txdone_pkt_cx - Transmit done packet context for a packet
  *	@flags: Indicates status flags for Tx complete (tx error occured, or
  *	indicate whether desc. had buf mapped from paged/linear memory etc.)
+ *	@ns: TS captured for the tx packet and this is valid only when the PTP
+ *	bit is set in fields
  */
 struct osi_txdone_pkt_cx {
 	unsigned int flags;
+	unsigned long long ns;
 };
 
 /**

@@ -37,27 +37,6 @@
 
 extern struct osi_core_ops *eqos_get_hw_core_ops(void);
 
-/**
- *	osi_write_phy_reg - Write to a PHY register through MAC over MDIO bus.
- *	@osi: OSI private data structure.
- *	@phyaddr: PHY address (PHY ID) associated with PHY
- *	@phyreg: Register which needs to be write to PHY.
- *	@phydata: Data to write to a PHY register.
- *
- *	Algorithm:
- *	1) Before proceding for reading for PHY register check whether any MII
- *	operation going on MDIO bus by polling MAC_GMII_BUSY bit.
- *	2) Program data into MAC MDIO data register.
- *	3) Populate required parameters like phy address, phy register etc,,
- *	in MAC MDIO Address register. write and GMII busy bits needs to be set
- *	in this operation.
- *	4) Write into MAC MDIO address register poll for GMII busy for MDIO
- *	operation to complete.
- *
- *	Dependencies: MAC IP should be out of reset
- *
- *	Return: 0 - success, -1 - failure
- */
 int osi_write_phy_reg(struct osi_core_priv_data *osi_core, unsigned int phyaddr,
 		      unsigned int phyreg, unsigned short phydata)
 {
@@ -128,27 +107,6 @@ int osi_write_phy_reg(struct osi_core_priv_data *osi_core, unsigned int phyaddr,
 
 	return 0;
 }
-
-/**
- *	osi_read_phy_reg - Read from a PHY register through MAC over MDIO bus.
- *	@osi: OSI private data structure.
- *	@phyaddr: PHY address (PHY ID) associated with PHY
- *	@phyreg: Register which needs to be read from PHY.
- *
- *	Algorithm:
- *	1) Before proceding for reading for PHY register check whether any MII
- *	operation going on MDIO bus by polling MAC_GMII_BUSY bit.
- *	2) Populate required parameters like phy address, phy register etc,,
- *	in program it in MAC MDIO Address register. Read and GMII busy bits
- *	needs to be set in this operation.
- *	3) Write into MAC MDIO address register poll for GMII busy for MDIO
- *	operation to complete. After this data will be available at MAC MDIO
- *	data register.
- *
- *	Dependencies: MAC IP should be out of reset
- *
- *	Return: data from PHY register - success, -1 - failure
- */
 
 int osi_read_phy_reg(struct osi_core_priv_data *osi_core, unsigned int phyaddr,
 		     unsigned int phyreg)
@@ -633,4 +591,236 @@ int  osi_update_vlan_id(struct osi_core_priv_data *osi_core,
 	}
 
 	return ret;
+}
+
+int osi_set_systime_to_mac(struct osi_core_priv_data *osi_core,
+			   unsigned int sec, unsigned int nsec)
+{
+	int ret = -1;
+
+	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
+			(osi_core->ops->set_systime_to_mac != OSI_NULL)) {
+		ret = osi_core->ops->set_systime_to_mac(osi_core->base,
+							sec,
+							nsec);
+	}
+
+	return ret;
+}
+
+/**
+ *	div_u64_rem - updates remainder and returns Quotient
+ *	@dividend: Dividend value
+ *	@divisor: Divisor value
+ *	@remainder: Remainder
+ *
+ *	Algorithm: Dividend will be divided by divisor and stores the
+ *		   remainder value and returns quotient
+ *
+ *	Dependencies: MAC IP should be out of reset
+ *	and need to be initialized as the requirements
+ *
+ *	Protection: None
+ *
+ *	Return: Quotient
+ */
+static inline unsigned long div_u64_rem(unsigned long dividend,
+					unsigned long divisor,
+					unsigned long *remain)
+{
+	unsigned long ret = 0;
+
+	if (divisor != 0U) {
+		*remain = dividend % divisor;
+		ret = dividend / divisor;
+	} else {
+		ret = 0;
+	}
+	return ret;
+}
+
+/**
+ *	div_u64 - Calls a function which returns quotient
+ *	@dividend: Dividend
+ *	@divisor: Divisor
+ *
+ *	Algorithm: Calls a function which returns quotient.
+ *
+ *	Dependencies: MAC IP should be out of reset
+ *	and need to be initialized as the requirements.
+ *
+ *	Protection: None
+ *
+ *      Return: Quotient
+ */
+static inline unsigned long div_u64(unsigned long dividend,
+				    unsigned long divisor)
+{
+	unsigned long remain;
+
+	return div_u64_rem(dividend, divisor, &remain);
+}
+
+int osi_adjust_freq(struct osi_core_priv_data *osi_core, int ppb)
+{
+	unsigned long adj;
+	unsigned long temp;
+	unsigned int diff = 0;
+	unsigned int addend;
+	unsigned int neg_adj = 0;
+	int ret = -1;
+
+	if (ppb < 0) {
+		neg_adj = 1U;
+		ppb = -ppb;
+	}
+
+	if (osi_core == OSI_NULL) {
+		return ret;
+	}
+
+	addend = osi_core->default_addend;
+	adj = (unsigned long)addend * (unsigned int)ppb;
+
+	/*
+	 * div_u64 will divide the "adj" by "1000000000ULL"
+	 * and return the quotient.
+	 */
+	temp = div_u64(adj, OSI_NSEC_PER_SEC);
+	if (temp < UINT_MAX) {
+		diff = (unsigned int)temp;
+	} else {
+		/* do nothing here */
+	}
+
+	if (neg_adj == 0U) {
+		if (addend <= UINT_MAX - diff) {
+			addend = (addend + diff);
+		} else {
+			/* do nothing here */
+		}
+	} else {
+		if (addend > diff) {
+			addend = addend - diff;
+		} else if (addend < diff) {
+			addend = diff - addend;
+		} else {
+			/* do nothing here */
+		}
+	}
+
+	if ((osi_core->ops != OSI_NULL) &&
+	    (osi_core->ops->config_addend != OSI_NULL)) {
+		ret = osi_core->ops->config_addend(osi_core->base, addend);
+	}
+
+	return ret;
+}
+
+int osi_adjust_time(struct osi_core_priv_data *osi_core, long delta)
+{
+	unsigned int neg_adj = 0;
+	unsigned int sec = 0, nsec = 0;
+	unsigned long quotient;
+	unsigned long reminder = 0;
+	unsigned long udelta = 0;
+	int ret = -1;
+
+	if (delta < 0) {
+		neg_adj = 1;
+		delta = -delta;
+	}
+	udelta = (unsigned long) delta;
+	quotient = div_u64_rem(udelta, OSI_NSEC_PER_SEC, &reminder);
+	if (quotient <= UINT_MAX) {
+		sec = (unsigned int)quotient;
+	} else {
+		/* do nothing */
+	}
+	if (reminder <= UINT_MAX) {
+		nsec = (unsigned int)reminder;
+	} else {
+		/* do nothing here */
+	}
+
+	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
+	    (osi_core->ops->adjust_systime != OSI_NULL)) {
+		ret = osi_core->ops->adjust_systime(osi_core->base, sec, nsec,
+					neg_adj,
+					osi_core->ptp_config.one_nsec_accuracy);
+	}
+
+	return ret;
+}
+
+void osi_get_systime_from_mac(struct osi_core_priv_data *osi_core,
+			      unsigned int *sec,
+			      unsigned int *nsec)
+{
+	unsigned long long ns = 0;
+	unsigned long long temp = 0;
+	unsigned long remain = 0;
+
+	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
+	    (osi_core->ops->adjust_systime != OSI_NULL)) {
+		ns = osi_core->ops->get_systime_from_mac(osi_core->base);
+	}
+
+	temp = div_u64_rem((unsigned long)ns, OSI_NSEC_PER_SEC, &remain);
+	if (temp < UINT_MAX) {
+		*sec = (unsigned int) temp;
+	} else {
+		/* do nothing here */
+	}
+	if (remain < UINT_MAX) {
+		*nsec = (unsigned int)remain;
+	} else {
+		/* do nothing here */
+	}
+}
+
+void osi_ptp_configuration(struct osi_core_priv_data *osi_core,
+			   unsigned int enable)
+{
+	int ret = 0;
+	unsigned long temp = 0, temp1 = 0;
+
+	if (enable == OSI_DISABLE) {
+		/* disable hw time stamping */
+		/* Program MAC_Timestamp_Control Register */
+		osi_core->ops->config_tscr(osi_core->base, OSI_DISABLE);
+	} else {
+		/* Program MAC_Timestamp_Control Register */
+		osi_core->ops->config_tscr(osi_core->base,
+					   osi_core->ptp_config.ptp_filter);
+
+		/* Program Sub Second Increment Register */
+		osi_core->ops->config_ssir(osi_core->base,
+					   osi_core->ptp_config.ptp_clock);
+
+		/* formula for calculating addend value is
+		 * addend = 2^32/freq_div_ratio;
+		 * where, freq_div_ratio = EQOS_SYSCLOCK/50MHz
+		 * hence, addend = ((2^32) * 50MHz)/EQOS_SYSCLOCK;
+		 * NOTE: EQOS_SYSCLOCK must be >= 50MHz to achive 20ns accuracy.
+		 * 2^x * y == (y << x), hence
+		 * 2^32 * 6250000 ==> (6250000 << 32)
+		 */
+		temp = (unsigned long)(OSI_ETHER_SYSCLOCK << 32);
+		temp1 = div_u64(temp,
+				(unsigned long)osi_core->ptp_config.ptp_ref_clk_rate);
+		if (temp1 < UINT_MAX) {
+			osi_core->default_addend = (unsigned int) temp1;
+		} else {
+			/* do nothing here */
+		}
+		/* Program addend value */
+		ret = osi_core->ops->config_addend(osi_core->base,
+					osi_core->default_addend);
+
+		/* Set current time */
+		ret = osi_core->ops->set_systime_to_mac(osi_core->base,
+						osi_core->ptp_config.sec,
+						osi_core->ptp_config.nsec);
+	}
 }

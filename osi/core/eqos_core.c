@@ -977,7 +977,9 @@ static void eqos_configure_mac(struct osi_core_priv_data *osi_core)
 
 	/* Enable Multicast and Broadcast Queue, default is Q0 */
 	value = osi_readl((unsigned char *)osi_core->base + EQOS_MAC_RQC1R);
-	value |=  EQOS_MAC_RQC1R_MCBCQEN;
+	value |= EQOS_MAC_RQC1R_MCBCQEN;
+	/* Routing Multicast and Broadcast to Q1 */
+	value |= EQOS_MAC_RQC1R_MCBCQ1;
 	osi_writel(value, (unsigned char *)osi_core->base + EQOS_MAC_RQC1R);
 
 	/* Disable all MMC interrupts */
@@ -2165,6 +2167,460 @@ static inline int  eqos_update_vlan_id(void *base, unsigned int vid)
 	return 0;
 }
 
+/**
+ *	eqos_poll_for_tsinit_complete - Poll for time stamp init complete
+ *	@addr: MAC base address.
+ *	@mac_tcr: Address to store time stamp control register read value
+ *
+ *	Algorithm: Read TSINIT value from MAC TCR register until it is
+ *	equal to zero.
+ *
+ *	Dependencies: None.
+ *
+ *	Protection: None.
+ *
+ *	Return: 0 - success, -1 - failure
+ */
+static inline int eqos_poll_for_tsinit_complete(void *addr,
+						unsigned int *mac_tcr)
+{
+	unsigned int retry = 1000;
+	unsigned int count;
+	int cond = 1;
+
+	/* Wait for previous(if any) Initialize Timestamp value
+	 * update to complete
+	 */
+	count = 0;
+	while (cond == 1) {
+		if (count > retry) {
+			return -1;
+		}
+		/* Read and Check TSINIT in MAC_Timestamp_Control register */
+		*mac_tcr = osi_readl((unsigned char *)addr + EQOS_MAC_TCR);
+		if ((*mac_tcr & EQOS_MAC_TCR_TSINIT) == 0U) {
+			cond = 0;
+		}
+		count++;
+		osd_msleep(1U);
+	}
+
+	return 0;
+}
+
+/**
+ *	eqos_set_systime - Set system time
+ *	@addr: MAC base address.
+ *	@sec: Seconds to be configured
+ *	@nsec: Nano Seconds to be configured
+ *
+ *	Algorithm: Updates system time (seconds and nano seconds)
+ *	in hardware registers
+ *
+ *	Dependencies: None.
+ *
+ *	Protection: None.
+ *
+ *	Return: 0 - success, -1 - failure
+ */
+static int eqos_set_systime_to_mac(void *addr, unsigned int sec,
+				   unsigned int nsec)
+{
+	unsigned int mac_tcr;
+	int ret;
+
+	ret = eqos_poll_for_tsinit_complete(addr, &mac_tcr);
+	if (ret == -1) {
+		return -1;
+	}
+
+	/* write seconds value to MAC_System_Time_Seconds_Update register */
+	osi_writel(sec, (unsigned char *)addr + EQOS_MAC_STSUR);
+
+	/* write nano seconds value to MAC_System_Time_Nanoseconds_Update
+	 * register
+	 */
+	osi_writel(nsec, (unsigned char *)addr + EQOS_MAC_STNSUR);
+
+	/* issue command to update the configured secs and nsecs values */
+	mac_tcr |= EQOS_MAC_TCR_TSINIT;
+	osi_writel(mac_tcr, (unsigned char *)addr + EQOS_MAC_TCR);
+
+	ret = eqos_poll_for_tsinit_complete(addr, &mac_tcr);
+	if (ret == -1) {
+		return -1;
+	}
+
+	return 0;
+}
+
+/**
+ *	eqos_poll_for_tsinit_complete - Poll for addend value write complete
+ *	@addr: MAC base address.
+ *	@mac_tcr: Address to store time stamp control register read value
+ *
+ *	Algorithm: Read TSADDREG value from MAC TCR register until it is
+ *	equal to zero.
+ *
+ *	Dependencies: None.
+ *
+ *	Protection: None.
+ *
+ *	Return: 0 - success, -1 - failure
+ */
+static inline int eqos_poll_for_addend_complete(void *addr,
+						unsigned int *mac_tcr)
+{
+	unsigned int retry = 1000;
+	unsigned int count;
+	int cond = 1;
+
+	/* Wait for previous(if any) addend value update to complete */
+	/* Poll */
+	count = 0;
+	while (cond == 1) {
+		if (count > retry) {
+			return -1;
+		}
+		/* Read and Check TSADDREG in MAC_Timestamp_Control register */
+		*mac_tcr = osi_readl((unsigned char *)addr + EQOS_MAC_TCR);
+		if ((*mac_tcr & EQOS_MAC_TCR_TSADDREG) == 0U) {
+			cond = 0;
+		}
+		count++;
+		osd_msleep(1U);
+	}
+
+	return 0;
+}
+
+/**
+ *	eqos_config_addend - Configure addend
+ *	@addr: MAC base address.
+ *	@addend: Addend value to be configured
+ *
+ *	Algorithm: Updates the Addend value in HW register
+ *
+ *	Dependencies: None.
+ *
+ *	Protection: None.
+ *
+ *   	Return: 0 - success, -1 - failure
+ */
+static int eqos_config_addend(void *addr, unsigned int addend)
+{
+	unsigned int mac_tcr;
+	int ret;
+
+	ret = eqos_poll_for_addend_complete(addr, &mac_tcr);
+	if (ret == -1) {
+		return -1;
+	}
+
+	/* write addend value to MAC_Timestamp_Addend register */
+	osi_writel(addend, (unsigned char *)addr + EQOS_MAC_TAR);
+
+	/* issue command to update the configured addend value */
+	mac_tcr |= EQOS_MAC_TCR_TSADDREG;
+	osi_writel(mac_tcr, (unsigned char *)addr + EQOS_MAC_TCR);
+
+	ret = eqos_poll_for_addend_complete(addr, &mac_tcr);
+	if (ret == -1) {
+		return -1;
+	}
+
+	return 0;
+}
+
+/**
+ *	eqos_poll_for_update_ts_complete - Poll for update time stamp
+ *	@addr: MAC base address.
+ *	@mac_tcr: Address to store time stamp control register read value
+ *
+ *	Algorithm: Read time stamp update value from TCR register until it is
+ *	equal to zero.
+ *
+ *	Dependencies: None.
+ *
+ *	Protection: None.
+ *
+ *	Return: 0 - success, -1 - failure
+ */
+static inline int eqos_poll_for_update_ts_complete(void *addr,
+						   unsigned int *mac_tcr)
+{
+	unsigned int retry = 1000;
+	unsigned int count;
+	int cond = 1;
+
+	/* Wait for previous(if any) time stamp  value update to complete */
+	count = 0;
+	while (cond == 1) {
+		if (count > retry) {
+			return -1;
+		}
+		/* Read and Check TSUPDT in MAC_Timestamp_Control register */
+		*mac_tcr = osi_readl((unsigned char *)addr + EQOS_MAC_TCR);
+		if ((*mac_tcr & EQOS_MAC_TCR_TSUPDT) == 0U) {
+			cond = 0;
+		}
+		count++;
+		osd_msleep(1U);
+	}
+
+	return 0;
+
+}
+
+/**
+ *	eqos_adjust_systime - Adjust system time
+ *	@addr: MAC base address.
+ *	@sec: Seconds to be configured
+ *	@nsec: Nano seconds to be configured
+ *	@add_sub: To decide on add/sub with system time
+ *	@one_nsec_accuracy: One nano second accuracy
+ *
+ *	Algorithm: Update the system time
+ *
+ *	Dependencies: None.
+ *
+ *	Protection: None.
+ *
+ *	Return: 0 - success, -1 - failure
+ */
+static int eqos_adjust_systime(void *addr, unsigned int sec, unsigned int nsec,
+			       unsigned int add_sub,
+			       unsigned int one_nsec_accuracy)
+{
+	unsigned int mac_tcr;
+	unsigned int value = 0;
+	unsigned long long temp = 0;
+	int ret;
+
+	ret = eqos_poll_for_update_ts_complete(addr, &mac_tcr);
+	if (ret == -1) {
+		return -1;
+	}
+
+	if (add_sub != 0U) {
+		/* If the new sec value needs to be subtracted with
+		 * the system time, then MAC_STSUR reg should be
+		 * programmed with (2^32 – <new_sec_value>)
+		 */
+		temp = (TWO_POWER_32 - sec);
+		if (temp < UINT_MAX) {
+			sec = (unsigned int)temp;
+		} else {
+			/* do nothing here */
+		}
+
+		/* If the new nsec value need to be subtracted with
+		 * the system time, then MAC_STNSUR.TSSS field should be
+		 * programmed with, (10^9 - <new_nsec_value>) if
+		 * MAC_TCR.TSCTRLSSR is set or
+		 * (2^32 - <new_nsec_value> if MAC_TCR.TSCTRLSSR is reset)
+		 */
+		if (one_nsec_accuracy == OSI_ENABLE) {
+			if (nsec < UINT_MAX) {
+				nsec = (TEN_POWER_9 - nsec);
+			}
+		} else {
+			if (nsec < UINT_MAX) {
+				nsec = (TWO_POWER_31 - nsec);
+			}
+		}
+	}
+
+	/* write seconds value to MAC_System_Time_Seconds_Update register */
+	osi_writel(sec, (unsigned char *)addr + EQOS_MAC_STSUR);
+
+	/* write nano seconds value and add_sub to
+	 * MAC_System_Time_Nanoseconds_Update register
+	 */
+	value |= nsec;
+	value |= add_sub << EQOS_MAC_STNSUR_ADDSUB_SHIFT;
+	osi_writel(value, (unsigned char *)addr + EQOS_MAC_STNSUR);
+
+	/* issue command to initialize system time with the value
+	 * specified in MAC_STSUR and MAC_STNSUR
+	 */
+	mac_tcr |= EQOS_MAC_TCR_TSUPDT;
+	osi_writel(mac_tcr, (unsigned char *)addr + EQOS_MAC_TCR);
+
+	ret = eqos_poll_for_update_ts_complete(addr, &mac_tcr);
+	if (ret == -1) {
+		return -1;
+	}
+
+	return 0;
+}
+
+/**
+ *	eqos_get_systime - Get system time from MAC
+ *	@addr: MAC base address.
+ *
+ *	Algorithm: Get current system time
+ *
+ *	Dependencies: None.
+ *
+ *	Protection: None.
+ *
+ *	Return: 0 - success, -1 - failure
+ */
+static unsigned long long eqos_get_systime_from_mac(void *addr)
+{
+	unsigned long long ns1, ns2, ns = 0;
+	unsigned int varmac_stnsr, temp1;
+	unsigned int varmac_stsr;
+
+	varmac_stnsr = osi_readl((unsigned char *)addr + EQOS_MAC_STNSR);
+	temp1 = (varmac_stnsr & EQOS_MAC_STNSR_TSSS_MASK);
+	ns1 = (unsigned long long)temp1;
+
+	varmac_stsr = osi_readl((unsigned char *)addr + EQOS_MAC_STSR);
+
+	varmac_stnsr = osi_readl((unsigned char *)addr + EQOS_MAC_STNSR);
+	temp1 = (varmac_stnsr & EQOS_MAC_STNSR_TSSS_MASK);
+	ns2 = (unsigned long long)temp1;
+
+	/* if ns1 is greater than ns2, it means nsec counter rollover
+	 * happened. In that case read the updated sec counter again
+	 */
+	if (ns1 >= ns2) {
+		varmac_stsr = osi_readl((unsigned char *)addr + EQOS_MAC_STSR);
+		/* convert sec/high time value to nanosecond */
+		if (varmac_stsr < UINT_MAX) {
+			ns = ns2 + (varmac_stsr * OSI_NSEC_PER_SEC);
+		}
+	} else {
+		/* convert sec/high time value to nanosecond */
+		if (varmac_stsr < UINT_MAX) {
+			ns = ns1 + (varmac_stsr * OSI_NSEC_PER_SEC);
+		}
+	}
+
+	return ns;
+}
+
+/**
+ *	eqos_config_tscr - Configure Time Stamp Register
+ *	@addr: MAC base address.
+ *	@ptp_filter: PTP rx filter parameters
+ *
+ *	Algorithm: Configure Time Stamp Register
+ *
+ *	Dependencies: None.
+ *
+ *	Protection: None.
+ *
+ *	Return: None.
+ **/
+static void eqos_config_tscr(void *addr, unsigned int ptp_filter)
+{
+	unsigned int mac_tcr = 0;
+
+	if (ptp_filter != OSI_DISABLE) {
+		mac_tcr = (OSI_MAC_TCR_TSENA	|
+			   OSI_MAC_TCR_TSCFUPDT |
+			   OSI_MAC_TCR_TSCTRLSSR);
+
+		if ((ptp_filter & OSI_MAC_TCR_SNAPTYPSEL_1) ==
+		    OSI_MAC_TCR_SNAPTYPSEL_1) {
+			mac_tcr |= OSI_MAC_TCR_SNAPTYPSEL_1;
+		}
+		if ((ptp_filter & OSI_MAC_TCR_SNAPTYPSEL_2) ==
+		    OSI_MAC_TCR_SNAPTYPSEL_2) {
+			mac_tcr |= OSI_MAC_TCR_SNAPTYPSEL_2;
+		}
+		if ((ptp_filter & OSI_MAC_TCR_SNAPTYPSEL_3) ==
+		    OSI_MAC_TCR_SNAPTYPSEL_3) {
+			mac_tcr |= OSI_MAC_TCR_SNAPTYPSEL_3;
+		}
+		if ((ptp_filter & OSI_MAC_TCR_TSIPV4ENA) ==
+		    OSI_MAC_TCR_TSIPV4ENA) {
+			mac_tcr |= OSI_MAC_TCR_TSIPV4ENA;
+		}
+		if ((ptp_filter & OSI_MAC_TCR_TSIPV6ENA) ==
+		    OSI_MAC_TCR_TSIPV6ENA) {
+			mac_tcr |= OSI_MAC_TCR_TSIPV6ENA;
+		}
+		if ((ptp_filter & OSI_MAC_TCR_TSEVENTENA) ==
+		    OSI_MAC_TCR_TSEVENTENA) {
+			mac_tcr |= OSI_MAC_TCR_TSEVENTENA;
+		}
+		if ((ptp_filter & OSI_MAC_TCR_TSMASTERENA) ==
+		    OSI_MAC_TCR_TSMASTERENA) {
+			mac_tcr |= OSI_MAC_TCR_TSMASTERENA;
+		}
+		if ((ptp_filter & OSI_MAC_TCR_TSVER2ENA) ==
+		    OSI_MAC_TCR_TSVER2ENA) {
+			mac_tcr |= OSI_MAC_TCR_TSVER2ENA;
+		}
+		if ((ptp_filter & OSI_MAC_TCR_TSIPENA) ==
+		    OSI_MAC_TCR_TSIPENA) {
+			mac_tcr |= OSI_MAC_TCR_TSIPENA;
+		}
+		if ((ptp_filter & OSI_MAC_TCR_AV8021ASMEN) ==
+		    OSI_MAC_TCR_AV8021ASMEN) {
+			mac_tcr |= OSI_MAC_TCR_AV8021ASMEN;
+		}
+		if ((ptp_filter & OSI_MAC_TCR_TSENALL) ==
+		    OSI_MAC_TCR_TSENALL) {
+			mac_tcr |= OSI_MAC_TCR_TSENALL;
+		}
+	} else {
+		/* Disabling the MAC time stamping */
+		mac_tcr = OSI_DISABLE;
+	}
+
+	osi_writel(mac_tcr, (unsigned char *)addr + EQOS_MAC_TCR);
+}
+
+/**
+ *	eqos_config_ssir - Configure SSIR
+ *	@addr: MAC base address.
+ *	@ptp_clock: PTP clock
+ *
+ *	Algorithm: Configure Sub Second Increment Register
+ *
+ *	Dependencies: None.
+ *
+ *	Protection: None.
+ *
+ *	Return: None.
+ */
+static void eqos_config_ssir(void *addr, unsigned int ptp_clock)
+{
+	unsigned int val;
+	unsigned int mac_tcr;
+
+	mac_tcr = osi_readl((unsigned char *)addr + EQOS_MAC_TCR);
+
+	/* convert the PTP_CLOCK to nano second.
+	 * formula is : ((1/ptp_clock) * 1000000000)
+	 * where, ptp_clock = 50MHz if FINE correction
+	 * and ptp_clock = EQOS_SYSCLOCK if COARSE correction
+	 */
+
+	if ((mac_tcr & EQOS_MAC_TCR_TSCFUPDT) == EQOS_MAC_TCR_TSCFUPDT) {
+		val = ((1U * (unsigned int)OSI_NSEC_PER_SEC) /
+		       (unsigned int)OSI_ETHER_SYSCLOCK);
+	} else {
+		val = ((1U * (unsigned int)OSI_NSEC_PER_SEC) / ptp_clock);
+	}
+
+	/* 0.465ns accurecy */
+	if ((mac_tcr & EQOS_MAC_TCR_TSCTRLSSR) == 0U) {
+		if (val < UINT_MAX) {
+			val = (val * 1000U) / 465U;
+		}
+	}
+
+	val |= val << EQOS_MAC_SSIR_SSINC_SHIFT;
+	/* update Sub-second Increment Value */
+	osi_writel(val, (unsigned char *)addr + EQOS_MAC_SSIR);
+}
+
 static struct osi_core_ops eqos_core_ops = {
 	.poll_for_swr = eqos_poll_for_swr,
 	.core_init = eqos_core_init,
@@ -2197,6 +2653,12 @@ static struct osi_core_ops eqos_core_ops = {
 	.update_l4_port_no = eqos_update_l4_port_no,
 	.config_vlan_filtering = eqos_config_vlan_filtering,
 	.update_vlan_id = eqos_update_vlan_id,
+	.set_systime_to_mac = eqos_set_systime_to_mac,
+	.config_addend = eqos_config_addend,
+	.adjust_systime = eqos_adjust_systime,
+	.get_systime_from_mac = eqos_get_systime_from_mac,
+	.config_tscr = eqos_config_tscr,
+	.config_ssir = eqos_config_ssir,
 };
 
 struct osi_core_ops *eqos_get_hw_core_ops(void)
