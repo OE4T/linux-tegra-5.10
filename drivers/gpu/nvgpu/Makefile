@@ -38,12 +38,15 @@ obj-$(CONFIG_GK20A) := nvgpu.o
 # is in progress.
 
 nvgpu-y += \
+	common/utils/enabled.o \
+	common/utils/rbtree.o \
+	common/utils/string.o \
+	common/utils/worker.o \
 	common/ptimer/ptimer.o \
 	common/perf/perfbuf.o \
 	common/xve/xve_gp106.o \
 	common/therm/therm.o \
 	common/mc/mc.o \
-	common/worker.o \
 	common/sync/channel_sync.o \
 	common/sync/channel_sync_semaphore.o \
 	common/semaphore/semaphore_sea.o \
@@ -520,10 +523,7 @@ nvgpu-y += \
 	common/mm/comptags.o \
 	common/mm/mm.o \
 	common/mm/dma.o \
-	common/enabled.o \
-	common/string.o \
 	common/pramin.o \
-	common/rbtree.o \
 	common/vbios/bios.o \
 	common/vbios/nvlink_bios.o \
 	common/vbios/bios_sw_gv100.o \

@@ -62,7 +62,11 @@ srcs += os/posix/bug.c \
 	os/posix/bitmap.c \
 	os/posix/kmem.c
 
-srcs += common/sim/sim.c \
+srcs += common/utils/enabled.c \
+	common/utils/rbtree.c \
+	common/utils/string.c \
+	common/utils/worker.c \
+	common/sim/sim.c \
 	common/sim/sim_pci.c \
 	common/sim/sim_netlist.c \
 	common/init/nvgpu_init.c \
@@ -85,10 +89,7 @@ srcs += common/sim/sim.c \
 	common/xve/xve_gp106.c \
 	common/therm/therm.c \
 	common/perf/perfbuf.c \
-	common/enabled.c \
 	common/pramin.c \
-	common/string.c \
-	common/rbtree.c \
 	common/ltc/ltc.c \
 	common/cbc/cbc.c \
 	common/fbp/fbp.c \
@@ -123,7 +124,6 @@ srcs += common/sim/sim.c \
 	common/acr/acr_bootstrap.c \
 	common/acr/acr_sw_gv11b.c \
 	common/ptimer/ptimer.c \
-	common/worker.c \
 	common/sync/channel_sync.c \
 	common/sync/channel_sync_syncpt.c \
 	common/sync/channel_sync_semaphore.c \

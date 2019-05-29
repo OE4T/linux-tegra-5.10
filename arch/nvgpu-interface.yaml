@@ -82,11 +82,6 @@ log2:
   safe: yes
   sources: [ include/nvgpu/log2.h ]
 
-rbtree:
-  safe: yes
-  sources: [ include/nvgpu/rbtree.h ]
-  tags: unit-testable
-
 rwsem:
   safe: yes
   sources: [ include/nvgpu/rwsem.h ]

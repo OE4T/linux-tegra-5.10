@@ -61,14 +61,6 @@ ecc:
              include/nvgpu/ecc.h ]
   deps:
 
-enabled:
-  safe: yes
-  owner: Alex W
-  sources: [ common/enabled.c,
-             include/nvgpu/enabled.h ]
-  deps:
-  tags: unit-testable
-
 # Pretty sure this can be marked as not-safe since we plan to use
 # usermode submits in the safety build.
 fence:
@@ -159,12 +151,6 @@ ptimer:
              include/nvgpu/ptimer.h ]
   deps:
 
-rbtree:
-  safe: yes
-  owner: Deepak N
-  sources: [ common/rbtree.c ]
-  deps:
-
 semaphore:
   safe: no
   owner: Alex W
@@ -194,12 +180,6 @@ sim:
              include/nvgpu/hw_sim_pci.h,
              include/nvgpu/sim.h ]
 
-string:
-  safe: yes
-  owner: Terje B
-  sources: [ common/string.c ]
-  deps:
-
 unit:
   safe: yes
   owner: Terje B
@@ -208,12 +188,14 @@ unit:
 utils:
   safe: yes
   owner: Terje B
-  sources: [ include/nvgpu/utils.h ]
-
-worker:
-  safe: yes
-  sources: [ common/worker.c,
-             include/nvgpu/worker.h ]
+  sources: [ include/nvgpu/utils.h,
+             include/nvgpu/worker.h,
+             include/nvgpu/rbtree.h,
+             include/nvgpu/enabled.h,
+             common/utils/string.c,
+             common/utils/worker.c,
+             common/utils/rbtree.c,
+             common/utils/enabled.c ]
 
 ##
 ## Common elements.
