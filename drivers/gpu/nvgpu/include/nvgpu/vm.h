@@ -219,7 +219,7 @@ struct vm_gk20a {
 #define NVGPU_VM_MAP_L3_ALLOC				BIT32(5)
 #define NVGPU_VM_MAP_PLATFORM_ATOMIC			BIT32(6)
 
-#define NVGPU_KIND_INVALID				-1
+#define NVGPU_KIND_INVALID				S16(-1)
 
 void nvgpu_vm_get(struct vm_gk20a *vm);
 void nvgpu_vm_put(struct vm_gk20a *vm);
