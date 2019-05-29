@@ -33,6 +33,7 @@
 
 #include <nvgpu/utils.h>
 
+#ifdef NVGPU_GRAPHICS
 /*
  * Sets the ZBC stencil for the passed index.
  */
@@ -47,6 +48,7 @@ void gv11b_ltc_set_zbc_stencil_entry(struct gk20a *g,
 			   ltc_ltcs_ltss_dstg_zbc_stencil_clear_value_r(),
 			   stencil_depth);
 }
+#endif /* NVGPU_GRAPHICS */
 
 void gv11b_ltc_init_fs_state(struct gk20a *g)
 {

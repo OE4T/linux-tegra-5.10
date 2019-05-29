@@ -203,6 +203,7 @@ u64 gm20b_determine_L2_size_bytes(struct gk20a *g)
 	return cache_size;
 }
 
+#ifdef NVGPU_GRAPHICS
 /*
  * Sets the ZBC color for the passed index.
  */
@@ -237,6 +238,7 @@ void gm20b_ltc_set_zbc_depth_entry(struct gk20a *g,
 			ltc_ltcs_ltss_dstg_zbc_depth_clear_value_r(),
 			depth_val);
 }
+#endif /* NVGPU_GRAPHICS */
 
 void gm20b_ltc_set_enabled(struct gk20a *g, bool enabled)
 {

@@ -30,7 +30,9 @@ struct nvgpu_gr_ctx_desc;
 struct nvgpu_gr_global_ctx_buffer_desc;
 struct nvgpu_gr_obj_ctx_golden_image;
 struct nvgpu_gr_config;
+#ifdef NVGPU_GRAPHICS
 struct nvgpu_gr_zbc;
+#endif
 struct nvgpu_gr_hwpm_map;
 struct nvgpu_gr_zcull;
 struct gk20a_cs_snapshot;
@@ -53,7 +55,9 @@ struct nvgpu_gr {
 
 	struct nvgpu_gr_zcull *zcull;
 
+#ifdef NVGPU_GRAPHICS
 	struct nvgpu_gr_zbc *zbc;
+#endif
 
 	struct nvgpu_gr_falcon *falcon;
 

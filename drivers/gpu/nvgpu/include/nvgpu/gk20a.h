@@ -62,9 +62,11 @@ struct nvgpu_sgt;
 struct nvgpu_sgl;
 struct nvgpu_device_info;
 struct nvgpu_gr_subctx;
+#ifdef NVGPU_GRAPHICS
 struct nvgpu_gr_zbc;
 struct nvgpu_gr_zbc_entry;
 struct nvgpu_gr_zbc_query_params;
+#endif
 struct nvgpu_gr_zcull;
 struct nvgpu_gr_zcull_info;
 struct nvgpu_gr_tpc_exception;
@@ -212,6 +214,7 @@ enum nvgpu_event_id_type {
 struct gpu_ops {
 	struct {
 		u64 (*determine_L2_size_bytes)(struct gk20a *gk20a);
+#ifdef NVGPU_GRAPHICS
 		void (*set_zbc_color_entry)(struct gk20a *g,
 					    u32 *color_val_l2,
 					    u32 index);
@@ -221,6 +224,7 @@ struct gpu_ops {
 		void (*set_zbc_s_entry)(struct gk20a *g,
 					    u32 s_val,
 					    u32 index);
+#endif
 		void (*set_enabled)(struct gk20a *g, bool enabled);
 		void (*init_fs_state)(struct gk20a *g);
 		void (*flush)(struct gk20a *g);
@@ -623,7 +627,7 @@ struct gpu_ops {
 				u32 graphics_preempt_mode,
 				u32 compute_preempt_mode);
 		} setup;
-
+#ifdef NVGPU_GRAPHICS
 		struct {
 			int (*add_color)(struct gk20a *g,
 				struct nvgpu_gr_zbc_entry *color_val,
@@ -644,7 +648,7 @@ struct gpu_ops {
 			u32 (*get_gpcs_swdx_dss_zbc_z_format_reg)(
 				struct gk20a *g);
 		} zbc;
-
+#endif
 		struct {
 			int (*init_zcull_hw)(struct gk20a *g,
 					struct nvgpu_gr_zcull *gr_zcull,

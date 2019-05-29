@@ -28,7 +28,9 @@
 #include <nvgpu/gr/gr.h>
 #include <nvgpu/gr/config.h>
 #include <nvgpu/gr/gr_intr.h>
+#ifdef NVGPU_GRAPHICS
 #include <nvgpu/gr/zbc.h>
+#endif
 #include <nvgpu/gr/zcull.h>
 #include <nvgpu/netlist.h>
 #include <nvgpu/gr/gr_falcon.h>
@@ -219,10 +221,12 @@ static int gr_init_setup_hw(struct gk20a *g)
 	/* reset and enable exceptions */
 	g->ops.gr.intr.enable_exceptions(g, gr->config, true);
 
+#ifdef NVGPU_GRAPHICS
 	err = nvgpu_gr_zbc_load_table(g, gr->zbc);
 	if (err != 0) {
 		goto out;
 	}
+#endif /* NVGPU_GRAPHICS */
 
 	/*
 	 * Disable both surface and LG coalesce.
@@ -277,7 +281,10 @@ static void gr_remove_support(struct gk20a *g)
 	nvgpu_gr_intr_remove_support(g, gr->intr);
 	gr->intr = NULL;
 
+#ifdef NVGPU_GRAPHICS
 	nvgpu_gr_zbc_deinit(g, gr->zbc);
+#endif /* NVGPU_GRAPHICS */
+
 	nvgpu_gr_zcull_deinit(g, gr->zcull);
 	nvgpu_gr_obj_ctx_deinit(g, gr->golden_image);
 }
@@ -429,10 +436,12 @@ static int gr_init_setup_sw(struct gk20a *g)
 		goto clean_up;
 	}
 
+#ifdef NVGPU_GRAPHICS
 	err = nvgpu_gr_zbc_init(g, &gr->zbc);
 	if (err != 0) {
 		goto clean_up;
 	}
+#endif /* NVGPU_GRAPHICS */
 
 	gr->intr = nvgpu_gr_intr_init_support(g);
 	if (gr->intr == NULL) {

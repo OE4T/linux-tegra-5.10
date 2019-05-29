@@ -24,9 +24,11 @@
 #define LTC_GV11B_H
 struct gk20a;
 
+#ifdef NVGPU_GRAPHICS
 void gv11b_ltc_set_zbc_stencil_entry(struct gk20a *g,
 					  u32 stencil_depth,
 					  u32 index);
+#endif /* NVGPU_GRAPHICS */
 void gv11b_ltc_init_fs_state(struct gk20a *g);
 
 #endif

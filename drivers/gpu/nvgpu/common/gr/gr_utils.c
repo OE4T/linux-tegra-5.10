@@ -54,10 +54,12 @@ struct nvgpu_gr_zcull *nvgpu_gr_get_zcull_ptr(struct gk20a *g)
 	return g->gr->zcull;
 }
 
+#ifdef NVGPU_GRAPHICS
 struct nvgpu_gr_zbc *nvgpu_gr_get_zbc_ptr(struct gk20a *g)
 {
 	return g->gr->zbc;
 }
+#endif
 
 struct nvgpu_gr_config *nvgpu_gr_get_config_ptr(struct gk20a *g)
 {

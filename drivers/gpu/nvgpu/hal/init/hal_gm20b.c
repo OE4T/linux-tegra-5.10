@@ -33,7 +33,9 @@
 #include <nvgpu/fifo/userd.h>
 #include <nvgpu/fuse.h>
 #include <nvgpu/regops.h>
+#ifdef NVGPU_GRAPHICS
 #include <nvgpu/gr/zbc.h>
+#endif
 #include <nvgpu/gr/gr.h>
 #include <nvgpu/gr/gr_intr.h>
 #include <nvgpu/gr/gr_falcon.h>
@@ -79,7 +81,9 @@
 #include "hal/fifo/mmu_fault_gk20a.h"
 #include "hal/fifo/mmu_fault_gm20b.h"
 #include "hal/rc/rc_gk20a.h"
+#ifdef NVGPU_GRAPHICS
 #include "hal/gr/zbc/zbc_gm20b.h"
+#endif
 #include "hal/gr/zcull/zcull_gm20b.h"
 #include "hal/gr/falcon/gr_falcon_gm20b.h"
 #include "hal/gr/init/gr_init_gm20b.h"
@@ -113,8 +117,10 @@
 static const struct gpu_ops gm20b_ops = {
 	.ltc = {
 		.determine_L2_size_bytes = gm20b_determine_L2_size_bytes,
+#ifdef NVGPU_GRAPHICS
 		.set_zbc_color_entry = gm20b_ltc_set_zbc_color_entry,
 		.set_zbc_depth_entry = gm20b_ltc_set_zbc_depth_entry,
+#endif /*NVGPU_GRAPHICS */
 		.init_fs_state = gm20b_ltc_init_fs_state,
 		.flush = gm20b_flush_ltc,
 		.set_enabled = gm20b_ltc_set_enabled,
@@ -302,6 +308,7 @@ static const struct gpu_ops gm20b_ops = {
 			.alloc_obj_ctx = nvgpu_gr_setup_alloc_obj_ctx,
 			.free_gr_ctx = nvgpu_gr_setup_free_gr_ctx,
 		},
+#ifdef NVGPU_GRAPHICS
 		.zbc = {
 			.add_color = gm20b_gr_zbc_add_color,
 			.add_depth = gm20b_gr_zbc_add_depth,
@@ -311,6 +318,7 @@ static const struct gpu_ops gm20b_ops = {
 			.get_gpcs_swdx_dss_zbc_c_format_reg = NULL,
 			.get_gpcs_swdx_dss_zbc_z_format_reg = NULL,
 		},
+#endif /* NVGPU_GRAPHICS */
 		.zcull = {
 			.init_zcull_hw = gm20b_gr_init_zcull_hw,
 			.get_zcull_info = gm20b_gr_get_zcull_info,

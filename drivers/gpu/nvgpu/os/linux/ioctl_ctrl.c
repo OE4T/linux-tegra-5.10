@@ -35,7 +35,9 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/engines.h>
 #include <nvgpu/gr/config.h>
+#ifdef NVGPU_GRAPHICS
 #include <nvgpu/gr/zbc.h>
+#endif
 #include <nvgpu/gr/zcull.h>
 #include <nvgpu/gr/gr.h>
 #include <nvgpu/gr/gr_utils.h>
@@ -1661,17 +1663,19 @@ long gk20a_ctrl_dev_ioctl(struct file *filp, unsigned int cmd, unsigned long arg
 	struct gk20a *g = priv->g;
 	struct nvgpu_gpu_zcull_get_ctx_size_args *get_ctx_size_args;
 	struct nvgpu_gpu_zcull_get_info_args *get_info_args;
-	struct nvgpu_gpu_zbc_set_table_args *set_table_args;
-	struct nvgpu_gpu_zbc_query_table_args *query_table_args;
 	u8 buf[NVGPU_GPU_IOCTL_MAX_ARG_SIZE];
 	struct nvgpu_gr_zcull_info *zcull_info;
-	struct nvgpu_gr_zbc_entry *zbc_val;
-	struct nvgpu_gr_zbc_query_params *zbc_tbl;
 	struct nvgpu_gr_config *gr_config = nvgpu_gr_get_config_ptr(g);
 	struct nvgpu_gr_zcull *gr_zcull = nvgpu_gr_get_zcull_ptr(g);
+#ifdef NVGPU_GRAPHICS
 	struct nvgpu_gr_zbc *gr_zbc = nvgpu_gr_get_zbc_ptr(g);
-	int err = 0;
+	struct nvgpu_gr_zbc_entry *zbc_val;
+	struct nvgpu_gr_zbc_query_params *zbc_tbl;
+	struct nvgpu_gpu_zbc_set_table_args *set_table_args;
+	struct nvgpu_gpu_zbc_query_table_args *query_table_args;
 	u32 i;
+#endif /* NVGPU_GRAPHICS */
+	int err = 0;
 
 	nvgpu_log_fn(g, "start %d", _IOC_NR(cmd));
 
@@ -1733,6 +1737,7 @@ long gk20a_ctrl_dev_ioctl(struct file *filp, unsigned int cmd, unsigned long arg
 
 		nvgpu_kfree(g, zcull_info);
 		break;
+#ifdef NVGPU_GRAPHICS
 	case NVGPU_GPU_IOCTL_ZBC_SET_TABLE:
 		set_table_args = (struct nvgpu_gpu_zbc_set_table_args *)buf;
 
@@ -1813,7 +1818,7 @@ long gk20a_ctrl_dev_ioctl(struct file *filp, unsigned int cmd, unsigned long arg
 		if (zbc_tbl)
 			nvgpu_kfree(g, zbc_tbl);
 		break;
-
+#endif /* NVGPU_GRAPHICS */
 	case NVGPU_GPU_IOCTL_GET_CHARACTERISTICS:
 		err = gk20a_ctrl_ioctl_gpu_characteristics(
 			g, (struct nvgpu_gpu_get_characteristics *)buf);

@@ -31,12 +31,14 @@ struct gk20a;
 struct gr_gk20a;
 
 u64 gm20b_determine_L2_size_bytes(struct gk20a *g);
+#ifdef NVGPU_GRAPHICS
 void gm20b_ltc_set_zbc_color_entry(struct gk20a *g,
 					  u32 *color_l2,
 					  u32 index);
 void gm20b_ltc_set_zbc_depth_entry(struct gk20a *g,
 					  u32 depth_val,
 					  u32 index);
+#endif /* NVGPU_GRAPHICS */
 void gm20b_ltc_set_enabled(struct gk20a *g, bool enabled);
 void gm20b_ltc_init_fs_state(struct gk20a *g);
 void gm20b_flush_ltc(struct gk20a *g);

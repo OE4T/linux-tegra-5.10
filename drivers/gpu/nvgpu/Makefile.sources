@@ -111,7 +111,6 @@ srcs += common/sim/sim.c \
 	common/gr/gr_falcon.c \
 	common/gr/zcull.c \
 	common/gr/gr_config.c \
-	common/gr/zbc.c \
 	common/gr/gr_setup.c \
 	common/gr/hwpm_map.c \
 	common/gr/obj_ctx.c \
@@ -253,9 +252,6 @@ srcs += common/sim/sim.c \
 	hal/gr/falcon/gr_falcon_gm20b.c \
 	hal/gr/falcon/gr_falcon_gp10b.c \
 	hal/gr/falcon/gr_falcon_gv11b.c \
-	hal/gr/zbc/zbc_gm20b.c \
-	hal/gr/zbc/zbc_gp10b.c \
-	hal/gr/zbc/zbc_gv11b.c \
 	hal/gr/gr/gr_gk20a.c \
 	hal/gr/gr/gr_gm20b.c \
 	hal/gr/gr/gr_gp10b.c \
@@ -367,6 +363,13 @@ srcs += common/sim/sim.c \
 	hal/top/top_gp10b.c \
 	hal/top/top_gp106.c \
 	hal/top/top_gv11b.c
+
+ifeq ($(NVGPU_GRAPHICS),1)
+srcs += common/gr/zbc.c \
+	hal/gr/zbc/zbc_gm20b.c \
+	hal/gr/zbc/zbc_gp10b.c \
+	hal/gr/zbc/zbc_gv11b.c
+endif
 
 ifeq ($(NVGPU_DEBUGGER),1)
 srcs += common/debugger.c

@@ -39,7 +39,9 @@
 #include <nvgpu/gr/config.h>
 #include <nvgpu/gr/gr_intr.h>
 #include <nvgpu/gr/gr_falcon.h>
+#ifdef NVGPU_GRAPHICS
 #include <nvgpu/gr/zbc.h>
+#endif
 #include <nvgpu/gr/zcull.h>
 #include <nvgpu/gr/fecs_trace.h>
 #include <nvgpu/gr/hwpm_map.h>
@@ -59,7 +61,9 @@
 #include "common/gr/gr_intr_priv.h"
 #include "common/gr/ctx_priv.h"
 #include "common/gr/zcull_priv.h"
+#ifdef NVGPU_GRAPHICS
 #include "common/gr/zbc_priv.h"
+#endif
 #include "common/gr/gr_priv.h"
 
 static int vgpu_gr_set_ctxsw_preemption_mode(struct gk20a *g,
@@ -574,6 +578,7 @@ u32 vgpu_gr_get_max_lts_per_ltc(struct gk20a *g)
 	return priv->constants.max_lts_per_ltc;
 }
 
+#ifdef NVGPU_GRAPHICS
 int vgpu_gr_add_zbc(struct gk20a *g, struct nvgpu_gr_zbc *zbc,
 			   struct nvgpu_gr_zbc_entry *zbc_val)
 {
@@ -649,6 +654,7 @@ int vgpu_gr_query_zbc(struct gk20a *g, struct nvgpu_gr_zbc *zbc,
 
 	return 0;
 }
+#endif
 
 static void vgpu_remove_gr_support(struct gk20a *g)
 {

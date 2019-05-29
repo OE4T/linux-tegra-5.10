@@ -33,7 +33,9 @@
 #include <nvgpu/cyclestats_snapshot.h>
 #include <nvgpu/fuse.h>
 #include <nvgpu/regops.h>
+#ifdef NVGPU_GRAPHICS
 #include <nvgpu/gr/zbc.h>
+#endif
 #include <nvgpu/gr/gr_falcon.h>
 #include <nvgpu/gr/setup.h>
 #include <nvgpu/gr/fecs_trace.h>
@@ -95,7 +97,9 @@
 #include "hal/gr/ecc/ecc_gp10b.h"
 #include "hal/gr/fecs_trace/fecs_trace_gm20b.h"
 #include "hal/gr/config/gr_config_gm20b.h"
+#ifdef NVGPU_GRAPHICS
 #include "hal/gr/zbc/zbc_gp10b.h"
+#endif
 #include "hal/gr/zcull/zcull_gm20b.h"
 #include "hal/gr/falcon/gr_falcon_gm20b.h"
 #include "hal/gr/falcon/gr_falcon_gp10b.h"
@@ -141,8 +145,10 @@ static void gp10b_init_gpu_characteristics(struct gk20a *g)
 static const struct gpu_ops gp10b_ops = {
 	.ltc = {
 		.determine_L2_size_bytes = gp10b_determine_L2_size_bytes,
+#ifdef NVGPU_GRAPHICS
 		.set_zbc_color_entry = gm20b_ltc_set_zbc_color_entry,
 		.set_zbc_depth_entry = gm20b_ltc_set_zbc_depth_entry,
+#endif /* NVGPU_GRAPHICS */
 		.init_fs_state = gp10b_ltc_init_fs_state,
 		.flush = gm20b_flush_ltc,
 		.set_enabled = gp10b_ltc_set_enabled,
@@ -349,6 +355,7 @@ static const struct gpu_ops gp10b_ops = {
 			.free_gr_ctx = nvgpu_gr_setup_free_gr_ctx,
 			.set_preemption_mode = nvgpu_gr_setup_set_preemption_mode,
 		},
+#ifdef NVGPU_GRAPHICS
 		.zbc = {
 			.add_color = gp10b_gr_zbc_add_color,
 			.add_depth = gp10b_gr_zbc_add_depth,
@@ -360,6 +367,7 @@ static const struct gpu_ops gp10b_ops = {
 			.get_gpcs_swdx_dss_zbc_z_format_reg =
 				gp10b_gr_zbc_get_gpcs_swdx_dss_zbc_z_format_reg,
 		},
+#endif /* NVGPU_GRAPHICS */
 		.zcull = {
 			.init_zcull_hw = gm20b_gr_init_zcull_hw,
 			.get_zcull_info = gm20b_gr_get_zcull_info,

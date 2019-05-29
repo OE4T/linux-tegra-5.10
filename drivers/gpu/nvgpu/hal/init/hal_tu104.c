@@ -114,8 +114,10 @@
 #include "hal/gr/falcon/gr_falcon_gv11b.h"
 #include "hal/gr/config/gr_config_gm20b.h"
 #include "hal/gr/config/gr_config_gv100.h"
+#ifdef NVGPU_GRAPHICS
 #include "hal/gr/zbc/zbc_gp10b.h"
 #include "hal/gr/zbc/zbc_gv11b.h"
+#endif
 #include "hal/gr/zcull/zcull_gm20b.h"
 #include "hal/gr/zcull/zcull_gv11b.h"
 #include "hal/gr/init/gr_init_gm20b.h"
@@ -192,7 +194,9 @@
 #include <nvgpu/perfbuf.h>
 #include <nvgpu/cyclestats_snapshot.h>
 #include <nvgpu/regops.h>
+#ifdef NVGPU_GRAPHICS
 #include <nvgpu/gr/zbc.h>
+#endif
 #include <nvgpu/gr/setup.h>
 #include <nvgpu/gr/fecs_trace.h>
 #include <nvgpu/pmu/perf.h>
@@ -225,9 +229,11 @@ static const struct gpu_ops tu104_ops = {
 	},
 	.ltc = {
 		.determine_L2_size_bytes = gp10b_determine_L2_size_bytes,
+#ifdef NVGPU_GRAPHICS
 		.set_zbc_s_entry = gv11b_ltc_set_zbc_stencil_entry,
 		.set_zbc_color_entry = gm20b_ltc_set_zbc_color_entry,
 		.set_zbc_depth_entry = gm20b_ltc_set_zbc_depth_entry,
+#endif /* NVGPU_GRAPHICS */
 		.init_fs_state = ltc_tu104_init_fs_state,
 		.flush = gm20b_flush_ltc,
 		.set_enabled = gp10b_ltc_set_enabled,
@@ -465,6 +471,7 @@ static const struct gpu_ops tu104_ops = {
 			.free_subctx = nvgpu_gr_setup_free_subctx,
 			.set_preemption_mode = nvgpu_gr_setup_set_preemption_mode,
 		},
+#ifdef NVGPU_GRAPHICS
 		.zbc = {
 			.add_color = gp10b_gr_zbc_add_color,
 			.add_depth = gp10b_gr_zbc_add_depth,
@@ -476,6 +483,7 @@ static const struct gpu_ops tu104_ops = {
 			.get_gpcs_swdx_dss_zbc_z_format_reg =
 				gv11b_gr_zbc_get_gpcs_swdx_dss_zbc_z_format_reg,
 		},
+#endif /* NVGPU_GRAPHICS */
 		.zcull = {
 			.init_zcull_hw = gm20b_gr_init_zcull_hw,
 			.get_zcull_info = gm20b_gr_get_zcull_info,

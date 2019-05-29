@@ -102,8 +102,10 @@
 static const struct gpu_ops vgpu_gp10b_ops = {
 	.ltc = {
 		.determine_L2_size_bytes = vgpu_determine_L2_size_bytes,
+#ifdef NVGPU_GRAPHICS
 		.set_zbc_color_entry = NULL,
 		.set_zbc_depth_entry = NULL,
+#endif /* NVGPU_GRAPHICS */
 		.init_fs_state = vgpu_ltc_init_fs_state,
 		.flush = NULL,
 		.set_enabled = NULL,
@@ -270,6 +272,7 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 			.free_gr_ctx = vgpu_gr_free_gr_ctx,
 			.set_preemption_mode = vgpu_gr_set_preemption_mode,
 		},
+#ifdef NVGPU_GRAPHICS
 		.zbc = {
 			.add_color = NULL,
 			.add_depth = NULL,
@@ -279,6 +282,7 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 			.get_gpcs_swdx_dss_zbc_c_format_reg = NULL,
 			.get_gpcs_swdx_dss_zbc_z_format_reg = NULL,
 		},
+#endif /* NVGPU_GRAPHICS */
 		.zcull = {
 			.get_zcull_info = vgpu_gr_get_zcull_info,
 			.program_zcull_mapping = NULL,
