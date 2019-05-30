@@ -25,6 +25,7 @@
 
 #include <nvgpu/rbtree.h>
 #include <nvgpu/list.h>
+#include <nvgpu/safe_ops.h>
 
 struct nvgpu_kmem_cache;
 struct nvgpu_allocator;
@@ -200,19 +201,19 @@ static inline struct nvgpu_list_node *balloc_get_order_list(
 static inline u64 balloc_order_to_len(struct nvgpu_buddy_allocator *a,
 				      u64 order)
 {
-	return BIT64(order) * a->blk_size;
+	return nvgpu_safe_mult_u64(BIT64(order), a->blk_size);
 }
 
 static inline u64 balloc_base_shift(struct nvgpu_buddy_allocator *a,
 				    u64 base)
 {
-	return base - a->start;
+	return nvgpu_safe_sub_u64(base, a->start);
 }
 
 static inline u64 balloc_base_unshift(struct nvgpu_buddy_allocator *a,
 				      u64 base)
 {
-	return base + a->start;
+	return nvgpu_safe_add_u64(base, a->start);
 }
 
 static inline struct nvgpu_allocator *balloc_owner(

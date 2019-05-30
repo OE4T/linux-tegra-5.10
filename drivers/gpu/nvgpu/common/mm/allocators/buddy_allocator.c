@@ -27,6 +27,7 @@
 #include <nvgpu/barrier.h>
 #include <nvgpu/mm.h>
 #include <nvgpu/vm.h>
+#include <nvgpu/safe_ops.h>
 
 #include "buddy_allocator_priv.h"
 
@@ -115,8 +116,10 @@ static void balloc_allocator_align(struct nvgpu_buddy_allocator *a)
 {
 	a->start = ALIGN(a->base, a->blk_size);
 	WARN_ON(a->start != a->base);
-	a->end   = (a->base + a->length) & ~(a->blk_size - 1U);
-	a->count = a->end - a->start;
+	nvgpu_assert(a->blk_size > 0ULL);
+	a->end   = nvgpu_safe_add_u64(a->base, a->length) &
+						~(a->blk_size - 1U);
+	a->count = nvgpu_safe_sub_u64(a->end, a->start);
 	a->blks  = a->count >> a->blk_shift;
 }
 
@@ -139,7 +142,8 @@ static struct nvgpu_buddy *balloc_new_buddy(struct nvgpu_buddy_allocator *a,
 	new_buddy->parent = parent;
 	new_buddy->start = start;
 	new_buddy->order = order;
-	new_buddy->end = start + (U64(1) << order) * a->blk_size;
+	new_buddy->end = nvgpu_safe_mult_u64(U64(1) << order, a->blk_size);
+	new_buddy->end = nvgpu_safe_add_u64(new_buddy->end, start);
 	new_buddy->pte_size = BALLOC_PTE_SIZE_ANY;
 
 	return new_buddy;
@@ -193,13 +197,15 @@ static void balloc_blist_add(struct nvgpu_buddy_allocator *a,
 			     struct nvgpu_buddy *b)
 {
 	balloc_buddy_list_do_add(a, b, balloc_get_order_list(a, b->order));
-	a->buddy_list_len[b->order]++;
+	a->buddy_list_len[b->order] =
+		nvgpu_safe_add_u64(a->buddy_list_len[b->order], 1ULL);
 }
 
 static void balloc_blist_rem(struct nvgpu_buddy_allocator *a,
 			     struct nvgpu_buddy *b)
 {
 	balloc_buddy_list_do_rem(a, b);
+	nvgpu_assert(a->buddy_list_len[b->order] > 0ULL);
 	a->buddy_list_len[b->order]--;
 }
 
@@ -218,7 +224,7 @@ static u64 balloc_get_order(struct nvgpu_buddy_allocator *a, u64 len)
 static u64 balloc_max_order_in(struct nvgpu_buddy_allocator *a,
 				 u64 start, u64 end)
 {
-	u64 size = (end - start) >> a->blk_shift;
+	u64 size = nvgpu_safe_sub_u64(end, start) >> a->blk_shift;
 
 	if (size > 0U) {
 		return min_t(u64, ilog2(size), a->max_order);
@@ -253,7 +259,8 @@ static int balloc_init_lists(struct nvgpu_buddy_allocator *a)
 		}
 
 		balloc_blist_add(a, buddy);
-		bstart += balloc_order_to_len(a, order);
+		bstart = nvgpu_safe_add_u64(bstart,
+					balloc_order_to_len(a, order));
 	}
 
 	return 0;
@@ -385,6 +392,7 @@ static void balloc_coalesce(struct nvgpu_buddy_allocator *a,
 		balloc_blist_rem(a, b->buddy);
 
 		buddy_clr_split(parent);
+		nvgpu_assert(a->buddy_list_split[parent->order] > 0ULL);
 		a->buddy_list_split[parent->order]--;
 		balloc_blist_add(a, parent);
 
@@ -406,22 +414,26 @@ static int balloc_split_buddy(struct nvgpu_buddy_allocator *a,
 {
 	struct nvgpu_buddy *left, *right;
 	u64 half;
+	u64 new_buddy_start;
 
+	nvgpu_assert(b->order > 0ULL);
 	left = balloc_new_buddy(a, b, b->start, b->order - 1U);
 	if (left == NULL) {
 		return -ENOMEM;
 	}
 
-	half = (b->end - b->start) / 2U;
+	half = nvgpu_safe_sub_u64(b->end, b->start) / 2U;
 
-	right = balloc_new_buddy(a, b, b->start + half, b->order - 1U);
+	new_buddy_start = nvgpu_safe_add_u64(b->start, half);
+	right = balloc_new_buddy(a, b, new_buddy_start, b->order - 1U);
 	if (right == NULL) {
 		nvgpu_kmem_cache_free(a->buddy_cache, left);
 		return -ENOMEM;
 	}
 
 	buddy_set_split(b);
-	a->buddy_list_split[b->order]++;
+	a->buddy_list_split[b->order] =
+		nvgpu_safe_add_u64(a->buddy_list_split[b->order], 1ULL);
 
 	b->left = left;
 	b->right = right;
@@ -472,7 +484,8 @@ static void balloc_alloc_buddy(struct nvgpu_buddy_allocator *a,
 	nvgpu_rbtree_insert(&b->alloced_entry, &a->alloced_buddies);
 
 	buddy_set_alloced(b);
-	a->buddy_list_alloced[b->order]++;
+	a->buddy_list_alloced[b->order] =
+		nvgpu_safe_add_u64(a->buddy_list_alloced[b->order], 1ULL);
 }
 
 /*
@@ -496,6 +509,7 @@ static struct nvgpu_buddy *balloc_free_buddy(struct nvgpu_buddy_allocator *a,
 
 	nvgpu_rbtree_unlink(node, &a->alloced_buddies);
 	buddy_clr_alloced(bud);
+	nvgpu_assert(a->buddy_list_alloced[bud->order] > 0ULL);
 	a->buddy_list_alloced[bud->order]--;
 
 	return bud;
@@ -653,8 +667,9 @@ static void balloc_get_parent_range(struct nvgpu_buddy_allocator *a,
 	u64 base_mask;
 	u64 shifted_base = balloc_base_shift(a, base);
 
+	nvgpu_assert(order < 63U);
 	order++;
-	base_mask = ~((a->blk_size << order) - 1U);
+	base_mask = ~nvgpu_safe_sub_u64((a->blk_size << order), 1U);
 
 	shifted_base &= base_mask;
 
@@ -759,11 +774,14 @@ static u64 balloc_do_alloc_fixed(struct nvgpu_buddy_allocator *a,
 
 	shifted_base = balloc_base_shift(a, base);
 	if (shifted_base == 0U) {
-		align_order = (ffs(len >> a->blk_shift) - 1UL);
+		align_order = nvgpu_safe_sub_u64(ffs(len >> a->blk_shift), 1UL);
 	} else {
-		align_order = min_t(u64,
-				    (ffs(shifted_base >> a->blk_shift) - 1UL),
-				    (ffs(len >> a->blk_shift) - 1UL));
+		u64 shifted_base_order =
+			nvgpu_safe_sub_u64(
+				ffs(shifted_base >> a->blk_shift), 1UL);
+		u64 len_order =
+			nvgpu_safe_sub_u64(ffs(len >> a->blk_shift), 1UL);
+		align_order = min_t(u64, shifted_base_order, len_order);
 	}
 
 	if (align_order > a->max_order) {
@@ -777,7 +795,7 @@ static u64 balloc_do_alloc_fixed(struct nvgpu_buddy_allocator *a,
 	 * Generate a list of buddies that satisfy this allocation.
 	 */
 	inc_base = shifted_base;
-	while (inc_base < (shifted_base + len)) {
+	while (inc_base < nvgpu_safe_add_u64(shifted_base, len)) {
 		u64 order_len = balloc_order_to_len(a, align_order);
 		u64 remaining;
 		struct nvgpu_buddy *bud;
@@ -798,14 +816,16 @@ static u64 balloc_do_alloc_fixed(struct nvgpu_buddy_allocator *a,
 		balloc_buddy_list_do_add(a, bud, &falloc->buddies);
 
 		/* Book keeping. */
-		inc_base += order_len;
+		inc_base = nvgpu_safe_add_u64(inc_base, order_len);
 		remaining = (shifted_base + len) - inc_base;
-		align_order = (ffs(inc_base >> a->blk_shift) - 1UL);
+		align_order = nvgpu_safe_sub_u64(ffs(inc_base >> a->blk_shift),
+						 1UL);
 
 		/* If we don't have much left - trim down align_order. */
 		if (balloc_order_to_len(a, align_order) > remaining) {
 			align_order = balloc_max_order_in(a, inc_base,
-							  inc_base + remaining);
+						nvgpu_safe_add_u64(inc_base,
+								remaining));
 		}
 	}
 
@@ -842,7 +862,8 @@ static void balloc_do_free_fixed(struct nvgpu_buddy_allocator *a,
 
 		(void) balloc_free_buddy(a, bud->start);
 		balloc_blist_add(a, bud);
-		a->bytes_freed += balloc_order_to_len(a, bud->order);
+		a->bytes_freed = nvgpu_safe_add_u64(a->bytes_freed,
+					balloc_order_to_len(a, bud->order));
 
 		/*
 		 * Attemp to defrag the allocation.
@@ -923,6 +944,7 @@ static u64 nvgpu_balloc_fixed_buddy_locked(struct nvgpu_allocator *na,
 	struct nvgpu_buddy_allocator *a = na->priv;
 
 	/* If base isn't aligned to an order 0 block, fail. */
+	nvgpu_assert(a->blk_size > 0ULL);
 	if ((base & (a->blk_size - 1ULL)) != 0ULL) {
 		goto fail;
 	}
@@ -931,7 +953,11 @@ static u64 nvgpu_balloc_fixed_buddy_locked(struct nvgpu_allocator *na,
 		goto fail;
 	}
 
-	if ((base < a->start) || (a->end < nvgpu_safe_add_u64(base, len))) {
+	if (base < a->start) {
+		goto fail;
+	}
+
+	if (a->end < nvgpu_safe_add_u64(base, len)) {
 		goto fail;
 	}
 
@@ -968,11 +994,13 @@ static u64 nvgpu_balloc_fixed_buddy_locked(struct nvgpu_allocator *na,
 
 	nvgpu_list_for_each_entry(bud, &falloc->buddies,
 				nvgpu_buddy, buddy_entry) {
-		real_bytes += (bud->end - bud->start);
+		real_bytes = nvgpu_safe_add_u64(real_bytes,
+				nvgpu_safe_sub_u64(bud->end, bud->start));
 	}
 
-	a->bytes_alloced += len;
-	a->bytes_alloced_real += real_bytes;
+	a->bytes_alloced = nvgpu_safe_add_u64(a->bytes_alloced, len);
+	a->bytes_alloced_real = nvgpu_safe_add_u64(a->bytes_alloced_real,
+						   real_bytes);
 
 	alloc_dbg(balloc_owner(a), "Alloc (fixed) 0x%llx", base);
 
@@ -1034,7 +1062,8 @@ static void nvgpu_buddy_bfree_locked(struct nvgpu_allocator *na, u64 addr)
 	}
 
 	balloc_blist_add(a, bud);
-	a->bytes_freed += balloc_order_to_len(a, bud->order);
+	a->bytes_freed = nvgpu_safe_add_u64(a->bytes_freed,
+				balloc_order_to_len(a, bud->order));
 
 	/*
 	 * Attemp to defrag the allocation.
@@ -1066,7 +1095,7 @@ static bool nvgpu_buddy_reserve_is_possible(struct nvgpu_buddy_allocator *a,
 	u64 co_base, co_end;
 
 	co_base = co->base;
-	co_end  = co->base + co->length;
+	co_end  = nvgpu_safe_add_u64(co->base, co->length);
 
 	/*
 	 * Not the fastest approach but we should not have that many carveouts
@@ -1074,10 +1103,10 @@ static bool nvgpu_buddy_reserve_is_possible(struct nvgpu_buddy_allocator *a,
 	 */
 	nvgpu_list_for_each_entry(tmp, &a->co_list,
 				nvgpu_alloc_carveout, co_entry) {
-		if ((co_base >= tmp->base &&
-		     co_base < (tmp->base + tmp->length)) ||
-		    (co_end >= tmp->base &&
-		     co_end < (tmp->base + tmp->length))) {
+		u64 tmp_end = nvgpu_safe_add_u64(tmp->base, tmp->length);
+
+		if ((co_base >= tmp->base && co_base < tmp_end) ||
+		    (co_end >= tmp->base && co_end < tmp_end)) {
 			return false;
 		}
 	}
@@ -1096,7 +1125,8 @@ static int nvgpu_buddy_reserve_co(struct nvgpu_allocator *na,
 	u64 addr;
 	int err = 0;
 
-	if (co->base < a->start || (co->base + co->length) > a->end ||
+	if (co->base < a->start ||
+	    nvgpu_safe_add_u64(co->base, co->length) > a->end ||
 	    a->alloc_made) {
 		return -EINVAL;
 	}
@@ -1176,8 +1206,10 @@ static u64 nvgpu_buddy_alloc_space(struct nvgpu_allocator *a)
 	u64 space;
 
 	alloc_lock(a);
-	space = ba->end - ba->start -
-		(ba->bytes_alloced_real - ba->bytes_freed);
+	space = nvgpu_safe_sub_u64(ba->end, ba->start);
+	space = nvgpu_safe_sub_u64(space,
+			nvgpu_safe_sub_u64(ba->bytes_alloced_real,
+					   ba->bytes_freed));
 	alloc_unlock(a);
 
 	return space;
@@ -1314,13 +1346,15 @@ int nvgpu_buddy_allocator_init(struct gk20a *g, struct nvgpu_allocator *na,
 	u64 pde_size;
 	struct nvgpu_buddy_allocator *a;
 	bool is_gva_space = (flags & GPU_ALLOC_GVA_SPACE) != 0ULL;
-	bool is_blk_size_pwr_2 = (blk_size & (blk_size - 1ULL)) == 0ULL;
+	bool is_blk_size_pwr_2;
 	u64 base_big_page, size_big_page;
 
 	/* blk_size must be greater than 0 and a power of 2. */
 	if (blk_size == 0U) {
 		return -EINVAL;
 	}
+
+	is_blk_size_pwr_2 = (blk_size & (blk_size - 1ULL)) == 0ULL;
 	if (!is_blk_size_pwr_2) {
 		return -EINVAL;
 	}
@@ -1375,10 +1409,12 @@ int nvgpu_buddy_allocator_init(struct gk20a *g, struct nvgpu_allocator *na,
 	 * requirement is not necessary.
 	 */
 	if (is_gva_space) {
-		base_big_page = a->base &
-				((U64(vm->big_page_size) << U64(10)) - U64(1));
-		size_big_page = a->length &
-				((U64(vm->big_page_size) << U64(10)) - U64(1));
+		u64 big_page_mask;
+
+		big_page_mask = (U64(vm->big_page_size) << U64(10));
+		big_page_mask = nvgpu_safe_sub_u64(big_page_mask, U64(1));
+		base_big_page = a->base & big_page_mask;
+		size_big_page = a->length & big_page_mask;
 		if (vm->big_pages &&
 			(base_big_page != 0ULL || size_big_page != 0ULL)) {
 			return -EINVAL;
