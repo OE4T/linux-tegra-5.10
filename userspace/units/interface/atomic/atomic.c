@@ -1431,7 +1431,31 @@ struct atomic_test_args xchg_64_arg = {
 	.start_val = INT_MAX,
 	.value = 1,
 	.loop_count = 10000,
-	.repeat_count = 2000, /* for threaded test */
+	.repeat_count = 10000, /* for threaded test */
+};
+struct atomic_test_args cmpxchg_not_atomic_arg = {
+	.op = op_cmpxchg,
+	.type = NOT_ATOMIC,
+	.start_val = 1,
+	.value = 1,
+	.loop_count = 10000,
+	.repeat_count = 50000, /* for threaded test */
+};
+struct atomic_test_args cmpxchg_32_arg = {
+	.op = op_cmpxchg,
+	.type = ATOMIC_32,
+	.start_val = 1,
+	.value = 1,
+	.loop_count = 10000,
+	.repeat_count = 50000, /* for threaded test */
+};
+struct atomic_test_args cmpxchg_64_arg = {
+	.op = op_cmpxchg,
+	.type = ATOMIC_64,
+	.start_val = INT_MAX,
+	.value = 1,
+	.loop_count = 10000,
+	.repeat_count = 50000, /* for threaded test */
 };
 static struct atomic_test_args add_unless_32_arg = {
 	/* must loop at least 10 times */
@@ -1482,9 +1506,9 @@ struct unit_module_test atomic_tests[] = {
 	UNIT_TEST(atomic_add_64_threaded,			test_atomic_arithmetic_threaded,		&add_64_arg, 0),
 	UNIT_TEST(atomic_sub_32_threaded,			test_atomic_arithmetic_threaded,		&sub_32_arg, 0),
 	UNIT_TEST(atomic_sub_64_threaded,			test_atomic_arithmetic_threaded,		&sub_64_arg, 0),
-	UNIT_TEST(atomic_cmpxchg_not_atomic_threaded,		test_atomic_arithmetic_threaded,		&xchg_not_atomic_arg, 0),
-	UNIT_TEST(atomic_cmpxchg_32_threaded,			test_atomic_arithmetic_threaded,		&xchg_32_arg, 0),
-	UNIT_TEST(atomic_cmpxchg_64_threaded,			test_atomic_arithmetic_threaded,		&xchg_64_arg, 0),
+	UNIT_TEST(atomic_cmpxchg_not_atomic_threaded,		test_atomic_arithmetic_threaded,		&cmpxchg_not_atomic_arg, 0),
+	UNIT_TEST(atomic_cmpxchg_32_threaded,			test_atomic_arithmetic_threaded,		&cmpxchg_32_arg, 0),
+	UNIT_TEST(atomic_cmpxchg_64_threaded,			test_atomic_arithmetic_threaded,		&cmpxchg_64_arg, 0),
 
 	/* Level 1 tests */
 	UNIT_TEST(atomic_inc_and_test_not_atomic_threaded,	test_atomic_arithmetic_and_test_threaded,	&inc_and_test_not_atomic_arg, 1),
