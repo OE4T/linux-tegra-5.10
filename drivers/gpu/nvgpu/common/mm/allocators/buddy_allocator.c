@@ -931,6 +931,10 @@ static u64 nvgpu_balloc_fixed_buddy_locked(struct nvgpu_allocator *na,
 		goto fail;
 	}
 
+	if ((base < a->start) || (a->end < nvgpu_safe_add_u64(base, len))) {
+		goto fail;
+	}
+
 	pte_size = nvgpu_balloc_page_size_to_pte_size(a, page_size);
 	if (pte_size == BALLOC_PTE_SIZE_INVALID) {
 		goto fail;
