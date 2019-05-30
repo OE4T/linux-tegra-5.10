@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -57,6 +57,7 @@
 #define NVGPU_HW_FUSE_GP106_H
 
 #include <nvgpu/types.h>
+#include <nvgpu/safe_ops.h>
 
 static inline u32 fuse_status_opt_gpc_r(void)
 {
@@ -64,11 +65,11 @@ static inline u32 fuse_status_opt_gpc_r(void)
 }
 static inline u32 fuse_status_opt_tpc_gpc_r(u32 i)
 {
-	return 0x00021c38U + i*4U;
+	return nvgpu_safe_add_u32(0x00021c38U, nvgpu_safe_mult_u32(i, 4U));
 }
 static inline u32 fuse_ctrl_opt_tpc_gpc_r(u32 i)
 {
-	return 0x00021838U + i*4U;
+	return nvgpu_safe_add_u32(0x00021838U, nvgpu_safe_mult_u32(i, 4U));
 }
 static inline u32 fuse_ctrl_opt_ram_svop_pdp_r(void)
 {
@@ -128,7 +129,7 @@ static inline u32 fuse_status_opt_fbio_data_v(u32 r)
 }
 static inline u32 fuse_status_opt_rop_l2_fbp_r(u32 i)
 {
-	return 0x00021d70U + i*4U;
+	return nvgpu_safe_add_u32(0x00021d70U, nvgpu_safe_mult_u32(i, 4U));
 }
 static inline u32 fuse_status_opt_fbp_r(void)
 {

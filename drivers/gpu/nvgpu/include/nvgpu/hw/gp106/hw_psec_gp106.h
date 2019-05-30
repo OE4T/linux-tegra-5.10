@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -57,6 +57,7 @@
 #define NVGPU_HW_PSEC_GP106_H
 
 #include <nvgpu/types.h>
+#include <nvgpu/safe_ops.h>
 
 static inline u32 psec_falcon_irqsset_r(void)
 {
@@ -332,7 +333,7 @@ static inline u32 psec_falcon_cpuctl_alias_startcpu_f(u32 v)
 }
 static inline u32 psec_falcon_imemc_r(u32 i)
 {
-	return 0x00087180U + i*16U;
+	return nvgpu_safe_add_u32(0x00087180U, nvgpu_safe_mult_u32(i, 16U));
 }
 static inline u32 psec_falcon_imemc_offs_f(u32 v)
 {
@@ -348,11 +349,11 @@ static inline u32 psec_falcon_imemc_aincw_f(u32 v)
 }
 static inline u32 psec_falcon_imemd_r(u32 i)
 {
-	return 0x00087184U + i*16U;
+	return nvgpu_safe_add_u32(0x00087184U, nvgpu_safe_mult_u32(i, 16U));
 }
 static inline u32 psec_falcon_imemt_r(u32 i)
 {
-	return 0x00087188U + i*16U;
+	return nvgpu_safe_add_u32(0x00087188U, nvgpu_safe_mult_u32(i, 16U));
 }
 static inline u32 psec_falcon_sctl_r(void)
 {
@@ -492,7 +493,7 @@ static inline u32 psec_sec2_falcon_icd_rdata_r(void)
 }
 static inline u32 psec_falcon_dmemc_r(u32 i)
 {
-	return 0x000871c0U + i*8U;
+	return nvgpu_safe_add_u32(0x000871c0U, nvgpu_safe_mult_u32(i, 8U));
 }
 static inline u32 psec_falcon_dmemc_offs_f(u32 v)
 {
@@ -520,7 +521,7 @@ static inline u32 psec_falcon_dmemc_aincr_f(u32 v)
 }
 static inline u32 psec_falcon_dmemd_r(u32 i)
 {
-	return 0x000871c4U + i*8U;
+	return nvgpu_safe_add_u32(0x000871c4U, nvgpu_safe_mult_u32(i, 8U));
 }
 static inline u32 psec_falcon_debug1_r(void)
 {
@@ -548,7 +549,7 @@ static inline u32 psec_falcon_debug1_ctxsw_mode_init_f(void)
 }
 static inline u32 psec_fbif_transcfg_r(u32 i)
 {
-	return 0x00087600U + i*4U;
+	return nvgpu_safe_add_u32(0x00087600U, nvgpu_safe_mult_u32(i, 4U));
 }
 static inline u32 psec_fbif_transcfg_target_local_fb_f(void)
 {
