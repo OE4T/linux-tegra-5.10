@@ -53,13 +53,6 @@ void gp10b_ctxsw_prog_set_compute_preemption_mode_cilp(struct gk20a *g,
 		ctxsw_prog_main_image_compute_preemption_options_control_cilp_f());
 }
 
-void gp10b_ctxsw_prog_set_pmu_options_boost_clock_frequencies(struct gk20a *g,
-	struct nvgpu_mem *ctx_mem, u32 boosted_ctx)
-{
-	u32 data = ctxsw_prog_main_image_pmu_options_boost_clock_frequencies_f(boosted_ctx);
-	nvgpu_mem_wr(g, ctx_mem, ctxsw_prog_main_image_pmu_options_o(), data);
-}
-
 void gp10b_ctxsw_prog_set_full_preemption_ptr(struct gk20a *g,
 	struct nvgpu_mem *ctx_mem, u64 addr)
 {
@@ -81,6 +74,14 @@ void gp10b_ctxsw_prog_init_ctxsw_hdr_data(struct gk20a *g,
 		ctxsw_prog_main_image_num_cilp_save_ops_o(), 0);
 
 	gm20b_ctxsw_prog_init_ctxsw_hdr_data(g, ctx_mem);
+}
+
+#ifdef CONFIG_NVGPU_DEBUGGER
+void gp10b_ctxsw_prog_set_pmu_options_boost_clock_frequencies(struct gk20a *g,
+	struct nvgpu_mem *ctx_mem, u32 boosted_ctx)
+{
+	u32 data = ctxsw_prog_main_image_pmu_options_boost_clock_frequencies_f(boosted_ctx);
+	nvgpu_mem_wr(g, ctx_mem, ctxsw_prog_main_image_pmu_options_o(), data);
 }
 
 void gp10b_ctxsw_prog_dump_ctxsw_stats(struct gk20a *g,
@@ -127,3 +128,4 @@ void gp10b_ctxsw_prog_dump_ctxsw_stats(struct gk20a *g,
 		nvgpu_mem_rd(g, ctx_mem,
 			ctxsw_prog_main_image_compute_preemption_options_o()));
 }
+#endif /* CONFIG_NVGPU_DEBUGGER */

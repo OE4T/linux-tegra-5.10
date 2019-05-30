@@ -70,7 +70,9 @@ struct nvgpu_gr_ctx {
 
 	bool golden_img_loaded;
 	bool cilp_preempt_pending;
+#ifdef CONFIG_NVGPU_DEBUGGER
 	bool boosted_ctx;
+#endif
 
 #ifdef CONFIG_TEGRA_GR_VIRTUALIZATION
 	u64 virt_ctx;

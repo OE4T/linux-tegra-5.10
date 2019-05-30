@@ -198,12 +198,14 @@ void nvgpu_gr_setup_free_gr_ctx(struct gk20a *g,
 	nvgpu_log_fn(g, " ");
 
 	if (gr_ctx != NULL) {
+#ifdef CONFIG_NVGPU_DEBUGGER
 		if ((g->ops.gr.ctxsw_prog.dump_ctxsw_stats != NULL) &&
 		     nvgpu_gr_ctx_desc_dump_ctxsw_stats_on_channel_close(
 					g->gr->gr_ctx_desc)) {
 			g->ops.gr.ctxsw_prog.dump_ctxsw_stats(g,
 				 nvgpu_gr_ctx_get_ctx_mem(gr_ctx));
 		}
+#endif
 
 		nvgpu_gr_ctx_free(g, gr_ctx, g->gr->global_ctx_buffer, vm);
 	}

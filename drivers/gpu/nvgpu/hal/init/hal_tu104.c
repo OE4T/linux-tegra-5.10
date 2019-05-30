@@ -336,16 +336,6 @@ static const struct gpu_ops tu104_ops = {
 		.ctxsw_prog = {
 			.hw_get_fecs_header_size =
 				gm20b_ctxsw_prog_hw_get_fecs_header_size,
-			.hw_get_gpccs_header_size =
-				gm20b_ctxsw_prog_hw_get_gpccs_header_size,
-			.hw_get_extended_buffer_segments_size_in_bytes =
-				gm20b_ctxsw_prog_hw_get_extended_buffer_segments_size_in_bytes,
-			.hw_extended_marker_size_in_bytes =
-				gm20b_ctxsw_prog_hw_extended_marker_size_in_bytes,
-			.hw_get_perf_counter_control_register_stride =
-				gm20b_ctxsw_prog_hw_get_perf_counter_control_register_stride,
-			.get_main_image_ctx_id =
-				gm20b_ctxsw_prog_get_main_image_ctx_id,
 			.get_patch_count = gm20b_ctxsw_prog_get_patch_count,
 			.set_patch_count = gm20b_ctxsw_prog_set_patch_count,
 			.set_patch_addr = gm20b_ctxsw_prog_set_patch_addr,
@@ -357,6 +347,38 @@ static const struct gpu_ops tu104_ops = {
 			.is_zcull_mode_separate_buffer =
 				gm20b_ctxsw_prog_is_zcull_mode_separate_buffer,
 #endif
+			.init_ctxsw_hdr_data = gp10b_ctxsw_prog_init_ctxsw_hdr_data,
+			.set_compute_preemption_mode_cta =
+				gm20b_ctxsw_prog_set_compute_preemption_mode_cta,
+			.set_compute_preemption_mode_cilp =
+				gp10b_ctxsw_prog_set_compute_preemption_mode_cilp,
+			.set_graphics_preemption_mode_gfxp =
+				gp10b_ctxsw_prog_set_graphics_preemption_mode_gfxp,
+			.set_priv_access_map_config_mode =
+				gm20b_ctxsw_prog_set_priv_access_map_config_mode,
+			.set_priv_access_map_addr =
+				gm20b_ctxsw_prog_set_priv_access_map_addr,
+			.disable_verif_features =
+				gm20b_ctxsw_prog_disable_verif_features,
+			.set_full_preemption_ptr =
+				gv11b_ctxsw_prog_set_full_preemption_ptr,
+			.set_full_preemption_ptr_veid0 =
+				gv11b_ctxsw_prog_set_full_preemption_ptr_veid0,
+			.set_context_buffer_ptr =
+				gv11b_ctxsw_prog_set_context_buffer_ptr,
+			.set_type_per_veid_header =
+				gv11b_ctxsw_prog_set_type_per_veid_header,
+#ifdef CONFIG_NVGPU_DEBUGGER
+			.hw_get_gpccs_header_size =
+				gm20b_ctxsw_prog_hw_get_gpccs_header_size,
+			.hw_get_extended_buffer_segments_size_in_bytes =
+				gm20b_ctxsw_prog_hw_get_extended_buffer_segments_size_in_bytes,
+			.hw_extended_marker_size_in_bytes =
+				gm20b_ctxsw_prog_hw_extended_marker_size_in_bytes,
+			.hw_get_perf_counter_control_register_stride =
+				gm20b_ctxsw_prog_hw_get_perf_counter_control_register_stride,
+			.get_main_image_ctx_id =
+				gm20b_ctxsw_prog_get_main_image_ctx_id,
 			.set_pm_ptr = gv11b_ctxsw_prog_set_pm_ptr,
 			.set_pm_mode = gm20b_ctxsw_prog_set_pm_mode,
 			.set_pm_smpc_mode = gm20b_ctxsw_prog_set_pm_smpc_mode,
@@ -365,21 +387,8 @@ static const struct gpu_ops tu104_ops = {
 			.hw_get_pm_mode_ctxsw = gm20b_ctxsw_prog_hw_get_pm_mode_ctxsw,
 			.hw_get_pm_mode_stream_out_ctxsw =
 				gv11b_ctxsw_prog_hw_get_pm_mode_stream_out_ctxsw,
-			.init_ctxsw_hdr_data = gp10b_ctxsw_prog_init_ctxsw_hdr_data,
-			.set_compute_preemption_mode_cta =
-				gm20b_ctxsw_prog_set_compute_preemption_mode_cta,
-			.set_compute_preemption_mode_cilp =
-				gp10b_ctxsw_prog_set_compute_preemption_mode_cilp,
-			.set_graphics_preemption_mode_gfxp =
-				gp10b_ctxsw_prog_set_graphics_preemption_mode_gfxp,
 			.set_cde_enabled = gm20b_ctxsw_prog_set_cde_enabled,
 			.set_pc_sampling = gm20b_ctxsw_prog_set_pc_sampling,
-			.set_priv_access_map_config_mode =
-				gm20b_ctxsw_prog_set_priv_access_map_config_mode,
-			.set_priv_access_map_addr =
-				gm20b_ctxsw_prog_set_priv_access_map_addr,
-			.disable_verif_features =
-				gm20b_ctxsw_prog_disable_verif_features,
 			.check_main_image_header_magic =
 				gm20b_ctxsw_prog_check_main_image_header_magic,
 			.check_local_header_magic =
@@ -391,6 +400,12 @@ static const struct gpu_ops tu104_ops = {
 			.get_ppc_info = gm20b_ctxsw_prog_get_ppc_info,
 			.get_local_priv_register_ctl_offset =
 				gm20b_ctxsw_prog_get_local_priv_register_ctl_offset,
+			.set_pmu_options_boost_clock_frequencies =
+				gp10b_ctxsw_prog_set_pmu_options_boost_clock_frequencies,
+			.hw_get_perf_counter_register_stride =
+				gv11b_ctxsw_prog_hw_get_perf_counter_register_stride,
+			.dump_ctxsw_stats = gp10b_ctxsw_prog_dump_ctxsw_stats,
+#endif /* CONFIG_NVGPU_DEBUGGER */
 #ifdef CONFIG_NVGPU_FECS_TRACE
 			.hw_get_ts_tag_invalid_timestamp =
 				gm20b_ctxsw_prog_hw_get_ts_tag_invalid_timestamp,
@@ -405,19 +420,6 @@ static const struct gpu_ops tu104_ops = {
 			.set_ts_num_records = gm20b_ctxsw_prog_set_ts_num_records,
 			.set_ts_buffer_ptr = gm20b_ctxsw_prog_set_ts_buffer_ptr,
 #endif
-			.set_pmu_options_boost_clock_frequencies =
-				gp10b_ctxsw_prog_set_pmu_options_boost_clock_frequencies,
-			.set_full_preemption_ptr =
-				gv11b_ctxsw_prog_set_full_preemption_ptr,
-			.set_full_preemption_ptr_veid0 =
-				gv11b_ctxsw_prog_set_full_preemption_ptr_veid0,
-			.hw_get_perf_counter_register_stride =
-				gv11b_ctxsw_prog_hw_get_perf_counter_register_stride,
-			.set_context_buffer_ptr =
-				gv11b_ctxsw_prog_set_context_buffer_ptr,
-			.set_type_per_veid_header =
-				gv11b_ctxsw_prog_set_type_per_veid_header,
-			.dump_ctxsw_stats = gp10b_ctxsw_prog_dump_ctxsw_stats,
 		},
 		.config = {
 			.get_gpc_mask = gm20b_gr_config_get_gpc_mask,

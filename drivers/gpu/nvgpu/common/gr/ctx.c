@@ -115,7 +115,9 @@ void nvgpu_gr_ctx_free(struct gk20a *g,
 		nvgpu_gr_ctx_unmap_global_ctx_buffers(g, gr_ctx,
 			global_ctx_buffer, vm);
 
+#ifdef CONFIG_NVGPU_DEBUGGER
 		nvgpu_gr_ctx_free_pm_ctx(g, vm, gr_ctx);
+#endif
 		nvgpu_gr_ctx_free_patch_ctx(g, vm, gr_ctx);
 
 		if (nvgpu_mem_is_valid(&gr_ctx->gfxp_rtvcb_ctxsw_buffer)) {
@@ -132,6 +134,7 @@ void nvgpu_gr_ctx_free(struct gk20a *g,
 	}
 }
 
+#ifdef CONFIG_NVGPU_DEBUGGER
 int nvgpu_gr_ctx_alloc_pm_ctx(struct gk20a *g,
 	struct nvgpu_gr_ctx *gr_ctx,
 	struct nvgpu_gr_ctx_desc *gr_ctx_desc,
@@ -181,6 +184,7 @@ void nvgpu_gr_ctx_free_pm_ctx(struct gk20a *g, struct vm_gk20a *vm,
 		nvgpu_dma_free(g, &pm_ctx->mem);
 	}
 }
+#endif
 
 int nvgpu_gr_ctx_alloc_patch_ctx(struct gk20a *g,
 	struct nvgpu_gr_ctx *gr_ctx,
@@ -490,6 +494,7 @@ void nvgpu_gr_ctx_set_patch_ctx_data_count(struct nvgpu_gr_ctx *gr_ctx,
 	gr_ctx->patch_ctx.data_count = data_count;
 }
 
+#ifdef CONFIG_NVGPU_DEBUGGER
 struct nvgpu_mem *nvgpu_gr_ctx_get_pm_ctx_mem(struct nvgpu_gr_ctx *gr_ctx)
 {
 	return &gr_ctx->pm_ctx.mem;
@@ -504,6 +509,7 @@ u32 nvgpu_gr_ctx_get_pm_ctx_pm_mode(struct nvgpu_gr_ctx *gr_ctx)
 {
 	return gr_ctx->pm_ctx.pm_mode;
 }
+#endif
 
 struct nvgpu_mem *nvgpu_gr_ctx_get_preempt_ctxsw_buffer(
 	struct nvgpu_gr_ctx *gr_ctx)
@@ -546,8 +552,10 @@ int nvgpu_gr_ctx_load_golden_ctx_image(struct gk20a *g,
 	struct nvgpu_gr_global_ctx_local_golden_image *local_golden_image,
 	bool cde)
 {
-	u64 virt_addr = 0;
 	struct nvgpu_mem *mem;
+#ifdef CONFIG_NVGPU_DEBUGGER
+	u64 virt_addr = 0;
+#endif
 
 	nvgpu_log_fn(g, " ");
 
@@ -560,9 +568,11 @@ int nvgpu_gr_ctx_load_golden_ctx_image(struct gk20a *g,
 		g->ops.gr.ctxsw_prog.init_ctxsw_hdr_data(g, mem);
 	}
 
+#ifdef CONFIG_NVGPU_DEBUGGER
 	if ((g->ops.gr.ctxsw_prog.set_cde_enabled != NULL) && cde) {
 		g->ops.gr.ctxsw_prog.set_cde_enabled(g, mem);
 	}
+#endif
 
 	/* set priv access map */
 	g->ops.gr.ctxsw_prog.set_priv_access_map_config_mode(g, mem,
@@ -574,11 +584,13 @@ int nvgpu_gr_ctx_load_golden_ctx_image(struct gk20a *g,
 	/* disable verif features */
 	g->ops.gr.ctxsw_prog.disable_verif_features(g, mem);
 
+#ifdef CONFIG_NVGPU_DEBUGGER
 	if (g->ops.gr.ctxsw_prog.set_pmu_options_boost_clock_frequencies !=
 			NULL) {
 		g->ops.gr.ctxsw_prog.set_pmu_options_boost_clock_frequencies(g,
 			mem, nvgpu_safe_cast_bool_to_u32(gr_ctx->boosted_ctx));
 	}
+#endif
 
 	nvgpu_log(g, gpu_dbg_info, "write patch count = %d",
 			gr_ctx->patch_ctx.data_count);
@@ -587,6 +599,7 @@ int nvgpu_gr_ctx_load_golden_ctx_image(struct gk20a *g,
 	g->ops.gr.ctxsw_prog.set_patch_addr(g, mem,
 		gr_ctx->patch_ctx.mem.gpu_va);
 
+#ifdef CONFIG_NVGPU_DEBUGGER
 	/* PM ctxt switch is off by default */
 	gr_ctx->pm_ctx.pm_mode =
 		g->ops.gr.ctxsw_prog.hw_get_pm_mode_no_ctxsw();
@@ -594,6 +607,7 @@ int nvgpu_gr_ctx_load_golden_ctx_image(struct gk20a *g,
 
 	g->ops.gr.ctxsw_prog.set_pm_mode(g, mem, gr_ctx->pm_ctx.pm_mode);
 	g->ops.gr.ctxsw_prog.set_pm_ptr(g, mem, virt_addr);
+#endif
 
 	return 0;
 }
@@ -685,6 +699,7 @@ void nvgpu_gr_ctx_set_patch_ctx(struct gk20a *g, struct nvgpu_gr_ctx *gr_ctx,
 	}
 }
 
+#ifdef CONFIG_NVGPU_DEBUGGER
 u32 nvgpu_gr_ctx_get_ctx_id(struct gk20a *g, struct nvgpu_gr_ctx *gr_ctx)
 {
 	if (!gr_ctx->ctx_id_valid) {
@@ -703,6 +718,7 @@ u32 nvgpu_gr_ctx_get_ctx_id(struct gk20a *g, struct nvgpu_gr_ctx *gr_ctx)
 
 	return gr_ctx->ctx_id;
 }
+#endif
 
 #ifdef CONFIG_NVGPU_GRAPHICS
 void nvgpu_gr_ctx_set_zcull_ctx(struct gk20a *g, struct nvgpu_gr_ctx *gr_ctx,
@@ -758,6 +774,7 @@ int nvgpu_gr_ctx_zcull_setup(struct gk20a *g, struct nvgpu_gr_ctx *gr_ctx,
 }
 #endif
 
+#ifdef CONFIG_NVGPU_DEBUGGER
 int nvgpu_gr_ctx_set_smpc_mode(struct gk20a *g, struct nvgpu_gr_ctx *gr_ctx,
 	bool enable)
 {
@@ -862,6 +879,7 @@ int nvgpu_gr_ctx_set_hwpm_mode(struct gk20a *g, struct nvgpu_gr_ctx *gr_ctx,
 
 	return err;
 }
+#endif
 
 void nvgpu_gr_ctx_init_compute_preemption_mode(struct nvgpu_gr_ctx *gr_ctx,
 	u32 compute_preempt_mode)
@@ -969,7 +987,7 @@ u32 nvgpu_gr_ctx_read_ctx_id(struct nvgpu_gr_ctx *gr_ctx)
 	return gr_ctx->ctx_id;
 }
 
-#ifdef CONFIG_NVGPU_CHANNEL_TSG_SCHEDULING
+#if defined(CONFIG_NVGPU_CHANNEL_TSG_SCHEDULING) && defined(CONFIG_NVGPU_DEBUGGER)
 void nvgpu_gr_ctx_set_boosted_ctx(struct nvgpu_gr_ctx *gr_ctx, bool boost)
 {
 	gr_ctx->boosted_ctx = boost;
@@ -991,8 +1009,10 @@ bool nvgpu_gr_ctx_desc_force_preemption_cilp(struct nvgpu_gr_ctx_desc *gr_ctx_de
 	return gr_ctx_desc->force_preemption_cilp;
 }
 
+#ifdef CONFIG_NVGPU_DEBUGGER
 bool nvgpu_gr_ctx_desc_dump_ctxsw_stats_on_channel_close(
 		struct nvgpu_gr_ctx_desc *gr_ctx_desc)
 {
 	return gr_ctx_desc->dump_ctxsw_stats_on_channel_close;
 }
+#endif

@@ -34,32 +34,6 @@ u32 gm20b_ctxsw_prog_hw_get_fecs_header_size(void)
 	return ctxsw_prog_fecs_header_v();
 }
 
-u32 gm20b_ctxsw_prog_hw_get_gpccs_header_size(void)
-{
-	return ctxsw_prog_gpccs_header_stride_v();
-}
-
-u32 gm20b_ctxsw_prog_hw_get_extended_buffer_segments_size_in_bytes(void)
-{
-	return ctxsw_prog_extended_buffer_segments_size_in_bytes_v();
-}
-
-u32 gm20b_ctxsw_prog_hw_extended_marker_size_in_bytes(void)
-{
-	return ctxsw_prog_extended_marker_size_in_bytes_v();
-}
-
-u32 gm20b_ctxsw_prog_hw_get_perf_counter_control_register_stride(void)
-{
-	return ctxsw_prog_extended_sm_dsm_perf_counter_control_register_stride_v();
-}
-
-u32 gm20b_ctxsw_prog_get_main_image_ctx_id(struct gk20a *g,
-	struct nvgpu_mem *ctx_mem)
-{
-	return nvgpu_mem_rd(g, ctx_mem, ctxsw_prog_main_image_context_id_o());
-}
-
 u32 gm20b_ctxsw_prog_get_patch_count(struct gk20a *g, struct nvgpu_mem *ctx_mem)
 {
 	return nvgpu_mem_rd(g, ctx_mem, ctxsw_prog_main_image_patch_count_o());
@@ -108,6 +82,88 @@ bool gm20b_ctxsw_prog_is_zcull_mode_separate_buffer(u32 mode)
 }
 #endif
 
+void gm20b_ctxsw_prog_init_ctxsw_hdr_data(struct gk20a *g,
+	struct nvgpu_mem *ctx_mem)
+{
+	nvgpu_mem_wr(g, ctx_mem,
+		ctxsw_prog_main_image_num_save_ops_o(), 0);
+	nvgpu_mem_wr(g, ctx_mem,
+		ctxsw_prog_main_image_num_restore_ops_o(), 0);
+}
+
+void gm20b_ctxsw_prog_set_compute_preemption_mode_cta(struct gk20a *g,
+	struct nvgpu_mem *ctx_mem)
+{
+	nvgpu_mem_wr(g, ctx_mem,
+		ctxsw_prog_main_image_preemption_options_o(),
+		ctxsw_prog_main_image_preemption_options_control_cta_enabled_f());
+}
+
+void gm20b_ctxsw_prog_set_priv_access_map_config_mode(struct gk20a *g,
+	struct nvgpu_mem *ctx_mem, bool allow_all)
+{
+	if (allow_all) {
+		nvgpu_mem_wr(g, ctx_mem,
+			ctxsw_prog_main_image_priv_access_map_config_o(),
+			ctxsw_prog_main_image_priv_access_map_config_mode_allow_all_f());
+	} else {
+		nvgpu_mem_wr(g, ctx_mem,
+			ctxsw_prog_main_image_priv_access_map_config_o(),
+			ctxsw_prog_main_image_priv_access_map_config_mode_use_map_f());
+	}
+}
+
+void gm20b_ctxsw_prog_set_priv_access_map_addr(struct gk20a *g,
+	struct nvgpu_mem *ctx_mem, u64 addr)
+{
+	nvgpu_mem_wr(g, ctx_mem,
+		ctxsw_prog_main_image_priv_access_map_addr_lo_o(),
+		u64_lo32(addr));
+	nvgpu_mem_wr(g, ctx_mem,
+		ctxsw_prog_main_image_priv_access_map_addr_hi_o(),
+		u64_hi32(addr));
+}
+
+void gm20b_ctxsw_prog_disable_verif_features(struct gk20a *g,
+	struct nvgpu_mem *ctx_mem)
+{
+	u32 data;
+
+	data = nvgpu_mem_rd(g, ctx_mem, ctxsw_prog_main_image_misc_options_o());
+
+	data = data & ~ctxsw_prog_main_image_misc_options_verif_features_m();
+	data = data | ctxsw_prog_main_image_misc_options_verif_features_disabled_f();
+
+	nvgpu_mem_wr(g, ctx_mem, ctxsw_prog_main_image_misc_options_o(), data);
+}
+
+#ifdef CONFIG_NVGPU_DEBUGGER
+u32 gm20b_ctxsw_prog_hw_get_gpccs_header_size(void)
+{
+	return ctxsw_prog_gpccs_header_stride_v();
+}
+
+u32 gm20b_ctxsw_prog_hw_get_extended_buffer_segments_size_in_bytes(void)
+{
+	return ctxsw_prog_extended_buffer_segments_size_in_bytes_v();
+}
+
+u32 gm20b_ctxsw_prog_hw_extended_marker_size_in_bytes(void)
+{
+	return ctxsw_prog_extended_marker_size_in_bytes_v();
+}
+
+u32 gm20b_ctxsw_prog_hw_get_perf_counter_control_register_stride(void)
+{
+	return ctxsw_prog_extended_sm_dsm_perf_counter_control_register_stride_v();
+}
+
+u32 gm20b_ctxsw_prog_get_main_image_ctx_id(struct gk20a *g,
+	struct nvgpu_mem *ctx_mem)
+{
+	return nvgpu_mem_rd(g, ctx_mem, ctxsw_prog_main_image_context_id_o());
+}
+
 void gm20b_ctxsw_prog_set_pm_ptr(struct gk20a *g, struct nvgpu_mem *ctx_mem,
 	u64 addr)
 {
@@ -154,23 +210,6 @@ u32 gm20b_ctxsw_prog_hw_get_pm_mode_ctxsw(void)
 	return ctxsw_prog_main_image_pm_mode_ctxsw_f();
 }
 
-void gm20b_ctxsw_prog_init_ctxsw_hdr_data(struct gk20a *g,
-	struct nvgpu_mem *ctx_mem)
-{
-	nvgpu_mem_wr(g, ctx_mem,
-		ctxsw_prog_main_image_num_save_ops_o(), 0);
-	nvgpu_mem_wr(g, ctx_mem,
-		ctxsw_prog_main_image_num_restore_ops_o(), 0);
-}
-
-void gm20b_ctxsw_prog_set_compute_preemption_mode_cta(struct gk20a *g,
-	struct nvgpu_mem *ctx_mem)
-{
-	nvgpu_mem_wr(g, ctx_mem,
-		ctxsw_prog_main_image_preemption_options_o(),
-		ctxsw_prog_main_image_preemption_options_control_cta_enabled_f());
-}
-
 void gm20b_ctxsw_prog_set_cde_enabled(struct gk20a *g,
 	struct nvgpu_mem *ctx_mem)
 {
@@ -190,44 +229,6 @@ void gm20b_ctxsw_prog_set_pc_sampling(struct gk20a *g,
 		nvgpu_safe_cast_bool_to_u32(enable));
 
 	nvgpu_mem_wr(g, ctx_mem, ctxsw_prog_main_image_pm_o(), data);
-}
-
-void gm20b_ctxsw_prog_set_priv_access_map_config_mode(struct gk20a *g,
-	struct nvgpu_mem *ctx_mem, bool allow_all)
-{
-	if (allow_all) {
-		nvgpu_mem_wr(g, ctx_mem,
-			ctxsw_prog_main_image_priv_access_map_config_o(),
-			ctxsw_prog_main_image_priv_access_map_config_mode_allow_all_f());
-	} else {
-		nvgpu_mem_wr(g, ctx_mem,
-			ctxsw_prog_main_image_priv_access_map_config_o(),
-			ctxsw_prog_main_image_priv_access_map_config_mode_use_map_f());
-	}
-}
-
-void gm20b_ctxsw_prog_set_priv_access_map_addr(struct gk20a *g,
-	struct nvgpu_mem *ctx_mem, u64 addr)
-{
-	nvgpu_mem_wr(g, ctx_mem,
-		ctxsw_prog_main_image_priv_access_map_addr_lo_o(),
-		u64_lo32(addr));
-	nvgpu_mem_wr(g, ctx_mem,
-		ctxsw_prog_main_image_priv_access_map_addr_hi_o(),
-		u64_hi32(addr));
-}
-
-void gm20b_ctxsw_prog_disable_verif_features(struct gk20a *g,
-	struct nvgpu_mem *ctx_mem)
-{
-	u32 data;
-
-	data = nvgpu_mem_rd(g, ctx_mem, ctxsw_prog_main_image_misc_options_o());
-
-	data = data & ~ctxsw_prog_main_image_misc_options_verif_features_m();
-	data = data | ctxsw_prog_main_image_misc_options_verif_features_disabled_f();
-
-	nvgpu_mem_wr(g, ctx_mem, ctxsw_prog_main_image_misc_options_o(), data);
 }
 
 bool gm20b_ctxsw_prog_check_main_image_header_magic(u32 *context)
@@ -274,6 +275,7 @@ u32 gm20b_ctxsw_prog_get_local_priv_register_ctl_offset(u32 *context)
 	u32 data = *(context + (ctxsw_prog_local_priv_register_ctl_o() >> 2));
 	return ctxsw_prog_local_priv_register_ctl_offset_v(data);
 }
+#endif /* CONFIG_NVGPU_DEBUGGER */
 
 #ifdef CONFIG_NVGPU_FECS_TRACE
 u32 gm20b_ctxsw_prog_hw_get_ts_tag_invalid_timestamp(void)
