@@ -47,22 +47,21 @@ static inline u32 nvgpu_gr_checksum_u32(u32 a, u32 b)
 struct nvgpu_gr_falcon *nvgpu_gr_get_falcon_ptr(struct gk20a *g);
 struct nvgpu_gr_obj_ctx_golden_image *nvgpu_gr_get_golden_image_ptr(
 							struct gk20a *g);
+struct nvgpu_gr_config *nvgpu_gr_get_config_ptr(struct gk20a *g);
+struct nvgpu_gr_intr *nvgpu_gr_get_intr_ptr(struct gk20a *g);
 #ifdef CONFIG_NVGPU_GRAPHICS
 struct nvgpu_gr_zcull *nvgpu_gr_get_zcull_ptr(struct gk20a *g);
 struct nvgpu_gr_zbc *nvgpu_gr_get_zbc_ptr(struct gk20a *g);
 #endif
-struct nvgpu_gr_config *nvgpu_gr_get_config_ptr(struct gk20a *g);
 #ifdef CONFIG_NVGPU_DEBUGGER
 struct nvgpu_gr_hwpm_map *nvgpu_gr_get_hwpm_map_ptr(struct gk20a *g);
+void nvgpu_gr_reset_falcon_ptr(struct gk20a *g);
+void nvgpu_gr_reset_golden_image_ptr(struct gk20a *g);
 #endif
-struct nvgpu_gr_intr *nvgpu_gr_get_intr_ptr(struct gk20a *g);
 #ifdef CONFIG_NVGPU_FECS_TRACE
 struct nvgpu_gr_global_ctx_buffer_desc *nvgpu_gr_get_global_ctx_buffer_ptr(
 							struct gk20a *g);
 #endif
-
-void nvgpu_gr_reset_falcon_ptr(struct gk20a *g);
-void nvgpu_gr_reset_golden_image_ptr(struct gk20a *g);
 
 /* gr variables */
 u32 nvgpu_gr_get_override_ecc_val(struct gk20a *g);
