@@ -565,6 +565,16 @@
         "unit": "nvgpu_allocator"
     },
     {
+        "test": "init_support",
+        "test_level": 0,
+        "unit": "nvgpu_channel"
+    },
+    {
+        "test": "remove_support",
+        "test_level": 0,
+        "unit": "nvgpu_channel"
+    },
+    {
         "test": "mem_create_from_phys",
         "test_level": 0,
         "unit": "nvgpu_mem"

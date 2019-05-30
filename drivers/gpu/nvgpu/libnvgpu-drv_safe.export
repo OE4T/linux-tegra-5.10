@@ -36,6 +36,7 @@ gv11b_fb_init_hw
 gv11b_fb_is_fault_buf_enabled
 gv11b_fb_intr_is_mmu_fault_pending
 gv11b_gpu_phys_addr
+gv11b_init_hal
 gv11b_mm_is_bar1_supported
 gv11b_mm_init_inst_block
 gv11b_mm_l2_flush
@@ -65,6 +66,7 @@ nvgpu_dma_alloc
 nvgpu_dma_alloc_get_fault_injection
 nvgpu_dma_alloc_vid_at
 nvgpu_dma_free
+nvgpu_fifo_init_support
 nvgpu_free
 nvgpu_free_enabled_flags
 nvgpu_free_fixed
@@ -134,7 +136,9 @@ nvgpu_posix_io_get_error_code
 nvgpu_posix_io_init_reg_space
 nvgpu_posix_io_readl_reg_space
 nvgpu_posix_io_record_access
+nvgpu_posix_io_register_reg_space
 nvgpu_posix_io_start_recorder
+nvgpu_posix_io_unregister_reg_space
 nvgpu_posix_io_writel_reg_space
 nvgpu_posix_is_fault_injection_triggered
 nvgpu_posix_probe
@@ -172,7 +176,9 @@ nvgpu_sgt_ipa_to_pa
 nvgpu_spinlock_acquire
 nvgpu_spinlock_init
 nvgpu_spinlock_release
+nvgpu_userd_init_slabs
 nvgpu_usermode_writel
+nvgpu_vfree_impl
 nvgpu_vm_area_alloc
 nvgpu_vm_area_free
 nvgpu_vm_find_mapped_buf
@@ -180,6 +186,7 @@ nvgpu_vm_init
 nvgpu_vm_map
 nvgpu_vm_put
 nvgpu_vm_unmap
+nvgpu_vzalloc_impl
 nvgpu_writel
 nvgpu_writel_check
 set_bit
