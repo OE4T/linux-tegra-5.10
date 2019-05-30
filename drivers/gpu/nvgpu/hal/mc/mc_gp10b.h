@@ -32,8 +32,7 @@ enum nvgpu_unit;
 
 void mc_gp10b_intr_mask(struct gk20a *g);
 void mc_gp10b_intr_enable(struct gk20a *g);
-void mc_gp10b_intr_unit_config(struct gk20a *g, bool enable,
-		bool is_stalling, u32 mask);
+void mc_gp10b_intr_pmu_unit_config(struct gk20a *g, bool enable);
 void mc_gp10b_isr_stall(struct gk20a *g);
 bool mc_gp10b_is_intr1_pending(struct gk20a *g,
 				      enum nvgpu_unit unit, u32 mc_intr_1);

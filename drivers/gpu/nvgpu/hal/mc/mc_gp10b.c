@@ -70,24 +70,27 @@ void mc_gp10b_intr_enable(struct gk20a *g)
 			g->mc_intr_mask_restore[NVGPU_MC_INTR_NONSTALLING]);
 }
 
-void mc_gp10b_intr_unit_config(struct gk20a *g, bool enable,
-		bool is_stalling, u32 mask)
+void mc_gp10b_intr_pmu_unit_config(struct gk20a *g, bool enable)
 {
-	u32 intr_index = 0U;
 	u32 reg = 0U;
 
-	intr_index = (is_stalling ? NVGPU_MC_INTR_STALLING :
-			NVGPU_MC_INTR_NONSTALLING);
 	if (enable) {
-		reg = mc_intr_en_set_r(intr_index);
-		g->mc_intr_mask_restore[intr_index] |= mask;
+		reg = mc_intr_en_set_r(NVGPU_MC_INTR_STALLING);
+		g->mc_intr_mask_restore[NVGPU_MC_INTR_STALLING] |=
+			mc_intr_pmu_pending_f();
+		nvgpu_writel(g, reg, mc_intr_pmu_pending_f());
 
 	} else {
-		reg = mc_intr_en_clear_r(intr_index);
-		g->mc_intr_mask_restore[intr_index] &= ~mask;
-	}
+		reg = mc_intr_en_clear_r(NVGPU_MC_INTR_STALLING);
+		g->mc_intr_mask_restore[NVGPU_MC_INTR_STALLING] &=
+			~mc_intr_pmu_pending_f();
+		nvgpu_writel(g, reg, mc_intr_pmu_pending_f());
 
-	nvgpu_writel(g, reg, mask);
+		reg = mc_intr_en_clear_r(NVGPU_MC_INTR_NONSTALLING);
+		g->mc_intr_mask_restore[NVGPU_MC_INTR_NONSTALLING] &=
+			~mc_intr_pmu_pending_f();
+		nvgpu_writel(g, reg, mc_intr_pmu_pending_f());
+	}
 }
 
 void mc_gp10b_isr_stall(struct gk20a *g)

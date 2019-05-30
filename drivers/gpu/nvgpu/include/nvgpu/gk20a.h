@@ -1463,8 +1463,8 @@ struct gpu_ops {
 	struct {
 		void (*intr_mask)(struct gk20a *g);
 		void (*intr_enable)(struct gk20a *g);
-		void (*intr_unit_config)(struct gk20a *g,
-				bool enable, bool is_stalling, u32 mask);
+		void (*intr_pmu_unit_config)(struct gk20a *g,
+				bool enable);
 		void (*isr_stall)(struct gk20a *g);
 		bool (*is_intr_hub_pending)(struct gk20a *g, u32 mc_intr);
 		bool (*is_intr_nvlink_pending)(struct gk20a *g, u32 mc_intr);

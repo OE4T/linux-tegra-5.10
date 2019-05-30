@@ -32,7 +32,6 @@
 #include <nvgpu/pmu/pmu_pg.h>
 
 #include <nvgpu/hw/gk20a/hw_pwr_gk20a.h>
-#include <nvgpu/hw/gk20a/hw_mc_gk20a.h>
 
 #include "pmu_gk20a.h"
 
@@ -445,10 +444,7 @@ void gk20a_pmu_enable_irq(struct nvgpu_pmu *pmu, bool enable)
 
 	nvgpu_log_fn(g, " ");
 
-	g->ops.mc.intr_unit_config(g, MC_INTR_UNIT_DISABLE, true,
-			mc_intr_mask_0_pmu_enabled_f());
-	g->ops.mc.intr_unit_config(g, MC_INTR_UNIT_DISABLE, false,
-			mc_intr_mask_1_pmu_enabled_f());
+	g->ops.mc.intr_pmu_unit_config(g, MC_INTR_UNIT_DISABLE);
 
 	nvgpu_falcon_set_irq(pmu->flcn, false, 0x0, 0x0);
 
@@ -466,8 +462,7 @@ void gk20a_pmu_enable_irq(struct nvgpu_pmu *pmu, bool enable)
 
 		nvgpu_falcon_set_irq(pmu->flcn, true, intr_mask, intr_dest);
 
-		g->ops.mc.intr_unit_config(g, MC_INTR_UNIT_ENABLE, true,
-				mc_intr_mask_0_pmu_enabled_f());
+		g->ops.mc.intr_pmu_unit_config(g, MC_INTR_UNIT_ENABLE);
 	}
 
 	nvgpu_log_fn(g, "done");

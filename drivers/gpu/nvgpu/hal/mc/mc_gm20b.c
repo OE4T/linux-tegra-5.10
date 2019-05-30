@@ -156,20 +156,19 @@ void gm20b_mc_intr_enable(struct gk20a *g)
 		mc_intr_en_0_inta_hardware_f());
 }
 
-void gm20b_mc_intr_unit_config(struct gk20a *g, bool enable,
-		bool is_stalling, u32 mask)
+void gm20b_mc_intr_pmu_unit_config(struct gk20a *g, bool enable)
 {
-	u32 mask_reg = (is_stalling ? mc_intr_mask_0_r() :
-					mc_intr_mask_1_r());
-
 	if (enable) {
-		nvgpu_writel(g, mask_reg,
-			nvgpu_readl(g, mask_reg) |
-			mask);
+		nvgpu_writel(g, mc_intr_mask_0_r(),
+			nvgpu_readl(g, mc_intr_mask_0_r()) |
+			mc_intr_mask_0_pmu_enabled_f());
 	} else {
-		nvgpu_writel(g, mask_reg,
-			nvgpu_readl(g, mask_reg) &
-			~mask);
+		nvgpu_writel(g, mc_intr_mask_0_r(),
+			nvgpu_readl(g, mc_intr_mask_0_r()) &
+			~mc_intr_mask_0_pmu_enabled_f());
+		nvgpu_writel(g, mc_intr_mask_1_r(),
+			nvgpu_readl(g, mc_intr_mask_1_r()) &
+			~mc_intr_mask_1_pmu_enabled_f());
 	}
 }
 
