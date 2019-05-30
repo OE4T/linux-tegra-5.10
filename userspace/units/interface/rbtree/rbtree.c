@@ -37,7 +37,7 @@
  *   to maximize code coverage by ensuring that all corner cases are hit
  */
 #define INITIAL_ELEMENTS 10
-#define RANGE_SIZE 10
+#define RANGE_SIZE 10U
 
 /*
  * Sample tree used throughout this unit. Node values below are key_start.
@@ -56,7 +56,6 @@
 #define DUPLICATE_VALUE 300
 u64 initial_key_start[] = {50, 30, 80, 100, 170, 10, 200, DUPLICATE_VALUE,
 	DUPLICATE_VALUE, 120};
-
 
 /*
  * The following key value should not exist or cover a range from the keys
@@ -184,7 +183,8 @@ static int fill_test_tree(struct unit_module *m,
 /*
  * Helper function to free the test nodes of the tree.
  */
-static int free_test_tree(struct unit_module *m, struct nvgpu_rbtree_node *root)
+static void free_test_tree(struct unit_module *m,
+				struct nvgpu_rbtree_node *root)
 {
 	int i;
 
@@ -192,8 +192,6 @@ static int free_test_tree(struct unit_module *m, struct nvgpu_rbtree_node *root)
 		free(elements[i]);
 	}
 	/* No need to explicitly free the root as it was one of the elements */
-
-	return UNIT_SUCCESS;
 }
 
 /*
@@ -406,7 +404,7 @@ static int test_enum(struct unit_module *m, struct gk20a *g, void *args)
 	/* If the key_start does not exist, enum should return a NULL node */
 	nvgpu_rbtree_enum_start(INVALID_KEY_START, &node, root);
 	if (node != NULL) {
-		unit_err(m, "Enum did not fail as expected (wrong key_start\n");
+		unit_err(m, "Enum did not fail as expected: wrong key_start\n");
 		goto cleanup;
 	}
 
@@ -507,6 +505,120 @@ cleanup:
 	return status;
 }
 
+/*
+ * Test corner cases in nvgpu_rbtree_unlink (and delete_fixup) to increase
+ * branch and line coverage.
+ */
+static int test_unlink_corner_cases(struct unit_module *m, struct gk20a *g,
+	void *args)
+{
+	struct nvgpu_rbtree_node *root = NULL;
+	u64 more_key_start[] = {0x1000, 0x61000, 0x79000, 0x7d000, 0x7f000,
+		0x80000, 0x91000, 0x81000, 0x71000, 0x99000, 0x9d000, 0xa0000,
+		0x500, 0x600, 0x700, 0x800, 0x900, 0xa000, 0xb000, 0xc000,
+		0xd000, 0xe000, 0xf000};
+	u64 num_elems = sizeof(more_key_start) / sizeof(u64);
+	struct nvgpu_rbtree_node **more_elements =
+		malloc(sizeof(struct nvgpu_rbtree_node *)*num_elems);
+	u64 i;
+
+	fill_test_tree(m, &root);
+
+	/*
+	 * Add extra nodes to create a much more complicated tree that will
+	 * allow targeting specific conditions when unlinking those nodes.
+	 * Even though the unlinking of some of those nodes have no direct
+	 * impact on line or branch coverage, their presence is needed to create
+	 * the corner cases we need.
+	 */
+
+	for (i = 0; i < num_elems; i++) {
+		more_elements[i] = (struct nvgpu_rbtree_node *)
+				malloc(sizeof(struct nvgpu_rbtree_node));
+		more_elements[i]->key_start = more_key_start[i];
+		more_elements[i]->key_end = more_key_start[i]+RANGE_SIZE;
+		nvgpu_rbtree_insert(more_elements[i], &root);
+	}
+
+	/* No impact on coverage */
+	nvgpu_rbtree_unlink(more_elements[0], &root);
+
+	/*
+	 * Targets some conditions when removing a node on the left and the
+	 * right needs to become red.
+	 */
+	nvgpu_rbtree_unlink(more_elements[1], &root);
+
+	/* No impact on coverage */
+	nvgpu_rbtree_unlink(more_elements[2], &root);
+
+	/*
+	 * Targets some conditions when removing a node on the left and the
+	 * right is NULL.
+	 */
+	nvgpu_rbtree_unlink(more_elements[3], &root);
+
+	/* No impact on coverage */
+	nvgpu_rbtree_unlink(more_elements[4], &root);
+
+	/*
+	 * Targets some conditions when removing a node on the left and the
+	 * right node is red. This requires rotating the tree to the left.
+	 */
+	nvgpu_rbtree_unlink(more_elements[5], &root);
+
+	/* No impact on coverage */
+	nvgpu_rbtree_unlink(more_elements[6], &root);
+	nvgpu_rbtree_unlink(more_elements[7], &root);
+
+	/*
+	 * Targets statements in the link rebuilding of the rotate_left
+	 * function. Also targets some conditions when removing a node on the
+	 * right and the left needs to become black.
+	 */
+	nvgpu_rbtree_unlink(more_elements[8], &root);
+
+	/*
+	 * Targets statements in the link rebuilding of nvgpu_rbtree_unlink
+	 */
+	nvgpu_rbtree_unlink(more_elements[9], &root);
+
+	/* No impact on coverage */
+	nvgpu_rbtree_unlink(more_elements[10], &root);
+	nvgpu_rbtree_unlink(more_elements[11], &root);
+	nvgpu_rbtree_unlink(more_elements[12], &root);
+	nvgpu_rbtree_unlink(more_elements[13], &root);
+	nvgpu_rbtree_unlink(more_elements[14], &root);
+	nvgpu_rbtree_unlink(more_elements[15], &root);
+	nvgpu_rbtree_unlink(more_elements[16], &root);
+	nvgpu_rbtree_unlink(more_elements[17], &root);
+
+	/*
+	 * Targets statements in the link rebuilding of delete_fixup (right
+	 * sibling of deleted node is black or has a right sentinel)
+	 */
+	nvgpu_rbtree_unlink(more_elements[18], &root);
+
+	/*
+	 * Targets statement in the rotate_left function (the rotated node
+	 * becomes the root of the tree)
+	 */
+	nvgpu_rbtree_unlink(more_elements[19], &root);
+
+	/* No impact on coverage */
+	nvgpu_rbtree_unlink(more_elements[20], &root);
+	nvgpu_rbtree_unlink(more_elements[21], &root);
+	nvgpu_rbtree_unlink(more_elements[22], &root);
+
+	free_test_tree(m, root);
+	for (i = 0; i < num_elems; i++) {
+		free(more_elements[i]);
+	}
+	free(more_elements);
+
+	return UNIT_SUCCESS;
+}
+
 struct unit_module_test interface_rbtree_tests[] = {
 	UNIT_TEST(insert, test_insert, NULL, 0),
 	UNIT_TEST(search, test_search, NULL, 0),
@@ -514,6 +626,7 @@ struct unit_module_test interface_rbtree_tests[] = {
 	UNIT_TEST(enum, test_enum, NULL, 0),
 	UNIT_TEST(enum_next, test_enum_next, NULL, 0),
 	UNIT_TEST(search_less_than, test_search_less, NULL, 0),
+	UNIT_TEST(unlink_corner_cases, test_unlink_corner_cases, NULL, 0),
 };
 
 UNIT_MODULE(interface_rbtree, interface_rbtree_tests, UNIT_PRIO_NVGPU_TEST);
