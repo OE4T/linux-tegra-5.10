@@ -84,12 +84,39 @@ static inline u64 nvgpu_safe_mult_u64(u64 ul_a, u64 ul_b)
 	}
 }
 
+static inline u16 nvgpu_safe_cast_u64_to_u16(u64 ul_a)
+{
+	if (ul_a > USHRT_MAX) {
+		BUG();
+	} else {
+		return (u16)ul_a;
+	}
+}
+
 static inline u32 nvgpu_safe_cast_u64_to_u32(u64 ul_a)
 {
 	if (ul_a > UINT_MAX) {
 		BUG();
 	} else {
 		return (u32)ul_a;
+	}
+}
+
+static inline u32 nvgpu_safe_cast_s64_to_u32(s64 l_a)
+{
+	if ((l_a < 0) || (l_a > UINT_MAX)) {
+		BUG();
+	} else {
+		return (u32)l_a;
+	}
+}
+
+static inline u64 nvgpu_safe_cast_s64_to_u64(s64 l_a)
+{
+	if (l_a < 0) {
+		BUG();
+	} else {
+		return (u64)l_a;
 	}
 }
 
@@ -115,4 +142,23 @@ static inline u32 nvgpu_safe_cast_s32_to_u32(s32 si_a)
 		return (u32)si_a;
 	}
 }
+
+static inline u16 nvgpu_safe_cast_u32_to_u16(u32 ui_a)
+{
+	if (ui_a > USHRT_MAX) {
+		BUG();
+	} else {
+		return (u16)ui_a;
+	}
+}
+
+static inline s32 nvgpu_safe_cast_u32_to_s32(u32 ui_a)
+{
+	if (ui_a > INT_MAX) {
+		BUG();
+	} else {
+		return (s32)ui_a;
+	}
+}
+
 #endif /* NVGPU_SAFE_OPS_H */
