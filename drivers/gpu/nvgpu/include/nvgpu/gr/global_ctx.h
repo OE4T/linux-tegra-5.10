@@ -88,7 +88,8 @@ void nvgpu_gr_global_ctx_load_local_golden_image(struct gk20a *g,
 	struct nvgpu_mem *target_mem);
 void nvgpu_gr_global_ctx_deinit_local_golden_image(struct gk20a *g,
 	struct nvgpu_gr_global_ctx_local_golden_image *local_golden_image);
+#ifdef CONFIG_NVGPU_DEBUGGER
 u32 *nvgpu_gr_global_ctx_get_local_golden_image_ptr(
 	struct nvgpu_gr_global_ctx_local_golden_image *local_golden_image);
-
+#endif
 #endif /* NVGPU_GR_GLOBAL_CTX_H */

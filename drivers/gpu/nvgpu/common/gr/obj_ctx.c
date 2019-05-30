@@ -680,12 +680,14 @@ size_t nvgpu_gr_obj_ctx_get_golden_image_size(
 	return golden_image->size;
 }
 
+#ifdef CONFIG_NVGPU_DEBUGGER
 u32 *nvgpu_gr_obj_ctx_get_local_golden_image_ptr(
 	struct nvgpu_gr_obj_ctx_golden_image *golden_image)
 {
 	return nvgpu_gr_global_ctx_get_local_golden_image_ptr(
 			golden_image->local_golden_image);
 }
+#endif
 
 bool nvgpu_gr_obj_ctx_is_golden_image_ready(
 	struct nvgpu_gr_obj_ctx_golden_image *golden_image)
