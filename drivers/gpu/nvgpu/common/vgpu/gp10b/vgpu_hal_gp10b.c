@@ -177,7 +177,6 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 		.set_debug_mode = gm20b_gr_set_debug_mode,
 		.set_mmu_debug_mode = NULL,
 		.reset = NULL,
-		.halt_pipe = NULL,
 		.disable_ctxsw = nvgpu_gr_disable_ctxsw,
 		.enable_ctxsw = nvgpu_gr_enable_ctxsw,
 		.ctxsw_prog = {

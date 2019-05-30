@@ -387,7 +387,6 @@ struct gpu_ops {
 		int (*reset)(struct gk20a *g);
 		bool (*esr_bpt_pending_events)(u32 global_esr,
 					enum nvgpu_event_id_type bpt_event);
-		int (*halt_pipe)(struct gk20a *g);
 		int (*disable_ctxsw)(struct gk20a *g);
 		int (*enable_ctxsw)(struct gk20a *g);
 		struct {

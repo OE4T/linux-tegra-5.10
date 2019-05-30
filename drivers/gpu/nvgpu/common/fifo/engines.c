@@ -550,17 +550,23 @@ void nvgpu_engine_reset(struct gk20a *g, u32 engine_id)
 		}
 #endif
 		if (!nvgpu_platform_is_simulation(g)) {
+			int err = 0;
+
 			/*HALT_PIPELINE method, halt GR engine*/
-			if (g->ops.gr.halt_pipe(g) != 0) {
+			err = g->ops.gr.falcon.ctrl_ctxsw(g,
+				NVGPU_GR_FALCON_METHOD_HALT_PIPELINE, 0U, NULL);
+			if (err != 0) {
 				nvgpu_err(g, "failed to halt gr pipe");
 			}
+
 			/*
 			 * resetting engine using mc_enable_r() is not
 			 * enough, we do full init sequence
 			 */
 			nvgpu_log(g, gpu_dbg_info, "resetting gr engine");
 
-			if (g->ops.gr.reset(g) != 0) {
+			err = g->ops.gr.reset(g);
+			if (err != 0) {
 				nvgpu_err(g, "failed to reset gr engine");
 			}
 		} else {

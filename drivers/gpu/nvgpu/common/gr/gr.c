@@ -791,12 +791,6 @@ ctxsw_already_enabled:
 	return err;
 }
 
-int nvgpu_gr_halt_pipe(struct gk20a *g)
-{
-	return g->ops.gr.falcon.ctrl_ctxsw(g,
-				NVGPU_GR_FALCON_METHOD_HALT_PIPELINE, 0U, NULL);
-}
-
 void nvgpu_gr_remove_support(struct gk20a *g)
 {
 	if (g->gr->remove_support != NULL) {

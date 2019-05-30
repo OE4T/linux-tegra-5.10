@@ -323,7 +323,6 @@ static const struct gpu_ops tu104_ops = {
 		.set_debug_mode = gm20b_gr_set_debug_mode,
 		.reset = nvgpu_gr_reset,
 		.esr_bpt_pending_events = gv11b_gr_esr_bpt_pending_events,
-		.halt_pipe = nvgpu_gr_halt_pipe,
 		.disable_ctxsw = nvgpu_gr_disable_ctxsw,
 		.enable_ctxsw = nvgpu_gr_enable_ctxsw,
 		.ecc = {
