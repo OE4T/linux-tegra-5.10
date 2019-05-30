@@ -29,11 +29,6 @@
 
 #include <nvgpu/hw/gp106/hw_pwr_gp106.h>
 
-bool gp106_is_pmu_supported(struct gk20a *g)
-{
-	return true;
-}
-
 bool gp106_pmu_is_engine_in_reset(struct gk20a *g)
 {
 	u32 reg_reset;
@@ -66,7 +61,7 @@ int gp106_pmu_engine_reset(struct gk20a *g, bool do_reset)
 
 	return 0;
 }
-
+#ifdef NVGPU_LS_PMU
 void gp106_pmu_setup_apertures(struct gk20a *g)
 {
 	struct mm_gk20a *mm = &g->mm;
@@ -108,3 +103,9 @@ u32 gp106_pmu_falcon_base_addr(void)
 {
 	return pwr_falcon_irqsset_r();
 }
+
+bool gp106_is_pmu_supported(struct gk20a *g)
+{
+	return true;
+}
+#endif

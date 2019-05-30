@@ -707,6 +707,7 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 		.init_blcg_mode = NULL,
 		.elcg_init_idle_filters = NULL,
 	},
+#ifdef NVGPU_LS_PMU
 	.pmu = {
 		.pmu_setup_elpg = NULL,
 		.pmu_get_queue_head = NULL,
@@ -738,6 +739,7 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 		.pmu_ns_bootstrap = NULL,
 		.is_pmu_supported = NULL,
 	},
+#endif
 	.clk_arb = {
 		.check_clk_arb_support = gp10b_check_clk_arb_support,
 		.get_arbiter_clk_domains = gp10b_get_arbiter_clk_domains,
@@ -890,7 +892,9 @@ int vgpu_gv11b_init_hal(struct gk20a *g)
 	gops->netlist = vgpu_gv11b_ops.netlist;
 	gops->mm = vgpu_gv11b_ops.mm;
 	gops->therm = vgpu_gv11b_ops.therm;
+#ifdef NVGPU_LS_PMU
 	gops->pmu = vgpu_gv11b_ops.pmu;
+#endif
 	gops->clk_arb = vgpu_gv11b_ops.clk_arb;
 	gops->regops = vgpu_gv11b_ops.regops;
 	gops->mc = vgpu_gv11b_ops.mc;

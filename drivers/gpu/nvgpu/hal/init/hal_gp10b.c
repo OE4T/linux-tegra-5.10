@@ -863,9 +863,12 @@ static const struct gpu_ops gp10b_ops = {
 		.init_blcg_mode = gm20b_therm_init_blcg_mode,
 		.elcg_init_idle_filters = gp10b_elcg_init_idle_filters,
 	},
+#ifdef NVGPU_LS_PMU
 	.pmu = {
 		.is_pmu_supported = gp10b_is_pmu_supported,
 		.falcon_base_addr = gk20a_pmu_falcon_base_addr,
+		.setup_apertures = gm20b_pmu_setup_apertures,
+		.secured_pmu_start = gm20b_secured_pmu_start,
 		.pmu_setup_elpg = gp10b_pmu_setup_elpg,
 		.pmu_get_queue_head = pwr_pmu_queue_head_r,
 		.pmu_get_queue_head_size = pwr_pmu_queue_head__size_1_v,
@@ -900,7 +903,9 @@ static const struct gpu_ops gp10b_ops = {
 			gm20b_clear_pmu_bar0_host_err_status,
 		.bar0_error_status = gk20a_pmu_bar0_error_status,
 		.flcn_setup_boot_config = gm20b_pmu_flcn_setup_boot_config,
+		.pmu_ns_bootstrap = gk20a_pmu_ns_bootstrap,
 	},
+#endif
 	.clk_arb = {
 		.check_clk_arb_support = gp10b_check_clk_arb_support,
 		.get_arbiter_clk_domains = gp10b_get_arbiter_clk_domains,
@@ -1101,7 +1106,9 @@ int gp10b_init_hal(struct gk20a *g)
 	gops->netlist = gp10b_ops.netlist;
 	gops->mm = gp10b_ops.mm;
 	gops->therm = gp10b_ops.therm;
+#ifdef NVGPU_LS_PMU
 	gops->pmu = gp10b_ops.pmu;
+#endif
 	gops->clk_arb = gp10b_ops.clk_arb;
 	gops->regops = gp10b_ops.regops;
 	gops->mc = gp10b_ops.mc;
@@ -1143,17 +1150,14 @@ int gp10b_init_hal(struct gk20a *g)
 
 	/* priv security dependent ops */
 	if (nvgpu_is_enabled(g, NVGPU_SEC_PRIVSECURITY)) {
-		/* Add in ops from gm20b acr */
-		gops->pmu.setup_apertures = gm20b_pmu_setup_apertures;
-		gops->pmu.secured_pmu_start = gm20b_secured_pmu_start;
-
 		gops->gr.falcon.load_ctxsw_ucode =
 			nvgpu_gr_falcon_load_secure_ctxsw_ucode;
 	} else {
 		/* Inherit from gk20a */
+#ifdef NVGPU_LS_PMU
 		gops->pmu.setup_apertures =
 				gm20b_pmu_ns_setup_apertures;
-		gops->pmu.pmu_ns_bootstrap = gk20a_pmu_ns_bootstrap;
+#endif
 	}
 
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_ZBC_STENCIL, false);

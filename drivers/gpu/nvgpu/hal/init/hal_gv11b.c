@@ -1005,18 +1005,22 @@ static const struct gpu_ops gv11b_ops = {
 		 */
 		/* Basic init ops */
 		.is_pmu_supported = gv11b_is_pmu_supported,
-		.falcon_base_addr = gk20a_pmu_falcon_base_addr,
+		.falcon_base_addr = gv11b_pmu_falcon_base_addr,
 		.pmu_reset = nvgpu_pmu_reset,
 		.reset_engine = gp106_pmu_engine_reset,
 		.is_engine_in_reset = gp106_pmu_is_engine_in_reset,
-		.is_debug_mode_enabled = gm20b_pmu_is_debug_mode_en,
+		.is_debug_mode_enabled = gv11b_pmu_is_debug_mode_en,
 		.setup_apertures = gv11b_setup_apertures,
-		.secured_pmu_start = gm20b_secured_pmu_start,
-		.write_dmatrfbase = gp10b_write_dmatrfbase,
-		/* ISR */
-		.pmu_enable_irq = gk20a_pmu_enable_irq,
+		.secured_pmu_start = gv11b_secured_pmu_start,
+		.write_dmatrfbase = gv11b_write_dmatrfbase,
+		.flcn_setup_boot_config = gv11b_pmu_flcn_setup_boot_config,
+		.pmu_clear_bar0_host_err_status =
+			gv11b_clear_pmu_bar0_host_err_status,
+		.bar0_error_status = gv11b_pmu_bar0_error_status,
 		.validate_mem_integrity = gv11b_pmu_validate_mem_integrity,
 #ifdef NVGPU_LS_PMU
+		/* ISR */
+		.pmu_enable_irq = gk20a_pmu_enable_irq,
 		.get_irqdest = gv11b_pmu_get_irqdest,
 		.handle_ext_irq = gv11b_pmu_handle_ext_irq,
 		.pmu_is_interrupted = gk20a_pmu_is_interrupted,
@@ -1048,10 +1052,7 @@ static const struct gpu_ops gv11b_ops = {
 		.dump_secure_fuses = pmu_dump_security_fuses_gm20b,
 		.pmu_dump_falcon_stats = gk20a_pmu_dump_falcon_stats,
 		/* PMU ucode */
-		.pmu_clear_bar0_host_err_status =
-			gm20b_clear_pmu_bar0_host_err_status,
-		.bar0_error_status = gk20a_pmu_bar0_error_status,
-		.flcn_setup_boot_config = gm20b_pmu_flcn_setup_boot_config,
+		.pmu_ns_bootstrap = gv11b_pmu_bootstrap,
 #endif
 	},
 	.clk_arb = {
@@ -1298,10 +1299,11 @@ int gv11b_init_hal(struct gk20a *g)
 		gops->gr.falcon.load_ctxsw_ucode =
 			nvgpu_gr_falcon_load_secure_ctxsw_ucode;
 	} else {
+#ifdef NVGPU_LS_PMU
 		/* non-secure boot */
-		gops->pmu.pmu_ns_bootstrap = gv11b_pmu_bootstrap;
 		gops->pmu.setup_apertures =
 			gm20b_pmu_ns_setup_apertures;
+#endif
 	}
 
 	nvgpu_set_enabled(g, NVGPU_PMU_FECS_BOOTSTRAP_DONE, false);

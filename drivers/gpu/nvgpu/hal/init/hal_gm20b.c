@@ -784,15 +784,22 @@ static const struct gpu_ops gm20b_ops = {
 		.idle_slowdown_enable = gm20b_therm_idle_slowdown_enable,
 		.idle_slowdown_disable = gm20b_therm_idle_slowdown_disable,
 	},
+#ifdef NVGPU_LS_PMU
 	.pmu = {
 		.is_pmu_supported = gm20b_is_pmu_supported,
 		.falcon_base_addr = gk20a_pmu_falcon_base_addr,
+		.pmu_reset = nvgpu_pmu_reset,
+		.reset_engine = gk20a_pmu_engine_reset,
+		.is_engine_in_reset = gk20a_pmu_is_engine_in_reset,
+		.is_debug_mode_enabled = gm20b_pmu_is_debug_mode_en,
+		.write_dmatrfbase = gm20b_write_dmatrfbase,
+		.flcn_setup_boot_config = gm20b_pmu_flcn_setup_boot_config,
+		.pmu_enable_irq = gk20a_pmu_enable_irq,
 		.pmu_setup_elpg = gm20b_pmu_setup_elpg,
 		.pmu_get_queue_head = pwr_pmu_queue_head_r,
 		.pmu_get_queue_head_size = pwr_pmu_queue_head__size_1_v,
 		.pmu_get_queue_tail = pwr_pmu_queue_tail_r,
 		.pmu_get_queue_tail_size = pwr_pmu_queue_tail__size_1_v,
-		.pmu_reset = nvgpu_pmu_reset,
 		.pmu_queue_head = gk20a_pmu_queue_head,
 		.pmu_queue_tail = gk20a_pmu_queue_tail,
 		.pmu_msgq_tail = gk20a_pmu_msgq_tail,
@@ -810,18 +817,16 @@ static const struct gpu_ops gm20b_ops = {
 		.pmu_clear_idle_intr_status = gk20a_pmu_clear_idle_intr_status,
 		.pmu_dump_elpg_stats = gk20a_pmu_dump_elpg_stats,
 		.pmu_dump_falcon_stats = gk20a_pmu_dump_falcon_stats,
-		.pmu_enable_irq = gk20a_pmu_enable_irq,
-		.write_dmatrfbase = gm20b_write_dmatrfbase,
 		.dump_secure_fuses = pmu_dump_security_fuses_gm20b,
-		.reset_engine = gk20a_pmu_engine_reset,
-		.is_engine_in_reset = gk20a_pmu_is_engine_in_reset,
 		.get_irqdest = gk20a_pmu_get_irqdest,
-		.is_debug_mode_enabled = gm20b_pmu_is_debug_mode_en,
 		.pmu_clear_bar0_host_err_status =
 			gm20b_clear_pmu_bar0_host_err_status,
 		.bar0_error_status = gk20a_pmu_bar0_error_status,
-		.flcn_setup_boot_config = gm20b_pmu_flcn_setup_boot_config,
+		.pmu_ns_bootstrap = gk20a_pmu_ns_bootstrap,
+		.setup_apertures = gm20b_pmu_setup_apertures,
+		.secured_pmu_start = gm20b_secured_pmu_start,
 	},
+#endif
 	.clk = {
 		.init_clk_support = gm20b_init_clk_support,
 		.suspend_clk_support = gm20b_suspend_clk_support,
@@ -1013,7 +1018,9 @@ int gm20b_init_hal(struct gk20a *g)
 	gops->netlist = gm20b_ops.netlist;
 	gops->mm = gm20b_ops.mm;
 	gops->therm = gm20b_ops.therm;
+#ifdef NVGPU_LS_PMU
 	gops->pmu = gm20b_ops.pmu;
+#endif
 	/*
 	 * clk must be assigned member by member
 	 * since some clk ops are assigned during probe prior to HAL init
@@ -1067,16 +1074,14 @@ int gm20b_init_hal(struct gk20a *g)
 	/* priv security dependent ops */
 	if (nvgpu_is_enabled(g, NVGPU_SEC_PRIVSECURITY)) {
 		/* Add in ops from gm20b acr */
-		gops->pmu.setup_apertures = gm20b_pmu_setup_apertures;
-		gops->pmu.secured_pmu_start = gm20b_secured_pmu_start;
-
 		gops->gr.falcon.load_ctxsw_ucode =
 			nvgpu_gr_falcon_load_secure_ctxsw_ucode;
 	} else {
 		/* Inherit from gk20a */
+#ifdef NVGPU_LS_PMU
 		gops->pmu.setup_apertures =
 				gm20b_pmu_ns_setup_apertures;
-		gops->pmu.pmu_ns_bootstrap = gk20a_pmu_ns_bootstrap;
+#endif
 	}
 
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_ZBC_STENCIL, false);

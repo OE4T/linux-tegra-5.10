@@ -1060,6 +1060,7 @@ static const struct gpu_ops tu104_ops = {
 		.get_internal_sensor_limits =
 			gp106_get_internal_sensor_limits,
 	},
+#ifdef NVGPU_LS_PMU
 	.pmu = {
 		.falcon_base_addr = gp106_pmu_falcon_base_addr,
 		.pmu_queue_tail = gk20a_pmu_queue_tail,
@@ -1098,6 +1099,7 @@ static const struct gpu_ops tu104_ops = {
 		.pmu_clear_bar0_host_err_status =
 			gm20b_clear_pmu_bar0_host_err_status,
 	},
+#endif
 	.clk = {
 		.init_clk_support = gv100_init_clk_support,
 		.get_crystal_clk_hz = gv100_crystal_clk_hz,
@@ -1409,7 +1411,9 @@ int tu104_init_hal(struct gk20a *g)
 	gops->netlist = tu104_ops.netlist;
 	gops->mm = tu104_ops.mm;
 	gops->therm = tu104_ops.therm;
+#ifdef NVGPU_LS_PMU
 	gops->pmu = tu104_ops.pmu;
+#endif
 	gops->regops = tu104_ops.regops;
 	gops->mc = tu104_ops.mc;
 	gops->debug = tu104_ops.debug;

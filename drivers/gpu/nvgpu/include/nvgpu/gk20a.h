@@ -1329,6 +1329,15 @@ struct gpu_ops {
 		bool (*is_debug_mode_enabled)(struct gk20a *g);
 		void (*secured_pmu_start)(struct gk20a *g);
 		void (*flcn_setup_boot_config)(struct gk20a *g);
+		bool (*validate_mem_integrity)(struct gk20a *g);
+#ifdef NVGPU_LS_PMU
+		/* ISR */
+		void (*pmu_enable_irq)(struct nvgpu_pmu *pmu, bool enable);
+		bool (*pmu_is_interrupted)(struct nvgpu_pmu *pmu);
+		void (*pmu_isr)(struct gk20a *g);
+		void (*set_irqmask)(struct gk20a *g);
+		u32 (*get_irqdest)(struct gk20a *g);
+		void (*handle_ext_irq)(struct gk20a *g, u32 intr);
 		/* non-secure */
 		int (*pmu_ns_bootstrap)(struct gk20a *g, struct nvgpu_pmu *pmu,
 			u32 args_offset);
@@ -1353,14 +1362,6 @@ struct gpu_ops {
 		void (*pmu_mutex_release)(struct gk20a *g,
 			struct pmu_mutexes *mutexes, u32 id,
 			u32 *token);
-		/* ISR */
-		bool (*pmu_is_interrupted)(struct nvgpu_pmu *pmu);
-		void (*pmu_isr)(struct gk20a *g);
-		void (*set_irqmask)(struct gk20a *g);
-		u32 (*get_irqdest)(struct gk20a *g);
-		void (*pmu_enable_irq)(struct nvgpu_pmu *pmu, bool enable);
-		bool (*validate_mem_integrity)(struct gk20a *g);
-		void (*handle_ext_irq)(struct gk20a *g, u32 intr);
 		/* perfmon */
 		void (*pmu_init_perfmon_counter)(struct gk20a *g);
 		void (*pmu_pg_idle_counter_config)(struct gk20a *g, u32 pg_engine_id);
@@ -1370,17 +1371,14 @@ struct gpu_ops {
 		void (*pmu_reset_idle_counter)(struct gk20a *g, u32 counter_id);
 		/* PG */
 		void (*pmu_setup_elpg)(struct gk20a *g);
-		void (*pmu_clear_bar0_host_err_status)(struct gk20a *g);
-		int (*bar0_error_status)(struct gk20a *g, u32 *bar0_status,
-			u32 *etype);
 		/* debug */
 		void (*pmu_dump_elpg_stats)(struct nvgpu_pmu *pmu);
 		void (*pmu_dump_falcon_stats)(struct nvgpu_pmu *pmu);
 		void (*dump_secure_fuses)(struct gk20a *g);
-		/*
-		 * PMU RTOS FW version ops, should move under struct nvgpu_pmu's
-		 * pg/perfmon unit struct ops
-		 */
+#endif
+		void (*pmu_clear_bar0_host_err_status)(struct gk20a *g);
+		int (*bar0_error_status)(struct gk20a *g, u32 *bar0_status,
+			u32 *etype);
 	} pmu;
 	struct {
 		int (*init_debugfs)(struct gk20a *g);
