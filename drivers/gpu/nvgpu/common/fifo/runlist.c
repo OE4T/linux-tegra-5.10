@@ -452,7 +452,7 @@ int nvgpu_runlist_reschedule(struct nvgpu_channel *ch, bool preempt_next,
 {
 	struct gk20a *g = ch->g;
 	struct nvgpu_runlist_info *runlist;
-#ifdef NVGPU_LS_PMU
+#ifdef NVGPU_FEATURE_LS_PMU
 	u32 token = PMU_INVALID_MUTEX_OWNER_ID;
 	int mutex_ret = 0;
 #endif
@@ -462,7 +462,7 @@ int nvgpu_runlist_reschedule(struct nvgpu_channel *ch, bool preempt_next,
 	if (nvgpu_mutex_tryacquire(&runlist->runlist_lock) == 0) {
 		return -EBUSY;
 	}
-#ifdef NVGPU_LS_PMU
+#ifdef NVGPU_FEATURE_LS_PMU
 	mutex_ret = nvgpu_pmu_lock_acquire(
 		g, g->pmu, PMU_MUTEX_ID_FIFO, &token);
 #endif
@@ -481,7 +481,7 @@ int nvgpu_runlist_reschedule(struct nvgpu_channel *ch, bool preempt_next,
 		nvgpu_err(g, "wait pending failed for runlist %u",
 				ch->runlist_id);
 	}
-#ifdef NVGPU_LS_PMU
+#ifdef NVGPU_FEATURE_LS_PMU
 	if (mutex_ret == 0) {
 		if (nvgpu_pmu_lock_release(g, g->pmu,
 				PMU_MUTEX_ID_FIFO, &token) != 0) {
@@ -505,7 +505,7 @@ static int nvgpu_runlist_update(struct gk20a *g, u32 runlist_id,
 {
 	struct nvgpu_runlist_info *runlist = NULL;
 	struct nvgpu_fifo *f = &g->fifo;
-#ifdef NVGPU_LS_PMU
+#ifdef NVGPU_FEATURE_LS_PMU
 	u32 token = PMU_INVALID_MUTEX_OWNER_ID;
 	int mutex_ret = 0;
 #endif
@@ -516,13 +516,13 @@ static int nvgpu_runlist_update(struct gk20a *g, u32 runlist_id,
 	runlist = f->runlist_info[runlist_id];
 
 	nvgpu_mutex_acquire(&runlist->runlist_lock);
-#ifdef NVGPU_LS_PMU
+#ifdef NVGPU_FEATURE_LS_PMU
 	mutex_ret = nvgpu_pmu_lock_acquire(g, g->pmu,
 		PMU_MUTEX_ID_FIFO, &token);
 #endif
 	ret = nvgpu_runlist_update_locked(g, runlist_id, ch, add,
 					       wait_for_finish);
-#ifdef NVGPU_LS_PMU
+#ifdef NVGPU_FEATURE_LS_PMU
 	if (mutex_ret == 0) {
 		if (nvgpu_pmu_lock_release(g, g->pmu,
 				PMU_MUTEX_ID_FIFO, &token) != 0) {
@@ -608,19 +608,19 @@ const char *nvgpu_runlist_interleave_level_name(u32 interleave_level)
 void nvgpu_fifo_runlist_set_state(struct gk20a *g, u32 runlists_mask,
 		u32 runlist_state)
 {
-#ifdef NVGPU_LS_PMU
+#ifdef NVGPU_FEATURE_LS_PMU
 	u32 token = PMU_INVALID_MUTEX_OWNER_ID;
 	int mutex_ret = 0;
 #endif
 	nvgpu_log(g, gpu_dbg_info, "runlist mask = 0x%08x state = 0x%08x",
 			runlists_mask, runlist_state);
 
-#ifdef NVGPU_LS_PMU
+#ifdef NVGPU_FEATURE_LS_PMU
 	mutex_ret = nvgpu_pmu_lock_acquire(g, g->pmu,
 		PMU_MUTEX_ID_FIFO, &token);
 #endif
 	g->ops.runlist.write_state(g, runlists_mask, runlist_state);
-#ifdef NVGPU_LS_PMU
+#ifdef NVGPU_FEATURE_LS_PMU
 	if (mutex_ret == 0) {
 		if (nvgpu_pmu_lock_release(g, g->pmu,
 				PMU_MUTEX_ID_FIFO, &token) != 0) {

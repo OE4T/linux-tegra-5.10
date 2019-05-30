@@ -617,7 +617,7 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 		.init_blcg_mode = NULL,
 		.elcg_init_idle_filters = NULL,
 	},
-#ifdef NVGPU_LS_PMU
+#ifdef NVGPU_FEATURE_LS_PMU
 	.pmu = {
 		.pmu_setup_elpg = NULL,
 		.pmu_get_queue_head = NULL,
@@ -800,7 +800,7 @@ int vgpu_gp10b_init_hal(struct gk20a *g)
 	gops->mm = vgpu_gp10b_ops.mm;
 	gops->pramin = vgpu_gp10b_ops.pramin;
 	gops->therm = vgpu_gp10b_ops.therm;
-#ifdef NVGPU_LS_PMU
+#ifdef NVGPU_FEATURE_LS_PMU
 	gops->pmu = vgpu_gp10b_ops.pmu;
 #endif
 	gops->clk_arb = vgpu_gp10b_ops.clk_arb;

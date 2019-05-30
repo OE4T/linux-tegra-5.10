@@ -784,7 +784,7 @@ static const struct gpu_ops gm20b_ops = {
 		.idle_slowdown_enable = gm20b_therm_idle_slowdown_enable,
 		.idle_slowdown_disable = gm20b_therm_idle_slowdown_disable,
 	},
-#ifdef NVGPU_LS_PMU
+#ifdef NVGPU_FEATURE_LS_PMU
 	.pmu = {
 		.is_pmu_supported = gm20b_is_pmu_supported,
 		.falcon_base_addr = gk20a_pmu_falcon_base_addr,
@@ -1018,7 +1018,7 @@ int gm20b_init_hal(struct gk20a *g)
 	gops->netlist = gm20b_ops.netlist;
 	gops->mm = gm20b_ops.mm;
 	gops->therm = gm20b_ops.therm;
-#ifdef NVGPU_LS_PMU
+#ifdef NVGPU_FEATURE_LS_PMU
 	gops->pmu = gm20b_ops.pmu;
 #endif
 	/*
@@ -1078,7 +1078,7 @@ int gm20b_init_hal(struct gk20a *g)
 			nvgpu_gr_falcon_load_secure_ctxsw_ucode;
 	} else {
 		/* Inherit from gk20a */
-#ifdef NVGPU_LS_PMU
+#ifdef NVGPU_FEATURE_LS_PMU
 		gops->pmu.setup_apertures =
 				gm20b_pmu_ns_setup_apertures;
 #endif

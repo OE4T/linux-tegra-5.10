@@ -168,7 +168,7 @@ config NVGPU_DEBUGGER
 	help
 	  Support for debugger APIs
 
-config NVGPU_LS_PMU
+config NVGPU_FEATURE_LS_PMU
 	bool "LS PMU support"
 	depends on GK20A
 	default y

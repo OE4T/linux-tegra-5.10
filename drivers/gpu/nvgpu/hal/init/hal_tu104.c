@@ -1055,14 +1055,14 @@ static const struct gpu_ops tu104_ops = {
 		.init_elcg_mode = gv11b_therm_init_elcg_mode,
 		.init_blcg_mode = gm20b_therm_init_blcg_mode,
 		.elcg_init_idle_filters = NULL,
-#ifdef NVGPU_LS_PMU
+#ifdef NVGPU_FEATURE_LS_PMU
 		.get_internal_sensor_curr_temp =
 			gp106_get_internal_sensor_curr_temp,
 		.get_internal_sensor_limits =
 			gp106_get_internal_sensor_limits,
 #endif
 	},
-#ifdef NVGPU_LS_PMU
+#ifdef NVGPU_FEATURE_LS_PMU
 	.pmu = {
 		.falcon_base_addr = gp106_pmu_falcon_base_addr,
 		.pmu_queue_tail = gk20a_pmu_queue_tail,
@@ -1413,7 +1413,7 @@ int tu104_init_hal(struct gk20a *g)
 	gops->netlist = tu104_ops.netlist;
 	gops->mm = tu104_ops.mm;
 	gops->therm = tu104_ops.therm;
-#ifdef NVGPU_LS_PMU
+#ifdef NVGPU_FEATURE_LS_PMU
 	gops->pmu = tu104_ops.pmu;
 #endif
 	gops->regops = tu104_ops.regops;
@@ -1482,7 +1482,7 @@ int tu104_init_hal(struct gk20a *g)
 	gops->pmu_perf.support_vfe = true;
 	gops->clk.support_vf_point = true;
 	gops->clk.lut_num_entries = CTRL_CLK_LUT_NUM_ENTRIES_GV10x;
-#ifdef NVGPU_LS_PMU
+#ifdef NVGPU_FEATURE_LS_PMU
 	gops->clk.perf_pmu_vfe_load = nvgpu_perf_pmu_vfe_load_ps35;
 #endif
 	nvgpu_pramin_ops_init(g);

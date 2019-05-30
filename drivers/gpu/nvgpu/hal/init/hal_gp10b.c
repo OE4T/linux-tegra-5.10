@@ -863,7 +863,7 @@ static const struct gpu_ops gp10b_ops = {
 		.init_blcg_mode = gm20b_therm_init_blcg_mode,
 		.elcg_init_idle_filters = gp10b_elcg_init_idle_filters,
 	},
-#ifdef NVGPU_LS_PMU
+#ifdef NVGPU_FEATURE_LS_PMU
 	.pmu = {
 		.is_pmu_supported = gp10b_is_pmu_supported,
 		.falcon_base_addr = gk20a_pmu_falcon_base_addr,
@@ -1106,7 +1106,7 @@ int gp10b_init_hal(struct gk20a *g)
 	gops->netlist = gp10b_ops.netlist;
 	gops->mm = gp10b_ops.mm;
 	gops->therm = gp10b_ops.therm;
-#ifdef NVGPU_LS_PMU
+#ifdef NVGPU_FEATURE_LS_PMU
 	gops->pmu = gp10b_ops.pmu;
 #endif
 	gops->clk_arb = gp10b_ops.clk_arb;
@@ -1154,7 +1154,7 @@ int gp10b_init_hal(struct gk20a *g)
 			nvgpu_gr_falcon_load_secure_ctxsw_ucode;
 	} else {
 		/* Inherit from gk20a */
-#ifdef NVGPU_LS_PMU
+#ifdef NVGPU_FEATURE_LS_PMU
 		gops->pmu.setup_apertures =
 				gm20b_pmu_ns_setup_apertures;
 #endif

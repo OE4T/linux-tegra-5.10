@@ -45,7 +45,7 @@
 #include <nvgpu/pmu/pmu_pstate.h>
 #include <nvgpu/nvgpu_err.h>
 
-#ifdef NVGPU_LS_PMU
+#ifdef NVGPU_FEATURE_LS_PMU
 /* PMU locks used to sync with PMU-RTOS */
 int nvgpu_pmu_lock_acquire(struct gk20a *g, struct nvgpu_pmu *pmu,
 			u32 id, u32 *token)
@@ -321,7 +321,7 @@ int nvgpu_pmu_early_init(struct gk20a *g, struct nvgpu_pmu **pmu_p)
 		nvgpu_set_enabled(g, NVGPU_PMU_PERFMON, false);
 		goto exit;
 	}
-#ifdef NVGPU_LS_PMU
+#ifdef NVGPU_FEATURE_LS_PMU
 	err = nvgpu_mutex_init(&pmu->isr_mutex);
 	if (err != 0) {
 		goto init_failed;
@@ -440,7 +440,7 @@ static int pmu_enable(struct nvgpu_pmu *pmu, bool enable)
 
 	if (!enable) {
 		if (!g->ops.pmu.is_engine_in_reset(g)) {
-#ifdef NVGPU_LS_PMU
+#ifdef NVGPU_FEATURE_LS_PMU
 			g->ops.pmu.pmu_enable_irq(pmu, false);
 #endif
 			pmu_enable_hw(pmu, false);

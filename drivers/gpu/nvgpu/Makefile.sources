@@ -338,7 +338,7 @@ endif
 srcs += hal/gr/config/gr_config_gm20b.c \
 	hal/gr/config/gr_config_gv100.c
 
-ifeq ($(NVGPU_LS_PMU),1)
+ifeq ($(NVGPU_FEATURE_LS_PMU),1)
 # Add LS PMU files which are required for normal build
 srcs += \
 	common/pmu/boardobj/boardobj.c \

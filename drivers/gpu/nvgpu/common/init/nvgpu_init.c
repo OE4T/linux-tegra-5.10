@@ -98,7 +98,7 @@ int gk20a_prepare_poweroff(struct gk20a *g)
 		}
 	}
 
-#ifdef NVGPU_LS_PMU
+#ifdef NVGPU_FEATURE_LS_PMU
 	/* disable elpg before gr or fifo suspend */
 	if (g->support_ls_pmu) {
 		ret = nvgpu_pmu_destroy(g, g->pmu);
@@ -385,7 +385,7 @@ int gk20a_finalize_poweron(struct gk20a *g)
 	}
 #endif
 
-#ifdef NVGPU_LS_PMU
+#ifdef NVGPU_FEATURE_LS_PMU
 	err = nvgpu_pmu_init(g, g->pmu);
 	if (err != 0) {
 		nvgpu_err(g, "failed to init gk20a pmu");
@@ -417,7 +417,7 @@ int gk20a_finalize_poweron(struct gk20a *g)
 
 	nvgpu_mutex_release(&g->tpc_pg_lock);
 
-#ifdef NVGPU_LS_PMU
+#ifdef NVGPU_FEATURE_LS_PMU
 	if (nvgpu_is_enabled(g, NVGPU_PMU_PSTATE)) {
 		err = nvgpu_pmu_pstate_sw_setup(g);
 		if (err != 0) {

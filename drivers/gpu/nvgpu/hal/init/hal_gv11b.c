@@ -1018,7 +1018,7 @@ static const struct gpu_ops gv11b_ops = {
 			gv11b_clear_pmu_bar0_host_err_status,
 		.bar0_error_status = gv11b_pmu_bar0_error_status,
 		.validate_mem_integrity = gv11b_pmu_validate_mem_integrity,
-#ifdef NVGPU_LS_PMU
+#ifdef NVGPU_FEATURE_LS_PMU
 		/* ISR */
 		.pmu_enable_irq = gk20a_pmu_enable_irq,
 		.get_irqdest = gv11b_pmu_get_irqdest,
@@ -1299,7 +1299,7 @@ int gv11b_init_hal(struct gk20a *g)
 		gops->gr.falcon.load_ctxsw_ucode =
 			nvgpu_gr_falcon_load_secure_ctxsw_ucode;
 	} else {
-#ifdef NVGPU_LS_PMU
+#ifdef NVGPU_FEATURE_LS_PMU
 		/* non-secure boot */
 		gops->pmu.setup_apertures =
 			gm20b_pmu_ns_setup_apertures;

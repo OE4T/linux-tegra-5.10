@@ -105,6 +105,6 @@ NVGPU_REPLAYABLE_FAULT          := 1
 NVGPU_COMMON_CFLAGS             += -DNVGPU_REPLAYABLE_FAULT
 
 # Enable LS PMU support for normal build
-NVGPU_LS_PMU                    := 1
-NVGPU_COMMON_CFLAGS             += -DNVGPU_LS_PMU
+NVGPU_FEATURE_LS_PMU                    := 1
+NVGPU_COMMON_CFLAGS             += -DNVGPU_FEATURE_LS_PMU
 endif

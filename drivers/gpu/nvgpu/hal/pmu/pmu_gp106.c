@@ -61,7 +61,7 @@ int gp106_pmu_engine_reset(struct gk20a *g, bool do_reset)
 
 	return 0;
 }
-#ifdef NVGPU_LS_PMU
+#ifdef NVGPU_FEATURE_LS_PMU
 void gp106_pmu_setup_apertures(struct gk20a *g)
 {
 	struct mm_gk20a *mm = &g->mm;

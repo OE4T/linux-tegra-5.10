@@ -82,7 +82,7 @@ void nvgpu_gr_falcon_remove_support(struct gk20a *g,
 
 int nvgpu_gr_falcon_bind_fecs_elpg(struct gk20a *g)
 {
-#ifdef NVGPU_LS_PMU
+#ifdef NVGPU_FEATURE_LS_PMU
 	struct nvgpu_pmu *pmu = g->pmu;
 	struct mm_gk20a *mm = &g->mm;
 	struct vm_gk20a *vm = mm->pmu.vm;
@@ -554,7 +554,7 @@ int nvgpu_gr_falcon_load_secure_ctxsw_ucode(struct gk20a *g,
 		/* this must be recovery so bootstrap fecs and gpccs */
 		if (!nvgpu_is_enabled(g, NVGPU_SEC_SECUREGPCCS)) {
 			nvgpu_gr_falcon_load_gpccs_with_bootloader(g, falcon);
-#ifdef NVGPU_LS_PMU
+#ifdef NVGPU_FEATURE_LS_PMU
 			err = nvgpu_pmu_lsfm_bootstrap_ls_falcon(g, g->pmu,
 					g->pmu->lsfm, BIT32(FALCON_ID_FECS));
 #endif
@@ -569,7 +569,7 @@ int nvgpu_gr_falcon_load_secure_ctxsw_ucode(struct gk20a *g,
 					&g->sec2, FALCON_ID_GPCCS);
 			} else
 #endif
-#ifdef NVGPU_LS_PMU
+#ifdef NVGPU_FEATURE_LS_PMU
 			if (g->support_ls_pmu) {
 				err = nvgpu_pmu_lsfm_bootstrap_ls_falcon(g,
 						g->pmu, g->pmu->lsfm,
@@ -615,7 +615,7 @@ int nvgpu_gr_falcon_load_secure_ctxsw_ucode(struct gk20a *g,
 					&g->sec2, FALCON_ID_GPCCS);
 			} else
 #endif
-#ifdef NVGPU_LS_PMU
+#ifdef NVGPU_FEATURE_LS_PMU
 			if (g->support_ls_pmu) {
 				err = nvgpu_pmu_lsfm_bootstrap_ls_falcon(g,
 						g->pmu, g->pmu->lsfm,

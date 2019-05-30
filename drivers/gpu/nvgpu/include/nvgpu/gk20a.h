@@ -1330,7 +1330,7 @@ struct gpu_ops {
 		void (*secured_pmu_start)(struct gk20a *g);
 		void (*flcn_setup_boot_config)(struct gk20a *g);
 		bool (*validate_mem_integrity)(struct gk20a *g);
-#ifdef NVGPU_LS_PMU
+#ifdef NVGPU_FEATURE_LS_PMU
 		/* ISR */
 		void (*pmu_enable_irq)(struct nvgpu_pmu *pmu, bool enable);
 		bool (*pmu_is_interrupted)(struct nvgpu_pmu *pmu);

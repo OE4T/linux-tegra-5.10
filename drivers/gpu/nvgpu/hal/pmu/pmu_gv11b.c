@@ -39,7 +39,7 @@ static int gv11b_pmu_correct_ecc(struct gk20a *g, u32 ecc_status, u32 ecc_addr);
 
 #define ALIGN_4KB     12
 
-#ifdef NVGPU_LS_PMU
+#ifdef NVGPU_FEATURE_LS_PMU
 /* PROD settings for ELPG sequencing registers*/
 static struct pg_init_sequence_list _pginitseq_gv11b[] = {
 	{0x0010e0a8U, 0x00000000U} ,
@@ -583,7 +583,7 @@ void gv11b_secured_pmu_start(struct gk20a *g)
 
 bool gv11b_is_pmu_supported(struct gk20a *g)
 {
-#ifdef NVGPU_LS_PMU
+#ifdef NVGPU_FEATURE_LS_PMU
 	return true;
 #else
 	/* set to false to disable LS PMU ucode support */
