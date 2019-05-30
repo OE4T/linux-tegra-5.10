@@ -402,6 +402,8 @@ struct tegra_virtual_se_aes_cmac_context {
 	/* Key2 */
 	u8 K2[TEGRA_VIRTUAL_SE_KEY_128_SIZE];
 	bool is_key_slot_allocated;
+	/* Whether key is a keyslot label */
+	bool is_keyslot_label;
 };
 
 /* Security Engine random number generator context */
@@ -2604,13 +2606,9 @@ static int tegra_hv_vse_cmac_final(struct ahash_request *req)
 	if (use_orig_iv) {
 		ivc_tx->args.aes.op_cmac.ivsel = AES_ORIGINAL_IV;
 	} else {
-		ivc_tx->args.aes.op_cmac.ivsel = AES_UPDATED_IV;
-		err = tegra_hv_vse_aes_set_keyiv(se_dev, piv_buf,
-				cmac_ctx->keylen,
-				cmac_ctx->aes_keyslot,
-				AES_KEYTBL_TYPE_UIV);
-		if (err)
-			goto exit;
+		for (i = 0; i < TEGRA_VIRTUAL_SE_AES_BLOCK_SIZE; i++)
+			cmac_buffer[i] ^= piv_buf[i];
+		ivc_tx->args.aes.op_cmac.ivsel = AES_ORIGINAL_IV;
 	}
 	result_dma_addr = dma_map_single(se_dev->dev,
 				req->result,
@@ -2711,9 +2709,30 @@ static int tegra_hv_vse_cmac_setkey(struct crypto_ahash *tfm, const u8 *key,
 	u8 const rb = 0x87;
 	u8 msb;
 	int time_left;
+	s8 label[VIRTUAL_SE_AES_MAX_KEY_SIZE];
+	s32 slot;
 
 	if (!ctx)
 		return -EINVAL;
+
+	/* format: 'NVSEAES 1234567\0' */
+	if (!se_dev->disable_keyslot_label) {
+		bool is_keyslot_label = strnlen(key, keylen) < keylen &&
+			sscanf(key, "%s %d", label, &slot) == 2 &&
+			!strcmp(label, TEGRA_VIRTUAL_SE_AES_KEYSLOT_LABEL);
+
+		if (is_keyslot_label) {
+			if (slot < 0 || slot > 15) {
+				dev_err(se_dev->dev,
+					"\n Invalid keyslot: %u\n", slot);
+				return -EINVAL;
+			}
+			ctx->keylen = keylen;
+			ctx->aes_keyslot = (u32)slot;
+			ctx->is_key_slot_allocated = true;
+			ctx->is_keyslot_label = is_keyslot_label;
+		}
+	}
 
 	ivc_req_msg = devm_kzalloc(se_dev->dev, sizeof(*ivc_req_msg),
 					GFP_KERNEL);
@@ -2898,6 +2917,10 @@ static void tegra_hv_vse_cmac_cra_exit(struct crypto_tfm *tfm)
 
 	if (!ctx->is_key_slot_allocated)
 		return;
+
+	if (ctx->is_keyslot_label)
+		return;
+
 	ivc_req_msg = devm_kzalloc(se_dev->dev, sizeof(*ivc_req_msg),
 				GFP_KERNEL);
 	if (!ivc_req_msg)
