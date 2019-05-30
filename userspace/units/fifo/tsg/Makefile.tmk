@@ -24,7 +24,11 @@
 #
 ###############################################################################
 
-NVGPU_UNIT_NAME=nvgpu-tsg
+NVGPU_UNIT_NAME = nvgpu-tsg
+NVGPU_UNIT_SRCS = \
+	nvgpu-tsg.c \
+	../nvgpu-fifo.c \
+	../nvgpu-fifo-gv11b.c
 
 include $(NV_COMPONENT_DIR)/../../Makefile.units.common.tmk
 

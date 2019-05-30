@@ -42,7 +42,7 @@
 
 #include "hal/init/hal_gv11b.h"
 
-#include "../nvgpu-fifo-gv11b.h"
+#include "../nvgpu-fifo.h"
 
 #ifdef TSG_UNIT_DEBUG
 #define unit_verbose	unit_info
@@ -144,81 +144,11 @@ static bool pruned(u32 branches, u32 final_branches)
 	return (branches > BIT(bit));
 }
 
-/* test implementations of some hals */
-static u32 stub_gv11b_gr_init_get_no_of_sm(struct gk20a *g)
-{
-	return 8;
-}
-
-#ifdef NVGPU_USERD
-static int stub_userd_setup_sw(struct gk20a *g)
-{
-	struct nvgpu_fifo *f = &g->fifo;
-	int err;
-
-	f->userd_entry_size = g->ops.userd.entry_size(g);
-
-	err = nvgpu_userd_init_slabs(g);
-	if (err != 0) {
-		nvgpu_err(g, "failed to init userd support");
-		return err;
-	}
-
-	return 0;
-}
-#endif
-
-static int test_fifo_init_support(struct unit_module *m,
-		struct gk20a *g, void *args)
-{
-	struct test_tsg_args *t = args;
-	int err;
-
-	if (t->init_done) {
-		unit_return_fail(m, "init already done");
-	}
-
-	err = test_fifo_setup_gv11b_reg_space(m, g);
-	if (err != 0) {
-		goto fail;
-	}
-
-	gv11b_init_hal(g);
-	g->ops.fifo.init_fifo_setup_hw = NULL;
-	g->ops.gr.init.get_no_of_sm = stub_gv11b_gr_init_get_no_of_sm;
-	g->ops.tsg.init_eng_method_buffers = NULL;
-
-#ifdef NVGPU_USERD
-	/*
-	 * Regular USERD init requires bar1.vm to be initialized
-	 * Use a stub in unit tests, since it will be disabled in
-	 * safety build anyway.
-	 */
-	g->ops.userd.setup_sw = stub_userd_setup_sw;
-#endif
-
-	err = nvgpu_fifo_init_support(g);
-	if (err != 0) {
-		test_fifo_cleanup_gv11b_reg_space(m, g);
-		goto fail;
-	}
-
-	/* Do not allocate from vidmem */
-	nvgpu_set_enabled(g, NVGPU_MM_UNIFIED_MEMORY, true);
-
-	t->init_done = true;
-
-	return UNIT_SUCCESS;
-
-fail:
-	return UNIT_FAIL;
-}
-
 #define F_TSG_OPEN_ACQUIRE_CH_FAIL	BIT(0)
 #define F_TSG_OPEN_SM_FAIL		BIT(1)
 #define F_TSG_OPEN_LAST			BIT(2)
 
-static const char const *f_tsg_open[] = {
+static const char *f_tsg_open[] = {
 	"acquire_ch_fail",
 	"sm_fail",
 };
@@ -234,8 +164,8 @@ static int test_tsg_open(struct unit_module *m,
 	struct nvgpu_fifo *f = &g->fifo;
 	struct gpu_ops gops = g->ops;
 	u32 num_channels = f->num_channels;
-	struct nvgpu_tsg *tsg;
-	u32 branches;
+	struct nvgpu_tsg *tsg = NULL;
+	u32 branches = 0U;
 	int rc = UNIT_FAIL;
 	u32 fail = F_TSG_OPEN_ACQUIRE_CH_FAIL |
 			F_TSG_OPEN_SM_FAIL;
@@ -291,7 +221,7 @@ done:
 #define F_TSG_BIND_CHANNEL_ENG_METHOD_BUFFER	BIT(3)
 #define F_TSG_BIND_CHANNEL_LAST			BIT(4)
 
-static const char const *f_tsg_bind[] = {
+static const char *f_tsg_bind[] = {
 	"ch_bound",
 	"rl_mismatch",
 	"active",
@@ -305,9 +235,11 @@ static int test_tsg_bind_channel(struct unit_module *m,
 	struct nvgpu_fifo *f = &g->fifo;
 	struct gpu_ops gops = g->ops;
 	struct nvgpu_tsg *tsg, tsg_save;
-	struct nvgpu_channel *chA, *chB, *ch;
+	struct nvgpu_channel *chA = NULL;
+	struct nvgpu_channel *chB = NULL;
+	struct nvgpu_channel *ch = NULL;
 	struct nvgpu_runlist_info *runlist;
-	u32 branches;
+	u32 branches = 0U;
 	int rc = UNIT_FAIL;
 	int err;
 	u32 prune = F_TSG_BIND_CHANNEL_CH_BOUND |
@@ -420,7 +352,7 @@ done:
 #define F_TSG_UNBIND_CHANNEL_UNBIND_HAL			BIT(4)
 #define F_TSG_UNBIND_CHANNEL_LAST			BIT(5)
 
-static const char const *f_tsg_unbind[] = {
+static const char *f_tsg_unbind[] = {
 	"ch_timedout",
 	"preempt_tsg_fail",
 	"check_hw_state_fail",
@@ -460,17 +392,14 @@ static int test_tsg_unbind_channel(struct unit_module *m,
 		struct gk20a *g, void *args)
 {
 	struct gpu_ops gops = g->ops;
-	struct nvgpu_tsg *tsg;
-	struct nvgpu_channel *chA, *chB;
-	u32 f, branches;
+	struct nvgpu_tsg *tsg = NULL;
+	struct nvgpu_channel *chA = NULL;
+	struct nvgpu_channel *chB = NULL;
+	u32 branches = 0U;
 	int rc = UNIT_FAIL;
 	u32 prune = F_TSG_UNBIND_CHANNEL_PREEMPT_TSG_FAIL;
 
-	for (f = 0U; f < F_TSG_BIND_CHANNEL_LAST; f++) {
-
-		reset_stub_rc();
-
-		branches = f;
+	for (branches = 0U; branches < F_TSG_BIND_CHANNEL_LAST; branches++) {
 
 		if (pruned(branches, prune) ||
 			/* hw_state is not checked if ch is unserviceable */
@@ -480,6 +409,7 @@ static int test_tsg_unbind_channel(struct unit_module *m,
 				branches_str(branches, f_tsg_unbind));
 			continue;
 		}
+		reset_stub_rc();
 
 		/*
 		 * tsg unbind tears down TSG in case of failure:
@@ -577,7 +507,7 @@ done:
 #define F_TSG_RELEASE_SM_ERR_STATES	BIT(5)
 #define F_TSG_RELEASE_LAST		BIT(6)
 
-static const char const *f_tsg_release[] = {
+static const char *f_tsg_release[] = {
 	"gr_ctx",
 	"mem",
 	"vm",
@@ -605,10 +535,10 @@ static int test_tsg_release(struct unit_module *m,
 {
 	struct nvgpu_fifo *f = &g->fifo;
 	struct gpu_ops gops = g->ops;
-	struct nvgpu_tsg *tsg;
+	struct nvgpu_tsg *tsg = NULL;
 	struct nvgpu_list_node ev1, ev2;
 	struct vm_gk20a vm;
-	u32 branches;
+	u32 branches = 0U;
 	int rc = UNIT_FAIL;
 	struct nvgpu_mem mem;
 	u32 free_gr_ctx_mask =
@@ -733,7 +663,7 @@ done:
 #define F_TSG_UNBIND_CHANNEL_CHECK_HW_ENG_FAULTED	BIT(2)
 #define F_TSG_UNBIND_CHANNEL_CHECK_HW_LAST		BIT(3)
 
-static const char const *f_tsg_unbind_channel_check_hw[] = {
+static const char *f_tsg_unbind_channel_check_hw[] = {
 	"next",
 	"ctx_reload",
 	"eng_faulted",
@@ -749,9 +679,9 @@ static int test_tsg_unbind_channel_check_hw_state(struct unit_module *m,
 		struct gk20a *g, void *args)
 {
 	struct gpu_ops gops = g->ops;
-	struct nvgpu_channel *ch;
-	struct nvgpu_tsg *tsg;
-	u32 branches;
+	struct nvgpu_channel *ch = NULL;
+	struct nvgpu_tsg *tsg = NULL;
+	u32 branches = 0U;
 	int rc = UNIT_FAIL;
 	int err;
 	u32 prune = F_TSG_UNBIND_CHANNEL_CHECK_HW_NEXT;
@@ -822,7 +752,7 @@ done:
 #define F_UNBIND_CHANNEL_CHECK_CTX_RELOAD_CHID_MATCH	BIT(1)
 #define F_UNBIND_CHANNEL_CHECK_CTX_RELOAD_LAST		BIT(2)
 
-static const char const *f_unbind_channel_check_ctx_reload[] = {
+static const char *f_unbind_channel_check_ctx_reload[] = {
 	"reload_set",
 	"chid_match",
 };
@@ -838,11 +768,12 @@ static int test_tsg_unbind_channel_check_ctx_reload(struct unit_module *m,
 		struct gk20a *g, void *args)
 {
 	struct gpu_ops gops = g->ops;
-	u32 branches;
+	u32 branches = 0U;
 	int rc = UNIT_FAIL;
 	struct nvgpu_channel_hw_state hw_state;
-	struct nvgpu_tsg *tsg;
-	struct nvgpu_channel *chA, *chB;
+	struct nvgpu_tsg *tsg = NULL;
+	struct nvgpu_channel *chA = NULL;
+	struct nvgpu_channel *chB = NULL;
 
 	tsg = nvgpu_tsg_open(g, getpid());
 	chA = gk20a_open_new_channel(g, ~0U, false, getpid(), getpid());
@@ -904,22 +835,6 @@ done:
 	}
 	g->ops = gops;
 	return rc;
-}
-
-static int test_fifo_remove_support(struct unit_module *m,
-		struct gk20a *g, void *args)
-{
-	struct test_tsg_args *t = args;
-
-	if (!t->init_done) {
-		unit_return_fail(m, "missing init support");
-	}
-
-	if (g->fifo.remove_support) {
-		g->fifo.remove_support(&g->fifo);
-	}
-
-	return UNIT_SUCCESS;
 }
 
 static int test_tsg_check_and_get_from_id(struct unit_module *m,

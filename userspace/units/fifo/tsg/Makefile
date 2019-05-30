@@ -1,4 +1,4 @@
-# Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+# Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -20,7 +20,7 @@
 
 .SUFFIXES:
 
-OBJS   = nvgpu-tsg.o ../nvgpu-fifo-gv11b.o
+OBJS   = nvgpu-tsg.o ../nvgpu-fifo.o ../nvgpu-fifo-gv11b.o
 MODULE = nvgpu-tsg
 
 include ../../Makefile.units

@@ -20,6 +20,7 @@ nvgpu_gmmu_map_locked
 nvgpu_gmmu_unmap_locked
 gk20a_ramin_alloc_size
 gk20a_mm_fb_flush
+gk20a_open_new_channel
 gm20b_fb_tlb_invalidate
 gm20b_fuse_status_opt_gpc
 gm20b_ramin_set_big_page_size
@@ -62,6 +63,7 @@ nvgpu_aperture_mask
 nvgpu_bar1_readl
 nvgpu_bar1_writel
 nvgpu_bsearch
+nvgpu_channel_close
 nvgpu_dma_alloc
 nvgpu_dma_alloc_get_fault_injection
 nvgpu_dma_alloc_vid_at
@@ -70,6 +72,7 @@ nvgpu_fifo_init_support
 nvgpu_free
 nvgpu_free_enabled_flags
 nvgpu_free_fixed
+nvgpu_free_gr_ctx_struct
 nvgpu_get_pte
 nvgpu_gmmu_init_page_table
 nvgpu_gmmu_map
@@ -160,7 +163,14 @@ nvgpu_readl
 nvgpu_readl_impl
 nvgpu_runlist_construct_locked
 nvgpu_rwsem_init
+nvgpu_tsg_bind_channel
+nvgpu_tsg_check_and_get_from_id
 nvgpu_tsg_default_timeslice_us
+nvgpu_tsg_open
+nvgpu_tsg_release
+nvgpu_tsg_unbind_channel
+nvgpu_tsg_unbind_channel_check_hw_state
+nvgpu_tsg_unbind_channel_check_ctx_reload
 nvgpu_set_enabled
 nvgpu_set_pte
 nvgpu_sgt_alignment

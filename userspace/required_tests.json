@@ -750,6 +750,26 @@
         "unit": "nvgpu_sgt"
     },
     {
+        "test": "init_support",
+        "test_level": 0,
+        "unit": "nvgpu_tsg"
+    },
+    {
+        "test": "open",
+        "test_level": 0,
+        "unit": "nvgpu_tsg"
+    },
+    {
+        "test": "release",
+        "test_level": 0,
+        "unit": "nvgpu_tsg"
+    },
+    {
+        "test": "remove_support",
+        "test_level": 0,
+        "unit": "nvgpu_tsg"
+    },
+    {
         "test": "add_empty_slab",
         "test_level": 0,
         "unit": "page_allocator"

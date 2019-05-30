@@ -56,6 +56,7 @@ NV_REPOSITORY_COMPONENTS += userspace/units/mm/page_table_faults
 NV_REPOSITORY_COMPONENTS += userspace/units/mm/vm
 NV_REPOSITORY_COMPONENTS += userspace/units/fifo/channel
 NV_REPOSITORY_COMPONENTS += userspace/units/fifo/runlist
+NV_REPOSITORY_COMPONENTS += userspace/units/fifo/tsg
 NV_REPOSITORY_COMPONENTS += userspace/units/fuse
 NV_REPOSITORY_COMPONENTS += userspace/units/list
 NV_REPOSITORY_COMPONENTS += userspace/units/enabled
