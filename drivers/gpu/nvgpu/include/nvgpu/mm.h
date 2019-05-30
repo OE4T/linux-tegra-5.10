@@ -178,8 +178,6 @@ static inline u64 nvgpu_gmmu_va_small_page_limit(void)
 	return ((u64)SZ_1G * 56U);
 }
 
-u32 nvgpu_vm_get_pte_size(struct vm_gk20a *vm, u64 base, u64 size);
-
 #ifdef NVGPU_FEATURE_CE
 void nvgpu_init_mm_ce_context(struct gk20a *g);
 #endif
