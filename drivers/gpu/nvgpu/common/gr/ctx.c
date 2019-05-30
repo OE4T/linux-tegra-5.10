@@ -134,58 +134,6 @@ void nvgpu_gr_ctx_free(struct gk20a *g,
 	}
 }
 
-#ifdef CONFIG_NVGPU_DEBUGGER
-int nvgpu_gr_ctx_alloc_pm_ctx(struct gk20a *g,
-	struct nvgpu_gr_ctx *gr_ctx,
-	struct nvgpu_gr_ctx_desc *gr_ctx_desc,
-	struct vm_gk20a *vm,
-	u64 gpu_va)
-{
-	struct pm_ctx_desc *pm_ctx = &gr_ctx->pm_ctx;
-	int err;
-
-	if (pm_ctx->mem.gpu_va != 0ULL) {
-		return 0;
-	}
-
-	err = nvgpu_dma_alloc_sys(g, gr_ctx_desc->size[NVGPU_GR_CTX_PM_CTX],
-			&pm_ctx->mem);
-	if (err != 0) {
-		nvgpu_err(g,
-			"failed to allocate pm ctx buffer");
-		return err;
-	}
-
-	pm_ctx->mem.gpu_va = nvgpu_gmmu_map_fixed(vm,
-					&pm_ctx->mem,
-					gpu_va,
-					pm_ctx->mem.size,
-					NVGPU_VM_MAP_CACHEABLE,
-					gk20a_mem_flag_none, true,
-					pm_ctx->mem.aperture);
-	if (pm_ctx->mem.gpu_va == 0ULL) {
-		nvgpu_err(g,
-			"failed to map pm ctxt buffer");
-		nvgpu_dma_free(g, &pm_ctx->mem);
-		return -ENOMEM;
-	}
-
-	return 0;
-}
-
-void nvgpu_gr_ctx_free_pm_ctx(struct gk20a *g, struct vm_gk20a *vm,
-	struct nvgpu_gr_ctx *gr_ctx)
-{
-	struct pm_ctx_desc *pm_ctx = &gr_ctx->pm_ctx;
-
-	if (pm_ctx->mem.gpu_va != 0ULL) {
-		nvgpu_gmmu_unmap(vm, &pm_ctx->mem, pm_ctx->mem.gpu_va);
-
-		nvgpu_dma_free(g, &pm_ctx->mem);
-	}
-}
-#endif
-
 int nvgpu_gr_ctx_alloc_patch_ctx(struct gk20a *g,
 	struct nvgpu_gr_ctx *gr_ctx,
 	struct nvgpu_gr_ctx_desc *gr_ctx_desc,
@@ -494,23 +442,6 @@ void nvgpu_gr_ctx_set_patch_ctx_data_count(struct nvgpu_gr_ctx *gr_ctx,
 	gr_ctx->patch_ctx.data_count = data_count;
 }
 
-#ifdef CONFIG_NVGPU_DEBUGGER
-struct nvgpu_mem *nvgpu_gr_ctx_get_pm_ctx_mem(struct nvgpu_gr_ctx *gr_ctx)
-{
-	return &gr_ctx->pm_ctx.mem;
-}
-
-void nvgpu_gr_ctx_set_pm_ctx_pm_mode(struct nvgpu_gr_ctx *gr_ctx, u32 pm_mode)
-{
-	gr_ctx->pm_ctx.pm_mode = pm_mode;
-}
-
-u32 nvgpu_gr_ctx_get_pm_ctx_pm_mode(struct nvgpu_gr_ctx *gr_ctx)
-{
-	return gr_ctx->pm_ctx.pm_mode;
-}
-#endif
-
 struct nvgpu_mem *nvgpu_gr_ctx_get_preempt_ctxsw_buffer(
 	struct nvgpu_gr_ctx *gr_ctx)
 {
@@ -699,27 +630,6 @@ void nvgpu_gr_ctx_set_patch_ctx(struct gk20a *g, struct nvgpu_gr_ctx *gr_ctx,
 	}
 }
 
-#ifdef CONFIG_NVGPU_DEBUGGER
-u32 nvgpu_gr_ctx_get_ctx_id(struct gk20a *g, struct nvgpu_gr_ctx *gr_ctx)
-{
-	if (!gr_ctx->ctx_id_valid) {
-		/* Channel gr_ctx buffer is gpu cacheable.
-		   Flush and invalidate before cpu update. */
-		if (g->ops.mm.cache.l2_flush(g, true) != 0) {
-			nvgpu_err(g, "l2_flush failed");
-		}
-
-		gr_ctx->ctx_id = g->ops.gr.ctxsw_prog.get_main_image_ctx_id(g,
-					&gr_ctx->mem);
-		gr_ctx->ctx_id_valid = true;
-	}
-
-	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_intr, "ctx_id: 0x%x", gr_ctx->ctx_id);
-
-	return gr_ctx->ctx_id;
-}
-#endif
-
 #ifdef CONFIG_NVGPU_GRAPHICS
 void nvgpu_gr_ctx_set_zcull_ctx(struct gk20a *g, struct nvgpu_gr_ctx *gr_ctx,
 	u32 mode, u64 gpu_va)
@@ -771,113 +681,6 @@ int nvgpu_gr_ctx_zcull_setup(struct gk20a *g, struct nvgpu_gr_ctx *gr_ctx,
 	}
 
 	return 0;
-}
-#endif
-
-#ifdef CONFIG_NVGPU_DEBUGGER
-int nvgpu_gr_ctx_set_smpc_mode(struct gk20a *g, struct nvgpu_gr_ctx *gr_ctx,
-	bool enable)
-{
-	int err;
-
-	if (!nvgpu_mem_is_valid(&gr_ctx->mem)) {
-		nvgpu_err(g, "no graphics context allocated");
-		return -EFAULT;
-	}
-
-	/* Channel gr_ctx buffer is gpu cacheable.
-	   Flush and invalidate before cpu update. */
-	err = g->ops.mm.cache.l2_flush(g, true);
-	if (err != 0) {
-		nvgpu_err(g, "l2_flush failed");
-		return err;
-	}
-
-	g->ops.gr.ctxsw_prog.set_pm_smpc_mode(g, &gr_ctx->mem, enable);
-
-	return err;
-}
-
-int nvgpu_gr_ctx_prepare_hwpm_mode(struct gk20a *g, struct nvgpu_gr_ctx *gr_ctx,
-	u32 mode, bool *skip_update)
-{
-	struct pm_ctx_desc *pm_ctx = &gr_ctx->pm_ctx;
-	int ret = 0;
-
-	*skip_update = false;
-
-	if (!nvgpu_mem_is_valid(&gr_ctx->mem)) {
-		nvgpu_err(g, "no graphics context allocated");
-		return -EFAULT;
-	}
-
-	if ((mode == NVGPU_GR_CTX_HWPM_CTXSW_MODE_STREAM_OUT_CTXSW) &&
-	    (g->ops.gr.ctxsw_prog.hw_get_pm_mode_stream_out_ctxsw == NULL)) {
-		nvgpu_err(g,
-			"Mode-E hwpm context switch mode is not supported");
-		return -EINVAL;
-	}
-
-	switch (mode) {
-	case NVGPU_GR_CTX_HWPM_CTXSW_MODE_CTXSW:
-		if (pm_ctx->pm_mode ==
-		    g->ops.gr.ctxsw_prog.hw_get_pm_mode_ctxsw()) {
-			*skip_update = true;
-			return 0;
-		}
-		pm_ctx->pm_mode = g->ops.gr.ctxsw_prog.hw_get_pm_mode_ctxsw();
-		pm_ctx->gpu_va = pm_ctx->mem.gpu_va;
-		break;
-	case  NVGPU_GR_CTX_HWPM_CTXSW_MODE_NO_CTXSW:
-		if (pm_ctx->pm_mode ==
-		    g->ops.gr.ctxsw_prog.hw_get_pm_mode_no_ctxsw()) {
-			*skip_update = true;
-			return 0;
-		}
-		pm_ctx->pm_mode =
-			g->ops.gr.ctxsw_prog.hw_get_pm_mode_no_ctxsw();
-		pm_ctx->gpu_va = 0;
-		break;
-	case NVGPU_GR_CTX_HWPM_CTXSW_MODE_STREAM_OUT_CTXSW:
-		if (pm_ctx->pm_mode ==
-		    g->ops.gr.ctxsw_prog.hw_get_pm_mode_stream_out_ctxsw()) {
-			*skip_update = true;
-			return 0;
-		}
-		pm_ctx->pm_mode =
-			g->ops.gr.ctxsw_prog.hw_get_pm_mode_stream_out_ctxsw();
-		pm_ctx->gpu_va = pm_ctx->mem.gpu_va;
-		break;
-	default:
-		nvgpu_err(g, "invalid hwpm context switch mode");
-		ret = -EINVAL;
-		break;
-	}
-
-	return ret;
-}
-
-int nvgpu_gr_ctx_set_hwpm_mode(struct gk20a *g, struct nvgpu_gr_ctx *gr_ctx,
-	bool set_pm_ptr)
-{
-	int err;
-
-	/* Channel gr_ctx buffer is gpu cacheable.
-	   Flush and invalidate before cpu update. */
-	err = g->ops.mm.cache.l2_flush(g, true);
-	if (err != 0) {
-		nvgpu_err(g, "l2_flush failed");
-		return err;
-	}
-
-	g->ops.gr.ctxsw_prog.set_pm_mode(g, &gr_ctx->mem,
-			gr_ctx->pm_ctx.pm_mode);
-	if (set_pm_ptr) {
-		g->ops.gr.ctxsw_prog.set_pm_ptr(g, &gr_ctx->mem,
-			gr_ctx->pm_ctx.gpu_va);
-	}
-
-	return err;
 }
 #endif
 
@@ -982,23 +785,6 @@ void nvgpu_gr_ctx_set_cilp_preempt_pending(struct nvgpu_gr_ctx *gr_ctx,
 	gr_ctx->cilp_preempt_pending = cilp_preempt_pending;
 }
 
-u32 nvgpu_gr_ctx_read_ctx_id(struct nvgpu_gr_ctx *gr_ctx)
-{
-	return gr_ctx->ctx_id;
-}
-
-#if defined(CONFIG_NVGPU_CHANNEL_TSG_SCHEDULING) && defined(CONFIG_NVGPU_DEBUGGER)
-void nvgpu_gr_ctx_set_boosted_ctx(struct nvgpu_gr_ctx *gr_ctx, bool boost)
-{
-	gr_ctx->boosted_ctx = boost;
-}
-
-bool nvgpu_gr_ctx_get_boosted_ctx(struct nvgpu_gr_ctx *gr_ctx)
-{
-	return gr_ctx->boosted_ctx;
-}
-#endif
-
 bool nvgpu_gr_ctx_desc_force_preemption_gfxp(struct nvgpu_gr_ctx_desc *gr_ctx_desc)
 {
 	return gr_ctx_desc->force_preemption_gfxp;
@@ -1010,9 +796,215 @@ bool nvgpu_gr_ctx_desc_force_preemption_cilp(struct nvgpu_gr_ctx_desc *gr_ctx_de
 }
 
 #ifdef CONFIG_NVGPU_DEBUGGER
+int nvgpu_gr_ctx_alloc_pm_ctx(struct gk20a *g,
+	struct nvgpu_gr_ctx *gr_ctx,
+	struct nvgpu_gr_ctx_desc *gr_ctx_desc,
+	struct vm_gk20a *vm,
+	u64 gpu_va)
+{
+	struct pm_ctx_desc *pm_ctx = &gr_ctx->pm_ctx;
+	int err;
+
+	if (pm_ctx->mem.gpu_va != 0ULL) {
+		return 0;
+	}
+
+	err = nvgpu_dma_alloc_sys(g, gr_ctx_desc->size[NVGPU_GR_CTX_PM_CTX],
+			&pm_ctx->mem);
+	if (err != 0) {
+		nvgpu_err(g,
+			"failed to allocate pm ctx buffer");
+		return err;
+	}
+
+	pm_ctx->mem.gpu_va = nvgpu_gmmu_map_fixed(vm,
+					&pm_ctx->mem,
+					gpu_va,
+					pm_ctx->mem.size,
+					NVGPU_VM_MAP_CACHEABLE,
+					gk20a_mem_flag_none, true,
+					pm_ctx->mem.aperture);
+	if (pm_ctx->mem.gpu_va == 0ULL) {
+		nvgpu_err(g,
+			"failed to map pm ctxt buffer");
+		nvgpu_dma_free(g, &pm_ctx->mem);
+		return -ENOMEM;
+	}
+
+	return 0;
+}
+
+void nvgpu_gr_ctx_free_pm_ctx(struct gk20a *g, struct vm_gk20a *vm,
+	struct nvgpu_gr_ctx *gr_ctx)
+{
+	struct pm_ctx_desc *pm_ctx = &gr_ctx->pm_ctx;
+
+	if (pm_ctx->mem.gpu_va != 0ULL) {
+		nvgpu_gmmu_unmap(vm, &pm_ctx->mem, pm_ctx->mem.gpu_va);
+
+		nvgpu_dma_free(g, &pm_ctx->mem);
+	}
+}
+
+struct nvgpu_mem *nvgpu_gr_ctx_get_pm_ctx_mem(struct nvgpu_gr_ctx *gr_ctx)
+{
+	return &gr_ctx->pm_ctx.mem;
+}
+
+void nvgpu_gr_ctx_set_pm_ctx_pm_mode(struct nvgpu_gr_ctx *gr_ctx, u32 pm_mode)
+{
+	gr_ctx->pm_ctx.pm_mode = pm_mode;
+}
+
+u32 nvgpu_gr_ctx_get_pm_ctx_pm_mode(struct nvgpu_gr_ctx *gr_ctx)
+{
+	return gr_ctx->pm_ctx.pm_mode;
+}
+
+u32 nvgpu_gr_ctx_get_ctx_id(struct gk20a *g, struct nvgpu_gr_ctx *gr_ctx)
+{
+	if (!gr_ctx->ctx_id_valid) {
+		/* Channel gr_ctx buffer is gpu cacheable.
+		   Flush and invalidate before cpu update. */
+		if (g->ops.mm.cache.l2_flush(g, true) != 0) {
+			nvgpu_err(g, "l2_flush failed");
+		}
+
+		gr_ctx->ctx_id = g->ops.gr.ctxsw_prog.get_main_image_ctx_id(g,
+					&gr_ctx->mem);
+		gr_ctx->ctx_id_valid = true;
+	}
+
+	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_intr, "ctx_id: 0x%x", gr_ctx->ctx_id);
+
+	return gr_ctx->ctx_id;
+}
+
+u32 nvgpu_gr_ctx_read_ctx_id(struct nvgpu_gr_ctx *gr_ctx)
+{
+	return gr_ctx->ctx_id;
+}
+
+#ifdef CONFIG_NVGPU_CHANNEL_TSG_SCHEDULING
+void nvgpu_gr_ctx_set_boosted_ctx(struct nvgpu_gr_ctx *gr_ctx, bool boost)
+{
+	gr_ctx->boosted_ctx = boost;
+}
+
+bool nvgpu_gr_ctx_get_boosted_ctx(struct nvgpu_gr_ctx *gr_ctx)
+{
+	return gr_ctx->boosted_ctx;
+}
+#endif
+
 bool nvgpu_gr_ctx_desc_dump_ctxsw_stats_on_channel_close(
 		struct nvgpu_gr_ctx_desc *gr_ctx_desc)
 {
 	return gr_ctx_desc->dump_ctxsw_stats_on_channel_close;
 }
-#endif
+
+int nvgpu_gr_ctx_set_smpc_mode(struct gk20a *g, struct nvgpu_gr_ctx *gr_ctx,
+	bool enable)
+{
+	int err;
+
+	if (!nvgpu_mem_is_valid(&gr_ctx->mem)) {
+		nvgpu_err(g, "no graphics context allocated");
+		return -EFAULT;
+	}
+
+	/* Channel gr_ctx buffer is gpu cacheable.
+	   Flush and invalidate before cpu update. */
+	err = g->ops.mm.cache.l2_flush(g, true);
+	if (err != 0) {
+		nvgpu_err(g, "l2_flush failed");
+		return err;
+	}
+
+	g->ops.gr.ctxsw_prog.set_pm_smpc_mode(g, &gr_ctx->mem, enable);
+
+	return err;
+}
+
+int nvgpu_gr_ctx_prepare_hwpm_mode(struct gk20a *g, struct nvgpu_gr_ctx *gr_ctx,
+	u32 mode, bool *skip_update)
+{
+	struct pm_ctx_desc *pm_ctx = &gr_ctx->pm_ctx;
+	int ret = 0;
+
+	*skip_update = false;
+
+	if (!nvgpu_mem_is_valid(&gr_ctx->mem)) {
+		nvgpu_err(g, "no graphics context allocated");
+		return -EFAULT;
+	}
+
+	if ((mode == NVGPU_GR_CTX_HWPM_CTXSW_MODE_STREAM_OUT_CTXSW) &&
+	    (g->ops.gr.ctxsw_prog.hw_get_pm_mode_stream_out_ctxsw == NULL)) {
+		nvgpu_err(g,
+			"Mode-E hwpm context switch mode is not supported");
+		return -EINVAL;
+	}
+
+	switch (mode) {
+	case NVGPU_GR_CTX_HWPM_CTXSW_MODE_CTXSW:
+		if (pm_ctx->pm_mode ==
+		    g->ops.gr.ctxsw_prog.hw_get_pm_mode_ctxsw()) {
+			*skip_update = true;
+			return 0;
+		}
+		pm_ctx->pm_mode = g->ops.gr.ctxsw_prog.hw_get_pm_mode_ctxsw();
+		pm_ctx->gpu_va = pm_ctx->mem.gpu_va;
+		break;
+	case  NVGPU_GR_CTX_HWPM_CTXSW_MODE_NO_CTXSW:
+		if (pm_ctx->pm_mode ==
+		    g->ops.gr.ctxsw_prog.hw_get_pm_mode_no_ctxsw()) {
+			*skip_update = true;
+			return 0;
+		}
+		pm_ctx->pm_mode =
+			g->ops.gr.ctxsw_prog.hw_get_pm_mode_no_ctxsw();
+		pm_ctx->gpu_va = 0;
+		break;
+	case NVGPU_GR_CTX_HWPM_CTXSW_MODE_STREAM_OUT_CTXSW:
+		if (pm_ctx->pm_mode ==
+		    g->ops.gr.ctxsw_prog.hw_get_pm_mode_stream_out_ctxsw()) {
+			*skip_update = true;
+			return 0;
+		}
+		pm_ctx->pm_mode =
+			g->ops.gr.ctxsw_prog.hw_get_pm_mode_stream_out_ctxsw();
+		pm_ctx->gpu_va = pm_ctx->mem.gpu_va;
+		break;
+	default:
+		nvgpu_err(g, "invalid hwpm context switch mode");
+		ret = -EINVAL;
+		break;
+	}
+
+	return ret;
+}
+
+int nvgpu_gr_ctx_set_hwpm_mode(struct gk20a *g, struct nvgpu_gr_ctx *gr_ctx,
+	bool set_pm_ptr)
+{
+	int err;
+
+	/* Channel gr_ctx buffer is gpu cacheable.
+	   Flush and invalidate before cpu update. */
+	err = g->ops.mm.cache.l2_flush(g, true);
+	if (err != 0) {
+		nvgpu_err(g, "l2_flush failed");
+		return err;
+	}
+
+	g->ops.gr.ctxsw_prog.set_pm_mode(g, &gr_ctx->mem,
+			gr_ctx->pm_ctx.pm_mode);
+	if (set_pm_ptr) {
+		g->ops.gr.ctxsw_prog.set_pm_ptr(g, &gr_ctx->mem,
+			gr_ctx->pm_ctx.gpu_va);
+	}
+
+	return err;
+}
+#endif /* CONFIG_NVGPU_DEBUGGER */

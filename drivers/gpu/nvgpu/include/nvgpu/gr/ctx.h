@@ -76,9 +76,12 @@ struct zcull_ctx_desc;
 #define NVGPU_GR_CTX_ATTRIBUTE_VA		2U
 #define NVGPU_GR_CTX_PRIV_ACCESS_MAP_VA		3U
 #define NVGPU_GR_CTX_RTV_CIRCULAR_BUFFER_VA	4U
+#ifdef CONFIG_NVGPU_FECS_TRACE
 #define NVGPU_GR_CTX_FECS_TRACE_BUFFER_VA	5U
+#endif
 #define NVGPU_GR_CTX_VA_COUNT			6U
 
+#ifdef CONFIG_NVGPU_DEBUGGER
  /* PM Context Switch Mode */
 /*This mode says that the pms are not to be context switched. */
 #define NVGPU_GR_CTX_HWPM_CTXSW_MODE_NO_CTXSW               (0x00000000U)
@@ -86,6 +89,7 @@ struct zcull_ctx_desc;
 #define NVGPU_GR_CTX_HWPM_CTXSW_MODE_CTXSW                  (0x00000001U)
 /* This mode says that the pms in Mode-E (stream out) are to be context switched. */
 #define NVGPU_GR_CTX_HWPM_CTXSW_MODE_STREAM_OUT_CTXSW       (0x00000002U)
+#endif
 
 struct nvgpu_gr_ctx_desc *nvgpu_gr_ctx_desc_alloc(struct gk20a *g);
 void nvgpu_gr_ctx_desc_free(struct gk20a *g,
@@ -102,16 +106,6 @@ void nvgpu_gr_ctx_free(struct gk20a *g,
 	struct nvgpu_gr_ctx *gr_ctx,
 	struct nvgpu_gr_global_ctx_buffer_desc *global_ctx_buffer,
 	struct vm_gk20a *vm);
-
-#ifdef CONFIG_NVGPU_DEBUGGER
-int nvgpu_gr_ctx_alloc_pm_ctx(struct gk20a *g,
-	struct nvgpu_gr_ctx *gr_ctx,
-	struct nvgpu_gr_ctx_desc *gr_ctx_desc,
-	struct vm_gk20a *vm,
-	u64 gpu_va);
-void nvgpu_gr_ctx_free_pm_ctx(struct gk20a *g, struct vm_gk20a *vm,
-	struct nvgpu_gr_ctx *gr_ctx);
-#endif
 
 int nvgpu_gr_ctx_alloc_patch_ctx(struct gk20a *g,
 	struct nvgpu_gr_ctx *gr_ctx,
@@ -153,8 +147,6 @@ struct nvgpu_mem *nvgpu_gr_ctx_get_patch_ctx_mem(struct nvgpu_gr_ctx *gr_ctx);
 void nvgpu_gr_ctx_set_patch_ctx_data_count(struct nvgpu_gr_ctx *gr_ctx,
 	u32 data_count);
 
-struct nvgpu_mem *nvgpu_gr_ctx_get_pm_ctx_mem(struct nvgpu_gr_ctx *gr_ctx);
-
 struct nvgpu_mem *nvgpu_gr_ctx_get_ctx_mem(struct nvgpu_gr_ctx *gr_ctx);
 
 int nvgpu_gr_ctx_load_golden_ctx_image(struct gk20a *g,
@@ -189,26 +181,6 @@ int nvgpu_gr_ctx_zcull_setup(struct gk20a *g, struct nvgpu_gr_ctx *gr_ctx,
 	bool set_zcull_ptr);
 #endif
 
-#ifdef CONFIG_NVGPU_DEBUGGER
-u32 nvgpu_gr_ctx_get_ctx_id(struct gk20a *g, struct nvgpu_gr_ctx *gr_ctx);
-
-int nvgpu_gr_ctx_set_smpc_mode(struct gk20a *g, struct nvgpu_gr_ctx *gr_ctx,
-	bool enable);
-
-int nvgpu_gr_ctx_prepare_hwpm_mode(struct gk20a *g, struct nvgpu_gr_ctx *gr_ctx,
-	u32 mode, bool *skip_update);
-int nvgpu_gr_ctx_set_hwpm_mode(struct gk20a *g, struct nvgpu_gr_ctx *gr_ctx,
-	bool set_pm_ptr);
-
-#ifdef CONFIG_NVGPU_CHANNEL_TSG_SCHEDULING
-void nvgpu_gr_ctx_set_boosted_ctx(struct nvgpu_gr_ctx *gr_ctx, bool boost);
-bool nvgpu_gr_ctx_get_boosted_ctx(struct nvgpu_gr_ctx *gr_ctx);
-#endif
-
-bool nvgpu_gr_ctx_desc_dump_ctxsw_stats_on_channel_close(
-		struct nvgpu_gr_ctx_desc *gr_ctx_desc);
-#endif /* CONFIG_NVGPU_DEBUGGER */
-
 void nvgpu_gr_ctx_init_compute_preemption_mode(struct nvgpu_gr_ctx *gr_ctx,
 	u32 compute_preempt_mode);
 u32 nvgpu_gr_ctx_get_compute_preemption_mode(struct nvgpu_gr_ctx *gr_ctx);
@@ -232,20 +204,48 @@ void nvgpu_gr_ctx_set_tsgid(struct nvgpu_gr_ctx *gr_ctx, u32 tsgid);
 
 u32 nvgpu_gr_ctx_get_tsgid(struct nvgpu_gr_ctx *gr_ctx);
 
-void nvgpu_gr_ctx_set_pm_ctx_pm_mode(struct nvgpu_gr_ctx *gr_ctx, u32 pm_mode);
-
-u32 nvgpu_gr_ctx_get_pm_ctx_pm_mode(struct nvgpu_gr_ctx *gr_ctx);
-
 bool nvgpu_gr_ctx_get_cilp_preempt_pending(struct nvgpu_gr_ctx *gr_ctx);
 
 void nvgpu_gr_ctx_set_cilp_preempt_pending(struct nvgpu_gr_ctx *gr_ctx,
 	bool cilp_preempt_pending);
 
-u32 nvgpu_gr_ctx_read_ctx_id(struct nvgpu_gr_ctx *gr_ctx);
-
 bool nvgpu_gr_ctx_desc_force_preemption_gfxp(
 		struct nvgpu_gr_ctx_desc *gr_ctx_desc);
 bool nvgpu_gr_ctx_desc_force_preemption_cilp(
 		struct nvgpu_gr_ctx_desc *gr_ctx_desc);
+
+#ifdef CONFIG_NVGPU_DEBUGGER
+int nvgpu_gr_ctx_alloc_pm_ctx(struct gk20a *g,
+	struct nvgpu_gr_ctx *gr_ctx,
+	struct nvgpu_gr_ctx_desc *gr_ctx_desc,
+	struct vm_gk20a *vm,
+	u64 gpu_va);
+void nvgpu_gr_ctx_free_pm_ctx(struct gk20a *g, struct vm_gk20a *vm,
+	struct nvgpu_gr_ctx *gr_ctx);
+
+u32 nvgpu_gr_ctx_get_ctx_id(struct gk20a *g, struct nvgpu_gr_ctx *gr_ctx);
+u32 nvgpu_gr_ctx_read_ctx_id(struct nvgpu_gr_ctx *gr_ctx);
+
+struct nvgpu_mem *nvgpu_gr_ctx_get_pm_ctx_mem(struct nvgpu_gr_ctx *gr_ctx);
+
+void nvgpu_gr_ctx_set_pm_ctx_pm_mode(struct nvgpu_gr_ctx *gr_ctx, u32 pm_mode);
+u32 nvgpu_gr_ctx_get_pm_ctx_pm_mode(struct nvgpu_gr_ctx *gr_ctx);
+
+int nvgpu_gr_ctx_set_smpc_mode(struct gk20a *g, struct nvgpu_gr_ctx *gr_ctx,
+	bool enable);
+
+int nvgpu_gr_ctx_prepare_hwpm_mode(struct gk20a *g, struct nvgpu_gr_ctx *gr_ctx,
+	u32 mode, bool *skip_update);
+int nvgpu_gr_ctx_set_hwpm_mode(struct gk20a *g, struct nvgpu_gr_ctx *gr_ctx,
+	bool set_pm_ptr);
+
+#ifdef CONFIG_NVGPU_CHANNEL_TSG_SCHEDULING
+void nvgpu_gr_ctx_set_boosted_ctx(struct nvgpu_gr_ctx *gr_ctx, bool boost);
+bool nvgpu_gr_ctx_get_boosted_ctx(struct nvgpu_gr_ctx *gr_ctx);
+#endif
+
+bool nvgpu_gr_ctx_desc_dump_ctxsw_stats_on_channel_close(
+		struct nvgpu_gr_ctx_desc *gr_ctx_desc);
+#endif /* CONFIG_NVGPU_DEBUGGER */
 
 #endif /* NVGPU_INCLUDE_GR_CTX_H */
