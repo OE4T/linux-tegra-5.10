@@ -95,7 +95,6 @@ srcs += common/utils/enabled.c \
 	common/fbp/fbp.c \
 	common/io/io.c \
 	common/ecc.c \
-	common/vbios/bios.c \
 	common/falcon/falcon.c \
 	common/falcon/falcon_sw_gk20a.c \
 	common/falcon/falcon_sw_gp106.c \
@@ -475,6 +474,7 @@ srcs += common/sec2/sec2.c \
 	common/sec2/ipc/sec2_msg.c \
 	common/sec2/ipc/sec2_queue.c \
 	common/sec2/ipc/sec2_seq.c \
+	common/vbios/bios.c \
 	common/vbios/bios_sw_gv100.c \
 	common/vbios/bios_sw_tu104.c \
 	common/falcon/falcon_sw_gv100.c \

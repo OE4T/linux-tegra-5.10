@@ -179,7 +179,6 @@ int nvgpu_bios_sw_init(struct gk20a *g,
 	}
 
 	switch (ver) {
-#ifdef NVGPU_DGPU_SUPPORT
 	case NVGPU_GPUID_GV100:
 		nvgpu_gv100_bios_sw_init(g, *bios);
 		break;
@@ -187,7 +186,6 @@ int nvgpu_bios_sw_init(struct gk20a *g,
 	case NVGPU_GPUID_TU104:
 		nvgpu_tu104_bios_sw_init(g, *bios);
 		break;
-#endif
 	default:
 		nvgpu_kfree(g, *bios);
 		err = 0;
@@ -196,11 +194,11 @@ int nvgpu_bios_sw_init(struct gk20a *g,
 
 	if ((*bios)->init != NULL) {
 		err = (*bios)->init(g);
-		if (err != 0)
+		if (err != 0) {
 			nvgpu_falcon_sw_free(g, FALCON_ID_FECS);
+		}
 		goto done;
 	}
-
 done:
 	return err;
 }

@@ -247,11 +247,13 @@ int gk20a_finalize_poweron(struct gk20a *g)
 		}
 	}
 
+#ifdef NVGPU_DGPU_SUPPORT
 	err = nvgpu_bios_sw_init(g, &g->bios);
 	if (err != 0) {
 		nvgpu_err(g, "BIOS SW init failed %d", err);
 		goto done;
 	}
+#endif
 	g->ops.bus.init_hw(g);
 
 	if (g->ops.clk.disable_slowboot != NULL) {

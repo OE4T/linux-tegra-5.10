@@ -85,10 +85,14 @@ int gv100_bios_preos_wait_for_halt(struct gk20a *g)
 		g->ops.bus.write_sw_scratch(g, SCRATCH_PMU_EXIT_AND_HALT,
 			PMU_EXIT_AND_HALT_SET(tmp, PMU_EXIT_AND_HALT_YES));
 
-		nvgpu_timeout_init(g, &timeout,
+		err = nvgpu_timeout_init(g, &timeout,
 			   PMU_BOOT_TIMEOUT_MAX /
 				PMU_BOOT_TIMEOUT_DEFAULT,
 			   NVGPU_TIMER_RETRY_TIMER);
+		if (err != 0) {
+			nvgpu_err(g, "NVGPU timeout init failed");
+			return err;
+		}
 
 		do {
 			progress = g->ops.bus.read_sw_scratch(g,
@@ -100,7 +104,7 @@ int gv100_bios_preos_wait_for_halt(struct gk20a *g)
 
 			nvgpu_udelay(PMU_BOOT_TIMEOUT_DEFAULT);
 		} while (!preos_completed &&
-			 (nvgpu_timeout_expired(&timeout) == 0));
+			(nvgpu_timeout_expired(&timeout) == 0));
 	}
 
 	return err;
@@ -176,10 +180,14 @@ int gv100_bios_devinit(struct gk20a *g)
 		goto out;
 	}
 
-	nvgpu_timeout_init(g, &timeout,
+	err = nvgpu_timeout_init(g, &timeout,
 					PMU_BOOT_TIMEOUT_MAX /
 						PMU_BOOT_TIMEOUT_DEFAULT,
 					NVGPU_TIMER_RETRY_TIMER);
+	if (err != 0) {
+		nvgpu_err(g, "nvgpu timeout init failed %d", err);
+		goto out;
+	}
 	do {
 		top_scratch1_reg = g->ops.top.read_top_scratch1_reg(g);
 		devinit_completed = ((g->ops.falcon.is_falcon_cpu_halted(
