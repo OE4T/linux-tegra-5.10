@@ -47,7 +47,9 @@ typedef void (*global_ctx_mem_destroy_fn)(struct gk20a *g,
 
 #define NVGPU_GR_GLOBAL_CTX_PRIV_ACCESS_MAP		6U
 #define NVGPU_GR_GLOBAL_CTX_RTV_CIRCULAR_BUFFER		7U
+#ifdef CONFIG_NVGPU_FECS_TRACE
 #define NVGPU_GR_GLOBAL_CTX_FECS_TRACE_BUFFER		8U
+#endif
 #define NVGPU_GR_GLOBAL_CTX_COUNT			9U
 
 struct nvgpu_gr_global_ctx_buffer_desc *nvgpu_gr_global_ctx_desc_alloc(

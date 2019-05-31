@@ -1362,8 +1362,10 @@ int gv11b_init_hal(struct gk20a *g)
 	}
 
 	nvgpu_set_enabled(g, NVGPU_PMU_FECS_BOOTSTRAP_DONE, false);
+#ifdef CONFIG_NVGPU_FECS_TRACE
 	nvgpu_set_enabled(g, NVGPU_FECS_TRACE_VA, true);
 	nvgpu_set_enabled(g, NVGPU_FECS_TRACE_FEATURE_CONTROL, true);
+#endif
 
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_MULTIPLE_WPR, false);
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_ZBC_STENCIL, true);

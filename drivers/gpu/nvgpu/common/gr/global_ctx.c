@@ -170,6 +170,7 @@ int nvgpu_gr_global_ctx_buffer_alloc(struct gk20a *g,
 		goto clean_up;
 	}
 
+#ifdef CONFIG_NVGPU_FECS_TRACE
 	if (desc[NVGPU_GR_GLOBAL_CTX_FECS_TRACE_BUFFER].size != 0U) {
 		err = nvgpu_gr_global_ctx_buffer_alloc_sys(g, desc,
 			NVGPU_GR_GLOBAL_CTX_FECS_TRACE_BUFFER);
@@ -177,6 +178,7 @@ int nvgpu_gr_global_ctx_buffer_alloc(struct gk20a *g,
 			goto clean_up;
 		}
 	}
+#endif
 
 	if (desc[NVGPU_GR_GLOBAL_CTX_RTV_CIRCULAR_BUFFER].size != 0U) {
 		err = nvgpu_gr_global_ctx_buffer_alloc_sys(g, desc,
