@@ -29,7 +29,9 @@
 #include <nvgpu/nvgpu_err.h>
 #include <nvgpu/firmware.h>
 #include <nvgpu/bug.h>
+#ifdef NVGPU_FEATURE_LS_PMU
 #include <nvgpu/pmu/cmd.h>
+#endif
 
 #include "pmu_gv11b.h"
 

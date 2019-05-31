@@ -21,8 +21,10 @@
  */
 
 #include <nvgpu/gk20a.h>
+#ifdef NVGPU_FEATURE_LS_PMU
 #include <nvgpu/pmu.h>
 #include <nvgpu/pmu/pmu_pg.h>
+#endif
 #include <nvgpu/power_features/pg.h>
 
 bool nvgpu_pg_elpg_is_enabled(struct gk20a *g)

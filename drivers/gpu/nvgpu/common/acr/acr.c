@@ -25,7 +25,6 @@
 #include <nvgpu/firmware.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/acr.h>
-#include <nvgpu/pmu/pmuif/cmn.h>
 
 #include "acr_priv.h"
 #ifdef NVGPU_FEATURE_ACR_LEGACY

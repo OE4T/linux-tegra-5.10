@@ -40,7 +40,9 @@
 #include <nvgpu/gr/gr_intr.h>
 #include <nvgpu/gr/gr_falcon.h>
 #include <nvgpu/gr/setup.h>
+#ifdef NVGPU_FEATURE_LS_PMU
 #include <nvgpu/pmu/pmu_perfmon.h>
+#endif
 #include <nvgpu/gr/fecs_trace.h>
 
 #include "hal/mm/mm_gk20a.h"
@@ -105,7 +107,9 @@
 
 #include "hal/fifo/channel_gk20a.h"
 #include "hal/fifo/channel_gm20b.h"
+#ifdef NVGPU_FEATURE_LS_PMU
 #include "common/pmu/pg/pg_sw_gm20b.h"
+#endif
 
 #include "hal_gm20b.h"
 #include "hal_gm20b_litter.h"

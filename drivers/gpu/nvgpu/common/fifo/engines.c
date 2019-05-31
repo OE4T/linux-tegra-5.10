@@ -25,8 +25,10 @@
 #include <nvgpu/errno.h>
 #include <nvgpu/timers.h>
 #include <nvgpu/bitops.h>
+#ifdef NVGPU_FEATURE_LS_PMU
 #include <nvgpu/pmu.h>
 #include <nvgpu/pmu/mutex.h>
+#endif
 #include <nvgpu/runlist.h>
 #include <nvgpu/engines.h>
 #include <nvgpu/engine_status.h>

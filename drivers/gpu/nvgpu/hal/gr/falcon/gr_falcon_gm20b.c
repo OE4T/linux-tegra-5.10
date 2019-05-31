@@ -27,6 +27,7 @@
 #include <nvgpu/power_features/pg.h>
 #include <nvgpu/soc.h>
 #include <nvgpu/safe_ops.h>
+#include <nvgpu/pmu/pmuif/ctrlclk.h>
 
 #include "gr_falcon_gm20b.h"
 #include "common/gr/gr_falcon_priv.h"

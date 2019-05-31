@@ -24,7 +24,9 @@
 #include <nvgpu/log.h>
 #include <nvgpu/io.h>
 #include <nvgpu/mm.h>
+#ifdef NVGPU_FEATURE_LS_PMU
 #include <nvgpu/pmu/pmu_pg.h>
+#endif
 #include <nvgpu/gr/ctx.h>
 #include <nvgpu/gr/subctx.h>
 #include <nvgpu/gr/global_ctx.h>

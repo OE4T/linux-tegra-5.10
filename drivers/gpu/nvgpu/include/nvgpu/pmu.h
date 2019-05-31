@@ -31,6 +31,7 @@
 #include <nvgpu/flcnif_cmn.h>
 #include <nvgpu/falcon.h>
 #include <nvgpu/timers.h>
+#ifdef NVGPU_FEATURE_LS_PMU
 #include <nvgpu/pmu/queue.h>
 #include <nvgpu/pmu/msg.h>
 #include <nvgpu/pmu/fw.h>
@@ -41,6 +42,7 @@ struct nvgpu_pmu_lsfm;
 struct pmu_super_surface;
 struct nvgpu_pmu_pg;
 struct nvgpu_pmu_perfmon;
+#endif
 
 #define nvgpu_pmu_dbg(g, fmt, args...) \
 	nvgpu_log(g, gpu_dbg_pmu, fmt, ##args)
@@ -87,6 +89,7 @@ struct nvgpu_clk_pmupstate;
 /* pmu load const defines */
 #define PMU_BUSY_CYCLES_NORM_MAX		(1000U)
 
+#ifdef NVGPU_FEATURE_LS_PMU
 struct rpc_handler_payload {
 	void *rpc_buff;
 	bool is_mem_free_set;
@@ -111,6 +114,7 @@ struct pmu_payload {
 	struct pmu_in_out_payload_desc out;
 	struct pmu_rpc_desc rpc;
 };
+#endif
 
 struct pmu_ucode_desc {
 	u32 descriptor_size;
@@ -150,6 +154,7 @@ struct nvgpu_pmu {
 	bool isr_enabled;
 	struct nvgpu_mutex isr_mutex;
 	struct nvgpu_falcon *flcn;
+#ifdef NVGPU_FEATURE_LS_PMU
 	struct nvgpu_allocator dmem;
 	struct nvgpu_mem trace_buf;
 	struct pmu_sha1_gid gid_info;
@@ -171,8 +176,10 @@ struct nvgpu_pmu {
 			struct nv_pmu_rpc_header *rpc);
 	void (*therm_event_handler)(struct gk20a *g, struct nvgpu_pmu *pmu,
 		struct pmu_msg *msg, struct nv_pmu_rpc_header *rpc);
+#endif
 };
 
+#ifdef NVGPU_FEATURE_LS_PMU
 /*!
  * Structure/object which single register write need to be done during PG init
  * sequence to set PROD values.
@@ -187,11 +194,16 @@ int nvgpu_pmu_lock_acquire(struct gk20a *g, struct nvgpu_pmu *pmu,
 	u32 id, u32 *token);
 int nvgpu_pmu_lock_release(struct gk20a *g, struct nvgpu_pmu *pmu,
 	u32 id, u32 *token);
+#endif
 
 /* PMU RTOS init/setup functions */
 int nvgpu_pmu_early_init(struct gk20a *g, struct nvgpu_pmu **pmu_p);
+
+#ifdef NVGPU_FEATURE_LS_PMU
 int nvgpu_pmu_init(struct gk20a *g, struct nvgpu_pmu *pmu);
 int nvgpu_pmu_destroy(struct gk20a *g, struct nvgpu_pmu *pmu);
+#endif
+
 void nvgpu_pmu_remove_support(struct gk20a *g, struct nvgpu_pmu *pmu);
 
 /* PMU H/W error functions */

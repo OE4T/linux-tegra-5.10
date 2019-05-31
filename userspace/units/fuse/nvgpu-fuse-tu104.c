@@ -27,6 +27,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/fuse.h>
 #include <nvgpu/hal_init.h>
+#include <nvgpu/pmu/pmuif/ctrlclk.h>
 #include "hal/fuse/fuse_gm20b.h"
 
 #include "nvgpu-fuse-priv.h"

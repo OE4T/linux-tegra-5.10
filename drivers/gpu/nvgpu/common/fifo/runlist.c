@@ -29,7 +29,9 @@
 #include <nvgpu/bug.h>
 #include <nvgpu/dma.h>
 #include <nvgpu/rc.h>
+#ifdef NVGPU_FEATURE_LS_PMU
 #include <nvgpu/pmu/mutex.h>
+#endif
 
 void nvgpu_runlist_lock_active_runlists(struct gk20a *g)
 {

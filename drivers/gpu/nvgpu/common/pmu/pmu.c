@@ -20,30 +20,32 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#include <nvgpu/pmu.h>
-#include <nvgpu/pmu/pmu_pg.h>
-#include <nvgpu/pmu/mutex.h>
-#include <nvgpu/pmu/seq.h>
+#include <nvgpu/gk20a.h>
 #include <nvgpu/log.h>
 #include <nvgpu/enabled.h>
 #include <nvgpu/bug.h>
 #include <nvgpu/utils.h>
-#include <nvgpu/gk20a.h>
 #include <nvgpu/power_features/cg.h>
 #include <nvgpu/nvgpu_err.h>
+#include <nvgpu/boardobj.h>
+#include <nvgpu/boardobjgrp.h>
+#include <nvgpu/pmu.h>
+#ifdef NVGPU_FEATURE_LS_PMU
+#include <nvgpu/pmu/pmu_pg.h>
+#include <nvgpu/pmu/mutex.h>
+#include <nvgpu/pmu/seq.h>
 #include <nvgpu/pmu/lsfm.h>
-#ifdef NVGPU_DGPU_SUPPORT
-#include <nvgpu/sec2/lsfm.h>
-#endif
 #include <nvgpu/pmu/super_surface.h>
 #include <nvgpu/pmu/pmu_perfmon.h>
 #include <nvgpu/pmu/pmu_pg.h>
 #include <nvgpu/pmu/fw.h>
 #include <nvgpu/pmu/debug.h>
-#include <nvgpu/boardobj.h>
-#include <nvgpu/boardobjgrp.h>
 #include <nvgpu/pmu/pmu_pstate.h>
-#include <nvgpu/nvgpu_err.h>
+#endif
+
+#ifdef NVGPU_DGPU_SUPPORT
+#include <nvgpu/sec2/lsfm.h>
+#endif
 
 #ifdef NVGPU_FEATURE_LS_PMU
 /* PMU locks used to sync with PMU-RTOS */
@@ -378,10 +380,11 @@ exit:
 void nvgpu_pmu_remove_support(struct gk20a *g, struct nvgpu_pmu *pmu)
 {
 	if(pmu != NULL) {
+#ifdef NVGPU_FEATURE_LS_PMU
 		if (pmu->remove_support != NULL) {
 			pmu->remove_support(g->pmu);
 		}
-
+#endif
 		nvgpu_kfree(g, g->pmu);
 		g->pmu = NULL;
 	}

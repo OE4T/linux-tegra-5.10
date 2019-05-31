@@ -25,7 +25,9 @@
 #include <nvgpu/bug.h>
 #include <nvgpu/string.h>
 #include <nvgpu/power_features/pg.h>
+#ifdef NVGPU_FEATURE_LS_PMU
 #include <nvgpu/pmu/pmu_pg.h>
+#endif
 
 #include "zbc_priv.h"
 

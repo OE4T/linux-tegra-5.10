@@ -24,7 +24,9 @@
 #include <nvgpu/firmware.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/bug.h>
+#ifdef NVGPU_FEATURE_LS_PMU
 #include <nvgpu/pmu/fw.h>
+#endif
 
 #include "acr_wpr.h"
 #include "acr_priv.h"

@@ -48,7 +48,9 @@
 #include <nvgpu/gr/gr.h>
 
 #include <trace/events/gk20a.h>
+#ifdef NVGPU_FEATURE_LS_PMU
 #include <nvgpu/pmu/pmu_pstate.h>
+#endif
 
 bool is_nvgpu_gpu_state_valid(struct gk20a *g)
 {

@@ -229,7 +229,6 @@ srcs += common/utils/enabled.c \
 	hal/fb/intr/fb_intr_ecc_gv11b.c \
 	hal/fuse/fuse_gm20b.c \
 	hal/fuse/fuse_gp10b.c \
-	hal/fuse/fuse_gp106.c \
 	hal/rc/rc_gk20a.c \
 	hal/rc/rc_gv11b.c \
 	hal/fifo/fifo_gk20a.c \
@@ -522,6 +521,7 @@ srcs += common/sec2/sec2.c \
 	hal/fifo/runlist_fifo_gv100.c \
 	hal/fifo/runlist_fifo_tu104.c \
 	hal/fifo/fifo_intr_gv100.c \
+	hal/fuse/fuse_gp106.c \
 	hal/netlist/netlist_gv100.c \
 	hal/netlist/netlist_tu104.c \
 	hal/nvdec/nvdec_tu104.c \

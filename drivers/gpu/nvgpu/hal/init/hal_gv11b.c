@@ -28,7 +28,9 @@
 #include <nvgpu/regops.h>
 #include <nvgpu/gr/gr_falcon.h>
 #include <nvgpu/gr/gr.h>
+#ifdef NVGPU_FEATURE_LS_PMU
 #include <nvgpu/pmu/pmu_perfmon.h>
+#endif
 
 #include "hal/mm/mm_gp10b.h"
 #include "hal/mm/mm_gv11b.h"
@@ -124,10 +126,11 @@
 #include "hal/gr/gr/gr_gp10b.h"
 #include "hal/gr/gr/gr_gv100.h"
 #include "hal/gr/gr/gr_gv11b.h"
+#ifdef NVGPU_FEATURE_LS_PMU
 #include "hal/pmu/pmu_gk20a.h"
 #include "hal/pmu/pmu_gm20b.h"
+#endif
 #include "hal/pmu/pmu_gp106.h"
-#include "hal/pmu/pmu_gp10b.h"
 #include "hal/pmu/pmu_gv11b.h"
 #include "hal/sync/syncpt_cmdbuf_gv11b.h"
 #include "hal/sync/sema_cmdbuf_gv11b.h"
@@ -138,10 +141,11 @@
 #include "hal/top/top_gp10b.h"
 #include "hal/top/top_gv11b.h"
 
-
+#ifdef NVGPU_FEATURE_LS_PMU
 #include "common/pmu/pg/pg_sw_gm20b.h"
 #include "common/pmu/pg/pg_sw_gp106.h"
 #include "common/pmu/pg/pg_sw_gv11b.h"
+#endif
 #include "hal/fifo/channel_gk20a.h"
 #include "hal/fifo/channel_gm20b.h"
 #include "hal/fifo/channel_gv11b.h"

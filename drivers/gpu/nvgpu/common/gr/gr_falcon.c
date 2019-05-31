@@ -30,8 +30,10 @@
 #include <nvgpu/sizes.h>
 #include <nvgpu/mm.h>
 #include <nvgpu/acr.h>
+#ifdef NVGPU_FEATURE_LS_PMU
 #include <nvgpu/pmu/lsfm.h>
 #include <nvgpu/pmu/pmu_pg.h>
+#endif
 #ifdef NVGPU_DGPU_SUPPORT
 #include <nvgpu/sec2/lsfm.h>
 #endif

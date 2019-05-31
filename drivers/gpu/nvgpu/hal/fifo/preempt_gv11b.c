@@ -37,7 +37,9 @@
 #include <nvgpu/engine_status.h>
 #include <nvgpu/preempt.h>
 #include <nvgpu/nvgpu_err.h>
+#ifdef NVGPU_FEATURE_LS_PMU
 #include <nvgpu/pmu/mutex.h>
+#endif
 
 #include "preempt_gv11b.h"
 

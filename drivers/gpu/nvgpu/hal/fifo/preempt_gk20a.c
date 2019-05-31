@@ -32,7 +32,9 @@
 #include <nvgpu/channel.h>
 #include <nvgpu/tsg.h>
 #include <nvgpu/preempt.h>
+#ifdef NVGPU_FEATURE_LS_PMU
 #include <nvgpu/pmu/mutex.h>
+#endif
 
 #include "preempt_gk20a.h"
 

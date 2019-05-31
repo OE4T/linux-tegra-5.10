@@ -41,7 +41,9 @@
 #include <nvgpu/gr/fecs_trace.h>
 #include <nvgpu/gr/gr.h>
 #include <nvgpu/gr/gr_intr.h>
+#ifdef NVGPU_FEATURE_LS_PMU
 #include <nvgpu/pmu/pmu_perfmon.h>
+#endif
 
 #include "hal/mm/mm_gk20a.h"
 #include "hal/mm/mm_gm20b.h"
@@ -112,9 +114,11 @@
 #include "hal/gr/gr/gr_gk20a.h"
 #include "hal/gr/gr/gr_gp10b.h"
 #include "hal/gr/gr/gr_gm20b.h"
+#ifdef NVGPU_FEATURE_LS_PMU
 #include "hal/pmu/pmu_gk20a.h"
 #include "hal/pmu/pmu_gm20b.h"
 #include "hal/pmu/pmu_gp10b.h"
+#endif
 #include "hal/sync/syncpt_cmdbuf_gk20a.h"
 #include "hal/sync/sema_cmdbuf_gk20a.h"
 #include "hal/falcon/falcon_gk20a.h"
@@ -123,9 +127,10 @@
 #include "hal/top/top_gm20b.h"
 #include "hal/top/top_gp10b.h"
 #include "hal/pramin/pramin_init.h"
-
+#ifdef NVGPU_FEATURE_LS_PMU
 #include "common/pmu/pg/pg_sw_gm20b.h"
 #include "common/pmu/pg/pg_sw_gp10b.h"
+#endif
 #include "hal/fifo/channel_gk20a.h"
 #include "hal/fifo/channel_gm20b.h"
 #include "common/clk_arb/clk_arb_gp10b.h"
