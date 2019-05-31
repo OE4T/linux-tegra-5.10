@@ -824,6 +824,115 @@ done:
 	return rc;
 }
 
+/*
+ * channel non-referenceable case is covered when no match is found
+ * since we looked up all possible channels.
+ */
+#define F_CHANNEL_FROM_INST_NO_INIT			BIT(0)
+#define F_CHANNEL_FROM_INST_NO_CHANNEL			BIT(1)
+#define F_CHANNEL_FROM_INST_MATCH_A			BIT(2)
+#define F_CHANNEL_FROM_INST_MATCH_B			BIT(3)
+#define F_CHANNEL_FROM_INST_LAST			BIT(4)
+
+static const char *f_channel_from_inst[] = {
+	"no_init",
+	"no_channel",
+	"match_a",
+	"match_b",
+};
+
+static int test_channel_from_inst(struct unit_module *m,
+		struct gk20a *g, void *args)
+{
+	struct nvgpu_channel *ch = NULL;
+	struct nvgpu_channel *chA = NULL;
+	struct nvgpu_channel *chB = NULL;
+	struct nvgpu_fifo *f = &g->fifo;
+	struct nvgpu_fifo fifo = g->fifo;
+	u32 branches = 0U;
+	u32 found =
+		F_CHANNEL_FROM_INST_MATCH_A |
+		F_CHANNEL_FROM_INST_MATCH_B;
+	u32 prune =  found |
+		F_CHANNEL_FROM_INST_NO_INIT |
+		F_CHANNEL_FROM_INST_NO_CHANNEL;
+	int rc = UNIT_FAIL;
+	u32 runlist_id = NVGPU_INVALID_RUNLIST_ID;
+	u64 inst_ptr;
+	bool privileged = false;
+
+	chA = gk20a_open_new_channel(g, runlist_id,
+			privileged, getpid(), getpid());
+	assert(chA != NULL);
+
+	chB = gk20a_open_new_channel(g, runlist_id,
+			privileged, getpid(), getpid());
+	assert(chB != NULL);
+
+	assert(f->num_channels > 0U);
+
+	for (branches = 0U; branches < F_CHANNEL_FROM_INST_LAST; branches++) {
+
+		if (subtest_pruned(branches, prune)) {
+			unit_verbose(m, "%s branches=%s (pruned)\n", __func__,
+				branches_str(branches,
+					f_channel_from_inst));
+			continue;
+		}
+		subtest_setup(branches);
+		unit_verbose(m, "%s branches=%s\n", __func__,
+			branches_str(branches, f_channel_from_inst));
+
+		if (branches & F_CHANNEL_FROM_INST_NO_INIT) {
+			f->channel = NULL;
+		}
+
+		if (branches & F_CHANNEL_FROM_INST_NO_CHANNEL) {
+			f->num_channels = 0U;
+		}
+
+		inst_ptr = (u64)-1;
+
+		if (branches & F_CHANNEL_FROM_INST_MATCH_A) {
+			inst_ptr = nvgpu_inst_block_addr(g, &chA->inst_block);
+		}
+
+		if (branches & F_CHANNEL_FROM_INST_MATCH_B) {
+			inst_ptr = nvgpu_inst_block_addr(g, &chB->inst_block);
+		}
+
+		ch = nvgpu_channel_refch_from_inst_ptr(g, inst_ptr);
+
+		if (branches & found) {
+			if (branches & F_CHANNEL_FROM_INST_MATCH_A) {
+				assert(ch == chA);
+			}
+			if (branches & F_CHANNEL_FROM_INST_MATCH_B) {
+				assert(ch == chB);
+			}
+			assert(nvgpu_atomic_read(&ch->ref_count) == 2);
+			nvgpu_channel_put(ch);
+		} else {
+			f->channel = fifo.channel;
+			f->num_channels = fifo.num_channels;
+			assert(ch == NULL);
+		}
+	}
+	rc = UNIT_SUCCESS;
+
+done:
+	if (rc != UNIT_SUCCESS) {
+		unit_err(m, "%s branches=%s\n", __func__,
+			branches_str(branches, f_channel_from_inst));
+	}
+	if (chA != NULL) {
+		nvgpu_channel_close(chA);
+	}
+	if (chB != NULL) {
+		nvgpu_channel_close(chB);
+	}
+	return rc;
+}
 
 struct unit_module_test nvgpu_channel_tests[] = {
 	UNIT_TEST(setup_sw, test_channel_setup_sw, &unit_ctx, 0),
@@ -832,6 +941,7 @@ struct unit_module_test nvgpu_channel_tests[] = {
 	UNIT_TEST(close, test_channel_close, &unit_ctx, 0),
 	UNIT_TEST(setup_bind, test_channel_setup_bind, &unit_ctx, 0),
 	UNIT_TEST(alloc_inst, test_channel_alloc_inst, &unit_ctx, 0),
+	UNIT_TEST(from_inst, test_channel_from_inst, &unit_ctx, 0),
 	UNIT_TEST(remove_support, test_fifo_remove_support, &unit_ctx, 0),
 };
 

@@ -68,7 +68,9 @@ nvgpu_channel_cleanup_sw
 nvgpu_channel_close
 nvgpu_channel_free_inst
 nvgpu_channel_kill
+nvgpu_channel_put__func
 nvgpu_channel_setup_bind
+nvgpu_channel_refch_from_inst_ptr
 nvgpu_channel_setup_sw
 nvgpu_channel_sync_create
 nvgpu_dma_alloc
@@ -90,6 +92,7 @@ nvgpu_init_enabled_flags
 nvgpu_init_hal
 nvgpu_init_mm_support
 nvgpu_init_pramin
+nvgpu_inst_block_addr
 nvgpu_is_enabled
 nvgpu_kfree_impl
 nvgpu_kmalloc_impl
