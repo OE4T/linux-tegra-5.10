@@ -28,6 +28,7 @@
 
 #include <nvgpu/channel.h>
 #include <nvgpu/channel_sync.h>
+#include <nvgpu/dma.h>
 #include <nvgpu/engines.h>
 #include <nvgpu/tsg.h>
 #include <nvgpu/gk20a.h>
@@ -551,16 +552,214 @@ done:
 	if (ch != NULL) {
 		nvgpu_channel_close(ch);
 	}
+	if (tsg != NULL) {
+		nvgpu_ref_put(&tsg->refcount, nvgpu_tsg_release);
+	}
 	g->ops = gops;
 	g->os_channel.close = os_channel_close;
 	return rc;
 }
+
+#define F_CHANNEL_SETUP_BIND_NO_AS				BIT(0)
+#define F_CHANNEL_SETUP_BIND_HAS_GPFIFO_MEM			BIT(1)
+#define F_CHANNEL_SETUP_BIND_USERMODE_ENABLED			BIT(2)
+#define F_CHANNEL_SETUP_BIND_USERMODE_ALLOC_BUF_NULL		BIT(3)
+#define F_CHANNEL_SETUP_BIND_USERMODE_ALLOC_BUF_FAIL		BIT(4)
+#define F_CHANNEL_SETUP_BIND_USERMODE_SETUP_RAMFC_FAIL		BIT(5)
+#define F_CHANNEL_SETUP_BIND_USERMODE_UPDATE_RL_FAIL		BIT(6)
+#define F_CHANNEL_SETUP_BIND_LAST				BIT(7)
+
+static const char *f_channel_setup_bind[] = {
+	"no_as",
+	"has_gpfifo_mem",
+	"usermode_enabled",
+	"alloc_buf_null",
+	"alloc_buf_fail",
+	"setup_ramfc_fail",
+	"update_rl_fail",
+};
+
+static int stub_os_channel_alloc_usermode_buffers(struct nvgpu_channel *ch,
+		struct nvgpu_setup_bind_args *args)
+{
+	int err;
+	struct gk20a *g = ch->g;
+
+	err = nvgpu_dma_alloc(g, PAGE_SIZE, &ch->usermode_userd);
+	if (err != 0) {
+		return err;
+	}
+
+	err = nvgpu_dma_alloc(g, PAGE_SIZE, &ch->usermode_gpfifo);
+	if (err != 0) {
+		return err;
+	}
+
+	stub[0].chid = ch->chid;
+	return err;
+}
+
+static int stub_os_channel_alloc_usermode_buffers_ENOMEM(
+		struct nvgpu_channel *ch, struct nvgpu_setup_bind_args *args)
+{
+	return -ENOMEM;
+}
+
+static int stub_runlist_update_for_channel(struct gk20a *g, u32 runlist_id,
+		struct nvgpu_channel *ch, bool add, bool wait_for_finish)
+{
+	stub[1].chid = ch->chid;
+	return 0;
+}
+
+static int stub_runlist_update_for_channel_ETIMEDOUT(struct gk20a *g,
+		u32 runlist_id, struct nvgpu_channel *ch, bool add,
+		bool wait_for_finish)
+{
+	return -ETIMEDOUT;
+}
+
+static int stub_ramfc_setup_EINVAL(struct nvgpu_channel *ch, u64 gpfifo_base,
+		u32 gpfifo_entries, u64 pbdma_acquire_timeout, u32 flags)
+{
+	return -EINVAL;
+}
+
+static int test_channel_setup_bind(struct unit_module *m,
+		struct gk20a *g, void *args)
+{
+	struct gpu_ops gops = g->ops;
+	struct nvgpu_channel *ch = NULL;
+	struct nvgpu_tsg *tsg = NULL;
+	u32 branches = 0U;
+	int rc = UNIT_FAIL;
+	u32 fail =
+		F_CHANNEL_SETUP_BIND_NO_AS |
+		F_CHANNEL_SETUP_BIND_HAS_GPFIFO_MEM |
+		F_CHANNEL_SETUP_BIND_USERMODE_ENABLED |
+		F_CHANNEL_SETUP_BIND_USERMODE_ALLOC_BUF_NULL |
+		F_CHANNEL_SETUP_BIND_USERMODE_ALLOC_BUF_FAIL |
+		F_CHANNEL_SETUP_BIND_USERMODE_SETUP_RAMFC_FAIL |
+		F_CHANNEL_SETUP_BIND_USERMODE_UPDATE_RL_FAIL;
+	u32 prune = fail;
+	u32 runlist_id = NVGPU_INVALID_RUNLIST_ID;
+	bool privileged = false;
+	int err;
+	struct nvgpu_mem pdb_mem;
+	struct mm_gk20a mm;
+	struct vm_gk20a vm;
+	int (*alloc_usermode_buffers)(struct nvgpu_channel *c,
+		struct nvgpu_setup_bind_args *args) =
+			g->os_channel.alloc_usermode_buffers;
+	struct nvgpu_setup_bind_args bind_args;
+
+	tsg = nvgpu_tsg_open(g, getpid());
+	assert(tsg != NULL);
+
+	ch = gk20a_open_new_channel(g, runlist_id,
+			privileged, getpid(), getpid());
+	assert(ch != NULL);
+
+	g->ops.gr.intr.flush_channel_tlb = stub_gr_intr_flush_channel_tlb;
+
+	mm.g = g;
+	vm.mm = &mm;
+	ch->vm = &vm;
+	err = nvgpu_dma_alloc(g, PAGE_SIZE, &pdb_mem);
+	assert(err == 0);
+	vm.pdb.mem = &pdb_mem;
+
+	bind_args.flags = NVGPU_SETUP_BIND_FLAGS_USERMODE_SUPPORT;
+
+	for (branches = 0U; branches < F_CHANNEL_SETUP_BIND_LAST; branches++) {
+
+		if (subtest_pruned(branches, prune)) {
+			unit_verbose(m, "%s branches=%s (pruned)\n", __func__,
+				branches_str(branches,
+					f_channel_setup_bind));
+			continue;
+		}
+		subtest_setup(branches);
+
+		unit_verbose(m, "%s branches=%s\n", __func__,
+			branches_str(branches, f_channel_setup_bind));
+
+		ch->vm = branches & F_CHANNEL_SETUP_BIND_NO_AS ?
+			NULL : &vm;
+
+		if (branches & F_CHANNEL_SETUP_BIND_HAS_GPFIFO_MEM) {
+			err = nvgpu_dma_alloc(g, PAGE_SIZE, &ch->gpfifo.mem);
+			assert(err == 0);
+		}
+
+		if (branches & F_CHANNEL_SETUP_BIND_USERMODE_ENABLED) {
+			ch->usermode_submit_enabled = true;
+		}
+
+		g->os_channel.alloc_usermode_buffers = branches &
+			F_CHANNEL_SETUP_BIND_USERMODE_ALLOC_BUF_NULL ?
+				NULL : stub_os_channel_alloc_usermode_buffers;
+
+		if (branches & F_CHANNEL_SETUP_BIND_USERMODE_ALLOC_BUF_FAIL) {
+			g->os_channel.alloc_usermode_buffers =
+				stub_os_channel_alloc_usermode_buffers_ENOMEM;
+		}
+
+		g->ops.runlist.update_for_channel = branches &
+			F_CHANNEL_SETUP_BIND_USERMODE_UPDATE_RL_FAIL ?
+				stub_runlist_update_for_channel_ETIMEDOUT :
+				stub_runlist_update_for_channel;
+
+		g->ops.ramfc.setup = branches &
+			F_CHANNEL_SETUP_BIND_USERMODE_SETUP_RAMFC_FAIL ?
+				stub_ramfc_setup_EINVAL : gops.ramfc.setup;
+
+		err = nvgpu_channel_setup_bind(ch, &bind_args);
+
+		if (branches & fail) {
+			assert(err != 0);
+			assert(!nvgpu_mem_is_valid(&ch->usermode_userd));
+			assert(!nvgpu_mem_is_valid(&ch->usermode_gpfifo));
+			nvgpu_dma_free(g, &ch->gpfifo.mem);
+			ch->usermode_submit_enabled = false;
+			assert(nvgpu_atomic_read(&ch->bound) == false);
+		} else {
+			assert(err == 0);
+			assert(stub[0].chid == ch->chid);
+			assert(ch->usermode_submit_enabled == true);
+			assert(ch->userd_iova != 0U);
+			assert(stub[1].chid == ch->chid);
+			assert(nvgpu_atomic_read(&ch->bound) == true);
+			nvgpu_dma_free(g, &ch->usermode_userd);
+			nvgpu_dma_free(g, &ch->usermode_gpfifo);
+			ch->userd_iova = 0U;
+			nvgpu_atomic_set(&ch->bound, false);
+		}
+	}
+	rc = UNIT_SUCCESS;
+
+done:
+	if (rc != UNIT_SUCCESS) {
+		unit_err(m, "%s branches=%s\n", __func__,
+			branches_str(branches, f_channel_setup_bind));
+	}
+	nvgpu_set_enabled(g, NVGPU_DRIVER_IS_DYING, false);
+	if (ch != NULL) {
+		nvgpu_channel_close(ch);
+	}
+	nvgpu_dma_free(g, &pdb_mem);
+	g->os_channel.alloc_usermode_buffers = alloc_usermode_buffers;
+	g->ops = gops;
+	return rc;
+}
+
 
 struct unit_module_test nvgpu_channel_tests[] = {
 	UNIT_TEST(setup_sw, test_channel_setup_sw, &unit_ctx, 0),
 	UNIT_TEST(init_support, test_fifo_init_support, &unit_ctx, 0),
 	UNIT_TEST(open, test_channel_open, &unit_ctx, 0),
 	UNIT_TEST(close, test_channel_close, &unit_ctx, 0),
+	UNIT_TEST(setup_bind, test_channel_setup_bind, &unit_ctx, 0),
 	UNIT_TEST(remove_support, test_fifo_remove_support, &unit_ctx, 0),
 };
 
