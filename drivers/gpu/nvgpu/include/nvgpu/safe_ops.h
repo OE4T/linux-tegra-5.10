@@ -97,7 +97,7 @@ static inline u64 nvgpu_safe_mult_u64(u64 ul_a, u64 ul_b)
 {
 	if (ul_a == 0 || ul_b == 0) {
 		return 0UL;
-	} else if (ul_a > UINT_MAX / ul_b) {
+	} else if (ul_a > ULONG_MAX / ul_b) {
 		BUG();
 	} else {
 		return ul_a * ul_b;
