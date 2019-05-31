@@ -109,7 +109,10 @@ void nvgpu_pmu_dump_falcon_stats(struct nvgpu_pmu *pmu)
 	print_pmu_trace(pmu);
 
 	nvgpu_err(g, "pmu state: %d", nvgpu_pmu_get_fw_state(g, pmu));
-	nvgpu_err(g, "elpg state: %d", pmu->pg->elpg_stat);
+
+	if (g->can_elpg) {
+		nvgpu_err(g, "elpg state: %d", pmu->pg->elpg_stat);
+	}
 
 	/* PMU may crash due to FECS crash. Dump FECS status */
 	g->ops.gr.falcon.dump_stats(g);

@@ -29,6 +29,10 @@ static int lpwr_debug_show(struct seq_file *s, void *data)
 	struct gk20a *g = s->private;
 	struct nvgpu_pmu *pmu = g->pmu;
 
+	if (!g->can_elpg) {
+		return 0;
+	}
+
 	if (pmu->pg->engines_feature_list &&
 		pmu->pg->engines_feature_list(g,
 		PMU_PG_ELPG_ENGINE_ID_GRAPHICS) !=
@@ -45,12 +49,13 @@ static int lpwr_debug_show(struct seq_file *s, void *data)
 			g->pmu->pg->elpg_stat, g->mscg_enabled,
 			g->pmu->pg->mscg_stat, g->pmu->pg->mscg_transition_state);
 
-	} else
+	} else {
 		seq_printf(s, "ELPG Enabled: %u\n"
 			"ELPG ref count: %u\n"
 			"ELPG state: %u\n",
 			g->elpg_enabled, g->pmu->pg->elpg_refcnt,
 			g->pmu->pg->elpg_stat);
+	}
 
 	return 0;
 

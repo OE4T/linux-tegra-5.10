@@ -141,8 +141,8 @@ int nvgpu_pmu_elpg_statistics(struct gk20a *g, u32 pg_engine_id,
 void nvgpu_pmu_save_zbc(struct gk20a *g, u32 entries);
 bool nvgpu_pmu_is_lpwr_feature_supported(struct gk20a *g, u32 feature_id);
 
-u64 nvgpu_pmu_pg_buf_get_gpu_va(struct nvgpu_pmu *pmu);
-struct nvgpu_mem *nvgpu_pmu_pg_buf(struct nvgpu_pmu *pmu);
-void *nvgpu_pmu_pg_buf_get_cpu_va(struct nvgpu_pmu *pmu);
+u64 nvgpu_pmu_pg_buf_get_gpu_va(struct gk20a *g, struct nvgpu_pmu *pmu);
+struct nvgpu_mem *nvgpu_pmu_pg_buf(struct gk20a *g, struct nvgpu_pmu *pmu);
+void *nvgpu_pmu_pg_buf_get_cpu_va(struct gk20a *g, struct nvgpu_pmu *pmu);
 
 #endif /* NVGPU_PMU_PG_H */

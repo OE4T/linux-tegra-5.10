@@ -974,6 +974,10 @@ int nvgpu_pmu_pg_init(struct gk20a *g, struct nvgpu_pmu *pmu,
 	int err = 0;
 	u32 ver = g->params.gpu_arch + g->params.gpu_impl;
 
+	if (!g->support_ls_pmu || !g->can_elpg) {
+		return 0;
+	}
+
 	if (*pg_p != NULL) {
 		/* skip alloc/reinit for unrailgate sequence */
 		nvgpu_pmu_dbg(g, "skip lsfm init for unrailgate sequence");
@@ -1096,17 +1100,29 @@ bool nvgpu_pmu_is_lpwr_feature_supported(struct gk20a *g, u32 feature_id)
 	return pmu->pg->is_lpwr_feature_supported(g, feature_id);
 }
 
-u64 nvgpu_pmu_pg_buf_get_gpu_va(struct nvgpu_pmu *pmu)
+u64 nvgpu_pmu_pg_buf_get_gpu_va(struct gk20a *g, struct nvgpu_pmu *pmu)
 {
+	if (!is_pg_supported(g, pmu->pg)) {
+		return 0;
+	}
+
 	return pmu->pg->pg_buf.gpu_va;
 }
 
-struct nvgpu_mem *nvgpu_pmu_pg_buf(struct nvgpu_pmu *pmu)
+struct nvgpu_mem *nvgpu_pmu_pg_buf(struct gk20a *g, struct nvgpu_pmu *pmu)
 {
+	if (!is_pg_supported(g, pmu->pg)) {
+		return NULL;
+	}
+
 	return &pmu->pg->pg_buf;
 }
 
-void *nvgpu_pmu_pg_buf_get_cpu_va(struct nvgpu_pmu *pmu)
+void *nvgpu_pmu_pg_buf_get_cpu_va(struct gk20a *g, struct nvgpu_pmu *pmu)
 {
+	if (!is_pg_supported(g, pmu->pg)) {
+		return NULL;
+	}
+
 	return pmu->pg->pg_buf.cpu_va;
 }
