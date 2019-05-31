@@ -28,7 +28,9 @@ struct nvgpu_mem;
 
 int nvgpu_acr_alloc_blob_space_sys(struct gk20a *g, size_t size,
 	struct nvgpu_mem *mem);
+#ifdef NVGPU_DGPU_SUPPORT
 int nvgpu_acr_alloc_blob_space_vid(struct gk20a *g, size_t size,
 	struct nvgpu_mem *mem);
+#endif
 
 #endif /* ACR_BLOB_ALLOC_H */

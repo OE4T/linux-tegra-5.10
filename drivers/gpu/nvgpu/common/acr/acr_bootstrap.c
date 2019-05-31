@@ -370,7 +370,7 @@ err_release_acr_fw:
 	acr_desc->acr_fw = NULL;
 	return status;
 }
-
+#ifdef NVGPU_DGPU_SUPPORT
 int nvgpu_acr_self_hs_load_bootstrap(struct gk20a *g, struct nvgpu_falcon *flcn,
 	struct nvgpu_firmware *hs_fw, u32 timeout)
 {
@@ -461,5 +461,5 @@ int nvgpu_acr_self_hs_load_bootstrap(struct gk20a *g, struct nvgpu_falcon *flcn,
 exit:
 	return err;
 }
-
+#endif
 

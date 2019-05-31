@@ -119,12 +119,8 @@ srcs += common/sim/sim.c \
 	common/acr/acr.c \
 	common/acr/acr_wpr.c \
 	common/acr/acr_blob_alloc.c \
-	common/acr/acr_blob_construct_v0.c \
 	common/acr/acr_blob_construct_v1.c \
 	common/acr/acr_bootstrap.c \
-	common/acr/acr_sw_gm20b.c \
-	common/acr/acr_sw_gp10b.c \
-	common/acr/acr_sw_gv100.c \
 	common/acr/acr_sw_gv11b.c \
 	common/ptimer/ptimer.c \
 	common/worker.c \
@@ -299,6 +295,13 @@ srcs += common/sim/sim.c \
 	hal/top/top_gp106.c \
 	hal/top/top_gv11b.c
 
+ifeq ($(NVGPU_FEATURE_ACR_LEGACY),1)
+srcs += \
+	common/acr/acr_blob_construct_v0.c \
+	common/acr/acr_sw_gm20b.c \
+	common/acr/acr_sw_gp10b.c
+endif
+
 ifeq ($(NVGPU_GRAPHICS),1)
 srcs += common/gr/zbc.c \
 	common/gr/zcull.c \
@@ -470,6 +473,7 @@ srcs +=	common/engine_queues/engine_emem_queue.c \
 	common/vbios/bios_sw_tu104.c \
 	common/falcon/falcon_sw_gv100.c \
 	common/falcon/falcon_sw_tu104.c \
+	common/acr/acr_sw_gv100.c \
 	common/acr/acr_sw_tu104.c \
 	hal/mm/mm_gv100.c \
 	hal/mm/mm_tu104.c \

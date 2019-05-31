@@ -33,6 +33,8 @@ struct wpr_carveout_info {
 };
 
 void nvgpu_acr_wpr_info_sys(struct gk20a *g, struct wpr_carveout_info *inf);
+#ifdef NVGPU_DGPU_SUPPORT
 void nvgpu_acr_wpr_info_vid(struct gk20a *g, struct wpr_carveout_info *inf);
+#endif
 
 #endif /* NVGPU_ACR_WPR_H */

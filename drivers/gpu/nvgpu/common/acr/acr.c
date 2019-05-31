@@ -28,8 +28,10 @@
 #include <nvgpu/pmu/pmuif/cmn.h>
 
 #include "acr_priv.h"
+#ifdef NVGPU_FEATURE_ACR_LEGACY
 #include "acr_sw_gm20b.h"
 #include "acr_sw_gp10b.h"
+#endif
 #include "acr_sw_gv11b.h"
 #ifdef NVGPU_DGPU_SUPPORT
 #include "acr_sw_gv100.h"
@@ -132,6 +134,7 @@ int nvgpu_acr_init(struct gk20a *g, struct nvgpu_acr **acr)
 	}
 
 	switch (ver) {
+#ifdef NVGPU_FEATURE_ACR_LEGACY
 	case GK20A_GPUID_GM20B:
 	case GK20A_GPUID_GM20B_B:
 		nvgpu_gm20b_acr_sw_init(g, *acr);
@@ -139,6 +142,7 @@ int nvgpu_acr_init(struct gk20a *g, struct nvgpu_acr **acr)
 	case NVGPU_GPUID_GP10B:
 		nvgpu_gp10b_acr_sw_init(g, *acr);
 		break;
+#endif
 	case NVGPU_GPUID_GV11B:
 		nvgpu_gv11b_acr_sw_init(g, *acr);
 		break;

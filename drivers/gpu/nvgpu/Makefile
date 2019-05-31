@@ -21,6 +21,7 @@ ifeq ($(CONFIG_NVGPU_DEBUGGER),y)
 ccflags-y += -DNVGPU_DEBUGGER
 endif
 
+ccflags-y += -DNVGPU_FEATURE_ACR_LEGACY
 ccflags-y += -DNVGPU_ENGINE
 ccflags-y += -DNVGPU_USERD
 ccflags-y += -DNVGPU_CHANNEL_WDT
