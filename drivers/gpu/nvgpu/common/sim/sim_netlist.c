@@ -40,7 +40,9 @@ int nvgpu_init_sim_netlist_ctx_vars(struct gk20a *g)
 	struct netlist_aiv_list *sys_ctxsw_regs;
 	struct netlist_aiv_list *gpc_ctxsw_regs;
 	struct netlist_aiv_list *tpc_ctxsw_regs;
+#ifdef NVGPU_GRAPHICS
 	struct netlist_aiv_list *zcull_gpc_ctxsw_regs;
+#endif
 	struct netlist_aiv_list *pm_sys_ctxsw_regs;
 	struct netlist_aiv_list *pm_gpc_ctxsw_regs;
 	struct netlist_aiv_list *pm_tpc_ctxsw_regs;
@@ -71,7 +73,9 @@ int nvgpu_init_sim_netlist_ctx_vars(struct gk20a *g)
 	sys_ctxsw_regs = nvgpu_netlist_get_sys_ctxsw_regs(g);
 	gpc_ctxsw_regs = nvgpu_netlist_get_gpc_ctxsw_regs(g);
 	tpc_ctxsw_regs = nvgpu_netlist_get_tpc_ctxsw_regs(g);
+#ifdef NVGPU_GRAPHICS
 	zcull_gpc_ctxsw_regs = nvgpu_netlist_get_zcull_gpc_ctxsw_regs(g);
+#endif
 	pm_sys_ctxsw_regs = nvgpu_netlist_get_pm_sys_ctxsw_regs(g);
 	pm_gpc_ctxsw_regs = nvgpu_netlist_get_pm_gpc_ctxsw_regs(g);
 	pm_tpc_ctxsw_regs = nvgpu_netlist_get_pm_tpc_ctxsw_regs(g);
@@ -117,8 +121,10 @@ int nvgpu_init_sim_netlist_ctx_vars(struct gk20a *g)
 			    &gpc_ctxsw_regs->count);
 	g->sim->esc_readl(g, "GRCTX_REG_LIST_TPC_COUNT", 0,
 			    &tpc_ctxsw_regs->count);
+#ifdef NVGPU_GRAPHICS
 	g->sim->esc_readl(g, "GRCTX_REG_LIST_ZCULL_GPC_COUNT", 0,
 			    &zcull_gpc_ctxsw_regs->count);
+#endif
 	g->sim->esc_readl(g, "GRCTX_REG_LIST_PM_SYS_COUNT", 0,
 			    &pm_sys_ctxsw_regs->count);
 	g->sim->esc_readl(g, "GRCTX_REG_LIST_PM_GPC_COUNT", 0,
@@ -171,9 +177,11 @@ int nvgpu_init_sim_netlist_ctx_vars(struct gk20a *g)
 	if (nvgpu_netlist_alloc_aiv_list(g, tpc_ctxsw_regs) == NULL) {
 		goto fail;
 	}
+#ifdef NVGPU_GRAPHICS
 	if (nvgpu_netlist_alloc_aiv_list(g, zcull_gpc_ctxsw_regs) == NULL) {
 		goto fail;
 	}
+#endif
 	if (nvgpu_netlist_alloc_aiv_list(g, ppc_ctxsw_regs) == NULL) {
 		goto fail;
 	}
@@ -304,6 +312,7 @@ int nvgpu_init_sim_netlist_ctx_vars(struct gk20a *g)
 				    i, &l[i].value);
 	}
 
+#ifdef NVGPU_GRAPHICS
 	for (i = 0; i < zcull_gpc_ctxsw_regs->count; i++) {
 		struct netlist_aiv *l = zcull_gpc_ctxsw_regs->l;
 		g->sim->esc_readl(g, "GRCTX_REG_LIST_ZCULL_GPC:ADDR",
@@ -313,6 +322,7 @@ int nvgpu_init_sim_netlist_ctx_vars(struct gk20a *g)
 		g->sim->esc_readl(g, "GRCTX_REG_LIST_ZCULL_GPC:VALUE",
 				    i, &l[i].value);
 	}
+#endif
 
 	for (i = 0; i < pm_sys_ctxsw_regs->count; i++) {
 		struct netlist_aiv *l = pm_sys_ctxsw_regs->l;
@@ -382,7 +392,9 @@ fail:
 	nvgpu_kfree(g, sys_ctxsw_regs->l);
 	nvgpu_kfree(g, gpc_ctxsw_regs->l);
 	nvgpu_kfree(g, tpc_ctxsw_regs->l);
+#ifdef NVGPU_GRAPHICS
 	nvgpu_kfree(g, zcull_gpc_ctxsw_regs->l);
+#endif
 	nvgpu_kfree(g, ppc_ctxsw_regs->l);
 	nvgpu_kfree(g, pm_sys_ctxsw_regs->l);
 	nvgpu_kfree(g, pm_gpc_ctxsw_regs->l);

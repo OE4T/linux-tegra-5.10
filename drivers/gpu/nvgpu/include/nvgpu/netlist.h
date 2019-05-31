@@ -104,8 +104,10 @@ struct netlist_u32_list *nvgpu_netlist_get_gpccs_data(struct gk20a *g);
 struct netlist_aiv_list *nvgpu_netlist_get_sys_ctxsw_regs(struct gk20a *g);
 struct netlist_aiv_list *nvgpu_netlist_get_gpc_ctxsw_regs(struct gk20a *g);
 struct netlist_aiv_list *nvgpu_netlist_get_tpc_ctxsw_regs(struct gk20a *g);
+#ifdef NVGPU_GRAPHICS
 struct netlist_aiv_list *nvgpu_netlist_get_zcull_gpc_ctxsw_regs(
 							struct gk20a *g);
+#endif
 struct netlist_aiv_list *nvgpu_netlist_get_ppc_ctxsw_regs(struct gk20a *g);
 struct netlist_aiv_list *nvgpu_netlist_get_pm_sys_ctxsw_regs(struct gk20a *g);
 struct netlist_aiv_list *nvgpu_netlist_get_pm_gpc_ctxsw_regs(struct gk20a *g);
