@@ -148,7 +148,7 @@ static int sec2_process_init_msg(struct nvgpu_sec2 *sec2,
 		goto exit;
 	}
 
-	tail += ALIGN(msg->hdr.size, PMU_DMEM_ALIGNMENT);
+	tail += ALIGN(U32(msg->hdr.size), PMU_DMEM_ALIGNMENT);
 	g->ops.sec2.msgq_tail(g, sec2, &tail, QUEUE_SET);
 
 	sec2_init = &msg->msg.init.sec2_init;

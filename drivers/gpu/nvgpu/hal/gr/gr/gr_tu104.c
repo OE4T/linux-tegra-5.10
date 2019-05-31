@@ -81,7 +81,7 @@ int gr_tu104_get_offset_in_gpccs_segment(struct gk20a *g,
 		}
 
 		/* aligned to next 256 byte */
-		offset_in_segment = ALIGN(offset_in_segment, 256);
+		offset_in_segment = ALIGN(offset_in_segment, 256U);
 
 		nvgpu_log(g, gpu_dbg_info | gpu_dbg_gpu_dbg,
 			"egpc etpc offset_in_segment 0x%#08x",

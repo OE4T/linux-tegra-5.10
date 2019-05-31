@@ -98,23 +98,37 @@
 #define roundup(x, y)		round_up(x, y)
 #define round_down(x, y)	((x) & ~round_mask(x, y))
 
-#define ALIGN_MASK(x, mask)						\
-		({							\
-			typeof(x) ret;					\
-			typeof(x) sum = (x) + (mask);			\
-									\
-			if ((sum >= (x)) && (sum >= (mask))) {		\
-				ret = sum & ~(mask);			\
-			} else {					\
-				ret = (typeof(x))~(typeof(x))0 & ~(mask); \
-			}						\
-			ret;						\
-		})
+#define IS_UNSIGNED_TYPE(x)						\
+	(__builtin_types_compatible_p(typeof(x), unsigned int) ||	\
+		__builtin_types_compatible_p(typeof(x), unsigned long) || \
+		__builtin_types_compatible_p(typeof(x), unsigned long long))
 
-#define ALIGN(x, a)		ALIGN_MASK(x,				\
-					(a) > (typeof(a))0 ?		\
-						(typeof(x))(a) - 1U :	\
-						(typeof(x))0)
+#define IS_UNSIGNED_LONG_TYPE(x)					\
+	(__builtin_types_compatible_p(typeof(x), unsigned long) ||	\
+		__builtin_types_compatible_p(typeof(x), unsigned long long))
+
+#define ALIGN_MASK(x, mask)						\
+	__builtin_choose_expr(						\
+		(IS_UNSIGNED_TYPE(x) && IS_UNSIGNED_TYPE(mask)),	\
+		__builtin_choose_expr(					\
+			IS_UNSIGNED_LONG_TYPE(x),			\
+			(nvgpu_safe_add_u64((x), (mask)) & ~(mask)),	\
+			(nvgpu_safe_add_u32((x), (mask)) & ~(mask))),	\
+		/* Results in build error. Make x/mask type unsigned */ \
+		(void)0)
+
+#define ALIGN(x, a)							\
+	__builtin_choose_expr(						\
+		(IS_UNSIGNED_TYPE(x) && IS_UNSIGNED_TYPE(a)),		\
+		__builtin_choose_expr(					\
+			IS_UNSIGNED_LONG_TYPE(x),			\
+				ALIGN_MASK((x),				\
+				(nvgpu_safe_sub_u64((typeof(x))(a), 1))), \
+				ALIGN_MASK((x),				\
+				(nvgpu_safe_sub_u32((typeof(x))(a), 1)))), \
+			/* Results in build error. Make x/a type unsigned */ \
+			(void)0)
+
 #define PAGE_ALIGN(x)		ALIGN(x, PAGE_SIZE)
 
 #define HZ_TO_KHZ(x) ((x) / KHZ)

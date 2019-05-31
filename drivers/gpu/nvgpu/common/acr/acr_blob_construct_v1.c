@@ -128,14 +128,14 @@ int nvgpu_acr_lsf_fecs_ucode_details_v1(struct gk20a *g, void *lsf_ucode_img)
 	}
 
 	p_img->desc->bootloader_start_offset = fecs->boot.offset;
-	p_img->desc->bootloader_size = ALIGN(fecs->boot.size, 256);
+	p_img->desc->bootloader_size = ALIGN(fecs->boot.size, 256U);
 	p_img->desc->bootloader_imem_offset = fecs->boot_imem_offset;
 	p_img->desc->bootloader_entry_point = fecs->boot_entry;
 
-	p_img->desc->image_size = ALIGN(fecs->boot.size, 256) +
-		ALIGN(fecs->code.size, 256) + ALIGN(fecs->data.size, 256);
-	p_img->desc->app_size = ALIGN(fecs->code.size, 256) +
-					ALIGN(fecs->data.size, 256);
+	p_img->desc->image_size = ALIGN(fecs->boot.size, 256U) +
+		ALIGN(fecs->code.size, 256U) + ALIGN(fecs->data.size, 256U);
+	p_img->desc->app_size = ALIGN(fecs->code.size, 256U) +
+					ALIGN(fecs->data.size, 256U);
 	p_img->desc->app_start_offset = fecs->code.offset;
 	p_img->desc->app_imem_offset = 0;
 	p_img->desc->app_imem_entry = 0;
@@ -217,27 +217,28 @@ int nvgpu_acr_lsf_gpccs_ucode_details_v1(struct gk20a *g, void *lsf_ucode_img)
 	}
 
 	p_img->desc->bootloader_start_offset = 0;
-	p_img->desc->bootloader_size = ALIGN(gpccs->boot.size, 256);
+	p_img->desc->bootloader_size = ALIGN(gpccs->boot.size, 256U);
 	p_img->desc->bootloader_imem_offset = gpccs->boot_imem_offset;
 	p_img->desc->bootloader_entry_point = gpccs->boot_entry;
 
-	p_img->desc->image_size = ALIGN(gpccs->boot.size, 256) +
-		ALIGN(gpccs->code.size, 256) + ALIGN(gpccs->data.size, 256);
-	p_img->desc->app_size = ALIGN(gpccs->code.size, 256)
-		+ ALIGN(gpccs->data.size, 256);
+	p_img->desc->image_size = ALIGN(gpccs->boot.size, 256U) +
+		ALIGN(gpccs->code.size, 256U) + ALIGN(gpccs->data.size, 256U);
+	p_img->desc->app_size = ALIGN(gpccs->code.size, 256U)
+		+ ALIGN(gpccs->data.size, 256U);
 	p_img->desc->app_start_offset = p_img->desc->bootloader_size;
 	p_img->desc->app_imem_offset = 0;
 	p_img->desc->app_imem_entry = 0;
 	p_img->desc->app_dmem_offset = 0;
 	p_img->desc->app_resident_code_offset = 0;
-	p_img->desc->app_resident_code_size = ALIGN(gpccs->code.size, 256);
-	p_img->desc->app_resident_data_offset = ALIGN(gpccs->data.offset, 256) -
-						ALIGN(gpccs->code.offset, 256);
-	p_img->desc->app_resident_data_size = ALIGN(gpccs->data.size, 256);
+	p_img->desc->app_resident_code_size = ALIGN(gpccs->code.size, 256U);
+	p_img->desc->app_resident_data_offset =
+		ALIGN(gpccs->data.offset, 256U) -
+		ALIGN(gpccs->code.offset, 256U);
+	p_img->desc->app_resident_data_size = ALIGN(gpccs->data.size, 256U);
 	p_img->data = (u32 *)
 		((u8 *)nvgpu_gr_falcon_get_surface_desc_cpu_va(gr_falcon) +
 					gpccs->boot.offset);
-	p_img->data_size = ALIGN(p_img->desc->image_size, 256);
+	p_img->data_size = ALIGN(p_img->desc->image_size, 256U);
 	p_img->fw_ver = NULL;
 	p_img->header = NULL;
 	p_img->lsf_desc = (struct lsf_ucode_desc_v1 *)lsf_desc;

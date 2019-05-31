@@ -299,7 +299,7 @@ static int add_ctxsw_buffer_map_entries_gpcs(struct gk20a *g,
 			}
 		}
 
-		*offset = ALIGN(*offset, 256);
+		*offset = ALIGN(*offset, 256U);
 	}
 	return 0;
 }
@@ -434,7 +434,7 @@ static int nvgpu_gr_hwpm_map_create(struct gk20a *g,
 		goto cleanup;
 	}
 
-	offset = ALIGN(offset, 256);
+	offset = ALIGN(offset, 256U);
 
 	/* Add entries from _LIST_nv_perf_fbp_ctx_regs */
 	if (add_ctxsw_buffer_map_entries_subunits(map,
@@ -484,7 +484,7 @@ static int nvgpu_gr_hwpm_map_create(struct gk20a *g,
 		goto cleanup;
 	}
 
-	offset = ALIGN(offset, 256);
+	offset = ALIGN(offset, 256U);
 
 	/* Add GPC entries */
 	if (add_ctxsw_buffer_map_entries_gpcs(g, map, &count, &offset,

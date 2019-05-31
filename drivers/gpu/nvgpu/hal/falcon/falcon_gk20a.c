@@ -249,7 +249,7 @@ int gk20a_falcon_copy_to_dmem(struct nvgpu_falcon *flcn,
 		nvgpu_writel(g, base_addr + falcon_falcon_dmemd_r(port), data);
 	}
 
-	size = ALIGN(size, 4);
+	size = ALIGN(size, 4U);
 	data = nvgpu_readl(g,
 		base_addr + falcon_falcon_dmemc_r(port)) & addr_mask;
 	if (data != ((dst + size) & addr_mask)) {

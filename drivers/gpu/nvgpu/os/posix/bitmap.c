@@ -170,8 +170,10 @@ unsigned long bitmap_find_next_zero_area_off(unsigned long *map,
 	while (start + nr <= size) {
 		start = find_next_zero_bit(map, size, start);
 
-		start = ALIGN_MASK(start + align_offset, align_mask) -
-			align_offset;
+		start = nvgpu_safe_sub_u64(
+			ALIGN_MASK(nvgpu_safe_add_u64(start, align_offset),
+				align_mask),
+			align_offset);
 
 		/*
 		 * Not enough space left to satisfy the requested area.

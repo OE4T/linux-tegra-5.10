@@ -28,7 +28,7 @@
 
 void gv100_gr_hwpm_map_align_regs_perf_pma(u32 *offset)
 {
-	*offset = ALIGN(*offset, 256);
+	*offset = ALIGN(*offset, 256U);
 }
 
 u32 gv100_gr_hwpm_map_get_active_fbpa_mask(struct gk20a *g)

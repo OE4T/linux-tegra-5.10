@@ -649,7 +649,7 @@ u32 gv11b_gr_init_get_global_attr_cb_size(struct gk20a *g, u32 tpc_count,
 			gr_gpc0_ppc0_cbm_alpha_cb_size_v_granularity_v(),
 			max_tpc)));
 
-	size = ALIGN(size, 128);
+	size = ALIGN(size, 128U);
 
 	return size;
 }

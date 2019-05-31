@@ -116,7 +116,8 @@ static int engine_mem_queue_rewind(struct nvgpu_falcon *flcn,
 				queue->flcn_id, queue->id);
 			goto exit;
 		} else {
-			queue->position += ALIGN(cmd.hdr.size, QUEUE_ALIGNMENT);
+			queue->position += nvgpu_safe_cast_u32_to_u8(
+				ALIGN(U32(cmd.hdr.size), QUEUE_ALIGNMENT));
 			nvgpu_log_info(g, "flcn-%d queue-%d, rewinded",
 			queue->flcn_id, queue->id);
 		}
