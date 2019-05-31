@@ -199,4 +199,30 @@ static inline s32 nvgpu_safe_cast_u32_to_s32(u32 ui_a)
 	}
 }
 
+static inline s32 nvgpu_safe_cast_u64_to_s32(u64 ul_a)
+{
+	if (ul_a > INT_MAX) {
+		BUG();
+	} else {
+		return (s32)ul_a;
+	}
+}
+
+static inline s64 nvgpu_safe_cast_u64_to_s64(u64 ul_a)
+{
+	if (ul_a > LONG_MAX) {
+		BUG();
+	} else {
+		return (s64)ul_a;
+	}
+}
+
+static inline s32 nvgpu_safe_cast_s64_to_s32(s64 sl_a)
+{
+	if (sl_a > INT_MAX || sl_a < INT_MIN) {
+		BUG();
+	} else {
+		return (s32)sl_a;
+	}
+}
 #endif /* NVGPU_SAFE_OPS_H */
