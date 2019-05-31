@@ -63,8 +63,10 @@ nvgpu_aperture_mask
 nvgpu_bar1_readl
 nvgpu_bar1_writel
 nvgpu_bsearch
+nvgpu_channel_alloc_inst
 nvgpu_channel_cleanup_sw
 nvgpu_channel_close
+nvgpu_channel_free_inst
 nvgpu_channel_kill
 nvgpu_channel_setup_bind
 nvgpu_channel_setup_sw

@@ -753,6 +753,77 @@ done:
 	return rc;
 }
 
+#define F_CHANNEL_ALLOC_INST_ENOMEM				BIT(0)
+#define F_CHANNEL_ALLOC_INST_LAST				BIT(1)
+
+static const char *f_channel_alloc_inst[] = {
+	"nomem",
+};
+
+static int test_channel_alloc_inst(struct unit_module *m,
+		struct gk20a *g, void *args)
+{
+	struct nvgpu_channel *ch = NULL;
+	u32 branches = 0U;
+	u32 fail = F_CHANNEL_ALLOC_INST_ENOMEM;
+	u32 prune = fail;
+	int rc = UNIT_FAIL;
+	u32 runlist_id = NVGPU_INVALID_RUNLIST_ID;
+	bool privileged = false;
+	struct nvgpu_posix_fault_inj *dma_fi;
+	int err;
+
+	dma_fi = nvgpu_dma_alloc_get_fault_injection();
+
+	ch = gk20a_open_new_channel(g, runlist_id,
+			privileged, getpid(), getpid());
+	assert(ch != NULL);
+
+	for (branches = 0U; branches < F_CHANNEL_ALLOC_INST_LAST; branches++) {
+
+		if (subtest_pruned(branches, prune)) {
+			unit_verbose(m, "%s branches=%s (pruned)\n", __func__,
+				branches_str(branches,
+					f_channel_alloc_inst));
+			continue;
+		}
+		subtest_setup(branches);
+		unit_verbose(m, "%s branches=%s\n", __func__,
+			branches_str(branches, f_channel_alloc_inst));
+
+		nvgpu_posix_enable_fault_injection(dma_fi,
+			branches & F_CHANNEL_ALLOC_INST_ENOMEM ?
+				true : false, 0);
+
+		err = nvgpu_channel_alloc_inst(g, ch);
+
+		if (branches & fail) {
+			assert(err != 0);
+			assert(ch->inst_block.aperture ==
+					APERTURE_INVALID);
+		} else {
+			assert(err == 0);
+			assert(ch->inst_block.aperture !=
+					APERTURE_INVALID);
+		}
+
+		nvgpu_channel_free_inst(g, ch);
+		assert(ch->inst_block.aperture == APERTURE_INVALID);
+	}
+	rc = UNIT_SUCCESS;
+
+done:
+	if (rc != UNIT_SUCCESS) {
+		unit_err(m, "%s branches=%s\n", __func__,
+			branches_str(branches, f_channel_alloc_inst));
+	}
+	if (ch != NULL) {
+		nvgpu_channel_close(ch);
+	}
+	nvgpu_posix_enable_fault_injection(dma_fi, false, 0);
+	return rc;
+}
+
 
 struct unit_module_test nvgpu_channel_tests[] = {
 	UNIT_TEST(setup_sw, test_channel_setup_sw, &unit_ctx, 0),
@@ -760,6 +831,7 @@ struct unit_module_test nvgpu_channel_tests[] = {
 	UNIT_TEST(open, test_channel_open, &unit_ctx, 0),
 	UNIT_TEST(close, test_channel_close, &unit_ctx, 0),
 	UNIT_TEST(setup_bind, test_channel_setup_bind, &unit_ctx, 0),
+	UNIT_TEST(alloc_inst, test_channel_alloc_inst, &unit_ctx, 0),
 	UNIT_TEST(remove_support, test_fifo_remove_support, &unit_ctx, 0),
 };
 
