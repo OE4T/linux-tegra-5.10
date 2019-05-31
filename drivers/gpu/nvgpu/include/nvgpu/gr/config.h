@@ -41,13 +41,17 @@ u32 nvgpu_gr_config_get_map_row_offset(struct nvgpu_gr_config *config);
 
 u32 nvgpu_gr_config_get_max_gpc_count(struct nvgpu_gr_config *config);
 u32 nvgpu_gr_config_get_max_tpc_per_gpc_count(struct nvgpu_gr_config *config);
-u32 nvgpu_gr_config_get_max_zcull_per_gpc_count(struct nvgpu_gr_config *config);
 u32 nvgpu_gr_config_get_max_tpc_count(struct nvgpu_gr_config *config);
 
 u32 nvgpu_gr_config_get_gpc_count(struct nvgpu_gr_config *config);
 u32 nvgpu_gr_config_get_tpc_count(struct nvgpu_gr_config *config);
 u32 nvgpu_gr_config_get_ppc_count(struct nvgpu_gr_config *config);
+#ifdef NVGPU_GRAPHICS
+u32 nvgpu_gr_config_get_max_zcull_per_gpc_count(struct nvgpu_gr_config *config);
 u32 nvgpu_gr_config_get_zcb_count(struct nvgpu_gr_config *config);
+u32 nvgpu_gr_config_get_gpc_zcb_count(struct nvgpu_gr_config *config,
+	u32 gpc_index);
+#endif
 
 u32 nvgpu_gr_config_get_pe_count_per_gpc(struct nvgpu_gr_config *config);
 u32 nvgpu_gr_config_get_sm_count_per_tpc(struct nvgpu_gr_config *config);
@@ -56,8 +60,6 @@ u32 nvgpu_gr_config_get_gpc_ppc_count(struct nvgpu_gr_config *config,
 	u32 gpc_index);
 u32 *nvgpu_gr_config_get_gpc_tpc_count_base(struct nvgpu_gr_config *config);
 u32 nvgpu_gr_config_get_gpc_tpc_count(struct nvgpu_gr_config *config,
-	u32 gpc_index);
-u32 nvgpu_gr_config_get_gpc_zcb_count(struct nvgpu_gr_config *config,
 	u32 gpc_index);
 u32 nvgpu_gr_config_get_pes_tpc_count(struct nvgpu_gr_config *config,
 	u32 gpc_index, u32 pes_index);

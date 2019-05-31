@@ -41,20 +41,26 @@ struct nvgpu_gr_config {
 
 	u32 max_gpc_count;
 	u32 max_tpc_per_gpc_count;
+#ifdef NVGPU_GRAPHICS
 	u32 max_zcull_per_gpc_count;
+#endif
 	u32 max_tpc_count;
 
 	u32 gpc_count;
 	u32 tpc_count;
 	u32 ppc_count;
+#ifdef NVGPU_GRAPHICS
 	u32 zcb_count;
+#endif
 
 	u32 pe_count_per_gpc;
 	u32 sm_count_per_tpc;
 
 	u32 *gpc_ppc_count;
 	u32 *gpc_tpc_count;
+#ifdef NVGPU_GRAPHICS
 	u32 *gpc_zcb_count;
+#endif
 	u32 *pes_tpc_count[GK20A_GR_MAX_PES_PER_GPC];
 
 	u32 gpc_mask;

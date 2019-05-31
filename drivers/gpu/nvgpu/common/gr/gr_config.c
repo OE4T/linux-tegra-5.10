@@ -98,14 +98,16 @@ struct nvgpu_gr_config *nvgpu_gr_config_init(struct gk20a *g)
 	}
 	config->no_of_sm = 0;
 
-	config->max_zcull_per_gpc_count = nvgpu_get_litter_value(g,
-		GPU_LIT_NUM_ZCULL_BANKS);
-
 	gpc_size = nvgpu_safe_mult_u64((size_t)config->gpc_count, sizeof(u32));
 	temp2 = nvgpu_safe_mult_u64((size_t)config->max_gpc_count, sizeof(u32));
 	config->gpc_tpc_count = nvgpu_kzalloc(g, gpc_size);
 	config->gpc_tpc_mask = nvgpu_kzalloc(g, temp2);
+#ifdef NVGPU_GRAPHICS
+	config->max_zcull_per_gpc_count = nvgpu_get_litter_value(g,
+		GPU_LIT_NUM_ZCULL_BANKS);
+
 	config->gpc_zcb_count = nvgpu_kzalloc(g, gpc_size);
+#endif
 	config->gpc_ppc_count = nvgpu_kzalloc(g, gpc_size);
 
 	temp2 = nvgpu_safe_mult_u64(
@@ -115,7 +117,10 @@ struct nvgpu_gr_config *nvgpu_gr_config_init(struct gk20a *g)
 	config->gpc_skip_mask = nvgpu_kzalloc(g, temp3);
 
 	if ((config->gpc_tpc_count == NULL) || (config->gpc_tpc_mask == NULL) ||
-	    (config->gpc_zcb_count == NULL) || (config->gpc_ppc_count == NULL) ||
+#ifdef NVGPU_GRAPHICS
+	    (config->gpc_zcb_count == NULL) ||
+#endif
+	    (config->gpc_ppc_count == NULL) ||
 	    (config->gpc_skip_mask == NULL)) {
 		goto clean_up;
 	}
@@ -138,7 +143,9 @@ struct nvgpu_gr_config *nvgpu_gr_config_init(struct gk20a *g)
 
 	config->ppc_count = 0;
 	config->tpc_count = 0;
+#ifdef NVGPU_GRAPHICS
 	config->zcb_count = 0;
+#endif
 	for (gpc_index = 0; gpc_index < config->gpc_count; gpc_index++) {
 		config->gpc_tpc_count[gpc_index] =
 			g->ops.gr.config.get_tpc_count_in_gpc(g, config,
@@ -210,7 +217,9 @@ struct nvgpu_gr_config *nvgpu_gr_config_init(struct gk20a *g)
 
 	nvgpu_log_info(g, "max_gpc_count: %d", config->max_gpc_count);
 	nvgpu_log_info(g, "max_tpc_per_gpc_count: %d", config->max_tpc_per_gpc_count);
+#ifdef NVGPU_GRAPHICS
 	nvgpu_log_info(g, "max_zcull_per_gpc_count: %d", config->max_zcull_per_gpc_count);
+#endif
 	nvgpu_log_info(g, "max_tpc_count: %d", config->max_tpc_count);
 	nvgpu_log_info(g, "gpc_count: %d", config->gpc_count);
 	nvgpu_log_info(g, "pe_count_per_gpc: %d", config->pe_count_per_gpc);
@@ -221,10 +230,12 @@ struct nvgpu_gr_config *nvgpu_gr_config_init(struct gk20a *g)
 		nvgpu_log_info(g, "gpc_tpc_count[%d] : %d",
 			   gpc_index, config->gpc_tpc_count[gpc_index]);
 	}
+#ifdef NVGPU_GRAPHICS
 	for (gpc_index = 0; gpc_index < config->gpc_count; gpc_index++) {
 		nvgpu_log_info(g, "gpc_zcb_count[%d] : %d",
 			   gpc_index, config->gpc_zcb_count[gpc_index]);
 	}
+#endif
 	for (gpc_index = 0; gpc_index < config->gpc_count; gpc_index++) {
 		nvgpu_log_info(g, "gpc_ppc_count[%d] : %d",
 			   gpc_index, config->gpc_ppc_count[gpc_index]);
@@ -484,7 +495,9 @@ void nvgpu_gr_config_deinit(struct gk20a *g, struct nvgpu_gr_config *config)
 	u32 index;
 
 	nvgpu_kfree(g, config->gpc_tpc_count);
+#ifdef NVGPU_GRAPHICS
 	nvgpu_kfree(g, config->gpc_zcb_count);
+#endif
 	nvgpu_kfree(g, config->gpc_ppc_count);
 	nvgpu_kfree(g, config->gpc_skip_mask);
 	nvgpu_kfree(g, config->gpc_tpc_mask);
@@ -507,11 +520,6 @@ u32 nvgpu_gr_config_get_max_tpc_per_gpc_count(struct nvgpu_gr_config *config)
 	return config->max_tpc_per_gpc_count;
 }
 
-u32 nvgpu_gr_config_get_max_zcull_per_gpc_count(struct nvgpu_gr_config *config)
-{
-	return config->max_zcull_per_gpc_count;
-}
-
 u32 nvgpu_gr_config_get_max_tpc_count(struct nvgpu_gr_config *config)
 {
 	return config->max_tpc_count;
@@ -532,10 +540,23 @@ u32 nvgpu_gr_config_get_ppc_count(struct nvgpu_gr_config *config)
 	return config->ppc_count;
 }
 
+#ifdef NVGPU_GRAPHICS
+u32 nvgpu_gr_config_get_max_zcull_per_gpc_count(struct nvgpu_gr_config *config)
+{
+	return config->max_zcull_per_gpc_count;
+}
+
 u32 nvgpu_gr_config_get_zcb_count(struct nvgpu_gr_config *config)
 {
 	return config->zcb_count;
 }
+
+u32 nvgpu_gr_config_get_gpc_zcb_count(struct nvgpu_gr_config *config,
+	u32 gpc_index)
+{
+	return config->gpc_zcb_count[gpc_index];
+}
+#endif
 
 u32 nvgpu_gr_config_get_pe_count_per_gpc(struct nvgpu_gr_config *config)
 {
@@ -565,12 +586,6 @@ u32 nvgpu_gr_config_get_gpc_tpc_count(struct nvgpu_gr_config *config,
 		return 0;
 	}
 	return config->gpc_tpc_count[gpc_index];
-}
-
-u32 nvgpu_gr_config_get_gpc_zcb_count(struct nvgpu_gr_config *config,
-	u32 gpc_index)
-{
-	return config->gpc_zcb_count[gpc_index];
 }
 
 u32 nvgpu_gr_config_get_pes_tpc_count(struct nvgpu_gr_config *config,
