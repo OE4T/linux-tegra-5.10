@@ -55,11 +55,7 @@
 	} while (0)
 #endif
 
-struct test_tsg_args {
-	bool init_done;
-	struct nvgpu_tsg *tsg;
-	struct nvgpu_channel *ch;
-};
+#define assert(cond)	unit_assert(cond, goto done)
 
 struct test_tsg_args test_args = {
 	.init_done = false,
