@@ -1,7 +1,7 @@
 /*
  * Tegra Graphics Init for T194 Architecture Chips
  *
- * Copyright (c) 2016-2018, NVIDIA Corporation. All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA Corporation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -265,6 +265,7 @@ struct nvhost_device_data t19_msenc_info = {
 	.can_powergate		= true,
 	.isolate_contexts	= true,
 	.enable_timestamps	= flcn_enable_timestamps,
+	.mlock_timeout_factor   = 4,
 };
 
 struct nvhost_device_data t19_nvenc1_info = {
@@ -297,6 +298,7 @@ struct nvhost_device_data t19_nvenc1_info = {
 	.can_powergate		= true,
 	.isolate_contexts	= true,
 	.enable_timestamps	= flcn_enable_timestamps,
+	.mlock_timeout_factor   = 4,
 };
 #endif
 
@@ -334,6 +336,7 @@ struct nvhost_device_data t19_nvdec_info = {
 	.can_powergate		= true,
 	.isolate_contexts	= true,
 	.enable_timestamps	= flcn_enable_timestamps,
+	.mlock_timeout_factor   = 4,
 };
 
 struct nvhost_device_data t19_nvdec1_info = {
@@ -369,6 +372,7 @@ struct nvhost_device_data t19_nvdec1_info = {
 	.can_powergate		= true,
 	.isolate_contexts	= true,
 	.enable_timestamps	= flcn_enable_timestamps,
+	.mlock_timeout_factor   = 4,
 };
 #endif
 
