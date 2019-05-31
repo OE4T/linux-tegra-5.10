@@ -99,9 +99,6 @@ srcs += common/utils/enabled.c \
 	common/falcon/falcon.c \
 	common/falcon/falcon_sw_gk20a.c \
 	common/falcon/falcon_sw_gp106.c \
-	common/engine_queues/engine_mem_queue.c \
-	common/engine_queues/engine_dmem_queue.c \
-	common/engine_queues/engine_fb_queue.c \
 	common/gr/gr.c \
 	common/gr/gr_utils.c \
 	common/gr/gr_intr.c \
@@ -301,6 +298,13 @@ srcs += \
 	common/acr/acr_sw_gp10b.c
 endif
 
+ifeq ($(NVGPU_FEATURE_ENGINE_QUEUE),1)
+srcs += common/engine_queues/engine_mem_queue.c \
+	common/engine_queues/engine_dmem_queue.c \
+	common/engine_queues/engine_emem_queue.c \
+	common/engine_queues/engine_fb_queue.c
+endif
+
 ifeq ($(NVGPU_GRAPHICS),1)
 srcs += common/gr/zbc.c \
 	common/gr/zcull.c \
@@ -464,8 +468,7 @@ srcs += common/vbios/nvlink_bios.c \
 endif
 
 ifeq ($(NVGPU_DGPU_SUPPORT), 1)
-srcs +=	common/engine_queues/engine_emem_queue.c \
-	common/sec2/sec2.c \
+srcs += common/sec2/sec2.c \
 	common/sec2/sec2_allocator.c \
 	common/sec2/sec2_lsfm.c \
 	common/sec2/ipc/sec2_cmd.c \
