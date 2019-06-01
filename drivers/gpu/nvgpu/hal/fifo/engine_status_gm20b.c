@@ -24,6 +24,7 @@
 #include <nvgpu/debug.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/engine_status.h>
+#include <nvgpu/engines.h>
 #include <nvgpu/fifo.h>
 
 #include <nvgpu/hw/gm20b/hw_fifo_gm20b.h>
@@ -131,6 +132,10 @@ void gm20b_read_engine_status_info(struct gk20a *g, u32 engine_id,
 
 	(void) memset(status, 0, sizeof(*status));
 
+	if (engine_id == NVGPU_INVALID_ENG_ID) {
+		/* just return NULL info */
+		return;
+	}
 	engine_reg_data = nvgpu_readl(g, fifo_engine_status_r(engine_id));
 
 	status->reg_data = engine_reg_data;
