@@ -42,6 +42,7 @@
 
 struct stub_ctx {
 	u32 chid;
+	u32 tsgid;
 };
 
 struct stub_ctx stub[MAX_STUB];
@@ -934,6 +935,73 @@ done:
 	return rc;
 }
 
+static void stub_tsg_enable(struct nvgpu_tsg *tsg)
+{
+	stub[0].tsgid = tsg->tsgid;
+}
+
+static void stub_tsg_disable(struct nvgpu_tsg *tsg)
+{
+	stub[1].tsgid = tsg->tsgid;
+}
+
+static int test_channel_enable_disable_tsg(struct unit_module *m,
+		struct gk20a *g, void *args)
+{
+	struct gpu_ops gops = g->ops;
+	struct nvgpu_channel *ch = NULL;
+	struct nvgpu_tsg *tsg = NULL;
+	u32 branches = 0U;
+	u32 runlist_id = NVGPU_INVALID_RUNLIST_ID;
+	bool privileged = false;
+	int err;
+	int rc = UNIT_FAIL;
+
+	tsg = nvgpu_tsg_open(g, getpid());
+	assert(tsg != NULL);
+
+	ch = gk20a_open_new_channel(g, runlist_id,
+			privileged, getpid(), getpid());
+	assert(ch != NULL);
+
+	err = nvgpu_tsg_bind_channel(tsg, ch);
+	assert(err == 0);
+
+	g->ops.tsg.enable = stub_tsg_enable;
+	g->ops.tsg.disable = stub_tsg_disable;
+
+	subtest_setup(branches);
+
+	err = nvgpu_channel_enable_tsg(g, ch);
+	assert(stub[0].tsgid = tsg->tsgid);
+
+	err = nvgpu_channel_disable_tsg(g, ch);
+	assert(stub[1].tsgid = tsg->tsgid);
+
+	subtest_setup(branches);
+
+	err = nvgpu_tsg_unbind_channel(tsg, ch);
+	assert(err == 0);
+
+	err = nvgpu_channel_enable_tsg(g, ch);
+	assert(err != 0);
+
+	err = nvgpu_channel_disable_tsg(g, ch);
+	assert(err != 0);
+
+	rc = UNIT_SUCCESS;
+
+done:
+	if (ch != NULL) {
+		nvgpu_channel_close(ch);
+	}
+	if (tsg != NULL) {
+		nvgpu_ref_put(&tsg->refcount, nvgpu_tsg_release);
+	}
+	g->ops = gops;
+	return rc;
+}
+
 struct unit_module_test nvgpu_channel_tests[] = {
 	UNIT_TEST(setup_sw, test_channel_setup_sw, &unit_ctx, 0),
 	UNIT_TEST(init_support, test_fifo_init_support, &unit_ctx, 0),
@@ -942,6 +1010,8 @@ struct unit_module_test nvgpu_channel_tests[] = {
 	UNIT_TEST(setup_bind, test_channel_setup_bind, &unit_ctx, 0),
 	UNIT_TEST(alloc_inst, test_channel_alloc_inst, &unit_ctx, 0),
 	UNIT_TEST(from_inst, test_channel_from_inst, &unit_ctx, 0),
+	UNIT_TEST(enable_disable_tsg,
+			test_channel_enable_disable_tsg, &unit_ctx, 0),
 	UNIT_TEST(remove_support, test_fifo_remove_support, &unit_ctx, 0),
 };
 

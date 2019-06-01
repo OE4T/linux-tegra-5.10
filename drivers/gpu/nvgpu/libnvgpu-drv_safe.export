@@ -66,6 +66,8 @@ nvgpu_bsearch
 nvgpu_channel_alloc_inst
 nvgpu_channel_cleanup_sw
 nvgpu_channel_close
+nvgpu_channel_disable_tsg
+nvgpu_channel_enable_tsg
 nvgpu_channel_free_inst
 nvgpu_channel_kill
 nvgpu_channel_put__func
