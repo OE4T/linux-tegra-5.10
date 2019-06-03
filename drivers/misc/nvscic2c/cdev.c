@@ -34,6 +34,7 @@
  */
 #include <linux/module.h>
 #include <linux/platform_device.h>
+#include <asm/io.h>
 #include <linux/string.h>
 
 #include "cdev.h"

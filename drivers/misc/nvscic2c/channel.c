@@ -125,8 +125,18 @@ int channel_deinit(channel_hdl hdl, struct device *pdev)
 
 	channel = (struct channel *)hdl;
 
+	dev_dbg(pdev, "Channel ctrl mem:\n\t\t\tpa  :%pa\n"
+#ifdef C2C_MAP
+				"\t\t\tpva :0x%p\n"
+#endif
+				"\t\t\tsize:0x%016zx\n",
+				&channel->ctrl.phys_addr,
+#ifdef C2C_MAP
+				channel->ctrl.pva,
+#endif
+				(size_t)channel->ctrl.size);
 	if (channel->ctrl.pva != NULL) {
-		devm_kfree(pdev, channel->ctrl.pva);
+		kfree(channel->ctrl.pva);
 		channel->ctrl.pva = NULL;
 	}
 
@@ -350,7 +360,23 @@ static int allocate_channel_ctrl(struct cpu_buff *ctrl,
 
 	/*Allocate local control memory of size one page.*/
 	ctrl->size = PAGE_SIZE;
-	ctrl->pva  = devm_kzalloc(pdev, ctrl->size, GFP_KERNEL);
+	/**
+	 * struct devres {
+	 *  struct devres_node node;
+	 *  u8 __aligned(ARCH_KMALLOC_MINALIGN) data[];
+	 * };
+	 * This internal counter memory is mapped by user space library.
+	 * While mapping we use PFN for this physical page.
+	 * In case of devm_kmalloc we get offset of data[],
+	 * But when we generate PFN for mapping at user space level
+	 * It gets mapped from beginning.
+	 * To map exactly from offset of data[] we need to pass pg_off
+	 * remap_pfn_range which is not possible because struct devres is
+	 * not public.
+	 * Hence for this particular case we will be using kzalloc instead of
+	 * devm_kzalloc.
+	 */
+	ctrl->pva  = kzalloc(ctrl->size, GFP_KERNEL);
 	if (ctrl->pva == NULL) {
 		C2C_ERROR("devm_kzalloc failed for channel place holder.\n");
 		ret = -ENOMEM;
@@ -402,6 +428,16 @@ static void print_channel_info(struct channel *channel)
 			param->self_mem.pva,
 #endif
 			(size_t)param->self_mem.size);
+	dev_dbg(channel->device, "Channel ctrl mem:\n\t\t\tpa  :%pa\n"
+#ifdef C2C_MAP
+				"\t\t\tpva :0x%p\n"
+#endif
+				"\t\t\tsize:0x%016zx\n",
+				&channel->ctrl.phys_addr,
+#ifdef C2C_MAP
+				channel->ctrl.pva,
+#endif
+				(size_t)channel->ctrl.size);
 	dev_dbg(channel->device, "********************************************");
 }
 
@@ -563,11 +599,8 @@ static int channel_fops_mmap(struct file *filp, struct vm_area_struct *vma)
 		memsize = channel->ctrl.size;
 		break;
 	case LINK_MEM_MMAP:
-		if (vma->vm_flags & VM_WRITE) {
-			ret = -EPERM;
-			goto exit;
-		}
-		break;
+		ret = -EOPNOTSUPP;
+		goto exit;
 	default:
 		dev_err(channel->device, "unrecognised mmap type: (%llu)\n",
 			mmap_type);
