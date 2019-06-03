@@ -22,17 +22,20 @@
 
 #include <nvgpu/log.h>
 #include <nvgpu/posix/bug.h>
-#include <signal.h>
 #include <pthread.h>
 #include <stdbool.h>
-#include <setjmp.h>
 #include <stdlib.h>
 #ifndef _QNX_SOURCE
 #include <execinfo.h>
 #endif
+#ifdef __NVGPU_UNIT_TEST__
+#include <setjmp.h>
+#include <signal.h>
+#endif
 
 #define BACKTRACE_MAXSIZE 1024
 
+#ifdef __NVGPU_UNIT_TEST__
 static _Thread_local bool expect_bug;
 static _Thread_local jmp_buf *jmp_handler;
 
@@ -47,6 +50,7 @@ void bug_handler_cancel(void)
 	expect_bug = false;
 	jmp_handler = NULL;
 }
+#endif
 
 static void nvgpu_posix_dump_stack(int skip_frames)
 {
@@ -76,19 +80,23 @@ void dump_stack(void)
  */
 void nvgpu_posix_bug(const char *fmt, ...)
 {
+#ifdef __NVGPU_UNIT_TEST__
 	if (expect_bug) {
 		nvgpu_info(NULL, "Expected BUG detected!");
 		expect_bug = false;
 		/* Perform a long jump to where "setjmp()" was called. */
 		longjmp(*jmp_handler, 1);
 	}
+#endif
 	/*
 	 * If BUG was unexpected, raise a SIGSEGV signal, dump the stack and
 	 * kill the thread.
 	 */
 	nvgpu_err(NULL, "BUG detected!");
 	dump_stack();
+#ifdef __NVGPU_UNIT_TEST__
 	(void) raise(SIGSEGV);
+#endif
 	pthread_exit(NULL);
 }
 

@@ -24,7 +24,9 @@
 #define NVGPU_POSIX_BUG_H
 
 #include <nvgpu/types.h>
+#ifdef __NVGPU_UNIT_TEST__
 #include <setjmp.h>
+#endif
 
 #define BUG()					nvgpu_posix_bug("")
 #define BUG_ON(cond)				\
@@ -53,6 +55,7 @@ void dump_stack(void);
 void nvgpu_posix_bug(const char *fmt, ...) __attribute__ ((noreturn));
 bool nvgpu_posix_warn(bool cond, const char *fmt, ...);
 
+#ifdef __NVGPU_UNIT_TEST__
 /* Provide a simple API for BUG() handling */
 void bug_handler_register(jmp_buf *handler);
 void bug_handler_cancel(void);
@@ -64,7 +67,6 @@ void bug_handler_cancel(void);
  * function if enabled. This allows the macro to simply expand as true if
  * BUG() was called, and false otherwise.
  */
-
 #define EXPECT_BUG(code_to_run)				\
 	({						\
 		jmp_buf handler;			\
@@ -77,5 +79,5 @@ void bug_handler_cancel(void);
 		}					\
 		bug_result;				\
 	})
-
+#endif
 #endif /* NVGPU_POSIX_BUG_H */
