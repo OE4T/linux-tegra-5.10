@@ -168,7 +168,7 @@ static int nvdla_unmap_task_memory(struct nvdla_task *task)
 	/* unpin address list */
 	for (ii = 0; ii < task->num_addresses; ii++) {
 		if (task->memory_handles[ii].handle) {
-			nvhost_buffer_submit_unpin(task->buffers,
+			nvdla_buffer_submit_unpin(task->buffers,
 				&task->memory_dmabuf[ii], 1);
 			dma_buf_put(task->memory_dmabuf[ii]);
 		}
@@ -180,7 +180,7 @@ static int nvdla_unmap_task_memory(struct nvdla_task *task)
 		if ((task->prefences[ii].type == NVDEV_FENCE_TYPE_SEMAPHORE ||
 		   task->prefences[ii].type == NVDEV_FENCE_TYPE_SEMAPHORE_TS) &&
 		   task->prefences[ii].semaphore_handle) {
-			nvhost_buffer_submit_unpin(task->buffers,
+			nvdla_buffer_submit_unpin(task->buffers,
 				&task->prefences_sem_dmabuf[ii], 1);
 			dma_buf_put(task->prefences_sem_dmabuf[ii]);
 		}
@@ -190,7 +190,7 @@ static int nvdla_unmap_task_memory(struct nvdla_task *task)
 	/* unpin input task status memory */
 	for (ii = 0; ii < task->num_in_task_status; ii++) {
 		if (task->in_task_status[ii].handle) {
-			nvhost_buffer_submit_unpin(task->buffers,
+			nvdla_buffer_submit_unpin(task->buffers,
 				&task->in_task_status_dmabuf[ii], 1);
 			dma_buf_put(task->in_task_status_dmabuf[ii]);
 		}
@@ -202,7 +202,7 @@ static int nvdla_unmap_task_memory(struct nvdla_task *task)
 		if ((task->postfences[ii].type == NVDEV_FENCE_TYPE_SEMAPHORE ||
 		  task->postfences[ii].type == NVDEV_FENCE_TYPE_SEMAPHORE_TS) &&
 		  task->postfences[ii].semaphore_handle) {
-			nvhost_buffer_submit_unpin(task->buffers,
+			nvdla_buffer_submit_unpin(task->buffers,
 				&task->postfences_sem_dmabuf[ii], 1);
 			dma_buf_put(task->postfences_sem_dmabuf[ii]);
 		}
@@ -212,7 +212,7 @@ static int nvdla_unmap_task_memory(struct nvdla_task *task)
 	/* unpin input task status memory */
 	for (ii = 0; ii < task->num_out_task_status; ii++) {
 		if (task->out_task_status[ii].handle) {
-			nvhost_buffer_submit_unpin(task->buffers,
+			nvdla_buffer_submit_unpin(task->buffers,
 				&task->out_task_status_dmabuf[ii], 1);
 			dma_buf_put(task->out_task_status_dmabuf[ii]);
 		}
@@ -446,7 +446,7 @@ static int nvdla_map_task_memory(struct nvdla_task *task)
 	int jj;
 	int err = 0;
 	size_t offset;
-	struct nvhost_buffers *buffers = task->buffers;
+	struct nvdla_buffers *buffers = task->buffers;
 	struct platform_device *pdev = task->queue->pool->pdev;
 	struct dla_task_descriptor *task_desc = task->task_desc;
 	u8 *next;
@@ -490,7 +490,7 @@ static int nvdla_map_task_memory(struct nvdla_task *task)
 			goto fail_to_pin_mem;
 		}
 
-		err = nvhost_buffer_submit_pin(buffers,
+		err = nvdla_buffer_submit_pin(buffers,
 				&task->memory_dmabuf[jj],
 				1, &dma_addr, &dma_size, NULL);
 		if (err) {
@@ -570,7 +570,7 @@ gos_disabled:
 static int nvdla_fill_postactions(struct nvdla_task *task)
 {
 	struct dla_task_descriptor *task_desc = task->task_desc;
-	struct nvhost_buffers *buffers = task->buffers;
+	struct nvdla_buffers *buffers = task->buffers;
 	struct nvhost_queue *queue = task->queue;
 	struct platform_device *pdev = queue->pool->pdev;
 	struct dla_action_list *postactionl;
@@ -608,7 +608,7 @@ static int nvdla_fill_postactions(struct nvdla_task *task)
 				break;
 			}
 
-			if (nvhost_buffer_submit_pin(buffers,
+			if (nvdla_buffer_submit_pin(buffers,
 					&task->out_task_status_dmabuf[j],
 					1, &dma_addr, &dma_size, NULL)) {
 				nvdla_dbg_err(pdev, "fail to pin out status");
@@ -683,7 +683,7 @@ static int nvdla_fill_postactions(struct nvdla_task *task)
 				break;
 			}
 
-			if (nvhost_buffer_submit_pin(buffers,
+			if (nvdla_buffer_submit_pin(buffers,
 					&task->postfences_sem_dmabuf[i],
 					1, &dma_addr, &dma_size, NULL)) {
 				nvdla_dbg_err(pdev, "fail to pin OUT TSSEM");
@@ -713,7 +713,7 @@ static int nvdla_fill_postactions(struct nvdla_task *task)
 				break;
 			}
 
-			if (nvhost_buffer_submit_pin(buffers,
+			if (nvdla_buffer_submit_pin(buffers,
 					&task->postfences_sem_dmabuf[i],
 					1, &dma_addr, &dma_size, NULL)) {
 				nvdla_dbg_err(pdev, "fail to pin OUT SEM");
@@ -746,7 +746,7 @@ static int nvdla_fill_postactions(struct nvdla_task *task)
 static int nvdla_fill_preactions(struct nvdla_task *task)
 {
 	struct dla_task_descriptor *task_desc = task->task_desc;
-	struct nvhost_buffers *buffers = task->buffers;
+	struct nvdla_buffers *buffers = task->buffers;
 	struct nvhost_queue *queue = task->queue;
 	struct platform_device *pdev = queue->pool->pdev;
 	struct nvhost_master *host = nvhost_get_host(pdev);
@@ -874,7 +874,7 @@ static int nvdla_fill_preactions(struct nvdla_task *task)
 				break;
 			}
 
-			if (nvhost_buffer_submit_pin(buffers,
+			if (nvdla_buffer_submit_pin(buffers,
 					&task->prefences_sem_dmabuf[i],
 					1, &dma_addr, &dma_size, NULL)) {
 				nvdla_dbg_err(pdev, "fail to pin IN SEM");
@@ -912,7 +912,7 @@ static int nvdla_fill_preactions(struct nvdla_task *task)
 				break;
 			}
 
-			if (nvhost_buffer_submit_pin(buffers,
+			if (nvdla_buffer_submit_pin(buffers,
 					&task->in_task_status_dmabuf[j],
 					1, &dma_addr, &dma_size, NULL)) {
 				nvdla_dbg_err(pdev, "fail to pin in status");

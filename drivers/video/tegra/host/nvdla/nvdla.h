@@ -25,8 +25,9 @@
 #include <linux/mutex.h>
 #include <uapi/linux/nvdev_fence.h>
 #include <uapi/linux/nvhost_nvdla_ioctl.h>
-#include "nvhost_buffer.h"
 
+
+#include "nvdla_buffer.h"
 #include "dla_os_interface.h"
 #include "dla_fw_version.h"
 
@@ -253,7 +254,7 @@ struct nvdla_emu_task {
  */
 struct nvdla_task {
 	struct nvhost_queue *queue;
-	struct nvhost_buffers *buffers;
+	struct nvdla_buffers *buffers;
 	struct nvhost_syncpt *sp;
 	struct nvdev_fence prefences[MAX_NUM_NVDLA_PREFENCES];
 	struct nvdev_fence postfences[MAX_NUM_NVDLA_POSTFENCES];

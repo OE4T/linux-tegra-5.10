@@ -31,7 +31,7 @@
 #include "dev.h"
 #include "bus_client.h"
 #include "nvhost_acm.h"
-#include "nvhost_buffer.h"
+
 #include "flcn/flcn.h"
 #include "flcn/hw_flcn.h"
 #include "nvhost_syncpt_unit_interface.h"
@@ -40,6 +40,7 @@
 #include "nvhost_queue.h"
 
 #include "nvdla/nvdla.h"
+#include "nvdla/nvdla_buffer.h"
 #include "nvdla/nvdla_debug.h"
 #include <uapi/linux/nvhost_nvdla_ioctl.h>
 #include "dla_fw_version.h"
