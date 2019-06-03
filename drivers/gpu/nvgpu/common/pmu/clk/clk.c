@@ -282,7 +282,8 @@ int nvgpu_clk_set_req_fll_clk_ps35(struct gk20a *g,
 	int status = 0;
 	u8 gpcclk_domain = 0U;
 	u32 gpcclk_voltuv = 0U, gpcclk_clkmhz = 0U;
-	u32 vmin_uv = 0, vmargin_uv = 0U, fmargin_mhz = 0U;
+	u32 vmin_uv = 0U, vmax_uv = 0U;
+	u32 vmargin_uv = 0U, fmargin_mhz = 0U;
 
 	(void) memset(&change_input, 0,
 		sizeof(struct ctrl_perf_change_seq_change_input));
@@ -310,14 +311,19 @@ int nvgpu_clk_set_req_fll_clk_ps35(struct gk20a *g,
 		return status;
 	}
 
-	status = nvgpu_volt_get_vmin_ps35(g, &vmin_uv);
+	status = nvgpu_volt_get_vmin_vmax_ps35(g, &vmin_uv, &vmax_uv);
 	if (status != 0) {
-		nvgpu_pmu_dbg(g,
-			"Get vmin failed, proceeding with freq_to_volt value");
+		nvgpu_pmu_dbg(g, "Get vmin,vmax failed, proceeding with "
+			"freq_to_volt value");
 	}
 	if ((status == 0) && (vmin_uv > gpcclk_voltuv)) {
 		gpcclk_voltuv = vmin_uv;
 		nvgpu_log_fn(g, "Vmin is higher than evaluated Volt");
+	}
+
+	if (gpcclk_voltuv > vmax_uv) {
+		nvgpu_err(g, "Error: Requested voltage is more than chip max");
+		return -EINVAL;
 	}
 
 	change_input.volt[0].voltage_uv = gpcclk_voltuv;

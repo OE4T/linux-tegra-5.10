@@ -36,16 +36,30 @@ DEFINE_SIMPLE_ATTRIBUTE(curr_volt_ctrl_fops, get_curr_voltage, NULL, "%llu\n");
 static int get_min_voltage(void *data, u64 *val)
 {
 	struct gk20a *g = (struct gk20a *)data;
-	u32 readval;
+	u32 minval, maxval;
 	int err;
 
-	err = nvgpu_volt_get_vmin_ps35(g, &readval);
+	err = nvgpu_volt_get_vmin_vmax_ps35(g, &minval, &maxval);
 	if (!err)
-		*val = readval;
+		*val = minval;
 
 	return err;
 }
 DEFINE_SIMPLE_ATTRIBUTE(min_volt_ctrl_fops, get_min_voltage, NULL, "%llu\n");
+
+static int get_max_voltage(void *data, u64 *val)
+{
+	struct gk20a *g = (struct gk20a *)data;
+	u32 minval, maxval;
+	int err;
+
+	err = nvgpu_volt_get_vmin_vmax_ps35(g, &minval, &maxval);
+	if (!err)
+		*val = maxval;
+
+	return err;
+}
+DEFINE_SIMPLE_ATTRIBUTE(max_volt_ctrl_fops, get_max_voltage, NULL, "%llu\n");
 
 int nvgpu_volt_init_debugfs(struct gk20a *g)
 {
@@ -63,6 +77,13 @@ int nvgpu_volt_init_debugfs(struct gk20a *g)
 
 	dbgentry = debugfs_create_file("minimum_voltage",
 			S_IRUGO, volt_root, g, &min_volt_ctrl_fops);
+	if (!dbgentry) {
+		pr_err("%s: Failed to make debugfs node\n", __func__);
+		return -ENOMEM;
+	}
+
+	dbgentry = debugfs_create_file("maximum_voltage",
+			S_IRUGO, volt_root, g, &max_volt_ctrl_fops);
 	if (!dbgentry) {
 		pr_err("%s: Failed to make debugfs node\n", __func__);
 		return -ENOMEM;

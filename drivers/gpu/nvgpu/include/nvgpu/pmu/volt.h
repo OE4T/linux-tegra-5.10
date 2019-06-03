@@ -86,6 +86,7 @@ struct voltage_rail {
 	struct boardobjgrpmask_e32 volt_dev_mask;
 	s32  volt_delta_uv[CTRL_VOLT_RAIL_VOLT_DELTA_MAX_ENTRIES];
 	u32 vmin_limitu_v;
+	u32 max_limitu_v;
 };
 
 int nvgpu_volt_set_voltage(struct gk20a *g, u32 logic_voltage_uv,
@@ -102,7 +103,7 @@ int nvgpu_volt_policy_pmu_setup(struct gk20a *g);
 int nvgpu_volt_rail_sw_setup(struct gk20a *g);
 int nvgpu_volt_rail_pmu_setup(struct gk20a *g);
 u8 nvgpu_volt_rail_volt_domain_convert_to_idx(struct gk20a *g, u8 volt_domain);
-int nvgpu_volt_get_vmin_ps35(struct gk20a *g, u32 *vmin_uv);
+int nvgpu_volt_get_vmin_vmax_ps35(struct gk20a *g, u32 *vmin_uv, u32 *vmax_uv);
 u8 nvgpu_volt_get_vmargin_ps35(struct gk20a *g);
 int nvgpu_volt_rail_volt_dev_register(struct gk20a *g, struct voltage_rail
 	*pvolt_rail, u8 volt_dev_idx, u8 operation_type);
