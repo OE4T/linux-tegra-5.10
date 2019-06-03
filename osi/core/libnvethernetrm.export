@@ -57,3 +57,4 @@ osi_update_l4_port_no
 osi_config_vlan_filtering
 osi_config_l2_da_perfect_inverse_match
 osi_update_vlan_id
+osi_config_fw_err_pkts
