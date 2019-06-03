@@ -327,9 +327,9 @@ static int test_tsg_bind_channel(struct unit_module *m,
 		/* ch already already active */
 		runlist = &f->active_runlist_info[tsg->runlist_id];
 		if (branches & F_TSG_BIND_CHANNEL_ACTIVE) {
-			set_bit((int)ch->chid, runlist->active_channels);
+			nvgpu_set_bit(ch->chid, runlist->active_channels);
 		} else {
-			clear_bit((int)ch->chid, runlist->active_channels);
+			nvgpu_clear_bit(ch->chid, runlist->active_channels);
 		}
 
 		g->ops.tsg.bind_channel =

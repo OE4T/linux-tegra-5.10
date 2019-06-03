@@ -136,7 +136,7 @@ static void nvgpu_bitmap_free_fixed(struct nvgpu_allocator *na,
 	alloc_lock(na);
 	nvgpu_assert(offs <= U32_MAX);
 	nvgpu_assert(blks <= (u32)INT_MAX);
-	bitmap_clear(a->bitmap, (u32)offs, (int)blks);
+	nvgpu_bitmap_clear(a->bitmap, (u32)offs, (u32)blks);
 	a->bytes_freed += blks * a->blk_size;
 	alloc_unlock(na);
 
@@ -275,7 +275,7 @@ static u64 nvgpu_bitmap_balloc(struct nvgpu_allocator *na, u64 len)
 fail_reset_bitmap:
 	nvgpu_assert(blks <= (u32)INT_MAX);
 	nvgpu_assert(offs <= U32_MAX);
-	bitmap_clear(a->bitmap, (u32)offs, (int)blks);
+	nvgpu_bitmap_clear(a->bitmap, (u32)offs, blks);
 fail:
 	a->next_blk = 0;
 	alloc_unlock(na);
@@ -313,7 +313,7 @@ static void nvgpu_bitmap_free(struct nvgpu_allocator *na, u64 addr)
 
 	nvgpu_assert(blks <= (u32)INT_MAX);
 	nvgpu_assert(offs <= U32_MAX);
-	bitmap_clear(a->bitmap, (u32)offs, (int)blks);
+	nvgpu_bitmap_clear(a->bitmap, (u32)offs, (u32)blks);
 	alloc_dbg(na, "Free  0x%-10llx", addr);
 
 	a->bytes_freed += alloc->length;

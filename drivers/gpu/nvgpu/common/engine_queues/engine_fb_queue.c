@@ -134,7 +134,7 @@ static int engine_fb_queue_set_element_use_state(
 		goto exit;
 	}
 
-	if (test_bit((int)queue_pos,
+	if (nvgpu_test_bit(queue_pos,
 		(void *)&queue->fbq.element_in_use) && set) {
 		nvgpu_err(queue->g,
 			"FBQ last received queue element not processed yet"
@@ -144,9 +144,9 @@ static int engine_fb_queue_set_element_use_state(
 	}
 
 	if (set) {
-		set_bit((int)queue_pos, (void *)&queue->fbq.element_in_use);
+		nvgpu_set_bit(queue_pos, (void *)&queue->fbq.element_in_use);
 	} else {
-		clear_bit((int)queue_pos, (void *)&queue->fbq.element_in_use);
+		nvgpu_clear_bit(queue_pos, (void *)&queue->fbq.element_in_use);
 	}
 
 exit:
@@ -164,7 +164,7 @@ static int engine_fb_queue_is_element_in_use(
 		goto exit;
 	}
 
-	*in_use = test_bit((int)queue_pos, (void *)&queue->fbq.element_in_use);
+	*in_use = nvgpu_test_bit(queue_pos, (void *)&queue->fbq.element_in_use);
 
 exit:
 	return err;

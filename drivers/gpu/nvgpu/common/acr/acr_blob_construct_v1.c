@@ -477,7 +477,7 @@ static int lsfm_discover_ucode_images(struct gk20a *g,
 	 * image info and total falcon count
 	 */
 	for (i = 0U; i < FALCON_ID_END; i++) {
-		if (test_bit((int)i, (void *)&acr->lsf_enable_mask) &&
+		if (nvgpu_test_bit(i, (void *)&acr->lsf_enable_mask) &&
 			acr->lsf[i].get_lsf_ucode_details != NULL) {
 
 			(void) memset(&ucode_img, 0, sizeof(ucode_img));

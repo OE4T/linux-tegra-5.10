@@ -69,7 +69,7 @@ int nvgpu_hw_semaphore_init(struct nvgpu_channel *ch)
 	return 0;
 
 fail_free_idx:
-	clear_bit(hw_sema_idx, p->semas_alloced);
+	nvgpu_clear_bit((u32)hw_sema_idx, p->semas_alloced);
 fail:
 	nvgpu_mutex_release(&p->pool_lock);
 	return ret;
@@ -88,7 +88,7 @@ void nvgpu_hw_semaphore_free(struct nvgpu_channel *ch)
 
 	nvgpu_mutex_acquire(&p->pool_lock);
 
-	clear_bit(idx, p->semas_alloced);
+	nvgpu_clear_bit((u32)idx, p->semas_alloced);
 
 	nvgpu_kfree(ch->g, hw_sema);
 	ch->hw_sema = NULL;

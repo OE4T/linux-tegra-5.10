@@ -82,13 +82,13 @@ static bool vgpu_runlist_modify_active_locked(struct gk20a *g, u32 runlist_id,
 	runlist = f->runlist_info[runlist_id];
 
 	if (add) {
-		if (test_and_set_bit((int)ch->chid,
+		if (nvgpu_test_and_set_bit(ch->chid,
 				runlist->active_channels)) {
 			return false;
 			/* was already there */
 		}
 	} else {
-		if (!test_and_clear_bit((int)ch->chid,
+		if (!nvgpu_test_and_clear_bit(ch->chid,
 				runlist->active_channels)) {
 			/* wasn't there */
 			return false;

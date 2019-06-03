@@ -35,8 +35,7 @@
 #define BIT64(i)	(U64(1) << U64(i))
 
 #ifdef __KERNEL__
-#include <linux/bitops.h>
-#include <linux/bitmap.h>
+#include <nvgpu/linux/bitops.h>
 #else
 #include <nvgpu/posix/bitops.h>
 #endif
@@ -47,19 +46,5 @@
  * To avoid violation, define BITS_PER_BYTE_U32 as U32 data type
  */
 #define BITS_PER_BYTE_U32	8U
-
-static inline void nvgpu_bitmap_set(unsigned long *map, unsigned int start,
-				    unsigned int len)
-{
-	BUG_ON(len > U32(INT_MAX));
-	bitmap_set(map, start, (int)len);
-}
-
-static inline void nvgpu_bitmap_clear(unsigned long *map, unsigned int start,
-				      unsigned int len)
-{
-	BUG_ON(len > U32(INT_MAX));
-	bitmap_clear(map, start, (int)len);
-}
 
 #endif /* NVGPU_BITOPS_H */

@@ -64,18 +64,18 @@ unsigned long find_next_bit(const unsigned long *addr, unsigned long size,
 unsigned long find_first_zero_bit(const unsigned long *addr,
 				  unsigned long size);
 
-bool test_bit(int nr, const volatile unsigned long *addr);
-bool test_and_set_bit(int nr, volatile unsigned long *addr);
-bool test_and_clear_bit(int nr, volatile unsigned long *addr);
+bool nvgpu_test_bit(unsigned int nr, const volatile unsigned long *addr);
+bool nvgpu_test_and_set_bit(unsigned int nr, volatile unsigned long *addr);
+bool nvgpu_test_and_clear_bit(unsigned int nr, volatile unsigned long *addr);
 
 /*
  * These two are atomic.
  */
-void set_bit(int nr, volatile unsigned long *addr);
-void clear_bit(int nr, volatile unsigned long *addr);
+void nvgpu_set_bit(unsigned int nr, volatile unsigned long *addr);
+void nvgpu_clear_bit(unsigned int nr, volatile unsigned long *addr);
 
-void bitmap_set(unsigned long *map, unsigned int start, int len);
-void bitmap_clear(unsigned long *map, unsigned int start, int len);
+void nvgpu_bitmap_set(unsigned long *map, unsigned int start, unsigned int len);
+void nvgpu_bitmap_clear(unsigned long *map, unsigned int start, unsigned int len);
 unsigned long bitmap_find_next_zero_area_off(unsigned long *map,
 					     unsigned long size,
 					     unsigned long start,

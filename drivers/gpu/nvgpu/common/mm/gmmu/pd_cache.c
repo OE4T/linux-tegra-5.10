@@ -223,7 +223,7 @@ static int nvgpu_pd_cache_alloc_new(struct gk20a *g,
 	 * This allocates the very first PD table in the set of tables in this
 	 * nvgpu_pd_mem_entry.
 	 */
-	set_bit(0, pentry->alloc_map);
+	nvgpu_set_bit(0U, pentry->alloc_map);
 	pentry->allocs = 1;
 
 	/*
@@ -261,7 +261,7 @@ static int nvgpu_pd_cache_alloc_from_partial(struct gk20a *g,
 	/* Bit map full. Somethings wrong. */
 	nvgpu_assert(bit_offs < nr_bits);
 
-	set_bit((int)bit_offs, pentry->alloc_map);
+	nvgpu_set_bit((u32)bit_offs, pentry->alloc_map);
 	pentry->allocs += 1U;
 
 	/*
@@ -405,7 +405,7 @@ static void nvgpu_pd_cache_do_free(struct gk20a *g,
 	u32 bit = pd->mem_offs / pentry->pd_size;
 
 	/* Mark entry as free. */
-	clear_bit((int)bit, pentry->alloc_map);
+	nvgpu_clear_bit(bit, pentry->alloc_map);
 	pentry->allocs -= 1U;
 
 	if (pentry->allocs > 0U) {

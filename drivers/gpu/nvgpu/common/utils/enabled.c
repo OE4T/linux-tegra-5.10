@@ -50,14 +50,14 @@ void nvgpu_free_enabled_flags(struct gk20a *g)
 
 bool nvgpu_is_enabled(struct gk20a *g, int flag)
 {
-	return test_bit(flag, g->enabled_flags);
+	return nvgpu_test_bit((u32)flag, g->enabled_flags);
 }
 
 void nvgpu_set_enabled(struct gk20a *g, int flag, bool state)
 {
 	if (state) {
-		set_bit(flag, g->enabled_flags);
+		nvgpu_set_bit((u32)flag, g->enabled_flags);
 	} else {
-		clear_bit(flag, g->enabled_flags);
+		nvgpu_clear_bit((u32)flag, g->enabled_flags);
 	}
 }

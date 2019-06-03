@@ -509,7 +509,7 @@ static int test_single_bitops(struct unit_module *m,
 	 * First set all the bits and make sure the words are set.
 	 */
 	for (i = 0; i < NUM_WORDS * BITS_PER_LONG; i++)
-		set_bit(i, words);
+		nvgpu_set_bit(i, words);
 
 	if (!verify_set_buf(words, NUM_WORDS * BITS_PER_LONG,
 			    0, NUM_WORDS * BITS_PER_LONG, false)) {
@@ -521,11 +521,11 @@ static int test_single_bitops(struct unit_module *m,
 	 * Now make sure the test_bit works for set bits.
 	 */
 	for (i = 0; i < NUM_WORDS * BITS_PER_LONG; i++)
-		if (!test_bit(i, words))
+		if (!nvgpu_test_bit(i, words))
 			unit_return_fail(m, "test_bit: bit %d failed!\n", i);
 
 	for (i = 0; i < NUM_WORDS * BITS_PER_LONG; i++)
-		clear_bit(i, words);
+		nvgpu_clear_bit(i, words);
 
 	if (!verify_set_buf(words, NUM_WORDS * BITS_PER_LONG,
 			    0, NUM_WORDS * BITS_PER_LONG, true)) {
@@ -534,7 +534,7 @@ static int test_single_bitops(struct unit_module *m,
 	}
 
 	for (i = 0; i < NUM_WORDS * BITS_PER_LONG; i++)
-		if (test_bit(i, words))
+		if (nvgpu_test_bit(i, words))
 			unit_return_fail(m, "test_bit: bit %d failed!\n", i);
 
 	return UNIT_SUCCESS;
@@ -544,8 +544,8 @@ static int test_bit_setclear(struct unit_module *m,
 			     struct gk20a *g, void *__args)
 {
 	struct test_setclear_args *args = __args;
-	void (*testfn)(int, volatile unsigned long *) =
-		args->clear ? clear_bit : set_bit;
+	void (*testfn)(unsigned int, volatile unsigned long *) =
+		args->clear ? nvgpu_clear_bit : nvgpu_set_bit;
 	unsigned long words[NUM_WORDS];
 	unsigned int i;
 
@@ -569,10 +569,10 @@ static int test_test_and_setclear_bit(struct unit_module *m,
 				      struct gk20a *g, void *__args)
 {
 	struct test_setclear_args *args = __args;
-	bool (*testfn)(int, volatile unsigned long *) =
-		args->clear ? test_and_clear_bit : test_and_set_bit;
-	bool (*testfn_reset)(int, volatile unsigned long *) =
-		args->clear ? test_and_set_bit : test_and_clear_bit;
+	bool (*testfn)(unsigned int, volatile unsigned long *) =
+		args->clear ? nvgpu_test_and_clear_bit : nvgpu_test_and_set_bit;
+	bool (*testfn_reset)(unsigned int, volatile unsigned long *) =
+		args->clear ? nvgpu_test_and_set_bit : nvgpu_test_and_clear_bit;
 	unsigned long words[NUM_WORDS];
 	unsigned int i;
 
@@ -618,8 +618,8 @@ static int test_bitmap_setclear(struct unit_module *m,
 				struct gk20a *g, void *__args)
 {
 	struct test_setclear_args *args = __args;
-	void (*testfn)(unsigned long *, unsigned int, int) =
-		args->clear ? bitmap_clear : bitmap_set;
+	void (*testfn)(unsigned long *, unsigned int, unsigned int) =
+		args->clear ? nvgpu_bitmap_clear : nvgpu_bitmap_set;
 	unsigned long words[NUM_WORDS];
 	unsigned long i, j;
 	int set_char = args->clear ? 0xff : 0x0;

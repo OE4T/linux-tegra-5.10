@@ -87,7 +87,7 @@ int nvgpu_sec2_seq_acquire(struct gk20a *g,
 	}
 
 	nvgpu_assert(index < U64(INT_MAX));
-	set_bit(index, sequences->sec2_seq_tbl);
+	nvgpu_set_bit(index, sequences->sec2_seq_tbl);
 
 	nvgpu_mutex_release(&sequences->sec2_seq_lock);
 
@@ -113,7 +113,7 @@ static void sec2_seq_release(struct sec2_sequences *sequences,
 	seq->out_payload = NULL;
 
 	nvgpu_mutex_acquire(&sequences->sec2_seq_lock);
-	clear_bit(seq->id, sequences->sec2_seq_tbl);
+	nvgpu_clear_bit(seq->id, sequences->sec2_seq_tbl);
 	nvgpu_mutex_release(&sequences->sec2_seq_lock);
 }
 

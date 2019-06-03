@@ -100,7 +100,7 @@ static u32 nvgpu_runlist_append_tsg(struct gk20a *g,
 	/* add runnable channels bound to this TSG */
 	nvgpu_list_for_each_entry(ch, &tsg->ch_list,
 			nvgpu_channel, ch_entry) {
-		if (!test_bit((int)ch->chid,
+		if (!nvgpu_test_bit(ch->chid,
 			      runlist->active_channels)) {
 			continue;
 		}
@@ -337,24 +337,24 @@ static bool gk20a_runlist_modify_active_locked(struct gk20a *g, u32 runlist_id,
 	}
 
 	if (add) {
-		if (test_and_set_bit((int)ch->chid,
+		if (nvgpu_test_and_set_bit(ch->chid,
 				runlist->active_channels)) {
 			/* was already there */
 			return false;
 		} else {
 			/* new, and belongs to a tsg */
-			set_bit((int)tsg->tsgid, runlist->active_tsgs);
+			nvgpu_set_bit(tsg->tsgid, runlist->active_tsgs);
 			tsg->num_active_channels++;
 		}
 	} else {
-		if (!test_and_clear_bit((int)ch->chid,
+		if (!nvgpu_test_and_clear_bit(ch->chid,
 				runlist->active_channels)) {
 			/* wasn't there */
 			return false;
 		} else {
 			if (--tsg->num_active_channels == 0U) {
 				/* was the only member of this tsg */
-				clear_bit((int)tsg->tsgid,
+				nvgpu_clear_bit(tsg->tsgid,
 						runlist->active_tsgs);
 			}
 		}

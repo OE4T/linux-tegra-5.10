@@ -126,7 +126,7 @@ int nvgpu_pmu_seq_acquire(struct gk20a *g,
 		return -EAGAIN;
 	}
 	nvgpu_assert(index <= U32_MAX);
-	set_bit((int)index, sequences->pmu_seq_tbl);
+	nvgpu_set_bit((u32)index, sequences->pmu_seq_tbl);
 	nvgpu_mutex_release(&sequences->pmu_seq_lock);
 
 	seq = &sequences->seq[index];
@@ -151,7 +151,7 @@ void nvgpu_pmu_seq_release(struct gk20a *g,
 	seq->out_payload = NULL;
 
 	nvgpu_mutex_acquire(&sequences->pmu_seq_lock);
-	clear_bit((int)seq->id, sequences->pmu_seq_tbl);
+	nvgpu_clear_bit(seq->id, sequences->pmu_seq_tbl);
 	nvgpu_mutex_release(&sequences->pmu_seq_lock);
 }
 

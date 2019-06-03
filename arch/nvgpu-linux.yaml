@@ -224,6 +224,7 @@ headers:
              include/nvgpu/linux/dma.h,
              include/nvgpu/linux/kmem.h,
              include/nvgpu/linux/lock.h,
+             include/nvgpu/linux/bitops.h,
              include/nvgpu/linux/nvgpu_mem.h,
              include/nvgpu/linux/os_fence_android.h,
              include/nvgpu/linux/rwsem.h,

@@ -213,7 +213,7 @@ static void nvgpu_semaphore_pool_free(struct nvgpu_ref *ref)
 
 	nvgpu_semaphore_sea_lock(s);
 	nvgpu_list_del(&p->pool_list_entry);
-	clear_bit((int)p->page_idx, s->pools_alloced);
+	nvgpu_clear_bit((u32)p->page_idx, s->pools_alloced);
 	s->page_count--;
 	nvgpu_semaphore_sea_unlock(s);
 

@@ -72,7 +72,7 @@ static bool gk20a_is_channel_active(struct gk20a *g, struct nvgpu_channel *ch)
 
 	for (i = 0; i < f->num_runlists; ++i) {
 		runlist = &f->active_runlist_info[i];
-		if (test_bit((int)ch->chid, runlist->active_channels)) {
+		if (nvgpu_test_bit(ch->chid, runlist->active_channels)) {
 			return true;
 		}
 	}

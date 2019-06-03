@@ -153,7 +153,7 @@ static inline int semaphore_bitmap_alloc(unsigned long *bitmap,
 		return -ENOSPC;
 	}
 
-	set_bit(idx, bitmap);
+	nvgpu_set_bit((u32)idx, bitmap);
 
 	return (int)idx;
 }
