@@ -674,10 +674,10 @@ u64 gm20b_gr_intr_tpc_enabled_exceptions(struct gk20a *g)
 	for (sm_id = 0; sm_id < no_of_sm; sm_id++) {
 		struct nvgpu_sm_info *sm_info =
 			nvgpu_gr_config_get_sm_info(config, sm_id);
-		tpc_offset = tpc_in_gpc_stride *
-			nvgpu_gr_config_get_sm_info_tpc_index(sm_info);
-		gpc_offset = gpc_stride *
-			nvgpu_gr_config_get_sm_info_gpc_index(sm_info);
+		tpc_offset = nvgpu_safe_mult_u32(tpc_in_gpc_stride,
+			nvgpu_gr_config_get_sm_info_tpc_index(sm_info));
+		gpc_offset = nvgpu_safe_mult_u32(gpc_stride,
+			nvgpu_gr_config_get_sm_info_gpc_index(sm_info));
 		offset = nvgpu_safe_add_u32(tpc_offset, gpc_offset);
 
 		regval = gk20a_readl(g,	nvgpu_safe_add_u32(

@@ -381,7 +381,8 @@ int nvgpu_gr_intr_handle_sm_exception(struct gk20a *g, u32 gpc, u32 tpc, u32 sm,
 	}
 
 	nvgpu_pg_elpg_protected_call(g,
-		g->ops.gr.intr.record_sm_error_state(g, gpc, tpc, sm, fault_ch));
+	    nvgpu_safe_cast_u32_to_s32(
+	     g->ops.gr.intr.record_sm_error_state(g, gpc, tpc, sm, fault_ch)));
 
 #ifdef NVGPU_DEBUGGER
 	sm_debugger_attached = g->ops.gr.sm_debugger_attached(g);
