@@ -31,10 +31,11 @@
 #include "bus_client.h"
 #include "chip_support.h"
 #include "nvhost_acm.h"
-#include "nvhost_queue.h"
+
 #include "nvhost_syncpt_unit_interface.h"
 
 #include "nvdla/nvdla.h"
+#include "nvdla/dla_queue.h"
 #include "nvdla/nvdla_debug.h"
 #include "dla_os_interface.h"
 #include "t194/hardware_t194.h"
@@ -43,7 +44,7 @@
 #define NVDLA_QUEUE_ABORT_RETRY_PERIOD	500	/* 500 ms */
 
 /* task management API's */
-static void nvdla_queue_dump(struct nvhost_queue *queue, struct seq_file *s)
+static void nvdla_queue_dump_op(struct nvdla_queue *queue, struct seq_file *s)
 {
 	struct nvdla_task *task = NULL;
 	int i = 0;
@@ -80,18 +81,18 @@ static void nvdla_queue_dump(struct nvhost_queue *queue, struct seq_file *s)
 	mutex_unlock(&queue->list_lock);
 }
 
-int nvdla_get_task_mem(struct nvhost_queue *queue,
+int nvdla_get_task_mem(struct nvdla_queue *queue,
 			struct nvdla_task **ptask)
 {
 	int err;
 	struct nvdla_task *task = NULL;
-	struct nvhost_queue_task_mem_info task_mem_info;
+	struct nvdla_queue_task_mem_info task_mem_info;
 	struct platform_device *pdev = queue->pool->pdev;
 
 	nvdla_dbg_fn(pdev, "");
 
 	/* get mem task descriptor and task mem from task_mem_pool */
-	err = nvhost_queue_alloc_task_memory(queue, &task_mem_info);
+	err = nvdla_queue_alloc_task_memory(queue, &task_mem_info);
 	task = task_mem_info.kmem_addr;
 	if ((err < 0) || !task)
 		goto fail_to_assign_pool;
@@ -116,7 +117,7 @@ fail_to_assign_pool:
 void nvdla_put_task_mem(struct nvdla_task *task)
 {
 	/* release allocated task desc and task mem */
-	nvhost_queue_free_task_memory(task->queue, task->pool_index);
+	nvdla_queue_free_task_memory(task->queue, task->pool_index);
 
 	task = NULL;
 }
@@ -133,7 +134,7 @@ void task_free(struct kref *ref)
 
 void nvdla_task_put(struct nvdla_task *task)
 {
-	struct nvhost_queue *queue = task->queue;
+	struct nvdla_queue *queue = task->queue;
 	struct platform_device *pdev = queue->pool->pdev;
 
 	nvdla_dbg_fn(pdev, "task:[%p]", task);
@@ -141,18 +142,18 @@ void nvdla_task_put(struct nvdla_task *task)
 	kref_put(&task->ref, task_free);
 
 	/* Queue should be last to update */
-	nvhost_queue_put(queue);
+	nvdla_queue_put(queue);
 }
 
 void nvdla_task_get(struct nvdla_task *task)
 {
-	struct nvhost_queue *queue = task->queue;
+	struct nvdla_queue *queue = task->queue;
 	struct platform_device *pdev = queue->pool->pdev;
 
 	nvdla_dbg_fn(pdev, "task:[%p]", task);
 
 	/* update queue refcnt */
-	nvhost_queue_get(task->queue);
+	nvdla_queue_get(task->queue);
 
 	kref_get(&task->ref);
 }
@@ -160,7 +161,7 @@ void nvdla_task_get(struct nvdla_task *task)
 static int nvdla_unmap_task_memory(struct nvdla_task *task)
 {
 	int ii;
-	struct nvhost_queue *queue = task->queue;
+	struct nvdla_queue *queue = task->queue;
 	struct platform_device *pdev = queue->pool->pdev;
 
 	nvdla_dbg_fn(pdev, "task:[%p]", task);
@@ -224,7 +225,7 @@ static int nvdla_unmap_task_memory(struct nvdla_task *task)
 
 static void nvdla_task_free_locked(struct nvdla_task *task)
 {
-	struct nvhost_queue *queue = task->queue;
+	struct nvdla_queue *queue = task->queue;
 	struct platform_device *pdev = queue->pool->pdev;
 
 	nvdla_dbg_info(pdev,
@@ -295,7 +296,7 @@ static void nvdla_queue_update(void *priv, int nr_completed)
 {
 	int task_complete;
 	struct nvdla_task *task, *safe;
-	struct nvhost_queue *queue = priv;
+	struct nvdla_queue *queue = priv;
 	struct platform_device *pdev = queue->pool->pdev;
 	struct nvhost_notification *tsp_notifier;
 	u64 timestamp_start, timestamp_end;
@@ -375,7 +376,7 @@ static size_t nvdla_get_task_desc_size(void)
 	return size;
 }
 
-static void nvdla_get_task_desc_memsize(size_t *dma_size, size_t *kmem_size)
+static void nvdla_get_task_desc_memsize_op(size_t *dma_size, size_t *kmem_size)
 {
 	*dma_size = nvdla_get_task_desc_size();
 	*kmem_size = nvdla_get_max_task_size();
@@ -571,7 +572,7 @@ static int nvdla_fill_postactions(struct nvdla_task *task)
 {
 	struct dla_task_descriptor *task_desc = task->task_desc;
 	struct nvdla_buffers *buffers = task->buffers;
-	struct nvhost_queue *queue = task->queue;
+	struct nvdla_queue *queue = task->queue;
 	struct platform_device *pdev = queue->pool->pdev;
 	struct dla_action_list *postactionl;
 	uint16_t postactionlist_of;
@@ -747,7 +748,7 @@ static int nvdla_fill_preactions(struct nvdla_task *task)
 {
 	struct dla_task_descriptor *task_desc = task->task_desc;
 	struct nvdla_buffers *buffers = task->buffers;
-	struct nvhost_queue *queue = task->queue;
+	struct nvdla_queue *queue = task->queue;
 	struct platform_device *pdev = queue->pool->pdev;
 	struct nvhost_master *host = nvhost_get_host(pdev);
 	struct nvhost_syncpt *sp = &host->syncpt;
@@ -940,7 +941,7 @@ int nvdla_fill_task_desc(struct nvdla_task *task)
 {
 	int err;
 	struct dla_task_descriptor *task_desc;
-	struct nvhost_queue *queue = task->queue;
+	struct nvdla_queue *queue = task->queue;
 	struct platform_device *pdev = queue->pool->pdev;
 
 	nvdla_dbg_fn(pdev, "");
@@ -1006,7 +1007,7 @@ fail_to_map_mem:
 }
 
 static int nvdla_send_cmd_channel(struct platform_device *pdev,
-			struct nvhost_queue *queue,
+			struct nvdla_queue *queue,
 			struct nvdla_cmd_data *cmd_data,
 			struct nvdla_task *task)
 {
@@ -1055,7 +1056,7 @@ static int nvdla_send_cmd_channel(struct platform_device *pdev,
 	cmdbuf[1] = method_id;
 	cmdbuf[2] = method_data;
 
-	err = nvhost_queue_submit_to_host1x(queue,
+	err = nvdla_queue_submit_to_host1x(queue,
 					    cmdbuf,
 					    ARRAY_SIZE(cmdbuf),
 					    1,
@@ -1086,7 +1087,7 @@ done:
 	return 0;
 }
 
-int nvdla_emulator_submit(struct nvhost_queue *queue, struct nvdla_emu_task *task)
+int nvdla_emulator_submit(struct nvdla_queue *queue, struct nvdla_emu_task *task)
 {
 	int i;
 	uint32_t counter;
@@ -1140,7 +1141,7 @@ int nvdla_emulator_submit(struct nvhost_queue *queue, struct nvdla_emu_task *tas
 	return 0;
 }
 
-int nvdla_get_postfences(struct nvhost_queue *queue, void *in_task)
+int nvdla_get_postfences(struct nvdla_queue *queue, void *in_task)
 {
 	struct nvdla_task *task = (struct nvdla_task *)in_task;
 	struct platform_device *pdev = queue->pool->pdev;
@@ -1179,7 +1180,7 @@ int nvdla_get_postfences(struct nvhost_queue *queue, void *in_task)
 }
 
 /* Queue management API */
-static int nvdla_queue_submit(struct nvhost_queue *queue, void *in_task)
+static int nvdla_queue_submit_op(struct nvdla_queue *queue, void *in_task)
 {
 	struct nvdla_task *task = (struct nvdla_task *)in_task;
 	struct nvdla_task *last_task = NULL;
@@ -1297,7 +1298,7 @@ fail_to_poweron:
 	return err;
 }
 
-int nvdla_set_queue_state(struct nvhost_queue *queue, int cmd)
+int nvdla_set_queue_state(struct nvdla_queue *queue, int cmd)
 {
 	struct platform_device *pdev = queue->pool->pdev;
 	struct nvdla_cmd_data cmd_data;
@@ -1335,7 +1336,7 @@ fail_to_poweron:
 	return err;
 }
 
-static int nvdla_queue_abort(struct nvhost_queue *queue)
+static int nvdla_queue_abort_op(struct nvdla_queue *queue)
 {
 	int err = 0, fence;
 	struct nvdla_task *t;
@@ -1401,9 +1402,9 @@ list_empty:
 	return err;
 }
 
-struct nvhost_queue_ops nvdla_queue_ops = {
-	.abort = nvdla_queue_abort,
-	.submit = nvdla_queue_submit,
-	.get_task_size =  nvdla_get_task_desc_memsize,
-	.dump = nvdla_queue_dump,
+struct nvdla_queue_ops nvdla_queue_ops = {
+	.abort = nvdla_queue_abort_op,
+	.submit = nvdla_queue_submit_op,
+	.get_task_size =  nvdla_get_task_desc_memsize_op,
+	.dump = nvdla_queue_dump_op,
 };

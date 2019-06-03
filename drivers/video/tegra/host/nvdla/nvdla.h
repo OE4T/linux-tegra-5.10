@@ -189,7 +189,7 @@ enum nvdla_submit_mode {
  */
 struct nvdla_device {
 	struct platform_device *pdev;
-	struct nvhost_queue_pool *pool;
+	struct nvdla_queue_pool *pool;
 	struct completion cmd_completion;
 	struct mutex cmd_lock;
 	int cmd_status;
@@ -226,7 +226,7 @@ struct nvdla_device {
  *
  */
 struct nvdla_emu_task {
-	struct nvhost_queue *queue;
+	struct nvdla_queue *queue;
 	struct nvhost_syncpt *sp;
 	struct nvdev_fence postfences[MAX_NUM_NVDLA_POSTFENCES];
 	u32 num_postfences;
@@ -253,7 +253,7 @@ struct nvdla_emu_task {
  *
  */
 struct nvdla_task {
-	struct nvhost_queue *queue;
+	struct nvdla_queue *queue;
 	struct nvdla_buffers *buffers;
 	struct nvhost_syncpt *sp;
 	struct nvdev_fence prefences[MAX_NUM_NVDLA_PREFENCES];
@@ -288,7 +288,7 @@ struct dla_mem_addr {
 };
 
 extern const struct file_operations tegra_nvdla_ctrl_ops;
-extern struct nvhost_queue_ops nvdla_queue_ops;
+extern struct nvdla_queue_ops nvdla_queue_ops;
 
 /**
  * nvhost_nvdla_finalize_poweron() finalize power on for DLA
@@ -391,18 +391,18 @@ int nvdla_send_postfences(struct nvdla_task *task,
 int nvdla_get_cmd_memory(struct platform_device *pdev,
 				struct nvdla_cmd_mem_info *cmd_mem_info);
 int nvdla_put_cmd_memory(struct platform_device *pdev, int index);
-int nvdla_set_queue_state(struct nvhost_queue *queue, int cmd);
-int nvdla_get_task_mem(struct nvhost_queue *queue,
+int nvdla_set_queue_state(struct nvdla_queue *queue, int cmd);
+int nvdla_get_task_mem(struct nvdla_queue *queue,
 				struct nvdla_task **task);
 void nvdla_put_task_mem(struct nvdla_task *task);
 size_t nvdla_get_max_task_size(void);
 int nvdla_alloc_gcov_region(struct platform_device *pdev);
 int nvdla_free_gcov_region(struct platform_device *pdev, bool update_region);
 
-int nvdla_emulator_submit(struct nvhost_queue *queue,
+int nvdla_emulator_submit(struct nvdla_queue *queue,
 				struct nvdla_emu_task *task);
 void task_free(struct kref *ref);
-int nvdla_get_postfences(struct nvhost_queue *queue, void *in_task);
+int nvdla_get_postfences(struct nvdla_queue *queue, void *in_task);
 int nvdla_send_gos_region(struct platform_device *pdev);
 
 #endif /* End of __NVHOST_NVDLA_H__ */

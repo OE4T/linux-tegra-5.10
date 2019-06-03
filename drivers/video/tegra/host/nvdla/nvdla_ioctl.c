@@ -1,7 +1,7 @@
 /*
  * NVDLA IOCTL for T194
  *
- * Copyright (c) 2016-2018, NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -30,11 +30,13 @@
 #include "flcn/hw_flcn.h"
 
 #include "t194/t194.h"
-#include "nvhost_queue.h"
+
 
 #include "nvdla/nvdla.h"
+#include "nvdla/dla_queue.h"
 #include "nvdla/nvdla_buffer.h"
 #include "nvdla/nvdla_debug.h"
+
 #include <uapi/linux/nvdev_fence.h>
 #include <uapi/linux/nvhost_nvdla_ioctl.h>
 #include "dla_os_interface.h"
@@ -42,13 +44,13 @@
 /**
  * struct nvdla_private per unique FD private data
  * @pdev		pointer to platform device
- * @queue		pointer to nvhost_queue
+ * @queue		pointer to nvdla_queue
  * @buffers		pointer to nvdla_buffer
  */
 
 struct nvdla_private {
 	struct platform_device *pdev;
-	struct nvhost_queue *queue;
+	struct nvdla_queue *queue;
 	struct nvdla_buffers *buffers;
 };
 
@@ -81,7 +83,7 @@ static int nvdla_set_queue(struct nvdla_private *priv, void *args)
 	struct nvdla_queue_status_args *queue_arg =
 			(struct nvdla_queue_status_args *)args;
 	struct platform_device *pdev = priv->pdev;
-	struct nvhost_queue *queue = priv->queue;
+	struct nvdla_queue *queue = priv->queue;
 	int status = queue_arg->status;
 	int err = 0;
 
@@ -131,7 +133,7 @@ static int nvdla_get_q_status(struct nvdla_private *priv, void *args)
 	struct nvdev_fence __user *usr_fence =
 		(struct nvdev_fence __user *)(uintptr_t)queue_arg->fence;
 	struct platform_device *pdev = priv->pdev;
-	struct nvhost_queue *queue = priv->queue;
+	struct nvdla_queue *queue = priv->queue;
 	struct nvdev_fence fence = {0};
 	int err = 0;
 
@@ -544,7 +546,7 @@ static int nvdla_val_task_submit_input(struct nvdla_ioctl_submit_task *in_task)
 	return 0;
 }
 
-static int nvdla_fill_task(struct nvhost_queue *queue,
+static int nvdla_fill_task(struct nvdla_queue *queue,
 				struct nvdla_buffers *buffers,
 				struct nvdla_ioctl_submit_task *local_task,
 				struct nvdla_task *task)
@@ -608,7 +610,7 @@ fail_to_get_val_args:
 static void nvdla_dump_task(struct nvdla_task *task)
 {
 	int i;
-	struct nvhost_queue *queue = task->queue;
+	struct nvdla_queue *queue = task->queue;
 	struct platform_device *pdev = queue->pool->pdev;
 
 	nvdla_dbg_info(pdev, "dumping input task [%p] parameters:", task);
@@ -675,7 +677,7 @@ static int nvdla_emu_task_submit(struct nvdla_private *priv, void *arg)
 	struct nvdla_ioctl_emu_submit_task __user *user_tasks;
 	struct nvdla_ioctl_emu_submit_task local_tasks[MAX_TASKS_PER_SUBMIT];
 	struct platform_device *pdev;
-	struct nvhost_queue *queue;
+	struct nvdla_queue *queue;
 	struct nvdla_emu_task task;
 	int err = 0, i = 0;
 	u32 num_tasks;
@@ -755,7 +757,7 @@ static int nvdla_submit(struct nvdla_private *priv, void *arg)
 	struct nvdla_ioctl_submit_task __user *user_tasks;
 	struct nvdla_ioctl_submit_task local_tasks[MAX_TASKS_PER_SUBMIT];
 	struct platform_device *pdev;
-	struct nvhost_queue *queue;
+	struct nvdla_queue *queue;
 	struct nvdla_buffers *buffers;
 	u32 num_tasks;
 	struct nvdla_task *task;
@@ -840,7 +842,7 @@ static int nvdla_submit(struct nvdla_private *priv, void *arg)
 		nvdla_dbg_info(pdev, "postfences of task[%d] update", i + 1);
 
 		/* send job to engine through queue framework */
-		err = nvhost_queue_submit(queue, task);
+		err = nvdla_queue_submit(queue, task);
 		if (err) {
 			nvdla_dbg_err(pdev, "fail to submit task: %d", i + 1);
 			goto fail_to_submit_task;
@@ -953,7 +955,7 @@ static int nvdla_open(struct inode *inode, struct file *file)
 	if (err < 0)
 		goto err_add_client;
 
-	priv->queue = nvhost_queue_alloc(nvdla_dev->pool,
+	priv->queue = nvdla_queue_alloc(nvdla_dev->pool,
 		MAX_NVDLA_TASK_COUNT,
 		nvdla_dev->submit_mode == NVDLA_SUBMIT_MODE_CHANNEL);
 	if (IS_ERR(priv->queue)) {
@@ -986,8 +988,8 @@ static int nvdla_release(struct inode *inode, struct file *file)
 
 	nvdla_dbg_fn(pdev, "priv:%p", priv);
 
-	nvhost_queue_abort(priv->queue);
-	nvhost_queue_put(priv->queue);
+	nvdla_queue_abort(priv->queue);
+	nvdla_queue_put(priv->queue);
 	nvdla_buffer_release(priv->buffers);
 	nvhost_module_remove_client(pdev, priv);
 
