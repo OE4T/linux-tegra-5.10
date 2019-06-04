@@ -28,35 +28,20 @@
 #include <nvgpu/io.h>
 #include <nvgpu/utils.h>
 #include <nvgpu/bug.h>
-#include <nvgpu/gk20a.h>
 #include <nvgpu/string.h>
 
-static inline u32 sim_msg_header_size(void)
+static inline u32 pci_sim_msg_header_size(void)
 {
 	return 32U;
 }
 
-static inline u32 *sim_msg_bfr(struct gk20a *g, u32 byte_offset)
-{
-	u8 *cpu_va;
-
-	cpu_va = (u8 *)g->sim->msg_bfr.cpu_va;
-
-	return (u32 *)(cpu_va + byte_offset);
-}
-
-static inline u32 *sim_msg_hdr(struct gk20a *g, u32 byte_offset)
-{
-	return sim_msg_bfr(g, byte_offset); /* starts at 0 */
-}
-
-static inline u32 *sim_msg_param(struct gk20a *g, u32 byte_offset)
+static inline u32 *pci_sim_msg_param(struct gk20a *g, u32 byte_offset)
 {
 	/* starts after msg header/cmn */
-	return sim_msg_bfr(g, byte_offset + sim_msg_header_size());
+	return sim_msg_bfr(g, byte_offset + pci_sim_msg_header_size());
 }
 
-static inline void sim_write_hdr(struct gk20a *g, u32 func, u32 size)
+static inline void pci_sim_write_hdr(struct gk20a *g, u32 func, u32 size)
 {
 	*sim_msg_hdr(g, sim_msg_header_version_r()) =
 		sim_msg_header_version_major_tot_v() |
@@ -65,12 +50,8 @@ static inline void sim_write_hdr(struct gk20a *g, u32 func, u32 size)
 	*sim_msg_hdr(g, sim_msg_result_r())    = sim_msg_result_rpc_pending_v();
 	*sim_msg_hdr(g, sim_msg_spare_r())     = sim_msg_spare__init_v();
 	*sim_msg_hdr(g, sim_msg_function_r())  = func;
-	*sim_msg_hdr(g, sim_msg_length_r())    = size + sim_msg_header_size();
-}
-
-static inline u32 sim_escape_read_hdr_size(void)
-{
-	return 12U;
+	*sim_msg_hdr(g, sim_msg_length_r())    =
+		size + pci_sim_msg_header_size();
 }
 
 static u32 *sim_send_ring_bfr(struct gk20a *g, u32 byte_offset)
@@ -160,7 +141,7 @@ static int rpc_recv_poll(struct gk20a *g)
 	return 0;
 }
 
-static int issue_rpc_and_wait(struct gk20a *g)
+static int pci_issue_rpc_and_wait(struct gk20a *g)
 {
 	int err;
 
@@ -191,23 +172,23 @@ static void nvgpu_sim_esc_readl(struct gk20a *g,
 	size_t pathlen = strlen(path);
 	u32 data_offset;
 
-	sim_write_hdr(g, sim_msg_function_sim_escape_read_v(),
+	pci_sim_write_hdr(g, sim_msg_function_sim_escape_read_v(),
 		      sim_escape_read_hdr_size());
-	*sim_msg_param(g, 0) = index;
-	*sim_msg_param(g, 4) = sizeof(u32);
+	*pci_sim_msg_param(g, 0) = index;
+	*pci_sim_msg_param(g, 4) = sizeof(u32);
 	data_offset = round_up(pathlen + 1, sizeof(u32));
-	*sim_msg_param(g, 8) = data_offset + 0xc;
-	strcpy((char *)sim_msg_param(g, 0xc), path);
+	*pci_sim_msg_param(g, 8) = data_offset + 0xc;
+	strcpy((char *)pci_sim_msg_param(g, 0xc), path);
 
-	err = issue_rpc_and_wait(g);
+	err = pci_issue_rpc_and_wait(g);
 
 	if (err == 0) {
 		nvgpu_memcpy((u8 *)data,
-			(u8 *)sim_msg_param(g, data_offset + 0xc),
+			(u8 *)pci_sim_msg_param(g, data_offset + 0xc),
 			sizeof(u32));
 	} else {
 		*data = 0xffffffff;
-		WARN(1, "issue_rpc_and_wait failed err=%d", err);
+		WARN(1, "pci_issue_rpc_and_wait failed err=%d", err);
 	}
 }
 

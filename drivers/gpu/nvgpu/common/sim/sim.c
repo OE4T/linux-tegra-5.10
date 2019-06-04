@@ -29,7 +29,6 @@
 #include <nvgpu/sim.h>
 #include <nvgpu/utils.h>
 #include <nvgpu/bug.h>
-#include <nvgpu/gk20a.h>
 #include <nvgpu/string.h>
 
 int nvgpu_alloc_sim_buffer(struct gk20a *g, struct nvgpu_mem *mem)
@@ -60,32 +59,7 @@ void nvgpu_remove_sim_support(struct gk20a *g)
 	}
 }
 
-static inline u32 sim_msg_header_size(void)
-{
-	return 24;/*TBD: fix the header to gt this from NV_VGPU_MSG_HEADER*/
-}
-
-static inline u32 *sim_msg_bfr(struct gk20a *g, u32 byte_offset)
-{
-	u8 *cpu_va;
-
-	cpu_va = (u8 *)g->sim->msg_bfr.cpu_va;
-
-	return (u32 *)(cpu_va + byte_offset);
-}
-
-static inline u32 *sim_msg_hdr(struct gk20a *g, u32 byte_offset)
-{
-	return sim_msg_bfr(g, byte_offset); /*starts at 0*/
-}
-
-static inline u32 *sim_msg_param(struct gk20a *g, u32 byte_offset)
-{
-	/*starts after msg header/cmn*/
-	return sim_msg_bfr(g, byte_offset + sim_msg_header_size());
-}
-
-static inline void sim_write_hdr(struct gk20a *g, u32 func, u32 size)
+void sim_write_hdr(struct gk20a *g, u32 func, u32 size)
 {
 	/*memset(g->sim->msg_bfr.kvaddr,0,min(PAGE_SIZE,size));*/
 	*sim_msg_hdr(g, sim_msg_signature_r()) = sim_msg_signature_valid_v();
@@ -93,11 +67,6 @@ static inline void sim_write_hdr(struct gk20a *g, u32 func, u32 size)
 	*sim_msg_hdr(g, sim_msg_spare_r())     = sim_msg_spare__init_v();
 	*sim_msg_hdr(g, sim_msg_function_r())  = func;
 	*sim_msg_hdr(g, sim_msg_length_r())    = size + sim_msg_header_size();
-}
-
-static inline u32 sim_escape_read_hdr_size(void)
-{
-	return 12; /*TBD: fix NV_VGPU_SIM_ESCAPE_READ_HEADER*/
 }
 
 static u32 *sim_send_ring_bfr(struct gk20a *g, u32 byte_offset)
@@ -191,7 +160,7 @@ static int rpc_recv_poll(struct gk20a *g)
 	return 0;
 }
 
-static int issue_rpc_and_wait(struct gk20a *g)
+int issue_rpc_and_wait(struct gk20a *g)
 {
 	int err;
 

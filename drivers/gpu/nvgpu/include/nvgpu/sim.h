@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -25,8 +25,8 @@
 #ifdef CONFIG_NVGPU_SIM
 
 #include <nvgpu/nvgpu_mem.h>
+#include <nvgpu/gk20a.h>
 
-struct gk20a;
 struct sim_nvgpu {
 	struct gk20a *g;
 	u32 send_ring_put;
@@ -59,6 +59,38 @@ void nvgpu_remove_sim_support(struct gk20a *g);
 void sim_writel(struct sim_nvgpu *sim, u32 r, u32 v);
 u32 sim_readl(struct sim_nvgpu *sim, u32 r);
 int nvgpu_init_sim_netlist_ctx_vars(struct gk20a *g);
+int issue_rpc_and_wait(struct gk20a *g);
+void sim_write_hdr(struct gk20a *g, u32 func, u32 size);
+
+static inline u32 sim_escape_read_hdr_size(void)
+{
+	return 12U; /*TBD: fix NV_VGPU_SIM_ESCAPE_READ_HEADER*/
+}
+
+static inline u32 sim_msg_header_size(void)
+{
+	return 24U;/*TBD: fix the header to gt this from NV_VGPU_MSG_HEADER*/
+}
+
+static inline u32 *sim_msg_bfr(struct gk20a *g, u32 byte_offset)
+{
+	u8 *cpu_va;
+
+	cpu_va = (u8 *)g->sim->msg_bfr.cpu_va;
+
+	return (u32 *)(cpu_va + byte_offset);
+}
+
+static inline u32 *sim_msg_hdr(struct gk20a *g, u32 byte_offset)
+{
+	return sim_msg_bfr(g, byte_offset); /*starts at 0*/
+}
+
+static inline u32 *sim_msg_param(struct gk20a *g, u32 byte_offset)
+{
+	/*starts after msg header/cmn*/
+	return sim_msg_bfr(g, byte_offset + sim_msg_header_size());
+}
 
 #endif
 #endif /* NVGPU_SIM_H */
