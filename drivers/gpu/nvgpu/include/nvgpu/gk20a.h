@@ -1369,7 +1369,7 @@ struct gpu_ops {
 		u32 (*falcon_base_addr)(void);
 		/* reset */
 		int (*pmu_reset)(struct gk20a *g);
-		int (*reset_engine)(struct gk20a *g, bool do_reset);
+		void (*reset_engine)(struct gk20a *g, bool do_reset);
 		bool (*is_engine_in_reset)(struct gk20a *g);
 		/* secure boot */
 		void (*setup_apertures)(struct gk20a *g);

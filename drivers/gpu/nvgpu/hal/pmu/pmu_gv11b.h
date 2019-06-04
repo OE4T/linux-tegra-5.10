@@ -37,11 +37,15 @@ void gv11b_write_dmatrfbase(struct gk20a *g, u32 addr);
 u32 gv11b_pmu_falcon_base_addr(void);
 void gv11b_secured_pmu_start(struct gk20a *g);
 bool gv11b_is_pmu_supported(struct gk20a *g);
+
+#ifdef CONFIG_NVGPU_LS_PMU
 int gv11b_pmu_bootstrap(struct gk20a *g, struct nvgpu_pmu *pmu,
 	u32 args_offset);
 void gv11b_pmu_setup_elpg(struct gk20a *g);
 u32 gv11b_pmu_get_irqdest(struct gk20a *g);
 void gv11b_pmu_handle_ext_irq(struct gk20a *g, u32 intr0);
+#endif
+
 void gv11b_clear_pmu_bar0_host_err_status(struct gk20a *g);
 int gv11b_pmu_bar0_error_status(struct gk20a *g, u32 *bar0_status,
 	u32 *etype);

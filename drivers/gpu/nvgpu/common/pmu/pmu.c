@@ -443,7 +443,10 @@ static int pmu_enable(struct nvgpu_pmu *pmu, bool enable)
 #ifdef CONFIG_NVGPU_LS_PMU
 			g->ops.pmu.pmu_enable_irq(pmu, false);
 #endif
-			pmu_enable_hw(pmu, false);
+			err = pmu_enable_hw(pmu, false);
+			if (err != 0) {
+				goto exit;
+			}
 		}
 	} else {
 		err = pmu_enable_hw(pmu, true);
@@ -480,6 +483,9 @@ int nvgpu_pmu_reset(struct gk20a *g)
 	}
 
 	err = pmu_enable(pmu, true);
+	if (err != 0) {
+		goto exit;
+	}
 
 exit:
 	nvgpu_log_fn(g, " %s Done, status - %d ", g->name, err);

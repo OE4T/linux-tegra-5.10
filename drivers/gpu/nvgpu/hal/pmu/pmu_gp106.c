@@ -42,7 +42,7 @@ bool gp106_pmu_is_engine_in_reset(struct gk20a *g)
 	return status;
 }
 
-int gp106_pmu_engine_reset(struct gk20a *g, bool do_reset)
+void gp106_pmu_engine_reset(struct gk20a *g, bool do_reset)
 {
 	/*
 	* From GP10X onwards, we are using PPWR_FALCON_ENGINE for reset. And as
@@ -58,8 +58,6 @@ int gp106_pmu_engine_reset(struct gk20a *g, bool do_reset)
 			pwr_falcon_engine_reset_true_f());
 		(void) gk20a_readl(g, pwr_falcon_engine_r());
 	}
-
-	return 0;
 }
 #ifdef CONFIG_NVGPU_LS_PMU
 void gp106_pmu_setup_apertures(struct gk20a *g)

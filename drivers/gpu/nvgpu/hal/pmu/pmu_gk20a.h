@@ -57,7 +57,7 @@ int gk20a_pmu_bar0_error_status(struct gk20a *g, u32 *bar0_status,
 int gk20a_pmu_ns_bootstrap(struct gk20a *g, struct nvgpu_pmu *pmu,
 	u32 args_offset);
 bool gk20a_pmu_is_engine_in_reset(struct gk20a *g);
-int gk20a_pmu_engine_reset(struct gk20a *g, bool do_reset);
+void gk20a_pmu_engine_reset(struct gk20a *g, bool do_reset);
 void gk20a_write_dmatrfbase(struct gk20a *g, u32 addr);
 u32 gk20a_pmu_falcon_base_addr(void);
 bool gk20a_is_pmu_supported(struct gk20a *g);

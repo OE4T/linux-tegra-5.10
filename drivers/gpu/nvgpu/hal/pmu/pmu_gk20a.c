@@ -734,7 +734,7 @@ bool gk20a_pmu_is_engine_in_reset(struct gk20a *g)
 	return status;
 }
 
-int gk20a_pmu_engine_reset(struct gk20a *g, bool do_reset)
+void gk20a_pmu_engine_reset(struct gk20a *g, bool do_reset)
 {
 	u32 reset_mask = g->ops.mc.reset_mask(g, NVGPU_UNIT_PWR);
 
@@ -743,8 +743,6 @@ int gk20a_pmu_engine_reset(struct gk20a *g, bool do_reset)
 	} else {
 		g->ops.mc.disable(g, reset_mask);
 	}
-
-	return 0;
 }
 
 void gk20a_write_dmatrfbase(struct gk20a *g, u32 addr)
