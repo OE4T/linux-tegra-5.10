@@ -271,6 +271,7 @@ clean_up:
 	return NULL;
 }
 
+#ifdef NVGPU_GRAPHICS
 static u32 prime_set[18] = {
 	2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61 };
 
@@ -490,18 +491,35 @@ clean_up:
 	return ret;
 }
 
+u32 nvgpu_gr_config_get_max_zcull_per_gpc_count(struct nvgpu_gr_config *config)
+{
+	return config->max_zcull_per_gpc_count;
+}
+
+u32 nvgpu_gr_config_get_zcb_count(struct nvgpu_gr_config *config)
+{
+	return config->zcb_count;
+}
+
+u32 nvgpu_gr_config_get_gpc_zcb_count(struct nvgpu_gr_config *config,
+	u32 gpc_index)
+{
+	return config->gpc_zcb_count[gpc_index];
+}
+#endif
+
 void nvgpu_gr_config_deinit(struct gk20a *g, struct nvgpu_gr_config *config)
 {
 	u32 index;
 
 	nvgpu_kfree(g, config->gpc_tpc_count);
-#ifdef NVGPU_GRAPHICS
-	nvgpu_kfree(g, config->gpc_zcb_count);
-#endif
 	nvgpu_kfree(g, config->gpc_ppc_count);
 	nvgpu_kfree(g, config->gpc_skip_mask);
 	nvgpu_kfree(g, config->gpc_tpc_mask);
+#ifdef NVGPU_GRAPHICS
+	nvgpu_kfree(g, config->gpc_zcb_count);
 	nvgpu_kfree(g, config->map_tiles);
+#endif
 	for (index = 0U; index < config->pe_count_per_gpc;
 			    index++) {
 		nvgpu_kfree(g, config->pes_tpc_count[index]);
@@ -539,24 +557,6 @@ u32 nvgpu_gr_config_get_ppc_count(struct nvgpu_gr_config *config)
 {
 	return config->ppc_count;
 }
-
-#ifdef NVGPU_GRAPHICS
-u32 nvgpu_gr_config_get_max_zcull_per_gpc_count(struct nvgpu_gr_config *config)
-{
-	return config->max_zcull_per_gpc_count;
-}
-
-u32 nvgpu_gr_config_get_zcb_count(struct nvgpu_gr_config *config)
-{
-	return config->zcb_count;
-}
-
-u32 nvgpu_gr_config_get_gpc_zcb_count(struct nvgpu_gr_config *config,
-	u32 gpc_index)
-{
-	return config->gpc_zcb_count[gpc_index];
-}
-#endif
 
 u32 nvgpu_gr_config_get_pe_count_per_gpc(struct nvgpu_gr_config *config)
 {

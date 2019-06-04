@@ -408,12 +408,12 @@ static int gr_init_setup_sw(struct gk20a *g)
 		goto clean_up;
 	}
 
+#ifdef NVGPU_GRAPHICS
 	err = nvgpu_gr_config_init_map_tiles(g, gr->config);
 	if (err != 0) {
 		goto clean_up;
 	}
 
-#ifdef NVGPU_GRAPHICS
 	err = nvgpu_gr_zcull_init(g, &gr->zcull,
 			nvgpu_gr_falcon_get_zcull_image_size(g->gr->falcon),
 			g->gr->config);

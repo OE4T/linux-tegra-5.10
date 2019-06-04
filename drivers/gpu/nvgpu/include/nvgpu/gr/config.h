@@ -31,13 +31,6 @@ struct nvgpu_gr_config;
 
 struct nvgpu_gr_config *nvgpu_gr_config_init(struct gk20a *g);
 void nvgpu_gr_config_deinit(struct gk20a *g, struct nvgpu_gr_config *config);
-int nvgpu_gr_config_init_map_tiles(struct gk20a *g,
-	struct nvgpu_gr_config *config);
-
-u32 nvgpu_gr_config_get_map_tile_count(struct nvgpu_gr_config *config,
-	u32 index);
-u8 *nvgpu_gr_config_get_map_tiles(struct nvgpu_gr_config *config);
-u32 nvgpu_gr_config_get_map_row_offset(struct nvgpu_gr_config *config);
 
 u32 nvgpu_gr_config_get_max_gpc_count(struct nvgpu_gr_config *config);
 u32 nvgpu_gr_config_get_max_tpc_per_gpc_count(struct nvgpu_gr_config *config);
@@ -46,7 +39,14 @@ u32 nvgpu_gr_config_get_max_tpc_count(struct nvgpu_gr_config *config);
 u32 nvgpu_gr_config_get_gpc_count(struct nvgpu_gr_config *config);
 u32 nvgpu_gr_config_get_tpc_count(struct nvgpu_gr_config *config);
 u32 nvgpu_gr_config_get_ppc_count(struct nvgpu_gr_config *config);
+
 #ifdef NVGPU_GRAPHICS
+int nvgpu_gr_config_init_map_tiles(struct gk20a *g,
+				   struct nvgpu_gr_config *config);
+u32 nvgpu_gr_config_get_map_row_offset(struct nvgpu_gr_config *config);
+u32 nvgpu_gr_config_get_map_tile_count(struct nvgpu_gr_config *config,
+	u32 index);
+u8 *nvgpu_gr_config_get_map_tiles(struct nvgpu_gr_config *config);
 u32 nvgpu_gr_config_get_max_zcull_per_gpc_count(struct nvgpu_gr_config *config);
 u32 nvgpu_gr_config_get_zcb_count(struct nvgpu_gr_config *config);
 u32 nvgpu_gr_config_get_gpc_zcb_count(struct nvgpu_gr_config *config,
