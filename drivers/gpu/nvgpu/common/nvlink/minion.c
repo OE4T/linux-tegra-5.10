@@ -120,6 +120,9 @@ int nvgpu_nvlink_minion_load(struct gk20a *g)
 	}
 
 	g->ops.nvlink.minion.init_intr(g);
+
+	nvgpu_release_firmware(g, nvgpu_minion_fw);
+
 	return err;
 
 exit:
