@@ -122,6 +122,12 @@ types:
   sources: [ include/nvgpu/posix/types.h ]
   deps:
 
+utils:
+  safe: yes
+  owner: Ajesh K
+  sources: [ include/nvgpu/posix/utils.h ]
+  deps:
+
 bitops:
   safe: yes
   owner: Ajesh K
