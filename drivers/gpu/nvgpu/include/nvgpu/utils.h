@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -24,6 +24,12 @@
 #define NVGPU_UTILS_H
 
 #include <nvgpu/types.h>
+
+#ifdef __KERNEL__
+#include <linux/kernel.h>
+#else
+#include <nvgpu/posix/utils.h>
+#endif
 
 static inline u32 u64_hi32(u64 n)
 {

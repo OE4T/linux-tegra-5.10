@@ -21,6 +21,7 @@
  */
 
 #include <nvgpu/types.h>
+#include <nvgpu/utils.h>
 #include <nvgpu/bug.h>
 #include <nvgpu/string.h>
 #include <nvgpu/vgpu/vgpu_ivc.h>

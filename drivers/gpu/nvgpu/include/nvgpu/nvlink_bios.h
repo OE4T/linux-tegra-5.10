@@ -24,6 +24,7 @@
 #define NVGPU_NVLINK_BIOS_H
 
 #include <nvgpu/types.h>
+#include <nvgpu/utils.h>
 
 #define NVLINK_CONFIG_DATA_HDR_VER_10           0x1U
 #define NVLINK_CONFIG_DATA_HDR_10_SIZE          16U

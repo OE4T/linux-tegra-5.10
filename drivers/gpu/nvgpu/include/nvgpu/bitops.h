@@ -24,6 +24,7 @@
 
 #include <nvgpu/types.h>
 #include <nvgpu/bug.h>
+#include <nvgpu/utils.h>
 
 /*
  * Explicit sizes for bit definitions. Please use these instead of BIT().

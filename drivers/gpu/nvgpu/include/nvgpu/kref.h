@@ -28,6 +28,7 @@
 
 #include <nvgpu/atomic.h>
 #include <nvgpu/types.h>
+#include <nvgpu/utils.h>
 
 struct nvgpu_ref {
 	nvgpu_atomic_t refcount;

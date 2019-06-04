@@ -30,6 +30,7 @@
 #endif
 
 #include <nvgpu/types.h>
+#include <nvgpu/utils.h>
 
 /**
  * nvgpu_thread_create - Create and run a new thread.

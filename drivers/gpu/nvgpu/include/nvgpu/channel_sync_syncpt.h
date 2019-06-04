@@ -27,6 +27,7 @@
 #define NVGPU_CHANNEL_SYNC_SYNCPT_H
 
 #include <nvgpu/types.h>
+#include <nvgpu/utils.h>
 #include <nvgpu/nvgpu_mem.h>
 #include <nvgpu/channel_sync.h>
 

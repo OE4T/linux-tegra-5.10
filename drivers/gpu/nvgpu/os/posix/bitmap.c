@@ -24,6 +24,7 @@
 #include <stdlib.h>
 #include <stdatomic.h>
 
+#include <nvgpu/posix/utils.h>
 #include <nvgpu/posix/bitops.h>
 #include <nvgpu/posix/atomic.h>
 

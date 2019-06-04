@@ -24,6 +24,7 @@
 #define NVGPU_VGPU_H
 
 #include <nvgpu/types.h>
+#include <nvgpu/utils.h>
 #include <nvgpu/thread.h>
 #include <nvgpu/log.h>
 #include <nvgpu/lock.h>
