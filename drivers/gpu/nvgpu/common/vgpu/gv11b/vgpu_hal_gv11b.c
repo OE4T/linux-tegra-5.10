@@ -573,6 +573,7 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 		.syncpt = {
 			.alloc_buf = vgpu_gv11b_syncpt_alloc_buf,
 			.free_buf = vgpu_gv11b_syncpt_free_buf,
+#ifdef CONFIG_NVGPU_KERNEL_MODE_SUBMIT
 			.add_wait_cmd = gv11b_syncpt_add_wait_cmd,
 			.get_wait_cmd_size =
 					gv11b_syncpt_get_wait_cmd_size,
@@ -581,14 +582,17 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 			.add_incr_cmd = gv11b_syncpt_add_incr_cmd,
 			.get_incr_cmd_size =
 					gv11b_syncpt_get_incr_cmd_size,
+#endif
 			.get_sync_ro_map = vgpu_gv11b_syncpt_get_sync_ro_map,
 		},
 #endif
+#ifdef CONFIG_NVGPU_KERNEL_MODE_SUBMIT
 		.sema = {
 			.get_wait_cmd_size = gv11b_sema_get_wait_cmd_size,
 			.get_incr_cmd_size = gv11b_sema_get_incr_cmd_size,
 			.add_cmd = gv11b_sema_add_cmd,
 		},
+#endif
 	},
 	.engine_status = {
 		.read_engine_status_info = NULL,

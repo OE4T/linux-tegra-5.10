@@ -35,6 +35,7 @@
 
 struct nvgpu_channel;
 struct nvgpu_channel_sync_syncpt;
+struct priv_cmd_entry;
 
 #ifdef CONFIG_TEGRA_GK20A_NVHOST
 

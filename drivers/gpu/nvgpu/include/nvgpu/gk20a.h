@@ -1191,6 +1191,7 @@ struct gpu_ops {
 					struct nvgpu_mem *syncpt_buf);
 			void (*free_buf)(struct nvgpu_channel *c,
 					struct nvgpu_mem *syncpt_buf);
+#ifdef CONFIG_NVGPU_KERNEL_MODE_SUBMIT
 			void (*add_wait_cmd)(struct gk20a *g,
 					struct priv_cmd_entry *cmd, u32 off,
 					u32 id, u32 thresh, u64 gpu_va);
@@ -1200,11 +1201,13 @@ struct gpu_ops {
 					struct priv_cmd_entry *cmd,
 					u32 id, u64 gpu_va);
 			u32 (*get_incr_cmd_size)(bool wfi_cmd);
+			u32 (*get_incr_per_release)(void);
+#endif
 			int (*get_sync_ro_map)(struct vm_gk20a *vm,
 					u64 *base_gpuva, u32 *sync_size);
-			u32 (*get_incr_per_release)(void);
 		} syncpt;
-#endif
+#endif /* CONFIG_TEGRA_GK20A_NVHOST */
+#ifdef CONFIG_NVGPU_KERNEL_MODE_SUBMIT
 		struct {
 			u32 (*get_wait_cmd_size)(void);
 			u32 (*get_incr_cmd_size)(void);
@@ -1213,6 +1216,7 @@ struct gpu_ops {
 				struct priv_cmd_entry *cmd,
 				u32 off, bool acquire, bool wfi);
 		} sema;
+#endif
 	} sync;
 	struct {
 		int (*alloc_inst)(struct gk20a *g, struct nvgpu_channel *ch);

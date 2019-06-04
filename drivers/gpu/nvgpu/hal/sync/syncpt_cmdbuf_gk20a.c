@@ -28,6 +28,7 @@
 
 #include "syncpt_cmdbuf_gk20a.h"
 
+#ifdef CONFIG_NVGPU_KERNEL_MODE_SUBMIT
 void gk20a_syncpt_add_wait_cmd(struct gk20a *g,
 		struct priv_cmd_entry *cmd, u32 off,
 		u32 id, u32 thresh, u64 gpu_va)
@@ -91,6 +92,7 @@ u32 gk20a_syncpt_get_incr_cmd_size(bool wfi_cmd)
 		return 6U;
 	}
 }
+#endif
 
 void gk20a_syncpt_free_buf(struct nvgpu_channel *c,
 		struct nvgpu_mem *syncpt_buf)

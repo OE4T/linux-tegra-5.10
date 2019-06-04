@@ -32,6 +32,7 @@ struct vm_gk20a;
 
 #ifdef CONFIG_TEGRA_GK20A_NVHOST
 
+#ifdef CONFIG_NVGPU_KERNEL_MODE_SUBMIT
 void gv11b_syncpt_add_wait_cmd(struct gk20a *g,
 		struct priv_cmd_entry *cmd, u32 off,
 		u32 id, u32 thresh, u64 gpu_va);
@@ -41,6 +42,8 @@ void gv11b_syncpt_add_incr_cmd(struct gk20a *g,
 		bool wfi_cmd, struct priv_cmd_entry *cmd,
 		u32 id, u64 gpu_va);
 u32 gv11b_syncpt_get_incr_cmd_size(bool wfi_cmd);
+#endif /* CONFIG_NVGPU_KERNEL_MODE_SUBMIT */
+
 void gv11b_syncpt_free_buf(struct nvgpu_channel *c,
 		struct nvgpu_mem *syncpt_buf);
 
@@ -52,6 +55,7 @@ int gv11b_syncpt_get_sync_ro_map(struct vm_gk20a *vm,
 
 #else
 
+#ifdef CONFIG_NVGPU_KERNEL_MODE_SUBMIT
 static inline void gv11b_syncpt_add_wait_cmd(struct gk20a *g,
 		struct priv_cmd_entry *cmd, u32 off,
 		u32 id, u32 thresh, u64 gpu_va)
@@ -74,6 +78,8 @@ static inline u32 gv11b_syncpt_get_incr_cmd_size(bool wfi_cmd)
 {
 	return 0U;
 }
+#endif
+
 static inline void gv11b_syncpt_free_buf(struct nvgpu_channel *c,
 		struct nvgpu_mem *syncpt_buf)
 {

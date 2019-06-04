@@ -751,6 +751,7 @@ static const struct gpu_ops gp10b_ops = {
 		.syncpt = {
 			.alloc_buf = gk20a_syncpt_alloc_buf,
 			.free_buf = gk20a_syncpt_free_buf,
+#ifdef CONFIG_NVGPU_KERNEL_MODE_SUBMIT
 			.add_wait_cmd = gk20a_syncpt_add_wait_cmd,
 			.get_incr_per_release =
 					gk20a_syncpt_get_incr_per_release,
@@ -759,14 +760,17 @@ static const struct gpu_ops gp10b_ops = {
 			.add_incr_cmd = gk20a_syncpt_add_incr_cmd,
 			.get_incr_cmd_size =
 					gk20a_syncpt_get_incr_cmd_size,
+#endif
 			.get_sync_ro_map = NULL,
 		},
-#endif
+#endif /* CONFIG_TEGRA_GK20A_NVHOST */
+#ifdef CONFIG_NVGPU_KERNEL_MODE_SUBMIT
 		.sema = {
 			.get_wait_cmd_size = gk20a_sema_get_wait_cmd_size,
 			.get_incr_cmd_size = gk20a_sema_get_incr_cmd_size,
 			.add_cmd = gk20a_sema_add_cmd,
 		},
+#endif
 	},
 	.engine_status = {
 		.read_engine_status_info =

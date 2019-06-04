@@ -245,8 +245,6 @@ srcs += common/utils/enabled.c \
 	hal/netlist/netlist_gm20b.c \
 	hal/netlist/netlist_gp10b.c \
 	hal/netlist/netlist_gv11b.c \
-	hal/sync/sema_cmdbuf_gk20a.c \
-	hal/sync/sema_cmdbuf_gv11b.c \
 	hal/sync/syncpt_cmdbuf_gk20a.c \
 	hal/sync/syncpt_cmdbuf_gv11b.c \
 	hal/pmu/pmu_gp106.c \
@@ -332,7 +330,9 @@ endif
 ifeq ($(CONFIG_NVGPU_KERNEL_MODE_SUBMIT),1)
 srcs += common/fifo/submit.c \
 	common/sync/channel_sync_semaphore.c \
-	hal/fifo/userd_gv11b.c
+	hal/fifo/userd_gv11b.c \
+	hal/sync/sema_cmdbuf_gk20a.c \
+	hal/sync/sema_cmdbuf_gv11b.c
 endif
 
 ifeq ($(CONFIG_NVGPU_FECS_TRACE),1)
