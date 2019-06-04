@@ -974,7 +974,7 @@ static struct vm_gk20a *init_test_req_vm(struct gk20a *g)
 	kernel_reserved = 4 * SZ_1G;
 
 	return nvgpu_vm_init(g, g->ops.mm.gmmu.get_default_big_page_size(),
-			     low_hole, kernel_reserved - low_hole,
+			     low_hole, kernel_reserved,
 			     aperture_size, big_pages, true, true, "testmem");
 }
 
