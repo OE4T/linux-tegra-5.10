@@ -29,19 +29,13 @@
 int nvgpu_sec2_sequences_alloc(struct gk20a *g,
 			       struct sec2_sequences *sequences)
 {
-	int err;
-
 	sequences->seq = nvgpu_kzalloc(g, SEC2_MAX_NUM_SEQUENCES *
 				       sizeof(struct sec2_sequence));
 	if (sequences->seq == NULL) {
 		return -ENOMEM;
 	}
 
-	err = nvgpu_mutex_init(&sequences->sec2_seq_lock);
-	if (err != 0) {
-		nvgpu_kfree(g, sequences->seq);
-		return err;
-	}
+	nvgpu_mutex_init(&sequences->sec2_seq_lock);
 
 	return 0;
 }

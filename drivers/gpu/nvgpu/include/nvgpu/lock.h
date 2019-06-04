@@ -56,7 +56,7 @@ struct nvgpu_spinlock;
  */
 struct nvgpu_raw_spinlock;
 
-int nvgpu_mutex_init(struct nvgpu_mutex *mutex);
+void nvgpu_mutex_init(struct nvgpu_mutex *mutex);
 void nvgpu_mutex_acquire(struct nvgpu_mutex *mutex);
 void nvgpu_mutex_release(struct nvgpu_mutex *mutex);
 int nvgpu_mutex_tryacquire(struct nvgpu_mutex *mutex);

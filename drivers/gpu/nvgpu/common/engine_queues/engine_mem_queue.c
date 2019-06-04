@@ -429,10 +429,7 @@ int nvgpu_engine_mem_queue_init(struct nvgpu_engine_mem_queue **queue_p,
 	}
 
 	/* init mutex */
-	err = nvgpu_mutex_init(&queue->mutex);
-	if (err != 0) {
-		goto exit;
-	}
+	nvgpu_mutex_init(&queue->mutex);
 
 	*queue_p = queue;
 exit:

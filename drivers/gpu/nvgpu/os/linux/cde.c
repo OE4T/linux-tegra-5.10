@@ -1450,10 +1450,7 @@ __releases(&cde_app->mutex)
 
 	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_cde_ctx, "cde: init");
 
-	err = nvgpu_mutex_init(&cde_app->mutex);
-	if (err)
-		return err;
-
+	nvgpu_mutex_init(&cde_app->mutex);
 	nvgpu_mutex_acquire(&cde_app->mutex);
 
 	nvgpu_init_list_node(&cde_app->free_contexts);

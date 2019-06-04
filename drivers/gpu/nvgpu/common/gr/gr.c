@@ -387,11 +387,7 @@ static int gr_init_setup_sw(struct gk20a *g)
 
 	gr->g = g;
 
-	err = nvgpu_mutex_init(&gr->ctxsw_disable_mutex);
-	if (err != 0) {
-		nvgpu_err(g, "Error in ctxsw_disable_mutex init");
-		return err;
-	}
+	nvgpu_mutex_init(&gr->ctxsw_disable_mutex);
 	gr->ctxsw_disable_count = 0;
 
 	err = nvgpu_gr_obj_ctx_init(g, &gr->golden_image,

@@ -112,20 +112,17 @@ struct nvgpu_semaphore_sea *nvgpu_semaphore_sea_create(struct gk20a *g)
 	g->sema_sea->page_count = 0;
 	g->sema_sea->gk20a = g;
 	nvgpu_init_list_node(&g->sema_sea->pool_list);
-	if (nvgpu_mutex_init(&g->sema_sea->sea_lock) != 0) {
-		goto cleanup_free;
-	}
+	nvgpu_mutex_init(&g->sema_sea->sea_lock);
 
 	if (semaphore_sea_grow(g->sema_sea) != 0) {
-		goto cleanup_destroy;
+		goto cleanup;
 	}
 
 	gpu_sema_dbg(g, "Created semaphore sea!");
 	return g->sema_sea;
 
-cleanup_destroy:
+cleanup:
 	nvgpu_mutex_destroy(&g->sema_sea->sea_lock);
-cleanup_free:
 	nvgpu_kfree(g, g->sema_sea);
 	g->sema_sea = NULL;
 	gpu_sema_dbg(g, "Failed to creat semaphore sea!");

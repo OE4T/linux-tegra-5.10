@@ -256,16 +256,11 @@ int nvgpu_worker_init(struct gk20a *g, struct nvgpu_worker *worker,
 	nvgpu_cond_init(&worker->wq);
 	nvgpu_init_list_node(&worker->items);
 	nvgpu_spinlock_init(&worker->items_lock);
-	err = nvgpu_mutex_init(&worker->start_lock);
+	nvgpu_mutex_init(&worker->start_lock);
 
 	worker->ops = ops;
 
-	if (err != 0 && ops == NULL) {
-		goto error_check;
-	}
-
 	err = nvgpu_worker_start(worker);
-error_check:
 	if (err != 0) {
 		nvgpu_err(g, "failed to start worker poller thread %s",
 				worker->thread_name);

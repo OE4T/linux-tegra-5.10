@@ -2377,57 +2377,19 @@ int nvgpu_channel_init_support(struct gk20a *g, u32 chid)
 	nvgpu_init_list_node(&c->dbg_s_list);
 	nvgpu_init_list_node(&c->worker_item);
 
-	err = nvgpu_mutex_init(&c->ioctl_lock);
-	if (err != 0) {
-		return err;
-	}
-	err = nvgpu_mutex_init(&c->joblist.cleanup_lock);
-	if (err != 0) {
-		goto fail_1;
-	}
-	err = nvgpu_mutex_init(&c->joblist.pre_alloc.read_lock);
-	if (err != 0) {
-		goto fail_2;
-	}
-	err = nvgpu_mutex_init(&c->sync_lock);
-	if (err != 0) {
-		goto fail_3;
-	}
+	nvgpu_mutex_init(&c->ioctl_lock);
+	nvgpu_mutex_init(&c->joblist.cleanup_lock);
+	nvgpu_mutex_init(&c->joblist.pre_alloc.read_lock);
+	nvgpu_mutex_init(&c->sync_lock);
 #if defined(CONFIG_GK20A_CYCLE_STATS)
-	err = nvgpu_mutex_init(&c->cyclestate.cyclestate_buffer_mutex);
-	if (err != 0) {
-		goto fail_4;
-	}
-	err = nvgpu_mutex_init(&c->cs_client_mutex);
-	if (err != 0) {
-		goto fail_5;
-	}
+	nvgpu_mutex_init(&c->cyclestate.cyclestate_buffer_mutex);
+	nvgpu_mutex_init(&c->cs_client_mutex);
 #endif
-	err = nvgpu_mutex_init(&c->dbg_s_lock);
-	if (err != 0) {
-		goto fail_6;
-	}
+	nvgpu_mutex_init(&c->dbg_s_lock);
 	nvgpu_init_list_node(&c->ch_entry);
 	nvgpu_list_add(&c->free_chs, &g->fifo.free_chs);
 
 	return 0;
-
-fail_6:
-#if defined(CONFIG_GK20A_CYCLE_STATS)
-	nvgpu_mutex_destroy(&c->cs_client_mutex);
-fail_5:
-	nvgpu_mutex_destroy(&c->cyclestate.cyclestate_buffer_mutex);
-fail_4:
-#endif
-	nvgpu_mutex_destroy(&c->sync_lock);
-fail_3:
-	nvgpu_mutex_destroy(&c->joblist.pre_alloc.read_lock);
-fail_2:
-	nvgpu_mutex_destroy(&c->joblist.cleanup_lock);
-fail_1:
-	nvgpu_mutex_destroy(&c->ioctl_lock);
-
-	return err;
 }
 
 int nvgpu_channel_setup_sw(struct gk20a *g)
@@ -2438,11 +2400,7 @@ int nvgpu_channel_setup_sw(struct gk20a *g)
 
 	f->num_channels = g->ops.channel.count(g);
 
-	err = nvgpu_mutex_init(&f->free_chs_mutex);
-	if (err != 0) {
-		nvgpu_err(g, "mutex init failed");
-		return err;
-	}
+	nvgpu_mutex_init(&f->free_chs_mutex);
 
 	f->channel = nvgpu_vzalloc(g, f->num_channels * sizeof(*f->channel));
 	if (f->channel == NULL) {

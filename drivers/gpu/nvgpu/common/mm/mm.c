@@ -489,11 +489,7 @@ static int nvgpu_init_mm_setup_sw(struct gk20a *g)
 	}
 
 	mm->g = g;
-	err = nvgpu_mutex_init(&mm->l2_op_lock);
-	if (err != 0) {
-		nvgpu_err(g, "Error in l2_op_lock mutex initialization");
-		return err;
-	}
+	nvgpu_mutex_init(&mm->l2_op_lock);
 
 	/*TBD: make channel vm size configurable */
 	mm->channel.user_size = NV_MM_DEFAULT_USER_SIZE -

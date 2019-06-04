@@ -627,28 +627,14 @@ int gk20a_sched_ctrl_init(struct gk20a *g)
 
 	nvgpu_cond_init(&sched->readout_wq);
 
-	err = nvgpu_mutex_init(&sched->status_lock);
-	if (err)
-		goto free_ref;
-
-	err = nvgpu_mutex_init(&sched->control_lock);
-	if (err)
-		goto free_status_lock;
-
-	err = nvgpu_mutex_init(&sched->busy_lock);
-	if (err)
-		goto free_control_lock;
+	nvgpu_mutex_init(&sched->status_lock);
+	nvgpu_mutex_init(&sched->control_lock);
+	nvgpu_mutex_init(&sched->busy_lock);
 
 	sched->sw_ready = true;
 
 	return 0;
 
-free_control_lock:
-	nvgpu_mutex_destroy(&sched->control_lock);
-free_status_lock:
-	nvgpu_mutex_destroy(&sched->status_lock);
-free_ref:
-	nvgpu_kfree(g, sched->ref_tsg_bitmap);
 free_recent:
 	nvgpu_kfree(g, sched->recent_tsg_bitmap);
 free_active:

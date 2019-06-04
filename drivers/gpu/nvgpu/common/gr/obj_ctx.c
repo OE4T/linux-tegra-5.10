@@ -701,7 +701,6 @@ int nvgpu_gr_obj_ctx_init(struct gk20a *g,
 	struct nvgpu_gr_obj_ctx_golden_image **gr_golden_image, u32 size)
 {
 	struct nvgpu_gr_obj_ctx_golden_image *golden_image;
-	int err;
 
 	golden_image = nvgpu_kzalloc(g, sizeof(*golden_image));
 	if (golden_image == NULL) {
@@ -710,11 +709,7 @@ int nvgpu_gr_obj_ctx_init(struct gk20a *g,
 
 	nvgpu_gr_obj_ctx_set_golden_image_size(golden_image, size);
 
-	err = nvgpu_mutex_init(&golden_image->ctx_mutex);
-	if (err != 0) {
-		nvgpu_kfree(g, golden_image);
-		return err;
-	}
+	nvgpu_mutex_init(&golden_image->ctx_mutex);
 
 	*gr_golden_image = golden_image;
 

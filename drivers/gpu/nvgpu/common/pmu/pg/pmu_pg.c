@@ -998,18 +998,8 @@ int nvgpu_pmu_pg_init(struct gk20a *g, struct nvgpu_pmu *pmu,
 	pg->aelpg_param[3] = APCTRL_POWER_BREAKEVEN_DEFAULT_US;
 	pg->aelpg_param[4] = APCTRL_CYCLES_PER_SAMPLE_MAX_DEFAULT;
 
-	err = nvgpu_mutex_init(&pg->elpg_mutex);
-	if (err != 0) {
-		nvgpu_kfree(g, pg);
-		goto exit;
-	}
-
-	err = nvgpu_mutex_init(&pg->pg_mutex);
-	if (err != 0) {
-		nvgpu_mutex_destroy(&pg->elpg_mutex);
-		nvgpu_kfree(g, pg);
-		goto exit;
-	}
+	nvgpu_mutex_init(&pg->elpg_mutex);
+	nvgpu_mutex_init(&pg->pg_mutex);
 
 	*pg_p = pg;
 

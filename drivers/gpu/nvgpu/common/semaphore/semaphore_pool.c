@@ -50,15 +50,12 @@ int nvgpu_semaphore_pool_alloc(struct nvgpu_semaphore_sea *sea,
 
 	nvgpu_semaphore_sea_lock(sea);
 
-	ret = nvgpu_mutex_init(&p->pool_lock);
-	if (ret != 0) {
-		goto fail;
-	}
+	nvgpu_mutex_init(&p->pool_lock);
 
 	ret = semaphore_bitmap_alloc(sea->pools_alloced,
 				       SEMAPHORE_POOL_COUNT);
 	if (ret < 0) {
-		goto fail_alloc;
+		goto fail;
 	}
 
 	page_idx = (unsigned long)ret;
@@ -78,9 +75,8 @@ int nvgpu_semaphore_pool_alloc(struct nvgpu_semaphore_sea *sea,
 	*pool = p;
 	return 0;
 
-fail_alloc:
-	nvgpu_mutex_destroy(&p->pool_lock);
 fail:
+	nvgpu_mutex_destroy(&p->pool_lock);
 	nvgpu_semaphore_sea_unlock(sea);
 	nvgpu_kfree(sea->gk20a, p);
 	gpu_sema_dbg(sea->gk20a, "Failed to allocate semaphore pool!");

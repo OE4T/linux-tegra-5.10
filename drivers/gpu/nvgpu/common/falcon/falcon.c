@@ -733,28 +733,11 @@ int nvgpu_falcon_sw_init(struct gk20a *g, u32 flcn_id)
 		return 0;
 	}
 
-	err = nvgpu_mutex_init(&flcn->imem_lock);
-	if (err != 0) {
-		nvgpu_err(g, "Error in flcn.imem_lock mutex initialization");
-		return err;
-	}
-
-	err = nvgpu_mutex_init(&flcn->dmem_lock);
-	if (err != 0) {
-		nvgpu_err(g, "Error in flcn.dmem_lock mutex initialization");
-		nvgpu_mutex_destroy(&flcn->imem_lock);
-		return err;
-	}
+	nvgpu_mutex_init(&flcn->imem_lock);
+	nvgpu_mutex_init(&flcn->dmem_lock);
 
 	if (flcn->emem_supported) {
-		err = nvgpu_mutex_init(&flcn->emem_lock);
-		if (err != 0) {
-			nvgpu_err(g, "Error in flcn.emem_lock "
-				     "mutex initialization");
-			nvgpu_mutex_destroy(&flcn->dmem_lock);
-			nvgpu_mutex_destroy(&flcn->imem_lock);
-			return err;
-		}
+		nvgpu_mutex_init(&flcn->emem_lock);
 	}
 
 	return 0;

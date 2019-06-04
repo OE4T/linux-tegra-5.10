@@ -133,7 +133,6 @@ void nvgpu_gr_fecs_trace_find_pid(struct gk20a *g, u32 context_ptr,
 int nvgpu_gr_fecs_trace_init(struct gk20a *g)
 {
 	struct nvgpu_gr_fecs_trace *trace;
-	int err;
 
 	if (!is_power_of_2(GK20A_FECS_TRACE_NUM_RECORDS)) {
 		nvgpu_err(g, "invalid NUM_RECORDS chosen");
@@ -147,20 +146,9 @@ int nvgpu_gr_fecs_trace_init(struct gk20a *g)
 	}
 	g->fecs_trace = trace;
 
-	err = nvgpu_mutex_init(&trace->poll_lock);
-	if (err != 0) {
-		goto clean;
-	}
-
-	err = nvgpu_mutex_init(&trace->list_lock);
-	if (err != 0) {
-		goto clean_poll_lock;
-	}
-
-	err = nvgpu_mutex_init(&trace->enable_lock);
-	if (err != 0) {
-		goto clean_list_lock;
-	}
+	nvgpu_mutex_init(&trace->poll_lock);
+	nvgpu_mutex_init(&trace->list_lock);
+	nvgpu_mutex_init(&trace->enable_lock);
 
 	nvgpu_init_list_node(&trace->context_list);
 
@@ -169,15 +157,6 @@ int nvgpu_gr_fecs_trace_init(struct gk20a *g)
 	trace->enable_count = 0;
 
 	return 0;
-
-clean_list_lock:
-	nvgpu_mutex_destroy(&trace->list_lock);
-clean_poll_lock:
-	nvgpu_mutex_destroy(&trace->poll_lock);
-clean:
-	nvgpu_kfree(g, trace);
-	g->fecs_trace = NULL;
-	return err;
 }
 
 int nvgpu_gr_fecs_trace_deinit(struct gk20a *g)

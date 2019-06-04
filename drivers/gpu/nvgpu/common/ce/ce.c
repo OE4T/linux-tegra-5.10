@@ -403,7 +403,6 @@ u32 nvgpu_ce_prepare_submit(u64 src_buf,
 int nvgpu_ce_init_support(struct gk20a *g)
 {
 	struct nvgpu_ce_app *ce_app = g->ce_app;
-	int err;
 	u32 ce_reset_mask;
 
 	if (unlikely(ce_app == NULL)) {
@@ -430,10 +429,7 @@ int nvgpu_ce_init_support(struct gk20a *g)
 
 	nvgpu_log(g, gpu_dbg_fn, "ce: init");
 
-	err = nvgpu_mutex_init(&ce_app->app_mutex);
-	if (err != 0) {
-		return err;
-	}
+	nvgpu_mutex_init(&ce_app->app_mutex);
 
 	nvgpu_mutex_acquire(&ce_app->app_mutex);
 
@@ -516,16 +512,10 @@ u32 nvgpu_ce_create_context(struct gk20a *g,
 		return ctx_id;
 	}
 
-	err = nvgpu_mutex_init(&ce_ctx->gpu_ctx_mutex);
-	if (err != 0) {
-		nvgpu_kfree(g, ce_ctx);
-		return ctx_id;
-	}
+	nvgpu_mutex_init(&ce_ctx->gpu_ctx_mutex);
 
 	ce_ctx->g = g;
-
 	ce_ctx->cmd_buf_read_queue_offset = 0;
-
 	ce_ctx->vm = g->mm.ce.vm;
 
 	/* allocate a tsg if needed */

@@ -92,14 +92,10 @@ unsigned long gv100_clk_measure_freq(struct gk20a *g, u32 api_domain)
 int gv100_init_clk_support(struct gk20a *g)
 {
 	struct clk_gk20a *clk = &g->clk;
-	int err = 0;
 
 	nvgpu_log_fn(g, " ");
 
-	err = nvgpu_mutex_init(&clk->clk_mutex);
-	if (err != 0) {
-		return err;
-	}
+	nvgpu_mutex_init(&clk->clk_mutex);
 
 	clk->clk_namemap = (struct namemap_cfg *)
 		nvgpu_kzalloc(g, sizeof(struct namemap_cfg) * NUM_NAMEMAPS);
@@ -169,7 +165,7 @@ int gv100_init_clk_support(struct gk20a *g)
 
 	clk->g = g;
 
-	return err;
+	return 0;
 }
 
 u32 gv100_get_rate_cntr(struct gk20a *g, struct namemap_cfg *c) {

@@ -30,10 +30,9 @@ struct nvgpu_raw_spinlock {
 	raw_spinlock_t spinlock;
 };
 
-static inline int nvgpu_mutex_init(struct nvgpu_mutex *mutex)
+static inline void nvgpu_mutex_init(struct nvgpu_mutex *mutex)
 {
 	mutex_init(&mutex->mutex);
-	return 0;
 };
 static inline void nvgpu_mutex_acquire(struct nvgpu_mutex *mutex)
 {

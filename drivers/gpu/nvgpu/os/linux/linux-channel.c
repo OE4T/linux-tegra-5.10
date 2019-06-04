@@ -283,7 +283,6 @@ static void nvgpu_channel_close_linux(struct nvgpu_channel *ch, bool force)
 static int nvgpu_channel_alloc_linux(struct gk20a *g, struct nvgpu_channel *ch)
 {
 	struct nvgpu_channel_linux *priv;
-	int err;
 
 	priv = nvgpu_kzalloc(g, sizeof(*priv));
 	if (!priv)
@@ -296,11 +295,7 @@ static int nvgpu_channel_alloc_linux(struct gk20a *g, struct nvgpu_channel *ch)
 	ch->has_os_fence_framework_support = true;
 #endif
 
-	err = nvgpu_mutex_init(&priv->error_notifier.mutex);
-	if (err) {
-		nvgpu_kfree(g, priv);
-		return err;
-	}
+	nvgpu_mutex_init(&priv->error_notifier.mutex);
 
 	nvgpu_channel_work_completion_init(ch);
 

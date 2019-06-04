@@ -46,7 +46,6 @@
 struct nvgpu_gr_falcon *nvgpu_gr_falcon_init_support(struct gk20a *g)
 {
 	struct nvgpu_gr_falcon *falcon;
-	int err = 0;
 
 	nvgpu_log_fn(g, " ");
 
@@ -55,17 +54,8 @@ struct nvgpu_gr_falcon *nvgpu_gr_falcon_init_support(struct gk20a *g)
 		return falcon;
 	}
 
-	err = nvgpu_mutex_init(&falcon->fecs_mutex);
-	if (err != 0) {
-		nvgpu_err(g, "Error in fecs_mutex init");
-		goto done;
-	}
+	nvgpu_mutex_init(&falcon->fecs_mutex);
 
-done:
-	if (err != 0) {
-		nvgpu_kfree(g, falcon);
-		falcon = NULL;
-	}
 	return falcon;
 }
 

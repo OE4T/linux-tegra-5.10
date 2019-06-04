@@ -197,11 +197,7 @@ static int nvgpu_gr_zbc_load_default_table(struct gk20a *g,
 	u32 i = 0;
 	int err = 0;
 
-	err = nvgpu_mutex_init(&zbc->zbc_lock);
-	if (err != 0) {
-		nvgpu_err(g, "Error in zbc_lock mutex initialization");
-		return err;
-	}
+	nvgpu_mutex_init(&zbc->zbc_lock);
 
 	/* load default color table */
 	zbc_val.type = NVGPU_GR_ZBC_TYPE_COLOR;

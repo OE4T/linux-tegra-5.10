@@ -322,10 +322,7 @@ int nvgpu_pmu_early_init(struct gk20a *g, struct nvgpu_pmu **pmu_p)
 		goto exit;
 	}
 #ifdef NVGPU_FEATURE_LS_PMU
-	err = nvgpu_mutex_init(&pmu->isr_mutex);
-	if (err != 0) {
-		goto init_failed;
-	}
+	nvgpu_mutex_init(&pmu->isr_mutex);
 
 	/* Allocate memory for pmu_perfmon */
 	err = nvgpu_pmu_initialize_perfmon(g, pmu, &pmu->pmu_perfmon);

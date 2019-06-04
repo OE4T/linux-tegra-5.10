@@ -148,8 +148,6 @@ int nvgpu_alloc_common_init(struct nvgpu_allocator *a, struct gk20a *g,
 			    const char *name, void *priv, bool dbg,
 			    const struct nvgpu_allocator_ops *ops)
 {
-	int err;
-
 	if (ops == NULL) {
 		return -EINVAL;
 	}
@@ -163,10 +161,7 @@ int nvgpu_alloc_common_init(struct nvgpu_allocator *a, struct gk20a *g,
 		return -EINVAL;
 	}
 
-	err = nvgpu_mutex_init(&a->lock);
-	if (err != 0) {
-		return err;
-	}
+	nvgpu_mutex_init(&a->lock);
 
 	a->g = g;
 	a->ops = ops;

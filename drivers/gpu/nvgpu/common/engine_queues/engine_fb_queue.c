@@ -571,16 +571,10 @@ int nvgpu_engine_fb_queue_init(struct nvgpu_engine_fb_queue **queue_p,
 	queue->tail = engine_fb_queue_tail;
 
 	/* init mutex */
-	err = nvgpu_mutex_init(&queue->mutex);
-	if (err != 0) {
-		goto free_queue;
-	}
+	nvgpu_mutex_init(&queue->mutex);
 
 	/* init mutex */
-	err = nvgpu_mutex_init(&queue->fbq.work_buffer_mutex);
-	if (err != 0) {
-		goto free_mutex;
-	}
+	nvgpu_mutex_init(&queue->fbq.work_buffer_mutex);
 
 	queue->fbq.work_buffer = nvgpu_kzalloc(g, queue->fbq.element_size);
 	if (queue->fbq.work_buffer == NULL) {
@@ -599,9 +593,7 @@ int nvgpu_engine_fb_queue_init(struct nvgpu_engine_fb_queue **queue_p,
 
 free_work_mutex:
 	nvgpu_mutex_destroy(&queue->fbq.work_buffer_mutex);
-free_mutex:
 	nvgpu_mutex_destroy(&queue->mutex);
-free_queue:
 	nvgpu_kfree(g, queue);
 
 	return err;

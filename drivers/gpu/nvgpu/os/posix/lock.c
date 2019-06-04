@@ -20,11 +20,13 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
+#include <nvgpu/bug.h>
 #include <nvgpu/lock.h>
 
-int nvgpu_mutex_init(struct nvgpu_mutex *mutex)
+void nvgpu_mutex_init(struct nvgpu_mutex *mutex)
 {
-	return pthread_mutex_init(&mutex->lock.mutex, NULL);
+	int err = pthread_mutex_init(&mutex->lock.mutex, NULL);
+	nvgpu_assert(err == 0);
 }
 
 void nvgpu_mutex_acquire(struct nvgpu_mutex *mutex)

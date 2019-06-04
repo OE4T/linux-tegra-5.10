@@ -435,21 +435,13 @@ static int gk20a_dbg_gpu_do_dev_open(struct inode *inode,
 
 	nvgpu_cond_init(&dbg_s->dbg_events.wait_queue);
 	nvgpu_init_list_node(&dbg_s->ch_list);
-	err = nvgpu_mutex_init(&dbg_s->ch_list_lock);
-	if (err)
-		goto err_free_session;
-	err = nvgpu_mutex_init(&dbg_s->ioctl_lock);
-	if (err)
-		goto err_destroy_lock;
+	nvgpu_mutex_init(&dbg_s->ch_list_lock);
+	nvgpu_mutex_init(&dbg_s->ioctl_lock);
 	dbg_s->dbg_events.events_enabled = false;
 	dbg_s->dbg_events.num_pending_events = 0;
 
 	return 0;
 
-err_destroy_lock:
-	nvgpu_mutex_destroy(&dbg_s->ch_list_lock);
-err_free_session:
-	nvgpu_kfree(g, dbg_session_linux);
 free_ref:
 	gk20a_put(g);
 	return err;

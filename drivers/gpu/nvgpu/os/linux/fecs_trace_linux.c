@@ -551,7 +551,6 @@ static int gk20a_ctxsw_init_devs(struct gk20a *g)
 {
 	struct gk20a_ctxsw_trace *trace = g->ctxsw_trace;
 	struct gk20a_ctxsw_dev *dev = trace->devs;
-	int err;
 	int i;
 
 	for (i = 0; i < GK20A_CTXSW_TRACE_NUM_DEVS; i++) {
@@ -559,9 +558,7 @@ static int gk20a_ctxsw_init_devs(struct gk20a *g)
 		dev->hdr = NULL;
 		dev->write_enabled = false;
 		nvgpu_cond_init(&dev->readout_wq);
-		err = nvgpu_mutex_init(&dev->write_lock);
-		if (err)
-			return err;
+		nvgpu_mutex_init(&dev->write_lock);
 		nvgpu_atomic_set(&dev->vma_ref, 0);
 		dev++;
 	}

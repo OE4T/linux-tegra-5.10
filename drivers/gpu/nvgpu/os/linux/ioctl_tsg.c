@@ -339,9 +339,7 @@ static int gk20a_tsg_event_id_enable(struct nvgpu_tsg *tsg,
 	event_id_data->event_id = event_id;
 
 	nvgpu_cond_init(&event_id_data->event_id_wq);
-	err = nvgpu_mutex_init(&event_id_data->lock);
-	if (err)
-		goto clean_up_free;
+	nvgpu_mutex_init(&event_id_data->lock);
 
 	nvgpu_init_list_node(&event_id_data->event_id_node);
 
@@ -356,8 +354,6 @@ static int gk20a_tsg_event_id_enable(struct nvgpu_tsg *tsg,
 
 	return 0;
 
-clean_up_free:
-	nvgpu_kfree(g, event_id_data);
 clean_up_file:
 	fput(file);
 clean_up:

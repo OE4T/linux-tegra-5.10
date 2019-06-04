@@ -74,12 +74,7 @@ int gk20a_comptag_allocator_init(struct gk20a *g,
 				 struct gk20a_comptag_allocator *allocator,
 				 unsigned long size)
 {
-	int err = nvgpu_mutex_init(&allocator->lock);
-
-	if (err != 0) {
-		nvgpu_err(g, "Error in allocator.lock mutex initialization");
-		return err;
-	}
+	nvgpu_mutex_init(&allocator->lock);
 
 	/*
 	 * 0th comptag is special and is never used. The base for this bitmap

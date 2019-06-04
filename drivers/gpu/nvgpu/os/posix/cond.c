@@ -36,11 +36,7 @@ int nvgpu_cond_init(struct nvgpu_cond *cond)
 		return ret;
 	}
 
-	ret = nvgpu_mutex_init(&cond->mutex);
-	if (ret != 0) {
-		(void) pthread_condattr_destroy(&cond->attr);
-		return ret;
-	}
+	nvgpu_mutex_init(&cond->mutex);
 
 	ret = pthread_cond_init(&cond->cond, &cond->attr);
 	if (ret != 0) {

@@ -153,10 +153,7 @@ int gv100_init_clk_arbiter(struct gk20a *g)
 		return -ENOMEM;
 	}
 
-	err = nvgpu_mutex_init(&arb->pstate_lock);
-	if (err != 0) {
-		goto mutex_fail;
-	}
+	nvgpu_mutex_init(&arb->pstate_lock);
 	nvgpu_spinlock_init(&arb->sessions_lock);
 	nvgpu_spinlock_init(&arb->users_lock);
 	nvgpu_spinlock_init(&arb->requests_lock);
@@ -278,8 +275,6 @@ init_fail:
 	}
 
 	nvgpu_mutex_destroy(&arb->pstate_lock);
-
-mutex_fail:
 	nvgpu_kfree(g, arb);
 
 	return err;

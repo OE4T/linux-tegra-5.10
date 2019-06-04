@@ -212,10 +212,7 @@ int nvgpu_pmu_perf_pstate_sw_setup(struct gk20a *g)
 
 	nvgpu_cond_init(&g->perf_pmu->pstatesobjs.pstate_notifier_wq);
 
-	err = nvgpu_mutex_init(&g->perf_pmu->pstatesobjs.pstate_mutex);
-	if (err != 0) {
-		return err;
-	}
+	nvgpu_mutex_init(&g->perf_pmu->pstatesobjs.pstate_mutex);
 
 	err = nvgpu_boardobjgrp_construct_e32(g, &g->perf_pmu->pstatesobjs.super);
 	if (err != 0) {

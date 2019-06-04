@@ -48,24 +48,15 @@ int nvgpu_init_sec2_setup_sw(struct gk20a *g, struct nvgpu_sec2 *sec2)
 
 	err = nvgpu_sec2_sequences_alloc(g, &sec2->sequences);
 	if (err != 0) {
-		goto exit;
+		return err;
 	}
 
 	nvgpu_sec2_sequences_init(g, &sec2->sequences);
 
-	err = nvgpu_mutex_init(&sec2->isr_mutex);
-	if (err != 0) {
-		goto free_sequences;
-	}
+	nvgpu_mutex_init(&sec2->isr_mutex);
 
 	sec2->remove_support = nvgpu_remove_sec2_support;
 
-	goto exit;
-
-free_sequences:
-	nvgpu_sec2_sequences_free(g, &sec2->sequences);
-
-exit:
 	return err;
 }
 

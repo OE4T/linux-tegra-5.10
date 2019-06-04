@@ -54,12 +54,8 @@ static int test_mutex_init(struct unit_module *m, struct gk20a *g,
 					void *args)
 {
 	struct nvgpu_mutex mutex;
-	int err = nvgpu_mutex_init(&mutex);
 
-	if (err != 0) {
-		unit_return_fail(m, "mutex_init failure: %d\n", err);
-	}
-
+	nvgpu_mutex_init(&mutex);
 	nvgpu_mutex_destroy(&mutex);
 
 	return UNIT_SUCCESS;
@@ -74,9 +70,7 @@ static int test_mutex_tryacquire(struct unit_module *m, struct gk20a *g,
 	struct nvgpu_mutex mutex;
 	int status;
 
-	if (nvgpu_mutex_init(&mutex) != 0) {
-		unit_return_fail(m, "mutex_init failure\n");
-	}
+	nvgpu_mutex_init(&mutex);
 
 	nvgpu_mutex_acquire(&mutex);
 
@@ -175,9 +169,7 @@ static int test_lock_acquire_release(struct unit_module *m, struct gk20a *g,
 
 	switch (type) {
 	case TYPE_MUTEX:
-		if (nvgpu_mutex_init(&mutex) != 0) {
-			unit_return_fail(m, "mutex_init failure\n");
-		}
+		nvgpu_mutex_init(&mutex);
 		worker_params.mutex = &mutex;
 		break;
 	case TYPE_SPINLOCK:

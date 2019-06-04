@@ -1184,10 +1184,7 @@ int gm20b_init_clk_setup_sw(struct gk20a *g)
 
 	nvgpu_log_fn(g, " ");
 
-	err = nvgpu_mutex_init(&clk->clk_mutex);
-	if (err != 0) {
-		return err;
-	}
+	nvgpu_mutex_init(&clk->clk_mutex);
 
 	if (clk->sw_ready) {
 		nvgpu_log_fn(g, "skip init");

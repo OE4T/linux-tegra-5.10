@@ -354,7 +354,8 @@ int nvgpu_tsg_init_support(struct gk20a *g, u32 tsgid)
 
 	nvgpu_init_list_node(&tsg->event_id_list);
 
-	return nvgpu_mutex_init(&tsg->event_id_list_lock);
+	nvgpu_mutex_init(&tsg->event_id_list_lock);
+	return 0;
 }
 
 int nvgpu_tsg_setup_sw(struct gk20a *g)
@@ -363,11 +364,7 @@ int nvgpu_tsg_setup_sw(struct gk20a *g)
 	u32 tsgid, i;
 	int err;
 
-	err = nvgpu_mutex_init(&f->tsg_inuse_mutex);
-	if (err != 0) {
-		nvgpu_err(g, "mutex init failed");
-		return err;
-	}
+	nvgpu_mutex_init(&f->tsg_inuse_mutex);
 
 	f->tsg = nvgpu_vzalloc(g, f->num_channels * sizeof(*f->tsg));
 	if (f->tsg == NULL) {
@@ -797,10 +794,7 @@ int nvgpu_tsg_alloc_sm_error_states_mem(struct gk20a *g,
 		return -EINVAL;
 	}
 
-	err = nvgpu_mutex_init(&tsg->sm_exception_mask_lock);
-	if (err != 0) {
-		return err;
-	}
+	nvgpu_mutex_init(&tsg->sm_exception_mask_lock);
 
 	tsg->sm_error_states = nvgpu_kzalloc(g,
 			sizeof(struct nvgpu_tsg_sm_error_state)

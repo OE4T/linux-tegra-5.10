@@ -789,12 +789,7 @@ int nvgpu_runlist_setup_sw(struct gk20a *g)
 			}
 		}
 
-		err = nvgpu_mutex_init(&runlist->runlist_lock);
-		if (err != 0) {
-			nvgpu_err(g,
-				"Error in runlist_lock mutex initialization");
-			goto clean_up_runlist;
-		}
+		nvgpu_mutex_init(&runlist->runlist_lock);
 
 		/* None of buffers is pinned if this value doesn't change.
 		    Otherwise, one of them (cur_buffer) must have been pinned. */

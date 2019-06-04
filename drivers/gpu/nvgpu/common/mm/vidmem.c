@@ -384,26 +384,9 @@ int nvgpu_vidmem_init(struct mm_gk20a *mm)
 	nvgpu_atomic64_set(&mm->vidmem.bytes_pending, 0);
 	nvgpu_init_list_node(&mm->vidmem.clear_list_head);
 
-	err = nvgpu_mutex_init(&mm->vidmem.clear_list_mutex);
-	if (err != 0) {
-		nvgpu_err(g, "nvgpu_mutex_init(list_mutex) failed err=%d",
-			err);
-		goto fail;
-	}
-
-	err = nvgpu_mutex_init(&mm->vidmem.clearing_thread_lock);
-	if (err != 0) {
-		nvgpu_err(g, "nvgpu_mutex_init(thread_lock) failed err=%d",
-			err);
-		goto fail;
-	}
-
-	err = nvgpu_mutex_init(&mm->vidmem.first_clear_mutex);
-	if (err != 0) {
-		nvgpu_err(g, "nvgpu_mutex_init(first_clear) failed err=%d",
-			err);
-		goto fail;
-	}
+	nvgpu_mutex_init(&mm->vidmem.clear_list_mutex);
+	nvgpu_mutex_init(&mm->vidmem.clearing_thread_lock);
+	nvgpu_mutex_init(&mm->vidmem.first_clear_mutex);
 
 	nvgpu_atomic_set(&mm->vidmem.pause_count, 0);
 

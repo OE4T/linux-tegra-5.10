@@ -37,11 +37,7 @@ int nvgpu_userd_init_slabs(struct gk20a *g)
 	struct nvgpu_fifo *f = &g->fifo;
 	int err;
 
-	err = nvgpu_mutex_init(&f->userd_mutex);
-	if (err != 0) {
-		nvgpu_err(g, "failed to init userd_mutex");
-		return err;
-	}
+	nvgpu_mutex_init(&f->userd_mutex);
 
 	f->num_channels_per_slab = PAGE_SIZE /  f->userd_entry_size;
 	f->num_userd_slabs =

@@ -529,18 +529,8 @@ int nvgpu_vm_do_init(struct mm_gk20a *mm,
 
 	vm->mapped_buffers = NULL;
 
-	err = nvgpu_mutex_init(&vm->syncpt_ro_map_lock);
-	if (err != 0) {
-		nvgpu_err(g,
-			   "Error in syncpt_ro_map_lock mutex initialization");
-		goto clean_up_allocators;
-	}
-
-	err = nvgpu_mutex_init(&vm->update_gmmu_lock);
-	if (err != 0) {
-		nvgpu_err(g, "Error in update_gmmu_lock mutex initialization");
-		goto clean_up_ro_map_lock;
-	}
+	nvgpu_mutex_init(&vm->syncpt_ro_map_lock);
+	nvgpu_mutex_init(&vm->update_gmmu_lock);
 
 	nvgpu_ref_init(&vm->ref);
 	nvgpu_init_list_node(&vm->vm_area_list);
@@ -561,7 +551,6 @@ int nvgpu_vm_do_init(struct mm_gk20a *mm,
 
 clean_up_gmmu_lock:
 	nvgpu_mutex_destroy(&vm->update_gmmu_lock);
-clean_up_ro_map_lock:
 	nvgpu_mutex_destroy(&vm->syncpt_ro_map_lock);
 clean_up_allocators:
 	if (nvgpu_alloc_initialized(&vm->kernel)) {

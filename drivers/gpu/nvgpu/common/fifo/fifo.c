@@ -67,38 +67,6 @@ static void nvgpu_fifo_remove_support(struct nvgpu_fifo *f)
 	g->ops.fifo.cleanup_sw(g);
 }
 
-static int nvgpu_fifo_init_locks(struct gk20a *g, struct nvgpu_fifo *f)
-{
-	int err;
-
-	err = nvgpu_mutex_init(&f->intr.isr.mutex);
-	if (err != 0) {
-		goto destroy_0;
-	}
-
-	err = nvgpu_mutex_init(&f->engines_reset_mutex);
-	if (err != 0) {
-		goto destroy_1;
-	}
-
-	err = nvgpu_mutex_init(&f->deferred_reset_mutex);
-	if (err != 0) {
-		goto destroy_2;
-	}
-
-	return 0;
-
-destroy_2:
-	nvgpu_mutex_destroy(&f->engines_reset_mutex);
-
-destroy_1:
-	nvgpu_mutex_destroy(&f->intr.isr.mutex);
-
-destroy_0:
-	nvgpu_err(g, "failed to init mutex");
-	return err;
-}
-
 int nvgpu_fifo_setup_sw_common(struct gk20a *g)
 {
 	struct nvgpu_fifo *f = &g->fifo;
@@ -108,10 +76,9 @@ int nvgpu_fifo_setup_sw_common(struct gk20a *g)
 
 	f->g = g;
 
-	err = nvgpu_fifo_init_locks(g, f);
-	if (err != 0) {
-		nvgpu_err(g, "failed to init mutexes");
-	}
+	nvgpu_mutex_init(&f->intr.isr.mutex);
+	nvgpu_mutex_init(&f->engines_reset_mutex);
+	nvgpu_mutex_init(&f->deferred_reset_mutex);
 
 	err = nvgpu_channel_setup_sw(g);
 	if (err != 0) {

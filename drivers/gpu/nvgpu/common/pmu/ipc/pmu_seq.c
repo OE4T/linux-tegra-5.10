@@ -75,12 +75,7 @@ int nvgpu_pmu_sequences_init(struct gk20a *g, struct nvgpu_pmu *pmu,
 		return -ENOMEM;
 	}
 
-	err = nvgpu_mutex_init(&sequences->pmu_seq_lock);
-	if (err != 0) {
-		nvgpu_kfree(g, sequences->seq);
-		nvgpu_kfree(g, sequences);
-		return err;
-	}
+	nvgpu_mutex_init(&sequences->pmu_seq_lock);
 
 	*sequences_p = sequences;
 exit:
