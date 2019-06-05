@@ -33,8 +33,29 @@
 				fls_val;			\
 			})
 
-#define roundup_pow_of_two(x)		(1UL << fls((x) - 1UL))
-#define rounddown_pow_of_two(x)		(1UL << (fls(x) - 1UL))
+#define roundup_pow_of_two(x)						\
+			({						\
+				unsigned long ret;			\
+									\
+				if ((x) == 0UL) {			\
+					BUG();				\
+				} else {				\
+					ret = 1UL << fls((x) - 1UL);	\
+				}					\
+				ret;					\
+			})
+
+#define rounddown_pow_of_two(x)						\
+			({						\
+				unsigned long ret;			\
+									\
+				if ((x) == 0UL) {			\
+					BUG();				\
+				} else {				\
+					ret = 1UL << (fls(x) - 1UL);	\
+				}					\
+				ret;					\
+			})
 
 #define is_power_of_2(x)					\
 	(bool)({						\
