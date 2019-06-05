@@ -306,7 +306,8 @@ static struct page_alloc_slab_page *alloc_slab_page(
 
 	nvgpu_init_list_node(&slab_page->list_entry);
 	slab_page->slab_size = slab->slab_size;
-	slab_page->nr_objects = (u32)a->page_size / slab->slab_size;
+	slab_page->nr_objects = nvgpu_safe_cast_u64_to_u32(a->page_size) /
+								slab->slab_size;
 	slab_page->nr_objects_alloced = 0;
 	slab_page->owner = slab;
 	slab_page->state = SP_NONE;
@@ -484,8 +485,9 @@ static void nvgpu_free_slab(struct nvgpu_page_allocator *a,
 	enum slab_page_state new_state;
 	u32 offs;
 
-	offs = (u32)nvgpu_safe_sub_u64(alloc->base, slab_page->page_addr) /
-			slab_page->slab_size;
+	offs = nvgpu_safe_cast_u64_to_u32(nvgpu_safe_sub_u64(alloc->base,
+						slab_page->page_addr)) /
+					slab_page->slab_size;
 	nvgpu_bitmap_clear(&slab_page->bitmap, offs, 1U);
 
 	nvgpu_assert(slab_page->nr_objects_alloced < U32_MAX);
@@ -1009,7 +1011,7 @@ static int nvgpu_page_alloc_init_slabs(struct nvgpu_page_allocator *a)
 {
 	/* Use temp var for MISRA 10.8 */
 	unsigned long tmp_nr_slabs = ilog2(a->page_size >> 12);
-	u32 nr_slabs = U32(tmp_nr_slabs);
+	u32 nr_slabs = nvgpu_safe_cast_u64_to_u32(tmp_nr_slabs);
 	u32 i;
 
 	/*
@@ -1080,7 +1082,7 @@ int nvgpu_page_allocator_init(struct gk20a *g, struct nvgpu_allocator *na,
 	a->base = base;
 	a->length = length;
 	a->page_size = blk_size;
-	a->page_shift = U32((ffs(blk_size) - 1UL));
+	a->page_shift = nvgpu_safe_cast_u64_to_u32((ffs(blk_size) - 1UL));
 	a->allocs = NULL;
 	a->owner = na;
 	a->flags = flags;
