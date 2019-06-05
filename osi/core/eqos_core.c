@@ -35,7 +35,8 @@ struct osi_core_ops *eqos_get_hw_core_ops(void);
  *
  *	Algorithm:
  *
- *	Dependencies: MAC has to be out of reset.
+ *	Dependencies:
+ *	1) MAC should be init and started. see osi_start_mac()
  *
  *	Protection: None.
  *
@@ -101,7 +102,8 @@ static int eqos_config_flow_control(void *addr, unsigned int flw_ctrl)
  *	field in the received packets. When this bit is reset, the MAC receiver
  *	always checks the CRC field in the received packets.
  *
- *	Dependencies: MAC has to be out of reset.
+ *	Dependencies:
+ *	1) MAC should be init and started. see osi_start_mac()
  *
  *	Protection: None.
  *
@@ -147,7 +149,8 @@ static int eqos_config_rx_crc_check(void *addr, unsigned int crc_chk)
  *	When this bit is set, all packets except the runt error packets
  *	are forwarded to the application or DMA.
  *
- *	Dependencies: MAC has to be out of reset.
+ *	Dependencies:
+ *	1) MAC should be init and started. see osi_start_mac()
  *
  *	Protection: None.
  *
@@ -200,7 +203,8 @@ static int eqos_config_fw_err_pkts(void *addr, unsigned int qinx,
  *	When DTXSTS bit is set, the Tx packet status received from the MAC
  *	are dropped in MTL.
  *
- *	Dependencies: MAC has to be out of reset.
+ *	Dependencies:
+ *	1) MAC should be init and started. see osi_start_mac()
  *
  *	Protection: None.
  *
@@ -247,7 +251,8 @@ static int eqos_config_tx_status(void *addr, unsigned int tx_status)
  *
  *	Algorithm: Configure MAC to enable or disable loopback
  *
- *	Dependencies: MAC has to be out of reset.
+ *	Dependencies:
+ *	1) MAC should be init and started. see osi_start_mac()
  *
  *	Protection: None.
  *
@@ -299,7 +304,8 @@ static int eqos_config_mac_loopback(void *addr, unsigned int lb_mode)
  *	Algorithm: CAR reset will be issued through MAC reset pin.
  *	Waits for SWR reset to be cleared in DMA Mode register.
  *
- *	Dependencies: None
+ *	Dependencies:
+ *	1) MAC needs to be out of reset and proper clock configured.
  *
  *	Protection: None
  *
@@ -343,8 +349,9 @@ static int eqos_poll_for_swr(void *addr)
  *	Algorithm: MDC clock rate will be polulated OSI private data structure
  *	based on AXI_CBB clock rate.
  *
- *	Dependencies: OSD layer needs get the AXI CBB clock rate with OSD clock
- *	API (ex - clk_get_rate())
+ *	Dependencies:
+ *	1) OSD layer needs get the AXI CBB clock rate with OSD clock API
+ *	(ex - clk_get_rate())
  *
  *	Return: None
  */
@@ -381,7 +388,8 @@ static void eqos_set_mdc_clk_rate(struct osi_core_priv_data *osi_core,
  *	Algorithm: Based on the speed (10/100/1000Mbps) MAC will be configured
  *	accordingly.
  *
- *	Dependencies: MAC has to be out of reset.
+ *	Dependencies:
+ *	1) MAC should be init and started. see osi_start_mac()
  *
  *	Protection: None
  *
@@ -422,7 +430,8 @@ static void eqos_set_speed(void *base, int speed)
  *	Algorithm: Based on the mode (HALF/FULL Duplex) MAC will be configured
  *	accordingly.
  *
- *	Dependencies: MAC has to be out of reset.
+ *	Dependencies:
+ *	1) MAC should be init and started. see osi_start_mac()
  *
  *	Protection: None
  *
@@ -549,8 +558,10 @@ static unsigned int eqos_calculate_per_queue_fifo(unsigned int fifo_size,
  *	5) Re-program the value PAD_E_INPUT_OR_E_PWRD in
  *	ETHER_QOS_SDMEMCOMPPADCTRL_0 to save power
  *
- *	Dependencies: RGMII and MDIO interface needs to be IDLE
- *	before performing PAD calibration.
+ *	Dependencies:
+ *	1) MAC should out of reset and clocks enabled.
+ *	2) RGMII and MDIO interface needs to be IDLE before performing PAD
+ *	calibration.
  *
  *	Protection: None
  *
@@ -618,7 +629,9 @@ static int eqos_pad_calibrate(void *ioaddr)
  *
  *	Algorithm: Flush a MTL Tx queue.
  *
- *	Dependencies: None.
+ *	Dependencies:
+ *	1) MAC should out of reset and clocks enabled.
+ *	2) hw core initialized. see osi_hw_core_init().
  *
  *	Protection: None.
  *
@@ -843,7 +856,8 @@ static int eqos_configure_mtl_queue(unsigned int qinx,
  *	2) Enable the IP checksum offload engine COE in MAC receiver.
  *	3) Update the MAC configuration register.
  *
- *	Dependencies: MAC has to be out of reset.
+ *	Dependencies:
+ *	1) MAC should be init and started. see osi_start_mac()
  *
  *	Protection: None.
  *
@@ -1105,7 +1119,11 @@ static void eqos_configure_dma(void *base)
  *	Algorithm: This function will take care of initializing MAC, MTL and
  *	common DMA registers.
  *
- *	Dependencies: Required clks and resets has to be enabled
+ *	Dependencies:
+ *	1) MAC should be out of reset. See osi_poll_for_swr() for details.
+ *	2) osi_core->base needs to be filled based on ioremap.
+ *	3) osi_core->num_mtl_queues needs to be filled.
+ *	4) osi_core->mtl_queues[qinx] need to be filled.
  *
  *	Protection: None
  *
@@ -1292,7 +1310,8 @@ static inline void update_dma_sr_stats(struct osi_core_priv_data *osi_core,
  *
  *	Algorithm: Clear common interrupt source.
  *
- *	Dependencies: None.
+ *	Dependencies:
+ *	1) MAC should be init and started. see osi_start_mac()
  *
  *	Protection: None.
  *
@@ -1353,7 +1372,9 @@ static void eqos_handle_common_intr(struct osi_core_priv_data *osi_core)
  *
  *	Algorithm: Enable MAC Transmitter and Receiver
  *
- *	Dependencies: None.
+ *	Dependencies:
+ *	1) MAC init should be complete. See osi_hw_core_init() and
+ *	osi_hw_dma_init()
  *
  *	Protection: None.
  *
@@ -1376,7 +1397,8 @@ static void eqos_start_mac(void *addr)
  *
  *	Algorithm: Disables MAC Transmitter and Receiver
  *
- *	Dependencies: None.
+ *	Dependencies:
+ *	1) MAC DMA deinit should be complete. See osi_hw_dma_deinit()
  *
  *	Protection: None.
  *
@@ -1410,7 +1432,9 @@ static void eqos_stop_mac(void *addr)
  *	 2f) Set low credit
  *	3) Update register values
  *
- *	Dependencies: MAC has to be out of reset.
+ *	Dependencies:
+ *	1) MAC should be init and started. see osi_start_mac()
+ *	2) osi_core->osd should be populated.
  *
  *	Protection: None.
  *
@@ -1497,8 +1521,10 @@ static int eqos_set_avb_algorithm(struct osi_core_priv_data *osi_core,
  *	processing modes like promiscuous, multicast, unicast,
  *	hash unicast/multicast.
  *
- *	Dependencies: MAC IP should be out of reset
- *	and need to be initialized as the requirements
+ *	Dependencies:
+ *	1) MAC should be initialized and started. see osi_start_mac()
+ *	2) MAC addresses should be configured in HW registers. see
+ *	osi_update_mac_addr_low_high_reg().
  *
  *	Protection: None
  *
@@ -1549,8 +1575,9 @@ static void eqos_config_mac_pkt_filter_reg(struct osi_core_priv_data *osi_core,
  *	dma_chan as well as DCS bit enabled in RXQ to DMA mapping register
  *	performed before updating DCS bits.
  *
- *	Dependencies: MAC IP should be out of reset
- *	and need to be initialized as the requirements
+ *	Dependencies:
+ *	1) MAC should be initialized and stated. see osi_start_mac()
+ *	2) osi_core->osd should be populated.
  *
  *	Protection: None
  *
@@ -1634,7 +1661,9 @@ static int eqos_update_mac_addr_low_high_reg(
  *	 2f) read low credit
  *	3) updated pointer
  *
- *	Dependencies: MAC has to be out of reset.
+ *	Dependencies:
+ *	1) MAC should be init and started. see osi_start_mac()
+ *	2) osi_core->osd should be populated.
  *
  *	Protection: None.
  *
@@ -1714,7 +1743,9 @@ static int eqos_get_avb_algorithm(struct osi_core_priv_data *osi_core,
  *	ARPPA register
  *	3) Enable/disable the ARPEN bit in MCR and write back to the MCR.
  *
- *	Dependencies: None.
+ *	Dependencies:
+ *	1) MAC should be init and started. see osi_start_mac()
+ *	2) Valid 4 byte IP address as argument @ip_addr
  *
  *	Protection: None.
  *
@@ -1769,8 +1800,8 @@ static int eqos_config_arp_offload(unsigned int mac_ver, void *addr,
  *
  *	Algorithm: This routine to enable/disable L4/l4 filter
  *
- *	Dependencies: MAC IP should be out of reset
- *	and need to be initialized as the requirements
+ *	Dependencies:
+ *	1) MAC should be init and started. see osi_start_mac()
  *
  *	Protection: None
  *
@@ -1799,8 +1830,8 @@ static int eqos_config_l3_l4_filter_enable(void *base,
  *	Algorithm: This sequence is used to select perfect/inverse matching
  *	for L2 DA
  *
- *	Dependencies: MAC IP should be out of reset
- *	and need to be initialized as the requirements
+ *	Dependencies:
+ *	1) MAC should be init and started. see osi_start_mac()
  *
  *	Protection: None
  *
@@ -1830,8 +1861,10 @@ static int eqos_config_l2_da_perfect_inverse_match(void *base, unsigned int
  *	Algorithm:  This sequence is used to update IPv4 source/destination
  *	Address for L3 layer filtering
  *
- *	Dependencies: MAC IP should be out of reset
- *	and need to be initialized as the requirements
+ *	Dependencies:
+ *	1) MAC should be init and started. see osi_start_mac()
+ *	2) L3/L4 filtering should be enabled in MAC PFR register. See
+ *	osi_config_l3_l4_filter_enable()
  *
  *	Protection: None
  *
@@ -1880,8 +1913,10 @@ static int eqos_update_ip4_addr(struct osi_core_priv_data *osi_core,
  *	Algorithm:  This sequence is used to update IPv6 source/destination
  *	Address for L3 layer filtering
  *
- *	Dependencies: MAC IP should be out of reset
- *	and need to be initialized as the requirements
+ *	Dependencies:
+ *	1) MAC should be init and started. see osi_start_mac()
+ *	2) L3/L4 filtering should be enabled in MAC PFR register. See
+ *	osi_config_l3_l4_filter_enable()
  *
  *	Protection: None
  *
@@ -1940,9 +1975,11 @@ static int eqos_update_ip6_addr(struct osi_core_priv_data *osi_core,
  *	L4(TCP/UDP) layer filtering.
  *
  *	Dependencies:
- *	1) MAC IP should be out of reset and need to be initialized
- *	as the requirements
- *	2) DCS bits should be enabled in RXQ to DMA mapping register
+ *	1) MAC should be init and started. see osi_start_mac()
+ *	2) L3/L4 filtering should be enabled in MAC PFR register. See
+ *	osi_config_l3_l4_filter_enable()
+ *	3) osi_core->osd should be populated
+ *	4) DCS bits should be enabled in RXQ to DMA mapping register
  *
  *	Protection: None
  *
@@ -2040,9 +2077,11 @@ static inline unsigned int eqos_set_dcs(struct osi_core_priv_data *osi_core,
  *	for address matching.
  *
  *	Dependencies:
- *	1) MAC IP should be out of reset and need to be initialized
- *	as the requirements
- *	2) DCS bits should be enabled in RXQ to DMA map register
+ *	1) MAC should be init and started. see osi_start_mac()
+ *	2) L3/L4 filtering should be enabled in MAC PFR register. See
+ *	osi_config_l3_l4_filter_enable()
+ *	3) osi_core->osd should be populated
+ *	4) DCS bits should be enabled in RXQ to DMA map register
  *
  *	Protection: None
  *
@@ -2201,8 +2240,11 @@ static int eqos_config_l3_filters(struct osi_core_priv_data *osi_core,
  *	Algorithm: This sequence is used to configure L4(TCP/UDP) filters for
  *	SA and DA Port Number matching
  *
- *	Dependencies: MAC IP should be out of reset
- *	and need to be initialized as the requirements
+ *	Dependencies:
+ *	1) MAC should be init and started. see osi_start_mac()
+ *	2) L3/L4 filtering should be enabled in MAC PFR register. See
+ *	osi_config_l3_l4_filter_enable()
+ *	3) osi_core->osd should be populated
  *
  *	Protection: None
  *
@@ -2300,8 +2342,9 @@ static int eqos_config_l4_filters(struct osi_core_priv_data *osi_core,
  *	Algorithm: This sequence is used to enable/disable VLAN filtering and
  *	also selects VLAN filtering mode- perfect/hash
  *
- *	Dependencies: MAC IP should be out of reset
- *	and need to be initialized as the requirements
+ *	Dependencies:
+ *	1) MAC should be init and started. see osi_start_mac()
+ *	2) osi_core->osd should be populated
  *
  *	Protection: None
  *
@@ -2338,8 +2381,8 @@ static int eqos_config_vlan_filtering(struct osi_core_priv_data *osi_core,
  *
  *	Algorithm: update vid at VLAN tag register
  *
- *	Dependencies: MAC IP should be out of reset and need to be initialized
- *	as the requirements
+ *	Dependencies:
+ *	1) MAC should be init and started. see osi_start_mac()
  *
  *	Protection: None
  *
@@ -2366,7 +2409,8 @@ static inline int  eqos_update_vlan_id(void *base, unsigned int vid)
  *	Algorithm: Read TSINIT value from MAC TCR register until it is
  *	equal to zero.
  *
- *	Dependencies: None.
+ *	Dependencies:
+ *	1) MAC should be init and started. see osi_start_mac()
  *
  *	Protection: None.
  *
@@ -2408,7 +2452,8 @@ static inline int eqos_poll_for_tsinit_complete(void *addr,
  *	Algorithm: Updates system time (seconds and nano seconds)
  *	in hardware registers
  *
- *	Dependencies: None.
+ *	Dependencies:
+ *	1) MAC should be init and started. see osi_start_mac()
  *
  *	Protection: None.
  *
@@ -2453,7 +2498,8 @@ static int eqos_set_systime_to_mac(void *addr, unsigned int sec,
  *	Algorithm: Read TSADDREG value from MAC TCR register until it is
  *	equal to zero.
  *
- *	Dependencies: None.
+ *	Dependencies:
+ *	1) MAC should be init and started. see osi_start_mac()
  *
  *	Protection: None.
  *
@@ -2492,7 +2538,8 @@ static inline int eqos_poll_for_addend_complete(void *addr,
  *
  *	Algorithm: Updates the Addend value in HW register
  *
- *	Dependencies: None.
+ *	Dependencies:
+ *	1) MAC should be init and started. see osi_start_mac()
  *
  *	Protection: None.
  *
@@ -2531,7 +2578,8 @@ static int eqos_config_addend(void *addr, unsigned int addend)
  *	Algorithm: Read time stamp update value from TCR register until it is
  *	equal to zero.
  *
- *	Dependencies: None.
+ *	Dependencies:
+ *	1) MAC should be init and started. see osi_start_mac()
  *
  *	Protection: None.
  *
@@ -2573,7 +2621,9 @@ static inline int eqos_poll_for_update_ts_complete(void *addr,
  *
  *	Algorithm: Update the system time
  *
- *	Dependencies: None.
+ *	Dependencies:
+ *	1) MAC should be init and started. see osi_start_mac()
+ *	2) osi_core->ptp_config.one_nsec_accuracy need to be set to 1
  *
  *	Protection: None.
  *
@@ -2652,7 +2702,8 @@ static int eqos_adjust_systime(void *addr, unsigned int sec, unsigned int nsec,
  *
  *	Algorithm: Get current system time
  *
- *	Dependencies: None.
+ *	Dependencies:
+ *	1) MAC should be init and started. see osi_start_mac()
  *
  *	Protection: None.
  *
@@ -2700,7 +2751,8 @@ static unsigned long long eqos_get_systime_from_mac(void *addr)
  *
  *	Algorithm: Configure Time Stamp Register
  *
- *	Dependencies: None.
+ *	Dependencies:
+ *	1) MAC should be init and started. see osi_start_mac()
  *
  *	Protection: None.
  *
@@ -2774,7 +2826,8 @@ static void eqos_config_tscr(void *addr, unsigned int ptp_filter)
  *
  *	Algorithm: Configure Sub Second Increment Register
  *
- *	Dependencies: None.
+ *	Dependencies:
+ *	1) MAC should be init and started. see osi_start_mac()
  *
  *	Protection: None.
  *

@@ -203,7 +203,10 @@ static inline void get_rx_err_stats(struct osi_rx_desc *rx_desc,
  *	4) Re-allocate the receive buffers, populate Rx descriptor and
  *	handover to DMA.
  *
- *	Dependencies: None.
+ *	Dependencies:
+ *	1) MAC needs to be out of reset and proper clocks need to be configured.
+ *	2) DMA HW init need to be completed successfully, see osi_hw_dma_init
+ *	3) DMA need to be started, see osi_start_dma
  *
  *	Protection: None.
  *
@@ -374,7 +377,9 @@ static inline void get_tx_err_stats(struct osi_tx_desc *tx_desc,
  *	Algorithm: This function will be invoked by OSD layer to clear the
  *	tx packet error stats
  *
- *	Dependencies: None.
+ *	Dependencies:
+ *	1) MAC needs to be out of reset and proper clocks need to be configured.
+ *	2) DMA HW init need to be completed successfully, see osi_hw_dma_init
  *
  *	Protection: None
  *
@@ -402,7 +407,9 @@ void osi_clear_tx_pkt_err_stats(struct osi_dma_priv_data *osi_dma)
  *	Algorithm: This function will be invoked by OSD layer to clear the
  *	rx packet error stats
  *
- *	Dependencies: None.
+ *	Dependencies:
+ *	1) MAC needs to be out of reset and proper clocks need to be configured.
+ *	2) DMA HW init need to be completed successfully, see osi_hw_dma_init
  *
  *	Protection: None
  *
@@ -425,7 +432,11 @@ void osi_clear_rx_pkt_err_stats(struct osi_dma_priv_data *osi_dma)
  *	2) Invokes OSD layer to release DMA address and Tx buffer which are
  *	updated as part of transmit routine.
  *
- *	Dependencies: None.
+ *	Dependencies:
+ *	1) MAC needs to be out of reset and proper clocks need to be configured.
+ *	2) DMA HW init need to be completed successfully, see osi_hw_dma_init
+ *	3) DMA need to be started, see osi_start_dma
+ *
  *
  *	Protection: None
  *
@@ -642,8 +653,21 @@ static inline void fill_first_desc(struct osi_tx_pkt_cx *tx_pkt_cx,
  *	set OWN bit, Tx ring length and set starting address of Tx DMA channel.
  *	Tx ring base address in Tx DMA registers.
  *
- *	Dependencies: Transmit routine of OSD needs to map Tx buffer
- *	to dma mappable address and update in the software context descriptors.
+ *	Dependencies:
+ *	1) MAC needs to be out of reset and proper clocks need to be configured.
+ *	2) DMA HW init need to be completed successfully, see osi_hw_dma_init
+ *	3) DMA channel need to be started, see osi_start_dma
+ *	4) Need to set update tx_pkt_cx->flags accordingly as per the
+ *	requirements
+ *	#define OSI_PKT_CX_VLAN                 OSI_BIT(0)
+ *	#define OSI_PKT_CX_CSUM                 OSI_BIT(1)
+ *	#define OSI_PKT_CX_TSO                  OSI_BIT(2)
+ *	#define OSI_PKT_CX_PTP                  OSI_BIT(3)
+ *	5) tx_pkt_cx->desc_cnt need to be populated which holds the number
+ *	 of swcx descriptors allocated for that packet
+ *	6) tx_swcx structure need to be filled for per packet with the
+ *	 buffer len, DMA mapped address of buffer for each descriptor
+ *	 consumed by the packet
  *
  *	Protection: None.
  *

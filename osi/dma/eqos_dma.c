@@ -27,14 +27,20 @@
 struct osi_dma_chan_ops *eqos_get_dma_chan_ops(void);
 
 /**
- *	eqos_disable_chan_tx_intr - Disable Tx channel interrupts.
+ *	eqos_disable_chan_tx_intr - Disables DMA Tx channel interrupts.
  *	@addr: MAC base address.
  *	@chan: DMA Tx channel number.
  *
- *	Algorithm: Disables EQOS DMA tx channel interrupts.
+ *	Algorithm: Disables Tx interrupts at wrapper level.
  *
- *	Dependencies: None.
+ *	Dependencies:
+ *	1) MAC needs to be out of reset and proper clocks need to be configured.
+ *	2) DMA HW init need to be completed successfully, see osi_hw_dma_init
+ *	3) Mapping of physical IRQ line to DMA channel need to be maintained at
+ *	OSDependent layer and pass corresponding channel number.
+ *
  *	Protection: None.
+ *
  *	Return: None.
  */
 static void eqos_disable_chan_tx_intr(void *addr, unsigned int chan)
@@ -53,8 +59,14 @@ static void eqos_disable_chan_tx_intr(void *addr, unsigned int chan)
  *
  *	Algorithm: Enables EQOS DMA tx channel interrupts.
  *
- *	Dependencies: None.
+ *	Dependencies:
+ *	1) MAC needs to be out of reset and proper clocks need to be configured.
+ *	2) DMA HW init need to be completed successfully, see osi_hw_dma_init
+ *	3) Mapping of physical IRQ line to DMA channel need to be maintained at
+ *	OSDependent layer and pass corresponding channel number.
+ *
  *	Protection: None.
+ *
  *	Return: None.
  */
 static void eqos_enable_chan_tx_intr(void *addr, unsigned int chan)
@@ -73,7 +85,11 @@ static void eqos_enable_chan_tx_intr(void *addr, unsigned int chan)
  *
  *	Algorithm: Disables EQOS DMA rx channel interrupts.
  *
- *	Dependencies: None.
+ *	Dependencies:
+ *	1) MAC needs to be out of reset and proper clocks need to be configured.
+ *	2) DMA HW init need to be completed successfully, see osi_hw_dma_init
+ *	3) Mapping of physical IRQ line to DMA channel need to be maintained at
+ *	OSDependent layer and pass corresponding channel number.
  *	Protection: None.
  *	Return: None.
  */
@@ -93,8 +109,12 @@ static void eqos_disable_chan_rx_intr(void *addr, unsigned int chan)
  *
  *	Algorithm: Enables EQOS DMA Rx channel interrupts.
  *
- *	Dependencies: None.
+ *	Dependencies:
+ *	1) MAC needs to be out of reset and proper clocks need to be configured.
+ *	2) DMA HW init need to be completed successfully, see osi_hw_dma_init
+ *
  *	Protection: None.
+ *
  *	Return: None.
  */
 static void eqos_enable_chan_rx_intr(void *addr, unsigned int chan)
@@ -113,8 +133,14 @@ static void eqos_enable_chan_rx_intr(void *addr, unsigned int chan)
  *
  *	Algorithm: Clear DMA Tx interrupt source at wrapper and DMA level.
  *
- *	Dependencies: None.
+ *	Dependencies:
+ *	1) MAC needs to be out of reset and proper clocks need to be configured.
+ *	2) DMA HW init need to be completed successfully, see osi_hw_dma_init
+ *	3) Mapping of physical IRQ line to DMA channel need to be maintained at
+ *	OSDependent layer and pass corresponding channel number.
+ *
  *	Protection: None.
+ *
  *	Return: None.
  */
 static void eqos_clear_tx_intr(void *addr, unsigned int chan)
@@ -137,8 +163,14 @@ static void eqos_clear_tx_intr(void *addr, unsigned int chan)
  *
  *	Algorithm: Clear DMA Rx interrupt source at wrapper and DMA level.
  *
- *	Dependencies: None.
+ *	Dependencies:
+ *	1) MAC needs to be out of reset and proper clocks need to be configured.
+ *	2) DMA HW init need to be completed successfully, see osi_hw_dma_init
+ *	3) Mapping of physical IRQ line to DMA channel need to be maintained at
+ *	OSDependent layer and pass corresponding channel number.
+ *
  *	Protection: None.
+ *
  *	Return: None.
  */
 static void eqos_clear_rx_intr(void *addr, unsigned int chan)
@@ -163,7 +195,9 @@ static void eqos_clear_rx_intr(void *addr, unsigned int chan)
  *	Algorithm: Set DMA Tx channel ring length for specific channel.
  *
  *	Dependencies: None.
+ *
  *	Protection: None.
+ *
  *	Return: None.
  */
 static void eqos_set_tx_ring_len(void *addr, unsigned int chan,
@@ -181,7 +215,9 @@ static void eqos_set_tx_ring_len(void *addr, unsigned int chan,
  *	Algorithm: Sets DMA Tx ring base address for specific channel.
  *
  *	Dependencies: None.
+ *
  *	Protection: None.
+ *
  *	Return: None.
  */
 static void eqos_set_tx_ring_start_addr(void *addr, unsigned int chan,
@@ -199,8 +235,12 @@ static void eqos_set_tx_ring_start_addr(void *addr, unsigned int chan,
  *
  *	Algorithm: Updates DMA Tx ring tail pointer for specific channel.
  *
- *	Dependencies: None.
+ *	Dependencies:
+ *	1) MAC needs to be out of reset and proper clocks need to be configured.
+ *	2) DMA HW init need to be completed successfully, see osi_hw_dma_init
+ *
  *	Protection: None.
+ *
  *	Return: None.
  */
 static void eqos_update_tx_tailptr(void *addr, unsigned int chan,
@@ -218,7 +258,9 @@ static void eqos_update_tx_tailptr(void *addr, unsigned int chan,
  *	Algorithm: Sets DMA Rx channel ring length for specific DMA channel.
  *
  *	Dependencies: None.
+ *
  *	Protection: None.
+ *
  *	Return: None.
  */
 static void eqos_set_rx_ring_len(void *addr, unsigned int chan,
@@ -236,7 +278,9 @@ static void eqos_set_rx_ring_len(void *addr, unsigned int chan,
  *	Algorithm: Sets DMA Rx channel ring base address.
  *
  *	Dependencies: None.
+ *
  *	Protection: None.
+ *
  *	Return: None.
  */
 static void eqos_set_rx_ring_start_addr(void *addr, unsigned int chan,
@@ -254,8 +298,12 @@ static void eqos_set_rx_ring_start_addr(void *addr, unsigned int chan,
  *
  *	Algorithm: Updates DMA Rx channel tail pointer for specific channel.
  *
- *	Dependencies: None.
+ *	Dependencies:
+ *	1) MAC needs to be out of reset and proper clocks need to be configured.
+ *	2) DMA HW init need to be completed successfully, see osi_hw_dma_init
+ *
  *	Protection: None.
+ *
  *	Return: None.
  */
 static void eqos_update_rx_tailptr(void *addr, unsigned int chan,
@@ -271,8 +319,12 @@ static void eqos_update_rx_tailptr(void *addr, unsigned int chan,
  *
  *	Algorithm: Start Tx and Rx DMA for specific channel.
  *
- *	Dependencies: None.
+ *	Dependencies:
+ *	1) MAC needs to be out of reset and proper clocks need to be configured.
+ *	2) DMA HW init need to be completed successfully, see osi_hw_dma_init
+ *
  *	Protection: None.
+ *
  *	Return: None.
  */
 static void eqos_start_dma(void *addr, unsigned int chan)
@@ -297,8 +349,12 @@ static void eqos_start_dma(void *addr, unsigned int chan)
  *
  *	Algorithm: Start Tx and Rx DMA for specific channel.
  *
- *	Dependencies: None.
+ *	Dependencies:
+ *	1) MAC needs to be out of reset and proper clocks need to be configured.
+ *	2) DMA HW init need to be completed successfully, see osi_hw_dma_init
+ *
  *	Protection: None.
+ *
  *	Return: None.
  */
 static void eqos_stop_dma(void *addr, unsigned int chan)
@@ -437,7 +493,11 @@ static void eqos_init_dma_channel(struct osi_dma_priv_data *osi_dma)
  *
  *	Description: Sets the Rx buffer lenght based on the new MTU size set.
  *
- *	Dependencies: None.
+ *	Dependencies:
+ *	1) MAC needs to be out of reset and proper clocks need to be configured.
+ *	2) DMA HW init need to be completed successfully, see osi_hw_dma_init
+ *	3) osi_dma->mtu need to be filled with current MTU size <= 9K
+ *
  *
  *	Protection: None.
  *
