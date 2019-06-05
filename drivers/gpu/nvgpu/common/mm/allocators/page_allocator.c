@@ -61,6 +61,7 @@ static inline void add_slab_page_to_empty(struct page_alloc_slab *slab,
 {
 	BUG_ON(page_ptr->state != SP_NONE);
 	nvgpu_list_add(&page_ptr->list_entry, &slab->empty);
+	nvgpu_assert(slab->nr_empty < U32_MAX);
 	slab->nr_empty++;
 	page_ptr->state = SP_EMPTY;
 }
@@ -69,6 +70,7 @@ static inline void add_slab_page_to_partial(struct page_alloc_slab *slab,
 {
 	BUG_ON(page_ptr->state != SP_NONE);
 	nvgpu_list_add(&page_ptr->list_entry, &slab->partial);
+	nvgpu_assert(slab->nr_partial < U32_MAX);
 	slab->nr_partial++;
 	page_ptr->state = SP_PARTIAL;
 }
@@ -77,6 +79,7 @@ static inline void add_slab_page_to_full(struct page_alloc_slab *slab,
 {
 	BUG_ON(page_ptr->state != SP_NONE);
 	nvgpu_list_add(&page_ptr->list_entry, &slab->full);
+	nvgpu_assert(slab->nr_full < U32_MAX);
 	slab->nr_full++;
 	page_ptr->state = SP_FULL;
 }
@@ -85,6 +88,7 @@ static inline void del_slab_page_from_empty(struct page_alloc_slab *slab,
 					struct page_alloc_slab_page *page_ptr)
 {
 	nvgpu_list_del(&page_ptr->list_entry);
+	nvgpu_assert(slab->nr_empty > 0U);
 	slab->nr_empty--;
 	page_ptr->state = SP_NONE;
 }
@@ -92,6 +96,7 @@ static inline void del_slab_page_from_partial(struct page_alloc_slab *slab,
 					struct page_alloc_slab_page *page_ptr)
 {
 	nvgpu_list_del(&page_ptr->list_entry);
+	nvgpu_assert(slab->nr_partial > 0U);
 	slab->nr_partial--;
 	page_ptr->state = SP_NONE;
 }
@@ -99,6 +104,7 @@ static inline void del_slab_page_from_full(struct page_alloc_slab *slab,
 					struct page_alloc_slab_page *page_ptr)
 {
 	nvgpu_list_del(&page_ptr->list_entry);
+	nvgpu_assert(slab->nr_full > 0U);
 	slab->nr_full--;
 	page_ptr->state = SP_NONE;
 }
@@ -656,7 +662,7 @@ static struct nvgpu_page_alloc *nvgpu_alloc_pages(
 	struct nvgpu_page_alloc *alloc = NULL;
 	struct nvgpu_sgl *sgl;
 	u64 pages;
-	int i = 0;
+	u32 i = 0;
 
 	pages = ALIGN(len, a->page_size) >> a->page_shift;
 
@@ -671,6 +677,7 @@ static struct nvgpu_page_alloc *nvgpu_alloc_pages(
 		   pages << a->page_shift, pages, alloc->base);
 	sgl = alloc->sgt.sgl;
 	while (sgl != NULL) {
+		nvgpu_assert(i < U32_MAX);
 		palloc_dbg(a, "  Chunk %2d: 0x%010llx + 0x%llx",
 			   i++,
 			   nvgpu_sgt_get_phys(g, &alloc->sgt, sgl),
@@ -830,7 +837,7 @@ static u64 nvgpu_page_palloc_fixed(struct nvgpu_allocator *na,
 	struct nvgpu_sgl *sgl;
 	struct gk20a *g = a->owner->g;
 	u64 aligned_len, pages;
-	int i = 0;
+	u32 i = 0;
 
 	aligned_len = ALIGN(len, a->page_size);
 	pages = aligned_len >> a->page_shift;
@@ -850,6 +857,7 @@ static u64 nvgpu_page_palloc_fixed(struct nvgpu_allocator *na,
 		   alloc->base, aligned_len, pages);
 	sgl = alloc->sgt.sgl;
 	while (sgl != NULL) {
+		nvgpu_assert(i < U32_MAX);
 		palloc_dbg(a, "  Chunk %2d: 0x%010llx + 0x%llx",
 			   i++,
 			   nvgpu_sgt_get_phys(g, &alloc->sgt, sgl),

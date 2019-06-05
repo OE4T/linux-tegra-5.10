@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -56,9 +56,9 @@ struct page_alloc_slab {
 	struct nvgpu_list_node partial;
 	struct nvgpu_list_node full;
 
-	int nr_empty;
-	int nr_partial;
-	int nr_full;
+	u32 nr_empty;
+	u32 nr_partial;
+	u32 nr_full;
 
 	u32 slab_size;
 };
