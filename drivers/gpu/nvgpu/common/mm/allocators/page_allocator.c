@@ -27,6 +27,7 @@
 #include <nvgpu/bug.h>
 #include <nvgpu/log2.h>
 #include <nvgpu/sizes.h>
+#include <nvgpu/safe_ops.h>
 
 #include "buddy_allocator_priv.h"
 
@@ -49,7 +50,7 @@
  * VIDMEM page size is 4k.
  */
 #define PAGE_SIZE		0x1000U
-#define PAGE_ALIGN(addr)	((addr + (PAGE_SIZE - 1U)) &		\
+#define PAGE_ALIGN(addr)	(nvgpu_safe_add_u64(addr, (PAGE_SIZE - 1U)) & \
 				 ((typeof(addr)) ~(PAGE_SIZE - 1U)))
 
 /*
@@ -257,7 +258,8 @@ static void insert_page_alloc(struct nvgpu_page_allocator *a,
 			     struct nvgpu_page_alloc *alloc)
 {
 	alloc->tree_entry.key_start = alloc->base;
-	alloc->tree_entry.key_end = alloc->base + alloc->length;
+	alloc->tree_entry.key_end = nvgpu_safe_add_u64(alloc->base,
+							alloc->length);
 
 	nvgpu_rbtree_insert(&alloc->tree_entry, &a->allocs);
 }
@@ -309,6 +311,7 @@ static struct page_alloc_slab_page *alloc_slab_page(
 	slab_page->owner = slab;
 	slab_page->state = SP_NONE;
 
+	nvgpu_assert(a->pages_alloced < U64_MAX);
 	a->pages_alloced++;
 
 	palloc_dbg(a, "Allocated new slab page @ 0x%012llx size=%u",
@@ -328,6 +331,7 @@ static void free_slab_page(struct nvgpu_page_allocator *a,
 	       slab_page->bitmap != 0U);
 
 	nvgpu_free(&a->source_allocator, slab_page->page_addr);
+	nvgpu_assert(a->pages_freed < U64_MAX);
 	a->pages_freed++;
 
 	nvgpu_kmem_cache_free(a->slab_page_cache, slab_page);
@@ -386,6 +390,7 @@ static int do_slab_alloc(struct nvgpu_page_allocator *a,
 
 	nvgpu_assert(offs <= U64(U32_MAX));
 	nvgpu_bitmap_set(&slab_page->bitmap, U32(offs), 1U);
+	nvgpu_assert(slab_page->nr_objects_alloced < U32_MAX);
 	slab_page->nr_objects_alloced++;
 
 	if (slab_page->nr_objects_alloced < slab_page->nr_objects) {
@@ -403,7 +408,8 @@ static int do_slab_alloc(struct nvgpu_page_allocator *a,
 	alloc->slab_page = slab_page;
 	alloc->nr_chunks = 1;
 	alloc->length = slab_page->slab_size;
-	alloc->base = slab_page->page_addr + (offs * slab_page->slab_size);
+	alloc->base = nvgpu_safe_add_u64(slab_page->page_addr,
+			nvgpu_safe_mult_u64(offs, slab_page->slab_size));
 
 	sgl         = (struct nvgpu_mem_sgl *)alloc->sgt.sgl;
 	sgl->phys   = alloc->base;
@@ -455,6 +461,7 @@ static struct nvgpu_page_alloc *nvgpu_alloc_slab(
 
 	palloc_dbg(a, "Alloc 0x%04llx sr=%llu id=0x%010llx [slab]",
 		   len, slab_nr, alloc->base);
+	nvgpu_assert(a->nr_slab_allocs < U64_MAX);
 	a->nr_slab_allocs++;
 
 	return alloc;
@@ -477,9 +484,11 @@ static void nvgpu_free_slab(struct nvgpu_page_allocator *a,
 	enum slab_page_state new_state;
 	u32 offs;
 
-	offs = (u32)(alloc->base - slab_page->page_addr) / slab_page->slab_size;
+	offs = (u32)nvgpu_safe_sub_u64(alloc->base, slab_page->page_addr) /
+			slab_page->slab_size;
 	nvgpu_bitmap_clear(&slab_page->bitmap, offs, 1U);
 
+	nvgpu_assert(slab_page->nr_objects_alloced < U32_MAX);
 	slab_page->nr_objects_alloced--;
 
 	if (slab_page->nr_objects_alloced == 0U) {
@@ -515,6 +524,7 @@ static void nvgpu_free_slab(struct nvgpu_page_allocator *a,
 	 * Now handle the page_alloc.
 	 */
 	nvgpu_page_alloc_free_pages(a, alloc, false);
+	nvgpu_assert(a->nr_slab_frees < U64_MAX);
 	a->nr_slab_frees++;
 
 	return;
@@ -595,7 +605,7 @@ static struct nvgpu_page_alloc *do_nvgpu_alloc_pages(
 			goto fail_cleanup;
 		}
 
-		pages -= chunk_pages;
+		pages = nvgpu_safe_sub_u64(pages, chunk_pages);
 
 		sgl->phys   = chunk_addr;
 		sgl->dma    = chunk_addr;
@@ -708,6 +718,7 @@ static u64 nvgpu_page_palloc(struct nvgpu_allocator *na, u64 len)
 
 	insert_page_alloc(a, alloc);
 
+	nvgpu_assert(a->nr_allocs < U64_MAX);
 	a->nr_allocs++;
 	if (real_len > a->page_size / 2U) {
 		a->pages_alloced += alloc->length >> a->page_shift;
@@ -744,6 +755,7 @@ static void nvgpu_page_free(struct nvgpu_allocator *na, u64 base)
 		goto done;
 	}
 
+	nvgpu_assert(a->nr_frees < U64_MAX);
 	a->nr_frees++;
 
 	palloc_dbg(a, "Free  0x%llx id=0x%010llx",
@@ -755,7 +767,8 @@ static void nvgpu_page_free(struct nvgpu_allocator *na, u64 base)
 	if (alloc->slab_page != NULL) {
 		nvgpu_free_slab(a, alloc);
 	} else {
-		a->pages_freed += (alloc->length >> a->page_shift);
+		a->pages_freed = nvgpu_safe_add_u64(a->pages_freed,
+					alloc->length >> a->page_shift);
 		nvgpu_page_alloc_free_pages(a, alloc, true);
 	}
 
@@ -842,8 +855,9 @@ static u64 nvgpu_page_palloc_fixed(struct nvgpu_allocator *na,
 		sgl = nvgpu_sgt_get_next(&alloc->sgt, sgl);
 	}
 
+	nvgpu_assert(a->nr_fixed_allocs < U64_MAX);
 	a->nr_fixed_allocs++;
-	a->pages_alloced += pages;
+	a->pages_alloced = nvgpu_safe_add_u64(a->pages_alloced, pages);
 
 	if ((a->flags & GPU_ALLOC_NO_SCATTER_GATHER) != 0ULL) {
 		return alloc->base;
@@ -872,8 +886,10 @@ static void nvgpu_page_free_fixed(struct nvgpu_allocator *na,
 	palloc_dbg(a, "Free  [fixed] 0x%010llx + 0x%llx",
 		   alloc->base, alloc->length);
 
+	nvgpu_assert(a->nr_fixed_frees < U64_MAX);
 	a->nr_fixed_frees++;
-	a->pages_freed += (alloc->length >> a->page_shift);
+	a->pages_freed = nvgpu_safe_add_u64(a->pages_freed,
+					alloc->length >> a->page_shift);
 
 	/*
 	 * This works for the time being since the buddy allocator
