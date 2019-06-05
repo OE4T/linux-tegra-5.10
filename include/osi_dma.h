@@ -151,11 +151,11 @@ struct osi_tx_swcx {
 };
 
 /**
- *      struct osi_tx_desc - Transmit descriptor
- *      @tdes0: Transmit descriptor 0
- *      @tdes1: Transmit descriptor 1
- *      @tdes2: Transmit descriptor 2
- *      @tdes3: Transmit descriptor 3
+ *	struct osi_tx_desc - Transmit descriptor
+ *	@tdes0: Transmit descriptor 0
+ *	@tdes1: Transmit descriptor 1
+ *	@tdes2: Transmit descriptor 2
+ *	@tdes3: Transmit descriptor 3
  */
 struct osi_tx_desc {
 	unsigned int tdes0;
@@ -197,7 +197,7 @@ struct osi_txdone_pkt_cx {
 };
 
 /**
- *      struct osi_tx_ring - DMA channel Tx ring
+ *	struct osi_tx_ring - DMA channel Tx ring
  *	@tx_desc: Pointer to tx dma descriptor
  *	@tx_swcx: Pointer to tx dma descriptor software context information
  *	@tx_desc_phy_addr: Physical address of Tx descriptor.
@@ -304,7 +304,11 @@ struct osi_dma_priv_data {
  *
  *	Algorithm: Disables Tx interrupts at wrapper level.
  *
- *	Dependencies: osi_dma_chan_ops needs to be assigned based on MAC.
+ *	Dependencies:
+ *	1) MAC needs to be out of reset and proper clocks need to be configured.
+ *	2) DMA HW init need to be completed successfully, see osi_hw_dma_init
+ *	3) Mapping of physical IRQ line to DMA channel need to be maintained at
+ *	OSDependent layer and pass corresponding channel number.
  *
  *	Protection: None.
  *
@@ -320,7 +324,11 @@ void osi_disable_chan_tx_intr(struct osi_dma_priv_data *osi_dma,
  *
  *	Algorithm: Enables Tx interrupts at wrapper level.
  *
- *	Dependencies: osi_dma_chan_ops needs to be assigned based on MAC.
+ *	Dependencies:
+ *	1) MAC needs to be out of reset and proper clocks need to be configured.
+ *	2) DMA HW init need to be completed successfully, see osi_hw_dma_init
+ *	3) Mapping of physical IRQ line to DMA channel need to be maintained at
+ *	OSDependent layer and pass corresponding channel number.
  *
  *	Protection: None.
  *
@@ -334,9 +342,13 @@ void osi_enable_chan_tx_intr(struct osi_dma_priv_data *osi_dma,
  *	@osi_dma: DMA private data.
  *	@chan: DMA rx channel number.
  *
- *	Algorithm: Disables Tx interrupts at wrapper level.
+ *	Algorithm: Disables Rx interrupts at wrapper level.
  *
- *	Dependencies: osi_dma_chan_ops needs to be assigned based on MAC.
+ *	Dependencies:
+ *	1) MAC needs to be out of reset and proper clocks need to be configured.
+ *	2) DMA HW init need to be completed successfully, see osi_hw_dma_init
+ *	3) Mapping of physical IRQ line to DMA channel need to be maintained at
+ *	OSDependent layer and pass corresponding channel number.
  *
  *	Protection: None.
  *
@@ -350,9 +362,13 @@ void osi_disable_chan_rx_intr(struct osi_dma_priv_data *osi_dma,
  *	@osi_dma: DMA private data.
  *	@chan: DMA rx channel number.
  *
- *	Algorithm: Enables Tx interrupts at wrapper level.
+ *	Algorithm: Enables Rx interrupts at wrapper level.
  *
- *	Dependencies: osi_dma_chan_ops needs to be assigned based on MAC.
+ *	Dependencies:
+ *	1) MAC needs to be out of reset and proper clocks need to be configured.
+ *	2) DMA HW init need to be completed successfully, see osi_hw_dma_init
+ *	3) Mapping of physical IRQ line to DMA channel need to be maintained at
+ *	OSDependent layer and pass corresponding channel number.
  *
  *	Protection: None.
  *
@@ -368,7 +384,9 @@ void osi_enable_chan_rx_intr(struct osi_dma_priv_data *osi_dma,
  *
  *	Algorithm: Clear Tx interrupt source at wrapper level and DMA level.
  *
- *	Dependencies: osi_dma_chan_ops needs to be assigned based on MAC.
+ *	Dependencies:
+ *	1) MAC needs to be out of reset and proper clocks need to be configured.
+ *	2) DMA HW init need to be completed successfully, see osi_hw_dma_init
  *
  *	Protection: None.
  *
@@ -384,7 +402,11 @@ void osi_clear_tx_intr(struct osi_dma_priv_data *osi_dma,
  *
  *	Algorithm: Clear Rx interrupt source at wrapper level and DMA level.
  *
- *	Dependencies: osi_dma_chan_ops needs to be assigned based on MAC.
+ *	Dependencies:
+ *	1) MAC needs to be out of reset and proper clocks need to be configured.
+ *	2) DMA HW init need to be completed successfully, see osi_hw_dma_init
+ *	3) Mapping of physical IRQ line to DMA channel need to be maintained at
+ *	OSDependent layer and pass corresponding channel number.
  *
  *	Protection: None.
  *
@@ -399,8 +421,13 @@ void osi_clear_rx_intr(struct osi_dma_priv_data *osi_dma,
  *	@chan: DMA Tx/Rx channel number
  *
  *	Algorimthm: Start the DMA for specific MAC
- *	Dependencies: None
+ *
+ *	Dependencies:
+ *	1) MAC needs to be out of reset and proper clocks need to be configured.
+ *	2) DMA HW init need to be completed successfully, see osi_hw_dma_init
+ *
  *	Protection: None
+ *
  *	Return: None
  */
 void osi_start_dma(struct osi_dma_priv_data *osi_dma,
@@ -412,7 +439,11 @@ void osi_start_dma(struct osi_dma_priv_data *osi_dma,
  *	@chan: DMA Tx/Rx channel number
  *
  *	Algorimthm: Stop the DMA for specific MAC
- *	Dependencies: None
+ *
+ *	Dependencies:
+ *	1) MAC needs to be out of reset and proper clocks need to be configured.
+ *	2) DMA HW init need to be completed successfully, see osi_hw_dma_init
+ *
  *	Protection: None
  *	Return: None
  */
@@ -420,17 +451,17 @@ void osi_stop_dma(struct osi_dma_priv_data *osi_dma,
 		  unsigned int chan);
 
 /**
- *      osi_get_refill_rx_desc_cnt - Rx descriptors count that needs to refill.
- *      @rx_ring: DMA channel Rx ring.
+ *	osi_get_refill_rx_desc_cnt - Rx descriptors count that needs to refill.
+ *	@rx_ring: DMA channel Rx ring.
  *
- *      Algorithm: subtract current index with fill (need to cleanup)
- *      to get Rx descriptors count that needs to refill.
+ *	Algorithm: subtract current index with fill (need to cleanup)
+ *	to get Rx descriptors count that needs to refill.
  *
- *      Dependencies: None.
+ *	Dependencies: None.
  *
- *      Protection: None.
+ *	Protection: None.
  *
- *      Return: Number of available free descriptors.
+ *	Return: Number of available free descriptors.
  */
 unsigned int osi_get_refill_rx_desc_cnt(struct osi_rx_ring *rx_ring);
 
@@ -442,7 +473,10 @@ unsigned int osi_get_refill_rx_desc_cnt(struct osi_rx_ring *rx_ring);
  *
  *	Algorithm: Initialise a Rx DMA descriptor.
  *
- *	Dependencies: None.
+ *	Dependencies:
+ *	1) MAC needs to be out of reset and proper clocks need to be configured.
+ *	2) rx_swcx->buf_phy_addr need to be filled with DMA mapped address
+ *	2) DMA HW init need to be completed successfully, see osi_hw_dma_init
  *
  *	Protection: None.
  *
@@ -460,7 +494,9 @@ void osi_rx_dma_desc_init(struct osi_rx_swcx *rx_swcx,
  *
  *	Algorithm: Updates DMA Rx ring tail pointer.
  *
- *	Dependencies: None.
+ *	Dependencies:
+ *	1) MAC needs to be out of reset and proper clocks need to be configured.
+ *	2) DMA HW init need to be completed successfully, see osi_hw_dma_init
  *
  *	Protection: None.
  *
@@ -476,7 +512,10 @@ void osi_update_rx_tailptr(struct osi_dma_priv_data *osi_dma,
  *
  *	Algorithm: Updates Rx buffer length.
  *
- *	Dependencies: None.
+ *	Dependencies:
+ *	1) MAC needs to be out of reset and proper clocks need to be configured.
+ *	2) DMA HW init need to be completed successfully, see osi_hw_dma_init
+ *	3) osi_dma->mtu need to be filled with current MTU size <= 9K
  *
  *	Protection: None.
  *
@@ -484,14 +523,181 @@ void osi_update_rx_tailptr(struct osi_dma_priv_data *osi_dma,
  */
 void osi_set_rx_buf_len(struct osi_dma_priv_data *osi_dma);
 
+/**
+ *	osi_hw_transmit - Initialize Tx DMA descriptors for a channel
+ *	@osi_dma: DMA private data.
+ *	@chan: DMA Tx channel number.
+ *
+ *	Algorithm: Initialize Transmit descriptors with DMA mappabled buffers,
+ *	set OWN bit, Tx ring length and set starting address of Tx DMA channel.
+ *	Tx ring base address in Tx DMA registers.
+ *
+ *	Dependencies:
+ *	1) MAC needs to be out of reset and proper clocks need to be configured.
+ *	2) DMA HW init need to be completed successfully, see osi_hw_dma_init
+ *	3) DMA channel need to be started, see osi_start_dma
+ *	4) Need to set update tx_pkt_cx->flags accordingly as per the
+ *	requirements
+ *	#define OSI_PKT_CX_VLAN                 OSI_BIT(0)
+ *	#define OSI_PKT_CX_CSUM                 OSI_BIT(1)
+ *	#define OSI_PKT_CX_TSO                  OSI_BIT(2)
+ *	#define OSI_PKT_CX_PTP                  OSI_BIT(3)
+ *	5) tx_pkt_cx->desc_cnt need to be populated which holds the number
+ *	of swcx descriptors allocated for that packet
+ *	6) tx_swcx structure need to be filled for per packet with the
+ *	buffer len, DMA mapped address of buffer for each descriptor
+ *	consumed by the packet
+ *
+ *	Protection: None.
+ *
+ *	Return: None.
+ */
 void osi_hw_transmit(struct osi_dma_priv_data *osi, unsigned int chan);
+
+/**
+ *	osi_process_tx_completions - Process Tx complete on DMA channel ring.
+ *	@osi: OSI private data structure.
+ *	@chan: Channel number on which Tx complete need to be done.
+ *
+ *	Algorithm: This function will be invoked by OSD layer to process Tx
+ *	complete interrupt.
+ *	1) First checks whether descriptor owned by DMA or not.
+ *	2) Invokes OSD layer to release DMA address and Tx buffer which are
+ *	updated as part of transmit routine.
+ *
+ *	Dependencies:
+ *	1) MAC needs to be out of reset and proper clocks need to be configured.
+ *	2) DMA HW init need to be completed successfully, see osi_hw_dma_init
+ *	3) DMA need to be started, see osi_start_dma
+ *
+ *	Protection: None
+ *
+ *	Return: Number of decriptors (buffers) proccessed.
+ */
 int osi_process_tx_completions(struct osi_dma_priv_data *osi,
 			       unsigned int chan);
+
+/**
+ *	osi_process_rx_completions - Read data from receive channel descriptors
+ *	@osi: OSI private data structure.
+ *	@chan: Rx DMA channel number
+ *	@budget: Threshould for reading the packets at a time.
+ *
+ *	Algorimthm: This routine will be invoked by OSD layer to get the
+ *	data from Rx descriptors and deliver the packet to the stack.
+ *	1) Checks descriptor owned by DMA or not.
+ *	2) Get the length from Rx descriptor
+ *	3) Invokes OSD layer to deliver the packet to network stack.
+ *	4) Re-allocate the receive buffers, populate Rx descriptor and
+ *	handover to DMA.
+ *
+ *	Dependencies:
+ *	1) MAC needs to be out of reset and proper clocks need to be configured.
+ *	2) DMA HW init need to be completed successfully, see osi_hw_dma_init
+ *	3) DMA need to be started, see osi_start_dma
+ *
+ *	Protection: None.
+ *
+ *	Return: None.
+ */
 int osi_process_rx_completions(struct osi_dma_priv_data *osi,
 			       unsigned int chan, int budget);
+
+/**
+ *	osi_hw_dma_init - Initialize DMA
+ *	@osi_dma: DMA private data.
+ *
+ *	Algorithm: Takes care of initializing the tx, rx ring and descriptors
+ *	based on the number of channels selected.
+ *
+ *	Dependencies:
+ *	1) Allocate memory for osi_dma
+ *	2) MAC needs to be out of reset and proper clocks need to be configured.
+ *	3) Numer of dma channels osi_dma->num_dma_chans
+ *	4) channel list osi_dma->dma_chan
+ *	5) base address osi_dma->base
+ *	6) allocate tx ring osi_dma->tx_ring[chan] for each channel
+ *	based on TX_DESC_CNT (256)
+ *	7) allocate tx descriptors osi_dma->tx_ring[chan]->tx_desc for all
+ *	channels and dma map it.
+ *	8) allocate tx sw descriptors osi_dma->tx_ring[chan]->tx_swcx for all
+ *	channels
+ *	9) allocate rx ring osi_dma->rx_ring[chan] for each channel
+ *	based on RX_DESC_CNT (256)
+ *	10) allocate rx descriptors osi_dma->rx_ring[chan]->rx_desc for all
+ *	channels and dma map it.
+ *	11) allocate rx sw descriptors osi_dma->rx_ring[chan]->rx_swcx for all
+ *	channels
+ *	12) osi_dma->use_riwt  ==> OSI_DISABLE/OSI_ENABLE
+ *	13) osi_dma->rx_riwt  ===> Actual value read from DT
+ *
+ *	Protection: None.
+ *
+ *	Return: None.
+ */
 int osi_hw_dma_init(struct osi_dma_priv_data *osi_dma);
+
+/**
+ *	osi_hw_dma_deinit - Deinitialize DMA
+ *	@osi_dma: DMA private data.
+ *
+ *	Algorithm: Takes care of stopping the MAC
+ *
+ *	Dependencies:
+ *	1) MAC needs to be out of reset and proper clocks need to be configured.
+ *	2) DMA HW init need to be completed successfully, see osi_hw_dma_init
+ *
+ *	Protection: None.
+ *
+ *	Return: None.
+ */
 void osi_hw_dma_deinit(struct osi_dma_priv_data *osi_dma);
+
+/**
+ *	osi_init_dma_ops - Initialize DMA operations
+ *	@osi_dma: DMA private data.
+ *
+ *	Algorithm: Takes care of initializing the DMA operations
+ *
+ *	Dependencies: None.
+ *
+ *	Protection: None.
+ *
+ *	Return: None.
+ */
 void osi_init_dma_ops(struct osi_dma_priv_data *osi_dma);
+
+/**
+ *	osi_clear_tx_pkt_err_stats - Clear tx packet error stats.
+ *	@osi: OSI dma private data structure.
+ *
+ *	Algorithm: This function will be invoked by OSD layer to clear the
+ *	tx stats mentioned in osi_dma->pkt_err_stats structure
+
+ *	Dependencies:
+ *	1) MAC needs to be out of reset and proper clocks need to be configured.
+ *	2) DMA HW init need to be completed successfully, see osi_hw_dma_init
+ *
+ *	Protection: None
+ *
+ *	Return: None
+ */
 void osi_clear_tx_pkt_err_stats(struct osi_dma_priv_data *osi_dma);
+
+/**
+ *	osi_clear_rx_pkt_err_stats - Clear rx packet error stats.
+ *	@osi: OSI dma private data structure.
+ *
+ *	Algorithm: This function will be invoked by OSD layer to clear the
+ *	rx_crc_error mentioned in osi_dma->pkt_err_stats structure.
+ *
+ *	Dependencies:
+ *	1) MAC needs to be out of reset and proper clocks need to be configured.
+ *	2) DMA HW init need to be completed successfully, see osi_hw_dma_init
+ *
+ *	Protection: None
+ *
+ *	Return: None
+ */
 void osi_clear_rx_pkt_err_stats(struct osi_dma_priv_data *osi_dma);
 #endif /* OSI_DMA_H */

@@ -36,8 +36,9 @@
  *	Algorithm: Read the registers, check for boundary, if more, reset
  *	counters else return same to caller.
  *
- *	Dependencies: MAC IP should be out of reset and need to be initialized
- *	as per the requirements
+ *	Dependencies:
+ *	1) MAC should be init and started. see osi_start_mac()
+ *	2) osi_core->osd should be populated
  *
  *	Protection: None
  *
@@ -71,8 +72,9 @@ static inline unsigned long update_mmc_val(struct osi_core_priv_data *osi_core,
  *
  *	Algorithm: reset HW counter and structure variable value.
  *
- *	Dependencies: MAC IP should be out of reset and need to be initialized
- *	as per the requirements.
+ *	Dependencies:
+ *	1) MAC should be init and started. see osi_start_mac()
+ *	2) osi_core->osd should be populated
  *
  *	Protection: None
  *
@@ -97,8 +99,9 @@ void eqos_reset_mmc(struct osi_core_priv_data *osi_core)
  *	Algorithm: Pass register offset and old value to helper function and
  *	update structure.
  *
- *	Dependencies: MAC IP should be out of reset and need to be initialized
- *	as per the requirements
+ *	Dependencies:
+ *	1) MAC should be init and started. see osi_start_mac()
+ *	2) osi_core->osd should be populated
  *
  *	Protection: None
  *

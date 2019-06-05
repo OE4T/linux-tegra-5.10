@@ -324,7 +324,8 @@ struct osi_core_priv_data {
  *	Algorithm: Invokes EQOS routine to check for SWR (software reset)
  *	bit in DMA Basic mooe register to make sure IP reset was successful.
  *
- *	Dependencies: MAC needs to be reset with Soft or hardreset.
+ *	Dependencies:
+ *	1) MAC needs to be out of reset and proper clock configured.
  *
  *	Protection: None
  *
@@ -334,139 +335,156 @@ struct osi_core_priv_data {
 int osi_poll_for_swr(struct osi_core_priv_data *osi_core);
 
 /**
- *      osi_set_mdc_clk_rate - Derive MDC clock based on provided AXI_CBB clk.
- *      @osi: OSI core private data structure.
- *      @csr_clk_rate: CSR (AXI CBB) clock rate.
+ *	osi_set_mdc_clk_rate - Derive MDC clock based on provided AXI_CBB clk.
+ *	@osi: OSI core private data structure.
+ *	@csr_clk_rate: CSR (AXI CBB) clock rate.
  *
- *      Algorithm: MDC clock rate will be populated in OSI core private data
+ *	Algorithm: MDC clock rate will be populated in OSI core private data
  *	structure based on AXI_CBB clock rate.
  *
- *      Dependencies: OSD layer needs get the AXI CBB clock rate with OSD clock
- *      API (ex - clk_get_rate())
+ *	Dependencies:
+ *	1) OSD layer needs get the AXI CBB clock rate with OSD clock API
+ *	(ex - clk_get_rate())
  *
- *      Return: None
+ *	Return: None
  */
 void osi_set_mdc_clk_rate(struct osi_core_priv_data *osi_core,
 			  unsigned long csr_clk_rate);
 
 /**
- *      osi_hw_core_init - EQOS MAC, MTL and common DMA initialization.
- *      @osi: OSI core private data structure.
+ *	osi_hw_core_init - EQOS MAC, MTL and common DMA initialization.
+ *	@osi: OSI core private data structure.
  *
- *      Algorithm: Invokes EQOS MAC, MTL and common DMA register init code.
+ *	Algorithm: Invokes EQOS MAC, MTL and common DMA register init code.
  *
- *      Dependencies: MAC has to be out of reset.
+ *	Dependencies:
+ *	1) MAC should be out of reset. See osi_poll_for_swr() for details.
+ *	2) osi_core->base needs to be filled based on ioremap.
+ *	3) osi_core->num_mtl_queues needs to be filled.
+ *	4) osi_core->mtl_queues[qinx] need to be filled.
  *
- *      Protection: None
+ *	Protection: None
  *
- *      Return: 0 - success, -1 - failure
+ *	Return: 0 - success, -1 - failure
  */
 int osi_hw_core_init(struct osi_core_priv_data *osi_core,
 		     unsigned int tx_fifo_size,
 		     unsigned int rx_fifo_size);
 
 /**
- *      osi_start_mac - Start MAC Tx/Rx engine
- *      @osi_core: OSI core private data.
+ *	osi_start_mac - Start MAC Tx/Rx engine
+ *	@osi_core: OSI core private data.
  *
- *      Algorimthm: Enable MAC Tx and Rx engine.
- *      Dependencies: None
- *      Protection: None
- *      Return: None
+ *	Algorimthm: Enable MAC Tx and Rx engine.
+ *
+ *	Dependencies:
+ *	1) MAC init should be complete. See osi_hw_core_init() and
+ *	osi_hw_dma_init()
+ *
+ *	Protection: None
+ *
+ *	Return: None
  */
 void osi_start_mac(struct osi_core_priv_data *osi_core);
 
 /**
- *      osi_stop_mac - Stop MAC Tx/Rx engine
- *      @osi_core: OSI core private data.
+ *	osi_stop_mac - Stop MAC Tx/Rx engine
+ *	@osi_core: OSI core private data.
  *
- *      Algorimthm: Stop MAC Tx and Rx engine
- *      Dependencies: None
- *      Protection: None
- *      Return: None
+ *	Algorimthm: Stop MAC Tx and Rx engine
+ *
+ *	Dependencies:
+ *	1) MAC DMA deinit should be complete. See osi_hw_dma_deinit()
+ *
+ *	Protection: None
+ *
+ *	Return: None
  */
 void osi_stop_mac(struct osi_core_priv_data *osi_core);
 
 /**
- *      osi_common_isr - Common ISR.
- *      @osi_core: OSI core private data structure.
+ *	osi_common_isr - Common ISR.
+ *	@osi_core: OSI core private data structure.
  *
- *      Algorithm: Takes care of handling the
- *      common interrupts accordingly as per the
- *      MAC IP
+ *	Algorithm: Takes care of handling the
+ *	common interrupts accordingly as per the
+ *	MAC IP
  *
- *      Dependencies: MAC IP should be out of reset
- *      and need to be initialized as the requirements
+ *	Dependencies:
+ *	1) MAC should be init and started. see osi_start_mac()
  *
- *      Protection: None
+ *	Protection: None
  *
- *      Return: 0 - success, -1 - failure
+ *	Return: 0 - success, -1 - failure
  */
 void osi_common_isr(struct osi_core_priv_data *osi_core);
 
 /**
- *      osi_set_mode - Set FD/HD mode.
- *      @osi: OSI private data structure.
- *      @mode: Operating mode.
+ *	osi_set_mode - Set FD/HD mode.
+ *	@osi: OSI private data structure.
+ *	@mode: Operating mode.
  *
- *      Algorithm: Takes care of  setting HD or FD mode
- *      accordingly as per the MAC IP.
+ *	Algorithm: Takes care of  setting HD or FD mode
+ *	accordingly as per the MAC IP.
  *
- *      Dependencies: MAC IP should be out of reset
- *      and need to be initialized as the requirements
+ *	Dependencies:
+ *	1) MAC should be init and started. see osi_start_mac()
  *
- *      Protection: None
+ *	Protection: None
  *
- *      Return: NONE
+ *	Return: NONE
  */
 void osi_set_mode(struct osi_core_priv_data *osi_core, int mode);
 
 /**
- *      osi_set_speed - Set operating speed.
- *      @osi: OSI private data structure.
- *      @speed: Operating speed.
+ *	osi_set_speed - Set operating speed.
+ *	@osi: OSI private data structure.
+ *	@speed: Operating speed.
  *
- *      Algorithm: Takes care of  setting the operating
- *      speed accordingly as per the MAC IP.
+ *	Algorithm: Takes care of  setting the operating
+ *	speed accordingly as per the MAC IP.
  *
- *      Dependencies: MAC IP should be out of reset
- *      and need to be initialized as the requirements
+ *	Dependencies:
+ *	1) MAC should be init and started. see osi_start_mac()
  *
- *      Protection: None
+ *	Protection: None
  *
- *      Return: NONE
+ *	Return: NONE
  */
 void osi_set_speed(struct osi_core_priv_data *osi_core, int speed);
 
 /**
- *      osi_pad_calibrate - PAD calibration
- *      @osi: OSI core private data structure.
+ *	osi_pad_calibrate - PAD calibration
+ *	@osi: OSI core private data structure.
  *
- *      Algorithm: Takes care of  doing the pad calibration
- *      accordingly as per the MAC IP.
+ *	Algorithm: Takes care of  doing the pad calibration
+ *	accordingly as per the MAC IP.
  *
- *      Dependencies: RGMII and MDIO interface needs to be IDLE
- *      before performing PAD calibration.
+ *	Dependencies:
+ *	1) MAC should out of reset and clocks enabled.
+ *	2) RGMII and MDIO interface needs to be IDLE before performing PAD
+ *	calibration.
  *
- *      Protection: None
+ *	Protection: None
  *
- *      Return: 0 - success, -1 - failure
+ *	Return: 0 - success, -1 - failure
  */
 int osi_pad_calibrate(struct osi_core_priv_data *osi_core);
 
 /**
- *      osi_flush_mtl_tx_queue - Flushing a MTL Tx Queue.
- *      @osi_core: OSI private data structure.
- *      @qinx: MTL queue index.
+ *	osi_flush_mtl_tx_queue - Flushing a MTL Tx Queue.
+ *	@osi_core: OSI private data structure.
+ *	@qinx: MTL queue index.
  *
- *      Algorithm: Invokes EQOS flush Tx queue routine.
+ *	Algorithm: Invokes EQOS flush Tx queue routine.
  *
- *      Dependencies: MAC IP should be out of reset
- *      and need to be initialized as the requirements
+ *	Dependencies:
+ *	1) MAC should out of reset and clocks enabled.
+ *	2) hw core initialized. see osi_hw_core_init().
  *
- *      Protection: None
+ *	Protection: None
  *
- *      Return: 0 - success, -1 - failure.
+ *	Return: 0 - success, -1 - failure.
  */
 int osi_flush_mtl_tx_queue(struct osi_core_priv_data *osi_core,
 			   unsigned int qinx);
@@ -478,12 +496,12 @@ int osi_flush_mtl_tx_queue(struct osi_core_priv_data *osi_core,
  *
  *	Algorithm: Configure the MAC to support the loopback.
  *
- *	Dependencies: MAC IP should be out of reset
- *	and need to be initialized as the requirements
+ *	Dependencies:
+ *	1) MAC should be init and started. see osi_start_mac()
  *
  *	Protection: None
  *
- *      Return: 0 - success, -1 - failure.
+ *	Return: 0 - success, -1 - failure.
  */
 int osi_config_mac_loopback(struct osi_core_priv_data *osi_core,
 			    unsigned int lb_mode);
@@ -496,8 +514,9 @@ int osi_config_mac_loopback(struct osi_core_priv_data *osi_core,
  *	Algorithm: Set AVB algo and  populated parameter from osi_core_avb
  *	structure for TC/TQ
  *
- *      Dependencies: MAC IP should be out of reset and need to be initialized
- *	as the requirements
+ *	Dependencies:
+ *	1) MAC should be init and started. see osi_start_mac()
+ *	2) osi_core->osd should be populated.
  *
  *	Return: Success = 0; failure = -1;
  */
@@ -511,8 +530,9 @@ int osi_set_avb(struct osi_core_priv_data *osi_core,
  *	Algorithm: get AVB algo and  populated parameter from osi_core_avb
  *	structure for TC/TQ
  *
- *      Dependencies: MAC IP should be out of reset and need to be initialized
- *	as the requirements
+ *	Dependencies:
+ *	1) MAC should be init and started. see osi_start_mac()
+ *	2) osi_core->osd should be populated.
  *
  *	Return: Success = 0; failure = -1;
  */
@@ -527,12 +547,12 @@ int osi_get_avb(struct osi_core_priv_data *osi_core,
  *	Algorithm: Configure MAC to enable/disable Tx status error
  *	reporting.
  *
- *	Dependencies: MAC IP should be out of reset and need to be initialized
- *	as per the requirements
+ *	Dependencies:
+ *	1) MAC should be init and started. see osi_start_mac()
  *
  *	Protection: None
  *
- *      Return: 0 - success, -1 - failure.
+ *	Return: 0 - success, -1 - failure.
  */
 int osi_configure_txstatus(struct osi_core_priv_data *osi_core,
 			   unsigned int tx_status);
@@ -545,12 +565,12 @@ int osi_configure_txstatus(struct osi_core_priv_data *osi_core,
  *
  *	Algorithm: Configure MAC to enable/disable forwarding of error packets.
  *
- *	Dependencies: MAC IP should be out of reset and need to be initialized
- *	as per the requirements
+ *	Dependencies:
+ *	1) MAC should be init and started. see osi_start_mac()
  *
  *	Protection: None
  *
- *      Return: 0 - success, -1 - failure.
+ *	Return: 0 - success, -1 - failure.
  */
 int osi_config_fw_err_pkts(struct osi_core_priv_data *osi_core,
 			   unsigned int qinx, unsigned int fw_err);
@@ -564,12 +584,12 @@ int osi_config_fw_err_pkts(struct osi_core_priv_data *osi_core,
  *	field in the received packets. When this bit is reset, the MAC receiver
  *	always checks the CRC field in the received packets.
  *
- *	Dependencies: MAC IP should be out of reset and need to be initialized
- *	as per the requirements
+ *	Dependencies:
+ *	1) MAC should be init and started. see osi_start_mac()
  *
  *	Protection: None
  *
- *      Return: 0 - success, -1 - failure.
+ *	Return: 0 - success, -1 - failure.
  */
 int osi_config_rx_crc_check(struct osi_core_priv_data *osi_core,
 			    unsigned int crc_chk);
@@ -583,12 +603,12 @@ int osi_config_rx_crc_check(struct osi_core_priv_data *osi_core,
  *	flw_ctrl BIT0 is for tx flow ctrl enable/disable
  *	flw_ctrl BIT1 is for rx flow ctrl enable/disable
  *
- *	Dependencies: MAC IP should be out of reset and need to be initialized
- *	as per the requirements
+ *	Dependencies:
+ *	1) MAC should be init and started. see osi_start_mac()
  *
  *	Protection: None
  *
- *      Return: 0 - success, -1 - failure.
+ *	Return: 0 - success, -1 - failure.
  */
 int osi_configure_flow_control(struct osi_core_priv_data *osi_core,
 			       unsigned int flw_ctrl);
@@ -601,9 +621,9 @@ int osi_configure_flow_control(struct osi_core_priv_data *osi_core,
  *
  *	Algorithm: Invokes EQOS config ARP offload routine.
  *
- *	Dependencies: MAC IP should be out of reset and initialized.
- *	IP address passed to this function is not validated.
- *	Caller has to perform IP address validation.
+ *	Dependencies:
+ *	1) MAC should be init and started. see osi_start_mac()
+ *	2) Valid 4 byte IP address as argument @ip_addr
  *
  *	Protection: None
  *
@@ -620,7 +640,8 @@ int osi_config_arp_offload(struct osi_core_priv_data *osi_core,
  *
  *	Algorithm: Invokes EQOS config RX checksum offload routine.
  *
- *	Dependencies: MAC IP should be out of reset and initialized.
+ *	Dependencies:
+ *	1) MAC should be init and started. see osi_start_mac()
  *
  *	Protection: None
  *
@@ -638,8 +659,10 @@ int osi_config_rxcsum_offload(struct osi_core_priv_data *osi_core,
  *	processing modes like promiscuous, multicast, unicast,
  *	hash unicast/multicast.
  *
- *	Dependencies: MAC IP should be out of reset
- *	and need to be initialized as the requirements
+ *	Dependencies:
+ *	1) MAC should be initialized and started. see osi_start_mac()
+ *	2) MAC addresses should be configured in HW registers. see
+ *	osi_update_mac_addr_low_high_reg().
  *
  *	Protection: None
  *
@@ -670,8 +693,9 @@ int osi_config_mac_pkt_filter_reg(struct osi_core_priv_data *osi_core,
  *	dma_chan as well as DCS bit enabled in RXQ to DMA mapping register
  *	performed before updating DCS bits.
  *
- *	Dependencies: MAC IP should be out of reset
- *	and need to be initialized as the requirements
+ *	Dependencies:
+ *	1) MAC should be initialized and stated. see osi_start_mac()
+ *	2) osi_core->osd should be populated.
  *
  *	Protection: None
  *
@@ -694,8 +718,8 @@ int osi_update_mac_addr_low_high_reg(struct osi_core_priv_data *osi_core,
  *
  *	Algorithm: This routine to enable/disable L4/l4 filter
  *
- *	Dependencies: MAC IP should be out of reset
- *	and need to be initialized as the requirements
+ *	Dependencies:
+ *	1) MAC should be init and started. see osi_start_mac()
  *
  *	Protection: None
  *
@@ -722,9 +746,11 @@ int osi_config_l3_l4_filter_enable(struct osi_core_priv_data *osi_core,
  *	for address matching.
  *
  *	Dependencies:
- *	1) MAC IP should be out of reset and need to be initialized
- *	as the requirements
- *	2) DCS bits should be enabled in RXQ to DMA map register
+ *	1) MAC should be init and started. see osi_start_mac()
+ *	2) L3/L4 filtering should be enabled in MAC PFR register. See
+ *	osi_config_l3_l4_filter_enable()
+ *	3) osi_core->osd should be populated
+ *	4) DCS bits should be enabled in RXQ to DMA map register
  *
  *	Protection: None
  *
@@ -749,8 +775,10 @@ int osi_config_l3_filters(struct osi_core_priv_data *osi_core,
  *	Algorithm:  This sequence is used to update IPv4 source/destination
  *	Address for L3 layer filtering
  *
- *	Dependencies: MAC IP should be out of reset
- *	and need to be initialized as the requirements
+ *	Dependencies:
+ *	1) MAC should be init and started. see osi_start_mac()
+ *	2) L3/L4 filtering should be enabled in MAC PFR register. See
+ *	osi_config_l3_l4_filter_enable()
  *
  *	Protection: None
  *
@@ -770,8 +798,10 @@ int osi_update_ip4_addr(struct osi_core_priv_data *osi_core,
  *	Algorithm:  This sequence is used to update IPv6 source/destination
  *	Address for L3 layer filtering
  *
- *	Dependencies: MAC IP should be out of reset
- *	and need to be initialized as the requirements
+ *	Dependencies:
+ *	1) MAC should be init and started. see osi_start_mac()
+ *	2) L3/L4 filtering should be enabled in MAC PFR register. See
+ *	osi_config_l3_l4_filter_enable()
  *
  *	Protection: None
  *
@@ -796,8 +826,11 @@ int osi_update_ip6_addr(struct osi_core_priv_data *osi_core,
  *	Algorithm: This sequence is used to configure L4(TCP/UDP) filters for
  *	SA and DA Port Number matching
  *
- *	Dependencies: MAC IP should be out of reset
- *	and need to be initialized as the requirements
+ *	Dependencies:
+ *	1) MAC should be init and started. see osi_start_mac()
+ *	2) L3/L4 filtering should be enabled in MAC PFR register. See
+ *	osi_config_l3_l4_filter_enable()
+ *	3) osi_core->osd should be populated
  *
  *	Protection: None
  *
@@ -814,7 +847,7 @@ int osi_config_l4_filters(struct osi_core_priv_data *osi_core,
 
 /**
  *	osi_update_l4_port_no - invoke OSI call for
- *      update_l4_port_no.
+ *	update_l4_port_no.
  *
  *	@osi_core: OSI private data structure.
  *	@filter_no: filter index
@@ -824,8 +857,11 @@ int osi_config_l4_filters(struct osi_core_priv_data *osi_core,
  *	Algoriths sequence is used to update Source Port Number for
  *	L4(TCP/UDP) layer filtering.
  *
- *	Dependencies: MAC IP should be out of reset
- *	and need to be initialized as the requirements
+ *	Dependencies:
+ *	1) MAC should be init and started. see osi_start_mac()
+ *	2) L3/L4 filtering should be enabled in MAC PFR register. See
+ *	osi_config_l3_l4_filter_enable()
+ *	3) osi_core->osd should be populated
  *
  *	Protection: None
  *
@@ -847,8 +883,9 @@ int osi_update_l4_port_no(struct osi_core_priv_data *osi_core,
  *	Algorithm: This sequence is used to enable/disable VLAN filtering and
  *	also selects VLAN filtering mode- perfect/hash
  *
- *	Dependencies: MAC IP should be out of reset
- *	and need to be initialized as the requirements
+ *	Dependencies:
+ *	1) MAC should be init and started. see osi_start_mac()
+ *	2) osi_core->osd should be populated
  *
  *	Protection: None
  *
@@ -869,8 +906,8 @@ int osi_config_vlan_filtering(struct osi_core_priv_data *osi_core,
  *	Algorithm: This sequence is used to select perfect/inverse matching
  *	for L2 DA
  *
- *	Dependencies: MAC IP should be out of reset
- *	and need to be initialized as the requirements
+ *	Dependencies:
+ *	1) MAC should be init and started. see osi_start_mac()
  *
  *	Protection: None
  *
@@ -887,8 +924,8 @@ int  osi_config_l2_da_perfect_inverse_match(struct osi_core_priv_data *osi_core,
  *
  *	Algorithm: return 16 bit VLAN ID
  *
- *	Dependencies: MAC IP should be out of reset and need to be initialized
- *	as the requirements
+ *	Dependencies:
+ *	1) MAC should be init and started. see osi_start_mac()
  *
  *	Protection: None
  *
@@ -914,7 +951,8 @@ int  osi_update_vlan_id(struct osi_core_priv_data *osi_core,
  *	4) Write into MAC MDIO address register poll for GMII busy for MDIO
  *	operation to complete.
  *
- *	Dependencies: MAC IP should be out of reset
+ *	Dependencies:
+ *	1) MAC should be init and started. see osi_start_mac()
  *
  *	Protection: None
  *
@@ -932,8 +970,9 @@ int osi_write_phy_reg(struct osi_core_priv_data *osi_core, unsigned int phyaddr,
  *	Algorithm: Read the registers, mask reserve bits if requied, update
  *	structure.
  *
- *	Dependencies: MAC IP should be out of reset and need to be initialized
- *	as per the requirements
+ *	Dependencies:
+ *	1) MAC should be init and started. see osi_start_mac()
+ *	2) osi_core->osd should be populated
  *
  *	Protection: None
  *
@@ -949,8 +988,9 @@ int osi_read_mmc(struct osi_core_priv_data *osi_core);
  *	Algorithm: Read the registers, mask reserve bits if requied, update
  *	structure.
  *
- *	Dependencies: MAC IP should be out of reset and need to be initialized
- *	as per the requirements
+ *	Dependencies:
+ *	1) MAC should be init and started. see osi_start_mac()
+ *	2) osi_core->osd should be populated
  *
  *	Protection: None
  *
@@ -974,7 +1014,8 @@ int osi_reset_mmc(struct osi_core_priv_data *osi_core);
  *	operation to complete. After this data will be available at MAC MDIO
  *	data register.
  *
- *	Dependencies: MAC IP should be out of reset
+ *	Dependencies:
+ *	1) MAC should be init and started. see osi_start_mac()
  *
  *	Protection: None
  *
@@ -992,8 +1033,8 @@ void osi_init_core_ops(struct osi_core_priv_data *osi_core);
  *
  *	Algorithm: Set current system time to MAC.
  *
- *	Dependencies: MAC init should be complete. See osi_hw_core_init() and
- *	osi_hw_dma_init()
+ *	Dependencies:
+ *	1) MAC should be init and started. see osi_start_mac()
  *
  *	Protection: None.
  *
@@ -1010,8 +1051,8 @@ int osi_set_systime_to_mac(struct osi_core_priv_data *osi_core,
  *	"Compensation" is the difference in frequency between
  *	the master and slave clocks in Parts Per Billion.
  *
- *	Dependencies: MAC IP should be out of reset and need to be
- *	initialized as the requirements
+ *	Dependencies:
+ *	1) MAC should be init and started. see osi_start_mac()
  *
  *	Protection: None
  *
@@ -1028,9 +1069,9 @@ int osi_adjust_freq(struct osi_core_priv_data *osi_core, int ppb);
  *	Algorithm: Adjust/update the MAC system time (delta passed in
  *		   nanoseconds, can be + or -).
  *
- *	Dependencies: MAC IP should be out of reset
- *	and need to be initialized as the requirements
- *	1) osi_core->ptp_config.one_nsec_accuracy need to be set to 1
+ *	Dependencies:
+ *	1) MAC should be init and started. see osi_start_mac()
+ *	2) osi_core->ptp_config.one_nsec_accuracy need to be set to 1
  *
  *	Protection: None
  *
@@ -1039,15 +1080,15 @@ int osi_adjust_freq(struct osi_core_priv_data *osi_core, int ppb);
 int osi_adjust_time(struct osi_core_priv_data *osi_core, long delta);
 
 /**
- *	osi_get_systime - Get system time
+ *	osi_get_systime_from_mac - Get system time
  *	@osi: OSI private data structure.
  *	@sec: Value read in Seconds
  *	@nsec: Value read in Nano seconds
  *
  *	Algorithm: Gets the current system time
  *
- *	Dependencies: MAC IP should be out of reset and need to be
- *	initialized as the requirements.
+ *	Dependencies:
+ *	1) MAC should be init and started. see osi_start_mac()
  *
  *	Protection: None
  *
@@ -1065,18 +1106,18 @@ void osi_get_systime_from_mac(struct osi_core_priv_data *osi_core,
  *
  *	Algorithm: Configure the PTP registers that are required for PTP.
  *
- *	Dependencies: MAC IP should be out of reset and need to be initialized
- *	as the requirements.
- *	1) osi->ptp_config.ptp_filter need to be filled accordingly to the
+ *	Dependencies:
+ *	1) MAC should be init and started. see osi_start_mac()
+ *	2) osi->ptp_config.ptp_filter need to be filled accordingly to the
  *	filter that need to be set for PTP packets. Please check osi_ptp_config
  *	structure declaration on the bit fields that need to be filled.
- *	2) osi->ptp_config.ptp_clock need to be filled with the ptp system clk.
+ *	3) osi->ptp_config.ptp_clock need to be filled with the ptp system clk.
  *	Currently it is set to 62500000Hz.
- *	3) osi->ptp_config.ptp_ref_clk_rate need to be filled with the ptp
+ *	4) osi->ptp_config.ptp_ref_clk_rate need to be filled with the ptp
  *	reference clock that platform supports.
- *	4) osi->ptp_config.sec need to be filled with current time of seconds
- *	5) osi->ptp_config.nsec need to be filled with current time of nseconds
- *	6) osi->base need to be filled with the ioremapped base address
+ *	5) osi->ptp_config.sec need to be filled with current time of seconds
+ *	6) osi->ptp_config.nsec need to be filled with current time of nseconds
+ *	7) osi->base need to be filled with the ioremapped base address
  *
  *	Protection: None
  *
