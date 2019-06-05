@@ -96,3 +96,6 @@ x509.genkey
 
 # Kconfig presets
 all.config
+
+# Source files we generate from arch for doxygen.
+Doxyfile.sources.safety
