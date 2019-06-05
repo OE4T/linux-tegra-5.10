@@ -1,7 +1,7 @@
 /*
  * Device driver for owning the separate Stream-ID used for GoS
  *
- * Copyright (c) 2017-2018, NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2017-2019, NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -35,6 +35,12 @@
 #include "nvhost_acm.h"
 #include "nvhost_syncpt_unit_interface.h"
 #include "t194/t194.h"
+#include "linux/nvmap_t19x.h"
+
+static inline bool t194_gos_is_enabled(struct platform_device *pdev)
+{
+	return nvmap_fetch_cv_dev_info(&pdev->dev) != NULL;
+}
 
 int t194_capture_alloc_syncpt(struct platform_device *pdev,
 			const char *name,
@@ -73,8 +79,10 @@ void t194_capture_get_gos_table(struct platform_device *pdev,
 	int count = 0;
 	dma_addr_t *table = NULL;
 
-	/* Using information cached during the probe, this should never fail */
-	(void)nvhost_syncpt_get_cv_dev_address_table(pdev, &count, &table);
+	if (t194_gos_is_enabled(pdev))
+		/* Ignore error, the return values are zeroed in any case */
+		(void)nvhost_syncpt_get_cv_dev_address_table(
+			pdev, &count, &table);
 
 	*gos_count = count;
 	*gos_table = table;
@@ -153,6 +161,9 @@ static int t194_capture_support_probe(struct platform_device *pdev)
 	err = nvhost_syncpt_unit_interface_init(pdev);
 	if (err)
 		goto device_release;
+
+	if (!t194_gos_is_enabled(pdev))
+		dev_info(&pdev->dev, "grid-of-semaphores not supported");
 
 	return 0;
 
