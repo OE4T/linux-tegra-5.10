@@ -504,7 +504,9 @@ static const struct gpu_ops tu104_ops = {
 			.sm_id_config = gv11b_gr_init_sm_id_config,
 			.sm_id_numbering = gv11b_gr_init_sm_id_numbering,
 			.tpc_mask = gv11b_gr_init_tpc_mask,
+#ifdef NVGPU_GRAPHICS
 			.rop_mapping = gv11b_gr_init_rop_mapping,
+#endif
 			.fs_state = gv11b_gr_init_fs_state,
 			.pd_tpc_per_gpc = gm20b_gr_init_pd_tpc_per_gpc,
 			.pd_skip_table_gpc = gm20b_gr_init_pd_skip_table_gpc,

@@ -689,8 +689,10 @@ struct gpu_ops {
 				   struct nvgpu_gr_config *gr_config);
 			void (*tpc_mask)(struct gk20a *g,
 					 u32 gpc_index, u32 pes_tpc_mask);
+#ifdef NVGPU_GRAPHICS
 			void (*rop_mapping)(struct gk20a *g,
 				struct nvgpu_gr_config *gr_config);
+#endif /* NVGPU_GRAPHICS */
 			int (*fs_state)(struct gk20a *g);
 			void (*pd_tpc_per_gpc)(struct gk20a *g,
 				struct nvgpu_gr_config *gr_config);

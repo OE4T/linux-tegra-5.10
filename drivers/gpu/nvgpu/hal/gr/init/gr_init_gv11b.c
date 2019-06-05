@@ -473,6 +473,7 @@ void gv11b_gr_init_tpc_mask(struct gk20a *g, u32 gpc_index, u32 pes_tpc_mask)
 	nvgpu_writel(g, gr_fe_tpc_fs_r(gpc_index), pes_tpc_mask);
 }
 
+#ifdef NVGPU_GRAPHICS
 void gv11b_gr_init_rop_mapping(struct gk20a *g,
 			      struct nvgpu_gr_config *gr_config)
 {
@@ -560,6 +561,7 @@ void gv11b_gr_init_rop_mapping(struct gk20a *g,
 		gr_rstr2d_map_table_cfg_num_entries_f(
 			nvgpu_gr_config_get_tpc_count(gr_config)));
 }
+#endif
 
 int gv11b_gr_init_fs_state(struct gk20a *g)
 {
