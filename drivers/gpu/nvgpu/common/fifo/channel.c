@@ -737,10 +737,6 @@ struct nvgpu_channel *gk20a_open_new_channel(struct gk20a *g,
 		goto clean_up;
 	}
 
-	if (g->os_channel.open != NULL) {
-		g->os_channel.open(ch);
-	}
-
 	/* Mark the channel alive, get-able, with 1 initial use
 	 * references. The initial reference will be decreased in
 	 * gk20a_free_channel().
@@ -1433,6 +1429,9 @@ int nvgpu_channel_setup_bind(struct nvgpu_channel *c,
 	if ((args->flags & NVGPU_SETUP_BIND_FLAGS_USERMODE_SUPPORT) != 0U) {
 		err = nvgpu_channel_setup_usermode(c, args);
 	} else {
+		if (g->os_channel.open != NULL) {
+			g->os_channel.open(c);
+		}
 		err = nvgpu_channel_setup_kernelmode(c, args);
 	}
 
