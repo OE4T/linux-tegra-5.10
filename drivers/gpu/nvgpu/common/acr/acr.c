@@ -102,6 +102,9 @@ int nvgpu_acr_construct_execute(struct gk20a *g, struct nvgpu_acr *acr)
 	}
 
 	err = nvgpu_acr_bootstrap_hs_acr(g, acr);
+	if (err != 0) {
+		nvgpu_err(g, "Bootstrap HS ACR failed");
+	}
 
 done:
 	return err;

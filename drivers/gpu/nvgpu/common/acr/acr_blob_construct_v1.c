@@ -103,6 +103,7 @@ int nvgpu_acr_lsf_fecs_ucode_details_v1(struct gk20a *g, void *lsf_ucode_img)
 			break;
 		default:
 			nvgpu_err(g, "no support for GPUID %x", ver);
+			break;
 	}
 
 	if (fecs_sig == NULL) {
@@ -192,6 +193,7 @@ int nvgpu_acr_lsf_gpccs_ucode_details_v1(struct gk20a *g, void *lsf_ucode_img)
 			break;
 		default:
 			nvgpu_err(g, "no support for GPUID %x", ver);
+			break;
 	}
 
 	if (gpccs_sig == NULL) {
