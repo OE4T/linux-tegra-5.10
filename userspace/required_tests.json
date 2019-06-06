@@ -750,6 +750,26 @@
         "unit": "nvgpu_sgt"
     },
     {
+        "test": "abort",
+        "test_level": 0,
+        "unit": "nvgpu_tsg"
+    },
+    {
+        "test": "bind_channel",
+        "test_level": 0,
+        "unit": "nvgpu_tsg"
+    },
+    {
+        "test": "enable_disable",
+        "test_level": 0,
+        "unit": "nvgpu_tsg"
+    },
+    {
+        "test": "get_from_id",
+        "test_level": 0,
+        "unit": "nvgpu_tsg"
+    },
+    {
         "test": "init_support",
         "test_level": 0,
         "unit": "nvgpu_tsg"
@@ -766,6 +786,26 @@
     },
     {
         "test": "remove_support",
+        "test_level": 0,
+        "unit": "nvgpu_tsg"
+    },
+    {
+        "test": "setup_sw",
+        "test_level": 0,
+        "unit": "nvgpu_tsg"
+    },
+    {
+        "test": "unbind_channel",
+        "test_level": 0,
+        "unit": "nvgpu_tsg"
+    },
+    {
+        "test": "unbind_channel_check_ctx_reload",
+        "test_level": 0,
+        "unit": "nvgpu_tsg"
+    },
+    {
+        "test": "unbind_channel_check_hw_state",
         "test_level": 0,
         "unit": "nvgpu_tsg"
     },
