@@ -33,6 +33,7 @@
 #include <nvgpu/pmu/cmd.h>
 #include <nvgpu/timers.h>
 #include <nvgpu/pmu/pmu_pstate.h>
+#include <nvgpu/pmu/perf_pstate.h>
 
 void nvgpu_clkrpc_pmucmdhandler(struct gk20a *g, struct pmu_msg *msg,
 		void *param, u32 status)
@@ -291,7 +292,8 @@ int nvgpu_clk_set_req_fll_clk_ps35(struct gk20a *g,
 	g->pmu->clk_pmu->set_p0_clks(g, &gpcclk_domain, &gpcclk_clkmhz,
 			vf_point, &change_input);
 
-	change_input.pstate_index = 0U;
+	change_input.pstate_index =
+			nvgpu_get_pstate_entry_idx(g, CTRL_PERF_PSTATE_P0);
 	change_input.flags = (u32)CTRL_PERF_CHANGE_SEQ_CHANGE_FORCE;
 	change_input.vf_points_cache_counter = 0xFFFFFFFFU;
 
@@ -334,7 +336,8 @@ int nvgpu_clk_set_req_fll_clk_ps35(struct gk20a *g,
 	(void) memset(&rpc, 0,
 			sizeof(struct nv_pmu_rpc_perf_change_seq_queue_change));
 	rpc.change = change_input;
-	rpc.change.pstate_index =  0;
+	rpc.change.pstate_index =
+			nvgpu_get_pstate_entry_idx(g, CTRL_PERF_PSTATE_P0);
 	PMU_RPC_EXECUTE_CPB(status, pmu, PERF,
 			CHANGE_SEQ_QUEUE_CHANGE, &rpc, 0);
 	if (status != 0) {

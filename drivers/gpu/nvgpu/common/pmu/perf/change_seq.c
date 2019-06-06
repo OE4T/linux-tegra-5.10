@@ -33,6 +33,7 @@
 #include <nvgpu/pmu/cmd.h>
 #include <nvgpu/pmu/super_surface.h>
 #include <nvgpu/pmu/pmu_pstate.h>
+#include <nvgpu/pmu/perf_pstate.h>
 
 #include "pmu_perf.h"
 #include "change_seq.h"
@@ -158,7 +159,8 @@ static void build_change_seq_boot (struct gk20a *g)
 		script_last->buf.change.data.clk_list.num_domains);
 
 	/* Assume everything is P0 - Need to find the index for P0  */
-	script_last->buf.change.data.pstate_index = 0;
+	script_last->buf.change.data.pstate_index =
+			nvgpu_get_pstate_entry_idx(g, CTRL_PERF_PSTATE_P0);
 
 	nvgpu_mem_wr_n(g, nvgpu_pmu_super_surface_mem(g,
 		pmu, pmu->super_surface),
@@ -236,7 +238,8 @@ int nvgpu_perf_change_seq_pmu_setup(struct gk20a *g)
 		(u32) sizeof(struct perf_change_seq_pmu_script));
 
 	/* Assume everything is P0 - Need to find the index for P0  */
-	perf_change_seq_pmu->script_last.buf.change.data.pstate_index = 0;
+	perf_change_seq_pmu->script_last.buf.change.data.pstate_index =
+			nvgpu_get_pstate_entry_idx(g, CTRL_PERF_PSTATE_P0);;
 
 	nvgpu_mem_wr_n(g, nvgpu_pmu_super_surface_mem(g,
 		pmu, pmu->super_surface),

@@ -37,6 +37,25 @@
 
 #include "perf_pstate.h"
 
+int nvgpu_get_pstate_entry_idx(struct gk20a *g, u32 num)
+{
+	struct pstates *pstates = &(g->perf_pmu->pstatesobjs);
+	struct pstate *pstate;
+	u8 i;
+
+	nvgpu_log_info(g, "pstates = %p", pstates);
+
+	BOARDOBJGRP_FOR_EACH(&pstates->super.super,
+			struct pstate *, pstate, i) {
+		nvgpu_log_info(g, "pstate=%p num=%u (looking for num=%u)",
+				pstate, pstate->num, num);
+		if (pstate->num == num) {
+			return i;
+		}
+	}
+	return 0;
+}
+
 static int pstate_init_pmudata_super(struct gk20a *g,
 		struct boardobj *board_obj_ptr,
 		struct nv_pmu_boardobj *ppmudata)

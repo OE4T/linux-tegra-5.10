@@ -124,5 +124,6 @@ struct nv_pmu_perf_pstate_status {
 	clkDomains[PMU_PERF_CLK_DOMAINS_IDX_MAX];
 };
 
+int nvgpu_get_pstate_entry_idx(struct gk20a *g, u32 num);
 
 #endif /* NVGPU_PMUIF_PERFPSTATE_H_ */
