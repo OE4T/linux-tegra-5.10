@@ -29,10 +29,10 @@ bool nvgpu_pbdma_find_for_runlist(struct gk20a *g,
 	struct nvgpu_fifo *f = &g->fifo;
 	bool found_pbdma_for_runlist = false;
 	u32 runlist_bit;
-	u32 id;
+	u32 id = U32_MAX;
 
 	runlist_bit = BIT32(runlist_id);
-	for (id = 0; id < f->num_pbdma; id++) {
+	for (id = 0U; id < f->num_pbdma; id++) {
 		if ((f->pbdma_map[id] & runlist_bit) != 0U) {
 			nvgpu_log_info(g, "gr info: pbdma_map[%d]=%d",
 					id, f->pbdma_map[id]);

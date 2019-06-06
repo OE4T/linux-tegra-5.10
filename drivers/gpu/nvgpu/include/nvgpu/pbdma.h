@@ -23,10 +23,47 @@
 #ifndef NVGPU_PBDMA_COMMON_H
 #define NVGPU_PBDMA_COMMON_H
 
+/**
+ * @file
+ *
+ * Push-Buffer DMA
+ *
+ * PBDMA unit fetches pushbuffer data from memory, generates
+ * commands, called "methods", from the fetched data, executes some of the
+ * generated methods itself, and sends the remainder of the methods to engines.
+ */
 struct gk20a;
 
+/**
+ * nvgpu_pbdma_setup_sw - initialize PBDMA software context
+ *
+ * @param g	Current GPU
+ *
+ * Gets number of PBDMAs and builds a map of runlists that will be serviced
+ * by those PBDMAs. Returns non-zero value in case of failure.
+ */
 int nvgpu_pbdma_setup_sw(struct gk20a *g);
+
+/**
+ * nvgpu_pbdma_cleanup_sw - clean up PBDMA software context
+ *
+ * @param g	Current GPU
+ *
+ * Cleans up PBDMA software context and related resources.
+ */
 void nvgpu_pbdma_cleanup_sw(struct gk20a *g);
+
+/**
+ * nvgpu_pbdma_find_for_runlist - find PBDMA servicing the runlist
+ *
+ * @param g     	Current GPU
+ * @param runlist_id	Runlist identifier
+ * @param pbdma_id	Pointer to PBDMA identifier
+ *
+ * Finds the PBDMA which is servicing #runlist_id.
+ * Sets #pbdma_id to valid value and returns true in case PBDMA could be found.
+ * Sets #pbdma_id to U32_MAX and returns false in case PBDMA could not be found.
+ */
 bool nvgpu_pbdma_find_for_runlist(struct gk20a *g,
 		u32 runlist_id, u32 *pbdma_id);
 
