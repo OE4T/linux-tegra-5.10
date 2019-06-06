@@ -474,8 +474,10 @@ int gk20a_finalize_poweron(struct gk20a *g)
 
 	g->ops.chip_init_gpu_characteristics(g);
 
+#ifdef CONFIG_NVGPU_DEBUGGER
 	/* Restore the debug setting */
 	g->ops.fb.set_debug_mode(g, g->mmu_debug_ctrl);
+#endif
 
 #ifdef CONFIG_NVGPU_CE
 	err = nvgpu_ce_init_support(g);

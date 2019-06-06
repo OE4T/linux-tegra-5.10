@@ -46,7 +46,9 @@ int vgpu_mm_fb_flush(struct gk20a *g);
 void vgpu_mm_l2_invalidate(struct gk20a *g);
 int vgpu_mm_l2_flush(struct gk20a *g, bool invalidate);
 int vgpu_mm_tlb_invalidate(struct gk20a *g, struct nvgpu_mem *pdb);
+#ifdef CONFIG_NVGPU_DEBUGGER
 void vgpu_mm_mmu_set_debug_mode(struct gk20a *g, bool enable);
+#endif
 u64 vgpu_locked_gmmu_map(struct vm_gk20a *vm,
 				u64 map_offset,
 				struct nvgpu_sgt *sgt,

@@ -749,8 +749,10 @@ static const struct gpu_ops tu104_ops = {
 		.dump_vpr_info = NULL,
 		.dump_wpr_info = gm20b_fb_dump_wpr_info,
 		.read_wpr_info = gm20b_fb_read_wpr_info,
+#ifdef CONFIG_NVGPU_DEBUGGER
 		.is_debug_mode_enabled = gm20b_fb_debug_mode_enabled,
 		.set_debug_mode = gm20b_fb_set_debug_mode,
+#endif
 		.tlb_invalidate = fb_tu104_tlb_invalidate,
 		.handle_replayable_fault = gv11b_fb_handle_replayable_mmu_fault,
 		.mem_unlock = gv100_fb_memory_unlock,

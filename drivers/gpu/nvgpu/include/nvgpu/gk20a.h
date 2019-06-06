@@ -921,8 +921,10 @@ struct gpu_ops {
 		void (*dump_wpr_info)(struct gk20a *g);
 		int (*vpr_info_fetch)(struct gk20a *g);
 		void (*read_wpr_info)(struct gk20a *g, u64 *wpr_base, u64 *wpr_size);
+#ifdef CONFIG_NVGPU_DEBUGGER
 		bool (*is_debug_mode_enabled)(struct gk20a *g);
 		void (*set_debug_mode)(struct gk20a *g, bool enable);
+#endif
 		int (*tlb_invalidate)(struct gk20a *g, struct nvgpu_mem *pdb);
 		void (*handle_replayable_fault)(struct gk20a *g);
 		int (*mem_unlock)(struct gk20a *g);

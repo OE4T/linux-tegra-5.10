@@ -214,6 +214,7 @@ int vgpu_mm_tlb_invalidate(struct gk20a *g, struct nvgpu_mem *pdb)
 	return 0;
 }
 
+#ifdef CONFIG_NVGPU_DEBUGGER
 void vgpu_mm_mmu_set_debug_mode(struct gk20a *g, bool enable)
 {
 	struct tegra_vgpu_cmd_msg msg;
@@ -228,6 +229,7 @@ void vgpu_mm_mmu_set_debug_mode(struct gk20a *g, bool enable)
 	err = vgpu_comm_sendrecv(&msg, sizeof(msg), sizeof(msg));
 	WARN_ON(err || msg.ret);
 }
+#endif
 
 static inline int add_mem_desc(struct tegra_vgpu_mem_desc *mem_desc,
 				u64 addr, u64 size, size_t *oob_size)

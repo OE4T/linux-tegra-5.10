@@ -326,6 +326,7 @@ void gm20b_fb_read_wpr_info(struct gk20a *g, u64 *wpr_base, u64 *wpr_size)
 	*wpr_size = (wpr_end - wpr_start);
 }
 
+#ifdef CONFIG_NVGPU_DEBUGGER
 bool gm20b_fb_debug_mode_enabled(struct gk20a *g)
 {
 	u32 debug_ctrl = gk20a_readl(g, fb_mmu_debug_ctrl_r());
@@ -350,7 +351,6 @@ void gm20b_fb_set_debug_mode(struct gk20a *g, bool enable)
 			fb_mmu_debug_ctrl_debug_m(), fb_debug_ctrl);
 	gk20a_writel(g, fb_mmu_debug_ctrl_r(), reg_val);
 
-#ifdef CONFIG_NVGPU_DEBUGGER
 	g->ops.gr.set_debug_mode(g, enable);
-#endif
 }
+#endif

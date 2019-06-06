@@ -460,8 +460,10 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 		.dump_vpr_info = NULL,
 		.dump_wpr_info = NULL,
 		.read_wpr_info = NULL,
+#ifdef CONFIG_NVGPU_DEBUGGER
 		.is_debug_mode_enabled = NULL,
 		.set_debug_mode = vgpu_mm_mmu_set_debug_mode,
+#endif
 		.tlb_invalidate = vgpu_mm_tlb_invalidate,
 		.write_mmu_fault_buffer_lo_hi =
 				gv11b_fb_write_mmu_fault_buffer_lo_hi,
