@@ -1701,6 +1701,7 @@ static int eqos_config_l2_da_perfect_inverse_match(void *base, unsigned int
  *	@osi_core: OSI private data structure.
  *	@filter_no: filter index
  *	@addr: ipv4 address
+ *	@src_dst_addr_match: 0 - source addr otherwise - dest addr
  *
  *	Algorithm:  This sequence is used to update IPv4 source/destination
  *	Address for L3 layer filtering
@@ -1727,12 +1728,6 @@ static int eqos_update_ip4_addr(struct osi_core_priv_data *osi_core,
 		return -1;
 	}
 
-	if (src_dst_addr_match != 0U && src_dst_addr_match != 1U) {
-		osd_err(osi_core->osd, "invalid src_dst_addr_match %d parameter\n"
-			, src_dst_addr_match);
-		return -1;
-	}
-
 	value = addr[3];
 	temp = (unsigned int)addr[2] << 8;
 	value |= temp;
@@ -1740,7 +1735,7 @@ static int eqos_update_ip4_addr(struct osi_core_priv_data *osi_core,
 	value |= temp;
 	temp = (unsigned int)addr[0] << 24;
 	value |= temp;
-	if (src_dst_addr_match == 0U) {
+	if (src_dst_addr_match == OSI_SOURCE_MATCH) {
 		osi_writel(value, (unsigned char *)base +
 			   EQOS_MAC_L3_AD0R(filter_no));
 	} else {
@@ -1843,7 +1838,7 @@ static int eqos_update_l4_port_no(struct osi_core_priv_data *osi_core,
 	}
 
 	value = osi_readl((unsigned char *)base + EQOS_MAC_L4_ADR(filter_no));
-	if (src_dst_port_match == 0U) {
+	if (src_dst_port_match == OSI_SOURCE_MATCH) {
 		value &= ~EQOS_MAC_L4_SP_MASK;
 		value |= ((unsigned int)port_no  & EQOS_MAC_L4_SP_MASK);
 	} else {
@@ -1900,9 +1895,9 @@ static int eqos_config_l3_filters(struct osi_core_priv_data *osi_core,
 		   EQOS_MAC_L3L4_CTR(filter_no));
 
 	/* For IPv6 either SA/DA can be checked not both */
-	if (ipv4_ipv6_match == 1U) {
-		if (enb_dis == 1U) {
-			if (src_dst_addr_match == 0U) {
+	if (ipv4_ipv6_match == OSI_IPV6_MATCH) {
+		if (enb_dis == OSI_ENABLE) {
+			if (src_dst_addr_match == OSI_SOURCE_MATCH) {
 				/* Enable L3 filters for IPv6 SOURCE addr
 				 *  matching
 				 */
@@ -1944,8 +1939,8 @@ static int eqos_config_l3_filters(struct osi_core_priv_data *osi_core,
 				   EQOS_MAC_L3L4_CTR(filter_no));
 		}
 	} else {
-		if (src_dst_addr_match == 0U) {
-			if (enb_dis == 1U) {
+		if (src_dst_addr_match == OSI_SOURCE_MATCH) {
+			if (enb_dis == OSI_ENABLE) {
 				/* Enable L3 filters for IPv4 SOURCE addr
 				 * matching
 				 */
@@ -1972,7 +1967,7 @@ static int eqos_config_l3_filters(struct osi_core_priv_data *osi_core,
 					   EQOS_MAC_L3L4_CTR(filter_no));
 			}
 		} else {
-			if (enb_dis == 1U) {
+			if (enb_dis == OSI_ENABLE) {
 				/* Enable L3 filters for IPv4 DESTINATION addr
 				 * matching
 				 */
@@ -2046,8 +2041,8 @@ static int eqos_config_l4_filters(struct osi_core_priv_data *osi_core,
 	osi_writel(value, (unsigned char *)base +
 		   EQOS_MAC_L3L4_CTR(filter_no));
 
-	if (src_dst_port_match == 0U) {
-		if (enb_dis == 1U) {
+	if (src_dst_port_match == OSI_SOURCE_MATCH) {
+		if (enb_dis == OSI_ENABLE) {
 			/* Enable L4 filters for SOURCE Port No matching */
 			value = osi_readl((unsigned char *)base +
 					  EQOS_MAC_L3L4_CTR(filter_no));
@@ -2070,7 +2065,7 @@ static int eqos_config_l4_filters(struct osi_core_priv_data *osi_core,
 				   EQOS_MAC_L3L4_CTR(filter_no));
 		}
 	} else {
-		if (enb_dis == 1U) {
+		if (enb_dis == OSI_ENABLE) {
 			/* Enable L4 filters for DESTINATION port No
 			 * matching
 			 */
@@ -2144,7 +2139,7 @@ static int eqos_config_vlan_filtering(struct osi_core_priv_data *osi_core,
 }
 
 /**
- *	eqos_update_vlan_id -
+ *	eqos_update_vlan_id - update VLAN ID in Tag register
  *
  *	@base: Base address from OSI private data structure.
  *
