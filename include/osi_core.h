@@ -81,7 +81,7 @@ struct osi_vlan_filter {
 /**
  *	Struct osi_l2_da_filter - L2 filter function depedent parameter
  *	@perfect_hash: perfect(0) or hash(1)
- *	@perfect_inverse_match:	perfect(0) or hash(1)
+ *	@perfect_inverse_match:	perfect(0) or inverse(1)
  */
 struct osi_l2_da_filter {
 	unsigned int perfect_hash;
@@ -781,7 +781,7 @@ int  osi_config_l2_da_perfect_inverse_match(struct osi_core_priv_data *osi_core,
 					    unsigned int perfect_inverse_match);
 
 /**
- *	osi_update_vlan_id - invoke osi call to get VLAn ID
+ *	osi_update_vlan_id - invoke osi call to update VLAN ID
  *
  *	@osi_core: OSI private data structure.
  *	@vid: VLAN ID
