@@ -563,47 +563,6 @@ struct CAPTURE_CSI_STREAM_TPG_STOP_RESP_MSG {
 	uint32_t __pad32;
 } __CAPTURE_IVC_ALIGN;
 
-/* Setup test pattern generator */
-/* DEPRECATED - to be removed */
-struct CAPTURE_CHANNEL_TPG_SETUP_REQ_MSG {
-	union nvcsi_tpg_config tpg_config;
-} __CAPTURE_IVC_ALIGN;
-/* DEPRECATED - to be removed */
-struct CAPTURE_CHANNEL_TPG_SETUP_RESP_MSG {
-	capture_result result;
-	uint32_t __pad;
-} __CAPTURE_IVC_ALIGN;
-
-/* Start test pattern generator */
-/* DEPRECATED - to be removed */
-struct CAPTURE_CHANNEL_TPG_START_REQ_MSG {
-	uint8_t stream;
-	uint8_t channel;
-	uint16_t __pad16;
-	uint32_t __pad;
-	struct nvcsi_tpg_rate_config tpg_rate_config;
-} __CAPTURE_IVC_ALIGN;
-/* DEPRECATED - to be removed */
-struct CAPTURE_CHANNEL_TPG_START_RESP_MSG {
-	capture_result result;
-	uint32_t __pad;
-} __CAPTURE_IVC_ALIGN;
-
-/* Stop test pattern generator */
-/* DEPRECATED - to be removed */
-struct CAPTURE_CHANNEL_TPG_STOP_REQ_MSG {
-	uint8_t stream;
-	uint8_t channel;
-	uint16_t __pad16;
-	uint32_t __pad;
-} __CAPTURE_IVC_ALIGN;
-/* DEPRECATED - to be removed */
-struct CAPTURE_CHANNEL_TPG_STOP_RESP_MSG {
-	capture_result result;
-	uint32_t __pad;
-} __CAPTURE_IVC_ALIGN;
-
-
 /**
  * @brief Max number of events
  */
@@ -650,15 +609,6 @@ struct CAPTURE_CHANNEL_EI_RESET_RESP_MSG {
 	/** Reserved */
 	uint32_t __pad;
 } __CAPTURE_IVC_ALIGN;
-
-/* Message types for test pattern generator */
-/* DEPRECATED - to be removed */
-#define CAPTURE_CHANNEL_TPG_SETUP_REQ   U32_C(0x30)
-#define CAPTURE_CHANNEL_TPG_SETUP_RESP  U32_C(0x31)
-#define CAPTURE_CHANNEL_TPG_START_REQ   U32_C(0x32)
-#define CAPTURE_CHANNEL_TPG_START_RESP  U32_C(0x33)
-#define CAPTURE_CHANNEL_TPG_STOP_REQ    U32_C(0x34)
-#define CAPTURE_CHANNEL_TPG_STOP_RESP   U32_C(0x35)
 
 /**
  * @defgroup PhyStreamMsgType Message types for NvPhy
@@ -826,16 +776,6 @@ struct CAPTURE_CONTROL_MSG {
 			csi_stream_tpg_start_rate_req;
 		struct CAPTURE_CSI_STREAM_TPG_START_RATE_RESP_MSG
 			csi_stream_tpg_start_rate_resp;
-
-		/* DEPRECATED - to be removed */
-		struct CAPTURE_CHANNEL_TPG_SETUP_REQ_MSG tpg_setup_req;
-		struct CAPTURE_CHANNEL_TPG_SETUP_RESP_MSG tpg_setup_resp;
-		/* DEPRECATED - to be removed */
-		struct CAPTURE_CHANNEL_TPG_START_REQ_MSG tpg_start_req;
-		struct CAPTURE_CHANNEL_TPG_START_RESP_MSG tpg_start_resp;
-		/* DEPRECATED - to be removed */
-		struct CAPTURE_CHANNEL_TPG_STOP_REQ_MSG tpg_stop_req;
-		struct CAPTURE_CHANNEL_TPG_STOP_RESP_MSG tpg_stop_resp;
 
 		struct CAPTURE_CHANNEL_EI_REQ_MSG ei_req;
 		struct CAPTURE_CHANNEL_EI_RESP_MSG ei_resp;

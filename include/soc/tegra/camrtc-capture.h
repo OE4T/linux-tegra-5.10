@@ -69,29 +69,45 @@ typedef struct syncpoint_info {
  *        collected by dividing the frame into a 8x8 array region.
  * @{
  */
+/** Statistics unit hardware header size in bytes */
 #define ISP5_STATS_HW_HEADER_SIZE    (32UL)
+/** Flicker band (FB) unit statistics data size in bytes */
 #define ISP5_STATS_FB_MAX_SIZE       (1056UL)
+/** Focus Metrics (FM) unit statistics data size in bytes */
 #define ISP5_STATS_FM_MAX_SIZE       (32800UL)
+/** Auto Focus Metrics (AFM) unit statistics data size in bytes */
 #define ISP5_STATS_AFM_ROI_MAX_SIZE  (40UL)
+/** Local Average Clipping (LAC) unit statistics data size in bytes */
 #define ISP5_STATS_LAC_ROI_MAX_SIZE  (32800UL)
+/** Histogram unit statistics data size in bytes */
 #define ISP5_STATS_HIST_MAX_SIZE     (4144UL)
+/** Pixel Replacement Unit (PRU) unit statistics data size in bytes */
 #define ISP5_STATS_OR_MAX_SIZE       (64UL)
+/** Local Tone Mapping (LTM) unit statistics data size in bytes */
 #define ISP5_STATS_LTM_MAX_SIZE      (1056UL)
 
 /* Stats buffer addresses muse be aligned to 64 byte (ATOM) boundaries */
 #define ISP5_ALIGN_STAT_OFFSET(_offset) (((uint32_t)(_offset) + 63UL) & ~(63UL))
 
-
+/** Flicker band (FB) unit statistics data offset */
 #define ISP5_STATS_FB_OFFSET         (0)
+/** Focus Metrics (FM) unit statistics data offset */
 #define ISP5_STATS_FM_OFFSET         (ISP5_STATS_FB_OFFSET + ISP5_ALIGN_STAT_OFFSET(ISP5_STATS_FB_MAX_SIZE))
+/** Auto Focus Metrics (AFM) unit statistics data offset */
 #define ISP5_STATS_AFM_OFFSET        (ISP5_STATS_FM_OFFSET + ISP5_ALIGN_STAT_OFFSET(ISP5_STATS_FM_MAX_SIZE))
+/** Local Average Clipping (LAC0) unit statistics data offset */
 #define ISP5_STATS_LAC0_OFFSET       (ISP5_STATS_AFM_OFFSET + ISP5_ALIGN_STAT_OFFSET(ISP5_STATS_AFM_ROI_MAX_SIZE) * 8)
+/** Local Average Clipping (LAC1) unit statistics data offset */
 #define ISP5_STATS_LAC1_OFFSET       (ISP5_STATS_LAC0_OFFSET + ISP5_ALIGN_STAT_OFFSET(ISP5_STATS_LAC_ROI_MAX_SIZE) * 4)
+/** Histogram unit (H0) statistics data offset */
 #define ISP5_STATS_HIST0_OFFSET      (ISP5_STATS_LAC1_OFFSET + ISP5_ALIGN_STAT_OFFSET(ISP5_STATS_LAC_ROI_MAX_SIZE) * 4)
+/** Histogram unit (H1) statistics data offset */
 #define ISP5_STATS_HIST1_OFFSET      (ISP5_STATS_HIST0_OFFSET + ISP5_ALIGN_STAT_OFFSET(ISP5_STATS_HIST_MAX_SIZE))
+/** Pixel Replacement Unit (PRU) unit statistics data offset */
 #define ISP5_STATS_OR_OFFSET         (ISP5_STATS_HIST1_OFFSET + ISP5_ALIGN_STAT_OFFSET(ISP5_STATS_HIST_MAX_SIZE))
+/** Local Tone Mapping (LTM) unit statistics data offset */
 #define ISP5_STATS_LTM_OFFSET        (ISP5_STATS_OR_OFFSET + ISP5_ALIGN_STAT_OFFSET(ISP5_STATS_OR_MAX_SIZE))
-
+/** Total statistics data size in bytes */
 #define ISP5_STATS_TOTAL_SIZE        (ISP5_STATS_LTM_OFFSET + ISP5_STATS_LTM_MAX_SIZE)
 /**@}*/
 
@@ -106,9 +122,11 @@ typedef struct syncpoint_info {
  * @defgroup ViAtompSurface VI ATOMP surface related defines
  * @{
  */
-/** Generic */
+/** Output surface plane 0 */
 #define VI_ATOMP_SURFACE0	0
+/** Output surface plane 1 */
 #define VI_ATOMP_SURFACE1	1
+/** Output surface plane 2 */
 #define VI_ATOMP_SURFACE2	2
 
 /** Sensor embedded data */
@@ -134,28 +152,8 @@ typedef struct syncpoint_info {
 #define SLVSEC_STREAM_DISABLED	U8_C(0xFF)
 
 /**
- * @brief Describes RTCPU side resources for a capture pipe-line.
- */
-struct capture_channel_config {
-	/**
-	 * A bitmask describing the set of non-shareable
-	 * HW resources that the capture channel will need. These HW resources
-	 * will be assigned to the new capture channel and will be owned by the
-	 * channel until it is released with CAPTURE_CHANNEL_RELEASE_REQ.
-	 *
-	 * The HW resources that can be assigned to a channel include a VI
-	 * channel, ISPBUF A/B interface (T18x only), Focus Metric Lite module (FML).
-	 *
-	 * VI channels can have different capabilities. The flags are checked
-	 * against the VI channel capabilities to make sure the allocated VI
-	 * channel meets the requirements.
-	 *
-	 * See @ref CaptureChannelFlags "Capture Channel Flags".
-	 */
-	uint32_t channel_flags;
-/**
- * @name CaptureChannelFlags
- * Capture channel specific flags
+ * @defgroup VICaptureChannelFlags
+ * VI Capture channel specific flags
  */
 /**@{*/
 /** Channel takes input from Video Interface (VI) */
@@ -191,6 +189,72 @@ struct capture_channel_config {
 /** Capture with VI PFSD enabled */
 #define CAPTURE_CHANNEL_FLAG_ENABLE_VI_PFSD	U32_C(0x8000)
 /**@}*/
+
+/**
+ * @defgroup CaptureChannelErrMask
+ * Bitmask for masking "Uncorrected errors" and "Errors with threshold".
+ */
+/**@{*/
+/** VI Frame start error timeout */
+#define CAPTURE_CHANNEL_ERROR_VI_FRAME_START_TIMEOUT	(U32_C(1) << 23)
+/** VI Permanent Fault SW Diagnostics (PFSD) error */
+#define CAPTURE_CHANNEL_ERROR_VI_PFSD_FAULT		(U32_C(1) << 22)
+/** Embedded data incomplete */
+#define CAPTURE_CHANNEL_ERROR_ERROR_EMBED_INCOMPLETE	(U32_C(1) << 21)
+/** Pixel frame is incomplete */
+#define CAPTURE_CHANNEL_ERROR_INCOMPLETE		(U32_C(1) << 20)
+/** A Frame End appears from NVCSI before the normal number of pixels has appeared*/
+#define CAPTURE_CHANNEL_ERROR_STALE_FRAME		(U32_C(1) << 19)
+/** A start-of-frame matches a channel that is already in frame */
+#define CAPTURE_CHANNEL_ERROR_COLLISION			(U32_C(1) << 18)
+/** Pixels stopped, an FE was forced due to a latent LOAD event */
+#define CAPTURE_CHANNEL_ERROR_FORCE_FE			(U32_C(1) << 17)
+/** A LOAD command is received for a channel while that channel is currently in a frame.*/
+#define CAPTURE_CHANNEL_ERROR_LOAD_FRAMED		(U32_C(1) << 16)
+/** The pixel datatype changed in the middle of the line */
+#define CAPTURE_CHANNEL_ERROR_DTYPE_MISMATCH		(U32_C(1) << 15)
+/** Unexpected embedded data in frame */
+#define CAPTURE_CHANNEL_ERROR_EMBED_INFRINGE		(U32_C(1) << 14)
+/** Extra embedded bytes on line */
+#define CAPTURE_CHANNEL_ERROR_EMBED_LONG_LINE		(U32_C(1) << 13)
+/** Embedded bytes found between line start and line end*/
+#define CAPTURE_CHANNEL_ERROR_EMBED_SPURIOUS		(U32_C(1) << 12)
+/** Too many embeded lines in frame */
+#define CAPTURE_CHANNEL_ERROR_EMBED_RUNAWAY		(U32_C(1) << 11)
+/** Two embedded line starts without a line end in between */
+#define CAPTURE_CHANNEL_ERROR_EMBED_MISSING_LE		(U32_C(1) << 10)
+/** A line has fewer pixels than expected width */
+#define CAPTURE_CHANNEL_ERROR_PIXEL_SHORT_LINE		(U32_C(1) << 9)
+/** A line has more pixels than expected width, pixels dropped */
+#define CAPTURE_CHANNEL_ERROR_PIXEL_LONG_LINE		(U32_C(1) << 8)
+/** A pixel found between line end and line start markers, dropped */
+#define CAPTURE_CHANNEL_ERROR_PIXEL_SPURIOUS		(U32_C(1) << 7)
+/** Too many pixel lines in frame, extra lines dropped */
+#define CAPTURE_CHANNEL_ERROR_PIXEL_RUNAWAY		(U32_C(1) << 6)
+/** Two lines starts without a line end in between */
+#define CAPTURE_CHANNEL_ERROR_PIXEL_MISSING_LE		(U32_C(1) << 5)
+/**@}*/
+
+/**
+ * @brief Describes RTCPU side resources for a capture pipe-line.
+ */
+struct capture_channel_config {
+	/**
+	 * A bitmask describing the set of non-shareable
+	 * HW resources that the capture channel will need. These HW resources
+	 * will be assigned to the new capture channel and will be owned by the
+	 * channel until it is released with CAPTURE_CHANNEL_RELEASE_REQ.
+	 *
+	 * The HW resources that can be assigned to a channel include a VI
+	 * channel, ISPBUF A/B interface (T18x only), Focus Metric Lite module (FML).
+	 *
+	 * VI channels can have different capabilities. The flags are checked
+	 * against the VI channel capabilities to make sure the allocated VI
+	 * channel meets the requirements.
+	 *
+	 * See @ref VICaptureChannelFlags "Capture Channel Flags".
+	 */
+	uint32_t channel_flags;
 
 	/** rtcpu internal data field - Should be set to zero */
 	uint32_t channel_id;
@@ -263,50 +327,6 @@ struct capture_channel_config {
 	 * See @ref CaptureChannelErrMask "Channel Error bitmask".
 	 * These map to the corrected error line in HSM */
 	uint32_t error_mask_correctable;
-/**
- * @name CaptureChannelErrMask
- * Bitmask for masking "Uncorrected errors" and "Errors with threshold".
- */
-/**@{*/
-/** VI Frame start error timeout */
-#define CAPTURE_CHANNEL_ERROR_VI_FRAME_START_TIMEOUT	(U32_C(1) << 23)
-/** VI Permanent Fault SW Diagnostics (PFSD) error */
-#define CAPTURE_CHANNEL_ERROR_VI_PFSD_FAULT		(U32_C(1) << 22)
-/** Embedded data incomplete */
-#define CAPTURE_CHANNEL_ERROR_ERROR_EMBED_INCOMPLETE	(U32_C(1) << 21)
-/** Pixel frame is incomplete */
-#define CAPTURE_CHANNEL_ERROR_INCOMPLETE		(U32_C(1) << 20)
-/** A Frame End appears from NVCSI before the normal number of pixels has appeared*/
-#define CAPTURE_CHANNEL_ERROR_STALE_FRAME		(U32_C(1) << 19)
-/** A start-of-frame matches a channel that is already in frame */
-#define CAPTURE_CHANNEL_ERROR_COLLISION			(U32_C(1) << 18)
-/** Pixels stopped, an FE was forced due to a latent LOAD event */
-#define CAPTURE_CHANNEL_ERROR_FORCE_FE			(U32_C(1) << 17)
-/** A LOAD command is received for a channel while that channel is currently in a frame.*/
-#define CAPTURE_CHANNEL_ERROR_LOAD_FRAMED		(U32_C(1) << 16)
-/** The pixel datatype changed in the middle of the line */
-#define CAPTURE_CHANNEL_ERROR_DTYPE_MISMATCH		(U32_C(1) << 15)
-/** Unexpected embedded data in frame */
-#define CAPTURE_CHANNEL_ERROR_EMBED_INFRINGE		(U32_C(1) << 14)
-/** Extra embedded bytes on line */
-#define CAPTURE_CHANNEL_ERROR_EMBED_LONG_LINE		(U32_C(1) << 13)
-/** Embedded bytes found between line start and line end*/
-#define CAPTURE_CHANNEL_ERROR_EMBED_SPURIOUS		(U32_C(1) << 12)
-/** Too many embeded lines in frame */
-#define CAPTURE_CHANNEL_ERROR_EMBED_RUNAWAY		(U32_C(1) << 11)
-/** Two embedded line starts without a line end in between */
-#define CAPTURE_CHANNEL_ERROR_EMBED_MISSING_LE		(U32_C(1) << 10)
-/** A line has fewer pixels than expected width */
-#define CAPTURE_CHANNEL_ERROR_PIXEL_SHORT_LINE		(U32_C(1) << 9)
-/** A line has more pixels than expected width, pixels dropped */
-#define CAPTURE_CHANNEL_ERROR_PIXEL_LONG_LINE		(U32_C(1) << 8)
-/** A pixel found between line end and line start markers, dropped */
-#define CAPTURE_CHANNEL_ERROR_PIXEL_SPURIOUS		(U32_C(1) << 7)
-/** Too many pixel lines in frame, extra lines dropped */
-#define CAPTURE_CHANNEL_ERROR_PIXEL_RUNAWAY		(U32_C(1) << 6)
-/** Two lines starts without a line end in between */
-#define CAPTURE_CHANNEL_ERROR_PIXEL_MISSING_LE		(U32_C(1) << 5)
-/**@}*/
 
 	/**
 	 * Capture will stop for errors selected in this bit masks.
@@ -354,7 +374,7 @@ struct vi_channel_config {
 	unsigned __pad_flags:18;
 
 	/* VI channel selector */
-	struct {
+	struct match_rec {
 		/** Datatype to be sent to the channel */
 		uint8_t datatype;
 		/** Bits of datatype to match on */
@@ -395,7 +415,7 @@ struct vi_channel_config {
 		uint32_t embed_x;
 		/** Number of embedded lines in frame */
 		uint32_t embed_y;
-		struct {
+		struct skip_rec {
 			/**
 			 * Number of packets to skip on output at start of line.
 			 * Counted in groups of 8 pixels
@@ -404,7 +424,7 @@ struct vi_channel_config {
 			/** Number of lines to skip at top of the frame */
 			uint16_t y;
 		} skip;
-		struct {
+		struct crop_rec {
 			/** Line width in pixels after which no packets will be transmitted */
 			uint16_t x;
 			/** Height in lines after which no lines will be transmitted */
@@ -423,12 +443,12 @@ struct vi_channel_config {
 	uint16_t line_timer_first;
 
 	/* Pixel formatter */
-	struct {
+	struct pixfmt_rec {
 		/** Pixel memory format for the VI channel */
 		uint16_t format;
 		/** Reserved */
 		uint16_t __pad;
-		struct {
+		struct pdaf_rec {
 			/** Within a line, X pixel position at which PDAF separation begins */
 			uint16_t crop_left;
 			/** Within a line, X pixel position at which PDAF separation ends*/
@@ -459,7 +479,7 @@ struct vi_channel_config {
 	} pixfmt;
 
 	/* Pixel DPCM */
-	struct {
+	struct dpcm_rec {
 		/** Number of pixels in the strip */
 		uint16_t strip_width;
 		/** Number of packets in overfetch region */
@@ -488,8 +508,8 @@ struct vi_channel_config {
 	} dpcm;
 
 	/* Atom packer */
-	struct {
-		struct {
+	struct atomp_rec {
+		struct surface_rec {
 			/** Lower 32-bits of the surface base address */
 			uint32_t offset;
 			/** Lower 8-bits of the surface base address */
@@ -524,7 +544,7 @@ struct engine_status_surface {
  */
 struct nvcsi_error_status {
 	/**
-	 * NVCSI error reported for stream used by capture descriptor
+	 * NVCSI @ref NvCsiStreamErrors "errors" reported for stream used by capture descriptor
 	 *
 	 * Stream error affects multiple virtual channel.
 	 * It will be is reported only once, for the first capture channel
@@ -534,24 +554,47 @@ struct nvcsi_error_status {
 	 * affected virtual channels.
 	 */
 	uint32_t nvcsi_stream_bits;
+	/**
+	 * @name NvCsiStreamErrors
+	 * NVCSI Stream error bits
+ 	 * @defgroup NvCsiStreamErrors NVCSI Stream error bits
+	 */
+	/** @{ */
 #define NVCSI_STREAM_ERR_STAT_PH_BOTH_CRC_ERR			(U32_C(1) << 1U)
 #define NVCSI_STREAM_ERR_STAT_PH_ECC_MULTI_BIT_ERR		(U32_C(1) << 0U)
+	/** @} */
 
 	/**
-	 * NVCSI errors reported for stream virtual channel used by capture descriptor
+	 * NVCSI @ref NvcsiVirtualChannelErrors "errors" reported for stream virtual channel used by capture descriptor
+	 * These errors are expected to be forwarded to VI and also reported by VI as CSIMUX Frame CSI_FAULT errors
 	 */
 	uint32_t nvcsi_virtual_channel_bits;
+	/**
+	 * @name NvCsiVirtualChannelErrors
+	 * NVCSI Virtual Channel error bits
+ 	 * @defgroup NvCsiVirtualChannelErrors NVCSI Virtual Channel error bits
+	 */
+	/** @{ */
 #define NVCSI_VC_ERR_INTR_STAT_PH_SINGLE_CRC_ERR_VC0		(U32_C(1) << 4U)
 #define NVCSI_VC_ERR_INTR_STAT_PD_WC_SHORT_ERR_VC0		(U32_C(1) << 3U)
 #define NVCSI_VC_ERR_INTR_STAT_PD_CRC_ERR_VC0			(U32_C(1) << 2U)
 #define NVCSI_VC_ERR_INTR_STAT_PH_ECC_SINGLE_BIT_ERR_VC0	(U32_C(1) << 1U)
 #define NVCSI_VC_ERR_INTR_STAT_PPFSM_TIMEOUT_VC0		(U32_C(1) << 0U)
+	/** @} */
 
 	/**
 	 * NVCSI errors reported for CIL interface used by capture descriptor
 	 */
+	/** NVCSI CIL A  @ref NvCsiCilErrors "errors" */
 	uint32_t cil_a_error_bits;
+	/** NVCSI CIL B  @ref NvCsiCilErrors "errors" */
 	uint32_t cil_b_error_bits;
+	/**
+	 * @name NvCsiCilErrors
+	 * NVCSI CIL error bits
+ 	 * @defgroup NvCsiCilErrors NVCSI CIL error bits
+	 */
+	/** @{ */
 #define NVCSI_ERR_CIL_DATA_LANE_SOT_2LSB_ERR1		(U32_C(1) << 16U)
 #define NVCSI_ERR_CIL_DATA_LANE_SOT_2LSB_ERR0		(U32_C(1) << 15U)
 #define NVCSI_ERR_CIL_DATA_LANE_ESC_MODE_SYNC_ERR1	(U32_C(1) << 14U)
@@ -569,6 +612,7 @@ struct nvcsi_error_status {
 #define NVCSI_ERR_CIL_DATA_LANE_SOT_MB_ERR0             (U32_C(1) << 2U)
 #define NVCSI_ERR_CIL_DATA_LANE_SOT_SB_ERR0		(U32_C(1) << 1U)
 #define NVCSI_ERR_DPHY_CIL_CLK_LANE_CTRL_ERR		(U32_C(1) << 0U)
+	/** @} */
 };
 
 
@@ -587,6 +631,7 @@ struct capture_status {
 /**
  * @name CaptureStatusCodes
  * Capture status codes.
+ * @defgroup CaptureStatusCodes Capture status codes.
  */
 /** @{ */
 /** Capture status unknown */
@@ -622,7 +667,6 @@ struct capture_status {
 /** Data does not match any active channel */
 #define CAPTURE_STATUS_CHANSEL_NOMATCH		U32_C(15)
 /** @} */
-
 	/** Start of Frame (SOF) timestamp */
 	uint64_t sof_timestamp;
 	/** End of Frame (EOF) timestamp */
@@ -969,7 +1013,7 @@ struct vi_pfsd_config {
 	 *
 	 * Note that all coordinates are inclusive.
 	 */
-	struct {
+	struct replace_roi_rec {
 		/** left pixel column of the replacement ROI */
 		uint16_t left;
 		/** right pixel column of the replacement ROI (inclusive) */
@@ -1007,6 +1051,16 @@ struct vi_pfsd_config {
 } __CAPTURE_IVC_ALIGN;
 
 /**
+ * @defgroup CaptureFrameFlags Captue frame specific flags
+ */
+/** @{ */
+/** Enables capture status reporting for the channel */
+#define CAPTURE_FLAG_STATUS_REPORT_ENABLE	(U32_C(1) << 0)
+/** Enables error reporting for the channel */
+#define CAPTURE_FLAG_ERROR_REPORT_ENABLE	(U32_C(1) << 1)
+/** @} */
+
+/**
  * @brief VI frame capture context.
  */
 struct capture_descriptor {
@@ -1014,15 +1068,6 @@ struct capture_descriptor {
 	uint32_t sequence;
 	/** VI capture frame specific flags. See @ref CaptureFrameFlags "Capture Frame Flags" */
 	uint32_t capture_flags;
-/**
- * @name CaptureFrameFlags
- * Captue frame specific flags
- */
-/** @{ */
-#define CAPTURE_FLAG_STATUS_REPORT_ENABLE	(U32_C(1) << 0)
-#define CAPTURE_FLAG_ERROR_REPORT_ENABLE	(U32_C(1) << 1)
-/** @} */
-
 	/** Task descriptor frame start timeout in milliseconds */
 	uint16_t frame_start_timeout;
 	/** Task descriptor frame complete timeout in milliseconds */
@@ -1070,10 +1115,10 @@ struct event_inject_msg {
 	uint32_t data_ext;
 };
 
+#define VI_HSM_CHANSEL_ERROR_MASK_BIT_NOMATCH U32_C(1)
 /**
  * @brief VI EC/HSM global CHANSEL error masking
  */
-#define VI_HSM_CHANSEL_ERROR_MASK_BIT_NOMATCH U32_C(1)
 struct vi_hsm_chansel_error_mask_config {
 	/** "Errors with threshold" bit mask */
 	uint32_t chansel_correctable_mask;
@@ -1150,6 +1195,7 @@ struct vi_hsm_chansel_error_mask_config {
  */
 /** NVCSI config flags */
 #define NVCSI_CONFIG_FLAG_BRICK		(U32_C(1) << 0)
+/** NVCSI config flags */
 #define NVCSI_CONFIG_FLAG_CIL		(U32_C(1) << 1)
 /** Enable user-provided error handling configuration */
 #define NVCSI_CONFIG_FLAG_ERROR		(U32_C(1) << 2)
@@ -1168,7 +1214,9 @@ struct vi_hsm_chansel_error_mask_config {
  * @defgroup NvCsiPhyType NVCSI physical types
  * @{
  */
+/** NVCSI D-PHY physical layer */
 #define NVCSI_PHY_TYPE_DPHY	U32_C(0)
+/** NVCSI D-PHY physical layer */
 #define NVCSI_PHY_TYPE_CPHY	U32_C(1)
 /** @} */
 
@@ -1290,6 +1338,20 @@ struct nvcsi_cil_config {
 } __CAPTURE_IVC_ALIGN;
 
 /**
+ * @defgroup HsmCsimuxErrors Bitmask for CSIMUX errors reported to HSM
+ */
+/** @{ */
+/** Error bit indicating next packet after a frame end was not a frame start */
+#define VI_HSM_CSIMUX_ERROR_MASK_BIT_SPURIOUS_EVENT (U32_C(1) << 0)
+/** Error bit indicating FIFO for the stream has over flowed */
+#define VI_HSM_CSIMUX_ERROR_MASK_BIT_OVERFLOW (U32_C(1) << 1)
+/** Error bit indicating frame start packet lost due to FIFO overflow */
+#define VI_HSM_CSIMUX_ERROR_MASK_BIT_LOF (U32_C(1) << 2)
+/** Error bit indicating that an illegal packet has been sent from NVCSI */
+#define VI_HSM_CSIMUX_ERROR_MASK_BIT_BADPKT (U32_C(1) << 3)
+/** @} */
+
+/**
  * @brief VI EC/HSM error masking configuration
  */
 struct vi_hsm_csimux_error_mask_config {
@@ -1297,28 +1359,25 @@ struct vi_hsm_csimux_error_mask_config {
 	uint32_t error_mask_correctable;
 	/** Mask uncorrectable CSIMUX. See @ref HsmCsimuxErrors "CSIMUX error bitmask". */
 	uint32_t error_mask_uncorrectable;
-/**
- * @name HsmCsimuxErrors
- * Bitmask for CSIMUX errors reported to HSM
- */
-/** @{ */
-#define VI_HSM_CSIMUX_ERROR_MASK_BIT_SPURIOUS_EVENT (U32_C(1) << 0)
-#define VI_HSM_CSIMUX_ERROR_MASK_BIT_OVERFLOW (U32_C(1) << 1)
-#define VI_HSM_CSIMUX_ERROR_MASK_BIT_LOF (U32_C(1) << 2)
-#define VI_HSM_CSIMUX_ERROR_MASK_BIT_BADPKT (U32_C(1) << 3)
-/** @} */
 } __CAPTURE_IVC_ALIGN;
 
 /**
  * @defgroup NvCsiStreamErr NVCSI stream novc+vc error flags
  * @{
  */
+/** Multi bit error in the DPHY packet header */
 #define NVCSI_INTR_FLAG_STREAM_NOVC_ERR_PH_ECC_MULTI_BIT	(U32_C(1) << 0)
+/** Error bit indicating both of the CPHY packet header CRC check fail */
 #define NVCSI_INTR_FLAG_STREAM_NOVC_ERR_PH_BOTH_CRC		(U32_C(1) << 1)
+/** Error bit indicating VC Pixel Parser (PP) FSM timeout for a pixel line.*/
 #define NVCSI_INTR_FLAG_STREAM_VC_ERR_PPFSM_TIMEOUT		(U32_C(1) << 2)
+/** Error bit indicating VC has packet with single bit ECC error in the packet header*/
 #define NVCSI_INTR_FLAG_STREAM_VC_ERR_PH_ECC_SINGLE_BIT		(U32_C(1) << 3)
+/** Error bit indicating VC has packet payload crc check fail */
 #define NVCSI_INTR_FLAG_STREAM_VC_ERR_PD_CRC			(U32_C(1) << 4)
+/** Error bit indicating VC has packet terminate before getting the expect word count data. */
 #define NVCSI_INTR_FLAG_STREAM_VC_ERR_PD_WC_SHORT		(U32_C(1) << 5)
+/** Error bit indicating VC has one of the CPHY packet header CRC check fail. */
 #define NVCSI_INTR_FLAG_STREAM_VC_ERR_PH_SINGLE_CRC		(U32_C(1) << 6)
 /** @} */
 
@@ -1616,14 +1675,8 @@ struct nvcsi_tpg_config_t186 {
 struct nvcsi_tpg_config_t194 {
 	/** NvCSI Virtual channel ID */
 	uint8_t virtual_channel_id;
-	/** DEPRECATED - to be removed */
-	uint8_t virtual_channel;
-	/** Reserved */
-	uint16_t __pad16[3];
 	/** NvCSI datatype * */
 	uint8_t datatype;
-	/** DEPRECATED - to be removed */
-	uint8_t data_type;
 	/** @ref NvCsiTpgFlag "NvCSI TPG flag" */
 	uint16_t flags;
 	/** Starting framen number for TPG */
@@ -1701,6 +1754,32 @@ struct nvcsi_tpg_rate_config {
  */
 
 /**
+ * @defgroup IspErrorMask ISP Channel error mask
+ */
+/** @{ */
+/** Error bit indicating unsupported push buffer opcode encountered*/
+#define CAPTURE_ISP_CHANNEL_ERROR_DMA_PBUF_ERR		(U32_C(1) << 0)
+/** Error bit indicating word count in a state buffer and state DMA size mismatch*/
+#define CAPTURE_ISP_CHANNEL_ERROR_DMA_SBUF_ERR		(U32_C(1) << 1)
+/** Error bit indicating that DMA detected an incorrect bus transaction sequence*/
+#define CAPTURE_ISP_CHANNEL_ERROR_DMA_SEQ_ERR		(U32_C(1) << 2)
+/** Error bit indicating incorrect FRAME_ID or STREAM_ID detected on state write bus*/
+#define CAPTURE_ISP_CHANNEL_ERROR_FRAMEID_ERR		(U32_C(1) << 3)
+/** Error bit indicating a timeout occured */
+#define CAPTURE_ISP_CHANNEL_ERROR_TIMEOUT		(U32_C(1) << 4)
+/** Error mask for all the above errors */
+#define CAPTURE_ISP_CHANNEL_ERROR_ALL			U32_C(0x001F)
+/** @} */
+
+/**
+ * @defgroup ISPProcessChannelFlags ISP process channel specific flags
+ */
+/**@{*/
+/** Channel reset on error */
+#define CAPTURE_ISP_CHANNEL_FLAG_RESET_ON_ERROR	U32_C(0x0001)
+/**@}*/
+
+/**
  * @brief Describes RTCPU side resources for a ISP capture pipe-line.
  *
  * Following structure defines ISP channel specific configuration;
@@ -1710,11 +1789,8 @@ struct capture_channel_isp_config {
 	uint8_t channel_id;
 	/** Reserved */
 	uint8_t __pad_chan[3];
-	/** ISP channel specific flags */
+	/** ISP channel specific @ref ISPProcessChannelFlags "flags" */
 	uint32_t channel_flags;
-
-#define CAPTURE_ISP_CHANNEL_FLAG_RESET_ON_ERROR	U32_C(0x0001)
-
 	/**
 	 * Base address of ISP capture descriptor ring buffer.
 	 * The size of the buffer is request_queue_depth * request_size
@@ -1756,18 +1832,6 @@ struct capture_channel_isp_config {
 	 * See @ref IspErrorMask "ISP channel error bitmask".
 	 */
 	uint32_t error_mask_uncorrectable;
-/**
- * @name IspErrorMask
- * ISP Channel error mask
- */
-/** @{ */
-#define CAPTURE_ISP_CHANNEL_ERROR_DMA_PBUF_ERR		(U32_C(1) << 0)
-#define CAPTURE_ISP_CHANNEL_ERROR_DMA_SBUF_ERR		(U32_C(1) << 1)
-#define CAPTURE_ISP_CHANNEL_ERROR_DMA_SEQ_ERR		(U32_C(1) << 2)
-#define CAPTURE_ISP_CHANNEL_ERROR_FRAMEID_ERR		(U32_C(1) << 3)
-#define CAPTURE_ISP_CHANNEL_ERROR_TIMEOUT		(U32_C(1) << 4)
-#define CAPTURE_ISP_CHANNEL_ERROR_ALL			U32_C(0x001F)
-/** @} */
 
 #define HAVE_ISP_GOS_TABLES
 	/** Number of active ISP GOS tables in isp_gos_tables[] */
@@ -1783,6 +1847,17 @@ struct capture_channel_isp_config {
 	iova_t isp_gos_tables[ISP_NUM_GOS_TABLES];
 } __CAPTURE_IVC_ALIGN;
 
+/**
+ * @defgroup IspProcesStatus ISP process status codes
+ */
+/** @{ */
+/** ISP frame processing status unknown */
+#define CAPTURE_ISP_STATUS_UNKNOWN		U32_C(0)
+/** ISP frame processing succeeded */
+#define CAPTURE_ISP_STATUS_SUCCESS		U32_C(1)
+/** ISP frame processing encountered an error */
+#define CAPTURE_ISP_STATUS_ERROR		U32_C(2)
+/** @} */
 
 /**
  * @brief ISP process request status
@@ -1800,17 +1875,21 @@ struct capture_isp_status {
 	uint32_t error_mask;
 	/** Reserved */
 	uint32_t __pad2;
+} __CAPTURE_IVC_ALIGN;
 
 /**
- * @name IspProcesStatus
- * ISP process status codes
+ * @defgroup IspProgramStatus ISP program status codes
  */
 /** @{ */
-#define CAPTURE_ISP_STATUS_UNKNOWN		U32_C(0)
-#define CAPTURE_ISP_STATUS_SUCCESS		U32_C(1)
-#define CAPTURE_ISP_STATUS_ERROR		U32_C(2)
+/** ISP program status unknown */
+#define CAPTURE_ISP_PROGRAM_STATUS_UNKNOWN	U32_C(0)
+/** ISP program was used successfully for frame processing */
+#define CAPTURE_ISP_PROGRAM_STATUS_SUCCESS	U32_C(1)
+/** ISP program encountered an error */
+#define CAPTURE_ISP_PROGRAM_STATUS_ERROR	U32_C(2)
+/** ISP program has expired and is not being used by any active process requests */
+#define CAPTURE_ISP_PROGRAM_STATUS_STALE	U32_C(3)
 /** @} */
-} __CAPTURE_IVC_ALIGN;
 
 /**
  * @brief ISP program request status
@@ -1828,18 +1907,19 @@ struct capture_isp_program_status {
 	uint32_t error_mask;
 	/** Reserved */
 	uint32_t __pad2;
+} __CAPTURE_IVC_ALIGN;
 
 /**
- * @name IspProgramStatus
- * ISP program status codes
+ * @defgroup IspActivateFlag ISP program activation flag
  */
 /** @{ */
-#define CAPTURE_ISP_PROGRAM_STATUS_UNKNOWN	U32_C(0)
-#define CAPTURE_ISP_PROGRAM_STATUS_SUCCESS	U32_C(1)
-#define CAPTURE_ISP_PROGRAM_STATUS_ERROR	U32_C(2)
-#define CAPTURE_ISP_PROGRAM_STATUS_STALE	U32_C(3)
+/** Program request will when the frame sequence id reaches a certain threshold */
+#define CAPTURE_ACTIVATE_FLAG_ON_SEQUENCE_ID	U32_C(0x1)
+/** Program request will be activate when the frame settings id reaches a certain threshold */
+#define CAPTURE_ACTIVATE_FLAG_ON_SETTINGS_ID	U32_C(0x2)
+/** Each Process request is coupled with a Program request */
+#define CAPTURE_ACTIVATE_FLAG_COUPLED		U32_C(0x4)
 /** @} */
-} __CAPTURE_IVC_ALIGN;
 
 /**
  * @brief Describes ISP program structure;
@@ -1883,19 +1963,6 @@ struct isp_program_descriptor {
 	/** Activation condition for given ISP program. See @ref IspActivateFlag "Activation flags" */
 	uint32_t activate_flags;
 
-/**
- * @name IspActivateFlag
- * ISP program activation flag
- */
-/** @{ */
-/** 1 << 0 */
-#define CAPTURE_ACTIVATE_FLAG_ON_SEQUENCE_ID	U32_C(0x1)
-/** 1 << 1 */
-#define CAPTURE_ACTIVATE_FLAG_ON_SETTINGS_ID	U32_C(0x2)
-/** 1 << 2 */
-#define CAPTURE_ACTIVATE_FLAG_COUPLED		U32_C(0x4)
-/** @} */
-
 	/** Pad to aligned size */
 	uint32_t __pad[5];
 } __CAPTURE_DESCRIPTOR_ALIGN;
@@ -1934,6 +2001,18 @@ struct stats_surface {
 } __CAPTURE_IVC_ALIGN;
 
 /**
+ * @defgroup IspProcessFlag ISP process frame specific flags.
+ */
+/** @{ */
+/** Enables process status reporting for the channel */
+#define CAPTURE_ISP_FLAG_STATUS_REPORT_ENABLE	(U32_C(1) << 0)
+/** Enables error reporting for the channel */
+#define CAPTURE_ISP_FLAG_ERROR_REPORT_ENABLE	(U32_C(1) << 1)
+/** Enables process and program request binding for the channel */
+#define CAPTURE_ISP_FLAG_ISP_PROGRAM_BINDING	(U32_C(1) << 2)
+/** @} */
+
+/**
  * @brief ISP capture descriptor
  */
 struct isp_capture_descriptor {
@@ -1941,16 +2020,6 @@ struct isp_capture_descriptor {
 	uint32_t sequence;
 	/** ISP frame specific flags. See @ref IspProcessFlag "ISP process flags" */
 	uint32_t capture_flags;
-
-/**
- * @name IspProcessFlag
- * ISP process frame specific flags.
- */
-/** @{ */
-#define CAPTURE_ISP_FLAG_STATUS_REPORT_ENABLE	(U32_C(1) << 0)
-#define CAPTURE_ISP_FLAG_ERROR_REPORT_ENABLE	(U32_C(1) << 1)
-#define CAPTURE_ISP_FLAG_ISP_PROGRAM_BINDING	(U32_C(1) << 2)
-/** @} */
 
 	/** 1 MR port, max 3 input surfaces */
 #define ISP_MAX_INPUT_SURFACES (3U)
