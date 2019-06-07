@@ -180,7 +180,7 @@ static int test_tsg_open(struct unit_module *m,
 	struct nvgpu_tsg *next_tsg = NULL;
 	struct nvgpu_posix_fault_inj *kmem_fi;
 	u32 branches = 0U;
-	int rc = UNIT_FAIL;
+	int ret = UNIT_FAIL;
 	u32 fail = F_TSG_OPEN_ACQUIRE_CH_FAIL |
 		   F_TSG_OPEN_SM_FAIL |
 		   F_TSG_OPEN_ALLOC_SM_FAIL |
@@ -241,10 +241,10 @@ static int test_tsg_open(struct unit_module *m,
 			tsg = NULL;
 		}
 	}
-	rc = UNIT_SUCCESS;
+	ret = UNIT_SUCCESS;
 
 done:
-	if (rc != UNIT_SUCCESS) {
+	if (ret != UNIT_SUCCESS) {
 		unit_err(m, "%s branches=%s\n", __func__,
 			branches_str(branches, f_tsg_open));
 	}
@@ -254,7 +254,7 @@ done:
 	}
 	g->ops = gops;
 	f->num_channels = num_channels;
-	return rc;
+	return ret;
 }
 
 #define F_TSG_BIND_CHANNEL_CH_BOUND		BIT(0)
@@ -284,7 +284,7 @@ static int test_tsg_bind_channel(struct unit_module *m,
 	struct nvgpu_channel *ch = NULL;
 	struct nvgpu_runlist_info *runlist = NULL;
 	u32 branches = 0U;
-	int rc = UNIT_FAIL;
+	int ret = UNIT_FAIL;
 	int err;
 	u32 prune = F_TSG_BIND_CHANNEL_CH_BOUND |
 		    F_TSG_BIND_CHANNEL_RL_MISMATCH |
@@ -359,10 +359,10 @@ static int test_tsg_bind_channel(struct unit_module *m,
 		}
 	}
 
-	rc = UNIT_SUCCESS;
+	ret = UNIT_SUCCESS;
 
 done:
-	if (rc != UNIT_SUCCESS) {
+	if (ret != UNIT_SUCCESS) {
 		unit_err(m, "%s branches=%s\n", __func__,
 			branches_str(branches, f_tsg_bind));
 	}
@@ -376,7 +376,7 @@ done:
 		nvgpu_ref_put(&tsg->refcount, nvgpu_tsg_release);
 	}
 	g->ops = gops;
-	return rc;
+	return ret;
 }
 
 #define F_TSG_UNBIND_CHANNEL_UNSERVICEABLE		BIT(0)
@@ -473,7 +473,7 @@ static int test_tsg_unbind_channel(struct unit_module *m,
 	struct nvgpu_channel *chA = NULL;
 	struct nvgpu_channel *chB = NULL;
 	u32 branches = 0U;
-	int rc = UNIT_FAIL;
+	int ret = UNIT_FAIL;
 	int err;
 
 	for (branches = 0U; branches < F_TSG_BIND_CHANNEL_LAST; branches++) {
@@ -556,10 +556,10 @@ static int test_tsg_unbind_channel(struct unit_module *m,
 		tsg = NULL;
 	}
 
-	rc = UNIT_SUCCESS;
+	ret = UNIT_SUCCESS;
 
 done:
-	if (rc == UNIT_FAIL) {
+	if (ret == UNIT_FAIL) {
 		unit_err(m, "%s branches=%s\n", __func__,
 			branches_str(branches, f_tsg_unbind));
 	}
@@ -573,7 +573,7 @@ done:
 		nvgpu_ref_put(&tsg->refcount, nvgpu_tsg_release);
 	}
 	g->ops = gops;
-	return rc;
+	return ret;
 }
 
 #define F_TSG_RELEASE_GR_CTX		BIT(0)
@@ -617,7 +617,7 @@ static int test_tsg_release(struct unit_module *m,
 	struct nvgpu_list_node ev1, ev2;
 	struct vm_gk20a vm;
 	u32 branches = 0U;
-	int rc = UNIT_FAIL;
+	int ret = UNIT_FAIL;
 	struct nvgpu_mem mem;
 	u32 free_gr_ctx_mask =
 		F_TSG_RELEASE_GR_CTX|F_TSG_RELEASE_MEM|F_TSG_RELEASE_VM;
@@ -711,15 +711,15 @@ static int test_tsg_release(struct unit_module *m,
 		assert(tsg->vm == NULL);
 		assert(tsg->sm_error_states == NULL);
 	}
-	rc = UNIT_SUCCESS;
+	ret = UNIT_SUCCESS;
 
 done:
-	if (rc != UNIT_SUCCESS) {
+	if (ret != UNIT_SUCCESS) {
 		unit_err(m, "%s branches=%s\n", __func__,
 			branches_str(branches, f_tsg_release));
 	}
 	g->ops = gops;
-	return rc;
+	return ret;
 }
 
 #define F_TSG_UNBIND_CHANNEL_CHECK_HW_NEXT		BIT(0)
@@ -746,7 +746,7 @@ static int test_tsg_unbind_channel_check_hw_state(struct unit_module *m,
 	struct nvgpu_channel *ch = NULL;
 	struct nvgpu_tsg *tsg = NULL;
 	u32 branches = 0U;
-	int rc = UNIT_FAIL;
+	int ret = UNIT_FAIL;
 	int err;
 	u32 prune = F_TSG_UNBIND_CHANNEL_CHECK_HW_NEXT;
 
@@ -792,10 +792,10 @@ static int test_tsg_unbind_channel_check_hw_state(struct unit_module *m,
 			assert(err == 0);
 		}
 	}
-	rc = UNIT_SUCCESS;
+	ret = UNIT_SUCCESS;
 
 done:
-	if (rc == UNIT_FAIL) {
+	if (ret == UNIT_FAIL) {
 		unit_err(m, "%s branches=%s\n", __func__,
 			branches_str(branches, f_tsg_unbind_channel_check_hw));
 	}
@@ -806,7 +806,7 @@ done:
 		nvgpu_ref_put(&tsg->refcount, nvgpu_tsg_release);
 	}
 	g->ops = gops;
-	return rc;
+	return ret;
 }
 
 #define F_UNBIND_CHANNEL_CHECK_CTX_RELOAD_SET		BIT(0)
@@ -829,7 +829,7 @@ static int test_tsg_unbind_channel_check_ctx_reload(struct unit_module *m,
 {
 	struct gpu_ops gops = g->ops;
 	u32 branches = 0U;
-	int rc = UNIT_FAIL;
+	int ret = UNIT_FAIL;
 	struct nvgpu_channel_hw_state hw_state;
 	struct nvgpu_tsg *tsg = NULL;
 	struct nvgpu_channel *chA = NULL;
@@ -875,10 +875,10 @@ static int test_tsg_unbind_channel_check_ctx_reload(struct unit_module *m,
 			assert(stub[0].chid == chB->chid);
 		}
 	}
-	rc = UNIT_SUCCESS;
+	ret = UNIT_SUCCESS;
 
 done:
-	if (rc != UNIT_SUCCESS) {
+	if (ret != UNIT_SUCCESS) {
 		unit_err(m, "%s branches=%s\n", __func__,
 			branches_str(branches,
 				f_unbind_channel_check_ctx_reload));
@@ -893,7 +893,7 @@ done:
 		nvgpu_ref_put(&tsg->refcount, nvgpu_tsg_release);
 	}
 	g->ops = gops;
-	return rc;
+	return ret;
 }
 
 #define F_TSG_ENABLE_CH			BIT(0)
@@ -935,7 +935,7 @@ static int test_tsg_enable(struct unit_module *m,
 	struct nvgpu_tsg *tsg = NULL;
 	struct nvgpu_channel *chA = NULL;
 	u32 branches = 0U;
-	int rc = UNIT_FAIL;
+	int ret = UNIT_FAIL;
 	int err;
 
 	tsgA = nvgpu_tsg_open(g, getpid());
@@ -1001,9 +1001,9 @@ static int test_tsg_enable(struct unit_module *m,
 		}
 	}
 
-	rc = UNIT_SUCCESS;
+	ret = UNIT_SUCCESS;
 done:
-	if (rc != UNIT_SUCCESS) {
+	if (ret != UNIT_SUCCESS) {
 		unit_err(m, "%s branches=%s\n", __func__,
 			branches_str(branches, f_tsg_enable));
 	}
@@ -1017,14 +1017,14 @@ done:
 		nvgpu_ref_put(&tsgB->refcount, nvgpu_tsg_release);
 	}
 	g->ops = gops;
-	return rc;
+	return ret;
 }
 
 static int test_tsg_check_and_get_from_id(struct unit_module *m,
 		struct gk20a *g, void *args)
 {
 	struct nvgpu_tsg *tsg;
-	int rc = UNIT_FAIL;
+	int ret = UNIT_FAIL;
 
 	tsg = nvgpu_tsg_check_and_get_from_id(g, NVGPU_INVALID_TSG_ID);
 	assert(tsg == NULL);
@@ -1035,9 +1035,9 @@ static int test_tsg_check_and_get_from_id(struct unit_module *m,
 	assert(nvgpu_tsg_check_and_get_from_id(g, tsg->tsgid) == tsg);
 	nvgpu_ref_put(&tsg->refcount, nvgpu_tsg_release);
 
-	rc = UNIT_SUCCESS;
+	ret = UNIT_SUCCESS;
 done:
-	return rc;
+	return ret;
 }
 
 #define F_TSG_ABORT_STUB			BIT(0)
@@ -1075,7 +1075,7 @@ static int test_tsg_abort(struct unit_module *m, struct gk20a *g, void *args)
 	struct nvgpu_channel *chA = NULL;
 	bool preempt = false;
 	u32 branches = 0U;
-	int rc = UNIT_FAIL;
+	int ret = UNIT_FAIL;
 	u32 prune = F_TSG_ABORT_NON_ABORTABLE;
 	int err;
 
@@ -1150,10 +1150,10 @@ static int test_tsg_abort(struct unit_module *m, struct gk20a *g, void *args)
 		chA->unserviceable = false;
 	}
 
-	rc = UNIT_SUCCESS;
+	ret = UNIT_SUCCESS;
 
 done:
-	if (rc == UNIT_FAIL) {
+	if (ret == UNIT_FAIL) {
 		unit_err(m, "%s branches=%s\n", __func__,
 			branches_str(branches, f_tsg_abort));
 	}
@@ -1167,7 +1167,7 @@ done:
 		nvgpu_ref_put(&tsgB->refcount, nvgpu_tsg_release);
 	}
 	g->ops = gops;
-	return rc;
+	return ret;
 }
 
 #define F_TSG_SETUP_SW_VZALLOC_FAIL		BIT(0)
@@ -1183,7 +1183,7 @@ static int test_tsg_setup_sw(struct unit_module *m,
 	struct gpu_ops gops = g->ops;
 	struct nvgpu_posix_fault_inj *kmem_fi;
 	u32 branches = 0U;
-	int rc = UNIT_FAIL;
+	int ret = UNIT_FAIL;
 	int err;
 	u32 fail = F_TSG_SETUP_SW_VZALLOC_FAIL;
 	u32 prune = fail;
@@ -1215,15 +1215,15 @@ static int test_tsg_setup_sw(struct unit_module *m,
 		}
 	}
 
-	rc = UNIT_SUCCESS;
+	ret = UNIT_SUCCESS;
 done:
 	nvgpu_posix_enable_fault_injection(kmem_fi, false, 0);
-	if (rc != UNIT_SUCCESS) {
+	if (ret != UNIT_SUCCESS) {
 		unit_err(m, "%s branches=%s\n", __func__,
 			branches_str(branches, f_tsg_setup_sw));
 	}
 	g->ops = gops;
-	return rc;
+	return ret;
 }
 
 struct unit_module_test nvgpu_tsg_tests[] = {
