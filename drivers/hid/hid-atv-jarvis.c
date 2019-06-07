@@ -3,7 +3,7 @@
  *  providing keys and microphone audio functionality
  *
  * Copyright (C) 2014 Google, Inc.
- * Copyright (c) 2015-2019, NVIDIA CORPORATION, All rights reserved.
+ * Copyright (c) 2015-2021 NVIDIA CORPORATION, All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -1797,9 +1797,6 @@ static int atvr_raw_event(struct hid_device *hdev, struct hid_report *report,
 	u8 idx = atvr_get_debug_report_idx(shdr_dev, report->id);
 	/*first byte is seq num and next 2 bytes time diff */
 
-	if (shdr_card == NULL)
-		return 0;
-
 	/* debug info is present and Min size check */
 	if (idx < MAX_DEBUG_REPORTS && size > 4) {
 		/*
@@ -1813,8 +1810,6 @@ static int atvr_raw_event(struct hid_device *hdev, struct hid_report *report,
 		atvr_process_debug_info(&shdr_dev->debug_info[idx], seq,
 					fw_time_diff, data[0]);
 	}
-
-	atvr_snd = shdr_card->private_data;
 
 #ifdef DEBUG_HID_RAW_INPUT
 	pr_info("%s: report->id = 0x%x, size = %d\n",
@@ -1830,7 +1825,10 @@ static int atvr_raw_event(struct hid_device *hdev, struct hid_report *report,
 	if (atvr_jarvis_break_events(hdev, report, data, size))
 		return 1;
 
-	if (report->id == ADPCM_AUDIO_REPORT_ID) {
+	if (shdr_card != NULL)
+		atvr_snd = shdr_card->private_data;
+
+	if (report->id == ADPCM_AUDIO_REPORT_ID && shdr_card != NULL) {
 		/* send the data, minus the report-id in data[0], to the
 		 * alsa audio decoder driver for ADPCM
 		 */
@@ -1841,7 +1839,7 @@ static int atvr_raw_event(struct hid_device *hdev, struct hid_report *report,
 		audio_dec(hdev, &data[1], PACKET_TYPE_ADPCM, size - 1);
 		/* we've handled the event */
 		return 1;
-	} else if (report->id == MSBC_AUDIO1_REPORT_ID) {
+	} else if (report->id == MSBC_AUDIO1_REPORT_ID && shdr_card != NULL) {
 		/* first do special case check if there is any
 		 * keyCode active in this report.  if so, we
 		 * generate the same keyCode but on report 2, which
@@ -1872,8 +1870,8 @@ static int atvr_raw_event(struct hid_device *hdev, struct hid_report *report,
 		audio_dec(hdev, &data[1 + 2], PACKET_TYPE_MSBC, size - 1 - 2);
 		/* we've handled the event */
 		return 1;
-	} else if ((report->id == MSBC_AUDIO2_REPORT_ID) ||
-		   (report->id == MSBC_AUDIO3_REPORT_ID)) {
+	} else if ((report->id == MSBC_AUDIO2_REPORT_ID ||
+		   report->id == MSBC_AUDIO3_REPORT_ID) && shdr_card != NULL) {
 		/* strip the one byte report id */
 		audio_dec(hdev, &data[1], PACKET_TYPE_MSBC, size - 1);
 		/* we've handled the event */
@@ -1995,19 +1993,22 @@ static int atvr_probe(struct hid_device *hdev, const struct hid_device_id *id)
 	 * AudioService.java delays enabling the output
 	 */
 	mutex_lock(&snd_cards_lock);
-	ret = atvr_snd_initialize(hdev, &shdr_card);
-	if (ret)
-		goto err_stop;
+	if (hdev->product != USB_DEVICE_ID_NVIDIA_FRIDAY) {
+		/* Skip creation for Friday for now */
+		ret = atvr_snd_initialize(hdev, &shdr_card);
+		if (ret)
+			goto err_stop;
 
-	/*
-	 * hdev pointer is not guaranteed to be the same thus following
-	 * stuff has to be updated every time.
-	 */
-	shdr_dev->shdr_card = shdr_card;
+		/*
+		 * hdev pointer is not guaranteed to be the same thus following
+		 * stuff has to be updated every time.
+		 */
+		shdr_dev->shdr_card = shdr_card;
+		atvr_snd = shdr_card->private_data;
+		atvr_snd->hdev = hdev;
+		snd_card_set_dev(shdr_card, &hdev->dev);
+	}
 	shdr_dev->hdev = hdev;
-	atvr_snd = shdr_card->private_data;
-	atvr_snd->hdev = hdev;
-	snd_card_set_dev(shdr_card, &hdev->dev);
 
 	silence_counter = 0;
 	pr_info("%s: remotes count %d->%d\n", __func__,
@@ -2056,9 +2057,6 @@ static void atvr_remove(struct hid_device *hdev)
 	struct snd_card *shdr_card = shdr_dev->shdr_card;
 	struct snd_atvr *atvr_snd;
 
-	if (shdr_card == NULL)
-		return;
-
 	cancel_work_sync(&shdr_dev->snsr_probe_work);
 
 	if (shdr_dev->snsr_fns && shdr_dev->snsr_fns->remove)
@@ -2081,15 +2079,17 @@ static void atvr_remove(struct hid_device *hdev)
 	}
 
 	mutex_lock(&snd_cards_lock);
-	atvr_snd = shdr_card->private_data;
+	if (shdr_card != NULL) {
+		atvr_snd = shdr_card->private_data;
 
-	spin_lock_irqsave(&atvr_snd->s_substream_lock, flags);
-	atvr_snd->substream_state |= ATVR_REMOVE;
-	spin_unlock_irqrestore(&atvr_snd->s_substream_lock, flags);
+		spin_lock_irqsave(&atvr_snd->s_substream_lock, flags);
+		atvr_snd->substream_state |= ATVR_REMOVE;
+		spin_unlock_irqrestore(&atvr_snd->s_substream_lock, flags);
 
-	mutex_lock(&atvr_snd->hdev_lock);
-	atvr_snd->hdev = NULL;
-	mutex_unlock(&atvr_snd->hdev_lock);
+		mutex_lock(&atvr_snd->hdev_lock);
+		atvr_snd->hdev = NULL;
+		mutex_unlock(&atvr_snd->hdev_lock);
+	}
 
 	hid_set_drvdata(hdev, NULL);
 	hid_hw_stop(hdev);
@@ -2097,11 +2097,14 @@ static void atvr_remove(struct hid_device *hdev)
 		__func__, hdev->name, num_remotes, num_remotes - 1);
 	num_remotes--;
 
-	cards_in_use[atvr_snd->card_index] = false;
-	snd_atvr_dealloc_audio_buffs(atvr_snd);
-	mutex_destroy(&atvr_snd->hdev_lock);
-	snd_card_disconnect(shdr_card);
-	snd_card_free_when_closed(shdr_card);
+	if (shdr_card != NULL) {
+		cards_in_use[atvr_snd->card_index] = false;
+		snd_atvr_dealloc_audio_buffs(atvr_snd);
+		mutex_destroy(&atvr_snd->hdev_lock);
+		snd_card_disconnect(shdr_card);
+		snd_card_free_when_closed(shdr_card);
+	}
+
 	mutex_destroy(&shdr_dev->hid_miss_war_lock);
 	kfree(shdr_dev);
 	mutex_unlock(&snd_cards_lock);
