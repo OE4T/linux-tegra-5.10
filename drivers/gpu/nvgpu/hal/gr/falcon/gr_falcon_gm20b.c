@@ -27,6 +27,7 @@
 #include <nvgpu/power_features/pg.h>
 #include <nvgpu/soc.h>
 #include <nvgpu/safe_ops.h>
+#include <nvgpu/gr/gr_utils.h>
 #include <nvgpu/pmu/pmuif/ctrlclk.h>
 
 #include "gr_falcon_gm20b.h"
@@ -59,7 +60,7 @@ void gm20b_gr_falcon_load_gpccs_dmem(struct gk20a *g,
 
 	for (i = 0; i < ucode_u32_size; i++) {
 		nvgpu_writel(g, gr_gpccs_dmemd_r(0), ucode_u32_data[i]);
-		checksum += ucode_u32_data[i];
+		checksum = nvgpu_gr_checksum_u32(checksum, ucode_u32_data[i]);
 	}
 	nvgpu_log_info(g, "gpccs dmem checksum: 0x%x", checksum);
 }
@@ -77,7 +78,7 @@ void gm20b_gr_falcon_load_fecs_dmem(struct gk20a *g,
 
 	for (i = 0; i < ucode_u32_size; i++) {
 		nvgpu_writel(g, gr_fecs_dmemd_r(0), ucode_u32_data[i]);
-		checksum += ucode_u32_data[i];
+		checksum = nvgpu_gr_checksum_u32(checksum, ucode_u32_data[i]);
 	}
 	nvgpu_log_info(g, "fecs dmem checksum: 0x%x", checksum);
 }
@@ -103,12 +104,12 @@ void gm20b_gr_falcon_load_gpccs_imem(struct gk20a *g,
 
 	for (i = 0; i < ucode_u32_size; i++) {
 		if ((i != 0U) && ((i % (256U/sizeof(u32))) == 0U)) {
-			tag++;
+			tag = nvgpu_safe_add_u32(tag, 1U);
 			nvgpu_writel(g, gr_gpccs_imemt_r(0),
 					gr_gpccs_imemt_tag_f(tag));
 		}
 		nvgpu_writel(g, gr_gpccs_imemd_r(0), ucode_u32_data[i]);
-		checksum += ucode_u32_data[i];
+		checksum = nvgpu_gr_checksum_u32(checksum, ucode_u32_data[i]);
 	}
 
 	pad_start = nvgpu_safe_mult_u32(i, 4U);
@@ -118,7 +119,7 @@ void gm20b_gr_falcon_load_gpccs_imem(struct gk20a *g,
 		(i < nvgpu_safe_mult_u32(gpccs_imem_size, 256U)) &&
 						(i < pad_end); i += 4U) {
 		if ((i != 0U) && ((i % 256U) == 0U)) {
-			tag++;
+			tag = nvgpu_safe_add_u32(tag, 1U);
 			nvgpu_writel(g, gr_gpccs_imemt_r(0),
 					gr_gpccs_imemt_tag_f(tag));
 		}
@@ -149,12 +150,12 @@ void gm20b_gr_falcon_load_fecs_imem(struct gk20a *g,
 
 	for (i = 0; i < ucode_u32_size; i++) {
 		if ((i != 0U) && ((i % (256U/sizeof(u32))) == 0U)) {
-			tag++;
+			tag = nvgpu_safe_add_u32(tag, 1U);
 			nvgpu_writel(g, gr_fecs_imemt_r(0),
 				      gr_fecs_imemt_tag_f(tag));
 		}
 		nvgpu_writel(g, gr_fecs_imemd_r(0), ucode_u32_data[i]);
-		checksum += ucode_u32_data[i];
+		checksum = nvgpu_gr_checksum_u32(checksum, ucode_u32_data[i]);
 	}
 
 	pad_start = nvgpu_safe_mult_u32(i, 4U);
@@ -164,7 +165,7 @@ void gm20b_gr_falcon_load_fecs_imem(struct gk20a *g,
 	     (i < nvgpu_safe_mult_u32(fecs_imem_size, 256U)) && i < pad_end;
 	     i += 4U) {
 		if ((i != 0U) && ((i % 256U) == 0U)) {
-			tag++;
+			tag = nvgpu_safe_add_u32(tag, 1U);
 			nvgpu_writel(g, gr_fecs_imemt_r(0),
 				      gr_fecs_imemt_tag_f(tag));
 		}
