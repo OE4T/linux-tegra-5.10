@@ -55,7 +55,7 @@ static u64 nvgpu_bitmap_alloc_end(struct nvgpu_allocator *a)
 {
 	struct nvgpu_bitmap_allocator *ba = a->priv;
 
-	return ba->base + ba->length;
+	return nvgpu_safe_add_u64(ba->base, ba->length);
 }
 
 /*
@@ -69,14 +69,14 @@ static u64 nvgpu_bitmap_balloc_fixed(struct nvgpu_allocator *na,
 
 	/* Compute the bit offset and make sure it's aligned to a block.  */
 	offs = base >> a->blk_shift;
-	if (offs * a->blk_size != base) {
+	if (nvgpu_safe_mult_u64(offs, a->blk_size) != base) {
 		return 0;
 	}
 
-	offs -= a->bit_offs;
+	offs = nvgpu_safe_sub_u64(offs, a->bit_offs);
 
 	blks = len >> a->blk_shift;
-	if (blks * a->blk_size != len) {
+	if (nvgpu_safe_mult_u64(blks, a->blk_size) != len) {
 		blks++;
 	}
 	nvgpu_assert(blks <= U32_MAX);
@@ -93,7 +93,9 @@ static u64 nvgpu_bitmap_balloc_fixed(struct nvgpu_allocator *na,
 	nvgpu_assert(blks <= U32_MAX);
 	nvgpu_bitmap_set(a->bitmap, (u32)offs, U32(blks));
 
-	a->bytes_alloced += blks * a->blk_size;
+	a->bytes_alloced = nvgpu_safe_add_u64(a->bytes_alloced,
+				nvgpu_safe_mult_u64(blks, a->blk_size));
+	nvgpu_assert(a->nr_fixed_allocs < U64_MAX);
 	a->nr_fixed_allocs++;
 	alloc_unlock(na);
 
@@ -121,15 +123,15 @@ static void nvgpu_bitmap_free_fixed(struct nvgpu_allocator *na,
 	u64 blks, offs;
 
 	offs = base >> a->blk_shift;
-	if (offs * a->blk_size != base) {
+	if (nvgpu_safe_mult_u64(offs, a->blk_size) != base) {
 		nvgpu_do_assert();
 		return;
 	}
 
-	offs -= a->bit_offs;
+	offs = nvgpu_safe_sub_u64(offs, a->bit_offs);
 
 	blks = len >> a->blk_shift;
-	if (blks * a->blk_size != len) {
+	if (nvgpu_safe_mult_u64(blks, a->blk_size) != len) {
 		blks++;
 	}
 
@@ -137,7 +139,8 @@ static void nvgpu_bitmap_free_fixed(struct nvgpu_allocator *na,
 	nvgpu_assert(offs <= U32_MAX);
 	nvgpu_assert(blks <= (u32)INT_MAX);
 	nvgpu_bitmap_clear(a->bitmap, (u32)offs, (u32)blks);
-	a->bytes_freed += blks * a->blk_size;
+	a->bytes_freed = nvgpu_safe_add_u64(a->bytes_freed,
+				nvgpu_safe_mult_u64(blks, a->blk_size));
 	alloc_unlock(na);
 
 	alloc_dbg(na, "Free-fixed 0x%-10llx 0x%-5llx [bits=0x%llx (%llu)]",
@@ -151,7 +154,8 @@ static void insert_alloc_metadata(struct nvgpu_bitmap_allocator *a,
 				  struct nvgpu_bitmap_alloc *alloc)
 {
 	alloc->alloc_entry.key_start = alloc->base;
-	alloc->alloc_entry.key_end = alloc->base + alloc->length;
+	alloc->alloc_entry.key_end = nvgpu_safe_add_u64(alloc->base,
+							alloc->length);
 
 	nvgpu_rbtree_insert(&alloc->alloc_entry, &a->allocs);
 }
@@ -218,7 +222,7 @@ static u64 nvgpu_bitmap_balloc(struct nvgpu_allocator *na, u64 len)
 	nvgpu_assert(tmp_u64 <= U32_MAX);
 	blks = (u32)tmp_u64;
 
-	if (blks * a->blk_size != len) {
+	if (nvgpu_safe_mult_u64(blks, a->blk_size) != len) {
 		blks++;
 	}
 
@@ -247,8 +251,8 @@ static u64 nvgpu_bitmap_balloc(struct nvgpu_allocator *na, u64 len)
 	nvgpu_bitmap_set(a->bitmap, (u32)offs, blks);
 	a->next_blk = offs + blks;
 
-	adjusted_offs = offs + a->bit_offs;
-	addr = ((u64)adjusted_offs) * a->blk_size;
+	adjusted_offs = nvgpu_safe_add_u64(offs, a->bit_offs);
+	addr = nvgpu_safe_mult_u64(((u64)adjusted_offs), a->blk_size);
 
 	/*
 	 * Only do meta-data storage if we are allowed to allocate storage for
@@ -266,8 +270,10 @@ static u64 nvgpu_bitmap_balloc(struct nvgpu_allocator *na, u64 len)
 	alloc_dbg(na, "Alloc 0x%-10llx 0x%-5llx [bits=0x%x (%u)]",
 		  addr, len, blks, blks);
 
+	nvgpu_assert(a->nr_allocs < U64_MAX);
 	a->nr_allocs++;
-	a->bytes_alloced += (blks * a->blk_size);
+	a->bytes_alloced = nvgpu_safe_add_u64(a->bytes_alloced,
+				nvgpu_safe_mult_u64(blks, a->blk_size));
 	alloc_unlock(na);
 
 	return addr;
@@ -316,7 +322,7 @@ static void nvgpu_bitmap_free(struct nvgpu_allocator *na, u64 addr)
 	nvgpu_bitmap_clear(a->bitmap, (u32)offs, (u32)blks);
 	alloc_dbg(na, "Free  0x%-10llx", addr);
 
-	a->bytes_freed += alloc->length;
+	a->bytes_freed = nvgpu_safe_add_u64(a->bytes_freed, alloc->length);
 
 done:
 	if (a->meta_data_cache != NULL && alloc != NULL) {
@@ -397,9 +403,14 @@ int nvgpu_bitmap_allocator_init(struct gk20a *g, struct nvgpu_allocator *na,
 {
 	int err;
 	struct nvgpu_bitmap_allocator *a;
-	bool is_blk_size_pwr_2 = (blk_size & (blk_size - 1ULL)) == 0ULL;
-	bool is_base_aligned =  (base & (blk_size - 1ULL)) == 0ULL;
-	bool is_length_aligned = (length & (blk_size - 1ULL)) == 0ULL;
+	bool is_blk_size_pwr_2;
+	bool is_base_aligned;
+	bool is_length_aligned;
+
+	nvgpu_assert(blk_size > 0ULL);
+	is_blk_size_pwr_2 = (blk_size & (blk_size - 1ULL)) == 0ULL;
+	is_base_aligned =  (base & (blk_size - 1ULL)) == 0ULL;
+	is_length_aligned = (length & (blk_size - 1ULL)) == 0ULL;
 
 	if (!is_blk_size_pwr_2) {
 		nvgpu_do_assert();
@@ -441,7 +452,7 @@ int nvgpu_bitmap_allocator_init(struct gk20a *g, struct nvgpu_allocator *na,
 	a->base = base;
 	a->length = length;
 	a->blk_size = blk_size;
-	a->blk_shift = (ffs(a->blk_size) - 1UL);
+	a->blk_shift = nvgpu_safe_sub_u64(ffs(a->blk_size), 1UL);
 	a->num_bits = length >> a->blk_shift;
 	a->bit_offs = a->base >> a->blk_shift;
 	a->flags = flags;
