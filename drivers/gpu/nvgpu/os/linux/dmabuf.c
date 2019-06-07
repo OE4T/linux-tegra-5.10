@@ -77,10 +77,13 @@ enum nvgpu_aperture gk20a_dmabuf_aperture(struct gk20a *g,
 	} else if (buf_owner != g) {
 		/* Someone else's vidmem */
 		return APERTURE_INVALID;
-	} else {
+	}
+#ifdef CONFIG_NVGPU_DGPU
+	else {
 		/* Yay, buf_owner == g */
 		return APERTURE_VIDMEM;
 	}
+#endif
 }
 
 struct sg_table *gk20a_mm_pin(struct device *dev, struct dma_buf *dmabuf,

@@ -173,8 +173,10 @@ void nvgpu_gv100_acr_sw_init(struct gk20a *g, struct nvgpu_acr *acr)
 	nvgpu_gv100_acr_default_sw_init(g, &acr->acr);
 
 	acr->prepare_ucode_blob = nvgpu_acr_prepare_ucode_blob_v1;
+#ifdef CONFIG_NVGPU_DGPU
 	acr->get_wpr_info = nvgpu_acr_wpr_info_vid;
 	acr->alloc_blob_space = nvgpu_acr_alloc_blob_space_vid;
+#endif
 	acr->bootstrap_hs_acr = nvgpu_acr_bootstrap_hs_ucode;
 	acr->patch_wpr_info_to_ucode =
 		gv100_acr_patch_wpr_info_to_ucode;

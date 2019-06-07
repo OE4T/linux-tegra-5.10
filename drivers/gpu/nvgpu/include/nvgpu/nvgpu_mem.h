@@ -120,12 +120,14 @@ struct nvgpu_mem {
 	 */
 	void					*cpu_va;
 
+#ifdef CONFIG_NVGPU_DGPU
 	/*
 	 * Fields only populated for vidmem allocations.
 	 */
 	struct nvgpu_page_alloc			*vidmem_alloc;
 	struct nvgpu_allocator			*allocator;
 	struct nvgpu_list_node			 clear_list_entry;
+#endif
 
 	/*
 	 * Fields for direct "physical" nvgpu_mem structs.
@@ -139,6 +141,7 @@ struct nvgpu_mem {
 	struct nvgpu_mem_priv			 priv;
 };
 
+#ifdef CONFIG_NVGPU_DGPU
 static inline struct nvgpu_mem *
 nvgpu_mem_from_clear_list_entry(struct nvgpu_list_node *node)
 {
@@ -146,6 +149,7 @@ nvgpu_mem_from_clear_list_entry(struct nvgpu_list_node *node)
 		((uintptr_t)node - offsetof(struct nvgpu_mem,
 					    clear_list_entry));
 };
+#endif
 
 static inline const char *nvgpu_aperture_str(struct gk20a *g,
 					     enum nvgpu_aperture aperture)

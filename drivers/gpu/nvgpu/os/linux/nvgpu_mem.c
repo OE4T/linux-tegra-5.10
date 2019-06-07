@@ -125,12 +125,14 @@ u64 nvgpu_mem_get_addr(struct gk20a *g, struct nvgpu_mem *mem)
  */
 u64 nvgpu_mem_get_phys_addr(struct gk20a *g, struct nvgpu_mem *mem)
 {
+#ifdef CONFIG_NVGPU_DGPU
 	/*
 	 * For a VIDMEM buf, this is identical to simply get_addr() so just fall
 	 * back to that.
 	 */
 	if (mem->aperture == APERTURE_VIDMEM)
 		return nvgpu_mem_get_addr(g, mem);
+#endif
 
 	return __nvgpu_sgl_phys(g, (struct nvgpu_sgl *)mem->priv.sgt->sgl);
 }

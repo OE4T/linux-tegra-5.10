@@ -29,8 +29,10 @@ struct nvgpu_firmware;
 struct nvgpu_acr;
 
 int nvgpu_acr_init(struct gk20a *g, struct nvgpu_acr **acr);
+#ifdef CONFIG_NVGPU_DGPU
 int nvgpu_acr_alloc_blob_prerequisite(struct gk20a *g, struct nvgpu_acr *acr,
 	size_t size);
+#endif
 int nvgpu_acr_construct_execute(struct gk20a *g, struct nvgpu_acr *acr);
 int nvgpu_acr_bootstrap_hs_acr(struct gk20a *g, struct nvgpu_acr *acr);
 bool nvgpu_acr_is_lsf_lazy_bootstrap(struct gk20a *g, struct nvgpu_acr *acr,

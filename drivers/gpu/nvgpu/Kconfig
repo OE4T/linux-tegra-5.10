@@ -127,15 +127,6 @@ config GK20A_TRACE_PRINTK
 	  Enable nvgpu debug facility to redirect debug spew to ftrace. This
 	  affects kernel memory use, so should not be enabled by default.
 
-config GK20A_VIDMEM
-	bool "Support separate video memory on nvgpu"
-	depends on GK20A
-	default n
-	help
-	  Enable support for using and allocating buffers in a distinct video
-	  memory aperture (in contrast to general system memory), available on
-	  GPUs that have their own banks. PCIe GPUs have this, for example.
-
 config NVGPU_SUPPORT_CDE
 	bool "Support extraction of comptags for CDE"
 	depends on GK20A
@@ -145,7 +136,7 @@ config NVGPU_SUPPORT_CDE
 
 config NVGPU_USE_TEGRA_ALLOC_FD
 	bool "Use tegra_alloc_fd() for allocating dma_buf fds for vidmem"
-	depends on GK20A && GK20A_VIDMEM
+	depends on GK20A
 	default y
 	help
 	  Use tegra_alloc_fd() for allocating dma_buf fds. This allocates

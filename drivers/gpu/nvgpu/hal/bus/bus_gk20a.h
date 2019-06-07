@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -31,9 +31,11 @@ struct nvgpu_sgl;
 
 void gk20a_bus_isr(struct gk20a *g);
 void gk20a_bus_init_hw(struct gk20a *g);
+#ifdef CONFIG_NVGPU_DGPU
 u32 gk20a_bus_set_bar0_window(struct gk20a *g, struct nvgpu_mem *mem,
 		       struct nvgpu_sgt *sgt,
 		       struct nvgpu_sgl *sgl,
 		       u32 w);
+#endif
 
 #endif /* BUS_GK20A_H */

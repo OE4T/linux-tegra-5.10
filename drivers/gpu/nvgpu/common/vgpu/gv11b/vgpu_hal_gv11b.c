@@ -834,7 +834,9 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 		.isr = NULL,
 		.bar1_bind = NULL,
 		.bar2_bind = NULL,
+#ifdef CONFIG_NVGPU_DGPU
 		.set_bar0_window = NULL,
+#endif
 	},
 	.ptimer = {
 		.isr = NULL,

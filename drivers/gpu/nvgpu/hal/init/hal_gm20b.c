@@ -939,7 +939,9 @@ static const struct gpu_ops gm20b_ops = {
 		.init_hw = gk20a_bus_init_hw,
 		.isr = gk20a_bus_isr,
 		.bar1_bind = gm20b_bus_bar1_bind,
+#ifdef CONFIG_NVGPU_DGPU
 		.set_bar0_window = gk20a_bus_set_bar0_window,
+#endif
 	},
 	.ptimer = {
 		.isr = gk20a_ptimer_isr,

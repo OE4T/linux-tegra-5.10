@@ -286,10 +286,13 @@ static int nvgpu_submit_append_gpfifo(struct nvgpu_channel *c,
 		struct nvgpu_gpfifo_userdata userdata,
 		u32 num_entries)
 {
-	struct gk20a *g = c->g;
 	int err;
 
-	if ((kern_gpfifo == NULL) && (c->gpfifo.pipe == NULL)) {
+	if ((kern_gpfifo == NULL)
+#ifdef CONFIG_NVGPU_DGPU
+	    && (c->gpfifo.pipe == NULL)
+#endif
+	   ) {
 		/*
 		 * This path (from userspace to sysmem) is special in order to
 		 * avoid two copies unnecessarily (from user to pipe, then from
@@ -300,17 +303,21 @@ static int nvgpu_submit_append_gpfifo(struct nvgpu_channel *c,
 		if (err != 0) {
 			return err;
 		}
-	} else if (kern_gpfifo == NULL) {
+	}
+#ifdef CONFIG_NVGPU_DGPU
+	else if (kern_gpfifo == NULL) {
 		/* from userspace to vidmem, use the common path */
-		err = g->os_channel.copy_user_gpfifo(c->gpfifo.pipe, userdata,
-				0, num_entries);
+		err = c->g->os_channel.copy_user_gpfifo(c->gpfifo.pipe,
+				userdata, 0, num_entries);
 		if (err != 0) {
 			return err;
 		}
 
 		nvgpu_submit_append_gpfifo_common(c, c->gpfifo.pipe,
 				num_entries);
-	} else {
+	}
+#endif
+	else {
 		/* from kernel to either sysmem or vidmem, don't need
 		 * copy_user_gpfifo so use the common path */
 		nvgpu_submit_append_gpfifo_common(c, kern_gpfifo, num_entries);

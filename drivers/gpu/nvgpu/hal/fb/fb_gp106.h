@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -25,6 +25,7 @@
 struct gpu_ops;
 
 void gp106_fb_init_fs_state(struct gk20a *g);
+#ifdef CONFIG_NVGPU_DGPU
 size_t gp106_fb_get_vidmem_size(struct gk20a *g);
-
+#endif
 #endif

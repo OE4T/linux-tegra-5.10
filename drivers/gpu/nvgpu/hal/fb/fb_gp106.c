@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -53,6 +53,7 @@ void gp106_fb_init_fs_state(struct gk20a *g)
 	gk20a_writel(g, fb_mmu_priv_level_mask_r(), val);
 }
 
+#ifdef CONFIG_NVGPU_DGPU
 size_t gp106_fb_get_vidmem_size(struct gk20a *g)
 {
 	u32 range = gk20a_readl(g, fb_mmu_local_memory_range_r());
@@ -67,3 +68,4 @@ size_t gp106_fb_get_vidmem_size(struct gk20a *g)
 
 	return bytes;
 }
+#endif

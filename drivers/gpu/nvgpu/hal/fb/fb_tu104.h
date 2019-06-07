@@ -34,7 +34,9 @@ struct nvgpu_cbc;
 void tu104_fb_cbc_configure(struct gk20a *g, struct nvgpu_cbc *cbc);
 #endif
 int  tu104_fb_apply_pdb_cache_war(struct gk20a *g);
+#ifdef CONFIG_NVGPU_DGPU
 size_t tu104_fb_get_vidmem_size(struct gk20a *g);
+#endif
 int  tu104_fb_enable_nvlink(struct gk20a *g);
 
 #endif /* NVGPU_FB_TU104_H */

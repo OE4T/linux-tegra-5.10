@@ -40,11 +40,9 @@ CONFIGS :=				\
         -DNVCPU_IS_AARCH64=1            \
         -DCONFIG_TEGRA_IOVMM=0          \
         -DCONFIG_ARCH_TEGRA_18x_SOC=1   \
-        -DCONFIG_GK20A_VIDMEM=1         \
         -DCONFIG_PCI_MSI                \
         -DCONFIG_SUPPORT_PMU_PSTATE	\
 	-DNVGPU_UNITTEST_FAULT_INJECTION_ENABLEMENT
 
 # Uncomment these to enable the config.
 # CONFIGS += -DCONFIG_NVGPU_TRACK_MEM_USAGE=y
-# CONFIGS += -DCONFIG_GK20A_VIDMEM

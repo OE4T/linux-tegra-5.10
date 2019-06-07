@@ -212,6 +212,7 @@ static struct test_parameters test_iommu_sysmem_adv_small_sparse = {
 	.special_null_phys = true,
 };
 
+#ifdef CONFIG_NVGPU_DGPU
 static struct test_parameters test_no_iommu_vidmem = {
 	.aperture = APERTURE_VIDMEM,
 	.is_iommuable = false,
@@ -219,6 +220,7 @@ static struct test_parameters test_no_iommu_vidmem = {
 	.flags = NVGPU_VM_MAP_CACHEABLE,
 	.priv = false,
 };
+#endif
 
 static struct test_parameters test_no_iommu_sysmem_noncacheable = {
 	.aperture = APERTURE_SYSMEM,
@@ -1190,8 +1192,10 @@ struct unit_module_test nvgpu_gmmu_tests[] = {
 		(void *) &test_iommu_sysmem_ro_fixed, 0),
 	UNIT_TEST(gmmu_map_unmap_no_iommu_sysmem, test_nvgpu_gmmu_map_unmap,
 		(void *) &test_no_iommu_sysmem, 0),
+#ifdef CONFIG_NVGPU_DGPU
 	UNIT_TEST(gmmu_map_unmap_vidmem, test_nvgpu_gmmu_map_unmap,
 		(void *) &test_no_iommu_vidmem, 0),
+#endif
 	UNIT_TEST(gmmu_map_unmap_iommu_sysmem_coh, test_nvgpu_gmmu_map_unmap,
 		(void *) &test_iommu_sysmem_coh, 0),
 	UNIT_TEST(gmmu_set_pte, test_nvgpu_gmmu_set_pte,

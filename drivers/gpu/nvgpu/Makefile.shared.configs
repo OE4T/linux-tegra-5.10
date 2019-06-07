@@ -59,7 +59,6 @@ NVGPU_COMMON_CFLAGS		+=		\
 	-DCONFIG_TEGRA_GK20A_PMU=1		\
 	-DCONFIG_TEGRA_ACR=1			\
 	-DCONFIG_TEGRA_GR_VIRTUALIZATION	\
-	-DCONFIG_GK20A_VIDMEM=1			\
 	-DCONFIG_PCI_MSI
 
 # Enable debugger APIs for safety build until devctl whitelisting is done

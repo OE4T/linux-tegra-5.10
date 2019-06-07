@@ -973,7 +973,9 @@ struct gpu_ops {
 		void (*fault_buf_set_state_hw)(struct gk20a *g,
 				 u32 index, u32 state);
 		void (*fault_buf_configure_hw)(struct gk20a *g, u32 index);
+#ifdef CONFIG_NVGPU_DGPU
 		size_t (*get_vidmem_size)(struct gk20a *g);
+#endif
 		int (*apply_pdb_cache_war)(struct gk20a *g);
 		struct {
 			void (*enable)(struct gk20a *g);
@@ -1361,9 +1363,11 @@ struct gpu_ops {
 			size_t size,
 			void (**fn)(struct gk20a *g, struct nvgpu_mem *mem));
 
+#ifdef CONFIG_NVGPU_DGPU
 	struct {
 		u32 (*data032_r)(u32 i);
 	} pramin;
+#endif
 	struct {
 		int (*init_therm_setup_hw)(struct gk20a *g);
 		void (*init_elcg_mode)(struct gk20a *g, u32 mode, u32 engine);
@@ -1604,9 +1608,11 @@ struct gpu_ops {
 		void (*isr)(struct gk20a *g);
 		int (*bar1_bind)(struct gk20a *g, struct nvgpu_mem *bar1_inst);
 		int (*bar2_bind)(struct gk20a *g, struct nvgpu_mem *bar1_inst);
+#ifdef CONFIG_NVGPU_DGPU
 		u32 (*set_bar0_window)(struct gk20a *g, struct nvgpu_mem *mem,
 			struct nvgpu_sgt *sgt, struct nvgpu_sgl *sgl,
 			u32 w);
+#endif
 		u32 (*read_sw_scratch)(struct gk20a *g, u32 index);
 		void (*write_sw_scratch)(struct gk20a *g, u32 index, u32 val);
 	} bus;

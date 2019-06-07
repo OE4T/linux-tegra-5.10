@@ -269,6 +269,7 @@ struct mm_gk20a {
 
 	struct nvgpu_mem sysmem_flush;
 
+#ifdef CONFIG_NVGPU_DGPU
 	u32 pramin_window;
 	struct nvgpu_spinlock pramin_window_lock;
 
@@ -295,7 +296,7 @@ struct mm_gk20a {
 
 		nvgpu_atomic64_t bytes_pending;
 	} vidmem;
-
+#endif
 	struct nvgpu_mem mmu_wr_mem;
 	struct nvgpu_mem mmu_rd_mem;
 };

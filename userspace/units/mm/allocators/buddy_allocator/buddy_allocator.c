@@ -73,9 +73,11 @@ static struct vm_gk20a *init_vm_env(struct unit_module *m, struct gk20a *g,
 		gp10b_mm_get_default_big_page_size;
 	g->ops.mm.gmmu.get_mmu_levels = gp10b_mm_get_mmu_levels;
 
+#ifdef CONFIG_NVGPU_DGPU
 	/* Minimum HAL init for PRAMIN */
 	g->ops.bus.set_bar0_window = gk20a_bus_set_bar0_window;
 	g->ops.pramin.data032_r = pram_data032_r;
+#endif
 
 	/* vm should init with SYSMEM */
 	nvgpu_set_enabled(g, NVGPU_MM_UNIFIED_MEMORY, true);

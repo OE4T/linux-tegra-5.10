@@ -145,6 +145,7 @@ int nvgpu_dma_alloc_sys(struct gk20a *g, size_t size, struct nvgpu_mem *mem);
 int nvgpu_dma_alloc_flags_sys(struct gk20a *g, unsigned long flags,
 		size_t size, struct nvgpu_mem *mem);
 
+#ifdef CONFIG_NVGPU_DGPU
 /**
  * nvgpu_dma_alloc_vid - Allocate DMA memory
  *
@@ -216,6 +217,7 @@ int nvgpu_dma_alloc_vid_at(struct gk20a *g,
  */
 int nvgpu_dma_alloc_flags_vid_at(struct gk20a *g, unsigned long flags,
 		size_t size, struct nvgpu_mem *mem, u64 at);
+#endif
 
 /**
  * nvgpu_dma_free - Free a DMA allocation

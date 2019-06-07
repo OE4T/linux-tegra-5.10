@@ -166,6 +166,7 @@ int gv100_fb_enable_nvlink(struct gk20a *g)
 	return 0;
 }
 
+#ifdef CONFIG_NVGPU_DGPU
 size_t gv100_fb_get_vidmem_size(struct gk20a *g)
 {
 	u32 range = gk20a_readl(g, fb_mmu_local_memory_range_r());
@@ -180,3 +181,4 @@ size_t gv100_fb_get_vidmem_size(struct gk20a *g)
 
 	return bytes;
 }
+#endif

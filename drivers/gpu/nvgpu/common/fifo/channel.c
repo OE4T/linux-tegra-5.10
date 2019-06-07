@@ -261,11 +261,12 @@ static void nvgpu_channel_usermode_deinit(struct nvgpu_channel *ch)
 
 static void nvgpu_channel_kernelmode_deinit(struct nvgpu_channel *ch)
 {
-	struct gk20a *g = ch->g;
 	struct vm_gk20a *ch_vm = ch->vm;
 
 	nvgpu_dma_unmap_free(ch_vm, &ch->gpfifo.mem);
-	nvgpu_big_free(g, ch->gpfifo.pipe);
+#ifdef CONFIG_NVGPU_DGPU
+	nvgpu_big_free(ch->g, ch->gpfifo.pipe);
+#endif
 	(void) memset(&ch->gpfifo, 0, sizeof(struct gpfifo_desc));
 
 	nvgpu_channel_free_priv_cmd_q(ch);
@@ -1307,6 +1308,7 @@ static int nvgpu_channel_setup_kernelmode(struct nvgpu_channel *c,
 		goto clean_up;
 	}
 
+#ifdef CONFIG_NVGPU_DGPU
 	if (c->gpfifo.mem.aperture == APERTURE_VIDMEM) {
 		c->gpfifo.pipe = nvgpu_big_malloc(g,
 					(size_t)gpfifo_size *
@@ -1316,6 +1318,7 @@ static int nvgpu_channel_setup_kernelmode(struct nvgpu_channel *c,
 			goto clean_up_unmap;
 		}
 	}
+#endif
 	gpfifo_gpu_va = c->gpfifo.mem.gpu_va;
 
 	c->gpfifo.entry_num = gpfifo_size;
@@ -1383,7 +1386,9 @@ clean_up_sync:
 		c->sync = NULL;
 	}
 clean_up_unmap:
+#ifdef CONFIG_NVGPU_DGPU
 	nvgpu_big_free(g, c->gpfifo.pipe);
+#endif
 	nvgpu_dma_unmap_free(c->vm, &c->gpfifo.mem);
 clean_up:
 	(void) memset(&c->gpfifo, 0, sizeof(struct gpfifo_desc));

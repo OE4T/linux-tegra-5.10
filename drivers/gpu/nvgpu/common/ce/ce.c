@@ -36,6 +36,7 @@
 static inline u32 nvgpu_ce_get_valid_launch_flags(struct gk20a *g,
 		u32 launch_flags)
 {
+#ifdef CONFIG_NVGPU_DGPU
 	/*
 	 * there is no local memory available,
 	 * don't allow local memory related CE flags
@@ -44,6 +45,7 @@ static inline u32 nvgpu_ce_get_valid_launch_flags(struct gk20a *g,
 		launch_flags &= ~(NVGPU_CE_SRC_LOCATION_LOCAL_FB |
 			NVGPU_CE_DST_LOCATION_LOCAL_FB);
 	}
+#endif
 	return launch_flags;
 }
 

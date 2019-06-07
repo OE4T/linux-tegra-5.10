@@ -41,7 +41,9 @@ int nvgpu_mm_suspend(struct gk20a *g)
 
 	nvgpu_log_info(g, "MM suspend running...");
 
+#ifdef CONFIG_NVGPU_DGPU
 	nvgpu_vidmem_thread_pause_sync(&g->mm);
+#endif
 
 #ifdef CONFIG_NVGPU_COMPRESSION
 	g->ops.mm.cache.cbc_clean(g);
@@ -114,6 +116,7 @@ static int nvgpu_alloc_sysmem_flush(struct gk20a *g)
 #ifdef CONFIG_NVGPU_CE
 static void nvgpu_remove_mm_ce_support(struct mm_gk20a *mm)
 {
+#ifdef CONFIG_NVGPU_DGPU
 	struct gk20a *g = gk20a_from_mm(mm);
 
 	if (mm->vidmem.ce_ctx_id != NVGPU_CE_INVAL_CTX_ID) {
@@ -122,6 +125,7 @@ static void nvgpu_remove_mm_ce_support(struct mm_gk20a *mm)
 	mm->vidmem.ce_ctx_id = NVGPU_CE_INVAL_CTX_ID;
 
 	nvgpu_vm_put(mm->ce.vm);
+#endif
 }
 #endif
 
@@ -162,7 +166,9 @@ static void nvgpu_remove_mm_support(struct mm_gk20a *mm)
 	}
 
 	nvgpu_semaphore_sea_destroy(g);
+#ifdef CONFIG_NVGPU_DGPU
 	nvgpu_vidmem_destroy(g);
+#endif
 	nvgpu_pd_cache_fini(g);
 
 	if (g->ops.ramin.deinit_pdb_cache_war != NULL) {
@@ -297,7 +303,7 @@ static int nvgpu_init_mmu_debug(struct mm_gk20a *mm)
 #ifdef CONFIG_NVGPU_CE
 void nvgpu_init_mm_ce_context(struct gk20a *g)
 {
-#if defined(CONFIG_GK20A_VIDMEM)
+#if defined(CONFIG_NVGPU_DGPU)
 	if (g->mm.vidmem.size > 0U &&
 	   (g->mm.vidmem.ce_ctx_id == NVGPU_CE_INVAL_CTX_ID)) {
 		g->mm.vidmem.ce_ctx_id =
@@ -421,9 +427,10 @@ static int nvgpu_init_mm_setup_sw(struct gk20a *g)
 		   U32(mm->channel.user_size >> U64(20)),
 		   U32(mm->channel.kernel_size >> U64(20)));
 
-	nvgpu_init_pramin(mm);
-
+#ifdef CONFIG_NVGPU_DGPU
 	mm->vidmem.ce_ctx_id = NVGPU_CE_INVAL_CTX_ID;
+
+	nvgpu_init_pramin(mm);
 
 	err = nvgpu_vidmem_init(mm);
 	if (err != 0) {
@@ -441,6 +448,7 @@ static int nvgpu_init_mm_setup_sw(struct gk20a *g)
 			return err;
 		}
 	}
+#endif
 
 	err = nvgpu_alloc_sysmem_flush(g);
 	if (err != 0) {

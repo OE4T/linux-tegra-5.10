@@ -43,6 +43,8 @@
 
 #include <os/linux/driver_common.h>
 
+#ifdef CONFIG_NVGPU_DGPU
+
 static u32 *rand_test_data;
 static u32 *vidmem;
 
@@ -497,13 +499,16 @@ static int test_pramin_nvgpu_dying(struct unit_module *m, struct gk20a *g,
 	nvgpu_set_enabled(g, NVGPU_DRIVER_IS_DYING, false);
 	return UNIT_SUCCESS;
 }
+#endif
 
 struct unit_module_test pramin_tests[] = {
+#ifdef CONFIG_NVGPU_DGPU
 	UNIT_TEST(nvgpu_pramin_rd_n_1_sgl, test_pramin_rd_n_single, NULL, 0),
 	UNIT_TEST(nvgpu_pramin_wr_n_3_sgl, test_pramin_wr_n_multi, NULL, 0),
 	UNIT_TEST(nvgpu_pramin_memset, test_pramin_memset, NULL, 0),
 	UNIT_TEST(nvgpu_pramin_dying, test_pramin_nvgpu_dying, NULL, 0),
 	UNIT_TEST(nvgpu_pramin_free_test_env, free_test_env, NULL, 0),
+#endif
 };
 
 UNIT_MODULE(pramin, pramin_tests, UNIT_PRIO_NVGPU_TEST);

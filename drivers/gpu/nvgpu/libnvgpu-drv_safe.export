@@ -10,7 +10,6 @@ gv11b_fb_write_mmu_fault_buffer_size
 find_first_bit
 find_first_zero_bit
 find_next_bit
-gk20a_bus_set_bar0_window
 gk20a_runlist_get_ch_entry
 gk20a_runlist_get_tsg_entry
 nvgpu_gmmu_map_locked
@@ -40,7 +39,6 @@ gv11b_mm_l2_flush
 gv11b_mm_mmu_fault_disable_hw
 gv11b_mm_mmu_fault_info_mem_destroy
 gv11b_mc_is_mmu_fault_pending
-nvgpu_addr_is_vidmem_page_alloc
 nvgpu_alloc
 nvgpu_alloc_base
 nvgpu_alloc_common_init
@@ -75,7 +73,6 @@ nvgpu_channel_setup_sw
 nvgpu_channel_sync_create
 nvgpu_dma_alloc
 nvgpu_dma_alloc_get_fault_injection
-nvgpu_dma_alloc_vid_at
 nvgpu_dma_free
 nvgpu_fifo_init_support
 nvgpu_free
@@ -91,7 +88,6 @@ nvgpu_hw_semaphore_init
 nvgpu_init_enabled_flags
 nvgpu_init_hal
 nvgpu_init_mm_support
-nvgpu_init_pramin
 nvgpu_inst_block_addr
 nvgpu_is_enabled
 nvgpu_kfree_impl
@@ -128,7 +124,6 @@ nvgpu_mutex_destroy
 nvgpu_mutex_init
 nvgpu_mutex_release
 nvgpu_mutex_tryacquire
-nvgpu_page_allocator_init
 nvgpu_pd_alloc
 nvgpu_pd_cache_fini
 nvgpu_pd_cache_init
@@ -155,9 +150,6 @@ nvgpu_posix_io_writel_reg_space
 nvgpu_posix_is_fault_injection_triggered
 nvgpu_posix_probe
 nvgpu_posix_register_io
-nvgpu_pramin_memset
-nvgpu_pramin_rd_n
-nvgpu_pramin_wr_n
 nvgpu_raw_spinlock_acquire
 nvgpu_raw_spinlock_init
 nvgpu_raw_spinlock_release

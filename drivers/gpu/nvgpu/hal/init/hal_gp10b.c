@@ -1026,7 +1026,9 @@ static const struct gpu_ops gp10b_ops = {
 		.isr = gk20a_bus_isr,
 		.bar1_bind = gm20b_bus_bar1_bind,
 		.bar2_bind = gp10b_bus_bar2_bind,
+#ifdef CONFIG_NVGPU_DGPU
 		.set_bar0_window = gk20a_bus_set_bar0_window,
+#endif
 	},
 	.ptimer = {
 		.isr = gk20a_ptimer_isr,
@@ -1181,7 +1183,9 @@ int gp10b_init_hal(struct gk20a *g)
 	nvgpu_set_enabled(g, NVGPU_FECS_TRACE_FEATURE_CONTROL, false);
 #endif
 
+#ifdef CONFIG_NVGPU_DGPU
 	nvgpu_pramin_ops_init(g);
+#endif
 
 	/* Read fuses to check if gpu needs to boot in secure/non-secure mode */
 	if (gops->fuse.check_priv_security(g) != 0) {

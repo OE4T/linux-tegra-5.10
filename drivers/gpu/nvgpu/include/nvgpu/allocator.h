@@ -197,7 +197,9 @@ nvgpu_alloc_carveout_from_co_entry(struct nvgpu_list_node *node)
 
 enum nvgpu_allocator_type {
 	BUDDY_ALLOCATOR = 0,
+#ifdef CONFIG_NVGPU_DGPU
 	PAGE_ALLOCATOR,
+#endif
 	BITMAP_ALLOCATOR
 };
 
@@ -226,12 +228,14 @@ int nvgpu_bitmap_allocator_init(struct gk20a *g, struct nvgpu_allocator *na,
 				const char *name, u64 base, u64 length,
 				u64 blk_size, u64 flags);
 
+#ifdef CONFIG_NVGPU_DGPU
 /*
  * Page allocator initializers.
  */
 int nvgpu_page_allocator_init(struct gk20a *g, struct nvgpu_allocator *na,
 			      const char *name, u64 base, u64 length,
 			      u64 blk_size, u64 flags);
+#endif
 
 /*
  * Common init function for any type of allocator.

@@ -44,6 +44,7 @@ u32 nvgpu_aperture_mask_raw(struct gk20a *g, enum nvgpu_aperture aperture,
 		nvgpu_do_assert_print(g, "Bad aperture");
 		return 0;
 	}
+
 	/*
 	 * Some iGPUs treat sysmem (i.e SoC DRAM) as vidmem. In these cases the
 	 * "sysmem" aperture should really be translated to VIDMEM.
@@ -96,7 +97,9 @@ bool nvgpu_mem_is_sysmem(struct nvgpu_mem *mem)
 u64 nvgpu_mem_iommu_translate(struct gk20a *g, u64 phys)
 {
 	/* ensure it is not vidmem allocation */
+#ifdef CONFIG_NVGPU_DGPU
 	WARN_ON(nvgpu_addr_is_vidmem_page_alloc(phys));
+#endif
 
 	if (nvgpu_iommuable(g) && g->ops.mm.gmmu.get_iommu_bit != NULL) {
 		return phys | 1ULL << g->ops.mm.gmmu.get_iommu_bit(g);
@@ -114,10 +117,14 @@ u32 nvgpu_mem_rd32(struct gk20a *g, struct nvgpu_mem *mem, u32 w)
 
 		WARN_ON(ptr == NULL);
 		data = ptr[w];
-	} else if (mem->aperture == APERTURE_VIDMEM) {
+	}
+#ifdef CONFIG_NVGPU_DGPU
+	else if (mem->aperture == APERTURE_VIDMEM) {
 		nvgpu_pramin_rd_n(g, mem, w * (u32)sizeof(u32),
 				(u32)sizeof(u32), &data);
-	} else {
+	}
+#endif
+	else {
 		nvgpu_do_assert_print(g, "Accessing unallocated nvgpu_mem");
 	}
 
@@ -149,9 +156,13 @@ void nvgpu_mem_rd_n(struct gk20a *g, struct nvgpu_mem *mem,
 
 		WARN_ON(mem->cpu_va == NULL);
 		nvgpu_memcpy((u8 *)dest, src, size);
-	} else if (mem->aperture == APERTURE_VIDMEM) {
+	}
+#ifdef CONFIG_NVGPU_DGPU
+	else if (mem->aperture == APERTURE_VIDMEM) {
 		nvgpu_pramin_rd_n(g, mem, offset, size, dest);
-	} else {
+	}
+#endif
+	else {
 		nvgpu_do_assert_print(g, "Accessing unallocated nvgpu_mem");
 	}
 }
@@ -163,13 +174,17 @@ void nvgpu_mem_wr32(struct gk20a *g, struct nvgpu_mem *mem, u32 w, u32 data)
 
 		WARN_ON(ptr == NULL);
 		ptr[w] = data;
-	} else if (mem->aperture == APERTURE_VIDMEM) {
+	}
+#ifdef CONFIG_NVGPU_DGPU
+	else if (mem->aperture == APERTURE_VIDMEM) {
 		nvgpu_pramin_wr_n(g, mem, w * (u32)sizeof(u32),
 				  (u32)sizeof(u32), &data);
 		if (!mem->skip_wmb) {
 			nvgpu_wmb();
 		}
-	} else {
+	}
+#endif
+	else {
 		nvgpu_do_assert_print(g, "Accessing unallocated nvgpu_mem");
 	}
 }
@@ -191,12 +206,16 @@ void nvgpu_mem_wr_n(struct gk20a *g, struct nvgpu_mem *mem, u32 offset,
 
 		WARN_ON(mem->cpu_va == NULL);
 		nvgpu_memcpy(dest, (u8 *)src, size);
-	} else if (mem->aperture == APERTURE_VIDMEM) {
+	}
+#ifdef CONFIG_NVGPU_DGPU
+	else if (mem->aperture == APERTURE_VIDMEM) {
 		nvgpu_pramin_wr_n(g, mem, offset, size, src);
 		if (!mem->skip_wmb) {
 			nvgpu_wmb();
 		}
-	} else {
+	}
+#endif
+	else {
 		nvgpu_do_assert_print(g, "Accessing unallocated nvgpu_mem");
 	}
 }
@@ -215,14 +234,18 @@ void nvgpu_memset(struct gk20a *g, struct nvgpu_mem *mem, u32 offset,
 
 		WARN_ON(mem->cpu_va == NULL);
 		(void) memset(dest, (int)c, size);
-	} else if (mem->aperture == APERTURE_VIDMEM) {
+	}
+#ifdef CONFIG_NVGPU_DGPU
+	else if (mem->aperture == APERTURE_VIDMEM) {
 		u32 repeat_value = c | (c << 8) | (c << 16) | (c << 24);
 
 		nvgpu_pramin_memset(g, mem, offset, size, repeat_value);
 		if (!mem->skip_wmb) {
 			nvgpu_wmb();
 		}
-	} else {
+	}
+#endif
+	else {
 		nvgpu_do_assert_print(g, "Accessing unallocated nvgpu_mem");
 	}
 }

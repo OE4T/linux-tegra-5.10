@@ -619,9 +619,11 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 			.get_mmu_levels = gp10b_mm_get_mmu_levels,
 		},
 	},
+#ifdef CONFIG_NVGPU_DGPU
 	.pramin = {
 		.data032_r = NULL,
 	},
+#endif
 	.therm = {
 		.init_therm_setup_hw = NULL,
 		.init_elcg_mode = NULL,
@@ -737,7 +739,9 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 		.isr = NULL,
 		.bar1_bind = NULL,
 		.bar2_bind = NULL,
+#ifdef CONFIG_NVGPU_DGPU
 		.set_bar0_window = NULL,
+#endif
 	},
 	.ptimer = {
 		.isr = NULL,
@@ -816,7 +820,9 @@ int vgpu_gp10b_init_hal(struct gk20a *g)
 	gops->pbdma_status = vgpu_gp10b_ops.pbdma_status;
 	gops->netlist = vgpu_gp10b_ops.netlist;
 	gops->mm = vgpu_gp10b_ops.mm;
+#ifdef CONFIG_NVGPU_DGPU
 	gops->pramin = vgpu_gp10b_ops.pramin;
+#endif
 	gops->therm = vgpu_gp10b_ops.therm;
 #ifdef CONFIG_NVGPU_LS_PMU
 	gops->pmu = vgpu_gp10b_ops.pmu;

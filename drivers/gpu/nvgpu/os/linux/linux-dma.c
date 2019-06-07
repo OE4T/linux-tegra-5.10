@@ -136,7 +136,7 @@ static void nvgpu_dma_print_err(struct gk20a *g, size_t size,
 #define dma_dbg_free_done(g, size, type)				\
 	__dma_dbg_done(g, size, type, "free")
 
-#if defined(CONFIG_GK20A_VIDMEM)
+#if defined(CONFIG_NVGPU_DGPU)
 static u64 __nvgpu_dma_alloc(struct nvgpu_allocator *allocator, u64 at,
 				size_t size)
 {
@@ -338,10 +338,10 @@ print_dma_err:
 	return err;
 }
 
+#if defined(CONFIG_NVGPU_DGPU)
 int nvgpu_dma_alloc_flags_vid_at(struct gk20a *g, unsigned long flags,
 		size_t size, struct nvgpu_mem *mem, u64 at)
 {
-#if defined(CONFIG_GK20A_VIDMEM)
 	u64 addr;
 	int err;
 	struct nvgpu_allocator *vidmem_alloc = g->mm.vidmem.cleared ?
@@ -423,10 +423,8 @@ fail_physfree:
 print_dma_err:
 	nvgpu_dma_print_err(g, size, "vidmem", "alloc", flags);
 	return err;
-#else
-	return -ENOSYS;
-#endif
 }
+#endif
 
 void nvgpu_dma_free_sys(struct gk20a *g, struct nvgpu_mem *mem)
 {
@@ -485,7 +483,7 @@ void nvgpu_dma_free_sys(struct gk20a *g, struct nvgpu_mem *mem)
 
 void nvgpu_dma_free_vid(struct gk20a *g, struct nvgpu_mem *mem)
 {
-#if defined(CONFIG_GK20A_VIDMEM)
+#if defined(CONFIG_NVGPU_DGPU)
 	size_t mem_size = mem->size;
 
 	dma_dbg_free(g, mem->size, mem->priv.flags, "vidmem");

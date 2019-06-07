@@ -414,9 +414,7 @@ nvgpu-y += \
 	os/linux/ecc_sysfs.o \
 	os/linux/os_ops_tu104.o \
 	os/linux/bsearch.o \
-	os/linux/sdl/sdl_stub.o
-
-nvgpu-$(CONFIG_GK20A_VIDMEM) += \
+	os/linux/sdl/sdl_stub.o \
 	os/linux/dmabuf_vidmem.o
 
 nvgpu-$(CONFIG_DEBUG_FS) += \
@@ -533,6 +531,7 @@ nvgpu-y += \
 	common/mm/nvgpu_sgt.o \
 	common/mm/mm.o \
 	common/mm/dma.o \
+	common/mm/vidmem.o \
 	common/pramin.o \
 	common/vbios/bios.o \
 	common/vbios/nvlink_bios.o \
@@ -576,10 +575,7 @@ nvgpu-y += \
 	common/fence/fence.o \
 	common/ecc.o \
 	common/ce/ce.o \
-	common/debugger.o \
-
-nvgpu-$(CONFIG_GK20A_VIDMEM) += \
-	common/mm/vidmem.o
+	common/debugger.o
 
 nvgpu-y += \
 	hal/gr/config/gr_config_gm20b.o \

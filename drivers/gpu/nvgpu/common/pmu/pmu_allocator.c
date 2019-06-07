@@ -72,6 +72,7 @@ void nvgpu_pmu_surface_describe(struct gk20a *g, struct nvgpu_mem *mem,
 	fb->params |= (GK20A_PMU_DMAIDX_VIRT << 24U);
 }
 
+#ifdef CONFIG_NVGPU_DGPU
 int nvgpu_pmu_vidmem_surface_alloc(struct gk20a *g, struct nvgpu_mem *mem,
 		u32 size)
 {
@@ -87,6 +88,7 @@ int nvgpu_pmu_vidmem_surface_alloc(struct gk20a *g, struct nvgpu_mem *mem,
 
 	return 0;
 }
+#endif
 
 int nvgpu_pmu_sysmem_surface_alloc(struct gk20a *g, struct nvgpu_mem *mem,
 		u32 size)

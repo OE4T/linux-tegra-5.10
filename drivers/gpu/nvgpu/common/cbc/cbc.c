@@ -85,6 +85,7 @@ int nvgpu_cbc_alloc(struct gk20a *g, size_t compbit_backing_size,
 		return 0;
 	}
 
+#ifdef CONFIG_NVGPU_DGPU
 	if (vidmem_alloc == true) {
 		/*
 		 * Backing store MUST be physically contiguous and allocated in
@@ -97,7 +98,9 @@ int nvgpu_cbc_alloc(struct gk20a *g, size_t compbit_backing_size,
 		return nvgpu_dma_alloc_vid(g,
 					 compbit_backing_size,
 					 &cbc->compbit_store.mem);
-	} else {
+	} else
+#endif
+	{
 		return nvgpu_dma_alloc_flags_sys(g,
 					 NVGPU_DMA_PHYSICALLY_ADDRESSED,
 					 compbit_backing_size,

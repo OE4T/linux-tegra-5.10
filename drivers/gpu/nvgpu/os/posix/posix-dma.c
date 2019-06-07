@@ -47,19 +47,6 @@ struct nvgpu_posix_fault_inj *nvgpu_dma_alloc_get_fault_injection(void)
 	return &dma_fi;
 }
 
-static u64 __nvgpu_dma_alloc(struct nvgpu_allocator *allocator, u64 at,
-				size_t size)
-{
-	u64 addr = 0;
-
-	if (at)
-		addr = nvgpu_alloc_fixed(allocator, at, size, 0);
-	else
-		addr = nvgpu_alloc(allocator, size);
-
-	return addr;
-}
-
 /*
  * In userspace vidmem vs sysmem is just a difference in what is placed in the
  * aperture field.
@@ -88,9 +75,10 @@ static int __nvgpu_do_dma_alloc(struct gk20a *g, unsigned long flags,
 	mem->aligned_size = PAGE_ALIGN(size);
 	mem->gpu_va       = 0ULL;
 	mem->skip_wmb     = true;
+#ifdef CONFIG_NVGPU_DGPU
 	mem->vidmem_alloc = NULL;
 	mem->allocator    = NULL;
-
+#endif
 	return 0;
 }
 
@@ -106,6 +94,20 @@ int nvgpu_dma_alloc_flags_sys(struct gk20a *g, unsigned long flags,
 {
 	/* note: fault injection handled in common function */
 	return __nvgpu_do_dma_alloc(g, flags, size, mem, APERTURE_SYSMEM);
+}
+
+#ifdef CONFIG_NVGPU_DGPU
+static u64 __nvgpu_dma_alloc(struct nvgpu_allocator *allocator, u64 at,
+				size_t size)
+{
+	u64 addr = 0;
+
+	if (at)
+		addr = nvgpu_alloc_fixed(allocator, at, size, 0);
+	else
+		addr = nvgpu_alloc(allocator, size);
+
+	return addr;
 }
 
 static size_t mock_fb_get_vidmem_size(struct gk20a *g)
@@ -212,15 +214,6 @@ dma_err:
 	return err;
 }
 
-void nvgpu_dma_free_sys(struct gk20a *g, struct nvgpu_mem *mem)
-{
-	if (!(mem->mem_flags & NVGPU_MEM_FLAG_SHADOW_COPY)) {
-		free(mem->cpu_va);
-	}
-
-	(void) memset(mem, 0, sizeof(*mem));
-}
-
 void nvgpu_dma_free_vid(struct gk20a *g, struct nvgpu_mem *mem)
 {
 
@@ -237,4 +230,14 @@ void nvgpu_dma_free_vid(struct gk20a *g, struct nvgpu_mem *mem)
 	nvgpu_vidmem_destroy(g);
 	nvgpu_cond_destroy(&g->mm.vidmem.clearing_thread_cond);
 	nvgpu_thread_stop_graceful(&g->mm.vidmem.clearing_thread, NULL, NULL);
+}
+#endif
+
+void nvgpu_dma_free_sys(struct gk20a *g, struct nvgpu_mem *mem)
+{
+	if (!(mem->mem_flags & NVGPU_MEM_FLAG_SHADOW_COPY)) {
+		free(mem->cpu_va);
+	}
+
+	(void) memset(mem, 0, sizeof(*mem));
 }

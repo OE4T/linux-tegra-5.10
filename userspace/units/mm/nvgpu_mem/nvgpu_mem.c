@@ -58,6 +58,7 @@
 
 static struct nvgpu_mem *test_mem;
 
+#ifdef CONFIG_NVGPU_DGPU
 /*
  * Pramin write callback (for all nvgpu_writel calls).
  * No-op as callbacks/functions are already tested in pramin module.
@@ -197,6 +198,7 @@ static int test_nvgpu_mem_vidmem(struct unit_module *m,
 
 	return UNIT_SUCCESS;
 }
+#endif
 
 /*
  * Test nvgpu_aperture_mask()
@@ -210,6 +212,7 @@ static int test_nvgpu_aperture_mask(struct unit_module *m,
 	u32 vidmem_mask = 4;
 	u32 ret_ap_mask;
 
+#ifdef CONFIG_NVGPU_DGPU
 	/* Case: APERTURE_VIDMEM */
 	test_mem->aperture = APERTURE_VIDMEM;
 	ret_ap_mask = nvgpu_aperture_mask(g, test_mem, sysmem_mask,
@@ -217,6 +220,7 @@ static int test_nvgpu_aperture_mask(struct unit_module *m,
 	if (ret_ap_mask != vidmem_mask) {
 		unit_return_fail(m, "Vidmem mask returned incorrect\n");
 	}
+#endif
 
 	/*
 	 * NVGPU_MM_HONORS_APERTURE enabled
@@ -262,6 +266,7 @@ static int test_nvgpu_aperture_mask(struct unit_module *m,
 	 */
 	nvgpu_set_enabled(g, NVGPU_MM_HONORS_APERTURE, false);
 
+#ifdef CONFIG_NVGPU_DGPU
 	/* Case: APERTURE_SYSMEM */
 	test_mem->aperture = APERTURE_SYSMEM;
 	ret_ap_mask = nvgpu_aperture_mask(g, test_mem, sysmem_mask,
@@ -279,6 +284,7 @@ static int test_nvgpu_aperture_mask(struct unit_module *m,
 		unit_return_fail(m, "MM_HONORS disabled: "
 			"Incorrect mask returned for sysmem_coh\n");
 	}
+#endif
 
 	/* Case: APERTURE_INVALID */
 	test_mem->aperture = APERTURE_INVALID;
@@ -773,8 +779,9 @@ struct unit_module_test nvgpu_mem_tests[] = {
 	 * Tests covering VIDMEM branches
 	 */
 	UNIT_TEST(nvgpu_aperture_mask,	test_nvgpu_aperture_mask,	NULL, 0),
+#ifdef CONFIG_NVGPU_DGPU
 	UNIT_TEST(nvgpu_mem_vidmem,	test_nvgpu_mem_vidmem,		NULL, 0),
-
+#endif
 	/*
 	 * Free test should be executed at the end to free allocated memory.
 	 * As nvgpu_mem doesn't not have an explicit free function for sysmem,

@@ -54,6 +54,7 @@ bool nvgpu_acr_is_lsf_lazy_bootstrap(struct gk20a *g, struct nvgpu_acr *acr,
 	return acr->lsf[falcon_id].is_lazy_bootstrap;
 }
 
+#ifdef CONFIG_NVGPU_DGPU
 int nvgpu_acr_alloc_blob_prerequisite(struct gk20a *g, struct nvgpu_acr *acr,
 	size_t size)
 {
@@ -69,6 +70,7 @@ int nvgpu_acr_alloc_blob_prerequisite(struct gk20a *g, struct nvgpu_acr *acr,
 
 	return acr->alloc_blob_space(g, size, &acr->ucode_blob);
 }
+#endif
 
 /* ACR blob construct & bootstrap */
 int nvgpu_acr_bootstrap_hs_acr(struct gk20a *g, struct nvgpu_acr *acr)

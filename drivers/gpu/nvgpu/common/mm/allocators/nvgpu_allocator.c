@@ -190,10 +190,12 @@ int nvgpu_allocator_init(struct gk20a *g, struct nvgpu_allocator *na,
 		err = nvgpu_buddy_allocator_init(g, na, vm, name, base, length,
 						blk_size, max_order, flags);
 		break;
+#ifdef CONFIG_NVGPU_DGPU
 	case PAGE_ALLOCATOR:
 		err = nvgpu_page_allocator_init(g, na, name, base, length,
 							blk_size, flags);
 		break;
+#endif
 	case BITMAP_ALLOCATOR:
 		err = nvgpu_bitmap_allocator_init(g, na, name, base, length,
 							blk_size, flags);

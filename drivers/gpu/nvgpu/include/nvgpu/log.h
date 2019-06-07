@@ -90,7 +90,9 @@ static inline void nvgpu_log_dbg_impl(struct gk20a *g, u64 log_mask,
 #define	gpu_dbg_alloc		BIT(21) /* Allocator debugging. */
 #define	gpu_dbg_dma		BIT(22) /* DMA allocation prints. */
 #define	gpu_dbg_sgl		BIT(23) /* SGL related traces. */
+#ifdef CONFIG_NVGPU_DGPU
 #define	gpu_dbg_vidmem		BIT(24) /* VIDMEM tracing. */
+#endif
 #define	gpu_dbg_nvlink		BIT(25) /* nvlink Operation tracing. */
 #define	gpu_dbg_clk_arb		BIT(26) /* Clk arbiter debugging. */
 #define	gpu_dbg_event		BIT(27) /* Events to User debugging. */

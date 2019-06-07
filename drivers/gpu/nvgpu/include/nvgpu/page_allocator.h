@@ -23,6 +23,8 @@
 #ifndef PAGE_ALLOCATOR_PRIV_H
 #define PAGE_ALLOCATOR_PRIV_H
 
+#ifdef CONFIG_NVGPU_DGPU
+
 #include <nvgpu/allocator.h>
 #include <nvgpu/nvgpu_mem.h>
 #include <nvgpu/nvgpu_sgt.h>
@@ -183,4 +185,5 @@ static inline struct nvgpu_allocator *palloc_owner(
 	return a->owner;
 }
 
+#endif
 #endif

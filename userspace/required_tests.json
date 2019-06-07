@@ -590,11 +590,6 @@
         "unit": "nvgpu_mem"
     },
     {
-        "test": "nvgpu_mem_vidmem",
-        "test_level": 0,
-        "unit": "nvgpu_mem"
-    },
-    {
         "test": "nvgpu_mem_wr_rd",
         "test_level": 0,
         "unit": "nvgpu_mem"
@@ -805,206 +800,6 @@
         "unit": "nvgpu_tsg"
     },
     {
-        "test": "add_empty_slab",
-        "test_level": 0,
-        "unit": "page_allocator"
-    },
-    {
-        "test": "add_full_slab",
-        "test_level": 0,
-        "unit": "page_allocator"
-    },
-    {
-        "test": "add_partial_slab",
-        "test_level": 0,
-        "unit": "page_allocator"
-    },
-    {
-        "test": "add_second_full_slab",
-        "test_level": 0,
-        "unit": "page_allocator"
-    },
-    {
-        "test": "add_second_partial_slab",
-        "test_level": 0,
-        "unit": "page_allocator"
-    },
-    {
-        "test": "alloc_fault_at_alloc_cache",
-        "test_level": 0,
-        "unit": "page_allocator"
-    },
-    {
-        "test": "alloc_fault_at_nvgpu_alloc",
-        "test_level": 0,
-        "unit": "page_allocator"
-    },
-    {
-        "test": "alloc_fault_at_sgl_alloc",
-        "test_level": 0,
-        "unit": "page_allocator"
-    },
-    {
-        "test": "alloc_fixed_no_scatter_gather",
-        "test_level": 0,
-        "unit": "page_allocator"
-    },
-    {
-        "test": "alloc_more_than_available",
-        "test_level": 0,
-        "unit": "page_allocator"
-    },
-    {
-        "test": "alloc_no_scatter_gather",
-        "test_level": 0,
-        "unit": "page_allocator"
-    },
-    {
-        "test": "contiguous_alloc_512K",
-        "test_level": 0,
-        "unit": "page_allocator"
-    },
-    {
-        "test": "destroy",
-        "test_level": 0,
-        "unit": "page_allocator"
-    },
-    {
-        "test": "destroy_slabs",
-        "test_level": 0,
-        "unit": "page_allocator"
-    },
-    {
-        "test": "fixed_alloc_128K",
-        "test_level": 0,
-        "unit": "page_allocator"
-    },
-    {
-        "test": "fixed_alloc_8K",
-        "test_level": 0,
-        "unit": "page_allocator"
-    },
-    {
-        "test": "fixed_alloc_fault_at_alloc_cache",
-        "test_level": 0,
-        "unit": "page_allocator"
-    },
-    {
-        "test": "fixed_alloc_fault_at_sgl_alloc",
-        "test_level": 0,
-        "unit": "page_allocator"
-    },
-    {
-        "test": "free_32K_alloc",
-        "test_level": 0,
-        "unit": "page_allocator"
-    },
-    {
-        "test": "free_alloc_512K",
-        "test_level": 0,
-        "unit": "page_allocator"
-    },
-    {
-        "test": "free_fixed_128K",
-        "test_level": 0,
-        "unit": "page_allocator"
-    },
-    {
-        "test": "free_fixed_no_scatter_gather",
-        "test_level": 0,
-        "unit": "page_allocator"
-    },
-    {
-        "test": "free_fixed_no_scatter_gather_again",
-        "test_level": 0,
-        "unit": "page_allocator"
-    },
-    {
-        "test": "free_no_scatter_gather",
-        "test_level": 0,
-        "unit": "page_allocator"
-    },
-    {
-        "test": "free_no_scatter_gather_again",
-        "test_level": 0,
-        "unit": "page_allocator"
-    },
-    {
-        "test": "free_slab",
-        "test_level": 0,
-        "unit": "page_allocator"
-    },
-    {
-        "test": "init",
-        "test_level": 0,
-        "unit": "page_allocator"
-    },
-    {
-        "test": "init_slabs",
-        "test_level": 0,
-        "unit": "page_allocator"
-    },
-    {
-        "test": "no_more_slabs",
-        "test_level": 0,
-        "unit": "page_allocator"
-    },
-    {
-        "test": "ops",
-        "test_level": 0,
-        "unit": "page_allocator"
-    },
-    {
-        "test": "revert_partial_slab",
-        "test_level": 0,
-        "unit": "page_allocator"
-    },
-    {
-        "test": "revert_second_partial_slab",
-        "test_level": 0,
-        "unit": "page_allocator"
-    },
-    {
-        "test": "sgt_ops",
-        "test_level": 0,
-        "unit": "page_allocator"
-    },
-    {
-        "test": "simple_32K_alloc",
-        "test_level": 0,
-        "unit": "page_allocator"
-    },
-    {
-        "test": "simple_alloc_512K",
-        "test_level": 0,
-        "unit": "page_allocator"
-    },
-    {
-        "test": "slabs_alloc_32K",
-        "test_level": 0,
-        "unit": "page_allocator"
-    },
-    {
-        "test": "slabs_alloc_8K",
-        "test_level": 0,
-        "unit": "page_allocator"
-    },
-    {
-        "test": "slabs_fault_at_alloc_cache",
-        "test_level": 0,
-        "unit": "page_allocator"
-    },
-    {
-        "test": "slabs_fault_at_page_cache",
-        "test_level": 0,
-        "unit": "page_allocator"
-    },
-    {
-        "test": "slabs_fault_at_sgl_alloc",
-        "test_level": 0,
-        "unit": "page_allocator"
-    },
-    {
         "test": "gmmu_clean",
         "test_level": 0,
         "unit": "page_table"
@@ -1091,11 +886,6 @@
     },
     {
         "test": "gmmu_map_unmap_unmapped",
-        "test_level": 0,
-        "unit": "page_table"
-    },
-    {
-        "test": "gmmu_map_unmap_vidmem",
         "test_level": 0,
         "unit": "page_table"
     },
@@ -1516,31 +1306,6 @@
         "test": "writel_check",
         "test_level": 0,
         "unit": "posix_mockio"
-    },
-    {
-        "test": "nvgpu_pramin_dying",
-        "test_level": 0,
-        "unit": "pramin"
-    },
-    {
-        "test": "nvgpu_pramin_free_test_env",
-        "test_level": 0,
-        "unit": "pramin"
-    },
-    {
-        "test": "nvgpu_pramin_memset",
-        "test_level": 0,
-        "unit": "pramin"
-    },
-    {
-        "test": "nvgpu_pramin_rd_n_1_sgl",
-        "test_level": 0,
-        "unit": "pramin"
-    },
-    {
-        "test": "nvgpu_pramin_wr_n_3_sgl",
-        "test_level": 0,
-        "unit": "pramin"
     },
     {
         "test": "batch",

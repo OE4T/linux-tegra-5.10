@@ -33,6 +33,8 @@
 
 #include <nvgpu/page_allocator.h>
 
+#ifdef CONFIG_NVGPU_DGPU
+
 #define BA_DEFAULT_BASE		SZ_4K
 #define BA_DEFAULT_LENGTH	SZ_1M
 #define BA_DEFAULT_BLK_SIZE	SZ_4K
@@ -589,8 +591,10 @@ static int test_nvgpu_page_allocator_init(struct unit_module *m,
 
 	return UNIT_SUCCESS;
 }
+#endif
 
 struct unit_module_test page_allocator_tests[] = {
+#ifdef CONFIG_NVGPU_DGPU
 	/* These tests create and evaluate page_allocator w/o 4K VIDMEM pages */
 	UNIT_TEST(init, test_nvgpu_page_allocator_init, NULL, 0),
 	UNIT_TEST(ops, test_nvgpu_page_allocator_ops, NULL, 0),
@@ -668,6 +672,7 @@ struct unit_module_test page_allocator_tests[] = {
 	UNIT_TEST(no_more_slabs, test_page_alloc, (void *) &failing_alloc_16K, 0),
 
 	UNIT_TEST(destroy_slabs, test_nvgpu_page_allocator_destroy, NULL, 0),
+#endif
 };
 
 UNIT_MODULE(page_allocator, page_allocator_tests, UNIT_PRIO_NVGPU_TEST);

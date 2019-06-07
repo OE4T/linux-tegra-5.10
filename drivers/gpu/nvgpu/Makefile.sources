@@ -38,8 +38,7 @@ srcs +=	os/posix/nvgpu.c \
 	os/posix/stubs.c \
 	os/posix/posix-nvhost.c \
 	os/posix/posix-vgpu.c \
-	os/posix/posix-dt.c \
-	os/posix/posix-vidmem.c
+	os/posix/posix-dt.c
 
 ifdef CONFIG_NVGPU_FECS_TRACE
 srcs += os/posix/fecs_trace_posix.c
@@ -59,6 +58,10 @@ endif
 
 ifeq ($(CONFIG_NVGPU_SIM),1)
 srcs += os/posix/posix-sim.c
+endif
+
+ifeq ($(CONFIG_NVGPU_DGPU),1)
+srcs += os/posix/posix-vidmem.c
 endif
 endif
 
@@ -82,7 +85,6 @@ srcs += common/utils/enabled.c \
 	common/mm/allocators/nvgpu_allocator.c \
 	common/mm/allocators/bitmap_allocator.c \
 	common/mm/allocators/buddy_allocator.c \
-	common/mm/allocators/page_allocator.c \
 	common/mm/allocators/lockless_allocator.c \
 	common/mm/gmmu/page_table.c \
 	common/mm/gmmu/pd_cache.c \
@@ -93,10 +95,8 @@ srcs += common/utils/enabled.c \
 	common/mm/nvgpu_sgt.c \
 	common/mm/mm.c \
 	common/mm/dma.c \
-	common/mm/vidmem.c \
 	common/xve/xve_gp106.c \
 	common/therm/therm.c \
-	common/pramin.c \
 	common/ltc/ltc.c \
 	common/fbp/fbp.c \
 	common/io/io.c \
@@ -269,8 +269,6 @@ srcs += common/utils/enabled.c \
 	hal/sync/syncpt_cmdbuf_gv11b.c \
 	hal/pmu/pmu_gp106.c \
 	hal/pmu/pmu_gv11b.c \
-	hal/pramin/pramin_gp10b.c \
-	hal/pramin/pramin_init.c \
 	hal/top/top_gm20b.c \
 	hal/top/top_gp10b.c \
 	hal/top/top_gp106.c \
@@ -503,6 +501,9 @@ srcs += common/sec2/sec2.c \
 	common/falcon/falcon_sw_tu104.c \
 	common/acr/acr_sw_gv100.c \
 	common/acr/acr_sw_tu104.c \
+	common/mm/allocators/page_allocator.c \
+	common/mm/vidmem.c \
+	common/pramin.c \
 	hal/mm/mm_gv100.c \
 	hal/mm/mm_tu104.c \
 	hal/mc/mc_gv100.c  \
@@ -545,7 +546,9 @@ srcs += common/sec2/sec2.c \
 	hal/gsp/gsp_gv100.c \
 	hal/sec2/sec2_gp106.c \
 	hal/sec2/sec2_tu104.c \
+	hal/pramin/pramin_gp10b.c \
 	hal/pramin/pramin_gv100.c \
+	hal/pramin/pramin_init.c \
 	hal/pramin/pramin_tu104.c \
 	hal/bios/bios_tu104.c \
 	hal/top/top_gv100.c

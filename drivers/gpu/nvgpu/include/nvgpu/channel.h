@@ -90,9 +90,11 @@ struct gpfifo_desc {
 	u32 get;
 	u32 put;
 
+#ifdef CONFIG_NVGPU_DGPU
 	/* if gpfifo lives in vidmem or is forced to go via PRAMIN, first copy
 	 * from userspace to pipe and then from pipe to gpu buffer */
 	void *pipe;
+#endif
 };
 
 struct nvgpu_channel_hw_state {

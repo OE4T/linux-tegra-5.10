@@ -80,6 +80,7 @@ void gk20a_bus_isr(struct gk20a *g)
 	gk20a_writel(g, bus_intr_0_r(), val);
 }
 
+#ifdef CONFIG_NVGPU_DGPU
 u32 gk20a_bus_set_bar0_window(struct gk20a *g, struct nvgpu_mem *mem,
 		       struct nvgpu_sgt *sgt, struct nvgpu_sgl *sgl, u32 w)
 {
@@ -110,3 +111,4 @@ u32 gk20a_bus_set_bar0_window(struct gk20a *g, struct nvgpu_mem *mem,
 
 	return lo;
 }
+#endif

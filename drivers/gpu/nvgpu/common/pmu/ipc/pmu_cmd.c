@@ -213,11 +213,16 @@ static int pmu_payload_allocate(struct gk20a *g, struct pmu_sequence *seq,
 			goto clean_up;
 		}
 
+#ifdef CONFIG_NVGPU_DGPU
 		err = nvgpu_pmu_vidmem_surface_alloc(g, alloc->fb_surface,
 						     alloc->fb_size);
 		if (err != 0) {
 			goto clean_up;
 		}
+#else
+		err = -ENOMEM;
+		goto clean_up;
+#endif
 	}
 
 	if (nvgpu_pmu_fb_queue_enabled(&pmu->queues)) {

@@ -782,7 +782,9 @@ static const struct gpu_ops tu104_ops = {
 		.is_fault_buf_enabled = gv11b_fb_is_fault_buf_enabled,
 		.fault_buf_set_state_hw = gv11b_fb_fault_buf_set_state_hw,
 		.fault_buf_configure_hw = gv11b_fb_fault_buf_configure_hw,
+#ifdef CONFIG_NVGPU_DGPU
 		.get_vidmem_size = tu104_fb_get_vidmem_size,
+#endif
 		.apply_pdb_cache_war = tu104_fb_apply_pdb_cache_war,
 		.intr = {
 			.enable = tu104_fb_intr_enable,
@@ -1239,7 +1241,9 @@ static const struct gpu_ops tu104_ops = {
 		.isr = gk20a_bus_isr,
 		.bar1_bind = NULL,
 		.bar2_bind = bus_tu104_bar2_bind,
+#ifdef CONFIG_NVGPU_DGPU
 		.set_bar0_window = gk20a_bus_set_bar0_window,
+#endif
 		.read_sw_scratch = gv100_bus_read_sw_scratch,
 		.write_sw_scratch = gv100_bus_write_sw_scratch,
 	},
@@ -1528,8 +1532,9 @@ int tu104_init_hal(struct gk20a *g)
 #ifdef CONFIG_NVGPU_LS_PMU
 	gops->clk.perf_pmu_vfe_load = nvgpu_perf_pmu_vfe_load_ps35;
 #endif
+#ifdef CONFIG_NVGPU_DGPU
 	nvgpu_pramin_ops_init(g);
-
+#endif
 	/* dGpu VDK support */
 #ifdef CONFIG_NVGPU_SIM
 	if (nvgpu_is_enabled(g, NVGPU_IS_FMODEL)){
