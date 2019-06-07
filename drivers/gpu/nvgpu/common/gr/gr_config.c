@@ -150,13 +150,15 @@ struct nvgpu_gr_config *nvgpu_gr_config_init(struct gk20a *g)
 		config->gpc_tpc_count[gpc_index] =
 			g->ops.gr.config.get_tpc_count_in_gpc(g, config,
 				gpc_index);
-		config->tpc_count += config->gpc_tpc_count[gpc_index];
+		config->tpc_count = nvgpu_safe_add_u32(config->tpc_count,
+					config->gpc_tpc_count[gpc_index]);
 
 #ifdef NVGPU_GRAPHICS
 		config->gpc_zcb_count[gpc_index] =
 			g->ops.gr.config.get_zcull_count_in_gpc(g, config,
 				gpc_index);
-		config->zcb_count += config->gpc_zcb_count[gpc_index];
+		config->zcb_count = nvgpu_safe_add_u32(config->zcb_count,
+					config->gpc_zcb_count[gpc_index]);
 #endif
 
 		for (pes_index = 0; pes_index < config->pe_count_per_gpc;
@@ -176,7 +178,8 @@ struct nvgpu_gr_config *nvgpu_gr_config_init(struct gk20a *g)
 			config->pes_tpc_mask[pes_index][gpc_index] = pes_tpc_mask;
 		}
 
-		config->ppc_count += config->gpc_ppc_count[gpc_index];
+		config->ppc_count = nvgpu_safe_add_u32(config->ppc_count,
+					config->gpc_ppc_count[gpc_index]);
 
 		if (config->pe_count_per_gpc > 1U) {
 			temp = nvgpu_safe_add_u32(
