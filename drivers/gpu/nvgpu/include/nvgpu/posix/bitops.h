@@ -31,7 +31,7 @@
 #define BITS_PER_BYTE	8UL
 #define BITS_PER_LONG 	((unsigned long)__SIZEOF_LONG__ * BITS_PER_BYTE)
 #define BITS_TO_LONGS(bits)			\
-	(((bits) + BITS_PER_LONG - 1UL) / BITS_PER_LONG)
+	(nvgpu_safe_add_u64(bits, BITS_PER_LONG - 1UL) / BITS_PER_LONG)
 
 /*
  * Deprecated; use the explicit BITxx() macros instead.
@@ -42,8 +42,15 @@
 	(((~0UL) - (1UL << (lo)) + 1UL) &	\
 		(~0UL >> (BITS_PER_LONG - 1UL - (unsigned long)(hi))))
 
-#define DECLARE_BITMAP(bmap, bits)		\
-	unsigned long bmap[BITS_TO_LONGS(bits)]
+/*
+ * Can't use BITS_TO_LONGS to declare arrays where we can't use BUG(), so if the
+ * range is invalid, use -1 for the size which will generate a compiler error.
+ */
+#define DECLARE_BITMAP(bmap, bits)					\
+	unsigned long bmap[(((LONG_MAX - (bits)) < (BITS_PER_LONG - 1UL)) ? \
+		-1 :							\
+		(long int)(((bits) + BITS_PER_LONG - 1UL) /		\
+						BITS_PER_LONG))]
 
 #define for_each_set_bit(bit, addr, size) \
 	for ((bit) = find_first_bit((addr), (size));		\
