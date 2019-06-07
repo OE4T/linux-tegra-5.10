@@ -488,6 +488,7 @@ struct nvhost_device_data t19_vic_info = {
 	.flcn_isr		= nvhost_flcn_common_isr,
 	.init_class_context	= nvhost_vic_init_context,
 	.firmware_name		= "nvhost_vic042.fw",
+	.firmware_not_in_subdir = true,
 	.serialize		= true,
 	.push_work_done		= true,
 	.resource_policy	= RESOURCE_PER_CHANNEL_INSTANCE,

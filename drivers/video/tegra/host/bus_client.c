@@ -1877,6 +1877,7 @@ EXPORT_SYMBOL(nvhost_client_device_get_resources);
 const struct firmware *
 nvhost_client_request_firmware(struct platform_device *dev, const char *fw_name)
 {
+	struct nvhost_device_data *pdata = platform_get_drvdata(dev);
 	struct nvhost_chip_support *op = nvhost_get_chip_ops();
 	const struct firmware *fw;
 	char *fw_path = NULL;
@@ -1892,7 +1893,7 @@ nvhost_client_request_firmware(struct platform_device *dev, const char *fw_name)
 	if (!fw_name)
 		return NULL;
 
-	if (op->soc_name) {
+	if (op->soc_name && !pdata->firmware_not_in_subdir) {
 		path_len = strlen(fw_name) + strlen(op->soc_name);
 		path_len += 2; /* for the path separator and zero terminator*/
 

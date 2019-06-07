@@ -193,6 +193,8 @@ struct nvhost_device_data {
 	bool		support_abort_on_close;
 
 	char		*firmware_name;	/* Name of firmware */
+	bool		firmware_not_in_subdir; /* Firmware is not located in
+                                                   chip subdirectory */
 
 	bool		engine_can_cg;	/* True if CG is enabled */
 	bool		can_powergate;	/* True if module can be power gated */
