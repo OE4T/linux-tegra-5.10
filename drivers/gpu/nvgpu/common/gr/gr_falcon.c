@@ -30,6 +30,7 @@
 #include <nvgpu/sizes.h>
 #include <nvgpu/mm.h>
 #include <nvgpu/acr.h>
+#include <nvgpu/gr/gr_utils.h>
 #ifdef CONFIG_NVGPU_LS_PMU
 #include <nvgpu/pmu/lsfm.h>
 #include <nvgpu/pmu/pmu_pg.h>
@@ -273,7 +274,8 @@ static int nvgpu_gr_falcon_copy_ctxsw_ucode_segments(
 	/* compute a "checksum" for the boot binary to detect its version */
 	segments->boot_signature = 0;
 	for (i = 0; i < segments->boot.size / sizeof(u32); i++) {
-		segments->boot_signature += bootimage[i];
+		segments->boot_signature = nvgpu_gr_checksum_u32(
+				segments->boot_signature, bootimage[i]);
 	}
 
 	return 0;
