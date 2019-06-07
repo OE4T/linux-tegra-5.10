@@ -92,7 +92,7 @@ static int test_channel_setup_sw(struct unit_module *m,
 	struct nvgpu_fifo *f = &g->fifo;
 	struct nvgpu_posix_fault_inj *kmem_fi;
 	u32 branches;
-	int rc = UNIT_FAIL;
+	int ret = UNIT_FAIL;
 	int err;
 	u32 fail = F_CHANNEL_SETUP_SW_VZALLOC_FAIL;
 
@@ -130,15 +130,15 @@ static int test_channel_setup_sw(struct unit_module *m,
 		}
 	}
 
-	rc = UNIT_SUCCESS;
+	ret = UNIT_SUCCESS;
 done:
 	nvgpu_posix_enable_fault_injection(kmem_fi, false, 0);
-	if (rc != UNIT_SUCCESS) {
+	if (ret != UNIT_SUCCESS) {
 		unit_err(m, "%s branches=%s\n", __func__,
 			branches_str(branches, f_channel_setup_sw));
 	}
 	g->ops = gops;
-	return rc;
+	return ret;
 }
 
 #define F_CHANNEL_OPEN_ENGINE_NOT_VALID		BIT(0)
@@ -186,7 +186,7 @@ static int test_channel_open(struct unit_module *m,
 	struct nvgpu_channel *ch, *next_ch;
 	struct nvgpu_posix_fault_inj *kmem_fi;
 	u32 branches;
-	int rc = UNIT_FAIL;
+	int ret = UNIT_FAIL;
 	u32 fail =
 		F_CHANNEL_OPEN_ALLOC_CH_FAIL |
 		F_CHANNEL_OPEN_BUG_ON |
@@ -296,10 +296,10 @@ static int test_channel_open(struct unit_module *m,
 			ch = NULL;
 		}
 	}
-	rc = UNIT_SUCCESS;
+	ret = UNIT_SUCCESS;
 
 done:
-	if (rc != UNIT_SUCCESS) {
+	if (ret != UNIT_SUCCESS) {
 		unit_err(m, "%s branches=%s\n", __func__,
 			branches_str(branches, f_channel_open));
 	}
@@ -309,7 +309,7 @@ done:
 	}
 	g->ops = gops;
 	g->os_channel.open = os_channel_open;
-	return rc;
+	return ret;
 }
 
 #define F_CHANNEL_CLOSE_ALREADY_FREED		BIT(0)
@@ -385,7 +385,7 @@ static int test_channel_close(struct unit_module *m,
 	struct nvgpu_channel *ch;
 	struct nvgpu_tsg *tsg;
 	u32 branches = 0U;
-	int rc = UNIT_FAIL;
+	int ret = UNIT_FAIL;
 	u32 fail = F_CHANNEL_CLOSE_ALREADY_FREED |
 		   F_CHANNEL_CLOSE_NON_REFERENCEABLE;
 	u32 prune = fail;
@@ -533,7 +533,7 @@ unbind:
 		 * - ch->sync != NULL
 		 * - allow railgate for deterministic channel
 		 * - unlink all debug sessions
-		 * - free pre-allocated resources
+		 * - free pre-allocated resouretes
 		 * - channel refcount tracking
 		 */
 		assert(ch->g == NULL);
@@ -542,10 +542,10 @@ unbind:
 
 		ch = NULL;
 	}
-	rc = UNIT_SUCCESS;
+	ret = UNIT_SUCCESS;
 
 done:
-	if (rc != UNIT_SUCCESS) {
+	if (ret != UNIT_SUCCESS) {
 		unit_err(m, "%s branches=%s\n", __func__,
 			branches_str(branches, f_channel_close));
 	}
@@ -558,7 +558,7 @@ done:
 	}
 	g->ops = gops;
 	g->os_channel.close = os_channel_close;
-	return rc;
+	return ret;
 }
 
 #define F_CHANNEL_SETUP_BIND_NO_AS				BIT(0)
@@ -633,7 +633,7 @@ static int test_channel_setup_bind(struct unit_module *m,
 	struct nvgpu_channel *ch = NULL;
 	struct nvgpu_tsg *tsg = NULL;
 	u32 branches = 0U;
-	int rc = UNIT_FAIL;
+	int ret = UNIT_FAIL;
 	u32 fail =
 		F_CHANNEL_SETUP_BIND_NO_AS |
 		F_CHANNEL_SETUP_BIND_HAS_GPFIFO_MEM |
@@ -737,10 +737,10 @@ static int test_channel_setup_bind(struct unit_module *m,
 			nvgpu_atomic_set(&ch->bound, false);
 		}
 	}
-	rc = UNIT_SUCCESS;
+	ret = UNIT_SUCCESS;
 
 done:
-	if (rc != UNIT_SUCCESS) {
+	if (ret != UNIT_SUCCESS) {
 		unit_err(m, "%s branches=%s\n", __func__,
 			branches_str(branches, f_channel_setup_bind));
 	}
@@ -751,7 +751,7 @@ done:
 	nvgpu_dma_free(g, &pdb_mem);
 	g->os_channel.alloc_usermode_buffers = alloc_usermode_buffers;
 	g->ops = gops;
-	return rc;
+	return ret;
 }
 
 #define F_CHANNEL_ALLOC_INST_ENOMEM				BIT(0)
@@ -768,7 +768,7 @@ static int test_channel_alloc_inst(struct unit_module *m,
 	u32 branches = 0U;
 	u32 fail = F_CHANNEL_ALLOC_INST_ENOMEM;
 	u32 prune = fail;
-	int rc = UNIT_FAIL;
+	int ret = UNIT_FAIL;
 	u32 runlist_id = NVGPU_INVALID_RUNLIST_ID;
 	bool privileged = false;
 	struct nvgpu_posix_fault_inj *dma_fi;
@@ -811,10 +811,10 @@ static int test_channel_alloc_inst(struct unit_module *m,
 		nvgpu_channel_free_inst(g, ch);
 		assert(ch->inst_block.aperture == APERTURE_INVALID);
 	}
-	rc = UNIT_SUCCESS;
+	ret = UNIT_SUCCESS;
 
 done:
-	if (rc != UNIT_SUCCESS) {
+	if (ret != UNIT_SUCCESS) {
 		unit_err(m, "%s branches=%s\n", __func__,
 			branches_str(branches, f_channel_alloc_inst));
 	}
@@ -822,7 +822,7 @@ done:
 		nvgpu_channel_close(ch);
 	}
 	nvgpu_posix_enable_fault_injection(dma_fi, false, 0);
-	return rc;
+	return ret;
 }
 
 /*
@@ -857,7 +857,7 @@ static int test_channel_from_inst(struct unit_module *m,
 	u32 prune =  found |
 		F_CHANNEL_FROM_INST_NO_INIT |
 		F_CHANNEL_FROM_INST_NO_CHANNEL;
-	int rc = UNIT_FAIL;
+	int ret = UNIT_FAIL;
 	u32 runlist_id = NVGPU_INVALID_RUNLIST_ID;
 	u64 inst_ptr;
 	bool privileged = false;
@@ -919,10 +919,10 @@ static int test_channel_from_inst(struct unit_module *m,
 			assert(ch == NULL);
 		}
 	}
-	rc = UNIT_SUCCESS;
+	ret = UNIT_SUCCESS;
 
 done:
-	if (rc != UNIT_SUCCESS) {
+	if (ret != UNIT_SUCCESS) {
 		unit_err(m, "%s branches=%s\n", __func__,
 			branches_str(branches, f_channel_from_inst));
 	}
@@ -932,7 +932,7 @@ done:
 	if (chB != NULL) {
 		nvgpu_channel_close(chB);
 	}
-	return rc;
+	return ret;
 }
 
 static void stub_tsg_enable(struct nvgpu_tsg *tsg)
@@ -955,7 +955,7 @@ static int test_channel_enable_disable_tsg(struct unit_module *m,
 	u32 runlist_id = NVGPU_INVALID_RUNLIST_ID;
 	bool privileged = false;
 	int err;
-	int rc = UNIT_FAIL;
+	int ret = UNIT_FAIL;
 
 	tsg = nvgpu_tsg_open(g, getpid());
 	assert(tsg != NULL);
@@ -989,7 +989,7 @@ static int test_channel_enable_disable_tsg(struct unit_module *m,
 	err = nvgpu_channel_disable_tsg(g, ch);
 	assert(err != 0);
 
-	rc = UNIT_SUCCESS;
+	ret = UNIT_SUCCESS;
 
 done:
 	if (ch != NULL) {
@@ -999,7 +999,7 @@ done:
 		nvgpu_ref_put(&tsg->refcount, nvgpu_tsg_release);
 	}
 	g->ops = gops;
-	return rc;
+	return ret;
 }
 
 struct unit_module_test nvgpu_channel_tests[] = {
