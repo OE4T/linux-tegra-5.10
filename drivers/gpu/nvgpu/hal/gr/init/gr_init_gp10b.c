@@ -301,11 +301,11 @@ u32 gp10b_gr_init_get_global_attr_cb_size(struct gk20a *g, u32 tpc_count,
 			gr_gpc0_ppc0_cbm_beta_cb_size_v_granularity_v(),
 			max_tpc));
 
-	size += nvgpu_safe_mult_u32(
+	size = nvgpu_safe_add_u32(size, nvgpu_safe_mult_u32(
 		 g->ops.gr.init.get_alpha_cb_size(g, tpc_count),
 		 nvgpu_safe_mult_u32(
 			gr_gpc0_ppc0_cbm_alpha_cb_size_v_granularity_v(),
-			max_tpc));
+			max_tpc)));
 
 	size = ALIGN(size, 128);
 
@@ -532,9 +532,10 @@ void gp10b_gr_init_commit_global_cb_manager(struct gk20a *g,
 			       sum_temp_pcc),
 			       cbm_cfg_size_steadystate, patch);
 
-			attrib_offset_in_chunk +=
+			attrib_offset_in_chunk = nvgpu_safe_add_u32(
+				attrib_offset_in_chunk,
 				nvgpu_safe_mult_u32(attrib_size_in_chunk,
-							pes_tpc_count);
+							pes_tpc_count));
 
 			nvgpu_gr_ctx_patch_write(g, gr_ctx,
 				nvgpu_safe_add_u32(
@@ -548,9 +549,10 @@ void gp10b_gr_init_commit_global_cb_manager(struct gk20a *g,
 					sum_temp_pcc),
 				alpha_offset_in_chunk, patch);
 
-			alpha_offset_in_chunk +=
+			alpha_offset_in_chunk = nvgpu_safe_add_u32(
+				alpha_offset_in_chunk,
 				nvgpu_safe_mult_u32(alpha_cb_size,
-							pes_tpc_count);
+							pes_tpc_count));
 
 			nvgpu_gr_ctx_patch_write(g, gr_ctx,
 				gr_gpcs_swdx_tc_beta_cb_size_r(

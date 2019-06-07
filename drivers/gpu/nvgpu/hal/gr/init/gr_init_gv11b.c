@@ -289,13 +289,14 @@ u32 gv11b_gr_init_get_nonpes_aware_tpc(struct gk20a *g, u32 gpc, u32 tpc,
 		    BIT32(tpc)) != 0U) {
 			break;
 		}
-		tpc_new += nvgpu_gr_config_get_pes_tpc_count(gr_config,
-				gpc, pes);
+		tpc_new = nvgpu_safe_add_u32(tpc_new,
+				nvgpu_gr_config_get_pes_tpc_count(gr_config,
+				gpc, pes));
 	}
 	temp = nvgpu_safe_sub_u32(BIT32(tpc), 1U) &
 		nvgpu_gr_config_get_pes_tpc_mask(gr_config, gpc, pes);
 	temp = (u32)hweight32(temp);
-	tpc_new += temp;
+	tpc_new = nvgpu_safe_add_u32(tpc_new, temp);
 
 	nvgpu_log_info(g, "tpc: %d -> new tpc: %d", tpc, tpc_new);
 	return tpc_new;
@@ -742,11 +743,11 @@ u32 gv11b_gr_init_get_global_attr_cb_size(struct gk20a *g, u32 tpc_count,
 			gr_gpc0_ppc0_cbm_beta_cb_size_v_granularity_v(),
 			max_tpc));
 
-	size += nvgpu_safe_mult_u32(
+	size = nvgpu_safe_add_u32(size, nvgpu_safe_mult_u32(
 		  g->ops.gr.init.get_alpha_cb_size(g, tpc_count),
 		  nvgpu_safe_mult_u32(
 			gr_gpc0_ppc0_cbm_alpha_cb_size_v_granularity_v(),
-			max_tpc));
+			max_tpc)));
 
 	size = ALIGN(size, 128);
 
@@ -920,36 +921,40 @@ u32 gv11b_gr_init_get_patch_slots(struct gk20a *g,
 	/*
 	 * CMD to update PE table
 	 */
-	size++;
+	size = nvgpu_safe_add_u32(size, 1U);
 
 	/*
 	 * Update PE table contents
 	 * for PE table, each patch buffer update writes 32 TPCs
 	 */
-	size += DIV_ROUND_UP(nvgpu_gr_config_get_tpc_count(config), 32U);
+	size = nvgpu_safe_add_u32(size,
+		DIV_ROUND_UP(nvgpu_gr_config_get_tpc_count(config), 32U));
 
 	/*
 	 * Update the PL table contents
 	 * For PL table, each patch buffer update configures 4 TPCs
 	 */
-	size += DIV_ROUND_UP(nvgpu_gr_config_get_tpc_count(config), 4U);
+	size = nvgpu_safe_add_u32(size,
+		DIV_ROUND_UP(nvgpu_gr_config_get_tpc_count(config), 4U));
 
 	/*
 	 * We need this for all subcontexts
 	 */
-	size *= g->ops.gr.init.get_max_subctx_count();
+	size = nvgpu_safe_mult_u32(size,
+			g->ops.gr.init.get_max_subctx_count());
 
 	/*
 	 * Add space for a partition mode change as well
 	 * reserve two slots since DYNAMIC -> STATIC requires
 	 * DYNAMIC -> NONE -> STATIC
 	 */
-	size += 2U;
+	size = nvgpu_safe_add_u32(size, 2U);
 
 	/*
 	 * Add current patch buffer size
 	 */
-	size += gm20b_gr_init_get_patch_slots(g, config);
+	size = nvgpu_safe_add_u32(size,
+			gm20b_gr_init_get_patch_slots(g, config));
 
 	/*
 	 * Align to 4K size
@@ -959,7 +964,7 @@ u32 gv11b_gr_init_get_patch_slots(struct gk20a *g,
 	/*
 	 * Increase the size to accommodate for additional TPC partition update
 	 */
-	size += nvgpu_safe_mult_u32(2U, slot_size);
+	size = nvgpu_safe_add_u32(size, nvgpu_safe_mult_u32(2U, slot_size));
 
 	return size;
 }
