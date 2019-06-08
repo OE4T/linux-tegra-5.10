@@ -47,7 +47,7 @@ int gm20b_gr_config_init_sm_id_table(struct gk20a *g,
 				nvgpu_gr_config_set_sm_info_gpc_index(sm_info, gpc);
 				nvgpu_gr_config_set_sm_info_sm_index(sm_info, 0);
 				nvgpu_gr_config_set_sm_info_global_tpc_index(sm_info, sm_id);
-				sm_id++;
+				sm_id = nvgpu_safe_add_u32(sm_id, 1U);
 			}
 		}
 	}

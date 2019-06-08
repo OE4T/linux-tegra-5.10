@@ -88,7 +88,8 @@ static int gr_gv100_scg_estimate_perf(struct gk20a *g,
 
 		/* track balancing of tpcs across gpcs */
 		num_tpc_gpc[gpc_id] = hweight32(num_tpc_mask);
-		average_tpcs += num_tpc_gpc[gpc_id];
+		average_tpcs = nvgpu_safe_add_u32(average_tpcs,
+					num_tpc_gpc[gpc_id]);
 
 		/* save the maximum numer of gpcs */
 		max_tpc_gpc = num_tpc_gpc[gpc_id] > max_tpc_gpc ?
@@ -129,7 +130,7 @@ static int gr_gv100_scg_estimate_perf(struct gk20a *g,
 				is_tpc_removed_pes = true;
 			}
 			if (hweight32(num_tpc_mask) != 0UL) {
-				scg_num_pes++;
+				scg_num_pes = nvgpu_safe_add_u32(scg_num_pes, 1U);
 			}
 		}
 	}
@@ -159,7 +160,7 @@ static int gr_gv100_scg_estimate_perf(struct gk20a *g,
 		} else {
 			diff = nvgpu_safe_sub_u32(temp, average_tpcs);
 		}
-		deviation += diff;
+		deviation = nvgpu_safe_add_u32(deviation, diff);
 	}
 
 	deviation /= nvgpu_gr_config_get_gpc_count(gr_config);
@@ -281,7 +282,7 @@ int gv100_gr_config_init_sm_id_table(struct gk20a *g,
 				nvgpu_gr_config_get_sm_info_global_tpc_index(sm_info));
 
 		}
-		tpc++;
+		tpc = nvgpu_safe_add_u32(tpc, 1U);
 	}
 
 	nvgpu_gr_config_set_no_of_sm(gr_config, num_sm);
