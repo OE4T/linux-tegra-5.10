@@ -109,7 +109,7 @@ struct nvgpu_netlist_vars {
 		struct netlist_aiv_list sys;
 		struct netlist_aiv_list gpc;
 		struct netlist_aiv_list tpc;
-#ifdef NVGPU_GRAPHICS
+#ifdef CONFIG_NVGPU_GRAPHICS
 		struct netlist_aiv_list zcull_gpc;
 #endif
 		struct netlist_aiv_list ppc;

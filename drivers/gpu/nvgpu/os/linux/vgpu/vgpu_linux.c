@@ -134,13 +134,13 @@ static int vgpu_init_support(struct platform_device *pdev)
 
 	nvgpu_mutex_init(&g->dbg_sessions_lock);
 	nvgpu_mutex_init(&g->client_lock);
-#if defined(CONFIG_GK20A_CYCLE_STATS)
+#if defined(CONFIG_NVGPU_CYCLESTATS)
 	nvgpu_mutex_init(&g->cs_lock);
 #endif
 
 	nvgpu_init_list_node(&g->profiler_objects);
 
-#ifdef NVGPU_DEBUGGER
+#ifdef CONFIG_NVGPU_DEBUGGER
 	g->dbg_regops_tmp_buf = nvgpu_kzalloc(g, SZ_4K);
 	if (!g->dbg_regops_tmp_buf) {
 		nvgpu_err(g, "couldn't allocate regops tmp buf");

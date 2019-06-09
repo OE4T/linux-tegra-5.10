@@ -20,7 +20,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifdef CONFIG_TEGRA_NVLINK
+#ifdef CONFIG_NVGPU_NVLINK
 
 #include <nvgpu/nvlink_minion.h>
 
@@ -60,4 +60,4 @@ u32 tu104_nvlink_minion_get_dlcmd_ordinal(struct gk20a *g,
 	return dlcmd_ordinal;
 }
 
-#endif /* CONFIG_TEGRA_NVLINK */
+#endif /* CONFIG_NVGPU_NVLINK */

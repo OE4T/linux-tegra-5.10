@@ -353,7 +353,7 @@ int nvgpu_gr_ctx_map_global_ctx_buffers(struct gk20a *g,
 	g_bfr_index = &gr_ctx->global_ctx_buffer_index[0];
 
 	/* Circular Buffer */
-#ifdef NVGPU_VPR
+#ifdef CONFIG_NVGPU_VPR
 	if (vpr && nvgpu_gr_global_ctx_buffer_ready(global_ctx_buffer,
 			NVGPU_GR_GLOBAL_CTX_CIRCULAR_VPR)) {
 		gpu_va = nvgpu_gr_global_ctx_buffer_map(global_ctx_buffer,
@@ -366,7 +366,7 @@ int nvgpu_gr_ctx_map_global_ctx_buffers(struct gk20a *g,
 				NVGPU_GR_GLOBAL_CTX_CIRCULAR,
 				vm, NVGPU_VM_MAP_CACHEABLE, true);
 		g_bfr_index[NVGPU_GR_CTX_CIRCULAR_VA] = NVGPU_GR_GLOBAL_CTX_CIRCULAR;
-#ifdef NVGPU_VPR
+#ifdef CONFIG_NVGPU_VPR
 	}
 #endif
 	if (gpu_va == 0ULL) {
@@ -376,7 +376,7 @@ int nvgpu_gr_ctx_map_global_ctx_buffers(struct gk20a *g,
 	g_bfr_va[NVGPU_GR_CTX_CIRCULAR_VA] = gpu_va;
 
 	/* Attribute Buffer */
-#ifdef NVGPU_VPR
+#ifdef CONFIG_NVGPU_VPR
 	if (vpr && nvgpu_gr_global_ctx_buffer_ready(global_ctx_buffer,
 			NVGPU_GR_GLOBAL_CTX_ATTRIBUTE_VPR)) {
 		gpu_va = nvgpu_gr_global_ctx_buffer_map(global_ctx_buffer,
@@ -389,7 +389,7 @@ int nvgpu_gr_ctx_map_global_ctx_buffers(struct gk20a *g,
 				NVGPU_GR_GLOBAL_CTX_ATTRIBUTE,
 				vm, NVGPU_VM_MAP_CACHEABLE, false);
 		g_bfr_index[NVGPU_GR_CTX_ATTRIBUTE_VA] = NVGPU_GR_GLOBAL_CTX_ATTRIBUTE;
-#ifdef NVGPU_VPR
+#ifdef CONFIG_NVGPU_VPR
 	}
 #endif
 	if (gpu_va == 0ULL) {
@@ -399,7 +399,7 @@ int nvgpu_gr_ctx_map_global_ctx_buffers(struct gk20a *g,
 	g_bfr_va[NVGPU_GR_CTX_ATTRIBUTE_VA] = gpu_va;
 
 	/* Page Pool */
-#ifdef NVGPU_VPR
+#ifdef CONFIG_NVGPU_VPR
 	if (vpr && nvgpu_gr_global_ctx_buffer_ready(global_ctx_buffer,
 			NVGPU_GR_GLOBAL_CTX_PAGEPOOL_VPR)) {
 		gpu_va = nvgpu_gr_global_ctx_buffer_map(global_ctx_buffer,
@@ -412,7 +412,7 @@ int nvgpu_gr_ctx_map_global_ctx_buffers(struct gk20a *g,
 				NVGPU_GR_GLOBAL_CTX_PAGEPOOL,
 				vm, NVGPU_VM_MAP_CACHEABLE, true);
 		g_bfr_index[NVGPU_GR_CTX_PAGEPOOL_VA] = NVGPU_GR_GLOBAL_CTX_PAGEPOOL;
-#ifdef NVGPU_VPR
+#ifdef CONFIG_NVGPU_VPR
 	}
 #endif
 	if (gpu_va == 0ULL) {
@@ -432,7 +432,7 @@ int nvgpu_gr_ctx_map_global_ctx_buffers(struct gk20a *g,
 	g_bfr_va[NVGPU_GR_CTX_PRIV_ACCESS_MAP_VA] = gpu_va;
 	g_bfr_index[NVGPU_GR_CTX_PRIV_ACCESS_MAP_VA] = NVGPU_GR_GLOBAL_CTX_PRIV_ACCESS_MAP;
 
-#ifdef CONFIG_GK20A_CTXSW_TRACE
+#ifdef CONFIG_NVGPU_FECS_TRACE
 	/* FECS trace buffer */
 	if (nvgpu_is_enabled(g, NVGPU_FECS_TRACE_VA)) {
 		gpu_va = nvgpu_gr_global_ctx_buffer_map(global_ctx_buffer,
@@ -704,7 +704,7 @@ u32 nvgpu_gr_ctx_get_ctx_id(struct gk20a *g, struct nvgpu_gr_ctx *gr_ctx)
 	return gr_ctx->ctx_id;
 }
 
-#ifdef NVGPU_GRAPHICS
+#ifdef CONFIG_NVGPU_GRAPHICS
 void nvgpu_gr_ctx_set_zcull_ctx(struct gk20a *g, struct nvgpu_gr_ctx *gr_ctx,
 	u32 mode, u64 gpu_va)
 {
@@ -969,7 +969,7 @@ u32 nvgpu_gr_ctx_read_ctx_id(struct nvgpu_gr_ctx *gr_ctx)
 	return gr_ctx->ctx_id;
 }
 
-#ifdef NVGPU_FEATURE_CHANNEL_TSG_SCHEDULING
+#ifdef CONFIG_NVGPU_CHANNEL_TSG_SCHEDULING
 void nvgpu_gr_ctx_set_boosted_ctx(struct nvgpu_gr_ctx *gr_ctx, bool boost)
 {
 	gr_ctx->boosted_ctx = boost;

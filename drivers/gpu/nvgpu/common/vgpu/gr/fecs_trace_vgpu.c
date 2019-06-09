@@ -163,7 +163,7 @@ int vgpu_free_user_buffer(struct gk20a *g)
 }
 
 
-#ifdef CONFIG_GK20A_CTXSW_TRACE
+#ifdef CONFIG_NVGPU_FECS_TRACE
 int vgpu_fecs_trace_max_entries(struct gk20a *g,
 			struct nvgpu_gpu_ctxsw_trace_filter *filter)
 {
@@ -189,4 +189,4 @@ int vgpu_fecs_trace_set_filter(struct gk20a *g,
 	return err;
 }
 
-#endif /* CONFIG_GK20A_CTXSW_TRACE */
+#endif /* CONFIG_NVGPU_FECS_TRACE */

@@ -83,7 +83,7 @@ static u32 stub_gv11b_gr_init_get_no_of_sm(struct gk20a *g)
 	return 8;
 }
 
-#ifdef NVGPU_USERD
+#ifdef CONFIG_NVGPU_USERD
 static int stub_userd_setup_sw(struct gk20a *g)
 {
 	struct nvgpu_fifo *f = &g->fifo;
@@ -115,7 +115,7 @@ int test_fifo_init_support(struct unit_module *m, struct gk20a *g, void *args)
 	g->ops.gr.init.get_no_of_sm = stub_gv11b_gr_init_get_no_of_sm;
 	g->ops.tsg.init_eng_method_buffers = NULL;
 
-#ifdef NVGPU_USERD
+#ifdef CONFIG_NVGPU_USERD
 	/*
 	 * Regular USERD init requires bar1.vm to be initialized
 	 * Use a stub in unit tests, since it will be disabled in

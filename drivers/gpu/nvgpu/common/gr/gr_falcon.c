@@ -30,11 +30,11 @@
 #include <nvgpu/sizes.h>
 #include <nvgpu/mm.h>
 #include <nvgpu/acr.h>
-#ifdef NVGPU_FEATURE_LS_PMU
+#ifdef CONFIG_NVGPU_LS_PMU
 #include <nvgpu/pmu/lsfm.h>
 #include <nvgpu/pmu/pmu_pg.h>
 #endif
-#ifdef NVGPU_DGPU_SUPPORT
+#ifdef CONFIG_NVGPU_DGPU
 #include <nvgpu/sec2/lsfm.h>
 #endif
 #include <nvgpu/dma.h>
@@ -74,7 +74,7 @@ void nvgpu_gr_falcon_remove_support(struct gk20a *g,
 
 int nvgpu_gr_falcon_bind_fecs_elpg(struct gk20a *g)
 {
-#ifdef NVGPU_FEATURE_LS_PMU
+#ifdef CONFIG_NVGPU_LS_PMU
 	struct nvgpu_pmu *pmu = g->pmu;
 	struct mm_gk20a *mm = &g->mm;
 	struct vm_gk20a *vm = mm->pmu.vm;
@@ -188,7 +188,7 @@ u32 nvgpu_gr_falcon_get_preempt_image_size(struct nvgpu_gr_falcon *falcon)
 	return falcon->sizes.preempt_image_size;
 }
 
-#ifdef NVGPU_GRAPHICS
+#ifdef CONFIG_NVGPU_GRAPHICS
 u32 nvgpu_gr_falcon_get_zcull_image_size(struct nvgpu_gr_falcon *falcon)
 {
 	return falcon->sizes.zcull_image_size;
@@ -551,14 +551,14 @@ int nvgpu_gr_falcon_load_secure_ctxsw_ucode(struct gk20a *g,
 		/* this must be recovery so bootstrap fecs and gpccs */
 		if (!nvgpu_is_enabled(g, NVGPU_SEC_SECUREGPCCS)) {
 			nvgpu_gr_falcon_load_gpccs_with_bootloader(g, falcon);
-#ifdef NVGPU_FEATURE_LS_PMU
+#ifdef CONFIG_NVGPU_LS_PMU
 			err = nvgpu_pmu_lsfm_bootstrap_ls_falcon(g, g->pmu,
 					g->pmu->lsfm, BIT32(FALCON_ID_FECS));
 #endif
 		} else {
 			/* bind WPR VA inst block */
 			nvgpu_gr_falcon_bind_instblk(g, falcon);
-#ifdef NVGPU_DGPU_SUPPORT
+#ifdef CONFIG_NVGPU_DGPU
 			if (nvgpu_is_enabled(g, NVGPU_SUPPORT_SEC2_RTOS)) {
 				err = nvgpu_sec2_bootstrap_ls_falcons(g,
 					&g->sec2, FALCON_ID_FECS);
@@ -566,7 +566,7 @@ int nvgpu_gr_falcon_load_secure_ctxsw_ucode(struct gk20a *g,
 					&g->sec2, FALCON_ID_GPCCS);
 			} else
 #endif
-#ifdef NVGPU_FEATURE_LS_PMU
+#ifdef CONFIG_NVGPU_LS_PMU
 			if (g->support_ls_pmu) {
 				err = nvgpu_pmu_lsfm_bootstrap_ls_falcon(g,
 						g->pmu, g->pmu->lsfm,
@@ -604,7 +604,7 @@ int nvgpu_gr_falcon_load_secure_ctxsw_ucode(struct gk20a *g,
 				falcon_id_mask |= BIT8(FALCON_ID_GPCCS);
 			}
 
-#ifdef NVGPU_DGPU_SUPPORT
+#ifdef CONFIG_NVGPU_DGPU
 			if (nvgpu_is_enabled(g, NVGPU_SUPPORT_SEC2_RTOS)) {
 				err = nvgpu_sec2_bootstrap_ls_falcons(g,
 					&g->sec2, FALCON_ID_FECS);
@@ -612,7 +612,7 @@ int nvgpu_gr_falcon_load_secure_ctxsw_ucode(struct gk20a *g,
 					&g->sec2, FALCON_ID_GPCCS);
 			} else
 #endif
-#ifdef NVGPU_FEATURE_LS_PMU
+#ifdef CONFIG_NVGPU_LS_PMU
 			if (g->support_ls_pmu) {
 				err = nvgpu_pmu_lsfm_bootstrap_ls_falcon(g,
 						g->pmu, g->pmu->lsfm,

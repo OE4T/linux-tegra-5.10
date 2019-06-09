@@ -25,7 +25,7 @@
 #include <nvgpu/nvlink_probe.h>
 #include <nvgpu/enabled.h>
 
-#ifdef CONFIG_TEGRA_NVLINK
+#ifdef CONFIG_NVGPU_NVLINK
 
 int nvgpu_nvlink_speed_config(struct gk20a *g)
 {
@@ -82,7 +82,7 @@ int nvgpu_nvlink_dev_shutdown(struct gk20a *g)
 
 int nvgpu_nvlink_remove(struct gk20a *g)
 {
-#ifdef CONFIG_TEGRA_NVLINK
+#ifdef CONFIG_NVGPU_NVLINK
 	int err;
 
 	if (!nvgpu_is_enabled(g, NVGPU_SUPPORT_NVLINK)) {

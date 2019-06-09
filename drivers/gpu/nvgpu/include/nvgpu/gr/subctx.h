@@ -40,7 +40,7 @@ void nvgpu_gr_subctx_load_ctx_header(struct gk20a *g,
 	struct nvgpu_gr_subctx *subctx,
 	struct nvgpu_gr_ctx *gr_ctx, u64 gpu_va);
 
-#ifdef NVGPU_GRAPHICS
+#ifdef CONFIG_NVGPU_GRAPHICS
 void nvgpu_gr_subctx_zcull_setup(struct gk20a *g, struct nvgpu_gr_subctx *subctx,
 		struct nvgpu_gr_ctx *gr_ctx);
 #endif

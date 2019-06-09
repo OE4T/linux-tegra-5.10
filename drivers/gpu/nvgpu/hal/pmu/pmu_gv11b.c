@@ -29,7 +29,7 @@
 #include <nvgpu/nvgpu_err.h>
 #include <nvgpu/firmware.h>
 #include <nvgpu/bug.h>
-#ifdef NVGPU_FEATURE_LS_PMU
+#ifdef CONFIG_NVGPU_LS_PMU
 #include <nvgpu/pmu/cmd.h>
 #endif
 
@@ -74,7 +74,7 @@ int gv11b_pmu_inject_ecc_error(struct gk20a *g,
 	return 0;
 }
 
-#ifdef NVGPU_FEATURE_LS_PMU
+#ifdef CONFIG_NVGPU_LS_PMU
 /* PROD settings for ELPG sequencing registers*/
 static struct pg_init_sequence_list _pginitseq_gv11b[] = {
 	{0x0010e0a8U, 0x00000000U} ,
@@ -618,7 +618,7 @@ void gv11b_secured_pmu_start(struct gk20a *g)
 
 bool gv11b_is_pmu_supported(struct gk20a *g)
 {
-#ifdef NVGPU_FEATURE_LS_PMU
+#ifdef CONFIG_NVGPU_LS_PMU
 	return true;
 #else
 	/* set to false to disable LS PMU ucode support */

@@ -44,7 +44,7 @@ int gv11b_ramfc_setup(struct nvgpu_channel *ch, u64 gpfifo_base,
 
 	nvgpu_memset(g, mem, 0, 0, ram_fc_size_val_v());
 
-#ifdef NVGPU_REPLAYABLE_FAULT
+#ifdef CONFIG_NVGPU_REPLAYABLE_FAULT
 	if ((flags & NVGPU_SETUP_BIND_FLAGS_REPLAYABLE_FAULTS_ENABLE) != 0U) {
 		replayable = true;
 	}

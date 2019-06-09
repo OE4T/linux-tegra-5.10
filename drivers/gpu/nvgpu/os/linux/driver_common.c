@@ -67,7 +67,7 @@ static void nvgpu_init_vars(struct gk20a *g)
 	nvgpu_mutex_init(&g->tpc_pg_lock);
 	nvgpu_mutex_init(&g->clk_arb_enable_lock);
 	nvgpu_mutex_init(&g->cg_pg_lock);
-#if defined(CONFIG_GK20A_CYCLE_STATS)
+#if defined(CONFIG_NVGPU_CYCLESTATS)
 	nvgpu_mutex_init(&g->cs_lock);
 #endif
 
@@ -290,7 +290,7 @@ int nvgpu_probe(struct gk20a *g,
 	nvgpu_create_sysfs(dev);
 	gk20a_debug_init(g, debugfs_symlink);
 
-#ifdef NVGPU_DEBUGGER
+#ifdef CONFIG_NVGPU_DEBUGGER
 	g->dbg_regops_tmp_buf = nvgpu_kzalloc(g, SZ_4K);
 	if (!g->dbg_regops_tmp_buf) {
 		nvgpu_err(g, "couldn't allocate regops tmp buf");

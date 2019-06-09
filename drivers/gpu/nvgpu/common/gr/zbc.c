@@ -25,7 +25,7 @@
 #include <nvgpu/bug.h>
 #include <nvgpu/string.h>
 #include <nvgpu/power_features/pg.h>
-#ifdef NVGPU_FEATURE_LS_PMU
+#ifdef CONFIG_NVGPU_LS_PMU
 #include <nvgpu/pmu/pmu_pg.h>
 #endif
 
@@ -39,7 +39,7 @@ static int nvgpu_gr_zbc_add(struct gk20a *g, struct nvgpu_gr_zbc *zbc,
 	u32 i;
 	int ret = -ENOSPC;
 	bool added = false;
-#ifdef NVGPU_FEATURE_LS_PMU
+#ifdef CONFIG_NVGPU_LS_PMU
 	u32 entries;
 #endif
 
@@ -134,7 +134,7 @@ static int nvgpu_gr_zbc_add(struct gk20a *g, struct nvgpu_gr_zbc *zbc,
 		goto err_mutex;
 	}
 
-#ifdef NVGPU_FEATURE_LS_PMU
+#ifdef CONFIG_NVGPU_LS_PMU
 	if (!added && ret == 0) {
 		/* update zbc for elpg only when new entry is added */
 		entries = max(zbc->max_used_color_index,

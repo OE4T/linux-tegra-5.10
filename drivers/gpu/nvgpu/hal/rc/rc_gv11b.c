@@ -38,7 +38,7 @@
 #include <nvgpu/power_features/power_features.h>
 #include <nvgpu/gr/fecs_trace.h>
 #include <nvgpu/preempt.h>
-#ifdef NVGPU_FEATURE_LS_PMU
+#ifdef CONFIG_NVGPU_LS_PMU
 #include <nvgpu/pmu/mutex.h>
 #endif
 
@@ -54,7 +54,7 @@ static void gv11b_fifo_locked_abort_runlist_active_tsgs(struct gk20a *g,
 	struct nvgpu_tsg *tsg = NULL;
 	unsigned long tsgid;
 	struct nvgpu_runlist_info *runlist = NULL;
-#ifdef NVGPU_FEATURE_LS_PMU
+#ifdef CONFIG_NVGPU_LS_PMU
 	u32 token = PMU_INVALID_MUTEX_OWNER_ID;
 	int mutex_ret = 0;
 #endif
@@ -63,7 +63,7 @@ static void gv11b_fifo_locked_abort_runlist_active_tsgs(struct gk20a *g,
 
 	nvgpu_err(g, "abort active tsgs of runlists set in "
 			"runlists_mask: 0x%08x", runlists_mask);
-#ifdef NVGPU_FEATURE_LS_PMU
+#ifdef CONFIG_NVGPU_LS_PMU
 	/* runlist_lock  are locked by teardown */
 	mutex_ret = nvgpu_pmu_lock_acquire(g, g->pmu,
 			PMU_MUTEX_ID_FIFO, &token);
@@ -92,10 +92,10 @@ static void gv11b_fifo_locked_abort_runlist_active_tsgs(struct gk20a *g,
 
 			nvgpu_tsg_reset_faulted_eng_pbdma(g, tsg, true, true);
 
-#ifdef CONFIG_GK20A_CTXSW_TRACE
+#ifdef CONFIG_NVGPU_FECS_TRACE
 			nvgpu_gr_fecs_trace_add_tsg_reset(g, tsg);
 #endif
-#ifdef NVGPU_DEBUGGER
+#ifdef CONFIG_NVGPU_DEBUGGER
 			if (!g->fifo.deferred_reset_pending) {
 #endif
 				if (rc_type == RC_TYPE_MMU_FAULT) {
@@ -106,7 +106,7 @@ static void gv11b_fifo_locked_abort_runlist_active_tsgs(struct gk20a *g,
 					 */
 					(void) nvgpu_tsg_mark_error(g, tsg);
 				}
-#ifdef NVGPU_DEBUGGER
+#ifdef CONFIG_NVGPU_DEBUGGER
 			}
 #endif
 
@@ -126,7 +126,7 @@ static void gv11b_fifo_locked_abort_runlist_active_tsgs(struct gk20a *g,
 			nvgpu_log(g, gpu_dbg_info, "aborted tsg id %lu", tsgid);
 		}
 	}
-#ifdef NVGPU_FEATURE_LS_PMU
+#ifdef CONFIG_NVGPU_LS_PMU
 	if (mutex_ret == 0) {
 		err = nvgpu_pmu_lock_release(g, g->pmu, PMU_MUTEX_ID_FIFO,
 				&token);
@@ -150,7 +150,7 @@ void gv11b_fifo_recover(struct gk20a *g, u32 act_eng_bitmask,
 	struct nvgpu_runlist_info *runlist = NULL;
 	u32 engine_id;
 	struct nvgpu_fifo *f = &g->fifo;
-#ifdef NVGPU_DEBUGGER
+#ifdef CONFIG_NVGPU_DEBUGGER
 	u32 client_type = ~U32(0U);
 	bool deferred_reset_pending = false;
 #endif
@@ -197,7 +197,7 @@ void gv11b_fifo_recover(struct gk20a *g, u32 act_eng_bitmask,
 
 	if (rc_type == RC_TYPE_MMU_FAULT) {
 		gk20a_debug_dump(g);
-#ifdef NVGPU_DEBUGGER
+#ifdef CONFIG_NVGPU_DEBUGGER
 		client_type = mmufault->client_type;
 #endif
 		nvgpu_tsg_reset_faulted_eng_pbdma(g, tsg, true, true);
@@ -225,7 +225,7 @@ void gv11b_fifo_recover(struct gk20a *g, u32 act_eng_bitmask,
 		nvgpu_preempt_poll_tsg_on_pbdma(g, tsg);
 	}
 
-#ifdef NVGPU_DEBUGGER
+#ifdef CONFIG_NVGPU_DEBUGGER
 	nvgpu_mutex_acquire(&f->deferred_reset_mutex);
 	g->fifo.deferred_reset_pending = false;
 	nvgpu_mutex_release(&f->deferred_reset_mutex);
@@ -246,7 +246,7 @@ void gv11b_fifo_recover(struct gk20a *g, u32 act_eng_bitmask,
 
 			engine_id = U32(bit);
 
-#ifdef NVGPU_DEBUGGER
+#ifdef CONFIG_NVGPU_DEBUGGER
 			if ((tsg != NULL) && nvgpu_engine_should_defer_reset(g,
 					engine_id, client_type, false)) {
 
@@ -265,18 +265,18 @@ void gv11b_fifo_recover(struct gk20a *g, u32 act_eng_bitmask,
 			} else {
 #endif
 				nvgpu_engine_reset(g, engine_id);
-#ifdef NVGPU_DEBUGGER
+#ifdef CONFIG_NVGPU_DEBUGGER
 			}
 #endif
 		}
 	}
 
-#ifdef CONFIG_GK20A_CTXSW_TRACE
+#ifdef CONFIG_NVGPU_FECS_TRACE
 	if (tsg != NULL)
 		nvgpu_gr_fecs_trace_add_tsg_reset(g, tsg);
 #endif
 	if (tsg != NULL) {
-#ifdef NVGPU_DEBUGGER
+#ifdef CONFIG_NVGPU_DEBUGGER
 		if (deferred_reset_pending) {
 			g->ops.tsg.disable(tsg);
 		} else {
@@ -286,7 +286,7 @@ void gv11b_fifo_recover(struct gk20a *g, u32 act_eng_bitmask,
 			}
 			(void)nvgpu_tsg_mark_error(g, tsg);
 			nvgpu_tsg_abort(g, tsg, false);
-#ifdef NVGPU_DEBUGGER
+#ifdef CONFIG_NVGPU_DEBUGGER
 		}
 #endif
 	} else {

@@ -471,7 +471,7 @@ int gr_gp10b_set_cilp_preempt_pending(struct gk20a *g,
 	nvgpu_gr_ctx_set_cilp_preempt_pending(gr_ctx, true);
 	g->gr->cilp_preempt_pending_chid = fault_ch->chid;
 
-#ifdef NVGPU_FEATURE_CHANNEL_TSG_CONTROL
+#ifdef CONFIG_NVGPU_CHANNEL_TSG_CONTROL
 	g->ops.tsg.post_event_id(tsg, NVGPU_EVENT_ID_CILP_PREEMPTION_STARTED);
 #endif
 
@@ -487,7 +487,7 @@ int gr_gp10b_pre_process_sm_exception(struct gk20a *g,
 		bool sm_debugger_attached, struct nvgpu_channel *fault_ch,
 		bool *early_exit, bool *ignore_debugger)
 {
-#ifdef NVGPU_DEBUGGER
+#ifdef CONFIG_NVGPU_DEBUGGER
 	bool cilp_enabled = false;
 	struct nvgpu_tsg *tsg;
 
@@ -757,7 +757,7 @@ clean_up:
 	return err;
 }
 
-#ifdef NVGPU_FEATURE_CHANNEL_TSG_SCHEDULING
+#ifdef CONFIG_NVGPU_CHANNEL_TSG_SCHEDULING
 int gr_gp10b_set_boosted_ctx(struct nvgpu_channel *ch,
 				    bool boost)
 {

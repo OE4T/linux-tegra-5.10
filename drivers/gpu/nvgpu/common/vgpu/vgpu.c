@@ -187,7 +187,7 @@ int vgpu_intr_thread(void *dev_id)
 				vgpu_fifo_isr(g, &msg->info.fifo_intr);
 			}
 			break;
-#ifdef CONFIG_GK20A_CTXSW_TRACE
+#ifdef CONFIG_NVGPU_FECS_TRACE
 		case TEGRA_VGPU_EVENT_FECS_TRACE:
 			vgpu_fecs_trace_data_update(g);
 			break;
@@ -230,7 +230,7 @@ void vgpu_remove_support_common(struct gk20a *g)
 	struct tegra_vgpu_intr_msg msg;
 	int err;
 
-#ifdef NVGPU_DEBUGGER
+#ifdef CONFIG_NVGPU_DEBUGGER
 	if (g->dbg_regops_tmp_buf) {
 		nvgpu_kfree(g, g->dbg_regops_tmp_buf);
 	}

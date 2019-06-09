@@ -20,7 +20,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifdef CONFIG_TEGRA_NVLINK
+#ifdef CONFIG_NVGPU_NVLINK
 
 #include <nvgpu/io.h>
 #include <nvgpu/timers.h>
@@ -408,4 +408,4 @@ void gv100_nvlink_minion_isr(struct gk20a *g) {
 	return;
 }
 
-#endif /* CONFIG_TEGRA_NVLINK */
+#endif /* CONFIG_NVGPU_NVLINK */

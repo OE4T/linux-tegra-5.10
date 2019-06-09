@@ -31,7 +31,7 @@
 #include <nvgpu/flcnif_cmn.h>
 #include <nvgpu/falcon.h>
 #include <nvgpu/timers.h>
-#ifdef NVGPU_FEATURE_LS_PMU
+#ifdef CONFIG_NVGPU_LS_PMU
 #include <nvgpu/pmu/queue.h>
 #include <nvgpu/pmu/msg.h>
 #include <nvgpu/pmu/fw.h>
@@ -89,7 +89,7 @@ struct nvgpu_clk_pmupstate;
 /* pmu load const defines */
 #define PMU_BUSY_CYCLES_NORM_MAX		(1000U)
 
-#ifdef NVGPU_FEATURE_LS_PMU
+#ifdef CONFIG_NVGPU_LS_PMU
 struct rpc_handler_payload {
 	void *rpc_buff;
 	bool is_mem_free_set;
@@ -154,7 +154,7 @@ struct nvgpu_pmu {
 	bool isr_enabled;
 	struct nvgpu_mutex isr_mutex;
 	struct nvgpu_falcon *flcn;
-#ifdef NVGPU_FEATURE_LS_PMU
+#ifdef CONFIG_NVGPU_LS_PMU
 	struct nvgpu_allocator dmem;
 	struct nvgpu_mem trace_buf;
 	struct pmu_sha1_gid gid_info;
@@ -179,7 +179,7 @@ struct nvgpu_pmu {
 #endif
 };
 
-#ifdef NVGPU_FEATURE_LS_PMU
+#ifdef CONFIG_NVGPU_LS_PMU
 /*!
  * Structure/object which single register write need to be done during PG init
  * sequence to set PROD values.
@@ -199,7 +199,7 @@ int nvgpu_pmu_lock_release(struct gk20a *g, struct nvgpu_pmu *pmu,
 /* PMU RTOS init/setup functions */
 int nvgpu_pmu_early_init(struct gk20a *g, struct nvgpu_pmu **pmu_p);
 
-#ifdef NVGPU_FEATURE_LS_PMU
+#ifdef CONFIG_NVGPU_LS_PMU
 int nvgpu_pmu_init(struct gk20a *g, struct nvgpu_pmu *pmu);
 int nvgpu_pmu_destroy(struct gk20a *g, struct nvgpu_pmu *pmu);
 #endif

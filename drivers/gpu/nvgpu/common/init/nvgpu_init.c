@@ -48,7 +48,7 @@
 #include <nvgpu/gr/gr.h>
 
 #include <trace/events/gk20a.h>
-#ifdef NVGPU_FEATURE_LS_PMU
+#ifdef CONFIG_NVGPU_LS_PMU
 #include <nvgpu/pmu/pmu_pstate.h>
 #endif
 
@@ -100,14 +100,14 @@ int gk20a_prepare_poweroff(struct gk20a *g)
 		}
 	}
 
-#ifdef NVGPU_FEATURE_LS_PMU
+#ifdef CONFIG_NVGPU_LS_PMU
 	/* disable elpg before gr or fifo suspend */
 	if (g->support_ls_pmu) {
 		ret = nvgpu_pmu_destroy(g, g->pmu);
 	}
 #endif
 
-#ifdef NVGPU_DGPU_SUPPORT
+#ifdef CONFIG_NVGPU_DGPU
 	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_SEC2_RTOS)) {
 		tmp_ret = nvgpu_sec2_destroy(g);
 		if ((tmp_ret != 0) && (ret == 0)) {
@@ -134,11 +134,11 @@ int gk20a_prepare_poweroff(struct gk20a *g)
 	nvgpu_falcon_sw_free(g, FALCON_ID_SEC2);
 	nvgpu_falcon_sw_free(g, FALCON_ID_PMU);
 
-#ifdef NVGPU_FEATURE_CE
+#ifdef CONFIG_NVGPU_CE
 	nvgpu_ce_suspend(g);
 #endif
 
-#ifdef NVGPU_DGPU_SUPPORT
+#ifdef CONFIG_NVGPU_DGPU
 	/* deinit the bios */
 	nvgpu_bios_sw_deinit(g, g->bios);
 #endif
@@ -197,7 +197,7 @@ int gk20a_finalize_poweron(struct gk20a *g)
 		goto exit;
 	}
 
-#ifdef NVGPU_DGPU_SUPPORT
+#ifdef CONFIG_NVGPU_DGPU
 	err = nvgpu_falcon_sw_init(g, FALCON_ID_SEC2);
 	if (err != 0) {
 		nvgpu_err(g, "failed to sw init FALCON_ID_SEC2");
@@ -208,7 +208,7 @@ int gk20a_finalize_poweron(struct gk20a *g)
 	err = nvgpu_falcon_sw_init(g, FALCON_ID_NVDEC);
 	if (err != 0) {
 		nvgpu_err(g, "failed to sw init FALCON_ID_NVDEC");
-#ifdef NVGPU_DGPU_SUPPORT
+#ifdef CONFIG_NVGPU_DGPU
 		goto done_sec2;
 #else
 		goto done_pmu;
@@ -231,7 +231,7 @@ int gk20a_finalize_poweron(struct gk20a *g)
 		goto done;
 	}
 
-#ifdef NVGPU_DGPU_SUPPORT
+#ifdef CONFIG_NVGPU_DGPU
 	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_SEC2_RTOS)) {
 		err = nvgpu_init_sec2_setup_sw(g, &g->sec2);
 		if (err != 0) {
@@ -249,7 +249,7 @@ int gk20a_finalize_poweron(struct gk20a *g)
 		}
 	}
 
-#ifdef NVGPU_DGPU_SUPPORT
+#ifdef CONFIG_NVGPU_DGPU
 	err = nvgpu_bios_sw_init(g, &g->bios);
 	if (err != 0) {
 		nvgpu_err(g, "BIOS SW init failed %d", err);
@@ -350,7 +350,7 @@ int gk20a_finalize_poweron(struct gk20a *g)
 
 	nvgpu_mutex_acquire(&g->tpc_pg_lock);
 
-#ifdef NVGPU_DEBUGGER
+#ifdef CONFIG_NVGPU_DEBUGGER
 	if (g->can_tpc_powergate) {
 		if (g->ops.gr.powergate_tpc != NULL) {
 			g->ops.gr.powergate_tpc(g);
@@ -382,7 +382,7 @@ int gk20a_finalize_poweron(struct gk20a *g)
 		}
 	}
 
-#ifdef NVGPU_DGPU_SUPPORT
+#ifdef CONFIG_NVGPU_DGPU
 	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_SEC2_RTOS)) {
 		err = nvgpu_init_sec2_support(g);
 		if (err != 0) {
@@ -393,7 +393,7 @@ int gk20a_finalize_poweron(struct gk20a *g)
 	}
 #endif
 
-#ifdef NVGPU_FEATURE_LS_PMU
+#ifdef CONFIG_NVGPU_LS_PMU
 	err = nvgpu_pmu_init(g, g->pmu);
 	if (err != 0) {
 		nvgpu_err(g, "failed to init gk20a pmu");
@@ -425,7 +425,7 @@ int gk20a_finalize_poweron(struct gk20a *g)
 
 	nvgpu_mutex_release(&g->tpc_pg_lock);
 
-#ifdef NVGPU_FEATURE_LS_PMU
+#ifdef CONFIG_NVGPU_LS_PMU
 	if (nvgpu_is_enabled(g, NVGPU_PMU_PSTATE)) {
 		err = nvgpu_pmu_pstate_sw_setup(g);
 		if (err != 0) {
@@ -475,7 +475,7 @@ int gk20a_finalize_poweron(struct gk20a *g)
 	/* Restore the debug setting */
 	g->ops.fb.set_debug_mode(g, g->mmu_debug_ctrl);
 
-#ifdef NVGPU_FEATURE_CE
+#ifdef CONFIG_NVGPU_CE
 	err = nvgpu_ce_init_support(g);
 	if (err != 0) {
 		nvgpu_err(g, "failed to init ce");
@@ -529,7 +529,7 @@ done_gsp:
 	nvgpu_falcon_sw_free(g, FALCON_ID_GSPLITE);
 done_nvdec:
 	nvgpu_falcon_sw_free(g, FALCON_ID_NVDEC);
-#ifdef NVGPU_DGPU_SUPPORT
+#ifdef CONFIG_NVGPU_DGPU
 done_sec2:
 	nvgpu_falcon_sw_free(g, FALCON_ID_SEC2);
 #endif
@@ -630,7 +630,7 @@ void gk20a_init_gpu_characteristics(struct gk20a *g)
 
 	g->ops.gr.init.detect_sm_arch(g);
 
-#ifdef CONFIG_GK20A_CYCLE_STATS
+#ifdef CONFIG_NVGPU_CYCLESTATS
 	if (g->ops.gr.init_cyclestats != NULL) {
 		g->ops.gr.init_cyclestats(g);
 	}
@@ -652,7 +652,7 @@ static void gk20a_free_cb(struct nvgpu_ref *refcount)
 
 	nvgpu_log(g, gpu_dbg_shutdown, "Freeing GK20A struct!");
 
-#ifdef NVGPU_FEATURE_CE
+#ifdef CONFIG_NVGPU_CE
 	nvgpu_ce_destroy(g);
 #endif
 

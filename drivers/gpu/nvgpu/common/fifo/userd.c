@@ -31,7 +31,7 @@
 #include <nvgpu/vm_area.h>
 #include <nvgpu/dma.h>
 
-#ifdef NVGPU_USERD
+#ifdef CONFIG_NVGPU_USERD
 int nvgpu_userd_init_slabs(struct gk20a *g)
 {
 	struct nvgpu_fifo *f = &g->fifo;
@@ -76,7 +76,7 @@ void nvgpu_userd_free_slabs(struct gk20a *g)
 
 int nvgpu_userd_init_channel(struct gk20a *g, struct nvgpu_channel *c)
 {
-#ifdef NVGPU_USERD
+#ifdef CONFIG_NVGPU_USERD
 	struct nvgpu_fifo *f = &g->fifo;
 	struct nvgpu_mem *mem;
 	u32 slab = c->chid / f->num_channels_per_slab;
@@ -124,7 +124,7 @@ done:
 
 int nvgpu_userd_setup_sw(struct gk20a *g)
 {
-#ifdef NVGPU_USERD
+#ifdef CONFIG_NVGPU_USERD
 	struct nvgpu_fifo *f = &g->fifo;
 	int err;
 	u32 size, num_pages;
@@ -159,7 +159,7 @@ clean_up:
 
 void nvgpu_userd_cleanup_sw(struct gk20a *g)
 {
-#ifdef NVGPU_USERD
+#ifdef CONFIG_NVGPU_USERD
 	struct nvgpu_fifo *f = &g->fifo;
 
 	if (f->userd_gpu_va != 0ULL) {

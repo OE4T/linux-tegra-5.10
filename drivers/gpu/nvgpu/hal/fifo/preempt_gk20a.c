@@ -32,7 +32,7 @@
 #include <nvgpu/channel.h>
 #include <nvgpu/tsg.h>
 #include <nvgpu/preempt.h>
-#ifdef NVGPU_FEATURE_LS_PMU
+#ifdef CONFIG_NVGPU_LS_PMU
 #include <nvgpu/pmu/mutex.h>
 #endif
 
@@ -101,7 +101,7 @@ int gk20a_fifo_is_preempt_pending(struct gk20a *g, u32 id,
 int gk20a_fifo_preempt_channel(struct gk20a *g, struct nvgpu_channel *ch)
 {
 	int ret = 0;
-#ifdef NVGPU_FEATURE_LS_PMU
+#ifdef CONFIG_NVGPU_LS_PMU
 	u32 token = PMU_INVALID_MUTEX_OWNER_ID;
 	int mutex_ret = 0;
 #endif
@@ -109,12 +109,12 @@ int gk20a_fifo_preempt_channel(struct gk20a *g, struct nvgpu_channel *ch)
 
 	/* we have no idea which runlist we are using. lock all */
 	nvgpu_runlist_lock_active_runlists(g);
-#ifdef NVGPU_FEATURE_LS_PMU
+#ifdef CONFIG_NVGPU_LS_PMU
 	mutex_ret = nvgpu_pmu_lock_acquire(g, g->pmu,
 		PMU_MUTEX_ID_FIFO, &token);
 #endif
 	ret = gk20a_fifo_preempt_locked(g, ch->chid, ID_TYPE_CHANNEL);
-#ifdef NVGPU_FEATURE_LS_PMU
+#ifdef CONFIG_NVGPU_LS_PMU
 	if (mutex_ret == 0) {
 		if (nvgpu_pmu_lock_release(g, g->pmu,
 				PMU_MUTEX_ID_FIFO, &token) != 0) {
@@ -150,7 +150,7 @@ int gk20a_fifo_preempt_channel(struct gk20a *g, struct nvgpu_channel *ch)
 int gk20a_fifo_preempt_tsg(struct gk20a *g, struct nvgpu_tsg *tsg)
 {
 	int ret = 0;
-#ifdef NVGPU_FEATURE_LS_PMU
+#ifdef CONFIG_NVGPU_LS_PMU
 	u32 token = PMU_INVALID_MUTEX_OWNER_ID;
 	int mutex_ret = 0;
 #endif
@@ -158,12 +158,12 @@ int gk20a_fifo_preempt_tsg(struct gk20a *g, struct nvgpu_tsg *tsg)
 
 	/* we have no idea which runlist we are using. lock all */
 	nvgpu_runlist_lock_active_runlists(g);
-#ifdef NVGPU_FEATURE_LS_PMU
+#ifdef CONFIG_NVGPU_LS_PMU
 	mutex_ret = nvgpu_pmu_lock_acquire(g, g->pmu,
 			PMU_MUTEX_ID_FIFO, &token);
 #endif
 	ret = gk20a_fifo_preempt_locked(g, tsg->tsgid, ID_TYPE_TSG);
-#ifdef NVGPU_FEATURE_LS_PMU
+#ifdef CONFIG_NVGPU_LS_PMU
 	if (mutex_ret == 0) {
 		if (nvgpu_pmu_lock_release(g, g->pmu,
 				PMU_MUTEX_ID_FIFO, &token) != 0) {

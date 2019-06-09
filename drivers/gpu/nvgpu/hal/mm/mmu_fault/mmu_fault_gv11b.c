@@ -46,7 +46,7 @@
 #include "hal/fb/fb_mmu_fault_gv11b.h"
 #include "hal/mm/mmu_fault/mmu_fault_gv11b.h"
 
-#ifdef NVGPU_REPLAYABLE_FAULT
+#ifdef CONFIG_NVGPU_REPLAYABLE_FAULT
 static int gv11b_fb_fix_page_fault(struct gk20a *g,
 		 struct mmu_fault_info *mmufault);
 #endif
@@ -307,7 +307,7 @@ void gv11b_mm_mmu_fault_handle_mmu_fault_common(struct gk20a *g,
 			gmmu_fault_mmu_eng_id_ce0_v() + num_lce)) {
 		/* CE page faults are not reported as replayable */
 		nvgpu_log(g, gpu_dbg_intr, "CE Faulted");
-#ifdef NVGPU_REPLAYABLE_FAULT
+#ifdef CONFIG_NVGPU_REPLAYABLE_FAULT
 		err = gv11b_fb_fix_page_fault(g, mmufault);
 #else
 		err = -EINVAL;
@@ -407,7 +407,7 @@ void gv11b_mm_mmu_fault_handle_mmu_fault_common(struct gk20a *g,
 	} else {
 		if (mmufault->fault_type == gmmu_fault_type_pte_v()) {
 			nvgpu_log(g, gpu_dbg_intr, "invalid pte! try to fix");
-#ifdef NVGPU_REPLAYABLE_FAULT
+#ifdef CONFIG_NVGPU_REPLAYABLE_FAULT
 			err = gv11b_fb_fix_page_fault(g, mmufault);
 #else
 			err = -EINVAL;
@@ -550,7 +550,7 @@ void gv11b_mm_mmu_fault_handle_other_fault_notify(struct gk20a *g,
 	}
 }
 
-#ifdef NVGPU_REPLAYABLE_FAULT
+#ifdef CONFIG_NVGPU_REPLAYABLE_FAULT
 static int gv11b_fb_fix_page_fault(struct gk20a *g,
 			 struct mmu_fault_info *mmufault)
 {

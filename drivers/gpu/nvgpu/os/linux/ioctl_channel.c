@@ -113,7 +113,7 @@ struct channel_priv {
 	struct nvgpu_channel *c;
 };
 
-#if defined(CONFIG_GK20A_CYCLE_STATS)
+#if defined(CONFIG_NVGPU_CYCLESTATS)
 
 void gk20a_channel_free_cycle_stats_buffer(struct nvgpu_channel *ch)
 {
@@ -285,7 +285,7 @@ int gk20a_channel_free_cycle_stats_snapshot(struct nvgpu_channel *ch)
 static int gk20a_channel_set_wdt_status(struct nvgpu_channel *ch,
 		struct nvgpu_channel_wdt_args *args)
 {
-#ifdef NVGPU_CHANNEL_WDT
+#ifdef CONFIG_NVGPU_CHANNEL_WDT
 	u32 status = args->wdt_status & (NVGPU_IOCTL_CHANNEL_DISABLE_WDT |
 			NVGPU_IOCTL_CHANNEL_ENABLE_WDT);
 
@@ -760,7 +760,7 @@ notif_clean_up:
 	return ret;
 }
 
-#ifdef NVGPU_GRAPHICS
+#ifdef CONFIG_NVGPU_GRAPHICS
 static int gk20a_channel_zcull_bind(struct nvgpu_channel *ch,
 			    struct nvgpu_zcull_bind_args *args)
 {
@@ -1228,7 +1228,7 @@ long gk20a_channel_ioctl(struct file *filp,
 
 		gk20a_idle(ch->g);
 		break;
-#ifdef NVGPU_GRAPHICS
+#ifdef CONFIG_NVGPU_GRAPHICS
 	case NVGPU_IOCTL_CHANNEL_ZCULL_BIND:
 		err = gk20a_busy(ch->g);
 		if (err) {

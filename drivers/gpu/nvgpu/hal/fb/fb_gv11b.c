@@ -53,7 +53,7 @@ static void gv11b_init_nvlink_soc_credits(struct gk20a *g)
 		nvgpu_log(g, gpu_dbg_info, "nvlink soc credits init done by bpmp");
 	} else {
 #ifndef __NVGPU_POSIX__
-#ifdef CONFIG_TEGRA_NVLINK
+#ifdef CONFIG_NVGPU_NVLINK
 		nvgpu_mss_nvlink_init_credits(g);
 #endif
 #endif

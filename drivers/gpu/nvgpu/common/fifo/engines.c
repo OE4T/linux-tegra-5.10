@@ -25,7 +25,7 @@
 #include <nvgpu/errno.h>
 #include <nvgpu/timers.h>
 #include <nvgpu/bitops.h>
-#ifdef NVGPU_FEATURE_LS_PMU
+#ifdef CONFIG_NVGPU_LS_PMU
 #include <nvgpu/pmu.h>
 #include <nvgpu/pmu/mutex.h>
 #endif
@@ -247,7 +247,7 @@ u32 nvgpu_engine_get_all_ce_reset_mask(struct gk20a *g)
 	return reset_mask;
 }
 
-#ifdef NVGPU_ENGINE
+#ifdef CONFIG_NVGPU_FIFO_ENGINE_ACTIVITY
 
 int nvgpu_engine_enable_activity(struct gk20a *g,
 				struct nvgpu_engine_info *eng_info)
@@ -284,7 +284,7 @@ int nvgpu_engine_disable_activity(struct gk20a *g,
 {
 	u32 pbdma_chid = NVGPU_INVALID_CHANNEL_ID;
 	u32 engine_chid = NVGPU_INVALID_CHANNEL_ID;
-#ifdef NVGPU_FEATURE_LS_PMU
+#ifdef CONFIG_NVGPU_LS_PMU
 	u32 token = PMU_INVALID_MUTEX_OWNER_ID;
 	int mutex_ret = -EINVAL;
 #endif
@@ -301,7 +301,7 @@ int nvgpu_engine_disable_activity(struct gk20a *g,
 		return -EBUSY;
 	}
 
-#ifdef NVGPU_FEATURE_LS_PMU
+#ifdef CONFIG_NVGPU_LS_PMU
 	if (g->ops.pmu.is_pmu_supported(g)) {
 		mutex_ret = nvgpu_pmu_lock_acquire(g, g->pmu,
 						PMU_MUTEX_ID_FIFO, &token);
@@ -356,7 +356,7 @@ int nvgpu_engine_disable_activity(struct gk20a *g,
 	}
 
 clean_up:
-#ifdef NVGPU_FEATURE_LS_PMU
+#ifdef CONFIG_NVGPU_LS_PMU
 	if (mutex_ret == 0) {
 		if (nvgpu_pmu_lock_release(g, g->pmu,
 			PMU_MUTEX_ID_FIFO, &token) != 0){
@@ -536,13 +536,13 @@ void nvgpu_engine_reset(struct gk20a *g, u32 engine_id)
 	}
 
 	if (engine_enum == NVGPU_ENGINE_GR) {
-#ifdef NVGPU_FEATURE_POWER_PG
+#ifdef CONFIG_NVGPU_POWER_PG
 		if (nvgpu_pg_elpg_disable(g) != 0 ) {
 			nvgpu_err(g, "failed to set disable elpg");
 		}
 #endif
 
-#ifdef CONFIG_GK20A_CTXSW_TRACE
+#ifdef CONFIG_NVGPU_FECS_TRACE
 		/*
 		 * Resetting engine will alter read/write index. Need to flush
 		 * circular buffer before re-enabling FECS.
@@ -563,7 +563,7 @@ void nvgpu_engine_reset(struct gk20a *g, u32 engine_id)
 				nvgpu_err(g, "failed to halt gr pipe");
 			}
 
-#ifdef NVGPU_DEBUGGER
+#ifdef CONFIG_NVGPU_DEBUGGER
 			/*
 			 * resetting engine using mc_enable_r() is not
 			 * enough, we do full init sequence
@@ -581,7 +581,7 @@ void nvgpu_engine_reset(struct gk20a *g, u32 engine_id)
 				"gr cannot be reset without halting gr pipe");
 		}
 
-#ifdef NVGPU_FEATURE_POWER_PG
+#ifdef CONFIG_NVGPU_POWER_PG
 		if (nvgpu_pg_elpg_enable(g) != 0 ) {
 			nvgpu_err(g, "failed to set enable elpg");
 		}
@@ -924,7 +924,7 @@ u32 nvgpu_engine_get_runlist_busy_engines(struct gk20a *g, u32 runlist_id)
 	return eng_bitmask;
 }
 
-#ifdef NVGPU_DEBUGGER
+#ifdef CONFIG_NVGPU_DEBUGGER
 bool nvgpu_engine_should_defer_reset(struct gk20a *g, u32 engine_id,
 		u32 engine_subid, bool fake_fault)
 {

@@ -80,7 +80,7 @@ u32 gm20b_gr_config_get_tpc_count_in_gpc(struct gk20a *g,
 	return gr_gpc0_fs_gpc_num_available_tpcs_v(tmp);
 }
 
-#ifdef NVGPU_GRAPHICS
+#ifdef CONFIG_NVGPU_GRAPHICS
 u32 gm20b_gr_config_get_zcull_count_in_gpc(struct gk20a *g,
 	struct nvgpu_gr_config *config, u32 gpc_index)
 {

@@ -101,7 +101,7 @@ static const struct file_operations gk20a_tsg_ops = {
 	.unlocked_ioctl = nvgpu_ioctl_tsg_dev_ioctl,
 };
 
-#ifdef CONFIG_GK20A_CTXSW_TRACE
+#ifdef CONFIG_NVGPU_FECS_TRACE
 static const struct file_operations gk20a_ctxsw_ops = {
 	.owner = THIS_MODULE,
 	.release = gk20a_ctxsw_dev_release,
@@ -271,7 +271,7 @@ int gk20a_user_init(struct device *dev, const char *interface_name,
 	if (err)
 		goto fail;
 
-#if defined(CONFIG_GK20A_CTXSW_TRACE)
+#if defined(CONFIG_NVGPU_FECS_TRACE)
 	err = gk20a_create_device(dev, devno++, interface_name, "-ctxsw",
 				  &l->ctxsw.cdev, &l->ctxsw.node,
 				  &gk20a_ctxsw_ops,

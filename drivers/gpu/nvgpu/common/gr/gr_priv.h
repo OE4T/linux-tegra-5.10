@@ -30,7 +30,7 @@ struct nvgpu_gr_ctx_desc;
 struct nvgpu_gr_global_ctx_buffer_desc;
 struct nvgpu_gr_obj_ctx_golden_image;
 struct nvgpu_gr_config;
-#ifdef NVGPU_GRAPHICS
+#ifdef CONFIG_NVGPU_GRAPHICS
 struct nvgpu_gr_zbc;
 struct nvgpu_gr_zcull;
 #endif
@@ -51,11 +51,11 @@ struct nvgpu_gr {
 
 	struct nvgpu_gr_config *config;
 
-#ifdef NVGPU_DEBUGGER
+#ifdef CONFIG_NVGPU_DEBUGGER
 	struct nvgpu_gr_hwpm_map *hwpm_map;
 #endif
 
-#ifdef NVGPU_GRAPHICS
+#ifdef CONFIG_NVGPU_GRAPHICS
 	struct nvgpu_gr_zcull *zcull;
 
 	struct nvgpu_gr_zbc *zbc;

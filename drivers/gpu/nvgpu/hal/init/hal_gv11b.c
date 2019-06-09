@@ -28,7 +28,7 @@
 #include <nvgpu/regops.h>
 #include <nvgpu/gr/gr_falcon.h>
 #include <nvgpu/gr/gr.h>
-#ifdef NVGPU_FEATURE_LS_PMU
+#ifdef CONFIG_NVGPU_LS_PMU
 #include <nvgpu/pmu/pmu_perfmon.h>
 #endif
 
@@ -106,7 +106,7 @@
 #include "hal/gr/falcon/gr_falcon_gp10b.h"
 #include "hal/gr/falcon/gr_falcon_gv11b.h"
 #include "hal/gr/config/gr_config_gm20b.h"
-#ifdef NVGPU_GRAPHICS
+#ifdef CONFIG_NVGPU_GRAPHICS
 #include "hal/gr/zbc/zbc_gp10b.h"
 #include "hal/gr/zbc/zbc_gv11b.h"
 #include "hal/gr/zcull/zcull_gm20b.h"
@@ -126,7 +126,7 @@
 #include "hal/gr/gr/gr_gp10b.h"
 #include "hal/gr/gr/gr_gv100.h"
 #include "hal/gr/gr/gr_gv11b.h"
-#ifdef NVGPU_FEATURE_LS_PMU
+#ifdef CONFIG_NVGPU_LS_PMU
 #include "hal/pmu/pmu_gk20a.h"
 #include "hal/pmu/pmu_gm20b.h"
 #endif
@@ -141,7 +141,7 @@
 #include "hal/top/top_gp10b.h"
 #include "hal/top/top_gv11b.h"
 
-#ifdef NVGPU_FEATURE_LS_PMU
+#ifdef CONFIG_NVGPU_LS_PMU
 #include "common/pmu/pg/pg_sw_gm20b.h"
 #include "common/pmu/pg/pg_sw_gp106.h"
 #include "common/pmu/pg/pg_sw_gv11b.h"
@@ -174,7 +174,7 @@ static void gv11b_init_gpu_characteristics(struct gk20a *g)
 	g->ops.gr.ecc.detect(g);
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_TSG_SUBCONTEXTS, true);
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_SCG, true);
-#ifdef NVGPU_FEATURE_CHANNEL_TSG_SCHEDULING
+#ifdef CONFIG_NVGPU_CHANNEL_TSG_SCHEDULING
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_RESCHEDULE_RUNLIST, true);
 #endif
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_SYNCPOINT_ADDRESS, true);
@@ -187,11 +187,11 @@ static const struct gpu_ops gv11b_ops = {
 		.get_ltc_err_desc =
 			gv11b_ltc_get_err_desc,
 		.determine_L2_size_bytes = gp10b_determine_L2_size_bytes,
-#ifdef NVGPU_GRAPHICS
+#ifdef CONFIG_NVGPU_GRAPHICS
 		.set_zbc_s_entry = gv11b_ltc_set_zbc_stencil_entry,
 		.set_zbc_color_entry = gm20b_ltc_set_zbc_color_entry,
 		.set_zbc_depth_entry = gm20b_ltc_set_zbc_depth_entry,
-#endif /* NVGPU_GRAPHICS */
+#endif /* CONFIG_NVGPU_GRAPHICS */
 		.init_fs_state = gv11b_ltc_init_fs_state,
 		.flush = gm20b_flush_ltc,
 		.set_enabled = gp10b_ltc_set_enabled,
@@ -220,7 +220,7 @@ static const struct gpu_ops gv11b_ops = {
 				gv11b_ce_mthd_buffer_fault_in_bar2_fault,
 	},
 	.gr = {
-#ifdef NVGPU_DEBUGGER
+#ifdef CONFIG_NVGPU_DEBUGGER
 		.get_gr_status = gr_gm20b_get_gr_status,
 		.set_alpha_circular_buffer_size =
 			gr_gv11b_set_alpha_circular_buffer_size,
@@ -259,7 +259,7 @@ static const struct gpu_ops gv11b_ops = {
 		.wait_for_sm_lock_down = gv11b_gr_wait_for_sm_lock_down,
 		.init_ovr_sm_dsm_perf =  gv11b_gr_init_ovr_sm_dsm_perf,
 		.get_ovr_perf_regs = gv11b_gr_get_ovr_perf_regs,
-#ifdef NVGPU_FEATURE_CHANNEL_TSG_SCHEDULING
+#ifdef CONFIG_NVGPU_CHANNEL_TSG_SCHEDULING
 		.set_boosted_ctx = gr_gp10b_set_boosted_ctx,
 #endif
 		.pre_process_sm_exception = gr_gv11b_pre_process_sm_exception,
@@ -283,7 +283,7 @@ static const struct gpu_ops gv11b_ops = {
 		.esr_bpt_pending_events = gv11b_gr_esr_bpt_pending_events,
 		.disable_ctxsw = nvgpu_gr_disable_ctxsw,
 		.enable_ctxsw = nvgpu_gr_enable_ctxsw,
-#endif /* NVGPU_DEBUGGER */
+#endif /* CONFIG_NVGPU_DEBUGGER */
 		.ecc = {
 			.detect = gv11b_ecc_detect_enabled_units,
 			.init = gv11b_ecc_init,
@@ -314,7 +314,7 @@ static const struct gpu_ops gv11b_ops = {
 			.get_patch_count = gm20b_ctxsw_prog_get_patch_count,
 			.set_patch_count = gm20b_ctxsw_prog_set_patch_count,
 			.set_patch_addr = gm20b_ctxsw_prog_set_patch_addr,
-#ifdef NVGPU_GRAPHICS
+#ifdef CONFIG_NVGPU_GRAPHICS
 			.set_zcull_ptr = gv11b_ctxsw_prog_set_zcull_ptr,
 			.set_zcull = gm20b_ctxsw_prog_set_zcull,
 			.set_zcull_mode_no_ctxsw =
@@ -356,7 +356,7 @@ static const struct gpu_ops gv11b_ops = {
 			.get_ppc_info = gm20b_ctxsw_prog_get_ppc_info,
 			.get_local_priv_register_ctl_offset =
 				gm20b_ctxsw_prog_get_local_priv_register_ctl_offset,
-#ifdef CONFIG_GK20A_CTXSW_TRACE
+#ifdef CONFIG_NVGPU_FECS_TRACE
 			.hw_get_ts_tag_invalid_timestamp =
 				gm20b_ctxsw_prog_hw_get_ts_tag_invalid_timestamp,
 			.hw_get_ts_tag = gm20b_ctxsw_prog_hw_get_ts_tag,
@@ -388,7 +388,7 @@ static const struct gpu_ops gv11b_ops = {
 			.get_gpc_tpc_mask = gm20b_gr_config_get_gpc_tpc_mask,
 			.get_tpc_count_in_gpc =
 				gm20b_gr_config_get_tpc_count_in_gpc,
-#ifdef NVGPU_GRAPHICS
+#ifdef CONFIG_NVGPU_GRAPHICS
 			.get_zcull_count_in_gpc =
 				gm20b_gr_config_get_zcull_count_in_gpc,
 #endif
@@ -397,7 +397,7 @@ static const struct gpu_ops gv11b_ops = {
 				gm20b_gr_config_get_pd_dist_skip_table_size,
 			.init_sm_id_table = gv100_gr_config_init_sm_id_table,
 		},
-#ifdef CONFIG_GK20A_CTXSW_TRACE
+#ifdef CONFIG_NVGPU_FECS_TRACE
 		.fecs_trace = {
 			.alloc_user_buffer = nvgpu_gr_fecs_trace_ring_alloc,
 			.free_user_buffer = nvgpu_gr_fecs_trace_ring_free,
@@ -420,19 +420,19 @@ static const struct gpu_ops gv11b_ops = {
 			.get_write_index = gm20b_fecs_trace_get_write_index,
 			.set_read_index = gm20b_fecs_trace_set_read_index,
 		},
-#endif /* CONFIG_GK20A_CTXSW_TRACE */
+#endif /* CONFIG_NVGPU_FECS_TRACE */
 		.setup = {
-#ifdef NVGPU_GRAPHICS
+#ifdef CONFIG_NVGPU_GRAPHICS
 			.bind_ctxsw_zcull = nvgpu_gr_setup_bind_ctxsw_zcull,
 #endif
 			.alloc_obj_ctx = nvgpu_gr_setup_alloc_obj_ctx,
 			.free_gr_ctx = nvgpu_gr_setup_free_gr_ctx,
 			.free_subctx = nvgpu_gr_setup_free_subctx,
-#ifdef NVGPU_FEATURE_CHANNEL_TSG_CONTROL
+#ifdef CONFIG_NVGPU_CHANNEL_TSG_CONTROL
 			.set_preemption_mode = nvgpu_gr_setup_set_preemption_mode,
 #endif
 		},
-#ifdef NVGPU_GRAPHICS
+#ifdef CONFIG_NVGPU_GRAPHICS
 		.zbc = {
 			.add_color = gp10b_gr_zbc_add_color,
 			.add_depth = gp10b_gr_zbc_add_depth,
@@ -449,8 +449,8 @@ static const struct gpu_ops gv11b_ops = {
 			.get_zcull_info = gm20b_gr_get_zcull_info,
 			.program_zcull_mapping = gv11b_gr_program_zcull_mapping,
 		},
-#endif /* NVGPU_GRAPHICS */
-#ifdef NVGPU_DEBUGGER
+#endif /* CONFIG_NVGPU_GRAPHICS */
+#ifdef CONFIG_NVGPU_DEBUGGER
 		.hwpm_map = {
 			.align_regs_perf_pma =
 				gv100_gr_hwpm_map_align_regs_perf_pma,
@@ -472,7 +472,7 @@ static const struct gpu_ops gv11b_ops = {
 			.sm_id_config = gv11b_gr_init_sm_id_config,
 			.sm_id_numbering = gv11b_gr_init_sm_id_numbering,
 			.tpc_mask = gv11b_gr_init_tpc_mask,
-#ifdef NVGPU_GRAPHICS
+#ifdef CONFIG_NVGPU_GRAPHICS
 			.rop_mapping = gv11b_gr_init_rop_mapping,
 #endif
 			.fs_state = gv11b_gr_init_fs_state,
@@ -935,7 +935,7 @@ static const struct gpu_ops gv11b_ops = {
 	.userd = {
 		.setup_sw = nvgpu_userd_setup_sw,
 		.cleanup_sw = nvgpu_userd_cleanup_sw,
-#ifdef NVGPU_USERD
+#ifdef CONFIG_NVGPU_USERD
 		.init_mem = gk20a_userd_init_mem,
 		.gp_get = gv11b_userd_gp_get,
 		.gp_put = gv11b_userd_gp_put,
@@ -979,11 +979,11 @@ static const struct gpu_ops gv11b_ops = {
 		.unbind_channel_check_eng_faulted =
 				gv11b_tsg_unbind_channel_check_eng_faulted,
 		.check_ctxsw_timeout = nvgpu_tsg_check_ctxsw_timeout,
-#ifdef NVGPU_FEATURE_CHANNEL_TSG_CONTROL
+#ifdef CONFIG_NVGPU_CHANNEL_TSG_CONTROL
 		.force_reset = nvgpu_tsg_force_reset_ch,
 		.post_event_id = nvgpu_tsg_post_event_id,
 #endif
-#ifdef NVGPU_FEATURE_CHANNEL_TSG_SCHEDULING
+#ifdef CONFIG_NVGPU_CHANNEL_TSG_SCHEDULING
 		.set_timeslice = nvgpu_tsg_set_timeslice,
 #endif
 		.default_timeslice_us = nvgpu_tsg_default_timeslice_us,
@@ -1059,7 +1059,7 @@ static const struct gpu_ops gv11b_ops = {
 			gv11b_clear_pmu_bar0_host_err_status,
 		.bar0_error_status = gv11b_pmu_bar0_error_status,
 		.validate_mem_integrity = gv11b_pmu_validate_mem_integrity,
-#ifdef NVGPU_FEATURE_LS_PMU
+#ifdef CONFIG_NVGPU_LS_PMU
 		/* ISR */
 		.pmu_enable_irq = gk20a_pmu_enable_irq,
 		.get_irqdest = gv11b_pmu_get_irqdest,
@@ -1106,7 +1106,7 @@ static const struct gpu_ops gv11b_ops = {
 		.clk_arb_run_arbiter_cb = gp10b_clk_arb_run_arbiter_cb,
 		.clk_arb_cleanup = gp10b_clk_arb_cleanup,
 	},
-#ifdef NVGPU_DEBUGGER
+#ifdef CONFIG_NVGPU_DEBUGGER
 	.regops = {
 		.exec_regops = exec_regops_gk20a,
 		.get_global_whitelist_ranges =
@@ -1153,7 +1153,7 @@ static const struct gpu_ops gv11b_ops = {
 	.debug = {
 		.show_dump = gk20a_debug_show_dump,
 	},
-#ifdef NVGPU_DEBUGGER
+#ifdef CONFIG_NVGPU_DEBUGGER
 	.debugger = {
 		.post_events = nvgpu_dbg_gpu_post_events,
 		.dbg_set_powergate = nvgpu_dbg_set_powergate,
@@ -1192,7 +1192,7 @@ static const struct gpu_ops gv11b_ops = {
 		.read_ptimer = gk20a_read_ptimer,
 		.get_timestamps_zipper = nvgpu_get_timestamps_zipper,
 	},
-#if defined(CONFIG_GK20A_CYCLE_STATS)
+#if defined(CONFIG_NVGPU_CYCLESTATS)
 	.css = {
 		.enable_snapshot = nvgpu_css_enable_snapshot,
 		.disable_snapshot = nvgpu_css_disable_snapshot,
@@ -1306,7 +1306,7 @@ int gv11b_init_hal(struct gk20a *g)
 	gops->pmu = gv11b_ops.pmu;
 	gops->mc = gv11b_ops.mc;
 	gops->debug = gv11b_ops.debug;
-#ifdef NVGPU_DEBUGGER
+#ifdef CONFIG_NVGPU_DEBUGGER
 	gops->debugger = gv11b_ops.debugger;
 	gops->regops = gv11b_ops.regops;
 	gops->perf = gv11b_ops.perf;
@@ -1314,7 +1314,7 @@ int gv11b_init_hal(struct gk20a *g)
 #endif
 	gops->bus = gv11b_ops.bus;
 	gops->ptimer = gv11b_ops.ptimer;
-#if defined(CONFIG_GK20A_CYCLE_STATS)
+#if defined(CONFIG_NVGPU_CYCLESTATS)
 	gops->css = gv11b_ops.css;
 #endif
 	gops->falcon = gv11b_ops.falcon;
@@ -1342,7 +1342,7 @@ int gv11b_init_hal(struct gk20a *g)
 		gops->gr.falcon.load_ctxsw_ucode =
 			nvgpu_gr_falcon_load_secure_ctxsw_ucode;
 	} else {
-#ifdef NVGPU_FEATURE_LS_PMU
+#ifdef CONFIG_NVGPU_LS_PMU
 		/* non-secure boot */
 		gops->pmu.setup_apertures =
 			gm20b_pmu_ns_setup_apertures;

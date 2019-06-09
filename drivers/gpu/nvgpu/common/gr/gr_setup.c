@@ -25,7 +25,7 @@
 #include <nvgpu/gr/ctx.h>
 #include <nvgpu/gr/subctx.h>
 #include <nvgpu/gr/obj_ctx.h>
-#ifdef NVGPU_GRAPHICS
+#ifdef CONFIG_NVGPU_GRAPHICS
 #include <nvgpu/gr/zcull.h>
 #endif
 #include <nvgpu/gr/setup.h>
@@ -34,7 +34,7 @@
 
 #include "gr_priv.h"
 
-#ifdef NVGPU_GRAPHICS
+#ifdef CONFIG_NVGPU_GRAPHICS
 static int nvgpu_gr_setup_zcull(struct gk20a *g, struct nvgpu_channel *c,
 				struct nvgpu_gr_ctx *gr_ctx)
 {
@@ -166,7 +166,7 @@ int nvgpu_gr_setup_alloc_obj_ctx(struct nvgpu_channel *c, u32 class_num,
 			c->subctx, nvgpu_gr_ctx_get_ctx_mem(gr_ctx)->gpu_va);
 	}
 
-#ifdef CONFIG_GK20A_CTXSW_TRACE
+#ifdef CONFIG_NVGPU_FECS_TRACE
 	if (g->ops.gr.fecs_trace.bind_channel && !c->vpr) {
 		err = g->ops.gr.fecs_trace.bind_channel(g, &c->inst_block,
 			c->subctx, gr_ctx, tsg->tgid, 0);
@@ -222,7 +222,7 @@ void nvgpu_gr_setup_free_subctx(struct nvgpu_channel *c)
 	}
 }
 
-#ifdef NVGPU_FEATURE_CHANNEL_TSG_CONTROL
+#ifdef CONFIG_NVGPU_CHANNEL_TSG_CONTROL
 int nvgpu_gr_setup_set_preemption_mode(struct nvgpu_channel *ch,
 					u32 graphics_preempt_mode,
 					u32 compute_preempt_mode)

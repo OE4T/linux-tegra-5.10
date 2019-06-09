@@ -15,7 +15,7 @@
  */
 
 #include <linux/mutex.h>
-#ifdef CONFIG_TEGRA_NVLINK
+#ifdef CONFIG_NVGPU_NVLINK
 #include <nvlink/common/tegra-nvlink.h>
 #endif
 
@@ -27,7 +27,7 @@
 #include <nvgpu/nvlink_device_reginit.h>
 #include <nvgpu/nvlink_link_mode_transitions.h>
 
-#ifdef CONFIG_TEGRA_NVLINK
+#ifdef CONFIG_NVGPU_NVLINK
 int nvgpu_nvlink_read_dt_props(struct gk20a *g)
 {
 	struct device_node *np;
@@ -476,5 +476,5 @@ int nvgpu_nvlink_unregister_link(struct gk20a *g)
 	return nvlink_unregister_link(&ndev->link);
 }
 
-#endif /* CONFIG_TEGRA_NVLINK */
+#endif /* CONFIG_NVGPU_NVLINK */
 

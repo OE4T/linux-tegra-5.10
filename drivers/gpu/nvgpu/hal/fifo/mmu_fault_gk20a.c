@@ -258,7 +258,7 @@ bool gk20a_fifo_handle_mmu_fault_locked(
 		fault_id = nvgpu_readl(g, fifo_intr_mmu_fault_id_r());
 		fake_fault = false;
 	}
-#ifdef NVGPU_DEBUGGER
+#ifdef CONFIG_NVGPU_DEBUGGER
 	nvgpu_mutex_acquire(&g->fifo.deferred_reset_mutex);
 	g->fifo.deferred_reset_pending = false;
 	nvgpu_mutex_release(&g->fifo.deferred_reset_mutex);
@@ -290,7 +290,7 @@ bool gk20a_fifo_handle_mmu_fault_locked(
 
 		if (ctxsw) {
 			g->ops.gr.falcon.dump_stats(g);
-#ifdef NVGPU_DEBUGGER
+#ifdef CONFIG_NVGPU_DEBUGGER
 			nvgpu_err(g, "  gr_status_r: 0x%x",
 				  g->ops.gr.get_gr_status(g));
 #endif
@@ -340,7 +340,7 @@ bool gk20a_fifo_handle_mmu_fault_locked(
 
 		/* check if engine reset should be deferred */
 		if (engine_id != NVGPU_INVALID_ENG_ID) {
-#ifdef NVGPU_DEBUGGER
+#ifdef CONFIG_NVGPU_DEBUGGER
 			bool defer = nvgpu_engine_should_defer_reset(g,
 					engine_id, mmfault_info.client_type,
 					fake_fault);
@@ -360,12 +360,12 @@ bool gk20a_fifo_handle_mmu_fault_locked(
 			} else {
 #endif
 				nvgpu_engine_reset(g, engine_id);
-#ifdef NVGPU_DEBUGGER
+#ifdef CONFIG_NVGPU_DEBUGGER
 			}
 #endif
 		}
 
-#ifdef CONFIG_GK20A_CTXSW_TRACE
+#ifdef CONFIG_NVGPU_FECS_TRACE
 		if (tsg != NULL) {
 			nvgpu_gr_fecs_trace_add_tsg_reset(g, tsg);
 		}

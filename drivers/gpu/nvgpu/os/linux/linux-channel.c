@@ -274,7 +274,7 @@ static void nvgpu_channel_close_linux(struct nvgpu_channel *ch, bool force)
 {
 	nvgpu_channel_work_completion_clear(ch);
 
-#if defined(CONFIG_GK20A_CYCLE_STATS)
+#if defined(CONFIG_NVGPU_CYCLESTATS)
 	gk20a_channel_free_cycle_stats_buffer(ch);
 	gk20a_channel_free_cycle_stats_snapshot(ch);
 #endif

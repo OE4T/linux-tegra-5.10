@@ -75,7 +75,7 @@ int gv11b_ltc_inject_ecc_error(struct gk20a *g,
 	return 0;
 }
 
-#ifdef NVGPU_GRAPHICS
+#ifdef CONFIG_NVGPU_GRAPHICS
 /*
  * Sets the ZBC stencil for the passed index.
  */
@@ -90,7 +90,7 @@ void gv11b_ltc_set_zbc_stencil_entry(struct gk20a *g,
 			   ltc_ltcs_ltss_dstg_zbc_stencil_clear_value_r(),
 			   stencil_depth);
 }
-#endif /* NVGPU_GRAPHICS */
+#endif /* CONFIG_NVGPU_GRAPHICS */
 
 void gv11b_ltc_init_fs_state(struct gk20a *g)
 {

@@ -58,19 +58,19 @@ config NVGPU_TRACK_MEM_USAGE
 	  to other OSes which do not have Linux' kmem_leak.
 
 
-config GK20A_CYCLE_STATS
-	bool "Support GK20A GPU CYCLE STATS"
+config NVGPU_CYCLESTATS
+	bool "Support GPU CYCLE STATS"
 	depends on GK20A
 	default y
 	help
 	  Say Y here to enable the cycle stats debugging features.
 
-config GK20A_CTXSW_TRACE
-	bool "Support GK20A Context Switch tracing"
+config NVGPU_FECS_TRACE
+	bool "Support NVGPU FECS Context Switch tracing"
 	depends on GK20A
 	default y
 	help
-	  Enable support for the GK20A Context Switch Tracing. In this mode,
+	  Enable support for the NVGPU Context Switch Tracing. In this mode,
 	  FECS collects timestamps for contexts loaded on GR engine. This
 	  allows tracking context switches on GR engine, as well as
 	  identifying processes that submitted work.
@@ -168,7 +168,7 @@ config NVGPU_DEBUGGER
 	help
 	  Support for debugger APIs
 
-config NVGPU_FEATURE_LS_PMU
+config NVGPU_LS_PMU
 	bool "LS PMU support"
 	depends on GK20A
 	default y

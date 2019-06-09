@@ -20,7 +20,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifdef CONFIG_TEGRA_NVLINK
+#ifdef CONFIG_NVGPU_NVLINK
 
 #include <nvgpu/nvlink.h>
 #include <nvgpu/io.h>
@@ -757,4 +757,4 @@ u32 gv100_nvlink_link_get_rx_sublink_state(struct gk20a *g, u32 link_id)
 	return nvl_sl1_slsm_status_rx_primary_state_v(reg);
 }
 
-#endif /* CONFIG_TEGRA_NVLINK */
+#endif /* CONFIG_NVGPU_NVLINK */

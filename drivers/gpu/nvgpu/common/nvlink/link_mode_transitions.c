@@ -24,7 +24,7 @@
 #include <nvgpu/nvlink.h>
 #include <nvgpu/nvlink_link_mode_transitions.h>
 
-#ifdef CONFIG_TEGRA_NVLINK
+#ifdef CONFIG_NVGPU_NVLINK
 /*
  * WAR: use this function to find detault link, as only one is supported
  * on the library for now

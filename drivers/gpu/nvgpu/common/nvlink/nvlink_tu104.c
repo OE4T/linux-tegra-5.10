@@ -20,7 +20,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifdef CONFIG_TEGRA_NVLINK
+#ifdef CONFIG_NVGPU_NVLINK
 
 #include <nvgpu/nvgpu_common.h>
 #include <nvgpu/bitops.h>
@@ -122,4 +122,4 @@ int tu104_nvlink_speed_config(struct gk20a *g)
 	return ret;
 }
 
-#endif /* CONFIG_TEGRA_NVLINK */
+#endif /* CONFIG_NVGPU_NVLINK */

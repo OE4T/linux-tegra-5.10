@@ -111,7 +111,7 @@ int gp10b_gr_intr_handle_fecs_error(struct gk20a *g,
 	struct nvgpu_channel *ch;
 	u32 chid = NVGPU_INVALID_CHANNEL_ID;
 	int ret = 0;
-#ifdef NVGPU_FEATURE_CHANNEL_TSG_CONTROL
+#ifdef CONFIG_NVGPU_CHANNEL_TSG_CONTROL
 	struct nvgpu_tsg *tsg;
 #endif
 	struct nvgpu_fecs_host_intr_status fecs_host_intr;
@@ -156,12 +156,12 @@ int gp10b_gr_intr_handle_fecs_error(struct gk20a *g,
 			goto clean_up;
 		}
 
-#ifdef NVGPU_DEBUGGER
+#ifdef CONFIG_NVGPU_DEBUGGER
 		/* Post events to UMD */
 		g->ops.debugger.post_events(ch);
 #endif
 
-#ifdef NVGPU_FEATURE_CHANNEL_TSG_CONTROL
+#ifdef CONFIG_NVGPU_CHANNEL_TSG_CONTROL
 		tsg = &g->fifo.tsg[ch->tsgid];
 		g->ops.tsg.post_event_id(tsg,
 				NVGPU_EVENT_ID_CILP_PREEMPTION_COMPLETE);
@@ -219,7 +219,7 @@ int gp10b_gr_intr_handle_sw_method(struct gk20a *g, u32 addr,
 		goto fail;
 	}
 
-#if defined(NVGPU_DEBUGGER) && defined(NVGPU_GRAPHICS)
+#if defined(CONFIG_NVGPU_DEBUGGER) && defined(CONFIG_NVGPU_GRAPHICS)
 	if (class_num == PASCAL_A) {
 		switch (offset << 2) {
 		case NVC097_SET_SHADER_EXCEPTIONS:

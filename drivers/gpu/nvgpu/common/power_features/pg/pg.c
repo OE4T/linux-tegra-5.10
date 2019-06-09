@@ -21,7 +21,7 @@
  */
 
 #include <nvgpu/gk20a.h>
-#ifdef NVGPU_FEATURE_LS_PMU
+#ifdef CONFIG_NVGPU_LS_PMU
 #include <nvgpu/pmu.h>
 #include <nvgpu/pmu/pmu_pg.h>
 #endif
@@ -42,7 +42,7 @@ bool nvgpu_pg_elpg_is_enabled(struct gk20a *g)
 int nvgpu_pg_elpg_enable(struct gk20a *g)
 {
 	int err = 0;
-#ifdef NVGPU_FEATURE_LS_PMU
+#ifdef CONFIG_NVGPU_LS_PMU
 	nvgpu_log_fn(g, " ");
 
 	if (!g->can_elpg) {
@@ -63,7 +63,7 @@ int nvgpu_pg_elpg_enable(struct gk20a *g)
 int nvgpu_pg_elpg_disable(struct gk20a *g)
 {
 	int err = 0;
-#ifdef NVGPU_FEATURE_LS_PMU
+#ifdef CONFIG_NVGPU_LS_PMU
 	nvgpu_log_fn(g, " ");
 
 	if (!g->can_elpg) {
@@ -109,7 +109,7 @@ int nvgpu_pg_elpg_set_elpg_enabled(struct gk20a *g, bool enable)
 	if (!change_mode) {
 		goto done;
 	}
-#ifdef NVGPU_FEATURE_LS_PMU
+#ifdef CONFIG_NVGPU_LS_PMU
 	err = nvgpu_pmu_pg_global_enable(g, enable);
 #endif
 done:

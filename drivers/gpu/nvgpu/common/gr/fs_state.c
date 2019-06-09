@@ -119,7 +119,7 @@ int nvgpu_gr_fs_state_init(struct gk20a *g, struct nvgpu_gr_config *config)
 
 	g->ops.gr.init.pd_tpc_per_gpc(g, config);
 
-#ifdef NVGPU_GRAPHICS
+#ifdef CONFIG_NVGPU_GRAPHICS
 	/* gr__setup_pd_mapping */
 	g->ops.gr.init.rop_mapping(g, config);
 #endif

@@ -23,7 +23,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/nvlink_device_reginit.h>
 
-#ifdef CONFIG_TEGRA_NVLINK
+#ifdef CONFIG_NVGPU_NVLINK
 int nvgpu_nvlink_reg_init(struct gk20a *g)
 {
 	int err;

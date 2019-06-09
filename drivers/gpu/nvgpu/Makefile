@@ -18,23 +18,27 @@ endif
 ccflags-y += -D__NVGPU_PREVENT_UNTRUSTED_SPECULATION
 
 ifeq ($(CONFIG_NVGPU_DEBUGGER),y)
-ccflags-y += -DNVGPU_DEBUGGER
+ccflags-y += -DCONFIG_NVGPU_DEBUGGER
 endif
 
-ccflags-y += -DNVGPU_FEATURE_ACR_LEGACY
-ccflags-y += -DNVGPU_FEATURE_ENGINE_QUEUE
-ccflags-y += -DNVGPU_ENGINE
-ccflags-y += -DNVGPU_USERD
-ccflags-y += -DNVGPU_CHANNEL_WDT
-ccflags-y += -DNVGPU_FEATURE_LS_PMU
-ccflags-y += -DNVGPU_DGPU_SUPPORT
-ccflags-y += -DNVGPU_VPR
-ccflags-y += -DNVGPU_REPLAYABLE_FAULT
-ccflags-y += -DNVGPU_GRAPHICS
-ccflags-y += -DNVGPU_FEATURE_CHANNEL_TSG_SCHEDULING
-ccflags-y += -DNVGPU_FEATURE_CHANNEL_TSG_CONTROL
-ccflags-y += -DNVGPU_FEATURE_POWER_PG
-ccflags-y += -DNVGPU_FEATURE_CE
+ifeq ($(CONFIG_TEGRA_NVLINK),y)
+ccflags-y += -DCONFIG_NVGPU_NVLINK
+endif
+
+ccflags-y += -DCONFIG_NVGPU_ACR_LEGACY
+ccflags-y += -DCONFIG_NVGPU_ENGINE_QUEUE
+ccflags-y += -DCONFIG_NVGPU_FIFO_ENGINE_ACTIVITY
+ccflags-y += -DCONFIG_NVGPU_USERD
+ccflags-y += -DCONFIG_NVGPU_CHANNEL_WDT
+ccflags-y += -DCONFIG_NVGPU_LS_PMU
+ccflags-y += -DCONFIG_NVGPU_DGPU
+ccflags-y += -DCONFIG_NVGPU_VPR
+ccflags-y += -DCONFIG_NVGPU_REPLAYABLE_FAULT
+ccflags-y += -DCONFIG_NVGPU_GRAPHICS
+ccflags-y += -DCONFIG_NVGPU_CHANNEL_TSG_SCHEDULING
+ccflags-y += -DCONFIG_NVGPU_CHANNEL_TSG_CONTROL
+ccflags-y += -DCONFIG_NVGPU_POWER_PG
+ccflags-y += -DCONFIG_NVGPU_CE
 
 obj-$(CONFIG_GK20A) := nvgpu.o
 
@@ -438,13 +442,13 @@ nvgpu-$(CONFIG_DEBUG_FS) += \
 	os/linux/debug_kmem.o
 endif
 
-nvgpu-$(CONFIG_GK20A_CTXSW_TRACE) += \
+nvgpu-$(CONFIG_NVGPU_FECS_TRACE) += \
 	common/gr/fecs_trace.o \
 	hal/gr/fecs_trace/fecs_trace_gm20b.o \
 	hal/gr/fecs_trace/fecs_trace_gv11b.o \
 	os/linux/fecs_trace_linux.o
 
-ifeq ($(CONFIG_GK20A_CTXSW_TRACE),y)
+ifeq ($(CONFIG_NVGPU_FECS_TRACE),y)
 nvgpu-$(CONFIG_DEBUG_FS) += \
 	os/linux/debug_fecs_trace.o
 endif
@@ -487,7 +491,7 @@ nvgpu-$(CONFIG_TEGRA_GR_VIRTUALIZATION) += \
 	os/linux/vgpu/vgpu_linux.o \
 	os/linux/vgpu/gv11b/platform_gv11b_vgpu_tegra.o
 
-ifeq ($(CONFIG_GK20A_CTXSW_TRACE),y)
+ifeq ($(CONFIG_NVGPU_FECS_TRACE),y)
 nvgpu-$(CONFIG_TEGRA_GR_VIRTUALIZATION) += \
 	os/linux/vgpu/fecs_trace_vgpu_linux.o
 endif
@@ -610,11 +614,11 @@ nvgpu-$(CONFIG_TEGRA_GR_VIRTUALIZATION) += \
 	common/vgpu/gv11b/vgpu_hal_gv11b.o \
 	common/vgpu/gv11b/vgpu_tsg_gv11b.o \
 
-nvgpu-$(CONFIG_GK20A_CYCLE_STATS) += \
+nvgpu-$(CONFIG_NVGPU_CYCLESTATS) += \
 	common/perf/cyclestats_snapshot.o \
 	common/cyclestats/cyclestats.o
 
 ifeq ($(CONFIG_TEGRA_GR_VIRTUALIZATION),y)
-nvgpu-$(CONFIG_GK20A_CYCLE_STATS) += \
+nvgpu-$(CONFIG_NVGPU_CYCLESTATS) += \
 	common/vgpu/perf/cyclestats_snapshot_vgpu.o
 endif

@@ -49,7 +49,7 @@ void nvgpu_gr_reset_golden_image_ptr(struct gk20a *g)
 	g->gr->golden_image = NULL;
 }
 
-#ifdef NVGPU_GRAPHICS
+#ifdef CONFIG_NVGPU_GRAPHICS
 struct nvgpu_gr_zcull *nvgpu_gr_get_zcull_ptr(struct gk20a *g)
 {
 	return g->gr->zcull;
@@ -66,7 +66,7 @@ struct nvgpu_gr_config *nvgpu_gr_get_config_ptr(struct gk20a *g)
 	return g->gr->config;
 }
 
-#ifdef NVGPU_DEBUGGER
+#ifdef CONFIG_NVGPU_DEBUGGER
 struct nvgpu_gr_hwpm_map *nvgpu_gr_get_hwpm_map_ptr(struct gk20a *g)
 {
 	return g->gr->hwpm_map;
@@ -78,7 +78,7 @@ struct nvgpu_gr_intr *nvgpu_gr_get_intr_ptr(struct gk20a *g)
 	return g->gr->intr;
 }
 
-#ifdef CONFIG_GK20A_CTXSW_TRACE
+#ifdef CONFIG_NVGPU_FECS_TRACE
 struct nvgpu_gr_global_ctx_buffer_desc *nvgpu_gr_get_global_ctx_buffer_ptr(
 							struct gk20a *g)
 {

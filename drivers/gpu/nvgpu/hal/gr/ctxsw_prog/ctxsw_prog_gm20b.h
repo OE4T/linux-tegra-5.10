@@ -39,7 +39,7 @@ void gm20b_ctxsw_prog_set_patch_count(struct gk20a *g,
 	struct nvgpu_mem *ctx_mem, u32 count);
 void gm20b_ctxsw_prog_set_patch_addr(struct gk20a *g,
 	struct nvgpu_mem *ctx_mem, u64 addr);
-#ifdef NVGPU_GRAPHICS
+#ifdef CONFIG_NVGPU_GRAPHICS
 void gm20b_ctxsw_prog_set_zcull_ptr(struct gk20a *g, struct nvgpu_mem *ctx_mem,
 	u64 addr);
 void gm20b_ctxsw_prog_set_zcull(struct gk20a *g, struct nvgpu_mem *ctx_mem,
@@ -78,7 +78,7 @@ void gm20b_ctxsw_prog_get_extended_buffer_size_offset(u32 *context,
 	u32 *size, u32 *offset);
 void gm20b_ctxsw_prog_get_ppc_info(u32 *context, u32 *num_ppcs, u32 *ppc_mask);
 u32 gm20b_ctxsw_prog_get_local_priv_register_ctl_offset(u32 *context);
-#ifdef CONFIG_GK20A_CTXSW_TRACE
+#ifdef CONFIG_NVGPU_FECS_TRACE
 u32 gm20b_ctxsw_prog_hw_get_ts_tag_invalid_timestamp(void);
 u32 gm20b_ctxsw_prog_hw_get_ts_tag(u64 ts);
 u64 gm20b_ctxsw_prog_hw_record_ts_timestamp(u64 ts);

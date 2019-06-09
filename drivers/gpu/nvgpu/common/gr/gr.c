@@ -28,7 +28,7 @@
 #include <nvgpu/gr/gr.h>
 #include <nvgpu/gr/config.h>
 #include <nvgpu/gr/gr_intr.h>
-#ifdef NVGPU_GRAPHICS
+#ifdef CONFIG_NVGPU_GRAPHICS
 #include <nvgpu/gr/zbc.h>
 #include <nvgpu/gr/zcull.h>
 #endif
@@ -57,7 +57,7 @@ static int gr_alloc_global_ctx_buffers(struct gk20a *g)
 
 	nvgpu_gr_global_ctx_set_size(gr->global_ctx_buffer,
 		NVGPU_GR_GLOBAL_CTX_CIRCULAR, size);
-#ifdef NVGPU_VPR
+#ifdef CONFIG_NVGPU_VPR
 	nvgpu_gr_global_ctx_set_size(gr->global_ctx_buffer,
 		NVGPU_GR_GLOBAL_CTX_CIRCULAR_VPR, size);
 #endif
@@ -67,7 +67,7 @@ static int gr_alloc_global_ctx_buffers(struct gk20a *g)
 
 	nvgpu_gr_global_ctx_set_size(gr->global_ctx_buffer,
 		NVGPU_GR_GLOBAL_CTX_PAGEPOOL, size);
-#ifdef NVGPU_VPR
+#ifdef CONFIG_NVGPU_VPR
 	nvgpu_gr_global_ctx_set_size(gr->global_ctx_buffer,
 		NVGPU_GR_GLOBAL_CTX_PAGEPOOL_VPR, size);
 #endif
@@ -78,7 +78,7 @@ static int gr_alloc_global_ctx_buffers(struct gk20a *g)
 
 	nvgpu_gr_global_ctx_set_size(gr->global_ctx_buffer,
 		NVGPU_GR_GLOBAL_CTX_ATTRIBUTE, size);
-#ifdef NVGPU_VPR
+#ifdef CONFIG_NVGPU_VPR
 	nvgpu_gr_global_ctx_set_size(gr->global_ctx_buffer,
 		NVGPU_GR_GLOBAL_CTX_ATTRIBUTE_VPR, size);
 #endif
@@ -88,7 +88,7 @@ static int gr_alloc_global_ctx_buffers(struct gk20a *g)
 	nvgpu_gr_global_ctx_set_size(gr->global_ctx_buffer,
 		NVGPU_GR_GLOBAL_CTX_PRIV_ACCESS_MAP, size);
 
-#ifdef CONFIG_GK20A_CTXSW_TRACE
+#ifdef CONFIG_NVGPU_FECS_TRACE
 	size = nvgpu_gr_fecs_trace_buffer_size(g);
 	nvgpu_log_info(g, "fecs_trace_buffer_size : %d", size);
 
@@ -192,12 +192,12 @@ static int gr_init_setup_hw(struct gk20a *g)
 	/* load gr floorsweeping registers */
 	g->ops.gr.init.pes_vsc_stream(g);
 
-#ifdef NVGPU_GRAPHICS
+#ifdef CONFIG_NVGPU_GRAPHICS
 	err = nvgpu_gr_zcull_init_hw(g, gr->zcull, gr->config);
 	if (err != 0) {
 		goto out;
 	}
-#endif /* NVGPU_GRAPHICS */
+#endif /* CONFIG_NVGPU_GRAPHICS */
 
 	if (g->ops.priv_ring.set_ppriv_timeout_settings != NULL) {
 		g->ops.priv_ring.set_ppriv_timeout_settings(g);
@@ -232,12 +232,12 @@ static int gr_init_setup_hw(struct gk20a *g)
 	/* reset and enable exceptions */
 	g->ops.gr.intr.enable_exceptions(g, gr->config, true);
 
-#ifdef NVGPU_GRAPHICS
+#ifdef CONFIG_NVGPU_GRAPHICS
 	err = nvgpu_gr_zbc_load_table(g, gr->zbc);
 	if (err != 0) {
 		goto out;
 	}
-#endif /* NVGPU_GRAPHICS */
+#endif /* CONFIG_NVGPU_GRAPHICS */
 
 	/*
 	 * Disable both surface and LG coalesce.
@@ -284,7 +284,7 @@ static void gr_remove_support(struct gk20a *g)
 
 	nvgpu_netlist_deinit_ctx_vars(g);
 
-#ifdef NVGPU_DEBUGGER
+#ifdef CONFIG_NVGPU_DEBUGGER
 	nvgpu_gr_hwpm_map_deinit(g, gr->hwpm_map);
 #endif
 
@@ -294,10 +294,10 @@ static void gr_remove_support(struct gk20a *g)
 	nvgpu_gr_intr_remove_support(g, gr->intr);
 	gr->intr = NULL;
 
-#ifdef NVGPU_GRAPHICS
+#ifdef CONFIG_NVGPU_GRAPHICS
 	nvgpu_gr_zbc_deinit(g, gr->zbc);
 	nvgpu_gr_zcull_deinit(g, gr->zcull);
-#endif /* NVGPU_GRAPHICS */
+#endif /* CONFIG_NVGPU_GRAPHICS */
 
 	nvgpu_gr_obj_ctx_deinit(g, gr->golden_image);
 }
@@ -404,7 +404,7 @@ static int gr_init_setup_sw(struct gk20a *g)
 		goto clean_up;
 	}
 
-#ifdef NVGPU_DEBUGGER
+#ifdef CONFIG_NVGPU_DEBUGGER
 	err = nvgpu_gr_hwpm_map_init(g, &g->gr->hwpm_map,
 			nvgpu_gr_falcon_get_pm_ctxsw_image_size(g->gr->falcon));
 	if (err != 0) {
@@ -413,7 +413,7 @@ static int gr_init_setup_sw(struct gk20a *g)
 	}
 #endif
 
-#ifdef NVGPU_GRAPHICS
+#ifdef CONFIG_NVGPU_GRAPHICS
 	err = nvgpu_gr_config_init_map_tiles(g, gr->config);
 	if (err != 0) {
 		goto clean_up;
@@ -425,7 +425,7 @@ static int gr_init_setup_sw(struct gk20a *g)
 	if (err != 0) {
 		goto clean_up;
 	}
-#endif /* NVGPU_GRAPHICS */
+#endif /* CONFIG_NVGPU_GRAPHICS */
 
 	gr->gr_ctx_desc = nvgpu_gr_ctx_desc_alloc(g);
 	if (gr->gr_ctx_desc == NULL) {
@@ -450,12 +450,12 @@ static int gr_init_setup_sw(struct gk20a *g)
 		goto clean_up;
 	}
 
-#ifdef NVGPU_GRAPHICS
+#ifdef CONFIG_NVGPU_GRAPHICS
 	err = nvgpu_gr_zbc_init(g, &gr->zbc);
 	if (err != 0) {
 		goto clean_up;
 	}
-#endif /* NVGPU_GRAPHICS */
+#endif /* CONFIG_NVGPU_GRAPHICS */
 
 	gr->intr = nvgpu_gr_intr_init_support(g);
 	if (gr->intr == NULL) {
@@ -733,7 +733,7 @@ int nvgpu_gr_disable_ctxsw(struct gk20a *g)
 
 	gr->ctxsw_disable_count++;
 	if (gr->ctxsw_disable_count == 1) {
-#ifdef NVGPU_FEATURE_POWER_PG
+#ifdef CONFIG_NVGPU_POWER_PG
 		err = nvgpu_pg_elpg_disable(g);
 		if (err != 0) {
 			nvgpu_err(g,
@@ -780,7 +780,7 @@ int nvgpu_gr_enable_ctxsw(struct gk20a *g)
 		if (err != 0) {
 			nvgpu_err(g, "failed to start fecs ctxsw");
 		}
-#ifdef NVGPU_FEATURE_POWER_PG
+#ifdef CONFIG_NVGPU_POWER_PG
 		else {
 			if (nvgpu_pg_elpg_enable(g) != 0) {
 				nvgpu_err(g,

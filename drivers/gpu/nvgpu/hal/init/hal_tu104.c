@@ -114,7 +114,7 @@
 #include "hal/gr/falcon/gr_falcon_gv11b.h"
 #include "hal/gr/config/gr_config_gm20b.h"
 #include "hal/gr/config/gr_config_gv100.h"
-#ifdef NVGPU_GRAPHICS
+#ifdef CONFIG_NVGPU_GRAPHICS
 #include "hal/gr/zbc/zbc_gp10b.h"
 #include "hal/gr/zbc/zbc_gv11b.h"
 #include "hal/gr/zcull/zcull_gm20b.h"
@@ -147,7 +147,7 @@
 #include "hal/nvdec/nvdec_tu104.h"
 #include "hal/gsp/gsp_gv100.h"
 #include "hal/perf/perf_gv11b.h"
-#ifdef NVGPU_DGPU_SUPPORT
+#ifdef CONFIG_NVGPU_DGPU
 #include "hal/sec2/sec2_tu104.h"
 #endif
 #include "hal/sync/syncpt_cmdbuf_gv11b.h"
@@ -194,7 +194,7 @@
 #include <nvgpu/perfbuf.h>
 #include <nvgpu/cyclestats_snapshot.h>
 #include <nvgpu/regops.h>
-#ifdef NVGPU_GRAPHICS
+#ifdef CONFIG_NVGPU_GRAPHICS
 #include <nvgpu/gr/zbc.h>
 #endif
 #include <nvgpu/gr/setup.h>
@@ -229,11 +229,11 @@ static const struct gpu_ops tu104_ops = {
 	},
 	.ltc = {
 		.determine_L2_size_bytes = gp10b_determine_L2_size_bytes,
-#ifdef NVGPU_GRAPHICS
+#ifdef CONFIG_NVGPU_GRAPHICS
 		.set_zbc_s_entry = gv11b_ltc_set_zbc_stencil_entry,
 		.set_zbc_color_entry = gm20b_ltc_set_zbc_color_entry,
 		.set_zbc_depth_entry = gm20b_ltc_set_zbc_depth_entry,
-#endif /* NVGPU_GRAPHICS */
+#endif /* CONFIG_NVGPU_GRAPHICS */
 		.init_fs_state = ltc_tu104_init_fs_state,
 		.flush = gm20b_flush_ltc,
 		.set_enabled = gp10b_ltc_set_enabled,
@@ -264,7 +264,7 @@ static const struct gpu_ops tu104_ops = {
 				gv11b_ce_mthd_buffer_fault_in_bar2_fault,
 	},
 	.gr = {
-#ifdef NVGPU_DEBUGGER
+#ifdef CONFIG_NVGPU_DEBUGGER
 		.get_gr_status = gr_gm20b_get_gr_status,
 		.set_alpha_circular_buffer_size =
 			gr_gv11b_set_alpha_circular_buffer_size,
@@ -303,7 +303,7 @@ static const struct gpu_ops tu104_ops = {
 		.wait_for_sm_lock_down = gv11b_gr_wait_for_sm_lock_down,
 		.init_ovr_sm_dsm_perf =  gv11b_gr_init_ovr_sm_dsm_perf,
 		.get_ovr_perf_regs = gv11b_gr_get_ovr_perf_regs,
-#ifdef NVGPU_FEATURE_CHANNEL_TSG_SCHEDULING
+#ifdef CONFIG_NVGPU_CHANNEL_TSG_SCHEDULING
 		.set_boosted_ctx = gr_gp10b_set_boosted_ctx,
 #endif
 		.pre_process_sm_exception = gr_gv11b_pre_process_sm_exception,
@@ -326,7 +326,7 @@ static const struct gpu_ops tu104_ops = {
 		.esr_bpt_pending_events = gv11b_gr_esr_bpt_pending_events,
 		.disable_ctxsw = nvgpu_gr_disable_ctxsw,
 		.enable_ctxsw = nvgpu_gr_enable_ctxsw,
-#endif /* NVGPU_DEBUGGER */
+#endif /* CONFIG_NVGPU_DEBUGGER */
 		.ecc = {
 			.detect = NULL,
 			.init = tu104_ecc_init,
@@ -347,7 +347,7 @@ static const struct gpu_ops tu104_ops = {
 			.get_patch_count = gm20b_ctxsw_prog_get_patch_count,
 			.set_patch_count = gm20b_ctxsw_prog_set_patch_count,
 			.set_patch_addr = gm20b_ctxsw_prog_set_patch_addr,
-#ifdef NVGPU_GRAPHICS
+#ifdef CONFIG_NVGPU_GRAPHICS
 			.set_zcull_ptr = gv11b_ctxsw_prog_set_zcull_ptr,
 			.set_zcull = gm20b_ctxsw_prog_set_zcull,
 			.set_zcull_mode_no_ctxsw =
@@ -389,7 +389,7 @@ static const struct gpu_ops tu104_ops = {
 			.get_ppc_info = gm20b_ctxsw_prog_get_ppc_info,
 			.get_local_priv_register_ctl_offset =
 				gm20b_ctxsw_prog_get_local_priv_register_ctl_offset,
-#ifdef CONFIG_GK20A_CTXSW_TRACE
+#ifdef CONFIG_NVGPU_FECS_TRACE
 			.hw_get_ts_tag_invalid_timestamp =
 				gm20b_ctxsw_prog_hw_get_ts_tag_invalid_timestamp,
 			.hw_get_ts_tag = gm20b_ctxsw_prog_hw_get_ts_tag,
@@ -422,7 +422,7 @@ static const struct gpu_ops tu104_ops = {
 			.get_gpc_tpc_mask = gm20b_gr_config_get_gpc_tpc_mask,
 			.get_tpc_count_in_gpc =
 				gm20b_gr_config_get_tpc_count_in_gpc,
-#ifdef NVGPU_GRAPHICS
+#ifdef CONFIG_NVGPU_GRAPHICS
 			.get_zcull_count_in_gpc =
 				gm20b_gr_config_get_zcull_count_in_gpc,
 #endif
@@ -431,7 +431,7 @@ static const struct gpu_ops tu104_ops = {
 				gm20b_gr_config_get_pd_dist_skip_table_size,
 			.init_sm_id_table = gv100_gr_config_init_sm_id_table,
 		},
-#ifdef CONFIG_GK20A_CTXSW_TRACE
+#ifdef CONFIG_NVGPU_FECS_TRACE
 		.fecs_trace = {
 			.alloc_user_buffer = nvgpu_gr_fecs_trace_ring_alloc,
 			.free_user_buffer = nvgpu_gr_fecs_trace_ring_free,
@@ -454,19 +454,19 @@ static const struct gpu_ops tu104_ops = {
 			.get_write_index = gm20b_fecs_trace_get_write_index,
 			.set_read_index = gm20b_fecs_trace_set_read_index,
 		},
-#endif /* CONFIG_GK20A_CTXSW_TRACE */
+#endif /* CONFIG_NVGPU_FECS_TRACE */
 		.setup = {
-#ifdef NVGPU_GRAPHICS
+#ifdef CONFIG_NVGPU_GRAPHICS
 			.bind_ctxsw_zcull = nvgpu_gr_setup_bind_ctxsw_zcull,
 #endif
 			.alloc_obj_ctx = nvgpu_gr_setup_alloc_obj_ctx,
 			.free_gr_ctx = nvgpu_gr_setup_free_gr_ctx,
 			.free_subctx = nvgpu_gr_setup_free_subctx,
-#ifdef NVGPU_FEATURE_CHANNEL_TSG_CONTROL
+#ifdef CONFIG_NVGPU_CHANNEL_TSG_CONTROL
 			.set_preemption_mode = nvgpu_gr_setup_set_preemption_mode,
 #endif
 		},
-#ifdef NVGPU_GRAPHICS
+#ifdef CONFIG_NVGPU_GRAPHICS
 		.zbc = {
 			.add_color = gp10b_gr_zbc_add_color,
 			.add_depth = gp10b_gr_zbc_add_depth,
@@ -483,8 +483,8 @@ static const struct gpu_ops tu104_ops = {
 			.get_zcull_info = gm20b_gr_get_zcull_info,
 			.program_zcull_mapping = gv11b_gr_program_zcull_mapping,
 		},
-#endif /* NVGPU_GRAPHICS */
-#ifdef NVGPU_DEBUGGER
+#endif /* CONFIG_NVGPU_GRAPHICS */
+#ifdef CONFIG_NVGPU_DEBUGGER
 		.hwpm_map = {
 			.align_regs_perf_pma =
 				gv100_gr_hwpm_map_align_regs_perf_pma,
@@ -508,7 +508,7 @@ static const struct gpu_ops tu104_ops = {
 			.sm_id_config = gv11b_gr_init_sm_id_config,
 			.sm_id_numbering = gv11b_gr_init_sm_id_numbering,
 			.tpc_mask = gv11b_gr_init_tpc_mask,
-#ifdef NVGPU_GRAPHICS
+#ifdef CONFIG_NVGPU_GRAPHICS
 			.rop_mapping = gv11b_gr_init_rop_mapping,
 #endif
 			.fs_state = gv11b_gr_init_fs_state,
@@ -976,7 +976,7 @@ static const struct gpu_ops tu104_ops = {
 	.userd = {
 		.setup_sw = nvgpu_userd_setup_sw,
 		.cleanup_sw = nvgpu_userd_cleanup_sw,
-#ifdef NVGPU_USERD
+#ifdef CONFIG_NVGPU_USERD
 		.init_mem = gk20a_userd_init_mem,
 		.gp_get = gv11b_userd_gp_get,
 		.gp_put = gv11b_userd_gp_put,
@@ -1020,11 +1020,11 @@ static const struct gpu_ops tu104_ops = {
 		.unbind_channel_check_eng_faulted =
 				gv11b_tsg_unbind_channel_check_eng_faulted,
 		.check_ctxsw_timeout = nvgpu_tsg_check_ctxsw_timeout,
-#ifdef NVGPU_FEATURE_CHANNEL_TSG_CONTROL
+#ifdef CONFIG_NVGPU_CHANNEL_TSG_CONTROL
 		.force_reset = nvgpu_tsg_force_reset_ch,
 		.post_event_id = nvgpu_tsg_post_event_id,
 #endif
-#ifdef NVGPU_FEATURE_CHANNEL_TSG_SCHEDULING
+#ifdef CONFIG_NVGPU_CHANNEL_TSG_SCHEDULING
 		.set_timeslice = nvgpu_tsg_set_timeslice,
 #endif
 		.default_timeslice_us = nvgpu_tsg_default_timeslice_us,
@@ -1076,14 +1076,14 @@ static const struct gpu_ops tu104_ops = {
 		.init_elcg_mode = gv11b_therm_init_elcg_mode,
 		.init_blcg_mode = gm20b_therm_init_blcg_mode,
 		.elcg_init_idle_filters = NULL,
-#ifdef NVGPU_FEATURE_LS_PMU
+#ifdef CONFIG_NVGPU_LS_PMU
 		.get_internal_sensor_curr_temp =
 			gp106_get_internal_sensor_curr_temp,
 		.get_internal_sensor_limits =
 			gp106_get_internal_sensor_limits,
 #endif
 	},
-#ifdef NVGPU_FEATURE_LS_PMU
+#ifdef CONFIG_NVGPU_LS_PMU
 	.pmu = {
 		.falcon_base_addr = gp106_pmu_falcon_base_addr,
 		.pmu_queue_tail = gk20a_pmu_queue_tail,
@@ -1144,7 +1144,7 @@ static const struct gpu_ops tu104_ops = {
 		.stop_clk_arb_threads = gv100_stop_clk_arb_threads,
 	},
 #endif
-#ifdef NVGPU_DEBUGGER
+#ifdef CONFIG_NVGPU_DEBUGGER
 	.regops = {
 		.exec_regops = exec_regops_gk20a,
 		.get_global_whitelist_ranges =
@@ -1193,7 +1193,7 @@ static const struct gpu_ops tu104_ops = {
 	.debug = {
 		.show_dump = gk20a_debug_show_dump,
 	},
-#ifdef NVGPU_DEBUGGER
+#ifdef CONFIG_NVGPU_DEBUGGER
 	.debugger = {
 		.post_events = nvgpu_dbg_gpu_post_events,
 		.dbg_set_powergate = nvgpu_dbg_set_powergate,
@@ -1234,7 +1234,7 @@ static const struct gpu_ops tu104_ops = {
 		.read_ptimer = gk20a_read_ptimer,
 		.get_timestamps_zipper = nvgpu_get_timestamps_zipper,
 	},
-#if defined(CONFIG_GK20A_CYCLE_STATS)
+#if defined(CONFIG_NVGPU_CYCLESTATS)
 	.css = {
 		.enable_snapshot = nvgpu_css_enable_snapshot,
 		.disable_snapshot = nvgpu_css_disable_snapshot,
@@ -1306,7 +1306,7 @@ static const struct gpu_ops tu104_ops = {
 		.read_vin_cal_gain_offset_fuse =
 			gp106_fuse_read_vin_cal_gain_offset_fuse,
 	},
-#if defined(CONFIG_TEGRA_NVLINK)
+#if defined(CONFIG_NVGPU_NVLINK)
 	.nvlink = {
 		.get_link_reset_mask = gv100_nvlink_get_link_reset_mask,
 		.discover_ioctrl = gv100_nvlink_discover_ioctrl,
@@ -1358,7 +1358,7 @@ static const struct gpu_ops tu104_ops = {
 		}
 	},
 #endif
-#ifdef NVGPU_DGPU_SUPPORT
+#ifdef CONFIG_NVGPU_DGPU
 	.sec2 = {
 		.secured_sec2_start = tu104_start_sec2_secure,
 		.enable_irq = tu104_sec2_enable_irq,
@@ -1436,12 +1436,12 @@ int tu104_init_hal(struct gk20a *g)
 	gops->netlist = tu104_ops.netlist;
 	gops->mm = tu104_ops.mm;
 	gops->therm = tu104_ops.therm;
-#ifdef NVGPU_FEATURE_LS_PMU
+#ifdef CONFIG_NVGPU_LS_PMU
 	gops->pmu = tu104_ops.pmu;
 #endif
 	gops->mc = tu104_ops.mc;
 	gops->debug = tu104_ops.debug;
-#ifdef NVGPU_DEBUGGER
+#ifdef CONFIG_NVGPU_DEBUGGER
 	gops->debugger = tu104_ops.debugger;
 	gops->regops = tu104_ops.regops;
 	gops->perf = tu104_ops.perf;
@@ -1449,7 +1449,7 @@ int tu104_init_hal(struct gk20a *g)
 #endif
 	gops->bus = tu104_ops.bus;
 	gops->ptimer = tu104_ops.ptimer;
-#if defined(CONFIG_GK20A_CYCLE_STATS)
+#if defined(CONFIG_NVGPU_CYCLESTATS)
 	gops->css = tu104_ops.css;
 #endif
 	gops->xve = tu104_ops.xve;
@@ -1457,7 +1457,7 @@ int tu104_init_hal(struct gk20a *g)
 	gops->priv_ring = tu104_ops.priv_ring;
 	gops->fuse = tu104_ops.fuse;
 	gops->nvlink = tu104_ops.nvlink;
-#ifdef NVGPU_DGPU_SUPPORT
+#ifdef CONFIG_NVGPU_DGPU
 	gops->sec2 = tu104_ops.sec2;
 #endif
 	gops->gsp = tu104_ops.gsp;
@@ -1505,7 +1505,7 @@ int tu104_init_hal(struct gk20a *g)
 	gops->pmu_perf.support_vfe = true;
 	gops->clk.support_vf_point = true;
 	gops->clk.lut_num_entries = CTRL_CLK_LUT_NUM_ENTRIES_GV10x;
-#ifdef NVGPU_FEATURE_LS_PMU
+#ifdef CONFIG_NVGPU_LS_PMU
 	gops->clk.perf_pmu_vfe_load = nvgpu_perf_pmu_vfe_load_ps35;
 #endif
 	nvgpu_pramin_ops_init(g);

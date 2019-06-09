@@ -45,7 +45,7 @@ srcs +=	os/posix/nvgpu.c \
 	os/posix/posix-vidmem.c \
 	os/posix/fecs_trace_posix.c
 
-ifdef NVGPU_NVLINK_SUPPORT
+ifdef CONFIG_NVGPU_NVLINK
 srcs +=	os/posix/posix-nvlink.c
 endif
 endif
@@ -274,21 +274,21 @@ srcs += common/utils/enabled.c \
 	hal/top/top_gp106.c \
 	hal/top/top_gv11b.c
 
-ifeq ($(NVGPU_FEATURE_ACR_LEGACY),1)
+ifeq ($(CONFIG_NVGPU_ACR_LEGACY),1)
 srcs += \
 	common/acr/acr_blob_construct_v0.c \
 	common/acr/acr_sw_gm20b.c \
 	common/acr/acr_sw_gp10b.c
 endif
 
-ifeq ($(NVGPU_FEATURE_ENGINE_QUEUE),1)
+ifeq ($(CONFIG_NVGPU_ENGINE_QUEUE),1)
 srcs += common/engine_queues/engine_mem_queue.c \
 	common/engine_queues/engine_dmem_queue.c \
 	common/engine_queues/engine_emem_queue.c \
 	common/engine_queues/engine_fb_queue.c
 endif
 
-ifeq ($(NVGPU_GRAPHICS),1)
+ifeq ($(CONFIG_NVGPU_GRAPHICS),1)
 srcs += common/gr/zbc.c \
 	common/gr/zcull.c \
 	hal/gr/zbc/zbc_gm20b.c \
@@ -298,7 +298,7 @@ srcs += common/gr/zbc.c \
 	hal/gr/zcull/zcull_gv11b.c
 endif
 
-ifeq ($(NVGPU_DEBUGGER),1)
+ifeq ($(CONFIG_NVGPU_DEBUGGER),1)
 srcs += common/debugger.c \
 	common/regops/regops.c \
 	common/gr/hwpm_map.c \
@@ -319,23 +319,23 @@ srcs += common/debugger.c \
 	hal/gr/gr/gr_tu104.c
 endif
 
-ifeq ($(NVGPU_FEATURE_CE),1)
+ifeq ($(CONFIG_NVGPU_CE),1)
 srcs += common/ce/ce.c
 endif
 
-ifeq ($(NVGPU_FECS_TRACE_SUPPORT),1)
+ifeq ($(CONFIG_NVGPU_FECS_TRACE),1)
 srcs += common/gr/fecs_trace.c \
 	hal/gr/fecs_trace/fecs_trace_gm20b.c \
 	hal/gr/fecs_trace/fecs_trace_gv11b.c
-ifeq ($(IGPU_VIRT_SUPPORT), 1)
+ifeq ($(CONFIG_NVGPU_IGPU_VIRT),1)
 srcs += common/vgpu/gr/fecs_trace_vgpu.c
 endif
 endif
 
-ifeq ($(NVGPU_CYCLESTATS_SUPPORT),1)
+ifeq ($(CONFIG_NVGPU_CYCLESTATS),1)
 srcs += common/perf/cyclestats_snapshot.c \
 	common/cyclestats/cyclestats.c
-ifeq ($(IGPU_VIRT_SUPPORT), 1)
+ifeq ($(CONFIG_NVGPU_IGPU_VIRT),1)
 srcs += common/vgpu/perf/cyclestats_snapshot_vgpu.c
 endif
 endif
@@ -348,7 +348,7 @@ endif
 srcs += hal/gr/config/gr_config_gm20b.c \
 	hal/gr/config/gr_config_gv100.c
 
-ifeq ($(NVGPU_FEATURE_LS_PMU),1)
+ifeq ($(CONFIG_NVGPU_LS_PMU),1)
 # Add LS PMU files which are required for normal build
 srcs += \
 	common/pmu/boardobj/boardobj.c \
@@ -420,11 +420,11 @@ srcs += \
 	hal/pmu/pmu_tu104.c
 endif
 
-ifeq ($(NVGPU_FEATURE_POWER_PG), 1)
+ifeq ($(CONFIG_NVGPU_POWER_PG),1)
 srcs += common/power_features/pg/pg.c
 endif
 
-ifeq ($(IGPU_VIRT_SUPPORT), 1)
+ifeq ($(CONFIG_NVGPU_IGPU_VIRT),1)
 srcs += common/vgpu/init/init_vgpu.c \
 	common/vgpu/init/init_hal_vgpu.c \
 	common/vgpu/ivc/comm_vgpu.c \
@@ -454,7 +454,7 @@ srcs += common/vgpu/init/init_vgpu.c \
 	common/vgpu/gp10b/vgpu_hal_gp10b.c
 endif
 
-ifeq ($(NVGPU_NVLINK_SUPPORT), 1)
+ifeq ($(CONFIG_NVGPU_NVLINK),1)
 srcs += common/vbios/nvlink_bios.c \
 	common/nvlink/probe.c \
 	common/nvlink/init/device_reginit.c \
@@ -471,7 +471,7 @@ srcs += common/vbios/nvlink_bios.c \
 	hal/nvlink/link_mode_transitions_tu104.c
 endif
 
-ifeq ($(NVGPU_DGPU_SUPPORT), 1)
+ifeq ($(CONFIG_NVGPU_DGPU),1)
 srcs += common/sec2/sec2.c \
 	common/sec2/sec2_allocator.c \
 	common/sec2/sec2_lsfm.c \

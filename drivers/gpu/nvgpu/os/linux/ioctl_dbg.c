@@ -590,7 +590,7 @@ static int dbg_unbind_all_channels_gk20a(struct dbg_session_gk20a *dbg_s)
 	return 0;
 }
 
-#ifdef NVGPU_DEBUGGER
+#ifdef CONFIG_NVGPU_DEBUGGER
 /*
  * Convert common regops op values of the form of NVGPU_DBG_REG_OP_*
  * into linux regops op values of the form of NVGPU_DBG_GPU_REG_OP_*
@@ -935,7 +935,7 @@ static int nvgpu_ioctl_channel_reg_ops(struct dbg_session_gk20a *dbg_s,
 
 	return err;
 }
-#endif /* NVGPU_DEBUGGER */
+#endif /* CONFIG_NVGPU_DEBUGGER */
 
 static int nvgpu_ioctl_powergate_gk20a(struct dbg_session_gk20a *dbg_s,
 				struct nvgpu_dbg_gpu_powergate_args *args)
@@ -1906,7 +1906,7 @@ static int nvgpu_dbg_gpu_set_sm_exception_type_mask(struct dbg_session_gk20a *db
 	return err;
 }
 
-#if defined(CONFIG_GK20A_CYCLE_STATS)
+#if defined(CONFIG_NVGPU_CYCLESTATS)
 static int nvgpu_dbg_gpu_cycle_stats(struct dbg_session_gk20a *dbg_s,
 			struct nvgpu_dbg_gpu_cycle_stats_args *args)
 {
@@ -2038,7 +2038,7 @@ long gk20a_dbg_gpu_dev_ioctl(struct file *filp, unsigned int cmd,
 			     (struct nvgpu_dbg_gpu_bind_channel_args *)buf);
 		break;
 
-#ifdef NVGPU_DEBUGGER
+#ifdef CONFIG_NVGPU_DEBUGGER
 	case NVGPU_DBG_GPU_IOCTL_REG_OPS:
 		err = nvgpu_ioctl_channel_reg_ops(dbg_s,
 			   (struct nvgpu_dbg_gpu_exec_reg_ops_args *)buf);
@@ -2145,7 +2145,7 @@ long gk20a_dbg_gpu_dev_ioctl(struct file *filp, unsigned int cmd,
 		   (struct nvgpu_dbg_gpu_set_sm_exception_type_mask_args *)buf);
 		break;
 
-#ifdef CONFIG_GK20A_CYCLE_STATS
+#ifdef CONFIG_NVGPU_CYCLESTATS
 	case NVGPU_DBG_GPU_IOCTL_CYCLE_STATS:
 		err = nvgpu_dbg_gpu_cycle_stats(dbg_s,
 				(struct nvgpu_dbg_gpu_cycle_stats_args *)buf);

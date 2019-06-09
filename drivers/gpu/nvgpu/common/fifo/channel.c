@@ -291,7 +291,7 @@ static void gk20a_free_channel(struct nvgpu_channel *ch, bool force)
 	struct dbg_session_data *session_data, *tmp_s;
 	struct dbg_session_channel_data *ch_data, *tmp;
 	int err;
-#ifdef NVGPU_DEBUGGER
+#ifdef CONFIG_NVGPU_DEBUGGER
 	bool deferred_reset_pending;
 #endif
 
@@ -379,7 +379,7 @@ static void gk20a_free_channel(struct nvgpu_channel *ch, bool force)
 			__func__, "references");
 	}
 
-#ifdef NVGPU_DEBUGGER
+#ifdef CONFIG_NVGPU_DEBUGGER
 	/* if engine reset was deferred, perform it now */
 	nvgpu_mutex_acquire(&f->deferred_reset_mutex);
 	deferred_reset_pending = g->fifo.deferred_reset_pending;
@@ -403,7 +403,7 @@ static void gk20a_free_channel(struct nvgpu_channel *ch, bool force)
 	nvgpu_log_info(g, "freeing bound channel context, timeout=%ld",
 			timeout);
 
-#ifdef CONFIG_GK20A_CTXSW_TRACE
+#ifdef CONFIG_NVGPU_FECS_TRACE
 	if (g->ops.gr.fecs_trace.unbind_channel && !ch->vpr)
 		g->ops.gr.fecs_trace.unbind_channel(g, &ch->inst_block);
 #endif
@@ -717,7 +717,7 @@ struct nvgpu_channel *gk20a_open_new_channel(struct gk20a *g,
 	ch->ctxsw_timeout_debug_dump = true;
 	ch->unserviceable = false;
 
-#ifdef NVGPU_CHANNEL_WDT
+#ifdef CONFIG_NVGPU_CHANNEL_WDT
 	/* init kernel watchdog timeout */
 	ch->wdt.enabled = true;
 	ch->wdt.limit_ms = g->ch_wdt_init_limit_ms;
@@ -1211,7 +1211,7 @@ static int nvgpu_channel_setup_ramfc(struct nvgpu_channel *c,
 	u64 pbdma_acquire_timeout = 0ULL;
 	struct gk20a *g = c->g;
 
-#ifdef NVGPU_CHANNEL_WDT
+#ifdef CONFIG_NVGPU_CHANNEL_WDT
 	if (c->wdt.enabled && nvgpu_is_timeouts_enabled(c->g)) {
 		pbdma_acquire_timeout = c->wdt.limit_ms;
 	}
@@ -1386,7 +1386,7 @@ int nvgpu_channel_setup_bind(struct nvgpu_channel *c,
 	struct gk20a *g = c->g;
 	int err = 0;
 
-#ifdef NVGPU_VPR
+#ifdef CONFIG_NVGPU_VPR
 	if ((args->flags & NVGPU_SETUP_BIND_FLAGS_SUPPORT_VPR) != 0U) {
 		c->vpr = true;
 	}
@@ -1568,7 +1568,7 @@ u32 nvgpu_channel_update_gpfifo_get_and_get_free_count(struct nvgpu_channel *ch)
 	return nvgpu_channel_get_gpfifo_free_count(ch);
 }
 
-#ifdef NVGPU_CHANNEL_WDT
+#ifdef CONFIG_NVGPU_CHANNEL_WDT
 
 static void nvgpu_channel_wdt_init(struct nvgpu_channel *ch)
 {
@@ -1762,7 +1762,7 @@ static void nvgpu_channel_wdt_handler(struct nvgpu_channel *ch)
 			gk20a_gr_debug_dump(g);
 		}
 
-#ifdef NVGPU_FEATURE_CHANNEL_TSG_CONTROL
+#ifdef CONFIG_NVGPU_CHANNEL_TSG_CONTROL
 		if (g->ops.tsg.force_reset(ch,
 			NVGPU_ERR_NOTIFIER_FIFO_ERROR_IDLE_TIMEOUT,
 			ch->wdt.debug_dump) != 0) {
@@ -1826,7 +1826,7 @@ nvgpu_channel_worker_from_worker(struct nvgpu_worker *worker)
 	   ((uintptr_t)worker - offsetof(struct nvgpu_channel_worker, worker));
 };
 
-#ifdef NVGPU_CHANNEL_WDT
+#ifdef CONFIG_NVGPU_CHANNEL_WDT
 
 static void nvgpu_channel_worker_poll_init(struct nvgpu_worker *worker)
 {
@@ -1890,7 +1890,7 @@ static void nvgpu_channel_worker_poll_wakeup_process_item(
 }
 
 static const struct nvgpu_worker_ops channel_worker_ops = {
-#ifdef NVGPU_CHANNEL_WDT
+#ifdef CONFIG_NVGPU_CHANNEL_WDT
 	.pre_process = nvgpu_channel_worker_poll_init,
 	.wakeup_post_process =
 		nvgpu_channel_worker_poll_wakeup_post_process_item,
@@ -2009,7 +2009,7 @@ int nvgpu_channel_add_job(struct nvgpu_channel *c,
 		job->num_mapped_buffers = num_mapped_buffers;
 		job->mapped_buffers = mapped_buffers;
 
-#ifdef NVGPU_CHANNEL_WDT
+#ifdef CONFIG_NVGPU_CHANNEL_WDT
 		nvgpu_channel_wdt_start(c);
 #endif
 
@@ -2058,7 +2058,7 @@ void nvgpu_channel_clean_up_jobs(struct nvgpu_channel *c,
 	struct nvgpu_channel_job *job;
 	struct gk20a *g;
 	bool job_finished = false;
-#ifdef NVGPU_CHANNEL_WDT
+#ifdef CONFIG_NVGPU_CHANNEL_WDT
 	bool watchdog_on = false;
 #endif
 
@@ -2075,7 +2075,7 @@ void nvgpu_channel_clean_up_jobs(struct nvgpu_channel *c,
 	vm = c->vm;
 	g = c->g;
 
-#ifdef NVGPU_CHANNEL_WDT
+#ifdef CONFIG_NVGPU_CHANNEL_WDT
 	/*
 	 * If !clean_all, we're in a condition where watchdog isn't supported
 	 * anyway (this would be a no-op).
@@ -2112,7 +2112,7 @@ void nvgpu_channel_clean_up_jobs(struct nvgpu_channel *c,
 
 		completed = nvgpu_fence_is_expired(job->post_fence);
 		if (!completed) {
-#ifdef NVGPU_CHANNEL_WDT
+#ifdef CONFIG_NVGPU_CHANNEL_WDT
 			/*
 			 * The watchdog eventually sees an updated gp_get if
 			 * something happened in this loop. A new job can have
@@ -2320,7 +2320,7 @@ static void nvgpu_channel_destroy(struct gk20a *g, struct nvgpu_channel *c)
 	nvgpu_mutex_destroy(&c->joblist.cleanup_lock);
 	nvgpu_mutex_destroy(&c->joblist.pre_alloc.read_lock);
 	nvgpu_mutex_destroy(&c->sync_lock);
-#if defined(CONFIG_GK20A_CYCLE_STATS)
+#if defined(CONFIG_NVGPU_CYCLESTATS)
 	nvgpu_mutex_destroy(&c->cyclestate.cyclestate_buffer_mutex);
 	nvgpu_mutex_destroy(&c->cs_client_mutex);
 #endif
@@ -2377,7 +2377,7 @@ int nvgpu_channel_init_support(struct gk20a *g, u32 chid)
 	nvgpu_spinlock_init(&c->ref_actions_lock);
 #endif
 	nvgpu_spinlock_init(&c->joblist.dynamic.lock);
-#ifdef NVGPU_CHANNEL_WDT
+#ifdef CONFIG_NVGPU_CHANNEL_WDT
 	nvgpu_spinlock_init(&c->wdt.lock);
 #endif
 
@@ -2389,7 +2389,7 @@ int nvgpu_channel_init_support(struct gk20a *g, u32 chid)
 	nvgpu_mutex_init(&c->joblist.cleanup_lock);
 	nvgpu_mutex_init(&c->joblist.pre_alloc.read_lock);
 	nvgpu_mutex_init(&c->sync_lock);
-#if defined(CONFIG_GK20A_CYCLE_STATS)
+#if defined(CONFIG_NVGPU_CYCLESTATS)
 	nvgpu_mutex_init(&c->cyclestate.cyclestate_buffer_mutex);
 	nvgpu_mutex_init(&c->cs_client_mutex);
 #endif
@@ -2566,7 +2566,7 @@ void gk20a_channel_semaphore_wakeup(struct gk20a *g, bool post_events)
 					nvgpu_warn(g, "failed to broadcast");
 				}
 
-#ifdef NVGPU_FEATURE_CHANNEL_TSG_CONTROL
+#ifdef CONFIG_NVGPU_CHANNEL_TSG_CONTROL
 				if (post_events) {
 					struct nvgpu_tsg *tsg =
 							nvgpu_tsg_from_ch(c);
@@ -2726,7 +2726,7 @@ void nvgpu_channel_debug_dump_all(struct gk20a *g,
 	nvgpu_kfree(g, infos);
 }
 
-#ifdef NVGPU_DEBUGGER
+#ifdef CONFIG_NVGPU_DEBUGGER
 int nvgpu_channel_deferred_reset_engines(struct gk20a *g,
 		struct nvgpu_channel *ch)
 {

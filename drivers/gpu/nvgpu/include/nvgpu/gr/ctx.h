@@ -52,7 +52,7 @@ struct patch_desc;
 struct pm_ctx_desc;
 struct nvgpu_gr_ctx_desc;
 
-#ifdef NVGPU_GRAPHICS
+#ifdef CONFIG_NVGPU_GRAPHICS
 struct zcull_ctx_desc;
 #endif
 
@@ -175,7 +175,7 @@ void nvgpu_gr_ctx_set_patch_ctx(struct gk20a *g, struct nvgpu_gr_ctx *gr_ctx,
 
 u32 nvgpu_gr_ctx_get_ctx_id(struct gk20a *g, struct nvgpu_gr_ctx *gr_ctx);
 
-#ifdef NVGPU_GRAPHICS
+#ifdef CONFIG_NVGPU_GRAPHICS
 void nvgpu_gr_ctx_set_zcull_ctx(struct gk20a *g, struct nvgpu_gr_ctx *gr_ctx,
 	u32 mode, u64 gpu_va);
 
@@ -229,7 +229,7 @@ void nvgpu_gr_ctx_set_cilp_preempt_pending(struct nvgpu_gr_ctx *gr_ctx,
 
 u32 nvgpu_gr_ctx_read_ctx_id(struct nvgpu_gr_ctx *gr_ctx);
 
-#ifdef NVGPU_FEATURE_CHANNEL_TSG_SCHEDULING
+#ifdef CONFIG_NVGPU_CHANNEL_TSG_SCHEDULING
 void nvgpu_gr_ctx_set_boosted_ctx(struct nvgpu_gr_ctx *gr_ctx, bool boost);
 
 bool nvgpu_gr_ctx_get_boosted_ctx(struct nvgpu_gr_ctx *gr_ctx);

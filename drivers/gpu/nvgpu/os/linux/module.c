@@ -217,7 +217,7 @@ int nvgpu_finalize_poweron_linux(struct nvgpu_os_linux *l)
 		return err;
 	}
 
-#ifdef CONFIG_GK20A_CTXSW_TRACE
+#ifdef CONFIG_NVGPU_FECS_TRACE
 	err = gk20a_ctxsw_trace_init(g);
 	if (err != 0)
 		nvgpu_warn(g, "could not initialize ctxsw tracing");
@@ -431,7 +431,7 @@ int gk20a_pm_finalize_poweron(struct device *dev)
 	if (err)
 		goto done;
 
-#ifdef NVGPU_FEATURE_CE
+#ifdef CONFIG_NVGPU_CE
 	nvgpu_init_mm_ce_context(g);
 #endif
 
@@ -833,7 +833,7 @@ void gk20a_remove_support(struct gk20a *g)
 
 	tegra_unregister_idle_unidle(gk20a_do_idle);
 
-#ifdef NVGPU_DEBUGGER
+#ifdef CONFIG_NVGPU_DEBUGGER
 	nvgpu_kfree(g, g->dbg_regops_tmp_buf);
 #endif
 
@@ -864,7 +864,7 @@ void gk20a_remove_support(struct gk20a *g)
 			sim_linux->remove_support_linux(g);
 	}
 
-#if defined(CONFIG_GK20A_CYCLE_STATS)
+#if defined(CONFIG_NVGPU_CYCLESTATS)
 	nvgpu_free_cyclestats_snapshot_data(g);
 #endif
 
@@ -1546,7 +1546,7 @@ int nvgpu_remove(struct device *dev, struct class *class)
 		gk20a_cde_destroy(l);
 #endif
 
-#ifdef CONFIG_GK20A_CTXSW_TRACE
+#ifdef CONFIG_NVGPU_FECS_TRACE
 	gk20a_ctxsw_trace_cleanup(g);
 #endif
 

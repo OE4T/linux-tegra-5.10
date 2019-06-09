@@ -102,7 +102,7 @@ struct nvgpu_gr_config *nvgpu_gr_config_init(struct gk20a *g)
 	temp2 = nvgpu_safe_mult_u64((size_t)config->max_gpc_count, sizeof(u32));
 	config->gpc_tpc_count = nvgpu_kzalloc(g, gpc_size);
 	config->gpc_tpc_mask = nvgpu_kzalloc(g, temp2);
-#ifdef NVGPU_GRAPHICS
+#ifdef CONFIG_NVGPU_GRAPHICS
 	config->max_zcull_per_gpc_count = nvgpu_get_litter_value(g,
 		GPU_LIT_NUM_ZCULL_BANKS);
 
@@ -117,7 +117,7 @@ struct nvgpu_gr_config *nvgpu_gr_config_init(struct gk20a *g)
 	config->gpc_skip_mask = nvgpu_kzalloc(g, temp3);
 
 	if ((config->gpc_tpc_count == NULL) || (config->gpc_tpc_mask == NULL) ||
-#ifdef NVGPU_GRAPHICS
+#ifdef CONFIG_NVGPU_GRAPHICS
 	    (config->gpc_zcb_count == NULL) ||
 #endif
 	    (config->gpc_ppc_count == NULL) ||
@@ -143,7 +143,7 @@ struct nvgpu_gr_config *nvgpu_gr_config_init(struct gk20a *g)
 
 	config->ppc_count = 0;
 	config->tpc_count = 0;
-#ifdef NVGPU_GRAPHICS
+#ifdef CONFIG_NVGPU_GRAPHICS
 	config->zcb_count = 0;
 #endif
 	for (gpc_index = 0; gpc_index < config->gpc_count; gpc_index++) {
@@ -153,7 +153,7 @@ struct nvgpu_gr_config *nvgpu_gr_config_init(struct gk20a *g)
 		config->tpc_count = nvgpu_safe_add_u32(config->tpc_count,
 					config->gpc_tpc_count[gpc_index]);
 
-#ifdef NVGPU_GRAPHICS
+#ifdef CONFIG_NVGPU_GRAPHICS
 		config->gpc_zcb_count[gpc_index] =
 			g->ops.gr.config.get_zcull_count_in_gpc(g, config,
 				gpc_index);
@@ -220,7 +220,7 @@ struct nvgpu_gr_config *nvgpu_gr_config_init(struct gk20a *g)
 
 	nvgpu_log_info(g, "max_gpc_count: %d", config->max_gpc_count);
 	nvgpu_log_info(g, "max_tpc_per_gpc_count: %d", config->max_tpc_per_gpc_count);
-#ifdef NVGPU_GRAPHICS
+#ifdef CONFIG_NVGPU_GRAPHICS
 	nvgpu_log_info(g, "max_zcull_per_gpc_count: %d", config->max_zcull_per_gpc_count);
 #endif
 	nvgpu_log_info(g, "max_tpc_count: %d", config->max_tpc_count);
@@ -233,7 +233,7 @@ struct nvgpu_gr_config *nvgpu_gr_config_init(struct gk20a *g)
 		nvgpu_log_info(g, "gpc_tpc_count[%d] : %d",
 			   gpc_index, config->gpc_tpc_count[gpc_index]);
 	}
-#ifdef NVGPU_GRAPHICS
+#ifdef CONFIG_NVGPU_GRAPHICS
 	for (gpc_index = 0; gpc_index < config->gpc_count; gpc_index++) {
 		nvgpu_log_info(g, "gpc_zcb_count[%d] : %d",
 			   gpc_index, config->gpc_zcb_count[gpc_index]);
@@ -274,7 +274,7 @@ clean_up:
 	return NULL;
 }
 
-#ifdef NVGPU_GRAPHICS
+#ifdef CONFIG_NVGPU_GRAPHICS
 static u32 prime_set[18] = {
 	2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61 };
 
@@ -519,7 +519,7 @@ void nvgpu_gr_config_deinit(struct gk20a *g, struct nvgpu_gr_config *config)
 	nvgpu_kfree(g, config->gpc_ppc_count);
 	nvgpu_kfree(g, config->gpc_skip_mask);
 	nvgpu_kfree(g, config->gpc_tpc_mask);
-#ifdef NVGPU_GRAPHICS
+#ifdef CONFIG_NVGPU_GRAPHICS
 	nvgpu_kfree(g, config->gpc_zcb_count);
 	nvgpu_kfree(g, config->map_tiles);
 #endif

@@ -40,7 +40,7 @@ u32 nvgpu_gr_config_get_gpc_count(struct nvgpu_gr_config *config);
 u32 nvgpu_gr_config_get_tpc_count(struct nvgpu_gr_config *config);
 u32 nvgpu_gr_config_get_ppc_count(struct nvgpu_gr_config *config);
 
-#ifdef NVGPU_GRAPHICS
+#ifdef CONFIG_NVGPU_GRAPHICS
 int nvgpu_gr_config_init_map_tiles(struct gk20a *g,
 				   struct nvgpu_gr_config *config);
 u32 nvgpu_gr_config_get_map_row_offset(struct nvgpu_gr_config *config);

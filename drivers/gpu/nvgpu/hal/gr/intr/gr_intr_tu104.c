@@ -91,7 +91,7 @@ int tu104_gr_intr_handle_sw_method(struct gk20a *g, u32 addr,
 		goto fail;
 	}
 
-#if defined(NVGPU_DEBUGGER) && defined(NVGPU_GRAPHICS)
+#if defined(CONFIG_NVGPU_DEBUGGER) && defined(CONFIG_NVGPU_GRAPHICS)
 	if (class_num == TURING_A) {
 		switch (offset << 2) {
 		case NVC597_SET_SHADER_EXCEPTIONS:

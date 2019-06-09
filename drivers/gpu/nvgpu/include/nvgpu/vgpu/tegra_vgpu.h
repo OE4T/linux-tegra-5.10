@@ -240,7 +240,7 @@ struct tegra_vgpu_golden_ctx_params {
 	u32 size;
 };
 
-#ifdef NVGPU_GRAPHICS
+#ifdef CONFIG_NVGPU_GRAPHICS
 struct tegra_vgpu_zcull_bind_params {
 	u64 handle;
 	u64 zcull_va;
@@ -643,7 +643,7 @@ struct tegra_vgpu_cmd_msg {
 		struct tegra_vgpu_cache_maint_params cache_maint;
 		struct tegra_vgpu_runlist_params runlist;
 		struct tegra_vgpu_golden_ctx_params golden_ctx;
-#ifdef NVGPU_GRAPHICS
+#ifdef CONFIG_NVGPU_GRAPHICS
 		struct tegra_vgpu_zcull_bind_params zcull_bind;
 		struct tegra_vgpu_zcull_info_params zcull_info;
 		struct tegra_vgpu_zbc_set_table_params zbc_set_table;

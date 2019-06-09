@@ -438,7 +438,7 @@ int gr_gm20b_update_pc_sampling(struct nvgpu_channel *c,
 
 void gr_gm20b_init_cyclestats(struct gk20a *g)
 {
-#if defined(CONFIG_GK20A_CYCLE_STATS)
+#if defined(CONFIG_NVGPU_CYCLESTATS)
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_CYCLE_STATS, true);
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_CYCLE_STATS_SNAPSHOT, true);
 #else

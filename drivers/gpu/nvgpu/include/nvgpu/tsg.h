@@ -117,7 +117,7 @@ int nvgpu_tsg_unbind_channel_check_hw_state(struct nvgpu_tsg *tsg,
 void nvgpu_tsg_unbind_channel_check_ctx_reload(struct nvgpu_tsg *tsg,
 		struct nvgpu_channel *ch,
 		struct nvgpu_channel_hw_state *hw_state);
-#ifdef NVGPU_FEATURE_CHANNEL_TSG_CONTROL
+#ifdef CONFIG_NVGPU_CHANNEL_TSG_CONTROL
 int nvgpu_tsg_force_reset_ch(struct nvgpu_channel *ch,
 				u32 err_code, bool verbose);
 #endif
@@ -130,7 +130,7 @@ bool nvgpu_tsg_mark_error(struct gk20a *g, struct nvgpu_tsg *tsg);
 bool nvgpu_tsg_check_ctxsw_timeout(struct nvgpu_tsg *tsg,
 		bool *debug_dump, u32 *ms);
 int nvgpu_tsg_set_runlist_interleave(struct nvgpu_tsg *tsg, u32 level);
-#ifdef NVGPU_FEATURE_CHANNEL_TSG_SCHEDULING
+#ifdef CONFIG_NVGPU_CHANNEL_TSG_SCHEDULING
 int nvgpu_tsg_set_timeslice(struct nvgpu_tsg *tsg, u32 timeslice_us);
 u32 nvgpu_tsg_get_timeslice(struct nvgpu_tsg *tsg);
 int nvgpu_tsg_set_priority(struct gk20a *g, struct nvgpu_tsg *tsg,
@@ -174,7 +174,7 @@ void nvgpu_tsg_set_ctxsw_timeout_accumulated_ms(struct nvgpu_tsg *tsg, u32 ms);
 void nvgpu_tsg_abort(struct gk20a *g, struct nvgpu_tsg *tsg, bool preempt);
 void nvgpu_tsg_reset_faulted_eng_pbdma(struct gk20a *g, struct nvgpu_tsg *tsg,
 		bool eng, bool pbdma);
-#ifdef NVGPU_DEBUGGER
+#ifdef CONFIG_NVGPU_DEBUGGER
 int nvgpu_tsg_set_mmu_debug_mode(struct nvgpu_tsg *tsg,
 		struct nvgpu_channel *ch, bool enable);
 #endif

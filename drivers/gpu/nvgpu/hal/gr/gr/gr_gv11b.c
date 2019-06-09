@@ -454,7 +454,7 @@ void gr_gv11b_set_gpc_tpc_mask(struct gk20a *g, u32 gpc_index)
 	nvgpu_tegra_fuse_write_opt_gpu_tpc0_disable(g, fuse_val);
 }
 
-#ifdef NVGPU_DEBUGGER
+#ifdef CONFIG_NVGPU_DEBUGGER
 static int gr_gv11b_handle_warp_esr_error_mmu_nack(struct gk20a *g,
 	u32 gpc, u32 tpc, u32 sm,
 	u32 warp_esr_error,
@@ -628,7 +628,7 @@ int gr_gv11b_pre_process_sm_exception(struct gk20a *g,
 		bool sm_debugger_attached, struct nvgpu_channel *fault_ch,
 		bool *early_exit, bool *ignore_debugger)
 {
-#ifdef NVGPU_DEBUGGER
+#ifdef CONFIG_NVGPU_DEBUGGER
 	int ret;
 	bool cilp_enabled = false;
 	u32 warp_esr_error = gr_gpc0_tpc0_sm0_hww_warp_esr_error_v(warp_esr);

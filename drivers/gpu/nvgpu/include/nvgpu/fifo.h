@@ -119,7 +119,7 @@ struct nvgpu_fifo {
 
 	} intr;
 
-#ifdef NVGPU_DEBUGGER
+#ifdef CONFIG_NVGPU_DEBUGGER
 	unsigned long deferred_fault_engines;
 	bool deferred_reset_pending;
 	struct nvgpu_mutex deferred_reset_mutex;

@@ -67,7 +67,7 @@ int vgpu_intr_thread(void *dev_id)
 				vgpu_fifo_isr(g, &msg->info.fifo_intr);
 			}
 			break;
-#ifdef CONFIG_GK20A_CTXSW_TRACE
+#ifdef CONFIG_NVGPU_FECS_TRACE
 		case TEGRA_VGPU_EVENT_FECS_TRACE:
 			vgpu_fecs_trace_data_update(g);
 			break;

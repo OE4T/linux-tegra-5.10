@@ -28,7 +28,7 @@
 struct gk20a;
 struct nvgpu_channel;
 struct gr_gk20a;
-#ifdef NVGPU_GRAPHICS
+#ifdef CONFIG_NVGPU_GRAPHICS
 struct nvgpu_gr_zcull_info;
 struct nvgpu_gr_zcull;
 struct nvgpu_gr_zbc;
@@ -55,7 +55,7 @@ u32 vgpu_gr_get_gpc_tpc_mask(struct gk20a *g, struct nvgpu_gr_config *config,
 u32 vgpu_gr_get_max_fbps_count(struct gk20a *g);
 u32 vgpu_gr_get_max_ltc_per_fbp(struct gk20a *g);
 u32 vgpu_gr_get_max_lts_per_ltc(struct gk20a *g);
-#ifdef NVGPU_GRAPHICS
+#ifdef CONFIG_NVGPU_GRAPHICS
 int vgpu_gr_bind_ctxsw_zcull(struct gk20a *g, struct nvgpu_channel *c,
 			u64 zcull_va, u32 mode);
 int vgpu_gr_get_zcull_info(struct gk20a *g,

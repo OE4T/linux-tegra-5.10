@@ -31,7 +31,7 @@
 
 int vgpu_userd_setup_sw(struct gk20a *g)
 {
-#ifdef NVGPU_USERD
+#ifdef CONFIG_NVGPU_USERD
 	struct nvgpu_fifo *f = &g->fifo;
 
 	f->userd_entry_size = g->ops.userd.entry_size(g);
@@ -44,7 +44,7 @@ int vgpu_userd_setup_sw(struct gk20a *g)
 
 void vgpu_userd_cleanup_sw(struct gk20a *g)
 {
-#ifdef NVGPU_USERD
+#ifdef CONFIG_NVGPU_USERD
 	nvgpu_userd_free_slabs(g);
 #endif
 }

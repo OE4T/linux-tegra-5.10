@@ -29,7 +29,7 @@
 
 #include "lsfm_sw_gm20b.h"
 #include "lsfm_sw_gp10b.h"
-#ifdef NVGPU_DGPU_SUPPORT
+#ifdef CONFIG_NVGPU_DGPU
 #include "lsfm_sw_gv100.h"
 #include "lsfm_sw_tu104.h"
 #endif
@@ -153,7 +153,7 @@ int nvgpu_pmu_lsfm_init(struct gk20a *g, struct nvgpu_pmu_lsfm **lsfm)
 	case NVGPU_GPUID_GV11B:
 			nvgpu_gp10b_lsfm_sw_init(g, *lsfm);
 		break;
-#ifdef NVGPU_DGPU_SUPPORT
+#ifdef CONFIG_NVGPU_DGPU
 	case NVGPU_GPUID_GV100:
 			nvgpu_gv100_lsfm_sw_init(g, *lsfm);
 		break;

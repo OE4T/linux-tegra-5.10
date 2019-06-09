@@ -47,7 +47,7 @@ struct nvgpu_gpu_ctxsw_trace_entry;
 struct nvgpu_cpu_time_correlation_sample;
 struct nvgpu_warpstate;
 struct nvgpu_clk_arb;
-#ifdef CONFIG_GK20A_CTXSW_TRACE
+#ifdef CONFIG_NVGPU_FECS_TRACE
 struct nvgpu_gpu_ctxsw_trace_filter;
 #endif
 struct priv_cmd_entry;
@@ -62,7 +62,7 @@ struct nvgpu_sgt;
 struct nvgpu_sgl;
 struct nvgpu_device_info;
 struct nvgpu_gr_subctx;
-#ifdef NVGPU_GRAPHICS
+#ifdef CONFIG_NVGPU_GRAPHICS
 struct nvgpu_gr_zbc;
 struct nvgpu_gr_zbc_entry;
 struct nvgpu_gr_zbc_query_params;
@@ -217,7 +217,7 @@ struct gpu_ops {
 		u64 (*determine_L2_size_bytes)(struct gk20a *gk20a);
 		struct nvgpu_hw_err_inject_info_desc * (*get_ltc_err_desc)
 			(struct gk20a *g);
-#ifdef NVGPU_GRAPHICS
+#ifdef CONFIG_NVGPU_GRAPHICS
 		void (*set_zbc_color_entry)(struct gk20a *g,
 					    u32 *color_val_l2,
 					    u32 index);
@@ -263,7 +263,7 @@ struct gpu_ops {
 		void (*mthd_buffer_fault_in_bar2_fault)(struct gk20a *g);
 	} ce;
 	struct {
-#ifdef NVGPU_DEBUGGER
+#ifdef CONFIG_NVGPU_DEBUGGER
 		u32 (*get_gr_status)(struct gk20a *g);
 		void (*access_smpc_reg)(struct gk20a *g, u32 quad, u32 offset);
 		void (*set_alpha_circular_buffer_size)(struct gk20a *g,
@@ -344,7 +344,7 @@ struct gpu_ops {
 				struct vm_gk20a *vm, u32 class,
 				u32 graphics_preempt_mode,
 				u32 compute_preempt_mode);
-#ifdef NVGPU_FEATURE_CHANNEL_TSG_SCHEDULING
+#ifdef CONFIG_NVGPU_CHANNEL_TSG_SCHEDULING
 		int (*set_boosted_ctx)(struct nvgpu_channel *ch, bool boost);
 #endif
 		int (*trigger_suspend)(struct gk20a *g);
@@ -423,7 +423,7 @@ struct gpu_ops {
 				struct nvgpu_mem *ctx_mem, u32 count);
 			void (*set_patch_addr)(struct gk20a *g,
 				struct nvgpu_mem *ctx_mem, u64 addr);
-#ifdef NVGPU_GRAPHICS
+#ifdef CONFIG_NVGPU_GRAPHICS
 			void (*set_zcull_ptr)(struct gk20a *g,
 				struct nvgpu_mem *ctx_mem, u64 addr);
 			void (*set_zcull)(struct gk20a *g,
@@ -468,7 +468,7 @@ struct gpu_ops {
 			void (*get_ppc_info)(u32 *context,
 				u32 *num_ppcs, u32 *ppc_mask);
 			u32 (*get_local_priv_register_ctl_offset)(u32 *context);
-#ifdef CONFIG_GK20A_CTXSW_TRACE
+#ifdef CONFIG_NVGPU_FECS_TRACE
 			u32 (*hw_get_ts_tag_invalid_timestamp)(void);
 			u32 (*hw_get_ts_tag)(u64 ts);
 			u64 (*hw_record_ts_timestamp)(u64 ts);
@@ -504,7 +504,7 @@ struct gpu_ops {
 				struct nvgpu_gr_config *config, u32 gpc_index);
 			u32 (*get_tpc_count_in_gpc)(struct gk20a *g,
 				struct nvgpu_gr_config *config, u32 gpc_index);
-#ifdef NVGPU_GRAPHICS
+#ifdef CONFIG_NVGPU_GRAPHICS
 			u32 (*get_zcull_count_in_gpc)(struct gk20a *g,
 				struct nvgpu_gr_config *config, u32 gpc_index);
 #endif
@@ -576,7 +576,7 @@ struct gpu_ops {
 			u32 (*read_fecs_ctxsw_status1)(struct gk20a *g);
 		} falcon;
 
-#ifdef CONFIG_GK20A_CTXSW_TRACE
+#ifdef CONFIG_NVGPU_FECS_TRACE
 		struct {
 			int (*init)(struct gk20a *g);
 			int (*max_entries)(struct gk20a *,
@@ -613,7 +613,7 @@ struct gpu_ops {
 #endif
 
 		struct {
-#ifdef NVGPU_GRAPHICS
+#ifdef CONFIG_NVGPU_GRAPHICS
 			int (*bind_ctxsw_zcull)(struct gk20a *g,
 						struct nvgpu_channel *c,
 						u64 zcull_va,
@@ -625,13 +625,13 @@ struct gpu_ops {
 				struct vm_gk20a *vm,
 				struct nvgpu_gr_ctx *gr_ctx);
 			void (*free_subctx)(struct nvgpu_channel *c);
-#ifdef NVGPU_FEATURE_CHANNEL_TSG_CONTROL
+#ifdef CONFIG_NVGPU_CHANNEL_TSG_CONTROL
 			int (*set_preemption_mode)(struct nvgpu_channel *ch,
 				u32 graphics_preempt_mode,
 				u32 compute_preempt_mode);
 #endif
 		} setup;
-#ifdef NVGPU_GRAPHICS
+#ifdef CONFIG_NVGPU_GRAPHICS
 		struct {
 			int (*add_color)(struct gk20a *g,
 				struct nvgpu_gr_zbc_entry *color_val,
@@ -665,9 +665,9 @@ struct gpu_ops {
 						u32 zcull_alloc_num,
 						u32 *zcull_map_tiles);
 		} zcull;
-#endif /* NVGPU_GRAPHICS */
+#endif /* CONFIG_NVGPU_GRAPHICS */
 
-#ifdef NVGPU_DEBUGGER
+#ifdef CONFIG_NVGPU_DEBUGGER
 		struct {
 			void (*align_regs_perf_pma)(u32 *offset);
 			u32 (*get_active_fbpa_mask)(struct gk20a *g);
@@ -696,10 +696,10 @@ struct gpu_ops {
 				   struct nvgpu_gr_config *gr_config);
 			void (*tpc_mask)(struct gk20a *g,
 					 u32 gpc_index, u32 pes_tpc_mask);
-#ifdef NVGPU_GRAPHICS
+#ifdef CONFIG_NVGPU_GRAPHICS
 			void (*rop_mapping)(struct gk20a *g,
 				struct nvgpu_gr_config *gr_config);
-#endif /* NVGPU_GRAPHICS */
+#endif /* CONFIG_NVGPU_GRAPHICS */
 			int (*fs_state)(struct gk20a *g);
 			void (*pd_tpc_per_gpc)(struct gk20a *g,
 				struct nvgpu_gr_config *gr_config);
@@ -1228,7 +1228,7 @@ struct gpu_ops {
 				struct nvgpu_channel_hw_state *state);
 		bool (*check_ctxsw_timeout)(struct nvgpu_tsg *tsg,
 				bool *verbose, u32 *ms);
-#ifdef NVGPU_FEATURE_CHANNEL_TSG_CONTROL
+#ifdef CONFIG_NVGPU_CHANNEL_TSG_CONTROL
 		int (*force_reset)(struct nvgpu_channel *ch,
 					u32 err_code, bool verbose);
 		void (*post_event_id)(struct nvgpu_tsg *tsg,
@@ -1366,7 +1366,7 @@ struct gpu_ops {
 		void (*secured_pmu_start)(struct gk20a *g);
 		void (*flcn_setup_boot_config)(struct gk20a *g);
 		bool (*validate_mem_integrity)(struct gk20a *g);
-#ifdef NVGPU_FEATURE_LS_PMU
+#ifdef CONFIG_NVGPU_LS_PMU
 		/* ISR */
 		void (*pmu_enable_irq)(struct nvgpu_pmu *pmu, bool enable);
 		bool (*pmu_is_interrupted)(struct nvgpu_pmu *pmu);
@@ -1480,7 +1480,7 @@ struct gpu_ops {
 		bool support_changeseq;
 		bool support_vfe;
 	} pmu_perf;
-#ifdef NVGPU_DEBUGGER
+#ifdef CONFIG_NVGPU_DEBUGGER
 	struct {
 		int (*exec_regops)(struct gk20a *g,
 			    struct nvgpu_channel *ch,
@@ -1533,7 +1533,7 @@ struct gpu_ops {
 		void (*show_dump)(struct gk20a *g,
 				struct nvgpu_debug_context *o);
 	} debug;
-#ifdef NVGPU_DEBUGGER
+#ifdef CONFIG_NVGPU_DEBUGGER
 	struct {
 		void (*post_events)(struct nvgpu_channel *ch);
 		int (*dbg_set_powergate)(struct dbg_session_gk20a *dbg_s,
@@ -1592,7 +1592,7 @@ struct gpu_ops {
 		u32 (*get_aon_secure_scratch_reg)(struct gk20a *g, u32 i);
 	} bios;
 
-#if defined(CONFIG_GK20A_CYCLE_STATS)
+#if defined(CONFIG_NVGPU_CYCLESTATS)
 	struct {
 		int (*enable_snapshot)(struct nvgpu_channel *ch,
 				struct gk20a_cs_snapshot_client *client);
@@ -1955,13 +1955,13 @@ struct gk20a {
 	/*refcount for timeout disable */
 	nvgpu_atomic_t timeouts_disabled_refcount;
 
-#ifdef NVGPU_DEBUGGER
+#ifdef CONFIG_NVGPU_DEBUGGER
 	/* must have dbg_sessions_lock before use */
 	struct nvgpu_dbg_reg_op *dbg_regops_tmp_buf;
 	u32 dbg_regops_tmp_buf_ops;
 #endif
 
-#if defined(CONFIG_GK20A_CYCLE_STATS)
+#if defined(CONFIG_NVGPU_CYCLESTATS)
 	struct nvgpu_mutex		cs_lock;
 	struct gk20a_cs_snapshot	*cs_data;
 #endif
@@ -2025,7 +2025,7 @@ struct gk20a {
 	struct nvgpu_channel_worker {
 		struct nvgpu_worker worker;
 
-#ifdef NVGPU_CHANNEL_WDT
+#ifdef CONFIG_NVGPU_CHANNEL_WDT
 		u32 watchdog_interval;
 		struct nvgpu_timeout timeout;
 #endif

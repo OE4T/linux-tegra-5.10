@@ -25,7 +25,7 @@
 #include <nvgpu/gk20a.h>
 #include "device_reginit_gv100.h"
 
-#ifdef CONFIG_TEGRA_NVLINK
+#ifdef CONFIG_NVGPU_NVLINK
 struct nvlink_reginit {
 	u32 addr;
 	u32 value;
@@ -177,4 +177,4 @@ int gv100_nvlink_reg_init(struct gk20a *g)
 	}
 	return 0;
 }
-#endif /* CONFIG_TEGRA_NVLINK */
+#endif /* CONFIG_NVGPU_NVLINK */

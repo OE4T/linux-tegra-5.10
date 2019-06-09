@@ -24,7 +24,7 @@
 #define ACR_H
 
 #include "acr_bootstrap.h"
-#ifdef NVGPU_FEATURE_ACR_LEGACY
+#ifdef CONFIG_NVGPU_ACR_LEGACY
 #include "acr_blob_construct_v0.h"
 #endif
 #include "acr_blob_construct_v1.h"

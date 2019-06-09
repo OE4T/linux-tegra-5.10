@@ -80,7 +80,7 @@ void gm20b_ctxsw_prog_set_patch_addr(struct gk20a *g,
 		ctxsw_prog_main_image_patch_adr_hi_o(), u64_hi32(addr));
 }
 
-#ifdef NVGPU_GRAPHICS
+#ifdef CONFIG_NVGPU_GRAPHICS
 void gm20b_ctxsw_prog_set_zcull_ptr(struct gk20a *g, struct nvgpu_mem *ctx_mem,
 	u64 addr)
 {
@@ -275,7 +275,7 @@ u32 gm20b_ctxsw_prog_get_local_priv_register_ctl_offset(u32 *context)
 	return ctxsw_prog_local_priv_register_ctl_offset_v(data);
 }
 
-#ifdef CONFIG_GK20A_CTXSW_TRACE
+#ifdef CONFIG_NVGPU_FECS_TRACE
 u32 gm20b_ctxsw_prog_hw_get_ts_tag_invalid_timestamp(void)
 {
 	return ctxsw_prog_record_timestamp_timestamp_hi_tag_invalid_timestamp_v();

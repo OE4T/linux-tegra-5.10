@@ -211,7 +211,7 @@ struct nvgpu_channel_joblist {
 	struct nvgpu_mutex cleanup_lock;
 };
 
-#ifdef NVGPU_CHANNEL_WDT
+#ifdef CONFIG_NVGPU_CHANNEL_WDT
 
 struct nvgpu_channel_wdt {
 	/* lock protects the running timer state */
@@ -322,7 +322,7 @@ struct nvgpu_channel {
 	struct nvgpu_cond notifier_wq;
 	struct nvgpu_cond semaphore_wq;
 
-#ifdef NVGPU_CHANNEL_WDT
+#ifdef CONFIG_NVGPU_CHANNEL_WDT
 	/* kernel watchdog to kill stuck jobs */
 	struct nvgpu_channel_wdt wdt;
 #endif
@@ -330,7 +330,7 @@ struct nvgpu_channel {
 	/* for job cleanup handling in the background worker */
 	struct nvgpu_list_node worker_item;
 
-#if defined(CONFIG_GK20A_CYCLE_STATS)
+#if defined(CONFIG_NVGPU_CYCLESTATS)
 	struct {
 		void *cyclestate_buffer;
 		u32 cyclestate_buffer_size;
@@ -382,7 +382,7 @@ struct nvgpu_channel {
 	bool has_os_fence_framework_support;
 
 	bool is_privileged_channel;
-#ifdef NVGPU_DEBUGGER
+#ifdef CONFIG_NVGPU_DEBUGGER
 	bool mmu_debug_mode_enabled;
 #endif
 };

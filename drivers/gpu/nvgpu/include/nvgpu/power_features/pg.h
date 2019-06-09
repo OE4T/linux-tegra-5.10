@@ -28,7 +28,7 @@
 
 struct gk20a;
 
-#ifdef NVGPU_FEATURE_POWER_PG
+#ifdef CONFIG_NVGPU_POWER_PG
 #define nvgpu_pg_elpg_protected_call(g, func) \
 	({ \
 		int err = 0; \

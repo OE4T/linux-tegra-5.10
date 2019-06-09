@@ -40,7 +40,7 @@ int gp10b_gr_falcon_init_ctx_state(struct gk20a *g,
 	if (err != 0) {
 		return err;
 	}
-#ifdef NVGPU_GRAPHICS
+#ifdef CONFIG_NVGPU_GRAPHICS
 	err = g->ops.gr.falcon.ctrl_ctxsw(g,
 		NVGPU_GR_FALCON_METHOD_PREEMPT_IMAGE_SIZE, 0U,
 		&sizes->preempt_image_size);
@@ -58,7 +58,7 @@ int gp10b_gr_falcon_init_ctx_state(struct gk20a *g,
 int gp10b_gr_falcon_ctrl_ctxsw(struct gk20a *g, u32 fecs_method,
 						u32 data, u32 *ret_val)
 {
-#ifdef NVGPU_GRAPHICS
+#ifdef CONFIG_NVGPU_GRAPHICS
 	struct nvgpu_fecs_method_op op = {
 		.mailbox = { .id = 0U, .data = 0U, .ret = NULL,
 			     .clr = ~U32(0U), .ok = 0U, .fail = 0U},
@@ -73,7 +73,7 @@ int gp10b_gr_falcon_ctrl_ctxsw(struct gk20a *g, u32 fecs_method,
 				fecs_method, data, ret_val);
 
 	switch (fecs_method) {
-#ifdef NVGPU_GRAPHICS
+#ifdef CONFIG_NVGPU_GRAPHICS
 	case NVGPU_GR_FALCON_METHOD_PREEMPT_IMAGE_SIZE:
 		op.method.addr =
 			gr_fecs_method_push_adr_discover_preemption_image_size_v();

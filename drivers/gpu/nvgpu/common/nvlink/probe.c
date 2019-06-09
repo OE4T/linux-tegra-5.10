@@ -26,7 +26,7 @@
 
 int nvgpu_nvlink_probe(struct gk20a *g)
 {
-#ifdef CONFIG_TEGRA_NVLINK
+#ifdef CONFIG_NVGPU_NVLINK
 	int err;
 
 	err = nvgpu_nvlink_setup_ndev(g);

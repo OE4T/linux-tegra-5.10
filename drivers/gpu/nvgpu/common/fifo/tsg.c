@@ -215,7 +215,7 @@ int nvgpu_tsg_unbind_channel_common(struct nvgpu_tsg *tsg,
 	g->ops.channel.disable(ch);
 	nvgpu_rwsem_up_write(&tsg->ch_list_lock);
 
-#ifdef NVGPU_DEBUGGER
+#ifdef CONFIG_NVGPU_DEBUGGER
 	if (ch->mmu_debug_mode_enabled) {
 		err = nvgpu_tsg_set_mmu_debug_mode(tsg, ch, false);
 		if (err != 0) {
@@ -300,7 +300,7 @@ static void nvgpu_tsg_destroy(struct gk20a *g, struct nvgpu_tsg *tsg)
 	nvgpu_mutex_destroy(&tsg->event_id_list_lock);
 }
 
-#ifdef NVGPU_FEATURE_CHANNEL_TSG_CONTROL
+#ifdef CONFIG_NVGPU_CHANNEL_TSG_CONTROL
 /* force reset tsg that the channel is bound to */
 int nvgpu_tsg_force_reset_ch(struct nvgpu_channel *ch,
 				u32 err_code, bool verbose)
@@ -521,7 +521,7 @@ bool nvgpu_tsg_check_ctxsw_timeout(struct nvgpu_tsg *tsg,
 	return recover;
 }
 
-#ifdef NVGPU_FEATURE_CHANNEL_TSG_SCHEDULING
+#ifdef CONFIG_NVGPU_CHANNEL_TSG_SCHEDULING
 int nvgpu_tsg_set_interleave(struct nvgpu_tsg *tsg, u32 level)
 {
 	struct gk20a *g = tsg->g;
@@ -863,7 +863,7 @@ void nvgpu_tsg_reset_faulted_eng_pbdma(struct gk20a *g, struct nvgpu_tsg *tsg,
 	nvgpu_rwsem_up_read(&tsg->ch_list_lock);
 }
 
-#ifdef NVGPU_DEBUGGER
+#ifdef CONFIG_NVGPU_DEBUGGER
 int nvgpu_tsg_set_mmu_debug_mode(struct nvgpu_tsg *tsg,
 		struct nvgpu_channel *ch, bool enable)
 {

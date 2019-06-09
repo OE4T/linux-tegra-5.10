@@ -28,7 +28,7 @@
 #include <nvgpu/safe_ops.h>
 #include <nvgpu/error_notifier.h>
 #include <nvgpu/power_features/pg.h>
-#if defined(CONFIG_GK20A_CYCLE_STATS)
+#if defined(CONFIG_NVGPU_CYCLESTATS)
 #include <nvgpu/cyclestats.h>
 #endif
 
@@ -132,7 +132,7 @@ static int gr_intr_handle_tpc_exception(struct gk20a *g, u32 gpc, u32 tpc,
 	return ret;
 }
 
-#if defined(NVGPU_FEATURE_CHANNEL_TSG_CONTROL) && defined(NVGPU_DEBUGGER)
+#if defined(CONFIG_NVGPU_CHANNEL_TSG_CONTROL) && defined(CONFIG_NVGPU_DEBUGGER)
 static void gr_intr_post_bpt_events(struct gk20a *g, struct nvgpu_tsg *tsg,
 				    u32 global_esr)
 {
@@ -351,7 +351,7 @@ int nvgpu_gr_intr_handle_sm_exception(struct gk20a *g, u32 gpc, u32 tpc, u32 sm,
 					  nvgpu_gr_tpc_offset(g, tpc));
 	u32 global_esr, warp_esr, global_mask;
 	u64 hww_warp_esr_pc = 0;
-#ifdef NVGPU_DEBUGGER
+#ifdef CONFIG_NVGPU_DEBUGGER
 	bool sm_debugger_attached;
 	bool do_warp_sync = false, early_exit = false, ignore_debugger = false;
 	bool disable_sm_exceptions = true;
@@ -384,7 +384,7 @@ int nvgpu_gr_intr_handle_sm_exception(struct gk20a *g, u32 gpc, u32 tpc, u32 sm,
 	    nvgpu_safe_cast_u32_to_s32(
 	     g->ops.gr.intr.record_sm_error_state(g, gpc, tpc, sm, fault_ch)));
 
-#ifdef NVGPU_DEBUGGER
+#ifdef CONFIG_NVGPU_DEBUGGER
 	sm_debugger_attached = g->ops.gr.sm_debugger_attached(g);
 	if (!sm_debugger_attached) {
 		nvgpu_err(g, "sm hww global 0x%08x warp 0x%08x",
@@ -495,7 +495,7 @@ int nvgpu_gr_intr_handle_fecs_error(struct gk20a *g, struct nvgpu_channel *ch,
 	} else if (fecs_host_intr.ctxsw_intr0 != 0U) {
 		mailbox_value = g->ops.gr.falcon.read_fecs_ctxsw_mailbox(g,
 								mailbox_id);
-#ifdef CONFIG_GK20A_CTXSW_TRACE
+#ifdef CONFIG_NVGPU_FECS_TRACE
 		if (mailbox_value ==
 			g->ops.gr.fecs_trace.get_buffer_full_mailbox_val()) {
 			nvgpu_info(g, "ctxsw intr0 set by ucode, "
@@ -632,7 +632,7 @@ void nvgpu_gr_intr_handle_notify_pending(struct gk20a *g,
 
 	nvgpu_log_fn(g, " ");
 
-#if defined(CONFIG_GK20A_CYCLE_STATS)
+#if defined(CONFIG_NVGPU_CYCLESTATS)
 	nvgpu_cyclestats_exec(g, ch, isr_data->data_lo);
 #endif
 
@@ -656,7 +656,7 @@ void nvgpu_gr_intr_handle_semaphore_pending(struct gk20a *g,
 	if (tsg != NULL) {
 		int err;
 
-#ifdef NVGPU_FEATURE_CHANNEL_TSG_CONTROL
+#ifdef CONFIG_NVGPU_CHANNEL_TSG_CONTROL
 		g->ops.tsg.post_event_id(tsg,
 			NVGPU_EVENT_ID_GR_SEMAPHORE_WRITE_AWAKEN);
 #endif
@@ -811,7 +811,7 @@ int nvgpu_gr_intr_stall_isr(struct gk20a *g)
 				need_reset = true;
 			}
 
-#ifdef NVGPU_DEBUGGER
+#ifdef CONFIG_NVGPU_DEBUGGER
 			/* signal clients waiting on an event */
 			if (g->ops.gr.sm_debugger_attached(g) &&
 				post_event && (fault_ch != NULL)) {
@@ -853,7 +853,7 @@ int nvgpu_gr_intr_stall_isr(struct gk20a *g)
 	/* Enable fifo access */
 	g->ops.gr.init.fifo_access(g, true);
 
-#if defined(NVGPU_FEATURE_CHANNEL_TSG_CONTROL) && defined(NVGPU_DEBUGGER)
+#if defined(CONFIG_NVGPU_CHANNEL_TSG_CONTROL) && defined(CONFIG_NVGPU_DEBUGGER)
 	/* Posting of BPT events should be the last thing in this function */
 	if ((global_esr != 0U) && (tsg != NULL) && (need_reset == false)) {
 		gr_intr_post_bpt_events(g, tsg, global_esr);

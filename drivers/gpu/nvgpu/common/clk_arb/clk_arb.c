@@ -34,7 +34,7 @@
 #include <nvgpu/timers.h>
 #include <nvgpu/worker.h>
 #include <nvgpu/gk20a.h>
-#ifdef NVGPU_FEATURE_LS_PMU
+#ifdef CONFIG_NVGPU_LS_PMU
 #include <nvgpu/pmu/perf_pstate.h>
 #include <nvgpu/pmu/volt.h>
 #include <nvgpu/pmu/clk/clk.h>
@@ -107,7 +107,7 @@ void nvgpu_clk_arb_set_global_alarm(struct gk20a *g, u32 alarm)
 	nvgpu_clk_arb_queue_notification(g, &arb->notification_queue, alarm);
 }
 
-#ifdef NVGPU_FEATURE_LS_PMU
+#ifdef CONFIG_NVGPU_LS_PMU
 int nvgpu_clk_arb_update_vf_table(struct nvgpu_clk_arb *arb)
 {
 	struct gk20a *g = arb->g;
@@ -383,7 +383,7 @@ static void nvgpu_clk_arb_worker_poll_wakeup_process_item(
 	clk_arb_dbg(g, " ");
 
 	if (clk_arb_work_item->item_type == CLK_ARB_WORK_UPDATE_VF_TABLE) {
-#ifdef NVGPU_FEATURE_LS_PMU
+#ifdef CONFIG_NVGPU_LS_PMU
 		nvgpu_clk_arb_run_vf_table_cb(clk_arb_work_item->arb);
 #endif
 	} else if (clk_arb_work_item->item_type == CLK_ARB_WORK_UPDATE_ARB) {
@@ -614,7 +614,7 @@ void nvgpu_clk_arb_release_session(struct gk20a *g,
 		nvgpu_clk_arb_worker_enqueue(g, &arb->update_arb_work_item);
 	}
 }
-#ifdef NVGPU_FEATURE_LS_PMU
+#ifdef CONFIG_NVGPU_LS_PMU
 void nvgpu_clk_arb_schedule_vf_table_update(struct gk20a *g)
 {
 	struct nvgpu_clk_arb *arb = g->clk_arb;

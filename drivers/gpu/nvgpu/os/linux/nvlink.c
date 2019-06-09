@@ -15,7 +15,7 @@
  */
 
 #include <linux/mutex.h>
-#ifdef CONFIG_TEGRA_NVLINK
+#ifdef CONFIG_NVGPU_NVLINK
 #include <nvlink/common/tegra-nvlink.h>
 #endif
 
@@ -25,7 +25,7 @@
 #include <nvgpu/enabled.h>
 #include <nvgpu/firmware.h>
 
-#ifdef CONFIG_TEGRA_NVLINK
+#ifdef CONFIG_NVGPU_NVLINK
 int nvgpu_nvlink_enumerate(struct gk20a *g)
 {
 	struct nvlink_device *ndev = (struct nvlink_device *) g->nvlink.priv;
@@ -286,11 +286,11 @@ void nvgpu_mss_nvlink_init_credits(struct gk20a *g)
 		val = readl_relaxed(soc4 + 4);
 		writel_relaxed(val, soc4 + 4);
 }
-#endif /* CONFIG_TEGRA_NVLINK */
+#endif /* CONFIG_NVGPU_NVLINK */
 
 int nvgpu_nvlink_deinit(struct gk20a *g)
 {
-#ifdef CONFIG_TEGRA_NVLINK
+#ifdef CONFIG_NVGPU_NVLINK
 	struct nvlink_device *ndev = g->nvlink.priv;
 	int err;
 

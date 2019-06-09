@@ -35,7 +35,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/engines.h>
 #include <nvgpu/gr/config.h>
-#ifdef NVGPU_GRAPHICS
+#ifdef CONFIG_NVGPU_GRAPHICS
 #include <nvgpu/gr/zbc.h>
 #include <nvgpu/gr/zcull.h>
 #endif
@@ -334,7 +334,7 @@ gk20a_ctrl_ioctl_gpu_characteristics(
 	gpu.dma_copy_class =
 		g->ops.get_litter_value(g, GPU_LIT_DMA_COPY_CLASS);
 
-#ifdef NVGPU_DGPU_SUPPORT
+#ifdef CONFIG_NVGPU_DGPU
 	gpu.vbios_version = nvgpu_bios_get_vbios_version(g);
 	gpu.vbios_oem_version = nvgpu_bios_get_vbios_oem_version(g);
 #else
@@ -1667,7 +1667,7 @@ long gk20a_ctrl_dev_ioctl(struct file *filp, unsigned int cmd, unsigned long arg
 	struct gk20a *g = priv->g;
 	u8 buf[NVGPU_GPU_IOCTL_MAX_ARG_SIZE];
 	struct nvgpu_gr_config *gr_config = nvgpu_gr_get_config_ptr(g);
-#ifdef NVGPU_GRAPHICS
+#ifdef CONFIG_NVGPU_GRAPHICS
 	struct nvgpu_gpu_zcull_get_ctx_size_args *get_ctx_size_args;
 	struct nvgpu_gpu_zcull_get_info_args *get_info_args;
 	struct nvgpu_gr_zcull_info *zcull_info;
@@ -1678,7 +1678,7 @@ long gk20a_ctrl_dev_ioctl(struct file *filp, unsigned int cmd, unsigned long arg
 	struct nvgpu_gpu_zbc_set_table_args *set_table_args;
 	struct nvgpu_gpu_zbc_query_table_args *query_table_args;
 	u32 i;
-#endif /* NVGPU_GRAPHICS */
+#endif /* CONFIG_NVGPU_GRAPHICS */
 	int err = 0;
 
 	nvgpu_log_fn(g, "start %d", _IOC_NR(cmd));
@@ -1705,7 +1705,7 @@ long gk20a_ctrl_dev_ioctl(struct file *filp, unsigned int cmd, unsigned long arg
 
 	nvgpu_speculation_barrier();
 	switch (cmd) {
-#ifdef NVGPU_GRAPHICS
+#ifdef CONFIG_NVGPU_GRAPHICS
 	case NVGPU_GPU_IOCTL_ZCULL_GET_CTX_SIZE:
 		get_ctx_size_args = (struct nvgpu_gpu_zcull_get_ctx_size_args *)buf;
 
@@ -1822,7 +1822,7 @@ long gk20a_ctrl_dev_ioctl(struct file *filp, unsigned int cmd, unsigned long arg
 		if (zbc_tbl)
 			nvgpu_kfree(g, zbc_tbl);
 		break;
-#endif /* NVGPU_GRAPHICS */
+#endif /* CONFIG_NVGPU_GRAPHICS */
 	case NVGPU_GPU_IOCTL_GET_CHARACTERISTICS:
 		err = gk20a_ctrl_ioctl_gpu_characteristics(
 			g, (struct nvgpu_gpu_get_characteristics *)buf);

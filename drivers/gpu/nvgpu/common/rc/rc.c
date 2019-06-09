@@ -63,7 +63,7 @@ void nvgpu_rc_ctxsw_timeout(struct gk20a *g, u32 eng_bitmask,
 	nvgpu_tsg_set_error_notifier(g, tsg,
 		NVGPU_ERR_NOTIFIER_FIFO_ERROR_IDLE_TIMEOUT);
 
-#ifdef NVGPU_CHANNEL_WDT
+#ifdef CONFIG_NVGPU_CHANNEL_WDT
 	/*
 	 * Cancel all channels' wdt since ctxsw timeout might
 	 * trigger multiple watchdogs at a time
@@ -194,7 +194,7 @@ void nvgpu_rc_tsg_and_related_engines(struct gk20a *g, struct nvgpu_tsg *tsg,
 	 * changing until engine status is checked to make sure tsg
 	 * being recovered is not loaded on the engines
 	 */
-#ifdef NVGPU_DEBUGGER
+#ifdef CONFIG_NVGPU_DEBUGGER
 	err = g->ops.gr.disable_ctxsw(g);
 #endif
 
@@ -206,7 +206,7 @@ void nvgpu_rc_tsg_and_related_engines(struct gk20a *g, struct nvgpu_tsg *tsg,
 		eng_bitmask = g->ops.engine.get_mask_on_id(g,
 				tsg->tsgid, true);
 
-#ifdef NVGPU_DEBUGGER
+#ifdef CONFIG_NVGPU_DEBUGGER
 		/*
 		 * it is ok to enable ctxsw before tsg is recovered. If engines
 		 * is 0, no engine recovery is needed and if it is  non zero,

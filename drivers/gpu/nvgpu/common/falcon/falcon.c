@@ -24,7 +24,7 @@
 #include <nvgpu/falcon.h>
 
 #include "falcon_sw_gk20a.h"
-#ifdef NVGPU_DGPU_SUPPORT
+#ifdef CONFIG_NVGPU_DGPU
 #include "falcon_sw_gv100.h"
 #include "falcon_sw_tu104.h"
 #endif
@@ -692,7 +692,7 @@ static int falcon_sw_init(struct gk20a *g, struct nvgpu_falcon *flcn)
 	case NVGPU_GPUID_GV11B:
 		gk20a_falcon_sw_init(flcn);
 		break;
-#ifdef NVGPU_DGPU_SUPPORT
+#ifdef CONFIG_NVGPU_DGPU
 	case NVGPU_GPUID_GV100:
 		gv100_falcon_sw_init(flcn);
 		break;

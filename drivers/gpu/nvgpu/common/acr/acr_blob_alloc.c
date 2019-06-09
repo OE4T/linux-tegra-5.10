@@ -34,7 +34,7 @@ int nvgpu_acr_alloc_blob_space_sys(struct gk20a *g, size_t size,
 	return nvgpu_dma_alloc_flags_sys(g, NVGPU_DMA_PHYSICALLY_ADDRESSED,
 		size, mem);
 }
-#ifdef NVGPU_DGPU_SUPPORT
+#ifdef CONFIG_NVGPU_DGPU
 int nvgpu_acr_alloc_blob_space_vid(struct gk20a *g, size_t size,
 	struct nvgpu_mem *mem)
 {

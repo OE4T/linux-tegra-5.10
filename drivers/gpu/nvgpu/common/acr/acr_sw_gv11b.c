@@ -24,7 +24,7 @@
 #include <nvgpu/firmware.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/bug.h>
-#ifdef NVGPU_FEATURE_LS_PMU
+#ifdef CONFIG_NVGPU_LS_PMU
 #include <nvgpu/pmu/fw.h>
 #endif
 
@@ -118,7 +118,7 @@ void gv11b_acr_fill_bl_dmem_desc(struct gk20a *g,
 }
 
 /* LSF static config functions */
-#ifdef NVGPU_FEATURE_LS_PMU
+#ifdef CONFIG_NVGPU_LS_PMU
 static u32 gv11b_acr_lsf_pmu(struct gk20a *g,
 		struct acr_lsf_config *lsf)
 {
@@ -180,7 +180,7 @@ static u32 gv11b_acr_lsf_conifg(struct gk20a *g,
 	struct nvgpu_acr *acr)
 {
 	u32 lsf_enable_mask = 0;
-#ifdef NVGPU_FEATURE_LS_PMU
+#ifdef CONFIG_NVGPU_LS_PMU
 	lsf_enable_mask |= gv11b_acr_lsf_pmu(g, &acr->lsf[FALCON_ID_PMU]);
 #endif
 	lsf_enable_mask |= gv11b_acr_lsf_fecs(g, &acr->lsf[FALCON_ID_FECS]);

@@ -39,7 +39,7 @@
 #include <nvgpu/gr/config.h>
 #include <nvgpu/gr/gr_intr.h>
 #include <nvgpu/gr/gr_falcon.h>
-#ifdef NVGPU_GRAPHICS
+#ifdef CONFIG_NVGPU_GRAPHICS
 #include <nvgpu/gr/zbc.h>
 #include <nvgpu/gr/zcull.h>
 #endif
@@ -60,7 +60,7 @@
 #include "common/gr/gr_falcon_priv.h"
 #include "common/gr/gr_intr_priv.h"
 #include "common/gr/ctx_priv.h"
-#ifdef NVGPU_GRAPHICS
+#ifdef CONFIG_NVGPU_GRAPHICS
 #include "common/gr/zcull_priv.h"
 #include "common/gr/zbc_priv.h"
 #endif
@@ -155,7 +155,7 @@ int vgpu_gr_init_ctx_state(struct gk20a *g,
 		return -ENXIO;
 	}
 
-#ifdef NVGPU_GRAPHICS
+#ifdef CONFIG_NVGPU_GRAPHICS
 	sizes->zcull_image_size = priv->constants.zcull_ctx_size;
 	if (sizes->zcull_image_size == 0U) {
 		return -ENXIO;
@@ -209,7 +209,7 @@ int vgpu_gr_alloc_global_ctx_buffers(struct gk20a *g)
 	nvgpu_gr_global_ctx_set_size(gr->global_ctx_buffer,
 		NVGPU_GR_GLOBAL_CTX_PRIV_ACCESS_MAP, size);
 
-#ifdef CONFIG_GK20A_CTXSW_TRACE
+#ifdef CONFIG_NVGPU_FECS_TRACE
 	size = nvgpu_gr_fecs_trace_buffer_size(g);
 	nvgpu_log_info(g, "fecs_trace_buffer_size : %d", size);
 
@@ -314,7 +314,7 @@ int vgpu_gr_alloc_obj_ctx(struct nvgpu_channel  *c, u32 class_num, u32 flags)
 			nvgpu_err(g, "fail to commit gr ctx buffer");
 			goto out;
 		}
-#ifdef CONFIG_GK20A_CTXSW_TRACE
+#ifdef CONFIG_NVGPU_FECS_TRACE
 		/* for fecs bind channel */
 		err = nvgpu_pg_elpg_protected_call(g,
 				vgpu_gr_load_golden_ctx_image(g, c->virt_ctx));
@@ -478,7 +478,7 @@ cleanup:
 	return err;
 }
 
-#ifdef NVGPU_GRAPHICS
+#ifdef CONFIG_NVGPU_GRAPHICS
 static int vgpu_gr_init_gr_zcull(struct gk20a *g, struct nvgpu_gr *gr,
 		u32 size)
 {
@@ -582,7 +582,7 @@ u32 vgpu_gr_get_max_lts_per_ltc(struct gk20a *g)
 	return priv->constants.max_lts_per_ltc;
 }
 
-#ifdef NVGPU_GRAPHICS
+#ifdef CONFIG_NVGPU_GRAPHICS
 int vgpu_gr_add_zbc(struct gk20a *g, struct nvgpu_gr_zbc *zbc,
 			   struct nvgpu_gr_zbc_entry *zbc_val)
 {
@@ -671,7 +671,7 @@ static void vgpu_remove_gr_support(struct gk20a *g)
 
 	nvgpu_gr_config_deinit(gr->g, gr->config);
 
-#ifdef NVGPU_GRAPHICS
+#ifdef CONFIG_NVGPU_GRAPHICS
 	nvgpu_gr_zcull_deinit(gr->g, gr->zcull);
 #endif
 }
@@ -722,7 +722,7 @@ static int vgpu_gr_init_gr_setup_sw(struct gk20a *g)
 		goto clean_up;
 	}
 
-#ifdef NVGPU_DEBUGGER
+#ifdef CONFIG_NVGPU_DEBUGGER
 	err = nvgpu_gr_hwpm_map_init(g, &g->gr->hwpm_map,
 			nvgpu_gr_falcon_get_pm_ctxsw_image_size(g->gr->falcon));
 	if (err != 0) {
@@ -731,7 +731,7 @@ static int vgpu_gr_init_gr_setup_sw(struct gk20a *g)
 	}
 #endif
 
-#ifdef NVGPU_GRAPHICS
+#ifdef CONFIG_NVGPU_GRAPHICS
 	err = vgpu_gr_init_gr_zcull(g, gr,
 			nvgpu_gr_falcon_get_zcull_image_size(g->gr->falcon));
 	if (err) {
@@ -822,7 +822,7 @@ int vgpu_gr_isr(struct gk20a *g, struct tegra_vgpu_gr_intr_info *info)
 		g->ops.channel.set_error_notifier(ch,
 			NVGPU_ERR_NOTIFIER_GR_ERROR_SW_NOTIFY);
 		break;
-#ifdef NVGPU_DEBUGGER
+#ifdef CONFIG_NVGPU_DEBUGGER
 	case TEGRA_VGPU_GR_INTR_SM_EXCEPTION:
 		g->ops.debugger.post_events(ch);
 		break;
@@ -1220,7 +1220,7 @@ int vgpu_gr_update_pc_sampling(struct nvgpu_channel *ch, bool enable)
 
 void vgpu_gr_init_cyclestats(struct gk20a *g)
 {
-#if defined(CONFIG_GK20A_CYCLE_STATS)
+#if defined(CONFIG_NVGPU_CYCLESTATS)
 	bool snapshots_supported = true;
 	u32 max_css_buffer_size;
 

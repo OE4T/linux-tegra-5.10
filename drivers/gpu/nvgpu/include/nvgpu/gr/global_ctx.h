@@ -39,7 +39,7 @@ typedef void (*global_ctx_mem_destroy_fn)(struct gk20a *g,
 #define NVGPU_GR_GLOBAL_CTX_PAGEPOOL			1U
 #define NVGPU_GR_GLOBAL_CTX_ATTRIBUTE			2U
 
-#ifdef NVGPU_VPR
+#ifdef CONFIG_NVGPU_VPR
 #define NVGPU_GR_GLOBAL_CTX_CIRCULAR_VPR		3U
 #define NVGPU_GR_GLOBAL_CTX_PAGEPOOL_VPR		4U
 #define NVGPU_GR_GLOBAL_CTX_ATTRIBUTE_VPR		5U

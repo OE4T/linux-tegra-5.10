@@ -536,7 +536,7 @@ u32 nvgpu_ce_create_context(struct gk20a *g,
 		goto end;
 	}
 
-#ifdef NVGPU_CHANNEL_WDT
+#ifdef CONFIG_NVGPU_CHANNEL_WDT
 	ce_ctx->ch->wdt.enabled = false;
 #endif
 
@@ -576,7 +576,7 @@ u32 nvgpu_ce_create_context(struct gk20a *g,
 	(void) memset(ce_ctx->cmd_buf_mem.cpu_va, 0x00,
 		ce_ctx->cmd_buf_mem.size);
 
-#ifdef NVGPU_FEATURE_CHANNEL_TSG_SCHEDULING
+#ifdef CONFIG_NVGPU_CHANNEL_TSG_SCHEDULING
 	/* -1 means default channel timeslice value */
 	if (timeslice != -1) {
 		err = g->ops.tsg.set_timeslice(ce_ctx->tsg, timeslice);

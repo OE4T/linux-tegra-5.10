@@ -20,7 +20,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifdef CONFIG_TEGRA_NVLINK
+#ifdef CONFIG_NVGPU_NVLINK
 
 #include <nvgpu/io.h>
 #include <nvgpu/timers.h>
@@ -194,4 +194,4 @@ int tu104_nvlink_data_ready_en(struct gk20a *g,
 	}
 	return ret;
 }
-#endif /* CONFIG_TEGRA_NVLINK */
+#endif /* CONFIG_NVGPU_NVLINK */

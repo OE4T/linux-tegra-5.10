@@ -1338,7 +1338,7 @@ static int gk20a_cde_load(struct gk20a_cde_ctx *cde_ctx)
 		goto err_get_gk20a_channel;
 	}
 
-#ifdef NVGPU_CHANNEL_WDT
+#ifdef CONFIG_NVGPU_CHANNEL_WDT
 	ch->wdt.enabled = false;
 #endif
 

@@ -31,7 +31,7 @@
 #include "hal_gm20b.h"
 #include "hal_gp10b.h"
 #include "hal_gv11b.h"
-#ifdef NVGPU_DGPU_SUPPORT
+#ifdef CONFIG_NVGPU_DGPU
 #include "hal_tu104.h"
 #endif
 
@@ -63,7 +63,7 @@ int nvgpu_init_hal(struct gk20a *g)
 			return -ENODEV;
 		}
 		break;
-#ifdef NVGPU_DGPU_SUPPORT
+#ifdef CONFIG_NVGPU_DGPU
 #if defined(CONFIG_NVGPU_SUPPORT_TURING)
 	case NVGPU_GPUID_TU104:
 		if (tu104_init_hal(g) != 0) {

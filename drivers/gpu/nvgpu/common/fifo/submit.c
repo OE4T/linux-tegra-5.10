@@ -406,7 +406,7 @@ static int nvgpu_submit_channel_gpfifo(struct nvgpu_channel *c,
 			 && !c->deterministic) ||
 			!skip_buffer_refcounting);
 
-#ifdef NVGPU_CHANNEL_WDT
+#ifdef CONFIG_NVGPU_CHANNEL_WDT
        need_job_tracking = need_job_tracking || c->wdt.enabled;
 #endif
 
@@ -444,7 +444,7 @@ static int nvgpu_submit_channel_gpfifo(struct nvgpu_channel *c,
 					need_sync_framework ||
 					!skip_buffer_refcounting;
 
-#ifdef NVGPU_CHANNEL_WDT
+#ifdef CONFIG_NVGPU_CHANNEL_WDT
 		need_deferred_cleanup = need_deferred_cleanup || c->wdt.enabled;
 #endif
 

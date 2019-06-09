@@ -64,7 +64,7 @@ void vgpu_remove_support_common(struct gk20a *g)
 	struct tegra_vgpu_intr_msg msg;
 	int err;
 
-#ifdef NVGPU_DEBUGGER
+#ifdef CONFIG_NVGPU_DEBUGGER
 	if (g->dbg_regops_tmp_buf) {
 		nvgpu_kfree(g, g->dbg_regops_tmp_buf);
 	}
@@ -82,7 +82,7 @@ void vgpu_remove_support_common(struct gk20a *g)
 		g->mm.remove_support(&g->mm);
 	}
 
-#if defined(CONFIG_GK20A_CYCLE_STATS)
+#if defined(CONFIG_NVGPU_CYCLESTATS)
 	nvgpu_free_cyclestats_snapshot_data(g);
 #endif
 

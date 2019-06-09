@@ -25,7 +25,7 @@
 #include <nvgpu/timers.h>
 #include <nvgpu/nvlink_minion.h>
 
-#ifdef CONFIG_TEGRA_NVLINK
+#ifdef CONFIG_NVGPU_NVLINK
 
 /* Extract a WORD from the MINION ucode */
 u32 nvgpu_nvlink_minion_extract_word(struct nvgpu_firmware *fw, u32 idx)

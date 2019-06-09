@@ -104,7 +104,7 @@ struct mm_gk20a {
 	struct nvgpu_mem hw_fault_buf[NVGPU_MMU_FAULT_TYPE_NUM];
 	struct mmu_fault_info fault_info[NVGPU_MMU_FAULT_TYPE_NUM];
 	struct nvgpu_mutex hub_isr_mutex;
-#ifdef NVGPU_FEATURE_CE
+#ifdef CONFIG_NVGPU_CE
 	/*
 	 * Separate function to cleanup the CE since it requires a channel to
 	 * be closed which must happen before fifo cleanup.
@@ -178,7 +178,7 @@ static inline u64 nvgpu_gmmu_va_small_page_limit(void)
 	return ((u64)SZ_1G * 56U);
 }
 
-#ifdef NVGPU_FEATURE_CE
+#ifdef CONFIG_NVGPU_CE
 void nvgpu_init_mm_ce_context(struct gk20a *g);
 #endif
 int nvgpu_init_mm_support(struct gk20a *g);

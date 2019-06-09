@@ -56,73 +56,73 @@ NVGPU_COMMON_CFLAGS		+=		\
 	-DCONFIG_PCI_MSI
 
 # Enable debugger APIs for safety build until devctl whitelisting is done
-NVGPU_DEBUGGER                  := 1
-NVGPU_COMMON_CFLAGS             += -DNVGPU_DEBUGGER
+CONFIG_NVGPU_DEBUGGER           := 1
+NVGPU_COMMON_CFLAGS             += -DCONFIG_NVGPU_DEBUGGER
 
 # Enable cyclestats APIs for safety build until complete debugger support is enabled
-NVGPU_CYCLESTATS_SUPPORT        := 1
-NVGPU_COMMON_CFLAGS             += -DCONFIG_GK20A_CYCLE_STATS
+CONFIG_NVGPU_CYCLESTATS         := 1
+NVGPU_COMMON_CFLAGS             += -DCONFIG_NVGPU_CYCLESTATS
 
 # Enable USERD for safety build until we switch to user mode submits only
-NVGPU_COMMON_CFLAGS             += -DNVGPU_USERD
+NVGPU_COMMON_CFLAGS             += -DCONFIG_NVGPU_USERD
 
 # Enable Channel WDT for safety build until we switch to user mode submits only
-NVGPU_COMMON_CFLAGS		+= -DNVGPU_CHANNEL_WDT
+NVGPU_COMMON_CFLAGS		+= -DCONFIG_NVGPU_CHANNEL_WDT
 
 # Enable CE support for safety build until we remove Vidmem clear support.
-NVGPU_FEATURE_CE                := 1
-NVGPU_COMMON_CFLAGS             += -DNVGPU_FEATURE_CE
+CONFIG_NVGPU_CE                 := 1
+NVGPU_COMMON_CFLAGS             += -DCONFIG_NVGPU_CE
 
 # Enable Grpahics support for safety build until we switch to compute only
-NVGPU_GRAPHICS                  := 1
-NVGPU_COMMON_CFLAGS             += -DNVGPU_GRAPHICS
+CONFIG_NVGPU_GRAPHICS           := 1
+NVGPU_COMMON_CFLAGS             += -DCONFIG_NVGPU_GRAPHICS
 
-NVGPU_COMMON_CFLAGS             += -DNVGPU_ENGINE
+NVGPU_COMMON_CFLAGS             += -DCONFIG_NVGPU_FIFO_ENGINE_ACTIVITY
 
 # Enable Channel/TSG Scheduling for safety build until devctl whitelisting is done
-NVGPU_FEATURE_CHANNEL_TSG_SCHEDULING := 1
-NVGPU_COMMON_CFLAGS                  += -DNVGPU_FEATURE_CHANNEL_TSG_SCHEDULING
+CONFIG_NVGPU_CHANNEL_TSG_SCHEDULING  := 1
+NVGPU_COMMON_CFLAGS                  += -DCONFIG_NVGPU_CHANNEL_TSG_SCHEDULING
 
 # Enable Channel/TSG Control for safety build until devctl whitelisting is done
-NVGPU_FEATURE_CHANNEL_TSG_CONTROL    := 1
-NVGPU_COMMON_CFLAGS                  += -DNVGPU_FEATURE_CHANNEL_TSG_CONTROL
+CONFIG_NVGPU_CHANNEL_TSG_CONTROL     := 1
+NVGPU_COMMON_CFLAGS                  += -DCONFIG_NVGPU_CHANNEL_TSG_CONTROL
 
 #
 # Flags enabled for only the regular build profile.
 #
 ifneq ($(profile),safety)
 # ACR feature to enable old tegra ACR profile support
-NVGPU_FEATURE_ACR_LEGACY        := 1
-NVGPU_COMMON_CFLAGS             += -DNVGPU_FEATURE_ACR_LEGACY
+CONFIG_NVGPU_ACR_LEGACY         := 1
+NVGPU_COMMON_CFLAGS             += -DCONFIG_NVGPU_ACR_LEGACY
 
-NVGPU_FEATURE_ENGINE_QUEUE      := 1
-NVGPU_COMMON_CFLAGS             += -DNVGPU_FEATURE_ENGINE_QUEUE
+CONFIG_NVGPU_ENGINE_QUEUE       := 1
+NVGPU_COMMON_CFLAGS             += -DCONFIG_NVGPU_ENGINE_QUEUE
 
-NVGPU_FECS_TRACE_SUPPORT        := 1
-NVGPU_COMMON_CFLAGS             += -DCONFIG_GK20A_CTXSW_TRACE
+CONFIG_NVGPU_FECS_TRACE         := 1
+NVGPU_COMMON_CFLAGS             += -DCONFIG_NVGPU_FECS_TRACE
 
-IGPU_VIRT_SUPPORT               := 1
-NVGPU_COMMON_CFLAGS             += -DIGPU_VIRT_SUPPORT
+CONFIG_NVGPU_IGPU_VIRT          := 1
+NVGPU_COMMON_CFLAGS             += -DCONFIG_NVGPU_IGPU_VIRT
 
 # Enable nvlink support for normal build.
-NVGPU_NVLINK_SUPPORT            := 1
-NVGPU_COMMON_CFLAGS             += -DCONFIG_TEGRA_NVLINK
+CONFIG_NVGPU_NVLINK             := 1
+NVGPU_COMMON_CFLAGS             += -DCONFIG_NVGPU_NVLINK
 
 # Enable dgpu support for normal build.
-NVGPU_DGPU_SUPPORT              := 1
-NVGPU_COMMON_CFLAGS             += -DNVGPU_DGPU_SUPPORT
+CONFIG_NVGPU_DGPU               := 1
+NVGPU_COMMON_CFLAGS             += -DCONFIG_NVGPU_DGPU
 
-NVGPU_VPR                       := 1
-NVGPU_COMMON_CFLAGS             += -DNVGPU_VPR
+CONFIG_NVGPU_VPR                := 1
+NVGPU_COMMON_CFLAGS             += -DCONFIG_NVGPU_VPR
 
-NVGPU_REPLAYABLE_FAULT          := 1
-NVGPU_COMMON_CFLAGS             += -DNVGPU_REPLAYABLE_FAULT
+CONFIG_NVGPU_REPLAYABLE_FAULT   := 1
+NVGPU_COMMON_CFLAGS             += -DCONFIG_NVGPU_REPLAYABLE_FAULT
 
 # Enable LS PMU support for normal build
-NVGPU_FEATURE_LS_PMU                    := 1
-NVGPU_COMMON_CFLAGS             += -DNVGPU_FEATURE_LS_PMU
+CONFIG_NVGPU_LS_PMU             := 1
+NVGPU_COMMON_CFLAGS             += -DCONFIG_NVGPU_LS_PMU
 
 # Enable elpg support for normal build
-NVGPU_FEATURE_POWER_PG          := 1
-NVGPU_COMMON_CFLAGS             += -DNVGPU_FEATURE_POWER_PG
+CONFIG_NVGPU_POWER_PG           := 1
+NVGPU_COMMON_CFLAGS             += -DCONFIG_NVGPU_POWER_PG
 endif

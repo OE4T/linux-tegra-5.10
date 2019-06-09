@@ -293,7 +293,7 @@ int vgpu_gr_map_global_ctx_buffers(struct gk20a *g, struct nvgpu_gr_ctx *gr_ctx,
 	g_bfr_va[NVGPU_GR_CTX_PRIV_ACCESS_MAP_VA] = gpu_va;
 
 	/* FECS trace Buffer */
-#ifdef CONFIG_GK20A_CTXSW_TRACE
+#ifdef CONFIG_NVGPU_FECS_TRACE
 	gpu_va = nvgpu_vm_alloc_va(ch_vm,
 		nvgpu_gr_global_ctx_get_size(global_ctx_buffer,
 			NVGPU_GR_GLOBAL_CTX_FECS_TRACE_BUFFER),
@@ -311,7 +311,7 @@ int vgpu_gr_map_global_ctx_buffers(struct gk20a *g, struct nvgpu_gr_ctx *gr_ctx,
 	p->attr_va = g_bfr_va[NVGPU_GR_CTX_ATTRIBUTE_VA];
 	p->page_pool_va = g_bfr_va[NVGPU_GR_CTX_PAGEPOOL_VA];
 	p->priv_access_map_va = g_bfr_va[NVGPU_GR_CTX_PRIV_ACCESS_MAP_VA];
-#ifdef CONFIG_GK20A_CTXSW_TRACE
+#ifdef CONFIG_NVGPU_FECS_TRACE
 	p->fecs_trace_va = g_bfr_va[NVGPU_GR_CTX_FECS_TRACE_BUFFER_VA];
 #endif
 	err = vgpu_comm_sendrecv(&msg, sizeof(msg), sizeof(msg));

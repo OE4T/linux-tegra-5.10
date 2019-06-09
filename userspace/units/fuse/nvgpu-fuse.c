@@ -31,7 +31,7 @@
 #include "nvgpu-fuse-priv.h"
 #include "nvgpu-fuse-gp10b.h"
 #include "nvgpu-fuse-gm20b.h"
-#ifdef NVGPU_DGPU_SUPPORT
+#ifdef CONFIG_NVGPU_DGPU
 #include "nvgpu-fuse-tu104.h"
 #endif
 
@@ -182,7 +182,7 @@ struct unit_module_test fuse_tests[] = {
 	UNIT_TEST(fuse_gm20b_cleanup, test_fuse_device_common_cleanup,
 		  &gm20b_init_args, 0),
 
-#ifdef NVGPU_DGPU_SUPPORT
+#ifdef CONFIG_NVGPU_DGPU
 	UNIT_TEST(fuse_tu104_init, test_fuse_device_common_init,
 		  &tu104_init_args, 0),
 	UNIT_TEST(fuse_tu104_vin_cal_rev, test_fuse_tu104_vin_cal_rev, NULL, 0),

@@ -33,7 +33,7 @@ void nvgpu_acr_wpr_info_sys(struct gk20a *g, struct wpr_carveout_info *inf)
 {
 	g->ops.fb.read_wpr_info(g, &inf->wpr_base, &inf->size);
 }
-#ifdef NVGPU_DGPU_SUPPORT
+#ifdef CONFIG_NVGPU_DGPU
 void nvgpu_acr_wpr_info_vid(struct gk20a *g, struct wpr_carveout_info *inf)
 {
 	inf->wpr_base = g->mm.vidmem.bootstrap_base;

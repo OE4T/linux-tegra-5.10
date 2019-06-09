@@ -30,7 +30,7 @@
 #include <nvgpu/boardobj.h>
 #include <nvgpu/boardobjgrp.h>
 #include <nvgpu/pmu.h>
-#ifdef NVGPU_FEATURE_LS_PMU
+#ifdef CONFIG_NVGPU_LS_PMU
 #include <nvgpu/pmu/pmu_pg.h>
 #include <nvgpu/pmu/mutex.h>
 #include <nvgpu/pmu/seq.h>
@@ -43,11 +43,11 @@
 #include <nvgpu/pmu/pmu_pstate.h>
 #endif
 
-#ifdef NVGPU_DGPU_SUPPORT
+#ifdef CONFIG_NVGPU_DGPU
 #include <nvgpu/sec2/lsfm.h>
 #endif
 
-#ifdef NVGPU_FEATURE_LS_PMU
+#ifdef CONFIG_NVGPU_LS_PMU
 /* PMU locks used to sync with PMU-RTOS */
 int nvgpu_pmu_lock_acquire(struct gk20a *g, struct nvgpu_pmu *pmu,
 			u32 id, u32 *token)
@@ -227,7 +227,7 @@ int nvgpu_pmu_init(struct gk20a *g, struct nvgpu_pmu *pmu)
 	}
 
 	if (nvgpu_is_enabled(g, NVGPU_SEC_PRIVSECURITY)) {
-#ifdef NVGPU_DGPU_SUPPORT
+#ifdef CONFIG_NVGPU_DGPU
 		if (nvgpu_is_enabled(g, NVGPU_SUPPORT_SEC2_RTOS)) {
 			/* Reset PMU engine */
 			err = nvgpu_falcon_reset(g->pmu->flcn);
@@ -323,7 +323,7 @@ int nvgpu_pmu_early_init(struct gk20a *g, struct nvgpu_pmu **pmu_p)
 		nvgpu_set_enabled(g, NVGPU_PMU_PERFMON, false);
 		goto exit;
 	}
-#ifdef NVGPU_FEATURE_LS_PMU
+#ifdef CONFIG_NVGPU_LS_PMU
 	nvgpu_mutex_init(&pmu->isr_mutex);
 
 	/* Allocate memory for pmu_perfmon */
@@ -380,7 +380,7 @@ exit:
 void nvgpu_pmu_remove_support(struct gk20a *g, struct nvgpu_pmu *pmu)
 {
 	if(pmu != NULL) {
-#ifdef NVGPU_FEATURE_LS_PMU
+#ifdef CONFIG_NVGPU_LS_PMU
 		if (pmu->remove_support != NULL) {
 			pmu->remove_support(g->pmu);
 		}
@@ -440,7 +440,7 @@ static int pmu_enable(struct nvgpu_pmu *pmu, bool enable)
 
 	if (!enable) {
 		if (!g->ops.pmu.is_engine_in_reset(g)) {
-#ifdef NVGPU_FEATURE_LS_PMU
+#ifdef CONFIG_NVGPU_LS_PMU
 			g->ops.pmu.pmu_enable_irq(pmu, false);
 #endif
 			pmu_enable_hw(pmu, false);
