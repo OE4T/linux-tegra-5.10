@@ -157,7 +157,7 @@ struct ether_rx_napi {
  *	@rx_irqs:	Array of DMA Receive channel IRQ numbers
  *	@dma_mask:	memory allocation mask
  *	@mac_loopback_mode:	MAC loopback mode
- *	@q_prio:	Array of MTL queue TX priority
+ *	@txq_prio:	Array of MTL queue TX priority
  *	@hw_feat_cur_state:	Current state of features enabled in HW
  *	@tcd:		Pointer to thermal cooling device which this driver
  *			registers with the kernel. Kernel will invoke the
@@ -224,7 +224,7 @@ struct ether_priv_data {
 
 	/* for MAC loopback */
 	unsigned int mac_loopback_mode;
-	unsigned int q_prio[OSI_EQOS_MAX_NUM_CHANS];
+	unsigned int txq_prio[OSI_EQOS_MAX_NUM_CHANS];
 
 #ifdef THERMAL_CAL
 	struct thermal_cooling_device *tcd;

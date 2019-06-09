@@ -277,7 +277,7 @@ static void ether_get_ethtool_stats(struct net_device *dev,
  *
  *	Protection: None.
  *
- *	Return: Success- >0, failure - 0
+ *	Return: Numbers of strings(total length)
  */
 static int ether_get_sset_count(struct net_device *dev, int sset)
 {
@@ -322,7 +322,7 @@ static int ether_get_sset_count(struct net_device *dev, int sset)
  *
  *	Protection: None.
  *
- *	Return: Success - >0, failure - 0
+ *	Return: void
  */
 static void ether_get_strings(struct net_device *dev, u32 stringset, u8 *data)
 {
