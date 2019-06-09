@@ -91,11 +91,15 @@
 #define OSI_NULL                ((void *)0)
 #define OSI_ENABLE		1U
 #define OSI_DISABLE		0U
+#define OSI_AMASK_DISABLE	0U
 
 #define OSI_HASH_FILTER_MODE	1U
 #define OSI_PERFECT_FILTER_MODE	0U
 #define OSI_IPV6_MATCH		1U
 #define OSI_SOURCE_MATCH	0U
+
+#define OSI_SA_MATCH		1U
+#define OSI_DA_MATCH		0U
 
 
 #define OSI_L4_FILTER_TCP	0U

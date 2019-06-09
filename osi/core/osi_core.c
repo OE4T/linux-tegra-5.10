@@ -418,16 +418,24 @@ int osi_config_mac_pkt_filter_reg(struct osi_core_priv_data *osi_core,
 }
 
 int osi_update_mac_addr_low_high_reg(struct osi_core_priv_data *osi_core,
-				     unsigned int index, unsigned char value[])
+				     unsigned int index, unsigned char value[],
+				     unsigned int dma_routing_enable,
+				     unsigned int dma_chan,
+				     unsigned int addr_mask,
+				     unsigned int src_dest)
 {
 	int ret = -1;
 
 	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
 	    (osi_core->ops->update_mac_addr_low_high_reg != OSI_NULL)) {
 		ret = osi_core->ops->update_mac_addr_low_high_reg(
-								  osi_core,
-								  index,
-								  value);
+							    osi_core,
+							    index,
+							    value,
+							    dma_routing_enable,
+							    dma_chan,
+							    addr_mask,
+							    src_dest);
 	}
 
 	return ret;
@@ -452,7 +460,9 @@ int osi_config_l3_filters(struct osi_core_priv_data *osi_core,
 			  unsigned int enb_dis,
 			  unsigned int ipv4_ipv6_match,
 			  unsigned int src_dst_addr_match,
-			  unsigned int perfect_inverse_match)
+			  unsigned int perfect_inverse_match,
+			  unsigned int dma_routing_enable,
+			  unsigned int dma_chan)
 {
 	int ret = -1;
 
@@ -461,7 +471,9 @@ int osi_config_l3_filters(struct osi_core_priv_data *osi_core,
 		ret = osi_core->ops->config_l3_filters(osi_core, filter_no,
 						       enb_dis, ipv4_ipv6_match,
 						       src_dst_addr_match,
-						       perfect_inverse_match);
+						       perfect_inverse_match,
+						       dma_routing_enable,
+						       dma_chan);
 	}
 
 	return ret;
@@ -501,7 +513,9 @@ int osi_config_l4_filters(struct osi_core_priv_data *osi_core,
 			  unsigned int enb_dis,
 			  unsigned int tcp_udp_match,
 			  unsigned int src_dst_port_match,
-			  unsigned int perfect_inverse_match)
+			  unsigned int perfect_inverse_match,
+			  unsigned int dma_routing_enable,
+			  unsigned int dma_chan)
 {
 	int ret = -1;
 
@@ -510,7 +524,9 @@ int osi_config_l4_filters(struct osi_core_priv_data *osi_core,
 		ret = osi_core->ops->config_l4_filters(osi_core, filter_no,
 						       enb_dis, tcp_udp_match,
 						       src_dst_port_match,
-						       perfect_inverse_match);
+						       perfect_inverse_match,
+						       dma_routing_enable,
+						       dma_chan);
 	}
 
 	return ret;

@@ -871,13 +871,17 @@ static int eqos_config_rxcsum_offload(void *addr, unsigned int enabled)
 }
 
 /**
- *	eqos_configure_rxq_priority - Configure RxQ priority
+ *	eqos_configure_rxq_priority - Configure Priorities Selected in
+ *	the Receive Queue
+ *
  *	@osi_core: OSI private data structure.
  *
- *	Algorithm: This takes care of configuring the RxQ priority
- *	based on the User priority field of the received packets.we
- *	Don't have any fix mapping between RXQ and channel. We also don't
- *	control MTL queue enable/disable in current SW.
+ *	Algorithm: This takes care of mapping user priority to Rx queue.
+ *	User provided priority mask updated to register. Valid input can have
+ *	all TC(0xFF) in one queue to None(0x00) in rx queue.
+ *	The software must ensure that the content of this field is mutually
+ *	exclusive to the PSRQ fields for other queues, that is, the same
+ *	priority is not mapped to multiple Rx queues.
  *
  *	Dependencies: MAC has to be out of reset.
  *
@@ -890,21 +894,32 @@ static void eqos_configure_rxq_priority(struct osi_core_priv_data *osi_core)
 	unsigned int qinx;
 	unsigned int val;
 	unsigned int temp;
-	/* to avoid Misra-C error */
-	unsigned int mybit = 0x1U;
+	unsigned int pmask = 0x0U;
 	unsigned int mfix_var1, mfix_var2;
 
+	if (osi_core->dcs_en == OSI_ENABLE) {
+		osd_err(osi_core->osd,
+			"Invalid combination of DCS and RxQ-UP mapping, exiting %s()\n",
+			__func__);
+		return;
+	}
+	/* make sure EQOS_MAC_RQC2R is reset before programming */
+	osi_writel(OSI_DISABLE, (unsigned char *)osi_core->base +
+		   EQOS_MAC_RQC2R);
+
 	for (qinx = 0; qinx < OSI_EQOS_MAX_NUM_CHANS; qinx++) {
-		/* check for invalid priority which is set when either rxq_prio
-		 * not defined or duplicate priority given
-		 */
-		if (osi_core->rxq_prio[qinx] != 0xFFU) {
-			temp = (mybit << osi_core->rxq_prio[qinx]);
+		/* check for PSRQ field mutual exclusive for all queues */
+		if ((osi_core->rxq_prio[qinx] <= 0xFFU) &&
+		    (osi_core->rxq_prio[qinx] > 0x0U) &&
+		    ((pmask & osi_core->rxq_prio[qinx]) == 0U)) {
+			pmask |= osi_core->rxq_prio[qinx];
+			temp = osi_core->rxq_prio[qinx];
 		} else {
 			osd_err(osi_core->osd,
 				"Invalid rxq Priority for Q(%d)\n",
 				qinx);
 			continue;
+
 		}
 
 		val = osi_readl((unsigned char *)osi_core->base +
@@ -1119,7 +1134,12 @@ static int eqos_core_init(struct osi_core_priv_data *osi_core,
 	/* TODO: Need to add EQOS_MTL_RXQ_DMA_MAP1 for EQOS */
 	value = osi_readl((unsigned char *)osi_core->base +
 			  EQOS_MTL_RXQ_DMA_MAP0);
-	value |= EQOS_RXQ_TO_DMA_CHAN_MAP;
+	if (osi_core->dcs_en == OSI_ENABLE) {
+		value |= EQOS_RXQ_TO_DMA_CHAN_MAP_DCS_EN;
+	} else {
+		value |= EQOS_RXQ_TO_DMA_CHAN_MAP;
+	}
+
 	osi_writel(value, (unsigned char *)osi_core->base +
 		   EQOS_MTL_RXQ_DMA_MAP0);
 
@@ -1513,8 +1533,20 @@ static void eqos_config_mac_pkt_filter_reg(struct osi_core_priv_data *osi_core,
  *	@osi_core: OSI private data structure.
  *	@index: filter index
  *	@value: MAC address to write
+ *	@dma_routing_enable: dma channel routing enable(1)
+ *	@dma_chan: dma channel number
+ *	@addr_mask: filter will not consider byte in comparison
+ *	Bit 29: MAC_Address${i}_High[15:8]
+ *	Bit 28: MAC_Address${i}_High[7:0]
+ *	Bit 27: MAC_Address${i}_Low[31:24]
+ *	..
+ *	Bit 24: MAC_Address${i}_Low[7:0]
+ *	@src_dest: SA(1) or DA(0)
  *
- *	Algorithm: this routine update MAC address to register
+ *	Algorithm: This routine update MAC address to register for filtering
+ *	based on dma_routing_enable, addr_mask and src_dest. Validation of
+ *	dma_chan as well as DCS bit enabled in RXQ to DMA mapping register
+ *	performed before updating DCS bits.
  *
  *	Dependencies: MAC IP should be out of reset
  *	and need to be initialized as the requirements
@@ -1525,22 +1557,58 @@ static void eqos_config_mac_pkt_filter_reg(struct osi_core_priv_data *osi_core,
  */
 static int eqos_update_mac_addr_low_high_reg(
 				struct osi_core_priv_data *osi_core,
-				unsigned int idx, unsigned char addr[])
+				unsigned int idx, unsigned char addr[],
+				unsigned int dma_routing_enable,
+				unsigned int dma_chan,
+				unsigned int addr_mask, unsigned int src_dest)
 {
+	unsigned int value = 0x0U;
+
 	if (idx > EQOS_MAX_MAC_ADDRESS_FILTER) {
 		osd_err(osi_core->osd, "invalid MAC filter index\n");
 		return -1;
 	}
 
+	/* High address clean should happen for filter index > 0 */
 	if (idx >= 0x1U && addr == OSI_NULL) {
 		osi_writel((unsigned int)0x0, (unsigned char *)osi_core->base +
 			   EQOS_MAC_ADDRH((idx)));
 		return 0;
 	}
 
-	osi_writel(((unsigned int)addr[4] | ((unsigned int)addr[5] << 8) |
-		   OSI_BIT(31)), (unsigned char *)osi_core->base +
-		   EQOS_MAC_ADDRH((idx)));
+	/* PDC bit of MAC_Ext_Configuration register is not set so binary
+	 * value representation.
+	 */
+	if ((dma_routing_enable == OSI_ENABLE) &&
+	    (dma_chan < OSI_EQOS_MAX_NUM_CHANS) &&
+	    (osi_core->dcs_en == OSI_ENABLE)) {
+		value = ((dma_chan << EQOS_MAC_ADDRH_DCS_SHIFT) &
+			 EQOS_MAC_ADDRH_DCS);
+	} else if ((dma_routing_enable == OSI_ENABLE) &&
+		   (dma_chan < OSI_EQOS_MAX_NUM_CHANS) &&
+		   (osi_core->dcs_en != OSI_ENABLE)) {
+		osd_err(osi_core->osd, "DCS disabled, please update DT\n");
+	} else {
+		/* Do nothing */
+	}
+
+	/* Address mask is valid for address 1 to 31 index only */
+	if ((addr_mask <= 0x3FU && addr_mask > 0U) && (idx > 0U && idx < 32U)) {
+		value = (value | ((addr_mask << EQOS_MAC_ADDRH_MBC_SHIFT) &
+			EQOS_MAC_ADDRH_MBC));
+	}
+
+	/* Setting Source/Destination Address match valid for 1 to 32 index */
+	if ((idx > 0U && idx < 32U) && (src_dest == OSI_SA_MATCH ||
+					src_dest == OSI_DA_MATCH)) {
+		value = (value | ((src_dest << EQOS_MAC_ADDRH_SA_SHIFT) &
+			EQOS_MAC_ADDRH_SA));
+	}
+
+	osi_writel(((unsigned int)addr[4] |
+		   ((unsigned int)addr[5] << 8) | OSI_BIT(31) | value),
+		   (unsigned char *)osi_core->base + EQOS_MAC_ADDRH((idx)));
+
 	osi_writel(((unsigned int)addr[0] | ((unsigned int)addr[1] << 8) |
 		   ((unsigned int)addr[2] << 16) |
 		   ((unsigned int)addr[3] << 24)),
@@ -1870,8 +1938,10 @@ static int eqos_update_ip6_addr(struct osi_core_priv_data *osi_core,
  *	Algorithm: sequence is used to update Source Port Number for
  *	L4(TCP/UDP) layer filtering.
  *
- *	Dependencies: MAC IP should be out of reset
- *	and need to be initialized as the requirements
+ *	Dependencies:
+ *	1) MAC IP should be out of reset and need to be initialized
+ *	as the requirements
+ *	2) DCS bits should be enabled in RXQ to DMA mapping register
  *
  *	Protection: None
  *
@@ -1907,6 +1977,51 @@ static int eqos_update_l4_port_no(struct osi_core_priv_data *osi_core,
 }
 
 /**
+ *	eqos_set_dcs - check and update dma routing register
+ *
+ *	@osi_core: OSI private data structure.
+ *	@value: unsigned int value for caller
+ *	@dma_routing_enable: filter based dma routing enable(1)
+ *	@dma_chan: dma channel for routing based on filter
+ *
+ *	Algorithm: Check for request for DCS_enable as well as validate chan
+ *	number and dcs_enable is set. After validation, this sequence is used
+ *	to configure L3((IPv4/IPv6) filters for address matching.
+ *
+ *	Dependencies:
+ *	1) MAC IP should be out of reset and need to be initialized
+ *	as the requirements.
+ *	2) DCS bits should be enabled in RXQ to DMA mapping register
+ *
+ *	Protection: None
+ *
+ *	Return: updated unsigned int value
+ */
+static inline unsigned int eqos_set_dcs(struct osi_core_priv_data *osi_core,
+					unsigned int value,
+					unsigned int dma_routing_enable,
+					unsigned int dma_chan)
+{
+	if ((dma_routing_enable == OSI_ENABLE) && (dma_chan <
+	    OSI_EQOS_MAX_NUM_CHANS) && (osi_core->dcs_en ==
+	    OSI_ENABLE)) {
+		value |= ((dma_routing_enable <<
+			  EQOS_MAC_L3L4_CTR_DMCHEN0_SHIFT) &
+			  EQOS_MAC_L3L4_CTR_DMCHEN0);
+		value |= ((dma_chan <<
+			  EQOS_MAC_L3L4_CTR_DMCHN0_SHIFT) &
+			  EQOS_MAC_L3L4_CTR_DMCHN0);
+	} else if ((dma_routing_enable == OSI_ENABLE) && (dma_chan <
+	    OSI_EQOS_MAX_NUM_CHANS) && (osi_core->dcs_en !=
+	    OSI_ENABLE)) {
+		osd_err(osi_core->osd, "DCS disabled, please update DT\n");
+	} else {
+		/* do noting */
+	}
+
+	return value;
+}
+/**
  *	eqos_config_l3_filters - config L3 filters.
  *
  *	@osi_core: OSI private data structure.
@@ -1915,12 +2030,18 @@ static int eqos_update_l4_port_no(struct osi_core_priv_data *osi_core,
  *	@ipv4_ipv6_match: 1 - IPv6, otherwise - IPv4
  *	@src_dst_addr_match: 0 - source, otherwise - destination
  *	@perfect_inverse_match: normal match(0) or inverse map(1)
+ *	@dma_routing_enable: filter based dma routing enable(1)
+ *	@dma_chan: dma channel for routing based on filter
  *
- *	Algorithm: This sequence is used to configure L3((IPv4/IPv6) filters for
- *	address matching.
+ *	Algorithm: Check for DCS_enable as well as validate channel
+ *	number and if dcs_enable is set. After validation, code flow
+ *	is used to configure L3((IPv4/IPv6) filters resister
+ *	for address matching.
  *
- *	Dependencies: MAC IP should be out of reset
- *	and need to be initialized as the requirements
+ *	Dependencies:
+ *	1) MAC IP should be out of reset and need to be initialized
+ *	as the requirements
+ *	2) DCS bits should be enabled in RXQ to DMA map register
  *
  *	Protection: None
  *
@@ -1931,7 +2052,9 @@ static int eqos_config_l3_filters(struct osi_core_priv_data *osi_core,
 				  unsigned int enb_dis,
 				  unsigned int ipv4_ipv6_match,
 				  unsigned int src_dst_addr_match,
-				  unsigned int perfect_inverse_match)
+				  unsigned int perfect_inverse_match,
+				  unsigned int dma_routing_enable,
+				  unsigned int dma_chan)
 {
 	unsigned int value = 0U;
 	void *base = osi_core->base;
@@ -1964,6 +2087,9 @@ static int eqos_config_l3_filters(struct osi_core_priv_data *osi_core,
 					  EQOS_MAC_L3L4_CTR_L3SAI_SHIFT) &
 					  ((EQOS_MAC_L3L4_CTR_L3SAM0 |
 					  EQOS_MAC_L3L4_CTR_L3SAIM0)));
+				value |= eqos_set_dcs(osi_core, value,
+						      dma_routing_enable,
+						      dma_chan);
 				osi_writel(value, (unsigned char *)base +
 					   EQOS_MAC_L3L4_CTR(filter_no));
 
@@ -1979,6 +2105,9 @@ static int eqos_config_l3_filters(struct osi_core_priv_data *osi_core,
 					  EQOS_MAC_L3L4_CTR_L3DAI_SHIFT) &
 					  ((EQOS_MAC_L3L4_CTR_L3DAM0 |
 					  EQOS_MAC_L3L4_CTR_L3DAIM0)));
+				value |= eqos_set_dcs(osi_core, value,
+						      dma_routing_enable,
+						      dma_chan);
 				osi_writel(value, (unsigned char *)base +
 					   EQOS_MAC_L3L4_CTR(filter_no));
 			}
@@ -2001,13 +2130,15 @@ static int eqos_config_l3_filters(struct osi_core_priv_data *osi_core,
 				 */
 				value = osi_readl((unsigned char *)base +
 						  EQOS_MAC_L3L4_CTR(filter_no));
-				value &= ~(EQOS_MAC_L3L4_CTR_L3SAM0 |
-					   EQOS_MAC_L3L4_CTR_L3SAIM0);
+				value &= ~EQOS_MAC_L3_IP4_SA_CTRL_CLEAR;
 				value |= ((EQOS_MAC_L3L4_CTR_L3SAM0 |
 					  perfect_inverse_match <<
 					  EQOS_MAC_L3L4_CTR_L3SAI_SHIFT) &
 					  ((EQOS_MAC_L3L4_CTR_L3SAM0 |
 					  EQOS_MAC_L3L4_CTR_L3SAIM0)));
+				value |= eqos_set_dcs(osi_core, value,
+						      dma_routing_enable,
+						      dma_chan);
 				osi_writel(value, (unsigned char *)base +
 					   EQOS_MAC_L3L4_CTR(filter_no));
 			} else {
@@ -2016,8 +2147,7 @@ static int eqos_config_l3_filters(struct osi_core_priv_data *osi_core,
 				 */
 				value = osi_readl((unsigned char *)base +
 						  EQOS_MAC_L3L4_CTR(filter_no));
-				value &= ~(EQOS_MAC_L3L4_CTR_L3SAM0 |
-					   EQOS_MAC_L3L4_CTR_L3SAIM0);
+				value &= ~EQOS_MAC_L3_IP4_SA_CTRL_CLEAR;
 				osi_writel(value, (unsigned char *)base +
 					   EQOS_MAC_L3L4_CTR(filter_no));
 			}
@@ -2028,13 +2158,15 @@ static int eqos_config_l3_filters(struct osi_core_priv_data *osi_core,
 				 */
 				value = osi_readl((unsigned char *)base +
 						  EQOS_MAC_L3L4_CTR(filter_no));
-				value &= ~(EQOS_MAC_L3L4_CTR_L3DAM0 |
-					   EQOS_MAC_L3L4_CTR_L3DAIM0);
+				value &= ~EQOS_MAC_L3_IP4_DA_CTRL_CLEAR;
 				value |= ((EQOS_MAC_L3L4_CTR_L3DAM0 |
 					  perfect_inverse_match <<
 					  EQOS_MAC_L3L4_CTR_L3DAI_SHIFT) &
 					  ((EQOS_MAC_L3L4_CTR_L3DAM0 |
 					  EQOS_MAC_L3L4_CTR_L3DAIM0)));
+				value |= eqos_set_dcs(osi_core, value,
+						      dma_routing_enable,
+						      dma_chan);
 				osi_writel(value, (unsigned char *)base +
 					   EQOS_MAC_L3L4_CTR(filter_no));
 			} else {
@@ -2043,8 +2175,7 @@ static int eqos_config_l3_filters(struct osi_core_priv_data *osi_core,
 				 */
 				value = osi_readl((unsigned char *)base +
 						  EQOS_MAC_L3L4_CTR(filter_no));
-				value &= ~(EQOS_MAC_L3L4_CTR_L3DAM0 |
-					   EQOS_MAC_L3L4_CTR_L3DAIM0);
+				value &= ~EQOS_MAC_L3_IP4_DA_CTRL_CLEAR;
 				osi_writel(value, (unsigned char *)base +
 					   EQOS_MAC_L3L4_CTR(filter_no));
 			}
@@ -2063,6 +2194,8 @@ static int eqos_config_l3_filters(struct osi_core_priv_data *osi_core,
  *	@tcp_udp_match: 1 - udp, 0 - tcp
  *	@src_dst_port_match: 0 - source port, otherwise - dest port
  *	@perfect_inverse_match: normal match(0) or inverse map(1)
+ *	@dma_routing_enable: filter based dma routing enable(1)
+ *	@dma_chan: dma channel for routing based on filter
  *
  *	Algorithm: This sequence is used to configure L4(TCP/UDP) filters for
  *	SA and DA Port Number matching
@@ -2079,7 +2212,9 @@ static int eqos_config_l4_filters(struct osi_core_priv_data *osi_core,
 				  unsigned int enb_dis,
 				  unsigned int tcp_udp_match,
 				  unsigned int src_dst_port_match,
-				  unsigned int perfect_inverse_match)
+				  unsigned int perfect_inverse_match,
+				  unsigned int dma_routing_enable,
+				  unsigned int dma_chan)
 {
 	void *base = osi_core->base;
 	unsigned int value = 0U;
@@ -2101,21 +2236,22 @@ static int eqos_config_l4_filters(struct osi_core_priv_data *osi_core,
 			/* Enable L4 filters for SOURCE Port No matching */
 			value = osi_readl((unsigned char *)base +
 					  EQOS_MAC_L3L4_CTR(filter_no));
-			value &= ~(EQOS_MAC_L3L4_CTR_L4SPM0 |
-				   EQOS_MAC_L3L4_CTR_L4SPIM0);
+			value &= ~EQOS_MAC_L4_SP_CTRL_CLEAR;
 			value |= ((EQOS_MAC_L3L4_CTR_L4SPM0 |
 				  perfect_inverse_match <<
 				  EQOS_MAC_L3L4_CTR_L4SPI_SHIFT) &
 				  (EQOS_MAC_L3L4_CTR_L4SPM0 |
 				  EQOS_MAC_L3L4_CTR_L4SPIM0));
+			value |= eqos_set_dcs(osi_core, value,
+					      dma_routing_enable,
+					      dma_chan);
 			osi_writel(value, (unsigned char *)base +
 				   EQOS_MAC_L3L4_CTR(filter_no));
 		} else {
 			/* Disable L4 filters for SOURCE Port No matching  */
 			value = osi_readl((unsigned char *)base +
 					  EQOS_MAC_L3L4_CTR(filter_no));
-			value &= ~(EQOS_MAC_L3L4_CTR_L4SPM0 |
-				   EQOS_MAC_L3L4_CTR_L4SPIM0);
+			value &= ~EQOS_MAC_L4_SP_CTRL_CLEAR;
 			osi_writel(value, (unsigned char *)base +
 				   EQOS_MAC_L3L4_CTR(filter_no));
 		}
@@ -2126,13 +2262,15 @@ static int eqos_config_l4_filters(struct osi_core_priv_data *osi_core,
 			 */
 			value = osi_readl((unsigned char *)base +
 					  EQOS_MAC_L3L4_CTR(filter_no));
-			value &= ~(EQOS_MAC_L3L4_CTR_L4DPM0 |
-				   EQOS_MAC_L3L4_CTR_L4DPIM0);
+			value &= ~EQOS_MAC_L4_DP_CTRL_CLEAR;
 			value |= ((EQOS_MAC_L3L4_CTR_L4DPM0 |
 				  perfect_inverse_match <<
 				  EQOS_MAC_L3L4_CTR_L4DPI_SHIFT) &
 				  (EQOS_MAC_L3L4_CTR_L4DPM0 |
 				  EQOS_MAC_L3L4_CTR_L4DPIM0));
+			value |= eqos_set_dcs(osi_core, value,
+					      dma_routing_enable,
+					      dma_chan);
 			osi_writel(value, (unsigned char *)base +
 				   EQOS_MAC_L3L4_CTR(filter_no));
 		} else {
@@ -2141,8 +2279,7 @@ static int eqos_config_l4_filters(struct osi_core_priv_data *osi_core,
 			 */
 			value = osi_readl((unsigned char *)base +
 					  EQOS_MAC_L3L4_CTR(filter_no));
-			value &= ~(EQOS_MAC_L3L4_CTR_L4DPM0 |
-				   EQOS_MAC_L3L4_CTR_L4DPIM0);
+			value &= ~EQOS_MAC_L4_DP_CTRL_CLEAR;
 			osi_writel(value, (unsigned char *)base +
 				   EQOS_MAC_L3L4_CTR(filter_no));
 		}

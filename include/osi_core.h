@@ -189,7 +189,11 @@ struct osi_core_ops {
 	int (*update_mac_addr_low_high_reg)(
 					struct osi_core_priv_data *osi_core,
 					    unsigned int index,
-					    unsigned char value[]);
+					    unsigned char value[],
+					    unsigned int dma_routing_enable,
+					    unsigned int dma_chan,
+					    unsigned int addr_mask,
+					    unsigned int src_dest);
 	int (*config_l3_l4_filter_enable)(void *base, unsigned int enable);
 	int (*config_l2_da_perfect_inverse_match)(void *base, unsigned int
 						  perfect_inverse_match);
@@ -197,7 +201,9 @@ struct osi_core_ops {
 				 unsigned int filter_no, unsigned int enb_dis,
 				 unsigned int ipv4_ipv6_match,
 				 unsigned int src_dst_addr_match,
-				 unsigned int perfect_inverse_match);
+				 unsigned int perfect_inverse_match,
+				 unsigned int dma_routing_enable,
+				 unsigned int dma_chan);
 	int (*update_ip4_addr)(struct osi_core_priv_data *osi_core,
 			       unsigned int filter_no, unsigned char addr[],
 			       unsigned int src_dst_addr_match);
@@ -207,7 +213,9 @@ struct osi_core_ops {
 				 unsigned int filter_no, unsigned int enb_dis,
 				 unsigned int tcp_udp_match,
 				 unsigned int src_dst_port_match,
-				 unsigned int perfect_inverse_match);
+				 unsigned int perfect_inverse_match,
+				 unsigned int dma_routing_enable,
+				 unsigned int dma_chan);
 	int (*update_l4_port_no)(struct osi_core_priv_data *osi_core,
 				 unsigned int filter_no, unsigned short port_no,
 				 unsigned int src_dst_port_match);
@@ -285,6 +293,7 @@ struct osi_ptp_config {
  *	@default_addend: Default addend value.
  *	@mmc: mmc counter structure
  *	@xstats: xtra sw error counters
+ *	@dcs_en: DMA channel selection enable (1)
  */
 struct osi_core_priv_data {
 	void *base;
@@ -305,6 +314,7 @@ struct osi_core_priv_data {
 	unsigned int default_addend;
 	struct osi_mmc_counters mmc;
 	struct osi_xtra_stat_counters xstats;
+	unsigned int dcs_en;
 };
 
 /**
@@ -644,9 +654,21 @@ int osi_config_mac_pkt_filter_reg(struct osi_core_priv_data *osi_core,
  *
  *	@osi_core: OSI private data structure.
  *	@index: filter index
- *	@value: address to write
+ *	@value: MAC address to write
+ *	@dma_routing_enable: dma channel routing enable(1)
+ *	@dma_chan: dma channel number
+ *	@addr_mask: filter will not consider byte in comparison
+ *	Bit 29: MAC_Address${i}_High[15:8]
+ *	Bit 28: MAC_Address${i}_High[7:0]
+ *	Bit 27: MAC_Address${i}_Low[31:24]
+ *	..
+ *	Bit 24: MAC_Address${i}_Low[7:0]
+ *	@src_dest: SA(1) or DA(0)
  *
- *	Algorithm: this routine update MAC address to register
+ *	Algorithm: This routine update MAC address to register for filtering
+ *	based on dma_routing_enable, addr_mask and src_dest. Validation of
+ *	dma_chan as well as DCS bit enabled in RXQ to DMA mapping register
+ *	performed before updating DCS bits.
  *
  *	Dependencies: MAC IP should be out of reset
  *	and need to be initialized as the requirements
@@ -657,7 +679,11 @@ int osi_config_mac_pkt_filter_reg(struct osi_core_priv_data *osi_core,
  */
 int osi_update_mac_addr_low_high_reg(struct osi_core_priv_data *osi_core,
 				     unsigned int index,
-				     unsigned char value[]);
+				     unsigned char value[],
+				     unsigned int dma_routing_enable,
+				     unsigned int dma_chan,
+				     unsigned int addr_mask,
+				     unsigned int src_dest);
 
 /**
  *	osi_config_l3_l4_filter_enable -  invoke OSI call to eanble L3/L4
@@ -683,16 +709,22 @@ int osi_config_l3_l4_filter_enable(struct osi_core_priv_data *osi_core,
  *
  *	@osi_core: OSI private data structure.
  *	@filter_no: filter index
- *	@enb_dis: enable/disable L3 filter
- *	@ipv4_ipv6_match: 1 - IPv6, 0 - IPv4
- *	@src_dst_addr_match: ip address matching enable/disable
+ *	@enb_dis:  1 - enable otherwise - disable L3 filter
+ *	@ipv4_ipv6_match: 1 - IPv6, otherwise - IPv4
+ *	@src_dst_addr_match: 0 - source, otherwise - destination
  *	@perfect_inverse_match: normal match(0) or inverse map(1)
+ *	@dma_routing_enable: filter based dma routing enable(1)
+ *	@dma_chan: dma channel for routing based on filter
  *
- *	Algorithm: This sequence is used to configure L3((IPv4/IPv6) filters for
- *	address matching.
+ *	Algorithm: Check for DCS_enable as well as validate channel
+ *      number and if dcs_enable is set. After validation, code flow
+ *	is used to configure L3((IPv4/IPv6) filters resister
+ *	for address matching.
  *
- *	Dependencies: MAC IP should be out of reset
- *	and need to be initialized as the requirements
+ *	Dependencies:
+ *	1) MAC IP should be out of reset and need to be initialized
+ *	as the requirements
+ *	2) DCS bits should be enabled in RXQ to DMA map register
  *
  *	Protection: None
  *
@@ -703,7 +735,9 @@ int osi_config_l3_filters(struct osi_core_priv_data *osi_core,
 			  unsigned int enb_dis,
 			  unsigned int ipv4_ipv6_match,
 			  unsigned int src_dst_addr_match,
-			  unsigned int perfect_inverse_match);
+			  unsigned int perfect_inverse_match,
+			  unsigned int dma_routing_enable,
+			  unsigned int dma_chan);
 
 /**
  *	osi_update_ip4_addr -  invoke OSI call update_ip4_addr.
@@ -756,6 +790,8 @@ int osi_update_ip6_addr(struct osi_core_priv_data *osi_core,
  *	@tcp_udp_match: 1 - udp, 0 - tcp
  *	@src_dst_port_match: port matching enable/disable
  *	@perfect_inverse_match: normal match(0) or inverse map(1)
+ *	@dma_routing_enable: filter based dma routing enable(1)
+ *	@dma_chan: dma channel for routing based on filter
  *
  *	Algorithm: This sequence is used to configure L4(TCP/UDP) filters for
  *	SA and DA Port Number matching
@@ -772,7 +808,9 @@ int osi_config_l4_filters(struct osi_core_priv_data *osi_core,
 			  unsigned int enb_dis,
 			  unsigned int tcp_udp_match,
 			  unsigned int src_dst_port_match,
-			  unsigned int perfect_inverse_match);
+			  unsigned int perfect_inverse_match,
+			  unsigned int dma_routing_enable,
+			  unsigned int dma_chan);
 
 /**
  *	osi_update_l4_port_no - invoke OSI call for
@@ -904,7 +942,7 @@ int osi_write_phy_reg(struct osi_core_priv_data *osi_core, unsigned int phyaddr,
 int osi_read_mmc(struct osi_core_priv_data *osi_core);
 
 /**
- *	osi_reset_mmc - invoke function to rest MMC counter and data structure
+ *	osi_reset_mmc - invoke function to reset MMC counter and data structure
  *
  *	@osi_core: OSI core private data structure.
  *
