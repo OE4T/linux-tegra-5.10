@@ -270,7 +270,8 @@ static int ether_config_ip4_filters(struct net_device *dev,
 				    l_l3_filter.filter_enb_dis,
 				    OSI_IP4_FILTER,
 				    l_l3_filter.src_dst_addr_match,
-				    l_l3_filter.perfect_inverse_match);
+				    l_l3_filter.perfect_inverse_match,
+				    OSI_DISABLE, 0x0U);
 	if (ret != 0) {
 		dev_err(pdata->dev, "osi_config_l3_filters failed\n");
 		return ret;
@@ -349,7 +350,8 @@ static int ether_config_ip6_filters(struct net_device *dev,
 				    l_l3_filter.filter_enb_dis,
 				    OSI_IP6_FILTER,
 				    l_l3_filter.src_dst_addr_match,
-				    l_l3_filter.perfect_inverse_match);
+				    l_l3_filter.perfect_inverse_match,
+				    OSI_DISABLE, 0x0U);
 	if (ret != 0) {
 		dev_err(pdata->dev, "osi_config_l3_filters failed\n");
 		return ret;
@@ -422,7 +424,8 @@ static int ether_config_tcp_udp_filters(struct net_device *dev,
 				    l_l4_filter.filter_enb_dis,
 				    tcp_udp,
 				    l_l4_filter.src_dst_addr_match,
-				    l_l4_filter.perfect_inverse_match);
+				    l_l4_filter.perfect_inverse_match,
+				    OSI_DISABLE, 0x0U);
 	if (ret != 0) {
 		dev_err(pdata->dev, "osi_config_l4_filters failed\n");
 		return ret;

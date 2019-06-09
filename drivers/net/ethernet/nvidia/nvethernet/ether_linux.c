@@ -1320,7 +1320,7 @@ static unsigned short ether_select_queue(struct net_device *dev,
 
 	for (i = 0; i < OSI_EQOS_MAX_NUM_CHANS; i++) {
 		chan = osi_dma->dma_chans[i];
-		if (pdata->q_prio[chan] == skb->priority) {
+		if (pdata->txq_prio[chan] == skb->priority) {
 			txqueue_select = (unsigned short)chan;
 			break;
 		}
@@ -1409,7 +1409,15 @@ static int ether_prepare_mc_list(struct net_device *dev)
 				pdata->num_mac_addr_regs);
 		/* Clear previously set filters */
 		for (cnt = 1; cnt <= pdata->last_uc_filter_index; cnt++) {
-			osi_update_mac_addr_low_high_reg(osi_core, cnt, NULL);
+			if (osi_update_mac_addr_low_high_reg(osi_core,
+							     (unsigned int)cnt,
+							     NULL,
+							     OSI_DISABLE, 0x0,
+							     OSI_AMASK_DISABLE,
+							     OSI_DA_MATCH) !=
+			   0) {
+				dev_err(pdata->dev, "issue in cleaning mc list\n");
+			}
 		}
 
 		netdev_for_each_mc_addr(ha, dev) {
@@ -1418,7 +1426,16 @@ static int ether_prepare_mc_list(struct net_device *dev)
 				i,
 				ha->addr[0], ha->addr[1], ha->addr[2],
 				ha->addr[3], ha->addr[4], ha->addr[5]);
-			osi_update_mac_addr_low_high_reg(osi_core, i, ha->addr);
+			if (osi_update_mac_addr_low_high_reg(osi_core,
+							     (unsigned int)i,
+							     ha->addr,
+							     OSI_DISABLE, 0x0,
+							     OSI_AMASK_DISABLE,
+							     OSI_DA_MATCH) !=
+			    0) {
+				dev_err(pdata->dev, "issue in creating mc list\n");
+			}
+
 			if (i == EQOS_MAX_MAC_ADDRESS_FILTER - 1) {
 				dev_err(pdata->dev, "Configured max number of supported MAC, ignoring it\n");
 				break;
@@ -1469,7 +1486,15 @@ static int ether_prepare_uc_list(struct net_device *dev)
 		/* Clear previously set filters */
 		for (cnt = pdata->last_mc_filter_index + 1;
 		     cnt <= pdata->last_uc_filter_index; cnt++) {
-			osi_update_mac_addr_low_high_reg(osi_core, cnt, NULL);
+			if (osi_update_mac_addr_low_high_reg(osi_core,
+							     (unsigned int)cnt,
+							     NULL,
+							     OSI_DISABLE, 0x0,
+							     OSI_AMASK_DISABLE,
+							     OSI_DA_MATCH) !=
+			    0) {
+				dev_err(pdata->dev, "issue in cleaning uc list\n");
+			}
 		}
 
 		netdev_for_each_uc_addr(ha, dev) {
@@ -1477,7 +1502,16 @@ static int ether_prepare_uc_list(struct net_device *dev)
 				"uc addr[%d] = %#x:%#x:%#x:%#x:%#x:%#x\n",
 				i, ha->addr[0], ha->addr[1], ha->addr[2],
 				ha->addr[3], ha->addr[4], ha->addr[5]);
-			osi_update_mac_addr_low_high_reg(osi_core, i, ha->addr);
+			if (osi_update_mac_addr_low_high_reg(osi_core,
+							     (unsigned int)i,
+							     ha->addr,
+							     OSI_DISABLE, 0x0,
+							     OSI_AMASK_DISABLE,
+							     OSI_DA_MATCH) !=
+			    0) {
+				dev_err(pdata->dev, "issue in creating uc list\n");
+			}
+
 			if (i == EQOS_MAX_MAC_ADDRESS_FILTER - 1) {
 				dev_err(pdata->dev, "Already MAX MAC added\n");
 				break;
@@ -2631,6 +2665,7 @@ static int ether_parse_dt(struct ether_priv_data *pdata)
 	struct osi_dma_priv_data *osi_dma = pdata->osi_dma;
 	struct device_node *np = dev->of_node;
 	int ret = -EINVAL;
+	unsigned int i;
 
 	/* read ptp clock */
 	ret = of_property_read_u32(np, "nvidia,ptp_ref_clock_speed",
@@ -2693,14 +2728,27 @@ static int ether_parse_dt(struct ether_priv_data *pdata)
 		return ret;
 	}
 
-	ether_parse_queue_prio(pdata, "nvidia,queue_prio", pdata->q_prio,
+	/*  Read tx queue priority */
+	ether_parse_queue_prio(pdata, "nvidia,tx-queue-prio", pdata->txq_prio,
 			       ETHER_QUEUE_PRIO_DEFAULT, ETHER_QUEUE_PRIO_MAX,
 			       osi_core->num_mtl_queues);
 
-	ether_parse_queue_prio(pdata, "nvidia,rx_queue_prio",
-			       osi_core->rxq_prio,
-			       ETHER_QUEUE_PRIO_INVALID, ETHER_QUEUE_PRIO_MAX,
-			       osi_core->num_mtl_queues);
+	/* Read Rx Queue - User priority mapping for tagged packets */
+	ret = of_property_read_u32_array(np, "nvidia,rx-queue-prio",
+					 osi_core->rxq_prio,
+					 osi_core->num_mtl_queues);
+	if (ret < 0) {
+		dev_err(dev, "failed to read rx Queue priority mapping, Setting default 0x0\n");
+		for (i = 0; i < osi_core->num_mtl_queues; i++) {
+			osi_core->rxq_prio[i] = 0x0U;
+		}
+	}
+
+	/* Read DCS enable/disable input, default disable */
+	ret = of_property_read_u32(np, "nvidia,dcs-enable", &osi_core->dcs_en);
+	if (ret < 0 || osi_core->dcs_en != OSI_ENABLE) {
+		osi_core->dcs_en = OSI_DISABLE;
+	}
 
 	ret = ether_parse_phy_dt(pdata, np);
 	if (ret < 0) {
