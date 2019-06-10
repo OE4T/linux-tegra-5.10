@@ -584,14 +584,14 @@ u32 nvgpu_tsg_default_timeslice_us(struct gk20a *g)
 
 void nvgpu_tsg_enable_sched(struct gk20a *g, struct nvgpu_tsg *tsg)
 {
-	nvgpu_fifo_runlist_set_state(g, BIT32(tsg->runlist_id),
+	nvgpu_runlist_set_state(g, BIT32(tsg->runlist_id),
 			RUNLIST_ENABLED);
 
 }
 
 void nvgpu_tsg_disable_sched(struct gk20a *g, struct nvgpu_tsg *tsg)
 {
-	nvgpu_fifo_runlist_set_state(g, BIT32(tsg->runlist_id),
+	nvgpu_runlist_set_state(g, BIT32(tsg->runlist_id),
 			RUNLIST_DISABLED);
 }
 

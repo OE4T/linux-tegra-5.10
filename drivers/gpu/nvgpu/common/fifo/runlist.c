@@ -607,7 +607,7 @@ const char *nvgpu_runlist_interleave_level_name(u32 interleave_level)
 	return ret_string;
 }
 
-void nvgpu_fifo_runlist_set_state(struct gk20a *g, u32 runlists_mask,
+void nvgpu_runlist_set_state(struct gk20a *g, u32 runlists_mask,
 		u32 runlist_state)
 {
 #ifdef CONFIG_NVGPU_LS_PMU

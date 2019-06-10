@@ -1344,7 +1344,7 @@ static int gk20a_cde_load(struct gk20a_cde_ctx *cde_ctx)
 
 	ch = gk20a_open_new_channel_with_cb(g, gk20a_cde_finished_ctx_cb,
 			cde_ctx,
-			RUNLIST_INVALID_ID,
+			NVGPU_INVALID_RUNLIST_ID,
 			false);
 	if (!ch) {
 		nvgpu_warn(g, "cde: gk20a channel not available");

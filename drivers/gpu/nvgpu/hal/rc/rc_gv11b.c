@@ -189,7 +189,7 @@ void gv11b_fifo_recover(struct gk20a *g, u32 act_eng_bitmask,
 	nvgpu_runlist_unlock_runlists(g, ~runlists_mask);
 
 	/* Disable runlist scheduler */
-	nvgpu_fifo_runlist_set_state(g, runlists_mask, RUNLIST_DISABLED);
+	nvgpu_runlist_set_state(g, runlists_mask, RUNLIST_DISABLED);
 
 	if (nvgpu_cg_pg_disable(g) != 0) {
 		nvgpu_warn(g, "fail to disable power mgmt");
@@ -294,7 +294,7 @@ void gv11b_fifo_recover(struct gk20a *g, u32 act_eng_bitmask,
 			runlists_mask);
 	}
 
-	nvgpu_fifo_runlist_set_state(g, runlists_mask, RUNLIST_ENABLED);
+	nvgpu_runlist_set_state(g, runlists_mask, RUNLIST_ENABLED);
 
 	if (nvgpu_cg_pg_enable(g) != 0) {
 		nvgpu_warn(g, "fail to enable power mgmt");

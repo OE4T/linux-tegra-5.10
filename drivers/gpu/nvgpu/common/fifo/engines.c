@@ -255,7 +255,7 @@ int nvgpu_engine_enable_activity(struct gk20a *g,
 {
 	nvgpu_log(g, gpu_dbg_info, "start");
 
-	nvgpu_fifo_runlist_set_state(g, BIT32(eng_info->runlist_id),
+	nvgpu_runlist_set_state(g, BIT32(eng_info->runlist_id),
 			RUNLIST_ENABLED);
 	return 0;
 }
@@ -309,7 +309,7 @@ int nvgpu_engine_disable_activity(struct gk20a *g,
 	}
 #endif
 
-	nvgpu_fifo_runlist_set_state(g, BIT32(eng_info->runlist_id),
+	nvgpu_runlist_set_state(g, BIT32(eng_info->runlist_id),
 			RUNLIST_DISABLED);
 
 	/* chid from pbdma status */
