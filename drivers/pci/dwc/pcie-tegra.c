@@ -4503,7 +4503,7 @@ static int tegra_pcie_dw_runtime_suspend(struct device *dev)
 	struct tegra_pcie_dw *pcie = dev_get_drvdata(dev);
 
 	if (pcie->mode == DW_PCIE_EP_TYPE)
-		return 0;
+		goto ep_suspend;
 
 	tegra_pcie_downstream_dev_to_D0(pcie);
 
@@ -4520,6 +4520,7 @@ static int tegra_pcie_dw_runtime_suspend(struct device *dev)
 	}
 	reset_control_assert(pcie->core_apb_rst);
 	clk_disable_unprepare(pcie->core_clk);
+ep_suspend:
 	if (tegra_platform_is_silicon()) {
 		regulator_disable(pcie->pex_ctl_reg);
 	}
@@ -4540,10 +4541,6 @@ static int tegra_pcie_dw_runtime_resume(struct device *dev)
 	struct pcie_port *pp = &pci->pp;
 	int ret = 0;
 	u32 val;
-
-	if (pcie->mode == DW_PCIE_EP_TYPE)
-		return 0;
-
 
 	if (tegra_platform_is_silicon()) {
 		if (pcie->cid != CTRL_5) {
@@ -4569,6 +4566,9 @@ static int tegra_pcie_dw_runtime_resume(struct device *dev)
 			goto fail_reg_en;
 		}
 	}
+
+	if (pcie->mode == DW_PCIE_EP_TYPE)
+		return 0;
 
 	ret = clk_prepare_enable(pcie->core_clk);
 	if (ret) {
