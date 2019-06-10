@@ -192,13 +192,13 @@ static void gv11b_fb_copy_from_hw_fault_buf(struct gk20a *g,
 
 	(void) memset(mmufault, 0, sizeof(*mmufault));
 
-	rd32_val = nvgpu_mem_rd32(g, mem, offset +
-			 gmmu_fault_buf_entry_inst_lo_w());
+	rd32_val = nvgpu_mem_rd32(g, mem, nvgpu_safe_add_u32(offset,
+			 gmmu_fault_buf_entry_inst_lo_w()));
 	addr_lo = gmmu_fault_buf_entry_inst_lo_v(rd32_val);
 	addr_lo = addr_lo << gmmu_fault_buf_entry_inst_lo_b();
 
-	addr_hi = nvgpu_mem_rd32(g, mem, offset +
-				 gmmu_fault_buf_entry_inst_hi_w());
+	addr_hi = nvgpu_mem_rd32(g, mem, nvgpu_safe_add_u32(offset,
+				 gmmu_fault_buf_entry_inst_hi_w()));
 	addr_hi = gmmu_fault_buf_entry_inst_hi_v(addr_hi);
 
 	inst_ptr = hi32_lo32_to_u64(addr_hi, addr_lo);
@@ -216,31 +216,31 @@ static void gv11b_fb_copy_from_hw_fault_buf(struct gk20a *g,
 	mmufault->inst_aperture =
 		gmmu_fault_buf_entry_inst_aperture_v(rd32_val);
 
-	rd32_val = nvgpu_mem_rd32(g, mem, offset +
-			 gmmu_fault_buf_entry_addr_lo_w());
+	rd32_val = nvgpu_mem_rd32(g, mem, nvgpu_safe_add_u32(offset,
+			 gmmu_fault_buf_entry_addr_lo_w()));
 
 	mmufault->fault_addr_aperture =
 		gmmu_fault_buf_entry_addr_phys_aperture_v(rd32_val);
 	addr_lo = gmmu_fault_buf_entry_addr_lo_v(rd32_val);
 	addr_lo = addr_lo << gmmu_fault_buf_entry_addr_lo_b();
 
-	rd32_val = nvgpu_mem_rd32(g, mem, offset +
-			 gmmu_fault_buf_entry_addr_hi_w());
+	rd32_val = nvgpu_mem_rd32(g, mem, nvgpu_safe_add_u32(offset,
+			 gmmu_fault_buf_entry_addr_hi_w()));
 	addr_hi = gmmu_fault_buf_entry_addr_hi_v(rd32_val);
 	mmufault->fault_addr = hi32_lo32_to_u64(addr_hi, addr_lo);
 
-	rd32_val = nvgpu_mem_rd32(g, mem, offset +
-			 gmmu_fault_buf_entry_timestamp_lo_w());
+	rd32_val = nvgpu_mem_rd32(g, mem, nvgpu_safe_add_u32(offset,
+			 gmmu_fault_buf_entry_timestamp_lo_w()));
 	mmufault->timestamp_lo =
 		 gmmu_fault_buf_entry_timestamp_lo_v(rd32_val);
 
-	rd32_val = nvgpu_mem_rd32(g, mem, offset +
-			 gmmu_fault_buf_entry_timestamp_hi_w());
+	rd32_val = nvgpu_mem_rd32(g, mem, nvgpu_safe_add_u32(offset,
+			 gmmu_fault_buf_entry_timestamp_hi_w()));
 	mmufault->timestamp_hi =
 		 gmmu_fault_buf_entry_timestamp_hi_v(rd32_val);
 
-	rd32_val = nvgpu_mem_rd32(g, mem, offset +
-			 gmmu_fault_buf_entry_engine_id_w());
+	rd32_val = nvgpu_mem_rd32(g, mem, nvgpu_safe_add_u32(offset,
+			 gmmu_fault_buf_entry_engine_id_w()));
 
 	mmufault->mmu_engine_id =
 		 gmmu_fault_buf_entry_engine_id_v(rd32_val);
@@ -248,8 +248,8 @@ static void gv11b_fb_copy_from_hw_fault_buf(struct gk20a *g,
 		 &mmufault->faulted_engine, &mmufault->faulted_subid,
 		 &mmufault->faulted_pbdma);
 
-	rd32_val = nvgpu_mem_rd32(g, mem, offset +
-			gmmu_fault_buf_entry_fault_type_w());
+	rd32_val = nvgpu_mem_rd32(g, mem, nvgpu_safe_add_u32(offset,
+			gmmu_fault_buf_entry_fault_type_w()));
 	mmufault->client_id =
 		 gmmu_fault_buf_entry_client_v(rd32_val);
 	mmufault->replayable_fault =
@@ -275,11 +275,12 @@ static void gv11b_fb_copy_from_hw_fault_buf(struct gk20a *g,
 	mmufault->valid = (gmmu_fault_buf_entry_valid_v(rd32_val) ==
 				gmmu_fault_buf_entry_valid_true_v());
 
-	rd32_val = nvgpu_mem_rd32(g, mem, offset +
-			gmmu_fault_buf_entry_fault_type_w());
+	rd32_val = nvgpu_mem_rd32(g, mem, nvgpu_safe_add_u32(offset,
+			gmmu_fault_buf_entry_fault_type_w()));
 	rd32_val &= ~(gmmu_fault_buf_entry_valid_m());
-	nvgpu_mem_wr32(g, mem, offset + gmmu_fault_buf_entry_valid_w(),
-					 rd32_val);
+	nvgpu_mem_wr32(g, mem, nvgpu_safe_add_u32(offset,
+						gmmu_fault_buf_entry_valid_w()),
+		       rd32_val);
 
 	gv11b_mm_mmu_fault_parse_mmu_fault_info(mmufault);
 }
@@ -304,7 +305,8 @@ void gv11b_mm_mmu_fault_handle_mmu_fault_common(struct gk20a *g,
 	if ((mmufault->mmu_engine_id >=
 			gmmu_fault_mmu_eng_id_ce0_v()) &&
 			(mmufault->mmu_engine_id <
-			gmmu_fault_mmu_eng_id_ce0_v() + num_lce)) {
+			nvgpu_safe_add_u32(gmmu_fault_mmu_eng_id_ce0_v(),
+					   num_lce))) {
 		/* CE page faults are not reported as replayable */
 		nvgpu_log(g, gpu_dbg_intr, "CE Faulted");
 #ifdef CONFIG_NVGPU_REPLAYABLE_FAULT
@@ -462,11 +464,12 @@ void gv11b_mm_mmu_fault_handle_nonreplay_replay_fault(struct gk20a *g,
 	entries = gv11b_fb_fault_buffer_size_val(g, index);
 	nvgpu_log(g, gpu_dbg_intr, "buffer num entries = %d", entries);
 
-	offset = (get_indx * gmmu_fault_buf_size_v()) / U32(sizeof(u32));
+	offset = nvgpu_safe_mult_u32(get_indx, gmmu_fault_buf_size_v()) /
+			U32(sizeof(u32));
 	nvgpu_log(g, gpu_dbg_intr, "starting word offset = 0x%x", offset);
 
 	rd32_val = nvgpu_mem_rd32(g, mem,
-		 offset + gmmu_fault_buf_entry_valid_w());
+		 nvgpu_safe_add_u32(offset, gmmu_fault_buf_entry_valid_w()));
 	nvgpu_log(g, gpu_dbg_intr, "entry valid offset val = 0x%x", rd32_val);
 
 	while ((rd32_val & gmmu_fault_buf_entry_valid_m()) != 0U) {
@@ -475,17 +478,19 @@ void gv11b_mm_mmu_fault_handle_nonreplay_replay_fault(struct gk20a *g,
 
 		gv11b_fb_copy_from_hw_fault_buf(g, mem, offset, mmufault);
 
+		nvgpu_assert(get_indx < U32_MAX);
 		get_indx = (get_indx + 1U) % entries;
 		nvgpu_log(g, gpu_dbg_intr, "new get index = %d", get_indx);
 
 		gv11b_fb_fault_buffer_get_ptr_update(g, index, get_indx);
 
-		offset = (get_indx * gmmu_fault_buf_size_v()) /
-			 U32(sizeof(u32));
+		offset = nvgpu_safe_mult_u32(get_indx, gmmu_fault_buf_size_v())
+			 / U32(sizeof(u32));
 		nvgpu_log(g, gpu_dbg_intr, "next word offset = 0x%x", offset);
 
 		rd32_val = nvgpu_mem_rd32(g, mem,
-			 offset + gmmu_fault_buf_entry_valid_w());
+				nvgpu_safe_add_u32(offset,
+					gmmu_fault_buf_entry_valid_w()));
 
 		if (index == NVGPU_MMU_FAULT_REPLAY_REG_INDX &&
 		    mmufault->fault_addr != 0ULL) {
@@ -663,8 +668,10 @@ static void gv11b_mm_mmu_hw_fault_buf_init(struct gk20a *g)
 	size_t fb_size;
 
 	/* Max entries take care of 1 entry used for full detection */
-	fb_size = ((size_t)g->ops.channel.count(g) + (size_t)1) *
-				 (size_t)gmmu_fault_buf_size_v();
+	fb_size = nvgpu_safe_add_u64((size_t)g->ops.channel.count(g),
+				     (size_t)1);
+	fb_size = nvgpu_safe_mult_u64(fb_size,
+				      (size_t)gmmu_fault_buf_size_v());
 
 	if (!nvgpu_mem_is_valid(
 		&g->mm.hw_fault_buf[NVGPU_MMU_FAULT_NONREPLAY_INDX])) {
