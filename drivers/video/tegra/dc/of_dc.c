@@ -549,7 +549,7 @@ static int parse_disp_default_out(struct platform_device *ndev,
 {
 	u8 *addr;
 	u32 temp, u, n_outpins = 0;
-	int err = 0, hotplug_gpio = 0;
+	int err = 0, hotplug_gpio = 0, hotplug_state = 0;
 	enum of_gpio_flags flags;
 	const __be32 *p;
 	const char *temp_str0;
@@ -745,9 +745,10 @@ static int parse_disp_default_out(struct platform_device *ndev,
 		}
 	}
 
-	if (!of_property_read_u32(out_np, "nvidia,out-hotplug-state", &temp)) {
-		pdata->default_out->hotplug_state = (unsigned) temp;
-		OF_DC_LOG("out-hotplug-state %d\n", temp);
+	if (!of_property_read_s32(out_np,
+				"nvidia,out-hotplug-state", &hotplug_state)) {
+		pdata->default_out->hotplug_state = hotplug_state;
+		OF_DC_LOG("out-hotplug-state %d\n", hotplug_state);
 	}
 
 	/*
