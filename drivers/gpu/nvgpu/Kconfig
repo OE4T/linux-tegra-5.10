@@ -181,3 +181,10 @@ config NVGPU_COMPRESSION
 	default y
 	help
 	  Support for compression
+
+config NVGPU_LOGGING
+	bool "Logging for non-safety build"
+	depends on GK20A
+	default y
+	help
+	  Enable/Disable logging for non-safety builds

@@ -95,65 +95,85 @@ int nvgpu_timeout_init(struct gk20a *g, struct nvgpu_timeout *timeout,
 	return 0;
 }
 
-static int nvgpu_timeout_expired_msg_cpu(struct nvgpu_timeout *timeout,
-					 void *caller,
+/*
+ * NOTE: Logging is disabled in safety release build.
+ * So, in safety release configuration, messages will not be printed or logged.
+ */
+#ifdef CONFIG_NVGPU_LOGGING
+static void nvgpu_timeout_expired_msg_print(struct nvgpu_timeout *timeout,
+					 bool retry, void *caller,
 					 const char *fmt, va_list args)
 {
 	struct gk20a *g = timeout->g;
+	if ((timeout->flags & NVGPU_TIMER_SILENT_TIMEOUT) == 0U) {
+		char buf[128];
 
-	if (get_time_ns() >= timeout->time) {
-		if ((timeout->flags & NVGPU_TIMER_SILENT_TIMEOUT) == 0U) {
-			char buf[128];
+		(void) vsnprintf(buf, sizeof(buf), fmt, args);
 
-			(void) vsnprintf(buf, sizeof(buf), fmt, args);
-
+		if (retry) {
+			nvgpu_err(g, "No more retries @ %p %s", caller, buf);
+		} else {
 			nvgpu_err(g, "Timeout detected @ %p %s", caller, buf);
 		}
+	}
+}
+#endif
 
+static int nvgpu_timeout_expired_msg_cpu(struct nvgpu_timeout *timeout)
+{
+	if (get_time_ns() >= timeout->time) {
 		return -ETIMEDOUT;
 	}
 
 	return 0;
 }
 
-static int nvgpu_timeout_expired_msg_retry(struct nvgpu_timeout *timeout,
-					   void *caller,
-					   const char *fmt, va_list args)
+static int nvgpu_timeout_expired_msg_retry(struct nvgpu_timeout *timeout)
 {
-	struct gk20a *g = timeout->g;
-
 	if (timeout->retries.attempted >= timeout->retries.max_attempts) {
-		if ((timeout->flags & NVGPU_TIMER_SILENT_TIMEOUT) == 0U) {
-			char buf[128];
-
-			(void) vsnprintf(buf, sizeof(buf), fmt, args);
-
-			nvgpu_err(g, "No more retries @ %p %s", caller, buf);
-		}
-
 		return -ETIMEDOUT;
 	}
 
 	timeout->retries.attempted++;
-
 	return 0;
 }
 
+/*
+ * NOTE: Logging is disabled in safety release build.
+ * So, in safety release configuration, messages will not be printed or logged.
+ */
 int nvgpu_timeout_expired_msg_impl(struct nvgpu_timeout *timeout,
 			      void *caller, const char *fmt, ...)
 {
 	int ret;
-	va_list args;
 
-	va_start(args, fmt);
 	if ((timeout->flags & NVGPU_TIMER_RETRY_TIMER) != 0U) {
-		ret = nvgpu_timeout_expired_msg_retry(timeout, caller, fmt,
-						      args);
+		ret = nvgpu_timeout_expired_msg_retry(timeout);
+
+#ifdef CONFIG_NVGPU_LOGGING
+		if (ret != 0) {
+			va_list args;
+
+			va_start(args, fmt);
+			nvgpu_timeout_expired_msg_print(timeout, true, caller,
+								fmt, args);
+			va_end(args);
+		}
+#endif
 	} else {
-		ret = nvgpu_timeout_expired_msg_cpu(timeout, caller, fmt,
-						    args);
+		ret = nvgpu_timeout_expired_msg_cpu(timeout);
+
+#ifdef CONFIG_NVGPU_LOGGING
+		if (ret != 0) {
+			va_list args;
+
+			va_start(args, fmt);
+			nvgpu_timeout_expired_msg_print(timeout, false, caller,
+								fmt, args);
+			va_end(args);
+		}
+#endif
 	}
-	va_end(args);
 
 	return ret;
 }

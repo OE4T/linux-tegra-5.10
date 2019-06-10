@@ -24,7 +24,6 @@ srcs :=
 
 ifdef NVGPU_POSIX
 srcs +=	os/posix/nvgpu.c \
-	os/posix/log.c \
 	os/posix/posix-io.c \
 	os/posix/posix-nvgpu_mem.c \
 	os/posix/posix-dma.c \
@@ -50,6 +49,10 @@ endif
 
 ifeq ($(CONFIG_NVGPU_COMPRESSION),1)
 srcs += os/posix/posix-comptags.c
+endif
+
+ifeq ($(CONFIG_NVGPU_LOGGING),1)
+srcs += os/posix/log.c
 endif
 endif
 

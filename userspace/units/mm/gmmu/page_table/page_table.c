@@ -472,7 +472,7 @@ static int test_nvgpu_gmmu_map_unmap(struct unit_module *m,
 		unit_return_fail(m, "Mapped VA is not 4KB-aligned\n");
 	}
 
-	nvgpu_log(g, gpu_dbg_map, "Mapped VA=%p", (void *) mem.gpu_va);
+	unit_info(m, "Mapped VA=%p", (void *) mem.gpu_va);
 
 	/*
 	 * Based on the VA returned from gmmu_map, lookup the corresponding
@@ -482,7 +482,7 @@ static int test_nvgpu_gmmu_map_unmap(struct unit_module *m,
 	if (result != 0) {
 		unit_return_fail(m, "PTE lookup failed with code=%d\n", result);
 	}
-	nvgpu_log(g, gpu_dbg_map, "Found PTE=%08x %08x", pte[1], pte[0]);
+	unit_info(m, "Found PTE=%08x %08x", pte[1], pte[0]);
 
 	/* Make sure PTE is valid */
 	if (!pte_is_valid(pte) &&
@@ -925,7 +925,7 @@ static int check_pte_valid(struct unit_module *m, struct gk20a *g,
 	if (result != 0) {
 		unit_return_fail(m, "PTE lookup failed with code=%d\n", result);
 	}
-	nvgpu_log(g, gpu_dbg_map, "Found PTE=%08x %08x", pte[1], pte[0]);
+	unit_info(m, "Found PTE=%08x %08x", pte[1], pte[0]);
 
 	/* Make sure PTE is valid */
 	if (!pte_is_valid(pte)) {

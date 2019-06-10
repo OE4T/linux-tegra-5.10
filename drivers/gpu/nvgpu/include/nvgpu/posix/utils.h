@@ -131,6 +131,7 @@
  * Caps return at the size of the buffer not what would have been written if buf
  * were arbitrarily sized.
  */
+#ifdef CONFIG_NVGPU_LOGGING
 static inline int scnprintf(char *buf, size_t size, const char *format, ...)
 {
 	size_t ret;
@@ -142,6 +143,12 @@ static inline int scnprintf(char *buf, size_t size, const char *format, ...)
 
 	return ret <= size ? (int)ret : (int)size;
 }
+#else
+static inline int scnprintf(char *buf, size_t size, const char *format, ...)
+{
+	return 0;
+}
+#endif
 
 static inline u32 be32_to_cpu(u32 x)
 {

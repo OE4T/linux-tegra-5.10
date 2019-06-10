@@ -37,6 +37,8 @@
 #include "nvgpu-fifo.h"
 #include "nvgpu-fifo-gv11b.h"
 
+static struct unit_module *global_m;
+
 bool test_fifo_subtest_pruned(u32 branches, u32 final_branches)
 {
 	u32 match = branches & final_branches;
@@ -93,7 +95,7 @@ static int stub_userd_setup_sw(struct gk20a *g)
 
 	err = nvgpu_userd_init_slabs(g);
 	if (err != 0) {
-		nvgpu_err(g, "failed to init userd support");
+		unit_err(global_m, "failed to init userd support");
 		return err;
 	}
 
@@ -116,6 +118,7 @@ int test_fifo_init_support(struct unit_module *m, struct gk20a *g, void *args)
 	g->ops.tsg.init_eng_method_buffers = NULL;
 
 #ifdef CONFIG_NVGPU_USERD
+	global_m = m;
 	/*
 	 * Regular USERD init requires bar1.vm to be initialized
 	 * Use a stub in unit tests, since it will be disabled in

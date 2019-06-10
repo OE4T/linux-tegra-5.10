@@ -42,6 +42,10 @@ ccflags-y += -DCONFIG_NVGPU_POWER_PG
 ccflags-y += -DCONFIG_NVGPU_CE
 ccflags-y += -DCONFIG_NVGPU_COMPRESSION
 
+ifeq ($(CONFIG_NVGPU_LOGGING),y)
+ccflags-y += -DCONFIG_NVGPU_LOGGING=1
+endif
+
 obj-$(CONFIG_GK20A) := nvgpu.o
 
 # OS independent parts of nvgpu. The work to collect files here
@@ -384,7 +388,6 @@ nvgpu-y += \
 	os/linux/ioctl_tsg.o \
 	os/linux/ioctl_dbg.o \
 	os/linux/ioctl_clk_arb.o \
-	os/linux/log.o \
 	os/linux/cond.o \
 	os/linux/nvgpu_mem.o \
 	os/linux/linux-dma.o \
@@ -432,6 +435,8 @@ nvgpu-$(CONFIG_DEBUG_FS) += \
 	os/linux/debug_clk_gv100.o \
 	os/linux/debug_volt.o \
 	os/linux/debug_s_param.o
+
+nvgpu-$(CONFIG_NVGPU_LOGGING) += os/linux/log.o
 
 ifeq ($(CONFIG_NVGPU_TRACK_MEM_USAGE),y)
 nvgpu-$(CONFIG_DEBUG_FS) += \

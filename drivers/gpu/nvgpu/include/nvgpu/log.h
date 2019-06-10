@@ -39,6 +39,7 @@ enum nvgpu_log_type {
  * Each OS must implement these functions. They handle the OS specific nuances
  * of printing data to a UART, log, whatever.
  */
+#ifdef CONFIG_NVGPU_LOGGING
 __attribute__((format (printf, 5, 6)))
 void nvgpu_log_msg_impl(struct gk20a *g, const char *func_name, int line,
 			enum nvgpu_log_type type, const char *fmt, ...);
@@ -47,6 +48,18 @@ __attribute__((format (printf, 5, 6)))
 void nvgpu_log_dbg_impl(struct gk20a *g, u64 log_mask,
 			const char *func_name, int line,
 			const char *fmt, ...);
+#else
+static inline void nvgpu_log_msg_impl(struct gk20a *g, const char *func_name,
+		int line, enum nvgpu_log_type type, const char *fmt, ...)
+{
+}
+
+static inline void nvgpu_log_dbg_impl(struct gk20a *g, u64 log_mask,
+		     const char *func_name, int line,
+		     const char *fmt, ...)
+{
+}
+#endif
 
 /*
  * Use this define to set a default mask.
@@ -95,7 +108,14 @@ void nvgpu_log_dbg_impl(struct gk20a *g, u64 log_mask,
  * said prints would not happen. For example for-loops of log statements in
  * critical paths.
  */
+#ifdef CONFIG_NVGPU_LOGGING
 bool nvgpu_log_mask_enabled(struct gk20a *g, u64 log_mask);
+#else
+static inline bool nvgpu_log_mask_enabled(struct gk20a *g, u64 log_mask)
+{
+	return false;
+}
+#endif
 
 /**
  * nvgpu_log - Print a debug message
