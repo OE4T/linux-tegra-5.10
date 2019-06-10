@@ -23,6 +23,8 @@
 #ifndef NVGPU_GR_UTILS_H
 #define NVGPU_GR_UTILS_H
 
+#include <nvgpu/types.h>
+
 struct gk20a;
 struct nvgpu_gr_falcon;
 struct nvgpu_gr_obj_ctx_golden_image;
@@ -35,6 +37,11 @@ struct nvgpu_gr_zcull;
 struct nvgpu_gr_hwpm_map;
 struct nvgpu_gr_intr;
 struct nvgpu_gr_global_ctx_buffer_desc;
+
+static inline u32 nvgpu_gr_checksum_u32(u32 a, u32 b)
+{
+	return (u32)(((u64)a + (u64)b) % (U32_MAX));
+}
 
 /* gr struct pointers */
 struct nvgpu_gr_falcon *nvgpu_gr_get_falcon_ptr(struct gk20a *g);
