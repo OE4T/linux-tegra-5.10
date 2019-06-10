@@ -259,7 +259,7 @@
 					<&bpmp_clks TEGRA194_CLK_I2S1_SYNC_INPUT>,
 					<&bpmp_clks TEGRA194_CLK_SYNC_I2S1>,
 					<&bpmp_clks TEGRA194_CLK_I2S1_SYNC_INPUT>;
-				clock-names = "i2s1", "pll_a_out0", "ext_audio_sync",
+				clock-names = "i2s1", "i2s_clk_parent", "ext_audio_sync",
 							"audio_sync", "clk_sync_input";
 				fsync-width = <31>;
 				status = "disabled";
@@ -274,7 +274,7 @@
 					<&bpmp_clks TEGRA194_CLK_I2S2_SYNC_INPUT>,
 					<&bpmp_clks TEGRA194_CLK_SYNC_I2S2>,
 					<&bpmp_clks TEGRA194_CLK_I2S2_SYNC_INPUT>;
-				clock-names = "i2s2", "pll_a_out0", "ext_audio_sync",
+				clock-names = "i2s2", "i2s_clk_parent", "ext_audio_sync",
 							"audio_sync", "clk_sync_input";
 				fsync-width = <31>;
 				status = "disabled";
@@ -289,7 +289,7 @@
 					<&bpmp_clks TEGRA194_CLK_I2S3_SYNC_INPUT>,
 					<&bpmp_clks TEGRA194_CLK_SYNC_I2S3>,
 					<&bpmp_clks TEGRA194_CLK_I2S3_SYNC_INPUT>;
-				clock-names = "i2s3", "pll_a_out0", "ext_audio_sync",
+				clock-names = "i2s3", "i2s_clk_parent", "ext_audio_sync",
 							"audio_sync", "clk_sync_input";
 				fsync-width = <31>;
 				status = "disabled";
@@ -304,7 +304,7 @@
 					<&bpmp_clks TEGRA194_CLK_I2S4_SYNC_INPUT>,
 					<&bpmp_clks TEGRA194_CLK_SYNC_I2S4>,
 					<&bpmp_clks TEGRA194_CLK_I2S4_SYNC_INPUT>;
-				clock-names = "i2s4", "pll_a_out0", "ext_audio_sync",
+				clock-names = "i2s4", "i2s_clk_parent", "ext_audio_sync",
 							"audio_sync", "clk_sync_input";
 				fsync-width = <31>;
 				status = "disabled";
@@ -319,7 +319,7 @@
 					<&bpmp_clks TEGRA194_CLK_I2S5_SYNC_INPUT>,
 					<&bpmp_clks TEGRA194_CLK_SYNC_I2S5>,
 					<&bpmp_clks TEGRA194_CLK_I2S5_SYNC_INPUT>;
-				clock-names = "i2s5", "pll_a_out0", "ext_audio_sync",
+				clock-names = "i2s5", "i2s_clk_parent", "ext_audio_sync",
 							"audio_sync", "clk_sync_input";
 				fsync-width = <31>;
 				status = "disabled";
@@ -334,7 +334,7 @@
 					<&bpmp_clks TEGRA194_CLK_I2S6_SYNC_INPUT>,
 					<&bpmp_clks TEGRA194_CLK_SYNC_I2S6>,
 					<&bpmp_clks TEGRA194_CLK_I2S6_SYNC_INPUT>;
-				clock-names = "i2s6", "pll_a_out0", "ext_audio_sync",
+				clock-names = "i2s6", "i2s_clk_parent", "ext_audio_sync",
 							"audio_sync", "clk_sync_input";
 				fsync-width = <31>;
 				status = "disabled";
