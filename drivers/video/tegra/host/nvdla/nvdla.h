@@ -103,7 +103,6 @@
 #define MAX_NUM_NVDLA_EMU_POSTFENCES	16
 #define MAX_NUM_NVDLA_IN_TASK_STATUS	MAX_NUM_NVDLA_PREFENCES
 #define MAX_NUM_NVDLA_OUT_TASK_STATUS	MAX_NUM_NVDLA_POSTFENCES
-#define MAX_NUM_NVDLA_OUT_TIMESTAMP  	32
 #define NUM_PROFILING_POSTACTION	1
 
 #define MAX_COMMANDS_PER_DEVICE		1
@@ -268,16 +267,12 @@ struct nvdla_task {
 	struct nvdla_status_notify in_task_status[MAX_NUM_NVDLA_IN_TASK_STATUS];
 	struct nvdla_status_notify sof_task_status[MAX_NUM_NVDLA_OUT_TASK_STATUS];
 	struct nvdla_status_notify eof_task_status[MAX_NUM_NVDLA_OUT_TASK_STATUS];
-	struct nvdla_mem_handle sof_timestamps[MAX_NUM_NVDLA_OUT_TIMESTAMP];
-	struct nvdla_mem_handle eof_timestamps[MAX_NUM_NVDLA_OUT_TIMESTAMP];
 	struct nvdla_mem_handle memory_handles[NVDLA_MAX_BUFFERS_PER_TASK];
 	u8 num_prefences;
 	u8 num_postfences;
 	u8 num_in_task_status;
 	u8 num_sof_task_status;
 	u8 num_eof_task_status;
-	u8 num_sof_timestamps;
-	u8 num_eof_timestamps;
 	u32 num_addresses;
 	u32 fence;
 	u32 fence_counter;
@@ -295,8 +290,6 @@ struct nvdla_task {
 	struct dma_buf *postfences_sem_dmabuf[MAX_NUM_NVDLA_POSTFENCES];
 	struct dma_buf *sof_task_status_dmabuf[MAX_NUM_NVDLA_OUT_TASK_STATUS];
 	struct dma_buf *eof_task_status_dmabuf[MAX_NUM_NVDLA_OUT_TASK_STATUS];
-	struct dma_buf *sof_timestamps_dmabuf[MAX_NUM_NVDLA_OUT_TIMESTAMP];
-	struct dma_buf *eof_timestamps_dmabuf[MAX_NUM_NVDLA_OUT_TIMESTAMP];
 };
 
 struct dla_mem_addr {

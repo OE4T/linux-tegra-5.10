@@ -228,25 +228,6 @@ static int nvdla_unmap_task_memory(struct nvdla_task *task)
 	}
 	nvdla_dbg_fn(pdev, "all out task status unmaped");
 
-	/* unpin output timestamp memory */
-	for (ii = 0; ii < task->num_sof_timestamps; ii++) {
-		if (task->sof_timestamps[ii].handle) {
-			nvdla_buffer_submit_unpin(task->buffers,
-				&task->sof_timestamps_dmabuf[ii], 1);
-			dma_buf_put(task->sof_timestamps_dmabuf[ii]);
-		}
-	}
-
-	for (ii = 0; ii < task->num_eof_timestamps; ii++) {
-		if (task->eof_timestamps[ii].handle) {
-			nvdla_buffer_submit_unpin(task->buffers,
-				&task->eof_timestamps_dmabuf[ii], 1);
-			dma_buf_put(task->eof_timestamps_dmabuf[ii]);
-		}
-	}
-	nvdla_dbg_fn(pdev, "all out timestamps unmaped");
-
-
 	return 0;
 }
 
@@ -280,15 +261,12 @@ static void nvdla_task_syncpt_reset(struct nvhost_syncpt *syncpt,
 static inline int nvdla_get_max_preaction_size(void)
 {
 	return (((MAX_NUM_NVDLA_PREFENCES + MAX_NUM_NVDLA_IN_TASK_STATUS +
-			MAX_NUM_NVDLA_OUT_TASK_STATUS +
-			MAX_NUM_NVDLA_OUT_TIMESTAMP) *
+			MAX_NUM_NVDLA_OUT_TASK_STATUS) *
 		sizeof(struct dla_action_opcode)) +
 		(MAX_NUM_NVDLA_PREFENCES *
 			sizeof(struct dla_action_semaphore)) +
 		((MAX_NUM_NVDLA_IN_TASK_STATUS + MAX_NUM_NVDLA_OUT_TASK_STATUS) *
 			sizeof(struct dla_action_task_status)) +
-		(MAX_NUM_NVDLA_OUT_TIMESTAMP *
-			sizeof(struct dla_action_timestamp)) +
 		sizeof(struct dla_action_opcode));
 }
 
@@ -296,7 +274,6 @@ static inline int nvdla_get_max_postaction_size(void)
 {
 	return (((MAX_NUM_NVDLA_POSTFENCES +
 				MAX_NUM_NVDLA_OUT_TASK_STATUS +
-				MAX_NUM_NVDLA_OUT_TIMESTAMP +
 				NUM_PROFILING_POSTACTION) *
 		sizeof(struct dla_action_opcode)) +
 		(MAX_NUM_NVDLA_POSTFENCES *
@@ -304,8 +281,6 @@ static inline int nvdla_get_max_postaction_size(void)
 		((MAX_NUM_NVDLA_OUT_TASK_STATUS +
 			NUM_PROFILING_POSTACTION) *
 			sizeof(struct dla_action_task_status)) +
-		(MAX_NUM_NVDLA_OUT_TIMESTAMP *
-			sizeof(struct dla_action_timestamp)) +
 		sizeof(struct dla_action_opcode));
 }
 
@@ -459,18 +434,6 @@ static u8 *add_status_action(u8 *mem, uint8_t op, uint64_t addr,
 	action->status = status;
 
 	return mem + sizeof(struct dla_action_task_status);
-}
-
-static u8 *add_timestamp_action(u8 *mem, uint8_t op, uint64_t addr)
-{
-	struct dla_action_timestamp *action;
-
-	mem = add_opcode(mem, op);
-
-	action = (struct dla_action_timestamp *)mem;
-	action->address = addr;
-
-	return mem + sizeof(struct dla_action_timestamp);
 }
 
 static u8 *add_gos_action(u8 *mem, uint8_t op, uint8_t index, uint16_t offset,
@@ -955,50 +918,6 @@ fail:
 	return err;
 }
 
-static int nvdla_fill_timestamp_write_action(struct nvdla_task *task,
-	struct nvdla_mem_handle *timestamp,
-	struct dma_buf **dma_buf,
-	u8 **mem_next)
-{
-	int err = 0;
-
-	struct nvdla_buffers *buffers = task->buffers;
-	struct nvdla_queue *queue = task->queue;
-	struct platform_device *pdev = queue->pool->pdev;
-	dma_addr_t dma_addr;
-	size_t dma_size;
-
-	u8 *next = *mem_next;
-
-	nvdla_dbg_info(pdev, "h[%u] o[%u]",
-			timestamp->handle,
-			timestamp->offset);
-
-	*dma_buf = dma_buf_get(timestamp->handle);
-	if (IS_ERR_OR_NULL(*dma_buf)) {
-		*dma_buf = NULL;
-		nvdla_dbg_err(pdev, "fail to get buf");
-		err = -EINVAL;
-		goto fail;
-	}
-
-	if (nvdla_buffer_submit_pin(buffers,
-			dma_buf, 1, &dma_addr, &dma_size, NULL)) {
-		nvdla_dbg_err(pdev, "fail to pin timestamp");
-		err = -EINVAL;
-		goto fail;
-	}
-
-	next = add_timestamp_action(next, ACTION_WRITE_TIMESTAMP,
-			dma_addr + timestamp->offset);
-
-	*mem_next = next;
-
-fail:
-	return err;
-}
-
-
 static int nvdla_fill_postactions(struct nvdla_task *task)
 {
 	int err = 0;
@@ -1021,20 +940,6 @@ static int nvdla_fill_postactions(struct nvdla_task *task)
 	/* Action to write the status notifier after task finishes (for TSP). */
 	next = add_status_action(next, ACTION_WRITE_TASK_STATUS,
 		task->task_desc_pa + nvdla_profile_status_offset(task), 0);
-
-	/* fill eof timestamp actions */
-	for (i = 0; i < task->num_eof_timestamps; i++) {
-		err = nvdla_fill_timestamp_write_action(task,
-				&task->eof_timestamps[i],
-				&task->eof_timestamps_dmabuf[i],
-				&next);
-		if (err < 0) {
-			nvdla_dbg_err(pdev,
-				"failed to fill eof timestamp[%d]",
-				i);
-			goto fail;
-		}
-	}
 
 	/* fill output task status */
 	for (i = 0; i < task->num_eof_task_status; i++) {
@@ -1133,20 +1038,6 @@ static int nvdla_fill_preactions(struct nvdla_task *task)
 		if (err < 0) {
 			nvdla_dbg_err(pdev,
 				"failed to fill sof taskstatus[%d]",
-				i);
-			goto fail;
-		}
-	}
-
-	/* fill sof timestamp actions */
-	for (i = 0; i < task->num_sof_timestamps; i++) {
-		err = nvdla_fill_timestamp_write_action(task,
-				&task->sof_timestamps[i],
-				&task->sof_timestamps_dmabuf[i],
-				&next);
-		if (err < 0) {
-			nvdla_dbg_err(pdev,
-				"failed to fill sof timestamp[%d]",
 				i);
 			goto fail;
 		}

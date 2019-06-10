@@ -87,7 +87,6 @@
 /* write actions */
 #define ACTION_WRITE_SEM	0x80
 #define ACTION_WRITE_TS_SEM	0x83
-#define ACTION_WRITE_TIMESTAMP  	0x87
 #define ACTION_WRITE_GOS	0xA0
 #define ACTION_WRITE_TASK_STATUS	0xC1
 
@@ -230,17 +229,6 @@ struct dla_action_gos {
 struct dla_action_task_status {
 	uint64_t address;
 	uint16_t status;
-} __attribute__ ((packed));
-
-/**
- * Timestamp update action structure
- *
- * OPCODE = 0x87
- *
- * @address: Address to write timestamp
- */
-struct dla_action_timestamp {
-	uint64_t address;
 } __attribute__ ((packed));
 
 /**

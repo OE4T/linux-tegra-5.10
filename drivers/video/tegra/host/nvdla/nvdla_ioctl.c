@@ -396,24 +396,6 @@ static int nvdla_get_actions(struct nvdla_ioctl_submit_task *user_task,
 		goto fail;
 	}
 
-	/* get sof timestamps */
-	if (copy_from_user(task->sof_timestamps,
-		(void __user*)user_task->sof_timestamps,
-		(task->num_sof_timestamps * sizeof(struct nvdla_mem_handle)))) {
-		err = -EFAULT;
-		nvdla_dbg_err(pdev, "failed to copy sof timestamps");
-		goto fail;
-	}
-
-	/* get eof timestamps */
-	if (copy_from_user(task->eof_timestamps,
-		(void __user*)user_task->eof_timestamps,
-		(task->num_eof_timestamps * sizeof(struct nvdla_mem_handle)))) {
-		err = -EFAULT;
-		nvdla_dbg_err(pdev, "failed to copy eof timestamps");
-		goto fail;
-	}
-
 	nvdla_dbg_info(pdev, "copying actions done");
 
 fail:
@@ -658,18 +640,6 @@ static int nvdla_val_task_submit_input(struct nvdla_ioctl_submit_task *in_task)
 			MAX_NUM_NVDLA_OUT_TASK_STATUS);
 		return -EINVAL;
 	}
-	if (in_task->num_sof_timestamps > MAX_NUM_NVDLA_OUT_TIMESTAMP) {
-		pr_err("sof timestamps[%u] crossing expected[%d]\n",
-			in_task->num_sof_timestamps,
-			MAX_NUM_NVDLA_OUT_TIMESTAMP);
-		return -EINVAL;
-	}
-	if (in_task->num_eof_timestamps > MAX_NUM_NVDLA_OUT_TIMESTAMP) {
-		pr_err("eof timestamps[%u] crossing expected[%d]\n",
-			in_task->num_eof_timestamps,
-			MAX_NUM_NVDLA_OUT_TIMESTAMP);
-		return -EINVAL;
-	}
 	if (in_task->num_addresses < 1) {
 		pr_err("num addresses[%u] should be min one\n",
 				in_task->num_addresses);
@@ -713,8 +683,6 @@ static int nvdla_fill_task(struct nvdla_queue *queue,
 	task->num_in_task_status = local_task->num_input_task_status;
 	task->num_sof_task_status = local_task->num_sof_task_status;
 	task->num_eof_task_status = local_task->num_eof_task_status;
-	task->num_sof_timestamps = local_task->num_sof_timestamps;
-	task->num_eof_timestamps = local_task->num_eof_timestamps;
 	task->num_addresses = local_task->num_addresses;
 	task->timeout = local_task->timeout;
 
@@ -763,9 +731,6 @@ static void nvdla_dump_task(struct nvdla_task *task)
 			task->num_in_task_status,
 			task->num_sof_task_status,
 			task->num_eof_task_status);
-	nvdla_dbg_info(pdev, "num_sof_timestamps[%u] num_eof_timestamps[%u]",
-			task->num_sof_timestamps,
-			task->num_eof_timestamps);
 	nvdla_dbg_info(pdev, "num_addresses[%u]", task->num_addresses);
 
 	for (i = 0; i < task->num_prefences; i++) {
@@ -816,20 +781,6 @@ static void nvdla_dump_task(struct nvdla_task *task)
 				i, task->eof_task_status[i].handle,
 				task->eof_task_status[i].offset,
 				task->eof_task_status[i].status);
-	}
-
-	for (i = 0; i < task->num_sof_timestamps; i++) {
-		nvdla_dbg_info(pdev, "SOF timestamp[%d]:"
-				"handle[%u] offset[%u]",
-				i, task->sof_timestamps[i].handle,
-				task->sof_timestamps[i].offset);
-	}
-
-	for (i = 0; i < task->num_eof_timestamps; i++) {
-		nvdla_dbg_info(pdev, "EOF timestamp[%d]:"
-				"handle[%u] offset[%u]",
-				i, task->eof_timestamps[i].handle,
-				task->eof_timestamps[i].offset);
 	}
 
 	for (i = 0; i < task->num_addresses; i++) {
