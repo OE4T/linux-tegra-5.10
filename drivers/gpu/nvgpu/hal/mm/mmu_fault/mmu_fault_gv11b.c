@@ -51,7 +51,7 @@ static int gv11b_fb_fix_page_fault(struct gk20a *g,
 		 struct mmu_fault_info *mmufault);
 #endif
 
-static const char * const invalid_str = "invalid";
+static const char invalid_str[] = "invalid";
 
 static const char *const gv11b_fault_type_descs[] = {
 	"invalid pde",
