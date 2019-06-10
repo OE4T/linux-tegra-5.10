@@ -239,16 +239,6 @@ static int tegra186_init(struct snd_soc_pcm_runtime *rtd)
 	struct snd_soc_dai *codec_dai = rtd->codec_dai;
 	struct snd_soc_codec *codec = codec_dai->codec;
 	struct snd_soc_dapm_context *dapm = snd_soc_codec_get_dapm(codec);
-	struct tegra_t186 *machine = snd_soc_card_get_drvdata(rtd->card);
-	struct snd_soc_card *card = rtd->card;
-	int ret;
-
-	ret = tegra_alt_asoc_utils_set_extern_parent(&machine->audio_clock,
-						     "pll_a_out0");
-	if (ret < 0) {
-		dev_err(card->dev, "Failed to set extern clk parent\n");
-		return ret;
-	}
 
 	return snd_soc_dapm_sync(dapm);
 }
