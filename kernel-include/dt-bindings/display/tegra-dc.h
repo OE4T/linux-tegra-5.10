@@ -1,7 +1,7 @@
 /*
  * include/dt-bindings/display/tegra-dc.h
  *
- * Copyright (c) 2015-2017, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2015-2019, NVIDIA CORPORATION. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -94,6 +94,11 @@
 /* tegra_hdmi_out.generic_infoframe_type */
 #define HDMI_INFOFRAME_TYPE_SPD		0x83
 #define HDMI_INFOFRAME_TYPE_HDR		0x87
+
+/* hotplug states */
+#define TEGRA_HPD_STATE_FORCE_DEASSERT  (-1)
+#define TEGRA_HPD_STATE_NORMAL          0
+#define TEGRA_HPD_STATE_FORCE_ASSERT    1
 
 #endif /* __TEGRA_DC_H */
 
