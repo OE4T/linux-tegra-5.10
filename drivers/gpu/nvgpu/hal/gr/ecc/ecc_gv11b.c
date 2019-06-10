@@ -90,7 +90,8 @@ int gv11b_gr_intr_inject_gpccs_ecc_error(struct gk20a *g,
 {
 	unsigned int gpc_stride = nvgpu_get_litter_value(g, GPU_LIT_GPC_STRIDE);
 	unsigned int gpc = (error_info & 0xFFU);
-	unsigned int reg_addr = err->get_reg_addr() + gpc * gpc_stride;
+	unsigned int reg_addr = nvgpu_safe_add_u32(err->get_reg_addr(),
+					nvgpu_safe_mult_u32(gpc , gpc_stride));
 
 	nvgpu_info(g, "Injecting GPCCS fault %s for gpc: %d", err->name, gpc);
 	nvgpu_writel(g, reg_addr, err->get_reg_val(1U));
@@ -147,8 +148,10 @@ int gv11b_gr_intr_inject_sm_ecc_error(struct gk20a *g,
 		nvgpu_get_litter_value(g, GPU_LIT_TPC_IN_GPC_STRIDE);
 	unsigned int gpc = (error_info & 0xFF00U) >> 8U;
 	unsigned int tpc = (error_info & 0xFFU);
-	unsigned int reg_addr = err->get_reg_addr() + gpc * gpc_stride
-		+ tpc * tpc_stride;
+	unsigned int reg_addr = nvgpu_safe_add_u32(err->get_reg_addr(),
+					nvgpu_safe_add_u32(
+					nvgpu_safe_mult_u32(gpc , gpc_stride),
+					nvgpu_safe_mult_u32(tpc , tpc_stride)));
 
 	nvgpu_info(g, "Injecting SM fault %s for gpc: %d, tpc: %d",
 			err->name, gpc, tpc);
@@ -182,7 +185,8 @@ int gv11b_gr_intr_inject_mmu_ecc_error(struct gk20a *g,
 {
 	unsigned int gpc_stride = nvgpu_get_litter_value(g, GPU_LIT_GPC_STRIDE);
 	unsigned int gpc = (error_info & 0xFFU);
-	unsigned int reg_addr = err->get_reg_addr() + gpc * gpc_stride;
+	unsigned int reg_addr = nvgpu_safe_add_u32(err->get_reg_addr(),
+					nvgpu_safe_mult_u32(gpc , gpc_stride));
 
 	nvgpu_info(g, "Injecting MMU fault %s for gpc: %d", err->name, gpc);
 	nvgpu_writel(g, reg_addr, err->get_reg_val(1U));
@@ -216,8 +220,8 @@ int gv11b_gr_intr_inject_gcc_ecc_error(struct gk20a *g,
 	unsigned int gpc_stride = nvgpu_get_litter_value(g,
 			GPU_LIT_GPC_STRIDE);
 	unsigned int gpc = (error_info & 0xFFU);
-	unsigned int reg_addr = err->get_reg_addr()
-		+ gpc * gpc_stride;
+	unsigned int reg_addr = nvgpu_safe_add_u32(err->get_reg_addr(),
+					nvgpu_safe_mult_u32(gpc , gpc_stride));
 
 	nvgpu_info(g, "Injecting GCC fault %s for gpc: %d", err->name, gpc);
 	nvgpu_writel(g, reg_addr, err->get_reg_val(1U));
