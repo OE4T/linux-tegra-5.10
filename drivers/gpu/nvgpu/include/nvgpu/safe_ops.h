@@ -54,6 +54,16 @@ static inline u64 nvgpu_safe_add_u64(u64 ul_a, u64 ul_b)
 	}
 }
 
+static inline s64 nvgpu_safe_add_s64(s64 sl_a, s64 sl_b)
+{
+	if (((sl_b > 0) && (sl_a > (LONG_MAX - sl_b))) ||
+		((sl_b < 0) && (sl_a < (LONG_MIN - sl_b)))) {
+		BUG();
+	} else {
+		return sl_a + sl_b;
+	}
+}
+
 static inline u32 nvgpu_safe_sub_u32(u32 ui_a, u32 ui_b)
 {
 	if (ui_a < ui_b) {
@@ -102,6 +112,33 @@ static inline u64 nvgpu_safe_mult_u64(u64 ul_a, u64 ul_b)
 	} else {
 		return ul_a * ul_b;
 	}
+}
+
+static inline s64 nvgpu_safe_mult_s64(s64 sl_a, s64 sl_b)
+{
+	if (sl_a > 0) {
+		if (sl_b > 0) {
+			if (sl_a > (LONG_MAX / sl_b)) {
+				BUG();
+			}
+		} else {
+			if (sl_b < (LONG_MIN / sl_a)) {
+				BUG();
+			}
+		}
+	} else {
+		if (sl_b > 0) {
+			if (sl_a < (LONG_MIN / sl_b)) {
+				BUG();
+			}
+		} else {
+			if ((sl_a != 0) && (sl_b < (LONG_MAX / sl_a))) {
+				BUG();
+			}
+		}
+	}
+
+	return sl_a * sl_b;
 }
 
 static inline u16 nvgpu_safe_cast_u64_to_u16(u64 ul_a)
