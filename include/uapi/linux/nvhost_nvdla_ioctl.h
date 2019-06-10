@@ -3,7 +3,7 @@
  *
  * Tegra NvDLA Driver
  *
- * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -160,17 +160,15 @@ struct nvdla_ioctl_submit_task {
  * struct nvdla_ioctl_emu_submit_task structure for single emulator task
  * information
  *
- * @num_prefences 		number of pre-fences in task
  * @num_postfences		number of post-fences in task
- * @prefences     		pointer to pre-fence struct table
- * @postfences    		pointer to post-fence struct table
+ * @reserved			reserved for padding and future use
+ * @postfences			pointer to post-fence struct table
  *
  */
 struct nvdla_ioctl_emu_submit_task {
-	__u32 num_prefences;
 	__u32 num_postfences;
+	__u32 reserved;
 
-	__u64 prefences;
 	__u64 postfences;
 };
 

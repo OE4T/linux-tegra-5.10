@@ -651,6 +651,7 @@ static int nvdla_fill_wait_fence_action(struct nvdla_task *task,
 					fence->syncpoint_value);
 		} else {
 			dma_addr_t syncpt_addr;
+
 			nvdla_dbg_info(pdev, "GoS missing");
 
 			syncpt_addr = nvhost_syncpt_address(
@@ -944,6 +945,9 @@ static int nvdla_fill_postactions(struct nvdla_task *task)
 		}
 	}
 
+	/* reset fence counter */
+	task->fence_counter = 0;
+
 	/* fill all postactions */
 	for (i = 0; i < task->num_postfences; i++) {
 		/* update action */
@@ -988,12 +992,8 @@ static int nvdla_fill_preactions(struct nvdla_task *task)
 
 	start = next = (u8 *)task_desc + preactionlist_of;
 
-	/* fill all preactions wait */
+	/* fill all preactions */
 	for (i = 0; i < task->num_prefences; i++) {
-		if (task->prefences[i].action != NVDEV_FENCE_WAIT)
-			continue;
-
-		/* update action */
 		err = nvdla_fill_wait_fence_action(task,
 				&task->prefences[i],
 				&task->prefences_sem_dmabuf[i],
@@ -1012,24 +1012,6 @@ static int nvdla_fill_preactions(struct nvdla_task *task)
 				&next);
 		if (err < 0) {
 			nvdla_dbg_info(pdev, "failed to fill in task status[%u]", i);
-			goto fail;
-		}
-	}
-
-	/* fill all preactions signals */
-	for (i = 0; i < task->num_prefences; i++) {
-		/* update action */
-		if (task->prefences[i].action != NVDEV_FENCE_SIGNAL)
-			continue;
-
-		err = nvdla_fill_signal_fence_action(task,
-				&task->prefences[i],
-				&task->prefences_sem_dmabuf[i],
-				&next);
-		if (err < 0) {
-			nvdla_dbg_err(pdev,
-					"fail to fill fence sig action [%d]",
-					i);
 			goto fail;
 		}
 	}
@@ -1094,9 +1076,6 @@ int nvdla_fill_task_desc(struct nvdla_task *task)
 					sizeof(struct dla_action_list);
 
 	nvdla_update_gos(pdev);
-
-	/* reset fence counter */
-	task->fence_counter = 0;
 
 	/* fill pre actions */
 	nvdla_fill_preactions(task);
@@ -1208,30 +1187,8 @@ int nvdla_emulator_submit(struct nvdla_queue *queue, struct nvdla_emu_task *task
 
 	/* reset fence counter */
 	task->fence_counter = 0;
-
-	/* fill all preactions */
-	for (i = 0; i < task->num_prefences; i++) {
-		if (task->prefences[i].action != NVDEV_FENCE_SIGNAL)
-			continue;
-
-		/* update action */
-		switch (task->prefences[i].type) {
-		case NVDEV_FENCE_TYPE_SYNCPT:
-		case NVDEV_FENCE_TYPE_SYNC_FD: {
-			task->fence_counter = task->fence_counter + 1;
-			break;
-		}
-		default:
-			nvdla_dbg_err(pdev, "Invalid prefence sync type[%d]",
-				task->prefences[i].type);
-			return -EINVAL;
-		}
-	}
-
 	/* fill all postactions */
 	for (i = 0; i < task->num_postfences; i++) {
-		if (task->postfences[i].action != NVDEV_FENCE_SIGNAL)
-			continue;
 
 		/* update action */
 		switch (task->postfences[i].type) {
@@ -1255,31 +1212,9 @@ int nvdla_emulator_submit(struct nvdla_queue *queue, struct nvdla_emu_task *task
 				queue->syncpt_id, task->fence,
 				task, task->fence_counter);
 
-	/* Update signal fences for all */
+	/* Update postfences for all */
 	counter = task->fence_counter - 1;
-	for (i = 0; i < task->num_prefences; i++) {
-		if (task->prefences[i].action != NVDEV_FENCE_SIGNAL)
-			continue;
-
-		if ((task->prefences[i].type == NVDEV_FENCE_TYPE_SYNCPT) ||
-		    (task->prefences[i].type == NVDEV_FENCE_TYPE_SYNC_FD)) {
-			task->prefences[i].syncpoint_index =
-					queue->syncpt_id;
-			task->prefences[i].syncpoint_value =
-					task->fence - counter;
-
-			nvdla_dbg_info(pdev, "[%d] prefence set[%u]:[%u]",
-				i, task->prefences[i].syncpoint_index,
-				task->prefences[i].syncpoint_value);
-
-			counter = counter - 1;
-		}
-	}
-
 	for (i = 0; i < task->num_postfences; i++) {
-		if (task->postfences[i].action != NVDEV_FENCE_SIGNAL)
-			continue;
-
 		if ((task->postfences[i].type == NVDEV_FENCE_TYPE_SYNCPT) ||
 		    (task->postfences[i].type == NVDEV_FENCE_TYPE_SYNC_FD)) {
 			task->postfences[i].syncpoint_index =
@@ -1298,7 +1233,7 @@ int nvdla_emulator_submit(struct nvdla_queue *queue, struct nvdla_emu_task *task
 	return 0;
 }
 
-int nvdla_get_signal_fences(struct nvdla_queue *queue, void *in_task)
+int nvdla_get_postfences(struct nvdla_queue *queue, void *in_task)
 {
 	struct nvdla_task *task = (struct nvdla_task *)in_task;
 	struct platform_device *pdev = queue->pool->pdev;
@@ -1316,31 +1251,9 @@ int nvdla_get_signal_fences(struct nvdla_queue *queue, void *in_task)
 	task_fence = nvhost_syncpt_read_maxval(pdev, queue->syncpt_id) +
 			task->fence_counter;
 
-	/* Update fences signal updates for both prefence and postfence */
+	/* Update postfences for all */
 	counter = task->fence_counter - 1;
-	for (i = 0; i < task->num_prefences; i++) {
-		if (task->prefences[i].action != NVDEV_FENCE_SIGNAL)
-			continue;
-
-		if ((task->prefences[i].type == NVDEV_FENCE_TYPE_SYNCPT) ||
-		    (task->prefences[i].type == NVDEV_FENCE_TYPE_SYNC_FD)) {
-			task->prefences[i].syncpoint_index =
-					queue->syncpt_id;
-			task->prefences[i].syncpoint_value =
-					task_fence - counter;
-
-			nvdla_dbg_info(pdev, "[%d] prefence set[%u]:[%u]",
-				i, task->prefences[i].syncpoint_index,
-				task->prefences[i].syncpoint_value);
-
-			counter = counter - 1;
-		}
-	}
-
 	for (i = 0; i < task->num_postfences; i++) {
-		if (task->postfences[i].action != NVDEV_FENCE_SIGNAL)
-			continue;
-
 		if ((task->postfences[i].type == NVDEV_FENCE_TYPE_SYNCPT) ||
 		    (task->postfences[i].type == NVDEV_FENCE_TYPE_SYNC_FD)) {
 			task->postfences[i].syncpoint_index =
