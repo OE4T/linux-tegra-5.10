@@ -265,14 +265,12 @@ struct nvdla_task {
 	struct nvdev_fence prefences[MAX_NUM_NVDLA_PREFENCES];
 	struct nvdev_fence postfences[MAX_NUM_NVDLA_POSTFENCES];
 	struct nvdla_status_notify in_task_status[MAX_NUM_NVDLA_IN_TASK_STATUS];
-	struct nvdla_status_notify sof_task_status[MAX_NUM_NVDLA_OUT_TASK_STATUS];
-	struct nvdla_status_notify eof_task_status[MAX_NUM_NVDLA_OUT_TASK_STATUS];
+	struct nvdla_status_notify out_task_status[MAX_NUM_NVDLA_OUT_TASK_STATUS];
 	struct nvdla_mem_handle memory_handles[NVDLA_MAX_BUFFERS_PER_TASK];
 	u8 num_prefences;
 	u8 num_postfences;
 	u8 num_in_task_status;
-	u8 num_sof_task_status;
-	u8 num_eof_task_status;
+	u8 num_out_task_status;
 	u32 num_addresses;
 	u32 fence;
 	u32 fence_counter;
@@ -288,8 +286,7 @@ struct nvdla_task {
 	struct dma_buf *prefences_sem_dmabuf[MAX_NUM_NVDLA_PREFENCES];
 	struct dma_buf *in_task_status_dmabuf[MAX_NUM_NVDLA_IN_TASK_STATUS];
 	struct dma_buf *postfences_sem_dmabuf[MAX_NUM_NVDLA_POSTFENCES];
-	struct dma_buf *sof_task_status_dmabuf[MAX_NUM_NVDLA_OUT_TASK_STATUS];
-	struct dma_buf *eof_task_status_dmabuf[MAX_NUM_NVDLA_OUT_TASK_STATUS];
+	struct dma_buf *out_task_status_dmabuf[MAX_NUM_NVDLA_OUT_TASK_STATUS];
 };
 
 struct dla_mem_addr {
