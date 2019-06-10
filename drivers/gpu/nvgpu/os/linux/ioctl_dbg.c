@@ -40,6 +40,7 @@
 #include <nvgpu/gr/ctx.h>
 #include <nvgpu/gr/gr.h>
 #include <nvgpu/power_features/pg.h>
+#include <nvgpu/nvgpu_init.h>
 
 #include <nvgpu/linux/vm.h>
 

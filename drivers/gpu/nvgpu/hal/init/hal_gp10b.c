@@ -44,6 +44,7 @@
 #ifdef CONFIG_NVGPU_LS_PMU
 #include <nvgpu/pmu/pmu_perfmon.h>
 #endif
+#include <nvgpu/nvgpu_init.h>
 
 #include "hal/mm/mm_gk20a.h"
 #include "hal/mm/mm_gm20b.h"

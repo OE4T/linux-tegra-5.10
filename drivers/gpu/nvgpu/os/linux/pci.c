@@ -30,6 +30,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/string.h>
 #include <nvgpu/gr/gr.h>
+#include <nvgpu/nvgpu_init.h>
 
 #include "nvlink.h"
 #include "module.h"

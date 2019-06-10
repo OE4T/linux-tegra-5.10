@@ -29,6 +29,7 @@
 
 #include <nvgpu/gk20a.h>
 #include <nvgpu/power_features/pg.h>
+#include <nvgpu/nvgpu_init.h>
 
 #include <linux/debugfs.h>
 #include <linux/seq_file.h>

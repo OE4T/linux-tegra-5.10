@@ -165,6 +165,7 @@
 #include <nvgpu/gr/setup.h>
 #include <nvgpu/gr/fecs_trace.h>
 #include <nvgpu/gr/gr_intr.h>
+#include <nvgpu/nvgpu_init.h>
 
 #include <nvgpu/hw/gv11b/hw_pwr_gv11b.h>
 

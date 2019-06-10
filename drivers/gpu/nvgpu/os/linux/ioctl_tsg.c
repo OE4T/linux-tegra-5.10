@@ -32,6 +32,7 @@
 #include <nvgpu/channel.h>
 #include <nvgpu/tsg.h>
 #include <nvgpu/fifo.h>
+#include <nvgpu/nvgpu_init.h>
 
 #include "platform_gk20a.h"
 #include "ioctl_tsg.h"

@@ -28,6 +28,7 @@
 #include <nvgpu/nvgpu_mem.h>
 #include <nvgpu/page_allocator.h>
 #include <nvgpu/gk20a.h>
+#include <nvgpu/nvgpu_init.h>
 
 #include <nvgpu/linux/vm.h>
 #include <nvgpu/linux/dma.h>

@@ -35,6 +35,7 @@
 #include <nvgpu/regops.h>
 #include <nvgpu/clk_arb.h>
 #include <nvgpu/gr/gr.h>
+#include <nvgpu/nvgpu_init.h>
 
 #include <nvgpu/vgpu/os_init_hal_vgpu.h>
 

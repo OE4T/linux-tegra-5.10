@@ -30,6 +30,7 @@
 #include <nvgpu/channel.h>
 #include <nvgpu/gr/fecs_trace.h>
 #include <nvgpu/string.h>
+#include <nvgpu/nvgpu_init.h>
 
 #include "platform_gk20a.h"
 #include "os_linux.h"

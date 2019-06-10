@@ -29,6 +29,7 @@
 #include <nvgpu/falcon.h>
 #include <nvgpu/engine_fb_queue.h>
 #include <nvgpu/gk20a.h>
+#include <nvgpu/nvgpu_init.h>
 #include <nvgpu/string.h>
 #include <nvgpu/pmu/seq.h>
 #include <nvgpu/pmu/queue.h>

@@ -2225,10 +2225,6 @@ static inline u32 nvgpu_get_poll_timeout(struct gk20a *g)
 #define GK20A_NONSTALL_OPS_WAKEUP_SEMAPHORE	BIT32(0)
 #define GK20A_NONSTALL_OPS_POST_EVENTS		BIT32(1)
 
-/* register accessors */
-void nvgpu_check_gpu_state(struct gk20a *g);
-void gk20a_warn_on_no_regs(void);
-
 bool is_nvgpu_gpu_state_valid(struct gk20a *g);
 
 #define GK20A_BAR0_IORESOURCE_MEM	0U
@@ -2244,9 +2240,6 @@ int gk20a_do_idle_impl(struct gk20a *g, bool force_reset);
 int gk20a_do_unidle_impl(struct gk20a *g);
 #endif
 
-int nvgpu_can_busy(struct gk20a *g);
-int gk20a_wait_for_idle(struct gk20a *g);
-
 #define NVGPU_GPU_ARCHITECTURE_SHIFT 4U
 
 /* constructs unique and compact GPUID from nvgpu_gpu_characteristics
@@ -2261,15 +2254,7 @@ int gk20a_wait_for_idle(struct gk20a *g);
 #define NVGPU_GPUID_GV100   0x00000140U
 #define NVGPU_GPUID_TU104   0x00000164U
 
-void gk20a_init_gpu_characteristics(struct gk20a *g);
-
-int gk20a_prepare_poweroff(struct gk20a *g);
-int gk20a_finalize_poweron(struct gk20a *g);
-
 void nvgpu_wait_for_deferred_interrupts(struct gk20a *g);
-
-struct gk20a * __must_check gk20a_get(struct gk20a *g);
-void gk20a_put(struct gk20a *g);
 
 bool nvgpu_has_syncpoints(struct gk20a *g);
 

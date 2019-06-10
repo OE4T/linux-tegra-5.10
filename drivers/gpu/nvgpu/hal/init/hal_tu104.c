@@ -204,6 +204,7 @@
 #include <nvgpu/gr/gr.h>
 #include <nvgpu/gr/gr_intr.h>
 #include <nvgpu/pmu/pmu_perfmon.h>
+#include <nvgpu/nvgpu_init.h>
 
 #include <nvgpu/hw/tu104/hw_pwr_tu104.h>
 

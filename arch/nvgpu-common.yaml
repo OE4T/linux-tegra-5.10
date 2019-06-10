@@ -439,7 +439,8 @@ init:
   children:
     nvgpu:
       safe: yes
-      sources: [ common/init/nvgpu_init.c ]
+      sources: [ common/init/nvgpu_init.c,
+                 include/nvgpu/nvgpu_init.h ]
 
 mm:
   owner: Alex W

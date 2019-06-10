@@ -47,6 +47,7 @@
 #include <nvgpu/fence.h>
 #include <nvgpu/preempt.h>
 #include <nvgpu/profile.h>
+#include <nvgpu/nvgpu_init.h>
 
 #include "platform_gk20a.h"
 #include "ioctl_channel.h"

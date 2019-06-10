@@ -31,6 +31,7 @@
 #include <nvgpu/log2.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/string.h>
+#include <nvgpu/nvgpu_init.h>
 
 /* dumb allocator... */
 static int generate_as_share_id(struct gk20a_as *as)

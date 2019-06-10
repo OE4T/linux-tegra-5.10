@@ -44,6 +44,7 @@
 #include <nvgpu/pmu/pmu_perfmon.h>
 #endif
 #include <nvgpu/gr/fecs_trace.h>
+#include <nvgpu/nvgpu_init.h>
 
 #include "hal/mm/mm_gk20a.h"
 #include "hal/mm/mm_gm20b.h"

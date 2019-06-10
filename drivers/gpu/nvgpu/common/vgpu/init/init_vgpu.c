@@ -35,6 +35,7 @@
 #include <nvgpu/fbp.h>
 #include <nvgpu/cyclestats_snapshot.h>
 #include <nvgpu/gr/gr.h>
+#include <nvgpu/nvgpu_init.h>
 
 #include "init_vgpu.h"
 #include "init_hal_vgpu.h"

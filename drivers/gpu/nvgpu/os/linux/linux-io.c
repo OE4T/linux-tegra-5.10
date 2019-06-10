@@ -14,6 +14,7 @@
 #include <nvgpu/io.h>
 #include <nvgpu/types.h>
 #include <nvgpu/gk20a.h>
+#include <nvgpu/nvgpu_init.h>
 
 #include "os_linux.h"
 

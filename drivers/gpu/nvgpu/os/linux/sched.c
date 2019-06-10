@@ -26,6 +26,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/string.h>
 #include <nvgpu/gr/ctx.h>
+#include <nvgpu/nvgpu_init.h>
 
 #include "sched.h"
 #include "os_linux.h"

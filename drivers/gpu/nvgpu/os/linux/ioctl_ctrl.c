@@ -48,6 +48,7 @@
 #include <nvgpu/fence.h>
 #include <nvgpu/channel_sync_syncpt.h>
 #include <nvgpu/soc.h>
+#include <nvgpu/nvgpu_init.h>
 
 #include "ioctl_ctrl.h"
 #include "ioctl_dbg.h"
