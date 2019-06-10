@@ -31,7 +31,9 @@
 #include <nvgpu/fence.h>
 #include <nvgpu/profile.h>
 
+#ifdef CONFIG_NVGPU_TRACE
 #include <trace/events/gk20a.h>
+#endif
 
 /*
  * Handle the submit synchronization - pre-fences and post-fences.
@@ -197,10 +199,12 @@ static void nvgpu_submit_append_priv_cmdbuf(struct nvgpu_channel *c,
 			c->gpfifo.put * (u32)sizeof(gpfifo_entry),
 			&gpfifo_entry, (u32)sizeof(gpfifo_entry));
 
+#ifdef CONFIG_NVGPU_TRACE
 	if (cmd->mem->aperture == APERTURE_SYSMEM) {
 		trace_gk20a_push_cmdbuf(g->name, 0, cmd->size, 0,
 				(u32 *)cmd->mem->cpu_va + cmd->off);
 	}
+#endif
 
 	c->gpfifo.put = (c->gpfifo.put + 1U) & (c->gpfifo.entry_num - 1U);
 }
@@ -495,12 +499,14 @@ static int nvgpu_submit_channel_gpfifo(struct nvgpu_channel *c,
 		goto clean_up;
 	}
 
+#ifdef CONFIG_NVGPU_TRACE
 	trace_gk20a_channel_submit_gpfifo(g->name,
 					  c->chid,
 					  num_entries,
 					  flags,
 					  fence ? fence->id : 0,
 					  fence ? fence->value : 0);
+#endif
 
 	nvgpu_log_info(g, "pre-submit put %d, get %d, size %d",
 		c->gpfifo.put, c->gpfifo.get, c->gpfifo.entry_num);
@@ -579,12 +585,14 @@ static int nvgpu_submit_channel_gpfifo(struct nvgpu_channel *c,
 		nvgpu_rwsem_up_read(&g->deterministic_busy);
 	}
 
+#ifdef CONFIG_NVGPU_TRACE
 	trace_gk20a_channel_submitted_gpfifo(g->name,
 				c->chid,
 				num_entries,
 				flags,
 				post_fence ? post_fence->syncpt_id : 0,
 				post_fence ? post_fence->syncpt_value : 0);
+#endif
 
 	nvgpu_log_info(g, "post-submit put %d, get %d, size %d",
 		c->gpfifo.put, c->gpfifo.get, c->gpfifo.entry_num);

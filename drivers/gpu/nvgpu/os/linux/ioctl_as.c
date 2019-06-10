@@ -1,7 +1,7 @@
 /*
  * GK20A Address Spaces
  *
- * Copyright (c) 2011-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -17,7 +17,9 @@
 #include <linux/uaccess.h>
 #include <linux/fs.h>
 
+#ifdef CONFIG_NVGPU_TRACE
 #include <trace/events/gk20a.h>
+#endif
 
 #include <uapi/linux/nvgpu.h>
 
@@ -359,7 +361,9 @@ long gk20a_as_dev_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 	nvgpu_speculation_barrier();
 	switch (cmd) {
 	case NVGPU_AS_IOCTL_BIND_CHANNEL:
+#ifdef CONFIG_NVGPU_TRACE
 		trace_gk20a_as_ioctl_bind_channel(g->name);
+#endif
 		err = gk20a_as_ioctl_bind_channel(as_share,
 			       (struct nvgpu_as_bind_channel_args *)buf);
 
@@ -374,33 +378,45 @@ long gk20a_as_dev_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 		args.page_size = args32->page_size;
 		args.flags = args32->flags;
 		args.o_a.offset = args32->o_a.offset;
+#ifdef CONFIG_NVGPU_TRACE
 		trace_gk20a_as_ioctl_alloc_space(g->name);
+#endif
 		err = gk20a_as_ioctl_alloc_space(as_share, &args);
 		args32->o_a.offset = args.o_a.offset;
 		break;
 	}
 	case NVGPU_AS_IOCTL_ALLOC_SPACE:
+#ifdef CONFIG_NVGPU_TRACE
 		trace_gk20a_as_ioctl_alloc_space(g->name);
+#endif
 		err = gk20a_as_ioctl_alloc_space(as_share,
 				(struct nvgpu_as_alloc_space_args *)buf);
 		break;
 	case NVGPU_AS_IOCTL_FREE_SPACE:
+#ifdef CONFIG_NVGPU_TRACE
 		trace_gk20a_as_ioctl_free_space(g->name);
+#endif
 		err = gk20a_as_ioctl_free_space(as_share,
 				(struct nvgpu_as_free_space_args *)buf);
 		break;
 	case NVGPU_AS_IOCTL_MAP_BUFFER_EX:
+#ifdef CONFIG_NVGPU_TRACE
 		trace_gk20a_as_ioctl_map_buffer(g->name);
+#endif
 		err = gk20a_as_ioctl_map_buffer_ex(as_share,
 				(struct nvgpu_as_map_buffer_ex_args *)buf);
 		break;
 	case NVGPU_AS_IOCTL_UNMAP_BUFFER:
+#ifdef CONFIG_NVGPU_TRACE
 		trace_gk20a_as_ioctl_unmap_buffer(g->name);
+#endif
 		err = gk20a_as_ioctl_unmap_buffer(as_share,
 				(struct nvgpu_as_unmap_buffer_args *)buf);
 		break;
 	case NVGPU_AS_IOCTL_GET_VA_REGIONS:
+#ifdef CONFIG_NVGPU_TRACE
 		trace_gk20a_as_ioctl_get_va_regions(g->name);
+#endif
 		err = gk20a_as_ioctl_get_va_regions(as_share,
 				(struct nvgpu_as_get_va_regions_args *)buf);
 		break;

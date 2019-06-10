@@ -38,7 +38,9 @@
 
 #include <linux/uaccess.h>
 #include <linux/dma-buf.h>
+#ifdef CONFIG_NVGPU_TRACE
 #include <trace/events/gk20a.h>
+#endif
 #include <uapi/linux/nvgpu.h>
 
 #include "sync_sema_android.h"
@@ -616,6 +618,7 @@ static void trace_write_pushbuffer(struct nvgpu_channel *c,
 	}
 
 	if (mem) {
+#ifdef CONFIG_NVGPU_TRACE
 		u32 i;
 		/*
 		 * Write in batches of 128 as there seems to be a limit
@@ -629,6 +632,7 @@ static void trace_write_pushbuffer(struct nvgpu_channel *c,
 				offset + i * sizeof(u32),
 				mem);
 		}
+#endif
 		dma_buf_vunmap(dmabuf, mem);
 	}
 }

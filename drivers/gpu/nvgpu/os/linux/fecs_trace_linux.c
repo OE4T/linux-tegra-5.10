@@ -18,7 +18,9 @@
 #include <linux/ktime.h>
 #include <linux/uaccess.h>
 #include <linux/poll.h>
+#ifdef CONFIG_NVGPU_TRACE
 #include <trace/events/gk20a.h>
+#endif
 #include <uapi/linux/nvgpu.h>
 #include <nvgpu/kmem.h>
 #include <nvgpu/log.h>
@@ -747,7 +749,9 @@ void nvgpu_gr_fecs_trace_add_tsg_reset(struct gk20a *g, struct nvgpu_tsg *tsg)
 	nvgpu_gr_fecs_trace_write_entry(g, &entry);
 	nvgpu_gr_fecs_trace_wake_up(g, 0);
 
+#ifdef CONFIG_NVGPU_TRACE
 	trace_gk20a_channel_reset(~0, tsg->tsgid);
+#endif
 }
 
 /*

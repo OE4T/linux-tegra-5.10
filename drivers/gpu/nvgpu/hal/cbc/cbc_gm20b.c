@@ -22,7 +22,9 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
+#ifdef CONFIG_NVGPU_TRACE
 #include <trace/events/gk20a.h>
+#endif
 
 #include <nvgpu/timers.h>
 #include <nvgpu/enabled.h>
@@ -133,7 +135,9 @@ int gm20b_cbc_ctrl(struct gk20a *g, enum nvgpu_cbc_op op,
 
 	nvgpu_log_fn(g, " ");
 
+#ifdef CONFIG_NVGPU_TRACE
 	trace_gk20a_ltc_cbc_ctrl_start(g->name, op, min, max);
+#endif
 
 	if (g->cbc->compbit_store.mem.size == 0ULL) {
 		return 0;
@@ -209,7 +213,9 @@ int gm20b_cbc_ctrl(struct gk20a *g, enum nvgpu_cbc_op op,
 		nvgpu_mutex_release(&g->mm.l2_op_lock);
 	}
 out:
+#ifdef CONFIG_NVGPU_TRACE
 	trace_gk20a_ltc_cbc_ctrl_done(g->name);
+#endif
 	nvgpu_mutex_release(&g->mm.l2_op_lock);
 	return err;
 }

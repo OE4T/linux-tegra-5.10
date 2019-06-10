@@ -22,7 +22,9 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
+#ifdef CONFIG_NVGPU_TRACE
 #include <trace/events/gk20a.h>
+#endif
 
 #include <nvgpu/dma.h>
 #include <nvgpu/fifo.h>

@@ -22,7 +22,9 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
+#ifdef CONFIG_NVGPU_TRACE
 #include <trace/events/gk20a.h>
+#endif
 
 #include <nvgpu/kmem.h>
 #include <nvgpu/dma.h>
@@ -455,7 +457,9 @@ int vgpu_fifo_isr(struct gk20a *g, struct tegra_vgpu_fifo_intr_info *info)
 	nvgpu_err(g, "fifo intr (%d) on ch %u",
 		info->type, info->chid);
 
+#ifdef CONFIG_NVGPU_TRACE
 	trace_gk20a_channel_reset(ch->chid, ch->tsgid);
+#endif
 
 	switch (info->type) {
 	case TEGRA_VGPU_FIFO_INTR_PBDMA:

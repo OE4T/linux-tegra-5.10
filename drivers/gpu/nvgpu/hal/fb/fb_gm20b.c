@@ -22,7 +22,9 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
+#ifdef CONFIG_NVGPU_TRACE
 #include <trace/events/gk20a.h>
+#endif
 
 #include <nvgpu/sizes.h>
 #include <nvgpu/utils.h>
@@ -96,7 +98,9 @@ int gm20b_fb_tlb_invalidate(struct gk20a *g, struct nvgpu_mem *pdb)
 
 	nvgpu_mutex_acquire(&g->mm.tlb_lock);
 
+#ifdef CONFIG_NVGPU_TRACE
 	trace_gk20a_mm_tlb_invalidate(g->name);
+#endif
 
 	err = nvgpu_timeout_init(g, &timeout, 1000, NVGPU_TIMER_RETRY_TIMER);
 	if (err != 0) {
@@ -147,7 +151,9 @@ int gm20b_fb_tlb_invalidate(struct gk20a *g, struct nvgpu_mem *pdb)
 	} while (nvgpu_timeout_expired_msg(&timeout,
 					 "wait mmu invalidate") == 0);
 
+#ifdef CONFIG_NVGPU_TRACE
 	trace_gk20a_mm_tlb_invalidate_done(g->name);
+#endif
 
 out:
 	nvgpu_mutex_release(&g->mm.tlb_lock);

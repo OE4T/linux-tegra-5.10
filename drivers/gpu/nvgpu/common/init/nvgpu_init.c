@@ -47,7 +47,9 @@
 #include <nvgpu/channel_sync.h>
 #include <nvgpu/gr/gr.h>
 
+#ifdef CONFIG_NVGPU_TRACE
 #include <trace/events/gk20a.h>
+#endif
 #ifdef CONFIG_NVGPU_LS_PMU
 #include <nvgpu/pmu/pmu_pstate.h>
 #endif

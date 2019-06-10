@@ -20,7 +20,9 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
+#ifdef CONFIG_NVGPU_TRACE
 #include <trace/events/gk20a.h>
+#endif
 #include <nvgpu/gk20a.h>
 #include <nvgpu/timers.h>
 #include <nvgpu/log.h>
@@ -200,6 +202,7 @@ void gk20a_fifo_mmu_fault_info_dump(struct gk20a *g, u32 engine_id,
 {
 	gk20a_fifo_parse_mmu_fault_info(g, mmu_fault_id, mmufault);
 
+#ifdef CONFIG_NVGPU_TRACE
 	trace_gk20a_mmu_fault(mmufault->fault_addr,
 			      mmufault->fault_type,
 			      mmufault->access_type,
@@ -208,6 +211,7 @@ void gk20a_fifo_mmu_fault_info_dump(struct gk20a *g, u32 engine_id,
 			      mmufault->client_type_desc,
 			      mmufault->client_id_desc,
 			      mmufault->fault_type_desc);
+#endif
 	nvgpu_err(g, "MMU fault @ address: 0x%llx %s",
 		  mmufault->fault_addr,
 		  fake_fault ? "[FAKE]" : "");

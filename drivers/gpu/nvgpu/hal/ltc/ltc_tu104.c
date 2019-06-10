@@ -26,7 +26,9 @@
 #include <nvgpu/timers.h>
 #include <nvgpu/gk20a.h>
 
+#ifdef CONFIG_NVGPU_TRACE
 #include <trace/events/gk20a.h>
+#endif
 
 #include "ltc_tu104.h"
 

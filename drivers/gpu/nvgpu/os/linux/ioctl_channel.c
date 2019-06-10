@@ -16,7 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifdef CONFIG_NVGPU_TRACE
 #include <trace/events/gk20a.h>
+#endif
 #include <linux/file.h>
 #include <linux/anon_inodes.h>
 #include <linux/dma-buf.h>
@@ -56,6 +58,7 @@
 		(sizeof(struct gk20a_cs_snapshot_fifo) +	\
 		sizeof(struct gk20a_cs_snapshot_fifo_entry) * 256)
 
+#ifdef CONFIG_NVGPU_TRACE
 static const char *gr_gk20a_graphics_preempt_mode_name(u32 graphics_preempt_mode)
 {
 	switch (graphics_preempt_mode) {
@@ -77,7 +80,9 @@ static const char *gr_gk20a_compute_preempt_mode_name(u32 compute_preempt_mode)
 		return "?";
 	}
 }
+#endif
 
+#ifdef CONFIG_NVGPU_TRACE
 static void gk20a_channel_trace_sched_param(
 	void (*trace)(int chid, int tsgid, pid_t pid, u32 timeslice,
 		u32 timeout, const char *interleave,
@@ -99,6 +104,7 @@ static void gk20a_channel_trace_sched_param(
 		gr_gk20a_compute_preempt_mode_name(
 			nvgpu_gr_ctx_get_compute_preemption_mode(tsg->gr_ctx)));
 }
+#endif
 
 /*
  * Although channels do have pointers back to the gk20a struct that they were
@@ -423,7 +429,9 @@ int gk20a_channel_release(struct inode *inode, struct file *filp)
 		goto channel_release;
 	}
 
+#ifdef CONFIG_NVGPU_TRACE
 	trace_gk20a_channel_release(dev_name(dev_from_gk20a(g)));
+#endif
 
 	nvgpu_channel_close(ch);
 	gk20a_channel_free_error_notifiers(ch);
@@ -459,7 +467,9 @@ static int __gk20a_channel_open(struct gk20a *g,
 	if (!g)
 		return -ENODEV;
 
+#ifdef CONFIG_NVGPU_TRACE
 	trace_gk20a_channel_open(dev_name(dev_from_gk20a(g)));
+#endif
 
 	priv = nvgpu_kzalloc(g, sizeof(*priv));
 	if (!priv) {
@@ -483,8 +493,10 @@ static int __gk20a_channel_open(struct gk20a *g,
 		goto fail_busy;
 	}
 
+#ifdef CONFIG_NVGPU_TRACE
 	gk20a_channel_trace_sched_param(
 		trace_gk20a_channel_sched_defaults, ch);
+#endif
 
 	priv->g = g;
 	priv->c = ch;
@@ -1261,8 +1273,10 @@ long gk20a_channel_ioctl(struct file *filp,
 		nvgpu_log(g, gpu_dbg_gpu_dbg, "setting timeout (%d ms) for chid %d",
 			   timeout, ch->chid);
 		ch->ctxsw_timeout_max_ms = timeout;
+#ifdef CONFIG_NVGPU_TRACE
 		gk20a_channel_trace_sched_param(
 			trace_gk20a_channel_set_timeout, ch);
+#endif
 		break;
 	}
 	case NVGPU_IOCTL_CHANNEL_SET_TIMEOUT_EX:
@@ -1276,8 +1290,10 @@ long gk20a_channel_ioctl(struct file *filp,
 			   timeout, ch->chid);
 		ch->ctxsw_timeout_max_ms = timeout;
 		ch->ctxsw_timeout_debug_dump = ctxsw_timeout_debug_dump;
+#ifdef CONFIG_NVGPU_TRACE
 		gk20a_channel_trace_sched_param(
 			trace_gk20a_channel_set_timeout, ch);
+#endif
 		break;
 	}
 	case NVGPU_IOCTL_CHANNEL_GET_TIMEDOUT:

@@ -105,7 +105,9 @@ static void free_channel(struct nvgpu_fifo *f,
 {
 	struct gk20a *g = f->g;
 
+#ifdef CONFIG_NVGPU_TRACE
 	trace_gk20a_release_used_channel(ch->chid);
+#endif
 	/* refcount is zero here and channel is in a freed/dead state */
 	nvgpu_mutex_acquire(&f->free_chs_mutex);
 	/* add to head to increase visibility of timing-related bugs */
@@ -307,7 +309,9 @@ static void gk20a_free_channel(struct nvgpu_channel *ch, bool force)
 
 	timeout = nvgpu_get_poll_timeout(g);
 
+#ifdef CONFIG_NVGPU_TRACE
 	trace_gk20a_free_channel(ch->chid);
+#endif
 
 	/*
 	 * Disable channel/TSG and unbind here. This should not be executed if
@@ -684,7 +688,9 @@ struct nvgpu_channel *gk20a_open_new_channel(struct gk20a *g,
 		return NULL;
 	}
 
+#ifdef CONFIG_NVGPU_TRACE
 	trace_gk20a_open_new_channel(ch->chid);
+#endif
 
 	BUG_ON(ch->g != NULL);
 	ch->g = g;

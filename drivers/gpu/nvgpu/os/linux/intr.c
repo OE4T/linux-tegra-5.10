@@ -11,7 +11,9 @@
  * more details.
  */
 
+#ifdef CONFIG_NVGPU_TRACE
 #include <trace/events/gk20a.h>
+#endif
 #include <linux/irqreturn.h>
 
 #include <nvgpu/gk20a.h>
@@ -24,7 +26,9 @@ irqreturn_t nvgpu_intr_stall(struct gk20a *g)
 {
 	u32 mc_intr_0;
 
+#ifdef CONFIG_NVGPU_TRACE
 	trace_mc_gk20a_intr_stall(g->name);
+#endif
 
 	if (!g->power_on)
 		return IRQ_NONE;
@@ -38,7 +42,9 @@ irqreturn_t nvgpu_intr_stall(struct gk20a *g)
 
 	nvgpu_atomic_inc(&g->hw_irq_stall_count);
 
+#ifdef CONFIG_NVGPU_TRACE
 	trace_mc_gk20a_intr_stall_done(g->name);
+#endif
 
 	return IRQ_WAKE_THREAD;
 }
@@ -49,7 +55,9 @@ irqreturn_t nvgpu_intr_thread_stall(struct gk20a *g)
 
 	nvgpu_log(g, gpu_dbg_intr, "interrupt thread launched");
 
+#ifdef CONFIG_NVGPU_TRACE
 	trace_mc_gk20a_intr_thread_stall(g->name);
+#endif
 
 	hw_irq_count = nvgpu_atomic_read(&g->hw_irq_stall_count);
 	g->ops.mc.isr_stall(g);
@@ -59,7 +67,9 @@ irqreturn_t nvgpu_intr_thread_stall(struct gk20a *g)
 
 	nvgpu_cond_broadcast(&g->sw_irq_stall_last_handled_cond);
 
+#ifdef CONFIG_NVGPU_TRACE
 	trace_mc_gk20a_intr_thread_stall_done(g->name);
+#endif
 
 	return IRQ_HANDLED;
 }

@@ -85,7 +85,9 @@
 #define GK20A_WAIT_FOR_IDLE_MS	2000
 
 #define CREATE_TRACE_POINTS
+#ifdef CONFIG_NVGPU_TRACE
 #include <trace/events/gk20a.h>
+#endif
 
 static int nvgpu_kernel_shutdown_notification(struct notifier_block *nb,
 					unsigned long event, void *unused)
@@ -371,7 +373,9 @@ int gk20a_pm_finalize_poweron(struct device *dev)
 	if (g->power_on)
 		goto done;
 
+#ifdef CONFIG_NVGPU_TRACE
 	trace_gk20a_finalize_poweron(dev_name(dev));
+#endif
 
 	/* Increment platform power refcount */
 	if (platform->busy) {
@@ -445,7 +449,9 @@ int gk20a_pm_finalize_poweron(struct device *dev)
 			platform->initscale(dev);
 	}
 
+#ifdef CONFIG_NVGPU_TRACE
 	trace_gk20a_finalize_poweron_done(dev_name(dev));
+#endif
 
 	enable_irq(g->irq_stall);
 	if (g->irq_stall != g->irq_nonstall)
@@ -1006,7 +1012,9 @@ static int gk20a_pm_unrailgate(struct device *dev)
 	g->pstats.railgating_cycle_count++;
 #endif
 
+#ifdef CONFIG_NVGPU_TRACE
 	trace_gk20a_pm_unrailgate(dev_name(dev));
+#endif
 
 	nvgpu_mutex_acquire(&platform->railgate_lock);
 	ret = platform->unrailgate(dev);

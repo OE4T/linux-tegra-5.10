@@ -21,7 +21,9 @@
 #include <linux/dma-buf.h>
 #include <uapi/linux/nvgpu.h>
 
+#ifdef CONFIG_NVGPU_TRACE
 #include <trace/events/gk20a.h>
+#endif
 
 #include <nvgpu/dma.h>
 #include <nvgpu/gmmu.h>
@@ -102,7 +104,9 @@ __must_hold(&cde_app->mutex)
 	struct vm_gk20a *vm = ch->vm;
 	struct nvgpu_cbc *cbc = g->cbc;
 
+#ifdef CONFIG_NVGPU_TRACE
 	trace_gk20a_cde_remove_ctx(cde_ctx);
+#endif
 
 	/* release mapped memory */
 	gk20a_deinit_cde_img(cde_ctx);
@@ -794,7 +798,9 @@ __releases(&cde_app->mutex)
 	struct gk20a *g = &cde_ctx->l->g;
 
 	nvgpu_log(g, gpu_dbg_cde_ctx, "releasing use on %p", cde_ctx);
+#ifdef CONFIG_NVGPU_TRACE
 	trace_gk20a_cde_release(cde_ctx);
+#endif
 
 	nvgpu_mutex_acquire(&cde_app->mutex);
 
@@ -881,7 +887,9 @@ __must_hold(&cde_app->mutex)
 				cde_ctx, cde_app->ctx_count,
 				cde_app->ctx_usecount,
 				cde_app->ctx_count_top);
+#ifdef CONFIG_NVGPU_TRACE
 		trace_gk20a_cde_get_context(cde_ctx);
+#endif
 
 		/* deleter work may be scheduled, but in_use prevents it */
 		cde_ctx->in_use = true;
@@ -906,7 +914,9 @@ __must_hold(&cde_app->mutex)
 		return cde_ctx;
 	}
 
+#ifdef CONFIG_NVGPU_TRACE
 	trace_gk20a_cde_get_context(cde_ctx);
+#endif
 	cde_ctx->in_use = true;
 	cde_ctx->is_temporary = true;
 	cde_app->ctx_usecount++;
@@ -970,7 +980,9 @@ static struct gk20a_cde_ctx *gk20a_cde_allocate_context(struct nvgpu_os_linux *l
 			gk20a_cde_ctx_deleter_fn);
 
 	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_cde_ctx, "cde: allocated %p", cde_ctx);
+#ifdef CONFIG_NVGPU_TRACE
 	trace_gk20a_cde_allocate_context(cde_ctx);
+#endif
 	return cde_ctx;
 }
 
@@ -1265,7 +1277,9 @@ __releases(&cde_app->mutex)
 	if (!channel_idle)
 		return;
 
+#ifdef CONFIG_NVGPU_TRACE
 	trace_gk20a_cde_finished_ctx_cb(cde_ctx);
+#endif
 	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_cde_ctx, "cde: finished %p", cde_ctx);
 	if (!cde_ctx->in_use)
 		nvgpu_log_info(g, "double finish cde context %p on channel %p",

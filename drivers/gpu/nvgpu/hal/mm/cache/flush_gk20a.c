@@ -20,7 +20,9 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
+#ifdef CONFIG_NVGPU_TRACE
 #include <trace/events/gk20a.h>
+#endif
 
 #include <nvgpu/mm.h>
 #include <nvgpu/io.h>
@@ -62,7 +64,9 @@ int gk20a_mm_fb_flush(struct gk20a *g)
 	   guarantee that writes are to DRAM. This will be a sysmembar internal
 	   to the L2. */
 
+#ifdef CONFIG_NVGPU_TRACE
 	trace_gk20a_mm_fb_flush(g->name);
+#endif
 
 	nvgpu_writel(g, flush_fb_flush_r(),
 		flush_fb_flush_pending_busy_f());
@@ -91,7 +95,9 @@ int gk20a_mm_fb_flush(struct gk20a *g)
 		ret = -EBUSY;
 	}
 
+#ifdef CONFIG_NVGPU_TRACE
 	trace_gk20a_mm_fb_flush_done(g->name);
+#endif
 
 	nvgpu_mutex_release(&mm->l2_op_lock);
 
@@ -106,7 +112,9 @@ static void gk20a_mm_l2_invalidate_locked(struct gk20a *g)
 	struct nvgpu_timeout timeout;
 	u32 retries = 200;
 
+#ifdef CONFIG_NVGPU_TRACE
 	trace_gk20a_mm_l2_invalidate(g->name);
+#endif
 
 	if (g->ops.mm.get_flush_retries != NULL) {
 		retries = g->ops.mm.get_flush_retries(g, NVGPU_FLUSH_L2_INV);
@@ -139,7 +147,9 @@ static void gk20a_mm_l2_invalidate_locked(struct gk20a *g)
 		nvgpu_warn(g, "l2_system_invalidate too many retries");
 	}
 
+#ifdef CONFIG_NVGPU_TRACE
 	trace_gk20a_mm_l2_invalidate_done(g->name);
+#endif
 }
 
 void gk20a_mm_l2_invalidate(struct gk20a *g)
@@ -178,7 +188,9 @@ int gk20a_mm_l2_flush(struct gk20a *g, bool invalidate)
 
 	nvgpu_mutex_acquire(&mm->l2_op_lock);
 
+#ifdef CONFIG_NVGPU_TRACE
 	trace_gk20a_mm_l2_flush(g->name);
+#endif
 
 	/* Flush all dirty lines from the L2 to DRAM. Lines are left in the L2
 	   as clean, so subsequent reads might hit in the L2. */
@@ -201,7 +213,9 @@ int gk20a_mm_l2_flush(struct gk20a *g, bool invalidate)
 	} while (nvgpu_timeout_expired_msg(&timeout,
 				"l2_flush_dirty too many retries") == 0);
 
+#ifdef CONFIG_NVGPU_TRACE
 	trace_gk20a_mm_l2_flush_done(g->name);
+#endif
 
 	if (invalidate) {
 		gk20a_mm_l2_invalidate_locked(g);
