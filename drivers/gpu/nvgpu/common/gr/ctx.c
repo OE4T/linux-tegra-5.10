@@ -321,8 +321,8 @@ static void nvgpu_gr_ctx_unmap_global_ctx_buffers(struct gk20a *g,
 	struct nvgpu_gr_global_ctx_buffer_desc *global_ctx_buffer,
 	struct vm_gk20a *vm)
 {
-	u64 *g_bfr_va = gr_ctx->global_ctx_buffer_va;
-	u32 *g_bfr_index = gr_ctx->global_ctx_buffer_index;
+	u64 *g_bfr_va = &gr_ctx->global_ctx_buffer_va[0];
+	u32 *g_bfr_index = &gr_ctx->global_ctx_buffer_index[0];
 	u32 i;
 
 	nvgpu_log_fn(g, " ");
@@ -349,8 +349,8 @@ int nvgpu_gr_ctx_map_global_ctx_buffers(struct gk20a *g,
 
 	nvgpu_log_fn(g, " ");
 
-	g_bfr_va = gr_ctx->global_ctx_buffer_va;
-	g_bfr_index = gr_ctx->global_ctx_buffer_index;
+	g_bfr_va = &gr_ctx->global_ctx_buffer_va[0];
+	g_bfr_index = &gr_ctx->global_ctx_buffer_index[0];
 
 	/* Circular Buffer */
 #ifdef NVGPU_VPR
