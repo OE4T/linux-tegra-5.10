@@ -44,6 +44,7 @@
 
 /* Random CPU physical address for the buffers we'll map */
 #define BUF_CPU_PA		0xEFAD80000000ULL
+#define TEST_BATCH_NUM_BUFFERS	10
 #define PHYS_ADDR_BITS_HIGH	0x00FFFFFFU
 #define PHYS_ADDR_BITS_LOW	0xFFFFFF00U
 /* Check if address is aligned at the requested boundary */
@@ -159,6 +160,7 @@ static int init_test_env(struct unit_module *m, struct gk20a *g)
 static int map_buffer(struct unit_module *m,
 	              struct gk20a *g,
 	              struct vm_gk20a *vm,
+		      struct vm_gk20a_mapping_batch *batch,
 	              u64 cpu_pa,
 	              u64 gpu_va,
 	              size_t buf_size,
@@ -237,7 +239,7 @@ static int map_buffer(struct unit_module *m,
 			   NVGPU_VM_MAP_CACHEABLE,
 			   0,
 			   0,
-			   NULL,
+			   batch,
 			   APERTURE_SYSMEM,
 			   &mapped_buf);
 	if (ret != 0) {
@@ -306,7 +308,7 @@ static int map_buffer(struct unit_module *m,
 
 free_mapped_buf:
 	if (mapped_buf != NULL) {
-		nvgpu_vm_unmap(vm, mapped_buf->addr, NULL);
+		nvgpu_vm_unmap(vm, mapped_buf->addr, batch);
 	}
 free_vm_area:
 	if (fixed_gpu_va) {
@@ -417,6 +419,7 @@ static int test_map_buf(struct unit_module *m, struct gk20a *g, void *__args)
 	ret = map_buffer(m,
 			 g,
 			 vm,
+			 NULL,
 			 BUF_CPU_PA,
 			 0,
 			 buf_size,
@@ -439,6 +442,7 @@ static int test_map_buf(struct unit_module *m, struct gk20a *g, void *__args)
 	ret = map_buffer(m,
 			 g,
 			 vm,
+			 NULL,
 			 BUF_CPU_PA,
 			 0,
 			 buf_size,
@@ -559,6 +563,7 @@ static int test_map_buf_gpu_va(struct unit_module *m,
 	ret = map_buffer(m,
 			 g,
 			 vm,
+			 NULL,
 			 BUF_CPU_PA,
 			 gpu_va,
 			 buf_size,
@@ -587,6 +592,7 @@ static int test_map_buf_gpu_va(struct unit_module *m,
 	ret = map_buffer(m,
 			 g,
 			 vm,
+			 NULL,
 			 BUF_CPU_PA,
 			 gpu_va,
 			 buf_size,
@@ -607,19 +613,181 @@ exit:
 	return ret;
 }
 
+/*
+ * Dummy cache flush ops for counting number of cache flushes
+ */
+static unsigned int test_batch_tlb_inval_cnt = 0;
+static int test_batch_fb_tlb_invalidate(struct gk20a *g, struct nvgpu_mem *pdb)
+{
+	test_batch_tlb_inval_cnt++;
+	return 0;
+}
+
+static unsigned int test_batch_l2_flush_cnt = 0;
+static int test_batch_mm_l2_flush(struct gk20a *g, bool invalidate)
+{
+	test_batch_l2_flush_cnt++;
+	return 0;
+}
+
+/*
+ * This test exercises the VM unit's batch mode. Batch mode is used to optimize
+ * cache flushes.
+ *
+ * This test does the following:
+ *    - Initialize a VM with the following characteristics:
+ *         - 64KB large page support enabled
+ *         - Low hole size = 64MB
+ *         - Address space size = 128GB
+ *         - Kernel reserved space size = 4GB
+ *    - Map/unmap 10 4KB buffers using batch mode
+ *    - Disable batch mode and verify cache flush counts
+ *    - Uninitialize the VM
+ */
+static int test_batch(struct unit_module *m, struct gk20a *g, void *__args)
+{
+	int ret = UNIT_SUCCESS;
+	struct vm_gk20a *vm = NULL;
+	u64 low_hole = 0;
+	u64 user_vma = 0;
+	u64 kernel_reserved = 0;
+	u64 aperture_size = 0;
+	bool big_pages = true;
+	int i = 0;
+	u64 buf_cpu_pa = 0;
+	size_t buf_size = 0;
+	size_t page_size = 0;
+	size_t alignment = 0;
+	struct vm_gk20a_mapping_batch batch;
+
+	if (m == NULL) {
+		ret = UNIT_FAIL;
+		goto exit;
+	}
+	if (g == NULL) {
+		unit_err(m, "gk20a is NULL\n");
+		ret = UNIT_FAIL;
+		goto exit;
+	}
+
+	/* Initialize test environment */
+	ret = init_test_env(m, g);
+	if (ret != UNIT_SUCCESS) {
+		goto exit;
+	}
+	/* Set custom cache flush ops */
+	g->ops.fb.tlb_invalidate = test_batch_fb_tlb_invalidate;
+	g->ops.mm.cache.l2_flush = test_batch_mm_l2_flush;
+
+	/* Initialize VM */
+	big_pages = true;
+	low_hole = SZ_1M * 64;
+	aperture_size = 128 * SZ_1G;
+	kernel_reserved = 4 * SZ_1G - low_hole;
+	user_vma = aperture_size - low_hole - kernel_reserved;
+	unit_info(m, "Initializing VM:\n");
+	unit_info(m, "   - Low Hole Size = 0x%llx\n", low_hole);
+	unit_info(m, "   - User Aperture Size = 0x%llx\n", user_vma);
+	unit_info(m, "   - Kernel Reserved Size = 0x%llx\n", kernel_reserved);
+	unit_info(m, "   - Total Aperture Size = 0x%llx\n", aperture_size);
+	vm = nvgpu_vm_init(g,
+			   g->ops.mm.gmmu.get_default_big_page_size(),
+			   low_hole,
+			   kernel_reserved,
+			   aperture_size,
+			   big_pages,
+			   false,
+			   true,
+			   __func__);
+	if (vm == NULL) {
+		unit_err(m, "Failed to init VM\n");
+		ret = UNIT_FAIL;
+		goto exit;
+	}
+
+	nvgpu_vm_mapping_batch_start(&batch);
+
+	/* Map buffers */
+	buf_cpu_pa = BUF_CPU_PA;
+	buf_size = SZ_4K;
+	page_size = SZ_4K;
+	alignment = SZ_4K;
+	for (i = 0; i < TEST_BATCH_NUM_BUFFERS; i++) {
+		unit_info(m, "Mapping Buffer #%d:\n", i);
+		unit_info(m, "   - CPU PA = 0x%llx\n", buf_cpu_pa);
+		unit_info(m, "   - Buffer Size = 0x%lx\n", buf_size);
+		unit_info(m, "   - Page Size = 0x%lx\n", page_size);
+		unit_info(m, "   - Alignment = 0x%lx\n", alignment);
+		ret = map_buffer(m,
+				 g,
+				 vm,
+				 &batch,
+				 buf_cpu_pa,
+				 0,
+				 buf_size,
+				 page_size,
+				 alignment);
+		if (ret != UNIT_SUCCESS) {
+			unit_err(m, "Buffer mapping failed\n");
+			goto clean_up;
+		}
+
+		buf_cpu_pa += buf_size;
+	}
+
+	ret = UNIT_SUCCESS;
+
+clean_up:
+	nvgpu_vm_mapping_batch_finish(vm, &batch);
+	/* Verify cache flush counts */
+	if (ret == UNIT_SUCCESS) {
+		if (!batch.need_tlb_invalidate ||
+		    !batch.gpu_l2_flushed) {
+			unit_err(m, "batch struct is invalid\n");
+			ret = UNIT_FAIL;
+		}
+		if (test_batch_tlb_inval_cnt != 1) {
+			unit_err(m, "Incorrect number of TLB invalidates\n");
+			ret = UNIT_FAIL;
+		}
+		if (test_batch_l2_flush_cnt != 1) {
+			unit_err(m, "Incorrect number of L2 flushes\n");
+			ret = UNIT_FAIL;
+		}
+	}
+
+	nvgpu_vm_put(vm);
+
+exit:
+	return ret;
+}
+
 struct unit_module_test vm_tests[] = {
+	/*
+	 * Requirement verification tests
+	 */
 	UNIT_TEST_REQ("NVGPU-RQCD-45.C1",
 		      VM_REQ1_UID,
 		      "V5",
 		      map_buf,
 		      test_map_buf,
-		      NULL, 0),
+		      NULL,
+		      0),
 	UNIT_TEST_REQ("NVGPU-RQCD-45.C2",
 		      VM_REQ1_UID,
 		      "V5",
 		      map_buf_gpu_va,
 		      test_map_buf_gpu_va,
-		      NULL, 0),
+		      NULL,
+		      0),
+
+	/*
+	 * Feature tests
+	 */
+	UNIT_TEST(batch,
+		  test_batch,
+		  NULL,
+		  0),
 };
 
 UNIT_MODULE(vm, vm_tests, UNIT_PRIO_NVGPU_TEST);

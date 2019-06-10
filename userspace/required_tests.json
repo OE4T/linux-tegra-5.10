@@ -530,6 +530,11 @@
         "unit": "interface_rbtree"
     },
     {
+        "test": "unlink_corner_cases",
+        "test_level": 0,
+        "unit": "interface_rbtree"
+    },
+    {
         "test": "list_all_head",
         "test_level": 0,
         "unit": "list"
@@ -1546,6 +1551,11 @@
         "test": "nvgpu_pramin_wr_n_3_sgl",
         "test_level": 0,
         "unit": "pramin"
+    },
+    {
+        "test": "batch",
+        "test_level": 0,
+        "unit": "vm"
     },
     {
         "vc": "V5",

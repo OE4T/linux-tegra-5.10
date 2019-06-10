@@ -210,6 +210,8 @@ nvgpu_vm_area_free
 nvgpu_vm_find_mapped_buf
 nvgpu_vm_init
 nvgpu_vm_map
+nvgpu_vm_mapping_batch_finish
+nvgpu_vm_mapping_batch_start
 nvgpu_vm_put
 nvgpu_vm_unmap
 nvgpu_vzalloc_impl
