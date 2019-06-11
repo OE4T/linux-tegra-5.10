@@ -25,17 +25,179 @@
 #ifndef NVGPU_FIFO_COMMON_H
 #define NVGPU_FIFO_COMMON_H
 
+/**
+ * @file
+ * @page unit-fifo Unit FIFO
+ *
+ * Overview
+ * ========
+ *
+ * The FIFO unit is responsible for managing xxxxx.
+ * primarily of TODO types:
+ *
+ *   + TODO
+ *   + TODO
+ *
+ * The FIFO code also makes sure that all of the necessary SW and HW
+ * initialization for engines, pdbma, runlist, channel and tsg subsystems
+ * are taken care of before the GPU begins executing work.
+ *
+ * Top level FIFO Unit
+ * ---------------------
+ *
+ * The FIFO unit TODO.
+ *
+ * See include/nvgpu/fifo.h for more details.
+ *
+ * Runlist
+ * -------
+ *
+ * TODO
+ *
+ *   + include/nvgpu/runlist.h
+ *
+ * Pbdma
+ * -------
+ *
+ * TODO
+ *
+ *   + include/nvgpu/pbdma.h
+ *
+ * Engines
+ * -------
+ *
+ * TODO
+ *
+ *   + include/nvgpu/engines.h
+ *
+ * Preempt
+ * -------
+ *
+ * TODO
+ *
+ *   + include/nvgpu/preempt.h
+ *
+ * Channel
+ * -------
+ *
+ * TODO
+ *
+ *   + include/nvgpu/channel.h
+ *
+ * Tsg
+ * -------
+ *
+ * TODO
+ *
+ *   + include/nvgpu/tsg.h
+ *
+ * Data Structures
+ * ===============
+ *
+ * The major data structures exposed to users of the FIFO unit in nvgpu relate
+ * to managing Engines, Runlists, Channels and Tsgs.
+ * Following is a list of these structures:
+ *
+ *   + struct nvgpu_fifo
+ *
+ *       TODO
+ *
+ *   + struct nvgpu_runlist_info
+ *
+ *       TODO
+ *
+ *   + struct nvgpu_engine_info
+ *
+ *       TODO
+ *
+ *   + struct nvgpu_channel
+ *
+ *       TODO
+ *
+ *   + struct nvgpu_tsg
+ *
+ *       TODO
+ *
+ * Static Design
+ * =============
+ *
+ * Details of static design.
+ *
+ * Resource utilization
+ * --------------------
+ *
+ * External APIs
+ * -------------
+ *
+ *   + TODO
+ *
+ *
+ * Supporting Functionality
+ * ========================
+ *
+ * There's a fair amount of supporting functionality:
+ *
+ *   + TODO
+ *     - TODO
+ *   + TODO
+ *   + TODO
+ *     # TODO
+ *     # TODO
+ *
+ * Documentation for this will be filled in!
+ *
+ * Dependencies
+ * ------------
+ *
+ * Dynamic Design
+ * ==============
+ *
+ * Use case descriptions go here. Some potentials:
+ *
+ *   - TODO
+ *   - TODO
+ *   - TODO
+ *
+ * Requirements
+ * ============
+ *
+ * Added this section to link to unit level requirements. Seems like it's
+ * missing from the IPP template.
+ *
+ * Requirement    | Link
+ * -----------    | ------------------------------------------------------------
+ * NVGPU-RQCD-xx  | https://nvidia.jamacloud.com/perspective.req#/items/xxxxxxxx
+ *
+ * Open Items
+ * ==========
+ *
+ * Any open items can go here.
+ */
+
 #include <nvgpu/types.h>
 #include <nvgpu/lock.h>
 #include <nvgpu/kref.h>
 #include <nvgpu/list.h>
-
+/**
+ * H/w defined value for Channel ID type
+ */
 #define ID_TYPE_CHANNEL			0U
+/**
+ * H/w defined value for Tsg ID type
+ */
 #define ID_TYPE_TSG			1U
+/**
+ * S/w defined value for unknown ID type.
+ */
 #define ID_TYPE_UNKNOWN			(~U32(0U))
-
+/**
+ * Invalid ID.
+ */
 #define INVAL_ID			(~U32(0U))
-
+/**
+ * Timeout after which ctxsw timeout interrupt (if enabled by s/w) will be
+ * triggered by h/w if context fails to context switch.
+ */
 #define CTXSW_TIMEOUT_PERIOD_MS		100U
 
 #define PBDMA_SUBDEVICE_ID		1U
@@ -57,9 +219,33 @@ struct nvgpu_fifo {
 	unsigned int num_pbdma;
 	u32 *pbdma_map;
 
+	/**
+	 * This is the area of memory alloced by kernel to keep information for
+	 * #max_engines supported by the chip. This information is filled up
+	 * with device info h/w registers' values. Pointer is indexed by
+	 * engine_id defined by h/w.
+	 */
 	struct nvgpu_engine_info *engine_info;
+	/**
+	 * Total number of engines supported on the chip. This variable is
+	 * updated with one of the h/w register's value defined for chip
+	 * configuration related settings.
+	 */
 	u32 max_engines;
+	/**
+	 * This represents total number of active engines supported on the chip.
+	 * This is calculated based on total number of available engines
+	 * read from device info h/w registers. This variable can be less than
+	 * or equal to #max_engines.
+	 */
 	u32 num_engines;
+	/**
+	 * This is the area of memory alloced by kernel for #max_engines
+	 * supported by the chip. This is needed to map engine_id defined
+	 * by s/w to engine_id defined by device info h/w registers.
+	 * This area of memory is indexed by s/w defined engine_id starting
+	 * with 0.
+	 */
 	u32 *active_engines_list;
 
 	/* Pointers to runlists, indexed by real hw runlist_id.
@@ -125,6 +311,7 @@ struct nvgpu_fifo {
 	struct nvgpu_mutex deferred_reset_mutex;
 #endif
 
+	/** max number of veid supported by the chip */
 	u32 max_subctx_count;
 	u32 channel_base;
 };

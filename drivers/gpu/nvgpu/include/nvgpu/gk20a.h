@@ -34,6 +34,7 @@
  * the major top level units within nvgpu-common:
  *
  *   - @ref unit-mm
+ *   - @ref unit-fifo
  *   - Etc, etc.
  *
  * nvgpu-driver Level Requirements Table

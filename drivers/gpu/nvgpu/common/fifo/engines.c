@@ -461,7 +461,7 @@ int nvgpu_engine_wait_for_idle(struct gk20a *g)
 	return ret;
 }
 
-#endif /* NVGPU_ENGINE */
+#endif /* CONFIG_NVGPU_FIFO_ENGINE_ACTIVITY */
 
 int nvgpu_engine_setup_sw(struct gk20a *g)
 {
