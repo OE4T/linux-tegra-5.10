@@ -20,8 +20,8 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef __NVGPU_DEFAULTS_H__
-#define __NVGPU_DEFAULTS_H__
+#ifndef NVGPU_DEFAULTS_H
+#define NVGPU_DEFAULTS_H
 
 /*
  * Default timeout used for channel watchdog and ctxsw timeout.
@@ -32,4 +32,4 @@
 
 #define NVGPU_DEFAULT_FPGA_TIMEOUT_MS 100000U /* 100 sec */
 
-#endif
+#endif /* NVGPU_DEFAULTS_H */
