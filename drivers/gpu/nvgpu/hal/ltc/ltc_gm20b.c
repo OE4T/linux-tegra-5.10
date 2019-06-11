@@ -32,7 +32,6 @@
 #include <nvgpu/io.h>
 #include <nvgpu/utils.h>
 #include <nvgpu/gk20a.h>
-#include <nvgpu/safe_ops.h>
 
 #include <nvgpu/hw/gm20b/hw_ltc_gm20b.h>
 #include <nvgpu/hw/gm20b/hw_top_gm20b.h>
@@ -118,9 +117,8 @@ void gm20b_flush_ltc(struct gk20a *g)
 		}
 
 		do {
-			u32 cmgmt1 = nvgpu_safe_add_u32(
-					ltc_ltc0_ltss_tstg_cmgmt1_r(),
-					nvgpu_safe_mult_u32(ltc, ltc_stride));
+			u32 cmgmt1 = (u32)(ltc_ltc0_ltss_tstg_cmgmt1_r() +
+							(ltc * ltc_stride));
 			op_pending = gk20a_readl(g, cmgmt1);
 			is_clean_pending_set = (op_pending &
 				ltc_ltc0_ltss_tstg_cmgmt1_clean_pending_f()) != 0U;
@@ -151,9 +149,8 @@ void gm20b_flush_ltc(struct gk20a *g)
 		}
 
 		do {
-			u32 cmgmt0 = nvgpu_safe_add_u32(
-					ltc_ltc0_ltss_tstg_cmgmt0_r(),
-					nvgpu_safe_mult_u32(ltc, ltc_stride));
+			u32 cmgmt0 = (u32)(ltc_ltc0_ltss_tstg_cmgmt0_r() +
+							(ltc * ltc_stride));
 			op_pending = gk20a_readl(g, cmgmt0);
 			is_invalidate_pending_set = (op_pending &
 				ltc_ltc0_ltss_tstg_cmgmt0_invalidate_pending_f()) != 0U;
@@ -200,9 +197,8 @@ u64 gm20b_determine_L2_size_bytes(struct gk20a *g)
 	/* chip-specific values */
 	lts_per_ltc = 2U;
 	bytes_per_line = 128U;
-	cache_size = nvgpu_safe_mult_u64(nvgpu_safe_mult_u64(
-			nvgpu_safe_mult_u64(active_ltcs, lts_per_ltc), ways),
-			nvgpu_safe_mult_u64(sets, bytes_per_line));
+	cache_size = active_ltcs * (u64)lts_per_ltc * ways *
+					(u64) sets * bytes_per_line;
 
 	return cache_size;
 }
@@ -274,7 +270,7 @@ bool gm20b_ltc_is_ltcs_ltss_addr(struct gk20a *g, u32 addr)
 	u32 lts_stride = nvgpu_get_litter_value(g, GPU_LIT_LTS_STRIDE);
 
 	return (addr >= ltc_shared_base) &&
-		(addr < nvgpu_safe_add_u32(ltc_shared_base, lts_stride));
+		(addr < (ltc_shared_base + lts_stride));
 }
 
 bool gm20b_ltc_is_ltcn_ltss_addr(struct gk20a *g, u32 addr)
@@ -283,7 +279,7 @@ bool gm20b_ltc_is_ltcn_ltss_addr(struct gk20a *g, u32 addr)
 	u32 lts_stride = nvgpu_get_litter_value(g, GPU_LIT_LTS_STRIDE);
 	u32 addr_mask = nvgpu_get_litter_value(g, GPU_LIT_LTC_STRIDE) - 1U;
 	u32 base_offset = lts_shared_base & addr_mask;
-	u32 end_offset = nvgpu_safe_add_u32(base_offset, lts_stride);
+	u32 end_offset = base_offset + lts_stride;
 
 	return (!gm20b_ltc_is_ltcs_ltss_addr(g, addr)) &&
 		((addr & addr_mask) >= base_offset) &&
@@ -299,17 +295,11 @@ static void gm20b_ltc_update_ltc_lts_addr(struct gk20a *g, u32 addr,
 	u32 ltc_stride = nvgpu_get_litter_value(g, GPU_LIT_LTC_STRIDE);
 	u32 lts_stride = nvgpu_get_litter_value(g, GPU_LIT_LTS_STRIDE);
 
-	for (lts_num = 0; lts_num < num_ltc_slices;
-				lts_num = nvgpu_safe_add_u32(lts_num, 1U)) {
-		priv_addr_table[index] = nvgpu_safe_add_u32(
-			ltc_ltc0_lts0_v(),
-			nvgpu_safe_add_u32(
-				nvgpu_safe_add_u32(
-				nvgpu_safe_mult_u32(ltc_num, ltc_stride),
-				nvgpu_safe_mult_u32(lts_num, lts_stride)),
-						(addr & nvgpu_safe_sub_u32(
-							lts_stride, 1U))));
-		index = nvgpu_safe_add_u32(index, 1U);
+	for (lts_num = 0; lts_num < num_ltc_slices; lts_num++) {
+		priv_addr_table[index++] = ltc_ltc0_lts0_v() +
+						ltc_num * ltc_stride +
+						lts_num * lts_stride +
+						(addr & (lts_stride - 1U));
 	}
 
 	*priv_addr_table_index = index;
@@ -325,10 +315,8 @@ void gm20b_ltc_split_lts_broadcast_addr(struct gk20a *g, u32 addr,
 	u32 ltc_stride = nvgpu_get_litter_value(g, GPU_LIT_LTC_STRIDE);
 
 	for (i = 0; i < num_ltc; i++) {
-		start = nvgpu_safe_add_u32(pltcg_base,
-				nvgpu_safe_mult_u32(i, ltc_stride));
-		if ((addr >= start) && (addr < nvgpu_safe_add_u32(start,
-							ltc_stride))) {
+		start = pltcg_base + i * ltc_stride;
+		if ((addr >= start) && (addr < (start + ltc_stride))) {
 			ltc_num = i;
 			break;
 		}
@@ -344,8 +332,7 @@ void gm20b_ltc_split_ltc_broadcast_addr(struct gk20a *g, u32 addr,
 	u32 num_ltc = g->ltc->ltc_count;
 	u32 ltc_num;
 
-	for (ltc_num = 0; ltc_num < num_ltc; ltc_num =
-					nvgpu_safe_add_u32(ltc_num, 1U)) {
+	for (ltc_num = 0; ltc_num < num_ltc; ltc_num++) {
 		gm20b_ltc_update_ltc_lts_addr(g, addr, ltc_num,
 					priv_addr_table, priv_addr_table_index);
 	}
