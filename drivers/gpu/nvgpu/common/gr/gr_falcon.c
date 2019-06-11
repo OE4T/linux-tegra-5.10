@@ -318,12 +318,16 @@ int nvgpu_gr_falcon_init_ctxsw_ucode(struct gk20a *g,
 	ucode_size = 0;
 	nvgpu_gr_falcon_init_ctxsw_ucode_segments(&ucode_info->fecs,
 		&ucode_size, fecs_boot_desc,
-		nvgpu_netlist_get_fecs_inst_count(g) * (u32)sizeof(u32),
-		nvgpu_netlist_get_fecs_data_count(g) * (u32)sizeof(u32));
+		nvgpu_safe_mult_u32(
+		nvgpu_netlist_get_fecs_inst_count(g), (u32)sizeof(u32)),
+		nvgpu_safe_mult_u32(
+		nvgpu_netlist_get_fecs_data_count(g), (u32)sizeof(u32)));
 	nvgpu_gr_falcon_init_ctxsw_ucode_segments(&ucode_info->gpccs,
 		&ucode_size, gpccs_boot_desc,
-		nvgpu_netlist_get_gpccs_inst_count(g) * (u32)sizeof(u32),
-		nvgpu_netlist_get_gpccs_data_count(g) * (u32)sizeof(u32));
+		nvgpu_safe_mult_u32(
+		nvgpu_netlist_get_gpccs_inst_count(g), (u32)sizeof(u32)),
+		nvgpu_safe_mult_u32(
+		nvgpu_netlist_get_gpccs_data_count(g), (u32)sizeof(u32)));
 
 	err = nvgpu_dma_alloc_sys(g, ucode_size, &ucode_info->surface_desc);
 	if (err != 0) {
