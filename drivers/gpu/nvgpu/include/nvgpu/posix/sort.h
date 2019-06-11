@@ -23,13 +23,13 @@
 #ifndef NVGPU_POSIX_SORT_H
 #define NVGPU_POSIX_SORT_H
 
-#include <nvgpu/bug.h>
+#include <stdlib.h>
 
 static void sort(void *base, size_t num, size_t size,
 		 int (*cmp)(const void *a, const void *b),
 		 void (*swap)(void *a, void *b, int n))
 {
-	nvgpu_posix_bug("sort() not implemented yet!");
+	qsort(base, num, size, cmp);
 }
 
 #endif /* NVGPU_POSIX_SORT_H */
