@@ -626,6 +626,11 @@ static int stub_ramfc_setup_EINVAL(struct nvgpu_channel *ch, u64 gpfifo_base,
 	return -EINVAL;
 }
 
+static int stub_mm_l2_flush(struct gk20a *g, bool invalidate)
+{
+	return 0;
+}
+
 static int test_channel_setup_bind(struct unit_module *m,
 		struct gk20a *g, void *args)
 {
@@ -662,6 +667,7 @@ static int test_channel_setup_bind(struct unit_module *m,
 	assert(ch != NULL);
 
 	g->ops.gr.intr.flush_channel_tlb = stub_gr_intr_flush_channel_tlb;
+	g->ops.mm.cache.l2_flush = stub_mm_l2_flush;	/* bug 2621189 */
 
 	mm.g = g;
 	vm.mm = &mm;
