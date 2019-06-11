@@ -25,7 +25,6 @@
 #include <nvgpu/ltc.h>
 #include <nvgpu/io.h>
 #include <nvgpu/gk20a.h>
-#include <nvgpu/safe_ops.h>
 
 #include "ltc_intr_gm20b.h"
 
@@ -51,21 +50,18 @@ static void gm20b_ltc_intr_handle_lts_interrupts(struct gk20a *g,
 	u32 ltc_stride = nvgpu_get_litter_value(g, GPU_LIT_LTC_STRIDE);
 	u32 lts_stride = nvgpu_get_litter_value(g, GPU_LIT_LTS_STRIDE);
 
-	ltc_intr = nvgpu_readl(g, nvgpu_safe_add_u32(ltc_ltc0_lts0_intr_r(),
-			nvgpu_safe_add_u32(nvgpu_safe_mult_u32(ltc_stride, ltc),
-				nvgpu_safe_mult_u32(lts_stride, slice))));
+	ltc_intr = nvgpu_readl(g, ltc_ltc0_lts0_intr_r() +
+			   ltc_stride * ltc + lts_stride * slice);
 	nvgpu_err(g, "ltc%d, slice %d: %08x", ltc, slice, ltc_intr);
-	nvgpu_writel(g, nvgpu_safe_add_u32(ltc_ltc0_lts0_intr_r(),
-			nvgpu_safe_add_u32(nvgpu_safe_mult_u32(ltc_stride, ltc),
-			   nvgpu_safe_mult_u32(lts_stride, slice))), ltc_intr);
+	nvgpu_writel(g, ltc_ltc0_lts0_intr_r() + ltc_stride * ltc +
+			   lts_stride * slice, ltc_intr);
 }
 
 void gm20b_ltc_intr_isr(struct gk20a *g, u32 ltc)
 {
 	u32 slice;
 
-	for (slice = 0U; slice < g->ltc->slices_per_ltc; slice =
-					nvgpu_safe_add_u32(slice, 1U)) {
+	for (slice = 0U; slice < g->ltc->slices_per_ltc; slice++) {
 		gm20b_ltc_intr_handle_lts_interrupts(g, ltc, slice);
 	}
 }
