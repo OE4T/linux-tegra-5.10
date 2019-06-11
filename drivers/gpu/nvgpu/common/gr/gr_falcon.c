@@ -374,10 +374,14 @@ clean_up:
 	}
 	nvgpu_dma_free(g, &ucode_info->surface_desc);
 
-	nvgpu_release_firmware(g, gpccs_fw);
-	gpccs_fw = NULL;
-	nvgpu_release_firmware(g, fecs_fw);
-	fecs_fw = NULL;
+	if (gpccs_fw != NULL) {
+		nvgpu_release_firmware(g, gpccs_fw);
+		gpccs_fw = NULL;
+	}
+	if (fecs_fw != NULL) {
+		nvgpu_release_firmware(g, fecs_fw);
+		fecs_fw = NULL;
+	}
 
 	return err;
 }
