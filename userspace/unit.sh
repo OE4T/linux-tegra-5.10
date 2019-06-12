@@ -41,7 +41,8 @@ if [ -f nvgpu_unit ]; then
 else
         # running on host
         LD_LIBRARY_PATH="build:build/units"
-        NVGPU_UNIT=build/nvgpu_unit
+        # On host, must run single-threaded to avoid high VAs
+        NVGPU_UNIT="./build/nvgpu_unit --num-threads 1"
 fi
 export LD_LIBRARY_PATH
 

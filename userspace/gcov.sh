@@ -60,7 +60,7 @@ find . -name "*.gcda" -exec rm {} +
 find $NVGPU_SRC_ROOT -name "*.gcda" -exec rm {} +
 
 #Run unit tests
-./unit.sh -j 2
+./unit.sh
 OUT=$?
 if [ ! $OUT -eq 0 ]; then
 	echo "ERROR: Unit test run failed."
