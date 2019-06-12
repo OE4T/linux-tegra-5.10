@@ -368,7 +368,10 @@ struct hdmi_audio_infoframe {
 	u32 reg_hole1:16;
 } __packed;
 
-#define HDMI_LICENSING_LLC_OUI	(0x000c03)
+#define HDMI_LICENSING_LLC_OUI		(0x000c03)
+#define DV_IEEE_LLC_OUI			(0x00D046)
+#define HDMI_INFOFRAME_LEN_VENDOR_LLC	(6)
+#define HDMI_INFOFRAME_LEN_VENDOR_DV	(24)
 
 enum {
 	HDMI_VENDOR_VIDEO_FORMAT_NONE,
@@ -398,10 +401,14 @@ struct hdmi_vendor_infoframe {
 	/* PB6 */
 	u32 res3:4;
 	u32 ext_data_3d:4;
+
+	/*PB7-PB24*/
+	u32 res4:32;
+	u32 res5:32;
+	u32 res6:32;
+	u32 res7:32;
+	u16 res8:16;
 } __packed;
-
-
-#define DV_IEEE_LLC_OUI		(0x00D046)
 
 /* all fields little endian */
 struct hdmi_dv_infoframe {

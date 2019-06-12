@@ -2337,11 +2337,8 @@ static void tegra_hdmi_vendor_infoframe_update(struct tegra_hdmi *hdmi)
 	}
 }
 
-static void tegra_hdmi_vendor_infoframe(struct tegra_hdmi *hdmi)
+static void tegra_hdmi_vendor_infoframe(struct tegra_hdmi *hdmi, u8 length)
 {
-/* hdmi licensing, LLC vsi playload len as per hdmi1.4b  */
-#define HDMI_INFOFRAME_LEN_VENDOR_LLC	(6)
-
 	struct tegra_dc_sor_data *sor = hdmi->sor;
 
 	if (hdmi->dvi)
@@ -2355,7 +2352,7 @@ static void tegra_hdmi_vendor_infoframe(struct tegra_hdmi *hdmi)
 	tegra_hdmi_infoframe_pkt_write(hdmi, NV_SOR_HDMI_VSI_INFOFRAME_HEADER,
 					HDMI_INFOFRAME_TYPE_VENDOR,
 					HDMI_INFOFRAME_VS_VENDOR,
-					HDMI_INFOFRAME_LEN_VENDOR_LLC,
+					length,
 					&hdmi->vsi, sizeof(hdmi->vsi),
 					false);
 
@@ -2365,8 +2362,6 @@ static void tegra_hdmi_vendor_infoframe(struct tegra_hdmi *hdmi)
 		NV_SOR_HDMI_VSI_INFOFRAME_CTRL_OTHER_DISABLE |
 		NV_SOR_HDMI_VSI_INFOFRAME_CTRL_SINGLE_DISABLE |
 		NV_SOR_HDMI_VSI_INFOFRAME_CTRL_CHECKSUM_ENABLE);
-
-#undef HDMI_INFOFRAME_LEN_VENDOR_LLC
 }
 
 static void tegra_hdmi_dv_infoframe_update(struct tegra_hdmi *hdmi)
@@ -2417,15 +2412,6 @@ static void tegra_hdmi_dv_infoframe(struct tegra_hdmi *hdmi)
 	/* disable/stop vsi/dv infoframe before configuring */
 	tegra_sor_writel(sor, NV_SOR_HDMI_VSI_INFOFRAME_CTRL, 0);
 
-	if (hdmi->hdmi_dv_signal == TEGRA_DC_EXT_DV_SIGNAL_NONE) {
-		/*
-		 * Dolby Vision signal is turned off, as stopped sending VSIF,
-		 * send default VSIF.
-		 */
-		tegra_hdmi_vendor_infoframe(hdmi);
-		return;
-	}
-
 	if (tegra_edid_require_dv_vsif(hdmi->edid)) {
 		/* Dolby Vision VSVDB v1-12 byte and v2 version need Dolby VSIF
 		 * to be send continuously.
@@ -2449,9 +2435,13 @@ static void tegra_hdmi_dv_infoframe(struct tegra_hdmi *hdmi)
 	} else {
 		/*
 		 * Dolby Vision VSVDB v0 and v1-15 byte version need HDMI 1.4b
-		 * VSIF to be send continuously.
+		 * VSIF length 24 to be send continuously. If DV signal is
+		 * turned off then send normal LLC length VSIF.
 		 */
-		tegra_hdmi_vendor_infoframe(hdmi);
+		tegra_hdmi_vendor_infoframe(hdmi,
+			hdmi->hdmi_dv_signal == TEGRA_DC_EXT_DV_SIGNAL_NONE ?
+			HDMI_INFOFRAME_LEN_VENDOR_LLC :
+			HDMI_INFOFRAME_LEN_VENDOR_DV);
 	}
 }
 
@@ -2973,8 +2963,12 @@ static int tegra_hdmi_controller_enable(struct tegra_hdmi *hdmi)
 	 * check ensures we don't reference a null edid
 	 * */
 	if (hdmi->edid) {
+		if (hdmi->hdmi_dv_signal != TEGRA_DC_EXT_DV_SIGNAL_NONE)
+			tegra_hdmi_dv_infoframe(hdmi);
+		else
+			tegra_hdmi_vendor_infoframe(hdmi,
+				HDMI_INFOFRAME_LEN_VENDOR_LLC);
 		tegra_hdmi_avi_infoframe(hdmi);
-		tegra_hdmi_dv_infoframe(hdmi);
 		tegra_hdmi_spd_infoframe(hdmi);
 	}
 
@@ -3462,6 +3456,8 @@ static int tegra_dc_hdmi_set_dv(struct tegra_dc *dc, struct tegra_dc_ext_dv *dv)
 
 	/* update hdmi dv signal with requested value */
 	hdmi->hdmi_dv_signal = dv->dv_signal;
+
+	/* update dv infoframe */
 	tegra_hdmi_dv_infoframe(hdmi);
 
 	return ret;
