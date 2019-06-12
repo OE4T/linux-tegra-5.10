@@ -1199,7 +1199,9 @@ int gp10b_init_hal(struct gk20a *g)
 #endif
 	}
 
+#ifdef CONFIG_NVGPU_GRAPHICS
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_ZBC_STENCIL, false);
+#endif
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_PREEMPTION_GFXP, true);
 	nvgpu_set_enabled(g, NVGPU_PMU_FECS_BOOTSTRAP_DONE, false);
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_SET_CTX_MMU_DEBUG_MODE, false);
