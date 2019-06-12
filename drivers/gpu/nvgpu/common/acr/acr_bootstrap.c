@@ -162,12 +162,14 @@ static int acr_hs_bl_exec(struct gk20a *g, struct nvgpu_acr *acr,
 		}
 
 		hs_bl->hs_bl_fw = hs_bl_fw;
-		hs_bl->hs_bl_bin_hdr = (struct bin_hdr *)hs_bl_fw->data;
-		hs_bl->hs_bl_desc = (struct hsflcn_bl_desc *)(hs_bl_fw->data +
-			hs_bl->hs_bl_bin_hdr->header_offset);
+		hs_bl->hs_bl_bin_hdr = (struct bin_hdr *)(void *)hs_bl_fw->data;
+
+		hs_bl->hs_bl_desc = (struct hsflcn_bl_desc *)(void *)
+			(hs_bl_fw->data + hs_bl->hs_bl_bin_hdr->header_offset);
 
 		hs_bl_desc = hs_bl->hs_bl_desc;
-		hs_bl_code = (u32 *)(hs_bl_fw->data +
+
+		hs_bl_code = (u32 *)(void *)(hs_bl_fw->data +
 			hs_bl->hs_bl_bin_hdr->data_offset);
 
 		bl_sz = ALIGN(hs_bl_desc->bl_img_hdr.bl_code_size, 256U);
@@ -301,7 +303,8 @@ int nvgpu_acr_bootstrap_hs_ucode(struct gk20a *g, struct nvgpu_acr *acr,
 
 	vm = acr_get_engine_vm(g, flcn_id);
 	if (vm == NULL) {
-		nvgpu_err(g, "vm space not allocated for engine falcon - %d", flcn_id);
+		nvgpu_err(g, "vm space not allocated for engine falcon - %d",
+				flcn_id);
 		return -ENOMEM;
 	}
 
@@ -318,28 +321,33 @@ int nvgpu_acr_bootstrap_hs_ucode(struct gk20a *g, struct nvgpu_acr *acr,
 
 		acr_desc->acr_fw = acr_fw;
 
-		acr_fw_bin_hdr = (struct bin_hdr *)acr_fw->data;
+		acr_fw_bin_hdr = (struct bin_hdr *)(void *)acr_fw->data;
 
-		acr_fw_hdr = (struct acr_fw_header *)
+		acr_fw_hdr = (struct acr_fw_header *)(void *)
 			(acr_fw->data + acr_fw_bin_hdr->header_offset);
 
-		acr_ucode_header = (u32 *)(acr_fw->data +
+		acr_ucode_header = (u32 *)(void *)(acr_fw->data +
 			acr_fw_hdr->hdr_offset);
 
-		acr_ucode_data = (u32 *)(acr_fw->data +
+		acr_ucode_data = (u32 *)(void *)(acr_fw->data +
 			acr_fw_bin_hdr->data_offset);
+
 
 		img_size_in_bytes = ALIGN((acr_fw_bin_hdr->data_size), 256U);
 
 		/* Lets patch the signatures first.. */
 		if (acr_ucode_patch_sig(g, acr_ucode_data,
-			(u32 *)(acr_fw->data + acr_fw_hdr->sig_prod_offset),
-			(u32 *)(acr_fw->data + acr_fw_hdr->sig_dbg_offset),
-			(u32 *)(acr_fw->data + acr_fw_hdr->patch_loc),
-			(u32 *)(acr_fw->data + acr_fw_hdr->patch_sig)) < 0) {
-			nvgpu_err(g, "patch signatures fail");
-			status = -1;
-			goto err_release_acr_fw;
+			(u32 *)(void *)(acr_fw->data +
+						acr_fw_hdr->sig_prod_offset),
+			(u32 *)(void *)(acr_fw->data +
+						acr_fw_hdr->sig_dbg_offset),
+			(u32 *)(void *)(acr_fw->data +
+						acr_fw_hdr->patch_loc),
+			(u32 *)(void *)(acr_fw->data +
+						acr_fw_hdr->patch_sig)) < 0) {
+				nvgpu_err(g, "patch signatures fail");
+				status = -1;
+				goto err_release_acr_fw;
 		}
 
 		status = nvgpu_dma_alloc_map_sys(vm, img_size_in_bytes,
