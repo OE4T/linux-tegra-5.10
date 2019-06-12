@@ -59,50 +59,6 @@
 #include <nvgpu/types.h>
 #include <nvgpu/safe_ops.h>
 
-static inline u32 therm_temp_sensor_tsense_r(void)
-{
-	return 0x00020460U;
-}
-static inline u32 therm_temp_sensor_tsense_fixed_point_f(u32 v)
-{
-	return (v & 0x3fffU) << 3U;
-}
-static inline u32 therm_temp_sensor_tsense_fixed_point_m(void)
-{
-	return U32(0x3fffU) << 3U;
-}
-static inline u32 therm_temp_sensor_tsense_fixed_point_v(u32 r)
-{
-	return (r >> 3U) & 0x3fffU;
-}
-static inline u32 therm_temp_sensor_tsense_fixed_point_min_v(void)
-{
-	return 0x00003b00U;
-}
-static inline u32 therm_temp_sensor_tsense_fixed_point_max_v(void)
-{
-	return 0x000010e0U;
-}
-static inline u32 therm_temp_sensor_tsense_state_f(u32 v)
-{
-	return (v & 0x3U) << 29U;
-}
-static inline u32 therm_temp_sensor_tsense_state_m(void)
-{
-	return U32(0x3U) << 29U;
-}
-static inline u32 therm_temp_sensor_tsense_state_v(u32 r)
-{
-	return (r >> 29U) & 0x3U;
-}
-static inline u32 therm_temp_sensor_tsense_state_valid_v(void)
-{
-	return 0x00000001U;
-}
-static inline u32 therm_temp_sensor_tsense_state_shadow_v(void)
-{
-	return 0x00000002U;
-}
 static inline u32 therm_gate_ctrl_r(u32 i)
 {
 	return nvgpu_safe_add_u32(0x00020200U, nvgpu_safe_mult_u32(i, 4U));

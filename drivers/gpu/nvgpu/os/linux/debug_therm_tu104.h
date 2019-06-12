@@ -18,9 +18,9 @@
 #define __DEBUG_THERM_GP106_H
 
 #ifdef CONFIG_DEBUG_FS
-int gp106_therm_init_debugfs(struct gk20a *g);
+int tu104_therm_init_debugfs(struct gk20a *g);
 #else
-static inline int gp106_therm_init_debugfs(struct gk20a *g)
+static inline int tu104_therm_init_debugfs(struct gk20a *g)
 {
 	return 0;
 }

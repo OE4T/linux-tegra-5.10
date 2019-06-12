@@ -254,7 +254,7 @@ nvgpu-y += \
 	hal/ce/ce_gv11b.o \
 	hal/therm/therm_gm20b.o \
 	hal/therm/therm_gp10b.o \
-	hal/therm/therm_gp106.o \
+	hal/therm/therm_tu104.o \
 	hal/therm/therm_gv11b.o \
 	hal/gr/falcon/gr_falcon_gm20b.o \
 	hal/gr/falcon/gr_falcon_gp10b.o \
@@ -425,7 +425,7 @@ nvgpu-$(CONFIG_DEBUG_FS) += \
 	os/linux/debug_allocator.o \
 	os/linux/debug_hal.o \
 	os/linux/debug_clk_gm20b.o \
-	os/linux/debug_therm_gp106.o \
+	os/linux/debug_therm_tu104.o \
 	os/linux/debug_bios.o \
 	os/linux/debug_ltc.o \
 	os/linux/debug_xve.o \

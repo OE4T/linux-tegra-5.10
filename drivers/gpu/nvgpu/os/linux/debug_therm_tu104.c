@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA Corporation. All rights reserved.
+ * Copyright (c) 2019, NVIDIA Corporation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -35,7 +35,7 @@ static int therm_get_internal_sensor_curr_temp(void *data, u64 *val)
 }
 DEFINE_SIMPLE_ATTRIBUTE(therm_ctrl_fops, therm_get_internal_sensor_curr_temp, NULL, "%llu\n");
 
-int gp106_therm_init_debugfs(struct gk20a *g)
+int tu104_therm_init_debugfs(struct gk20a *g)
 {
 	struct nvgpu_os_linux *l = nvgpu_os_linux_from_gk20a(g);
 	struct dentry *dbgentry;

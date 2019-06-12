@@ -299,4 +299,8 @@ static inline u32 therm_clk_timing_grad_slowdown_enabled_f(void)
 {
 	return 0x10000U;
 }
+static inline u32 therm_i2cs_sensor_00_r(void)
+{
+	return 0x00020400U;
+}
 #endif

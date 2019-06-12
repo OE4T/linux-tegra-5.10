@@ -411,7 +411,7 @@ srcs += \
 	common/pmu/pmu_mutex.c \
 	common/pmu/pmu_pstate.c \
 	common/clk_arb/clk_arb_gv100.c \
-	hal/therm/therm_gp106.c \
+	hal/therm/therm_tu104.c \
 	hal/pmu/pmu_gk20a.c \
 	hal/pmu/pmu_gm20b.c \
 	hal/pmu/pmu_gp10b.c \

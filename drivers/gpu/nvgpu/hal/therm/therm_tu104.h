@@ -1,7 +1,7 @@
 /*
  * general thermal control structures & definitions
  *
- * Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -22,16 +22,14 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NVGPU_THERM_GP106_H
-#define NVGPU_THERM_GP106_H
+#ifndef NVGPU_THERM_TU104_H
+#define NVGPU_THERM_TU104_H
 
 #include <nvgpu/types.h>
 
 struct gk20a;
 
-void gp106_get_internal_sensor_limits(s32 *max_24_8, s32 *min_24_8);
-int gp106_get_internal_sensor_curr_temp(struct gk20a *g, u32 *temp_f24_8);
-int gp106_elcg_init_idle_filters(struct gk20a *g);
-int gp106_configure_therm_alert(struct gk20a *g, s32 curr_warn_temp);
+void tu104_get_internal_sensor_limits(s32 *max_24_8, s32 *min_24_8);
+int tu104_get_internal_sensor_curr_temp(struct gk20a *g, u32 *temp_f24_8);
 
 #endif

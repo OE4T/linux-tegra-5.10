@@ -316,8 +316,8 @@ therm:
   owner: Seshendra G
   sources: [ hal/therm/therm_gm20b.c,
              hal/therm/therm_gm20b.h,
-             hal/therm/therm_gp106.c,
-             hal/therm/therm_gp106.h,
+             hal/therm/therm_tu104.c,
+             hal/therm/therm_tu104.h,
              hal/therm/therm_gp10b.c,
              hal/therm/therm_gp10b.h,
              hal/therm/therm_gv11b.c,

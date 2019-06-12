@@ -49,7 +49,7 @@
 #include "hal/cbc/cbc_gm20b.h"
 #include "hal/cbc/cbc_tu104.h"
 #include "hal/therm/therm_gm20b.h"
-#include "hal/therm/therm_gp106.h"
+#include "hal/therm/therm_tu104.h"
 #include "hal/therm/therm_gv11b.h"
 #include "hal/ltc/ltc_gm20b.h"
 #include "hal/ltc/ltc_gp10b.h"
@@ -1090,9 +1090,9 @@ static const struct gpu_ops tu104_ops = {
 		.elcg_init_idle_filters = NULL,
 #ifdef CONFIG_NVGPU_LS_PMU
 		.get_internal_sensor_curr_temp =
-			gp106_get_internal_sensor_curr_temp,
+			tu104_get_internal_sensor_curr_temp,
 		.get_internal_sensor_limits =
-			gp106_get_internal_sensor_limits,
+			tu104_get_internal_sensor_limits,
 #endif
 	},
 #ifdef CONFIG_NVGPU_LS_PMU
