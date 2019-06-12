@@ -79,8 +79,8 @@ void gp10b_ltc_intr_handle_lts_interrupts(struct gk20a *g, u32 ltc, u32 slice)
 			"Double bit error detected in GPU L2!");
 
 		ecc_stats_reg_val =
-			nvgpu_readl(g,
-				ltc_ltc0_lts0_dstg_ecc_report_r() + offset);
+			nvgpu_readl(g, nvgpu_safe_add_u32(
+				ltc_ltc0_lts0_dstg_ecc_report_r(), offset));
 		g->ecc.ltc.ecc_ded_count[ltc][slice].counter =
 			nvgpu_safe_add_u32(
 				g->ecc.ltc.ecc_ded_count[ltc][slice].counter,

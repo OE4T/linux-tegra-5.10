@@ -154,9 +154,14 @@ static void gv11b_ltc_intr_handle_lts_interrupts(struct gk20a *g,
 				ltc_ltc0_lts0_l2_cache_ecc_uncorrected_err_count_total_s());
 		}
 
-		g->ecc.ltc.ecc_sec_count[ltc][slice].counter += corrected_delta;
-		g->ecc.ltc.ecc_ded_count[ltc][slice].counter +=
-							uncorrected_delta;
+		g->ecc.ltc.ecc_sec_count[ltc][slice].counter =
+				nvgpu_safe_add_u32(
+				g->ecc.ltc.ecc_sec_count[ltc][slice].counter,
+					corrected_delta);
+		g->ecc.ltc.ecc_ded_count[ltc][slice].counter =
+				nvgpu_safe_add_u32(
+				g->ecc.ltc.ecc_ded_count[ltc][slice].counter,
+					uncorrected_delta);
 		nvgpu_log(g, gpu_dbg_intr,
 			"ltc:%d lts: %d cache ecc interrupt intr: 0x%x",
 			ltc, slice, ltc_intr3);
