@@ -303,8 +303,8 @@ static int test_nvgpu_bitmap_allocator_init(struct unit_module *m,
 	}
 
 	/* base = 0, length = 0, blk_size = 0 */
-	if (nvgpu_allocator_init(g, na, NULL, "test_bitmap", 0ULL, 0ULL, 0ULL,
-					0ULL, flags, BITMAP_ALLOCATOR) == 0) {
+	if (!EXPECT_BUG(nvgpu_allocator_init(g, na, NULL, "test_bitmap", 0ULL,
+				0ULL, 0ULL, 0ULL, flags, BITMAP_ALLOCATOR))) {
 		na->ops->fini(na);
 		unit_return_fail(m,
 			"bitmap inited despite blk_size = base = length = 0\n");
@@ -314,9 +314,9 @@ static int test_nvgpu_bitmap_allocator_init(struct unit_module *m,
 	 * blk_size = 0
 	 * Since base and length are not aligned with 0, init fails
 	 */
-	if (nvgpu_allocator_init(g, na, NULL, "test_bitmap", base, length,
-				0ULL, 0ULL, flags, BITMAP_ALLOCATOR) == 0) {
-		unit_return_fail(m, "bitmap init failed for blk_size=0\n");
+	if (!EXPECT_BUG(nvgpu_allocator_init(g, na, NULL, "test_bitmap", base,
+				length, 0ULL, 0ULL, flags, BITMAP_ALLOCATOR))) {
+		unit_return_fail(m, "bitmap inited despite blk_size=0\n");
 	}
 
 	/* Odd blk_size */
