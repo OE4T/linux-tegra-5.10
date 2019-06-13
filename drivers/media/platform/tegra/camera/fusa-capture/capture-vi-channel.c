@@ -1,9 +1,8 @@
-/*
- * VI channel character device driver for T186/T194
+/**
+ * @file drivers/media/platform/tegra/camera/fusa-capture/capture-vi-channel.c
+ * @brief VI channel character device driver for T186/T194
  *
  * Copyright (c) 2017-2019 NVIDIA Corporation.  All rights reserved.
- *
- * Author: Sudhir Vyas <svyas@nvidia.com>
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -13,10 +12,8 @@
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
  * more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 #include <asm/ioctls.h>
 #include <linux/cdev.h>
 #include <linux/device.h>
@@ -28,38 +25,47 @@
 #include <linux/slab.h>
 #include <linux/uaccess.h>
 
-#include <media/capture.h>
-#include <media/capture_vi_channel.h>
+#include <media/fusa-capture/capture-vi.h>
+#include <media/fusa-capture/capture-vi-channel.h>
 
 #include "nvhost_acm.h"
 
-/** TODO: Get it from  DT */
-#define MAX_VI_CHANNELS 64
+#include "capture-vi-channel-priv.h"
 
-#define VI_CAPTURE_SETUP	_IOW('I', 1, struct vi_capture_setup)
-#define VI_CAPTURE_RELEASE	_IOW('I', 2, __u32)
-#define VI_CAPTURE_SET_CONFIG	_IOW('I', 3, struct vi_capture_control_msg)
-#define VI_CAPTURE_RESET	_IOW('I', 4, __u32)
-#define VI_CAPTURE_GET_INFO	_IOR('I', 5, struct vi_capture_info)
-#define VI_CAPTURE_REQUEST	_IOW('I', 6, struct vi_capture_req)
-#define VI_CAPTURE_STATUS	_IOW('I', 7, __u32)
-#define VI_CAPTURE_SET_COMPAND	_IOW('I', 8, struct vi_capture_compand)
-#define VI_CAPTURE_SET_PROGRESS_STATUS_NOTIFIER \
-	_IOW('I', 9, struct vi_capture_progress_status_req)
-#define VI_CAPTURE_BUFFER_REQUEST \
-	_IOW('I', 10, struct vi_buffer_req)
+int vi_channel_power_on_vi_device(
+	struct tegra_vi_channel *chan)
+{
+	int ret = 0;
 
-struct vi_channel_drv {
-	struct device *dev;
-	struct platform_device *ndev;
-	struct mutex lock;
-	u8 num_channels;
-	const struct vi_channel_drv_ops *ops;
-	struct tegra_vi_channel __rcu *channels[];
-};
+	dev_dbg(chan->dev, "vi_channel_power_on_vi_device\n");
 
-void vi_capture_request_unpin(struct tegra_vi_channel *chan,
-		uint32_t buffer_index)
+	ret = nvhost_module_add_client(chan->ndev, chan->capture_data);
+	if (ret < 0) {
+		dev_err(chan->dev, "%s: failed to add vi client\n", __func__);
+		return ret;
+	}
+
+	ret = nvhost_module_busy(chan->ndev);
+	if (ret < 0) {
+		dev_err(chan->dev, "%s: failed to power on vi\n", __func__);
+		return ret;
+	}
+
+	return 0;
+}
+
+void vi_channel_power_off_vi_device(
+	struct tegra_vi_channel *chan)
+{
+	dev_dbg(chan->dev, "vi_channel_power_off_vi_device\n");
+
+	nvhost_module_idle(chan->ndev);
+	nvhost_module_remove_client(chan->ndev, chan->capture_data);
+}
+
+void vi_capture_request_unpin(
+	struct tegra_vi_channel *chan,
+	uint32_t buffer_index)
 {
 	struct vi_capture *capture = chan->capture_data;
 	struct capture_common_unpins *unpins;
@@ -77,8 +83,119 @@ void vi_capture_request_unpin(struct tegra_vi_channel *chan,
 }
 EXPORT_SYMBOL(vi_capture_request_unpin);
 
-static long vi_channel_ioctl(struct file *file, unsigned int cmd,
-				unsigned long arg)
+static struct vi_channel_drv *chdrv_;
+static DEFINE_MUTEX(chdrv_lock);
+
+struct tegra_vi_channel *vi_channel_open_ex(
+	unsigned int channel,
+	bool is_mem_pinned)
+{
+	struct tegra_vi_channel *chan;
+	struct vi_channel_drv *chan_drv;
+	int err;
+
+	if (mutex_lock_interruptible(&chdrv_lock))
+		return ERR_PTR(-ERESTARTSYS);
+
+	chan_drv = chdrv_;
+
+	if (chan_drv == NULL || channel >= chan_drv->num_channels) {
+		mutex_unlock(&chdrv_lock);
+		return ERR_PTR(-ENODEV);
+	}
+	mutex_unlock(&chdrv_lock);
+
+	chan = kzalloc(sizeof(*chan), GFP_KERNEL);
+	if (unlikely(chan == NULL))
+		return ERR_PTR(-ENOMEM);
+
+	chan->drv = chan_drv;
+	chan->dev = chan_drv->dev;
+	chan->ndev = chan_drv->ndev;
+	chan->ops = chan_drv->ops;
+
+	err = vi_channel_power_on_vi_device(chan);
+	if (err < 0)
+		goto error;
+
+	err = vi_capture_init(chan, is_mem_pinned);
+	if (err < 0)
+		goto error;
+
+	mutex_lock(&chan_drv->lock);
+	if (rcu_access_pointer(chan_drv->channels[channel]) != NULL) {
+		mutex_unlock(&chan_drv->lock);
+		err = -EBUSY;
+		goto rcu_err;
+	}
+
+	rcu_assign_pointer(chan_drv->channels[channel], chan);
+	mutex_unlock(&chan_drv->lock);
+
+	return chan;
+
+rcu_err:
+	vi_channel_power_off_vi_device(chan);
+	vi_capture_shutdown(chan);
+error:
+	kfree(chan);
+	return ERR_PTR(err);
+}
+EXPORT_SYMBOL(vi_channel_open_ex);
+
+int vi_channel_close_ex(
+	unsigned int channel,
+	struct tegra_vi_channel *chan)
+{
+	struct vi_channel_drv *chan_drv = chan->drv;
+
+	vi_capture_shutdown(chan);
+	vi_channel_power_off_vi_device(chan);
+
+	mutex_lock(&chan_drv->lock);
+
+	WARN_ON(rcu_access_pointer(chan_drv->channels[channel]) != chan);
+	RCU_INIT_POINTER(chan_drv->channels[channel], NULL);
+
+	mutex_unlock(&chan_drv->lock);
+	kfree_rcu(chan, rcu);
+
+	return 0;
+}
+EXPORT_SYMBOL(vi_channel_close_ex);
+
+int vi_channel_open(
+	struct inode *inode,
+	struct file *file)
+{
+	unsigned int channel = iminor(inode);
+	struct tegra_vi_channel *chan;
+
+	chan = vi_channel_open_ex(channel, true);
+	if (IS_ERR(chan))
+		return PTR_ERR(chan);
+
+	file->private_data = chan;
+
+	return nonseekable_open(inode, file);
+}
+
+int vi_channel_release(
+	struct inode *inode,
+	struct file *file)
+{
+	struct tegra_vi_channel *chan = file->private_data;
+	unsigned int channel = iminor(inode);
+
+	vi_channel_close_ex(channel, chan);
+
+	return 0;
+}
+
+long vi_channel_ioctl(
+	struct file *file,
+	unsigned int cmd,
+	unsigned long arg)
 {
 	struct tegra_vi_channel *chan = file->private_data;
 	struct vi_capture *capture = chan->capture_data;
@@ -102,7 +219,8 @@ static long vi_channel_ioctl(struct file *file, unsigned int cmd,
 		err = capture_common_pin_memory(capture->rtcpu_dev,
 				setup.mem, &capture->requests);
 		if (err < 0) {
-			dev_err(chan->dev, "%s: memory setup failed\n", __func__);
+			dev_err(chan->dev,
+				"%s: memory setup failed\n", __func__);
 			destroy_buffer_table(capture->buf_ctx);
 			return -EFAULT;
 		}
@@ -294,136 +412,6 @@ static long vi_channel_ioctl(struct file *file, unsigned int cmd,
 	return err;
 }
 
-static struct vi_channel_drv *chdrv_;
-static DEFINE_MUTEX(chdrv_lock);
-
-static int vi_channel_power_on_vi_device(struct tegra_vi_channel *chan)
-{
-	int ret = 0;
-
-	dev_dbg(chan->dev, "vi_channel_power_on_vi_device\n");
-
-	ret = nvhost_module_add_client(chan->ndev, chan->capture_data);
-	if (ret < 0) {
-		dev_err(chan->dev, "%s: failed to add vi client\n", __func__);
-		return ret;
-	}
-
-	ret = nvhost_module_busy(chan->ndev);
-	if (ret < 0) {
-		dev_err(chan->dev, "%s: failed to power on vi\n", __func__);
-		return ret;
-	}
-
-	return 0;
-}
-
-static void vi_channel_power_off_vi_device(struct tegra_vi_channel *chan)
-{
-	dev_dbg(chan->dev, "vi_channel_power_off_vi_device\n");
-
-	nvhost_module_idle(chan->ndev);
-	nvhost_module_remove_client(chan->ndev, chan->capture_data);
-}
-
-struct tegra_vi_channel *vi_channel_open_ex(unsigned channel, bool is_mem_pinned)
-{
-	struct tegra_vi_channel *chan;
-	struct vi_channel_drv *chan_drv;
-	int err;
-
-	if (mutex_lock_interruptible(&chdrv_lock))
-		return ERR_PTR(-ERESTARTSYS);
-
-	chan_drv = chdrv_;
-
-	if (chan_drv == NULL || channel >= chan_drv->num_channels) {
-		mutex_unlock(&chdrv_lock);
-		return ERR_PTR(-ENODEV);
-	}
-	mutex_unlock(&chdrv_lock);
-
-	chan = kzalloc(sizeof(*chan), GFP_KERNEL);
-	if (unlikely(chan == NULL))
-		return ERR_PTR(-ENOMEM);
-
-	chan->drv = chan_drv;
-	chan->dev = chan_drv->dev;
-	chan->ndev = chan_drv->ndev;
-	chan->ops = chan_drv->ops;
-
-	err = vi_channel_power_on_vi_device(chan);
-	if (err < 0)
-		goto error;
-
-	err = vi_capture_init(chan, is_mem_pinned);
-	if (err < 0)
-		goto error;
-
-	mutex_lock(&chan_drv->lock);
-	if (rcu_access_pointer(chan_drv->channels[channel]) != NULL) {
-		mutex_unlock(&chan_drv->lock);
-		err = -EBUSY;
-		goto rcu_err;
-	}
-
-	rcu_assign_pointer(chan_drv->channels[channel], chan);
-	mutex_unlock(&chan_drv->lock);
-
-	return chan;
-
-rcu_err:
-	vi_channel_power_off_vi_device(chan);
-	vi_capture_shutdown(chan);
-error:
-	kfree(chan);
-	return ERR_PTR(err);
-}
-EXPORT_SYMBOL(vi_channel_open_ex);
-
-int vi_channel_close_ex(unsigned channel, struct tegra_vi_channel *chan)
-{
-	struct vi_channel_drv *chan_drv = chan->drv;
-
-	vi_capture_shutdown(chan);
-	vi_channel_power_off_vi_device(chan);
-
-	mutex_lock(&chan_drv->lock);
-
-	WARN_ON(rcu_access_pointer(chan_drv->channels[channel]) != chan);
-	RCU_INIT_POINTER(chan_drv->channels[channel], NULL);
-
-	mutex_unlock(&chan_drv->lock);
-	kfree_rcu(chan, rcu);
-
-	return 0;
-}
-EXPORT_SYMBOL(vi_channel_close_ex);
-
-static int vi_channel_open(struct inode *inode, struct file *file)
-{
-	unsigned channel = iminor(inode);
-	struct tegra_vi_channel *chan;
-
-	chan = vi_channel_open_ex(channel, true);
-	if (IS_ERR(chan))
-		return PTR_ERR(chan);
-
-	file->private_data = chan;
-
-	return nonseekable_open(inode, file);
-}
-
-static int vi_channel_release(struct inode *inode, struct file *file)
-{
-	struct tegra_vi_channel *chan = file->private_data;
-	unsigned channel = iminor(inode);
-
-	vi_channel_close_ex(channel, chan);
-
-	return 0;
-}
-
 static const struct file_operations vi_channel_fops = {
 	.owner = THIS_MODULE,
 	.llseek = no_llseek,
@@ -439,12 +427,13 @@ static const struct file_operations vi_channel_fops = {
 static struct class *vi_channel_class;
 static int vi_channel_major;
 
-int vi_channel_drv_register(struct platform_device *ndev,
+int vi_channel_drv_register(
+	struct platform_device *ndev,
 	const struct vi_channel_drv_ops *ops)
 {
 	struct vi_channel_drv *chan_drv;
 	int err = 0;
-	unsigned i;
+	unsigned int i;
 
 	chan_drv = devm_kzalloc(&ndev->dev, sizeof(*chan_drv) +
 			MAX_VI_CHANNELS * sizeof(struct tegra_vi_channel *),
@@ -482,10 +471,11 @@ error:
 }
 EXPORT_SYMBOL(vi_channel_drv_register);
 
-void vi_channel_drv_unregister(struct device *dev)
+void vi_channel_drv_unregister(
+	struct device *dev)
 {
 	struct vi_channel_drv *chan_drv;
-	unsigned i;
+	unsigned int i;
 
 	mutex_lock(&chdrv_lock);
 	chan_drv = chdrv_;
@@ -503,7 +493,7 @@ void vi_channel_drv_unregister(struct device *dev)
 }
 EXPORT_SYMBOL(vi_channel_drv_unregister);
 
-static int __init vi_channel_drv_init(void)
+int __init vi_channel_drv_init(void)
 {
 	vi_channel_class = class_create(THIS_MODULE, "capture-vi-channel");
 	if (IS_ERR(vi_channel_class))
@@ -519,7 +509,7 @@ static int __init vi_channel_drv_init(void)
 	return 0;
 }
 
-static void __exit vi_channel_drv_exit(void)
+void __exit vi_channel_drv_exit(void)
 {
 	unregister_chrdev(vi_channel_major, "capture-vi-channel");
 	class_destroy(vi_channel_class);

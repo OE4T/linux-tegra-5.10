@@ -1,37 +1,66 @@
-/*
- * Tegra capture common operations
+/**
+ * @file include/media/fusa-capture/capture-common.h
+ * @brief VI/ISP channel common operations header for T186/T194
  *
- * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2019 NVIDIA Corporation.  All rights reserved.
  *
- * Author: Sudhir Vyas <svyas@nvidia.com>
+ * This program is free software; you can redistribute it and/or modify it
+ * under the terms and conditions of the GNU General Public License,
+ * version 2, as published by the Free Software Foundation.
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
+ * This program is distributed in the hope it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+ * more details.
  */
 
-#ifndef __CAPTURE_COMMON_H__
-#define __CAPTURE_COMMON_H__
+#ifndef __FUSA_CAPTURE_COMMON_H__
+#define __FUSA_CAPTURE_COMMON_H__
 
 #include <media/mc_common.h>
 
-/* Progress status */
+/**
+ * @defgroup CAPTURE_PROGRESS_NOTIFIER_STATES
+ *
+ * Progress state of a capture request.
+ *
+ * @note PROGRESS_STATUS_DONE only means that the capture request has been
+ *	 completed, the descriptor status must still be read in order to
+ *	 determine whether or not it was successful or in error.
+ *
+ * @{
+ */
+
+/** Capture request is enqueued or in progress */
 #define PROGRESS_STATUS_BUSY		(U32_C(0x1))
+/** Capture request is complete and the data can be consumed */
 #define PROGRESS_STATUS_DONE		(U32_C(0x2))
 
-#define BUFFER_READ	(U32_C(0x01))
-#define BUFFER_WRITE	(U32_C(0x02))
-#define BUFFER_ADD	(U32_C(0x04))
-#define BUFFER_RDWR	(BUFFER_READ | BUFFER_WRITE)
+/** @} */
 
 /**
- * @struct capture_buffer_table
- * A structure holding buffer mapping relationship for a device
+ * @defgroup CAPTURE_BUFFER_OPS
+ *
+ * Capture surface buffer operations and DMA directions.
+ *
+ * @{
  */
+
+/** DMA @em to device data direction. */
+#define BUFFER_READ	(U32_C(0x01))
+/** DMA @em from device data direction. */
+#define BUFFER_WRITE	(U32_C(0x02))
+/** Add buffer to the channel's management table. */
+#define BUFFER_ADD	(U32_C(0x04))
+/** DMA bidirectional data direction. */
+#define BUFFER_RDWR	(BUFFER_READ | BUFFER_WRITE)
+
+/** @} */
+
 struct capture_buffer_table;
 
 /**
- * @brief Initialize the capture surface management table for SLAB allocations
+ * @brief Initialize the capture surface management table for SLAB allocations.
  *
  * @param[in]	dev	Originating device (VI, ISP)
  * @returns	pointer to table on success, NULL on error
@@ -48,12 +77,12 @@ void destroy_buffer_table(
 	struct capture_buffer_table *tab);
 
 /**
- * @brief Perform a buffer management operation on a capture surface buffer
+ * @brief Perform a buffer management operation on a capture surface buffer.
  *
  * @param[in,out]	tab	Surface buffer management table
  * @param[in]		memfd	FD or NvRm handle to buffer
  * @param[in]		flag	Surface BUFFER_* op bitmask
- * @returns		0 (success), errno (error)
+ * @returns		0 (success), neg. errno (failure)
  */
 int capture_buffer_request(
 	struct capture_buffer_table *tab,
@@ -61,11 +90,11 @@ int capture_buffer_request(
 	uint32_t flag);
 
 /**
- * @brief Add a capture surface buffer to the buffer management table
+ * @brief Add a capture surface buffer to the buffer management table.
  *
  * @param[in,out]	t	Surface buffer management table
  * @param[in]		fd	FD or NvRm handle to buffer
- * @returns		0 (success), errno (error)
+ * @returns		0 (success), neg. errno (failure)
  */
 static inline int capture_buffer_add(
 	struct capture_buffer_table *t,
@@ -141,7 +170,7 @@ struct capture_common_status_notifier {
  * @param[in]	mem		FD or NvRm handle to buffer
  * @param[in]	buffer_size	Buffer size [byte]
  * @param[in]	mem_offset	Status notifier offset [byte]
- * @returns	0 (success), errno (error)
+ * @returns	0 (success), neg. errno (failure)
  */
 int capture_common_setup_progress_status_notifier(
 	struct capture_common_status_notifier *status_notifier,
@@ -156,7 +185,7 @@ int capture_common_setup_progress_status_notifier(
  * @param[in]	buffer_slot			Capture descriptor index
  * @param[in]	buffer_depth			Capture descriptor queue size
  * @param[in]	new_val				Progress status to set
- * @returns	0 (success), errno (error)
+ * @returns	0 (success), neg. errno (failure)
  */
 int capture_common_set_progress_status(
 	struct capture_common_status_notifier *progress_status_notifier,
@@ -180,7 +209,7 @@ int capture_common_release_progress_status_notifier(
  * @param[in]	dev		target device (rtcpu)
  * @param[in]	mem		FD or NvRm handle to buffer
  * @param[out]	unpin_data	struct w/ dma_buf handles for unpinning
- * @returns	0 (success), errno (error)
+ * @returns	0 (success), neg. errno (failure)
  */
 int capture_common_pin_memory(struct device *dev,
 	uint32_t mem, struct capture_common_buf *unpin_data);
@@ -200,8 +229,8 @@ void capture_common_unpin_memory(struct capture_common_buf *unpin_data);
  * pinning to be released upon completion of the capture.
  *
  * @param[in,out]	req	Capture descriptor capture_common_pin_req struct
- * @returns		0 (success), errno (error)
+ * @returns		0 (success), neg. errno (failure)
  */
 int capture_common_request_pin_and_reloc(struct capture_common_pin_req *req);
 
-#endif /* __CAPTURE_COMMON_H__*/
+#endif /* __FUSA_CAPTURE_COMMON_H__*/

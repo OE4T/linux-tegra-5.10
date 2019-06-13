@@ -18,8 +18,8 @@
 #include <media/tegra_camera_platform.h>
 #include <media/mc_common.h>
 #include <media/tegra-v4l2-camera.h>
-#include <media/capture_vi_channel.h>
-#include <media/capture.h>
+#include <media/fusa-capture/capture-vi-channel.h>
+#include <media/fusa-capture/capture-vi.h>
 #include <soc/tegra/camrtc-capture.h>
 #include <uapi/linux/nvhost_ioctl.h>
 #include "nvhost_acm.h"

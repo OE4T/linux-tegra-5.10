@@ -33,7 +33,7 @@
 #include <linux/regulator/consumer.h>
 #include <linux/slab.h>
 #include <linux/uaccess.h>
-#include <media/capture_vi_channel.h>
+#include <media/fusa-capture/capture-vi-channel.h>
 #include <soc/tegra/camrtc-capture.h>
 #include <soc/tegra/chip-id.h>
 

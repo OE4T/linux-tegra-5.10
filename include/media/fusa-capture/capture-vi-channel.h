@@ -1,7 +1,6 @@
-/*
- * include/linux/media/capture_vi_channel.h
- *
- * VI channel character device driver header
+/**
+ * @file include/media/fusa-capture/capture-vi-channel.h
+ * @brief VI channel character device driver header for T186/T194
  *
  * Copyright (c) 2017-2019 NVIDIA Corporation.  All rights reserved.
  *
@@ -13,13 +12,10 @@
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
  * more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __VI_CHANNEL_H__
-#define __VI_CHANNEL_H__
+#ifndef __FUSA_CAPTURE_VI_CHANNEL_H__
+#define __FUSA_CAPTURE_VI_CHANNEL_H__
 
 #include <linux/of_platform.h>
 
@@ -38,7 +34,7 @@ struct vi_channel_drv_ops {
 	 * @param[in]	pdev		VI platform_device
 	 * @param[in]	name		syncpt name
 	 * @param[out]	syncpt_id	assigned syncpt id
-	 * @returns	0 (success), errno (error)
+	 * @returns	0 (success), neg. errno (failure)
 	 */
 	int (*alloc_syncpt)(struct platform_device *pdev, const char *name,
 			uint32_t *syncpt_id);
@@ -67,8 +63,8 @@ struct vi_channel_drv_ops {
 	 * @param[in]	pdev		VI platform_device
 	 * @param[in]	id		syncpt id
 	 * @param[out]	gos_index	GoS id
-	 * @param[out]	gos_offset	Word offset of syncpt within GoS
-	 * @returns	0 (success), errno (error)
+	 * @param[out]	gos_offset	Offset of syncpt within GoS [dword]
+	 * @returns	0 (success), neg. errno (failure)
 	 */
 	int (*get_syncpt_gos_backing)(struct platform_device *pdev, uint32_t id,
 			dma_addr_t *syncpt_addr, uint32_t *gos_index,
@@ -81,7 +77,7 @@ struct vi_channel_drv_ops {
 struct tegra_vi_channel {
 	struct device *dev; /**< VI device */
 	struct platform_device *ndev; /**< VI platform_device */
-	struct vi_channel_drv *drv; /**< VI channels driver context */
+	struct vi_channel_drv *drv; /**< VI channel driver context */
 	struct rcu_head rcu; /**< VI channel rcu */
 	struct vi_capture *capture_data; /**< VI channel capture context */
 	const struct vi_channel_drv_ops *ops; /**< VI syncpt/gos fops */
@@ -90,16 +86,17 @@ struct tegra_vi_channel {
 
 /**
  * @brief Create the VI channels driver contexts, and instantiate
- * MAX_VI_CHANNELS many channel character device nodes.
+ *	  MAX_VI_CHANNELS many channel character device nodes.
  *
  * VI channel nodes appear in the filesystem as:
  * /dev/capture-vi-channel{0..MAX_VI_CHANNELS-1}
  *
  * @param[in]	ndev	VI platform_device context
  * @param[in]	ops	vi_channel_drv_ops fops
- * @returns	0 (success), errno (error)
+ * @returns	0 (success), neg. errno (failure)
  */
-int vi_channel_drv_register(struct platform_device *ndev,
+int vi_channel_drv_register(
+	struct platform_device *ndev,
 	const struct vi_channel_drv_ops *ops);
 
 /**
@@ -110,39 +107,58 @@ int vi_channel_drv_register(struct platform_device *ndev,
  *
  * @param[in]	dev	VI device context
  */
-void vi_channel_drv_unregister(struct device *dev);
+void vi_channel_drv_unregister(
+	struct device *dev);
 
 /**
  * @brief Unpin and free the list of pinned capture_mapping's associated with a
- * capture request.
+ *	  VI capture request.
  *
  * @param[in]	chan		VI channel context
  * @param[in]	buffer_index	Capture descriptor queue index
  */
-void vi_capture_request_unpin(struct tegra_vi_channel *chan,
+void vi_capture_request_unpin(
+	struct tegra_vi_channel *chan,
 	uint32_t buffer_index);
 
-/**
+/*
  * Internal APIs for V4L2 driver (aka. VI mode)
  */
 
 /**
- * @brief Open a VI channel for streaming
+ * @brief Open a VI channel character device node, power on the camera subsystem
+ *	  and initialize the channel driver context.
  *
- * @param[in]	channel		VI channel no.
- * @param[in]	is_mem_pinned	Whether capture request memory is pinned
- * @returns	tegra_vi_channel pointer (success), ERR_PTR (error)
+ * The act of opening a VI channel character device node does not entail the
+ * reservation of a VI channel, VI_CAPTURE_SETUP must be called afterwards to
+ * request an allocation by RCE.
+ *
+ * @param[in]	channel		VI channel enumerated node iminor no.
+ * @param[in]	is_mem_pinned	Whether capture request memory will be pinned
+ * @returns	tegra_vi_channel pointer (success), ERR_PTR (failure)
  */
-struct tegra_vi_channel *vi_channel_open_ex(unsigned channel,
+struct tegra_vi_channel *vi_channel_open_ex(
+	unsigned int channel,
 	bool is_mem_pinned);
 
 /**
- * @brief Close an opened VI channel
+ * @brief Release a VI channel character device node, power off the camera
+ *	  subsystem and free the VI channel driver context.
  *
- * @param[in]	channel	VI channel no.
- * @param[in]	chan	Corresponding tegra_vi_channel
+ * Under normal operation, the NVCSI stream and TPG source should be closed, and
+ * VI_CAPTURE_RESET followed by VI_CAPTURE_RELEASE should be called before
+ * releasing the file handle on the device node.
+ *
+ * If the user-mode client crashes, the operating system will call this
+ * @em release handler to perform all of those actions as part of the @em Abort
+ * functionality.
+ *
+ * @param[in]	channel	VI channel enumerated node iminor no.
+ * @param[in]	chan	VI channel context
  * @returns	0
  */
-int vi_channel_close_ex(unsigned channel, struct tegra_vi_channel *chan);
+int vi_channel_close_ex(
+	unsigned int channel,
+	struct tegra_vi_channel *chan);
 
-#endif /* __VI_CHANNEL_H__ */
+#endif /* __FUSA_CAPTURE_VI_CHANNEL_H__ */

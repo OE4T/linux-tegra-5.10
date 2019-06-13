@@ -1,14 +1,17 @@
-/*
- * Tegra capture common operations
+/**
+ * @file drivers/media/platform/tegra/camera/fusa-capture/capture-common.c
+ * @brief VI/ISP channel common operations for T186/T194
  *
- * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2019 NVIDIA Corporation.  All rights reserved.
  *
- * Author: Sudhir Vyas <svyas@nvidia.com>
- *         Ziqi Qing <zqing@nvidia.com>
+ * This program is free software; you can redistribute it and/or modify it
+ * under the terms and conditions of the GNU General Public License,
+ * version 2, as published by the Free Software Foundation.
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
+ * This program is distributed in the hope it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+ * more details.
  */
 
 #include <linux/dma-buf.h>
@@ -17,58 +20,13 @@
 #include <linux/slab.h>
 #include <linux/hashtable.h>
 #include <linux/atomic.h>
-#include <media/capture_common.h>
+#include <media/fusa-capture/capture-common.h>
 #include <media/mc_common.h>
 
+#include "capture-common-priv.h"
 
-#define fmt(_f) "%s:%d:" _f "\n", __func__, __LINE__
-
-static inline bool
-flag_compatible(unsigned int self, unsigned int other)
-{
-	return (self & other) == other;
-}
-
-static inline unsigned int
-flag_access_mode(unsigned int flag)
-{
-	return flag & BUFFER_RDWR;
-}
-
-static inline enum dma_data_direction
-flag_dma_direction(unsigned int flag)
-{
-	static const enum dma_data_direction dir[4U] = {
-		[0U] = DMA_BIDIRECTIONAL,
-		[BUFFER_READ] = DMA_TO_DEVICE,
-		[BUFFER_WRITE] = DMA_FROM_DEVICE,
-		[BUFFER_RDWR] = DMA_BIDIRECTIONAL,
-	};
-
-	return dir[flag_access_mode(flag)];
-}
-
-
-/* capture buffer mapping table */
-struct capture_buffer_table {
-	struct device *dev;
-	struct kmem_cache *cache;
-	rwlock_t hlock;
-	DECLARE_HASHTABLE(hhead, 4U);
-};
-
-/* a pinned buffer for capture vi/isp device */
-struct capture_mapping {
-	struct hlist_node hnode;
-	atomic_t refcnt;
-	struct dma_buf *buf;
-	struct dma_buf_attachment *atch;
-	struct sg_table *sgt;
-	unsigned int flag;
-};
-
-struct capture_buffer_table *
-create_buffer_table(struct device *dev)
+struct capture_buffer_table *create_buffer_table(
+	struct device *dev)
 {
 	struct capture_buffer_table *tab;
 
@@ -90,7 +48,8 @@ create_buffer_table(struct device *dev)
 	return tab;
 }
 
-void destroy_buffer_table(struct capture_buffer_table *tab)
+void destroy_buffer_table(
+	struct capture_buffer_table *tab)
 {
 	size_t bkt;
 	struct hlist_node *next;
@@ -113,31 +72,58 @@ void destroy_buffer_table(struct capture_buffer_table *tab)
 	kfree(tab);
 }
 
-static inline dma_addr_t
-mapping_iova(const struct capture_mapping *pin)
+inline bool flag_compatible(
+	unsigned int self,
+	unsigned int other)
+{
+	return (self & other) == other;
+}
+
+inline unsigned int flag_access_mode(
+	unsigned int flag)
+{
+	return flag & BUFFER_RDWR;
+}
+
+inline enum dma_data_direction flag_dma_direction(
+	unsigned int flag)
+{
+	static const enum dma_data_direction dir[4U] = {
+		[0U] = DMA_BIDIRECTIONAL,
+		[BUFFER_READ] = DMA_TO_DEVICE,
+		[BUFFER_WRITE] = DMA_FROM_DEVICE,
+		[BUFFER_RDWR] = DMA_BIDIRECTIONAL,
+	};
+
+	return dir[flag_access_mode(flag)];
+}
+
+inline dma_addr_t mapping_iova(
+	const struct capture_mapping *pin)
 {
 	dma_addr_t addr = sg_dma_address(pin->sgt->sgl);
 
 	return (addr != 0) ? addr : sg_phys(pin->sgt->sgl);
 }
 
-static inline struct dma_buf *
-mapping_buf(const struct capture_mapping *pin)
+inline struct dma_buf *mapping_buf(
+	const struct capture_mapping *pin)
 {
 	return pin->buf;
 }
 
-static inline bool
-mapping_preserved(const struct capture_mapping *pin)
+inline bool mapping_preserved(
+	const struct capture_mapping *pin)
 {
 	return (bool)(pin->flag & BUFFER_ADD);
 }
 
-static inline void
-set_mapping_preservation(struct capture_mapping *pin, bool val)
+inline void set_mapping_preservation(
+	struct capture_mapping *pin,
+	bool val)
 {
 	if (val) {
-		pin->flag |=  BUFFER_ADD;
+		pin->flag |= BUFFER_ADD;
 		atomic_inc(&pin->refcnt);
 	} else {
 		pin->flag &= (~BUFFER_ADD);
@@ -145,8 +131,7 @@ set_mapping_preservation(struct capture_mapping *pin, bool val)
 	}
 }
 
-static struct capture_mapping *
-find_mapping(
+struct capture_mapping *find_mapping(
 	struct capture_buffer_table *tab,
 	struct dma_buf *buf,
 	unsigned int flag)
@@ -174,8 +159,7 @@ find_mapping(
 	return NULL;
 }
 
-static struct capture_mapping *
-get_mapping(
+struct capture_mapping *get_mapping(
 	struct capture_buffer_table *tab,
 	uint32_t fd,
 	unsigned int flag)
@@ -237,7 +221,8 @@ err0:
 }
 
 void put_mapping(
-	struct capture_buffer_table *t, struct capture_mapping *pin)
+	struct capture_buffer_table *t,
+	struct capture_mapping *pin)
 {
 	bool zero;
 
@@ -262,11 +247,12 @@ void put_mapping(
 	}
 }
 
-
 static DEFINE_MUTEX(req_lock);
 
 int capture_buffer_request(
-	struct capture_buffer_table *tab, uint32_t memfd, uint32_t flag)
+	struct capture_buffer_table *tab,
+	uint32_t memfd,
+	uint32_t flag)
 {
 	struct capture_mapping *pin;
 	struct dma_buf *buf;
@@ -319,12 +305,11 @@ end:
 	return err;
 }
 
-
 int capture_common_setup_progress_status_notifier(
-		struct capture_common_status_notifier *status_notifier,
-		uint32_t mem,
-		uint32_t buffer_size,
-		uint32_t mem_offset)
+	struct capture_common_status_notifier *status_notifier,
+	uint32_t mem,
+	uint32_t buffer_size,
+	uint32_t mem_offset)
 {
 	struct dma_buf *dmabuf;
 	void *va;
@@ -357,10 +342,10 @@ int capture_common_setup_progress_status_notifier(
 }
 
 int capture_common_set_progress_status(
-		struct capture_common_status_notifier *progress_status_notifier,
-		uint32_t buffer_slot,
-		uint32_t buffer_depth,
-		uint8_t new_val)
+	struct capture_common_status_notifier *progress_status_notifier,
+	uint32_t buffer_slot,
+	uint32_t buffer_depth,
+	uint8_t new_val)
 {
 	uint32_t *status_notifier = (uint32_t *) (progress_status_notifier->va +
 			progress_status_notifier->offset);
@@ -384,7 +369,7 @@ int capture_common_set_progress_status(
 }
 
 int capture_common_release_progress_status_notifier(
-		struct capture_common_status_notifier *progress_status_notifier)
+	struct capture_common_status_notifier *progress_status_notifier)
 {
 	struct dma_buf *dmabuf = progress_status_notifier->buf;
 	void *va = progress_status_notifier->va;
@@ -403,8 +388,10 @@ int capture_common_release_progress_status_notifier(
 	return 0;
 }
 
-int capture_common_pin_memory(struct device *dev,
-		uint32_t mem, struct capture_common_buf *unpin_data)
+int capture_common_pin_memory(
+	struct device *dev,
+	uint32_t mem,
+	struct capture_common_buf *unpin_data)
 {
 	struct dma_buf *buf;
 	struct dma_buf_attachment *attach;
@@ -444,7 +431,8 @@ fail:
 	return err;
 }
 
-void capture_common_unpin_memory(struct capture_common_buf *unpin_data)
+void capture_common_unpin_memory(
+	struct capture_common_buf *unpin_data)
 {
 	if (unpin_data->sgt != NULL)
 		dma_buf_unmap_attachment(unpin_data->attach, unpin_data->sgt,
@@ -460,15 +448,8 @@ void capture_common_unpin_memory(struct capture_common_buf *unpin_data)
 	unpin_data->iova = 0;
 }
 
-union capture_surface {
-	uint64_t raw;
-	struct {
-		uint32_t offset;
-		uint32_t hmem;
-	};
-};
-
-int capture_common_request_pin_and_reloc(struct capture_common_pin_req *req)
+int capture_common_request_pin_and_reloc(
+	struct capture_common_pin_req *req)
 {
 	uint32_t *reloc_relatives;
 	void *reloc_page_addr = NULL;

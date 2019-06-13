@@ -10,9 +10,7 @@ obj-y += csi/
 obj-y += camera_common.o camera_gpio.o sensor_common.o camera_version_utils.o \
 	tegracam_ctrls.o tegracam_core.o tegracam_v4l2.o tegracam_utils.o nvcamera_log.o
 
-obj-$(CONFIG_TEGRA_CAMERA_RTCPU) += capture_common.o
-obj-$(CONFIG_TEGRA_CAMERA_RTCPU) += isp/isp_channel.o
-obj-$(CONFIG_TEGRA_CAMERA_RTCPU) += isp/capture_isp.o
+obj-$(CONFIG_TEGRA_CAMERA_RTCPU) += fusa-capture/
 
 obj-y += tests/
 

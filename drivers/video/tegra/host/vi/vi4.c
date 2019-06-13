@@ -1,7 +1,7 @@
 /*
  * VI driver for T186
  *
- * Copyright (c) 2015-2018 NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2015-2019 NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -25,7 +25,7 @@
 #include <linux/tegra_pm_domains.h>
 #include <linux/uaccess.h>
 #include <linux/module.h>
-#include <media/capture_vi_channel.h>
+#include <media/fusa-capture/capture-vi-channel.h>
 #include <soc/tegra/camrtc-capture.h>
 
 #include "dev.h"
