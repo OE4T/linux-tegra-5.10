@@ -79,7 +79,8 @@ exit:
 
 int nvgpu_acr_lsf_fecs_ucode_details_v1(struct gk20a *g, void *lsf_ucode_img)
 {
-	u32 ver = g->params.gpu_arch + g->params.gpu_impl;
+	u32 ver = nvgpu_safe_add_u32(g->params.gpu_arch,
+					g->params.gpu_impl);
 	struct lsf_ucode_desc_v1 *lsf_desc;
 	struct nvgpu_firmware *fecs_sig = NULL;
 	struct flcn_ucode_img_v1 *p_img =
@@ -165,7 +166,7 @@ rel_sig:
 
 int nvgpu_acr_lsf_gpccs_ucode_details_v1(struct gk20a *g, void *lsf_ucode_img)
 {
-	u32 ver = g->params.gpu_arch + g->params.gpu_impl;
+	u32 ver = nvgpu_safe_add_u32(g->params.gpu_arch, g->params.gpu_impl);
 	struct lsf_ucode_desc_v1 *lsf_desc;
 	struct nvgpu_firmware *gpccs_sig = NULL;
 	struct flcn_ucode_img_v1 *p_img =
@@ -337,18 +338,22 @@ static void lsfm_parse_no_loader_ucode(u32 *p_ucodehdr,
 	u32 total_apps = p_ucodehdr[FLCN_NL_UCODE_HDR_NUM_APPS_IND];
 
 	/* Lets calculate code size*/
-	code_size += p_ucodehdr[FLCN_NL_UCODE_HDR_OS_CODE_SIZE_IND];
+	code_size = nvgpu_safe_add_u32(code_size,
+				p_ucodehdr[FLCN_NL_UCODE_HDR_OS_CODE_SIZE_IND]);
 	for (i = 0; i < total_apps; i++) {
-		code_size += p_ucodehdr[FLCN_NL_UCODE_HDR_APP_CODE_SIZE_IND
-			(total_apps, i)];
+		code_size = nvgpu_safe_add_u32(code_size,
+			p_ucodehdr[FLCN_NL_UCODE_HDR_APP_CODE_SIZE_IND
+			(total_apps, i)]);
 	}
-	code_size += p_ucodehdr[FLCN_NL_UCODE_HDR_OS_OVL_SIZE_IND(total_apps)];
+	code_size = nvgpu_safe_add_u32(code_size,
+		p_ucodehdr[FLCN_NL_UCODE_HDR_OS_OVL_SIZE_IND(total_apps)]);
 
 	/* Calculate data size*/
 	data_size += p_ucodehdr[FLCN_NL_UCODE_HDR_OS_DATA_SIZE_IND];
 	for (i = 0; i < total_apps; i++) {
-		data_size += p_ucodehdr[FLCN_NL_UCODE_HDR_APP_DATA_SIZE_IND
-			(total_apps, i)];
+		data_size = nvgpu_safe_add_u32(data_size,
+			p_ucodehdr[FLCN_NL_UCODE_HDR_APP_DATA_SIZE_IND
+			(total_apps, i)]);
 	}
 
 	lsb_hdr->ucode_size = code_size;
@@ -403,15 +408,18 @@ static void lsfm_fill_static_lsb_hdr_info(struct gk20a *g,
 		pnode->lsb_header.bl_code_size = ALIGN(
 			pnode->ucode_img.desc->bootloader_size,
 			LSF_BL_CODE_SIZE_ALIGNMENT);
-		full_app_size = ALIGN(pnode->ucode_img.desc->app_size,
-			LSF_BL_CODE_SIZE_ALIGNMENT) +
-			pnode->lsb_header.bl_code_size;
-		pnode->lsb_header.ucode_size = ALIGN(
-			pnode->ucode_img.desc->app_resident_data_offset,
-			LSF_BL_CODE_SIZE_ALIGNMENT) +
-			pnode->lsb_header.bl_code_size;
-		pnode->lsb_header.data_size = full_app_size -
-			pnode->lsb_header.ucode_size;
+		full_app_size = nvgpu_safe_add_u32(
+				ALIGN(pnode->ucode_img.desc->app_size,
+					LSF_BL_CODE_SIZE_ALIGNMENT),
+				pnode->lsb_header.bl_code_size);
+
+		pnode->lsb_header.ucode_size = nvgpu_safe_add_u32(ALIGN(
+				pnode->ucode_img.desc->app_resident_data_offset,
+				LSF_BL_CODE_SIZE_ALIGNMENT),
+					pnode->lsb_header.bl_code_size);
+
+		pnode->lsb_header.data_size = nvgpu_safe_sub_u32(full_app_size,
+						pnode->lsb_header.ucode_size);
 		/*
 		 * Though the BL is located at 0th offset of the image, the VA
 		 * is different to make sure that it doesn't collide the actual OS
@@ -555,7 +563,9 @@ static int lsfm_discover_and_add_sub_wprs(struct gk20a *g,
 			pnode->pnext = plsfm->psub_wpr_list;
 			plsfm->psub_wpr_list = pnode;
 
-			plsfm->managed_sub_wpr_count++;
+			plsfm->managed_sub_wpr_count =
+				nvgpu_safe_cast_u32_to_u16(nvgpu_safe_add_u32(
+				plsfm->managed_sub_wpr_count, 1U));
 		}
 	}
 
@@ -568,7 +578,7 @@ static int lsf_gen_wpr_requirements(struct gk20a *g,
 {
 	struct lsfm_managed_ucode_img_v2 *pnode = plsfm->ucode_img_list;
 	struct lsfm_sub_wpr *pnode_sub_wpr = plsfm->psub_wpr_list;
-	u32 wpr_offset;
+	u32 wpr_offset, sub_wpr_header;
 
 	/*
 	 * Start with an array of WPR headers at the base of the WPR.
@@ -576,8 +586,8 @@ static int lsf_gen_wpr_requirements(struct gk20a *g,
 	 * read of this array and cache it internally so it's OK to pack these.
 	 * Also, we add 1 to the falcon count to indicate the end of the array.
 	 */
-	wpr_offset = U32(sizeof(struct lsf_wpr_header_v1)) *
-		(U32(plsfm->managed_flcn_cnt) + U32(1));
+	wpr_offset = nvgpu_safe_mult_u32(U32(sizeof(struct lsf_wpr_header_v1)),
+		nvgpu_safe_add_u32(U32(plsfm->managed_flcn_cnt), U32(1)));
 
 	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_MULTIPLE_WPR)) {
 		wpr_offset = ALIGN_UP(wpr_offset, LSF_WPR_HEADERS_TOTAL_SIZE_MAX);
@@ -586,9 +596,11 @@ static int lsf_gen_wpr_requirements(struct gk20a *g,
 		 * The size is allocated as per the managed SUB WPR count.
 		 */
 		wpr_offset = ALIGN_UP(wpr_offset, LSF_SUB_WPR_HEADER_ALIGNMENT);
-		wpr_offset = wpr_offset +
-			(U32(sizeof(struct lsf_shared_sub_wpr_header)) *
-			(U32(plsfm->managed_sub_wpr_count) + U32(1)));
+		sub_wpr_header = nvgpu_safe_mult_u32(
+			U32(sizeof(struct lsf_shared_sub_wpr_header)),
+			nvgpu_safe_add_u32(U32(plsfm->managed_sub_wpr_count),
+						U32(1)));
+		wpr_offset = nvgpu_safe_add_u32(wpr_offset, sub_wpr_header);
 	}
 
 	/*
@@ -599,7 +611,8 @@ static int lsf_gen_wpr_requirements(struct gk20a *g,
 		/* Align, save off, and include an LSB header size */
 		wpr_offset = ALIGN(wpr_offset, LSF_LSB_HEADER_ALIGNMENT);
 		pnode->wpr_header.lsb_offset = wpr_offset;
-		wpr_offset += (u32)sizeof(struct lsf_lsb_header_v1);
+		wpr_offset = nvgpu_safe_add_u32(wpr_offset,
+					(u32)sizeof(struct lsf_lsb_header_v1));
 
 		/*
 		 * Align, save off, and include the original (static)ucode
@@ -607,7 +620,8 @@ static int lsf_gen_wpr_requirements(struct gk20a *g,
 		 */
 		wpr_offset = ALIGN(wpr_offset, LSF_UCODE_DATA_ALIGNMENT);
 		pnode->lsb_header.ucode_off = wpr_offset;
-		wpr_offset += pnode->ucode_img.data_size;
+		wpr_offset = nvgpu_safe_add_u32(wpr_offset,
+						pnode->ucode_img.data_size);
 
 		/*
 		 * For falcons that use a boot loader (BL), we append a loader
@@ -632,14 +646,17 @@ static int lsf_gen_wpr_requirements(struct gk20a *g,
 			/*Align, save off, and include the additional BL data*/
 			wpr_offset = ALIGN(wpr_offset, LSF_BL_DATA_ALIGNMENT);
 			pnode->lsb_header.bl_data_off = wpr_offset;
-			wpr_offset += pnode->lsb_header.bl_data_size;
+			wpr_offset = nvgpu_safe_add_u32(wpr_offset,
+						pnode->lsb_header.bl_data_size);
 		} else {
 			/*
 			 * bl_data_off is already assigned in static
 			 * information. But that is from start of the image
 			 */
-			pnode->lsb_header.bl_data_off +=
-				(wpr_offset - pnode->ucode_img.data_size);
+			pnode->lsb_header.bl_data_off = nvgpu_safe_add_u32(
+				pnode->lsb_header.bl_data_off,
+				nvgpu_safe_sub_u32(wpr_offset,
+						pnode->ucode_img.data_size));
 		}
 
 		/* Finally, update ucode surface size to include updates */
@@ -713,13 +730,13 @@ static int lsfm_populate_flcn_bl_dmem_desc(struct gk20a *g,
 	 */
 	addr_base = p_lsfm->lsb_header.ucode_off;
 	g->acr->get_wpr_info(g, &wpr_inf);
-	addr_base += wpr_inf.wpr_base;
+	addr_base = nvgpu_safe_add_u64(addr_base, wpr_inf.wpr_base);
 
 	nvgpu_acr_dbg(g, "falcon ID %x", p_lsfm->wpr_header.falcon_id);
 	nvgpu_acr_dbg(g, "gen loader cfg addrbase %llx ", addr_base);
-	addr_code = addr_base + desc->app_start_offset;
-	addr_data = addr_base + desc->app_start_offset +
-				desc->app_resident_data_offset;
+	addr_code = nvgpu_safe_add_u64(addr_base, desc->app_start_offset);
+	addr_data = nvgpu_safe_add_u64(addr_code,
+					desc->app_resident_data_offset);
 
 	nvgpu_acr_dbg(g, "gen cfg addrcode %llx data %llx load offset %x",
 			addr_code, addr_data, desc->bootloader_start_offset);
@@ -776,16 +793,17 @@ static void lsfm_init_sub_wpr_contents(struct gk20a *g,
 	i = 0;
 	while (psub_wpr_node != NULL) {
 		nvgpu_mem_wr_n(g, ucode,
-			sub_wpr_header_offset + (i * temp_size),
+			nvgpu_safe_add_u32(sub_wpr_header_offset,
+			nvgpu_safe_mult_u32(i, temp_size)),
 			&psub_wpr_node->sub_wpr_header, temp_size);
 
 		psub_wpr_node = psub_wpr_node->pnext;
-		i++;
+		i = nvgpu_safe_add_u32(i, 1U);
 	}
 	last_sub_wpr_header.use_case_id =
 		LSF_SHARED_DATA_SUB_WPR_USE_CASE_ID_INVALID;
-	nvgpu_mem_wr_n(g, ucode, sub_wpr_header_offset +
-		(plsfm->managed_sub_wpr_count * temp_size),
+	nvgpu_mem_wr_n(g, ucode, nvgpu_safe_add_u32(sub_wpr_header_offset,
+		nvgpu_safe_mult_u32(plsfm->managed_sub_wpr_count, temp_size)),
 		&last_sub_wpr_header, temp_size);
 }
 
@@ -883,12 +901,13 @@ static int lsfm_init_wpr_contents(struct gk20a *g,
 		nvgpu_mem_wr_n(g, ucode, pnode->lsb_header.ucode_off,
 			pnode->ucode_img.data, pnode->ucode_img.data_size);
 		pnode = pnode->next;
-		i++;
+		i = nvgpu_safe_add_u32(i, 1U);
 	}
 
 	/* Tag the terminator WPR header with an invalid falcon ID. */
 	last_wpr_hdr.falcon_id = FALCON_ID_INVALID;
-	tmp = plsfm->managed_flcn_cnt * sizeof(struct lsf_wpr_header_v1);
+	tmp = nvgpu_safe_mult_u32(plsfm->managed_flcn_cnt,
+					sizeof(struct lsf_wpr_header_v1));
 	nvgpu_assert(tmp <= U32_MAX);
 	nvgpu_mem_wr_n(g, ucode, (u32)tmp, &last_wpr_hdr,
 		(u32)sizeof(struct lsf_wpr_header_v1));

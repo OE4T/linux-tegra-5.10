@@ -113,7 +113,8 @@ done:
 /* ACR init */
 int nvgpu_acr_init(struct gk20a *g, struct nvgpu_acr **acr)
 {
-	u32 ver = g->params.gpu_arch + g->params.gpu_impl;
+	u32 ver = nvgpu_safe_add_u32(g->params.gpu_arch,
+					g->params.gpu_impl);
 	int err = 0;
 
 	if (nvgpu_is_enabled(g, NVGPU_IS_FMODEL)) {
