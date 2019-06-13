@@ -715,7 +715,8 @@ struct nvgpu_channel *gk20a_open_new_channel(struct gk20a *g,
 	/* set gr host default timeout */
 	ch->ctxsw_timeout_max_ms = nvgpu_get_poll_timeout(g);
 	ch->ctxsw_timeout_debug_dump = true;
-	ch->unserviceable = false;
+	/* ch is unserviceable until it is bound to tsg */
+	ch->unserviceable = true;
 
 #ifdef CONFIG_NVGPU_CHANNEL_WDT
 	/* init kernel watchdog timeout */

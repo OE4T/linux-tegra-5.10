@@ -121,6 +121,8 @@ int nvgpu_tsg_bind_channel(struct nvgpu_tsg *tsg, struct nvgpu_channel *ch)
 	nvgpu_rwsem_down_write(&tsg->ch_list_lock);
 	nvgpu_list_add_tail(&ch->ch_entry, &tsg->ch_list);
 	ch->tsgid = tsg->tsgid;
+	/* channel is serviceable after it is bound to tsg */
+	ch->unserviceable = false;
 	nvgpu_rwsem_up_write(&tsg->ch_list_lock);
 
 	if (g->ops.tsg.bind_channel_eng_method_buffers != NULL) {
