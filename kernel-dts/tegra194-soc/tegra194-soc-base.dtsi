@@ -1065,13 +1065,17 @@
 			reg = <0x0 0x15c10000 0x0 0x00230000>,
 				<0x0 0x15f00000 0x0 0x00100000>;
 			resets = <&bpmp_resets TEGRA194_RESET_VI>,
-				 <&bpmp_resets TEGRA194_RESET_TSCTNVI>;
-			reset-names = "vi", "tsctnvi";
+				 <&bpmp_resets TEGRA194_RESET_TSCTNVI>,
+				 <&bpmp_resets TEGRA194_RESET_MIPI_CAL>;
+			reset-names = "vi", "tsctnvi", "mipi_cal";
 			clocks = <&bpmp_clks TEGRA194_CLK_VI>,
 				 <&bpmp_clks TEGRA194_CLK_VI_CONST>,
 				 <&bpmp_clks TEGRA194_CLK_NVCSI>,
-				 <&bpmp_clks TEGRA194_CLK_NVCSILP>;
-			clock-names = "vi", "vi-const", "nvcsi", "nvcsilp";
+				 <&bpmp_clks TEGRA194_CLK_NVCSILP>,
+				 <&bpmp_clks TEGRA194_CLK_MIPI_CAL>,
+				 <&bpmp_clks TEGRA194_CLK_UART_FST_MIPI_CAL>;
+			clock-names = "vi", "vi-const", "nvcsi", "nvcsilp",
+				      "mipi_cal", "uart_fs_mipi_cal";
 			power-domains = <&bpmp TEGRA194_POWER_DOMAIN_VE>;
 
 			nvidia,vi-falcon-device = <&vi_thi>;
