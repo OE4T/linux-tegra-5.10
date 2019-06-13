@@ -172,6 +172,7 @@ static int map_buffer(struct unit_module *m,
 	              size_t alignment)
 {
 	int ret = UNIT_SUCCESS;
+	u32 flags = NVGPU_VM_MAP_CACHEABLE;
 	struct nvgpu_mapped_buf *mapped_buf = NULL;
 	struct nvgpu_mapped_buf *mapped_buf_check = NULL;
 	struct nvgpu_os_buffer os_buf = {0};
@@ -232,6 +233,8 @@ static int map_buffer(struct unit_module *m,
 			ret = UNIT_FAIL;
 			goto free_vm_area;
 		}
+
+		flags |= NVGPU_VM_MAP_FIXED_OFFSET;
 	}
 
 #ifdef CONFIG_NVGPU_COMPRESSION
@@ -247,7 +250,7 @@ static int map_buffer(struct unit_module *m,
 			   buf_size,
 			   0,
 			   gk20a_mem_flag_none,
-			   NVGPU_VM_MAP_CACHEABLE,
+			   flags,
 			   compr_kind,
 			   0,
 			   batch,
