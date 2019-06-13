@@ -3,7 +3,7 @@
  *
  * GPU memory management driver for Tegra
  *
- * Copyright (c) 2009-2018, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2009-2019, NVIDIA CORPORATION. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -184,6 +184,7 @@ struct nvmap_handle {
 	struct list_head dmabuf_priv;
 	u64 ivm_id;
 	int peer;		/* Peer VM number */
+	int offs;		/* Offset in IVM mem pool */
 };
 
 struct nvmap_handle_info {

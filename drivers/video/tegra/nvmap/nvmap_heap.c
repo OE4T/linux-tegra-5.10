@@ -328,6 +328,7 @@ struct nvmap_heap_block *nvmap_heap_alloc(struct nvmap_heap *h,
 		/* Generate IVM for partition that can alloc */
 		if (h->is_ivm && h->can_alloc) {
 			unsigned int offs = (b->base - h->base);
+
 			BUG_ON(offs & (NVMAP_IVM_ALIGNMENT - 1));
 			BUG_ON((offs >> ffs(NVMAP_IVM_ALIGNMENT)) &
 				~((1 << NVMAP_IVM_OFFSET_WIDTH) - 1));
@@ -335,6 +336,12 @@ struct nvmap_heap_block *nvmap_heap_alloc(struct nvmap_heap *h,
 			/* So, page alignment is sufficient check.
 			 */
 			BUG_ON(len & ~(PAGE_MASK));
+
+			/* Copy offset from IVM mem pool in nvmap handle.
+			 * The offset will be exported via ioctl.
+			 */
+			handle->offs = offs;
+
 			handle->ivm_id = ((u64)h->vm_id << NVMAP_IVM_IVMID_SHIFT);
 			handle->ivm_id |= (((offs >> (ffs(NVMAP_IVM_ALIGNMENT) - 1)) &
 					 ((1ULL << NVMAP_IVM_OFFSET_WIDTH) - 1)) <<

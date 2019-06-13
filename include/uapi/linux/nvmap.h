@@ -263,6 +263,11 @@ struct nvmap_heap_size {
 	__u64 size;
 };
 
+struct nvmap_offset_in_heap {
+	__u32 handle;		/* nvmap handle */
+	__u64 offs;		/* offset to be filled from IVM mem pool */
+};
+
 #define NVMAP_IOC_MAGIC 'N'
 
 /* Creates a new memory handle. On input, the argument is the size of the new
@@ -360,6 +365,9 @@ struct nvmap_heap_size {
 
 #define NVMAP_IOC_GET_HEAP_SIZE \
 	_IOR(NVMAP_IOC_MAGIC, 26, struct nvmap_heap_size)
+
+#define NVMAP_IOC_GET_OFFSET_IN_HEAP \
+	_IOR(NVMAP_IOC_MAGIC, 27, struct nvmap_offset_in_heap)
 
 /* START of T124 IOCTLS */
 /* Actually allocates memory for the specified handle, with kind */
