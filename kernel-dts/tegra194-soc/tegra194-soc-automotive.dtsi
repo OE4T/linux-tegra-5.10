@@ -141,6 +141,7 @@
 
 	spi@3270000 { /* QSPI0 */
 		status = "okay";
+		nvidia,clock-always-on;
 		spiflash@0 {
 			#address-cells = <1>;
 			#size-cells = <1>;
@@ -165,6 +166,7 @@
 
 	spi@3300000 { /* QSPI1 */
 		status = "okay";
+		nvidia,clock-always-on;
 		spiflash@0 {
 			#address-cells = <1>;
 			#size-cells = <1>;
