@@ -79,10 +79,6 @@ NVGPU_COMMON_CFLAGS             += -DCONFIG_NVGPU_USERD
 # Enable Channel WDT for safety build until we switch to user mode submits only
 NVGPU_COMMON_CFLAGS		+= -DCONFIG_NVGPU_CHANNEL_WDT
 
-# Enable Grpahics support for safety build until we switch to compute only
-CONFIG_NVGPU_GRAPHICS           := 1
-NVGPU_COMMON_CFLAGS             += -DCONFIG_NVGPU_GRAPHICS
-
 NVGPU_COMMON_CFLAGS             += -DCONFIG_NVGPU_FIFO_ENGINE_ACTIVITY
 
 # Enable Channel/TSG Scheduling for safety build until devctl whitelisting is done
@@ -124,6 +120,10 @@ NVGPU_COMMON_CFLAGS             += -DCONFIG_NVGPU_FECS_TRACE
 
 CONFIG_NVGPU_IGPU_VIRT          := 1
 NVGPU_COMMON_CFLAGS             += -DCONFIG_NVGPU_IGPU_VIRT
+
+# Enable Graphics support for normal build
+CONFIG_NVGPU_GRAPHICS           := 1
+NVGPU_COMMON_CFLAGS             += -DCONFIG_NVGPU_GRAPHICS
 
 # Enable nvlink support for normal build.
 CONFIG_NVGPU_NVLINK             := 1
