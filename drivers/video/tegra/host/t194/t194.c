@@ -174,6 +174,8 @@ struct nvhost_device_data t19_vi5_info = {
 		{"vi-const", UINT_MAX},
 		{"nvcsi", 400000000},
 		{"nvcsilp", 204000000},
+		{"mipi_cal", UINT_MAX},
+		{"uart_fs_mipi_cal", UINT_MAX}
 	},
 	.version		= NVHOST_ENCODE_FLCN_VER(5, 0),
 	.num_ppc		= 8,
@@ -197,8 +199,6 @@ struct nvhost_device_data t19_nvcsi_info = {
 	.class			= NV_VIDEO_STREAMING_NVCSI_CLASS_ID,
 	.ctrl_ops		= &tegra194_nvcsi_ctrl_ops,
 	.autosuspend_delay      = 500,
-	.finalize_poweron	= tegra194_nvcsi_finalize_poweron,
-	.prepare_poweroff	= tegra194_nvcsi_prepare_poweroff,
 	.poweron_reset		= true,
 	.keepalive		= true,
 	.serialize		= 1,

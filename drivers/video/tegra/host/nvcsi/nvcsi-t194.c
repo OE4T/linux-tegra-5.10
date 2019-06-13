@@ -70,7 +70,6 @@ struct t194_nvcsi {
 	struct platform_device *pdev;
 	struct tegra_csi_device csi;
 	struct dentry *dir;
-	atomic_t on;
 };
 
 static const struct of_device_id tegra194_nvcsi_of_match[] = {
@@ -159,35 +158,6 @@ const struct file_operations tegra194_nvcsi_ctrl_ops = {
 	.release = t194_nvcsi_release,
 };
 
-int tegra194_nvcsi_finalize_poweron(struct platform_device *pdev)
-{
-	struct t194_nvcsi *nvcsi = nvhost_get_private_data(pdev);
-
-	if (atomic_read(&nvcsi->on) == 1)
-		return 0;
-
-	// ignore error, since VDK/SLT boards will not have mipical probe
-	(void)tegra_mipi_poweron(true);
-	atomic_set(&nvcsi->on, 1);
-
-	return 0;
-}
-EXPORT_SYMBOL_GPL(tegra194_nvcsi_finalize_poweron);
-
-int tegra194_nvcsi_prepare_poweroff(struct platform_device *pdev)
-{
-	struct t194_nvcsi *nvcsi = nvhost_get_private_data(pdev);
-
-	if (atomic_read(&nvcsi->on) == 0)
-		return 0;
-
-	(void)tegra_mipi_poweron(false);
-	atomic_set(&nvcsi->on, 0);
-
-	return 0;
-}
-EXPORT_SYMBOL_GPL(tegra194_nvcsi_prepare_poweroff);
-
 int t194_nvcsi_early_probe(struct platform_device *pdev)
 {
 	struct nvhost_device_data *pdata;
@@ -235,7 +205,6 @@ int t194_nvcsi_late_probe(struct platform_device *pdev)
 
 	nvcsi->pdev = pdev;
 	nvcsi->csi.fops = &csi5_fops;
-	atomic_set(&nvcsi->on, 0);
 	err = tegra_csi_media_controller_init(&nvcsi->csi, pdev);
 
 	nvcsi_deskew_platform_setup(&nvcsi->csi, true);
