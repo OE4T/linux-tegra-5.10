@@ -47,6 +47,7 @@
 #include <nvgpu/power_features/pg.h>
 #include <nvgpu/fence.h>
 #include <nvgpu/channel_sync_syncpt.h>
+#include <nvgpu/soc.h>
 
 #include "ioctl_ctrl.h"
 #include "ioctl_dbg.h"
@@ -376,8 +377,10 @@ gk20a_ctrl_ioctl_gpu_characteristics(
 	gpu.cbc_cache_line_size = nvgpu_ltc_get_cacheline_size(g);
 	gpu.cbc_comptags_per_line = g->cbc->comptags_per_cacheline;
 
-	if (g->ops.clk.get_maxrate)
-		gpu.max_freq = g->ops.clk.get_maxrate(g, CTRL_CLK_DOMAIN_GPCCLK);
+	if ((g->ops.clk.get_maxrate) && nvgpu_platform_is_silicon(g)) {
+		gpu.max_freq = g->ops.clk.get_maxrate(g,
+				CTRL_CLK_DOMAIN_GPCCLK);
+	}
 
 	gpu.local_video_memory_size = g->mm.vidmem.size;
 

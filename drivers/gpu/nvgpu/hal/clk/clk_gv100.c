@@ -34,6 +34,7 @@
 #include <nvgpu/timers.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/clk.h>
+#include <nvgpu/clk_arb.h>
 #include <nvgpu/pmu/clk/clk.h>
 #include <nvgpu/pmu/clk/clk_domain.h>
 #include <nvgpu/hw/gv100/hw_trim_gv100.h>
@@ -233,4 +234,19 @@ int gv100_clk_domain_get_f_points(
 void gv100_suspend_clk_support(struct gk20a *g)
 {
 	nvgpu_mutex_destroy(&g->clk.clk_mutex);
+}
+
+unsigned long gv100_clk_maxrate(struct gk20a *g, u32 api_domain)
+{
+	u16 min_mhz, max_mhz;
+	int status;
+
+	status = nvgpu_clk_arb_get_arbiter_clk_range(g, api_domain, &min_mhz,
+			&max_mhz);
+	if (status != 0) {
+		nvgpu_err(g, "failed to fetch clock range");
+		return 0U;
+	}
+
+	return (max_mhz * 1000UL * 1000UL);
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -35,4 +35,5 @@ int gv100_clk_domain_get_f_points(
 	u32 clkapidomain,
 	u32 *pfpointscount,
 	u16 *pfreqpointsinmhz);
+unsigned long gv100_clk_maxrate(struct gk20a *g, u32 api_domain);
 #endif /* CLK_GV100_H */

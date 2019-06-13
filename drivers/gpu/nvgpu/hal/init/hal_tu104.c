@@ -1130,6 +1130,7 @@ static const struct gpu_ops tu104_ops = {
 		.suspend_clk_support = gv100_suspend_clk_support,
 		.perf_pmu_vfe_load = nvgpu_perf_pmu_vfe_load_ps35,
 		.clk_domain_get_f_points = gv100_clk_domain_get_f_points,
+		.get_maxrate = gv100_clk_maxrate,
 	},
 	.clk_arb = {
 		.check_clk_arb_support = gv100_check_clk_arb_support,
