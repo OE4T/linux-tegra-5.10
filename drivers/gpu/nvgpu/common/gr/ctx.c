@@ -713,10 +713,18 @@ bool nvgpu_gr_ctx_check_valid_preemption_mode(struct nvgpu_gr_ctx *gr_ctx,
 		return false;
 	}
 
+#ifndef CONFIG_NVGPU_CILP
+	if (compute_preempt_mode > NVGPU_PREEMPTION_MODE_COMPUTE_CTA) {
+		return false;
+	}
+#endif
+
+#if defined(CONFIG_NVGPU_CILP) && defined(CONFIG_NVGPU_GRAPHICS)
 	if ((graphics_preempt_mode == NVGPU_PREEMPTION_MODE_GRAPHICS_GFXP) &&
 		   (compute_preempt_mode == NVGPU_PREEMPTION_MODE_COMPUTE_CILP)) {
 		return false;
 	}
+#endif
 
 	/* Do not allow lower preemption modes than current ones */
 	if ((graphics_preempt_mode != 0U) &&
@@ -740,10 +748,12 @@ void nvgpu_gr_ctx_set_preemption_modes(struct gk20a *g,
 			&gr_ctx->mem);
 	}
 
+#ifdef CONFIG_NVGPU_CILP
 	if (gr_ctx->compute_preempt_mode == NVGPU_PREEMPTION_MODE_COMPUTE_CILP) {
 		g->ops.gr.ctxsw_prog.set_compute_preemption_mode_cilp(g,
 			&gr_ctx->mem);
 	}
+#endif
 
 	if (gr_ctx->compute_preempt_mode == NVGPU_PREEMPTION_MODE_COMPUTE_CTA) {
 		g->ops.gr.ctxsw_prog.set_compute_preemption_mode_cta(g,
@@ -774,6 +784,17 @@ u32 nvgpu_gr_ctx_get_tsgid(struct nvgpu_gr_ctx *gr_ctx)
 	return gr_ctx->tsgid;
 }
 
+bool nvgpu_gr_ctx_desc_force_preemption_gfxp(struct nvgpu_gr_ctx_desc *gr_ctx_desc)
+{
+	return gr_ctx_desc->force_preemption_gfxp;
+}
+
+#ifdef CONFIG_NVGPU_CILP
+bool nvgpu_gr_ctx_desc_force_preemption_cilp(struct nvgpu_gr_ctx_desc *gr_ctx_desc)
+{
+	return gr_ctx_desc->force_preemption_cilp;
+}
+
 bool nvgpu_gr_ctx_get_cilp_preempt_pending(struct nvgpu_gr_ctx *gr_ctx)
 {
 	return gr_ctx->cilp_preempt_pending;
@@ -784,16 +805,7 @@ void nvgpu_gr_ctx_set_cilp_preempt_pending(struct nvgpu_gr_ctx *gr_ctx,
 {
 	gr_ctx->cilp_preempt_pending = cilp_preempt_pending;
 }
-
-bool nvgpu_gr_ctx_desc_force_preemption_gfxp(struct nvgpu_gr_ctx_desc *gr_ctx_desc)
-{
-	return gr_ctx_desc->force_preemption_gfxp;
-}
-
-bool nvgpu_gr_ctx_desc_force_preemption_cilp(struct nvgpu_gr_ctx_desc *gr_ctx_desc)
-{
-	return gr_ctx_desc->force_preemption_cilp;
-}
+#endif
 
 #ifdef CONFIG_NVGPU_DEBUGGER
 int nvgpu_gr_ctx_alloc_pm_ctx(struct gk20a *g,

@@ -32,12 +32,14 @@ void gp10b_ctxsw_prog_set_graphics_preemption_mode_gfxp(struct gk20a *g,
 	struct nvgpu_mem *ctx_mem);
 void gp10b_ctxsw_prog_set_compute_preemption_mode_cta(struct gk20a *g,
 	struct nvgpu_mem *ctx_mem);
-void gp10b_ctxsw_prog_set_compute_preemption_mode_cilp(struct gk20a *g,
-	struct nvgpu_mem *ctx_mem);
 void gp10b_ctxsw_prog_set_full_preemption_ptr(struct gk20a *g,
 	struct nvgpu_mem *ctx_mem, u64 addr);
 void gp10b_ctxsw_prog_init_ctxsw_hdr_data(struct gk20a *g,
 	struct nvgpu_mem *ctx_mem);
+#ifdef CONFIG_NVGPU_CILP
+void gp10b_ctxsw_prog_set_compute_preemption_mode_cilp(struct gk20a *g,
+	struct nvgpu_mem *ctx_mem);
+#endif
 #ifdef CONFIG_NVGPU_DEBUGGER
 void gp10b_ctxsw_prog_set_pmu_options_boost_clock_frequencies(struct gk20a *g,
 	struct nvgpu_mem *ctx_mem, u32 boosted_ctx);

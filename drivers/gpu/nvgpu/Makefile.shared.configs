@@ -59,6 +59,10 @@ NVGPU_COMMON_CFLAGS		+=		\
 CONFIG_NVGPU_DEBUGGER           := 1
 NVGPU_COMMON_CFLAGS             += -DCONFIG_NVGPU_DEBUGGER
 
+# Enable CILP preemption for safety build until devctl whitelisting is done
+CONFIG_NVGPU_CILP               := 1
+NVGPU_COMMON_CFLAGS             += -DCONFIG_NVGPU_CILP
+
 # Enable cyclestats APIs for safety build until complete debugger support is enabled
 CONFIG_NVGPU_CYCLESTATS         := 1
 NVGPU_COMMON_CFLAGS             += -DCONFIG_NVGPU_CYCLESTATS

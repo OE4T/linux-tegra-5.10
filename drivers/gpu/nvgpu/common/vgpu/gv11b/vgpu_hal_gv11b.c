@@ -234,8 +234,6 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 			.init_ctxsw_hdr_data = gp10b_ctxsw_prog_init_ctxsw_hdr_data,
 			.set_compute_preemption_mode_cta =
 				gp10b_ctxsw_prog_set_compute_preemption_mode_cta,
-			.set_compute_preemption_mode_cilp =
-				gp10b_ctxsw_prog_set_compute_preemption_mode_cilp,
 			.set_graphics_preemption_mode_gfxp =
 				gp10b_ctxsw_prog_set_graphics_preemption_mode_gfxp,
 			.set_priv_access_map_config_mode =
@@ -244,6 +242,10 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 				gm20b_ctxsw_prog_set_priv_access_map_addr,
 			.disable_verif_features =
 				gm20b_ctxsw_prog_disable_verif_features,
+#ifdef CONFIG_NVGPU_CILP
+			.set_compute_preemption_mode_cilp =
+				gp10b_ctxsw_prog_set_compute_preemption_mode_cilp,
+#endif
 #ifdef CONFIG_NVGPU_DEBUGGER
 			.hw_get_gpccs_header_size =
 				gm20b_ctxsw_prog_hw_get_gpccs_header_size,

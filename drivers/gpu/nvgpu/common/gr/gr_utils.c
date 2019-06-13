@@ -79,6 +79,7 @@ void nvgpu_gr_override_ecc_val(struct gk20a *g, u32 ecc_val)
 	g->gr->fecs_feature_override_ecc_val = ecc_val;
 }
 
+#ifdef CONFIG_NVGPU_CILP
 u32 nvgpu_gr_get_cilp_preempt_pending_chid(struct gk20a *g)
 {
 	return g->gr->cilp_preempt_pending_chid;
@@ -89,6 +90,7 @@ void nvgpu_gr_clear_cilp_preempt_pending_chid(struct gk20a *g)
 	g->gr->cilp_preempt_pending_chid =
 				NVGPU_INVALID_CHANNEL_ID;
 }
+#endif
 
 #ifdef CONFIG_NVGPU_DEBUGGER
 struct nvgpu_gr_hwpm_map *nvgpu_gr_get_hwpm_map_ptr(struct gk20a *g)

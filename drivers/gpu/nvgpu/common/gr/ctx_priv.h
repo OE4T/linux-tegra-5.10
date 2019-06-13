@@ -45,7 +45,9 @@ struct nvgpu_gr_ctx_desc {
 	u32 size[NVGPU_GR_CTX_COUNT];
 
 	bool force_preemption_gfxp;
+#ifdef CONFIG_NVGPU_CILP
 	bool force_preemption_cilp;
+#endif
 
 	bool dump_ctxsw_stats_on_channel_close;
 };
@@ -69,7 +71,9 @@ struct nvgpu_gr_ctx {
 	u32 compute_preempt_mode;
 
 	bool golden_img_loaded;
+#ifdef CONFIG_NVGPU_CILP
 	bool cilp_preempt_pending;
+#endif
 #ifdef CONFIG_NVGPU_DEBUGGER
 	bool boosted_ctx;
 #endif

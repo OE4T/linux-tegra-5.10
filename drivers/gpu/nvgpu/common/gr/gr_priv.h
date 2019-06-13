@@ -70,7 +70,9 @@ struct nvgpu_gr {
 
 	u32 fecs_feature_override_ecc_val;
 
+#ifdef CONFIG_NVGPU_CILP
 	u32 cilp_preempt_pending_chid;
+#endif
 
 	struct nvgpu_mutex ctxsw_disable_mutex;
 	int ctxsw_disable_count;

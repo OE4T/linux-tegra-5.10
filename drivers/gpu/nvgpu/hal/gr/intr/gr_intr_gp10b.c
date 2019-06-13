@@ -37,6 +37,7 @@
 
 #include <nvgpu/hw/gp10b/hw_gr_gp10b.h>
 
+#ifdef CONFIG_NVGPU_CILP
 static int gp10b_gr_intr_clear_cilp_preempt_pending(struct gk20a *g,
 					       struct nvgpu_channel *fault_ch)
 {
@@ -103,16 +104,19 @@ static int gp10b_gr_intr_get_cilp_preempt_pending_chid(struct gk20a *g,
 
 	return ret;
 }
+#endif /* CONFIG_NVGPU_CILP */
 
 int gp10b_gr_intr_handle_fecs_error(struct gk20a *g,
 				struct nvgpu_channel *ch_ptr,
 				struct nvgpu_gr_isr_data *isr_data)
 {
+#ifdef CONFIG_NVGPU_CILP
 	struct nvgpu_channel *ch;
 	u32 chid = NVGPU_INVALID_CHANNEL_ID;
 	int ret = 0;
 #ifdef CONFIG_NVGPU_CHANNEL_TSG_CONTROL
 	struct nvgpu_tsg *tsg;
+#endif
 #endif
 	struct nvgpu_fecs_host_intr_status fecs_host_intr;
 	u32 gr_fecs_intr = g->ops.gr.falcon.fecs_host_intr_status(g,
@@ -125,6 +129,7 @@ int gp10b_gr_intr_handle_fecs_error(struct gk20a *g,
 		return 0;
 	}
 
+#ifdef CONFIG_NVGPU_CILP
 	/*
 	 * INTR1 (bit 1 of the HOST_INT_STATUS_CTXSW_INTR)
 	 * indicates that a CILP ctxsw save has finished
@@ -171,6 +176,8 @@ int gp10b_gr_intr_handle_fecs_error(struct gk20a *g,
 	}
 
 clean_up:
+#endif /* CONFIG_NVGPU_CILP */
+
 	/* handle any remaining interrupts */
 	return nvgpu_gr_intr_handle_fecs_error(g, ch_ptr, isr_data);
 }

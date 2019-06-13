@@ -1255,9 +1255,11 @@ static int vgpu_gr_init_ctxsw_preemption_mode(struct gk20a *g,
 	if (flags & NVGPU_OBJ_CTX_FLAGS_SUPPORT_GFXP) {
 		graphics_preempt_mode = NVGPU_PREEMPTION_MODE_GRAPHICS_GFXP;
 	}
+#ifdef CONFIG_NVGPU_CILP
 	if (flags & NVGPU_OBJ_CTX_FLAGS_SUPPORT_CILP) {
 		compute_preempt_mode = NVGPU_PREEMPTION_MODE_COMPUTE_CILP;
 	}
+#endif
 
 	if (priv->constants.force_preempt_mode && !graphics_preempt_mode &&
 		!compute_preempt_mode) {
@@ -1298,20 +1300,24 @@ static int vgpu_gr_set_ctxsw_preemption_mode(struct gk20a *g,
 		graphics_preempt_mode = NVGPU_PREEMPTION_MODE_GRAPHICS_GFXP;
 	}
 
+#ifdef CONFIG_NVGPU_CILP
 	if (g->ops.gpu_class.is_valid_compute(class) &&
 			g->gr->gr_ctx_desc->force_preemption_cilp) {
 		compute_preempt_mode = NVGPU_PREEMPTION_MODE_COMPUTE_CILP;
 	}
+#endif
 
 	/* check for invalid combinations */
 	if ((graphics_preempt_mode == 0) && (compute_preempt_mode == 0)) {
 		return -EINVAL;
 	}
 
+#if defined(CONFIG_NVGPU_CILP) && defined(CONFIG_NVGPU_GRAPHICS)
 	if ((graphics_preempt_mode == NVGPU_PREEMPTION_MODE_GRAPHICS_GFXP) &&
 		   (compute_preempt_mode == NVGPU_PREEMPTION_MODE_COMPUTE_CILP)) {
 		return -EINVAL;
 	}
+#endif
 
 	/* set preemption modes */
 	switch (graphics_preempt_mode) {
@@ -1392,12 +1398,14 @@ static int vgpu_gr_set_ctxsw_preemption_mode(struct gk20a *g,
 			p->mode =
 				TEGRA_VGPU_GR_CTXSW_PREEMPTION_MODE_COMPUTE_CTA;
 			break;
+#ifdef CONFIG_NVGPU_CILP
 		case NVGPU_PREEMPTION_MODE_COMPUTE_CILP:
 			nvgpu_gr_ctx_init_compute_preemption_mode(gr_ctx,
 				NVGPU_PREEMPTION_MODE_COMPUTE_CILP);
 			p->mode =
 				TEGRA_VGPU_GR_CTXSW_PREEMPTION_MODE_COMPUTE_CILP;
 			break;
+#endif
 		default:
 			break;
 		}

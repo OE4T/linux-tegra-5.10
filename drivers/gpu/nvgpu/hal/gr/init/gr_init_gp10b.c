@@ -640,8 +640,10 @@ void gp10b_gr_init_get_supported_preemption_modes(
 	*graphics_preemption_mode_flags = (NVGPU_PREEMPTION_MODE_GRAPHICS_WFI |
 					  NVGPU_PREEMPTION_MODE_GRAPHICS_GFXP);
 	*compute_preemption_mode_flags = (NVGPU_PREEMPTION_MODE_COMPUTE_WFI |
-					 NVGPU_PREEMPTION_MODE_COMPUTE_CTA |
-					 NVGPU_PREEMPTION_MODE_COMPUTE_CILP);
+					 NVGPU_PREEMPTION_MODE_COMPUTE_CTA);
+#ifdef CONFIG_NVGPU_CILP
+	*compute_preemption_mode_flags |= NVGPU_PREEMPTION_MODE_COMPUTE_CILP;
+#endif
 }
 
 void gp10b_gr_init_get_default_preemption_modes(

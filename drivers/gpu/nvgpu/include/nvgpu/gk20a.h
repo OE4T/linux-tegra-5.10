@@ -428,8 +428,6 @@ struct gpu_ops {
 #endif
 			void (*set_compute_preemption_mode_cta)(struct gk20a *g,
 				struct nvgpu_mem *ctx_mem);
-			void (*set_compute_preemption_mode_cilp)(struct gk20a *g,
-				struct nvgpu_mem *ctx_mem);
 			void (*set_graphics_preemption_mode_gfxp)(struct gk20a *g,
 				struct nvgpu_mem *ctx_mem);
 			void (*set_context_buffer_ptr)(struct gk20a *g,
@@ -448,6 +446,10 @@ struct gpu_ops {
 				struct nvgpu_mem *ctx_mem);
 			void (*init_ctxsw_hdr_data)(struct gk20a *g,
 				struct nvgpu_mem *ctx_mem);
+#ifdef CONFIG_NVGPU_CILP
+			void (*set_compute_preemption_mode_cilp)(struct gk20a *g,
+				struct nvgpu_mem *ctx_mem);
+#endif
 #ifdef CONFIG_NVGPU_DEBUGGER
 			u32 (*hw_get_gpccs_header_size)(void);
 			u32 (*hw_get_extended_buffer_segments_size_in_bytes)(void);
@@ -478,7 +480,6 @@ struct gpu_ops {
 			void (*get_ppc_info)(u32 *context,
 				u32 *num_ppcs, u32 *ppc_mask);
 			u32 (*get_local_priv_register_ctl_offset)(u32 *context);
-
 			void (*set_pmu_options_boost_clock_frequencies)(
 				struct gk20a *g,
 				struct nvgpu_mem *ctx_mem, u32 boosted_ctx);
