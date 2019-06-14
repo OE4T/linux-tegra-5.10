@@ -237,6 +237,8 @@ struct osi_dma_priv_data;
  *	wrapper level.
  *	@start_dma: Called to start the Tx/Rx DMA.
  *	@set_rx_buf_len: Called to set Rx buffer length.
+ *	@validate_regs: Called periodically to read and validate safety critical
+ *	registers against last written value.
  */
 struct osi_dma_chan_ops {
 	void (*set_tx_ring_len)(void *addr, unsigned int chan,
@@ -261,6 +263,7 @@ struct osi_dma_chan_ops {
 	void (*stop_dma)(void *addr, unsigned int chan);
 	void (*init_dma_channel) (struct osi_dma_priv_data *osi_dma);
 	void (*set_rx_buf_len)(struct osi_dma_priv_data *osi_dma);
+	int (*validate_regs)(struct osi_dma_priv_data *osi_dma);
 };
 
 /**
@@ -279,6 +282,8 @@ struct osi_dma_chan_ops {
  *	@dstats: Extra DMA stats
  *	@rx_riwt: Receive Interrupt Watchdog Timer Count Units
  *	@use_riwt: Flag which decides riwt is enabled(1) or disabled(0)
+ *	@safety_config: Functional safety config to do periodic read-verify of
+ *	certain safety critical dma registers.
  */
 struct osi_dma_priv_data {
 	struct osi_tx_ring *tx_ring[OSI_EQOS_MAX_NUM_CHANS];
@@ -295,7 +300,28 @@ struct osi_dma_priv_data {
 	struct osi_xtra_dma_stat_counters dstats;
 	unsigned int rx_riwt;
 	unsigned int use_riwt;
+	void *safety_config;
 };
+
+/**
+ *	osi_validate_dma_regs - Read-validate HW registers for func safety.
+ *	@osi_dma: OSI dma private data structure.
+ *
+ *	Algorithm: Reads pre-configured list of DMA configuration registers
+ *	and compares with last written value for any modifications.
+ *
+ *	Dependencies:
+ *	1) MAC has to be out of reset.
+ *	2) osi_hw_dma_init has to be called. Internally this would initialize
+ *	the safety_config (see @osi_dma_priv_data) based on MAC version and
+ *	which specific registers needs to be validated periodically.
+ *	3) Invoke this call iff (osi_dma_priv_data->safety_config != OSI_NULL)
+ *
+ *	Protection: None
+ *
+ *	Return: 0 - success, -1 - failure (reg value has changed)
+ */
+int osi_validate_dma_regs(struct osi_dma_priv_data *osi_dma);
 
 /**
  *	osi_disable_chan_tx_intr - Disables DMA Tx channel interrupts.
@@ -701,4 +727,8 @@ int osi_clear_tx_pkt_err_stats(struct osi_dma_priv_data *osi_dma);
  *	Return: 0 - success, -1 - failure
  */
 int osi_clear_rx_pkt_err_stats(struct osi_dma_priv_data *osi_dma);
+
+/* Function prototype needed for misra */
+struct osi_dma_chan_ops *eqos_get_dma_chan_ops(void);
+void *eqos_get_dma_safety_config(void);
 #endif /* OSI_DMA_H */

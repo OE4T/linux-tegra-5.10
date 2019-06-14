@@ -24,7 +24,160 @@
 #include <osi_dma.h>
 #include "eqos_dma.h"
 
-struct osi_dma_chan_ops *eqos_get_dma_chan_ops(void);
+static struct dma_func_safety eqos_dma_safety_config;
+
+/**
+ *	eqos_dma_safety_writel - Write to safety critical register.
+ *	@val: Value to be written.
+ *	@addr: memory mapped register address to be written to.
+ *	@idx: Index of register corresponding to enum func_safety_dma_regs.
+ *
+ *	Algorithm:
+ *	1) Acquire RW lock, so that eqos_validate_dma_regs does not run while
+ *	updating the safety critical register.
+ *	2) call osi_writel() to actually update the memory mapped register.
+ *	3) Store the same value in eqos_dma_safety_config->reg_val[idx], so that
+ *	this latest value will be compared when eqos_validate_dma_regs is
+ *	scheduled.
+ *
+ *	Dependencies:
+ *	1) MAC has to be out of reset, and clocks supplied.
+ *
+ *	Protection: None.
+ *
+ *	Return: None.
+ */
+static inline void eqos_dma_safety_writel(unsigned int val, void *addr,
+					  unsigned int idx)
+{
+	struct dma_func_safety *config = &eqos_dma_safety_config;
+
+	osi_lock_irq_enabled(&config->dma_safety_lock);
+	osi_writel(val, addr);
+	config->reg_val[idx] = (val & config->reg_mask[idx]);
+	osi_unlock_irq_enabled(&config->dma_safety_lock);
+}
+
+/**
+ *	eqos_dma_safety_init - Initialize the eqos_dma_safety_config.
+ *	@base_addr: Base address of memory mapped register space.
+ *
+ *	Algorithm: Populate the list of safety critical registers and provide
+ *	1) the address of the register
+ *	2) Register mask (to ignore reserved/self-critical bits in the reg).
+ *	See @eqos_validate_dma_regs which can be ivoked periodically to compare
+ *	the last written value to this register vs the actual value read when
+ *	eqos_validate_dma_regs is scheduled.
+ *
+ *	Dependencies: None
+ *
+ *	Protection: None
+ *
+ *	Return: None
+ */
+static void eqos_dma_safety_init(struct osi_dma_priv_data *osi_dma)
+{
+	struct dma_func_safety *config = &eqos_dma_safety_config;
+	unsigned char *base = (unsigned char *)osi_dma->base;
+	unsigned int val;
+	unsigned int i, idx;
+
+	/* Initialize all reg address to NULL, since we may not use
+	 * some regs depending on the number of DMA chans enabled.
+	 */
+	for (i = EQOS_DMA_CH0_CTRL_IDX; i < EQOS_MAX_DMA_SAFETY_REGS; i++) {
+		config->reg_addr[i] = OSI_NULL;
+	}
+
+	for (i = 0U; i < osi_dma->num_dma_chans; i++) {
+		idx = osi_dma->dma_chans[i];
+		config->reg_addr[EQOS_DMA_CH0_CTRL_IDX + idx] = base +
+						EQOS_DMA_CHX_CTRL(idx);
+		config->reg_addr[EQOS_DMA_CH0_TX_CTRL_IDX + idx] = base +
+						EQOS_DMA_CHX_TX_CTRL(idx);
+		config->reg_addr[EQOS_DMA_CH0_RX_CTRL_IDX + idx] = base +
+						EQOS_DMA_CHX_RX_CTRL(idx);
+		config->reg_addr[EQOS_DMA_CH0_TDRL_IDX + idx] = base +
+						EQOS_DMA_CHX_TDRL(idx);
+		config->reg_addr[EQOS_DMA_CH0_RDRL_IDX + idx] = base +
+						EQOS_DMA_CHX_RDRL(idx);
+		config->reg_addr[EQOS_DMA_CH0_INTR_ENA_IDX + idx] = base +
+						EQOS_DMA_CHX_INTR_ENA(idx);
+
+		config->reg_mask[EQOS_DMA_CH0_CTRL_IDX + idx] =
+						EQOS_DMA_CHX_CTRL_MASK;
+		config->reg_mask[EQOS_DMA_CH0_TX_CTRL_IDX + idx] =
+						EQOS_DMA_CHX_TX_CTRL_MASK;
+		config->reg_mask[EQOS_DMA_CH0_RX_CTRL_IDX + idx] =
+						EQOS_DMA_CHX_RX_CTRL_MASK;
+		config->reg_mask[EQOS_DMA_CH0_TDRL_IDX + idx] =
+						EQOS_DMA_CHX_TDRL_MASK;
+		config->reg_mask[EQOS_DMA_CH0_RDRL_IDX + idx] =
+						EQOS_DMA_CHX_RDRL_MASK;
+		config->reg_mask[EQOS_DMA_CH0_INTR_ENA_IDX + idx] =
+						EQOS_DMA_CHX_INTR_ENA_MASK;
+	}
+
+	/* Initialize current power-on-reset values of these registers. */
+	for (i = EQOS_DMA_CH0_CTRL_IDX; i < EQOS_MAX_DMA_SAFETY_REGS; i++) {
+		if (config->reg_addr[i] == OSI_NULL) {
+			continue;
+		}
+		val = osi_readl((unsigned char *)config->reg_addr[i]);
+		config->reg_val[i] = val & config->reg_mask[i];
+	}
+
+	osi_lock_init(&config->dma_safety_lock);
+}
+
+/**
+ *	eqos_validate_dma_regs - Read-validate HW registers for functional safety.
+ *	@osi_dma: OSI dma private data structure.
+ *	Algorithm: Reads pre-configured list of MAC/MTL configuration registers
+ *	and compares with last written value for any modifications.
+ *
+ *	Dependencies:
+ *	1) MAC has to be out of reset.
+ *	2) osi_hw_dma_init has to be called. Internally this would initialize
+ *	the safety_config (see @osi_dma_priv_data) based on MAC version and
+ *	which specific registers needs to be validated periodically.
+ *	3) Invoke this call iff (osi_dma_priv_data->safety_config != OSI_NULL)
+ *
+ *	Protection: None
+ *
+ *	Return: 0 - success, -1 - failure
+ */
+static int eqos_validate_dma_regs(struct osi_dma_priv_data *osi_dma)
+{
+	struct dma_func_safety *config =
+		(struct dma_func_safety *)osi_dma->safety_config;
+	unsigned int cur_val;
+	unsigned int i;
+
+	osi_lock_irq_enabled(&config->dma_safety_lock);
+	for (i = EQOS_DMA_CH0_CTRL_IDX; i < EQOS_MAX_DMA_SAFETY_REGS; i++) {
+		if (config->reg_addr[i] == OSI_NULL) {
+			continue;
+		}
+
+		cur_val = osi_readl((unsigned char *)config->reg_addr[i]);
+		cur_val &= config->reg_mask[i];
+
+		if (cur_val == config->reg_val[i]) {
+			continue;
+		} else {
+			/* Register content differs from what was written.
+			 * Return error and let safety manager (NVGaurd etc.)
+			 * take care of corrective action.
+			 */
+			osi_unlock_irq_enabled(&config->dma_safety_lock);
+			return -1;
+		}
+	}
+	osi_unlock_irq_enabled(&config->dma_safety_lock);
+
+	return 0;
+}
 
 /**
  *	eqos_disable_chan_tx_intr - Disables DMA Tx channel interrupts.
@@ -203,7 +356,9 @@ static void eqos_clear_rx_intr(void *addr, unsigned int chan)
 static void eqos_set_tx_ring_len(void *addr, unsigned int chan,
 				 unsigned int len)
 {
-	osi_writel(len, (unsigned char *)addr + EQOS_DMA_CHX_TDRL(chan));
+	eqos_dma_safety_writel(len, (unsigned char *)addr +
+			       EQOS_DMA_CHX_TDRL(chan),
+			       EQOS_DMA_CH0_TDRL_IDX + chan);
 }
 
 /**
@@ -266,7 +421,9 @@ static void eqos_update_tx_tailptr(void *addr, unsigned int chan,
 static void eqos_set_rx_ring_len(void *addr, unsigned int chan,
 				 unsigned int len)
 {
-	osi_writel(len, (unsigned char *)addr + EQOS_DMA_CHX_RDRL(chan));
+	eqos_dma_safety_writel(len, (unsigned char *)addr +
+			       EQOS_DMA_CHX_RDRL(chan),
+			       EQOS_DMA_CH0_RDRL_IDX + chan);
 }
 
 /**
@@ -334,12 +491,16 @@ static void eqos_start_dma(void *addr, unsigned int chan)
 	/* start Tx DMA */
 	val = osi_readl((unsigned char *)addr + EQOS_DMA_CHX_TX_CTRL(chan));
 	val |= OSI_BIT(0);
-	osi_writel(val, (unsigned char *)addr + EQOS_DMA_CHX_TX_CTRL(chan));
+	eqos_dma_safety_writel(val, (unsigned char *)addr +
+			       EQOS_DMA_CHX_TX_CTRL(chan),
+			       EQOS_DMA_CH0_TX_CTRL_IDX + chan);
 
 	/* start Rx DMA */
 	val = osi_readl((unsigned char *)addr + EQOS_DMA_CHX_RX_CTRL(chan));
 	val |= OSI_BIT(0);
-	osi_writel(val, (unsigned char *)addr + EQOS_DMA_CHX_RX_CTRL(chan));
+	eqos_dma_safety_writel(val, (unsigned char *)addr +
+			       EQOS_DMA_CHX_RX_CTRL(chan),
+			       EQOS_DMA_CH0_RX_CTRL_IDX + chan);
 }
 
 /**
@@ -364,12 +525,16 @@ static void eqos_stop_dma(void *addr, unsigned int chan)
 	/* stop Tx DMA */
 	val = osi_readl((unsigned char *)addr + EQOS_DMA_CHX_TX_CTRL(chan));
 	val &= ~OSI_BIT(0);
-	osi_writel(val, (unsigned char *)addr + EQOS_DMA_CHX_TX_CTRL(chan));
+	eqos_dma_safety_writel(val, (unsigned char *)addr +
+			       EQOS_DMA_CHX_TX_CTRL(chan),
+			       EQOS_DMA_CH0_TX_CTRL_IDX + chan);
 
 	/* stop Rx DMA */
 	val = osi_readl((unsigned char *)addr + EQOS_DMA_CHX_RX_CTRL(chan));
 	val &= ~OSI_BIT(0);
-	osi_writel(val, (unsigned char *)addr + EQOS_DMA_CHX_RX_CTRL(chan));
+	eqos_dma_safety_writel(val, (unsigned char *)addr +
+			       EQOS_DMA_CHX_RX_CTRL(chan),
+			       EQOS_DMA_CH0_RX_CTRL_IDX + chan);
 }
 
 /**
@@ -413,12 +578,16 @@ static void eqos_configure_dma_channel(unsigned int chan,
 
 	/* For multi-irqs to work nie needs to be disabled */
 	value &= ~(EQOS_DMA_CHX_INTR_NIE);
-	osi_writel(value, (unsigned char *)osi_dma->base + EQOS_DMA_CHX_INTR_ENA(chan));
+	eqos_dma_safety_writel(value, (unsigned char *)osi_dma->base +
+			       EQOS_DMA_CHX_INTR_ENA(chan),
+			       EQOS_DMA_CH0_INTR_ENA_IDX + chan);
 
 	/* Enable 8xPBL mode */
 	value = osi_readl((unsigned char *)osi_dma->base + EQOS_DMA_CHX_CTRL(chan));
 	value |= EQOS_DMA_CHX_CTRL_PBLX8;
-	osi_writel(value, (unsigned char *)osi_dma->base + EQOS_DMA_CHX_CTRL(chan));
+	eqos_dma_safety_writel(value, (unsigned char *)osi_dma->base +
+			       EQOS_DMA_CHX_CTRL(chan),
+			       EQOS_DMA_CH0_CTRL_IDX + chan);
 
 	/* Configure DMA channel Transmit control register */
 	value = osi_readl((unsigned char *)osi_dma->base + EQOS_DMA_CHX_TX_CTRL(chan));
@@ -429,7 +598,9 @@ static void eqos_configure_dma_channel(unsigned int chan,
 	/* enable TSO by default if HW supports */
 	value |= EQOS_DMA_CHX_TX_CTRL_TSE;
 
-	osi_writel(value, (unsigned char *)osi_dma->base + EQOS_DMA_CHX_TX_CTRL(chan));
+	eqos_dma_safety_writel(value, (unsigned char *)osi_dma->base +
+			       EQOS_DMA_CHX_TX_CTRL(chan),
+			       EQOS_DMA_CH0_TX_CTRL_IDX + chan);
 
 	/* Configure DMA channel Receive control register */
 	/* Select Rx Buffer size.  Needs to be rounded up to next multiple of
@@ -440,7 +611,9 @@ static void eqos_configure_dma_channel(unsigned int chan,
 	value |= (osi_dma->rx_buf_len << EQOS_DMA_CHX_RBSZ_SHIFT);
 	/* RXPBL = 12 */
 	value |= EQOS_DMA_CHX_RX_CTRL_RXPBL_RECOMMENDED;
-	osi_writel(value, (unsigned char *)osi_dma->base + EQOS_DMA_CHX_RX_CTRL(chan));
+	eqos_dma_safety_writel(value, (unsigned char *)osi_dma->base +
+			       EQOS_DMA_CHX_RX_CTRL(chan),
+			       EQOS_DMA_CH0_RX_CTRL_IDX + chan);
 
 	/* Set Receive Interrupt Watchdog Timer Count */
 	/* conversion of usec to RWIT value
@@ -480,6 +653,8 @@ static void eqos_configure_dma_channel(unsigned int chan,
 static void eqos_init_dma_channel(struct osi_dma_priv_data *osi_dma)
 {
 	unsigned int chinx;
+
+	eqos_dma_safety_init(osi_dma);
 
 	/* configure EQOS DMA channels */
 	for (chinx = 0; chinx < osi_dma->num_dma_chans; chinx++) {
@@ -541,7 +716,13 @@ static struct osi_dma_chan_ops eqos_dma_chan_ops = {
 	.stop_dma = eqos_stop_dma,
 	.init_dma_channel = eqos_init_dma_channel,
 	.set_rx_buf_len = eqos_set_rx_buf_len,
+	.validate_regs = eqos_validate_dma_regs,
 };
+
+void *eqos_get_dma_safety_config(void)
+{
+	return &eqos_dma_safety_config;
+}
 
 struct osi_dma_chan_ops *eqos_get_dma_chan_ops(void)
 {

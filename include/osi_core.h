@@ -120,6 +120,8 @@ struct  osi_core_avb_algorithm {
  *	@poll_for_swr: Called to poll for software reset bit.
  *	@core_init: Called to initialize MAC and MTL registers.
  *	@core_deinit: Called to deinitialize MAC and MTL registers.
+ *	@validate_regs: Called periodically to read and validate safety critical
+ *	registers against last written value.
  *	@start_mac: Called to start MAC Tx and Rx engine.
  *	@stop_mac: Called to stop MAC Tx and Rx engine.
  *	@handle_common_intr: Called to handle common interrupt.
@@ -164,6 +166,7 @@ struct osi_core_ops {
 			 unsigned int tx_fifo_size,
 			 unsigned int rx_fifo_size);
 	void (*core_deinit)(struct osi_core_priv_data *osi_core);
+	int (*validate_regs)(struct osi_core_priv_data *osi_core);
 	void (*start_mac)(void *addr);
 	void (*stop_mac)(void *addr);
 	void (*handle_common_intr)(struct osi_core_priv_data *osi_core);
@@ -296,6 +299,8 @@ struct osi_ptp_config {
  *	@mmc: mmc counter structure
  *	@xstats: xtra sw error counters
  *	@dcs_en: DMA channel selection enable (1)
+ *	@safety_config: Functional safety config to do periodic read-verify of
+ *	certain safety critical registers.
  */
 struct osi_core_priv_data {
 	void *base;
@@ -317,6 +322,7 @@ struct osi_core_priv_data {
 	struct osi_mmc_counters mmc;
 	struct osi_xtra_stat_counters xstats;
 	unsigned int dcs_en;
+	void *safety_config;
 };
 
 /**
@@ -386,6 +392,26 @@ int osi_hw_core_init(struct osi_core_priv_data *osi_core,
  *      Return: 0 - success, -1 - failure
  */
 int osi_hw_core_deinit(struct osi_core_priv_data *osi_core);
+
+/**
+ *	osi_validate_core_regs - Read-validate HW registers for func safety.
+ *	@osi_core: OSI core private data structure.
+ *
+ *	Algorithm: Reads pre-configured list of MAC/MTL configuration registers
+ *	and compares with last written value for any modifications.
+ *
+ *	Dependencies:
+ *	1) MAC has to be out of reset.
+ *	2) osi_hw_core_init has to be called. Internally this would initialize
+ *	the safety_config (see @osi_core_priv_data) based on MAC version and
+ *	which specific registers needs to be validated periodically.
+ *	3) Invoke this call iff (osi_core_priv_data->safety_config != OSI_NULL)
+ *
+ *	Protection: None
+ *
+ *	Return: 0 - success, -1 - failure (reg value has changed)
+ */
+int osi_validate_core_regs(struct osi_core_priv_data *osi_core);
 
 /**
  *      osi_start_mac - Start MAC Tx/Rx engine
@@ -1143,4 +1169,11 @@ int osi_get_systime_from_mac(struct osi_core_priv_data *osi_core,
 int osi_ptp_configuration(struct osi_core_priv_data *osi_core,
 			  unsigned int enable);
 
+/* MAC version specific implementation function prototypes added here
+ * for misra compliance to have
+ * 1. Visible prototype for all functions.
+ * 2. Only one prototype for all function.
+ */
+struct osi_core_ops *eqos_get_hw_core_ops(void);
+void *eqos_get_core_safety_config(void);
 #endif /* OSI_CORE_H */
