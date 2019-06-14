@@ -208,7 +208,7 @@ static void gr_intr_report_sm_exception(struct gk20a *g, u32 gpc, u32 tpc,
 	err_info.sm = sm;
 	info.sm_mcerr_info = &err_info;
 	(void) nvgpu_report_gr_err(g, NVGPU_ERR_MODULE_SM, inst,
-			GPU_SM_MACHINE_CHECK_ERROR, &info);
+			GPU_SM_MACHINE_CHECK_ERROR, &info, 0U);
 }
 
 /* Used by sw interrupt thread to translate current ctx to chid.
@@ -296,7 +296,7 @@ unlock:
 }
 
 void nvgpu_gr_intr_report_exception(struct gk20a *g, u32 inst,
-		u32 err_type, u32 status)
+		u32 err_type, u32 status, u32 sub_err_type)
 {
 	struct nvgpu_channel *ch;
 	struct gr_exception_info err_info;
@@ -319,7 +319,7 @@ void nvgpu_gr_intr_report_exception(struct gk20a *g, u32 inst,
 	err_info.status = status;
 	info.exception_info = &err_info;
 	(void) nvgpu_report_gr_err(g, NVGPU_ERR_MODULE_PGRAPH,
-			inst, err_type, &info);
+			inst, err_type, &info, sub_err_type);
 }
 
 void nvgpu_gr_intr_set_error_notifier(struct gk20a *g,
@@ -735,6 +735,9 @@ int nvgpu_gr_intr_stall_isr(struct gk20a *g)
 	if (intr_info.illegal_notify != 0U) {
 		nvgpu_err(g, "illegal notify pending");
 
+		nvgpu_gr_intr_report_exception(g, 0U,
+				GPU_PGRAPH_ILLEGAL_ERROR, gr_intr,
+				GPU_PGRAPH_ILLEGAL_NOTIFY);
 		nvgpu_gr_intr_set_error_notifier(g, &isr_data,
 				NVGPU_ERR_NOTIFIER_GR_ILLEGAL_NOTIFY);
 		need_reset = true;
@@ -742,6 +745,9 @@ int nvgpu_gr_intr_stall_isr(struct gk20a *g)
 	}
 
 	if (intr_info.illegal_method != 0U) {
+		nvgpu_gr_intr_report_exception(g, 0U,
+				GPU_PGRAPH_ILLEGAL_ERROR, gr_intr,
+				GPU_PGRAPH_ILLEGAL_METHOD);
 		if (gr_intr_handle_illegal_method(g, &isr_data) != 0) {
 			need_reset = true;
 		}
@@ -749,6 +755,9 @@ int nvgpu_gr_intr_stall_isr(struct gk20a *g)
 	}
 
 	if (intr_info.illegal_class != 0U) {
+		nvgpu_gr_intr_report_exception(g, 0U,
+				GPU_PGRAPH_ILLEGAL_ERROR, gr_intr,
+				GPU_PGRAPH_ILLEGAL_CLASS);
 		nvgpu_err(g, "invalid class 0x%08x, offset 0x%08x",
 			  isr_data.class_num, isr_data.offset);
 
@@ -766,6 +775,9 @@ int nvgpu_gr_intr_stall_isr(struct gk20a *g)
 	}
 
 	if (intr_info.class_error != 0U) {
+		nvgpu_gr_intr_report_exception(g, 0U,
+				GPU_PGRAPH_ILLEGAL_ERROR, gr_intr,
+				GPU_PGRAPH_CLASS_ERROR);
 		if (gr_intr_handle_class_error(g, &isr_data) != 0) {
 			need_reset = true;
 		}

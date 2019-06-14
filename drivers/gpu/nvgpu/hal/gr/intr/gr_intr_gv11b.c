@@ -607,7 +607,7 @@ void gv11b_gr_intr_handle_tpc_mpc_exception(struct gk20a *g, u32 gpc, u32 tpc)
 
 	nvgpu_gr_intr_report_exception(g, ((gpc << 8U) | tpc),
 			GPU_PGRAPH_MPC_EXCEPTION,
-			esr);
+			esr, 0);
 
 	esr = nvgpu_readl(g,
 			nvgpu_safe_add_u32(gr_gpc0_tpc0_mpc_hww_esr_info_r(),

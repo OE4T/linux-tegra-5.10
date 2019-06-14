@@ -42,7 +42,7 @@ void nvgpu_gr_intr_handle_notify_pending(struct gk20a *g,
 void nvgpu_gr_intr_handle_semaphore_pending(struct gk20a *g,
 					   struct nvgpu_gr_isr_data *isr_data);
 void nvgpu_gr_intr_report_exception(struct gk20a *g, u32 inst,
-				u32 err_type, u32 status);
+				u32 err_type, u32 status, u32 sub_err_type);
 struct nvgpu_channel *nvgpu_gr_intr_get_channel_from_ctx(struct gk20a *g,
 				u32 curr_ctx, u32 *curr_tsgid);
 void nvgpu_gr_intr_set_error_notifier(struct gk20a *g,

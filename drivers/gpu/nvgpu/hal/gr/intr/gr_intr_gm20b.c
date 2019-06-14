@@ -231,7 +231,7 @@ bool gm20b_gr_intr_handle_exceptions(struct gk20a *g, bool *is_gpc_exception)
 
 		nvgpu_gr_intr_report_exception(g, 0,
 				GPU_PGRAPH_FE_EXCEPTION,
-				fe);
+				fe, 0);
 		nvgpu_err(g, "fe exception: esr 0x%08x, info 0x%08x",
 				fe, info);
 		nvgpu_writel(g, gr_fe_hww_esr_r(),
@@ -244,7 +244,7 @@ bool gm20b_gr_intr_handle_exceptions(struct gk20a *g, bool *is_gpc_exception)
 
 		nvgpu_gr_intr_report_exception(g, 0,
 				GPU_PGRAPH_MEMFMT_EXCEPTION,
-				memfmt);
+				memfmt, 0);
 		nvgpu_err(g, "memfmt exception: esr %08x", memfmt);
 		nvgpu_writel(g, gr_memfmt_hww_esr_r(),
 				gr_memfmt_hww_esr_reset_active_f());
@@ -256,7 +256,7 @@ bool gm20b_gr_intr_handle_exceptions(struct gk20a *g, bool *is_gpc_exception)
 
 		nvgpu_gr_intr_report_exception(g, 0,
 				GPU_PGRAPH_PD_EXCEPTION,
-				pd);
+				pd, 0);
 		nvgpu_err(g, "pd exception: esr 0x%08x", pd);
 		nvgpu_writel(g, gr_pd_hww_esr_r(),
 				gr_pd_hww_esr_reset_active_f());
@@ -268,7 +268,7 @@ bool gm20b_gr_intr_handle_exceptions(struct gk20a *g, bool *is_gpc_exception)
 
 		nvgpu_gr_intr_report_exception(g, 0,
 				GPU_PGRAPH_SCC_EXCEPTION,
-				scc);
+				scc, 0);
 		nvgpu_err(g, "scc exception: esr 0x%08x", scc);
 		nvgpu_writel(g, gr_scc_hww_esr_r(),
 				gr_scc_hww_esr_reset_active_f());
@@ -280,7 +280,7 @@ bool gm20b_gr_intr_handle_exceptions(struct gk20a *g, bool *is_gpc_exception)
 
 		nvgpu_gr_intr_report_exception(g, 0,
 				GPU_PGRAPH_DS_EXCEPTION,
-				ds);
+				ds, 0);
 		nvgpu_err(g, "ds exception: esr: 0x%08x", ds);
 		nvgpu_writel(g, gr_ds_hww_esr_r(),
 				 gr_ds_hww_esr_reset_task_f());
@@ -300,7 +300,7 @@ bool gm20b_gr_intr_handle_exceptions(struct gk20a *g, bool *is_gpc_exception)
 		}
 		nvgpu_gr_intr_report_exception(g, 0,
 				GPU_PGRAPH_SSYNC_EXCEPTION,
-				ssync_esr);
+				ssync_esr, 0);
 	}
 
 	if ((exception & gr_exception_mme_m()) != 0U) {
@@ -309,7 +309,7 @@ bool gm20b_gr_intr_handle_exceptions(struct gk20a *g, bool *is_gpc_exception)
 
 		nvgpu_gr_intr_report_exception(g, 0,
 				GPU_PGRAPH_MME_EXCEPTION,
-				mme);
+				mme, 0);
 		nvgpu_err(g, "mme exception: esr 0x%08x info:0x%08x",
 				mme, info);
 		if (g->ops.gr.intr.log_mme_exception != NULL) {
@@ -326,7 +326,7 @@ bool gm20b_gr_intr_handle_exceptions(struct gk20a *g, bool *is_gpc_exception)
 
 		nvgpu_gr_intr_report_exception(g, 0,
 				GPU_PGRAPH_SKED_EXCEPTION,
-				sked);
+				sked, 0);
 		nvgpu_err(g, "sked exception: esr 0x%08x", sked);
 		nvgpu_writel(g, gr_sked_hww_esr_r(),
 			gr_sked_hww_esr_reset_active_f());

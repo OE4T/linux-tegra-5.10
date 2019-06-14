@@ -136,6 +136,14 @@ struct ctxsw_err_info {
 #define GPU_PGRAPH_SKED_EXCEPTION		(7U)
 #define GPU_PGRAPH_BE_EXCEPTION			(8U)
 #define GPU_PGRAPH_MPC_EXCEPTION		(9U)
+#define GPU_PGRAPH_ILLEGAL_ERROR		(10U)
+
+/* Sub-errors in GPU_PGRAPH_ILLEGAL_ERROR */
+#define GPU_PGRAPH_ILLEGAL_NOTIFY		(0U)
+#define GPU_PGRAPH_ILLEGAL_METHOD		(1U)
+#define GPU_PGRAPH_ILLEGAL_CLASS		(2U)
+#define GPU_PGRAPH_CLASS_ERROR			(3U)
+
 struct gr_exception_info {
 	u32 curr_ctx;	/* Context which triggered the exception */
 	u32 chid;	/* Channel bound to the context */
@@ -210,7 +218,7 @@ int nvgpu_report_ctxsw_err(struct gk20a *g, u32 hw_unit, u32 err_id,
 		void *data);
 
 int nvgpu_report_gr_err(struct gk20a *g, u32 hw_unit, u32 inst,
-		u32 err_type, struct gr_err_info *err_info);
+		u32 err_type, struct gr_err_info *err_info, u32 sub_err_type);
 
 int nvgpu_report_pmu_err(struct gk20a *g, u32 hw_unit, u32 err_id,
 	u32 sub_err_type, u32 status);

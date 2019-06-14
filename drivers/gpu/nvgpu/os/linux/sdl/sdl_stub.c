@@ -37,7 +37,7 @@ int nvgpu_report_ecc_err(struct gk20a *g, u32 hw_unit, u32 inst,
 }
 
 int nvgpu_report_gr_err(struct gk20a *g, u32 hw_unit, u32 inst,
-		u32 err_type, struct gr_err_info *err_info)
+		u32 err_type, struct gr_err_info *err_info, u32 sub_err_type)
 {
 	return 0;
 }
