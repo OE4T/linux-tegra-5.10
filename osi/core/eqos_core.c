@@ -26,7 +26,197 @@
 #include "eqos_core.h"
 #include "eqos_mmc.h"
 
-struct osi_core_ops *eqos_get_hw_core_ops(void);
+static struct core_func_safety eqos_core_safety_config;
+
+/**
+ *	eqos_core_safety_writel - Write to safety critical register.
+ *	@val: Value to be written.
+ *	@addr: memory mapped register address to be written to.
+ *	@idx: Index of register corresponding to enum func_safety_core_regs.
+ *
+ *	Algorithm:
+ *	1) Acquire RW lock, so that eqos_validate_core_regs does not run while
+ *	updating the safety critical register.
+ *	2) call osi_writel() to actually update the memory mapped register.
+ *	3) Store the same value in eqos_core_safety_config->reg_val[idx],
+ *	so that this latest value will be compared when eqos_validate_core_regs
+ *	is scheduled.
+ *
+ *	Dependencies:
+ *	1) MAC has to be out of reset, and clocks supplied.
+ *
+ *	Protection: None.
+ *
+ *	Return: None.
+ */
+static inline void eqos_core_safety_writel(unsigned int val, void *addr,
+					  unsigned int idx)
+{
+	struct core_func_safety *config = &eqos_core_safety_config;
+
+	osi_lock_irq_enabled(&config->core_safety_lock);
+	osi_writel(val, addr);
+	config->reg_val[idx] = (val & config->reg_mask[idx]);
+	osi_unlock_irq_enabled(&config->core_safety_lock);
+}
+
+/**
+ *	eqos_core_safety_init - Initialize the eqos_core_safety_config.
+ *	@base_addr: Base address of memory mapped register space.
+ *
+ *	Algorithm: Populate the list of safety critical registers and provide
+ *	1) the address of the register
+ *	2) Register mask (to ignore reserved/self-critical bits in the reg).
+ *	See @eqos_validate_core_regs which can be ivoked periodically to compare
+ *	the last written value to this register vs the actual value read when
+ *	eqos_validate_core_regs is scheduled.
+ *
+ *	Dependencies: None
+ *
+ *	Protection: None
+ *
+ *	Return: None
+ */
+static void eqos_core_safety_init(struct osi_core_priv_data *osi_core)
+{
+	struct core_func_safety *config = &eqos_core_safety_config;
+	unsigned char *base = (unsigned char *)osi_core->base;
+	unsigned int val;
+	unsigned int i, idx;
+
+	/* Initialize all reg address to NULL, since we may not use
+	 * some regs depending on the number of MTL queues enabled.
+	 */
+	for (i = EQOS_MAC_MCR_IDX; i < EQOS_MAX_CORE_SAFETY_REGS; i++) {
+		config->reg_addr[i] = OSI_NULL;
+	}
+
+	/* Store reg addresses to run periodic read MAC registers.*/
+	config->reg_addr[EQOS_MAC_MCR_IDX] = base + EQOS_MAC_MCR;
+	config->reg_addr[EQOS_MAC_PFR_IDX] = base + EQOS_MAC_PFR;
+	for (i = 0U; i < OSI_EQOS_MAX_HASH_REGS; i++) {
+		config->reg_addr[EQOS_MAC_HTR0_IDX + i] = base + EQOS_MAC_HTR_REG(i);
+	}
+	config->reg_addr[EQOS_MAC_Q0_TXFC_IDX] = base +
+						 EQOS_MAC_QX_TX_FLW_CTRL(0U);
+	config->reg_addr[EQOS_MAC_RQC0R_IDX] = base + EQOS_MAC_RQC0R;
+	config->reg_addr[EQOS_MAC_RQC1R_IDX] = base + EQOS_MAC_RQC1R;
+	config->reg_addr[EQOS_MAC_RQC2R_IDX] = base + EQOS_MAC_RQC2R;
+	config->reg_addr[EQOS_MAC_IMR_IDX] = base + EQOS_MAC_IMR;
+	config->reg_addr[EQOS_MAC_MA0HR_IDX] = base + EQOS_MAC_MA0HR;
+	config->reg_addr[EQOS_MAC_MA0LR_IDX] = base + EQOS_MAC_MA0LR;
+	config->reg_addr[EQOS_MAC_TCR_IDX] = base + EQOS_MAC_TCR;
+	config->reg_addr[EQOS_MAC_SSIR_IDX] = base + EQOS_MAC_SSIR;
+	config->reg_addr[EQOS_MAC_TAR_IDX] = base + EQOS_MAC_TAR;
+	config->reg_addr[EQOS_PAD_AUTO_CAL_CFG_IDX] = base +
+						      EQOS_PAD_AUTO_CAL_CFG;
+	/* MTL registers */
+	config->reg_addr[EQOS_MTL_RXQ_DMA_MAP0_IDX] = base +
+						      EQOS_MTL_RXQ_DMA_MAP0;
+	for (i = 0U; i < osi_core->num_mtl_queues; i++) {
+		idx = osi_core->mtl_queues[i];
+		config->reg_addr[EQOS_MTL_CH0_TX_OP_MODE_IDX + idx] = base +
+						EQOS_MTL_CHX_TX_OP_MODE(idx);
+		config->reg_addr[EQOS_MTL_TXQ0_QW_IDX + idx] = base +
+						EQOS_MTL_TXQ_QW(idx);
+		config->reg_addr[EQOS_MTL_CH0_RX_OP_MODE_IDX + idx] = base +
+						EQOS_MTL_CHX_RX_OP_MODE(idx);
+	}
+	/* DMA registers */
+	config->reg_addr[EQOS_DMA_SBUS_IDX] = base + EQOS_DMA_SBUS;
+
+	/* Update the register mask to ignore reserved bits/self-clearing bits.
+	 * MAC registers */
+	config->reg_mask[EQOS_MAC_MCR_IDX] = EQOS_MAC_MCR_MASK;
+	config->reg_mask[EQOS_MAC_PFR_IDX] = EQOS_MAC_PFR_MASK;
+	for (i = 0U; i < OSI_EQOS_MAX_HASH_REGS; i++) {
+		config->reg_mask[EQOS_MAC_HTR0_IDX + i] = EQOS_MAC_HTR_MASK;
+	}
+	config->reg_mask[EQOS_MAC_Q0_TXFC_IDX] = EQOS_MAC_QX_TXFC_MASK;
+	config->reg_mask[EQOS_MAC_RQC0R_IDX] = EQOS_MAC_RQC0R_MASK;
+	config->reg_mask[EQOS_MAC_RQC1R_IDX] = EQOS_MAC_RQC1R_MASK;
+	config->reg_mask[EQOS_MAC_RQC2R_IDX] = EQOS_MAC_RQC2R_MASK;
+	config->reg_mask[EQOS_MAC_IMR_IDX] = EQOS_MAC_IMR_MASK;
+	config->reg_mask[EQOS_MAC_MA0HR_IDX] = EQOS_MAC_MA0HR_MASK;
+	config->reg_mask[EQOS_MAC_MA0LR_IDX] = EQOS_MAC_MA0LR_MASK;
+	config->reg_mask[EQOS_MAC_TCR_IDX] = EQOS_MAC_TCR_MASK;
+	config->reg_mask[EQOS_MAC_SSIR_IDX] = EQOS_MAC_SSIR_MASK;
+	config->reg_mask[EQOS_MAC_TAR_IDX] = EQOS_MAC_TAR_MASK;
+	config->reg_mask[EQOS_PAD_AUTO_CAL_CFG_IDX] =
+						EQOS_PAD_AUTO_CAL_CFG_MASK;
+	/* MTL registers */
+	config->reg_mask[EQOS_MTL_RXQ_DMA_MAP0_IDX] = EQOS_RXQ_DMA_MAP0_MASK;
+	for (i = 0U; i < osi_core->num_mtl_queues; i++) {
+		idx = osi_core->mtl_queues[i];
+		config->reg_mask[EQOS_MTL_CH0_TX_OP_MODE_IDX + idx] =
+						EQOS_MTL_TXQ_OP_MODE_MASK;
+		config->reg_mask[EQOS_MTL_TXQ0_QW_IDX + idx] =
+						EQOS_MTL_TXQ_QW_MASK;
+		config->reg_mask[EQOS_MTL_CH0_RX_OP_MODE_IDX + idx] =
+						EQOS_MTL_RXQ_OP_MODE_MASK;
+	}
+	/* DMA registers */
+	config->reg_mask[EQOS_DMA_SBUS_IDX] = EQOS_DMA_SBUS_MASK;
+
+	/* Initialize current power-on-reset values of these registers */
+	for (i = EQOS_MAC_MCR_IDX; i < EQOS_MAX_CORE_SAFETY_REGS; i++) {
+		if (config->reg_addr[i] == OSI_NULL) {
+			continue;
+		}
+		val = osi_readl((unsigned char *)config->reg_addr[i]);
+		config->reg_val[i] = val & config->reg_mask[i];
+	}
+
+	osi_lock_init(&config->core_safety_lock);
+}
+
+/**
+ *	eqos_validate_core_regs - Read-validate HW registers for functional safety.
+ *	@osi: OSI core private data structure.
+ *	Algorithm: Reads pre-configured list of MAC/MTL configuration registers
+ *	and compares with last written value for any modifications.
+ *
+ *	Dependencies:
+ *	1) MAC has to be out of reset.
+ *	2) osi_hw_core_init has to be called. Internally this would initialize
+ *	the safety_config (see @osi_core_priv_data) based on MAC version and
+ *	which specific registers needs to be validated periodically.
+ *	3) Invoke this call iff (osi_core_priv_data->safety_config != OSI_NULL)
+ *
+ *	Protection: None
+ *
+ *	Return: 0 - success, -1 - failure
+ */
+static int eqos_validate_core_regs(struct osi_core_priv_data *osi_core)
+{
+	struct core_func_safety *config =
+		(struct core_func_safety *)osi_core->safety_config;
+	unsigned int cur_val;
+	unsigned int i;
+
+	osi_lock_irq_enabled(&config->core_safety_lock);
+	for (i = EQOS_MAC_MCR_IDX; i < EQOS_MAX_CORE_SAFETY_REGS; i++) {
+		if (config->reg_addr[i] == OSI_NULL) {
+			continue;
+		}
+		cur_val = osi_readl((unsigned char *)config->reg_addr[i]);
+		cur_val &= config->reg_mask[i];
+
+		if (cur_val == config->reg_val[i]) {
+			continue;
+		} else {
+			/* Register content differs from what was written.
+			 * Return error and let safety manager (NVGaurd etc.)
+			 * take care of corrective action.
+			 */
+			osi_unlock_irq_enabled(&config->core_safety_lock);
+			return -1;
+		}
+	}
+	osi_unlock_irq_enabled(&config->core_safety_lock);
+
+	return 0;
+}
 
 /**
  *	eqos_config_flow_control - Configure MAC flow control settings
@@ -70,7 +260,9 @@ static int eqos_config_flow_control(void *addr, unsigned int flw_ctrl)
 	}
 
 	/* Write to MAC Tx Flow control Register of Q0 */
-	osi_writel(val, (unsigned char *)addr + EQOS_MAC_QX_TX_FLW_CTRL(0U));
+	eqos_core_safety_writel(val, (unsigned char *)addr +
+				EQOS_MAC_QX_TX_FLW_CTRL(0U),
+				EQOS_MAC_Q0_TXFC_IDX);
 
 	/* Configure MAC Rx Flow control*/
 	/* Read MAC Rx Flow control Register */
@@ -188,7 +380,9 @@ static int eqos_config_fw_err_pkts(void *addr, unsigned int qinx,
 	/* Write to FEP bit of MTL RXQ Operation Mode Register to enable or
 	 * disable the forwarding of error packets to DMA or application.
 	 */
-	osi_writel(val, (unsigned char *)addr + EQOS_MTL_CHX_RX_OP_MODE(qinx));
+	eqos_core_safety_writel(val, (unsigned char *)addr +
+				EQOS_MTL_CHX_RX_OP_MODE(qinx),
+				EQOS_MTL_CH0_RX_OP_MODE_IDX + qinx);
 
 	return 0;
 }
@@ -292,7 +486,8 @@ static int eqos_config_mac_loopback(void *addr, unsigned int lb_mode)
 	osi_writel(clk_ctrl_val, (unsigned char *)addr + EQOS_CLOCK_CTRL_0);
 
 	/* Write to MAC Configuration Register */
-	osi_writel(mcr_val, (unsigned char *)addr + EQOS_MAC_MCR);
+	eqos_core_safety_writel(mcr_val, (unsigned char *)addr + EQOS_MAC_MCR,
+				EQOS_MAC_MCR_IDX);
 
 	return 0;
 }
@@ -419,7 +614,8 @@ static void eqos_set_speed(void *base, int speed)
 		break;
 	}
 
-	osi_writel(mcr_val, (unsigned char *)base + EQOS_MAC_MCR);
+	eqos_core_safety_writel(mcr_val, (unsigned char *)base + EQOS_MAC_MCR,
+				EQOS_MAC_MCR_IDX);
 }
 
 /**
@@ -449,7 +645,8 @@ static void eqos_set_mode(void *base, int mode)
 	} else {
 		/* Nothing here */
 	}
-	osi_writel(mcr_val, (unsigned char *)base + EQOS_MAC_MCR);
+	eqos_core_safety_writel(mcr_val, (unsigned char *)base + EQOS_MAC_MCR,
+				EQOS_MAC_MCR_IDX);
 }
 
 /**
@@ -571,7 +768,7 @@ static int eqos_pad_calibrate(void *ioaddr)
 {
 	unsigned int retry = 1000;
 	unsigned int count;
-	int cond = 1;
+	int cond = 1, ret = 0;
 	unsigned int value;
 
 	/* 1. Set field PAD_E_INPUT_OR_E_PWRD in
@@ -590,7 +787,9 @@ static int eqos_pad_calibrate(void *ioaddr)
 	value = osi_readl((unsigned char *)ioaddr + EQOS_PAD_AUTO_CAL_CFG);
 	value |= EQOS_PAD_AUTO_CAL_CFG_START |
 		 EQOS_PAD_AUTO_CAL_CFG_ENABLE;
-	osi_writel(value, (unsigned char *)ioaddr + EQOS_PAD_AUTO_CAL_CFG);
+	eqos_core_safety_writel(value, (unsigned char *)ioaddr +
+				EQOS_PAD_AUTO_CAL_CFG,
+				EQOS_PAD_AUTO_CAL_CFG_IDX);
 
 	/* 4. Wait on 1 to 3 us before start checking for calibration done.
 	 *    This delay is consumed in delay inside while loop.
@@ -600,7 +799,8 @@ static int eqos_pad_calibrate(void *ioaddr)
 	count = 0;
 	while (cond == 1) {
 		if (count > retry) {
-			return -1;
+			ret = -1;
+			goto calibration_failed;
 		}
 		count++;
 		osd_usleep_range(10, 12);
@@ -612,6 +812,7 @@ static int eqos_pad_calibrate(void *ioaddr)
 		}
 	}
 
+calibration_failed:
 	/* 6. Re-program the value PAD_E_INPUT_OR_E_PWRD in
 	 * ETHER_QOS_SDMEMCOMPPADCTRL_0 to save power
 	 */
@@ -619,7 +820,7 @@ static int eqos_pad_calibrate(void *ioaddr)
 	value &=  ~EQOS_PAD_CRTL_E_INPUT_OR_E_PWRD;
 	osi_writel(value, (unsigned char *)ioaddr + EQOS_PAD_CRTL);
 
-	return 0;
+	return ret;
 }
 
 /**
@@ -648,8 +849,9 @@ static int eqos_flush_mtl_tx_queue(void *addr, unsigned int qinx)
 	value = osi_readl((unsigned char *)addr +
 			  EQOS_MTL_CHX_TX_OP_MODE(qinx));
 	value |= EQOS_MTL_QTOMR_FTQ;
-	osi_writel(value, (unsigned char *)addr +
-		   EQOS_MTL_CHX_TX_OP_MODE(qinx));
+	eqos_core_safety_writel(value, (unsigned char *)addr +
+				EQOS_MTL_CHX_TX_OP_MODE(qinx),
+				EQOS_MTL_CH0_TX_OP_MODE_IDX + qinx);
 
 	/* Poll Until FTQ bit resets for Successful Tx Q flush */
 	count = 0;
@@ -811,8 +1013,9 @@ static int eqos_configure_mtl_queue(unsigned int qinx,
 	value |= EQOS_MTL_TSF;
 	/* Enable TxQ */
 	value |= EQOS_MTL_TXQEN;
-	osi_writel(value, (unsigned char *)osi_core->base +
-		   EQOS_MTL_CHX_TX_OP_MODE(qinx));
+	eqos_core_safety_writel(value, (unsigned char *)osi_core->base +
+				EQOS_MTL_CHX_TX_OP_MODE(qinx),
+				EQOS_MTL_CH0_TX_OP_MODE_IDX + qinx);
 
 	/* read RX Q0 Operating Mode Register */
 	value = osi_readl((unsigned char *)osi_core->base +
@@ -826,22 +1029,24 @@ static int eqos_configure_mtl_queue(unsigned int qinx,
 	 * RFD: Threshold for Deactivating Flow Control
 	 */
 	update_ehfc_rfa_rfd(rx_fifo, &value);
-	osi_writel(value, (unsigned char *)osi_core->base +
-		   EQOS_MTL_CHX_RX_OP_MODE(qinx));
+	eqos_core_safety_writel(value, (unsigned char *)osi_core->base +
+				EQOS_MTL_CHX_RX_OP_MODE(qinx),
+				EQOS_MTL_CH0_RX_OP_MODE_IDX + qinx);
 
 	/* Transmit Queue weight */
 	value = osi_readl((unsigned char *)osi_core->base +
 			  EQOS_MTL_TXQ_QW(qinx));
 	value |= (EQOS_MTL_TXQ_QW_ISCQW + qinx);
-	osi_writel(value, (unsigned char *)osi_core->base +
-		   EQOS_MTL_TXQ_QW(qinx));
+	eqos_core_safety_writel(value, (unsigned char *)osi_core->base +
+				EQOS_MTL_TXQ_QW(qinx),
+				EQOS_MTL_TXQ0_QW_IDX + qinx);
 
 	/* Enable Rx Queue Control */
 	value = osi_readl((unsigned char *)osi_core->base +
 			  EQOS_MAC_RQC0R);
 	value |= ((osi_core->rxq_ctrl[qinx] & 0x3U) << (qinx * 2U));
-	osi_writel(value, (unsigned char *)osi_core->base +
-		   EQOS_MAC_RQC0R);
+	eqos_core_safety_writel(value, (unsigned char *)osi_core->base +
+				EQOS_MAC_RQC0R, EQOS_MAC_RQC0R_IDX);
 
 	return 0;
 }
@@ -879,7 +1084,8 @@ static int eqos_config_rxcsum_offload(void *addr, unsigned int enabled)
 		mac_mcr &= ~EQOS_MCR_IPC;
 	}
 
-	osi_writel(mac_mcr, (unsigned char *)addr + EQOS_MAC_MCR);
+	eqos_core_safety_writel(mac_mcr, (unsigned char *)addr + EQOS_MAC_MCR,
+				EQOS_MAC_MCR_IDX);
 
 	return 0;
 }
@@ -949,8 +1155,8 @@ static void eqos_configure_rxq_priority(struct osi_core_priv_data *osi_core)
 		mfix_var2 <<= mfix_var1;
 		val |= (temp & mfix_var2);
 		/* Priorities Selected in the Receive Queue 0 */
-		osi_writel(val, (unsigned char *)osi_core->base +
-			   EQOS_MAC_RQC2R);
+		eqos_core_safety_writel(val, (unsigned char *)osi_core->base +
+					EQOS_MAC_RQC2R, EQOS_MAC_RQC2R_IDX);
 	}
 }
 
@@ -977,15 +1183,18 @@ static void eqos_configure_mac(struct osi_core_priv_data *osi_core)
 	unsigned int value;
 
 	/* Update MAC address 0 high */
-	osi_writel((((unsigned int)osi_core->mac_addr[5] << 8U) |
-		   (unsigned int)(osi_core->mac_addr[4])),
-		   (unsigned char *)osi_core->base + EQOS_MAC_MA0HR);
+	value = (((unsigned int)osi_core->mac_addr[5] << 8U) |
+		 ((unsigned int)osi_core->mac_addr[4]));
+	eqos_core_safety_writel(value, (unsigned char *)osi_core->base +
+				EQOS_MAC_MA0HR, EQOS_MAC_MA0HR_IDX);
+
 	/* Update MAC address 0 Low */
-	osi_writel((((unsigned int)osi_core->mac_addr[3] << 24U) |
-		   ((unsigned int)osi_core->mac_addr[2] << 16U) |
-		   ((unsigned int)osi_core->mac_addr[1] << 8U) |
-		   ((unsigned int)osi_core->mac_addr[0])),
-		   (unsigned char *)osi_core->base + EQOS_MAC_MA0LR);
+	value = (((unsigned int)osi_core->mac_addr[3] << 24U) |
+		 ((unsigned int)osi_core->mac_addr[2] << 16U) |
+		 ((unsigned int)osi_core->mac_addr[1] << 8U)  |
+		 ((unsigned int)osi_core->mac_addr[0]));
+	eqos_core_safety_writel(value, (unsigned char *)osi_core->base +
+				EQOS_MAC_MA0LR, EQOS_MAC_MA0LR_IDX);
 
 	/* Read MAC Configuration Register */
 	value = osi_readl((unsigned char *)osi_core->base + EQOS_MAC_MCR);
@@ -1004,14 +1213,16 @@ static void eqos_configure_mac(struct osi_core_priv_data *osi_core)
 		value |= EQOS_MCR_JD;
 	}
 
-	osi_writel(value, (unsigned char *)osi_core->base + EQOS_MAC_MCR);
+	eqos_core_safety_writel(value, (unsigned char *)osi_core->base +
+				EQOS_MAC_MCR, EQOS_MAC_MCR_IDX);
 
 	/* Enable Multicast and Broadcast Queue, default is Q0 */
 	value = osi_readl((unsigned char *)osi_core->base + EQOS_MAC_RQC1R);
 	value |= EQOS_MAC_RQC1R_MCBCQEN;
 	/* Routing Multicast and Broadcast to Q1 */
 	value |= EQOS_MAC_RQC1R_MCBCQ1;
-	osi_writel(value, (unsigned char *)osi_core->base + EQOS_MAC_RQC1R);
+	eqos_core_safety_writel(value, (unsigned char *)osi_core->base +
+				EQOS_MAC_RQC1R, EQOS_MAC_RQC1R_IDX);
 
 	/* Disable all MMC interrupts */
 	/* Disable all MMC Tx Interrupts */
@@ -1037,7 +1248,8 @@ static void eqos_configure_mac(struct osi_core_priv_data *osi_core)
 	/* TODO: LPI need to be enabled during EEE implementation */
 	value |= EQOS_IMR_RGSMIIIE;
 
-	osi_writel(value, (unsigned char *)osi_core->base + EQOS_MAC_IMR);
+	eqos_core_safety_writel(value, (unsigned char *)osi_core->base +
+				EQOS_MAC_IMR, EQOS_MAC_IMR_IDX);
 
 	/* Enable VLAN configuration */
 	value = osi_readl((unsigned char *)osi_core->base + EQOS_MAC_VLAN_TAG);
@@ -1103,7 +1315,8 @@ static void eqos_configure_dma(void *base)
 	/* AXI Maximum Write Outstanding Request Limit = 31 */
 	value |= EQOS_DMA_SBUS_WR_OSR_LMT;
 
-	osi_writel(value, (unsigned char *)base + EQOS_DMA_SBUS);
+	eqos_core_safety_writel(value, (unsigned char *)base + EQOS_DMA_SBUS,
+				EQOS_DMA_SBUS_IDX);
 
 	value = osi_readl((unsigned char *)base + EQOS_DMA_BMR);
 	value |= EQOS_DMA_BMR_DPSW;
@@ -1139,6 +1352,8 @@ static int eqos_core_init(struct osi_core_priv_data *osi_core,
 	unsigned int tx_fifo = 0;
 	unsigned int rx_fifo = 0;
 
+	eqos_core_safety_init(osi_core);
+
 	/* PAD calibration */
 	ret = eqos_pad_calibrate(osi_core->base);
 	if (ret < 0) {
@@ -1159,8 +1374,9 @@ static int eqos_core_init(struct osi_core_priv_data *osi_core,
 		value |= EQOS_RXQ_TO_DMA_CHAN_MAP;
 	}
 
-	osi_writel(value, (unsigned char *)osi_core->base +
-		   EQOS_MTL_RXQ_DMA_MAP0);
+	eqos_core_safety_writel(value, (unsigned char *)osi_core->base +
+				EQOS_MTL_RXQ_DMA_MAP0,
+				EQOS_MTL_RXQ_DMA_MAP0_IDX);
 
 	/* Calculate value of Transmit queue fifo size to be programmed */
 	tx_fifo = eqos_calculate_per_queue_fifo(tx_fifo_size,
@@ -1388,7 +1604,8 @@ static void eqos_start_mac(void *addr)
 	/* Enable MAC Transmit */
 	/* Enable MAC Receive */
 	value |= EQOS_MCR_TE | EQOS_MCR_RE;
-	osi_writel(value, (unsigned char *)addr + EQOS_MAC_MCR);
+	eqos_core_safety_writel(value, (unsigned char *)addr + EQOS_MAC_MCR,
+				EQOS_MAC_MCR_IDX);
 }
 
 /**
@@ -1413,7 +1630,8 @@ static void eqos_stop_mac(void *addr)
 	/* Disable MAC Receive */
 	value &= ~EQOS_MCR_TE;
 	value &= ~EQOS_MCR_RE;
-	osi_writel(value, (unsigned char *)addr + EQOS_MAC_MCR);
+	eqos_core_safety_writel(value, (unsigned char *)addr + EQOS_MAC_MCR,
+				EQOS_MAC_MCR_IDX);
 }
 
 /**
@@ -1473,8 +1691,9 @@ static int eqos_set_avb_algorithm(struct osi_core_priv_data *osi_core,
 	/* Set TxQ/TC mode as per input struct after masking 3 bit */
 	value |= (avb->oper_mode << EQOS_MTL_TXQEN_MASK_SHIFT) &
 		  EQOS_MTL_TXQEN_MASK;
-	osi_writel(value, (unsigned char *)osi_core->base +
-		   EQOS_MTL_CHX_TX_OP_MODE(qinx));
+	eqos_core_safety_writel(value, (unsigned char *)osi_core->base +
+				EQOS_MTL_CHX_TX_OP_MODE(qinx),
+				EQOS_MTL_CH0_TX_OP_MODE_IDX + qinx);
 
 	/* Set Algo and Credit control */
 	value = (avb->credit_control << EQOS_MTL_TXQ_ETS_CR_CC_SHIFT) &
@@ -1494,8 +1713,9 @@ static int eqos_set_avb_algorithm(struct osi_core_priv_data *osi_core,
 			  EQOS_MTL_TXQ_QW(qinx));
 	value &= ~EQOS_MTL_TXQ_ETS_QW_ISCQW_MASK;
 	value |= avb->idle_slope & EQOS_MTL_TXQ_ETS_QW_ISCQW_MASK;
-	osi_writel(value, (unsigned char *)osi_core->base +
-		   EQOS_MTL_TXQ_QW(qinx));
+	eqos_core_safety_writel(value, (unsigned char *)osi_core->base +
+				EQOS_MTL_TXQ_QW(qinx),
+				EQOS_MTL_TXQ0_QW_IDX + qinx);
 
 	/* Set Hi credit */
 	value = avb->hi_credit & EQOS_MTL_TXQ_ETS_HCR_HC_MASK;
@@ -1550,7 +1770,8 @@ static void eqos_config_mac_pkt_filter_reg(struct osi_core_priv_data *osi_core,
 		  ((pfilter.hpf_mode << EQOS_MAC_PFR_HPF_SHIFT) &
 		   EQOS_MAC_PFR_HPF);
 
-	osi_writel(value, (unsigned char *)osi_core->base + EQOS_MAC_PFR);
+	eqos_core_safety_writel(value, (unsigned char *)osi_core->base +
+				EQOS_MAC_PFR, EQOS_MAC_PFR_IDX);
 }
 
 /**
@@ -1842,7 +2063,8 @@ static int eqos_config_arp_offload(unsigned int mac_ver, void *addr,
 		mac_mcr &= ~EQOS_MCR_ARPEN;
 	}
 
-	osi_writel(mac_mcr, (unsigned char *)addr + EQOS_MAC_MCR);
+	eqos_core_safety_writel(mac_mcr, (unsigned char *)addr + EQOS_MAC_MCR,
+				EQOS_MAC_MCR_IDX);
 
 	return 0;
 }
@@ -1871,7 +2093,8 @@ static int eqos_config_l3_l4_filter_enable(void *base,
 	value = osi_readl((unsigned char *)base + EQOS_MAC_PFR);
 	value &= ~(EQOS_MAC_PFR_IPFE);
 	value |= ((filter_enb_dis << 20) & EQOS_MAC_PFR_IPFE);
-	osi_writel(value, (unsigned char *)base + EQOS_MAC_PFR);
+	eqos_core_safety_writel(value, (unsigned char *)base + EQOS_MAC_PFR,
+				EQOS_MAC_PFR_IDX);
 
 	return 0;
 }
@@ -1902,7 +2125,8 @@ static int eqos_config_l2_da_perfect_inverse_match(void *base, unsigned int
 	value &= ~EQOS_MAC_PFR_DAIF;
 	value |= ((perfect_inverse_match << EQOS_MAC_PFR_DAIF_SHIFT) &
 		  EQOS_MAC_PFR_DAIF);
-	osi_writel(value, (unsigned char *)base + EQOS_MAC_PFR);
+	eqos_core_safety_writel(value, (unsigned char *)base + EQOS_MAC_PFR,
+				EQOS_MAC_PFR_IDX);
 
 	return 0;
 }
@@ -2433,7 +2657,8 @@ static int eqos_config_vlan_filtering(struct osi_core_priv_data *osi_core,
 	value = osi_readl((unsigned char *)base + EQOS_MAC_PFR);
 	value &= ~(EQOS_MAC_PFR_VTFE);
 	value |= ((filter_enb_dis << EQOS_MAC_PFR_SHIFT) & EQOS_MAC_PFR_VTFE);
-	osi_writel(value, (unsigned char *)base + EQOS_MAC_PFR);
+	eqos_core_safety_writel(value, (unsigned char *)base + EQOS_MAC_PFR,
+				EQOS_MAC_PFR_IDX);
 
 	value = osi_readl((unsigned char *)base + EQOS_MAC_VLAN_TR);
 	value &= ~(EQOS_MAC_VLAN_TR_VTIM | EQOS_MAC_VLAN_TR_VTHM);
@@ -2552,7 +2777,8 @@ static int eqos_set_systime_to_mac(void *addr, unsigned int sec,
 
 	/* issue command to update the configured secs and nsecs values */
 	mac_tcr |= EQOS_MAC_TCR_TSINIT;
-	osi_writel(mac_tcr, (unsigned char *)addr + EQOS_MAC_TCR);
+	eqos_core_safety_writel(mac_tcr, (unsigned char *)addr + EQOS_MAC_TCR,
+				EQOS_MAC_TCR_IDX);
 
 	ret = eqos_poll_for_tsinit_complete(addr, &mac_tcr);
 	if (ret == -1) {
@@ -2628,11 +2854,13 @@ static int eqos_config_addend(void *addr, unsigned int addend)
 	}
 
 	/* write addend value to MAC_Timestamp_Addend register */
-	osi_writel(addend, (unsigned char *)addr + EQOS_MAC_TAR);
+	eqos_core_safety_writel(addend, (unsigned char *)addr + EQOS_MAC_TAR,
+				EQOS_MAC_TAR_IDX);
 
 	/* issue command to update the configured addend value */
 	mac_tcr |= EQOS_MAC_TCR_TSADDREG;
-	osi_writel(mac_tcr, (unsigned char *)addr + EQOS_MAC_TCR);
+	eqos_core_safety_writel(mac_tcr, (unsigned char *)addr + EQOS_MAC_TCR,
+				EQOS_MAC_TCR_IDX);
 
 	ret = eqos_poll_for_addend_complete(addr, &mac_tcr);
 	if (ret == -1) {
@@ -2758,7 +2986,8 @@ static int eqos_adjust_systime(void *addr, unsigned int sec, unsigned int nsec,
 	 * specified in MAC_STSUR and MAC_STNSUR
 	 */
 	mac_tcr |= EQOS_MAC_TCR_TSUPDT;
-	osi_writel(mac_tcr, (unsigned char *)addr + EQOS_MAC_TCR);
+	eqos_core_safety_writel(mac_tcr, (unsigned char *)addr + EQOS_MAC_TCR,
+				EQOS_MAC_TCR_IDX);
 
 	ret = eqos_poll_for_update_ts_complete(addr, &mac_tcr);
 	if (ret == -1) {
@@ -2888,7 +3117,8 @@ static void eqos_config_tscr(void *addr, unsigned int ptp_filter)
 		mac_tcr = OSI_DISABLE;
 	}
 
-	osi_writel(mac_tcr, (unsigned char *)addr + EQOS_MAC_TCR);
+	eqos_core_safety_writel(mac_tcr, (unsigned char *)addr + EQOS_MAC_TCR,
+				EQOS_MAC_TCR_IDX);
 }
 
 /**
@@ -2934,7 +3164,8 @@ static void eqos_config_ssir(void *addr, unsigned int ptp_clock)
 
 	val |= val << EQOS_MAC_SSIR_SSINC_SHIFT;
 	/* update Sub-second Increment Value */
-	osi_writel(val, (unsigned char *)addr + EQOS_MAC_SSIR);
+	eqos_core_safety_writel(val, (unsigned char *)addr + EQOS_MAC_SSIR,
+				EQOS_MAC_SSIR_IDX);
 }
 
 /**
@@ -2959,6 +3190,7 @@ static struct osi_core_ops eqos_core_ops = {
 	.poll_for_swr = eqos_poll_for_swr,
 	.core_init = eqos_core_init,
 	.core_deinit = eqos_core_deinit,
+	.validate_regs = eqos_validate_core_regs,
 	.start_mac = eqos_start_mac,
 	.stop_mac = eqos_stop_mac,
 	.handle_common_intr = eqos_handle_common_intr,
@@ -2997,6 +3229,11 @@ static struct osi_core_ops eqos_core_ops = {
 	.read_mmc = eqos_read_mmc,
 	.reset_mmc = eqos_reset_mmc,
 };
+
+void *eqos_get_core_safety_config(void)
+{
+	return &eqos_core_safety_config;
+}
 
 struct osi_core_ops *eqos_get_hw_core_ops(void)
 {

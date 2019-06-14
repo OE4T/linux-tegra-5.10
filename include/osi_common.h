@@ -23,6 +23,9 @@
 #ifndef OSI_COMMON_H
 #define OSI_COMMON_H
 
+#define OSI_UNLOCKED		0x0U
+#define OSI_LOCKED		0x1U
+
 #define TEN_POWER_9		0x3B9ACA00U
 #define TWO_POWER_32		0x100000000ULL
 #define TWO_POWER_31		0x80000000U
@@ -84,6 +87,11 @@
 /* FIXME add logic based on HW version */
 #define EQOS_MAX_MAC_ADDRESS_FILTER		128U
 #define EQOS_MAX_L3_L4_FILTER			8U
+#define OSI_EQOS_MAX_NUM_CHANS	4U
+#define OSI_EQOS_MAX_NUM_QUEUES	4U
+/* HW supports 8 Hash table regs, but eqos_validate_core_regs only checks 4 */
+#define OSI_EQOS_MAX_HASH_REGS	4U
+
 
 #define MAC_VERSION		0x110
 #define MAC_VERSION_SNVER_MASK	0x7FU
@@ -110,10 +118,6 @@
 
 #define OSI_IP4_FILTER		0U
 #define OSI_IP6_FILTER		1U
-
-/* FIXME add logic based on HW version */
-#define OSI_EQOS_MAX_NUM_CHANS	4U
-#define OSI_EQOS_MAX_NUM_QUEUES	4U
 
 #define OSI_BIT(nr)             ((unsigned int)1 << (nr))
 
@@ -358,6 +362,70 @@ struct osi_hw_features {
 	unsigned int pps_out_num;
 	unsigned int aux_snap_num;
 };
+
+/**
+ *	osi_lock_init - Initialize lock to unlocked state.
+ *	@lock - Pointer to lock to be initialized
+ *
+ *	Algorithm: Set lock to unlocked state.
+ *
+ *	Dependencies: None.
+ *
+ *	Protection: None.
+ *
+ *	Return: None.
+ */
+static inline void osi_lock_init(unsigned int *lock)
+{
+	*lock = OSI_UNLOCKED;
+}
+
+/**
+ *	osi_lock_irq_enabled - Spin lock. Busy loop till lock is acquired.
+ *	@lock - Pointer to lock to be acquired.
+ *
+ *	Algorithm: Atomic compare and swap operation till lock is held.
+ *
+ *	Dependencies: Does not disable irq. Do not call this API to acquire any
+ *	lock that is shared between top/bottom half. It will result in deadlock.
+ *
+ *	Protection: None.
+ *
+ *	Return: None.
+ */
+static inline void osi_lock_irq_enabled(unsigned int *lock)
+{
+	/* __sync_val_compare_and_swap(lock, old value, new value) returns the
+	 * old value if successful.
+	 */
+	while (__sync_val_compare_and_swap(lock, OSI_UNLOCKED, OSI_LOCKED) !=
+	      OSI_UNLOCKED) {
+		/* Spinning.
+		 * Will deadlock if any ISR tried to lock again.
+		 */
+	}
+}
+
+/**
+ *	osi_unlock_irq_enabled - Release lock.
+ *	@lock - Pointer to lock to be released.
+ *
+ *	Algorithm: Atomic compare and swap operation to release lock.
+ *
+ *	Dependencies: Does not disable irq. Do not call this API to release any
+ *	lock that is shared between top/bottom half.
+ *
+ *	Protection: None.
+ *
+ *	Return: None.
+ */
+static inline void osi_unlock_irq_enabled(unsigned int *lock)
+{
+	if (__sync_val_compare_and_swap(lock, OSI_LOCKED, OSI_UNLOCKED) !=
+	    OSI_LOCKED) {
+		/* Do nothing. Already unlocked */
+	}
+}
 
 /**
  *	osi_readl - Read a memory mapped regsiter.

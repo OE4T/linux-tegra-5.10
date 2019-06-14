@@ -337,4 +337,82 @@
 #define EQOS_DMA_CHX_STATUS_FBE			OSI_BIT(10)
 
 void update_ehfc_rfa_rfd(unsigned int rx_fifo, unsigned int *value);
+
+/* Below macros are used for periodic reg validation for functional safety.
+ * HW register mask - to mask reserved and self-clearing bits
+ */
+#define EQOS_MAC_MCR_MASK			0xFFFFFF7FU
+#define EQOS_MAC_PFR_MASK			0x803107FFU
+#define EQOS_MAC_HTR_MASK			0xFFFFFFFFU
+#define EQOS_MAC_QX_TXFC_MASK			0xFFFF00F2U
+#define EQOS_MAC_RQC0R_MASK			0xFFU
+#define EQOS_MAC_RQC1R_MASK			0xF77077U
+#define EQOS_MAC_RQC2R_MASK			0xFFFFFFFFU
+#define EQOS_MAC_IMR_MASK			0x47039U
+#define EQOS_MAC_MA0HR_MASK			0xFFFFFU
+#define EQOS_MAC_MA0LR_MASK			0xFFFFFFFFU
+#define EQOS_MAC_TCR_MASK			0x1107FF03U
+#define EQOS_MAC_SSIR_MASK			0xFFFF00U
+#define EQOS_MAC_TAR_MASK			0xFFFFFFFFU
+#define EQOS_RXQ_DMA_MAP0_MASK			0x13131313U
+
+#define EQOS_MTL_TXQ_OP_MODE_MASK		0xFF007EU
+#define EQOS_MTL_TXQ_QW_MASK			0x1FFFFFU
+#define EQOS_MTL_RXQ_OP_MODE_MASK		0xFFFFFFBU
+#define EQOS_PAD_AUTO_CAL_CFG_MASK		0x7FFFFFFFU
+#define EQOS_DMA_SBUS_MASK			0xDF1F3CFFU
+
+/* To add new registers to validate,append at end of this list and increment
+ * EQOS_MAX_CORE_SAFETY_REGS.
+ * Using macro instead of enum due to misra error.
+ */
+#define EQOS_MAC_MCR_IDX			0U
+#define EQOS_MAC_PFR_IDX			1U
+#define EQOS_MAC_HTR0_IDX			2U
+#define EQOS_MAC_HTR1_IDX			3U
+#define EQOS_MAC_HTR2_IDX			4U
+#define EQOS_MAC_HTR3_IDX			5U
+#define EQOS_MAC_Q0_TXFC_IDX			6U
+#define EQOS_MAC_RQC0R_IDX			7U
+#define EQOS_MAC_RQC1R_IDX			8U
+#define EQOS_MAC_RQC2R_IDX			9U
+#define EQOS_MAC_IMR_IDX			10U
+#define EQOS_MAC_MA0HR_IDX			11U
+#define EQOS_MAC_MA0LR_IDX			12U
+#define EQOS_MAC_TCR_IDX			13U
+#define EQOS_MAC_SSIR_IDX			14U
+#define EQOS_MAC_TAR_IDX			15U
+#define EQOS_PAD_AUTO_CAL_CFG_IDX		16U
+#define EQOS_MTL_RXQ_DMA_MAP0_IDX		17U
+#define EQOS_MTL_CH0_TX_OP_MODE_IDX		18U
+#define EQOS_MTL_CH1_TX_OP_MODE_IDX		19U
+#define EQOS_MTL_CH2_TX_OP_MODE_IDX		20U
+#define EQOS_MTL_CH3_TX_OP_MODE_IDX		21U
+#define EQOS_MTL_TXQ0_QW_IDX			22U
+#define EQOS_MTL_TXQ1_QW_IDX			23U
+#define EQOS_MTL_TXQ2_QW_IDX			24U
+#define EQOS_MTL_TXQ3_QW_IDX			25U
+#define EQOS_MTL_CH0_RX_OP_MODE_IDX		26U
+#define EQOS_MTL_CH1_RX_OP_MODE_IDX		27U
+#define EQOS_MTL_CH2_RX_OP_MODE_IDX		28U
+#define EQOS_MTL_CH3_RX_OP_MODE_IDX		29U
+#define EQOS_DMA_SBUS_IDX			30U
+#define EQOS_MAX_CORE_SAFETY_REGS		31U
+
+/**
+ *	struct core_func_safety - Struct used to store last written values of
+ *	critical core HW registers.
+ *	@reg_addr: Array of reg MMIO addresses (base of EQoS + offset of reg)
+ *	@reg_mask: Array of bit-mask value of each corresponding reg (used to
+ *	ignore self-clearing/reserved bits in reg).
+ *	@reg_val: Array of value stored in each corresponding register.
+ *	@core_safety_lock: OSI lock variable used to protect writes to reg while
+ *	validation is in-progress.
+ */
+struct core_func_safety {
+	void *reg_addr[EQOS_MAX_CORE_SAFETY_REGS];
+	unsigned int reg_mask[EQOS_MAX_CORE_SAFETY_REGS];
+	unsigned int reg_val[EQOS_MAX_CORE_SAFETY_REGS];
+	unsigned int core_safety_lock;
+};
 #endif

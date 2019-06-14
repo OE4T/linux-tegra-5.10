@@ -35,8 +35,6 @@
 #define MDIO_PHY_REG_SHIFT	16U
 #define MDIO_MII_WRITE		OSI_BIT(2)
 
-extern struct osi_core_ops *eqos_get_hw_core_ops(void);
-
 static inline int poll_for_mii_idle(struct osi_core_priv_data *osi_core)
 {
 	unsigned int retry = 1000;
@@ -165,6 +163,11 @@ int osi_init_core_ops(struct osi_core_priv_data *osi_core)
 	if (osi_core->mac == OSI_MAC_HW_EQOS) {
 		/* Get EQOS HW ops */
 		osi_core->ops = eqos_get_hw_core_ops();
+		/* Explicitly set osi_core->safety_config = OSI_NULL if
+		 * a particular MAC version does not need SW safety mechanisms
+		 * like periodic read-verify.
+		 */
+		osi_core->safety_config = (void *)eqos_get_core_safety_config();
 		return 0;
 	}
 
@@ -214,6 +217,19 @@ int osi_hw_core_deinit(struct osi_core_priv_data *osi_core)
 	}
 
 	return -1;
+}
+
+int osi_validate_core_regs(struct osi_core_priv_data *osi_core)
+{
+	int ret = -1;
+
+	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
+	    (osi_core->ops->validate_regs != OSI_NULL) &&
+	    (osi_core->safety_config != OSI_NULL)) {
+		ret = osi_core->ops->validate_regs(osi_core);
+	}
+
+	return ret;
 }
 
 int osi_start_mac(struct osi_core_priv_data *osi_core)

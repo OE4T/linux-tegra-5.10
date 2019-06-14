@@ -23,13 +23,17 @@
 #include <osi_dma.h>
 
 extern int dma_desc_init(struct osi_dma_priv_data *osi_dma);
-extern struct osi_dma_chan_ops *eqos_get_dma_chan_ops(void);
 
 int osi_init_dma_ops(struct osi_dma_priv_data *osi_dma)
 {
 	if (osi_dma->mac == OSI_MAC_HW_EQOS) {
 		/* Get EQOS HW ops */
 		osi_dma->ops = eqos_get_dma_chan_ops();
+		/* Explicitly set osi_dma->safety_config = OSI_NULL if
+		 * a particular MAC version does not need SW safety mechanisms
+		 * like periodic read-verify.
+		 */
+		osi_dma->safety_config = (void *)eqos_get_dma_safety_config();
 		return 0;
 	}
 
@@ -260,4 +264,16 @@ int osi_set_rx_buf_len(struct osi_dma_priv_data *osi_dma)
 	}
 
 	return 0;
+}
+
+int osi_validate_dma_regs(struct osi_dma_priv_data *osi_dma)
+{
+	int ret = -1;
+	if (osi_dma != OSI_NULL && osi_dma->ops != OSI_NULL &&
+	    osi_dma->ops->validate_regs != OSI_NULL &&
+	    osi_dma->safety_config != OSI_NULL) {
+		ret = osi_dma->ops->validate_regs(osi_dma);
+	}
+
+	return ret;
 }
