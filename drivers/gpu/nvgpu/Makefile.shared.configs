@@ -79,10 +79,6 @@ NVGPU_COMMON_CFLAGS             += -DCONFIG_NVGPU_USERD
 # Enable Channel WDT for safety build until we switch to user mode submits only
 NVGPU_COMMON_CFLAGS		+= -DCONFIG_NVGPU_CHANNEL_WDT
 
-# Enable CE support for safety build until we remove Vidmem clear support.
-CONFIG_NVGPU_CE                 := 1
-NVGPU_COMMON_CFLAGS             += -DCONFIG_NVGPU_CE
-
 # Enable Grpahics support for safety build until we switch to compute only
 CONFIG_NVGPU_GRAPHICS           := 1
 NVGPU_COMMON_CFLAGS             += -DCONFIG_NVGPU_GRAPHICS
@@ -154,6 +150,9 @@ NVGPU_COMMON_CFLAGS             += -DCONFIG_NVGPU_SIM
 
 CONFIG_NVGPU_COMPRESSION        := 1
 NVGPU_COMMON_CFLAGS             += -DCONFIG_NVGPU_COMPRESSION
+
+CONFIG_NVGPU_CE                 := 1
+NVGPU_COMMON_CFLAGS             += -DCONFIG_NVGPU_CE
 
 endif
 endif
