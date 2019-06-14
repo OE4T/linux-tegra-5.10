@@ -27,6 +27,6 @@
 
 u32 gm20b_mm_get_big_page_sizes(void)
 {
-	return U32(SZ_64K | SZ_128K);
+	return nvgpu_safe_cast_u64_to_u32(SZ_64K | SZ_128K);
 }
 

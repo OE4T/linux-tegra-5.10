@@ -22,6 +22,7 @@
 
 #include <nvgpu/gk20a.h>
 #include <nvgpu/gmmu.h>
+#include <nvgpu/safe_ops.h>
 
 #include <nvgpu/hw/gp10b/hw_gmmu_gp10b.h>
 
@@ -30,7 +31,7 @@
 
 u32 gp10b_mm_get_default_big_page_size(void)
 {
-	return (u32)SZ_64K;
+	return nvgpu_safe_cast_u64_to_u32(SZ_64K);
 }
 
 u32 gp10b_mm_get_iommu_bit(struct gk20a *g)
@@ -85,8 +86,7 @@ static void update_gmmu_pde3_locked(struct vm_gk20a *vm,
 					gmmu_new_pde_aperture_video_memory_f());
 	pde_v[0] |= gmmu_new_pde_address_sys_f(u64_lo32(phys_addr));
 	pde_v[0] |= gmmu_new_pde_vol_true_f();
-	nvgpu_assert(u64_hi32(phys_addr >> 24) == 0U);
-	pde_v[1] |= (u32)(phys_addr >> 24);
+	pde_v[1] |= nvgpu_safe_cast_u64_to_u32(phys_addr >> 24);
 
 	nvgpu_pd_write(g, pd, (size_t)pd_offset + (size_t)0, pde_v[0]);
 	nvgpu_pd_write(g, pd, (size_t)pd_offset + (size_t)1, pde_v[1]);
@@ -205,8 +205,8 @@ static void update_pte(struct vm_gk20a *vm,
 		gmmu_new_pte_kind_f(attrs->kind_v);
 
 #ifdef CONFIG_NVGPU_COMPRESSION
-	pte_w[1] |= gmmu_new_pte_comptagline_f((u32)(attrs->ctag /
-						     ctag_granularity));
+	pte_w[1] |= gmmu_new_pte_comptagline_f(
+		    nvgpu_safe_cast_u64_to_u32(attrs->ctag / ctag_granularity));
 
 	if (attrs->ctag != 0ULL) {
 		attrs->ctag += page_size;
@@ -295,7 +295,8 @@ static u32 gp10b_get_pde0_pgsz(struct gk20a *g, const struct gk20a_mmu_level *l,
 				struct nvgpu_gmmu_pd *pd, u32 pd_idx)
 {
 	u32 pde_base = pd->mem_offs / (u32)sizeof(u32);
-	u32 pde_offset = pde_base + nvgpu_pd_offset_from_index(l, pd_idx);
+	u32 pde_offset = nvgpu_safe_add_u32(pde_base,
+					nvgpu_pd_offset_from_index(l, pd_idx));
 	u32 pde_v[GP10B_PDE0_ENTRY_SIZE >> 2];
 	u32 i;
 	u32 pgsz = GMMU_NR_PAGE_SIZES;
