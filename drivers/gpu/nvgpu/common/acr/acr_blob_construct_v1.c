@@ -453,7 +453,8 @@ static int lsfm_add_ucode_img(struct gk20a *g, struct ls_flcn_mgr_v1 *plsfm,
 	pnode->wpr_header.status = LSF_IMAGE_STATUS_COPY;
 
 	pnode->wpr_header.lazy_bootstrap =
-		(u32)g->acr->lsf[falcon_id].is_lazy_bootstrap;
+		nvgpu_safe_cast_bool_to_u32(
+				g->acr->lsf[falcon_id].is_lazy_bootstrap);
 
 	/* Fill in static LSB header info elsewhere */
 	lsfm_fill_static_lsb_hdr_info(g, falcon_id, pnode);
@@ -622,7 +623,8 @@ static int lsf_gen_wpr_requirements(struct gk20a *g,
 			 */
 			/* Align (size bloat) and save off generic descriptor size*/
 			pnode->lsb_header.bl_data_size = ALIGN(
-				(u32)sizeof(pnode->bl_gen_desc),
+				nvgpu_safe_cast_u64_to_u32(
+						sizeof(pnode->bl_gen_desc)),
 				LSF_BL_DATA_SIZE_ALIGNMENT);
 
 			/*Align, save off, and include the additional BL data*/
@@ -810,8 +812,11 @@ static int lsfm_init_wpr_contents(struct gk20a *g,
 	 */
 	while (pnode != NULL) {
 		/* Flush WPR header to memory*/
-		nvgpu_mem_wr_n(g, ucode, i * (u32)sizeof(pnode->wpr_header),
-			&pnode->wpr_header, (u32)sizeof(pnode->wpr_header));
+		nvgpu_mem_wr_n(g, ucode,
+			nvgpu_safe_mult_u32(i,
+				nvgpu_safe_cast_u64_to_u32(sizeof(
+			pnode->wpr_header))), &pnode->wpr_header,
+			nvgpu_safe_cast_u64_to_u32(sizeof(pnode->wpr_header)));
 
 		nvgpu_acr_dbg(g, "wpr header");
 		nvgpu_acr_dbg(g, "falconid :%d",
@@ -828,7 +833,8 @@ static int lsfm_init_wpr_contents(struct gk20a *g,
 		/*Flush LSB header to memory*/
 		nvgpu_mem_wr_n(g, ucode, pnode->wpr_header.lsb_offset,
 				&pnode->lsb_header,
-				(u32)sizeof(pnode->lsb_header));
+				nvgpu_safe_cast_u64_to_u32(
+					sizeof(pnode->lsb_header)));
 
 		nvgpu_acr_dbg(g, "lsb header");
 		nvgpu_acr_dbg(g, "ucode_off :%x",
