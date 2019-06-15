@@ -110,11 +110,13 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 		.init_fs_state = vgpu_ltc_init_fs_state,
 		.flush = NULL,
 		.set_enabled = NULL,
+#ifdef CONFIG_NVGPU_DEBUGGER
 		.pri_is_ltc_addr = gm20b_ltc_pri_is_ltc_addr,
 		.is_ltcs_ltss_addr = gm20b_ltc_is_ltcs_ltss_addr,
 		.is_ltcn_ltss_addr = gm20b_ltc_is_ltcn_ltss_addr,
 		.split_lts_broadcast_addr = gm20b_ltc_split_lts_broadcast_addr,
 		.split_ltc_broadcast_addr = gm20b_ltc_split_ltc_broadcast_addr,
+#endif /* CONFIG_NVGPU_DEBUGGER */
 		.intr = {
 			.configure = NULL,
 			.isr = NULL,

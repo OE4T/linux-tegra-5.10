@@ -260,6 +260,7 @@ void gm20b_ltc_set_enabled(struct gk20a *g, bool enabled)
 	gk20a_writel(g, ltc_ltcs_ltss_tstg_set_mgmt_2_r(), reg);
 }
 
+#ifdef CONFIG_NVGPU_DEBUGGER
 /*
  * LTC pri addressing
  */
@@ -350,3 +351,4 @@ void gm20b_ltc_split_ltc_broadcast_addr(struct gk20a *g, u32 addr,
 					priv_addr_table, priv_addr_table_index);
 	}
 }
+#endif /* CONFIG_NVGPU_DEBUGGER */

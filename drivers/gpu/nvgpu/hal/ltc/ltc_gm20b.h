@@ -42,6 +42,7 @@ void gm20b_ltc_set_zbc_depth_entry(struct gk20a *g,
 void gm20b_ltc_set_enabled(struct gk20a *g, bool enabled);
 void gm20b_ltc_init_fs_state(struct gk20a *g);
 void gm20b_flush_ltc(struct gk20a *g);
+#ifdef CONFIG_NVGPU_DEBUGGER
 bool gm20b_ltc_pri_is_ltc_addr(struct gk20a *g, u32 addr);
 bool gm20b_ltc_is_ltcs_ltss_addr(struct gk20a *g, u32 addr);
 bool gm20b_ltc_is_ltcn_ltss_addr(struct gk20a *g, u32 addr);
@@ -51,5 +52,6 @@ void gm20b_ltc_split_lts_broadcast_addr(struct gk20a *g, u32 addr,
 void gm20b_ltc_split_ltc_broadcast_addr(struct gk20a *g, u32 addr,
 					u32 *priv_addr_table,
 					u32 *priv_addr_table_index);
+#endif /* CONFIG_NVGPU_DEBUGGER */
 
 #endif

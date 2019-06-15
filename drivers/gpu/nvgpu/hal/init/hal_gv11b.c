@@ -195,11 +195,13 @@ static const struct gpu_ops gv11b_ops = {
 		.init_fs_state = gv11b_ltc_init_fs_state,
 		.flush = gm20b_flush_ltc,
 		.set_enabled = gp10b_ltc_set_enabled,
+#ifdef CONFIG_NVGPU_DEBUGGER
 		.pri_is_ltc_addr = gm20b_ltc_pri_is_ltc_addr,
 		.is_ltcs_ltss_addr = gm20b_ltc_is_ltcs_ltss_addr,
 		.is_ltcn_ltss_addr = gm20b_ltc_is_ltcn_ltss_addr,
 		.split_lts_broadcast_addr = gm20b_ltc_split_lts_broadcast_addr,
 		.split_ltc_broadcast_addr = gm20b_ltc_split_ltc_broadcast_addr,
+#endif /* CONFIG_NVGPU_DEBUGGER */
 		.intr = {
 			.configure = gv11b_ltc_intr_configure,
 			.isr = gv11b_ltc_intr_isr,
