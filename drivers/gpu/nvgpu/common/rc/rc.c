@@ -174,7 +174,9 @@ void nvgpu_rc_tsg_and_related_engines(struct gk20a *g, struct nvgpu_tsg *tsg,
 	u32 eng_bitmask = 0U;
 	int err = 0;
 
+#ifdef CONFIG_NVGPU_DEBUGGER
 	nvgpu_mutex_acquire(&g->dbg_sessions_lock);
+#endif
 
 	/* disable tsg so that it does not get scheduled again */
 	g->ops.tsg.disable(tsg);
@@ -234,5 +236,7 @@ void nvgpu_rc_tsg_and_related_engines(struct gk20a *g, struct nvgpu_tsg *tsg,
 		nvgpu_tsg_abort(g, tsg, false);
 	}
 
+#ifdef CONFIG_NVGPU_DEBUGGER
 	nvgpu_mutex_release(&g->dbg_sessions_lock);
+#endif
 }

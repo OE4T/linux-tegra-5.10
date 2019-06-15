@@ -1962,6 +1962,7 @@ struct gk20a {
 	 */
 	struct nvgpu_semaphore_sea *sema_sea;
 
+#ifdef CONFIG_NVGPU_DEBUGGER
 	/* held while manipulating # of debug/profiler sessions present */
 	/* also prevents debug sessions from attaching until released */
 	struct nvgpu_mutex dbg_sessions_lock;
@@ -1969,16 +1970,9 @@ struct gk20a {
 	/*refcount for timeout disable */
 	nvgpu_atomic_t timeouts_disabled_refcount;
 
-#ifdef CONFIG_NVGPU_DEBUGGER
 	/* must have dbg_sessions_lock before use */
 	struct nvgpu_dbg_reg_op *dbg_regops_tmp_buf;
 	u32 dbg_regops_tmp_buf_ops;
-#endif
-
-#if defined(CONFIG_NVGPU_CYCLESTATS)
-	struct nvgpu_mutex		cs_lock;
-	struct gk20a_cs_snapshot	*cs_data;
-#endif
 
 	/* For perfbuf mapping */
 	struct {
@@ -1990,6 +1984,19 @@ struct gk20a {
 	struct nvgpu_list_node profiler_objects;
 	bool global_profiler_reservation_held;
 	int profiler_reservation_count;
+
+	bool mmu_debug_ctrl;
+#endif /* CONFIG_NVGPU_DEBUGGER */
+
+#ifdef CONFIG_NVGPU_FECS_TRACE
+	struct gk20a_ctxsw_trace *ctxsw_trace;
+	struct nvgpu_gr_fecs_trace *fecs_trace;
+#endif
+
+#ifdef CONFIG_NVGPU_CYCLESTATS
+	struct nvgpu_mutex		cs_lock;
+	struct gk20a_cs_snapshot	*cs_data;
+#endif
 
 	void (*remove_support)(struct gk20a *g);
 
@@ -2070,11 +2077,6 @@ struct gk20a {
 	struct gk20a_scale_profile *scale_profile;
 	unsigned long last_freq;
 
-	struct gk20a_ctxsw_trace *ctxsw_trace;
-	struct nvgpu_gr_fecs_trace *fecs_trace;
-
-	bool mmu_debug_ctrl;
-
 	u32 tpc_fs_mask_user;
 
 	u32 tpc_pg_mask;
@@ -2150,7 +2152,11 @@ struct gk20a {
 
 static inline bool nvgpu_is_timeouts_enabled(struct gk20a *g)
 {
+#ifdef CONFIG_NVGPU_DEBUGGER
 	return nvgpu_atomic_read(&g->timeouts_disabled_refcount) == 0;
+#else
+	return true;
+#endif
 }
 
 #define POLL_DELAY_MIN_US	10U

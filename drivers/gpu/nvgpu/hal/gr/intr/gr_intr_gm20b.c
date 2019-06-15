@@ -601,7 +601,9 @@ u32 gm20b_gr_intr_record_sm_error_state(struct gk20a *g, u32 gpc, u32 tpc, u32 s
 			nvgpu_safe_mult_u32(gpc_stride, gpc),
 			nvgpu_safe_mult_u32(tpc_in_gpc_stride, tpc));
 
+#ifdef CONFIG_NVGPU_DEBUGGER
 	nvgpu_mutex_acquire(&g->dbg_sessions_lock);
+#endif
 
 	sm_id = gr_gpc0_tpc0_sm_cfg_sm_id_v(
 			gk20a_readl(g, nvgpu_safe_add_u32(
@@ -620,7 +622,9 @@ u32 gm20b_gr_intr_record_sm_error_state(struct gk20a *g, u32 gpc, u32 tpc, u32 s
 	gm20b_gr_intr_read_sm_error_state(g, offset, sm_error_states);
 
 record_fail:
+#ifdef CONFIG_NVGPU_DEBUGGER
 	nvgpu_mutex_release(&g->dbg_sessions_lock);
+#endif
 
 	return sm_id;
 }

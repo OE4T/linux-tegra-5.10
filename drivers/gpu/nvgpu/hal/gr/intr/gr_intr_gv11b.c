@@ -1477,7 +1477,9 @@ u32 gv11b_gr_intr_record_sm_error_state(struct gk20a *g, u32 gpc, u32 tpc, u32 s
 	struct nvgpu_tsg_sm_error_state *sm_error_states = NULL;
 	struct nvgpu_tsg *tsg = NULL;
 
+#ifdef CONFIG_NVGPU_DEBUGGER
 	nvgpu_mutex_acquire(&g->dbg_sessions_lock);
+#endif
 
 	sm_per_tpc = nvgpu_get_litter_value(g, GPU_LIT_NUM_SM_PER_TPC);
 	gpc_offset = nvgpu_gr_gpc_offset(g, gpc);
@@ -1506,7 +1508,9 @@ u32 gv11b_gr_intr_record_sm_error_state(struct gk20a *g, u32 gpc, u32 tpc, u32 s
 	gv11b_gr_intr_read_sm_error_state(g, offset, sm_error_states);
 
 record_fail:
+#ifdef CONFIG_NVGPU_DEBUGGER
 	nvgpu_mutex_release(&g->dbg_sessions_lock);
+#endif
 
 	return sm_id;
 }
