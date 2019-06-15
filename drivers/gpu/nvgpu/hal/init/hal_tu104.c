@@ -326,10 +326,7 @@ static const struct gpu_ops tu104_ops = {
 		.get_offset_in_gpccs_segment =
 			gr_tu104_get_offset_in_gpccs_segment,
 		.set_debug_mode = gm20b_gr_set_debug_mode,
-		.reset = nvgpu_gr_reset,
 		.esr_bpt_pending_events = gv11b_gr_esr_bpt_pending_events,
-		.disable_ctxsw = nvgpu_gr_disable_ctxsw,
-		.enable_ctxsw = nvgpu_gr_enable_ctxsw,
 #endif /* CONFIG_NVGPU_DEBUGGER */
 		.ecc = {
 			.detect = NULL,

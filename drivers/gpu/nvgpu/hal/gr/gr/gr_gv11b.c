@@ -2114,7 +2114,7 @@ int gv11b_gr_clear_sm_error_state(struct gk20a *g,
 
 	(void)memset(&tsg->sm_error_states[sm_id], 0, sizeof(*tsg->sm_error_states));
 
-	err = g->ops.gr.disable_ctxsw(g);
+	err = nvgpu_gr_disable_ctxsw(g);
 	if (err != 0) {
 		nvgpu_err(g, "unable to stop gr ctxsw");
 		goto fail;
@@ -2146,7 +2146,7 @@ int gv11b_gr_clear_sm_error_state(struct gk20a *g,
 				0);
 	}
 
-	err = g->ops.gr.enable_ctxsw(g);
+	err = nvgpu_gr_enable_ctxsw(g);
 
 fail:
 	nvgpu_mutex_release(&g->dbg_sessions_lock);

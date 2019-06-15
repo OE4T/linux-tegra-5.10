@@ -38,6 +38,7 @@
 #include <nvgpu/regops.h>
 #include <nvgpu/gr/config.h>
 #include <nvgpu/gr/ctx.h>
+#include <nvgpu/gr/gr.h>
 #include <nvgpu/power_features/pg.h>
 
 #include <nvgpu/linux/vm.h>
@@ -1146,7 +1147,7 @@ static int nvgpu_dbg_gpu_ioctl_suspend_resume_sm(
 	nvgpu_mutex_acquire(&g->dbg_sessions_lock);
 
 	/* Suspend GPU context switching */
-	err = g->ops.gr.disable_ctxsw(g);
+	err = nvgpu_gr_disable_ctxsw(g);
 	if (err) {
 		nvgpu_err(g, "unable to stop gr ctxsw");
 		/* this should probably be ctx-fatal... */
@@ -1164,7 +1165,7 @@ static int nvgpu_dbg_gpu_ioctl_suspend_resume_sm(
 		break;
 	}
 
-	err = g->ops.gr.enable_ctxsw(g);
+	err = nvgpu_gr_enable_ctxsw(g);
 	if (err)
 		nvgpu_err(g, "unable to restart ctxsw!");
 

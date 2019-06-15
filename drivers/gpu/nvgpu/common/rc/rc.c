@@ -32,6 +32,7 @@
 #include <nvgpu/pbdma_status.h>
 #include <nvgpu/debug.h>
 #include <nvgpu/rc.h>
+#include <nvgpu/gr/gr.h>
 
 void nvgpu_rc_fifo_recover(struct gk20a *g, u32 eng_bitmask,
 			u32 hw_id, bool id_is_tsg,
@@ -196,10 +197,7 @@ void nvgpu_rc_tsg_and_related_engines(struct gk20a *g, struct nvgpu_tsg *tsg,
 	 * changing until engine status is checked to make sure tsg
 	 * being recovered is not loaded on the engines
 	 */
-#ifdef CONFIG_NVGPU_DEBUGGER
-	err = g->ops.gr.disable_ctxsw(g);
-#endif
-
+	err = nvgpu_gr_disable_ctxsw(g);
 	if (err != 0) {
 		/* if failed to disable ctxsw, just abort tsg */
 		nvgpu_err(g, "failed to disable ctxsw");
@@ -208,7 +206,6 @@ void nvgpu_rc_tsg_and_related_engines(struct gk20a *g, struct nvgpu_tsg *tsg,
 		eng_bitmask = g->ops.engine.get_mask_on_id(g,
 				tsg->tsgid, true);
 
-#ifdef CONFIG_NVGPU_DEBUGGER
 		/*
 		 * it is ok to enable ctxsw before tsg is recovered. If engines
 		 * is 0, no engine recovery is needed and if it is  non zero,
@@ -216,11 +213,10 @@ void nvgpu_rc_tsg_and_related_engines(struct gk20a *g, struct nvgpu_tsg *tsg,
 		 * By that time if tsg is not on the engine, engine need not
 		 * be reset.
 		 */
-		err = g->ops.gr.enable_ctxsw(g);
+		err = nvgpu_gr_enable_ctxsw(g);
 		if (err != 0) {
 			nvgpu_err(g, "failed to enable ctxsw");
 		}
-#endif
 	}
 	nvgpu_log_info(g, "release engines_reset_mutex");
 	nvgpu_mutex_release(&g->fifo.engines_reset_mutex);

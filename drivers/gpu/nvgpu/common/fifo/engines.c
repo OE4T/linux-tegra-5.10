@@ -39,6 +39,7 @@
 #include <nvgpu/soc.h>
 #include <nvgpu/top.h>
 #include <nvgpu/gr/gr_falcon.h>
+#include <nvgpu/gr/gr.h>
 #include <nvgpu/fifo.h>
 
 #define FECS_METHOD_WFI_RESTORE	0x80000U
@@ -563,18 +564,16 @@ void nvgpu_engine_reset(struct gk20a *g, u32 engine_id)
 				nvgpu_err(g, "failed to halt gr pipe");
 			}
 
-#ifdef CONFIG_NVGPU_DEBUGGER
 			/*
 			 * resetting engine using mc_enable_r() is not
 			 * enough, we do full init sequence
 			 */
 			nvgpu_log(g, gpu_dbg_info, "resetting gr engine");
 
-			err = g->ops.gr.reset(g);
+			err = nvgpu_gr_reset(g);
 			if (err != 0) {
 				nvgpu_err(g, "failed to reset gr engine");
 			}
-#endif
 		} else {
 			nvgpu_log(g, gpu_dbg_info,
 				"HALT gr pipe not supported and "

@@ -389,11 +389,8 @@ struct gpu_ops {
 		void (*set_debug_mode)(struct gk20a *g, bool enable);
 		int (*set_mmu_debug_mode)(struct gk20a *g,
 			struct nvgpu_channel *ch, bool enable);
-		int (*reset)(struct gk20a *g);
 		bool (*esr_bpt_pending_events)(u32 global_esr,
 					enum nvgpu_event_id_type bpt_event);
-		int (*disable_ctxsw)(struct gk20a *g);
-		int (*enable_ctxsw)(struct gk20a *g);
 #endif
 
 		struct {

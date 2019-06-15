@@ -54,6 +54,9 @@
 #include <nvgpu/fifo/userd.h>
 #include <nvgpu/fence.h>
 #include <nvgpu/preempt.h>
+#ifdef CONFIG_NVGPU_DEBUGGER
+#include <nvgpu/gr/gr.h>
+#endif
 
 static void free_channel(struct nvgpu_fifo *f, struct nvgpu_channel *ch);
 static void gk20a_channel_dump_ref_actions(struct nvgpu_channel *ch);
@@ -2750,7 +2753,7 @@ int nvgpu_channel_deferred_reset_engines(struct gk20a *g,
 		return 0;
 	}
 
-	err = g->ops.gr.disable_ctxsw(g);
+	err = nvgpu_gr_disable_ctxsw(g);
 	if (err != 0) {
 		nvgpu_err(g, "failed to disable ctxsw");
 		goto fail;
@@ -2785,7 +2788,7 @@ int nvgpu_channel_deferred_reset_engines(struct gk20a *g,
 	nvgpu_mutex_release(&f->deferred_reset_mutex);
 
 clean_up:
-	err = g->ops.gr.enable_ctxsw(g);
+	err = nvgpu_gr_enable_ctxsw(g);
 	if (err != 0) {
 		nvgpu_err(g, "failed to enable ctxsw");
 	}

@@ -215,9 +215,6 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 			gr_gk20a_get_offset_in_gpccs_segment,
 		.set_debug_mode = gm20b_gr_set_debug_mode,
 		.set_mmu_debug_mode = NULL,
-		.reset = NULL,
-		.disable_ctxsw = nvgpu_gr_disable_ctxsw,
-		.enable_ctxsw = nvgpu_gr_enable_ctxsw,
 #endif
 		.ctxsw_prog = {
 			.hw_get_fecs_header_size =
