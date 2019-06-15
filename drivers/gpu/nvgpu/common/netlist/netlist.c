@@ -243,6 +243,36 @@ static int nvgpu_netlist_init_ctx_vars_fw(struct gk20a *g)
 					goto clean_up;
 				}
 				break;
+			case NETLIST_REGIONID_SW_BUNDLE64_INIT:
+				nvgpu_log_info(g, "NETLIST_REGIONID_SW_BUNDLE64_INIT");
+				err = nvgpu_netlist_alloc_load_av_list64(g,
+					src, size,
+					&netlist_vars->sw_bundle64_init);
+				if (err != 0) {
+					goto clean_up;
+				}
+				break;
+			case NETLIST_REGIONID_BUFFER_SIZE:
+				netlist_vars->buffer_size = *src;
+				nvgpu_log_info(g, "NETLIST_REGIONID_BUFFER_SIZE : %d",
+					netlist_vars->buffer_size);
+				break;
+			case NETLIST_REGIONID_CTXSW_REG_BASE_INDEX:
+				netlist_vars->regs_base_index = *src;
+				nvgpu_log_info(g, "NETLIST_REGIONID_CTXSW_REG_BASE_INDEX : %u",
+					netlist_vars->regs_base_index);
+				break;
+			case NETLIST_REGIONID_MAJORV:
+				major_v = *src;
+				nvgpu_log_info(g, "NETLIST_REGIONID_MAJORV : %d",
+					major_v);
+				break;
+			case NETLIST_REGIONID_NETLIST_NUM:
+				netlist_num = *src;
+				nvgpu_log_info(g, "NETLIST_REGIONID_NETLIST_NUM : %d",
+					netlist_num);
+				break;
+#ifdef CONFIG_NVGPU_DEBUGGER
 			case NETLIST_REGIONID_CTXREG_SYS:
 				nvgpu_log_info(g, "NETLIST_REGIONID_CTXREG_SYS");
 				err = nvgpu_netlist_alloc_load_aiv_list(g,
@@ -308,26 +338,6 @@ static int nvgpu_netlist_init_ctx_vars_fw(struct gk20a *g)
 				if (err != 0) {
 					goto clean_up;
 				}
-				break;
-			case NETLIST_REGIONID_BUFFER_SIZE:
-				netlist_vars->buffer_size = *src;
-				nvgpu_log_info(g, "NETLIST_REGIONID_BUFFER_SIZE : %d",
-					netlist_vars->buffer_size);
-				break;
-			case NETLIST_REGIONID_CTXSW_REG_BASE_INDEX:
-				netlist_vars->regs_base_index = *src;
-				nvgpu_log_info(g, "NETLIST_REGIONID_CTXSW_REG_BASE_INDEX : %u",
-					netlist_vars->regs_base_index);
-				break;
-			case NETLIST_REGIONID_MAJORV:
-				major_v = *src;
-				nvgpu_log_info(g, "NETLIST_REGIONID_MAJORV : %d",
-					major_v);
-				break;
-			case NETLIST_REGIONID_NETLIST_NUM:
-				netlist_num = *src;
-				nvgpu_log_info(g, "NETLIST_REGIONID_NETLIST_NUM : %d",
-					netlist_num);
 				break;
 			case NETLIST_REGIONID_CTXREG_PMPPC:
 				nvgpu_log_info(g, "NETLIST_REGIONID_CTXREG_PMPPC");
@@ -433,15 +443,6 @@ static int nvgpu_netlist_init_ctx_vars_fw(struct gk20a *g)
 					goto clean_up;
 				}
 				break;
-			case NETLIST_REGIONID_SW_BUNDLE64_INIT:
-				nvgpu_log_info(g, "NETLIST_REGIONID_SW_BUNDLE64_INIT");
-				err = nvgpu_netlist_alloc_load_av_list64(g,
-					src, size,
-					&netlist_vars->sw_bundle64_init);
-				if (err != 0) {
-					goto clean_up;
-				}
-				break;
 			case NETLIST_REGIONID_NVPERF_PMCAU:
 				nvgpu_log_info(g, "NETLIST_REGIONID_NVPERF_PMCAU");
 				err = nvgpu_netlist_alloc_load_aiv_list(g,
@@ -451,6 +452,7 @@ static int nvgpu_netlist_init_ctx_vars_fw(struct gk20a *g)
 					goto clean_up;
 				}
 				break;
+#endif /* CONFIG_NVGPU_DEBUGGER */
 
 			default:
 				nvgpu_log_info(g, "unrecognized region %d skipped", i);
@@ -477,10 +479,12 @@ clean_up:
 		nvgpu_kfree(g, netlist_vars->ucode.gpccs.inst.l);
 		nvgpu_kfree(g, netlist_vars->ucode.gpccs.data.l);
 		nvgpu_kfree(g, netlist_vars->sw_bundle_init.l);
+		nvgpu_kfree(g, netlist_vars->sw_bundle64_init.l);
 		nvgpu_kfree(g, netlist_vars->sw_method_init.l);
 		nvgpu_kfree(g, netlist_vars->sw_ctx_load.l);
 		nvgpu_kfree(g, netlist_vars->sw_non_ctx_load.l);
 		nvgpu_kfree(g, netlist_vars->sw_veid_bundle_init.l);
+#ifdef CONFIG_NVGPU_DEBUGGER
 		nvgpu_kfree(g, netlist_vars->ctxsw_regs.sys.l);
 		nvgpu_kfree(g, netlist_vars->ctxsw_regs.gpc.l);
 		nvgpu_kfree(g, netlist_vars->ctxsw_regs.tpc.l);
@@ -504,8 +508,8 @@ clean_up:
 		nvgpu_kfree(g, netlist_vars->ctxsw_regs.pm_rop.l);
 		nvgpu_kfree(g, netlist_vars->ctxsw_regs.pm_ucgpc.l);
 		nvgpu_kfree(g, netlist_vars->ctxsw_regs.etpc.l);
-		nvgpu_kfree(g, netlist_vars->sw_bundle64_init.l);
 		nvgpu_kfree(g, netlist_vars->ctxsw_regs.pm_cau.l);
+#endif /* CONFIG_NVGPU_DEBUGGER */
 		nvgpu_release_firmware(g, netlist_fw);
 		err = -ENOENT;
 	}
@@ -553,6 +557,7 @@ void nvgpu_netlist_deinit_ctx_vars(struct gk20a *g)
 	nvgpu_kfree(g, netlist_vars->sw_method_init.l);
 	nvgpu_kfree(g, netlist_vars->sw_ctx_load.l);
 	nvgpu_kfree(g, netlist_vars->sw_non_ctx_load.l);
+#ifdef CONFIG_NVGPU_DEBUGGER
 	nvgpu_kfree(g, netlist_vars->ctxsw_regs.sys.l);
 	nvgpu_kfree(g, netlist_vars->ctxsw_regs.gpc.l);
 	nvgpu_kfree(g, netlist_vars->ctxsw_regs.tpc.l);
@@ -572,6 +577,7 @@ void nvgpu_netlist_deinit_ctx_vars(struct gk20a *g)
 	nvgpu_kfree(g, netlist_vars->ctxsw_regs.pm_ltc.l);
 	nvgpu_kfree(g, netlist_vars->ctxsw_regs.pm_fbpa.l);
 	nvgpu_kfree(g, netlist_vars->ctxsw_regs.pm_cau.l);
+#endif /* CONFIG_NVGPU_DEBUGGER */
 
 	nvgpu_kfree(g, netlist_vars);
 	g->netlist_vars = NULL;
@@ -693,6 +699,7 @@ struct netlist_u32_list *nvgpu_netlist_get_gpccs_data(struct gk20a *g)
 	return &g->netlist_vars->ucode.gpccs.data;
 }
 
+#ifdef CONFIG_NVGPU_DEBUGGER
 struct netlist_aiv_list *nvgpu_netlist_get_sys_ctxsw_regs(struct gk20a *g)
 {
 	return &g->netlist_vars->ctxsw_regs.sys;
@@ -807,6 +814,7 @@ struct netlist_aiv_list *nvgpu_netlist_get_pm_cau_ctxsw_regs(struct gk20a *g)
 {
 	return &g->netlist_vars->ctxsw_regs.pm_cau;
 }
+#endif /* CONFIG_NVGPU_DEBUGGER */
 
 void nvgpu_netlist_vars_set_dynamic(struct gk20a *g, bool set)
 {

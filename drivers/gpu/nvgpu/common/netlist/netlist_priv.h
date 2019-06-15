@@ -39,6 +39,7 @@ struct netlist_aiv_list;
 #define NETLIST_REGIONID_SW_CTX_LOAD		5
 #define NETLIST_REGIONID_SW_NON_CTX_LOAD	6
 #define NETLIST_REGIONID_SW_METHOD_INIT		7
+#ifdef CONFIG_NVGPU_DEBUGGER
 #define NETLIST_REGIONID_CTXREG_SYS		8
 #define NETLIST_REGIONID_CTXREG_GPC		9
 #define NETLIST_REGIONID_CTXREG_TPC		10
@@ -46,10 +47,12 @@ struct netlist_aiv_list;
 #define NETLIST_REGIONID_CTXREG_PM_SYS		12
 #define NETLIST_REGIONID_CTXREG_PM_GPC		13
 #define NETLIST_REGIONID_CTXREG_PM_TPC		14
+#endif
 #define NETLIST_REGIONID_MAJORV			15
 #define NETLIST_REGIONID_BUFFER_SIZE		16
 #define NETLIST_REGIONID_CTXSW_REG_BASE_INDEX	17
 #define NETLIST_REGIONID_NETLIST_NUM		18
+#ifdef CONFIG_NVGPU_DEBUGGER
 #define NETLIST_REGIONID_CTXREG_PPC		19
 #define NETLIST_REGIONID_CTXREG_PMPPC		20
 #define NETLIST_REGIONID_NVPERF_CTXREG_SYS	21
@@ -59,14 +62,19 @@ struct netlist_aiv_list;
 #define NETLIST_REGIONID_NVPERF_GPC_ROUTER	25
 #define NETLIST_REGIONID_CTXREG_PMLTC		26
 #define NETLIST_REGIONID_CTXREG_PMFBPA		27
+#endif
 #define NETLIST_REGIONID_SWVEIDBUNDLEINIT       28
+#ifdef CONFIG_NVGPU_DEBUGGER
 #define NETLIST_REGIONID_NVPERF_SYS_ROUTER      29
 #define NETLIST_REGIONID_NVPERF_PMA             30
 #define NETLIST_REGIONID_CTXREG_PMROP           31
 #define NETLIST_REGIONID_CTXREG_PMUCGPC         32
 #define NETLIST_REGIONID_CTXREG_ETPC            33
+#endif
 #define NETLIST_REGIONID_SW_BUNDLE64_INIT	34
+#ifdef CONFIG_NVGPU_DEBUGGER
 #define NETLIST_REGIONID_NVPERF_PMCAU		35
+#endif
 
 struct netlist_region {
 	u32 region_id;
@@ -105,6 +113,7 @@ struct nvgpu_netlist_vars {
 	struct netlist_aiv_list sw_ctx_load;
 	struct netlist_av_list  sw_non_ctx_load;
 	struct netlist_av_list  sw_veid_bundle_init;
+#ifdef CONFIG_NVGPU_DEBUGGER
 	struct {
 		struct netlist_aiv_list sys;
 		struct netlist_aiv_list gpc;
@@ -131,6 +140,7 @@ struct nvgpu_netlist_vars {
 		struct netlist_aiv_list etpc;
 		struct netlist_aiv_list pm_cau;
 	} ctxsw_regs;
+#endif /* CONFIG_NVGPU_DEBUGGER */
 };
 
 #endif /* NVGPU_NETLIST_PRIV_H */

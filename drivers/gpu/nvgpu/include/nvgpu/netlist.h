@@ -101,6 +101,7 @@ struct netlist_u32_list *nvgpu_netlist_get_fecs_data(struct gk20a *g);
 struct netlist_u32_list *nvgpu_netlist_get_gpccs_inst(struct gk20a *g);
 struct netlist_u32_list *nvgpu_netlist_get_gpccs_data(struct gk20a *g);
 
+#ifdef CONFIG_NVGPU_DEBUGGER
 struct netlist_aiv_list *nvgpu_netlist_get_sys_ctxsw_regs(struct gk20a *g);
 struct netlist_aiv_list *nvgpu_netlist_get_gpc_ctxsw_regs(struct gk20a *g);
 struct netlist_aiv_list *nvgpu_netlist_get_tpc_ctxsw_regs(struct gk20a *g);
@@ -129,6 +130,7 @@ struct netlist_aiv_list *nvgpu_netlist_get_pm_rop_ctxsw_regs(struct gk20a *g);
 struct netlist_aiv_list *nvgpu_netlist_get_pm_ucgpc_ctxsw_regs(struct gk20a *g);
 struct netlist_aiv_list *nvgpu_netlist_get_etpc_ctxsw_regs(struct gk20a *g);
 struct netlist_aiv_list *nvgpu_netlist_get_pm_cau_ctxsw_regs(struct gk20a *g);
+#endif /* CONFIG_NVGPU_DEBUGGER */
 
 void nvgpu_netlist_vars_set_dynamic(struct gk20a *g, bool set);
 void nvgpu_netlist_vars_set_buffer_size(struct gk20a *g, u32 size);
