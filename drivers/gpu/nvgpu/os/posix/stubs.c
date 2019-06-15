@@ -31,9 +31,11 @@
 
 struct gk20a;
 
+#ifdef CONFIG_NVGPU_DEBUGGER
 void nvgpu_dbg_session_post_event(struct dbg_session_gk20a *dbg_s)
 {
 }
+#endif
 
 int nvgpu_ecc_sysfs_init(struct gk20a *g)
 {

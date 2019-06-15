@@ -23,6 +23,8 @@
 #ifndef NVGPU_GR_HWPM_MAP_H
 #define NVGPU_GR_HWPM_MAP_H
 
+#ifdef CONFIG_NVGPU_DEBUGGER
+
 #include <nvgpu/types.h>
 
 struct gk20a;
@@ -49,4 +51,5 @@ int nvgpu_gr_hwmp_map_find_priv_offset(struct gk20a *g,
 	struct nvgpu_gr_hwpm_map *hwpm_map,
 	u32 addr, u32 *priv_offset, struct nvgpu_gr_config *config);
 
+#endif /* CONFIG_NVGPU_DEBUGGER */
 #endif /* NVGPU_GR_HWPM_MAP_H */

@@ -23,6 +23,8 @@
 #ifndef NVGPU_GV11B_PERF
 #define NVGPU_GV11B_PERF
 
+#ifdef CONFIG_NVGPU_DEBUGGER
+
 #include <nvgpu/types.h>
 
 struct gk20a;
@@ -41,4 +43,5 @@ void gv11b_perf_disable_membuf(struct gk20a *g);
 
 u32 gv11b_perf_get_pmm_per_chiplet_offset(void);
 
+#endif /* CONFIG_NVGPU_DEBUGGER */
 #endif

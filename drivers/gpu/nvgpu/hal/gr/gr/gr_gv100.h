@@ -25,6 +25,8 @@
 #ifndef NVGPU_GR_GV100_H
 #define NVGPU_GR_GV100_H
 
+#ifdef CONFIG_NVGPU_DEBUGGER
+
 #include <nvgpu/types.h>
 
 struct gk20a;
@@ -38,4 +40,5 @@ void gr_gv100_set_pmm_register(struct gk20a *g, u32 offset, u32 val,
 				u32 num_chiplets, u32 num_perfmons);
 void gr_gv100_get_num_hwpm_perfmon(struct gk20a *g, u32 *num_sys_perfmon,
 				u32 *num_fbp_perfmon, u32 *num_gpc_perfmon);
+#endif /* CONFIG_NVGPU_DEBUGGER */
 #endif /* NVGPU_GR_GV100_H */

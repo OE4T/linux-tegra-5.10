@@ -23,6 +23,8 @@
 #ifndef NVGPU_GR_FECS_TRACE_H
 #define NVGPU_GR_FECS_TRACE_H
 
+#ifdef CONFIG_NVGPU_FECS_TRACE
+
 #include <nvgpu/types.h>
 #include <nvgpu/list.h>
 #include <nvgpu/lock.h>
@@ -185,4 +187,5 @@ int nvgpu_gr_fecs_trace_write_entry(struct gk20a *g,
 			    struct nvgpu_gpu_ctxsw_trace_entry *entry);
 void nvgpu_gr_fecs_trace_wake_up(struct gk20a *g, int vmid);
 
+#endif /* CONFIG_NVGPU_FECS_TRACE */
 #endif /* NVGPU_GR_FECS_TRACE_H */

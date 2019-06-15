@@ -25,6 +25,8 @@
 #ifndef NVGPU_GM20B_GR_GM20B_H
 #define NVGPU_GM20B_GR_GM20B_H
 
+#ifdef CONFIG_NVGPU_DEBUGGER
+
 #include <nvgpu/types.h>
 
 struct gk20a;
@@ -63,4 +65,5 @@ int gm20b_gr_set_mmu_debug_mode(struct gk20a *g,
 		struct nvgpu_channel *ch, bool enable);
 bool gm20b_gr_esr_bpt_pending_events(u32 global_esr,
 				     enum nvgpu_event_id_type bpt_event);
+#endif /* CONFIG_NVGPU_DEBUGGER */
 #endif /* NVGPU_GM20B_GR_GM20B_H */

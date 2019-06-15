@@ -23,6 +23,8 @@
 #ifndef NVGPU_PERFBUF
 #define NVGPU_PERFBUF
 
+#ifdef CONFIG_NVGPU_DEBUGGER
+
 #include <nvgpu/types.h>
 
 struct gk20a;
@@ -30,4 +32,5 @@ struct gk20a;
 int nvgpu_perfbuf_enable_locked(struct gk20a *g, u64 offset, u32 size);
 int nvgpu_perfbuf_disable_locked(struct gk20a *g);
 
+#endif /* CONFIG_NVGPU_DEBUGGER */
 #endif

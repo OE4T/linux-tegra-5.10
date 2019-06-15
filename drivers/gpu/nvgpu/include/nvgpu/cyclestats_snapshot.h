@@ -25,6 +25,8 @@
 #ifndef CYCLESTATS_SNAPSHOT_H
 #define CYCLESTATS_SNAPSHOT_H
 
+#ifdef CONFIG_NVGPU_CYCLESTATS
+
 #include <nvgpu/types.h>
 #include <nvgpu/nvgpu_mem.h>
 #include <nvgpu/bug.h>
@@ -164,4 +166,5 @@ void nvgpu_free_cyclestats_snapshot_data(struct gk20a *g);
 
 u32 nvgpu_css_get_max_buffer_size(struct gk20a *g);
 
+#endif /* CONFIG_NVGPU_CYCLESTATS */
 #endif /* CYCLESTATS_SNAPSHOT_H */

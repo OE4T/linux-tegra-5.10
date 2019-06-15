@@ -24,6 +24,8 @@
 #ifndef GR_PRI_GK20A_H
 #define GR_PRI_GK20A_H
 
+#ifdef CONFIG_NVGPU_DEBUGGER
+
 /*
  * These convenience macros are generally for use in the management/modificaiton
  * of the context state store for gr/compute contexts.
@@ -260,4 +262,5 @@ enum ctxsw_addr_type {
 #define PRI_BROADCAST_FLAGS_PMM_FBPGS_LTC	BIT32(15)
 #define PRI_BROADCAST_FLAGS_PMM_FBPGS_ROP	BIT32(16)
 
+#endif /* CONFIG_NVGPU_DEBUGGER */
 #endif /* GR_PRI_GK20A_H */

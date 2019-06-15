@@ -25,6 +25,8 @@
 #ifndef NVGPU_GR_GV11B_H
 #define NVGPU_GR_GV11B_H
 
+#ifdef CONFIG_NVGPU_DEBUGGER
+
 struct gk20a;
 struct nvgpu_warpstate;
 struct nvgpu_debug_context;
@@ -95,4 +97,5 @@ int gr_gv11b_create_priv_addr_table(struct gk20a *g,
 void gr_gv11b_powergate_tpc(struct gk20a *g);
 bool gv11b_gr_esr_bpt_pending_events(u32 global_esr,
 				enum nvgpu_event_id_type bpt_event);
+#endif /* CONFIG_NVGPU_DEBUGGER */
 #endif /* NVGPU_GR_GV11B_H */

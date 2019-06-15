@@ -287,13 +287,13 @@ static void gk20a_free_channel(struct nvgpu_channel *ch, bool force)
 	struct nvgpu_fifo *f = &g->fifo;
 	struct vm_gk20a *ch_vm = ch->vm;
 	unsigned long timeout;
+#ifdef CONFIG_NVGPU_DEBUGGER
 	struct dbg_session_gk20a *dbg_s;
 	struct dbg_session_data *session_data, *tmp_s;
 	struct dbg_session_channel_data *ch_data, *tmp;
-	int err;
-#ifdef CONFIG_NVGPU_DEBUGGER
 	bool deferred_reset_pending;
 #endif
+	int err;
 
 	if (g == NULL) {
 		nvgpu_do_assert_print(g, "ch already freed");
@@ -474,6 +474,7 @@ unbind:
 
 	WARN_ON(ch->sync != NULL);
 
+#ifdef CONFIG_NVGPU_DEBUGGER
 	/* unlink all debug sessions */
 	nvgpu_mutex_acquire(&g->dbg_sessions_lock);
 
@@ -496,6 +497,7 @@ unbind:
 	}
 
 	nvgpu_mutex_release(&g->dbg_sessions_lock);
+#endif
 
 #if GK20A_CHANNEL_REFCOUNT_TRACKING
 	(void) memset(ch->ref_actions, 0, sizeof(ch->ref_actions));

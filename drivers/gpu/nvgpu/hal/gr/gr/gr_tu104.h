@@ -23,6 +23,8 @@
 #ifndef NVGPU_GR_TU104_H
 #define NVGPU_GR_TU104_H
 
+#ifdef CONFIG_NVGPU_DEBUGGER
+
 #include <nvgpu/types.h>
 
 struct gk20a;
@@ -37,4 +39,5 @@ void gr_tu104_init_sm_dsm_reg_info(void);
 void gr_tu104_get_sm_dsm_perf_ctrl_regs(struct gk20a *g,
 	u32 *num_sm_dsm_perf_ctrl_regs, u32 **sm_dsm_perf_ctrl_regs,
 	u32 *ctrl_register_stride);
+#endif /* CONFIG_NVGPU_DEBUGGER */
 #endif /* NVGPU_GR_TU104_H */

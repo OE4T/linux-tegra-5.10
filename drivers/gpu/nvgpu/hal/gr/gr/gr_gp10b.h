@@ -25,6 +25,8 @@
 #ifndef NVGPU_GR_GP10B_H
 #define NVGPU_GR_GP10B_H
 
+#ifdef CONFIG_NVGPU_DEBUGGER
+
 #include <nvgpu/types.h>
 
 struct gk20a;
@@ -62,4 +64,5 @@ int gr_gp10b_set_boosted_ctx(struct nvgpu_channel *ch,
 int gp10b_gr_fuse_override(struct gk20a *g);
 bool gr_gp10b_suspend_context(struct nvgpu_channel *ch,
 				bool *cilp_preempt_pending);
+#endif /* CONFIG_NVGPU_DEBUGGER */
 #endif /* NVGPU_GR_GP10B_H */

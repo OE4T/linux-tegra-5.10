@@ -24,6 +24,8 @@
 #ifndef GR_GK20A_H
 #define GR_GK20A_H
 
+#ifdef CONFIG_NVGPU_DEBUGGER
+
 #include <nvgpu/types.h>
 
 struct gk20a;
@@ -103,4 +105,5 @@ int gr_gk20a_get_offset_in_gpccs_segment(struct gk20a *g,
 	enum ctxsw_addr_type addr_type, u32 num_tpcs, u32 num_ppcs,
 	u32 reg_list_ppc_count, u32 *__offset_in_segment);
 
+#endif /* CONFIG_NVGPU_DEBUGGER */
 #endif /*__GR_GK20A_H__*/

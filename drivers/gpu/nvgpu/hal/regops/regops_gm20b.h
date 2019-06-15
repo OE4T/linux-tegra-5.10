@@ -25,6 +25,8 @@
 #ifndef NVGPU_REGOPS_GM20B_H
 #define NVGPU_REGOPS_GM20B_H
 
+#ifdef CONFIG_NVGPU_DEBUGGER
+
 const struct regop_offset_range *gm20b_get_global_whitelist_ranges(void);
 u64 gm20b_get_global_whitelist_ranges_count(void);
 const struct regop_offset_range *gm20b_get_context_whitelist_ranges(void);
@@ -38,4 +40,5 @@ u64 gm20b_get_qctl_whitelist_count(void);
 const struct regop_offset_range *gm20b_get_qctl_whitelist_ranges(void);
 u64 gm20b_get_qctl_whitelist_ranges_count(void);
 
+#endif /* CONFIG_NVGPU_DEBUGGER */
 #endif /* NVGPU_REGOPS_GM20B_H */

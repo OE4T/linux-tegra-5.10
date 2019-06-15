@@ -40,8 +40,11 @@ srcs +=	os/posix/nvgpu.c \
 	os/posix/posix-nvhost.c \
 	os/posix/posix-vgpu.c \
 	os/posix/posix-dt.c \
-	os/posix/posix-vidmem.c \
-	os/posix/fecs_trace_posix.c
+	os/posix/posix-vidmem.c
+
+ifdef CONFIG_NVGPU_FECS_TRACE
+srcs += os/posix/fecs_trace_posix.c
+endif
 
 ifdef CONFIG_NVGPU_NVLINK
 srcs +=	os/posix/posix-nvlink.c

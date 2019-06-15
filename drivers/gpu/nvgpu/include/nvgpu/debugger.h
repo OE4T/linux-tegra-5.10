@@ -24,6 +24,8 @@
 #ifndef NVGPU_DEBUGGER_H
 #define NVGPU_DEBUGGER_H
 
+#ifdef CONFIG_NVGPU_DEBUGGER
+
 #include <nvgpu/cond.h>
 #include <nvgpu/lock.h>
 #include <nvgpu/list.h>
@@ -134,4 +136,5 @@ void nvgpu_dbg_session_post_event(struct dbg_session_gk20a *dbg_s);
 u32 nvgpu_set_powergate_locked(struct dbg_session_gk20a *dbg_s,
 				bool mode);
 
+#endif /* CONFIG_NVGPU_DEBUGGER */
 #endif /* NVGPU_DEBUGGER_H */

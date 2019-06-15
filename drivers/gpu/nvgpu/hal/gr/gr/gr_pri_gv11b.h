@@ -24,6 +24,8 @@
 #ifndef GR_PRI_GV11B_H
 #define GR_PRI_GV11B_H
 
+#ifdef CONFIG_NVGPU_DEBUGGER
+
 /*
  * These convenience macros are generally for use in the management/modificaiton
  * of the context state store for gr/compute contexts.
@@ -47,4 +49,5 @@
 #define PRI_PMMS_ADDR_MASK(addr)      ((addr) & (BIT32(PRI_PMMS_ADDR_WIDTH) - 1U))
 #define PRI_PMMS_BASE_ADDR_MASK(addr) ((addr) & (~(BIT32(PRI_PMMS_ADDR_WIDTH) - 1U)))
 
+#endif /* CONFIG_NVGPU_DEBUGGER */
 #endif /* GR_PRI_GV11B_H */

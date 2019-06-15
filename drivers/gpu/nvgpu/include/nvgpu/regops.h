@@ -24,6 +24,8 @@
 #ifndef NVGPU_REGOPS_H
 #define NVGPU_REGOPS_H
 
+#ifdef CONFIG_NVGPU_DEBUGGER
+
 /*
  * Register operations
  * All operations are targeted towards first channel
@@ -89,4 +91,5 @@ bool reg_op_is_gr_ctx(u8 type);
 bool reg_op_is_read(u8 op);
 bool is_bar0_global_offset_whitelisted_gk20a(struct gk20a *g, u32 offset);
 
+#endif /* CONFIG_NVGPU_DEBUGGER */
 #endif /* NVGPU_REGOPS_H */
