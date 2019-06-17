@@ -200,6 +200,15 @@ static inline u32 nvgpu_safe_cast_s32_to_u32(s32 si_a)
 	}
 }
 
+static inline u64 nvgpu_safe_cast_s32_to_u64(s32 si_a)
+{
+	if (si_a < 0) {
+		BUG();
+	} else {
+		return (u64)si_a;
+	}
+}
+
 static inline u16 nvgpu_safe_cast_u32_to_u16(u32 ui_a)
 {
 	if (ui_a > USHRT_MAX) {
