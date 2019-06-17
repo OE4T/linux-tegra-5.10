@@ -566,7 +566,7 @@ int gr_gk20a_get_ctx_buffer_offsets(struct gk20a *g,
 
 	*num_offsets = num_registers;
 cleanup:
-	if (!IS_ERR_OR_NULL(priv_registers)) {
+	if (priv_registers != NULL) {
 		nvgpu_kfree(g, priv_registers);
 	}
 

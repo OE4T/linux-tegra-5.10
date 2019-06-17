@@ -34,30 +34,40 @@
 
 static struct tegra_hv_ivm_cookie *css_cookie;
 
-static struct tegra_hv_ivm_cookie *vgpu_css_reserve_mempool(struct gk20a *g)
+static int vgpu_css_reserve_mempool(struct gk20a *g,
+					struct tegra_hv_ivm_cookie **cookie_p)
 {
 	struct tegra_hv_ivm_cookie *cookie;
 	u32 mempool;
 	int err;
 
+	if (cookie_p == NULL) {
+		return -EINVAL;
+	}
+
 	err = nvgpu_dt_read_u32_index(g, "mempool-css", 1, &mempool);
 	if (err) {
 		nvgpu_err(g, "dt missing mempool-css");
-		return (struct tegra_hv_ivm_cookie *)ERR_PTR(err);
+		return err;
 	}
 
 	cookie = vgpu_ivm_mempool_reserve(mempool);
-	if (IS_ERR_OR_NULL(cookie)) {
+	if ((cookie == NULL) ||
+		((unsigned long)cookie >= (unsigned long)-MAX_ERRNO)) {
 		nvgpu_err(g, "mempool  %u reserve failed", mempool);
-		return (struct tegra_hv_ivm_cookie *)ERR_PTR(-EINVAL);
+		return -EINVAL;
 	}
-	return cookie;
+
+	*cookie_p = cookie;
+
+	return 0;
 }
 
 u32 vgpu_css_get_buffer_size(struct gk20a *g)
 {
 	struct tegra_hv_ivm_cookie *cookie;
 	u32 size;
+	int err;
 
 	nvgpu_log_fn(g, " ");
 
@@ -67,8 +77,8 @@ u32 vgpu_css_get_buffer_size(struct gk20a *g)
 		return size;
 	}
 
-	cookie = vgpu_css_reserve_mempool(g);
-	if (IS_ERR(cookie)) {
+	err = vgpu_css_reserve_mempool(g, &cookie);
+	if (0 != err) {
 		return 0;
 	}
 
@@ -92,9 +102,9 @@ static int vgpu_css_init_snapshot_buffer(struct gk20a *g)
 		return 0;
 	}
 
-	css_cookie = vgpu_css_reserve_mempool(g);
-	if (IS_ERR(css_cookie)) {
-		return PTR_ERR(css_cookie);
+	err = vgpu_css_reserve_mempool(g, &css_cookie);
+	if (0 != err) {
+		return err;
 	}
 
 	size = vgpu_ivm_get_size(css_cookie);

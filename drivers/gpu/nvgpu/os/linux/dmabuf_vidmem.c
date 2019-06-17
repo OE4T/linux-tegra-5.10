@@ -188,9 +188,8 @@ int nvgpu_vidmem_export_linux(struct gk20a *g, size_t bytes)
 		goto fail;
 	}
 
-	buf = nvgpu_vidmem_user_alloc(g, bytes);
-	if (IS_ERR(buf)) {
-		err = PTR_ERR(buf);
+	err = nvgpu_vidmem_user_alloc(g, bytes, &buf);
+	if (0 != err) {
 		goto fail;
 	}
 

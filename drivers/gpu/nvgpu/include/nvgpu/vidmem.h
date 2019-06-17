@@ -54,6 +54,7 @@ struct nvgpu_vidmem_buf {
  *
  * @g     - The GPU.
  * @bytes - Size of the buffer in bytes.
+ * @vidmem_buf - Pointer to return vidmem buffer.
  *
  * Allocate a generic (OS agnostic) vidmem buffer. This does not allocate the OS
  * specific interfacing for userspace sharing. Instead is is expected that the
@@ -64,9 +65,10 @@ struct nvgpu_vidmem_buf {
  * extra struct over nvgpu_mem. If a vidmem buffer is needed by the kernel
  * driver only then a simple nvgpu_dma_alloc_vid() or the like is sufficient.
  *
- * Returns a pointer to a vidmem buffer on success, 0 otherwise.
+ * Returns 0 on success and error value on failure.
  */
-struct nvgpu_vidmem_buf *nvgpu_vidmem_user_alloc(struct gk20a *g, size_t bytes);
+int nvgpu_vidmem_user_alloc(struct gk20a *g, size_t bytes,
+				struct nvgpu_vidmem_buf **vidmem_buf);
 
 void nvgpu_vidmem_buf_free(struct gk20a *g, struct nvgpu_vidmem_buf *buf);
 

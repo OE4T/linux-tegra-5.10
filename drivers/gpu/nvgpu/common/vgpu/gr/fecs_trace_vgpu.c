@@ -58,7 +58,8 @@ int vgpu_fecs_trace_init(struct gk20a *g)
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_FECS_CTXSW_TRACE, true);
 
 	vcst->cookie = vgpu_ivm_mempool_reserve(mempool);
-	if (IS_ERR(vcst->cookie)) {
+	if ((vcst->cookie == NULL) ||
+		((unsigned long)vcst->cookie >= (unsigned long)-MAX_ERRNO)) {
 		nvgpu_info(g,
 			"mempool  %u reserve failed", mempool);
 		vcst->cookie = NULL;

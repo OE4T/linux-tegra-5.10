@@ -553,19 +553,24 @@ static int nvgpu_vidmem_clear_all(struct gk20a *g)
 	return 0;
 }
 
-struct nvgpu_vidmem_buf *nvgpu_vidmem_user_alloc(struct gk20a *g, size_t bytes)
+int nvgpu_vidmem_user_alloc(struct gk20a *g, size_t bytes,
+				struct nvgpu_vidmem_buf **vidmem_buf)
 {
 	struct nvgpu_vidmem_buf *buf;
 	int err;
 
+	if (vidmem_buf == NULL) {
+		return -EINVAL;
+	}
+
 	err = nvgpu_vidmem_clear_all(g);
 	if (err != 0) {
-		return ERR_PTR(-ENOMEM);
+		return -ENOMEM;
 	}
 
 	buf = nvgpu_kzalloc(g, sizeof(*buf));
 	if (buf == NULL) {
-		return ERR_PTR(-ENOMEM);
+		return -ENOMEM;
 	}
 
 	buf->g = g;
@@ -586,13 +591,15 @@ struct nvgpu_vidmem_buf *nvgpu_vidmem_user_alloc(struct gk20a *g, size_t bytes)
 	 */
 	buf->mem->mem_flags |= NVGPU_MEM_FLAG_USER_MEM;
 
-	return buf;
+	*vidmem_buf = buf;
+
+	return 0;
 
 fail:
 	/* buf will never be NULL here. */
 	nvgpu_kfree(g, buf->mem);
 	nvgpu_kfree(g, buf);
-	return ERR_PTR(err);
+	return err;
 }
 
 void nvgpu_vidmem_buf_free(struct gk20a *g, struct nvgpu_vidmem_buf *buf)
@@ -600,7 +607,7 @@ void nvgpu_vidmem_buf_free(struct gk20a *g, struct nvgpu_vidmem_buf *buf)
 	/*
 	 * In some error paths it's convenient to be able to "free" a NULL buf.
 	 */
-	if (IS_ERR_OR_NULL(buf)) {
+	if (buf == NULL) {
 		return;
 	}
 
