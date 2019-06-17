@@ -1292,4 +1292,20 @@
 			<0x0 0x0E1B0000 0x0 0x00010000>;
 		status = "okay";
 	};
+
+	dce@d800000 {
+		compatible = "nvidia,tegra234-dce";
+		reg = <0x0 0x0d800000 0x0 0x00800000>;
+		interrupts =
+			<0 376 0x4>,
+			<0 377 0x4>,
+			<0 378 0x4>,
+			<0 379 0x4>,
+			<0 380 0x4>;
+		interrupt-names = "wdt-remote",
+			"dce-sm0", "dce-sm1",
+			"dce-sm2", "dce-sm3";
+		iommus = <&smmu TEGRA_SID_DCE>;
+		status = "disabled";
+	};
 };
