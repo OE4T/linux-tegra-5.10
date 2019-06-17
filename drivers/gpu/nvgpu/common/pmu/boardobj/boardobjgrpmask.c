@@ -227,3 +227,29 @@ bool nvgpu_boardobjgrpmask_sizeeq(struct boardobjgrpmask *op1,
 	return op1->bitcount == op2->bitcount;
 }
 
+int nvgpu_boardobjmask_or(struct boardobjgrpmask *dst,
+		struct boardobjgrpmask *mask1, struct boardobjgrpmask *mask2)
+{
+	u8 idx;
+
+	for (idx = 0; idx < dst->maskdatacount; idx++) {
+		dst->data[idx] = mask1->data[idx] | mask2->data[idx];
+	}
+
+	return 0;
+
+}
+
+int nvgpu_boardobjmask_and(struct boardobjgrpmask *dst,
+		struct boardobjgrpmask *mask1, struct boardobjgrpmask *mask2)
+{
+	u8 idx;
+
+	for (idx = 0; idx < dst->maskdatacount; idx++) {
+		dst->data[idx] = mask1->data[idx] & mask2->data[idx];
+	}
+
+	return 0;
+
+}
+

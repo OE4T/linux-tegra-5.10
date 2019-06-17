@@ -182,6 +182,47 @@ int nvgpu_vfe_var_boardobj_grp_get_status(struct gk20a *g) {
     return 0;
 }
 
+static int vfe_var_dependency_mask_build(struct gk20a *g,
+		struct vfe_vars *pvfe_vars)
+{
+	int status;
+	u8 index_1 = 0, index_2 = 0;
+	struct vfe_var *tmp_vfe_var_1 = NULL, *tmp_vfe_var_2 = NULL;
+	struct boardobj *pboardobj_1 = NULL, *pboardobj_2 = NULL;
+	struct boardobjgrp *pboardobjgrp = &(pvfe_vars->super.super);
+
+	/* Initialize mask_depending_vars */
+	BOARDOBJGRP_FOR_EACH(pboardobjgrp, struct boardobj*,
+			pboardobj_1, index_1) {
+		tmp_vfe_var_1 = (struct vfe_var *)(void *)pboardobj_1;
+		status = tmp_vfe_var_1->mask_depending_build(g, pboardobjgrp,
+				tmp_vfe_var_1);
+		if (status != 0) {
+			nvgpu_err(g, "failure in calling vfevar[%d].depmskbld",
+					index_1);
+			return status;
+		}
+	}
+	/* Initialize mask_dependent_vars */
+	BOARDOBJGRP_FOR_EACH(pboardobjgrp, struct boardobj*,
+			pboardobj_1, index_1) {
+		tmp_vfe_var_1 = (struct vfe_var *)(void *)pboardobj_1;
+		BOARDOBJGRP_ITERATOR(pboardobjgrp, struct boardobj*,
+				pboardobj_2, index_2,
+				&tmp_vfe_var_1->mask_depending_vars.super) {
+			tmp_vfe_var_2 = (struct vfe_var *)(void *)pboardobj_2;
+			status = nvgpu_boardobjgrpmask_bit_set(
+				&tmp_vfe_var_2->mask_dependent_vars.super,
+				index_1);
+			if (status != 0) {
+				nvgpu_err(g, "failing boardobjgrpmask_bit_set");
+				return status;
+			}
+		}
+	}
+	return status;
+}
+
 int nvgpu_vfe_var_sw_setup(struct gk20a *g)
 {
 	int status;
@@ -218,6 +259,11 @@ int nvgpu_vfe_var_sw_setup(struct gk20a *g)
 	pboardobjgrp->pmustatusinstget  = vfe_vars_pmustatus_instget;
 
 	status = devinit_get_vfe_var_table(g, pvfevarobjs);
+	if (status != 0) {
+		goto done;
+	}
+
+	status = vfe_var_dependency_mask_build(g, pvfevarobjs);
 	if (status != 0) {
 		goto done;
 	}
@@ -416,13 +462,22 @@ static int vfe_var_pmudatainit_super(struct gk20a *g,
 	return status;
 }
 
+static int vfe_var_build_depending_mask_null(struct gk20a *g,
+		struct boardobjgrp *pboardobjgrp,
+		struct vfe_var *pvfe_var)
+{
+	/* Individual vfe_var members should over_ride this with their */
+	/* respective function types */
+	return -EINVAL;
+}
+
 static int vfe_var_construct_super(struct gk20a *g,
 				   struct boardobj **ppboardobj,
 				   size_t size, void *pargs)
 {
 	struct vfe_var *pvfevar;
 	struct vfe_var *ptmpvar = (struct vfe_var *)pargs;
-	int status = 0;
+	int status;
 
 	nvgpu_log_info(g, " ");
 
@@ -439,8 +494,20 @@ static int vfe_var_construct_super(struct gk20a *g,
 	pvfevar->out_range_min = ptmpvar->out_range_min;
 	pvfevar->out_range_max = ptmpvar->out_range_max;
 	pvfevar->b_is_dynamic_valid = false;
+	pvfevar->mask_depending_build = vfe_var_build_depending_mask_null;
+
+	status = boardobjgrpmask_e32_init(&pvfevar->mask_depending_vars, NULL);
+	if (status != 0) {
+		return -EINVAL;
+	}
 	status = boardobjgrpmask_e32_init(&pvfevar->mask_dependent_vars, NULL);
+	if (status != 0) {
+		return -EINVAL;
+	}
 	status = boardobjgrpmask_e255_init(&pvfevar->mask_dependent_equs, NULL);
+	if (status != 0) {
+		return -EINVAL;
+	}
 	nvgpu_log_info(g, " ");
 
 	return status;
@@ -506,6 +573,41 @@ static int vfe_var_pmudatainit_derived_product(struct gk20a *g,
 	return status;
 }
 
+static int vfe_var_build_depending_mask_derived_product(struct gk20a *g,
+		struct boardobjgrp *pboardobjgrp,
+		struct vfe_var *pvfe_var)
+{
+	struct vfe_var_derived_product *pvar_dp =
+			(struct vfe_var_derived_product *)(void *)pvfe_var;
+	int status;
+	struct vfe_var *var0, *var1;
+
+	var0 = (struct vfe_var *)(void *)BOARDOBJGRP_OBJ_GET_BY_IDX(
+			pboardobjgrp, pvar_dp->var_idx0);
+	status = var0->mask_depending_build(g, pboardobjgrp, var0);
+	if (status != 0) {
+		nvgpu_err(g, " Failed calling vfevar[%d].mask_depending_build",
+				pvar_dp->var_idx0);
+		return status;
+	}
+
+	var1 = (struct vfe_var *)BOARDOBJGRP_OBJ_GET_BY_IDX(
+			pboardobjgrp,
+			pvar_dp->var_idx1);
+	status = var1->mask_depending_build(g, pboardobjgrp, var1);
+	if (status != 0) {
+		nvgpu_err(g, " Failed calling vfevar[%d].mask_depending_build",
+				pvar_dp->var_idx1);
+		return status;
+	}
+
+	status = nvgpu_boardobjmask_or(&(pvfe_var->mask_depending_vars.super),
+			&(var0->mask_depending_vars.super),
+			&(var1->mask_depending_vars.super));
+
+	return status;
+}
+
 static int vfe_var_construct_derived_product(struct gk20a *g,
 					     struct boardobj **ppboardobj,
 					     size_t size, void *pargs)
@@ -527,7 +629,8 @@ static int vfe_var_construct_derived_product(struct gk20a *g,
 	}
 
 	pvfevar = (struct vfe_var_derived_product *)(void *)*ppboardobj;
-
+	pvfevar->super.super.mask_depending_build =
+			vfe_var_build_depending_mask_derived_product;
 	pvfevar->super.super.super.pmudatainit =
 			vfe_var_pmudatainit_derived_product;
 
@@ -563,6 +666,41 @@ static int vfe_var_pmudatainit_derived_sum(struct gk20a *g,
 	return status;
 }
 
+static int vfe_var_build_depending_mask_derived_sum(struct gk20a *g,
+		struct boardobjgrp *pboardobjgrp,
+		struct vfe_var *pvfe_var)
+{
+	struct vfe_var_derived_sum *pvar_dsum =
+			(struct vfe_var_derived_sum *)(void *)pvfe_var;
+	int status;
+	struct vfe_var *var0, *var1;
+
+	var0 = (struct vfe_var *)BOARDOBJGRP_OBJ_GET_BY_IDX(
+			pboardobjgrp, pvar_dsum->var_idx0);
+	status = var0->mask_depending_build(g, pboardobjgrp, var0);
+	if (status != 0) {
+		nvgpu_err(g, " Failed calling vfevar[%d].mask_depending_build",
+				pvar_dsum->var_idx0);
+		return status;
+	}
+
+	var1 = (struct vfe_var *)(void *)BOARDOBJGRP_OBJ_GET_BY_IDX(
+			pboardobjgrp,
+			pvar_dsum->var_idx1);
+	status = var1->mask_depending_build(g, pboardobjgrp, var1);
+	if (status != 0) {
+		nvgpu_err(g, " Failed calling vfevar[%d].mask_depending_build",
+				pvar_dsum->var_idx1);
+		return status;
+	}
+
+	status = nvgpu_boardobjmask_or(&(pvfe_var->mask_depending_vars.super),
+			&(var0->mask_depending_vars.super),
+			&(var1)->mask_depending_vars.super);
+
+	return status;
+}
+
 static int vfe_var_construct_derived_sum(struct gk20a *g,
 					 struct boardobj **ppboardobj,
 					 size_t size, void *pargs)
@@ -584,7 +722,8 @@ static int vfe_var_construct_derived_sum(struct gk20a *g,
 	}
 
 	pvfevar = (struct vfe_var_derived_sum *)(void *)*ppboardobj;
-
+	pvfevar->super.super.mask_depending_build =
+				vfe_var_build_depending_mask_derived_sum;
 	pvfevar->super.super.super.pmudatainit =
 			vfe_var_pmudatainit_derived_sum;
 
@@ -640,6 +779,15 @@ static int vfe_var_pmudatainit_single_frequency(struct gk20a *g,
 	return status;
 }
 
+static int vfe_var_build_depending_mask_single(struct gk20a *g,
+		struct boardobjgrp *pboardobjgrp,
+		struct vfe_var *pvfe_var)
+{
+	return nvgpu_boardobjgrpmask_bit_set(
+			&pvfe_var->mask_depending_vars.super,
+			pvfe_var->super.idx);
+}
+
 static int vfe_var_construct_single_frequency(struct gk20a *g,
 					      struct boardobj **ppboardobj,
 					      size_t size, void *pargs)
@@ -663,7 +811,8 @@ static int vfe_var_construct_single_frequency(struct gk20a *g,
 	}
 
 	pvfevar = (struct vfe_var_single_frequency *)(void *)*ppboardobj;
-
+	pvfevar->super.super.mask_depending_build =
+				vfe_var_build_depending_mask_single;
 	pvfevar->super.super.super.pmudatainit =
 			vfe_var_pmudatainit_single_frequency;
 
@@ -980,7 +1129,8 @@ static int vfe_var_construct_single_voltage(struct gk20a *g,
 	}
 
 	pvfevar = (struct vfe_var_single_voltage *)(void *)*ppboardobj;
-
+	pvfevar->super.super.mask_depending_build =
+			vfe_var_build_depending_mask_single;
 	pvfevar->super.super.super.pmudatainit =
 			vfe_var_pmudatainit_single_voltage;
 
@@ -1289,7 +1439,8 @@ static int vfe_var_construct_single(struct gk20a *g,
 	}
 
 	pvfevar = (struct vfe_var_single *)(void *)*ppboardobj;
-
+	pvfevar->super.mask_depending_build =
+				vfe_var_build_depending_mask_single;
 	pvfevar->super.super.pmudatainit =
 			vfe_var_pmudatainit_single;
 

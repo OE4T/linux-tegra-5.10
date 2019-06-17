@@ -80,6 +80,11 @@ int nvgpu_boardobjgrpmask_bit_clr(struct boardobjgrpmask *mask, u8 bitidx);
 int nvgpu_boardobjgrpmask_bit_set(struct boardobjgrpmask *mask, u8 bitidx);
 bool nvgpu_boardobjgrpmask_bit_get(struct boardobjgrpmask *mask, u8 bitidx);
 
+int nvgpu_boardobjmask_or(struct boardobjgrpmask *dst,
+		struct boardobjgrpmask *mask1, struct boardobjgrpmask *mask2);
+int nvgpu_boardobjmask_and(struct boardobjgrpmask *dst,
+		struct boardobjgrpmask *mask1, struct boardobjgrpmask *mask2);
+
 /* Special interfaces */
 bool nvgpu_boardobjgrpmask_sizeeq(struct boardobjgrpmask *op1,
 		struct boardobjgrpmask *op2);

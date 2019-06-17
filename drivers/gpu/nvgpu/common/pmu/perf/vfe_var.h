@@ -39,8 +39,12 @@ struct vfe_var {
 	struct boardobj super;
 	u32 out_range_min;
 	u32 out_range_max;
+	struct boardobjgrpmask_e32 mask_depending_vars;
 	struct boardobjgrpmask_e32 mask_dependent_vars;
 	struct boardobjgrpmask_e255 mask_dependent_equs;
+	int (*mask_depending_build)(struct gk20a *g,
+			struct boardobjgrp *pboardobjgrp,
+			struct vfe_var *pvfe_var);
 	bool b_is_dynamic_valid;
 	bool b_is_dynamic;
 };
