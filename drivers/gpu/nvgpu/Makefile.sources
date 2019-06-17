@@ -100,7 +100,6 @@ srcs += common/utils/enabled.c \
 	common/ecc.c \
 	common/falcon/falcon.c \
 	common/falcon/falcon_sw_gk20a.c \
-	common/falcon/falcon_sw_gp106.c \
 	common/gr/gr.c \
 	common/gr/gr_utils.c \
 	common/gr/gr_intr.c \
@@ -261,7 +260,6 @@ srcs += common/utils/enabled.c \
 	hal/netlist/netlist_gm20b.c \
 	hal/netlist/netlist_gp10b.c \
 	hal/netlist/netlist_gv11b.c \
-	hal/nvdec/nvdec_gp106.c \
 	hal/sync/sema_cmdbuf_gk20a.c \
 	hal/sync/sema_cmdbuf_gv11b.c \
 	hal/sync/syncpt_cmdbuf_gk20a.c \
@@ -494,6 +492,7 @@ srcs += common/sec2/sec2.c \
 	common/vbios/bios.c \
 	common/vbios/bios_sw_gv100.c \
 	common/vbios/bios_sw_tu104.c \
+	common/falcon/falcon_sw_gp106.c \
 	common/falcon/falcon_sw_gv100.c \
 	common/falcon/falcon_sw_tu104.c \
 	common/acr/acr_sw_gv100.c \
@@ -535,6 +534,7 @@ srcs += common/sec2/sec2.c \
 	hal/fuse/fuse_gp106.c \
 	hal/netlist/netlist_gv100.c \
 	hal/netlist/netlist_tu104.c \
+	hal/nvdec/nvdec_gp106.c \
 	hal/nvdec/nvdec_tu104.c \
 	hal/gsp/gsp_gv100.c \
 	hal/sec2/sec2_gp106.c \

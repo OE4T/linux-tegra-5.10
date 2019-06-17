@@ -235,6 +235,8 @@ int nvgpu_acr_prepare_ucode_blob_v1(struct gk20a *g);
 int nvgpu_acr_lsf_pmu_ucode_details_v1(struct gk20a *g, void *lsf_ucode_img);
 int nvgpu_acr_lsf_fecs_ucode_details_v1(struct gk20a *g, void *lsf_ucode_img);
 int nvgpu_acr_lsf_gpccs_ucode_details_v1(struct gk20a *g, void *lsf_ucode_img);
+#ifdef CONFIG_NVGPU_DGPU
 int nvgpu_acr_lsf_sec2_ucode_details_v1(struct gk20a *g, void *lsf_ucode_img);
+#endif
 
 #endif /* ACR_BLOB_CONSTRUCT_V1_H */

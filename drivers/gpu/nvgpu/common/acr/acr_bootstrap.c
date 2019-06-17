@@ -112,6 +112,7 @@ struct vm_gk20a* acr_get_engine_vm(struct gk20a *g, u32 falcon_id)
 	case FALCON_ID_PMU:
 		vm = g->mm.pmu.vm;
 		break;
+#ifdef CONFIG_NVGPU_DGPU
 	case FALCON_ID_SEC2:
 		if (nvgpu_is_enabled(g, NVGPU_SUPPORT_SEC2_VM)) {
 			vm = g->mm.sec2.vm;
@@ -122,6 +123,7 @@ struct vm_gk20a* acr_get_engine_vm(struct gk20a *g, u32 falcon_id)
 			vm = g->mm.gsp.vm;
 		}
 		break;
+#endif
 	default:
 		vm = NULL;
 		break;

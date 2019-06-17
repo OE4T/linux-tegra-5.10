@@ -253,6 +253,7 @@ rel_sig:
 	return err;
 }
 
+#ifdef CONFIG_NVGPU_DGPU
 int nvgpu_acr_lsf_sec2_ucode_details_v1(struct gk20a *g, void *lsf_ucode_img)
 {
 	struct nvgpu_firmware *sec2_fw, *sec2_desc, *sec2_sig;
@@ -321,6 +322,7 @@ release_img_fw:
 	nvgpu_release_firmware(g, sec2_fw);
 	return err;
 }
+#endif
 
 /*
  * lsfm_parse_no_loader_ucode: parses UCODE header of falcon & updates

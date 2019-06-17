@@ -650,24 +650,26 @@ static struct nvgpu_falcon *falcon_get_instance(struct gk20a *g, u32 flcn_id)
 	case FALCON_ID_PMU:
 		flcn = &g->pmu_flcn;
 		break;
-	case FALCON_ID_SEC2:
-		flcn = &g->sec2.flcn;
-		break;
 	case FALCON_ID_FECS:
 		flcn = &g->fecs_flcn;
 		break;
 	case FALCON_ID_GPCCS:
 		flcn = &g->gpccs_flcn;
 		break;
+#ifdef CONFIG_NVGPU_DGPU
+	case FALCON_ID_GSPLITE:
+		flcn = &g->gsp_flcn;
+		break;
 	case FALCON_ID_NVDEC:
 		flcn = &g->nvdec_flcn;
+		break;
+	case FALCON_ID_SEC2:
+		flcn = &g->sec2.flcn;
 		break;
 	case FALCON_ID_MINION:
 		flcn = &g->minion_flcn;
 		break;
-	case FALCON_ID_GSPLITE:
-		flcn = &g->gsp_flcn;
-		break;
+#endif
 	default:
 		nvgpu_err(g, "Invalid/Unsupported falcon ID %x", flcn_id);
 		break;
