@@ -40,6 +40,186 @@ static struct vfe_equ *construct_vfe_equ(struct gk20a *g, void *pargs);
 static int devinit_get_vfe_equ_table(struct gk20a *g,
 	struct vfe_equs *pvfeequobjs);
 
+static int vfe_equ_node_depending_mask_combine(struct gk20a *g,
+		struct boardobjgrp *pboardobjgrp, u8 equ_idx,
+		struct boardobjgrpmask *pmask_dst)
+{
+	int status;
+	struct vfe_equ *tmp_vfe_equ;
+
+	while (equ_idx != CTRL_BOARDOBJ_IDX_INVALID) {
+		tmp_vfe_equ = (struct vfe_equ *)(void *)
+				BOARDOBJGRP_OBJ_GET_BY_IDX(
+						pboardobjgrp, equ_idx);
+		status = tmp_vfe_equ->mask_depending_build(g, pboardobjgrp ,
+				tmp_vfe_equ);
+		if (status != 0) {
+			nvgpu_err(g, " Failed calling vfeequ[%d].mskdpningbld",
+					equ_idx);
+			return status;
+		}
+
+		status = nvgpu_boardobjmask_or(pmask_dst, pmask_dst,
+				&(tmp_vfe_equ->mask_depending_vars.super));
+		if (status != 0) {
+			nvgpu_err(g, " Failed calling vfeequ boardobjmask_or");
+			return status;
+		}
+
+		equ_idx = tmp_vfe_equ->equ_idx_next;
+	}
+	return status;
+}
+
+static int vfe_equ_build_depending_mask_minmax(struct gk20a *g,
+		struct boardobjgrp *pboardobjgrp,
+		struct vfe_equ *pvfe_equ)
+{
+	struct vfe_equ_minmax *pequ_mm =
+			(struct vfe_equ_minmax *)(void *)pvfe_equ;
+	int status;
+
+	status = vfe_equ_node_depending_mask_combine(g, pboardobjgrp,
+			pequ_mm->equ_idx0, &pvfe_equ->mask_depending_vars.super);
+	if (status != 0) {
+		nvgpu_err(g, " Failed calling depending_mask_combine for idx0");
+		return status;
+	}
+
+	status = vfe_equ_node_depending_mask_combine(g, pboardobjgrp,
+			pequ_mm->equ_idx1, &pvfe_equ->mask_depending_vars.super);
+	if (status != 0) {
+		nvgpu_err(g, " Failed calling depending_mask_combine for idx1");
+		return status;
+	}
+
+	return status;
+}
+
+static int vfe_equ_build_depending_mask_super(struct gk20a *g,
+		struct vfe_equ *pvfe_equ)
+{
+	struct vfe_var *tmp_vfe_var;
+	struct boardobjgrp *pboardobjgrp =
+			&g->perf_pmu->vfe_varobjs.super.super;
+
+	tmp_vfe_var = (struct vfe_var *)(void *)BOARDOBJGRP_OBJ_GET_BY_IDX(
+			pboardobjgrp, pvfe_equ->var_idx);
+
+	pvfe_equ->mask_depending_vars = tmp_vfe_var->mask_depending_vars;
+
+	return 0;
+}
+
+static int vfe_equ_build_depending_mask_compare(struct gk20a *g,
+		struct boardobjgrp *pboardobjgrp,
+		struct vfe_equ *pvfe_equ)
+{
+	struct vfe_equ_compare *pequ_cmp =
+			(struct vfe_equ_compare *)(void *)pvfe_equ;
+	int status;
+
+	status = vfe_equ_build_depending_mask_super(g, pvfe_equ);
+	if (status != 0) {
+		nvgpu_err(g, " Failed calling depending_mask_super");
+		return status;
+	}
+
+	status = vfe_equ_node_depending_mask_combine(g, pboardobjgrp,
+			pequ_cmp->equ_idx_true,
+			&pvfe_equ->mask_depending_vars.super);
+	if (status != 0) {
+		nvgpu_err(g, " Failed calling depending_mask_combine for idx1");
+		return status;
+	}
+
+	status = vfe_equ_node_depending_mask_combine(g, pboardobjgrp,
+			pequ_cmp->equ_idx_false,
+			&pvfe_equ->mask_depending_vars.super);
+	if (status != 0) {
+		nvgpu_err(g, " Failed calling depending_mask_combine for idx1");
+		return status;
+	}
+
+	return status;
+}
+
+static int vfe_equ_build_depending_mask_quad(struct gk20a *g,
+		struct boardobjgrp *pboardobjgrp,
+		struct vfe_equ *pvfe_equ)
+{
+	return vfe_equ_build_depending_mask_super(g, pvfe_equ);
+}
+
+static int vfe_equ_build_depending_mask_equ_scalar(struct gk20a *g,
+		struct boardobjgrp *pboardobjgrp,
+		struct vfe_equ *pvfe_equ)
+{
+	struct vfe_equ_scalar *pequ_escalar =
+			(struct vfe_equ_scalar *)(void *)pvfe_equ;
+	int status;
+
+	status = vfe_equ_build_depending_mask_super(g, pvfe_equ);
+	if (status != 0) {
+		nvgpu_err(g, " Failed calling depending_mask_super");
+		return status;
+	}
+
+	status = vfe_equ_node_depending_mask_combine(g, pboardobjgrp,
+			pequ_escalar->equ_idx_to_scale,
+			&pvfe_equ->mask_depending_vars.super);
+	if (status != 0) {
+		nvgpu_err(g, " Failed calling depending_mask_combine for idx1");
+		return status;
+	}
+
+	return status;
+}
+
+static int vfe_equ_dependency_mask_build(struct gk20a *g,
+		struct vfe_equs *pvfe_equs, struct vfe_vars *pvfe_vars)
+{
+	int status;
+	struct vfe_equ *tmp_vfe_equ;
+	struct vfe_var *tmp_vfe_var;
+	u8 index_1, index_2;
+	struct boardobj *pboardobj_1 = NULL, *pboardobj_2 = NULL;
+	struct boardobjgrp *pboardobjgrp_equ = &(pvfe_equs->super.super);
+	struct boardobjgrp *pboardobjgrp_var = &(pvfe_vars->super.super);
+
+	/* Initialize mask_depending_vars */
+	BOARDOBJGRP_FOR_EACH(pboardobjgrp_equ, struct boardobj*,
+			pboardobj_1, index_1) {
+		tmp_vfe_equ = (struct vfe_equ *)(void *)pboardobj_1;
+		status = tmp_vfe_equ->mask_depending_build(g, pboardobjgrp_equ,
+				tmp_vfe_equ);
+		if (status != 0) {
+			nvgpu_err(g, "failure in calling vfeequ[%d].depmskbld",
+					index_1);
+			return status;
+		}
+	}
+	/* Initialize mask_dependent_vars */
+	BOARDOBJGRP_FOR_EACH(pboardobjgrp_equ, struct boardobj*,
+			pboardobj_1, index_1) {
+		tmp_vfe_equ = (struct vfe_equ *)(void *)pboardobj_1;
+		BOARDOBJGRP_ITERATOR(pboardobjgrp_var, struct boardobj*,
+				pboardobj_2, index_2,
+				&tmp_vfe_equ->mask_depending_vars.super) {
+			tmp_vfe_var = (struct vfe_var *)(void *)pboardobj_2;
+			status = nvgpu_boardobjgrpmask_bit_set(
+					&tmp_vfe_var->mask_dependent_equs.super,
+					index_1);
+			if (status != 0) {
+				nvgpu_err(g, "failing boardobjgrpmask_bit_set");
+				return status;
+			}
+		}
+	}
+	return status;
+
+}
+
 static int vfe_equs_pmudatainit(struct gk20a *g,
 				 struct boardobjgrp *pboardobjgrp,
 				 struct nv_pmu_boardobjgrp_super *pboardobjgrppmu)
@@ -83,6 +263,7 @@ int nvgpu_vfe_equ_sw_setup(struct gk20a *g)
 	int status;
 	struct boardobjgrp *pboardobjgrp = NULL;
 	struct vfe_equs *pvfeequobjs;
+	struct vfe_vars *pvfevarobjs;
 
 	nvgpu_log_info(g, " ");
 
@@ -97,6 +278,7 @@ int nvgpu_vfe_equ_sw_setup(struct gk20a *g)
 
 	pboardobjgrp = &g->perf_pmu->vfe_equobjs.super.super;
 	pvfeequobjs = &(g->perf_pmu->vfe_equobjs);
+	pvfevarobjs = &(g->perf_pmu->vfe_varobjs);
 
 	BOARDOBJGRP_PMU_CONSTRUCT(pboardobjgrp, PERF, VFE_EQU);
 
@@ -113,6 +295,11 @@ int nvgpu_vfe_equ_sw_setup(struct gk20a *g)
 	pboardobjgrp->pmudatainstget  = vfe_equs_pmudata_instget;
 
 	status = devinit_get_vfe_equ_table(g, pvfeequobjs);
+	if (status != 0) {
+		goto done;
+	}
+
+	status = vfe_equ_dependency_mask_build(g, pvfeequobjs, pvfevarobjs);
 	if (status != 0) {
 		goto done;
 	}
@@ -454,7 +641,7 @@ static int vfe_equ_construct_super(struct gk20a *g,
 	}
 
 	pvfeequ = (struct vfe_equ *)(void *)*ppboardobj;
-
+	status = boardobjgrpmask_e32_init(&pvfeequ->mask_depending_vars, NULL);
 	pvfeequ->super.pmudatainit =
 			vfe_equ_pmudatainit_super;
 
@@ -516,7 +703,8 @@ static int vfe_equ_construct_compare(struct gk20a *g,
 	}
 
 	pvfeequ = (struct vfe_equ_compare *)(void *)*ppboardobj;
-
+	pvfeequ->super.mask_depending_build =
+			vfe_equ_build_depending_mask_compare;
 	pvfeequ->super.super.pmudatainit =
 			vfe_equ_pmudatainit_compare;
 
@@ -577,7 +765,8 @@ static int vfe_equ_construct_minmax(struct gk20a *g,
 	}
 
 	pvfeequ = (struct vfe_equ_minmax *)(void *)*ppboardobj;
-
+	pvfeequ->super.mask_depending_build =
+			vfe_equ_build_depending_mask_minmax;
 	pvfeequ->super.super.pmudatainit =
 			vfe_equ_pmudatainit_minmax;
 	pvfeequ->b_max = ptmpequ->b_max;
@@ -636,6 +825,8 @@ static int vfe_equ_construct_quadratic(struct gk20a *g,
 	}
 
 	pvfeequ = (struct vfe_equ_quadratic *)(void *)*ppboardobj;
+	pvfeequ->super.mask_depending_build =
+			vfe_equ_build_depending_mask_quad;
 
 	pvfeequ->super.super.pmudatainit =
 			vfe_equ_pmudatainit_quadratic;
@@ -693,6 +884,8 @@ static int vfe_equ_construct_scalar(struct gk20a *g,
 	}
 
 	pvfeequ = (struct vfe_equ_scalar *)(void *)*ppboardobj;
+	pvfeequ->super.mask_depending_build =
+			vfe_equ_build_depending_mask_equ_scalar;
 
 	pvfeequ->super.super.pmudatainit =
 			vfe_equ_pmudatainit_scalar;

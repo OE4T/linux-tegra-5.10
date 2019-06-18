@@ -49,7 +49,10 @@ struct vfe_equ {
 	u8 output_type;
 	u32 out_range_min;
 	u32 out_range_max;
-
+	struct boardobjgrpmask_e32 mask_depending_vars;
+	int (*mask_depending_build)(struct gk20a *g,
+			struct boardobjgrp *pboardobjgrp,
+			struct vfe_equ *pvfe_equ);
 	bool b_is_dynamic_valid;
 	bool b_is_dynamic;
 };
