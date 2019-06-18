@@ -27,7 +27,7 @@
 #include <nvgpu/vgpu/tegra_vgpu.h>
 #include <nvgpu/channel.h>
 
-#include "common/vgpu/fifo/vgpu_fifo_gv11b.h"
+#include "syncpt_cmdbuf_gv11b_vgpu.h"
 #include "common/vgpu/ivc/comm_vgpu.h"
 
 #ifdef CONFIG_TEGRA_GK20A_NVHOST
@@ -73,7 +73,7 @@ static int set_syncpt_ro_map_gpu_va_locked(struct vm_gk20a *vm)
 	return 0;
 }
 
-int vgpu_gv11b_fifo_alloc_buf(struct nvgpu_channel *c,
+int vgpu_gv11b_syncpt_alloc_buf(struct nvgpu_channel *c,
 				u32 syncpt_id, struct nvgpu_mem *syncpt_buf)
 {
 	int err;
@@ -120,7 +120,7 @@ int vgpu_gv11b_fifo_alloc_buf(struct nvgpu_channel *c,
 	return 0;
 }
 
-void vgpu_gv11b_fifo_free_buf(struct nvgpu_channel *c,
+void vgpu_gv11b_syncpt_free_buf(struct nvgpu_channel *c,
 					struct nvgpu_mem *syncpt_buf)
 {
 	nvgpu_gmmu_unmap(c->vm, syncpt_buf, syncpt_buf->gpu_va);
@@ -128,7 +128,7 @@ void vgpu_gv11b_fifo_free_buf(struct nvgpu_channel *c,
 	nvgpu_dma_free(c->g, syncpt_buf);
 }
 
-int vgpu_gv11b_fifo_get_sync_ro_map(struct vm_gk20a *vm,
+int vgpu_gv11b_syncpt_get_sync_ro_map(struct vm_gk20a *vm,
 	u64 *base_gpuva, u32 *sync_size)
 {
 	struct gk20a *g = gk20a_from_vm(vm);
@@ -147,13 +147,3 @@ int vgpu_gv11b_fifo_get_sync_ro_map(struct vm_gk20a *vm,
 	return 0;
 }
 #endif /* CONFIG_TEGRA_GK20A_NVHOST */
-
-int vgpu_gv11b_init_fifo_setup_hw(struct gk20a *g)
-{
-	struct nvgpu_fifo *f = &g->fifo;
-	struct vgpu_priv_data *priv = vgpu_get_priv_data(g);
-
-	f->max_subctx_count = priv->constants.max_subctx_count;
-
-	return 0;
-}

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,16 +20,17 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NVGPU_VGPU_FIFO_GV11B_H
-#define NVGPU_VGPU_FIFO_GV11B_H
+#include <nvgpu/gk20a.h>
+#include <nvgpu/vgpu/vgpu.h>
 
-struct gk20a;
+#include "fifo_gv11b_vgpu.h"
 
-int vgpu_gv11b_init_fifo_setup_hw(struct gk20a *g);
-int vgpu_gv11b_fifo_alloc_buf(struct nvgpu_channel *c,
-			u32 syncpt_id, struct nvgpu_mem *syncpt_buf);
-void vgpu_gv11b_fifo_free_buf(struct nvgpu_channel *c,
-					struct nvgpu_mem *syncpt_buf);
-int vgpu_gv11b_fifo_get_sync_ro_map(struct vm_gk20a *vm,
-	u64 *base_gpuva, u32 *sync_size);
-#endif /* NVGPU_VGPU_FIFO_GV11B_H */
+int vgpu_gv11b_init_fifo_setup_hw(struct gk20a *g)
+{
+	struct nvgpu_fifo *f = &g->fifo;
+	struct vgpu_priv_data *priv = vgpu_get_priv_data(g);
+
+	f->max_subctx_count = priv->constants.max_subctx_count;
+
+	return 0;
+}

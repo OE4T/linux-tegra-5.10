@@ -36,8 +36,6 @@ all:
              common/vgpu/fifo/runlist_vgpu.h,
              common/vgpu/fifo/userd_vgpu.c,
              common/vgpu/fifo/userd_vgpu.h,
-             common/vgpu/fifo/vgpu_fifo_gv11b.c,
-             common/vgpu/fifo/vgpu_fifo_gv11b.h,
              common/vgpu/gp10b/vgpu_hal_gp10b.c,
              common/vgpu/gr/ctx_vgpu.c,
              common/vgpu/gr/ctx_vgpu.h,

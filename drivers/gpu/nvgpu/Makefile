@@ -597,7 +597,6 @@ nvgpu-$(CONFIG_TEGRA_GR_VIRTUALIZATION) += \
 	common/vgpu/fifo/engines_vgpu.o \
 	common/vgpu/fifo/preempt_vgpu.o \
 	common/vgpu/fifo/runlist_vgpu.o \
-	common/vgpu/fifo/vgpu_fifo_gv11b.o \
 	common/vgpu/fifo/ramfc_vgpu.o \
 	common/vgpu/fifo/userd_vgpu.o \
 	common/vgpu/ce_vgpu.o \
@@ -615,7 +614,9 @@ nvgpu-$(CONFIG_TEGRA_GR_VIRTUALIZATION) += \
 	common/vgpu/gr/fecs_trace_vgpu.o \
 	common/vgpu/gp10b/vgpu_hal_gp10b.o  \
 	common/vgpu/gv11b/vgpu_gv11b.o \
-	common/vgpu/gv11b/vgpu_hal_gv11b.o
+	common/vgpu/gv11b/vgpu_hal_gv11b.o \
+	hal/vgpu/fifo/fifo_gv11b_vgpu.o \
+	hal/vgpu/sync/syncpt_cmdbuf_gv11b_vgpu.o
 
 nvgpu-$(CONFIG_NVGPU_CYCLESTATS) += \
 	common/perf/cyclestats_snapshot.o \

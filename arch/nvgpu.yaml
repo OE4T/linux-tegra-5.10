@@ -47,11 +47,17 @@ nvgpu:
       children:
         !include nvgpu-interface.yaml
 
-    # Virtualizatikon code.
+    # Virtualization code.
     vgpu:
       safe: yes
       children:
         !include nvgpu-vgpu.yaml
+
+    # Virtualization HAL code.
+    hal-vgpu:
+      safe: yes
+      children:
+        !include nvgpu-hal-vgpu.yaml
 
     # A meta-element for the GPU HW. A good example of this is the HW headers.
     # This is not code we write in nvgpu, but we import it from the GPU HW

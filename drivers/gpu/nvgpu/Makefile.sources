@@ -438,7 +438,6 @@ srcs += common/vgpu/init/init_vgpu.c \
 	common/vgpu/fifo/engines_vgpu.c \
 	common/vgpu/fifo/preempt_vgpu.c \
 	common/vgpu/fifo/runlist_vgpu.c \
-	common/vgpu/fifo/vgpu_fifo_gv11b.c \
 	common/vgpu/fifo/ramfc_vgpu.c \
 	common/vgpu/fifo/userd_vgpu.c \
 	common/vgpu/perf/perf_vgpu.c \
@@ -454,7 +453,9 @@ srcs += common/vgpu/init/init_vgpu.c \
 	common/vgpu/ce_vgpu.c \
 	common/vgpu/gv11b/vgpu_gv11b.c \
 	common/vgpu/gv11b/vgpu_hal_gv11b.c \
-	common/vgpu/gp10b/vgpu_hal_gp10b.c
+	common/vgpu/gp10b/vgpu_hal_gp10b.c \
+	hal/vgpu/fifo/fifo_gv11b_vgpu.c \
+	hal/vgpu/sync/syncpt_cmdbuf_gv11b_vgpu.c
 
 ifeq ($(CONFIG_NVGPU_COMPRESSION),1)
 srcs += common/vgpu/cbc/cbc_vgpu.c

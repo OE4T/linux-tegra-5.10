@@ -84,8 +84,11 @@
 #include "hal/sync/sema_cmdbuf_gv11b.h"
 #include "hal/init/hal_gv11b.h"
 #include "hal/init/hal_gv11b_litter.h"
-
 #include "hal/fifo/channel_gv11b.h"
+
+#include "hal/vgpu/fifo/fifo_gv11b_vgpu.h"
+#include "hal/vgpu/sync/syncpt_cmdbuf_gv11b_vgpu.h"
+
 #include "common/clk_arb/clk_arb_gp10b.h"
 
 #include <nvgpu/gk20a.h>
@@ -112,7 +115,6 @@
 #include "common/vgpu/perf/perf_vgpu.h"
 #include "common/vgpu/gr/fecs_trace_vgpu.h"
 #include "common/vgpu/perf/cyclestats_snapshot_vgpu.h"
-#include "common/vgpu/fifo/vgpu_fifo_gv11b.h"
 #include "common/vgpu/ptimer/ptimer_vgpu.h"
 #include "vgpu_hal_gv11b.h"
 
@@ -567,8 +569,8 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 	.sync = {
 #ifdef CONFIG_TEGRA_GK20A_NVHOST
 		.syncpt = {
-			.alloc_buf = vgpu_gv11b_fifo_alloc_buf,
-			.free_buf = vgpu_gv11b_fifo_free_buf,
+			.alloc_buf = vgpu_gv11b_syncpt_alloc_buf,
+			.free_buf = vgpu_gv11b_syncpt_free_buf,
 			.add_wait_cmd = gv11b_syncpt_add_wait_cmd,
 			.get_wait_cmd_size =
 					gv11b_syncpt_get_wait_cmd_size,
@@ -577,7 +579,7 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 			.add_incr_cmd = gv11b_syncpt_add_incr_cmd,
 			.get_incr_cmd_size =
 					gv11b_syncpt_get_incr_cmd_size,
-			.get_sync_ro_map = vgpu_gv11b_fifo_get_sync_ro_map,
+			.get_sync_ro_map = vgpu_gv11b_syncpt_get_sync_ro_map,
 		},
 #endif
 		.sema = {
