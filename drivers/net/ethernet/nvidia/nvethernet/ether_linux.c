@@ -17,6 +17,130 @@
 #include "ether_linux.h"
 
 /**
+ *	ether_disable_clks - Disable all MAC related clks.
+ *	@pdata: OSD private data.
+ *
+ *	Algorithm: Release the reference counter for the clks by using
+ *	clock subsystem provided API's.
+ *
+ *	Dependencies: None.
+ *
+ *	Protection: None.
+ *
+ *	Return: None.
+ */
+static void ether_disable_clks(struct ether_priv_data *pdata)
+{
+	if (!IS_ERR_OR_NULL(pdata->axi_cbb_clk)) {
+		clk_disable_unprepare(pdata->axi_cbb_clk);
+	}
+
+	if (!IS_ERR_OR_NULL(pdata->axi_clk)) {
+		clk_disable_unprepare(pdata->axi_clk);
+	}
+
+	if (!IS_ERR_OR_NULL(pdata->rx_clk)) {
+		clk_disable_unprepare(pdata->rx_clk);
+	}
+
+	if (!IS_ERR_OR_NULL(pdata->ptp_ref_clk)) {
+		clk_disable_unprepare(pdata->ptp_ref_clk);
+	}
+
+	if (!IS_ERR_OR_NULL(pdata->tx_clk)) {
+		clk_disable_unprepare(pdata->tx_clk);
+	}
+
+	if (!IS_ERR_OR_NULL(pdata->pllrefe_clk)) {
+		clk_disable_unprepare(pdata->pllrefe_clk);
+	}
+}
+
+/**
+ *	ether_enable_clks - Enable all MAC related clks.
+ *	@pdata: OSD private data.
+ *
+ *	Algorithm: Enables the clks by using clock subsystem provided API's.
+ *
+ *	Dependencies: None.
+ *
+ *	Protection: None.
+ *
+ *	Return: 0 - success, negative value - failure.
+ */
+static int ether_enable_clks(struct ether_priv_data *pdata)
+{
+	int ret;
+
+	if (!IS_ERR_OR_NULL(pdata->pllrefe_clk)) {
+		ret = clk_prepare_enable(pdata->pllrefe_clk);
+		if (ret < 0) {
+			return ret;
+		}
+	}
+
+	if (!IS_ERR_OR_NULL(pdata->axi_cbb_clk)) {
+		ret = clk_prepare_enable(pdata->axi_cbb_clk);
+		if (ret) {
+			goto err_axi_cbb;
+		}
+	}
+
+	if (!IS_ERR_OR_NULL(pdata->axi_clk)) {
+		ret = clk_prepare_enable(pdata->axi_clk);
+		if (ret < 0) {
+			goto err_axi;
+		}
+	}
+
+	if (!IS_ERR_OR_NULL(pdata->rx_clk)) {
+		ret = clk_prepare_enable(pdata->rx_clk);
+		if (ret < 0) {
+			goto err_rx;
+		}
+	}
+
+	if (!IS_ERR_OR_NULL(pdata->ptp_ref_clk)) {
+		ret = clk_prepare_enable(pdata->ptp_ref_clk);
+		if (ret < 0) {
+			goto err_ptp_ref;
+		}
+	}
+
+	if (!IS_ERR_OR_NULL(pdata->tx_clk)) {
+		ret = clk_prepare_enable(pdata->tx_clk);
+		if (ret < 0) {
+			goto err_tx;
+		}
+	}
+
+	return 0;
+
+err_tx:
+	if (!IS_ERR_OR_NULL(pdata->ptp_ref_clk)) {
+		clk_disable_unprepare(pdata->ptp_ref_clk);
+	}
+err_ptp_ref:
+	if (!IS_ERR_OR_NULL(pdata->rx_clk)) {
+		clk_disable_unprepare(pdata->rx_clk);
+	}
+err_rx:
+	if (!IS_ERR_OR_NULL(pdata->axi_clk)) {
+		clk_disable_unprepare(pdata->axi_clk);
+	}
+err_axi:
+	if (!IS_ERR_OR_NULL(pdata->axi_cbb_clk)) {
+		clk_disable_unprepare(pdata->axi_cbb_clk);
+	}
+err_axi_cbb:
+	if (!IS_ERR_OR_NULL(pdata->pllrefe_clk)) {
+		clk_disable_unprepare(pdata->pllrefe_clk);
+	}
+
+	return ret;
+}
+
+/**
  *	ether_adjust_link - Adjust link call back
  *	@dev: Net device data.
  *
@@ -1021,14 +1145,35 @@ static int ether_therm_init(struct ether_priv_data *pdata)
 static int ether_open(struct net_device *dev)
 {
 	struct ether_priv_data *pdata = netdev_priv(dev);
+	struct osi_core_priv_data *osi_core = pdata->osi_core;
 	int ret = 0;
+
+	ret = ether_enable_clks(pdata);
+	if (ret < 0) {
+		dev_err(&dev->dev, "failed to enable clks\n");
+		return ret;
+	}
+
+	if (pdata->mac_rst) {
+		ret = reset_control_reset(pdata->mac_rst);
+		if (ret < 0) {
+			dev_err(&dev->dev, "failed to reset MAC HW\n");
+			goto err_mac_rst;
+		}
+	}
+
+	ret = osi_poll_for_swr(osi_core);
+	if (ret < 0) {
+		dev_err(&dev->dev, "failed to poll MAC Software reset\n");
+		goto err_poll_swr;
+	}
 
 	/* PHY reset and initialization */
 	ret = ether_phy_init(dev);
 	if (ret < 0) {
 		dev_err(&dev->dev, "%s: Cannot attach to PHY (error: %d)\n",
 			__func__, ret);
-		return ret;
+		goto err_phy_init;
 	}
 
 	/* request tx/rx/common irq */
@@ -1109,8 +1254,16 @@ err_therm:
 err_alloc:
 	ether_free_irqs(pdata);
 err_r_irq:
-	if (pdata->phydev)
+	if (pdata->phydev) {
 		phy_disconnect(pdata->phydev);
+	}
+err_phy_init:
+err_poll_swr:
+	if (pdata->mac_rst) {
+		reset_control_assert(pdata->mac_rst);
+	}
+err_mac_rst:
+	ether_disable_clks(pdata);
 
 	return ret;
 }
@@ -1131,17 +1284,17 @@ err_r_irq:
  */
 static int ether_close(struct net_device *dev)
 {
-	int ret = 0;
 	struct ether_priv_data *pdata = netdev_priv(dev);
+	int ret = 0;
 
 	/* Stop and disconnect the PHY */
 	if (pdata->phydev != NULL) {
 		phy_stop(pdata->phydev);
 		phy_disconnect(pdata->phydev);
 
-		if (gpio_is_valid(pdata->phy_reset))
+		if (gpio_is_valid(pdata->phy_reset)) {
 			gpio_set_value(pdata->phy_reset, 0);
-
+		}
 		pdata->phydev = NULL;
 	}
 
@@ -1168,6 +1321,14 @@ static int ether_close(struct net_device *dev)
 	osi_stop_mac(pdata->osi_core);
 
 	ether_napi_disable(pdata);
+
+	/* Assert MAC RST gpio */
+	if (pdata->mac_rst) {
+		reset_control_assert(pdata->mac_rst);
+	}
+
+	/* Disable clock */
+	ether_disable_clks(pdata);
 
 	return ret;
 }
@@ -2388,113 +2549,6 @@ static int ether_get_mac_address(struct ether_priv_data *pdata)
 }
 
 /**
- *	ether_disable_clks - Disable all MAC related clks.
- *	@pdata: OSD private data.
- *
- *	Algorithm: Release the reference counter for the clks by using
- *	clock subsystem provided API's.
- *
- *	Dependencies: None.
- *
- *	Protection: None.
- *
- *	Return: None.
- */
-static void ether_disable_clks(struct ether_priv_data *pdata)
-{
-	if (!IS_ERR_OR_NULL(pdata->axi_cbb_clk))
-		clk_disable_unprepare(pdata->axi_cbb_clk);
-
-	if (!IS_ERR_OR_NULL(pdata->axi_clk))
-		clk_disable_unprepare(pdata->axi_clk);
-
-	if (!IS_ERR_OR_NULL(pdata->rx_clk))
-		clk_disable_unprepare(pdata->rx_clk);
-
-	if (!IS_ERR_OR_NULL(pdata->ptp_ref_clk))
-		clk_disable_unprepare(pdata->ptp_ref_clk);
-
-	if (!IS_ERR_OR_NULL(pdata->tx_clk))
-		clk_disable_unprepare(pdata->tx_clk);
-
-	if (!IS_ERR_OR_NULL(pdata->pllrefe_clk))
-		clk_disable_unprepare(pdata->pllrefe_clk);
-}
-
-/**
- *	ether_enable_clks - Enable all MAC related clks.
- *	@pdata: OSD private data.
- *
- *	Algorithm: Enables the clks by using clock subsystem provided API's.
- *
- *	Dependencies: None.
- *
- *	Protection: None.
- *
- *	Return: 0 - success, negative value - failure.
- */
-static int ether_enable_clks(struct ether_priv_data *pdata)
-{
-	int ret;
-
-	if (!IS_ERR_OR_NULL(pdata->pllrefe_clk)) {
-		ret = clk_prepare_enable(pdata->pllrefe_clk);
-		if (ret < 0)
-			return ret;
-	}
-
-	if (!IS_ERR_OR_NULL(pdata->axi_cbb_clk)) {
-		ret = clk_prepare_enable(pdata->axi_cbb_clk);
-		if (ret)
-			goto err_axi_cbb;
-	}
-
-	if (!IS_ERR_OR_NULL(pdata->axi_clk)) {
-		ret = clk_prepare_enable(pdata->axi_clk);
-		if (ret < 0)
-			goto err_axi;
-	}
-
-	if (!IS_ERR_OR_NULL(pdata->rx_clk)) {
-		ret = clk_prepare_enable(pdata->rx_clk);
-		if (ret < 0)
-			goto err_rx;
-	}
-
-	if (!IS_ERR_OR_NULL(pdata->ptp_ref_clk)) {
-		ret = clk_prepare_enable(pdata->ptp_ref_clk);
-		if (ret < 0)
-			goto err_ptp_ref;
-	}
-
-	if (!IS_ERR_OR_NULL(pdata->tx_clk)) {
-		ret = clk_prepare_enable(pdata->tx_clk);
-		if (ret < 0)
-			goto err_tx;
-	}
-
-	return 0;
-
-err_tx:
-	if (!IS_ERR_OR_NULL(pdata->ptp_ref_clk))
-		clk_disable_unprepare(pdata->ptp_ref_clk);
-err_ptp_ref:
-	if (!IS_ERR_OR_NULL(pdata->rx_clk))
-		clk_disable_unprepare(pdata->rx_clk);
-err_rx:
-	if (!IS_ERR_OR_NULL(pdata->axi_clk))
-		clk_disable_unprepare(pdata->axi_clk);
-err_axi:
-	if (!IS_ERR_OR_NULL(pdata->axi_cbb_clk))
-		clk_disable_unprepare(pdata->axi_cbb_clk);
-err_axi_cbb:
-	if (!IS_ERR_OR_NULL(pdata->pllrefe_clk))
-		clk_disable_unprepare(pdata->pllrefe_clk);
-
-	return ret;
-}
-
-/**
  *	ether_put_clks - Put back MAC related clocks.
  *	@pdata: OSD private data.
  *
@@ -2695,8 +2749,9 @@ static int ether_configure_car(struct platform_device *pdev,
 	return ret;
 
 err_swr:
-	if (pdata->mac_rst)
-		reset_control_deassert(pdata->mac_rst);
+	if (pdata->mac_rst) {
+		reset_control_assert(pdata->mac_rst);
+	}
 err_rst:
 	ether_disable_clks(pdata);
 err_enable_clks:
@@ -3326,6 +3381,8 @@ static int ether_probe(struct platform_device *pdev)
 	spin_lock_init(&pdata->lock);
 	spin_lock_init(&pdata->ioctl_lock);
 	init_filter_values(pdata);
+	/* Disable Clocks */
+	ether_disable_clks(pdata);
 
 	dev_info(&pdev->dev,
 		 "%s (HW ver: %02x) created with %u DMA channels\n",
@@ -3377,6 +3434,10 @@ static int ether_remove(struct platform_device *pdev)
 	}
 
 	ether_disable_clks(pdata);
+	/* Assert MAC RST gpio */
+	if (pdata->mac_rst) {
+		reset_control_assert(pdata->mac_rst);
+	}
 	free_netdev(ndev);
 
 	return 0;
