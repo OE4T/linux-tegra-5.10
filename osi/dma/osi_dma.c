@@ -158,12 +158,18 @@ unsigned int osi_get_refill_rx_desc_cnt(struct osi_rx_ring *rx_ring)
 }
 
 void osi_rx_dma_desc_init(struct osi_rx_swcx *rx_swcx,
-			  struct osi_rx_desc *rx_desc)
+			  struct osi_rx_desc *rx_desc,
+			  unsigned int use_riwt)
 {
 	rx_desc->rdes0 = (unsigned int)L32(rx_swcx->buf_phy_addr);
 	rx_desc->rdes1 = (unsigned int)H32(rx_swcx->buf_phy_addr);
 	rx_desc->rdes2 = 0;
 	rx_desc->rdes3 = (RDES3_OWN | RDES3_IOC | RDES3_B1V);
+
+	/* reset IOC bit if RWIT is enabled */
+	if (use_riwt == OSI_ENABLE) {
+		rx_desc->rdes3 &= ~RDES3_IOC;
+	}
 }
 
 void osi_update_rx_tailptr(struct osi_dma_priv_data *osi_dma,
