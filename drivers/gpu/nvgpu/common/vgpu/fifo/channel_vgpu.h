@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,17 +20,22 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NVGPU_FIFO_VGPU_H
-#define NVGPU_FIFO_VGPU_H
-
-#include <nvgpu/types.h>
+#ifndef NVGPU_CHANNEL_VGPU_H
+#define NVGPU_CHANNEL_VGPU_H
 
 struct gk20a;
-struct tegra_vgpu_fifo_intr_info;
+struct nvgpu_channel;
 
-int vgpu_fifo_setup_sw(struct gk20a *g);
-void vgpu_fifo_cleanup_sw(struct gk20a *g);
-int vgpu_init_fifo_setup_hw(struct gk20a *g);
-int vgpu_fifo_isr(struct gk20a *g, struct tegra_vgpu_fifo_intr_info *info);
+void vgpu_channel_bind(struct nvgpu_channel *ch);
+void vgpu_channel_unbind(struct nvgpu_channel *ch);
+int vgpu_channel_alloc_inst(struct gk20a *g, struct nvgpu_channel *ch);
+void vgpu_channel_free_inst(struct gk20a *g, struct nvgpu_channel *ch);
+void vgpu_channel_enable(struct nvgpu_channel *ch);
+void vgpu_channel_disable(struct nvgpu_channel *ch);
+u32 vgpu_channel_count(struct gk20a *g);
+void vgpu_channel_set_ctx_mmu_error(struct gk20a *g, struct nvgpu_channel *ch);
+void vgpu_channel_set_error_notifier(struct gk20a *g,
+			struct tegra_vgpu_channel_set_error_notifier *p);
+void vgpu_channel_abort_cleanup(struct gk20a *g, u32 chid);
 
-#endif /* NVGPU_FIFO_VGPU_H */
+#endif

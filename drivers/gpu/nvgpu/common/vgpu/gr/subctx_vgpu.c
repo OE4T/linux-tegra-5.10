@@ -103,3 +103,8 @@ void vgpu_free_subctx_header(struct gk20a *g, struct nvgpu_gr_subctx *subctx,
 		nvgpu_kfree(g, subctx);
 	}
 }
+
+void vgpu_gr_setup_free_subctx(struct nvgpu_channel *c)
+{
+	vgpu_free_subctx_header(c->g, c->subctx, c->vm, c->virt_ctx);
+}

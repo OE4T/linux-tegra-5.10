@@ -81,6 +81,10 @@
 #include "common/clk_arb/clk_arb_gp10b.h"
 
 #include "common/vgpu/fifo/fifo_vgpu.h"
+#include "common/vgpu/fifo/channel_vgpu.h"
+#include "common/vgpu/fifo/tsg_vgpu.h"
+#include "common/vgpu/fifo/engines_vgpu.h"
+#include "common/vgpu/fifo/preempt_vgpu.h"
 #include "common/vgpu/fifo/runlist_vgpu.h"
 #include "common/vgpu/fifo/ramfc_vgpu.h"
 #include "common/vgpu/fifo/userd_vgpu.h"
@@ -455,7 +459,7 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 	.engine = {
 		.is_fault_engine_subid_gpc = gm20b_is_fault_engine_subid_gpc,
 		.get_mask_on_id = NULL,
-		.init_info = vgpu_fifo_init_engine_info,
+		.init_info = vgpu_engine_init_info,
 	},
 	.pbdma = {
 		.setup_sw = NULL,

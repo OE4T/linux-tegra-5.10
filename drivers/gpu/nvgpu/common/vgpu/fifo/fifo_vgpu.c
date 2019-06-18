@@ -33,177 +33,20 @@
 #include <nvgpu/barrier.h>
 #include <nvgpu/io.h>
 #include <nvgpu/error_notifier.h>
-#include <nvgpu/vgpu/vgpu_ivc.h>
-#include <nvgpu/vgpu/vgpu.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/channel.h>
 #include <nvgpu/fifo.h>
-#include <nvgpu/engines.h>
 #include <nvgpu/runlist.h>
 #include <nvgpu/string.h>
 #include <nvgpu/vm_area.h>
+#include <nvgpu/vgpu/vgpu_ivc.h>
+#include <nvgpu/vgpu/vgpu.h>
 
 #include <hal/fifo/tsg_gk20a.h>
 
 #include "fifo_vgpu.h"
-#include "common/vgpu/gr/subctx_vgpu.h"
-#include "common/vgpu/ivc/comm_vgpu.h"
-
-void vgpu_channel_bind(struct nvgpu_channel *ch)
-{
-	struct tegra_vgpu_cmd_msg msg;
-	struct tegra_vgpu_channel_config_params *p =
-			&msg.params.channel_config;
-	int err;
-	struct gk20a *g = ch->g;
-
-	nvgpu_log_info(g, "bind channel %d", ch->chid);
-
-	msg.cmd = TEGRA_VGPU_CMD_CHANNEL_BIND;
-	msg.handle = vgpu_get_handle(ch->g);
-	p->handle = ch->virt_ctx;
-	err = vgpu_comm_sendrecv(&msg, sizeof(msg), sizeof(msg));
-	WARN_ON(err || msg.ret);
-
-	nvgpu_smp_wmb();
-	nvgpu_atomic_set(&ch->bound, true);
-}
-
-void vgpu_channel_unbind(struct nvgpu_channel *ch)
-{
-	struct gk20a *g = ch->g;
-
-	nvgpu_log_fn(g, " ");
-
-	if (nvgpu_atomic_cmpxchg(&ch->bound, true, false)) {
-		struct tegra_vgpu_cmd_msg msg;
-		struct tegra_vgpu_channel_config_params *p =
-				&msg.params.channel_config;
-		int err;
-
-		msg.cmd = TEGRA_VGPU_CMD_CHANNEL_UNBIND;
-		msg.handle = vgpu_get_handle(ch->g);
-		p->handle = ch->virt_ctx;
-		err = vgpu_comm_sendrecv(&msg, sizeof(msg), sizeof(msg));
-		WARN_ON(err || msg.ret);
-	}
-
-}
-
-int vgpu_channel_alloc_inst(struct gk20a *g, struct nvgpu_channel *ch)
-{
-	struct tegra_vgpu_cmd_msg msg;
-	struct tegra_vgpu_channel_hwctx_params *p = &msg.params.channel_hwctx;
-	int err;
-
-	nvgpu_log_fn(g, " ");
-
-	msg.cmd = TEGRA_VGPU_CMD_CHANNEL_ALLOC_HWCTX;
-	msg.handle = vgpu_get_handle(g);
-	p->id = ch->chid;
-	p->pid = (u64)ch->pid;
-	err = vgpu_comm_sendrecv(&msg, sizeof(msg), sizeof(msg));
-	if (err || msg.ret) {
-		nvgpu_err(g, "fail");
-		return -ENOMEM;
-	}
-
-	ch->virt_ctx = p->handle;
-	nvgpu_log_fn(g, "done");
-	return 0;
-}
-
-void vgpu_channel_free_inst(struct gk20a *g, struct nvgpu_channel *ch)
-{
-	struct tegra_vgpu_cmd_msg msg;
-	struct tegra_vgpu_channel_hwctx_params *p = &msg.params.channel_hwctx;
-	int err;
-
-	nvgpu_log_fn(g, " ");
-
-	msg.cmd = TEGRA_VGPU_CMD_CHANNEL_FREE_HWCTX;
-	msg.handle = vgpu_get_handle(g);
-	p->handle = ch->virt_ctx;
-	err = vgpu_comm_sendrecv(&msg, sizeof(msg), sizeof(msg));
-	WARN_ON(err || msg.ret);
-}
-
-void vgpu_channel_enable(struct nvgpu_channel *ch)
-{
-	struct tegra_vgpu_cmd_msg msg;
-	struct tegra_vgpu_channel_config_params *p =
-			&msg.params.channel_config;
-	int err;
-	struct gk20a *g = ch->g;
-
-	nvgpu_log_fn(g, " ");
-
-	msg.cmd = TEGRA_VGPU_CMD_CHANNEL_ENABLE;
-	msg.handle = vgpu_get_handle(ch->g);
-	p->handle = ch->virt_ctx;
-	err = vgpu_comm_sendrecv(&msg, sizeof(msg), sizeof(msg));
-	WARN_ON(err || msg.ret);
-}
-
-void vgpu_channel_disable(struct nvgpu_channel *ch)
-{
-	struct tegra_vgpu_cmd_msg msg;
-	struct tegra_vgpu_channel_config_params *p =
-			&msg.params.channel_config;
-	int err;
-	struct gk20a *g = ch->g;
-
-	nvgpu_log_fn(g, " ");
-
-	msg.cmd = TEGRA_VGPU_CMD_CHANNEL_DISABLE;
-	msg.handle = vgpu_get_handle(ch->g);
-	p->handle = ch->virt_ctx;
-	err = vgpu_comm_sendrecv(&msg, sizeof(msg), sizeof(msg));
-	WARN_ON(err || msg.ret);
-}
-
-int vgpu_fifo_init_engine_info(struct nvgpu_fifo *f)
-{
-	struct vgpu_priv_data *priv = vgpu_get_priv_data(f->g);
-	struct tegra_vgpu_engines_info *engines = &priv->constants.engines_info;
-	u32 i;
-	struct gk20a *g = f->g;
-
-	nvgpu_log_fn(g, " ");
-
-	if (engines->num_engines > TEGRA_VGPU_MAX_ENGINES) {
-		nvgpu_err(f->g, "num_engines %d larger than max %d",
-			engines->num_engines, TEGRA_VGPU_MAX_ENGINES);
-		return -EINVAL;
-	}
-
-	f->num_engines = engines->num_engines;
-	for (i = 0; i < f->num_engines; i++) {
-		struct nvgpu_engine_info *info =
-				&f->engine_info[engines->info[i].engine_id];
-
-		if (engines->info[i].engine_id >= f->max_engines) {
-			nvgpu_err(f->g, "engine id %d larger than max %d",
-				engines->info[i].engine_id,
-				f->max_engines);
-			return -EINVAL;
-		}
-
-		info->intr_mask = engines->info[i].intr_mask;
-		info->reset_mask = engines->info[i].reset_mask;
-		info->runlist_id = engines->info[i].runlist_id;
-		info->pbdma_id = engines->info[i].pbdma_id;
-		info->inst_id = engines->info[i].inst_id;
-		info->pri_base = engines->info[i].pri_base;
-		info->engine_enum = engines->info[i].engine_enum;
-		info->fault_id = engines->info[i].fault_id;
-		f->active_engines_list[i] = engines->info[i].engine_id;
-	}
-
-	nvgpu_log_fn(g, "done");
-
-	return 0;
-}
+#include "channel_vgpu.h"
+#include "tsg_vgpu.h"
 
 void vgpu_fifo_cleanup_sw(struct gk20a *g)
 {
@@ -308,158 +151,14 @@ int vgpu_init_fifo_setup_hw(struct gk20a *g)
 	return 0;
 }
 
-int vgpu_fifo_preempt_channel(struct gk20a *g, struct nvgpu_channel *ch)
-{
-	struct tegra_vgpu_cmd_msg msg;
-	struct tegra_vgpu_channel_config_params *p =
-			&msg.params.channel_config;
-	int err;
-
-	nvgpu_log_fn(g, " ");
-
-	if (!nvgpu_atomic_read(&ch->bound)) {
-		return 0;
-	}
-
-	msg.cmd = TEGRA_VGPU_CMD_CHANNEL_PREEMPT;
-	msg.handle = vgpu_get_handle(g);
-	p->handle = ch->virt_ctx;
-	err = vgpu_comm_sendrecv(&msg, sizeof(msg), sizeof(msg));
-
-	if (err || msg.ret) {
-		nvgpu_err(g,
-			"preempt channel %d failed", ch->chid);
-		err = -ENOMEM;
-	}
-
-	return err;
-}
-
-int vgpu_fifo_preempt_tsg(struct gk20a *g, struct nvgpu_tsg *tsg)
-{
-	struct tegra_vgpu_cmd_msg msg;
-	struct tegra_vgpu_tsg_preempt_params *p =
-			&msg.params.tsg_preempt;
-	int err;
-
-	nvgpu_log_fn(g, " ");
-
-	msg.cmd = TEGRA_VGPU_CMD_TSG_PREEMPT;
-	msg.handle = vgpu_get_handle(g);
-	p->tsg_id = tsg->tsgid;
-	err = vgpu_comm_sendrecv(&msg, sizeof(msg), sizeof(msg));
-	err = err ? err : msg.ret;
-
-	if (err) {
-		nvgpu_err(g,
-			"preempt tsg %u failed", tsg->tsgid);
-	}
-
-	return err;
-}
-
-int vgpu_tsg_force_reset_ch(struct nvgpu_channel *ch,
-					u32 err_code, bool verbose)
-{
-	struct nvgpu_tsg *tsg = NULL;
-	struct nvgpu_channel *ch_tsg = NULL;
-	struct gk20a *g = ch->g;
-	struct tegra_vgpu_cmd_msg msg = {0};
-	struct tegra_vgpu_channel_config_params *p =
-			&msg.params.channel_config;
-	int err;
-
-	nvgpu_log_fn(g, " ");
-
-	tsg = nvgpu_tsg_from_ch(ch);
-	if (tsg != NULL) {
-		nvgpu_rwsem_down_read(&tsg->ch_list_lock);
-
-		nvgpu_list_for_each_entry(ch_tsg, &tsg->ch_list,
-				nvgpu_channel, ch_entry) {
-			if (nvgpu_channel_get(ch_tsg)) {
-				nvgpu_channel_set_error_notifier(g, ch_tsg,
-								err_code);
-				nvgpu_channel_set_unserviceable(ch_tsg);
-				nvgpu_channel_put(ch_tsg);
-			}
-		}
-
-		nvgpu_rwsem_up_read(&tsg->ch_list_lock);
-	} else {
-		nvgpu_err(g, "chid: %d is not bound to tsg", ch->chid);
-	}
-
-	msg.cmd = TEGRA_VGPU_CMD_CHANNEL_FORCE_RESET;
-	msg.handle = vgpu_get_handle(ch->g);
-	p->handle = ch->virt_ctx;
-	err = vgpu_comm_sendrecv(&msg, sizeof(msg), sizeof(msg));
-	WARN_ON(err || msg.ret);
-	if (!err) {
-		nvgpu_channel_abort(ch, false);
-	}
-	return err ? err : msg.ret;
-}
-
-static void vgpu_fifo_set_ctx_mmu_error_ch(struct gk20a *g,
-		struct nvgpu_channel *ch)
-{
-	/*
-	 * If error code is already set, this mmu fault
-	 * was triggered as part of recovery from other
-	 * error condition.
-	 * Don't overwrite error flag.
-	 */
-	nvgpu_set_error_notifier_if_empty(ch,
-		NVGPU_ERR_NOTIFIER_FIFO_ERROR_MMU_ERR_FLT);
-
-	/* mark channel as faulted */
-	nvgpu_channel_set_unserviceable(ch);
-
-	/* unblock pending waits */
-	nvgpu_cond_broadcast_interruptible(&ch->semaphore_wq);
-	nvgpu_cond_broadcast_interruptible(&ch->notifier_wq);
-}
-
-static void vgpu_fifo_set_ctx_mmu_error_ch_tsg(struct gk20a *g,
-		struct nvgpu_channel *ch)
-{
-	struct nvgpu_tsg *tsg = NULL;
-	struct nvgpu_channel *ch_tsg = NULL;
-
-	tsg = nvgpu_tsg_from_ch(ch);
-	if (tsg != NULL) {
-		nvgpu_rwsem_down_read(&tsg->ch_list_lock);
-
-		nvgpu_list_for_each_entry(ch_tsg, &tsg->ch_list,
-				nvgpu_channel, ch_entry) {
-			if (nvgpu_channel_get(ch_tsg)) {
-				vgpu_fifo_set_ctx_mmu_error_ch(g, ch_tsg);
-				nvgpu_channel_put(ch_tsg);
-			}
-		}
-
-		nvgpu_rwsem_up_read(&tsg->ch_list_lock);
-	} else {
-		nvgpu_err(g, "chid: %d is not bound to tsg", ch->chid);
-	}
-}
-
 int vgpu_fifo_isr(struct gk20a *g, struct tegra_vgpu_fifo_intr_info *info)
 {
 	struct nvgpu_channel *ch = nvgpu_channel_from_id(g, info->chid);
 
 	nvgpu_log_fn(g, " ");
-	if (!ch) {
-		return 0;
-	}
 
 	nvgpu_err(g, "fifo intr (%d) on ch %u",
 		info->type, info->chid);
-
-#ifdef CONFIG_NVGPU_TRACE
-	trace_gk20a_channel_reset(ch->chid, ch->tsgid);
-#endif
 
 	switch (info->type) {
 	case TEGRA_VGPU_FIFO_INTR_PBDMA:
@@ -471,7 +170,7 @@ int vgpu_fifo_isr(struct gk20a *g, struct tegra_vgpu_fifo_intr_info *info)
 			NVGPU_ERR_NOTIFIER_FIFO_ERROR_IDLE_TIMEOUT);
 		break;
 	case TEGRA_VGPU_FIFO_INTR_MMU_FAULT:
-		vgpu_fifo_set_ctx_mmu_error_ch_tsg(g, ch);
+		vgpu_tsg_set_ctx_mmu_error(g, info->chid);
 		nvgpu_channel_abort(ch, false);
 		break;
 	default:
@@ -481,72 +180,4 @@ int vgpu_fifo_isr(struct gk20a *g, struct tegra_vgpu_fifo_intr_info *info)
 
 	nvgpu_channel_put(ch);
 	return 0;
-}
-
-u32 vgpu_tsg_default_timeslice_us(struct gk20a *g)
-{
-	struct vgpu_priv_data *priv = vgpu_get_priv_data(g);
-
-	return priv->constants.default_timeslice_us;
-}
-
-u32 vgpu_channel_count(struct gk20a *g)
-{
-	struct vgpu_priv_data *priv = vgpu_get_priv_data(g);
-
-	return priv->constants.num_channels;
-}
-
-void vgpu_channel_free_ctx_header(struct nvgpu_channel *c)
-{
-	vgpu_free_subctx_header(c->g, c->subctx, c->vm, c->virt_ctx);
-}
-
-void vgpu_handle_channel_event(struct gk20a *g,
-			struct tegra_vgpu_channel_event_info *info)
-{
-	struct nvgpu_tsg *tsg;
-
-	if (!info->is_tsg) {
-		nvgpu_err(g, "channel event posted");
-		return;
-	}
-
-	if (info->id >= g->fifo.num_channels ||
-		info->event_id >= TEGRA_VGPU_CHANNEL_EVENT_ID_MAX) {
-		nvgpu_err(g, "invalid channel event");
-		return;
-	}
-
-	tsg = &g->fifo.tsg[info->id];
-
-	nvgpu_tsg_post_event_id(tsg, info->event_id);
-}
-
-void vgpu_channel_abort_cleanup(struct gk20a *g, u32 chid)
-{
-	struct nvgpu_channel *ch = nvgpu_channel_from_id(g, chid);
-
-	if (ch == NULL) {
-		nvgpu_err(g, "invalid channel id %d", chid);
-		return;
-	}
-
-	nvgpu_channel_set_unserviceable(ch);
-	g->ops.channel.abort_clean_up(ch);
-	nvgpu_channel_put(ch);
-}
-
-void vgpu_set_error_notifier(struct gk20a *g,
-		struct tegra_vgpu_channel_set_error_notifier *p)
-{
-	struct nvgpu_channel *ch;
-
-	if (p->chid >= g->fifo.num_channels) {
-		nvgpu_err(g, "invalid chid %d", p->chid);
-		return;
-	}
-
-	ch = &g->fifo.channel[p->chid];
-	g->ops.channel.set_error_notifier(ch, p->error);
 }

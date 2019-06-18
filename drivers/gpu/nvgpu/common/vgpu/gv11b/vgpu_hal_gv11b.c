@@ -95,11 +95,16 @@
 #include <nvgpu/error_notifier.h>
 
 #include "common/vgpu/fifo/fifo_vgpu.h"
+#include "common/vgpu/fifo/channel_vgpu.h"
+#include "common/vgpu/fifo/tsg_vgpu.h"
+#include "common/vgpu/fifo/engines_vgpu.h"
+#include "common/vgpu/fifo/preempt_vgpu.h"
 #include "common/vgpu/fifo/runlist_vgpu.h"
 #include "common/vgpu/fifo/ramfc_vgpu.h"
 #include "common/vgpu/fifo/userd_vgpu.h"
 #include "common/vgpu/gr/gr_vgpu.h"
 #include "common/vgpu/gr/ctx_vgpu.h"
+#include "common/vgpu/gr/subctx_vgpu.h"
 #include "common/vgpu/ltc/ltc_vgpu.h"
 #include "common/vgpu/mm/mm_vgpu.h"
 #include "common/vgpu/cbc/cbc_vgpu.h"
@@ -315,7 +320,7 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 #endif
 			.alloc_obj_ctx = vgpu_gr_alloc_obj_ctx,
 			.free_gr_ctx = vgpu_gr_free_gr_ctx,
-			.free_subctx = vgpu_channel_free_ctx_header,
+			.free_subctx = vgpu_gr_setup_free_subctx,
 			.set_preemption_mode = vgpu_gr_set_preemption_mode,
 		},
 #ifdef CONFIG_NVGPU_GRAPHICS
@@ -541,7 +546,7 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 	.engine = {
 		.is_fault_engine_subid_gpc = gv11b_is_fault_engine_subid_gpc,
 		.get_mask_on_id = NULL,
-		.init_info = vgpu_fifo_init_engine_info,
+		.init_info = vgpu_engine_init_info,
 	},
 	.pbdma = {
 		.setup_sw = NULL,

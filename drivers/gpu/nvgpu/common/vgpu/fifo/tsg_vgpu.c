@@ -26,9 +26,11 @@
 #include <nvgpu/bug.h>
 
 #include <nvgpu/vgpu/tegra_vgpu.h>
+#include <nvgpu/vgpu/vgpu_ivc.h>
 #include <nvgpu/vgpu/vgpu.h>
 
-#include "fifo/fifo_vgpu.h"
+#include "tsg_vgpu.h"
+#include "channel_vgpu.h"
 #include "common/vgpu/ivc/comm_vgpu.h"
 
 int vgpu_tsg_open(struct nvgpu_tsg *tsg)
@@ -195,4 +197,103 @@ int vgpu_tsg_set_interleave(struct nvgpu_tsg *tsg, u32 new_level)
 	err = vgpu_comm_sendrecv(&msg, sizeof(msg), sizeof(msg));
 	WARN_ON(err || msg.ret);
 	return err ? err : msg.ret;
+}
+
+int vgpu_tsg_force_reset_ch(struct nvgpu_channel *ch,
+					u32 err_code, bool verbose)
+{
+	struct nvgpu_tsg *tsg = NULL;
+	struct nvgpu_channel *ch_tsg = NULL;
+	struct gk20a *g = ch->g;
+	struct tegra_vgpu_cmd_msg msg = {0};
+	struct tegra_vgpu_channel_config_params *p =
+			&msg.params.channel_config;
+	int err;
+
+	nvgpu_log_fn(g, " ");
+
+	tsg = nvgpu_tsg_from_ch(ch);
+	if (tsg != NULL) {
+		nvgpu_rwsem_down_read(&tsg->ch_list_lock);
+
+		nvgpu_list_for_each_entry(ch_tsg, &tsg->ch_list,
+				nvgpu_channel, ch_entry) {
+			if (nvgpu_channel_get(ch_tsg)) {
+				nvgpu_channel_set_error_notifier(g, ch_tsg,
+								err_code);
+				nvgpu_channel_set_unserviceable(ch_tsg);
+				nvgpu_channel_put(ch_tsg);
+			}
+		}
+
+		nvgpu_rwsem_up_read(&tsg->ch_list_lock);
+	} else {
+		nvgpu_err(g, "chid: %d is not bound to tsg", ch->chid);
+	}
+
+	msg.cmd = TEGRA_VGPU_CMD_CHANNEL_FORCE_RESET;
+	msg.handle = vgpu_get_handle(ch->g);
+	p->handle = ch->virt_ctx;
+	err = vgpu_comm_sendrecv(&msg, sizeof(msg), sizeof(msg));
+	WARN_ON(err || msg.ret);
+	if (!err) {
+		nvgpu_channel_abort(ch, false);
+	}
+	return err ? err : msg.ret;
+}
+
+u32 vgpu_tsg_default_timeslice_us(struct gk20a *g)
+{
+	struct vgpu_priv_data *priv = vgpu_get_priv_data(g);
+
+	return priv->constants.default_timeslice_us;
+}
+
+void vgpu_tsg_set_ctx_mmu_error(struct gk20a *g, u32 chid)
+{
+	struct nvgpu_channel *ch = nvgpu_channel_from_id(g, chid);
+	struct nvgpu_tsg *tsg = NULL;
+
+	if (ch == NULL) {
+		return;
+	}
+
+	tsg = nvgpu_tsg_from_ch(ch);
+	if (tsg != NULL) {
+		struct nvgpu_channel *ch_tsg = NULL;
+
+		nvgpu_rwsem_down_read(&tsg->ch_list_lock);
+
+		nvgpu_list_for_each_entry(ch_tsg, &tsg->ch_list,
+				nvgpu_channel, ch_entry) {
+			if (nvgpu_channel_get(ch_tsg)) {
+				vgpu_channel_set_ctx_mmu_error(g, ch_tsg);
+				nvgpu_channel_put(ch_tsg);
+			}
+		}
+
+		nvgpu_rwsem_up_read(&tsg->ch_list_lock);
+	} else {
+		nvgpu_err(g, "chid: %d is not bound to tsg", ch->chid);
+	}
+}
+
+void vgpu_tsg_handle_event(struct gk20a *g,
+			struct tegra_vgpu_channel_event_info *info)
+{
+	struct nvgpu_tsg *tsg;
+
+	if (!info->is_tsg) {
+		nvgpu_err(g, "channel event posted");
+		return;
+	}
+
+	if (info->id >= g->fifo.num_channels ||
+		info->event_id >= TEGRA_VGPU_CHANNEL_EVENT_ID_MAX) {
+		nvgpu_err(g, "invalid channel event");
+		return;
+	}
+
+	tsg = &g->fifo.tsg[info->id];
+	g->ops.tsg.post_event_id(tsg, info->event_id);
 }

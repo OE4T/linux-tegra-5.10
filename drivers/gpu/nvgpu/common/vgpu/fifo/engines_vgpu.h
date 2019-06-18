@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,17 +20,9 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NVGPU_FIFO_VGPU_H
-#define NVGPU_FIFO_VGPU_H
+#ifndef NVGPU_ENGINES_VGPU_H
+#define NVGPU_ENGINES_VGPU_H
 
-#include <nvgpu/types.h>
+int vgpu_engine_init_info(struct nvgpu_fifo *f);
 
-struct gk20a;
-struct tegra_vgpu_fifo_intr_info;
-
-int vgpu_fifo_setup_sw(struct gk20a *g);
-void vgpu_fifo_cleanup_sw(struct gk20a *g);
-int vgpu_init_fifo_setup_hw(struct gk20a *g);
-int vgpu_fifo_isr(struct gk20a *g, struct tegra_vgpu_fifo_intr_info *info);
-
-#endif /* NVGPU_FIFO_VGPU_H */
+#endif

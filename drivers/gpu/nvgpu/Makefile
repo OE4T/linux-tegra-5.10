@@ -592,6 +592,10 @@ nvgpu-$(CONFIG_TEGRA_GR_VIRTUALIZATION) += \
 	common/vgpu/gr/ctx_vgpu.o \
 	common/vgpu/gr/subctx_vgpu.o \
 	common/vgpu/fifo/fifo_vgpu.o \
+	common/vgpu/fifo/channel_vgpu.o \
+	common/vgpu/fifo/tsg_vgpu.o \
+	common/vgpu/fifo/engines_vgpu.o \
+	common/vgpu/fifo/preempt_vgpu.o \
 	common/vgpu/fifo/runlist_vgpu.o \
 	common/vgpu/fifo/vgpu_fifo_gv11b.o \
 	common/vgpu/fifo/ramfc_vgpu.o \
@@ -605,7 +609,6 @@ nvgpu-$(CONFIG_TEGRA_GR_VIRTUALIZATION) += \
 	common/vgpu/intr/intr_vgpu.o \
 	common/vgpu/ptimer/ptimer_vgpu.o \
 	common/vgpu/debugger_vgpu.o \
-	common/vgpu/tsg_vgpu.o \
 	common/vgpu/perf/perf_vgpu.o \
 	common/vgpu/ecc_vgpu.o \
 	common/vgpu/clk_vgpu.o \

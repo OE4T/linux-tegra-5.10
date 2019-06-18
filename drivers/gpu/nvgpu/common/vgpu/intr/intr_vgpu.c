@@ -28,6 +28,8 @@
 #include "intr_vgpu.h"
 #include "common/vgpu/gr/fecs_trace_vgpu.h"
 #include "common/vgpu/fifo/fifo_vgpu.h"
+#include "common/vgpu/fifo/channel_vgpu.h"
+#include "common/vgpu/fifo/tsg_vgpu.h"
 #include "common/vgpu/mm/mm_vgpu.h"
 #include "common/vgpu/gr/gr_vgpu.h"
 
@@ -73,7 +75,7 @@ int vgpu_intr_thread(void *dev_id)
 			break;
 #endif
 		case TEGRA_VGPU_EVENT_CHANNEL:
-			vgpu_handle_channel_event(g, &msg->info.channel_event);
+			vgpu_tsg_handle_event(g, &msg->info.channel_event);
 			break;
 		case TEGRA_VGPU_EVENT_SM_ESR:
 			vgpu_gr_handle_sm_esr_event(g, &msg->info.sm_esr);
@@ -87,7 +89,7 @@ int vgpu_intr_thread(void *dev_id)
 					msg->info.ch_cleanup.chid);
 			break;
 		case TEGRA_VGPU_EVENT_SET_ERROR_NOTIFIER:
-			vgpu_set_error_notifier(g,
+			vgpu_channel_set_error_notifier(g,
 						&msg->info.set_error_notifier);
 			break;
 		default:
