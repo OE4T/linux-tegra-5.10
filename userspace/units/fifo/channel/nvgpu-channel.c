@@ -661,9 +661,6 @@ static int test_channel_setup_bind(struct unit_module *m,
 			g->os_channel.alloc_usermode_buffers;
 	struct nvgpu_setup_bind_args bind_args;
 
-	/* Stage test due to GVS failures */
-	return UNIT_SUCCESS;
-
 	tsg = nvgpu_tsg_open(g, getpid());
 	assert(tsg != NULL);
 
@@ -971,9 +968,6 @@ static int test_channel_enable_disable_tsg(struct unit_module *m,
 	bool privileged = false;
 	int err;
 	int ret = UNIT_FAIL;
-
-	/* Stage test due to GVS failures */
-	return UNIT_SUCCESS;
 
 	tsg = nvgpu_tsg_open(g, getpid());
 	assert(tsg != NULL);
