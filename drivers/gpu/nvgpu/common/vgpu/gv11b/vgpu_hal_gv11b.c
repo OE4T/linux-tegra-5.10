@@ -128,8 +128,6 @@
 
 #include "vgpu_gv11b.h"
 
-#include "vgpu_tsg_gv11b.h"
-
 #include <nvgpu/hw/gv11b/hw_pwr_gv11b.h>
 
 static const struct gpu_ops vgpu_gv11b_ops = {
@@ -658,7 +656,7 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 		.deinit_eng_method_buffers = NULL,
 		.enable = gv11b_tsg_enable,
 		.disable = nvgpu_tsg_disable,
-		.bind_channel = vgpu_gv11b_tsg_bind_channel,
+		.bind_channel = vgpu_tsg_bind_channel,
 		.bind_channel_eng_method_buffers = NULL,
 		.unbind_channel = vgpu_tsg_unbind_channel,
 		.unbind_channel_check_hw_state = NULL,

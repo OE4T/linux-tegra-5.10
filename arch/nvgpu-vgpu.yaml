@@ -50,8 +50,6 @@ all:
              common/vgpu/gv11b/vgpu_gv11b.c,
              common/vgpu/gv11b/vgpu_gv11b.h,
              common/vgpu/gv11b/vgpu_hal_gv11b.c,
-             common/vgpu/gv11b/vgpu_tsg_gv11b.c,
-             common/vgpu/gv11b/vgpu_tsg_gv11b.h,
              common/vgpu/ltc/ltc_vgpu.c,
              common/vgpu/ltc/ltc_vgpu.h,
              common/vgpu/mm/mm_vgpu.c,

@@ -615,8 +615,7 @@ nvgpu-$(CONFIG_TEGRA_GR_VIRTUALIZATION) += \
 	common/vgpu/gr/fecs_trace_vgpu.o \
 	common/vgpu/gp10b/vgpu_hal_gp10b.o  \
 	common/vgpu/gv11b/vgpu_gv11b.o \
-	common/vgpu/gv11b/vgpu_hal_gv11b.o \
-	common/vgpu/gv11b/vgpu_tsg_gv11b.o \
+	common/vgpu/gv11b/vgpu_hal_gv11b.o
 
 nvgpu-$(CONFIG_NVGPU_CYCLESTATS) += \
 	common/perf/cyclestats_snapshot.o \

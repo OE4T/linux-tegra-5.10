@@ -93,17 +93,31 @@ void vgpu_tsg_enable(struct nvgpu_tsg *tsg)
 int vgpu_tsg_bind_channel(struct nvgpu_tsg *tsg, struct nvgpu_channel *ch)
 {
 	struct tegra_vgpu_cmd_msg msg = {};
-	struct tegra_vgpu_tsg_bind_unbind_channel_params *p =
-				&msg.params.tsg_bind_unbind_channel;
 	int err;
 	struct gk20a *g = ch->g;
 
 	nvgpu_log_fn(g, " ");
 
-	msg.cmd = TEGRA_VGPU_CMD_TSG_BIND_CHANNEL;
+	if (!nvgpu_is_enabled(g, NVGPU_SUPPORT_TSG_SUBCONTEXTS)) {
+		struct tegra_vgpu_tsg_bind_unbind_channel_params *p =
+				&msg.params.tsg_bind_unbind_channel;
+
+		msg.cmd = TEGRA_VGPU_CMD_TSG_BIND_CHANNEL;
+		p->tsg_id = tsg->tsgid;
+		p->ch_handle = ch->virt_ctx;
+	} else {
+		struct tegra_vgpu_tsg_bind_channel_ex_params *p =
+				&msg.params.tsg_bind_channel_ex;
+
+		msg.cmd = TEGRA_VGPU_CMD_TSG_BIND_CHANNEL_EX;
+		p->tsg_id = tsg->tsgid;
+		p->ch_handle = ch->virt_ctx;
+		p->subctx_id = ch->subctx_id;
+		p->runqueue_sel = ch->runqueue_sel;
+	}
+
 	msg.handle = vgpu_get_handle(g);
-	p->tsg_id = tsg->tsgid;
-	p->ch_handle = ch->virt_ctx;
+
 	err = vgpu_comm_sendrecv(&msg, sizeof(msg), sizeof(msg));
 	err = err ? err : msg.ret;
 	if (err) {

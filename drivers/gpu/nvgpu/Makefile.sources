@@ -454,7 +454,6 @@ srcs += common/vgpu/init/init_vgpu.c \
 	common/vgpu/ce_vgpu.c \
 	common/vgpu/gv11b/vgpu_gv11b.c \
 	common/vgpu/gv11b/vgpu_hal_gv11b.c \
-	common/vgpu/gv11b/vgpu_tsg_gv11b.c \
 	common/vgpu/gp10b/vgpu_hal_gp10b.c
 
 ifeq ($(CONFIG_NVGPU_COMPRESSION),1)
