@@ -21,7 +21,6 @@
 / {
 	sound {
 		iommus = <&smmu TEGRA_SID_APE>;
-		dma-mask = <0x0 0x5e000000>;
 		iommu-resv-regions = <0x0 0x0 0x0 0x40000000 0x0 0x60000000 0xffffffff 0xffffffff>;
 		iommu-group-id = <TEGRA_IOMMU_GROUP_APE>;
 		status = "disabled";
@@ -29,7 +28,6 @@
 
 	sound_ref {
 		iommus = <&smmu TEGRA_SID_APE>;
-		dma-mask = <0x0 0x5e000000>;
 		iommu-resv-regions = <0x0 0x0 0x0 0x40000000 0x0 0x60000000 0xffffffff 0xffffffff>;
 		iommu-group-id = <TEGRA_IOMMU_GROUP_APE>;
 		status = "disabled";
@@ -134,7 +132,6 @@
 			resets = <&bpmp_resets TEGRA194_RESET_ADSP_ALL>;
 			reset-names = "adspall";
 			iommus = <&smmu TEGRA_SID_APE>;
-			dma-mask = <0x0 0x5e000000>;
 			iommu-resv-regions = <0x0 0x0 0x0 0x40000000 0x0 0x60000000 0xffffffff 0xffffffff>;
 			iommu-group-id = <TEGRA_IOMMU_GROUP_APE>;
 			status = "disabled";
