@@ -64,6 +64,9 @@
 #define HW_HASH_TBL_SZ_1		1
 #define HW_HASH_TBL_SZ_0		0
 
+#define ETHER_MAX_HW_MTU			9000U
+#define ETHER_DEFAULT_PLATFORM_MTU		1500U
+
 /* Map max. 4KB buffer per Tx descriptor */
 #define ETHER_MAX_DATA_LEN_PER_TXD_BUF BIT(12)
 
@@ -182,6 +185,7 @@ struct ether_rx_napi {
  *	@ptp_ref_clock_speed:	PTP reference clock supported by platform
  *	@hwts_tx_en:		HW tx time stamping enable
  *	@hwts_rx_en:		HW rx time stamping enable
+ *	@max_platform_mtu:	Max MTU supported by platform
  */
 struct ether_priv_data {
 	struct osi_core_priv_data *osi_core;
@@ -248,6 +252,7 @@ struct ether_priv_data {
 	unsigned int ptp_ref_clock_speed;
 	unsigned int hwts_tx_en;
 	unsigned int hwts_rx_en;
+	unsigned int max_platform_mtu;
 };
 
 void ether_set_ethtool_ops(struct net_device *ndev);

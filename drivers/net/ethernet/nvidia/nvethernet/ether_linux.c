@@ -3017,6 +3017,22 @@ static int ether_parse_dt(struct ether_priv_data *pdata)
 		osi_core->dcs_en = OSI_DISABLE;
 	}
 
+	/* Read MAX MTU size supported */
+	ret = of_property_read_u32(np, "nvidia,max-platform-mtu",
+				   &pdata->max_platform_mtu);
+	if (ret < 0) {
+		dev_err(dev, "max-platform-mtu DT entry missing, setting default %d\n",
+			ETHER_DEFAULT_PLATFORM_MTU);
+		pdata->max_platform_mtu = ETHER_DEFAULT_PLATFORM_MTU;
+	} else {
+		if (pdata->max_platform_mtu > ETHER_MAX_HW_MTU ||
+		    pdata->max_platform_mtu < ETH_MIN_MTU) {
+			dev_err(dev, "Invalid max-platform-mtu, setting default %d\n",
+				ETHER_DEFAULT_PLATFORM_MTU);
+			pdata->max_platform_mtu = ETHER_DEFAULT_PLATFORM_MTU;
+		}
+	}
+
 	/* RIWT value to be set */
 	ret = of_property_read_u32(np, "nvidia,rx_riwt", &osi_dma->rx_riwt);
 	if (ret < 0) {
@@ -3313,7 +3329,6 @@ static int ether_probe(struct platform_device *pdev)
 
 	osi_core->mtu = ndev->mtu;
 	osi_dma->mtu = ndev->mtu;
-	ndev->max_mtu = OSI_MAX_MTU_SIZE;
 
 	memset(&osi_core->xstats, 0,
 	       sizeof(struct osi_xtra_stat_counters));
@@ -3330,6 +3345,8 @@ static int ether_probe(struct platform_device *pdev)
 		dev_err(&pdev->dev, "failed to parse DT\n");
 		goto err_parse_dt;
 	}
+
+	ndev->max_mtu = pdata->max_platform_mtu;
 
 	/* get base address, clks, reset ID's and MAC address*/
 	ret = ether_init_plat_resources(pdev, pdata);
