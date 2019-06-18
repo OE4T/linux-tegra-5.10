@@ -54,7 +54,6 @@ all:
              common/vgpu/perf/perf_vgpu.c,
              common/vgpu/perf/perf_vgpu.h,
              common/vgpu/tsg_vgpu.c,
-             common/vgpu/vgpu.c,
              common/vgpu/fbp/fbp_vgpu.c,
              common/vgpu/fbp/fbp_vgpu.h,
              common/vgpu/gp10b/vgpu_hal_gp10b.h,
