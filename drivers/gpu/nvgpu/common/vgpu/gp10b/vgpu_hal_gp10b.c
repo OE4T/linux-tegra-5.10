@@ -107,13 +107,13 @@
 static const struct gpu_ops vgpu_gp10b_ops = {
 	.ltc = {
 		.determine_L2_size_bytes = vgpu_determine_L2_size_bytes,
+		.init_fs_state = vgpu_ltc_init_fs_state,
+		.flush = NULL,
+		.set_enabled = NULL,
 #ifdef CONFIG_NVGPU_GRAPHICS
 		.set_zbc_color_entry = NULL,
 		.set_zbc_depth_entry = NULL,
 #endif /* CONFIG_NVGPU_GRAPHICS */
-		.init_fs_state = vgpu_ltc_init_fs_state,
-		.flush = NULL,
-		.set_enabled = NULL,
 #ifdef CONFIG_NVGPU_DEBUGGER
 		.pri_is_ltc_addr = gm20b_ltc_pri_is_ltc_addr,
 		.is_ltcs_ltss_addr = gm20b_ltc_is_ltcs_ltss_addr,
@@ -192,6 +192,15 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 			.get_patch_count = gm20b_ctxsw_prog_get_patch_count,
 			.set_patch_count = gm20b_ctxsw_prog_set_patch_count,
 			.set_patch_addr = gm20b_ctxsw_prog_set_patch_addr,
+			.init_ctxsw_hdr_data = gp10b_ctxsw_prog_init_ctxsw_hdr_data,
+			.set_compute_preemption_mode_cta =
+				gp10b_ctxsw_prog_set_compute_preemption_mode_cta,
+			.set_priv_access_map_config_mode =
+				gm20b_ctxsw_prog_set_priv_access_map_config_mode,
+			.set_priv_access_map_addr =
+				gm20b_ctxsw_prog_set_priv_access_map_addr,
+			.disable_verif_features =
+				gm20b_ctxsw_prog_disable_verif_features,
 #ifdef CONFIG_NVGPU_GRAPHICS
 			.set_zcull_ptr = gm20b_ctxsw_prog_set_zcull_ptr,
 			.set_zcull = gm20b_ctxsw_prog_set_zcull,
@@ -199,20 +208,11 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 				gm20b_ctxsw_prog_set_zcull_mode_no_ctxsw,
 			.is_zcull_mode_separate_buffer =
 				gm20b_ctxsw_prog_is_zcull_mode_separate_buffer,
-#endif
-			.init_ctxsw_hdr_data = gp10b_ctxsw_prog_init_ctxsw_hdr_data,
-			.set_compute_preemption_mode_cta =
-				gp10b_ctxsw_prog_set_compute_preemption_mode_cta,
 			.set_graphics_preemption_mode_gfxp =
 				gp10b_ctxsw_prog_set_graphics_preemption_mode_gfxp,
-			.set_priv_access_map_config_mode =
-				gm20b_ctxsw_prog_set_priv_access_map_config_mode,
-			.set_priv_access_map_addr =
-				gm20b_ctxsw_prog_set_priv_access_map_addr,
-			.disable_verif_features =
-				gm20b_ctxsw_prog_disable_verif_features,
 			.set_full_preemption_ptr =
 				gp10b_ctxsw_prog_set_full_preemption_ptr,
+#endif /* CONFIG_NVGPU_GRAPHICS */
 #ifdef CONFIG_NVGPU_CILP
 			.set_compute_preemption_mode_cilp =
 				gp10b_ctxsw_prog_set_compute_preemption_mode_cilp,
@@ -270,12 +270,12 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 			.init_sm_id_table = vgpu_gr_init_sm_id_table,
 		},
 		.setup = {
-#ifdef CONFIG_NVGPU_GRAPHICS
-			.bind_ctxsw_zcull = vgpu_gr_bind_ctxsw_zcull,
-#endif
 			.alloc_obj_ctx = vgpu_gr_alloc_obj_ctx,
 			.free_gr_ctx = vgpu_gr_free_gr_ctx,
 			.set_preemption_mode = vgpu_gr_set_preemption_mode,
+#ifdef CONFIG_NVGPU_GRAPHICS
+			.bind_ctxsw_zcull = vgpu_gr_bind_ctxsw_zcull,
+#endif
 		},
 #ifdef CONFIG_NVGPU_GRAPHICS
 		.zbc = {
@@ -331,10 +331,6 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 				gp10b_gr_init_get_attrib_cb_default_size,
 			.get_alpha_cb_default_size =
 				gp10b_gr_init_get_alpha_cb_default_size,
-			.get_attrib_cb_gfxp_default_size =
-				gp10b_gr_init_get_attrib_cb_gfxp_default_size,
-			.get_attrib_cb_gfxp_size =
-				gp10b_gr_init_get_attrib_cb_gfxp_size,
 			.get_attrib_cb_size =
 				gp10b_gr_init_get_attrib_cb_size,
 			.get_alpha_cb_size =
@@ -355,14 +351,8 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 				gp10b_gr_init_commit_global_attrib_cb,
 			.commit_global_cb_manager =
 				gp10b_gr_init_commit_global_cb_manager,
-			.get_ctx_spill_size = gp10b_gr_init_get_ctx_spill_size,
-			.get_ctx_pagepool_size =
-				gp10b_gr_init_get_ctx_pagepool_size,
-			.get_ctx_betacb_size =
-				gp10b_gr_init_get_ctx_betacb_size,
 			.get_ctx_attrib_cb_size =
 				gp10b_gr_init_get_ctx_attrib_cb_size,
-			.commit_ctxsw_spill = gp10b_gr_init_commit_ctxsw_spill,
 			.commit_cbes_reserve =
 				gp10b_gr_init_commit_cbes_reserve,
 			.detect_sm_arch = vgpu_gr_detect_sm_arch,
@@ -370,6 +360,18 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 				gp10b_gr_init_get_supported_preemption_modes,
 			.get_default_preemption_modes =
 				gp10b_gr_init_get_default_preemption_modes,
+#ifdef CONFIG_NVGPU_GRAPHICS
+			.get_attrib_cb_gfxp_default_size =
+				gp10b_gr_init_get_attrib_cb_gfxp_default_size,
+			.get_attrib_cb_gfxp_size =
+				gp10b_gr_init_get_attrib_cb_gfxp_size,
+			.get_ctx_spill_size = gp10b_gr_init_get_ctx_spill_size,
+			.get_ctx_pagepool_size =
+				gp10b_gr_init_get_ctx_pagepool_size,
+			.get_ctx_betacb_size =
+				gp10b_gr_init_get_ctx_betacb_size,
+			.commit_ctxsw_spill = gp10b_gr_init_commit_ctxsw_spill,
+#endif /* CONFIG_NVGPU_GRAPHICS */
 		},
 
 		.intr = {

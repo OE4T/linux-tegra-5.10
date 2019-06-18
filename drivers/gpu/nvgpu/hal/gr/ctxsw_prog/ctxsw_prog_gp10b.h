@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -28,14 +28,16 @@
 struct gk20a;
 struct nvgpu_mem;
 
-void gp10b_ctxsw_prog_set_graphics_preemption_mode_gfxp(struct gk20a *g,
-	struct nvgpu_mem *ctx_mem);
 void gp10b_ctxsw_prog_set_compute_preemption_mode_cta(struct gk20a *g,
+	struct nvgpu_mem *ctx_mem);
+void gp10b_ctxsw_prog_init_ctxsw_hdr_data(struct gk20a *g,
+	struct nvgpu_mem *ctx_mem);
+#ifdef CONFIG_NVGPU_GRAPHICS
+void gp10b_ctxsw_prog_set_graphics_preemption_mode_gfxp(struct gk20a *g,
 	struct nvgpu_mem *ctx_mem);
 void gp10b_ctxsw_prog_set_full_preemption_ptr(struct gk20a *g,
 	struct nvgpu_mem *ctx_mem, u64 addr);
-void gp10b_ctxsw_prog_init_ctxsw_hdr_data(struct gk20a *g,
-	struct nvgpu_mem *ctx_mem);
+#endif /* CONFIG_NVGPU_GRAPHICS */
 #ifdef CONFIG_NVGPU_CILP
 void gp10b_ctxsw_prog_set_compute_preemption_mode_cilp(struct gk20a *g,
 	struct nvgpu_mem *ctx_mem);

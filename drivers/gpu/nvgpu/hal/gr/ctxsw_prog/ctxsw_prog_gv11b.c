@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -29,6 +29,26 @@
 
 #include <nvgpu/hw/gv11b/hw_ctxsw_prog_gv11b.h>
 
+void gv11b_ctxsw_prog_set_context_buffer_ptr(struct gk20a *g,
+	struct nvgpu_mem *ctx_mem, u64 addr)
+{
+	nvgpu_mem_wr(g, ctx_mem,
+		ctxsw_prog_main_image_context_buffer_ptr_hi_o(),
+		u64_hi32(addr));
+	nvgpu_mem_wr(g, ctx_mem,
+		ctxsw_prog_main_image_context_buffer_ptr_o(),
+		u64_lo32(addr));
+}
+
+void gv11b_ctxsw_prog_set_type_per_veid_header(struct gk20a *g,
+	struct nvgpu_mem *ctx_mem)
+{
+	nvgpu_mem_wr(g, ctx_mem,
+		ctxsw_prog_main_image_ctl_o(),
+		ctxsw_prog_main_image_ctl_type_per_veid_header_v());
+}
+
+#ifdef CONFIG_NVGPU_GRAPHICS
 void gv11b_ctxsw_prog_set_zcull_ptr(struct gk20a *g, struct nvgpu_mem *ctx_mem,
 	u64 addr)
 {
@@ -62,25 +82,7 @@ void gv11b_ctxsw_prog_set_full_preemption_ptr_veid0(struct gk20a *g,
 		ctxsw_prog_main_image_full_preemption_ptr_veid0_hi_o(),
 		u64_hi32(addr));
 }
-
-void gv11b_ctxsw_prog_set_context_buffer_ptr(struct gk20a *g,
-	struct nvgpu_mem *ctx_mem, u64 addr)
-{
-	nvgpu_mem_wr(g, ctx_mem,
-		ctxsw_prog_main_image_context_buffer_ptr_hi_o(),
-		u64_hi32(addr));
-	nvgpu_mem_wr(g, ctx_mem,
-		ctxsw_prog_main_image_context_buffer_ptr_o(),
-		u64_lo32(addr));
-}
-
-void gv11b_ctxsw_prog_set_type_per_veid_header(struct gk20a *g,
-	struct nvgpu_mem *ctx_mem)
-{
-	nvgpu_mem_wr(g, ctx_mem,
-		ctxsw_prog_main_image_ctl_o(),
-		ctxsw_prog_main_image_ctl_type_per_veid_header_v());
-}
+#endif /* CONFIG_NVGPU_GRAPHICS */
 
 #ifdef CONFIG_NVGPU_DEBUGGER
 void gv11b_ctxsw_prog_set_pm_ptr(struct gk20a *g, struct nvgpu_mem *ctx_mem,

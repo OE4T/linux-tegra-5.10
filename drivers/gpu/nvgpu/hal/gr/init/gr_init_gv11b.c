@@ -474,96 +474,6 @@ void gv11b_gr_init_tpc_mask(struct gk20a *g, u32 gpc_index, u32 pes_tpc_mask)
 	nvgpu_writel(g, gr_fe_tpc_fs_r(gpc_index), pes_tpc_mask);
 }
 
-#ifdef CONFIG_NVGPU_GRAPHICS
-void gv11b_gr_init_rop_mapping(struct gk20a *g,
-			      struct nvgpu_gr_config *gr_config)
-{
-	u32 map;
-	u32 i, j = 1U;
-	u32 base = 0U;
-	u32 mapreg_num, offset, mapregs, tile_cnt, tpc_cnt;
-	u32 num_gpcs = nvgpu_get_litter_value(g, GPU_LIT_NUM_GPCS);
-	u32 num_tpc_per_gpc = nvgpu_get_litter_value(g,
-				GPU_LIT_NUM_TPC_PER_GPC);
-	u32 num_tpcs = nvgpu_safe_mult_u32(num_gpcs, num_tpc_per_gpc);
-
-	nvgpu_log_fn(g, " ");
-
-	nvgpu_writel(g, gr_crstr_map_table_cfg_r(),
-		gr_crstr_map_table_cfg_row_offset_f(
-			nvgpu_gr_config_get_map_row_offset(gr_config)) |
-		gr_crstr_map_table_cfg_num_entries_f(
-			nvgpu_gr_config_get_tpc_count(gr_config)));
-	/*
-	 * 6 tpc can be stored in one map register.
-	 * But number of tpcs are not always multiple of six,
-	 * so adding additional check for valid number of
-	 * tpcs before programming map register.
-	 */
-	mapregs = DIV_ROUND_UP(num_tpcs, GR_TPCS_INFO_FOR_MAPREGISTER);
-
-	for (mapreg_num = 0U; mapreg_num < mapregs; mapreg_num++) {
-		map = 0U;
-		offset = 0U;
-		while ((offset < GR_TPCS_INFO_FOR_MAPREGISTER)
-			&& (num_tpcs > 0U)) {
-			tile_cnt = nvgpu_gr_config_get_map_tile_count(
-						gr_config, base + offset);
-			if (offset == 0U) {
-				map = map | gr_crstr_gpc_map_tile0_f(tile_cnt);
-			} else if (offset == 1U) {
-				map = map | gr_crstr_gpc_map_tile1_f(tile_cnt);
-			} else if (offset == 2U) {
-				map = map | gr_crstr_gpc_map_tile2_f(tile_cnt);
-			} else if (offset == 3U) {
-				map = map | gr_crstr_gpc_map_tile3_f(tile_cnt);
-			} else if (offset == 4U) {
-				map = map | gr_crstr_gpc_map_tile4_f(tile_cnt);
-			} else if (offset == 5U) {
-				map = map | gr_crstr_gpc_map_tile5_f(tile_cnt);
-			} else {
-				nvgpu_err(g, "incorrect rop mapping %x",
-					  offset);
-			}
-			num_tpcs--;
-			offset++;
-		}
-
-		nvgpu_writel(g, gr_crstr_gpc_map_r(mapreg_num), map);
-		nvgpu_writel(g, gr_ppcs_wwdx_map_gpc_map_r(mapreg_num), map);
-		nvgpu_writel(g, gr_rstr2d_gpc_map_r(mapreg_num), map);
-
-		base = nvgpu_safe_add_u32(base, GR_TPCS_INFO_FOR_MAPREGISTER);
-	}
-
-	nvgpu_writel(g, gr_ppcs_wwdx_map_table_cfg_r(),
-		gr_ppcs_wwdx_map_table_cfg_row_offset_f(
-			nvgpu_gr_config_get_map_row_offset(gr_config)) |
-		gr_ppcs_wwdx_map_table_cfg_num_entries_f(
-			nvgpu_gr_config_get_tpc_count(gr_config)));
-
-	for (i = 0U; i < gr_ppcs_wwdx_map_table_cfg_coeff__size_1_v(); i++) {
-		tpc_cnt = nvgpu_gr_config_get_tpc_count(gr_config);
-		nvgpu_writel(g, gr_ppcs_wwdx_map_table_cfg_coeff_r(i),
-			gr_ppcs_wwdx_map_table_cfg_coeff_0_mod_value_f(
-			   (BIT32(j) % tpc_cnt)) |
-			gr_ppcs_wwdx_map_table_cfg_coeff_1_mod_value_f(
-			   (BIT32(nvgpu_safe_add_u32(j, 1U)) % tpc_cnt)) |
-			gr_ppcs_wwdx_map_table_cfg_coeff_2_mod_value_f(
-			   (BIT32(nvgpu_safe_add_u32(j, 2U)) % tpc_cnt)) |
-			gr_ppcs_wwdx_map_table_cfg_coeff_3_mod_value_f(
-			   (BIT32(nvgpu_safe_add_u32(j, 3U)) % tpc_cnt)));
-			j = nvgpu_safe_add_u32(j, 4U);
-	}
-
-	nvgpu_writel(g, gr_rstr2d_map_table_cfg_r(),
-		gr_rstr2d_map_table_cfg_row_offset_f(
-			nvgpu_gr_config_get_map_row_offset(gr_config)) |
-		gr_rstr2d_map_table_cfg_num_entries_f(
-			nvgpu_gr_config_get_tpc_count(gr_config)));
-}
-#endif
-
 int gv11b_gr_init_fs_state(struct gk20a *g)
 {
 	u32 data;
@@ -710,16 +620,6 @@ u32 gv11b_gr_init_get_alpha_cb_default_size(struct gk20a *g)
 	return gr_gpc0_ppc0_cbm_alpha_cb_size_v_default_v();
 }
 
-u32 gv11b_gr_init_get_attrib_cb_gfxp_default_size(struct gk20a *g)
-{
-	return gr_gpc0_ppc0_cbm_beta_cb_size_v_gfxp_v();
-}
-
-u32 gv11b_gr_init_get_attrib_cb_gfxp_size(struct gk20a *g)
-{
-	return gr_gpc0_ppc0_cbm_beta_cb_size_v_gfxp_v();
-}
-
 u32 gv11b_gr_init_get_attrib_cb_size(struct gk20a *g, u32 tpc_count)
 {
 	return min(g->ops.gr.init.get_attrib_cb_default_size(g),
@@ -766,13 +666,17 @@ void gv11b_gr_init_commit_global_attrib_cb(struct gk20a *g,
 
 	addr = addr >> gr_gpcs_setup_attrib_cb_base_addr_39_12_align_bits_v();
 
+#ifdef CONFIG_NVGPU_GRAPHICS
 	if (nvgpu_gr_ctx_get_preempt_ctxsw_buffer(gr_ctx)->gpu_va != 0ULL) {
 		attrBufferSize = nvgpu_safe_cast_u64_to_u32(
 			nvgpu_gr_ctx_get_betacb_ctxsw_buffer(gr_ctx)->size);
 	} else {
+#endif
 		attrBufferSize = g->ops.gr.init.get_global_attr_cb_size(g,
 			tpc_count, max_tpc);
+#ifdef CONFIG_NVGPU_GRAPHICS
 	}
+#endif
 
 	attrBufferSize /= gr_gpcs_tpcs_tex_rm_cb_1_size_div_128b_granularity_f();
 
@@ -851,40 +755,6 @@ int gv11b_gr_init_load_sw_veid_bundle(struct gk20a *g,
 	return err;
 }
 
-u32 gv11b_gr_init_get_ctx_spill_size(struct gk20a *g)
-{
-	return  nvgpu_safe_mult_u32(
-		  gr_gpc0_swdx_rm_spill_buffer_size_256b_default_v(),
-		  gr_gpc0_swdx_rm_spill_buffer_size_256b_byte_granularity_v());
-}
-
-u32 gv11b_gr_init_get_ctx_betacb_size(struct gk20a *g)
-{
-	return nvgpu_safe_add_u32(
-		g->ops.gr.init.get_attrib_cb_default_size(g),
-		nvgpu_safe_sub_u32(
-			gr_gpc0_ppc0_cbm_beta_cb_size_v_gfxp_v(),
-			gr_gpc0_ppc0_cbm_beta_cb_size_v_default_v()));
-}
-
-void gv11b_gr_init_commit_ctxsw_spill(struct gk20a *g,
-	struct nvgpu_gr_ctx *gr_ctx, u64 addr, u32 size, bool patch)
-{
-	addr = addr >> gr_gpc0_swdx_rm_spill_buffer_addr_39_8_align_bits_v();
-
-	size /=	gr_gpc0_swdx_rm_spill_buffer_size_256b_byte_granularity_v();
-
-	nvgpu_assert(u64_hi32(addr) == 0U);
-	nvgpu_gr_ctx_patch_write(g, gr_ctx,
-			gr_gpc0_swdx_rm_spill_buffer_addr_r(),
-			gr_gpc0_swdx_rm_spill_buffer_addr_39_8_f((u32)addr),
-			patch);
-	nvgpu_gr_ctx_patch_write(g, gr_ctx,
-			gr_gpc0_swdx_rm_spill_buffer_size_r(),
-			gr_gpc0_swdx_rm_spill_buffer_size_256b_f(size),
-			patch);
-}
-
 void gv11b_gr_init_commit_cbes_reserve(struct gk20a *g,
 	struct nvgpu_gr_ctx *gr_ctx, bool patch)
 {
@@ -898,13 +768,6 @@ void gv11b_gr_init_commit_cbes_reserve(struct gk20a *g,
 		gr_gpcs_ppcs_cbm_beta_cb_ctrl_r(),
 		gr_gpcs_ppcs_cbm_beta_cb_ctrl_cbes_reserve_f(cbes_reserve),
 		patch);
-}
-
-void gv11b_gr_init_commit_gfxp_wfi_timeout(struct gk20a *g,
-	struct nvgpu_gr_ctx *gr_ctx, bool patch)
-{
-	nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_fe_gfxp_wfi_timeout_r(),
-		GFXP_WFI_TIMEOUT_COUNT_IN_USEC_DEFAULT, patch);
 }
 
 u32 gv11b_gr_init_get_max_subctx_count(void)
@@ -981,3 +844,143 @@ void gv11b_gr_init_detect_sm_arch(struct gk20a *g)
 		gr_gpc0_tpc0_sm_arch_warp_count_v(v);
 }
 
+#ifdef CONFIG_NVGPU_GRAPHICS
+void gv11b_gr_init_rop_mapping(struct gk20a *g,
+			      struct nvgpu_gr_config *gr_config)
+{
+	u32 map;
+	u32 i, j = 1U;
+	u32 base = 0U;
+	u32 mapreg_num, offset, mapregs, tile_cnt, tpc_cnt;
+	u32 num_gpcs = nvgpu_get_litter_value(g, GPU_LIT_NUM_GPCS);
+	u32 num_tpc_per_gpc = nvgpu_get_litter_value(g,
+				GPU_LIT_NUM_TPC_PER_GPC);
+	u32 num_tpcs = nvgpu_safe_mult_u32(num_gpcs, num_tpc_per_gpc);
+
+	nvgpu_log_fn(g, " ");
+
+	nvgpu_writel(g, gr_crstr_map_table_cfg_r(),
+		gr_crstr_map_table_cfg_row_offset_f(
+			nvgpu_gr_config_get_map_row_offset(gr_config)) |
+		gr_crstr_map_table_cfg_num_entries_f(
+			nvgpu_gr_config_get_tpc_count(gr_config)));
+	/*
+	 * 6 tpc can be stored in one map register.
+	 * But number of tpcs are not always multiple of six,
+	 * so adding additional check for valid number of
+	 * tpcs before programming map register.
+	 */
+	mapregs = DIV_ROUND_UP(num_tpcs, GR_TPCS_INFO_FOR_MAPREGISTER);
+
+	for (mapreg_num = 0U; mapreg_num < mapregs; mapreg_num++) {
+		map = 0U;
+		offset = 0U;
+		while ((offset < GR_TPCS_INFO_FOR_MAPREGISTER)
+			&& (num_tpcs > 0U)) {
+			tile_cnt = nvgpu_gr_config_get_map_tile_count(
+						gr_config, base + offset);
+			if (offset == 0U) {
+				map = map | gr_crstr_gpc_map_tile0_f(tile_cnt);
+			} else if (offset == 1U) {
+				map = map | gr_crstr_gpc_map_tile1_f(tile_cnt);
+			} else if (offset == 2U) {
+				map = map | gr_crstr_gpc_map_tile2_f(tile_cnt);
+			} else if (offset == 3U) {
+				map = map | gr_crstr_gpc_map_tile3_f(tile_cnt);
+			} else if (offset == 4U) {
+				map = map | gr_crstr_gpc_map_tile4_f(tile_cnt);
+			} else if (offset == 5U) {
+				map = map | gr_crstr_gpc_map_tile5_f(tile_cnt);
+			} else {
+				nvgpu_err(g, "incorrect rop mapping %x",
+					  offset);
+			}
+			num_tpcs--;
+			offset++;
+		}
+
+		nvgpu_writel(g, gr_crstr_gpc_map_r(mapreg_num), map);
+		nvgpu_writel(g, gr_ppcs_wwdx_map_gpc_map_r(mapreg_num), map);
+		nvgpu_writel(g, gr_rstr2d_gpc_map_r(mapreg_num), map);
+
+		base = nvgpu_safe_add_u32(base, GR_TPCS_INFO_FOR_MAPREGISTER);
+	}
+
+	nvgpu_writel(g, gr_ppcs_wwdx_map_table_cfg_r(),
+		gr_ppcs_wwdx_map_table_cfg_row_offset_f(
+			nvgpu_gr_config_get_map_row_offset(gr_config)) |
+		gr_ppcs_wwdx_map_table_cfg_num_entries_f(
+			nvgpu_gr_config_get_tpc_count(gr_config)));
+
+	for (i = 0U; i < gr_ppcs_wwdx_map_table_cfg_coeff__size_1_v(); i++) {
+		tpc_cnt = nvgpu_gr_config_get_tpc_count(gr_config);
+		nvgpu_writel(g, gr_ppcs_wwdx_map_table_cfg_coeff_r(i),
+			gr_ppcs_wwdx_map_table_cfg_coeff_0_mod_value_f(
+			   (BIT32(j) % tpc_cnt)) |
+			gr_ppcs_wwdx_map_table_cfg_coeff_1_mod_value_f(
+			   (BIT32(nvgpu_safe_add_u32(j, 1U)) % tpc_cnt)) |
+			gr_ppcs_wwdx_map_table_cfg_coeff_2_mod_value_f(
+			   (BIT32(nvgpu_safe_add_u32(j, 2U)) % tpc_cnt)) |
+			gr_ppcs_wwdx_map_table_cfg_coeff_3_mod_value_f(
+			   (BIT32(nvgpu_safe_add_u32(j, 3U)) % tpc_cnt)));
+			j = nvgpu_safe_add_u32(j, 4U);
+	}
+
+	nvgpu_writel(g, gr_rstr2d_map_table_cfg_r(),
+		gr_rstr2d_map_table_cfg_row_offset_f(
+			nvgpu_gr_config_get_map_row_offset(gr_config)) |
+		gr_rstr2d_map_table_cfg_num_entries_f(
+			nvgpu_gr_config_get_tpc_count(gr_config)));
+}
+
+u32 gv11b_gr_init_get_attrib_cb_gfxp_default_size(struct gk20a *g)
+{
+	return gr_gpc0_ppc0_cbm_beta_cb_size_v_gfxp_v();
+}
+
+u32 gv11b_gr_init_get_attrib_cb_gfxp_size(struct gk20a *g)
+{
+	return gr_gpc0_ppc0_cbm_beta_cb_size_v_gfxp_v();
+}
+
+u32 gv11b_gr_init_get_ctx_spill_size(struct gk20a *g)
+{
+	return  nvgpu_safe_mult_u32(
+		  gr_gpc0_swdx_rm_spill_buffer_size_256b_default_v(),
+		  gr_gpc0_swdx_rm_spill_buffer_size_256b_byte_granularity_v());
+}
+
+u32 gv11b_gr_init_get_ctx_betacb_size(struct gk20a *g)
+{
+	return nvgpu_safe_add_u32(
+		g->ops.gr.init.get_attrib_cb_default_size(g),
+		nvgpu_safe_sub_u32(
+			gr_gpc0_ppc0_cbm_beta_cb_size_v_gfxp_v(),
+			gr_gpc0_ppc0_cbm_beta_cb_size_v_default_v()));
+}
+
+void gv11b_gr_init_commit_ctxsw_spill(struct gk20a *g,
+	struct nvgpu_gr_ctx *gr_ctx, u64 addr, u32 size, bool patch)
+{
+	addr = addr >> gr_gpc0_swdx_rm_spill_buffer_addr_39_8_align_bits_v();
+
+	size /=	gr_gpc0_swdx_rm_spill_buffer_size_256b_byte_granularity_v();
+
+	nvgpu_assert(u64_hi32(addr) == 0U);
+	nvgpu_gr_ctx_patch_write(g, gr_ctx,
+			gr_gpc0_swdx_rm_spill_buffer_addr_r(),
+			gr_gpc0_swdx_rm_spill_buffer_addr_39_8_f((u32)addr),
+			patch);
+	nvgpu_gr_ctx_patch_write(g, gr_ctx,
+			gr_gpc0_swdx_rm_spill_buffer_size_r(),
+			gr_gpc0_swdx_rm_spill_buffer_size_256b_f(size),
+			patch);
+}
+
+void gv11b_gr_init_commit_gfxp_wfi_timeout(struct gk20a *g,
+	struct nvgpu_gr_ctx *gr_ctx, bool patch)
+{
+	nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_fe_gfxp_wfi_timeout_r(),
+		GFXP_WFI_TIMEOUT_COUNT_IN_USEC_DEFAULT, patch);
+}
+#endif /* CONFIG_NVGPU_GRAPHICS */

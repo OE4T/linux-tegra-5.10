@@ -749,8 +749,10 @@ static int vgpu_gr_init_gr_setup_sw(struct gk20a *g)
 		goto clean_up;
 	}
 
+#ifdef CONFIG_NVGPU_GRAPHICS
 	nvgpu_gr_ctx_set_size(gr->gr_ctx_desc, NVGPU_GR_CTX_PREEMPT_CTXSW,
 			nvgpu_gr_falcon_get_preempt_image_size(g->gr->falcon));
+#endif
 
 	nvgpu_spinlock_init(&g->gr->intr->ch_tlb_lock);
 
@@ -1252,9 +1254,11 @@ static int vgpu_gr_init_ctxsw_preemption_mode(struct gk20a *g,
 
 	nvgpu_log_fn(g, " ");
 
+#ifdef CONFIG_NVGPU_GRAPHICS
 	if (flags & NVGPU_OBJ_CTX_FLAGS_SUPPORT_GFXP) {
 		graphics_preempt_mode = NVGPU_PREEMPTION_MODE_GRAPHICS_GFXP;
 	}
+#endif
 #ifdef CONFIG_NVGPU_CILP
 	if (flags & NVGPU_OBJ_CTX_FLAGS_SUPPORT_CILP) {
 		compute_preempt_mode = NVGPU_PREEMPTION_MODE_COMPUTE_CILP;
@@ -1263,8 +1267,10 @@ static int vgpu_gr_init_ctxsw_preemption_mode(struct gk20a *g,
 
 	if (priv->constants.force_preempt_mode && !graphics_preempt_mode &&
 		!compute_preempt_mode) {
+#ifdef CONFIG_NVGPU_GRAPHICS
 		graphics_preempt_mode = g->ops.gpu_class.is_valid_gfx(class) ?
 					NVGPU_PREEMPTION_MODE_GRAPHICS_GFXP : 0;
+#endif
 		compute_preempt_mode =
 			g->ops.gpu_class.is_valid_compute(class) ?
 			NVGPU_PREEMPTION_MODE_COMPUTE_CTA : 0;
@@ -1295,10 +1301,12 @@ static int vgpu_gr_set_ctxsw_preemption_mode(struct gk20a *g,
 				&msg.params.gr_bind_ctxsw_buffers;
 	int err = 0;
 
+#ifdef CONFIG_NVGPU_GRAPHICS
 	if (g->ops.gpu_class.is_valid_gfx(class) &&
 			g->gr->gr_ctx_desc->force_preemption_gfxp) {
 		graphics_preempt_mode = NVGPU_PREEMPTION_MODE_GRAPHICS_GFXP;
 	}
+#endif
 
 #ifdef CONFIG_NVGPU_CILP
 	if (g->ops.gpu_class.is_valid_compute(class) &&
@@ -1321,6 +1329,7 @@ static int vgpu_gr_set_ctxsw_preemption_mode(struct gk20a *g,
 
 	/* set preemption modes */
 	switch (graphics_preempt_mode) {
+#ifdef CONFIG_NVGPU_GRAPHICS
 	case NVGPU_PREEMPTION_MODE_GRAPHICS_GFXP:
 	{
 		u32 spill_size = g->ops.gr.init.get_ctx_spill_size(g);
@@ -1376,6 +1385,7 @@ static int vgpu_gr_set_ctxsw_preemption_mode(struct gk20a *g,
 		p->mode = TEGRA_VGPU_GR_CTXSW_PREEMPTION_MODE_GFX_GFXP;
 		break;
 	}
+#endif
 	case NVGPU_PREEMPTION_MODE_GRAPHICS_WFI:
 		nvgpu_gr_ctx_init_graphics_preemption_mode(gr_ctx,
 			graphics_preempt_mode);
@@ -1411,7 +1421,10 @@ static int vgpu_gr_set_ctxsw_preemption_mode(struct gk20a *g,
 		}
 	}
 
-	if ((nvgpu_gr_ctx_get_graphics_preemption_mode(gr_ctx) != 0U) ||
+	if (
+#ifdef CONFIG_NVGPU_GRAPHICS
+		(nvgpu_gr_ctx_get_graphics_preemption_mode(gr_ctx) != 0U) ||
+#endif
 		(nvgpu_gr_ctx_get_compute_preemption_mode(gr_ctx) != 0U)) {
 		msg.cmd = TEGRA_VGPU_CMD_BIND_GR_CTXSW_BUFFERS;
 		msg.handle = vgpu_get_handle(g);
@@ -1454,12 +1467,14 @@ int vgpu_gr_set_preemption_mode(struct nvgpu_channel *ch,
 	vm = tsg->vm;
 	gr_ctx = tsg->gr_ctx;
 
+#ifdef CONFIG_NVGPU_GRAPHICS
 	/* skip setting anything if both modes are already set */
 	if (graphics_preempt_mode &&
 		(graphics_preempt_mode ==
 			nvgpu_gr_ctx_get_graphics_preemption_mode(gr_ctx))) {
 		graphics_preempt_mode = 0;
 	}
+#endif
 
 	if (compute_preempt_mode &&
 	   (compute_preempt_mode ==

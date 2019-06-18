@@ -42,10 +42,6 @@ void gv11b_gr_init_sm_id_numbering(struct gk20a *g, u32 gpc, u32 tpc, u32 smid,
 int gv11b_gr_init_sm_id_config(struct gk20a *g, u32 *tpc_sm_id,
 			       struct nvgpu_gr_config *gr_config);
 void gv11b_gr_init_tpc_mask(struct gk20a *g, u32 gpc_index, u32 pes_tpc_mask);
-#ifdef CONFIG_NVGPU_GRAPHICS
-void gv11b_gr_init_rop_mapping(struct gk20a *g,
-			      struct nvgpu_gr_config *gr_config);
-#endif
 int gv11b_gr_init_fs_state(struct gk20a *g);
 int gv11b_gr_init_preemption_state(struct gk20a *g);
 void gv11b_gr_init_commit_global_timeslice(struct gk20a *g);
@@ -55,8 +51,6 @@ u32 gv11b_gr_init_get_min_gpm_fifo_depth(struct gk20a *g);
 u32 gv11b_gr_init_get_bundle_cb_token_limit(struct gk20a *g);
 u32 gv11b_gr_init_get_attrib_cb_default_size(struct gk20a *g);
 u32 gv11b_gr_init_get_alpha_cb_default_size(struct gk20a *g);
-u32 gv11b_gr_init_get_attrib_cb_gfxp_default_size(struct gk20a *g);
-u32 gv11b_gr_init_get_attrib_cb_gfxp_size(struct gk20a *g);
 u32 gv11b_gr_init_get_attrib_cb_size(struct gk20a *g, u32 tpc_count);
 u32 gv11b_gr_init_get_alpha_cb_size(struct gk20a *g, u32 tpc_count);
 u32 gv11b_gr_init_get_global_attr_cb_size(struct gk20a *g, u32 tpc_count,
@@ -69,19 +63,28 @@ void gv11b_gr_init_commit_global_attrib_cb(struct gk20a *g,
 int gv11b_gr_init_load_sw_veid_bundle(struct gk20a *g,
 	struct netlist_av_list *sw_veid_bundle_init);
 
-u32 gv11b_gr_init_get_ctx_spill_size(struct gk20a *g);
-u32 gv11b_gr_init_get_ctx_betacb_size(struct gk20a *g);
-
-void gv11b_gr_init_commit_ctxsw_spill(struct gk20a *g,
-	struct nvgpu_gr_ctx *gr_ctx, u64 addr, u32 size, bool patch);
 void gv11b_gr_init_commit_cbes_reserve(struct gk20a *g,
-	struct nvgpu_gr_ctx *gr_ctx, bool patch);
-void gv11b_gr_init_commit_gfxp_wfi_timeout(struct gk20a *g,
 	struct nvgpu_gr_ctx *gr_ctx, bool patch);
 
 u32 gv11b_gr_init_get_max_subctx_count(void);
 u32 gv11b_gr_init_get_patch_slots(struct gk20a *g,
 	struct nvgpu_gr_config *config);
 void gv11b_gr_init_detect_sm_arch(struct gk20a *g);
+
+#ifdef CONFIG_NVGPU_GRAPHICS
+void gv11b_gr_init_rop_mapping(struct gk20a *g,
+			      struct nvgpu_gr_config *gr_config);
+
+u32 gv11b_gr_init_get_attrib_cb_gfxp_default_size(struct gk20a *g);
+u32 gv11b_gr_init_get_attrib_cb_gfxp_size(struct gk20a *g);
+
+u32 gv11b_gr_init_get_ctx_spill_size(struct gk20a *g);
+u32 gv11b_gr_init_get_ctx_betacb_size(struct gk20a *g);
+
+void gv11b_gr_init_commit_ctxsw_spill(struct gk20a *g,
+	struct nvgpu_gr_ctx *gr_ctx, u64 addr, u32 size, bool patch);
+void gv11b_gr_init_commit_gfxp_wfi_timeout(struct gk20a *g,
+	struct nvgpu_gr_ctx *gr_ctx, bool patch);
+#endif /* CONFIG_NVGPU_GRAPHICS */
 
 #endif /* NVGPU_GR_INIT_GV11B_H */

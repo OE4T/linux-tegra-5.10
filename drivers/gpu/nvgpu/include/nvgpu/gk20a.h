@@ -234,6 +234,9 @@ struct gpu_ops {
 		u64 (*determine_L2_size_bytes)(struct gk20a *gk20a);
 		struct nvgpu_hw_err_inject_info_desc * (*get_ltc_err_desc)
 			(struct gk20a *g);
+		void (*set_enabled)(struct gk20a *g, bool enabled);
+		void (*init_fs_state)(struct gk20a *g);
+		void (*flush)(struct gk20a *g);
 #ifdef CONFIG_NVGPU_GRAPHICS
 		void (*set_zbc_color_entry)(struct gk20a *g,
 					    u32 *color_val_l2,
@@ -245,9 +248,6 @@ struct gpu_ops {
 					    u32 s_val,
 					    u32 index);
 #endif
-		void (*set_enabled)(struct gk20a *g, bool enabled);
-		void (*init_fs_state)(struct gk20a *g);
-		void (*flush)(struct gk20a *g);
 #ifdef CONFIG_NVGPU_DEBUGGER
 		bool (*pri_is_ltc_addr)(struct gk20a *g, u32 addr);
 		bool (*is_ltcs_ltss_addr)(struct gk20a *g, u32 addr);
@@ -434,24 +434,9 @@ struct gpu_ops {
 				struct nvgpu_mem *ctx_mem, u32 count);
 			void (*set_patch_addr)(struct gk20a *g,
 				struct nvgpu_mem *ctx_mem, u64 addr);
-#ifdef CONFIG_NVGPU_GRAPHICS
-			void (*set_zcull_ptr)(struct gk20a *g,
-				struct nvgpu_mem *ctx_mem, u64 addr);
-			void (*set_zcull)(struct gk20a *g,
-				struct nvgpu_mem *ctx_mem, u32 mode);
-			void (*set_zcull_mode_no_ctxsw)(struct gk20a *g,
-				struct nvgpu_mem *ctx_mem);
-			bool (*is_zcull_mode_separate_buffer)(u32 mode);
-#endif
 			void (*set_compute_preemption_mode_cta)(struct gk20a *g,
 				struct nvgpu_mem *ctx_mem);
-			void (*set_graphics_preemption_mode_gfxp)(struct gk20a *g,
-				struct nvgpu_mem *ctx_mem);
 			void (*set_context_buffer_ptr)(struct gk20a *g,
-				struct nvgpu_mem *ctx_mem, u64 addr);
-			void (*set_full_preemption_ptr)(struct gk20a *g,
-				struct nvgpu_mem *ctx_mem, u64 addr);
-			void (*set_full_preemption_ptr_veid0)(struct gk20a *g,
 				struct nvgpu_mem *ctx_mem, u64 addr);
 			void (*set_type_per_veid_header)(struct gk20a *g,
 				struct nvgpu_mem *ctx_mem);
@@ -463,6 +448,21 @@ struct gpu_ops {
 				struct nvgpu_mem *ctx_mem);
 			void (*init_ctxsw_hdr_data)(struct gk20a *g,
 				struct nvgpu_mem *ctx_mem);
+#ifdef CONFIG_NVGPU_GRAPHICS
+			void (*set_zcull_ptr)(struct gk20a *g,
+				struct nvgpu_mem *ctx_mem, u64 addr);
+			void (*set_zcull)(struct gk20a *g,
+				struct nvgpu_mem *ctx_mem, u32 mode);
+			void (*set_zcull_mode_no_ctxsw)(struct gk20a *g,
+				struct nvgpu_mem *ctx_mem);
+			bool (*is_zcull_mode_separate_buffer)(u32 mode);
+			void (*set_full_preemption_ptr)(struct gk20a *g,
+				struct nvgpu_mem *ctx_mem, u64 addr);
+			void (*set_full_preemption_ptr_veid0)(struct gk20a *g,
+				struct nvgpu_mem *ctx_mem, u64 addr);
+			void (*set_graphics_preemption_mode_gfxp)(struct gk20a *g,
+				struct nvgpu_mem *ctx_mem);
+#endif
 #ifdef CONFIG_NVGPU_CILP
 			void (*set_compute_preemption_mode_cilp)(struct gk20a *g,
 				struct nvgpu_mem *ctx_mem);
@@ -526,16 +526,16 @@ struct gpu_ops {
 				struct nvgpu_gr_config *config, u32 gpc_index);
 			u32 (*get_tpc_count_in_gpc)(struct gk20a *g,
 				struct nvgpu_gr_config *config, u32 gpc_index);
-#ifdef CONFIG_NVGPU_GRAPHICS
-			u32 (*get_zcull_count_in_gpc)(struct gk20a *g,
-				struct nvgpu_gr_config *config, u32 gpc_index);
-#endif
 			u32 (*get_pes_tpc_mask)(struct gk20a *g,
 				struct nvgpu_gr_config *config, u32 gpc_index,
 				u32 pes_index);
 			u32 (*get_pd_dist_skip_table_size)(void);
 			int (*init_sm_id_table)(struct gk20a *g,
 				struct nvgpu_gr_config *gr_config);
+#ifdef CONFIG_NVGPU_GRAPHICS
+			u32 (*get_zcull_count_in_gpc)(struct gk20a *g,
+				struct nvgpu_gr_config *config, u32 gpc_index);
+#endif
 		} config;
 
 		struct {
@@ -637,18 +637,18 @@ struct gpu_ops {
 #endif
 
 		struct {
-#ifdef CONFIG_NVGPU_GRAPHICS
-			int (*bind_ctxsw_zcull)(struct gk20a *g,
-						struct nvgpu_channel *c,
-						u64 zcull_va,
-						u32 mode);
-#endif
 			int (*alloc_obj_ctx)(struct nvgpu_channel  *c,
 				     u32 class_num, u32 flags);
 			void (*free_gr_ctx)(struct gk20a *g,
 				struct vm_gk20a *vm,
 				struct nvgpu_gr_ctx *gr_ctx);
 			void (*free_subctx)(struct nvgpu_channel *c);
+#ifdef CONFIG_NVGPU_GRAPHICS
+			int (*bind_ctxsw_zcull)(struct gk20a *g,
+						struct nvgpu_channel *c,
+						u64 zcull_va,
+						u32 mode);
+#endif
 #ifdef CONFIG_NVGPU_CHANNEL_TSG_CONTROL
 			int (*set_preemption_mode)(struct nvgpu_channel *ch,
 				u32 graphics_preempt_mode,
@@ -720,10 +720,6 @@ struct gpu_ops {
 				   struct nvgpu_gr_config *gr_config);
 			void (*tpc_mask)(struct gk20a *g,
 					 u32 gpc_index, u32 pes_tpc_mask);
-#ifdef CONFIG_NVGPU_GRAPHICS
-			void (*rop_mapping)(struct gk20a *g,
-				struct nvgpu_gr_config *gr_config);
-#endif /* CONFIG_NVGPU_GRAPHICS */
 			int (*fs_state)(struct gk20a *g);
 			void (*pd_tpc_per_gpc)(struct gk20a *g,
 				struct nvgpu_gr_config *gr_config);
@@ -753,15 +749,11 @@ struct gpu_ops {
 			u32 (*get_rtv_cb_size)(struct gk20a *g);
 			void (*commit_rtv_cb)(struct gk20a *g, u64 addr,
 				struct nvgpu_gr_ctx *gr_ctx, bool patch);
-			void (*commit_gfxp_rtv_cb)(struct gk20a *g,
-				struct nvgpu_gr_ctx *gr_ctx, bool patch);
 			u32 (*get_bundle_cb_default_size)(struct gk20a *g);
 			u32 (*get_min_gpm_fifo_depth)(struct gk20a *g);
 			u32 (*get_bundle_cb_token_limit)(struct gk20a *g);
 			u32 (*get_attrib_cb_default_size)(struct gk20a *g);
 			u32 (*get_alpha_cb_default_size)(struct gk20a *g);
-			u32 (*get_attrib_cb_gfxp_default_size)(struct gk20a *g);
-			u32 (*get_attrib_cb_gfxp_size)(struct gk20a *g);
 			u32 (*get_attrib_cb_size)(struct gk20a *g,
 				u32 tpc_count);
 			u32 (*get_alpha_cb_size)(struct gk20a *g,
@@ -786,18 +778,12 @@ struct gpu_ops {
 				struct nvgpu_gr_ctx *gr_ctx, bool patch);
 			void (*pipe_mode_override)(struct gk20a *g,
 				bool enable);
-			u32 (*get_ctx_spill_size)(struct gk20a *g);
-			u32 (*get_ctx_pagepool_size)(struct gk20a *g);
-			u32 (*get_ctx_betacb_size)(struct gk20a *g);
 			u32 (*get_ctx_attrib_cb_size)(struct gk20a *g,
 				u32 betacb_size, u32 tpc_count, u32 max_tpc);
-			u32 (*get_gfxp_rtv_cb_size)(struct gk20a *g);
 			void (*commit_ctxsw_spill)(struct gk20a *g,
 				struct nvgpu_gr_ctx *gr_ctx, u64 addr, u32 size,
 				bool patch);
 			void (*commit_cbes_reserve)(struct gk20a *g,
-				struct nvgpu_gr_ctx *gr_ctx, bool patch);
-			void (*gfxp_wfi_timeout)(struct gk20a *g,
 				struct nvgpu_gr_ctx *gr_ctx, bool patch);
 			u32 (*get_max_subctx_count)(void);
 			u32 (*get_patch_slots)(struct gk20a *g,
@@ -809,6 +795,20 @@ struct gpu_ops {
 			void (*get_default_preemption_modes)(
 				u32 *default_graphics_preempt_mode,
 				u32 *default_compute_preempt_mode);
+#ifdef CONFIG_NVGPU_GRAPHICS
+			void (*rop_mapping)(struct gk20a *g,
+				struct nvgpu_gr_config *gr_config);
+			void (*commit_gfxp_rtv_cb)(struct gk20a *g,
+				struct nvgpu_gr_ctx *gr_ctx, bool patch);
+			u32 (*get_attrib_cb_gfxp_default_size)(struct gk20a *g);
+			u32 (*get_attrib_cb_gfxp_size)(struct gk20a *g);
+			u32 (*get_gfxp_rtv_cb_size)(struct gk20a *g);
+			void (*gfxp_wfi_timeout)(struct gk20a *g,
+				struct nvgpu_gr_ctx *gr_ctx, bool patch);
+			u32 (*get_ctx_spill_size)(struct gk20a *g);
+			u32 (*get_ctx_pagepool_size)(struct gk20a *g);
+			u32 (*get_ctx_betacb_size)(struct gk20a *g);
+#endif /* CONFIG_NVGPU_GRAPHICS */
 		} init;
 
 		struct {

@@ -110,10 +110,12 @@ void vgpu_gr_free_gr_ctx(struct gk20a *g,
 		vgpu_gr_free_patch_ctx(g, vm, gr_ctx);
 		vgpu_gr_free_pm_ctx(g, vm, gr_ctx);
 
+#ifdef CONFIG_NVGPU_GRAPHICS
 		nvgpu_dma_unmap_free(vm, &gr_ctx->pagepool_ctxsw_buffer);
 		nvgpu_dma_unmap_free(vm, &gr_ctx->betacb_ctxsw_buffer);
 		nvgpu_dma_unmap_free(vm, &gr_ctx->spill_ctxsw_buffer);
 		nvgpu_dma_unmap_free(vm, &gr_ctx->preempt_ctxsw_buffer);
+#endif
 
 		(void) memset(gr_ctx, 0, sizeof(*gr_ctx));
 	}

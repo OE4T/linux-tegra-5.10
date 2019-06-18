@@ -69,33 +69,6 @@ void tu104_gr_init_commit_rtv_cb(struct gk20a *g, u64 addr,
 	tu104_gr_init_patch_rtv_cb(g, gr_ctx, (u32)addr, size, 0, patch);
 }
 
-void tu104_gr_init_commit_gfxp_rtv_cb(struct gk20a *g,
-	struct nvgpu_gr_ctx *gr_ctx, bool patch)
-{
-	u64 addr;
-	u32 rtv_cb_size;
-	u32 gfxp_addr_size;
-	struct nvgpu_mem *buf_mem;
-
-	nvgpu_log_fn(g, " ");
-
-	rtv_cb_size = nvgpu_safe_add_u32(
-		nvgpu_safe_add_u32(
-			gr_scc_rm_rtv_cb_size_div_256b_default_f(),
-			gr_scc_rm_rtv_cb_size_div_256b_db_adder_f()),
-		gr_scc_rm_rtv_cb_size_div_256b_gfxp_adder_f());
-	gfxp_addr_size = gr_scc_rm_rtv_cb_size_div_256b_gfxp_adder_f();
-
-	/* GFXP RTV circular buffer */
-	buf_mem = nvgpu_gr_ctx_get_gfxp_rtvcb_ctxsw_buffer(gr_ctx);
-	addr = buf_mem->gpu_va >>
-			gr_scc_rm_rtv_cb_base_addr_39_8_align_bits_f();
-
-	nvgpu_assert(u64_hi32(addr) == 0U);
-	tu104_gr_init_patch_rtv_cb(g, gr_ctx, (u32)addr,
-		rtv_cb_size, gfxp_addr_size, patch);
-}
-
 u32 tu104_gr_init_get_bundle_cb_default_size(struct gk20a *g)
 {
 	return gr_scc_bundle_cb_size_div_256b__prod_v();
@@ -119,16 +92,6 @@ u32 tu104_gr_init_get_attrib_cb_default_size(struct gk20a *g)
 u32 tu104_gr_init_get_alpha_cb_default_size(struct gk20a *g)
 {
 	return gr_gpc0_ppc0_cbm_alpha_cb_size_v_default_v();
-}
-
-u32 tu104_gr_init_get_attrib_cb_gfxp_default_size(struct gk20a *g)
-{
-	return gr_gpc0_ppc0_cbm_beta_cb_size_v_gfxp_v();
-}
-
-u32 tu104_gr_init_get_attrib_cb_gfxp_size(struct gk20a *g)
-{
-	return gr_gpc0_ppc0_cbm_beta_cb_size_v_gfxp_v();
 }
 
 int tu104_gr_init_load_sw_bundle64(struct gk20a *g,
@@ -171,6 +134,44 @@ int tu104_gr_init_load_sw_bundle64(struct gk20a *g,
 	return err;
 }
 
+#ifdef CONFIG_NVGPU_GRAPHICS
+void tu104_gr_init_commit_gfxp_rtv_cb(struct gk20a *g,
+	struct nvgpu_gr_ctx *gr_ctx, bool patch)
+{
+	u64 addr;
+	u32 rtv_cb_size;
+	u32 gfxp_addr_size;
+	struct nvgpu_mem *buf_mem;
+
+	nvgpu_log_fn(g, " ");
+
+	rtv_cb_size = nvgpu_safe_add_u32(
+		nvgpu_safe_add_u32(
+			gr_scc_rm_rtv_cb_size_div_256b_default_f(),
+			gr_scc_rm_rtv_cb_size_div_256b_db_adder_f()),
+		gr_scc_rm_rtv_cb_size_div_256b_gfxp_adder_f());
+	gfxp_addr_size = gr_scc_rm_rtv_cb_size_div_256b_gfxp_adder_f();
+
+	/* GFXP RTV circular buffer */
+	buf_mem = nvgpu_gr_ctx_get_gfxp_rtvcb_ctxsw_buffer(gr_ctx);
+	addr = buf_mem->gpu_va >>
+			gr_scc_rm_rtv_cb_base_addr_39_8_align_bits_f();
+
+	nvgpu_assert(u64_hi32(addr) == 0U);
+	tu104_gr_init_patch_rtv_cb(g, gr_ctx, (u32)addr,
+		rtv_cb_size, gfxp_addr_size, patch);
+}
+
+u32 tu104_gr_init_get_attrib_cb_gfxp_default_size(struct gk20a *g)
+{
+	return gr_gpc0_ppc0_cbm_beta_cb_size_v_gfxp_v();
+}
+
+u32 tu104_gr_init_get_attrib_cb_gfxp_size(struct gk20a *g)
+{
+	return gr_gpc0_ppc0_cbm_beta_cb_size_v_gfxp_v();
+}
+
 u32 tu104_gr_init_get_ctx_spill_size(struct gk20a *g)
 {
 	return  nvgpu_safe_mult_u32(
@@ -197,4 +198,4 @@ u32 tu104_gr_init_get_gfxp_rtv_cb_size(struct gk20a *g)
 			gr_scc_rm_rtv_cb_size_div_256b_gfxp_adder_f()),
 		gr_scc_rm_rtv_cb_size_div_256b_byte_granularity_v());
 }
-
+#endif /* CONFIG_NVGPU_GRAPHICS */

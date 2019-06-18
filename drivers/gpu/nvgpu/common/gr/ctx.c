@@ -119,7 +119,7 @@ void nvgpu_gr_ctx_free(struct gk20a *g,
 		nvgpu_gr_ctx_free_pm_ctx(g, vm, gr_ctx);
 #endif
 		nvgpu_gr_ctx_free_patch_ctx(g, vm, gr_ctx);
-
+#ifdef CONFIG_NVGPU_GRAPHICS
 		if (nvgpu_mem_is_valid(&gr_ctx->gfxp_rtvcb_ctxsw_buffer)) {
 			nvgpu_dma_unmap_free(vm,
 				&gr_ctx->gfxp_rtvcb_ctxsw_buffer);
@@ -128,6 +128,7 @@ void nvgpu_gr_ctx_free(struct gk20a *g,
 		nvgpu_dma_unmap_free(vm, &gr_ctx->betacb_ctxsw_buffer);
 		nvgpu_dma_unmap_free(vm, &gr_ctx->spill_ctxsw_buffer);
 		nvgpu_dma_unmap_free(vm, &gr_ctx->preempt_ctxsw_buffer);
+#endif
 
 		nvgpu_dma_unmap_free(vm, &gr_ctx->mem);
 		(void) memset(gr_ctx, 0, sizeof(*gr_ctx));
@@ -166,106 +167,6 @@ void nvgpu_gr_ctx_free_patch_ctx(struct gk20a *g, struct vm_gk20a *vm,
 
 	nvgpu_dma_free(g, &patch_ctx->mem);
 	patch_ctx->data_count = 0;
-}
-
-static int nvgpu_gr_ctx_alloc_ctxsw_buffer(struct vm_gk20a *vm, size_t size,
-	struct nvgpu_mem *mem)
-{
-	int err;
-
-	err = nvgpu_dma_alloc_sys(vm->mm->g, size, mem);
-	if (err != 0) {
-		return err;
-	}
-
-	mem->gpu_va = nvgpu_gmmu_map(vm,
-				mem,
-				mem->aligned_size,
-				NVGPU_VM_MAP_CACHEABLE,
-				gk20a_mem_flag_none,
-				false,
-				mem->aperture);
-	if (mem->gpu_va == 0ULL) {
-		nvgpu_dma_free(vm->mm->g, mem);
-		return -ENOMEM;
-	}
-
-	return 0;
-}
-
-int nvgpu_gr_ctx_alloc_ctxsw_buffers(struct gk20a *g,
-	struct nvgpu_gr_ctx *gr_ctx,
-	struct nvgpu_gr_ctx_desc *gr_ctx_desc,
-	struct vm_gk20a *vm)
-{
-	int err;
-
-	/* nothing to do if already initialized */
-	if (nvgpu_mem_is_valid(&gr_ctx->preempt_ctxsw_buffer)) {
-		return 0;
-	}
-
-	if (gr_ctx_desc->size[NVGPU_GR_CTX_PREEMPT_CTXSW] == 0U ||
-	    gr_ctx_desc->size[NVGPU_GR_CTX_SPILL_CTXSW] == 0U ||
-	    gr_ctx_desc->size[NVGPU_GR_CTX_BETACB_CTXSW] == 0U ||
-	    gr_ctx_desc->size[NVGPU_GR_CTX_PAGEPOOL_CTXSW] == 0U) {
-		return -EINVAL;
-	}
-
-	err = nvgpu_gr_ctx_alloc_ctxsw_buffer(vm,
-			gr_ctx_desc->size[NVGPU_GR_CTX_PREEMPT_CTXSW],
-			&gr_ctx->preempt_ctxsw_buffer);
-	if (err != 0) {
-		nvgpu_err(g, "cannot allocate preempt buffer");
-		goto fail;
-	}
-
-	err = nvgpu_gr_ctx_alloc_ctxsw_buffer(vm,
-			gr_ctx_desc->size[NVGPU_GR_CTX_SPILL_CTXSW],
-			&gr_ctx->spill_ctxsw_buffer);
-	if (err != 0) {
-		nvgpu_err(g, "cannot allocate spill buffer");
-		goto fail_free_preempt;
-	}
-
-	err = nvgpu_gr_ctx_alloc_ctxsw_buffer(vm,
-			gr_ctx_desc->size[NVGPU_GR_CTX_BETACB_CTXSW],
-			&gr_ctx->betacb_ctxsw_buffer);
-	if (err != 0) {
-		nvgpu_err(g, "cannot allocate beta buffer");
-		goto fail_free_spill;
-	}
-
-	err = nvgpu_gr_ctx_alloc_ctxsw_buffer(vm,
-			gr_ctx_desc->size[NVGPU_GR_CTX_PAGEPOOL_CTXSW],
-			&gr_ctx->pagepool_ctxsw_buffer);
-	if (err != 0) {
-		nvgpu_err(g, "cannot allocate page pool");
-		goto fail_free_betacb;
-	}
-
-	if (gr_ctx_desc->size[NVGPU_GR_CTX_GFXP_RTVCB_CTXSW] != 0U) {
-		err = nvgpu_gr_ctx_alloc_ctxsw_buffer(vm,
-			gr_ctx_desc->size[NVGPU_GR_CTX_GFXP_RTVCB_CTXSW],
-			&gr_ctx->gfxp_rtvcb_ctxsw_buffer);
-		if (err != 0) {
-			nvgpu_err(g, "cannot allocate gfxp rtvcb");
-			goto fail_free_pagepool;
-		}
-	}
-
-	return 0;
-
-fail_free_pagepool:
-	nvgpu_dma_unmap_free(vm, &gr_ctx->pagepool_ctxsw_buffer);
-fail_free_betacb:
-	nvgpu_dma_unmap_free(vm, &gr_ctx->betacb_ctxsw_buffer);
-fail_free_spill:
-	nvgpu_dma_unmap_free(vm, &gr_ctx->spill_ctxsw_buffer);
-fail_free_preempt:
-	nvgpu_dma_unmap_free(vm, &gr_ctx->preempt_ctxsw_buffer);
-fail:
-	return err;
 }
 
 static void nvgpu_gr_ctx_unmap_global_ctx_buffers(struct gk20a *g,
@@ -442,36 +343,6 @@ void nvgpu_gr_ctx_set_patch_ctx_data_count(struct nvgpu_gr_ctx *gr_ctx,
 	gr_ctx->patch_ctx.data_count = data_count;
 }
 
-struct nvgpu_mem *nvgpu_gr_ctx_get_preempt_ctxsw_buffer(
-	struct nvgpu_gr_ctx *gr_ctx)
-{
-	return &gr_ctx->preempt_ctxsw_buffer;
-}
-
-struct nvgpu_mem *nvgpu_gr_ctx_get_spill_ctxsw_buffer(
-	struct nvgpu_gr_ctx *gr_ctx)
-{
-	return &gr_ctx->spill_ctxsw_buffer;
-}
-
-struct nvgpu_mem *nvgpu_gr_ctx_get_betacb_ctxsw_buffer(
-	struct nvgpu_gr_ctx *gr_ctx)
-{
-	return &gr_ctx->betacb_ctxsw_buffer;
-}
-
-struct nvgpu_mem *nvgpu_gr_ctx_get_pagepool_ctxsw_buffer(
-	struct nvgpu_gr_ctx *gr_ctx)
-{
-	return &gr_ctx->pagepool_ctxsw_buffer;
-}
-
-struct nvgpu_mem *nvgpu_gr_ctx_get_gfxp_rtvcb_ctxsw_buffer(
-	struct nvgpu_gr_ctx *gr_ctx)
-{
-	return &gr_ctx->gfxp_rtvcb_ctxsw_buffer;
-}
-
 struct nvgpu_mem *nvgpu_gr_ctx_get_ctx_mem(struct nvgpu_gr_ctx *gr_ctx)
 {
 	return &gr_ctx->mem;
@@ -630,6 +501,96 @@ void nvgpu_gr_ctx_set_patch_ctx(struct gk20a *g, struct nvgpu_gr_ctx *gr_ctx,
 	}
 }
 
+void nvgpu_gr_ctx_init_graphics_preemption_mode(struct nvgpu_gr_ctx *gr_ctx,
+	u32 graphics_preempt_mode)
+{
+	gr_ctx->graphics_preempt_mode = graphics_preempt_mode;
+}
+
+u32 nvgpu_gr_ctx_get_graphics_preemption_mode(struct nvgpu_gr_ctx *gr_ctx)
+{
+	return gr_ctx->graphics_preempt_mode;
+}
+
+void nvgpu_gr_ctx_init_compute_preemption_mode(struct nvgpu_gr_ctx *gr_ctx,
+	u32 compute_preempt_mode)
+{
+	gr_ctx->compute_preempt_mode = compute_preempt_mode;
+}
+
+u32 nvgpu_gr_ctx_get_compute_preemption_mode(struct nvgpu_gr_ctx *gr_ctx)
+{
+	return gr_ctx->compute_preempt_mode;
+}
+
+bool nvgpu_gr_ctx_check_valid_preemption_mode(struct nvgpu_gr_ctx *gr_ctx,
+	u32 graphics_preempt_mode, u32 compute_preempt_mode)
+{
+	if ((graphics_preempt_mode == 0U) && (compute_preempt_mode == 0U)) {
+		return false;
+	}
+
+#ifndef CONFIG_NVGPU_CILP
+	if (compute_preempt_mode > NVGPU_PREEMPTION_MODE_COMPUTE_CTA) {
+		return false;
+	}
+#endif
+
+#if defined(CONFIG_NVGPU_CILP) && defined(CONFIG_NVGPU_GRAPHICS)
+	if ((graphics_preempt_mode == NVGPU_PREEMPTION_MODE_GRAPHICS_GFXP) &&
+		   (compute_preempt_mode == NVGPU_PREEMPTION_MODE_COMPUTE_CILP)) {
+		return false;
+	}
+#endif
+
+	/* Do not allow lower preemption modes than current ones */
+	if ((graphics_preempt_mode != 0U) &&
+	    (graphics_preempt_mode < gr_ctx->graphics_preempt_mode)) {
+		return false;
+	}
+
+	if ((compute_preempt_mode != 0U) &&
+	    (compute_preempt_mode < gr_ctx->compute_preempt_mode)) {
+		return false;
+	}
+
+	return true;
+}
+
+void nvgpu_gr_ctx_set_preemption_modes(struct gk20a *g,
+	struct nvgpu_gr_ctx *gr_ctx)
+{
+#ifdef CONFIG_NVGPU_GRAPHICS
+	if (gr_ctx->graphics_preempt_mode == NVGPU_PREEMPTION_MODE_GRAPHICS_GFXP) {
+		g->ops.gr.ctxsw_prog.set_graphics_preemption_mode_gfxp(g,
+			&gr_ctx->mem);
+	}
+#endif
+
+#ifdef CONFIG_NVGPU_CILP
+	if (gr_ctx->compute_preempt_mode == NVGPU_PREEMPTION_MODE_COMPUTE_CILP) {
+		g->ops.gr.ctxsw_prog.set_compute_preemption_mode_cilp(g,
+			&gr_ctx->mem);
+	}
+#endif
+
+	if (gr_ctx->compute_preempt_mode == NVGPU_PREEMPTION_MODE_COMPUTE_CTA) {
+		g->ops.gr.ctxsw_prog.set_compute_preemption_mode_cta(g,
+			&gr_ctx->mem);
+	}
+
+}
+
+void nvgpu_gr_ctx_set_tsgid(struct nvgpu_gr_ctx *gr_ctx, u32 tsgid)
+{
+	gr_ctx->tsgid = tsgid;
+}
+
+u32 nvgpu_gr_ctx_get_tsgid(struct nvgpu_gr_ctx *gr_ctx)
+{
+	return gr_ctx->tsgid;
+}
+
 #ifdef CONFIG_NVGPU_GRAPHICS
 void nvgpu_gr_ctx_set_zcull_ctx(struct gk20a *g, struct nvgpu_gr_ctx *gr_ctx,
 	u32 mode, u64 gpu_va)
@@ -682,85 +643,6 @@ int nvgpu_gr_ctx_zcull_setup(struct gk20a *g, struct nvgpu_gr_ctx *gr_ctx,
 
 	return 0;
 }
-#endif
-
-void nvgpu_gr_ctx_init_compute_preemption_mode(struct nvgpu_gr_ctx *gr_ctx,
-	u32 compute_preempt_mode)
-{
-	gr_ctx->compute_preempt_mode = compute_preempt_mode;
-}
-
-u32 nvgpu_gr_ctx_get_compute_preemption_mode(struct nvgpu_gr_ctx *gr_ctx)
-{
-	return gr_ctx->compute_preempt_mode;
-}
-
-void nvgpu_gr_ctx_init_graphics_preemption_mode(struct nvgpu_gr_ctx *gr_ctx,
-	u32 graphics_preempt_mode)
-{
-	gr_ctx->graphics_preempt_mode = graphics_preempt_mode;
-}
-
-u32 nvgpu_gr_ctx_get_graphics_preemption_mode(struct nvgpu_gr_ctx *gr_ctx)
-{
-	return gr_ctx->graphics_preempt_mode;
-}
-
-bool nvgpu_gr_ctx_check_valid_preemption_mode(struct nvgpu_gr_ctx *gr_ctx,
-	u32 graphics_preempt_mode, u32 compute_preempt_mode)
-{
-	if ((graphics_preempt_mode == 0U) && (compute_preempt_mode == 0U)) {
-		return false;
-	}
-
-#ifndef CONFIG_NVGPU_CILP
-	if (compute_preempt_mode > NVGPU_PREEMPTION_MODE_COMPUTE_CTA) {
-		return false;
-	}
-#endif
-
-#if defined(CONFIG_NVGPU_CILP) && defined(CONFIG_NVGPU_GRAPHICS)
-	if ((graphics_preempt_mode == NVGPU_PREEMPTION_MODE_GRAPHICS_GFXP) &&
-		   (compute_preempt_mode == NVGPU_PREEMPTION_MODE_COMPUTE_CILP)) {
-		return false;
-	}
-#endif
-
-	/* Do not allow lower preemption modes than current ones */
-	if ((graphics_preempt_mode != 0U) &&
-	    (graphics_preempt_mode < gr_ctx->graphics_preempt_mode)) {
-		return false;
-	}
-
-	if ((compute_preempt_mode != 0U) &&
-	    (compute_preempt_mode < gr_ctx->compute_preempt_mode)) {
-		return false;
-	}
-
-	return true;
-}
-
-void nvgpu_gr_ctx_set_preemption_modes(struct gk20a *g,
-	struct nvgpu_gr_ctx *gr_ctx)
-{
-	if (gr_ctx->graphics_preempt_mode == NVGPU_PREEMPTION_MODE_GRAPHICS_GFXP) {
-		g->ops.gr.ctxsw_prog.set_graphics_preemption_mode_gfxp(g,
-			&gr_ctx->mem);
-	}
-
-#ifdef CONFIG_NVGPU_CILP
-	if (gr_ctx->compute_preempt_mode == NVGPU_PREEMPTION_MODE_COMPUTE_CILP) {
-		g->ops.gr.ctxsw_prog.set_compute_preemption_mode_cilp(g,
-			&gr_ctx->mem);
-	}
-#endif
-
-	if (gr_ctx->compute_preempt_mode == NVGPU_PREEMPTION_MODE_COMPUTE_CTA) {
-		g->ops.gr.ctxsw_prog.set_compute_preemption_mode_cta(g,
-			&gr_ctx->mem);
-	}
-
-}
 
 void nvgpu_gr_ctx_set_preemption_buffer_va(struct gk20a *g,
 	struct nvgpu_gr_ctx *gr_ctx)
@@ -774,20 +656,141 @@ void nvgpu_gr_ctx_set_preemption_buffer_va(struct gk20a *g,
 	}
 }
 
-void nvgpu_gr_ctx_set_tsgid(struct nvgpu_gr_ctx *gr_ctx, u32 tsgid)
-{
-	gr_ctx->tsgid = tsgid;
-}
-
-u32 nvgpu_gr_ctx_get_tsgid(struct nvgpu_gr_ctx *gr_ctx)
-{
-	return gr_ctx->tsgid;
-}
-
 bool nvgpu_gr_ctx_desc_force_preemption_gfxp(struct nvgpu_gr_ctx_desc *gr_ctx_desc)
 {
 	return gr_ctx_desc->force_preemption_gfxp;
 }
+
+static int nvgpu_gr_ctx_alloc_ctxsw_buffer(struct vm_gk20a *vm, size_t size,
+	struct nvgpu_mem *mem)
+{
+	int err;
+
+	err = nvgpu_dma_alloc_sys(vm->mm->g, size, mem);
+	if (err != 0) {
+		return err;
+	}
+
+	mem->gpu_va = nvgpu_gmmu_map(vm,
+				mem,
+				mem->aligned_size,
+				NVGPU_VM_MAP_CACHEABLE,
+				gk20a_mem_flag_none,
+				false,
+				mem->aperture);
+	if (mem->gpu_va == 0ULL) {
+		nvgpu_dma_free(vm->mm->g, mem);
+		return -ENOMEM;
+	}
+
+	return 0;
+}
+
+int nvgpu_gr_ctx_alloc_ctxsw_buffers(struct gk20a *g,
+	struct nvgpu_gr_ctx *gr_ctx,
+	struct nvgpu_gr_ctx_desc *gr_ctx_desc,
+	struct vm_gk20a *vm)
+{
+	int err = 0;
+
+	/* nothing to do if already initialized */
+	if (nvgpu_mem_is_valid(&gr_ctx->preempt_ctxsw_buffer)) {
+		return 0;
+	}
+
+	if (gr_ctx_desc->size[NVGPU_GR_CTX_PREEMPT_CTXSW] == 0U ||
+	    gr_ctx_desc->size[NVGPU_GR_CTX_SPILL_CTXSW] == 0U ||
+	    gr_ctx_desc->size[NVGPU_GR_CTX_BETACB_CTXSW] == 0U ||
+	    gr_ctx_desc->size[NVGPU_GR_CTX_PAGEPOOL_CTXSW] == 0U) {
+		return -EINVAL;
+	}
+
+	err = nvgpu_gr_ctx_alloc_ctxsw_buffer(vm,
+			gr_ctx_desc->size[NVGPU_GR_CTX_PREEMPT_CTXSW],
+			&gr_ctx->preempt_ctxsw_buffer);
+	if (err != 0) {
+		nvgpu_err(g, "cannot allocate preempt buffer");
+		goto fail;
+	}
+
+	err = nvgpu_gr_ctx_alloc_ctxsw_buffer(vm,
+			gr_ctx_desc->size[NVGPU_GR_CTX_SPILL_CTXSW],
+			&gr_ctx->spill_ctxsw_buffer);
+	if (err != 0) {
+		nvgpu_err(g, "cannot allocate spill buffer");
+		goto fail_free_preempt;
+	}
+
+	err = nvgpu_gr_ctx_alloc_ctxsw_buffer(vm,
+			gr_ctx_desc->size[NVGPU_GR_CTX_BETACB_CTXSW],
+			&gr_ctx->betacb_ctxsw_buffer);
+	if (err != 0) {
+		nvgpu_err(g, "cannot allocate beta buffer");
+		goto fail_free_spill;
+	}
+
+	err = nvgpu_gr_ctx_alloc_ctxsw_buffer(vm,
+			gr_ctx_desc->size[NVGPU_GR_CTX_PAGEPOOL_CTXSW],
+			&gr_ctx->pagepool_ctxsw_buffer);
+	if (err != 0) {
+		nvgpu_err(g, "cannot allocate page pool");
+		goto fail_free_betacb;
+	}
+
+	if (gr_ctx_desc->size[NVGPU_GR_CTX_GFXP_RTVCB_CTXSW] != 0U) {
+		err = nvgpu_gr_ctx_alloc_ctxsw_buffer(vm,
+			gr_ctx_desc->size[NVGPU_GR_CTX_GFXP_RTVCB_CTXSW],
+			&gr_ctx->gfxp_rtvcb_ctxsw_buffer);
+		if (err != 0) {
+			nvgpu_err(g, "cannot allocate gfxp rtvcb");
+			goto fail_free_pagepool;
+		}
+	}
+
+	return 0;
+
+fail_free_pagepool:
+	nvgpu_dma_unmap_free(vm, &gr_ctx->pagepool_ctxsw_buffer);
+fail_free_betacb:
+	nvgpu_dma_unmap_free(vm, &gr_ctx->betacb_ctxsw_buffer);
+fail_free_spill:
+	nvgpu_dma_unmap_free(vm, &gr_ctx->spill_ctxsw_buffer);
+fail_free_preempt:
+	nvgpu_dma_unmap_free(vm, &gr_ctx->preempt_ctxsw_buffer);
+fail:
+	return err;
+}
+
+struct nvgpu_mem *nvgpu_gr_ctx_get_preempt_ctxsw_buffer(
+	struct nvgpu_gr_ctx *gr_ctx)
+{
+	return &gr_ctx->preempt_ctxsw_buffer;
+}
+
+struct nvgpu_mem *nvgpu_gr_ctx_get_spill_ctxsw_buffer(
+	struct nvgpu_gr_ctx *gr_ctx)
+{
+	return &gr_ctx->spill_ctxsw_buffer;
+}
+
+struct nvgpu_mem *nvgpu_gr_ctx_get_betacb_ctxsw_buffer(
+	struct nvgpu_gr_ctx *gr_ctx)
+{
+	return &gr_ctx->betacb_ctxsw_buffer;
+}
+
+struct nvgpu_mem *nvgpu_gr_ctx_get_pagepool_ctxsw_buffer(
+	struct nvgpu_gr_ctx *gr_ctx)
+{
+	return &gr_ctx->pagepool_ctxsw_buffer;
+}
+
+struct nvgpu_mem *nvgpu_gr_ctx_get_gfxp_rtvcb_ctxsw_buffer(
+	struct nvgpu_gr_ctx *gr_ctx)
+{
+	return &gr_ctx->gfxp_rtvcb_ctxsw_buffer;
+}
+#endif /* CONFIG_NVGPU_GRAPHICS */
 
 #ifdef CONFIG_NVGPU_CILP
 bool nvgpu_gr_ctx_desc_force_preemption_cilp(struct nvgpu_gr_ctx_desc *gr_ctx_desc)

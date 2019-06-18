@@ -432,8 +432,10 @@ static int gr_init_setup_sw(struct gk20a *g)
 		goto clean_up;
 	}
 
+#ifdef CONFIG_NVGPU_GRAPHICS
 	nvgpu_gr_ctx_set_size(g->gr->gr_ctx_desc, NVGPU_GR_CTX_PREEMPT_CTXSW,
 			nvgpu_gr_falcon_get_preempt_image_size(g->gr->falcon));
+#endif
 
 	gr->global_ctx_buffer = nvgpu_gr_global_ctx_desc_alloc(g);
 	if (gr->global_ctx_buffer == NULL) {

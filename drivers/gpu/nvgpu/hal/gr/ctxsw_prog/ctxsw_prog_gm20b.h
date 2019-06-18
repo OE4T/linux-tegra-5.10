@@ -34,15 +34,6 @@ void gm20b_ctxsw_prog_set_patch_count(struct gk20a *g,
 	struct nvgpu_mem *ctx_mem, u32 count);
 void gm20b_ctxsw_prog_set_patch_addr(struct gk20a *g,
 	struct nvgpu_mem *ctx_mem, u64 addr);
-#ifdef CONFIG_NVGPU_GRAPHICS
-void gm20b_ctxsw_prog_set_zcull_ptr(struct gk20a *g, struct nvgpu_mem *ctx_mem,
-	u64 addr);
-void gm20b_ctxsw_prog_set_zcull(struct gk20a *g, struct nvgpu_mem *ctx_mem,
-	u32 mode);
-void gm20b_ctxsw_prog_set_zcull_mode_no_ctxsw(struct gk20a *g,
-	struct nvgpu_mem *ctx_mem);
-bool gm20b_ctxsw_prog_is_zcull_mode_separate_buffer(u32 mode);
-#endif
 void gm20b_ctxsw_prog_init_ctxsw_hdr_data(struct gk20a *g,
 	struct nvgpu_mem *ctx_mem);
 void gm20b_ctxsw_prog_set_compute_preemption_mode_cta(struct gk20a *g,
@@ -53,6 +44,15 @@ void gm20b_ctxsw_prog_set_priv_access_map_addr(struct gk20a *g,
 	struct nvgpu_mem *ctx_mem, u64 addr);
 void gm20b_ctxsw_prog_disable_verif_features(struct gk20a *g,
 	struct nvgpu_mem *ctx_mem);
+#ifdef CONFIG_NVGPU_GRAPHICS
+void gm20b_ctxsw_prog_set_zcull_ptr(struct gk20a *g, struct nvgpu_mem *ctx_mem,
+	u64 addr);
+void gm20b_ctxsw_prog_set_zcull(struct gk20a *g, struct nvgpu_mem *ctx_mem,
+	u32 mode);
+void gm20b_ctxsw_prog_set_zcull_mode_no_ctxsw(struct gk20a *g,
+	struct nvgpu_mem *ctx_mem);
+bool gm20b_ctxsw_prog_is_zcull_mode_separate_buffer(u32 mode);
+#endif /* CONFIG_NVGPU_GRAPHICS */
 #ifdef CONFIG_NVGPU_DEBUGGER
 u32 gm20b_ctxsw_prog_hw_get_gpccs_header_size(void);
 u32 gm20b_ctxsw_prog_hw_get_extended_buffer_segments_size_in_bytes(void);

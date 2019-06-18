@@ -84,9 +84,11 @@ static int nvgpu_gr_obj_ctx_init_ctxsw_preemption_mode(struct gk20a *g,
 		return 0;
 	}
 
+#ifdef CONFIG_NVGPU_GRAPHICS
 	if ((flags & NVGPU_OBJ_CTX_FLAGS_SUPPORT_GFXP) != 0U) {
 		graphics_preempt_mode = NVGPU_PREEMPTION_MODE_GRAPHICS_GFXP;
 	}
+#endif
 #ifdef CONFIG_NVGPU_CILP
 	if ((flags & NVGPU_OBJ_CTX_FLAGS_SUPPORT_CILP) != 0U) {
 		compute_preempt_mode = NVGPU_PREEMPTION_MODE_COMPUTE_CILP;
@@ -115,6 +117,7 @@ int nvgpu_gr_obj_ctx_set_ctxsw_preemption_mode(struct gk20a *g,
 {
 	int err = 0;
 
+#ifdef CONFIG_NVGPU_GRAPHICS
 	if (!nvgpu_is_enabled(g, NVGPU_SUPPORT_PREEMPTION_GFXP)) {
 		return 0;
 	}
@@ -123,6 +126,7 @@ int nvgpu_gr_obj_ctx_set_ctxsw_preemption_mode(struct gk20a *g,
 			nvgpu_gr_ctx_desc_force_preemption_gfxp(gr_ctx_desc)) {
 		graphics_preempt_mode = NVGPU_PREEMPTION_MODE_GRAPHICS_GFXP;
 	}
+#endif
 
 #ifdef CONFIG_NVGPU_CILP
 	if (g->ops.gpu_class.is_valid_compute(class_num) &&
@@ -134,11 +138,13 @@ int nvgpu_gr_obj_ctx_set_ctxsw_preemption_mode(struct gk20a *g,
 	/* check for invalid combinations */
 	if (nvgpu_gr_ctx_check_valid_preemption_mode(gr_ctx,
 			graphics_preempt_mode, compute_preempt_mode) == false) {
-		return -EINVAL;
+		err = -EINVAL;
+		goto fail;
 	}
 
 	/* set preemption modes */
 	switch (graphics_preempt_mode) {
+#ifdef CONFIG_NVGPU_GRAPHICS
 	case NVGPU_PREEMPTION_MODE_GRAPHICS_GFXP:
 		{
 		u32 rtv_cb_size;
@@ -179,7 +185,7 @@ int nvgpu_gr_obj_ctx_set_ctxsw_preemption_mode(struct gk20a *g,
 			graphics_preempt_mode);
 		break;
 		}
-
+#endif /* CONFIG_NVGPU_GRAPHICS */
 	case NVGPU_PREEMPTION_MODE_GRAPHICS_WFI:
 		nvgpu_gr_ctx_init_graphics_preemption_mode(gr_ctx,
 			graphics_preempt_mode);
@@ -219,15 +225,18 @@ void nvgpu_gr_obj_ctx_update_ctxsw_preemption_mode(struct gk20a *g,
 	struct nvgpu_gr_config *config,
 	struct nvgpu_gr_ctx *gr_ctx, struct nvgpu_gr_subctx *subctx)
 {
+#ifdef CONFIG_NVGPU_GRAPHICS
 	int err;
 	u64 addr;
 	u32 size;
 	struct nvgpu_mem *mem;
+#endif
 
 	nvgpu_log_fn(g, " ");
 
 	nvgpu_gr_ctx_set_preemption_modes(g, gr_ctx);
 
+#ifdef CONFIG_NVGPU_GRAPHICS
 	if (!nvgpu_is_enabled(g, NVGPU_SUPPORT_PREEMPTION_GFXP)) {
 		return;
 	}
@@ -284,6 +293,7 @@ void nvgpu_gr_obj_ctx_update_ctxsw_preemption_mode(struct gk20a *g,
 	nvgpu_gr_ctx_patch_write_end(g, gr_ctx, true);
 
 out:
+#endif
 	nvgpu_log_fn(g, "done");
 }
 

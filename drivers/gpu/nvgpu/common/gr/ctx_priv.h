@@ -43,8 +43,9 @@ struct pm_ctx_desc {
 
 struct nvgpu_gr_ctx_desc {
 	u32 size[NVGPU_GR_CTX_COUNT];
-
+#ifdef CONFIG_NVGPU_GRAPHICS
 	bool force_preemption_gfxp;
+#endif
 #ifdef CONFIG_NVGPU_CILP
 	bool force_preemption_cilp;
 #endif
@@ -57,11 +58,13 @@ struct nvgpu_gr_ctx {
 	bool ctx_id_valid;
 	struct nvgpu_mem mem;
 
+#ifdef CONFIG_NVGPU_GRAPHICS
 	struct nvgpu_mem preempt_ctxsw_buffer;
 	struct nvgpu_mem spill_ctxsw_buffer;
 	struct nvgpu_mem betacb_ctxsw_buffer;
 	struct nvgpu_mem pagepool_ctxsw_buffer;
 	struct nvgpu_mem gfxp_rtvcb_ctxsw_buffer;
+#endif
 
 	struct patch_desc	patch_ctx;
 	struct zcull_ctx_desc	zcull_ctx;

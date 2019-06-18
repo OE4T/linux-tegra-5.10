@@ -249,12 +249,14 @@ int nvgpu_gr_setup_set_preemption_mode(struct nvgpu_channel *ch,
 	vm = tsg->vm;
 	gr_ctx = tsg->gr_ctx;
 
+#ifdef CONFIG_NVGPU_GRAPHICS
 	/* skip setting anything if both modes are already set */
 	if ((graphics_preempt_mode != 0U) &&
 		(graphics_preempt_mode ==
 			nvgpu_gr_ctx_get_graphics_preemption_mode(gr_ctx))) {
 		graphics_preempt_mode = 0;
 	}
+#endif /* CONFIG_NVGPU_GRAPHICS */
 
 	if ((compute_preempt_mode != 0U) &&
 	    (compute_preempt_mode ==

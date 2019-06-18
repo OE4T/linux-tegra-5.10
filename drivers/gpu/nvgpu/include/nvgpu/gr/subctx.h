@@ -40,23 +40,22 @@ void nvgpu_gr_subctx_load_ctx_header(struct gk20a *g,
 	struct nvgpu_gr_subctx *subctx,
 	struct nvgpu_gr_ctx *gr_ctx, u64 gpu_va);
 
+void nvgpu_gr_subctx_set_patch_ctx(struct gk20a *g,
+	struct nvgpu_gr_subctx *subctx, struct nvgpu_gr_ctx *gr_ctx);
+
+struct nvgpu_mem *nvgpu_gr_subctx_get_ctx_header(struct gk20a *g,
+	struct nvgpu_gr_subctx *subctx);
+
 #ifdef CONFIG_NVGPU_GRAPHICS
 void nvgpu_gr_subctx_zcull_setup(struct gk20a *g, struct nvgpu_gr_subctx *subctx,
 		struct nvgpu_gr_ctx *gr_ctx);
+
+void nvgpu_gr_subctx_set_preemption_buffer_va(struct gk20a *g,
+	struct nvgpu_gr_subctx *subctx, struct nvgpu_gr_ctx *gr_ctx);
 #endif
 
 #ifdef CONFIG_NVGPU_DEBUGGER
 void nvgpu_gr_subctx_set_hwpm_mode(struct gk20a *g,
 	struct nvgpu_gr_subctx *subctx, struct nvgpu_gr_ctx *gr_ctx);
 #endif
-
-void nvgpu_gr_subctx_set_patch_ctx(struct gk20a *g,
-	struct nvgpu_gr_subctx *subctx, struct nvgpu_gr_ctx *gr_ctx);
-
-void nvgpu_gr_subctx_set_preemption_buffer_va(struct gk20a *g,
-	struct nvgpu_gr_subctx *subctx, struct nvgpu_gr_ctx *gr_ctx);
-
-struct nvgpu_mem *nvgpu_gr_subctx_get_ctx_header(struct gk20a *g,
-	struct nvgpu_gr_subctx *subctx);
-
 #endif /* NVGPU_GR_SUBCTX_H */

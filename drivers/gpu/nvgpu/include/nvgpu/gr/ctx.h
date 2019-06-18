@@ -37,7 +37,9 @@
 #define PATCH_CTX_ENTRIES_FROM_SIZE(size) ((size)/sizeof(u32))
 
 #define NVGPU_PREEMPTION_MODE_GRAPHICS_WFI	BIT32(0)
+#ifdef CONFIG_NVGPU_GRAPHICS
 #define NVGPU_PREEMPTION_MODE_GRAPHICS_GFXP	BIT32(1)
+#endif
 
 #define NVGPU_PREEMPTION_MODE_COMPUTE_WFI	BIT32(0)
 #define NVGPU_PREEMPTION_MODE_COMPUTE_CTA	BIT32(1)
@@ -63,12 +65,16 @@ struct zcull_ctx_desc;
 #define NVGPU_GR_CTX_PM_CTX		1U
 #endif
 #define NVGPU_GR_CTX_PATCH_CTX		2U
+#ifdef CONFIG_NVGPU_GRAPHICS
 #define NVGPU_GR_CTX_PREEMPT_CTXSW	3U
 #define NVGPU_GR_CTX_SPILL_CTXSW	4U
 #define NVGPU_GR_CTX_BETACB_CTXSW	5U
 #define NVGPU_GR_CTX_PAGEPOOL_CTXSW	6U
 #define NVGPU_GR_CTX_GFXP_RTVCB_CTXSW	7U
 #define NVGPU_GR_CTX_COUNT		8U
+#else
+#define NVGPU_GR_CTX_COUNT		3U
+#endif
 
 /*
  * either ATTRIBUTE or ATTRIBUTE_VPR maps to NVGPU_GR_CTX_ATTRIBUTE_VA
@@ -116,11 +122,6 @@ int nvgpu_gr_ctx_alloc_patch_ctx(struct gk20a *g,
 void nvgpu_gr_ctx_free_patch_ctx(struct gk20a *g, struct vm_gk20a *vm,
 	struct nvgpu_gr_ctx *gr_ctx);
 
-int nvgpu_gr_ctx_alloc_ctxsw_buffers(struct gk20a *g,
-	struct nvgpu_gr_ctx *gr_ctx,
-	struct nvgpu_gr_ctx_desc *gr_ctx_desc,
-	struct vm_gk20a *vm);
-
 int nvgpu_gr_ctx_map_global_ctx_buffers(struct gk20a *g,
 	struct nvgpu_gr_ctx *gr_ctx,
 	struct nvgpu_gr_global_ctx_buffer_desc *global_ctx_buffer,
@@ -128,21 +129,6 @@ int nvgpu_gr_ctx_map_global_ctx_buffers(struct gk20a *g,
 
 u64 nvgpu_gr_ctx_get_global_ctx_va(struct nvgpu_gr_ctx *gr_ctx,
 	u32 index);
-
-struct nvgpu_mem *nvgpu_gr_ctx_get_spill_ctxsw_buffer(
-	struct nvgpu_gr_ctx *gr_ctx);
-
-struct nvgpu_mem *nvgpu_gr_ctx_get_betacb_ctxsw_buffer(
-	struct nvgpu_gr_ctx *gr_ctx);
-
-struct nvgpu_mem *nvgpu_gr_ctx_get_pagepool_ctxsw_buffer(
-	struct nvgpu_gr_ctx *gr_ctx);
-
-struct nvgpu_mem *nvgpu_gr_ctx_get_preempt_ctxsw_buffer(
-	struct nvgpu_gr_ctx *gr_ctx);
-
-struct nvgpu_mem *nvgpu_gr_ctx_get_gfxp_rtvcb_ctxsw_buffer(
-	struct nvgpu_gr_ctx *gr_ctx);
 
 struct nvgpu_mem *nvgpu_gr_ctx_get_patch_ctx_mem(struct nvgpu_gr_ctx *gr_ctx);
 
@@ -171,31 +157,18 @@ void nvgpu_gr_ctx_reset_patch_count(struct gk20a *g,
 void nvgpu_gr_ctx_set_patch_ctx(struct gk20a *g, struct nvgpu_gr_ctx *gr_ctx,
 	bool set_patch_addr);
 
-#ifdef CONFIG_NVGPU_GRAPHICS
-void nvgpu_gr_ctx_set_zcull_ctx(struct gk20a *g, struct nvgpu_gr_ctx *gr_ctx,
-	u32 mode, u64 gpu_va);
+void nvgpu_gr_ctx_init_graphics_preemption_mode(struct nvgpu_gr_ctx *gr_ctx,
+	u32 graphics_preempt_mode);
 
-u64 nvgpu_gr_ctx_get_zcull_ctx_va(struct nvgpu_gr_ctx *gr_ctx);
-
-int nvgpu_gr_ctx_init_zcull(struct gk20a *g, struct nvgpu_gr_ctx *gr_ctx);
-
-int nvgpu_gr_ctx_zcull_setup(struct gk20a *g, struct nvgpu_gr_ctx *gr_ctx,
-	bool set_zcull_ptr);
-#endif
+u32 nvgpu_gr_ctx_get_graphics_preemption_mode(struct nvgpu_gr_ctx *gr_ctx);
 
 void nvgpu_gr_ctx_init_compute_preemption_mode(struct nvgpu_gr_ctx *gr_ctx,
 	u32 compute_preempt_mode);
 u32 nvgpu_gr_ctx_get_compute_preemption_mode(struct nvgpu_gr_ctx *gr_ctx);
 
-void nvgpu_gr_ctx_init_graphics_preemption_mode(struct nvgpu_gr_ctx *gr_ctx,
-	u32 graphics_preempt_mode);
-u32 nvgpu_gr_ctx_get_graphics_preemption_mode(struct nvgpu_gr_ctx *gr_ctx);
-
 bool nvgpu_gr_ctx_check_valid_preemption_mode(struct nvgpu_gr_ctx *gr_ctx,
 	u32 graphics_preempt_mode, u32 compute_preempt_mode);
 void nvgpu_gr_ctx_set_preemption_modes(struct gk20a *g,
-	struct nvgpu_gr_ctx *gr_ctx);
-void nvgpu_gr_ctx_set_preemption_buffer_va(struct gk20a *g,
 	struct nvgpu_gr_ctx *gr_ctx);
 
 struct nvgpu_gr_ctx *nvgpu_alloc_gr_ctx_struct(struct gk20a *g);
@@ -211,10 +184,46 @@ bool nvgpu_gr_ctx_get_cilp_preempt_pending(struct nvgpu_gr_ctx *gr_ctx);
 void nvgpu_gr_ctx_set_cilp_preempt_pending(struct nvgpu_gr_ctx *gr_ctx,
 	bool cilp_preempt_pending);
 
-bool nvgpu_gr_ctx_desc_force_preemption_gfxp(
-		struct nvgpu_gr_ctx_desc *gr_ctx_desc);
 bool nvgpu_gr_ctx_desc_force_preemption_cilp(
 		struct nvgpu_gr_ctx_desc *gr_ctx_desc);
+
+#ifdef CONFIG_NVGPU_GRAPHICS
+int nvgpu_gr_ctx_alloc_ctxsw_buffers(struct gk20a *g,
+	struct nvgpu_gr_ctx *gr_ctx,
+	struct nvgpu_gr_ctx_desc *gr_ctx_desc,
+	struct vm_gk20a *vm);
+
+struct nvgpu_mem *nvgpu_gr_ctx_get_spill_ctxsw_buffer(
+	struct nvgpu_gr_ctx *gr_ctx);
+
+struct nvgpu_mem *nvgpu_gr_ctx_get_betacb_ctxsw_buffer(
+	struct nvgpu_gr_ctx *gr_ctx);
+
+struct nvgpu_mem *nvgpu_gr_ctx_get_pagepool_ctxsw_buffer(
+	struct nvgpu_gr_ctx *gr_ctx);
+
+struct nvgpu_mem *nvgpu_gr_ctx_get_preempt_ctxsw_buffer(
+	struct nvgpu_gr_ctx *gr_ctx);
+
+struct nvgpu_mem *nvgpu_gr_ctx_get_gfxp_rtvcb_ctxsw_buffer(
+	struct nvgpu_gr_ctx *gr_ctx);
+
+void nvgpu_gr_ctx_set_preemption_buffer_va(struct gk20a *g,
+	struct nvgpu_gr_ctx *gr_ctx);
+
+bool nvgpu_gr_ctx_desc_force_preemption_gfxp(
+		struct nvgpu_gr_ctx_desc *gr_ctx_desc);
+
+void nvgpu_gr_ctx_set_zcull_ctx(struct gk20a *g, struct nvgpu_gr_ctx *gr_ctx,
+	u32 mode, u64 gpu_va);
+
+u64 nvgpu_gr_ctx_get_zcull_ctx_va(struct nvgpu_gr_ctx *gr_ctx);
+
+int nvgpu_gr_ctx_init_zcull(struct gk20a *g, struct nvgpu_gr_ctx *gr_ctx);
+
+int nvgpu_gr_ctx_zcull_setup(struct gk20a *g, struct nvgpu_gr_ctx *gr_ctx,
+	bool set_zcull_ptr);
+#endif /* CONFIG_NVGPU_GRAPHICS */
 
 #ifdef CONFIG_NVGPU_DEBUGGER
 int nvgpu_gr_ctx_alloc_pm_ctx(struct gk20a *g,

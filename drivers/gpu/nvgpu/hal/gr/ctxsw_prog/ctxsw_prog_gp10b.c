@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -29,28 +29,12 @@
 
 #include <nvgpu/hw/gp10b/hw_ctxsw_prog_gp10b.h>
 
-void gp10b_ctxsw_prog_set_graphics_preemption_mode_gfxp(struct gk20a *g,
-	struct nvgpu_mem *ctx_mem)
-{
-	nvgpu_mem_wr(g, ctx_mem,
-		ctxsw_prog_main_image_graphics_preemption_options_o(),
-		ctxsw_prog_main_image_graphics_preemption_options_control_gfxp_f());
-}
-
 void gp10b_ctxsw_prog_set_compute_preemption_mode_cta(struct gk20a *g,
 	struct nvgpu_mem *ctx_mem)
 {
 	nvgpu_mem_wr(g, ctx_mem,
 		ctxsw_prog_main_image_compute_preemption_options_o(),
 		ctxsw_prog_main_image_compute_preemption_options_control_cta_f());
-}
-
-void gp10b_ctxsw_prog_set_full_preemption_ptr(struct gk20a *g,
-	struct nvgpu_mem *ctx_mem, u64 addr)
-{
-	addr = addr >> 8;
-	nvgpu_mem_wr(g, ctx_mem,
-		ctxsw_prog_main_image_full_preemption_ptr_o(), u64_lo32(addr));
 }
 
 void gp10b_ctxsw_prog_init_ctxsw_hdr_data(struct gk20a *g,
@@ -60,8 +44,10 @@ void gp10b_ctxsw_prog_init_ctxsw_hdr_data(struct gk20a *g,
 		ctxsw_prog_main_image_num_wfi_save_ops_o(), 0);
 	nvgpu_mem_wr(g, ctx_mem,
 		ctxsw_prog_main_image_num_cta_save_ops_o(), 0);
+#ifdef CONFIG_NVGPU_GRAPHICS
 	nvgpu_mem_wr(g, ctx_mem,
 		ctxsw_prog_main_image_num_gfxp_save_ops_o(), 0);
+#endif
 #ifdef CONFIG_NVGPU_CILP
 	nvgpu_mem_wr(g, ctx_mem,
 		ctxsw_prog_main_image_num_cilp_save_ops_o(), 0);
@@ -69,6 +55,24 @@ void gp10b_ctxsw_prog_init_ctxsw_hdr_data(struct gk20a *g,
 
 	gm20b_ctxsw_prog_init_ctxsw_hdr_data(g, ctx_mem);
 }
+
+#ifdef CONFIG_NVGPU_GRAPHICS
+void gp10b_ctxsw_prog_set_graphics_preemption_mode_gfxp(struct gk20a *g,
+	struct nvgpu_mem *ctx_mem)
+{
+	nvgpu_mem_wr(g, ctx_mem,
+		ctxsw_prog_main_image_graphics_preemption_options_o(),
+		ctxsw_prog_main_image_graphics_preemption_options_control_gfxp_f());
+}
+
+void gp10b_ctxsw_prog_set_full_preemption_ptr(struct gk20a *g,
+	struct nvgpu_mem *ctx_mem, u64 addr)
+{
+	addr = addr >> 8;
+	nvgpu_mem_wr(g, ctx_mem,
+		ctxsw_prog_main_image_full_preemption_ptr_o(), u64_lo32(addr));
+}
+#endif /* CONFIG_NVGPU_GRAPHICS */
 
 #ifdef CONFIG_NVGPU_CILP
 void gp10b_ctxsw_prog_set_compute_preemption_mode_cilp(struct gk20a *g,

@@ -260,24 +260,6 @@ u32 gp10b_gr_init_get_alpha_cb_default_size(struct gk20a *g)
 	return gr_gpc0_ppc0_cbm_alpha_cb_size_v_default_v();
 }
 
-u32 gp10b_gr_init_get_attrib_cb_gfxp_default_size(struct gk20a *g)
-{
-	return nvgpu_safe_add_u32(
-			g->ops.gr.init.get_attrib_cb_default_size(g),
-			nvgpu_safe_sub_u32(
-				gr_gpc0_ppc0_cbm_beta_cb_size_v_gfxp_v(),
-				gr_gpc0_ppc0_cbm_beta_cb_size_v_default_v()));
-}
-
-u32 gp10b_gr_init_get_attrib_cb_gfxp_size(struct gk20a *g)
-{
-	return nvgpu_safe_add_u32(
-			g->ops.gr.init.get_attrib_cb_default_size(g),
-			nvgpu_safe_sub_u32(
-				gr_gpc0_ppc0_cbm_beta_cb_size_v_gfxp_v(),
-				gr_gpc0_ppc0_cbm_beta_cb_size_v_default_v()));
-}
-
 u32 gp10b_gr_init_get_attrib_cb_size(struct gk20a *g, u32 tpc_count)
 {
 	return min(g->ops.gr.init.get_attrib_cb_default_size(g),
@@ -412,13 +394,17 @@ void gp10b_gr_init_commit_global_attrib_cb(struct gk20a *g,
 
 	addr = addr >> gr_gpcs_setup_attrib_cb_base_addr_39_12_align_bits_v();
 
+#ifdef CONFIG_NVGPU_GRAPHICS
 	if (nvgpu_gr_ctx_get_preempt_ctxsw_buffer(gr_ctx)->gpu_va != 0ULL) {
 		attrBufferSize = nvgpu_safe_cast_u64_to_u32(
 			nvgpu_gr_ctx_get_betacb_ctxsw_buffer(gr_ctx)->size);
 	} else {
+#endif
 		attrBufferSize = g->ops.gr.init.get_global_attr_cb_size(g,
 			tpc_count, max_tpc);
+#ifdef CONFIG_NVGPU_GRAPHICS
 	}
+#endif
 
 	attrBufferSize /= gr_gpcs_tpcs_tex_rm_cb_1_size_div_128b_granularity_f();
 
@@ -459,6 +445,7 @@ void gp10b_gr_init_commit_global_cb_manager(struct gk20a *g,
 
 	nvgpu_log_fn(g, " ");
 
+#ifdef CONFIG_NVGPU_GRAPHICS
 	if (nvgpu_gr_ctx_get_graphics_preemption_mode(gr_ctx)
 			== NVGPU_PREEMPTION_MODE_GRAPHICS_GFXP) {
 		attrib_size_in_chunk =
@@ -466,10 +453,12 @@ void gp10b_gr_init_commit_global_cb_manager(struct gk20a *g,
 		cb_attrib_cache_size_init =
 			g->ops.gr.init.get_attrib_cb_gfxp_default_size(g);
 	} else {
+#endif
 		attrib_size_in_chunk = attrib_cb_size;
 		cb_attrib_cache_size_init = attrib_cb_default_size;
+#ifdef CONFIG_NVGPU_GRAPHICS
 	}
-
+#endif
 	nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_ds_tga_constraintlogic_beta_r(),
 		attrib_cb_default_size, patch);
 	nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_ds_tga_constraintlogic_alpha_r(),
@@ -563,6 +552,79 @@ void gp10b_gr_init_commit_global_cb_manager(struct gk20a *g,
 	}
 }
 
+u32 gp10b_gr_init_get_ctx_attrib_cb_size(struct gk20a *g, u32 betacb_size,
+	u32 tpc_count, u32 max_tpc)
+{
+	u32 alpha_cb_size = g->ops.gr.init.get_alpha_cb_size(g, tpc_count);
+	u32 size;
+
+	size = nvgpu_safe_mult_u32(
+		nvgpu_safe_add_u32(betacb_size, alpha_cb_size),
+		nvgpu_safe_mult_u32(
+			gr_gpc0_ppc0_cbm_beta_cb_size_v_granularity_v(),
+			max_tpc));
+
+	return ALIGN(size, 128);
+}
+
+void gp10b_gr_init_commit_cbes_reserve(struct gk20a *g,
+	struct nvgpu_gr_ctx *gr_ctx, bool patch)
+{
+	u32 cbes_reserve = gr_gpcs_swdx_beta_cb_ctrl_cbes_reserve_gfxp_v();
+
+	nvgpu_gr_ctx_patch_write(g, gr_ctx,
+		gr_gpcs_swdx_beta_cb_ctrl_r(),
+		gr_gpcs_swdx_beta_cb_ctrl_cbes_reserve_f(cbes_reserve),
+		patch);
+	nvgpu_gr_ctx_patch_write(g, gr_ctx,
+		gr_gpcs_ppcs_cbm_beta_cb_ctrl_r(),
+		gr_gpcs_ppcs_cbm_beta_cb_ctrl_cbes_reserve_f(cbes_reserve),
+		patch);
+}
+
+void gp10b_gr_init_get_supported_preemption_modes(
+	u32 *graphics_preemption_mode_flags, u32 *compute_preemption_mode_flags)
+{
+	u32 gfxp_flags = NVGPU_PREEMPTION_MODE_GRAPHICS_WFI;
+
+#ifdef CONFIG_NVGPU_GRAPHICS
+	gfxp_flags |= NVGPU_PREEMPTION_MODE_GRAPHICS_GFXP;
+#endif
+	*graphics_preemption_mode_flags = gfxp_flags;
+
+	*compute_preemption_mode_flags = (NVGPU_PREEMPTION_MODE_COMPUTE_WFI |
+					 NVGPU_PREEMPTION_MODE_COMPUTE_CTA);
+#ifdef CONFIG_NVGPU_CILP
+	*compute_preemption_mode_flags |= NVGPU_PREEMPTION_MODE_COMPUTE_CILP;
+#endif
+}
+
+void gp10b_gr_init_get_default_preemption_modes(
+	u32 *default_graphics_preempt_mode, u32 *default_compute_preempt_mode)
+{
+	*default_graphics_preempt_mode = NVGPU_PREEMPTION_MODE_GRAPHICS_WFI;
+	*default_compute_preempt_mode = NVGPU_PREEMPTION_MODE_COMPUTE_WFI;
+}
+
+#ifdef CONFIG_NVGPU_GRAPHICS
+u32 gp10b_gr_init_get_attrib_cb_gfxp_default_size(struct gk20a *g)
+{
+	return nvgpu_safe_add_u32(
+			g->ops.gr.init.get_attrib_cb_default_size(g),
+			nvgpu_safe_sub_u32(
+				gr_gpc0_ppc0_cbm_beta_cb_size_v_gfxp_v(),
+				gr_gpc0_ppc0_cbm_beta_cb_size_v_default_v()));
+}
+
+u32 gp10b_gr_init_get_attrib_cb_gfxp_size(struct gk20a *g)
+{
+	return nvgpu_safe_add_u32(
+			g->ops.gr.init.get_attrib_cb_default_size(g),
+			nvgpu_safe_sub_u32(
+				gr_gpc0_ppc0_cbm_beta_cb_size_v_gfxp_v(),
+				gr_gpc0_ppc0_cbm_beta_cb_size_v_default_v()));
+}
+
 u32 gp10b_gr_init_get_ctx_spill_size(struct gk20a *g)
 {
 	return  nvgpu_safe_mult_u32(
@@ -586,21 +648,6 @@ u32 gp10b_gr_init_get_ctx_betacb_size(struct gk20a *g)
 			gr_gpc0_ppc0_cbm_beta_cb_size_v_default_v()));
 }
 
-u32 gp10b_gr_init_get_ctx_attrib_cb_size(struct gk20a *g, u32 betacb_size,
-	u32 tpc_count, u32 max_tpc)
-{
-	u32 alpha_cb_size = g->ops.gr.init.get_alpha_cb_size(g, tpc_count);
-	u32 size;
-
-	size = nvgpu_safe_mult_u32(
-		nvgpu_safe_add_u32(betacb_size, alpha_cb_size),
-		nvgpu_safe_mult_u32(
-			gr_gpc0_ppc0_cbm_beta_cb_size_v_granularity_v(),
-			max_tpc));
-
-	return ALIGN(size, 128);
-}
-
 void gp10b_gr_init_commit_ctxsw_spill(struct gk20a *g,
 	struct nvgpu_gr_ctx *gr_ctx, u64 addr, u32 size, bool patch)
 {
@@ -618,37 +665,4 @@ void gp10b_gr_init_commit_ctxsw_spill(struct gk20a *g,
 			gr_gpc0_swdx_rm_spill_buffer_size_256b_f(size),
 			patch);
 }
-
-void gp10b_gr_init_commit_cbes_reserve(struct gk20a *g,
-	struct nvgpu_gr_ctx *gr_ctx, bool patch)
-{
-	u32 cbes_reserve = gr_gpcs_swdx_beta_cb_ctrl_cbes_reserve_gfxp_v();
-
-	nvgpu_gr_ctx_patch_write(g, gr_ctx,
-		gr_gpcs_swdx_beta_cb_ctrl_r(),
-		gr_gpcs_swdx_beta_cb_ctrl_cbes_reserve_f(cbes_reserve),
-		patch);
-	nvgpu_gr_ctx_patch_write(g, gr_ctx,
-		gr_gpcs_ppcs_cbm_beta_cb_ctrl_r(),
-		gr_gpcs_ppcs_cbm_beta_cb_ctrl_cbes_reserve_f(cbes_reserve),
-		patch);
-}
-
-void gp10b_gr_init_get_supported_preemption_modes(
-	u32 *graphics_preemption_mode_flags, u32 *compute_preemption_mode_flags)
-{
-	*graphics_preemption_mode_flags = (NVGPU_PREEMPTION_MODE_GRAPHICS_WFI |
-					  NVGPU_PREEMPTION_MODE_GRAPHICS_GFXP);
-	*compute_preemption_mode_flags = (NVGPU_PREEMPTION_MODE_COMPUTE_WFI |
-					 NVGPU_PREEMPTION_MODE_COMPUTE_CTA);
-#ifdef CONFIG_NVGPU_CILP
-	*compute_preemption_mode_flags |= NVGPU_PREEMPTION_MODE_COMPUTE_CILP;
-#endif
-}
-
-void gp10b_gr_init_get_default_preemption_modes(
-	u32 *default_graphics_preempt_mode, u32 *default_compute_preempt_mode)
-{
-	*default_graphics_preempt_mode = NVGPU_PREEMPTION_MODE_GRAPHICS_WFI;
-	*default_compute_preempt_mode = NVGPU_PREEMPTION_MODE_COMPUTE_WFI;
-}
+#endif /* CONFIG_NVGPU_GRAPHICS */

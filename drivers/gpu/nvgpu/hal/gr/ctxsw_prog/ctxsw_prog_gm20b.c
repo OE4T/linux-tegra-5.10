@@ -54,34 +54,6 @@ void gm20b_ctxsw_prog_set_patch_addr(struct gk20a *g,
 		ctxsw_prog_main_image_patch_adr_hi_o(), u64_hi32(addr));
 }
 
-#ifdef CONFIG_NVGPU_GRAPHICS
-void gm20b_ctxsw_prog_set_zcull_ptr(struct gk20a *g, struct nvgpu_mem *ctx_mem,
-	u64 addr)
-{
-	addr = addr >> 8;
-	nvgpu_mem_wr(g, ctx_mem, ctxsw_prog_main_image_zcull_ptr_o(),
-		u64_lo32(addr));
-}
-
-void gm20b_ctxsw_prog_set_zcull(struct gk20a *g, struct nvgpu_mem *ctx_mem,
-	u32 mode)
-{
-	nvgpu_mem_wr(g, ctx_mem, ctxsw_prog_main_image_zcull_o(), mode);
-}
-
-void gm20b_ctxsw_prog_set_zcull_mode_no_ctxsw(struct gk20a *g,
-	struct nvgpu_mem *ctx_mem)
-{
-	nvgpu_mem_wr(g, ctx_mem, ctxsw_prog_main_image_zcull_o(),
-			ctxsw_prog_main_image_zcull_mode_no_ctxsw_v());
-}
-
-bool gm20b_ctxsw_prog_is_zcull_mode_separate_buffer(u32 mode)
-{
-	return mode == ctxsw_prog_main_image_zcull_mode_separate_buffer_v();
-}
-#endif
-
 void gm20b_ctxsw_prog_init_ctxsw_hdr_data(struct gk20a *g,
 	struct nvgpu_mem *ctx_mem)
 {
@@ -136,6 +108,34 @@ void gm20b_ctxsw_prog_disable_verif_features(struct gk20a *g,
 
 	nvgpu_mem_wr(g, ctx_mem, ctxsw_prog_main_image_misc_options_o(), data);
 }
+
+#ifdef CONFIG_NVGPU_GRAPHICS
+void gm20b_ctxsw_prog_set_zcull_ptr(struct gk20a *g, struct nvgpu_mem *ctx_mem,
+	u64 addr)
+{
+	addr = addr >> 8;
+	nvgpu_mem_wr(g, ctx_mem, ctxsw_prog_main_image_zcull_ptr_o(),
+		u64_lo32(addr));
+}
+
+void gm20b_ctxsw_prog_set_zcull(struct gk20a *g, struct nvgpu_mem *ctx_mem,
+	u32 mode)
+{
+	nvgpu_mem_wr(g, ctx_mem, ctxsw_prog_main_image_zcull_o(), mode);
+}
+
+void gm20b_ctxsw_prog_set_zcull_mode_no_ctxsw(struct gk20a *g,
+	struct nvgpu_mem *ctx_mem)
+{
+	nvgpu_mem_wr(g, ctx_mem, ctxsw_prog_main_image_zcull_o(),
+			ctxsw_prog_main_image_zcull_mode_no_ctxsw_v());
+}
+
+bool gm20b_ctxsw_prog_is_zcull_mode_separate_buffer(u32 mode)
+{
+	return mode == ctxsw_prog_main_image_zcull_mode_separate_buffer_v();
+}
+#endif /* CONFIG_NVGPU_GRAPHICS */
 
 #ifdef CONFIG_NVGPU_DEBUGGER
 u32 gm20b_ctxsw_prog_hw_get_gpccs_header_size(void)
