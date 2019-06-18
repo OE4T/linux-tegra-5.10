@@ -385,6 +385,28 @@ static void eqos_configure_dma_channel(unsigned int chan,
 	/* RXPBL = 12 */
 	value |= EQOS_DMA_CHX_RX_CTRL_RXPBL_RECOMMENDED;
 	osi_writel(value, (unsigned char *)osi_dma->base + EQOS_DMA_CHX_RX_CTRL(chan));
+
+	/* Set Receive Interrupt Watchdog Timer Count */
+	/* conversion of usec to RWIT value
+	 * Eg:System clock is 62.5MHz, each clock cycle would then be 16ns
+	 * For value 0x1 in watchdog timer,device would wait for 256 clk cycles,
+	 * ie, (16ns x 256) => 4.096us (rounding off to 4us)
+	 * So formula with above values is,ret = usec/4
+	 */
+	if (osi_dma->use_riwt == OSI_ENABLE && chan <= OSI_EQOS_MAX_NUM_CHANS &&
+	    osi_dma->rx_riwt < UINT_MAX) {
+		value = osi_readl((unsigned char *)osi_dma->base +
+				  EQOS_DMA_CHX_RX_WDT(chan));
+		/* Mask the RWT value */
+		value &= ~EQOS_DMA_CHX_RX_WDT_RWT_MASK;
+		/* Conversion of usec to Rx Interrupt Watchdog Timer Count */
+		value |= ((osi_dma->rx_riwt *
+			 ((unsigned int)OSI_ETHER_SYSCLOCK / OSI_ONE_MEGA_HZ)) /
+			 EQOS_DMA_CHX_RX_WDT_RWTU) &
+			 EQOS_DMA_CHX_RX_WDT_RWT_MASK;
+		osi_writel(value, (unsigned char *)osi_dma->base +
+			   EQOS_DMA_CHX_RX_WDT(chan));
+	}
 }
 
 /**

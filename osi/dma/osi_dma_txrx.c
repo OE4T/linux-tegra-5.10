@@ -770,8 +770,11 @@ static int rx_dma_desc_initialization(struct osi_dma_priv_data *osi,
 		rx_desc->rdes0 = (unsigned int)L32(rx_swcx->buf_phy_addr);
 		rx_desc->rdes1 = (unsigned int)H32(rx_swcx->buf_phy_addr);
 		rx_desc->rdes2 = 0;
-		//TODO: RDES3_IOC needs to be reset for Rx watchdog
 		rx_desc->rdes3 = (RDES3_OWN | RDES3_IOC | RDES3_B1V);
+		/* reconfigure INTE bit if RX watchdog timer is enabled */
+		if (osi->use_riwt == OSI_ENABLE) {
+			rx_desc->rdes3 &= ~RDES3_IOC;
+		}
 	}
 
 	tailptr = rx_ring->rx_desc_phy_addr +

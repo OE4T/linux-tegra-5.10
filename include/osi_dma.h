@@ -277,6 +277,8 @@ struct osi_dma_chan_ops {
  *	@mtu:	MTU size
  *	@pkt_err_stats: Packet error stats
  *	@dstats: Extra DMA stats
+ *	@rx_riwt: Receive Interrupt Watchdog Timer Count Units
+ *	@use_riwt: Flag which decides riwt is enabled(1) or disabled(0)
  */
 struct osi_dma_priv_data {
 	struct osi_tx_ring *tx_ring[OSI_EQOS_MAX_NUM_CHANS];
@@ -291,6 +293,8 @@ struct osi_dma_priv_data {
 	unsigned int mtu;
 	struct osi_pkt_err_stats pkt_err_stats;
 	struct osi_xtra_dma_stat_counters dstats;
+	unsigned int rx_riwt;
+	unsigned int use_riwt;
 };
 
 /**
@@ -434,6 +438,7 @@ unsigned int osi_get_refill_rx_desc_cnt(struct osi_rx_ring *rx_ring);
  *	osi_rx_dma_desc_init - DMA Rx descriptor init
  *	@rx_swcx: OSI DMA Rx ring software context
  *	@rx_desc: OSI DMA Rx ring descriptor
+ *	@use_riwt: to enable Rx WDT and disable IOC
  *
  *	Algorithm: Initialise a Rx DMA descriptor.
  *
@@ -444,7 +449,8 @@ unsigned int osi_get_refill_rx_desc_cnt(struct osi_rx_ring *rx_ring);
  *	Return: None.
  */
 void osi_rx_dma_desc_init(struct osi_rx_swcx *rx_swcx,
-			  struct osi_rx_desc *rx_desc);
+			  struct osi_rx_desc *rx_desc,
+			  unsigned int use_riwt);
 
 /**
  *	osi_update_rx_tailptr - Updates DMA Rx ring tail pointer
