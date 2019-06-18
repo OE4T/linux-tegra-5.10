@@ -182,6 +182,8 @@ static u32 gk20a_fifo_intr_handle_errors(struct gk20a *g, u32 fifo_intr)
 	}
 
 	if ((fifo_intr & fifo_intr_0_fb_flush_timeout_pending_f()) != 0U) {
+		(void) nvgpu_report_host_err(g, NVGPU_ERR_MODULE_HOST,
+				0, GPU_HOST_PFIFO_FB_FLUSH_TIMEOUT_ERROR, 0);
 		nvgpu_err(g, "fifo fb flush timeout error");
 		handled |= fifo_intr_0_fb_flush_timeout_pending_f();
 	}
