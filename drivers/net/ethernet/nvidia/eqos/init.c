@@ -57,7 +57,6 @@
 #include <soc/tegra/chip-id.h>
 #include <linux/clk.h>
 #include <linux/reset.h>
-#include <linux/iommu.h>
 #include <linux/gpio.h>
 #include <linux/delay.h>
 #include <linux/workqueue.h>
@@ -887,7 +886,6 @@ int eqos_probe(struct platform_device *pdev)
 	struct eqos_cfg *pdt_cfg;
 	bool	use_multi_q;
 	uint	num_chans;
-	u64 dma_mask;
 
 	pr_debug("-->%s()\n", __func__);
 
@@ -950,26 +948,12 @@ int eqos_probe(struct platform_device *pdev)
 	pr_debug("Sizeof tx normal desc %lu\n\n", sizeof(struct s_tx_desc));
 	pr_debug("============================================================\n");
 
-	/* Check if IOMMU is enabled for EQOS */
-	if (pdev->dev.archdata.iommu != NULL) {
-
-		/* Read and set dma-mask from DT only if IOMMU is enabled*/
-		ret = of_property_read_u64(node, "dma-mask", &dma_mask);
-		if (ret != 0) {
-			dev_info(&pdev->dev, "Missing prop dma-mask. Default bit mask\n");
-			dma_mask = DMA_BIT_MASK(32);
-		}
-	} else {
-		dev_info(&pdev->dev, "Setting 32 bit dma-mask due to no IOMMU\n");
-		dma_mask = DMA_BIT_MASK(32);
-	}
-
 	/* remap base address */
 	eqos_base_addr = (ULONG) devm_ioremap_nocache(&pdev->dev,
 		res->start, (res->end - res->start) + 1);
 
 	/* Set DMA addressing limitations */
-	if (dma_set_mask_and_coherent(&pdev->dev, dma_mask) != 0) {
+	if (dma_set_mask_and_coherent(&pdev->dev, DMA_BIT_MASK(32))) {
 		dev_err(&pdev->dev, "dma_set_mask_and_coherent failed\n");
 		goto err_out_dev_failed;
 	}
