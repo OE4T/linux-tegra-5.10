@@ -41,6 +41,7 @@
 		nvidia,eth_iso_enable = <1>; /*0=enable, 1=disable */
 		phy-mode = "rgmii-id";
 		phy-handle = <&phy>;
+		nvidia,max-platform-mtu = <9000>;
 
 		mdio {
 			compatible = "nvidia,eqos-mdio";
