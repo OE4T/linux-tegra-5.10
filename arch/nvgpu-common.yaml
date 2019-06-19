@@ -636,12 +636,18 @@ pmu:
       safe: yes
       owner: Mahantesh K
       sources: [ common/pmu/pmu.c,
-                 common/pmu/pmu_pstate.c,
-                 include/nvgpu/pmu.h,
+                 include/nvgpu/pmu.h ]
+
+    pmu_pstate:
+      safe: yes
+      gpu: dgpu
+      owner: Mahantesh K
+      sources: [ common/pmu/pmu_pstate.c,
                  include/nvgpu/pmu/pmu_pstate.h ]
 
     fw:
       safe: yes
+      gpu: dgpu
       sources: [ common/pmu/fw/fw.c,
                  common/pmu/fw/fw_ns_bootstrap.c,
                  common/pmu/fw/fw_ver_ops.c,
@@ -649,6 +655,7 @@ pmu:
 
     lsfm:
       safe: yes
+      gpu: dgpu
       sources: [ common/pmu/lsfm/lsfm.c,
                  common/pmu/lsfm/lsfm_sw_gm20b.c,
                  common/pmu/lsfm/lsfm_sw_gm20b.h,
@@ -682,12 +689,13 @@ pmu:
 
     super_surface:
       safe: yes
+      gpu: dgpu
       sources: [ common/pmu/super_surface/super_surface.c,
                  common/pmu/super_surface/super_surface_priv.h,
                  include/nvgpu/pmu/super_surface.h ]
 
     perfmon:
-      safe: yes
+      safe: no
       sources: [ common/pmu/perfmon/pmu_perfmon.c,
                  common/pmu/perfmon/pmu_perfmon_sw_gm20b.c,
                  common/pmu/perfmon/pmu_perfmon_sw_gm20b.h,
@@ -778,9 +786,6 @@ pmu:
                  common/pmu/lpwr/rppg.c,
                  common/pmu/lpwr/lpwr.h,
                  include/nvgpu/pmu/lpwr.h ]
-    init:
-      safe: yes
-      owner: Mahantesh K
 
     pg:
       safe: no
@@ -866,11 +871,6 @@ pmu:
                  common/pmu/volt/volt_policy.h,
                  common/pmu/volt/volt_rail.h,
                  include/nvgpu/pmu/volt.h ]
-    zbc:
-      safe: no
-      gpu: igpu
-      owner: Divya S
-      sources: [ ]
 
 sec2:
   safe: yes
