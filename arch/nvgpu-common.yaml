@@ -496,6 +496,7 @@ mm:
           tags: unit-testable
         page:
           safe: yes
+          gpu: dgpu
           sources: [ common/mm/allocators/page_allocator.c,
                      include/nvgpu/page_allocator.h ]
           deps: [ ]
