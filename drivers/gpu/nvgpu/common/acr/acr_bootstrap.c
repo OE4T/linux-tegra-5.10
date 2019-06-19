@@ -266,9 +266,15 @@ static int acr_ucode_patch_sig(struct gk20a *g,
 	/* Patching logic:*/
 	for (i = 0U; i < sizeof(*p_patch_loc)>>2U; i++) {
 		p_img[(p_patch_loc[i]>>2U)] = p_sig[(p_patch_ind[i]<<2U)];
-		p_img[(p_patch_loc[i]>>2U)+1U] = p_sig[(p_patch_ind[i]<<2U)+1U];
-		p_img[(p_patch_loc[i]>>2U)+2U] = p_sig[(p_patch_ind[i]<<2U)+2U];
-		p_img[(p_patch_loc[i]>>2U)+3U] = p_sig[(p_patch_ind[i]<<2U)+3U];
+
+		p_img[nvgpu_safe_add_u32((p_patch_loc[i]>>2U), 1U)] =
+			p_sig[nvgpu_safe_add_u32((p_patch_ind[i]<<2U), 1U)];
+
+		p_img[nvgpu_safe_add_u32((p_patch_loc[i]>>2U), 2U)] =
+			p_sig[nvgpu_safe_add_u32((p_patch_ind[i]<<2U), 2U)];
+
+		p_img[nvgpu_safe_add_u32((p_patch_loc[i]>>2U), 3U)] =
+			p_sig[nvgpu_safe_add_u32((p_patch_ind[i]<<2U), 3U)];
 	}
 	return 0;
 }

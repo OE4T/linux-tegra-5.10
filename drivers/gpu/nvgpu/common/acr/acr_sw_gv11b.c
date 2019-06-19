@@ -112,7 +112,8 @@ void gv11b_acr_fill_bl_dmem_desc(struct gk20a *g,
 	bl_dmem_desc->code_entry_point = 0U;
 
 	flcn64_set_dma(&bl_dmem_desc->data_dma_base,
-		acr_ucode_mem->gpu_va + acr_ucode_header[2U]);
+		nvgpu_safe_add_u64(acr_ucode_mem->gpu_va,
+						acr_ucode_header[2U]));
 
 	bl_dmem_desc->data_size = acr_ucode_header[3U];
 }
