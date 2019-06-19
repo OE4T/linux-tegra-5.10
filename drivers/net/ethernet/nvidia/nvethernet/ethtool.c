@@ -514,6 +514,102 @@ static int ether_get_ts_info(struct net_device *net,
 	return 0;
 }
 
+/**
+ *	ether_set_coalesce: Set interrupt coalescing parameters.
+ *	@dev: Net device data.
+ *	@ec: pointer to ethtool_coalesce structure
+ *
+ *	Algorithm: This function is invoked by kernel when user request to set
+ *	interrupt coalescing parameters. This driver maintains same coalescing
+ *	parameters for all the channels, hence same changes will be applied to
+ *	all the channels.
+ *
+ *	Dependencies:
+ *	1) Interface need to be bring down for setting these parameters
+ *
+ *	Protection: None.
+ *
+ *	Return: 0 on success and -ve number on failure.
+ */
+static int ether_set_coalesce(struct net_device *dev,
+			      struct ethtool_coalesce *ec)
+{
+	struct ether_priv_data *pdata = netdev_priv(dev);
+	struct osi_dma_priv_data *osi_dma = pdata->osi_dma;
+
+	if (netif_running(dev)) {
+		netdev_err(dev, "Coalesce parameters can be changed"
+			   " only if interface is down\n");
+		return -EINVAL;
+	}
+
+	/* Check for not supported parameters  */
+	if ((ec->rx_coalesce_usecs_irq) ||
+	    (ec->rx_max_coalesced_frames_irq) || (ec->tx_coalesce_usecs_irq) ||
+	    (ec->use_adaptive_rx_coalesce) || (ec->use_adaptive_tx_coalesce) ||
+	    (ec->pkt_rate_low) || (ec->rx_coalesce_usecs_low) ||
+	    (ec->rx_max_coalesced_frames_low) || (ec->tx_coalesce_usecs_high) ||
+	    (ec->tx_max_coalesced_frames_low) || (ec->pkt_rate_high) ||
+	    (ec->tx_coalesce_usecs_low) || (ec->rx_coalesce_usecs_high) ||
+	    (ec->rx_max_coalesced_frames_high) ||
+	    (ec->tx_max_coalesced_frames_irq)  ||
+	    (ec->stats_block_coalesce_usecs)   ||
+	    (ec->tx_max_coalesced_frames_high) || (ec->rate_sample_interval) ||
+	    (ec->tx_coalesce_usecs) || (ec->tx_max_coalesced_frames) ||
+	    (ec->rx_max_coalesced_frames)) {
+		return -EOPNOTSUPP;
+	}
+
+	if (ec->rx_coalesce_usecs == OSI_DISABLE) {
+		osi_dma->use_riwt = OSI_DISABLE;
+	} else if ((ec->rx_coalesce_usecs > OSI_MAX_RX_COALESCE_USEC) ||
+		   (ec->rx_coalesce_usecs < OSI_MIN_RX_COALESCE_USEC)) {
+		netdev_err(dev,
+			   "invalid rx_usecs, must be in a range of"
+			   " %d to %d usec\n", OSI_MIN_RX_COALESCE_USEC,
+			   OSI_MAX_RX_COALESCE_USEC);
+		return -EINVAL;
+	} else {
+		osi_dma->use_riwt = OSI_ENABLE;
+	}
+
+	netdev_err(dev, "RX COALESCING is %s\n", osi_dma->use_riwt ? "ENABLED" :
+		   "DISABLED");
+
+	osi_dma->rx_riwt = ec->rx_coalesce_usecs;
+
+	return 0;
+}
+
+/**
+ *	ether_get_coalesce: Set interrupt coalescing parameters.
+ *	@dev: Net device data.
+ *	@ec: pointer to ethtool_coalesce structure
+ *
+ *	Algorithm: This function is invoked by kernel when user request to get
+ *	interrupt coalescing parameters. As coalescing parameters are same
+ *	for all the channels, so this function will get coalescing
+ *	details from channel zero and return.
+ *
+ *	Dependencies:
+ *	1) MAC and PHY need to be initialized.
+ *
+ *	Protection: None.
+ *
+ *	Return: 0.
+ */
+static int ether_get_coalesce(struct net_device *dev,
+			      struct ethtool_coalesce *ec)
+{
+	struct ether_priv_data *pdata = netdev_priv(dev);
+	struct osi_dma_priv_data *osi_dma = pdata->osi_dma;
+
+	memset(ec, 0, sizeof(struct ethtool_coalesce));
+	ec->rx_coalesce_usecs = osi_dma->rx_riwt;
+
+	return 0;
+}
+
 static const struct ethtool_ops ether_ethtool_ops = {
 	.get_link = ethtool_op_get_link,
 	.get_link_ksettings = phy_ethtool_get_link_ksettings,
@@ -524,6 +620,8 @@ static const struct ethtool_ops ether_ethtool_ops = {
 	.get_strings = ether_get_strings,
 	.get_ethtool_stats = ether_get_ethtool_stats,
 	.get_sset_count = ether_get_sset_count,
+	.get_coalesce = ether_get_coalesce,
+	.set_coalesce = ether_set_coalesce,
 };
 
 /**
