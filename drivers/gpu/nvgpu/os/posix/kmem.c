@@ -72,7 +72,7 @@ struct nvgpu_kmem_cache *nvgpu_kmem_cache_create(struct gk20a *g, size_t size)
 	cache->size = size;
 
 	(void)snprintf(cache->name, sizeof(cache->name),
-			"nvgpu-cache-0x%p-%d-%d", g, (int)size,
+			"nvgpu-cache-0x%p-%lu-%d", g, size,
 			nvgpu_atomic_inc_return(&kmem_cache_id));
 
 	return cache;
@@ -85,12 +85,21 @@ void nvgpu_kmem_cache_destroy(struct nvgpu_kmem_cache *cache)
 
 void *nvgpu_kmem_cache_alloc(struct nvgpu_kmem_cache *cache)
 {
+	void *ptr;
+
 #ifdef NVGPU_UNITTEST_FAULT_INJECTION_ENABLEMENT
 	if (nvgpu_posix_fault_injection_handle_call(&kmem_fi)) {
 		return NULL;
 	}
 #endif
-	return malloc(cache->size);
+	ptr = malloc(cache->size);
+
+	if (ptr == NULL) {
+		nvgpu_warn(NULL, "malloc returns NULL");
+		return NULL;
+	}
+
+	return ptr;
 }
 
 void nvgpu_kmem_cache_free(struct nvgpu_kmem_cache *cache, void *ptr)
@@ -100,6 +109,8 @@ void nvgpu_kmem_cache_free(struct nvgpu_kmem_cache *cache, void *ptr)
 
 void *nvgpu_kmalloc_impl(struct gk20a *g, size_t size, void *ip)
 {
+	void *ptr;
+
 #ifdef NVGPU_UNITTEST_FAULT_INJECTION_ENABLEMENT
 	if (nvgpu_posix_fault_injection_handle_call(&kmem_fi)) {
 		return NULL;
@@ -112,27 +123,52 @@ void *nvgpu_kmalloc_impl(struct gk20a *g, size_t size, void *ip)
 	 * nvmap_page_alloc in qnx (i.e. using shm_open/shm_ctl_special/mmap
 	 * calls).
 	 */
-	return malloc(size);
+	ptr = malloc(size);
+
+	if (ptr == NULL) {
+		nvgpu_warn(NULL, "malloc returns NULL");
+		return NULL;
+	}
+
+	return ptr;
 }
 
 void *nvgpu_kzalloc_impl(struct gk20a *g, size_t size, void *ip)
 {
+	void *ptr;
+
 #ifdef NVGPU_UNITTEST_FAULT_INJECTION_ENABLEMENT
 	if (nvgpu_posix_fault_injection_handle_call(&kmem_fi)) {
 		return NULL;
 	}
 #endif
-	return calloc(1, size);
+	ptr = calloc(1, size);
+
+	if (ptr == NULL) {
+		nvgpu_warn(NULL, "calloc returns NULL");
+		return NULL;
+	}
+
+	return ptr;
 }
 
 void *nvgpu_kcalloc_impl(struct gk20a *g, size_t n, size_t size, void *ip)
 {
+	void *ptr;
+
 #ifdef NVGPU_UNITTEST_FAULT_INJECTION_ENABLEMENT
 	if (nvgpu_posix_fault_injection_handle_call(&kmem_fi)) {
 		return NULL;
 	}
 #endif
-	return calloc(1, n * size);
+	ptr = calloc(1, (nvgpu_safe_mult_u64(n, size)));
+
+	if (ptr == NULL) {
+		nvgpu_warn(NULL, "calloc returns NULL");
+		return NULL;
+	}
+
+	return ptr;
 }
 
 void *nvgpu_vmalloc_impl(struct gk20a *g, unsigned long size, void *ip)
