@@ -147,20 +147,22 @@ int nvgpu_cond_timedwait(struct nvgpu_cond *c, unsigned int *ms)
 		return -EFAULT;
 	}
 
-	t_start_ns = ts.tv_sec * 1000000000 + ts.tv_nsec;
+	t_start_ns = nvgpu_safe_mult_s64(ts.tv_sec, 1000000000);
+	t_start_ns = nvgpu_safe_add_s64(t_start_ns, ts.tv_nsec);
 	t_ns = (s64)(*ms);
 	t_ns *= 1000000;
-	t_ns += t_start_ns;
+	t_ns =  nvgpu_safe_add_s64(t_ns, t_start_ns);
 	ts.tv_sec = t_ns / 1000000000;
 	ts.tv_nsec = t_ns % 1000000000;
 
 	ret = pthread_cond_timedwait(&c->cond, &c->mutex.lock.mutex, &ts);
 	if (ret == 0) {
 		if (clock_gettime(CLOCK_MONOTONIC, &ts) != -1) {
-			t_ns = ((ts.tv_sec * 1000000000) +
-					ts.tv_nsec) - t_start_ns;
+			t_ns = nvgpu_safe_mult_s64(ts.tv_sec, 1000000000);
+			t_ns = nvgpu_safe_add_s64(t_ns, ts.tv_nsec);
+			t_ns = nvgpu_safe_sub_s64(t_ns, t_start_ns);
 			t_ns /= 1000000;
-			if (*ms <= (unsigned int)t_ns) {
+			if ((s64)*ms <= t_ns) {
 				*ms = 0;
 			} else {
 				*ms -= (unsigned int)t_ns;
