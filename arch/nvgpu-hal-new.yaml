@@ -313,6 +313,7 @@ sync:
 
 therm:
   safe: yes
+  gpu: dgpu
   owner: Seshendra G
   sources: [ hal/therm/therm_gm20b.c,
              hal/therm/therm_gm20b.h,
@@ -503,15 +504,6 @@ pmu:
              hal/pmu/pmu_gv11b.h,
              hal/pmu/pmu_tu104.c,
              hal/pmu/pmu_tu104.h ]
-
-perf:
-  safe: yes
-  owner: Abdul S
-  gpu: dgpu
-  sources: [ hal/perf/perf_gv100.c,
-             hal/perf/perf_gv100.h,
-             hal/perf/perf_tu104.c,
-             hal/perf/perf_tu104.h ]
 
 nvlink:
   safe: yes
