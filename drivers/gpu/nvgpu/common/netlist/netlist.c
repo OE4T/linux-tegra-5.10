@@ -535,9 +535,12 @@ int nvgpu_netlist_init_ctx_vars(struct gk20a *g)
 		return -ENOMEM;
 	}
 
+#ifdef CONFIG_NVGPU_SIM
 	if (nvgpu_is_enabled(g, NVGPU_IS_FMODEL)) {
 		return nvgpu_init_sim_netlist_ctx_vars(g);
-	} else {
+	} else
+#endif
+	{
 		return nvgpu_netlist_init_ctx_vars_fw(g);
 	}
 }

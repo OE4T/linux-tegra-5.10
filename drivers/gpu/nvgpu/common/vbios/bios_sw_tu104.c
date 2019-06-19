@@ -67,9 +67,11 @@ int tu104_bios_verify_devinit(struct gk20a *g)
 
 int tu104_bios_init(struct gk20a *g)
 {
+#ifdef CONFIG_NVGPU_SIM
 	if (nvgpu_is_enabled(g, NVGPU_IS_FMODEL)) {
 		return 0;
 	}
+#endif
 
 	return gv100_bios_init(g);
 }

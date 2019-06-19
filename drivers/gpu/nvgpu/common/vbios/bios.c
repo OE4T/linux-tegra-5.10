@@ -157,9 +157,11 @@ int nvgpu_bios_sw_init(struct gk20a *g,
 	u32 ver = nvgpu_safe_add_u32(g->params.gpu_arch, g->params.gpu_impl);
 	int err = 0;
 
+#ifdef CONFIG_NVGPU_SIM
 	if (nvgpu_is_enabled(g, NVGPU_IS_FMODEL)) {
 		goto done;
 	}
+#endif
 
 	if (nvgpu_bios_check_dgpu(g, ver) == false) {
 		goto done;

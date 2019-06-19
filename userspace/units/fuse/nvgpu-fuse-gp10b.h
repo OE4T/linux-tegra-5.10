@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -37,7 +37,8 @@ int test_fuse_gp10b_ecc(struct unit_module *m,
 			struct gk20a *g, void *__args);
 int test_fuse_gp10b_feature_override_disable(struct unit_module *m,
 					     struct gk20a *g, void *__args);
+#ifdef CONFIG_NVGPU_SIM
 int test_fuse_gp10b_check_fmodel(struct unit_module *m,
 				 struct gk20a *g, void *__args);
-
+#endif
 #endif /* __UNIT_NVGPU_FUSE_GP10B_H__ */

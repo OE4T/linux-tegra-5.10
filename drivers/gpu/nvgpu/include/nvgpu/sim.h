@@ -22,6 +22,8 @@
 #ifndef NVGPU_SIM_H
 #define NVGPU_SIM_H
 
+#ifdef CONFIG_NVGPU_SIM
+
 #include <nvgpu/nvgpu_mem.h>
 
 struct gk20a;
@@ -58,4 +60,5 @@ void sim_writel(struct sim_nvgpu *sim, u32 r, u32 v);
 u32 sim_readl(struct sim_nvgpu *sim, u32 r);
 int nvgpu_init_sim_netlist_ctx_vars(struct gk20a *g);
 
+#endif
 #endif /* NVGPU_SIM_H */

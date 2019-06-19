@@ -390,11 +390,6 @@
         "unit": "fuse"
     },
     {
-        "test": "fuse_gm20b_check_fmodel",
-        "test_level": 0,
-        "unit": "fuse"
-    },
-    {
         "test": "fuse_gm20b_check_gcplex_fail",
         "test_level": 0,
         "unit": "fuse"
@@ -421,11 +416,6 @@
     },
     {
         "test": "fuse_gm20b_init",
-        "test_level": 0,
-        "unit": "fuse"
-    },
-    {
-        "test": "fuse_gp10b_check_fmodel",
         "test_level": 0,
         "unit": "fuse"
     },

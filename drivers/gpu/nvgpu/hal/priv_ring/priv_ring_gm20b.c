@@ -38,10 +38,12 @@
 
 void gm20b_priv_ring_enable(struct gk20a *g)
 {
+#ifdef CONFIG_NVGPU_SIM
 	if (nvgpu_is_enabled(g, NVGPU_IS_FMODEL)) {
 		nvgpu_log_info(g, "priv ring is already enabled");
 		return;
 	}
+#endif
 
 	nvgpu_log_info(g, "enabling priv ring");
 
@@ -63,10 +65,12 @@ void gm20b_priv_ring_isr(struct gk20a *g)
 	u32 gpc_priv_stride;
 	u32 gpc_offset;
 
+#ifdef CONFIG_NVGPU_SIM
 	if (nvgpu_is_enabled(g, NVGPU_IS_FMODEL)) {
 		nvgpu_err(g, "unhandled priv ring intr");
 		return;
 	}
+#endif
 
 	status0 = nvgpu_readl(g, pri_ringmaster_intr_status0_r());
 	status1 = nvgpu_readl(g, pri_ringmaster_intr_status1_r());

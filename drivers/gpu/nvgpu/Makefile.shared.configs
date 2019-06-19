@@ -147,5 +147,9 @@ NVGPU_COMMON_CFLAGS             += -DCONFIG_NVGPU_LS_PMU
 CONFIG_NVGPU_POWER_PG           := 1
 NVGPU_COMMON_CFLAGS             += -DCONFIG_NVGPU_POWER_PG
 
+# Enable sim support for normal build
+CONFIG_NVGPU_SIM                := 1
+NVGPU_COMMON_CFLAGS             += -DCONFIG_NVGPU_SIM
+
 endif
 endif

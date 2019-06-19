@@ -264,10 +264,12 @@ size_t tu104_fb_get_vidmem_size(struct gk20a *g)
 	u32 ecc = fb_mmu_local_memory_range_ecc_mode_v(range);
 	size_t bytes = ((size_t)mag << scale) * SZ_1M;
 
+#ifdef CONFIG_NVGPU_SIM
 	if (nvgpu_is_enabled(g, NVGPU_IS_FMODEL) && (bytes == 0)) {
 		/* 192 MB */
 		bytes = 192*1024*1024;
 	}
+#endif
 
 	if (ecc != 0U) {
 		bytes = bytes / 16U * 15U;

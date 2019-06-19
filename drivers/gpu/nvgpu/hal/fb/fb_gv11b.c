@@ -125,10 +125,13 @@ void gv11b_fb_cbc_configure(struct gk20a *g, struct nvgpu_cbc *cbc)
 	u64 compbit_store_iova;
 	u64 compbit_base_post_divide64;
 
+#ifdef CONFIG_NVGPU_SIM
 	if (nvgpu_is_enabled(g, NVGPU_IS_FMODEL)) {
 		compbit_store_iova = nvgpu_mem_get_phys_addr(g,
 						&cbc->compbit_store.mem);
-	} else {
+	} else
+#endif
+	{
 		compbit_store_iova = nvgpu_mem_get_addr(g,
 						&cbc->compbit_store.mem);
 	}

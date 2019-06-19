@@ -28,10 +28,13 @@
 
 bool tu104_is_pmu_supported(struct gk20a *g)
 {
+#ifdef CONFIG_NVGPU_SIM
 	/* PMU not supported in dGpu Simulation */
 	if (nvgpu_is_enabled(g, NVGPU_IS_FMODEL)) {
 		return false;
-	} else {
+	} else
+#endif
+	{
 		return true;
 	}
 }

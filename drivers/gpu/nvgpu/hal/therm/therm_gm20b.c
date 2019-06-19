@@ -95,11 +95,13 @@ int gm20b_elcg_init_idle_filters(struct gk20a *g)
 		active_engine_id = f->active_engines_list[engine_id];
 		gate_ctrl = nvgpu_readl(g, therm_gate_ctrl_r(active_engine_id));
 
+#ifdef CONFIG_NVGPU_SIM
 		if (nvgpu_is_enabled(g, NVGPU_IS_FMODEL)) {
 			gate_ctrl = set_field(gate_ctrl,
 				therm_gate_ctrl_eng_delay_after_m(),
 				therm_gate_ctrl_eng_delay_after_f(4));
 		}
+#endif
 
 		/* 2 * (1 << 9) = 1024 clks */
 		gate_ctrl = set_field(gate_ctrl,

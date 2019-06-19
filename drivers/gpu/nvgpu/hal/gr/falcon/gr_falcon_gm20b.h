@@ -47,7 +47,9 @@ void gm20b_gr_falcon_load_gpccs_imem(struct gk20a *g,
 			const u32 *ucode_u32_data, u32 ucode_u32_size);
 void gm20b_gr_falcon_load_fecs_imem(struct gk20a *g,
 			const u32 *ucode_u32_data, u32 ucode_u32_size);
+#ifdef CONFIG_NVGPU_SIM
 void gm20b_gr_falcon_configure_fmodel(struct gk20a *g);
+#endif
 void gm20b_gr_falcon_start_ucode(struct gk20a *g);
 void gm20b_gr_falcon_start_gpccs(struct gk20a *g);
 void gm20b_gr_falcon_start_fecs(struct gk20a *g);

@@ -544,7 +544,9 @@ struct gpu_ops {
 					const u32 *ucode_u32_data, u32 size);
 			void (*load_fecs_imem)(struct gk20a *g,
 					const u32 *ucode_u32_data, u32 size);
+#ifdef CONFIG_NVGPU_SIM
 			void (*configure_fmodel)(struct gk20a *g);
+#endif
 			void (*start_ucode)(struct gk20a *g);
 			void (*start_gpccs)(struct gk20a *g);
 			void (*start_fecs)(struct gk20a *g);
@@ -1895,7 +1897,9 @@ struct gk20a {
 	struct nvgpu_nvlink_dev nvlink;
 	struct nvgpu_gr *gr;
 	struct nvgpu_fbp *fbp;
+#ifdef CONFIG_NVGPU_SIM
 	struct sim_nvgpu *sim;
+#endif
 	struct mm_gk20a mm;
 	struct nvgpu_pmu *pmu;
 	struct nvgpu_acr *acr;

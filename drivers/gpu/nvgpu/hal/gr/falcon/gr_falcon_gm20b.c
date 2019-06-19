@@ -179,6 +179,7 @@ u32 gm20b_gr_falcon_get_gpccs_start_reg_offset(void)
 	return (gr_gpcs_gpccs_falcon_hwcfg_r() - gr_fecs_falcon_hwcfg_r());
 }
 
+#ifdef CONFIG_NVGPU_SIM
 void gm20b_gr_falcon_configure_fmodel(struct gk20a *g)
 {
 	nvgpu_log_fn(g, " ");
@@ -189,6 +190,7 @@ void gm20b_gr_falcon_configure_fmodel(struct gk20a *g)
 		gr_gpccs_ctxsw_mailbox_value_f(0xc0de7777U));
 
 }
+#endif
 
 void gm20b_gr_falcon_start_ucode(struct gk20a *g)
 {

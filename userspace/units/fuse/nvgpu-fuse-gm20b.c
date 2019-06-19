@@ -302,6 +302,7 @@ int test_fuse_gm20b_basic_fuses(struct unit_module *m,
 	return ret;
 }
 
+#ifdef CONFIG_NVGPU_SIM
 /* Verify when FMODEL is enabled, fuse module reports non-secure */
 int test_fuse_gm20b_check_fmodel(struct unit_module *m,
 				 struct gk20a *g, void *__args)
@@ -331,3 +332,4 @@ int test_fuse_gm20b_check_fmodel(struct unit_module *m,
 	nvgpu_set_enabled(g, NVGPU_IS_FMODEL, false);
 	return ret;
 }
+#endif

@@ -39,12 +39,14 @@ int gp10b_fuse_check_priv_security(struct gk20a *g)
 	bool is_wpr_enabled = false;
 	bool is_auto_fetch_disable = false;
 
+#ifdef CONFIG_NVGPU_SIM
 	if (nvgpu_is_enabled(g, NVGPU_IS_FMODEL)) {
 		nvgpu_set_enabled(g, NVGPU_SEC_PRIVSECURITY, false);
 		nvgpu_set_enabled(g, NVGPU_SEC_SECUREGPCCS, false);
 		nvgpu_log(g, gpu_dbg_info, "priv sec is disabled in fmodel");
 		return 0;
 	}
+#endif
 
 	if (g->ops.fuse.read_gcplex_config_fuse(g, &gcplex_config) != 0) {
 		nvgpu_err(g, "err reading gcplex config fuse, check fuse clk");

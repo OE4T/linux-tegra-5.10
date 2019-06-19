@@ -689,7 +689,9 @@ static const struct gpu_ops tu104_ops = {
 			.load_fecs_dmem = gm20b_gr_falcon_load_fecs_dmem,
 			.load_gpccs_imem = gm20b_gr_falcon_load_gpccs_imem,
 			.load_fecs_imem = gm20b_gr_falcon_load_fecs_imem,
+#ifdef CONFIG_NVGPU_SIM
 			.configure_fmodel = gm20b_gr_falcon_configure_fmodel,
+#endif
 			.start_ucode = gm20b_gr_falcon_start_ucode,
 			.start_gpccs = gm20b_gr_falcon_start_gpccs,
 			.start_fecs = gm20b_gr_falcon_start_fecs,
@@ -1529,6 +1531,7 @@ int tu104_init_hal(struct gk20a *g)
 	nvgpu_pramin_ops_init(g);
 
 	/* dGpu VDK support */
+#ifdef CONFIG_NVGPU_SIM
 	if (nvgpu_is_enabled(g, NVGPU_IS_FMODEL)){
 		/* Disable compression */
 #ifdef CONFIG_NVGPU_COMPRESSION
@@ -1552,7 +1555,9 @@ int tu104_init_hal(struct gk20a *g)
 		gops->clk_arb.get_arbiter_clk_domains = NULL;
 		gops->clk.support_clk_freq_controller = false;
 
-	} else {
+	} else
+#endif
+	{
 		nvgpu_set_enabled(g, NVGPU_PMU_PSTATE, true);
 		nvgpu_set_enabled(g, NVGPU_GR_USE_DMA_FOR_FW_BOOTSTRAP, true);
 	}

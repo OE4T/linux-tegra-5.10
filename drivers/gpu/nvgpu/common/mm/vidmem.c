@@ -333,9 +333,11 @@ int nvgpu_vidmem_init(struct mm_gk20a *mm)
 
 	vidmem_dbg(g, "init begin");
 
+#ifdef CONFIG_NVGPU_SIM
 	if (nvgpu_is_enabled(g, NVGPU_IS_FMODEL)) {
 		bootstrap_size = SZ_32M;
 	}
+#endif
 
 	bootstrap_co.base = size - bootstrap_size;
 	bootstrap_co.length = bootstrap_size;

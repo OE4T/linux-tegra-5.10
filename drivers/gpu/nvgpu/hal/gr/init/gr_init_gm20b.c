@@ -593,9 +593,11 @@ int gm20b_gr_init_wait_fe_idle(struct gk20a *g)
 	struct nvgpu_timeout timeout;
 	int err = 0;
 
+#ifdef CONFIG_NVGPU_SIM
 	if (nvgpu_is_enabled(g, NVGPU_IS_FMODEL)) {
 		return 0;
 	}
+#endif
 
 	nvgpu_log_fn(g, " ");
 
@@ -628,9 +630,11 @@ int gm20b_gr_init_fe_pwr_mode_force_on(struct gk20a *g, bool force_on)
 	int ret = 0;
 	u32 reg_val;
 
+#ifdef CONFIG_NVGPU_SIM
 	if (nvgpu_is_enabled(g, NVGPU_IS_FMODEL)) {
 		return 0;
 	}
+#endif
 
 	if (force_on) {
 		reg_val = gr_fe_pwr_mode_req_send_f() |

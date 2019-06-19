@@ -158,7 +158,9 @@ struct unit_module_test fuse_tests[] = {
 	UNIT_TEST(fuse_gp10b_ecc, test_fuse_gp10b_ecc, NULL, 0),
 	UNIT_TEST(fuse_gp10b_feature_override_disable,
 		  test_fuse_gp10b_feature_override_disable, NULL, 0),
+#ifdef CONFIG_NVGPU_SIM
 	UNIT_TEST(fuse_gp10b_check_fmodel, test_fuse_gp10b_check_fmodel, NULL, 0),
+#endif
 	UNIT_TEST(fuse_gp10b_cleanup, test_fuse_device_common_cleanup,
 		  &gp10b_init_args, 0),
 
@@ -178,7 +180,9 @@ struct unit_module_test fuse_tests[] = {
 		  NULL,
 		  0),
 	UNIT_TEST(fuse_gm20b_basic_fuses, test_fuse_gm20b_basic_fuses, NULL, 0),
+#ifdef CONFIG_NVGPU_SIM
 	UNIT_TEST(fuse_gm20b_check_fmodel, test_fuse_gm20b_check_fmodel, NULL, 0),
+#endif
 	UNIT_TEST(fuse_gm20b_cleanup, test_fuse_device_common_cleanup,
 		  &gm20b_init_args, 0),
 

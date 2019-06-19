@@ -503,9 +503,11 @@ int nvgpu_gr_falcon_load_ctxsw_ucode(struct gk20a *g,
 
 	nvgpu_log_fn(g, " ");
 
+#ifdef CONFIG_NVGPU_SIM
 	if (nvgpu_is_enabled(g, NVGPU_IS_FMODEL)) {
 		g->ops.gr.falcon.configure_fmodel(g);
 	}
+#endif
 
 	/*
 	 * In case bootloader is not supported, revert to the old way of
@@ -551,9 +553,11 @@ int nvgpu_gr_falcon_load_secure_ctxsw_ucode(struct gk20a *g,
 
 	nvgpu_log_fn(g, " ");
 
+#ifdef CONFIG_NVGPU_SIM
 	if (nvgpu_is_enabled(g, NVGPU_IS_FMODEL)) {
 		g->ops.gr.falcon.configure_fmodel(g);
 	}
+#endif
 
 	if (nvgpu_is_enabled(g, NVGPU_PMU_FECS_BOOTSTRAP_DONE)) {
 		/* this must be recovery so bootstrap fecs and gpccs */

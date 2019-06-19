@@ -116,10 +116,12 @@ void gp10b_priv_ring_isr(struct gk20a *g)
 	u32 error_info;
 	u32 error_code;
 
+#ifdef CONFIG_NVGPU_SIM
 	if (nvgpu_is_enabled(g, NVGPU_IS_FMODEL)) {
 		nvgpu_info(g, "unhandled priv ring intr");
 		return;
 	}
+#endif
 
 	status0 = nvgpu_readl(g, pri_ringmaster_intr_status0_r());
 	status1 = nvgpu_readl(g, pri_ringmaster_intr_status1_r());

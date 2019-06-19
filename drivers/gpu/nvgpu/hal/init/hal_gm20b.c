@@ -478,7 +478,9 @@ static const struct gpu_ops gm20b_ops = {
 			.load_fecs_dmem = gm20b_gr_falcon_load_fecs_dmem,
 			.load_gpccs_imem = gm20b_gr_falcon_load_gpccs_imem,
 			.load_fecs_imem = gm20b_gr_falcon_load_fecs_imem,
+#ifdef CONFIG_NVGPU_SIM
 			.configure_fmodel = gm20b_gr_falcon_configure_fmodel,
+#endif
 			.start_ucode = gm20b_gr_falcon_start_ucode,
 			.start_gpccs = gm20b_gr_falcon_start_gpccs,
 			.start_fecs = gm20b_gr_falcon_start_fecs,

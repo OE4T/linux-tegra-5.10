@@ -36,7 +36,6 @@ srcs +=	os/posix/nvgpu.c \
 	os/posix/posix-channel.c \
 	os/posix/posix-tsg.c \
 	os/posix/stubs.c \
-	os/posix/posix-sim.c \
 	os/posix/posix-nvhost.c \
 	os/posix/posix-vgpu.c \
 	os/posix/posix-dt.c \
@@ -57,6 +56,10 @@ endif
 ifeq ($(CONFIG_NVGPU_LOGGING),1)
 srcs += os/posix/log.c
 endif
+
+ifeq ($(CONFIG_NVGPU_SIM),1)
+srcs += os/posix/posix-sim.c
+endif
 endif
 
 # POSIX sources shared between the POSIX and QNX builds.
@@ -75,9 +78,6 @@ srcs += common/utils/enabled.c \
 	common/utils/rbtree.c \
 	common/utils/string.c \
 	common/utils/worker.c \
-	common/sim/sim.c \
-	common/sim/sim_pci.c \
-	common/sim/sim_netlist.c \
 	common/init/nvgpu_init.c \
 	common/mm/allocators/nvgpu_allocator.c \
 	common/mm/allocators/bitmap_allocator.c \
@@ -550,4 +550,10 @@ srcs += common/sec2/sec2.c \
 ifeq ($(CONFIG_NVGPU_COMPRESSION),1)
 srcs +=	hal/cbc/cbc_tu104.c
 endif
+endif
+
+ifeq ($(CONFIG_NVGPU_SIM),1)
+srcs += common/sim/sim.c \
+	common/sim/sim_pci.c \
+	common/sim/sim_netlist.c
 endif
