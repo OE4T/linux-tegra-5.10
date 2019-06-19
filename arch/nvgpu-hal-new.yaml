@@ -566,6 +566,7 @@ perf:
 
 pramin:
   safe: yes
+  gpu: dgpu
   sources: [ hal/pramin/pramin_gp10b.c,
              hal/pramin/pramin_gp10b.h,
              hal/pramin/pramin_gv100.c,

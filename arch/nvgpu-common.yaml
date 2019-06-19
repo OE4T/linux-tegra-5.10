@@ -139,6 +139,7 @@ nvgpu_err:
 
 pramin:
   safe: yes
+  gpu: dgpu
   owner: Terje B
   sources: [ common/pramin.c,
              include/nvgpu/pramin.h ]
