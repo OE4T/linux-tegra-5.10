@@ -1625,7 +1625,8 @@ static ssize_t dbg_hotplug_write(struct file *file, const char __user *addr,
 	rmb();
 	hotplug_state = dc->out->hotplug_state;
 
-	if (tegra_platform_is_sim() || tegra_platform_is_fpga())
+	if (tegra_platform_is_sim() || tegra_platform_is_fpga() ||
+		!gpio_is_valid(dc->out->hotplug_gpio))
 		goto skip_gpio;
 
 	if (hotplug_state == TEGRA_HPD_STATE_NORMAL &&

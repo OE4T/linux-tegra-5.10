@@ -908,7 +908,8 @@ static int tegra_dc_hdmi_hpd_init(struct tegra_dc *dc)
 	hotplug_gpio_np = of_get_named_gpio_flags(sor_np,
 					       "nvidia,hpd-gpio", 0, &flags);
 	if (hotplug_gpio_np == -ENOENT &&
-		hotplug_state == TEGRA_HPD_STATE_FORCE_ASSERT) {
+		((hotplug_state == TEGRA_HPD_STATE_FORCE_ASSERT) ||
+		(hotplug_state == TEGRA_HPD_STATE_FORCE_DEASSERT))) {
 		dev_info(&dc->ndev->dev,
 			"hdmi: No hotplug gpio is assigned\n");
 		goto skip_gpio_irq_settings;
@@ -3781,7 +3782,7 @@ static bool tegra_dc_hdmi_hpd_state(struct tegra_dc *dc)
 	int level;
 	bool hpd;
 
-	if (WARN_ON(!dc || !dc->out))
+	if (WARN_ON(!dc || !dc->out) || !gpio_is_valid(dc->out->hotplug_gpio))
 		return false;
 
 	if (tegra_platform_is_sim())

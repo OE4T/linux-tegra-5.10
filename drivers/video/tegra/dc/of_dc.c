@@ -612,11 +612,14 @@ static int parse_disp_default_out(struct platform_device *ndev,
 	if (hotplug_gpio >= 0) {
 		pdata->default_out->hotplug_gpio = hotplug_gpio;
 	} else {
-		if (hotplug_gpio == -ENOENT)
+		if (hotplug_gpio == -ENOENT) {
+			pdata->default_out->hotplug_gpio = hotplug_gpio;
 			dev_info(&ndev->dev, "No hpd-gpio in DT\n");
-		else
+		} else {
+			pdata->default_out->hotplug_gpio = -EINVAL;
 			dev_warn(&ndev->dev, "invalid hpd-gpio %d\n",
 					hotplug_gpio);
+		}
 
 		if (hotplug_gpio == -EPROBE_DEFER) {
 			err = -EPROBE_DEFER;
