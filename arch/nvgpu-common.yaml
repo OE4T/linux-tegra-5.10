@@ -235,7 +235,7 @@ engine_queues:
     mem_queues:
       children:
         mem_queue:
-          safe: yes
+          safe: no
           gpu: both
           sources: [ common/engine_queues/engine_mem_queue.c,
                      common/engine_queues/engine_mem_queue_priv.h,
@@ -251,7 +251,7 @@ engine_queues:
           deps: [ ]
           tags: unit-testable
         emem_queue:
-          safe: yes
+          safe: no
           gpu: dgpu
           sources: [ common/engine_queues/engine_emem_queue.c,
                      common/engine_queues/engine_emem_queue.h ]
