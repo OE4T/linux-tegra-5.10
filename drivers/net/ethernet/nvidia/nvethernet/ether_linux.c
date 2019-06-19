@@ -2495,6 +2495,42 @@ err_axi_cbb:
 }
 
 /**
+ *	ether_put_clks - Put back MAC related clocks.
+ *	@pdata: OSD private data.
+ *
+ *	Algorithm: Put back or release the MAC related clocks.
+ *
+ *	Dependencies: None.
+ *
+ *	Protection: None.
+ *
+ *	Return: None.
+ */
+static inline void ether_put_clks(struct ether_priv_data *pdata)
+{
+	struct device *dev = pdata->dev;
+
+	if (!IS_ERR_OR_NULL(pdata->tx_clk)) {
+		devm_clk_put(dev, pdata->tx_clk);
+	}
+	if (!IS_ERR_OR_NULL(pdata->ptp_ref_clk)) {
+		devm_clk_put(dev, pdata->ptp_ref_clk);
+	}
+	if (!IS_ERR_OR_NULL(pdata->rx_clk)) {
+		devm_clk_put(dev, pdata->rx_clk);
+	}
+	if (!IS_ERR_OR_NULL(pdata->axi_clk)) {
+		devm_clk_put(dev, pdata->axi_clk);
+	}
+	if (!IS_ERR_OR_NULL(pdata->axi_cbb_clk)) {
+		devm_clk_put(dev, pdata->axi_cbb_clk);
+	}
+	if (!IS_ERR_OR_NULL(pdata->pllrefe_clk)) {
+		devm_clk_put(dev, pdata->pllrefe_clk);
+	}
+}
+
+/**
  *	ether_get_clks - Get MAC related clocks.
  *	@pdata: OSD private data.
  *
@@ -2509,42 +2545,63 @@ err_axi_cbb:
 static int ether_get_clks(struct ether_priv_data *pdata)
 {
 	struct device *dev = pdata->dev;
+	int ret;
 
 	pdata->pllrefe_clk = devm_clk_get(dev, "pllrefe_vcoout");
-	if (IS_ERR(pdata->pllrefe_clk))
+	if (IS_ERR(pdata->pllrefe_clk)) {
 		dev_info(dev, "failed to get pllrefe_vcoout clk\n");
+		return PTR_ERR(pdata->pllrefe_clk);
+	}
 
 	pdata->axi_cbb_clk = devm_clk_get(dev, "axi_cbb");
 	if (IS_ERR(pdata->axi_cbb_clk)) {
+		ret = PTR_ERR(pdata->axi_cbb_clk);
 		dev_err(dev, "failed to get axi_cbb clk\n");
-		return PTR_ERR(pdata->axi_cbb_clk);
+		goto err_axi_cbb;
 	}
 
 	pdata->axi_clk = devm_clk_get(dev, "eqos_axi");
 	if (IS_ERR(pdata->axi_clk)) {
+		ret = PTR_ERR(pdata->axi_clk);
 		dev_err(dev, "failed to get eqos_axi clk\n");
-		return PTR_ERR(pdata->axi_clk);
+		goto err_axi;
 	}
 
 	pdata->rx_clk = devm_clk_get(dev, "eqos_rx");
 	if (IS_ERR(pdata->rx_clk)) {
+		ret = PTR_ERR(pdata->rx_clk);
 		dev_err(dev, "failed to get eqos_rx clk\n");
-		return PTR_ERR(pdata->rx_clk);
+		goto err_rx;
 	}
 
 	pdata->ptp_ref_clk = devm_clk_get(dev, "eqos_ptp_ref");
 	if (IS_ERR(pdata->ptp_ref_clk)) {
+		ret = PTR_ERR(pdata->ptp_ref_clk);
 		dev_err(dev, "failed to get eqos_ptp_ref clk\n");
-		return PTR_ERR(pdata->ptp_ref_clk);
+		goto err_ptp_ref;
 	}
 
 	pdata->tx_clk = devm_clk_get(dev, "eqos_tx");
 	if (IS_ERR(pdata->tx_clk)) {
+		ret = PTR_ERR(pdata->tx_clk);
 		dev_err(dev, "failed to get eqos_tx clk\n");
-		return PTR_ERR(pdata->tx_clk);
+		goto err_tx;
 	}
 
 	return 0;
+
+err_tx:
+	devm_clk_put(dev, pdata->ptp_ref_clk);
+err_ptp_ref:
+	devm_clk_put(dev, pdata->rx_clk);
+err_rx:
+	devm_clk_put(dev, pdata->axi_clk);
+err_axi:
+	devm_clk_put(dev, pdata->axi_cbb_clk);
+err_axi_cbb:
+	devm_clk_put(dev, pdata->pllrefe_clk);
+
+	return ret;
 }
 
 /**
@@ -2600,14 +2657,14 @@ static int ether_configure_car(struct platform_device *pdev,
 	ret = ether_get_clks(pdata);
 	if (ret < 0) {
 		dev_err(&pdev->dev, "failed to get clks\n");
-		return ret;
+		goto err_get_clks;
 	}
 
 	/* set PTP clock rate*/
 	ret = clk_set_rate(pdata->ptp_ref_clk, pdata->ptp_ref_clock_speed);
 	if (ret < 0) {
 		dev_err(&pdev->dev, "failed to set ptp clk rate\n");
-		return ret;
+		goto err_set_ptp_rate;
 	} else {
 		osi_core->ptp_config.ptp_ref_clk_rate = pdata->ptp_ref_clock_speed;
 	}
@@ -2615,7 +2672,7 @@ static int ether_configure_car(struct platform_device *pdev,
 	ret = ether_enable_clks(pdata);
 	if (ret < 0) {
 		dev_err(&pdev->dev, "failed to enable clks\n");
-		return ret;
+		goto err_enable_clks;
 	}
 
 	if (pdata->mac_rst) {
@@ -2642,6 +2699,13 @@ err_swr:
 		reset_control_deassert(pdata->mac_rst);
 err_rst:
 	ether_disable_clks(pdata);
+err_enable_clks:
+err_set_ptp_rate:
+	ether_put_clks(pdata);
+err_get_clks:
+	if (gpio_is_valid(pdata->phy_reset)) {
+		gpio_set_value(pdata->phy_reset, OSI_DISABLE);
+	}
 exit:
 	return ret;
 }
@@ -2694,6 +2758,9 @@ static int ether_init_plat_resources(struct platform_device *pdev,
 
 mac_addr_fail:
 	ether_disable_clks(pdata);
+	if (gpio_is_valid(pdata->phy_reset)) {
+		gpio_set_value(pdata->phy_reset, OSI_DISABLE);
+	}
 rst_clk_fail:
 	return ret;
 }
@@ -3263,6 +3330,10 @@ static int ether_probe(struct platform_device *pdev)
 	dev_info(&pdev->dev,
 		 "%s (HW ver: %02x) created with %u DMA channels\n",
 		 netdev_name(ndev), osi_core->mac_ver, num_dma_chans);
+
+	if (gpio_is_valid(pdata->phy_reset)) {
+		gpio_set_value(pdata->phy_reset, OSI_DISABLE);
+	}
 
 	return 0;
 
