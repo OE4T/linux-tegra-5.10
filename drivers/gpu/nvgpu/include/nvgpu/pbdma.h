@@ -35,34 +35,43 @@
 struct gk20a;
 
 /**
- * nvgpu_pbdma_setup_sw - initialize PBDMA software context
+ * @brief Initialize PBDMA software context
  *
- * @param g	Current GPU
+ * @param g[in]			The GPU driver struct for which to initialize
+ *				PBDMA software context.
  *
  * Gets number of PBDMAs and builds a map of runlists that will be serviced
- * by those PBDMAs. Returns non-zero value in case of failure.
+ * by those PBDMAs.
+ *
+ * @return 0 in case of success, < 0 in case of failure.
+ * @retval -ENOMEM in case there is not enough memory available.
  */
 int nvgpu_pbdma_setup_sw(struct gk20a *g);
 
 /**
- * nvgpu_pbdma_cleanup_sw - clean up PBDMA software context
+ * @brief Clean up PBDMA software context
  *
- * @param g	Current GPU
+ * @param g[in]			The GPU driver struct using PBDMA software
+ *				context.
  *
  * Cleans up PBDMA software context and related resources.
  */
 void nvgpu_pbdma_cleanup_sw(struct gk20a *g);
 
 /**
- * nvgpu_pbdma_find_for_runlist - find PBDMA servicing the runlist
+ * @brief Find PBDMA servicing the runlist
  *
- * @param g     	Current GPU
- * @param runlist_id	Runlist identifier
- * @param pbdma_id	Pointer to PBDMA identifier
+ * @param g[in]			The GPU driver struct owning the runlist.
+ * @param runlist_id[in]	Runlist identifier.
+ * @param pbdma_id[out]		Pointer to PBDMA identifier.
  *
  * Finds the PBDMA which is servicing #runlist_id.
- * Sets #pbdma_id to valid value and returns true in case PBDMA could be found.
- * Sets #pbdma_id to U32_MAX and returns false in case PBDMA could not be found.
+ *
+ * @return true if PBDMA was found, false otherwise.
+ * @retval Sets #pbdma_id to valid value and returns true in case PBDMA
+ *         could be found.
+ * @retval Sets #pbdma_id to U32_MAX and returns false in case PBDMA could
+ *         not be found.
  */
 bool nvgpu_pbdma_find_for_runlist(struct gk20a *g,
 		u32 runlist_id, u32 *pbdma_id);
