@@ -33,7 +33,19 @@
 
 unsigned long nvgpu_posix_ffs(unsigned long word)
 {
-	return (unsigned long)__builtin_ffsl((signed long)word);
+	int ret = 0;
+
+	if ((word & (unsigned long) LONG_MAX) != 0UL) {
+		ret = __builtin_ffsl(
+			nvgpu_safe_cast_u64_to_s64(
+				(word & (unsigned long) LONG_MAX)));
+	} else {
+		if (word > (unsigned long) LONG_MAX) {
+			ret = (int) 64;
+		}
+	}
+
+	return nvgpu_safe_cast_s32_to_u64(ret);
 }
 
 unsigned long nvgpu_posix_fls(unsigned long word)
@@ -47,7 +59,7 @@ unsigned long nvgpu_posix_fls(unsigned long word)
 		ret = 0UL;
 	} else {
 		ret = (sizeof(unsigned long) * 8UL) -
-			(unsigned long)__builtin_clzl(word);
+			(nvgpu_safe_cast_s32_to_u64(__builtin_clzl(word)));
 	}
 
 	return ret;
@@ -95,17 +107,18 @@ static unsigned long nvgpu_posix_find_next_bit(const unsigned long *addr,
 	 * invert.
 	 */
 	while (w == 0UL) {
-		idx++;
+		idx = nvgpu_safe_add_u64(idx, 1UL);
 		if (idx > idx_max) {
 			return n;
 		}
 
-		start += BITS_PER_LONG;
+		start = nvgpu_safe_add_u64(start, BITS_PER_LONG);
 
 		w = addr[idx] ^ invert_mask;
 	}
 
-	return min(n, (ffs(w) - 1UL) + idx * BITS_PER_LONG);
+	return min(n, (nvgpu_safe_add_u64(((ffs(w)) - 1UL),
+				(nvgpu_safe_mult_u64(idx, BITS_PER_LONG)))));
 }
 
 unsigned long find_first_bit(const unsigned long *addr, unsigned long size)
@@ -143,7 +156,8 @@ void nvgpu_bitmap_set(unsigned long *map, unsigned int start, unsigned int len)
 	}
 }
 
-void nvgpu_bitmap_clear(unsigned long *map, unsigned int start, unsigned int len)
+void nvgpu_bitmap_clear(unsigned long *map,
+				unsigned int start, unsigned int len)
 {
 	unsigned int end = start + len;
 
@@ -167,7 +181,7 @@ unsigned long bitmap_find_next_zero_area_off(unsigned long *map,
 {
 	unsigned long offs;
 
-	while (start + nr <= size) {
+	while ((nvgpu_safe_add_u64(start, (unsigned long)nr)) <= size) {
 		start = find_next_zero_bit(map, size, start);
 
 		start = nvgpu_safe_sub_u64(
@@ -178,7 +192,7 @@ unsigned long bitmap_find_next_zero_area_off(unsigned long *map,
 		/*
 		 * Not enough space left to satisfy the requested area.
 		 */
-		if ((start + nr) > size) {
+		if ((nvgpu_safe_add_u64(start, (unsigned long)nr)) > size) {
 			return size;
 		}
 
