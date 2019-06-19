@@ -188,8 +188,7 @@ static void ether_realloc_rx_skb(struct ether_priv_data *pdata,
 				osi_update_stats_counter(val, 1UL);
 			break;
 		}
-
-		osi_rx_dma_desc_init(rx_swcx, rx_desc);
+		osi_rx_dma_desc_init(rx_swcx, rx_desc, osi_dma->use_riwt);
 		INCR_RX_DESC_INDEX(rx_ring->refill_idx, 1U);
 	}
 

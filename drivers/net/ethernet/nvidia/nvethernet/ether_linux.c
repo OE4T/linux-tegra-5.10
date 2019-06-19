@@ -3017,6 +3017,22 @@ static int ether_parse_dt(struct ether_priv_data *pdata)
 		osi_core->dcs_en = OSI_DISABLE;
 	}
 
+	/* RIWT value to be set */
+	ret = of_property_read_u32(np, "nvidia,rx_riwt", &osi_dma->rx_riwt);
+	if (ret < 0) {
+		osi_dma->use_riwt = OSI_DISABLE;
+	} else {
+		if ((osi_dma->rx_riwt > OSI_MAX_RX_COALESCE_USEC) ||
+		    (osi_dma->rx_riwt < OSI_MIN_RX_COALESCE_USEC)) {
+			dev_err(dev,
+				"invalid rx_riwt, must be inrange %d to %d\n",
+				OSI_MIN_RX_COALESCE_USEC,
+				OSI_MAX_RX_COALESCE_USEC);
+			return -EINVAL;
+		}
+		osi_dma->use_riwt = OSI_ENABLE;
+	}
+
 	ret = ether_parse_phy_dt(pdata, np);
 	if (ret < 0) {
 		dev_err(dev, "failed to parse PHY DT\n");
