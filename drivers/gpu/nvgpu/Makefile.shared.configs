@@ -106,7 +106,7 @@ NVGPU_COMMON_CFLAGS                  += -DCONFIG_NVGPU_COMPRESSION
 # Flags enabled for only the regular build profile.
 #
 ifneq ($(profile),safety)
-# Enable logging for non-safety builds
+# Enable logging for non-safety and safety-debug builds
 CONFIG_NVGPU_LOGGING           := 1
 NVGPU_COMMON_CFLAGS             += -DCONFIG_NVGPU_LOGGING
 

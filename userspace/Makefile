@@ -65,8 +65,15 @@ CONFIGS := -D__NVGPU_POSIX__ \
 	   -DNVGPU_UNITTEST_FAULT_INJECTION_ENABLEMENT \
 	   -D__NVGPU_UNIT_TEST__
 
-NVGPU_FORCE_SAFETY_PROFILE	:= 1
+# For target "libnvgpu", safety profile should be used
+# safety-debug profile is used otherwise
+ifeq ( ,$(findstring libnvgpu, '$(MAKECMDGOALS)'))
 NVGPU_FORCE_DEBUG_PROFILE	:= 1
+else
+NVGPU_FORCE_DEBUG_PROFILE	:= 0
+endif
+
+NVGPU_FORCE_SAFETY_PROFILE	:= 1
 include $(NVGPU_SRC)/Makefile.shared.configs
 CONFIGS+=$(NVGPU_COMMON_CFLAGS)
 
