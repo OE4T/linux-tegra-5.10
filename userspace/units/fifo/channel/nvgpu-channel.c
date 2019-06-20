@@ -440,6 +440,8 @@ static int test_channel_close(struct unit_module *m,
 			false : true;
 
 		if (branches & F_CHANNEL_CLOSE_AS_BOUND) {
+			memset(&mm, 0, sizeof(mm));
+			memset(&vm, 0, sizeof(vm));
 			mm.g = g;
 			vm.mm = &mm;
 			ch->vm = &vm;
@@ -672,6 +674,8 @@ static int test_channel_setup_bind(struct unit_module *m,
 	g->ops.gr.intr.flush_channel_tlb = stub_gr_intr_flush_channel_tlb;
 	g->ops.mm.cache.l2_flush = stub_mm_l2_flush;	/* bug 2621189 */
 
+	memset(&mm, 0, sizeof(mm));
+	memset(&vm, 0, sizeof(vm));
 	mm.g = g;
 	vm.mm = &mm;
 	ch->vm = &vm;
