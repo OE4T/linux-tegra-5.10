@@ -92,6 +92,16 @@ static inline u64 nvgpu_safe_sub_u64(u64 ul_a, u64 ul_b)
 	}
 }
 
+static inline s64 nvgpu_safe_sub_s64(s64 si_a, s64 si_b)
+{
+	if ((si_b > 0 && si_a < LONG_MIN + si_b) ||
+		(si_b < 0 && si_a > LONG_MAX + si_b)) {
+		BUG();
+	} else {
+		return si_a - si_b;
+	}
+}
+
 static inline u32 nvgpu_safe_mult_u32(u32 ui_a, u32 ui_b)
 {
 	if (ui_a == 0 || ui_b == 0) {

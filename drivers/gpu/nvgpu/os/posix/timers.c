@@ -45,7 +45,8 @@ s64 nvgpu_current_time_us(void)
 		BUG();
 	}
 
-	time_now = ((s64)now.tv_sec * (s64)1000000) + (s64)now.tv_usec;
+	time_now = nvgpu_safe_mult_s64((s64)now.tv_sec, (s64)1000000);
+	time_now = nvgpu_safe_add_s64(time_now, (s64)now.tv_usec);
 
 	return time_now;
 }
@@ -57,7 +58,8 @@ static s64 get_time_ns(void)
 
 	(void) clock_gettime(CLOCK_MONOTONIC, &ts);
 
-	t_ns = ts.tv_sec * 1000000000 + ts.tv_nsec;
+	t_ns = nvgpu_safe_mult_s64(ts.tv_sec, 1000000000);
+	t_ns = nvgpu_safe_add_s64(t_ns, ts.tv_nsec);
 
 	return t_ns;
 }
@@ -67,7 +69,7 @@ static s64 get_time_ns(void)
  */
 static bool time_after(s64 a, s64 b)
 {
-	return ((a - b) > 0);
+	return (nvgpu_safe_sub_s64(a, b) > 0);
 }
 
 int nvgpu_timeout_init(struct gk20a *g, struct nvgpu_timeout *timeout,
@@ -88,8 +90,9 @@ int nvgpu_timeout_init(struct gk20a *g, struct nvgpu_timeout *timeout,
 		timeout->retries.max_attempts = duration;
 	} else {
 		duration_ns = (s64)duration;
-		duration_ns *= NSEC_PER_MSEC;
-		timeout->time = nvgpu_current_time_ns() + duration_ns;
+		duration_ns = nvgpu_safe_mult_s64(duration_ns, NSEC_PER_MSEC);
+		timeout->time = nvgpu_safe_add_s64(nvgpu_current_time_ns(),
+								duration_ns);
 	}
 
 	return 0;
@@ -195,8 +198,8 @@ static void nvgpu_usleep(unsigned int usecs)
 
 	t_currentns = get_time_ns();
 	t_ns = (s64)usecs;
-	t_ns *= 1000;
-	t_ns += t_currentns;
+	t_ns = nvgpu_safe_mult_s64(t_ns, 1000);
+	t_ns = nvgpu_safe_add_s64(t_ns, t_currentns);
 
 	rqtp.tv_sec = t_ns / 1000000000;
 	rqtp.tv_nsec = t_ns % 1000000000;
@@ -225,8 +228,8 @@ void nvgpu_msleep(unsigned int msecs)
 
 	t_currentns = get_time_ns();
 	t_ns = (s64)msecs;
-	t_ns *= 1000000;
-	t_ns += t_currentns;
+	t_ns = nvgpu_safe_mult_s64(t_ns, 1000000);
+	t_ns = nvgpu_safe_add_s64(t_ns, t_currentns);
 
 	rqtp.tv_sec = t_ns / 1000000000;
 	rqtp.tv_nsec = t_ns % 1000000000;
