@@ -38,8 +38,11 @@ int osi_hw_dma_init(struct osi_dma_priv_data *osi_dma)
 	unsigned int i, chan;
 	int ret;
 
-	if (osi_dma->ops->init_dma_channel != OSI_NULL) {
+	if ((osi_dma != OSI_NULL) && (osi_dma->ops != OSI_NULL) &&
+	    osi_dma->ops->init_dma_channel != OSI_NULL) {
 		osi_dma->ops->init_dma_channel(osi_dma);
+	} else {
+		return -1;
 	}
 
 	ret = dma_desc_init(osi_dma);
@@ -56,88 +59,132 @@ int osi_hw_dma_init(struct osi_dma_priv_data *osi_dma)
 		osi_start_dma(osi_dma, chan);
 	}
 
-	return 0;
+	return ret;
 }
 
-void osi_hw_dma_deinit(struct osi_dma_priv_data *osi_dma)
+/**
+ *	osi_hw_deinit - De-init the HW
+ *	@osi: OSI private data structure.
+ *
+ *	Algorithm:
+ *	1) Stop the DMA
+ *	2) free all allocated resources.
+ *
+ *	Dependencies: None
+ *
+ *	Protection: None
+ *
+ *	Return: 0 - Success, -ve - failure
+ */
+int  osi_hw_dma_deinit(struct osi_dma_priv_data *osi_dma)
 {
 	unsigned int i;
+
+	if (osi_dma == OSI_NULL) {
+		return -1;
+	}
 
 	for (i = 0; i < osi_dma->num_dma_chans; i++) {
 		osi_stop_dma(osi_dma, osi_dma->dma_chans[i]);
 	}
+
+	return 0;
 }
 
-void osi_disable_chan_tx_intr(struct osi_dma_priv_data *osi_dma,
-			      unsigned int chan)
+int osi_disable_chan_tx_intr(struct osi_dma_priv_data *osi_dma,
+			     unsigned int chan)
 {
 	if ((osi_dma != OSI_NULL) && (osi_dma->ops != OSI_NULL) &&
 	    (osi_dma->ops->disable_chan_tx_intr != OSI_NULL)) {
 		osi_dma->ops->disable_chan_tx_intr(osi_dma->base, chan);
+		return 0;
 	}
+
+	return -1;
 }
 
-void osi_enable_chan_tx_intr(struct osi_dma_priv_data *osi_dma,
-			     unsigned int chan)
+int osi_enable_chan_tx_intr(struct osi_dma_priv_data *osi_dma,
+			    unsigned int chan)
 {
 	if ((osi_dma != OSI_NULL) && (osi_dma->ops != OSI_NULL) &&
 	    (osi_dma->ops->enable_chan_tx_intr != OSI_NULL)) {
 		osi_dma->ops->enable_chan_tx_intr(osi_dma->base, chan);
+		return 0;
 	}
+
+	return -1;
 }
 
-void osi_disable_chan_rx_intr(struct osi_dma_priv_data *osi_dma,
-			      unsigned int chan)
+int osi_disable_chan_rx_intr(struct osi_dma_priv_data *osi_dma,
+			     unsigned int chan)
 {
 	if ((osi_dma != OSI_NULL) && (osi_dma->ops != OSI_NULL) &&
 	    (osi_dma->ops->disable_chan_rx_intr != OSI_NULL)) {
 		osi_dma->ops->disable_chan_rx_intr(osi_dma->base, chan);
+		return 0;
 	}
+
+	return -1;
 }
 
-void osi_enable_chan_rx_intr(struct osi_dma_priv_data *osi_dma,
-			     unsigned int chan)
+int osi_enable_chan_rx_intr(struct osi_dma_priv_data *osi_dma,
+			    unsigned int chan)
 {
 	if ((osi_dma != OSI_NULL) && (osi_dma->ops != OSI_NULL) &&
 	    (osi_dma->ops->enable_chan_rx_intr != OSI_NULL)) {
 		osi_dma->ops->enable_chan_rx_intr(osi_dma->base, chan);
+		return 0;
 	}
+
+	return -1;
 }
 
-void osi_clear_tx_intr(struct osi_dma_priv_data *osi_dma,
-		       unsigned int chan)
+int osi_clear_tx_intr(struct osi_dma_priv_data *osi_dma,
+		      unsigned int chan)
 {
 	if ((osi_dma != OSI_NULL) && (osi_dma->ops != OSI_NULL) &&
 	    (osi_dma->ops->clear_tx_intr != OSI_NULL)) {
 		osi_dma->ops->clear_tx_intr(osi_dma->base, chan);
+		return 0;
 	}
+
+	return -1;
 }
 
-void osi_clear_rx_intr(struct osi_dma_priv_data *osi_dma,
-		       unsigned int chan)
+int osi_clear_rx_intr(struct osi_dma_priv_data *osi_dma,
+		      unsigned int chan)
 {
 	if ((osi_dma != OSI_NULL) && (osi_dma->ops != OSI_NULL) &&
 	    (osi_dma->ops->clear_rx_intr != OSI_NULL)) {
 		osi_dma->ops->clear_rx_intr(osi_dma->base, chan);
+		return 0;
 	}
+
+	return -1;
 }
 
-void osi_start_dma(struct osi_dma_priv_data *osi_dma,
+int  osi_start_dma(struct osi_dma_priv_data *osi_dma,
 		   unsigned int chan)
 {
 	if ((osi_dma != OSI_NULL) && (osi_dma->ops != OSI_NULL) &&
 	    (osi_dma->ops->start_dma != OSI_NULL)) {
 		osi_dma->ops->start_dma(osi_dma->base, chan);
+		return 0;
 	}
+
+	return -1;
 }
 
-void osi_stop_dma(struct osi_dma_priv_data *osi_dma,
-		  unsigned int chan)
+int osi_stop_dma(struct osi_dma_priv_data *osi_dma,
+		 unsigned int chan)
 {
 	if ((osi_dma != OSI_NULL) && (osi_dma->ops != OSI_NULL) &&
 	    (osi_dma->ops->stop_dma != OSI_NULL)) {
 		osi_dma->ops->stop_dma(osi_dma->base, chan);
+		return 0;
 	}
+
+	return -1;
 }
 
 unsigned int osi_get_refill_rx_desc_cnt(struct osi_rx_ring *rx_ring)
@@ -145,24 +192,43 @@ unsigned int osi_get_refill_rx_desc_cnt(struct osi_rx_ring *rx_ring)
 	return (rx_ring->cur_rx_idx - rx_ring->refill_idx) & (RX_DESC_CNT - 1U);
 }
 
-void osi_rx_dma_desc_init(struct osi_rx_swcx *rx_swcx,
-			  struct osi_rx_desc *rx_desc,
-			  unsigned int use_riwt)
+int osi_rx_dma_desc_init(struct osi_rx_swcx *rx_swcx,
+			 struct osi_rx_desc *rx_desc,
+			 unsigned int use_riwt)
 {
-	rx_desc->rdes0 = (unsigned int)L32(rx_swcx->buf_phy_addr);
-	rx_desc->rdes1 = (unsigned int)H32(rx_swcx->buf_phy_addr);
-	rx_desc->rdes2 = 0;
-	rx_desc->rdes3 = (RDES3_OWN | RDES3_IOC | RDES3_B1V);
+	/* for CERT-C error */
+	unsigned long temp;
 
+	if (rx_swcx != OSI_NULL && rx_desc != OSI_NULL) {
+		temp = L32(rx_swcx->buf_phy_addr);
+		if (temp > UINT_MAX) {
+			/* error case do nothing */
+		} else {
+			rx_desc->rdes0 = (unsigned int)temp;
+		}
+
+		temp = H32(rx_swcx->buf_phy_addr);
+		if (temp > UINT_MAX) {
+			/* error case do nothing */
+		} else {
+			rx_desc->rdes1 = (unsigned int)temp;
+		}
+		rx_desc->rdes2 = 0;
+		rx_desc->rdes3 = (RDES3_OWN | RDES3_IOC | RDES3_B1V);
+	} else {
+		return -1;
+	}
 	/* reset IOC bit if RWIT is enabled */
 	if (use_riwt == OSI_ENABLE) {
 		rx_desc->rdes3 &= ~RDES3_IOC;
 	}
+
+	return 0;
 }
 
-void osi_update_rx_tailptr(struct osi_dma_priv_data *osi_dma,
-			   struct osi_rx_ring *rx_ring,
-			   unsigned int chan)
+int osi_update_rx_tailptr(struct osi_dma_priv_data *osi_dma,
+			  struct osi_rx_ring *rx_ring,
+			  unsigned int chan)
 {
 	unsigned long tailptr = 0;
 	unsigned int refill_idx = rx_ring->refill_idx;
@@ -174,13 +240,21 @@ void osi_update_rx_tailptr(struct osi_dma_priv_data *osi_dma,
 	if (osi_dma != OSI_NULL && osi_dma->ops != OSI_NULL &&
 	    osi_dma->ops->update_rx_tailptr != OSI_NULL) {
 		osi_dma->ops->update_rx_tailptr(osi_dma->base, chan, tailptr);
+	} else {
+		return -1;
 	}
+
+	return 0;
 }
 
-void osi_set_rx_buf_len(struct osi_dma_priv_data *osi_dma)
+int osi_set_rx_buf_len(struct osi_dma_priv_data *osi_dma)
 {
 	if (osi_dma != OSI_NULL && osi_dma->ops != OSI_NULL &&
 	    osi_dma->ops->set_rx_buf_len != OSI_NULL) {
 		osi_dma->ops->set_rx_buf_len(osi_dma);
+	} else {
+		return -1;
 	}
+
+	return 0;
 }

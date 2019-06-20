@@ -312,10 +312,10 @@ struct osi_dma_priv_data {
  *
  *	Protection: None.
  *
- *	Return: None.
+ *	Return: 0 - success , -1 - failure
  */
-void osi_disable_chan_tx_intr(struct osi_dma_priv_data *osi_dma,
-			      unsigned int chan);
+int osi_disable_chan_tx_intr(struct osi_dma_priv_data *osi_dma,
+			     unsigned int chan);
 
 /**
  *	osi_enable_chan_tx_intr - Enable DMA Tx channel interrupts.
@@ -332,10 +332,10 @@ void osi_disable_chan_tx_intr(struct osi_dma_priv_data *osi_dma,
  *
  *	Protection: None.
  *
- *	Return: None.
+ *	Return: 0 - success , -1 - failure
  */
-void osi_enable_chan_tx_intr(struct osi_dma_priv_data *osi_dma,
-			     unsigned int chan);
+int osi_enable_chan_tx_intr(struct osi_dma_priv_data *osi_dma,
+			    unsigned int chan);
 
 /**
  *	osi_disable_chan_rx_intr - Disable DMA Rx channel interrupts.
@@ -352,10 +352,10 @@ void osi_enable_chan_tx_intr(struct osi_dma_priv_data *osi_dma,
  *
  *	Protection: None.
  *
- *	Return: None.
+ *	Return: 0 - success , -1 - failure
  */
-void osi_disable_chan_rx_intr(struct osi_dma_priv_data *osi_dma,
-			      unsigned int chan);
+int osi_disable_chan_rx_intr(struct osi_dma_priv_data *osi_dma,
+			     unsigned int chan);
 
 /**
  *	osi_enable_chan_rx_intr - Enable DMA Rx channel interrupts.
@@ -372,10 +372,10 @@ void osi_disable_chan_rx_intr(struct osi_dma_priv_data *osi_dma,
  *
  *	Protection: None.
  *
- *	Return: None.
+ *	Return: 0 - success , -1 - failure
  */
-void osi_enable_chan_rx_intr(struct osi_dma_priv_data *osi_dma,
-			     unsigned int chan);
+int osi_enable_chan_rx_intr(struct osi_dma_priv_data *osi_dma,
+			    unsigned int chan);
 
 /**
  *	osi_clear_tx_intr - Handles Tx interrupt source.
@@ -390,10 +390,10 @@ void osi_enable_chan_rx_intr(struct osi_dma_priv_data *osi_dma,
  *
  *	Protection: None.
  *
- *	Return: None.
+ *	Return: 0 - success , -1 - failure
  */
-void osi_clear_tx_intr(struct osi_dma_priv_data *osi_dma,
-		       unsigned int chan);
+int osi_clear_tx_intr(struct osi_dma_priv_data *osi_dma,
+		      unsigned int chan);
 
 /**
  *	osi_clear_rx_intr - Handles Rx interrupt source.
@@ -410,10 +410,10 @@ void osi_clear_tx_intr(struct osi_dma_priv_data *osi_dma,
  *
  *	Protection: None.
  *
- *	Return: None.
+ *	Return: 0 - success , -1 - failure
  */
-void osi_clear_rx_intr(struct osi_dma_priv_data *osi_dma,
-		       unsigned int chan);
+int osi_clear_rx_intr(struct osi_dma_priv_data *osi_dma,
+		      unsigned int chan);
 
 /**
  *	osi_start_dma - Start DMA
@@ -428,10 +428,10 @@ void osi_clear_rx_intr(struct osi_dma_priv_data *osi_dma,
  *
  *	Protection: None
  *
- *	Return: None
+ *	Return: 0 - success , -1 - failure
  */
-void osi_start_dma(struct osi_dma_priv_data *osi_dma,
-		   unsigned int chan);
+int osi_start_dma(struct osi_dma_priv_data *osi_dma,
+		  unsigned int chan);
 
 /**
  *	osi_stop_dma - Stop DMA
@@ -445,10 +445,11 @@ void osi_start_dma(struct osi_dma_priv_data *osi_dma,
  *	2) DMA HW init need to be completed successfully, see osi_hw_dma_init
  *
  *	Protection: None
- *	Return: None
+ *
+ *	Return: 0 - success , -1 - failure
  */
-void osi_stop_dma(struct osi_dma_priv_data *osi_dma,
-		  unsigned int chan);
+int osi_stop_dma(struct osi_dma_priv_data *osi_dma,
+		 unsigned int chan);
 
 /**
  *	osi_get_refill_rx_desc_cnt - Rx descriptors count that needs to refill.
@@ -480,11 +481,11 @@ unsigned int osi_get_refill_rx_desc_cnt(struct osi_rx_ring *rx_ring);
  *
  *	Protection: None.
  *
- *	Return: None.
+ *	Return: 0 - success , -1 - failure
  */
-void osi_rx_dma_desc_init(struct osi_rx_swcx *rx_swcx,
-			  struct osi_rx_desc *rx_desc,
-			  unsigned int use_riwt);
+int osi_rx_dma_desc_init(struct osi_rx_swcx *rx_swcx,
+			 struct osi_rx_desc *rx_desc,
+			 unsigned int use_riwt);
 
 /**
  *	osi_update_rx_tailptr - Updates DMA Rx ring tail pointer
@@ -500,11 +501,11 @@ void osi_rx_dma_desc_init(struct osi_rx_swcx *rx_swcx,
  *
  *	Protection: None.
  *
- *	Return: None.
+ *	Return: 0 - success , -1 - failure
  */
-void osi_update_rx_tailptr(struct osi_dma_priv_data *osi_dma,
-			   struct osi_rx_ring *rx_ring,
-			   unsigned int chan);
+int osi_update_rx_tailptr(struct osi_dma_priv_data *osi_dma,
+			  struct osi_rx_ring *rx_ring,
+			  unsigned int chan);
 
 /**
  *	osi_set_rx_buf_len - Updates rx buffer length.
@@ -519,9 +520,9 @@ void osi_update_rx_tailptr(struct osi_dma_priv_data *osi_dma,
  *
  *	Protection: None.
  *
- *	Return: None.
+ *	Return: 0 - success , -1 - failure
  */
-void osi_set_rx_buf_len(struct osi_dma_priv_data *osi_dma);
+int osi_set_rx_buf_len(struct osi_dma_priv_data *osi_dma);
 
 /**
  *	osi_hw_transmit - Initialize Tx DMA descriptors for a channel
@@ -633,7 +634,7 @@ int osi_process_rx_completions(struct osi_dma_priv_data *osi,
  *
  *	Protection: None.
  *
- *	Return: None.
+ *	Return: 0 - success, -1 - failure
  */
 int osi_hw_dma_init(struct osi_dma_priv_data *osi_dma);
 
@@ -649,9 +650,9 @@ int osi_hw_dma_init(struct osi_dma_priv_data *osi_dma);
  *
  *	Protection: None.
  *
- *	Return: None.
+ *	Return: 0 - success, -1 - failure
  */
-void osi_hw_dma_deinit(struct osi_dma_priv_data *osi_dma);
+int osi_hw_dma_deinit(struct osi_dma_priv_data *osi_dma);
 
 /**
  *	osi_init_dma_ops - Initialize DMA operations
@@ -680,9 +681,9 @@ void osi_init_dma_ops(struct osi_dma_priv_data *osi_dma);
  *
  *	Protection: None
  *
- *	Return: None
+ *	Return: 0 - success, -1 - failure
  */
-void osi_clear_tx_pkt_err_stats(struct osi_dma_priv_data *osi_dma);
+int osi_clear_tx_pkt_err_stats(struct osi_dma_priv_data *osi_dma);
 
 /**
  *	osi_clear_rx_pkt_err_stats - Clear rx packet error stats.
@@ -697,7 +698,7 @@ void osi_clear_tx_pkt_err_stats(struct osi_dma_priv_data *osi_dma);
  *
  *	Protection: None
  *
- *	Return: None
+ *	Return: 0 - success, -1 - failure
  */
-void osi_clear_rx_pkt_err_stats(struct osi_dma_priv_data *osi_dma);
+int osi_clear_rx_pkt_err_stats(struct osi_dma_priv_data *osi_dma);
 #endif /* OSI_DMA_H */

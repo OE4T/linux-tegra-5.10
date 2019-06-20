@@ -346,10 +346,10 @@ int osi_poll_for_swr(struct osi_core_priv_data *osi_core);
  *	1) OSD layer needs get the AXI CBB clock rate with OSD clock API
  *	(ex - clk_get_rate())
  *
- *	Return: None
+ *      Return: 0 - success, -1 - failure
  */
-void osi_set_mdc_clk_rate(struct osi_core_priv_data *osi_core,
-			  unsigned long csr_clk_rate);
+int osi_set_mdc_clk_rate(struct osi_core_priv_data *osi_core,
+			 unsigned long csr_clk_rate);
 
 /**
  *	osi_hw_core_init - EQOS MAC, MTL and common DMA initialization.
@@ -383,9 +383,9 @@ int osi_hw_core_init(struct osi_core_priv_data *osi_core,
  *
  *	Protection: None
  *
- *	Return: None
+ *      Return: 0 - success, -1 - failure
  */
-void osi_start_mac(struct osi_core_priv_data *osi_core);
+int osi_start_mac(struct osi_core_priv_data *osi_core);
 
 /**
  *	osi_stop_mac - Stop MAC Tx/Rx engine
@@ -398,9 +398,9 @@ void osi_start_mac(struct osi_core_priv_data *osi_core);
  *
  *	Protection: None
  *
- *	Return: None
+ *      Return: 0 - success, -1 - failure
  */
-void osi_stop_mac(struct osi_core_priv_data *osi_core);
+int osi_stop_mac(struct osi_core_priv_data *osi_core);
 
 /**
  *	osi_common_isr - Common ISR.
@@ -417,7 +417,7 @@ void osi_stop_mac(struct osi_core_priv_data *osi_core);
  *
  *	Return: 0 - success, -1 - failure
  */
-void osi_common_isr(struct osi_core_priv_data *osi_core);
+int osi_common_isr(struct osi_core_priv_data *osi_core);
 
 /**
  *	osi_set_mode - Set FD/HD mode.
@@ -432,9 +432,9 @@ void osi_common_isr(struct osi_core_priv_data *osi_core);
  *
  *	Protection: None
  *
- *	Return: NONE
+ *      Return: 0 - success, -1 - failure
  */
-void osi_set_mode(struct osi_core_priv_data *osi_core, int mode);
+int osi_set_mode(struct osi_core_priv_data *osi_core, int mode);
 
 /**
  *	osi_set_speed - Set operating speed.
@@ -449,9 +449,9 @@ void osi_set_mode(struct osi_core_priv_data *osi_core, int mode);
  *
  *	Protection: None
  *
- *	Return: NONE
+ *      Return: 0 - success, -1 - failure
  */
-void osi_set_speed(struct osi_core_priv_data *osi_core, int speed);
+int osi_set_speed(struct osi_core_priv_data *osi_core, int speed);
 
 /**
  *	osi_pad_calibrate - PAD calibration
@@ -1092,12 +1092,13 @@ int osi_adjust_time(struct osi_core_priv_data *osi_core, long delta);
  *
  *	Protection: None
  *
- *	Return: None (sec and nsec stores the read seconds and nanoseconds
- *	values from MAC)
+ *	Return: 0 - success, -1 - failure
+ *	(sec and nsec stores the read seconds and nanoseconds
+ *	values from MAC if success)
  */
-void osi_get_systime_from_mac(struct osi_core_priv_data *osi_core,
-			      unsigned int *sec,
-			      unsigned int *nsec);
+int osi_get_systime_from_mac(struct osi_core_priv_data *osi_core,
+			     unsigned int *sec,
+			     unsigned int *nsec);
 /**
  *	osi_ptp_configuration - Configure PTP
  *	@osi: OSI private data structure.
@@ -1121,9 +1122,9 @@ void osi_get_systime_from_mac(struct osi_core_priv_data *osi_core,
  *
  *	Protection: None
  *
- *	Return: None
+ *	Return: 0 - success, -1 - failure
  */
-void osi_ptp_configuration(struct osi_core_priv_data *osi_core,
-			   unsigned int enable);
+int osi_ptp_configuration(struct osi_core_priv_data *osi_core,
+			  unsigned int enable);
 
 #endif /* OSI_CORE_H */

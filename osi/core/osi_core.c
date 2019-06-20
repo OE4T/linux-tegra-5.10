@@ -162,235 +162,226 @@ void osi_init_core_ops(struct osi_core_priv_data *osi_core)
 
 int osi_poll_for_swr(struct osi_core_priv_data *osi_core)
 {
-	int ret = 0;
-
 	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
 	    (osi_core->ops->poll_for_swr != OSI_NULL)) {
-		ret = osi_core->ops->poll_for_swr(osi_core->base);
+		return osi_core->ops->poll_for_swr(osi_core->base);
 	}
-
-	return ret;
+	return -1;
 }
 
-void osi_set_mdc_clk_rate(struct osi_core_priv_data *osi_core,
-			  unsigned long csr_clk_rate)
+int osi_set_mdc_clk_rate(struct osi_core_priv_data *osi_core,
+			 unsigned long csr_clk_rate)
 {
 	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
 	    (osi_core->ops->set_mdc_clk_rate != OSI_NULL)) {
 		osi_core->ops->set_mdc_clk_rate(osi_core, csr_clk_rate);
+		return 0;
 	}
+
+	return -1;
 }
 
 int osi_hw_core_init(struct osi_core_priv_data *osi_core,
 		     unsigned int tx_fifo_size,
 		     unsigned int rx_fifo_size)
 {
-	int ret = 0;
-
 	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
 	    (osi_core->ops->core_init != OSI_NULL)) {
-		ret = osi_core->ops->core_init(osi_core, tx_fifo_size,
-					       rx_fifo_size);
+		return osi_core->ops->core_init(osi_core, tx_fifo_size,
+						rx_fifo_size);
 	}
 
-	return ret;
+	return -1;
 }
 
-void osi_start_mac(struct osi_core_priv_data *osi_core)
+int osi_start_mac(struct osi_core_priv_data *osi_core)
 {
 	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
 	    (osi_core->ops->start_mac != OSI_NULL)) {
 		osi_core->ops->start_mac(osi_core->base);
+		return 0;
 	}
+
+	return -1;
 }
 
-void osi_stop_mac(struct osi_core_priv_data *osi_core)
+int osi_stop_mac(struct osi_core_priv_data *osi_core)
 {
 	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
 	    (osi_core->ops->stop_mac != OSI_NULL)) {
 		osi_core->ops->stop_mac(osi_core->base);
+		return 0;
 	}
+
+	return -1;
 }
 
-void osi_common_isr(struct osi_core_priv_data *osi_core)
+int osi_common_isr(struct osi_core_priv_data *osi_core)
 {
 	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
 	    (osi_core->ops->handle_common_intr != OSI_NULL)) {
 		osi_core->ops->handle_common_intr(osi_core);
+		return 0;
 	}
+
+	return -1;
 }
 
-void osi_set_mode(struct osi_core_priv_data *osi_core, int mode)
+int osi_set_mode(struct osi_core_priv_data *osi_core, int mode)
 {
 	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
 	    (osi_core->ops->set_mode != OSI_NULL)) {
 		osi_core->ops->set_mode(osi_core->base, mode);
+		return 0;
 	}
+
+	return -1;
 }
 
-void osi_set_speed(struct osi_core_priv_data *osi_core, int speed)
+int osi_set_speed(struct osi_core_priv_data *osi_core, int speed)
 {
 	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
 	    (osi_core->ops->set_speed != OSI_NULL)) {
 		osi_core->ops->set_speed(osi_core->base, speed);
+		return 0;
 	}
+
+	return -1;
 }
 
 int osi_pad_calibrate(struct osi_core_priv_data *osi_core)
 {
-	int ret = 0;
-
 	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
 	    (osi_core->ops->pad_calibrate != OSI_NULL)) {
-		ret = osi_core->ops->pad_calibrate(osi_core);
+		return osi_core->ops->pad_calibrate(osi_core);
 	}
 
-	return ret;
+	return -1;
 }
 
 int osi_flush_mtl_tx_queue(struct osi_core_priv_data *osi_core,
 			   unsigned int qinx)
 {
-        int ret = 0;
-
         if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
             (osi_core->ops->flush_mtl_tx_queue != OSI_NULL)) {
-                ret = osi_core->ops->flush_mtl_tx_queue(osi_core->base, qinx);
+		return osi_core->ops->flush_mtl_tx_queue(osi_core->base, qinx);
         }
 
-        return ret;
+	return -1;
 }
 
 int osi_config_mac_loopback(struct osi_core_priv_data *osi_core,
 			    unsigned int lb_mode)
 {
-	int ret = -1;
-
 	/* Configure MAC LoopBack */
 	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
 	    (osi_core->ops->config_mac_loopback != OSI_NULL)) {
-		ret = osi_core->ops->config_mac_loopback(osi_core->base,
-							 lb_mode);
+		return osi_core->ops->config_mac_loopback(osi_core->base,
+							  lb_mode);
 	}
 
-	return ret;
+	return -1;
 }
 
 int osi_set_avb(struct osi_core_priv_data *osi_core,
 		struct osi_core_avb_algorithm *avb)
 {
-	int ret = -1;
-
 	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
 	    (osi_core->ops->set_avb_algorithm != OSI_NULL)) {
-		ret = osi_core->ops->set_avb_algorithm(osi_core, avb);
+		return osi_core->ops->set_avb_algorithm(osi_core, avb);
 	}
 
-	return ret;
+	return -1;
 }
 
 int osi_get_avb(struct osi_core_priv_data *osi_core,
 		struct osi_core_avb_algorithm *avb)
 {
-	int ret = -1;
-
 	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
 	    (osi_core->ops->get_avb_algorithm != OSI_NULL)) {
-		ret = osi_core->ops->get_avb_algorithm(osi_core, avb);
+		return osi_core->ops->get_avb_algorithm(osi_core, avb);
 	}
 
-	return ret;
+	return -1;
 }
 
 int osi_configure_txstatus(struct osi_core_priv_data *osi_core,
 			   unsigned int tx_status)
 {
-	int ret = -1;
-
 	/* Configure Drop Transmit Status */
 	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
 	    (osi_core->ops->config_tx_status != OSI_NULL)) {
-		ret = osi_core->ops->config_tx_status(osi_core->base,
-						      tx_status);
+		return osi_core->ops->config_tx_status(osi_core->base,
+						       tx_status);
 	}
 
-	return ret;
+	return -1;
 }
 
 int osi_config_fw_err_pkts(struct osi_core_priv_data *osi_core,
 			   unsigned int qinx, unsigned int fw_err)
 {
-	int ret = -1;
-
 	/* Configure Forwarding of Error packets */
 	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
 	    (osi_core->ops->config_fw_err_pkts != OSI_NULL)) {
-		ret = osi_core->ops->config_fw_err_pkts(osi_core->base,
-							qinx, fw_err);
+		return osi_core->ops->config_fw_err_pkts(osi_core->base,
+							 qinx, fw_err);
 	}
 
-	return ret;
+	return -1;
 }
 
 int osi_config_rx_crc_check(struct osi_core_priv_data *osi_core,
 			    unsigned int crc_chk)
 {
-	int ret = -1;
-
 	/* Configure CRC Checking for Received Packets */
 	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
 	    (osi_core->ops->config_rx_crc_check != OSI_NULL)) {
-		ret = osi_core->ops->config_rx_crc_check(osi_core->base,
-							 crc_chk);
+		return osi_core->ops->config_rx_crc_check(osi_core->base,
+							  crc_chk);
 	}
 
-	return ret;
+	return -1;
 }
 
 int osi_configure_flow_control(struct osi_core_priv_data *osi_core,
 			       unsigned int flw_ctrl)
 {
-	int ret = -1;
-
 	/* Configure Flow control settings */
 	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
 	    (osi_core->ops->config_flow_control != OSI_NULL)) {
-		ret = osi_core->ops->config_flow_control(osi_core->base,
-							 flw_ctrl);
+		return osi_core->ops->config_flow_control(osi_core->base,
+							  flw_ctrl);
 	}
 
-	return ret;
+	return -1;
 }
 
 int osi_config_arp_offload(struct osi_core_priv_data *osi_core,
 			   unsigned int flags,
 			   unsigned char *ip_addr)
 {
-	int ret = -1;
-
 	if (osi_core != OSI_NULL && osi_core->ops != OSI_NULL &&
 	    osi_core->ops->config_arp_offload != OSI_NULL) {
-		ret = osi_core->ops->config_arp_offload(osi_core->mac_ver,
-							osi_core->base,
-							flags, ip_addr);
+		return osi_core->ops->config_arp_offload(osi_core->mac_ver,
+							 osi_core->base,
+							 flags, ip_addr);
 	}
 
-	return ret;
+	return -1;
 }
 
 int osi_config_mac_pkt_filter_reg(struct osi_core_priv_data *osi_core,
 				  struct osi_filter pfilter)
 {
-	int ret = -1;
-
 	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
 	    (osi_core->ops->config_mac_pkt_filter_reg != OSI_NULL)) {
 		osi_core->ops->config_mac_pkt_filter_reg(osi_core,
 							 pfilter);
-		ret = 0;
+		return 0;
 	}
 
-	return ret;
+	return -1;
 }
 
 int osi_update_mac_addr_low_high_reg(struct osi_core_priv_data *osi_core,
@@ -410,7 +401,7 @@ int osi_update_mac_addr_low_high_reg(struct osi_core_priv_data *osi_core,
 
 	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
 	    (osi_core->ops->update_mac_addr_low_high_reg != OSI_NULL)) {
-		ret = osi_core->ops->update_mac_addr_low_high_reg(
+		return osi_core->ops->update_mac_addr_low_high_reg(
 							    osi_core,
 							    index,
 							    value,
@@ -420,21 +411,19 @@ int osi_update_mac_addr_low_high_reg(struct osi_core_priv_data *osi_core,
 							    src_dest);
 	}
 
-	return ret;
+	return -1;
 }
 
 int osi_config_l3_l4_filter_enable(struct osi_core_priv_data *osi_core,
 				   unsigned int enable)
 {
-	int ret = -1;
-
 	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
 	    (osi_core->ops->config_l3_l4_filter_enable != OSI_NULL)) {
-		ret = osi_core->ops->config_l3_l4_filter_enable(osi_core->base,
-								enable);
+		return osi_core->ops->config_l3_l4_filter_enable(osi_core->base,
+								 enable);
 	}
 
-	return ret;
+	return -1;
 }
 
 int osi_config_l3_filters(struct osi_core_priv_data *osi_core,
@@ -456,15 +445,16 @@ int osi_config_l3_filters(struct osi_core_priv_data *osi_core,
 
 	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
 	    (osi_core->ops->config_l3_filters != OSI_NULL)) {
-		ret = osi_core->ops->config_l3_filters(osi_core, filter_no,
-						       enb_dis, ipv4_ipv6_match,
-						       src_dst_addr_match,
-						       perfect_inverse_match,
-						       dma_routing_enable,
-						       dma_chan);
+		return osi_core->ops->config_l3_filters(osi_core, filter_no,
+							enb_dis,
+							ipv4_ipv6_match,
+							src_dst_addr_match,
+							perfect_inverse_match,
+							dma_routing_enable,
+							dma_chan);
 	}
 
-	return ret;
+	return -1;
 }
 
 int osi_update_ip4_addr(struct osi_core_priv_data *osi_core,
@@ -472,28 +462,25 @@ int osi_update_ip4_addr(struct osi_core_priv_data *osi_core,
 			unsigned char addr[],
 			unsigned int src_dst_addr_match)
 {
-	int ret = -1;
-
 	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
 	    (osi_core->ops->update_ip4_addr != OSI_NULL)) {
-		ret = osi_core->ops->update_ip4_addr(osi_core, filter_no,
-						     addr, src_dst_addr_match);
+		return osi_core->ops->update_ip4_addr(osi_core, filter_no,
+						      addr, src_dst_addr_match);
 	}
 
-	return ret;
+	return -1;
 }
 
 int osi_update_ip6_addr(struct osi_core_priv_data *osi_core,
 			unsigned int filter_no,
 			unsigned short addr[])
 {
-	int ret = -1;
-
 	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
 	    (osi_core->ops->update_ip6_addr != OSI_NULL)) {
-		ret = osi_core->ops->update_ip6_addr(osi_core, filter_no, addr);
+		return osi_core->ops->update_ip6_addr(osi_core, filter_no,
+						      addr);
 	}
-	return ret;
+	return -1;
 }
 
 int osi_config_l4_filters(struct osi_core_priv_data *osi_core,
@@ -515,31 +502,29 @@ int osi_config_l4_filters(struct osi_core_priv_data *osi_core,
 
 	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
 	    (osi_core->ops->config_l4_filters != OSI_NULL)) {
-		ret = osi_core->ops->config_l4_filters(osi_core, filter_no,
-						       enb_dis, tcp_udp_match,
-						       src_dst_port_match,
-						       perfect_inverse_match,
-						       dma_routing_enable,
-						       dma_chan);
+		return osi_core->ops->config_l4_filters(osi_core, filter_no,
+							enb_dis, tcp_udp_match,
+							src_dst_port_match,
+							perfect_inverse_match,
+							dma_routing_enable,
+							dma_chan);
 	}
 
-	return ret;
+	return -1;
 }
 
 int osi_update_l4_port_no(struct osi_core_priv_data *osi_core,
 			  unsigned int filter_no, unsigned short port_no,
 			  unsigned int src_dst_port_match)
 {
-	int ret = -1;
-
 	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
 	    (osi_core->ops->update_l4_port_no != OSI_NULL)) {
-		ret = osi_core->ops->update_l4_port_no(osi_core, filter_no,
-						       port_no,
-						       src_dst_port_match);
+		return osi_core->ops->update_l4_port_no(osi_core, filter_no,
+							port_no,
+							src_dst_port_match);
 	}
 
-	return ret;
+	return -1;
 }
 
 int osi_config_vlan_filtering(struct osi_core_priv_data *osi_core,
@@ -547,75 +532,66 @@ int osi_config_vlan_filtering(struct osi_core_priv_data *osi_core,
 			      unsigned int perfect_hash_filtering,
 			      unsigned int perfect_inverse_match)
 {
-	int ret = -1;
-
 	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
 	    (osi_core->ops->config_vlan_filtering != OSI_NULL)) {
-		ret = osi_core->ops->config_vlan_filtering(osi_core,
-							   filter_enb_dis,
+		return osi_core->ops->config_vlan_filtering(
+							osi_core,
+							filter_enb_dis,
 							perfect_hash_filtering,
 							perfect_inverse_match);
 	}
 
-	return ret;
+	return -1;
 }
 
 int  osi_config_l2_da_perfect_inverse_match(struct osi_core_priv_data *osi_core,
 					    unsigned int perfect_inverse_match)
 {
-	int ret = -1;
-
 	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
 	    (osi_core->ops->config_l2_da_perfect_inverse_match != OSI_NULL)) {
-		ret = osi_core->ops->config_l2_da_perfect_inverse_match(
+		return osi_core->ops->config_l2_da_perfect_inverse_match(
 							osi_core->base,
 							perfect_inverse_match);
 	}
 
-	return ret;
+	return -1;
 }
 
 int osi_config_rxcsum_offload(struct osi_core_priv_data *osi_core,
 			      unsigned int enable)
 {
-	int ret = -1;
-
 	if (osi_core != OSI_NULL && osi_core->ops != OSI_NULL &&
 	    osi_core->ops->config_rxcsum_offload != OSI_NULL) {
-		ret = osi_core->ops->config_rxcsum_offload(osi_core->base,
-							   enable);
+		return osi_core->ops->config_rxcsum_offload(osi_core->base,
+							    enable);
 	}
 
-	return ret;
+	return -1;
 }
 
 int  osi_update_vlan_id(struct osi_core_priv_data *osi_core,
 			unsigned int vid)
 {
-	int ret = -1;
-
 	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
 	    (osi_core->ops->update_vlan_id != OSI_NULL && vid != 0U)) {
-		ret = osi_core->ops->update_vlan_id(osi_core->base,
+		return osi_core->ops->update_vlan_id(osi_core->base,
 						    vid);
 	}
 
-	return ret;
+	return -1;
 }
 
 int osi_set_systime_to_mac(struct osi_core_priv_data *osi_core,
 			   unsigned int sec, unsigned int nsec)
 {
-	int ret = -1;
-
 	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
-			(osi_core->ops->set_systime_to_mac != OSI_NULL)) {
-		ret = osi_core->ops->set_systime_to_mac(osi_core->base,
-							sec,
-							nsec);
+	    (osi_core->ops->set_systime_to_mac != OSI_NULL)) {
+		return osi_core->ops->set_systime_to_mac(osi_core->base,
+							 sec,
+							 nsec);
 	}
 
-	return ret;
+	return -1;
 }
 
 /**
@@ -763,17 +739,19 @@ int osi_adjust_time(struct osi_core_priv_data *osi_core, long delta)
 	return ret;
 }
 
-void osi_get_systime_from_mac(struct osi_core_priv_data *osi_core,
-			      unsigned int *sec,
-			      unsigned int *nsec)
+int osi_get_systime_from_mac(struct osi_core_priv_data *osi_core,
+			     unsigned int *sec,
+			     unsigned int *nsec)
 {
 	unsigned long long ns = 0;
 	unsigned long long temp = 0;
 	unsigned long remain = 0;
 
 	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
-	    (osi_core->ops->adjust_systime != OSI_NULL)) {
+	    (osi_core->ops->get_systime_from_mac != OSI_NULL)) {
 		ns = osi_core->ops->get_systime_from_mac(osi_core->base);
+	} else {
+		return -1;
 	}
 
 	temp = div_u64_rem((unsigned long)ns, OSI_NSEC_PER_SEC, &remain);
@@ -787,13 +765,23 @@ void osi_get_systime_from_mac(struct osi_core_priv_data *osi_core,
 	} else {
 		/* do nothing here */
 	}
+
+	return 0;
 }
 
-void osi_ptp_configuration(struct osi_core_priv_data *osi_core,
-			   unsigned int enable)
+int osi_ptp_configuration(struct osi_core_priv_data *osi_core,
+			  unsigned int enable)
 {
 	int ret = 0;
 	unsigned long temp = 0, temp1 = 0;
+
+	if ((osi_core == OSI_NULL) || (osi_core->ops == OSI_NULL) ||
+	    (osi_core->ops->config_tscr == OSI_NULL) ||
+	    (osi_core->ops->config_ssir == OSI_NULL) ||
+	    (osi_core->ops->config_addend == OSI_NULL) ||
+	    (osi_core->ops->set_systime_to_mac == OSI_NULL)) {
+		return -1;
+	}
 
 	if (enable == OSI_DISABLE) {
 		/* disable hw time stamping */
@@ -833,30 +821,28 @@ void osi_ptp_configuration(struct osi_core_priv_data *osi_core,
 						osi_core->ptp_config.sec,
 						osi_core->ptp_config.nsec);
 	}
+
+	return ret;
 }
 
 int osi_read_mmc(struct osi_core_priv_data *osi_core)
 {
-	int ret = -1;
-
 	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
 	    (osi_core->ops->read_mmc != OSI_NULL)) {
 		osi_core->ops->read_mmc(osi_core);
-		ret = 0;
+		return 0;
 	}
 
-	return ret;
+	return -1;
 }
 
 int osi_reset_mmc(struct osi_core_priv_data *osi_core)
 {
-	int ret = -1;
-
 	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
 	    (osi_core->ops->reset_mmc != OSI_NULL)) {
 		osi_core->ops->reset_mmc(osi_core);
-		ret = 0;
+		return 0;
 	}
 
-	return ret;
+	return -1;
 }
