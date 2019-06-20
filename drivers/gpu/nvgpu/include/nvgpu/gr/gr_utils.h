@@ -24,6 +24,7 @@
 #define NVGPU_GR_UTILS_H
 
 #include <nvgpu/types.h>
+#include <nvgpu/safe_ops.h>
 
 struct gk20a;
 struct nvgpu_gr_falcon;
@@ -40,7 +41,7 @@ struct nvgpu_gr_global_ctx_buffer_desc;
 
 static inline u32 nvgpu_gr_checksum_u32(u32 a, u32 b)
 {
-	return (u32)(((u64)a + (u64)b) % (U32_MAX));
+	return nvgpu_safe_cast_u64_to_u32(((u64)a + (u64)b) & (U32_MAX));
 }
 
 /* gr struct pointers */
