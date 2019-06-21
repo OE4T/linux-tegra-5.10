@@ -235,24 +235,6 @@ static void update_gmmu_pte_locked(struct vm_gk20a *vm,
 	nvgpu_pd_write(g, pd, (size_t)pd_offset + (size_t)1, pte_w[1]);
 }
 
-u32 gk20a_get_pde_pgsz(struct gk20a *g, const struct gk20a_mmu_level *l,
-				struct nvgpu_gmmu_pd *pd, u32 pd_idx)
-{
-	/*
-	 * big and small page sizes are the same
-	 */
-	return GMMU_PAGE_SIZE_SMALL;
-}
-
-u32 gk20a_get_pte_pgsz(struct gk20a *g, const struct gk20a_mmu_level *l,
-				struct nvgpu_gmmu_pd *pd, u32 pd_idx)
-{
-	/*
-	 * return invalid
-	 */
-	return GMMU_NR_PAGE_SIZES;
-}
-
 const struct gk20a_mmu_level gk20a_mm_levels_64k[] = {
 	{.hi_bit = {NV_GMMU_VA_RANGE-1, NV_GMMU_VA_RANGE-1},
 	 .lo_bit = {26, 26},

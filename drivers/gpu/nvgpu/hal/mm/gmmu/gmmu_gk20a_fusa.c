@@ -23,17 +23,22 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/gmmu.h>
 
-#include <nvgpu/hw/gm20b/hw_gmmu_gm20b.h>
+#include "gmmu_gk20a.h"
 
-#include "gmmu_gm20b.h"
-
-u32 gm20b_mm_get_default_big_page_size(void)
+u32 gk20a_get_pde_pgsz(struct gk20a *g, const struct gk20a_mmu_level *l,
+				struct nvgpu_gmmu_pd *pd, u32 pd_idx)
 {
-	return U32(SZ_64K);
+	/*
+	 * big and small page sizes are the same
+	 */
+	return GMMU_PAGE_SIZE_SMALL;
 }
 
-u64 gm20b_gpu_phys_addr(struct gk20a *g,
-			struct nvgpu_gmmu_attrs *attrs, u64 phys)
+u32 gk20a_get_pte_pgsz(struct gk20a *g, const struct gk20a_mmu_level *l,
+				struct nvgpu_gmmu_pd *pd, u32 pd_idx)
 {
-	return phys;
+	/*
+	 * return invalid
+	 */
+	return GMMU_NR_PAGE_SIZES;
 }

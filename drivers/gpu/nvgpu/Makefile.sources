@@ -148,17 +148,6 @@ srcs += common/utils/enabled.c \
 	common/clk_arb/clk_arb.c \
 	common/clk_arb/clk_arb_gp10b.c \
 	common/fence/fence.c \
-	hal/mm/mm_gk20a.c \
-	hal/mm/mm_gm20b.c \
-	hal/mm/mm_gp10b.c \
-	hal/mm/mm_gv11b.c \
-	hal/mm/cache/flush_gk20a.c \
-	hal/mm/cache/flush_gv11b.c \
-	hal/mm/mmu_fault/mmu_fault_gv11b.c \
-	hal/mm/gmmu/gmmu_gk20a.c \
-	hal/mm/gmmu/gmmu_gm20b.c \
-	hal/mm/gmmu/gmmu_gp10b.c \
-	hal/mm/gmmu/gmmu_gv11b.c \
 	hal/mc/mc_gm20b.c  \
 	hal/mc/mc_gp10b.c  \
 	hal/mc/mc_gv11b.c  \
@@ -270,13 +259,28 @@ srcs += common/utils/enabled.c \
 	hal/top/top_gp106.c \
 	hal/top/top_gv11b.c
 
+# Source files below are functionaly safe (FuSa) and must always be included.
+srcs += hal/mm/mm_gv11b_fusa.c \
+	hal/mm/mm_gp10b_fusa.c \
+	hal/mm/gmmu/gmmu_gv11b_fusa.c \
+	hal/mm/gmmu/gmmu_gp10b_fusa.c \
+	hal/mm/gmmu/gmmu_gk20a_fusa.c \
+	hal/mm/gmmu/gmmu_gm20b_fusa.c \
+	hal/mm/cache/flush_gk20a_fusa.c \
+	hal/mm/cache/flush_gv11b_fusa.c \
+	hal/mm/mmu_fault/mmu_fault_gv11b_fusa.c
+
 # Source files below are not guaranteed to be functionaly safe (FuSa) and are
 # only included in the normal build.
 ifeq ($(CONFIG_NVGPU_HAL_NON_FUSA),1)
 srcs += hal/init/hal_gp10b.c \
 	hal/init/hal_gp10b_litter.c \
 	hal/init/hal_gm20b.c \
-	hal/init/hal_gm20b_litter.c
+	hal/init/hal_gm20b_litter.c \
+	hal/mm/mm_gm20b.c \
+	hal/mm/mm_gk20a.c \
+	hal/mm/gmmu/gmmu_gk20a.c \
+	hal/mm/gmmu/gmmu_gm20b.c
 endif
 
 ifeq ($(CONFIG_NVGPU_ACR_LEGACY),1)
