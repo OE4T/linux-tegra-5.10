@@ -85,7 +85,6 @@ static u32 stub_gv11b_gr_init_get_no_of_sm(struct gk20a *g)
 	return 8;
 }
 
-#ifdef CONFIG_NVGPU_USERD
 static int stub_userd_setup_sw(struct gk20a *g)
 {
 	struct nvgpu_fifo *f = &g->fifo;
@@ -101,7 +100,6 @@ static int stub_userd_setup_sw(struct gk20a *g)
 
 	return 0;
 }
-#endif
 
 int test_fifo_init_support(struct unit_module *m, struct gk20a *g, void *args)
 {
@@ -117,7 +115,6 @@ int test_fifo_init_support(struct unit_module *m, struct gk20a *g, void *args)
 	g->ops.gr.init.get_no_of_sm = stub_gv11b_gr_init_get_no_of_sm;
 	g->ops.tsg.init_eng_method_buffers = NULL;
 
-#ifdef CONFIG_NVGPU_USERD
 	global_m = m;
 	/*
 	 * Regular USERD init requires bar1.vm to be initialized
@@ -125,7 +122,6 @@ int test_fifo_init_support(struct unit_module *m, struct gk20a *g, void *args)
 	 * safety build anyway.
 	 */
 	g->ops.userd.setup_sw = stub_userd_setup_sw;
-#endif
 
 	err = nvgpu_fifo_init_support(g);
 	if (err != 0) {
