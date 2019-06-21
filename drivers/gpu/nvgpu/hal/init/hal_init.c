@@ -41,6 +41,7 @@ int nvgpu_init_hal(struct gk20a *g)
 	u32 ver = g->params.gpu_arch + g->params.gpu_impl;
 
 	switch (ver) {
+#ifdef CONFIG_NVGPU_HAL_NON_FUSA
 	case GK20A_GPUID_GM20B:
 		nvgpu_log_info(g, "gm20b detected");
 		if (gm20b_init_hal(g) != 0) {
@@ -58,11 +59,14 @@ int nvgpu_init_hal(struct gk20a *g)
 			return -ENODEV;
 		}
 		break;
+#endif
+
 	case NVGPU_GPUID_GV11B:
 		if (gv11b_init_hal(g) != 0) {
 			return -ENODEV;
 		}
 		break;
+
 #ifdef CONFIG_NVGPU_DGPU
 #if defined(CONFIG_NVGPU_SUPPORT_TURING)
 	case NVGPU_GPUID_TU104:
