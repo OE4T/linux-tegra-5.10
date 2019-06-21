@@ -22,6 +22,7 @@
 
 #include <nvgpu/gk20a.h>
 #include <nvgpu/io.h>
+#include <nvgpu/bug.h>
 #include <nvgpu/unit.h>
 #include <nvgpu/errno.h>
 #include <nvgpu/safe_ops.h>
@@ -775,7 +776,7 @@ int nvgpu_gr_enable_ctxsw(struct gk20a *g)
 		goto ctxsw_already_enabled;
 	}
 	gr->ctxsw_disable_count--;
-	WARN_ON(gr->ctxsw_disable_count < 0);
+	nvgpu_assert(gr->ctxsw_disable_count >= 0);
 	if (gr->ctxsw_disable_count == 0) {
 		err = g->ops.gr.falcon.ctrl_ctxsw(g,
 				NVGPU_GR_FALCON_METHOD_CTXSW_START, 0U, NULL);
