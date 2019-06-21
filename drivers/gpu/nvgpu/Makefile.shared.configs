@@ -31,16 +31,16 @@
 # profile build.
 profile := default
 
-# Decide whether to use the safety profile or the regular profile.
+# Decide whether to use the safety release, safety debug or the regular profile.
 ifeq ($(NV_BUILD_CONFIGURATION_IS_SAFETY),1)
-profile := safety
+profile := safety_release
 ifeq ($(NV_BUILD_CONFIGURATION_IS_DEBUG),1)
 profile := safety_debug
 endif
 endif
 
 ifeq ($(NVGPU_FORCE_SAFETY_PROFILE),1)
-profile := safety
+profile := safety_release
 ifeq ($(NVGPU_FORCE_DEBUG_PROFILE),1)
 profile := safety_debug
 endif
@@ -103,16 +103,19 @@ CONFIG_NVGPU_COMPRESSION             := 1
 NVGPU_COMMON_CFLAGS                  += -DCONFIG_NVGPU_COMPRESSION
 
 #
-# Flags enabled for only the regular build profile.
+# Flags enabled only for safety debug and regular build profile.
 #
-ifneq ($(profile),safety)
-# Enable logging for non-safety and safety-debug builds
+ifneq ($(profile),safety_release)
+
 CONFIG_NVGPU_LOGGING           := 1
 NVGPU_COMMON_CFLAGS             += -DCONFIG_NVGPU_LOGGING
 
 CONFIG_NVGPU_TRACE              := 1
 NVGPU_COMMON_CFLAGS             += -DCONFIG_NVGPU_TRACE
 
+#
+# Flags enabled only for regular build profile.
+#
 ifneq ($(profile),safety_debug)
 
 # ACR feature to enable old tegra ACR profile support
