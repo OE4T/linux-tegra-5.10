@@ -27,15 +27,39 @@
  *
  * Abstract interface for interpreting engine status info read from h/w.
  */
+/**
+ * H/w defined value for Channel ID type in engine status h/w register.
+ */
 #define ENGINE_STATUS_CTX_ID_TYPE_CHID 0U
+/**
+ * H/w defined value for Tsg ID type in engine status h/w register.
+ */
 #define ENGINE_STATUS_CTX_ID_TYPE_TSGID 1U
+/**
+ * S/w defined value for unknown ID type.
+ */
 #define ENGINE_STATUS_CTX_ID_TYPE_INVALID (~U32(0U))
 
+/**
+ * H/w defined value for next Channel ID type in engine status h/w register.
+ */
 #define ENGINE_STATUS_CTX_NEXT_ID_TYPE_CHID ENGINE_STATUS_CTX_ID_TYPE_CHID
+/**
+ * H/w defined value for next Tsg ID type in engine status h/w register.
+ */
 #define ENGINE_STATUS_CTX_NEXT_ID_TYPE_TSGID ENGINE_STATUS_CTX_ID_TYPE_TSGID
+/**
+ * S/w defined value for unknown ID type.
+ */
 #define ENGINE_STATUS_CTX_NEXT_ID_TYPE_INVALID ENGINE_STATUS_CTX_ID_TYPE_INVALID
 
+/**
+ * S/w defined value for unknown ID.
+ */
 #define ENGINE_STATUS_CTX_ID_INVALID (~U32(0U))
+/**
+ * S/w defined value for unknown next ID.
+ */
 #define ENGINE_STATUS_CTX_NEXT_ID_INVALID ENGINE_STATUS_CTX_ID_INVALID
 
 enum nvgpu_engine_status_ctx_status {
@@ -109,126 +133,123 @@ struct nvgpu_engine_status_info {
 };
 
 /**
- * nvgpu_engine_status_is_ctxsw_switch - Check if #ctxsw_status is set to
- *                                       switch.
+ * @brief Check if #ctxsw_status is set to switch.
  *
- * @param engine_status     - Pointer to struct containing engine_status h/w
- *                            reg/field value.
+ * @param engine_status[in]	Pointer to struct containing engine_status h/w
+ * 				reg/field value.
  *
- * This interprets #engine_status and returns true if channel
- * status is set to #NVGPU_CTX_STATUS_CTXSW_SWITCH.
+ * @return Interprets #engine_status and returns true if channel
+ *         status is set to #NVGPU_CTX_STATUS_CTXSW_SWITCH else returns false.
  */
 bool nvgpu_engine_status_is_ctxsw_switch(struct nvgpu_engine_status_info
 		*engine_status);
 /**
- * nvgpu_engine_status_is_ctxsw_load - Check if #ctxsw_status is set to load.
+ * @brief Check if #ctxsw_status is set to load.
  *
- * @param engine_status     - Pointer to struct containing engine_status h/w
- *                            reg/field value.
+ * @param engine_status[in]	Pointer to struct containing engine_status h/w
+ * 				reg/field value.
  *
- * This interprets #engine_status and returns true if channel
- * status is set to #NVGPU_CTX_STATUS_CTXSW_LOAD.
+ * @return Interprets #engine_status and returns true if channel
+ *         status is set to #NVGPU_CTX_STATUS_CTXSW_LOAD else returns false.
  */
 bool nvgpu_engine_status_is_ctxsw_load(struct nvgpu_engine_status_info
 		*engine_status);
 /**
- * nvgpu_engine_status_is_ctxsw_save - Check if #ctxsw_status is set to save.
+ * @brief Check if #ctxsw_status is set to save.
  *
- * @param engine_status     - Pointer to struct containing engine_status h/w
- *                            reg/field value.
+ * @param engine_status[in]	Pointer to struct containing engine_status h/w
+ * 				reg/field value.
  *
- * This interprets #engine_status and returns true if channel
- * status is set to #NVGPU_CTX_STATUS_CTXSW_SAVE.
+ * @return Interprets #engine_status and returns true if channel
+ *         status is set to #NVGPU_CTX_STATUS_CTXSW_SAVE else returns false.
  */
 bool nvgpu_engine_status_is_ctxsw_save(struct nvgpu_engine_status_info
 		*engine_status);
 /**
- * nvgpu_engine_status_is_ctxsw - Check if #ctxsw_status is set to switch
- *                                or load or save.
+ * @brief Check if #ctxsw_status is set to switch or load or save.
  *
- * @param engine_status     - Pointer to struct containing engine_status h/w
- *                            reg/field value.
+ * @param engine_status[in]	Pointer to struct containing engine_status h/w
+ * 				reg/field value.
  *
- * This interprets #engine_status and returns true if channel
- * status is set to #NVGPU_CTX_STATUS_CTXSW_SWITCH or
- * #NVGPU_CTX_STATUS_CTXSW_LOAD or #NVGPU_CTX_STATUS_CTXSW_SAVE.
+ * @return Interprets #engine_status and returns true if channel
+ *         status is set to #NVGPU_CTX_STATUS_CTXSW_SWITCH or
+ *         #NVGPU_CTX_STATUS_CTXSW_LOAD or #NVGPU_CTX_STATUS_CTXSW_SAVE
+ *         else returns false.
  */
 bool nvgpu_engine_status_is_ctxsw(struct nvgpu_engine_status_info
 		*engine_status);
 /**
- * nvgpu_engine_status_is_ctxsw_invalid - Check if #ctxsw_status is set to
- *                                        invalid.
+ * @brief Check if #ctxsw_status is set to invalid.
  *
- * @param engine_status     - Pointer to struct containing engine_status h/w
- *                            reg/field value.
+ * @param engine_status[in]	Pointer to struct containing engine_status h/w
+ * 				reg/field value.
  *
- * This interprets #engine_status and returns true if channel
- * status is set to #NVGPU_CTX_STATUS_INVALID.
+ * @return Interprets #engine_status and returns true if channel
+ *         status is set to #NVGPU_CTX_STATUS_INVALID else returns false.
  */
 bool nvgpu_engine_status_is_ctxsw_invalid(struct nvgpu_engine_status_info
 		*engine_status);
 /**
- * nvgpu_engine_status_is_ctxsw_valid - Check if #ctxsw_status is set to
- *                                      valid.
+ * @brief - Check if #ctxsw_status is set to valid.
  *
- * @param engine_status     - Pointer to struct containing engine_status h/w
- *                            reg/field value.
+ * @param engine_status[in]	Pointer to struct containing engine_status h/w
+ * 				reg/field value.
  *
- * This interprets #engine_status and returns true if channel
- * status is set to #NVGPU_CTX_STATUS_VALID.
+ * @return Interprets #engine_status and returns true if channel
+ *         status is set to #NVGPU_CTX_STATUS_VALID else returns false.
  */
 bool nvgpu_engine_status_is_ctxsw_valid(struct nvgpu_engine_status_info
 		*engine_status);
 /**
- * nvgpu_engine_status_is_ctx_type_tsg - Check if #ctx_id_type is tsg.
+ * @brief Check if #ctx_id_type is tsg.
  *
- * @param engine_status     - Pointer to struct containing engine_status h/w
- *                            reg/field value.
+ * @param engine_status[in]	Pointer to struct containing engine_status h/w
+ * 				reg/field value.
  *
- * This interprets #engine_status and returns true if #ctx_id_type
- * is #ENGINE_STATUS_CTX_ID_TYPE_TSGID.
+ * @return Interprets #engine_status and returns true if #ctx_id_type
+ *         is #ENGINE_STATUS_CTX_ID_TYPE_TSGID else returns false.
  */
 bool nvgpu_engine_status_is_ctx_type_tsg(struct nvgpu_engine_status_info
 		*engine_status);
 /**
- * nvgpu_engine_status_is_next_ctx_type_tsg - Check if #ctx_next_id_type is tsg.
+ * @brief Check if #ctx_next_id_type is tsg.
  *
- * @param engine_status     - Pointer to struct containing engine_status h/w
- *                            reg/field value.
+ * @param engine_status[in]	Pointer to struct containing engine_status h/w
+ * 				reg/field value.
  *
- * This interprets #engine_status and returns true if
- * #ctx_next_id_type is #ENGINE_STATUS_CTX_NEXT_ID_TYPE_TSGID.
+ * @return Interprets #engine_status and returns true if
+ *         #ctx_next_id_type is #ENGINE_STATUS_CTX_NEXT_ID_TYPE_TSGID else
+ *         returns false.
  */
 bool nvgpu_engine_status_is_next_ctx_type_tsg(struct nvgpu_engine_status_info
 		*engine_status);
 /**
- * nvgpu_engine_status_get_ctx_id_type - get ctx_id and ctx_id_type info.
+ * @brief Get ctx_id and ctx_id_type info.
  *
- * @param engine_status     - Pointer to struct containing engine_status h/w
- *                            reg/field value.
- * @param ctx_id            - Pointer that is updated with #ctx_id as set in
- *                            input param #engine_status.
- * @param ctx_type          - Pointer that is updated with #ctx_id_type as set
- *                            in input param #engine_status.
+ * @param engine_status[in]	Pointer to struct containing engine_status h/w
+ * 				reg/field value.
+ * @param ctx_id[out]		Pointer that is updated with #ctx_id as set in
+ *				input param #engine_status.
+ * @param ctx_type[out]		Pointer that is updated with #ctx_id_type as set
+ *				in input param #engine_status.
  *
- * This interprets #engine_status and updates input params #ctx_id
- * and #ctx_type.
+ * @return Interprets #engine_status and updates input params #ctx_id
+ *         and #ctx_type.
  */
 void nvgpu_engine_status_get_ctx_id_type(struct nvgpu_engine_status_info
 		*engine_status, u32 *ctx_id, u32 *ctx_type);
 /**
- * nvgpu_engine_status_get_next_ctx_id_type - get next_ctx_id and
- *                                            next_ctx_id_type info.
+ * @brief Get next_ctx_id and next_ctx_id_type info.
  *
- * @param engine_status     - Pointer to struct containing engine_status h/w
- *                            reg/field value.
- * @param ctx_next_id       - Pointer that is updated with #ctx_next_id as set
- *                            in input param #engine_status.
- * @param ctx_next_type     - Pointer that is updated with #ctx_next_id_type
- *                            as set in input param #engine_status.
+ * @param engine_status[in]	Pointer to struct containing engine_status h/w
+ * 				reg/field value.
+ * @param ctx_next_id[out]	Pointer that is updated with #ctx_next_id as set
+ * 				in input param #engine_status.
+ * @param ctx_next_type[out]	Pointer that is updated with #ctx_next_id_type
+ * 				as set in input param #engine_status.
  *
- * This interprets #engine_status and updates input params
- * #ctx_next_id and #ctx_next_type.
+ * @return Interprets #engine_status and updates input params
+ *         #ctx_next_id and #ctx_next_type.
  */
 void nvgpu_engine_status_get_next_ctx_id_type(struct nvgpu_engine_status_info
 		*engine_status, u32 *ctx_next_id,
