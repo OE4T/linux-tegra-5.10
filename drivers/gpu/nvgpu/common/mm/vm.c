@@ -532,14 +532,18 @@ int nvgpu_vm_do_init(struct mm_gk20a *mm,
 	 * Determine if big pages are possible in this VM. If a split address
 	 * space is used then check the user_lp vma instead of the user vma.
 	 */
-	if (unified_va) {
-		vm->big_pages = big_pages &&
-			nvgpu_big_pages_possible(vm, user_vma_start,
+	if (big_pages) {
+		if (unified_va) {
+			vm->big_pages = nvgpu_big_pages_possible(vm,
+					user_vma_start,
 					user_vma_limit - user_vma_start);
-	} else {
-		vm->big_pages = big_pages &&
-			nvgpu_big_pages_possible(vm, user_lp_vma_start,
+		} else {
+			vm->big_pages = nvgpu_big_pages_possible(vm,
+					user_lp_vma_start,
 					user_lp_vma_limit - user_lp_vma_start);
+		}
+	} else {
+		vm->big_pages = false;
 	}
 
 	/*
