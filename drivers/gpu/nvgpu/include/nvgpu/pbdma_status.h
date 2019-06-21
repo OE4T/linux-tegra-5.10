@@ -29,15 +29,38 @@
  *
  * Abstract interface for interpreting pbdma status info read from h/w.
  */
+/**
+ * H/w defined value for Channel ID type in pbdma status h/w register.
+ */
 #define PBDMA_STATUS_ID_TYPE_CHID 0U
+/**
+ * H/w defined value for Tsg ID type in pbdma status h/w register.
+ */
 #define PBDMA_STATUS_ID_TYPE_TSGID 1U
+/**
+ * S/w defined value for unknown ID type.
+ */
 #define PBDMA_STATUS_ID_TYPE_INVALID (~U32(0U))
-
+/**
+ * H/w defined value for next Channel ID type in pbdma status h/w register.
+ */
 #define PBDMA_STATUS_NEXT_ID_TYPE_CHID PBDMA_STATUS_ID_TYPE_CHID
+/**
+ * H/w defined value for next Tsg ID type in pbdma status h/w register.
+ */
 #define PBDMA_STATUS_NEXT_ID_TYPE_TSGID PBDMA_STATUS_ID_TYPE_TSGID
+/**
+ * S/w defined value for unknown ID type.
+ */
 #define PBDMA_STATUS_NEXT_ID_TYPE_INVALID PBDMA_STATUS_ID_TYPE_INVALID
 
+/**
+ * S/w defined value for unknown ID.
+ */
 #define PBDMA_STATUS_ID_INVALID (~U32(0U))
+/**
+ * S/w defined value for unknown next ID.
+ */
 #define PBDMA_STATUS_NEXT_ID_INVALID PBDMA_STATUS_ID_INVALID
 
 enum nvgpu_pbdma_status_chsw_status {
@@ -84,68 +107,68 @@ struct nvgpu_pbdma_status_info {
 };
 
 /**
- * nvgpu_pbdma_status_is_chsw_switch - Check if chsw_status is set to switch.
+ * @brief Check if chsw_status is set to switch.
  *
- * @param pbdma_status     - Pointer to struct containing pbdma_status h/w
- *                           reg/field value.
+ * @param pbdma_status[in]	Pointer to struct containing pbdma_status h/w
+ * 				reg/field value.
  *
- * This interprets #pbdma_status and returns true if channel
- * status is set to #NVGPU_PBDMA_CHSW_STATUS_SWITCH.
+ * @return Interprets #pbdma_status and returns true if channel
+ *         status is set to #NVGPU_PBDMA_CHSW_STATUS_SWITCH else returns false.
  */
 bool nvgpu_pbdma_status_is_chsw_switch(struct nvgpu_pbdma_status_info
 		*pbdma_status);
 /**
- * nvgpu_pbdma_status_is_chsw_load - Check if chsw_status is set to load.
+ * @brief Check if chsw_status is set to load.
  *
- * @param pbdma_status     - Pointer to struct containing pbdma_status h/w
- *                           reg/field value.
+ * @param pbdma_status[in]	Pointer to struct containing pbdma_status h/w
+ * 				reg/field value.
  *
- * This interprets #pbdma_status and returns true if channel
- * status is set to #NVGPU_PBDMA_CHSW_STATUS_LOAD.
+ * @return Interprets #pbdma_status and returns true if channel
+ *         status is set to #NVGPU_PBDMA_CHSW_STATUS_LOAD else returns false.
  */
 bool nvgpu_pbdma_status_is_chsw_load(struct nvgpu_pbdma_status_info
 		*pbdma_status);
 /**
- * nvgpu_pbdma_status_is_chsw_save - Check if chsw_status is set to save.
+ * @brief Check if chsw_status is set to save.
  *
- * @param pbdma_status     - Pointer to struct containing pbdma_status h/w
- *                           reg/field value.
+ * @param pbdma_status[in]	Pointer to struct containing pbdma_status h/w
+ * 				reg/field value.
  *
- * This interprets #pbdma_status and returns true if channel
- * status is set to #NVGPU_PBDMA_CHSW_STATUS_SAVE.
+ * @return Interprets #pbdma_status and returns true if channel
+ *         status is set to #NVGPU_PBDMA_CHSW_STATUS_SAVE else returns false.
  */
 bool nvgpu_pbdma_status_is_chsw_save(struct nvgpu_pbdma_status_info
 		*pbdma_status);
 /**
- * nvgpu_pbdma_status_is_chsw_valid - Check if chsw_status is set to valid.
+ * @brief Check if chsw_status is set to valid.
  *
- * @param pbdma_status     - Pointer to struct containing pbdma_status h/w
- *                           reg/field value.
+ * @param pbdma_status[in]	Pointer to struct containing pbdma_status h/w
+ * 				reg/field value.
  *
- * This interprets #pbdma_status and returns true if channel
- * status is set to #NVGPU_PBDMA_CHSW_STATUS_VALID.
+ * @return Interprets #pbdma_status and returns true if channel
+ *         status is set to #NVGPU_PBDMA_CHSW_STATUS_VALID else returns false.
  */
 bool nvgpu_pbdma_status_is_chsw_valid(struct nvgpu_pbdma_status_info
 		*pbdma_status);
 /**
- * nvgpu_pbdma_status_is_id_type_tsg - Check if id_type is tsg.
+ * @brief Check if id_type is tsg.
  *
- * @param pbdma_status     - Pointer to struct containing pbdma_status h/w
- *                           reg/field value.
+ * @param pbdma_status[in]	Pointer to struct containing pbdma_status h/w
+ * 				reg/field value.
  *
- * This interprets #pbdma_status and returns true if id_type
- * is #PBDMA_STATUS_ID_TYPE_TSGID.
+ * @return Interprets #pbdma_status and returns true if id_type
+ *         is #PBDMA_STATUS_ID_TYPE_TSGID else returns false.
  */
 bool nvgpu_pbdma_status_is_id_type_tsg(struct nvgpu_pbdma_status_info
 		*pbdma_status);
 /**
- * nvgpu_pbdma_status_is_next_id_type_tsg - Check if next_id_type is tsg.
+ * @brief Check if next_id_type is tsg.
  *
- * @param pbdma_status     - Pointer to struct containing pbdma_status h/w
- *                           reg/field value.
+ * @param pbdma_status[in]	Pointer to struct containing pbdma_status h/w
+ * 				reg/field value.
  *
- * This interprets #pbdma_status and returns true if next_id_type
- * is #PBDMA_STATUS_NEXT_ID_TYPE_TSGID.
+ * @return Interprets #pbdma_status and returns true if next_id_type
+ *         is #PBDMA_STATUS_NEXT_ID_TYPE_TSGID else returns false.
  */
 bool nvgpu_pbdma_status_is_next_id_type_tsg(struct nvgpu_pbdma_status_info
 		*pbdma_status);
