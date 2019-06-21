@@ -48,11 +48,10 @@ UNITS :=				\
 	$(UNIT_SRC)/posix/fault-injection \
 	$(UNIT_SRC)/posix/bug		\
 	$(UNIT_SRC)/pramin		\
-	$(UNIT_SRC)/fuse		\
 	$(UNIT_SRC)/interface/bsearch	\
 	$(UNIT_SRC)/interface/lock	\
 	$(UNIT_SRC)/interface/atomic	\
-        $(UNIT_SRC)/interface/rbtree    \
+	$(UNIT_SRC)/interface/rbtree	\
 	$(UNIT_SRC)/mm/nvgpu_sgt	\
 	$(UNIT_SRC)/mm/allocators/buddy_allocator	\
 	$(UNIT_SRC)/mm/allocators/nvgpu_allocator	\
@@ -68,3 +67,7 @@ UNITS :=				\
 	$(UNIT_SRC)/fifo/tsg		\
 	$(UNIT_SRC)/list		\
 	$(UNIT_SRC)/enabled
+
+ifeq ($(CONFIG_NVGPU_HAL_NON_FUSA),1)
+UNITS += $(UNIT_SRC)/fuse
+endif

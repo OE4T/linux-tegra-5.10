@@ -57,7 +57,9 @@ NV_REPOSITORY_COMPONENTS += userspace/units/mm/vm
 NV_REPOSITORY_COMPONENTS += userspace/units/fifo/channel
 NV_REPOSITORY_COMPONENTS += userspace/units/fifo/runlist
 NV_REPOSITORY_COMPONENTS += userspace/units/fifo/tsg
+ifeq ($(CONFIG_NVGPU_HAL_NON_FUSA),1)
 NV_REPOSITORY_COMPONENTS += userspace/units/fuse
+endif
 NV_REPOSITORY_COMPONENTS += userspace/units/list
 NV_REPOSITORY_COMPONENTS += userspace/units/enabled
 endif
