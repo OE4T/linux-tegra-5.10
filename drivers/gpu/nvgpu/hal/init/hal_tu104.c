@@ -991,11 +991,13 @@ static const struct gpu_ops tu104_ops = {
 		.cleanup_sw = nvgpu_userd_cleanup_sw,
 #ifdef CONFIG_NVGPU_USERD
 		.init_mem = gk20a_userd_init_mem,
+#ifdef CONFIG_NVGPU_KERNEL_MODE_SUBMIT
 		.gp_get = gv11b_userd_gp_get,
 		.gp_put = gv11b_userd_gp_put,
 		.pb_get = gv11b_userd_pb_get,
-		.entry_size = gk20a_userd_entry_size,
 #endif
+		.entry_size = gk20a_userd_entry_size,
+#endif /* CONFIG_NVGPU_USERD */
 	},
 	.channel = {
 		.alloc_inst = nvgpu_channel_alloc_inst,
@@ -1032,7 +1034,9 @@ static const struct gpu_ops tu104_ops = {
 				nvgpu_tsg_unbind_channel_check_ctx_reload,
 		.unbind_channel_check_eng_faulted =
 				gv11b_tsg_unbind_channel_check_eng_faulted,
+#ifdef CONFIG_NVGPU_KERNEL_MODE_SUBMIT
 		.check_ctxsw_timeout = nvgpu_tsg_check_ctxsw_timeout,
+#endif
 #ifdef CONFIG_NVGPU_CHANNEL_TSG_CONTROL
 		.force_reset = nvgpu_tsg_force_reset_ch,
 		.post_event_id = nvgpu_tsg_post_event_id,

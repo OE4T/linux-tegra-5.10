@@ -1118,9 +1118,11 @@ struct gpu_ops {
 		int (*setup_sw)(struct gk20a *g);
 		void (*cleanup_sw)(struct gk20a *g);
 		void (*init_mem)(struct gk20a *g, struct nvgpu_channel *c);
+#ifdef CONFIG_NVGPU_KERNEL_MODE_SUBMIT
 		u32 (*gp_get)(struct gk20a *g, struct nvgpu_channel *c);
 		void (*gp_put)(struct gk20a *g, struct nvgpu_channel *c);
 		u64 (*pb_get)(struct gk20a *g, struct nvgpu_channel *c);
+#endif
 		u32 (*entry_size)(struct gk20a *g);
 	} userd;
 
@@ -1229,7 +1231,9 @@ struct gpu_ops {
 		void (*set_error_notifier)(struct nvgpu_channel *ch, u32 error);
 		void (*reset_faulted)(struct gk20a *g, struct nvgpu_channel *ch,
 				bool eng, bool pbdma);
+#ifdef CONFIG_NVGPU_KERNEL_MODE_SUBMIT
 		int (*set_syncpt)(struct nvgpu_channel *ch);
+#endif
 		void (*debug_dump)(struct gk20a *g,
 				struct nvgpu_debug_context *o,
 				struct nvgpu_channel_dump_info *info);
@@ -1257,8 +1261,10 @@ struct gpu_ops {
 		void (*unbind_channel_check_eng_faulted)(struct nvgpu_tsg *tsg,
 				struct nvgpu_channel *ch,
 				struct nvgpu_channel_hw_state *state);
+#ifdef CONFIG_NVGPU_KERNEL_MODE_SUBMIT
 		bool (*check_ctxsw_timeout)(struct nvgpu_tsg *tsg,
 				bool *verbose, u32 *ms);
+#endif
 #ifdef CONFIG_NVGPU_CHANNEL_TSG_CONTROL
 		int (*force_reset)(struct nvgpu_channel *ch,
 					u32 err_code, bool verbose);

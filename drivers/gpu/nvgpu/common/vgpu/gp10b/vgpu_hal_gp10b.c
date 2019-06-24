@@ -579,7 +579,9 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 		.unbind_channel_check_hw_state = NULL,
 		.unbind_channel_check_ctx_reload = NULL,
 		.unbind_channel_check_eng_faulted = NULL,
+#ifdef CONFIG_NVGPU_KERNEL_MODE_SUBMIT
 		.check_ctxsw_timeout = nvgpu_tsg_check_ctxsw_timeout,
+#endif
 		.force_reset = vgpu_tsg_force_reset_ch,
 		.post_event_id = nvgpu_tsg_post_event_id,
 		.set_timeslice = vgpu_tsg_set_timeslice,

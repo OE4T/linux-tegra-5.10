@@ -221,8 +221,10 @@ bool gv11b_fifo_handle_ctxsw_timeout(struct gk20a *g)
 					0, GPU_HOST_PFIFO_CTXSW_TIMEOUT_ERROR,
 					tsgid);
 
+#ifdef CONFIG_NVGPU_KERNEL_MODE_SUBMIT
 			recover = g->ops.tsg.check_ctxsw_timeout(tsg,
 					&debug_dump, &ms);
+#endif
 			if (recover) {
 				info_status_str =  invalid_str;
 				if (info_status <

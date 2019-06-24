@@ -80,7 +80,9 @@ int nvgpu_fence_pool_alloc(struct nvgpu_channel *ch, unsigned int count);
 
 void nvgpu_fence_pool_free(struct nvgpu_channel *ch);
 
+#ifdef CONFIG_NVGPU_KERNEL_MODE_SUBMIT
 struct nvgpu_fence_type *nvgpu_fence_alloc(struct nvgpu_channel *ch);
+#endif
 
 void nvgpu_fence_init(struct nvgpu_fence_type *f,
 		const struct nvgpu_fence_ops *ops,

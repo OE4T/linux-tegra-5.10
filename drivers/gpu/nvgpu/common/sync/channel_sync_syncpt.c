@@ -54,6 +54,7 @@ nvgpu_channel_sync_syncpt_from_ops(struct nvgpu_channel_sync *ops)
 			offsetof(struct nvgpu_channel_sync_syncpt, ops));
 }
 
+#ifdef CONFIG_NVGPU_KERNEL_MODE_SUBMIT
 static int channel_sync_syncpt_gen_wait_cmd(struct nvgpu_channel *c,
 	u32 id, u32 thresh, struct priv_cmd_entry *wait_cmd,
 	u32 wait_cmd_size, u32 pos, bool preallocated)
@@ -292,6 +293,14 @@ static int channel_sync_syncpt_incr_user(struct nvgpu_channel_sync *s,
 			entry, fence, need_sync_fence);
 }
 
+int nvgpu_channel_sync_wait_syncpt(struct nvgpu_channel_sync_syncpt *s,
+	u32 id, u32 thresh, struct priv_cmd_entry *entry)
+{
+	return channel_sync_syncpt_wait_raw(s, id, thresh, entry);
+}
+
+#endif /* CONFIG_NVGPU_KERNEL_MODE_SUBMIT */
+
 static void channel_sync_syncpt_set_min_eq_max(struct nvgpu_channel_sync *s)
 {
 	struct nvgpu_channel_sync_syncpt *sp =
@@ -339,18 +348,12 @@ u64 nvgpu_channel_sync_get_syncpt_address(struct nvgpu_channel_sync_syncpt *s)
 	return channel_sync_syncpt_get_address(s);
 }
 
-int nvgpu_channel_sync_wait_syncpt(struct nvgpu_channel_sync_syncpt *s,
-	u32 id, u32 thresh, struct priv_cmd_entry *entry)
-{
-	return channel_sync_syncpt_wait_raw(s, id, thresh, entry);
-}
-
 struct nvgpu_channel_sync_syncpt *
 nvgpu_channel_sync_to_syncpt(struct nvgpu_channel_sync *sync)
 {
 	struct nvgpu_channel_sync_syncpt *syncpt = NULL;
 
-	if (sync->wait_fence_fd == channel_sync_syncpt_wait_fd) {
+	if (sync->set_min_eq_max == channel_sync_syncpt_set_min_eq_max) {
 		syncpt = nvgpu_channel_sync_syncpt_from_ops(sync);
 	}
 
@@ -396,9 +399,11 @@ nvgpu_channel_sync_syncpt_create(struct nvgpu_channel *c, bool user_managed)
 	nvgpu_nvhost_syncpt_set_min_eq_max_ext(sp->nvhost_dev, sp->id);
 
 	nvgpu_atomic_set(&sp->ops.refcount, 0);
+#ifdef CONFIG_NVGPU_KERNEL_MODE_SUBMIT
 	sp->ops.wait_fence_fd		= channel_sync_syncpt_wait_fd;
 	sp->ops.incr			= channel_sync_syncpt_incr;
 	sp->ops.incr_user		= channel_sync_syncpt_incr_user;
+#endif
 	sp->ops.set_min_eq_max		= channel_sync_syncpt_set_min_eq_max;
 	sp->ops.set_safe_state		= channel_sync_syncpt_set_safe_state;
 	sp->ops.destroy			= channel_sync_syncpt_destroy;

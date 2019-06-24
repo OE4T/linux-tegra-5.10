@@ -29,6 +29,9 @@
 #include <nvgpu/atomic.h>
 
 struct nvgpu_channel_sync;
+
+#ifdef CONFIG_NVGPU_KERNEL_MODE_SUBMIT
+
 struct priv_cmd_entry;
 struct nvgpu_channel;
 struct nvgpu_fence_type;
@@ -74,6 +77,17 @@ int nvgpu_channel_sync_incr_user(struct nvgpu_channel_sync *s,
  */
 void nvgpu_channel_sync_set_min_eq_max(struct nvgpu_channel_sync *s);
 /*
+ * Increment the usage_counter for this instance.
+ */
+void nvgpu_channel_sync_get_ref(struct nvgpu_channel_sync *s);
+
+/*
+ * Decrement the usage_counter for this instance and return if equals 0.
+ */
+bool nvgpu_channel_sync_put_ref_and_check(struct nvgpu_channel_sync *s);
+#endif /* CONFIG_NVGPU_KERNEL_MODE_SUBMIT */
+
+/*
  * Set the channel syncpoint/semaphore to safe state
  * This should be used to reset User managed syncpoint since we don't
  * track threshold values for those syncpoints
@@ -85,16 +99,6 @@ void nvgpu_channel_sync_set_safe_state(struct nvgpu_channel_sync *s);
  */
 void nvgpu_channel_sync_destroy(struct nvgpu_channel_sync *sync,
 	bool set_safe_state);
-
-/*
- * Increment the usage_counter for this instance.
- */
-void nvgpu_channel_sync_get_ref(struct nvgpu_channel_sync *s);
-
-/*
- * Decrement the usage_counter for this instance and return if equals 0.
- */
-bool nvgpu_channel_sync_put_ref_and_check(struct nvgpu_channel_sync *s);
 
 /*
  * Construct a channel_sync backed by either a syncpoint or a semaphore.

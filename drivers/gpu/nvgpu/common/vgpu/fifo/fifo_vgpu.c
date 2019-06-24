@@ -72,10 +72,12 @@ int vgpu_fifo_setup_sw(struct gk20a *g)
 		return err;
 	}
 
+#ifdef CONFIG_NVGPU_KERNEL_MODE_SUBMIT
 	err = nvgpu_channel_worker_init(g);
 	if (err) {
 		goto clean_up;
 	}
+#endif
 
 	f->channel_base = priv->constants.channel_base;
 
@@ -84,9 +86,11 @@ int vgpu_fifo_setup_sw(struct gk20a *g)
 	nvgpu_log_fn(g, "done");
 	return 0;
 
+#ifdef CONFIG_NVGPU_KERNEL_MODE_SUBMIT
 clean_up:
 	/* FIXME: unmap from bar1 */
 	nvgpu_fifo_cleanup_sw_common(g);
+#endif
 
 	return err;
 }

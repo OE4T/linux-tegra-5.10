@@ -125,7 +125,6 @@ srcs += common/utils/enabled.c \
 	common/ptimer/ptimer.c \
 	common/sync/channel_sync.c \
 	common/sync/channel_sync_syncpt.c \
-	common/sync/channel_sync_semaphore.c \
 	common/semaphore/semaphore_sea.c \
 	common/semaphore/semaphore_pool.c \
 	common/semaphore/semaphore_hw.c \
@@ -137,7 +136,6 @@ srcs += common/utils/enabled.c \
 	common/rc/rc.c \
 	common/fifo/fifo.c \
 	common/fifo/pbdma.c \
-	common/fifo/submit.c \
 	common/fifo/tsg.c \
 	common/fifo/runlist.c \
 	common/fifo/engine_status.c \
@@ -236,7 +234,6 @@ srcs += common/utils/enabled.c \
 	hal/fifo/tsg_gk20a.c \
 	hal/fifo/tsg_gv11b.c \
 	hal/fifo/userd_gk20a.c \
-	hal/fifo/userd_gv11b.c \
 	hal/fifo/fifo_intr_gk20a.c \
 	hal/fifo/fifo_intr_gv11b.c \
 	hal/fifo/mmu_fault_gk20a.c \
@@ -330,6 +327,12 @@ endif
 
 ifeq ($(CONFIG_NVGPU_CE),1)
 srcs += common/ce/ce.c
+endif
+
+ifeq ($(CONFIG_NVGPU_KERNEL_MODE_SUBMIT),1)
+srcs += common/fifo/submit.c \
+	common/sync/channel_sync_semaphore.c \
+	hal/fifo/userd_gv11b.c
 endif
 
 ifeq ($(CONFIG_NVGPU_FECS_TRACE),1)

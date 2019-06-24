@@ -39,6 +39,7 @@ struct nvgpu_fence_type;
 struct nvgpu_channel_sync {
 	nvgpu_atomic_t refcount;
 
+#ifdef CONFIG_NVGPU_KERNEL_MODE_SUBMIT
 	int (*wait_fence_raw)(struct nvgpu_channel_sync *s, u32 id, u32 thresh,
 			   struct priv_cmd_entry *entry);
 
@@ -58,7 +59,7 @@ struct nvgpu_channel_sync {
 			 bool wfi,
 			 bool need_sync_fence,
 			 bool register_irq);
-
+#endif
 	void (*set_min_eq_max)(struct nvgpu_channel_sync *s);
 
 	void (*set_safe_state)(struct nvgpu_channel_sync *s);

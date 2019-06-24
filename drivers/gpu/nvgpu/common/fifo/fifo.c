@@ -60,7 +60,9 @@ void nvgpu_fifo_cleanup_sw_common(struct gk20a *g)
 
 void nvgpu_fifo_cleanup_sw(struct gk20a *g)
 {
+#ifdef CONFIG_NVGPU_KERNEL_MODE_SUBMIT
 	nvgpu_channel_worker_deinit(g);
+#endif
 	nvgpu_fifo_cleanup_sw_common(g);
 }
 
@@ -169,19 +171,23 @@ int nvgpu_fifo_setup_sw(struct gk20a *g)
 		return err;
 	}
 
+#ifdef CONFIG_NVGPU_KERNEL_MODE_SUBMIT
 	err = nvgpu_channel_worker_init(g);
 	if (err != 0) {
 		nvgpu_err(g, "worker init fail, err=%d", err);
 		goto clean_up;
 	}
+#endif
 
 	f->sw_ready = true;
 
 	nvgpu_log_fn(g, "done");
 	return 0;
 
+#ifdef CONFIG_NVGPU_KERNEL_MODE_SUBMIT
 clean_up:
 	nvgpu_fifo_cleanup_sw_common(g);
+#endif
 
 	return err;
 }

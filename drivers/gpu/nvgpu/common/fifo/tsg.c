@@ -460,6 +460,7 @@ void nvgpu_tsg_set_ctx_mmu_error(struct gk20a *g, struct nvgpu_tsg *tsg)
 		NVGPU_ERR_NOTIFIER_FIFO_ERROR_MMU_ERR_FLT);
 }
 
+#ifdef CONFIG_NVGPU_KERNEL_MODE_SUBMIT
 bool nvgpu_tsg_check_ctxsw_timeout(struct nvgpu_tsg *tsg,
 		bool *debug_dump, u32 *ms)
 {
@@ -522,6 +523,7 @@ bool nvgpu_tsg_check_ctxsw_timeout(struct nvgpu_tsg *tsg,
 	nvgpu_rwsem_up_read(&tsg->ch_list_lock);
 	return recover;
 }
+#endif
 
 #ifdef CONFIG_NVGPU_CHANNEL_TSG_SCHEDULING
 int nvgpu_tsg_set_interleave(struct nvgpu_tsg *tsg, u32 level)

@@ -29,6 +29,8 @@
 #include <nvgpu/types.h>
 #include <nvgpu/channel_sync.h>
 
+#ifdef CONFIG_NVGPU_KERNEL_MODE_SUBMIT
+
 struct nvgpu_channel;
 struct nvgpu_channel_sync_semaphore;
 /*
@@ -45,5 +47,7 @@ nvgpu_channel_sync_to_semaphore(struct nvgpu_channel_sync *sync);
 struct nvgpu_channel_sync *
 nvgpu_channel_sync_semaphore_create(
 	struct nvgpu_channel *c, bool user_managed);
+
+#endif
 
 #endif /* NVGPU_CHANNEL_SYNC_SEMAPHORE_H */

@@ -127,8 +127,10 @@ void nvgpu_tsg_set_ctx_mmu_error(struct gk20a *g,
 		struct nvgpu_tsg *tsg);
 bool nvgpu_tsg_mark_error(struct gk20a *g, struct nvgpu_tsg *tsg);
 
+#ifdef CONFIG_NVGPU_KERNEL_MODE_SUBMIT
 bool nvgpu_tsg_check_ctxsw_timeout(struct nvgpu_tsg *tsg,
 		bool *debug_dump, u32 *ms);
+#endif
 int nvgpu_tsg_set_runlist_interleave(struct nvgpu_tsg *tsg, u32 level);
 #ifdef CONFIG_NVGPU_CHANNEL_TSG_SCHEDULING
 int nvgpu_tsg_set_timeslice(struct nvgpu_tsg *tsg, u32 timeslice_us);

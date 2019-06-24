@@ -50,6 +50,7 @@ void gk20a_userd_init_mem(struct gk20a *g, struct nvgpu_channel *c)
 	nvgpu_mem_wr32(g, mem, offset + ram_userd_gp_put_w(), 0);
 }
 
+#ifdef CONFIG_NVGPU_KERNEL_MODE_SUBMIT
 u32 gk20a_userd_gp_get(struct gk20a *g, struct nvgpu_channel *c)
 {
 	u64 userd_gpu_va = nvgpu_channel_userd_gpu_va(c);
@@ -82,6 +83,7 @@ void gk20a_userd_gp_put(struct gk20a *g, struct nvgpu_channel *c)
 	BUG_ON(u64_hi32(addr) != 0U);
 	nvgpu_bar1_writel(g, (u32)addr, c->gpfifo.put);
 }
+#endif
 
 u32 gk20a_userd_entry_size(struct gk20a *g)
 {

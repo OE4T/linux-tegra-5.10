@@ -115,10 +115,11 @@ bool gk20a_fifo_handle_ctxsw_timeout(struct gk20a *g)
 			nvgpu_channel_put(ch);
 		}
 	}
-
+#ifdef CONFIG_NVGPU_KERNEL_MODE_SUBMIT
 	if (tsg != NULL) {
 		recover = g->ops.tsg.check_ctxsw_timeout(tsg, &debug_dump, &ms);
 	}
+#endif
 
 	if (recover) {
 		nvgpu_err(g,

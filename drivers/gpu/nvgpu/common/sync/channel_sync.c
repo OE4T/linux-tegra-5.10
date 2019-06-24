@@ -45,7 +45,11 @@ struct nvgpu_channel_sync *nvgpu_channel_sync_create(struct nvgpu_channel *c,
 	if (nvgpu_has_syncpoints(c->g)) {
 		return nvgpu_channel_sync_syncpt_create(c, user_managed);
 	} else {
+#ifdef CONFIG_NVGPU_KERNEL_MODE_SUBMIT
 		return nvgpu_channel_sync_semaphore_create(c, user_managed);
+#else
+		return NULL;
+#endif
 	}
 }
 
@@ -64,6 +68,7 @@ bool nvgpu_has_syncpoints(struct gk20a *g)
 #endif
 }
 
+#ifdef CONFIG_NVGPU_KERNEL_MODE_SUBMIT
 int nvgpu_channel_sync_wait_fence_fd(struct nvgpu_channel_sync *s, int fd,
 	struct priv_cmd_entry *entry, u32 max_wait_cmds)
 {
@@ -91,6 +96,18 @@ void nvgpu_channel_sync_set_min_eq_max(struct nvgpu_channel_sync *s)
 	s->set_min_eq_max(s);
 }
 
+void nvgpu_channel_sync_get_ref(struct nvgpu_channel_sync *s)
+{
+	nvgpu_atomic_inc(&s->refcount);
+}
+
+bool nvgpu_channel_sync_put_ref_and_check(struct nvgpu_channel_sync *s)
+{
+	return nvgpu_atomic_dec_and_test(&s->refcount);
+}
+
+#endif /* CONFIG_NVGPU_KERNEL_MODE_SUBMIT */
+
 void nvgpu_channel_sync_set_safe_state(struct nvgpu_channel_sync *s)
 {
 	s->set_safe_state(s);
@@ -105,13 +122,4 @@ void nvgpu_channel_sync_destroy(struct nvgpu_channel_sync *sync,
 	sync->destroy(sync);
 }
 
-void nvgpu_channel_sync_get_ref(struct nvgpu_channel_sync *s)
-{
-	nvgpu_atomic_inc(&s->refcount);
-}
-
-bool nvgpu_channel_sync_put_ref_and_check(struct nvgpu_channel_sync *s)
-{
-	return nvgpu_atomic_dec_and_test(&s->refcount);
-}
 
