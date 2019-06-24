@@ -2,7 +2,7 @@
  * extcon-disp-state - extcon driver for display accessory detection
  *		compatible with switch-mid
  *
- * Copyright (c) 2018, NVIDIA CORPORATION, All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION, All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -56,21 +56,13 @@ void disp_state_extcon_switch_report(const unsigned int cable, bool state)
 		(!disp_extcon_info->dev))
 		return;
 
-#if KERNEL_VERSION(4, 9, 0) > LINUX_VERSION_CODE
-	if (extcon_get_cable_state_(disp_extcon_info->edev, cable) == state) {
-#else
 	if (extcon_get_state(disp_extcon_info->edev, cable) == state) {
-#endif
 		dev_info(disp_extcon_info->dev, "cable %d state %d already set.\n",
 			cable, state);
 		return;
 	}
 
-#if KERNEL_VERSION(4, 9, 0) > LINUX_VERSION_CODE
-	extcon_set_cable_state_(disp_extcon_info->edev, cable, state);
-#else
 	extcon_set_state_sync(disp_extcon_info->edev, cable, state);
-#endif
 	dev_info(disp_extcon_info->dev, "cable %d state %d\n", cable, state);
 }
 
