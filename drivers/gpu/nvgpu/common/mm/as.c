@@ -80,8 +80,9 @@ static int gk20a_vm_alloc_share(struct gk20a_as_share *as_share,
 		}
 	}
 
-	p = strncpy(name, "as_", sizeof(name) - 1);
-	(void) nvgpu_strnadd_u32(p, as_share->id, sizeof(name) - (p-name), 10U);
+	p = strncpy(name, "as_", sizeof("as_"));
+	(void) nvgpu_strnadd_u32(p, (u32)as_share->id,
+					sizeof(name) - sizeof("as_"), 10U);
 
 	vm = nvgpu_vm_init(g, big_page_size,
 			   U64(big_page_size) << U64(10),
