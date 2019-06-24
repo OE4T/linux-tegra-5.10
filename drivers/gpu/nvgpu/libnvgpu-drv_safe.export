@@ -21,7 +21,6 @@ gk20a_open_new_channel
 gm20b_fb_tlb_invalidate
 gm20b_fuse_status_opt_gpc
 gm20b_ramin_set_big_page_size
-gp10b_fb_compression_page_size
 gp10b_mm_get_default_big_page_size
 gp10b_mm_get_iommu_bit
 gp10b_mm_get_mmu_levels
