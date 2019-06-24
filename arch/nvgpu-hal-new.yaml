@@ -261,36 +261,42 @@ mm:
   safe: yes
   owner: Alex W
   children:
-    gmmu:
+    gmmu_fusa:
       safe: yes
-      sources: [ hal/mm/gmmu/gmmu_gk20a.c,
+      sources: [ hal/mm/gmmu/gmmu_gk20a_fusa.c,
                  hal/mm/gmmu/gmmu_gk20a.h,
-                 hal/mm/gmmu/gmmu_gm20b.c,
+                 hal/mm/gmmu/gmmu_gm20b_fusa.c,
                  hal/mm/gmmu/gmmu_gm20b.h,
-                 hal/mm/gmmu/gmmu_gp10b.c,
+                 hal/mm/gmmu/gmmu_gp10b_fusa.c,
                  hal/mm/gmmu/gmmu_gp10b.h,
-                 hal/mm/gmmu/gmmu_gv11b.c,
+                 hal/mm/gmmu/gmmu_gv11b_fusa.c,
                  hal/mm/gmmu/gmmu_gv11b.h ]
+    gmmu:
+      safe: no
+      sources: [ hal/mm/gmmu/gmmu_gk20a.c,
+                 hal/mm/gmmu/gmmu_gm20b.c]
     cache:
       safe: yes
-      sources: [ hal/mm/cache/flush_gk20a.c,
+      sources: [ hal/mm/cache/flush_gk20a_fusa.c,
                  hal/mm/cache/flush_gk20a.h,
-                 hal/mm/cache/flush_gv11b.c,
+                 hal/mm/cache/flush_gv11b_fusa.c,
                  hal/mm/cache/flush_gv11b.h ]
     mmu_fault:
       safe: yes
-      sources: [ hal/mm/mmu_fault/mmu_fault_gv11b.c,
+      sources: [ hal/mm/mmu_fault/mmu_fault_gv11b_fusa.c,
                  hal/mm/mmu_fault/mmu_fault_gv11b.h ]
-    mm:
+    mm_fusa:
       safe: yes
+      sources: [ hal/mm/mm_gp10b_fusa.c,
+                 hal/mm/mm_gp10b.h,
+                 hal/mm/mm_gv11b_fusa.c,
+                 hal/mm/mm_gv11b.h]
+    mm:
+      safe: no
       sources: [ hal/mm/mm_gk20a.c,
                  hal/mm/mm_gk20a.h,
                  hal/mm/mm_gm20b.c,
                  hal/mm/mm_gm20b.h,
-                 hal/mm/mm_gp10b.c,
-                 hal/mm/mm_gp10b.h,
-                 hal/mm/mm_gv11b.c,
-                 hal/mm/mm_gv11b.h,
                  hal/mm/mm_gv100.c,
                  hal/mm/mm_gv100.h,
                  hal/mm/mm_tu104.c,
