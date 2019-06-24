@@ -683,7 +683,9 @@ static int test_channel_setup_bind(struct unit_module *m,
 	assert(err == 0);
 	vm.pdb.mem = &pdb_mem;
 
+	memset(&bind_args, 0, sizeof(bind_args));
 	bind_args.flags = NVGPU_SETUP_BIND_FLAGS_USERMODE_SUPPORT;
+	bind_args.num_gpfifo_entries = 32;
 
 	for (branches = 0U; branches < F_CHANNEL_SETUP_BIND_LAST; branches++) {
 
