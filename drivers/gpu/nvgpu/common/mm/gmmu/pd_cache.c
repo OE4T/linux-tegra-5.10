@@ -367,7 +367,9 @@ int nvgpu_pd_alloc(struct vm_gk20a *vm, struct nvgpu_gmmu_pd *pd, u32 bytes)
 
 	nvgpu_mutex_acquire(&g->mm.pd_cache->lock);
 	err = nvgpu_pd_cache_alloc(g, g->mm.pd_cache, pd, bytes);
-	pd->pd_size = bytes;
+	if (err == 0) {
+		pd->pd_size = bytes;
+	}
 	nvgpu_mutex_release(&g->mm.pd_cache->lock);
 
 	return err;
