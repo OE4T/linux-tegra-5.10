@@ -26,6 +26,7 @@
 #include <nvgpu/types.h>
 
 struct gk20a;
+struct mmu_fault_info;
 
 #define NVGPU_ERR_MODULE_HOST		(0U)
 #define NVGPU_ERR_MODULE_SM		(1U)
@@ -169,6 +170,14 @@ struct gr_exception_info {
 #define GPU_HUBMMU_PTE_DATA_ECC_UNCORRECTED		(5U)
 #define GPU_HUBMMU_PDE0_DATA_ECC_CORRECTED		(6U)
 #define GPU_HUBMMU_PDE0_DATA_ECC_UNCORRECTED		(7U)
+#define GPU_HUBMMU_PAGE_FAULT_ERROR			(8U)
+
+/* Sub-errors in GPU_HUBMMU_PAGE_FAULT_ERROR */
+#define GPU_HUBMMU_REPLAYABLE_FAULT_OVERFLOW		(0U)
+#define GPU_HUBMMU_REPLAYABLE_FAULT_NOTIFY		(1U)
+#define GPU_HUBMMU_NONREPLAYABLE_FAULT_OVERFLOW		(2U)
+#define GPU_HUBMMU_NONREPLAYABLE_FAULT_NOTIFY		(3U)
+#define GPU_HUBMMU_OTHER_FAULT_NOTIFY			(4U)
 
 #define GPU_PRI_TIMEOUT_ERROR		(0U)
 #define GPU_PRI_ACCESS_VIOLATION	(1U)
@@ -226,5 +235,9 @@ int nvgpu_report_pmu_err(struct gk20a *g, u32 hw_unit, u32 err_id,
 
 int nvgpu_report_pri_err(struct gk20a *g, u32 hw_unit, u32 inst,
 		u32 err_type, u32 err_addr, u32 err_code);
+
+int nvgpu_report_mmu_err(struct gk20a *g, u32 hw_unit,
+		u32 err_type, struct mmu_fault_info *fault_info,
+		u32 status, u32 sub_err_type);
 
 #endif

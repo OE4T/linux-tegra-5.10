@@ -23,6 +23,7 @@
 #include <nvgpu/nvgpu_err.h>
 
 struct gk20a;
+struct mmu_fault_info;
 
 int nvgpu_report_host_err(struct gk20a *g, u32 hw_unit,
 	u32 inst, u32 err_id, u32 intr_info)
@@ -62,6 +63,13 @@ int nvgpu_report_pri_err(struct gk20a *g, u32 hw_unit, u32 inst,
 
 int nvgpu_report_ctxsw_err(struct gk20a *g, u32 hw_unit, u32 err_id,
 		void *data)
+{
+	return 0;
+}
+
+int nvgpu_report_mmu_err(struct gk20a *g, u32 hw_unit,
+		u32 err_type, struct mmu_fault_info *fault_info,
+		u32 status, u32 sub_err_type)
 {
 	return 0;
 }

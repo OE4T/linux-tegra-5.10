@@ -581,6 +581,12 @@ void gv11b_fb_handle_mmu_fault(struct gk20a *g, u32 niso_intr)
 	if ((niso_intr &
 	     fb_niso_intr_mmu_other_fault_notify_m()) != 0U) {
 
+		(void) nvgpu_report_mmu_err(g, NVGPU_ERR_MODULE_HUBMMU,
+			GPU_HUBMMU_PAGE_FAULT_ERROR,
+			NULL,
+			fault_status,
+			GPU_HUBMMU_OTHER_FAULT_NOTIFY);
+
 		gv11b_fb_handle_dropped_mmu_fault(g, fault_status);
 
 		gv11b_mm_mmu_fault_handle_other_fault_notify(g, fault_status);
@@ -604,6 +610,12 @@ void gv11b_fb_handle_mmu_fault(struct gk20a *g, u32 niso_intr)
 		if ((niso_intr &
 		     fb_niso_intr_mmu_nonreplayable_fault_overflow_m()) != 0U) {
 
+			(void) nvgpu_report_mmu_err(g, NVGPU_ERR_MODULE_HUBMMU,
+				GPU_HUBMMU_PAGE_FAULT_ERROR,
+				NULL,
+				fault_status,
+				GPU_HUBMMU_NONREPLAYABLE_FAULT_OVERFLOW);
+
 			gv11b_fb_handle_nonreplay_fault_overflow(g,
 				 fault_status);
 		}
@@ -621,6 +633,12 @@ void gv11b_fb_handle_mmu_fault(struct gk20a *g, u32 niso_intr)
 		}
 		if ((niso_intr &
 		     fb_niso_intr_mmu_replayable_fault_overflow_m()) != 0U) {
+
+			(void) nvgpu_report_mmu_err(g, NVGPU_ERR_MODULE_HUBMMU,
+				GPU_HUBMMU_PAGE_FAULT_ERROR,
+				NULL,
+				fault_status,
+				GPU_HUBMMU_REPLAYABLE_FAULT_OVERFLOW);
 
 			gv11b_fb_handle_replay_fault_overflow(g,
 				 fault_status);

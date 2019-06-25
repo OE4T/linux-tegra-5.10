@@ -449,6 +449,7 @@ void gv11b_mm_mmu_fault_handle_nonreplay_replay_fault(struct gk20a *g,
 	u32 invalidate_replay_val = 0U;
 	u64 prev_fault_addr =  0ULL;
 	u64 next_fault_addr =  0ULL;
+	u32 sub_err_type =  0U;
 
 	if (gv11b_fb_is_fault_buffer_empty(g, index, &get_indx)) {
 		nvgpu_log(g, gpu_dbg_intr,
@@ -480,6 +481,18 @@ void gv11b_mm_mmu_fault_handle_nonreplay_replay_fault(struct gk20a *g,
 		nvgpu_log(g, gpu_dbg_intr, "entry valid = 0x%x", rd32_val);
 
 		gv11b_fb_copy_from_hw_fault_buf(g, mem, offset, mmufault);
+
+		if (index == NVGPU_MMU_FAULT_REPLAY_REG_INDX) {
+			sub_err_type = GPU_HUBMMU_REPLAYABLE_FAULT_NOTIFY;
+		} else {
+			sub_err_type = GPU_HUBMMU_NONREPLAYABLE_FAULT_NOTIFY;
+		}
+
+		(void) nvgpu_report_mmu_err(g, NVGPU_ERR_MODULE_HUBMMU,
+			GPU_HUBMMU_PAGE_FAULT_ERROR,
+			mmufault,
+			fault_status,
+			sub_err_type);
 
 		nvgpu_assert(get_indx < U32_MAX);
 		get_indx = (get_indx + 1U) % entries;
