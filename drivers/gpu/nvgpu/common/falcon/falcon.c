@@ -319,6 +319,7 @@ static int falcon_memcpy_params_check(struct nvgpu_falcon *flcn,
 			flcn->flcn_id);
 		nvgpu_err(g, "total size 0x%x, offset 0x%x, copy size 0x%x",
 			mem_size, offset, size);
+		ret = -EINVAL;
 		goto exit;
 	}
 
