@@ -243,12 +243,6 @@ static int ether_phy_init(struct net_device *dev)
 	pdata->speed = SPEED_UNKNOWN;
 	pdata->oldduplex = SPEED_UNKNOWN;
 
-	/* Reset the PHY */
-	if (gpio_is_valid(pdata->phy_reset)) {
-		gpio_set_value(pdata->phy_reset, 0);
-		usleep_range(10, 11);
-		gpio_set_value(pdata->phy_reset, 1);
-	}
 
 	if (pdata->phy_node != NULL) {
 		phydev = of_phy_connect(dev, pdata->phy_node,
@@ -1148,6 +1142,13 @@ static int ether_open(struct net_device *dev)
 	struct osi_core_priv_data *osi_core = pdata->osi_core;
 	int ret = 0;
 
+	/* Reset the PHY */
+	if (gpio_is_valid(pdata->phy_reset)) {
+		gpio_set_value(pdata->phy_reset, 0);
+		usleep_range(10, 11);
+		gpio_set_value(pdata->phy_reset, 1);
+	}
+
 	ret = ether_enable_clks(pdata);
 	if (ret < 0) {
 		dev_err(&dev->dev, "failed to enable clks\n");
@@ -1264,6 +1265,9 @@ err_poll_swr:
 	}
 err_mac_rst:
 	ether_disable_clks(pdata);
+	if (gpio_is_valid(pdata->phy_reset)) {
+		gpio_set_value(pdata->phy_reset, OSI_DISABLE);
+	}
 
 	return ret;
 }
@@ -2813,6 +2817,7 @@ static int ether_init_plat_resources(struct platform_device *pdev,
 
 mac_addr_fail:
 	ether_disable_clks(pdata);
+	ether_put_clks(pdata);
 	if (gpio_is_valid(pdata->phy_reset)) {
 		gpio_set_value(pdata->phy_reset, OSI_DISABLE);
 	}
@@ -3434,6 +3439,10 @@ err_napi:
 	mdiobus_unregister(pdata->mii);
 err_dma_mask:
 	ether_disable_clks(pdata);
+	ether_put_clks(pdata);
+	if (gpio_is_valid(pdata->phy_reset)) {
+		gpio_set_value(pdata->phy_reset, OSI_DISABLE);
+	}
 err_init_res:
 err_parse_dt:
 	free_netdev(ndev);
@@ -3467,6 +3476,9 @@ static int ether_remove(struct platform_device *pdev)
 	}
 
 	ether_disable_clks(pdata);
+
+	ether_put_clks(pdata);
+
 	/* Assert MAC RST gpio */
 	if (pdata->mac_rst) {
 		reset_control_assert(pdata->mac_rst);
