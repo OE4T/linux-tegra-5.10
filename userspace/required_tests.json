@@ -485,12 +485,47 @@
         "unit": "nvgpu_allocator"
     },
     {
+        "test": "alloc_inst",
+        "test_level": 0,
+        "unit": "nvgpu_channel"
+    },
+    {
+        "test": "close",
+        "test_level": 0,
+        "unit": "nvgpu_channel"
+    },
+    {
+        "test": "enable_disable_tsg",
+        "test_level": 0,
+        "unit": "nvgpu_channel"
+    },
+    {
+        "test": "from_inst",
+        "test_level": 0,
+        "unit": "nvgpu_channel"
+    },
+    {
         "test": "init_support",
         "test_level": 0,
         "unit": "nvgpu_channel"
     },
     {
+        "test": "open",
+        "test_level": 0,
+        "unit": "nvgpu_channel"
+    },
+    {
         "test": "remove_support",
+        "test_level": 0,
+        "unit": "nvgpu_channel"
+    },
+    {
+        "test": "setup_bind",
+        "test_level": 0,
+        "unit": "nvgpu_channel"
+    },
+    {
+        "test": "setup_sw",
         "test_level": 0,
         "unit": "nvgpu_channel"
     },
