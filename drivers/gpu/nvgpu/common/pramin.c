@@ -32,7 +32,7 @@
  * This typedef is for functions that get called during the access_batched()
  * operation.
  */
-typedef void (*pramin_access_batch_fn)(struct gk20a *g, u32 start, u32 words,
+typedef void (*pramin_access_batch_fn)(struct gk20a *g, u64 start, u64 words,
 				       u32 **arg);
 
 /*
@@ -41,12 +41,12 @@ typedef void (*pramin_access_batch_fn)(struct gk20a *g, u32 start, u32 words,
  * One call to "loop" is done per range, with "arg" supplied.
  */
 static void nvgpu_pramin_access_batched(struct gk20a *g, struct nvgpu_mem *mem,
-		u32 offset, u32 size, pramin_access_batch_fn loop, u32 **arg)
+		u64 offset, u64 size, pramin_access_batch_fn loop, u32 **arg)
 {
 	struct nvgpu_page_alloc *alloc = NULL;
 	struct nvgpu_sgt *sgt;
 	struct nvgpu_sgl *sgl;
-	u32 byteoff, start_reg, until_end, n;
+	u64 byteoff, start_reg, until_end, n;
 
 	/*
 	 * TODO: Vidmem is not accesible through pramin on shutdown path.
@@ -64,26 +64,26 @@ static void nvgpu_pramin_access_batched(struct gk20a *g, struct nvgpu_mem *mem,
 		if (offset >= nvgpu_sgt_get_length(sgt, sgl)) {
 			u64 tmp_offset = nvgpu_sgt_get_length(sgt, sgl);
 
-			nvgpu_assert(tmp_offset <= U64(offset));
-			offset -= U32(tmp_offset);
+			nvgpu_assert(tmp_offset <= offset);
+			offset -= tmp_offset;
 		} else {
 			break;
 		}
 	}
 
 	while (size != 0U) {
-		u32 sgl_len;
+		u64 sgl_len;
 
 		BUG_ON(sgl == NULL);
-		sgl_len = (u32)nvgpu_sgt_get_length(sgt, sgl);
+		sgl_len = nvgpu_sgt_get_length(sgt, sgl);
 
 		nvgpu_spinlock_acquire(&g->mm.pramin_window_lock);
 		byteoff = g->ops.bus.set_bar0_window(g, mem, sgt, sgl,
 					      offset / sizeof(u32));
 		start_reg = g->ops.pramin.data032_r(byteoff / sizeof(u32));
-		until_end = U32(SZ_1M) - (byteoff & (U32(SZ_1M) - 1U));
+		until_end = U64(SZ_1M) - (byteoff & (U64(SZ_1M) - 1U));
 
-		n = min3(size, until_end, (u32)(sgl_len - offset));
+		n = min3(size, until_end, (sgl_len - offset));
 
 		loop(g, start_reg, n / sizeof(u32), arg);
 
@@ -104,9 +104,10 @@ static void nvgpu_pramin_access_batched(struct gk20a *g, struct nvgpu_mem *mem,
 }
 
 static void nvgpu_pramin_access_batch_rd_n(struct gk20a *g,
-					   u32 start, u32 words, u32 **arg)
+					   u64 start, u64 words, u32 **arg)
 {
-	u32 r = start, *dest_u32 = *arg;
+	u32 *dest_u32 = *arg;
+	u64 r = start;
 
 	while (words != 0U) {
 		words--;
@@ -118,7 +119,7 @@ static void nvgpu_pramin_access_batch_rd_n(struct gk20a *g,
 }
 
 void nvgpu_pramin_rd_n(struct gk20a *g, struct nvgpu_mem *mem,
-					   u32 start, u32 size, void *dest)
+					   u64 start, u64 size, void *dest)
 {
 	u32 *dest_u32 = dest;
 
@@ -127,9 +128,10 @@ void nvgpu_pramin_rd_n(struct gk20a *g, struct nvgpu_mem *mem,
 }
 
 static void nvgpu_pramin_access_batch_wr_n(struct gk20a *g,
-					   u32 start, u32 words, u32 **arg)
+					   u64 start, u64 words, u32 **arg)
 {
-	u32 r = start, *src_u32 = *arg;
+	u32 *src_u32 = *arg;
+	u64 r = start;
 
 	while (words != 0U) {
 		words--;
@@ -141,7 +143,7 @@ static void nvgpu_pramin_access_batch_wr_n(struct gk20a *g,
 }
 
 void nvgpu_pramin_wr_n(struct gk20a *g, struct nvgpu_mem *mem,
-					   u32 start, u32 size, void *src)
+					   u64 start, u64 size, void *src)
 {
 	u32 *src_u32 = src;
 
@@ -150,9 +152,10 @@ void nvgpu_pramin_wr_n(struct gk20a *g, struct nvgpu_mem *mem,
 }
 
 static void nvgpu_pramin_access_batch_set(struct gk20a *g,
-					  u32 start, u32 words, u32 **arg)
+					  u64 start, u64 words, u32 **arg)
 {
-	u32 r = start, repeat = **arg;
+	u32 repeat = **arg;
+	u64 r = start;
 
 	while (words != 0U) {
 		words--;
@@ -162,7 +165,7 @@ static void nvgpu_pramin_access_batch_set(struct gk20a *g,
 }
 
 void nvgpu_pramin_memset(struct gk20a *g, struct nvgpu_mem *mem,
-			 u32 start, u32 size, u32 w)
+			 u64 start, u64 size, u32 w)
 {
 	u32 *p = &w;
 

@@ -265,26 +265,26 @@ void __nvgpu_mem_free_vidmem_alloc(struct gk20a *g, struct nvgpu_mem *vidmem);
  */
 
 /* word-indexed offset */
-u32 nvgpu_mem_rd32(struct gk20a *g, struct nvgpu_mem *mem, u32 w);
+u32 nvgpu_mem_rd32(struct gk20a *g, struct nvgpu_mem *mem, u64 w);
 /* word-indexed offsets */
 u64 nvgpu_mem_rd32_pair(struct gk20a *g, struct nvgpu_mem *mem,
 		u32 lo, u32 hi);
 /* byte offset (32b-aligned) */
-u32 nvgpu_mem_rd(struct gk20a *g, struct nvgpu_mem *mem, u32 offset);
+u32 nvgpu_mem_rd(struct gk20a *g, struct nvgpu_mem *mem, u64 offset);
 /* memcpy to cpu, offset and size in bytes (32b-aligned) */
-void nvgpu_mem_rd_n(struct gk20a *g, struct nvgpu_mem *mem, u32 offset,
-		void *dest, u32 size);
+void nvgpu_mem_rd_n(struct gk20a *g, struct nvgpu_mem *mem, u64 offset,
+		void *dest, u64 size);
 
 /* word-indexed offset */
-void nvgpu_mem_wr32(struct gk20a *g, struct nvgpu_mem *mem, u32 w, u32 data);
+void nvgpu_mem_wr32(struct gk20a *g, struct nvgpu_mem *mem, u64 w, u32 data);
 /* byte offset (32b-aligned) */
-void nvgpu_mem_wr(struct gk20a *g, struct nvgpu_mem *mem, u32 offset, u32 data);
+void nvgpu_mem_wr(struct gk20a *g, struct nvgpu_mem *mem, u64 offset, u32 data);
 /* memcpy from cpu, offset and size in bytes (32b-aligned) */
-void nvgpu_mem_wr_n(struct gk20a *g, struct nvgpu_mem *mem, u32 offset,
-		void *src, u32 size);
+void nvgpu_mem_wr_n(struct gk20a *g, struct nvgpu_mem *mem, u64 offset,
+		void *src, u64 size);
 /* size and offset in bytes (32b-aligned), filled with the constant byte c */
-void nvgpu_memset(struct gk20a *g, struct nvgpu_mem *mem, u32 offset,
-		u32 c, u32 size);
+void nvgpu_memset(struct gk20a *g, struct nvgpu_mem *mem, u64 offset,
+		u32 c, u64 size);
 
 u64 nvgpu_mem_get_addr(struct gk20a *g, struct nvgpu_mem *mem);
 u64 nvgpu_mem_get_phys_addr(struct gk20a *g, struct nvgpu_mem *mem);
