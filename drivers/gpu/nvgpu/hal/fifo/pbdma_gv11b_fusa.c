@@ -244,7 +244,7 @@ void gv11b_pbdma_setup_hw(struct gk20a *g)
 		timeout = nvgpu_readl(g, pbdma_timeout_r(i));
 		nvgpu_log_info(g, "pbdma_timeout reg val = 0x%08x",
 						 timeout);
-		if (!nvgpu_platform_is_silicon(g)) {
+		if (nvgpu_platform_is_silicon(g)) {
 			timeout = set_field(timeout, pbdma_timeout_period_m(),
 					pbdma_timeout_period_max_f());
 			nvgpu_log_info(g, "new pbdma_timeout reg val = 0x%08x",

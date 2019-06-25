@@ -552,17 +552,15 @@ done:
 }
 
 #define F_CHANNEL_SETUP_BIND_NO_AS				BIT(0)
-#define F_CHANNEL_SETUP_BIND_HAS_GPFIFO_MEM			BIT(1)
-#define F_CHANNEL_SETUP_BIND_USERMODE_ENABLED			BIT(2)
-#define F_CHANNEL_SETUP_BIND_USERMODE_ALLOC_BUF_NULL		BIT(3)
-#define F_CHANNEL_SETUP_BIND_USERMODE_ALLOC_BUF_FAIL		BIT(4)
-#define F_CHANNEL_SETUP_BIND_USERMODE_SETUP_RAMFC_FAIL		BIT(5)
-#define F_CHANNEL_SETUP_BIND_USERMODE_UPDATE_RL_FAIL		BIT(6)
-#define F_CHANNEL_SETUP_BIND_LAST				BIT(7)
+#define F_CHANNEL_SETUP_BIND_USERMODE_ENABLED			BIT(1)
+#define F_CHANNEL_SETUP_BIND_USERMODE_ALLOC_BUF_NULL		BIT(2)
+#define F_CHANNEL_SETUP_BIND_USERMODE_ALLOC_BUF_FAIL		BIT(3)
+#define F_CHANNEL_SETUP_BIND_USERMODE_SETUP_RAMFC_FAIL		BIT(4)
+#define F_CHANNEL_SETUP_BIND_USERMODE_UPDATE_RL_FAIL		BIT(5)
+#define F_CHANNEL_SETUP_BIND_LAST				BIT(6)
 
 static const char *f_channel_setup_bind[] = {
 	"no_as",
-	"has_gpfifo_mem",
 	"usermode_enabled",
 	"alloc_buf_null",
 	"alloc_buf_fail",
@@ -631,7 +629,6 @@ int test_channel_setup_bind(struct unit_module *m,
 	int ret = UNIT_FAIL;
 	u32 fail =
 		F_CHANNEL_SETUP_BIND_NO_AS |
-		F_CHANNEL_SETUP_BIND_HAS_GPFIFO_MEM |
 		F_CHANNEL_SETUP_BIND_USERMODE_ENABLED |
 		F_CHANNEL_SETUP_BIND_USERMODE_ALLOC_BUF_NULL |
 		F_CHANNEL_SETUP_BIND_USERMODE_ALLOC_BUF_FAIL |
@@ -688,11 +685,6 @@ int test_channel_setup_bind(struct unit_module *m,
 		ch->vm = branches & F_CHANNEL_SETUP_BIND_NO_AS ?
 			NULL : &vm;
 
-		if (branches & F_CHANNEL_SETUP_BIND_HAS_GPFIFO_MEM) {
-			err = nvgpu_dma_alloc(g, PAGE_SIZE, &ch->gpfifo.mem);
-			assert(err == 0);
-		}
-
 		if (branches & F_CHANNEL_SETUP_BIND_USERMODE_ENABLED) {
 			ch->usermode_submit_enabled = true;
 		}
@@ -721,7 +713,6 @@ int test_channel_setup_bind(struct unit_module *m,
 			assert(err != 0);
 			assert(!nvgpu_mem_is_valid(&ch->usermode_userd));
 			assert(!nvgpu_mem_is_valid(&ch->usermode_gpfifo));
-			nvgpu_dma_free(g, &ch->gpfifo.mem);
 			ch->usermode_submit_enabled = false;
 			assert(nvgpu_atomic_read(&ch->bound) == false);
 		} else {
