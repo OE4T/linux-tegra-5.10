@@ -75,6 +75,7 @@ static int nvgpu_gr_obj_ctx_init_ctxsw_preemption_mode(struct gk20a *g,
 
 	nvgpu_log_fn(g, " ");
 
+#ifdef CONFIG_NVGPU_GRAPHICS
 	if (!nvgpu_is_enabled(g, NVGPU_SUPPORT_PREEMPTION_GFXP)) {
 		if (g->ops.gpu_class.is_valid_compute(class_num)) {
 			nvgpu_gr_ctx_init_compute_preemption_mode(gr_ctx,
@@ -84,11 +85,11 @@ static int nvgpu_gr_obj_ctx_init_ctxsw_preemption_mode(struct gk20a *g,
 		return 0;
 	}
 
-#ifdef CONFIG_NVGPU_GRAPHICS
 	if ((flags & NVGPU_OBJ_CTX_FLAGS_SUPPORT_GFXP) != 0U) {
 		graphics_preempt_mode = NVGPU_PREEMPTION_MODE_GRAPHICS_GFXP;
 	}
 #endif
+
 #ifdef CONFIG_NVGPU_CILP
 	if ((flags & NVGPU_OBJ_CTX_FLAGS_SUPPORT_CILP) != 0U) {
 		compute_preempt_mode = NVGPU_PREEMPTION_MODE_COMPUTE_CILP;
