@@ -41,6 +41,7 @@
 #include <linux/ktime.h>
 #include <linux/hrtimer.h>
 #include <linux/tegra-ivc.h>
+#include <soc/tegra/chip-id.h>
 
 #include <osi_core.h>
 #include <osi_dma.h>

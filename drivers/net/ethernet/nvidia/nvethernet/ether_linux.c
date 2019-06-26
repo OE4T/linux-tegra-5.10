@@ -90,6 +90,9 @@ static inline void ether_stats_work_queue_stop(struct ether_priv_data *pdata)
  */
 static void ether_disable_clks(struct ether_priv_data *pdata)
 {
+	if (pdata->osi_core->pre_si)
+		goto exit;
+
 	if (!IS_ERR_OR_NULL(pdata->axi_cbb_clk)) {
 		clk_disable_unprepare(pdata->axi_cbb_clk);
 	}
@@ -113,6 +116,7 @@ static void ether_disable_clks(struct ether_priv_data *pdata)
 	if (!IS_ERR_OR_NULL(pdata->pllrefe_clk)) {
 		clk_disable_unprepare(pdata->pllrefe_clk);
 	}
+exit:
 	pdata->clks_enable = false;
 }
 
@@ -129,6 +133,9 @@ static void ether_disable_clks(struct ether_priv_data *pdata)
 static int ether_enable_clks(struct ether_priv_data *pdata)
 {
 	int ret;
+
+	if (pdata->osi_core->pre_si)
+		goto exit;
 
 	if (!IS_ERR_OR_NULL(pdata->pllrefe_clk)) {
 		ret = clk_prepare_enable(pdata->pllrefe_clk);
@@ -172,6 +179,7 @@ static int ether_enable_clks(struct ether_priv_data *pdata)
 		}
 	}
 
+exit:
 	pdata->clks_enable = true;
 
 	return 0;
@@ -1345,6 +1353,9 @@ static int ether_therm_init(struct ether_priv_data *pdata)
 {
 	struct device_node *np = NULL;
 
+	if (pdata->osi_core->pre_si)
+		return 0;
+
 	np = of_find_node_by_name(NULL, "eqos-cool-dev");
 	if (!np) {
 		dev_err(pdata->dev, "failed to get eqos-cool-dev\n");
@@ -1421,7 +1432,7 @@ static int ether_open(struct net_device *dev)
 		return ret;
 	}
 
-	if (pdata->mac_rst) {
+	if (pdata->mac_rst && !osi_core->pre_si) {
 		ret = reset_control_reset(pdata->mac_rst);
 		if (ret < 0) {
 			dev_err(&dev->dev, "failed to reset MAC HW\n");
@@ -1539,7 +1550,7 @@ err_alloc:
 	}
 err_phy_init:
 err_poll_swr:
-	if (pdata->mac_rst) {
+	if (!osi_core->pre_si && pdata->mac_rst) {
 		reset_control_assert(pdata->mac_rst);
 	}
 err_mac_rst:
@@ -1657,7 +1668,7 @@ static int ether_close(struct net_device *ndev)
 	ether_napi_disable(pdata);
 
 	/* Assert MAC RST gpio */
-	if (pdata->mac_rst) {
+	if (!pdata->osi_core->pre_si && pdata->mac_rst) {
 		reset_control_assert(pdata->mac_rst);
 	}
 
@@ -2959,11 +2970,17 @@ static int ether_get_mac_address(struct ether_priv_data *pdata)
 	unsigned char mac_addr[6] = {0};
 	int ret = 0, i;
 
-	/* read MAC address */
-	ret = ether_get_mac_address_dtb("/chosen",
-					"nvidia,ether-mac", mac_addr);
-	if (ret < 0)
-		return ret;
+	if (!osi_core->pre_si) {
+		/* read MAC address */
+		ret = ether_get_mac_address_dtb("/chosen",
+						"nvidia,ether-mac",
+						mac_addr);
+		if (ret < 0)
+			return ret;
+	} else {
+		ndev->addr_assign_type = NET_ADDR_RANDOM;
+		eth_random_addr(mac_addr);
+	}
 
 	/* Set up MAC address */
 	for (i = 0; i < 6; i++) {
@@ -2986,6 +3003,10 @@ static int ether_get_mac_address(struct ether_priv_data *pdata)
 static inline void ether_put_clks(struct ether_priv_data *pdata)
 {
 	struct device *dev = pdata->dev;
+
+	if (pdata->osi_core->pre_si) {
+		return;
+	}
 
 	if (!IS_ERR_OR_NULL(pdata->tx_clk)) {
 		devm_clk_put(dev, pdata->tx_clk);
@@ -3095,11 +3116,17 @@ err_axi_cbb:
 static int ether_configure_car(struct platform_device *pdev,
 			       struct ether_priv_data *pdata)
 {
-	struct osi_core_priv_data *osi_core = pdata->osi_core;
 	struct device *dev = pdata->dev;
 	struct device_node *np = dev->of_node;
+	struct osi_core_priv_data *osi_core = pdata->osi_core;
 	unsigned long csr_clk_rate = 0;
 	int ret = 0;
+
+	if (osi_core->pre_si) {
+		/* Enabling clks to set so that MDIO read/write will happen */
+		pdata->clks_enable = true;
+		return 0;
+	}
 
 	/* get MAC reset */
 	pdata->mac_rst = devm_reset_control_get(&pdev->dev, "mac_rst");
@@ -3832,6 +3859,23 @@ static void init_filter_values(struct ether_priv_data *pdata)
 }
 
 /**
+ * @brief Sets whether platform is Pre-silicon or not.
+ *
+ * Algorithm: Updates OSI whether respective platform is Pre-silicon or not
+ *
+ * @param[in] osi_core: OSI core private data structure
+ */
+static inline void tegra_pre_si_platform(struct osi_core_priv_data *osi_core)
+{
+	/* VDK set true for both VDK/uFPGA */
+	if (tegra_platform_is_vdk()) {
+		osi_core->pre_si = 1;
+	} else {
+		osi_core->pre_si = 0;
+	}
+}
+
+/**
  * @brief Ethernet platform driver probe.
  *
  * Algorithm:
@@ -3900,6 +3944,8 @@ static int ether_probe(struct platform_device *pdev)
 
 	osi_core->mtu = ndev->mtu;
 	osi_dma->mtu = ndev->mtu;
+
+	tegra_pre_si_platform(osi_core);
 
 	/* Initialize core and DMA ops based on MAC type */
 	if (osi_init_core_ops(osi_core) != 0) {
@@ -4055,7 +4101,7 @@ static int ether_remove(struct platform_device *pdev)
 	ether_put_clks(pdata);
 
 	/* Assert MAC RST gpio */
-	if (pdata->mac_rst) {
+	if (!pdata->osi_core->pre_si && pdata->mac_rst) {
 		reset_control_assert(pdata->mac_rst);
 	}
 	free_netdev(ndev);
