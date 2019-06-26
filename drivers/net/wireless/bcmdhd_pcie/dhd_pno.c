@@ -3048,11 +3048,7 @@ exit_no_unlock:
 #if IS_ENABLED(CONFIG_PREEMPT_RT_FULL)
 	if (swait_active(&_pno_state->get_batch_done.wait))
 #else
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 14, 57)
-	if (waitqueue_active((struct wait_queue_head *)&_pno_state->get_batch_done.wait))
-#else
-	if (waitqueue_active(&_pno_state->get_batch_done.wait))
-#endif
+	if (waitqueue_active((wait_queue_head_t *)&_pno_state->get_batch_done.wait))
 #endif
 		complete(&_pno_state->get_batch_done);
 	return err;
@@ -3812,11 +3808,7 @@ dhd_pno_event_handler(dhd_pub_t *dhd, wl_event_msg_t *event, void *event_data)
 #if IS_ENABLED(CONFIG_PREEMPT_RT_FULL)
 		if (!swait_active(&_pno_state->get_batch_done.wait)) {
 #else
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 14, 57)
-		if (!waitqueue_active((struct wait_queue_head *)&_pno_state->get_batch_done.wait)) {
-#else
-		if (!waitqueue_active(&_pno_state->get_batch_done.wait)) {
-#endif
+		if (!waitqueue_active((wait_queue_head_t *)&_pno_state->get_batch_done.wait)) {
 #endif
 			DHD_PNO(("%s : WLC_E_PFN_BEST_BATCHING\n", __FUNCTION__));
 			params_batch->get_batch.buf = NULL;
