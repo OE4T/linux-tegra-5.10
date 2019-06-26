@@ -193,6 +193,10 @@ static inline int ether_avail_txdesc_cnt(struct osi_tx_ring *tx_ring)
  * 36 second for 1 G interface and 3.6 sec for 10 G interface.
  */
 #define ETHER_STATS_TIMER		3U
+
+#define ETHER_VM_IRQ_TX_CHAN_MASK(x)	BIT((x) * 2U)
+#define ETHER_VM_IRQ_RX_CHAN_MASK(x)	BIT(((x) * 2U) + 1U)
+
 /**
  * @brief DMA Transmit Channel NAPI
  */
@@ -219,6 +223,16 @@ struct ether_rx_napi {
 	struct ether_priv_data *pdata;
 	/** NAPI instance associated with transmit channel */
 	struct napi_struct napi;
+};
+
+/**
+ * @brief VM Based IRQ data
+ */
+struct ether_vm_irq_data {
+	/** List of DMA Tx/Rx channel mask */
+	unsigned int chan_mask;
+	/** OSD private data */
+	struct ether_priv_data *pdata;
 };
 
 /**
@@ -284,6 +298,8 @@ struct ether_priv_data {
 	int tx_irqs[ETHER_MAX_IRQS];
 	/** Array of DMA Receive channel IRQ numbers */
 	int rx_irqs[ETHER_MAX_IRQS];
+	/** Array of VM IRQ numbers */
+	int vm_irqs[OSI_MAX_VM_IRQS];
 	/** memory allocation mask */
 	unsigned long long dma_mask;
 	/** Current state of features enabled in HW*/
@@ -349,6 +365,8 @@ struct ether_priv_data {
 	struct work_struct ivc_work;
 	/** Flag which decides stats is enabled(1) or disabled(0) */
 	unsigned int use_stats;
+	/** VM channel info data associated with VM IRQ */
+	struct ether_vm_irq_data *vm_irq_data;
 };
 
 /**

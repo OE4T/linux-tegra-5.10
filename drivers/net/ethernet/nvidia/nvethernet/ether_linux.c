@@ -409,6 +409,82 @@ static int ether_phy_init(struct net_device *dev)
 }
 
 /**
+ * @brief ether_vm_isr - VM based ISR routine.
+ *
+ * Algorithm:
+ * 1) Get global DMA status (common for all VM IRQ's)
+ * + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + +
+ * + RX7 + TX7 + RX6 + TX6 + . . . . . . . + RX1 + TX1 + RX0 + TX0 +
+ * + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + +
+ *
+ * 2) Mask the channels which are specific to VM in global DMA status.
+ * 3) Process all DMA channel interrupts which are triggered the IRQ
+ *	a) Find first first set from LSB with ffs
+ *	b) The least significant bit is position 1 for ffs. So decremented
+ *	by one to start from zero.
+ *	c) Get channel number and TX/RX info by using bit position.
+ *	d) Invoke OSI layer to clear interrupt source for DMA Tx/Rx at
+ *	DMA and wrapper level.
+ *	e) Get NAPI instance based on channel number and schedule the same.
+ *
+ * @param[in] irq: IRQ number.
+ * @param[in] data: VM IRQ private data structure.
+ *
+ * @note MAC and PHY need to be initialized.
+ *
+ * @retval IRQ_HANDLED on success.
+ * @retval IRQ_NONE on failure.
+ */
+irqreturn_t ether_vm_isr(int irq, void *data)
+{
+	struct ether_vm_irq_data *vm_irq = (struct ether_vm_irq_data *)data;
+	struct ether_priv_data *pdata = vm_irq->pdata;
+	unsigned int temp = 0, chan = 0, txrx = 0;
+	struct osi_dma_priv_data *osi_dma = pdata->osi_dma;
+	struct ether_rx_napi *rx_napi = NULL;
+	struct ether_tx_napi *tx_napi = NULL;
+	unsigned int dma_status;
+
+	/* TODO: locking required since this is shared register b/w VM IRQ's */
+	dma_status = osi_get_global_dma_status(osi_dma);
+	dma_status &= vm_irq->chan_mask;
+
+	while (dma_status) {
+		temp = ffs(dma_status);
+		temp--;
+
+		/* divide by two get channel number */
+		chan = temp >> 1U;
+		/* bitwise and with one to get whether Tx or Rx */
+		txrx = temp & 1U;
+
+		if (txrx) {
+			osi_clear_vm_rx_intr(osi_dma, chan);
+
+			rx_napi = pdata->rx_napi[chan];
+			if (likely(napi_schedule_prep(&rx_napi->napi))) {
+				osi_disable_chan_rx_intr(osi_dma, chan);
+				/* TODO: Schedule NAPI on different CPU core */
+				__napi_schedule(&rx_napi->napi);
+			}
+		} else {
+			osi_clear_vm_tx_intr(osi_dma, chan);
+
+			tx_napi = pdata->tx_napi[chan];
+			if (likely(napi_schedule_prep(&tx_napi->napi))) {
+				osi_disable_chan_tx_intr(osi_dma, chan);
+				/* TODO: Schedule NAPI on different CPU core */
+				__napi_schedule(&tx_napi->napi);
+			}
+		}
+
+		dma_status &= ~BIT(temp);
+	}
+
+	return IRQ_HANDLED;
+}
+
+/**
  * @brief Transmit done ISR Routine.
  *
  * Algorithm:
@@ -547,18 +623,29 @@ static void ether_free_irqs(struct ether_priv_data *pdata)
 		devm_free_irq(pdata->dev, pdata->ivck->irq, pdata);
 	}
 
-	for (i = 0; i < pdata->osi_dma->num_dma_chans; i++) {
-		chan = pdata->osi_dma->dma_chans[i];
-
-		if (pdata->rx_irq_alloc_mask & (1U << i)) {
-			devm_free_irq(pdata->dev, pdata->rx_irqs[i],
-				      pdata->rx_napi[chan]);
-			pdata->rx_irq_alloc_mask &= (~(1U << i));
+	if (pdata->osi_core->mac_ver > OSI_EQOS_MAC_5_00) {
+		for (i = 0; i < pdata->osi_dma->num_vm_irqs; i++) {
+			if (pdata->rx_irq_alloc_mask & (OSI_ENABLE << i)) {
+				devm_free_irq(pdata->dev, pdata->vm_irqs[i],
+					      &pdata->vm_irq_data[i]);
+			}
 		}
-		if (pdata->tx_irq_alloc_mask & (1U << i)) {
-			devm_free_irq(pdata->dev, pdata->tx_irqs[i],
-				      pdata->tx_napi[chan]);
-			pdata->tx_irq_alloc_mask &= (~(1U << i));
+	} else {
+		for (i = 0; i < pdata->osi_dma->num_dma_chans; i++) {
+			chan = pdata->osi_dma->dma_chans[i];
+
+			if (pdata->rx_irq_alloc_mask & (OSI_ENABLE << i)) {
+				devm_free_irq(pdata->dev, pdata->rx_irqs[i],
+					      pdata->rx_napi[chan]);
+				pdata->rx_irq_alloc_mask &=
+							(~(OSI_ENABLE << i));
+			}
+			if (pdata->tx_irq_alloc_mask & (OSI_ENABLE << i)) {
+				devm_free_irq(pdata->dev, pdata->tx_irqs[i],
+					      pdata->tx_napi[chan]);
+				pdata->tx_irq_alloc_mask &=
+							(~(OSI_ENABLE << i));
+			}
 		}
 	}
 }
@@ -709,6 +796,7 @@ static int ether_init_ivc(struct ether_priv_data *pdata)
 static int ether_request_irqs(struct ether_priv_data *pdata)
 {
 	struct osi_dma_priv_data *osi_dma = pdata->osi_dma;
+	struct osi_core_priv_data *osi_core = pdata->osi_core;
 	static char irq_names[ETHER_IRQ_MAX_IDX][ETHER_IRQ_NAME_SZ] = {0};
 	int ret = 0, i, j = 0;
 	unsigned int chan;
@@ -723,36 +811,60 @@ static int ether_request_irqs(struct ether_priv_data *pdata)
 	}
 	pdata->common_irq_alloc_mask = 1;
 
-	for (i = 0; i < osi_dma->num_dma_chans; i++) {
-		chan = osi_dma->dma_chans[i];
+	if (osi_core->mac_ver > OSI_EQOS_MAC_5_00) {
+		for (i = 0; i < osi_dma->num_vm_irqs; i++) {
+			snprintf(irq_names[j], ETHER_IRQ_NAME_SZ, "%s.vm%d",
+				 netdev_name(pdata->ndev), i);
+			ret = devm_request_irq(pdata->dev, pdata->vm_irqs[i],
+					       ether_vm_isr, IRQF_TRIGGER_NONE,
+					       irq_names[j++],
+					       &pdata->vm_irq_data[i]);
+			if (unlikely(ret < 0)) {
+				dev_err(pdata->dev,
+					"failed to request VM IRQ (%d)\n",
+					pdata->vm_irqs[i]);
+				goto err_chan_irq;
+			}
 
-		snprintf(irq_names[j], ETHER_IRQ_NAME_SZ, "%s.rx%d",
-			 netdev_name(pdata->ndev), chan);
-		ret = devm_request_irq(pdata->dev, pdata->rx_irqs[i],
-				       ether_rx_chan_isr, IRQF_TRIGGER_NONE,
-				       irq_names[j++], pdata->rx_napi[chan]);
-		if (unlikely(ret < 0)) {
-			dev_err(pdata->dev,
-				"failed to register Rx chan interrupt: %d\n",
-				pdata->rx_irqs[i]);
-			goto err_chan_irq;
+			pdata->rx_irq_alloc_mask |= (OSI_ENABLE << i);
 		}
+	} else {
+		for (i = 0; i < osi_dma->num_dma_chans; i++) {
+			chan = osi_dma->dma_chans[i];
 
-		pdata->rx_irq_alloc_mask |= (1U << i);
+			snprintf(irq_names[j], ETHER_IRQ_NAME_SZ, "%s.rx%d",
+				 netdev_name(pdata->ndev), chan);
+			ret = devm_request_irq(pdata->dev, pdata->rx_irqs[i],
+					       ether_rx_chan_isr,
+					       IRQF_TRIGGER_NONE,
+					       irq_names[j++],
+					       pdata->rx_napi[chan]);
+			if (unlikely(ret < 0)) {
+				dev_err(pdata->dev,
+					"failed to register Rx chan interrupt: %d\n",
+					pdata->rx_irqs[i]);
+				goto err_chan_irq;
+			}
 
-		snprintf(irq_names[j], ETHER_IRQ_NAME_SZ, "%s.tx%d",
-			 netdev_name(pdata->ndev), chan);
-		ret = devm_request_irq(pdata->dev, (unsigned int)pdata->tx_irqs[i],
-				       ether_tx_chan_isr, IRQF_TRIGGER_NONE,
-				       irq_names[j++], pdata->tx_napi[chan]);
-		if (unlikely(ret < 0)) {
-			dev_err(pdata->dev,
-				"failed to register Tx chan interrupt: %d\n",
-				pdata->tx_irqs[i]);
-			goto err_chan_irq;
+			pdata->rx_irq_alloc_mask |= (OSI_ENABLE << i);
+
+			snprintf(irq_names[j], ETHER_IRQ_NAME_SZ, "%s.tx%d",
+				 netdev_name(pdata->ndev), chan);
+			ret = devm_request_irq(pdata->dev,
+					       (unsigned int)pdata->tx_irqs[i],
+					       ether_tx_chan_isr,
+					       IRQF_TRIGGER_NONE,
+					       irq_names[j++],
+					       pdata->tx_napi[chan]);
+			if (unlikely(ret < 0)) {
+				dev_err(pdata->dev,
+					"failed to register Tx chan interrupt: %d\n",
+					pdata->tx_irqs[i]);
+				goto err_chan_irq;
+			}
+
+			pdata->tx_irq_alloc_mask |= (OSI_ENABLE << i);
 		}
-
-		pdata->tx_irq_alloc_mask |= (1U << i);
 	}
 
 	return ret;
@@ -2837,6 +2949,130 @@ exit:
 }
 
 /**
+ * @brief ether_set_vm_irq_chan_mask - Set VM DMA channel mask.
+ *
+ * Algorithm: Set VM DMA channels specific mask for ISR based on
+ * number of DMA channels and list of DMA channels.
+ *
+ * @param[in] vm_irq_data: VM IRQ data
+ * @param[in] num_vm_chan: Number of VM DMA channels
+ * @param[in] vm_chans: Pointer to list of VM DMA channels
+ *
+ * @retval None.
+ */
+static void ether_set_vm_irq_chan_mask(struct ether_vm_irq_data *vm_irq_data,
+				       unsigned int num_vm_chan,
+				       unsigned int *vm_chans)
+{
+	unsigned int i;
+	unsigned int chan;
+
+	for (i = 0; i < num_vm_chan; i++) {
+		chan = vm_chans[i];
+		vm_irq_data->chan_mask |= ETHER_VM_IRQ_TX_CHAN_MASK(chan);
+		vm_irq_data->chan_mask |= ETHER_VM_IRQ_RX_CHAN_MASK(chan);
+	}
+}
+
+/**
+ * @brief ether_get_vm_irq_data - Get VM IRQ data from DT.
+ *
+ * Algorimthm: Parse DT for VM IRQ data and get VM IRQ numbers
+ * from DT.
+ *
+ * @param[in] pdev: Platform device instance.
+ * @param[in] pdata: OSD private data.
+ *
+ * @retval 0 on success
+ * @retval "negative value" on failure
+ */
+static int ether_get_vm_irq_data(struct platform_device *pdev,
+				 struct ether_priv_data *pdata)
+{
+	struct osi_dma_priv_data *osi_dma = pdata->osi_dma;
+	struct device_node *vm_node, *temp;
+	unsigned int i, j, node = 0;
+	int ret = 0;
+
+	vm_node = of_parse_phandle(pdev->dev.of_node,
+				   "nvidia,vm-irq-config", 0);
+	if (vm_node == NULL) {
+		dev_err(pdata->dev, "failed to found VM IRQ configuration\n");
+		return -ENOMEM;
+	}
+
+	/* parse the number of VM IRQ's */
+	ret = of_property_read_u32(vm_node, "nvidia,num-vm-irqs",
+				   &osi_dma->num_vm_irqs);
+	if (ret != 0) {
+		dev_err(&pdev->dev, "failed to get number of VM IRQ's (%d)\n",
+			ret);
+		dev_info(&pdev->dev, "Using num_vm_irqs as one\n");
+		osi_dma->num_vm_irqs = 1;
+	}
+
+	if (osi_dma->num_vm_irqs > OSI_MAX_VM_IRQS) {
+		dev_err(&pdev->dev, "Invalid Num. of VM IRQS\n");
+		return -EINVAL;
+	}
+
+	pdata->vm_irq_data = devm_kzalloc(pdata->dev,
+					  sizeof(struct ether_vm_irq_data) *
+					  osi_dma->num_vm_irqs,
+					  GFP_KERNEL);
+	if (pdata->vm_irq_data == NULL) {
+		dev_err(&pdev->dev, "failed to allocate VM IRQ data\n");
+		return -ENOMEM;
+	}
+
+	ret = of_get_child_count(vm_node);
+	if (ret != osi_dma->num_vm_irqs) {
+		dev_err(&pdev->dev,
+			"Mismatch in num_vm_irqs and VM IRQ config DT nodes\n");
+		return -EINVAL;
+	}
+
+	for_each_child_of_node(vm_node, temp) {
+		if (node == osi_dma->num_vm_irqs)
+			break;
+
+		ret = of_property_read_u32(temp, "nvidia,num-vm-channels",
+					&osi_dma->irq_data[node].num_vm_chans);
+		if (ret != 0) {
+			dev_err(&pdev->dev,
+				"failed to read number of VM channels\n");
+			return ret;
+		}
+
+		ret = of_property_read_u32_array(temp, "nvidia,vm-channels",
+					osi_dma->irq_data[node].vm_chans,
+					osi_dma->irq_data[node].num_vm_chans);
+		if (ret != 0) {
+			dev_err(&pdev->dev, "failed to get VM channels\n");
+			return ret;
+		}
+
+		ether_set_vm_irq_chan_mask(&pdata->vm_irq_data[node],
+					   osi_dma->irq_data[node].num_vm_chans,
+					   osi_dma->irq_data[node].vm_chans);
+
+		pdata->vm_irq_data[node].pdata = pdata;
+
+		node++;
+	}
+
+	for (i = 0, j = 1; i < osi_dma->num_vm_irqs; i++, j++) {
+		pdata->vm_irqs[i] = platform_get_irq(pdev, j);
+		if (pdata->vm_irqs[i] < 0) {
+			dev_err(&pdev->dev, "failed to get VM IRQ number\n");
+			return pdata->vm_irqs[i];
+		}
+	}
+
+	return ret;
+}
+
+/**
  * @brief Read IRQ numbers from DT.
  *
  * Algorithm: Reads the IRQ numbers from DT based on number of channels.
@@ -2852,7 +3088,9 @@ static int ether_get_irqs(struct platform_device *pdev,
 			  struct ether_priv_data *pdata,
 			  unsigned int num_chans)
 {
+	struct osi_core_priv_data *osi_core = pdata->osi_core;
 	unsigned int i, j;
+	int ret = -1;
 
 	/* get common IRQ*/
 	pdata->common_irq = platform_get_irq(pdev, 0);
@@ -2860,22 +3098,28 @@ static int ether_get_irqs(struct platform_device *pdev,
 		dev_err(&pdev->dev, "failed to get common IRQ number\n");
 		return pdata->common_irq;
 	}
-
-	/* get TX IRQ numbers */
-	/* TODO: Need to get VM based IRQ numbers based on MAC version */
-	for (i = 0, j = 1; i < num_chans; i++) {
-		pdata->tx_irqs[i] = platform_get_irq(pdev, j++);
-		if (pdata->tx_irqs[i] < 0) {
-			dev_err(&pdev->dev, "failed to get TX IRQ number\n");
-			return pdata->tx_irqs[i];
+	if (osi_core->mac_ver > OSI_EQOS_MAC_5_00) {
+		ret = ether_get_vm_irq_data(pdev, pdata);
+		if (ret < 0) {
+			dev_err(pdata->dev, "failed to get VM IRQ info\n");
+			return ret;
 		}
-	}
+	} else {
+		/* get TX IRQ numbers */
+		for (i = 0, j = 1; i < num_chans; i++) {
+			pdata->tx_irqs[i] = platform_get_irq(pdev, j++);
+			if (pdata->tx_irqs[i] < 0) {
+				dev_err(&pdev->dev, "failed to get TX IRQ number\n");
+				return pdata->tx_irqs[i];
+			}
+		}
 
-	for (i = 0; i < num_chans; i++) {
-		pdata->rx_irqs[i] = platform_get_irq(pdev, j++);
-		if (pdata->rx_irqs[i] < 0) {
-			dev_err(&pdev->dev, "failed to get RX IRQ number\n");
-			return pdata->rx_irqs[i];
+		for (i = 0; i < num_chans; i++) {
+			pdata->rx_irqs[i] = platform_get_irq(pdev, j++);
+			if (pdata->rx_irqs[i] < 0) {
+				dev_err(&pdev->dev, "failed to get RX IRQ number\n");
+				return pdata->rx_irqs[i];
+			}
 		}
 	}
 
