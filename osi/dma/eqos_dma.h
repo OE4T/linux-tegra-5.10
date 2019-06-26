@@ -38,23 +38,25 @@
  * @brief EQOS DMA Channel register offsets
  * @{
  */
-#define EQOS_DMA_CHX_CTRL(x)		((0x0080U * (x)) + 0x1100U)
-#define EQOS_DMA_CHX_TX_CTRL(x)		((0x0080U * (x)) + 0x1104U)
-#define EQOS_DMA_CHX_RX_CTRL(x)		((0x0080U * (x)) + 0x1108U)
-#define EQOS_DMA_CHX_INTR_ENA(x)	((0x0080U * (x)) + 0x1134U)
-#define EQOS_DMA_CHX_RX_WDT(x)		((0x0080U * (x)) + 0x1138U)
-#define EQOS_DMA_CHX_SLOT_CTRL(x)	((0x0080U * (x)) + 0x113CU)
+#define EQOS_DMA_CHX_CTRL(x)			((0x0080U * (x)) + 0x1100U)
+#define EQOS_DMA_CHX_TX_CTRL(x)			((0x0080U * (x)) + 0x1104U)
+#define EQOS_DMA_CHX_RX_CTRL(x)			((0x0080U * (x)) + 0x1108U)
+#define EQOS_DMA_CHX_INTR_ENA(x)		((0x0080U * (x)) + 0x1134U)
+#define EQOS_DMA_CHX_RX_WDT(x)			((0x0080U * (x)) + 0x1138U)
+#define EQOS_DMA_CHX_SLOT_CTRL(x)		((0x0080U * (x)) + 0x113CU)
 
-#define EQOS_DMA_CHX_RDTP(x)		((0x0080U * (x)) + 0x1128U)
-#define EQOS_DMA_CHX_RDLH(x)		((0x0080U * (x)) + 0x1118U)
-#define EQOS_DMA_CHX_RDLA(x)		((0x0080U * (x)) + 0x111CU)
-#define EQOS_DMA_CHX_RDRL(x)		((0x0080U * (x)) + 0x1130U)
-#define EQOS_DMA_CHX_TDTP(x)		((0x0080U * (x)) + 0x1120U)
-#define EQOS_DMA_CHX_TDLH(x)		((0x0080U * (x)) + 0x1110U)
-#define EQOS_DMA_CHX_TDLA(x)		((0x0080U * (x)) + 0x1114U)
-#define EQOS_DMA_CHX_TDRL(x)		((0x0080U * (x)) + 0x112CU)
-#define EQOS_VIRT_INTR_CHX_STATUS(x)	(0x8604U + ((x) * 8U))
-#define EQOS_VIRT_INTR_CHX_CNTRL(x)	(0x8600U + ((x) * 8U))
+#define EQOS_DMA_CHX_RDTP(x)			((0x0080U * (x)) + 0x1128U)
+#define EQOS_DMA_CHX_RDLH(x)			((0x0080U * (x)) + 0x1118U)
+#define EQOS_DMA_CHX_RDLA(x)			((0x0080U * (x)) + 0x111CU)
+#define EQOS_DMA_CHX_RDRL(x)			((0x0080U * (x)) + 0x1130U)
+#define EQOS_DMA_CHX_TDTP(x)			((0x0080U * (x)) + 0x1120U)
+#define EQOS_DMA_CHX_TDLH(x)			((0x0080U * (x)) + 0x1110U)
+#define EQOS_DMA_CHX_TDLA(x)			((0x0080U * (x)) + 0x1114U)
+#define EQOS_DMA_CHX_TDRL(x)			((0x0080U * (x)) + 0x112CU)
+#define EQOS_VIRT_INTR_APB_CHX_CNTRL(x)		(0x8200U + ((x) * 4U))
+#define EQOS_VIRT_INTR_CHX_STATUS(x)		(0x8604U + ((x) * 8U))
+#define EQOS_VIRT_INTR_CHX_CNTRL(x)		(0x8600U + ((x) * 8U))
+#define EQOS_GLOBAL_DMA_STATUS			(0x8700U)
 /** @} */
 
 /**
@@ -63,11 +65,11 @@
  * @brief Values defined for the DMA channel registers
  * @{
  */
-#define EQOS_VIRT_INTR_CHX_STATUS_TX	OSI_BIT(0)
-#define EQOS_VIRT_INTR_CHX_STATUS_RX	OSI_BIT(1)
-#define EQOS_DMA_CHX_STATUS_TI		OSI_BIT(0)
-#define EQOS_DMA_CHX_STATUS_RI		OSI_BIT(6)
-#define EQOS_DMA_CHX_STATUS_NIS		OSI_BIT(15)
+#define EQOS_VIRT_INTR_CHX_STATUS_TX		OSI_BIT(0)
+#define EQOS_VIRT_INTR_CHX_STATUS_RX		OSI_BIT(1)
+#define EQOS_DMA_CHX_STATUS_TI			OSI_BIT(0)
+#define EQOS_DMA_CHX_STATUS_RI			OSI_BIT(6)
+#define EQOS_DMA_CHX_STATUS_NIS			OSI_BIT(15)
 #define EQOS_DMA_CHX_STATUS_CLEAR_TX	\
 	(EQOS_DMA_CHX_STATUS_TI | EQOS_DMA_CHX_STATUS_NIS)
 #define EQOS_DMA_CHX_STATUS_CLEAR_RX	\

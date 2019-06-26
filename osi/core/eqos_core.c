@@ -1511,9 +1511,16 @@ static int eqos_core_init(struct osi_core_priv_data *const osi_core,
 	osi_writel(EQOS_MMC_CNTRL_CNTRST, (unsigned char *)osi_core->base +
 		   EQOS_MMC_CNTRL);
 
-	/* AXI ASID CTRL */
+	/* AXI ASID CTRL for channel 0 to 3 */
 	osi_writel(EQOS_AXI_ASID_CTRL_VAL,
 		   (unsigned char *)osi_core->base + EQOS_AXI_ASID_CTRL);
+
+	/* AXI ASID1 CTRL for channel 4 to 7 */
+	if (osi_core->mac_ver > OSI_EQOS_MAC_5_00) {
+		osi_writel(EQOS_AXI_ASID1_CTRL_VAL,
+			   (unsigned char *)osi_core->base +
+			   EQOS_AXI_ASID1_CTRL);
+	}
 
 	/* Mapping MTL Rx queue and DMA Rx channel */
 	/* TODO: Need to add EQOS_MTL_RXQ_DMA_MAP1 for EQOS */

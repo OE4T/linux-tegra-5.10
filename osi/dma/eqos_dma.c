@@ -690,6 +690,40 @@ static void eqos_configure_dma_channel(unsigned int chan,
 }
 
 /**
+ * @brief eqos_dma_chan_to_vmirq_map - Map DMA channels to a specific VM IRQ.
+ *
+ * @param[in] osi_dma: OSI private data structure.
+ *
+ * Algorithm: Programs HW to map DMA channels to specific VM.
+ *
+ * @note
+ *	Dependencies: OSD layer needs to update number of VM channels and
+ *		      DMA channel list in osi_vm_irq_data.
+ *	Protection: None.
+ *
+ * @retval None.
+ */
+static void eqos_dma_chan_to_vmirq_map(struct osi_dma_priv_data *osi_dma)
+{
+	struct osi_vm_irq_data *irq_data;
+	unsigned int i, j;
+	unsigned int chan;
+
+	for (i = 0; i < osi_dma->num_vm_irqs; i++) {
+		irq_data = &osi_dma->irq_data[i];
+		for (j = 0; j < irq_data->num_vm_chans; j++) {
+			chan = irq_data->vm_chans[j];
+			if (chan >= OSI_EQOS_MAX_NUM_CHANS) {
+				continue;
+			}
+			osi_writel(OSI_BIT(i),
+				   (unsigned char *)osi_dma->base +
+				   EQOS_VIRT_INTR_APB_CHX_CNTRL(chan));
+		}
+	}
+}
+
+/**
  * @brief eqos_init_dma_channel - DMA channel INIT
  *
  * @param[in] osi_dma: OSI DMA private data structure.
@@ -704,6 +738,8 @@ static void eqos_init_dma_channel(struct osi_dma_priv_data *osi_dma)
 	for (chinx = 0; chinx < osi_dma->num_dma_chans; chinx++) {
 		eqos_configure_dma_channel(osi_dma->dma_chans[chinx], osi_dma);
 	}
+
+	eqos_dma_chan_to_vmirq_map(osi_dma);
 }
 
 /**
@@ -732,9 +768,70 @@ static void eqos_set_rx_buf_len(struct osi_dma_priv_data *osi_dma)
 }
 
 /**
- * @brief eqos_dma_chan_ops - EQOS DMA operations
+ * @brief eqos_get_global_dma_status - Gets DMA status.
  *
+ * Algorithm: Returns global DMA Tx/Rx interrupt status
+ *
+ * @param[in] addr: MAC base address.
+ *
+ * @note
+ *	Dependencies: None.
+ *	Protection: None.
+ *
+ * @retval status
  */
+static unsigned int eqos_get_global_dma_status(void *addr)
+{
+	return osi_readl((unsigned char *)addr + EQOS_GLOBAL_DMA_STATUS);
+}
+
+/**
+ * @brief eqos_clear_vm_tx_intr - Handle VM Tx interrupt
+ *
+ * @param[in] addr: MAC base address.
+ * @param[in] chan: DMA Tx channel number.
+ *
+ * Algorithm: Clear Tx interrupt source at DMA and wrapper level.
+ *
+ * @note
+ *	Dependencies: None.
+ *	Protection: None.
+ * @retval None.
+ */
+static void eqos_clear_vm_tx_intr(void *addr, unsigned int chan)
+{
+	CHECK_CHAN_BOUND(chan);
+
+	osi_writel(EQOS_DMA_CHX_STATUS_CLEAR_TX,
+		   (unsigned char *)addr + EQOS_DMA_CHX_STATUS(chan));
+	osi_writel(EQOS_VIRT_INTR_CHX_STATUS_TX,
+		   (unsigned char *)addr + EQOS_VIRT_INTR_CHX_STATUS(chan));
+}
+
+/**
+ * @brief eqos_clear_vm_rx_intr - Handle VM Rx interrupt
+ *
+ * @param[in] addr: MAC base address.
+ * @param[in] chan: DMA Rx channel number.
+ *
+ * Algorithm: Clear Rx interrupt source at DMA and wrapper level.
+ *
+ * @note
+ *	Dependencies: None.
+ *	Protection: None.
+ *
+ * @retval None.
+ */
+static void eqos_clear_vm_rx_intr(void *addr, unsigned int chan)
+{
+	CHECK_CHAN_BOUND(chan);
+
+	osi_writel(EQOS_DMA_CHX_STATUS_CLEAR_RX,
+		   (unsigned char *)addr + EQOS_DMA_CHX_STATUS(chan));
+	osi_writel(EQOS_VIRT_INTR_CHX_STATUS_RX,
+		   (unsigned char *)addr + EQOS_VIRT_INTR_CHX_STATUS(chan));
+}
+
 static struct osi_dma_chan_ops eqos_dma_chan_ops = {
 	.set_tx_ring_len = eqos_set_tx_ring_len,
 	.set_rx_ring_len = eqos_set_rx_ring_len,
@@ -752,6 +849,9 @@ static struct osi_dma_chan_ops eqos_dma_chan_ops = {
 	.set_rx_buf_len = eqos_set_rx_buf_len,
 	.validate_regs = eqos_validate_dma_regs,
 	.config_slot = eqos_config_slot,
+	.get_global_dma_status = eqos_get_global_dma_status,
+	.clear_vm_tx_intr = eqos_clear_vm_tx_intr,
+	.clear_vm_rx_intr = eqos_clear_vm_rx_intr,
 };
 
 /**
