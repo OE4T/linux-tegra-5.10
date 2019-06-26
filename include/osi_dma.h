@@ -320,7 +320,7 @@ struct osi_tx_ring {
 struct osi_dma_priv_data;
 
 /**
- *@brief MAC DMA Channel operations
+ * @brief MAC DMA Channel operations
  */
 struct osi_dma_chan_ops {
 	/** Called to set Transmit Ring length */
@@ -365,6 +365,22 @@ struct osi_dma_chan_ops {
 			    unsigned int chan,
 			    unsigned int set,
 			    unsigned int interval);
+	/** Called to get Global DMA status */
+	unsigned int (*get_global_dma_status)(void *addr);
+	/** Called to clear VM Tx interrupt */
+	void (*clear_vm_tx_intr)(void *addr, unsigned int chan);
+	/** Called to clear VM Rx interrupt */
+	void (*clear_vm_rx_intr)(void *addr, unsigned int chan);
+};
+
+/**
+ * @brief OSI VM IRQ data
+ */
+struct osi_vm_irq_data {
+	/** Number of VM channels per VM IRQ */
+	unsigned int num_vm_chans;
+	/** Array of VM channel list */
+	unsigned int vm_chans[OSI_EQOS_MAX_NUM_CHANS];
 };
 
 /**
@@ -420,6 +436,10 @@ struct osi_dma_priv_data {
 	unsigned int slot_interval[OSI_EQOS_MAX_NUM_CHANS];
 	/** Array of DMA channel slot enabled status from DT*/
 	unsigned int slot_enabled[OSI_EQOS_MAX_NUM_CHANS];
+	/** number of VM IRQ's */
+	unsigned int num_vm_irqs;
+	/** Array of VM IRQ's */
+	struct osi_vm_irq_data irq_data[OSI_MAX_VM_IRQS];
 };
 
 /**
@@ -521,6 +541,44 @@ int osi_disable_chan_rx_intr(struct osi_dma_priv_data *osi_dma,
  */
 int osi_enable_chan_rx_intr(struct osi_dma_priv_data *osi_dma,
 			    unsigned int chan);
+
+/**
+ * @brief osi_clear_vm_tx_intr - Handles VM Tx interrupt source.
+ *
+ * Algorithm: Clear Tx interrupt source at wrapper level and DMA level.
+ *
+ * @param[in] osi_dma: DMA private data.
+ * @param[in] chan: DMA tx channel number.
+ *
+ * @note
+ *	1) MAC needs to be out of reset and proper clocks need to be configured.
+ *	2) DMA HW init need to be completed successfully, see osi_hw_dma_init
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+int osi_clear_vm_tx_intr(struct osi_dma_priv_data *osi_dma,
+			 unsigned int chan);
+
+/**
+ * @brief osi_clear_vm_rx_intr - Handles VM Rx interrupt source.
+ *
+ * Algorithm: Clear Rx interrupt source at wrapper level and DMA level.
+ *
+ * @param[in] osi_dma: DMA private data.
+ * @param[in] chan: DMA rx channel number.
+ *
+ * @note
+ *	1) MAC needs to be out of reset and proper clocks need to be configured.
+ *	2) DMA HW init need to be completed successfully, see osi_hw_dma_init
+ *	3) Mapping of physical IRQ line to DMA channel need to be maintained at
+ *	OS Dependent layer and pass corresponding channel number.
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+int osi_clear_vm_rx_intr(struct osi_dma_priv_data *osi_dma,
+			 unsigned int chan);
 
 /**
  * @brief Start DMA
@@ -817,4 +875,19 @@ int osi_clear_rx_pkt_err_stats(struct osi_dma_priv_data *osi_dma);
  * @retval 0 if ring has outstanding packets.
  */
 int osi_txring_empty(struct osi_dma_priv_data *osi_dma, unsigned int chan);
+
+/**
+ * @brief osi_get_global_dma_status - Gets DMA status.
+ *
+ * Algorithm: Returns global DMA Tx/Rx interrupt status
+ *
+ * @param[in] osi_dma: OSI DMA private data structure.
+ *
+ * @note
+ *	Dependencies: None.
+ *	Protection: None.
+ *
+ * @retval status
+ */
+unsigned int osi_get_global_dma_status(struct osi_dma_priv_data *osi_dma);
 #endif /* OSI_DMA_H */

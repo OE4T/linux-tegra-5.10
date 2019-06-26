@@ -212,8 +212,8 @@
 #define EQOS_MAX_MAC_ADDRESS_FILTER	128U
 #define EQOS_MAX_L3_L4_FILTER		8U
 #define EQOS_MAX_HTR_REGS		8U
-#define OSI_EQOS_MAX_NUM_CHANS		4U
-#define OSI_EQOS_MAX_NUM_QUEUES		4U
+#define OSI_EQOS_MAX_NUM_CHANS		8U
+#define OSI_EQOS_MAX_NUM_QUEUES		8U
 #define OSI_L2_FILTER_INDEX_ANY		127U
 #define OSI_CHAN_ANY			0xFFU
 
@@ -238,6 +238,7 @@
 
 #define OSI_MAC_HW_EQOS		0U
 #define OSI_ETH_ALEN		6U
+#define OSI_MAX_VM_IRQS		5U
 
 #define BOOLEAN_FALSE		(0U != 0U)
 #define OSI_NULL                ((void *)0)

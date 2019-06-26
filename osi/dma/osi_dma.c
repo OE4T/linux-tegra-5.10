@@ -146,6 +146,40 @@ int osi_enable_chan_rx_intr(struct osi_dma_priv_data *osi_dma,
 	return -1;
 }
 
+int osi_clear_vm_tx_intr(struct osi_dma_priv_data *osi_dma,
+			 unsigned int chan)
+{
+	if ((osi_dma != OSI_NULL) && (osi_dma->ops != OSI_NULL) &&
+	    (osi_dma->ops->clear_vm_tx_intr != OSI_NULL)) {
+		osi_dma->ops->clear_vm_tx_intr(osi_dma->base, chan);
+		return 0;
+	}
+
+	return -1;
+}
+
+int osi_clear_vm_rx_intr(struct osi_dma_priv_data *osi_dma,
+			 unsigned int chan)
+{
+	if ((osi_dma != OSI_NULL) && (osi_dma->ops != OSI_NULL) &&
+	    (osi_dma->ops->clear_vm_rx_intr != OSI_NULL)) {
+		osi_dma->ops->clear_vm_rx_intr(osi_dma->base, chan);
+		return 0;
+	}
+
+	return -1;
+}
+
+unsigned int osi_get_global_dma_status(struct osi_dma_priv_data *osi_dma)
+{
+	if ((osi_dma != OSI_NULL) && (osi_dma->ops != OSI_NULL) &&
+	    (osi_dma->ops->get_global_dma_status != OSI_NULL)) {
+		return osi_dma->ops->get_global_dma_status(osi_dma->base);
+	}
+
+	return 0;
+}
+
 int  osi_start_dma(struct osi_dma_priv_data *osi_dma,
 		   unsigned int chan)
 {
