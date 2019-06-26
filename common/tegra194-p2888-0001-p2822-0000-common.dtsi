@@ -97,7 +97,7 @@
 			gyroscope_matrix        = [01 00 00 00 01 00 00 00 01];
 			accelerometer_delay_us_min = <1250>;
 			gyroscope_delay_us_min = <1250>;
-			status = "okay";
+			status = "disabled";
 		};
 		ucsi_ccg: ucsi_ccg@8 {
 			status = "okay";
@@ -287,6 +287,13 @@
 	i2c@31e0000 {
 		pinctrl-names = "default";
 		pinctrl-0 = <&dpaux_default>;
+		bmi160@69 {
+			compatible = "bmi,bmi160";
+			reg = <0x69>;
+			accelerometer_matrix    = [01 00 00 00 01 00 00 00 01];
+			gyroscope_matrix        = [01 00 00 00 01 00 00 00 01];
+			status = "disabled";
+		};
 	};
 
 	host1x {
