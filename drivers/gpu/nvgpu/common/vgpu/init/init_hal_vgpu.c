@@ -36,6 +36,7 @@ int vgpu_init_hal(struct gk20a *g)
 	int err;
 
 	switch (ver) {
+#ifdef CONFIG_NVGPU_HAL_NON_FUSA
 	case NVGPU_GPUID_GP10B:
 		nvgpu_log_info(g, "gp10b detected");
 		err = vgpu_gp10b_init_hal(g);
@@ -43,6 +44,7 @@ int vgpu_init_hal(struct gk20a *g)
 	case NVGPU_GPUID_GV11B:
 		err = vgpu_gv11b_init_hal(g);
 		break;
+#endif
 	default:
 		nvgpu_err(g, "no support for %x", ver);
 		err = -ENODEV;
