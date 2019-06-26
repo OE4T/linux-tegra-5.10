@@ -179,3 +179,11 @@ config NVGPU_LOGGING
 	default y
 	help
 	  Enable/Disable logging for non-safety builds
+
+config NVGPU_HAL_NON_FUSA
+	bool "Support non-functionally safe HALs"
+	depends on GK20A
+	default y
+	help
+	  Enable/Disable the support of HALs from chips that do not have functional
+	  safety certification

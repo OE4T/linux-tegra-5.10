@@ -49,6 +49,10 @@ ifeq ($(CONFIG_NVGPU_LOGGING),y)
 ccflags-y += -DCONFIG_NVGPU_LOGGING=1
 endif
 
+ifeq ($(CONFIG_NVGPU_HAL_NON_FUSA),y)
+ccflags-y += -DCONFIG_NVGPU_HAL_NON_FUSA
+endif
+
 obj-$(CONFIG_GK20A) := nvgpu.o
 
 # OS independent parts of nvgpu. The work to collect files here
@@ -174,19 +178,6 @@ nvgpu-y += \
 	common/nvlink/nvlink.o \
 	common/nvlink/nvlink_gv100.o \
 	common/nvlink/nvlink_tu104.o \
-	hal/mm/mm_gk20a.o \
-	hal/mm/mm_gm20b.o \
-	hal/mm/mm_gp10b.o \
-	hal/mm/mm_gv11b.o \
-	hal/mm/mm_gv100.o \
-	hal/mm/mm_tu104.o \
-	hal/mm/cache/flush_gk20a.o \
-	hal/mm/cache/flush_gv11b.o \
-	hal/mm/gmmu/gmmu_gk20a.o \
-	hal/mm/gmmu/gmmu_gm20b.o \
-	hal/mm/gmmu/gmmu_gp10b.o \
-	hal/mm/gmmu/gmmu_gv11b.o \
-	hal/mm/mmu_fault/mmu_fault_gv11b.o \
 	hal/mc/mc_gm20b.o \
 	hal/mc/mc_gp10b.o  \
 	hal/mc/mc_gv11b.o  \
@@ -231,14 +222,8 @@ nvgpu-y += \
 	hal/gr/gr/gr_gv11b.o \
 	hal/gr/gr/gr_tu104.o \
 	hal/fbpa/fbpa_tu104.o \
-	hal/init/hal_gm20b.o \
-	hal/init/hal_gm20b_litter.o \
-	hal/init/hal_gp10b.o \
-	hal/init/hal_gp10b_litter.o \
 	hal/init/hal_gv11b.o \
 	hal/init/hal_gv11b_litter.o \
-	hal/init/hal_tu104.o \
-	hal/init/hal_tu104_litter.o \
 	hal/init/hal_init.o \
 	hal/perf/perf_gm20b.o \
 	hal/perf/perf_gv11b.o \
@@ -609,9 +594,7 @@ nvgpu-$(CONFIG_TEGRA_GR_VIRTUALIZATION) += \
 	common/vgpu/ecc_vgpu.o \
 	common/vgpu/clk_vgpu.o \
 	common/vgpu/gr/fecs_trace_vgpu.o \
-	common/vgpu/gp10b/vgpu_hal_gp10b.o  \
 	common/vgpu/gv11b/vgpu_gv11b.o \
-	common/vgpu/gv11b/vgpu_hal_gv11b.o \
 	hal/vgpu/fifo/fifo_gv11b_vgpu.o \
 	hal/vgpu/sync/syncpt_cmdbuf_gv11b_vgpu.o
 
@@ -634,3 +617,35 @@ nvgpu-$(CONFIG_NVGPU_COMPRESSION) += \
 	hal/cbc/cbc_gp10b.o \
 	hal/cbc/cbc_gv11b.o \
 	hal/cbc/cbc_tu104.o \
+
+# FUSA (Functionally Safe) HAL source files
+nvgpu-y += \
+	hal/mm/mm_gv11b_fusa.o \
+	hal/mm/mm_gp10b_fusa.o \
+	hal/mm/gmmu/gmmu_gv11b_fusa.o \
+	hal/mm/gmmu/gmmu_gp10b_fusa.o \
+	hal/mm/gmmu/gmmu_gk20a_fusa.o \
+	hal/mm/gmmu/gmmu_gm20b_fusa.o \
+	hal/mm/cache/flush_gk20a_fusa.o \
+	hal/mm/cache/flush_gv11b_fusa.o \
+	hal/mm/mmu_fault/mmu_fault_gv11b_fusa.o
+
+nvgpu-$(CONFIG_NVGPU_HAL_NON_FUSA) += \
+	hal/init/hal_gp10b.o \
+	hal/init/hal_gp10b_litter.o \
+	hal/init/hal_gm20b.o \
+	hal/init/hal_gm20b_litter.o \
+	hal/init/hal_tu104.o \
+	hal/init/hal_tu104_litter.o \
+	hal/mm/mm_gm20b.o \
+	hal/mm/mm_gk20a.o \
+	hal/mm/mm_gv100.o \
+	hal/mm/mm_tu104.o \
+	hal/mm/gmmu/gmmu_gk20a.o \
+	hal/mm/gmmu/gmmu_gm20b.o
+
+ifeq ($(CONFIG_TEGRA_GR_VIRTUALIZATION),y)
+nvgpu-$(CONFIG_NVGPU_HAL_NON_FUSA) += \
+	common/vgpu/gp10b/vgpu_hal_gp10b.o \
+	common/vgpu/gv11b/vgpu_hal_gv11b.o
+endif
