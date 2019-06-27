@@ -90,7 +90,7 @@ enum tegra_dmic_osr {
 
 struct tegra210_dmic {
 	struct clk *clk_dmic;
-	struct clk *clk_pll_a_out0;
+	struct clk *clk_parent;
 	struct regmap *regmap;
 	struct pinctrl *pinctrl;
 	struct pinctrl_state *pin_active_state;
@@ -104,7 +104,6 @@ struct tegra210_dmic {
 	int lrsel;
 	bool is_shutdown;
 	int format_out;
-	bool set_parent_rate;
 };
 
 #endif
