@@ -265,8 +265,10 @@ static int pd_allocate(struct vm_gk20a *vm,
 	 * Same basic logic as in pd_allocate_children() except we (re)allocate
 	 * the underlying DMA memory here.
 	 */
-	if (pd->mem != NULL && pd->pd_size >= pd_size(l, attrs)) {
-		return 0;
+	if (pd->mem != NULL) {
+		if (pd->pd_size >= pd_size(l, attrs)) {
+			return 0;
+		}
 	}
 
 	if (pd->mem != NULL) {

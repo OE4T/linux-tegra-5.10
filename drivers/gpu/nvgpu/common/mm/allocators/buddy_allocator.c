@@ -1125,9 +1125,13 @@ static int nvgpu_buddy_reserve_co(struct nvgpu_allocator *na,
 	u64 addr;
 	int err = 0;
 
-	if (co->base < a->start ||
-	    nvgpu_safe_add_u64(co->base, co->length) > a->end ||
-	    a->alloc_made) {
+	if (co->base < a->start) {
+		return -EINVAL;
+	}
+	if (nvgpu_safe_add_u64(co->base, co->length) > a->end) {
+		return -EINVAL;
+	}
+	if (a->alloc_made) {
 		return -EINVAL;
 	}
 

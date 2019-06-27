@@ -104,7 +104,7 @@ static inline s64 nvgpu_safe_sub_s64(s64 si_a, s64 si_b)
 
 static inline u32 nvgpu_safe_mult_u32(u32 ui_a, u32 ui_b)
 {
-	if (ui_a == 0 || ui_b == 0) {
+	if (ui_a == 0U || ui_b == 0U) {
 		return 0U;
 	} else if (ui_a > UINT_MAX / ui_b) {
 		BUG();
@@ -115,7 +115,7 @@ static inline u32 nvgpu_safe_mult_u32(u32 ui_a, u32 ui_b)
 
 static inline u64 nvgpu_safe_mult_u64(u64 ul_a, u64 ul_b)
 {
-	if (ul_a == 0 || ul_b == 0) {
+	if (ul_a == 0UL || ul_b == 0UL) {
 		return 0UL;
 	} else if (ul_a > ULONG_MAX / ul_b) {
 		BUG();

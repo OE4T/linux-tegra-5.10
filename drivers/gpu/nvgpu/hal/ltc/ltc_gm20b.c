@@ -276,8 +276,10 @@ bool gm20b_ltc_is_ltcs_ltss_addr(struct gk20a *g, u32 addr)
 	u32 ltc_shared_base = ltc_ltcs_ltss_v();
 	u32 lts_stride = nvgpu_get_litter_value(g, GPU_LIT_LTS_STRIDE);
 
-	return (addr >= ltc_shared_base) &&
-		(addr < nvgpu_safe_add_u32(ltc_shared_base, lts_stride));
+	if (addr >= ltc_shared_base) {
+		return (addr < nvgpu_safe_add_u32(ltc_shared_base, lts_stride));
+	}
+	return false;
 }
 
 bool gm20b_ltc_is_ltcn_ltss_addr(struct gk20a *g, u32 addr)
@@ -330,10 +332,11 @@ void gm20b_ltc_split_lts_broadcast_addr(struct gk20a *g, u32 addr,
 	for (i = 0; i < num_ltc; i++) {
 		start = nvgpu_safe_add_u32(pltcg_base,
 				nvgpu_safe_mult_u32(i, ltc_stride));
-		if ((addr >= start) && (addr < nvgpu_safe_add_u32(start,
-							ltc_stride))) {
-			ltc_num = i;
-			break;
+		if (addr >= start) {
+			if (addr < nvgpu_safe_add_u32(start, ltc_stride)) {
+				ltc_num = i;
+				break;
+			}
 		}
 	}
 	gm20b_ltc_update_ltc_lts_addr(g, addr, ltc_num, priv_addr_table,

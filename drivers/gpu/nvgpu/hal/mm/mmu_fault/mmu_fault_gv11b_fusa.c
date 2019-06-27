@@ -302,34 +302,37 @@ void gv11b_mm_mmu_fault_handle_mmu_fault_common(struct gk20a *g,
 	gv11b_fb_mmu_fault_info_dump(g, mmufault);
 
 	num_lce = g->ops.top.get_num_lce(g);
-	if ((mmufault->mmu_engine_id >=
-			gmmu_fault_mmu_eng_id_ce0_v()) &&
-			(mmufault->mmu_engine_id <
+	if (mmufault->mmu_engine_id >=
+			gmmu_fault_mmu_eng_id_ce0_v()) {
+		if (mmufault->mmu_engine_id <
 			nvgpu_safe_add_u32(gmmu_fault_mmu_eng_id_ce0_v(),
-					   num_lce))) {
-		/* CE page faults are not reported as replayable */
-		nvgpu_log(g, gpu_dbg_intr, "CE Faulted");
+					   num_lce)) {
+			/* CE page faults are not reported as replayable */
+			nvgpu_log(g, gpu_dbg_intr, "CE Faulted");
 #ifdef CONFIG_NVGPU_REPLAYABLE_FAULT
-		err = gv11b_fb_fix_page_fault(g, mmufault);
+			err = gv11b_fb_fix_page_fault(g, mmufault);
 #else
-		err = -EINVAL;
+			err = -EINVAL;
 #endif
 
-		if (mmufault->refch != NULL) {
-			tsg = nvgpu_tsg_from_ch(mmufault->refch);
-			nvgpu_tsg_reset_faulted_eng_pbdma(g, tsg, true, true);
-		}
-		if (err == 0) {
-			nvgpu_log(g, gpu_dbg_intr, "CE Page Fault Fixed");
-			*invalidate_replay_val = 0;
 			if (mmufault->refch != NULL) {
-				nvgpu_channel_put(mmufault->refch);
-				mmufault->refch = NULL;
+				tsg = nvgpu_tsg_from_ch(mmufault->refch);
+				nvgpu_tsg_reset_faulted_eng_pbdma(g, tsg,
+								true, true);
 			}
-			return;
+			if (err == 0) {
+				nvgpu_log(g, gpu_dbg_intr,
+							"CE Page Fault Fixed");
+				*invalidate_replay_val = 0;
+				if (mmufault->refch != NULL) {
+					nvgpu_channel_put(mmufault->refch);
+					mmufault->refch = NULL;
+				}
+				return;
+			}
+			/* Do recovery */
+			nvgpu_log(g, gpu_dbg_intr, "CE Page Fault Not Fixed");
 		}
-		/* Do recovery */
-		nvgpu_log(g, gpu_dbg_intr, "CE Page Fault Not Fixed");
 	}
 
 	if (!mmufault->replayable_fault) {

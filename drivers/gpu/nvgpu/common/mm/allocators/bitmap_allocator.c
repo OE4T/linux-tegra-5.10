@@ -262,9 +262,11 @@ static u64 nvgpu_bitmap_balloc(struct nvgpu_allocator *na, u64 len)
 	 * either of these possibilities assume that the caller will keep what
 	 * data it needs around to successfully free this allocation.
 	 */
-	if ((a->flags & GPU_ALLOC_NO_ALLOC_PAGE) == 0ULL &&
-	    nvgpu_bitmap_store_alloc(a, addr, blks * a->blk_size) != 0) {
-		goto fail_reset_bitmap;
+	if ((a->flags & GPU_ALLOC_NO_ALLOC_PAGE) == 0ULL) {
+		if (nvgpu_bitmap_store_alloc(a, addr,
+						blks * a->blk_size) != 0) {
+			goto fail_reset_bitmap;
+		}
 	}
 
 	alloc_dbg(na, "Alloc 0x%-10llx 0x%-5llx [bits=0x%x (%u)]",
