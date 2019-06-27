@@ -32,7 +32,9 @@
 #define LOWER_WIDTH (15000)
 
 #define QPOINT (10000)
+#define QPOINT_STA (10)
 #define IIR_GAIN_QP (1000)
+#define STA_GAIN (QPOINT_STA * 2 / 10)
 #define IIR_MIN (IIR_GAIN_QP / 100)
 #define IIR_MAX (IIR_GAIN_QP * 1)
 
@@ -58,6 +60,7 @@ struct continuous_thermal_gov_params {
 	int iir_gain_qp;
 	int iir_upper_width;
 	int iir_lower_width;
+	int sta_gain;
 	long long iir_gain;
 };
 
@@ -68,6 +71,7 @@ static struct continuous_thermal_gov_params pm_default = {
 	.iir_gain_qp		= IIR_GAIN_QP,
 	.iir_upper_width	= UPPER_WIDTH,
 	.iir_lower_width	= LOWER_WIDTH,
+	.sta_gain	        = STA_GAIN,
 	.iir_gain = 0,
 };
 
@@ -86,6 +90,7 @@ struct continuous_thermal_governor {
 	int trip;
 	int trip_level;
 	int target_pwm;
+	int sta;
 	int prelta;
 	int newlta;
 
@@ -123,6 +128,36 @@ static long long multi_gain(int iirconst, int delta, int width,  int iir_power)
 
 	return multi;
 }
+
+static ssize_t sta_gain_show(struct kobject *kobj, struct attribute *attr,
+				char *buf)
+{
+	struct continuous_thermal_governor *gov = kobj_to_gov(kobj);
+
+	if (!gov)
+		return -ENODEV;
+
+	return sprintf(buf, "%d\n", gov->pm.sta_gain);
+}
+
+static ssize_t sta_gain_store(struct kobject *kobj, struct attribute *attr,
+				const char *buf, size_t count)
+{
+	struct continuous_thermal_governor *gov = kobj_to_gov(kobj);
+	int val;
+
+	if (!gov)
+		return -ENODEV;
+
+	if (!sscanf(buf, "%d\n", &val) || (val < 0))
+		return -EINVAL;
+
+	gov->pm.sta_gain = val;
+	return count;
+}
+
+static struct continuous_thermal_gov_attribute sta_gain_attr =
+	__ATTR(sta_gain, 0644, sta_gain_show, sta_gain_store);
 
 static ssize_t iir_power_show(struct kobject *kobj, struct attribute *attr,
 				char *buf)
@@ -226,11 +261,12 @@ static ssize_t gov_param_show(struct kobject *kobj, struct attribute *attr,
 	if (!gov)
 		return -ENODEV;
 
-	ret += sprintf(buf + ret, "prevLTA   raw   newSTA  raw-prevLTA gain width  pwm\n");
-	ret += sprintf(buf + ret, "%7d %7d %7d %11d %4lld %5d %5d\n",
+	ret += sprintf(buf + ret,
+			"prevLTA   raw   newLTA  raw-prevLTA gain width  pwm  sta\n");
+	ret += sprintf(buf + ret, "%7d %7d %7d %11d %4lld %5d %5d  %7d\n",
 				gov->prelta, gov->rawtemp, gov->newlta,
 				gov->rawtemp - gov->prelta, gov->iir_gain,
-				gov->cur_width, gov->target_pwm);
+				gov->cur_width, gov->target_pwm, gov->sta);
 
 	return ret;
 }
@@ -302,6 +338,7 @@ static struct continuous_thermal_gov_attribute pwm_table_attr =
 	__ATTR(pwm_table, 0444, pwm_table_show, NULL);
 
 static struct attribute *continuous_thermal_gov_default_attrs[] = {
+	&sta_gain_attr.attr,
 	&iir_power_attr.attr,
 	&iir_min_attr.attr,
 	&iir_width_attr.attr,
@@ -410,17 +447,25 @@ static long continuous_thermal_gov_get_lta(struct thermal_zone_device *tz,
 					struct continuous_thermal_governor *gov)
 {
 	int rawtemp, width;
-	long delttemp = 0, lta = 0;
+	long delttemp = 0, sta = 0, lta = 0;
 	long long iir_gain = 0;
 
 	tz->ops->get_temp(tz, &rawtemp);
+	if (!gov->newlta)
+		gov->sta = gov->newlta = rawtemp;
+
+	sta = gov->sta;
 	gov->rawtemp = rawtemp;
 	gov->prelta = gov->newlta;
 
-	delttemp = ABS(gov->prelta, rawtemp);
+	/* sta is a temperature whose large temperature dithering was filtered*/
+	/* rawtemp might be impacted heavily in milliseconds by cpu workload */
+	sta = sta + gov->pm.sta_gain * (rawtemp - sta) / QPOINT_STA;
+
+	delttemp = ABS(gov->prelta, sta);
 	gov->delttemp = delttemp;
 
-	if (gov->prelta - rawtemp < 0)
+	if (gov->prelta - sta < 0)
 		width = gov->pm.iir_upper_width;
 	else
 		width = gov->pm.iir_lower_width;
@@ -428,12 +473,13 @@ static long continuous_thermal_gov_get_lta(struct thermal_zone_device *tz,
 	iir_gain = gov->pm.iir_min + multi_gain((gov->pm.iir_max - gov->pm.iir_min),
 				delttemp, width, gov->pm.iir_power);
 	if (iir_gain > gov->pm.iir_max) {
-		pr_debug("iir_gain:%lld iir_min:%d iir_max:%d prelta:%d rawtemp:%d newlta:%d delta:%ld width:%d\n",
-				iir_gain, gov->pm.iir_min, gov->pm.iir_max, gov->prelta, rawtemp, gov->newlta, delttemp, width);
+		pr_debug("iir_gain:%lld iir_min:%d iir_max:%d prelta:%d sta:%ld newlta:%d delta:%ld width:%d\n",
+				iir_gain, gov->pm.iir_min, gov->pm.iir_max, gov->prelta, sta, gov->newlta,
+				delttemp, width);
 		iir_gain = gov->pm.iir_max;
 	}
 
-	lta = gov->prelta + iir_gain * (rawtemp - gov->prelta) / gov->pm.iir_gain_qp;
+	lta = gov->prelta + iir_gain * (sta - gov->prelta) / gov->pm.iir_gain_qp;
 
 	//check error
 	if ((gov->delttemp >= 100) && (gov->prelta == lta)) {
@@ -442,6 +488,7 @@ static long continuous_thermal_gov_get_lta(struct thermal_zone_device *tz,
 	}
 
 	gov->newlta = lta;
+	gov->sta = sta;
 	gov->cur_width = width;
 	gov->iir_gain = iir_gain;
 
@@ -637,6 +684,8 @@ static int continuous_thermal_gov_of_parse(struct thermal_zone_params *tzp,
 
 	*gpm = pm_default;
 
+	if (!(of_err |= of_property_read_u32(np, "sta_gain", &val)))
+		gpm->sta_gain = val;
 	if (!(of_err |= of_property_read_u32(np, "iir_power", &val)))
 		gpm->iir_power = val;
 	if (!(of_err |= of_property_read_u32(np, "iir_min", &val)))
