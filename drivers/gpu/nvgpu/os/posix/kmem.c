@@ -36,10 +36,14 @@
 struct nvgpu_kmem_cache {
 	struct gk20a *g;
 	size_t size;
+#ifdef __NVGPU_UNIT_TEST__
 	char name[128];
+#endif
 };
 
+#ifdef __NVGPU_UNIT_TEST__
 static nvgpu_atomic_t kmem_cache_id;
+#endif
 
 #ifdef NVGPU_UNITTEST_FAULT_INJECTION_ENABLEMENT
 _Thread_local struct nvgpu_posix_fault_inj kmem_fi;
@@ -71,9 +75,11 @@ struct nvgpu_kmem_cache *nvgpu_kmem_cache_create(struct gk20a *g, size_t size)
 	cache->g = g;
 	cache->size = size;
 
+#ifdef __NVGPU_UNIT_TEST__
 	(void)snprintf(cache->name, sizeof(cache->name),
 			"nvgpu-cache-0x%p-%lu-%d", g, size,
 			nvgpu_atomic_inc_return(&kmem_cache_id));
+#endif
 
 	return cache;
 }
