@@ -178,7 +178,6 @@ int nvgpu_gr_suspend(struct gk20a *g)
 	return ret;
 }
 
-
 static int gr_init_setup_hw(struct gk20a *g)
 {
 	struct nvgpu_gr *gr = g->gr;
@@ -186,9 +185,7 @@ static int gr_init_setup_hw(struct gk20a *g)
 
 	nvgpu_log_fn(g, " ");
 
-	if (g->ops.gr.init.gpc_mmu != NULL) {
-		g->ops.gr.init.gpc_mmu(g);
-	}
+	g->ops.gr.init.gpc_mmu(g);
 
 	/* load gr floorsweeping registers */
 	g->ops.gr.init.pes_vsc_stream(g);
@@ -219,9 +216,7 @@ static int gr_init_setup_hw(struct gk20a *g)
 	g->ops.gr.intr.set_hww_esr_report_mask(g);
 
 	/* enable TPC exceptions per GPC */
-	if (g->ops.gr.intr.enable_gpc_exceptions != NULL) {
-		g->ops.gr.intr.enable_gpc_exceptions(g, gr->config);
-	}
+	g->ops.gr.intr.enable_gpc_exceptions(g, gr->config);
 
 	/* enable ECC for L1/SM */
 	if (g->ops.gr.init.ecc_scrub_reg != NULL) {
@@ -243,13 +238,8 @@ static int gr_init_setup_hw(struct gk20a *g)
 	/*
 	 * Disable both surface and LG coalesce.
 	 */
-	if (g->ops.gr.init.su_coalesce != NULL) {
-		g->ops.gr.init.su_coalesce(g, 0);
-	}
-
-	if (g->ops.gr.init.lg_coalesce != NULL) {
-		g->ops.gr.init.lg_coalesce(g, 0);
-	}
+	g->ops.gr.init.su_coalesce(g, 0);
+	g->ops.gr.init.lg_coalesce(g, 0);
 
 	if (g->ops.gr.init.preemption_state != NULL) {
 		err = g->ops.gr.init.preemption_state(g);
