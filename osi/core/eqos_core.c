@@ -891,9 +891,9 @@ static int eqos_config_rxcsum_offload(void *addr, unsigned int enabled)
  */
 static void eqos_configure_rxq_priority(struct osi_core_priv_data *osi_core)
 {
-	unsigned int qinx;
 	unsigned int val;
 	unsigned int temp;
+	unsigned int qinx, mtlq;
 	unsigned int pmask = 0x0U;
 	unsigned int mfix_var1, mfix_var2;
 
@@ -907,29 +907,30 @@ static void eqos_configure_rxq_priority(struct osi_core_priv_data *osi_core)
 	osi_writel(OSI_DISABLE, (unsigned char *)osi_core->base +
 		   EQOS_MAC_RQC2R);
 
-	for (qinx = 0; qinx < OSI_EQOS_MAX_NUM_CHANS; qinx++) {
+	for (qinx = 0; qinx < osi_core->num_mtl_queues; qinx++) {
+		mtlq = osi_core->mtl_queues[qinx];
 		/* check for PSRQ field mutual exclusive for all queues */
-		if ((osi_core->rxq_prio[qinx] <= 0xFFU) &&
-		    (osi_core->rxq_prio[qinx] > 0x0U) &&
-		    ((pmask & osi_core->rxq_prio[qinx]) == 0U)) {
-			pmask |= osi_core->rxq_prio[qinx];
-			temp = osi_core->rxq_prio[qinx];
+		if ((osi_core->rxq_prio[mtlq] <= 0xFFU) &&
+		    (osi_core->rxq_prio[mtlq] > 0x0U) &&
+		    ((pmask & osi_core->rxq_prio[mtlq]) == 0U)) {
+			pmask |= osi_core->rxq_prio[mtlq];
+			temp = osi_core->rxq_prio[mtlq];
 		} else {
 			osd_err(osi_core->osd,
 				"Invalid rxq Priority for Q(%d)\n",
-				qinx);
+				mtlq);
 			continue;
 
 		}
 
 		val = osi_readl((unsigned char *)osi_core->base +
 				EQOS_MAC_RQC2R);
-		mfix_var1 = qinx * (unsigned int)EQOS_MAC_RQC2_PSRQ_SHIFT;
+		mfix_var1 = mtlq * (unsigned int)EQOS_MAC_RQC2_PSRQ_SHIFT;
 		mfix_var2 = (unsigned int)EQOS_MAC_RQC2_PSRQ_MASK;
 		mfix_var2 <<= mfix_var1;
 		val &= ~mfix_var2;
-		temp = temp << (qinx * EQOS_MAC_RQC2_PSRQ_SHIFT);
-		mfix_var1 = qinx * (unsigned int)EQOS_MAC_RQC2_PSRQ_SHIFT;
+		temp = temp << (mtlq * EQOS_MAC_RQC2_PSRQ_SHIFT);
+		mfix_var1 = mtlq * (unsigned int)EQOS_MAC_RQC2_PSRQ_SHIFT;
 		mfix_var2 = (unsigned int)EQOS_MAC_RQC2_PSRQ_MASK;
 		mfix_var2 <<= mfix_var1;
 		val |= (temp & mfix_var2);
