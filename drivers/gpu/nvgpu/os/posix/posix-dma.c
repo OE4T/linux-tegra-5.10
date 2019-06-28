@@ -115,6 +115,18 @@ static size_t mock_fb_get_vidmem_size(struct gk20a *g)
 	return SZ_4G;
 }
 
+static const struct nvgpu_sgt_ops nvgpu_sgt_posix_ops = {
+	.sgl_next	= nvgpu_mem_sgl_next,
+	.sgl_phys	= nvgpu_mem_sgl_phys,
+	.sgl_ipa	= nvgpu_mem_sgl_phys,
+	.sgl_ipa_to_pa	= nvgpu_mem_sgl_ipa_to_pa,
+	.sgl_dma	= nvgpu_mem_sgl_dma,
+	.sgl_length	= nvgpu_mem_sgl_length,
+	.sgl_gpu_addr	= nvgpu_mem_sgl_gpu_addr,
+	.sgt_iommuable	= nvgpu_mem_sgt_iommuable,
+	.sgt_free	= nvgpu_mem_sgt_free,
+};
+
 /* In userspace, vidmem requires only a few fields populated */
 int nvgpu_dma_alloc_flags_vid_at(struct gk20a *g, unsigned long flags,
 				 size_t size, struct nvgpu_mem *mem, u64 at)
@@ -183,6 +195,8 @@ int nvgpu_dma_alloc_flags_vid_at(struct gk20a *g, unsigned long flags,
 		goto fail_sgtfree;
 	}
 
+	mem->priv.sgt->ops = &nvgpu_sgt_posix_ops;
+
 	/* Allocate memory for sgl */
 	mem->priv.sgt->sgl = (struct nvgpu_sgl *)
 		nvgpu_kzalloc(g, sizeof(struct nvgpu_mem_sgl));
@@ -219,9 +233,12 @@ void nvgpu_dma_free_vid(struct gk20a *g, struct nvgpu_mem *mem)
 
 	nvgpu_memset(g, mem, 0, 0, mem->aligned_size);
 
-	nvgpu_free(mem->allocator, (u64)nvgpu_vidmem_get_page_alloc(
+	if (mem->priv.sgt != NULL) {
+		nvgpu_free(mem->allocator, (u64)nvgpu_vidmem_get_page_alloc(
 			(struct nvgpu_mem_sgl *)mem->priv.sgt->sgl));
-	nvgpu_kfree(g, mem->priv.sgt);
+		nvgpu_kfree(g, mem->priv.sgt);
+		mem->priv.sgt = NULL;
+	}
 
 	mem->size = 0;
 	mem->aligned_size = 0;
