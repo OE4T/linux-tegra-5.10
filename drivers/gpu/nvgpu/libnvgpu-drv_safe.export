@@ -73,7 +73,12 @@ nvgpu_channel_setup_sw
 nvgpu_channel_sync_create
 nvgpu_dma_alloc
 nvgpu_dma_alloc_get_fault_injection
+nvgpu_dma_alloc_flags_sys
+nvgpu_dma_alloc_map
+nvgpu_dma_alloc_map_sys
+nvgpu_dma_alloc_sys
 nvgpu_dma_free
+nvgpu_dma_unmap_free
 nvgpu_falcon_copy_from_dmem
 nvgpu_falcon_copy_from_imem
 nvgpu_falcon_copy_to_dmem
