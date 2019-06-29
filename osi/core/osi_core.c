@@ -194,6 +194,17 @@ int osi_hw_core_init(struct osi_core_priv_data *osi_core,
 	return -1;
 }
 
+int osi_hw_core_deinit(struct osi_core_priv_data *osi_core)
+{
+	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
+	    (osi_core->ops->core_deinit != OSI_NULL)) {
+		osi_core->ops->core_deinit(osi_core);
+		return 0;
+	}
+
+	return -1;
+}
+
 int osi_start_mac(struct osi_core_priv_data *osi_core)
 {
 	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&

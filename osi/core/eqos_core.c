@@ -2937,9 +2937,28 @@ static void eqos_config_ssir(void *addr, unsigned int ptp_clock)
 	osi_writel(val, (unsigned char *)addr + EQOS_MAC_SSIR);
 }
 
+/**
+ *	eqos_core_deinit - EQOS MAC core deinitialization
+ *	@osi_core: OSI core private data structure.
+ *
+ *	Algorithm: This function will take care of deinitializing MAC
+ *
+ *	Dependencies: Required clks and resets has to be enabled
+ *
+ *	Protection: None
+ *
+ *	Return: None
+ */
+static void eqos_core_deinit(struct osi_core_priv_data *osi_core)
+{
+	/* Stop the MAC by disabling both MAC Tx and Rx */
+	eqos_stop_mac(osi_core->base);
+}
+
 static struct osi_core_ops eqos_core_ops = {
 	.poll_for_swr = eqos_poll_for_swr,
 	.core_init = eqos_core_init,
+	.core_deinit = eqos_core_deinit,
 	.start_mac = eqos_start_mac,
 	.stop_mac = eqos_stop_mac,
 	.handle_common_intr = eqos_handle_common_intr,

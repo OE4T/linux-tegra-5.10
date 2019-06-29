@@ -119,6 +119,7 @@ struct  osi_core_avb_algorithm {
  *	struct osi_core_ops - Core (MAC & MTL) operations.
  *	@poll_for_swr: Called to poll for software reset bit.
  *	@core_init: Called to initialize MAC and MTL registers.
+ *	@core_deinit: Called to deinitialize MAC and MTL registers.
  *	@start_mac: Called to start MAC Tx and Rx engine.
  *	@stop_mac: Called to stop MAC Tx and Rx engine.
  *	@handle_common_intr: Called to handle common interrupt.
@@ -162,6 +163,7 @@ struct osi_core_ops {
 	int (*core_init)(struct osi_core_priv_data *osi_core,
 			 unsigned int tx_fifo_size,
 			 unsigned int rx_fifo_size);
+	void (*core_deinit)(struct osi_core_priv_data *osi_core);
 	void (*start_mac)(void *addr);
 	void (*stop_mac)(void *addr);
 	void (*handle_common_intr)(struct osi_core_priv_data *osi_core);
@@ -372,8 +374,22 @@ int osi_hw_core_init(struct osi_core_priv_data *osi_core,
 		     unsigned int rx_fifo_size);
 
 /**
- *	osi_start_mac - Start MAC Tx/Rx engine
- *	@osi_core: OSI core private data.
+ *      osi_hw_core_deinit - EQOS MAC deinitialization.
+ *      @osi: OSI core private data structure.
+ *
+ *      Algorithm: Stops MAC transmisson and reception.
+ *
+ *      Dependencies: MAC has to be out of reset.
+ *
+ *      Protection: None
+ *
+ *      Return: 0 - success, -1 - failure
+ */
+int osi_hw_core_deinit(struct osi_core_priv_data *osi_core);
+
+/**
+ *      osi_start_mac - Start MAC Tx/Rx engine
+ *      @osi_core: OSI core private data.
  *
  *	Algorimthm: Enable MAC Tx and Rx engine.
  *
