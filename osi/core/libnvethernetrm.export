@@ -29,6 +29,7 @@ osi_read_phy_reg
 osi_poll_for_swr
 osi_set_mdc_clk_rate
 osi_hw_core_init
+osi_hw_core_deinit
 osi_start_mac
 osi_stop_mac
 osi_common_isr
