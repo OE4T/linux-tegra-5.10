@@ -1321,8 +1321,8 @@ static int ether_close(struct net_device *dev)
 	/* PTP de-init */
 	ether_ptp_remove(pdata);
 
-	/* Stop the MAC */
-	osi_stop_mac(pdata->osi_core);
+	/* MAC deinit which inturn stop MAC Tx,Rx */
+	osi_hw_core_deinit(pdata->osi_core);
 
 	ether_napi_disable(pdata);
 
@@ -1628,7 +1628,7 @@ static unsigned short ether_select_queue(struct net_device *dev,
 	unsigned short txqueue_select = 0;
 	unsigned int i, chan;
 
-	for (i = 0; i < OSI_EQOS_MAX_NUM_CHANS; i++) {
+	for (i = 0; i < osi_dma->num_dma_chans; i++) {
 		chan = osi_dma->dma_chans[i];
 		if (pdata->txq_prio[chan] == skb->priority) {
 			txqueue_select = (unsigned short)chan;
@@ -3474,8 +3474,6 @@ static int ether_remove(struct platform_device *pdev)
 	if (pdata->mii != NULL) {
 		mdiobus_unregister(pdata->mii);
 	}
-
-	ether_disable_clks(pdata);
 
 	ether_put_clks(pdata);
 
