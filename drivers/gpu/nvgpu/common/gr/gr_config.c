@@ -27,196 +27,71 @@
 
 #include "gr_config_priv.h"
 
-struct nvgpu_gr_config *nvgpu_gr_config_init(struct gk20a *g)
+static void gr_config_init_pes_tpc(struct gk20a *g,
+				struct nvgpu_gr_config *config,
+				u32 gpc_index)
 {
-	struct nvgpu_gr_config *config;
-	u32 gpc_index, pes_index;
+	u32 pes_index;
 	u32 pes_tpc_mask;
 	u32 pes_tpc_count;
+
+	for (pes_index = 0; pes_index < config->pe_count_per_gpc;
+			    pes_index++) {
+		pes_tpc_mask = g->ops.gr.config.get_pes_tpc_mask(g,
+					config, gpc_index, pes_index);
+		pes_tpc_count = hweight32(pes_tpc_mask);
+
+		/* detect PES presence by seeing if there are
+		 * TPCs connected to it.
+		 */
+		if (pes_tpc_count != 0U) {
+			config->gpc_ppc_count[gpc_index]++;
+		}
+
+		config->pes_tpc_count[pes_index][gpc_index] = pes_tpc_count;
+		config->pes_tpc_mask[pes_index][gpc_index] = pes_tpc_mask;
+	}
+}
+
+static void gr_config_init_gpc_skip_mask(struct gk20a *g,
+					struct nvgpu_gr_config *config,
+					u32 gpc_index)
+{
 	u32 pes_heavy_index;
-	u32 gpc_new_skip_mask;
-	size_t sm_info_size;
-	u32 temp = 0U, temp1 = 0U;
-	size_t gpc_size, temp2, temp3;
+	u32 gpc_new_skip_mask = 0U;
+	u32 pes_tpc_cnt = 0U, pes_tpc_mask = 0U;
 
-	config = nvgpu_kzalloc(g, sizeof(*config));
-	if (config == NULL) {
-		return NULL;;
+	if (config->pe_count_per_gpc <= 1U) {
+		goto skip_mask_end;
 	}
 
-	config->g = g;
+	pes_tpc_cnt = nvgpu_safe_add_u32(
+			config->pes_tpc_count[0][gpc_index],
+			config->pes_tpc_count[1][gpc_index]);
 
-	config->max_gpc_count = g->ops.top.get_max_gpc_count(g);
+	pes_heavy_index =
+			config->pes_tpc_count[0][gpc_index] >
+			config->pes_tpc_count[1][gpc_index] ? 0U : 1U;
 
-	config->max_tpc_per_gpc_count = g->ops.top.get_max_tpc_per_gpc_count(g);
-
-	config->max_tpc_count = nvgpu_safe_mult_u32(config->max_gpc_count,
-				config->max_tpc_per_gpc_count);
-
-	config->gpc_count = g->ops.priv_ring.get_gpc_count(g);
-	if (config->gpc_count == 0U) {
-		nvgpu_err(g, "gpc_count==0!");
-		goto clean_up;
+	if ((pes_tpc_cnt == 5U) || ((pes_tpc_cnt == 4U) &&
+		   (config->pes_tpc_count[0][gpc_index] !=
+		    config->pes_tpc_count[1][gpc_index]))) {
+		pes_tpc_mask = nvgpu_safe_sub_u32(
+			config->pes_tpc_mask[pes_heavy_index][gpc_index], 1U);
+		gpc_new_skip_mask =
+			config->pes_tpc_mask[pes_heavy_index][gpc_index] ^
+			   (config->pes_tpc_mask[pes_heavy_index][gpc_index] &
+			   pes_tpc_mask);
 	}
 
-	if (g->ops.gr.config.get_gpc_mask != NULL) {
-		config->gpc_mask = g->ops.gr.config.get_gpc_mask(g, config);
-	} else {
-		config->gpc_mask = nvgpu_safe_sub_u32(BIT32(config->gpc_count),
-								1U);
-	}
+skip_mask_end:
+	config->gpc_skip_mask[gpc_index] = gpc_new_skip_mask;
+}
 
-	config->pe_count_per_gpc = nvgpu_get_litter_value(g,
-		GPU_LIT_NUM_PES_PER_GPC);
-	if (config->pe_count_per_gpc > GK20A_GR_MAX_PES_PER_GPC) {
-		nvgpu_err(g, "too many pes per gpc");
-		goto clean_up;
-	}
-
-	config->sm_count_per_tpc =
-		nvgpu_get_litter_value(g, GPU_LIT_NUM_SM_PER_TPC);
-	if (config->sm_count_per_tpc == 0U) {
-		nvgpu_err(g, "sm_count_per_tpc==0!");
-		goto clean_up;
-	}
-
-	temp1 = nvgpu_safe_mult_u32(config->gpc_count,
-				config->max_tpc_per_gpc_count);
-	temp2 = nvgpu_safe_mult_u64((size_t)config->sm_count_per_tpc,
-				sizeof(struct nvgpu_sm_info));
-	/* allocate for max tpc per gpc */
-	sm_info_size = nvgpu_safe_mult_u64((size_t)temp1, temp2);
-
-	if (config->sm_to_cluster == NULL) {
-		config->sm_to_cluster = nvgpu_kzalloc(g, sm_info_size);
-		if (config->sm_to_cluster == NULL) {
-			nvgpu_err(g, "sm_to_cluster == NULL");
-			goto clean_up;
-		}
-	} else {
-		(void) memset(config->sm_to_cluster, 0, sm_info_size);
-	}
-	config->no_of_sm = 0;
-
-	gpc_size = nvgpu_safe_mult_u64((size_t)config->gpc_count, sizeof(u32));
-	temp2 = nvgpu_safe_mult_u64((size_t)config->max_gpc_count, sizeof(u32));
-	config->gpc_tpc_count = nvgpu_kzalloc(g, gpc_size);
-	config->gpc_tpc_mask = nvgpu_kzalloc(g, temp2);
-#ifdef CONFIG_NVGPU_GRAPHICS
-	config->max_zcull_per_gpc_count = nvgpu_get_litter_value(g,
-		GPU_LIT_NUM_ZCULL_BANKS);
-
-	config->gpc_zcb_count = nvgpu_kzalloc(g, gpc_size);
-#endif
-	config->gpc_ppc_count = nvgpu_kzalloc(g, gpc_size);
-
-	temp2 = nvgpu_safe_mult_u64(
-			(size_t)g->ops.gr.config.get_pd_dist_skip_table_size(),
-			sizeof(u32));
-	temp3 = nvgpu_safe_mult_u64(temp2, 4UL);
-	config->gpc_skip_mask = nvgpu_kzalloc(g, temp3);
-
-	if ((config->gpc_tpc_count == NULL) || (config->gpc_tpc_mask == NULL) ||
-#ifdef CONFIG_NVGPU_GRAPHICS
-	    (config->gpc_zcb_count == NULL) ||
-#endif
-	    (config->gpc_ppc_count == NULL) ||
-	    (config->gpc_skip_mask == NULL)) {
-		goto clean_up;
-	}
-
-	for (gpc_index = 0; gpc_index < config->max_gpc_count; gpc_index++) {
-		if (g->ops.gr.config.get_gpc_tpc_mask != NULL) {
-			config->gpc_tpc_mask[gpc_index] =
-				g->ops.gr.config.get_gpc_tpc_mask(g, config, gpc_index);
-		}
-	}
-
-	for (pes_index = 0; pes_index < config->pe_count_per_gpc; pes_index++) {
-		config->pes_tpc_count[pes_index] = nvgpu_kzalloc(g, gpc_size);
-		config->pes_tpc_mask[pes_index] = nvgpu_kzalloc(g, gpc_size);
-		if ((config->pes_tpc_count[pes_index] == NULL) ||
-		    (config->pes_tpc_mask[pes_index] == NULL)) {
-			goto clean_up;
-		}
-	}
-
-	config->ppc_count = 0;
-	config->tpc_count = 0;
-#ifdef CONFIG_NVGPU_GRAPHICS
-	config->zcb_count = 0;
-#endif
-	for (gpc_index = 0; gpc_index < config->gpc_count; gpc_index++) {
-		config->gpc_tpc_count[gpc_index] =
-			g->ops.gr.config.get_tpc_count_in_gpc(g, config,
-				gpc_index);
-		config->tpc_count = nvgpu_safe_add_u32(config->tpc_count,
-					config->gpc_tpc_count[gpc_index]);
-
-#ifdef CONFIG_NVGPU_GRAPHICS
-		config->gpc_zcb_count[gpc_index] =
-			g->ops.gr.config.get_zcull_count_in_gpc(g, config,
-				gpc_index);
-		config->zcb_count = nvgpu_safe_add_u32(config->zcb_count,
-					config->gpc_zcb_count[gpc_index]);
-#endif
-
-		for (pes_index = 0; pes_index < config->pe_count_per_gpc;
-				    pes_index++) {
-			pes_tpc_mask = g->ops.gr.config.get_pes_tpc_mask(g,
-						config, gpc_index, pes_index);
-			pes_tpc_count = hweight32(pes_tpc_mask);
-
-			/* detect PES presence by seeing if there are
-			 * TPCs connected to it.
-			 */
-			if (pes_tpc_count != 0U) {
-				config->gpc_ppc_count[gpc_index]++;
-			}
-
-			config->pes_tpc_count[pes_index][gpc_index] = pes_tpc_count;
-			config->pes_tpc_mask[pes_index][gpc_index] = pes_tpc_mask;
-		}
-
-		config->ppc_count = nvgpu_safe_add_u32(config->ppc_count,
-					config->gpc_ppc_count[gpc_index]);
-
-		if (config->pe_count_per_gpc > 1U) {
-			temp = nvgpu_safe_add_u32(
-				config->pes_tpc_count[0][gpc_index],
-				config->pes_tpc_count[1][gpc_index]);
-		}
-
-		if (config->pe_count_per_gpc > 1U && (temp == 5U)) {
-			pes_heavy_index =
-				config->pes_tpc_count[0][gpc_index] >
-				config->pes_tpc_count[1][gpc_index] ? 0U : 1U;
-
-			temp1 = nvgpu_safe_sub_u32(
-				config->pes_tpc_mask[pes_heavy_index][gpc_index], 1U);
-			gpc_new_skip_mask =
-				config->pes_tpc_mask[pes_heavy_index][gpc_index] ^
-				   (config->pes_tpc_mask[pes_heavy_index][gpc_index] &
-				   temp1);
-
-		} else if (config->pe_count_per_gpc > 1U && (temp == 4U) &&
-			   (config->pes_tpc_count[0][gpc_index] !=
-			    config->pes_tpc_count[1][gpc_index])) {
-				pes_heavy_index =
-				    config->pes_tpc_count[0][gpc_index] >
-				    config->pes_tpc_count[1][gpc_index] ? 0U : 1U;
-
-			temp1 = nvgpu_safe_sub_u32(
-				config->pes_tpc_mask[pes_heavy_index][gpc_index], 1U);
-			gpc_new_skip_mask =
-				config->pes_tpc_mask[pes_heavy_index][gpc_index] ^
-				   (config->pes_tpc_mask[pes_heavy_index][gpc_index] &
-				   temp1);
-		} else {
-			 gpc_new_skip_mask = 0U;
-		}
-		config->gpc_skip_mask[gpc_index] = gpc_new_skip_mask;
-	}
+static void gr_config_log_info(struct gk20a *g,
+					struct nvgpu_gr_config *config)
+{
+	u32 gpc_index, pes_index;
 
 	nvgpu_log_info(g, "max_gpc_count: %d", config->max_gpc_count);
 	nvgpu_log_info(g, "max_tpc_per_gpc_count: %d", config->max_tpc_per_gpc_count);
@@ -266,10 +141,200 @@ struct nvgpu_gr_config *nvgpu_gr_config_init(struct gk20a *g)
 				   config->pes_tpc_mask[pes_index][gpc_index]);
 		}
 	}
+}
 
+static void gr_config_set_gpc_mask(struct gk20a *g,
+					struct nvgpu_gr_config *config)
+{
+	if (g->ops.gr.config.get_gpc_mask != NULL) {
+		config->gpc_mask = g->ops.gr.config.get_gpc_mask(g, config);
+	} else {
+		config->gpc_mask = nvgpu_safe_sub_u32(BIT32(config->gpc_count),
+								1U);
+	}
+}
+
+static bool gr_config_alloc_valid(struct nvgpu_gr_config *config)
+{
+	if ((config->gpc_tpc_count == NULL) || (config->gpc_tpc_mask == NULL) ||
+#ifdef CONFIG_NVGPU_GRAPHICS
+	    (config->gpc_zcb_count == NULL) ||
+#endif
+	    (config->gpc_ppc_count == NULL) ||
+	    (config->gpc_skip_mask == NULL)) {
+		return false;
+	}
+
+	return true;
+}
+
+static void gr_config_free_mem(struct gk20a *g,
+				struct nvgpu_gr_config *config)
+{
+	u32 pes_index;
+
+	for (pes_index = 0U; pes_index < config->pe_count_per_gpc; pes_index++) {
+		nvgpu_kfree(g, config->pes_tpc_count[pes_index]);
+		nvgpu_kfree(g, config->pes_tpc_mask[pes_index]);
+	}
+
+	nvgpu_kfree(g, config->gpc_skip_mask);
+	nvgpu_kfree(g, config->gpc_ppc_count);
+#ifdef CONFIG_NVGPU_GRAPHICS
+	nvgpu_kfree(g, config->gpc_zcb_count);
+#endif
+	nvgpu_kfree(g, config->gpc_tpc_mask);
+	nvgpu_kfree(g, config->gpc_tpc_count);
+}
+
+static bool gr_config_alloc_struct_mem(struct gk20a *g,
+				struct nvgpu_gr_config *config)
+{
+	u32 pes_index;
+	u32 total_gpc_cnt;
+	size_t sm_info_size;
+	size_t gpc_size, sm_size, max_gpc_cnt;
+	size_t pd_tbl_size, temp3;
+
+	total_gpc_cnt = nvgpu_safe_mult_u32(config->gpc_count,
+				config->max_tpc_per_gpc_count);
+	sm_size = nvgpu_safe_mult_u64((size_t)config->sm_count_per_tpc,
+				sizeof(struct nvgpu_sm_info));
+	/* allocate for max tpc per gpc */
+	sm_info_size = nvgpu_safe_mult_u64((size_t)total_gpc_cnt, sm_size);
+
+	if (config->sm_to_cluster == NULL) {
+		config->sm_to_cluster = nvgpu_kzalloc(g, sm_info_size);
+		if (config->sm_to_cluster == NULL) {
+			nvgpu_err(g, "sm_to_cluster == NULL");
+			goto alloc_err;
+		}
+	} else {
+		(void) memset(config->sm_to_cluster, 0, sm_info_size);
+	}
+	config->no_of_sm = 0;
+
+	gpc_size = nvgpu_safe_mult_u64((size_t)config->gpc_count, sizeof(u32));
+	max_gpc_cnt = nvgpu_safe_mult_u64((size_t)config->max_gpc_count, sizeof(u32));
+	config->gpc_tpc_count = nvgpu_kzalloc(g, gpc_size);
+	config->gpc_tpc_mask = nvgpu_kzalloc(g, max_gpc_cnt);
+#ifdef CONFIG_NVGPU_GRAPHICS
+	config->max_zcull_per_gpc_count = nvgpu_get_litter_value(g,
+		GPU_LIT_NUM_ZCULL_BANKS);
+
+	config->gpc_zcb_count = nvgpu_kzalloc(g, gpc_size);
+#endif
+	config->gpc_ppc_count = nvgpu_kzalloc(g, gpc_size);
+
+	pd_tbl_size = nvgpu_safe_mult_u64(
+			(size_t)g->ops.gr.config.get_pd_dist_skip_table_size(),
+			sizeof(u32));
+	temp3 = nvgpu_safe_mult_u64(pd_tbl_size, 4UL);
+	config->gpc_skip_mask = nvgpu_kzalloc(g, temp3);
+
+	if (gr_config_alloc_valid(config) == false) {
+		goto clean_alloc_mem;
+	}
+
+	for (pes_index = 0U; pes_index < config->pe_count_per_gpc; pes_index++) {
+		config->pes_tpc_count[pes_index] = nvgpu_kzalloc(g, gpc_size);
+		config->pes_tpc_mask[pes_index] = nvgpu_kzalloc(g, gpc_size);
+		if ((config->pes_tpc_count[pes_index] == NULL) ||
+		    (config->pes_tpc_mask[pes_index] == NULL)) {
+			goto clean_alloc_mem;
+		}
+	}
+
+	return true;
+
+clean_alloc_mem:
+	gr_config_free_mem(g, config);
+
+alloc_err:
+	return false;
+}
+
+struct nvgpu_gr_config *nvgpu_gr_config_init(struct gk20a *g)
+{
+	struct nvgpu_gr_config *config;
+	u32 gpc_index;
+
+	config = nvgpu_kzalloc(g, sizeof(*config));
+	if (config == NULL) {
+		return NULL;;
+	}
+
+	config->g = g;
+	config->max_gpc_count = g->ops.top.get_max_gpc_count(g);
+	config->max_tpc_per_gpc_count = g->ops.top.get_max_tpc_per_gpc_count(g);
+	config->max_tpc_count = nvgpu_safe_mult_u32(config->max_gpc_count,
+				config->max_tpc_per_gpc_count);
+
+	config->gpc_count = g->ops.priv_ring.get_gpc_count(g);
+	if (config->gpc_count == 0U) {
+		nvgpu_err(g, "gpc_count==0!");
+		goto clean_up_init;
+	}
+
+	gr_config_set_gpc_mask(g, config);
+
+	config->pe_count_per_gpc = nvgpu_get_litter_value(g,
+		GPU_LIT_NUM_PES_PER_GPC);
+	if (config->pe_count_per_gpc > GK20A_GR_MAX_PES_PER_GPC) {
+		nvgpu_err(g, "too many pes per gpc");
+		goto clean_up_init;
+	}
+
+	config->sm_count_per_tpc =
+		nvgpu_get_litter_value(g, GPU_LIT_NUM_SM_PER_TPC);
+	if (config->sm_count_per_tpc == 0U) {
+		nvgpu_err(g, "sm_count_per_tpc==0!");
+		goto clean_up_init;
+	}
+
+	if (gr_config_alloc_struct_mem(g, config) == false) {
+		goto clean_up_alloc;
+	}
+
+	for (gpc_index = 0; gpc_index < config->max_gpc_count; gpc_index++) {
+		config->gpc_tpc_mask[gpc_index] =
+		     g->ops.gr.config.get_gpc_tpc_mask(g, config, gpc_index);
+	}
+
+	config->ppc_count = 0;
+	config->tpc_count = 0;
+#ifdef CONFIG_NVGPU_GRAPHICS
+	config->zcb_count = 0;
+#endif
+	for (gpc_index = 0; gpc_index < config->gpc_count; gpc_index++) {
+		config->gpc_tpc_count[gpc_index] =
+			g->ops.gr.config.get_tpc_count_in_gpc(g, config,
+				gpc_index);
+		config->tpc_count = nvgpu_safe_add_u32(config->tpc_count,
+					config->gpc_tpc_count[gpc_index]);
+
+#ifdef CONFIG_NVGPU_GRAPHICS
+		config->gpc_zcb_count[gpc_index] =
+			g->ops.gr.config.get_zcull_count_in_gpc(g, config,
+				gpc_index);
+		config->zcb_count = nvgpu_safe_add_u32(config->zcb_count,
+					config->gpc_zcb_count[gpc_index]);
+#endif
+
+		gr_config_init_pes_tpc(g, config, gpc_index);
+
+		config->ppc_count = nvgpu_safe_add_u32(config->ppc_count,
+					config->gpc_ppc_count[gpc_index]);
+
+		gr_config_init_gpc_skip_mask(g, config, gpc_index);
+	}
+
+	gr_config_log_info(g, config);
 	return config;
 
-clean_up:
+clean_up_alloc:
+	gr_config_free_mem(g, config);
+clean_up_init:
 	nvgpu_kfree(g, config);
 	return NULL;
 }
