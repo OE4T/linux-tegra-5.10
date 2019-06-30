@@ -723,14 +723,6 @@ static int tegra210_mixer_platform_probe(struct platform_device *pdev)
 	}
 	regcache_cache_only(mixer->regmap, true);
 
-	ret = of_property_read_u32(pdev->dev.of_node,
-				   "nvidia,ahub-amixer-id",
-				   &pdev->dev.id);
-	if (ret < 0) {
-		dev_err(&pdev->dev, "Missing property nvidia,ahub-amixer-id\n");
-		return ret;
-	}
-
 	pm_runtime_enable(&pdev->dev);
 	ret = snd_soc_register_codec(&pdev->dev, &tegra210_mixer_codec,
 				     tegra210_mixer_dais,

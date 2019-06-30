@@ -1095,30 +1095,20 @@ static int tegra210_i2s_platform_probe(struct platform_device *pdev)
 	}
 	regcache_cache_only(i2s->regmap, true);
 
-	ret = of_property_read_u32(np, "nvidia,ahub-i2s-id",
-				   &pdev->dev.id);
-	if (ret < 0) {
-		dev_err(&pdev->dev, "Missing property nvidia,ahub-i2s-id\n");
-		return ret;
-	}
-
 	if (of_property_read_u32(pdev->dev.of_node, "bclk-ratio",
 				 &i2s->bclk_ratio) < 0) {
-		dev_dbg(&pdev->dev, "Missing prop bclk-ratio for I2S%d\n",
-			pdev->dev.id);
+		dev_dbg(&pdev->dev, "Missing prop bclk-ratio for I2S\n");
 		i2s->bclk_ratio = 1;
 	}
 
 	if (of_property_read_u32(pdev->dev.of_node,
 		"fsync-width", &i2s->fsync_width) < 0) {
-		dev_info(&pdev->dev, "Missing prop fsync-width for I2S%d\n",
-			pdev->dev.id);
+		dev_info(&pdev->dev, "Missing prop fsync-width for I2S\n");
 		i2s->fsync_width = 31;
 	}
 
 	if (i2s->fsync_width > 255) {
-		dev_warn(&pdev->dev, "Default fsync-width to 31 for I2S%d\n",
-			pdev->dev.id);
+		dev_warn(&pdev->dev, "Default fsync-width to 31 for I2S\n");
 		i2s->fsync_width = 31;
 	}
 

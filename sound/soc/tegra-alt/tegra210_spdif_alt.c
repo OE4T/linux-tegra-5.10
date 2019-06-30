@@ -427,13 +427,6 @@ static int tegra210_spdif_platform_probe(struct platform_device *pdev)
 	}
 	regcache_cache_only(spdif->regmap, true);
 
-	ret = of_property_read_u32(np, "nvidia,ahub-spdif-id",
-				   &pdev->dev.id);
-	if (ret < 0) {
-		dev_err(&pdev->dev, "Missing property nvidia,ahub-spdif-id\n");
-		return ret;
-	}
-
 	pm_runtime_enable(&pdev->dev);
 	ret = snd_soc_register_codec(&pdev->dev, &tegra210_spdif_codec,
 				     tegra210_spdif_dais,

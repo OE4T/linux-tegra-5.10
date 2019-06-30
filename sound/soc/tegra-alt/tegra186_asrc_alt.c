@@ -1114,13 +1114,6 @@ static int tegra186_asrc_platform_probe(struct platform_device *pdev)
 	}
 	regcache_cache_only(asrc->regmap, true);
 
-	ret = of_property_read_u32(pdev->dev.of_node, "nvidia,ahub-asrc-id",
-				   &pdev->dev.id);
-	if (ret < 0) {
-		dev_err(&pdev->dev, "Missing property nvidia,ahub-asrc-id\n");
-		return ret;
-	}
-
 #ifdef CONFIG_TEGRA186_AHC
 	tegra186_ahc_register_cb(tegra186_asrc_ahc_cb, TEGRA186_AHC_ASRC1_CB,
 				 &pdev->dev);
