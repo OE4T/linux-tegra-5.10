@@ -904,14 +904,6 @@ static int tegra210_amx_platform_probe(struct platform_device *pdev)
 	}
 	regcache_cache_only(amx->regmap, true);
 
-	ret = of_property_read_u32(pdev->dev.of_node,
-				   "nvidia,ahub-amx-id",
-				   &pdev->dev.id);
-	if (ret < 0) {
-		dev_err(&pdev->dev, "Missing property nvidia,ahub-amx-id\n");
-		return ret;
-	}
-
 	pm_runtime_enable(&pdev->dev);
 	ret = snd_soc_register_codec(&pdev->dev, &tegra210_amx_codec,
 				     tegra210_amx_dais,

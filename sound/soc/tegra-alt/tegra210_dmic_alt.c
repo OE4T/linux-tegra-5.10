@@ -582,13 +582,6 @@ static int tegra210_dmic_platform_probe(struct platform_device *pdev)
 	regmap_write(dmic->regmap, TEGRA210_DMIC_DCR_BIQUAD_0_COEF_4,
 		     0x00000000);
 
-	ret = of_property_read_u32(np, "nvidia,ahub-dmic-id",
-				   &pdev->dev.id);
-	if (ret < 0) {
-		dev_err(&pdev->dev, "Missing property nvidia,ahub-dmic-id\n");
-		return ret;
-	}
-
 	pm_runtime_enable(&pdev->dev);
 	ret = snd_soc_register_codec(&pdev->dev, &tegra210_dmic_codec,
 				     tegra210_dmic_dais,

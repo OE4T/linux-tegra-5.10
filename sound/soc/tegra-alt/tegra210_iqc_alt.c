@@ -326,14 +326,6 @@ static int tegra210_iqc_platform_probe(struct platform_device *pdev)
 	}
 	regcache_cache_only(iqc->regmap, true);
 
-	ret = of_property_read_u32(pdev->dev.of_node,
-				   "nvidia,ahub-iqc-id",
-				   &pdev->dev.id);
-	if (ret < 0) {
-		dev_err(&pdev->dev, "Missing property nvidia,ahub-iqc-id\n");
-		return ret;
-	}
-
 	if (of_property_read_u32(pdev->dev.of_node,
 				 "timestamp-enable",
 				 &iqc->timestamp_enable) < 0) {
