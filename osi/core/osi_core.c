@@ -402,6 +402,12 @@ int osi_update_mac_addr_low_high_reg(struct osi_core_priv_data *osi_core,
 {
 	int ret = -1;
 
+	if ((dma_routing_enable == OSI_ENABLE) &&
+	    (osi_core->dcs_en != OSI_ENABLE)) {
+		osd_err(osi_core->osd, "dma routing enabled but dcs disabled in DT\n");
+		return ret;
+	}
+
 	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
 	    (osi_core->ops->update_mac_addr_low_high_reg != OSI_NULL)) {
 		ret = osi_core->ops->update_mac_addr_low_high_reg(
@@ -441,6 +447,12 @@ int osi_config_l3_filters(struct osi_core_priv_data *osi_core,
 			  unsigned int dma_chan)
 {
 	int ret = -1;
+
+	if ((dma_routing_enable == OSI_ENABLE) &&
+	    (osi_core->dcs_en != OSI_ENABLE)) {
+		osd_err(osi_core->osd, "dma routing enabled but dcs disabled in DT\n");
+		return ret;
+	}
 
 	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
 	    (osi_core->ops->config_l3_filters != OSI_NULL)) {
@@ -494,6 +506,12 @@ int osi_config_l4_filters(struct osi_core_priv_data *osi_core,
 			  unsigned int dma_chan)
 {
 	int ret = -1;
+
+	if ((dma_routing_enable == OSI_ENABLE) &&
+	    (osi_core->dcs_en != OSI_ENABLE)) {
+		osd_err(osi_core->osd, "dma routing enabled but dcs disabled in DT\n");
+		return ret;
+	}
 
 	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
 	    (osi_core->ops->config_l4_filters != OSI_NULL)) {
