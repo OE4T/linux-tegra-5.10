@@ -45,7 +45,7 @@ int nvgpu_nvlink_link_early_init(struct gk20a *g)
 	 * First check the topology and setup connectivity
 	 * HACK: we are only enabling one link for now!!!
 	 */
-	link_id = (u32)(ffs(g->nvlink.discovered_links) - 1UL);
+	link_id = (u32)(nvgpu_ffs(g->nvlink.discovered_links) - 1UL);
 	g->nvlink.links[link_id].remote_info.is_connected = true;
 	g->nvlink.links[link_id].remote_info.device_type =
 							nvgpu_nvlink_endp_tegra;

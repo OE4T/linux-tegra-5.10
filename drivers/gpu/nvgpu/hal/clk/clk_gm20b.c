@@ -127,8 +127,8 @@ static u32 get_interim_pldiv(struct gk20a *g, u32 old_pl, u32 new_pl)
 		return 0;
 	}
 
-	pl = old_pl | BIT32(ffs(new_pl) - 1U);	/* pl never 0 */
-	new_pl |= BIT32(ffs(old_pl) - 1U);
+	pl = old_pl | BIT32(nvgpu_ffs(new_pl) - 1U);	/* pl never 0 */
+	new_pl |= BIT32(nvgpu_ffs(old_pl) - 1U);
 
 	return min(pl, new_pl);
 }

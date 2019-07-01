@@ -117,7 +117,7 @@ static unsigned long nvgpu_posix_find_next_bit(const unsigned long *addr,
 		w = addr[idx] ^ invert_mask;
 	}
 
-	return min(n, (nvgpu_safe_add_u64(((ffs(w)) - 1UL),
+	return min(n, (nvgpu_safe_add_u64(((nvgpu_ffs(w)) - 1UL),
 				(nvgpu_safe_mult_u64(idx, BITS_PER_LONG)))));
 }
 

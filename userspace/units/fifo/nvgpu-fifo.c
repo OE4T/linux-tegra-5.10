@@ -47,7 +47,7 @@ bool test_fifo_subtest_pruned(u32 branches, u32 final_branches)
 	if (match == 0U) {
 		return false;
 	}
-	bit = ffs(match) - 1;
+	bit = nvgpu_ffs(match) - 1;
 
 	return (branches > BIT(bit));
 }

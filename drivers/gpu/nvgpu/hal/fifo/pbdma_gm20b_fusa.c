@@ -233,11 +233,11 @@ u32 gm20b_pbdma_acquire_val(u64 timeout)
 	do_div(timeout, 100U); /* set acquire timeout to 80% of channel wdt */
 	timeout *= 1000000UL; /* ms -> ns */
 	do_div(timeout, 1024U); /* in unit of 1024ns */
-	tmp = fls(timeout >> 32U);
+	tmp = nvgpu_fls(timeout >> 32U);
 	BUG_ON(tmp > U64(U32_MAX));
 	val_len = (u32)tmp + 32U;
 	if (val_len == 32U) {
-		val_len = (u32)fls(timeout);
+		val_len = (u32)nvgpu_fls(timeout);
 	}
 	if (val_len > 16U + pbdma_acquire_timeout_exp_max_v()) { /* man: 16bits */
 		exponent = pbdma_acquire_timeout_exp_max_v();

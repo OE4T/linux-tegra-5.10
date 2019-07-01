@@ -25,12 +25,12 @@
 
 #include <nvgpu/bitops.h>
 
-#define ilog2(x)	({					\
-				unsigned long fls_val =	fls(x);	\
-								\
-				nvgpu_assert(fls_val > 0ULL);	\
-				fls_val = fls_val - 1U;		\
-				fls_val;			\
+#define ilog2(x)	({						\
+				unsigned long fls_val =	nvgpu_fls(x);	\
+									\
+				nvgpu_assert(fls_val > 0ULL);		\
+				fls_val = fls_val - 1U;			\
+				fls_val;				\
 			})
 
 #define roundup_pow_of_two(x)						\
@@ -40,7 +40,8 @@
 				if ((x) == 0UL) {			\
 					BUG();				\
 				} else {				\
-					ret = 1UL << fls((x) - 1UL);	\
+					ret = 1UL <<			\
+						nvgpu_fls((x) - 1UL);	\
 				}					\
 				ret;					\
 			})
@@ -52,7 +53,8 @@
 				if ((x) == 0UL) {			\
 					BUG();				\
 				} else {				\
-					ret = 1UL << (fls(x) - 1UL);	\
+					ret = 1UL <<			\
+						nvgpu_(fls(x) - 1UL);	\
 				}					\
 				ret;					\
 			})

@@ -454,7 +454,7 @@ int nvgpu_bitmap_allocator_init(struct gk20a *g, struct nvgpu_allocator *na,
 	a->base = base;
 	a->length = length;
 	a->blk_size = blk_size;
-	a->blk_shift = nvgpu_safe_sub_u64(ffs(a->blk_size), 1UL);
+	a->blk_shift = nvgpu_safe_sub_u64(nvgpu_ffs(a->blk_size), 1UL);
 	a->num_bits = length >> a->blk_shift;
 	a->bit_offs = a->base >> a->blk_shift;
 	a->flags = flags;

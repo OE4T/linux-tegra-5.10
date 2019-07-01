@@ -57,7 +57,7 @@ static int test_ffs(struct unit_module *m, struct gk20a *g, void *args)
 {
 #define CHECK_FFS_WORD(w, answer)					\
 	do {								\
-		unsigned long ret = ffs(w);				\
+		unsigned long ret = nvgpu_ffs(w);			\
 									\
 		if (ret != (answer))					\
 			unit_return_fail(m,				\
@@ -86,9 +86,9 @@ static int test_ffs(struct unit_module *m, struct gk20a *g, void *args)
 	 * possible return values of the function.
 	 */
 	for (i = 0; i < BITS_PER_LONG; i++) {
-		if (ffs(BIT(i)) != (i + 1))
+		if (nvgpu_ffs(BIT(i)) != (i + 1))
 			unit_return_fail(m, "ffs(1 << %lu) != %lu [%lu]!\n",
-					 i, i, ffs(BIT(i)));
+					 i, i, nvgpu_ffs(BIT(i)));
 	}
 
 	return UNIT_SUCCESS;
@@ -98,7 +98,7 @@ static int test_fls(struct unit_module *m, struct gk20a *g, void *args)
 {
 #define CHECK_FLS_WORD(w, answer)					\
 	do {								\
-		unsigned long ret = fls(w);				\
+		unsigned long ret = nvgpu_fls(w);			\
 									\
 		if (ret != (answer))					\
 			unit_return_fail(m,				\
@@ -123,9 +123,9 @@ static int test_fls(struct unit_module *m, struct gk20a *g, void *args)
 #undef CHECK_FLS_WORD
 
 	for (i = 0; i < BITS_PER_LONG; i++) {
-		if (fls(BIT(i)) != (i+1))
+		if (nvgpu_fls(BIT(i)) != (i+1))
 			unit_return_fail(m, "fls(1 << %lu) != %lu! [%lu]\n",
-					 i, i, fls(BIT(i)));
+					 i, i, nvgpu_fls(BIT(i)));
 	}
 
 	return UNIT_SUCCESS;

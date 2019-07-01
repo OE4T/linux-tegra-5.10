@@ -143,7 +143,7 @@ static bool pruned(u32 branches, u32 final_branches)
 	if (match == 0U) {
 		return false;
 	}
-	bit = ffs(match) - 1;
+	bit = nvgpu_ffs(match) - 1;
 
 	/*
 	 * Skip the test if it attempts to test some branches

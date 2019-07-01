@@ -67,4 +67,30 @@ static inline void nvgpu_clear_bit(unsigned int nr,
 	BUG_ON(nr > U32(INT_MAX));
 	clear_bit((int)nr, addr);
 }
+
+static inline unsigned long nvgpu_ffs(unsigned long word)
+{
+	unsigned long ret = 0UL;
+
+	if (word == 0UL) {
+		return ret;
+	}
+
+	ret = __ffs(word) + 1UL;
+
+	return ret;
+}
+static inline unsigned long nvgpu_fls(unsigned long word)
+{
+	unsigned long ret = 0UL;
+
+	if (word == 0UL) {
+		return ret;
+	}
+
+	ret = __fls(word) + 1UL;
+
+	return ret;
+}
+
 #endif /* NVGPU_LOCK_LINUX_H */

@@ -508,7 +508,14 @@ int gk20a_finalize_poweron(struct gk20a *g)
 		g->ops.xve.available_speeds(g, &speed);
 
 		/* Set to max speed */
-		speed = BIT32(fls(speed) - 1U);
+		speed = (u32)nvgpu_fls(speed);
+
+		if (speed > 0U) {
+			speed = BIT32((speed - 1U));
+		} else {
+			speed = BIT32(speed);
+		}
+
 		err = g->ops.xve.set_speed(g, speed);
 		if (err != 0) {
 			nvgpu_err(g, "Failed to set PCIe bus speed!");

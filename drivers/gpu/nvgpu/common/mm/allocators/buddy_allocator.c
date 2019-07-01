@@ -218,7 +218,7 @@ static u64 balloc_get_order(struct nvgpu_buddy_allocator *a, u64 len)
 	len--;
 	len >>= a->blk_shift;
 
-	return fls(len);
+	return nvgpu_fls(len);
 }
 
 static u64 balloc_max_order_in(struct nvgpu_buddy_allocator *a,
@@ -774,13 +774,15 @@ static u64 balloc_do_alloc_fixed(struct nvgpu_buddy_allocator *a,
 
 	shifted_base = balloc_base_shift(a, base);
 	if (shifted_base == 0U) {
-		align_order = nvgpu_safe_sub_u64(ffs(len >> a->blk_shift), 1UL);
+		align_order = nvgpu_safe_sub_u64(
+				nvgpu_ffs(len >> a->blk_shift), 1UL);
 	} else {
 		u64 shifted_base_order =
 			nvgpu_safe_sub_u64(
-				ffs(shifted_base >> a->blk_shift), 1UL);
+				nvgpu_ffs(shifted_base >> a->blk_shift), 1UL);
 		u64 len_order =
-			nvgpu_safe_sub_u64(ffs(len >> a->blk_shift), 1UL);
+			nvgpu_safe_sub_u64(
+				nvgpu_ffs(len >> a->blk_shift), 1UL);
 		align_order = min_t(u64, shifted_base_order, len_order);
 	}
 
@@ -818,8 +820,8 @@ static u64 balloc_do_alloc_fixed(struct nvgpu_buddy_allocator *a,
 		/* Book keeping. */
 		inc_base = nvgpu_safe_add_u64(inc_base, order_len);
 		remaining = (shifted_base + len) - inc_base;
-		align_order = nvgpu_safe_sub_u64(ffs(inc_base >> a->blk_shift),
-						 1UL);
+		align_order = nvgpu_safe_sub_u64(
+				nvgpu_ffs(inc_base >> a->blk_shift), 1UL);
 
 		/* If we don't have much left - trim down align_order. */
 		if (balloc_order_to_len(a, align_order) > remaining) {
@@ -1389,7 +1391,7 @@ int nvgpu_buddy_allocator_init(struct gk20a *g, struct nvgpu_allocator *na,
 	a->base = base;
 	a->length = size;
 	a->blk_size = blk_size;
-	a->blk_shift = (ffs(blk_size) - 1UL);
+	a->blk_shift = (nvgpu_ffs(blk_size) - 1UL);
 	a->owner = na;
 
 	/*

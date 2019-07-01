@@ -40,7 +40,7 @@ static u32 nvgpu_nvlink_get_link(struct gk20a *g)
 
 	/* Lets find the detected link */
 	if (g->nvlink.initialized_links != 0U) {
-		link_id = (u32)(ffs(g->nvlink.initialized_links) - 1UL);
+		link_id = (u32)(nvgpu_ffs(g->nvlink.initialized_links) - 1UL);
 	} else {
 		return NVLINK_MAX_LINKS_SW;
 	}
