@@ -1,7 +1,8 @@
 /*
- * Capture IVC driver
+ * @file drivers/platform/tegra/rtcpu/capture-ivc.c
+ * @brief Capture IVC driver
  *
- * Copyright (c) 2017-2018 NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2017-2019 NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -29,53 +30,7 @@
 
 #include <asm/barrier.h>
 
-/* Referred from capture-scheduler.c defined in rtcpu-fw */
-#define NUM_CAPTURE_CHANNELS 64
-
-/* Temporary ids for the clients whose channel-id is not yet allocated */
-#define NUM_CAPTURE_TRANSACTION_IDS 64
-
-#define TOTAL_CHANNELS (NUM_CAPTURE_CHANNELS + NUM_CAPTURE_TRANSACTION_IDS)
-#define TRANS_ID_START_IDX NUM_CAPTURE_CHANNELS
-
-struct tegra_capture_ivc_cb_ctx {
-	struct list_head node;
-	tegra_capture_ivc_cb_func cb_func;
-	const void *priv_context;
-};
-
-struct tegra_capture_ivc {
-	struct tegra_ivc_channel *chan;
-	struct mutex cb_ctx_lock;
-	struct mutex ivc_wr_lock;
-	struct work_struct work;
-	wait_queue_head_t write_q;
-	struct tegra_capture_ivc_cb_ctx cb_ctx[TOTAL_CHANNELS];
-	spinlock_t avl_ctx_list_lock;
-	struct list_head avl_ctx_list;
-};
-
-/*
- * Referred from CAPTURE_MSG_HEADER structure defined
- * in camrtc-capture-messages.h, in rtcpu and UMD.
- */
-struct tegra_capture_ivc_msg_header {
-	uint32_t msg_id;
-	union {
-		uint32_t channel_id;
-		uint32_t transaction;
-	};
-} __aligned(8);
-
-/*
- * Referred from CAPTURE_CONTROL_MSG and CAPTURE_MSG structures defined
- * in camrtc-capture-messages.h, in rtcpu and UMD. Only exception is,
- * the msg-id specific structures are opaque here.
- */
-struct tegra_capture_ivc_resp {
-	struct tegra_capture_ivc_msg_header header;
-	void *resp;
-};
+#include "capture-ivc-priv.h"
 
 static int tegra_capture_ivc_tx(struct tegra_capture_ivc *civc,
 				const void *req, size_t len)
@@ -104,9 +59,6 @@ static int tegra_capture_ivc_tx(struct tegra_capture_ivc *civc,
 
 	return ret;
 }
-
-static struct tegra_capture_ivc *__scivc_control;
-static struct tegra_capture_ivc *__scivc_capture;
 
 int tegra_capture_ivc_control_submit(const void *control_desc, size_t len)
 {
