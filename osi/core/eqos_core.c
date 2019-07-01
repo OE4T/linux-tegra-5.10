@@ -1554,6 +1554,75 @@ static void eqos_config_mac_pkt_filter_reg(struct osi_core_priv_data *osi_core,
 }
 
 /**
+ *	eqos_update_mac_addr_helper - Function to update DCS and MBC
+ *
+ *	@osi_core: OSI private data structure.
+ *	@*value: unsigned int pointer which has value read from register.
+ *	@index: filter index
+ *	@value: MAC address to write
+ *	@dma_routing_enable: dma channel routing enable(1)
+ *	@dma_chan: dma channel number
+ *	@addr_mask: filter will not consider byte in comparison
+ *	Bit 29: MAC_Address${i}_High[15:8]
+ *	Bit 28: MAC_Address${i}_High[7:0]
+ *	Bit 27: MAC_Address${i}_Low[31:24]
+ *	..
+ *	Bit 24: MAC_Address${i}_Low[7:0]
+ *
+ *	Algorithm: This helper routine is to update passed prameter value
+ *	based on DCS and MBC parameter. Validation of dma_chan as well as
+ *	dsc_en status performed before updating DCS bits.
+ *
+ *	Dependencies:
+ *	1) MAC should be initialized and stated. see osi_start_mac()
+ *	2) osi_core->osd should be populated.
+ *
+ *	Protection: None
+ *
+ *	Return: 0 - success, -1 - failure.
+ */
+static inline int eqos_update_mac_addr_helper(
+				struct osi_core_priv_data *osi_core,
+				unsigned int *value,
+				unsigned int idx,
+				unsigned int dma_routing_enable,
+				unsigned int dma_chan, unsigned int addr_mask)
+{
+	int ret = 0;
+	/* PDC bit of MAC_Ext_Configuration register is not set so binary
+	 * value representation.
+	 */
+	if (dma_routing_enable == OSI_ENABLE) {
+		if ((dma_chan < OSI_EQOS_MAX_NUM_CHANS) &&
+		    (osi_core->dcs_en == OSI_ENABLE)) {
+			*value = ((dma_chan << EQOS_MAC_ADDRH_DCS_SHIFT) &
+				  EQOS_MAC_ADDRH_DCS);
+		} else if (dma_chan > OSI_EQOS_MAX_NUM_CHANS - 0x1U) {
+			osd_err(osi_core->osd, "invalid dma channel\n");
+			ret = -1;
+			goto err_dma_chan;
+		} else {
+		/* Do nothing */
+		}
+	}
+
+	/* Address mask is valid for address 1 to 31 index only */
+	if (addr_mask <= EQOS_MAX_MASK_BYTE && addr_mask > 0U) {
+		if (idx > 0U && idx < EQOS_MAX_MAC_ADDR_REG) {
+			*value = (*value |
+				  ((addr_mask << EQOS_MAC_ADDRH_MBC_SHIFT) &
+				   EQOS_MAC_ADDRH_MBC));
+		} else {
+			osd_err(osi_core->osd, "invalid address index for MBC\n");
+			ret = -1;
+		}
+	}
+
+err_dma_chan:
+	return ret;
+}
+
+/**
  *	eqos_update_mac_addr_low_high_reg- Update L2 address
  *	in filter register
  *
@@ -1591,44 +1660,31 @@ static int eqos_update_mac_addr_low_high_reg(
 				unsigned int addr_mask, unsigned int src_dest)
 {
 	unsigned int value = 0x0U;
+	int ret = 0;
 
-	if (idx > EQOS_MAX_MAC_ADDRESS_FILTER) {
+	if (idx > (EQOS_MAX_MAC_ADDRESS_FILTER -  0x1U)) {
 		osd_err(osi_core->osd, "invalid MAC filter index\n");
 		return -1;
 	}
 
-	/* High address clean should happen for filter index > 0 */
-	if (idx >= 0x1U && addr == OSI_NULL) {
-		osi_writel((unsigned int)0x0, (unsigned char *)osi_core->base +
+	/* High address clean should happen for filter index >= 0 */
+	if (addr == OSI_NULL) {
+		osi_writel(0x0U, (unsigned char *)osi_core->base +
 			   EQOS_MAC_ADDRH((idx)));
 		return 0;
 	}
 
-	/* PDC bit of MAC_Ext_Configuration register is not set so binary
-	 * value representation.
-	 */
-	if ((dma_routing_enable == OSI_ENABLE) &&
-	    (dma_chan < OSI_EQOS_MAX_NUM_CHANS) &&
-	    (osi_core->dcs_en == OSI_ENABLE)) {
-		value = ((dma_chan << EQOS_MAC_ADDRH_DCS_SHIFT) &
-			 EQOS_MAC_ADDRH_DCS);
-	} else if ((dma_routing_enable == OSI_ENABLE) &&
-		   (dma_chan < OSI_EQOS_MAX_NUM_CHANS) &&
-		   (osi_core->dcs_en != OSI_ENABLE)) {
-		osd_err(osi_core->osd, "DCS disabled, please update DT\n");
-	} else {
-		/* Do nothing */
-	}
-
-	/* Address mask is valid for address 1 to 31 index only */
-	if ((addr_mask <= 0x3FU && addr_mask > 0U) && (idx > 0U && idx < 32U)) {
-		value = (value | ((addr_mask << EQOS_MAC_ADDRH_MBC_SHIFT) &
-			EQOS_MAC_ADDRH_MBC));
+	ret = eqos_update_mac_addr_helper(osi_core, &value, idx,
+					  dma_routing_enable, dma_chan,
+					  addr_mask);
+	/* Check return value from helper code */
+	if (ret == -1) {
+		return ret;
 	}
 
 	/* Setting Source/Destination Address match valid for 1 to 32 index */
-	if ((idx > 0U && idx < 32U) && (src_dest == OSI_SA_MATCH ||
-					src_dest == OSI_DA_MATCH)) {
+	if ((idx > 0U && idx < EQOS_MAX_MAC_ADDR_REG) &&
+	    (src_dest == OSI_SA_MATCH || src_dest == OSI_DA_MATCH)) {
 		value = (value | ((src_dest << EQOS_MAC_ADDRH_SA_SHIFT) &
 			EQOS_MAC_ADDRH_SA));
 	}
@@ -1642,7 +1698,7 @@ static int eqos_update_mac_addr_low_high_reg(
 		   ((unsigned int)addr[3] << 24)),
 		   (unsigned char *)osi_core->base +  EQOS_MAC_ADDRL((idx)));
 
-	return 0;
+	return ret;
 }
 
 /**
@@ -1879,7 +1935,12 @@ static int eqos_update_ip4_addr(struct osi_core_priv_data *osi_core,
 	unsigned int value = 0U;
 	unsigned int temp = 0U;
 
-	if (filter_no > EQOS_MAX_L3_L4_FILTER) {
+	if (addr == OSI_NULL) {
+		osd_err(osi_core->osd, "%s() invalid address\n", __func__);
+		return -1;
+	}
+
+	if (filter_no > (EQOS_MAX_L3_L4_FILTER - 0x1U)) {
 		osd_err(osi_core->osd, "filter index %d > %d for L3/L4 filter\n"
 			, filter_no, EQOS_MAX_L3_L4_FILTER);
 		return -1;
@@ -1929,7 +1990,12 @@ static int eqos_update_ip6_addr(struct osi_core_priv_data *osi_core,
 	unsigned int value = 0U;
 	unsigned int temp = 0U;
 
-	if (filter_no > EQOS_MAX_L3_L4_FILTER) {
+	if (addr == OSI_NULL) {
+		osd_err(osi_core->osd, "%s() invalid address\n", __func__);
+		return -1;
+	}
+
+	if (filter_no > (EQOS_MAX_L3_L4_FILTER - 0x1U)) {
 		osd_err(osi_core->osd, "filter index %d > %d for L3/L4 filter\n"
 			, filter_no, EQOS_MAX_L3_L4_FILTER);
 		return -1;
@@ -1994,7 +2060,7 @@ static int eqos_update_l4_port_no(struct osi_core_priv_data *osi_core,
 	unsigned int value = 0U;
 	unsigned int temp = 0U;
 
-	if (filter_no > EQOS_MAX_L3_L4_FILTER) {
+	if (filter_no > (EQOS_MAX_L3_L4_FILTER - 0x1U)) {
 		osd_err(osi_core->osd, "filter index %d > %d for L3/L4 filter\n"
 			, filter_no, EQOS_MAX_L3_L4_FILTER);
 		return -1;
@@ -2049,12 +2115,6 @@ static inline unsigned int eqos_set_dcs(struct osi_core_priv_data *osi_core,
 		value |= ((dma_chan <<
 			  EQOS_MAC_L3L4_CTR_DMCHN0_SHIFT) &
 			  EQOS_MAC_L3L4_CTR_DMCHN0);
-	} else if ((dma_routing_enable == OSI_ENABLE) && (dma_chan <
-	    OSI_EQOS_MAX_NUM_CHANS) && (osi_core->dcs_en !=
-	    OSI_ENABLE)) {
-		osd_err(osi_core->osd, "DCS disabled, please update DT\n");
-	} else {
-		/* do noting */
 	}
 
 	return value;
@@ -2099,9 +2159,15 @@ static int eqos_config_l3_filters(struct osi_core_priv_data *osi_core,
 	unsigned int value = 0U;
 	void *base = osi_core->base;
 
-	if (filter_no > EQOS_MAX_L3_L4_FILTER) {
+	if (filter_no > (EQOS_MAX_L3_L4_FILTER - 0x1U)) {
 		osd_err(osi_core->osd, "filter index %d > %d for L3/L4 filter\n"
 			, filter_no, EQOS_MAX_L3_L4_FILTER);
+		return -1;
+	}
+
+	if ((dma_routing_enable == OSI_ENABLE) &&
+	    (dma_chan > OSI_EQOS_MAX_NUM_CHANS - 1U)) {
+		osd_err(osi_core->osd, "Wrong DMA channel %d\n", dma_chan);
 		return -1;
 	}
 
@@ -2262,9 +2328,15 @@ static int eqos_config_l4_filters(struct osi_core_priv_data *osi_core,
 	void *base = osi_core->base;
 	unsigned int value = 0U;
 
-	if (filter_no > EQOS_MAX_L3_L4_FILTER) {
+	if (filter_no > (EQOS_MAX_L3_L4_FILTER - 0x1U)) {
 		osd_err(osi_core->osd, "filter index %d > %d for L3/L4 filter\n"
 			, filter_no, EQOS_MAX_L3_L4_FILTER);
+		return -1;
+	}
+
+	if ((dma_routing_enable == OSI_ENABLE) &&
+	    (dma_chan > OSI_EQOS_MAX_NUM_CHANS - 1U)) {
+		osd_err(osi_core->osd, "Wrong DMA channel %d\n", dma_chan);
 		return -1;
 	}
 
