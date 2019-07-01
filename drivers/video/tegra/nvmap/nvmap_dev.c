@@ -467,6 +467,10 @@ static long nvmap_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 		err = nvmap_ioctl_get_offset_in_heap(filp, uarg);
 		break;
 
+	case NVMAP_IOC_GET_SCIIPCID:
+		err = nvmap_ioctl_get_sci_ipc_id(filp, uarg);
+		break;
+
 	default:
 		pr_warn("Unknown NVMAP_IOC = 0x%x\n", cmd);
 	}
@@ -1308,6 +1312,10 @@ int __init nvmap_probe(struct platform_device *pdev)
 		nvmap_page_pool_fini(dev);
 #endif
 
+	e = nvmap_sci_ipc_init();
+	if (e)
+		goto fail_heaps;
+
 	goto finish;
 fail_heaps:
 	for (i = 0; i < dev->nr_carveouts; i++) {
@@ -1337,6 +1345,8 @@ int nvmap_remove(struct platform_device *pdev)
 	int i;
 
 	misc_deregister(&dev->dev_user);
+
+	nvmap_sci_ipc_exit();
 
 	while ((n = rb_first(&dev->handles))) {
 		h = rb_entry(n, struct nvmap_handle, node);

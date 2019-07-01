@@ -89,4 +89,14 @@ config NVMAP_DEFER_FD_RECYCLE_MAX_FD
 	  Once last allocated FD reaches this number, allocation of subsequent
 	  FD's start from NVMAP_START_FD.
 
+config NVMAP_SCIIPC
+	bool "nvmap sciipc buffer mapping"
+	depends on NVSCIIPC
+	depends on ARCH_TEGRA_19x_SOC
+	default n
+	help
+	   Enable nvmap mapping with SciIpc secure buffer sharing.
+	   Supports nvmap ioctls to get Unique SciIpcId and attach
+	   it with nvmap_handle.
+	   Suppports getting nvmap_handle from SciIpcId passed via ioctl.
 endif

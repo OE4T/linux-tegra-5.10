@@ -258,6 +258,13 @@ struct nvmap_offset_in_heap {
 	__u64 offs;		/* offset to be filled from IVM mem pool */
 };
 
+struct nvmap_sciipc_map {
+	__u64 auth_token;    /* AuthToken */
+	__u32 flags;       /* Exporter permission flags */
+	__u32 sci_ipc_id;  /* FromImportId */
+	__u32 handle;      /* Nvmap handle */
+};
+
 #define NVMAP_IOC_MAGIC 'N'
 
 /* Creates a new memory handle. On input, the argument is the size of the new
@@ -365,6 +372,10 @@ struct nvmap_offset_in_heap {
 /* Allocate seperate memory for VPR */
 #define NVMAP_IOC_VPR_FLOOR_SIZE _IOW(NVMAP_IOC_MAGIC, 102, __u32)
 
-#define NVMAP_IOC_MAXNR (_IOC_NR(NVMAP_IOC_VPR_FLOOR_SIZE))
+/* Get SCI_IPC_ID tied up with nvmap_handle */
+#define NVMAP_IOC_GET_SCIIPCID _IOR(NVMAP_IOC_MAGIC, 103, \
+		struct nvmap_sciipc_map)
+
+#define NVMAP_IOC_MAXNR (_IOC_NR(NVMAP_IOC_GET_SCIIPCID))
 
 #endif /* __UAPI_LINUX_NVMAP_H */

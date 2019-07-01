@@ -34,6 +34,7 @@ obj-y += nvmap_mm.o
 obj-y += nvmap_stats.o
 obj-y += nvmap_carveout.o
 obj-y += nvmap_kasan_wrapper.o
+obj-$(CONFIG_NVMAP_SCIIPC) += nvmap_sci_ipc.o
 
 obj-$(CONFIG_NVMAP_PAGE_POOLS) += nvmap_pp.o
 

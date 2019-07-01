@@ -36,10 +36,15 @@
 #include <soc/tegra/common.h>
 #include <trace/events/nvmap.h>
 
+#ifdef CONFIG_NVMAP_SCIIPC
+#include <linux/nvscierror.h>
+#include <linux/nvsciipc_interface.h>
+#include "nvmap_sci_ipc.h"
+#endif
+
 #include "nvmap_ioctl.h"
 #include "nvmap_priv.h"
 #include "nvmap_heap.h"
-
 
 extern struct device tegra_vpr_dev;
 
@@ -896,3 +901,47 @@ int nvmap_ioctl_get_offset_in_heap(struct file *filp, void __user *arg)
 exit:
 	return -ENODEV;
 }
+
+#ifdef CONFIG_NVMAP_SCIIPC
+int nvmap_ioctl_get_sci_ipc_id(struct file *filp, void __user *arg)
+{
+	struct nvmap_client *client = filp->private_data;
+	NvSciIpcEndpointVuid pr_vuid, lclu_vuid;
+	struct nvmap_handle *handle = NULL;
+	struct nvmap_sciipc_map op;
+	int ret = 0;
+
+	if (copy_from_user(&op, arg, sizeof(op))) {
+		ret =  -EFAULT;
+		goto exit;
+	}
+
+	handle = nvmap_handle_get_from_fd(op.handle);
+	if (handle == NULL) {
+		ret = -ENODEV;
+		goto exit;
+	}
+
+	ret = nvmap_validate_sci_ipc_params(client, op.auth_token,
+		&pr_vuid, &lclu_vuid);
+	if (ret)
+		goto exit;
+
+	ret = nvmap_create_sci_ipc_id(client, handle, op.flags,
+			 &op.sci_ipc_id, pr_vuid);
+	if (ret)
+		goto exit;
+
+	if (copy_to_user(arg, &op, sizeof(op))) {
+		pr_err("copy_to_user failed\n");
+		ret = -EINVAL;
+	}
+exit:
+	return ret;
+}
+#else
+int nvmap_ioctl_get_sci_ipc_id(struct file *filp, void __user *arg)
+{
+	return -EPERM;
+}
+#endif
