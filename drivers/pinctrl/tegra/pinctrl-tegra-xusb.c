@@ -886,6 +886,8 @@ int tegra_xusb_padctl_legacy_probe(struct platform_device *pdev)
 	padctl->dev = &pdev->dev;
 
 	match = of_match_node(tegra_xusb_padctl_of_match, pdev->dev.of_node);
+	if (!match)
+		return -ENXIO;
 	padctl->soc = match->data;
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
