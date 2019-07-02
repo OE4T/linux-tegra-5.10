@@ -29,6 +29,7 @@
 #include <nvgpu/log2.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/enabled.h>
+#include <nvgpu/safe_ops.h>
 
 #include "pd_cache_priv.h"
 
@@ -75,19 +76,22 @@ u64 nvgpu_pd_gpu_addr(struct gk20a *g, struct nvgpu_gmmu_pd *pd)
 		page_addr = nvgpu_mem_get_addr(g, pd->mem);
 	}
 
-	return page_addr + pd->mem_offs;
+	return nvgpu_safe_add_u64(page_addr, U64(pd->mem_offs));
 }
 
 u32 nvgpu_pd_offset_from_index(const struct gk20a_mmu_level *l, u32 pd_idx)
 {
-	return (pd_idx * l->entry_size) / U32(sizeof(u32));
+	return nvgpu_safe_mult_u32(pd_idx, l->entry_size) / U32(sizeof(u32));
 }
 
 void nvgpu_pd_write(struct gk20a *g, struct nvgpu_gmmu_pd *pd,
 		    size_t w, u32 data)
 {
+	u64 tmp_offset = nvgpu_safe_add_u64((pd->mem_offs / sizeof(u32)), w);
+
 	nvgpu_mem_wr32(g, pd->mem,
-		       (u32)((pd->mem_offs / sizeof(u32)) + w), data);
+		       nvgpu_safe_cast_u64_to_u32(tmp_offset),
+		       data);
 }
 
 int nvgpu_pd_cache_init(struct gk20a *g)
@@ -244,25 +248,25 @@ static int nvgpu_pd_cache_alloc_from_partial(struct gk20a *g,
 					     struct nvgpu_pd_mem_entry *pentry,
 					     struct nvgpu_gmmu_pd *pd)
 {
-	unsigned long bit_offs;
+	u32 bit_offs;
 	u32 mem_offs;
 	u32 nr_bits = nvgpu_pd_cache_get_nr_entries(pentry);
 
 	/*
 	 * Find and allocate an open PD.
 	 */
-	bit_offs = find_first_zero_bit(pentry->alloc_map, nr_bits);
-	nvgpu_assert(bit_offs <= U32_MAX);
-	mem_offs = (u32)bit_offs * pentry->pd_size;
+	bit_offs = nvgpu_safe_cast_u64_to_u32(
+			find_first_zero_bit(pentry->alloc_map, nr_bits));
+	mem_offs = nvgpu_safe_mult_u32(bit_offs, pentry->pd_size);
 
-	pd_dbg(g, "PD-Alloc [C]   Partial: offs=%lu nr_bits=%d src=0x%p",
+	pd_dbg(g, "PD-Alloc [C]   Partial: offs=%u nr_bits=%d src=0x%p",
 	       bit_offs, nr_bits, pentry);
 
 	/* Bit map full. Somethings wrong. */
 	nvgpu_assert(bit_offs < nr_bits);
 
-	nvgpu_set_bit((u32)bit_offs, pentry->alloc_map);
-	pentry->allocs += 1U;
+	nvgpu_set_bit(bit_offs, pentry->alloc_map);
+	pentry->allocs = nvgpu_safe_add_u32(pentry->allocs, 1U);
 
 	/*
 	 * First update the pd.
@@ -311,11 +315,15 @@ static int nvgpu_pd_cache_alloc(struct gk20a *g, struct nvgpu_pd_cache *cache,
 {
 	struct nvgpu_pd_mem_entry *pentry;
 	int err;
+	bool bytes_valid;
 
 	pd_dbg(g, "PD-Alloc [C] %u bytes", bytes);
 
-	if ((bytes & (bytes - 1U)) != 0U ||
-	     bytes < NVGPU_PD_CACHE_MIN) {
+	bytes_valid = bytes >= NVGPU_PD_CACHE_MIN;
+	if (bytes_valid) {
+		bytes_valid = (bytes & nvgpu_safe_sub_u32(bytes, 1U)) == 0U;
+	}
+	if (!bytes_valid) {
 		pd_dbg(g, "PD-Alloc [C]   Invalid (bytes=%u)!", bytes);
 		return -EINVAL;
 	}
@@ -408,7 +416,7 @@ static void nvgpu_pd_cache_do_free(struct gk20a *g,
 
 	/* Mark entry as free. */
 	nvgpu_clear_bit(bit, pentry->alloc_map);
-	pentry->allocs -= 1U;
+	pentry->allocs = nvgpu_safe_sub_u32(pentry->allocs, 1U);
 
 	if (pentry->allocs > 0U) {
 		/*
