@@ -16,6 +16,7 @@ obj-$(CONFIG_TEGRA_SKIN)	+= tegra-skin.o
 obj-$(CONFIG_TEGRA186_AHC) += tegra186-ahc/
 obj-$(CONFIG_EVENTLIB)		+= eventlib/
 obj-$(CONFIG_NVSCIC2C) += nvscic2c/
+obj-$(CONFIG_NVSCIIPC)		+= nvsciipc/
 
 ifdef CONFIG_ARCH_TEGRA_19x_SOC
 

@@ -1,0 +1,438 @@
+/*
+ * Copyright (c) 2019, NVIDIA CORPORATION. All rights reserved.
+ *
+ * This program is free software; you can redistribute it and/or modify it
+ * under the terms and conditions of the GNU General Public License,
+ * version 2, as published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+ * more details.
+ */
+
+/*
+ * This is NvSciIpc kernel driver. At present its only use is to support
+ * secure buffer sharing use case across processes.
+ */
+
+#include <linux/module.h>
+#include <linux/platform_device.h>
+#include <linux/string.h>
+#include <linux/types.h>
+#include <linux/device.h>
+#include <linux/cdev.h>
+#include <linux/uaccess.h>
+#include <linux/slab.h>
+#include <linux/file.h>
+
+#ifdef CONFIG_TEGRA_VIRTUALIZATION
+#include <soc/tegra/virt/syscalls.h>
+#endif
+
+#include "nvsciipc.h"
+
+#define NVSCIIPC_VUID_INDEX_SHIFT 0
+#define NVSCIIPC_VUID_INDEX_MASK ((1<<16)-1)
+#define NVSCIIPC_VUID_TYPE_SHIFT 16
+#define NVSCIIPC_VUID_TYPE_MASK  ((1<<4)-1)
+#define NVSCIIPC_VUID_VMID_SHIFT 20
+#define NVSCIIPC_VUID_VMID_MASK  ((1<<8)-1)
+#define NVSCIIPC_VUID_SOCID_SHIFT 28
+#define NVSCIIPC_VUID_SOCID_MASK ((1<<4)-1)
+
+struct nvsciipc *ctx;
+
+NvSciError NvSciIpcEndpointGetAuthToken(NvSciIpcEndpoint handle,
+		NvSciIpcEndpointAuthToken *authToken)
+{
+	return NvSciError_NotImplemented;
+}
+EXPORT_SYMBOL(NvSciIpcEndpointGetAuthToken);
+
+NvSciError NvSciIpcEndpointGetVuid(NvSciIpcEndpoint handle,
+		NvSciIpcEndpointVuid *vuid)
+{
+	return NvSciError_NotImplemented;
+}
+EXPORT_SYMBOL(NvSciIpcEndpointGetVuid);
+
+NvSciError NvSciIpcEndpointValidateAuthTokenLinuxCurrent(
+		NvSciIpcEndpointAuthToken authToken,
+		NvSciIpcEndpointVuid *localUserVuid)
+{
+	struct fd f;
+	struct file *filp;
+	int i;
+	char node[NVSCIIPC_MAX_EP_NAME+4];
+
+	f = fdget((int)authToken);
+	if (!f.file) {
+		ERR("invalid auth token\n");
+		return NvSciError_BadParameter;
+	}
+	filp = f.file;
+
+	for (i = 0; i < ctx->num_eps; i++) {
+		sprintf(node, "%s%d", ctx->db[i]->dev_name, ctx->db[i]->id);
+		if (!strcmp(filp->f_path.dentry->d_name.name, node)) {
+			*localUserVuid = ctx->db[i]->vuid;
+			break;
+		}
+	}
+
+	if (i == ctx->num_eps) {
+		ERR("wrong auth token passed\n");
+		return NvSciError_BadParameter;
+	}
+	fdput(f);
+
+	return NvSciError_Success;
+}
+EXPORT_SYMBOL(NvSciIpcEndpointValidateAuthTokenLinuxCurrent);
+
+NvSciError NvSciIpcEndpointMapVuid(NvSciIpcEndpointVuid localUserVuid,
+		NvSciIpcTopoId *peerTopoId, NvSciIpcEndpointVuid *peerUserVuid)
+{
+	int i;
+
+	for (i = 0; i < ctx->num_eps; i++) {
+		if (ctx->db[i]->vuid == localUserVuid)
+			break;
+	}
+
+	if (i == ctx->num_eps) {
+		ERR("wrong localUserVuid passed\n");
+		return NvSciError_BadParameter;
+	}
+
+	*peerUserVuid = (localUserVuid ^ 1);
+	peerTopoId->VmId = ((localUserVuid >> NVSCIIPC_VUID_VMID_SHIFT)
+			   & NVSCIIPC_VUID_VMID_MASK);
+	peerTopoId->SocId = ((localUserVuid >> NVSCIIPC_VUID_SOCID_SHIFT)
+			    & NVSCIIPC_VUID_SOCID_MASK);
+
+	return NvSciError_Success;
+}
+EXPORT_SYMBOL(NvSciIpcEndpointMapVuid);
+
+static int nvsciipc_dev_open(struct inode *inode, struct file *filp)
+{
+	struct nvsciipc *ctx = container_of(inode->i_cdev,
+			struct nvsciipc, cdev);
+
+	filp->private_data = ctx;
+
+	return 0;
+}
+
+static void nvsciipc_free_db(struct nvsciipc *ctx)
+{
+	int i;
+
+	if (ctx->num_eps != 0) {
+		for (i = 0; i < ctx->num_eps; i++)
+			kfree(ctx->db[i]);
+
+		kfree(ctx->db);
+	}
+}
+
+static int nvsciipc_dev_release(struct inode *inode, struct file *filp)
+{
+	filp->private_data = NULL;
+
+	return 0;
+}
+
+static int nvsciipc_ioctl_get_vuid(struct nvsciipc *ctx, unsigned int cmd,
+				   unsigned long arg)
+{
+	struct nvsciipc_get_vuid get_vuid;
+	int i;
+
+	if (copy_from_user(&get_vuid, (void __user *)arg, _IOC_SIZE(cmd))) {
+		ERR("%s : copy_from_user failed\n", __func__);
+		return -EFAULT;
+	}
+
+	if (ctx->num_eps == 0) {
+		ERR("need to set endpoint database first\n");
+		return -EINVAL;
+	}
+
+	for (i = 0; i < ctx->num_eps; i++) {
+		if (!strcmp(get_vuid.ep_name, ctx->db[i]->ep_name)) {
+			get_vuid.vuid = ctx->db[i]->vuid;
+			break;
+		}
+	}
+
+	if (i == ctx->num_eps) {
+		ERR("wrong endpoint name passed\n");
+		return -EINVAL;
+	} else if (copy_to_user((void __user *)arg, &get_vuid,
+				_IOC_SIZE(cmd))) {
+		ERR("%s : copy_to_user failed\n", __func__);
+		return -EFAULT;
+	}
+
+	return 0;
+}
+
+static int nvsciipc_ioctl_set_db(struct nvsciipc *ctx, unsigned int cmd,
+				 unsigned long arg)
+{
+	struct nvsciipc_db user_db;
+	struct nvsciipc_config_entry **entry_ptr;
+	int vmid = 0;
+	int ret = 0;
+	int err_count = 0;
+	int i;
+
+	if (ctx->num_eps != 0) {
+		INFO("nvsciipc db is set again\n");
+		nvsciipc_free_db(ctx);
+	}
+
+	if (copy_from_user(&user_db, (void __user *)arg, _IOC_SIZE(cmd))) {
+		ERR("copying user db failed\n");
+		return -EFAULT;
+	}
+
+	ctx->num_eps = user_db.num_eps;
+
+	entry_ptr = (struct nvsciipc_config_entry **)
+		kzalloc(ctx->num_eps * sizeof(struct nvsciipc_config_entry *),
+			GFP_KERNEL);
+	ret = copy_from_user(entry_ptr, (void __user *)user_db.entry,
+			ctx->num_eps * sizeof(struct nvsciipc_config_entry *));
+	if (ret < 0) {
+		ERR("copying entry ptr failed\n");
+		ret = -EFAULT;
+		goto ptr_error;
+	}
+
+
+	ctx->db = (struct nvsciipc_config_entry **)
+		kzalloc(ctx->num_eps * sizeof(struct nvsciipc_config_entry *),
+			GFP_KERNEL);
+	for (i = 0; i < ctx->num_eps; i++) {
+		ctx->db[i] = (struct nvsciipc_config_entry *)
+			kzalloc(sizeof(struct nvsciipc_config_entry),
+				GFP_KERNEL);
+
+		ret = copy_from_user(ctx->db[i], (void __user *)entry_ptr[i],
+				sizeof(struct nvsciipc_config_entry));
+		if (ret < 0) {
+			ERR("copying config entry failed\n");
+			ret = -EFAULT;
+			err_count = i;
+			goto entry_error;
+		}
+	}
+
+#ifdef CONFIG_TEGRA_VIRTUALIZATION
+	hyp_read_gid(&vmid);
+#endif
+
+	for (i = 0; i < ctx->num_eps; i++) {
+		ctx->db[i]->vuid |= ((vmid & NVSCIIPC_VUID_VMID_MASK)
+				    << NVSCIIPC_VUID_VMID_SHIFT);
+	}
+
+	kfree(entry_ptr);
+	return ret;
+
+ptr_error:
+	if (entry_ptr != NULL)
+		kfree(entry_ptr);
+
+entry_error:
+	for (i = 0; i < err_count; i++)
+		kfree(ctx->db[i]);
+
+	kfree(ctx->db);
+
+	return ret;
+}
+
+static long nvsciipc_dev_ioctl(struct file *filp, unsigned int cmd,
+		unsigned long arg)
+{
+	struct nvsciipc *ctx = filp->private_data;
+	long ret = 0;
+
+	if (_IOC_TYPE(cmd) != NVSCIIPC_IOCTL_MAGIC) {
+		ERR("%s: not a nvsciipc ioctl\n", __func__);
+		return -ENOTTY;
+	}
+
+	if (_IOC_NR(cmd) > NVSCIIPC_IOCTL_NUMBER_MAX) {
+		ERR("%s: wrong nvsciipc ioctl\n", __func__);
+		ret = -ENOTTY;
+	}
+
+	switch (cmd) {
+	case NVSCIIPC_IOCTL_SET_DB:
+		ret = nvsciipc_ioctl_set_db(ctx, cmd, arg);
+		break;
+	case NVSCIIPC_IOCTL_GET_VUID:
+		ret = nvsciipc_ioctl_get_vuid(ctx, cmd, arg);
+		break;
+	default:
+		ERR("unrecognised ioctl cmd: 0x%x\n", cmd);
+		ret = -ENOTTY;
+		break;
+	}
+
+	return ret;
+}
+
+static const struct file_operations nvsciipc_fops = {
+	.owner          = THIS_MODULE,
+	.open           = nvsciipc_dev_open,
+	.release        = nvsciipc_dev_release,
+	.unlocked_ioctl = nvsciipc_dev_ioctl,
+	.llseek         = noop_llseek,
+};
+
+static int nvsciipc_probe(struct platform_device *pdev)
+{
+	int ret = 0;
+
+	if (pdev == NULL) {
+		ERR("nvalid platform device\n");
+		ret = -EINVAL;
+		goto error;
+	}
+
+	ctx = devm_kzalloc(&pdev->dev, sizeof(struct nvsciipc),	GFP_KERNEL);
+	if (ctx == NULL) {
+		ERR("devm_kzalloc failed for nvsciipc\n");
+		ret = -ENOMEM;
+		goto error;
+	}
+
+	ctx->dev = &(pdev->dev);
+	platform_set_drvdata(pdev, ctx);
+
+	ret = alloc_chrdev_region(&(ctx->dev_t), 0, 1, MODULE_NAME);
+	if (ret != 0) {
+		ERR("alloc_chrdev_region() failed\n");
+		goto error;
+	}
+
+	ctx->nvsciipc_class = class_create(THIS_MODULE, MODULE_NAME);
+	if (IS_ERR(ctx->nvsciipc_class)) {
+		ERR("failed to create class: %ld\n",
+		    PTR_ERR(ctx->nvsciipc_class));
+		ret = PTR_ERR(ctx->nvsciipc_class);
+		goto error;
+	}
+
+	ctx->dev_t = MKDEV(MAJOR(ctx->dev_t), 0);
+	cdev_init(&ctx->cdev, &nvsciipc_fops);
+	ctx->cdev.owner = THIS_MODULE;
+	ret = cdev_add(&(ctx->cdev), ctx->dev_t, 1);
+	if (ret != 0) {
+		ERR("cdev_add() failed\n");
+		goto error;
+	}
+
+	snprintf(ctx->device_name, (MAX_NAME_SIZE - 1), "%s", MODULE_NAME);
+	ctx->device = device_create(ctx->nvsciipc_class, NULL,
+			ctx->dev_t, ctx,
+			ctx->device_name);
+	if (IS_ERR(ctx->device)) {
+		ret = PTR_ERR(ctx->device);
+		ERR("device_create() failed\n");
+		goto error;
+	}
+	dev_set_drvdata(ctx->device, ctx);
+
+	INFO("loaded module\n");
+
+	return ret;
+
+error:
+	nvsciipc_cleanup(ctx);
+
+	return ret;
+}
+
+static void nvsciipc_cleanup(struct nvsciipc *ctx)
+{
+	if (ctx == NULL)
+		return;
+
+	nvsciipc_free_db(ctx);
+
+	if (ctx->device != NULL) {
+		cdev_del(&ctx->cdev);
+		device_del(ctx->device);
+		ctx->device = NULL;
+	}
+
+	if (ctx->nvsciipc_class) {
+		class_destroy(ctx->nvsciipc_class);
+		ctx->nvsciipc_class = NULL;
+	}
+
+	if (ctx->dev_t) {
+		unregister_chrdev_region(ctx->dev_t, 1);
+		ctx->dev_t = 0;
+	}
+
+	ctx = NULL;
+}
+
+static int nvsciipc_remove(struct platform_device *pdev)
+{
+	struct nvsciipc *ctx = NULL;
+
+	if (pdev == NULL)
+		goto exit;
+
+	ctx = (struct nvsciipc *)platform_get_drvdata(pdev);
+	if (ctx == NULL)
+		goto exit;
+
+	nvsciipc_cleanup(ctx);
+
+exit:
+	INFO("Unloaded module\n");
+
+	return 0;
+}
+
+static const struct of_device_id nvsciipc_of_match[] = {
+	{ .compatible = "nvidia,nvsciipc", },
+	{},
+};
+MODULE_DEVICE_TABLE(of, nvsciipc_of_match);
+
+static struct platform_driver nvsciipc_driver = {
+	.probe  = nvsciipc_probe,
+	.remove = nvsciipc_remove,
+	.driver = {
+		.name = MODULE_NAME,
+		.of_match_table = nvsciipc_of_match,
+	},
+};
+
+static int __init nvsciipc_module_init(void)
+{
+	return platform_driver_register(&(nvsciipc_driver));
+}
+
+static void __exit nvsciipc_module_deinit(void)
+{
+	platform_driver_unregister(&(nvsciipc_driver));
+}
+
+module_init(nvsciipc_module_init);
+module_exit(nvsciipc_module_deinit);
+
+MODULE_LICENSE("GPL v2");
+MODULE_AUTHOR("Nvidia Corporation");
