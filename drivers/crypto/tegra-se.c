@@ -3208,14 +3208,10 @@ static bool is_algo_supported_in_hw(struct tegra_se_dev *se_dev,
 	}
 
 	if (!strcmp(algo, "rsa-pka0") || !strcmp(algo, "rsa")) {
-		if (se_dev->chipdata->rsa_supported) {
-			if (tegra_chip_get_revision() == TEGRA210_REVISION_A01)
-				return false;
-			else
-				return true;
-		} else {
+		if (se_dev->chipdata->rsa_supported)
+			return true;
+		else
 			return false;
-		}
 	}
 
 	return true;
@@ -3260,7 +3256,7 @@ static struct tegra_se_chipdata tegra11_se_chipdata = {
 };
 
 static struct tegra_se_chipdata tegra21_se_chipdata = {
-	.rsa_supported = true,
+	.rsa_supported = false,
 	.cprng_supported = false,
 	.drbg_supported = true,
 	.const_freq = true,
