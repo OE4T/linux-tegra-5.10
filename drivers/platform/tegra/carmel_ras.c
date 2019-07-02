@@ -113,34 +113,35 @@ static struct ras_error lsd_3_errors[] = {
 /* Error Records per CORE */
 static struct carmel_error_record core_ers[] = {
 	{
-		.fr_mask = DEFAULT_FR_MASK,
+		.err_ctlr_mask = DEFAULT_ERR_CTLR_MASK,
 		{.name = "IFU", .errx = 0, .errors = ifu_errors},
 	},
 	{
-		.fr_mask = DEFAULT_FR_MASK,
+		.err_ctlr_mask = DEFAULT_ERR_CTLR_MASK,
 		{.name = "RET_JSR", .errx = 1, .errors = ret_jsr_errors},
 	},
 	{
-		.fr_mask = DEFAULT_FR_MASK & ~(ERR_CTL_MTS_JSR_DUEXUC_ERR |
-						ERR_CTL_MTS_JSR_DUEXC_ERR),
+		.err_ctlr_mask = DEFAULT_ERR_CTLR_MASK &
+				~(ERR_CTL_MTS_JSR_DUEXUC_ERR |
+				ERR_CTL_MTS_JSR_DUEXC_ERR),
 		{.name = "MTS_JSR", .errx = 2, .errors = mts_jsr_errors},
 	},
 	{
-		.fr_mask = DEFAULT_FR_MASK,
+		.err_ctlr_mask = DEFAULT_ERR_CTLR_MASK,
 		{.name = "LSD_STQ", .errx = 3, .errors = lsd_1_errors},
 	},
 	{
-		.fr_mask = DEFAULT_FR_MASK,
+		.err_ctlr_mask = DEFAULT_ERR_CTLR_MASK,
 		{.name = "LSD_DCC", .errx = 4, .errors = lsd_2_errors},
 	},
 	{
-		.fr_mask = DEFAULT_FR_MASK,
+		.err_ctlr_mask = DEFAULT_ERR_CTLR_MASK,
 		{.name = "LSD_L1HPF", .errx = 5, .errors = lsd_3_errors},
 	},
 	/* Last entry placeholder. No entries beyond this are scanned.
 	 */
 	{
-		.fr_mask = 0xFFFFFFFFFFFFFFFFUL,
+		.err_ctlr_mask = 0xFFFFFFFFFFFFFFFFUL,
 		{.name = "", .errx = 0xFFFFFFFFFFFFFFFFUL, .errors = NULL}
 	}
 };
@@ -196,22 +197,23 @@ static struct ras_error cluster_clocks_errors[] = {
 /* Error Records per CORE CLUSTER */
 static struct carmel_error_record corecluster_ers[] = {
 	{
-		.fr_mask = DEFAULT_FR_MASK,
+		.err_ctlr_mask = DEFAULT_ERR_CTLR_MASK &
+			~(ERR_CTL_L2_SCF2L2C_SLVRDERR_ERR),
 		{.name = "L2", .errx = 0, .errors = l2_errors}
 	},
 	{
-		.fr_mask = DEFAULT_FR_MASK,
+		.err_ctlr_mask = DEFAULT_ERR_CTLR_MASK,
 		{.name = "CLUSTER_CLOCKS", .errx = 1,
 		.errors = cluster_clocks_errors},
 	},
 	{
-		.fr_mask = DEFAULT_FR_MASK,
+		.err_ctlr_mask = DEFAULT_ERR_CTLR_MASK,
 		{.name = "MMU", .errx = 2, .errors = mmu_errors},
 	},
 	/* Last entry placeholder. No entries beyond this are scanned.
 	 */
 	{
-		.fr_mask = 0xFFFFFFFFFFFFFFFFUL,
+		.err_ctlr_mask = 0xFFFFFFFFFFFFFFFFUL,
 		{.name = "", .errx = 0xFFFFFFFFFFFFFFFFUL, .errors = NULL}
 	}
 };
@@ -304,47 +306,52 @@ static struct ras_error scfcmu_clocks_errors[] = {
 /* Error Records per CCPLEX */
 static struct carmel_error_record ccplex_ers[] = {
 	{
-		.fr_mask = DEFAULT_FR_MASK &
+		.err_ctlr_mask = DEFAULT_ERR_CTLR_MASK &
 					~(ERR_CTL_DPMU_CORESIGHT_ACCESS_ERR),
 		{.name = "CMU:CCPMU", .errx = 1024, .errors = cmu_ccpmu_errors},
 	},
 	{
-		.fr_mask = DEFAULT_FR_MASK,
+		.err_ctlr_mask = DEFAULT_ERR_CTLR_MASK &
+			~(ERR_CTL_SCFIOB_CBB_ERR),
 		{.name = "SCF:IOB", .errx = 1025, .errors = scf_iob_errors},
 	},
 	{
-		.fr_mask = DEFAULT_FR_MASK & ~(SCFSNOC_CONFIG_BITS),
+		.err_ctlr_mask = DEFAULT_ERR_CTLR_MASK,
 		{.name = "SCF:SNOC", .errx = 1026, .errors = scf_snoc_errors},
 	},
 	{
-		.fr_mask = DEFAULT_FR_MASK,
+		.err_ctlr_mask = DEFAULT_ERR_CTLR_MASK,
 		{.name = "CMU:CTU", .errx = 1027, .errors = cmu_ctu_errors},
 	},
 	{
-		.fr_mask = DEFAULT_FR_MASK & ~(ERR_CTL_SCFL3_DIR_PAR_ERR),
+		.err_ctlr_mask = DEFAULT_ERR_CTLR_MASK &
+						~(ERR_CTL_SCFL3_DIR_PAR_ERR),
 		{.name = "SCF:L3_0", .errx = 768, .errors = scf_l3_errors},
 	},
 	{
-		.fr_mask = DEFAULT_FR_MASK & ~(ERR_CTL_SCFL3_DIR_PAR_ERR),
+		.err_ctlr_mask = DEFAULT_ERR_CTLR_MASK &
+						~(ERR_CTL_SCFL3_DIR_PAR_ERR),
 		{.name = "SCF:L3_1", .errx = 769, .errors = scf_l3_errors},
 	},
 	{
-		.fr_mask = DEFAULT_FR_MASK & ~(ERR_CTL_SCFL3_DIR_PAR_ERR),
+		.err_ctlr_mask = DEFAULT_ERR_CTLR_MASK &
+						~(ERR_CTL_SCFL3_DIR_PAR_ERR),
 		{.name = "SCF:L3_2", .errx = 770, .errors = scf_l3_errors},
 	},
 	{
-		.fr_mask = DEFAULT_FR_MASK & ~(ERR_CTL_SCFL3_DIR_PAR_ERR),
+		.err_ctlr_mask = DEFAULT_ERR_CTLR_MASK &
+						~(ERR_CTL_SCFL3_DIR_PAR_ERR),
 		{.name = "SCF:L3_3", .errx = 771, .errors = scf_l3_errors},
 	},
 	{
-		.fr_mask = DEFAULT_FR_MASK,
+		.err_ctlr_mask = DEFAULT_ERR_CTLR_MASK,
 		{.name = "SCFCMU_CLOCKS", .errx = 1028,
 		.errors = scfcmu_clocks_errors},
 	},
 	/* Last entry placeholder. No entries beyond this are scanned.
 	 */
 	{
-		.fr_mask = 0xFFFFFFFFFFFFFFFFUL,
+		.err_ctlr_mask = 0xFFFFFFFFFFFFFFFFUL,
 		{.name = "", .errx = 0xFFFFFFFFFFFFFFFFUL, .errors = NULL}
 	}
 };
@@ -367,20 +374,19 @@ static struct tegra_ras_impl_err_bit t194_ras_impl_err_bit[] = {
 	{ERR_CTL_SCFCMU_FREQ0_MON_ERR,	0xFF}			  /*CMU_Clocks*/
 };
 
-
 /* This is called for each online CPU during probe and is also used
  * as hotplug callback to enable RAS every time a core comes online
  */
 static void carmel_ras_enable(void *info)
 {
 	u64 errx;
-	u64 fr;
+	u64 err_ctlr_def;
 	int i;
 	u8 cpu = smp_processor_id();
 
 	/* This essentially takes the valid bits of implementation
 	 * defined fields of ERR<n>FR register and then writes to
-	 * ERR<n>CTRL.
+	 * ERR<n>CTLR
 	 */
 
 	/* Enable Core Error Records */
@@ -388,11 +394,12 @@ static void carmel_ras_enable(void *info)
 		errx = (tegra18_logical_to_cluster(cpu) << 5) +
 			(tegra18_logical_to_cpu(cpu) << 4) +
 			core_ers[i].rec.errx;
-
 		ras_write_errselr(errx);
-		fr = ras_read_feature_reg();
-		core_ers[i].rec.err_ctrl = fr & core_ers[i].fr_mask;
-		ras_write_error_control(core_ers[i].rec.err_ctrl);
+
+		err_ctlr_def = ras_read_error_control();
+		core_ers[i].rec.err_ctlr =
+				err_ctlr_def & core_ers[i].err_ctlr_mask;
+		ras_write_error_control(core_ers[i].rec.err_ctlr);
 		ras_read_error_control();
 	}
 
@@ -400,22 +407,23 @@ static void carmel_ras_enable(void *info)
 	for (i = 0; strlen(corecluster_ers[i].rec.name) != 0UL; i++) {
 		errx = 512 + (tegra18_logical_to_cluster(cpu) << 4) +
 		       corecluster_ers[i].rec.errx;
-
 		ras_write_errselr(errx);
-		fr = ras_read_feature_reg();
 
-		corecluster_ers[i].rec.err_ctrl = fr &
-						corecluster_ers[i].fr_mask;
-		ras_write_error_control(corecluster_ers[i].rec.err_ctrl);
+		err_ctlr_def = ras_read_error_control();
+		corecluster_ers[i].rec.err_ctlr = err_ctlr_def &
+				corecluster_ers[i].err_ctlr_mask;
+		ras_write_error_control(corecluster_ers[i].rec.err_ctlr);
 		ras_read_error_control();
 	}
 
 	/* Enable CCPLEX Error Records */
 	for (i = 0; strlen(ccplex_ers[i].rec.name) != 0UL; i++) {
 		ras_write_errselr(ccplex_ers[i].rec.errx);
-		fr = ras_read_feature_reg();
-		ccplex_ers[i].rec.err_ctrl = fr & ccplex_ers[i].fr_mask;
-		ras_write_error_control(ccplex_ers[i].rec.err_ctrl);
+
+		err_ctlr_def = ras_read_error_control();
+		ccplex_ers[i].rec.err_ctlr =
+			err_ctlr_def & ccplex_ers[i].err_ctlr_mask;
+		ras_write_error_control(ccplex_ers[i].rec.err_ctlr);
 		ras_read_error_control();
 	}
 

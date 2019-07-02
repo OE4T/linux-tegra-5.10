@@ -98,7 +98,6 @@
 #define ERR_CTL_SCFSNOC_CARVEOUT_ERR	RAS_BIT(34)
 #define ERR_CTL_SCFSNOC_MISC_CECC_ERR	RAS_BIT(33)
 #define ERR_CTL_SCFSNOC_CARVEOUT_CECC_ERR	RAS_BIT(32)
-#define SCFSNOC_CONFIG_BITS		(RAS_BIT(48) | RAS_BIT(49))
 
 /* ERR_CTLR bits for SCF:CTU*/
 #define ERR_CTL_CMUCTU_TRCDMA_REQ_ERR	RAS_BIT(39)
@@ -173,9 +172,10 @@
 #define ERRi_MISC1_CONST		0x3333333333333333UL
 #define ERRi_ADDR_CONST			0x4444444444444444UL
 
-/* Typically [64:32] bits in ERR<n>FR define the errors supported by that node.
+/* [64:32] bits in ERR<n>CTLR define the errors supported by that node.
  */
-#define DEFAULT_FR_MASK			0xFFFFFFFF00000000UL
+#define DEFAULT_ERR_CTLR_MASK	(0xFFFFFFFF00000000UL | RAS_CTL_ED |\
+			RAS_CTL_UE | RAS_CTL_CFI)
 
 
 enum {
@@ -204,7 +204,7 @@ struct tegra_ras_impl_err_bit {
 /**
  * struct carmel_error_record - Platform specific error record inheriting the
  *				generic arm64 ras error record.
- * @fr_mask:	Implementation defined field of ERR<n>FR field of a node
+ * @err_ctlr_mask: Implementation defined field of ERR<n>CTLR field of a node
  *		holds info regarding which errors are valid in carmel.
  *		Typically it is the higher 32 bits, but in certain
  *		cases, it might be different.
@@ -214,6 +214,6 @@ struct tegra_ras_impl_err_bit {
  *		See arm64_ras.h for the structure description.
  */
 struct carmel_error_record {
-	u64 fr_mask;
+	u64 err_ctlr_mask;
 	struct error_record rec;
 };

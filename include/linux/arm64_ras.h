@@ -21,7 +21,7 @@ struct error_record {
 	char *name;
 	u64 errx;
 	u8 processed;
-	u64 err_ctrl;
+	u64 err_ctlr;
 	struct ras_error *errors;
 };
 
