@@ -79,9 +79,11 @@ int nvgpu_ecc_counter_init_per_tpc(struct gk20a *g,
 		for (tpc = 0;
 		     tpc < nvgpu_gr_config_get_gpc_tpc_count(gr_config, gpc);
 		     tpc++) {
+#ifdef CONFIG_NVGPU_LOGGING
 			(void) snprintf(stats[gpc][tpc].name,
 					NVGPU_ECC_STAT_NAME_MAX_SIZE,
 					"gpc%d_tpc%d_%s", gpc, tpc, name);
+#endif
 			nvgpu_ecc_stat_add(g, &stats[gpc][tpc]);
 		}
 	}
@@ -103,8 +105,10 @@ int nvgpu_ecc_counter_init_per_gpc(struct gk20a *g,
 		return -ENOMEM;
 	}
 	for (gpc = 0; gpc < gpc_count; gpc++) {
+#ifdef CONFIG_NVGPU_LOGGING
 		(void) snprintf(stats[gpc].name, NVGPU_ECC_STAT_NAME_MAX_SIZE,
 				"gpc%d_%s", gpc, name);
+#endif
 		nvgpu_ecc_stat_add(g, &stats[gpc]);
 	}
 
@@ -161,9 +165,11 @@ int nvgpu_ecc_counter_init_per_lts(struct gk20a *g,
 
 	for (ltc = 0; ltc < ltc_count; ltc++) {
 		for (lts = 0; lts < slices_per_ltc; lts++) {
+#ifdef CONFIG_NVGPU_LOGGING
 			(void) snprintf(stats[ltc][lts].name,
 					NVGPU_ECC_STAT_NAME_MAX_SIZE,
 					"ltc%d_lts%d_%s", ltc, lts, name);
+#endif
 			nvgpu_ecc_stat_add(g, &stats[ltc][lts]);
 		}
 	}
@@ -185,8 +191,10 @@ int nvgpu_ecc_counter_init_per_fbpa(struct gk20a *g,
 	}
 
 	for (i = 0; i < num_fbpa; i++) {
+#ifdef CONFIG_NVGPU_LOGGING
 		(void) snprintf(stats[i].name, NVGPU_ECC_STAT_NAME_MAX_SIZE,
 				"fbpa%u_%s", i, name);
+#endif
 		nvgpu_ecc_stat_add(g, &stats[i]);
 	}
 
