@@ -286,6 +286,7 @@ typedef struct tegra_sysfs_stat_generic {
 	unsigned long eapol_message_4_retry;
 
 	int ccode_sig_fail[SIG_FAIL_REASONS];
+	unsigned long skb_realloc_headroom_fail;
 } tegra_sysfs_stat_generic_t;
 
 typedef struct tegra_sysfs_stat_firmware {

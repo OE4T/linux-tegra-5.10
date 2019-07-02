@@ -2706,6 +2706,9 @@ dhd_start_xmit(struct sk_buff *skb, struct net_device *net)
 			DHD_ERROR(("%s: skb_realloc_headroom failed\n",
 			           dhd_ifname(&dhd->pub, ifidx)));
 			ret = -ENOMEM;
+#ifdef CONFIG_BCMDHD_CUSTOM_SYSFS_TEGRA
+			TEGRA_SYSFS_HISTOGRAM_STAT_INC(skb_realloc_headroom_fail);
+#endif
 			goto done;
 		}
 	}
