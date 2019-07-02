@@ -171,6 +171,8 @@ struct hyp_server_page {
 	/* PCT Size Shared with guests in bytes */
 	uint64_t pct_size;
 
+	/* check if the VM is a server or a guest */
+	uint32_t is_server_vm;
 };
 
 /* For backwards compatibility, alias the old name for hyp_server_name. */
