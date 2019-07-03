@@ -92,7 +92,7 @@ struct nvgpu_clk_session;
 #define LOCAL_ALARM_MASK (EVENT(ALARM_LOCAL_TARGET_VF_NOT_POSSIBLE) | \
 				EVENT(VF_UPDATE))
 
-#define _WRAPGTEQ(a, b) ((a-b) > (typeof(a))0)
+#define _WRAPGTEQ(a, b) (((a)-(b)) > (typeof(a))0)
 
 /*
  * NVGPU_POLL* defines equivalent to the POLL* linux defines
@@ -120,7 +120,7 @@ struct nvgpu_clk_session;
 	} while (false)
 
 struct nvgpu_clk_notification {
-	u32 notification;
+	u32 clk_notification;
 	u64 timestamp;
 };
 
@@ -128,7 +128,7 @@ struct nvgpu_clk_notification_queue {
 	u32 size;
 	nvgpu_atomic_t head;
 	nvgpu_atomic_t tail;
-	struct nvgpu_clk_notification *notifications;
+	struct nvgpu_clk_notification *clk_q_notifications;
 };
 
 struct nvgpu_clk_vf_point {
@@ -318,7 +318,7 @@ int nvgpu_clk_arb_install_session_fd(struct gk20a *g,
 		struct nvgpu_clk_session *session);
 
 int nvgpu_clk_arb_init_session(struct gk20a *g,
-		struct nvgpu_clk_session **_session);
+		struct nvgpu_clk_session **l_session);
 
 void nvgpu_clk_arb_release_session(struct gk20a *g,
 		struct nvgpu_clk_session *session);
