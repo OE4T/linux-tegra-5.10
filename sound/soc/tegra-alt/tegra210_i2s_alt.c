@@ -380,10 +380,12 @@ static int tegra210_i2s_set_tdm_slot(struct snd_soc_dai *dai,
 }
 
 static int tegra210_i2s_set_dai_bclk_ratio(struct snd_soc_dai *dai,
-		unsigned int ratio)
+					   unsigned int ratio)
 {
 	struct tegra210_i2s *i2s = snd_soc_dai_get_drvdata(dai);
+
 	i2s->bclk_ratio = ratio;
+
 	return 0;
 }
 
@@ -416,6 +418,8 @@ static int tegra210_i2s_get_format(struct snd_kcontrol *kcontrol,
 					i2s->mono_to_stereo[I2S_RX_PATH];
 	else if (strstr(kcontrol->id.name, "Playback FIFO threshold"))
 		ucontrol->value.integer.value[0] = i2s->rx_fifo_th;
+	else if (strstr(kcontrol->id.name, "BCLK Ratio"))
+		ucontrol->value.integer.value[0] = i2s->bclk_ratio;
 
 	return 0;
 }
@@ -449,7 +453,8 @@ static int tegra210_i2s_put_format(struct snd_kcontrol *kcontrol,
 			i2s->rx_fifo_th = value;
 		else
 			return -EINVAL;
-	}
+	} else if (strstr(kcontrol->id.name, "BCLK Ratio"))
+		i2s->bclk_ratio = value;
 
 	return 0;
 }
@@ -794,6 +799,28 @@ static int tegra210_i2s_loopback_put(struct snd_kcontrol *kcontrol,
 	return 0;
 }
 
+static int tegra210_i2s_get_bclk_ratio(struct snd_kcontrol *kcontrol,
+				       struct snd_ctl_elem_value *ucontrol)
+{
+	struct snd_soc_codec *codec = snd_soc_kcontrol_codec(kcontrol);
+	struct tegra210_i2s *i2s = snd_soc_codec_get_drvdata(codec);
+
+	ucontrol->value.integer.value[0] = i2s->bclk_ratio;
+
+	return 0;
+}
+
+static int tegra210_i2s_put_bclk_ratio(struct snd_kcontrol *kcontrol,
+				       struct snd_ctl_elem_value *ucontrol)
+{
+	struct snd_soc_codec *codec = snd_soc_kcontrol_codec(kcontrol);
+	struct tegra210_i2s *i2s = snd_soc_codec_get_drvdata(codec);
+
+	i2s->bclk_ratio = ucontrol->value.integer.value[0];
+
+	return 0;
+}
+
 static int tegra210_i2s_fsync_width_get(struct snd_kcontrol *kcontrol,
 					struct snd_ctl_elem_value *ucontrol)
 {
@@ -859,6 +886,9 @@ static const struct snd_kcontrol_new tegra210_i2s_controls[] = {
 		tegra210_i2s_get_format, tegra210_i2s_put_format),
 	SOC_SINGLE_EXT("Channels", 0, 0, 16, 0,
 		tegra210_i2s_get_format, tegra210_i2s_put_format),
+	SOC_SINGLE_EXT("BCLK Ratio", SND_SOC_NOPM, 0, INT_MAX, 0,
+		       tegra210_i2s_get_bclk_ratio,
+		       tegra210_i2s_put_bclk_ratio),
 	SOC_ENUM_EXT("Capture stereo to mono conv",
 		     tegra210_i2s_stereo_conv_enum, tegra210_i2s_get_format,
 		     tegra210_i2s_put_format),
@@ -1050,7 +1080,6 @@ static int tegra210_i2s_platform_probe(struct platform_device *pdev)
 	}
 
 	i2s->tx_mask = i2s->rx_mask = 0xFFFF;
-	i2s->bclk_ratio = 2;
 	i2s->enable_cya = false;
 	i2s->loopback = 0;
 	i2s->is_shutdown = false;
@@ -1120,6 +1149,13 @@ static int tegra210_i2s_platform_probe(struct platform_device *pdev)
 			"Missing property nvidia,ahub-i2s-id\n");
 		ret = -ENODEV;
 		goto err;
+	}
+
+	if (of_property_read_u32(pdev->dev.of_node, "bclk-ratio",
+				 &i2s->bclk_ratio) < 0) {
+		dev_dbg(&pdev->dev, "Missing prop bclk-ratio for I2S%d\n",
+			pdev->dev.id);
+		i2s->bclk_ratio = 1;
 	}
 
 	if (of_property_read_u32(pdev->dev.of_node,
