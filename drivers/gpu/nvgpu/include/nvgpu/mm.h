@@ -149,16 +149,6 @@
  *   - nvgpu_gmmu_map()
  *   - nvgpu_dma_alloc()
  *
- * Requirements
- * ============
- *
- * I added this section to link to unit level requirements. Seems like it's
- * missing from the IPP template.
- *
- * Requirement    | Link
- * -----------    | ---------------------------------------------------------------------------
- * NVGPU-RQCD-45  | https://nvidia.jamacloud.com/perspective.req#/items/6434840?projectId=20460
- *
  * Open Items
  * ==========
  *
