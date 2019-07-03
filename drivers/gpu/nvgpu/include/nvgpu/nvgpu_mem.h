@@ -151,22 +151,21 @@ nvgpu_mem_from_clear_list_entry(struct nvgpu_list_node *node)
 };
 #endif
 
+static const char *aperture_name[APERTURE_MAX_ENUM + 1] = {
+	[APERTURE_INVALID]	= "INVAL",
+	[APERTURE_SYSMEM]	= "SYSTEM",
+	[APERTURE_SYSMEM_COH]	= "SYSCOH",
+	[APERTURE_VIDMEM]	= "VIDMEM",
+	[APERTURE_MAX_ENUM]	= "UNKNOWN",
+};
+
 static inline const char *nvgpu_aperture_str(struct gk20a *g,
 					     enum nvgpu_aperture aperture)
 {
-	switch (aperture) {
-	case APERTURE_INVALID:
-		return "INVAL";
-	case APERTURE_SYSMEM:
-		return "SYSMEM";
-	case APERTURE_SYSMEM_COH:
-		return "SYSCOH";
-	case APERTURE_VIDMEM:
-		return "VIDMEM";
-	case APERTURE_MAX_ENUM:
-		return "UNKNOWN";
-	};
-	return "UNKNOWN";
+	if ((aperture < APERTURE_INVALID) || (aperture >= APERTURE_MAX_ENUM)) {
+		return aperture_name[APERTURE_MAX_ENUM];
+	}
+	return aperture_name[aperture];
 }
 
 bool nvgpu_aperture_is_sysmem(enum nvgpu_aperture ap);
