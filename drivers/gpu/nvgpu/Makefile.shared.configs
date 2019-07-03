@@ -69,10 +69,6 @@ NVGPU_COMMON_CFLAGS             += -DCONFIG_NVGPU_DEBUGGER
 CONFIG_NVGPU_CILP               := 1
 NVGPU_COMMON_CFLAGS             += -DCONFIG_NVGPU_CILP
 
-# Enable cyclestats APIs for safety build until complete debugger support is enabled
-CONFIG_NVGPU_CYCLESTATS         := 1
-NVGPU_COMMON_CFLAGS             += -DCONFIG_NVGPU_CYCLESTATS
-
 # Enable USERD for safety build until we switch to user mode submits only
 NVGPU_COMMON_CFLAGS             += -DCONFIG_NVGPU_USERD
 
@@ -119,6 +115,9 @@ NVGPU_COMMON_CFLAGS             += -DCONFIG_NVGPU_ACR_LEGACY
 
 CONFIG_NVGPU_ENGINE_QUEUE       := 1
 NVGPU_COMMON_CFLAGS             += -DCONFIG_NVGPU_ENGINE_QUEUE
+
+CONFIG_NVGPU_CYCLESTATS         := 1
+NVGPU_COMMON_CFLAGS             += -DCONFIG_NVGPU_CYCLESTATS
 
 CONFIG_NVGPU_FECS_TRACE         := 1
 NVGPU_COMMON_CFLAGS             += -DCONFIG_NVGPU_FECS_TRACE
