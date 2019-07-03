@@ -1,7 +1,7 @@
 /*
  * drivers/virt/tegra/hvc_sysfs.c
  *
- * Copyright (c) 2016-2017, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -82,7 +82,7 @@ static int hvc_create_sysfs(
 	sysfs_bin_attr_init((struct bin_attribute *)&hyp_shm_info->attr);
 
 	hyp_shm_info->attr.attr.name = hyp_shm_info->node_name;
-	hyp_shm_info->attr.attr.mode = S_IRUSR | S_IRGRP | S_IROTH;
+	hyp_shm_info->attr.attr.mode = 0400;
 	hyp_shm_info->attr.mmap = hvc_sysfs_mmap;
 	hyp_shm_info->attr.size = (size_t)hyp_shm_info->size;
 
@@ -92,6 +92,37 @@ static int hvc_create_sysfs(
 	return sysfs_create_bin_file(kobj, &hyp_shm_info->attr);
 }
 
+ssize_t log_mask_read(struct file *fp, struct kobject *ko,
+	struct bin_attribute *attr, char *buf, loff_t pos, size_t size)
+{
+	if (size == sizeof(uint64_t))
+		hyp_trace_get_mask((uint64_t *)buf);
+	return size;
+}
+
+ssize_t log_mask_write(struct file *fp, struct kobject *ko,
+	struct bin_attribute *attr, char *buf, loff_t pos, size_t size)
+{
+	if (size == sizeof(uint64_t))
+		hyp_trace_set_mask(*(uint64_t *)buf);
+	return size;
+}
+
+static struct bin_attribute log_mask_attr;
+static int create_log_mask_node(struct kobject *kobj)
+{
+	if (kobj == NULL)
+		return -EINVAL;
+
+	sysfs_bin_attr_init((struct bin_attribute *)&log_mask_attr);
+	log_mask_attr.attr.name = "log_mask";
+	log_mask_attr.attr.mode = 0600;
+	log_mask_attr.read = log_mask_read;
+	log_mask_attr.write = log_mask_write;
+	log_mask_attr.size = sizeof(uint64_t);
+	return sysfs_create_bin_file(kobj, &log_mask_attr);
+}
+
 /* Set up all relevant hypervisor control nodes */
 static int __init hvc_sysfs_register(void)
 {
@@ -99,6 +130,7 @@ static int __init hvc_sysfs_register(void)
 	int ret;
 	uint64_t ipa;
 	struct hyp_info_page *info;
+	uint64_t log_mask;
 
 	if (is_tegra_hypervisor_mode() == false) {
 		TEGRA_HV_INFO("hypervisor is not present\n");
@@ -127,6 +159,13 @@ static int __init hvc_sysfs_register(void)
 		TEGRA_HV_INFO("log is available\n");
 	else
 		TEGRA_HV_INFO("log is unavailable\n");
+
+	if (hyp_trace_get_mask(&log_mask) == 0) {
+		ret = create_log_mask_node(kobj);
+		if (ret == 0)
+			TEGRA_HV_INFO(
+				"access to trace event mask is available\n");
+	}
 
 	hyp_shared_memory_attrs[HYP_SHM_ID_PCT].ipa = info->pct_ipa;
 	hyp_shared_memory_attrs[HYP_SHM_ID_PCT].size = (size_t)info->pct_size;

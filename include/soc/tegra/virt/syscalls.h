@@ -46,6 +46,8 @@
 #define HVC_NR_READ_HYP_INFO		9
 #define HVC_NR_GUEST_RESET		10
 #define HVC_NR_SYSINFO_IPA		13
+#define HVC_NR_TRACE_GET_EVENT_MASK		0x8003U
+#define HVC_NR_TRACE_SET_EVENT_MASK		0x8004U
 
 #define GUEST_PRIMARY		0
 #define GUEST_IVC_SERVER	0
@@ -434,6 +436,44 @@ static inline uint8_t hyp_get_cpu_count(void)
 		return r1;
 
 	return 0;
+}
+
+static __attribute__((always_inline)) inline void hyp_call44(uint16_t id,
+			uint64_t args[4])
+{
+		register uint64_t x0 asm("x0") = args[0];
+		register uint64_t x1 asm("x1") = args[1];
+		register uint64_t x2 asm("x2") = args[2];
+		register uint64_t x3 asm("x3") = args[3];
+
+		asm volatile("HVC %[imm16]"
+			: "+r"(x0), "+r"(x1), "+r"(x2), "+r"(x3)
+			:
+			[imm16] "i"(((uint32_t)id)));
+
+		args[0] = x0;
+		args[1] = x1;
+		args[2] = x2;
+		args[3] = x3;
+}
+
+static inline int hyp_trace_get_mask(uint64_t *value)
+{
+	uint64_t args[4] = { 0U, 0U, 0U, 0U };
+
+	hyp_call44(HVC_NR_TRACE_GET_EVENT_MASK, args);
+	if (args[0] == 0U)
+		*value = args[1];
+
+	return (int) args[0];
+}
+
+static inline int hyp_trace_set_mask(uint64_t mask)
+{
+	uint64_t args[4] = { mask, 0U, 0U, 0U };
+
+	hyp_call44(HVC_NR_TRACE_SET_EVENT_MASK, args);
+	return (int) args[0];
 }
 
 #undef _X3_X17
