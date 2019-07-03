@@ -243,18 +243,6 @@ s64 nvgpu_current_time_ms(void)
 }
 
 /**
- * nvgpu_current_time_us - Time in microseconds from a monotonic clock.
- *
- * Return a clock in microsecond units. The start time of the clock is
- * unspecified; the time returned can be compared with older ones to measure
- * durations. The source clock does not jump when the system clock is adjusted.
- */
-s64 nvgpu_current_time_us(void)
-{
-	return ktime_to_us(ktime_get());
-}
-
-/**
  * nvgpu_current_time_ns - Time in nanoseconds from a monotonic clock.
  *
  * Return a clock in nanosecond units. The start time of the clock is
@@ -264,18 +252,6 @@ s64 nvgpu_current_time_us(void)
 s64 nvgpu_current_time_ns(void)
 {
 	return ktime_to_ns(ktime_get());
-}
-
-/**
- * nvgpu_hr_timestamp_us - Time in microseconds from a monotonic clock.
- *
- * Return a clock in microsecond units. The start time of the clock is
- * unspecified; the time returned can be compared with older ones to measure
- * durations. The source clock does not jump when the system clock is adjusted.
- */
-u64 nvgpu_hr_timestamp_us(void)
-{
-	return nvgpu_us_counter();
 }
 
 /**

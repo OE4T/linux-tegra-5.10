@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,7 +20,6 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#include <nvgpu/timers.h>
 #include <nvgpu/soc.h>
 
 bool nvgpu_platform_is_silicon(struct gk20a *g)
@@ -55,9 +54,4 @@ bool nvgpu_is_soc_t194_a01(struct gk20a *g)
 
 void nvgpu_delay_usecs(unsigned int usecs)
 {
-}
-
-u64 nvgpu_us_counter(void)
-{
-	return (u64)nvgpu_current_time_us();
 }

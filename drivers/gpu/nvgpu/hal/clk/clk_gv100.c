@@ -31,7 +31,7 @@
 #include <nvgpu/io.h>
 #include <nvgpu/list.h>
 #include <nvgpu/clk_arb.h>
-#include <nvgpu/soc.h>
+#include <nvgpu/timers.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/clk.h>
 #include <nvgpu/clk_arb.h>
@@ -189,14 +189,13 @@ u32 gv100_get_rate_cntr(struct gk20a *g, struct namemap_cfg *c) {
 	/* Counter is 36bits , 32 bits on addr[0] and 4 lsb on addr[1] others zero*/
 	cntr_start = (u64)gk20a_readl(g, c->cntr.reg_cntr_addr[0]);
 	cntr_start += ((u64)gk20a_readl(g, c->cntr.reg_cntr_addr[1]) << 32);
-	start_time = (u64)nvgpu_hr_timestamp_us();
+	start_time = (u64)nvgpu_current_time_ms();
 	nvgpu_udelay(XTAL_CNTR_DELAY);
-	stop_time = (u64)nvgpu_hr_timestamp_us();
+	stop_time = (u64)nvgpu_current_time_ms();
 	cntr_stop = (u64)gk20a_readl(g, c->cntr.reg_cntr_addr[0]);
 	cntr_stop += ((u64)gk20a_readl(g, c->cntr.reg_cntr_addr[1]) << 32);
 	/*Calculate the difference with Acutal time and convert to KHz*/
-	cntr = (u32)(((cntr_stop - cntr_start) * 1000U) /
-					(u32)(stop_time-start_time));
+	cntr = ((u32)(cntr_stop - cntr_start) / (u32)(stop_time-start_time));
 	nvgpu_mutex_release(&clk->clk_mutex);
 
 	return cntr;

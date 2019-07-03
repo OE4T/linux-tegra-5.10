@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -34,5 +34,5 @@ bool nvgpu_is_bpmp_running(struct gk20a *g);
 bool nvgpu_is_soc_t194_a01(struct gk20a *g);
 int nvgpu_init_soc_vars(struct gk20a *g);
 void nvgpu_delay_usecs(unsigned int usecs);
-u64 nvgpu_us_counter(void);
+
 #endif /* NVGPU_SOC_H */

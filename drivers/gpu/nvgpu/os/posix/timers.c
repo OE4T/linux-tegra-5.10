@@ -34,7 +34,7 @@
 #define NSEC_PER_MSEC   1000000
 #define NSEC_PER_SEC    1000000000
 
-s64 nvgpu_current_time_us(void)
+static inline s64 nvgpu_current_time_us(void)
 {
 	struct timeval now;
 	s64 time_now;
@@ -250,9 +250,4 @@ s64 nvgpu_current_time_ns(void)
 u64 nvgpu_hr_timestamp(void)
 {
 	return (u64)nvgpu_current_time_us();
-}
-
-u64 nvgpu_hr_timestamp_us(void)
-{
-	return nvgpu_us_counter();
 }
