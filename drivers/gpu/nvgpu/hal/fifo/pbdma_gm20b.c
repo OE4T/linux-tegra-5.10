@@ -136,7 +136,7 @@ void gm20b_pbdma_syncpoint_debug_dump(struct gk20a *g,
 			info->hw_state.pending_acquire ? "Waiting" : "Waited",
 			pbdma_syncpointb_syncpt_index_v(syncpointb),
 			nvgpu_nvhost_syncpt_get_name(g->nvhost_dev,
-				pbdma_syncpointb_syncpt_index_v(syncpointb)),
+			(int) pbdma_syncpointb_syncpt_index_v(syncpointb)),
 			pbdma_syncpointa_payload_v(syncpointa));
 	}
 #endif
