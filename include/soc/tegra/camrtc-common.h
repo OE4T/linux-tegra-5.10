@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2015-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * NVIDIA CORPORATION and its licensors retain all intellectual property
  * and proprietary rights in and to this software, related documentation
@@ -23,14 +23,17 @@
 #ifndef __aligned
 #define __aligned(_n) __attribute__((aligned(_n)))
 #endif
+#ifndef U64_C
+#define U64_C(_x_) (uint64_t)(_x_##U)
+#endif
 #ifndef U32_C
-#define U32_C(x) x##UL
+#define U32_C(_x_) (uint32_t)(_x_##U)
 #endif
 #ifndef U16_C
-#define U16_C(x) (uint16_t)(x##U)
+#define U16_C(_x_) (uint16_t)(_x_##U)
 #endif
 #ifndef U8_C
-#define U8_C(x) (uint8_t)(x##U)
+#define U8_C(_x_) (uint8_t)(_x_##U)
 #endif
 #endif
 
