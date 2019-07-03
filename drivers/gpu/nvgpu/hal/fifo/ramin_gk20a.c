@@ -72,13 +72,3 @@ void gk20a_ramin_set_adr_limit(struct gk20a *g,
 	nvgpu_mem_wr32(g, inst_block, ram_in_adr_limit_hi_w(),
 		ram_in_adr_limit_hi_f(u64_hi32(va_limit - 1U)));
 }
-
-u32 gk20a_ramin_base_shift(void)
-{
-	return ram_in_base_shift_v();
-}
-
-u32 gk20a_ramin_alloc_size(void)
-{
-	return ram_in_alloc_size_v();
-}

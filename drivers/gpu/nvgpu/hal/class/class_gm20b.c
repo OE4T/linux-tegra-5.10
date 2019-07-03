@@ -24,27 +24,6 @@
 
 #include "class_gm20b.h"
 
-bool gm20b_class_is_valid(u32 class_num)
-{
-	bool valid;
-
-	switch (class_num) {
-	case MAXWELL_COMPUTE_B:
-	case MAXWELL_B:
-	case FERMI_TWOD_A:
-	case KEPLER_DMA_COPY_A:
-	case MAXWELL_DMA_COPY_A:
-		valid = true;
-		break;
-
-	default:
-		valid = false;
-		break;
-	}
-
-	return valid;
-}
-
 bool gm20b_class_is_valid_gfx(u32 class_num)
 {
 	if (class_num == MAXWELL_B) {

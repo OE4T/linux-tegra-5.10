@@ -29,25 +29,6 @@
 
 #include <nvgpu/hw/gv11b/hw_ctxsw_prog_gv11b.h>
 
-void gv11b_ctxsw_prog_set_context_buffer_ptr(struct gk20a *g,
-	struct nvgpu_mem *ctx_mem, u64 addr)
-{
-	nvgpu_mem_wr(g, ctx_mem,
-		ctxsw_prog_main_image_context_buffer_ptr_hi_o(),
-		u64_hi32(addr));
-	nvgpu_mem_wr(g, ctx_mem,
-		ctxsw_prog_main_image_context_buffer_ptr_o(),
-		u64_lo32(addr));
-}
-
-void gv11b_ctxsw_prog_set_type_per_veid_header(struct gk20a *g,
-	struct nvgpu_mem *ctx_mem)
-{
-	nvgpu_mem_wr(g, ctx_mem,
-		ctxsw_prog_main_image_ctl_o(),
-		ctxsw_prog_main_image_ctl_type_per_veid_header_v());
-}
-
 #ifdef CONFIG_NVGPU_GRAPHICS
 void gv11b_ctxsw_prog_set_zcull_ptr(struct gk20a *g, struct nvgpu_mem *ctx_mem,
 	u64 addr)

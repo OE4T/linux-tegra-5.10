@@ -37,6 +37,7 @@ void gv11b_write_dmatrfbase(struct gk20a *g, u32 addr);
 u32 gv11b_pmu_falcon_base_addr(void);
 void gv11b_secured_pmu_start(struct gk20a *g);
 bool gv11b_is_pmu_supported(struct gk20a *g);
+int gv11b_pmu_correct_ecc(struct gk20a *g, u32 ecc_status, u32 ecc_addr);
 
 #ifdef CONFIG_NVGPU_LS_PMU
 int gv11b_pmu_bootstrap(struct gk20a *g, struct nvgpu_pmu *pmu,

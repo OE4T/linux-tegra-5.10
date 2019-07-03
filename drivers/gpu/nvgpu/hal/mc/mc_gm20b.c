@@ -90,46 +90,6 @@ void gm20b_mc_isr_stall(struct gk20a *g)
 	}
 }
 
-u32 gm20b_mc_isr_nonstall(struct gk20a *g)
-{
-	u32 ops = 0U;
-	u32 mc_intr_1;
-	u32 eng_id;
-	u32 act_eng_id = 0U;
-	enum nvgpu_fifo_engine engine_enum;
-
-	mc_intr_1 = g->ops.mc.intr_nonstall(g);
-
-	if (g->ops.mc.is_intr1_pending(g, NVGPU_UNIT_FIFO, mc_intr_1)) {
-		ops |= g->ops.fifo.intr_1_isr(g);
-	}
-
-	for (eng_id = 0U; eng_id < g->fifo.num_engines; eng_id++) {
-		struct nvgpu_engine_info *engine_info;
-
-		act_eng_id = g->fifo.active_engines_list[eng_id];
-		engine_info = &g->fifo.engine_info[act_eng_id];
-
-		if ((mc_intr_1 & engine_info->intr_mask) != 0U) {
-			engine_enum = engine_info->engine_enum;
-			/* GR Engine */
-			if (engine_enum == NVGPU_ENGINE_GR) {
-				ops |= g->ops.gr.intr.nonstall_isr(g);
-			}
-			/* CE Engine */
-			if (((engine_enum == NVGPU_ENGINE_GRCE) ||
-			     (engine_enum == NVGPU_ENGINE_ASYNC_CE)) &&
-			      (g->ops.ce.isr_nonstall != NULL)) {
-				ops |= g->ops.ce.isr_nonstall(g,
-					engine_info->inst_id,
-					engine_info->pri_base);
-			}
-		}
-	}
-
-	return ops;
-}
-
 void gm20b_mc_intr_mask(struct gk20a *g)
 {
 	nvgpu_writel(g, mc_intr_en_0_r(),
@@ -220,46 +180,6 @@ u32 gm20b_mc_intr_nonstall(struct gk20a *g)
 	return nvgpu_readl(g, mc_intr_r(NVGPU_MC_INTR_NONSTALLING));
 }
 
-void gm20b_mc_disable(struct gk20a *g, u32 units)
-{
-	u32 pmc;
-
-	nvgpu_log(g, gpu_dbg_info, "pmc disable: %08x", units);
-
-	nvgpu_spinlock_acquire(&g->mc_enable_lock);
-	pmc = nvgpu_readl(g, mc_enable_r());
-	pmc &= ~units;
-	nvgpu_writel(g, mc_enable_r(), pmc);
-	nvgpu_spinlock_release(&g->mc_enable_lock);
-}
-
-void gm20b_mc_enable(struct gk20a *g, u32 units)
-{
-	u32 pmc;
-
-	nvgpu_log(g, gpu_dbg_info, "pmc enable: %08x", units);
-
-	nvgpu_spinlock_acquire(&g->mc_enable_lock);
-	pmc = nvgpu_readl(g, mc_enable_r());
-	pmc |= units;
-	nvgpu_writel(g, mc_enable_r(), pmc);
-	pmc = nvgpu_readl(g, mc_enable_r());
-	nvgpu_spinlock_release(&g->mc_enable_lock);
-
-	nvgpu_udelay(MC_ENABLE_DELAY_US);
-}
-
-void gm20b_mc_reset(struct gk20a *g, u32 units)
-{
-	g->ops.mc.disable(g, units);
-	if ((units & nvgpu_engine_get_all_ce_reset_mask(g)) != 0U) {
-		nvgpu_udelay(MC_RESET_CE_DELAY_US);
-	} else {
-		nvgpu_udelay(MC_RESET_DELAY_US);
-	}
-	g->ops.mc.enable(g, units);
-}
-
 bool gm20b_mc_is_intr1_pending(struct gk20a *g,
 			       enum nvgpu_unit unit, u32 mc_intr_1)
 {
@@ -306,41 +226,6 @@ void gm20b_mc_log_pending_intrs(struct gk20a *g)
 	if (mc_intr_1 != 0U) {
 		nvgpu_info(g, "Pending nonstall intr1=0x%08x", mc_intr_1);
 	}
-}
-
-u32 gm20b_mc_reset_mask(struct gk20a *g, enum nvgpu_unit unit)
-{
-	u32 mask = 0U;
-
-	switch (unit) {
-	case NVGPU_UNIT_FIFO:
-		mask = mc_enable_pfifo_enabled_f();
-		break;
-	case NVGPU_UNIT_PERFMON:
-		mask = mc_enable_perfmon_enabled_f();
-		break;
-	case NVGPU_UNIT_GRAPH:
-		mask = mc_enable_pgraph_enabled_f();
-		break;
-	case NVGPU_UNIT_BLG:
-		mask = mc_enable_blg_enabled_f();
-		break;
-	case NVGPU_UNIT_PWR:
-		mask = mc_enable_pwr_enabled_f();
-		break;
-	default:
-		WARN(1, "unknown reset unit %d", unit);
-		break;
-	}
-
-	return mask;
-}
-
-bool gm20b_mc_is_enabled(struct gk20a *g, enum nvgpu_unit unit)
-{
-	u32 mask = g->ops.mc.reset_mask(g, unit);
-
-	return (nvgpu_readl(g, mc_enable_r()) & mask) != 0U;
 }
 
 void gm20b_mc_fb_reset(struct gk20a *g)

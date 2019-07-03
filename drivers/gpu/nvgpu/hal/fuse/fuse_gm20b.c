@@ -95,42 +95,7 @@ int gm20b_fuse_check_priv_security(struct gk20a *g)
 	return 0;
 }
 
-u32 gm20b_fuse_status_opt_fbio(struct gk20a *g)
-{
-	return nvgpu_readl(g, fuse_status_opt_fbio_r());
-}
-
-u32 gm20b_fuse_status_opt_fbp(struct gk20a *g)
-{
-	return nvgpu_readl(g, fuse_status_opt_fbp_r());
-}
-
-u32 gm20b_fuse_status_opt_rop_l2_fbp(struct gk20a *g, u32 fbp)
-{
-	return nvgpu_readl(g, fuse_status_opt_rop_l2_fbp_r(fbp));
-}
-
 u32 gm20b_fuse_status_opt_gpc(struct gk20a *g)
 {
 	return nvgpu_readl(g, fuse_status_opt_gpc_r());
-}
-
-u32 gm20b_fuse_status_opt_tpc_gpc(struct gk20a *g, u32 gpc)
-{
-	return nvgpu_readl(g, fuse_status_opt_tpc_gpc_r(gpc));
-}
-
-void gm20b_fuse_ctrl_opt_tpc_gpc(struct gk20a *g, u32 gpc, u32 val)
-{
-	nvgpu_writel(g, fuse_ctrl_opt_tpc_gpc_r(gpc), val);
-}
-
-u32 gm20b_fuse_opt_sec_debug_en(struct gk20a *g)
-{
-	return nvgpu_readl(g, fuse_opt_sec_debug_en_r());
-}
-
-u32 gm20b_fuse_opt_priv_sec_en(struct gk20a *g)
-{
-	return nvgpu_readl(g, fuse_opt_priv_sec_en_r());
 }

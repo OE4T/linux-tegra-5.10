@@ -26,6 +26,7 @@
 #include <nvgpu/nvhost.h>
 #include <nvgpu/vgpu/tegra_vgpu.h>
 #include <nvgpu/channel.h>
+#include <nvgpu/channel_sync_syncpt.h>
 
 #include "syncpt_cmdbuf_gv11b_vgpu.h"
 #include "common/vgpu/ivc/comm_vgpu.h"

@@ -36,8 +36,3 @@ int gv11b_runlist_reschedule(struct nvgpu_channel *ch, bool preempt_next)
 	return nvgpu_runlist_reschedule(ch, true, false);
 }
 #endif
-
-u32 gv11b_runlist_count_max(void)
-{
-	return fifo_eng_runlist_base__size_1_v();
-}

@@ -36,26 +36,6 @@
 #include <nvgpu/hw/gm20b/hw_pri_ringstation_sys_gm20b.h>
 #include <nvgpu/hw/gm20b/hw_pri_ringstation_gpc_gm20b.h>
 
-void gm20b_priv_ring_enable(struct gk20a *g)
-{
-#ifdef CONFIG_NVGPU_SIM
-	if (nvgpu_is_enabled(g, NVGPU_IS_FMODEL)) {
-		nvgpu_log_info(g, "priv ring is already enabled");
-		return;
-	}
-#endif
-
-	nvgpu_log_info(g, "enabling priv ring");
-
-	nvgpu_cg_slcg_priring_load_enable(g);
-
-	nvgpu_writel(g,pri_ringmaster_command_r(), 0x4);
-
-	nvgpu_writel(g, pri_ringstation_sys_decode_config_r(), 0x2);
-
-	(void) nvgpu_readl(g, pri_ringstation_sys_decode_config_r());
-}
-
 void gm20b_priv_ring_isr(struct gk20a *g)
 {
 	u32 status0, status1;
@@ -121,35 +101,4 @@ void gm20b_priv_ring_isr(struct gk20a *g)
 	if (retry == 0 && cmd != pri_ringmaster_command_cmd_no_cmd_v()) {
 		nvgpu_warn(g, "priv ringmaster intr ack too many retries");
 	}
-}
-
-void gm20b_priv_set_timeout_settings(struct gk20a *g)
-{
-	/*
-	 * Bug 1340570: increase the clock timeout to avoid potential
-	 * operation failure at high gpcclk rate. Default values are 0x400.
-	 */
-	nvgpu_writel(g, pri_ringstation_sys_master_config_r(0x15), 0x800);
-	nvgpu_writel(g, pri_ringstation_gpc_master_config_r(0xa), 0x800);
-}
-
-u32 gm20b_priv_ring_enum_ltc(struct gk20a *g)
-{
-	return nvgpu_readl(g, pri_ringmaster_enum_ltc_r());
-}
-
-u32 gm20b_priv_ring_get_gpc_count(struct gk20a *g)
-{
-	u32 tmp;
-
-	tmp = nvgpu_readl(g, pri_ringmaster_enum_gpc_r());
-	return pri_ringmaster_enum_gpc_count_v(tmp);
-}
-
-u32 gm20b_priv_ring_get_fbp_count(struct gk20a *g)
-{
-	u32 tmp;
-
-	tmp = nvgpu_readl(g, pri_ringmaster_enum_fbp_r());
-	return pri_ringmaster_enum_fbp_count_v(tmp);
 }

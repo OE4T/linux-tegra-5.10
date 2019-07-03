@@ -29,33 +29,6 @@
 
 #include <nvgpu/hw/gp10b/hw_ctxsw_prog_gp10b.h>
 
-void gp10b_ctxsw_prog_set_compute_preemption_mode_cta(struct gk20a *g,
-	struct nvgpu_mem *ctx_mem)
-{
-	nvgpu_mem_wr(g, ctx_mem,
-		ctxsw_prog_main_image_compute_preemption_options_o(),
-		ctxsw_prog_main_image_compute_preemption_options_control_cta_f());
-}
-
-void gp10b_ctxsw_prog_init_ctxsw_hdr_data(struct gk20a *g,
-	struct nvgpu_mem *ctx_mem)
-{
-	nvgpu_mem_wr(g, ctx_mem,
-		ctxsw_prog_main_image_num_wfi_save_ops_o(), 0);
-	nvgpu_mem_wr(g, ctx_mem,
-		ctxsw_prog_main_image_num_cta_save_ops_o(), 0);
-#ifdef CONFIG_NVGPU_GRAPHICS
-	nvgpu_mem_wr(g, ctx_mem,
-		ctxsw_prog_main_image_num_gfxp_save_ops_o(), 0);
-#endif
-#ifdef CONFIG_NVGPU_CILP
-	nvgpu_mem_wr(g, ctx_mem,
-		ctxsw_prog_main_image_num_cilp_save_ops_o(), 0);
-#endif
-
-	gm20b_ctxsw_prog_init_ctxsw_hdr_data(g, ctx_mem);
-}
-
 #ifdef CONFIG_NVGPU_GRAPHICS
 void gp10b_ctxsw_prog_set_graphics_preemption_mode_gfxp(struct gk20a *g,
 	struct nvgpu_mem *ctx_mem)

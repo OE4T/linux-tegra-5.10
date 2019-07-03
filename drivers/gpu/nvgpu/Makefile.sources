@@ -149,13 +149,8 @@ srcs += common/utils/enabled.c \
 	common/fence/fence.c \
 	hal/mc/mc_gm20b.c  \
 	hal/mc/mc_gp10b.c  \
-	hal/mc/mc_gv11b.c  \
 	hal/bus/bus_gk20a.c \
-	hal/bus/bus_gm20b.c \
-	hal/bus/bus_gp10b.c \
 	hal/class/class_gm20b.c \
-	hal/class/class_gp10b.c \
-	hal/class/class_gv11b.c \
 	hal/clk/clk_gm20b.c \
 	hal/gr/ecc/ecc_gp10b.c \
 	hal/gr/ecc/ecc_gv11b.c \
@@ -167,93 +162,59 @@ srcs += common/utils/enabled.c \
 	hal/gr/init/gr_init_gv11b.c \
 	hal/gr/intr/gr_intr_gm20b.c \
 	hal/gr/intr/gr_intr_gp10b.c \
-	hal/gr/intr/gr_intr_gv11b.c \
 	hal/gr/falcon/gr_falcon_gm20b.c \
-	hal/gr/falcon/gr_falcon_gp10b.c \
-	hal/gr/falcon/gr_falcon_gv11b.c \
 	hal/init/hal_gv11b.c \
 	hal/init/hal_gv11b_litter.c \
 	hal/init/hal_init.c \
 	hal/priv_ring/priv_ring_gm20b.c \
-	hal/priv_ring/priv_ring_gp10b.c \
 	hal/power_features/cg/gm20b_gating_reglist.c \
 	hal/power_features/cg/gp10b_gating_reglist.c \
 	hal/power_features/cg/gv11b_gating_reglist.c \
 	hal/power_features/cg/gp106_gating_reglist.c \
-	hal/ptimer/ptimer_gk20a.c \
 	hal/ce/ce2_gk20a.c \
-	hal/ce/ce_gp10b.c \
-	hal/ce/ce_gv11b.c \
 	hal/therm/therm_gm20b.c \
 	hal/therm/therm_gp10b.c \
-	hal/therm/therm_gv11b.c \
 	hal/ltc/ltc_gm20b.c \
 	hal/ltc/ltc_gp10b.c \
 	hal/ltc/ltc_gv11b.c \
 	hal/ltc/intr/ltc_intr_gm20b.c \
 	hal/ltc/intr/ltc_intr_gp10b.c \
-	hal/ltc/intr/ltc_intr_gv11b.c \
 	hal/fb/fb_gm20b.c \
 	hal/fb/fb_gp10b.c \
 	hal/fb/fb_gp106.c \
 	hal/fb/fb_gv11b.c \
-	hal/fb/fb_mmu_fault_gv11b.c \
-	hal/fb/intr/fb_intr_gv11b.c \
 	hal/fb/intr/fb_intr_ecc_gv11b.c \
 	hal/fuse/fuse_gm20b.c \
-	hal/fuse/fuse_gp10b.c \
 	hal/rc/rc_gk20a.c \
-	hal/rc/rc_gv11b.c \
 	hal/fifo/fifo_gk20a.c \
-	hal/fifo/fifo_gv11b.c \
 	hal/fifo/preempt_gk20a.c \
-	hal/fifo/preempt_gv11b.c \
-	hal/fifo/usermode_gv11b.c \
 	hal/fifo/engines_gm20b.c \
-	hal/fifo/engines_gp10b.c \
-	hal/fifo/engines_gv11b.c \
 	hal/fifo/pbdma_gm20b.c \
 	hal/fifo/pbdma_gp10b.c \
-	hal/fifo/pbdma_gv11b.c \
 	hal/fifo/engine_status_gm20b.c \
-	hal/fifo/engine_status_gv100.c \
-	hal/fifo/pbdma_status_gm20b.c \
 	hal/fifo/ramfc_gk20a.c  \
 	hal/fifo/ramfc_gp10b.c  \
-	hal/fifo/ramfc_gv11b.c  \
 	hal/fifo/ramin_gk20a.c \
-	hal/fifo/ramin_gm20b.c \
-	hal/fifo/ramin_gp10b.c \
-	hal/fifo/ramin_gv11b.c \
 	hal/fifo/runlist_ram_gk20a.c \
-	hal/fifo/runlist_ram_gv11b.c \
 	hal/fifo/runlist_fifo_gk20a.c \
 	hal/fifo/runlist_fifo_gv11b.c \
 	hal/fifo/channel_gk20a.c \
 	hal/fifo/channel_gm20b.c \
-	hal/fifo/channel_gv11b.c \
 	hal/fifo/tsg_gk20a.c \
-	hal/fifo/tsg_gv11b.c \
 	hal/fifo/userd_gk20a.c \
 	hal/fifo/fifo_intr_gk20a.c \
-	hal/fifo/fifo_intr_gv11b.c \
 	hal/fifo/mmu_fault_gk20a.c \
 	hal/fifo/mmu_fault_gm20b.c \
 	hal/fifo/mmu_fault_gp10b.c \
 	hal/fifo/ctxsw_timeout_gk20a.c \
-	hal/fifo/ctxsw_timeout_gv11b.c \
-	hal/falcon/falcon_gk20a.c \
 	hal/netlist/netlist_gm20b.c \
 	hal/netlist/netlist_gp10b.c \
-	hal/netlist/netlist_gv11b.c \
 	hal/sync/syncpt_cmdbuf_gk20a.c \
 	hal/sync/syncpt_cmdbuf_gv11b.c \
 	hal/pmu/pmu_gp106.c \
 	hal/pmu/pmu_gv11b.c \
 	hal/top/top_gm20b.c \
-	hal/top/top_gp10b.c \
-	hal/top/top_gp106.c \
-	hal/top/top_gv11b.c
+	hal/top/top_gp106.c
 
 # Source files below are functionaly safe (FuSa) and must always be included.
 srcs += hal/mm/mm_gv11b_fusa.c \
@@ -264,7 +225,87 @@ srcs += hal/mm/mm_gv11b_fusa.c \
 	hal/mm/gmmu/gmmu_gm20b_fusa.c \
 	hal/mm/cache/flush_gk20a_fusa.c \
 	hal/mm/cache/flush_gv11b_fusa.c \
-	hal/mm/mmu_fault/mmu_fault_gv11b_fusa.c
+	hal/mm/mmu_fault/mmu_fault_gv11b_fusa.c \
+	hal/ltc/intr/ltc_intr_gp10b_fusa.c \
+	hal/ltc/intr/ltc_intr_gv11b_fusa.c \
+	hal/bus/bus_gk20a_fusa.c \
+	hal/bus/bus_gm20b_fusa.c \
+	hal/bus/bus_gp10b_fusa.c \
+	hal/ce/ce_gp10b_fusa.c \
+	hal/ce/ce_gv11b_fusa.c \
+	hal/class/class_gm20b_fusa.c \
+	hal/class/class_gp10b_fusa.c \
+	hal/class/class_gv11b_fusa.c \
+	hal/falcon/falcon_gk20a_fusa.c \
+	hal/fb/fb_gm20b_fusa.c \
+	hal/fb/fb_gv11b_fusa.c \
+	hal/fb/fb_mmu_fault_gv11b_fusa.c \
+	hal/fb/intr/fb_intr_ecc_gv11b_fusa.c \
+	hal/fb/intr/fb_intr_gv11b_fusa.c \
+	hal/fifo/channel_gk20a_fusa.c \
+	hal/fifo/channel_gm20b_fusa.c \
+	hal/fifo/channel_gv11b_fusa.c \
+	hal/fifo/ctxsw_timeout_gv11b_fusa.c \
+	hal/fifo/engine_status_gm20b_fusa.c \
+	hal/fifo/engine_status_gv100_fusa.c \
+	hal/fifo/engines_gp10b_fusa.c \
+	hal/fifo/engines_gv11b_fusa.c \
+	hal/fifo/fifo_gk20a_fusa.c \
+	hal/fifo/fifo_gv11b_fusa.c \
+	hal/fifo/fifo_intr_gk20a_fusa.c \
+	hal/fifo/fifo_intr_gv11b_fusa.c \
+	hal/fifo/pbdma_gm20b_fusa.c \
+	hal/fifo/pbdma_gp10b_fusa.c \
+	hal/fifo/pbdma_gv11b_fusa.c \
+	hal/fifo/pbdma_status_gm20b_fusa.c \
+	hal/fifo/preempt_gv11b_fusa.c \
+	hal/fifo/ramfc_gp10b_fusa.c \
+	hal/fifo/ramfc_gv11b_fusa.c \
+	hal/fifo/ramin_gk20a_fusa.c \
+	hal/fifo/ramin_gm20b_fusa.c \
+	hal/fifo/ramin_gp10b_fusa.c \
+	hal/fifo/ramin_gv11b_fusa.c \
+	hal/fifo/runlist_fifo_gk20a_fusa.c \
+	hal/fifo/runlist_fifo_gv11b_fusa.c \
+	hal/fifo/runlist_ram_gv11b_fusa.c \
+	hal/fifo/tsg_gv11b_fusa.c \
+	hal/fifo/usermode_gv11b_fusa.c \
+	hal/fuse/fuse_gm20b_fusa.c \
+	hal/fuse/fuse_gp10b_fusa.c \
+	hal/gr/config/gr_config_gm20b_fusa.c \
+	hal/gr/config/gr_config_gv100_fusa.c \
+	hal/gr/ctxsw_prog/ctxsw_prog_gm20b_fusa.c \
+	hal/gr/ctxsw_prog/ctxsw_prog_gp10b_fusa.c \
+	hal/gr/ctxsw_prog/ctxsw_prog_gv11b_fusa.c \
+	hal/gr/ecc/ecc_gv11b_fusa.c \
+	hal/gr/falcon/gr_falcon_gm20b_fusa.c \
+	hal/gr/falcon/gr_falcon_gp10b_fusa.c \
+	hal/gr/falcon/gr_falcon_gv11b_fusa.c \
+	hal/gr/init/gr_init_gm20b_fusa.c \
+	hal/gr/init/gr_init_gp10b_fusa.c \
+	hal/gr/init/gr_init_gv11b_fusa.c \
+	hal/gr/intr/gr_intr_gm20b_fusa.c \
+	hal/gr/intr/gr_intr_gp10b_fusa.c \
+	hal/gr/intr/gr_intr_gv11b_fusa.c \
+	hal/ltc/ltc_gm20b_fusa.c \
+	hal/ltc/ltc_gp10b_fusa.c \
+	hal/ltc/ltc_gv11b_fusa.c \
+	hal/mc/mc_gm20b_fusa.c \
+	hal/mc/mc_gp10b_fusa.c \
+	hal/mc/mc_gv11b_fusa.c \
+	hal/netlist/netlist_gv11b_fusa.c \
+	hal/pmu/pmu_gp106_fusa.c \
+	hal/pmu/pmu_gv11b_fusa.c \
+	hal/priv_ring/priv_ring_gm20b_fusa.c \
+	hal/priv_ring/priv_ring_gp10b_fusa.c \
+	hal/ptimer/ptimer_gk20a_fusa.c \
+	hal/rc/rc_gv11b_fusa.c \
+	hal/sync/syncpt_cmdbuf_gv11b_fusa.c \
+	hal/therm/therm_gm20b_fusa.c \
+	hal/therm/therm_gv11b_fusa.c \
+	hal/top/top_gm20b_fusa.c \
+	hal/top/top_gp10b_fusa.c \
+	hal/top/top_gv11b_fusa.c
 
 # Source files below are not guaranteed to be functionaly safe (FuSa) and are
 # only included in the normal build.
@@ -364,8 +405,7 @@ ifdef NVGPU_FAULT_INJECTION_ENABLEMENT
 srcs += os/posix/posix-fault-injection.c
 endif
 
-srcs += hal/gr/config/gr_config_gm20b.c \
-	hal/gr/config/gr_config_gv100.c
+srcs += hal/gr/config/gr_config_gm20b.c
 
 ifeq ($(CONFIG_NVGPU_LS_PMU),1)
 # Add LS PMU files which are required for normal build

@@ -126,42 +126,6 @@ int gm20b_elcg_init_idle_filters(struct gk20a *g)
 	return 0;
 }
 
-void gm20b_therm_init_blcg_mode(struct gk20a *g, u32 mode, u32 engine)
-{
-	u32 gate_ctrl;
-	bool error_status = false;
-
-	if (!nvgpu_is_enabled(g, NVGPU_GPU_CAN_BLCG)) {
-		return;
-	}
-
-	gate_ctrl = nvgpu_readl(g, therm_gate_ctrl_r(engine));
-
-	switch (mode) {
-	case BLCG_RUN:
-		gate_ctrl = set_field(gate_ctrl,
-				therm_gate_ctrl_blk_clk_m(),
-				therm_gate_ctrl_blk_clk_run_f());
-		break;
-	case BLCG_AUTO:
-		gate_ctrl = set_field(gate_ctrl,
-				therm_gate_ctrl_blk_clk_m(),
-				therm_gate_ctrl_blk_clk_auto_f());
-		break;
-	default:
-		nvgpu_err(g,
-			"invalid blcg mode %d", mode);
-		error_status = true;
-		break;
-	}
-
-	if (error_status == true) {
-		return;
-	}
-
-	nvgpu_writel(g, therm_gate_ctrl_r(engine), gate_ctrl);
-}
-
 void gm20b_therm_init_elcg_mode(struct gk20a *g, u32 mode, u32 engine)
 {
 	u32 gate_ctrl;

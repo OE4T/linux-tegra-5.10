@@ -89,25 +89,3 @@ void gk20a_fifo_bar1_snooping_disable(struct gk20a *g)
 	nvgpu_writel(g, fifo_bar1_base_r(),
 		fifo_bar1_base_valid_false_f());
 }
-
-void gk20a_fifo_init_pbdma_map(struct gk20a *g, u32 *pbdma_map, u32 num_pbdma)
-{
-	u32 id;
-
-	for (id = 0U; id < num_pbdma; ++id) {
-		pbdma_map[id] = nvgpu_readl(g, fifo_pbdma_map_r(id));
-	}
-}
-
-u32 gk20a_fifo_get_runlist_timeslice(struct gk20a *g)
-{
-	return fifo_runlist_timeslice_timeout_128_f() |
-			fifo_runlist_timeslice_timescale_3_f() |
-			fifo_runlist_timeslice_enable_true_f();
-}
-
-u32 gk20a_fifo_get_pb_timeslice(struct gk20a *g) {
-	return fifo_pb_timeslice_timeout_16_f() |
-			fifo_pb_timeslice_timescale_0_f() |
-			fifo_pb_timeslice_enable_true_f();
-}

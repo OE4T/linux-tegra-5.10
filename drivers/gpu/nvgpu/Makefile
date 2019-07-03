@@ -182,17 +182,12 @@ nvgpu-y += \
 	common/nvlink/nvlink_tu104.o \
 	hal/mc/mc_gm20b.o \
 	hal/mc/mc_gp10b.o  \
-	hal/mc/mc_gv11b.o  \
 	hal/mc/mc_gv100.o \
 	hal/mc/mc_tu104.o \
 	hal/bus/bus_gk20a.o \
-	hal/bus/bus_gm20b.o \
-	hal/bus/bus_gp10b.o \
 	hal/bus/bus_gv100.o \
 	hal/bus/bus_tu104.o \
 	hal/class/class_gm20b.o \
-	hal/class/class_gp10b.o \
-	hal/class/class_gv11b.o \
 	hal/class/class_tu104.o \
 	hal/clk/clk_gm20b.o \
 	hal/clk/clk_gv100.o \
@@ -211,7 +206,6 @@ nvgpu-y += \
 	hal/gr/init/gr_init_tu104.o \
 	hal/gr/intr/gr_intr_gm20b.o \
 	hal/gr/intr/gr_intr_gp10b.o \
-	hal/gr/intr/gr_intr_gv11b.o \
 	hal/gr/intr/gr_intr_tu104.o \
 	hal/gr/hwpm_map/hwpm_map_gv100.o \
 	hal/gr/zbc/zbc_gm20b.o \
@@ -230,82 +224,57 @@ nvgpu-y += \
 	hal/perf/perf_gm20b.o \
 	hal/perf/perf_gv11b.o \
 	hal/priv_ring/priv_ring_gm20b.o \
-	hal/priv_ring/priv_ring_gp10b.o \
 	hal/power_features/cg/gm20b_gating_reglist.o \
 	hal/power_features/cg/gp106_gating_reglist.o \
 	hal/power_features/cg/gp10b_gating_reglist.o \
 	hal/power_features/cg/gv100_gating_reglist.o \
 	hal/power_features/cg/gv11b_gating_reglist.o \
 	hal/power_features/cg/tu104_gating_reglist.o \
-	hal/ptimer/ptimer_gk20a.o \
 	hal/regops/regops_gm20b.o \
 	hal/regops/regops_gp10b.o \
 	hal/regops/regops_gv100.o \
 	hal/regops/regops_gv11b.o \
 	hal/regops/regops_tu104.o \
 	hal/ce/ce2_gk20a.o \
-	hal/ce/ce_gp10b.o \
-	hal/ce/ce_gv11b.o \
 	hal/therm/therm_gm20b.o \
 	hal/therm/therm_gp10b.o \
 	hal/therm/therm_tu104.o \
-	hal/therm/therm_gv11b.o \
 	hal/gr/falcon/gr_falcon_gm20b.o \
-	hal/gr/falcon/gr_falcon_gp10b.o \
-	hal/gr/falcon/gr_falcon_gv11b.o \
 	hal/ltc/ltc_gm20b.o \
 	hal/ltc/ltc_gp10b.o \
 	hal/ltc/ltc_gv11b.o  \
 	hal/ltc/ltc_tu104.o \
 	hal/ltc/intr/ltc_intr_gm20b.o \
 	hal/ltc/intr/ltc_intr_gp10b.o \
-	hal/ltc/intr/ltc_intr_gv11b.o  \
 	hal/fb/fb_gm20b.o \
 	hal/fb/fb_gp10b.o \
 	hal/fb/fb_gp106.o \
 	hal/fb/fb_gv11b.o \
 	hal/fb/fb_gv100.o \
 	hal/fb/fb_tu104.o \
-	hal/fb/fb_mmu_fault_gv11b.o \
 	hal/fb/fb_mmu_fault_tu104.o \
 	hal/fb/intr/fb_intr_gv100.o \
-	hal/fb/intr/fb_intr_gv11b.o \
 	hal/fb/intr/fb_intr_tu104.o \
 	hal/fb/intr/fb_intr_ecc_gv11b.o \
 	hal/fuse/fuse_gm20b.o \
-	hal/fuse/fuse_gp10b.o \
 	hal/fuse/fuse_gp106.o \
 	hal/func/func_tu104.o \
 	hal/rc/rc_gk20a.o \
-	hal/rc/rc_gv11b.o \
 	hal/fifo/fifo_gk20a.o \
-	hal/fifo/fifo_gv11b.o \
 	hal/fifo/fifo_tu104.o \
 	hal/fifo/preempt_gk20a.o \
-	hal/fifo/preempt_gv11b.o \
-	hal/fifo/usermode_gv11b.o \
 	hal/fifo/usermode_tu104.o \
 	hal/fifo/engines_gm20b.o \
-	hal/fifo/engines_gp10b.o \
-	hal/fifo/engines_gv11b.o \
 	hal/fifo/pbdma_gm20b.o \
 	hal/fifo/pbdma_gp10b.o \
-	hal/fifo/pbdma_gv11b.o \
 	hal/fifo/pbdma_tu104.o \
 	hal/fifo/engine_status_gm20b.o \
-	hal/fifo/engine_status_gv100.o \
-	hal/fifo/pbdma_status_gm20b.o \
 	hal/fifo/ramfc_gk20a.o \
 	hal/fifo/ramfc_gp10b.o \
-	hal/fifo/ramfc_gv11b.o \
 	hal/fifo/ramfc_tu104.o \
 	hal/fifo/ramin_gk20a.o \
-	hal/fifo/ramin_gm20b.o \
-	hal/fifo/ramin_gp10b.o \
-	hal/fifo/ramin_gv11b.o \
 	hal/fifo/ramin_tu104.o \
 	hal/fifo/runlist_ram_gk20a.o \
-	hal/fifo/runlist_ram_gv11b.o \
 	hal/fifo/runlist_ram_tu104.o \
 	hal/fifo/runlist_fifo_gk20a.o \
 	hal/fifo/runlist_fifo_gv11b.o \
@@ -313,25 +282,19 @@ nvgpu-y += \
 	hal/fifo/runlist_fifo_tu104.o \
 	hal/fifo/channel_gk20a.o \
 	hal/fifo/channel_gm20b.o \
-	hal/fifo/channel_gv11b.o \
 	hal/fifo/channel_gv100.o \
 	hal/fifo/tsg_gk20a.o \
-	hal/fifo/tsg_gv11b.o \
 	hal/fifo/userd_gk20a.o \
 	hal/fifo/userd_gv11b.o \
 	hal/fifo/fifo_intr_gk20a.o \
 	hal/fifo/fifo_intr_gv100.o \
-	hal/fifo/fifo_intr_gv11b.o \
 	hal/fifo/mmu_fault_gk20a.o \
 	hal/fifo/mmu_fault_gm20b.o \
 	hal/fifo/mmu_fault_gp10b.o \
 	hal/fifo/ctxsw_timeout_gk20a.o \
-	hal/fifo/ctxsw_timeout_gv11b.o \
-	hal/falcon/falcon_gk20a.o \
 	hal/netlist/netlist_gm20b.o \
 	hal/netlist/netlist_gp10b.o \
 	hal/netlist/netlist_gv100.o \
-	hal/netlist/netlist_gv11b.o \
 	hal/netlist/netlist_tu104.o \
 	hal/nvdec/nvdec_gp106.o \
 	hal/nvdec/nvdec_tu104.o \
@@ -356,10 +319,8 @@ nvgpu-y += \
 	hal/pramin/pramin_tu104.o \
 	hal/bios/bios_tu104.o \
 	hal/top/top_gm20b.o \
-	hal/top/top_gp10b.o \
 	hal/top/top_gp106.o \
-	hal/top/top_gv100.o \
-	hal/top/top_gv11b.o \
+	hal/top/top_gv100.o
 
 
 # Linux specific parts of nvgpu.
@@ -566,8 +527,7 @@ nvgpu-y += \
 	common/debugger.o
 
 nvgpu-y += \
-	hal/gr/config/gr_config_gm20b.o \
-	hal/gr/config/gr_config_gv100.o
+	hal/gr/config/gr_config_gm20b.o
 
 nvgpu-$(CONFIG_TEGRA_GR_VIRTUALIZATION) += \
 	common/vgpu/ltc/ltc_vgpu.o \
@@ -630,7 +590,87 @@ nvgpu-y += \
 	hal/mm/gmmu/gmmu_gm20b_fusa.o \
 	hal/mm/cache/flush_gk20a_fusa.o \
 	hal/mm/cache/flush_gv11b_fusa.o \
-	hal/mm/mmu_fault/mmu_fault_gv11b_fusa.o
+	hal/mm/mmu_fault/mmu_fault_gv11b_fusa.o \
+	hal/ltc/intr/ltc_intr_gp10b_fusa.o \
+	hal/ltc/intr/ltc_intr_gv11b_fusa.o \
+	hal/bus/bus_gk20a_fusa.o \
+	hal/bus/bus_gm20b_fusa.o \
+	hal/bus/bus_gp10b_fusa.o \
+	hal/ce/ce_gp10b_fusa.o \
+	hal/ce/ce_gv11b_fusa.o \
+	hal/class/class_gm20b_fusa.o \
+	hal/class/class_gp10b_fusa.o \
+	hal/class/class_gv11b_fusa.o \
+	hal/falcon/falcon_gk20a_fusa.o \
+	hal/fb/fb_gm20b_fusa.o \
+	hal/fb/fb_gv11b_fusa.o \
+	hal/fb/fb_mmu_fault_gv11b_fusa.o \
+	hal/fb/intr/fb_intr_ecc_gv11b_fusa.o \
+	hal/fb/intr/fb_intr_gv11b_fusa.o \
+	hal/fifo/channel_gk20a_fusa.o \
+	hal/fifo/channel_gm20b_fusa.o \
+	hal/fifo/channel_gv11b_fusa.o \
+	hal/fifo/ctxsw_timeout_gv11b_fusa.o \
+	hal/fifo/engine_status_gm20b_fusa.o \
+	hal/fifo/engine_status_gv100_fusa.o \
+	hal/fifo/engines_gp10b_fusa.o \
+	hal/fifo/engines_gv11b_fusa.o \
+	hal/fifo/fifo_gk20a_fusa.o \
+	hal/fifo/fifo_gv11b_fusa.o \
+	hal/fifo/fifo_intr_gk20a_fusa.o \
+	hal/fifo/fifo_intr_gv11b_fusa.o \
+	hal/fifo/pbdma_gm20b_fusa.o \
+	hal/fifo/pbdma_gp10b_fusa.o \
+	hal/fifo/pbdma_gv11b_fusa.o \
+	hal/fifo/pbdma_status_gm20b_fusa.o \
+	hal/fifo/preempt_gv11b_fusa.o \
+	hal/fifo/ramfc_gp10b_fusa.o \
+	hal/fifo/ramfc_gv11b_fusa.o \
+	hal/fifo/ramin_gk20a_fusa.o \
+	hal/fifo/ramin_gm20b_fusa.o \
+	hal/fifo/ramin_gp10b_fusa.o \
+	hal/fifo/ramin_gv11b_fusa.o \
+	hal/fifo/runlist_fifo_gk20a_fusa.o \
+	hal/fifo/runlist_fifo_gv11b_fusa.o \
+	hal/fifo/runlist_ram_gv11b_fusa.o \
+	hal/fifo/tsg_gv11b_fusa.o \
+	hal/fifo/usermode_gv11b_fusa.o \
+	hal/fuse/fuse_gm20b_fusa.o \
+	hal/fuse/fuse_gp10b_fusa.o \
+	hal/gr/config/gr_config_gm20b_fusa.o \
+	hal/gr/config/gr_config_gv100_fusa.o \
+	hal/gr/ctxsw_prog/ctxsw_prog_gm20b_fusa.o \
+	hal/gr/ctxsw_prog/ctxsw_prog_gp10b_fusa.o \
+	hal/gr/ctxsw_prog/ctxsw_prog_gv11b_fusa.o \
+	hal/gr/ecc/ecc_gv11b_fusa.o \
+	hal/gr/falcon/gr_falcon_gm20b_fusa.o \
+	hal/gr/falcon/gr_falcon_gp10b_fusa.o \
+	hal/gr/falcon/gr_falcon_gv11b_fusa.o \
+	hal/gr/init/gr_init_gm20b_fusa.o \
+	hal/gr/init/gr_init_gp10b_fusa.o \
+	hal/gr/init/gr_init_gv11b_fusa.o \
+	hal/gr/intr/gr_intr_gm20b_fusa.o \
+	hal/gr/intr/gr_intr_gp10b_fusa.o \
+	hal/gr/intr/gr_intr_gv11b_fusa.o \
+	hal/ltc/ltc_gm20b_fusa.o \
+	hal/ltc/ltc_gp10b_fusa.o \
+	hal/ltc/ltc_gv11b_fusa.o \
+	hal/mc/mc_gm20b_fusa.o \
+	hal/mc/mc_gp10b_fusa.o \
+	hal/mc/mc_gv11b_fusa.o \
+	hal/netlist/netlist_gv11b_fusa.o \
+	hal/pmu/pmu_gp106_fusa.o \
+	hal/pmu/pmu_gv11b_fusa.o \
+	hal/priv_ring/priv_ring_gm20b_fusa.o \
+	hal/priv_ring/priv_ring_gp10b_fusa.o \
+	hal/ptimer/ptimer_gk20a_fusa.o \
+	hal/rc/rc_gv11b_fusa.o \
+	hal/sync/syncpt_cmdbuf_gv11b_fusa.o \
+	hal/therm/therm_gm20b_fusa.o \
+	hal/therm/therm_gv11b_fusa.o \
+	hal/top/top_gm20b_fusa.o \
+	hal/top/top_gp10b_fusa.o \
+	hal/top/top_gv11b_fusa.o
 
 nvgpu-$(CONFIG_NVGPU_HAL_NON_FUSA) += \
 	hal/init/hal_gp10b.o \

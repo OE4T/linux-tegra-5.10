@@ -33,32 +33,6 @@
 
 #include <nvgpu/hw/gp10b/hw_ram_gp10b.h>
 
-int gp10b_ramfc_commit_userd(struct nvgpu_channel *ch)
-{
-	u32 addr_lo;
-	u32 addr_hi;
-	struct gk20a *g = ch->g;
-
-	nvgpu_log_fn(g, " ");
-
-	addr_lo = u64_lo32(ch->userd_iova >> ram_userd_base_shift_v());
-	addr_hi = u64_hi32(ch->userd_iova);
-
-	nvgpu_log_info(g, "channel %d : set ramfc userd 0x%16llx",
-		ch->chid, (u64)ch->userd_iova);
-
-	nvgpu_mem_wr32(g, &ch->inst_block,
-		ram_in_ramfc_w() + ram_fc_userd_w(),
-		g->ops.pbdma.get_userd_aperture_mask(g, ch->userd_mem) |
-		g->ops.pbdma.get_userd_addr(addr_lo));
-
-	nvgpu_mem_wr32(g, &ch->inst_block,
-		ram_in_ramfc_w() + ram_fc_userd_hi_w(),
-		g->ops.pbdma.get_userd_hi_addr(addr_hi));
-
-	return 0;
-}
-
 int gp10b_ramfc_setup(struct nvgpu_channel *ch, u64 gpfifo_base,
 		u32 gpfifo_entries, u64 pbdma_acquire_timeout, u32 flags)
 {
@@ -132,4 +106,3 @@ void gp10b_ramfc_set_syncpt(struct nvgpu_channel *ch, u32 syncpt)
 
 	nvgpu_mem_wr32(g, &ch->inst_block, ram_fc_allowed_syncpoints_w(), v);
 }
-

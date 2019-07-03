@@ -29,36 +29,6 @@
 
 #include <nvgpu/hw/gp106/hw_pwr_gp106.h>
 
-bool gp106_pmu_is_engine_in_reset(struct gk20a *g)
-{
-	u32 reg_reset;
-	bool status = false;
-
-	reg_reset = gk20a_readl(g, pwr_falcon_engine_r());
-	if (reg_reset == pwr_falcon_engine_reset_true_f()) {
-		status = true;
-	}
-
-	return status;
-}
-
-void gp106_pmu_engine_reset(struct gk20a *g, bool do_reset)
-{
-	/*
-	* From GP10X onwards, we are using PPWR_FALCON_ENGINE for reset. And as
-	* it may come into same behavior, reading NV_PPWR_FALCON_ENGINE again
-	* after Reset.
-	*/
-	if (do_reset) {
-		gk20a_writel(g, pwr_falcon_engine_r(),
-			pwr_falcon_engine_reset_false_f());
-		(void) gk20a_readl(g, pwr_falcon_engine_r());
-	} else {
-		gk20a_writel(g, pwr_falcon_engine_r(),
-			pwr_falcon_engine_reset_true_f());
-		(void) gk20a_readl(g, pwr_falcon_engine_r());
-	}
-}
 #ifdef CONFIG_NVGPU_LS_PMU
 void gp106_pmu_setup_apertures(struct gk20a *g)
 {
