@@ -212,10 +212,11 @@ static int ether_config_l3_l4_filtering(struct net_device *dev,
  *	@ifdata: pointer to IOCTL specific structure.
  *
  *	Algorithm:
- *	1) Enable/disable IPv4 filtering.
- *	2) Select source/destination address matching.
- *	3) Select perfect/inverse matching.
- *	4) Update the IPv4 address into MAC register.
+ *	1) Layer 3 and Layer 4 Filter Enable, if already not.
+ *	2) Enable/disable IPv4 filtering.
+ *	3) Select source/destination address matching.
+ *	4) Select perfect/inverse matching.
+ *	5) Update the IPv4 address into MAC register.
  *
  *	Dependencies: MAC and PHY need to be initialized.
  *
@@ -256,9 +257,10 @@ static int ether_config_ip4_filters(struct net_device *dev,
 		return ret;
 	}
 
+	/* enable IPFE bit in MAC_Packet_Filter for L3/L4 if already not */
 	spin_lock_bh(&pdata->ioctl_lock);
 	if (pdata->l3_l4_filter == OSI_DISABLE) {
-		ret = osi_config_l3_l4_filter_enable(osi_core, 1);
+		ret = osi_config_l3_l4_filter_enable(osi_core, OSI_ENABLE);
 		if (ret == 0) {
 			pdata->l3_l4_filter = OSI_ENABLE;
 		}
@@ -336,9 +338,10 @@ static int ether_config_ip6_filters(struct net_device *dev,
 		return ret;
 	}
 
+	/* enable IPFE bit in MAC_Packet_Filter for L3/L4 if already not */
 	spin_lock_bh(&pdata->ioctl_lock);
 	if (pdata->l3_l4_filter == OSI_DISABLE) {
-		ret = osi_config_l3_l4_filter_enable(osi_core, 1);
+		ret = osi_config_l3_l4_filter_enable(osi_core, OSI_ENABLE);
 		if (ret == 0) {
 			pdata->l3_l4_filter = OSI_ENABLE;
 		}
@@ -419,6 +422,16 @@ static int ether_config_tcp_udp_filters(struct net_device *dev,
 		return ret;
 	}
 
+	/* enable IPFE bit in MAC_Packet_Filter for L3/L4 if already not */
+	spin_lock_bh(&pdata->ioctl_lock);
+	if (pdata->l3_l4_filter == OSI_DISABLE) {
+		ret = osi_config_l3_l4_filter_enable(osi_core, OSI_ENABLE);
+		if (ret == 0) {
+			pdata->l3_l4_filter = OSI_ENABLE;
+		}
+	}
+	spin_unlock_bh(&pdata->ioctl_lock);
+
 	/* configure the L4 filters */
 	ret = osi_config_l4_filters(osi_core, l_l4_filter.filter_no,
 				    l_l4_filter.filter_enb_dis,
@@ -479,8 +492,7 @@ static int ether_config_vlan_filter(struct net_device *dev,
 	}
 
 	/*0 - perfect and 1 - hash filtering */
-	if ((l_vlan_filter.perfect_hash == OSI_HASH_FILTER_MODE) &&
-	    (pdata->hw_feat.vlan_hash_en == OSI_DISABLE)) {
+	if (l_vlan_filter.perfect_hash == OSI_HASH_FILTER_MODE) {
 		dev_err(pdata->dev, "VLAN HASH filtering is not supported\n");
 		return ret;
 	}
