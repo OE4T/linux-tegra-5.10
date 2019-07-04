@@ -146,7 +146,6 @@ srcs += common/utils/enabled.c \
 	common/fifo/pbdma_status.c \
 	common/fifo/userd.c \
 	common/mc/mc.c \
-	common/fence/fence.c \
 	hal/mc/mc_gm20b.c  \
 	hal/mc/mc_gp10b.c  \
 	hal/bus/bus_gk20a.c \
@@ -381,6 +380,10 @@ srcs += common/fifo/submit.c \
 	hal/fifo/userd_gv11b.c \
 	hal/sync/sema_cmdbuf_gk20a.c \
 	hal/sync/sema_cmdbuf_gv11b.c
+endif
+
+ifeq ($(CONFIG_NVGPU_FENCE),1)
+srcs += common/fence/fence.c
 endif
 
 ifeq ($(CONFIG_NVGPU_FECS_TRACE),1)
