@@ -1312,5 +1312,20 @@
         "test": "falcon_free_test_env",
         "test_level": 0,
         "unit": "falcon"
+    },
+    {
+        "test": "pmu_early_init",
+        "test_level": 0,
+        "unit": "nvgpu-pmu"
+    },
+    {
+        "test": "pmu_reset",
+        "test_level": 0,
+        "unit": "nvgpu-pmu"
+    },
+    {
+        "test": "pmu_remove_support",
+        "test_level": 0,
+        "unit": "nvgpu-pmu"
     }
 ]

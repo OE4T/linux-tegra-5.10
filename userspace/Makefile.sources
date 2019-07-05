@@ -71,7 +71,8 @@ UNITS :=				\
 	$(UNIT_SRC)/list		\
 	$(UNIT_SRC)/enabled		\
 	$(UNIT_SRC)/falcon		\
-	$(UNIT_SRC)/falcon/falcon_tests
+	$(UNIT_SRC)/falcon/falcon_tests		\
+	$(UNIT_SRC)/pmu
 
 ifeq ($(CONFIG_NVGPU_HAL_NON_FUSA),1)
 UNITS += $(UNIT_SRC)/fuse

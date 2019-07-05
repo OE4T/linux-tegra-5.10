@@ -155,6 +155,9 @@ nvgpu_pd_free
 nvgpu_pd_gpu_addr
 nvgpu_pd_offset_from_index
 nvgpu_pd_write
+nvgpu_pmu_early_init
+nvgpu_pmu_remove_support
+nvgpu_pmu_reset
 nvgpu_posix_bug
 nvgpu_posix_cleanup
 nvgpu_posix_enable_fault_injection
