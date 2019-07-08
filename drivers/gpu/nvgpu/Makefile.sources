@@ -212,8 +212,7 @@ srcs += common/utils/enabled.c \
 	hal/pmu/pmu_gp106.c \
 	hal/pmu/pmu_gv11b.c \
 	hal/top/top_gm20b.c \
-	hal/top/top_gp106.c \
-	hal/xve/xve_gp106.c
+	hal/top/top_gp106.c
 
 # Source files below are functionaly safe (FuSa) and must always be included.
 srcs += hal/mm/mm_gv11b_fusa.c \
@@ -617,7 +616,8 @@ srcs += common/sec2/sec2.c \
 	hal/pramin/pramin_init.c \
 	hal/pramin/pramin_tu104.c \
 	hal/bios/bios_tu104.c \
-	hal/top/top_gv100.c
+	hal/top/top_gv100.c \
+	hal/xve/xve_gp106.c
 
 ifeq ($(CONFIG_NVGPU_COMPRESSION),1)
 srcs +=	hal/cbc/cbc_tu104.c

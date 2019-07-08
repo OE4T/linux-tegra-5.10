@@ -1664,6 +1664,7 @@ struct gpu_ops {
 		u32 (*get_max_buffer_size)(struct gk20a *g);
 	} css;
 #endif
+#ifdef CONFIG_NVGPU_DGPU
 	struct {
 		int (*get_speed)(struct gk20a *g, u32 *xve_link_speed);
 		int (*set_speed)(struct gk20a *g, u32 xve_link_speed);
@@ -1679,6 +1680,7 @@ struct gpu_ops {
 		void (*disable_shadow_rom)(struct gk20a *g);
 		u32 (*get_link_control_status)(struct gk20a *g);
 	} xve;
+#endif
 	struct {
 		void (*reset)(struct nvgpu_falcon *flcn);
 		void (*set_irq)(struct nvgpu_falcon *flcn, bool enable,

@@ -23,6 +23,8 @@
 #ifndef NVGPU_XVE_GP106_H
 #define NVGPU_XVE_GP106_H
 
+#ifdef CONFIG_NVGPU_DGPU
+
 #include <nvgpu/log2.h>
 #include <nvgpu/types.h>
 #include <nvgpu/gk20a.h>
@@ -66,4 +68,5 @@ void xve_rearm_msi_gp106(struct gk20a *g);
 void xve_enable_shadow_rom_gp106(struct gk20a *g);
 void xve_disable_shadow_rom_gp106(struct gk20a *g);
 
+#endif
 #endif /* NVGPU_XVE_GP106_H */

@@ -179,6 +179,7 @@ int gk20a_finalize_poweron(struct gk20a *g)
 
 	g->power_on = true;
 
+#ifdef CONFIG_NVGPU_DGPU
 	/*
 	 * Before probing the GPU make sure the GPU's state is cleared. This is
 	 * relevant for rebind operations.
@@ -187,6 +188,7 @@ int gk20a_finalize_poweron(struct gk20a *g)
 		g->ops.xve.reset_gpu(g);
 		g->gpu_reset_done = true;
 	}
+#endif
 
 	/*
 	 * Do this early so any early VMs that get made are capable of mapping
@@ -494,6 +496,7 @@ int gk20a_finalize_poweron(struct gk20a *g)
 	}
 #endif
 
+#ifdef CONFIG_NVGPU_DGPU
 	if (g->ops.xve.available_speeds != NULL) {
 		u32 speed;
 
@@ -512,6 +515,7 @@ int gk20a_finalize_poweron(struct gk20a *g)
 			goto done;
 		}
 	}
+#endif
 
 #if defined(CONFIG_TEGRA_GK20A_NVHOST)
 	if (nvgpu_has_syncpoints(g) && (g->syncpt_unit_size != 0UL)) {
