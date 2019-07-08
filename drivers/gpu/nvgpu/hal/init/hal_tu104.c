@@ -159,9 +159,8 @@
 #include "hal/top/top_gv11b.h"
 #include "hal/bios/bios_tu104.h"
 #include "hal/pramin/pramin_init.h"
+#include "hal/xve/xve_gp106.h"
 
-
-#include "common/xve/xve_gp106.h"
 #include "common/nvlink/init/device_reginit_gv100.h"
 #include "common/nvlink/intr_and_err_handling_gv100.h"
 #include "hal/nvlink/minion_gv100.h"

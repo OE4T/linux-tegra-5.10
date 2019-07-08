@@ -67,7 +67,6 @@ nvgpu-y += \
 	common/utils/worker.o \
 	common/ptimer/ptimer.o \
 	common/perf/perfbuf.o \
-	common/xve/xve_gp106.o \
 	common/therm/therm.o \
 	common/mc/mc.o \
 	common/sync/channel_sync.o \
@@ -320,7 +319,8 @@ nvgpu-y += \
 	hal/bios/bios_tu104.o \
 	hal/top/top_gm20b.o \
 	hal/top/top_gp106.o \
-	hal/top/top_gv100.o
+	hal/top/top_gv100.o \
+	hal/xve/xve_gp106.o
 
 
 # Linux specific parts of nvgpu.

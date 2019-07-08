@@ -657,3 +657,11 @@ bios:
   gpu: dgpu
   sources: [ hal/bios/bios_tu104.c,
              hal/bios/bios_tu104.h ]
+
+xve:
+  safe: yes
+  owner: Alex W
+  gpu: dgpu
+  sources: [ include/nvgpu/xve.h,
+             hal/xve/xve_gp106.c,
+             hal/xve/xve_gp106.h ]

@@ -98,7 +98,7 @@ int xve_get_speed_gp106(struct gk20a *g, u32 *xve_link_speed)
 	link_speed = xve_link_control_status_link_speed_v(status);
 
 	/*
-	 * Can't use a switch statement becuase switch statements dont work with
+	 * Can't use a switch statement because switch statements dont work with
 	 * function calls.
 	 */
 	if (link_speed == xve_link_control_status_link_speed_link_speed_2p5_v()) {
@@ -204,7 +204,7 @@ static int do_xve_set_speed_gp106(struct gk20a *g, u32 next_link_speed)
 	u32 current_link_speed, new_link_speed;
 	u32 dl_mgr, saved_dl_mgr;
 	u32 pl_link_config;
-	u32 link_control_status, link_speed_setting, link_width;
+	u32 link_control_status, link_speed_setting = 0U, link_width;
 	struct nvgpu_timeout timeout;
 	int attempts = 10, err_status = 0;
 
@@ -283,7 +283,7 @@ static int do_xve_set_speed_gp106(struct gk20a *g, u32 next_link_speed)
 			xp_pl_link_config_max_link_rate_8000_mtps_v());
 		break;
 	default:
-		BUG(); /* Should never be hit. */
+		WARN_ON(true); /* Should never be hit. */
 		break;
 	}
 
@@ -310,7 +310,7 @@ static int do_xve_set_speed_gp106(struct gk20a *g, u32 next_link_speed)
 		pl_link_config |= xp_pl_link_config_target_tx_width_f(
 			xp_pl_link_config_target_tx_width_x16_v());
 	} else {
-		BUG();
+		WARN_ON(true);
 	}
 
 	xv_sc_dbg(g, LINK_SETTINGS, "  pl_link_config = 0x%08x", pl_link_config);
@@ -385,7 +385,7 @@ static int do_xve_set_speed_gp106(struct gk20a *g, u32 next_link_speed)
 			 * The rest of the driver is probably about to
 			 * explode...
 			 */
-			BUG();
+			WARN_ON(true);
 		}
 
 		link_control_status =

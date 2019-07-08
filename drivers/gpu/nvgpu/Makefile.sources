@@ -98,7 +98,6 @@ srcs += common/utils/enabled.c \
 	common/mm/nvgpu_sgt.c \
 	common/mm/mm.c \
 	common/mm/dma.c \
-	common/xve/xve_gp106.c \
 	common/therm/therm.c \
 	common/ltc/ltc.c \
 	common/fbp/fbp.c \
@@ -213,7 +212,8 @@ srcs += common/utils/enabled.c \
 	hal/pmu/pmu_gp106.c \
 	hal/pmu/pmu_gv11b.c \
 	hal/top/top_gm20b.c \
-	hal/top/top_gp106.c
+	hal/top/top_gp106.c \
+	hal/xve/xve_gp106.c
 
 # Source files below are functionaly safe (FuSa) and must always be included.
 srcs += hal/mm/mm_gv11b_fusa.c \
