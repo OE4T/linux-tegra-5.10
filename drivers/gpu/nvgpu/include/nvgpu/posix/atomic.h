@@ -86,20 +86,6 @@ typedef struct __nvgpu_posix_atomic64 {
 
 #define NVGPU_POSIX_ATOMIC_XCHG(v, new) atomic_exchange(&((v)->v), (new))
 
-#define NVGPU_POSIX_ATOMIC_ADD_UNLESS(v, a, u)				\
-	({								\
-		typeof((v)->v) old;					\
-									\
-		do {							\
-			old = atomic_load(&((v)->v));			\
-			if (old == (u)) {				\
-				break;					\
-			}						\
-		} while (!atomic_compare_exchange_strong(&((v)->v),	\
-				&old, old + (a)));			\
-		old;							\
-	})
-
 static inline void nvgpu_atomic_set_impl(nvgpu_atomic_t *v, int i)
 {
 	NVGPU_POSIX_ATOMIC_SET(v, i);
@@ -177,7 +163,16 @@ static inline int nvgpu_atomic_add_return_impl(int i, nvgpu_atomic_t *v)
 
 static inline int nvgpu_atomic_add_unless_impl(nvgpu_atomic_t *v, int a, int u)
 {
-	return NVGPU_POSIX_ATOMIC_ADD_UNLESS(v, a, u);
+	int old;
+
+	do {
+		old = NVGPU_POSIX_ATOMIC_READ(v);
+		if (old == (u)) {
+			break;
+		}
+	} while (!atomic_compare_exchange_strong(&((v)->v), &old, old + (a)));
+
+	return old;
 }
 
 static inline void nvgpu_atomic64_set_impl(nvgpu_atomic64_t *v, long i)
@@ -203,7 +198,16 @@ static inline long nvgpu_atomic64_add_return_impl(long x, nvgpu_atomic64_t *v)
 static inline long nvgpu_atomic64_add_unless_impl(nvgpu_atomic64_t *v, long a,
 						long u)
 {
-	return NVGPU_POSIX_ATOMIC_ADD_UNLESS(v, a, u);
+	long old;
+
+	do {
+		old = NVGPU_POSIX_ATOMIC_READ(v);
+		if (old == (u)) {
+			break;
+		}
+	} while (!atomic_compare_exchange_strong(&((v)->v), &old, old + (a)));
+
+	return old;
 }
 
 static inline void nvgpu_atomic64_inc_impl(nvgpu_atomic64_t *v)
