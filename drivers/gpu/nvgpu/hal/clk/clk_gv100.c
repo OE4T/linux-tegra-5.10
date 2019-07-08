@@ -56,6 +56,7 @@
 #define XTAL_SCALE_TO_KHZ	1
 #define NUM_NAMEMAPS    (3U)
 #define XTAL4X_KHZ 108000
+#define BOOT_GPCCLK_MHZ 645U
 
 u32 gv100_crystal_clk_hz(struct gk20a *g)
 {
@@ -238,14 +239,20 @@ void gv100_suspend_clk_support(struct gk20a *g)
 
 unsigned long gv100_clk_maxrate(struct gk20a *g, u32 api_domain)
 {
-	u16 min_mhz, max_mhz;
+	u16 min_mhz = 0, max_mhz = 0;
 	int status;
 
-	status = nvgpu_clk_arb_get_arbiter_clk_range(g, api_domain, &min_mhz,
-			&max_mhz);
-	if (status != 0) {
-		nvgpu_err(g, "failed to fetch clock range");
-		return 0U;
+	if (nvgpu_is_enabled(g, NVGPU_PMU_PSTATE)) {
+		status = nvgpu_clk_arb_get_arbiter_clk_range(g, api_domain,
+				&min_mhz, &max_mhz);
+		if (status != 0) {
+			nvgpu_err(g, "failed to fetch clock range");
+			return 0U;
+		}
+	} else {
+		if (api_domain == NVGPU_CLK_DOMAIN_GPCCLK) {
+			max_mhz = BOOT_GPCCLK_MHZ;
+		}
 	}
 
 	return (max_mhz * 1000UL * 1000UL);

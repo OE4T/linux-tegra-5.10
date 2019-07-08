@@ -107,9 +107,9 @@ struct nvgpu_clk_session;
  * defines in uapi header
  */
 /* Memory clock */
-#define NVGPU_CLK_DOMAIN_MCLK	(0)
+#define NVGPU_CLK_DOMAIN_MCLK	0U
 /* Main graphics core clock */
-#define NVGPU_CLK_DOMAIN_GPCCLK	(1)
+#define NVGPU_CLK_DOMAIN_GPCCLK	1U
 
 #define NVGPU_CLK_DOMAIN_MAX	(NVGPU_CLK_DOMAIN_GPCCLK)
 
