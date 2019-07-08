@@ -107,6 +107,10 @@
 	(__builtin_types_compatible_p(typeof(x), unsigned long) ||	\
 		__builtin_types_compatible_p(typeof(x), unsigned long long))
 
+#define IS_SIGNED_LONG_TYPE(x)						\
+	(__builtin_types_compatible_p(typeof(x), signed long) ||	\
+		__builtin_types_compatible_p(typeof(x), signed long long))
+
 #define ALIGN_MASK(x, mask)						\
 	__builtin_choose_expr(						\
 		(IS_UNSIGNED_TYPE(x) && IS_UNSIGNED_TYPE(mask)),	\

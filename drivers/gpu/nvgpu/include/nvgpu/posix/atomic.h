@@ -25,6 +25,7 @@
 
 #include <stdatomic.h>
 #include <nvgpu/types.h>
+#include <nvgpu/safe_ops.h>
 
 /*
  * Note: this code uses the GCC builtins to implement atomics.
@@ -56,7 +57,10 @@ typedef struct __nvgpu_posix_atomic64 {
 		typeof((v)->v) tmp;					\
 									\
 		tmp = (typeof((v)->v))atomic_fetch_add(&((v)->v), (i));	\
-		tmp += (i);						\
+		tmp = __builtin_choose_expr(				\
+				IS_SIGNED_LONG_TYPE(i),			\
+				(nvgpu_safe_add_s64((tmp), (i))),	\
+				(nvgpu_safe_add_s32((tmp), (i))));	\
 		tmp;							\
 	})
 
@@ -65,7 +69,10 @@ typedef struct __nvgpu_posix_atomic64 {
 		typeof((v)->v) tmp;					\
 									\
 		tmp = (typeof((v)->v))atomic_fetch_sub(&((v)->v), (i));	\
-		tmp -= (i);						\
+		tmp = __builtin_choose_expr(				\
+				IS_SIGNED_LONG_TYPE(i),			\
+				(nvgpu_safe_sub_s64((tmp), (i))),	\
+				(nvgpu_safe_sub_s32((tmp), (i))));	\
 		tmp;							\
 	})
 
@@ -201,32 +208,32 @@ static inline long nvgpu_atomic64_add_unless_impl(nvgpu_atomic64_t *v, long a,
 
 static inline void nvgpu_atomic64_inc_impl(nvgpu_atomic64_t *v)
 {
-	(void)NVGPU_POSIX_ATOMIC_ADD_RETURN(v, 1);
+	(void)NVGPU_POSIX_ATOMIC_ADD_RETURN(v, 1L);
 }
 
 static inline long nvgpu_atomic64_inc_return_impl(nvgpu_atomic64_t *v)
 {
-	return NVGPU_POSIX_ATOMIC_ADD_RETURN(v, 1);
+	return NVGPU_POSIX_ATOMIC_ADD_RETURN(v, 1L);
 }
 
 static inline bool nvgpu_atomic64_inc_and_test_impl(nvgpu_atomic64_t *v)
 {
-	return NVGPU_POSIX_ATOMIC_ADD_RETURN(v, 1) == 0;
+	return NVGPU_POSIX_ATOMIC_ADD_RETURN(v, 1L) == 0L;
 }
 
 static inline void nvgpu_atomic64_dec_impl(nvgpu_atomic64_t *v)
 {
-	(void)NVGPU_POSIX_ATOMIC_SUB_RETURN(v, 1);
+	(void)NVGPU_POSIX_ATOMIC_SUB_RETURN(v, 1L);
 }
 
 static inline long nvgpu_atomic64_dec_return_impl(nvgpu_atomic64_t *v)
 {
-	return NVGPU_POSIX_ATOMIC_SUB_RETURN(v, 1);
+	return NVGPU_POSIX_ATOMIC_SUB_RETURN(v, 1L);
 }
 
 static inline bool nvgpu_atomic64_dec_and_test_impl(nvgpu_atomic64_t *v)
 {
-	return NVGPU_POSIX_ATOMIC_SUB_RETURN(v, 1) == 0;
+	return NVGPU_POSIX_ATOMIC_SUB_RETURN(v, 1L) == 0;
 }
 
 static inline long nvgpu_atomic64_xchg_impl(nvgpu_atomic64_t *v, long new)
