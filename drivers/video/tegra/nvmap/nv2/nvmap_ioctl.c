@@ -3,7 +3,7 @@
  *
  * User-space interface to nvmap
  *
- * Copyright (c) 2018, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -643,7 +643,6 @@ out:
 static int ioctl_rw_handle_copy_op_from_user(void __user *arg,
 				struct nvmap_rw_handle *op, int op_size)
 {
-	struct nvmap_rw_handle_64 op64;
 #ifdef CONFIG_COMPAT
 	struct nvmap_rw_handle_32 op32;
 #endif
@@ -670,20 +669,6 @@ static int ioctl_rw_handle_copy_op_from_user(void __user *arg,
 		return 0;
 	}
 
-	if (op_size == sizeof(op64)) {
-		if (copy_from_user(&op64, arg, sizeof(op64))) {
-			return -EFAULT;
-		}
-		op->addr = op64.addr;
-		op->handle = op64.handle;
-		op->offset = op64.offset;
-		op->elem_size = op64.elem_size;
-		op->hmem_stride = op64.hmem_stride;
-		op->user_stride = op64.user_stride;
-		op->count = op64.count;
-		return 0;
-	}
-
 	pr_warn("nvmap: rw_handle copy size failed\n");
 	return -EINVAL;
 }
@@ -692,7 +677,6 @@ static void ioctl_rw_handle_copy_arg_to_user(void __user *arg,
 					ssize_t copied, int op_size)
 {
 	struct nvmap_rw_handle __user *uarg = arg;
-	struct nvmap_rw_handle_64 __user *uarg64 = arg;
 #ifdef CONFIG_COMPAT
 	struct nvmap_rw_handle_32 __user *uarg32 = arg;
 #endif
@@ -705,11 +689,6 @@ static void ioctl_rw_handle_copy_arg_to_user(void __user *arg,
 #endif
 	if (op_size == sizeof(struct nvmap_rw_handle)) {
 		__put_user(copied, &uarg->count);
-		return;
-	}
-
-	if (op_size == sizeof(struct nvmap_rw_handle_64)) {
-		__put_user(copied, &uarg64->count);
 		return;
 	}
 
