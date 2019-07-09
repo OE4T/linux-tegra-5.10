@@ -233,3 +233,28 @@ void gm20b_clear_pmu_bar0_host_err_status(struct gk20a *g)
 	status = gk20a_readl(g, pwr_pmu_bar0_host_error_r());
 	gk20a_writel(g, pwr_pmu_bar0_host_error_r(), status);
 }
+
+u32 gm20b_pmu_queue_head_r(u32 i)
+{
+	return pwr_pmu_queue_head_r(i);
+}
+
+u32 gm20b_pmu_queue_head__size_1_v(void)
+{
+	return pwr_pmu_queue_head__size_1_v();
+}
+
+u32 gm20b_pmu_queue_tail_r(u32 i)
+{
+	return pwr_pmu_queue_tail_r(i);
+}
+
+u32 gm20b_pmu_queue_tail__size_1_v(void)
+{
+	return pwr_pmu_queue_tail__size_1_v();
+}
+
+u32 gm20b_pmu_mutex__size_1_v(void)
+{
+	return pwr_pmu_mutex__size_1_v();
+}

@@ -34,15 +34,30 @@
 
 #include <nvgpu/utils.h>
 
+static inline u32 ltc0_lts0_l1_cache_ecc_control_r(void)
+{
+	return ltc_ltc0_lts0_l1_cache_ecc_control_r();
+}
+
+static inline u32 ltc0_lts0_l1_cache_ecc_control_inject_corrected_err_f(u32 v)
+{
+	return ltc_ltc0_lts0_l1_cache_ecc_control_inject_corrected_err_f(v);
+}
+
+static inline u32 ltc0_lts0_l1_cache_ecc_control_inject_uncorrected_err_f(u32 v)
+{
+	return ltc_ltc0_lts0_l1_cache_ecc_control_inject_uncorrected_err_f(v);
+}
+
 static struct nvgpu_hw_err_inject_info ltc_ecc_err_desc[] = {
 	NVGPU_ECC_ERR("cache_rstg_ecc_corrected",
 			gv11b_ltc_inject_ecc_error,
-			ltc_ltc0_lts0_l1_cache_ecc_control_r,
-			ltc_ltc0_lts0_l1_cache_ecc_control_inject_corrected_err_f),
+			ltc0_lts0_l1_cache_ecc_control_r,
+			ltc0_lts0_l1_cache_ecc_control_inject_corrected_err_f),
 	NVGPU_ECC_ERR("cache_rstg_ecc_uncorrected",
 			gv11b_ltc_inject_ecc_error,
-			ltc_ltc0_lts0_l1_cache_ecc_control_r,
-			ltc_ltc0_lts0_l1_cache_ecc_control_inject_uncorrected_err_f),
+			ltc0_lts0_l1_cache_ecc_control_r,
+			ltc0_lts0_l1_cache_ecc_control_inject_uncorrected_err_f),
 };
 
 static struct nvgpu_hw_err_inject_info_desc ltc_err_desc;

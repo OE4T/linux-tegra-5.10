@@ -28,15 +28,30 @@
 
 #include "ecc_gv11b.h"
 
+static inline u32 fecs_falcon_ecc_control_r(void)
+{
+	return gr_fecs_falcon_ecc_control_r();
+}
+
+static inline u32 fecs_falcon_ecc_control_inject_corrected_err_f(u32 v)
+{
+	return gr_fecs_falcon_ecc_control_inject_corrected_err_f(v);
+}
+
+static inline u32 fecs_falcon_ecc_control_inject_uncorrected_err_f(u32 v)
+{
+	return gr_fecs_falcon_ecc_control_inject_uncorrected_err_f(v);
+}
+
 static struct nvgpu_hw_err_inject_info fecs_ecc_err_desc[] = {
 	NVGPU_ECC_ERR("falcon_imem_ecc_corrected",
 			gv11b_gr_intr_inject_fecs_ecc_error,
-			gr_fecs_falcon_ecc_control_r,
-			gr_fecs_falcon_ecc_control_inject_corrected_err_f),
+			fecs_falcon_ecc_control_r,
+			fecs_falcon_ecc_control_inject_corrected_err_f),
 	NVGPU_ECC_ERR("falcon_imem_ecc_uncorrected",
 			gv11b_gr_intr_inject_fecs_ecc_error,
-			gr_fecs_falcon_ecc_control_r,
-			gr_fecs_falcon_ecc_control_inject_uncorrected_err_f),
+			fecs_falcon_ecc_control_r,
+			fecs_falcon_ecc_control_inject_uncorrected_err_f),
 };
 
 static struct nvgpu_hw_err_inject_info_desc fecs_err_desc;
@@ -52,15 +67,30 @@ gv11b_gr_intr_get_fecs_err_desc(struct gk20a *g)
 	return &fecs_err_desc;
 }
 
+static inline u32 gpccs_falcon_ecc_control_r(void)
+{
+	return gr_gpccs_falcon_ecc_control_r();
+}
+
+static inline u32 gpccs_falcon_ecc_control_inject_corrected_err_f(u32 v)
+{
+	return gr_gpccs_falcon_ecc_control_inject_corrected_err_f(v);
+}
+
+static inline u32 gpccs_falcon_ecc_control_inject_uncorrected_err_f(u32 v)
+{
+	return gr_gpccs_falcon_ecc_control_inject_uncorrected_err_f(v);
+}
+
 static struct nvgpu_hw_err_inject_info gpccs_ecc_err_desc[] = {
 	NVGPU_ECC_ERR("falcon_imem_ecc_corrected",
 			gv11b_gr_intr_inject_gpccs_ecc_error,
-			gr_gpccs_falcon_ecc_control_r,
-			gr_gpccs_falcon_ecc_control_inject_corrected_err_f),
+			gpccs_falcon_ecc_control_r,
+			gpccs_falcon_ecc_control_inject_corrected_err_f),
 	NVGPU_ECC_ERR("falcon_imem_ecc_uncorrected",
 			gv11b_gr_intr_inject_gpccs_ecc_error,
-			gr_gpccs_falcon_ecc_control_r,
-			gr_gpccs_falcon_ecc_control_inject_uncorrected_err_f),
+			gpccs_falcon_ecc_control_r,
+			gpccs_falcon_ecc_control_inject_uncorrected_err_f),
 };
 
 static struct nvgpu_hw_err_inject_info_desc gpccs_err_desc;
@@ -76,31 +106,106 @@ gv11b_gr_intr_get_gpccs_err_desc(struct gk20a *g)
 	return &gpccs_err_desc;
 }
 
+static inline u32 pri_gpc0_tpc0_sm_l1_tag_ecc_control_r(void)
+{
+	return gr_pri_gpc0_tpc0_sm_l1_tag_ecc_control_r();
+}
+
+static inline u32 pri_gpc0_tpc0_sm_l1_tag_ecc_control_inject_corrected_err_f(u32 v)
+{
+	return gr_pri_gpc0_tpc0_sm_l1_tag_ecc_control_inject_corrected_err_f(v);
+}
+
+static inline u32 pri_gpc0_tpc0_sm_l1_tag_ecc_control_inject_uncorrected_err_f(u32 v)
+{
+	return gr_pri_gpc0_tpc0_sm_l1_tag_ecc_control_inject_uncorrected_err_f(v);
+}
+
+static inline u32 pri_gpc0_tpc0_sm_cbu_ecc_control_r(void)
+{
+	return gr_pri_gpc0_tpc0_sm_cbu_ecc_control_r();
+}
+
+static inline u32 pri_gpc0_tpc0_sm_cbu_ecc_control_inject_uncorrected_err_f(u32 v)
+{
+	return gr_pri_gpc0_tpc0_sm_cbu_ecc_control_inject_uncorrected_err_f(v);
+}
+
+static inline u32 pri_gpc0_tpc0_sm_lrf_ecc_control_r(void)
+{
+	return gr_pri_gpc0_tpc0_sm_lrf_ecc_control_r();
+}
+
+static inline u32 pri_gpc0_tpc0_sm_lrf_ecc_control_inject_uncorrected_err_f(u32 v)
+{
+	return gr_pri_gpc0_tpc0_sm_lrf_ecc_control_inject_uncorrected_err_f(v);
+}
+
+static inline u32 pri_gpc0_tpc0_sm_l1_data_ecc_control_r(void)
+{
+	return gr_pri_gpc0_tpc0_sm_l1_data_ecc_control_r();
+}
+
+static inline u32 pri_gpc0_tpc0_sm_l1_data_ecc_control_inject_uncorrected_err_f(u32 v)
+{
+	return gr_pri_gpc0_tpc0_sm_l1_data_ecc_control_inject_uncorrected_err_f(v);
+}
+
+static inline u32 pri_gpc0_tpc0_sm_icache_ecc_control_r(void)
+{
+	return gr_pri_gpc0_tpc0_sm_icache_ecc_control_r();
+}
+
+static inline u32 pri_gpc0_tpc0_sm_icache_ecc_control_inject_uncorrected_err_f(u32 v)
+{
+	return gr_pri_gpc0_tpc0_sm_icache_ecc_control_inject_uncorrected_err_f(v);
+}
+
+static inline u32 pri_gpc0_mmu_l1tlb_ecc_control_r(void)
+{
+	return gr_gpc0_mmu_l1tlb_ecc_control_r();
+}
+
+static inline u32 pri_gpc0_mmu_l1tlb_ecc_control_inject_uncorrected_err_f(u32 v)
+{
+	return gr_gpc0_mmu_l1tlb_ecc_control_inject_uncorrected_err_f(v);
+}
+
+static inline u32 pri_gpc0_gcc_l15_ecc_control_r(void)
+{
+	return gr_pri_gpc0_gcc_l15_ecc_control_r();
+}
+
+static inline u32 pri_gpc0_gcc_l15_ecc_control_inject_uncorrected_err_f(u32 v)
+{
+	return gr_pri_gpc0_gcc_l15_ecc_control_inject_uncorrected_err_f(v);
+}
+
 static struct nvgpu_hw_err_inject_info sm_ecc_err_desc[] = {
 	NVGPU_ECC_ERR("l1_tag_ecc_corrected",
 			gv11b_gr_intr_inject_sm_ecc_error,
-			gr_pri_gpc0_tpc0_sm_l1_tag_ecc_control_r,
-			gr_pri_gpc0_tpc0_sm_l1_tag_ecc_control_inject_corrected_err_f),
+			pri_gpc0_tpc0_sm_l1_tag_ecc_control_r,
+			pri_gpc0_tpc0_sm_l1_tag_ecc_control_inject_corrected_err_f),
 	NVGPU_ECC_ERR("l1_tag_ecc_uncorrected",
 			gv11b_gr_intr_inject_sm_ecc_error,
-			gr_pri_gpc0_tpc0_sm_l1_tag_ecc_control_r,
-			gr_pri_gpc0_tpc0_sm_l1_tag_ecc_control_inject_uncorrected_err_f),
+			pri_gpc0_tpc0_sm_l1_tag_ecc_control_r,
+			pri_gpc0_tpc0_sm_l1_tag_ecc_control_inject_uncorrected_err_f),
 	NVGPU_ECC_ERR("cbu_ecc_uncorrected",
 			gv11b_gr_intr_inject_sm_ecc_error,
-			gr_pri_gpc0_tpc0_sm_cbu_ecc_control_r,
-			gr_pri_gpc0_tpc0_sm_cbu_ecc_control_inject_uncorrected_err_f),
+			pri_gpc0_tpc0_sm_cbu_ecc_control_r,
+			pri_gpc0_tpc0_sm_cbu_ecc_control_inject_uncorrected_err_f),
 	NVGPU_ECC_ERR("lrf_ecc_uncorrected",
 			gv11b_gr_intr_inject_sm_ecc_error,
-			gr_pri_gpc0_tpc0_sm_lrf_ecc_control_r,
-			gr_pri_gpc0_tpc0_sm_lrf_ecc_control_inject_uncorrected_err_f),
+			pri_gpc0_tpc0_sm_lrf_ecc_control_r,
+			pri_gpc0_tpc0_sm_lrf_ecc_control_inject_uncorrected_err_f),
 	NVGPU_ECC_ERR("l1_data_ecc_uncorrected",
 			gv11b_gr_intr_inject_sm_ecc_error,
-			gr_pri_gpc0_tpc0_sm_l1_data_ecc_control_r,
-			gr_pri_gpc0_tpc0_sm_l1_data_ecc_control_inject_uncorrected_err_f),
+			pri_gpc0_tpc0_sm_l1_data_ecc_control_r,
+			pri_gpc0_tpc0_sm_l1_data_ecc_control_inject_uncorrected_err_f),
 	NVGPU_ECC_ERR("icache_l0_data_ecc_uncorrected",
 			gv11b_gr_intr_inject_sm_ecc_error,
-			gr_pri_gpc0_tpc0_sm_icache_ecc_control_r,
-			gr_pri_gpc0_tpc0_sm_icache_ecc_control_inject_uncorrected_err_f),
+			pri_gpc0_tpc0_sm_icache_ecc_control_r,
+			pri_gpc0_tpc0_sm_icache_ecc_control_inject_uncorrected_err_f),
 };
 
 static struct nvgpu_hw_err_inject_info_desc sm_err_desc;
@@ -119,8 +224,8 @@ gv11b_gr_intr_get_sm_err_desc(struct gk20a *g)
 static struct nvgpu_hw_err_inject_info mmu_ecc_err_desc[] = {
 	NVGPU_ECC_ERR("l1tlb_sa_data_ecc_uncorrected",
 			gv11b_gr_intr_inject_mmu_ecc_error,
-			gr_gpc0_mmu_l1tlb_ecc_control_r,
-			gr_gpc0_mmu_l1tlb_ecc_control_inject_uncorrected_err_f),
+			pri_gpc0_mmu_l1tlb_ecc_control_r,
+			pri_gpc0_mmu_l1tlb_ecc_control_inject_uncorrected_err_f),
 };
 
 static struct nvgpu_hw_err_inject_info_desc mmu_err_desc;
@@ -139,8 +244,8 @@ gv11b_gr_intr_get_mmu_err_desc(struct gk20a *g)
 static struct nvgpu_hw_err_inject_info gcc_ecc_err_desc[] = {
 	NVGPU_ECC_ERR("l15_ecc_uncorrected",
 			gv11b_gr_intr_inject_gcc_ecc_error,
-			gr_pri_gpc0_gcc_l15_ecc_control_r,
-			gr_pri_gpc0_gcc_l15_ecc_control_inject_uncorrected_err_f),
+			pri_gpc0_gcc_l15_ecc_control_r,
+			pri_gpc0_gcc_l15_ecc_control_inject_uncorrected_err_f),
 };
 
 static struct nvgpu_hw_err_inject_info_desc gcc_err_desc;

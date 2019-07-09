@@ -37,5 +37,10 @@ void gm20b_pmu_flcn_setup_boot_config(struct gk20a *g);
 void gm20b_secured_pmu_start(struct gk20a *g);
 bool gm20b_is_pmu_supported(struct gk20a *g);
 void gm20b_clear_pmu_bar0_host_err_status(struct gk20a *g);
+u32 gm20b_pmu_queue_head_r(u32 i);
+u32 gm20b_pmu_queue_head__size_1_v(void);
+u32 gm20b_pmu_queue_tail_r(u32 i);
+u32 gm20b_pmu_queue_tail__size_1_v(void);
+u32 gm20b_pmu_mutex__size_1_v(void);
 
 #endif /* PMU_GM20B_H */

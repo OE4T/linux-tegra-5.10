@@ -356,6 +356,31 @@ u32 gv11b_pmu_get_irqdest(struct gk20a *g)
 
 	return intr_dest;
 }
+
+u32 gv11b_pmu_queue_head_r(u32 i)
+{
+	return pwr_pmu_queue_head_r(i);
+}
+
+u32 gv11b_pmu_queue_head__size_1_v(void)
+{
+	return pwr_pmu_queue_head__size_1_v();
+}
+
+u32 gv11b_pmu_queue_tail_r(u32 i)
+{
+	return pwr_pmu_queue_tail_r(i);
+}
+
+u32 gv11b_pmu_queue_tail__size_1_v(void)
+{
+	return pwr_pmu_queue_tail__size_1_v();
+}
+
+u32 gv11b_pmu_mutex__size_1_v(void)
+{
+	return pwr_pmu_mutex__size_1_v();
+}
 #endif
 
 /* error handler */

@@ -45,6 +45,11 @@ int gv11b_pmu_bootstrap(struct gk20a *g, struct nvgpu_pmu *pmu,
 void gv11b_pmu_setup_elpg(struct gk20a *g);
 u32 gv11b_pmu_get_irqdest(struct gk20a *g);
 void gv11b_pmu_handle_ext_irq(struct gk20a *g, u32 intr0);
+u32 gv11b_pmu_queue_head_r(u32 i);
+u32 gv11b_pmu_queue_head__size_1_v(void);
+u32 gv11b_pmu_queue_tail_r(u32 i);
+u32 gv11b_pmu_queue_tail__size_1_v(void);
+u32 gv11b_pmu_mutex__size_1_v(void);
 #endif
 
 void gv11b_clear_pmu_bar0_host_err_status(struct gk20a *g);

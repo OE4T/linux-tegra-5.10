@@ -39,15 +39,30 @@
 
 #define ALIGN_4KB     12
 
+static inline u32 pmu_falcon_ecc_control_r(void)
+{
+	return pwr_pmu_falcon_ecc_control_r();
+}
+
+static inline u32 pmu_falcon_ecc_control_inject_corrected_err_f(u32 v)
+{
+	return pwr_pmu_falcon_ecc_control_inject_corrected_err_f(v);
+}
+
+static inline u32 pmu_falcon_ecc_control_inject_uncorrected_err_f(u32 v)
+{
+	return pwr_pmu_falcon_ecc_control_inject_uncorrected_err_f(v);
+}
+
 static struct nvgpu_hw_err_inject_info pmu_ecc_err_desc[] = {
 	NVGPU_ECC_ERR("falcon_imem_ecc_corrected",
 			gv11b_pmu_inject_ecc_error,
-			pwr_pmu_falcon_ecc_control_r,
-			pwr_pmu_falcon_ecc_control_inject_corrected_err_f),
+			pmu_falcon_ecc_control_r,
+			pmu_falcon_ecc_control_inject_corrected_err_f),
 	NVGPU_ECC_ERR("falcon_imem_ecc_uncorrected",
 			gv11b_pmu_inject_ecc_error,
-			pwr_pmu_falcon_ecc_control_r,
-			pwr_pmu_falcon_ecc_control_inject_uncorrected_err_f),
+			pmu_falcon_ecc_control_r,
+			pmu_falcon_ecc_control_inject_uncorrected_err_f),
 };
 
 static struct nvgpu_hw_err_inject_info_desc pmu_err_desc;

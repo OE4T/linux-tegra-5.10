@@ -163,3 +163,28 @@ bool gp10b_is_pmu_supported(struct gk20a *g)
 {
 	return true;
 }
+
+u32 gp10b_pmu_queue_head_r(u32 i)
+{
+	return pwr_pmu_queue_head_r(i);
+}
+
+u32 gp10b_pmu_queue_head__size_1_v(void)
+{
+	return pwr_pmu_queue_head__size_1_v();
+}
+
+u32 gp10b_pmu_queue_tail_r(u32 i)
+{
+	return pwr_pmu_queue_tail_r(i);
+}
+
+u32 gp10b_pmu_queue_tail__size_1_v(void)
+{
+	return pwr_pmu_queue_tail__size_1_v();
+}
+
+u32 gp10b_pmu_mutex__size_1_v(void)
+{
+	return pwr_pmu_mutex__size_1_v();
+}

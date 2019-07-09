@@ -26,6 +26,8 @@
 
 #include "pmu_tu104.h"
 
+#include <nvgpu/hw/tu104/hw_pwr_tu104.h>
+
 bool tu104_is_pmu_supported(struct gk20a *g)
 {
 #ifdef CONFIG_NVGPU_SIM
@@ -39,3 +41,27 @@ bool tu104_is_pmu_supported(struct gk20a *g)
 	}
 }
 
+u32 tu104_pmu_queue_head_r(u32 i)
+{
+	return pwr_pmu_queue_head_r(i);
+}
+
+u32 tu104_pmu_queue_head__size_1_v(void)
+{
+	return pwr_pmu_queue_head__size_1_v();
+}
+
+u32 tu104_pmu_queue_tail_r(u32 i)
+{
+	return pwr_pmu_queue_tail_r(i);
+}
+
+u32 tu104_pmu_queue_tail__size_1_v(void)
+{
+	return pwr_pmu_queue_tail__size_1_v();
+}
+
+u32 tu104_pmu_mutex__size_1_v(void)
+{
+	return pwr_pmu_mutex__size_1_v();
+}
