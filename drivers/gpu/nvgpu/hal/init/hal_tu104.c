@@ -823,6 +823,8 @@ static const struct gpu_ops tu104_ops = {
 			tu104_slcg_therm_load_gating_prod,
 		.slcg_xbar_load_gating_prod =
 			tu104_slcg_xbar_load_gating_prod,
+		.slcg_hshub_load_gating_prod =
+			tu104_slcg_hshub_load_gating_prod,
 		.blcg_bus_load_gating_prod =
 			tu104_blcg_bus_load_gating_prod,
 		.blcg_ce_load_gating_prod =
@@ -843,6 +845,8 @@ static const struct gpu_ops tu104_ops = {
 			tu104_blcg_pmu_load_gating_prod,
 		.blcg_xbar_load_gating_prod =
 			tu104_blcg_xbar_load_gating_prod,
+		.blcg_hshub_load_gating_prod =
+			tu104_blcg_hshub_load_gating_prod,
 	},
 	.fifo = {
 		.init_fifo_setup_hw = tu104_init_fifo_setup_hw,

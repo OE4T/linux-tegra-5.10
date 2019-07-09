@@ -160,6 +160,13 @@ static const struct gating_desc tu104_slcg_xbar[] = {
 	{.addr = 0x0013cbe4U, .prod = 0x00000000U, .disable = 0x1ffffffeU},
 };
 
+/* slcg Hshub */
+static const struct gating_desc tu104_slcg_hshub[] = {
+	{.addr = 0x001fb3f4U, .prod = 0x00000000U, .disable = 0xfffffffeU},
+	{.addr = 0x001fb7f4U, .prod = 0x00000000U, .disable = 0xfffffffeU},
+	{.addr = 0x001fbbf4U, .prod = 0x00000000U, .disable = 0xfffffffeU},
+};
+
 /* blcg bus */
 static const struct gating_desc tu104_blcg_bus[] = {
 	{.addr = 0x00001c00U, .prod = 0x00000042U, .disable = 0x00000000U},
@@ -267,6 +274,13 @@ static const struct gating_desc tu104_blcg_xbar[] = {
 	{.addr = 0x0013dc04U, .prod = 0x0001004aU, .disable = 0x00000000U},
 	{.addr = 0x0013c920U, .prod = 0x0000004aU, .disable = 0x00000000U},
 	{.addr = 0x0013cbe0U, .prod = 0x00000042U, .disable = 0x00000000U},
+};
+
+/* blcg Hshub */
+static const struct gating_desc tu104_blcg_hshub[] = {
+	{.addr = 0x001fb3f0U, .prod = 0x0000c242U, .disable = 0x00000000U},
+	{.addr = 0x001fb7f0U, .prod = 0x0000c242U, .disable = 0x00000000U},
+	{.addr = 0x001fbbf0U, .prod = 0x0000c242U, .disable = 0x00000000U},
 };
 
 /* pg gr */
@@ -489,6 +503,22 @@ void tu104_slcg_xbar_load_gating_prod(struct gk20a *g,
 	}
 }
 
+void tu104_slcg_hshub_load_gating_prod(struct gk20a *g,
+	bool prod)
+{
+	u32 i;
+	u32 size = (u32)(sizeof(tu104_slcg_hshub) / GATING_DESC_SIZE);
+
+	if (nvgpu_is_enabled(g, NVGPU_GPU_CAN_SLCG)) {
+		for (i = 0; i < size; i++) {
+			u32 reg = tu104_slcg_hshub[i].addr;
+			u32 val = prod ? tu104_slcg_hshub[i].prod :
+					 tu104_slcg_hshub[i].disable;
+			gk20a_writel(g, reg, val);
+		}
+	}
+}
+
 void tu104_blcg_bus_load_gating_prod(struct gk20a *g,
 	bool prod)
 {
@@ -644,6 +674,22 @@ void tu104_blcg_xbar_load_gating_prod(struct gk20a *g,
 			u32 reg = tu104_blcg_xbar[i].addr;
 			u32 val = prod ? tu104_blcg_xbar[i].prod :
 					 tu104_blcg_xbar[i].disable;
+			gk20a_writel(g, reg, val);
+		}
+	}
+}
+
+void tu104_blcg_hshub_load_gating_prod(struct gk20a *g,
+	bool prod)
+{
+	u32 i;
+	u32 size = (u32)(sizeof(tu104_blcg_hshub) / GATING_DESC_SIZE);
+
+	if (nvgpu_is_enabled(g, NVGPU_GPU_CAN_BLCG)) {
+		for (i = 0; i < size; i++) {
+			u32 reg = tu104_blcg_hshub[i].addr;
+			u32 val = prod ? tu104_blcg_hshub[i].prod :
+					 tu104_blcg_hshub[i].disable;
 			gk20a_writel(g, reg, val);
 		}
 	}

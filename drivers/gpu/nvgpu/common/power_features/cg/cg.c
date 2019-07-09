@@ -439,6 +439,9 @@ void nvgpu_cg_init_gr_load_gating_prod(struct gk20a *g)
 	if (g->ops.cg.slcg_xbar_load_gating_prod != NULL) {
 		g->ops.cg.slcg_xbar_load_gating_prod(g, true);
 	}
+	if (g->ops.cg.slcg_hshub_load_gating_prod != NULL) {
+		g->ops.cg.slcg_hshub_load_gating_prod(g, true);
+	}
 
 check_can_blcg:
 	if (!nvgpu_is_enabled(g, NVGPU_GPU_CAN_BLCG)) {
@@ -459,6 +462,9 @@ check_can_blcg:
 	}
 	if (g->ops.cg.blcg_xbar_load_gating_prod != NULL) {
 		g->ops.cg.blcg_xbar_load_gating_prod(g, true);
+	}
+	if (g->ops.cg.blcg_hshub_load_gating_prod != NULL) {
+		g->ops.cg.blcg_hshub_load_gating_prod(g, true);
 	}
 pg_gr_load:
 	if (g->ops.cg.pg_gr_load_gating_prod != NULL) {
@@ -549,6 +555,9 @@ void nvgpu_cg_blcg_set_blcg_enabled(struct gk20a *g, bool enable)
 	if (g->ops.cg.blcg_xbar_load_gating_prod != NULL) {
 		g->ops.cg.blcg_xbar_load_gating_prod(g, enable);
 	}
+	if (g->ops.cg.blcg_hshub_load_gating_prod != NULL) {
+		g->ops.cg.blcg_hshub_load_gating_prod(g, enable);
+	}
 
 done:
 	nvgpu_mutex_release(&g->cg_pg_lock);
@@ -620,6 +629,9 @@ void nvgpu_cg_slcg_set_slcg_enabled(struct gk20a *g, bool enable)
 	}
 	if (g->ops.cg.slcg_xbar_load_gating_prod != NULL) {
 		g->ops.cg.slcg_xbar_load_gating_prod(g, enable);
+	}
+	if (g->ops.cg.slcg_hshub_load_gating_prod != NULL) {
+		g->ops.cg.slcg_hshub_load_gating_prod(g, enable);
 	}
 
 done:

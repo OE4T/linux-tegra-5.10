@@ -69,6 +69,9 @@ void tu104_slcg_therm_load_gating_prod(struct gk20a *g,
 void tu104_slcg_xbar_load_gating_prod(struct gk20a *g,
 	bool prod);
 
+void tu104_slcg_hshub_load_gating_prod(struct gk20a *g,
+	bool prod);
+
 void tu104_blcg_bus_load_gating_prod(struct gk20a *g,
 	bool prod);
 
@@ -97,6 +100,9 @@ void tu104_blcg_pmu_load_gating_prod(struct gk20a *g,
 	bool prod);
 
 void tu104_blcg_xbar_load_gating_prod(struct gk20a *g,
+	bool prod);
+
+void tu104_blcg_hshub_load_gating_prod(struct gk20a *g,
 	bool prod);
 
 void gr_tu104_pg_gr_load_gating_prod(struct gk20a *g,
