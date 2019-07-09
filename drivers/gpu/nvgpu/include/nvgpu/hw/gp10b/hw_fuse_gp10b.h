@@ -20,7 +20,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 /*
- * Function naming determines intended use:
+ * Function/Macro naming determines intended use:
  *
  *     <x>_r(void) : Returns the offset for register <x>.
  *
@@ -59,100 +59,32 @@
 #include <nvgpu/types.h>
 #include <nvgpu/safe_ops.h>
 
-static inline u32 fuse_status_opt_gpc_r(void)
-{
-	return 0x00021c1cU;
-}
-static inline u32 fuse_status_opt_tpc_gpc_r(u32 i)
-{
-	return nvgpu_safe_add_u32(0x00021c38U, nvgpu_safe_mult_u32(i, 4U));
-}
-static inline u32 fuse_ctrl_opt_tpc_gpc_r(u32 i)
-{
-	return nvgpu_safe_add_u32(0x00021838U, nvgpu_safe_mult_u32(i, 4U));
-}
-static inline u32 fuse_ctrl_opt_ram_svop_pdp_r(void)
-{
-	return 0x00021944U;
-}
-static inline u32 fuse_ctrl_opt_ram_svop_pdp_data_f(u32 v)
-{
-	return (v & 0xffU) << 0U;
-}
-static inline u32 fuse_ctrl_opt_ram_svop_pdp_data_m(void)
-{
-	return U32(0xffU) << 0U;
-}
-static inline u32 fuse_ctrl_opt_ram_svop_pdp_data_v(u32 r)
-{
-	return (r >> 0U) & 0xffU;
-}
-static inline u32 fuse_ctrl_opt_ram_svop_pdp_override_r(void)
-{
-	return 0x00021948U;
-}
-static inline u32 fuse_ctrl_opt_ram_svop_pdp_override_data_f(u32 v)
-{
-	return (v & 0x1U) << 0U;
-}
-static inline u32 fuse_ctrl_opt_ram_svop_pdp_override_data_m(void)
-{
-	return U32(0x1U) << 0U;
-}
-static inline u32 fuse_ctrl_opt_ram_svop_pdp_override_data_v(u32 r)
-{
-	return (r >> 0U) & 0x1U;
-}
-static inline u32 fuse_ctrl_opt_ram_svop_pdp_override_data_yes_f(void)
-{
-	return 0x1U;
-}
-static inline u32 fuse_ctrl_opt_ram_svop_pdp_override_data_no_f(void)
-{
-	return 0x0U;
-}
-static inline u32 fuse_status_opt_fbio_r(void)
-{
-	return 0x00021c14U;
-}
-static inline u32 fuse_status_opt_fbio_data_f(u32 v)
-{
-	return (v & 0xffffU) << 0U;
-}
-static inline u32 fuse_status_opt_fbio_data_m(void)
-{
-	return U32(0xffffU) << 0U;
-}
-static inline u32 fuse_status_opt_fbio_data_v(u32 r)
-{
-	return (r >> 0U) & 0xffffU;
-}
-static inline u32 fuse_status_opt_rop_l2_fbp_r(u32 i)
-{
-	return nvgpu_safe_add_u32(0x00021d70U, nvgpu_safe_mult_u32(i, 4U));
-}
-static inline u32 fuse_status_opt_fbp_r(void)
-{
-	return 0x00021d38U;
-}
-static inline u32 fuse_status_opt_fbp_idx_v(u32 r, u32 i)
-{
-	return (r >> (0U + i*1U)) & 0x1U;
-}
-static inline u32 fuse_opt_ecc_en_r(void)
-{
-	return 0x00021228U;
-}
-static inline u32 fuse_opt_feature_fuses_override_disable_r(void)
-{
-	return 0x000213f0U;
-}
-static inline u32 fuse_opt_sec_debug_en_r(void)
-{
-	return 0x00021218U;
-}
-static inline u32 fuse_opt_priv_sec_en_r(void)
-{
-	return 0x00021434U;
-}
+#define fuse_status_opt_gpc_r()                                    (0x00021c1cU)
+#define fuse_status_opt_tpc_gpc_r(i)\
+		(nvgpu_safe_add_u32(0x00021c38U, nvgpu_safe_mult_u32((i), 4U)))
+#define fuse_ctrl_opt_tpc_gpc_r(i)\
+		(nvgpu_safe_add_u32(0x00021838U, nvgpu_safe_mult_u32((i), 4U)))
+#define fuse_ctrl_opt_ram_svop_pdp_r()                             (0x00021944U)
+#define fuse_ctrl_opt_ram_svop_pdp_data_f(v)                 (((v)&0xffU) << 0U)
+#define fuse_ctrl_opt_ram_svop_pdp_data_m()                   (U32(0xffU) << 0U)
+#define fuse_ctrl_opt_ram_svop_pdp_data_v(r)               (((r) >> 0U) & 0xffU)
+#define fuse_ctrl_opt_ram_svop_pdp_override_r()                    (0x00021948U)
+#define fuse_ctrl_opt_ram_svop_pdp_override_data_f(v)         (((v)&0x1U) << 0U)
+#define fuse_ctrl_opt_ram_svop_pdp_override_data_m()           (U32(0x1U) << 0U)
+#define fuse_ctrl_opt_ram_svop_pdp_override_data_v(r)       (((r) >> 0U) & 0x1U)
+#define fuse_ctrl_opt_ram_svop_pdp_override_data_yes_f()                  (0x1U)
+#define fuse_ctrl_opt_ram_svop_pdp_override_data_no_f()                   (0x0U)
+#define fuse_status_opt_fbio_r()                                   (0x00021c14U)
+#define fuse_status_opt_fbio_data_f(v)                     (((v)&0xffffU) << 0U)
+#define fuse_status_opt_fbio_data_m()                       (U32(0xffffU) << 0U)
+#define fuse_status_opt_fbio_data_v(r)                   (((r) >> 0U) & 0xffffU)
+#define fuse_status_opt_rop_l2_fbp_r(i)\
+		(nvgpu_safe_add_u32(0x00021d70U, nvgpu_safe_mult_u32((i), 4U)))
+#define fuse_status_opt_fbp_r()                                    (0x00021d38U)
+#define fuse_status_opt_fbp_idx_v(r, i)\
+		(((r) >> (0U + i*1U)) & 0x1U)
+#define fuse_opt_ecc_en_r()                                        (0x00021228U)
+#define fuse_opt_feature_fuses_override_disable_r()                (0x000213f0U)
+#define fuse_opt_sec_debug_en_r()                                  (0x00021218U)
+#define fuse_opt_priv_sec_en_r()                                   (0x00021434U)
 #endif

@@ -20,7 +20,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 /*
- * Function naming determines intended use:
+ * Function/Macro naming determines intended use:
  *
  *     <x>_r(void) : Returns the offset for register <x>.
  *
@@ -59,8 +59,6 @@
 #include <nvgpu/types.h>
 #include <nvgpu/safe_ops.h>
 
-static inline u32 pnvdec_falcon_irqsset_r(u32 i)
-{
-	return nvgpu_safe_add_u32(0x00830000U, nvgpu_safe_mult_u32(i, 16384U));
-}
+#define pnvdec_falcon_irqsset_r(i)\
+		(nvgpu_safe_add_u32(0x00830000U, nvgpu_safe_mult_u32((i), 16384U)))
 #endif

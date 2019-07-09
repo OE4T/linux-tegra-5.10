@@ -20,7 +20,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 /*
- * Function naming determines intended use:
+ * Function/Macro naming determines intended use:
  *
  *     <x>_r(void) : Returns the offset for register <x>.
  *
@@ -59,276 +59,75 @@
 #include <nvgpu/types.h>
 #include <nvgpu/safe_ops.h>
 
-static inline u32 ioctrl_reset_r(void)
-{
-	return 0x00000140U;
-}
-static inline u32 ioctrl_reset_sw_post_reset_delay_microseconds_v(void)
-{
-	return 0x00000008U;
-}
-static inline u32 ioctrl_reset_linkreset_f(u32 v)
-{
-	return (v & 0x3fU) << 8U;
-}
-static inline u32 ioctrl_reset_linkreset_m(void)
-{
-	return U32(0x3fU) << 8U;
-}
-static inline u32 ioctrl_reset_linkreset_v(u32 r)
-{
-	return (r >> 8U) & 0x3fU;
-}
-static inline u32 ioctrl_debug_reset_r(void)
-{
-	return 0x00000144U;
-}
-static inline u32 ioctrl_debug_reset_link_f(u32 v)
-{
-	return (v & 0x3fU) << 0U;
-}
-static inline u32 ioctrl_debug_reset_link_m(void)
-{
-	return U32(0x3fU) << 0U;
-}
-static inline u32 ioctrl_debug_reset_link_v(u32 r)
-{
-	return (r >> 0U) & 0x3fU;
-}
-static inline u32 ioctrl_debug_reset_common_f(u32 v)
-{
-	return (v & 0x1U) << 31U;
-}
-static inline u32 ioctrl_debug_reset_common_m(void)
-{
-	return U32(0x1U) << 31U;
-}
-static inline u32 ioctrl_debug_reset_common_v(u32 r)
-{
-	return (r >> 31U) & 0x1U;
-}
-static inline u32 ioctrl_clock_control_r(u32 i)
-{
-	return nvgpu_safe_add_u32(0x00000180U, nvgpu_safe_mult_u32(i, 4U));
-}
-static inline u32 ioctrl_clock_control__size_1_v(void)
-{
-	return 0x00000006U;
-}
-static inline u32 ioctrl_clock_control_clkdis_f(u32 v)
-{
-	return (v & 0x1U) << 0U;
-}
-static inline u32 ioctrl_clock_control_clkdis_m(void)
-{
-	return U32(0x1U) << 0U;
-}
-static inline u32 ioctrl_clock_control_clkdis_v(u32 r)
-{
-	return (r >> 0U) & 0x1U;
-}
-static inline u32 ioctrl_top_intr_0_status_r(void)
-{
-	return 0x00000200U;
-}
-static inline u32 ioctrl_top_intr_0_status_link_f(u32 v)
-{
-	return (v & 0x3fU) << 0U;
-}
-static inline u32 ioctrl_top_intr_0_status_link_m(void)
-{
-	return U32(0x3fU) << 0U;
-}
-static inline u32 ioctrl_top_intr_0_status_link_v(u32 r)
-{
-	return (r >> 0U) & 0x3fU;
-}
-static inline u32 ioctrl_top_intr_0_status_common_f(u32 v)
-{
-	return (v & 0x1U) << 31U;
-}
-static inline u32 ioctrl_top_intr_0_status_common_m(void)
-{
-	return U32(0x1U) << 31U;
-}
-static inline u32 ioctrl_top_intr_0_status_common_v(u32 r)
-{
-	return (r >> 31U) & 0x1U;
-}
-static inline u32 ioctrl_common_intr_0_mask_r(void)
-{
-	return 0x00000220U;
-}
-static inline u32 ioctrl_common_intr_0_mask_fatal_f(u32 v)
-{
-	return (v & 0x1U) << 0U;
-}
-static inline u32 ioctrl_common_intr_0_mask_fatal_v(u32 r)
-{
-	return (r >> 0U) & 0x1U;
-}
-static inline u32 ioctrl_common_intr_0_mask_nonfatal_f(u32 v)
-{
-	return (v & 0x1U) << 1U;
-}
-static inline u32 ioctrl_common_intr_0_mask_nonfatal_v(u32 r)
-{
-	return (r >> 1U) & 0x1U;
-}
-static inline u32 ioctrl_common_intr_0_mask_correctable_f(u32 v)
-{
-	return (v & 0x1U) << 2U;
-}
-static inline u32 ioctrl_common_intr_0_mask_correctable_v(u32 r)
-{
-	return (r >> 2U) & 0x1U;
-}
-static inline u32 ioctrl_common_intr_0_mask_intra_f(u32 v)
-{
-	return (v & 0x1U) << 3U;
-}
-static inline u32 ioctrl_common_intr_0_mask_intra_v(u32 r)
-{
-	return (r >> 3U) & 0x1U;
-}
-static inline u32 ioctrl_common_intr_0_mask_intrb_f(u32 v)
-{
-	return (v & 0x1U) << 4U;
-}
-static inline u32 ioctrl_common_intr_0_mask_intrb_v(u32 r)
-{
-	return (r >> 4U) & 0x1U;
-}
-static inline u32 ioctrl_common_intr_0_status_r(void)
-{
-	return 0x00000224U;
-}
-static inline u32 ioctrl_common_intr_0_status_fatal_f(u32 v)
-{
-	return (v & 0x1U) << 0U;
-}
-static inline u32 ioctrl_common_intr_0_status_fatal_v(u32 r)
-{
-	return (r >> 0U) & 0x1U;
-}
-static inline u32 ioctrl_common_intr_0_status_nonfatal_f(u32 v)
-{
-	return (v & 0x1U) << 1U;
-}
-static inline u32 ioctrl_common_intr_0_status_nonfatal_v(u32 r)
-{
-	return (r >> 1U) & 0x1U;
-}
-static inline u32 ioctrl_common_intr_0_status_correctable_f(u32 v)
-{
-	return (v & 0x1U) << 2U;
-}
-static inline u32 ioctrl_common_intr_0_status_correctable_v(u32 r)
-{
-	return (r >> 2U) & 0x1U;
-}
-static inline u32 ioctrl_common_intr_0_status_intra_f(u32 v)
-{
-	return (v & 0x1U) << 3U;
-}
-static inline u32 ioctrl_common_intr_0_status_intra_v(u32 r)
-{
-	return (r >> 3U) & 0x1U;
-}
-static inline u32 ioctrl_common_intr_0_status_intrb_f(u32 v)
-{
-	return (v & 0x1U) << 4U;
-}
-static inline u32 ioctrl_common_intr_0_status_intrb_v(u32 r)
-{
-	return (r >> 4U) & 0x1U;
-}
-static inline u32 ioctrl_link_intr_0_mask_r(u32 i)
-{
-	return nvgpu_safe_add_u32(0x00000240U, nvgpu_safe_mult_u32(i, 20U));
-}
-static inline u32 ioctrl_link_intr_0_mask_fatal_f(u32 v)
-{
-	return (v & 0x1U) << 0U;
-}
-static inline u32 ioctrl_link_intr_0_mask_fatal_v(u32 r)
-{
-	return (r >> 0U) & 0x1U;
-}
-static inline u32 ioctrl_link_intr_0_mask_nonfatal_f(u32 v)
-{
-	return (v & 0x1U) << 1U;
-}
-static inline u32 ioctrl_link_intr_0_mask_nonfatal_v(u32 r)
-{
-	return (r >> 1U) & 0x1U;
-}
-static inline u32 ioctrl_link_intr_0_mask_correctable_f(u32 v)
-{
-	return (v & 0x1U) << 2U;
-}
-static inline u32 ioctrl_link_intr_0_mask_correctable_v(u32 r)
-{
-	return (r >> 2U) & 0x1U;
-}
-static inline u32 ioctrl_link_intr_0_mask_intra_f(u32 v)
-{
-	return (v & 0x1U) << 3U;
-}
-static inline u32 ioctrl_link_intr_0_mask_intra_v(u32 r)
-{
-	return (r >> 3U) & 0x1U;
-}
-static inline u32 ioctrl_link_intr_0_mask_intrb_f(u32 v)
-{
-	return (v & 0x1U) << 4U;
-}
-static inline u32 ioctrl_link_intr_0_mask_intrb_v(u32 r)
-{
-	return (r >> 4U) & 0x1U;
-}
-static inline u32 ioctrl_link_intr_0_status_r(u32 i)
-{
-	return nvgpu_safe_add_u32(0x00000244U, nvgpu_safe_mult_u32(i, 20U));
-}
-static inline u32 ioctrl_link_intr_0_status_fatal_f(u32 v)
-{
-	return (v & 0x1U) << 0U;
-}
-static inline u32 ioctrl_link_intr_0_status_fatal_v(u32 r)
-{
-	return (r >> 0U) & 0x1U;
-}
-static inline u32 ioctrl_link_intr_0_status_nonfatal_f(u32 v)
-{
-	return (v & 0x1U) << 1U;
-}
-static inline u32 ioctrl_link_intr_0_status_nonfatal_v(u32 r)
-{
-	return (r >> 1U) & 0x1U;
-}
-static inline u32 ioctrl_link_intr_0_status_correctable_f(u32 v)
-{
-	return (v & 0x1U) << 2U;
-}
-static inline u32 ioctrl_link_intr_0_status_correctable_v(u32 r)
-{
-	return (r >> 2U) & 0x1U;
-}
-static inline u32 ioctrl_link_intr_0_status_intra_f(u32 v)
-{
-	return (v & 0x1U) << 3U;
-}
-static inline u32 ioctrl_link_intr_0_status_intra_v(u32 r)
-{
-	return (r >> 3U) & 0x1U;
-}
-static inline u32 ioctrl_link_intr_0_status_intrb_f(u32 v)
-{
-	return (v & 0x1U) << 4U;
-}
-static inline u32 ioctrl_link_intr_0_status_intrb_v(u32 r)
-{
-	return (r >> 4U) & 0x1U;
-}
+#define ioctrl_reset_r()                                           (0x00000140U)
+#define ioctrl_reset_sw_post_reset_delay_microseconds_v()          (0x00000008U)
+#define ioctrl_reset_linkreset_f(v)                          (((v)&0x3fU) << 8U)
+#define ioctrl_reset_linkreset_m()                            (U32(0x3fU) << 8U)
+#define ioctrl_reset_linkreset_v(r)                        (((r) >> 8U) & 0x3fU)
+#define ioctrl_debug_reset_r()                                     (0x00000144U)
+#define ioctrl_debug_reset_link_f(v)                         (((v)&0x3fU) << 0U)
+#define ioctrl_debug_reset_link_m()                           (U32(0x3fU) << 0U)
+#define ioctrl_debug_reset_link_v(r)                       (((r) >> 0U) & 0x3fU)
+#define ioctrl_debug_reset_common_f(v)                       (((v)&0x1U) << 31U)
+#define ioctrl_debug_reset_common_m()                         (U32(0x1U) << 31U)
+#define ioctrl_debug_reset_common_v(r)                     (((r) >> 31U) & 0x1U)
+#define ioctrl_clock_control_r(i)\
+		(nvgpu_safe_add_u32(0x00000180U, nvgpu_safe_mult_u32((i), 4U)))
+#define ioctrl_clock_control__size_1_v()                           (0x00000006U)
+#define ioctrl_clock_control_clkdis_f(v)                      (((v)&0x1U) << 0U)
+#define ioctrl_clock_control_clkdis_m()                        (U32(0x1U) << 0U)
+#define ioctrl_clock_control_clkdis_v(r)                    (((r) >> 0U) & 0x1U)
+#define ioctrl_top_intr_0_status_r()                               (0x00000200U)
+#define ioctrl_top_intr_0_status_link_f(v)                   (((v)&0x3fU) << 0U)
+#define ioctrl_top_intr_0_status_link_m()                     (U32(0x3fU) << 0U)
+#define ioctrl_top_intr_0_status_link_v(r)                 (((r) >> 0U) & 0x3fU)
+#define ioctrl_top_intr_0_status_common_f(v)                 (((v)&0x1U) << 31U)
+#define ioctrl_top_intr_0_status_common_m()                   (U32(0x1U) << 31U)
+#define ioctrl_top_intr_0_status_common_v(r)               (((r) >> 31U) & 0x1U)
+#define ioctrl_common_intr_0_mask_r()                              (0x00000220U)
+#define ioctrl_common_intr_0_mask_fatal_f(v)                  (((v)&0x1U) << 0U)
+#define ioctrl_common_intr_0_mask_fatal_v(r)                (((r) >> 0U) & 0x1U)
+#define ioctrl_common_intr_0_mask_nonfatal_f(v)               (((v)&0x1U) << 1U)
+#define ioctrl_common_intr_0_mask_nonfatal_v(r)             (((r) >> 1U) & 0x1U)
+#define ioctrl_common_intr_0_mask_correctable_f(v)            (((v)&0x1U) << 2U)
+#define ioctrl_common_intr_0_mask_correctable_v(r)          (((r) >> 2U) & 0x1U)
+#define ioctrl_common_intr_0_mask_intra_f(v)                  (((v)&0x1U) << 3U)
+#define ioctrl_common_intr_0_mask_intra_v(r)                (((r) >> 3U) & 0x1U)
+#define ioctrl_common_intr_0_mask_intrb_f(v)                  (((v)&0x1U) << 4U)
+#define ioctrl_common_intr_0_mask_intrb_v(r)                (((r) >> 4U) & 0x1U)
+#define ioctrl_common_intr_0_status_r()                            (0x00000224U)
+#define ioctrl_common_intr_0_status_fatal_f(v)                (((v)&0x1U) << 0U)
+#define ioctrl_common_intr_0_status_fatal_v(r)              (((r) >> 0U) & 0x1U)
+#define ioctrl_common_intr_0_status_nonfatal_f(v)             (((v)&0x1U) << 1U)
+#define ioctrl_common_intr_0_status_nonfatal_v(r)           (((r) >> 1U) & 0x1U)
+#define ioctrl_common_intr_0_status_correctable_f(v)          (((v)&0x1U) << 2U)
+#define ioctrl_common_intr_0_status_correctable_v(r)        (((r) >> 2U) & 0x1U)
+#define ioctrl_common_intr_0_status_intra_f(v)                (((v)&0x1U) << 3U)
+#define ioctrl_common_intr_0_status_intra_v(r)              (((r) >> 3U) & 0x1U)
+#define ioctrl_common_intr_0_status_intrb_f(v)                (((v)&0x1U) << 4U)
+#define ioctrl_common_intr_0_status_intrb_v(r)              (((r) >> 4U) & 0x1U)
+#define ioctrl_link_intr_0_mask_r(i)\
+		(nvgpu_safe_add_u32(0x00000240U, nvgpu_safe_mult_u32((i), 20U)))
+#define ioctrl_link_intr_0_mask_fatal_f(v)                    (((v)&0x1U) << 0U)
+#define ioctrl_link_intr_0_mask_fatal_v(r)                  (((r) >> 0U) & 0x1U)
+#define ioctrl_link_intr_0_mask_nonfatal_f(v)                 (((v)&0x1U) << 1U)
+#define ioctrl_link_intr_0_mask_nonfatal_v(r)               (((r) >> 1U) & 0x1U)
+#define ioctrl_link_intr_0_mask_correctable_f(v)              (((v)&0x1U) << 2U)
+#define ioctrl_link_intr_0_mask_correctable_v(r)            (((r) >> 2U) & 0x1U)
+#define ioctrl_link_intr_0_mask_intra_f(v)                    (((v)&0x1U) << 3U)
+#define ioctrl_link_intr_0_mask_intra_v(r)                  (((r) >> 3U) & 0x1U)
+#define ioctrl_link_intr_0_mask_intrb_f(v)                    (((v)&0x1U) << 4U)
+#define ioctrl_link_intr_0_mask_intrb_v(r)                  (((r) >> 4U) & 0x1U)
+#define ioctrl_link_intr_0_status_r(i)\
+		(nvgpu_safe_add_u32(0x00000244U, nvgpu_safe_mult_u32((i), 20U)))
+#define ioctrl_link_intr_0_status_fatal_f(v)                  (((v)&0x1U) << 0U)
+#define ioctrl_link_intr_0_status_fatal_v(r)                (((r) >> 0U) & 0x1U)
+#define ioctrl_link_intr_0_status_nonfatal_f(v)               (((v)&0x1U) << 1U)
+#define ioctrl_link_intr_0_status_nonfatal_v(r)             (((r) >> 1U) & 0x1U)
+#define ioctrl_link_intr_0_status_correctable_f(v)            (((v)&0x1U) << 2U)
+#define ioctrl_link_intr_0_status_correctable_v(r)          (((r) >> 2U) & 0x1U)
+#define ioctrl_link_intr_0_status_intra_f(v)                  (((v)&0x1U) << 3U)
+#define ioctrl_link_intr_0_status_intra_v(r)                (((r) >> 3U) & 0x1U)
+#define ioctrl_link_intr_0_status_intrb_f(v)                  (((v)&0x1U) << 4U)
+#define ioctrl_link_intr_0_status_intrb_v(r)                (((r) >> 4U) & 0x1U)
 #endif

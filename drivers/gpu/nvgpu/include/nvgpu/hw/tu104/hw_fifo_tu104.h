@@ -20,7 +20,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 /*
- * Function naming determines intended use:
+ * Function/Macro naming determines intended use:
  *
  *     <x>_r(void) : Returns the offset for register <x>.
  *
@@ -59,448 +59,128 @@
 #include <nvgpu/types.h>
 #include <nvgpu/safe_ops.h>
 
-static inline u32 fifo_userd_writeback_r(void)
-{
-	return 0x0000225cU;
-}
-static inline u32 fifo_userd_writeback_timer_f(u32 v)
-{
-	return (v & 0xffU) << 0U;
-}
-static inline u32 fifo_userd_writeback_timer_disabled_v(void)
-{
-	return 0x00000000U;
-}
-static inline u32 fifo_userd_writeback_timer_shorter_v(void)
-{
-	return 0x00000003U;
-}
-static inline u32 fifo_userd_writeback_timer_100us_v(void)
-{
-	return 0x00000064U;
-}
-static inline u32 fifo_userd_writeback_timescale_f(u32 v)
-{
-	return (v & 0xfU) << 12U;
-}
-static inline u32 fifo_userd_writeback_timescale_0_v(void)
-{
-	return 0x00000000U;
-}
-static inline u32 fifo_runlist_base_lo_r(u32 i)
-{
-	return nvgpu_safe_add_u32(0x00002b00U, nvgpu_safe_mult_u32(i, 16U));
-}
-static inline u32 fifo_runlist_base_lo__size_1_v(void)
-{
-	return 0x0000000bU;
-}
-static inline u32 fifo_runlist_base_lo_ptr_align_shift_v(void)
-{
-	return 0x0000000cU;
-}
-static inline u32 fifo_runlist_base_lo_ptr_lo_f(u32 v)
-{
-	return (v & 0xfffffU) << 12U;
-}
-static inline u32 fifo_runlist_base_lo_target_vid_mem_f(void)
-{
-	return 0x0U;
-}
-static inline u32 fifo_runlist_base_lo_target_sys_mem_coh_f(void)
-{
-	return 0x2U;
-}
-static inline u32 fifo_runlist_base_lo_target_sys_mem_ncoh_f(void)
-{
-	return 0x3U;
-}
-static inline u32 fifo_runlist_base_hi_r(u32 i)
-{
-	return nvgpu_safe_add_u32(0x00002b04U, nvgpu_safe_mult_u32(i, 16U));
-}
-static inline u32 fifo_runlist_base_hi_ptr_hi_f(u32 v)
-{
-	return (v & 0xffU) << 0U;
-}
-static inline u32 fifo_runlist_submit_r(u32 i)
-{
-	return nvgpu_safe_add_u32(0x00002b08U, nvgpu_safe_mult_u32(i, 16U));
-}
-static inline u32 fifo_runlist_submit_length_f(u32 v)
-{
-	return (v & 0xffffU) << 0U;
-}
-static inline u32 fifo_runlist_submit_info_r(u32 i)
-{
-	return nvgpu_safe_add_u32(0x00002b0cU, nvgpu_safe_mult_u32(i, 16U));
-}
-static inline u32 fifo_runlist_submit_info_pending_true_f(void)
-{
-	return 0x8000U;
-}
-static inline u32 fifo_pbdma_map_r(u32 i)
-{
-	return nvgpu_safe_add_u32(0x00002390U, nvgpu_safe_mult_u32(i, 4U));
-}
-static inline u32 fifo_intr_0_r(void)
-{
-	return 0x00002100U;
-}
-static inline u32 fifo_intr_0_bind_error_pending_f(void)
-{
-	return 0x1U;
-}
-static inline u32 fifo_intr_0_bind_error_reset_f(void)
-{
-	return 0x1U;
-}
-static inline u32 fifo_intr_0_sched_error_pending_f(void)
-{
-	return 0x100U;
-}
-static inline u32 fifo_intr_0_sched_error_reset_f(void)
-{
-	return 0x100U;
-}
-static inline u32 fifo_intr_0_chsw_error_pending_f(void)
-{
-	return 0x10000U;
-}
-static inline u32 fifo_intr_0_chsw_error_reset_f(void)
-{
-	return 0x10000U;
-}
-static inline u32 fifo_intr_0_memop_timeout_pending_f(void)
-{
-	return 0x800000U;
-}
-static inline u32 fifo_intr_0_memop_timeout_reset_f(void)
-{
-	return 0x800000U;
-}
-static inline u32 fifo_intr_0_lb_error_pending_f(void)
-{
-	return 0x1000000U;
-}
-static inline u32 fifo_intr_0_lb_error_reset_f(void)
-{
-	return 0x1000000U;
-}
-static inline u32 fifo_intr_0_pbdma_intr_pending_f(void)
-{
-	return 0x20000000U;
-}
-static inline u32 fifo_intr_0_runlist_event_pending_f(void)
-{
-	return 0x40000000U;
-}
-static inline u32 fifo_intr_0_channel_intr_pending_f(void)
-{
-	return 0x80000000U;
-}
-static inline u32 fifo_intr_0_ctxsw_timeout_pending_f(void)
-{
-	return 0x2U;
-}
-static inline u32 fifo_intr_en_0_r(void)
-{
-	return 0x00002140U;
-}
-static inline u32 fifo_intr_en_0_sched_error_f(u32 v)
-{
-	return (v & 0x1U) << 8U;
-}
-static inline u32 fifo_intr_en_0_sched_error_m(void)
-{
-	return U32(0x1U) << 8U;
-}
-static inline u32 fifo_intr_en_1_r(void)
-{
-	return 0x00002528U;
-}
-static inline u32 fifo_intr_bind_error_r(void)
-{
-	return 0x0000252cU;
-}
-static inline u32 fifo_intr_sched_error_r(void)
-{
-	return 0x0000254cU;
-}
-static inline u32 fifo_intr_sched_error_code_f(u32 v)
-{
-	return (v & 0xffU) << 0U;
-}
-static inline u32 fifo_intr_chsw_error_r(void)
-{
-	return 0x0000256cU;
-}
-static inline u32 fifo_intr_pbdma_id_r(void)
-{
-	return 0x000025a0U;
-}
-static inline u32 fifo_intr_pbdma_id_status_f(u32 v, u32 i)
-{
-	return (v & 0x1U) << (0U + i*1U);
-}
-static inline u32 fifo_intr_pbdma_id_status_v(u32 r, u32 i)
-{
-	return (r >> (0U + i*1U)) & 0x1U;
-}
-static inline u32 fifo_intr_pbdma_id_status__size_1_v(void)
-{
-	return 0x0000000cU;
-}
-static inline u32 fifo_intr_runlist_r(void)
-{
-	return 0x00002a00U;
-}
-static inline u32 fifo_fb_timeout_r(void)
-{
-	return 0x00002a04U;
-}
-static inline u32 fifo_fb_timeout_period_m(void)
-{
-	return U32(0x3fffffffU) << 0U;
-}
-static inline u32 fifo_fb_timeout_period_max_f(void)
-{
-	return 0x3fffffffU;
-}
-static inline u32 fifo_fb_timeout_period_init_f(void)
-{
-	return 0x3c00U;
-}
-static inline u32 fifo_sched_disable_r(void)
-{
-	return 0x00002630U;
-}
-static inline u32 fifo_sched_disable_runlist_f(u32 v, u32 i)
-{
-	return (v & 0x1U) << (0U + i*1U);
-}
-static inline u32 fifo_sched_disable_runlist_m(u32 i)
-{
-	return U32(0x1U) << (0U + i*1U);
-}
-static inline u32 fifo_sched_disable_true_v(void)
-{
-	return 0x00000001U;
-}
-static inline u32 fifo_runlist_preempt_r(void)
-{
-	return 0x00002638U;
-}
-static inline u32 fifo_runlist_preempt_runlist_f(u32 v, u32 i)
-{
-	return (v & 0x1U) << (0U + i*1U);
-}
-static inline u32 fifo_runlist_preempt_runlist_m(u32 i)
-{
-	return U32(0x1U) << (0U + i*1U);
-}
-static inline u32 fifo_runlist_preempt_runlist_pending_v(void)
-{
-	return 0x00000001U;
-}
-static inline u32 fifo_preempt_r(void)
-{
-	return 0x00002634U;
-}
-static inline u32 fifo_preempt_pending_true_f(void)
-{
-	return 0x100000U;
-}
-static inline u32 fifo_preempt_type_channel_f(void)
-{
-	return 0x0U;
-}
-static inline u32 fifo_preempt_type_tsg_f(void)
-{
-	return 0x1000000U;
-}
-static inline u32 fifo_preempt_chid_f(u32 v)
-{
-	return (v & 0xfffU) << 0U;
-}
-static inline u32 fifo_preempt_id_f(u32 v)
-{
-	return (v & 0xfffU) << 0U;
-}
-static inline u32 fifo_engine_status_r(u32 i)
-{
-	return nvgpu_safe_add_u32(0x00002640U, nvgpu_safe_mult_u32(i, 8U));
-}
-static inline u32 fifo_engine_status__size_1_v(void)
-{
-	return 0x0000000dU;
-}
-static inline u32 fifo_engine_status_id_v(u32 r)
-{
-	return (r >> 0U) & 0xfffU;
-}
-static inline u32 fifo_engine_status_id_type_v(u32 r)
-{
-	return (r >> 12U) & 0x1U;
-}
-static inline u32 fifo_engine_status_id_type_chid_v(void)
-{
-	return 0x00000000U;
-}
-static inline u32 fifo_engine_status_id_type_tsgid_v(void)
-{
-	return 0x00000001U;
-}
-static inline u32 fifo_engine_status_ctx_status_v(u32 r)
-{
-	return (r >> 13U) & 0x7U;
-}
-static inline u32 fifo_engine_status_ctx_status_valid_v(void)
-{
-	return 0x00000001U;
-}
-static inline u32 fifo_engine_status_ctx_status_ctxsw_load_v(void)
-{
-	return 0x00000005U;
-}
-static inline u32 fifo_engine_status_ctx_status_ctxsw_save_v(void)
-{
-	return 0x00000006U;
-}
-static inline u32 fifo_engine_status_ctx_status_ctxsw_switch_v(void)
-{
-	return 0x00000007U;
-}
-static inline u32 fifo_engine_status_next_id_v(u32 r)
-{
-	return (r >> 16U) & 0xfffU;
-}
-static inline u32 fifo_engine_status_next_id_type_v(u32 r)
-{
-	return (r >> 28U) & 0x1U;
-}
-static inline u32 fifo_engine_status_next_id_type_chid_v(void)
-{
-	return 0x00000000U;
-}
-static inline u32 fifo_engine_status_next_id_type_tsgid_v(void)
-{
-	return 0x00000001U;
-}
-static inline u32 fifo_engine_status_eng_reload_v(u32 r)
-{
-	return (r >> 29U) & 0x1U;
-}
-static inline u32 fifo_engine_status_faulted_v(u32 r)
-{
-	return (r >> 30U) & 0x1U;
-}
-static inline u32 fifo_engine_status_faulted_true_v(void)
-{
-	return 0x00000001U;
-}
-static inline u32 fifo_engine_status_engine_v(u32 r)
-{
-	return (r >> 31U) & 0x1U;
-}
-static inline u32 fifo_engine_status_engine_idle_v(void)
-{
-	return 0x00000000U;
-}
-static inline u32 fifo_engine_status_engine_busy_v(void)
-{
-	return 0x00000001U;
-}
-static inline u32 fifo_engine_status_ctxsw_v(u32 r)
-{
-	return (r >> 15U) & 0x1U;
-}
-static inline u32 fifo_engine_status_ctxsw_in_progress_v(void)
-{
-	return 0x00000001U;
-}
-static inline u32 fifo_engine_status_ctxsw_in_progress_f(void)
-{
-	return 0x8000U;
-}
-static inline u32 fifo_pbdma_status_r(u32 i)
-{
-	return nvgpu_safe_add_u32(0x00003080U, nvgpu_safe_mult_u32(i, 4U));
-}
-static inline u32 fifo_pbdma_status__size_1_v(void)
-{
-	return 0x0000000cU;
-}
-static inline u32 fifo_pbdma_status_id_v(u32 r)
-{
-	return (r >> 0U) & 0xfffU;
-}
-static inline u32 fifo_pbdma_status_id_type_v(u32 r)
-{
-	return (r >> 12U) & 0x1U;
-}
-static inline u32 fifo_pbdma_status_id_type_chid_v(void)
-{
-	return 0x00000000U;
-}
-static inline u32 fifo_pbdma_status_id_type_tsgid_v(void)
-{
-	return 0x00000001U;
-}
-static inline u32 fifo_pbdma_status_chan_status_v(u32 r)
-{
-	return (r >> 13U) & 0x7U;
-}
-static inline u32 fifo_pbdma_status_chan_status_valid_v(void)
-{
-	return 0x00000001U;
-}
-static inline u32 fifo_pbdma_status_chan_status_chsw_load_v(void)
-{
-	return 0x00000005U;
-}
-static inline u32 fifo_pbdma_status_chan_status_chsw_save_v(void)
-{
-	return 0x00000006U;
-}
-static inline u32 fifo_pbdma_status_chan_status_chsw_switch_v(void)
-{
-	return 0x00000007U;
-}
-static inline u32 fifo_pbdma_status_next_id_v(u32 r)
-{
-	return (r >> 16U) & 0xfffU;
-}
-static inline u32 fifo_pbdma_status_next_id_type_v(u32 r)
-{
-	return (r >> 28U) & 0x1U;
-}
-static inline u32 fifo_pbdma_status_next_id_type_chid_v(void)
-{
-	return 0x00000000U;
-}
-static inline u32 fifo_pbdma_status_next_id_type_tsgid_v(void)
-{
-	return 0x00000001U;
-}
-static inline u32 fifo_pbdma_status_chsw_v(u32 r)
-{
-	return (r >> 15U) & 0x1U;
-}
-static inline u32 fifo_pbdma_status_chsw_in_progress_v(void)
-{
-	return 0x00000001U;
-}
-static inline u32 fifo_cfg0_r(void)
-{
-	return 0x00002004U;
-}
-static inline u32 fifo_cfg0_num_pbdma_v(u32 r)
-{
-	return (r >> 0U) & 0xffU;
-}
-static inline u32 fifo_cfg0_pbdma_fault_id_v(u32 r)
-{
-	return (r >> 16U) & 0xffU;
-}
+#define fifo_userd_writeback_r()                                   (0x0000225cU)
+#define fifo_userd_writeback_timer_f(v)                      (((v)&0xffU) << 0U)
+#define fifo_userd_writeback_timer_disabled_v()                    (0x00000000U)
+#define fifo_userd_writeback_timer_shorter_v()                     (0x00000003U)
+#define fifo_userd_writeback_timer_100us_v()                       (0x00000064U)
+#define fifo_userd_writeback_timescale_f(v)                  (((v)&0xfU) << 12U)
+#define fifo_userd_writeback_timescale_0_v()                       (0x00000000U)
+#define fifo_runlist_base_lo_r(i)\
+		(nvgpu_safe_add_u32(0x00002b00U, nvgpu_safe_mult_u32((i), 16U)))
+#define fifo_runlist_base_lo__size_1_v()                           (0x0000000bU)
+#define fifo_runlist_base_lo_ptr_align_shift_v()                   (0x0000000cU)
+#define fifo_runlist_base_lo_ptr_lo_f(v)                 (((v)&0xfffffU) << 12U)
+#define fifo_runlist_base_lo_target_vid_mem_f()                           (0x0U)
+#define fifo_runlist_base_lo_target_sys_mem_coh_f()                       (0x2U)
+#define fifo_runlist_base_lo_target_sys_mem_ncoh_f()                      (0x3U)
+#define fifo_runlist_base_hi_r(i)\
+		(nvgpu_safe_add_u32(0x00002b04U, nvgpu_safe_mult_u32((i), 16U)))
+#define fifo_runlist_base_hi_ptr_hi_f(v)                     (((v)&0xffU) << 0U)
+#define fifo_runlist_submit_r(i)\
+		(nvgpu_safe_add_u32(0x00002b08U, nvgpu_safe_mult_u32((i), 16U)))
+#define fifo_runlist_submit_length_f(v)                    (((v)&0xffffU) << 0U)
+#define fifo_runlist_submit_info_r(i)\
+		(nvgpu_safe_add_u32(0x00002b0cU, nvgpu_safe_mult_u32((i), 16U)))
+#define fifo_runlist_submit_info_pending_true_f()                      (0x8000U)
+#define fifo_pbdma_map_r(i)\
+		(nvgpu_safe_add_u32(0x00002390U, nvgpu_safe_mult_u32((i), 4U)))
+#define fifo_intr_0_r()                                            (0x00002100U)
+#define fifo_intr_0_bind_error_pending_f()                                (0x1U)
+#define fifo_intr_0_bind_error_reset_f()                                  (0x1U)
+#define fifo_intr_0_sched_error_pending_f()                             (0x100U)
+#define fifo_intr_0_sched_error_reset_f()                               (0x100U)
+#define fifo_intr_0_chsw_error_pending_f()                            (0x10000U)
+#define fifo_intr_0_chsw_error_reset_f()                              (0x10000U)
+#define fifo_intr_0_memop_timeout_pending_f()                        (0x800000U)
+#define fifo_intr_0_memop_timeout_reset_f()                          (0x800000U)
+#define fifo_intr_0_lb_error_pending_f()                            (0x1000000U)
+#define fifo_intr_0_lb_error_reset_f()                              (0x1000000U)
+#define fifo_intr_0_pbdma_intr_pending_f()                         (0x20000000U)
+#define fifo_intr_0_runlist_event_pending_f()                      (0x40000000U)
+#define fifo_intr_0_channel_intr_pending_f()                       (0x80000000U)
+#define fifo_intr_0_ctxsw_timeout_pending_f()                             (0x2U)
+#define fifo_intr_en_0_r()                                         (0x00002140U)
+#define fifo_intr_en_0_sched_error_f(v)                       (((v)&0x1U) << 8U)
+#define fifo_intr_en_0_sched_error_m()                         (U32(0x1U) << 8U)
+#define fifo_intr_en_1_r()                                         (0x00002528U)
+#define fifo_intr_bind_error_r()                                   (0x0000252cU)
+#define fifo_intr_sched_error_r()                                  (0x0000254cU)
+#define fifo_intr_sched_error_code_f(v)                      (((v)&0xffU) << 0U)
+#define fifo_intr_chsw_error_r()                                   (0x0000256cU)
+#define fifo_intr_pbdma_id_r()                                     (0x000025a0U)
+#define fifo_intr_pbdma_id_status_f(v, i)\
+		(((v) & 0x1) << (0U + i*1U))
+#define fifo_intr_pbdma_id_status_v(r, i)\
+		(((r) >> (0U + i*1U)) & 0x1U)
+#define fifo_intr_pbdma_id_status__size_1_v()                      (0x0000000cU)
+#define fifo_intr_runlist_r()                                      (0x00002a00U)
+#define fifo_fb_timeout_r()                                        (0x00002a04U)
+#define fifo_fb_timeout_period_m()                      (U32(0x3fffffffU) << 0U)
+#define fifo_fb_timeout_period_max_f()                             (0x3fffffffU)
+#define fifo_fb_timeout_period_init_f()                                (0x3c00U)
+#define fifo_sched_disable_r()                                     (0x00002630U)
+#define fifo_sched_disable_runlist_f(v, i)\
+		(((v) & 0x1) << (0U + i*1U))
+#define fifo_sched_disable_runlist_m(i)\
+		(U32(0x1U) << (0U + (i)*1U))
+#define fifo_sched_disable_true_v()                                (0x00000001U)
+#define fifo_runlist_preempt_r()                                   (0x00002638U)
+#define fifo_runlist_preempt_runlist_f(v, i)\
+		(((v) & 0x1) << (0U + i*1U))
+#define fifo_runlist_preempt_runlist_m(i)\
+		(U32(0x1U) << (0U + (i)*1U))
+#define fifo_runlist_preempt_runlist_pending_v()                   (0x00000001U)
+#define fifo_preempt_r()                                           (0x00002634U)
+#define fifo_preempt_pending_true_f()                                (0x100000U)
+#define fifo_preempt_type_channel_f()                                     (0x0U)
+#define fifo_preempt_type_tsg_f()                                   (0x1000000U)
+#define fifo_preempt_chid_f(v)                              (((v)&0xfffU) << 0U)
+#define fifo_preempt_id_f(v)                                (((v)&0xfffU) << 0U)
+#define fifo_engine_status_r(i)\
+		(nvgpu_safe_add_u32(0x00002640U, nvgpu_safe_mult_u32((i), 8U)))
+#define fifo_engine_status__size_1_v()                             (0x0000000dU)
+#define fifo_engine_status_id_v(r)                        (((r) >> 0U) & 0xfffU)
+#define fifo_engine_status_id_type_v(r)                    (((r) >> 12U) & 0x1U)
+#define fifo_engine_status_id_type_chid_v()                        (0x00000000U)
+#define fifo_engine_status_id_type_tsgid_v()                       (0x00000001U)
+#define fifo_engine_status_ctx_status_v(r)                 (((r) >> 13U) & 0x7U)
+#define fifo_engine_status_ctx_status_valid_v()                    (0x00000001U)
+#define fifo_engine_status_ctx_status_ctxsw_load_v()               (0x00000005U)
+#define fifo_engine_status_ctx_status_ctxsw_save_v()               (0x00000006U)
+#define fifo_engine_status_ctx_status_ctxsw_switch_v()             (0x00000007U)
+#define fifo_engine_status_next_id_v(r)                  (((r) >> 16U) & 0xfffU)
+#define fifo_engine_status_next_id_type_v(r)               (((r) >> 28U) & 0x1U)
+#define fifo_engine_status_next_id_type_chid_v()                   (0x00000000U)
+#define fifo_engine_status_next_id_type_tsgid_v()                  (0x00000001U)
+#define fifo_engine_status_eng_reload_v(r)                 (((r) >> 29U) & 0x1U)
+#define fifo_engine_status_faulted_v(r)                    (((r) >> 30U) & 0x1U)
+#define fifo_engine_status_faulted_true_v()                        (0x00000001U)
+#define fifo_engine_status_engine_v(r)                     (((r) >> 31U) & 0x1U)
+#define fifo_engine_status_engine_idle_v()                         (0x00000000U)
+#define fifo_engine_status_engine_busy_v()                         (0x00000001U)
+#define fifo_engine_status_ctxsw_v(r)                      (((r) >> 15U) & 0x1U)
+#define fifo_engine_status_ctxsw_in_progress_v()                   (0x00000001U)
+#define fifo_engine_status_ctxsw_in_progress_f()                       (0x8000U)
+#define fifo_pbdma_status_r(i)\
+		(nvgpu_safe_add_u32(0x00003080U, nvgpu_safe_mult_u32((i), 4U)))
+#define fifo_pbdma_status__size_1_v()                              (0x0000000cU)
+#define fifo_pbdma_status_id_v(r)                         (((r) >> 0U) & 0xfffU)
+#define fifo_pbdma_status_id_type_v(r)                     (((r) >> 12U) & 0x1U)
+#define fifo_pbdma_status_id_type_chid_v()                         (0x00000000U)
+#define fifo_pbdma_status_id_type_tsgid_v()                        (0x00000001U)
+#define fifo_pbdma_status_chan_status_v(r)                 (((r) >> 13U) & 0x7U)
+#define fifo_pbdma_status_chan_status_valid_v()                    (0x00000001U)
+#define fifo_pbdma_status_chan_status_chsw_load_v()                (0x00000005U)
+#define fifo_pbdma_status_chan_status_chsw_save_v()                (0x00000006U)
+#define fifo_pbdma_status_chan_status_chsw_switch_v()              (0x00000007U)
+#define fifo_pbdma_status_next_id_v(r)                   (((r) >> 16U) & 0xfffU)
+#define fifo_pbdma_status_next_id_type_v(r)                (((r) >> 28U) & 0x1U)
+#define fifo_pbdma_status_next_id_type_chid_v()                    (0x00000000U)
+#define fifo_pbdma_status_next_id_type_tsgid_v()                   (0x00000001U)
+#define fifo_pbdma_status_chsw_v(r)                        (((r) >> 15U) & 0x1U)
+#define fifo_pbdma_status_chsw_in_progress_v()                     (0x00000001U)
+#define fifo_cfg0_r()                                              (0x00002004U)
+#define fifo_cfg0_num_pbdma_v(r)                           (((r) >> 0U) & 0xffU)
+#define fifo_cfg0_pbdma_fault_id_v(r)                     (((r) >> 16U) & 0xffU)
 #endif

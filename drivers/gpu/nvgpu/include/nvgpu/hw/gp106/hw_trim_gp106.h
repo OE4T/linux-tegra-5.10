@@ -20,7 +20,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 /*
- * Function naming determines intended use:
+ * Function/Macro naming determines intended use:
  *
  *     <x>_r(void) : Returns the offset for register <x>.
  *
@@ -59,140 +59,41 @@
 #include <nvgpu/types.h>
 #include <nvgpu/safe_ops.h>
 
-static inline u32 trim_gpc_bcast_clk_cntr_ncgpcclk_cfg_r(void)
-{
-	return 0x00132924U;
-}
-static inline u32 trim_gpc_bcast_clk_cntr_ncgpcclk_cfg_noofipclks_s(void)
-{
-	return 16U;
-}
-static inline u32 trim_gpc_bcast_clk_cntr_ncgpcclk_cfg_noofipclks_f(u32 v)
-{
-	return (v & 0xffffU) << 0U;
-}
-static inline u32 trim_gpc_bcast_clk_cntr_ncgpcclk_cfg_noofipclks_m(void)
-{
-	return U32(0xffffU) << 0U;
-}
-static inline u32 trim_gpc_bcast_clk_cntr_ncgpcclk_cfg_noofipclks_v(u32 r)
-{
-	return (r >> 0U) & 0xffffU;
-}
-static inline u32 trim_gpc_bcast_clk_cntr_ncgpcclk_cfg_write_en_s(void)
-{
-	return 1U;
-}
-static inline u32 trim_gpc_bcast_clk_cntr_ncgpcclk_cfg_write_en_f(u32 v)
-{
-	return (v & 0x1U) << 16U;
-}
-static inline u32 trim_gpc_bcast_clk_cntr_ncgpcclk_cfg_write_en_m(void)
-{
-	return U32(0x1U) << 16U;
-}
-static inline u32 trim_gpc_bcast_clk_cntr_ncgpcclk_cfg_write_en_v(u32 r)
-{
-	return (r >> 16U) & 0x1U;
-}
-static inline u32 trim_gpc_bcast_clk_cntr_ncgpcclk_cfg_write_en_deasserted_f(void)
-{
-	return 0x0U;
-}
-static inline u32 trim_gpc_bcast_clk_cntr_ncgpcclk_cfg_write_en_asserted_f(void)
-{
-	return 0x10000U;
-}
-static inline u32 trim_gpc_bcast_clk_cntr_ncgpcclk_cfg_enable_s(void)
-{
-	return 1U;
-}
-static inline u32 trim_gpc_bcast_clk_cntr_ncgpcclk_cfg_enable_f(u32 v)
-{
-	return (v & 0x1U) << 20U;
-}
-static inline u32 trim_gpc_bcast_clk_cntr_ncgpcclk_cfg_enable_m(void)
-{
-	return U32(0x1U) << 20U;
-}
-static inline u32 trim_gpc_bcast_clk_cntr_ncgpcclk_cfg_enable_v(u32 r)
-{
-	return (r >> 20U) & 0x1U;
-}
-static inline u32 trim_gpc_bcast_clk_cntr_ncgpcclk_cfg_enable_deasserted_f(void)
-{
-	return 0x0U;
-}
-static inline u32 trim_gpc_bcast_clk_cntr_ncgpcclk_cfg_enable_asserted_f(void)
-{
-	return 0x100000U;
-}
-static inline u32 trim_gpc_bcast_clk_cntr_ncgpcclk_cfg_reset_s(void)
-{
-	return 1U;
-}
-static inline u32 trim_gpc_bcast_clk_cntr_ncgpcclk_cfg_reset_f(u32 v)
-{
-	return (v & 0x1U) << 24U;
-}
-static inline u32 trim_gpc_bcast_clk_cntr_ncgpcclk_cfg_reset_m(void)
-{
-	return U32(0x1U) << 24U;
-}
-static inline u32 trim_gpc_bcast_clk_cntr_ncgpcclk_cfg_reset_v(u32 r)
-{
-	return (r >> 24U) & 0x1U;
-}
-static inline u32 trim_gpc_bcast_clk_cntr_ncgpcclk_cfg_reset_deasserted_f(void)
-{
-	return 0x0U;
-}
-static inline u32 trim_gpc_bcast_clk_cntr_ncgpcclk_cfg_reset_asserted_f(void)
-{
-	return 0x1000000U;
-}
-static inline u32 trim_gpc_bcast_clk_cntr_ncgpcclk_cfg_source_gpc2clk_f(void)
-{
-	return 0x70000000U;
-}
-static inline u32 trim_gpc_bcast_clk_cntr_ncgpcclk_cnt_r(void)
-{
-	return 0x00132928U;
-}
-static inline u32 trim_fbpa_bcast_clk_cntr_ncltcclk_cfg_r(void)
-{
-	return 0x00132128U;
-}
-static inline u32 trim_fbpa_bcast_clk_cntr_ncltcclk_cfg_source_dramdiv4_rec_clk1_f(void)
-{
-	return 0x30000000U;
-}
-static inline u32 trim_fbpa_bcast_clk_cntr_ncltcclk_cnt_r(void)
-{
-	return 0x0013212cU;
-}
-static inline u32 trim_sys_clk_cntr_ncltcpll_cfg_r(void)
-{
-	return 0x001373c0U;
-}
-static inline u32 trim_sys_clk_cntr_ncltcpll_cfg_source_xbar2clk_f(void)
-{
-	return 0x20000000U;
-}
-static inline u32 trim_sys_clk_cntr_ncltcpll_cnt_r(void)
-{
-	return 0x001373c4U;
-}
-static inline u32 trim_sys_clk_cntr_ncsyspll_cfg_r(void)
-{
-	return 0x001373b0U;
-}
-static inline u32 trim_sys_clk_cntr_ncsyspll_cfg_source_sys2clk_f(void)
-{
-	return 0x0U;
-}
-static inline u32 trim_sys_clk_cntr_ncsyspll_cnt_r(void)
-{
-	return 0x001373b4U;
-}
+#define trim_gpc_bcast_clk_cntr_ncgpcclk_cfg_r()                   (0x00132924U)
+#define trim_gpc_bcast_clk_cntr_ncgpcclk_cfg_noofipclks_s()                (16U)
+#define trim_gpc_bcast_clk_cntr_ncgpcclk_cfg_noofipclks_f(v)\
+				(((v)&0xffffU) << 0U)
+#define trim_gpc_bcast_clk_cntr_ncgpcclk_cfg_noofipclks_m() (U32(0xffffU) << 0U)
+#define trim_gpc_bcast_clk_cntr_ncgpcclk_cfg_noofipclks_v(r)\
+				(((r) >> 0U) & 0xffffU)
+#define trim_gpc_bcast_clk_cntr_ncgpcclk_cfg_write_en_s()                   (1U)
+#define trim_gpc_bcast_clk_cntr_ncgpcclk_cfg_write_en_f(v)   (((v)&0x1U) << 16U)
+#define trim_gpc_bcast_clk_cntr_ncgpcclk_cfg_write_en_m()     (U32(0x1U) << 16U)
+#define trim_gpc_bcast_clk_cntr_ncgpcclk_cfg_write_en_v(r) (((r) >> 16U) & 0x1U)
+#define trim_gpc_bcast_clk_cntr_ncgpcclk_cfg_write_en_deasserted_f()      (0x0U)
+#define trim_gpc_bcast_clk_cntr_ncgpcclk_cfg_write_en_asserted_f()    (0x10000U)
+#define trim_gpc_bcast_clk_cntr_ncgpcclk_cfg_enable_s()                     (1U)
+#define trim_gpc_bcast_clk_cntr_ncgpcclk_cfg_enable_f(v)     (((v)&0x1U) << 20U)
+#define trim_gpc_bcast_clk_cntr_ncgpcclk_cfg_enable_m()       (U32(0x1U) << 20U)
+#define trim_gpc_bcast_clk_cntr_ncgpcclk_cfg_enable_v(r)   (((r) >> 20U) & 0x1U)
+#define trim_gpc_bcast_clk_cntr_ncgpcclk_cfg_enable_deasserted_f()        (0x0U)
+#define trim_gpc_bcast_clk_cntr_ncgpcclk_cfg_enable_asserted_f()     (0x100000U)
+#define trim_gpc_bcast_clk_cntr_ncgpcclk_cfg_reset_s()                      (1U)
+#define trim_gpc_bcast_clk_cntr_ncgpcclk_cfg_reset_f(v)      (((v)&0x1U) << 24U)
+#define trim_gpc_bcast_clk_cntr_ncgpcclk_cfg_reset_m()        (U32(0x1U) << 24U)
+#define trim_gpc_bcast_clk_cntr_ncgpcclk_cfg_reset_v(r)    (((r) >> 24U) & 0x1U)
+#define trim_gpc_bcast_clk_cntr_ncgpcclk_cfg_reset_deasserted_f()         (0x0U)
+#define trim_gpc_bcast_clk_cntr_ncgpcclk_cfg_reset_asserted_f()     (0x1000000U)
+#define trim_gpc_bcast_clk_cntr_ncgpcclk_cfg_source_gpc2clk_f()    (0x70000000U)
+#define trim_gpc_bcast_clk_cntr_ncgpcclk_cnt_r()                   (0x00132928U)
+#define trim_fbpa_bcast_clk_cntr_ncltcclk_cfg_r()                  (0x00132128U)
+#define trim_fbpa_bcast_clk_cntr_ncltcclk_cfg_source_dramdiv4_rec_clk1_f()\
+				(0x30000000U)
+#define trim_fbpa_bcast_clk_cntr_ncltcclk_cnt_r()                  (0x0013212cU)
+#define trim_sys_clk_cntr_ncltcpll_cfg_r()                         (0x001373c0U)
+#define trim_sys_clk_cntr_ncltcpll_cfg_source_xbar2clk_f()         (0x20000000U)
+#define trim_sys_clk_cntr_ncltcpll_cnt_r()                         (0x001373c4U)
+#define trim_sys_clk_cntr_ncsyspll_cfg_r()                         (0x001373b0U)
+#define trim_sys_clk_cntr_ncsyspll_cfg_source_sys2clk_f()                 (0x0U)
+#define trim_sys_clk_cntr_ncsyspll_cnt_r()                         (0x001373b4U)
 #endif

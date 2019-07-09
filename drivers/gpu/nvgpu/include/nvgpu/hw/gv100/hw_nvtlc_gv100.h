@@ -20,7 +20,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 /*
- * Function naming determines intended use:
+ * Function/Macro naming determines intended use:
  *
  *     <x>_r(void) : Returns the offset for register <x>.
  *
@@ -59,40 +59,13 @@
 #include <nvgpu/types.h>
 #include <nvgpu/safe_ops.h>
 
-static inline u32 nvtlc_tx_err_report_en_0_r(void)
-{
-	return 0x00000708U;
-}
-static inline u32 nvtlc_rx_err_report_en_0_r(void)
-{
-	return 0x00000f08U;
-}
-static inline u32 nvtlc_rx_err_report_en_1_r(void)
-{
-	return 0x00000f20U;
-}
-static inline u32 nvtlc_tx_err_status_0_r(void)
-{
-	return 0x00000700U;
-}
-static inline u32 nvtlc_rx_err_status_0_r(void)
-{
-	return 0x00000f00U;
-}
-static inline u32 nvtlc_rx_err_status_1_r(void)
-{
-	return 0x00000f18U;
-}
-static inline u32 nvtlc_tx_err_first_0_r(void)
-{
-	return 0x00000714U;
-}
-static inline u32 nvtlc_rx_err_first_0_r(void)
-{
-	return 0x00000f14U;
-}
-static inline u32 nvtlc_rx_err_first_1_r(void)
-{
-	return 0x00000f2cU;
-}
+#define nvtlc_tx_err_report_en_0_r()                               (0x00000708U)
+#define nvtlc_rx_err_report_en_0_r()                               (0x00000f08U)
+#define nvtlc_rx_err_report_en_1_r()                               (0x00000f20U)
+#define nvtlc_tx_err_status_0_r()                                  (0x00000700U)
+#define nvtlc_rx_err_status_0_r()                                  (0x00000f00U)
+#define nvtlc_rx_err_status_1_r()                                  (0x00000f18U)
+#define nvtlc_tx_err_first_0_r()                                   (0x00000714U)
+#define nvtlc_rx_err_first_0_r()                                   (0x00000f14U)
+#define nvtlc_rx_err_first_1_r()                                   (0x00000f2cU)
 #endif

@@ -20,7 +20,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 /*
- * Function naming determines intended use:
+ * Function/Macro naming determines intended use:
  *
  *     <x>_r(void) : Returns the offset for register <x>.
  *
@@ -59,60 +59,18 @@
 #include <nvgpu/types.h>
 #include <nvgpu/safe_ops.h>
 
-static inline u32 timer_pri_timeout_r(void)
-{
-	return 0x00009080U;
-}
-static inline u32 timer_pri_timeout_period_f(u32 v)
-{
-	return (v & 0xffffffU) << 0U;
-}
-static inline u32 timer_pri_timeout_period_m(void)
-{
-	return U32(0xffffffU) << 0U;
-}
-static inline u32 timer_pri_timeout_period_v(u32 r)
-{
-	return (r >> 0U) & 0xffffffU;
-}
-static inline u32 timer_pri_timeout_en_f(u32 v)
-{
-	return (v & 0x1U) << 31U;
-}
-static inline u32 timer_pri_timeout_en_m(void)
-{
-	return U32(0x1U) << 31U;
-}
-static inline u32 timer_pri_timeout_en_v(u32 r)
-{
-	return (r >> 31U) & 0x1U;
-}
-static inline u32 timer_pri_timeout_en_en_enabled_f(void)
-{
-	return 0x80000000U;
-}
-static inline u32 timer_pri_timeout_en_en_disabled_f(void)
-{
-	return 0x0U;
-}
-static inline u32 timer_pri_timeout_save_0_r(void)
-{
-	return 0x00009084U;
-}
-static inline u32 timer_pri_timeout_save_1_r(void)
-{
-	return 0x00009088U;
-}
-static inline u32 timer_pri_timeout_fecs_errcode_r(void)
-{
-	return 0x0000908cU;
-}
-static inline u32 timer_time_0_r(void)
-{
-	return 0x00009400U;
-}
-static inline u32 timer_time_1_r(void)
-{
-	return 0x00009410U;
-}
+#define timer_pri_timeout_r()                                      (0x00009080U)
+#define timer_pri_timeout_period_f(v)                    (((v)&0xffffffU) << 0U)
+#define timer_pri_timeout_period_m()                      (U32(0xffffffU) << 0U)
+#define timer_pri_timeout_period_v(r)                  (((r) >> 0U) & 0xffffffU)
+#define timer_pri_timeout_en_f(v)                            (((v)&0x1U) << 31U)
+#define timer_pri_timeout_en_m()                              (U32(0x1U) << 31U)
+#define timer_pri_timeout_en_v(r)                          (((r) >> 31U) & 0x1U)
+#define timer_pri_timeout_en_en_enabled_f()                        (0x80000000U)
+#define timer_pri_timeout_en_en_disabled_f()                              (0x0U)
+#define timer_pri_timeout_save_0_r()                               (0x00009084U)
+#define timer_pri_timeout_save_1_r()                               (0x00009088U)
+#define timer_pri_timeout_fecs_errcode_r()                         (0x0000908cU)
+#define timer_time_0_r()                                           (0x00009400U)
+#define timer_time_1_r()                                           (0x00009410U)
 #endif

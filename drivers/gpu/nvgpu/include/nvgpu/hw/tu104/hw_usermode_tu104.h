@@ -20,7 +20,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 /*
- * Function naming determines intended use:
+ * Function/Macro naming determines intended use:
  *
  *     <x>_r(void) : Returns the offset for register <x>.
  *
@@ -59,32 +59,11 @@
 #include <nvgpu/types.h>
 #include <nvgpu/safe_ops.h>
 
-static inline u32 usermode_cfg0_r(void)
-{
-	return 0x00810000U;
-}
-static inline u32 usermode_cfg0_class_id_f(u32 v)
-{
-	return (v & 0xffffU) << 0U;
-}
-static inline u32 usermode_cfg0_class_id_value_v(void)
-{
-	return 0x0000c461U;
-}
-static inline u32 usermode_time_0_r(void)
-{
-	return 0x00810080U;
-}
-static inline u32 usermode_time_0_nsec_f(u32 v)
-{
-	return (v & 0x7ffffffU) << 5U;
-}
-static inline u32 usermode_time_1_r(void)
-{
-	return 0x00810084U;
-}
-static inline u32 usermode_time_1_nsec_f(u32 v)
-{
-	return (v & 0x1fffffffU) << 0U;
-}
+#define usermode_cfg0_r()                                          (0x00810000U)
+#define usermode_cfg0_class_id_f(v)                        (((v)&0xffffU) << 0U)
+#define usermode_cfg0_class_id_value_v()                           (0x0000c461U)
+#define usermode_time_0_r()                                        (0x00810080U)
+#define usermode_time_0_nsec_f(v)                       (((v)&0x7ffffffU) << 5U)
+#define usermode_time_1_r()                                        (0x00810084U)
+#define usermode_time_1_nsec_f(v)                      (((v)&0x1fffffffU) << 0U)
 #endif

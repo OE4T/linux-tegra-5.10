@@ -20,7 +20,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 /*
- * Function naming determines intended use:
+ * Function/Macro naming determines intended use:
  *
  *     <x>_r(void) : Returns the offset for register <x>.
  *
@@ -59,32 +59,14 @@
 #include <nvgpu/types.h>
 #include <nvgpu/safe_ops.h>
 
-static inline u32 ctrl_doorbell_r(u32 i)
-{
-	return nvgpu_safe_add_u32(0x00b64000U, nvgpu_safe_mult_u32(i, 8U));
-}
-static inline u32 ctrl_doorbell_vector_f(u32 v)
-{
-	return (v & 0xfffU) << 0U;
-}
-static inline u32 ctrl_doorbell_runlist_id_f(u32 v)
-{
-	return (v & 0x7fU) << 16U;
-}
-static inline u32 ctrl_virtual_channel_cfg_r(u32 i)
-{
-	return nvgpu_safe_add_u32(0x00b65000U, nvgpu_safe_mult_u32(i, 4U));
-}
-static inline u32 ctrl_virtual_channel_cfg_pending_enable_true_f(void)
-{
-	return 0x80000000U;
-}
-static inline u32 ctrl_legacy_engine_nonstall_intr_base_vectorid_r(void)
-{
-	return 0x00b66884U;
-}
-static inline u32 ctrl_legacy_engine_nonstall_intr_base_vectorid_vector_v(u32 r)
-{
-	return (r >> 0U) & 0xfffU;
-}
+#define ctrl_doorbell_r(i)\
+		(nvgpu_safe_add_u32(0x00b64000U, nvgpu_safe_mult_u32((i), 8U)))
+#define ctrl_doorbell_vector_f(v)                           (((v)&0xfffU) << 0U)
+#define ctrl_doorbell_runlist_id_f(v)                       (((v)&0x7fU) << 16U)
+#define ctrl_virtual_channel_cfg_r(i)\
+		(nvgpu_safe_add_u32(0x00b65000U, nvgpu_safe_mult_u32((i), 4U)))
+#define ctrl_virtual_channel_cfg_pending_enable_true_f()           (0x80000000U)
+#define ctrl_legacy_engine_nonstall_intr_base_vectorid_r()         (0x00b66884U)
+#define ctrl_legacy_engine_nonstall_intr_base_vectorid_vector_v(r)\
+				(((r) >> 0U) & 0xfffU)
 #endif

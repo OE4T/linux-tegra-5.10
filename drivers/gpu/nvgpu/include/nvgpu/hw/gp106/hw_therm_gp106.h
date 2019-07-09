@@ -20,7 +20,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 /*
- * Function naming determines intended use:
+ * Function/Macro naming determines intended use:
  *
  *     <x>_r(void) : Returns the offset for register <x>.
  *
@@ -59,84 +59,25 @@
 #include <nvgpu/types.h>
 #include <nvgpu/safe_ops.h>
 
-static inline u32 therm_gate_ctrl_r(u32 i)
-{
-	return nvgpu_safe_add_u32(0x00020200U, nvgpu_safe_mult_u32(i, 4U));
-}
-static inline u32 therm_gate_ctrl_eng_clk_m(void)
-{
-	return U32(0x3U) << 0U;
-}
-static inline u32 therm_gate_ctrl_eng_clk_run_f(void)
-{
-	return 0x0U;
-}
-static inline u32 therm_gate_ctrl_eng_clk_auto_f(void)
-{
-	return 0x1U;
-}
-static inline u32 therm_gate_ctrl_eng_clk_stop_f(void)
-{
-	return 0x2U;
-}
-static inline u32 therm_gate_ctrl_blk_clk_m(void)
-{
-	return U32(0x3U) << 2U;
-}
-static inline u32 therm_gate_ctrl_blk_clk_run_f(void)
-{
-	return 0x0U;
-}
-static inline u32 therm_gate_ctrl_blk_clk_auto_f(void)
-{
-	return 0x4U;
-}
-static inline u32 therm_gate_ctrl_eng_idle_filt_exp_f(u32 v)
-{
-	return (v & 0x1fU) << 8U;
-}
-static inline u32 therm_gate_ctrl_eng_idle_filt_exp_m(void)
-{
-	return U32(0x1fU) << 8U;
-}
-static inline u32 therm_gate_ctrl_eng_idle_filt_mant_f(u32 v)
-{
-	return (v & 0x7U) << 13U;
-}
-static inline u32 therm_gate_ctrl_eng_idle_filt_mant_m(void)
-{
-	return U32(0x7U) << 13U;
-}
-static inline u32 therm_gate_ctrl_eng_delay_before_f(u32 v)
-{
-	return (v & 0xfU) << 16U;
-}
-static inline u32 therm_gate_ctrl_eng_delay_before_m(void)
-{
-	return U32(0xfU) << 16U;
-}
-static inline u32 therm_gate_ctrl_eng_delay_after_f(u32 v)
-{
-	return (v & 0xfU) << 20U;
-}
-static inline u32 therm_gate_ctrl_eng_delay_after_m(void)
-{
-	return U32(0xfU) << 20U;
-}
-static inline u32 therm_fecs_idle_filter_r(void)
-{
-	return 0x00020288U;
-}
-static inline u32 therm_fecs_idle_filter_value_m(void)
-{
-	return U32(0xffffffffU) << 0U;
-}
-static inline u32 therm_hubmmu_idle_filter_r(void)
-{
-	return 0x0002028cU;
-}
-static inline u32 therm_hubmmu_idle_filter_value_m(void)
-{
-	return U32(0xffffffffU) << 0U;
-}
+#define therm_gate_ctrl_r(i)\
+		(nvgpu_safe_add_u32(0x00020200U, nvgpu_safe_mult_u32((i), 4U)))
+#define therm_gate_ctrl_eng_clk_m()                            (U32(0x3U) << 0U)
+#define therm_gate_ctrl_eng_clk_run_f()                                   (0x0U)
+#define therm_gate_ctrl_eng_clk_auto_f()                                  (0x1U)
+#define therm_gate_ctrl_eng_clk_stop_f()                                  (0x2U)
+#define therm_gate_ctrl_blk_clk_m()                            (U32(0x3U) << 2U)
+#define therm_gate_ctrl_blk_clk_run_f()                                   (0x0U)
+#define therm_gate_ctrl_blk_clk_auto_f()                                  (0x4U)
+#define therm_gate_ctrl_eng_idle_filt_exp_f(v)               (((v)&0x1fU) << 8U)
+#define therm_gate_ctrl_eng_idle_filt_exp_m()                 (U32(0x1fU) << 8U)
+#define therm_gate_ctrl_eng_idle_filt_mant_f(v)              (((v)&0x7U) << 13U)
+#define therm_gate_ctrl_eng_idle_filt_mant_m()                (U32(0x7U) << 13U)
+#define therm_gate_ctrl_eng_delay_before_f(v)                (((v)&0xfU) << 16U)
+#define therm_gate_ctrl_eng_delay_before_m()                  (U32(0xfU) << 16U)
+#define therm_gate_ctrl_eng_delay_after_f(v)                 (((v)&0xfU) << 20U)
+#define therm_gate_ctrl_eng_delay_after_m()                   (U32(0xfU) << 20U)
+#define therm_fecs_idle_filter_r()                                 (0x00020288U)
+#define therm_fecs_idle_filter_value_m()                (U32(0xffffffffU) << 0U)
+#define therm_hubmmu_idle_filter_r()                               (0x0002028cU)
+#define therm_hubmmu_idle_filter_value_m()              (U32(0xffffffffU) << 0U)
 #endif

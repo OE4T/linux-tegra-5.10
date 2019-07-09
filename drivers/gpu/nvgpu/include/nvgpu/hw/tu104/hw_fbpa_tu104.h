@@ -20,7 +20,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 /*
- * Function naming determines intended use:
+ * Function/Macro naming determines intended use:
  *
  *     <x>_r(void) : Returns the offset for register <x>.
  *
@@ -59,72 +59,24 @@
 #include <nvgpu/types.h>
 #include <nvgpu/safe_ops.h>
 
-static inline u32 fbpa_0_intr_status_r(void)
-{
-	return 0x00900398U;
-}
-static inline u32 fbpa_0_intr_status_sec_subp0_pending_f(void)
-{
-	return 0x1U;
-}
-static inline u32 fbpa_0_intr_status_ded_subp0_pending_f(void)
-{
-	return 0x2U;
-}
-static inline u32 fbpa_0_intr_status_sec_subp1_pending_f(void)
-{
-	return 0x10000U;
-}
-static inline u32 fbpa_0_intr_status_ded_subp1_pending_f(void)
-{
-	return 0x20000U;
-}
-static inline u32 fbpa_ecc_intr_ctrl_r(void)
-{
-	return 0x009a0474U;
-}
-static inline u32 fbpa_ecc_intr_ctrl_sec_intr_en_f(u32 v)
-{
-	return (v & 0x1U) << 0U;
-}
-static inline u32 fbpa_ecc_intr_ctrl_sec_intr_en_enabled_f(void)
-{
-	return 0x1U;
-}
-static inline u32 fbpa_ecc_intr_ctrl_ded_intr_en_f(u32 v)
-{
-	return (v & 0x1U) << 1U;
-}
-static inline u32 fbpa_ecc_intr_ctrl_ded_intr_en_enabled_f(void)
-{
-	return 0x2U;
-}
-static inline u32 fbpa_0_ecc_status_r(u32 i)
-{
-	return nvgpu_safe_add_u32(0x00900478U, nvgpu_safe_mult_u32(i, 4U));
-}
-static inline u32 fbpa_0_ecc_status_sec_intr_pending_f(void)
-{
-	return 0x2U;
-}
-static inline u32 fbpa_0_ecc_status_ded_intr_pending_f(void)
-{
-	return 0x4U;
-}
-static inline u32 fbpa_0_ecc_status_sec_counter_overflow_pending_f(void)
-{
-	return 0x20000U;
-}
-static inline u32 fbpa_0_ecc_status_ded_counter_overflow_pending_f(void)
-{
-	return 0x40000U;
-}
-static inline u32 fbpa_0_ecc_sec_count_r(u32 i)
-{
-	return nvgpu_safe_add_u32(0x00900480U, nvgpu_safe_mult_u32(i, 4U));
-}
-static inline u32 fbpa_0_ecc_ded_count_r(u32 i)
-{
-	return nvgpu_safe_add_u32(0x00900488U, nvgpu_safe_mult_u32(i, 4U));
-}
+#define fbpa_0_intr_status_r()                                     (0x00900398U)
+#define fbpa_0_intr_status_sec_subp0_pending_f()                          (0x1U)
+#define fbpa_0_intr_status_ded_subp0_pending_f()                          (0x2U)
+#define fbpa_0_intr_status_sec_subp1_pending_f()                      (0x10000U)
+#define fbpa_0_intr_status_ded_subp1_pending_f()                      (0x20000U)
+#define fbpa_ecc_intr_ctrl_r()                                     (0x009a0474U)
+#define fbpa_ecc_intr_ctrl_sec_intr_en_f(v)                   (((v)&0x1U) << 0U)
+#define fbpa_ecc_intr_ctrl_sec_intr_en_enabled_f()                        (0x1U)
+#define fbpa_ecc_intr_ctrl_ded_intr_en_f(v)                   (((v)&0x1U) << 1U)
+#define fbpa_ecc_intr_ctrl_ded_intr_en_enabled_f()                        (0x2U)
+#define fbpa_0_ecc_status_r(i)\
+		(nvgpu_safe_add_u32(0x00900478U, nvgpu_safe_mult_u32((i), 4U)))
+#define fbpa_0_ecc_status_sec_intr_pending_f()                            (0x2U)
+#define fbpa_0_ecc_status_ded_intr_pending_f()                            (0x4U)
+#define fbpa_0_ecc_status_sec_counter_overflow_pending_f()            (0x20000U)
+#define fbpa_0_ecc_status_ded_counter_overflow_pending_f()            (0x40000U)
+#define fbpa_0_ecc_sec_count_r(i)\
+		(nvgpu_safe_add_u32(0x00900480U, nvgpu_safe_mult_u32((i), 4U)))
+#define fbpa_0_ecc_ded_count_r(i)\
+		(nvgpu_safe_add_u32(0x00900488U, nvgpu_safe_mult_u32((i), 4U)))
 #endif

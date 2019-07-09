@@ -20,7 +20,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 /*
- * Function naming determines intended use:
+ * Function/Macro naming determines intended use:
  *
  *     <x>_r(void) : Returns the offset for register <x>.
  *
@@ -59,172 +59,50 @@
 #include <nvgpu/types.h>
 #include <nvgpu/safe_ops.h>
 
-static inline u32 mc_boot_0_r(void)
-{
-	return 0x00000000U;
-}
-static inline u32 mc_boot_0_architecture_v(u32 r)
-{
-	return (r >> 24U) & 0x1fU;
-}
-static inline u32 mc_boot_0_implementation_v(u32 r)
-{
-	return (r >> 20U) & 0xfU;
-}
-static inline u32 mc_boot_0_major_revision_v(u32 r)
-{
-	return (r >> 4U) & 0xfU;
-}
-static inline u32 mc_boot_0_minor_revision_v(u32 r)
-{
-	return (r >> 0U) & 0xfU;
-}
-static inline u32 mc_intr_r(u32 i)
-{
-	return nvgpu_safe_add_u32(0x00000100U, nvgpu_safe_mult_u32(i, 4U));
-}
-static inline u32 mc_intr_pfifo_pending_f(void)
-{
-	return 0x100U;
-}
-static inline u32 mc_intr_hub_pending_f(void)
-{
-	return 0x200U;
-}
-static inline u32 mc_intr_pfb_pending_f(void)
-{
-	return 0x2000U;
-}
-static inline u32 mc_intr_pgraph_pending_f(void)
-{
-	return 0x1000U;
-}
-static inline u32 mc_intr_pmu_pending_f(void)
-{
-	return 0x1000000U;
-}
-static inline u32 mc_intr_ltc_pending_f(void)
-{
-	return 0x2000000U;
-}
-static inline u32 mc_intr_priv_ring_pending_f(void)
-{
-	return 0x40000000U;
-}
-static inline u32 mc_intr_pbus_pending_f(void)
-{
-	return 0x10000000U;
-}
-static inline u32 mc_intr_nvlink_pending_f(void)
-{
-	return 0x400000U;
-}
-static inline u32 mc_intr_en_r(u32 i)
-{
-	return nvgpu_safe_add_u32(0x00000140U, nvgpu_safe_mult_u32(i, 4U));
-}
-static inline u32 mc_intr_en_set_r(u32 i)
-{
-	return nvgpu_safe_add_u32(0x00000160U, nvgpu_safe_mult_u32(i, 4U));
-}
-static inline u32 mc_intr_en_clear_r(u32 i)
-{
-	return nvgpu_safe_add_u32(0x00000180U, nvgpu_safe_mult_u32(i, 4U));
-}
-static inline u32 mc_enable_r(void)
-{
-	return 0x00000200U;
-}
-static inline u32 mc_enable_pmedia_s(void)
-{
-	return 1U;
-}
-static inline u32 mc_enable_pmedia_f(u32 v)
-{
-	return (v & 0x1U) << 4U;
-}
-static inline u32 mc_enable_pmedia_m(void)
-{
-	return U32(0x1U) << 4U;
-}
-static inline u32 mc_enable_pmedia_v(u32 r)
-{
-	return (r >> 4U) & 0x1U;
-}
-static inline u32 mc_enable_ce0_m(void)
-{
-	return U32(0x1U) << 6U;
-}
-static inline u32 mc_enable_pfifo_enabled_f(void)
-{
-	return 0x100U;
-}
-static inline u32 mc_enable_pgraph_enabled_f(void)
-{
-	return 0x1000U;
-}
-static inline u32 mc_enable_pwr_v(u32 r)
-{
-	return (r >> 13U) & 0x1U;
-}
-static inline u32 mc_enable_pwr_disabled_v(void)
-{
-	return 0x00000000U;
-}
-static inline u32 mc_enable_pwr_enabled_f(void)
-{
-	return 0x2000U;
-}
-static inline u32 mc_enable_ce2_m(void)
-{
-	return U32(0x1U) << 21U;
-}
-static inline u32 mc_enable_ce2_enabled_f(void)
-{
-	return 0x200000U;
-}
-static inline u32 mc_enable_blg_enabled_f(void)
-{
-	return 0x8000000U;
-}
-static inline u32 mc_enable_perfmon_enabled_f(void)
-{
-	return 0x10000000U;
-}
-static inline u32 mc_enable_nvdec_disabled_v(void)
-{
-	return 0x00000000U;
-}
-static inline u32 mc_enable_nvdec_enabled_f(void)
-{
-	return 0x8000U;
-}
-static inline u32 mc_enable_nvlink_disabled_v(void)
-{
-	return 0x00000000U;
-}
-static inline u32 mc_enable_nvlink_disabled_f(void)
-{
-	return 0x0U;
-}
-static inline u32 mc_enable_nvlink_enabled_v(void)
-{
-	return 0x00000001U;
-}
-static inline u32 mc_enable_nvlink_enabled_f(void)
-{
-	return 0x2000000U;
-}
-static inline u32 mc_intr_ltc_r(void)
-{
-	return 0x000001c0U;
-}
-static inline u32 mc_intr_fbpa_r(void)
-{
-	return 0x000001d0U;
-}
-static inline u32 mc_intr_fbpa_part_mask_v(u32 r)
-{
-	return (r >> 0U) & 0x1ffffU;
-}
+#define mc_boot_0_r()                                              (0x00000000U)
+#define mc_boot_0_architecture_v(r)                       (((r) >> 24U) & 0x1fU)
+#define mc_boot_0_implementation_v(r)                      (((r) >> 20U) & 0xfU)
+#define mc_boot_0_major_revision_v(r)                       (((r) >> 4U) & 0xfU)
+#define mc_boot_0_minor_revision_v(r)                       (((r) >> 0U) & 0xfU)
+#define mc_intr_r(i)\
+		(nvgpu_safe_add_u32(0x00000100U, nvgpu_safe_mult_u32((i), 4U)))
+#define mc_intr_pfifo_pending_f()                                       (0x100U)
+#define mc_intr_hub_pending_f()                                         (0x200U)
+#define mc_intr_pfb_pending_f()                                        (0x2000U)
+#define mc_intr_pgraph_pending_f()                                     (0x1000U)
+#define mc_intr_pmu_pending_f()                                     (0x1000000U)
+#define mc_intr_ltc_pending_f()                                     (0x2000000U)
+#define mc_intr_priv_ring_pending_f()                              (0x40000000U)
+#define mc_intr_pbus_pending_f()                                   (0x10000000U)
+#define mc_intr_nvlink_pending_f()                                   (0x400000U)
+#define mc_intr_en_r(i)\
+		(nvgpu_safe_add_u32(0x00000140U, nvgpu_safe_mult_u32((i), 4U)))
+#define mc_intr_en_set_r(i)\
+		(nvgpu_safe_add_u32(0x00000160U, nvgpu_safe_mult_u32((i), 4U)))
+#define mc_intr_en_clear_r(i)\
+		(nvgpu_safe_add_u32(0x00000180U, nvgpu_safe_mult_u32((i), 4U)))
+#define mc_enable_r()                                              (0x00000200U)
+#define mc_enable_pmedia_s()                                                (1U)
+#define mc_enable_pmedia_f(v)                                 (((v)&0x1U) << 4U)
+#define mc_enable_pmedia_m()                                   (U32(0x1U) << 4U)
+#define mc_enable_pmedia_v(r)                               (((r) >> 4U) & 0x1U)
+#define mc_enable_ce0_m()                                      (U32(0x1U) << 6U)
+#define mc_enable_pfifo_enabled_f()                                     (0x100U)
+#define mc_enable_pgraph_enabled_f()                                   (0x1000U)
+#define mc_enable_pwr_v(r)                                 (((r) >> 13U) & 0x1U)
+#define mc_enable_pwr_disabled_v()                                 (0x00000000U)
+#define mc_enable_pwr_enabled_f()                                      (0x2000U)
+#define mc_enable_ce2_m()                                     (U32(0x1U) << 21U)
+#define mc_enable_ce2_enabled_f()                                    (0x200000U)
+#define mc_enable_blg_enabled_f()                                   (0x8000000U)
+#define mc_enable_perfmon_enabled_f()                              (0x10000000U)
+#define mc_enable_nvdec_disabled_v()                               (0x00000000U)
+#define mc_enable_nvdec_enabled_f()                                    (0x8000U)
+#define mc_enable_nvlink_disabled_v()                              (0x00000000U)
+#define mc_enable_nvlink_disabled_f()                                     (0x0U)
+#define mc_enable_nvlink_enabled_v()                               (0x00000001U)
+#define mc_enable_nvlink_enabled_f()                                (0x2000000U)
+#define mc_intr_ltc_r()                                            (0x000001c0U)
+#define mc_intr_fbpa_r()                                           (0x000001d0U)
+#define mc_intr_fbpa_part_mask_v(r)                     (((r) >> 0U) & 0x1ffffU)
 #endif

@@ -20,7 +20,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 /*
- * Function naming determines intended use:
+ * Function/Macro naming determines intended use:
  *
  *     <x>_r(void) : Returns the offset for register <x>.
  *
@@ -59,132 +59,36 @@
 #include <nvgpu/types.h>
 #include <nvgpu/safe_ops.h>
 
-static inline u32 flush_l2_system_invalidate_r(void)
-{
-	return 0x00070004U;
-}
-static inline u32 flush_l2_system_invalidate_pending_v(u32 r)
-{
-	return (r >> 0U) & 0x1U;
-}
-static inline u32 flush_l2_system_invalidate_pending_busy_v(void)
-{
-	return 0x00000001U;
-}
-static inline u32 flush_l2_system_invalidate_pending_busy_f(void)
-{
-	return 0x1U;
-}
-static inline u32 flush_l2_system_invalidate_outstanding_v(u32 r)
-{
-	return (r >> 1U) & 0x1U;
-}
-static inline u32 flush_l2_system_invalidate_outstanding_true_v(void)
-{
-	return 0x00000001U;
-}
-static inline u32 flush_l2_flush_dirty_r(void)
-{
-	return 0x00070010U;
-}
-static inline u32 flush_l2_flush_dirty_pending_v(u32 r)
-{
-	return (r >> 0U) & 0x1U;
-}
-static inline u32 flush_l2_flush_dirty_pending_empty_v(void)
-{
-	return 0x00000000U;
-}
-static inline u32 flush_l2_flush_dirty_pending_empty_f(void)
-{
-	return 0x0U;
-}
-static inline u32 flush_l2_flush_dirty_pending_busy_v(void)
-{
-	return 0x00000001U;
-}
-static inline u32 flush_l2_flush_dirty_pending_busy_f(void)
-{
-	return 0x1U;
-}
-static inline u32 flush_l2_flush_dirty_outstanding_v(u32 r)
-{
-	return (r >> 1U) & 0x1U;
-}
-static inline u32 flush_l2_flush_dirty_outstanding_false_v(void)
-{
-	return 0x00000000U;
-}
-static inline u32 flush_l2_flush_dirty_outstanding_false_f(void)
-{
-	return 0x0U;
-}
-static inline u32 flush_l2_flush_dirty_outstanding_true_v(void)
-{
-	return 0x00000001U;
-}
-static inline u32 flush_l2_clean_comptags_r(void)
-{
-	return 0x0007000cU;
-}
-static inline u32 flush_l2_clean_comptags_pending_v(u32 r)
-{
-	return (r >> 0U) & 0x1U;
-}
-static inline u32 flush_l2_clean_comptags_pending_empty_v(void)
-{
-	return 0x00000000U;
-}
-static inline u32 flush_l2_clean_comptags_pending_empty_f(void)
-{
-	return 0x0U;
-}
-static inline u32 flush_l2_clean_comptags_pending_busy_v(void)
-{
-	return 0x00000001U;
-}
-static inline u32 flush_l2_clean_comptags_pending_busy_f(void)
-{
-	return 0x1U;
-}
-static inline u32 flush_l2_clean_comptags_outstanding_v(u32 r)
-{
-	return (r >> 1U) & 0x1U;
-}
-static inline u32 flush_l2_clean_comptags_outstanding_false_v(void)
-{
-	return 0x00000000U;
-}
-static inline u32 flush_l2_clean_comptags_outstanding_false_f(void)
-{
-	return 0x0U;
-}
-static inline u32 flush_l2_clean_comptags_outstanding_true_v(void)
-{
-	return 0x00000001U;
-}
-static inline u32 flush_fb_flush_r(void)
-{
-	return 0x00070000U;
-}
-static inline u32 flush_fb_flush_pending_v(u32 r)
-{
-	return (r >> 0U) & 0x1U;
-}
-static inline u32 flush_fb_flush_pending_busy_v(void)
-{
-	return 0x00000001U;
-}
-static inline u32 flush_fb_flush_pending_busy_f(void)
-{
-	return 0x1U;
-}
-static inline u32 flush_fb_flush_outstanding_v(u32 r)
-{
-	return (r >> 1U) & 0x1U;
-}
-static inline u32 flush_fb_flush_outstanding_true_v(void)
-{
-	return 0x00000001U;
-}
+#define flush_l2_system_invalidate_r()                             (0x00070004U)
+#define flush_l2_system_invalidate_pending_v(r)             (((r) >> 0U) & 0x1U)
+#define flush_l2_system_invalidate_pending_busy_v()                (0x00000001U)
+#define flush_l2_system_invalidate_pending_busy_f()                       (0x1U)
+#define flush_l2_system_invalidate_outstanding_v(r)         (((r) >> 1U) & 0x1U)
+#define flush_l2_system_invalidate_outstanding_true_v()            (0x00000001U)
+#define flush_l2_flush_dirty_r()                                   (0x00070010U)
+#define flush_l2_flush_dirty_pending_v(r)                   (((r) >> 0U) & 0x1U)
+#define flush_l2_flush_dirty_pending_empty_v()                     (0x00000000U)
+#define flush_l2_flush_dirty_pending_empty_f()                            (0x0U)
+#define flush_l2_flush_dirty_pending_busy_v()                      (0x00000001U)
+#define flush_l2_flush_dirty_pending_busy_f()                             (0x1U)
+#define flush_l2_flush_dirty_outstanding_v(r)               (((r) >> 1U) & 0x1U)
+#define flush_l2_flush_dirty_outstanding_false_v()                 (0x00000000U)
+#define flush_l2_flush_dirty_outstanding_false_f()                        (0x0U)
+#define flush_l2_flush_dirty_outstanding_true_v()                  (0x00000001U)
+#define flush_l2_clean_comptags_r()                                (0x0007000cU)
+#define flush_l2_clean_comptags_pending_v(r)                (((r) >> 0U) & 0x1U)
+#define flush_l2_clean_comptags_pending_empty_v()                  (0x00000000U)
+#define flush_l2_clean_comptags_pending_empty_f()                         (0x0U)
+#define flush_l2_clean_comptags_pending_busy_v()                   (0x00000001U)
+#define flush_l2_clean_comptags_pending_busy_f()                          (0x1U)
+#define flush_l2_clean_comptags_outstanding_v(r)            (((r) >> 1U) & 0x1U)
+#define flush_l2_clean_comptags_outstanding_false_v()              (0x00000000U)
+#define flush_l2_clean_comptags_outstanding_false_f()                     (0x0U)
+#define flush_l2_clean_comptags_outstanding_true_v()               (0x00000001U)
+#define flush_fb_flush_r()                                         (0x00070000U)
+#define flush_fb_flush_pending_v(r)                         (((r) >> 0U) & 0x1U)
+#define flush_fb_flush_pending_busy_v()                            (0x00000001U)
+#define flush_fb_flush_pending_busy_f()                                   (0x1U)
+#define flush_fb_flush_outstanding_v(r)                     (((r) >> 1U) & 0x1U)
+#define flush_fb_flush_outstanding_true_v()                        (0x00000001U)
 #endif

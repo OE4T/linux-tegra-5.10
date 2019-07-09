@@ -20,7 +20,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 /*
- * Function naming determines intended use:
+ * Function/Macro naming determines intended use:
  *
  *     <x>_r(void) : Returns the offset for register <x>.
  *
@@ -59,36 +59,14 @@
 #include <nvgpu/types.h>
 #include <nvgpu/safe_ops.h>
 
-static inline u32 pri_ringstation_sys_master_config_r(u32 i)
-{
-	return nvgpu_safe_add_u32(0x00122300U, nvgpu_safe_mult_u32(i, 4U));
-}
-static inline u32 pri_ringstation_sys_decode_config_r(void)
-{
-	return 0x00122204U;
-}
-static inline u32 pri_ringstation_sys_decode_config_ring_m(void)
-{
-	return U32(0x7U) << 0U;
-}
-static inline u32 pri_ringstation_sys_decode_config_ring_drop_on_ring_not_started_f(void)
-{
-	return 0x1U;
-}
-static inline u32 pri_ringstation_sys_priv_error_adr_r(void)
-{
-	return 0x00122120U;
-}
-static inline u32 pri_ringstation_sys_priv_error_wrdat_r(void)
-{
-	return 0x00122124U;
-}
-static inline u32 pri_ringstation_sys_priv_error_info_r(void)
-{
-	return 0x00122128U;
-}
-static inline u32 pri_ringstation_sys_priv_error_code_r(void)
-{
-	return 0x0012212cU;
-}
+#define pri_ringstation_sys_master_config_r(i)\
+		(nvgpu_safe_add_u32(0x00122300U, nvgpu_safe_mult_u32((i), 4U)))
+#define pri_ringstation_sys_decode_config_r()                      (0x00122204U)
+#define pri_ringstation_sys_decode_config_ring_m()             (U32(0x7U) << 0U)
+#define pri_ringstation_sys_decode_config_ring_drop_on_ring_not_started_f()\
+				(0x1U)
+#define pri_ringstation_sys_priv_error_adr_r()                     (0x00122120U)
+#define pri_ringstation_sys_priv_error_wrdat_r()                   (0x00122124U)
+#define pri_ringstation_sys_priv_error_info_r()                    (0x00122128U)
+#define pri_ringstation_sys_priv_error_code_r()                    (0x0012212cU)
 #endif

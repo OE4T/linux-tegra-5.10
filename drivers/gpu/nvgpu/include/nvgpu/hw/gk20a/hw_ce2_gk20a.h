@@ -20,7 +20,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 /*
- * Function naming determines intended use:
+ * Function/Macro naming determines intended use:
  *
  *     <x>_r(void) : Returns the offset for register <x>.
  *
@@ -59,32 +59,11 @@
 #include <nvgpu/types.h>
 #include <nvgpu/safe_ops.h>
 
-static inline u32 ce2_intr_status_r(void)
-{
-	return 0x00106908U;
-}
-static inline u32 ce2_intr_status_blockpipe_pending_f(void)
-{
-	return 0x1U;
-}
-static inline u32 ce2_intr_status_blockpipe_reset_f(void)
-{
-	return 0x1U;
-}
-static inline u32 ce2_intr_status_nonblockpipe_pending_f(void)
-{
-	return 0x2U;
-}
-static inline u32 ce2_intr_status_nonblockpipe_reset_f(void)
-{
-	return 0x2U;
-}
-static inline u32 ce2_intr_status_launcherr_pending_f(void)
-{
-	return 0x4U;
-}
-static inline u32 ce2_intr_status_launcherr_reset_f(void)
-{
-	return 0x4U;
-}
+#define ce2_intr_status_r()                                        (0x00106908U)
+#define ce2_intr_status_blockpipe_pending_f()                             (0x1U)
+#define ce2_intr_status_blockpipe_reset_f()                               (0x1U)
+#define ce2_intr_status_nonblockpipe_pending_f()                          (0x2U)
+#define ce2_intr_status_nonblockpipe_reset_f()                            (0x2U)
+#define ce2_intr_status_launcherr_pending_f()                             (0x4U)
+#define ce2_intr_status_launcherr_reset_f()                               (0x4U)
 #endif

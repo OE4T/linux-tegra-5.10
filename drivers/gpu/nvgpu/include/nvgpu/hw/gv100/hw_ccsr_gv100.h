@@ -20,7 +20,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 /*
- * Function naming determines intended use:
+ * Function/Macro naming determines intended use:
  *
  *     <x>_r(void) : Returns the offset for register <x>.
  *
@@ -59,172 +59,48 @@
 #include <nvgpu/types.h>
 #include <nvgpu/safe_ops.h>
 
-static inline u32 ccsr_channel_inst_r(u32 i)
-{
-	return nvgpu_safe_add_u32(0x00800000U, nvgpu_safe_mult_u32(i, 8U));
-}
-static inline u32 ccsr_channel_inst__size_1_v(void)
-{
-	return 0x00001000U;
-}
-static inline u32 ccsr_channel_inst_ptr_f(u32 v)
-{
-	return (v & 0xfffffffU) << 0U;
-}
-static inline u32 ccsr_channel_inst_target_vid_mem_f(void)
-{
-	return 0x0U;
-}
-static inline u32 ccsr_channel_inst_target_sys_mem_coh_f(void)
-{
-	return 0x20000000U;
-}
-static inline u32 ccsr_channel_inst_target_sys_mem_ncoh_f(void)
-{
-	return 0x30000000U;
-}
-static inline u32 ccsr_channel_inst_bind_false_f(void)
-{
-	return 0x0U;
-}
-static inline u32 ccsr_channel_inst_bind_true_f(void)
-{
-	return 0x80000000U;
-}
-static inline u32 ccsr_channel_r(u32 i)
-{
-	return nvgpu_safe_add_u32(0x00800004U, nvgpu_safe_mult_u32(i, 8U));
-}
-static inline u32 ccsr_channel__size_1_v(void)
-{
-	return 0x00001000U;
-}
-static inline u32 ccsr_channel_enable_v(u32 r)
-{
-	return (r >> 0U) & 0x1U;
-}
-static inline u32 ccsr_channel_enable_in_use_v(void)
-{
-	return 0x00000001U;
-}
-static inline u32 ccsr_channel_enable_set_f(u32 v)
-{
-	return (v & 0x1U) << 10U;
-}
-static inline u32 ccsr_channel_enable_set_true_f(void)
-{
-	return 0x400U;
-}
-static inline u32 ccsr_channel_enable_clr_true_f(void)
-{
-	return 0x800U;
-}
-static inline u32 ccsr_channel_status_v(u32 r)
-{
-	return (r >> 24U) & 0xfU;
-}
-static inline u32 ccsr_channel_status_idle_v(void)
-{
-	return 0x00000000U;
-}
-static inline u32 ccsr_channel_status_pending_v(void)
-{
-	return 0x00000001U;
-}
-static inline u32 ccsr_channel_status_pending_ctx_reload_v(void)
-{
-	return 0x00000002U;
-}
-static inline u32 ccsr_channel_status_pending_acquire_v(void)
-{
-	return 0x00000003U;
-}
-static inline u32 ccsr_channel_status_pending_acq_ctx_reload_v(void)
-{
-	return 0x00000004U;
-}
-static inline u32 ccsr_channel_status_on_pbdma_v(void)
-{
-	return 0x00000005U;
-}
-static inline u32 ccsr_channel_status_on_pbdma_and_eng_v(void)
-{
-	return 0x00000006U;
-}
-static inline u32 ccsr_channel_status_on_eng_v(void)
-{
-	return 0x00000007U;
-}
-static inline u32 ccsr_channel_status_on_eng_pending_acquire_v(void)
-{
-	return 0x00000008U;
-}
-static inline u32 ccsr_channel_status_on_eng_pending_v(void)
-{
-	return 0x00000009U;
-}
-static inline u32 ccsr_channel_status_on_pbdma_ctx_reload_v(void)
-{
-	return 0x0000000aU;
-}
-static inline u32 ccsr_channel_status_on_pbdma_and_eng_ctx_reload_v(void)
-{
-	return 0x0000000bU;
-}
-static inline u32 ccsr_channel_status_on_eng_ctx_reload_v(void)
-{
-	return 0x0000000cU;
-}
-static inline u32 ccsr_channel_status_on_eng_pending_ctx_reload_v(void)
-{
-	return 0x0000000dU;
-}
-static inline u32 ccsr_channel_status_on_eng_pending_acq_ctx_reload_v(void)
-{
-	return 0x0000000eU;
-}
-static inline u32 ccsr_channel_next_v(u32 r)
-{
-	return (r >> 1U) & 0x1U;
-}
-static inline u32 ccsr_channel_next_true_v(void)
-{
-	return 0x00000001U;
-}
-static inline u32 ccsr_channel_force_ctx_reload_true_f(void)
-{
-	return 0x100U;
-}
-static inline u32 ccsr_channel_pbdma_faulted_f(u32 v)
-{
-	return (v & 0x1U) << 22U;
-}
-static inline u32 ccsr_channel_pbdma_faulted_reset_f(void)
-{
-	return 0x400000U;
-}
-static inline u32 ccsr_channel_eng_faulted_f(u32 v)
-{
-	return (v & 0x1U) << 23U;
-}
-static inline u32 ccsr_channel_eng_faulted_v(u32 r)
-{
-	return (r >> 23U) & 0x1U;
-}
-static inline u32 ccsr_channel_eng_faulted_reset_f(void)
-{
-	return 0x800000U;
-}
-static inline u32 ccsr_channel_eng_faulted_true_v(void)
-{
-	return 0x00000001U;
-}
-static inline u32 ccsr_channel_busy_v(u32 r)
-{
-	return (r >> 28U) & 0x1U;
-}
-static inline u32 ccsr_channel_busy_true_v(void)
-{
-	return 0x00000001U;
-}
+#define ccsr_channel_inst_r(i)\
+		(nvgpu_safe_add_u32(0x00800000U, nvgpu_safe_mult_u32((i), 8U)))
+#define ccsr_channel_inst__size_1_v()                              (0x00001000U)
+#define ccsr_channel_inst_ptr_f(v)                      (((v)&0xfffffffU) << 0U)
+#define ccsr_channel_inst_target_vid_mem_f()                              (0x0U)
+#define ccsr_channel_inst_target_sys_mem_coh_f()                   (0x20000000U)
+#define ccsr_channel_inst_target_sys_mem_ncoh_f()                  (0x30000000U)
+#define ccsr_channel_inst_bind_false_f()                                  (0x0U)
+#define ccsr_channel_inst_bind_true_f()                            (0x80000000U)
+#define ccsr_channel_r(i)\
+		(nvgpu_safe_add_u32(0x00800004U, nvgpu_safe_mult_u32((i), 8U)))
+#define ccsr_channel__size_1_v()                                   (0x00001000U)
+#define ccsr_channel_enable_v(r)                            (((r) >> 0U) & 0x1U)
+#define ccsr_channel_enable_in_use_v()                             (0x00000001U)
+#define ccsr_channel_enable_set_f(v)                         (((v)&0x1U) << 10U)
+#define ccsr_channel_enable_set_true_f()                                (0x400U)
+#define ccsr_channel_enable_clr_true_f()                                (0x800U)
+#define ccsr_channel_status_v(r)                           (((r) >> 24U) & 0xfU)
+#define ccsr_channel_status_idle_v()                               (0x00000000U)
+#define ccsr_channel_status_pending_v()                            (0x00000001U)
+#define ccsr_channel_status_pending_ctx_reload_v()                 (0x00000002U)
+#define ccsr_channel_status_pending_acquire_v()                    (0x00000003U)
+#define ccsr_channel_status_pending_acq_ctx_reload_v()             (0x00000004U)
+#define ccsr_channel_status_on_pbdma_v()                           (0x00000005U)
+#define ccsr_channel_status_on_pbdma_and_eng_v()                   (0x00000006U)
+#define ccsr_channel_status_on_eng_v()                             (0x00000007U)
+#define ccsr_channel_status_on_eng_pending_acquire_v()             (0x00000008U)
+#define ccsr_channel_status_on_eng_pending_v()                     (0x00000009U)
+#define ccsr_channel_status_on_pbdma_ctx_reload_v()                (0x0000000aU)
+#define ccsr_channel_status_on_pbdma_and_eng_ctx_reload_v()        (0x0000000bU)
+#define ccsr_channel_status_on_eng_ctx_reload_v()                  (0x0000000cU)
+#define ccsr_channel_status_on_eng_pending_ctx_reload_v()          (0x0000000dU)
+#define ccsr_channel_status_on_eng_pending_acq_ctx_reload_v()      (0x0000000eU)
+#define ccsr_channel_next_v(r)                              (((r) >> 1U) & 0x1U)
+#define ccsr_channel_next_true_v()                                 (0x00000001U)
+#define ccsr_channel_force_ctx_reload_true_f()                          (0x100U)
+#define ccsr_channel_pbdma_faulted_f(v)                      (((v)&0x1U) << 22U)
+#define ccsr_channel_pbdma_faulted_reset_f()                         (0x400000U)
+#define ccsr_channel_eng_faulted_f(v)                        (((v)&0x1U) << 23U)
+#define ccsr_channel_eng_faulted_v(r)                      (((r) >> 23U) & 0x1U)
+#define ccsr_channel_eng_faulted_reset_f()                           (0x800000U)
+#define ccsr_channel_eng_faulted_true_v()                          (0x00000001U)
+#define ccsr_channel_busy_v(r)                             (((r) >> 28U) & 0x1U)
+#define ccsr_channel_busy_true_v()                                 (0x00000001U)
 #endif

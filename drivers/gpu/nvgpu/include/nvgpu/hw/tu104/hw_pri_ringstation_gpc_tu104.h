@@ -20,7 +20,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 /*
- * Function naming determines intended use:
+ * Function/Macro naming determines intended use:
  *
  *     <x>_r(void) : Returns the offset for register <x>.
  *
@@ -59,20 +59,8 @@
 #include <nvgpu/types.h>
 #include <nvgpu/safe_ops.h>
 
-static inline u32 pri_ringstation_gpc_gpc0_priv_error_adr_r(void)
-{
-	return 0x00128120U;
-}
-static inline u32 pri_ringstation_gpc_gpc0_priv_error_wrdat_r(void)
-{
-	return 0x00128124U;
-}
-static inline u32 pri_ringstation_gpc_gpc0_priv_error_info_r(void)
-{
-	return 0x00128128U;
-}
-static inline u32 pri_ringstation_gpc_gpc0_priv_error_code_r(void)
-{
-	return 0x0012812cU;
-}
+#define pri_ringstation_gpc_gpc0_priv_error_adr_r()                (0x00128120U)
+#define pri_ringstation_gpc_gpc0_priv_error_wrdat_r()              (0x00128124U)
+#define pri_ringstation_gpc_gpc0_priv_error_info_r()               (0x00128128U)
+#define pri_ringstation_gpc_gpc0_priv_error_code_r()               (0x0012812cU)
 #endif

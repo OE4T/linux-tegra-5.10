@@ -20,7 +20,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 /*
- * Function naming determines intended use:
+ * Function/Macro naming determines intended use:
  *
  *     <x>_r(void) : Returns the offset for register <x>.
  *
@@ -59,12 +59,6 @@
 #include <nvgpu/types.h>
 #include <nvgpu/safe_ops.h>
 
-static inline u32 fbpa_cstatus_r(void)
-{
-	return 0x009a020cU;
-}
-static inline u32 fbpa_cstatus_ramamount_v(u32 r)
-{
-	return (r >> 0U) & 0x1ffffU;
-}
+#define fbpa_cstatus_r()                                           (0x009a020cU)
+#define fbpa_cstatus_ramamount_v(r)                     (((r) >> 0U) & 0x1ffffU)
 #endif

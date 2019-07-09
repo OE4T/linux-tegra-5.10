@@ -20,7 +20,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 /*
- * Function naming determines intended use:
+ * Function/Macro naming determines intended use:
  *
  *     <x>_r(void) : Returns the offset for register <x>.
  *
@@ -59,108 +59,41 @@
 #include <nvgpu/types.h>
 #include <nvgpu/safe_ops.h>
 
-static inline u32 func_full_phys_offset_v(void)
-{
-	return 0x00b80000U;
-}
-static inline u32 func_doorbell_r(void)
-{
-	return 0x00030090U;
-}
-static inline u32 func_cfg0_r(void)
-{
-	return 0x00030000U;
-}
-static inline u32 func_priv_cpu_intr_top_en_set_r(u32 i)
-{
-	return nvgpu_safe_add_u32(0x00001608U, nvgpu_safe_mult_u32(i, 4U));
-}
-static inline u32 func_priv_cpu_intr_top_en_clear_r(u32 i)
-{
-	return nvgpu_safe_add_u32(0x00001610U, nvgpu_safe_mult_u32(i, 4U));
-}
-static inline u32 func_priv_cpu_intr_top_en_clear__size_1_v(void)
-{
-	return 0x00000001U;
-}
-static inline u32 func_priv_cpu_intr_leaf_en_set_r(u32 i)
-{
-	return nvgpu_safe_add_u32(0x00001200U, nvgpu_safe_mult_u32(i, 4U));
-}
-static inline u32 func_priv_cpu_intr_leaf_en_clear_r(u32 i)
-{
-	return nvgpu_safe_add_u32(0x00001400U, nvgpu_safe_mult_u32(i, 4U));
-}
-static inline u32 func_priv_cpu_intr_leaf_en_clear__size_1_v(void)
-{
-	return 0x00000008U;
-}
-static inline u32 func_priv_cpu_intr_top_r(u32 i)
-{
-	return nvgpu_safe_add_u32(0x00001600U, nvgpu_safe_mult_u32(i, 4U));
-}
-static inline u32 func_priv_cpu_intr_leaf_r(u32 i)
-{
-	return nvgpu_safe_add_u32(0x00001000U, nvgpu_safe_mult_u32(i, 4U));
-}
-static inline u32 func_priv_mmu_fault_buffer_lo_r(u32 i)
-{
-	return nvgpu_safe_add_u32(0x00003000U, nvgpu_safe_mult_u32(i, 32U));
-}
-static inline u32 func_priv_mmu_fault_buffer_hi_r(u32 i)
-{
-	return nvgpu_safe_add_u32(0x00003004U, nvgpu_safe_mult_u32(i, 32U));
-}
-static inline u32 func_priv_mmu_fault_buffer_get_r(u32 i)
-{
-	return nvgpu_safe_add_u32(0x00003008U, nvgpu_safe_mult_u32(i, 32U));
-}
-static inline u32 func_priv_mmu_fault_buffer_put_r(u32 i)
-{
-	return nvgpu_safe_add_u32(0x0000300cU, nvgpu_safe_mult_u32(i, 32U));
-}
-static inline u32 func_priv_mmu_fault_buffer_size_r(u32 i)
-{
-	return nvgpu_safe_add_u32(0x00003010U, nvgpu_safe_mult_u32(i, 32U));
-}
-static inline u32 func_priv_mmu_fault_addr_lo_r(void)
-{
-	return 0x00003080U;
-}
-static inline u32 func_priv_mmu_fault_addr_hi_r(void)
-{
-	return 0x00003084U;
-}
-static inline u32 func_priv_mmu_fault_inst_lo_r(void)
-{
-	return 0x00003088U;
-}
-static inline u32 func_priv_mmu_fault_inst_hi_r(void)
-{
-	return 0x0000308cU;
-}
-static inline u32 func_priv_mmu_fault_info_r(void)
-{
-	return 0x00003090U;
-}
-static inline u32 func_priv_mmu_fault_status_r(void)
-{
-	return 0x00003094U;
-}
-static inline u32 func_priv_bar2_block_r(void)
-{
-	return 0x00000f48U;
-}
-static inline u32 func_priv_bind_status_r(void)
-{
-	return 0x00000f50U;
-}
-static inline u32 func_priv_mmu_invalidate_pdb_r(void)
-{
-	return 0x000030a0U;
-}
-static inline u32 func_priv_mmu_invalidate_r(void)
-{
-	return 0x000030b0U;
-}
+#define func_full_phys_offset_v()                                  (0x00b80000U)
+#define func_doorbell_r()                                          (0x00030090U)
+#define func_cfg0_r()                                              (0x00030000U)
+#define func_priv_cpu_intr_top_en_set_r(i)\
+		(nvgpu_safe_add_u32(0x00001608U, nvgpu_safe_mult_u32((i), 4U)))
+#define func_priv_cpu_intr_top_en_clear_r(i)\
+		(nvgpu_safe_add_u32(0x00001610U, nvgpu_safe_mult_u32((i), 4U)))
+#define func_priv_cpu_intr_top_en_clear__size_1_v()                (0x00000001U)
+#define func_priv_cpu_intr_leaf_en_set_r(i)\
+		(nvgpu_safe_add_u32(0x00001200U, nvgpu_safe_mult_u32((i), 4U)))
+#define func_priv_cpu_intr_leaf_en_clear_r(i)\
+		(nvgpu_safe_add_u32(0x00001400U, nvgpu_safe_mult_u32((i), 4U)))
+#define func_priv_cpu_intr_leaf_en_clear__size_1_v()               (0x00000008U)
+#define func_priv_cpu_intr_top_r(i)\
+		(nvgpu_safe_add_u32(0x00001600U, nvgpu_safe_mult_u32((i), 4U)))
+#define func_priv_cpu_intr_leaf_r(i)\
+		(nvgpu_safe_add_u32(0x00001000U, nvgpu_safe_mult_u32((i), 4U)))
+#define func_priv_mmu_fault_buffer_lo_r(i)\
+		(nvgpu_safe_add_u32(0x00003000U, nvgpu_safe_mult_u32((i), 32U)))
+#define func_priv_mmu_fault_buffer_hi_r(i)\
+		(nvgpu_safe_add_u32(0x00003004U, nvgpu_safe_mult_u32((i), 32U)))
+#define func_priv_mmu_fault_buffer_get_r(i)\
+		(nvgpu_safe_add_u32(0x00003008U, nvgpu_safe_mult_u32((i), 32U)))
+#define func_priv_mmu_fault_buffer_put_r(i)\
+		(nvgpu_safe_add_u32(0x0000300cU, nvgpu_safe_mult_u32((i), 32U)))
+#define func_priv_mmu_fault_buffer_size_r(i)\
+		(nvgpu_safe_add_u32(0x00003010U, nvgpu_safe_mult_u32((i), 32U)))
+#define func_priv_mmu_fault_addr_lo_r()                            (0x00003080U)
+#define func_priv_mmu_fault_addr_hi_r()                            (0x00003084U)
+#define func_priv_mmu_fault_inst_lo_r()                            (0x00003088U)
+#define func_priv_mmu_fault_inst_hi_r()                            (0x0000308cU)
+#define func_priv_mmu_fault_info_r()                               (0x00003090U)
+#define func_priv_mmu_fault_status_r()                             (0x00003094U)
+#define func_priv_bar2_block_r()                                   (0x00000f48U)
+#define func_priv_bind_status_r()                                  (0x00000f50U)
+#define func_priv_mmu_invalidate_pdb_r()                           (0x000030a0U)
+#define func_priv_mmu_invalidate_r()                               (0x000030b0U)
 #endif
