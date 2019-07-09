@@ -23,6 +23,12 @@
 static int bios_version_show(struct seq_file *s, void *unused)
 {
 	struct gk20a *g = s->private;
+	int err;
+
+	err = gk20a_busy(g);
+	if (err != 0) {
+		return err;
+	}
 
 	seq_printf(s, "Version %02X.%02X.%02X.%02X.%02X\n",
 		(g->bios->vbios_version >> 24) & 0xFF,
@@ -30,6 +36,8 @@ static int bios_version_show(struct seq_file *s, void *unused)
 		(g->bios->vbios_version >> 8) & 0xFF,
 		(g->bios->vbios_version >> 0) & 0xFF,
 		(g->bios->vbios_oem_version) & 0xFF);
+
+	gk20a_idle(g);
 
 	return 0;
 }
