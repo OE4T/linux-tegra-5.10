@@ -60,7 +60,9 @@ struct nvgpu_netlist_vars;
 struct netlist_av_list;
 struct netlist_aiv_list;
 struct netlist_av64_list;
+#ifdef CONFIG_NVGPU_FECS_TRACE
 struct nvgpu_gr_fecs_trace;
+#endif
 struct nvgpu_gr_isr_data;
 struct nvgpu_gpu_ctxsw_trace_entry;
 struct nvgpu_cpu_time_correlation_sample;
@@ -100,11 +102,9 @@ struct nvgpu_fecs_method_op;
 struct nvgpu_mem;
 struct gk20a_cs_snapshot_client;
 struct dbg_session_gk20a;
-struct gk20a_ctxsw_ucode_info;
 struct ctxsw_buf_offset_map_entry;
 struct nvgpu_dbg_reg_op;
 struct gk20a_cs_snapshot;
-struct nvgpu_preemption_modes_rec;
 struct nvgpu_gr_ctx;
 struct nvgpu_fecs_host_intr_status;
 struct nvgpu_fecs_ecc_status;

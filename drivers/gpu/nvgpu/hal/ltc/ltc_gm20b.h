@@ -28,7 +28,6 @@
 #include <nvgpu/types.h>
 
 struct gk20a;
-struct gr_gk20a;
 
 u64 gm20b_determine_L2_size_bytes(struct gk20a *g);
 #ifdef CONFIG_NVGPU_GRAPHICS
