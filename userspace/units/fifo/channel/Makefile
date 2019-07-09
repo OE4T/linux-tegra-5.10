@@ -20,7 +20,14 @@
 
 .SUFFIXES:
 
-OBJS   = nvgpu-channel.o ../nvgpu-fifo.o ../nvgpu-fifo-gv11b.o
+OBJS   = nvgpu-channel.o
 MODULE = nvgpu-channel
 
+LIB_PATHS += -lnvgpu-fifo
 include ../../Makefile.units
+
+lib$(MODULE).so: fifo
+
+fifo:
+	$(MAKE) -C ..
+

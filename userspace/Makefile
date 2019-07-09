@@ -88,7 +88,7 @@ CFLAGS    = -Wall -Wextra -ggdb  -Werror -Wno-unused-parameter               \
 	    -Wmultichar -Wunused -Wmissing-braces -Wstrict-aliasing          \
 	    -Wsign-compare -Waddress -Wno-unused-local-typedefs -fPIC        \
 	    -Wno-maybe-uninitialized $(INCLUDES) $(CONFIGS)
-LIB_PATHS = -L$(OUT)
+LIB_PATHS = -L$(OUT) -L$(UNIT_OUT)
 LIBS      = -lpthread -pthread -lgcov -ldl
 
 
