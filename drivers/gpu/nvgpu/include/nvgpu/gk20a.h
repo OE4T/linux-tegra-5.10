@@ -281,6 +281,7 @@ struct gpu_ops {
 	} cbc;
 #endif
 	struct {
+		void (*set_pce2lce_mapping)(struct gk20a *g);
 		void (*isr_stall)(struct gk20a *g, u32 inst_id, u32 pri_base);
 		u32 (*isr_nonstall)(struct gk20a *g, u32 inst_id, u32 pri_base);
 		u32 (*get_num_pce)(struct gk20a *g);

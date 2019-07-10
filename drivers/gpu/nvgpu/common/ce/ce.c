@@ -409,6 +409,10 @@ int nvgpu_ce_init_support(struct gk20a *g)
 	struct nvgpu_ce_app *ce_app = g->ce_app;
 	u32 ce_reset_mask;
 
+	if (g->ops.ce.set_pce2lce_mapping != NULL) {
+		g->ops.ce.set_pce2lce_mapping(g);
+	}
+
 	if (unlikely(ce_app == NULL)) {
 		ce_app = nvgpu_kzalloc(g, sizeof(*ce_app));
 		if (ce_app == NULL) {

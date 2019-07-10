@@ -316,7 +316,6 @@ srcs += hal/init/hal_gp10b.c \
 	hal/pmu/pmu_gp106.c \
 	hal/top/top_gm20b.c \
 	hal/top/top_gp106.c
-
 endif
 
 ifeq ($(CONFIG_NVGPU_CLK_ARB),1)
@@ -576,6 +575,7 @@ srcs += common/sec2/sec2.c \
 	hal/mc/mc_tu104.c  \
 	hal/bus/bus_gv100.c \
 	hal/bus/bus_tu104.c \
+	hal/ce/ce_tu104.c \
 	hal/class/class_tu104.c \
 	hal/clk/clk_gv100.c \
 	hal/gr/ecc/ecc_tu104.c \

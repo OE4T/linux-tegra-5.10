@@ -42,6 +42,7 @@
 #include "hal/bus/bus_tu104.h"
 #include "hal/ce/ce_gp10b.h"
 #include "hal/ce/ce_gv11b.h"
+#include "hal/ce/ce_tu104.h"
 #include "hal/class/class_tu104.h"
 #include "hal/priv_ring/priv_ring_gm20b.h"
 #include "hal/priv_ring/priv_ring_gp10b.h"
@@ -260,6 +261,7 @@ static const struct gpu_ops tu104_ops = {
 	},
 #endif
 	.ce = {
+		.set_pce2lce_mapping = tu104_ce_set_pce2lce_mapping,
 		.isr_stall = gv11b_ce_stall_isr,
 		.isr_nonstall = NULL,
 		.get_num_pce = gv11b_ce_get_num_pce,

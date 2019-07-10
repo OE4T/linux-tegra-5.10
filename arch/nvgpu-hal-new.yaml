@@ -371,7 +371,9 @@ ce:
              hal/ce/ce_gp10b_fusa.c,
              hal/ce/ce_gp10b.h,
              hal/ce/ce_gv11b_fusa.c,
-             hal/ce/ce_gv11b.h ]
+             hal/ce/ce_gv11b.h,
+             hal/ce/ce_tu104.c,
+             hal/ce/ce_tu104.h ]
 
 gr:
   safe: yes

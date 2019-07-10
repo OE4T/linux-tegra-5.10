@@ -673,6 +673,7 @@ nvgpu-y += \
 	hal/top/top_gv11b_fusa.o
 
 nvgpu-$(CONFIG_NVGPU_HAL_NON_FUSA) += \
+	hal/ce/ce_tu104.o \
 	hal/init/hal_gp10b.o \
 	hal/init/hal_gp10b_litter.o \
 	hal/init/hal_gm20b.o \
