@@ -111,7 +111,7 @@ int vhost_moduleid_virt_to_hw(int moduleid)
 static u64 vhost_virt_connect(int moduleid)
 {
 	struct tegra_vhost_cmd_msg msg;
-	struct tegra_vhost_connect_params *p = &msg.params.connect;
+	struct tegra_vhost_connect_params *p = &msg.connect;
 	int err;
 
 	msg.cmd = TEGRA_VHOST_CMD_CONNECT;
@@ -121,7 +121,7 @@ static u64 vhost_virt_connect(int moduleid)
 
 	err = vhost_sendrecv(&msg);
 
-	return (err || msg.ret) ? 0 : p->handle;
+	return (err || msg.ret) ? 0 : p->connection_id;
 }
 
 int vhost_sendrecv(struct tegra_vhost_cmd_msg *msg)
@@ -227,7 +227,7 @@ int vhost_suspend(struct platform_device *pdev)
 		return 0;
 
 	msg.cmd = TEGRA_VHOST_CMD_SUSPEND;
-	msg.handle = ctx->handle;
+	msg.connection_id = ctx->handle;
 	return vhost_sendrecv(&msg);
 }
 
@@ -240,6 +240,6 @@ int vhost_resume(struct platform_device *pdev)
 		return 0;
 
 	msg.cmd = TEGRA_VHOST_CMD_RESUME;
-	msg.handle = ctx->handle;
+	msg.connection_id = ctx->handle;
 	return vhost_sendrecv(&msg);
 }

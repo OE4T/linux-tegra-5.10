@@ -53,16 +53,14 @@ enum {
 
 struct tegra_vhost_connect_params {
 	u32 module;
-	u64 handle;
+	u64 connection_id;
 };
 
 struct tegra_vhost_cmd_msg {
 	u32 cmd;
 	int ret;
-	u64 handle;
-	union {
-		struct tegra_vhost_connect_params connect;
-	} params;
+	u64 connection_id;
+	struct tegra_vhost_connect_params connect;
 };
 
 #define TEGRA_VHOST_QUEUE_SIZES			\
