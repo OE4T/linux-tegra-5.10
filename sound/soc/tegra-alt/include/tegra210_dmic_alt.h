@@ -91,9 +91,6 @@ struct tegra210_dmic {
 	struct clk *clk_dmic;
 	struct clk *clk_parent;
 	struct regmap *regmap;
-	struct pinctrl *pinctrl;
-	struct pinctrl_state *pin_active_state;
-	struct pinctrl_state *pin_idle_state;
 	const char *prod_name;
 	int boost_gain; /* with 100x factor */
 	unsigned int ch_select;
