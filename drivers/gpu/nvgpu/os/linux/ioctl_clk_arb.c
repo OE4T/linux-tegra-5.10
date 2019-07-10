@@ -172,7 +172,7 @@ static inline u32 __pending_event(struct nvgpu_clk_dev *dev,
 
 	head = (tail - head) < dev->queue.size ? head : tail - dev->queue.size;
 
-	if (_WRAPGTEQ(tail, head) && info) {
+	if (WRAPGTEQ(tail, head) && info) {
 		head++;
 		p_notif = &dev->queue.clk_q_notifications[
 							head % dev->queue.size];

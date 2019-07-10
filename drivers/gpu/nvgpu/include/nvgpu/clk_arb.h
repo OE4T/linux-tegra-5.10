@@ -49,7 +49,8 @@ struct nvgpu_clk_notification_queue;
 struct nvgpu_clk_session;
 
 #define VF_POINT_INVALID_PSTATE ~0U
-#define VF_POINT_SET_PSTATE_SUPPORTED(a, b) ((a)->pstates |= (BIT16(b)))
+#define VF_POINT_SET_PSTATE_SUPPORTED(a, b) \
+				((a)->clk_vf_point_pstates |= (BIT16(b)))
 #define VF_POINT_GET_PSTATE(a)	(((a)->pstates) ?\
 	(nvgpu_fls((a)->pstates) - 1UL) :\
 	VF_POINT_INVALID_PSTATE)
@@ -92,7 +93,7 @@ struct nvgpu_clk_session;
 #define LOCAL_ALARM_MASK (EVENT(ALARM_LOCAL_TARGET_VF_NOT_POSSIBLE) | \
 				EVENT(VF_UPDATE))
 
-#define _WRAPGTEQ(a, b) (((a)-(b)) > (typeof(a))0)
+#define WRAPGTEQ(a, b) (((a)-(b)) > (typeof(a))0)
 
 /*
  * NVGPU_POLL* defines equivalent to the POLL* linux defines
@@ -132,7 +133,7 @@ struct nvgpu_clk_notification_queue {
 };
 
 struct nvgpu_clk_vf_point {
-	u16 pstates;
+	u16 clk_vf_point_pstates;
 	union {
 		struct {
 			u16 gpc_mhz;

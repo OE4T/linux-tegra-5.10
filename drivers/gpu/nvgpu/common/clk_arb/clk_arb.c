@@ -274,7 +274,7 @@ u32 nvgpu_clk_arb_notify(struct nvgpu_clk_dev *dev,
 		head = (tail - head) < arb->notification_queue.size ?
 			head : tail - arb->notification_queue.size;
 
-		for (index = head; _WRAPGTEQ(tail, index); index++) {
+		for (index = head; WRAPGTEQ(tail, index); index++) {
 			u32 alarm_detected;
 
 			l_notification = &arb->notification_queue.
