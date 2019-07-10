@@ -121,9 +121,7 @@ static struct carmel_error_record core_ers[] = {
 		{.name = "RET_JSR", .errx = 1, .errors = ret_jsr_errors},
 	},
 	{
-		.err_ctlr_mask = DEFAULT_ERR_CTLR_MASK &
-				~(ERR_CTL_MTS_JSR_DUEXUC_ERR |
-				ERR_CTL_MTS_JSR_DUEXC_ERR),
+		.err_ctlr_mask = DEFAULT_ERR_CTLR_MASK,
 		{.name = "MTS_JSR", .errx = 2, .errors = mts_jsr_errors},
 	},
 	{
@@ -197,8 +195,7 @@ static struct ras_error cluster_clocks_errors[] = {
 /* Error Records per CORE CLUSTER */
 static struct carmel_error_record corecluster_ers[] = {
 	{
-		.err_ctlr_mask = DEFAULT_ERR_CTLR_MASK &
-			~(ERR_CTL_L2_SCF2L2C_SLVRDERR_ERR),
+		.err_ctlr_mask = DEFAULT_ERR_CTLR_MASK,
 		{.name = "L2", .errx = 0, .errors = l2_errors}
 	},
 	{
@@ -306,13 +303,11 @@ static struct ras_error scfcmu_clocks_errors[] = {
 /* Error Records per CCPLEX */
 static struct carmel_error_record ccplex_ers[] = {
 	{
-		.err_ctlr_mask = DEFAULT_ERR_CTLR_MASK &
-					~(ERR_CTL_DPMU_CORESIGHT_ACCESS_ERR),
+		.err_ctlr_mask = DEFAULT_ERR_CTLR_MASK,
 		{.name = "CMU:CCPMU", .errx = 1024, .errors = cmu_ccpmu_errors},
 	},
 	{
-		.err_ctlr_mask = DEFAULT_ERR_CTLR_MASK &
-			~(ERR_CTL_SCFIOB_CBB_ERR),
+		.err_ctlr_mask = DEFAULT_ERR_CTLR_MASK,
 		{.name = "SCF:IOB", .errx = 1025, .errors = scf_iob_errors},
 	},
 	{
@@ -324,23 +319,19 @@ static struct carmel_error_record ccplex_ers[] = {
 		{.name = "CMU:CTU", .errx = 1027, .errors = cmu_ctu_errors},
 	},
 	{
-		.err_ctlr_mask = DEFAULT_ERR_CTLR_MASK &
-						~(ERR_CTL_SCFL3_DIR_PAR_ERR),
+		.err_ctlr_mask = DEFAULT_ERR_CTLR_MASK,
 		{.name = "SCF:L3_0", .errx = 768, .errors = scf_l3_errors},
 	},
 	{
-		.err_ctlr_mask = DEFAULT_ERR_CTLR_MASK &
-						~(ERR_CTL_SCFL3_DIR_PAR_ERR),
+		.err_ctlr_mask = DEFAULT_ERR_CTLR_MASK,
 		{.name = "SCF:L3_1", .errx = 769, .errors = scf_l3_errors},
 	},
 	{
-		.err_ctlr_mask = DEFAULT_ERR_CTLR_MASK &
-						~(ERR_CTL_SCFL3_DIR_PAR_ERR),
+		.err_ctlr_mask = DEFAULT_ERR_CTLR_MASK,
 		{.name = "SCF:L3_2", .errx = 770, .errors = scf_l3_errors},
 	},
 	{
-		.err_ctlr_mask = DEFAULT_ERR_CTLR_MASK &
-						~(ERR_CTL_SCFL3_DIR_PAR_ERR),
+		.err_ctlr_mask = DEFAULT_ERR_CTLR_MASK,
 		{.name = "SCF:L3_3", .errx = 771, .errors = scf_l3_errors},
 	},
 	{
