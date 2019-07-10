@@ -484,7 +484,7 @@ static int __gk20a_channel_open(struct gk20a *g,
 		goto fail_busy;
 	}
 	/* All the user space channel should be non privilege */
-	ch = gk20a_open_new_channel(g, tmp_runlist_id, false,
+	ch = nvgpu_channel_open_new(g, tmp_runlist_id, false,
 				nvgpu_current_pid(g), nvgpu_current_tid(g));
 	gk20a_idle(g);
 	if (!ch) {

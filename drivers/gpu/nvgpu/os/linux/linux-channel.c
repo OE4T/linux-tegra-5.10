@@ -254,7 +254,7 @@ struct nvgpu_channel *gk20a_open_new_channel_with_cb(struct gk20a *g,
 	struct nvgpu_channel *ch;
 	struct nvgpu_channel_linux *priv;
 
-	ch = gk20a_open_new_channel(g, runlist_id, is_privileged_channel,
+	ch = nvgpu_channel_open_new(g, runlist_id, is_privileged_channel,
 				nvgpu_current_pid(g), nvgpu_current_tid(g));
 
 	if (ch) {

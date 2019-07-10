@@ -256,7 +256,7 @@ static int test_channel_open(struct unit_module *m,
 		}
 
 		err = EXPECT_BUG(
-			ch = gk20a_open_new_channel(g, runlist_id,
+			ch = nvgpu_channel_open_new(g, runlist_id,
 				privileged, getpid(), getpid());
 		);
 
@@ -409,7 +409,7 @@ static int test_channel_close(struct unit_module *m,
 		unit_verbose(m, "%s branches=%s\n", __func__,
 			branches_str(branches, f_channel_close));
 
-		ch = gk20a_open_new_channel(g, runlist_id,
+		ch = nvgpu_channel_open_new(g, runlist_id,
 				privileged, getpid(), getpid());
 		assert(ch != NULL);
 
@@ -651,7 +651,7 @@ static int test_channel_setup_bind(struct unit_module *m,
 	tsg = nvgpu_tsg_open(g, getpid());
 	assert(tsg != NULL);
 
-	ch = gk20a_open_new_channel(g, runlist_id,
+	ch = nvgpu_channel_open_new(g, runlist_id,
 			privileged, getpid(), getpid());
 	assert(ch != NULL);
 
@@ -775,7 +775,7 @@ static int test_channel_alloc_inst(struct unit_module *m,
 
 	dma_fi = nvgpu_dma_alloc_get_fault_injection();
 
-	ch = gk20a_open_new_channel(g, runlist_id,
+	ch = nvgpu_channel_open_new(g, runlist_id,
 			privileged, getpid(), getpid());
 	assert(ch != NULL);
 
@@ -861,11 +861,11 @@ static int test_channel_from_inst(struct unit_module *m,
 	u64 inst_ptr;
 	bool privileged = false;
 
-	chA = gk20a_open_new_channel(g, runlist_id,
+	chA = nvgpu_channel_open_new(g, runlist_id,
 			privileged, getpid(), getpid());
 	assert(chA != NULL);
 
-	chB = gk20a_open_new_channel(g, runlist_id,
+	chB = nvgpu_channel_open_new(g, runlist_id,
 			privileged, getpid(), getpid());
 	assert(chB != NULL);
 
@@ -959,7 +959,7 @@ static int test_channel_enable_disable_tsg(struct unit_module *m,
 	tsg = nvgpu_tsg_open(g, getpid());
 	assert(tsg != NULL);
 
-	ch = gk20a_open_new_channel(g, runlist_id,
+	ch = nvgpu_channel_open_new(g, runlist_id,
 			privileged, getpid(), getpid());
 	assert(ch != NULL);
 

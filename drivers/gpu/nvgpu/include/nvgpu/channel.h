@@ -825,7 +825,7 @@ void nvgpu_channel_abort_clean_up(struct nvgpu_channel *ch);
  * Goes through all channels, and wakes up semaphore wait queue.
  * If #post_events is true, it also wakes up TSG event wait queue.
  */
-void gk20a_channel_semaphore_wakeup(struct gk20a *g, bool post_events);
+void nvgpu_channel_semaphore_wakeup(struct gk20a *g, bool post_events);
 
 /**
  * @brief Enable all channels in channel's TSG
@@ -981,8 +981,10 @@ struct nvgpu_channel *__must_check nvgpu_channel_from_id__func(
  * @retval NULL if there is not enough resources to allocate and
  *         initialize the channel.
  */
-struct nvgpu_channel *gk20a_open_new_channel(struct gk20a *g,
-		u32 runlist_id, bool is_privileged, pid_t pid, pid_t tid);
+struct nvgpu_channel *nvgpu_channel_open_new(struct gk20a *g,
+		u32 runlist_id,
+		bool is_privileged_channel,
+		pid_t pid, pid_t tid);
 
 /**
  * @brief Setup and bind the channel

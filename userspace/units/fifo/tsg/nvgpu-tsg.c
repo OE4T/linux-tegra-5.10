@@ -293,10 +293,10 @@ static int test_tsg_bind_channel(struct unit_module *m,
 	tsg = nvgpu_tsg_open(g, getpid());
 	assert(tsg != NULL);
 
-	chA = gk20a_open_new_channel(g, ~0U, false, getpid(), getpid());
+	chA = nvgpu_channel_open_new(g, ~0U, false, getpid(), getpid());
 	assert(chA != NULL);
 
-	chB = gk20a_open_new_channel(g, ~0U, false, getpid(), getpid());
+	chB = nvgpu_channel_open_new(g, ~0U, false, getpid(), getpid());
 	assert(chB != NULL);
 
 	err = nvgpu_tsg_bind_channel(tsg, chA);
@@ -494,10 +494,10 @@ static int test_tsg_unbind_channel(struct unit_module *m,
 		tsg = nvgpu_tsg_open(g, getpid());
 		assert(tsg != NULL);
 
-		chA = gk20a_open_new_channel(g, ~0U, false, getpid(), getpid());
+		chA = nvgpu_channel_open_new(g, ~0U, false, getpid(), getpid());
 		assert(chA != NULL);
 
-		chB = gk20a_open_new_channel(g, ~0U, false, getpid(), getpid());
+		chB = nvgpu_channel_open_new(g, ~0U, false, getpid(), getpid());
 		assert(chB != NULL);
 
 		err = nvgpu_tsg_bind_channel(tsg, chA);
@@ -753,7 +753,7 @@ static int test_tsg_unbind_channel_check_hw_state(struct unit_module *m,
 	tsg = nvgpu_tsg_open(g, getpid());
 	assert(tsg != NULL);
 
-	ch = gk20a_open_new_channel(g, ~0U, false, getpid(), getpid());
+	ch = nvgpu_channel_open_new(g, ~0U, false, getpid(), getpid());
 	assert(ch != NULL);
 
 	err = nvgpu_tsg_bind_channel(tsg, ch);
@@ -839,10 +839,10 @@ static int test_tsg_unbind_channel_check_ctx_reload(struct unit_module *m,
 	tsg = nvgpu_tsg_open(g, getpid());
 	assert(tsg != NULL);
 
-	chA = gk20a_open_new_channel(g, ~0U, false, getpid(), getpid());
+	chA = nvgpu_channel_open_new(g, ~0U, false, getpid(), getpid());
 	assert(chA != NULL);
 
-	chB = gk20a_open_new_channel(g, ~0U, false, getpid(), getpid());
+	chB = nvgpu_channel_open_new(g, ~0U, false, getpid(), getpid());
 	assert(chB != NULL);
 
 	err = nvgpu_tsg_bind_channel(tsg, chA);
@@ -944,7 +944,7 @@ static int test_tsg_enable(struct unit_module *m,
 	tsgB = nvgpu_tsg_open(g, getpid());
 	assert(tsgB != NULL);
 
-	chA = gk20a_open_new_channel(g, ~0U, false, getpid(), getpid());
+	chA = nvgpu_channel_open_new(g, ~0U, false, getpid(), getpid());
 	assert(chA != NULL);
 
 	err = nvgpu_tsg_bind_channel(tsgA, chA);
@@ -1085,7 +1085,7 @@ static int test_tsg_abort(struct unit_module *m, struct gk20a *g, void *args)
 	tsgB = nvgpu_tsg_open(g, getpid());
 	assert(tsgB != NULL);
 
-	chA = gk20a_open_new_channel(g, ~0U, false, getpid(), getpid());
+	chA = nvgpu_channel_open_new(g, ~0U, false, getpid(), getpid());
 	assert(chA != NULL);
 
 	err = nvgpu_tsg_bind_channel(tsgA, chA);

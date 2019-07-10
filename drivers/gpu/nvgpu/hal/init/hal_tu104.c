@@ -1526,7 +1526,7 @@ int tu104_init_hal(struct gk20a *g)
 	gops->chip_init_gpu_characteristics =
 		tu104_ops.chip_init_gpu_characteristics;
 	gops->get_litter_value = tu104_ops.get_litter_value;
-	gops->semaphore_wakeup = gk20a_channel_semaphore_wakeup;
+	gops->semaphore_wakeup = nvgpu_channel_semaphore_wakeup;
 
 	nvgpu_set_enabled(g, NVGPU_SEC_PRIVSECURITY, true);
 	nvgpu_set_enabled(g, NVGPU_SEC_SECUREGPCCS, true);

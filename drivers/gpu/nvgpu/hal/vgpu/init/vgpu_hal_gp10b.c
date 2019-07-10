@@ -861,7 +861,7 @@ int vgpu_gp10b_init_hal(struct gk20a *g)
 	gops->chip_init_gpu_characteristics =
 		vgpu_gp10b_ops.chip_init_gpu_characteristics;
 	gops->get_litter_value = vgpu_gp10b_ops.get_litter_value;
-	gops->semaphore_wakeup = gk20a_channel_semaphore_wakeup;
+	gops->semaphore_wakeup = nvgpu_channel_semaphore_wakeup;
 
 	if (priv->constants.can_set_clkrate) {
 		gops->clk.support_clk_freq_controller = true;

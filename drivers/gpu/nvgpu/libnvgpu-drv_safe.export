@@ -16,7 +16,7 @@ nvgpu_gmmu_map_locked
 nvgpu_gmmu_unmap_locked
 gk20a_ramin_alloc_size
 gk20a_mm_fb_flush
-gk20a_open_new_channel
+nvgpu_channel_open_new
 gm20b_fb_tlb_invalidate
 gm20b_ramin_set_big_page_size
 gp10b_mm_get_default_big_page_size

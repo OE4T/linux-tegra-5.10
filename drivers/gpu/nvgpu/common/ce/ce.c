@@ -542,7 +542,7 @@ u32 nvgpu_ce_create_context(struct gk20a *g,
 	ce_ctx->tsg->abortable = false;
 
 	/* always kernel client needs privileged channel */
-	ce_ctx->ch = gk20a_open_new_channel(g, runlist_id, true,
+	ce_ctx->ch = nvgpu_channel_open_new(g, runlist_id, true,
 				nvgpu_current_pid(g), nvgpu_current_tid(g));
 	if (ce_ctx->ch == NULL) {
 		nvgpu_err(g, "ce: gk20a channel not available");
