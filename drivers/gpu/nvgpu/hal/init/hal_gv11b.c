@@ -222,6 +222,7 @@ static const struct gpu_ops gv11b_ops = {
 		.get_num_pce = gv11b_ce_get_num_pce,
 		.mthd_buffer_fault_in_bar2_fault =
 				gv11b_ce_mthd_buffer_fault_in_bar2_fault,
+		.init_prod_values = gv11b_ce_init_prod_values,
 	},
 	.gr = {
 #ifdef CONFIG_NVGPU_DEBUGGER

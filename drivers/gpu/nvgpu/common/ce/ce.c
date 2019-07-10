@@ -444,6 +444,11 @@ int nvgpu_ce_init_support(struct gk20a *g)
 	ce_app->app_state = NVGPU_CE_ACTIVE;
 
 	nvgpu_mutex_release(&ce_app->app_mutex);
+
+	if (g->ops.ce.init_prod_values != NULL) {
+		g->ops.ce.init_prod_values(g);
+	}
+
 	nvgpu_log(g, gpu_dbg_cde_ctx, "ce: init finished");
 
 	return 0;

@@ -285,6 +285,7 @@ struct gpu_ops {
 		u32 (*isr_nonstall)(struct gk20a *g, u32 inst_id, u32 pri_base);
 		u32 (*get_num_pce)(struct gk20a *g);
 		void (*mthd_buffer_fault_in_bar2_fault)(struct gk20a *g);
+		void (*init_prod_values)(struct gk20a *g);
 	} ce;
 	struct {
 #ifdef CONFIG_NVGPU_DEBUGGER

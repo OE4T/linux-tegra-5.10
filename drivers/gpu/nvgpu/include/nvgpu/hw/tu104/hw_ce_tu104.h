@@ -72,4 +72,7 @@
 #define ce_intr_status_mthd_buffer_fault_pending_f()                     (0x10U)
 #define ce_intr_status_mthd_buffer_fault_reset_f()                       (0x10U)
 #define ce_pce_map_r()                                             (0x00104028U)
+#define ce_lce_opt_r(i)\
+		(nvgpu_safe_add_u32(0x00104414U, nvgpu_safe_mult_u32((i), 128U)))
+#define ce_lce_opt_force_barriers_npl__prod_f()                           (0x8U)
 #endif

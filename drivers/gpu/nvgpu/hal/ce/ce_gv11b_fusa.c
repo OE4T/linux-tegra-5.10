@@ -104,3 +104,17 @@ void gv11b_ce_mthd_buffer_fault_in_bar2_fault(struct gk20a *g)
 		}
 	}
 }
+
+void gv11b_ce_init_prod_values(struct gk20a *g)
+{
+	u32 reg_val;
+	u32 num_lce, lce;
+
+	num_lce = g->ops.top.get_num_lce(g);
+
+	for (lce = 0U; lce < num_lce; lce++) {
+		reg_val = nvgpu_readl(g, ce_lce_opt_r(lce));
+		reg_val |= ce_lce_opt_force_barriers_npl__prod_f();
+		nvgpu_writel(g, ce_lce_opt_r(lce), reg_val);
+	}
+}
