@@ -32,13 +32,13 @@ int nvgpu_report_host_err(struct gk20a *g, u32 hw_unit,
 }
 
 int nvgpu_report_ecc_err(struct gk20a *g, u32 hw_unit, u32 inst,
-		u32 err_type, u64 err_addr, u64 err_count)
+		u32 err_id, u64 err_addr, u64 err_count)
 {
 	return 0;
 }
 
 int nvgpu_report_gr_err(struct gk20a *g, u32 hw_unit, u32 inst,
-		u32 err_type, struct gr_err_info *err_info, u32 sub_err_type)
+		u32 err_id, struct gr_err_info *err_info, u32 sub_err_type)
 {
 	return 0;
 }
@@ -56,7 +56,7 @@ int nvgpu_report_ce_err(struct gk20a *g, u32 hw_unit,
 }
 
 int nvgpu_report_pri_err(struct gk20a *g, u32 hw_unit, u32 inst,
-		u32 err_type, u32 err_addr, u32 err_code)
+		u32 err_id, u32 err_addr, u32 err_code)
 {
 	return 0;
 }
@@ -68,7 +68,7 @@ int nvgpu_report_ctxsw_err(struct gk20a *g, u32 hw_unit, u32 err_id,
 }
 
 int nvgpu_report_mmu_err(struct gk20a *g, u32 hw_unit,
-		u32 err_type, struct mmu_fault_info *fault_info,
+		u32 err_id, struct mmu_fault_info *fault_info,
 		u32 status, u32 sub_err_type)
 {
 	return 0;
