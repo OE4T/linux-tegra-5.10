@@ -45,6 +45,7 @@ enum mtd_cmd_op {
 #define VS_MTD_WRITE_OP_F         (1 << VS_MTD_WRITE)
 #define VS_MTD_ERASE_OP_F         (1 << VS_MTD_ERASE)
 #define VS_MTD_IOCTL_OP_F         (1 << VS_MTD_IOCTL)
+#define VS_MTD_READ_ONLY_MASK     ~(VS_MTD_READ_OP_F)
 
 enum blk_cmd_op {
 	VS_BLK_READ = 1,
@@ -64,6 +65,7 @@ enum blk_cmd_op {
 #define VS_BLK_DISCARD_OP_F       (1 << VS_BLK_DISCARD)
 #define VS_BLK_SECURE_ERASE_OP_F  (1 << VS_BLK_SECURE_ERASE)
 #define VS_BLK_IOCTL_OP_F         (1 << VS_BLK_IOCTL)
+#define VS_BLK_READ_ONLY_MASK     ~(VS_BLK_READ_OP_F)
 
 #pragma pack(push)
 #pragma pack(1)

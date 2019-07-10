@@ -818,6 +818,13 @@ static void setup_device(struct vblk_dev *vblkdev)
 		vblkdev->gd->flags |= GENHD_FL_NO_PART_SCAN;
 	}
 
+	/* Set disk read-only if config response say so */
+	if (!(vblkdev->config.blk_config.req_ops_supported &
+				VS_BLK_READ_ONLY_MASK)) {
+		dev_info(vblkdev->device, "setting device read-only\n");
+		set_disk_ro(vblkdev->gd, 1);
+	}
+
 	if (vblkdev->config.storage_type == VSC_STORAGE_RPMB)
 		snprintf(vblkdev->gd->disk_name, 32, "vblkrpmb%d",
 				vblkdev->devnum);
