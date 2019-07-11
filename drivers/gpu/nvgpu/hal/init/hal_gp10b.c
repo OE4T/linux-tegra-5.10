@@ -359,9 +359,7 @@ static const struct gpu_ops gp10b_ops = {
 #ifdef CONFIG_NVGPU_GRAPHICS
 			.bind_ctxsw_zcull = nvgpu_gr_setup_bind_ctxsw_zcull,
 #endif /* CONFIG_NVGPU_GRAPHICS */
-#ifdef CONFIG_NVGPU_CHANNEL_TSG_CONTROL
 			.set_preemption_mode = nvgpu_gr_setup_set_preemption_mode,
-#endif
 		},
 #ifdef CONFIG_NVGPU_GRAPHICS
 		.zbc = {
