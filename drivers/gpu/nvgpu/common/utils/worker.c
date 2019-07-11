@@ -234,7 +234,7 @@ int nvgpu_worker_enqueue(struct nvgpu_worker *worker,
 	nvgpu_list_add_tail(work_item, &worker->items);
 	nvgpu_spinlock_release(&worker->items_lock);
 
-	nvgpu_worker_wakeup(worker);
+	(void) nvgpu_worker_wakeup(worker);
 
 	return 0;
 }
@@ -242,8 +242,30 @@ int nvgpu_worker_enqueue(struct nvgpu_worker *worker,
 void nvgpu_worker_init_name(struct nvgpu_worker *worker,
 		const char* worker_name, const char *gpu_name)
 {
-	(void) snprintf(worker->thread_name, sizeof(worker->thread_name),
-		"%s_%s", worker_name, gpu_name);
+	/*
+	 * Maximum character size of worker thread name
+	 * Note: 1 is subtracted to account for null character
+	 */
+	size_t worker_name_size = sizeof(worker->thread_name) - 1U;
+
+	/* Number of characters that can be used for thread name */
+	size_t num_free_chars = worker_name_size;
+
+	/* Terminate thread name with NULL character */
+	worker->thread_name[0] = '\0';
+
+	(void) strncat(worker->thread_name, worker_name,
+				min(num_free_chars, strlen(worker_name)));
+
+	num_free_chars = worker_name_size - strlen(worker->thread_name);
+
+	(void) strncat(worker->thread_name, "_",
+					min(num_free_chars, sizeof("_")));
+
+	num_free_chars = worker_name_size - strlen(worker->thread_name);
+
+	(void) strncat(worker->thread_name, gpu_name,
+				min(num_free_chars, strlen(gpu_name)));
 }
 
 int nvgpu_worker_init(struct gk20a *g, struct nvgpu_worker *worker,
@@ -253,7 +275,7 @@ int nvgpu_worker_init(struct gk20a *g, struct nvgpu_worker *worker,
 
 	worker->g = g;
 	nvgpu_atomic_set(&worker->put, 0);
-	nvgpu_cond_init(&worker->wq);
+	(void) nvgpu_cond_init(&worker->wq);
 	nvgpu_init_list_node(&worker->items);
 	nvgpu_spinlock_init(&worker->items_lock);
 	nvgpu_mutex_init(&worker->start_lock);
