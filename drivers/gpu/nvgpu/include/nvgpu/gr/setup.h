@@ -40,10 +40,8 @@ void nvgpu_gr_setup_free_gr_ctx(struct gk20a *g,
 		struct vm_gk20a *vm, struct nvgpu_gr_ctx *gr_ctx);
 void nvgpu_gr_setup_free_subctx(struct nvgpu_channel *c);
 
-#ifdef CONFIG_NVGPU_CHANNEL_TSG_CONTROL
 int nvgpu_gr_setup_set_preemption_mode(struct nvgpu_channel *ch,
 					u32 graphics_preempt_mode,
 					u32 compute_preempt_mode);
-#endif
 
 #endif /* NVGPU_GR_SETUP_H */

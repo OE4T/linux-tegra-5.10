@@ -65,7 +65,8 @@ struct nvgpu_tsg *nvgpu_tsg_get_from_id(struct gk20a *g, u32 tsgid)
 }
 
 
-static bool gk20a_is_channel_active(struct gk20a *g, struct nvgpu_channel *ch)
+static bool nvgpu_tsg_is_channel_active(struct gk20a *g,
+		struct nvgpu_channel *ch)
 {
 	struct nvgpu_fifo *f = &g->fifo;
 	struct nvgpu_runlist_info *runlist;
@@ -99,7 +100,7 @@ int nvgpu_tsg_bind_channel(struct nvgpu_tsg *tsg, struct nvgpu_channel *ch)
 	}
 
 	/* channel cannot be bound to TSG if it is already active */
-	if (gk20a_is_channel_active(tsg->g, ch)) {
+	if (nvgpu_tsg_is_channel_active(tsg->g, ch)) {
 		return -EINVAL;
 	}
 
@@ -135,42 +136,7 @@ int nvgpu_tsg_bind_channel(struct nvgpu_tsg *tsg, struct nvgpu_channel *ch)
 	return err;
 }
 
-/* The caller must ensure that channel belongs to a tsg */
-int nvgpu_tsg_unbind_channel(struct nvgpu_tsg *tsg, struct nvgpu_channel *ch)
-{
-	struct gk20a *g = ch->g;
-	int err;
-
-	nvgpu_log_fn(g, "unbind tsg:%u ch:%u\n", tsg->tsgid, ch->chid);
-
-	err = nvgpu_tsg_unbind_channel_common(tsg, ch);
-	if (err != 0) {
-		nvgpu_err(g, "Channel %d unbind failed, tearing down TSG %d",
-			ch->chid, tsg->tsgid);
-
-		nvgpu_tsg_abort(g, tsg, true);
-		/* If channel unbind fails, channel is still part of runlist */
-		if (nvgpu_channel_update_runlist(ch, false) != 0) {
-			nvgpu_err(g,
-				"remove ch %u from runlist failed", ch->chid);
-		}
-
-		nvgpu_rwsem_down_write(&tsg->ch_list_lock);
-		nvgpu_list_del(&ch->ch_entry);
-		ch->tsgid = NVGPU_INVALID_TSG_ID;
-		nvgpu_rwsem_up_write(&tsg->ch_list_lock);
-	}
-
-	if (g->ops.tsg.unbind_channel != NULL) {
-		err = g->ops.tsg.unbind_channel(tsg, ch);
-	}
-
-	nvgpu_ref_put(&tsg->refcount, nvgpu_tsg_release);
-
-	return 0;
-}
-
-int nvgpu_tsg_unbind_channel_common(struct nvgpu_tsg *tsg,
+static int nvgpu_tsg_unbind_channel_common(struct nvgpu_tsg *tsg,
 		struct nvgpu_channel *ch)
 {
 	struct gk20a *g = ch->g;
@@ -249,6 +215,41 @@ fail_enable_tsg:
 		g->ops.tsg.enable(tsg);
 	}
 	return err;
+}
+
+/* The caller must ensure that channel belongs to a tsg */
+int nvgpu_tsg_unbind_channel(struct nvgpu_tsg *tsg, struct nvgpu_channel *ch)
+{
+	struct gk20a *g = ch->g;
+	int err;
+
+	nvgpu_log_fn(g, "unbind tsg:%u ch:%u\n", tsg->tsgid, ch->chid);
+
+	err = nvgpu_tsg_unbind_channel_common(tsg, ch);
+	if (err != 0) {
+		nvgpu_err(g, "Channel %d unbind failed, tearing down TSG %d",
+			ch->chid, tsg->tsgid);
+
+		nvgpu_tsg_abort(g, tsg, true);
+		/* If channel unbind fails, channel is still part of runlist */
+		if (nvgpu_channel_update_runlist(ch, false) != 0) {
+			nvgpu_err(g,
+				"remove ch %u from runlist failed", ch->chid);
+		}
+
+		nvgpu_rwsem_down_write(&tsg->ch_list_lock);
+		nvgpu_list_del(&ch->ch_entry);
+		ch->tsgid = NVGPU_INVALID_TSG_ID;
+		nvgpu_rwsem_up_write(&tsg->ch_list_lock);
+	}
+
+	if (g->ops.tsg.unbind_channel != NULL) {
+		err = g->ops.tsg.unbind_channel(tsg, ch);
+	}
+
+	nvgpu_ref_put(&tsg->refcount, nvgpu_tsg_release);
+
+	return 0;
 }
 
 int nvgpu_tsg_unbind_channel_check_hw_state(struct nvgpu_tsg *tsg,
@@ -405,6 +406,7 @@ bool nvgpu_tsg_mark_error(struct gk20a *g,
 
 }
 
+#ifdef CONFIG_NVGPU_KERNEL_MODE_SUBMIT
 void nvgpu_tsg_set_ctxsw_timeout_accumulated_ms(struct nvgpu_tsg *tsg, u32 ms)
 {
 	struct nvgpu_channel *ch = NULL;
@@ -437,6 +439,7 @@ bool nvgpu_tsg_ctxsw_timeout_debug_dump_state(struct nvgpu_tsg *tsg)
 
 	return verbose;
 }
+#endif
 
 void nvgpu_tsg_set_error_notifier(struct gk20a *g, struct nvgpu_tsg *tsg,
 		u32 error_notifier)
@@ -608,14 +611,15 @@ void nvgpu_tsg_disable_sched(struct gk20a *g, struct nvgpu_tsg *tsg)
 			RUNLIST_DISABLED);
 }
 
-static void release_used_tsg(struct nvgpu_fifo *f, struct nvgpu_tsg *tsg)
+static void nvgpu_tsg_release_used_tsg(struct nvgpu_fifo *f,
+		struct nvgpu_tsg *tsg)
 {
 	nvgpu_mutex_acquire(&f->tsg_inuse_mutex);
 	f->tsg[tsg->tsgid].in_use = false;
 	nvgpu_mutex_release(&f->tsg_inuse_mutex);
 }
 
-static struct nvgpu_tsg *gk20a_tsg_acquire_unused_tsg(struct nvgpu_fifo *f)
+static struct nvgpu_tsg *nvgpu_tsg_acquire_unused_tsg(struct nvgpu_fifo *f)
 {
 	struct nvgpu_tsg *tsg = NULL;
 	unsigned int tsgid;
@@ -696,14 +700,14 @@ struct nvgpu_tsg *nvgpu_tsg_open(struct gk20a *g, pid_t pid)
 	struct nvgpu_tsg *tsg;
 	int err;
 
-	tsg = gk20a_tsg_acquire_unused_tsg(&g->fifo);
+	tsg = nvgpu_tsg_acquire_unused_tsg(&g->fifo);
 	if (tsg == NULL) {
 		return NULL;
 	}
 
 	err = nvgpu_tsg_open_common(g, tsg, pid);
 	if (err != 0) {
-		release_used_tsg(&g->fifo, tsg);
+		nvgpu_tsg_release_used_tsg(&g->fifo, tsg);
 		nvgpu_err(g, "tsg %d open failed %d", tsg->tsgid, err);
 		return NULL;
 	}
@@ -765,7 +769,7 @@ void nvgpu_tsg_release(struct nvgpu_ref *ref)
 	nvgpu_mutex_release(&tsg->event_id_list_lock);
 
 	nvgpu_tsg_release_common(g, tsg);
-	release_used_tsg(&g->fifo, tsg);
+	nvgpu_tsg_release_used_tsg(&g->fifo, tsg);
 
 	nvgpu_log(g, gpu_dbg_fn, "tsg released %d", tsg->tsgid);
 }

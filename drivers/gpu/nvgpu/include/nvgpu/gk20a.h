@@ -679,11 +679,9 @@ struct gpu_ops {
 						u64 zcull_va,
 						u32 mode);
 #endif
-#ifdef CONFIG_NVGPU_CHANNEL_TSG_CONTROL
 			int (*set_preemption_mode)(struct nvgpu_channel *ch,
 				u32 graphics_preempt_mode,
 				u32 compute_preempt_mode);
-#endif
 		} setup;
 #ifdef CONFIG_NVGPU_GRAPHICS
 		struct {
