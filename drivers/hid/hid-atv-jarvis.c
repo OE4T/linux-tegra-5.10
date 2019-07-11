@@ -2112,6 +2112,11 @@ static int atvr_input_mapped(struct hid_device *hdev, struct hid_input *hi,
 	int flat;
 	struct shdr_device *shdr_dev = hid_get_drvdata(hdev);
 
+	/* hid debug info report descriptor */
+	if (usage->hid == HID_GEN_DESK_DEBUG) {
+		atvr_set_hid_debug_report_idx(shdr_dev, field->report->id);
+	}
+
 	if ((usage->type == EV_ABS) && (field->application == HID_GD_GAMEPAD
 			|| field->application == HID_GD_JOYSTICK)) {
 		switch (usage->hid) {
@@ -2129,7 +2134,7 @@ static int atvr_input_mapped(struct hid_device *hdev, struct hid_input *hi,
 			fuzz = TRIGGER_FUZZ;
 			flat = TRIGGER_FLAT;
 			break;
-		default: return 0;/*Use generic mapping for HatX, HatY*/
+		default: return 0; /*Use generic mapping for HatX, HatY*/
 		}
 		set_bit(usage->type, hi->input->evbit);
 		set_bit(usage->code, *bit);
@@ -2137,8 +2142,7 @@ static int atvr_input_mapped(struct hid_device *hdev, struct hid_input *hi,
 		input_abs_set_res(hi->input, usage->code,
 			hidinput_calc_abs_res(field, usage->code));
 		return -1;
-	} else if (usage->hid == HID_GEN_DESK_DEBUG)
-		atvr_set_hid_debug_report_idx(shdr_dev, field->report->id);
+	}
 	return 0;
 }
 
