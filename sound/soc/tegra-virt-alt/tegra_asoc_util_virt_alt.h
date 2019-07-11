@@ -1,7 +1,7 @@
 /*
  * tegra_asoc_util_virt_alt.h - Tegra xbar dai link for machine drivers
  *
- * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -223,6 +223,12 @@
 	0, 1, 0,	\
 	tegra_virt_t210ahub_get_regdump, \
 	tegra_virt_t210ahub_set_regdump)
+
+#define ADMA_REGDUMP_CTRL_DECL(ename, channel_id) \
+	SOC_SINGLE_EXT(ename, channel_id,  \
+	0, 1, 0,	\
+	tegra_virt_t210adma_get_regdump, \
+	tegra_virt_t210adma_set_regdump)
 
 #define METADATA_CTRL_DECL(ename) \
 	{.iface = SNDRV_CTL_ELEM_IFACE_MIXER, \
@@ -448,4 +454,12 @@ int tegra_virt_t210ahub_get_regdump(
 int tegra_virt_t210ahub_set_regdump(
 	struct snd_kcontrol *kcontrol,
 	struct snd_ctl_elem_value *ucontrol);
+
+int tegra_virt_t210adma_set_regdump(
+	struct snd_kcontrol *kcontrol,
+	struct snd_ctl_elem_value *ucontrol);
+int tegra_virt_t210adma_get_regdump(
+	struct snd_kcontrol *kcontrol,
+	struct snd_ctl_elem_value *ucontrol);
+
 #endif
