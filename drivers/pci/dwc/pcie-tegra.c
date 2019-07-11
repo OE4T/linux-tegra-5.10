@@ -2742,32 +2742,43 @@ static int tegra_pcie_dw_host_init(struct pcie_port *pp)
 	init_gen3_gen4_eq_presets(pcie);
 	program_gen3_gen4_eq_presets(pcie);
 
-	/* Program T_cmrt and T_pwr_on values */
-	dw_pcie_read(pcie->pci.dbi_base + pcie->cfg_link_cap_l1sub, 4, &val);
-	val &= ~(PCI_L1SS_CAP_CM_RTM_MASK | PCI_L1SS_CAP_PWRN_VAL_MASK);
-	val |= (pcie->aspm_cmrt << PCI_L1SS_CAP_CM_RTM_SHIFT);
-	val |= (pcie->aspm_pwr_on_t << PCI_L1SS_CAP_PWRN_VAL_SHIFT);
-	dw_pcie_write(pcie->pci.dbi_base + pcie->cfg_link_cap_l1sub, 4, val);
-
-	/* Program L0s and L1 entrance latencies */
-	val = readl(pci->dbi_base + PORT_LOGIC_ACK_F_ASPM_CTRL);
-	val &= ~L0S_ENTRANCE_LAT_MASK;
-	val |= (pcie->aspm_l0s_enter_lat << L0S_ENTRANCE_LAT_SHIFT);
-	val |= ENTER_ASPM;
-	writel(val, pci->dbi_base + PORT_LOGIC_ACK_F_ASPM_CTRL);
-
 	/* Program what ASPM states sould get advertised */
 	if (pcie->disabled_aspm_states & 0x1)
 		disable_aspm_l0s(pcie); /* Disable L0s */
+	else {
+		/* Program L0s entrance latency */
+		val = readl(pci->dbi_base + PORT_LOGIC_ACK_F_ASPM_CTRL);
+		val &= ~L0S_ENTRANCE_LAT_MASK;
+		val |= (pcie->aspm_l0s_enter_lat << L0S_ENTRANCE_LAT_SHIFT);
+		writel(val, pci->dbi_base + PORT_LOGIC_ACK_F_ASPM_CTRL);
+	}
 	if (pcie->disabled_aspm_states & 0x2) {
 		disable_aspm_l10(pcie); /* Disable L1 */
 		disable_aspm_l11(pcie); /* Disable L1.1 */
 		disable_aspm_l12(pcie); /* Disable L1.2 */
+	} else {
+		val = readl(pci->dbi_base + PORT_LOGIC_ACK_F_ASPM_CTRL);
+		val |= ENTER_ASPM;
+		writel(val, pci->dbi_base + PORT_LOGIC_ACK_F_ASPM_CTRL);
 	}
 	if (pcie->disabled_aspm_states & 0x4)
 		disable_aspm_l11(pcie); /* Disable L1.1 */
 	if (pcie->disabled_aspm_states & 0x8)
 		disable_aspm_l12(pcie); /* Disable L1.2 */
+
+	/*
+	 * Program T_cmrt & T_pwr_on only if at least either of ASPM L1.1 or
+	 * ASPM L1.2 is advertised by root port
+	 */
+	if (!((pcie->disabled_aspm_states & 0xc) == 0xc)) {
+		dw_pcie_read(pcie->pci.dbi_base + pcie->cfg_link_cap_l1sub, 4,
+			     &val);
+		val &= ~(PCI_L1SS_CAP_CM_RTM_MASK | PCI_L1SS_CAP_PWRN_VAL_MASK);
+		val |= (pcie->aspm_cmrt << PCI_L1SS_CAP_CM_RTM_SHIFT);
+		val |= (pcie->aspm_pwr_on_t << PCI_L1SS_CAP_PWRN_VAL_SHIFT);
+		dw_pcie_write(pcie->pci.dbi_base + pcie->cfg_link_cap_l1sub, 4,
+			      val);
+	}
 
 	val = readl(pci->dbi_base + GEN3_RELATED_OFF);
 	val &= ~GEN3_RELATED_OFF_GEN3_ZRXDC_NONCOMPL;
