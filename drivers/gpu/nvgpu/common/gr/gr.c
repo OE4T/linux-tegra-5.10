@@ -320,11 +320,11 @@ static int gr_init_access_map(struct gk20a *g, struct nvgpu_gr *gr)
 		map_shift = map_bit & 0x7U; /* i.e. 0-7 */
 		nvgpu_log_info(g, "access map addr:0x%x byte:0x%x bit:%d",
 			       whitelist[w], map_byte, map_shift);
-		x = nvgpu_mem_rd32(g, mem, map_byte / (u32)sizeof(u32));
+		x = nvgpu_mem_rd32(g, mem, (u64)map_byte / (u64)sizeof(u32));
 		x |= BIT32(
 			   (map_byte % (u32)sizeof(u32) * BITS_PER_BYTE_U32)
 			  + map_shift);
-		nvgpu_mem_wr32(g, mem, map_byte / (u32)sizeof(u32), x);
+		nvgpu_mem_wr32(g, mem, (u64)map_byte / (u64)sizeof(u32), x);
 	}
 
 	return 0;
