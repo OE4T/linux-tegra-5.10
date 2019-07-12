@@ -48,7 +48,7 @@
 #ifndef ULONG_MAX
 #define ULONG_MAX			(~0UL)
 #endif
-#ifndef UNIT_MAX
+#ifndef UINT_MAX
 #define UINT_MAX			(~0U)
 #endif
 
