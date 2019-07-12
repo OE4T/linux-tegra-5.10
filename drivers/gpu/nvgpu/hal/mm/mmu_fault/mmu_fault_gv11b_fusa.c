@@ -156,6 +156,8 @@ void gv11b_mm_mmu_fault_parse_mmu_fault_info(struct mmu_fault_info *mmufault)
 		} else {
 			nvgpu_do_assert();
 		}
+	} else {
+		/* Nothing to do here */
 	}
 }
 
@@ -388,6 +390,8 @@ void gv11b_mm_mmu_fault_handle_mmu_fault_common(struct gk20a *g,
 				id_type = ID_TYPE_CHANNEL;
 				rc_type = RC_TYPE_NO_RC;
 			}
+		} else {
+			/* Nothing to do here */
 		}
 
 		/* engine is faulted */
@@ -450,6 +454,7 @@ void gv11b_mm_mmu_fault_handle_nonreplay_replay_fault(struct gk20a *g,
 	u64 prev_fault_addr =  0ULL;
 	u64 next_fault_addr =  0ULL;
 	u32 sub_err_type =  0U;
+	int err;
 
 	if (gv11b_fb_is_fault_buffer_empty(g, index, &get_indx)) {
 		nvgpu_log(g, gpu_dbg_intr,
@@ -536,7 +541,12 @@ void gv11b_mm_mmu_fault_handle_nonreplay_replay_fault(struct gk20a *g,
 	}
 	if (index == NVGPU_MMU_FAULT_REPLAY_REG_INDX &&
 	    invalidate_replay_val != 0U) {
-		gv11b_fb_replay_or_cancel_faults(g, invalidate_replay_val);
+		err = gv11b_fb_replay_or_cancel_faults(g,
+							invalidate_replay_val);
+		if (err != 0) {
+			nvgpu_err(g, "gv11b_fb replay or cancel"
+							" faults failed\n");
+		}
 	}
 }
 
@@ -545,6 +555,7 @@ void gv11b_mm_mmu_fault_handle_other_fault_notify(struct gk20a *g,
 {
 	struct mmu_fault_info *mmufault;
 	u32 invalidate_replay_val = 0U;
+	int err;
 
 	mmufault = &g->mm.fault_info[NVGPU_MMU_FAULT_NONREPLAY_INDX];
 
@@ -565,8 +576,12 @@ void gv11b_mm_mmu_fault_handle_other_fault_notify(struct gk20a *g,
 				 &invalidate_replay_val);
 
 		if (invalidate_replay_val != 0U) {
-			gv11b_fb_replay_or_cancel_faults(g,
+			err = gv11b_fb_replay_or_cancel_faults(g,
 					invalidate_replay_val);
+			if (err != 0) {
+				nvgpu_err(g, "gv11b_fb replay or cancel"
+							" faults failed\n");
+			}
 		}
 	}
 }
