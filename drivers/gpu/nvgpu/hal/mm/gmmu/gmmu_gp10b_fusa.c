@@ -253,14 +253,13 @@ static void update_gmmu_pte_locked(struct vm_gk20a *vm,
 		}
 	}
 
+#ifdef CONFIG_NVGPU_COMPRESSION
 	pte_dbg(g, attrs,
 		"vm=%s "
 		"PTE: i=%-4u size=%-2u | "
 		"GPU %#-12llx  phys %#-12llx "
 		"pgsz: %3dkb perm=%-2s kind=%#02x APT=%-6s %c%c%c%c%c "
-#ifdef CONFIG_NVGPU_COMPRESSION
 		"ctag=0x%08llx "
-#endif
 		"[0x%08x, 0x%08x]",
 		vm->name,
 		pd_idx, l->entry_size,
@@ -274,10 +273,29 @@ static void update_gmmu_pte_locked(struct vm_gk20a *vm,
 		attrs->priv      ? 'P' : '-',
 		attrs->valid     ? 'V' : '-',
 		attrs->platform_atomic ? 'A' : '-',
-#ifdef CONFIG_NVGPU_COMPRESSION
 		attrs->ctag / g->ops.fb.compression_page_size(g),
-#endif
 		pte_w[1], pte_w[0]);
+#else
+	pte_dbg(g, attrs,
+		"vm=%s "
+		"PTE: i=%-4u size=%-2u | "
+		"GPU %#-12llx  phys %#-12llx "
+		"pgsz: %3dkb perm=%-2s kind=%#02x APT=%-6s %c%c%c%c%c "
+		"[0x%08x, 0x%08x]",
+		vm->name,
+		pd_idx, l->entry_size,
+		virt_addr, phys_addr,
+		page_size >> 10,
+		nvgpu_gmmu_perm_str(attrs->rw_flag),
+		attrs->kind_v,
+		nvgpu_aperture_str(g, attrs->aperture),
+		attrs->cacheable ? 'C' : '-',
+		attrs->sparse    ? 'S' : '-',
+		attrs->priv      ? 'P' : '-',
+		attrs->valid     ? 'V' : '-',
+		attrs->platform_atomic ? 'A' : '-',
+		pte_w[1], pte_w[0]);
+#endif
 
 	nvgpu_pd_write(g, pd, (size_t)pd_offset + (size_t)0, pte_w[0]);
 	nvgpu_pd_write(g, pd, (size_t)pd_offset + (size_t)1, pte_w[1]);
@@ -306,7 +324,7 @@ static u32 gp10b_get_pde0_pgsz(struct gk20a *g, const struct gk20a_mmu_level *l,
 	}
 
 	for (i = 0; i < GP10B_PDE0_ENTRY_SIZE >> 2; i++) {
-		pde_v[i] = nvgpu_mem_rd32(g, pd->mem, pde_offset + i);
+		pde_v[i] = nvgpu_mem_rd32(g, pd->mem, (u64)pde_offset + (u64)i);
 	}
 
 	/*
