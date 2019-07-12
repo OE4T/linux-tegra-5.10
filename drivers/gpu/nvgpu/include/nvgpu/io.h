@@ -35,9 +35,36 @@
 
 struct gk20a;
 
+/**
+ * @brief Write a value to an already mapped io-region.
+ *
+ * @param g[in]		GPU super structure.
+ * @param r[in]		Register offset in io-region.
+ * @param v[in]		Value to write at the offset.
+ *
+ * @return None.
+ */
 void nvgpu_writel(struct gk20a *g, u32 r, u32 v);
 void nvgpu_writel_relaxed(struct gk20a *g, u32 r, u32 v);
+
+/**
+ * @brief Read a value from an already mapped io-region.
+ *
+ * @param g[in]		GPU super structure.
+ * @param r[in]		Register offset in io-region.
+ *
+ * @return Value at the given offset of the io-region.
+ */
 u32 nvgpu_readl(struct gk20a *g, u32 r);
+
+/**
+ * @brief Read a value from an already mapped io-region.
+ *
+ * @param g[in]		GPU super structure.
+ * @param r[in]		Register offset in io-region.
+ *
+ * @return Value at the given offset of the io-region.
+ */
 u32 nvgpu_readl_impl(struct gk20a *g, u32 r);
 void nvgpu_writel_check(struct gk20a *g, u32 r, u32 v);
 void nvgpu_writel_loop(struct gk20a *g, u32 r, u32 v);

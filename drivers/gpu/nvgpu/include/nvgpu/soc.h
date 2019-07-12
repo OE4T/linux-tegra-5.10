@@ -26,13 +26,76 @@
 
 struct gk20a;
 
+/**
+ * @brief Check whether running on silicon or not.
+ *
+ * @param g[in]		GPU super structure.
+ *
+ * @return Returns true if it's silicon else return false.
+ */
 bool nvgpu_platform_is_silicon(struct gk20a *g);
+
+/**
+ * @brief Check whether running simulation or not.
+ *
+ * @param g[in]		GPU super structure.
+ *
+ * @return Returns true if it's simulation else returns false.
+ */
 bool nvgpu_platform_is_simulation(struct gk20a *g);
+
+/**
+ * @brief Check whether running fpga or not.
+ *
+ * @param g[in]		GPU super structure.
+ *
+ * @return Returns true if it's fpga else returns false.
+ */
 bool nvgpu_platform_is_fpga(struct gk20a *g);
+
+/**
+ * @brief Check whether running in virtualized environment.
+ *
+ * @param g[in]		GPU super structure.
+ *
+ * @return Returns true if it's virtualized environment else returns false.
+ */
 bool nvgpu_is_hypervisor_mode(struct gk20a *g);
+
+/**
+ * @brief Check whether bpmp server is runing.
+ *
+ * @param g[in]		GPU super structure.
+ *
+ * @return Returns true if bpmp server is running else returns false.
+ */
 bool nvgpu_is_bpmp_running(struct gk20a *g);
+
+/**
+ * @brief Check whether soc is t194 and revision a01.
+ *
+ * @param g[in]		GPU super structure.
+ *
+ * @return Returns true if soc is t194-a01 else returns false.
+ */
 bool nvgpu_is_soc_t194_a01(struct gk20a *g);
+
+/**
+ * @brief Do soc related init
+ *
+ * @param g[in]		GPU super structure.
+ *
+ * @return Returns 0 on success or in case of failure, a suitable error code.
+ */
 int nvgpu_init_soc_vars(struct gk20a *g);
+
+/**
+ * @brief OS specific implementation to provide precise microsecond delay
+ *
+ * @param usecs[in]		Delay in microseconds.
+ *
+ * @return None.
+ */
 void nvgpu_delay_usecs(unsigned int usecs);
 u64 nvgpu_us_counter(void);
 u64 nvgpu_get_cycles(void);

@@ -40,6 +40,7 @@
  *   - @ref unit-sdl
  *   - @ref unit-init
  *   - @ref unit-falcon
+ *   - @ref unit-os_utils
  *   - Etc, etc.
  *
  * NVGPU Software Unit Design Documentation
