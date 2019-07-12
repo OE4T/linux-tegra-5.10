@@ -175,6 +175,8 @@ u32 gv100_get_rate_cntr(struct gk20a *g, struct namemap_cfg *c) {
 	u64 cntr_start = 0;
 	u64 cntr_stop = 0;
 	u64 start_time, stop_time;
+	const int max_iterations = 3;
+	int i = 0;
 
 	struct clk_gk20a *clk = &g->clk;
 
@@ -186,22 +188,40 @@ u32 gv100_get_rate_cntr(struct gk20a *g, struct namemap_cfg *c) {
 
 	nvgpu_mutex_acquire(&clk->clk_mutex);
 
-	/* Read the counter values */
-	/* Counter is 36bits , 32 bits on addr[0] and 4 lsb on addr[1] others zero*/
-	cntr_start = (u64)gk20a_readl(g, c->cntr.reg_cntr_addr[0]);
-	cntr_start += ((u64)gk20a_readl(g, c->cntr.reg_cntr_addr[1]) << 32);
-	start_time = (u64)nvgpu_hr_timestamp_us();
-	nvgpu_udelay(XTAL_CNTR_DELAY);
-	stop_time = (u64)nvgpu_hr_timestamp_us();
-	cntr_stop = (u64)gk20a_readl(g, c->cntr.reg_cntr_addr[0]);
-	cntr_stop += ((u64)gk20a_readl(g, c->cntr.reg_cntr_addr[1]) << 32);
-	/*Calculate the difference with Acutal time and convert to KHz*/
-	cntr = (u32)(((cntr_stop - cntr_start) * 1000U) /
-					(u32)(stop_time-start_time));
+	for (i = 0; i < max_iterations; i++) {
+		/*
+		 * Read the counter values. Counter is 36 bits, 32
+		 * bits on addr[0] and 4 lsb on addr[1] others zero.
+		 */
+		cntr_start = (u64)nvgpu_readl(g,
+				c->cntr.reg_cntr_addr[0]);
+		cntr_start += ((u64)nvgpu_readl(g,
+				c->cntr.reg_cntr_addr[1]) << 32);
+		start_time = (u64)nvgpu_hr_timestamp_us();
+		nvgpu_udelay(XTAL_CNTR_DELAY);
+		stop_time = (u64)nvgpu_hr_timestamp_us();
+		cntr_stop = (u64)nvgpu_readl(g,
+				c->cntr.reg_cntr_addr[0]);
+		cntr_stop += ((u64)nvgpu_readl(g,
+				c->cntr.reg_cntr_addr[1]) << 32);
+
+		if (cntr_stop > cntr_start) {
+			/*
+			 * Calculate the difference with Acutal time
+			 * and convert to KHz
+			 */
+			cntr = (u32)(((cntr_stop - cntr_start) /
+				(stop_time - start_time)) * 1000U);
+			nvgpu_mutex_release(&clk->clk_mutex);
+			return cntr;
+		}
+		/* Else wrap around detected. Hence, retry. */
+	}
+
 	nvgpu_mutex_release(&clk->clk_mutex);
-
-	return cntr;
-
+	/* too many iterations, bail out */
+	nvgpu_err(g, "failed to get clk rate");
+	return -EBUSY;
 }
 
 int gv100_clk_domain_get_f_points(
