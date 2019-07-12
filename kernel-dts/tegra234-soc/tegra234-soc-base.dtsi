@@ -1261,6 +1261,14 @@
 		interrupts = <0 416 4
 		              0 419 4
 		              0 420 4>;
+		clocks = <&bpmp_clks TEGRA234_CLK_NVDISPLAYHUB>,
+				<&bpmp_clks TEGRA234_CLK_NVDISPLAY_DISP>,
+				<&bpmp_clks TEGRA234_CLK_NVDISPLAY_P0>,
+				<&bpmp_clks TEGRA234_CLK_NVDISPLAY_P1>;
+		clock-names = "display_hub_clk",
+				"display_disp_clk",
+				"display_p_clk0",
+				"display_p_clk1";
 		status = "disabled";
 		iommus = <&smmu TEGRA_SID_NVDISPLAY>;
 		iso-smmu;
