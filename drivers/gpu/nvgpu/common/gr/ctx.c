@@ -467,8 +467,10 @@ void nvgpu_gr_ctx_patch_write(struct gk20a *g,
 			return;
 		}
 
-		nvgpu_mem_wr32(g, &gr_ctx->patch_ctx.mem, patch_slot, addr);
-		nvgpu_mem_wr32(g, &gr_ctx->patch_ctx.mem, patch_slot + 1U, data);
+		nvgpu_mem_wr32(g, &gr_ctx->patch_ctx.mem,
+						(u64)patch_slot, addr);
+		nvgpu_mem_wr32(g, &gr_ctx->patch_ctx.mem,
+						(u64)patch_slot + 1ULL, data);
 		gr_ctx->patch_ctx.data_count = nvgpu_safe_add_u32(
 						gr_ctx->patch_ctx.data_count, 1U);
 		nvgpu_log(g, gpu_dbg_info,
