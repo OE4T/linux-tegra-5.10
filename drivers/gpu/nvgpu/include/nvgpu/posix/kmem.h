@@ -33,6 +33,8 @@ void *nvgpu_vzalloc_impl(struct gk20a *g, unsigned long size, void *ip);
 void nvgpu_kfree_impl(struct gk20a *g, void *addr);
 void nvgpu_vfree_impl(struct gk20a *g, void *addr);
 
+#ifdef NVGPU_UNITTEST_FAULT_INJECTION_ENABLEMENT
 struct nvgpu_posix_fault_inj *nvgpu_kmem_get_fault_injection(void);
+#endif
 
 #endif /* NVGPU_POSIX_KMEM_H */
