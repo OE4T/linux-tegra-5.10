@@ -249,5 +249,9 @@ s64 nvgpu_current_time_ns(void)
 
 u64 nvgpu_hr_timestamp(void)
 {
-	return (u64)nvgpu_current_time_us();
+	s64 count;
+
+	count = nvgpu_current_time_us();
+
+	return nvgpu_safe_cast_s64_to_u64(count);
 }
