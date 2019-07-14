@@ -144,27 +144,27 @@ void gm20b_gr_init_pd_skip_table_gpc(struct gk20a *g,
 				     struct nvgpu_gr_config *gr_config)
 {
 	u32 gpc_index;
-	bool skip_mask;
+	u32 skip_mask = 0;
 
 	for (gpc_index = 0;
 	     gpc_index < gr_pd_dist_skip_table__size_1_v() * 4U;
 	     gpc_index += 4U) {
-		skip_mask =
-		 (gr_pd_dist_skip_table_gpc_4n0_mask_f(
-		   nvgpu_gr_config_get_gpc_skip_mask(gr_config,
-						     gpc_index)) != 0U) ||
-		 (gr_pd_dist_skip_table_gpc_4n1_mask_f(
-		   nvgpu_gr_config_get_gpc_skip_mask(gr_config,
-						     gpc_index + 1U)) != 0U) ||
-		 (gr_pd_dist_skip_table_gpc_4n2_mask_f(
-		   nvgpu_gr_config_get_gpc_skip_mask(gr_config,
-						     gpc_index + 2U)) != 0U) ||
-		 (gr_pd_dist_skip_table_gpc_4n3_mask_f(
-		   nvgpu_gr_config_get_gpc_skip_mask(gr_config,
-						     gpc_index + 3U)) != 0U);
-
+		if ((gr_pd_dist_skip_table_gpc_4n0_mask_f(
+			nvgpu_gr_config_get_gpc_skip_mask(gr_config,
+				gpc_index)) != 0U) ||
+			(gr_pd_dist_skip_table_gpc_4n1_mask_f(
+				nvgpu_gr_config_get_gpc_skip_mask(gr_config,
+					gpc_index + 1U)) != 0U) ||
+			(gr_pd_dist_skip_table_gpc_4n2_mask_f(
+				nvgpu_gr_config_get_gpc_skip_mask(gr_config,
+					gpc_index + 2U)) != 0U) ||
+			(gr_pd_dist_skip_table_gpc_4n3_mask_f(
+				nvgpu_gr_config_get_gpc_skip_mask(gr_config,
+					gpc_index + 3U)) != 0U)) {
+			skip_mask = 1;
+		}
 		nvgpu_writel(g, gr_pd_dist_skip_table_r(gpc_index/4U),
-			     (u32)skip_mask);
+			skip_mask);
 	}
 }
 

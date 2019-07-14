@@ -844,7 +844,7 @@ u64 nvgpu_gmmu_map_locked(struct vm_gk20a *vm,
 	}
 #endif
 
-	attrs.l3_alloc = (bool)(flags & NVGPU_VM_MAP_L3_ALLOC);
+	attrs.l3_alloc = ((flags & NVGPU_VM_MAP_L3_ALLOC) != 0U);
 
 	/*
 	 * Only allocate a new GPU VA range if we haven't already been passed a

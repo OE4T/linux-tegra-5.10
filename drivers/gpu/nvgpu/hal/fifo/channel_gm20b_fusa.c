@@ -55,7 +55,7 @@ void gm20b_channel_bind(struct nvgpu_channel *c)
 		 ~ccsr_channel_enable_set_f(~U32(0U))) |
 		 ccsr_channel_enable_set_true_f());
 	nvgpu_smp_wmb();
-	nvgpu_atomic_set(&c->bound, (int)true);
+	nvgpu_atomic_set(&c->bound, 1);
 }
 
 void gm20b_channel_force_ctx_reload(struct nvgpu_channel *ch)

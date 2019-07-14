@@ -40,7 +40,7 @@ void gk20a_channel_unbind(struct nvgpu_channel *ch)
 
 	nvgpu_log_fn(g, " ");
 
-	if (nvgpu_atomic_cmpxchg(&ch->bound, (int)true, (int)false) != 0) {
+	if (nvgpu_atomic_cmpxchg(&ch->bound, 1, 0) != 0) {
 		gk20a_writel(g, ccsr_channel_inst_r(ch->chid),
 			ccsr_channel_inst_ptr_f(0) |
 			ccsr_channel_inst_bind_false_f());
