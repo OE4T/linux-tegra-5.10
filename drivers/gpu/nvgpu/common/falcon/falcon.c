@@ -50,6 +50,63 @@ static bool is_falcon_valid(struct nvgpu_falcon *flcn)
 	return true;
 }
 
+int nvgpu_falcon_reset(struct nvgpu_falcon *flcn)
+{
+	struct gk20a *g;
+	int status = 0;
+
+	if (!is_falcon_valid(flcn)) {
+		return -EINVAL;
+	}
+
+	g = flcn->g;
+
+	if (flcn->flcn_engine_dep_ops.reset_eng != NULL) {
+		/* falcon & engine reset */
+		status = flcn->flcn_engine_dep_ops.reset_eng(g);
+	} else {
+		g->ops.falcon.reset(flcn);
+	}
+
+	if (status == 0) {
+		status = nvgpu_falcon_mem_scrub_wait(flcn);
+	}
+
+	return status;
+}
+
+int nvgpu_falcon_wait_for_halt(struct nvgpu_falcon *flcn, unsigned int timeout)
+{
+	struct nvgpu_timeout to;
+	struct gk20a *g;
+	int status;
+
+	if (!is_falcon_valid(flcn)) {
+		return -EINVAL;
+	}
+
+	g = flcn->g;
+
+	status = nvgpu_timeout_init(g, &to, timeout, NVGPU_TIMER_CPU_TIMER);
+	if (status != 0) {
+		return status;
+	}
+
+	do {
+		if (g->ops.falcon.is_falcon_cpu_halted(flcn)) {
+			break;
+		}
+
+		nvgpu_udelay(10);
+	} while (nvgpu_timeout_expired(&to) == 0);
+
+	if (nvgpu_timeout_peek_expired(&to) != 0) {
+		status = -ETIMEDOUT;
+	}
+
+	return status;
+}
+
 int nvgpu_falcon_wait_idle(struct nvgpu_falcon *flcn)
 {
 	struct nvgpu_timeout timeout;
@@ -120,173 +177,6 @@ exit:
 	return status;
 }
 
-int nvgpu_falcon_reset(struct nvgpu_falcon *flcn)
-{
-	struct gk20a *g;
-	int status = 0;
-
-	if (!is_falcon_valid(flcn)) {
-		return -EINVAL;
-	}
-
-	g = flcn->g;
-
-	if (flcn->flcn_engine_dep_ops.reset_eng != NULL) {
-		/* falcon & engine reset */
-		status = flcn->flcn_engine_dep_ops.reset_eng(g);
-	} else {
-		g->ops.falcon.reset(flcn);
-	}
-
-	if (status == 0) {
-		status = nvgpu_falcon_mem_scrub_wait(flcn);
-	}
-
-	return status;
-}
-
-void nvgpu_falcon_set_irq(struct nvgpu_falcon *flcn, bool enable,
-	u32 intr_mask, u32 intr_dest)
-{
-	struct gk20a *g;
-
-	if (!is_falcon_valid(flcn)) {
-		return;
-	}
-
-	g = flcn->g;
-
-	if (!flcn->is_interrupt_enabled) {
-		nvgpu_warn(g, "Interrupt not supported on flcn 0x%x ",
-			flcn->flcn_id);
-		/* Keep interrupt disabled */
-		enable = false;
-	}
-
-	g->ops.falcon.set_irq(flcn, enable, intr_mask, intr_dest);
-}
-
-int nvgpu_falcon_wait_for_halt(struct nvgpu_falcon *flcn, unsigned int timeout)
-{
-	struct nvgpu_timeout to;
-	struct gk20a *g;
-	int status;
-
-	if (!is_falcon_valid(flcn)) {
-		return -EINVAL;
-	}
-
-	g = flcn->g;
-
-	status = nvgpu_timeout_init(g, &to, timeout, NVGPU_TIMER_CPU_TIMER);
-	if (status != 0) {
-		return status;
-	}
-
-	do {
-		if (g->ops.falcon.is_falcon_cpu_halted(flcn)) {
-			break;
-		}
-
-		nvgpu_udelay(10);
-	} while (nvgpu_timeout_expired(&to) == 0);
-
-	if (nvgpu_timeout_peek_expired(&to) != 0) {
-		status = -ETIMEDOUT;
-	}
-
-	return status;
-}
-
-int nvgpu_falcon_clear_halt_intr_status(struct nvgpu_falcon *flcn,
-	unsigned int timeout)
-{
-	struct nvgpu_timeout to;
-	struct gk20a *g;
-	int status;
-
-	if (!is_falcon_valid(flcn)) {
-		return -EINVAL;
-	}
-
-	g = flcn->g;
-
-	status = nvgpu_timeout_init(g, &to, timeout, NVGPU_TIMER_CPU_TIMER);
-	if (status != 0) {
-		return status;
-	}
-
-	do {
-		if (g->ops.falcon.clear_halt_interrupt_status(flcn)) {
-			break;
-		}
-
-		nvgpu_udelay(1);
-	} while (nvgpu_timeout_expired(&to) == 0);
-
-	if (nvgpu_timeout_peek_expired(&to) != 0) {
-		status = -ETIMEDOUT;
-	}
-
-	return status;
-}
-
-int nvgpu_falcon_copy_from_emem(struct nvgpu_falcon *flcn,
-	u32 src, u8 *dst, u32 size, u8 port)
-{
-	struct nvgpu_falcon_engine_dependency_ops *flcn_dops;
-	int status = -EINVAL;
-	struct gk20a *g;
-
-	if (!is_falcon_valid(flcn)) {
-		return -EINVAL;
-	}
-
-	g = flcn->g;
-	flcn_dops = &flcn->flcn_engine_dep_ops;
-
-	if (flcn_dops->copy_from_emem != NULL) {
-		nvgpu_mutex_acquire(&flcn->emem_lock);
-		status = flcn_dops->copy_from_emem(g, src, dst, size, port);
-		nvgpu_mutex_release(&flcn->emem_lock);
-	} else {
-		nvgpu_warn(g, "Invalid op on falcon 0x%x ",
-			flcn->flcn_id);
-		goto exit;
-	}
-
-exit:
-	return status;
-}
-
-int nvgpu_falcon_copy_to_emem(struct nvgpu_falcon *flcn,
-	u32 dst, u8 *src, u32 size, u8 port)
-{
-	struct nvgpu_falcon_engine_dependency_ops *flcn_dops;
-	int status = -EINVAL;
-	struct gk20a *g;
-
-	if (!is_falcon_valid(flcn)) {
-		return -EINVAL;
-	}
-
-	g = flcn->g;
-	flcn_dops = &flcn->flcn_engine_dep_ops;
-
-	if (flcn_dops->copy_to_emem != NULL) {
-		nvgpu_mutex_acquire(&flcn->emem_lock);
-		status = flcn_dops->copy_to_emem(g, dst, src, size, port);
-		nvgpu_mutex_release(&flcn->emem_lock);
-	} else {
-		nvgpu_warn(g, "Invalid op on falcon 0x%x ",
-			flcn->flcn_id);
-		goto exit;
-	}
-
-exit:
-	return status;
-}
-
 static int falcon_memcpy_params_check(struct nvgpu_falcon *flcn,
 		u32 offset, u32 size, enum falcon_mem_type mem_type, u8 port)
 {
@@ -329,31 +219,6 @@ exit:
 	return ret;
 }
 
-int nvgpu_falcon_copy_from_dmem(struct nvgpu_falcon *flcn,
-	u32 src, u8 *dst, u32 size, u8 port)
-{
-	int status = -EINVAL;
-	struct gk20a *g;
-
-	if (!is_falcon_valid(flcn)) {
-		return -EINVAL;
-	}
-
-	g = flcn->g;
-
-	if (falcon_memcpy_params_check(flcn, src, size, MEM_DMEM, port) != 0) {
-		nvgpu_err(g, "incorrect parameters");
-		goto exit;
-	}
-
-	nvgpu_mutex_acquire(&flcn->dmem_lock);
-	status = g->ops.falcon.copy_from_dmem(flcn, src, dst, size, port);
-	nvgpu_mutex_release(&flcn->dmem_lock);
-
-exit:
-	return status;
-}
-
 int nvgpu_falcon_copy_to_dmem(struct nvgpu_falcon *flcn,
 	u32 dst, u8 *src, u32 size, u8 port)
 {
@@ -374,31 +239,6 @@ int nvgpu_falcon_copy_to_dmem(struct nvgpu_falcon *flcn,
 	nvgpu_mutex_acquire(&flcn->dmem_lock);
 	status = g->ops.falcon.copy_to_dmem(flcn, dst, src, size, port);
 	nvgpu_mutex_release(&flcn->dmem_lock);
-
-exit:
-	return status;
-}
-
-int nvgpu_falcon_copy_from_imem(struct nvgpu_falcon *flcn,
-	u32 src, u8 *dst, u32 size, u8 port)
-{
-	int status = -EINVAL;
-	struct gk20a *g;
-
-	if (!is_falcon_valid(flcn)) {
-		return -EINVAL;
-	}
-
-	g = flcn->g;
-
-	if (falcon_memcpy_params_check(flcn, src, size, MEM_IMEM, port) != 0) {
-		nvgpu_err(g, "incorrect parameters");
-		goto exit;
-	}
-
-	nvgpu_mutex_acquire(&flcn->imem_lock);
-	status = g->ops.falcon.copy_from_imem(flcn, src, dst, size, port);
-	nvgpu_mutex_release(&flcn->imem_lock);
 
 exit:
 	return status;
@@ -428,78 +268,6 @@ int nvgpu_falcon_copy_to_imem(struct nvgpu_falcon *flcn,
 
 exit:
 	return status;
-}
-
-static void falcon_print_mem(struct nvgpu_falcon *flcn, u32 src,
-	u32 size, enum falcon_mem_type mem_type)
-{
-	u32 buff[64] = {0};
-	u32 total_block_read = 0;
-	u32 byte_read_count = 0;
-	struct gk20a *g;
-	u32 i = 0;
-	int status = 0;
-
-	g = flcn->g;
-
-	if (falcon_memcpy_params_check(flcn, src, size, mem_type, 0) != 0) {
-		nvgpu_err(g, "incorrect parameters");
-		return;
-	}
-
-	nvgpu_info(g, " offset 0x%x  size %d bytes", src, size);
-
-	total_block_read = size >> 8;
-	do {
-		byte_read_count =
-			(total_block_read != 0U) ? (u32)sizeof(buff) : size;
-
-		if (byte_read_count == 0U) {
-			break;
-		}
-
-		if (mem_type == MEM_DMEM) {
-			status = nvgpu_falcon_copy_from_dmem(flcn, src,
-				(u8 *)buff, byte_read_count, 0);
-		} else {
-			status = nvgpu_falcon_copy_from_imem(flcn, src,
-				(u8 *)buff, byte_read_count, 0);
-		}
-
-		if (status != 0) {
-			nvgpu_err(g, "MEM print failed");
-			break;
-		}
-
-		for (i = 0U; i < (byte_read_count >> 2U); i += 4U) {
-			nvgpu_info(g, "%#06x: %#010x %#010x %#010x %#010x",
-				src + (i << 2U), buff[i], buff[i+1U],
-				buff[i+2U], buff[i+3U]);
-		}
-
-		src += byte_read_count;
-		size -= byte_read_count;
-	} while (total_block_read-- != 0U);
-}
-
-void nvgpu_falcon_print_dmem(struct nvgpu_falcon *flcn, u32 src, u32 size)
-{
-	if (!is_falcon_valid(flcn)) {
-		return;
-	}
-
-	nvgpu_info(flcn->g, " PRINT DMEM ");
-	falcon_print_mem(flcn, src, size, MEM_DMEM);
-}
-
-void nvgpu_falcon_print_imem(struct nvgpu_falcon *flcn, u32 src, u32 size)
-{
-	if (!is_falcon_valid(flcn)) {
-		return;
-	}
-
-	nvgpu_info(flcn->g, " PRINT IMEM ");
-	falcon_print_mem(flcn, src, size, MEM_IMEM);
 }
 
 int nvgpu_falcon_bootstrap(struct nvgpu_falcon *flcn, u32 boot_vector)
@@ -555,15 +323,6 @@ exit:
 	return;
 }
 
-void nvgpu_falcon_dump_stats(struct nvgpu_falcon *flcn)
-{
-	if (!is_falcon_valid(flcn)) {
-		return;
-	}
-
-	flcn->g->ops.falcon.dump_falcon_stats(flcn);
-}
-
 int nvgpu_falcon_bl_bootstrap(struct nvgpu_falcon *flcn,
 	struct nvgpu_falcon_bl_info *bl_info)
 {
@@ -615,15 +374,6 @@ exit:
 	}
 
 	return err;
-}
-
-void nvgpu_falcon_get_ctls(struct nvgpu_falcon *flcn, u32 *sctl, u32 *cpuctl)
-{
-	if (!is_falcon_valid(flcn)) {
-		return;
-	}
-
-	flcn->g->ops.falcon.get_falcon_ctls(flcn, sctl, cpuctl);
 }
 
 int nvgpu_falcon_get_mem_size(struct nvgpu_falcon *flcn,
@@ -769,3 +519,259 @@ void nvgpu_falcon_sw_free(struct gk20a *g, u32 flcn_id)
 	nvgpu_mutex_destroy(&flcn->dmem_lock);
 	nvgpu_mutex_destroy(&flcn->imem_lock);
 }
+
+#ifdef CONFIG_NVGPU_DGPU
+int nvgpu_falcon_copy_from_emem(struct nvgpu_falcon *flcn,
+	u32 src, u8 *dst, u32 size, u8 port)
+{
+	struct nvgpu_falcon_engine_dependency_ops *flcn_dops;
+	int status = -EINVAL;
+	struct gk20a *g;
+
+	if (!is_falcon_valid(flcn)) {
+		return -EINVAL;
+	}
+
+	g = flcn->g;
+	flcn_dops = &flcn->flcn_engine_dep_ops;
+
+	if (flcn_dops->copy_from_emem != NULL) {
+		nvgpu_mutex_acquire(&flcn->emem_lock);
+		status = flcn_dops->copy_from_emem(g, src, dst, size, port);
+		nvgpu_mutex_release(&flcn->emem_lock);
+	} else {
+		nvgpu_warn(g, "Invalid op on falcon 0x%x ",
+			flcn->flcn_id);
+		goto exit;
+	}
+
+exit:
+	return status;
+}
+
+int nvgpu_falcon_copy_to_emem(struct nvgpu_falcon *flcn,
+	u32 dst, u8 *src, u32 size, u8 port)
+{
+	struct nvgpu_falcon_engine_dependency_ops *flcn_dops;
+	int status = -EINVAL;
+	struct gk20a *g;
+
+	if (!is_falcon_valid(flcn)) {
+		return -EINVAL;
+	}
+
+	g = flcn->g;
+	flcn_dops = &flcn->flcn_engine_dep_ops;
+
+	if (flcn_dops->copy_to_emem != NULL) {
+		nvgpu_mutex_acquire(&flcn->emem_lock);
+		status = flcn_dops->copy_to_emem(g, dst, src, size, port);
+		nvgpu_mutex_release(&flcn->emem_lock);
+	} else {
+		nvgpu_warn(g, "Invalid op on falcon 0x%x ",
+			flcn->flcn_id);
+		goto exit;
+	}
+
+exit:
+	return status;
+}
+#endif
+
+#ifdef CONFIG_NVGPU_FALCON_DEBUG
+void nvgpu_falcon_dump_stats(struct nvgpu_falcon *flcn)
+{
+	if (!is_falcon_valid(flcn)) {
+		return;
+	}
+
+	flcn->g->ops.falcon.dump_falcon_stats(flcn);
+}
+#endif
+
+#ifdef CONFIG_NVGPU_FALCON_NON_FUSA
+int nvgpu_falcon_clear_halt_intr_status(struct nvgpu_falcon *flcn,
+	unsigned int timeout)
+{
+	struct nvgpu_timeout to;
+	struct gk20a *g;
+	int status;
+
+	if (!is_falcon_valid(flcn)) {
+		return -EINVAL;
+	}
+
+	g = flcn->g;
+
+	status = nvgpu_timeout_init(g, &to, timeout, NVGPU_TIMER_CPU_TIMER);
+	if (status != 0) {
+		return status;
+	}
+
+	do {
+		if (g->ops.falcon.clear_halt_interrupt_status(flcn)) {
+			break;
+		}
+
+		nvgpu_udelay(1);
+	} while (nvgpu_timeout_expired(&to) == 0);
+
+	if (nvgpu_timeout_peek_expired(&to) != 0) {
+		status = -ETIMEDOUT;
+	}
+
+	return status;
+}
+
+void nvgpu_falcon_set_irq(struct nvgpu_falcon *flcn, bool enable,
+	u32 intr_mask, u32 intr_dest)
+{
+	struct gk20a *g;
+
+	if (!is_falcon_valid(flcn)) {
+		return;
+	}
+
+	g = flcn->g;
+
+	if (!flcn->is_interrupt_enabled) {
+		nvgpu_warn(g, "Interrupt not supported on flcn 0x%x ",
+			flcn->flcn_id);
+		/* Keep interrupt disabled */
+		enable = false;
+	}
+
+	g->ops.falcon.set_irq(flcn, enable, intr_mask, intr_dest);
+}
+
+int nvgpu_falcon_copy_from_dmem(struct nvgpu_falcon *flcn,
+	u32 src, u8 *dst, u32 size, u8 port)
+{
+	int status = -EINVAL;
+	struct gk20a *g;
+
+	if (!is_falcon_valid(flcn)) {
+		return -EINVAL;
+	}
+
+	g = flcn->g;
+
+	if (falcon_memcpy_params_check(flcn, src, size, MEM_DMEM, port) != 0) {
+		nvgpu_err(g, "incorrect parameters");
+		goto exit;
+	}
+
+	nvgpu_mutex_acquire(&flcn->dmem_lock);
+	status = g->ops.falcon.copy_from_dmem(flcn, src, dst, size, port);
+	nvgpu_mutex_release(&flcn->dmem_lock);
+
+exit:
+	return status;
+}
+
+int nvgpu_falcon_copy_from_imem(struct nvgpu_falcon *flcn,
+	u32 src, u8 *dst, u32 size, u8 port)
+{
+	int status = -EINVAL;
+	struct gk20a *g;
+
+	if (!is_falcon_valid(flcn)) {
+		return -EINVAL;
+	}
+
+	g = flcn->g;
+
+	if (falcon_memcpy_params_check(flcn, src, size, MEM_IMEM, port) != 0) {
+		nvgpu_err(g, "incorrect parameters");
+		goto exit;
+	}
+
+	nvgpu_mutex_acquire(&flcn->imem_lock);
+	status = g->ops.falcon.copy_from_imem(flcn, src, dst, size, port);
+	nvgpu_mutex_release(&flcn->imem_lock);
+
+exit:
+	return status;
+}
+
+static void falcon_print_mem(struct nvgpu_falcon *flcn, u32 src,
+	u32 size, enum falcon_mem_type mem_type)
+{
+	u32 buff[64] = {0};
+	u32 total_block_read = 0;
+	u32 byte_read_count = 0;
+	struct gk20a *g;
+	u32 i = 0;
+	int status = 0;
+
+	g = flcn->g;
+
+	if (falcon_memcpy_params_check(flcn, src, size, mem_type, 0) != 0) {
+		nvgpu_err(g, "incorrect parameters");
+		return;
+	}
+
+	nvgpu_info(g, " offset 0x%x  size %d bytes", src, size);
+
+	total_block_read = size >> 8;
+	do {
+		byte_read_count =
+			(total_block_read != 0U) ? (u32)sizeof(buff) : size;
+
+		if (byte_read_count == 0U) {
+			break;
+		}
+
+		if (mem_type == MEM_DMEM) {
+			status = nvgpu_falcon_copy_from_dmem(flcn, src,
+				(u8 *)buff, byte_read_count, 0);
+		} else {
+			status = nvgpu_falcon_copy_from_imem(flcn, src,
+				(u8 *)buff, byte_read_count, 0);
+		}
+
+		if (status != 0) {
+			nvgpu_err(g, "MEM print failed");
+			break;
+		}
+
+		for (i = 0U; i < (byte_read_count >> 2U); i += 4U) {
+			nvgpu_info(g, "%#06x: %#010x %#010x %#010x %#010x",
+				src + (i << 2U), buff[i], buff[i+1U],
+				buff[i+2U], buff[i+3U]);
+		}
+
+		src += byte_read_count;
+		size -= byte_read_count;
+	} while (total_block_read-- != 0U);
+}
+
+void nvgpu_falcon_print_dmem(struct nvgpu_falcon *flcn, u32 src, u32 size)
+{
+	if (!is_falcon_valid(flcn)) {
+		return;
+	}
+
+	nvgpu_info(flcn->g, " PRINT DMEM ");
+	falcon_print_mem(flcn, src, size, MEM_DMEM);
+}
+
+void nvgpu_falcon_print_imem(struct nvgpu_falcon *flcn, u32 src, u32 size)
+{
+	if (!is_falcon_valid(flcn)) {
+		return;
+	}
+
+	nvgpu_info(flcn->g, " PRINT IMEM ");
+	falcon_print_mem(flcn, src, size, MEM_IMEM);
+}
+
+void nvgpu_falcon_get_ctls(struct nvgpu_falcon *flcn, u32 *sctl, u32 *cpuctl)
+{
+	if (!is_falcon_valid(flcn)) {
+		return;
+	}
+
+	flcn->g->ops.falcon.get_falcon_ctls(flcn, sctl, cpuctl);
+}
+#endif

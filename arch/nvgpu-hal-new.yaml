@@ -501,11 +501,16 @@ regops:
              hal/regops/regops_tu104.c,
              hal/regops/regops_tu104.h ]
 
-falcon:
+falcon_fusa:
   safe: yes
   owner: Sagar K
   sources: [ hal/falcon/falcon_gk20a_fusa.c,
              hal/falcon/falcon_gk20a.h ]
+
+falcon:
+  safe: no
+  owner: Sagar K
+  sources: [ hal/falcon/falcon_gk20a.c ]
 
 mc:
   safe: yes

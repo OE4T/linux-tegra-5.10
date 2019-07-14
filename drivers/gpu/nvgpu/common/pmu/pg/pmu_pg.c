@@ -337,9 +337,11 @@ static void pmu_dump_elpg_stats(struct nvgpu_pmu *pmu)
 
 	/* Print PG stats */
 	nvgpu_err(g, "Print PG stats");
+#ifdef CONFIG_NVGPU_FALCON_NON_FUSA
 	nvgpu_falcon_print_dmem(pmu->flcn,
 		pmu->pg->stat_dmem_offset[PMU_PG_ELPG_ENGINE_ID_GRAPHICS],
 		(u32)sizeof(struct pmu_pg_stats_v2));
+#endif
 
 	/* Print ELPG stats */
 	g->ops.pmu.pmu_dump_elpg_stats(pmu);

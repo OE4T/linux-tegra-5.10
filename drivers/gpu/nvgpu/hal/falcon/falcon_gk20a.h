@@ -60,20 +60,15 @@
 #define FALCON_REG_SIZE		(32U)
 
 void gk20a_falcon_reset(struct nvgpu_falcon *flcn);
-bool gk20a_falcon_clear_halt_interrupt_status(struct nvgpu_falcon *flcn);
-void gk20a_falcon_set_irq(struct nvgpu_falcon *flcn, bool enable,
-				 u32 intr_mask, u32 intr_dest);
 bool gk20a_is_falcon_cpu_halted(struct nvgpu_falcon *flcn);
 bool gk20a_is_falcon_idle(struct nvgpu_falcon *flcn);
 bool gk20a_is_falcon_scrubbing_done(struct nvgpu_falcon *flcn);
 u32 gk20a_falcon_get_mem_size(struct nvgpu_falcon *flcn,
 		enum falcon_mem_type mem_type);
-int gk20a_falcon_copy_from_dmem(struct nvgpu_falcon *flcn,
-		u32 src, u8 *dst, u32 size, u8 port);
+u8 gk20a_falcon_get_ports_count(struct nvgpu_falcon *flcn,
+		enum falcon_mem_type mem_type);
 int gk20a_falcon_copy_to_dmem(struct nvgpu_falcon *flcn,
 		u32 dst, u8 *src, u32 size, u8 port);
-int gk20a_falcon_copy_from_imem(struct nvgpu_falcon *flcn, u32 src,
-	u8 *dst, u32 size, u8 port);
 int gk20a_falcon_copy_to_imem(struct nvgpu_falcon *flcn, u32 dst,
 		u8 *src, u32 size, u8 port, bool sec, u32 tag);
 int gk20a_falcon_bootstrap(struct nvgpu_falcon *flcn,
@@ -82,10 +77,21 @@ u32 gk20a_falcon_mailbox_read(struct nvgpu_falcon *flcn,
 		u32 mailbox_index);
 void gk20a_falcon_mailbox_write(struct nvgpu_falcon *flcn,
 		u32 mailbox_index, u32 data);
+
+#ifdef CONFIG_NVGPU_FALCON_DEBUG
 void gk20a_falcon_dump_stats(struct nvgpu_falcon *flcn);
+#endif
+
+#ifdef CONFIG_NVGPU_FALCON_NON_FUSA
+bool gk20a_falcon_clear_halt_interrupt_status(struct nvgpu_falcon *flcn);
+void gk20a_falcon_set_irq(struct nvgpu_falcon *flcn, bool enable,
+				 u32 intr_mask, u32 intr_dest);
+int gk20a_falcon_copy_from_dmem(struct nvgpu_falcon *flcn,
+		u32 src, u8 *dst, u32 size, u8 port);
+int gk20a_falcon_copy_from_imem(struct nvgpu_falcon *flcn, u32 src,
+	u8 *dst, u32 size, u8 port);
 void gk20a_falcon_get_ctls(struct nvgpu_falcon *flcn, u32 *sctl,
 				  u32 *cpuctl);
-u8 gk20a_falcon_get_ports_count(struct nvgpu_falcon *flcn,
-		enum falcon_mem_type mem_type);
+#endif
 
 #endif /* NVGPU_FALCON_GK20A_H */

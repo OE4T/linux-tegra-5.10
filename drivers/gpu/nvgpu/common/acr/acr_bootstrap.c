@@ -41,7 +41,9 @@ static int acr_wait_for_completion(struct gk20a *g,
 	struct nvgpu_falcon *flcn, unsigned int timeout)
 {
 	u32 flcn_id = nvgpu_falcon_get_id(flcn);
+#ifdef CONFIG_NVGPU_FALCON_NON_FUSA
 	u32 sctl, cpuctl;
+#endif
 	int completion = 0;
 	u32 data = 0;
 	u32 bar0_status = 0;
@@ -52,7 +54,9 @@ static int acr_wait_for_completion(struct gk20a *g,
 	completion = nvgpu_falcon_wait_for_halt(flcn, timeout);
 	if (completion != 0) {
 		nvgpu_err(g, "flcn-%d: HS ucode boot timed out", flcn_id);
+#ifdef CONFIG_NVGPU_FALCON_DEBUG
 		nvgpu_falcon_dump_stats(flcn);
+#endif
 		error_type = ACR_BOOT_TIMEDOUT;
 		goto exit;
 	}
@@ -78,10 +82,12 @@ static int acr_wait_for_completion(struct gk20a *g,
 		goto exit;
 	}
 
+#ifdef CONFIG_NVGPU_FALCON_NON_FUSA
 	nvgpu_falcon_get_ctls(flcn, &sctl, &cpuctl);
 
 	nvgpu_acr_dbg(g, "flcn-%d: sctl reg %x cpuctl reg %x",
 			flcn_id, sctl, cpuctl);
+#endif
 
 	/*
 	 * When engine-falcon is used for ACR bootstrap, validate the integrity

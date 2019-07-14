@@ -46,6 +46,8 @@ ccflags-y += -DCONFIG_NVGPU_SIM
 ccflags-y += -DCONFIG_NVGPU_TRACE
 ccflags-y += -DCONFIG_NVGPU_SYSFS
 ccflags-y += -DCONFIG_NVGPU_CLK_ARB
+ccflags-y += -DCONFIG_NVGPU_FALCON_DEBUG
+ccflags-y += -DCONFIG_NVGPU_FALCON_NON_FUSA
 
 ifeq ($(CONFIG_NVGPU_LOGGING),y)
 ccflags-y += -DCONFIG_NVGPU_LOGGING=1
@@ -683,7 +685,8 @@ nvgpu-$(CONFIG_NVGPU_HAL_NON_FUSA) += \
 	hal/mm/mm_gv100.o \
 	hal/mm/mm_tu104.o \
 	hal/mm/gmmu/gmmu_gk20a.o \
-	hal/mm/gmmu/gmmu_gm20b.o
+	hal/mm/gmmu/gmmu_gm20b.o \
+	hal/falcon/falcon_gk20a.o
 
 ifeq ($(CONFIG_TEGRA_GR_VIRTUALIZATION),y)
 nvgpu-$(CONFIG_NVGPU_HAL_NON_FUSA) += \

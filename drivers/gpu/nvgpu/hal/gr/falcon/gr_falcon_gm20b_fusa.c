@@ -725,7 +725,9 @@ void gm20b_gr_falcon_fecs_dump_stats(struct gk20a *g)
 {
 	unsigned int i;
 
+#ifdef CONFIG_NVGPU_FALCON_DEBUG
 	nvgpu_falcon_dump_stats(&g->fecs_flcn);
+#endif
 
 	for (i = 0; i < g->ops.gr.falcon.fecs_ctxsw_mailbox_size(); i++) {
 		nvgpu_err(g, "gr_fecs_ctxsw_mailbox_r(%d) : 0x%x",

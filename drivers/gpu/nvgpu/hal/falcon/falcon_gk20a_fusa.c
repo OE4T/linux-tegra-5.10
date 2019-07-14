@@ -41,44 +41,6 @@ void gk20a_falcon_reset(struct nvgpu_falcon *flcn)
 		(unit_status | falcon_falcon_cpuctl_hreset_f(1)));
 }
 
-bool gk20a_falcon_clear_halt_interrupt_status(struct nvgpu_falcon *flcn)
-{
-	struct gk20a *g = flcn->g;
-	u32 base_addr = flcn->flcn_base;
-	u32 data = 0;
-	bool status = false;
-
-	gk20a_writel(g, base_addr + falcon_falcon_irqsclr_r(),
-		gk20a_readl(g, base_addr + falcon_falcon_irqsclr_r()) |
-		0x10U);
-	data = gk20a_readl(g, (base_addr + falcon_falcon_irqstat_r()));
-
-	if ((data & falcon_falcon_irqstat_halt_true_f()) !=
-		falcon_falcon_irqstat_halt_true_f()) {
-		/*halt irq is clear*/
-		status = true;
-	}
-
-	return status;
-}
-
-void gk20a_falcon_set_irq(struct nvgpu_falcon *flcn, bool enable,
-	u32 intr_mask, u32 intr_dest)
-{
-	struct gk20a *g = flcn->g;
-	u32 base_addr = flcn->flcn_base;
-
-	if (enable) {
-		gk20a_writel(g, base_addr + falcon_falcon_irqmset_r(),
-			intr_mask);
-		gk20a_writel(g, base_addr + falcon_falcon_irqdest_r(),
-			intr_dest);
-	} else {
-		gk20a_writel(g, base_addr + falcon_falcon_irqmclr_r(),
-			0xffffffffU);
-	}
-}
-
 bool gk20a_is_falcon_cpu_halted(struct nvgpu_falcon *flcn)
 {
 	struct gk20a *g = flcn->g;
@@ -165,49 +127,6 @@ u8 gk20a_falcon_get_ports_count(struct nvgpu_falcon *flcn,
 	return ports;
 }
 
-int gk20a_falcon_copy_from_dmem(struct nvgpu_falcon *flcn,
-		u32 src, u8 *dst, u32 size, u8 port)
-{
-	struct gk20a *g = flcn->g;
-	u32 base_addr = flcn->flcn_base;
-	u32 i, words, bytes;
-	u32 data, addr_mask;
-	u32 *dst_u32 = (u32 *)dst;
-
-	nvgpu_log_fn(g, " src dmem offset - %x, size - %x", src, size);
-
-	words = size >> 2U;
-	bytes = size & 0x3U;
-
-	addr_mask = falcon_falcon_dmemc_offs_m() |
-			    falcon_falcon_dmemc_blk_m();
-
-	src &= addr_mask;
-
-	nvgpu_writel(g, base_addr + falcon_falcon_dmemc_r(port),
-		src | falcon_falcon_dmemc_aincr_f(1));
-
-	if (unlikely(!nvgpu_mem_is_word_aligned(g, dst))) {
-		for (i = 0; i < words; i++) {
-			data = nvgpu_readl(g,
-				base_addr + falcon_falcon_dmemd_r(port));
-			nvgpu_memcpy(&dst[i * 4U], (u8 *)&data, 4);
-		}
-	} else {
-		for (i = 0; i < words; i++) {
-			dst_u32[i] = nvgpu_readl(g,
-				base_addr + falcon_falcon_dmemd_r(port));
-		}
-	}
-
-	if (bytes > 0U) {
-		data = nvgpu_readl(g, base_addr + falcon_falcon_dmemd_r(port));
-		nvgpu_memcpy(&dst[words << 2U], (u8 *)&data, bytes);
-	}
-
-	return 0;
-}
-
 int gk20a_falcon_copy_to_dmem(struct nvgpu_falcon *flcn,
 		u32 dst, u8 *src, u32 size, u8 port)
 {
@@ -255,53 +174,6 @@ int gk20a_falcon_copy_to_dmem(struct nvgpu_falcon *flcn,
 	if (data != ((dst + size) & addr_mask)) {
 		nvgpu_warn(g, "copy failed. bytes written %d, expected %d",
 			data - dst, size);
-	}
-
-	return 0;
-}
-
-int gk20a_falcon_copy_from_imem(struct nvgpu_falcon *flcn, u32 src,
-	u8 *dst, u32 size, u8 port)
-{
-	struct gk20a *g = flcn->g;
-	u32 base_addr = flcn->flcn_base;
-	u32 *dst_u32 = (u32 *)dst;
-	u32 words = 0;
-	u32 bytes = 0;
-	u32 data = 0;
-	u32 blk = 0;
-	u32 i = 0;
-
-	nvgpu_log_info(g, "download %d bytes from 0x%x", size, src);
-
-	words = size >> 2U;
-	bytes = size & 0x3U;
-	blk = src >> 8;
-
-	nvgpu_log_info(g, "download %d words from 0x%x block %d",
-			words, src, blk);
-
-	nvgpu_writel(g, base_addr + falcon_falcon_imemc_r(port),
-		falcon_falcon_imemc_offs_f(src >> 2) |
-		falcon_falcon_imemc_blk_f(blk) |
-		falcon_falcon_dmemc_aincr_f(1));
-
-	if (unlikely(!nvgpu_mem_is_word_aligned(g, dst))) {
-		for (i = 0; i < words; i++) {
-			data = nvgpu_readl(g,
-				base_addr + falcon_falcon_imemd_r(port));
-			nvgpu_memcpy(&dst[i * 4U], (u8 *)&data, 4);
-		}
-	} else {
-		for (i = 0; i < words; i++) {
-			dst_u32[i] = nvgpu_readl(g,
-				base_addr + falcon_falcon_imemd_r(port));
-		}
-	}
-
-	if (bytes > 0U) {
-		data = nvgpu_readl(g, base_addr + falcon_falcon_imemd_r(port));
-		nvgpu_memcpy(&dst[words << 2U], (u8 *)&data, bytes);
 	}
 
 	return 0;
@@ -417,6 +289,7 @@ void gk20a_falcon_mailbox_write(struct nvgpu_falcon *flcn,
 		    data);
 }
 
+#ifdef CONFIG_NVGPU_FALCON_DEBUG
 static void gk20a_falcon_dump_imblk(struct nvgpu_falcon *flcn)
 {
 	struct gk20a *g = flcn->g;
@@ -591,11 +464,4 @@ void gk20a_falcon_dump_stats(struct nvgpu_falcon *flcn)
 	nvgpu_err(g, "falcon_falcon_exterraddr_r : 0x%x",
 		gk20a_readl(g, base_addr + falcon_falcon_exterraddr_r()));
 }
-
-void gk20a_falcon_get_ctls(struct nvgpu_falcon *flcn, u32 *sctl,
-				  u32 *cpuctl)
-{
-	*sctl = gk20a_readl(flcn->g, flcn->flcn_base + falcon_falcon_sctl_r());
-	*cpuctl = gk20a_readl(flcn->g, flcn->flcn_base +
-					falcon_falcon_cpuctl_r());
-}
+#endif

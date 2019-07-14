@@ -423,7 +423,9 @@ void tu104_sec2_process_intr(struct gk20a *g, struct nvgpu_sec2 *sec2)
 
 	if ((intr & psec_falcon_irqstat_halt_true_f()) != 0U) {
 		nvgpu_err(g, "sec2 halt intr not implemented");
+#ifdef CONFIG_NVGPU_FALCON_DEBUG
 		g->ops.falcon.dump_falcon_stats(&sec2->flcn);
+#endif
 	}
 	if ((intr & psec_falcon_irqstat_exterr_true_f()) != 0U) {
 		nvgpu_err(g,

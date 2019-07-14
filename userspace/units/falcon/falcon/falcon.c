@@ -114,6 +114,7 @@ static int free_falcon_test_env(struct unit_module *m, struct gk20a *g,
 	return UNIT_SUCCESS;
 }
 
+#ifdef CONFIG_NVGPU_FALCON_NON_FUSA
 /*
  * This function will compare rand_test_data with falcon flcn's imem/dmem
  * based on type from offset src of size. It returns 0 on match else
@@ -176,6 +177,7 @@ free_dest:
 	nvgpu_kfree(g, dest);
 	return err;
 }
+#endif
 
 /*
  * This function will check that falcon memory read/write functions with
@@ -208,6 +210,7 @@ static int falcon_check_read_write(struct gk20a *g,
 			goto free_dest;
 		}
 
+#ifdef CONFIG_NVGPU_FALCON_NON_FUSA
 		err = nvgpu_falcon_copy_from_imem(flcn, dst,
 						  dest, byte_cnt, 0);
 		if (err != exp_err) {
@@ -215,6 +218,7 @@ static int falcon_check_read_write(struct gk20a *g,
 				 exp_err ? "fail" : "pass");
 			goto free_dest;
 		}
+#endif
 	} else if (type == MEM_DMEM) {
 		err = nvgpu_falcon_copy_to_dmem(flcn, dst,
 						(u8 *) rand_test_data,
@@ -225,6 +229,7 @@ static int falcon_check_read_write(struct gk20a *g,
 			goto free_dest;
 		}
 
+#ifdef CONFIG_NVGPU_FALCON_NON_FUSA
 		err = nvgpu_falcon_copy_from_dmem(flcn, dst,
 						  dest, byte_cnt, 0);
 		if (err != exp_err) {
@@ -232,6 +237,7 @@ static int falcon_check_read_write(struct gk20a *g,
 				 exp_err ? "fail" : "pass");
 			goto free_dest;
 		}
+#endif
 	}
 
 	ret = 0;
@@ -307,6 +313,7 @@ static int test_falcon_mem_rw_range(struct unit_module *m, struct gk20a *g,
 		unit_return_fail(m, "Failed to copy to IMEM\n");
 	}
 
+#ifdef CONFIG_NVGPU_FALCON_NON_FUSA
 	/* verify data written to imem matches */
 	unit_info(m, "Reading %d bytes from imem\n", byte_cnt);
 	err = falcon_read_compare(m, g, MEM_IMEM, dst, byte_cnt);
@@ -314,6 +321,7 @@ static int test_falcon_mem_rw_range(struct unit_module *m, struct gk20a *g,
 		unit_err(m, "IMEM read data does not match %d\n", err);
 		return UNIT_FAIL;
 	}
+#endif
 
 	/* write data to valid range in dmem */
 	unit_info(m, "Writing %d bytes to dmem\n", byte_cnt);
@@ -323,6 +331,7 @@ static int test_falcon_mem_rw_range(struct unit_module *m, struct gk20a *g,
 		unit_return_fail(m, "Failed to copy to DMEM\n");
 	}
 
+#ifdef CONFIG_NVGPU_FALCON_NON_FUSA
 	/* verify data written to dmem matches */
 	unit_info(m, "Reading %d bytes from dmem\n", byte_cnt);
 	err = falcon_read_compare(m, g, MEM_DMEM, dst, byte_cnt);
@@ -330,7 +339,7 @@ static int test_falcon_mem_rw_range(struct unit_module *m, struct gk20a *g,
 		unit_err(m, "DMEM read data does not match %d\n", err);
 		return UNIT_FAIL;
 	}
-
+#endif
 	dst = UTF_FALCON_IMEM_DMEM_SIZE - RAND_DATA_SIZE;
 	byte_cnt *= 2;
 

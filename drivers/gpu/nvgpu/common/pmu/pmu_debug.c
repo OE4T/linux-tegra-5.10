@@ -102,7 +102,9 @@ void nvgpu_pmu_dump_falcon_stats(struct nvgpu_pmu *pmu)
 {
 	struct gk20a *g = pmu->g;
 
+#ifdef CONFIG_NVGPU_FALCON_DEBUG
 	nvgpu_falcon_dump_stats(pmu->flcn);
+#endif
 	g->ops.pmu.pmu_dump_falcon_stats(pmu);
 
 	/* Print PMU F/W debug prints */
