@@ -329,6 +329,8 @@ static int volt_rail_obj_update(struct gk20a *g,
 	/* Updating only vmin as per requirement, later other fields can be added */
 	volt_rail_obj->vmin_limitu_v = pstatus->vmin_limitu_v;
 	volt_rail_obj->max_limitu_v = pstatus->max_limitu_v;
+	volt_rail_obj->current_volt_uv = pstatus->curr_volt_defaultu_v;
+
 	return 0;
 }
 
@@ -579,6 +581,32 @@ int nvgpu_volt_get_vmin_vmax_ps35(struct gk20a *g, u32 *vmin_uv, u32 *vmax_uv)
 			*vmin_uv = volt_rail->vmin_limitu_v;
 			*vmax_uv = volt_rail->max_limitu_v;
 
+			return status;
+		}
+	}
+	return status;
+}
+
+int nvgpu_volt_get_curr_volt_ps35(struct gk20a *g, u32 *vcurr_uv)
+{
+	struct boardobjgrp *pboardobjgrp;
+	struct boardobj *pboardobj = NULL;
+	struct voltage_rail *volt_rail = NULL;
+	int status;
+	u8 index;
+
+	status = nvgpu_volt_rail_boardobj_grp_get_status(g);
+	if (status != 0) {
+		nvgpu_err(g, "volt rail get status failed");
+		return status;
+	}
+
+	pboardobjgrp = &g->perf_pmu->volt.volt_rail_metadata.volt_rails.super;
+
+	BOARDOBJGRP_FOR_EACH(pboardobjgrp, struct boardobj*, pboardobj, index) {
+		volt_rail = (struct voltage_rail *)(void *)pboardobj;
+		if (volt_rail->current_volt_uv != 0U) {
+			*vcurr_uv = volt_rail->current_volt_uv;
 			return status;
 		}
 	}

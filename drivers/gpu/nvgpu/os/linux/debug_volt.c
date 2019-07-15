@@ -25,7 +25,7 @@ static int get_curr_voltage(void *data, u64 *val)
 	u32 readval;
 	int err;
 
-	err = nvgpu_volt_get_voltage(g, CTRL_VOLT_DOMAIN_LOGIC, &readval);
+	err = nvgpu_volt_get_curr_volt_ps35(g, &readval);
 	if (!err)
 		*val = readval;
 
