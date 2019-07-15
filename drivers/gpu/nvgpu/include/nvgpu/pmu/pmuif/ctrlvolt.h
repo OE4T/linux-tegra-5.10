@@ -134,12 +134,13 @@ struct ctrl_volt_volt_rail_list_item_v1 {
 	u8 rail_idx;
 	u32 voltage_uv;
 	u32 voltage_min_noise_unaware_uv;
+	u32 voltage_offset_uV[2];
 };
 
 struct ctrl_volt_volt_rail_list_v1 {
 	u8    num_rails;
 	struct ctrl_volt_volt_rail_list_item_v1
-		rails[CTRL_VOLT_VOLT_RAIL_MAX_RAILS];
+		rails[CTRL_VOLT_VOLT_RAIL_CLIENT_MAX_RAILS];
 };
 
 #endif /* NVGPU_PMUIF_CTRLVOLT_H */

@@ -53,6 +53,7 @@ struct nv_pmu_volt_volt_rail_boardobj_set {
 	u8 volt_dev_idx_default;
 	u8 volt_dev_idx_ipc_vmin;
 	u8 volt_scale_exp_pwr_equ_idx;
+	struct ctrl_boardobjgrp_mask_e32 vin_dev_mask;
 	struct ctrl_boardobjgrp_mask_e32 volt_dev_mask;
 	s32 volt_delta_uv[CTRL_VOLT_RAIL_VOLT_DELTA_MAX_ENTRIES];
 };

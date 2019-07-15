@@ -265,6 +265,19 @@ struct ctrl_clk_clk_domain_list {
 		clk_domains[CTRL_BOARDOBJ_MAX_BOARD_OBJECTS];
 };
 
+struct ctrl_clk_domain_clk_mon_item {
+	u32 clk_api_domain;
+	u32 clk_freq_Mhz;
+	u32 low_threshold_percentage;
+	u32 high_threshold_percentage;
+};
+
+struct ctrl_clk_domain_clk_mon_list {
+	u8 num_domain;
+	struct ctrl_clk_domain_clk_mon_item
+		clk_domain[CTRL_CLK_CLK_DOMAIN_CLIENT_MAX_DOMAINS];
+};
+
 #define CTRL_CLK_VF_PAIR_FREQ_MHZ_GET(pvfpair)                          \
 	((pvfpair)->freq_mhz)
 

@@ -176,6 +176,7 @@ struct nv_pmu_perf_change_seq_super_info_set {
 	u8 version;
 	struct ctrl_boardobjgrp_mask_e32 clk_domains_exclusion_mask;
 	struct ctrl_boardobjgrp_mask_e32 clk_domains_inclusion_mask;
+	u32 strp_id_exclusive_mask;
 };
 
 struct nv_pmu_perf_change_seq_pmu_info_set {
@@ -213,7 +214,7 @@ struct perf_change_seq_pmu_script {
 	union ctrl_perf_change_seq_change_aligned change;
 	/* below should be an aligned structure */
 	union ctrl_perf_change_seq_pmu_script_step_data_aligned
-		steps[CTRL_PERF_CHANGE_SEQ_PMU_STEP_ID_MAX_STEPS];
+		steps[CTRL_PERF_CHANGE_SEQ_SCRIPT_VF_SWITCH_MAX_STEPS];
 };
 
 struct nv_pmu_rpc_struct_perf_vfe_eval {

@@ -78,4 +78,15 @@
 #define CTRL_CLK_VIN_SW_OVERRIDE_VIN_USE_MIN     (0x00000001U)
 #define CTRL_CLK_VIN_SW_OVERRIDE_VIN_USE_SW_REQ  (0x00000003U)
 
+struct ctrl_clk_vin_sw_override_list_item {
+	u8 override_mode;
+	u32 voltage_uV;
+};
+
+struct ctrl_clk_vin_sw_override_list {
+	struct ctrl_boardobjgrp_mask_e32 volt_rails_mask;
+	struct ctrl_clk_vin_sw_override_list_item
+		volt[4];
+};
+
 #endif /* NVGPU_PMUIF_CTRLCLKAVFS_H */

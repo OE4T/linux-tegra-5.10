@@ -218,8 +218,10 @@ enum ctrl_perf_change_seq_pmu_step_id {
 	CTRL_PERF_CHANGE_SEQ_31_STEP_ID_NOISE_AWARE_CLKS,
 	CTRL_PERF_CHANGE_SEQ_35_STEP_ID_PRE_VOLT_CLKS,
 	CTRL_PERF_CHANGE_SEQ_35_STEP_ID_POST_VOLT_CLKS,
-	CTRL_PERF_CHANGE_SEQ_PMU_STEP_ID_MAX_STEPS,
+	CTRL_PERF_CHANGE_SEQ_PMU_STEP_ID_MAX_STEPS = 26,
 };
+
+#define CTRL_PERF_CHANGE_SEQ_SCRIPT_VF_SWITCH_MAX_STEPS		13U
 
 struct ctrl_perf_change_seq_step_profiling {
 	/*all aligned to 32 */
@@ -257,13 +259,19 @@ struct ctrl_perf_change_seq_pmu_script_step_bif {
 
 struct ctrl_perf_change_seq_pmu_script_step_clks {
 	struct ctrl_perf_change_seq_pmu_script_step_super super;
-	struct ctrl_volt_volt_rail_list_v1 volt_list;
 	struct ctrl_clk_clk_domain_list clk_list;
+	struct ctrl_clk_vin_sw_override_list vin_sw_override_list;
 };
 
 struct ctrl_perf_change_seq_pmu_script_step_volt {
 	struct ctrl_perf_change_seq_pmu_script_step_super super;
 	struct ctrl_volt_volt_rail_list_v1 volt_list;
+	struct ctrl_clk_vin_sw_override_list vin_sw_override_list;
+};
+
+struct ctrl_perf_change_seq_pmu_script_step_clk_mon {
+	struct ctrl_perf_change_seq_pmu_script_step_super super;
+	struct ctrl_clk_domain_clk_mon_list clk_mon_list;
 };
 
 union ctrl_perf_change_seq_pmu_script_step_data {
@@ -274,6 +282,7 @@ union ctrl_perf_change_seq_pmu_script_step_data {
 	struct ctrl_perf_change_seq_pmu_script_step_bif bif;
 	struct ctrl_perf_change_seq_pmu_script_step_clks clk;
 	struct ctrl_perf_change_seq_pmu_script_step_volt volt;
+	struct ctrl_perf_change_seq_pmu_script_step_clk_mon clk_mon;
 };
 
 #endif /* NVGPU_PMUIF_CTRLPERF_H */
