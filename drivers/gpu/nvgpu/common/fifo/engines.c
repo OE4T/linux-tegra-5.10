@@ -321,6 +321,8 @@ int nvgpu_engine_disable_activity(struct gk20a *g,
 	} else if (nvgpu_pbdma_status_is_chsw_load(&pbdma_status) ||
 			nvgpu_pbdma_status_is_chsw_switch(&pbdma_status)) {
 		pbdma_chid = pbdma_status.next_id;
+	} else {
+		/* Nothing to do here */
 	}
 
 	if (pbdma_chid != NVGPU_INVALID_CHANNEL_ID) {
@@ -343,6 +345,8 @@ int nvgpu_engine_disable_activity(struct gk20a *g,
 	} else if (nvgpu_engine_status_is_ctxsw_switch(&engine_status) ||
 	    nvgpu_engine_status_is_ctxsw_load(&engine_status)) {
 		engine_chid = engine_status.ctx_next_id;
+	} else {
+		/* Nothing to do here */
 	}
 
 	if (engine_chid != NVGPU_INVALID_ENG_ID && engine_chid != pbdma_chid) {
@@ -417,7 +421,7 @@ int nvgpu_engine_wait_for_idle(struct gk20a *g)
 {
 	struct nvgpu_timeout timeout;
 	u32 delay = POLL_DELAY_MIN_US;
-	int ret = 0;
+	int ret = 0, err = 0;
 	u32 i, host_num_engines;
 	struct nvgpu_engine_status_info engine_status;
 
@@ -426,8 +430,11 @@ int nvgpu_engine_wait_for_idle(struct gk20a *g)
 	host_num_engines =
 		 nvgpu_get_litter_value(g, GPU_LIT_HOST_NUM_ENGINES);
 
-	nvgpu_timeout_init(g, &timeout, nvgpu_get_poll_timeout(g),
+	err = nvgpu_timeout_init(g, &timeout, nvgpu_get_poll_timeout(g),
 			   NVGPU_TIMER_CPU_TIMER);
+	if (err != 0) {
+		return -EINVAL;
+	}
 
 	for (i = 0; i < host_num_engines; i++) {
 		ret = -ETIMEDOUT;
