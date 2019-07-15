@@ -282,11 +282,12 @@ static int devinit_get_therm_device_table(struct gk20a *g,
 			continue;
 			break;
 		case NV_VBIOS_THERM_DEVICE_1X_ENTRY_CLASS_GPU:
+			break;
 		case NV_VBIOS_THERM_DEVICE_1X_ENTRY_CLASS_GPU_GPC_SCI:
+			continue;
 			break;
 		case NV_VBIOS_THERM_DEVICE_1X_ENTRY_CLASS_GPU_GPC_TSOSC:
-			therm_device_data.gpu_gpc_tsosc.gpc_tsosc_idx =
-				therm_device_table_entry->param0;
+			continue;
 			break;
 		case NV_VBIOS_THERM_DEVICE_1X_ENTRY_CLASS_HBM2_SITE:
 			therm_device_data.hbm2_site.site_idx =
