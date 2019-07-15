@@ -131,7 +131,7 @@ static void free_channel(struct nvgpu_fifo *f,
 	}
 }
 
-int nvgpu_channel_commit_va(struct nvgpu_channel *c)
+void nvgpu_channel_commit_va(struct nvgpu_channel *c)
 {
 	struct gk20a *g = c->g;
 
@@ -139,8 +139,6 @@ int nvgpu_channel_commit_va(struct nvgpu_channel *c)
 
 	g->ops.mm.init_inst_block(&c->inst_block, c->vm,
 			c->vm->gmmu_page_sizes[GMMU_PAGE_SIZE_BIG]);
-
-	return 0;
 }
 
 int nvgpu_channel_update_runlist(struct nvgpu_channel *c, bool add)
@@ -1843,10 +1841,10 @@ static void gk20a_channel_dump_ref_actions(struct nvgpu_channel *ch)
 #endif
 }
 
+#if GK20A_CHANNEL_REFCOUNT_TRACKING
 static void gk20a_channel_save_ref_source(struct nvgpu_channel *ch,
 		enum nvgpu_channel_ref_action_type type)
 {
-#if GK20A_CHANNEL_REFCOUNT_TRACKING
 	struct nvgpu_channel_ref_action *act;
 
 	nvgpu_spinlock_acquire(&ch->ref_actions_lock);
@@ -1863,8 +1861,8 @@ static void gk20a_channel_save_ref_source(struct nvgpu_channel *ch,
 		GK20A_CHANNEL_REFCOUNT_TRACKING;
 
 	nvgpu_spinlock_release(&ch->ref_actions_lock);
-#endif
 }
+#endif
 
 /* Try to get a reference to the channel. Return nonzero on success. If fails,
  * the channel is dead or being freed elsewhere and you must not touch it.
@@ -1886,7 +1884,9 @@ struct nvgpu_channel *nvgpu_channel_get__func(struct nvgpu_channel *ch,
 	nvgpu_spinlock_acquire(&ch->ref_obtain_lock);
 
 	if (likely(ch->referenceable)) {
+#if GK20A_CHANNEL_REFCOUNT_TRACKING
 		gk20a_channel_save_ref_source(ch, channel_gk20a_ref_action_get);
+#endif
 		nvgpu_atomic_inc(&ch->ref_count);
 		ret = ch;
 	} else {
@@ -1904,7 +1904,9 @@ struct nvgpu_channel *nvgpu_channel_get__func(struct nvgpu_channel *ch,
 
 void nvgpu_channel_put__func(struct nvgpu_channel *ch, const char *caller)
 {
+#if GK20A_CHANNEL_REFCOUNT_TRACKING
 	gk20a_channel_save_ref_source(ch, channel_gk20a_ref_action_put);
+#endif
 	trace_nvgpu_channel_put(ch->chid, caller);
 	nvgpu_atomic_dec(&ch->ref_count);
 	if (nvgpu_cond_broadcast(&ch->ref_count_dec_wq) != 0) {
@@ -2110,7 +2112,6 @@ static int nvgpu_channel_setup_usermode(struct nvgpu_channel *c,
 		c->chid, gpfifo_gpu_va, gpfifo_size);
 
 	err = nvgpu_channel_setup_ramfc(c, args, gpfifo_gpu_va, gpfifo_size);
-
 	if (err != 0) {
 		goto clean_up_unmap;
 	}
@@ -2278,15 +2279,6 @@ void nvgpu_channel_set_error_notifier(struct gk20a *g, struct nvgpu_channel *ch,
 				u32 error_notifier)
 {
 	g->ops.channel.set_error_notifier(ch, error_notifier);
-}
-
-void nvgpu_channel_set_ctx_mmu_error(struct gk20a *g,
-		struct nvgpu_channel *ch)
-{
-	nvgpu_err(g,
-		"channel %d generated a mmu fault", ch->chid);
-	nvgpu_channel_set_error_notifier(g, ch,
-				NVGPU_ERR_NOTIFIER_FIFO_ERROR_MMU_ERR_FLT);
 }
 
 /*

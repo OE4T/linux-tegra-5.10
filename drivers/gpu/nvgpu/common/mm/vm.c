@@ -149,21 +149,16 @@ int vm_aspace_id(struct vm_gk20a *vm)
 
 int nvgpu_vm_bind_channel(struct vm_gk20a *vm, struct nvgpu_channel *ch)
 {
-	int err = 0;
-
 	nvgpu_log_fn(ch->g, " ");
 
 	nvgpu_vm_get(vm);
 	ch->vm = vm;
-	err = nvgpu_channel_commit_va(ch);
-	if (err != 0) {
-		ch->vm = NULL;
-	}
+	nvgpu_channel_commit_va(ch);
 
 	nvgpu_log(gk20a_from_vm(vm), gpu_dbg_map, "Binding ch=%d -> VM:%s",
 		  ch->chid, vm->name);
 
-	return err;
+	return 0;
 }
 
 /*
