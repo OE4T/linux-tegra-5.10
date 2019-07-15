@@ -412,11 +412,9 @@ static int pmu_pstate_clk_pmu_setup(struct gk20a *g)
 		return err;
 	}
 
-	if (g->ops.clk.support_clk_freq_domain) {
-		err = nvgpu_clk_pmu_clk_domains_load(g);
-		if (err != 0) {
-			return err;
-		}
+	err = nvgpu_clk_pmu_clk_domains_load(g);
+	if (err != 0) {
+		return err;
 	}
 
 	return 0;

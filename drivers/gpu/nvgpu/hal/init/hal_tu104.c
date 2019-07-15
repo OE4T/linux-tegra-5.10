@@ -1551,7 +1551,7 @@ int tu104_init_hal(struct gk20a *g)
 	gops->clk.support_clk_freq_controller = false;
 	gops->clk.support_pmgr_domain = false;
 	gops->clk.support_lpwr_pg = false;
-	gops->clk.support_clk_freq_domain = true;
+	gops->clk.support_clk_freq_domain = false;
 	gops->pmu_perf.support_changeseq = true;
 	gops->pmu_perf.support_vfe = true;
 	gops->clk.support_vf_point = true;
