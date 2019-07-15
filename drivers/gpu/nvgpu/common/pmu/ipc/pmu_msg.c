@@ -215,7 +215,7 @@ static int pmu_handle_event(struct nvgpu_pmu *pmu, struct pmu_msg *msg)
 	case PMU_UNIT_PERF:
 		if (g->ops.pmu_perf.handle_pmu_perf_event != NULL) {
 			err = g->ops.pmu_perf.handle_pmu_perf_event(g,
-				(void *)&msg->msg.perf);
+				(void *)&msg->hdr);
 		} else {
 			WARN_ON(true);
 		}
@@ -557,7 +557,8 @@ int nvgpu_pmu_process_message(struct nvgpu_pmu *pmu)
 
 		msg.hdr.ctrl_flags &= ~PMU_CMD_FLAGS_PMU_MASK;
 
-		if (msg.hdr.ctrl_flags == PMU_CMD_FLAGS_EVENT) {
+		if ((msg.hdr.ctrl_flags == PMU_CMD_FLAGS_EVENT) ||
+			(msg.hdr.ctrl_flags == PMU_CMD_FLAGS_RPC_EVENT)) {
 			err = pmu_handle_event(pmu, &msg);
 		} else {
 			err = pmu_response_handle(pmu, &msg);

@@ -131,6 +131,10 @@ struct nv_pmu_perf_rpc {
 #define NV_PMU_PERF_MSG_ID_CHANGE_SEQ_COMPLETION                 (0x00000007U)
 #define NV_PMU_PERF_MSG_ID_PSTATES_INVALIDATE                    (0x00000008U)
 
+#define NV_PMU_RPC_ID_PERF_VFE_CALLBACK                          0x01U
+#define NV_PMU_RPC_ID_PERF_SEQ_COMPLETION                        0x02U
+#define NV_PMU_RPC_ID_PERF_PSTATES_INVALIDATE                    0x03U
+
 /*
  * Message carrying the result of the perf RPC execution.
  */
@@ -154,6 +158,11 @@ struct nv_pmu_perf_msg {
 		struct nv_pmu_perf_msg_rpc rpc;
 		struct nv_pmu_boardobj_msg_grp grp_set;
 	};
+};
+
+struct pmu_nvgpu_rpc_perf_event {
+	struct pmu_hdr msg_hdr;
+	struct pmu_nvgpu_rpc_header rpc_hdr;
 };
 
 struct nv_pmu_rpc_perf_change_seq_queue_change {

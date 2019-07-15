@@ -56,20 +56,21 @@ static int pmu_set_boot_clk_runcb_fn(void *arg)
 
 static int tu104_pmu_handle_perf_event(struct gk20a *g, void *pmumsg)
 {
-	struct nv_pmu_perf_msg *msg = (struct nv_pmu_perf_msg *)pmumsg;
+	struct pmu_nvgpu_rpc_perf_event *msg =
+			(struct pmu_nvgpu_rpc_perf_event *)pmumsg;
 	struct perf_pmupstate *perf_pmu = g->perf_pmu;
 
 	nvgpu_log_fn(g, " ");
-	switch (msg->msg_type) {
-	case NV_PMU_PERF_MSG_ID_VFE_CALLBACK:
+	switch (msg->rpc_hdr.function) {
+	case NV_PMU_RPC_ID_PERF_VFE_CALLBACK:
 		perf_pmu->vfe_init.state_change = true;
 		(void) nvgpu_cond_signal(&perf_pmu->vfe_init.wq);
 		break;
-	case NV_PMU_PERF_MSG_ID_CHANGE_SEQ_COMPLETION:
-		nvgpu_log_fn(g, "Change Seq Completed");
+	case NV_PMU_RPC_ID_PERF_SEQ_COMPLETION:
+		nvgpu_log_info(g, "Change Seq Completed");
 		break;
-	case NV_PMU_PERF_MSG_ID_PSTATES_INVALIDATE:
-		nvgpu_log_fn(g, "Pstate Invalidated");
+	case NV_PMU_RPC_ID_PERF_PSTATES_INVALIDATE:
+		nvgpu_log_info(g, "Pstate Invalidated");
 		break;
 	default:
 		WARN_ON(true);

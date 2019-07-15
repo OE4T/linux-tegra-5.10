@@ -122,7 +122,7 @@ typedef u8 falcon_status;
 #define PMU_CMD_FLAGS_STATUS		BIT8(0)
 #define PMU_CMD_FLAGS_INTR		BIT8(1)
 #define PMU_CMD_FLAGS_EVENT		BIT8(2)
-#define PMU_CMD_FLAGS_WATERMARK		BIT8(3)
+#define PMU_CMD_FLAGS_RPC_EVENT		BIT8(3U)
 
 #define ALIGN_UP(v, gran)       (((v) + ((gran) - 1U)) & ~((gran)-1U))
 
