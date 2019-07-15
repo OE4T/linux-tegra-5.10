@@ -51,6 +51,7 @@
 #define ECC_MODE_MAX_INDEX 13
 #define MAX_RSA_MSG_LEN 256
 #define MAX_RSA1_MSG_LEN 512
+#define AES_IV_SIZE 16
 
 #define get_driver_name(tfm_type, tfm) crypto_tfm_alg_driver_name(tfm_type ## _tfm(tfm))
 
@@ -157,7 +158,7 @@ static int tegra_crypto_dev_open(struct inode *inode, struct file *filp)
 	 * for (LP0) CTX_SAVE test that is performed using CBC
 	 */
 	ctx->aes_tfm[TEGRA_CRYPTO_CBC] =
-		crypto_alloc_skcipher("cbc-aes-tegra",
+		crypto_alloc_skcipher("cbc(aes)",
 		CRYPTO_ALG_TYPE_ABLKCIPHER | CRYPTO_ALG_ASYNC, 0);
 	if (IS_ERR(ctx->aes_tfm[TEGRA_CRYPTO_CBC])) {
 		pr_err("Failed to load transform for cbc-aes-tegra: %ld\n",
@@ -243,7 +244,7 @@ static int process_crypt_req(struct tegra_crypto_ctx *ctx,
 	struct tegra_crypto_completion tcrypt_complete;
 	char aes_algo[5][10] = {"ecb(aes)", "cbc(aes)", "ofb(aes)", "ctr(aes)",
 				"xts(aes)"};
-	const char *algo;
+	const char *algo, *driver_name;
 
 	if (crypt_req->op != TEGRA_CRYPTO_CBC) {
 		if (crypt_req->op >= TEGRA_CRYPTO_MAX)
@@ -272,6 +273,12 @@ static int process_crypt_req(struct tegra_crypto_ctx *ctx,
 		pr_err("%s: Failed to allocate request\n", __func__);
 		ret = -ENOMEM;
 		goto free_tfm;
+	}
+
+	driver_name = get_driver_name(crypto_skcipher, tfm);
+	if (driver_name == NULL) {
+		pr_err("alg:hash: get_driver_name returned NULL");
+		goto process_req_out;
 	}
 
 	if (((crypt_req->keylen &
@@ -374,6 +381,9 @@ static int process_crypt_req(struct tegra_crypto_ctx *ctx,
 				crypt_req->encrypt ? "en" : "de", ret);
 			goto process_req_buf_out;
 		}
+
+		if (strcmp(driver_name, "cbc-aes-tegra-safety") == 0 && crypt_req->encrypt)
+			memcpy(crypt_req->iv, req->iv, AES_IV_SIZE);
 
 		ret = copy_to_user((void __user *)crypt_req->result,
 			(const void *)xbuf[1], size);
@@ -1588,6 +1598,12 @@ static long tegra_crypto_dev_ioctl(struct file *filp,
 			return -EFAULT;
 		}
 		ret = process_crypt_req(ctx, &crypt_req);
+
+		if (copy_to_user((void __user *)arg, &crypt_req, sizeof(crypt_req))) {
+			pr_err("%s: copy_to_user fail(%d)\n", __func__, ret);
+			return -EFAULT;
+		}
+
 		break;
 
 #ifdef CONFIG_COMPAT
