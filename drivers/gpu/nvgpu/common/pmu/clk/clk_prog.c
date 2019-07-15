@@ -266,7 +266,8 @@ static int devinit_get_clk_prog_table_35(struct gk20a *g,
 
 	pclkprogobjs->slave_entry_count = header.slave_entry_count;
 	pclkprogobjs->vf_entry_count = header.vf_entry_count;
-	pclkprogobjs->vf_sec_entry_count = header.vf_sec_entry_count;
+	/* VFE Secondary entry is not supported for auto profile */
+	pclkprogobjs->vf_sec_entry_count = 0U;
 
 	for (i = 0; i < header.entry_count; i++) {
 		(void) memset(&prog_data, 0x0, (u32)sizeof(prog_data));
