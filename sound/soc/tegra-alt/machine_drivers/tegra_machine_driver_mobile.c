@@ -24,7 +24,6 @@
 #include <linux/regulator/consumer.h>
 #include <linux/delay.h>
 #include <linux/pm_runtime.h>
-#include <linux/version.h>
 #include <sound/core.h>
 #include <sound/jack.h>
 #include <sound/pcm.h>
