@@ -96,6 +96,16 @@
 
 #define CTRL_CLK_CLK_DOMAIN_CLIENT_MAX_DOMAINS  16
 
+struct ctrl_clk_domain_control_35_prog_clk_mon {
+	u32 flags;
+	u32 low_threshold_override;
+	u32 high_threshold_override;
+};
+
+struct ctrl_clk_domain_info_35_prog_clk_mon {
+	u8 low_threshold_vfe_idx;
+	u8 high_threshold_vfe_idx;
+};
 
 struct ctrl_clk_clk_prog_1x_master_source_fll {
 	u32 base_vfsmooth_volt_uv;

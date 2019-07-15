@@ -67,8 +67,10 @@ struct nvgpu_clk_domains {
 	bool b_debug_mode;
 	u32 vbios_domains;
 	u16 cntr_sampling_periodms;
+	u16 clkmon_refwin_usec;
 	struct boardobjgrpmask_e32 prog_domains_mask;
 	struct boardobjgrpmask_e32 master_domains_mask;
+	struct boardobjgrpmask_e32 clkmon_domains_mask;
 	struct ctrl_clk_clk_delta  deltas;
 
 	struct nvgpu_clk_domain

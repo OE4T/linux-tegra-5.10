@@ -81,7 +81,9 @@ struct nv_pmu_clk_clk_domain_boardobjgrp_set_header {
 	u32 vbios_domains;
 	struct ctrl_boardobjgrp_mask_e32 prog_domains_mask;
 	struct ctrl_boardobjgrp_mask_e32 master_domains_mask;
+	struct ctrl_boardobjgrp_mask_e32 clkmon_domains_mask;
 	u16 cntr_sampling_periodms;
+	u16 clkmon_refwin_usec;
 	u8 version;
 	bool b_override_o_v_o_c;
 	bool b_debug_mode;
@@ -151,6 +153,9 @@ struct nv_pmu_clk_clk_domain_35_prog_boardobj_set {
 	u8 post_volt_ordering_index;
 	u8 clk_pos;
 	u8 clk_vf_curve_count;
+	struct ctrl_clk_domain_info_35_prog_clk_mon clkmon_info;
+	struct ctrl_clk_domain_control_35_prog_clk_mon clkmon_ctrl;
+	u32 por_volt_delta_uv[CTRL_VOLT_VOLT_RAIL_CLIENT_MAX_RAILS];
 };
 
 struct nv_pmu_clk_clk_domain_35_master_boardobj_set {

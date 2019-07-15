@@ -170,6 +170,7 @@ static int _clk_domains_pmudatainit_3x(struct gk20a *g,
 
 	pset->vbios_domains = pdomains->vbios_domains;
 	pset->cntr_sampling_periodms = pdomains->cntr_sampling_periodms;
+	pset->clkmon_refwin_usec = pdomains->clkmon_refwin_usec;
 	pset->version = pdomains->version;
 	pset->b_override_o_v_o_c = false;
 	pset->b_debug_mode = false;
@@ -184,11 +185,28 @@ static int _clk_domains_pmudatainit_3x(struct gk20a *g,
 				&pdomains->master_domains_mask.super,
 				pdomains->master_domains_mask.super.bitcount,
 				&pset->master_domains_mask.super);
+	if (status != 0) {
+		nvgpu_err(g, "Error exporting Clk master domains masks");
+		return status;
+	}
 
 	status = nvgpu_boardobjgrpmask_export(
-		&pdomains->prog_domains_mask.super,
-		pdomains->prog_domains_mask.super.bitcount,
-		&pset->prog_domains_mask.super);
+				&pdomains->prog_domains_mask.super,
+				pdomains->prog_domains_mask.super.bitcount,
+				&pset->prog_domains_mask.super);
+	if (status != 0) {
+		nvgpu_err(g, "Error exporting Clk prog domains masks");
+		return status;
+	}
+
+	status = nvgpu_boardobjgrpmask_export(
+				&pdomains->clkmon_domains_mask.super,
+				pdomains->clkmon_domains_mask.super.bitcount,
+				&pset->clkmon_domains_mask.super);
+	if (status != 0) {
+		nvgpu_err(g, "Error exporting Clk monitor domains masks");
+		return status;
+	}
 	nvgpu_memcpy((u8 *)&pset->deltas, (u8 *)&pdomains->deltas,
 		(sizeof(struct ctrl_clk_clk_delta)));
 
@@ -226,10 +244,10 @@ int nvgpu_clk_domain_sw_setup(struct gk20a *g)
 	struct nvgpu_clk_domain *pdomain;
 	struct clk_domain_35_master *pdomain_master_35;
 	struct clk_domain_35_slave *pdomain_slave_35;
+	struct clk_domain_35_prog *pdomain_prog_35;
 	u8 i;
 
 	nvgpu_log_info(g, " ");
-
 
 	status = nvgpu_boardobjgrp_construct_e32(g,
 			&g->pmu->clk_pmu->clk_domainobjs->super);
@@ -272,6 +290,14 @@ int nvgpu_clk_domain_sw_setup(struct gk20a *g)
 			status);
 		goto done;
 	}
+	status = boardobjgrpmask_e32_init(&pclkdomainobjs->clkmon_domains_mask,
+			NULL);
+	if (status != 0) {
+		nvgpu_err(g, "boardobjgrpmask_e32_init(clkmon) failed err=%d",
+			status);
+		goto done;
+	}
+
 	pclkdomainobjs->b_enforce_vf_monotonicity = true;
 	pclkdomainobjs->b_enforce_vf_smoothening = true;
 
@@ -295,10 +321,29 @@ int nvgpu_clk_domain_sw_setup(struct gk20a *g)
 
 		if (pdomain->super.implements(g, &pdomain->super,
 				CTRL_CLK_CLK_DOMAIN_TYPE_35_PROG)) {
+			pdomain_prog_35 =
+				(struct clk_domain_35_prog *)(void *)pdomain;
 			status = nvgpu_boardobjgrpmask_bit_set(
 				&pclkdomainobjs->prog_domains_mask.super, i);
 			if (status != 0) {
 				goto done;
+			}
+
+			/* Create the mask of clk monitors that are supported */
+			if ((pdomain_prog_35->
+					clkmon_info.high_threshold_vfe_idx !=
+						CLK_CLKMON_VFE_INDEX_INVALID) ||
+				(pdomain_prog_35->
+					clkmon_info.low_threshold_vfe_idx !=
+						CLK_CLKMON_VFE_INDEX_INVALID)) {
+				status = nvgpu_boardobjgrpmask_bit_set(
+						&pclkdomainobjs->
+						clkmon_domains_mask.super, i);
+				if (status != 0) {
+					nvgpu_err(g,
+					"Error setting Clk monitor masks");
+					return status;
+				}
 			}
 		}
 
@@ -420,6 +465,8 @@ static int devinit_get_clocks_table_35(struct gk20a *g,
 
 	pclkdomainobjs->cntr_sampling_periodms =
 		(u16)clocks_table_header.cntr_sampling_periodms;
+	pclkdomainobjs->clkmon_refwin_usec =
+		(u16)clocks_table_header.reference_window;
 
 	/* Read table entries*/
 	clocks_tbl_entry_ptr = clocks_table_ptr +
@@ -491,6 +538,13 @@ static int devinit_get_clocks_table_35(struct gk20a *g,
 				NV_VBIOS_CLOCKS_TABLE_1X_ENTRY_PARAM1_MASTER_FREQ_OC_DELTA_MAX_MHZ);
 			clk_domain_data.v35_prog.clk_vf_curve_count =
 				vbiosclktbl1xhalentry[index].clk_vf_curve_count;
+
+			clk_domain_data.v35_prog.clkmon_info.low_threshold_vfe_idx =
+				BIOS_GET_FIELD(u8, clocks_table_entry.param3,
+				NV_VBIOS_CLOCKS_TABLE_35_ENTRY_PARAM3_CLK_MONITOR_THRESHOLD_MIN);
+			clk_domain_data.v35_prog.clkmon_info.high_threshold_vfe_idx =
+				BIOS_GET_FIELD(u8, clocks_table_entry.param3,
+				NV_VBIOS_CLOCKS_TABLE_35_ENTRY_PARAM3_CLK_MONITOR_THRESHOLD_MAX);
 			break;
 		}
 
@@ -534,6 +588,13 @@ static int devinit_get_clocks_table_35(struct gk20a *g,
 			clk_domain_data.v35_slave.slave.master_idx =
 				BIOS_GET_FIELD(u8, clocks_table_entry.param1,
 				NV_VBIOS_CLOCKS_TABLE_1X_ENTRY_PARAM1_SLAVE_MASTER_DOMAIN);
+
+			clk_domain_data.v35_prog.clkmon_info.low_threshold_vfe_idx =
+				BIOS_GET_FIELD(u8, clocks_table_entry.param3,
+				NV_VBIOS_CLOCKS_TABLE_35_ENTRY_PARAM3_CLK_MONITOR_THRESHOLD_MIN);
+			clk_domain_data.v35_prog.clkmon_info.high_threshold_vfe_idx =
+				BIOS_GET_FIELD(u8, clocks_table_entry.param3,
+				NV_VBIOS_CLOCKS_TABLE_35_ENTRY_PARAM3_CLK_MONITOR_THRESHOLD_MAX);
 			break;
 		}
 
@@ -942,6 +1003,14 @@ static int clk_domain_pmudatainit_35_prog(struct gk20a *g,
 			pclk_domain_35_prog->post_volt_ordering_index;
 	pset->clk_pos = pclk_domain_35_prog->clk_pos;
 	pset->clk_vf_curve_count = pclk_domain_35_prog->clk_vf_curve_count;
+	pset->clkmon_info.high_threshold_vfe_idx = pclk_domain_35_prog->
+			clkmon_info.high_threshold_vfe_idx;
+	pset->clkmon_info.low_threshold_vfe_idx = pclk_domain_35_prog->
+			clkmon_info.low_threshold_vfe_idx;
+	pset->clkmon_ctrl.high_threshold_override = pclk_domain_35_prog->
+			clkmon_ctrl.high_threshold_override;
+	pset->clkmon_ctrl.low_threshold_override = pclk_domain_35_prog->
+			clkmon_ctrl.low_threshold_override;
 
 	return status;
 }
@@ -999,6 +1068,10 @@ static int clk_domain_construct_35_prog(struct gk20a *g,
 			ptmpdomain->post_volt_ordering_index;
 	pdomain->clk_pos = ptmpdomain->clk_pos;
 	pdomain->clk_vf_curve_count = ptmpdomain->clk_vf_curve_count;
+	pdomain->clkmon_info.high_threshold_vfe_idx = ptmpdomain->
+			clkmon_info.high_threshold_vfe_idx;
+	pdomain->clkmon_info.low_threshold_vfe_idx = ptmpdomain->
+			clkmon_info.low_threshold_vfe_idx;
 
 	return status;
 }

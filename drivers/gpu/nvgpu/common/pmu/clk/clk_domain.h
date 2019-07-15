@@ -33,6 +33,8 @@
 #define CLK_TABLE_HAL_ENTRY_GP 0x02
 #define CLK_TABLE_HAL_ENTRY_GV 0x03
 
+#define CLK_CLKMON_VFE_INDEX_INVALID 0xFF
+
 struct nvgpu_clk_domains;
 struct nvgpu_clk_domain;
 
@@ -69,6 +71,9 @@ struct clk_domain_35_prog {
 	u8 post_volt_ordering_index;
 	u8 clk_pos;
 	u8 clk_vf_curve_count;
+	struct ctrl_clk_domain_info_35_prog_clk_mon clkmon_info;
+	struct ctrl_clk_domain_control_35_prog_clk_mon clkmon_ctrl;
+	u32 por_volt_delta_uv[CTRL_VOLT_VOLT_RAIL_CLIENT_MAX_RAILS];
 };
 
 struct clk_domain_3x_master {
