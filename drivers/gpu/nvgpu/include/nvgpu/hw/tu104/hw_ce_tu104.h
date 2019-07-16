@@ -75,4 +75,17 @@
 #define ce_lce_opt_r(i)\
 		(nvgpu_safe_add_u32(0x00104414U, nvgpu_safe_mult_u32((i), 128U)))
 #define ce_lce_opt_force_barriers_npl__prod_f()                           (0x8U)
+#define ce_grce_config_r(i)\
+		(nvgpu_safe_add_u32(0x00104034U, nvgpu_safe_mult_u32((i), 4U)))
+#define ce_grce_config__size_1_v()                                 (0x00000002U)
+#define ce_grce_config_shared_lce_f(v)                        (((v)&0xfU) << 0U)
+#define ce_grce_config_shared_lce_none_f()                                (0xfU)
+#define ce_grce_config_shared_f(v)                           (((v)&0x1U) << 30U)
+#define ce_grce_config_timeslice_short_f()                                (0x0U)
+#define ce_grce_config_timeslice_long_f()                          (0x80000000U)
+#define ce_pce2lce_config_r(i)\
+		(nvgpu_safe_add_u32(0x00104040U, nvgpu_safe_mult_u32((i), 4U)))
+#define ce_pce2lce_config__size_1_v()                              (0x00000004U)
+#define ce_pce2lce_config_pce_assigned_lce_f(v)               (((v)&0xfU) << 0U)
+#define ce_pce2lce_config_pce_assigned_lce_none_f()                       (0xfU)
 #endif
