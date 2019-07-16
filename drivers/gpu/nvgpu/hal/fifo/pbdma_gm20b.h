@@ -30,15 +30,11 @@ struct nvgpu_debug_context;
 struct nvgpu_channel_dump_info;
 struct nvgpu_gpfifo_entry;
 
-void gm20b_pbdma_intr_enable(struct gk20a *g, bool enable);
-
 bool gm20b_pbdma_handle_intr_0(struct gk20a *g, u32 pbdma_id,
 			u32 pbdma_intr_0, u32 *error_notifier);
-bool gm20b_pbdma_handle_intr_1(struct gk20a *g, u32 pbdma_id,
-			u32 pbdma_intr_1, u32 *error_notifier);
 bool gm20b_pbdma_handle_intr(struct gk20a *g, u32 pbdma_id,
 			u32 *error_notifier);
-u32 gm20b_pbdma_get_signature(struct gk20a *g);
+
 u32 gm20b_pbdma_read_data(struct gk20a *g, u32 pbdma_id);
 void gm20b_pbdma_reset_header(struct gk20a *g, u32 pbdma_id);
 void gm20b_pbdma_reset_method(struct gk20a *g, u32 pbdma_id,
@@ -51,25 +47,35 @@ void gm20b_pbdma_format_gpfifo_entry(struct gk20a *g,
 		u64 pb_gpu_va, u32 method_size);
 
 u32 gm20b_pbdma_device_fatal_0_intr_descs(void);
-u32 gm20b_pbdma_channel_fatal_0_intr_descs(void);
 u32 gm20b_pbdma_restartable_0_intr_descs(void);
 
 void gm20b_pbdma_clear_all_intr(struct gk20a *g, u32 pbdma_id);
 void gm20b_pbdma_disable_and_clear_all_intr(struct gk20a *g);
-void gm20b_pbdma_syncpoint_debug_dump(struct gk20a *g,
-		     struct nvgpu_debug_context *o,
-		     struct nvgpu_channel_dump_info *info);
-void gm20b_pbdma_setup_hw(struct gk20a *g);
 
 u32 gm20b_pbdma_get_gp_base(u64 gpfifo_base);
 u32 gm20b_pbdma_get_gp_base_hi(u64 gpfifo_base, u32 gpfifo_entry);
-u32 gm20b_pbdma_get_fc_formats(void);
-u32 gm20b_pbdma_get_fc_pb_header(void);
+
 u32 gm20b_pbdma_get_fc_subdevice(void);
 u32 gm20b_pbdma_get_fc_target(void);
 u32 gm20b_pbdma_get_ctrl_hce_priv_mode_yes(void);
 u32 gm20b_pbdma_get_userd_aperture_mask(struct gk20a *g, struct nvgpu_mem *mem);
 u32 gm20b_pbdma_get_userd_addr(u32 addr_lo);
 u32 gm20b_pbdma_get_userd_hi_addr(u32 addr_hi);
+
+#ifdef CONFIG_NVGPU_HAL_NON_FUSA
+void gm20b_pbdma_intr_enable(struct gk20a *g, bool enable);
+
+bool gm20b_pbdma_handle_intr_1(struct gk20a *g, u32 pbdma_id,
+			u32 pbdma_intr_1, u32 *error_notifier);
+u32 gm20b_pbdma_get_signature(struct gk20a *g);
+u32 gm20b_pbdma_channel_fatal_0_intr_descs(void);
+
+void gm20b_pbdma_syncpoint_debug_dump(struct gk20a *g,
+		     struct nvgpu_debug_context *o,
+		     struct nvgpu_channel_dump_info *info);
+void gm20b_pbdma_setup_hw(struct gk20a *g);
+u32 gm20b_pbdma_get_fc_formats(void);
+u32 gm20b_pbdma_get_fc_pb_header(void);
+#endif
 
 #endif /* NVGPU_PBDMA_GM20B_H */
