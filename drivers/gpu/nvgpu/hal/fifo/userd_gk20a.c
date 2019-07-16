@@ -32,6 +32,7 @@
 
 #include <nvgpu/hw/gk20a/hw_ram_gk20a.h>
 
+#ifdef CONFIG_NVGPU_USERD
 void gk20a_userd_init_mem(struct gk20a *g, struct nvgpu_channel *c)
 {
 	struct nvgpu_mem *mem = c->userd_mem;
@@ -84,6 +85,7 @@ void gk20a_userd_gp_put(struct gk20a *g, struct nvgpu_channel *c)
 	nvgpu_bar1_writel(g, (u32)addr, c->gpfifo.put);
 }
 #endif
+#endif /* CONFIG_NVGPU_USERD */
 
 u32 gk20a_userd_entry_size(struct gk20a *g)
 {

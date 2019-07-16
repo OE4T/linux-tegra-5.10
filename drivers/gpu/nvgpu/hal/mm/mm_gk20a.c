@@ -44,6 +44,7 @@ void gk20a_mm_init_inst_block(struct nvgpu_mem *inst_block, struct vm_gk20a *vm,
 	}
 }
 
+#ifdef CONFIG_NVGPU_USERD
 u64 gk20a_mm_bar1_map_userd(struct gk20a *g, struct nvgpu_mem *mem, u32 offset)
 {
 	struct nvgpu_fifo *f = &g->fifo;
@@ -54,3 +55,4 @@ u64 gk20a_mm_bar1_map_userd(struct gk20a *g, struct nvgpu_mem *mem, u32 offset)
 				    gk20a_mem_flag_none, false,
 				    mem->aperture);
 }
+#endif

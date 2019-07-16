@@ -268,12 +268,13 @@ struct nvgpu_fifo {
 		struct nvgpu_mutex lock;
 	} profile;
 #endif
+#ifdef CONFIG_NVGPU_USERD
 	struct nvgpu_mutex userd_mutex;
 	struct nvgpu_mem *userd_slabs;
 	u32 num_userd_slabs;
 	u32 num_channels_per_slab;
-	u32 userd_entry_size;
 	u64 userd_gpu_va;
+#endif
 
 	unsigned int used_channels;
 	struct nvgpu_channel *channel;

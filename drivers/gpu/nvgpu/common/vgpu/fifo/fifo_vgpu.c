@@ -97,6 +97,7 @@ clean_up:
 
 int vgpu_init_fifo_setup_hw(struct gk20a *g)
 {
+#ifdef CONFIG_NVGPU_USERD
 	struct nvgpu_fifo *f = &g->fifo;
 	u32 v, v1 = 0x33, v2 = 0x55;
 	struct nvgpu_mem *mem = &f->userd_slabs[0];
@@ -151,7 +152,7 @@ int vgpu_init_fifo_setup_hw(struct gk20a *g)
 	gk20a_bar1_writel(g, bar1_vaddr, v);
 
 	nvgpu_log_fn(g, "done");
-
+#endif
 	return 0;
 }
 

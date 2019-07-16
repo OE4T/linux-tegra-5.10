@@ -327,7 +327,14 @@ struct nvgpu_channel {
 
 	u64 userd_iova;
 
-	struct nvgpu_mem *userd_mem;	/* kernel mode userd */
+	/*
+	 * If kernel mode submit is enabled, userd_mem points to
+	 * one userd slab, and userd_offset indicates the offset in bytes
+	 * from the start of this slab.
+	 * If user mode submit is enabled, userd_mem points to usermode_userd,
+	 * and userd_offset is 0.
+	 */
+	struct nvgpu_mem *userd_mem;	/* current userd (kernel or usermode) */
 	u32 userd_offset;		/* in bytes from start of userd_mem */
 
 	struct nvgpu_cond notifier_wq;
@@ -539,6 +546,7 @@ static inline void trace_write_pushbuffers(struct nvgpu_channel *c, u32 count)
 void nvgpu_channel_set_unserviceable(struct nvgpu_channel *ch);
 bool nvgpu_channel_check_unserviceable(struct nvgpu_channel *ch);
 
+#ifdef CONFIG_NVGPU_USERD
 static inline u64 nvgpu_channel_userd_addr(struct nvgpu_channel *c)
 {
 	return nvgpu_mem_get_addr(c->g, c->userd_mem) + c->userd_offset;
@@ -549,6 +557,7 @@ static inline u64 nvgpu_channel_userd_gpu_va(struct nvgpu_channel *c)
 	struct nvgpu_mem *mem = c->userd_mem;
 	return (mem->gpu_va != 0ULL) ? mem->gpu_va + c->userd_offset : 0ULL;
 }
+#endif
 
 int nvgpu_channel_alloc_inst(struct gk20a *g, struct nvgpu_channel *ch);
 void nvgpu_channel_free_inst(struct gk20a *g, struct nvgpu_channel *ch);

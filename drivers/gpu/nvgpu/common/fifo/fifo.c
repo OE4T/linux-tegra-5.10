@@ -43,7 +43,9 @@ void nvgpu_fifo_cleanup_sw_common(struct gk20a *g)
 
 	nvgpu_log_fn(g, " ");
 
+#ifdef CONFIG_NVGPU_USERD
 	g->ops.userd.cleanup_sw(g);
+#endif
 	nvgpu_channel_cleanup_sw(g);
 	nvgpu_tsg_cleanup_sw(g);
 	nvgpu_runlist_cleanup_sw(g);
@@ -120,19 +122,23 @@ int nvgpu_fifo_setup_sw_common(struct gk20a *g)
 		goto clean_up_engine;
 	}
 
+#ifdef CONFIG_NVGPU_USERD
 	err = g->ops.userd.setup_sw(g);
 	if (err != 0) {
 		nvgpu_err(g, "failed to init userd support");
 		goto clean_up_runlist;
 	}
+#endif
 
 	f->remove_support = nvgpu_fifo_remove_support;
 
 	nvgpu_log_fn(g, "done");
 	return 0;
 
+#ifdef CONFIG_NVGPU_USERD
 clean_up_runlist:
 	nvgpu_runlist_cleanup_sw(g);
+#endif
 
 clean_up_engine:
 	nvgpu_engine_cleanup_sw(g);

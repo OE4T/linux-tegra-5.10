@@ -998,17 +998,17 @@ static const struct gpu_ops tu104_ops = {
 		.write_state = gk20a_runlist_write_state,
 	},
 	.userd = {
+#ifdef CONFIG_NVGPU_USERD
 		.setup_sw = nvgpu_userd_setup_sw,
 		.cleanup_sw = nvgpu_userd_cleanup_sw,
-#ifdef CONFIG_NVGPU_USERD
 		.init_mem = gk20a_userd_init_mem,
 #ifdef CONFIG_NVGPU_KERNEL_MODE_SUBMIT
 		.gp_get = gv11b_userd_gp_get,
 		.gp_put = gv11b_userd_gp_put,
 		.pb_get = gv11b_userd_pb_get,
 #endif
-		.entry_size = gk20a_userd_entry_size,
 #endif /* CONFIG_NVGPU_USERD */
+		.entry_size = gk20a_userd_entry_size,
 	},
 	.channel = {
 		.alloc_inst = nvgpu_channel_alloc_inst,

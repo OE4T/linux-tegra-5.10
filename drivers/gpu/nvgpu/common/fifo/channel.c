@@ -1553,10 +1553,10 @@ void nvgpu_channel_wait_until_counter_is_N(
 
 static void nvgpu_channel_usermode_deinit(struct nvgpu_channel *ch)
 {
-	struct gk20a *g = ch->g;
-
 	nvgpu_channel_free_usermode_buffers(ch);
-	(void) nvgpu_userd_init_channel(g, ch);
+#ifdef CONFIG_NVGPU_USERD
+	(void) nvgpu_userd_init_channel(ch->g, ch);
+#endif
 	ch->usermode_submit_enabled = false;
 }
 
@@ -1984,10 +1984,12 @@ struct nvgpu_channel *gk20a_open_new_channel(struct gk20a *g,
 	ch->pid = tid;
 	ch->tgid = pid;  /* process granularity for FECS traces */
 
+#ifdef CONFIG_NVGPU_USERD
 	if (nvgpu_userd_init_channel(g, ch) != 0) {
 		nvgpu_err(g, "userd init failed");
 		goto clean_up;
 	}
+#endif
 
 	if (g->ops.channel.alloc_inst(g, ch) != 0) {
 		nvgpu_err(g, "inst allocation failed");
@@ -2093,8 +2095,9 @@ static int nvgpu_channel_setup_usermode(struct nvgpu_channel *c,
 			nvgpu_err(g, "Usermode buffer alloc failed");
 			goto clean_up;
 		}
-		c->userd_iova = nvgpu_mem_get_addr(g,
-			&c->usermode_userd);
+		c->userd_mem = &c->usermode_userd;
+		c->userd_offset = 0U;
+		c->userd_iova = nvgpu_mem_get_addr(g, c->userd_mem);
 		c->usermode_submit_enabled = true;
 	} else {
 		nvgpu_err(g, "Usermode submit not supported");
@@ -2121,7 +2124,9 @@ static int nvgpu_channel_setup_usermode(struct nvgpu_channel *c,
 
 clean_up_unmap:
 	nvgpu_channel_free_usermode_buffers(c);
+#ifdef CONFIG_NVGPU_USERD
 	(void) nvgpu_userd_init_channel(g, c);
+#endif
 	c->usermode_submit_enabled = false;
 clean_up:
 	return err;

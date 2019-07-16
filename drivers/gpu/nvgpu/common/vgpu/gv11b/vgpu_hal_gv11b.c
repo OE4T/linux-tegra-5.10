@@ -631,15 +631,15 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 		.wait_pending = NULL,
 	},
 	.userd = {
+#ifdef CONFIG_NVGPU_USERD
 		.setup_sw = vgpu_userd_setup_sw,
 		.cleanup_sw = vgpu_userd_cleanup_sw,
-#ifdef CONFIG_NVGPU_USERD
 		.init_mem = gk20a_userd_init_mem,
 		.gp_get = gv11b_userd_gp_get,
 		.gp_put = gv11b_userd_gp_put,
 		.pb_get = gv11b_userd_pb_get,
-		.entry_size = gk20a_userd_entry_size,
 #endif
+		.entry_size = gk20a_userd_entry_size,
 	},
 	.channel = {
 		.alloc_inst = vgpu_channel_alloc_inst,

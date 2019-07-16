@@ -69,9 +69,6 @@ NVGPU_COMMON_CFLAGS             += -DCONFIG_NVGPU_DEBUGGER
 CONFIG_NVGPU_CILP               := 1
 NVGPU_COMMON_CFLAGS             += -DCONFIG_NVGPU_CILP
 
-# Enable USERD for safety build until we switch to user mode submits only
-NVGPU_COMMON_CFLAGS             += -DCONFIG_NVGPU_USERD
-
 # Enable Channel WDT for safety build until we switch to user mode submits only
 NVGPU_COMMON_CFLAGS		+= -DCONFIG_NVGPU_CHANNEL_WDT
 
@@ -176,4 +173,10 @@ NVGPU_COMMON_CFLAGS             += -DCONFIG_NVGPU_CLK_ARB
 NVGPU_COMMON_CFLAGS             += -DCONFIG_NVGPU_FALCON_NON_FUSA
 
 endif
+endif
+
+# Enable USERD only if kernel mode submit is supported
+ifeq ($(CONFIG_NVGPU_KERNEL_MODE_SUBMIT),1)
+CONFIG_NVGPU_USERD		:= 1
+NVGPU_COMMON_CFLAGS             += -DCONFIG_NVGPU_USERD
 endif

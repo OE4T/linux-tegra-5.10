@@ -33,7 +33,6 @@
 #include <nvgpu/vm_area.h>
 #include <nvgpu/dma.h>
 
-#ifdef CONFIG_NVGPU_USERD
 int nvgpu_userd_init_slabs(struct gk20a *g)
 {
 	struct nvgpu_fifo *f = &g->fifo;
@@ -41,7 +40,7 @@ int nvgpu_userd_init_slabs(struct gk20a *g)
 
 	nvgpu_mutex_init(&f->userd_mutex);
 
-	f->num_channels_per_slab = PAGE_SIZE /  f->userd_entry_size;
+	f->num_channels_per_slab = PAGE_SIZE /  g->ops.userd.entry_size(g);
 	f->num_userd_slabs =
 		DIV_ROUND_UP(f->num_channels, f->num_channels_per_slab);
 
@@ -74,11 +73,9 @@ void nvgpu_userd_free_slabs(struct gk20a *g)
 
 	nvgpu_mutex_destroy(&f->userd_mutex);
 }
-#endif
 
 int nvgpu_userd_init_channel(struct gk20a *g, struct nvgpu_channel *c)
 {
-#ifdef CONFIG_NVGPU_USERD
 	struct nvgpu_fifo *f = &g->fifo;
 	struct nvgpu_mem *mem;
 	u32 slab = c->chid / f->num_channels_per_slab;
@@ -107,7 +104,7 @@ int nvgpu_userd_init_channel(struct gk20a *g, struct nvgpu_channel *c)
 	}
 	c->userd_mem = mem;
 	c->userd_offset = (c->chid % f->num_channels_per_slab) *
-				f->userd_entry_size;
+				g->ops.userd.entry_size(g);
 	c->userd_iova = nvgpu_channel_userd_addr(c);
 
 	nvgpu_log(g, gpu_dbg_info,
@@ -119,19 +116,13 @@ int nvgpu_userd_init_channel(struct gk20a *g, struct nvgpu_channel *c)
 done:
 	nvgpu_mutex_release(&f->userd_mutex);
 	return err;
-#else
-	return 0;
-#endif
 }
 
 int nvgpu_userd_setup_sw(struct gk20a *g)
 {
-#ifdef CONFIG_NVGPU_USERD
 	struct nvgpu_fifo *f = &g->fifo;
 	int err;
 	u32 size, num_pages;
-
-	f->userd_entry_size = g->ops.userd.entry_size(g);
 
 	err = nvgpu_userd_init_slabs(g);
 	if (err != 0) {
@@ -139,7 +130,7 @@ int nvgpu_userd_setup_sw(struct gk20a *g)
 		return err;
 	}
 
-	size = f->num_channels * f->userd_entry_size;
+	size = f->num_channels * g->ops.userd.entry_size(g);
 	num_pages = DIV_ROUND_UP(size, PAGE_SIZE);
 	err = nvgpu_vm_area_alloc(g->mm.bar1.vm,
 			num_pages, PAGE_SIZE, &f->userd_gpu_va, 0);
@@ -154,14 +145,10 @@ clean_up:
 	nvgpu_userd_free_slabs(g);
 
 	return err;
-#else
-	return 0;
-#endif
 }
 
 void nvgpu_userd_cleanup_sw(struct gk20a *g)
 {
-#ifdef CONFIG_NVGPU_USERD
 	struct nvgpu_fifo *f = &g->fifo;
 
 	if (f->userd_gpu_va != 0ULL) {
@@ -170,6 +157,4 @@ void nvgpu_userd_cleanup_sw(struct gk20a *g)
 	}
 
 	nvgpu_userd_free_slabs(g);
-#endif
 }
-

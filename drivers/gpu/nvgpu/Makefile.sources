@@ -143,7 +143,6 @@ srcs += common/utils/enabled.c \
 	common/fifo/engine_status.c \
 	common/fifo/engines.c \
 	common/fifo/pbdma_status.c \
-	common/fifo/userd.c \
 	common/mc/mc.c \
 	hal/init/hal_gv11b.c \
 	hal/init/hal_gv11b_litter.c \
@@ -375,9 +374,13 @@ endif
 ifeq ($(CONFIG_NVGPU_KERNEL_MODE_SUBMIT),1)
 srcs += common/fifo/submit.c \
 	common/sync/channel_sync_semaphore.c \
-	hal/fifo/userd_gv11b.c \
 	hal/sync/sema_cmdbuf_gk20a.c \
 	hal/sync/sema_cmdbuf_gv11b.c
+endif
+
+ifeq ($(CONFIG_NVGPU_USERD),1)
+srcs += common/fifo/userd.c \
+	hal/fifo/userd_gv11b.c
 endif
 
 ifeq ($(CONFIG_NVGPU_FENCE),1)
@@ -501,7 +504,6 @@ srcs += common/vgpu/init/init_vgpu.c \
 	common/vgpu/fifo/preempt_vgpu.c \
 	common/vgpu/fifo/runlist_vgpu.c \
 	common/vgpu/fifo/ramfc_vgpu.c \
-	common/vgpu/fifo/userd_vgpu.c \
 	common/vgpu/perf/perf_vgpu.c \
 	common/vgpu/mm/mm_vgpu.c \
 	common/vgpu/mm/vm_vgpu.c \
@@ -518,6 +520,10 @@ srcs += common/vgpu/init/init_vgpu.c \
 	common/vgpu/gp10b/vgpu_hal_gp10b.c \
 	hal/vgpu/fifo/fifo_gv11b_vgpu.c \
 	hal/vgpu/sync/syncpt_cmdbuf_gv11b_vgpu.c
+
+ifeq ($(CONFIG_NVGPU_USERD),1)
+srcs += common/vgpu/fifo/userd_vgpu.c
+endif
 
 ifeq ($(CONFIG_NVGPU_COMPRESSION),1)
 srcs += common/vgpu/cbc/cbc_vgpu.c

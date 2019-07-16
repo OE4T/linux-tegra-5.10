@@ -733,17 +733,17 @@ static const struct gpu_ops gm20b_ops = {
 		.write_state = gk20a_runlist_write_state,
 	},
 	.userd = {
+#ifdef CONFIG_NVGPU_USERD
 		.setup_sw = nvgpu_userd_setup_sw,
 		.cleanup_sw = nvgpu_userd_cleanup_sw,
-#ifdef CONFIG_NVGPU_USERD
 		.init_mem = gk20a_userd_init_mem,
 #ifdef CONFIG_NVGPU_KERNEL_MODE_SUBMIT
 		.gp_get = gk20a_userd_gp_get,
 		.gp_put = gk20a_userd_gp_put,
 		.pb_get = gk20a_userd_pb_get,
 #endif
-		.entry_size = gk20a_userd_entry_size,
 #endif /* CONFIG_NVGPU_USERD */
+		.entry_size = gk20a_userd_entry_size,
 	},
 	.channel = {
 		.alloc_inst = nvgpu_channel_alloc_inst,
@@ -794,7 +794,9 @@ static const struct gpu_ops gm20b_ops = {
 		.setup_hw = nvgpu_mm_setup_hw,
 		.is_bar1_supported = gm20b_mm_is_bar1_supported,
 		.init_inst_block = gk20a_mm_init_inst_block,
+#ifdef CONFIG_NVGPU_USERD
 		.bar1_map_userd = gk20a_mm_bar1_map_userd,
+#endif
 		.cache = {
 			.fb_flush = gk20a_mm_fb_flush,
 			.l2_invalidate = gk20a_mm_l2_invalidate,
@@ -1041,6 +1043,11 @@ static const struct gpu_ops gm20b_ops = {
 int gm20b_init_hal(struct gk20a *g)
 {
 	struct gpu_ops *gops = &g->ops;
+
+#ifndef CONFIG_NVGPU_USERD
+	nvgpu_err(g, "CONFIG_NVGPU_USERD is needed for gm20b support");
+	return -EINVAL;
+#endif
 
 	gops->ltc = gm20b_ops.ltc;
 #ifdef CONFIG_NVGPU_COMPRESSION
