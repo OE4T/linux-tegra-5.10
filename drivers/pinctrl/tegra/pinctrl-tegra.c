@@ -354,6 +354,11 @@ static int tegra_pinctrl_gpio_request_enable(struct pinctrl_dev *pctldev,
 	struct tegra_pmx *pmx = pinctrl_dev_get_drvdata(pctldev);
 	const struct tegra_pingroup *group;
 	u32 value;
+	int ret;
+
+	ret = tegra_pinctrl_gpio_save_config(pctldev, range, offset);
+	if (ret)
+		return ret;
 
 	if (!pmx->soc->sfsel_in_mux)
 		return 0;
@@ -374,21 +379,7 @@ static void tegra_pinctrl_gpio_disable_free(struct pinctrl_dev *pctldev,
 					    struct pinctrl_gpio_range *range,
 					    unsigned int offset)
 {
-	struct tegra_pmx *pmx = pinctrl_dev_get_drvdata(pctldev);
-	const struct tegra_pingroup *group;
-	u32 value;
-
-	if (!pmx->soc->sfsel_in_mux)
-		return;
-
-	group = &pmx->soc->groups[offset];
-
-	if (group->mux_reg < 0 || group->sfsel_bit < 0)
-		return;
-
-	value = pmx_readl(pmx, group->mux_bank, group->mux_reg);
-	value |= BIT(group->sfsel_bit);
-	pmx_writel(pmx, value, group->mux_bank, group->mux_reg);
+	tegra_pinctrl_gpio_restore_config(pctldev, range, offset);
 }
 
 static const struct pinmux_ops tegra_pinmux_ops = {
