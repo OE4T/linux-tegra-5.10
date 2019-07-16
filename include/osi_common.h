@@ -23,9 +23,12 @@
 #ifndef OSI_COMMON_H
 #define OSI_COMMON_H
 
+/**
+ * @addtogroup EQOS-Helper Helper MACROS
+ * @{
+ */
 #define OSI_UNLOCKED		0x0U
 #define OSI_LOCKED		0x1U
-
 #define TEN_POWER_9		0x3B9ACA00U
 #define TWO_POWER_32		0x100000000ULL
 #define TWO_POWER_31		0x80000000U
@@ -143,7 +146,14 @@
 #define H32(data)       (((data) & 0xFFFFFFFF00000000UL) >> 32UL)
 
 #define OSI_INVALID_CHAN_NUM    0xFFU
+/** @} */
 
+/**
+ * @addtogroup EQOS-MAC EQOS MAC HW supported features
+ *
+ * @brief Helps in identifying the features that are set in MAC HW
+ * @{
+ */
 #define EQOS_MAC_HFR0		0x11c
 #define EQOS_MAC_HFR1		0x120
 #define EQOS_MAC_HFR2		0x124
@@ -185,195 +195,184 @@
 #define EQOS_MAC_HFR2_TXCHCNT_MASK	0xfU
 #define EQOS_MAC_HFR2_PPSOUTNUM_MASK	0x7U
 #define EQOS_MAC_HFR2_AUXSNAPNUM_MASK	0x7U
+/** @} */
 
 /**
- *	struct osi_hw_features - MAC HW supported features.
- *	@mii_sel: It sets to 1 when 10/100 Mbps is selected as the Mode of
- *		  Operation
- *	@gmii_sel: It sets to 1 when 1000 Mbps is selected as the Mode of
- *		   Operation.
- *	@hd_sel: It sets to 1 when the half-duplex mode is selected.
- *	@pcs_sel: It sets to 1 when the TBI, SGMII, or RTBI PHY interface
- *		  option is selected.
- *	@vlan_hash_en: It sets to 1 when the Enable VLAN Hash Table Based
- *		       Filtering option is selected.
- *	@sma_sel: It sets to 1 when the Enable Station Management
- *		  (MDIO Interface) option is selected.
- *	@rwk_sel: It sets to 1 when the Enable Remote Wake-Up Packet Detection
- *		  option is selected.
- *	@mgk_sel: It sets to 1 when the Enable Magic Packet Detection option is
- *		  selected.
- *	@mmc_sel: It sets to 1 when the Enable MAC Management Counters (MMC)
- *		  option is selected.
- *	@arp_offld_en: It sets to 1 when the Enable IPv4 ARP Offload option is
- *		       selected.
- *	@ts_sel: It sets to 1 when the Enable IEEE 1588 Timestamp Support
- *		 option is selected.
- *	@eee_sel: It sets to 1 when the Enable Energy Efficient Ethernet (EEE)
- *		  option is selected.
- *	@tx_coe_sel: It sets to 1 when the Enable Transmit TCP/IP Checksum
- *		     Insertion option is selected.
- *	@rx_coe_sel: It sets to 1 when the Enable Receive TCP/IP Checksum Check
- *		     option is selected.
- *	@mac_addr16_sel: It sets to 1 when the Enable Additional 1-31 MAC
- *			 Address Registers option is selected.
- *	@mac_addr32_sel: It sets to 1 when the Enable Additional 32 MAC
- *			 Address Registers (32-63) option is selected
- *	@mac_addr64_sel: It sets to 1 when the Enable Additional 64 MAC
- *			 Address Registers (64-127) option is selected.
- *	@tsstssel: It sets to 1 when the Enable IEEE 1588 Timestamp Support
- *		   option is selected.
- *	@sa_vlan_ins: It sets to 1 when the Enable SA and VLAN Insertion on Tx
- *		      option is selected.
- *	@act_phy_sel: Active PHY Selected
- *		When you have multiple PHY interfaces in your configuration,
- *		this field indicates the sampled value of phy_intf_sel_i during
- *		reset de-assertion:
- *			000: GMII or MII
- *			001: RGMII
- *			010: SGMII
- *			011: TBI
- *			100: RMII
- *			101: RTBI
- *			110: SMII
- *			111: RevMII
- *			All Others: Reserved.
- *	@rx_fifo_size: MTL Receive FIFO Size
- *		This field contains the configured value of MTL Rx FIFO in
- *		bytes expressed as Log to base 2 minus 7, that is,
- *		Log2(RXFIFO_SIZE) -7:
- *			00000: 128 bytes
- *			00001: 256 bytes
- *			00010: 512 bytes
- *			00011: 1,024 bytes
- *			00100: 2,048 bytes
- *			00101: 4,096 bytes
- *			00110: 8,192 bytes
- *			00111: 16,384 bytes
- *			01000: 32,767 bytes
- *			01000: 32 KB
- *			01001: 64 KB
- *			01010: 128 KB
- *			01011: 256 KB
- *			01100-11111: Reserved.
- *	@tx_fifo_size:	MTL Transmit FIFO Size.
- *		This field contains the configured value of MTL Tx FIFO in
- *		bytes expressed as Log to base 2 minus 7, that is,
- *		Log2(TXFIFO_SIZE) -7:
- *			00000: 128 bytes
- *			00001: 256 bytes
- *			00010: 512 bytes
- *			00011: 1,024 bytes
- *			00100: 2,048 bytes
- *			00101: 4,096 bytes
- *			00110: 8,192 bytes
- *			00111: 16,384 bytes
- *			01000: 32 KB
- *			01001: 64 KB
- *			01010: 128 KB
- *			01011-11111: Reserved.
- *	@adv_ts_hword: It set to 1 when Advance timestamping High Word selected.
- *	@addr_64: Address Width.
- *		This field indicates the configured address width:
- *			00: 32
- *			01: 40
- *			10: 48
- *			11: Reserved
- *	@dcb_en: It sets to 1 when DCB Feature Enable.
- *	@sph_en: It sets to 1 when Split Header Feature Enable.
- *	@tso_en: It sets to 1 when TCP Segmentation Offload Enable.
- *	@dma_debug_gen:	It seys to 1 when DMA debug registers are enabled.
- *	@av_sel: It sets to 1 AV Feature Enabled.
- *	@hash_tbl_sz: This field indicates the size of the hash table:
- *			00: No hash table
- *			01: 64
- *			10: 128
- *			11: 256.
- *	@l3l4_filter_num: This field indicates the total number of L3 or L4
- *			  filters:
- *			0000: No L3 or L4 Filter
- *			0001: 1 L3 or L4 Filter
- *			0010: 2 L3 or L4 Filters
- *			..
- *			1000: 8 L3 or L4.
- *	@rx_q_cnt: It holds number of MTL Receive Queues.
- *	@tx_q_cnt: It holds number of MTL Transmit Queues.
- *	@rx_ch_cnt: It holds number of DMA Receive channels.
- *	@tx_ch_cnt: This field indicates the number of DMA Transmit channels:
- *		0000: 1 DMA Tx Channel
- *		0001: 2 DMA Tx Channels
- *		..
- *		0111: 8 DMA Tx.
- *	@pps_out_num: This field indicates the number of PPS outputs:
- *			000: No PPS output
- *			001: 1 PPS output
- *			010: 2 PPS outputs
- *			011: 3 PPS outputs
- *			100: 4 PPS outputs
- *			101-111: Reserved
- *	@aux_snap_num: Number of Auxiliary Snapshot Inputs
- *		This field indicates the number of auxiliary snapshot inputs:
- *			000: No auxiliary input
- *			001: 1 auxiliary input
- *			010: 2 auxiliary inputs
- *			011: 3 auxiliary inputs
- *			100: 4 auxiliary inputs
- *			101-111: Reserved
+ * @brief struct osi_hw_features - MAC HW supported features.
  */
 struct osi_hw_features {
-	/* HW Feature Register0 */
+	/** It is set to 1 when 10/100 Mbps is selected as the Mode of
+	 * Operation */
 	unsigned int mii_sel;
+	/** It sets to 1 when 1000 Mbps is selected as the Mode of Operation */
 	unsigned int gmii_sel;
+	/** It sets to 1 when the half-duplex mode is selected */
 	unsigned int hd_sel;
+	/** It sets to 1 when the TBI, SGMII, or RTBI PHY interface
+	 * option is selected */
 	unsigned int pcs_sel;
+	/** It sets to 1 when the Enable VLAN Hash Table Based Filtering
+	 * option is selected */
 	unsigned int vlan_hash_en;
+	/** It sets to 1 when the Enable Station Management (MDIO Interface)
+	 * option is selected */
 	unsigned int sma_sel;
+	/** It sets to 1 when the Enable Remote Wake-Up Packet Detection
+	 * option is selected */
 	unsigned int rwk_sel;
+	/** It sets to 1 when the Enable Magic Packet Detection option is
+	 * selected */
 	unsigned int mgk_sel;
+	/** It sets to 1 when the Enable MAC Management Counters (MMC) option
+	 * is selected */
 	unsigned int mmc_sel;
+	/** It sets to 1 when the Enable IPv4 ARP Offload option is selected */
 	unsigned int arp_offld_en;
+	/** It sets to 1 when the Enable IEEE 1588 Timestamp Support option
+	 * is selected */
 	unsigned int ts_sel;
+	/** It sets to 1 when the Enable Energy Efficient Ethernet (EEE) option
+	 * is selected */
 	unsigned int eee_sel;
+	/** It sets to 1 when the Enable Transmit TCP/IP Checksum Insertion
+	 * option is selected */
 	unsigned int tx_coe_sel;
+	/** It sets to 1 when the Enable Receive TCP/IP Checksum Check option
+	 * is selected */
 	unsigned int rx_coe_sel;
+	/** It sets to 1 when the Enable Additional 1-31 MAC Address Registers
+	 * option is selected */
 	unsigned int mac_addr16_sel;
+	/** It sets to 1 when the Enable Additional 32-63 MAC Address Registers
+	 * option is selected */
 	unsigned int mac_addr32_sel;
+	/** It sets to 1 when the Enable Additional 64-127 MAC Address Registers
+	 * option is selected */
 	unsigned int mac_addr64_sel;
+	/** It sets to 1 when the Enable IEEE 1588 Timestamp Support option
+	 * is selected */
 	unsigned int tsstssel;
+	/** It sets to 1 when the Enable SA and VLAN Insertion on Tx option
+	 * is selected */
 	unsigned int sa_vlan_ins;
+	/** Active PHY Selected
+	 * When you have multiple PHY interfaces in your configuration,
+	 * this field indicates the sampled value of phy_intf_sel_i during
+	 * reset de-assertion:
+	 * 000: GMII or MII
+	 * 001: RGMII
+	 * 010: SGMII
+	 * 011: TBI
+	 * 100: RMII
+	 * 101: RTBI
+	 * 110: SMII
+	 * 111: RevMII
+	 * All Others: Reserved */
 	unsigned int act_phy_sel;
-	/* HW Feature Register1 */
+	/** MTL Receive FIFO Size
+	 * This field contains the configured value of MTL Rx FIFO in bytes
+	 * expressed as Log to base 2 minus 7, that is, Log2(RXFIFO_SIZE) -7:
+	 * 00000: 128 bytes
+	 * 00001: 256 bytes
+	 * 00010: 512 bytes
+	 * 00011: 1,024 bytes
+	 * 00100: 2,048 bytes
+	 * 00101: 4,096 bytes
+	 * 00110: 8,192 bytes
+	 * 00111: 16,384 bytes
+	 * 01000: 32,767 bytes
+	 * 01000: 32 KB
+	 * 01001: 64 KB
+	 * 01010: 128 KB
+	 * 01011: 256 KB
+	 * 01100-11111: Reserved */
 	unsigned int rx_fifo_size;
+	/** MTL Transmit FIFO Size.
+	 * This field contains the configured value of MTL Tx FIFO in
+	 * bytes expressed as Log to base 2 minus 7, that is,
+	 * Log2(TXFIFO_SIZE) -7:
+	 * 00000: 128 bytes
+	 * 00001: 256 bytes
+	 * 00010: 512 bytes
+	 * 00011: 1,024 bytes
+	 * 00100: 2,048 bytes
+	 * 00101: 4,096 bytes
+	 * 00110: 8,192 bytes
+	 * 00111: 16,384 bytes
+	 * 01000: 32 KB
+	 * 01001: 64 KB
+	 * 01010: 128 KB
+	 * 01011-11111: Reserved */
 	unsigned int tx_fifo_size;
+	/** It set to 1 when Advance timestamping High Word selected */
 	unsigned int adv_ts_hword;
+	/** Address Width.
+	 * This field indicates the configured address width:
+	 * 00: 32
+	 * 01: 40
+	 * 10: 48
+	 * 11: Reserved */
 	unsigned int addr_64;
+	/** It sets to 1 when DCB Feature Enable */
 	unsigned int dcb_en;
+	/** It sets to 1 when Split Header Feature Enable */
 	unsigned int sph_en;
+	/** It sets to 1 when TCP Segmentation Offload Enable */
 	unsigned int tso_en;
+	/** It sets to 1 when DMA debug registers are enabled */
 	unsigned int dma_debug_gen;
+	/** It sets to 1 if AV Feature Enabled */
 	unsigned int av_sel;
+	/** This field indicates the size of the hash table:
+	 * 00: No hash table
+	 * 01: 64
+	 * 10: 128
+	 * 11: 256 */
 	unsigned int hash_tbl_sz;
+	/** This field indicates the total number of L3 or L4 filters:
+	 * 0000: No L3 or L4 Filter
+	 * 0001: 1 L3 or L4 Filter
+	 * 0010: 2 L3 or L4 Filters
+	 * ..
+	 * 1000: 8 L3 or L4 */
 	unsigned int l3l4_filter_num;
-	/* HW Feature Register2 */
+	/** It holds number of MTL Receive Queues */
 	unsigned int rx_q_cnt;
+	/** It holds number of MTL Transmit Queues */
 	unsigned int tx_q_cnt;
+	/** It holds number of DMA Receive channels */
 	unsigned int rx_ch_cnt;
+	/** This field indicates the number of DMA Transmit channels:
+	 * 0000: 1 DMA Tx Channel
+	 * 0001: 2 DMA Tx Channels
+	 * ..
+	 * 0111: 8 DMA Tx */
 	unsigned int tx_ch_cnt;
+	/** This field indicates the number of PPS outputs:
+	 * 000: No PPS output
+	 * 001: 1 PPS output
+	 * 010: 2 PPS outputs
+	 * 011: 3 PPS outputs
+	 * 100: 4 PPS outputs
+	 * 101-111: Reserved */
 	unsigned int pps_out_num;
+	/** Number of Auxiliary Snapshot Inputs
+	 * This field indicates the number of auxiliary snapshot inputs:
+	 * 000: No auxiliary input
+	 * 001: 1 auxiliary input
+	 * 010: 2 auxiliary inputs
+	 * 011: 3 auxiliary inputs
+	 * 100: 4 auxiliary inputs
+	 * 101-111: Reserved */
 	unsigned int aux_snap_num;
 };
 
 /**
- *	osi_lock_init - Initialize lock to unlocked state.
- *	@lock - Pointer to lock to be initialized
+ * @brief osi_lock_init - Initialize lock to unlocked state.
  *
- *	Algorithm: Set lock to unlocked state.
+ * Algorithm: Set lock to unlocked state.
  *
- *	Dependencies: None.
- *
- *	Protection: None.
- *
- *	Return: None.
+ * @param[in] lock - Pointer to lock to be initialized
  */
 static inline void osi_lock_init(unsigned int *lock)
 {
@@ -381,17 +380,14 @@ static inline void osi_lock_init(unsigned int *lock)
 }
 
 /**
- *	osi_lock_irq_enabled - Spin lock. Busy loop till lock is acquired.
- *	@lock - Pointer to lock to be acquired.
+ * @brief osi_lock_irq_enabled - Spin lock. Busy loop till lock is acquired.
  *
- *	Algorithm: Atomic compare and swap operation till lock is held.
+ * Algorithm: Atomic compare and swap operation till lock is held.
  *
- *	Dependencies: Does not disable irq. Do not call this API to acquire any
+ * @param[in] lock - Pointer to lock to be acquired.
+ *
+ * @note Does not disable irq. Do not call this API to acquire any
  *	lock that is shared between top/bottom half. It will result in deadlock.
- *
- *	Protection: None.
- *
- *	Return: None.
  */
 static inline void osi_lock_irq_enabled(unsigned int *lock)
 {
@@ -407,17 +403,14 @@ static inline void osi_lock_irq_enabled(unsigned int *lock)
 }
 
 /**
- *	osi_unlock_irq_enabled - Release lock.
- *	@lock - Pointer to lock to be released.
+ * @brief osi_unlock_irq_enabled - Release lock.
  *
- *	Algorithm: Atomic compare and swap operation to release lock.
+ * Algorithm: Atomic compare and swap operation to release lock.
  *
- *	Dependencies: Does not disable irq. Do not call this API to release any
+ * @param[in] lock - Pointer to lock to be released.
+ *
+ * @note Does not disable irq. Do not call this API to release any
  *	lock that is shared between top/bottom half.
- *
- *	Protection: None.
- *
- *	Return: None.
  */
 static inline void osi_unlock_irq_enabled(unsigned int *lock)
 {
@@ -428,16 +421,13 @@ static inline void osi_unlock_irq_enabled(unsigned int *lock)
 }
 
 /**
- *	osi_readl - Read a memory mapped regsiter.
- *	@addr:	Memory mapped address.
+ * @brief osi_readl - Read a memory mapped register.
  *
- *	Algorithm: None.
+ * @param[in] addr: Memory mapped address.
  *
- *	Dependencies: Physical address has to be memmory mapped.
+ * @note Physical address has to be memmory mapped.
  *
- *	Protection: None.
- *
- *	Return: Data from memory mapped register - success.
+ * @return Data from memory mapped register - success.
  */
 static inline unsigned int osi_readl(void *addr)
 {
@@ -445,17 +435,12 @@ static inline unsigned int osi_readl(void *addr)
 }
 
 /**
- *	osi_writel - Write to a memory mapped regsiter.
- *	@val:	Value to be written.
- *	@addr:	Memory mapped address.
+ * @brief osi_writel - Write to a memory mapped register.
  *
- *	Algorithm: None.
+ * @param[in] val:  Value to be written.
+ * @param[in] addr: Memory mapped address.
  *
- *	Dependencies: Physical address has to be memmory mapped.
- *
- *	Protection: None.
- *
- *	Return: None.
+ * @note Physical address has to be memmory mapped.
  */
 static inline void osi_writel(unsigned int val, void *addr)
 {
@@ -463,16 +448,14 @@ static inline void osi_writel(unsigned int val, void *addr)
 }
 
 /**
- *	is_valid_mac_version - Check if read MAC IP is valid or not.
- *	@mac_ver: MAC version read.
+ * @brief is_valid_mac_version - Check if read MAC IP is valid or not.
  *
- *	Algorithm: None.
+ * @param[in] mac_ver: MAC version read.
  *
- *      Dependencies: MAC has to be out of reset.
+ * @note MAC has to be out of reset.
  *
- *	Protection: None.
- *
- *      Return: 0 - for not Valid MAC, 1 - for Valid MAC
+ * @retval 0 - for not Valid MAC
+ * @retval 1 - for Valid MAC
  */
 static inline int is_valid_mac_version(unsigned int mac_ver)
 {
@@ -486,17 +469,17 @@ static inline int is_valid_mac_version(unsigned int mac_ver)
 }
 
 /**
- *	osi_update_stats_counter - update value by increment passed as parameter
- *	@last_value: last value of stat counter
- *	@incr: increment value
+ * @brief osi_update_stats_counter - update value by increment passed
+ *	as parameter
  *
- *	Algorithm: Check for boundary and return sum
+ * Algorithm: Check for boundary and return sum
  *
- *	Dependencies: Input parameter should be only unsigned long type
+ * @param[in] last_value: last value of stat counter
+ * @param[in] incr: increment value
  *
- *	Protection: None
+ * @note Input parameter should be only unsigned long type
  *
- *      Return: unsigned long value
+ * @return unsigned long value
  */
 static inline unsigned long osi_update_stats_counter(unsigned long last_value,
 						     unsigned long incr)
@@ -515,20 +498,36 @@ static inline unsigned long osi_update_stats_counter(unsigned long last_value,
 }
 
 /**
- *      osi_get_mac_version - Reading MAC version
- *      @addr: io-remap MAC base address.
- *	@mac_ver: holds mac version.
+ * @brief osi_get_mac_version - Reading MAC version
  *
- *      Algorithm: Reads MAC version and check whether its valid or not.
+ * Algorithm: Reads MAC version and check whether its valid or not.
  *
- *      Dependencies: MAC has to be out of reset.
+ * @param[in] addr: io-remap MAC base address.
+ * @param[in] mac_ver: holds mac version.
  *
- *      Protection: None
+ * @note MAC has to be out of reset.
  *
- *      Return: 0 - success, -1 - failure
+ * @retval 0 on success
+ * @retval -1 on failure.
  */
 int osi_get_mac_version(void *addr, unsigned int *mac_ver);
 
+/**
+ * @brief osi_get_hw_features - Reading MAC HW features
+ *
+ * @param[in] base: io-remap MAC base address.
+ * @param[in] hw_feat: holds the supported features of the hardware.
+ *
+ * @note MAC has to be out of reset.
+ */
 void osi_get_hw_features(void *base, struct osi_hw_features *hw_feat);
+/**
+ * @brief osi_memset - osi memset
+ *
+ * @param[in] s: source that need to be set
+ * @param[in] c: value to fill in source
+ * @param[in] count: first n bytes of source
+ *
+ */
 void osi_memset(void *s, unsigned int c, unsigned long count);
 #endif /* OSI_COMMON_H */

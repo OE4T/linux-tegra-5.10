@@ -27,11 +27,9 @@
 int dma_desc_init(struct osi_dma_priv_data *osi_dma);
 
 /**
- *	get_rx_csum - Get the Rx checksum from descriptor if valid
- *	@rx_desc: Rx descriptor
- *	@rx_pkt_cx: Per-Rx packet context structure
+ * @brief get_rx_csum - Get the Rx checksum from descriptor if valid
  *
- *	Algorithm:
+ * Algorithm:
  *	1) Check if the descriptor has any checksum validation errors.
  *	2) If none, set a per packet context flag indicating no err in
  *		Rx checksum
@@ -39,11 +37,8 @@ int dma_desc_init(struct osi_dma_priv_data *osi_dma);
  *		IP/TCP/UDP checksum validation in software based on whether
  *		COE is enabled for the device.
  *
- *	Dependencies: None
- *
- *	Protection: None
- *
- *	Return: None.
+ * @param[in] rx_desc: Rx descriptor
+ * @param[in] rx_pkt_cx: Per-Rx packet context structure
  */
 static inline void get_rx_csum(struct osi_rx_desc *rx_desc,
 			       struct osi_rx_pkt_cx *rx_pkt_cx)
@@ -61,6 +56,18 @@ static inline void get_rx_csum(struct osi_rx_desc *rx_desc,
 	}
 }
 
+/**
+ * @brief get_rx_vlan_from_desc - Get Rx VLAN from descriptor 
+ *
+ * Algorithm:
+ *	1) Check if the descriptor has any type set.
+ *	2) If set, set a per packet context flag indicating packet is VLAN 
+ *	tagged.
+ *	3) Extract VLAN tag ID from the descriptor
+ *
+ * @param[in] rx_desc: Rx descriptor
+ * @param[in] rx_pkt_cx: Per-Rx packet context structure
+ */
 static inline void get_rx_vlan_from_desc(struct osi_rx_desc *rx_desc,
 					 struct osi_rx_pkt_cx *rx_pkt_cx)
 {
@@ -78,18 +85,16 @@ static inline void get_rx_vlan_from_desc(struct osi_rx_desc *rx_desc,
 }
 
 /**
- *	get_rx_tstamp_status - Get Tx Time stamp status
- *	@context_desc: Rx context descriptor
+ * @brief get_rx_tstamp_status - Get Tx Time stamp status
  *
- *	Algorithm:
+ * Algorithm:
  *	1) Check if the received descriptor is a context descriptor.
  *	2) If yes, check whether the time stamp is valid or not.
  *
- *	Dependencies: None
+ * @param[in] context_desc: Rx context descriptor
  *
- *	Protection: None
- *
- *	Return: -1 if TS is not valid and 0 if TS is valid.
+ * @retval -1 if TimeStamp is not valid
+ * @retval 0 if TimeStamp is valid.
  */
 static inline int get_rx_tstamp_status(struct osi_rx_desc *context_desc)
 {
@@ -108,22 +113,20 @@ static inline int get_rx_tstamp_status(struct osi_rx_desc *context_desc)
 }
 
 /**
- *	get_rx_hwstamp - Get Rx HW Time stamp
- *	@rx_desc: Rx descriptor
- *	@context_desc: Rx context descriptor
- *	@rx_pkt_cx: Rx packet context
+ * @brief get_rx_hwstamp - Get Rx HW Time stamp
  *
- *	Algorithm:
+ * Algorithm:
  *	1) Check for TS availability.
  *	2) call get_tx_tstamp_status if TS is valid or not.
  *	3) If yes, set a bit and update nano seconds in rx_pkt_cx so that OSD
  *	layer can extract the time by checking this bit.
  *
- *	Dependencies: None
+ * @param[in] rx_desc: Rx descriptor
+ * @param[in] context_desc: Rx context descriptor
+ * @param[in] rx_pkt_cx: Rx packet context
  *
- *	Protection: None
- *
- *	Return: -1 if TS is not available and 0 if TS is available.
+ * @retval -1 if TimeStamp is not available
+ * @retval 0 if TimeStamp is available.
  */
 static int get_rx_hwstamp(struct osi_rx_desc *rx_desc,
 			  struct osi_rx_desc *context_desc,
@@ -164,19 +167,14 @@ static int get_rx_hwstamp(struct osi_rx_desc *rx_desc,
 
 
 /**
- *	get_rx_err_stats - Detect Errors from Rx Descriptor
- *	@rx_desc: Rx Descriptor.
- *	@pkt_err_stats: Packet error stats which stores the errors reported
+ * @brief get_rx_err_stats - Detect Errors from Rx Descriptor
  *
- *	Algorimthm: This routine will be invoked by OSI layer itself which
+ * Algorithm: This routine will be invoked by OSI layer itself which
  *	checks for the Last Descriptor and updates the receive status errors
  *	accordingly.
  *
- *	Dependencies: None.
- *
- *	Protection: None.
- *
- *	Return: None.
+ * @param[in] rx_desc: Rx Descriptor.
+ * @param[in] pkt_err_stats: Packet error stats which stores the errors reported
  */
 static inline void get_rx_err_stats(struct osi_rx_desc *rx_desc,
 				    struct osi_pkt_err_stats pkt_err_stats)
@@ -189,29 +187,6 @@ static inline void get_rx_err_stats(struct osi_rx_desc *rx_desc,
 	}
 }
 
-/**
- *	osi_process_rx_completions - Read data from receive channel descriptors
- *	@osi: OSI private data structure.
- *	@chan: Rx DMA channel number
- *	@budget: Threshould for reading the packets at a time.
- *
- *	Algorimthm: This routine will be invoked by OSD layer to get the
- *	data from Rx descriptors and deliver the packet to the stack.
- *	1) Checks descriptor owned by DMA or not.
- *	2) Get the length from Rx descriptor
- *	3) Invokes OSD layer to deliver the packet to network stack.
- *	4) Re-allocate the receive buffers, populate Rx descriptor and
- *	handover to DMA.
- *
- *	Dependencies:
- *	1) MAC needs to be out of reset and proper clocks need to be configured.
- *	2) DMA HW init need to be completed successfully, see osi_hw_dma_init
- *	3) DMA need to be started, see osi_start_dma
- *
- *	Protection: None.
- *
- *	Return: None.
- */
 int osi_process_rx_completions(struct osi_dma_priv_data *osi,
 			       unsigned int chan, int budget)
 {
@@ -278,19 +253,14 @@ int osi_process_rx_completions(struct osi_dma_priv_data *osi,
 }
 
 /**
- *	get_tx_err_stats - Detect Errors from Tx Status
- *	@tx_desc: Tx Descriptor.
- *	@pkt_err_stats: Pakcet error stats which stores the errors reported
+ * @brief get_tx_err_stats - Detect Errors from Tx Status
  *
- *	Algorimthm: This routine will be invoked by OSI layer itself which
+ * Algorithm: This routine will be invoked by OSI layer itself which
  *	checks for the Last Descriptor and updates the transmit status errors
  *	accordingly.
  *
- *	Dependencies: None.
- *
- *	Protection: None.
- *
- *	Return: None.
+ * @param[in] tx_desc: Tx Descriptor.
+ * @param[in] pkt_err_stats: Pakcet error stats which stores the errors reported
  */
 static inline void get_tx_err_stats(struct osi_tx_desc *tx_desc,
 				    struct osi_pkt_err_stats pkt_err_stats)
@@ -370,21 +340,6 @@ static inline void get_tx_err_stats(struct osi_tx_desc *tx_desc,
 	}
 }
 
-/**
- *	osi_clear_tx_pkt_err_stats - Clear tx packet error stats.
- *	@osi: OSI dma private data structure.
- *
- *	Algorithm: This function will be invoked by OSD layer to clear the
- *	tx packet error stats
- *
- *	Dependencies:
- *	1) MAC needs to be out of reset and proper clocks need to be configured.
- *	2) DMA HW init need to be completed successfully, see osi_hw_dma_init
- *
- *	Protection: None
- *
- *	Return: 0 - success, -1 - failure.
- */
 int osi_clear_tx_pkt_err_stats(struct osi_dma_priv_data *osi_dma)
 {
 	int ret = -1;
@@ -407,21 +362,6 @@ int osi_clear_tx_pkt_err_stats(struct osi_dma_priv_data *osi_dma)
 	return ret;
 }
 
-/**
- *	osi_clear_rx_pkt_err_stats - Clear rx packet error stats.
- *	@osi: OSI dma private data structure.
- *
- *	Algorithm: This function will be invoked by OSD layer to clear the
- *	rx packet error stats
- *
- *	Dependencies:
- *	1) MAC needs to be out of reset and proper clocks need to be configured.
- *	2) DMA HW init need to be completed successfully, see osi_hw_dma_init
- *
- *	Protection: None
- *
- *	Return: 0 - success, -1 - failure.
- */
 int osi_clear_rx_pkt_err_stats(struct osi_dma_priv_data *osi_dma)
 {
 	int ret = -1;
@@ -435,27 +375,6 @@ int osi_clear_rx_pkt_err_stats(struct osi_dma_priv_data *osi_dma)
 	return ret;
 }
 
-/**
- *	osi_process_tx_completions - Process Tx complete on DMA channel ring.
- *	@osi: OSI private data structure.
- *	@chan: Channel number on which Tx complete need to be done.
- *
- *	Algorithm: This function will be invoked by OSD layer to process Tx
- *	complete interrupt.
- *	1) First checks whether descriptor owned by DMA or not.
- *	2) Invokes OSD layer to release DMA address and Tx buffer which are
- *	updated as part of transmit routine.
- *
- *	Dependencies:
- *	1) MAC needs to be out of reset and proper clocks need to be configured.
- *	2) DMA HW init need to be completed successfully, see osi_hw_dma_init
- *	3) DMA need to be started, see osi_start_dma
- *
- *
- *	Protection: None
- *
- *	Return: Number of decriptors (buffers) proccessed.
- */
 int osi_process_tx_completions(struct osi_dma_priv_data *osi,
 			       unsigned int chan)
 {
@@ -544,20 +463,18 @@ int osi_process_tx_completions(struct osi_dma_priv_data *osi,
 }
 
 /**
- *	need_cntx_desc - Helper function to check if context desc is needed.
- *	@tx_pkt_cx: Pointer to transmit packet context structure
- *	@tx_desc: Pointer to tranmit descriptor to be filled.
+ * @brief need_cntx_desc - Helper function to check if context desc is needed.
  *
- *	Algorithm:
+ * Algorithm:
  *	1) Check if transmit packet context flags are set
  *	2) If set, set the context descriptor bit along
  *	with other context information in the transmit descriptor.
  *
- *	Dependencies: None.
+ * @param[in] tx_pkt_cx: Pointer to transmit packet context structure
+ * @param[in] tx_desc: Pointer to tranmit descriptor to be filled.
  *
- *	Protection: None
- *
- *	Return: 0 - cntx desc not used, 1 - cntx desc used.
+ * @retval 0 - cntx desc not used
+ * @retval 1 - cntx desc used.
  */
 static inline int need_cntx_desc(struct osi_tx_pkt_cx *tx_pkt_cx,
 				 struct osi_tx_desc *tx_desc)
@@ -594,22 +511,18 @@ static inline int need_cntx_desc(struct osi_tx_pkt_cx *tx_pkt_cx,
 }
 
 /**
- *	fill_first_desc - Helper function to fill the first transmit descriptor.
- *	@tx_pkt_cx: Pointer to transmit packet context structure
- *	@tx_desc: Pointer to tranmit descriptor to be filled.
- *	@tx_swcx: Pointer to corresponding tranmit descriptor software context.
+ * @brief fill_first_desc - Helper function to fill the first transmit
+ *	descriptor.
  *
- *	Algorithm:
- *	1) Update the buffer address and length of buffer in first desc.
- *	2) Check if any features like HW checksum offload, TSO, VLAN insertion
- *	etc. are flagged in transmit packet context. If so, set the fiels in
- *	first desc corresponding to those features.
+ * Algorithm:
+ *	  1) Update the buffer address and length of buffer in first desc.
+ *	  2) Check if any features like HW checksum offload, TSO, VLAN insertion
+ *	  etc. are flagged in transmit packet context. If so, set the fiels in
+ *	  first desc corresponding to those features.
  *
- *	Dependencies: None.
- *
- *	Protection: None
- *
- *	Return: None.
+ * @param[in] tx_pkt_cx: Pointer to transmit packet context structure
+ * @param[in] tx_desc: Pointer to tranmit descriptor to be filled.
+ * @param[in] tx_swcx: Pointer to corresponding tx descriptor software context.
  */
 static inline void fill_first_desc(struct osi_tx_pkt_cx *tx_pkt_cx,
 				   struct osi_tx_desc *tx_desc,
@@ -658,35 +571,6 @@ static inline void fill_first_desc(struct osi_tx_pkt_cx *tx_pkt_cx,
 	}
 }
 
-/**
- *	osi_hw_transmit - Initialize Tx DMA descriptors for a channel
- *	@osi:	OSI private data structure.
- *	@chan:	DMA Tx channel number
- *
- *	Algorithm: Initialize Transmit descriptors with DMA mappabled buffers,
- *	set OWN bit, Tx ring length and set starting address of Tx DMA channel.
- *	Tx ring base address in Tx DMA registers.
- *
- *	Dependencies:
- *	1) MAC needs to be out of reset and proper clocks need to be configured.
- *	2) DMA HW init need to be completed successfully, see osi_hw_dma_init
- *	3) DMA channel need to be started, see osi_start_dma
- *	4) Need to set update tx_pkt_cx->flags accordingly as per the
- *	requirements
- *	#define OSI_PKT_CX_VLAN                 OSI_BIT(0)
- *	#define OSI_PKT_CX_CSUM                 OSI_BIT(1)
- *	#define OSI_PKT_CX_TSO                  OSI_BIT(2)
- *	#define OSI_PKT_CX_PTP                  OSI_BIT(3)
- *	5) tx_pkt_cx->desc_cnt need to be populated which holds the number
- *	 of swcx descriptors allocated for that packet
- *	6) tx_swcx structure need to be filled for per packet with the
- *	 buffer len, DMA mapped address of buffer for each descriptor
- *	 consumed by the packet
- *
- *	Protection: None.
- *
- *	Return: None.
- */
 void osi_hw_transmit(struct osi_dma_priv_data *osi, unsigned int chan)
 {
 	struct osi_tx_ring *tx_ring = osi->tx_ring[chan];
@@ -773,19 +657,17 @@ void osi_hw_transmit(struct osi_dma_priv_data *osi, unsigned int chan)
 }
 
 /**
- *	rx_dma_desc_initialization - Initialize DMA Receive descriptors for Rx.
- *	@osi:	OSI private data structure.
- *	@chan:	Rx channel number.
+ * @brief rx_dma_desc_initialization - Initialize DMA Receive descriptors for Rx
  *
- *	Algorithm: Initialize Receive descriptors with DMA mappable buffers,
+ * Algorithm: Initialize Receive descriptors with DMA mappable buffers,
  *	set OWN bit, Rx ring length and set starting address of Rx DMA channel.
  *	Tx ring base address in Tx DMA registers.
  *
- *	Dependencies: None.
+ * @param[in] osi:	OSI private data structure.
+ * @param[in] chan:	Rx channel number.
  *
- *	Protection: None.
- *
- *	Return: 0 - success, -1 - failure.
+ * @retval 0 on success
+ * @retval -1 on failure.
  */
 static int rx_dma_desc_initialization(struct osi_dma_priv_data *osi,
 				      unsigned int chan)
@@ -826,18 +708,16 @@ static int rx_dma_desc_initialization(struct osi_dma_priv_data *osi,
 }
 
 /**
- *	rx_dma_desc_init - Initialize DMA Receive descriptors for Rx channel.
- *	@osi:	OSI private data structure.
+ * @brief rx_dma_desc_init - Initialize DMA Receive descriptors for Rx channel.
  *
- *	Algorithm: Initialize Receive descriptors with DMA mappabled buffers,
+ * Algorithm: Initialize Receive descriptors with DMA mappabled buffers,
  *	set OWN bit, Rx ring length and set starting address of Rx DMA channel.
  *	Tx ring base address in Tx DMA registers.
  *
- *	Dependencies: None.
+ * @param[in] osi: OSI private data structure.
  *
- *	Protection: None.
- *
- *	Return: 0 - success, -1 - failure.
+ * @retval 0 on success
+ * @retval -1 on failure.
  */
 static int rx_dma_desc_init(struct osi_dma_priv_data *osi)
 {
@@ -858,17 +738,12 @@ static int rx_dma_desc_init(struct osi_dma_priv_data *osi)
 }
 
 /**
- *	tx_dma_desc_init - Initialize DMA Transmit descriptors.
- *	@osi:	OSI private data structure.
+ * @brief tx_dma_desc_init - Initialize DMA Transmit descriptors.
  *
- *	Algorithm: Initialize Trannsmit descriptors and set Tx ring length,
+ * Algorithm: Initialize Trannsmit descriptors and set Tx ring length,
  *	Tx ring base address in Tx DMA registers.
  *
- *	Dependencies: None.
- *
- *	Protection: None.
- *
- *	Return: None.
+ * @param[in] osi_dma: OSI DMA private data structure.
  */
 static void tx_dma_desc_init(struct osi_dma_priv_data *osi_dma)
 {
@@ -901,17 +776,15 @@ static void tx_dma_desc_init(struct osi_dma_priv_data *osi_dma)
 }
 
 /**
- *	dma_desc_init - Initialize DMA Tx/Rx descriptors
- *	@osi:	OSI private data structure.
+ * @brief dma_desc_init - Initialize DMA Tx/Rx descriptors
  *
- *	Algorithm: Transmit and Receive desctiptors will be initialized with
+ * Algorithm: Transmit and Receive desctiptors will be initialized with
  *	required values so that MAC DMA can understand and act accordingly.
  *
- *	Dependencies: None.
+ * @param[in] osi_dma: OSI DMA private data structure.
  *
- *	Protection: None.
- *
- *	Return: 0 - success, -1 - failure.
+ * @retval 0 on success
+ * @retval -1 on failure.
  */
 int dma_desc_init(struct osi_dma_priv_data *osi_dma)
 {

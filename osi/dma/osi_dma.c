@@ -69,20 +69,6 @@ int osi_hw_dma_init(struct osi_dma_priv_data *osi_dma)
 	return ret;
 }
 
-/**
- *	osi_hw_deinit - De-init the HW
- *	@osi: OSI private data structure.
- *
- *	Algorithm:
- *	1) Stop the DMA
- *	2) free all allocated resources.
- *
- *	Dependencies: None
- *
- *	Protection: None
- *
- *	Return: 0 - Success, -ve - failure
- */
 int  osi_hw_dma_deinit(struct osi_dma_priv_data *osi_dma)
 {
 	unsigned int i;

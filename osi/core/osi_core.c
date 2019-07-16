@@ -23,6 +23,11 @@
 #include <osi_core.h>
 #include <osd.h>
 
+/**
+ * @addtogroup MDIO Macros
+ * @brief Helper MACROS for MDIO
+ * @{
+ */
 #define MAC_MDIO_ADDRESS	0x200
 #define MAC_GMII_BUSY		0x00000001U
 
@@ -34,7 +39,18 @@
 #define MDIO_PHY_ADDR_SHIFT	21U
 #define MDIO_PHY_REG_SHIFT	16U
 #define MDIO_MII_WRITE		OSI_BIT(2)
+/** @} */
 
+/**
+ * @brief poll_for_mii_idle Query the status of an ongoing DMA transfer
+ *
+ * @param[in] osi_core: OSI Core private data structure.
+ *
+ * @note MAC needs to be out of reset and proper clock configured.
+ *
+ * @retval 0 on Success
+ * @retval -1 on Failure
+ */
 static inline int poll_for_mii_idle(struct osi_core_priv_data *osi_core)
 {
 	unsigned int retry = 1000;
@@ -645,20 +661,19 @@ int osi_set_systime_to_mac(struct osi_core_priv_data *osi_core,
 }
 
 /**
- *	div_u64_rem - updates remainder and returns Quotient
- *	@dividend: Dividend value
- *	@divisor: Divisor value
- *	@remainder: Remainder
+ *@brief div_u64_rem - updates remainder and returns Quotient
  *
- *	Algorithm: Dividend will be divided by divisor and stores the
- *		   remainder value and returns quotient
+ * Algorithm: Dividend will be divided by divisor and stores the
+ *	 remainder value and returns quotient
  *
- *	Dependencies: MAC IP should be out of reset
- *	and need to be initialized as the requirements
+ * @param[in] dividend: Dividend value
+ * @param[in] divisor: Divisor value
+ * @param[out] remain: Remainder
  *
- *	Protection: None
+ * @note MAC IP should be out of reset and need to be initialized as the
+ *	 requirements
  *
- *	Return: Quotient
+ * @returns Quotient
  */
 static inline unsigned long div_u64_rem(unsigned long dividend,
 					unsigned long divisor,
@@ -676,18 +691,15 @@ static inline unsigned long div_u64_rem(unsigned long dividend,
 }
 
 /**
- *	div_u64 - Calls a function which returns quotient
- *	@dividend: Dividend
- *	@divisor: Divisor
+ * @brief div_u64 - Calls a function which returns quotient
  *
- *	Algorithm: Calls a function which returns quotient.
+ * @param[in] dividend: Dividend
+ * @param[in] divisor: Divisor
  *
- *	Dependencies: MAC IP should be out of reset
- *	and need to be initialized as the requirements.
+ * @note MAC IP should be out of reset and need to be initialized as the
+ *	requirements.
  *
- *	Protection: None
- *
- *      Return: Quotient
+ * @returns Quotient
  */
 static inline unsigned long div_u64(unsigned long dividend,
 				    unsigned long divisor)
