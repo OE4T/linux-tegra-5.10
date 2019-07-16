@@ -169,13 +169,11 @@ static int adsp_logger_open(struct inode *inode, struct file *file)
 	mutex_unlock(&priv.os_run_lock);
 
 	/*
-	 * checks if os_opened decrements to zero and if returns true. If true
-	 * then there has been no open.
-	*/
-	if (!atomic_dec_and_test(&logger->is_opened)) {
-		atomic_inc(&logger->is_opened);
+	 * checks if is_opened is 0, if yes, set 1 and proceed,
+	 * else return -EBUSY
+	 */
+	if (atomic_cmpxchg(&logger->is_opened, 0, 1))
 		goto err_ret;
-	}
 
 	/* loop till writer is initilized with SOH */
 	for (i = 0; i < SEARCH_SOH_RETRY; i++) {
@@ -204,8 +202,8 @@ static int adsp_logger_open(struct inode *inode, struct file *file)
 	file->private_data = logger;
 	return 0;
 err:
-	/* reset to 1 so as to mention the node is free */
-	atomic_set(&logger->is_opened, 1);
+	/* reset to 0 so as to mention the node is free */
+	atomic_set(&logger->is_opened, 0);
 err_ret:
 	return ret;
 }
@@ -218,13 +216,16 @@ static int adsp_logger_flush(struct file *file, fl_owner_t id)
 
 	dev_dbg(dev, "%s\n", __func__);
 
-	/* reset to 1 so as to mention the node is free */
-	atomic_set(&logger->is_opened, 1);
+	/* reset to 0 so as to mention the node is free */
+	atomic_set(&logger->is_opened, 0);
 	return 0;
 }
 
 static int adsp_logger_release(struct inode *inode, struct file *file)
 {
+	struct nvadsp_debug_log *logger = inode->i_private;
+
+	atomic_set(&logger->is_opened, 0);
 	return 0;
 }
 
@@ -301,7 +302,7 @@ static int adsp_create_debug_logger(struct dentry *adsp_debugfs_root)
 		goto err_out;
 	}
 
-	atomic_set(&logger->is_opened, 1);
+	atomic_set(&logger->is_opened, 0);
 	init_waitqueue_head(&logger->wait_queue);
 	init_completion(&logger->complete);
 	if (!debugfs_create_file("adsp_logger", S_IRUGO,
