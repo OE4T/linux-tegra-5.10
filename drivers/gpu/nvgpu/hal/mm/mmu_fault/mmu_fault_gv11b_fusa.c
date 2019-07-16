@@ -545,7 +545,7 @@ void gv11b_mm_mmu_fault_handle_nonreplay_replay_fault(struct gk20a *g,
 							invalidate_replay_val);
 		if (err != 0) {
 			nvgpu_err(g, "gv11b_fb replay or cancel"
-							" faults failed\n");
+							" faults failed");
 		}
 	}
 }
@@ -580,7 +580,7 @@ void gv11b_mm_mmu_fault_handle_other_fault_notify(struct gk20a *g,
 					invalidate_replay_val);
 			if (err != 0) {
 				nvgpu_err(g, "gv11b_fb replay or cancel"
-							" faults failed\n");
+							" faults failed");
 			}
 		}
 	}
