@@ -29,7 +29,10 @@ struct nvgpu_channel;
 struct gk20a;
 
 void gm20b_channel_bind(struct nvgpu_channel *c);
-u32 gm20b_channel_count(struct gk20a *g);
 void gm20b_channel_force_ctx_reload(struct nvgpu_channel *ch);
+
+#ifdef CONFIG_NVGPU_HAL_NON_FUSA
+u32 gm20b_channel_count(struct gk20a *g);
+#endif
 
 #endif /* FIFO_CHANNEL_GM20B_H */

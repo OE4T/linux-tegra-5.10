@@ -31,11 +31,14 @@ struct nvgpu_channel_dump_info;
 
 void gk20a_channel_enable(struct nvgpu_channel *ch);
 void gk20a_channel_disable(struct nvgpu_channel *ch);
-void gk20a_channel_unbind(struct nvgpu_channel *ch);
 void gk20a_channel_read_state(struct gk20a *g, struct nvgpu_channel *ch,
 		struct nvgpu_channel_hw_state *state);
 
+#ifdef CONFIG_NVGPU_HAL_NON_FUSA
 void gk20a_channel_debug_dump(struct gk20a *g,
 	     struct nvgpu_debug_context *o,
 	     struct nvgpu_channel_dump_info *info);
+void gk20a_channel_unbind(struct nvgpu_channel *ch);
+#endif
+
 #endif /* FIFO_CHANNEL_GK20A_H */
