@@ -27,13 +27,16 @@
 struct gk20a;
 struct nvgpu_mem;
 
+u32 gk20a_ramin_base_shift(void);
+u32 gk20a_ramin_alloc_size(void);
+
+#ifdef CONFIG_NVGPU_HAL_NON_FUSA
 void gk20a_ramin_set_gr_ptr(struct gk20a *g,
 		struct nvgpu_mem *inst_block, u64 gpu_va);
 void gk20a_ramin_init_pdb(struct gk20a *g, struct nvgpu_mem *inst_block,
 		u64 pdb_addr, struct nvgpu_mem *pdb_mem);
 void gk20a_ramin_set_adr_limit(struct gk20a *g,
 		struct nvgpu_mem *inst_block, u64 va_limit);
-u32 gk20a_ramin_base_shift(void);
-u32 gk20a_ramin_alloc_size(void);
+#endif
 
 #endif /* NVGPU_RAMIN_GK20A_H */
