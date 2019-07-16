@@ -75,7 +75,6 @@
 			     <0 239 4>;
 		cvsramslice = <4 0x1000>;
 		cvsram-reg = <0x0 0x50000000 0x0 0x400000>;
-		ec-threshold = <1>; /* threshold on EC errors */
 		status = "disabled";
 	};
 
