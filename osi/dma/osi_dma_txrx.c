@@ -874,7 +874,6 @@ static void tx_dma_desc_init(struct osi_dma_priv_data *osi_dma)
 {
 	struct osi_tx_ring *tx_ring = OSI_NULL;
 	struct osi_tx_desc *tx_desc = OSI_NULL;
-	struct osi_tx_swcx *tx_swcx = OSI_NULL;
 	struct osi_dma_chan_ops *ops = osi_dma->ops;
 	unsigned int chan = 0;
 	unsigned int i;
@@ -884,7 +883,6 @@ static void tx_dma_desc_init(struct osi_dma_priv_data *osi_dma)
 
 		tx_ring = osi_dma->tx_ring[chan];
 		tx_desc = tx_ring->tx_desc;
-		tx_swcx = tx_ring->tx_swcx;
 
 		/* FIXME: does it require */
 		tx_desc->tdes0 = 0;
