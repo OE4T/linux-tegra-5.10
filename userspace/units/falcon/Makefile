@@ -20,14 +20,8 @@
 
 .SUFFIXES:
 
-OBJS   = falcon.o
-MODULE = falcon
+OBJS   = falcon_utf.o
 
-LIB_PATHS += -lfalcon_utf
+MODULE = falcon_utf
 
-include ../../Makefile.units
-
-lib$(MODULE).so: falcon_utf
-
-falcon_utf:
-	$(MAKE) -C ..
+include ../Makefile.units
