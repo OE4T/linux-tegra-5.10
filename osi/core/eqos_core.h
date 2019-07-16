@@ -23,8 +23,12 @@
 #ifndef EQOS_CORE_H_
 #define EQOS_CORE_H_
 
-/* These bits control the threshold (fill-level of Rx queue) at which
+/**
+ * @addtogroup EQOS-FC Flow Control Threshold Macros
+ *
+ * @brief These bits control the threshold (fill-level of Rx queue) at which
  * the flow control is asserted or de-asserted
+ * @{
  */
 #define FULL_MINUS_1_5K		(unsigned int)1
 #define FULL_MINUS_2_K		(unsigned int)2
@@ -34,20 +38,26 @@
 #define FULL_MINUS_6_K		(unsigned int)10
 #define FULL_MINUS_10_K		(unsigned int)18
 #define FULL_MINUS_16_K		(unsigned int)30
+/** @} */
 
 /**
- *	MTL queue operation mode
- *	EQOS_MTL_QUEUE_DISABLED - queue disabled
- *	EQOS_MTL_QUEUE_QAVB - queue in AVB mode
- *	EQOS_MTL_QUEUE_QDCB - queue in DCB mode
- *	EQOS_MTL_QUEUE_QGENERIC - queue in gerneric mode
+ * @addtogroup EQOS-MTLQ MTL queue operation mode
+ *
+ * @brief MTL queue operation mode options
+ * @{
  */
 #define EQOS_MTL_QUEUE_DISABLED	0x0U
 #define EQOS_MTL_QUEUE_AVB	0x1U
 #define EQOS_MTL_QUEUE_DCB	0x2U
 #define EQOS_MTL_QUEUE_GENERIC	0x3U
+/** @} */
 
-/* MDC Clock Selection define*/
+/**
+ * @addtogroup EQOS-MDC MDC Clock Selection defines
+ *
+ * @brief MDC Clock defines
+ * @{
+ */
 #define EQOS_CSR_60_100M	0x0	/* MDC = clk_csr/42 */
 #define EQOS_CSR_100_150M	0x1	/* MDC = clk_csr/62 */
 #define EQOS_CSR_20_35M		0x2	/* MDC = clk_csr/16 */
@@ -56,11 +66,24 @@
 #define EQOS_CSR_250_300M	0x5	/* MDC = clk_csr/124 */
 #define EQOS_CSR_300_500M	0x6	/* MDC = clk_csr/204 */
 #define EQOS_CSR_500_800M	0x7	/* MDC = clk_csr/324 */
+/** @} */
 
+/**
+ * @addtogroup EQOS-SIZE SIZE calculation helper Macros
+ *
+ * @brief SIZE calculation defines
+ * @{
+ */
 #define FIFO_SIZE_B(x) (x)
 #define FIFO_SIZE_KB(x) ((x) * 1024U)
+/** @} */
 
-/*  per queue fifo size programmable value */
+/**
+ * @addtogroup EQOS-QUEUE QUEUE fifo size programmable values
+ *
+ * @brief Queue FIFO size programmable values
+ * @{
+ */
 #define EQOS_256	0x00U
 #define EQOS_512	0x01U
 #define EQOS_1K		0x03U
@@ -71,8 +94,14 @@
 #define EQOS_16K	0x3FU
 #define EQOS_32K	0x7FU
 #define EQOS_36K	0x8FU
+/** @} */
 
-/* EQOS HW Registers */
+/**
+ * @addtogroup EQOS-HW Hardware Register offsets
+ *
+ * @brief EQOS HW register offsets
+ * @{
+ */
 #define EQOS_5_00_MAC_ARPPA	0x0210
 #define EQOS_4_10_MAC_ARPPA	0x0AE0
 #define EQOS_DMA_SBUS		0x1004
@@ -120,8 +149,14 @@
 #define EQOS_MAC_STSUR			0x0B10
 #define EQOS_MAC_STNSUR			0x0B14
 #define EQOS_MAC_TAR			0x0B18
+/** @} */
 
-/* EQOS MTL registers*/
+/**
+ * @addtogroup EQOS-MTL MTL HW Register offsets
+ *
+ * @brief EQOS MTL HW Register offsets
+ * @{
+ */
 #define EQOS_MTL_CHX_TX_OP_MODE(x)	((0x0040U * (x)) + 0x0D00U)
 #define EQOS_MTL_TXQ_QW(x)		((0x0040U * (x)) + 0x0D18U)
 #define EQOS_MTL_CHX_RX_OP_MODE(x)	((0x0040U * (x)) + 0x0D30U)
@@ -131,14 +166,26 @@
 #define EQOS_MTL_TXQ_ETS_LCR(x)		((0x0040U * (x)) + 0x0D24U)
 #define EQOS_MTL_RXQ_DMA_MAP0		0x0C30
 #define EQOS_MTL_OP_MODE		0x0C00
+/** @} */
 
-/* EQOS Wrapper registers*/
+/**
+ * @addtogroup EQOS-Wrapper EQOS Wrapper HW Register offsets
+ *
+ * @brief EQOS Wrapper register offsets
+ * @{
+ */
 #define EQOS_PAD_AUTO_CAL_CFG		0x8804U
 #define EQOS_PAD_AUTO_CAL_STAT		0x880CU
 #define EQOS_PAD_CRTL			0x8800U
 #define EQOS_CLOCK_CTRL_0		0x8000U
+/** @} */
 
-/* EQOS Register BIT Masks */
+/**
+ * @addtogroup HW Register BIT values
+ *
+ * @brief consists of corresponding EQOS MAC, MTL register bit values
+ * @{
+ */
 #define EQOS_PAD_AUTO_CAL_CFG_ENABLE		OSI_BIT(29)
 #define EQOS_PAD_AUTO_CAL_CFG_START		OSI_BIT(31)
 #define EQOS_PAD_AUTO_CAL_STAT_ACTIVE		OSI_BIT(31)
@@ -335,11 +382,25 @@
 #define EQOS_DMA_CHX_STATUS_RPS			OSI_BIT(8)
 #define EQOS_DMA_CHX_STATUS_RWT			OSI_BIT(9)
 #define EQOS_DMA_CHX_STATUS_FBE			OSI_BIT(10)
+/** @} */
 
+/**
+ * @brief update_ehfc_rfa_rfd - Update EHFC, RFD and RSA values
+ *
+ * Algorithm: Calculates and stores the RSD (Threshold for Deactivating
+ *	  Flow control) and RSA (Threshold for Activating Flow Control) values
+ *	  based on the Rx FIFO size and also enables HW flow control
+ *
+ * @param[in] rx_fifo: Rx FIFO size.
+ * @param[in] value: Stores RFD and RSA values
+ */
 void update_ehfc_rfa_rfd(unsigned int rx_fifo, unsigned int *value);
 
-/* Below macros are used for periodic reg validation for functional safety.
- * HW register mask - to mask reserved and self-clearing bits
+/**
+ * @addtogroup EQOS-Safety-Register EQOS Safety Register Mask
+ *
+ * @brief EQOS HW register masks and index
+ * @{
  */
 #define EQOS_MAC_MCR_MASK			0xFFFFFF7FU
 #define EQOS_MAC_PFR_MASK			0x803107FFU
@@ -398,21 +459,22 @@ void update_ehfc_rfa_rfd(unsigned int rx_fifo, unsigned int *value);
 #define EQOS_MTL_CH3_RX_OP_MODE_IDX		29U
 #define EQOS_DMA_SBUS_IDX			30U
 #define EQOS_MAX_CORE_SAFETY_REGS		31U
+/** @} */
 
 /**
- *	struct core_func_safety - Struct used to store last written values of
+ * @brief core_func_safety - Struct used to store last written values of
  *	critical core HW registers.
- *	@reg_addr: Array of reg MMIO addresses (base of EQoS + offset of reg)
- *	@reg_mask: Array of bit-mask value of each corresponding reg (used to
- *	ignore self-clearing/reserved bits in reg).
- *	@reg_val: Array of value stored in each corresponding register.
- *	@core_safety_lock: OSI lock variable used to protect writes to reg while
- *	validation is in-progress.
  */
 struct core_func_safety {
+	/** Array of reg MMIO addresses (base of EQoS + offset of reg) */
 	void *reg_addr[EQOS_MAX_CORE_SAFETY_REGS];
+	/** Array of bit-mask value of each corresponding reg
+	 * (used to ignore self-clearing/reserved bits in reg) */
 	unsigned int reg_mask[EQOS_MAX_CORE_SAFETY_REGS];
+	/** Array of value stored in each corresponding register */
 	unsigned int reg_val[EQOS_MAX_CORE_SAFETY_REGS];
+	/** OSI lock variable used to protect writes to reg while
+	 * validation is in-progress */
 	unsigned int core_safety_lock;
 };
 #endif

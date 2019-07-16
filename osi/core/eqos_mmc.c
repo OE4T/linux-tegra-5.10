@@ -27,22 +27,21 @@
 #include "eqos_core.h"
 
 /**
- *	update_mmc_val - function to read resgister and return vlaue to callee
+ * @brief update_mmc_val - function to read register and return value to callee
  *
- *	@osi_core: OSI core private data structure.
- *	@last_vlaue: previous value of stats variable.
- *	@offset: HW register offset
+ * Algorithm: Read the registers, check for boundary, if more, reset
+ *	  counters else return same to caller.
  *
- *	Algorithm: Read the registers, check for boundary, if more, reset
- *	counters else return same to caller.
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in] last_value: previous value of stats variable.
+ * @param[in] offset: HW register offset
  *
- *	Dependencies:
+ * @note
  *	1) MAC should be init and started. see osi_start_mac()
  *	2) osi_core->osd should be populated
  *
- *	Protection: None
- *
- *      Return: unsigned value
+ * @retval 0 on success
+ * @retval -1 on failure
  */
 static inline unsigned long update_mmc_val(struct osi_core_priv_data *osi_core,
 					   unsigned long last_value,
@@ -66,19 +65,14 @@ static inline unsigned long update_mmc_val(struct osi_core_priv_data *osi_core,
 }
 
 /**
- *	eqos_reset_mmc - To reset MMC registers and ether_mmc_counter structure
- *	variable
- *	@osi_core: OSI core private data structure.
+ * @brief eqos_reset_mmc - To reset MMC registers and ether_mmc_counter
+ *	structure variable
  *
- *	Algorithm: reset HW counter and structure variable value.
+ * @param[in] osi_core: OSI core private data structure.
  *
- *	Dependencies:
+ * @note
  *	1) MAC should be init and started. see osi_start_mac()
  *	2) osi_core->osd should be populated
- *
- *	Protection: None
- *
- *      Return: None
  */
 void eqos_reset_mmc(struct osi_core_priv_data *osi_core)
 {
@@ -92,20 +86,17 @@ void eqos_reset_mmc(struct osi_core_priv_data *osi_core)
 }
 
 /**
- *	eqos_read_mmc - To read MMC registers and ether_mmc_counter structure
- *	variable
- *	@osi_core: OSI core private data structure.
+ * @brief eqos_read_mmc - To read MMC registers and ether_mmc_counter structure
+ *	   variable
  *
- *	Algorithm: Pass register offset and old value to helper function and
- *	update structure.
+ * Algorithm: Pass register offset and old value to helper function and
+ *	   update structure.
  *
- *	Dependencies:
+ * @param[in] osi_core: OSI core private data structure.
+ *
+ * @note
  *	1) MAC should be init and started. see osi_start_mac()
  *	2) osi_core->osd should be populated
- *
- *	Protection: None
- *
- *      Return: None
  */
 void eqos_read_mmc(struct osi_core_priv_data *osi_core)
 {

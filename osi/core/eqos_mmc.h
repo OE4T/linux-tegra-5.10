@@ -23,6 +23,12 @@
 #ifndef EQOS_MMC_H_
 #define EQOS_MMC_H_
 
+/**
+ * @addtogroup EQOS-MMC MMC HW register offsets
+ *
+ * @brief MMC HW register offsets
+ * @{
+ */
 #define MMC_TXOCTETCOUNT_GB		0x00714
 #define MMC_TXPACKETCOUNT_GB		0x00718
 #define MMC_TXBROADCASTPACKETS_G	0x0071c
@@ -103,7 +109,32 @@
 #define MMC_RXTCP_ERR_OCTETS		0x0087c
 #define MMC_RXICMP_GD_OCTETS		0x00880
 #define MMC_RXICMP_ERR_OCTETS		0x00884
+/** @} */
 
+/**
+ * @brief eqos_read_mmc - To read MMC registers and ether_mmc_counter structure
+ *	   variable
+ *
+ * Algorithm: Pass register offset and old value to helper function and
+ *	   update structure.
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ *
+ * @note
+ *	1) MAC should be init and started. see osi_start_mac()
+ *	2) osi_core->osd should be populated
+ */
 void eqos_read_mmc(struct osi_core_priv_data *osi_core);
+
+/**
+ * @brief eqos_reset_mmc - To reset MMC registers and ether_mmc_counter
+ *	  structure variable
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ *
+ * @note
+ *	1) MAC should be init and started. see osi_start_mac()
+ *	2) osi_core->osd should be populated
+ */
 void eqos_reset_mmc(struct osi_core_priv_data *osi_core);
 #endif

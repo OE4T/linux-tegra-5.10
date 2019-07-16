@@ -23,16 +23,43 @@
 #ifndef OSI_DMA_TXRX_H
 #define OSI_DMA_TXRX_H
 
+/**
+ * @addtogroup EQOS_Help Descriptor Helper MACROS
+ *
+ * @brief Helper macros for defining Tx/Rx descriptor count
+ * @{
+ */
 #define TX_DESC_CNT	256U
 #define RX_DESC_CNT	256U
+/** @} */
 
+/** TSO Header length divisor */
 #define OSI_TSO_HDR_LEN_DIVISOR	4U
 
+/**
+ * @addtogroup EQOS_Help1 Helper MACROS for descriptor index operations
+ *
+ * @brief Helper macros for incrementing or decrementing Tx/Rx descriptor index
+ * @{
+ */
+/** Increment the tx descriptor index */
 #define INCR_TX_DESC_INDEX(idx, i) ((idx) = ((idx) + (i)) & (TX_DESC_CNT - 1U))
+/** Decrement the tx descriptor index */
 #define DECR_TX_DESC_INDEX(idx, i) ((idx) = ((idx) - (i)) & (TX_DESC_CNT - 1U))
+/** Increment the rx descriptor index */
 #define INCR_RX_DESC_INDEX(idx, i) ((idx) = ((idx) + (i)) & (RX_DESC_CNT - 1U))
+/** Decrement the rx descriptor index */
 #define DECR_RX_DESC_INDEX(idx, i) ((idx) = ((idx) - (i)) & (RX_DESC_CNT - 1U))
+/** @} */
 
+/**
+ * @addtogroup EQOS_RxDesc Receive Descriptors bit fields
+ *
+ * @brief These macros are used to check the value in specific bit fields of
+ * the descriptor. The fields in the descriptor are mapped as
+ * defined in the HW manual
+ * @{
+ */
 #define RDES3_OWN		OSI_BIT(31)
 #define RDES3_CTXT		OSI_BIT(30)
 #define RDES3_IOC		OSI_BIT(30)
@@ -51,17 +78,27 @@
 #define RDES3_RS0V		OSI_BIT(25)
 #define RDES3_RS1V		OSI_BIT(26)
 #define RDES0_OVT		0x0000FFFFU
-#define RDES1_TSA		OSI_BIT(14) /* Timestamp available */
-#define RDES1_TD		OSI_BIT(15) /* Timestamp Dropped */
+#define RDES1_TSA		OSI_BIT(14)
+#define RDES1_TD		OSI_BIT(15)
 
 #define RDES1_IPCE		OSI_BIT(7)
 #define RDES1_IPCB		OSI_BIT(6)
 #define RDES1_IPHE		OSI_BIT(3)
+/** @} */
 
+/** Error Summary bits for Received packet */
 #define RDES3_ES_BITS \
 	(RDES3_ERR_CRC | RDES3_ERR_GP | RDES3_ERR_WD | \
 	RDES3_ERR_ORUN | RDES3_ERR_RE | RDES3_ERR_DRIB)
 
+/**
+ * @addtogroup EQOS_TxDesc Transmit Descriptors bit fields
+ *
+ * @brief These macros are used to check the value in specific bit fields of
+ * the descriptor. The fields in the descriptor are mapped as
+ * defined in the HW manual
+ * @{
+ */
 #define TDES2_IOC		OSI_BIT(31)
 #define TDES2_MSS_MASK		0x3FFFU
 #define TDES3_OWN		OSI_BIT(31)
@@ -95,7 +132,9 @@
 */
 #define TDES2_VTIR		((unsigned int)0x2 << 14U)
 #define TDES2_TTSE		((unsigned int)0x1 << 30U)
+/** @} */
 
+/** Error Summary bits for Transmitted packet */
 #define TDES3_ES_BITS		(TDES3_IP_HEADER_ERR     | \
 				 TDES3_UNDER_FLOW_ERR    | \
 				 TDES3_EXCESSIVE_DEF_ERR | \

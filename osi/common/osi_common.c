@@ -23,17 +23,6 @@
 #include <osi_core.h>
 #include <osd.h>
 
-/**
- *	osi_get_hw_features: Get MAC Hardware features from features registers
- *	@osi: OSI private data structure.
- *
- *	Algorithm: Reads HW features from HW registers and populate those
- *	in hw features structure.
- *
- *	Dependencies: CAR reset should be success before calling this function
- *
- *	Return: None
- */
 void osi_get_hw_features(void *base, struct osi_hw_features *hw_feat)
 {
 	unsigned int mac_hfr0;

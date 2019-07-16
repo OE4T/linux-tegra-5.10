@@ -29,179 +29,170 @@
 struct osi_core_priv_data;
 
 /**
- *	struct osi_filter - The OSI core structure for filters
- *	@pr_mode: promiscuous mode
- *	@huc_mode: hash unicast
- *	@hmc_mode: hash milticast
- *	@pm_mode: pass all multicast
- *	@hpf_mode: hash or perfact filter
+ * @brief OSI core structure for filters
  */
 struct osi_filter {
+	/** promiscuous mode enable(1) or disable(0) */
 	unsigned int pr_mode;
+	/** hash unicast enable(1) or disable(0) */
 	unsigned int huc_mode;
+	/** hash multicast enable(1) or disable(0) */
 	unsigned int hmc_mode;
+	/** pass all multicast enable(1) or disable(0) */
 	unsigned int pm_mode;
+	/** 0x0 (DISABLE): Hash or Perfect Filter is disabled
+	 *
+	 * 0x1 (ENABLE): Hash or Perfect Filter is enabled */
 	unsigned int hpf_mode;
 };
 
 /**
- *	Structure osi_l3_l4_filter - L3/L4 filter Function dependent
- *	parameter
- *
- *	@filter_no:	filter index 0- 7
- *	@filter_enb_dis:	enable/disable
- *	@src_dst_addr_match:	source(0) or destination(1)
- *	@perfect_inverse_match:	perfect(0) or inverse(1)
- *	@ip4_addr:	ipv4 address
- *	@ip6_addr:	ipv6 address
- *	@port_no:	Port number
+ * @brief L3/L4 filter function dependent parameter
  */
 struct osi_l3_l4_filter {
+	/** Indicates the index of the filter to be modified.
+	 * Filter index must be between 0 - 7 */
 	unsigned int filter_no;
+	/** filter enable(1) or disable(0) */
 	unsigned int filter_enb_dis;
+	/** source(0) or destination(1) */
 	unsigned int src_dst_addr_match;
+	/** perfect(0) or inverse(1) */
 	unsigned int perfect_inverse_match;
+	/** ipv4 address */
 	unsigned char ip4_addr[4];
+	/** ipv6 address */
 	unsigned short ip6_addr[8];
+	/** Port number */
 	unsigned short port_no;
 };
 
 /**
- *	Structure osi_vlan_filter - Vlan filter Function dependent parameter
- *
- *	@filter_enb_dis: enable/disable
- *	@perfect_hash: perfect(0) or hash(1)
- *	@perfect_inverse_match:	perfect(0) or inverse(1)
+ * @brief Vlan filter Function dependent parameter
  */
 struct osi_vlan_filter {
+	/** vlan filter enable(1) or disable(0) */
 	unsigned int filter_enb_dis;
+	/** perfect(0) or hash(1) */
 	unsigned int perfect_hash;
+	/** perfect(0) or inverse(1) */
 	unsigned int perfect_inverse_match;
 };
 
 /**
- *	Struct osi_l2_da_filter - L2 filter function depedent parameter
- *	@perfect_hash: perfect(0) or hash(1)
- *	@perfect_inverse_match:	perfect(0) or inverse(1)
+ * @brief L2 filter function dependent parameter
  */
 struct osi_l2_da_filter {
+	/** perfect(0) or hash(1) */
 	unsigned int perfect_hash;
+	/** perfect(0) or inverse(1) */
 	unsigned int perfect_inverse_match;
 };
 
 /**
- *	struct osi_core_avb_algorithm - The OSI Core avb data structure per
- *	queue.
- *	@qindex: TX Queue/TC index
- *	@algo: AVB algorithm 1:CBS
- *	@credit_control: credit control When this bit is set, the accumulated
- *	credit. Parameter in the credit-based shaper algorithm logic is not
- *	reset to zero when there is positive credit and no packet to transmit
- *	in Channel
- *	@idle_slope: idleSlopeCredit value required for CBS
- *	@send_slope: sendSlopeCredit value required for CBS
- *	@hi_credit: hiCredit value required for CBS
- *	@low_credit: lowCredit value required for CBS
- *	@oper_mode: Transmit queue enable 01: avb 10: enable 00: disable
+ * @brief OSI Core avb data structure per queue.
  */
 struct  osi_core_avb_algorithm {
+	/** TX Queue/TC index */
 	unsigned int qindex;
+	/** CBS Algorithm enable(1) or disable(0) */
 	unsigned int algo;
+	/** When this bit is set, the accumulated credit parameter in the
+	 * credit-based shaper algorithm logic is not reset to zero when
+	 * there is positive credit and no packet to transmit in Channel.
+	 * 
+	 * Expected values are enable(1) or disable(0) */
 	unsigned int credit_control;
-	unsigned int idle_slope;
+	/** idleSlopeCredit value required for CBS */
+	  unsigned int idle_slope;
+	/** sendSlopeCredit value required for CBS */
 	unsigned int send_slope;
+	/** hiCredit value required for CBS */
 	unsigned int hi_credit;
+	/** lowCredit value required for CBS */
 	unsigned int low_credit;
+	/** Transmit queue operating mode
+	 *
+	 * 00: disable
+	 * 
+	 * 01: avb 
+	 * 
+	 * 10: enable */
 	unsigned int oper_mode;
 };
 
 /**
- *	struct osi_core_ops - Core (MAC & MTL) operations.
- *	@poll_for_swr: Called to poll for software reset bit.
- *	@core_init: Called to initialize MAC and MTL registers.
- *	@core_deinit: Called to deinitialize MAC and MTL registers.
- *	@validate_regs: Called periodically to read and validate safety critical
- *	registers against last written value.
- *	@start_mac: Called to start MAC Tx and Rx engine.
- *	@stop_mac: Called to stop MAC Tx and Rx engine.
- *	@handle_common_intr: Called to handle common interrupt.
- *	@set_mode: Called to set the mode at MAC (full/duplex).
- *	@set_speed: Called to set the speed (10/100/1000) at MAC.
- *	@pad_calibrate: Called to do pad caliberation.
- *	@set_mdc_clk_rate: Called to set MDC clock rate for MDIO operation.
- *	@flush_mtl_tx_queue: Called to flush MTL Tx queue.
- *	@config_mac_loopback: Called to configure MAC in loopback mode.
- *	@set_avb_algorithm: Called to set av parameter.
- *	@get_avb_algorithm: Called to get av parameter,
- *	@config_fw_err_pkts: Called to configure MTL RxQ to forward the err pkt.
- *	@config_tx_status: Called to configure the MTL to forward/drop tx status
- *	@config_rx_crc_check: Called to configure the MAC rx crc.
- *	@config_flow_control: Called to configure the MAC flow control.
- *	@config_arp_offload: Called to enable/disable HW ARP offload feature.
- *	@config_rxcsum_offload: Called to configure Rx Checksum offload engine.
- *	@config_mac_pkt_filter_reg: Called to config mac packet filter.
- *	@update_mac_addr_low_high_reg: Called to update MAC address 1-127.
- *	@config_l3_l4_filter_enable: Called to configure l3/L4 filter.
- *	@config_l2_da_perfect_inverse_match: Called to configure L2 DA filter.
- *	@config_l3_filters: Called to configure L3 filter.
- *	@update_ip4_addr: Called to update ip4 src or desc address.
- *	@update_ip6_addr: Called to update ip6 address.
- *	@config_l4_filters: Called to configure L4 filter.
- *	@update_l4_port_no: Called to update L4 Port for filter packet.
- *	@config_vlan_filtering: Called to configure VLAN filtering.
- *	@update_vlan_id: called to update VLAN id.
- *	@set_systime_to_mac: Called to set current system time to MAC.
- *	@config_addend: Called to set the addend value to adjust the time.
- *	@adjust_systime: Called to adjust the system time.
- *	@get_systime_from_mac: Called to get the current time from MAC.
- *	@config_tscr: Called to configure the TimeStampControl register.
- *	@config_ssir: Called to configure the sub second increment register.
- *	@read_mmc: called to update MMC counter from HW register
- *	@reset_mmc: called to reset MMC HW counter and Structure
+ * @brief Initialize MAC & MTL core operations.
  */
 struct osi_core_ops {
-	/* initialize MAC/MTL/DMA Common registers */
+	/** Called to poll for software reset bit */
 	int (*poll_for_swr)(void *ioaddr);
+	/** Called to initialize MAC and MTL registers */
 	int (*core_init)(struct osi_core_priv_data *osi_core,
 			 unsigned int tx_fifo_size,
 			 unsigned int rx_fifo_size);
+	/** Called to deinitialize MAC and MTL registers */
 	void (*core_deinit)(struct osi_core_priv_data *osi_core);
+	/** Called periodically to read and validate safety critical
+	 * registers against last written value */
 	int (*validate_regs)(struct osi_core_priv_data *osi_core);
+	/**  Called to start MAC Tx and Rx engine */
 	void (*start_mac)(void *addr);
+	/** Called to stop MAC Tx and Rx engine */
 	void (*stop_mac)(void *addr);
+	/** Called to handle common interrupt */
 	void (*handle_common_intr)(struct osi_core_priv_data *osi_core);
+	/** Called to set the mode at MAC (full/duplex) */
 	void (*set_mode)(void *ioaddr, int mode);
+	/** Called to set the speed (10/100/1000) at MAC */
 	void (*set_speed)(void *ioaddr, int speed);
+	/** Called to do pad caliberation */
 	int (*pad_calibrate)(void *ioaddr);
+	/** Called to set MDC clock rate for MDIO operation */
 	void (*set_mdc_clk_rate)(struct osi_core_priv_data *osi_core,
 				 unsigned long csr_clk_rate);
+	/** Called to flush MTL Tx queue */
 	int (*flush_mtl_tx_queue)(void *ioaddr, unsigned int qinx);
+	/** Called to configure MAC in loopback mode */
 	int (*config_mac_loopback)(void *addr, unsigned int lb_mode);
+	/** Called to set av parameter */
 	int (*set_avb_algorithm)(struct osi_core_priv_data *osi_core,
 				 struct osi_core_avb_algorithm *avb);
+	/** Called to get av parameter */
 	int (*get_avb_algorithm)(struct osi_core_priv_data *osi_core,
 				 struct osi_core_avb_algorithm *avb);
+	/** Called to configure MTL RxQ to forward the err pkt */
 	int (*config_fw_err_pkts)(void *addr, unsigned int qinx,
 				  unsigned int fw_err);
+	/** Called to configure the MTL to forward/drop tx status */
 	int (*config_tx_status)(void *addr, unsigned int tx_status);
+	/** Called to configure the MAC rx crc */
 	int (*config_rx_crc_check)(void *addr, unsigned int crc_chk);
+	/** Called to configure the MAC flow control */
 	int (*config_flow_control)(void *addr, unsigned int flw_ctrl);
+	/** Called to enable/disable HW ARP offload feature */
 	int (*config_arp_offload)(unsigned int mac_ver, void *addr,
 				  unsigned int enable, unsigned char *ip_addr);
+	/** Called to configure Rx Checksum offload engine */
 	int (*config_rxcsum_offload)(void *addr, unsigned int enabled);
+	/** Called to config mac packet filter */
 	void (*config_mac_pkt_filter_reg)(struct osi_core_priv_data *osi_core,
 					  struct osi_filter filter);
+	/** Called to update MAC address 1-127 */
 	int (*update_mac_addr_low_high_reg)(
-					struct osi_core_priv_data *osi_core,
+					    struct osi_core_priv_data *osi_core,
 					    unsigned int index,
 					    unsigned char value[],
 					    unsigned int dma_routing_enable,
 					    unsigned int dma_chan,
 					    unsigned int addr_mask,
 					    unsigned int src_dest);
+	/** Called to configure l3/L4 filter */
 	int (*config_l3_l4_filter_enable)(void *base, unsigned int enable);
+	/** Called to configure L2 DA filter */
 	int (*config_l2_da_perfect_inverse_match)(void *base, unsigned int
 						  perfect_inverse_match);
+	/** Called to configure L3 filter */
 	int (*config_l3_filters)(struct osi_core_priv_data *osi_core,
 				 unsigned int filter_no, unsigned int enb_dis,
 				 unsigned int ipv4_ipv6_match,
@@ -209,11 +200,14 @@ struct osi_core_ops {
 				 unsigned int perfect_inverse_match,
 				 unsigned int dma_routing_enable,
 				 unsigned int dma_chan);
+	/** Called to update ip4 src or desc address */
 	int (*update_ip4_addr)(struct osi_core_priv_data *osi_core,
 			       unsigned int filter_no, unsigned char addr[],
 			       unsigned int src_dst_addr_match);
+	/** Called to update ip6 address */
 	int (*update_ip6_addr)(struct osi_core_priv_data *osi_core,
 			       unsigned int filter_no, unsigned short addr[]);
+	/** Called to configure L4 filter */
 	int (*config_l4_filters)(struct osi_core_priv_data *osi_core,
 				 unsigned int filter_no, unsigned int enb_dis,
 				 unsigned int tcp_udp_match,
@@ -221,527 +215,543 @@ struct osi_core_ops {
 				 unsigned int perfect_inverse_match,
 				 unsigned int dma_routing_enable,
 				 unsigned int dma_chan);
+	/** Called to update L4 Port for filter packet */
 	int (*update_l4_port_no)(struct osi_core_priv_data *osi_core,
 				 unsigned int filter_no, unsigned short port_no,
 				 unsigned int src_dst_port_match);
 
-	/* for VLAN filtering */
-	int (*config_vlan_filtering)(struct osi_core_priv_data *osi_core,
-				     unsigned int filter_enb_dis,
-				     unsigned int perfect_hash_filtering,
-				     unsigned int perfect_inverse_match);
+	/** Called to configure VLAN filtering */
+	  int (*config_vlan_filtering)(struct osi_core_priv_data *osi_core,
+				       unsigned int filter_enb_dis,
+				       unsigned int perfect_hash_filtering,
+				       unsigned int perfect_inverse_match);
+	/** called to update VLAN id */
 	int (*update_vlan_id)(void *base, unsigned int vid);
+	/** Called to set current system time to MAC */
 	int (*set_systime_to_mac)(void *addr, unsigned int sec,
 				  unsigned int nsec);
+	/** Called to set the addend value to adjust the time */
 	int (*config_addend)(void *addr, unsigned int addend);
+	/** Called to adjust the system time */
 	int (*adjust_systime)(void *addr, unsigned int sec, unsigned int nsec,
 			      unsigned int neg_adj,
 			      unsigned int one_nsec_accuracy);
+	/** Called to get the current time from MAC */
 	unsigned long long (*get_systime_from_mac)(void *addr);
+	/** Called to configure the TimeStampControl register */
 	void (*config_tscr)(void *addr, unsigned int ptp_filter);
+	/** Called to configure the sub second increment register */
 	void (*config_ssir)(void *addr, unsigned int ptp_clock);
+	/** Called to update MMC counter from HW register */
 	void (*read_mmc)(struct osi_core_priv_data *osi_core);
+	/** Called to reset MMC HW counter structure */
 	void (*reset_mmc)(struct osi_core_priv_data *osi_core);
 };
 
 /**
- *	struct osi_ptp_config - PTP configuration
- *	@ptp_filter: PTP filter parameters bit fields.
- *	Enable Time stamp,Fine Timestamp,1 nanosecond accuracy are enabled by
- *	default.
- *	Need to set below bit fields accordingly as per the requirements.
- *	Enable Timestamp for All Packets			OSI_BIT(8)
- *	Enable PTP Packet Processing for Version 2 Format	OSI_BIT(10)
- *	Enable Processing of PTP over Ethernet Packets		OSI_BIT(11)
- *	Enable Processing of PTP Packets Sent over IPv6-UDP	OSI_BIT(12)
- *	Enable Processing of PTP Packets Sent over IPv4-UDP	OSI_BIT(13)
- *	Enable Timestamp Snapshot for Event Messages		OSI_BIT(14)
- *	Enable Snapshot for Messages Relevant to Master		OSI_BIT(15)
- *	Select PTP packets for Taking Snapshots			OSI_BIT(16)
- *	Select PTP packets for Taking Snapshots			OSI_BIT(17)
- *	Select PTP packets for Taking Snapshots	(OSI_BIT(16) | OSI_BIT(17))
- *	AV 802.1AS Mode Enable					OSI_BIT(28)
- *	if ptp_fitler is set to Zero then Time stamping is disabled.
- *	@sec: Seconds
- *	@nsec: Nano seconds
- *	@ptp_ref_clk_rate: PTP reference clock read from DT
- *	@one_nsec_accuracy: Use one nsec accuracy (need to set 1)
- *	@ptp_clock: PTP system clock which is 62500000Hz
+ * @brief PTP configuration structure
  */
 struct osi_ptp_config {
+	/** PTP filter parameters bit fields.
+	 * 
+	 * Enable Time stamp,Fine Timestamp,1 nanosecond accuracy
+	 * are enabled by default.
+	 * 
+	 * Need to set below bit fields accordingly as per the requirements.
+	 * 
+	 * Enable Timestamp for All Packets			OSI_BIT(8)
+	 * 
+	 * Enable PTP Packet Processing for Version 2 Format	OSI_BIT(10)
+	 * 
+	 * Enable Processing of PTP over Ethernet Packets	OSI_BIT(11)
+	 * 
+	 * Enable Processing of PTP Packets Sent over IPv6-UDP	OSI_BIT(12)
+	 * 
+	 * Enable Processing of PTP Packets Sent over IPv4-UDP	OSI_BIT(13)
+	 * 
+	 * Enable Timestamp Snapshot for Event Messages		OSI_BIT(14)
+	 * 
+	 * Enable Snapshot for Messages Relevant to Master	OSI_BIT(15)
+	 * 
+	 * Select PTP packets for Taking Snapshots		OSI_BIT(16)
+	 * 
+	 * Select PTP packets for Taking Snapshots		OSI_BIT(17)
+	 * 
+	 * Select PTP packets for Taking Snapshots (OSI_BIT(16) + OSI_BIT(17))
+	 * 
+	 * AV 802.1AS Mode Enable				OSI_BIT(28)
+	 * 
+	 * if ptp_fitler is set to Zero then Time stamping is disabled */
 	unsigned int ptp_filter;
+	/** seconds to be updated to MAC */
 	unsigned int sec;
+	/** nano seconds to be updated to MAC */
 	unsigned int nsec;
+	/** PTP reference clock read from DT */
 	unsigned int ptp_ref_clk_rate;
+	/** Use one nsec accuracy (need to set 1) */
 	unsigned int one_nsec_accuracy;
+	/** PTP system clock which is 62500000Hz */
 	unsigned int ptp_clock;
 };
 
 /**
- *	struct osi_core_priv_data - The OSI Core (MAC & MTL) private data
-				    structure.
- *	@base: Memory mapped base address of MAC IP.
- *	@osd:	Pointer to OSD private data structure.
- *	@ops: Address of HW Core operations structure.
- *	@num_mtl_queues: Number of MTL queues enabled in MAC.
- *	@mtl_queues: Array of MTL queues.
- *	@rxq_ctrl: List of MTL Rx queue mode that need to be enabled
- *	@rxq_prio: Rx MTl Queue mapping based on User Priority field
- *	@mac: MAC HW type EQOS based on DT compatible.
- *	@mac_ver: MAC version.
- *	@mdc_cr: MDC clock rate.
- *	@mtu: MTU size
- *	@mac_addr: Ethernet MAC address.
- *	@pause_frames: DT entry to enable(0) or disable(1) pause frame support
- *	@flow_ctrl: Current flow control settings
- *	@ptp_config: PTP configuration settings.
- *	@default_addend: Default addend value.
- *	@mmc: mmc counter structure
- *	@xstats: xtra sw error counters
- *	@dcs_en: DMA channel selection enable (1)
- *	@safety_config: Functional safety config to do periodic read-verify of
- *	certain safety critical registers.
+ * @brief The OSI Core (MAC & MTL) private data structure.
  */
 struct osi_core_priv_data {
+	/** Memory mapped base address of MAC IP */
 	void *base;
+	/** Pointer to OSD private data structure */
 	void *osd;
+	/** Address of HW Core operations structure */
 	struct osi_core_ops *ops;
+	/** Number of MTL queues enabled in MAC */
 	unsigned int num_mtl_queues;
-	unsigned int mtl_queues[OSI_EQOS_MAX_NUM_QUEUES];
-	unsigned int rxq_ctrl[OSI_EQOS_MAX_NUM_QUEUES];
-	unsigned int rxq_prio[OSI_EQOS_MAX_NUM_QUEUES];
+	/** Array of MTL queues */
+	unsigned int mtl_queues[OSI_EQOS_MAX_NUM_CHANS];
+	/** List of MTL Rx queue mode that need to be enabled */
+	unsigned int rxq_ctrl[OSI_EQOS_MAX_NUM_CHANS];
+	/** Rx MTl Queue mapping based on User Priority field */
+	unsigned int rxq_prio[OSI_EQOS_MAX_NUM_CHANS];
+	/** MAC HW type EQOS based on DT compatible */
 	unsigned int mac;
+	/** MAC version */
 	unsigned int mac_ver;
+	/** MDC clock rate */
 	unsigned int mdc_cr;
+	/** MTU size */
 	unsigned int mtu;
+	/** Ethernet MAC address */
 	unsigned char mac_addr[OSI_ETH_ALEN];
+	/** DT entry to enable(0) or disable(1) pause frame support */
 	unsigned int pause_frames;
+	/** Current flow control settings */
 	unsigned int flow_ctrl;
+	/** PTP configuration settings */
 	struct osi_ptp_config ptp_config;
+	/** Default addend value */
 	unsigned int default_addend;
+	/** mmc counter structure */
 	struct osi_mmc_counters mmc;
+	/** xtra sw error counters */
 	struct osi_xtra_stat_counters xstats;
+	/** DMA channel selection enable (1) */
 	unsigned int dcs_en;
+	/** Functional safety config to do periodic read-verify of
+	 * certain safety critical registers */
 	void *safety_config;
 };
 
 /**
- *	osi_poll_for_swr - Poll Software reset bit in MAC HW
- *	@osi: OSI Core private data structure.
+ * @brief osi_poll_for_swr - Poll Software reset bit in MAC HW
  *
- *	Algorithm: Invokes EQOS routine to check for SWR (software reset)
- *	bit in DMA Basic mooe register to make sure IP reset was successful.
+ * Algorithm: Invokes EQOS routine to check for SWR (software reset)
+ * bit in DMA Basic mode register to make sure IP reset was successful.
  *
- *	Dependencies:
- *	1) MAC needs to be out of reset and proper clock configured.
+ * @param[in] osi_core: OSI Core private data structure.
  *
- *	Protection: None
+ * @note MAC needs to be out of reset and proper clock configured.
  *
- *	Return: 0 - success, -1 - failure
+ * @retval 0 on success
+ * @retval -1 on failure.
  */
 
 int osi_poll_for_swr(struct osi_core_priv_data *osi_core);
 
 /**
- *	osi_set_mdc_clk_rate - Derive MDC clock based on provided AXI_CBB clk.
- *	@osi: OSI core private data structure.
- *	@csr_clk_rate: CSR (AXI CBB) clock rate.
+ * @brief osi_set_mdc_clk_rate - Derive MDC clock based on provided AXI_CBB clk.
  *
- *	Algorithm: MDC clock rate will be populated in OSI core private data
- *	structure based on AXI_CBB clock rate.
+ * Algorithm: MDC clock rate will be populated in OSI core private data
+ * structure based on AXI_CBB clock rate.
  *
- *	Dependencies:
- *	1) OSD layer needs get the AXI CBB clock rate with OSD clock API
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in] csr_clk_rate: CSR (AXI CBB) clock rate.
+ *
+ * @note OSD layer needs get the AXI CBB clock rate with OSD clock API
  *	(ex - clk_get_rate())
  *
- *      Return: 0 - success, -1 - failure
+ * @retval 0 on success
+ * @retval -1 on failure.
  */
 int osi_set_mdc_clk_rate(struct osi_core_priv_data *osi_core,
 			 unsigned long csr_clk_rate);
 
 /**
- *	osi_hw_core_init - EQOS MAC, MTL and common DMA initialization.
- *	@osi: OSI core private data structure.
+ * @brief osi_hw_core_init - EQOS MAC, MTL and common DMA initialization.
+ * 
+ * Algorithm: Invokes EQOS MAC, MTL and common DMA register init code.
  *
- *	Algorithm: Invokes EQOS MAC, MTL and common DMA register init code.
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in] tx_fifo_size: OSI core private data structure.
+ * @param[in] rx_fifo_size: OSI core private data structure.
  *
- *	Dependencies:
- *	1) MAC should be out of reset. See osi_poll_for_swr() for details.
- *	2) osi_core->base needs to be filled based on ioremap.
- *	3) osi_core->num_mtl_queues needs to be filled.
- *	4) osi_core->mtl_queues[qinx] need to be filled.
+ * @note
+ * 1) MAC should be out of reset. See osi_poll_for_swr() for details.
+ * 2) osi_core->base needs to be filled based on ioremap.
+ * 3) osi_core->num_mtl_queues needs to be filled.
+ * 4)osi_core->mtl_queues[qinx] need to be filled.
  *
- *	Protection: None
- *
- *	Return: 0 - success, -1 - failure
+ * @retval 0 on success
+ * @retval -1 on failure.
  */
 int osi_hw_core_init(struct osi_core_priv_data *osi_core,
 		     unsigned int tx_fifo_size,
 		     unsigned int rx_fifo_size);
 
 /**
- *      osi_hw_core_deinit - EQOS MAC deinitialization.
- *      @osi: OSI core private data structure.
+ * @brief osi_hw_core_deinit - EQOS MAC deinitialization.
+ * 
+ * Algorithm: Stops MAC transmisson and reception.
  *
- *      Algorithm: Stops MAC transmisson and reception.
+ * @param[in] osi_core: OSI core private data structure.
  *
- *      Dependencies: MAC has to be out of reset.
+ * @note MAC has to be out of reset.
  *
- *      Protection: None
- *
- *      Return: 0 - success, -1 - failure
+ * @retval 0 on success
+ * @retval -1 on failure.
  */
 int osi_hw_core_deinit(struct osi_core_priv_data *osi_core);
 
 /**
- *	osi_validate_core_regs - Read-validate HW registers for func safety.
- *	@osi_core: OSI core private data structure.
+ * @brief osi_validate_core_regs - Read-validate HW registers for func safety.
  *
- *	Algorithm: Reads pre-configured list of MAC/MTL configuration registers
+ * Algorithm: Reads pre-configured list of MAC/MTL configuration registers
  *	and compares with last written value for any modifications.
  *
- *	Dependencies:
+ * @param[in] osi_core: OSI core private data structure.
+ *
+ * @note
  *	1) MAC has to be out of reset.
  *	2) osi_hw_core_init has to be called. Internally this would initialize
- *	the safety_config (see @osi_core_priv_data) based on MAC version and
+ *	the safety_config (see osi_core_priv_data) based on MAC version and
  *	which specific registers needs to be validated periodically.
  *	3) Invoke this call iff (osi_core_priv_data->safety_config != OSI_NULL)
  *
- *	Protection: None
- *
- *	Return: 0 - success, -1 - failure (reg value has changed)
+ * @retval 0 on success
+ * @retval -1 on failure.
  */
 int osi_validate_core_regs(struct osi_core_priv_data *osi_core);
 
 /**
- *      osi_start_mac - Start MAC Tx/Rx engine
- *      @osi_core: OSI core private data.
+ * @brief osi_start_mac - Start MAC Tx/Rx engine
+ * 
+ * Algorithm: Enable MAC Tx and Rx engine.
  *
- *	Algorimthm: Enable MAC Tx and Rx engine.
+ * @param[in] osi_core: OSI core private data structure.
  *
- *	Dependencies:
- *	1) MAC init should be complete. See osi_hw_core_init() and
- *	osi_hw_dma_init()
+ * @note MAC init should be complete. See osi_hw_core_init() and
+ * 	 osi_hw_dma_init()
  *
- *	Protection: None
- *
- *      Return: 0 - success, -1 - failure
+ * @retval 0 on success
+ * @retval -1 on failure.
  */
 int osi_start_mac(struct osi_core_priv_data *osi_core);
 
 /**
- *	osi_stop_mac - Stop MAC Tx/Rx engine
- *	@osi_core: OSI core private data.
+ * @brief osi_stop_mac - Stop MAC Tx/Rx engine
+ * 
+ * Algorithm: Stop MAC Tx and Rx engine
  *
- *	Algorimthm: Stop MAC Tx and Rx engine
+ * @param[in] osi_core: OSI core private data structure.
  *
- *	Dependencies:
- *	1) MAC DMA deinit should be complete. See osi_hw_dma_deinit()
+ * @note MAC DMA deinit should be complete. See osi_hw_dma_deinit()
  *
- *	Protection: None
- *
- *      Return: 0 - success, -1 - failure
+ * @retval 0 on success
+ * @retval -1 on failure.
  */
 int osi_stop_mac(struct osi_core_priv_data *osi_core);
 
 /**
- *	osi_common_isr - Common ISR.
- *	@osi_core: OSI core private data structure.
+ * @brief osi_common_isr - Common ISR.
+ * 
+ * Algorithm: Takes care of handling the common interrupts accordingly as per
+ * the MAC IP
  *
- *	Algorithm: Takes care of handling the
- *	common interrupts accordingly as per the
- *	MAC IP
+ * @param[in] osi_core: OSI core private data structure.
  *
- *	Dependencies:
- *	1) MAC should be init and started. see osi_start_mac()
+ * @note MAC should be init and started. see osi_start_mac()
  *
- *	Protection: None
- *
- *	Return: 0 - success, -1 - failure
+ * @retval 0 on success
+ * @retval -1 on failure.
  */
 int osi_common_isr(struct osi_core_priv_data *osi_core);
 
 /**
- *	osi_set_mode - Set FD/HD mode.
- *	@osi: OSI private data structure.
- *	@mode: Operating mode.
+ * @brief osi_set_mode - Set FD/HD mode.
  *
- *	Algorithm: Takes care of  setting HD or FD mode
- *	accordingly as per the MAC IP.
+ * Algorithm: Takes care of  setting HD or FD mode accordingly as per the MAC IP
  *
- *	Dependencies:
- *	1) MAC should be init and started. see osi_start_mac()
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in] mode: Operating mode.
  *
- *	Protection: None
+ * @note MAC should be init and started. see osi_start_mac()
  *
- *      Return: 0 - success, -1 - failure
+ * @retval 0 on success
+ * @retval -1 on failure.
  */
 int osi_set_mode(struct osi_core_priv_data *osi_core, int mode);
 
 /**
- *	osi_set_speed - Set operating speed.
- *	@osi: OSI private data structure.
- *	@speed: Operating speed.
+ * @brief osi_set_speed - Set operating speed.
+ * 
+ * Algorithm: Takes care of  setting the operating speed accordingly as per
+ * the MAC IP.
  *
- *	Algorithm: Takes care of  setting the operating
- *	speed accordingly as per the MAC IP.
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in] speed: Operating speed.
  *
- *	Dependencies:
- *	1) MAC should be init and started. see osi_start_mac()
+ * @note MAC should be init and started. see osi_start_mac()
  *
- *	Protection: None
- *
- *      Return: 0 - success, -1 - failure
+ * @retval 0 on success
+ * @retval -1 on failure.
  */
 int osi_set_speed(struct osi_core_priv_data *osi_core, int speed);
 
 /**
- *	osi_pad_calibrate - PAD calibration
- *	@osi: OSI core private data structure.
+ * @brief osi_pad_calibrate - PAD calibration
  *
- *	Algorithm: Takes care of  doing the pad calibration
- *	accordingly as per the MAC IP.
+ * Algorithm: Takes care of  doing the pad calibration
+ * accordingly as per the MAC IP.
  *
- *	Dependencies:
+ * @param[in] osi_core: OSI core private data structure.
+ *
+ * @note
  *	1) MAC should out of reset and clocks enabled.
  *	2) RGMII and MDIO interface needs to be IDLE before performing PAD
  *	calibration.
  *
- *	Protection: None
- *
- *	Return: 0 - success, -1 - failure
+ * @retval 0 on success
+ * @retval -1 on failure.
  */
 int osi_pad_calibrate(struct osi_core_priv_data *osi_core);
 
 /**
- *	osi_flush_mtl_tx_queue - Flushing a MTL Tx Queue.
- *	@osi_core: OSI private data structure.
- *	@qinx: MTL queue index.
+ * @brief osi_flush_mtl_tx_queue - Flushing a MTL Tx Queue.
  *
- *	Algorithm: Invokes EQOS flush Tx queue routine.
+ * Algorithm: Invokes EQOS flush Tx queue routine.
  *
- *	Dependencies:
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in] qinx: MTL queue index.
+ *
+ * @note
  *	1) MAC should out of reset and clocks enabled.
  *	2) hw core initialized. see osi_hw_core_init().
  *
- *	Protection: None
- *
- *	Return: 0 - success, -1 - failure.
+ * @retval 0 on success
+ * @retval -1 on failure.
  */
 int osi_flush_mtl_tx_queue(struct osi_core_priv_data *osi_core,
 			   unsigned int qinx);
 
 /**
- *	osi_config_mac_loopback - Configure MAC loopback
- *	@osi: OSI private data structure.
- *	@lb_mode: Enable or disable MAC loopback
+ * @brief osi_config_mac_loopback - Configure MAC loopback
  *
- *	Algorithm: Configure the MAC to support the loopback.
+ * Algorithm: Configure the MAC to support the loopback.
  *
- *	Dependencies:
- *	1) MAC should be init and started. see osi_start_mac()
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in] lb_mode: Enable or disable MAC loopback
  *
- *	Protection: None
+ * @note MAC should be init and started. see osi_start_mac()
  *
- *	Return: 0 - success, -1 - failure.
+ * @retval 0 on success
+ * @retval -1 on failure.
  */
 int osi_config_mac_loopback(struct osi_core_priv_data *osi_core,
 			    unsigned int lb_mode);
 
 /**
- *	osi_set_avb - Set CBS algo and parameters
- *	@osi: OSI core private data structure.
- *	@avb: osi core avb data structure.
+ * @brief osi_set_avb - Set CBS algo and parameters
  *
- *	Algorithm: Set AVB algo and  populated parameter from osi_core_avb
- *	structure for TC/TQ
+ * Algorithm: Set AVB algo and  populated parameter from osi_core_avb
+ * structure for TC/TQ
  *
- *	Dependencies:
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in] avb: osi core avb data structure.
+ *
+ * @note
  *	1) MAC should be init and started. see osi_start_mac()
  *	2) osi_core->osd should be populated.
  *
- *	Return: Success = 0; failure = -1;
+ * @retval 0 on success
+ * @retval -1 on failure.
  */
 int osi_set_avb(struct osi_core_priv_data *osi_core,
 		struct osi_core_avb_algorithm *avb);
 
-/**	osi_get_avb - Get CBS algo and parameters
- *	@osi: OSI core private data structure.
- *	@avb: osi core avb data structure.
+/**
+ * @brief osi_get_avb - Get CBS algo and parameters
  *
- *	Algorithm: get AVB algo and  populated parameter from osi_core_avb
- *	structure for TC/TQ
+ * Algorithm: get AVB algo and  populated parameter from osi_core_avb
+ * structure for TC/TQ
  *
- *	Dependencies:
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[out] avb: osi core avb data structure.
+ *
+ * @note
  *	1) MAC should be init and started. see osi_start_mac()
  *	2) osi_core->osd should be populated.
  *
- *	Return: Success = 0; failure = -1;
+ * @retval 0 on success
+ * @retval -1 on failure.
  */
 int osi_get_avb(struct osi_core_priv_data *osi_core,
 		struct osi_core_avb_algorithm *avb);
 
 /**
- *	osi_configure_txstatus - Configure Tx packet status reporting
- *	@osi_core: OSI private data structure.
- *	@tx_status: Enable or disable tx packet status reporting
+ * @brief osi_configure_txstatus - Configure Tx packet status reporting
  *
- *	Algorithm: Configure MAC to enable/disable Tx status error
- *	reporting.
+ * Algorithm: Configure MAC to enable/disable Tx status error
+ * reporting.
  *
- *	Dependencies:
- *	1) MAC should be init and started. see osi_start_mac()
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in] tx_status: Enable or disable tx packet status reporting
  *
- *	Protection: None
+ * @note MAC should be init and started. see osi_start_mac()
  *
- *	Return: 0 - success, -1 - failure.
+ * @retval 0 on success
+ * @retval -1 on failure.
  */
 int osi_configure_txstatus(struct osi_core_priv_data *osi_core,
 			   unsigned int tx_status);
 
 /**
- *	osi_config_fw_err_pkts - Configure forwarding of error packets
- *	@osi_core: OSI core private data structure.
- *	@qinx: Q index
- *	@fw_err: Enable or disable forwarding of error packets
+ * @brief osi_config_fw_err_pkts - Configure forwarding of error packets
  *
- *	Algorithm: Configure MAC to enable/disable forwarding of error packets.
+ * Algorithm: Configure MAC to enable/disable forwarding of error packets.
  *
- *	Dependencies:
- *	1) MAC should be init and started. see osi_start_mac()
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in] qinx: Q index
+ * @param[in] fw_err: Enable or disable forwarding of error packets
  *
- *	Protection: None
+ * @note MAC should be init and started. see osi_start_mac()
  *
- *	Return: 0 - success, -1 - failure.
+ * @retval 0 on success
+ * @retval -1 on failure.
  */
 int osi_config_fw_err_pkts(struct osi_core_priv_data *osi_core,
 			   unsigned int qinx, unsigned int fw_err);
 
 /**
- *	osi_config_rx_crc_check - Configure CRC Checking for Received Packets
- *	@osi_core: OSI core private data structure.
- *	@crc_chk: Enable or disable checking of CRC field in received packets
+ * @brief osi_config_rx_crc_check - Configure CRC Checking for Received Packets
  *
- *	Algorithm: When this bit is set, the MAC receiver does not check the CRC
- *	field in the received packets. When this bit is reset, the MAC receiver
- *	always checks the CRC field in the received packets.
+ * Algorithm: When this bit is set, the MAC receiver does not check the CRC
+ * field in the received packets. When this bit is reset, the MAC receiver
+ * always checks the CRC field in the received packets.
  *
- *	Dependencies:
- *	1) MAC should be init and started. see osi_start_mac()
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in] crc_chk: Enable or disable checking of CRC field in received pkts
  *
- *	Protection: None
+ * @note MAC should be init and started. see osi_start_mac()
  *
- *	Return: 0 - success, -1 - failure.
+ * @retval 0 on success
+ * @retval -1 on failure.
  */
 int osi_config_rx_crc_check(struct osi_core_priv_data *osi_core,
 			    unsigned int crc_chk);
 
 /**
- *	osi_configure_flow_ctrl - Configure flow control settings
- *	@osi_core: OSI core private data structure.
- *	@crc_chk: Enable or disable flow control settings
+ * @brief osi_configure_flow_ctrl - Configure flow control settings
  *
- *	Algorithm: This will enable or disable the flow control.
- *	flw_ctrl BIT0 is for tx flow ctrl enable/disable
- *	flw_ctrl BIT1 is for rx flow ctrl enable/disable
+ * Algorithm: This will enable or disable the flow control.
+ * flw_ctrl BIT0 is for tx flow ctrl enable/disable
+ * flw_ctrl BIT1 is for rx flow ctrl enable/disable
  *
- *	Dependencies:
- *	1) MAC should be init and started. see osi_start_mac()
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in] flw_ctrl: Enable or disable flow control settings
  *
- *	Protection: None
+ * @note MAC should be init and started. see osi_start_mac()
  *
- *	Return: 0 - success, -1 - failure.
+ * @retval 0 on success
+ * @retval -1 on failure.
  */
 int osi_configure_flow_control(struct osi_core_priv_data *osi_core,
 			       unsigned int flw_ctrl);
 
-/**	osi_config_arp_offload - Configure ARP offload in MAC.
- *	@osi_core: OSI private data structure.
- *	@flags: Enable/disable flag.
- *	@ip_addr: Char array representation of IP address
- *	to be set in HW to compare with ARP requests received.
+/**
+ * @brief osi_config_arp_offload - Configure ARP offload in MAC.
  *
- *	Algorithm: Invokes EQOS config ARP offload routine.
+ * Algorithm: Invokes EQOS config ARP offload routine.
  *
- *	Dependencies:
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in] flags: Enable/disable flag.
+ * @param[in] ip_addr: Char array representation of IP address
+ *
+ * @note
  *	1) MAC should be init and started. see osi_start_mac()
- *	2) Valid 4 byte IP address as argument @ip_addr
+ *	2) Valid 4 byte IP address as argument ip_addr
  *
- *	Protection: None
- *
- *	Return: 0 - success, -1 - failure
+ * @retval 0 on success
+ * @retval -1 on failure.
  */
 int osi_config_arp_offload(struct osi_core_priv_data *osi_core,
 			   unsigned int flags,
 			   unsigned char *ip_addr);
 
-/*
- *	osi_config_rxcsum_offload - Configure RX checksum offload in MAC.
- *	@osi_core: OSI private data structure.
- *	@enable: Enable/disable flag.
+/**
+ * @brief osi_config_rxcsum_offload - Configure RX checksum offload in MAC.
  *
- *	Algorithm: Invokes EQOS config RX checksum offload routine.
+ * Algorithm: Invokes EQOS config RX checksum offload routine.
  *
- *	Dependencies:
- *	1) MAC should be init and started. see osi_start_mac()
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in] enable: Enable/disable flag.
  *
- *	Protection: None
+ * @note MAC should be init and started. see osi_start_mac()
  *
- *	Return: 0 - success, -1 - failure
+ * @retval 0 on success
+ * @retval -1 on failure.
  */
 int osi_config_rxcsum_offload(struct osi_core_priv_data *osi_core,
 			      unsigned int enable);
 
 /**
- *	osi_config_mac_pkt_filter_reg - configure mac filter register.
- *	@osi_core: OSI private data structure.
- *	@pfilter: OSI filter structure.
+ * @brief osi_config_mac_pkt_filter_reg - configure mac filter register.
  *
- *	Algorithm: This sequence is used to configure MAC in differnet pkt
- *	processing modes like promiscuous, multicast, unicast,
- *	hash unicast/multicast.
+ * Algorithm: This sequence is used to configure MAC in differnet packet
+ * processing modes like promiscuous, multicast, unicast,
+ * hash unicast/multicast.
  *
- *	Dependencies:
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in] pfilter: OSI filter structure.
+ *
+ * @note
  *	1) MAC should be initialized and started. see osi_start_mac()
  *	2) MAC addresses should be configured in HW registers. see
  *	osi_update_mac_addr_low_high_reg().
  *
- *	Protection: None
- *
- *	Return: 0 - success, -1 - failure.
+ * @retval 0 on success
+ * @retval -1 on failure.
  */
 int osi_config_mac_pkt_filter_reg(struct osi_core_priv_data *osi_core,
 				  struct osi_filter pfilter);
 
 /**
- *	osi_update_mac_addr_low_high_reg- invoke API to update L2 address
+ * @brief osi_update_mac_addr_low_high_reg- invoke API to update L2 address
  *	in filter register
  *
- *	@osi_core: OSI private data structure.
- *	@index: filter index
- *	@value: MAC address to write
- *	@dma_routing_enable: dma channel routing enable(1)
- *	@dma_chan: dma channel number
- *	@addr_mask: filter will not consider byte in comparison
+ * Algorithm: This routine update MAC address to register for filtering
+ * based on dma_routing_enable, addr_mask and src_dest. Validation of
+ * dma_chan as well as DCS bit enabled in RXQ to DMA mapping register
+ * performed before updating DCS bits.
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in] index: filter index
+ * @param[in] value: MAC address to write
+ * @param[in] dma_routing_enable: dma channel routing enable(1)
+ * @param[in] dma_chan: dma channel number
+ * @param[in] addr_mask: filter will not consider byte in comparison
  *	Bit 29: MAC_Address${i}_High[15:8]
  *	Bit 28: MAC_Address${i}_High[7:0]
  *	Bit 27: MAC_Address${i}_Low[31:24]
  *	..
  *	Bit 24: MAC_Address${i}_Low[7:0]
- *	@src_dest: SA(1) or DA(0)
+ * @param[in] src_dest: SA(1) or DA(0)
  *
- *	Algorithm: This routine update MAC address to register for filtering
- *	based on dma_routing_enable, addr_mask and src_dest. Validation of
- *	dma_chan as well as DCS bit enabled in RXQ to DMA mapping register
- *	performed before updating DCS bits.
- *
- *	Dependencies:
+ * @note
  *	1) MAC should be initialized and stated. see osi_start_mac()
  *	2) osi_core->osd should be populated.
  *
- *	Protection: None
- *
- *	Return: 0 - success, -1 - failure.
+ * @retval 0 on success
+ * @retval -1 on failure.
  */
 int osi_update_mac_addr_low_high_reg(struct osi_core_priv_data *osi_core,
 				     unsigned int index,
@@ -752,51 +762,48 @@ int osi_update_mac_addr_low_high_reg(struct osi_core_priv_data *osi_core,
 				     unsigned int src_dest);
 
 /**
- *	osi_config_l3_l4_filter_enable -  invoke OSI call to eanble L3/L4
+ * @brief osi_config_l3_l4_filter_enable -  invoke OSI call to enable L3/L4
  *	filters.
  *
- *	@osi_core: OSI private data structure.
- *	@enable: enable/disable
+ * Algorithm: This routine to enable/disable L4/l4 filter
  *
- *	Algorithm: This routine to enable/disable L4/l4 filter
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in] enable: enable/disable
  *
- *	Dependencies:
- *	1) MAC should be init and started. see osi_start_mac()
+ * @note MAC should be init and started. see osi_start_mac()
  *
- *	Protection: None
- *
- *	Return: 0 - success, -1 - failure.
+ * @retval 0 on success
+ * @retval -1 on failure.
  */
 int osi_config_l3_l4_filter_enable(struct osi_core_priv_data *osi_core,
 				   unsigned int enable);
 
 /**
- *	osi_config_l3_filters - invoke OSI call config_l3_filters.
+ * @brief osi_config_l3_filters - invoke OSI call config_l3_filters.
  *
- *	@osi_core: OSI private data structure.
- *	@filter_no: filter index
- *	@enb_dis:  1 - enable otherwise - disable L3 filter
- *	@ipv4_ipv6_match: 1 - IPv6, otherwise - IPv4
- *	@src_dst_addr_match: 0 - source, otherwise - destination
- *	@perfect_inverse_match: normal match(0) or inverse map(1)
- *	@dma_routing_enable: filter based dma routing enable(1)
- *	@dma_chan: dma channel for routing based on filter
+ * Algorithm: Check for DCS_enable as well as validate channel
+ * number and if dcs_enable is set. After validation, code flow
+ * is used to configure L3(IPv4/IPv6) filters resister
+ * for address matching.
  *
- *	Algorithm: Check for DCS_enable as well as validate channel
- *      number and if dcs_enable is set. After validation, code flow
- *	is used to configure L3((IPv4/IPv6) filters resister
- *	for address matching.
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in] filter_no: filter index
+ * @param[in] enb_dis:  1 - enable otherwise - disable L3 filter
+ * @param[in] ipv4_ipv6_match: 1 - IPv6, otherwise - IPv4
+ * @param[in] src_dst_addr_match: 0 - source, otherwise - destination
+ * @param[in] perfect_inverse_match: normal match(0) or inverse map(1)
+ * @param[in] dma_routing_enable: filter based dma routing enable(1)
+ * @param[in] dma_chan: dma channel for routing based on filter
  *
- *	Dependencies:
+ * @note
  *	1) MAC should be init and started. see osi_start_mac()
  *	2) L3/L4 filtering should be enabled in MAC PFR register. See
  *	osi_config_l3_l4_filter_enable()
  *	3) osi_core->osd should be populated
  *	4) DCS bits should be enabled in RXQ to DMA map register
  *
- *	Protection: None
- *
- *	Return: 0 - success, -1 - failure.
+ * @retval 0 on success
+ * @retval -1 on failure.
  */
 int osi_config_l3_filters(struct osi_core_priv_data *osi_core,
 			  unsigned int filter_no,
@@ -808,23 +815,23 @@ int osi_config_l3_filters(struct osi_core_priv_data *osi_core,
 			  unsigned int dma_chan);
 
 /**
- *	osi_update_ip4_addr -  invoke OSI call update_ip4_addr.
- *	@osi_core: OSI private data structure.
- *	@filter_no: filter index
- *	@addr: ipv4 address
- *	@src_dst_addr_match: 0- source(addr0) 1- dest (addr1)
+ * @brief osi_update_ip4_addr -  invoke OSI call update_ip4_addr.
  *
- *	Algorithm:  This sequence is used to update IPv4 source/destination
- *	Address for L3 layer filtering
+ * Algorithm:  This sequence is used to update IPv4 source/destination
+ * Address for L3 layer filtering
  *
- *	Dependencies:
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in] filter_no: filter index
+ * @param[in] addr: ipv4 address
+ * @param[in] src_dst_addr_match: 0- source(addr0) 1- dest (addr1)
+ *
+ * @note
  *	1) MAC should be init and started. see osi_start_mac()
  *	2) L3/L4 filtering should be enabled in MAC PFR register. See
  *	osi_config_l3_l4_filter_enable()
  *
- *	Protection: None
- *
- *	Return: 0 - success, -1 - failure.
+ * @retval 0 on success
+ * @retval -1 on failure.
  */
 int osi_update_ip4_addr(struct osi_core_priv_data *osi_core,
 			unsigned int filter_no,
@@ -832,51 +839,50 @@ int osi_update_ip4_addr(struct osi_core_priv_data *osi_core,
 			unsigned int src_dst_addr_match);
 
 /**
- *	osi_update_ip6_addr -  invoke OSI call update_ip6_addr.
- *	@osi_core: OSI private data structure.
- *	@filter_no: filter index
- *	@addr: ipv6 adderss
+ * @brief osi_update_ip6_addr -  invoke OSI call update_ip6_addr.
  *
- *	Algorithm:  This sequence is used to update IPv6 source/destination
- *	Address for L3 layer filtering
+ * Algorithm:  This sequence is used to update IPv6 source/destination
+ * Address for L3 layer filtering
  *
- *	Dependencies:
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in] filter_no: filter index
+ * @param[in] addr: ipv6 adderss
+ *
+ * @note
  *	1) MAC should be init and started. see osi_start_mac()
  *	2) L3/L4 filtering should be enabled in MAC PFR register. See
  *	osi_config_l3_l4_filter_enable()
  *
- *	Protection: None
- *
- *	Return: 0 - success, -1 - failure.
+ * @retval 0 on success
+ * @retval -1 on failure.
  */
 int osi_update_ip6_addr(struct osi_core_priv_data *osi_core,
 			unsigned int filter_no,
 			unsigned short addr[]);
 
 /**
- *	osi_config_l4_filters - invoke OSI call config_l4_filters.
+ * @brief osi_config_l4_filters - invoke OSI call config_l4_filters.
  *
- *	@osi_core: OSI private data structure.
- *	@filter_no: filter index
- *	@enb_dis: enable/disable L4 filter
- *	@tcp_udp_match: 1 - udp, 0 - tcp
- *	@src_dst_port_match: port matching enable/disable
- *	@perfect_inverse_match: normal match(0) or inverse map(1)
- *	@dma_routing_enable: filter based dma routing enable(1)
- *	@dma_chan: dma channel for routing based on filter
+ * Algorithm: This sequence is used to configure L4(TCP/UDP) filters for
+ * SA and DA Port Number matching
  *
- *	Algorithm: This sequence is used to configure L4(TCP/UDP) filters for
- *	SA and DA Port Number matching
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in] filter_no: filter index
+ * @param[in] enb_dis: enable/disable L4 filter
+ * @param[in] tcp_udp_match: 1 - udp, 0 - tcp
+ * @param[in] src_dst_port_match: port matching enable/disable
+ * @param[in] perfect_inverse_match: normal match(0) or inverse map(1)
+ * @param[in] dma_routing_enable: filter based dma routing enable(1)
+ * @param[in] dma_chan: dma channel for routing based on filter
  *
- *	Dependencies:
+ * @note
  *	1) MAC should be init and started. see osi_start_mac()
  *	2) L3/L4 filtering should be enabled in MAC PFR register. See
  *	osi_config_l3_l4_filter_enable()
  *	3) osi_core->osd should be populated
  *
- *	Protection: None
- *
- *	Return: 0 - success, -1 - failure.
+ * @retval 0 on success
+ * @retval -1 on failure.
  */
 int osi_config_l4_filters(struct osi_core_priv_data *osi_core,
 			  unsigned int filter_no,
@@ -888,50 +894,45 @@ int osi_config_l4_filters(struct osi_core_priv_data *osi_core,
 			  unsigned int dma_chan);
 
 /**
- *	osi_update_l4_port_no - invoke OSI call for
- *	update_l4_port_no.
+ * @brief osi_update_l4_port_no - invoke OSI call for update_l4_port_no.
+ * Algoriths sequence is used to update Source Port Number for
+ * L4(TCP/UDP) layer filtering.
  *
- *	@osi_core: OSI private data structure.
- *	@filter_no: filter index
- *	@port_no: port number
- *	@src_dst_port_match: source port - 0, dest port - 1
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in] filter_no: filter index
+ * @param[in] port_no: port number
+ * @param[in] src_dst_port_match: source port - 0, dest port - 1
  *
- *	Algoriths sequence is used to update Source Port Number for
- *	L4(TCP/UDP) layer filtering.
- *
- *	Dependencies:
+ * @note
  *	1) MAC should be init and started. see osi_start_mac()
  *	2) L3/L4 filtering should be enabled in MAC PFR register. See
  *	osi_config_l3_l4_filter_enable()
  *	3) osi_core->osd should be populated
  *
- *	Protection: None
- *
- *	Return: 0 - success, -1 - failure.
+ * @retval 0 on success
+ * @retval -1 on failure.
  */
 int osi_update_l4_port_no(struct osi_core_priv_data *osi_core,
 			  unsigned int filter_no, unsigned short port_no,
 			  unsigned int src_dst_port_match);
 
 /**
- *	osi_config_vlan_filter_reg - invoke OSI call for
- *	config_vlan_filtering.
+ * @brief osi_config_vlan_filtering - OSI call for configuring VLAN filter
  *
- *	@osi_core: OSI private data structure.
- *	@filter_enb_dis: vlan filter enable/disable
- *	@perfect_hash_filtering: perfect or hash filter
- *	@perfect_inverse_match: normal or inverse filter
+ * Algorithm: This sequence is used to enable/disable VLAN filtering and
+ * also selects VLAN filtering mode- perfect/hash
  *
- *	Algorithm: This sequence is used to enable/disable VLAN filtering and
- *	also selects VLAN filtering mode- perfect/hash
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in] filter_enb_dis: vlan filter enable(1) disable(0)
+ * @param[in] perfect_hash_filtering: perfect(0) or hash filter(1)
+ * @param[in] perfect_inverse_match: normal(0) or inverse filter(1)
  *
- *	Dependencies:
+ * @note
  *	1) MAC should be init and started. see osi_start_mac()
  *	2) osi_core->osd should be populated
  *
- *	Protection: None
- *
- *	Return: 0 - success, -1 - failure.
+ * @retval 0 on success
+ * @retval -1 on failure.
  */
 int osi_config_vlan_filtering(struct osi_core_priv_data *osi_core,
 			      unsigned int filter_enb_dis,
@@ -939,217 +940,214 @@ int osi_config_vlan_filtering(struct osi_core_priv_data *osi_core,
 			      unsigned int perfect_inverse_match);
 
 /**
- *	osi_config_l2_da_perfect_inverse_match - trigger OSI call for
- *	config_l2_da_perfect_inverse_match.
+ * @brief osi_config_l2_da_perfect_inverse_match -
+ * trigger OSI call for config_l2_da_perfect_inverse_match.
  *
- *	@osi_core: OSI private data structure.
- *	@perfect_inverse_match: 1 - inverse mode 0- normal mode
+ * Algorithm: This sequence is used to select perfect/inverse matching
+ *	  for L2 DA
  *
- *	Algorithm: This sequence is used to select perfect/inverse matching
- *	for L2 DA
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in] perfect_inverse_match: 1 - inverse mode 0- normal mode
  *
- *	Dependencies:
- *	1) MAC should be init and started. see osi_start_mac()
+ * @note MAC should be init and started. see osi_start_mac()
  *
- *	Protection: None
- *
- *	Return: 0 - success, -1 - failure.
+ * @retval 0 on success
+ * @retval -1 on failure.
  */
 int  osi_config_l2_da_perfect_inverse_match(struct osi_core_priv_data *osi_core,
 					    unsigned int perfect_inverse_match);
 
 /**
- *	osi_update_vlan_id - invoke osi call to update VLAN ID
+ * @brief osi_update_vlan_id - invoke osi call to update VLAN ID
  *
- *	@osi_core: OSI private data structure.
- *	@vid: VLAN ID
+ * Algorithm: return 16 bit VLAN ID
  *
- *	Algorithm: return 16 bit VLAN ID
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in] vid: VLAN ID
  *
- *	Dependencies:
- *	1) MAC should be init and started. see osi_start_mac()
+ * @note MAC should be init and started. see osi_start_mac()
  *
- *	Protection: None
- *
- *	Return: 0 - success, -1 - failure.
+ * @retval 0 on success
+ * @retval -1 on failure.
  */
 int  osi_update_vlan_id(struct osi_core_priv_data *osi_core,
 			unsigned int vid);
 
 /**
- *	osi_write_phy_reg - Write to a PHY register through MAC over MDIO bus.
- *	@osi_core: OSI private data structure.
- *	@phyaddr: PHY address (PHY ID) associated with PHY
- *	@phyreg: Register which needs to be write to PHY.
- *	@phydata: Data to write to a PHY register.
+ * @brief osi_write_phy_reg - Write to a PHY register through MAC over MDIO bus.
  *
- *	Algorithm:
- *	1) Before proceding for reading for PHY register check whether any MII
- *	operation going on MDIO bus by polling MAC_GMII_BUSY bit.
- *	2) Program data into MAC MDIO data register.
- *	3) Populate required parameters like phy address, phy register etc,,
+ * Algorithm:
+ * 1) Before proceeding for reading for PHY register check whether any MII
+ *    operation going on MDIO bus by polling MAC_GMII_BUSY bit.
+ * 2) Program data into MAC MDIO data register.
+ * 3) Populate required parameters like phy address, phy register etc,,
  *	in MAC MDIO Address register. write and GMII busy bits needs to be set
  *	in this operation.
- *	4) Write into MAC MDIO address register poll for GMII busy for MDIO
+ * 4) Write into MAC MDIO address register poll for GMII busy for MDIO
  *	operation to complete.
  *
- *	Dependencies:
- *	1) MAC should be init and started. see osi_start_mac()
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in] phyaddr: PHY address (PHY ID) associated with PHY
+ * @param[in] phyreg: Register which needs to be write to PHY.
+ * @param[in] phydata: Data to write to a PHY register.
  *
- *	Protection: None
+ * @note MAC should be init and started. see osi_start_mac()
  *
- *	Return: 0 - success, -1 - failure
+ * @retval 0 on success
+ * @retval -1 on failure.
  */
 int osi_write_phy_reg(struct osi_core_priv_data *osi_core, unsigned int phyaddr,
 		      unsigned int phyreg, unsigned short phydata);
 
 /**
- *	osi_read_mmc - invoke function to read actual registers and update
- *	structure variable mmc
+ * @brief osi_read_mmc - invoke function to read actual registers and update
+ *	  structure variable mmc
+ * 
+ * Algorithm: Read the registers, mask reserve bits if required, update
+ *	  structure.
  *
- *	@osi_core: OSI core private data structure.
+ * @param[in] osi_core: OSI core private data structure.
  *
- *	Algorithm: Read the registers, mask reserve bits if requied, update
- *	structure.
- *
- *	Dependencies:
+ * @note
  *	1) MAC should be init and started. see osi_start_mac()
  *	2) osi_core->osd should be populated
  *
- *	Protection: None
- *
- *	Return: 0 - success, -1 - failure.
+ * @retval 0 on success
+ * @retval -1 on failure.
  */
 int osi_read_mmc(struct osi_core_priv_data *osi_core);
 
 /**
- *	osi_reset_mmc - invoke function to reset MMC counter and data structure
+ * @brief osi_reset_mmc - invoke function to reset MMC counter and data
+ *	  structure
  *
- *	@osi_core: OSI core private data structure.
+ * Algorithm: Read the registers, mask reserve bits if required, update
+ *	  structure.
  *
- *	Algorithm: Read the registers, mask reserve bits if requied, update
- *	structure.
+ * @param[in] osi_core: OSI core private data structure.
  *
- *	Dependencies:
+ * @note
  *	1) MAC should be init and started. see osi_start_mac()
  *	2) osi_core->osd should be populated
  *
- *	Protection: None
- *
- *	Return: 0 - success, -1 - failure.
+ * @retval 0 on success
+ * @retval -1 on failure.
  */
 int osi_reset_mmc(struct osi_core_priv_data *osi_core);
 
 /**
- *	osi_read_phy_reg - Read from a PHY register through MAC over MDIO bus.
- *	@osi_core: OSI private data structure.
- *	@phyaddr: PHY address (PHY ID) associated with PHY
- *	@phyreg: Register which needs to be read from PHY.
+ * @brief osi_read_phy_reg - Read from a PHY register through MAC over MDIO bus.
  *
- *	Algorithm:
- *	1) Before proceding for reading for PHY register check whether any MII
- *	operation going on MDIO bus by polling MAC_GMII_BUSY bit.
- *	2) Populate required parameters like phy address, phy register etc,,
- *	in program it in MAC MDIO Address register. Read and GMII busy bits
- *	needs to be set in this operation.
- *	3) Write into MAC MDIO address register poll for GMII busy for MDIO
- *	operation to complete. After this data will be available at MAC MDIO
- *	data register.
+ * Algorithm:
+ *	  1) Before proceeding for reading for PHY register check whether any MII
+ *	  operation going on MDIO bus by polling MAC_GMII_BUSY bit.
+ *	  2) Populate required parameters like phy address, phy register etc,,
+ *	  in program it in MAC MDIO Address register. Read and GMII busy bits
+ *	  needs to be set in this operation.
+ *	  3) Write into MAC MDIO address register poll for GMII busy for MDIO
+ *	  operation to complete. After this data will be available at MAC MDIO
+ *	  data register.
  *
- *	Dependencies:
- *	1) MAC should be init and started. see osi_start_mac()
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in] phyaddr: PHY address (PHY ID) associated with PHY
+ * @param[in] phyreg: Register which needs to be read from PHY.
  *
- *	Protection: None
+ * @note MAC should be init and started. see osi_start_mac()
  *
- *	Return: data from PHY register - success, -1 - failure
+ * @retval data from PHY register on success
+ * @retval -1 on failure
  */
 int osi_read_phy_reg(struct osi_core_priv_data *osi_core, unsigned int phyaddr,
 		     unsigned int phyreg);
+
+/**
+ * @brief initializing the core operations
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ *
+ * @retval data from PHY register on success
+ * @retval -1 on failure
+ */
 int osi_init_core_ops(struct osi_core_priv_data *osi_core);
 
 /**
- *	osi_set_systime_to_mac - Handles setting of system time.
- *	@osi_core: OSI private data structure.
- *	@sec: Seconds to be configured.
- *	@nsec: Nano seconds to be configured.
+ * @brief osi_set_systime_to_mac - Handles setting of system time.
  *
- *	Algorithm: Set current system time to MAC.
+ * Algorithm: Set current system time to MAC.
  *
- *	Dependencies:
- *	1) MAC should be init and started. see osi_start_mac()
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in] sec: Seconds to be configured.
+ * @param[in] nsec: Nano seconds to be configured.
  *
- *	Protection: None.
+ * @note MAC should be init and started. see osi_start_mac()
  *
- *	Return: 0 - success, -1 - failure.
+ * @retval 0 on success
+ * @retval -1 on failure.
  */
 int osi_set_systime_to_mac(struct osi_core_priv_data *osi_core,
 			   unsigned int sec, unsigned int nsec);
+
 /**
- *	osi_adjust_freq - Adjust frequency
- *	@osi: OSI private data structure.
- *	@ppb: Parts per Billion
+ * @brief osi_adjust_freq - Adjust frequency
  *
- *	Algorithm: Adjust a drift of +/- comp nanoseconds per second.
- *	"Compensation" is the difference in frequency between
- *	the master and slave clocks in Parts Per Billion.
+ * Algorithm: Adjust a drift of +/- comp nanoseconds per second.
+ *	  "Compensation" is the difference in frequency between
+ *	  the master and slave clocks in Parts Per Billion.
  *
- *	Dependencies:
- *	1) MAC should be init and started. see osi_start_mac()
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in] ppb: Parts per Billion
  *
- *	Protection: None
+ * @note MAC should be init and started. see osi_start_mac()
  *
- *	Return: 0 - success, -1 - failure
+ * @retval 0 on success
+ * @retval -1 on failure.
  */
 int osi_adjust_freq(struct osi_core_priv_data *osi_core, int ppb);
 
 /**
+ * @brief osi_adjust_time - Adjust time
  *
- *	osi_adjust_time - Adjust time
- *	@osi_core: OSI private data structure.
- *	@delta: Delta time
+ * Algorithm: Adjust/update the MAC time (delta time from MAC to system time
+ * passed in nanoseconds, can be + or -).
  *
- *	Algorithm: Adjust/update the MAC system time (delta passed in
- *		   nanoseconds, can be + or -).
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in] delta: Delta time
  *
- *	Dependencies:
+ * @note
  *	1) MAC should be init and started. see osi_start_mac()
  *	2) osi_core->ptp_config.one_nsec_accuracy need to be set to 1
  *
- *	Protection: None
- *
- *	Return: 0 - success, -1 - failure
+ * @retval 0 on success
+ * @retval -1 on failure.
  */
 int osi_adjust_time(struct osi_core_priv_data *osi_core, long delta);
 
 /**
- *	osi_get_systime_from_mac - Get system time
- *	@osi: OSI private data structure.
- *	@sec: Value read in Seconds
- *	@nsec: Value read in Nano seconds
+ * @brief osi_get_systime_from_mac - Get system time
  *
- *	Algorithm: Gets the current system time
+ * Algorithm: Gets the current system time
  *
- *	Dependencies:
- *	1) MAC should be init and started. see osi_start_mac()
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[out] sec: Value read in Seconds
+ * @param[out] nsec: Value read in Nano seconds
  *
- *	Protection: None
+ * @note MAC should be init and started. see osi_start_mac()
  *
- *	Return: 0 - success, -1 - failure
- *	(sec and nsec stores the read seconds and nanoseconds
- *	values from MAC if success)
+ * @retval 0 on success
+ * @retval -1 on failure.
  */
 int osi_get_systime_from_mac(struct osi_core_priv_data *osi_core,
 			     unsigned int *sec,
 			     unsigned int *nsec);
 /**
- *	osi_ptp_configuration - Configure PTP
- *	@osi: OSI private data structure.
- *	@enable: Enable or disable Time Stamping.
- *		 0: Disable 1: Enable
+ * @brief osi_ptp_configuration - Configure PTP
  *
- *	Algorithm: Configure the PTP registers that are required for PTP.
+ * Algorithm: Configure the PTP registers that are required for PTP.
  *
- *	Dependencies:
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in] enable: Enable or disable Time Stamping. 0: Disable 1: Enable
+ *
+ * @note
  *	1) MAC should be init and started. see osi_start_mac()
  *	2) osi->ptp_config.ptp_filter need to be filled accordingly to the
  *	filter that need to be set for PTP packets. Please check osi_ptp_config
@@ -1162,9 +1160,8 @@ int osi_get_systime_from_mac(struct osi_core_priv_data *osi_core,
  *	6) osi->ptp_config.nsec need to be filled with current time of nseconds
  *	7) osi->base need to be filled with the ioremapped base address
  *
- *	Protection: None
- *
- *	Return: 0 - success, -1 - failure
+ * @retval 0 on success
+ * @retval -1 on failure.
  */
 int osi_ptp_configuration(struct osi_core_priv_data *osi_core,
 			  unsigned int enable);

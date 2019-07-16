@@ -23,9 +23,12 @@
 #ifndef EQOS_DMA_H_
 #define EQOS_DMA_H_
 
-#define EQOS_AXI_BUS_WIDTH	0x10U
-
-/* EQOS DMA channel registers */
+/**
+ * @addtogroup EQOS1 DMA Channel Register offsets
+ *
+ * @brief EQOS DMA Channel register offsets
+ * @{
+ */
 #define EQOS_DMA_CHX_CTRL(x)		((0x0080U * (x)) + 0x1100U)
 #define EQOS_DMA_CHX_TX_CTRL(x)		((0x0080U * (x)) + 0x1104U)
 #define EQOS_DMA_CHX_RX_CTRL(x)		((0x0080U * (x)) + 0x1108U)
@@ -42,6 +45,14 @@
 #define EQOS_DMA_CHX_TDRL(x)		((0x0080U * (x)) + 0x112CU)
 #define EQOS_VIRT_INTR_CHX_STATUS(x)	(0x8604U + ((x) * 8U))
 #define EQOS_VIRT_INTR_CHX_CNTRL(x)	(0x8600U + ((x) * 8U))
+/** @} */
+
+/**
+ * @addtogroup EQOS2 BIT fields for EQOS MAC HW DMA Channel Registers
+ *
+ * @brief Values defined for the DMA channel registers
+ * @{
+ */
 #define EQOS_VIRT_INTR_CHX_STATUS_TX	OSI_BIT(0)
 #define EQOS_VIRT_INTR_CHX_STATUS_RX	OSI_BIT(1)
 #define EQOS_DMA_CHX_STATUS_TI		OSI_BIT(0)
@@ -110,21 +121,23 @@
 #define EQOS_DMA_CH2_INTR_ENA_IDX		22U
 #define EQOS_DMA_CH3_INTR_ENA_IDX		23U
 #define EQOS_MAX_DMA_SAFETY_REGS		24U
+#define EQOS_AXI_BUS_WIDTH			0x10U
+/** @} */
 
 /**
- *	struct dma_func_safety - Struct used to store last written values of
+ * @brief dma_func_safety - Struct used to store last written values of
  *	critical DMA HW registers.
- *	@reg_addr: Array of reg MMIO addresses (base of EQoS + offset of reg)
- *	@reg_mask: Array of bit-mask value of each corresponding reg (used to
- *	ignore self-clearing/reserved bits in reg).
- *	@reg_val: Array of value stored in each corresponding register.
- *	@dma_safety_lock: OSI lock variable used to protect writes to reg while
- *	validation is in-progress.
  */
 struct dma_func_safety {
+	/** Array of reg MMIO addresses (base EQoS + offset of reg) */
 	void *reg_addr[EQOS_MAX_DMA_SAFETY_REGS];
+	/** Array of bit-mask value of each corresponding reg
+	 * (used to ignore self-clearing/reserved bits in reg) */
 	unsigned int reg_mask[EQOS_MAX_DMA_SAFETY_REGS];
+	/** Array of value stored in each corresponding register */
 	unsigned int reg_val[EQOS_MAX_DMA_SAFETY_REGS];
+	/** OSI lock variable used to protect writes to reg
+	 * while validation is in-progress */
 	unsigned int dma_safety_lock;
 };
 #endif
