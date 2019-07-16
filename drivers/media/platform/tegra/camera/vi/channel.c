@@ -18,6 +18,7 @@
 #include <linux/lcm.h>
 #include <linux/list.h>
 #include <linux/module.h>
+#include <linux/nospec.h>
 #include <linux/of.h>
 #include <linux/of_graph.h>
 #include <linux/sched.h>
@@ -91,6 +92,7 @@ static void gang_buffer_offsets(struct tegra_channel *chan)
 					~(TEGRA_SURFACE_ALIGNMENT - 1));
 		chan->buffer_offset[i] = i * offset;
 	}
+	speculation_barrier();
 }
 
 static u32 gang_mode_width(enum camera_gang_mode gang_mode,
@@ -900,6 +902,8 @@ int tegra_channel_set_stream(struct tegra_channel *chan, bool on)
 			if (!ret && err < 0 && err != -ENOIOCTLCMD)
 				ret = err;
 		}
+		speculation_barrier();
+
 		tegra_camera_update_clknbw(chan, false);
 	}
 
@@ -1458,6 +1462,8 @@ static int tegra_channel_sensorprops_setup(struct tegra_channel *chan)
 		ptr = ctrl_dvtimings->p_new.p + (i * size);
 		memcpy(ptr, &modes[i].dv_timings, size);
 	}
+	speculation_barrier();
+
 	/* Do not copy memory into p_cur block, reuse p_new */
 	ctrl_signalprops->p_cur.p = ctrl_signalprops->p_new.p;
 	ctrl_imageprops->p_cur.p = ctrl_imageprops->p_new.p;
@@ -1646,6 +1652,7 @@ static u64 tegra_channel_get_max_pixelclock(struct tegra_channel *chan)
 		if (pixelclock < val)
 			pixelclock = val;
 	}
+	speculation_barrier();
 
 	return pixelclock;
 }
@@ -1771,6 +1778,8 @@ int tegra_channel_init_subdevices(struct tegra_channel *chan)
 
 		index = pad->index - 1;
 	}
+	speculation_barrier(); /** for num_sd < MAX_SUBDEVICES */
+
 	chan->num_subdevs = num_sd;
 	/*
 	 * Each CSI channel has only one final remote source,

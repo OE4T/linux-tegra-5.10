@@ -16,6 +16,7 @@
 
 #include <linux/dma-buf.h>
 #include <linux/dma-mapping.h>
+#include <linux/nospec.h>
 #include <linux/nvhost.h>
 #include <linux/slab.h>
 #include <linux/hashtable.h>
@@ -354,6 +355,7 @@ int capture_common_set_progress_status(
 		pr_err("%s: Invalid offset!", __func__);
 		return -EINVAL;
 	}
+	buffer_slot = array_index_nospec(buffer_slot, buffer_depth);
 
 	/*
 	 * Since UMD and KMD can both write to the shared progress status
@@ -570,6 +572,7 @@ int capture_common_request_pin_and_reloc(
 				req->requests->iova, req->request_offset,
 				req->request_size, DMA_TO_DEVICE);
 	}
+	speculation_barrier();
 
 pin_fail:
 	if (err) {

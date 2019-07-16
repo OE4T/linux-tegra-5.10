@@ -15,6 +15,7 @@
  */
 
 #include <linux/completion.h>
+#include <linux/nospec.h>
 #include <linux/nvhost.h>
 #include <linux/of_platform.h>
 #include <linux/printk.h>
@@ -391,6 +392,7 @@ int isp_capture_release(
 		complete(&capture->capture_resp);
 		isp_capture_request_unpin(chan, i);
 	}
+	speculation_barrier();
 
 	isp_capture_release_syncpts(chan);
 
@@ -488,11 +490,13 @@ int isp_capture_reset(
 		isp_capture_program_request_unpin(chan, i);
 		complete(&capture->capture_program_resp);
 	}
+	speculation_barrier();
 
 	for (i = 0; i < capture->capture_desc_ctx.queue_depth; i++) {
 		isp_capture_request_unpin(chan, i);
 		complete(&capture->capture_resp);
 	}
+	speculation_barrier();
 
 	err = 0;
 
@@ -1141,6 +1145,7 @@ int isp_capture_setup_inputfences(
 			goto fail;
 		}
 	}
+	speculation_barrier();
 
 fail:
 	kfree(inpfences_relocs);
@@ -1191,6 +1196,7 @@ int isp_capture_setup_prefences(
 			goto fail;
 		}
 	}
+	speculation_barrier();
 
 fail:
 	kfree(prefence_relocs);

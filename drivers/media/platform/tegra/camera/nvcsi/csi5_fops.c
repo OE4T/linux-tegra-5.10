@@ -1,7 +1,7 @@
 /*
  * Tegra CSI5 device common APIs
  *
- * Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Author: Frank Chen <frankc@nvidia.com>
  *
@@ -15,6 +15,7 @@
 #include "nvhost_acm.h"
 #include "nvcsi/nvcsi.h"
 #include "csi5_fops.h"
+#include <linux/nospec.h>
 #include <linux/tegra-capture-ivc.h>
 #include "soc/tegra/camrtc-capture-messages.h"
 
@@ -450,6 +451,7 @@ static int csi5_mipi_cal(struct tegra_csi_channel *chan)
 		}
 		num_ports++;
 	}
+	speculation_barrier();
 	if (!lanes) {
 		dev_err(csi->dev,
 			"Selected no CSI lane, cannot do calibration");
