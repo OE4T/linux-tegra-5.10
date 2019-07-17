@@ -844,10 +844,9 @@ int gm20b_gr_falcon_ctrl_ctxsw(struct gk20a *g, u32 fecs_method,
 	switch (fecs_method) {
 #ifdef CONFIG_NVGPU_DEBUGGER
 	case NVGPU_GR_FALCON_METHOD_CTXSW_STOP:
-		op.method.addr =
-				gr_fecs_method_push_adr_stop_ctxsw_v();
+		op.method.addr = gr_fecs_method_push_adr_stop_ctxsw_v();
 		op.method.data = ~U32(0U);
-		op.mailbox.id = 1U, /* sideband mailbox */
+		op.mailbox.id = 1U; /* sideband mailbox */
 		op.mailbox.ok = gr_fecs_ctxsw_mailbox_value_pass_v();
 		op.mailbox.fail = gr_fecs_ctxsw_mailbox_value_fail_v();
 		op.cond.ok = GR_IS_UCODE_OP_EQUAL;
@@ -856,10 +855,9 @@ int gm20b_gr_falcon_ctrl_ctxsw(struct gk20a *g, u32 fecs_method,
 	break;
 
 	case NVGPU_GR_FALCON_METHOD_CTXSW_START:
-		op.method.addr =
-				gr_fecs_method_push_adr_start_ctxsw_v();
+		op.method.addr = gr_fecs_method_push_adr_start_ctxsw_v();
 		op.method.data = ~U32(0U);
-		op.mailbox.id = 1U, /* sideband mailbox */
+		op.mailbox.id = 1U; /* sideband mailbox */
 		op.mailbox.ok = gr_fecs_ctxsw_mailbox_value_pass_v();
 		op.mailbox.fail = gr_fecs_ctxsw_mailbox_value_fail_v();
 		op.cond.ok = GR_IS_UCODE_OP_EQUAL;
@@ -869,10 +867,9 @@ int gm20b_gr_falcon_ctrl_ctxsw(struct gk20a *g, u32 fecs_method,
 #endif
 
 	case NVGPU_GR_FALCON_METHOD_HALT_PIPELINE:
-		op.method.addr =
-				gr_fecs_method_push_adr_halt_pipeline_v();
+		op.method.addr = gr_fecs_method_push_adr_halt_pipeline_v();
 		op.method.data = ~U32(0U);
-		op.mailbox.id = 1U, /* sideband mailbox */
+		op.mailbox.id = 1U; /* sideband mailbox */
 		op.mailbox.ok = gr_fecs_ctxsw_mailbox_value_pass_v();
 		op.mailbox.fail = gr_fecs_ctxsw_mailbox_value_fail_v();
 		op.cond.ok = GR_IS_UCODE_OP_EQUAL;
