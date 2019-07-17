@@ -239,7 +239,7 @@ int gk20a_dbg_gpu_dev_release(struct inode *inode, struct file *filp)
 	nvgpu_mutex_destroy(&dbg_s->ioctl_lock);
 
 	nvgpu_kfree(g, dbg_session_linux);
-	gk20a_put(g);
+	nvgpu_put(g);
 
 	return 0;
 }
@@ -414,7 +414,7 @@ static int gk20a_dbg_gpu_do_dev_open(struct inode *inode,
 	else
 		l = container_of(inode->i_cdev,
 				 struct nvgpu_os_linux, prof.cdev);
-	g = gk20a_get(&l->g);
+	g = nvgpu_get(&l->g);
 	if (!g)
 		return -ENODEV;
 
@@ -445,7 +445,7 @@ static int gk20a_dbg_gpu_do_dev_open(struct inode *inode,
 	return 0;
 
 free_ref:
-	gk20a_put(g);
+	nvgpu_put(g);
 	return err;
 }
 

@@ -440,7 +440,7 @@ int gk20a_channel_release(struct inode *inode, struct file *filp)
 	gk20a_idle(g);
 
 channel_release:
-	gk20a_put(g);
+	nvgpu_put(g);
 	nvgpu_kfree(g, filp->private_data);
 	filp->private_data = NULL;
 	return 0;
@@ -464,7 +464,7 @@ static int __gk20a_channel_open(struct gk20a *g,
 		tmp_runlist_id = runlist_id;
 	}
 
-	g = gk20a_get(g);
+	g = nvgpu_get(g);
 	if (!g)
 		return -ENODEV;
 
@@ -508,7 +508,7 @@ static int __gk20a_channel_open(struct gk20a *g,
 fail_busy:
 	nvgpu_kfree(g, priv);
 free_ref:
-	gk20a_put(g);
+	nvgpu_put(g);
 	return err;
 }
 

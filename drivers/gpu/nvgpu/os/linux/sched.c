@@ -398,7 +398,7 @@ int gk20a_sched_dev_open(struct inode *inode, struct file *filp)
 	struct gk20a_sched_ctrl *sched;
 	int err = 0;
 
-	g = gk20a_get(&l->g);
+	g = nvgpu_get(&l->g);
 	if (!g)
 		return -ENODEV;
 	sched = &l->sched_ctrl;
@@ -428,7 +428,7 @@ int gk20a_sched_dev_open(struct inode *inode, struct file *filp)
 
 free_ref:
 	if (err)
-		gk20a_put(g);
+		nvgpu_put(g);
 	return err;
 }
 
@@ -540,7 +540,7 @@ int gk20a_sched_dev_release(struct inode *inode, struct file *filp)
 	nvgpu_mutex_release(&sched->control_lock);
 
 	nvgpu_mutex_release(&sched->busy_lock);
-	gk20a_put(g);
+	nvgpu_put(g);
 	return 0;
 }
 

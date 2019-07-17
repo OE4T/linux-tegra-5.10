@@ -23,19 +23,19 @@
 #ifndef NVGPU_INIT_H
 #define NVGPU_INIT_H
 
-int gk20a_finalize_poweron(struct gk20a *g);
-int gk20a_prepare_poweroff(struct gk20a *g);
+int nvgpu_finalize_poweron(struct gk20a *g);
+int nvgpu_prepare_poweroff(struct gk20a *g);
 
 int nvgpu_can_busy(struct gk20a *g);
-int gk20a_wait_for_idle(struct gk20a *g);
+int nvgpu_wait_for_idle(struct gk20a *g);
 
-struct gk20a * __must_check gk20a_get(struct gk20a *g);
-void gk20a_put(struct gk20a *g);
+struct gk20a * __must_check nvgpu_get(struct gk20a *g);
+void nvgpu_put(struct gk20a *g);
 
 /* register accessors */
 void nvgpu_check_gpu_state(struct gk20a *g);
-void gk20a_warn_on_no_regs(void);
+void nvgpu_warn_on_no_regs(void);
 
-void gk20a_init_gpu_characteristics(struct gk20a *g);
+void nvgpu_init_gpu_characteristics(struct gk20a *g);
 
 #endif /* NVGPU_INIT_H */

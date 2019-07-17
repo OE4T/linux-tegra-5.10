@@ -279,7 +279,7 @@ static int gk20a_event_id_release(struct inode *inode, struct file *filp)
 	nvgpu_mutex_release(&tsg->event_id_list_lock);
 
 	nvgpu_mutex_destroy(&event_id_data->lock);
-	gk20a_put(g);
+	nvgpu_put(g);
 	nvgpu_kfree(g, event_id_data);
 	filp->private_data = NULL;
 
@@ -303,7 +303,7 @@ static int gk20a_tsg_event_id_enable(struct nvgpu_tsg *tsg,
 	struct gk20a_event_id_data *event_id_data;
 	struct gk20a *g;
 
-	g = gk20a_get(tsg->g);
+	g = nvgpu_get(tsg->g);
 	if (!g)
 		return -ENODEV;
 
@@ -360,7 +360,7 @@ clean_up_file:
 clean_up:
 	put_unused_fd(local_fd);
 free_ref:
-	gk20a_put(g);
+	nvgpu_put(g);
 	return err;
 }
 
@@ -398,7 +398,7 @@ int nvgpu_ioctl_tsg_open(struct gk20a *g, struct file *filp)
 	struct device *dev;
 	int err;
 
-	g = gk20a_get(g);
+	g = nvgpu_get(g);
 	if (!g)
 		return -ENODEV;
 
@@ -436,7 +436,7 @@ int nvgpu_ioctl_tsg_open(struct gk20a *g, struct file *filp)
 free_mem:
 	nvgpu_kfree(g, priv);
 free_ref:
-	gk20a_put(g);
+	nvgpu_put(g);
 	return err;
 }
 
@@ -473,7 +473,7 @@ void nvgpu_ioctl_tsg_release(struct nvgpu_ref *ref)
 	gk20a_sched_ctrl_tsg_removed(g, tsg);
 
 	nvgpu_tsg_release(ref);
-	gk20a_put(g);
+	nvgpu_put(g);
 }
 
 int nvgpu_ioctl_tsg_dev_release(struct inode *inode, struct file *filp)

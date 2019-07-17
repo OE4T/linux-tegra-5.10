@@ -206,7 +206,7 @@ static ssize_t disable_bigpage_write(struct file *file, const char __user *user_
 
 	if (strtobool(buf, &bv) == 0) {
 		g->mm.disable_bigpage = bv;
-		gk20a_init_gpu_characteristics(g);
+		nvgpu_init_gpu_characteristics(g);
 	}
 
 	return count;

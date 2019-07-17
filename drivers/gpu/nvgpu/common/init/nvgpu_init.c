@@ -74,7 +74,7 @@ void nvgpu_check_gpu_state(struct gk20a *g)
 	}
 }
 
-void gk20a_warn_on_no_regs(void)
+void nvgpu_warn_on_no_regs(void)
 {
 	WARN_ONCE(true, "Attempted access to GPU regs after unmapping!");
 }
@@ -90,7 +90,7 @@ static void gk20a_mask_interrupts(struct gk20a *g)
 	}
 }
 
-int gk20a_prepare_poweroff(struct gk20a *g)
+int nvgpu_prepare_poweroff(struct gk20a *g)
 {
 	int tmp_ret, ret = 0;
 
@@ -165,7 +165,7 @@ int gk20a_prepare_poweroff(struct gk20a *g)
 	return ret;
 }
 
-int gk20a_finalize_poweron(struct gk20a *g)
+int nvgpu_finalize_poweron(struct gk20a *g)
 {
 	int err = 0;
 #if defined(CONFIG_TEGRA_GK20A_NVHOST)
@@ -583,7 +583,7 @@ int nvgpu_can_busy(struct gk20a *g)
 	}
 }
 
-int gk20a_wait_for_idle(struct gk20a *g)
+int nvgpu_wait_for_idle(struct gk20a *g)
 {
 	int wait_length = 150; /* 3 second overall max wait. */
 	int target_usage_count = 0;
@@ -612,7 +612,7 @@ int gk20a_wait_for_idle(struct gk20a *g)
 	return 0;
 }
 
-void gk20a_init_gpu_characteristics(struct gk20a *g)
+void nvgpu_init_gpu_characteristics(struct gk20a *g)
 {
 #ifdef NV_BUILD_CONFIGURATION_IS_SAFETY
 	nvgpu_set_enabled(g, NVGPU_DRIVER_REDUCED_PROFILE, true);
@@ -699,20 +699,20 @@ static void gk20a_free_cb(struct nvgpu_ref *refcount)
 }
 
 /**
- * gk20a_get() - Increment ref count on driver
+ * nvgpu_get() - Increment ref count on driver
  *
  * @g The driver to increment
  * This will fail if the driver is in the process of being released. In that
  * case it will return NULL. Otherwise a pointer to the driver passed in will
  * be returned.
  */
-struct gk20a * __must_check gk20a_get(struct gk20a *g)
+struct gk20a * __must_check nvgpu_get(struct gk20a *g)
 {
 	int success;
 
 	/*
 	 * Handle the possibility we are still freeing the gk20a struct while
-	 * gk20a_get() is called. Unlikely but plausible race condition. Ideally
+	 * nvgpu_get() is called. Unlikely but plausible race condition. Ideally
 	 * the code will never be in such a situation that this race is
 	 * possible.
 	 */
@@ -726,14 +726,14 @@ struct gk20a * __must_check gk20a_get(struct gk20a *g)
 }
 
 /**
- * gk20a_put() - Decrement ref count on driver
+ * nvgpu_put() - Decrement ref count on driver
  *
  * @g - The driver to decrement
  *
  * Decrement the driver ref-count. If neccesary also free the underlying driver
  * memory
  */
-void gk20a_put(struct gk20a *g)
+void nvgpu_put(struct gk20a *g)
 {
 	/*
 	 * Note - this is racy, two instances of this could run before the

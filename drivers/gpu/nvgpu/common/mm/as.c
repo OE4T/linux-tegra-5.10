@@ -110,7 +110,7 @@ int gk20a_as_alloc_share(struct gk20a *g,
 	int err = 0;
 
 	nvgpu_log_fn(g, " ");
-	g = gk20a_get(g);
+	g = nvgpu_get(g);
 	if (g == NULL) {
 		return -ENODEV;
 	}
@@ -182,7 +182,7 @@ int gk20a_as_release_share(struct gk20a_as_share *as_share)
 
 release_fail:
 	release_as_share_id(as_share->as, as_share->id);
-	gk20a_put(g);
+	nvgpu_put(g);
 	nvgpu_kfree(g, as_share);
 
 	return err;

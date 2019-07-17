@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -23,19 +23,19 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/enabled.h>
 
-void gk20a_init_gpu_characteristics(struct gk20a *g)
+void nvgpu_init_gpu_characteristics(struct gk20a *g)
 {
 	BUG();
 }
 
-struct gk20a * __must_check gk20a_get(struct gk20a *g)
+struct gk20a * __must_check nvgpu_get(struct gk20a *g)
 {
 	BUG();
 
 	return g;
 }
 
-void gk20a_put(struct gk20a *g)
+void nvgpu_put(struct gk20a *g)
 {
 	BUG();
 }

@@ -89,7 +89,7 @@ static void gk20a_vidbuf_release(struct dma_buf *dmabuf)
 	nvgpu_kfree(g, linux_buf);
 	nvgpu_vidmem_buf_free(g, buf);
 
-	gk20a_put(g);
+	nvgpu_put(g);
 }
 
 static void *gk20a_vidbuf_kmap(struct dma_buf *dmabuf, unsigned long page_num)
@@ -178,7 +178,7 @@ int nvgpu_vidmem_export_linux(struct gk20a *g, size_t bytes)
 	/*
 	 * This ref is released when the dma_buf is closed.
 	 */
-	if (!gk20a_get(g))
+	if (!nvgpu_get(g))
 		return -ENODEV;
 
 	vidmem_dbg(g, "Allocating vidmem buf: %zu bytes", bytes);
@@ -224,7 +224,7 @@ int nvgpu_vidmem_export_linux(struct gk20a *g, size_t bytes)
 fail:
 	nvgpu_vidmem_buf_free(g, buf);
 	nvgpu_kfree(g, priv);
-	gk20a_put(g);
+	nvgpu_put(g);
 
 	vidmem_dbg(g, "Failed to alloc Linux VIDMEM buf: %d", err);
 	return err;

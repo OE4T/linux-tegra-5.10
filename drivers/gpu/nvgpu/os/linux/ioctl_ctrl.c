@@ -107,7 +107,7 @@ int gk20a_ctrl_dev_open(struct inode *inode, struct file *filp)
 
 	l = container_of(inode->i_cdev,
 			 struct nvgpu_os_linux, ctrl.cdev);
-	g = gk20a_get(&l->g);
+	g = nvgpu_get(&l->g);
 	if (!g)
 		return -ENODEV;
 
@@ -137,7 +137,7 @@ int gk20a_ctrl_dev_open(struct inode *inode, struct file *filp)
 	err = nvgpu_clk_arb_init_session(g, &priv->clk_session);
 free_ref:
 	if (err != 0) {
-		gk20a_put(g);
+		nvgpu_put(g);
 		if (priv)
 			nvgpu_kfree(g, priv);
 	} else {
@@ -163,7 +163,7 @@ int gk20a_ctrl_dev_release(struct inode *inode, struct file *filp)
 	if (priv->clk_session)
 		nvgpu_clk_arb_release_session(g, priv->clk_session);
 
-	gk20a_put(g);
+	nvgpu_put(g);
 	nvgpu_kfree(g, priv);
 
 	return 0;

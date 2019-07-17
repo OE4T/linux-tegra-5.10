@@ -619,7 +619,7 @@ static void nvgpu_pci_remove(struct pci_dev *pdev)
 	gk20a_get_platform(&pdev->dev)->g = NULL;
 	nvgpu_kfree(g, gk20a_get_platform(&pdev->dev));
 
-	gk20a_put(g);
+	nvgpu_put(g);
 }
 
 void nvgpu_pci_shutdown(struct pci_dev *pdev)

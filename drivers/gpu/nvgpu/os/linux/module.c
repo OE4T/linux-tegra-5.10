@@ -419,7 +419,7 @@ int gk20a_pm_finalize_poweron(struct device *dev)
 		}
 	}
 
-	err = gk20a_finalize_poweron(g);
+	err = nvgpu_finalize_poweron(g);
 	if (err)
 		goto done;
 
@@ -533,7 +533,7 @@ static int gk20a_pm_prepare_poweroff(struct device *dev)
 	gk20a_cde_suspend(l);
 #endif
 
-	ret = gk20a_prepare_poweroff(g);
+	ret = nvgpu_prepare_poweroff(g);
 	if (ret)
 		goto error;
 
@@ -1052,7 +1052,7 @@ int nvgpu_quiesce(struct gk20a *g)
 	struct device *dev = dev_from_gk20a(g);
 
 	if (g->power_on) {
-		err = gk20a_wait_for_idle(g);
+		err = nvgpu_wait_for_idle(g);
 		if (err) {
 			nvgpu_err(g, "failed to idle GPU, err=%d", err);
 			return err;
@@ -1307,7 +1307,7 @@ int nvgpu_wait_for_gpu_idle(struct gk20a *g)
 {
 	int ret = 0;
 
-	ret = gk20a_wait_for_idle(g);
+	ret = nvgpu_wait_for_idle(g);
 	if (ret) {
 		nvgpu_err(g, "failed in wait for idle");
 		goto out;
@@ -1338,7 +1338,7 @@ void gk20a_driver_start_unload(struct gk20a *g)
 	if (g->is_virtual)
 		return;
 
-	gk20a_wait_for_idle(g);
+	nvgpu_wait_for_idle(g);
 
 	nvgpu_wait_for_deferred_interrupts(g);
 
@@ -1602,7 +1602,7 @@ static int __exit gk20a_remove(struct platform_device *pdev)
 
 	set_gk20a(pdev, NULL);
 
-	gk20a_put(g);
+	nvgpu_put(g);
 
 	gk20a_pm_deinit(dev);
 

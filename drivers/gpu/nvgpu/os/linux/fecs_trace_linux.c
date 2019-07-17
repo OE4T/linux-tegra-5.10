@@ -323,7 +323,7 @@ int gk20a_ctxsw_dev_open(struct inode *inode, struct file *filp)
 	const int vmid = 0;
 
 	l = container_of(inode->i_cdev, struct nvgpu_os_linux, ctxsw.cdev);
-	g = gk20a_get(&l->g);
+	g = nvgpu_get(&l->g);
 	if (!g)
 		return -ENODEV;
 
@@ -380,7 +380,7 @@ idle:
 	gk20a_idle(g);
 free_ref:
 	if (err)
-		gk20a_put(g);
+		nvgpu_put(g);
 	return err;
 }
 
@@ -402,7 +402,7 @@ int gk20a_ctxsw_dev_release(struct inode *inode, struct file *filp)
 		dev->g->ops.gr.fecs_trace.free_user_buffer(dev->g);
 		dev->hdr = NULL;
 	}
-	gk20a_put(g);
+	nvgpu_put(g);
 	return 0;
 }
 

@@ -210,7 +210,7 @@
 
 static void tu104_init_gpu_characteristics(struct gk20a *g)
 {
-	gk20a_init_gpu_characteristics(g);
+	nvgpu_init_gpu_characteristics(g);
 
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_TSG_SUBCONTEXTS, true);
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_GET_TEMPERATURE, true);

@@ -490,7 +490,7 @@ int vgpu_remove(struct platform_device *pdev)
 	gk20a_user_deinit(dev, &nvgpu_class);
 	vgpu_remove_sysfs(dev);
 	gk20a_get_platform(dev)->g = NULL;
-	gk20a_put(g);
+	nvgpu_put(g);
 
 	return 0;
 }
