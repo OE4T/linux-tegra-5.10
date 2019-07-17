@@ -140,7 +140,7 @@ static int gv100_nvlink_minion_command_complete(struct gk20a *g, u32 link_id)
 	} while (nvgpu_timeout_expired_msg(&timeout,
 					"minion cmd timeout") == 0);
 
-	if (nvgpu_timeout_peek_expired(&timeout) != 0) {
+	if (nvgpu_timeout_peek_expired(&timeout)) {
 		return -ETIMEDOUT;
 	}
 

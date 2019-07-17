@@ -67,7 +67,7 @@ int tu104_nvlink_setup_pll(struct gk20a *g, unsigned long link_mask)
 		} while (nvgpu_timeout_expired_msg(&timeout,
 					"Timed out setting pll on link %u",
 					link_id) == 0);
-		if (nvgpu_timeout_peek_expired(&timeout) != 0) {
+		if (nvgpu_timeout_peek_expired(&timeout)) {
 			return -ETIMEDOUT;
 		}
 	}

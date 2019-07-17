@@ -252,7 +252,7 @@ int gv100_nvlink_setup_pll(struct gk20a *g, unsigned long link_mask)
 	} while ((nvgpu_timeout_expired_msg(&timeout, "timeout on pll on") == 0)
 						&& (links_off != 0U));
 
-	if (nvgpu_timeout_peek_expired(&timeout) != 0) {
+	if (nvgpu_timeout_peek_expired(&timeout)) {
 		return -ETIMEDOUT;
 	}
 
@@ -318,7 +318,7 @@ static int gv100_nvlink_rxcal_en(struct gk20a *g, unsigned long mask)
 		} while (nvgpu_timeout_expired_msg(&timeout,
 						"timeout on rxcal") == 0);
 
-		if (nvgpu_timeout_peek_expired(&timeout) != 0) {
+		if (nvgpu_timeout_peek_expired(&timeout)) {
 			return -ETIMEDOUT;
 		}
 	}
@@ -513,7 +513,7 @@ static int gv100_nvlink_link_sublink_check_change(struct gk20a *g, u32 link_id)
 	} while (nvgpu_timeout_expired_msg(&timeout,
 					"timeout on sublink rdy") == 0);
 
-	if (nvgpu_timeout_peek_expired(&timeout) != 0) {
+	if (nvgpu_timeout_peek_expired(&timeout)) {
 		return -ETIMEDOUT;
 	}
 	return err;

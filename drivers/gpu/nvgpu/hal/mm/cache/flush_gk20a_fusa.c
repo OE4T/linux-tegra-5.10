@@ -85,7 +85,7 @@ int gk20a_mm_fb_flush(struct gk20a *g)
 		}
 	} while (nvgpu_timeout_expired(&timeout) == 0);
 
-	if (nvgpu_timeout_peek_expired(&timeout) != 0) {
+	if (nvgpu_timeout_peek_expired(&timeout)) {
 		if (g->ops.fb.dump_vpr_info != NULL) {
 			g->ops.fb.dump_vpr_info(g);
 		}
@@ -143,7 +143,7 @@ static void gk20a_mm_l2_invalidate_locked(struct gk20a *g)
 		}
 	} while (nvgpu_timeout_expired(&timeout) == 0);
 
-	if (nvgpu_timeout_peek_expired(&timeout) != 0) {
+	if (nvgpu_timeout_peek_expired(&timeout)) {
 		nvgpu_warn(g, "l2_system_invalidate too many retries");
 	}
 

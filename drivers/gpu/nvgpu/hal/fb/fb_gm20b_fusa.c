@@ -147,7 +147,7 @@ int gm20b_fb_tlb_invalidate(struct gk20a *g, struct nvgpu_mem *pdb)
 	} while (nvgpu_timeout_expired_msg(&timeout,
 					 "wait mmu fifo space") == 0);
 
-	if (nvgpu_timeout_peek_expired(&timeout) != 0) {
+	if (nvgpu_timeout_peek_expired(&timeout)) {
 		err = -ETIMEDOUT;
 		goto out;
 	}

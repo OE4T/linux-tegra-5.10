@@ -982,7 +982,7 @@ static void nvgpu_channel_wdt_handler(struct nvgpu_channel *ch)
 	if (new_gp_get != gp_get || new_pb_get != pb_get) {
 		/* Channel has advanced, timer keeps going but resets */
 		nvgpu_channel_wdt_rewind(ch);
-	} else if (nvgpu_timeout_peek_expired(&ch->wdt.timer) == 0) {
+	} else if (!nvgpu_timeout_peek_expired(&ch->wdt.timer)) {
 		/* Seems stuck but waiting to time out */
 	} else {
 		nvgpu_err(g, "Job on channel %d timed out",
@@ -1083,7 +1083,7 @@ static void nvgpu_channel_worker_poll_wakeup_post_process_item(
 		nvgpu_channel_worker_from_worker(worker);
 	int ret;
 
-	if (nvgpu_timeout_peek_expired(&ch_worker->timeout) != 0) {
+	if (nvgpu_timeout_peek_expired(&ch_worker->timeout)) {
 		nvgpu_channel_poll_wdt(g);
 		ret = nvgpu_timeout_init(g, &ch_worker->timeout,
 				ch_worker->watchdog_interval,

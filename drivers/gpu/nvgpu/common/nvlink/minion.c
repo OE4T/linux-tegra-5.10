@@ -114,7 +114,7 @@ int nvgpu_nvlink_minion_load(struct gk20a *g)
 	/* Service interrupts */
 	g->ops.nvlink.minion.falcon_isr(g);
 
-	if (nvgpu_timeout_peek_expired(&timeout) != 0) {
+	if (nvgpu_timeout_peek_expired(&timeout)) {
 		err = -ETIMEDOUT;
 		goto exit;
 	}

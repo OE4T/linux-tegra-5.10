@@ -181,13 +181,13 @@ int nvgpu_timeout_expired_msg_impl(struct nvgpu_timeout *timeout,
 	return ret;
 }
 
-int nvgpu_timeout_peek_expired(struct nvgpu_timeout *timeout)
+bool nvgpu_timeout_peek_expired(struct nvgpu_timeout *timeout)
 {
 	if ((timeout->flags & NVGPU_TIMER_RETRY_TIMER) != 0U) {
-		return (int) (timeout->retries.attempted >=
-				timeout->retries.max_attempts);
+		return (timeout->retries.attempted >=
+			timeout->retries.max_attempts);
 	} else {
-		return (int) (time_after(get_time_ns(), timeout->time));
+		return time_after(get_time_ns(), timeout->time);
 	}
 }
 

@@ -100,7 +100,7 @@ int nvgpu_falcon_wait_for_halt(struct nvgpu_falcon *flcn, unsigned int timeout)
 		nvgpu_udelay(10);
 	} while (nvgpu_timeout_expired(&to) == 0);
 
-	if (nvgpu_timeout_peek_expired(&to) != 0) {
+	if (nvgpu_timeout_peek_expired(&to)) {
 		status = -ETIMEDOUT;
 	}
 
@@ -169,7 +169,7 @@ int nvgpu_falcon_mem_scrub_wait(struct nvgpu_falcon *flcn)
 		nvgpu_udelay(MEM_SCRUBBING_TIMEOUT_DEFAULT);
 	} while (nvgpu_timeout_expired(&timeout) == 0);
 
-	if (nvgpu_timeout_peek_expired(&timeout) != 0) {
+	if (nvgpu_timeout_peek_expired(&timeout)) {
 		status = -ETIMEDOUT;
 	}
 
@@ -616,7 +616,7 @@ int nvgpu_falcon_clear_halt_intr_status(struct nvgpu_falcon *flcn,
 		nvgpu_udelay(1);
 	} while (nvgpu_timeout_expired(&to) == 0);
 
-	if (nvgpu_timeout_peek_expired(&to) != 0) {
+	if (nvgpu_timeout_peek_expired(&to)) {
 		status = -ETIMEDOUT;
 	}
 

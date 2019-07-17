@@ -200,7 +200,7 @@ int tu104_cbc_ctrl(struct gk20a *g, enum nvgpu_cbc_op op,
 					nvgpu_udelay(5);
 				} while (nvgpu_timeout_expired(&timeout) == 0);
 
-				if (nvgpu_timeout_peek_expired(&timeout) != 0) {
+				if (nvgpu_timeout_peek_expired(&timeout)) {
 					nvgpu_err(g, "comp tag clear timeout");
 					err = -EBUSY;
 					goto out;

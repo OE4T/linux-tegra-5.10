@@ -198,7 +198,7 @@ int gv100_bios_devinit(struct gk20a *g)
 		nvgpu_udelay(PMU_BOOT_TIMEOUT_DEFAULT);
 	} while (!devinit_completed && (nvgpu_timeout_expired(&timeout) == 0));
 
-	if (nvgpu_timeout_peek_expired(&timeout) != 0) {
+	if (nvgpu_timeout_peek_expired(&timeout)) {
 		err = -ETIMEDOUT;
 		goto out;
 	}

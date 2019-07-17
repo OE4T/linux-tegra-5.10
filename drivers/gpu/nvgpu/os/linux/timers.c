@@ -161,16 +161,16 @@ int nvgpu_timeout_expired_msg_impl(struct nvgpu_timeout *timeout,
  *
  * @timeout - The timeout to check.
  *
- * Returns non-zero if the timeout is expired, zero otherwise. In the case of
+ * Returns true if the timeout is expired, false otherwise. In the case of
  * retry timers this will not increment the underlying retry count. Also if the
  * timer has expired no messages will be printed.
  *
  * This function honors the pre-Si check as well.
  */
-int nvgpu_timeout_peek_expired(struct nvgpu_timeout *timeout)
+bool nvgpu_timeout_peek_expired(struct nvgpu_timeout *timeout)
 {
 	if (nvgpu_timeout_is_pre_silicon(timeout))
-		return 0;
+		return false;
 
 	if (timeout->flags & NVGPU_TIMER_RETRY_TIMER)
 		return timeout->retries.attempted >=
