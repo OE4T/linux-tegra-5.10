@@ -330,6 +330,8 @@ static void pmu_read_init_msg_fb(struct gk20a *g, struct nvgpu_pmu *pmu,
 		nvgpu_pmu_get_ss_msg_fbq_element_offset(g, pmu,
 			pmu->super_surface, element_index);
 
+	fbq_msg_queue_ss_offset = nvgpu_safe_add_u32(fbq_msg_queue_ss_offset,
+			(u32)sizeof(struct nv_falcon_fbq_msgq_hdr));
 	nvgpu_mem_rd_n(g, nvgpu_pmu_super_surface_mem(g,
 		pmu, pmu->super_surface), fbq_msg_queue_ss_offset,
 		buffer, size);

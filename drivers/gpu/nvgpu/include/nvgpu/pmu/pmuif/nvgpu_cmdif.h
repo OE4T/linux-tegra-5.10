@@ -69,6 +69,10 @@
 /* Size of a single element in the MSG queue. */
 #define NV_PMU_FBQ_MSG_ELEMENT_SIZE		64U
 
+#define RM_PMU_FBQ_MSG_DATA_SIZE \
+	(NV_PMU_FBQ_MSG_ELEMENT_SIZE - \
+	sizeof(struct nv_falcon_fbq_msgq_hdr))
+
 /* Number of elements in each queue. */
 #define NV_PMU_FBQ_MSG_NUM_ELEMENTS		16U
 
@@ -78,13 +82,23 @@
 /* structure for a single PMU FB CMD queue entry */
 struct nv_pmu_fbq_cmd_q_element {
 	struct nv_falcon_fbq_hdr fbq_hdr;
-	u8 data[NV_PMU_FBQ_CMD_ELEMENT_SIZE -
-			sizeof(struct nv_falcon_fbq_hdr)];
+
+	struct {
+		struct pmu_hdr hdr;
+		u8 bytes[NV_PMU_FBQ_CMD_ELEMENT_SIZE -
+			sizeof(struct nv_falcon_fbq_hdr) -
+			sizeof(struct pmu_hdr)];
+	} data;
 };
 
 /* structure for a single PMU FB MSG queue entry */
 struct nv_pmu_fbq_msg_q_element {
-	u8 data[NV_PMU_FBQ_MSG_ELEMENT_SIZE];
+	struct nv_falcon_fbq_msgq_hdr fbq_msg_hdr;
+	struct {
+		struct pmu_hdr hdr;
+		u8 bytes[RM_PMU_FBQ_MSG_DATA_SIZE -
+				sizeof(struct pmu_hdr)];
+	} data;
 };
 
 /* structure for a single FB CMD queue */

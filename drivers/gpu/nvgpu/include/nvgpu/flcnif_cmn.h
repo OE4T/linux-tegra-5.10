@@ -141,4 +141,11 @@ struct nv_falcon_fbq_hdr {
 	u16   heap_offset;
 };
 
+/* Header for a FB MSG Queue Entry */
+struct nv_falcon_fbq_msgq_hdr {
+	/* Queue level sequence number. */
+	u16   sequence_number;
+	/* Negative checksum of entire queue entry. */
+	u16   checksum;
+};
 #endif /* NVGPU_FLCNIF_CMN_H */

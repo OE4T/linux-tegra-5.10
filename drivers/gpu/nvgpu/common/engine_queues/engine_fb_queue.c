@@ -414,7 +414,8 @@ int nvgpu_engine_fb_queue_pop(struct nvgpu_engine_fb_queue *queue,
 	}
 
 	g = queue->g;
-	hdr = (struct pmu_hdr *) (void *) queue->fbq.work_buffer;
+	hdr = (struct pmu_hdr *) (void *) (queue->fbq.work_buffer +
+			sizeof(struct nv_falcon_fbq_msgq_hdr));
 
 	nvgpu_log_fn(g, " ");
 
@@ -470,7 +471,9 @@ int nvgpu_engine_fb_queue_pop(struct nvgpu_engine_fb_queue *queue,
 	}
 
 	nvgpu_memcpy((u8 *)data, (u8 *)queue->fbq.work_buffer +
-		queue->fbq.read_position, size);
+		queue->fbq.read_position +
+		sizeof(struct nv_falcon_fbq_msgq_hdr),
+		size);
 
 	/* update current position */
 	queue->fbq.read_position += size;
