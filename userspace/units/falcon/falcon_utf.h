@@ -26,7 +26,7 @@
 #include <nvgpu/posix/types.h>
 #include <nvgpu/posix/io.h>
 
-#define UTF_FALCON_MAX_REG_OFFSET	0x300
+#define UTF_FALCON_MAX_REG_OFFSET	0x400
 #define UTF_FALCON_IMEM_DMEM_SIZE	(127 * 1024)
 
 struct gk20a;
@@ -40,6 +40,7 @@ struct utf_falcon {
 
 void nvgpu_utf_falcon_register_io(struct gk20a *g);
 int nvgpu_utf_falcon_init(struct unit_module *m, struct gk20a *g, u32 flcn_id);
+void nvgpu_utf_falcon_set_dmactl(struct gk20a *g, u32 flcn_id, u32 reg_data);
 void nvgpu_utf_falcon_free(struct gk20a *g, u32 flcn_id);
 
 #endif

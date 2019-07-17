@@ -23,3 +23,4 @@
 nvgpu_utf_falcon_free
 nvgpu_utf_falcon_init
 nvgpu_utf_falcon_register_io
+nvgpu_utf_falcon_set_dmactl

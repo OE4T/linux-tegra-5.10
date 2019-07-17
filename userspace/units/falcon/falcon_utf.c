@@ -307,3 +307,16 @@ void nvgpu_utf_falcon_free(struct gk20a *g, u32 flcn_id)
 	nvgpu_falcon_sw_free(g, flcn_id);
 	utf_flcn->flcn = NULL;
 }
+
+void nvgpu_utf_falcon_set_dmactl(struct gk20a *g, u32 flcn_id, u32 reg_data)
+{
+	struct utf_falcon *utf_flcn;
+	u32 flcn_base;
+
+	utf_flcn = &utf_falcons[flcn_id];
+
+	flcn_base = utf_flcn->flcn->flcn_base;
+
+	nvgpu_posix_io_writel_reg_space(g,
+		flcn_base + falcon_falcon_dmactl_r(), reg_data);
+}
