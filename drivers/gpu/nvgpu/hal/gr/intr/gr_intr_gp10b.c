@@ -37,10 +37,6 @@
 
 #include <nvgpu/hw/gp10b/hw_gr_gp10b.h>
 
-#ifdef CONFIG_NVGPU_CILP
-
-#endif /* CONFIG_NVGPU_CILP */
-
 int gp10b_gr_intr_handle_sw_method(struct gk20a *g, u32 addr,
 				     u32 class_num, u32 offset, u32 data)
 {

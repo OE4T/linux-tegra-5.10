@@ -37,6 +37,7 @@
 
 #include <nvgpu/hw/gp10b/hw_gr_gp10b.h>
 
+#ifdef CONFIG_NVGPU_CILP
 static int gp10b_gr_intr_clear_cilp_preempt_pending(struct gk20a *g,
 					       struct nvgpu_channel *fault_ch)
 {
@@ -103,6 +104,7 @@ static int gp10b_gr_intr_get_cilp_preempt_pending_chid(struct gk20a *g,
 
 	return ret;
 }
+#endif /* CONFIG_NVGPU_CILP */
 
 int gp10b_gr_intr_handle_fecs_error(struct gk20a *g,
 				struct nvgpu_channel *ch_ptr,
