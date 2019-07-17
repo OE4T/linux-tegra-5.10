@@ -862,7 +862,9 @@ static const struct gpu_ops tu104_ops = {
 		.intr_unset_recover_mask = gv11b_fifo_intr_unset_recover_mask,
 		.setup_sw = nvgpu_fifo_setup_sw,
 		.cleanup_sw = nvgpu_fifo_cleanup_sw,
+#ifdef CONFIG_NVGPU_DEBUGGER
 		.set_sm_exception_type_mask = nvgpu_tsg_set_sm_exception_type_mask,
+#endif
 		.intr_0_enable = gv11b_fifo_intr_0_enable,
 		.intr_1_enable = gk20a_fifo_intr_1_enable,
 		.intr_0_isr = gv11b_fifo_intr_0_isr,

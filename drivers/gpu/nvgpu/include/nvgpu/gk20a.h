@@ -1041,9 +1041,10 @@ struct gpu_ops {
 			 struct mmu_fault_info *mmfault);
 		void (*intr_set_recover_mask)(struct gk20a *g);
 		void (*intr_unset_recover_mask)(struct gk20a *g);
+#ifdef CONFIG_NVGPU_DEBUGGER
 		int (*set_sm_exception_type_mask)(struct nvgpu_channel *ch,
 				u32 exception_mask);
-
+#endif
 		void (*intr_0_enable)(struct gk20a *g, bool enable);
 		void (*intr_0_isr)(struct gk20a *g);
 		void (*intr_1_enable)(struct gk20a *g, bool enable);

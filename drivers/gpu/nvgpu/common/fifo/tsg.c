@@ -649,7 +649,9 @@ int nvgpu_tsg_open_common(struct gk20a *g, struct nvgpu_tsg *tsg, pid_t pid)
 	tsg->interleave_level = NVGPU_FIFO_RUNLIST_INTERLEAVE_LEVEL_LOW;
 	tsg->timeslice_us = g->ops.tsg.default_timeslice_us(g);
 	tsg->runlist_id = NVGPU_INVALID_TSG_ID;
+#ifdef CONFIG_NVGPU_DEBUGGER
 	tsg->sm_exception_mask_type = NVGPU_SM_EXCEPTION_TYPE_MASK_NONE;
+#endif
 	tsg->gr_ctx = nvgpu_alloc_gr_ctx_struct(g);
 	if (tsg->gr_ctx == NULL) {
 		err = -ENOMEM;
@@ -721,7 +723,9 @@ void nvgpu_tsg_release_common(struct gk20a *g, struct nvgpu_tsg *tsg)
 	if(tsg->sm_error_states != NULL) {
 		nvgpu_kfree(g, tsg->sm_error_states);
 		tsg->sm_error_states = NULL;
+#ifdef CONFIG_NVGPU_DEBUGGER
 		nvgpu_mutex_destroy(&tsg->sm_exception_mask_lock);
+#endif
 	}
 }
 
@@ -776,26 +780,26 @@ int nvgpu_tsg_alloc_sm_error_states_mem(struct gk20a *g,
 					struct nvgpu_tsg *tsg,
 					u32 num_sm)
 {
-	int err = 0;
-
 	if (tsg->sm_error_states != NULL) {
 		return -EINVAL;
 	}
-
-	nvgpu_mutex_init(&tsg->sm_exception_mask_lock);
 
 	tsg->sm_error_states = nvgpu_kzalloc(g,
 			sizeof(struct nvgpu_tsg_sm_error_state)
 			* num_sm);
 	if (tsg->sm_error_states == NULL) {
 		nvgpu_err(g, "sm_error_states mem allocation failed");
-		nvgpu_mutex_destroy(&tsg->sm_exception_mask_lock);
-		err = -ENOMEM;
+		return -ENOMEM;
 	}
 
-	return err;
+#ifdef CONFIG_NVGPU_DEBUGGER
+	nvgpu_mutex_init(&tsg->sm_exception_mask_lock);
+#endif
+
+	return 0;
 }
 
+#ifdef CONFIG_NVGPU_DEBUGGER
 int nvgpu_tsg_set_sm_exception_type_mask(struct nvgpu_channel *ch,
 		u32 exception_mask)
 {
@@ -812,6 +816,7 @@ int nvgpu_tsg_set_sm_exception_type_mask(struct nvgpu_channel *ch,
 
 	return 0;
 }
+#endif
 
 void nvgpu_tsg_abort(struct gk20a *g, struct nvgpu_tsg *tsg, bool preempt)
 {

@@ -88,10 +88,12 @@ struct nvgpu_tsg {
 
 	struct nvgpu_tsg_sm_error_state *sm_error_states;
 
+#ifdef CONFIG_NVGPU_DEBUGGER
 #define NVGPU_SM_EXCEPTION_TYPE_MASK_NONE		(0x0U)
 #define NVGPU_SM_EXCEPTION_TYPE_MASK_FATAL		(0x1U << 0)
 	u32 sm_exception_mask_type;
 	struct nvgpu_mutex sm_exception_mask_lock;
+#endif
 };
 
 int nvgpu_tsg_open_common(struct gk20a *g, struct nvgpu_tsg *tsg, pid_t pid);
@@ -145,8 +147,10 @@ void nvgpu_tsg_disable_sched(struct gk20a *g, struct nvgpu_tsg *tsg);
 int nvgpu_tsg_alloc_sm_error_states_mem(struct gk20a *g,
 					struct nvgpu_tsg *tsg,
 					u32 num_sm);
+#ifdef CONFIG_NVGPU_DEBUGGER
 int nvgpu_tsg_set_sm_exception_type_mask(struct nvgpu_channel *ch,
 		u32 exception_mask);
+#endif
 
 struct gk20a_event_id_data {
 	struct gk20a *g;
