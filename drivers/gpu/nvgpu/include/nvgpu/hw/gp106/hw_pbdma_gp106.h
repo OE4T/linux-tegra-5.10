@@ -61,17 +61,17 @@
 
 #define pbdma_gp_entry1_r()                                        (0x10000004U)
 #define pbdma_gp_entry1_get_hi_v(r)                        (((r) >> 0U) & 0xffU)
-#define pbdma_gp_entry1_length_f(v)                     (((v)&0x1fffffU) << 10U)
+#define pbdma_gp_entry1_length_f(v)                ((U32(v) & 0x1fffffU) << 10U)
 #define pbdma_gp_entry1_length_v(r)                   (((r) >> 10U) & 0x1fffffU)
 #define pbdma_gp_base_r(i)\
 		(nvgpu_safe_add_u32(0x00040048U, nvgpu_safe_mult_u32((i), 8192U)))
 #define pbdma_gp_base__size_1_v()                                  (0x00000004U)
-#define pbdma_gp_base_offset_f(v)                      (((v)&0x1fffffffU) << 3U)
+#define pbdma_gp_base_offset_f(v)                 ((U32(v) & 0x1fffffffU) << 3U)
 #define pbdma_gp_base_rsvd_s()                                              (3U)
 #define pbdma_gp_base_hi_r(i)\
 		(nvgpu_safe_add_u32(0x0004004cU, nvgpu_safe_mult_u32((i), 8192U)))
-#define pbdma_gp_base_hi_offset_f(v)                         (((v)&0xffU) << 0U)
-#define pbdma_gp_base_hi_limit2_f(v)                        (((v)&0x1fU) << 16U)
+#define pbdma_gp_base_hi_offset_f(v)                    ((U32(v) & 0xffU) << 0U)
+#define pbdma_gp_base_hi_limit2_f(v)                   ((U32(v) & 0x1fU) << 16U)
 #define pbdma_gp_fetch_r(i)\
 		(nvgpu_safe_add_u32(0x00040050U, nvgpu_safe_mult_u32((i), 8192U)))
 #define pbdma_gp_get_r(i)\
@@ -112,13 +112,13 @@
 		(nvgpu_safe_add_u32(0x00040114U, nvgpu_safe_mult_u32((i), 8192U)))
 #define pbdma_subdevice_r(i)\
 		(nvgpu_safe_add_u32(0x00040094U, nvgpu_safe_mult_u32((i), 8192U)))
-#define pbdma_subdevice_id_f(v)                             (((v)&0xfffU) << 0U)
+#define pbdma_subdevice_id_f(v)                        ((U32(v) & 0xfffU) << 0U)
 #define pbdma_subdevice_status_active_f()                          (0x10000000U)
 #define pbdma_subdevice_channel_dma_enable_f()                     (0x20000000U)
 #define pbdma_method0_r(i)\
 		(nvgpu_safe_add_u32(0x000400c0U, nvgpu_safe_mult_u32((i), 8192U)))
 #define pbdma_method0_fifo_size_v()                                (0x00000004U)
-#define pbdma_method0_addr_f(v)                             (((v)&0xfffU) << 2U)
+#define pbdma_method0_addr_f(v)                        ((U32(v) & 0xfffU) << 2U)
 #define pbdma_method0_addr_v(r)                           (((r) >> 2U) & 0xfffU)
 #define pbdma_method0_subch_v(r)                           (((r) >> 16U) & 0x7U)
 #define pbdma_method0_first_true_f()                                 (0x400000U)
@@ -154,10 +154,10 @@
 #define pbdma_userd_target_vid_mem_f()                                    (0x0U)
 #define pbdma_userd_target_sys_mem_coh_f()                                (0x2U)
 #define pbdma_userd_target_sys_mem_ncoh_f()                               (0x3U)
-#define pbdma_userd_addr_f(v)                            (((v)&0x7fffffU) << 9U)
+#define pbdma_userd_addr_f(v)                       ((U32(v) & 0x7fffffU) << 9U)
 #define pbdma_userd_hi_r(i)\
 		(nvgpu_safe_add_u32(0x0004000cU, nvgpu_safe_mult_u32((i), 8192U)))
-#define pbdma_userd_hi_addr_f(v)                             (((v)&0xffU) << 0U)
+#define pbdma_userd_hi_addr_f(v)                        ((U32(v) & 0xffU) << 0U)
 #define pbdma_config_r(i)\
 		(nvgpu_safe_add_u32(0x000400f4U, nvgpu_safe_mult_u32((i), 8192U)))
 #define pbdma_config_auth_level_privileged_f()                          (0x100U)

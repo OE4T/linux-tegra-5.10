@@ -65,7 +65,7 @@
 #define fuse_ctrl_opt_tpc_gpc_r(i)\
 		(nvgpu_safe_add_u32(0x00021838U, nvgpu_safe_mult_u32((i), 4U)))
 #define fuse_status_opt_fbio_r()                                   (0x00021c14U)
-#define fuse_status_opt_fbio_data_f(v)                     (((v)&0xffffU) << 0U)
+#define fuse_status_opt_fbio_data_f(v)                ((U32(v) & 0xffffU) << 0U)
 #define fuse_status_opt_fbio_data_m()                       (U32(0xffffU) << 0U)
 #define fuse_status_opt_fbio_data_v(r)                   (((r) >> 0U) & 0xffffU)
 #define fuse_status_opt_rop_l2_fbp_r(i)\

@@ -60,26 +60,26 @@
 #include <nvgpu/safe_ops.h>
 
 #define fifo_userd_writeback_r()                                   (0x0000225cU)
-#define fifo_userd_writeback_timer_f(v)                      (((v)&0xffU) << 0U)
+#define fifo_userd_writeback_timer_f(v)                 ((U32(v) & 0xffU) << 0U)
 #define fifo_userd_writeback_timer_disabled_v()                    (0x00000000U)
 #define fifo_userd_writeback_timer_shorter_v()                     (0x00000003U)
 #define fifo_userd_writeback_timer_100us_v()                       (0x00000064U)
-#define fifo_userd_writeback_timescale_f(v)                  (((v)&0xfU) << 12U)
+#define fifo_userd_writeback_timescale_f(v)             ((U32(v) & 0xfU) << 12U)
 #define fifo_userd_writeback_timescale_0_v()                       (0x00000000U)
 #define fifo_runlist_base_lo_r(i)\
 		(nvgpu_safe_add_u32(0x00002b00U, nvgpu_safe_mult_u32((i), 16U)))
 #define fifo_runlist_base_lo__size_1_v()                           (0x0000000bU)
 #define fifo_runlist_base_lo_ptr_align_shift_v()                   (0x0000000cU)
-#define fifo_runlist_base_lo_ptr_lo_f(v)                 (((v)&0xfffffU) << 12U)
+#define fifo_runlist_base_lo_ptr_lo_f(v)            ((U32(v) & 0xfffffU) << 12U)
 #define fifo_runlist_base_lo_target_vid_mem_f()                           (0x0U)
 #define fifo_runlist_base_lo_target_sys_mem_coh_f()                       (0x2U)
 #define fifo_runlist_base_lo_target_sys_mem_ncoh_f()                      (0x3U)
 #define fifo_runlist_base_hi_r(i)\
 		(nvgpu_safe_add_u32(0x00002b04U, nvgpu_safe_mult_u32((i), 16U)))
-#define fifo_runlist_base_hi_ptr_hi_f(v)                     (((v)&0xffU) << 0U)
+#define fifo_runlist_base_hi_ptr_hi_f(v)                ((U32(v) & 0xffU) << 0U)
 #define fifo_runlist_submit_r(i)\
 		(nvgpu_safe_add_u32(0x00002b08U, nvgpu_safe_mult_u32((i), 16U)))
-#define fifo_runlist_submit_length_f(v)                    (((v)&0xffffU) << 0U)
+#define fifo_runlist_submit_length_f(v)               ((U32(v) & 0xffffU) << 0U)
 #define fifo_runlist_submit_info_r(i)\
 		(nvgpu_safe_add_u32(0x00002b0cU, nvgpu_safe_mult_u32((i), 16U)))
 #define fifo_runlist_submit_info_pending_true_f()                      (0x8000U)
@@ -101,16 +101,16 @@
 #define fifo_intr_0_channel_intr_pending_f()                       (0x80000000U)
 #define fifo_intr_0_ctxsw_timeout_pending_f()                             (0x2U)
 #define fifo_intr_en_0_r()                                         (0x00002140U)
-#define fifo_intr_en_0_sched_error_f(v)                       (((v)&0x1U) << 8U)
+#define fifo_intr_en_0_sched_error_f(v)                  ((U32(v) & 0x1U) << 8U)
 #define fifo_intr_en_0_sched_error_m()                         (U32(0x1U) << 8U)
 #define fifo_intr_en_1_r()                                         (0x00002528U)
 #define fifo_intr_bind_error_r()                                   (0x0000252cU)
 #define fifo_intr_sched_error_r()                                  (0x0000254cU)
-#define fifo_intr_sched_error_code_f(v)                      (((v)&0xffU) << 0U)
+#define fifo_intr_sched_error_code_f(v)                 ((U32(v) & 0xffU) << 0U)
 #define fifo_intr_chsw_error_r()                                   (0x0000256cU)
 #define fifo_intr_pbdma_id_r()                                     (0x000025a0U)
 #define fifo_intr_pbdma_id_status_f(v, i)\
-		(((v) & 0x1) << (0U + i*1U))
+		((U32(v) & 0x1U) << (0U + (i)*1U))
 #define fifo_intr_pbdma_id_status_v(r, i)\
 		(((r) >> (0U + i*1U)) & 0x1U)
 #define fifo_intr_pbdma_id_status__size_1_v()                      (0x0000000cU)
@@ -121,13 +121,13 @@
 #define fifo_fb_timeout_period_init_f()                                (0x3c00U)
 #define fifo_sched_disable_r()                                     (0x00002630U)
 #define fifo_sched_disable_runlist_f(v, i)\
-		(((v) & 0x1) << (0U + i*1U))
+		((U32(v) & 0x1U) << (0U + (i)*1U))
 #define fifo_sched_disable_runlist_m(i)\
 		(U32(0x1U) << (0U + (i)*1U))
 #define fifo_sched_disable_true_v()                                (0x00000001U)
 #define fifo_runlist_preempt_r()                                   (0x00002638U)
 #define fifo_runlist_preempt_runlist_f(v, i)\
-		(((v) & 0x1) << (0U + i*1U))
+		((U32(v) & 0x1U) << (0U + (i)*1U))
 #define fifo_runlist_preempt_runlist_m(i)\
 		(U32(0x1U) << (0U + (i)*1U))
 #define fifo_runlist_preempt_runlist_pending_v()                   (0x00000001U)
@@ -135,8 +135,8 @@
 #define fifo_preempt_pending_true_f()                                (0x100000U)
 #define fifo_preempt_type_channel_f()                                     (0x0U)
 #define fifo_preempt_type_tsg_f()                                   (0x1000000U)
-#define fifo_preempt_chid_f(v)                              (((v)&0xfffU) << 0U)
-#define fifo_preempt_id_f(v)                                (((v)&0xfffU) << 0U)
+#define fifo_preempt_chid_f(v)                         ((U32(v) & 0xfffU) << 0U)
+#define fifo_preempt_id_f(v)                           ((U32(v) & 0xfffU) << 0U)
 #define fifo_engine_status_r(i)\
 		(nvgpu_safe_add_u32(0x00002640U, nvgpu_safe_mult_u32((i), 8U)))
 #define fifo_engine_status__size_1_v()                             (0x0000000dU)

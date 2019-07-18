@@ -83,7 +83,7 @@
 #define mc_enable_xbar_enabled_f()                                        (0x4U)
 #define mc_enable_l2_enabled_f()                                          (0x8U)
 #define mc_enable_pmedia_s()                                                (1U)
-#define mc_enable_pmedia_f(v)                                 (((v)&0x1U) << 4U)
+#define mc_enable_pmedia_f(v)                            ((U32(v) & 0x1U) << 4U)
 #define mc_enable_pmedia_m()                                   (U32(0x1U) << 4U)
 #define mc_enable_pmedia_v(r)                               (((r) >> 4U) & 0x1U)
 #define mc_enable_ce0_m()                                      (U32(0x1U) << 6U)
@@ -101,10 +101,10 @@
 #define mc_intr_ltc_r()                                            (0x000001c0U)
 #define mc_enable_pb_r()                                           (0x00000204U)
 #define mc_enable_pb_0_s()                                                  (1U)
-#define mc_enable_pb_0_f(v)                                   (((v)&0x1U) << 0U)
+#define mc_enable_pb_0_f(v)                              ((U32(v) & 0x1U) << 0U)
 #define mc_enable_pb_0_m()                                     (U32(0x1U) << 0U)
 #define mc_enable_pb_0_v(r)                                 (((r) >> 0U) & 0x1U)
 #define mc_enable_pb_0_enabled_v()                                 (0x00000001U)
 #define mc_enable_pb_sel_f(v, i)\
-		(((v) & 0x1) << (0U + i*1U))
+		((U32(v) & 0x1U) << (0U + (i)*1U))
 #endif

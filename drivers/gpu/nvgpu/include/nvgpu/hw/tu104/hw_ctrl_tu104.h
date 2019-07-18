@@ -61,8 +61,8 @@
 
 #define ctrl_doorbell_r(i)\
 		(nvgpu_safe_add_u32(0x00b64000U, nvgpu_safe_mult_u32((i), 8U)))
-#define ctrl_doorbell_vector_f(v)                           (((v)&0xfffU) << 0U)
-#define ctrl_doorbell_runlist_id_f(v)                       (((v)&0x7fU) << 16U)
+#define ctrl_doorbell_vector_f(v)                      ((U32(v) & 0xfffU) << 0U)
+#define ctrl_doorbell_runlist_id_f(v)                  ((U32(v) & 0x7fU) << 16U)
 #define ctrl_virtual_channel_cfg_r(i)\
 		(nvgpu_safe_add_u32(0x00b65000U, nvgpu_safe_mult_u32((i), 4U)))
 #define ctrl_virtual_channel_cfg_pending_enable_true_f()           (0x80000000U)

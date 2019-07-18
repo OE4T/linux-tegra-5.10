@@ -78,9 +78,11 @@
 #define ltc_ltcs_ltss_cbc_ctrl1_clear_active_f()                          (0x4U)
 #define ltc_ltc0_lts0_cbc_ctrl1_r()                                (0x001410c8U)
 #define ltc_ltcs_ltss_cbc_ctrl2_r()                                (0x0017e8ccU)
-#define ltc_ltcs_ltss_cbc_ctrl2_clear_lower_bound_f(v)    (((v)&0x1ffffU) << 0U)
+#define ltc_ltcs_ltss_cbc_ctrl2_clear_lower_bound_f(v)\
+				((U32(v) & 0x1ffffU) << 0U)
 #define ltc_ltcs_ltss_cbc_ctrl3_r()                                (0x0017e8d0U)
-#define ltc_ltcs_ltss_cbc_ctrl3_clear_upper_bound_f(v)    (((v)&0x1ffffU) << 0U)
+#define ltc_ltcs_ltss_cbc_ctrl3_clear_upper_bound_f(v)\
+				((U32(v) & 0x1ffffU) << 0U)
 #define ltc_ltcs_ltss_cbc_ctrl3_clear_upper_bound_init_v()         (0x0001ffffU)
 #define ltc_ltcs_ltss_cbc_base_r()                                 (0x0017e8d4U)
 #define ltc_ltcs_ltss_cbc_base_alignment_shift_v()                 (0x0000000bU)
@@ -92,16 +94,16 @@
 #define ltc_ltcs_ltss_cbc_param_slices_per_fbp_v(r)        (((r) >> 28U) & 0xfU)
 #define ltc_ltcs_ltss_tstg_set_mgmt_r()                            (0x0017e91cU)
 #define ltc_ltcs_ltss_tstg_set_mgmt_max_ways_evict_last_f(v)\
-				(((v)&0x1fU) << 16U)
+				((U32(v) & 0x1fU) << 16U)
 #define ltc_ltcs_ltss_dstg_zbc_index_r()                           (0x0017ea44U)
-#define ltc_ltcs_ltss_dstg_zbc_index_address_f(v)             (((v)&0xfU) << 0U)
+#define ltc_ltcs_ltss_dstg_zbc_index_address_f(v)        ((U32(v) & 0xfU) << 0U)
 #define ltc_ltcs_ltss_dstg_zbc_color_clear_value_r(i)\
 		(nvgpu_safe_add_u32(0x0017ea48U, nvgpu_safe_mult_u32((i), 4U)))
 #define ltc_ltcs_ltss_dstg_zbc_color_clear_value__size_1_v()       (0x00000004U)
 #define ltc_ltcs_ltss_dstg_zbc_depth_clear_value_r()               (0x0017ea58U)
 #define ltc_ltcs_ltss_dstg_zbc_depth_clear_value_field_s()                 (32U)
 #define ltc_ltcs_ltss_dstg_zbc_depth_clear_value_field_f(v)\
-				(((v)&0xffffffffU) << 0U)
+				((U32(v) & 0xffffffffU) << 0U)
 #define ltc_ltcs_ltss_dstg_zbc_depth_clear_value_field_m()\
 				(U32(0xffffffffU) << 0U)
 #define ltc_ltcs_ltss_dstg_zbc_depth_clear_value_field_v(r)\

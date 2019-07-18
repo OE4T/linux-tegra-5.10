@@ -82,9 +82,11 @@
 #define ltc_ltcs_ltss_cbc_ctrl1_clear_active_f()                          (0x4U)
 #define ltc_ltc0_lts0_cbc_ctrl1_r()                                (0x0014046cU)
 #define ltc_ltcs_ltss_cbc_ctrl2_r()                                (0x0017e270U)
-#define ltc_ltcs_ltss_cbc_ctrl2_clear_lower_bound_f(v)    (((v)&0x3ffffU) << 0U)
+#define ltc_ltcs_ltss_cbc_ctrl2_clear_lower_bound_f(v)\
+				((U32(v) & 0x3ffffU) << 0U)
 #define ltc_ltcs_ltss_cbc_ctrl3_r()                                (0x0017e274U)
-#define ltc_ltcs_ltss_cbc_ctrl3_clear_upper_bound_f(v)    (((v)&0x3ffffU) << 0U)
+#define ltc_ltcs_ltss_cbc_ctrl3_clear_upper_bound_f(v)\
+				((U32(v) & 0x3ffffU) << 0U)
 #define ltc_ltcs_ltss_cbc_ctrl3_clear_upper_bound_init_v()         (0x0003ffffU)
 #define ltc_ltcs_ltss_cbc_base_r()                                 (0x0017e278U)
 #define ltc_ltcs_ltss_cbc_base_alignment_shift_v()                 (0x0000000bU)
@@ -101,16 +103,16 @@
 				(((r) >> 0U) & 0xffffU)
 #define ltc_ltcs_ltss_tstg_set_mgmt_r()                            (0x0017e2acU)
 #define ltc_ltcs_ltss_tstg_set_mgmt_max_ways_evict_last_f(v)\
-				(((v)&0x1fU) << 16U)
+				((U32(v) & 0x1fU) << 16U)
 #define ltc_ltcs_ltss_dstg_zbc_index_r()                           (0x0017e338U)
-#define ltc_ltcs_ltss_dstg_zbc_index_address_f(v)             (((v)&0xfU) << 0U)
+#define ltc_ltcs_ltss_dstg_zbc_index_address_f(v)        ((U32(v) & 0xfU) << 0U)
 #define ltc_ltcs_ltss_dstg_zbc_color_clear_value_r(i)\
 		(nvgpu_safe_add_u32(0x0017e33cU, nvgpu_safe_mult_u32((i), 4U)))
 #define ltc_ltcs_ltss_dstg_zbc_color_clear_value__size_1_v()       (0x00000004U)
 #define ltc_ltcs_ltss_dstg_zbc_depth_clear_value_r()               (0x0017e34cU)
 #define ltc_ltcs_ltss_dstg_zbc_depth_clear_value_field_s()                 (32U)
 #define ltc_ltcs_ltss_dstg_zbc_depth_clear_value_field_f(v)\
-				(((v)&0xffffffffU) << 0U)
+				((U32(v) & 0xffffffffU) << 0U)
 #define ltc_ltcs_ltss_dstg_zbc_depth_clear_value_field_m()\
 				(U32(0xffffffffU) << 0U)
 #define ltc_ltcs_ltss_dstg_zbc_depth_clear_value_field_v(r)\
@@ -204,5 +206,5 @@
 #define ltc_ltc0_lts0_tstg_info_1_slice_size_in_kb_v(r)  (((r) >> 0U) & 0xffffU)
 #define ltc_ltc0_lts0_tstg_info_1_slices_per_l2_v(r)      (((r) >> 16U) & 0x1fU)
 #define ltc_ltca_g_axi_pctrl_r()                                   (0x00160000U)
-#define ltc_ltca_g_axi_pctrl_user_sid_f(v)                   (((v)&0xffU) << 2U)
+#define ltc_ltca_g_axi_pctrl_user_sid_f(v)              ((U32(v) & 0xffU) << 2U)
 #endif

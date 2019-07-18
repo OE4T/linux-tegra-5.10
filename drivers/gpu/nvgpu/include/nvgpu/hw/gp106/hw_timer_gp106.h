@@ -60,10 +60,10 @@
 #include <nvgpu/safe_ops.h>
 
 #define timer_pri_timeout_r()                                      (0x00009080U)
-#define timer_pri_timeout_period_f(v)                    (((v)&0xffffffU) << 0U)
+#define timer_pri_timeout_period_f(v)               ((U32(v) & 0xffffffU) << 0U)
 #define timer_pri_timeout_period_m()                      (U32(0xffffffU) << 0U)
 #define timer_pri_timeout_period_v(r)                  (((r) >> 0U) & 0xffffffU)
-#define timer_pri_timeout_en_f(v)                            (((v)&0x1U) << 31U)
+#define timer_pri_timeout_en_f(v)                       ((U32(v) & 0x1U) << 31U)
 #define timer_pri_timeout_en_m()                              (U32(0x1U) << 31U)
 #define timer_pri_timeout_en_v(r)                          (((r) >> 31U) & 0x1U)
 #define timer_pri_timeout_en_en_enabled_f()                        (0x80000000U)

@@ -105,7 +105,7 @@
 #define ctxsw_prog_main_image_priv_access_map_config_o()           (0x000000a0U)
 #define ctxsw_prog_main_image_priv_access_map_config_mode_s()               (2U)
 #define ctxsw_prog_main_image_priv_access_map_config_mode_f(v)\
-				(((v)&0x3U) << 0U)
+				((U32(v) & 0x3U) << 0U)
 #define ctxsw_prog_main_image_priv_access_map_config_mode_m()  (U32(0x3U) << 0U)
 #define ctxsw_prog_main_image_priv_access_map_config_mode_v(r)\
 				(((r) >> 0U) & 0x3U)
@@ -118,13 +118,13 @@
 #define ctxsw_prog_main_image_misc_options_verif_features_disabled_f()    (0x0U)
 #define ctxsw_prog_main_image_graphics_preemption_options_o()      (0x00000080U)
 #define ctxsw_prog_main_image_graphics_preemption_options_control_f(v)\
-				(((v)&0x3U) << 0U)
+				((U32(v) & 0x3U) << 0U)
 #define ctxsw_prog_main_image_graphics_preemption_options_control_gfxp_f()\
 				(0x1U)
 #define ctxsw_prog_main_image_full_preemption_ptr_o()              (0x00000068U)
 #define ctxsw_prog_main_image_compute_preemption_options_o()       (0x00000084U)
 #define ctxsw_prog_main_image_compute_preemption_options_control_f(v)\
-				(((v)&0x3U) << 0U)
+				((U32(v) & 0x3U) << 0U)
 #define ctxsw_prog_main_image_compute_preemption_options_control_cta_f()  (0x1U)
 #define ctxsw_prog_main_image_compute_preemption_options_control_cilp_f() (0x2U)
 #endif

@@ -60,72 +60,84 @@
 #include <nvgpu/safe_ops.h>
 
 #define ioctrlmif_rx_err_contain_en_0_r()                          (0x00000e0cU)
-#define ioctrlmif_rx_err_contain_en_0_rxramdataparityerr_f(v) (((v)&0x1U) << 3U)
+#define ioctrlmif_rx_err_contain_en_0_rxramdataparityerr_f(v)\
+				((U32(v) & 0x1U) << 3U)
 #define ioctrlmif_rx_err_contain_en_0_rxramdataparityerr_m()   (U32(0x1U) << 3U)
 #define ioctrlmif_rx_err_contain_en_0_rxramdataparityerr_v(r)\
 				(((r) >> 3U) & 0x1U)
-#define ioctrlmif_rx_err_contain_en_0_rxramhdrparityerr_f(v)  (((v)&0x1U) << 4U)
+#define ioctrlmif_rx_err_contain_en_0_rxramhdrparityerr_f(v)\
+				((U32(v) & 0x1U) << 4U)
 #define ioctrlmif_rx_err_contain_en_0_rxramhdrparityerr_m()    (U32(0x1U) << 4U)
 #define ioctrlmif_rx_err_contain_en_0_rxramhdrparityerr_v(r)\
 				(((r) >> 4U) & 0x1U)
 #define ioctrlmif_rx_err_contain_en_0_rxramhdrparityerr__prod_v()  (0x00000001U)
 #define ioctrlmif_rx_err_contain_en_0_rxramhdrparityerr__prod_f()        (0x10U)
 #define ioctrlmif_rx_err_log_en_0_r()                              (0x00000e04U)
-#define ioctrlmif_rx_err_log_en_0_rxramdataparityerr_f(v)     (((v)&0x1U) << 3U)
+#define ioctrlmif_rx_err_log_en_0_rxramdataparityerr_f(v)\
+				((U32(v) & 0x1U) << 3U)
 #define ioctrlmif_rx_err_log_en_0_rxramdataparityerr_m()       (U32(0x1U) << 3U)
 #define ioctrlmif_rx_err_log_en_0_rxramdataparityerr_v(r)   (((r) >> 3U) & 0x1U)
-#define ioctrlmif_rx_err_log_en_0_rxramhdrparityerr_f(v)      (((v)&0x1U) << 4U)
+#define ioctrlmif_rx_err_log_en_0_rxramhdrparityerr_f(v) ((U32(v) & 0x1U) << 4U)
 #define ioctrlmif_rx_err_log_en_0_rxramhdrparityerr_m()        (U32(0x1U) << 4U)
 #define ioctrlmif_rx_err_log_en_0_rxramhdrparityerr_v(r)    (((r) >> 4U) & 0x1U)
 #define ioctrlmif_rx_err_report_en_0_r()                           (0x00000e08U)
-#define ioctrlmif_rx_err_report_en_0_rxramdataparityerr_f(v)  (((v)&0x1U) << 3U)
+#define ioctrlmif_rx_err_report_en_0_rxramdataparityerr_f(v)\
+				((U32(v) & 0x1U) << 3U)
 #define ioctrlmif_rx_err_report_en_0_rxramdataparityerr_m()    (U32(0x1U) << 3U)
 #define ioctrlmif_rx_err_report_en_0_rxramdataparityerr_v(r)\
 				(((r) >> 3U) & 0x1U)
-#define ioctrlmif_rx_err_report_en_0_rxramhdrparityerr_f(v)   (((v)&0x1U) << 4U)
+#define ioctrlmif_rx_err_report_en_0_rxramhdrparityerr_f(v)\
+				((U32(v) & 0x1U) << 4U)
 #define ioctrlmif_rx_err_report_en_0_rxramhdrparityerr_m()     (U32(0x1U) << 4U)
 #define ioctrlmif_rx_err_report_en_0_rxramhdrparityerr_v(r) (((r) >> 4U) & 0x1U)
 #define ioctrlmif_rx_err_status_0_r()                              (0x00000e00U)
-#define ioctrlmif_rx_err_status_0_rxramdataparityerr_f(v)     (((v)&0x1U) << 3U)
+#define ioctrlmif_rx_err_status_0_rxramdataparityerr_f(v)\
+				((U32(v) & 0x1U) << 3U)
 #define ioctrlmif_rx_err_status_0_rxramdataparityerr_m()       (U32(0x1U) << 3U)
 #define ioctrlmif_rx_err_status_0_rxramdataparityerr_v(r)   (((r) >> 3U) & 0x1U)
-#define ioctrlmif_rx_err_status_0_rxramhdrparityerr_f(v)      (((v)&0x1U) << 4U)
+#define ioctrlmif_rx_err_status_0_rxramhdrparityerr_f(v) ((U32(v) & 0x1U) << 4U)
 #define ioctrlmif_rx_err_status_0_rxramhdrparityerr_m()        (U32(0x1U) << 4U)
 #define ioctrlmif_rx_err_status_0_rxramhdrparityerr_v(r)    (((r) >> 4U) & 0x1U)
 #define ioctrlmif_rx_err_first_0_r()                               (0x00000e14U)
 #define ioctrlmif_tx_err_contain_en_0_r()                          (0x00000a90U)
-#define ioctrlmif_tx_err_contain_en_0_txramdataparityerr_f(v) (((v)&0x1U) << 0U)
+#define ioctrlmif_tx_err_contain_en_0_txramdataparityerr_f(v)\
+				((U32(v) & 0x1U) << 0U)
 #define ioctrlmif_tx_err_contain_en_0_txramdataparityerr_m()   (U32(0x1U) << 0U)
 #define ioctrlmif_tx_err_contain_en_0_txramdataparityerr_v(r)\
 				(((r) >> 0U) & 0x1U)
 #define ioctrlmif_tx_err_contain_en_0_txramdataparityerr__prod_v() (0x00000001U)
 #define ioctrlmif_tx_err_contain_en_0_txramdataparityerr__prod_f()        (0x1U)
-#define ioctrlmif_tx_err_contain_en_0_txramhdrparityerr_f(v)  (((v)&0x1U) << 1U)
+#define ioctrlmif_tx_err_contain_en_0_txramhdrparityerr_f(v)\
+				((U32(v) & 0x1U) << 1U)
 #define ioctrlmif_tx_err_contain_en_0_txramhdrparityerr_m()    (U32(0x1U) << 1U)
 #define ioctrlmif_tx_err_contain_en_0_txramhdrparityerr_v(r)\
 				(((r) >> 1U) & 0x1U)
 #define ioctrlmif_tx_err_contain_en_0_txramhdrparityerr__prod_v()  (0x00000001U)
 #define ioctrlmif_tx_err_contain_en_0_txramhdrparityerr__prod_f()         (0x2U)
 #define ioctrlmif_tx_err_log_en_0_r()                              (0x00000a88U)
-#define ioctrlmif_tx_err_log_en_0_txramdataparityerr_f(v)     (((v)&0x1U) << 0U)
+#define ioctrlmif_tx_err_log_en_0_txramdataparityerr_f(v)\
+				((U32(v) & 0x1U) << 0U)
 #define ioctrlmif_tx_err_log_en_0_txramdataparityerr_m()       (U32(0x1U) << 0U)
 #define ioctrlmif_tx_err_log_en_0_txramdataparityerr_v(r)   (((r) >> 0U) & 0x1U)
-#define ioctrlmif_tx_err_log_en_0_txramhdrparityerr_f(v)      (((v)&0x1U) << 1U)
+#define ioctrlmif_tx_err_log_en_0_txramhdrparityerr_f(v) ((U32(v) & 0x1U) << 1U)
 #define ioctrlmif_tx_err_log_en_0_txramhdrparityerr_m()        (U32(0x1U) << 1U)
 #define ioctrlmif_tx_err_log_en_0_txramhdrparityerr_v(r)    (((r) >> 1U) & 0x1U)
 #define ioctrlmif_tx_err_report_en_0_r()                           (0x00000e08U)
-#define ioctrlmif_tx_err_report_en_0_txramdataparityerr_f(v)  (((v)&0x1U) << 0U)
+#define ioctrlmif_tx_err_report_en_0_txramdataparityerr_f(v)\
+				((U32(v) & 0x1U) << 0U)
 #define ioctrlmif_tx_err_report_en_0_txramdataparityerr_m()    (U32(0x1U) << 0U)
 #define ioctrlmif_tx_err_report_en_0_txramdataparityerr_v(r)\
 				(((r) >> 0U) & 0x1U)
-#define ioctrlmif_tx_err_report_en_0_txramhdrparityerr_f(v)   (((v)&0x1U) << 1U)
+#define ioctrlmif_tx_err_report_en_0_txramhdrparityerr_f(v)\
+				((U32(v) & 0x1U) << 1U)
 #define ioctrlmif_tx_err_report_en_0_txramhdrparityerr_m()     (U32(0x1U) << 1U)
 #define ioctrlmif_tx_err_report_en_0_txramhdrparityerr_v(r) (((r) >> 1U) & 0x1U)
 #define ioctrlmif_tx_err_status_0_r()                              (0x00000a84U)
-#define ioctrlmif_tx_err_status_0_txramdataparityerr_f(v)     (((v)&0x1U) << 0U)
+#define ioctrlmif_tx_err_status_0_txramdataparityerr_f(v)\
+				((U32(v) & 0x1U) << 0U)
 #define ioctrlmif_tx_err_status_0_txramdataparityerr_m()       (U32(0x1U) << 0U)
 #define ioctrlmif_tx_err_status_0_txramdataparityerr_v(r)   (((r) >> 0U) & 0x1U)
-#define ioctrlmif_tx_err_status_0_txramhdrparityerr_f(v)      (((v)&0x1U) << 1U)
+#define ioctrlmif_tx_err_status_0_txramhdrparityerr_f(v) ((U32(v) & 0x1U) << 1U)
 #define ioctrlmif_tx_err_status_0_txramhdrparityerr_m()        (U32(0x1U) << 1U)
 #define ioctrlmif_tx_err_status_0_txramhdrparityerr_v(r)    (((r) >> 1U) & 0x1U)
 #define ioctrlmif_tx_err_first_0_r()                               (0x00000a98U)

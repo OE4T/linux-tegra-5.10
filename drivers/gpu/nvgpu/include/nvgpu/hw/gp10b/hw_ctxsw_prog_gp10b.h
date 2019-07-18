@@ -106,7 +106,7 @@
 #define ctxsw_prog_main_image_priv_access_map_config_o()           (0x000000a0U)
 #define ctxsw_prog_main_image_priv_access_map_config_mode_s()               (2U)
 #define ctxsw_prog_main_image_priv_access_map_config_mode_f(v)\
-				(((v)&0x3U) << 0U)
+				((U32(v) & 0x3U) << 0U)
 #define ctxsw_prog_main_image_priv_access_map_config_mode_m()  (U32(0x3U) << 0U)
 #define ctxsw_prog_main_image_priv_access_map_config_mode_v(r)\
 				(((r) >> 0U) & 0x3U)
@@ -119,21 +119,21 @@
 #define ctxsw_prog_main_image_misc_options_verif_features_disabled_f()    (0x0U)
 #define ctxsw_prog_main_image_pmu_options_o()                      (0x00000070U)
 #define ctxsw_prog_main_image_pmu_options_boost_clock_frequencies_f(v)\
-				(((v)&0x1U) << 0U)
+				((U32(v) & 0x1U) << 0U)
 #define ctxsw_prog_main_image_graphics_preemption_options_o()      (0x00000080U)
 #define ctxsw_prog_main_image_graphics_preemption_options_control_f(v)\
-				(((v)&0x3U) << 0U)
+				((U32(v) & 0x3U) << 0U)
 #define ctxsw_prog_main_image_graphics_preemption_options_control_gfxp_f()\
 				(0x1U)
 #define ctxsw_prog_main_image_full_preemption_ptr_o()              (0x00000068U)
 #define ctxsw_prog_main_image_compute_preemption_options_o()       (0x00000084U)
 #define ctxsw_prog_main_image_compute_preemption_options_control_f(v)\
-				(((v)&0x3U) << 0U)
+				((U32(v) & 0x3U) << 0U)
 #define ctxsw_prog_main_image_compute_preemption_options_control_cta_f()  (0x1U)
 #define ctxsw_prog_main_image_compute_preemption_options_control_cilp_f() (0x2U)
 #define ctxsw_prog_main_image_context_timestamp_buffer_control_o() (0x000000acU)
 #define ctxsw_prog_main_image_context_timestamp_buffer_control_num_records_f(v)\
-				(((v)&0xffffU) << 0U)
+				((U32(v) & 0xffffU) << 0U)
 #define ctxsw_prog_main_image_context_timestamp_buffer_ptr_hi_o()  (0x000000b0U)
 #define ctxsw_prog_main_image_context_timestamp_buffer_ptr_hi_v_m()\
 				(U32(0xfffffffU) << 0U)
@@ -147,7 +147,7 @@
 				(0x30000000U)
 #define ctxsw_prog_main_image_context_timestamp_buffer_ptr_o()     (0x000000b4U)
 #define ctxsw_prog_main_image_context_timestamp_buffer_ptr_v_f(v)\
-				(((v)&0xffffffffU) << 0U)
+				((U32(v) & 0xffffffffU) << 0U)
 #define ctxsw_prog_record_timestamp_record_size_in_bytes_v()       (0x00000080U)
 #define ctxsw_prog_record_timestamp_record_size_in_words_v()       (0x00000020U)
 #define ctxsw_prog_record_timestamp_magic_value_lo_o()             (0x00000000U)
@@ -158,10 +158,12 @@
 #define ctxsw_prog_record_timestamp_context_ptr_o()                (0x0000000cU)
 #define ctxsw_prog_record_timestamp_timestamp_lo_o()               (0x00000018U)
 #define ctxsw_prog_record_timestamp_timestamp_hi_o()               (0x0000001cU)
-#define ctxsw_prog_record_timestamp_timestamp_hi_v_f(v)  (((v)&0xffffffU) << 0U)
+#define ctxsw_prog_record_timestamp_timestamp_hi_v_f(v)\
+				((U32(v) & 0xffffffU) << 0U)
 #define ctxsw_prog_record_timestamp_timestamp_hi_v_v(r)\
 				(((r) >> 0U) & 0xffffffU)
-#define ctxsw_prog_record_timestamp_timestamp_hi_tag_f(v)   (((v)&0xffU) << 24U)
+#define ctxsw_prog_record_timestamp_timestamp_hi_tag_f(v)\
+				((U32(v) & 0xffU) << 24U)
 #define ctxsw_prog_record_timestamp_timestamp_hi_tag_m()     (U32(0xffU) << 24U)
 #define ctxsw_prog_record_timestamp_timestamp_hi_tag_v(r) (((r) >> 24U) & 0xffU)
 #define ctxsw_prog_record_timestamp_timestamp_hi_tag_ctxsw_req_by_host_v()\

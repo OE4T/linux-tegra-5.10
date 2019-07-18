@@ -60,12 +60,12 @@
 #include <nvgpu/safe_ops.h>
 
 #define usermode_cfg0_r()                                          (0x00810000U)
-#define usermode_cfg0_class_id_f(v)                        (((v)&0xffffU) << 0U)
+#define usermode_cfg0_class_id_f(v)                   ((U32(v) & 0xffffU) << 0U)
 #define usermode_cfg0_class_id_value_v()                           (0x0000c361U)
 #define usermode_time_0_r()                                        (0x00810080U)
-#define usermode_time_0_nsec_f(v)                       (((v)&0x7ffffffU) << 5U)
+#define usermode_time_0_nsec_f(v)                  ((U32(v) & 0x7ffffffU) << 5U)
 #define usermode_time_1_r()                                        (0x00810084U)
-#define usermode_time_1_nsec_f(v)                      (((v)&0x1fffffffU) << 0U)
+#define usermode_time_1_nsec_f(v)                 ((U32(v) & 0x1fffffffU) << 0U)
 #define usermode_notify_channel_pending_r()                        (0x00810090U)
-#define usermode_notify_channel_pending_id_f(v)        (((v)&0xffffffffU) << 0U)
+#define usermode_notify_channel_pending_id_f(v)   ((U32(v) & 0xffffffffU) << 0U)
 #endif

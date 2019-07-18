@@ -82,9 +82,11 @@
 #define ltc_ltcs_ltss_cbc_ctrl1_clear_active_f()                          (0x4U)
 #define ltc_ltc0_lts0_cbc_ctrl1_r()                                (0x0014046cU)
 #define ltc_ltcs_ltss_cbc_ctrl2_r()                                (0x0017e270U)
-#define ltc_ltcs_ltss_cbc_ctrl2_clear_lower_bound_f(v)    (((v)&0x3ffffU) << 0U)
+#define ltc_ltcs_ltss_cbc_ctrl2_clear_lower_bound_f(v)\
+				((U32(v) & 0x3ffffU) << 0U)
 #define ltc_ltcs_ltss_cbc_ctrl3_r()                                (0x0017e274U)
-#define ltc_ltcs_ltss_cbc_ctrl3_clear_upper_bound_f(v)    (((v)&0x3ffffU) << 0U)
+#define ltc_ltcs_ltss_cbc_ctrl3_clear_upper_bound_f(v)\
+				((U32(v) & 0x3ffffU) << 0U)
 #define ltc_ltcs_ltss_cbc_ctrl3_clear_upper_bound_init_v()         (0x0003ffffU)
 #define ltc_ltcs_ltss_cbc_base_r()                                 (0x0017e278U)
 #define ltc_ltcs_ltss_cbc_base_alignment_shift_v()                 (0x0000000bU)
@@ -92,10 +94,11 @@
 #define ltc_ltcs_ltss_cbc_num_active_ltcs_r()                      (0x0017e27cU)
 #define ltc_ltcs_ltss_cbc_num_active_ltcs__v(r)            (((r) >> 0U) & 0x1fU)
 #define ltc_ltcs_ltss_cbc_num_active_ltcs_nvlink_peer_through_l2_f(v)\
-				(((v)&0x1U) << 24U)
+				((U32(v) & 0x1U) << 24U)
 #define ltc_ltcs_ltss_cbc_num_active_ltcs_nvlink_peer_through_l2_v(r)\
 				(((r) >> 24U) & 0x1U)
-#define ltc_ltcs_ltss_cbc_num_active_ltcs_serialize_f(v)     (((v)&0x1U) << 25U)
+#define ltc_ltcs_ltss_cbc_num_active_ltcs_serialize_f(v)\
+				((U32(v) & 0x1U) << 25U)
 #define ltc_ltcs_ltss_cbc_num_active_ltcs_serialize_v(r)   (((r) >> 25U) & 0x1U)
 #define ltc_ltcs_misc_ltc_num_active_ltcs_r()                      (0x0017e000U)
 #define ltc_ltcs_ltss_cbc_param_r()                                (0x0017e280U)
@@ -108,16 +111,16 @@
 				(((r) >> 0U) & 0xffffU)
 #define ltc_ltcs_ltss_tstg_set_mgmt_r()                            (0x0017e2acU)
 #define ltc_ltcs_ltss_tstg_set_mgmt_max_ways_evict_last_f(v)\
-				(((v)&0x1fU) << 16U)
+				((U32(v) & 0x1fU) << 16U)
 #define ltc_ltcs_ltss_dstg_zbc_index_r()                           (0x0017e338U)
-#define ltc_ltcs_ltss_dstg_zbc_index_address_f(v)             (((v)&0xfU) << 0U)
+#define ltc_ltcs_ltss_dstg_zbc_index_address_f(v)        ((U32(v) & 0xfU) << 0U)
 #define ltc_ltcs_ltss_dstg_zbc_color_clear_value_r(i)\
 		(nvgpu_safe_add_u32(0x0017e33cU, nvgpu_safe_mult_u32((i), 4U)))
 #define ltc_ltcs_ltss_dstg_zbc_color_clear_value__size_1_v()       (0x00000004U)
 #define ltc_ltcs_ltss_dstg_zbc_depth_clear_value_r()               (0x0017e34cU)
 #define ltc_ltcs_ltss_dstg_zbc_depth_clear_value_field_s()                 (32U)
 #define ltc_ltcs_ltss_dstg_zbc_depth_clear_value_field_f(v)\
-				(((v)&0xffffffffU) << 0U)
+				((U32(v) & 0xffffffffU) << 0U)
 #define ltc_ltcs_ltss_dstg_zbc_depth_clear_value_field_m()\
 				(U32(0xffffffffU) << 0U)
 #define ltc_ltcs_ltss_dstg_zbc_depth_clear_value_field_v(r)\
@@ -125,7 +128,7 @@
 #define ltc_ltcs_ltss_dstg_zbc_stencil_clear_value_r()             (0x0017e204U)
 #define ltc_ltcs_ltss_dstg_zbc_stencil_clear_value_field_s()                (8U)
 #define ltc_ltcs_ltss_dstg_zbc_stencil_clear_value_field_f(v)\
-				(((v)&0xffU) << 0U)
+				((U32(v) & 0xffU) << 0U)
 #define ltc_ltcs_ltss_dstg_zbc_stencil_clear_value_field_m()  (U32(0xffU) << 0U)
 #define ltc_ltcs_ltss_dstg_zbc_stencil_clear_value_field_v(r)\
 				(((r) >> 0U) & 0xffU)
@@ -156,64 +159,64 @@
 #define ltc_ltc0_lts0_intr3_r()                                    (0x00140588U)
 #define ltc_ltc0_lts0_l1_cache_ecc_control_r()                     (0x001404ecU)
 #define ltc_ltc0_lts0_l1_cache_ecc_control_inject_corrected_err_f(v)\
-				(((v)&0x1U) << 4U)
+				((U32(v) & 0x1U) << 4U)
 #define ltc_ltc0_lts0_l1_cache_ecc_control_inject_uncorrected_err_f(v)\
-				(((v)&0x1U) << 5U)
+				((U32(v) & 0x1U) << 5U)
 #define ltc_ltc0_lts0_l2_cache_ecc_status_r()                      (0x001404f0U)
 #define ltc_ltc0_lts0_l2_cache_ecc_status_corrected_err_rstg_f(v)\
-				(((v)&0x1U) << 1U)
+				((U32(v) & 0x1U) << 1U)
 #define ltc_ltc0_lts0_l2_cache_ecc_status_corrected_err_rstg_m()\
 				(U32(0x1U) << 1U)
 #define ltc_ltc0_lts0_l2_cache_ecc_status_corrected_err_tstg_f(v)\
-				(((v)&0x1U) << 3U)
+				((U32(v) & 0x1U) << 3U)
 #define ltc_ltc0_lts0_l2_cache_ecc_status_corrected_err_tstg_m()\
 				(U32(0x1U) << 3U)
 #define ltc_ltc0_lts0_l2_cache_ecc_status_corrected_err_dstg_f(v)\
-				(((v)&0x1U) << 5U)
+				((U32(v) & 0x1U) << 5U)
 #define ltc_ltc0_lts0_l2_cache_ecc_status_corrected_err_dstg_m()\
 				(U32(0x1U) << 5U)
 #define ltc_ltc0_lts0_l2_cache_ecc_status_uncorrected_err_rstg_f(v)\
-				(((v)&0x1U) << 0U)
+				((U32(v) & 0x1U) << 0U)
 #define ltc_ltc0_lts0_l2_cache_ecc_status_uncorrected_err_rstg_m()\
 				(U32(0x1U) << 0U)
 #define ltc_ltc0_lts0_l2_cache_ecc_status_uncorrected_err_tstg_f(v)\
-				(((v)&0x1U) << 2U)
+				((U32(v) & 0x1U) << 2U)
 #define ltc_ltc0_lts0_l2_cache_ecc_status_uncorrected_err_tstg_m()\
 				(U32(0x1U) << 2U)
 #define ltc_ltc0_lts0_l2_cache_ecc_status_uncorrected_err_dstg_f(v)\
-				(((v)&0x1U) << 4U)
+				((U32(v) & 0x1U) << 4U)
 #define ltc_ltc0_lts0_l2_cache_ecc_status_uncorrected_err_dstg_m()\
 				(U32(0x1U) << 4U)
 #define ltc_ltc0_lts0_l2_cache_ecc_status_uncorrected_err_total_counter_overflow_f(v)\
-				(((v)&0x1U) << 18U)
+				((U32(v) & 0x1U) << 18U)
 #define ltc_ltc0_lts0_l2_cache_ecc_status_uncorrected_err_total_counter_overflow_m()\
 				(U32(0x1U) << 18U)
 #define ltc_ltc0_lts0_l2_cache_ecc_status_corrected_err_total_counter_overflow_f(v)\
-				(((v)&0x1U) << 16U)
+				((U32(v) & 0x1U) << 16U)
 #define ltc_ltc0_lts0_l2_cache_ecc_status_corrected_err_total_counter_overflow_m()\
 				(U32(0x1U) << 16U)
 #define ltc_ltc0_lts0_l2_cache_ecc_status_uncorrected_err_unique_counter_overflow_f(v)\
-				(((v)&0x1U) << 19U)
+				((U32(v) & 0x1U) << 19U)
 #define ltc_ltc0_lts0_l2_cache_ecc_status_uncorrected_err_unique_counter_overflow_m()\
 				(U32(0x1U) << 19U)
 #define ltc_ltc0_lts0_l2_cache_ecc_status_corrected_err_unique_counter_overflow_f(v)\
-				(((v)&0x1U) << 17U)
+				((U32(v) & 0x1U) << 17U)
 #define ltc_ltc0_lts0_l2_cache_ecc_status_corrected_err_unique_counter_overflow_m()\
 				(U32(0x1U) << 17U)
-#define ltc_ltc0_lts0_l2_cache_ecc_status_reset_f(v)         (((v)&0x1U) << 30U)
+#define ltc_ltc0_lts0_l2_cache_ecc_status_reset_f(v)    ((U32(v) & 0x1U) << 30U)
 #define ltc_ltc0_lts0_l2_cache_ecc_status_reset_task_f()           (0x40000000U)
 #define ltc_ltc0_lts0_l2_cache_ecc_address_r()                     (0x001404fcU)
 #define ltc_ltc0_lts0_l2_cache_ecc_corrected_err_count_r()         (0x001404f4U)
 #define ltc_ltc0_lts0_l2_cache_ecc_corrected_err_count_total_s()           (16U)
 #define ltc_ltc0_lts0_l2_cache_ecc_corrected_err_count_total_f(v)\
-				(((v)&0xffffU) << 0U)
+				((U32(v) & 0xffffU) << 0U)
 #define ltc_ltc0_lts0_l2_cache_ecc_corrected_err_count_total_m()\
 				(U32(0xffffU) << 0U)
 #define ltc_ltc0_lts0_l2_cache_ecc_corrected_err_count_total_v(r)\
 				(((r) >> 0U) & 0xffffU)
 #define ltc_ltc0_lts0_l2_cache_ecc_corrected_err_count_unique_total_s()    (16U)
 #define ltc_ltc0_lts0_l2_cache_ecc_corrected_err_count_unique_total_f(v)\
-				(((v)&0xffffU) << 16U)
+				((U32(v) & 0xffffU) << 16U)
 #define ltc_ltc0_lts0_l2_cache_ecc_corrected_err_count_unique_total_m()\
 				(U32(0xffffU) << 16U)
 #define ltc_ltc0_lts0_l2_cache_ecc_corrected_err_count_unique_total_v(r)\
@@ -221,14 +224,14 @@
 #define ltc_ltc0_lts0_l2_cache_ecc_uncorrected_err_count_r()       (0x001404f8U)
 #define ltc_ltc0_lts0_l2_cache_ecc_uncorrected_err_count_total_s()         (16U)
 #define ltc_ltc0_lts0_l2_cache_ecc_uncorrected_err_count_total_f(v)\
-				(((v)&0xffffU) << 0U)
+				((U32(v) & 0xffffU) << 0U)
 #define ltc_ltc0_lts0_l2_cache_ecc_uncorrected_err_count_total_m()\
 				(U32(0xffffU) << 0U)
 #define ltc_ltc0_lts0_l2_cache_ecc_uncorrected_err_count_total_v(r)\
 				(((r) >> 0U) & 0xffffU)
 #define ltc_ltc0_lts0_l2_cache_ecc_uncorrected_err_count_unique_total_s()  (16U)
 #define ltc_ltc0_lts0_l2_cache_ecc_uncorrected_err_count_unique_total_f(v)\
-				(((v)&0xffffU) << 16U)
+				((U32(v) & 0xffffU) << 16U)
 #define ltc_ltc0_lts0_l2_cache_ecc_uncorrected_err_count_unique_total_m()\
 				(U32(0xffffU) << 16U)
 #define ltc_ltc0_lts0_l2_cache_ecc_uncorrected_err_count_unique_total_v(r)\

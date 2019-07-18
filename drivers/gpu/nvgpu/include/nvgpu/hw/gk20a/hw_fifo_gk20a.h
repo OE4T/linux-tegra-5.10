@@ -60,24 +60,24 @@
 #include <nvgpu/safe_ops.h>
 
 #define fifo_bar1_base_r()                                         (0x00002254U)
-#define fifo_bar1_base_ptr_f(v)                         (((v)&0xfffffffU) << 0U)
+#define fifo_bar1_base_ptr_f(v)                    ((U32(v) & 0xfffffffU) << 0U)
 #define fifo_bar1_base_ptr_align_shift_v()                         (0x0000000cU)
 #define fifo_bar1_base_valid_false_f()                                    (0x0U)
 #define fifo_bar1_base_valid_true_f()                              (0x10000000U)
 #define fifo_runlist_base_r()                                      (0x00002270U)
-#define fifo_runlist_base_ptr_f(v)                      (((v)&0xfffffffU) << 0U)
+#define fifo_runlist_base_ptr_f(v)                 ((U32(v) & 0xfffffffU) << 0U)
 #define fifo_runlist_base_target_vid_mem_f()                              (0x0U)
 #define fifo_runlist_base_target_sys_mem_coh_f()                   (0x20000000U)
 #define fifo_runlist_base_target_sys_mem_ncoh_f()                  (0x30000000U)
 #define fifo_runlist_r()                                           (0x00002274U)
-#define fifo_runlist_engine_f(v)                             (((v)&0xfU) << 20U)
+#define fifo_runlist_engine_f(v)                        ((U32(v) & 0xfU) << 20U)
 #define fifo_eng_runlist_base_r(i)\
 		(nvgpu_safe_add_u32(0x00002280U, nvgpu_safe_mult_u32((i), 8U)))
 #define fifo_eng_runlist_base__size_1_v()                          (0x00000001U)
 #define fifo_eng_runlist_r(i)\
 		(nvgpu_safe_add_u32(0x00002284U, nvgpu_safe_mult_u32((i), 8U)))
 #define fifo_eng_runlist__size_1_v()                               (0x00000001U)
-#define fifo_eng_runlist_length_f(v)                       (((v)&0xffffU) << 0U)
+#define fifo_eng_runlist_length_f(v)                  ((U32(v) & 0xffffU) << 0U)
 #define fifo_eng_runlist_length_max_v()                            (0x0000ffffU)
 #define fifo_eng_runlist_pending_true_f()                            (0x100000U)
 #define fifo_runlist_timeslice_r(i)\
@@ -116,14 +116,14 @@
 #define fifo_intr_0_runlist_event_pending_f()                      (0x40000000U)
 #define fifo_intr_0_channel_intr_pending_f()                       (0x80000000U)
 #define fifo_intr_en_0_r()                                         (0x00002140U)
-#define fifo_intr_en_0_sched_error_f(v)                       (((v)&0x1U) << 8U)
+#define fifo_intr_en_0_sched_error_f(v)                  ((U32(v) & 0x1U) << 8U)
 #define fifo_intr_en_0_sched_error_m()                         (U32(0x1U) << 8U)
-#define fifo_intr_en_0_mmu_fault_f(v)                        (((v)&0x1U) << 28U)
+#define fifo_intr_en_0_mmu_fault_f(v)                   ((U32(v) & 0x1U) << 28U)
 #define fifo_intr_en_0_mmu_fault_m()                          (U32(0x1U) << 28U)
 #define fifo_intr_en_1_r()                                         (0x00002528U)
 #define fifo_intr_bind_error_r()                                   (0x0000252cU)
 #define fifo_intr_sched_error_r()                                  (0x0000254cU)
-#define fifo_intr_sched_error_code_f(v)                      (((v)&0xffU) << 0U)
+#define fifo_intr_sched_error_code_f(v)                 ((U32(v) & 0xffU) << 0U)
 #define fifo_intr_sched_error_code_ctxsw_timeout_v()               (0x0000000aU)
 #define fifo_intr_chsw_error_r()                                   (0x0000256cU)
 #define fifo_intr_mmu_fault_id_r()                                 (0x0000259cU)
@@ -147,7 +147,7 @@
 #define fifo_intr_mmu_fault_info_client_v(r)               (((r) >> 8U) & 0x1fU)
 #define fifo_intr_pbdma_id_r()                                     (0x000025a0U)
 #define fifo_intr_pbdma_id_status_f(v, i)\
-		(((v) & 0x1) << (0U + i*1U))
+		((U32(v) & 0x1U) << (0U + (i)*1U))
 #define fifo_intr_pbdma_id_status_v(r, i)\
 		(((r) >> (0U + i*1U)) & 0x1U)
 #define fifo_intr_pbdma_id_status__size_1_v()                      (0x00000001U)
@@ -160,7 +160,7 @@
 #define fifo_error_sched_disable_r()                               (0x0000262cU)
 #define fifo_sched_disable_r()                                     (0x00002630U)
 #define fifo_sched_disable_runlist_f(v, i)\
-		(((v) & 0x1) << (0U + i*1U))
+		((U32(v) & 0x1U) << (0U + (i)*1U))
 #define fifo_sched_disable_runlist_m(i)\
 		(U32(0x1U) << (0U + (i)*1U))
 #define fifo_sched_disable_true_v()                                (0x00000001U)
@@ -168,12 +168,12 @@
 #define fifo_preempt_pending_true_f()                                (0x100000U)
 #define fifo_preempt_type_channel_f()                                     (0x0U)
 #define fifo_preempt_type_tsg_f()                                   (0x1000000U)
-#define fifo_preempt_chid_f(v)                              (((v)&0xfffU) << 0U)
-#define fifo_preempt_id_f(v)                                (((v)&0xfffU) << 0U)
+#define fifo_preempt_chid_f(v)                         ((U32(v) & 0xfffU) << 0U)
+#define fifo_preempt_id_f(v)                           ((U32(v) & 0xfffU) << 0U)
 #define fifo_trigger_mmu_fault_r(i)\
 		(nvgpu_safe_add_u32(0x00002a30U, nvgpu_safe_mult_u32((i), 4U)))
-#define fifo_trigger_mmu_fault_id_f(v)                       (((v)&0x1fU) << 0U)
-#define fifo_trigger_mmu_fault_enable_f(v)                    (((v)&0x1U) << 8U)
+#define fifo_trigger_mmu_fault_id_f(v)                  ((U32(v) & 0x1fU) << 0U)
+#define fifo_trigger_mmu_fault_enable_f(v)               ((U32(v) & 0x1U) << 8U)
 #define fifo_engine_status_r(i)\
 		(nvgpu_safe_add_u32(0x00002640U, nvgpu_safe_mult_u32((i), 8U)))
 #define fifo_engine_status__size_1_v()                             (0x00000002U)

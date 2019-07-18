@@ -65,9 +65,9 @@
 #define fbpa_0_intr_status_sec_subp1_pending_f()                      (0x10000U)
 #define fbpa_0_intr_status_ded_subp1_pending_f()                      (0x20000U)
 #define fbpa_ecc_intr_ctrl_r()                                     (0x009a0474U)
-#define fbpa_ecc_intr_ctrl_sec_intr_en_f(v)                   (((v)&0x1U) << 0U)
+#define fbpa_ecc_intr_ctrl_sec_intr_en_f(v)              ((U32(v) & 0x1U) << 0U)
 #define fbpa_ecc_intr_ctrl_sec_intr_en_enabled_f()                        (0x1U)
-#define fbpa_ecc_intr_ctrl_ded_intr_en_f(v)                   (((v)&0x1U) << 1U)
+#define fbpa_ecc_intr_ctrl_ded_intr_en_f(v)              ((U32(v) & 0x1U) << 1U)
 #define fbpa_ecc_intr_ctrl_ded_intr_en_enabled_f()                        (0x2U)
 #define fbpa_0_ecc_status_r(i)\
 		(nvgpu_safe_add_u32(0x00900478U, nvgpu_safe_mult_u32((i), 4U)))

@@ -83,7 +83,7 @@
 		(nvgpu_safe_add_u32(0x00000180U, nvgpu_safe_mult_u32((i), 4U)))
 #define mc_enable_r()                                              (0x00000200U)
 #define mc_enable_pmedia_s()                                                (1U)
-#define mc_enable_pmedia_f(v)                                 (((v)&0x1U) << 4U)
+#define mc_enable_pmedia_f(v)                            ((U32(v) & 0x1U) << 4U)
 #define mc_enable_pmedia_m()                                   (U32(0x1U) << 4U)
 #define mc_enable_pmedia_v(r)                               (((r) >> 4U) & 0x1U)
 #define mc_enable_ce0_m()                                      (U32(0x1U) << 6U)
