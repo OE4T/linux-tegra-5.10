@@ -10,6 +10,37 @@
 		reg = <0x0 0x02c00000 0x0 0x000b0000>;
 	};
 
+	i2c@3160000 {
+		/delete-node/ prod-settings;
+	};
+
+	i2c@c240000 {
+		/delete-node/ prod-settings;
+	};
+
+	i2c@3180000 {
+		/delete-node/ prod-settings;
+	};
+
+	i2c@3190000 {
+		/delete-node/ prod-settings;
+	};
+
+	i2c@31b0000 {
+		/delete-node/ prod-settings;
+	};
+
+	i2c@31c0000 {
+		/delete-node/ prod-settings;
+	};
+
+	i2c@c250000 {
+		/delete-node/ prod-settings;
+	};
+	i2c@31e0000 {
+		/delete-node/ prod-settings;
+	};
+
 	bpmp {
 		i2c {
 			spmic@3c {
