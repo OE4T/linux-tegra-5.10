@@ -35,6 +35,7 @@
  *
  *   - @ref unit-mm
  *   - @ref unit-fifo
+ *   - @ref unit-devctl
  *   - @ref unit-sdl
  *   - @ref unit-init
  *   - Etc, etc.
