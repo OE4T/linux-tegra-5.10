@@ -52,7 +52,8 @@ static void gv11b_subctx_commit_valid_mask(struct gk20a *g,
 
 	/* Make all subctx pdbs valid */
 	for (id = 0U; id < ram_in_sc_pdb_valid__size_1_v(); id += 32U) {
-		nvgpu_mem_wr32(g, inst_block, ram_in_sc_pdb_valid_w(id), U32_MAX);
+		nvgpu_mem_wr32(g, inst_block,
+				ram_in_sc_pdb_valid_long_w(id), U32_MAX);
 	}
 }
 
@@ -74,18 +75,17 @@ static void gv11b_subctx_commit_pdb(struct gk20a *g,
 	pdb_addr = nvgpu_mem_get_addr(g, pdb_mem);
 	pdb_addr_lo = u64_lo32(pdb_addr >> ram_in_base_shift_v());
 	pdb_addr_hi = u64_hi32(pdb_addr);
-	format_word = ram_in_sc_page_dir_base_target_f(
-		aperture, 0) |
+	format_word = ram_in_sc_page_dir_base_target_f(aperture, 0U) |
 		ram_in_sc_page_dir_base_vol_f(
-		ram_in_sc_page_dir_base_vol_true_v(), 0) |
-		ram_in_sc_use_ver2_pt_format_f(1, 0) |
-		ram_in_sc_big_page_size_f(1, 0) |
+		ram_in_sc_page_dir_base_vol_true_v(), 0U) |
+		ram_in_sc_use_ver2_pt_format_f(1U, 0U) |
+		ram_in_sc_big_page_size_f(1U, 0U) |
 		ram_in_sc_page_dir_base_lo_0_f(pdb_addr_lo);
 
 	if (replayable) {
 		format_word |=
-			ram_in_sc_page_dir_base_fault_replay_tex_f(1, 0) |
-			ram_in_sc_page_dir_base_fault_replay_gcc_f(1, 0);
+			ram_in_sc_page_dir_base_fault_replay_tex_f(1U, 0U) |
+			ram_in_sc_page_dir_base_fault_replay_gcc_f(1U, 0U);
 	}
 
 	nvgpu_log(g, gpu_dbg_info, " pdb info lo %x hi %x",
