@@ -228,7 +228,7 @@ struct ether_priv_data {
 
 	/* for MAC loopback */
 	unsigned int mac_loopback_mode;
-	unsigned int txq_prio[OSI_EQOS_MAX_NUM_CHANS];
+	unsigned int txq_prio[OSI_EQOS_MAX_NUM_QUEUES];
 
 #ifdef THERMAL_CAL
 	struct thermal_cooling_device *tcd;

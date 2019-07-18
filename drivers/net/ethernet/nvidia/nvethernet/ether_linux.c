@@ -1609,14 +1609,14 @@ dma_map_failed:
  *
  *	Algorithm:
  *	1) Select the correct queue index based which has priority of queue
- *	same as skb-<priority
- *	2) default select queue index 0
+ *	same as skb->priority
+ *	2) default select queue array index 0
  *
  *	Dependencies: None.
  *
  *	Protection: None.
  *
- *	Return: tx queu index - success, -1 - failure.
+ *	Return: tx queue array index - success, -1 - failure.
  */
 static unsigned short ether_select_queue(struct net_device *dev,
 					 struct sk_buff *skb,
@@ -1624,14 +1624,14 @@ static unsigned short ether_select_queue(struct net_device *dev,
 					 select_queue_fallback_t fallback)
 {
 	struct ether_priv_data *pdata = netdev_priv(dev);
-	struct osi_dma_priv_data *osi_dma = pdata->osi_dma;
+	struct osi_core_priv_data *osi_core = pdata->osi_core;
 	unsigned short txqueue_select = 0;
-	unsigned int i, chan;
+	unsigned int i, mtlq;
 
-	for (i = 0; i < osi_dma->num_dma_chans; i++) {
-		chan = osi_dma->dma_chans[i];
-		if (pdata->txq_prio[chan] == skb->priority) {
-			txqueue_select = (unsigned short)chan;
+	for (i = 0; i < osi_core->num_mtl_queues; i++) {
+		mtlq = osi_core->mtl_queues[i];
+		if (pdata->txq_prio[mtlq] == skb->priority) {
+			txqueue_select = (unsigned short)i;
 			break;
 		}
 	}
@@ -1658,14 +1658,15 @@ static int ether_start_xmit(struct sk_buff *skb, struct net_device *ndev)
 {
 	struct ether_priv_data *pdata = netdev_priv(ndev);
 	struct osi_dma_priv_data *osi_dma = pdata->osi_dma;
-	unsigned int chan = skb_get_queue_mapping(skb);
+	unsigned int qinx = skb_get_queue_mapping(skb);
+	unsigned int chan = osi_dma->dma_chans[qinx];
 	struct osi_tx_ring *tx_ring = osi_dma->tx_ring[chan];
 	int count = 0;
 
 	count = ether_tx_swcx_alloc(pdata->dev, tx_ring, skb);
 	if (count <= 0) {
 		if (count == 0) {
-			netif_stop_subqueue(ndev, chan);
+			netif_stop_subqueue(ndev, qinx);
 			netdev_err(ndev, "Tx ring[%d] is full\n", chan);
 			return NETDEV_TX_BUSY;
 		}
@@ -1676,7 +1677,7 @@ static int ether_start_xmit(struct sk_buff *skb, struct net_device *ndev)
 	osi_hw_transmit(osi_dma, chan);
 
 	if (ether_avail_txdesc_cnt(tx_ring) < TX_DESC_THRESHOLD) {
-		netif_stop_subqueue(ndev, chan);
+		netif_stop_subqueue(ndev, qinx);
 		netdev_dbg(ndev, "Tx ring[%d] insufficient desc.\n", chan);
 	}
 
@@ -2890,8 +2891,11 @@ static void ether_parse_queue_prio(struct ether_priv_data *pdata,
 				   unsigned int val_max,
 				   unsigned int num_entries)
 {
+	struct osi_core_priv_data *osi_core = pdata->osi_core;
 	struct device_node *pnode = pdata->dev->of_node;
 	unsigned int i, pmask = 0x0U;
+	unsigned int mtlq;
+	unsigned int tval[OSI_EQOS_MAX_NUM_QUEUES];
 	int ret = 0;
 
 	ret = of_property_read_u32_array(pnode, pdt_prop, pval, num_entries);
@@ -2904,16 +2908,23 @@ static void ether_parse_queue_prio(struct ether_priv_data *pdata,
 
 		return;
 	}
+
+	for (i = 0; i < num_entries; i++) {
+		tval[i] = pval[i];
+	}
+
 	/* If Some priority is alreay give to queue or priority in DT more than
 	 * MAX priority, assig default priority to queue with error message
 	 */
 	for (i = 0; i < num_entries; i++) {
-		if ((pval[i] > val_max) || ((pmask & (1U << pval[i])) != 0U)) {
+		mtlq = osi_core->mtl_queues[i];
+		if ((tval[i] > val_max) || ((pmask & (1U << tval[i])) != 0U)) {
 			dev_err(pdata->dev, "%s():Wrong or duplicate priority"
-				" in DT entry for Q(%d)\n", __func__, i);
-			pval[i] = val_def;
+				" in DT entry for Q(%d)\n", __func__, mtlq);
+			pval[mtlq] = val_def;
 		}
-		pmask |= 1U << pval[i];
+		pval[mtlq] = tval[i];
+		pmask |= 1U << tval[i];
 	}
 }
 
@@ -2935,9 +2946,10 @@ static int ether_parse_dt(struct ether_priv_data *pdata)
 	struct platform_device *pdev = to_platform_device(dev);
 	struct osi_core_priv_data *osi_core = pdata->osi_core;
 	struct osi_dma_priv_data *osi_dma = pdata->osi_dma;
+	unsigned int tmp_value[OSI_EQOS_MAX_NUM_QUEUES];
 	struct device_node *np = dev->of_node;
 	int ret = -EINVAL;
-	unsigned int i;
+	unsigned int i, mtlq;
 
 	/* read ptp clock */
 	ret = of_property_read_u32(np, "nvidia,ptp_ref_clock_speed",
@@ -2993,26 +3005,36 @@ static int ether_parse_dt(struct ether_priv_data *pdata)
 	}
 
 	ret = of_property_read_u32_array(np, "nvidia,rxq_enable_ctrl",
-					 osi_core->rxq_ctrl,
+					 tmp_value,
 					 osi_core->num_mtl_queues);
 	if (ret < 0) {
 		dev_err(dev, "failed to read rxq enable ctrl\n");
 		return ret;
+	} else {
+		for (i = 0; i < osi_core->num_mtl_queues; i++) {
+			mtlq = osi_core->mtl_queues[i];
+			osi_core->rxq_ctrl[mtlq] = tmp_value[i];
+		}
 	}
 
-	/*  Read tx queue priority */
+	/* Read tx queue priority */
 	ether_parse_queue_prio(pdata, "nvidia,tx-queue-prio", pdata->txq_prio,
 			       ETHER_QUEUE_PRIO_DEFAULT, ETHER_QUEUE_PRIO_MAX,
 			       osi_core->num_mtl_queues);
 
 	/* Read Rx Queue - User priority mapping for tagged packets */
 	ret = of_property_read_u32_array(np, "nvidia,rx-queue-prio",
-					 osi_core->rxq_prio,
+					 tmp_value,
 					 osi_core->num_mtl_queues);
 	if (ret < 0) {
 		dev_err(dev, "failed to read rx Queue priority mapping, Setting default 0x0\n");
 		for (i = 0; i < osi_core->num_mtl_queues; i++) {
 			osi_core->rxq_prio[i] = 0x0U;
+		}
+	} else {
+		for (i = 0; i < osi_core->num_mtl_queues; i++) {
+			mtlq = osi_core->mtl_queues[i];
+			osi_core->rxq_prio[mtlq] = tmp_value[i];
 		}
 	}
 
