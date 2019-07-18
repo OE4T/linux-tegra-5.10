@@ -664,14 +664,6 @@ static void gk20a_free_cb(struct nvgpu_ref *refcount)
 	}
 }
 
-/**
- * nvgpu_get() - Increment ref count on driver
- *
- * @g The driver to increment
- * This will fail if the driver is in the process of being released. In that
- * case it will return NULL. Otherwise a pointer to the driver passed in will
- * be returned.
- */
 struct gk20a * __must_check nvgpu_get(struct gk20a *g)
 {
 	int success;
@@ -691,14 +683,6 @@ struct gk20a * __must_check nvgpu_get(struct gk20a *g)
 	return (success != 0) ? g : NULL;
 }
 
-/**
- * nvgpu_put() - Decrement ref count on driver
- *
- * @g - The driver to decrement
- *
- * Decrement the driver ref-count. If neccesary also free the underlying driver
- * memory
- */
 void nvgpu_put(struct gk20a *g)
 {
 	/*

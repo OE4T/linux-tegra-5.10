@@ -23,17 +23,127 @@
 #ifndef NVGPU_INIT_H
 #define NVGPU_INIT_H
 
+/**
+ * @file
+ * @page unit-init Unit Init
+ *
+ * Overview
+ * ========
+ *
+ * The Init unit is called by OS (QNX, Linux) to initialize or teardown the
+ * driver. The Init unit ensures all the other sub-units are initialized so the
+ * driver is able to provide general functionality to the application.
+ *
+ * Static Design
+ * =============
+ *
+ * HAL Initialization
+ * ------------------
+ * The HAL must be initialized before the nvgpu_finalize_poweron() is called.
+ * This is accomplished by calling nvgpu_detect_chip() which will determine
+ * which GPU is in the system and configure the HAL interfaces.
+ *
+ * Common Initialization
+ * ---------------------
+ * The main driver initialization occurs by calling nvgpu_finalize_poweron()
+ * which will initialize all of the common units in the driver and must be done
+ * before the driver is ready to provide full functionality.
+ *
+ * Common Teardown
+ * ---------------
+ * If the GPU is unused, the driver can be torn down by calling
+ * nvgpu_prepare_poweroff().
+ *
+ * External APIs
+ * -------------
+ * + nvgpu_detect_chip() - Called to initialize the HAL.
+ * + nvgpu_finalize_poweron() - Called to initialize nvgpu driver.
+ * + nvgpu_prepare_poweroff() - Called before powering off GPU HW.
+ * + nvgpu_init_gpu_characteristics() - Called during HAL init for enable flag
+ * processing.
+ *
+ * Dynamic Design
+ * ==============
+ * After initialization, the Init unit provides a number of APIs to track state
+ * and usage count.
+ *
+ * External APIs
+ * -------------
+ * + nvgpu_get() / nvgpu_put() - Maintains ref count for usage.
+ * + nvgpu_can_busy() - Check to make sure driver is ready to go busy.
+ * + nvgpu_check_gpu_state() - Restart if the state is invalid.
+ */
+
+/**
+ * @brief Final driver initialization
+ *
+ * @param g [in] The GPU
+ *
+ * Initializes GPU units in the GPU driver. Each sub-unit is responsible for HW
+ * initialization.
+ *
+ * Note: Requires the GPU is already powered on and the HAL is initialized.
+ *
+ * @return 0 in case of success, < 0 in case of failure.
+ */
 int nvgpu_finalize_poweron(struct gk20a *g);
+
+/**
+ * @brief Prepare driver for poweroff
+ *
+ * @param g [in] The GPU
+ *
+ * Prepare the driver subsystems and HW for powering off GPU.
+ *
+ * @return 0 in case of success, < 0 in case of failure.
+ */
 int nvgpu_prepare_poweroff(struct gk20a *g);
 
+/**
+ * @brief Check if the device can go busy
+ *
+ * @param g [in] The GPU
+ *
+ * @return 1 if it ok to go busy, 0 if it is not ok to go busy.
+ */
 int nvgpu_can_busy(struct gk20a *g);
 
+/**
+ * @brief Increment ref count on driver.
+ *
+ * @param g [in] The GPU
+ *
+ * This will fail if the driver is in the process of being released.
+ *
+ * @return pointer to g if successful, otherwise 0.
+ */
 struct gk20a * __must_check nvgpu_get(struct gk20a *g);
+
+/**
+ * @brief Decrement ref count on driver.
+ *
+ * @param g [in] The GPU
+ *
+ * Will free underlying driver memory if driver is no longer in use.
+ */
 void nvgpu_put(struct gk20a *g);
 
-/* register accessors */
+/**
+ * @brief Check driver state and restart if the state is invalid
+ *
+ * @param g [in] The GPU
+ *
+ * If driver state is invalid, makes OS call to restart driver.
+ */
 void nvgpu_check_gpu_state(struct gk20a *g);
 
+/**
+ * @brief Configure initial GPU "enable" state and setup SM arch.
+ *
+ * @param g [in] The GPU
+ *
+ * This is called during HAL initialization.
+ */
 void nvgpu_init_gpu_characteristics(struct gk20a *g);
 
 #endif /* NVGPU_INIT_H */

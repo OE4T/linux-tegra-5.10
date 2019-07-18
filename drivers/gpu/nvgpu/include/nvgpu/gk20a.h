@@ -36,6 +36,7 @@
  *   - @ref unit-mm
  *   - @ref unit-fifo
  *   - @ref unit-sdl
+ *   - @ref unit-init
  *   - Etc, etc.
  *
  * nvgpu-driver Level Requirements Table
