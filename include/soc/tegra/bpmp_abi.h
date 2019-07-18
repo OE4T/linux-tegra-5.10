@@ -326,8 +326,8 @@ struct mrq_query_fw_tag_response {
  * @def MRQ_MODULE_LOAD
  * @brief Dynamically load a BPMP code module
  *
- * * Platforms: T210, T214, T186
- * @cond (bpmp_t210 || bpmp_t214 || bpmp_t186)
+ * * Platforms: T210, T210B01, T186
+ * @cond (bpmp_t210 || bpmp_t210b01 || bpmp_t186)
  * * Initiators: CCPLEX
  * * Targets: BPMP
  * * Request Payload: @ref mrq_module_load_request
@@ -378,8 +378,8 @@ struct mrq_module_load_response {
  * @def MRQ_MODULE_UNLOAD
  * @brief Unload a previously loaded code module
  *
- * * Platforms: T210, T214, T186
- * @cond (bpmp_t210 || bpmp_t214 || bpmp_t186)
+ * * Platforms: T210, T210B01, T186
+ * @cond (bpmp_t210 || bpmp_t210b01 || bpmp_t186)
  * * Initiators: CCPLEX
  * * Targets: BPMP
  * * Request Payload: @ref mrq_module_unload_request
@@ -520,8 +520,8 @@ struct mrq_threaded_ping_response {
  * @def MRQ_MODULE_MAIL
  * @brief Send a message to a loadable module
  *
- * * Platforms: T210, T214, T186
- * @cond (bpmp_t210 || bpmp_t214 || bpmp_t186)
+ * * Platforms: T210, T210B01, T186
+ * @cond (bpmp_t210 || bpmp_t210b01 || bpmp_t186)
  * * Initiators: Any
  * * Targets: BPMP
  * * Request Payload: @ref mrq_module_mail_request
@@ -1094,9 +1094,9 @@ enum {
 	CMD_CLK_MAX,
 };
 
-#define BPMP_CLK_HAS_MUX	(1 << 0)
-#define BPMP_CLK_HAS_SET_RATE	(1 << 1)
-#define BPMP_CLK_IS_ROOT	(1 << 2)
+#define BPMP_CLK_HAS_MUX	(1U << 0U)
+#define BPMP_CLK_HAS_SET_RATE	(1U << 1U)
+#define BPMP_CLK_IS_ROOT	(1U << 2U)
 
 #define MRQ_CLK_NAME_MAXLEN	40
 #define MRQ_CLK_MAX_PARENTS	16
@@ -1681,6 +1681,20 @@ enum mrq_thermal_host_to_bpmp_cmd {
 	 */
 	CMD_THERMAL_GET_NUM_ZONES = 3,
 
+	/**
+	 * @brief Get the thermtrip of the specified zone.
+	 *
+	 * Host needs to supply request parameters.
+	 *
+	 * mrq_response::err is
+	 * *  0: Valid zone information returned.
+	 * *  -#BPMP_EINVAL: Invalid request parameters.
+	 * *  -#BPMP_ENOENT: No driver registered for thermal zone.
+	 * *  -#BPMP_ERANGE if thermtrip is invalid or disabled.
+	 * *  -#BPMP_EFAULT: Problem reading zone information.
+	 */
+	CMD_THERMAL_GET_THERMTRIP = 4,
+
 	/** @brief: number of supported host-to-bpmp commands. May
 	 * increase in future
 	 */
@@ -1770,6 +1784,24 @@ struct cmd_thermal_get_num_zones_response {
 } BPMP_ABI_PACKED;
 
 /*
+ * Host->BPMP request data for request type CMD_THERMAL_GET_THERMTRIP
+ *
+ * zone: Number of thermal zone.
+ */
+struct cmd_thermal_get_thermtrip_request {
+	uint32_t zone;
+} BPMP_ABI_PACKED;
+
+/*
+ * BPMP->Host reply data for request CMD_THERMAL_GET_THERMTRIP
+ *
+ * thermtrip: HW shutdown temperature in millicelsius.
+ */
+struct cmd_thermal_get_thermtrip_response {
+	int32_t thermtrip;
+} BPMP_ABI_PACKED;
+
+/*
  * Host->BPMP request data.
  *
  * Reply type is union mrq_thermal_bpmp_to_host_response.
@@ -1783,6 +1815,7 @@ struct mrq_thermal_host_to_bpmp_request {
 		struct cmd_thermal_query_abi_request query_abi;
 		struct cmd_thermal_get_temp_request get_temp;
 		struct cmd_thermal_set_trip_request set_trip;
+		struct cmd_thermal_get_thermtrip_request get_thermtrip;
 	} BPMP_UNION_ANON;
 } BPMP_ABI_PACKED;
 
@@ -1804,6 +1837,7 @@ struct mrq_thermal_bpmp_to_host_request {
  */
 union mrq_thermal_bpmp_to_host_response {
 	struct cmd_thermal_get_temp_response get_temp;
+	struct cmd_thermal_get_thermtrip_response get_thermtrip;
 	struct cmd_thermal_get_num_zones_response get_num_zones;
 } BPMP_ABI_PACKED;
 /** @} */
@@ -2962,5 +2996,9 @@ struct mrq_ec_response {
 #define BPMP_EBADSLT	57
 
 /** @} */
+
+#if defined(BPMP_ABI_CHECKS)
+#include "bpmp_abi_checks.h"
+#endif
 
 #endif
