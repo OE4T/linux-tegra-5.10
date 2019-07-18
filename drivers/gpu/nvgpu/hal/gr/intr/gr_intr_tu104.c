@@ -158,23 +158,8 @@ void tu104_gr_intr_enable_gpc_exceptions(struct gk20a *g,
 			    gr_gpcs_gpccs_gpc_exception_en_gpcmmu_f(1U)));
 }
 
-void tu104_gr_intr_log_mme_exception(struct gk20a *g)
+static void gr_tu104_check_dma_exception(struct gk20a *g, u32 mme_hww_esr)
 {
-	u32 mme_hww_esr = nvgpu_readl(g, gr_mme_hww_esr_r());
-	u32 mme_hww_info = nvgpu_readl(g, gr_mme_hww_esr_info_r());
-
-	if ((mme_hww_esr &
-	     gr_mme_hww_esr_missing_macro_data_pending_f()) != 0U) {
-		nvgpu_log(g, gpu_dbg_intr | gpu_dbg_gpu_dbg,
-			 "GR MME EXCEPTION: MISSING_MACRO_DATA");
-	}
-
-	if ((mme_hww_esr &
-	     gr_mme_hww_esr_illegal_mme_method_pending_f()) != 0U) {
-		nvgpu_log(g, gpu_dbg_intr | gpu_dbg_gpu_dbg,
-			 "GR MME EXCEPTION: ILLEGAL_MME_METHOD");
-	}
-
 	if ((mme_hww_esr &
 	     gr_mme_hww_esr_dma_dram_access_pending_f()) != 0U) {
 		nvgpu_log(g, gpu_dbg_intr | gpu_dbg_gpu_dbg,
@@ -199,16 +184,14 @@ void tu104_gr_intr_log_mme_exception(struct gk20a *g)
 			 "GR MME EXCEPTION: DMA_FIFO_RESIZED_WHEN_NONIDLE");
 	}
 
-	if ((mme_hww_esr & gr_mme_hww_esr_illegal_opcode_pending_f()) != 0U) {
+	if ((mme_hww_esr & gr_mme_hww_esr_dma_read_pb_pending_f()) != 0U) {
 		nvgpu_log(g, gpu_dbg_intr | gpu_dbg_gpu_dbg,
-			 "GR MME EXCEPTION: ILLEGAL_OPCODE");
+			 "GR MME EXCEPTION: DMA_READ_FIFOED_FROM_PB");
 	}
+}
 
-	if ((mme_hww_esr & gr_mme_hww_esr_branch_in_delay_pending_f()) != 0U) {
-		nvgpu_log(g, gpu_dbg_intr | gpu_dbg_gpu_dbg,
-			 "GR MME EXCEPTION: BRANCH_IN_DELAY_SHOT");
-	}
-
+static void gr_tu104_check_ram_access_exception(struct gk20a *g, u32 mme_hww_esr)
+{
 	if ((mme_hww_esr & gr_mme_hww_esr_inst_ram_acess_pending_f()) != 0U) {
 		nvgpu_log(g, gpu_dbg_intr | gpu_dbg_gpu_dbg,
 			 "GR MME EXCEPTION: INSTR_RAM_ACCESS_OUT_OF_BOUNDS");
@@ -218,10 +201,36 @@ void tu104_gr_intr_log_mme_exception(struct gk20a *g)
 		nvgpu_log(g, gpu_dbg_intr | gpu_dbg_gpu_dbg,
 			 "GR MME EXCEPTION: DATA_RAM_ACCESS_OUT_OF_BOUNDS");
 	}
+}
 
-	if ((mme_hww_esr & gr_mme_hww_esr_dma_read_pb_pending_f()) != 0U) {
+void tu104_gr_intr_log_mme_exception(struct gk20a *g)
+{
+	u32 mme_hww_esr = nvgpu_readl(g, gr_mme_hww_esr_r());
+	u32 mme_hww_info = nvgpu_readl(g, gr_mme_hww_esr_info_r());
+
+	gr_tu104_check_dma_exception(g, mme_hww_esr);
+	gr_tu104_check_ram_access_exception(g, mme_hww_esr);
+
+	if ((mme_hww_esr &
+	     gr_mme_hww_esr_missing_macro_data_pending_f()) != 0U) {
 		nvgpu_log(g, gpu_dbg_intr | gpu_dbg_gpu_dbg,
-			 "GR MME EXCEPTION: DMA_READ_FIFOED_FROM_PB");
+			 "GR MME EXCEPTION: MISSING_MACRO_DATA");
+	}
+
+	if ((mme_hww_esr &
+	     gr_mme_hww_esr_illegal_mme_method_pending_f()) != 0U) {
+		nvgpu_log(g, gpu_dbg_intr | gpu_dbg_gpu_dbg,
+			 "GR MME EXCEPTION: ILLEGAL_MME_METHOD");
+	}
+
+	if ((mme_hww_esr & gr_mme_hww_esr_illegal_opcode_pending_f()) != 0U) {
+		nvgpu_log(g, gpu_dbg_intr | gpu_dbg_gpu_dbg,
+			 "GR MME EXCEPTION: ILLEGAL_OPCODE");
+	}
+
+	if ((mme_hww_esr & gr_mme_hww_esr_branch_in_delay_pending_f()) != 0U) {
+		nvgpu_log(g, gpu_dbg_intr | gpu_dbg_gpu_dbg,
+			 "GR MME EXCEPTION: BRANCH_IN_DELAY_SHOT");
 	}
 
 	if (gr_mme_hww_esr_info_pc_valid_v(mme_hww_info) == 0x1U) {
