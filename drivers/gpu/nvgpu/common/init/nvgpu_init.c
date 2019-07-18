@@ -74,11 +74,6 @@ void nvgpu_check_gpu_state(struct gk20a *g)
 	}
 }
 
-void nvgpu_warn_on_no_regs(void)
-{
-	WARN_ONCE(true, "Attempted access to GPU regs after unmapping!");
-}
-
 static void gk20a_mask_interrupts(struct gk20a *g)
 {
 	if (g->ops.mc.intr_mask != NULL) {
@@ -581,35 +576,6 @@ int nvgpu_can_busy(struct gk20a *g)
 	} else {
 		return 1;
 	}
-}
-
-int nvgpu_wait_for_idle(struct gk20a *g)
-{
-	int wait_length = 150; /* 3 second overall max wait. */
-	int target_usage_count = 0;
-	bool done = false;
-
-	if (g == NULL) {
-		return -ENODEV;
-	}
-
-	do {
-		if (nvgpu_atomic_read(&g->usage_count) == target_usage_count) {
-			done = true;
-		} else if (wait_length-- < 0) {
-			done = true;
-		} else {
-			nvgpu_msleep(20);
-		}
-	} while (!done);
-
-	if (wait_length < 0) {
-		nvgpu_warn(g, "Timed out waiting for idle (%d)!\n",
-			   nvgpu_atomic_read(&g->usage_count));
-		return -ETIMEDOUT;
-	}
-
-	return 0;
 }
 
 void nvgpu_init_gpu_characteristics(struct gk20a *g)

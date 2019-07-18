@@ -90,6 +90,35 @@
 #include <trace/events/gk20a.h>
 #endif
 
+static int nvgpu_wait_for_idle(struct gk20a *g)
+{
+	int wait_length = 150; /* 3 second overall max wait. */
+	int target_usage_count = 0;
+	bool done = false;
+
+	if (g == NULL) {
+		return -ENODEV;
+	}
+
+	do {
+		if (nvgpu_atomic_read(&g->usage_count) == target_usage_count) {
+			done = true;
+		} else if (wait_length-- < 0) {
+			done = true;
+		} else {
+			nvgpu_msleep(20);
+		}
+	} while (!done);
+
+	if (wait_length < 0) {
+		nvgpu_warn(g, "Timed out waiting for idle (%d)!\n",
+			   nvgpu_atomic_read(&g->usage_count));
+		return -ETIMEDOUT;
+	}
+
+	return 0;
+}
+
 static int nvgpu_kernel_shutdown_notification(struct notifier_block *nb,
 					unsigned long event, void *unused)
 {

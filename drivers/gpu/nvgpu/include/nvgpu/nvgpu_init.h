@@ -27,14 +27,12 @@ int nvgpu_finalize_poweron(struct gk20a *g);
 int nvgpu_prepare_poweroff(struct gk20a *g);
 
 int nvgpu_can_busy(struct gk20a *g);
-int nvgpu_wait_for_idle(struct gk20a *g);
 
 struct gk20a * __must_check nvgpu_get(struct gk20a *g);
 void nvgpu_put(struct gk20a *g);
 
 /* register accessors */
 void nvgpu_check_gpu_state(struct gk20a *g);
-void nvgpu_warn_on_no_regs(void);
 
 void nvgpu_init_gpu_characteristics(struct gk20a *g);
 

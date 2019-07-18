@@ -18,6 +18,11 @@
 
 #include "os_linux.h"
 
+static void nvgpu_warn_on_no_regs(void)
+{
+	WARN_ONCE(true, "Attempted access to GPU regs after unmapping!");
+}
+
 void nvgpu_writel(struct gk20a *g, u32 r, u32 v)
 {
 	struct nvgpu_os_linux *l = nvgpu_os_linux_from_gk20a(g);
