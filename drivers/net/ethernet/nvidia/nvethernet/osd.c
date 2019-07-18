@@ -317,7 +317,7 @@ void osd_transmit_complete(void *priv, void *buffer, unsigned long dmaaddr,
 	struct net_device *ndev = pdata->ndev;
 	struct osi_tx_ring *tx_ring;
 	struct netdev_queue *txq;
-	unsigned int chan;
+	unsigned int chan, qinx;
 
 	ndev->stats.tx_packets++;
 	ndev->stats.tx_bytes += len;
@@ -341,9 +341,13 @@ void osd_transmit_complete(void *priv, void *buffer, unsigned long dmaaddr,
 	}
 
 	if (skb) {
-		chan = skb_get_queue_mapping(skb);
+		/* index in array, netdev_get_tx_queue use index to get
+		 * network queue.
+		 */
+		qinx = skb_get_queue_mapping(skb);
+		chan = osi_dma->dma_chans[qinx];
 		tx_ring = osi_dma->tx_ring[chan];
-		txq = netdev_get_tx_queue(ndev, chan);
+		txq = netdev_get_tx_queue(ndev, qinx);
 
 		if (netif_tx_queue_stopped(txq) &&
 		    ether_avail_txdesc_cnt(tx_ring) >= TX_DESC_THRESHOLD) {
