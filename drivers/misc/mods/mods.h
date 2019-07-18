@@ -25,7 +25,7 @@
 
 /* Driver version */
 #define MODS_DRIVER_VERSION_MAJOR 3
-#define MODS_DRIVER_VERSION_MINOR 91
+#define MODS_DRIVER_VERSION_MINOR 93
 #define MODS_DRIVER_VERSION ((MODS_DRIVER_VERSION_MAJOR << 8) | \
 			     ((MODS_DRIVER_VERSION_MINOR/10) << 4) | \
 			     (MODS_DRIVER_VERSION_MINOR%10))
@@ -48,6 +48,40 @@ struct mods_pci_dev {
 	__u8  device;
 	__u8  function;
 };
+
+/* MODS_ESC_ALLOC_PAGES_2 */
+struct MODS_ALLOC_PAGES_2 {
+	/* IN */
+	__u64                 num_bytes;
+	__u32                 flags; /* MODS_ALLOC_* */
+	__s32                 numa_node;
+	struct mods_pci_dev_2 pci_device;
+
+	/* OUT */
+	__u64                 memory_handle;
+};
+
+/* numa_node */
+#define MODS_ANY_NUMA_NODE (-1)
+
+/* flags */
+#define MODS_ALLOC_CACHED        0   /* Default WB cache attr */
+#define MODS_ALLOC_UNCACHED      1   /* UC cache attr */
+#define MODS_ALLOC_WRITECOMBINE  2   /* WC cache attr */
+#define MODS_ALLOC_CACHE_MASK    7U  /* The first three bits are cache attr */
+
+#define MODS_ALLOC_DMA32         8   /* Force 32-bit PA, else any PA */
+#define MODS_ALLOC_CONTIGUOUS    16  /* Force contiguous, else any PA */
+#define MODS_ALLOC_USE_NUMA      32  /* Use numa_node instead of PCI dev for
+				      * NUMA node hint
+				      */
+#define MODS_ALLOC_FORCE_NUMA    64  /* Force memory to be from a given NUMA
+				      * node (same as PCI dev or numa_node).
+				      * Otherwise use PCI dev/numa_node as
+				      * a hint and if that is not possible,
+				      * allocate from any NUMA node
+				      */
+#define MODS_ALLOC_MAP_DEV       128 /* DMA map to PCI device */
 
 /* MODS_ESC_ALLOC_PAGES */
 struct MODS_ALLOC_PAGES {
@@ -313,6 +347,12 @@ struct MODS_PCI_WRITE {
 
 /* MODS_ESC_PCI_HOT_RESET */
 struct MODS_PCI_HOT_RESET {
+	/* IN */
+	struct mods_pci_dev_2 pci_device;
+};
+
+/* MODS_ESC_PCI_BUS_REMOVE_DEV */
+struct MODS_PCI_BUS_REMOVE_DEV {
 	/* IN */
 	struct mods_pci_dev_2 pci_device;
 };
@@ -1128,22 +1168,29 @@ struct MODS_MSR {
 		   _IOWR(MODS_IOC_MAGIC, 9, struct MODS_PIO_READ)
 #define MODS_ESC_PIO_WRITE			\
 		   _IOWR(MODS_IOC_MAGIC, 10, struct MODS_PIO_WRITE)
+/* Deprecated */
 #define MODS_ESC_IRQ_REGISTER			\
 		   _IOWR(MODS_IOC_MAGIC, 11, struct MODS_IRQ)
+/* Deprecated */
 #define MODS_ESC_IRQ_FREE			\
 		   _IOWR(MODS_IOC_MAGIC, 12, struct MODS_IRQ)
+/* Deprecated */
 #define MODS_ESC_IRQ_INQUIRY			\
 		   _IOWR(MODS_IOC_MAGIC, 13, struct MODS_IRQ)
 #define MODS_ESC_EVAL_ACPI_METHOD		\
 		   _IOWR_BAD(MODS_IOC_MAGIC, 16, struct MODS_EVAL_ACPI_METHOD)
 #define MODS_ESC_GET_API_VERSION		\
 		   _IOWR(MODS_IOC_MAGIC, 17, struct MODS_GET_VERSION)
+/* Deprecated */
 #define MODS_ESC_GET_KERNEL_VERSION		\
 		   _IOWR(MODS_IOC_MAGIC, 18, struct MODS_GET_VERSION)
+/* Deprecated */
 #define MODS_ESC_SET_DRIVER_PARA		\
 		   _IOWR(MODS_IOC_MAGIC, 19, struct MODS_SET_PARA)
+/* Deprecated */
 #define MODS_ESC_MSI_REGISTER			\
 		   _IOWR(MODS_IOC_MAGIC, 20, struct MODS_IRQ)
+/* Deprecated */
 #define MODS_ESC_REARM_MSI			\
 		   _IOWR(MODS_IOC_MAGIC, 21, struct MODS_IRQ)
 #define MODS_ESC_SET_MEMORY_TYPE		\
@@ -1180,6 +1227,7 @@ struct MODS_MSR {
 		    _IOW(MODS_IOC_MAGIC, 37, struct MODS_CLOCK_HANDLE)
 #define MODS_ESC_CLOCK_RESET_DEASSERT		\
 		    _IOW(MODS_IOC_MAGIC, 38, struct MODS_CLOCK_HANDLE)
+/* Deprecated */
 #define MODS_ESC_SET_IRQ_MASK			\
 		    _IOW(MODS_IOC_MAGIC, 39, struct MODS_SET_IRQ_MASK)
 #define MODS_ESC_MEMORY_BARRIER			\
@@ -1216,6 +1264,7 @@ struct MODS_MSR {
 		   _IOWR(MODS_IOC_MAGIC, 54, struct MODS_PCI_GET_BAR_INFO)
 #define MODS_ESC_PCI_GET_IRQ			\
 		   _IOWR(MODS_IOC_MAGIC, 55, struct MODS_PCI_GET_IRQ)
+/* Deprecated */
 #define MODS_ESC_GET_MAPPED_PHYSICAL_ADDRESS	\
 		   _IOWR(MODS_IOC_MAGIC, 56,	\
 			 struct MODS_GET_PHYSICAL_ADDRESS)
@@ -1242,6 +1291,7 @@ struct MODS_MSR {
 		    _IOW(MODS_IOC_MAGIC, 66, struct MODS_REGISTER_IRQ_2)
 #define MODS_ESC_QUERY_IRQ_2			\
 		    _IOR(MODS_IOC_MAGIC, 67, struct MODS_QUERY_IRQ_2)
+/* Deprecated */
 #define MODS_ESC_SET_IRQ_MASK_2			\
 		    _IOW(MODS_IOC_MAGIC, 68, struct MODS_SET_IRQ_MASK_2)
 #define MODS_ESC_EVAL_DEV_ACPI_METHOD_2		\
@@ -1261,11 +1311,14 @@ struct MODS_MSR {
 		    _IOW(MODS_IOC_MAGIC, 75, struct MODS_DMA_MAP_MEMORY)
 #define MODS_ESC_DMA_UNMAP_MEMORY			\
 		    _IOW(MODS_IOC_MAGIC, 76, struct MODS_DMA_MAP_MEMORY)
+/* Deprecated */
 #define MODS_ESC_GET_MAPPED_PHYSICAL_ADDRESS_2			\
 		    _IOWR(MODS_IOC_MAGIC, 77,                   \
 			  struct MODS_GET_PHYSICAL_ADDRESS_2)
+/* Deprecated */
 #define MODS_ESC_PCI_MAP_RESOURCE			\
 		    _IOWR(MODS_IOC_MAGIC, 78, struct MODS_PCI_MAP_RESOURCE)
+/* Deprecated */
 #define MODS_ESC_PCI_UNMAP_RESOURCE			\
 		    _IOW(MODS_IOC_MAGIC, 79, struct MODS_PCI_UNMAP_RESOURCE)
 #define MODS_ESC_DMA_REQUEST_HANDLE		\
@@ -1280,6 +1333,7 @@ struct MODS_MSR {
 		   _IOWR(MODS_IOC_MAGIC, 84, struct MODS_DMA_WAIT_DESC)
 #define MODS_ESC_DMA_ISSUE_PENDING		\
 		   _IOW(MODS_IOC_MAGIC,  85, struct MODS_DMA_HANDLE)
+/* Deprecated */
 #define MODS_ESC_SET_IRQ_MULTIMASK			\
 		    _IOW(MODS_IOC_MAGIC, 86, struct MODS_SET_IRQ_MULTIMASK)
 #define MODS_ESC_NET_FORCE_LINK			\
@@ -1370,5 +1424,9 @@ struct MODS_MSR {
 #define MODS_ESC_EVAL_DEV_ACPI_METHOD_3		\
 		   _IOWR_BAD(MODS_IOC_MAGIC, 122,\
 		   struct MODS_EVAL_DEV_ACPI_METHOD_3)
+#define MODS_ESC_PCI_BUS_REMOVE_DEV\
+		   _IOW(MODS_IOC_MAGIC, 123, struct MODS_PCI_BUS_REMOVE_DEV)
+#define MODS_ESC_ALLOC_PAGES_2 \
+		   _IOWR(MODS_IOC_MAGIC, 124, struct MODS_ALLOC_PAGES_2)
 
 #endif /* _MODS_H_  */

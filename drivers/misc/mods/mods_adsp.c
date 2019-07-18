@@ -1,7 +1,7 @@
 /*
  * mods_adsp.c - This file is part of NVIDIA MODS kernel driver.
  *
- * Copyright (c) 2014-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * NVIDIA MODS kernel driver is free software: you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -21,22 +21,23 @@
 #include "mods_internal.h"
 #include <linux/tegra_nvadsp.h>
 
-int esc_mods_adsp_load(struct file *pfile)
+int esc_mods_adsp_load(struct mods_client *client)
 {
 	return nvadsp_os_load();
 }
 
-int esc_mods_adsp_start(struct file *pfile)
+int esc_mods_adsp_start(struct mods_client *client)
 {
 	return nvadsp_os_start();
 }
 
-int esc_mods_adsp_stop(struct file *pfile)
+int esc_mods_adsp_stop(struct mods_client *client)
 {
 	return nvadsp_os_suspend();
 }
 
-int esc_mods_adsp_run_app(struct file *pfile, struct MODS_ADSP_RUN_APP_INFO *p)
+int esc_mods_adsp_run_app(struct mods_client *client,
+			  struct MODS_ADSP_RUN_APP_INFO *p)
 {
 	int rc = -1;
 	int max_retry = 3;

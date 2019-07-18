@@ -1,7 +1,7 @@
 /*
  * mods_tegradc.c - This file is part of NVIDIA MODS kernel driver.
  *
- * Copyright (c) 2014-2018, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2014-2019, NVIDIA CORPORATION. All rights reserved.
  *
  * NVIDIA MODS kernel driver is free software: you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -60,7 +60,7 @@ static void mods_tegra_dc_set_windowattr_basic(struct tegra_dc_win *win,
 		win->out_h);
 }
 
-int esc_mods_tegra_dc_config_possible(struct file *fp,
+int esc_mods_tegra_dc_config_possible(struct mods_client *client,
 				struct MODS_TEGRA_DC_CONFIG_POSSIBLE *args)
 {
 	int i;

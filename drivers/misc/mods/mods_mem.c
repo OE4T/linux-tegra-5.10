@@ -2,7 +2,7 @@
 /*
  * mods_mem.c - This file is part of NVIDIA MODS kernel driver.
  *
- * Copyright (c) 2008-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2008-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * NVIDIA MODS kernel driver is free software: you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -30,8 +30,6 @@
 static int mods_post_alloc(struct MODS_PHYS_CHUNK *chunk,
 			   u64			   phys_addr,
 			   struct MODS_MEM_INFO   *p_mem_info);
-static void mods_pre_free(struct MODS_PHYS_CHUNK *chunk,
-			  struct MODS_MEM_INFO	 *p_mem_info);
 
 /****************************
  * DMA MAP HELPER FUNCTIONS *
@@ -121,7 +119,8 @@ static void mods_dma_unmap_page(struct pci_dev *dev,
 }
 
 /* Unmap and delete the specified DMA mapping */
-static int mods_dma_unmap_and_free(struct MODS_MEM_INFO *p_mem_info,
+static int mods_dma_unmap_and_free(struct mods_client   *client,
+				   struct MODS_MEM_INFO *p_mem_info,
 				   struct MODS_DMA_MAP  *p_del_map)
 
 {
@@ -161,13 +160,15 @@ static int mods_dma_unmap_and_free(struct MODS_MEM_INFO *p_mem_info,
 	}
 
 	kfree(p_del_map);
+	atomic_dec(&client->num_allocs);
 
 	return OK;
 }
 #endif
 
 /* Unmap and delete all DMA mappings on the specified allocation */
-int mods_dma_unmap_all(struct MODS_MEM_INFO *p_mem_info,
+int mods_dma_unmap_all(struct mods_client   *client,
+		       struct MODS_MEM_INFO *p_mem_info,
 		       struct pci_dev       *dev)
 {
 #ifdef CONFIG_PCI
@@ -182,7 +183,9 @@ int mods_dma_unmap_all(struct MODS_MEM_INFO *p_mem_info,
 		p_dma_map = list_entry(iter, struct MODS_DMA_MAP, list);
 
 		if (!dev || (p_dma_map->dev == dev)) {
-			err = mods_dma_unmap_and_free(p_mem_info, p_dma_map);
+			err = mods_dma_unmap_and_free(client,
+						      p_mem_info,
+						      p_dma_map);
 			if (err || dev)
 				break;
 		}
@@ -212,7 +215,7 @@ static int mods_dma_map_pages(struct MODS_MEM_INFO *p_mem_info,
 					PAGE_SIZE << chunk->order,
 					DMA_BIDIRECTIONAL);
 
-		if (MODS_PCI_DMA_MAPPING_ERROR(dev, dev_addr)) {
+		if (pci_dma_mapping_error(dev, dev_addr)) {
 			mods_error_printk("failed to map page to device %04x:%02x:%02x.%x\n",
 					  pci_domain_nr(dev->bus),
 					  dev->bus->number,
@@ -247,7 +250,8 @@ static int mods_dma_map_pages(struct MODS_MEM_INFO *p_mem_info,
 /* Create a DMA map on the specified allocation for the pci device.
  * Lazy-initialize the map list structure if one does not yet exist.
  */
-static int mods_create_dma_map(struct MODS_MEM_INFO *p_mem_info,
+static int mods_create_dma_map(struct mods_client   *client,
+			       struct MODS_MEM_INFO *p_mem_info,
 			       struct pci_dev       *dev)
 {
 	struct MODS_DMA_MAP *p_dma_map;
@@ -262,6 +266,7 @@ static int mods_create_dma_map(struct MODS_MEM_INFO *p_mem_info,
 		mods_error_printk("failed to allocate device map data\n");
 		return -ENOMEM;
 	}
+	atomic_inc(&client->num_allocs);
 
 	p_dma_map->dev = pci_dev_get(dev);
 	err = mods_dma_map_pages(p_mem_info, p_dma_map);
@@ -269,6 +274,7 @@ static int mods_create_dma_map(struct MODS_MEM_INFO *p_mem_info,
 	if (unlikely(err)) {
 		pci_dev_put(dev);
 		kfree(p_dma_map);
+		atomic_dec(&client->num_allocs);
 	} else
 		list_add(&p_dma_map->list, &p_mem_info->dma_map_list);
 
@@ -284,7 +290,7 @@ static int mods_dma_map_default_page(struct MODS_PHYS_CHUNK *chunk,
 				    PAGE_SIZE << chunk->order,
 				    DMA_BIDIRECTIONAL);
 
-	if (MODS_PCI_DMA_MAPPING_ERROR(dev, dev_addr)) {
+	if (pci_dma_mapping_error(dev, dev_addr)) {
 		mods_error_printk("failed to map page to device %04x:%02x:%02x.%x\n",
 				  pci_domain_nr(dev->bus),
 				  dev->bus->number,
@@ -362,44 +368,178 @@ static struct MODS_DMA_MAP *find_dma_map(struct MODS_MEM_INFO  *p_mem_info,
 }
 
 #if !defined(MODS_TEGRA) || defined(CONFIG_CPA)
-static int mods_set_mem_type(u64 virt_addr, u64 pages, u32 type)
+static int mods_set_mem_type(u64 virt_addr, u64 pages, u8 type)
 {
-	if (type == MODS_MEMORY_UNCACHED)
+	if (type == MODS_ALLOC_UNCACHED)
 		return MODS_SET_MEMORY_UC(virt_addr, pages);
-	else if (type == MODS_MEMORY_WRITECOMBINE)
+	else if (type == MODS_ALLOC_WRITECOMBINE)
 		return MODS_SET_MEMORY_WC(virt_addr, pages);
 	return 0;
 }
 #endif
 
-static int mods_restore_mem_type(u64 virt_addr,
-				 u64 pages,
-				 u32 type_override)
+/* In order to map pages as UC or WC to the CPU, we need to change their
+ * attributes by calling set_memory_uc()/set_memory_wc(), respectively.
+ * On some CPUs this operation is extremely slow.  In order to incur
+ * this penalty only once, we save pages mapped as UC or WC so that
+ * we can reuse them later.
+ */
+static int save_non_wb_chunks(struct mods_client   *client,
+			      struct MODS_MEM_INFO *p_mem_info)
 {
-	if ((type_override == MODS_MEMORY_UNCACHED) ||
-			(type_override == MODS_MEMORY_WRITECOMBINE)) {
-		return MODS_SET_MEMORY_WB(virt_addr, pages);
+	u32 ichunk;
+	int err = 0;
+
+	if (p_mem_info->cache_type == MODS_ALLOC_CACHED)
+		return 0;
+
+	if (unlikely(mutex_lock_interruptible(&client->mtx)))
+		return -EINTR;
+
+	/* Steal the chunks from MODS_MEM_INFO and put them on free list. */
+
+	for (ichunk = 0; ichunk < p_mem_info->num_chunks; ichunk++) {
+
+		struct MODS_PHYS_CHUNK      *chunk = &p_mem_info->pages[ichunk];
+		struct MODS_FREE_PHYS_CHUNK *free_chunk;
+
+		if (!chunk->wc)
+			continue;
+
+		free_chunk = kzalloc(sizeof(struct MODS_FREE_PHYS_CHUNK),
+				     GFP_KERNEL | __GFP_NORETRY);
+
+		if (!free_chunk) {
+			err = -ENOMEM;
+			break;
+		}
+		atomic_inc(&client->num_allocs);
+
+		free_chunk->numa_node  = p_mem_info->numa_node;
+		free_chunk->order      = chunk->order;
+		free_chunk->cache_type = p_mem_info->cache_type;
+		free_chunk->dma32      = p_mem_info->dma32;
+		free_chunk->p_page     = chunk->p_page;
+
+		chunk->p_page = NULL;
+
+		mods_debug_printk(DEBUG_MEM_DETAILED,
+			"save 0x%llx 2^%d pages %s\n",
+			(unsigned long long)(size_t)free_chunk->p_page,
+			chunk->order,
+			p_mem_info->cache_type == MODS_ALLOC_WRITECOMBINE
+			    ? "WC" : "UC");
+
+#ifdef CONFIG_PCI
+		if (chunk->mapped) {
+			mods_dma_unmap_page(p_mem_info->dev,
+					    chunk->dev_addr,
+					    chunk->order);
+			chunk->mapped = 0;
+		}
+#endif
+
+		list_add(&free_chunk->list, &client->free_mem_list);
 	}
-	return 0;
+
+	mutex_unlock(&client->mtx);
+
+	return err;
 }
 
-static void mods_restore_cache(struct MODS_MEM_INFO *p_mem_info)
+static int mods_restore_cache_one_chunk(struct page *p_page, u8 order)
+{
+	int final_err = 0;
+	u32 num_pages = 1U << order;
+	u32 i;
+
+	for (i = 0; i < num_pages; i++) {
+		u64 ptr = (u64)(size_t)kmap(p_page + i);
+
+		if (ptr) {
+			int err = MODS_SET_MEMORY_WB(ptr, 1);
+
+			if (!final_err)
+				final_err = err;
+		}
+
+		kunmap((void *)(size_t)ptr);
+	}
+
+	return final_err;
+}
+
+static int release_free_chunks(struct mods_client *client)
+{
+	struct list_head *head;
+	struct list_head *iter;
+	struct list_head *next;
+	int               final_err = 0;
+
+	if (unlikely(mutex_lock_interruptible(&client->mtx)))
+		return -EINTR;
+
+	head = &client->free_mem_list;
+
+	list_for_each_safe(iter, next, head) {
+
+		struct MODS_FREE_PHYS_CHUNK *free_chunk;
+		int                          err;
+
+		free_chunk = list_entry(iter,
+					struct MODS_FREE_PHYS_CHUNK,
+					list);
+
+		list_del(iter);
+
+		err = mods_restore_cache_one_chunk(free_chunk->p_page,
+						   free_chunk->order);
+
+		if (!final_err)
+			final_err = err;
+
+		__free_pages(free_chunk->p_page, free_chunk->order);
+		atomic_sub(1u << free_chunk->order, &client->num_pages);
+
+		kfree(free_chunk);
+		atomic_dec(&client->num_allocs);
+	}
+
+	mutex_unlock(&client->mtx);
+
+	return final_err;
+}
+
+static int mods_restore_cache(struct MODS_MEM_INFO *p_mem_info)
 {
 	unsigned int i;
+	int          final_err = 0;
+
+	if (p_mem_info->cache_type == MODS_ALLOC_CACHED)
+		return 0;
 
 	for (i = 0; i < p_mem_info->num_chunks; i++) {
+
 		struct MODS_PHYS_CHUNK *chunk = &p_mem_info->pages[i];
+		int                     err;
 
-		if (!chunk->p_page)
-			break;
+		if (!chunk->p_page || !chunk->wc)
+			continue;
 
-		mods_pre_free(chunk, p_mem_info);
+		err = mods_restore_cache_one_chunk(chunk->p_page, chunk->order);
+		if (!final_err)
+			final_err = err;
 	}
+
+	return final_err;
 }
 
-static void mods_free_pages(struct MODS_MEM_INFO *p_mem_info)
+static void mods_free_pages(struct mods_client   *client,
+			    struct MODS_MEM_INFO *p_mem_info)
 {
 	unsigned int i;
+
+	mods_restore_cache(p_mem_info);
 
 	/* release in reverse order */
 	for (i = p_mem_info->num_chunks; i > 0; ) {
@@ -420,23 +560,24 @@ static void mods_free_pages(struct MODS_MEM_INFO *p_mem_info)
 #endif
 
 		__free_pages(chunk->p_page, chunk->order);
+		atomic_sub(1u << chunk->order, &client->num_pages);
 
 		chunk->p_page = 0;
 	}
 }
 
-static gfp_t mods_alloc_flags(struct MODS_MEM_INFO *p_mem_info)
+static gfp_t mods_alloc_flags(struct MODS_MEM_INFO *p_mem_info, u32 order)
 {
 	gfp_t flags = GFP_KERNEL | __GFP_NORETRY | __GFP_NOWARN;
 
-#ifdef MODS_HAS_DEV_TO_NUMA_NODE
-	flags |= __GFP_THISNODE;
-#endif
+	if (p_mem_info->force_numa)
+		flags |= __GFP_THISNODE;
 
-	if (p_mem_info->alloc_type != MODS_ALLOC_TYPE_NON_CONTIG)
+	if (order)
 		flags |= __GFP_COMP;
-	if (p_mem_info->addr_bits == 32)
-#ifdef MODS_HAS_DMA32
+
+	if (p_mem_info->dma32)
+#ifdef CONFIG_ZONE_DMA32
 		flags |= __GFP_DMA32;
 #else
 		flags |= __GFP_DMA;
@@ -447,11 +588,79 @@ static gfp_t mods_alloc_flags(struct MODS_MEM_INFO *p_mem_info)
 	return flags;
 }
 
-static int mods_alloc_contig_sys_pages(struct MODS_MEM_INFO *p_mem_info)
+static struct page *mods_alloc_pages(struct mods_client   *client,
+				     struct MODS_MEM_INFO *p_mem_info,
+				     u32                   order,
+				     int                  *need_cup)
 {
-	u64 phys_addr;
-	u64 end_addr  = 0;
-	u32 order     = 0;
+	struct page *p_page     = NULL;
+	u8           cache_type = p_mem_info->cache_type;
+	u8           dma32      = p_mem_info->dma32;
+	int          numa_node  = p_mem_info->numa_node;
+
+	if (likely(!mutex_lock_interruptible(&client->mtx))) {
+
+		struct list_head            *iter;
+		struct list_head            *head = &client->free_mem_list;
+		struct MODS_FREE_PHYS_CHUNK *free_chunk = NULL;
+
+		list_for_each(iter, head) {
+			free_chunk = list_entry(iter,
+						struct MODS_FREE_PHYS_CHUNK,
+						list);
+
+			if (free_chunk->cache_type == cache_type &&
+			    free_chunk->dma32      == dma32 &&
+			    free_chunk->numa_node  == numa_node &&
+			    free_chunk->order      == order) {
+
+				list_del(iter);
+				break;
+			}
+
+			free_chunk = NULL;
+		}
+
+		mutex_unlock(&client->mtx);
+
+		if (free_chunk) {
+			p_page = free_chunk->p_page;
+			kfree(free_chunk);
+			atomic_dec(&client->num_allocs);
+
+			mods_debug_printk(DEBUG_MEM_DETAILED,
+				"reuse 0x%llx 2^%d pages %s\n",
+				(unsigned long long)(size_t)p_page,
+				order,
+				cache_type == MODS_ALLOC_WRITECOMBINE
+				    ? "WC" : "UC");
+
+			*need_cup = 0;
+			return p_page;
+		}
+	}
+
+	p_page = alloc_pages_node(p_mem_info->numa_node,
+				  mods_alloc_flags(p_mem_info, order),
+				  order);
+
+	*need_cup = 1;
+
+	if (p_page)
+		atomic_add(1u << order, &client->num_pages);
+
+	return p_page;
+}
+
+static int mods_alloc_contig_sys_pages(struct mods_client   *client,
+				       struct MODS_MEM_INFO *p_mem_info)
+{
+	u64          phys_addr;
+	u64          dma_addr;
+	u64          end_addr = 0;
+	u32          order    = 0;
+	int          is_wb    = 1;
+	struct page *p_page;
 
 	LOG_ENT();
 
@@ -459,48 +668,60 @@ static int mods_alloc_contig_sys_pages(struct MODS_MEM_INFO *p_mem_info)
 		order++;
 	p_mem_info->pages[0].order = order;
 
-	p_mem_info->pages[0].p_page = alloc_pages_node(
-			p_mem_info->numa_node,
-			mods_alloc_flags(p_mem_info),
-			order);
+	p_page = mods_alloc_pages(client, p_mem_info, order, &is_wb);
 
-	if (!p_mem_info->pages[0].p_page &&
-	    p_mem_info->logical_addr == 0) {
+	if (!p_page && p_mem_info->logical_addr == 0) {
 		LOG_EXT();
 		return -ENOMEM;
 	}
 
-	phys_addr = page_to_phys(p_mem_info->pages[0].p_page);
+	p_mem_info->pages[0].p_page = p_page;
+
+	if (!is_wb)
+		p_mem_info->pages[0].wc = 1;
+
+	phys_addr = page_to_phys(p_page);
 	if (phys_addr == 0) {
 		mods_error_printk("failed to determine physical address\n");
-		mods_free_pages(p_mem_info);
+		mods_free_pages(client, p_mem_info);
 		p_mem_info->logical_addr = 0;
 		LOG_EXT();
 		return -ENOMEM;
 	}
-	p_mem_info->pages[0].dma_addr = MODS_PHYS_TO_DMA(phys_addr);
+	dma_addr = MODS_PHYS_TO_DMA(phys_addr);
+
+	if (dma_addr >= (1ULL << DMA_BITS)) {
+		mods_error_printk("dma_addr 0x%llx exceeds supported range\n",
+				  dma_addr);
+		mods_free_pages(client, p_mem_info);
+		p_mem_info->logical_addr = 0;
+		LOG_EXT();
+		return -ENOMEM;
+	}
+
+	p_mem_info->pages[0].dma_addr = dma_addr;
 
 	mods_debug_printk(DEBUG_MEM,
-	    "alloc contig 0x%lx bytes, 2^%u pages, %s, node %d, addrbits %u, phys 0x%llx\n",
+	    "alloc contig 0x%lx bytes, 2^%u pages, %s, node %d,%s phys 0x%llx\n",
 	    (unsigned long)p_mem_info->length,
 	    p_mem_info->pages[0].order,
 	    mods_get_prot_str(p_mem_info->cache_type),
 	    p_mem_info->numa_node,
-	    (unsigned int)p_mem_info->addr_bits,
-	    (unsigned long long)p_mem_info->pages[0].dma_addr);
+	    p_mem_info->dma32 ? " dma32," : "",
+	    (unsigned long long)dma_addr);
 
-	end_addr = p_mem_info->pages[0].dma_addr + p_mem_info->length;
-	if ((p_mem_info->addr_bits == 32) &&
+	end_addr = dma_addr + p_mem_info->length;
+	if ((p_mem_info->dma32) &&
 	    (end_addr > 0x100000000ULL)) {
 		mods_error_printk("allocation exceeds 32-bit addressing\n");
-		mods_free_pages(p_mem_info);
+		mods_free_pages(client, p_mem_info);
 		p_mem_info->logical_addr = 0;
 		LOG_EXT();
 		return -ENOMEM;
 	}
 
 	if (mods_post_alloc(p_mem_info->pages, phys_addr, p_mem_info)) {
-		mods_free_pages(p_mem_info);
+		mods_free_pages(client, p_mem_info);
 		p_mem_info->logical_addr = 0;
 		LOG_EXT();
 		return -EINVAL;
@@ -518,7 +739,8 @@ static u32 mods_get_max_order_needed(u32 num_pages)
 	return order;
 }
 
-static int mods_alloc_noncontig_sys_pages(struct MODS_MEM_INFO *p_mem_info)
+static int mods_alloc_noncontig_sys_pages(struct mods_client   *client,
+					  struct MODS_MEM_INFO *p_mem_info)
 {
 	u32 pages_left = p_mem_info->num_pages;
 	u32 num_chunks = 0;
@@ -531,14 +753,16 @@ static int mods_alloc_noncontig_sys_pages(struct MODS_MEM_INFO *p_mem_info)
 	/* alloc pages */
 	while (pages_left > 0) {
 		u64 phys_addr = 0;
+		u64 dma_addr  = 0;
 		u32 order     = mods_get_max_order_needed(pages_left);
+		int is_wb     = 1;
 		struct MODS_PHYS_CHUNK *chunk = &p_mem_info->pages[num_chunks];
 
 		for (;;) {
-			chunk->p_page = alloc_pages_node(
-					p_mem_info->numa_node,
-					mods_alloc_flags(p_mem_info),
-					order);
+			chunk->p_page = mods_alloc_pages(client,
+							 p_mem_info,
+							 order,
+							 &is_wb);
 			if (chunk->p_page)
 				break;
 			if (order == 0)
@@ -551,6 +775,9 @@ static int mods_alloc_noncontig_sys_pages(struct MODS_MEM_INFO *p_mem_info)
 			goto failed;
 		}
 
+		if (!is_wb)
+			chunk->wc = 1;
+
 		pages_left -= 1U << order;
 		chunk->order = order;
 
@@ -559,15 +786,23 @@ static int mods_alloc_noncontig_sys_pages(struct MODS_MEM_INFO *p_mem_info)
 			mods_error_printk("phys addr lookup failed\n");
 			goto failed;
 		}
-		chunk->dma_addr = MODS_PHYS_TO_DMA(phys_addr);
+		dma_addr = MODS_PHYS_TO_DMA(phys_addr);
+
+		if (dma_addr >= (1ULL << DMA_BITS)) {
+			mods_error_printk("dma_addr 0x%llx exceeds supported range\n",
+					  dma_addr);
+			goto failed;
+		}
+
+		chunk->dma_addr = dma_addr;
 		mods_debug_printk(DEBUG_MEM,
-		    "alloc 0x%lx bytes [%u], 2^%u pages, %s, node %d, addrbits %u, phys 0x%llx\n",
+		    "alloc 0x%lx bytes [%u], 2^%u pages, %s, node %d,%s phys 0x%llx\n",
 		    (unsigned long)p_mem_info->length,
 		    (unsigned int)num_chunks,
 		    chunk->order,
 		    mods_get_prot_str(p_mem_info->cache_type),
 		    p_mem_info->numa_node,
-		    (unsigned int)p_mem_info->addr_bits,
+		    p_mem_info->dma32 ? " dma32," : "",
 		    (unsigned long long)chunk->dma_addr);
 
 		++num_chunks;
@@ -579,28 +814,25 @@ static int mods_alloc_noncontig_sys_pages(struct MODS_MEM_INFO *p_mem_info)
 	return 0;
 
 failed:
-	mods_restore_cache(p_mem_info);
-	mods_free_pages(p_mem_info);
+	mods_free_pages(client, p_mem_info);
 	return -ENOMEM;
 }
 
-static int mods_register_alloc(struct file          *fp,
+static int mods_register_alloc(struct mods_client   *client,
 			       struct MODS_MEM_INFO *p_mem_info)
 {
-	struct mods_client *client = fp->private_data;
-
 	if (unlikely(mutex_lock_interruptible(&client->mtx)))
 		return -EINTR;
+
 	list_add(&p_mem_info->list, &client->mem_alloc_list);
 	mutex_unlock(&client->mtx);
 	return OK;
 }
 
-static int mods_unregister_and_free(struct file          *fp,
+static int mods_unregister_and_free(struct mods_client   *client,
 				    struct MODS_MEM_INFO *p_del_mem)
 {
 	struct MODS_MEM_INFO *p_mem_info;
-	struct mods_client   *client = fp->private_data;
 	struct list_head     *head;
 	struct list_head     *iter;
 
@@ -619,12 +851,13 @@ static int mods_unregister_and_free(struct file          *fp,
 
 			mutex_unlock(&client->mtx);
 
-			mods_dma_unmap_all(p_mem_info, NULL);
-			mods_restore_cache(p_mem_info);
-			mods_free_pages(p_mem_info);
+			mods_dma_unmap_all(client, p_mem_info, NULL);
+			save_non_wb_chunks(client, p_mem_info);
+			mods_free_pages(client, p_mem_info);
 			pci_dev_put(p_mem_info->dev);
 
 			kfree(p_mem_info);
+			atomic_dec(&client->num_allocs);
 
 			return OK;
 		}
@@ -637,27 +870,32 @@ static int mods_unregister_and_free(struct file          *fp,
 	return -EINVAL;
 }
 
-int mods_unregister_all_alloc(struct file *fp)
+int mods_unregister_all_alloc(struct mods_client *client)
 {
-	int                 err    = OK;
-	struct mods_client *client = fp->private_data;
-	struct list_head   *head   = &client->mem_alloc_list;
-	struct list_head   *iter;
-	struct list_head   *tmp;
+	int               final_err = OK;
+	int               err;
+	struct list_head *head      = &client->mem_alloc_list;
+	struct list_head *iter;
+	struct list_head *tmp;
 
 	list_for_each_safe(iter, tmp, head) {
+
 		struct MODS_MEM_INFO *p_mem_info;
 
 		p_mem_info = list_entry(iter, struct MODS_MEM_INFO, list);
-		err = mods_unregister_and_free(fp, p_mem_info);
-		if (err)
-			break;
+		err = mods_unregister_and_free(client, p_mem_info);
+		if (!final_err)
+			final_err = err;
 	}
 
-	return err;
+	err = release_free_chunks(client);
+	if (!final_err)
+		final_err = err;
+
+	return final_err;
 }
 
-static int get_addr_range(struct file                        *fp,
+static int get_addr_range(struct mods_client                 *client,
 			  struct MODS_GET_PHYSICAL_ADDRESS_3 *p,
 			  struct mods_pci_dev_2              *pcidev)
 {
@@ -789,13 +1027,12 @@ int mods_get_alloc_offset(struct MODS_MEM_INFO *p_mem_info,
 	return -EINVAL;
 }
 
-struct MODS_MEM_INFO *mods_find_alloc(struct file *fp, u64 phys_addr)
+struct MODS_MEM_INFO *mods_find_alloc(struct mods_client *client, u64 phys_addr)
 {
-	struct mods_client   *client     = fp->private_data;
 	struct list_head     *plist_head = &client->mem_alloc_list;
 	struct list_head     *plist_iter;
 	struct MODS_MEM_INFO *p_mem_info;
-	u64		      offset;
+	u64                   offset;
 
 	list_for_each(plist_iter, plist_head) {
 		p_mem_info = list_entry(plist_iter,
@@ -837,7 +1074,8 @@ static u32 mods_estimate_num_chunks(u32 num_pages)
  * chunks than originally estimated.  This function reallocates the
  * MODS_MEM_INFO struct so that it uses only as much memory as it needs.
  */
-static struct MODS_MEM_INFO *optimize_chunks(struct MODS_MEM_INFO *p_mem_info)
+static struct MODS_MEM_INFO *optimize_chunks(struct mods_client   *client,
+					     struct MODS_MEM_INFO *p_mem_info)
 {
 	u32 i;
 	u32 num_chunks;
@@ -856,6 +1094,7 @@ static struct MODS_MEM_INFO *optimize_chunks(struct MODS_MEM_INFO *p_mem_info)
 
 		p_new_mem_info = kzalloc(alloc_size,
 					 GFP_KERNEL | __GFP_NORETRY);
+		atomic_inc(&client->num_allocs);
 	}
 
 	if (p_new_mem_info) {
@@ -863,6 +1102,7 @@ static struct MODS_MEM_INFO *optimize_chunks(struct MODS_MEM_INFO *p_mem_info)
 		p_new_mem_info->num_chunks = num_chunks;
 		INIT_LIST_HEAD(&p_new_mem_info->dma_map_list);
 		kfree(p_mem_info);
+		atomic_dec(&client->num_allocs);
 		p_mem_info = p_new_mem_info;
 	}
 
@@ -873,15 +1113,14 @@ static struct MODS_MEM_INFO *optimize_chunks(struct MODS_MEM_INFO *p_mem_info)
  * ESCAPE CALL FUNCTONS *
  ************************/
 
-int esc_mods_device_alloc_pages_2(struct file	*fp,
-				  struct MODS_DEVICE_ALLOC_PAGES_2 *p)
+int esc_mods_alloc_pages_2(struct mods_client        *client,
+			   struct MODS_ALLOC_PAGES_2 *p)
 {
 	struct MODS_MEM_INFO *p_mem_info = NULL;
-	u32    num_pages;
-	u32    alloc_size;
-	u32    num_chunks;
-	int    err = OK;
-	struct pci_dev *dev = NULL;
+	u32                   num_pages;
+	u32                   alloc_size;
+	u32                   num_chunks;
+	int                   err = OK;
 
 	LOG_ENT();
 
@@ -892,37 +1131,47 @@ int esc_mods_device_alloc_pages_2(struct file	*fp,
 	}
 
 	mods_debug_printk(DEBUG_MEM_DETAILED,
-			  "alloc 0x%x bytes %s %s on %04x:%02x:%02x.%x\n",
-			  p->num_bytes,
-			  p->contiguous ? "contiguous" : "noncontiguous",
-			  mods_get_prot_str(p->attrib),
+			  "alloc 0x%llx bytes flags=0x%x (%s %s%s%s%s%s) node=%d on %04x:%02x:%02x.%x\n",
+			  (unsigned long long)p->num_bytes,
+			  p->flags,
+			  mods_get_prot_str(p->flags & MODS_ALLOC_CACHE_MASK),
+			  (p->flags & MODS_ALLOC_CONTIGUOUS)
+				  ? "contiguous" : "noncontiguous",
+			  (p->flags & MODS_ALLOC_DMA32) ? " dma32" : "",
+			  (p->flags & MODS_ALLOC_USE_NUMA) ? " usenuma" : "",
+			  (p->flags & MODS_ALLOC_FORCE_NUMA)
+				  ? " forcenuma" : "",
+			  (p->flags & MODS_ALLOC_MAP_DEV) ? " dmamap" : "",
+			  p->numa_node,
 			  p->pci_device.domain,
 			  p->pci_device.bus,
 			  p->pci_device.device,
 			  p->pci_device.function);
 
-	switch (p->attrib) {
-	case MODS_MEMORY_CACHED:
-#if !defined(CONFIG_PPC64)
-	case MODS_MEMORY_UNCACHED:
-	case MODS_MEMORY_WRITECOMBINE:
-#endif
-		break;
-
-	default:
-		mods_error_printk("invalid memory type: %u\n",
-				  p->attrib);
-		err = -ENOMEM;
-		goto failed;
-	}
-
-	num_pages = (u32)(((u64)p->num_bytes + PAGE_SIZE - 1) >> PAGE_SHIFT);
-	if (p->contiguous)
+	num_pages = (u32)((p->num_bytes + PAGE_SIZE - 1) >> PAGE_SHIFT);
+	if (p->flags & MODS_ALLOC_CONTIGUOUS)
 		num_chunks = 1;
 	else
 		num_chunks = mods_estimate_num_chunks(num_pages);
 	alloc_size = sizeof(*p_mem_info) +
 		     (num_chunks - 1) * sizeof(struct MODS_PHYS_CHUNK);
+
+	if (((u64)num_pages << PAGE_SHIFT) < p->num_bytes) {
+		mods_error_printk("invalid allocation size requested: 0x%llx\n",
+				  (unsigned long long)p->num_bytes);
+		err = -EINVAL;
+		goto failed;
+	}
+
+	if ((p->flags & MODS_ALLOC_USE_NUMA) &&
+	    (p->numa_node != MODS_ANY_NUMA_NODE) &&
+	    ((unsigned int)p->numa_node >=
+		    (unsigned int)num_possible_nodes())) {
+
+		mods_error_printk("invalid NUMA node: %d\n", p->numa_node);
+		err = -EINVAL;
+		goto failed;
+	}
 
 	p_mem_info = kzalloc(alloc_size, GFP_KERNEL | __GFP_NORETRY);
 	if (unlikely(!p_mem_info)) {
@@ -931,31 +1180,57 @@ int esc_mods_device_alloc_pages_2(struct file	*fp,
 		err = -ENOMEM;
 		goto failed;
 	}
+	atomic_inc(&client->num_allocs);
 
 	p_mem_info->num_chunks   = num_chunks;
-	p_mem_info->alloc_type	 = p->contiguous
-		? MODS_ALLOC_TYPE_CONTIG : MODS_ALLOC_TYPE_NON_CONTIG;
-	p_mem_info->cache_type	 = p->attrib;
-	p_mem_info->length	 = p->num_bytes;
+	p_mem_info->length       = p->num_bytes;
 	p_mem_info->logical_addr = 0;
-	p_mem_info->addr_bits	 = p->address_bits;
-	p_mem_info->num_pages	 = num_pages;
+	p_mem_info->num_pages    = num_pages;
+#ifdef CONFIG_PPC64
+	p_mem_info->cache_type   = MODS_ALLOC_CACHED;
+#else
+	p_mem_info->cache_type   = p->flags & MODS_ALLOC_CACHE_MASK;
+#endif
+	p_mem_info->dma32        = (p->flags & MODS_ALLOC_DMA32) ? true : false;
+	p_mem_info->contig       = (p->flags & MODS_ALLOC_CONTIGUOUS)
+				   ? true : false;
+	p_mem_info->force_numa   = (p->flags & MODS_ALLOC_FORCE_NUMA)
+				   ? true : false;
+#ifdef MODS_HASNT_NUMA_NO_NODE
 	p_mem_info->numa_node    = numa_node_id();
+#else
+	p_mem_info->numa_node    = NUMA_NO_NODE;
+#endif
 	p_mem_info->dev          = NULL;
+
+	if ((p->flags & MODS_ALLOC_USE_NUMA) &&
+	    p->numa_node != MODS_ANY_NUMA_NODE)
+		p_mem_info->numa_node = p->numa_node;
 
 	INIT_LIST_HEAD(&p_mem_info->dma_map_list);
 
-	if (p->pci_device.bus <= 0xFFU && p->pci_device.device <= 0xFFU) {
-		err = mods_find_pci_dev(fp, &p->pci_device, &dev);
-		if (unlikely(err))
+#ifdef CONFIG_PCI
+	if (!(p->flags & MODS_ALLOC_USE_NUMA) ||
+	    (p->flags & MODS_ALLOC_MAP_DEV)) {
+
+		struct pci_dev *dev = NULL;
+
+		err = mods_find_pci_dev(client, &p->pci_device, &dev);
+		if (unlikely(err)) {
+			mods_error_printk("PCI device %04x:%02x:%02x.%x not found\n",
+					  p->pci_device.domain,
+					  p->pci_device.bus,
+					  p->pci_device.device,
+					  p->pci_device.function);
 			goto failed;
+		}
 
 		p_mem_info->dev = dev;
-#if defined(MODS_HAS_DEV_TO_NUMA_NODE)
-		p_mem_info->numa_node = dev_to_node(&dev->dev);
-#endif
-#if defined(CONFIG_PPC64) && defined(CONFIG_PCI)
-		if (!mods_is_nvlink_sysmem_trained(fp, dev)) {
+		if (!(p->flags & MODS_ALLOC_USE_NUMA))
+			p_mem_info->numa_node = dev_to_node(&dev->dev);
+
+#ifdef CONFIG_PPC64
+		if (!mods_is_nvlink_sysmem_trained(client, dev)) {
 			/* Until NvLink is trained, we must use memory
 			 * on node 0.
 			 */
@@ -970,27 +1245,34 @@ int esc_mods_device_alloc_pages_2(struct file	*fp,
 				  p->pci_device.device,
 				  p->pci_device.function,
 				  p_mem_info->numa_node);
+
+		if (!(p->flags & MODS_ALLOC_MAP_DEV)) {
+			pci_dev_put(p_mem_info->dev);
+			p_mem_info->dev = NULL;
+		}
 	}
+#endif
 
 	p->memory_handle = 0;
 
-	if (p->contiguous)
-		err = mods_alloc_contig_sys_pages(p_mem_info);
+	if (p->flags & MODS_ALLOC_CONTIGUOUS)
+		err = mods_alloc_contig_sys_pages(client, p_mem_info);
 	else {
-		err = mods_alloc_noncontig_sys_pages(p_mem_info);
+		err = mods_alloc_noncontig_sys_pages(client, p_mem_info);
 
 		if (!err)
-			p_mem_info = optimize_chunks(p_mem_info);
+			p_mem_info = optimize_chunks(client, p_mem_info);
 	}
 
 	if (err) {
 		mods_error_printk(
-			"failed to alloc 0x%x %s bytes, %s, node %d, addrbits %u\n",
-			p_mem_info->length,
-			p->contiguous ? "contiguous" : "non-contiguous",
+			"failed to alloc 0x%llx %s bytes, %s, node %d%s\n",
+			(unsigned long long)p_mem_info->length,
+			(p->flags & MODS_ALLOC_CONTIGUOUS)
+				? "contiguous" : "non-contiguous",
 			mods_get_prot_str(p_mem_info->cache_type),
 			p_mem_info->numa_node,
-			(unsigned int)p_mem_info->addr_bits);
+			p_mem_info->dma32 ? ", dma32" : "");
 		goto failed;
 	}
 
@@ -998,39 +1280,102 @@ int esc_mods_device_alloc_pages_2(struct file	*fp,
 
 	mods_debug_printk(DEBUG_MEM_DETAILED, "alloc %p\n", p_mem_info);
 
-	err = mods_register_alloc(fp, p_mem_info);
+	err = mods_register_alloc(client, p_mem_info);
 
 failed:
-	if (err) {
-		if (p_mem_info) {
-			mods_free_pages(p_mem_info);
-			pci_dev_put(p_mem_info->dev);
-		}
+	if (unlikely(err && p_mem_info)) {
+		mods_free_pages(client, p_mem_info);
+		pci_dev_put(p_mem_info->dev);
 		kfree(p_mem_info);
+		atomic_dec(&client->num_allocs);
 	}
 
 	LOG_EXT();
 	return err;
 }
 
-int esc_mods_device_alloc_pages(struct file                    *fp,
+int esc_mods_device_alloc_pages_2(struct mods_client               *client,
+				  struct MODS_DEVICE_ALLOC_PAGES_2 *p)
+{
+	int err;
+	u32 flags = 0;
+	struct MODS_ALLOC_PAGES_2 dev_alloc_pages = {0};
+
+	LOG_ENT();
+
+	if (p->contiguous)
+		flags |= MODS_ALLOC_CONTIGUOUS;
+
+	if (p->address_bits == 32)
+		flags |= MODS_ALLOC_DMA32;
+
+	if (p->attrib == MODS_MEMORY_UNCACHED)
+		flags |= MODS_ALLOC_UNCACHED;
+	else if (p->attrib == MODS_MEMORY_WRITECOMBINE)
+		flags |= MODS_ALLOC_WRITECOMBINE;
+	else if (p->attrib != MODS_MEMORY_CACHED) {
+		mods_error_printk("invalid cache attrib: %u\n", p->attrib);
+		LOG_EXT();
+		return -ENOMEM;
+	}
+
+	if (p->pci_device.bus > 0xFFU || p->pci_device.device > 0xFFU)
+		flags |= MODS_ALLOC_USE_NUMA;
+	else
+		flags |= MODS_ALLOC_MAP_DEV | MODS_ALLOC_FORCE_NUMA;
+
+	dev_alloc_pages.num_bytes  = p->num_bytes;
+	dev_alloc_pages.flags      = flags;
+	dev_alloc_pages.numa_node  = MODS_ANY_NUMA_NODE;
+	dev_alloc_pages.pci_device = p->pci_device;
+
+	err = esc_mods_alloc_pages_2(client, &dev_alloc_pages);
+	if (!err)
+		p->memory_handle = dev_alloc_pages.memory_handle;
+
+	LOG_EXT();
+	return err;
+}
+
+int esc_mods_device_alloc_pages(struct mods_client             *client,
 				struct MODS_DEVICE_ALLOC_PAGES *p)
 {
 	int err;
-	struct MODS_DEVICE_ALLOC_PAGES_2 dev_alloc_pages = {0};
+	u32 flags = 0;
+	struct MODS_ALLOC_PAGES_2 dev_alloc_pages = {0};
 
 	LOG_ENT();
 
-	dev_alloc_pages.num_bytes		= p->num_bytes;
-	dev_alloc_pages.contiguous		= p->contiguous;
-	dev_alloc_pages.address_bits		= p->address_bits;
-	dev_alloc_pages.attrib			= p->attrib;
-	dev_alloc_pages.pci_device.domain	= 0;
-	dev_alloc_pages.pci_device.bus		= p->pci_device.bus;
-	dev_alloc_pages.pci_device.device	= p->pci_device.device;
-	dev_alloc_pages.pci_device.function	= p->pci_device.function;
+	if (p->contiguous)
+		flags |= MODS_ALLOC_CONTIGUOUS;
 
-	err = esc_mods_device_alloc_pages_2(fp, &dev_alloc_pages);
+	if (p->address_bits == 32)
+		flags |= MODS_ALLOC_DMA32;
+
+	if (p->attrib == MODS_MEMORY_UNCACHED)
+		flags |= MODS_ALLOC_UNCACHED;
+	else if (p->attrib == MODS_MEMORY_WRITECOMBINE)
+		flags |= MODS_ALLOC_WRITECOMBINE;
+	else if (p->attrib != MODS_MEMORY_CACHED) {
+		mods_error_printk("invalid cache attrib: %u\n", p->attrib);
+		LOG_EXT();
+		return -ENOMEM;
+	}
+
+	if (p->pci_device.bus > 0xFFU || p->pci_device.device > 0xFFU)
+		flags |= MODS_ALLOC_USE_NUMA;
+	else
+		flags |= MODS_ALLOC_MAP_DEV | MODS_ALLOC_FORCE_NUMA;
+
+	dev_alloc_pages.num_bytes           = p->num_bytes;
+	dev_alloc_pages.flags               = flags;
+	dev_alloc_pages.numa_node           = MODS_ANY_NUMA_NODE;
+	dev_alloc_pages.pci_device.domain   = 0;
+	dev_alloc_pages.pci_device.bus      = p->pci_device.bus;
+	dev_alloc_pages.pci_device.device   = p->pci_device.device;
+	dev_alloc_pages.pci_device.function = p->pci_device.function;
+
+	err = esc_mods_alloc_pages_2(client, &dev_alloc_pages);
 	if (!err)
 		p->memory_handle = dev_alloc_pages.memory_handle;
 
@@ -1038,23 +1383,39 @@ int esc_mods_device_alloc_pages(struct file                    *fp,
 	return err;
 }
 
-int esc_mods_alloc_pages(struct file *fp, struct MODS_ALLOC_PAGES *p)
+int esc_mods_alloc_pages(struct mods_client *client, struct MODS_ALLOC_PAGES *p)
 {
 	int err;
-	struct MODS_DEVICE_ALLOC_PAGES_2 dev_alloc_pages;
+	u32 flags = MODS_ALLOC_USE_NUMA;
+	struct MODS_ALLOC_PAGES_2 dev_alloc_pages = {0};
 
 	LOG_ENT();
 
-	dev_alloc_pages.num_bytes	    = p->num_bytes;
-	dev_alloc_pages.contiguous	    = p->contiguous;
-	dev_alloc_pages.address_bits	    = p->address_bits;
-	dev_alloc_pages.attrib		    = p->attrib;
+	if (p->contiguous)
+		flags |= MODS_ALLOC_CONTIGUOUS;
+
+	if (p->address_bits == 32)
+		flags |= MODS_ALLOC_DMA32;
+
+	if (p->attrib == MODS_MEMORY_UNCACHED)
+		flags |= MODS_ALLOC_UNCACHED;
+	else if (p->attrib == MODS_MEMORY_WRITECOMBINE)
+		flags |= MODS_ALLOC_WRITECOMBINE;
+	else if (p->attrib != MODS_MEMORY_CACHED) {
+		mods_error_printk("invalid cache attrib: %u\n", p->attrib);
+		LOG_EXT();
+		return -ENOMEM;
+	}
+
+	dev_alloc_pages.num_bytes           = p->num_bytes;
+	dev_alloc_pages.flags               = flags;
+	dev_alloc_pages.numa_node           = MODS_ANY_NUMA_NODE;
 	dev_alloc_pages.pci_device.domain   = 0xFFFFU;
-	dev_alloc_pages.pci_device.bus	    = 0xFFFFU;
+	dev_alloc_pages.pci_device.bus      = 0xFFFFU;
 	dev_alloc_pages.pci_device.device   = 0xFFFFU;
 	dev_alloc_pages.pci_device.function = 0xFFFFU;
 
-	err = esc_mods_device_alloc_pages_2(fp, &dev_alloc_pages);
+	err = esc_mods_alloc_pages_2(client, &dev_alloc_pages);
 	if (!err)
 		p->memory_handle = dev_alloc_pages.memory_handle;
 
@@ -1062,13 +1423,13 @@ int esc_mods_alloc_pages(struct file *fp, struct MODS_ALLOC_PAGES *p)
 	return err;
 }
 
-int esc_mods_free_pages(struct file *fp, struct MODS_FREE_PAGES *p)
+int esc_mods_free_pages(struct mods_client *client, struct MODS_FREE_PAGES *p)
 {
 	int err;
 
 	LOG_ENT();
 
-	err = mods_unregister_and_free(fp,
+	err = mods_unregister_and_free(client,
 	    (struct MODS_MEM_INFO *)(size_t)p->memory_handle);
 
 	LOG_EXT();
@@ -1076,17 +1437,24 @@ int esc_mods_free_pages(struct file *fp, struct MODS_FREE_PAGES *p)
 	return err;
 }
 
-int esc_mods_set_mem_type(struct file *fp, struct MODS_MEMORY_TYPE *p)
+int esc_mods_set_mem_type(struct mods_client      *client,
+			  struct MODS_MEMORY_TYPE *p)
 {
 	struct MODS_MEM_INFO *p_mem_info;
-	struct mods_client   *client = fp->private_data;
+	u8 type = MODS_ALLOC_CACHED;
 
 	LOG_ENT();
 
 	switch (p->type) {
 	case MODS_MEMORY_CACHED:
+		break;
+
 	case MODS_MEMORY_UNCACHED:
+		type = MODS_ALLOC_UNCACHED;
+		break;
+
 	case MODS_MEMORY_WRITECOMBINE:
+		type = MODS_ALLOC_WRITECOMBINE;
 		break;
 
 	default:
@@ -1100,7 +1468,7 @@ int esc_mods_set_mem_type(struct file *fp, struct MODS_MEMORY_TYPE *p)
 		return -EINTR;
 	}
 
-	p_mem_info = mods_find_alloc(fp, p->physical_address);
+	p_mem_info = mods_find_alloc(client, p->physical_address);
 	if (p_mem_info) {
 		mutex_unlock(&client->mtx);
 		mods_error_printk("cannot set mem type on phys addr 0x%llx\n",
@@ -1111,7 +1479,7 @@ int esc_mods_set_mem_type(struct file *fp, struct MODS_MEMORY_TYPE *p)
 
 	client->mem_type.dma_addr = p->physical_address;
 	client->mem_type.size     = p->size;
-	client->mem_type.type     = p->type;
+	client->mem_type.type     = type;
 
 	mutex_unlock(&client->mtx);
 
@@ -1119,7 +1487,8 @@ int esc_mods_set_mem_type(struct file *fp, struct MODS_MEMORY_TYPE *p)
 	return OK;
 }
 
-int esc_mods_get_phys_addr(struct file *fp, struct MODS_GET_PHYSICAL_ADDRESS *p)
+int esc_mods_get_phys_addr(struct mods_client               *client,
+			   struct MODS_GET_PHYSICAL_ADDRESS *p)
 {
 	struct MODS_GET_PHYSICAL_ADDRESS_3 range;
 	int err;
@@ -1130,7 +1499,7 @@ int esc_mods_get_phys_addr(struct file *fp, struct MODS_GET_PHYSICAL_ADDRESS *p)
 	range.offset        = p->offset;
 	memset(&range.pci_device, 0, sizeof(range.pci_device));
 
-	err = get_addr_range(fp, &range, NULL);
+	err = get_addr_range(client, &range, NULL);
 
 	if (!err)
 		p->physical_address = range.physical_address;
@@ -1139,7 +1508,7 @@ int esc_mods_get_phys_addr(struct file *fp, struct MODS_GET_PHYSICAL_ADDRESS *p)
 	return err;
 }
 
-int esc_mods_get_phys_addr_2(struct file *fp,
+int esc_mods_get_phys_addr_2(struct mods_client                 *client,
 			     struct MODS_GET_PHYSICAL_ADDRESS_3 *p)
 {
 	struct MODS_GET_PHYSICAL_ADDRESS_3 range;
@@ -1151,7 +1520,7 @@ int esc_mods_get_phys_addr_2(struct file *fp,
 	range.offset        = p->offset;
 	memset(&range.pci_device, 0, sizeof(range.pci_device));
 
-	err = get_addr_range(fp, &range, NULL);
+	err = get_addr_range(client, &range, NULL);
 
 	if (!err)
 		p->physical_address = range.physical_address;
@@ -1160,7 +1529,7 @@ int esc_mods_get_phys_addr_2(struct file *fp,
 	return err;
 }
 
-int esc_mods_get_mapped_phys_addr(struct file *fp,
+int esc_mods_get_mapped_phys_addr(struct mods_client               *client,
 				  struct MODS_GET_PHYSICAL_ADDRESS *p)
 {
 	struct MODS_GET_PHYSICAL_ADDRESS_3 range;
@@ -1183,10 +1552,10 @@ int esc_mods_get_mapped_phys_addr(struct file *fp,
 		range.pci_device.function =
 			PCI_FUNC(p_mem_info->dev->devfn);
 
-		err = get_addr_range(fp, &range, &range.pci_device);
+		err = get_addr_range(client, &range, &range.pci_device);
 	} else {
 		memset(&range.pci_device, 0, sizeof(range.pci_device));
-		err = get_addr_range(fp, &range, NULL);
+		err = get_addr_range(client, &range, NULL);
 	}
 
 	if (!err)
@@ -1196,8 +1565,8 @@ int esc_mods_get_mapped_phys_addr(struct file *fp,
 	return err;
 }
 
-int esc_mods_get_mapped_phys_addr_2(struct file *fp,
-				  struct MODS_GET_PHYSICAL_ADDRESS_2 *p)
+int esc_mods_get_mapped_phys_addr_2(struct mods_client                 *client,
+				    struct MODS_GET_PHYSICAL_ADDRESS_2 *p)
 {
 	struct MODS_GET_PHYSICAL_ADDRESS_3 range;
 	int err;
@@ -1208,7 +1577,7 @@ int esc_mods_get_mapped_phys_addr_2(struct file *fp,
 	range.offset        = p->offset;
 	range.pci_device    = p->pci_device;
 
-	err = get_addr_range(fp, &range, &range.pci_device);
+	err = get_addr_range(client, &range, &range.pci_device);
 
 	if (!err)
 		p->physical_address = range.physical_address;
@@ -1217,8 +1586,8 @@ int esc_mods_get_mapped_phys_addr_2(struct file *fp,
 	return err;
 }
 
-int esc_mods_get_mapped_phys_addr_3(struct file *fp,
-				  struct MODS_GET_PHYSICAL_ADDRESS_3 *p)
+int esc_mods_get_mapped_phys_addr_3(struct mods_client                 *client,
+				    struct MODS_GET_PHYSICAL_ADDRESS_3 *p)
 {
 	struct MODS_GET_PHYSICAL_ADDRESS_3 range;
 	int err;
@@ -1229,7 +1598,7 @@ int esc_mods_get_mapped_phys_addr_3(struct file *fp,
 	range.offset        = p->offset;
 	range.pci_device    = p->pci_device;
 
-	err = get_addr_range(fp, &range, &range.pci_device);
+	err = get_addr_range(client, &range, &range.pci_device);
 
 	if (!err)
 		p->physical_address = range.physical_address;
@@ -1238,13 +1607,12 @@ int esc_mods_get_mapped_phys_addr_3(struct file *fp,
 	return err;
 }
 
-int esc_mods_virtual_to_phys(struct file *fp,
+int esc_mods_virtual_to_phys(struct mods_client              *client,
 			     struct MODS_VIRTUAL_TO_PHYSICAL *p)
 {
 	struct MODS_GET_PHYSICAL_ADDRESS get_phys_addr;
-	struct mods_client *client = fp->private_data;
-	struct list_head   *head;
-	struct list_head   *iter;
+	struct list_head                *head;
+	struct list_head                *iter;
 
 	LOG_ENT();
 
@@ -1296,7 +1664,7 @@ int esc_mods_virtual_to_phys(struct file *fp,
 
 			mutex_unlock(&client->mtx);
 
-			err = esc_mods_get_phys_addr(fp, &get_phys_addr);
+			err = esc_mods_get_phys_addr(client, &get_phys_addr);
 			if (err)
 				return err;
 
@@ -1318,11 +1686,10 @@ int esc_mods_virtual_to_phys(struct file *fp,
 	return -EINVAL;
 }
 
-int esc_mods_phys_to_virtual(struct file *fp,
+int esc_mods_phys_to_virtual(struct mods_client              *client,
 			     struct MODS_PHYSICAL_TO_VIRTUAL *p)
 {
 	struct SYS_MAP_MEMORY *p_map_mem;
-	struct mods_client    *client = fp->private_data;
 	struct list_head      *head;
 	struct list_head      *iter;
 	u64	               offset;
@@ -1394,7 +1761,7 @@ int esc_mods_phys_to_virtual(struct file *fp,
 	return -EINVAL;
 }
 
-int esc_mods_memory_barrier(struct file *fp)
+int esc_mods_memory_barrier(struct mods_client *client)
 {
 #if defined(CONFIG_ARM)
 	/* Full memory barrier on ARMv7 */
@@ -1406,7 +1773,7 @@ int esc_mods_memory_barrier(struct file *fp)
 }
 
 #ifdef CONFIG_PCI
-int esc_mods_dma_map_memory(struct file *fp,
+int esc_mods_dma_map_memory(struct mods_client         *client,
 			    struct MODS_DMA_MAP_MEMORY *p)
 {
 	struct MODS_MEM_INFO *p_mem_info;
@@ -1442,7 +1809,7 @@ int esc_mods_dma_map_memory(struct file *fp,
 		return 0;
 	}
 
-	err = mods_find_pci_dev(fp, &p->pci_device, &dev);
+	err = mods_find_pci_dev(client, &p->pci_device, &dev);
 	if (unlikely(err)) {
 		if (err == -ENODEV)
 			mods_error_printk("PCI device %04x:%02x:%02x.%x not found\n",
@@ -1454,14 +1821,14 @@ int esc_mods_dma_map_memory(struct file *fp,
 		return err;
 	}
 
-	err = mods_create_dma_map(p_mem_info, dev);
+	err = mods_create_dma_map(client, p_mem_info, dev);
 
 	pci_dev_put(dev);
 	LOG_EXT();
 	return err;
 }
 
-int esc_mods_dma_unmap_memory(struct file *fp,
+int esc_mods_dma_unmap_memory(struct mods_client         *client,
 			      struct MODS_DMA_MAP_MEMORY *p)
 {
 	struct MODS_MEM_INFO *p_mem_info;
@@ -1477,7 +1844,7 @@ int esc_mods_dma_unmap_memory(struct file *fp,
 		return -EINVAL;
 	}
 
-	err = mods_find_pci_dev(fp, &p->pci_device, &dev);
+	err = mods_find_pci_dev(client, &p->pci_device, &dev);
 	if (unlikely(err)) {
 		if (err == -ENODEV)
 			mods_error_printk("PCI device %04x:%02x:%02x.%x not found\n",
@@ -1486,7 +1853,7 @@ int esc_mods_dma_unmap_memory(struct file *fp,
 					  p->pci_device.device,
 					  p->pci_device.function);
 	} else
-		err = mods_dma_unmap_all(p_mem_info, dev);
+		err = mods_dma_unmap_all(client, p_mem_info, dev);
 
 	pci_dev_put(dev);
 	LOG_EXT();
@@ -1533,7 +1900,7 @@ static void clear_entry_cache_mappings
 	if (!p_mem_info)
 		return;
 
-	if (p_mem_info->cache_type != MODS_MEMORY_CACHED)
+	if (p_mem_info->cache_type != MODS_ALLOC_CACHED)
 		return;
 
 	for (i = 0; i < p_mem_info->num_chunks; i++) {
@@ -1588,12 +1955,11 @@ static void clear_entry_cache_mappings
 	}
 }
 
-int esc_mods_flush_cpu_cache_range(struct file *fp,
+int esc_mods_flush_cpu_cache_range(struct mods_client                *client,
 				   struct MODS_FLUSH_CPU_CACHE_RANGE *p)
 {
-	struct mods_client *client = fp->private_data;
-	struct list_head   *head;
-	struct list_head   *iter;
+	struct list_head *head;
+	struct list_head *iter;
 
 	if (irqs_disabled() || in_interrupt() ||
 	    p->virt_addr_start > p->virt_addr_end ||
@@ -1657,27 +2023,31 @@ static int mods_post_alloc(struct MODS_PHYS_CHUNK *chunk,
 	u32 num_pages = 1U << chunk->order;
 	u32 i;
 
-	for (i = 0; i < num_pages; i++) {
-		u64 ptr = 0;
-		int err = 0;
+	if (p_mem_info->cache_type != MODS_ALLOC_CACHED && !chunk->wc) {
+		for (i = 0; i < num_pages; i++) {
+			u64 ptr = 0;
+			int err = 0;
 
-		ptr = (u64)(size_t)kmap(chunk->p_page + i);
-		if (!ptr) {
-			mods_error_printk("kmap failed\n");
-			return -EINVAL;
-		}
+			ptr = (u64)(size_t)kmap(chunk->p_page + i);
+			if (!ptr) {
+				mods_error_printk("kmap failed\n");
+				return -EINVAL;
+			}
 #if defined(MODS_TEGRA) && !defined(CONFIG_CPA)
-		clear_contiguous_cache(ptr,
-				       phys_addr + (i << PAGE_SHIFT),
-				       PAGE_SIZE);
+			clear_contiguous_cache(ptr,
+					       phys_addr + (i << PAGE_SHIFT),
+					       PAGE_SIZE);
 #else
-		err = mods_set_mem_type(ptr, 1, p_mem_info->cache_type);
+			err = mods_set_mem_type(ptr, 1, p_mem_info->cache_type);
 #endif
-		kunmap((void *)(size_t)ptr);
-		if (err) {
-			mods_error_printk("set cache type failed\n");
-			return -EINVAL;
+			kunmap((void *)(size_t)ptr);
+			if (err) {
+				mods_error_printk("set cache type failed\n");
+				return -EINVAL;
+			}
 		}
+
+		chunk->wc = 1;
 	}
 
 #ifdef CONFIG_PCI
@@ -1702,20 +2072,4 @@ static int mods_post_alloc(struct MODS_PHYS_CHUNK *chunk,
 #endif
 
 	return 0;
-}
-
-static void mods_pre_free(struct MODS_PHYS_CHUNK *chunk,
-			  struct MODS_MEM_INFO	 *p_mem_info)
-{
-	u32 num_pages = 1U << chunk->order;
-	u32 i;
-
-	for (i = 0; i < num_pages; i++) {
-		u64 ptr = (u64)(size_t)kmap(chunk->p_page + i);
-
-		if (ptr)
-			mods_restore_mem_type(ptr, 1, p_mem_info->cache_type);
-
-		kunmap((void *)(size_t)ptr);
-	}
 }

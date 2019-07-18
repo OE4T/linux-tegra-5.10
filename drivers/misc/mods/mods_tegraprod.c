@@ -1,7 +1,7 @@
 /*
  * mods_tegraprod.c - This file is part of NVIDIA MODS kernel driver.
  *
- * Copyright (c) 2017, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * NVIDIA MODS kernel driver is free software: you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -66,7 +66,7 @@ int mods_tegra_prod_init(const struct miscdevice *misc_dev)
  * Returns 0 on success, others for error or no matching node found.
  */
 int esc_mods_tegra_prod_iterate_dt(
-	struct file *fp,
+	struct mods_client *client,
 	struct MODS_TEGRA_PROD_ITERATOR *iterator
 )
 {
@@ -432,7 +432,7 @@ static int mods_tegra_get_prod_info(
  *
  */
 int esc_mods_tegra_prod_is_supported(
-	struct file *fp,
+	struct mods_client *client,
 	struct MODS_TEGRA_PROD_IS_SUPPORTED *tuple
 )
 {
@@ -476,7 +476,7 @@ int esc_mods_tegra_prod_is_supported(
  *
  */
 int esc_mods_tegra_prod_set_prod_all(
-	struct file *fp,
+	struct mods_client *client,
 	struct MODS_TEGRA_PROD_SET_TUPLE *tuple
 )
 {
@@ -515,7 +515,7 @@ int esc_mods_tegra_prod_set_prod_all(
  *
  */
 int esc_mods_tegra_prod_set_prod_boot(
-	struct file *fp,
+	struct mods_client *client,
 	struct MODS_TEGRA_PROD_SET_TUPLE *tuple
 )
 {
@@ -555,7 +555,7 @@ int esc_mods_tegra_prod_set_prod_boot(
  *
  */
 int esc_mods_tegra_prod_set_prod_by_name(
-	struct file *fp,
+	struct mods_client *client,
 	struct MODS_TEGRA_PROD_SET_TUPLE *tuple
 )
 {
@@ -601,7 +601,7 @@ int esc_mods_tegra_prod_set_prod_by_name(
  *
  */
 int esc_mods_tegra_prod_set_prod_exact(
-	struct file *fp,
+	struct mods_client *client,
 	struct MODS_TEGRA_PROD_SET_TUPLE *tuple
 )
 {

@@ -155,10 +155,10 @@ static int mods_extract_acpi_object(
 	return err;
 }
 
-static int mods_eval_acpi_method(struct file		      *pfile,
+static int mods_eval_acpi_method(struct mods_client           *client,
 				 struct MODS_EVAL_ACPI_METHOD *p,
-				 struct mods_pci_dev_2	      *pdevice,
-				 u32			       acpi_id)
+				 struct mods_pci_dev_2        *pdevice,
+				 u32                           acpi_id)
 {
 	int err = OK;
 	int i;
@@ -190,7 +190,7 @@ static int mods_eval_acpi_method(struct file		      *pfile,
 				  pdevice->device,
 				  pdevice->function);
 
-		err = mods_find_pci_dev(pfile, pdevice, &dev);
+		err = mods_find_pci_dev(client, pdevice, &dev);
 		if (unlikely(err)) {
 			if (err == -ENODEV)
 				mods_error_printk("ACPI: PCI device %04x:%02x:%02x.%x not found\n",
@@ -219,12 +219,7 @@ static int mods_eval_acpi_method(struct file		      *pfile,
 		acpi_method_handler = NULL;
 
 		list_for_each_safe(node, next, &acpi_dev->children) {
-#ifdef MODS_ACPI_DEVID_64
-			unsigned long long
-#else
-			unsigned long
-#endif
-				device_id = 0;
+			unsigned long long device_id = 0;
 
 			struct acpi_device *acpi_dev =
 				list_entry(node, struct acpi_device, node);
@@ -240,11 +235,7 @@ static int mods_eval_acpi_method(struct file		      *pfile,
 				/* Couldn't query device_id for this device */
 				continue;
 
-#ifdef MODS_ACPI_DEVID_64
 			if (device_id == acpi_id) {
-#else
-			if ((device_id & 0xffff) == (acpi_id & 0xffff)) {
-#endif
 				acpi_method_handler = acpi_dev->handle;
 				mods_debug_printk(DEBUG_ACPI,
 						  "ACPI: Found %s (id = 0x%x) on device %04x:%02x:%02x.%x\n",
@@ -328,9 +319,9 @@ static int mods_eval_acpi_method(struct file		      *pfile,
 	return err;
 }
 
-static int mods_acpi_get_ddc(struct file *pfile,
+static int mods_acpi_get_ddc(struct mods_client         *client,
 			     struct MODS_ACPI_GET_DDC_2 *p,
-			     struct mods_pci_dev_2 *pci_device)
+			     struct mods_pci_dev_2      *pci_device)
 {
 	int                     err;
 	acpi_status             status;
@@ -355,7 +346,7 @@ static int mods_acpi_get_ddc(struct file *pfile,
 			  pci_device->device,
 			  pci_device->function);
 
-	err = mods_find_pci_dev(pfile, pci_device, &dev);
+	err = mods_find_pci_dev(client, pci_device, &dev);
 	if (unlikely(err)) {
 		if (err == -ENODEV)
 			mods_error_printk("ACPI: PCI device %04x:%02x:%02x.%x not found\n",
@@ -385,12 +376,7 @@ static int mods_acpi_get_ddc(struct file *pfile,
 	}
 
 	list_for_each_safe(node, next, &device->children) {
-#ifdef MODS_ACPI_DEVID_64
-		unsigned long long
-#else
-		unsigned long
-#endif
-			device_id = 0;
+		unsigned long long device_id = 0;
 
 		struct acpi_device *dev =
 			list_entry(node, struct acpi_device, node);
@@ -489,26 +475,31 @@ static int mods_acpi_get_ddc(struct file *pfile,
  * ESCAPE CALL FUNCTIONS *
  *************************/
 
-int esc_mods_eval_acpi_method(struct file *pfile,
+int esc_mods_eval_acpi_method(struct mods_client           *client,
 			      struct MODS_EVAL_ACPI_METHOD *p)
 {
-	return mods_eval_acpi_method(pfile, p, 0, ACPI_MODS_IGNORE_ACPI_ID);
+	return mods_eval_acpi_method(client, p, 0, ACPI_MODS_IGNORE_ACPI_ID);
 }
 
-int esc_mods_eval_dev_acpi_method_3(struct file *pfile,
+int esc_mods_eval_dev_acpi_method_3(struct mods_client                 *client,
 				    struct MODS_EVAL_DEV_ACPI_METHOD_3 *p)
 {
-	return mods_eval_acpi_method(pfile, &p->method, &p->device, p->acpi_id);
+	return mods_eval_acpi_method(client,
+				     &p->method,
+				     &p->device,
+				     p->acpi_id);
 }
 
-int esc_mods_eval_dev_acpi_method_2(struct file *pfile,
+int esc_mods_eval_dev_acpi_method_2(struct mods_client                 *client,
 				    struct MODS_EVAL_DEV_ACPI_METHOD_2 *p)
 {
-	return mods_eval_acpi_method(pfile, &p->method, &p->device,
+	return mods_eval_acpi_method(client,
+				     &p->method,
+				     &p->device,
 				     ACPI_MODS_IGNORE_ACPI_ID);
 }
 
-int esc_mods_eval_dev_acpi_method(struct file *pfile,
+int esc_mods_eval_dev_acpi_method(struct mods_client               *client,
 				  struct MODS_EVAL_DEV_ACPI_METHOD *p)
 {
 	struct mods_pci_dev_2 device = {0};
@@ -517,17 +508,18 @@ int esc_mods_eval_dev_acpi_method(struct file *pfile,
 	device.bus		= p->device.bus;
 	device.device		= p->device.device;
 	device.function		= p->device.function;
-	return mods_eval_acpi_method(pfile, &p->method, &device,
+	return mods_eval_acpi_method(client, &p->method, &device,
 				     ACPI_MODS_IGNORE_ACPI_ID);
 }
 
-int esc_mods_acpi_get_ddc_2(struct file *pfile,
+int esc_mods_acpi_get_ddc_2(struct mods_client         *client,
 			    struct MODS_ACPI_GET_DDC_2 *p)
 {
-	return mods_acpi_get_ddc(pfile, p, &p->device);
+	return mods_acpi_get_ddc(client, p, &p->device);
 }
 
-int esc_mods_acpi_get_ddc(struct file *pfile, struct MODS_ACPI_GET_DDC *p)
+int esc_mods_acpi_get_ddc(struct mods_client       *client,
+			  struct MODS_ACPI_GET_DDC *p)
 {
 	struct MODS_ACPI_GET_DDC_2 *pp     = (struct MODS_ACPI_GET_DDC_2 *) p;
 	struct mods_pci_dev_2       device = {0};
@@ -537,5 +529,5 @@ int esc_mods_acpi_get_ddc(struct file *pfile, struct MODS_ACPI_GET_DDC *p)
 	device.device	= p->device.device;
 	device.function	= p->device.function;
 
-	return mods_acpi_get_ddc(pfile, pp, &device);
+	return mods_acpi_get_ddc(client, pp, &device);
 }

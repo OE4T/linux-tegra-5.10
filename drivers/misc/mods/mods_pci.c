@@ -2,7 +2,7 @@
 /*
  * mods_pci.c - This file is part of NVIDIA MODS kernel driver.
  *
- * Copyright (c) 2008-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2008-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * NVIDIA MODS kernel driver is free software: you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -37,13 +37,12 @@ int mods_is_pci_dev(struct pci_dev        *dev,
 	       dev->devfn == devfn;
 }
 
-int mods_find_pci_dev(struct file           *fp,
+int mods_find_pci_dev(struct mods_client    *client,
 		      struct mods_pci_dev_2 *pcidev,
 		      struct pci_dev	   **retdev)
 {
-	struct mods_client *client = fp->private_data;
-	struct pci_dev     *dev;
-	int                 err;
+	struct pci_dev *dev;
+	int             err;
 
 	if (unlikely(mutex_lock_interruptible(&client->mtx)))
 		return -EINTR;
@@ -92,7 +91,7 @@ int mods_find_pci_dev(struct file           *fp,
 	return err;
 }
 
-static int find_pci_dev_impl(struct file                   *pfile,
+static int find_pci_dev_impl(struct mods_client            *client,
 			     struct MODS_FIND_PCI_DEVICE_2 *p,
 			     int                            enum_non_zero_dom)
 {
@@ -128,13 +127,13 @@ static int find_pci_dev_impl(struct file                   *pfile,
 	return OK;
 }
 
-int esc_mods_find_pci_dev_2(struct file                   *pfile,
+int esc_mods_find_pci_dev_2(struct mods_client            *client,
 			    struct MODS_FIND_PCI_DEVICE_2 *p)
 {
-	return find_pci_dev_impl(pfile, p, 1);
+	return find_pci_dev_impl(client, p, 1);
 }
 
-int esc_mods_find_pci_dev(struct file                 *pfile,
+int esc_mods_find_pci_dev(struct mods_client          *client,
 			  struct MODS_FIND_PCI_DEVICE *p)
 {
 	struct MODS_FIND_PCI_DEVICE_2 p2;
@@ -144,7 +143,7 @@ int esc_mods_find_pci_dev(struct file                 *pfile,
 	p2.vendor_id = p->vendor_id;
 	p2.index     = p->index;
 
-	err = find_pci_dev_impl(pfile, &p2, 0);
+	err = find_pci_dev_impl(client, &p2, 0);
 
 	if (!err) {
 		p->bus_number      = p2.pci_device.bus;
@@ -155,7 +154,7 @@ int esc_mods_find_pci_dev(struct file                 *pfile,
 	return err;
 }
 
-static int mods_find_pci_class_code(struct file                       *pfile,
+static int mods_find_pci_class_code(struct mods_client                *client,
 				    struct MODS_FIND_PCI_CLASS_CODE_2 *p,
 				    int enum_non_zero_dom)
 {
@@ -188,13 +187,13 @@ static int mods_find_pci_class_code(struct file                       *pfile,
 	return OK;
 }
 
-int esc_mods_find_pci_class_code_2(struct file                       *pfile,
+int esc_mods_find_pci_class_code_2(struct mods_client                *client,
 				   struct MODS_FIND_PCI_CLASS_CODE_2 *p)
 {
-	return mods_find_pci_class_code(pfile, p, 1);
+	return mods_find_pci_class_code(client, p, 1);
 }
 
-int esc_mods_find_pci_class_code(struct file                     *pfile,
+int esc_mods_find_pci_class_code(struct mods_client              *client,
 				 struct MODS_FIND_PCI_CLASS_CODE *p)
 {
 	struct MODS_FIND_PCI_CLASS_CODE_2 p2;
@@ -203,7 +202,7 @@ int esc_mods_find_pci_class_code(struct file                     *pfile,
 	p2.class_code = p->class_code;
 	p2.index      = p->index;
 
-	err = mods_find_pci_class_code(pfile, &p2, 0);
+	err = mods_find_pci_class_code(client, &p2, 0);
 
 	if (!err) {
 		p->bus_number      = p2.pci_device.bus;
@@ -214,7 +213,7 @@ int esc_mods_find_pci_class_code(struct file                     *pfile,
 	return err;
 }
 
-int esc_mods_pci_get_bar_info_2(struct file *pfile,
+int esc_mods_pci_get_bar_info_2(struct mods_client             *client,
 				struct MODS_PCI_GET_BAR_INFO_2 *p)
 {
 	struct pci_dev *dev;
@@ -227,7 +226,7 @@ int esc_mods_pci_get_bar_info_2(struct file *pfile,
 
 	LOG_ENT();
 
-	err = mods_find_pci_dev(pfile, &p->pci_device, &dev);
+	err = mods_find_pci_dev(client, &p->pci_device, &dev);
 	if (unlikely(err)) {
 		LOG_EXT();
 		return err;
@@ -249,7 +248,8 @@ int esc_mods_pci_get_bar_info_2(struct file *pfile,
 	}
 
 	/* Enable device on the PCI bus */
-	if (mods_enable_device(pfile->private_data, dev) == 0) {
+	err = mods_enable_device(client, dev, NULL);
+	if (err) {
 		mods_error_printk("unable to enable dev %04x:%02x:%02x.%x\n",
 				  p->pci_device.domain,
 				  p->pci_device.bus,
@@ -258,7 +258,7 @@ int esc_mods_pci_get_bar_info_2(struct file *pfile,
 		mutex_unlock(mods_get_irq_mutex());
 		pci_dev_put(dev);
 		LOG_EXT();
-		return -EINVAL;
+		return err;
 	}
 
 	mutex_unlock(mods_get_irq_mutex());
@@ -289,7 +289,7 @@ int esc_mods_pci_get_bar_info_2(struct file *pfile,
 	return OK;
 }
 
-int esc_mods_pci_get_bar_info(struct file *pfile,
+int esc_mods_pci_get_bar_info(struct mods_client           *client,
 			      struct MODS_PCI_GET_BAR_INFO *p)
 {
 	int err;
@@ -301,7 +301,7 @@ int esc_mods_pci_get_bar_info(struct file *pfile,
 	get_bar_info.pci_device.function = p->pci_device.function;
 	get_bar_info.bar_index		 = p->bar_index;
 
-	err = esc_mods_pci_get_bar_info_2(pfile, &get_bar_info);
+	err = esc_mods_pci_get_bar_info_2(client, &get_bar_info);
 
 	if (likely(!err)) {
 		p->base_address	= get_bar_info.base_address;
@@ -311,7 +311,7 @@ int esc_mods_pci_get_bar_info(struct file *pfile,
 	return err;
 }
 
-int esc_mods_pci_get_irq_2(struct file *pfile,
+int esc_mods_pci_get_irq_2(struct mods_client        *client,
 			   struct MODS_PCI_GET_IRQ_2 *p)
 {
 	struct pci_dev *dev;
@@ -319,7 +319,7 @@ int esc_mods_pci_get_irq_2(struct file *pfile,
 
 	LOG_ENT();
 
-	err = mods_find_pci_dev(pfile, &p->pci_device, &dev);
+	err = mods_find_pci_dev(client, &p->pci_device, &dev);
 	if (unlikely(err)) {
 		LOG_EXT();
 		return err;
@@ -340,7 +340,7 @@ int esc_mods_pci_get_irq_2(struct file *pfile,
 	return OK;
 }
 
-int esc_mods_pci_get_irq(struct file *pfile,
+int esc_mods_pci_get_irq(struct mods_client      *client,
 			 struct MODS_PCI_GET_IRQ *p)
 {
 	int err;
@@ -351,7 +351,7 @@ int esc_mods_pci_get_irq(struct file *pfile,
 	get_irq.pci_device.device   = p->pci_device.device;
 	get_irq.pci_device.function = p->pci_device.function;
 
-	err = esc_mods_pci_get_irq_2(pfile, &get_irq);
+	err = esc_mods_pci_get_irq_2(client, &get_irq);
 
 	if (likely(!err))
 		p->irq = get_irq.irq;
@@ -359,14 +359,14 @@ int esc_mods_pci_get_irq(struct file *pfile,
 	return err;
 }
 
-int esc_mods_pci_read_2(struct file *pfile, struct MODS_PCI_READ_2 *p)
+int esc_mods_pci_read_2(struct mods_client *client, struct MODS_PCI_READ_2 *p)
 {
 	struct pci_dev *dev;
 	int err;
 
 	LOG_ENT();
 
-	err = mods_find_pci_dev(pfile, &p->pci_device, &dev);
+	err = mods_find_pci_dev(client, &p->pci_device, &dev);
 	if (unlikely(err)) {
 		LOG_EXT();
 		return err;
@@ -410,7 +410,7 @@ int esc_mods_pci_read_2(struct file *pfile, struct MODS_PCI_READ_2 *p)
 	return err;
 }
 
-int esc_mods_pci_read(struct file *pfile, struct MODS_PCI_READ *p)
+int esc_mods_pci_read(struct mods_client *client, struct MODS_PCI_READ *p)
 {
 	int err;
 	struct MODS_PCI_READ_2 pci_read = { {0} };
@@ -422,7 +422,7 @@ int esc_mods_pci_read(struct file *pfile, struct MODS_PCI_READ *p)
 	pci_read.address		= p->address;
 	pci_read.data_size		= p->data_size;
 
-	err = esc_mods_pci_read_2(pfile, &pci_read);
+	err = esc_mods_pci_read_2(client, &pci_read);
 
 	if (likely(!err))
 		p->data = pci_read.data;
@@ -430,7 +430,7 @@ int esc_mods_pci_read(struct file *pfile, struct MODS_PCI_READ *p)
 	return err;
 }
 
-int esc_mods_pci_write_2(struct file *pfile, struct MODS_PCI_WRITE_2 *p)
+int esc_mods_pci_write_2(struct mods_client *client, struct MODS_PCI_WRITE_2 *p)
 {
 	struct pci_dev *dev;
 	int err;
@@ -447,7 +447,7 @@ int esc_mods_pci_write_2(struct file *pfile, struct MODS_PCI_WRITE_2 *p)
 			  p->data_size,
 			  p->data);
 
-	err = mods_find_pci_dev(pfile, &p->pci_device, &dev);
+	err = mods_find_pci_dev(client, &p->pci_device, &dev);
 	if (unlikely(err)) {
 		if (err == -ENODEV)
 			mods_error_printk("PCI device %04x:%02x:%02x.%x not found\n",
@@ -479,7 +479,7 @@ int esc_mods_pci_write_2(struct file *pfile, struct MODS_PCI_WRITE_2 *p)
 	return err;
 }
 
-int esc_mods_pci_write(struct file *pfile,
+int esc_mods_pci_write(struct mods_client    *client,
 		       struct MODS_PCI_WRITE *p)
 {
 	struct MODS_PCI_WRITE_2 pci_write = { {0} };
@@ -492,10 +492,10 @@ int esc_mods_pci_write(struct file *pfile,
 	pci_write.data			= p->data;
 	pci_write.data_size		= p->data_size;
 
-	return esc_mods_pci_write_2(pfile, &pci_write);
+	return esc_mods_pci_write_2(client, &pci_write);
 }
 
-int esc_mods_pci_bus_add_dev(struct file *pfile,
+int esc_mods_pci_bus_add_dev(struct mods_client              *client,
 			     struct MODS_PCI_BUS_ADD_DEVICES *scan)
 {
 	struct pci_bus *bus;
@@ -526,7 +526,7 @@ int esc_mods_pci_bus_add_dev(struct file *pfile,
 	return err;
 }
 
-int esc_mods_pci_hot_reset(struct file *pfile,
+int esc_mods_pci_hot_reset(struct mods_client        *client,
 			   struct MODS_PCI_HOT_RESET *p)
 {
 #if defined(CONFIG_PPC64)
@@ -542,7 +542,7 @@ int esc_mods_pci_hot_reset(struct file *pfile,
 			  p->pci_device.device,
 			  p->pci_device.function);
 
-	err = mods_find_pci_dev(pfile, &p->pci_device, &dev);
+	err = mods_find_pci_dev(client, &p->pci_device, &dev);
 	if (unlikely(err)) {
 		if (err == -ENODEV)
 			mods_error_printk("pci_hot_reset cannot find pci device %04x:%02x:%02x.%x\n",
@@ -580,11 +580,47 @@ int esc_mods_pci_hot_reset(struct file *pfile,
 #endif
 }
 
+int esc_mods_pci_bus_remove_dev(struct mods_client             *client,
+				struct MODS_PCI_BUS_REMOVE_DEV *p)
+{
+#if !defined(MODS_HASNT_PCI_BUS_REMOVE_DEV)
+	struct pci_dev *dev;
+	int err;
+
+	LOG_ENT();
+
+	err = mods_find_pci_dev(client, &p->pci_device, &dev);
+	if (unlikely(err)) {
+		if (err == -ENODEV)
+			mods_error_printk("pci_remove cannot find pci device %04x:%02x:%02x.%x\n",
+					  p->pci_device.domain,
+					  p->pci_device.bus,
+					  p->pci_device.device,
+					  p->pci_device.function);
+		LOG_EXT();
+		return err;
+	}
+
+	mods_debug_printk(DEBUG_PCI,
+			  "pci remove on %04x:%02x:%02x.%x\n",
+			  p->pci_device.domain,
+			  p->pci_device.bus,
+			  p->pci_device.device,
+			  p->pci_device.function);
+
+	pci_stop_and_remove_bus_device(dev);
+	LOG_EXT();
+	return err;
+#else
+	return -EINVAL;
+#endif
+}
+
 /************************
  * PIO ESCAPE FUNCTIONS *
  ************************/
 
-int esc_mods_pio_read(struct file *pfile, struct MODS_PIO_READ *p)
+int esc_mods_pio_read(struct mods_client *client, struct MODS_PIO_READ *p)
 {
 	LOG_ENT();
 	switch (p->data_size) {
@@ -604,7 +640,7 @@ int esc_mods_pio_read(struct file *pfile, struct MODS_PIO_READ *p)
 	return OK;
 }
 
-int esc_mods_pio_write(struct file *pfile, struct MODS_PIO_WRITE  *p)
+int esc_mods_pio_write(struct mods_client *client, struct MODS_PIO_WRITE  *p)
 {
 	LOG_ENT();
 	switch (p->data_size) {
@@ -624,16 +660,15 @@ int esc_mods_pio_write(struct file *pfile, struct MODS_PIO_WRITE  *p)
 	return OK;
 }
 
-int esc_mods_device_numa_info_2(struct file *fp,
+int esc_mods_device_numa_info_2(struct mods_client             *client,
 				struct MODS_DEVICE_NUMA_INFO_2 *p)
 {
-#ifdef MODS_HAS_DEV_TO_NUMA_NODE
 	struct pci_dev *dev;
 	int err;
 
 	LOG_ENT();
 
-	err = mods_find_pci_dev(fp, &p->pci_device, &dev);
+	err = mods_find_pci_dev(client, &p->pci_device, &dev);
 	if (unlikely(err)) {
 		if (err == -ENODEV)
 			mods_error_printk("PCI device %04x:%02x:%02x.%x not found\n",
@@ -674,24 +709,21 @@ int esc_mods_device_numa_info_2(struct file *fp,
 	pci_dev_put(dev);
 	LOG_EXT();
 	return OK;
-#else
-	return -EINVAL;
-#endif
 }
 
-int esc_mods_device_numa_info(struct file *fp,
+int esc_mods_device_numa_info(struct mods_client           *client,
 			      struct MODS_DEVICE_NUMA_INFO *p)
 {
 	int err;
 	int i;
 	struct MODS_DEVICE_NUMA_INFO_2 numa_info = { {0} };
 
-	numa_info.pci_device.domain	= 0;
-	numa_info.pci_device.bus	= p->pci_device.bus;
-	numa_info.pci_device.device	= p->pci_device.device;
-	numa_info.pci_device.function	= p->pci_device.function;
+	numa_info.pci_device.domain    = 0;
+	numa_info.pci_device.bus       = p->pci_device.bus;
+	numa_info.pci_device.device    = p->pci_device.device;
+	numa_info.pci_device.function  = p->pci_device.function;
 
-	err = esc_mods_device_numa_info_2(fp, &numa_info);
+	err = esc_mods_device_numa_info_2(client, &numa_info);
 
 	if (likely(!err)) {
 		p->node	      = numa_info.node;
@@ -704,10 +736,10 @@ int esc_mods_device_numa_info(struct file *fp,
 	return err;
 }
 
-int esc_mods_get_iommu_state(struct file                 *pfile,
+int esc_mods_get_iommu_state(struct mods_client          *client,
 			     struct MODS_GET_IOMMU_STATE *state)
 {
-	int err = esc_mods_get_iommu_state_2(pfile, state);
+	int err = esc_mods_get_iommu_state_2(client, state);
 
 	if (!err)
 		state->state = (state->state == MODS_SWIOTLB_DISABLED) ? 1 : 0;
@@ -715,7 +747,7 @@ int esc_mods_get_iommu_state(struct file                 *pfile,
 	return err;
 }
 
-int esc_mods_get_iommu_state_2(struct file                 *pfile,
+int esc_mods_get_iommu_state_2(struct mods_client          *client,
 			       struct MODS_GET_IOMMU_STATE *state)
 {
 #if !defined(CONFIG_SWIOTLB)
@@ -729,7 +761,7 @@ int esc_mods_get_iommu_state_2(struct file                 *pfile,
 
 	LOG_ENT();
 
-	err = mods_find_pci_dev(pfile, &state->pci_device, &dev);
+	err = mods_find_pci_dev(client, &state->pci_device, &dev);
 	if (unlikely(err)) {
 		LOG_EXT();
 		return err;
@@ -758,7 +790,7 @@ int esc_mods_get_iommu_state_2(struct file                 *pfile,
 	return OK;
 }
 
-int esc_mods_pci_set_dma_mask(struct file              *file,
+int esc_mods_pci_set_dma_mask(struct mods_client       *client,
 			      struct MODS_PCI_DMA_MASK *dma_mask)
 {
 	int             err;
@@ -774,7 +806,7 @@ int esc_mods_pci_set_dma_mask(struct file              *file,
 		return -EINVAL;
 	}
 
-	err = mods_find_pci_dev(file, &dma_mask->pci_device, &dev);
+	err = mods_find_pci_dev(client, &dma_mask->pci_device, &dev);
 	if (unlikely(err)) {
 		if (err == -ENODEV)
 			mods_error_printk("PCI device %04x:%02x:%02x.%x not found\n",

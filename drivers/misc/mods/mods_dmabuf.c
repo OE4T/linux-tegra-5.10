@@ -37,7 +37,7 @@ static struct device *dummy_device;
 
 static bool dummy_device_registered;
 
-int esc_mods_dmabuf_get_phys_addr(struct file *filp,
+int esc_mods_dmabuf_get_phys_addr(struct mods_client *client,
 				  struct MODS_DMABUF_GET_PHYSICAL_ADDRESS *op)
 {
 	int                        err = 0;

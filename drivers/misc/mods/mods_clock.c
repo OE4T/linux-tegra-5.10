@@ -1,7 +1,7 @@
 /*
  * mods_clock.c - This file is part of NVIDIA MODS kernel driver.
  *
- * Copyright (c) 2011-2017, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * NVIDIA MODS kernel driver is free software: you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -163,7 +163,7 @@ static struct clk *mods_get_clock(u32 handle)
 	return pclk;
 }
 
-int esc_mods_get_clock_handle(struct file *pfile,
+int esc_mods_get_clock_handle(struct mods_client *client,
 			      struct MODS_GET_CLOCK_HANDLE *p)
 {
 	struct clk *pclk = 0;
@@ -201,7 +201,8 @@ err:
 	return ret;
 }
 
-int esc_mods_set_clock_rate(struct file *pfile, struct MODS_CLOCK_RATE *p)
+int esc_mods_set_clock_rate(struct mods_client *client,
+			    struct MODS_CLOCK_RATE *p)
 {
 	struct clk *pclk = 0;
 	int ret = -EINVAL;
@@ -230,7 +231,8 @@ int esc_mods_set_clock_rate(struct file *pfile, struct MODS_CLOCK_RATE *p)
 	return ret;
 }
 
-int esc_mods_get_clock_rate(struct file *pfile, struct MODS_CLOCK_RATE *p)
+int esc_mods_get_clock_rate(struct mods_client *client,
+			    struct MODS_CLOCK_RATE *p)
 {
 	struct clk *pclk = 0;
 	int ret = -EINVAL;
@@ -253,7 +255,8 @@ int esc_mods_get_clock_rate(struct file *pfile, struct MODS_CLOCK_RATE *p)
 	return ret;
 }
 
-int esc_mods_get_clock_max_rate(struct file *pfile, struct MODS_CLOCK_RATE *p)
+int esc_mods_get_clock_max_rate(struct mods_client *client,
+				struct MODS_CLOCK_RATE *p)
 {
 	struct clk *pclk = 0;
 	int ret = -EINVAL;
@@ -279,7 +282,8 @@ int esc_mods_get_clock_max_rate(struct file *pfile, struct MODS_CLOCK_RATE *p)
 	return ret;
 }
 
-int esc_mods_set_clock_max_rate(struct file *pfile, struct MODS_CLOCK_RATE *p)
+int esc_mods_set_clock_max_rate(struct mods_client *client,
+				struct MODS_CLOCK_RATE *p)
 {
 	struct clk *pclk = 0;
 	int ret = -EINVAL;
@@ -315,7 +319,8 @@ int esc_mods_set_clock_max_rate(struct file *pfile, struct MODS_CLOCK_RATE *p)
 	return ret;
 }
 
-int esc_mods_set_clock_parent(struct file *pfile, struct MODS_CLOCK_PARENT *p)
+int esc_mods_set_clock_parent(struct mods_client *client,
+			      struct MODS_CLOCK_PARENT *p)
 {
 	struct clk *pclk = 0;
 	struct clk *pparent = 0;
@@ -349,7 +354,8 @@ int esc_mods_set_clock_parent(struct file *pfile, struct MODS_CLOCK_PARENT *p)
 	return ret;
 }
 
-int esc_mods_get_clock_parent(struct file *pfile, struct MODS_CLOCK_PARENT *p)
+int esc_mods_get_clock_parent(struct mods_client *client,
+			      struct MODS_CLOCK_PARENT *p)
 {
 	struct clk *pclk = 0;
 	int ret = -EINVAL;
@@ -375,7 +381,8 @@ int esc_mods_get_clock_parent(struct file *pfile, struct MODS_CLOCK_PARENT *p)
 	return ret;
 }
 
-int esc_mods_enable_clock(struct file *pfile, struct MODS_CLOCK_HANDLE *p)
+int esc_mods_enable_clock(struct mods_client *client,
+			  struct MODS_CLOCK_HANDLE *p)
 {
 	struct clk *pclk = 0;
 	int ret = -EINVAL;
@@ -408,7 +415,8 @@ int esc_mods_enable_clock(struct file *pfile, struct MODS_CLOCK_HANDLE *p)
 	return ret;
 }
 
-int esc_mods_disable_clock(struct file *pfile, struct MODS_CLOCK_HANDLE *p)
+int esc_mods_disable_clock(struct mods_client *client,
+			   struct MODS_CLOCK_HANDLE *p)
 {
 	struct clk *pclk = 0;
 	int ret = -EINVAL;
@@ -432,7 +440,8 @@ int esc_mods_disable_clock(struct file *pfile, struct MODS_CLOCK_HANDLE *p)
 	return ret;
 }
 
-int esc_mods_is_clock_enabled(struct file *pfile, struct MODS_CLOCK_ENABLED *p)
+int esc_mods_is_clock_enabled(struct mods_client *client,
+			      struct MODS_CLOCK_ENABLED *p)
 {
 	struct clk *pclk = 0;
 	int ret = -EINVAL;
@@ -455,7 +464,7 @@ int esc_mods_is_clock_enabled(struct file *pfile, struct MODS_CLOCK_ENABLED *p)
 	return ret;
 }
 
-int esc_mods_clock_reset_assert(struct file *pfile,
+int esc_mods_clock_reset_assert(struct mods_client *client,
 				struct MODS_CLOCK_HANDLE *p)
 {
 	struct clk *pclk = 0;
@@ -511,7 +520,7 @@ err:
 	return ret;
 }
 
-int esc_mods_clock_reset_deassert(struct file *pfile,
+int esc_mods_clock_reset_deassert(struct mods_client *client,
 				  struct MODS_CLOCK_HANDLE *p)
 {
 	struct clk *pclk = 0;

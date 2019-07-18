@@ -1,7 +1,7 @@
 /*
  * mods_net.c - This file is part of NVIDIA MODS kernel driver.
  *
- * Copyright (c) 2015-2017, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2015-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * NVIDIA MODS kernel driver is free software: you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -21,7 +21,8 @@
 #include "mods_internal.h"
 #include <linux/netdevice.h>
 
-int esc_mods_net_force_link(struct file *pfile, struct MODS_NET_DEVICE_NAME *p)
+int esc_mods_net_force_link(struct mods_client *client,
+			    struct MODS_NET_DEVICE_NAME *p)
 {
 	struct net_device *ndev;
 

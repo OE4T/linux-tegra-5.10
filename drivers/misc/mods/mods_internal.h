@@ -65,7 +65,7 @@ struct en_dev_entry {
 struct mem_type {
 	u64 dma_addr;
 	u64 size;
-	u32 type;
+	u8  type;
 };
 
 struct irq_q_data {
@@ -88,6 +88,7 @@ struct mods_client {
 	struct list_head     irq_list;
 	struct list_head     mem_alloc_list;
 	struct list_head     mem_map_list;
+	struct list_head     free_mem_list; /* list of unused UC/WC chunks */
 #if defined(CONFIG_PPC64)
 	struct list_head     ppc_tce_bypass_list;
 	struct list_head     nvlink_sysmem_trained_list;
@@ -103,13 +104,15 @@ struct mods_client {
 	struct mutex         mtx;
 	int                  mods_fb_suspended[FB_MAX];
 	u32                  access_token;
+	atomic_t             num_allocs;
+	atomic_t             num_pages;
 	u8                   client_id;
 };
 
 /* VM private data */
 struct mods_vm_private_data {
-	struct file *fp;
-	atomic_t     usage_count;
+	struct mods_client *client;
+	atomic_t            usage_count;
 };
 
 /* PCI Resource mapping private data*/
@@ -120,12 +123,24 @@ struct MODS_PCI_RES_MAP_INFO {
 	struct list_head list;
 };
 
+#define DMA_BITS 57
+
 struct MODS_PHYS_CHUNK {
-	u64          dma_addr:58; /* phys addr (or machine addr on XEN) */
-	u32          order:5;     /* 1<<order = number of contig pages */
-	int          mapped:1;
-	u64          dev_addr;    /* DMA map addr for default device */
+	u64          dma_addr:DMA_BITS; /* phys addr (or machine addr on XEN) */
+	u8           order:5;           /* 1<<order = number of contig pages  */
+	u8           wc:1;              /* 1=cache is wc or uc, 0=cache is wb */
+	u8           mapped:1;          /* dev_addr is valid                  */
+	u64          dev_addr;          /* DMA map addr for default device    */
 	struct page *p_page;
+};
+
+struct MODS_FREE_PHYS_CHUNK {
+	struct list_head list;
+	struct page     *p_page;
+	int              numa_node;
+	u8               order;
+	u8               cache_type:2;
+	u8               dma32:1;
 };
 
 struct MODS_DMA_MAP {
@@ -139,13 +154,14 @@ struct MODS_DMA_MAP {
 /* system memory allocation tracking */
 struct MODS_MEM_INFO {
 	u64             logical_addr;   /* kernel logical address */
+	u64             length;         /* actual number of bytes allocated */
 	u32             num_pages;      /* number of allocated pages */
-	u8              alloc_type : 1; /* MODS_ALLOC_TYPE_* */
-	u8              cache_type : 3; /* MODS_MEMORY_* */
-	u8              addr_bits  : 7; /* phys addr size requested */
-	u32             length;         /* actual number of bytes allocated */
 	u32             num_chunks;     /* max number of contig chunks */
 	int             numa_node;      /* numa node for the allocation */
+	u8              cache_type : 2; /* MODS_ALLOC_* */
+	u8              contig     : 1; /* true/false */
+	u8              dma32      : 1; /* true/false */
+	u8              force_numa : 1; /* true/false */
 	struct pci_dev *dev;            /* (optional) pci_dev this allocation
 					 * is for.
 					 */
@@ -160,9 +176,6 @@ struct MODS_MEM_INFO {
 	/* information about allocated pages */
 	struct MODS_PHYS_CHUNK pages[1];
 };
-
-#define MODS_ALLOC_TYPE_NON_CONTIG	0
-#define MODS_ALLOC_TYPE_CONTIG		1
 
 /* map memory tracking */
 struct SYS_MAP_MEMORY {
@@ -199,8 +212,8 @@ struct PPC_TCE_BYPASS {
 
 int has_npu_dev(struct pci_dev *dev, int index);
 
-int mods_is_nvlink_sysmem_trained(struct file *fp,
-				  struct pci_dev *dev);
+int mods_is_nvlink_sysmem_trained(struct mods_client *client,
+				  struct pci_dev     *dev);
 
 /* NvLink Trained tracking */
 struct NVL_TRAINED {
@@ -283,41 +296,24 @@ struct mods_priv {
 	struct mutex       mtx;
 };
 
-#ifndef MODS_HAS_SET_MEMORY
-#	define MODS_SET_MEMORY_UC(addr, pages) \
-	       change_page_attr(virt_to_page(addr), pages, PAGE_KERNEL_NOCACHE)
-#	define MODS_SET_MEMORY_WC MODS_SET_MEMORY_UC
-#	define MODS_SET_MEMORY_WB(addr, pages) \
-	       change_page_attr(virt_to_page(addr), pages, PAGE_KERNEL)
-#elif ((defined(CONFIG_ARM) || defined(CONFIG_ARM64)) && \
+#if ((defined(CONFIG_ARM) || defined(CONFIG_ARM64)) && \
 	  !defined(CONFIG_CPA)) || defined(CONFIG_PPC64)
 #	define MODS_SET_MEMORY_UC(addr, pages) 0
 #	define MODS_SET_MEMORY_WC(addr, pages) 0
 #	define MODS_SET_MEMORY_WB(addr, pages) 0
 #else
 #	define MODS_SET_MEMORY_UC(addr, pages) set_memory_uc(addr, pages)
-#	ifdef MODS_HAS_WC
-#		define MODS_SET_MEMORY_WC(addr, pages)\
-		       set_memory_wc(addr, pages)
-#	else
-#		define MODS_SET_MEMORY_WC(addr, pages)\
-		       MODS_SET_MEMORY_UC(addr, pages)
-#	endif
+#	define MODS_SET_MEMORY_WC(addr, pages) set_memory_wc(addr, pages)
 #	define MODS_SET_MEMORY_WB(addr, pages) set_memory_wb(addr, pages)
 #endif
 
 #define MODS_PGPROT_UC pgprot_noncached
-#ifdef MODS_HAS_WC
-#	define MODS_PGPROT_WC pgprot_writecombine
-#else
-#	define MODS_PGPROT_WC pgprot_noncached
-#endif
+#define MODS_PGPROT_WC pgprot_writecombine
 
 /* VMA */
 #define MODS_VMA_PGOFF(vma)	((vma)->vm_pgoff)
 #define MODS_VMA_SIZE(vma)	((vma)->vm_end - (vma)->vm_start)
 #define MODS_VMA_OFFSET(vma)	(((u64)(vma)->vm_pgoff) << PAGE_SHIFT)
-#define MODS_VMA_PRIVATE(vma)	((vma)->vm_private_data)
 #define MODS_VMA_FILE(vma)	((vma)->vm_file)
 
 /* Xen adds a translation layer between the physical address
@@ -355,22 +351,6 @@ struct mods_priv {
 #define MODS_ACPI_HANDLE(dev) DEVICE_ACPI_HANDLE(dev)
 #endif
 
-#ifdef MODS_HAS_OLD_PCI_DMA_MAPPING_ERROR
-#define MODS_PCI_DMA_MAPPING_ERROR(dev, addr) pci_dma_mapping_error(addr)
-#else
-#define MODS_PCI_DMA_MAPPING_ERROR(dev, addr) pci_dma_mapping_error(dev, addr)
-#endif
-
-static inline u8 get_client_id(struct file *fp)
-{
-	return ((struct mods_client *)(fp->private_data))->client_id;
-}
-
-static inline int is_client_id_valid(u8 client_id)
-{
-	return client_id > 0 && client_id <= MODS_MAX_CLIENTS;
-}
-
 /* ************************************************************************* */
 /* ** MODULE WIDE FUNCTIONS						     */
 /* ************************************************************************* */
@@ -385,28 +365,30 @@ void mods_free_client(u8 client_id);
 int mods_irq_event_check(u8 client_id);
 
 /* mem */
-const char *mods_get_prot_str(u32 mem_type);
-int mods_unregister_all_alloc(struct file *fp);
-struct MODS_MEM_INFO *mods_find_alloc(struct file *fp, u64 phys_addr);
+const char *mods_get_prot_str(u8 mem_type);
+int mods_unregister_all_alloc(struct mods_client *client);
+struct MODS_MEM_INFO *mods_find_alloc(struct mods_client *client,
+				      u64                 phys_addr);
 
 #if defined(CONFIG_PPC64)
 /* ppc64 */
-int mods_unregister_all_ppc_tce_bypass(struct file *fp);
+int mods_unregister_all_ppc_tce_bypass(struct mods_client *client);
 
-int mods_unregister_all_nvlink_sysmem_trained(struct file *fp);
+int mods_unregister_all_nvlink_sysmem_trained(struct mods_client *client);
 #endif
 
 /* pci */
 #ifdef CONFIG_PCI
-struct en_dev_entry *mods_enable_device(struct mods_client *client,
-					struct pci_dev     *dev);
+int mods_enable_device(struct mods_client   *client,
+		       struct pci_dev       *dev,
+		       struct en_dev_entry **dev_entry);
 void mods_disable_device(struct pci_dev *pdev);
 #endif
 
 #ifdef CONFIG_PCI
 int mods_is_pci_dev(struct pci_dev        *dev,
 		    struct mods_pci_dev_2 *pcidev);
-int mods_find_pci_dev(struct file           *fp,
+int mods_find_pci_dev(struct mods_client    *client,
 		      struct mods_pci_dev_2 *pcidev,
 		      struct pci_dev       **retdev);
 #else
@@ -423,193 +405,224 @@ void mods_shutdown_clock_api(void);
 /* ioctl hanndlers */
 
 /* mem */
-int esc_mods_alloc_pages(struct file *fp, struct MODS_ALLOC_PAGES *p);
-int esc_mods_device_alloc_pages(struct file *fp,
+int esc_mods_alloc_pages(struct mods_client      *client,
+			 struct MODS_ALLOC_PAGES *p);
+int esc_mods_device_alloc_pages(struct mods_client             *client,
 				struct MODS_DEVICE_ALLOC_PAGES *p);
-int esc_mods_device_alloc_pages_2(struct file *fp,
+int esc_mods_device_alloc_pages_2(struct mods_client               *client,
 				  struct MODS_DEVICE_ALLOC_PAGES_2 *p);
-int esc_mods_free_pages(struct file *fp, struct MODS_FREE_PAGES *p);
-int esc_mods_set_mem_type(struct file *fp, struct MODS_MEMORY_TYPE *p);
-int esc_mods_get_phys_addr(struct file *fp,
+int esc_mods_alloc_pages_2(struct mods_client        *client,
+			   struct MODS_ALLOC_PAGES_2 *p);
+int esc_mods_free_pages(struct mods_client     *client,
+			struct MODS_FREE_PAGES *p);
+int esc_mods_set_mem_type(struct mods_client      *client,
+			  struct MODS_MEMORY_TYPE *p);
+int esc_mods_get_phys_addr(struct mods_client               *client,
 			   struct MODS_GET_PHYSICAL_ADDRESS *p);
-int esc_mods_get_phys_addr_2(struct file *fp,
+int esc_mods_get_phys_addr_2(struct mods_client *client,
 			     struct MODS_GET_PHYSICAL_ADDRESS_3 *p);
-int esc_mods_get_mapped_phys_addr(struct file *fp,
+int esc_mods_get_mapped_phys_addr(struct mods_client       *client,
 			  struct MODS_GET_PHYSICAL_ADDRESS *p);
-int esc_mods_get_mapped_phys_addr_2(struct file *fp,
+int esc_mods_get_mapped_phys_addr_2(struct mods_client                 *client,
 				    struct MODS_GET_PHYSICAL_ADDRESS_2 *p);
-int esc_mods_get_mapped_phys_addr_3(struct file *fp,
+int esc_mods_get_mapped_phys_addr_3(struct mods_client                 *client,
 				    struct MODS_GET_PHYSICAL_ADDRESS_3 *p);
-int esc_mods_virtual_to_phys(struct file *fp,
+int esc_mods_virtual_to_phys(struct mods_client              *client,
 			     struct MODS_VIRTUAL_TO_PHYSICAL *p);
-int esc_mods_phys_to_virtual(struct file *fp,
+int esc_mods_phys_to_virtual(struct mods_client              *client,
 			     struct MODS_PHYSICAL_TO_VIRTUAL *p);
-int esc_mods_memory_barrier(struct file *fp);
-int esc_mods_dma_map_memory(struct file *fp,
+int esc_mods_memory_barrier(struct mods_client *client);
+int esc_mods_dma_map_memory(struct mods_client         *client,
 			    struct MODS_DMA_MAP_MEMORY *p);
-int esc_mods_dma_unmap_memory(struct file *fp,
+int esc_mods_dma_unmap_memory(struct mods_client         *client,
 			      struct MODS_DMA_MAP_MEMORY *p);
 
 #if defined(CONFIG_PPC64)
 /* ppc64 */
-int esc_mods_set_ppc_tce_bypass(struct file *fp,
+int esc_mods_set_ppc_tce_bypass(struct mods_client             *client,
 				struct MODS_SET_PPC_TCE_BYPASS *p);
-int esc_mods_get_ats_address_range(struct file *fp,
+int esc_mods_get_ats_address_range(struct mods_client                *client,
 				   struct MODS_GET_ATS_ADDRESS_RANGE *p);
-int esc_mods_set_nvlink_sysmem_trained(struct file *fp,
+int esc_mods_set_nvlink_sysmem_trained(struct mods_client             *client,
 				struct MODS_SET_NVLINK_SYSMEM_TRAINED *p);
-int esc_mods_get_nvlink_line_rate(struct file *fp,
+int esc_mods_get_nvlink_line_rate(struct mods_client               *client,
 				  struct MODS_GET_NVLINK_LINE_RATE *p);
 #endif
 
 /* acpi */
 #ifdef CONFIG_ACPI
-int esc_mods_eval_acpi_method(struct file *fp,
+int esc_mods_eval_acpi_method(struct mods_client           *client,
 			      struct MODS_EVAL_ACPI_METHOD *p);
-int esc_mods_eval_dev_acpi_method(struct file *fp,
+int esc_mods_eval_dev_acpi_method(struct mods_client               *client,
 				  struct MODS_EVAL_DEV_ACPI_METHOD *p);
-int esc_mods_eval_dev_acpi_method_2(struct file *fp,
+int esc_mods_eval_dev_acpi_method_2(struct mods_client                 *client,
 				    struct MODS_EVAL_DEV_ACPI_METHOD_2 *p);
-int esc_mods_eval_dev_acpi_method_3(struct file *fp,
+int esc_mods_eval_dev_acpi_method_3(struct mods_client                 *client,
 				    struct MODS_EVAL_DEV_ACPI_METHOD_3 *p);
-int esc_mods_acpi_get_ddc(struct file *fp, struct MODS_ACPI_GET_DDC *p);
-int esc_mods_acpi_get_ddc_2(struct file *fp, struct MODS_ACPI_GET_DDC_2 *p);
+int esc_mods_acpi_get_ddc(struct mods_client       *client,
+			  struct MODS_ACPI_GET_DDC *p);
+int esc_mods_acpi_get_ddc_2(struct mods_client         *client,
+			    struct MODS_ACPI_GET_DDC_2 *p);
 #endif
 /* pci */
 #ifdef CONFIG_PCI
-int esc_mods_find_pci_dev(struct file *fp, struct MODS_FIND_PCI_DEVICE *p);
-int esc_mods_find_pci_dev_2(struct file *fp,
+int esc_mods_find_pci_dev(struct mods_client          *client,
+			  struct MODS_FIND_PCI_DEVICE *p);
+int esc_mods_find_pci_dev_2(struct mods_client            *client,
 			    struct MODS_FIND_PCI_DEVICE_2 *p);
-int esc_mods_find_pci_class_code(struct file *fp,
+int esc_mods_find_pci_class_code(struct mods_client              *client,
 				 struct MODS_FIND_PCI_CLASS_CODE *p);
-int esc_mods_find_pci_class_code_2(struct file *fp,
+int esc_mods_find_pci_class_code_2(struct mods_client                *client,
 				   struct MODS_FIND_PCI_CLASS_CODE_2 *p);
-int esc_mods_pci_get_bar_info(struct file *fp, struct MODS_PCI_GET_BAR_INFO *p);
-int esc_mods_pci_get_bar_info_2(struct file *fp,
+int esc_mods_pci_get_bar_info(struct mods_client           *client,
+			      struct MODS_PCI_GET_BAR_INFO *p);
+int esc_mods_pci_get_bar_info_2(struct mods_client             *client,
 				struct MODS_PCI_GET_BAR_INFO_2 *p);
-int esc_mods_pci_get_irq(struct file *fp, struct MODS_PCI_GET_IRQ *p);
-int esc_mods_pci_get_irq_2(struct file *fp,
+int esc_mods_pci_get_irq(struct mods_client      *client,
+			 struct MODS_PCI_GET_IRQ *p);
+int esc_mods_pci_get_irq_2(struct mods_client        *client,
 			   struct MODS_PCI_GET_IRQ_2 *p);
-int esc_mods_pci_read(struct file *fp, struct MODS_PCI_READ *p);
-int esc_mods_pci_read_2(struct file *fp, struct MODS_PCI_READ_2 *p);
-int esc_mods_pci_write(struct file *fp, struct MODS_PCI_WRITE *p);
-int esc_mods_pci_write_2(struct file *fp, struct MODS_PCI_WRITE_2 *p);
-int esc_mods_pci_bus_add_dev(struct file *fp,
+int esc_mods_pci_read(struct mods_client *client, struct MODS_PCI_READ *p);
+int esc_mods_pci_read_2(struct mods_client *client, struct MODS_PCI_READ_2 *p);
+int esc_mods_pci_write(struct mods_client *client, struct MODS_PCI_WRITE *p);
+int esc_mods_pci_write_2(struct mods_client      *client,
+			 struct MODS_PCI_WRITE_2 *p);
+int esc_mods_pci_bus_add_dev(struct mods_client              *client,
 			     struct MODS_PCI_BUS_ADD_DEVICES *p);
-int esc_mods_pci_hot_reset(struct file *fp,
+int esc_mods_pci_bus_remove_dev(struct mods_client        *client,
+			   struct MODS_PCI_BUS_REMOVE_DEV *p);
+int esc_mods_pci_hot_reset(struct mods_client        *client,
 			   struct MODS_PCI_HOT_RESET *p);
-int esc_mods_pio_read(struct file *fp, struct MODS_PIO_READ *p);
-int esc_mods_pio_write(struct file *fp, struct MODS_PIO_WRITE *p);
-int esc_mods_device_numa_info(struct file *fp,
+int esc_mods_pio_read(struct mods_client *client, struct MODS_PIO_READ *p);
+int esc_mods_pio_write(struct mods_client *client, struct MODS_PIO_WRITE *p);
+int esc_mods_device_numa_info(struct mods_client           *client,
 			      struct MODS_DEVICE_NUMA_INFO *p);
-int esc_mods_device_numa_info_2(struct file *fp,
+int esc_mods_device_numa_info_2(struct mods_client             *client,
 				struct MODS_DEVICE_NUMA_INFO_2 *p);
-int esc_mods_get_iommu_state(struct file                 *pfile,
+int esc_mods_get_iommu_state(struct mods_client          *client,
 			     struct MODS_GET_IOMMU_STATE *state);
-int esc_mods_get_iommu_state_2(struct file                 *pfile,
+int esc_mods_get_iommu_state_2(struct mods_client          *client,
 			       struct MODS_GET_IOMMU_STATE *state);
-int esc_mods_pci_set_dma_mask(struct file             *pfile,
+int esc_mods_pci_set_dma_mask(struct mods_client      *client,
 			     struct MODS_PCI_DMA_MASK *dma_mask);
 #endif
 /* irq */
 #if defined(MODS_TEGRA) && defined(CONFIG_OF_IRQ) && defined(CONFIG_OF)
-int esc_mods_map_irq(struct file *fp, struct MODS_DT_INFO *p);
+int esc_mods_map_irq(struct mods_client *client, struct MODS_DT_INFO *p);
 #endif
-int esc_mods_register_irq(struct file *fp, struct MODS_REGISTER_IRQ *p);
-int esc_mods_register_irq_2(struct file *fp,
+int esc_mods_register_irq(struct mods_client       *client,
+			  struct MODS_REGISTER_IRQ *p);
+int esc_mods_register_irq_2(struct mods_client         *client,
 			    struct MODS_REGISTER_IRQ_2 *p);
-int esc_mods_register_irq_3(struct file *fp,
+int esc_mods_register_irq_3(struct mods_client         *client,
 			    struct MODS_REGISTER_IRQ_3 *p);
-int esc_mods_unregister_irq(struct file *fp, struct MODS_REGISTER_IRQ *p);
-int esc_mods_unregister_irq_2(struct file *fp,
+int esc_mods_unregister_irq(struct mods_client       *client,
+			    struct MODS_REGISTER_IRQ *p);
+int esc_mods_unregister_irq_2(struct mods_client         *client,
 			      struct MODS_REGISTER_IRQ_2 *p);
-int esc_mods_query_irq(struct file *fp, struct MODS_QUERY_IRQ *p);
-int esc_mods_query_irq_2(struct file *fp, struct MODS_QUERY_IRQ_2 *p);
-int esc_mods_irq_handled(struct file *fp, struct MODS_REGISTER_IRQ *p);
-int esc_mods_irq_handled_2(struct file *fp,
+int esc_mods_query_irq(struct mods_client *client, struct MODS_QUERY_IRQ *p);
+int esc_mods_query_irq_2(struct mods_client      *client,
+			 struct MODS_QUERY_IRQ_2 *p);
+int esc_mods_irq_handled(struct mods_client       *client,
+			 struct MODS_REGISTER_IRQ *p);
+int esc_mods_irq_handled_2(struct mods_client         *client,
 			   struct MODS_REGISTER_IRQ_2 *p);
 
-int esc_mods_register_irq_4(struct file *fp,
+int esc_mods_register_irq_4(struct mods_client         *client,
 			    struct MODS_REGISTER_IRQ_4 *p);
-int esc_mods_query_irq_3(struct file *fp, struct MODS_QUERY_IRQ_3 *p);
+int esc_mods_query_irq_3(struct mods_client      *client,
+			 struct MODS_QUERY_IRQ_3 *p);
 
 #ifdef MODS_TEGRA
 
 /* clock */
-int esc_mods_get_clock_handle(struct file *fp,
+int esc_mods_get_clock_handle(struct mods_client           *client,
 			      struct MODS_GET_CLOCK_HANDLE *p);
-int esc_mods_set_clock_rate(struct file *fp, struct MODS_CLOCK_RATE *p);
-int esc_mods_get_clock_rate(struct file *fp, struct MODS_CLOCK_RATE *p);
-int esc_mods_get_clock_max_rate(struct file *fp, struct MODS_CLOCK_RATE *p);
-int esc_mods_set_clock_max_rate(struct file *fp, struct MODS_CLOCK_RATE *p);
-int esc_mods_set_clock_parent(struct file *fp, struct MODS_CLOCK_PARENT *p);
-int esc_mods_get_clock_parent(struct file *fp, struct MODS_CLOCK_PARENT *p);
-int esc_mods_enable_clock(struct file *fp, struct MODS_CLOCK_HANDLE *p);
-int esc_mods_disable_clock(struct file *fp, struct MODS_CLOCK_HANDLE *p);
-int esc_mods_is_clock_enabled(struct file *fp,
+int esc_mods_set_clock_rate(struct mods_client     *client,
+			    struct MODS_CLOCK_RATE *p);
+int esc_mods_get_clock_rate(struct mods_client     *client,
+			    struct MODS_CLOCK_RATE *p);
+int esc_mods_get_clock_max_rate(struct mods_client     *client,
+				struct MODS_CLOCK_RATE *p);
+int esc_mods_set_clock_max_rate(struct mods_client     *client,
+				struct MODS_CLOCK_RATE *p);
+int esc_mods_set_clock_parent(struct mods_client       *client,
+			      struct MODS_CLOCK_PARENT *p);
+int esc_mods_get_clock_parent(struct mods_client       *client,
+			      struct MODS_CLOCK_PARENT *p);
+int esc_mods_enable_clock(struct mods_client       *client,
+			  struct MODS_CLOCK_HANDLE *p);
+int esc_mods_disable_clock(struct mods_client       *client,
+			   struct MODS_CLOCK_HANDLE *p);
+int esc_mods_is_clock_enabled(struct mods_client        *client,
 			      struct MODS_CLOCK_ENABLED *p);
-int esc_mods_clock_reset_assert(struct file *fp,
+int esc_mods_clock_reset_assert(struct mods_client       *client,
 				struct MODS_CLOCK_HANDLE *p);
-int esc_mods_clock_reset_deassert(struct file *fp,
+int esc_mods_clock_reset_deassert(struct mods_client       *client,
 				  struct MODS_CLOCK_HANDLE *p);
-int esc_mods_flush_cpu_cache_range(struct file *fp,
+int esc_mods_flush_cpu_cache_range(struct mods_client                *client,
 				   struct MODS_FLUSH_CPU_CACHE_RANGE *p);
-int esc_mods_dma_alloc_coherent(struct file *fp,
+int esc_mods_dma_alloc_coherent(struct mods_client                  *client,
 				struct MODS_DMA_COHERENT_MEM_HANDLE *p);
-int esc_mods_dma_free_coherent(struct file *fp,
+int esc_mods_dma_free_coherent(struct mods_client                   *client,
 				struct MODS_DMA_COHERENT_MEM_HANDLE *p);
-int esc_mods_dma_copy_to_user(struct file *fp,
+int esc_mods_dma_copy_to_user(struct mods_client             *client,
 				struct MODS_DMA_COPY_TO_USER *p);
 
 #ifdef CONFIG_DMA_ENGINE
-int esc_mods_dma_request_channel(struct file *fp, struct MODS_DMA_HANDLE *p);
-int esc_mods_dma_release_channel(struct file *fp, struct MODS_DMA_HANDLE *p);
-int esc_mods_dma_set_config(struct file *fp, struct MODS_DMA_CHANNEL_CONFIG *p);
-int esc_mods_dma_wait(struct file *fp, struct MODS_DMA_WAIT_DESC *p);
-int esc_mods_dma_submit_request(struct file *fp,
+int esc_mods_dma_request_channel(struct mods_client     *client,
+				 struct MODS_DMA_HANDLE *p);
+int esc_mods_dma_release_channel(struct mods_client     *client,
+				 struct MODS_DMA_HANDLE *p);
+int esc_mods_dma_set_config(struct mods_client             *client,
+			    struct MODS_DMA_CHANNEL_CONFIG *p);
+int esc_mods_dma_wait(struct mods_client *client, struct MODS_DMA_WAIT_DESC *p);
+int esc_mods_dma_submit_request(struct mods_client      *client,
 				struct MODS_DMA_TX_DESC *p);
-int esc_mods_dma_async_issue_pending(struct file *fp,
-				struct MODS_DMA_HANDLE *p);
+int esc_mods_dma_async_issue_pending(struct mods_client     *client,
+				     struct MODS_DMA_HANDLE *p);
 #endif
 
 #ifdef CONFIG_TEGRA_DC
-int esc_mods_tegra_dc_config_possible(struct file *fp,
-				struct MODS_TEGRA_DC_CONFIG_POSSIBLE *p);
+int esc_mods_tegra_dc_config_possible(struct mods_client *client,
+				      struct MODS_TEGRA_DC_CONFIG_POSSIBLE *p);
 #endif
 
 #ifdef MODS_HAS_NET
-int esc_mods_net_force_link(struct file *fp, struct MODS_NET_DEVICE_NAME *p);
+int esc_mods_net_force_link(struct mods_client          *client,
+			    struct MODS_NET_DEVICE_NAME *p);
 #endif
 
 #ifdef MODS_HAS_DMABUF
-int esc_mods_dmabuf_get_phys_addr(struct file *fp,
+int esc_mods_dmabuf_get_phys_addr(struct mods_client *client,
 				  struct MODS_DMABUF_GET_PHYSICAL_ADDRESS *p);
 #else
-static inline int esc_mods_dmabuf_get_phys_addr(struct file *fp,
+static inline int esc_mods_dmabuf_get_phys_addr(struct mods_client *client,
 				  struct MODS_DMABUF_GET_PHYSICAL_ADDRESS *p)
 				  { return -EINVAL; }
 #endif
 
 #ifdef CONFIG_TEGRA_NVADSP
-int esc_mods_adsp_load(struct file *fp);
-int esc_mods_adsp_start(struct file *fp);
-int esc_mods_adsp_stop(struct file *fp);
-int esc_mods_adsp_run_app(struct file *fp, struct MODS_ADSP_RUN_APP_INFO *p);
+int esc_mods_adsp_load(struct mods_client *client);
+int esc_mods_adsp_start(struct mods_client *client);
+int esc_mods_adsp_stop(struct mods_client *client);
+int esc_mods_adsp_run_app(struct mods_client            *client,
+			  struct MODS_ADSP_RUN_APP_INFO *p);
 #endif
 
 /* prod */
 int mods_tegra_prod_init(const struct miscdevice *misc_dev);
-int esc_mods_tegra_prod_iterate_dt(struct file *fp,
+int esc_mods_tegra_prod_iterate_dt(struct mods_client *client,
 	struct MODS_TEGRA_PROD_ITERATOR *iterator);
-int esc_mods_tegra_prod_is_supported(struct file *fp,
+int esc_mods_tegra_prod_is_supported(struct mods_client *client,
 	struct MODS_TEGRA_PROD_IS_SUPPORTED *tuple);
-int esc_mods_tegra_prod_set_prod_all(struct file *fp,
+int esc_mods_tegra_prod_set_prod_all(struct mods_client *client,
 	struct MODS_TEGRA_PROD_SET_TUPLE *tuple);
-int esc_mods_tegra_prod_set_prod_boot(struct file *fp,
+int esc_mods_tegra_prod_set_prod_boot(struct mods_client *client,
 	struct MODS_TEGRA_PROD_SET_TUPLE *tuple);
-int esc_mods_tegra_prod_set_prod_by_name(struct file *fp,
+int esc_mods_tegra_prod_set_prod_by_name(struct mods_client *client,
 	struct MODS_TEGRA_PROD_SET_TUPLE *tuple);
-int esc_mods_tegra_prod_set_prod_exact(struct file *fp,
+int esc_mods_tegra_prod_set_prod_exact(struct mods_client *client,
 	struct MODS_TEGRA_PROD_SET_TUPLE *tuple);
 
 #endif

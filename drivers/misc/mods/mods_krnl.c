@@ -36,7 +36,7 @@
 #   include <linux/console_struct.h>
 #   include <linux/vt_kern.h>
 #endif
-#ifdef MODS_HAS_MSR
+#ifdef CONFIG_X86
 #   include <asm/msr.h>
 #endif
 
@@ -55,14 +55,14 @@ static int mods_pci_sriov_configure(struct pci_dev *dev, int numvfs);
 
 /* character driver entry points */
 static const struct file_operations mods_fops = {
-	.owner			= THIS_MODULE,
-	.open			= mods_krnl_open,
-	.release		= mods_krnl_close,
-	.poll			= mods_krnl_poll,
-	.mmap			= mods_krnl_mmap,
+	.owner          = THIS_MODULE,
+	.open           = mods_krnl_open,
+	.release        = mods_krnl_close,
+	.poll           = mods_krnl_poll,
+	.mmap           = mods_krnl_mmap,
 	.unlocked_ioctl = mods_krnl_ioctl,
 #if defined(HAVE_COMPAT_IOCTL)
-	.compat_ioctl	= mods_krnl_ioctl,
+	.compat_ioctl   = mods_krnl_ioctl,
 #endif
 };
 
@@ -70,11 +70,11 @@ static const struct file_operations mods_fops = {
 
 struct miscdevice mods_dev = {
 	.minor = MISC_DYNAMIC_MINOR,
-	.name = DEVICE_NAME,
-	.fops = &mods_fops
+	.name  = DEVICE_NAME,
+	.fops  = &mods_fops
 };
 
-#if defined(MODS_CAN_REGISTER_PCI_DEV)
+#if defined(CONFIG_PCI)
 static pci_ers_result_t mods_pci_error_detected(struct pci_dev *,
 						enum pci_channel_state);
 static pci_ers_result_t mods_pci_mmio_enabled(struct pci_dev *);
@@ -162,7 +162,8 @@ static int mods_pci_sriov_configure(struct pci_dev *dev, int numvfs)
 	return numvfs;
 }
 
-static int esc_mods_set_num_vf(struct file *pfile, struct MODS_SET_NUM_VF *p)
+static int esc_mods_set_num_vf(struct mods_client     *client,
+			       struct MODS_SET_NUM_VF *p)
 {
 	int             err;
 	struct pci_dev *dev = NULL;
@@ -170,7 +171,7 @@ static int esc_mods_set_num_vf(struct file *pfile, struct MODS_SET_NUM_VF *p)
 	LOG_ENT();
 
 	/* Get the PCI device structure for the specified device from kernel */
-	err = mods_find_pci_dev(pfile, &p->dev, &dev);
+	err = mods_find_pci_dev(client, &p->dev, &dev);
 	if (unlikely(err)) {
 		if (err == -ENODEV)
 			mods_error_printk("PCI device %04x:%02x:%02x.%x not found\n",
@@ -189,7 +190,8 @@ static int esc_mods_set_num_vf(struct file *pfile, struct MODS_SET_NUM_VF *p)
 	return err;
 }
 
-static int esc_mods_set_total_vf(struct file *pfile, struct MODS_SET_NUM_VF *p)
+static int esc_mods_set_total_vf(struct mods_client     *client,
+				 struct MODS_SET_NUM_VF *p)
 {
 	int             err;
 	struct pci_dev *dev = NULL;
@@ -200,7 +202,7 @@ static int esc_mods_set_total_vf(struct file *pfile, struct MODS_SET_NUM_VF *p)
 		"pci_sriov_set_totalvfs(totalvfs=%d)\n", p->numvfs);
 
 	/* Get the PCI device structure for the specified device from kernel */
-	err = mods_find_pci_dev(pfile, &p->dev, &dev);
+	err = mods_find_pci_dev(client, &p->dev, &dev);
 	if (unlikely(err)) {
 		if (err == -ENODEV)
 			mods_error_printk("PCI device %04x:%02x:%02x.%x not found\n",
@@ -267,6 +269,21 @@ u32 mods_get_access_token(void)
 	return access_token;
 }
 
+static int validate_client(struct mods_client *client)
+{
+	if (!client) {
+		mods_error_printk("invalid client\n");
+		return false;
+	}
+
+	if (client->client_id < 1 || client->client_id > MODS_MAX_CLIENTS) {
+		mods_error_printk("invalid client id %u\n", client->client_id);
+		return false;
+	}
+
+	return true;
+}
+
 static int mods_set_access_token(u32 tok)
 {
 	/* When setting a null token, the existing token must match the
@@ -282,10 +299,8 @@ static int mods_set_access_token(u32 tok)
 	return OK;
 }
 
-static int mods_check_access_token(struct file *fp)
+static int mods_check_access_token(struct mods_client *client)
 {
-	struct mods_client *client = fp->private_data;
-
 	if (client->access_token != mods_get_access_token())
 		return -EFAULT;
 
@@ -307,7 +322,7 @@ static int __init mods_init_module(void)
 	if (rc < 0)
 		return -EBUSY;
 
-#if defined(MODS_CAN_REGISTER_PCI_DEV)
+#if defined(CONFIG_PCI)
 	rc = pci_register_driver(&mods_pci_driver);
 	if (rc < 0)
 		return -EBUSY;
@@ -352,7 +367,7 @@ static void __exit mods_exit_module(void)
 
 	mods_cleanup_irq();
 
-#if defined(MODS_CAN_REGISTER_PCI_DEV)
+#if defined(CONFIG_PCI)
 	pci_unregister_driver(&mods_pci_driver);
 #endif
 
@@ -408,6 +423,7 @@ static void mods_disable_all_devices(struct mods_client *client)
 		mods_disable_device(old->dev);
 		client->enabled_devices = old->next;
 		kfree(old);
+		atomic_dec(&client->num_allocs);
 	}
 
 	mutex_unlock(mods_get_irq_mutex());
@@ -421,20 +437,19 @@ static void mods_disable_all_devices(struct mods_client *client)
 #endif
 }
 
-static int mods_resume_console(struct file *pfile);
+static int mods_resume_console(struct mods_client *client);
 
 /*********************
  * MAPPING FUNCTIONS *
  *********************/
 static int mods_register_mapping(
-	struct file          *fp,
+	struct mods_client   *client,
 	struct MODS_MEM_INFO *p_mem_info,
 	u64                   dma_addr,
 	u64                   virtual_address,
 	u64                   mapping_length)
 {
 	struct SYS_MAP_MEMORY *p_map_mem;
-	struct mods_client    *client = fp->private_data;
 
 	LOG_ENT();
 
@@ -443,6 +458,7 @@ static int mods_register_mapping(
 		LOG_EXT();
 		return -ENOMEM;
 	}
+	atomic_inc(&client->num_allocs);
 
 	p_map_mem->dma_addr = dma_addr;
 	p_map_mem->virtual_addr = virtual_address;
@@ -459,10 +475,10 @@ static int mods_register_mapping(
 	return OK;
 }
 
-static void mods_unregister_mapping(struct file *fp, u64 virtual_address)
+static void mods_unregister_mapping(struct mods_client *client,
+				    u64                 virtual_address)
 {
 	struct SYS_MAP_MEMORY *p_map_mem;
-	struct mods_client    *client = fp->private_data;
 	struct list_head      *head   = &client->mem_map_list;
 	struct list_head      *iter;
 
@@ -477,6 +493,7 @@ static void mods_unregister_mapping(struct file *fp, u64 virtual_address)
 
 			/* free our data struct which keeps track of mapping */
 			kfree(p_map_mem);
+			atomic_dec(&client->num_allocs);
 
 			return;
 		}
@@ -484,10 +501,9 @@ static void mods_unregister_mapping(struct file *fp, u64 virtual_address)
 	LOG_EXT();
 }
 
-static void mods_unregister_all_mappings(struct file *fp)
+static void mods_unregister_all_mappings(struct mods_client *client)
 {
 	struct SYS_MAP_MEMORY *p_map_mem;
-	struct mods_client    *client = fp->private_data;
 	struct list_head      *head   = &client->mem_map_list;
 	struct list_head      *iter;
 	struct list_head      *tmp;
@@ -496,22 +512,22 @@ static void mods_unregister_all_mappings(struct file *fp)
 
 	list_for_each_safe(iter, tmp, head) {
 		p_map_mem = list_entry(iter, struct SYS_MAP_MEMORY, list);
-		mods_unregister_mapping(fp, p_map_mem->virtual_addr);
+		mods_unregister_mapping(client, p_map_mem->virtual_addr);
 	}
 
 	LOG_EXT();
 }
 
-static pgprot_t mods_get_prot(u32 mem_type, pgprot_t prot)
+static pgprot_t mods_get_prot(u8 mem_type, pgprot_t prot)
 {
 	switch (mem_type) {
-	case MODS_MEMORY_CACHED:
+	case MODS_ALLOC_CACHED:
 		return prot;
 
-	case MODS_MEMORY_UNCACHED:
+	case MODS_ALLOC_UNCACHED:
 		return MODS_PGPROT_UC(prot);
 
-	case MODS_MEMORY_WRITECOMBINE:
+	case MODS_ALLOC_WRITECOMBINE:
 		return MODS_PGPROT_WC(prot);
 
 	default:
@@ -521,11 +537,11 @@ static pgprot_t mods_get_prot(u32 mem_type, pgprot_t prot)
 	}
 }
 
-static pgprot_t mods_get_prot_for_range(struct file *fp, u64 dma_addr,
-					u64 size, pgprot_t prot)
+static pgprot_t mods_get_prot_for_range(struct mods_client *client,
+					u64                 dma_addr,
+					u64                 size,
+					pgprot_t            prot)
 {
-	struct mods_client *client = fp->private_data;
-
 	if ((dma_addr == client->mem_type.dma_addr) &&
 		(size == client->mem_type.size)) {
 
@@ -534,16 +550,16 @@ static pgprot_t mods_get_prot_for_range(struct file *fp, u64 dma_addr,
 	return prot;
 }
 
-const char *mods_get_prot_str(u32 mem_type)
+const char *mods_get_prot_str(u8 mem_type)
 {
 	switch (mem_type) {
-	case MODS_MEMORY_CACHED:
+	case MODS_ALLOC_CACHED:
 		return "WB";
 
-	case MODS_MEMORY_UNCACHED:
+	case MODS_ALLOC_UNCACHED:
 		return "UC";
 
-	case MODS_MEMORY_WRITECOMBINE:
+	case MODS_ALLOC_WRITECOMBINE:
 		return "WC";
 
 	default:
@@ -551,12 +567,10 @@ const char *mods_get_prot_str(u32 mem_type)
 	}
 }
 
-static const char *mods_get_prot_str_for_range(struct file *fp,
-					       u64          dma_addr,
-					       u64          size)
+static const char *mods_get_prot_str_for_range(struct mods_client *client,
+					       u64                 dma_addr,
+					       u64                 size)
 {
-	struct mods_client *client = fp->private_data;
-
 	if ((dma_addr == client->mem_type.dma_addr) &&
 		(size == client->mem_type.size)) {
 
@@ -567,7 +581,7 @@ static const char *mods_get_prot_str_for_range(struct file *fp,
 /********************
  * PCI ERROR FUNCTIONS *
  ********************/
-#if defined(MODS_CAN_REGISTER_PCI_DEV)
+#if defined(CONFIG_PCI)
 static pci_ers_result_t mods_pci_error_detected(struct pci_dev *dev,
 						enum pci_channel_state state)
 {
@@ -609,7 +623,7 @@ static void mods_pci_resume(struct pci_dev *dev)
  ********************/
 static void mods_krnl_vma_open(struct vm_area_struct *vma)
 {
-	struct mods_vm_private_data *vma_private_data;
+	struct mods_vm_private_data *priv;
 
 	LOG_ENT();
 	mods_debug_printk(DEBUG_MEM_DETAILED,
@@ -617,42 +631,41 @@ static void mods_krnl_vma_open(struct vm_area_struct *vma)
 			  vma->vm_start,
 			  (u64)(MODS_VMA_PGOFF(vma) << PAGE_SHIFT));
 
-	if (MODS_VMA_PRIVATE(vma)) {
-		vma_private_data = MODS_VMA_PRIVATE(vma);
-		atomic_inc(&vma_private_data->usage_count);
-	}
+	priv = vma->vm_private_data;
+	if (priv)
+		atomic_inc(&priv->usage_count);
+
 	LOG_EXT();
 }
 
 static void mods_krnl_vma_close(struct vm_area_struct *vma)
 {
+	struct mods_vm_private_data *priv;
+
 	LOG_ENT();
 
-	if (MODS_VMA_PRIVATE(vma)) {
-		struct mods_vm_private_data *vma_private_data
-			= MODS_VMA_PRIVATE(vma);
-		if (atomic_dec_and_test(&vma_private_data->usage_count)) {
-			struct mods_client *client =
-				vma_private_data->fp->private_data;
+	priv = vma->vm_private_data;
+	if (priv && atomic_dec_and_test(&priv->usage_count)) {
+		struct mods_client *client = priv->client;
 
-			if (unlikely(mutex_lock_interruptible(
-						&client->mtx))) {
-				LOG_EXT();
-				return;
-			}
-
-			/* we need to unregister the mapping */
-			mods_unregister_mapping(vma_private_data->fp,
-						vma->vm_start);
-			mods_debug_printk(DEBUG_MEM_DETAILED,
-					  "closed vma, virt 0x%lx\n",
-					  vma->vm_start);
-			MODS_VMA_PRIVATE(vma) = NULL;
-			kfree(vma_private_data);
-
-			mutex_unlock(&client->mtx);
+		if (unlikely(mutex_lock_interruptible(
+					&client->mtx))) {
+			LOG_EXT();
+			return;
 		}
+
+		/* we need to unregister the mapping */
+		mods_unregister_mapping(client, vma->vm_start);
+		mods_debug_printk(DEBUG_MEM_DETAILED,
+				  "closed vma, virt 0x%lx\n",
+				  vma->vm_start);
+		vma->vm_private_data = NULL;
+		kfree(priv);
+		atomic_dec(&client->num_allocs);
+
+		mutex_unlock(&client->mtx);
 	}
+
 	LOG_EXT();
 }
 
@@ -684,78 +697,102 @@ static int mods_krnl_open(struct inode *ip, struct file *fp)
 static int mods_krnl_close(struct inode *ip, struct file *fp)
 {
 	struct mods_client *client    = fp->private_data;
-	u8                  client_id = client->client_id;
-	int                 err = OK;
+	int                 final_err = OK;
+	int                 err       = OK;
 
 	LOG_ENT();
 
-	WARN_ON(!is_client_id_valid(client_id));
-	if (!is_client_id_valid(client_id)) {
+	if (!validate_client(client)) {
 		LOG_EXT();
 		return -EINVAL;
 	}
 
 	mods_free_client_interrupts(client);
 
-	mods_resume_console(fp);
+	mods_resume_console(client);
 
-	mods_unregister_all_mappings(fp);
-	err = mods_unregister_all_alloc(fp);
+	mods_unregister_all_mappings(client);
+	err = mods_unregister_all_alloc(client);
 	if (err)
 		mods_error_printk("failed to free all memory\n");
+	final_err = err;
 
 #if defined(CONFIG_PPC64)
-	err = mods_unregister_all_ppc_tce_bypass(fp);
+	err = mods_unregister_all_ppc_tce_bypass(client);
 	if (err)
 		mods_error_printk("failed to restore dma bypass\n");
+	if (!final_err)
+		final_err = err;
 
-	err = mods_unregister_all_nvlink_sysmem_trained(fp);
+	err = mods_unregister_all_nvlink_sysmem_trained(client);
 	if (err)
 		mods_error_printk("failed to free nvlink trained\n");
+	if (!final_err)
+		final_err = err;
 #endif
 
 	mods_disable_all_devices(client);
 
-	mods_free_client(client_id);
+	if (atomic_read(&client->num_allocs) ||
+	    atomic_read(&client->num_pages)) {
+
+		mods_error_printk("not all allocations have been freed, allocs=%u, pages=%u\n",
+			      (unsigned int)atomic_read(&client->num_allocs),
+			      (unsigned int)atomic_read(&client->num_pages));
+		if (!final_err)
+			final_err = -ENOMEM;
+	}
+
+	mods_free_client(client->client_id);
 
 	mods_info_printk("driver closed\n");
 	LOG_EXT();
-	return err;
+	return final_err;
 }
 
 static unsigned int mods_krnl_poll(struct file *fp, poll_table *wait)
 {
 	unsigned int mask = 0;
 	struct mods_client *client = fp->private_data;
-	u8 client_id = get_client_id(fp);
-	int access_tok_ret = mods_check_access_token(fp);
+	int err;
 
-	if (access_tok_ret < 0)
-		return access_tok_ret;
+	if (!validate_client(client))
+		return -EINVAL;
+
+	err = mods_check_access_token(client);
+	if (err < 0)
+		return err;
 
 	if (!(fp->f_flags & O_NONBLOCK)) {
 		mods_debug_printk(DEBUG_ISR_DETAILED, "poll wait\n");
 		poll_wait(fp, &client->interrupt_event, wait);
 	}
 	/* if any interrupts pending then check intr, POLLIN on irq */
-	mask |= mods_irq_event_check(client_id);
+	mask |= mods_irq_event_check(client->client_id);
 	mods_debug_printk(DEBUG_ISR_DETAILED, "poll mask 0x%x\n", mask);
 	return mask;
 }
 
-static int mods_krnl_map_inner(struct file *fp, struct vm_area_struct *vma);
+static int mods_krnl_map_inner(struct mods_client    *client,
+			       struct vm_area_struct *vma);
 
 static int mods_krnl_mmap(struct file *fp, struct vm_area_struct *vma)
 {
 	struct mods_vm_private_data *vma_private_data;
-	int access_tok_ret;
+	struct mods_client          *client = fp->private_data;
+	int err;
 
 	LOG_ENT();
 
-	access_tok_ret = mods_check_access_token(fp);
-	if (access_tok_ret < 0) {
+	if (!validate_client(client)) {
 		LOG_EXT();
-		return access_tok_ret;
+		return -EINVAL;
+	}
+
+	err = mods_check_access_token(client);
+	if (err < 0) {
+		LOG_EXT();
+		return err;
 	}
 
 	vma->vm_ops = &mods_krnl_vm_ops;
@@ -766,23 +803,23 @@ static int mods_krnl_mmap(struct file *fp, struct vm_area_struct *vma)
 		LOG_EXT();
 		return -ENOMEM;
 	}
+	atomic_inc(&client->num_allocs);
 
 	/* set private data for vm_area_struct */
 	atomic_set(&vma_private_data->usage_count, 0);
-	vma_private_data->fp = fp;
-	MODS_VMA_PRIVATE(vma) = vma_private_data;
+	vma_private_data->client = client;
+	vma->vm_private_data = vma_private_data;
 
 	/* call for the first time open function */
 	mods_krnl_vma_open(vma);
 
 	{
 		int err = OK;
-		struct mods_client *client = fp->private_data;
 
 		if (unlikely(mutex_lock_interruptible(&client->mtx)))
 			err = -EINTR;
 		else {
-			err = mods_krnl_map_inner(fp, vma);
+			err = mods_krnl_map_inner(client, vma);
 			mutex_unlock(&client->mtx);
 		}
 		LOG_EXT();
@@ -790,10 +827,11 @@ static int mods_krnl_mmap(struct file *fp, struct vm_area_struct *vma)
 	}
 }
 
-static int mods_krnl_map_inner(struct file *fp, struct vm_area_struct *vma)
+static int mods_krnl_map_inner(struct mods_client    *client,
+			       struct vm_area_struct *vma)
 {
 	u64                   req_pa     = MODS_VMA_OFFSET(vma);
-	struct MODS_MEM_INFO *p_mem_info = mods_find_alloc(fp, req_pa);
+	struct MODS_MEM_INFO *p_mem_info = mods_find_alloc(client, req_pa);
 	u32                   req_pages  = MODS_VMA_SIZE(vma) >> PAGE_SHIFT;
 
 	if ((req_pa             & ~PAGE_MASK) != 0 ||
@@ -885,7 +923,7 @@ static int mods_krnl_map_inner(struct file *fp, struct vm_area_struct *vma)
 		/* MODS_VMA_OFFSET(vma) can change so it can't be used
 		 * to register the mapping
 		 */
-		mods_register_mapping(fp,
+		mods_register_mapping(client,
 				      p_mem_info,
 				      chunks[first].dma_addr,
 				      vma->vm_start,
@@ -899,7 +937,7 @@ static int mods_krnl_map_inner(struct file *fp, struct vm_area_struct *vma)
 		    req_pa,
 		    (unsigned long)vma->vm_start,
 		    (unsigned long)MODS_VMA_SIZE(vma),
-		    mods_get_prot_str_for_range(fp, req_pa,
+		    mods_get_prot_str_for_range(client, req_pa,
 						MODS_VMA_SIZE(vma)));
 
 		if (io_remap_pfn_range(
@@ -908,7 +946,7 @@ static int mods_krnl_map_inner(struct file *fp, struct vm_area_struct *vma)
 				req_pa>>PAGE_SHIFT,
 				MODS_VMA_SIZE(vma),
 				mods_get_prot_for_range(
-					fp,
+					client,
 					req_pa,
 					MODS_VMA_SIZE(vma),
 					vma->vm_page_prot))) {
@@ -916,7 +954,7 @@ static int mods_krnl_map_inner(struct file *fp, struct vm_area_struct *vma)
 			return -EAGAIN;
 		}
 
-		mods_register_mapping(fp,
+		mods_register_mapping(client,
 				      NULL,
 				      req_pa,
 				      vma->vm_start,
@@ -944,28 +982,21 @@ static int mods_get_screen_info(struct MODS_SCREEN_INFO *p)
  * ESCAPE CALL FUNCTIONS *
  *************************/
 
-static int esc_mods_get_api_version(struct file *pfile,
+static int esc_mods_get_api_version(struct mods_client      *client,
 				    struct MODS_GET_VERSION *p)
 {
 	p->version = MODS_DRIVER_VERSION;
 	return OK;
 }
 
-static int esc_mods_get_kernel_version(struct file *pfile,
+static int esc_mods_get_kernel_version(struct mods_client      *client,
 				       struct MODS_GET_VERSION *p)
 {
 	p->version = MODS_KERNEL_VERSION;
 	return OK;
 }
 
-static int esc_mods_set_driver_para(struct file *pfile,
-				    struct MODS_SET_PARA *p)
-{
-	int rc = OK;
-	return rc;
-}
-
-static int esc_mods_get_screen_info(struct file *pfile,
+static int esc_mods_get_screen_info(struct mods_client      *client,
 				    struct MODS_SCREEN_INFO *p)
 {
 #if defined(CONFIG_ARM) || defined(CONFIG_ARM64) || defined(CONFIG_PPC64)
@@ -982,7 +1013,7 @@ static int esc_mods_get_screen_info(struct file *pfile,
 #endif
 }
 
-static int esc_mods_get_screen_info_2(struct file *pfile,
+static int esc_mods_get_screen_info_2(struct mods_client        *client,
 				      struct MODS_SCREEN_INFO_2 *p)
 {
 #if defined(CONFIG_ARM) || defined(CONFIG_ARM64) || defined(CONFIG_PPC64)
@@ -1000,7 +1031,7 @@ static int esc_mods_get_screen_info_2(struct file *pfile,
 #endif
 }
 
-static int esc_mods_lock_console(struct file *pfile)
+static int esc_mods_lock_console(struct mods_client *client)
 {
 #if defined(MODS_HAS_CONSOLE_LOCK)
 	console_lock();
@@ -1010,7 +1041,7 @@ static int esc_mods_lock_console(struct file *pfile)
 #endif
 }
 
-static int esc_mods_unlock_console(struct file *pfile)
+static int esc_mods_unlock_console(struct mods_client *client)
 {
 #if defined(MODS_HAS_CONSOLE_LOCK)
 	console_unlock();
@@ -1020,7 +1051,7 @@ static int esc_mods_unlock_console(struct file *pfile)
 #endif
 }
 
-static int esc_mods_suspend_console(struct file *pfile)
+static int esc_mods_suspend_console(struct mods_client *client)
 {
 	int err = -EINVAL;
 
@@ -1029,7 +1060,6 @@ static int esc_mods_suspend_console(struct file *pfile)
 #if defined(CONFIG_FB) && defined(MODS_HAS_CONSOLE_LOCK)
 	if (num_registered_fb) {
 		/* tell the os to block fb accesses */
-		struct mods_client *client = pfile->private_data;
 		int i = 0;
 
 		for (i = 0; i < num_registered_fb; i++) {
@@ -1061,12 +1091,12 @@ static int esc_mods_suspend_console(struct file *pfile)
 	return err;
 }
 
-static int esc_mods_resume_console(struct file *pfile)
+static int esc_mods_resume_console(struct mods_client *client)
 {
-	return mods_resume_console(pfile);
+	return mods_resume_console(client);
 }
 
-static int mods_resume_console(struct file *pfile)
+static int mods_resume_console(struct mods_client *client)
 {
 	int err = -EINVAL;
 
@@ -1074,7 +1104,6 @@ static int mods_resume_console(struct file *pfile)
 
 #if defined(CONFIG_FB) && defined(MODS_HAS_CONSOLE_LOCK)
 	if (num_registered_fb) {
-		struct mods_client *client = pfile->private_data;
 		int i = 0;
 
 		for (i = 0; i < num_registered_fb; i++) {
@@ -1106,7 +1135,7 @@ static int mods_resume_console(struct file *pfile)
 	return err;
 }
 
-static int esc_mods_acquire_access_token(struct file *pfile,
+static int esc_mods_acquire_access_token(struct mods_client       *client,
 					 struct MODS_ACCESS_TOKEN *ptoken)
 {
 	int err = -EINVAL;
@@ -1124,18 +1153,15 @@ static int esc_mods_acquire_access_token(struct file *pfile,
 	err = mods_set_access_token(ptoken->token);
 	if (err)
 		mods_error_printk("unable to set access token!\n");
-	else {
-		struct mods_client *client = pfile->private_data;
-
+	else
 		client->access_token = ptoken->token;
-	}
 
 	LOG_EXT();
 
 	return err;
 }
 
-static int esc_mods_release_access_token(struct file *pfile,
+static int esc_mods_release_access_token(struct mods_client       *client,
 					 struct MODS_ACCESS_TOKEN *ptoken)
 {
 	int err = -EINVAL;
@@ -1152,18 +1178,15 @@ static int esc_mods_release_access_token(struct file *pfile,
 	err = mods_set_access_token(MODS_ACCESS_TOKEN_NONE);
 	if (err)
 		mods_error_printk("unable to clear access token!\n");
-	else {
-		struct mods_client *client = pfile->private_data;
-
+	else
 		client->access_token = MODS_ACCESS_TOKEN_NONE;
-	}
 
 	LOG_EXT();
 
 	return err;
 }
 
-static int esc_mods_verify_access_token(struct file *pfile,
+static int esc_mods_verify_access_token(struct mods_client       *client,
 					struct MODS_ACCESS_TOKEN *ptoken)
 {
 	int err = -EINVAL;
@@ -1171,8 +1194,6 @@ static int esc_mods_verify_access_token(struct file *pfile,
 	LOG_ENT();
 
 	if (ptoken->token == mods_get_access_token()) {
-		struct mods_client *client = pfile->private_data;
-
 		client->access_token = ptoken->token;
 		err = OK;
 	} else
@@ -1189,11 +1210,7 @@ struct mods_sysfs_work {
 	int                     err;
 };
 
-#ifdef MODS_OLD_INIT_WORK
-static void sysfs_write_task(void *w)
-#else
 static void sysfs_write_task(struct work_struct *w)
-#endif
 {
 	struct mods_sysfs_work *task = container_of(w,
 						    struct mods_sysfs_work,
@@ -1226,7 +1243,7 @@ static void sysfs_write_task(struct work_struct *w)
 	LOG_EXT();
 }
 
-static int esc_mods_write_sysfs_node(struct file            *pfile,
+static int esc_mods_write_sysfs_node(struct mods_client     *client,
 				     struct MODS_SYSFS_NODE *pdata)
 {
 	int err = -EINVAL;
@@ -1247,11 +1264,7 @@ static int esc_mods_write_sysfs_node(struct file            *pfile,
 		return err;
 	}
 
-#ifdef MODS_OLD_INIT_WORK
-	INIT_WORK(&task.work, sysfs_write_task, &task);
-#else
 	INIT_WORK(&task.work, sysfs_write_task);
-#endif
 	queue_work(wq, &task.work);
 	flush_workqueue(wq);
 	destroy_workqueue(wq);
@@ -1264,8 +1277,8 @@ static int esc_mods_write_sysfs_node(struct file            *pfile,
 	return err;
 }
 
-#ifdef MODS_HAS_MSR
-static int esc_mods_read_msr(struct file *pfile, struct MODS_MSR *p)
+#ifdef CONFIG_X86
+static int esc_mods_read_msr(struct mods_client *client, struct MODS_MSR *p)
 {
 	int err = -EINVAL;
 
@@ -1279,7 +1292,7 @@ static int esc_mods_read_msr(struct file *pfile, struct MODS_MSR *p)
 	return err;
 }
 
-static int esc_mods_write_msr(struct file *pfile, struct MODS_MSR *p)
+static int esc_mods_write_msr(struct mods_client *client, struct MODS_MSR *p)
 {
 	int err = -EINVAL;
 
@@ -1302,17 +1315,23 @@ static long mods_krnl_ioctl(struct file  *fp,
 			    unsigned int  cmd,
 			    unsigned long i_arg)
 {
-	int err = 0;
-	void *arg_copy = 0;
-	void *arg = (void *) i_arg;
-	int arg_size;
-	char buf[64];
+	int                 err      = 0;
+	void               *arg_copy = NULL;
+	void               *arg      = (void *)i_arg;
+	struct mods_client *client   = fp->private_data;
+	int                 arg_size;
+	char                buf[64];
 
 	LOG_ENT();
 
+	if (!validate_client(client)) {
+		LOG_EXT();
+		return -EINVAL;
+	}
+
 	if ((cmd != MODS_ESC_VERIFY_ACCESS_TOKEN) &&
 	    (cmd != MODS_ESC_GET_API_VERSION)) {
-		err = mods_check_access_token(fp);
+		err = mods_check_access_token(client);
 		if (err) {
 			LOG_EXT();
 			return err;
@@ -1327,12 +1346,16 @@ static long mods_krnl_ioctl(struct file  *fp,
 			LOG_EXT();
 			return -ENOMEM;
 		}
+		atomic_inc(&client->num_allocs);
 	} else if (arg_size > 0)
 		arg_copy = buf;
 
 	if ((arg_size > 0) && copy_from_user(arg_copy, arg, arg_size)) {
 		mods_error_printk("failed to copy ioctl data\n");
-		kfree(arg_copy);
+		if (arg_size > (int)sizeof(buf)) {
+			kfree(arg_copy);
+			atomic_dec(&client->num_allocs);
+		}
 		LOG_EXT();
 		return -EFAULT;
 	}
@@ -1347,7 +1370,7 @@ static long mods_krnl_ioctl(struct file  *fp,
 				"invalid parameter passed to ioctl " #code \
 				"\n");\
 		} else {\
-			err = function(fp, (struct argtype *)arg_copy);\
+			err = function(client, (struct argtype *)arg_copy);\
 			if ((err == OK) && \
 			    copy_to_user(arg, arg_copy, arg_size)) {\
 				err = -EFAULT;\
@@ -1369,7 +1392,7 @@ static long mods_krnl_ioctl(struct file  *fp,
 				"invalid parameter passed to ioctl " #code \
 				"\n");\
 		} else {\
-			err = function(fp, (struct argtype *)arg_copy);\
+			err = function(client, (struct argtype *)arg_copy);\
 		} \
 	} while (0);\
 	})
@@ -1384,7 +1407,7 @@ static long mods_krnl_ioctl(struct file  *fp,
 				"invalid parameter passed to ioctl " #code \
 				"\n");\
 		} else {\
-			err = function(fp);\
+			err = function(client);\
 		} \
 	} while (0);\
 	})
@@ -1471,6 +1494,12 @@ static long mods_krnl_ioctl(struct file  *fp,
 				    MODS_PCI_HOT_RESET);
 		break;
 
+	case MODS_ESC_PCI_BUS_REMOVE_DEV:
+		MODS_IOCTL_NORETVAL(MODS_ESC_PCI_BUS_REMOVE_DEV,
+			   esc_mods_pci_bus_remove_dev,
+			   MODS_PCI_BUS_REMOVE_DEV);
+		break;
+
 	case MODS_ESC_PIO_READ:
 		MODS_IOCTL(MODS_ESC_PIO_READ,
 			   esc_mods_pio_read, MODS_PIO_READ);
@@ -1527,6 +1556,12 @@ static long mods_krnl_ioctl(struct file  *fp,
 		MODS_IOCTL(MODS_ESC_DEVICE_ALLOC_PAGES_2,
 			   esc_mods_device_alloc_pages_2,
 			   MODS_DEVICE_ALLOC_PAGES_2);
+		break;
+
+	case MODS_ESC_ALLOC_PAGES_2:
+		MODS_IOCTL(MODS_ESC_ALLOC_PAGES_2,
+			   esc_mods_alloc_pages_2,
+			   MODS_ALLOC_PAGES_2);
 		break;
 
 	case MODS_ESC_FREE_PAGES:
@@ -1736,11 +1771,6 @@ static long mods_krnl_ioctl(struct file  *fp,
 	case MODS_ESC_GET_KERNEL_VERSION:
 		MODS_IOCTL(MODS_ESC_GET_KERNEL_VERSION,
 			   esc_mods_get_kernel_version, MODS_GET_VERSION);
-		break;
-
-	case MODS_ESC_SET_DRIVER_PARA:
-		MODS_IOCTL_NORETVAL(MODS_ESC_SET_DRIVER_PARA,
-				    esc_mods_set_driver_para, MODS_SET_PARA);
 		break;
 
 #if defined(MODS_HAS_CLOCK)
@@ -2018,7 +2048,7 @@ static long mods_krnl_ioctl(struct file  *fp,
 		break;
 #endif
 
-#ifdef MODS_HAS_MSR
+#ifdef CONFIG_X86
 	case MODS_ESC_READ_MSR:
 		MODS_IOCTL(MODS_ESC_READ_MSR,
 			   esc_mods_read_msr, MODS_MSR);
@@ -2038,8 +2068,10 @@ static long mods_krnl_ioctl(struct file  *fp,
 		break;
 	}
 
-	if (arg_size > (int)sizeof(buf))
+	if (arg_size > (int)sizeof(buf)) {
 		kfree(arg_copy);
+		atomic_dec(&client->num_allocs);
+	}
 
 	LOG_EXT();
 	return err;

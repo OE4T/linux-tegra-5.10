@@ -1,7 +1,7 @@
 /*
  * mods_dma.c - This file is part of NVIDIA MODS kernel driver.
  *
- * Copyright (c) 2017, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * NVIDIA MODS kernel driver is free software: you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -198,7 +198,7 @@ int mods_dma_async_is_tx_complete(struct MODS_DMA_HANDLE *p_handle,
 	return ret;
 }
 
-int esc_mods_dma_request_channel(struct file *pfile,
+int esc_mods_dma_request_channel(struct mods_client *client,
 				 struct MODS_DMA_HANDLE *p_handle)
 {
 	struct dma_chan *chan;
@@ -251,14 +251,14 @@ int esc_mods_dma_request_channel(struct file *pfile,
 	return 0;
 }
 
-int esc_mods_dma_release_channel(struct file *pfile,
+int esc_mods_dma_release_channel(struct mods_client *client,
 				 struct MODS_DMA_HANDLE *p_handle)
 {
 	mods_release_channel(p_handle->dma_id);
 	return OK;
 }
 
-int esc_mods_dma_set_config(struct file *pfile,
+int esc_mods_dma_set_config(struct mods_client *client,
 			    struct MODS_DMA_CHANNEL_CONFIG *p_config)
 
 {
@@ -302,7 +302,7 @@ int esc_mods_dma_set_config(struct file *pfile,
 }
 
 
-int esc_mods_dma_submit_request(struct file *pfile,
+int esc_mods_dma_submit_request(struct mods_client *client,
 				struct MODS_DMA_TX_DESC *p_mods_desc)
 {
 	int ret = OK;
@@ -373,7 +373,7 @@ failed:
 	return ret;
 }
 
-int esc_mods_dma_async_issue_pending(struct file *pfile,
+int esc_mods_dma_async_issue_pending(struct mods_client *client,
 				     struct MODS_DMA_HANDLE *p_handle)
 {
 	int ret = OK;
@@ -394,7 +394,7 @@ int esc_mods_dma_async_issue_pending(struct file *pfile,
 	return ret;
 }
 
-int esc_mods_dma_wait(struct file *pfile,
+int esc_mods_dma_wait(struct mods_client *client,
 		      struct MODS_DMA_WAIT_DESC *p_wait_desc)
 {
 	int ret;
@@ -414,7 +414,7 @@ int esc_mods_dma_wait(struct file *pfile,
 	return  ret;
 }
 
-int esc_mods_dma_alloc_coherent(struct file                    *fp,
+int esc_mods_dma_alloc_coherent(struct mods_client *client,
 				struct MODS_DMA_COHERENT_MEM_HANDLE *p)
 {
 	dma_addr_t    p_phys_addr;
@@ -454,8 +454,8 @@ int esc_mods_dma_alloc_coherent(struct file                    *fp,
 	return 0;
 }
 
-int esc_mods_dma_free_coherent(struct file                    *fp,
-				struct MODS_DMA_COHERENT_MEM_HANDLE *p)
+int esc_mods_dma_free_coherent(struct mods_client *client,
+			       struct MODS_DMA_COHERENT_MEM_HANDLE *p)
 {
 	LOG_ENT();
 
@@ -478,8 +478,8 @@ int esc_mods_dma_free_coherent(struct file                    *fp,
 	return 0;
 }
 
-int esc_mods_dma_copy_to_user(struct file                    *fp,
-				struct MODS_DMA_COPY_TO_USER *p)
+int esc_mods_dma_copy_to_user(struct mods_client *client,
+			      struct MODS_DMA_COPY_TO_USER *p)
 {
 	int retval;
 

@@ -2,7 +2,7 @@
 /*
  * mods_debugfs.c - This file is part of NVIDIA MODS kernel driver.
  *
- * Copyright (c) 2014-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * NVIDIA MODS kernel driver is free software: you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -19,8 +19,6 @@
  */
 
 #include "mods_internal.h"
-
-#ifdef MODS_HAS_DEBUGFS
 
 #include <linux/module.h>
 #include <linux/debugfs.h>
@@ -477,19 +475,15 @@ static int mods_mi_set(void *data, u64 val)
 	return 0;
 }
 DEFINE_SIMPLE_ATTRIBUTE(mods_mi_fops, mods_mi_get, mods_mi_set, "%llu\n");
-#endif /* MODS_HAS_DEBUGFS */
 
 void mods_remove_debugfs(void)
 {
-#ifdef MODS_HAS_DEBUGFS
 	debugfs_remove_recursive(mods_debugfs_dir);
 	mods_debugfs_dir = NULL;
-#endif
 }
 
 int mods_create_debugfs(struct miscdevice *modsdev)
 {
-#ifdef MODS_HAS_DEBUGFS
 	struct dentry *retval;
 	int err = 0;
 #ifdef CONFIG_TEGRA_DC
@@ -699,8 +693,5 @@ remove_out:
 	dev_err(modsdev->this_device, "could not create debugfs\n");
 	mods_remove_debugfs();
 	return err;
-#else
-	return 0;
-#endif
 }
 
