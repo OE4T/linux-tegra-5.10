@@ -1015,7 +1015,7 @@ static int test_ahash_perf(struct ahash_request *req, unsigned long dsize)
 	tot_time = tot_time / 10;
 	bps = (unsigned long long)(dsize * 1000000000) / (tot_time);
 
-	pr_info("\nPerformance: %llu MegaBytes/sec", (bps / (1024 * 1024)));
+	pr_info("\nPerformance: %llu MegaBytes/sec\n", (bps / (1024 * 1024)));
 
 	return 0;
 }
@@ -1122,6 +1122,8 @@ static void test_ahash_speed_common(const char *algo, unsigned int secs,
 	struct crypto_wait wait;
 	struct ahash_request *req;
 	struct crypto_ahash *tfm;
+	unsigned char key[32];
+	unsigned int keylen = 32;
 	char *output;
 	int i, ret;
 
@@ -1142,6 +1144,19 @@ static void test_ahash_speed_common(const char *algo, unsigned int secs,
 	}
 
 	test_hash_sg_init(sg, dsize);
+
+	if (strncmp(algo, "cmac(aes)", 9) == 0) {
+		pr_info("set key for cmac(aes)\n");
+		crypto_ahash_clear_flags(tfm, ~0);
+		memset(key, 0x0a, keylen);
+		ret = crypto_ahash_setkey(tfm, key, keylen);
+		if (ret) {
+			pr_err("setkey failed for %s:ret=%d\n",
+				algo, ret);
+			goto out;
+		}
+	}
+
 	req = ahash_request_alloc(tfm, GFP_KERNEL);
 	if (!req) {
 		pr_err("ahash request allocation failure\n");
@@ -3181,6 +3196,11 @@ static int do_test(const char *alg, u32 type, u32 mask, int m, u32 num_mb)
 	case 427:
 		test_mb_ahash_speed("streebog512", sec,
 				    generic_hash_speed_template, num_mb);
+		if (mode > 400 && mode < 500) break;
+		/* fall through */
+	case 428:
+		test_ahash_speed("cmac(aes)", sec, dsize,
+			generic_hash_speed_template);
 		if (mode > 400 && mode < 500) break;
 		/* fall through */
 	case 499:
