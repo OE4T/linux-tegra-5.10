@@ -39,15 +39,6 @@
 
 #define ALIGN_4KB     12
 
-int gv11b_pmu_inject_ecc_error(struct gk20a *g,
-		struct nvgpu_hw_err_inject_info *err, u32 error_info)
-{
-	nvgpu_info(g, "Injecting PMU fault %s", err->name);
-	nvgpu_writel(g, err->get_reg_addr(), err->get_reg_val(1U));
-
-	return 0;
-}
-
 #ifdef CONFIG_NVGPU_LS_PMU
 /* PROD settings for ELPG sequencing registers*/
 static struct pg_init_sequence_list _pginitseq_gv11b[] = {

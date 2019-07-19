@@ -165,8 +165,7 @@ srcs += common/utils/enabled.c \
 	hal/fifo/pbdma_gp10b.c \
 	hal/fifo/userd_gk20a.c \
 	hal/fifo/mmu_fault_gp10b.c \
-	hal/sync/syncpt_cmdbuf_gv11b.c \
-	hal/pmu/pmu_gv11b.c
+	hal/sync/syncpt_cmdbuf_gv11b.c
 
 # Source files below are functionaly safe (FuSa) and must always be included.
 srcs += hal/mm/mm_gv11b_fusa.c \
@@ -314,6 +313,7 @@ srcs += hal/init/hal_gp10b.c \
 	hal/netlist/netlist_gp10b.c \
 	hal/sync/syncpt_cmdbuf_gk20a.c \
 	hal/pmu/pmu_gp106.c \
+	hal/pmu/pmu_gv11b.c \
 	hal/top/top_gm20b.c \
 	hal/top/top_gp106.c
 endif

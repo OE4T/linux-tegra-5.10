@@ -536,21 +536,25 @@ fb:
              hal/fb/intr/fb_intr_ecc_gv11b_fusa.c,
              hal/fb/intr/fb_intr_tu104.c, hal/fb/intr/fb_intr_tu104.h ]
 
-pmu:
+pmu_fusa:
   safe: yes
+  owner: Mahantesh K
+  sources: [ hal/pmu/pmu_gp106_fusa.c,
+             hal/pmu/pmu_gp106.h,
+             hal/pmu/pmu_gv11b_fusa.c,
+             hal/pmu/pmu_gv11b.h ]
+
+pmu:
+  safe: no
   owner: Mahantesh K
   sources: [ hal/pmu/pmu_gk20a.c,
              hal/pmu/pmu_gk20a.h,
              hal/pmu/pmu_gm20b.c,
              hal/pmu/pmu_gm20b.h,
              hal/pmu/pmu_gp106.c,
-             hal/pmu/pmu_gp106_fusa.c,
-             hal/pmu/pmu_gp106.h,
              hal/pmu/pmu_gp10b.c,
              hal/pmu/pmu_gp10b.h,
              hal/pmu/pmu_gv11b.c,
-             hal/pmu/pmu_gv11b_fusa.c,
-             hal/pmu/pmu_gv11b.h,
              hal/pmu/pmu_tu104.c,
              hal/pmu/pmu_tu104.h ]
 

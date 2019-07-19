@@ -39,6 +39,15 @@
 
 #define ALIGN_4KB     12
 
+int gv11b_pmu_inject_ecc_error(struct gk20a *g,
+		struct nvgpu_hw_err_inject_info *err, u32 error_info)
+{
+	nvgpu_info(g, "Injecting PMU fault %s", err->name);
+	nvgpu_writel(g, err->get_reg_addr(), err->get_reg_val(1U));
+
+	return 0;
+}
+
 static inline u32 pmu_falcon_ecc_control_r(void)
 {
 	return pwr_pmu_falcon_ecc_control_r();
