@@ -253,7 +253,6 @@ nvgpu-y += \
 	hal/fb/fb_mmu_fault_tu104.o \
 	hal/fb/intr/fb_intr_gv100.o \
 	hal/fb/intr/fb_intr_tu104.o \
-	hal/fb/intr/fb_intr_ecc_gv11b.o \
 	hal/fuse/fuse_gm20b.o \
 	hal/fuse/fuse_gp106.o \
 	hal/func/func_tu104.o \

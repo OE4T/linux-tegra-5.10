@@ -31,6 +31,18 @@
 
 #include <nvgpu/hw/gv11b/hw_fb_gv11b.h>
 
+int gv11b_fb_intr_inject_hubmmu_ecc_error(struct gk20a *g,
+		struct nvgpu_hw_err_inject_info *err,
+		u32 error_info)
+{
+	unsigned int reg_addr = err->get_reg_addr();
+
+	nvgpu_info(g, "Injecting HUBMMU fault %s", err->name);
+	nvgpu_writel(g, reg_addr, err->get_reg_val(1U));
+
+	return 0;
+}
+
 static inline u32 l2tlb_ecc_control_r(void)
 {
 	return fb_mmu_l2tlb_ecc_control_r();
