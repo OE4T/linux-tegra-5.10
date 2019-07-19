@@ -27,6 +27,7 @@
 #include <nvgpu/hal_init.h>
 #include <nvgpu/mc.h>
 #include <nvgpu/soc.h>
+#include <nvgpu/safe_ops.h>
 
 #include "hal_gm20b.h"
 #include "hal_gp10b.h"
@@ -38,7 +39,7 @@
 int nvgpu_init_hal(struct gk20a *g)
 {
 	int err = 0;
-	u32 ver = g->params.gpu_arch + g->params.gpu_impl;
+	u32 ver = nvgpu_safe_add_u32(g->params.gpu_arch, g->params.gpu_impl);
 
 	switch (ver) {
 #ifdef CONFIG_NVGPU_HAL_NON_FUSA
@@ -102,7 +103,8 @@ int nvgpu_detect_chip(struct gk20a *g)
 		return -ENODEV;
 	}
 
-	if ((p->gpu_arch + p->gpu_impl) == (u32)NVGPU_GPUID_GV11B) {
+	if (nvgpu_safe_add_u32(p->gpu_arch, p->gpu_impl) ==
+						(u32)NVGPU_GPUID_GV11B) {
 		/* overwrite gpu revison for A02  */
 		if (!nvgpu_is_soc_t194_a01(g)) {
 			p->gpu_rev = 0xa2;
