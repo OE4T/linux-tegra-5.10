@@ -191,7 +191,6 @@ nvgpu-y += \
 	hal/clk/clk_gm20b.o \
 	hal/clk/clk_gv100.o \
 	hal/gr/ecc/ecc_gp10b.o \
-	hal/gr/ecc/ecc_gv11b.o \
 	hal/gr/ecc/ecc_tu104.o \
 	hal/gr/zcull/zcull_gm20b.o \
 	hal/gr/zcull/zcull_gv11b.o \

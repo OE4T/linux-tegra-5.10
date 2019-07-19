@@ -145,7 +145,6 @@ srcs += common/utils/enabled.c \
 	common/fifo/pbdma_status.c \
 	common/fifo/userd.c \
 	common/mc/mc.c \
-	hal/gr/ecc/ecc_gv11b.c \
 	hal/gr/ctxsw_prog/ctxsw_prog_gm20b.c \
 	hal/gr/ctxsw_prog/ctxsw_prog_gp10b.c \
 	hal/gr/ctxsw_prog/ctxsw_prog_gv11b.c \
