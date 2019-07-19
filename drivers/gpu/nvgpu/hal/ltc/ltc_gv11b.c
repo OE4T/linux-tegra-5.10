@@ -34,24 +34,6 @@
 
 #include <nvgpu/utils.h>
 
-int gv11b_ltc_inject_ecc_error(struct gk20a *g,
-		struct nvgpu_hw_err_inject_info *err, u32 error_info)
-{
-	u32 ltc_stride = nvgpu_get_litter_value(g, GPU_LIT_LTC_STRIDE);
-	u32 lts_stride = nvgpu_get_litter_value(g, GPU_LIT_LTS_STRIDE);
-	u32 ltc = (error_info & 0xFF00U) >> 8U;
-	u32 lts = (error_info & 0xFFU);
-	u32 reg_addr = nvgpu_safe_add_u32(err->get_reg_addr(),
-			nvgpu_safe_add_u32(nvgpu_safe_mult_u32(ltc, ltc_stride),
-					nvgpu_safe_mult_u32(lts, lts_stride)));
-
-	nvgpu_info(g, "Injecting LTC fault %s for ltc: %d, lts: %d",
-			err->name, ltc, lts);
-	nvgpu_writel(g, reg_addr, err->get_reg_val(1U));
-
-	return 0;
-}
-
 #ifdef CONFIG_NVGPU_GRAPHICS
 /*
  * Sets the ZBC stencil for the passed index.

@@ -149,9 +149,6 @@ srcs += common/utils/enabled.c \
 	hal/init/hal_gv11b_litter.c \
 	hal/init/hal_init.c \
 	hal/power_features/cg/gv11b_gating_reglist.c \
-	hal/ltc/ltc_gm20b.c \
-	hal/ltc/ltc_gv11b.c \
-	hal/ltc/intr/ltc_intr_gm20b.c \
 	hal/fb/fb_gm20b.c \
 	hal/fb/fb_gv11b.c \
 	hal/fb/intr/fb_intr_ecc_gv11b.c \
@@ -285,6 +282,9 @@ srcs += hal/init/hal_gp10b.c \
 	hal/therm/therm_gm20b.c \
 	hal/therm/therm_gp10b.c \
 	hal/ltc/ltc_gp10b.c \
+	hal/ltc/ltc_gm20b.c \
+	hal/ltc/ltc_gv11b.c \
+	hal/ltc/intr/ltc_intr_gm20b.c \
 	hal/ltc/intr/ltc_intr_gp10b.c \
 	hal/fb/fb_gp10b.c \
 	hal/fb/fb_gp106.c \

@@ -15,29 +15,34 @@ bus:
              hal/bus/bus_tu104.c, hal/bus/bus_tu104.h ]
 
 ltc:
-  safe: yes
   owner: Seshendra G
   children:
-    ltc:
-      sources: [ hal/ltc/ltc_gm20b.c,
-                 hal/ltc/ltc_gm20b_fusa.c,
+    ltc_fusa:
+      safe: yes
+      sources: [ hal/ltc/ltc_gm20b_fusa.c,
                  hal/ltc/ltc_gm20b.h,
-                 hal/ltc/ltc_gp10b.c,
                  hal/ltc/ltc_gp10b_fusa.c,
                  hal/ltc/ltc_gp10b.h,
-                 hal/ltc/ltc_gv11b.c,
                  hal/ltc/ltc_gv11b_fusa.c,
-                 hal/ltc/ltc_gv11b.h,
+                 hal/ltc/ltc_gv11b.h ]
+    ltc:
+      safe: no
+      sources: [ hal/ltc/ltc_gm20b.c,
+                 hal/ltc/ltc_gp10b.c,
+                 hal/ltc/ltc_gv11b.c,
                  hal/ltc/ltc_tu104.c,
                  hal/ltc/ltc_tu104.h ]
-    intr:
-      sources: [ hal/ltc/intr/ltc_intr_gm20b.c,
-                 hal/ltc/intr/ltc_intr_gm20b.h,
-                 hal/ltc/intr/ltc_intr_gp10b.c,
-                 hal/ltc/intr/ltc_intr_gp10b_fusa.c,
+    intr_fusa:
+      safe: yes
+      sources: [ hal/ltc/intr/ltc_intr_gp10b_fusa.c,
                  hal/ltc/intr/ltc_intr_gp10b.h,
                  hal/ltc/intr/ltc_intr_gv11b_fusa.c,
                  hal/ltc/intr/ltc_intr_gv11b.h ]
+    intr:
+      safe: no
+      sources: [ hal/ltc/intr/ltc_intr_gm20b.c,
+                 hal/ltc/intr/ltc_intr_gm20b.h,
+                 hal/ltc/intr/ltc_intr_gp10b.c ]
 
 init:
   safe: yes
