@@ -19,7 +19,9 @@ ltc:
   children:
     ltc_fusa:
       safe: yes
-      sources: [ hal/ltc/ltc_gm20b_fusa.c,
+      sources: [ hal/ltc/ltc_gm20b.c,
+                 hal/ltc/ltc_gm20b_dbg.c,
+                 hal/ltc/ltc_gm20b_fusa.c,
                  hal/ltc/ltc_gm20b.h,
                  hal/ltc/ltc_gp10b_fusa.c,
                  hal/ltc/ltc_gp10b.h,
@@ -405,8 +407,9 @@ gr:
     ctxsw_prog:
       safe: no
       sources: [ hal/gr/ctxsw_prog/ctxsw_prog_gm20b.c,
+                 hal/gr/ctxsw_prog/ctxsw_prog_gm20b_dbg.c,
                  hal/gr/ctxsw_prog/ctxsw_prog_gp10b.c,
-                 hal/gr/ctxsw_prog/ctxsw_prog_gv11b.c ]
+                 hal/gr/ctxsw_prog/ctxsw_prog_gv11b.c]
     config:
       safe: yes
       sources: [ hal/gr/config/gr_config_gm20b.c,

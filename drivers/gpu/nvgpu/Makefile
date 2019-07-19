@@ -183,7 +183,6 @@ nvgpu-y += \
 	common/nvlink/nvlink.o \
 	common/nvlink/nvlink_gv100.o \
 	common/nvlink/nvlink_tu104.o \
-	hal/mc/mc_gm20b.o \
 	hal/mc/mc_gp10b.o  \
 	hal/mc/mc_gv100.o \
 	hal/mc/mc_tu104.o \
@@ -198,7 +197,6 @@ nvgpu-y += \
 	hal/gr/ecc/ecc_tu104.o \
 	hal/gr/zcull/zcull_gm20b.o \
 	hal/gr/zcull/zcull_gv11b.o \
-	hal/gr/ctxsw_prog/ctxsw_prog_gm20b.o \
 	hal/gr/ctxsw_prog/ctxsw_prog_gp10b.o \
 	hal/gr/ctxsw_prog/ctxsw_prog_gv11b.o \
 	hal/gr/init/gr_init_gm20b.o \
@@ -223,26 +221,20 @@ nvgpu-y += \
 	hal/init/hal_gv11b.o \
 	hal/init/hal_gv11b_litter.o \
 	hal/init/hal_init.o \
-	hal/perf/perf_gm20b.o \
 	hal/perf/perf_gv11b.o \
-	hal/priv_ring/priv_ring_gm20b.o \
-	hal/power_features/cg/gm20b_gating_reglist.o \
 	hal/power_features/cg/gp106_gating_reglist.o \
 	hal/power_features/cg/gp10b_gating_reglist.o \
 	hal/power_features/cg/gv100_gating_reglist.o \
 	hal/power_features/cg/gv11b_gating_reglist.o \
 	hal/power_features/cg/tu104_gating_reglist.o \
-	hal/regops/regops_gm20b.o \
 	hal/regops/regops_gp10b.o \
 	hal/regops/regops_gv100.o \
 	hal/regops/regops_gv11b.o \
 	hal/regops/regops_tu104.o \
 	hal/ce/ce2_gk20a.o \
-	hal/therm/therm_gm20b.o \
 	hal/therm/therm_gp10b.o \
 	hal/therm/therm_tu104.o \
 	hal/gr/falcon/gr_falcon_gm20b.o \
-	hal/ltc/ltc_gm20b.o \
 	hal/ltc/ltc_gp10b.o \
 	hal/ltc/ltc_gv11b.o  \
 	hal/ltc/ltc_tu104.o \
@@ -265,11 +257,8 @@ nvgpu-y += \
 	hal/fifo/fifo_tu104.o \
 	hal/fifo/preempt_gk20a.o \
 	hal/fifo/usermode_tu104.o \
-	hal/fifo/engines_gm20b.o \
-	hal/fifo/pbdma_gm20b.o \
 	hal/fifo/pbdma_gp10b.o \
 	hal/fifo/pbdma_tu104.o \
-	hal/fifo/engine_status_gm20b.o \
 	hal/fifo/ramfc_gk20a.o \
 	hal/fifo/ramfc_gp10b.o \
 	hal/fifo/ramfc_tu104.o \
@@ -293,7 +282,6 @@ nvgpu-y += \
 	hal/fifo/mmu_fault_gm20b.o \
 	hal/fifo/mmu_fault_gp10b.o \
 	hal/fifo/ctxsw_timeout_gk20a.o \
-	hal/netlist/netlist_gm20b.o \
 	hal/netlist/netlist_gp10b.o \
 	hal/netlist/netlist_gv100.o \
 	hal/netlist/netlist_tu104.o \
@@ -319,7 +307,6 @@ nvgpu-y += \
 	hal/pramin/pramin_init.o \
 	hal/pramin/pramin_tu104.o \
 	hal/bios/bios_tu104.o \
-	hal/top/top_gm20b.o \
 	hal/top/top_gp106.o \
 	hal/top/top_gv100.o \
 	hal/xve/xve_gp106.o
@@ -528,9 +515,6 @@ nvgpu-y += \
 	common/ce/ce.o \
 	common/debugger.o
 
-nvgpu-y += \
-	hal/gr/config/gr_config_gm20b.o
-
 nvgpu-$(CONFIG_TEGRA_GR_VIRTUALIZATION) += \
 	common/vgpu/ltc/ltc_vgpu.o \
 	common/vgpu/fbp/fbp_vgpu.o \
@@ -675,19 +659,39 @@ nvgpu-y += \
 
 nvgpu-$(CONFIG_NVGPU_HAL_NON_FUSA) += \
 	hal/ce/ce_tu104.o \
+	hal/clk/clk_gm20b.o \
 	hal/init/hal_gp10b.o \
 	hal/init/hal_gp10b_litter.o \
 	hal/init/hal_gm20b.o \
 	hal/init/hal_gm20b_litter.o \
 	hal/init/hal_tu104.o \
 	hal/init/hal_tu104_litter.o \
+	hal/fifo/engine_status_gm20b.o \
+	hal/fifo/engines_gm20b.o \
+	hal/fifo/pbdma_gm20b.o \
+	hal/gr/config/gr_config_gm20b.o \
+	hal/gr/ctxsw_prog/ctxsw_prog_gm20b.o \
+	hal/gr/ctxsw_prog/ctxsw_prog_gm20b_dbg.o \
+	hal/gr/gr/gr_gk20a.o \
+	hal/gr/gr/gr_gm20b.o \
+	hal/gr/gr/gr_gp10b.o \
+	hal/ltc/ltc_gm20b.o \
+	hal/ltc/ltc_gm20b_dbg.o \
+	hal/mc/mc_gm20b.o \
 	hal/mm/mm_gm20b.o \
 	hal/mm/mm_gk20a.o \
 	hal/mm/mm_gv100.o \
 	hal/mm/mm_tu104.o \
 	hal/mm/gmmu/gmmu_gk20a.o \
 	hal/mm/gmmu/gmmu_gm20b.o \
-	hal/falcon/falcon_gk20a.o
+	hal/falcon/falcon_gk20a.o \
+	hal/netlist/netlist_gm20b.o \
+	hal/perf/perf_gm20b.o \
+	hal/power_features/cg/gm20b_gating_reglist.o \
+	hal/priv_ring/priv_ring_gm20b.o \
+	hal/regops/regops_gm20b.o \
+	hal/therm/therm_gm20b.o \
+	hal/top/top_gm20b.o
 
 ifeq ($(CONFIG_TEGRA_GR_VIRTUALIZATION),y)
 nvgpu-$(CONFIG_NVGPU_HAL_NON_FUSA) += \

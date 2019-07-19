@@ -264,6 +264,7 @@ srcs += hal/init/hal_gp10b.c \
 	hal/class/class_gm20b.c \
 	hal/clk/clk_gm20b.c \
 	hal/falcon/falcon_gk20a.c \
+	hal/gr/config/gr_config_gm20b.c \
 	hal/gr/ecc/ecc_gp10b.c \
 	hal/gr/init/gr_init_gm20b.c \
 	hal/gr/init/gr_init_gp10b.c \
@@ -278,8 +279,8 @@ srcs += hal/init/hal_gp10b.c \
 	hal/ce/ce2_gk20a.c \
 	hal/therm/therm_gm20b.c \
 	hal/therm/therm_gp10b.c \
-	hal/ltc/ltc_gp10b.c \
 	hal/ltc/ltc_gm20b.c \
+	hal/ltc/ltc_gp10b.c \
 	hal/ltc/ltc_gv11b.c \
 	hal/ltc/intr/ltc_intr_gm20b.c \
 	hal/ltc/intr/ltc_intr_gp10b.c \
@@ -351,13 +352,13 @@ srcs += common/debugger.c \
 	common/regops/regops.c \
 	common/gr/hwpm_map.c \
 	common/perf/perfbuf.c \
-	hal/regops/regops_gm20b.c \
 	hal/regops/regops_gp10b.c \
 	hal/regops/regops_gv11b.c \
 	hal/regops/regops_gv100.c \
 	hal/regops/regops_tu104.c \
+	hal/gr/ctxsw_prog/ctxsw_prog_gm20b_dbg.c \
 	hal/gr/hwpm_map/hwpm_map_gv100.c \
-	hal/perf/perf_gm20b.c \
+	hal/ltc/ltc_gm20b_dbg.c \
 	hal/perf/perf_gv11b.c \
 	hal/gr/gr/gr_gk20a.c \
 	hal/gr/gr/gr_gm20b.c \
@@ -365,6 +366,10 @@ srcs += common/debugger.c \
 	hal/gr/gr/gr_gv11b.c \
 	hal/gr/gr/gr_gv100.c \
 	hal/gr/gr/gr_tu104.c
+ifeq ($(CONFIG_NVGPU_HAL_NON_FUSA),1)
+srcs += hal/regops/regops_gm20b.c \
+	hal/perf/perf_gm20b.c
+endif
 endif
 
 ifeq ($(CONFIG_NVGPU_CE),1)
@@ -408,8 +413,6 @@ endif
 ifdef NVGPU_FAULT_INJECTION_ENABLEMENT
 srcs += os/posix/posix-fault-injection.c
 endif
-
-srcs += hal/gr/config/gr_config_gm20b.c
 
 ifeq ($(CONFIG_NVGPU_LS_PMU),1)
 # Add LS PMU files which are required for normal build
