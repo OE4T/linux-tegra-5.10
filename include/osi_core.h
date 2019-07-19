@@ -302,9 +302,9 @@ struct osi_core_priv_data {
 	void *osd;
 	struct osi_core_ops *ops;
 	unsigned int num_mtl_queues;
-	unsigned int mtl_queues[OSI_EQOS_MAX_NUM_CHANS];
-	unsigned int rxq_ctrl[OSI_EQOS_MAX_NUM_CHANS];
-	unsigned int rxq_prio[OSI_EQOS_MAX_NUM_CHANS];
+	unsigned int mtl_queues[OSI_EQOS_MAX_NUM_QUEUES];
+	unsigned int rxq_ctrl[OSI_EQOS_MAX_NUM_QUEUES];
+	unsigned int rxq_prio[OSI_EQOS_MAX_NUM_QUEUES];
 	unsigned int mac;
 	unsigned int mac_ver;
 	unsigned int mdc_cr;
