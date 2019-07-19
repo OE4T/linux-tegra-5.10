@@ -389,17 +389,19 @@ gr:
                 hal/gr/ecc/ecc_tu104.c,
                 hal/gr/ecc/ecc_gp10b.h,
                 hal/gr/ecc/ecc_tu104.h ]
-    ctxsw_prog:
+    ctxsw_prog_fusa:
       safe: yes
-      sources: [ hal/gr/ctxsw_prog/ctxsw_prog_gm20b.c,
-                 hal/gr/ctxsw_prog/ctxsw_prog_gm20b_fusa.c,
+      sources: [ hal/gr/ctxsw_prog/ctxsw_prog_gm20b_fusa.c,
                  hal/gr/ctxsw_prog/ctxsw_prog_gm20b.h,
-                 hal/gr/ctxsw_prog/ctxsw_prog_gp10b.c,
                  hal/gr/ctxsw_prog/ctxsw_prog_gp10b_fusa.c,
                  hal/gr/ctxsw_prog/ctxsw_prog_gp10b.h,
-                 hal/gr/ctxsw_prog/ctxsw_prog_gv11b.c,
                  hal/gr/ctxsw_prog/ctxsw_prog_gv11b_fusa.c,
                  hal/gr/ctxsw_prog/ctxsw_prog_gv11b.h ]
+    ctxsw_prog:
+      safe: no
+      sources: [ hal/gr/ctxsw_prog/ctxsw_prog_gm20b.c,
+                 hal/gr/ctxsw_prog/ctxsw_prog_gp10b.c,
+                 hal/gr/ctxsw_prog/ctxsw_prog_gv11b.c ]
     config:
       safe: yes
       sources: [ hal/gr/config/gr_config_gm20b.c,

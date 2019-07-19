@@ -145,9 +145,6 @@ srcs += common/utils/enabled.c \
 	common/fifo/pbdma_status.c \
 	common/fifo/userd.c \
 	common/mc/mc.c \
-	hal/gr/ctxsw_prog/ctxsw_prog_gm20b.c \
-	hal/gr/ctxsw_prog/ctxsw_prog_gp10b.c \
-	hal/gr/ctxsw_prog/ctxsw_prog_gv11b.c \
 	hal/init/hal_gv11b.c \
 	hal/init/hal_gv11b_litter.c \
 	hal/init/hal_init.c \
@@ -314,7 +311,10 @@ srcs += hal/init/hal_gp10b.c \
 	hal/pmu/pmu_gp106.c \
 	hal/pmu/pmu_gv11b.c \
 	hal/top/top_gm20b.c \
-	hal/top/top_gp106.c
+	hal/top/top_gp106.c \
+	hal/gr/ctxsw_prog/ctxsw_prog_gm20b.c \
+	hal/gr/ctxsw_prog/ctxsw_prog_gp10b.c \
+	hal/gr/ctxsw_prog/ctxsw_prog_gv11b.c
 endif
 
 ifeq ($(CONFIG_NVGPU_CLK_ARB),1)
