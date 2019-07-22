@@ -586,11 +586,21 @@ static const struct gpu_ops gv11b_ops = {
 				gv11b_gr_intr_handle_gcc_exception,
 			.handle_gpc_gpcmmu_exception =
 				gv11b_gr_intr_handle_gpc_gpcmmu_exception,
+			.handle_gpc_prop_exception =
+				gv11b_gr_intr_handle_gpc_prop_exception,
+			.handle_gpc_zcull_exception =
+				gv11b_gr_intr_handle_gpc_zcull_exception,
+			.handle_gpc_setup_exception =
+				gv11b_gr_intr_handle_gpc_setup_exception,
+			.handle_gpc_pes_exception =
+				gv11b_gr_intr_handle_gpc_pes_exception,
 			.handle_gpc_gpccs_exception =
 				gv11b_gr_intr_handle_gpc_gpccs_exception,
 			.get_tpc_exception = gm20b_gr_intr_get_tpc_exception,
 			.handle_tpc_mpc_exception =
 					gv11b_gr_intr_handle_tpc_mpc_exception,
+			.handle_tpc_pe_exception =
+					gv11b_gr_intr_handle_tpc_pe_exception,
 			.handle_tex_exception = NULL,
 			.enable_hww_exceptions =
 					gv11b_gr_intr_enable_hww_exceptions,

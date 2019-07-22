@@ -71,9 +71,18 @@ void gv11b_gr_intr_handle_gcc_exception(struct gk20a *g, u32 gpc,
 			u32 *corrected_err, u32 *uncorrected_err);
 void gv11b_gr_intr_handle_gpc_gpcmmu_exception(struct gk20a *g, u32 gpc,
 		u32 gpc_exception, u32 *corrected_err, u32 *uncorrected_err);
+void gv11b_gr_intr_handle_gpc_prop_exception(struct gk20a *g, u32 gpc,
+		u32 gpc_exception);
+void gv11b_gr_intr_handle_gpc_zcull_exception(struct gk20a *g, u32 gpc,
+		u32 gpc_exception);
+void gv11b_gr_intr_handle_gpc_setup_exception(struct gk20a *g, u32 gpc,
+		u32 gpc_exception);
+void gv11b_gr_intr_handle_gpc_pes_exception(struct gk20a *g, u32 gpc,
+		u32 gpc_exception);
 void gv11b_gr_intr_handle_gpc_gpccs_exception(struct gk20a *g, u32 gpc,
 		u32 gpc_exception, u32 *corrected_err, u32 *uncorrected_err);
 void gv11b_gr_intr_handle_tpc_mpc_exception(struct gk20a *g, u32 gpc, u32 tpc);
+void gv11b_gr_intr_handle_tpc_pe_exception(struct gk20a *g, u32 gpc, u32 tpc);
 void gv11b_gr_intr_enable_hww_exceptions(struct gk20a *g);
 void gv11b_gr_intr_enable_exceptions(struct gk20a *g,
 				     struct nvgpu_gr_config *gr_config,

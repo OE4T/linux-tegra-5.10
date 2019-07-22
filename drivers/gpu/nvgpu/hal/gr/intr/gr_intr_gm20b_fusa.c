@@ -184,6 +184,40 @@ static u32 gr_gm20b_intr_check_gr_sked_exception(struct gk20a *g,
 	return 0U;
 }
 
+static u32 gr_gm20b_intr_check_gr_be_crop_exception(struct gk20a *g,
+							u32 exception)
+{
+	if ((exception & gr_pri_be0_becs_be_exception_crop_m()) != 0U) {
+		u32 crop = nvgpu_readl(g, gr_crop_hww_esr_r());
+
+		nvgpu_gr_intr_report_exception(g, 0,
+				GPU_PGRAPH_BE_EXCEPTION,
+				crop, GPU_PGRAPH_BE_EXCEPTION_CROP);
+		nvgpu_err(g, "crop exception: esr 0x%08x", crop);
+		nvgpu_writel(g, gr_crop_hww_esr_r(),
+			gr_crop_hww_esr_reset_active_f());
+		return 1U;
+	}
+	return 0U;
+}
+
+static u32 gr_gm20b_intr_check_gr_be_zrop_exception(struct gk20a *g,
+							u32 exception)
+{
+	if ((exception & gr_pri_be0_becs_be_exception_zrop_m()) != 0U) {
+		u32 zrop = nvgpu_readl(g, gr_zrop_hww_esr_r());
+
+		nvgpu_gr_intr_report_exception(g, 0,
+				GPU_PGRAPH_BE_EXCEPTION,
+				zrop, GPU_PGRAPH_BE_EXCEPTION_ZROP);
+		nvgpu_err(g, "zrop exception: esr 0x%08x", zrop);
+		nvgpu_writel(g, gr_zrop_hww_esr_r(),
+			gr_zrop_hww_esr_reset_active_f());
+		return 1U;
+	}
+	return 0U;
+}
+
 static u32 gr_gm20b_intr_check_gr_fe_exception(struct gk20a *g, u32 exception)
 {
 	if ((exception & gr_exception_fe_m()) != 0U) {
@@ -286,6 +320,8 @@ bool gm20b_gr_intr_handle_exceptions(struct gk20a *g, bool *is_gpc_exception)
 	gpc_reset |= gr_gm20b_intr_check_gr_ssync_exception(g, exception);
 	gpc_reset |= gr_gm20b_intr_check_gr_mme_exception(g, exception);
 	gpc_reset |= gr_gm20b_intr_check_gr_sked_exception(g, exception);
+	gpc_reset |= gr_gm20b_intr_check_gr_be_crop_exception(g, exception);
+	gpc_reset |= gr_gm20b_intr_check_gr_be_zrop_exception(g, exception);
 
 	/* check if a gpc exception has occurred */
 	if ((exception & gr_exception_gpc_m()) != 0U) {
@@ -351,6 +387,10 @@ u32 gm20b_gr_intr_get_tpc_exception(struct gk20a *g, u32 offset,
 
 	if ((tpc_exception & gr_gpc0_tpc0_tpccs_tpc_exception_mpc_m()) != 0U) {
 		pending_tpc->mpc_exception = true;
+	}
+
+	if ((tpc_exception & gr_gpc0_tpc0_tpccs_tpc_exception_pe_m()) != 0U) {
+		pending_tpc->pe_exception = true;
 	}
 
 	return tpc_exception;

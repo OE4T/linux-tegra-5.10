@@ -850,12 +850,22 @@ struct gpu_ops {
 			void (*handle_gpc_gpcmmu_exception)(struct gk20a *g,
 				u32 gpc, u32 gpc_exception,
 				u32 *corrected_err, u32 *uncorrected_err);
+			void (*handle_gpc_prop_exception)(struct gk20a *g,
+				u32 gpc, u32 gpc_exception);
+			void (*handle_gpc_zcull_exception)(struct gk20a *g,
+				u32 gpc, u32 gpc_exception);
+			void (*handle_gpc_setup_exception)(struct gk20a *g,
+				u32 gpc, u32 gpc_exception);
+			void (*handle_gpc_pes_exception)(struct gk20a *g,
+				u32 gpc, u32 gpc_exception);
 			void (*handle_gpc_gpccs_exception)(struct gk20a *g,
 				u32 gpc, u32 gpc_exception,
 				u32 *corrected_err, u32 *uncorrected_err);
 			u32 (*get_tpc_exception)(struct gk20a *g, u32 offset,
 				struct nvgpu_gr_tpc_exception *pending_tpc);
 			void (*handle_tpc_mpc_exception)(struct gk20a *g,
+							u32 gpc, u32 tpc);
+			void (*handle_tpc_pe_exception)(struct gk20a *g,
 							u32 gpc, u32 tpc);
 			void (*handle_tex_exception)(struct gk20a *g,
 						     u32 gpc, u32 tpc);

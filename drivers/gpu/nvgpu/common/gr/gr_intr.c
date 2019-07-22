@@ -129,6 +129,15 @@ static int gr_intr_handle_tpc_exception(struct gk20a *g, u32 gpc, u32 tpc,
 		}
 	}
 
+	/* check if a pe exception is pending */
+	if (pending_tpc.pe_exception) {
+		nvgpu_log(g, gpu_dbg_intr | gpu_dbg_gpu_dbg,
+			  "GPC%d TPC%d: PE exception pending", gpc, tpc);
+		if (g->ops.gr.intr.handle_tpc_pe_exception != NULL) {
+			g->ops.gr.intr.handle_tpc_pe_exception(g, gpc, tpc);
+		}
+	}
+
 	return ret;
 }
 
@@ -610,6 +619,30 @@ int nvgpu_gr_intr_handle_gpc_exception(struct gk20a *g, bool *post_event,
 				gpc_exception,
 				&g->ecc.gr.mmu_l1tlb_ecc_corrected_err_count[gpc].counter,
 				&g->ecc.gr.mmu_l1tlb_ecc_uncorrected_err_count[gpc].counter);
+		}
+
+		/* Handle PROP exception */
+		if (g->ops.gr.intr.handle_gpc_prop_exception != NULL) {
+			 g->ops.gr.intr.handle_gpc_prop_exception(g, gpc,
+				gpc_exception);
+		}
+
+		/* Handle ZCULL exception */
+		if (g->ops.gr.intr.handle_gpc_zcull_exception != NULL) {
+			 g->ops.gr.intr.handle_gpc_zcull_exception(g, gpc,
+				gpc_exception);
+		}
+
+		/* Handle SETUP exception */
+		if (g->ops.gr.intr.handle_gpc_setup_exception != NULL) {
+			 g->ops.gr.intr.handle_gpc_setup_exception(g, gpc,
+				gpc_exception);
+		}
+
+		/* Handle PES exception */
+		if (g->ops.gr.intr.handle_gpc_pes_exception != NULL) {
+			 g->ops.gr.intr.handle_gpc_pes_exception(g, gpc,
+				gpc_exception);
 		}
 
 	}

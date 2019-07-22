@@ -44,6 +44,7 @@ struct nvgpu_gr_tpc_exception {
 	bool tex_exception;
 	bool sm_exception;
 	bool mpc_exception;
+	bool pe_exception;
 };
 
 struct nvgpu_gr_isr_data {
