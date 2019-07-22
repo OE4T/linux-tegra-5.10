@@ -84,15 +84,15 @@ void gm20b_gr_init_fifo_access(struct gk20a *g, bool enable)
 	u32 fifo_val;
 
 	fifo_val = nvgpu_readl(g, gr_gpfifo_ctl_r());
-	fifo_val &= ~gr_gpfifo_ctl_semaphore_access_f(1);
-	fifo_val &= ~gr_gpfifo_ctl_access_f(1);
+	fifo_val &= ~gr_gpfifo_ctl_semaphore_access_f(1U);
+	fifo_val &= ~gr_gpfifo_ctl_access_f(1U);
 
 	if (enable) {
 		fifo_val |= (gr_gpfifo_ctl_access_enabled_f() |
 			gr_gpfifo_ctl_semaphore_access_enabled_f());
 	} else {
-		fifo_val |= (gr_gpfifo_ctl_access_f(0) |
-			gr_gpfifo_ctl_semaphore_access_f(0));
+		fifo_val |= (gr_gpfifo_ctl_access_f(0U) |
+			gr_gpfifo_ctl_semaphore_access_f(0U));
 	}
 
 	nvgpu_writel(g, gr_gpfifo_ctl_r(), fifo_val);

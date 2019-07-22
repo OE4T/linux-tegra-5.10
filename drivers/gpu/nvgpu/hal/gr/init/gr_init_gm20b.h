@@ -38,21 +38,8 @@ struct nvgpu_gr_config;
 void gm20b_gr_init_lg_coalesce(struct gk20a *g, u32 data);
 void gm20b_gr_init_su_coalesce(struct gk20a *g, u32 data);
 void gm20b_gr_init_pes_vsc_stream(struct gk20a *g);
-void gm20b_gr_init_gpc_mmu(struct gk20a *g);
+
 void gm20b_gr_init_fifo_access(struct gk20a *g, bool enable);
-void gm20b_gr_init_get_access_map(struct gk20a *g,
-				   u32 **whitelist, u32 *num_entries);
-void gm20b_gr_init_sm_id_numbering(struct gk20a *g, u32 gpc, u32 tpc, u32 smid,
-				   struct nvgpu_gr_config *gr_config);
-u32 gm20b_gr_init_get_sm_id_size(void);
-int gm20b_gr_init_sm_id_config(struct gk20a *g, u32 *tpc_sm_id,
-			       struct nvgpu_gr_config *gr_config);
-void gm20b_gr_init_tpc_mask(struct gk20a *g, u32 gpc_index, u32 pes_tpc_mask);
-#ifdef CONFIG_NVGPU_GRAPHICS
-void gm20b_gr_init_rop_mapping(struct gk20a *g,
-			      struct nvgpu_gr_config *gr_config);
-#endif
-int gm20b_gr_init_fs_state(struct gk20a *g);
 void gm20b_gr_init_pd_tpc_per_gpc(struct gk20a *g,
 			      struct nvgpu_gr_config *gr_config);
 void gm20b_gr_init_pd_skip_table_gpc(struct gk20a *g,
@@ -69,6 +56,28 @@ void gm20b_gr_init_load_method_init(struct gk20a *g,
 		struct netlist_av_list *sw_method_init);
 int gm20b_gr_init_load_sw_bundle_init(struct gk20a *g,
 		struct netlist_av_list *sw_bundle_init);
+
+u32 gm20b_gr_init_get_global_ctx_cb_buffer_size(struct gk20a *g);
+u32 gm20b_gr_init_get_global_ctx_pagepool_buffer_size(struct gk20a *g);
+
+void gm20b_gr_init_commit_global_attrib_cb(struct gk20a *g,
+	struct nvgpu_gr_ctx *gr_ctx, u32 tpc_count, u32 max_tpc, u64 addr,
+	bool patch);
+
+u32 gm20b_gr_init_get_patch_slots(struct gk20a *g,
+	struct nvgpu_gr_config *config);
+
+#ifdef CONFIG_NVGPU_HAL_NON_FUSA
+void gm20b_gr_init_gpc_mmu(struct gk20a *g);
+void gm20b_gr_init_get_access_map(struct gk20a *g,
+				   u32 **whitelist, u32 *num_entries);
+void gm20b_gr_init_sm_id_numbering(struct gk20a *g, u32 gpc, u32 tpc, u32 smid,
+				   struct nvgpu_gr_config *gr_config);
+u32 gm20b_gr_init_get_sm_id_size(void);
+int gm20b_gr_init_sm_id_config(struct gk20a *g, u32 *tpc_sm_id,
+			       struct nvgpu_gr_config *gr_config);
+void gm20b_gr_init_tpc_mask(struct gk20a *g, u32 gpc_index, u32 pes_tpc_mask);
+int gm20b_gr_init_fs_state(struct gk20a *g);
 void gm20b_gr_init_commit_global_timeslice(struct gk20a *g);
 
 u32 gm20b_gr_init_get_bundle_cb_default_size(struct gk20a *g);
@@ -80,8 +89,6 @@ u32 gm20b_gr_init_get_attrib_cb_size(struct gk20a *g, u32 tpc_count);
 u32 gm20b_gr_init_get_alpha_cb_size(struct gk20a *g, u32 tpc_count);
 u32 gm20b_gr_init_get_global_attr_cb_size(struct gk20a *g, u32 tpc_count,
 	u32 max_tpc);
-u32 gm20b_gr_init_get_global_ctx_cb_buffer_size(struct gk20a *g);
-u32 gm20b_gr_init_get_global_ctx_pagepool_buffer_size(struct gk20a *g);
 
 void gm20b_gr_init_commit_global_bundle_cb(struct gk20a *g,
 	struct nvgpu_gr_ctx *gr_ctx, u64 addr, u32 size, bool patch);
@@ -89,20 +96,21 @@ u32 gm20b_gr_init_pagepool_default_size(struct gk20a *g);
 void gm20b_gr_init_commit_global_pagepool(struct gk20a *g,
 	struct nvgpu_gr_ctx *gr_ctx, u64 addr, size_t size, bool patch,
 	bool global_ctx);
-void gm20b_gr_init_commit_global_attrib_cb(struct gk20a *g,
-	struct nvgpu_gr_ctx *gr_ctx, u32 tpc_count, u32 max_tpc, u64 addr,
-	bool patch);
 void gm20b_gr_init_commit_global_cb_manager(struct gk20a *g,
 	struct nvgpu_gr_config *config, struct nvgpu_gr_ctx *gr_ctx,
 	bool patch);
 
-u32 gm20b_gr_init_get_patch_slots(struct gk20a *g,
-	struct nvgpu_gr_config *config);
 void gm20b_gr_init_detect_sm_arch(struct gk20a *g);
 
 void gm20b_gr_init_get_supported_preemption_modes(
 	u32 *graphics_preemption_mode_flags, u32 *compute_preemption_mode_flags);
 void gm20b_gr_init_get_default_preemption_modes(
 	u32 *default_graphics_preempt_mode, u32 *default_compute_preempt_mode);
+
+#ifdef CONFIG_NVGPU_GRAPHICS
+void gm20b_gr_init_rop_mapping(struct gk20a *g,
+			      struct nvgpu_gr_config *gr_config);
+#endif
+#endif /* CONFIG_NVGPU_HAL_NON_FUSA */
 
 #endif /* NVGPU_GR_INIT_GM20B_H */
