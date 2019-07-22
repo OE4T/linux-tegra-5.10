@@ -2895,6 +2895,7 @@ static int ether_init_plat_resources(struct platform_device *pdev,
 				     struct ether_priv_data *pdata)
 {
 	struct osi_core_priv_data *osi_core = pdata->osi_core;
+	struct osi_dma_priv_data *osi_dma = pdata->osi_dma;
 	struct resource *res;
 	int ret = 0;
 
@@ -2904,6 +2905,20 @@ static int ether_init_plat_resources(struct platform_device *pdev,
 	if (IS_ERR(osi_core->base)) {
 		dev_err(&pdev->dev, "failed to ioremap MAC base address\n");
 		return PTR_ERR(osi_core->base);
+	}
+
+	res = platform_get_resource_byname(pdev, IORESOURCE_MEM,
+					   "dma_base");
+	if (res) {
+		/* Update dma base */
+		osi_dma->base = devm_ioremap_resource(&pdev->dev, res);
+		if (IS_ERR(osi_dma->base)) {
+			dev_err(&pdev->dev, "failed to ioremap DMA address\n");
+			return PTR_ERR(osi_dma->base);
+		}
+	} else {
+		/* Update core base to dma/common base */
+		osi_dma->base = osi_core->base;
 	}
 
 	ret = ether_configure_car(pdev, pdata);
@@ -3531,9 +3546,6 @@ static int ether_probe(struct platform_device *pdev)
 		dev_err(&pdev->dev, "failed to allocate platform resources\n");
 		goto err_init_res;
 	}
-
-	/* Assign core base to dma/common base, since we are using single VM */
-	osi_dma->base = osi_core->base;
 
 	osi_get_hw_features(osi_core->base, &pdata->hw_feat);
 
