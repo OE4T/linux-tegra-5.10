@@ -388,6 +388,7 @@ clean_up:
 	return err;
 }
 
+#ifdef CONFIG_NVGPU_GR_FALCON_NON_SECURE_BOOT
 static void nvgpu_gr_falcon_load_dmem(struct gk20a *g)
 {
 	u32 ucode_u32_size;
@@ -424,6 +425,7 @@ static void nvgpu_gr_falcon_load_imem(struct gk20a *g)
 
 	nvgpu_log_fn(g, "done");
 }
+#endif
 
 static void nvgpu_gr_falcon_bind_instblk(struct gk20a *g,
 					struct nvgpu_gr_falcon *falcon)
@@ -481,6 +483,7 @@ static void nvgpu_gr_falcon_load_ctxsw_ucode_segments(
 }
 
 
+#ifdef CONFIG_NVGPU_GR_FALCON_NON_SECURE_BOOT
 static void nvgpu_gr_falcon_load_with_bootloader(struct gk20a *g,
 					struct nvgpu_gr_falcon *falcon)
 {
@@ -532,6 +535,7 @@ int nvgpu_gr_falcon_load_ctxsw_ucode(struct gk20a *g,
 	nvgpu_log_fn(g, "done");
 	return 0;
 }
+#endif
 
 static void nvgpu_gr_falcon_load_gpccs_with_bootloader(struct gk20a *g,
 					struct nvgpu_gr_falcon *falcon)

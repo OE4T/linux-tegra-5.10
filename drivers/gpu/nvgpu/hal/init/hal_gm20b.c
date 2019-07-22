@@ -494,8 +494,10 @@ static const struct gpu_ops gm20b_ops = {
 				gm20b_gr_falcon_load_ctxsw_ucode_header,
 			.load_ctxsw_ucode_boot =
 				gm20b_gr_falcon_load_ctxsw_ucode_boot,
+#ifdef CONFIG_NVGPU_GR_FALCON_NON_SECURE_BOOT
 			.load_ctxsw_ucode =
 					nvgpu_gr_falcon_load_ctxsw_ucode,
+#endif
 			.wait_mem_scrubbing =
 					gm20b_gr_falcon_wait_mem_scrubbing,
 			.wait_ctxsw_ready = gm20b_gr_falcon_wait_ctxsw_ready,

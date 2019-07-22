@@ -1572,8 +1572,10 @@ int tu104_init_hal(struct gk20a *g)
 		gops->cbc.alloc_comptags = NULL;
 #endif
 
+#ifdef CONFIG_NVGPU_GR_FALCON_NON_SECURE_BOOT
 		gops->gr.falcon.load_ctxsw_ucode =
 			nvgpu_gr_falcon_load_ctxsw_ucode;
+#endif
 
 		/* Disable pmu pstate, as there is no pmu support */
 		nvgpu_set_enabled(g, NVGPU_PMU_PSTATE, false);

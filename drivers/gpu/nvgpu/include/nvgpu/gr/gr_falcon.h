@@ -91,8 +91,10 @@ int nvgpu_gr_falcon_init_ctx_state(struct gk20a *g,
 		struct nvgpu_gr_falcon *falcon);
 int nvgpu_gr_falcon_init_ctxsw_ucode(struct gk20a *g,
 					struct nvgpu_gr_falcon *falcon);
+#ifdef CONFIG_NVGPU_GR_FALCON_NON_SECURE_BOOT
 int nvgpu_gr_falcon_load_ctxsw_ucode(struct gk20a *g,
 					struct nvgpu_gr_falcon *falcon);
+#endif
 int nvgpu_gr_falcon_load_secure_ctxsw_ucode(struct gk20a *g,
 					struct nvgpu_gr_falcon *falcon);
 
