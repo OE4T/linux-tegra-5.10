@@ -33,6 +33,7 @@
 #include <nvgpu/ce.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/engines.h>
+#include <nvgpu/safe_ops.h>
 #include <nvgpu/power_features/cg.h>
 
 int nvgpu_mm_suspend(struct gk20a *g)
@@ -190,7 +191,7 @@ static int nvgpu_init_system_vm(struct mm_gk20a *mm)
 	 * size. No reason AFAICT for this. Probably a bug somewhere.
 	 */
 	if (nvgpu_is_enabled(g, NVGPU_MM_FORCE_128K_PMU_VM)) {
-		big_page_size = U32(SZ_128K);
+		big_page_size = nvgpu_safe_cast_u64_to_u32(SZ_128K);
 	}
 
 	/*
@@ -204,7 +205,7 @@ static int nvgpu_init_system_vm(struct mm_gk20a *mm)
 
 	mm->pmu.vm = nvgpu_vm_init(g, big_page_size,
 				   low_hole,
-				   aperture_size - low_hole,
+				   nvgpu_safe_sub_u64(aperture_size, low_hole),
 				   aperture_size,
 				   true,
 				   false,
@@ -350,7 +351,8 @@ static int nvgpu_init_bar1_vm(struct mm_gk20a *mm)
 	mm->bar1.vm = nvgpu_vm_init(g,
 				    big_page_size,
 				    SZ_64K,
-				    mm->bar1.aperture_size - SZ_64K,
+				    nvgpu_safe_sub_u64(mm->bar1.aperture_size,
+						       SZ_64K),
 				    mm->bar1.aperture_size,
 				    true, false, false,
 				    "bar1");
@@ -384,7 +386,7 @@ static int nvgpu_init_engine_ucode_vm(struct gk20a *g,
 		ucode->aperture_size);
 
 	ucode->vm = nvgpu_vm_init(g, big_page_size, SZ_4K,
-		ucode->aperture_size - SZ_4K,
+		nvgpu_safe_sub_u64(ucode->aperture_size, SZ_4K),
 		ucode->aperture_size, false, false, false, address_space_name);
 	if (ucode->vm == NULL) {
 		return -ENOMEM;
@@ -424,8 +426,8 @@ static int nvgpu_init_mm_setup_sw(struct gk20a *g)
 	mm->channel.kernel_size = NV_MM_DEFAULT_KERNEL_SIZE;
 
 	nvgpu_log_info(g, "channel vm size: user %uMB  kernel %uMB",
-		   U32(mm->channel.user_size >> U64(20)),
-		   U32(mm->channel.kernel_size >> U64(20)));
+		nvgpu_safe_cast_u64_to_u32(mm->channel.user_size >> U64(20)),
+		nvgpu_safe_cast_u64_to_u32(mm->channel.kernel_size >> U64(20)));
 
 #ifdef CONFIG_NVGPU_DGPU
 	mm->vidmem.ce_ctx_id = NVGPU_CE_INVAL_CTX_ID;

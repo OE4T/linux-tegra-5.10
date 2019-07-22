@@ -38,7 +38,7 @@ int gp10b_mm_init_bar2_vm(struct gk20a *g)
 	nvgpu_log_info(g, "bar2 vm size = 0x%x", mm->bar2.aperture_size);
 
 	mm->bar2.vm = nvgpu_vm_init(g, big_page_size, SZ_4K,
-		mm->bar2.aperture_size - SZ_4K,
+		nvgpu_safe_sub_u64(mm->bar2.aperture_size, SZ_4K),
 		mm->bar2.aperture_size, false, false, false, "bar2");
 	if (mm->bar2.vm == NULL) {
 		return -ENOMEM;
