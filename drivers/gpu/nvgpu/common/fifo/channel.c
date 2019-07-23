@@ -2236,7 +2236,7 @@ static bool nvgpu_channel_ctxsw_timeout_debug_dump_state(struct gk20a *g,
 		struct nvgpu_channel *ch)
 {
 	bool verbose = false;
-	if (nvgpu_is_error_notifier_set(ch,
+	if (nvgpu_is_err_notifier_set(ch,
 			NVGPU_ERR_NOTIFIER_FIFO_ERROR_IDLE_TIMEOUT)) {
 		verbose = ch->ctxsw_timeout_debug_dump;
 	}

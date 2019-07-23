@@ -846,7 +846,7 @@ static const struct gpu_ops gp10b_ops = {
                         nvgpu_channel_suspend_all_serviceable_ch,
 		.resume_all_serviceable_ch =
                         nvgpu_channel_resume_all_serviceable_ch,
-		.set_error_notifier = nvgpu_set_error_notifier,
+		.set_error_notifier = nvgpu_set_err_notifier,
 		.debug_dump = gk20a_channel_debug_dump,
 	},
 	.tsg = {

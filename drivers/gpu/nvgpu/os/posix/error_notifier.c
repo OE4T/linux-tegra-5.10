@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -22,19 +22,19 @@
 
 #include <nvgpu/error_notifier.h>
 
-void nvgpu_set_error_notifier_locked(struct nvgpu_channel *ch, u32 error)
+void nvgpu_set_err_notifier_locked(struct nvgpu_channel *ch, u32 error)
 {
 }
 
-void nvgpu_set_error_notifier(struct nvgpu_channel *ch, u32 error)
+void nvgpu_set_err_notifier(struct nvgpu_channel *ch, u32 error)
 {
 }
 
-void nvgpu_set_error_notifier_if_empty(struct nvgpu_channel *ch, u32 error)
+void nvgpu_set_err_notifier_if_empty(struct nvgpu_channel *ch, u32 error)
 {
 }
 
-bool nvgpu_is_error_notifier_set(struct nvgpu_channel *ch, u32 error_notifier)
+bool nvgpu_is_err_notifier_set(struct nvgpu_channel *ch, u32 error_notifier)
 {
 	return false;
 }

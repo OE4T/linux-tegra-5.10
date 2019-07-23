@@ -108,12 +108,12 @@ static u32 nvgpu_error_notifier_to_channel_notifier(u32 error_notifier)
 }
 
 /**
- * nvgpu_set_error_notifier_locked()
+ * nvgpu_set_err_notifier_locked()
  * Should be called with ch->error_notifier_mutex held
  *
  * error should be of the form  NVGPU_ERR_NOTIFIER_*
  */
-void nvgpu_set_error_notifier_locked(struct nvgpu_channel *ch, u32 error)
+void nvgpu_set_err_notifier_locked(struct nvgpu_channel *ch, u32 error)
 {
 	struct nvgpu_channel_linux *priv = ch->os_priv;
 
@@ -141,16 +141,16 @@ void nvgpu_set_error_notifier_locked(struct nvgpu_channel *ch, u32 error)
 }
 
 /* error should be of the form  NVGPU_ERR_NOTIFIER_* */
-void nvgpu_set_error_notifier(struct nvgpu_channel *ch, u32 error)
+void nvgpu_set_err_notifier(struct nvgpu_channel *ch, u32 error)
 {
 	struct nvgpu_channel_linux *priv = ch->os_priv;
 
 	nvgpu_mutex_acquire(&priv->error_notifier.mutex);
-	nvgpu_set_error_notifier_locked(ch, error);
+	nvgpu_set_err_notifier_locked(ch, error);
 	nvgpu_mutex_release(&priv->error_notifier.mutex);
 }
 
-void nvgpu_set_error_notifier_if_empty(struct nvgpu_channel *ch, u32 error)
+void nvgpu_set_err_notifier_if_empty(struct nvgpu_channel *ch, u32 error)
 {
 	struct nvgpu_channel_linux *priv = ch->os_priv;
 
@@ -161,13 +161,13 @@ void nvgpu_set_error_notifier_if_empty(struct nvgpu_channel *ch, u32 error)
 
 		/* Don't overwrite error flag if it is already set */
 		if (notification->status != 0xffff)
-			nvgpu_set_error_notifier_locked(ch, error);
+			nvgpu_set_err_notifier_locked(ch, error);
 	}
 	nvgpu_mutex_release(&priv->error_notifier.mutex);
 }
 
 /* error_notifier should be of the form  NVGPU_ERR_NOTIFIER_* */
-bool nvgpu_is_error_notifier_set(struct nvgpu_channel *ch, u32 error_notifier)
+bool nvgpu_is_err_notifier_set(struct nvgpu_channel *ch, u32 error_notifier)
 {
 	struct nvgpu_channel_linux *priv = ch->os_priv;
 	bool notifier_set = false;
