@@ -1,7 +1,7 @@
 /*
  * tegra_t186ref_p2382_alt.c - Tegra t186ref p2382 Machine driver
  *
- * Copyright (c) 2015-2017 NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2015-2019 NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -696,6 +696,9 @@ static int tegra_t186ref_p2382_driver_probe(struct platform_device *pdev)
 				1);
 	}
 	tegra_machine_dai_links = tegra_machine_get_dai_link_t18x();
+	if (!tegra_machine_dai_links)
+		goto err_alloc_dai_link;
+
 	card->dai_link = tegra_machine_dai_links;
 
 	/* append t186ref_p2382 specific codec_conf */

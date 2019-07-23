@@ -350,6 +350,9 @@ static void dai_link_setup(struct platform_device *pdev)
 		tegra_machine_append_dai_link_t18x(tegra186_codec_links,
 				2 * machine->num_codec_links);
 	tegra_machine_dai_links = tegra_machine_get_dai_link_t18x();
+	if (!tegra_machine_dai_links)
+		goto err_alloc_dai_link;
+
 	card->dai_link = tegra_machine_dai_links;
 
 	/* Append t186 specific codec_conf */
