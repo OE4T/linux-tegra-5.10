@@ -664,9 +664,9 @@ int osi_hw_dma_deinit(struct osi_dma_priv_data *osi_dma);
  *
  *	Protection: None.
  *
- *	Return: None.
+ *	Return: 0 - success, -1 - failure
  */
-void osi_init_dma_ops(struct osi_dma_priv_data *osi_dma);
+int osi_init_dma_ops(struct osi_dma_priv_data *osi_dma);
 
 /**
  *	osi_clear_tx_pkt_err_stats - Clear tx packet error stats.

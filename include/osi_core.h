@@ -1039,7 +1039,7 @@ int osi_reset_mmc(struct osi_core_priv_data *osi_core);
  */
 int osi_read_phy_reg(struct osi_core_priv_data *osi_core, unsigned int phyaddr,
 		     unsigned int phyreg);
-void osi_init_core_ops(struct osi_core_priv_data *osi_core);
+int osi_init_core_ops(struct osi_core_priv_data *osi_core);
 
 /**
  *	osi_set_systime_to_mac - Handles setting of system time.
