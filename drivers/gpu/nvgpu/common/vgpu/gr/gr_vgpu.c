@@ -1497,6 +1497,7 @@ int vgpu_gr_set_preemption_mode(struct nvgpu_channel *ch,
 	return err;
 }
 
+#ifdef CONFIG_NVGPU_DEBUGGER
 u64 vgpu_gr_gk20a_tpc_enabled_exceptions(struct gk20a *g)
 {
 	struct tegra_vgpu_cmd_msg msg = {};
@@ -1518,3 +1519,4 @@ u64 vgpu_gr_gk20a_tpc_enabled_exceptions(struct gk20a *g)
 	tpc_exception_en = p->tpc_exception_en_sm_mask;
 	return tpc_exception_en;
 }
+#endif

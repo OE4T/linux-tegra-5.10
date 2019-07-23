@@ -456,8 +456,10 @@ static const struct gpu_ops gm20b_ops = {
 				gm20b_gr_intr_get_sm_hww_global_esr,
 			.get_sm_no_lock_down_hww_global_esr_mask =
 				gm20b_gr_intr_get_sm_no_lock_down_hww_global_esr_mask,
+#ifdef CONFIG_NVGPU_DEBUGGER
 			.tpc_enabled_exceptions =
 				gm20b_gr_intr_tpc_enabled_exceptions,
+#endif
 		},
 		.falcon = {
 			.read_fecs_ctxsw_mailbox =
@@ -959,7 +961,9 @@ static const struct gpu_ops gm20b_ops = {
 	.ptimer = {
 		.isr = gk20a_ptimer_isr,
 		.read_ptimer = gk20a_read_ptimer,
+#ifdef CONFIG_NVGPU_IOCTL_NON_FUSA
 		.get_timestamps_zipper = nvgpu_get_timestamps_zipper,
+#endif
 	},
 #if defined(CONFIG_NVGPU_CYCLESTATS)
 	.css = {

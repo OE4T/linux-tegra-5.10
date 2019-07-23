@@ -443,8 +443,10 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 			.flush_channel_tlb = nvgpu_gr_intr_flush_channel_tlb,
 			.get_sm_no_lock_down_hww_global_esr_mask =
 				gv11b_gr_intr_get_sm_no_lock_down_hww_global_esr_mask,
+#ifdef CONFIG_NVGPU_DEBUGGER
 			.tpc_enabled_exceptions =
 				vgpu_gr_gk20a_tpc_enabled_exceptions,
+#endif
 		},
 	},
 	.gpu_class = {
@@ -847,7 +849,9 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 	.ptimer = {
 		.isr = NULL,
 		.read_ptimer = vgpu_read_ptimer,
+#ifdef CONFIG_NVGPU_IOCTL_NON_FUSA
 		.get_timestamps_zipper = vgpu_get_timestamps_zipper,
+#endif
 	},
 #if defined(CONFIG_NVGPU_CYCLESTATS)
 	.css = {

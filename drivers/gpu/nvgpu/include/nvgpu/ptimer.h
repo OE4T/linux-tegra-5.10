@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -49,7 +49,9 @@ static inline u32 scale_ptimer(u32 timeout , u32 scale10x)
 	}
 }
 
+#ifdef CONFIG_NVGPU_IOCTL_NON_FUSA
 int nvgpu_get_timestamps_zipper(struct gk20a *g,
 		u32 source_id, u32 count,
 		struct nvgpu_cpu_time_correlation_sample *samples);
+#endif /* CONFIG_NVGPU_IOCTL_NON_FUSA */
 #endif

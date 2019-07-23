@@ -34,6 +34,7 @@ struct therm_pmucmdhandler_params {
 	u32 success;
 };
 
+#ifdef CONFIG_NVGPU_IOCTL_NON_FUSA
 static void therm_pmucmdhandler(struct gk20a *g, struct pmu_msg *msg,
 			void *param, u32 status)
 {
@@ -53,6 +54,7 @@ static void therm_pmucmdhandler(struct gk20a *g, struct pmu_msg *msg,
 		phandlerparams->success = 1;
 	}
 }
+#endif
 
 int therm_send_pmgr_tables_to_pmu(struct gk20a *g)
 {
@@ -86,6 +88,7 @@ exit:
 	return status;
 }
 
+#ifdef CONFIG_NVGPU_IOCTL_NON_FUSA
 static int therm_pmu_cmd_post(struct gk20a *g, struct pmu_cmd *cmd,
 		struct pmu_payload *payload,
 		u32 queue_id, pmu_callback callback, void *cb_param)
@@ -257,6 +260,7 @@ int nvgpu_therm_configure_therm_alert(struct gk20a *g, struct nvgpu_pmu *pmu)
 exit:
 	return status;
 }
+#endif
 
 void nvgpu_pmu_therm_rpc_handler(struct gk20a *g, struct nvgpu_pmu *pmu,
 		struct nv_pmu_rpc_header *rpc)

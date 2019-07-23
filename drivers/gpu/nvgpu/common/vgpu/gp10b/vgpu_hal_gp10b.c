@@ -752,7 +752,9 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 	.ptimer = {
 		.isr = NULL,
 		.read_ptimer = vgpu_read_ptimer,
+#ifdef CONFIG_NVGPU_IOCTL_NON_FUSA
 		.get_timestamps_zipper = vgpu_get_timestamps_zipper,
+#endif
 	},
 #if defined(CONFIG_NVGPU_CYCLESTATS)
 	.css = {

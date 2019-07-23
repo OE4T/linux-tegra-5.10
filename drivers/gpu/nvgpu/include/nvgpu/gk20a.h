@@ -897,7 +897,9 @@ struct gpu_ops {
 				u32 offset);
 			u32 (*get_sm_no_lock_down_hww_global_esr_mask)(
 				struct gk20a *g);
+#ifdef CONFIG_NVGPU_DEBUGGER
 			u64 (*tpc_enabled_exceptions)(struct gk20a *g);
+#endif
 			u32 (*get_ctxsw_checksum_mismatch_mailbox_val)(void);
 		} intr;
 	} gr;
@@ -1400,7 +1402,9 @@ struct gpu_ops {
 		int (*get_internal_sensor_curr_temp)(struct gk20a *g, u32 *temp_f24_8);
 		void (*get_internal_sensor_limits)(s32 *max_24_8,
 							s32 *min_24_8);
+#ifdef CONFIG_NVGPU_IOCTL_NON_FUSA
 		int (*configure_therm_alert)(struct gk20a *g, s32 curr_warn_temp);
+#endif
 		void (*throttle_enable)(struct gk20a *g, u32 val);
 		u32 (*throttle_disable)(struct gk20a *g);
 		void (*idle_slowdown_enable)(struct gk20a *g, u32 val);
@@ -1643,9 +1647,11 @@ struct gpu_ops {
 	struct {
 		void (*isr)(struct gk20a *g);
 		int (*read_ptimer)(struct gk20a *g, u64 *value);
+#ifdef CONFIG_NVGPU_IOCTL_NON_FUSA
 		int (*get_timestamps_zipper)(struct gk20a *g,
 			u32 source_id, u32 count,
 			struct nvgpu_cpu_time_correlation_sample *samples);
+#endif
 	} ptimer;
 
 	struct {

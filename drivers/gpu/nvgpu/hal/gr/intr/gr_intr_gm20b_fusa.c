@@ -411,6 +411,7 @@ u32 gm20b_gr_intr_nonstall_isr(struct gk20a *g)
 	return ops;
 }
 
+#ifdef CONFIG_NVGPU_DEBUGGER
 u64 gm20b_gr_intr_tpc_enabled_exceptions(struct gk20a *g)
 {
 	u32 sm_id;
@@ -440,3 +441,4 @@ u64 gm20b_gr_intr_tpc_enabled_exceptions(struct gk20a *g)
 
 	return tpc_exception_en;
 }
+#endif

@@ -80,6 +80,8 @@ u32 gm20b_gr_intr_get_sm_hww_global_esr(struct gk20a *g, u32 gpc, u32 tpc,
 		u32 sm);
 u32 gm20b_gr_intr_get_sm_hww_warp_esr(struct gk20a *g, u32 gpc, u32 tpc, u32 sm);
 u32 gm20b_gr_intr_get_sm_no_lock_down_hww_global_esr_mask(struct gk20a *g);
+#ifdef CONFIG_NVGPU_DEBUGGER
 u64 gm20b_gr_intr_tpc_enabled_exceptions(struct gk20a *g);
+#endif
 
 #endif /* NVGPU_GR_INTR_GM20B_H */
