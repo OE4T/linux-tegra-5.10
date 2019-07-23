@@ -2915,6 +2915,9 @@ struct snd_soc_dai_link *tegra_machine_get_dai_link(void)
 	tegra_asoc_machine_links = kzalloc(size *
 		sizeof(struct snd_soc_dai_link), GFP_KERNEL);
 
+	if (!tegra_asoc_machine_links)
+		return NULL;
+
 	memcpy(tegra_asoc_machine_links, link,
 		size * sizeof(struct snd_soc_dai_link));
 
@@ -3023,6 +3026,9 @@ struct snd_soc_codec_conf *tegra_machine_get_codec_conf(void)
 
 	tegra_asoc_codec_conf = kzalloc(size *
 		sizeof(struct snd_soc_codec_conf), GFP_KERNEL);
+
+	if (!tegra_asoc_codec_conf)
+		return NULL;
 
 	memcpy(tegra_asoc_codec_conf, conf,
 		size * sizeof(struct snd_soc_codec_conf));
@@ -3446,6 +3452,9 @@ struct snd_soc_dai_link *tegra_machine_get_dai_link_t18x(void)
 	tegra_asoc_machine_links_t18x = kzalloc(size *
 		sizeof(struct snd_soc_dai_link), GFP_KERNEL);
 
+	if (!tegra_asoc_machine_links_t18x)
+		return NULL;
+
 	memcpy(tegra_asoc_machine_links_t18x, link,
 		size * sizeof(struct snd_soc_dai_link));
 
@@ -3503,6 +3512,9 @@ struct snd_soc_codec_conf *tegra_machine_get_codec_conf_t18x(void)
 
 	tegra_asoc_codec_conf_t18x = kzalloc(size *
 		sizeof(struct snd_soc_codec_conf), GFP_KERNEL);
+
+	if (!tegra_asoc_codec_conf_t18x)
+		return NULL;
 
 	memcpy(tegra_asoc_codec_conf_t18x, conf,
 		size * sizeof(struct snd_soc_codec_conf));
