@@ -111,6 +111,7 @@ static irqreturn_t tegra_camrtc_adsp_wfi_handler(int irq, void *data);
 static void tegra_ape_cam_assert_resets(struct device *dev);
 static int tegra_ape_cam_deassert_resets(struct device *dev);
 
+static int tegra_rce_cam_wait_for_idle(struct device *dev);
 static void tegra_rce_cam_assert_resets(struct device *dev);
 static int tegra_rce_cam_deassert_resets(struct device *dev);
 
@@ -175,7 +176,7 @@ static const char * const rce_reg_names[] = {
 
 static const struct tegra_cam_rtcpu_pdata rce_pdata = {
 	.name = "rce",
-	.wait_for_idle = tegra_sce_cam_wait_for_idle,
+	.wait_for_idle = tegra_rce_cam_wait_for_idle,
 	.assert_resets = tegra_rce_cam_assert_resets,
 	.deassert_resets = tegra_rce_cam_deassert_resets,
 	.id = TEGRA_CAM_RTCPU_RCE,
@@ -496,9 +497,10 @@ static void tegra_sce_cam_assert_resets(struct device *dev)
 	camrtc_reset_group_assert(rtcpu->resets[0]);
 }
 
-static int tegra_sce_cam_wait_for_wfi(struct device *dev, long *timeout)
+static int tegra_sce_cam_wait_for_idle(struct device *dev)
 {
 	struct tegra_cam_rtcpu *rtcpu = dev_get_drvdata(dev);
+	long timeout = rtcpu->cmd_timeout;
 	long delay_stride = HZ / 50;
 
 	if (rtcpu->pm_base == NULL)
@@ -511,24 +513,16 @@ static int tegra_sce_cam_wait_for_wfi(struct device *dev, long *timeout)
 		if ((val & TEGRA_PM_WFIPIPESTOPPED) == 0)
 			break;
 
-		if (*timeout < 0) {
+		if (timeout < 0) {
 			dev_WARN(dev, "timeout waiting for WFI\n");
 			return -EBUSY;
 		}
 
 		msleep(delay_stride);
-		*timeout -= delay_stride;
+		timeout -= delay_stride;
 	}
 
 	return 0;
-}
-
-static int tegra_sce_cam_wait_for_idle(struct device *dev)
-{
-	struct tegra_cam_rtcpu *rtcpu = dev_get_drvdata(dev);
-	long timeout = rtcpu->cmd_timeout;
-
-	return tegra_sce_cam_wait_for_wfi(dev, &timeout);
 }
 
 static void tegra_ape_cam_assert_resets(struct device *dev)
@@ -631,6 +625,34 @@ static int tegra_ape_cam_wait_for_idle(struct device *dev)
 		return err;
 
 	return tegra_ape_cam_wait_for_l2_idle(dev, &timeout);
+}
+
+static int tegra_rce_cam_wait_for_idle(struct device *dev)
+{
+	struct tegra_cam_rtcpu *rtcpu = dev_get_drvdata(dev);
+	long timeout = rtcpu->cmd_timeout;
+	long delay_stride = HZ / 50;
+
+	if (rtcpu->pm_base == NULL)
+		return 0;
+
+	/* Poll for WFI assert.*/
+	for (;;) {
+		u32 val = readl(rtcpu->pm_base + TEGRA_PM_PWR_STATUS_0);
+
+		if ((val & TEGRA_PM_WFIPIPESTOPPED) == 0)
+			break;
+
+		if (timeout < 0) {
+			dev_info(dev, "timeout waiting for WFI\n");
+			return -EBUSY;
+		}
+
+		msleep(delay_stride);
+		timeout -= delay_stride;
+	}
+
+	return 0;
 }
 
 static int tegra_rce_cam_deassert_resets(struct device *dev)
