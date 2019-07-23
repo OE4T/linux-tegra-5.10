@@ -24,7 +24,7 @@
 #include <nvgpu/vm_area.h>
 #include <nvgpu/barrier.h>
 #include <nvgpu/gk20a.h>
-
+#include <nvgpu/safe_ops.h>
 
 struct nvgpu_vm_area *nvgpu_vm_area_find(struct vm_gk20a *vm, u64 addr)
 {
@@ -33,7 +33,7 @@ struct nvgpu_vm_area *nvgpu_vm_area_find(struct vm_gk20a *vm, u64 addr)
 	nvgpu_list_for_each_entry(vm_area, &vm->vm_area_list,
 				  nvgpu_vm_area, vm_area_list) {
 		if (addr >= vm_area->addr &&
-		    addr < (u64)vm_area->addr + (u64)vm_area->size) {
+		    addr < nvgpu_safe_add_u64(vm_area->addr, vm_area->size)) {
 			return vm_area;
 		}
 	}
@@ -56,7 +56,9 @@ int nvgpu_vm_area_validate_buffer(struct vm_gk20a *vm,
 		return -EINVAL;
 	}
 
-	if ((map_addr & (U64(vm->gmmu_page_sizes[pgsz_idx]) - U64(1))) != 0ULL) {
+	if ((map_addr &
+	     nvgpu_safe_sub_u64(U64(vm->gmmu_page_sizes[pgsz_idx]), U64(1)))
+	     != 0ULL) {
 		nvgpu_err(g, "map offset must be buffer page size aligned 0x%llx",
 			  map_addr);
 		return -EINVAL;
@@ -71,7 +73,8 @@ int nvgpu_vm_area_validate_buffer(struct vm_gk20a *vm,
 	}
 
 	/* Mapped area should fit inside va, if there's one */
-	if (vm_area != NULL && map_end > vm_area->addr + vm_area->size) {
+	if (vm_area != NULL && map_end > nvgpu_safe_add_u64(vm_area->addr,
+							    vm_area->size)) {
 		nvgpu_warn(g, "fixed offset mapping size overflows va node");
 		return -EINVAL;
 	}
@@ -80,8 +83,9 @@ int nvgpu_vm_area_validate_buffer(struct vm_gk20a *vm,
 	 * mappings by checking the buffer with the highest GPU VA
 	 * that is less than our buffer end */
 	buffer = nvgpu_vm_find_mapped_buf_less_than(
-		vm, map_addr + map_size);
-	if (buffer != NULL && buffer->addr + buffer->size > map_addr) {
+		vm, nvgpu_safe_add_u64(map_addr, map_size));
+	if (buffer != NULL &&
+	    nvgpu_safe_add_u64(buffer->addr, buffer->size) > map_addr) {
 		nvgpu_warn(g, "overlapping buffer map requested");
 		return -EINVAL;
 	}
