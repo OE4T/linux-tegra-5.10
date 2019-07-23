@@ -227,10 +227,7 @@ nvgpu-y += \
 	hal/power_features/cg/gv100_gating_reglist.o \
 	hal/power_features/cg/gv11b_gating_reglist.o \
 	hal/power_features/cg/tu104_gating_reglist.o \
-	hal/regops/regops_gp10b.o \
-	hal/regops/regops_gv100.o \
 	hal/regops/regops_gv11b.o \
-	hal/regops/regops_tu104.o \
 	hal/ce/ce2_gk20a.o \
 	hal/therm/therm_gp10b.o \
 	hal/therm/therm_tu104.o \
@@ -690,6 +687,9 @@ nvgpu-$(CONFIG_NVGPU_HAL_NON_FUSA) += \
 	hal/power_features/cg/gm20b_gating_reglist.o \
 	hal/priv_ring/priv_ring_gm20b.o \
 	hal/regops/regops_gm20b.o \
+	hal/regops/regops_gp10b.o \
+	hal/regops/regops_gv100.o \
+	hal/regops/regops_tu104.o \
 	hal/therm/therm_gm20b.o \
 	hal/top/top_gm20b.o
 
