@@ -25,12 +25,15 @@
 extern int dma_desc_init(struct osi_dma_priv_data *osi_dma);
 extern struct osi_dma_chan_ops *eqos_get_dma_chan_ops(void);
 
-void osi_init_dma_ops(struct osi_dma_priv_data *osi_dma)
+int osi_init_dma_ops(struct osi_dma_priv_data *osi_dma)
 {
 	if (osi_dma->mac == OSI_MAC_HW_EQOS) {
 		/* Get EQOS HW ops */
 		osi_dma->ops = eqos_get_dma_chan_ops();
+		return 0;
 	}
+
+	return -1;
 }
 
 int osi_hw_dma_init(struct osi_dma_priv_data *osi_dma)
