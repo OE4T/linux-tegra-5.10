@@ -97,7 +97,7 @@ bool nvgpu_nvhost_syncpt_is_valid_pt_ext(
 	return nvhost_syncpt_is_valid_pt_ext(nvhost_dev->host1x_pdev, id);
 }
 
-int nvgpu_nvhost_syncpt_is_expired_ext(
+bool nvgpu_nvhost_syncpt_is_expired_ext(
 	struct nvgpu_nvhost_dev *nvhost_dev, u32 id, u32 thresh)
 {
 	return nvhost_syncpt_is_expired_ext(nvhost_dev->host1x_pdev,

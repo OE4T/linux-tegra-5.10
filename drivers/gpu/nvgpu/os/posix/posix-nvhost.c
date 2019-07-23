@@ -68,11 +68,11 @@ bool nvgpu_nvhost_syncpt_is_valid_pt_ext(
 	return false;
 }
 
-int nvgpu_nvhost_syncpt_is_expired_ext(
+bool nvgpu_nvhost_syncpt_is_expired_ext(
 	struct nvgpu_nvhost_dev *nvhost_dev, u32 id, u32 thresh)
 {
 	BUG();
-	return 0;
+	return false;
 }
 
 u32 nvgpu_nvhost_syncpt_incr_max_ext(

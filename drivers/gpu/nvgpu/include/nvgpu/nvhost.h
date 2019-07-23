@@ -41,7 +41,7 @@ void nvgpu_nvhost_module_idle_ext(struct nvgpu_nvhost_dev *nvhost_dev);
 
 void nvgpu_nvhost_debug_dump_device(struct nvgpu_nvhost_dev *nvhost_dev);
 
-int nvgpu_nvhost_syncpt_is_expired_ext(struct nvgpu_nvhost_dev *nvhost_dev,
+bool nvgpu_nvhost_syncpt_is_expired_ext(struct nvgpu_nvhost_dev *nvhost_dev,
 	u32 id, u32 thresh);
 int nvgpu_nvhost_syncpt_wait_timeout_ext(struct nvgpu_nvhost_dev *nvhost_dev,
 	u32 id, u32 thresh, u32 timeout, u32 *value, struct timespec *ts);
