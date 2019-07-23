@@ -407,7 +407,6 @@ struct nvgpu_falcon *nvgpu_falcon_get_instance(struct gk20a *g, u32 flcn_id)
 	case FALCON_ID_GPCCS:
 		flcn = &g->gpccs_flcn;
 		break;
-#ifdef CONFIG_NVGPU_DGPU
 	case FALCON_ID_GSPLITE:
 		flcn = &g->gsp_flcn;
 		break;
@@ -420,7 +419,6 @@ struct nvgpu_falcon *nvgpu_falcon_get_instance(struct gk20a *g, u32 flcn_id)
 	case FALCON_ID_MINION:
 		flcn = &g->minion_flcn;
 		break;
-#endif
 	default:
 		nvgpu_err(g, "Invalid/Unsupported falcon ID %x", flcn_id);
 		break;
@@ -435,6 +433,7 @@ static int falcon_sw_init(struct gk20a *g, struct nvgpu_falcon *flcn)
 	int err = 0;
 
 	switch (ver) {
+#ifdef CONFIG_NVGPU_COMMON_NON_FUSA
 	case GK20A_GPUID_GM20B:
 	case GK20A_GPUID_GM20B_B:
 		gk20a_falcon_sw_init(flcn);
@@ -442,6 +441,7 @@ static int falcon_sw_init(struct gk20a *g, struct nvgpu_falcon *flcn)
 	case NVGPU_GPUID_GP10B:
 		gk20a_falcon_sw_init(flcn);
 		break;
+#endif
 	case NVGPU_GPUID_GV11B:
 		gk20a_falcon_sw_init(flcn);
 		break;
@@ -482,16 +482,14 @@ int nvgpu_falcon_sw_init(struct gk20a *g, u32 flcn_id)
 		return err;
 	}
 
-	if (!flcn->is_falcon_supported) {
-		return 0;
-	}
-
 	nvgpu_mutex_init(&flcn->imem_lock);
 	nvgpu_mutex_init(&flcn->dmem_lock);
 
+#ifdef CONFIG_NVGPU_DGPU
 	if (flcn->emem_supported) {
 		nvgpu_mutex_init(&flcn->emem_lock);
 	}
+#endif
 
 	return 0;
 }
@@ -513,9 +511,11 @@ void nvgpu_falcon_sw_free(struct gk20a *g, u32 flcn_id)
 		return;
 	}
 
+#ifdef CONFIG_NVGPU_DGPU
 	if (flcn->emem_supported) {
 		nvgpu_mutex_destroy(&flcn->emem_lock);
 	}
+#endif
 	nvgpu_mutex_destroy(&flcn->dmem_lock);
 	nvgpu_mutex_destroy(&flcn->imem_lock);
 }
