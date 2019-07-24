@@ -345,6 +345,7 @@ int nvgpu_falcon_bl_bootstrap(struct nvgpu_falcon *flcn,
 
 	if (bl_info->bl_size > imem_size) {
 		nvgpu_err(g, "bootloader size greater than IMEM size");
+		err = -EINVAL;
 		goto exit;
 	}
 
