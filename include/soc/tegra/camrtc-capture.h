@@ -1585,8 +1585,8 @@ struct isp_capture_descriptor {
 		struct syncpoint_info inputfences[ISP_MAX_INPUT_SURFACES];
 	};
 
-	/* TBD: Decide exact max count */
-#define ISP_MAX_PREFENCES (ISP_MAX_OUTPUTS + ISP_MAX_INPUT_SURFACES)
+	/* GID-STKHLDREQPLCL123-3812735 */
+#define ISP_MAX_PREFENCES	14U
 
 	uint32_t num_prefences;
 	uint32_t __pad_prefences;
