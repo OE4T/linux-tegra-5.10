@@ -191,7 +191,7 @@ static void nvgpu_gr_ctx_unmap_global_ctx_buffers(struct gk20a *g,
 	gr_ctx->global_ctx_buffer_mapped = false;
 }
 
-int nvgpu_gr_ctx_map_global_ctx_buffers(struct gk20a *g,
+static int nvgpu_gr_ctx_map_ctx_circular_buffer(struct gk20a *g,
 	struct nvgpu_gr_ctx *gr_ctx,
 	struct nvgpu_gr_global_ctx_buffer_desc *global_ctx_buffer,
 	struct vm_gk20a *vm, bool vpr)
@@ -200,130 +200,225 @@ int nvgpu_gr_ctx_map_global_ctx_buffers(struct gk20a *g,
 	u32 *g_bfr_index;
 	u64 gpu_va = 0ULL;
 
-	nvgpu_log_fn(g, " ");
+	g_bfr_va = &gr_ctx->global_ctx_buffer_va[0];
+	g_bfr_index = &gr_ctx->global_ctx_buffer_index[0];
+
+#ifdef CONFIG_NVGPU_VPR
+	if (vpr && nvgpu_gr_global_ctx_buffer_ready(global_ctx_buffer,
+					NVGPU_GR_GLOBAL_CTX_CIRCULAR_VPR)) {
+		gpu_va = nvgpu_gr_global_ctx_buffer_map(global_ctx_buffer,
+					NVGPU_GR_GLOBAL_CTX_CIRCULAR_VPR,
+					vm, NVGPU_VM_MAP_CACHEABLE, true);
+		g_bfr_index[NVGPU_GR_CTX_CIRCULAR_VA] =
+					NVGPU_GR_GLOBAL_CTX_CIRCULAR_VPR;
+	} else {
+#endif
+		gpu_va = nvgpu_gr_global_ctx_buffer_map(global_ctx_buffer,
+					NVGPU_GR_GLOBAL_CTX_CIRCULAR,
+					vm, NVGPU_VM_MAP_CACHEABLE, true);
+		g_bfr_index[NVGPU_GR_CTX_CIRCULAR_VA] =
+					NVGPU_GR_GLOBAL_CTX_CIRCULAR;
+#ifdef CONFIG_NVGPU_VPR
+	}
+#endif
+	if (gpu_va == 0ULL) {
+		goto clean_up;
+	}
+	g_bfr_va[NVGPU_GR_CTX_CIRCULAR_VA] = gpu_va;
+
+	return 0;
+
+clean_up:
+	return -ENOMEM;
+}
+
+static int nvgpu_gr_ctx_map_ctx_attribute_buffer(struct gk20a *g,
+	struct nvgpu_gr_ctx *gr_ctx,
+	struct nvgpu_gr_global_ctx_buffer_desc *global_ctx_buffer,
+	struct vm_gk20a *vm, bool vpr)
+{
+	u64 *g_bfr_va;
+	u32 *g_bfr_index;
+	u64 gpu_va = 0ULL;
 
 	g_bfr_va = &gr_ctx->global_ctx_buffer_va[0];
 	g_bfr_index = &gr_ctx->global_ctx_buffer_index[0];
 
-	/* Circular Buffer */
 #ifdef CONFIG_NVGPU_VPR
 	if (vpr && nvgpu_gr_global_ctx_buffer_ready(global_ctx_buffer,
-			NVGPU_GR_GLOBAL_CTX_CIRCULAR_VPR)) {
+					NVGPU_GR_GLOBAL_CTX_ATTRIBUTE_VPR)) {
 		gpu_va = nvgpu_gr_global_ctx_buffer_map(global_ctx_buffer,
-				NVGPU_GR_GLOBAL_CTX_CIRCULAR_VPR,
-				vm, NVGPU_VM_MAP_CACHEABLE, true);
-		g_bfr_index[NVGPU_GR_CTX_CIRCULAR_VA] = NVGPU_GR_GLOBAL_CTX_CIRCULAR_VPR;
+					NVGPU_GR_GLOBAL_CTX_ATTRIBUTE_VPR,
+					vm, NVGPU_VM_MAP_CACHEABLE, false);
+		g_bfr_index[NVGPU_GR_CTX_ATTRIBUTE_VA] =
+					NVGPU_GR_GLOBAL_CTX_ATTRIBUTE_VPR;
 	} else {
 #endif
 		gpu_va = nvgpu_gr_global_ctx_buffer_map(global_ctx_buffer,
-				NVGPU_GR_GLOBAL_CTX_CIRCULAR,
-				vm, NVGPU_VM_MAP_CACHEABLE, true);
-		g_bfr_index[NVGPU_GR_CTX_CIRCULAR_VA] = NVGPU_GR_GLOBAL_CTX_CIRCULAR;
+					NVGPU_GR_GLOBAL_CTX_ATTRIBUTE,
+					vm, NVGPU_VM_MAP_CACHEABLE, false);
+		g_bfr_index[NVGPU_GR_CTX_ATTRIBUTE_VA] =
+					NVGPU_GR_GLOBAL_CTX_ATTRIBUTE;
 #ifdef CONFIG_NVGPU_VPR
 	}
 #endif
 	if (gpu_va == 0ULL) {
 		goto clean_up;
 	}
-
-	g_bfr_va[NVGPU_GR_CTX_CIRCULAR_VA] = gpu_va;
-
-	/* Attribute Buffer */
-#ifdef CONFIG_NVGPU_VPR
-	if (vpr && nvgpu_gr_global_ctx_buffer_ready(global_ctx_buffer,
-			NVGPU_GR_GLOBAL_CTX_ATTRIBUTE_VPR)) {
-		gpu_va = nvgpu_gr_global_ctx_buffer_map(global_ctx_buffer,
-				NVGPU_GR_GLOBAL_CTX_ATTRIBUTE_VPR,
-				vm, NVGPU_VM_MAP_CACHEABLE, false);
-		g_bfr_index[NVGPU_GR_CTX_ATTRIBUTE_VA] = NVGPU_GR_GLOBAL_CTX_ATTRIBUTE_VPR;
-	} else {
-#endif
-		gpu_va = nvgpu_gr_global_ctx_buffer_map(global_ctx_buffer,
-				NVGPU_GR_GLOBAL_CTX_ATTRIBUTE,
-				vm, NVGPU_VM_MAP_CACHEABLE, false);
-		g_bfr_index[NVGPU_GR_CTX_ATTRIBUTE_VA] = NVGPU_GR_GLOBAL_CTX_ATTRIBUTE;
-#ifdef CONFIG_NVGPU_VPR
-	}
-#endif
-	if (gpu_va == 0ULL) {
-		goto clean_up;
-	}
-
 	g_bfr_va[NVGPU_GR_CTX_ATTRIBUTE_VA] = gpu_va;
 
-	/* Page Pool */
+	return 0;
+
+clean_up:
+	return -ENOMEM;
+}
+
+
+static int nvgpu_gr_ctx_map_ctx_pagepool_buffer(struct gk20a *g,
+	struct nvgpu_gr_ctx *gr_ctx,
+	struct nvgpu_gr_global_ctx_buffer_desc *global_ctx_buffer,
+	struct vm_gk20a *vm, bool vpr)
+{
+	u64 *g_bfr_va;
+	u32 *g_bfr_index;
+	u64 gpu_va = 0ULL;
+
+	g_bfr_va = &gr_ctx->global_ctx_buffer_va[0];
+	g_bfr_index = &gr_ctx->global_ctx_buffer_index[0];
+
 #ifdef CONFIG_NVGPU_VPR
 	if (vpr && nvgpu_gr_global_ctx_buffer_ready(global_ctx_buffer,
-			NVGPU_GR_GLOBAL_CTX_PAGEPOOL_VPR)) {
+					NVGPU_GR_GLOBAL_CTX_PAGEPOOL_VPR)) {
 		gpu_va = nvgpu_gr_global_ctx_buffer_map(global_ctx_buffer,
-				NVGPU_GR_GLOBAL_CTX_PAGEPOOL_VPR,
-				vm, NVGPU_VM_MAP_CACHEABLE, true);
-		g_bfr_index[NVGPU_GR_CTX_PAGEPOOL_VA] = NVGPU_GR_GLOBAL_CTX_PAGEPOOL_VPR;
+					NVGPU_GR_GLOBAL_CTX_PAGEPOOL_VPR,
+					vm, NVGPU_VM_MAP_CACHEABLE, true);
+		g_bfr_index[NVGPU_GR_CTX_PAGEPOOL_VA] =
+					NVGPU_GR_GLOBAL_CTX_PAGEPOOL_VPR;
 	} else {
 #endif
 		gpu_va = nvgpu_gr_global_ctx_buffer_map(global_ctx_buffer,
-				NVGPU_GR_GLOBAL_CTX_PAGEPOOL,
-				vm, NVGPU_VM_MAP_CACHEABLE, true);
-		g_bfr_index[NVGPU_GR_CTX_PAGEPOOL_VA] = NVGPU_GR_GLOBAL_CTX_PAGEPOOL;
+					NVGPU_GR_GLOBAL_CTX_PAGEPOOL,
+					vm, NVGPU_VM_MAP_CACHEABLE, true);
+		g_bfr_index[NVGPU_GR_CTX_PAGEPOOL_VA] =
+					NVGPU_GR_GLOBAL_CTX_PAGEPOOL;
 #ifdef CONFIG_NVGPU_VPR
 	}
 #endif
 	if (gpu_va == 0ULL) {
 		goto clean_up;
 	}
-
 	g_bfr_va[NVGPU_GR_CTX_PAGEPOOL_VA] = gpu_va;
 
-	/* Priv register Access Map */
-	gpu_va = nvgpu_gr_global_ctx_buffer_map(global_ctx_buffer,
-			NVGPU_GR_GLOBAL_CTX_PRIV_ACCESS_MAP,
-			vm, 0, true);
-	if (gpu_va == 0ULL) {
-		goto clean_up;
+	return 0;
+
+clean_up:
+	return -ENOMEM;
+}
+
+static int nvgpu_gr_ctx_map_ctx_buffer(struct gk20a *g,
+	u32 buffer_type, u32 va_type,
+	struct nvgpu_gr_ctx *gr_ctx,
+	struct nvgpu_gr_global_ctx_buffer_desc *global_ctx_buffer,
+	struct vm_gk20a *vm)
+{
+	u64 *g_bfr_va;
+	u32 *g_bfr_index;
+	u64 gpu_va = 0ULL;
+
+	g_bfr_va = &gr_ctx->global_ctx_buffer_va[0];
+	g_bfr_index = &gr_ctx->global_ctx_buffer_index[0];
+
+	if (nvgpu_gr_global_ctx_buffer_ready(global_ctx_buffer, buffer_type)) {
+		gpu_va = nvgpu_gr_global_ctx_buffer_map(global_ctx_buffer,
+				buffer_type, vm, 0, true);
+		if (gpu_va == 0ULL) {
+			goto clean_up;
+		}
+		g_bfr_index[va_type] = buffer_type;
+		g_bfr_va[va_type] = gpu_va;
+
 	}
 
-	g_bfr_va[NVGPU_GR_CTX_PRIV_ACCESS_MAP_VA] = gpu_va;
-	g_bfr_index[NVGPU_GR_CTX_PRIV_ACCESS_MAP_VA] = NVGPU_GR_GLOBAL_CTX_PRIV_ACCESS_MAP;
+	return 0;
+
+clean_up:
+	return -ENOMEM;
+}
+
+int nvgpu_gr_ctx_map_global_ctx_buffers(struct gk20a *g,
+	struct nvgpu_gr_ctx *gr_ctx,
+	struct nvgpu_gr_global_ctx_buffer_desc *global_ctx_buffer,
+	struct vm_gk20a *vm, bool vpr)
+{
+	int err;
+
+	nvgpu_log_fn(g, " ");
+
+	/* Circular Buffer */
+	err = nvgpu_gr_ctx_map_ctx_circular_buffer(g, gr_ctx,
+					global_ctx_buffer, vm, vpr);
+	if (err != 0) {
+		nvgpu_err(g, "cannot map ctx circular buffer");
+		goto fail;
+	}
+
+	/* Attribute Buffer */
+	err = nvgpu_gr_ctx_map_ctx_attribute_buffer(g, gr_ctx,
+					global_ctx_buffer, vm, vpr);
+	if (err != 0) {
+		nvgpu_err(g, "cannot map ctx attribute buffer");
+		goto fail;
+	}
+
+	/* Page Pool */
+	err = nvgpu_gr_ctx_map_ctx_pagepool_buffer(g, gr_ctx,
+					global_ctx_buffer, vm, vpr);
+	if (err != 0) {
+		nvgpu_err(g, "cannot map ctx pagepool buffer");
+		goto fail;
+	}
+
+	/* Priv register Access Map */
+	err  = nvgpu_gr_ctx_map_ctx_buffer(g,
+			NVGPU_GR_GLOBAL_CTX_PRIV_ACCESS_MAP,
+			NVGPU_GR_CTX_PRIV_ACCESS_MAP_VA,
+			gr_ctx, global_ctx_buffer, vm);
+	if (err != 0) {
+		nvgpu_err(g, "cannot map ctx priv access buffer");
+		goto fail;
+	}
 
 #ifdef CONFIG_NVGPU_FECS_TRACE
 	/* FECS trace buffer */
 	if (nvgpu_is_enabled(g, NVGPU_FECS_TRACE_VA)) {
-		gpu_va = nvgpu_gr_global_ctx_buffer_map(global_ctx_buffer,
-				NVGPU_GR_GLOBAL_CTX_FECS_TRACE_BUFFER,
-				vm, 0, true);
-		if (gpu_va == 0ULL) {
-			goto clean_up;
+		err  = nvgpu_gr_ctx_map_ctx_buffer(g,
+			NVGPU_GR_GLOBAL_CTX_FECS_TRACE_BUFFER,
+			NVGPU_GR_CTX_FECS_TRACE_BUFFER_VA,
+			gr_ctx, global_ctx_buffer, vm);
+		if (err != 0) {
+			nvgpu_err(g, "cannot map ctx fecs trace buffer");
+			goto fail;
 		}
-
-		g_bfr_va[NVGPU_GR_CTX_FECS_TRACE_BUFFER_VA] = gpu_va;
-		g_bfr_index[NVGPU_GR_CTX_FECS_TRACE_BUFFER_VA] =
-			NVGPU_GR_GLOBAL_CTX_FECS_TRACE_BUFFER;
 	}
 #endif
 
 	/* RTV circular buffer */
-	if (nvgpu_gr_global_ctx_buffer_ready(global_ctx_buffer,
-			NVGPU_GR_GLOBAL_CTX_RTV_CIRCULAR_BUFFER)) {
-		gpu_va = nvgpu_gr_global_ctx_buffer_map(global_ctx_buffer,
-				NVGPU_GR_GLOBAL_CTX_RTV_CIRCULAR_BUFFER,
-				vm, 0, true);
-		if (gpu_va == 0ULL) {
-			goto clean_up;
-		}
-
-		g_bfr_va[NVGPU_GR_CTX_RTV_CIRCULAR_BUFFER_VA] = gpu_va;
-		g_bfr_index[NVGPU_GR_CTX_RTV_CIRCULAR_BUFFER_VA] =
-			NVGPU_GR_GLOBAL_CTX_RTV_CIRCULAR_BUFFER;
+	err  = nvgpu_gr_ctx_map_ctx_buffer(g,
+			NVGPU_GR_GLOBAL_CTX_RTV_CIRCULAR_BUFFER,
+			NVGPU_GR_CTX_RTV_CIRCULAR_BUFFER_VA,
+			gr_ctx, global_ctx_buffer, vm);
+	if (err != 0) {
+		nvgpu_err(g, "cannot map ctx rtv circular buffer");
+		goto fail;
 	}
 
 	gr_ctx->global_ctx_buffer_mapped = true;
 
 	return 0;
 
-clean_up:
+fail:
 	nvgpu_gr_ctx_unmap_global_ctx_buffers(g, gr_ctx, global_ctx_buffer, vm);
-
-	return -ENOMEM;
+	return err;
 }
 
 u64 nvgpu_gr_ctx_get_global_ctx_va(struct nvgpu_gr_ctx *gr_ctx,
@@ -688,24 +783,12 @@ static int nvgpu_gr_ctx_alloc_ctxsw_buffer(struct vm_gk20a *vm, size_t size,
 	return 0;
 }
 
-int nvgpu_gr_ctx_alloc_ctxsw_buffers(struct gk20a *g,
+static int nvgpu_gr_ctx_alloc_preemption_buffers(struct gk20a *g,
 	struct nvgpu_gr_ctx *gr_ctx,
 	struct nvgpu_gr_ctx_desc *gr_ctx_desc,
 	struct vm_gk20a *vm)
 {
 	int err = 0;
-
-	/* nothing to do if already initialized */
-	if (nvgpu_mem_is_valid(&gr_ctx->preempt_ctxsw_buffer)) {
-		return 0;
-	}
-
-	if (gr_ctx_desc->size[NVGPU_GR_CTX_PREEMPT_CTXSW] == 0U ||
-	    gr_ctx_desc->size[NVGPU_GR_CTX_SPILL_CTXSW] == 0U ||
-	    gr_ctx_desc->size[NVGPU_GR_CTX_BETACB_CTXSW] == 0U ||
-	    gr_ctx_desc->size[NVGPU_GR_CTX_PAGEPOOL_CTXSW] == 0U) {
-		return -EINVAL;
-	}
 
 	err = nvgpu_gr_ctx_alloc_ctxsw_buffer(vm,
 			gr_ctx_desc->size[NVGPU_GR_CTX_PREEMPT_CTXSW],
@@ -731,34 +814,64 @@ int nvgpu_gr_ctx_alloc_ctxsw_buffers(struct gk20a *g,
 		goto fail_free_spill;
 	}
 
-	err = nvgpu_gr_ctx_alloc_ctxsw_buffer(vm,
-			gr_ctx_desc->size[NVGPU_GR_CTX_PAGEPOOL_CTXSW],
-			&gr_ctx->pagepool_ctxsw_buffer);
-	if (err != 0) {
-		nvgpu_err(g, "cannot allocate page pool");
-		goto fail_free_betacb;
-	}
-
 	if (gr_ctx_desc->size[NVGPU_GR_CTX_GFXP_RTVCB_CTXSW] != 0U) {
 		err = nvgpu_gr_ctx_alloc_ctxsw_buffer(vm,
 			gr_ctx_desc->size[NVGPU_GR_CTX_GFXP_RTVCB_CTXSW],
 			&gr_ctx->gfxp_rtvcb_ctxsw_buffer);
 		if (err != 0) {
 			nvgpu_err(g, "cannot allocate gfxp rtvcb");
-			goto fail_free_pagepool;
+			goto fail_free_betacb;
 		}
 	}
-
 	return 0;
 
-fail_free_pagepool:
-	nvgpu_dma_unmap_free(vm, &gr_ctx->pagepool_ctxsw_buffer);
 fail_free_betacb:
 	nvgpu_dma_unmap_free(vm, &gr_ctx->betacb_ctxsw_buffer);
 fail_free_spill:
 	nvgpu_dma_unmap_free(vm, &gr_ctx->spill_ctxsw_buffer);
 fail_free_preempt:
 	nvgpu_dma_unmap_free(vm, &gr_ctx->preempt_ctxsw_buffer);
+fail:
+	return err;
+}
+
+int nvgpu_gr_ctx_alloc_ctxsw_buffers(struct gk20a *g,
+	struct nvgpu_gr_ctx *gr_ctx,
+	struct nvgpu_gr_ctx_desc *gr_ctx_desc,
+	struct vm_gk20a *vm)
+{
+	int err = 0;
+
+	/* nothing to do if already initialized */
+	if (nvgpu_mem_is_valid(&gr_ctx->preempt_ctxsw_buffer)) {
+		return 0;
+	}
+
+	if (gr_ctx_desc->size[NVGPU_GR_CTX_PREEMPT_CTXSW] == 0U ||
+	    gr_ctx_desc->size[NVGPU_GR_CTX_SPILL_CTXSW] == 0U ||
+	    gr_ctx_desc->size[NVGPU_GR_CTX_BETACB_CTXSW] == 0U ||
+	    gr_ctx_desc->size[NVGPU_GR_CTX_PAGEPOOL_CTXSW] == 0U) {
+		return -EINVAL;
+	}
+
+	err = nvgpu_gr_ctx_alloc_preemption_buffers(g, gr_ctx,
+		gr_ctx_desc, vm);
+
+	if (err != 0) {
+		nvgpu_err(g, "cannot allocate preemption buffers");
+		goto fail;
+	}
+
+	err = nvgpu_gr_ctx_alloc_ctxsw_buffer(vm,
+			gr_ctx_desc->size[NVGPU_GR_CTX_PAGEPOOL_CTXSW],
+			&gr_ctx->pagepool_ctxsw_buffer);
+	if (err != 0) {
+		nvgpu_err(g, "cannot allocate page pool");
+		goto fail;
+	}
+
+	return 0;
+
 fail:
 	return err;
 }
