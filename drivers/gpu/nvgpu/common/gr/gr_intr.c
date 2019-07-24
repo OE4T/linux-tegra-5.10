@@ -351,6 +351,27 @@ void nvgpu_gr_intr_set_error_notifier(struct gk20a *g,
 	}
 }
 
+static bool is_global_esr_error(u32 global_esr, u32 global_mask)
+{
+	return ((global_esr & ~global_mask) != 0U) ? true: false;
+}
+
+static void gr_intr_report_warp_error(struct gk20a *g, u32 gpc, u32 tpc,
+			u32 sm,	u32 global_esr, u32 warp_esr,
+			u32 global_mask, u32 offset)
+{
+	u64 hww_warp_esr_pc = 0;
+
+	if (is_global_esr_error(global_esr, global_mask)) {
+		if (g->ops.gr.intr.get_sm_hww_warp_esr_pc != NULL) {
+			hww_warp_esr_pc = g->ops.gr.intr.get_sm_hww_warp_esr_pc(g,
+					offset);
+		}
+		gr_intr_report_sm_exception(g, gpc, tpc, sm, warp_esr,
+				hww_warp_esr_pc);
+	}
+}
+
 int nvgpu_gr_intr_handle_sm_exception(struct gk20a *g, u32 gpc, u32 tpc, u32 sm,
 		bool *post_event, struct nvgpu_channel *fault_ch,
 		u32 *hww_global_esr)
@@ -359,7 +380,6 @@ int nvgpu_gr_intr_handle_sm_exception(struct gk20a *g, u32 gpc, u32 tpc, u32 sm,
 	u32 offset = nvgpu_safe_add_u32(nvgpu_gr_gpc_offset(g, gpc),
 					  nvgpu_gr_tpc_offset(g, tpc));
 	u32 global_esr, warp_esr, global_mask;
-	u64 hww_warp_esr_pc = 0;
 #ifdef CONFIG_NVGPU_DEBUGGER
 	bool sm_debugger_attached;
 	bool do_warp_sync = false, early_exit = false, ignore_debugger = false;
@@ -380,14 +400,8 @@ int nvgpu_gr_intr_handle_sm_exception(struct gk20a *g, u32 gpc, u32 tpc, u32 sm,
 	/*
 	 * Check and report any fatal warp errors.
 	 */
-	if ((global_esr & ~global_mask) != 0U) {
-		if (g->ops.gr.intr.get_sm_hww_warp_esr_pc != NULL) {
-			hww_warp_esr_pc = g->ops.gr.intr.get_sm_hww_warp_esr_pc(g,
-					offset);
-		}
-		gr_intr_report_sm_exception(g, gpc, tpc, sm, warp_esr,
-				hww_warp_esr_pc);
-	}
+	gr_intr_report_warp_error(g, gpc, tpc, sm, global_esr, warp_esr,
+				global_mask, offset);
 
 	(void)nvgpu_pg_elpg_protected_call(g,
 		nvgpu_safe_cast_u32_to_s32(
@@ -438,9 +452,9 @@ int nvgpu_gr_intr_handle_sm_exception(struct gk20a *g, u32 gpc, u32 tpc, u32 sm,
 			  "SM Exceptions disabled");
 	}
 
-	/* if a debugger is present and an error has occurred, do a warp sync */
-	if (!ignore_debugger &&
-	    ((warp_esr != 0U) || ((global_esr & ~global_mask) != 0U))) {
+	/* if debugger is present and an error has occurred, do a warp sync */
+	if (!ignore_debugger && ((warp_esr != 0U) ||
+			(is_global_esr_error(global_esr, global_mask)))) {
 		nvgpu_log(g, gpu_dbg_intr, "warp sync needed");
 		do_warp_sync = true;
 	}
@@ -460,6 +474,7 @@ int nvgpu_gr_intr_handle_sm_exception(struct gk20a *g, u32 gpc, u32 tpc, u32 sm,
 	} else {
 		*post_event = true;
 	}
+
 #else
 	/* Return error so that recovery is triggered */
 	ret = -EFAULT;
@@ -704,18 +719,210 @@ void nvgpu_gr_intr_handle_semaphore_pending(struct gk20a *g,
 	}
 }
 
+static u32 gr_intr_handle_exception_interrupts(struct gk20a *g,
+		u32 gr_intr, u32 *clear_intr,
+		struct nvgpu_tsg *tsg, u32 *global_esr,
+		struct nvgpu_gr_intr_info *intr_info,
+		struct nvgpu_gr_isr_data *isr_data)
+{
+	struct nvgpu_channel *fault_ch = NULL;
+	struct nvgpu_gr_config *gr_config = nvgpu_gr_get_config_ptr(g);
+	bool need_reset = false;
+
+	if (intr_info->exception != 0U) {
+		bool is_gpc_exception = false;
+
+		need_reset = g->ops.gr.intr.handle_exceptions(g,
+							&is_gpc_exception);
+
+		/* check if a gpc exception has occurred */
+		if (is_gpc_exception &&	!need_reset) {
+			bool post_event = false;
+
+			nvgpu_log(g, gpu_dbg_intr | gpu_dbg_gpu_dbg,
+					 "GPC exception pending");
+
+			if (tsg != NULL) {
+				fault_ch = isr_data->ch;
+			}
+
+			/* fault_ch can be NULL */
+			/* check if any gpc has an exception */
+			if (nvgpu_gr_intr_handle_gpc_exception(g, &post_event,
+				gr_config, fault_ch, global_esr) != 0) {
+				need_reset = true;
+			}
+
+#ifdef CONFIG_NVGPU_DEBUGGER
+			/* signal clients waiting on an event */
+			if (g->ops.gr.sm_debugger_attached(g) &&
+				post_event && (fault_ch != NULL)) {
+				g->ops.debugger.post_events(fault_ch);
+			}
+#endif
+		}
+		*clear_intr &= ~intr_info->exception;
+
+		if (need_reset) {
+			nvgpu_err(g, "set gr exception notifier");
+			nvgpu_gr_intr_set_error_notifier(g, isr_data,
+					 NVGPU_ERR_NOTIFIER_GR_EXCEPTION);
+		}
+	}
+
+	return (need_reset)? 1U : 0U;
+}
+
+static u32 gr_intr_handle_illegal_interrupts(struct gk20a *g,
+		u32 gr_intr, u32 *clear_intr,
+		struct nvgpu_gr_intr_info *intr_info,
+		struct nvgpu_gr_isr_data *isr_data)
+{
+	u32 do_reset = 0U;
+
+	if (intr_info->illegal_notify != 0U) {
+		nvgpu_err(g, "illegal notify pending");
+
+		nvgpu_gr_intr_report_exception(g, 0U,
+				GPU_PGRAPH_ILLEGAL_ERROR, gr_intr,
+				GPU_PGRAPH_ILLEGAL_NOTIFY);
+		nvgpu_gr_intr_set_error_notifier(g, isr_data,
+				NVGPU_ERR_NOTIFIER_GR_ILLEGAL_NOTIFY);
+		do_reset = 1U;
+		*clear_intr &= ~intr_info->illegal_notify;
+	}
+
+	if (intr_info->illegal_method != 0U) {
+		nvgpu_gr_intr_report_exception(g, 0U,
+				GPU_PGRAPH_ILLEGAL_ERROR, gr_intr,
+				GPU_PGRAPH_ILLEGAL_METHOD);
+		if (gr_intr_handle_illegal_method(g, isr_data) != 0) {
+			do_reset = 1U;
+		}
+		*clear_intr &= ~intr_info->illegal_method;
+	}
+
+	if (intr_info->illegal_class != 0U) {
+		nvgpu_gr_intr_report_exception(g, 0U,
+				GPU_PGRAPH_ILLEGAL_ERROR, gr_intr,
+				GPU_PGRAPH_ILLEGAL_CLASS);
+		nvgpu_err(g, "invalid class 0x%08x, offset 0x%08x",
+			  isr_data->class_num, isr_data->offset);
+
+		nvgpu_gr_intr_set_error_notifier(g, isr_data,
+				NVGPU_ERR_NOTIFIER_GR_ERROR_SW_NOTIFY);
+		do_reset = 1U;
+		*clear_intr &= ~intr_info->illegal_class;
+	}
+	return do_reset;
+}
+
+static u32 gr_intr_handle_error_interrupts(struct gk20a *g,
+		u32 gr_intr, u32 *clear_intr,
+		struct nvgpu_gr_intr_info *intr_info,
+		struct nvgpu_gr_isr_data *isr_data)
+{
+	u32 do_reset = 0U;
+
+	if (intr_info->fecs_error != 0U) {
+		if (g->ops.gr.intr.handle_fecs_error(g,
+				isr_data->ch, isr_data) != 0) {
+			do_reset = 1U;
+		}
+		*clear_intr &= ~intr_info->fecs_error;
+	}
+
+	if (intr_info->class_error != 0U) {
+		nvgpu_gr_intr_report_exception(g, 0U,
+				GPU_PGRAPH_ILLEGAL_ERROR, gr_intr,
+				GPU_PGRAPH_CLASS_ERROR);
+		if (gr_intr_handle_class_error(g, isr_data) != 0) {
+			do_reset = 1U;
+		}
+		*clear_intr &= ~intr_info->class_error;
+	}
+
+	/* this one happens if someone tries to hit a non-whitelisted
+	 * register using set_falcon[4] */
+	if (intr_info->fw_method != 0U) {
+		u32 ch_id = isr_data->ch != NULL ?
+			isr_data->ch->chid : NVGPU_INVALID_CHANNEL_ID;
+		nvgpu_err(g,
+		   "firmware method 0x%08x, offset 0x%08x for channel %u",
+		   isr_data->class_num, isr_data->offset,
+		   ch_id);
+
+		nvgpu_gr_intr_set_error_notifier(g, isr_data,
+			 NVGPU_ERR_NOTIFIER_GR_ERROR_SW_NOTIFY);
+		do_reset = 1U;
+		*clear_intr &= ~intr_info->fw_method;
+	}
+	return do_reset;
+}
+
+static void gr_intr_handle_pending_interrupts(struct gk20a *g,
+		u32 *clear_intr,
+		struct nvgpu_gr_intr_info *intr_info,
+		struct nvgpu_gr_isr_data *isr_data)
+{
+	if (intr_info->notify != 0U) {
+		g->ops.gr.intr.handle_notify_pending(g, isr_data);
+		*clear_intr &= ~intr_info->notify;
+	}
+
+	if (intr_info->semaphore != 0U) {
+		g->ops.gr.intr.handle_semaphore_pending(g, isr_data);
+		*clear_intr &= ~intr_info->semaphore;
+	}
+}
+
+static struct nvgpu_tsg *gr_intr_get_channel_from_ctx(struct gk20a *g,
+			u32 gr_intr, u32 *chid,
+			struct nvgpu_gr_isr_data *isr_data)
+{
+	struct nvgpu_channel *ch = NULL;
+	u32 tsgid = NVGPU_INVALID_TSG_ID;
+	struct nvgpu_tsg *tsg_info = NULL;
+	u32 channel_id;
+
+	ch = nvgpu_gr_intr_get_channel_from_ctx(g, isr_data->curr_ctx, &tsgid);
+	isr_data->ch = ch;
+	channel_id = ch != NULL ? ch->chid : NVGPU_INVALID_CHANNEL_ID;
+
+	if (ch == NULL) {
+		nvgpu_err(g,
+			"pgraph intr: 0x%08x, channel_id: INVALID", gr_intr);
+	} else {
+		tsg_info = nvgpu_tsg_from_ch(ch);
+		if (tsg_info == NULL) {
+			nvgpu_err(g, "pgraph intr: 0x%08x, channel_id: %d "
+				"not bound to tsg", gr_intr, channel_id);
+		}
+	}
+
+	nvgpu_log(g, gpu_dbg_intr | gpu_dbg_gpu_dbg,
+		"channel %d: addr 0x%08x, "
+		"data 0x%08x 0x%08x,"
+		"ctx 0x%08x, offset 0x%08x, "
+		"subchannel 0x%08x, class 0x%08x",
+		channel_id, isr_data->addr,
+		isr_data->data_hi, isr_data->data_lo,
+		isr_data->curr_ctx, isr_data->offset,
+		isr_data->sub_chan, isr_data->class_num);
+
+	*chid = channel_id;
+
+	return tsg_info;
+}
+
 int nvgpu_gr_intr_stall_isr(struct gk20a *g)
 {
 	struct nvgpu_gr_isr_data isr_data;
 	struct nvgpu_gr_intr_info intr_info;
-	bool need_reset = false;
-	struct nvgpu_channel *ch = NULL;
-	struct nvgpu_channel *fault_ch = NULL;
-	u32 tsgid = NVGPU_INVALID_TSG_ID;
+	u32 need_reset = 0U;
 	struct nvgpu_tsg *tsg = NULL;
 	u32 global_esr = 0;
 	u32 chid;
-	struct nvgpu_gr_config *gr_config = nvgpu_gr_get_config_ptr(g);
 	u32 gr_intr = g->ops.gr.intr.read_pending_interrupts(g, &intr_info);
 	u32 clear_intr = gr_intr;
 
@@ -731,155 +938,26 @@ int nvgpu_gr_intr_stall_isr(struct gk20a *g)
 
 	g->ops.gr.intr.trapped_method_info(g, &isr_data);
 
-	ch = nvgpu_gr_intr_get_channel_from_ctx(g, isr_data.curr_ctx, &tsgid);
-	isr_data.ch = ch;
-	chid = ch != NULL ? ch->chid : NVGPU_INVALID_CHANNEL_ID;
+	tsg = gr_intr_get_channel_from_ctx(g, gr_intr, &chid, &isr_data);
 
-	if (ch == NULL) {
-		nvgpu_err(g, "pgraph intr: 0x%08x, chid: INVALID", gr_intr);
-	} else {
-		tsg = nvgpu_tsg_from_ch(ch);
-		if (tsg == NULL) {
-			nvgpu_err(g, "pgraph intr: 0x%08x, chid: %d "
-				"not bound to tsg", gr_intr, chid);
-		}
-	}
+	gr_intr_handle_pending_interrupts(g, &clear_intr,
+					&intr_info, &isr_data);
 
-	nvgpu_log(g, gpu_dbg_intr | gpu_dbg_gpu_dbg,
-		"channel %d: addr 0x%08x, "
-		"data 0x%08x 0x%08x,"
-		"ctx 0x%08x, offset 0x%08x, "
-		"subchannel 0x%08x, class 0x%08x",
-		chid, isr_data.addr,
-		isr_data.data_hi, isr_data.data_lo,
-		isr_data.curr_ctx, isr_data.offset,
-		isr_data.sub_chan, isr_data.class_num);
+	need_reset |= gr_intr_handle_illegal_interrupts(g, gr_intr,
+				&clear_intr, &intr_info, &isr_data);
 
-	if (intr_info.notify != 0U) {
-		g->ops.gr.intr.handle_notify_pending(g, &isr_data);
-		clear_intr &= ~intr_info.notify;
-	}
+	need_reset |= gr_intr_handle_error_interrupts(g, gr_intr,
+				&clear_intr, &intr_info, &isr_data);
 
-	if (intr_info.semaphore != 0U) {
-		g->ops.gr.intr.handle_semaphore_pending(g, &isr_data);
-		clear_intr &= ~intr_info.semaphore;
-	}
+	need_reset |= gr_intr_handle_exception_interrupts(g, gr_intr,
+			&clear_intr, tsg, &global_esr, &intr_info, &isr_data);
 
-	if (intr_info.illegal_notify != 0U) {
-		nvgpu_err(g, "illegal notify pending");
-
-		nvgpu_gr_intr_report_exception(g, 0U,
-				GPU_PGRAPH_ILLEGAL_ERROR, gr_intr,
-				GPU_PGRAPH_ILLEGAL_NOTIFY);
-		nvgpu_gr_intr_set_error_notifier(g, &isr_data,
-				NVGPU_ERR_NOTIFIER_GR_ILLEGAL_NOTIFY);
-		need_reset = true;
-		clear_intr &= ~intr_info.illegal_notify;
-	}
-
-	if (intr_info.illegal_method != 0U) {
-		nvgpu_gr_intr_report_exception(g, 0U,
-				GPU_PGRAPH_ILLEGAL_ERROR, gr_intr,
-				GPU_PGRAPH_ILLEGAL_METHOD);
-		if (gr_intr_handle_illegal_method(g, &isr_data) != 0) {
-			need_reset = true;
-		}
-		clear_intr &= ~intr_info.illegal_method;
-	}
-
-	if (intr_info.illegal_class != 0U) {
-		nvgpu_gr_intr_report_exception(g, 0U,
-				GPU_PGRAPH_ILLEGAL_ERROR, gr_intr,
-				GPU_PGRAPH_ILLEGAL_CLASS);
-		nvgpu_err(g, "invalid class 0x%08x, offset 0x%08x",
-			  isr_data.class_num, isr_data.offset);
-
-		nvgpu_gr_intr_set_error_notifier(g, &isr_data,
-				NVGPU_ERR_NOTIFIER_GR_ERROR_SW_NOTIFY);
-		need_reset = true;
-		clear_intr &= ~intr_info.illegal_class;
-	}
-
-	if (intr_info.fecs_error != 0U) {
-		if (g->ops.gr.intr.handle_fecs_error(g, ch, &isr_data) != 0) {
-			need_reset = true;
-		}
-		clear_intr &= ~intr_info.fecs_error;
-	}
-
-	if (intr_info.class_error != 0U) {
-		nvgpu_gr_intr_report_exception(g, 0U,
-				GPU_PGRAPH_ILLEGAL_ERROR, gr_intr,
-				GPU_PGRAPH_CLASS_ERROR);
-		if (gr_intr_handle_class_error(g, &isr_data) != 0) {
-			need_reset = true;
-		}
-		clear_intr &= ~intr_info.class_error;
-	}
-
-	/* this one happens if someone tries to hit a non-whitelisted
-	 * register using set_falcon[4] */
-	if (intr_info.fw_method != 0U) {
-		u32 ch_id = isr_data.ch != NULL ?
-			isr_data.ch->chid : NVGPU_INVALID_CHANNEL_ID;
-		nvgpu_err(g,
-		   "firmware method 0x%08x, offset 0x%08x for channel %u",
-		   isr_data.class_num, isr_data.offset,
-		   ch_id);
-
-		nvgpu_gr_intr_set_error_notifier(g, &isr_data,
-			 NVGPU_ERR_NOTIFIER_GR_ERROR_SW_NOTIFY);
-		need_reset = true;
-		clear_intr &= ~intr_info.fw_method;
-	}
-
-	if (intr_info.exception != 0U) {
-		bool is_gpc_exception = false;
-
-		need_reset = g->ops.gr.intr.handle_exceptions(g,
-							&is_gpc_exception);
-
-		/* check if a gpc exception has occurred */
-		if (is_gpc_exception &&	!need_reset) {
-			bool post_event = false;
-
-			nvgpu_log(g, gpu_dbg_intr | gpu_dbg_gpu_dbg,
-					 "GPC exception pending");
-
-			if (tsg != NULL) {
-				fault_ch = isr_data.ch;
-			}
-
-			/* fault_ch can be NULL */
-			/* check if any gpc has an exception */
-			if (nvgpu_gr_intr_handle_gpc_exception(g, &post_event,
-				gr_config, fault_ch, &global_esr) != 0) {
-				need_reset = true;
-			}
-
-#ifdef CONFIG_NVGPU_DEBUGGER
-			/* signal clients waiting on an event */
-			if (g->ops.gr.sm_debugger_attached(g) &&
-				post_event && (fault_ch != NULL)) {
-				g->ops.debugger.post_events(fault_ch);
-			}
-#endif
-		}
-		clear_intr &= ~intr_info.exception;
-
-		if (need_reset) {
-			nvgpu_err(g, "set gr exception notifier");
-			nvgpu_gr_intr_set_error_notifier(g, &isr_data,
-					 NVGPU_ERR_NOTIFIER_GR_EXCEPTION);
-		}
-	}
-
-	if (need_reset) {
-		nvgpu_rc_gr_fault(g, tsg, ch);
+	if (need_reset != 0U) {
+		nvgpu_rc_gr_fault(g, tsg, isr_data.ch);
 	}
 
 	if (clear_intr != 0U) {
-		if (ch == NULL) {
+		if (isr_data.ch == NULL) {
 			/*
 			 * This is probably an interrupt during
 			 * gk20a_free_channel()
@@ -901,13 +979,13 @@ int nvgpu_gr_intr_stall_isr(struct gk20a *g)
 
 #if defined(CONFIG_NVGPU_CHANNEL_TSG_CONTROL) && defined(CONFIG_NVGPU_DEBUGGER)
 	/* Posting of BPT events should be the last thing in this function */
-	if ((global_esr != 0U) && (tsg != NULL) && (need_reset == false)) {
+	if ((global_esr != 0U) && (tsg != NULL) && (need_reset == 0U)) {
 		gr_intr_post_bpt_events(g, tsg, global_esr);
 	}
 #endif
 
-	if (ch != NULL) {
-		nvgpu_channel_put(ch);
+	if (isr_data.ch != NULL) {
+		nvgpu_channel_put(isr_data.ch);
 	}
 
 	return 0;
