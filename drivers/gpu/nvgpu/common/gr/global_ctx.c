@@ -133,11 +133,9 @@ static int nvgpu_gr_global_ctx_buffer_alloc_vpr(struct gk20a *g,
 }
 #endif
 
-int nvgpu_gr_global_ctx_buffer_alloc(struct gk20a *g,
-	struct nvgpu_gr_global_ctx_buffer_desc *desc)
+static bool nvgpu_gr_global_ctx_buffer_sizes_are_valid(struct gk20a *g,
+				struct nvgpu_gr_global_ctx_buffer_desc *desc)
 {
-	int err = 0;
-
 	if (desc[NVGPU_GR_GLOBAL_CTX_CIRCULAR].size == 0U ||
 	    desc[NVGPU_GR_GLOBAL_CTX_PAGEPOOL].size == 0U ||
 	    desc[NVGPU_GR_GLOBAL_CTX_ATTRIBUTE].size == 0U ||
@@ -147,31 +145,84 @@ int nvgpu_gr_global_ctx_buffer_alloc(struct gk20a *g,
 	    desc[NVGPU_GR_GLOBAL_CTX_ATTRIBUTE_VPR].size == 0U ||
 #endif
 	    desc[NVGPU_GR_GLOBAL_CTX_PRIV_ACCESS_MAP].size == 0U) {
-		return -EINVAL;
+		return false;
 	}
+
+	return true;
+}
+
+#ifdef CONFIG_NVGPU_VPR
+static int nvgpu_gr_global_ctx_buffer_vpr_alloc(struct gk20a *g,
+				struct nvgpu_gr_global_ctx_buffer_desc *desc)
+{
+	int err = 0;
+
+	err = nvgpu_gr_global_ctx_buffer_alloc_vpr(g, desc,
+		NVGPU_GR_GLOBAL_CTX_CIRCULAR_VPR);
+	if (err != 0) {
+		goto fail;
+	}
+
+	err = nvgpu_gr_global_ctx_buffer_alloc_vpr(g, desc,
+		NVGPU_GR_GLOBAL_CTX_PAGEPOOL_VPR);
+	if (err != 0) {
+		goto fail;
+	}
+
+	err = nvgpu_gr_global_ctx_buffer_alloc_vpr(g, desc,
+		NVGPU_GR_GLOBAL_CTX_ATTRIBUTE_VPR);
+	if (err != 0) {
+		goto fail;
+	}
+fail:
+	return err;
+}
+#endif
+
+static int nvgpu_gr_global_ctx_buffer_sys_alloc(struct gk20a *g,
+				struct nvgpu_gr_global_ctx_buffer_desc *desc)
+{
+	int err = 0;
 
 	err = nvgpu_gr_global_ctx_buffer_alloc_sys(g, desc,
 		NVGPU_GR_GLOBAL_CTX_CIRCULAR);
 	if (err != 0) {
-		goto clean_up;
+		goto fail;
 	}
 
 	err = nvgpu_gr_global_ctx_buffer_alloc_sys(g, desc,
 		NVGPU_GR_GLOBAL_CTX_PAGEPOOL);
 	if (err != 0) {
-		goto clean_up;
+		goto fail;
 	}
 
 	err = nvgpu_gr_global_ctx_buffer_alloc_sys(g, desc,
 		NVGPU_GR_GLOBAL_CTX_ATTRIBUTE);
 	if (err != 0) {
-		goto clean_up;
+		goto fail;
 	}
 
 	err = nvgpu_gr_global_ctx_buffer_alloc_sys(g, desc,
 		NVGPU_GR_GLOBAL_CTX_PRIV_ACCESS_MAP);
 	if (err != 0) {
-		goto clean_up;
+		goto fail;
+	}
+fail:
+	return err;
+}
+
+
+int nvgpu_gr_global_ctx_buffer_alloc(struct gk20a *g,
+	struct nvgpu_gr_global_ctx_buffer_desc *desc)
+{
+	int err = 0;
+
+	if (nvgpu_gr_global_ctx_buffer_sizes_are_valid(g, desc) != true) {
+		return -EINVAL;
+	}
+
+	if (nvgpu_gr_global_ctx_buffer_sys_alloc(g, desc) != 0) {
+			goto clean_up;
 	}
 
 #ifdef CONFIG_NVGPU_FECS_TRACE
@@ -191,23 +242,10 @@ int nvgpu_gr_global_ctx_buffer_alloc(struct gk20a *g,
 			goto clean_up;
 		}
 	}
+
 #ifdef CONFIG_NVGPU_VPR
-	err = nvgpu_gr_global_ctx_buffer_alloc_vpr(g, desc,
-		NVGPU_GR_GLOBAL_CTX_CIRCULAR_VPR);
-	if (err != 0) {
-		goto clean_up;
-	}
-
-	err = nvgpu_gr_global_ctx_buffer_alloc_vpr(g, desc,
-		NVGPU_GR_GLOBAL_CTX_PAGEPOOL_VPR);
-	if (err != 0) {
-		return err;
-	}
-
-	err = nvgpu_gr_global_ctx_buffer_alloc_vpr(g, desc,
-		NVGPU_GR_GLOBAL_CTX_ATTRIBUTE_VPR);
-	if (err != 0) {
-		goto clean_up;
+	if (nvgpu_gr_global_ctx_buffer_vpr_alloc(g, desc) != 0) {
+			goto clean_up;
 	}
 #endif
 
