@@ -36,7 +36,7 @@
 #include <linux/platform/tegra/tegra19x_cbb.h>
 
 static LIST_HEAD(cbb_noc_list);
-static DEFINE_RAW_SPINLOCK(cbb_noc_lock);
+static DEFINE_SPINLOCK(cbb_noc_lock);
 
 #define get_mstr_id(userbits) get_noc_errlog_subfield(userbits, 21, 18)-1;
 
@@ -467,7 +467,7 @@ static irqreturn_t tegra194_cbb_error_isr(int irq, void *dev_id)
 	bool is_inband_err = 0;
 	u8 mstr_id = 0;
 
-	raw_spin_lock_irqsave(&cbb_noc_lock, flags);
+	spin_lock_irqsave(&cbb_noc_lock, flags);
 
 	list_for_each_entry(errlog, &cbb_noc_list, node) {
 		if ((!errlog->is_clk_rst) ||
@@ -491,7 +491,7 @@ static irqreturn_t tegra194_cbb_error_isr(int irq, void *dev_id)
 			}
 		}
 	}
-	raw_spin_unlock_irqrestore(&cbb_noc_lock, flags);
+	spin_unlock_irqrestore(&cbb_noc_lock, flags);
 
 	if(is_inband_err)
 		BUG();
@@ -562,7 +562,7 @@ static int tegra194_cbb_remove(struct platform_device *pdev)
 	if (!res_base)
 		return -EINVAL;
 
-	raw_spin_lock_irqsave(&cbb_noc_lock, flags);
+	spin_lock_irqsave(&cbb_noc_lock, flags);
 	list_for_each_entry(errlog, &cbb_noc_list, node) {
 		if (errlog->start == res_base->start) {
 			unregister_serr_hook(errlog->callback);
@@ -570,7 +570,7 @@ static int tegra194_cbb_remove(struct platform_device *pdev)
 			break;
 		}
 	}
-	raw_spin_unlock_irqrestore(&cbb_noc_lock, flags);
+	spin_unlock_irqrestore(&cbb_noc_lock, flags);
 
 	return 0;
 }
@@ -804,9 +804,9 @@ static int tegra194_cbb_errlogger_init(struct platform_device *pdev,
 		callback->priv = errlog;
 	}
 
-	raw_spin_lock_irqsave(&cbb_noc_lock, flags);
+	spin_lock_irqsave(&cbb_noc_lock, flags);
 	list_add(&errlog->node, &cbb_noc_list);
-	raw_spin_unlock_irqrestore(&cbb_noc_lock, flags);
+	spin_unlock_irqrestore(&cbb_noc_lock, flags);
 
 	return err;
 };
