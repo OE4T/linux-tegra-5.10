@@ -3004,6 +3004,29 @@ static int ether_parse_dt(struct ether_priv_data *pdata)
 		}
 	}
 
+	if (osi_dma->num_dma_chans != osi_core->num_mtl_queues) {
+		dev_err(dev, "mismatch in numbers of DMA channel and MTL Q\n");
+		return -EINVAL;
+	}
+
+	ret = -1;
+	for (i = 0; i < osi_dma->num_dma_chans; i++) {
+		if (osi_dma->dma_chans[i] != osi_core->mtl_queues[i]) {
+			dev_err(dev,
+				"mismatch in DMA channel and MTL Q number at index %d\n",
+				i);
+			return -EINVAL;
+		}
+		if (osi_dma->dma_chans[i] == 0) {
+			ret = 0;
+		}
+	}
+
+	if (ret != 0) {
+		dev_err(dev, "Q0 Must be enabled for rx path\n");
+		return -EINVAL;
+	}
+
 	ret = of_property_read_u32_array(np, "nvidia,rxq_enable_ctrl",
 					 tmp_value,
 					 osi_core->num_mtl_queues);
@@ -3363,8 +3386,15 @@ static int ether_probe(struct platform_device *pdev)
 	       sizeof(struct osi_xtra_dma_stat_counters));
 
 	/* Initialize core and DMA ops based on MAC type */
-	osi_init_core_ops(osi_core);
-	osi_init_dma_ops(osi_dma);
+	if (osi_init_core_ops(osi_core) != 0) {
+		dev_err(&pdev->dev, "failed to get osi_init_core_ops\n");
+		goto err_core_ops;
+	}
+
+	if (osi_init_dma_ops(osi_dma) != 0) {
+		dev_err(&pdev->dev, "failed to get osi_init_dma_ops\n");
+		goto err_dma_ops;
+	}
 
 	/* Parse the ethernet DT node */
 	ret = ether_parse_dt(pdata);
@@ -3467,6 +3497,8 @@ err_dma_mask:
 	}
 err_init_res:
 err_parse_dt:
+err_core_ops:
+err_dma_ops:
 	free_netdev(ndev);
 	return ret;
 }
