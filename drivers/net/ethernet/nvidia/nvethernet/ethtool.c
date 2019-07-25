@@ -197,6 +197,14 @@ static const struct eqos_stats eqos_mmc[] = {
 	EQOS_MMC_STAT(mmc_rx_fifo_overflow),
 	EQOS_MMC_STAT(mmc_rx_vlan_frames_gb),
 	EQOS_MMC_STAT(mmc_rx_watchdog_error),
+	EQOS_MMC_STAT(mmc_rx_receive_error),
+	EQOS_MMC_STAT(mmc_rx_ctrl_frames_g),
+
+	/* LPI */
+	EQOS_MMC_STAT(mmc_tx_lpi_usec_cntr),
+	EQOS_MMC_STAT(mmc_tx_lpi_tran_cntr),
+	EQOS_MMC_STAT(mmc_rx_lpi_usec_cntr),
+	EQOS_MMC_STAT(mmc_rx_lpi_tran_cntr),
 
 	/* IPv4 */
 	EQOS_MMC_STAT(mmc_rx_ipv4_gd),
@@ -700,6 +708,211 @@ static int ether_get_coalesce(struct net_device *dev,
 	return 0;
 }
 
+/*
+ * @brief Get current EEE configuration in MAC/PHY
+ *
+ * Algorithm: This function is invoked by kernel when user request to get
+ * current EEE parameters. The function invokes the PHY framework to fill
+ * the supported & advertised EEE modes, as well as link partner EEE modes
+ * if it is available.
+ *
+ * @param[in] ndev: Net device data.
+ * @param[in] cur_eee: Pointer to struct ethtool_eee
+ *
+ * @note MAC and PHY need to be initialized.
+ *
+ * @retval 0 on Success.
+ * @retval -ve on Failure
+ */
+static int ether_get_eee(struct net_device *ndev,
+			 struct ethtool_eee *cur_eee)
+{
+	int ret;
+	struct ether_priv_data *pdata = netdev_priv(ndev);
+	struct phy_device *phydev = pdata->phydev;
+
+	if (!pdata->hw_feat.eee_sel) {
+		return -EOPNOTSUPP;
+	}
+
+	if (!netif_running(ndev)) {
+		netdev_err(pdata->ndev, "interface not up\n");
+		return -EINVAL;
+	}
+
+	ret = phy_ethtool_get_eee(phydev, cur_eee);
+	if (ret) {
+		netdev_warn(pdata->ndev, "Cannot get PHY EEE config\n");
+		return ret;
+	}
+
+	cur_eee->eee_enabled = pdata->eee_enabled;
+	cur_eee->tx_lpi_enabled = pdata->tx_lpi_enabled;
+	cur_eee->eee_active = pdata->eee_active;
+	cur_eee->tx_lpi_timer = pdata->tx_lpi_timer;
+
+	return ret;
+}
+
+/**
+ * @brief Helper routing to validate EEE configuration requested via ethtool
+ *
+ * Algorithm: Check for invalid combinations of ethtool_eee fields. If any
+ *	invalid combination found, override it.
+ *
+ * @param[in] ndev: Net device data.
+ * @param[in] eee_req: Pointer to struct ethtool_eee configuration requested
+ *
+ * @retval none
+ */
+static inline void validate_eee_conf(struct net_device *ndev,
+				     struct ethtool_eee *eee_req,
+				     struct ethtool_eee cur_eee)
+{
+	/* These are the invalid combinations that can be requested.
+	 * EEE | Tx LPI | Rx LPI
+	 *----------------------
+	 * 0   | 0      | 1
+	 * 0   | 1      | 0
+	 * 0   | 1      | 1
+	 * 1   | 0      | 0
+	 *
+	 * These combinations can be entered from a state where either EEE was
+	 * enabled or disabled originally. Hence decide next valid state based
+	 * on whether EEE has toggled or not.
+	 */
+	if (!eee_req->eee_enabled && !eee_req->tx_lpi_enabled &&
+	    eee_req->advertised) {
+		if (eee_req->eee_enabled != cur_eee.eee_enabled) {
+			netdev_warn(ndev, "EEE off. Set Rx LPI off\n");
+			eee_req->advertised = OSI_DISABLE;
+		} else {
+			netdev_warn(ndev, "Rx LPI on. Set EEE on\n");
+			eee_req->eee_enabled = OSI_ENABLE;
+		}
+	}
+
+	if (!eee_req->eee_enabled && eee_req->tx_lpi_enabled &&
+	    !eee_req->advertised) {
+		if (eee_req->eee_enabled != cur_eee.eee_enabled) {
+			netdev_warn(ndev, "EEE off. Set Tx LPI off\n");
+			eee_req->tx_lpi_enabled = OSI_DISABLE;
+		} else {
+			/* phy_init_eee will fail if Rx LPI advertisement is
+			 * disabled. Hence change the adv back to enable,
+			 * so that Tx LPI will be set.
+			 */
+			netdev_warn(ndev, "Tx LPI on. Set EEE & Rx LPI on\n");
+			eee_req->eee_enabled = OSI_ENABLE;
+			eee_req->advertised = eee_req->supported;
+		}
+	}
+
+	if (!eee_req->eee_enabled && eee_req->tx_lpi_enabled &&
+	    eee_req->advertised) {
+		if (eee_req->eee_enabled != cur_eee.eee_enabled) {
+			netdev_warn(ndev, "EEE off. Set Tx & Rx LPI off\n");
+			eee_req->tx_lpi_enabled = OSI_DISABLE;
+			eee_req->advertised = OSI_DISABLE;
+		} else {
+			netdev_warn(ndev, "Tx & Rx LPI on. Set EEE on\n");
+			eee_req->eee_enabled = OSI_ENABLE;
+		}
+	}
+
+	if (eee_req->eee_enabled && !eee_req->tx_lpi_enabled &&
+	    !eee_req->advertised) {
+		if (eee_req->eee_enabled != cur_eee.eee_enabled) {
+			netdev_warn(ndev, "EEE on. Set Tx & Rx LPI on\n");
+			eee_req->tx_lpi_enabled = OSI_ENABLE;
+			eee_req->advertised = eee_req->supported;
+		} else {
+			netdev_warn(ndev, "Tx,Rx LPI off. Set EEE off\n");
+			eee_req->eee_enabled = OSI_DISABLE;
+		}
+	}
+}
+
+/**
+ * @brief Set current EEE configuration
+ *
+ * Algorithm: This function is invoked by kernel when user request to Set
+ * current EEE parameters.
+ *
+ * @param[in] ndev: Net device data.
+ * @param[in] eee_req: Pointer to struct ethtool_eee
+ *
+ * @note MAC and PHY need to be initialized.
+ *
+ * @retval 0 on Success.
+ * @retval -ve on Failure
+ */
+static int ether_set_eee(struct net_device *ndev,
+			 struct ethtool_eee *eee_req)
+{
+	struct ether_priv_data *pdata = netdev_priv(ndev);
+	struct phy_device *phydev = pdata->phydev;
+	struct ethtool_eee cur_eee;
+
+	if (!pdata->hw_feat.eee_sel) {
+		return -EOPNOTSUPP;
+	}
+
+	if (!netif_running(ndev)) {
+		netdev_err(pdata->ndev, "interface not up\n");
+		return -EINVAL;
+	}
+
+	if (ether_get_eee(ndev, &cur_eee)) {
+		return -EOPNOTSUPP;
+	}
+
+	/* Validate args
+	 * 1. Validate the tx lpi timer for acceptable range */
+	if (cur_eee.tx_lpi_timer != eee_req->tx_lpi_timer) {
+		if (eee_req->tx_lpi_timer == 0) {
+			pdata->tx_lpi_timer = OSI_DEFAULT_TX_LPI_TIMER;
+		} else if (eee_req->tx_lpi_timer <= OSI_MAX_TX_LPI_TIMER &&
+			   eee_req->tx_lpi_timer >= OSI_MIN_TX_LPI_TIMER &&
+			   !(eee_req->tx_lpi_timer % OSI_MIN_TX_LPI_TIMER)) {
+			pdata->tx_lpi_timer = eee_req->tx_lpi_timer;
+		} else {
+			netdev_err(ndev, "Tx LPI timer has to be < %u usec "
+				   "in %u usec steps\n", OSI_MAX_TX_LPI_TIMER,
+				   OSI_MIN_TX_LPI_TIMER);
+			return -EINVAL;
+		}
+	}
+
+	/* 2. Override invalid combinations of requested configuration */
+	validate_eee_conf(ndev, eee_req, cur_eee);
+
+	/* First store the requested & validated EEE configuration */
+	pdata->eee_enabled = eee_req->eee_enabled;
+	pdata->tx_lpi_enabled = eee_req->tx_lpi_enabled;
+	pdata->tx_lpi_timer = eee_req->tx_lpi_timer;
+	pdata->eee_active = eee_req->eee_active;
+
+	/* If EEE adv has changed, inform PHY framework. PHY will
+	 * restart ANEG and the ether_adjust_link callback will take care of
+	 * enabling Tx LPI as needed.
+	 */
+	if (cur_eee.advertised != eee_req->advertised) {
+		return phy_ethtool_set_eee(phydev, eee_req);
+	}
+
+	/* If no advertisement change, and only local Tx LPI changed, then
+	 * configure the MAC right away.
+	 */
+	if (cur_eee.tx_lpi_enabled != eee_req->tx_lpi_enabled) {
+		eee_req->eee_active = ether_conf_eee(pdata,
+						     eee_req->tx_lpi_enabled);
+		pdata->eee_active = eee_req->eee_active;
+	}
+
+	return 0;
+}
+
 /**
  * @brief This function is invoked by kernel when user request to set
  * pmt parameters for remote wakeup or magic wakeup
@@ -812,6 +1025,8 @@ static const struct ethtool_ops ether_ethtool_ops = {
 	.set_coalesce = ether_set_coalesce,
 	.get_wol = ether_get_wol,
 	.set_wol = ether_set_wol,
+	.get_eee = ether_get_eee,
+	.set_eee = ether_set_eee,
 };
 
 void ether_set_ethtool_ops(struct net_device *ndev)

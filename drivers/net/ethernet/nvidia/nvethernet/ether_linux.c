@@ -199,6 +199,61 @@ err_axi_cbb:
 }
 
 /**
+ * @brief ether_conf_eee - Init and configure EEE LPI in the MAC
+ *
+ * Algorithm:
+ * 1) Check if EEE is requested to be enabled/disabled.
+ * 2) If enabled, then check if current PHY speed/mode supports EEE.
+ * 3) If PHY supports, then enable the Tx LPI timers in MAC and set EEE active.
+ * 4) Else disable the Tx LPI timers in MAC and set EEE inactive.
+ *
+ * @param[in] pdata: Pointer to driver private data structure
+ * @param[in] tx_lpi_enable: Flag to indicate Tx LPI enable (1) or disable (0)
+ *
+ * @note MAC and PHY need to be initialized.
+ *
+ * @retval OSI_ENABLE if EEE is enabled/active
+ * @retval OSI_DISABLE if EEE is disabled/inactive
+ */
+int ether_conf_eee(struct ether_priv_data *pdata, unsigned int tx_lpi_enable)
+{
+	int ret = 0;
+	struct phy_device *phydev = pdata->phydev;
+	unsigned int enable = tx_lpi_enable;
+
+	if (tx_lpi_enable) {
+		/* phy_init_eee() returns 0 if EEE is supported by the PHY */
+		if (phy_init_eee(phydev, OSI_ENABLE)) {
+			/* PHY does not support EEE, disable it in MAC */
+			enable = OSI_DISABLE;
+		} else {
+			/* PHY supports EEE, if link is up enable EEE */
+			enable = (unsigned int)phydev->link;
+		}
+	}
+
+	/* Enable EEE */
+	ret = osi_configure_eee(pdata->osi_core,
+				enable,
+				pdata->tx_lpi_timer);
+	/* Return current status of EEE based on OSI API success/failure */
+	if (ret != 0) {
+		if (enable) {
+			dev_warn(pdata->dev, "Failed to enable EEE\n");
+			ret = OSI_DISABLE;
+		} else {
+			dev_warn(pdata->dev, "Failed to disable EEE\n");
+			ret = OSI_ENABLE;
+		}
+	} else {
+		/* EEE enabled/disabled successfully as per enable flag */
+		ret = enable;
+	}
+
+	return ret;
+}
+
+/**
  * @brief Adjust link call back
  *
  * Algorithm: Callback function called by the PHY subsystem
@@ -215,6 +270,7 @@ static void ether_adjust_link(struct net_device *dev)
 	struct phy_device *phydev = pdata->phydev;
 	int new_state = 0, speed_changed = 0;
 	unsigned long val;
+	unsigned int eee_enable = OSI_DISABLE;
 
 	if (phydev == NULL) {
 		return;
@@ -273,6 +329,13 @@ static void ether_adjust_link(struct net_device *dev)
 					"failed to do pad caliberation\n");
 		}
 	}
+
+	/* Configure EEE if it is enabled */
+	if (pdata->eee_enabled && pdata->tx_lpi_enabled) {
+		eee_enable = OSI_ENABLE;
+	}
+
+	pdata->eee_active = ether_conf_eee(pdata, eee_enable);
 }
 
 /**
@@ -1158,6 +1221,27 @@ static int ether_therm_init(struct ether_priv_data *pdata)
 #endif /* THERMAL_CAL */
 
 /**
+ * @brief Initialize default EEE LPI configurations
+ *
+ * Algorithm: Update the defalt configuration/timers for EEE LPI in driver
+ * private data structure
+ *
+ * @param[in] pdata: OSD private data.
+ */
+static inline void ether_init_eee_params(struct ether_priv_data *pdata)
+{
+	if (pdata->hw_feat.eee_sel) {
+		pdata->eee_enabled = OSI_ENABLE;
+	} else {
+		pdata->eee_enabled = OSI_DISABLE;
+	}
+
+	pdata->tx_lpi_enabled = pdata->eee_enabled;
+	pdata->eee_active = OSI_DISABLE;
+	pdata->tx_lpi_timer = OSI_DEFAULT_TX_LPI_TIMER;
+}
+
+/**
  * @brief Call back to handle bring up of Ethernet interface
  *
  * Algorithm: This routine takes care of below
@@ -1279,6 +1363,9 @@ static int ether_open(struct net_device *dev)
 			__func__, ret);
 		goto err_r_irq;
 	}
+
+	/* Init EEE configuration */
+	ether_init_eee_params(pdata);
 
 	/* Start the MAC */
 	osi_start_mac(pdata->osi_core);
