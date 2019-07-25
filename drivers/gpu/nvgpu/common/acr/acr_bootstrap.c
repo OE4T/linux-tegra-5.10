@@ -258,9 +258,9 @@ err_done:
 static int acr_ucode_patch_sig(struct gk20a *g,
 	unsigned int *p_img, unsigned int *p_prod_sig,
 	unsigned int *p_dbg_sig, unsigned int *p_patch_loc,
-	unsigned int *p_patch_ind)
+	unsigned int *p_patch_ind, u32 sig_size)
 {
-	unsigned int i, *p_sig;
+	unsigned int i, j, *p_sig;
 	nvgpu_acr_dbg(g, " ");
 
 	if (!g->ops.pmu.is_debug_mode_enabled(g)) {
@@ -272,18 +272,14 @@ static int acr_ucode_patch_sig(struct gk20a *g,
 	}
 
 	/* Patching logic:*/
+	sig_size = sig_size / 4U;
 	for (i = 0U; i < sizeof(*p_patch_loc)>>2U; i++) {
-		p_img[(p_patch_loc[i]>>2U)] = p_sig[(p_patch_ind[i]<<2U)];
-
-		p_img[nvgpu_safe_add_u32((p_patch_loc[i]>>2U), 1U)] =
-			p_sig[nvgpu_safe_add_u32((p_patch_ind[i]<<2U), 1U)];
-
-		p_img[nvgpu_safe_add_u32((p_patch_loc[i]>>2U), 2U)] =
-			p_sig[nvgpu_safe_add_u32((p_patch_ind[i]<<2U), 2U)];
-
-		p_img[nvgpu_safe_add_u32((p_patch_loc[i]>>2U), 3U)] =
-			p_sig[nvgpu_safe_add_u32((p_patch_ind[i]<<2U), 3U)];
+		for (j = 0U; j < sig_size; j++) {
+			p_img[nvgpu_safe_add_u32((p_patch_loc[i]>>2U), j)] =
+				p_sig[nvgpu_safe_add_u32((p_patch_ind[i]<<2U), j)];
+		}
 	}
+
 	return 0;
 }
 
@@ -350,7 +346,8 @@ int nvgpu_acr_bootstrap_hs_ucode(struct gk20a *g, struct nvgpu_acr *acr,
 			(u32 *)(void *)(acr_fw->data +
 						acr_fw_hdr->patch_loc),
 			(u32 *)(void *)(acr_fw->data +
-						acr_fw_hdr->patch_sig)) < 0) {
+						acr_fw_hdr->patch_sig),
+						acr_fw_hdr->sig_dbg_size) < 0) {
 				nvgpu_err(g, "patch signatures fail");
 				status = -1;
 				goto err_release_acr_fw;
@@ -420,7 +417,8 @@ int nvgpu_acr_self_hs_load_bootstrap(struct gk20a *g, struct nvgpu_falcon *flcn,
 		(u32 *)(hs_fw->data + fw_hdr->sig_prod_offset),
 		(u32 *)(hs_fw->data + fw_hdr->sig_dbg_offset),
 		(u32 *)(hs_fw->data + fw_hdr->patch_loc),
-		(u32 *)(hs_fw->data + fw_hdr->patch_sig)) < 0) {
+		(u32 *)(hs_fw->data + fw_hdr->patch_sig),
+		fw_hdr->sig_dbg_size) < 0) {
 		nvgpu_err(g, "HS ucode patch signatures fail");
 		err = -EPERM;
 		goto exit;
