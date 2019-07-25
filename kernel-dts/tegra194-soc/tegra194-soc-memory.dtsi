@@ -431,6 +431,10 @@
 				address-space = <&common_as>;
 				sid-list = <TEGRA_SID_XUSB_VF3>;
 			};
+			eqos_vf1_domain {
+				address-space = <&common_as>;
+				sid-list = <TEGRA_SID_EQOS_VF1>;
+			};
 		};
 
 		address-space-prop {
