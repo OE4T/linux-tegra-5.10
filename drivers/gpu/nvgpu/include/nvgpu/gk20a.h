@@ -2173,6 +2173,7 @@ struct gk20a {
 	u16 pci_subsystem_vendor_id, pci_subsystem_device_id;
 	u16 pci_class;
 	u8 pci_revision;
+	bool is_fusa_sku;
 
 	/*
 	 * PCI power management: i2c device index, port and address for

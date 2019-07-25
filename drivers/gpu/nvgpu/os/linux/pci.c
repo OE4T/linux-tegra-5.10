@@ -158,6 +158,7 @@ static struct gk20a_platform nvgpu_pci_device[] = {
 #define PCI_DEVICE_FLAGS(driver_data) ((driver_data) & 0xFFFF0000U)
 
 #define PCI_DEVICE_F_INTERNAL_CHIP_SKU	BIT(31)
+#define PCI_DEVICE_F_FUSA_CHIP_SKU	BIT(30)
 
 static struct pci_device_id nvgpu_pci_table[] = {
 	{
@@ -201,6 +202,20 @@ static struct pci_device_id nvgpu_pci_table[] = {
 		.class = PCI_BASE_CLASS_DISPLAY << 16,
 		.class_mask = 0xff << 16,
 		.driver_data = 1 | PCI_DEVICE_F_INTERNAL_CHIP_SKU,
+	},
+	{
+		/* TU104-QS SKU*/
+		PCI_DEVICE(PCI_VENDOR_ID_NVIDIA, 0x1ebc),
+		.class = PCI_BASE_CLASS_DISPLAY << 16,
+		.class_mask = 0xff << 16,
+		.driver_data = 1 | PCI_DEVICE_F_FUSA_CHIP_SKU,
+	},
+	{
+		/* TU104-QS SKU*/
+		PCI_DEVICE(PCI_VENDOR_ID_NVIDIA, 0x1efc),
+		.class = PCI_BASE_CLASS_DISPLAY << 16,
+		.class_mask = 0xff << 16,
+		.driver_data = 1 | PCI_DEVICE_F_FUSA_CHIP_SKU,
 	},
 
 	{}
@@ -451,6 +466,10 @@ static int nvgpu_pci_probe(struct pci_dev *pdev,
 		nvgpu_err(g, "internal chip SKU %08x detected",
 				 g->pci_device_id);
 		nvgpu_err(g, "replace board, or use at your own risks");
+	}
+
+	if ((device_flags & PCI_DEVICE_F_FUSA_CHIP_SKU) != 0U) {
+		g->is_fusa_sku = true;
 	}
 
 	g->ina3221_dcb_index = platform->ina3221_dcb_index;
