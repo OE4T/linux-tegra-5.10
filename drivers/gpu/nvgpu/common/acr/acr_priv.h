@@ -73,10 +73,15 @@ struct wpr_carveout_info;
 
 #define HSBIN_ACR_BL_UCODE_IMAGE "pmu_bl.bin"
 #define HSBIN_ACR_UCODE_IMAGE "acr_ucode.bin"
-#define HSBIN_ACR_AHESASC_PROD_UCODE "acr_ahesasc_prod_ucode.bin"
-#define HSBIN_ACR_ASB_PROD_UCODE "acr_asb_prod_ucode.bin"
-#define HSBIN_ACR_AHESASC_DBG_UCODE "acr_ahesasc_dbg_ucode.bin"
-#define HSBIN_ACR_ASB_DBG_UCODE "acr_asb_dbg_ucode.bin"
+#define HSBIN_ACR_AHESASC_NON_FUSA_PROD_UCODE "acr_ahesasc_prod_ucode.bin"
+#define HSBIN_ACR_ASB_NON_FUSA_PROD_UCODE "acr_asb_prod_ucode.bin"
+#define HSBIN_ACR_AHESASC_NON_FUSA_DBG_UCODE "acr_ahesasc_dbg_ucode.bin"
+#define HSBIN_ACR_ASB_NON_FUSA_DBG_UCODE "acr_asb_dbg_ucode.bin"
+
+#define HSBIN_ACR_AHESASC_FUSA_PROD_UCODE "acr_ahesasc_fusa_prod_ucode.bin"
+#define HSBIN_ACR_ASB_FUSA_PROD_UCODE "acr_asb_fusa_prod_ucode.bin"
+#define HSBIN_ACR_AHESASC_FUSA_DBG_UCODE "acr_ahesasc_fusa_dbg_ucode.bin"
+#define HSBIN_ACR_ASB_FUSA_DBG_UCODE "acr_asb_fusa_dbg_ucode.bin"
 
 #define GM20B_FECS_UCODE_SIG "fecs_sig.bin"
 #define T18x_GPCCS_UCODE_SIG "gpccs_sig.bin"

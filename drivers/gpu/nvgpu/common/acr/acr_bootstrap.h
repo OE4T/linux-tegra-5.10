@@ -162,9 +162,11 @@ struct acr_fw_header {
 
 /* ACR Falcon descriptor's */
 struct hs_acr {
-#define ACR_DEFAULT	0U
-#define ACR_AHESASC	1U
-#define ACR_ASB		2U
+#define ACR_DEFAULT		0U
+#define ACR_AHESASC_NON_FUSA	1U
+#define ACR_ASB_NON_FUSA	2U
+#define ACR_AHESASC_FUSA	3U
+#define ACR_ASB_FUSA		4U
 	u32 acr_type;
 
 	/* HS bootloader to validate & load ACR ucode */

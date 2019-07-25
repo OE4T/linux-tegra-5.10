@@ -70,20 +70,49 @@ static u32 tu104_acr_lsf_sec2(struct gk20a *g,
 	return BIT32(lsf->falcon_id);
 }
 
+/* fusa signing enable check */
+static bool tu104_acr_is_fusa_enabled(struct gk20a *g)
+{
+	return g->is_fusa_sku;
+}
+
 /* ACR-AHESASC(ACR hub encryption setter and signature checker) init*/
-static void nvgpu_tu104_acr_ahesasc_sw_init(struct gk20a *g,
+static void tu104_acr_ahesasc_non_fusa_ucode_select(struct gk20a *g,
+		struct hs_acr *acr_ahesasc)
+{
+	acr_ahesasc->acr_type = ACR_AHESASC_NON_FUSA;
+
+	if (!g->ops.pmu.is_debug_mode_enabled(g)) {
+		acr_ahesasc->acr_fw_name = HSBIN_ACR_AHESASC_NON_FUSA_PROD_UCODE;
+	} else {
+		acr_ahesasc->acr_fw_name = HSBIN_ACR_AHESASC_NON_FUSA_DBG_UCODE;
+	}
+
+}
+
+static void tu104_acr_ahesasc_fusa_ucode_select(struct gk20a *g,
+		struct hs_acr *acr_ahesasc)
+{
+	acr_ahesasc->acr_type = ACR_AHESASC_FUSA;
+
+	if (!g->ops.pmu.is_debug_mode_enabled(g)) {
+		acr_ahesasc->acr_fw_name = HSBIN_ACR_AHESASC_FUSA_PROD_UCODE;
+	} else {
+		acr_ahesasc->acr_fw_name = HSBIN_ACR_AHESASC_FUSA_DBG_UCODE;
+	}
+}
+
+static void tu104_acr_ahesasc_sw_init(struct gk20a *g,
 	struct hs_acr *acr_ahesasc)
 {
 	struct hs_flcn_bl *hs_bl = &acr_ahesasc->acr_hs_bl;
 
 	hs_bl->bl_fw_name = HSBIN_ACR_BL_UCODE_IMAGE;
 
-	acr_ahesasc->acr_type = ACR_AHESASC;
-
-	if (!g->ops.pmu.is_debug_mode_enabled(g)) {
-		acr_ahesasc->acr_fw_name = HSBIN_ACR_AHESASC_PROD_UCODE;
+	if (tu104_acr_is_fusa_enabled(g)) {
+		tu104_acr_ahesasc_fusa_ucode_select(g, acr_ahesasc);
 	} else {
-		acr_ahesasc->acr_fw_name = HSBIN_ACR_AHESASC_DBG_UCODE;
+		tu104_acr_ahesasc_non_fusa_ucode_select(g, acr_ahesasc);
 	}
 
 	acr_ahesasc->ptr_bl_dmem_desc = &acr_ahesasc->bl_dmem_desc_v1;
@@ -96,19 +125,41 @@ static void nvgpu_tu104_acr_ahesasc_sw_init(struct gk20a *g,
 }
 
 /* ACR-ASB(ACR SEC2 booter) init*/
-static void nvgpu_tu104_acr_asb_sw_init(struct gk20a *g,
+static void tu104_acr_asb_non_fusa_ucode_select(struct gk20a *g,
+	struct hs_acr *acr_asb)
+{
+	acr_asb->acr_type = ACR_ASB_NON_FUSA;
+
+	if (!g->ops.pmu.is_debug_mode_enabled(g)) {
+		acr_asb->acr_fw_name = HSBIN_ACR_ASB_NON_FUSA_PROD_UCODE;
+	} else {
+		acr_asb->acr_fw_name = HSBIN_ACR_ASB_NON_FUSA_DBG_UCODE;
+	}
+}
+
+static void tu104_acr_asb_fusa_ucode_select(struct gk20a *g,
+	struct hs_acr *acr_asb)
+{
+	acr_asb->acr_type = ACR_ASB_FUSA;
+
+	if (!g->ops.pmu.is_debug_mode_enabled(g)) {
+		acr_asb->acr_fw_name = HSBIN_ACR_ASB_FUSA_PROD_UCODE;
+	} else {
+		acr_asb->acr_fw_name = HSBIN_ACR_ASB_FUSA_DBG_UCODE;
+	}
+}
+
+static void tu104_acr_asb_sw_init(struct gk20a *g,
 	struct hs_acr *acr_asb)
 {
 	struct hs_flcn_bl *hs_bl = &acr_asb->acr_hs_bl;
 
 	hs_bl->bl_fw_name = HSBIN_ACR_BL_UCODE_IMAGE;
 
-	acr_asb->acr_type = ACR_ASB;
-
-	if (!g->ops.pmu.is_debug_mode_enabled(g)) {
-		acr_asb->acr_fw_name = HSBIN_ACR_ASB_PROD_UCODE;
+	if (tu104_acr_is_fusa_enabled(g)) {
+		tu104_acr_asb_fusa_ucode_select(g, acr_asb);
 	} else {
-		acr_asb->acr_fw_name = HSBIN_ACR_ASB_DBG_UCODE;
+		tu104_acr_asb_non_fusa_ucode_select(g, acr_asb);
 	}
 
 	acr_asb->ptr_bl_dmem_desc = &acr_asb->bl_dmem_desc_v1;
@@ -134,8 +185,8 @@ void nvgpu_tu104_acr_sw_init(struct gk20a *g, struct nvgpu_acr *acr)
 	acr->bootstrap_hs_acr = tu104_bootstrap_hs_acr;
 
 	/* Init ACR-AHESASC */
-	nvgpu_tu104_acr_ahesasc_sw_init(g, &acr->acr_ahesasc);
+	tu104_acr_ahesasc_sw_init(g, &acr->acr_ahesasc);
 
 	/* Init ACR-ASB*/
-	nvgpu_tu104_acr_asb_sw_init(g, &acr->acr_asb);
+	tu104_acr_asb_sw_init(g, &acr->acr_asb);
 }
