@@ -195,8 +195,8 @@ static inline unsigned int nvgpu_posix_hweight16(uint16_t x)
 {
 	unsigned int ret;
 
-	ret = nvgpu_posix_hweight8((uint8_t)x);
-	ret += nvgpu_posix_hweight8((uint8_t)((x & 0xff00U) >> 8));
+	ret = nvgpu_posix_hweight8((uint8_t)(x & U8(0xff)));
+	ret += nvgpu_posix_hweight8((uint8_t)((x >> U8(8)) & U8(0xff)));
 
 	return ret;
 }
@@ -205,8 +205,8 @@ static inline unsigned int nvgpu_posix_hweight32(uint32_t x)
 {
 	unsigned int ret;
 
-	ret = nvgpu_posix_hweight16((uint16_t)x);
-	ret += nvgpu_posix_hweight16((uint16_t)((x & 0xffff0000U) >> 16));
+	ret = nvgpu_posix_hweight16((uint16_t)(x & U16(0xffff)));
+	ret += nvgpu_posix_hweight16((uint16_t)((x >> U16(16)) & U16(0xffff)));
 
 	return ret;
 }
