@@ -116,8 +116,8 @@ clk:
   sources: [ hal/clk/clk_gk20a.h,
              hal/clk/clk_gm20b.c,
              hal/clk/clk_gm20b.h,
-             hal/clk/clk_gv100.c,
-             hal/clk/clk_gv100.h ]
+             hal/clk/clk_tu104.c,
+             hal/clk/clk_tu104.h ]
 
 
 fifo:

@@ -16,13 +16,13 @@
 
 #include "os_linux.h"
 
-#include "debug_clk_gv100.h"
+#include "debug_clk_tu104.h"
 #include "debug_therm_tu104.h"
 #include "debug_fecs_trace.h"
 
 static struct nvgpu_os_linux_ops gv100_os_linux_ops = {
 	.clk = {
-		.init_debugfs = gv100_clk_init_debugfs,
+		.init_debugfs = tu104_clk_init_debugfs,
 	},
 	.therm = {
 		.init_debugfs = tu104_therm_init_debugfs,

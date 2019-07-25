@@ -28,12 +28,12 @@
 #include <nvgpu/pmu/clk/clk_fll.h>
 #include <nvgpu/pmu/clk/clk.h>
 
-#include "hal/clk/clk_gv100.h"
+#include "hal/clk/clk_tu104.h"
 #include "common/pmu/clk/clk_freq_controller.h"
 
 void nvgpu_clk_arb_pstate_change_lock(struct gk20a *g, bool lock);
 
-static int gv100_get_rate_show(void *data , u64 *val)
+static int tu104_get_rate_show(void *data , u64 *val)
 {
 	struct namemap_cfg *c = (struct namemap_cfg *)data;
 	struct gk20a *g = c->g;
@@ -46,7 +46,7 @@ static int gv100_get_rate_show(void *data , u64 *val)
 
 	return 0;
 }
-DEFINE_SIMPLE_ATTRIBUTE(get_rate_fops, gv100_get_rate_show, NULL, "%llu\n");
+DEFINE_SIMPLE_ATTRIBUTE(get_rate_fops, tu104_get_rate_show, NULL, "%llu\n");
 
 static int sys_cfc_read(void *data , u64 *val)
 {
@@ -203,7 +203,7 @@ static const struct file_operations vftable_fops = {
 	.release = single_release,
 };
 
-int gv100_clk_init_debugfs(struct gk20a *g)
+int tu104_clk_init_debugfs(struct gk20a *g)
 {
 	struct nvgpu_os_linux *l = nvgpu_os_linux_from_gk20a(g);
 	struct dentry *gpu_root = l->debugfs;

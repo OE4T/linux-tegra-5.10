@@ -14,13 +14,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __DEBUG_CLK_GV100_H
-#define __DEBUG_CLK_GV100_H
+#ifndef __DEBUG_CLK_TU104_H
+#define __DEBUG_CLK_TU104_H
 
 #ifdef CONFIG_DEBUG_FS
-int gv100_clk_init_debugfs(struct gk20a *g);
+int tu104_clk_init_debugfs(struct gk20a *g);
 #else
-static inline int gv100_clk_init_debugfs(struct gk20a *g)
+static inline int tu104_clk_init_debugfs(struct gk20a *g)
 {
 	return 0;
 }

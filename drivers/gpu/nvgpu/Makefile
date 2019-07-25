@@ -191,7 +191,7 @@ nvgpu-y += \
 	hal/class/class_gm20b.o \
 	hal/class/class_tu104.o \
 	hal/clk/clk_gm20b.o \
-	hal/clk/clk_gv100.o \
+	hal/clk/clk_tu104.o \
 	hal/gr/ecc/ecc_gp10b.o \
 	hal/gr/ecc/ecc_tu104.o \
 	hal/gr/zcull/zcull_gm20b.o \
@@ -381,7 +381,7 @@ nvgpu-$(CONFIG_DEBUG_FS) += \
 	os/linux/debug_bios.o \
 	os/linux/debug_ltc.o \
 	os/linux/debug_xve.o \
-	os/linux/debug_clk_gv100.o \
+	os/linux/debug_clk_tu104.o \
 	os/linux/debug_volt.o \
 	os/linux/debug_s_param.o
 

@@ -19,21 +19,21 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef CLK_GV100_H
-#define CLK_GV100_H
+#ifndef CLK_TU104_H
+#define CLK_TU104_H
 
 #include <nvgpu/lock.h>
 #include <nvgpu/gk20a.h>
 
-u32 gv100_get_rate_cntr(struct gk20a *g, struct namemap_cfg *c);
-int gv100_init_clk_support(struct gk20a *g);
-u32 gv100_crystal_clk_hz(struct gk20a *g);
-unsigned long gv100_clk_measure_freq(struct gk20a *g, u32 api_domain);
-void gv100_suspend_clk_support(struct gk20a *g);
-int gv100_clk_domain_get_f_points(
+u32 tu104_get_rate_cntr(struct gk20a *g, struct namemap_cfg *c);
+int tu104_init_clk_support(struct gk20a *g);
+u32 tu104_crystal_clk_hz(struct gk20a *g);
+unsigned long tu104_clk_measure_freq(struct gk20a *g, u32 api_domain);
+void tu104_suspend_clk_support(struct gk20a *g);
+int tu104_clk_domain_get_f_points(
 	struct gk20a *g,
 	u32 clkapidomain,
 	u32 *pfpointscount,
 	u16 *pfreqpointsinmhz);
-unsigned long gv100_clk_maxrate(struct gk20a *g, u32 api_domain);
-#endif /* CLK_GV100_H */
+unsigned long tu104_clk_maxrate(struct gk20a *g, u32 api_domain);
+#endif /* CLK_TU104_H */

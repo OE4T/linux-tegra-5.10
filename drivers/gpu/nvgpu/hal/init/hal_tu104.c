@@ -176,7 +176,7 @@
 #include "hal/fifo/channel_gv100.h"
 #include "common/clk_arb/clk_arb_gv100.h"
 
-#include "hal/clk/clk_gv100.h"
+#include "hal/clk/clk_tu104.h"
 
 #include "hal/fbpa/fbpa_tu104.h"
 #include "hal_tu104.h"
@@ -1153,14 +1153,14 @@ static const struct gpu_ops tu104_ops = {
 			gm20b_clear_pmu_bar0_host_err_status,
 	},
 	.clk = {
-		.init_clk_support = gv100_init_clk_support,
-		.get_crystal_clk_hz = gv100_crystal_clk_hz,
-		.get_rate_cntr = gv100_get_rate_cntr,
-		.measure_freq = gv100_clk_measure_freq,
-		.suspend_clk_support = gv100_suspend_clk_support,
+		.init_clk_support = tu104_init_clk_support,
+		.get_crystal_clk_hz = tu104_crystal_clk_hz,
+		.get_rate_cntr = tu104_get_rate_cntr,
+		.measure_freq = tu104_clk_measure_freq,
+		.suspend_clk_support = tu104_suspend_clk_support,
 		.perf_pmu_vfe_load = nvgpu_perf_pmu_vfe_load_ps35,
-		.clk_domain_get_f_points = gv100_clk_domain_get_f_points,
-		.get_maxrate = gv100_clk_maxrate,
+		.clk_domain_get_f_points = tu104_clk_domain_get_f_points,
+		.get_maxrate = tu104_clk_maxrate,
 	},
 #ifdef CONFIG_NVGPU_CLK_ARB
 	.clk_arb = {

@@ -582,7 +582,7 @@ srcs += common/sec2/sec2.c \
 	hal/bus/bus_tu104.c \
 	hal/ce/ce_tu104.c \
 	hal/class/class_tu104.c \
-	hal/clk/clk_gv100.c \
+	hal/clk/clk_tu104.c \
 	hal/gr/ecc/ecc_tu104.c \
 	hal/gr/init/gr_init_gv100.c \
 	hal/gr/init/gr_init_tu104.c \
