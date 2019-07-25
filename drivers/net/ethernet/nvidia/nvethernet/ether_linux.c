@@ -1962,6 +1962,10 @@ static int ether_ioctl(struct net_device *dev, struct ifreq *rq, int cmd)
 		ret = ether_handle_priv_ioctl(dev, rq);
 		break;
 
+	case ETHER_PRV_TS_IOCTL:
+		ret = ether_handle_priv_ts_ioctl(pdata, rq);
+		break;
+
 	case SIOCSHWTSTAMP:
 		ret = ether_handle_hwtstamp_ioctl(pdata, rq);
 		break;

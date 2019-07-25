@@ -15,6 +15,39 @@
  */
 
 #include "ether_linux.h"
+#include <linux/platform/tegra/ptp-notifier.h>
+
+/* raw spinlock to get HW PTP time and kernel time atomically */
+static DEFINE_RAW_SPINLOCK(ether_ts_lock);
+
+/**
+ * ether_get_ptptime get PTP time
+ * @data: OSI core private data structure
+ *
+ * Return: nano seconds
+ */
+static inline u64 ether_get_ptptime(void *data)
+{
+	struct ether_priv_data *pdata = data;
+	struct osi_core_priv_data *osi_core = pdata->osi_core;
+	unsigned long flags;
+	unsigned int sec, nsec;
+	int ret = -1;
+
+	raw_spin_lock_irqsave(&pdata->ptp_lock, flags);
+
+	ret = osi_get_systime_from_mac(osi_core, &sec, &nsec);
+	if (ret != 0) {
+		dev_err(pdata->dev, "%s: Failed to read systime from MAC %d\n",
+			__func__, ret);
+		raw_spin_unlock_irqrestore(&pdata->ptp_lock, flags);
+		return ret;
+	}
+
+	raw_spin_unlock_irqrestore(&pdata->ptp_lock, flags);
+
+	return (u64)nsec;
+}
 
 /**
  *	ether_adjust_time: Adjust hardware time
@@ -38,12 +71,16 @@ static int ether_adjust_time(struct ptp_clock_info *ptp, s64 delta)
 	struct osi_core_priv_data *osi_core = pdata->osi_core;
 	int ret = -1;
 
+	raw_spin_lock(&pdata->ptp_lock);
+
 	ret = osi_adjust_time(osi_core, delta);
 	if (ret < 0) {
 		dev_err(pdata->dev,
 			"%s:failed to adjust time with reason %d\n",
 			__func__, ret);
 	}
+
+	raw_spin_unlock(&pdata->ptp_lock);
 
 	return ret;
 }
@@ -70,12 +107,16 @@ static int ether_adjust_freq(struct ptp_clock_info *ptp, s32 ppb)
 	struct osi_core_priv_data *osi_core = pdata->osi_core;
 	int ret = -1;
 
+	raw_spin_lock(&pdata->ptp_lock);
+
 	ret = osi_adjust_freq(osi_core, ppb);
 	if (ret < 0) {
 		dev_err(pdata->dev,
 			"%s:failed to adjust frequency with reason code %d\n",
 			__func__, ret);
 	}
+
+	raw_spin_unlock(&pdata->ptp_lock);
 
 	return ret;
 }
@@ -102,7 +143,11 @@ static int ether_get_time(struct ptp_clock_info *ptp, struct timespec *ts)
 	struct osi_core_priv_data *osi_core = pdata->osi_core;
 	unsigned int sec, nsec;
 
+	raw_spin_lock(&pdata->ptp_lock);
+
 	osi_get_systime_from_mac(osi_core, &sec, &nsec);
+
+	raw_spin_unlock(&pdata->ptp_lock);
 
 	ts->tv_sec = sec;
 	ts->tv_nsec = nsec;
@@ -133,12 +178,16 @@ static int ether_set_time(struct ptp_clock_info *ptp,
 	struct osi_core_priv_data *osi_core = pdata->osi_core;
 	int ret = -1;
 
+	raw_spin_lock(&pdata->ptp_lock);
+
 	ret = osi_set_systime_to_mac(osi_core, ts->tv_sec, ts->tv_nsec);
 	if (ret < 0) {
 		dev_err(pdata->dev,
 			"%s:failed to set system time with reason %d\n",
 			__func__, ret);
 	}
+
+	raw_spin_unlock(&pdata->ptp_lock);
 
 	return ret;
 }
@@ -180,6 +229,8 @@ int ether_ptp_init(struct ether_priv_data *pdata)
 			"Aborting PTP clock driver registration\n");
 		return -1;
 	}
+
+	raw_spin_lock_init(&pdata->ptp_lock);
 
 	pdata->ptp_clock_ops = ether_ptp_clock_ops;
 	pdata->ptp_clock = ptp_clock_register(&pdata->ptp_clock_ops,
@@ -381,9 +432,81 @@ int ether_handle_hwtstamp_ioctl(struct ether_priv_data *pdata,
 		osi_core->ptp_config.one_nsec_accuracy = OSI_ENABLE;
 		/* Enable the PTP configuration */
 		osi_ptp_configuration(osi_core, OSI_ENABLE);
+		/* Register broadcasting MAC timestamp to clients */
+		tegra_register_hwtime_source(ether_get_ptptime, pdata);
 	}
 
 	return (copy_to_user(ifr->ifr_data, &config,
 			     sizeof(struct hwtstamp_config))) ? -EFAULT : 0;
 }
 
+/**
+ *	ether_handle_priv_ts_ioctl: Function to handle PTP priv IOCTL
+ *	@pdata: Pointer to private data structure.
+ *	@ifr: Interface request structure used for socket ioctl
+ *
+ *	Algorithm: This function is used to query hardware time and
+ *	the kernel time simultaneously.
+ *
+ *	Dependencies: PTP clock driver need to be successfully registered during
+ *	initialization and HW need to support PTP functionality.
+ *
+ *	Return: 0 on success, negative value on failure.
+ */
+
+int ether_handle_priv_ts_ioctl(struct ether_priv_data *pdata,
+			       struct ifreq *ifr)
+{
+	struct ifr_data_timestamp_struct req;
+	struct osi_core_priv_data *osi_core = pdata->osi_core;
+	unsigned long flags;
+	int ret = -1;
+
+	if (ifr->ifr_data == NULL) {
+		dev_err(pdata->dev, "%s: Invalid data for priv ioctl\n",
+			__func__);
+		return -EFAULT;
+	}
+
+	if (copy_from_user(&req, ifr->ifr_data, sizeof(req))) {
+		dev_err(pdata->dev, "%s: Data copy from user failed\n",
+			__func__);
+		return -EFAULT;
+	}
+
+	raw_spin_lock_irqsave(&ether_ts_lock, flags);
+	switch (req.clockid) {
+	case CLOCK_REALTIME:
+		ktime_get_real_ts(&req.kernel_ts);
+		break;
+
+	case CLOCK_MONOTONIC:
+		ktime_get_ts(&req.kernel_ts);
+		break;
+
+	default:
+		dev_err(pdata->dev, "Unsupported clockid\n");
+	}
+
+	ret = osi_get_systime_from_mac(osi_core,
+				       (unsigned int *)&req.hw_ptp_ts.tv_sec,
+				       (unsigned int *)&req.hw_ptp_ts.tv_nsec);
+	if (ret != 0) {
+		dev_err(pdata->dev, "%s: Failed to read systime from MAC %d\n",
+			__func__, ret);
+		raw_spin_unlock_irqrestore(&ether_ts_lock, flags);
+		return ret;
+	}
+	raw_spin_unlock_irqrestore(&ether_ts_lock, flags);
+
+	dev_dbg(pdata->dev, "tv_sec = %ld, tv_nsec = %ld\n",
+		req.hw_ptp_ts.tv_sec, req.hw_ptp_ts.tv_nsec);
+
+	if (copy_to_user(ifr->ifr_data, &req, sizeof(req))) {
+		dev_err(pdata->dev, "%s: Data copy to user failed\n",
+			__func__);
+		return -EFAULT;
+	}
+
+	return ret;
+}

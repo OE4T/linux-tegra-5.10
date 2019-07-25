@@ -21,6 +21,7 @@
 #define MAX_IP_ADDR_BYTE	0xFF
 /* Remote wakeup filter */
 #define EQOS_RWK_FILTER_LENGTH		8
+#define ETHER_PRV_TS_IOCTL		(SIOCDEVPRIVATE + 1)
 
 /* private ioctl number*/
 #define ETHER_AVB_ALGORITHM		27
@@ -85,8 +86,19 @@ struct arp_offload_param {
 	unsigned char ip_addr[NUM_BYTES_IN_IPADDR];
 };
 
-/* Private ioctl handler function */
+/**
+ *	struct ifr_data_timestamp_struct - common data structure between
+ *	driver and application for sharing info through private TS ioctl
+ *	@clockid: Clock ID
+ *	@kernel_ts: Store kernel time
+ *	@hw_ptp_ts: Store HW time
+ */
+struct ifr_data_timestamp_struct {
+	clockid_t clockid;
+	struct timespec kernel_ts;
+	struct timespec hw_ptp_ts;
+};
+
 int ether_handle_priv_ioctl(struct net_device *ndev,
 			    struct ifreq *ifr);
 #endif
-

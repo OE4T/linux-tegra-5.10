@@ -186,6 +186,7 @@ struct ether_rx_napi {
  *	@hwts_tx_en:		HW tx time stamping enable
  *	@hwts_rx_en:		HW rx time stamping enable
  *	@max_platform_mtu:	Max MTU supported by platform
+ *	@ptp_lock:		Lock for accessing PTP registers
  */
 struct ether_priv_data {
 	struct osi_core_priv_data *osi_core;
@@ -254,6 +255,7 @@ struct ether_priv_data {
 	unsigned int hwts_tx_en;
 	unsigned int hwts_rx_en;
 	unsigned int max_platform_mtu;
+	raw_spinlock_t ptp_lock;
 };
 
 void ether_set_ethtool_ops(struct net_device *ndev);
@@ -263,4 +265,6 @@ int ether_ptp_init(struct ether_priv_data *pdata);
 void ether_ptp_remove(struct ether_priv_data *pdata);
 int ether_handle_hwtstamp_ioctl(struct ether_priv_data *pdata,
 				struct ifreq *ifr);
+int ether_handle_priv_ts_ioctl(struct ether_priv_data *pdata,
+			       struct ifreq *ifr);
 #endif /* ETHER_LINUX_H */
