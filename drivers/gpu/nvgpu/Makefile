@@ -254,7 +254,6 @@ nvgpu-y += \
 	hal/fifo/fifo_tu104.o \
 	hal/fifo/preempt_gk20a.o \
 	hal/fifo/usermode_tu104.o \
-	hal/fifo/pbdma_gp10b.o \
 	hal/fifo/pbdma_tu104.o \
 	hal/fifo/ramfc_gk20a.o \
 	hal/fifo/ramfc_gp10b.o \
@@ -275,9 +274,6 @@ nvgpu-y += \
 	hal/fifo/userd_gv11b.o \
 	hal/fifo/fifo_intr_gk20a.o \
 	hal/fifo/fifo_intr_gv100.o \
-	hal/fifo/mmu_fault_gk20a.o \
-	hal/fifo/mmu_fault_gm20b.o \
-	hal/fifo/mmu_fault_gp10b.o \
 	hal/fifo/ctxsw_timeout_gk20a.o \
 	hal/netlist/netlist_gp10b.o \
 	hal/netlist/netlist_gv100.o \
@@ -666,6 +662,10 @@ nvgpu-$(CONFIG_NVGPU_HAL_NON_FUSA) += \
 	hal/fifo/engine_status_gm20b.o \
 	hal/fifo/engines_gm20b.o \
 	hal/fifo/pbdma_gm20b.o \
+	hal/fifo/pbdma_gp10b.o \
+	hal/fifo/mmu_fault_gk20a.o \
+	hal/fifo/mmu_fault_gm20b.o \
+	hal/fifo/mmu_fault_gp10b.o \
 	hal/gr/config/gr_config_gm20b.o \
 	hal/gr/ctxsw_prog/ctxsw_prog_gm20b.o \
 	hal/gr/ctxsw_prog/ctxsw_prog_gm20b_dbg.o \
