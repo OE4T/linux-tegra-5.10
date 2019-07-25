@@ -853,7 +853,9 @@ static ssize_t tpc_pg_mask_store(struct device *dev,
 		goto exit;
 	}
 
-	if (nvgpu_gr_obj_ctx_get_golden_image_size(gr_golden_image) != 0) {
+	if (gr_golden_image &&
+			nvgpu_gr_obj_ctx_get_golden_image_size(gr_golden_image)
+			!= 0) {
 		nvgpu_err(g, "golden image size already initialized");
 		nvgpu_mutex_release(&g->tpc_pg_lock);
 		return -ENODEV;
