@@ -308,6 +308,14 @@ struct ether_priv_data {
 	bool clks_enable;
 	/** Delayed work queue to read RMON counters periodically */
 	struct delayed_work ether_stats_work;
+	/** Flag to check if EEE LPI is enabled for the MAC */
+	unsigned int eee_enabled;
+	/** Flag to check if EEE LPI is active currently */
+	unsigned int eee_active;
+	/** Flag to check if EEE LPI is enabled for MAC transmitter */
+	unsigned int tx_lpi_enabled;
+	/** Time (usec) MAC waits to enter LPI after Tx complete */
+	unsigned int tx_lpi_timer;
 };
 
 /**
@@ -381,4 +389,5 @@ int ether_handle_hwtstamp_ioctl(struct ether_priv_data *pdata,
 				struct ifreq *ifr);
 int ether_handle_priv_ts_ioctl(struct ether_priv_data *pdata,
 			       struct ifreq *ifr);
+int ether_conf_eee(struct ether_priv_data *pdata, unsigned int tx_lpi_enable);
 #endif /* ETHER_LINUX_H */
