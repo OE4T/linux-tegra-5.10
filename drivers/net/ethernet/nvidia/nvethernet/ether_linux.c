@@ -299,8 +299,8 @@ static irqreturn_t ether_tx_chan_isr(int irq, void *data)
 	struct osi_dma_priv_data *osi_dma = pdata->osi_dma;
 	struct osi_core_priv_data *osi_core = pdata->osi_core;
 	unsigned int chan = tx_napi->chan;
+	unsigned long flags;
 	unsigned long val;
-
 
 	osi_clear_tx_intr(osi_dma, chan);
 	val = osi_core->xstats.tx_normal_irq_n[chan];
@@ -308,7 +308,9 @@ static irqreturn_t ether_tx_chan_isr(int irq, void *data)
 		osi_update_stats_counter(val, 1U);
 
 	if (likely(napi_schedule_prep(&tx_napi->napi))) {
+		spin_lock_irqsave(&pdata->rlock, flags);
 		osi_disable_chan_tx_intr(osi_dma, chan);
+		spin_unlock_irqrestore(&pdata->rlock, flags);
 		__napi_schedule(&tx_napi->napi);
 	}
 
@@ -341,7 +343,7 @@ static irqreturn_t ether_rx_chan_isr(int irq, void *data)
 	struct osi_dma_priv_data *osi_dma = pdata->osi_dma;
 	struct osi_core_priv_data *osi_core = pdata->osi_core;
 	unsigned int chan = rx_napi->chan;
-	unsigned long val;
+	unsigned long val, flags;
 
 	osi_clear_rx_intr(osi_dma, chan);
 	val = osi_core->xstats.rx_normal_irq_n[chan];
@@ -350,7 +352,9 @@ static irqreturn_t ether_rx_chan_isr(int irq, void *data)
 
 
 	if (likely(napi_schedule_prep(&rx_napi->napi))) {
+		spin_lock_irqsave(&pdata->rlock, flags);
 		osi_disable_chan_rx_intr(osi_dma, chan);
+		spin_unlock_irqrestore(&pdata->rlock, flags);
 		__napi_schedule(&rx_napi->napi);
 	}
 
@@ -2200,12 +2204,15 @@ static int ether_napi_poll_rx(struct napi_struct *napi, int budget)
 	struct ether_priv_data *pdata = rx_napi->pdata;
 	struct osi_dma_priv_data *osi_dma = pdata->osi_dma;
 	unsigned int chan = rx_napi->chan;
+	unsigned long flags;
 	int received = 0;
 
 	received = osi_process_rx_completions(osi_dma, chan, budget);
 	if (received < budget) {
 		napi_complete(napi);
+		spin_lock_irqsave(&pdata->rlock, flags);
 		osi_enable_chan_rx_intr(osi_dma, chan);
+		spin_unlock_irqrestore(&pdata->rlock, flags);
 	}
 
 	return received;
@@ -2232,12 +2239,15 @@ static int ether_napi_poll_tx(struct napi_struct *napi, int budget)
 	struct ether_priv_data *pdata = tx_napi->pdata;
 	struct osi_dma_priv_data *osi_dma = pdata->osi_dma;
 	unsigned int chan = tx_napi->chan;
+	unsigned long flags;
 	int processed;
 
 	processed = osi_process_tx_completions(osi_dma, chan);
 	if (processed == 0) {
 		napi_complete(napi);
+		spin_lock_irqsave(&pdata->rlock, flags);
 		osi_enable_chan_tx_intr(osi_dma, chan);
+		spin_unlock_irqrestore(&pdata->rlock, flags);
 		return 0;
 	}
 
@@ -3470,6 +3480,7 @@ static int ether_probe(struct platform_device *pdev)
 
 	spin_lock_init(&pdata->lock);
 	spin_lock_init(&pdata->ioctl_lock);
+	spin_lock_init(&pdata->rlock);
 	init_filter_values(pdata);
 	/* Disable Clocks */
 	ether_disable_clks(pdata);

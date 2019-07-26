@@ -237,6 +237,7 @@ struct ether_priv_data {
 
 	/* for filtering */
 	spinlock_t lock;
+	spinlock_t rlock;
 	/* spin lock for ioctl path */
 	spinlock_t ioctl_lock;
 	int num_mac_addr_regs;
