@@ -149,17 +149,9 @@ int gk20a_falcon_copy_to_dmem(struct nvgpu_falcon *flcn,
 	nvgpu_writel(g, base_addr + falcon_falcon_dmemc_r(port),
 		dst | falcon_falcon_dmemc_aincw_f(1));
 
-	if (unlikely(!nvgpu_mem_is_word_aligned(g, src))) {
-		for (i = 0; i < words; i++) {
-			nvgpu_memcpy((u8 *)&data, &src[i * 4U], 4);
-			nvgpu_writel(g, base_addr + falcon_falcon_dmemd_r(port),
-				     data);
-		}
-	} else {
-		for (i = 0; i < words; i++) {
-			nvgpu_writel(g, base_addr + falcon_falcon_dmemd_r(port),
-				     src_u32[i]);
-		}
+	for (i = 0; i < words; i++) {
+		nvgpu_writel(g, base_addr + falcon_falcon_dmemd_r(port),
+			     src_u32[i]);
 	}
 
 	if (bytes > 0U) {
@@ -186,7 +178,6 @@ int gk20a_falcon_copy_to_imem(struct nvgpu_falcon *flcn, u32 dst,
 	u32 base_addr = flcn->flcn_base;
 	u32 *src_u32 = (u32 *)src;
 	u32 words = 0;
-	u32 data = 0;
 	u32 blk = 0;
 	u32 i = 0;
 
@@ -205,34 +196,17 @@ int gk20a_falcon_copy_to_imem(struct nvgpu_falcon *flcn, u32 dst,
 			falcon_falcon_imemc_aincw_f(1) |
 			falcon_falcon_imemc_secure_f(sec ? 1U : 0U));
 
-	if (unlikely(!nvgpu_mem_is_word_aligned(g, src))) {
-		for (i = 0U; i < words; i++) {
-			if (i % 64U == 0U) {
-				/* tag is always 256B aligned */
-				nvgpu_writel(g,
-					base_addr + falcon_falcon_imemt_r(0),
-					tag);
-				tag++;
-			}
-
-			nvgpu_memcpy((u8 *)&data, &src[i * 4U], 4);
+	for (i = 0U; i < words; i++) {
+		if (i % 64U == 0U) {
+			/* tag is always 256B aligned */
 			nvgpu_writel(g,
-				     base_addr + falcon_falcon_imemd_r(port),
-				     data);
+				base_addr + falcon_falcon_imemt_r(0),
+				tag);
+			tag++;
 		}
-	} else {
-		for (i = 0U; i < words; i++) {
-			if (i % 64U == 0U) {
-				/* tag is always 256B aligned */
-				nvgpu_writel(g,
-					base_addr + falcon_falcon_imemt_r(0),
-					tag);
-				tag++;
-			}
 
-			nvgpu_writel(g, base_addr + falcon_falcon_imemd_r(port),
-				     src_u32[i]);
-		}
+		nvgpu_writel(g, base_addr + falcon_falcon_imemd_r(port),
+			     src_u32[i]);
 	}
 
 	/* WARNING : setting remaining bytes in block to 0x0 */
