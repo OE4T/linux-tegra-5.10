@@ -28,15 +28,7 @@
 
 struct gk20a;
 
-/*
- * Must include the <nvgpu/gmmu.h> header directly since the compiler needs to
- * know the actual type before it declares an array (even if the size is not
- * technically known here.
- */
-
 #ifdef CONFIG_NVGPU_HAL_NON_FUSA
-extern const struct gk20a_mmu_level gk20a_mm_levels_64k[];
-extern const struct gk20a_mmu_level gk20a_mm_levels_128k[];
 
 const struct gk20a_mmu_level *gk20a_mm_get_mmu_levels(struct gk20a *g,
 						      u64 big_page_size);
