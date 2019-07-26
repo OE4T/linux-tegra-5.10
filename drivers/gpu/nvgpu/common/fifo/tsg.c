@@ -553,6 +553,11 @@ int nvgpu_tsg_set_interleave(struct nvgpu_tsg *tsg, u32 level)
 
 	tsg->interleave_level = level;
 
+	/* TSG may not be bound yet */
+	if (tsg->runlist_id == NVGPU_INVALID_RUNLIST_ID) {
+		return 0;
+	}
+
 	return g->ops.runlist.reload(g, tsg->runlist_id, true, true);
 }
 
@@ -569,6 +574,11 @@ int nvgpu_tsg_set_timeslice(struct nvgpu_tsg *tsg, u32 timeslice_us)
 	}
 
 	tsg->timeslice_us = timeslice_us;
+
+	/* TSG may not be bound yet */
+	if (tsg->runlist_id == NVGPU_INVALID_RUNLIST_ID) {
+		return 0;
+	}
 
 	return g->ops.runlist.reload(g, tsg->runlist_id, true, true);
 }
