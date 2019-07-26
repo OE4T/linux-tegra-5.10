@@ -38,7 +38,7 @@
 #include <nvgpu/nvgpu_init.h>
 
 #include "init_vgpu.h"
-#include "init_hal_vgpu.h"
+#include "hal/vgpu/init/init_hal_vgpu.h"
 #include "common/vgpu/gr/fecs_trace_vgpu.h"
 #include "common/vgpu/fifo/fifo_vgpu.h"
 #include "common/vgpu/mm/mm_vgpu.h"

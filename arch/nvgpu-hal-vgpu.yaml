@@ -3,6 +3,16 @@
 # VGPU HAL units.
 #
 
+init:
+  safe: no
+  owner: Aparna D
+  sources: [ hal/vgpu/init/init_hal_vgpu.c,
+             hal/vgpu/init/init_hal_vgpu.h,
+             hal/vgpu/init/vgpu_hal_gp10b.c,
+             hal/vgpu/init/vgpu_hal_gp10b.h,
+             hal/vgpu/init/vgpu_hal_gv11b.c,
+             hal/vgpu/init/vgpu_hal_gv11b.h ]
+
 fifo:
   safe : no
   owner: Aparna D

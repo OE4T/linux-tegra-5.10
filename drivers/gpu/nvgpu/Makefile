@@ -549,7 +549,6 @@ nvgpu-$(CONFIG_TEGRA_GR_VIRTUALIZATION) += \
 	common/vgpu/mm/mm_vgpu.o \
 	common/vgpu/mm/vm_vgpu.o \
 	common/vgpu/init/init_vgpu.o \
-	common/vgpu/init/init_hal_vgpu.o \
 	common/vgpu/ivc/comm_vgpu.o \
 	common/vgpu/intr/intr_vgpu.o \
 	common/vgpu/ptimer/ptimer_vgpu.o \
@@ -558,7 +557,7 @@ nvgpu-$(CONFIG_TEGRA_GR_VIRTUALIZATION) += \
 	common/vgpu/ecc_vgpu.o \
 	common/vgpu/clk_vgpu.o \
 	common/vgpu/gr/fecs_trace_vgpu.o \
-	common/vgpu/gv11b/vgpu_gv11b.o \
+	hal/vgpu/init/init_hal_vgpu.o \
 	hal/vgpu/fifo/fifo_gv11b_vgpu.o \
 	hal/vgpu/sync/syncpt_cmdbuf_gv11b_vgpu.o
 
@@ -692,6 +691,6 @@ nvgpu-$(CONFIG_NVGPU_HAL_NON_FUSA) += \
 
 ifeq ($(CONFIG_TEGRA_GR_VIRTUALIZATION),y)
 nvgpu-$(CONFIG_NVGPU_HAL_NON_FUSA) += \
-	common/vgpu/gp10b/vgpu_hal_gp10b.o \
-	common/vgpu/gv11b/vgpu_hal_gv11b.o
+	hal/vgpu/init/vgpu_hal_gp10b.o \
+	hal/vgpu/init/vgpu_hal_gv11b.o
 endif

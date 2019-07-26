@@ -27,8 +27,8 @@
 #include <nvgpu/vgpu/os_init_hal_vgpu.h>
 
 #include "init_hal_vgpu.h"
-#include "common/vgpu/gp10b/vgpu_hal_gp10b.h"
-#include "common/vgpu/gv11b/vgpu_hal_gv11b.h"
+#include "vgpu_hal_gp10b.h"
+#include "vgpu_hal_gv11b.h"
 
 int vgpu_init_hal(struct gk20a *g)
 {
