@@ -90,13 +90,13 @@ NVGPU_COMMON_CFLAGS                  += -DCONFIG_NVGPU_CHANNEL_TSG_SCHEDULING
 CONFIG_NVGPU_CHANNEL_TSG_CONTROL     := 1
 NVGPU_COMMON_CFLAGS                  += -DCONFIG_NVGPU_CHANNEL_TSG_CONTROL
 
+CONFIG_NVGPU_LOGGING                 := 1
+NVGPU_COMMON_CFLAGS                  += -DCONFIG_NVGPU_LOGGING
+
 #
 # Flags enabled only for safety debug and regular build profile.
 #
 ifneq ($(profile),safety_release)
-
-CONFIG_NVGPU_LOGGING           := 1
-NVGPU_COMMON_CFLAGS             += -DCONFIG_NVGPU_LOGGING
 
 CONFIG_NVGPU_TRACE              := 1
 NVGPU_COMMON_CFLAGS             += -DCONFIG_NVGPU_TRACE
