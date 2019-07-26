@@ -138,7 +138,7 @@ u32 gm20b_mc_reset_mask(struct gk20a *g, enum nvgpu_unit unit)
 		mask = mc_enable_pwr_enabled_f();
 		break;
 	default:
-		WARN(1, "unknown reset unit %d", unit);
+		WARN(true, "unknown reset unit %d", unit);
 		break;
 	}
 

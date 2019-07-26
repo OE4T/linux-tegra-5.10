@@ -32,6 +32,14 @@
 struct gk20a;
 enum nvgpu_unit;
 
+u32  gm20b_mc_isr_nonstall(struct gk20a *g);
+void gm20b_mc_enable(struct gk20a *g, u32 units);
+void gm20b_mc_disable(struct gk20a *g, u32 units);
+void gm20b_mc_reset(struct gk20a *g, u32 units);
+u32  gm20b_mc_reset_mask(struct gk20a *g, enum nvgpu_unit unit);
+bool gm20b_mc_is_enabled(struct gk20a *g, enum nvgpu_unit unit);
+
+#ifdef CONFIG_NVGPU_HAL_NON_FUSA
 void gm20b_mc_intr_mask(struct gk20a *g);
 void gm20b_mc_intr_enable(struct gk20a *g);
 void gm20b_mc_intr_pmu_unit_config(struct gk20a *g, bool enable);
@@ -40,20 +48,15 @@ u32  gm20b_mc_intr_stall(struct gk20a *g);
 void gm20b_mc_intr_stall_pause(struct gk20a *g);
 void gm20b_mc_intr_stall_resume(struct gk20a *g);
 u32  gm20b_mc_intr_nonstall(struct gk20a *g);
-u32  gm20b_mc_isr_nonstall(struct gk20a *g);
 void gm20b_mc_intr_nonstall_pause(struct gk20a *g);
 void gm20b_mc_intr_nonstall_resume(struct gk20a *g);
-void gm20b_mc_enable(struct gk20a *g, u32 units);
-void gm20b_mc_disable(struct gk20a *g, u32 units);
-void gm20b_mc_reset(struct gk20a *g, u32 units);
 bool gm20b_mc_is_intr1_pending(struct gk20a *g,
 		enum nvgpu_unit unit, u32 mc_intr_1);
 void gm20b_mc_log_pending_intrs(struct gk20a *g);
-u32  gm20b_mc_reset_mask(struct gk20a *g, enum nvgpu_unit unit);
-bool gm20b_mc_is_enabled(struct gk20a *g, enum nvgpu_unit unit);
 void gm20b_mc_fb_reset(struct gk20a *g);
 void gm20b_mc_ltc_isr(struct gk20a *g);
 
 bool gm20b_mc_is_mmu_fault_pending(struct gk20a *g);
+#endif
 
 #endif /* NVGPU_MC_GM20B_H */

@@ -89,8 +89,11 @@ void mc_gp10b_isr_stall(struct gk20a *g)
 		engine_enum = g->fifo.engine_info[act_eng_id].engine_enum;
 		/* GR Engine */
 		if (engine_enum == NVGPU_ENGINE_GR) {
-			nvgpu_pg_elpg_protected_call(g,
+			int ret_err = nvgpu_pg_elpg_protected_call(g,
 						g->ops.gr.intr.stall_isr(g));
+			if (ret_err != 0) {
+				nvgpu_err(g, "Unable to handle gr interrupt");
+			}
 		}
 
 		/* CE Engine */
