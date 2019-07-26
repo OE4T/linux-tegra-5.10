@@ -425,8 +425,10 @@ void gv11b_mm_mmu_fault_handle_mmu_fault_common(struct gk20a *g,
 				*invalidate_replay_val |=
 					gv11b_fb_get_replay_cancel_global_val(g);
 			} else {
+#ifdef CONFIG_NVGPU_REPLAYABLE_FAULT
 				*invalidate_replay_val |=
 					gv11b_fb_get_replay_start_ack_all(g);
+#endif
 			}
 		} else {
 			/* cancel faults other than invalid pte */

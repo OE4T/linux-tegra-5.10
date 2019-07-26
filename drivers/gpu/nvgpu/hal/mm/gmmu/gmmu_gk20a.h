@@ -33,16 +33,19 @@ struct gk20a;
  * know the actual type before it declares an array (even if the size is not
  * technically known here.
  */
+
+#ifdef CONFIG_NVGPU_HAL_NON_FUSA
 extern const struct gk20a_mmu_level gk20a_mm_levels_64k[];
 extern const struct gk20a_mmu_level gk20a_mm_levels_128k[];
 
 const struct gk20a_mmu_level *gk20a_mm_get_mmu_levels(struct gk20a *g,
 						      u64 big_page_size);
+u32 gk20a_mm_get_iommu_bit(struct gk20a *g);
+#endif
 
 u32 gk20a_get_pde_pgsz(struct gk20a *g, const struct gk20a_mmu_level *l,
 				struct nvgpu_gmmu_pd *pd, u32 pd_idx);
 u32 gk20a_get_pte_pgsz(struct gk20a *g, const struct gk20a_mmu_level *l,
 				struct nvgpu_gmmu_pd *pd, u32 pd_idx);
-u32 gk20a_mm_get_iommu_bit(struct gk20a *g);
 
 #endif
