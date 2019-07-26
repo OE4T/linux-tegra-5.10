@@ -42,6 +42,7 @@
 #define PMU_UNIT_THERM			U8(0x14)
 #define PMU_UNIT_PMGR			U8(0x18)
 #define PMU_UNIT_VOLT			U8(0x0E)
+#define PMU_UNIT_INIT_DGPU		U8(0x0F)
 
 #define PMU_UNIT_END			U8(0x23)
 #define PMU_UNIT_INVALID		U8(0xFF)

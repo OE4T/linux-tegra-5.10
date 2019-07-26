@@ -108,4 +108,14 @@ struct nv_pmu_rpc_header {
 	u32  exec_time_pmu_ns;
 };
 
+/* PMU to NVGPU RPC header structure.*/
+struct pmu_nvgpu_rpc_header {
+	/* Identifies the unit servicing requested RPC */
+	u8 unit_id;
+	/* Identifies the requested RPC(within the unit)*/
+	u8 function;
+	/* Time of RPC to transfer from PMU, to dispatch in the nvgpu */
+	struct falc_u64 rpc_transfer_time;
+};
+
 #endif /* NVGPU_PMUIF_CMN_H */

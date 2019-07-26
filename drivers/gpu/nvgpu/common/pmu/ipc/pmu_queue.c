@@ -97,7 +97,7 @@ static int pmu_fb_queue_init(struct gk20a *g, struct pmu_queues *queues,
 		tmp_id = PMU_QUEUE_MSG_IDX_FOR_V5;
 	}
 
-	params.index = init->v5.queue_index[tmp_id];
+	params.index = init->v5.queue_phy_id[tmp_id];
 
 	err = nvgpu_engine_fb_queue_init(&queues->fb_queue[id], params);
 	if (err != 0) {

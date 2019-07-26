@@ -417,8 +417,8 @@ static void *pmu_get_init_msg_ptr_v4(struct pmu_init_msg *init)
 static u16 pmu_get_init_msg_sw_mngd_area_off_v5(
 	union pmu_init_msg_pmu *init_msg)
 {
-	struct pmu_init_msg_pmu_v5 *init =
-		(struct pmu_init_msg_pmu_v5 *)(&init_msg->v5);
+	struct pmu_nvgpu_rpc_struct_cmdmgmt_init *init =
+		(struct pmu_nvgpu_rpc_struct_cmdmgmt_init *)(&init_msg->v5);
 
 	return init->sw_managed_area_offset;
 }
@@ -435,8 +435,8 @@ static u16 pmu_get_init_msg_sw_mngd_area_off_v4(
 static u16 pmu_get_init_msg_sw_mngd_area_size_v5(
 	union pmu_init_msg_pmu *init_msg)
 {
-	struct pmu_init_msg_pmu_v5 *init =
-		(struct pmu_init_msg_pmu_v5 *)(&init_msg->v5);
+	struct pmu_nvgpu_rpc_struct_cmdmgmt_init *init =
+		(struct pmu_nvgpu_rpc_struct_cmdmgmt_init *)(&init_msg->v5);
 
 	return init->sw_managed_area_size;
 }
@@ -917,33 +917,6 @@ static void pmu_get_init_msg_queue_params_v4(
 	*offset = init->queue_offset + current_ptr;
 }
 
-static void pmu_get_init_msg_queue_params_v5(
-	u32 id, void *init_msg, u32 *index, u32 *offset, u32 *size)
-{
-	struct pmu_init_msg_pmu_v5 *init = init_msg;
-	u32 current_ptr = 0;
-	u32 i;
-
-	if (id == PMU_COMMAND_QUEUE_HPQ) {
-		id = PMU_QUEUE_HPQ_IDX_FOR_V3;
-	} else if (id == PMU_COMMAND_QUEUE_LPQ) {
-		id = PMU_QUEUE_LPQ_IDX_FOR_V3;
-	} else if (id == PMU_MESSAGE_QUEUE) {
-		id = PMU_QUEUE_MSG_IDX_FOR_V5;
-	} else {
-		return;
-	}
-
-	*index = init->queue_index[id];
-	*size = init->queue_size[id];
-	if (id != 0U) {
-		for (i = 0 ; i < id; i++) {
-			current_ptr += init->queue_size[i];
-		}
-	}
-	*offset = init->queue_offset + current_ptr;
-}
-
 static void *pmu_get_sequence_in_alloc_ptr_v3(struct pmu_sequence *seq)
 {
 	return (void *)(&seq->in_v3);
@@ -1302,8 +1275,6 @@ int nvgpu_pmu_init_fw_ver_ops(struct gk20a *g,
 			pmu_allocation_get_fb_size_v3;
 		if (app_version == APP_VERSION_GV10X ||
 			app_version == APP_VERSION_TU10X) {
-			fw_ops->get_init_msg_queue_params =
-				pmu_get_init_msg_queue_params_v5;
 			fw_ops->get_init_msg_ptr =
 				pmu_get_init_msg_ptr_v5;
 			fw_ops->get_init_msg_sw_mngd_area_off =

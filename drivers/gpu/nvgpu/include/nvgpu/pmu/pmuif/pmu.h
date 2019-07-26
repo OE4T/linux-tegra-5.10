@@ -112,26 +112,45 @@ struct pmu_init_msg_pmu_v4 {
 	u8 dummy[18];
 };
 
-struct pmu_init_msg_pmu_v5 {
-	u8 msg_type;
-	falcon_status flcn_status;
-	u8  queue_index[PMU_QUEUE_COUNT_FOR_V5];
+/* RPC */
+
+/* Defines the structure that holds data used to execute INIT RPC. */
+struct pmu_nvgpu_rpc_struct_cmdmgmt_init {
+	/* Must be first field in RPC structure. */
+	struct pmu_nvgpu_rpc_header hdr;
+	/*
+	* Notifies the RM if the PMU has encountered any critical
+	* error that would prevent it to operate correctly
+	*/
+	falcon_status status;
+	/*
+	* PMU command and message queue locations and sizes are determined
+	* at PMU build-time. First one starts at @ref queuesStart and each
+	* next follows the previous one.
+	*/
+	u8 queue_phy_id[PMU_QUEUE_COUNT_FOR_V5];
+	/* Array of sizes for each queue. */
 	u16 queue_size[PMU_QUEUE_COUNT_FOR_V5];
-	u16 queue_offset;
-
+	/* Offset in DMEM to the first queue. */
+	u16 queues_start;
+	/* Offset in DMEM to the first byte of the nvgpu Managed Heap. */
 	u16 sw_managed_area_offset;
+	/* Size (in bytes) of the RM Managed Heap. */
 	u16 sw_managed_area_size;
-
-	u16  os_debug_entry_point;
-
-	u8 dummy[18];
-	u8 pad;
+	/*
+	* DMEM address of the PMUs DEBUG_INFO. Will be set to
+	* RM_OS_DEBUG_ENTRY_POINT_INVALID if an entry point is
+	* not provided
+	*/
+	u16 os_debug_entry_point;
+	/* BRSS data. */
+	u8 brss_data[24];
 };
 
 union pmu_init_msg_pmu {
 	struct pmu_init_msg_pmu_v1 v1;
 	struct pmu_init_msg_pmu_v4 v4;
-	struct pmu_init_msg_pmu_v5 v5;
+	struct pmu_nvgpu_rpc_struct_cmdmgmt_init v5;
 };
 
 struct pmu_init_msg {
@@ -139,7 +158,7 @@ struct pmu_init_msg {
 		u8 msg_type;
 		struct pmu_init_msg_pmu_v1 pmu_init_v1;
 		struct pmu_init_msg_pmu_v4 pmu_init_v4;
-		struct pmu_init_msg_pmu_v5 pmu_init_v5;
+		struct pmu_nvgpu_rpc_struct_cmdmgmt_init pmu_init_v5;
 	};
 };
 

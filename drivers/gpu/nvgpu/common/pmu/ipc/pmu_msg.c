@@ -350,7 +350,7 @@ static int pmu_process_init_msg_fb(struct gk20a *g, struct nvgpu_pmu *pmu,
 	pmu_read_init_msg_fb(g, pmu, tail, PMU_MSG_HDR_SIZE,
 		(void *)&msg->hdr);
 
-	if (msg->hdr.unit_id != PMU_UNIT_INIT) {
+	if (msg->hdr.unit_id != PMU_UNIT_INIT_DGPU) {
 		nvgpu_err(g, "FB MSG Q: expecting init msg");
 		err = -EINVAL;
 		goto exit;
@@ -358,8 +358,8 @@ static int pmu_process_init_msg_fb(struct gk20a *g, struct nvgpu_pmu *pmu,
 
 	pmu_read_init_msg_fb(g, pmu, tail, msg->hdr.size,
 		(void *)&msg->hdr);
-
-	if (msg->msg.init.msg_type != PMU_INIT_MSG_TYPE_PMU_INIT) {
+	if (msg->event_rpc.cmdmgmt_init.hdr.function !=
+		PMU_INIT_MSG_TYPE_PMU_INIT) {
 		nvgpu_err(g, "FB MSG Q: expecting pmu init msg");
 		err = -EINVAL;
 		goto exit;
@@ -419,54 +419,72 @@ exit:
 	return err;
 }
 
+static int pmu_gid_info_dmem_read(struct nvgpu_pmu *pmu,
+	union pmu_init_msg_pmu *init)
+{
+	struct pmu_fw_ver_ops *fw_ops = &pmu->fw->ops;
+	struct pmu_sha1_gid *gid_info = &pmu->gid_info;
+	struct pmu_sha1_gid_data gid_data;
+	int err = 0;
+
+	if (!gid_info->valid) {
+		err = nvgpu_falcon_copy_from_dmem(pmu->flcn,
+				fw_ops->get_init_msg_sw_mngd_area_off(init),
+				(u8 *)&gid_data,
+				(u32)sizeof(struct pmu_sha1_gid_data), 0);
+		if (err != 0) {
+			nvgpu_err(pmu->g, "PMU falcon DMEM copy failed");
+			goto exit;
+		}
+
+		gid_info->valid =
+			(gid_data.signature == PMU_SHA1_GID_SIGNATURE);
+
+		if (gid_info->valid) {
+			if (sizeof(gid_info->gid) !=
+				sizeof(gid_data.gid)) {
+				WARN_ON(1);
+			}
+
+			nvgpu_memcpy((u8 *)gid_info->gid, (u8 *)gid_data.gid,
+				sizeof(gid_info->gid));
+		}
+	}
+
+exit:
+	return err;
+}
+
 static int pmu_process_init_msg(struct nvgpu_pmu *pmu,
 			struct pmu_msg *msg)
 {
 	struct gk20a *g = pmu->g;
 	struct pmu_fw_ver_ops *fw_ops = &g->pmu->fw->ops;
 	union pmu_init_msg_pmu *init;
-	struct pmu_sha1_gid_data gid_data;
 	int err = 0;
 
 	nvgpu_log_fn(g, " ");
 
 	nvgpu_pmu_dbg(g, "init received\n");
 
-	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_PMU_RTOS_FBQ)) {
-		err = pmu_process_init_msg_fb(g, pmu, msg);
-	} else {
-		err = pmu_process_init_msg_dmem(g, pmu, msg);
-	}
-
-	/* error check for above init message process*/
-	if (err != 0) {
-		goto exit;
-	}
+	(void)memset((void *)msg, 0x0, sizeof(struct pmu_msg));
 
 	init = fw_ops->get_init_msg_ptr(&(msg->msg.init));
-	if (!pmu->gid_info.valid) {
-		u32 *gid_hdr_data = &gid_data.signature;
 
-		err = nvgpu_falcon_copy_from_dmem(pmu->flcn,
-			fw_ops->get_init_msg_sw_mngd_area_off(init),
-			gid_data.sign_bytes,
-			(u32)sizeof(struct pmu_sha1_gid_data), 0);
+	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_PMU_RTOS_FBQ)) {
+		err = pmu_process_init_msg_fb(g, pmu, msg);
 		if (err != 0) {
-			nvgpu_err(g, "PMU falcon DMEM copy failed");
+			goto exit;
+		}
+	} else {
+		err = pmu_process_init_msg_dmem(g, pmu, msg);
+		if (err != 0) {
 			goto exit;
 		}
 
-		pmu->gid_info.valid =
-			(*gid_hdr_data == PMU_SHA1_GID_SIGNATURE);
-
-		if (pmu->gid_info.valid) {
-
-			WARN_ON(sizeof(pmu->gid_info.gid) !=
-				sizeof(gid_data.gid));
-
-			nvgpu_memcpy((u8 *)pmu->gid_info.gid,
-				(u8 *)gid_data.gid,
-				sizeof(pmu->gid_info.gid));
+		err = pmu_gid_info_dmem_read(pmu, init);
+		if (err != 0) {
+			goto exit;
 		}
 	}
 
@@ -474,7 +492,7 @@ static int pmu_process_init_msg(struct nvgpu_pmu *pmu,
 			nvgpu_pmu_super_surface_mem(g, pmu,
 			pmu->super_surface));
 	if (err != 0) {
-		return err;
+		goto exit;
 	}
 
 	nvgpu_pmu_dmem_allocator_init(g, pmu, &pmu->dmem, init);
