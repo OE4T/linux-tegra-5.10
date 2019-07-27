@@ -38,6 +38,7 @@
  *   - @ref unit-devctl
  *   - @ref unit-sdl
  *   - @ref unit-init
+ *   - @ref unit-falcon
  *   - Etc, etc.
  *
  * nvgpu-driver Level Requirements Table
