@@ -2910,8 +2910,8 @@ static void ether_parse_queue_prio(struct ether_priv_data *pdata,
 
 	ret = of_property_read_u32_array(pnode, pdt_prop, pval, num_entries);
 	if (ret < 0) {
-		dev_err(pdata->dev, "%s(): \"%s\" read failed %d."
-			"Using default\n", __func__, pdt_prop, ret);
+		dev_info(pdata->dev, "%s(): \"%s\" read failed %d."
+			 "Using default\n", __func__, pdt_prop, ret);
 		for (i = 0; i < num_entries; i++) {
 			pval[i] = val_def;
 		}
@@ -2972,8 +2972,8 @@ static int ether_parse_dt(struct ether_priv_data *pdata)
 	ret = of_property_read_u32(np, "nvidia,pause_frames",
 				   &pdata->osi_core->pause_frames);
 	if (ret < 0) {
-		dev_err(dev, "Failed to read nvida,pause_frames, so"
-			" setting to default support as disable\n");
+		dev_info(dev, "Failed to read nvida,pause_frames, so"
+			 " setting to default support as disable\n");
 		pdata->osi_core->pause_frames = OSI_PAUSE_FRAMES_DISABLE;
 	}
 
@@ -3060,7 +3060,7 @@ static int ether_parse_dt(struct ether_priv_data *pdata)
 					 tmp_value,
 					 osi_core->num_mtl_queues);
 	if (ret < 0) {
-		dev_err(dev, "failed to read rx Queue priority mapping, Setting default 0x0\n");
+		dev_info(dev, "failed to read rx Queue priority mapping, Setting default 0x0\n");
 		for (i = 0; i < osi_core->num_mtl_queues; i++) {
 			osi_core->rxq_prio[i] = 0x0U;
 		}
@@ -3081,14 +3081,14 @@ static int ether_parse_dt(struct ether_priv_data *pdata)
 	ret = of_property_read_u32(np, "nvidia,max-platform-mtu",
 				   &pdata->max_platform_mtu);
 	if (ret < 0) {
-		dev_err(dev, "max-platform-mtu DT entry missing, setting default %d\n",
-			ETHER_DEFAULT_PLATFORM_MTU);
+		dev_info(dev, "max-platform-mtu DT entry missing, setting default %d\n",
+			 ETHER_DEFAULT_PLATFORM_MTU);
 		pdata->max_platform_mtu = ETHER_DEFAULT_PLATFORM_MTU;
 	} else {
 		if (pdata->max_platform_mtu > ETHER_MAX_HW_MTU ||
 		    pdata->max_platform_mtu < ETH_MIN_MTU) {
-			dev_err(dev, "Invalid max-platform-mtu, setting default %d\n",
-				ETHER_DEFAULT_PLATFORM_MTU);
+			dev_info(dev, "Invalid max-platform-mtu, setting default %d\n",
+				 ETHER_DEFAULT_PLATFORM_MTU);
 			pdata->max_platform_mtu = ETHER_DEFAULT_PLATFORM_MTU;
 		}
 	}
