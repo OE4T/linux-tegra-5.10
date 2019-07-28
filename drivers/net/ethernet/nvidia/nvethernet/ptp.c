@@ -239,7 +239,7 @@ int ether_handle_hwtstamp_ioctl(struct ether_priv_data *pdata,
 	struct timespec now;
 
 	if (pdata->hw_feat.tsstssel == OSI_DISABLE) {
-		dev_err(pdata->dev, "HW timestamping not available\n");
+		dev_info(pdata->dev, "HW timestamping not available\n");
 		return -EOPNOTSUPP;
 	}
 
@@ -248,9 +248,9 @@ int ether_handle_hwtstamp_ioctl(struct ether_priv_data *pdata,
 		return -EFAULT;
 	}
 
-	dev_err(pdata->dev, "config.flags = %#x, tx_type = %#x,"
-		"rx_filter = %#x\n", config.flags, config.tx_type,
-		config.rx_filter);
+	dev_info(pdata->dev, "config.flags = %#x, tx_type = %#x,"
+		 "rx_filter = %#x\n", config.flags, config.tx_type,
+		 config.rx_filter);
 
 	/* reserved for future extensions */
 	if (config.flags) {
