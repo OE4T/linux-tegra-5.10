@@ -34,6 +34,7 @@
 
 #include <nvgpu/utils.h>
 
+#ifdef CONFIG_NVGPU_INJECT_HWERR
 int gv11b_ltc_inject_ecc_error(struct gk20a *g,
 		struct nvgpu_hw_err_inject_info *err, u32 error_info)
 {
@@ -89,6 +90,7 @@ struct nvgpu_hw_err_inject_info_desc * gv11b_ltc_get_err_desc(struct gk20a *g)
 
 	return &ltc_err_desc;
 }
+#endif /* CONFIG_NVGPU_INJECT_HWERR */
 
 /*
  * Sets the ZBC stencil for the passed index.

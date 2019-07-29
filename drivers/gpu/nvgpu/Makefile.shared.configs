@@ -106,6 +106,8 @@ NVGPU_COMMON_CFLAGS             += -DCONFIG_NVGPU_SYSFS
 
 NVGPU_COMMON_CFLAGS             += -DCONFIG_NVGPU_FALCON_DEBUG
 
+NVGPU_COMMON_CFLAGS             += -DCONFIG_NVGPU_INJECT_HWERR
+
 #
 # Flags enabled only for regular build profile.
 #

@@ -31,6 +31,7 @@
 
 #include <nvgpu/hw/gv11b/hw_fb_gv11b.h>
 
+#ifdef CONFIG_NVGPU_INJECT_HWERR
 int gv11b_fb_intr_inject_hubmmu_ecc_error(struct gk20a *g,
 		struct nvgpu_hw_err_inject_info *err,
 		u32 error_info)
@@ -100,6 +101,7 @@ gv11b_fb_intr_get_hubmmu_err_desc(struct gk20a *g)
 
 	return &hubmmu_err_desc;
 }
+#endif /* CONFIG_NVGPU_INJECT_HWERR */
 
 static void gv11b_fb_intr_handle_ecc_l2tlb(struct gk20a *g, u32 ecc_status)
 {

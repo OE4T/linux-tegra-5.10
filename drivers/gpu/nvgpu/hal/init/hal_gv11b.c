@@ -185,8 +185,10 @@ static void gv11b_init_gpu_characteristics(struct gk20a *g)
 
 static const struct gpu_ops gv11b_ops = {
 	.ltc = {
+#ifdef CONFIG_NVGPU_INJECT_HWERR
 		.get_ltc_err_desc =
 			gv11b_ltc_get_err_desc,
+#endif /* CONFIG_NVGPU_INJECT_HWERR */
 		.determine_L2_size_bytes = gp10b_determine_L2_size_bytes,
 		.init_fs_state = gv11b_ltc_init_fs_state,
 		.flush = gm20b_flush_ltc,
@@ -290,6 +292,7 @@ static const struct gpu_ops gv11b_ops = {
 		.ecc = {
 			.detect = gv11b_ecc_detect_enabled_units,
 			.init = gv11b_ecc_init,
+#ifdef CONFIG_NVGPU_INJECT_HWERR
 			.get_mmu_err_desc =
 				gv11b_gr_intr_get_mmu_err_desc,
 			.get_gcc_err_desc =
@@ -300,6 +303,7 @@ static const struct gpu_ops gv11b_ops = {
 				gv11b_gr_intr_get_gpccs_err_desc,
 			.get_fecs_err_desc =
 				gv11b_gr_intr_get_fecs_err_desc,
+#endif /* CONFIG_NVGPU_INJECT_HWERR */
 		},
 		.ctxsw_prog = {
 			.hw_get_fecs_header_size =
@@ -705,8 +709,10 @@ static const struct gpu_ops gv11b_ops = {
 		.is_valid_compute = gv11b_class_is_valid_compute,
 	},
 	.fb = {
+#ifdef CONFIG_NVGPU_INJECT_HWERR
 		.get_hubmmu_err_desc =
 			gv11b_fb_intr_get_hubmmu_err_desc,
+#endif /* CONFIG_NVGPU_INJECT_HWERR */
 		.init_hw = gv11b_fb_init_hw,
 		.init_fs_state = gv11b_fb_init_fs_state,
 		.set_mmu_page_size = NULL,
@@ -1076,8 +1082,10 @@ static const struct gpu_ops gv11b_ops = {
 		.elcg_init_idle_filters = gv11b_elcg_init_idle_filters,
 	},
 	.pmu = {
+#ifdef CONFIG_NVGPU_INJECT_HWERR
 		.get_pmu_err_desc =
 			gv11b_pmu_intr_get_err_desc,
+#endif /* CONFIG_NVGPU_INJECT_HWERR */
 		/*
 		 * Basic init ops are must, as PMU engine used by ACR to
 		 * load & bootstrap GR LS falcons without LS PMU, remaining

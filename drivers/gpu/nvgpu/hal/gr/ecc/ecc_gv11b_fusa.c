@@ -28,6 +28,7 @@
 
 #include "ecc_gv11b.h"
 
+#ifdef CONFIG_NVGPU_INJECT_HWERR
 int gv11b_gr_intr_inject_fecs_ecc_error(struct gk20a *g,
 		struct nvgpu_hw_err_inject_info *err, u32 error_info)
 {
@@ -333,6 +334,7 @@ gv11b_gr_intr_get_gcc_err_desc(struct gk20a *g)
 
 	return &gcc_err_desc;
 }
+#endif /* CONFIG_NVGPU_INJECT_HWERR */
 
 static void gv11b_ecc_enable_smlrf(struct gk20a *g,
 				u32 fecs_feature_override_ecc, bool opt_ecc_en)

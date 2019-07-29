@@ -39,6 +39,7 @@
 
 #define ALIGN_4KB     12
 
+#ifdef CONFIG_NVGPU_INJECT_HWERR
 int gv11b_pmu_inject_ecc_error(struct gk20a *g,
 		struct nvgpu_hw_err_inject_info *err, u32 error_info)
 {
@@ -86,6 +87,7 @@ gv11b_pmu_intr_get_err_desc(struct gk20a *g)
 
 	return &pmu_err_desc;
 }
+#endif /* CONFIG_NVGPU_INJECT_HWERR */
 
 /* error handler */
 void gv11b_clear_pmu_bar0_host_err_status(struct gk20a *g)
