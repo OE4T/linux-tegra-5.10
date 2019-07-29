@@ -1,7 +1,7 @@
 /*
  * edid_quirks.c: edid specific exceptions.
  *
- * Copyright (c) 2015-2019, NVIDIA CORPORATION, All rights reserved.
+ * Copyright (c) 2015-2018, NVIDIA CORPORATION, All rights reserved.
  * Author: Anshuman Nath Kar <anshumank@nvidia.com>
  *
  * This software is licensed under the terms of the GNU General Public
@@ -29,9 +29,6 @@ static const struct hdmi_blacklist {
 	{ "VIZ", 4120, "P55-C1",    TEGRA_EDID_QUIRK_DELAY_HDCP },
 	{ "VIZ", 4120, "P65-C1",    TEGRA_EDID_QUIRK_DELAY_HDCP },
 	{ "VIZ", 4120, "P75-C1",    TEGRA_EDID_QUIRK_DELAY_HDCP },
-	/* LG OLED55E6P 4K HDR TV */
-	{ "GSM", 0001, "LG TV RVU", TEGRA_EDID_QUIRK_DELAY_HDCP },
-	{ "GSM", 0001, "LG TV",     TEGRA_EDID_QUIRK_DELAY_HDCP },
 	/* BlackMagic 12G SDI */
 	{ "BMD", 0,    "BMD HDMI",  TEGRA_EDID_QUIRK_NO_HDCP    },
 	/* Denon 2313 doesn't support YUV422, but declares support for it */
