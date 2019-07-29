@@ -54,7 +54,7 @@ struct nvgpu_page_alloc *nvgpu_vidmem_get_page_alloc(struct nvgpu_mem_sgl *sgl)
 }
 
 
-void __nvgpu_mem_free_vidmem_alloc(struct gk20a *g, struct nvgpu_mem *vidmem)
+void nvgpu_mem_free_vidmem_alloc(struct gk20a *g, struct nvgpu_mem *vidmem)
 {
 	BUG();
 }

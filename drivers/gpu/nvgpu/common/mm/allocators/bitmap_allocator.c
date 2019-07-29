@@ -363,18 +363,18 @@ static void nvgpu_bitmap_print_stats(struct nvgpu_allocator *na,
 {
 	struct nvgpu_bitmap_allocator *a = bitmap_allocator(na);
 
-	__alloc_pstat(s, na, "Bitmap allocator params:");
-	__alloc_pstat(s, na, "  start = 0x%llx", a->base);
-	__alloc_pstat(s, na, "  end   = 0x%llx", a->base + a->length);
-	__alloc_pstat(s, na, "  blks  = 0x%llx", a->num_bits);
+	alloc_pstat(s, na, "Bitmap allocator params:");
+	alloc_pstat(s, na, "  start = 0x%llx", a->base);
+	alloc_pstat(s, na, "  end   = 0x%llx", a->base + a->length);
+	alloc_pstat(s, na, "  blks  = 0x%llx", a->num_bits);
 
 	/* Actual stats. */
-	__alloc_pstat(s, na, "Stats:");
-	__alloc_pstat(s, na, "  Number allocs = 0x%llx", a->nr_allocs);
-	__alloc_pstat(s, na, "  Number fixed  = 0x%llx", a->nr_fixed_allocs);
-	__alloc_pstat(s, na, "  Bytes alloced = 0x%llx", a->bytes_alloced);
-	__alloc_pstat(s, na, "  Bytes freed   = 0x%llx", a->bytes_freed);
-	__alloc_pstat(s, na, "  Outstanding   = 0x%llx",
+	alloc_pstat(s, na, "Stats:");
+	alloc_pstat(s, na, "  Number allocs = 0x%llx", a->nr_allocs);
+	alloc_pstat(s, na, "  Number fixed  = 0x%llx", a->nr_fixed_allocs);
+	alloc_pstat(s, na, "  Bytes alloced = 0x%llx", a->bytes_alloced);
+	alloc_pstat(s, na, "  Bytes freed   = 0x%llx", a->bytes_freed);
+	alloc_pstat(s, na, "  Outstanding   = 0x%llx",
 		      a->bytes_alloced - a->bytes_freed);
 }
 #endif

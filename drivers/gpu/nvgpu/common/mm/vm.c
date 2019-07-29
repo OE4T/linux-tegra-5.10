@@ -1041,7 +1041,7 @@ int nvgpu_vm_map(struct vm_gk20a *vm,
 		mapped_buffer = nvgpu_vm_find_mapping(vm,
 						      os_buf,
 						      map_addr,
-						      flags,
+						      binfo.flags,
 						      map_key_kind);
 
 		if (mapped_buffer != NULL) {
@@ -1226,7 +1226,7 @@ int nvgpu_vm_map(struct vm_gk20a *vm,
 				      binfo.pgsz_idx,
 				      pte_kind,
 				      ctag_offset,
-				      flags,
+				      binfo.flags,
 				      rw,
 				      clear_ctags,
 				      false,
@@ -1251,7 +1251,7 @@ int nvgpu_vm_map(struct vm_gk20a *vm,
 	mapped_buffer->size         = map_size;
 	mapped_buffer->pgsz_idx     = binfo.pgsz_idx;
 	mapped_buffer->vm           = vm;
-	mapped_buffer->flags        = flags;
+	mapped_buffer->flags        = binfo.flags;
 	nvgpu_assert(map_key_kind >= 0);
 	mapped_buffer->kind         = (u32)map_key_kind;
 	mapped_buffer->va_allocated = va_allocated;

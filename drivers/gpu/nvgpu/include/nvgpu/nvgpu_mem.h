@@ -103,7 +103,7 @@ struct nvgpu_mem {
 	 * However, this will not stop the DMA API from freeing other parts of
 	 * nvgpu_mem in a system specific way.
 	 */
-#define __NVGPU_MEM_FLAG_NO_DMA			 BIT64(3)
+#define NVGPU_MEM_FLAG_NO_DMA			 BIT64(3)
 	/*
 	 * Some nvgpu_mem objects act as facades to memory buffers owned by
 	 * someone else. This internal flag specifies that the sgt field is
@@ -256,8 +256,9 @@ int nvgpu_mem_create_from_phys(struct gk20a *g, struct nvgpu_mem *dest,
  * This is implemented in the OS specific code. If it's not necessary it can
  * be a noop. But the symbol must at least be present.
  */
-void __nvgpu_mem_free_vidmem_alloc(struct gk20a *g, struct nvgpu_mem *vidmem);
-
+#ifdef CONFIG_NVGPU_DGPU
+void nvgpu_mem_free_vidmem_alloc(struct gk20a *g, struct nvgpu_mem *vidmem);
+#endif
 /*
  * Buffer accessors. Sysmem buffers always have a CPU mapping and vidmem
  * buffers are accessed via PRAMIN.

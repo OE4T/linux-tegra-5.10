@@ -259,7 +259,7 @@ static void nvgpu_vidmem_clear_pending_allocs(struct mm_gk20a *mm)
 		mem->size = 0;
 		mem->aperture = APERTURE_INVALID;
 
-		__nvgpu_mem_free_vidmem_alloc(g, mem);
+		nvgpu_mem_free_vidmem_alloc(g, mem);
 		nvgpu_kfree(g, mem);
 	}
 

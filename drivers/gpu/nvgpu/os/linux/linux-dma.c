@@ -436,7 +436,7 @@ void nvgpu_dma_free_sys(struct gk20a *g, struct nvgpu_mem *mem)
 	dma_dbg_free(g, mem->size, mem->priv.flags, "sysmem");
 
 	if (!(mem->mem_flags & NVGPU_MEM_FLAG_SHADOW_COPY) &&
-	    !(mem->mem_flags & __NVGPU_MEM_FLAG_NO_DMA) &&
+	    !(mem->mem_flags & NVGPU_MEM_FLAG_NO_DMA) &&
 	    (mem->cpu_va || mem->priv.pages)) {
 		void *cpu_addr = mem->cpu_va;
 
@@ -464,7 +464,7 @@ void nvgpu_dma_free_sys(struct gk20a *g, struct nvgpu_mem *mem)
 	 * When this flag is set this means we are freeing a "phys" nvgpu_mem.
 	 * To handle this just nvgpu_kfree() the nvgpu_sgt and nvgpu_sgl.
 	 */
-	if (mem->mem_flags & __NVGPU_MEM_FLAG_NO_DMA) {
+	if (mem->mem_flags & NVGPU_MEM_FLAG_NO_DMA) {
 		nvgpu_kfree(g, mem->phys_sgt->sgl);
 		nvgpu_kfree(g, mem->phys_sgt);
 	}

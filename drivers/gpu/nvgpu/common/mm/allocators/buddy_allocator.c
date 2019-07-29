@@ -1236,32 +1236,32 @@ static void nvgpu_buddy_print_stats(struct nvgpu_allocator *na,
 	struct nvgpu_alloc_carveout *tmp;
 	struct nvgpu_buddy_allocator *a = na->priv;
 
-	__alloc_pstat(s, na, "base = %llu, limit = %llu, blk_size = %llu",
+	alloc_pstat(s, na, "base = %llu, limit = %llu, blk_size = %llu",
 		      a->base, a->length, a->blk_size);
-	__alloc_pstat(s, na, "Internal params:");
-	__alloc_pstat(s, na, "  start = 0x%llx", a->start);
-	__alloc_pstat(s, na, "  end   = 0x%llx", a->end);
-	__alloc_pstat(s, na, "  count = 0x%llx", a->count);
-	__alloc_pstat(s, na, "  blks  = 0x%llx", a->blks);
-	__alloc_pstat(s, na, "  max_order = %llu", a->max_order);
+	alloc_pstat(s, na, "Internal params:");
+	alloc_pstat(s, na, "  start = 0x%llx", a->start);
+	alloc_pstat(s, na, "  end   = 0x%llx", a->end);
+	alloc_pstat(s, na, "  count = 0x%llx", a->count);
+	alloc_pstat(s, na, "  blks  = 0x%llx", a->blks);
+	alloc_pstat(s, na, "  max_order = %llu", a->max_order);
 
 	if (lock)
 		alloc_lock(na);
 
 	if (!nvgpu_list_empty(&a->co_list)) {
-		__alloc_pstat(s, na, "");
-		__alloc_pstat(s, na, "Carveouts:");
+		alloc_pstat(s, na, "");
+		alloc_pstat(s, na, "Carveouts:");
 		nvgpu_list_for_each_entry(tmp, &a->co_list,
 					nvgpu_alloc_carveout, co_entry)
-			__alloc_pstat(s, na,
+			alloc_pstat(s, na,
 				      "  CO %2d: %-20s 0x%010llx + 0x%llx",
 				      i++, tmp->name, tmp->base, tmp->length);
 	}
 
-	__alloc_pstat(s, na, "");
-	__alloc_pstat(s, na, "Buddy blocks:");
-	__alloc_pstat(s, na, "  Order   Free    Alloced   Split");
-	__alloc_pstat(s, na, "  -----   ----    -------   -----");
+	alloc_pstat(s, na, "");
+	alloc_pstat(s, na, "Buddy blocks:");
+	alloc_pstat(s, na, "  Order   Free    Alloced   Split");
+	alloc_pstat(s, na, "  -----   ----    -------   -----");
 
 	for (i = a->max_order; i >= 0; i--) {
 		if (a->buddy_list_len[i] == 0 &&
@@ -1269,31 +1269,31 @@ static void nvgpu_buddy_print_stats(struct nvgpu_allocator *na,
 		    a->buddy_list_split[i] == 0)
 			continue;
 
-		__alloc_pstat(s, na, "  %3d     %-7llu %-9llu %llu", i,
+		alloc_pstat(s, na, "  %3d     %-7llu %-9llu %llu", i,
 			      a->buddy_list_len[i],
 			      a->buddy_list_alloced[i],
 			      a->buddy_list_split[i]);
 	}
 
-	__alloc_pstat(s, na, "");
+	alloc_pstat(s, na, "");
 
 	nvgpu_rbtree_enum_start(0, &node, a->fixed_allocs);
 	i = 1;
 	while (node) {
 		falloc = nvgpu_fixed_alloc_from_rbtree_node(node);
 
-		__alloc_pstat(s, na, "Fixed alloc (%d): [0x%llx -> 0x%llx]",
+		alloc_pstat(s, na, "Fixed alloc (%d): [0x%llx -> 0x%llx]",
 			      i, falloc->start, falloc->end);
 
 		nvgpu_rbtree_enum_next(&node, a->fixed_allocs);
 	}
 
-	__alloc_pstat(s, na, "");
-	__alloc_pstat(s, na, "Bytes allocated:        %llu",
+	alloc_pstat(s, na, "");
+	alloc_pstat(s, na, "Bytes allocated:        %llu",
 		      a->bytes_alloced);
-	__alloc_pstat(s, na, "Bytes allocated (real): %llu",
+	alloc_pstat(s, na, "Bytes allocated (real): %llu",
 		      a->bytes_alloced_real);
-	__alloc_pstat(s, na, "Bytes freed:            %llu",
+	alloc_pstat(s, na, "Bytes freed:            %llu",
 		      a->bytes_freed);
 
 	if (lock)

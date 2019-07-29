@@ -260,7 +260,7 @@ int nvgpu_vidmem_buf_access_memory(struct gk20a *g, struct dma_buf *dmabuf,
 	return err;
 }
 
-void __nvgpu_mem_free_vidmem_alloc(struct gk20a *g, struct nvgpu_mem *vidmem)
+void nvgpu_mem_free_vidmem_alloc(struct gk20a *g, struct nvgpu_mem *vidmem)
 {
 	nvgpu_free(vidmem->allocator,
 		   (u64)nvgpu_vidmem_get_page_alloc(vidmem->priv.sgt->sgl));

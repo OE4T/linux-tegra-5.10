@@ -330,7 +330,7 @@ static inline void nvgpu_alloc_disable_dbg(struct nvgpu_allocator *a)
  * Debug stuff.
  */
 #ifdef __KERNEL__
-#define __alloc_pstat(seq, allocator, fmt, arg...)		\
+#define alloc_pstat(seq, allocator, fmt, arg...)		\
 	do {							\
 		if (seq)					\
 			seq_printf(seq, fmt "\n", ##arg);	\

@@ -132,15 +132,15 @@ static void nvgpu_lockless_print_stats(struct nvgpu_allocator *a,
 {
 	struct nvgpu_lockless_allocator *pa = a->priv;
 
-	__alloc_pstat(s, a, "Lockless allocator params:");
-	__alloc_pstat(s, a, "  start = 0x%llx", pa->base);
-	__alloc_pstat(s, a, "  end   = 0x%llx", pa->base + pa->length);
+	alloc_pstat(s, a, "Lockless allocator params:");
+	alloc_pstat(s, a, "  start = 0x%llx", pa->base);
+	alloc_pstat(s, a, "  end   = 0x%llx", pa->base + pa->length);
 
 	/* Actual stats. */
-	__alloc_pstat(s, a, "Stats:");
-	__alloc_pstat(s, a, "  Number allocs = %d",
+	alloc_pstat(s, a, "Stats:");
+	alloc_pstat(s, a, "  Number allocs = %d",
 		      nvgpu_atomic_read(&pa->nr_allocs));
-	__alloc_pstat(s, a, "  Number free   = %d",
+	alloc_pstat(s, a, "  Number free   = %d",
 		      pa->nr_nodes - nvgpu_atomic_read(&pa->nr_allocs));
 }
 #endif

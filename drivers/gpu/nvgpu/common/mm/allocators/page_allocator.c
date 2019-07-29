@@ -933,47 +933,47 @@ static void nvgpu_page_print_stats(struct nvgpu_allocator *na,
 	if (lock)
 		alloc_lock(na);
 
-	__alloc_pstat(s, na, "Page allocator:");
-	__alloc_pstat(s, na, "  allocs         %lld", a->nr_allocs);
-	__alloc_pstat(s, na, "  frees          %lld", a->nr_frees);
-	__alloc_pstat(s, na, "  fixed_allocs   %lld", a->nr_fixed_allocs);
-	__alloc_pstat(s, na, "  fixed_frees    %lld", a->nr_fixed_frees);
-	__alloc_pstat(s, na, "  slab_allocs    %lld", a->nr_slab_allocs);
-	__alloc_pstat(s, na, "  slab_frees     %lld", a->nr_slab_frees);
-	__alloc_pstat(s, na, "  pages alloced  %lld", a->pages_alloced);
-	__alloc_pstat(s, na, "  pages freed    %lld", a->pages_freed);
-	__alloc_pstat(s, na, "");
+	alloc_pstat(s, na, "Page allocator:");
+	alloc_pstat(s, na, "  allocs         %lld", a->nr_allocs);
+	alloc_pstat(s, na, "  frees          %lld", a->nr_frees);
+	alloc_pstat(s, na, "  fixed_allocs   %lld", a->nr_fixed_allocs);
+	alloc_pstat(s, na, "  fixed_frees    %lld", a->nr_fixed_frees);
+	alloc_pstat(s, na, "  slab_allocs    %lld", a->nr_slab_allocs);
+	alloc_pstat(s, na, "  slab_frees     %lld", a->nr_slab_frees);
+	alloc_pstat(s, na, "  pages alloced  %lld", a->pages_alloced);
+	alloc_pstat(s, na, "  pages freed    %lld", a->pages_freed);
+	alloc_pstat(s, na, "");
 
-	__alloc_pstat(s, na, "Page size:       %lld KB",
+	alloc_pstat(s, na, "Page size:       %lld KB",
 		      a->page_size >> 10);
-	__alloc_pstat(s, na, "Total pages:     %lld (%lld MB)",
+	alloc_pstat(s, na, "Total pages:     %lld (%lld MB)",
 		      a->length / a->page_size,
 		      a->length >> 20);
-	__alloc_pstat(s, na, "Available pages: %lld (%lld MB)",
+	alloc_pstat(s, na, "Available pages: %lld (%lld MB)",
 		      nvgpu_alloc_space(&a->source_allocator) / a->page_size,
 		      nvgpu_alloc_space(&a->source_allocator) >> 20);
-	__alloc_pstat(s, na, "");
+	alloc_pstat(s, na, "");
 
 	/*
 	 * Slab info.
 	 */
 	if (a->flags & GPU_ALLOC_4K_VIDMEM_PAGES) {
-		__alloc_pstat(s, na, "Slabs:");
-		__alloc_pstat(s, na, "  size      empty     partial   full");
-		__alloc_pstat(s, na, "  ----      -----     -------   ----");
+		alloc_pstat(s, na, "Slabs:");
+		alloc_pstat(s, na, "  size      empty     partial   full");
+		alloc_pstat(s, na, "  ----      -----     -------   ----");
 
 		for (i = 0; i < a->nr_slabs; i++) {
 			struct page_alloc_slab *slab = &a->slabs[i];
 
-			__alloc_pstat(s, na, "  %-9u %-9d %-9u %u",
+			alloc_pstat(s, na, "  %-9u %-9d %-9u %u",
 				      slab->slab_size,
 				      slab->nr_empty, slab->nr_partial,
 				      slab->nr_full);
 		}
-		__alloc_pstat(s, na, "");
+		alloc_pstat(s, na, "");
 	}
 
-	__alloc_pstat(s, na, "Source alloc: %s",
+	alloc_pstat(s, na, "Source alloc: %s",
 		      a->source_allocator.name);
 	nvgpu_alloc_print_stats(&a->source_allocator, s, lock);
 
