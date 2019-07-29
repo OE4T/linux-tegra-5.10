@@ -297,7 +297,7 @@ int nvgpu_finalize_poweron(struct gk20a *g)
 		}
 	}
 
-	if (g->ops.fb.mem_unlock != NULL) {
+	if (g->ops.fb.mem_unlock != NULL && !g->is_fusa_sku) {
 		err = g->ops.fb.mem_unlock(g);
 		if (err != 0) {
 			nvgpu_err(g, "failed to unlock memory");
