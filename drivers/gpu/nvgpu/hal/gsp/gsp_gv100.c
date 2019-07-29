@@ -33,6 +33,10 @@
 
 int gv100_gsp_reset(struct gk20a *g)
 {
+	if (g->is_fusa_sku) {
+		return 0;
+	}
+
 	gk20a_writel(g, pgsp_falcon_engine_r(),
 		pgsp_falcon_engine_reset_true_f());
 	nvgpu_udelay(10);

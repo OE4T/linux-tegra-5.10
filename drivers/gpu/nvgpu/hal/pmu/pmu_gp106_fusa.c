@@ -44,6 +44,10 @@ bool gp106_pmu_is_engine_in_reset(struct gk20a *g)
 
 void gp106_pmu_engine_reset(struct gk20a *g, bool do_reset)
 {
+	if (g->is_fusa_sku) {
+		return;
+	}
+
 	/*
 	* From GP10X onwards, we are using PPWR_FALCON_ENGINE for reset. And as
 	* it may come into same behavior, reading NV_PPWR_FALCON_ENGINE again

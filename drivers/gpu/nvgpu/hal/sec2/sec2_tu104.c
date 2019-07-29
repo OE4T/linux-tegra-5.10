@@ -40,6 +40,10 @@ int tu104_sec2_reset(struct gk20a *g)
 {
 	nvgpu_log_fn(g, " ");
 
+	if (g->is_fusa_sku) {
+		return 0;
+	}
+
 	gk20a_writel(g, psec_falcon_engine_r(),
 			psec_falcon_engine_reset_true_f());
 	nvgpu_udelay(10);
