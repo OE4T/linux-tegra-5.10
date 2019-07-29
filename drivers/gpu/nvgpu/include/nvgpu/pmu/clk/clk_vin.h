@@ -41,6 +41,8 @@ struct nvgpu_vin_device {
 	u8 id;
 	u8 volt_domain;
 	u8 volt_domain_vbios;
+	u8 por_override_mode;
+	u8 override_mode;
 	u32 flls_shared_mask;
 
 	vin_device_state_load  *state_load;
@@ -50,6 +52,7 @@ struct nvgpu_avfsvinobjs {
 	struct boardobjgrp_e32 super;
 	u8 calibration_rev_vbios;
 	u8 calibration_rev_fused;
+	u8 version;
 	bool vin_is_disable_allowed;
 };
 

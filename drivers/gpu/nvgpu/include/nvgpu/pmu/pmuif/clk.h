@@ -72,6 +72,28 @@
 #define NV_PMU_CLK_BOARDOBJGRP_CLASS_ID_CLK_FREQ_CONTROLLER                0x05U
 #define NV_PMU_CLK_BOARDOBJGRP_CLASS_ID_CLK_FREQ_DOMAIN                    0x07U
 
+#define NV_PMU_RPC_ID_CLK_CNTR_SAMPLE_DOMAIN                               0x01U
+#define NV_PMU_RPC_ID_CLK_CLK_DOMAIN_35_PROG_VOLT_TO_FREQ                  0x02U
+#define NV_PMU_RPC_ID_CLK_CLK_DOMAIN_35_PROG_FREQ_TO_VOLT                  0x03U
+#define NV_PMU_RPC_ID_CLK_CLK_DOMAIN_35_PROG_FREQ_QUANTIZE                 0x04U
+#define NV_PMU_RPC_ID_CLK_CLK_DOMAIN_35_PROG_CLIENT_FREQ_DELTA_ADJ         0x05U
+#define NV_PMU_RPC_ID_CLK_FREQ_EFFECTIVE_AVG                               0x06U
+#define NV_PMU_RPC_ID_CLK_LOAD                                             0x07U
+#define NV_PMU_RPC_ID_CLK_VF_CHANGE_INJECT                                 0x08U
+#define NV_PMU_RPC_ID_CLK_MCLK_SWITCH                                      0x09U
+#define NV_PMU_RPC_ID_CLK__COUNT                                           0x0AU
+
+/*!
+ * Macros for the @ref feature parameter in the @ref NV_PMU_CLK_LOAD structure
+ */
+#define NV_NV_PMU_CLK_LOAD_FEATURE_INVALID                         (0x00000000U)
+#define NV_NV_PMU_CLK_LOAD_FEATURE_FLL                             (0x00000001U)
+#define NV_NV_PMU_CLK_LOAD_FEATURE_VIN                             (0x00000002U)
+#define NV_NV_PMU_CLK_LOAD_FEATURE_FREQ_CONTROLLER                 (0x00000003U)
+#define NV_NV_PMU_CLK_LOAD_FEATURE_FREQ_EFFECTIVE_AVG              (0x00000004U)
+#define NV_NV_PMU_CLK_LOAD_FEATURE_CLK_DOMAIN                      (0x00000005U)
+#define NV_NV_PMU_CLK_LOAD_FEATURE_CLK_CONTROLLER                  (0x00000006U)
+
 /*
  * CLK_DOMAIN BOARDOBJGRP Header structure.  Describes global state about the
  * CLK_DOMAIN feature.
@@ -332,13 +354,17 @@ NV_PMU_BOARDOBJ_GRP_SET_MAKE_E32(clk, clk_fll_device);
 
 struct nv_pmu_clk_clk_vin_device_boardobjgrp_set_header {
 	struct nv_pmu_boardobjgrp_e32 super;
+	u8 version;
 	bool b_vin_is_disable_allowed;
+	u8 reserved[13];
 };
 
 struct nv_pmu_clk_clk_vin_device_boardobj_set {
 	struct nv_pmu_boardobj super;
 	u8 id;
-	u8 volt_domain;
+	u8 volt_rail_idx;
+	u8 por_override_mode;
+	u8 override_mode;
 	u32 flls_shared_mask;
 };
 
@@ -479,8 +505,6 @@ struct nv_pmu_clk_vf_change_inject_v1 {
 	struct nv_pmu_volt_volt_rail_list_v1 volt_list;
 };
 
-#define NV_NV_PMU_CLK_LOAD_FEATURE_CLK_DOMAIN                      (0x00000005U)
-#define NV_NV_PMU_CLK_LOAD_FEATURE_VIN                             (0x00000002U)
 #define NV_NV_PMU_CLK_LOAD_ACTION_MASK_VIN_HW_CAL_PROGRAM_YES      (0x00000001U)
 
 struct nv_pmu_clk_load_payload_freq_controllers {
@@ -502,8 +526,6 @@ struct nv_pmu_clk_freq_effective_avg {
 };
 
 /* CLK_FREQ_CONTROLLER */
-#define NV_PMU_CLK_LOAD_FEATURE_FREQ_CONTROLLER			 (0x00000003U)
-
 #define NV_PMU_CLK_LOAD_ACTION_MASK_FREQ_CONTROLLER_CALLBACK_NO	 (0x00000000U)
 #define NV_PMU_CLK_LOAD_ACTION_MASK_FREQ_CONTROLLER_CALLBACK_YES (0x00000002U)
 
@@ -544,7 +566,6 @@ union nv_pmu_clk_clk_freq_controller_boardobj_set_union {
 
 NV_PMU_BOARDOBJ_GRP_SET_MAKE_E32(clk, clk_freq_controller);
 
-#define NV_NV_PMU_CLK_LOAD_FEATURE_FREQ_EFFECTIVE_AVG		   (0x00000004U)
 #define NV_NV_PMU_CLK_LOAD_ACTION_MASK_FREQ_EFFECTIVE_AVG_CALLBACK_NO \
 								   (0x00000000U)
 #define NV_NV_PMU_CLK_LOAD_ACTION_MASK_FREQ_EFFECTIVE_AVG_CALLBACK_YES \
@@ -555,12 +576,11 @@ NV_PMU_BOARDOBJ_GRP_SET_MAKE_E32(clk, clk_freq_controller);
 #define NV_PMU_CLK_CMD_ID_RPC                                      (0x00000000U)
 #define NV_PMU_CLK_CMD_ID_BOARDOBJ_GRP_GET_STATUS                  (0x00000002U)
 
-#define NV_PMU_CLK_RPC_ID_LOAD                                     (0x00000001U)
-#define NV_PMU_CLK_RPC_ID_CLK_VF_CHANGE_INJECT                     (0x00000000U)
-#define NV_PMU_CLK_RPC_ID_CLK_FREQ_EFF_AVG                         (0x00000002U)
-
-#define NV_PMU_RPC_ID_CLK_CLK_DOMAIN_35_PROG_VOLT_TO_FREQ          (0x00000002U)
-#define NV_PMU_RPC_ID_CLK_CLK_DOMAIN_35_PROG_FREQ_TO_VOLT          (0x00000003U)
+struct nv_pmu_rpc_struct_clk_load {
+	struct nv_pmu_rpc_header hdr;
+	struct nv_pmu_clk_load clk_load;
+	u32 scratch[1];
+};
 
 struct nv_pmu_clk_cmd_rpc {
 	u8 cmd_type;

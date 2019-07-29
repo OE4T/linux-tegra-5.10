@@ -329,8 +329,7 @@ static int devinit_get_fll_device_table(struct gk20a *g,
 				pvin_dev->flls_shared_mask |= BIT32(fll_id);
 			}
 		} else {
-			/* Return if Logic ADC device index is invalid*/
-			nvgpu_err(g, "Invalid Logic ADC specified for Nafll ID");
+			nvgpu_err(g, "Invalid Logic ID");
 			return -EINVAL;
 		}
 

@@ -31,32 +31,9 @@
 #include <nvgpu/pmu/pmuif/ctrlvolt.h>
 #include <nvgpu/pmu/clk/clk.h>
 #include <nvgpu/pmu/cmd.h>
+#include <nvgpu/pmu/volt.h>
 
 #include "clk_vin.h"
-
-struct clk_vin_rpc_pmucmdhandler_params {
-	struct nv_pmu_clk_rpc *prpccall;
-	u32 success;
-};
-
-static void clk_vin_rpc_pmucmdhandler(struct gk20a *g, struct pmu_msg *msg,
-		void *param, u32 status)
-{
-	struct clk_vin_rpc_pmucmdhandler_params *phandlerparams =
-		(struct clk_vin_rpc_pmucmdhandler_params *)param;
-
-	nvgpu_log_info(g, " ");
-
-	if (msg->msg.clk.msg_type != NV_PMU_CLK_MSG_ID_RPC) {
-		nvgpu_err(g, "unsupported msg for CLK LOAD RPC %x",
-				msg->msg.clk.msg_type);
-		return;
-	}
-
-	if (phandlerparams->prpccall->b_supported) {
-		phandlerparams->success = 1;
-	}
-}
 
 static int devinit_get_vin_device_table(struct gk20a *g,
 		struct nvgpu_avfsvinobjs *pvinobjs);
@@ -129,6 +106,7 @@ static int _clk_vin_devgrp_pmudatainit_super(struct gk20a *g,
 	status = boardobjgrp_pmudatainit_e32(g, pboardobjgrp, pboardobjgrppmu);
 
 	pset->b_vin_is_disable_allowed = pvin_obbj->vin_is_disable_allowed;
+	pset->version = pvin_obbj->version;
 
 	nvgpu_log_info(g, " Done");
 	return status;
@@ -290,7 +268,10 @@ static int devinit_get_vin_device_table(struct gk20a *g,
 
 	nvgpu_memcpy((u8 *)&vin_desc_table_header, vin_table_ptr,
 			sizeof(struct vin_descriptor_header_10));
-
+	/* Right now we support 0x10 version only */
+	pvinobjs->version = (vin_desc_table_header.version == 0x10U) ?
+			NV2080_CTRL_CLK_VIN_DEVICES_V10 :
+			NV2080_CTRL_CLK_VIN_DEVICES_DISABLED;
 	pvinobjs->calibration_rev_vbios =
 			BIOS_GET_FIELD(u8, vin_desc_table_header.flags0,
 				NV_VIN_DESC_FLAGS0_VIN_CAL_REVISION);
@@ -328,6 +309,10 @@ static int devinit_get_vin_device_table(struct gk20a *g,
 		vin_device_data.vin_device.volt_domain_vbios =
 			(u8)vin_desc_table_entry.volt_domain_vbios;
 		vin_device_data.vin_device.flls_shared_mask = 0;
+		vin_device_data.vin_device.por_override_mode =
+				CTRL_CLK_VIN_SW_OVERRIDE_VIN_USE_HW_REQ;
+		vin_device_data.vin_device.override_mode =
+				CTRL_CLK_VIN_SW_OVERRIDE_VIN_USE_HW_REQ;
 		vin_device_data.vin_device_v20.data.cal_type = (u8) cal_type;
 		vin_device_data.vin_device_v20.data.vin_cal.cal_v20.offset =
 				offset;
@@ -404,6 +389,8 @@ static int vin_device_construct_super(struct gk20a *g,
 	pvin_device->volt_domain_vbios = ptmpvin_device->volt_domain_vbios;
 	pvin_device->flls_shared_mask = ptmpvin_device->flls_shared_mask;
 	pvin_device->volt_domain = CTRL_VOLT_DOMAIN_LOGIC;
+	pvin_device->por_override_mode = ptmpvin_device->por_override_mode;
+	pvin_device->override_mode = ptmpvin_device->override_mode;
 
 	return status;
 }
@@ -479,8 +466,12 @@ static int vin_device_init_pmudata_super(struct gk20a *g,
 		ppmudata;
 
 	perf_pmu_data->id = pvin_dev->id;
-	perf_pmu_data->volt_domain = pvin_dev->volt_domain;
+	perf_pmu_data->volt_rail_idx =
+			nvgpu_volt_rail_volt_domain_convert_to_idx(
+					g, pvin_dev->volt_domain);
 	perf_pmu_data->flls_shared_mask = pvin_dev->flls_shared_mask;
+	perf_pmu_data->por_override_mode = pvin_dev->por_override_mode;
+	perf_pmu_data->override_mode = pvin_dev->override_mode;
 
 	nvgpu_log_info(g, " Done");
 
@@ -489,64 +480,25 @@ static int vin_device_init_pmudata_super(struct gk20a *g,
 
 int nvgpu_clk_pmu_vin_load(struct gk20a *g)
 {
-	struct pmu_cmd cmd;
-	struct pmu_payload payload;
 	int status;
-	struct nv_pmu_clk_rpc rpccall;
-	struct clk_vin_rpc_pmucmdhandler_params handler;
-	struct nv_pmu_clk_load *clkload;
+	struct nvgpu_pmu *pmu = g->pmu;
+	struct nv_pmu_rpc_struct_clk_load clk_load_rpc;
 
-	(void) memset(&payload, 0, sizeof(struct pmu_payload));
-	(void) memset(&rpccall, 0, sizeof(struct nv_pmu_clk_rpc));
-	(void) memset(&handler, 0,
-			sizeof(struct clk_vin_rpc_pmucmdhandler_params));
+	(void) memset(&clk_load_rpc, 0,
+			sizeof(struct nv_pmu_rpc_struct_clk_load));
 
-	rpccall.function = NV_PMU_CLK_RPC_ID_LOAD;
-	clkload = &rpccall.params.clk_load;
-	clkload->feature = NV_NV_PMU_CLK_LOAD_FEATURE_VIN;
-	clkload->action_mask =
+	clk_load_rpc.clk_load.feature = NV_NV_PMU_CLK_LOAD_FEATURE_VIN;
+	clk_load_rpc.clk_load.action_mask =
 		NV_NV_PMU_CLK_LOAD_ACTION_MASK_VIN_HW_CAL_PROGRAM_YES << 4;
 
-	cmd.hdr.unit_id = PMU_UNIT_CLK;
-	cmd.hdr.size =  (u32)sizeof(struct nv_pmu_clk_cmd) +
-			(u32)sizeof(struct pmu_hdr);
-
-	cmd.cmd.clk.cmd_type = NV_PMU_CLK_CMD_ID_RPC;
-	cmd.cmd.clk.generic.b_perf_daemon_cmd = false;
-
-	payload.in.buf = (u8 *)&rpccall;
-	payload.in.size = (u32)sizeof(struct nv_pmu_clk_rpc);
-	payload.in.fb_size = PMU_CMD_SUBMIT_PAYLOAD_PARAMS_FB_SIZE_UNUSED;
-	nvgpu_assert(NV_PMU_CLK_CMD_RPC_ALLOC_OFFSET < U64(U32_MAX));
-	payload.in.offset = (u32)NV_PMU_CLK_CMD_RPC_ALLOC_OFFSET;
-
-	payload.out.buf = (u8 *)&rpccall;
-	payload.out.size = (u32)sizeof(struct nv_pmu_clk_rpc);
-	payload.out.fb_size = PMU_CMD_SUBMIT_PAYLOAD_PARAMS_FB_SIZE_UNUSED;
-	nvgpu_assert(NV_PMU_CLK_MSG_RPC_ALLOC_OFFSET < U64(U32_MAX));
-	payload.out.offset = (u32)NV_PMU_CLK_MSG_RPC_ALLOC_OFFSET;
-
-	handler.prpccall = &rpccall;
-	handler.success = 0;
-	status = nvgpu_pmu_cmd_post(g, &cmd, &payload,
-			PMU_COMMAND_QUEUE_LPQ,
-			clk_vin_rpc_pmucmdhandler, (void *)&handler);
-
+	/* Continue with PMU setup, assume FB map is done  */
+	PMU_RPC_EXECUTE_CPB(status, pmu, CLK, LOAD, &clk_load_rpc, 0);
 	if (status != 0) {
-		nvgpu_err(g, "unable to post clk RPC cmd %x",
-			cmd.cmd.clk.cmd_type);
-		goto done;
+		nvgpu_err(g,
+			"Failed to execute Clock Load RPC status=0x%x",
+			status);
 	}
 
-	pmu_wait_message_cond(g->pmu, nvgpu_get_poll_timeout(g),
-			&handler.success, 1);
-
-	if (handler.success == 0U) {
-		nvgpu_err(g, "rpc call to load vin cal failed");
-		status = -EINVAL;
-	}
-
-done:
 	return status;
 }
 

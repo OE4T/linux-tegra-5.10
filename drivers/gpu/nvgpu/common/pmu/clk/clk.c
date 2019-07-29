@@ -135,7 +135,7 @@ static int clk_pmu_vf_inject(struct gk20a *g,
 		return -EINVAL;
 	}
 
-	rpccall.function = NV_PMU_CLK_RPC_ID_CLK_VF_CHANGE_INJECT;
+	rpccall.function = NV_PMU_RPC_ID_CLK_VF_CHANGE_INJECT;
 
 	nvgpu_clk_vf_change_inject_data_fill(g, &rpccall, setfllclk);
 
