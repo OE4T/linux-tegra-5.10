@@ -923,7 +923,7 @@ static const struct gpu_ops gv11b_ops = {
 			.get_sync_ro_map = gv11b_syncpt_get_sync_ro_map,
 		},
 #endif /* CONFIG_TEGRA_GK20A_NVHOST */
-#ifdef CONFIG_NVGPU_KERNEL_MODE_SUBMIT
+#ifdef CONFIG_NVGPU_SW_SEMAPHORE
 		.sema = {
 			.get_wait_cmd_size = gv11b_sema_get_wait_cmd_size,
 			.get_incr_cmd_size = gv11b_sema_get_incr_cmd_size,

@@ -127,10 +127,6 @@ srcs += common/utils/enabled.c \
 	common/ptimer/ptimer.c \
 	common/sync/channel_sync.c \
 	common/sync/channel_sync_syncpt.c \
-	common/semaphore/semaphore_sea.c \
-	common/semaphore/semaphore_pool.c \
-	common/semaphore/semaphore_hw.c \
-	common/semaphore/semaphore.c \
 	common/power_features/power_features.c \
 	common/power_features/cg/cg.c \
 	common/fifo/preempt.c \
@@ -377,7 +373,14 @@ srcs += common/ce/ce.c
 endif
 
 ifeq ($(CONFIG_NVGPU_KERNEL_MODE_SUBMIT),1)
-srcs += common/fifo/submit.c \
+srcs += common/fifo/submit.c
+endif
+
+ifeq ($(CONFIG_NVGPU_SW_SEMAPHORE),1)
+srcs += common/semaphore/semaphore_sea.c \
+	common/semaphore/semaphore_pool.c \
+	common/semaphore/semaphore_hw.c \
+	common/semaphore/semaphore.c \
 	common/sync/channel_sync_semaphore.c \
 	hal/sync/sema_cmdbuf_gk20a.c \
 	hal/sync/sema_cmdbuf_gv11b.c

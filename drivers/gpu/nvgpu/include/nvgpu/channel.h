@@ -388,9 +388,10 @@ struct nvgpu_channel {
 	struct nvgpu_spinlock ref_actions_lock;
 #endif
 
+#ifdef CONFIG_NVGPU_SW_SEMAPHORE
 	/** Semaphore owned by this channel. */
 	struct nvgpu_hw_semaphore *hw_sema;
-
+#endif
 	/**
 	 * Channel instance has been bound to hardware (i.e. instance block
 	 * has been set up, and bound in CCSR).

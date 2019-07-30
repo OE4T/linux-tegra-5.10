@@ -31,7 +31,9 @@
 struct gk20a;
 struct nvgpu_channel;
 struct platform_device;
+#ifdef CONFIG_NVGPU_SW_SEMAPHORE
 struct nvgpu_semaphore;
+#endif
 struct nvgpu_os_fence;
 
 struct nvgpu_fence_type {
@@ -44,9 +46,11 @@ struct nvgpu_fence_type {
 
 	struct nvgpu_os_fence os_fence;
 
+#ifdef CONFIG_NVGPU_SW_SEMAPHORE
 	/* Valid for fences created from semaphores: */
 	struct nvgpu_semaphore *semaphore;
 	struct nvgpu_cond *semaphore_wq;
+#endif
 
 	/* Valid for fences created from syncpoints: */
 	struct nvgpu_nvhost_dev *nvhost_dev;
@@ -63,12 +67,14 @@ struct nvgpu_fence_ops {
 	void *(*free)(struct nvgpu_ref *ref);
 };
 
+#ifdef CONFIG_NVGPU_SW_SEMAPHORE
 /* Fences can be created from semaphores or syncpoint (id, value) pairs */
 int nvgpu_fence_from_semaphore(
 		struct nvgpu_fence_type *fence_out,
 		struct nvgpu_semaphore *semaphore,
 		struct nvgpu_cond *semaphore_wq,
 		struct nvgpu_os_fence os_fence);
+#endif
 
 int nvgpu_fence_from_syncpt(
 		struct nvgpu_fence_type *fence_out,

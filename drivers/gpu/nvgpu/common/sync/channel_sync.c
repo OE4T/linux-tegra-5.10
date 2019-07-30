@@ -45,7 +45,7 @@ struct nvgpu_channel_sync *nvgpu_channel_sync_create(struct nvgpu_channel *c,
 	if (nvgpu_has_syncpoints(c->g)) {
 		return nvgpu_channel_sync_syncpt_create(c, user_managed);
 	} else {
-#ifdef CONFIG_NVGPU_KERNEL_MODE_SUBMIT
+#ifdef CONFIG_NVGPU_SW_SEMAPHORE
 		return nvgpu_channel_sync_semaphore_create(c, user_managed);
 #else
 		return NULL;

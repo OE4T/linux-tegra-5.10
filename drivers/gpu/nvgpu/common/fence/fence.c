@@ -45,10 +45,11 @@ static void nvgpu_fence_free(struct nvgpu_ref *ref)
 	if (nvgpu_os_fence_is_initialized(&f->os_fence)) {
 		f->os_fence.ops->drop_ref(&f->os_fence);
 	}
-
+#ifdef CONFIG_NVGPU_SW_SEMAPHPORE
 	if (f->semaphore != NULL) {
 		nvgpu_semaphore_put(f->semaphore);
 	}
+#endif
 
 	if (f->allocator != NULL) {
 		if (nvgpu_alloc_initialized(f->allocator)) {
@@ -195,10 +196,13 @@ void nvgpu_fence_init(struct nvgpu_fence_type *f,
 	}
 	f->ops = ops;
 	f->syncpt_id = NVGPU_INVALID_SYNCPT_ID;
+#ifdef CONFIG_NVGPU_SW_SEMAPHPORE
 	f->semaphore = NULL;
+#endif
 	f->os_fence = os_fence;
 }
 
+#ifdef CONFIG_NVGPU_SW_SEMAPHORE
 /* Fences that are backed by GPU semaphores: */
 
 static int nvgpu_semaphore_fence_wait(struct nvgpu_fence_type *f, u32 timeout)
@@ -247,6 +251,8 @@ int nvgpu_fence_from_semaphore(
 
 	return 0;
 }
+
+#endif
 
 #ifdef CONFIG_TEGRA_GK20A_NVHOST
 /* Fences that are backed by host1x syncpoints: */

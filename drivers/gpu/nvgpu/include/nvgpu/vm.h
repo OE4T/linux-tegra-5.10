@@ -199,11 +199,13 @@ struct vm_gk20a {
 	   unmapping. Must hold vm->update_gmmu_lock. */
 	struct vm_gk20a_mapping_batch *kref_put_batch;
 
+#ifdef CONFIG_NVGPU_SW_SEMAPHORE
+
 	/*
 	 * Each address space needs to have a semaphore pool.
 	 */
 	struct nvgpu_semaphore_pool *sema_pool;
-
+#endif
 	/*
 	 * Create sync point read only map for sync point range.
 	 * Channels sharing same vm will also share same sync point ro map

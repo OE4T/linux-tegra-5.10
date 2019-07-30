@@ -166,7 +166,9 @@ static void nvgpu_remove_mm_support(struct mm_gk20a *mm)
 		nvgpu_vm_put(mm->cde.vm);
 	}
 
+#ifdef CONFIG_NVGPU_SW_SEMAPHORE
 	nvgpu_semaphore_sea_destroy(g);
+#endif
 #ifdef CONFIG_NVGPU_DGPU
 	nvgpu_vidmem_destroy(g);
 #endif

@@ -101,7 +101,6 @@ nvgpu_gmmu_init_page_table
 nvgpu_gmmu_map
 nvgpu_gmmu_map_fixed
 nvgpu_gmmu_unmap
-nvgpu_hw_semaphore_init
 nvgpu_init_enabled_flags
 nvgpu_init_hal
 nvgpu_init_mm_support

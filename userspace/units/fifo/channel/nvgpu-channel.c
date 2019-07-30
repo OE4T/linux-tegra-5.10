@@ -322,8 +322,7 @@ done:
 #define F_CHANNEL_CLOSE_AS_BOUND		BIT(7)
 #define F_CHANNEL_CLOSE_FREE_SUBCTX		BIT(8)
 #define F_CHANNEL_CLOSE_USER_SYNC		BIT(9)
-#define F_CHANNEL_CLOSE_HW_SEMA			BIT(10)
-#define F_CHANNEL_CLOSE_LAST			BIT(11)
+#define F_CHANNEL_CLOSE_LAST			BIT(10)
 
 /* nvgpu_tsg_unbind_channel always return 0 */
 
@@ -338,7 +337,6 @@ static const char *f_channel_close[] = {
 	"as_bound",
 	"free_subctx",
 	"user_sync",
-	"hw_sema",
 };
 
 static void stub_os_channel_close(struct nvgpu_channel *ch, bool force)
@@ -365,11 +363,7 @@ static bool channel_close_pruned(u32 branches, u32 final)
 	if ((branches & F_CHANNEL_CLOSE_AS_BOUND) == 0) {
 		branches &= ~F_CHANNEL_CLOSE_FREE_SUBCTX;
 		branches &= ~F_CHANNEL_CLOSE_USER_SYNC;
-		branches &= ~F_CHANNEL_CLOSE_HW_SEMA;
 	}
-
-	/* TODO: add semaphore pool init to support this */
-	branches &= ~F_CHANNEL_CLOSE_HW_SEMA;
 
 	if (branches < branches_init) {
 		return true;
@@ -418,7 +412,6 @@ static int test_channel_close(struct unit_module *m,
 		ch = gk20a_open_new_channel(g, runlist_id,
 				privileged, getpid(), getpid());
 		assert(ch != NULL);
-		assert(ch->hw_sema == NULL);
 
 		ch->usermode_submit_enabled = true;
 
@@ -457,11 +450,6 @@ static int test_channel_close(struct unit_module *m,
 
 		if (branches & F_CHANNEL_CLOSE_USER_SYNC) {
 			ch->user_sync = nvgpu_channel_sync_create(ch, true);
-			assert(err == 0);
-		}
-
-		if (branches & F_CHANNEL_CLOSE_HW_SEMA) {
-			err = nvgpu_hw_semaphore_init(ch);
 			assert(err == 0);
 		}
 
@@ -527,7 +515,6 @@ static int test_channel_close(struct unit_module *m,
 		assert(nvgpu_ref_put_return(&vm.ref, NULL));
 
 		assert(ch->user_sync == NULL);
-		assert(ch->hw_sema == NULL);
 
 unbind:
 		/*

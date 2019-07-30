@@ -314,6 +314,7 @@ bool nvgpu_big_pages_possible(struct vm_gk20a *vm, u64 base, u64 size)
 	return true;
 }
 
+#ifdef CONFIG_NVGPU_SW_SEMAPHORE
 /*
  * Initialize a semaphore pool. Just return successfully if we do not need
  * semaphores (i.e when sync-pts are active).
@@ -375,6 +376,7 @@ static int nvgpu_init_sema_pool(struct vm_gk20a *vm)
 
 	return 0;
 }
+#endif
 
 /*
  * Initialize a preallocated vm
@@ -619,6 +621,7 @@ int nvgpu_vm_do_init(struct mm_gk20a *mm,
 	nvgpu_ref_init(&vm->ref);
 	nvgpu_init_list_node(&vm->vm_area_list);
 
+#ifdef CONFIG_NVGPU_SW_SEMAPHORE
 	/*
 	 * This is only necessary for channel address spaces. The best way to
 	 * distinguish channel address spaces from other address spaces is by
@@ -630,12 +633,15 @@ int nvgpu_vm_do_init(struct mm_gk20a *mm,
 			goto clean_up_gmmu_lock;
 		}
 	}
+#endif
 
 	return 0;
 
+#ifdef CONFIG_NVGPU_SW_SEMAPHORE
 clean_up_gmmu_lock:
 	nvgpu_mutex_destroy(&vm->update_gmmu_lock);
 	nvgpu_mutex_destroy(&vm->syncpt_ro_map_lock);
+#endif
 clean_up_allocators:
 	if (nvgpu_alloc_initialized(&vm->kernel)) {
 		nvgpu_alloc_destroy(&vm->kernel);
@@ -732,6 +738,7 @@ static void nvgpu_vm_remove(struct vm_gk20a *vm)
 	struct gk20a *g = vm->mm->g;
 	bool done;
 
+#ifdef CONFIG_NVGPU_SW_SEMAPHORE
 	/*
 	 * Do this outside of the update_gmmu_lock since unmapping the semaphore
 	 * pool involves unmapping a GMMU mapping which means aquiring the
@@ -743,6 +750,7 @@ static void nvgpu_vm_remove(struct vm_gk20a *vm)
 			nvgpu_semaphore_pool_put(vm->sema_pool);
 		}
 	}
+#endif
 
 	if (nvgpu_mem_is_valid(&g->syncpt_mem) &&
 			vm->syncpt_ro_map_gpu_va != 0ULL) {

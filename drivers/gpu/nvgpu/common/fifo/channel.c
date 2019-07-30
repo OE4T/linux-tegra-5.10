@@ -1718,6 +1718,7 @@ static void gk20a_free_channel(struct nvgpu_channel *ch, bool force)
 	}
 	nvgpu_mutex_release(&ch->sync_lock);
 
+#ifdef CONFIG_NVGPU_SW_SEMAPHORE
 	/*
 	 * free the channel used semaphore index.
 	 * we need to do this before releasing the address space,
@@ -1726,6 +1727,7 @@ static void gk20a_free_channel(struct nvgpu_channel *ch, bool force)
 	if (ch->hw_sema != NULL) {
 		nvgpu_hw_semaphore_free(ch);
 	}
+#endif
 
 	/*
 	 * When releasing the channel we unbind the VM - so release the ref.
@@ -2739,7 +2741,9 @@ void nvgpu_channel_debug_dump_all(struct gk20a *g,
 	for (chid = 0U; chid < f->num_channels; chid++) {
 		struct nvgpu_channel *ch = &f->channel[chid];
 		struct nvgpu_channel_dump_info *info = infos[chid];
+#ifdef CONFIG_NVGPU_SW_SEMAPHORE
 		struct nvgpu_hw_semaphore *hw_sema = ch->hw_sema;
+#endif
 
 		/* if this info exists, the above loop took a channel ref */
 		if (info == NULL) {
@@ -2752,12 +2756,14 @@ void nvgpu_channel_debug_dump_all(struct gk20a *g,
 		info->refs = nvgpu_atomic_read(&ch->ref_count);
 		info->deterministic = ch->deterministic;
 
+#ifdef CONFIG_NVGPU_SW_SEMAPHORE
 		if (hw_sema != NULL) {
 			info->sema.value = nvgpu_hw_semaphore_read(hw_sema);
 			info->sema.next =
 				(u32)nvgpu_hw_semaphore_read_next(hw_sema);
 			info->sema.addr = nvgpu_hw_semaphore_addr(hw_sema);
 		}
+#endif
 
 		g->ops.channel.read_state(g, ch, &info->hw_state);
 		g->ops.ramfc.capture_ram_dump(g, ch, info);
