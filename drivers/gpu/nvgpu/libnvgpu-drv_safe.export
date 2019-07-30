@@ -257,6 +257,12 @@ nvgpu_spinlock_acquire
 nvgpu_spinlock_init
 nvgpu_spinlock_release
 nvgpu_sw_quiesce
+nvgpu_thread_create
+nvgpu_thread_create_priority
+nvgpu_thread_is_running
+nvgpu_thread_should_stop
+nvgpu_thread_stop
+nvgpu_thread_stop_graceful
 nvgpu_userd_init_slabs
 nvgpu_usermode_writel
 nvgpu_vfree_impl
