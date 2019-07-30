@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2021, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2015-2022, NVIDIA CORPORATION. All rights reserved.
  *
  * References are taken from "Bosch C_CAN controller" at
  * "drivers/net/can/c_can/c_can.c"
@@ -63,7 +63,7 @@ static u64 mttcan_extend_timestamp(u16 captured, u64 tsc, u32 shift)
 static int mttcan_hw_init(struct mttcan_priv *priv)
 {
 	int err = 0;
-	u32 ie = 0, ttie = 0, gfc_reg = 0;
+	u32 ie = 0, ttie = 0;
 	struct ttcan_controller *ttcan = priv->ttcan;
 
 	ttcan_set_ok(ttcan);
@@ -85,21 +85,6 @@ static int mttcan_hw_init(struct mttcan_priv *priv)
 	ttcan_mesg_ram_init(ttcan);
 
 	err = ttcan_set_config_change_enable(ttcan);
-	if (err)
-		return err;
-
-	/* Accept unmatched in Rx FIFO0 and reject all remote frame */
-	gfc_reg |= (GFC_ANFS_RXFIFO_0 << MTT_GFC_ANFS_SHIFT) &
-		   MTT_GFC_ANFS_MASK;
-	gfc_reg |= (GFC_ANFE_RXFIFO_0 << MTT_GFC_ANFE_SHIFT) &
-		   MTT_GFC_ANFE_MASK;
-	gfc_reg |= (GFC_RRFS_REJECT << MTT_GFC_RRFS_SHIFT) &
-		   MTT_GFC_RRFS_MASK;
-	gfc_reg |= (GFC_RRFE_REJECT << MTT_GFC_RRFE_SHIFT) &
-		   MTT_GFC_RRFE_MASK;
-
-	priv->gfc_reg = gfc_reg;
-	err = ttcan_set_gfc(ttcan, gfc_reg);
 	if (err)
 		return err;
 
@@ -177,10 +162,6 @@ static int mttcan_hw_reinit(const struct mttcan_priv *priv)
 	ttcan_set_ok(ttcan);
 
 	err = ttcan_set_config_change_enable(ttcan);
-	if (err)
-		return err;
-
-	err = ttcan_set_gfc(ttcan, priv->gfc_reg);
 	if (err)
 		return err;
 
