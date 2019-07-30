@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -25,6 +25,7 @@
 #include <nvgpu/types.h>
 #include <nvgpu/io.h>
 #include <nvgpu/enabled.h>
+#include <nvgpu/safe_ops.h>
 
 #include "gating_reglist.h"
 #include "gv11b_gating_reglist.h"
@@ -286,7 +287,8 @@ void gv11b_slcg_bus_load_gating_prod(struct gk20a *g,
 	bool prod)
 {
 	u32 i;
-	u32 size = (u32)(sizeof(gv11b_slcg_bus) / GATING_DESC_SIZE);
+	u32 size = nvgpu_safe_cast_u64_to_u32(sizeof(gv11b_slcg_bus)
+							/ GATING_DESC_SIZE);
 
 	if (nvgpu_is_enabled(g, NVGPU_GPU_CAN_SLCG)) {
 		for (i = 0; i < size; i++) {
@@ -302,7 +304,8 @@ void gv11b_slcg_ce2_load_gating_prod(struct gk20a *g,
 	bool prod)
 {
 	u32 i;
-	u32 size = (u32)(sizeof(gv11b_slcg_ce2) / GATING_DESC_SIZE);
+	u32 size = nvgpu_safe_cast_u64_to_u32(sizeof(gv11b_slcg_ce2)
+							/ GATING_DESC_SIZE);
 
 	if (nvgpu_is_enabled(g, NVGPU_GPU_CAN_SLCG)) {
 		for (i = 0; i < size; i++) {
@@ -318,7 +321,8 @@ void gv11b_slcg_chiplet_load_gating_prod(struct gk20a *g,
 	bool prod)
 {
 	u32 i;
-	u32 size = (u32)(sizeof(gv11b_slcg_chiplet) / GATING_DESC_SIZE);
+	u32 size = nvgpu_safe_cast_u64_to_u32(sizeof(gv11b_slcg_chiplet)
+							/ GATING_DESC_SIZE);
 
 	if (nvgpu_is_enabled(g, NVGPU_GPU_CAN_SLCG)) {
 		for (i = 0; i < size; i++) {
@@ -341,7 +345,8 @@ void gv11b_slcg_fb_load_gating_prod(struct gk20a *g,
 	bool prod)
 {
 	u32 i;
-	u32 size = (u32)(sizeof(gv11b_slcg_fb) / GATING_DESC_SIZE);
+	u32 size = nvgpu_safe_cast_u64_to_u32(sizeof(gv11b_slcg_fb)
+							/ GATING_DESC_SIZE);
 
 	if (nvgpu_is_enabled(g, NVGPU_GPU_CAN_SLCG)) {
 		for (i = 0; i < size; i++) {
@@ -357,7 +362,8 @@ void gv11b_slcg_fifo_load_gating_prod(struct gk20a *g,
 	bool prod)
 {
 	u32 i;
-	u32 size = (u32)(sizeof(gv11b_slcg_fifo) / GATING_DESC_SIZE);
+	u32 size = nvgpu_safe_cast_u64_to_u32(sizeof(gv11b_slcg_fifo)
+							/ GATING_DESC_SIZE);
 
 	if (nvgpu_is_enabled(g, NVGPU_GPU_CAN_SLCG)) {
 		for (i = 0; i < size; i++) {
@@ -373,7 +379,8 @@ void gr_gv11b_slcg_gr_load_gating_prod(struct gk20a *g,
 	bool prod)
 {
 	u32 i;
-	u32 size = (u32)(sizeof(gv11b_slcg_gr) / GATING_DESC_SIZE);
+	u32 size = nvgpu_safe_cast_u64_to_u32(sizeof(gv11b_slcg_gr)
+							/ GATING_DESC_SIZE);
 
 	if (nvgpu_is_enabled(g, NVGPU_GPU_CAN_SLCG)) {
 		for (i = 0; i < size; i++) {
@@ -389,7 +396,8 @@ void ltc_gv11b_slcg_ltc_load_gating_prod(struct gk20a *g,
 	bool prod)
 {
 	u32 i;
-	u32 size = (u32)(sizeof(gv11b_slcg_ltc) / GATING_DESC_SIZE);
+	u32 size = nvgpu_safe_cast_u64_to_u32(sizeof(gv11b_slcg_ltc)
+							/ GATING_DESC_SIZE);
 
 	if (nvgpu_is_enabled(g, NVGPU_GPU_CAN_SLCG)) {
 	for (i = 0; i < size; i++) {
@@ -405,7 +413,8 @@ void gv11b_slcg_perf_load_gating_prod(struct gk20a *g,
 	bool prod)
 {
 	u32 i;
-	u32 size = (u32)(sizeof(gv11b_slcg_perf) / GATING_DESC_SIZE);
+	u32 size = nvgpu_safe_cast_u64_to_u32(sizeof(gv11b_slcg_perf)
+							/ GATING_DESC_SIZE);
 
 	if (nvgpu_is_enabled(g, NVGPU_GPU_CAN_SLCG)) {
 		for (i = 0; i < size; i++) {
@@ -421,7 +430,8 @@ void gv11b_slcg_priring_load_gating_prod(struct gk20a *g,
 	bool prod)
 {
 	u32 i;
-	u32 size = (u32)(sizeof(gv11b_slcg_priring) / GATING_DESC_SIZE);
+	u32 size = nvgpu_safe_cast_u64_to_u32(sizeof(gv11b_slcg_priring)
+							/ GATING_DESC_SIZE);
 
 	if (nvgpu_is_enabled(g, NVGPU_GPU_CAN_SLCG)) {
 		for (i = 0; i < size; i++) {
@@ -437,7 +447,8 @@ void gv11b_slcg_pwr_csb_load_gating_prod(struct gk20a *g,
 	bool prod)
 {
 	u32 i;
-	u32 size = (u32)(sizeof(gv11b_slcg_pwr_csb) / GATING_DESC_SIZE);
+	u32 size = nvgpu_safe_cast_u64_to_u32(sizeof(gv11b_slcg_pwr_csb)
+							/ GATING_DESC_SIZE);
 
 	if (nvgpu_is_enabled(g, NVGPU_GPU_CAN_SLCG)) {
 		for (i = 0; i < size; i++) {
@@ -453,7 +464,8 @@ void gv11b_slcg_pmu_load_gating_prod(struct gk20a *g,
 	bool prod)
 {
 	u32 i;
-	u32 size = (u32)(sizeof(gv11b_slcg_pmu) / GATING_DESC_SIZE);
+	u32 size = nvgpu_safe_cast_u64_to_u32(sizeof(gv11b_slcg_pmu)
+							/ GATING_DESC_SIZE);
 
 	if (nvgpu_is_enabled(g, NVGPU_GPU_CAN_SLCG)) {
 		for (i = 0; i < size; i++) {
@@ -469,7 +481,8 @@ void gv11b_slcg_therm_load_gating_prod(struct gk20a *g,
 	bool prod)
 {
 	u32 i;
-	u32 size = (u32)(sizeof(gv11b_slcg_therm) / GATING_DESC_SIZE);
+	u32 size = nvgpu_safe_cast_u64_to_u32(sizeof(gv11b_slcg_therm)
+							/ GATING_DESC_SIZE);
 
 	if (nvgpu_is_enabled(g, NVGPU_GPU_CAN_SLCG)) {
 		for (i = 0; i < size; i++) {
@@ -485,7 +498,8 @@ void gv11b_slcg_xbar_load_gating_prod(struct gk20a *g,
 	bool prod)
 {
 	u32 i;
-	u32 size = (u32)(sizeof(gv11b_slcg_xbar) / GATING_DESC_SIZE);
+	u32 size = nvgpu_safe_cast_u64_to_u32(sizeof(gv11b_slcg_xbar)
+							/ GATING_DESC_SIZE);
 
 	if (nvgpu_is_enabled(g, NVGPU_GPU_CAN_SLCG)) {
 		for (i = 0; i < size; i++) {
@@ -501,7 +515,8 @@ void gv11b_slcg_hshub_load_gating_prod(struct gk20a *g,
 	bool prod)
 {
 	u32 i;
-	u32 size = (u32)(sizeof(gv11b_slcg_hshub) / GATING_DESC_SIZE);
+	u32 size = nvgpu_safe_cast_u64_to_u32(sizeof(gv11b_slcg_hshub)
+							/ GATING_DESC_SIZE);
 
 	if (nvgpu_is_enabled(g, NVGPU_GPU_CAN_SLCG)) {
 		for (i = 0; i < size; i++) {
@@ -517,7 +532,8 @@ void gv11b_blcg_bus_load_gating_prod(struct gk20a *g,
 	bool prod)
 {
 	u32 i;
-	u32 size = (u32)(sizeof(gv11b_blcg_bus) / GATING_DESC_SIZE);
+	u32 size = nvgpu_safe_cast_u64_to_u32(sizeof(gv11b_blcg_bus)
+							/ GATING_DESC_SIZE);
 
 	if (nvgpu_is_enabled(g, NVGPU_GPU_CAN_BLCG)) {
 		for (i = 0; i < size; i++) {
@@ -533,7 +549,8 @@ void gv11b_blcg_ce_load_gating_prod(struct gk20a *g,
 	bool prod)
 {
 	u32 i;
-	u32 size = (u32)(sizeof(gv11b_blcg_ce) / GATING_DESC_SIZE);
+	u32 size = nvgpu_safe_cast_u64_to_u32(sizeof(gv11b_blcg_ce)
+							/ GATING_DESC_SIZE);
 
 	if (nvgpu_is_enabled(g, NVGPU_GPU_CAN_BLCG)) {
 		for (i = 0; i < size; i++) {
@@ -549,7 +566,8 @@ void gv11b_blcg_ctxsw_firmware_load_gating_prod(struct gk20a *g,
 	bool prod)
 {
 	u32 i;
-	u32 size = (u32)(sizeof(gv11b_blcg_ctxsw_prog) / GATING_DESC_SIZE);
+	u32 size = nvgpu_safe_cast_u64_to_u32(sizeof(gv11b_blcg_ctxsw_prog)
+							/ GATING_DESC_SIZE);
 
 	if (nvgpu_is_enabled(g, NVGPU_GPU_CAN_BLCG)) {
 		for (i = 0; i < size; i++) {
@@ -565,7 +583,8 @@ void gv11b_blcg_fb_load_gating_prod(struct gk20a *g,
 	bool prod)
 {
 	u32 i;
-	u32 size = (u32)(sizeof(gv11b_blcg_fb) / GATING_DESC_SIZE);
+	u32 size = nvgpu_safe_cast_u64_to_u32(sizeof(gv11b_blcg_fb)
+							/ GATING_DESC_SIZE);
 
 	if (nvgpu_is_enabled(g, NVGPU_GPU_CAN_BLCG)) {
 		for (i = 0; i < size; i++) {
@@ -581,7 +600,8 @@ void gv11b_blcg_fifo_load_gating_prod(struct gk20a *g,
 	bool prod)
 {
 	u32 i;
-	u32 size = (u32)(sizeof(gv11b_blcg_fifo) / GATING_DESC_SIZE);
+	u32 size = nvgpu_safe_cast_u64_to_u32(sizeof(gv11b_blcg_fifo)
+							/ GATING_DESC_SIZE);
 
 	if (nvgpu_is_enabled(g, NVGPU_GPU_CAN_BLCG)) {
 	for (i = 0; i < size; i++) {
@@ -597,7 +617,8 @@ void gv11b_blcg_gr_load_gating_prod(struct gk20a *g,
 	bool prod)
 {
 	u32 i;
-	u32 size = (u32)(sizeof(gv11b_blcg_gr) / GATING_DESC_SIZE);
+	u32 size = nvgpu_safe_cast_u64_to_u32(sizeof(gv11b_blcg_gr)
+							/ GATING_DESC_SIZE);
 
 	if (nvgpu_is_enabled(g, NVGPU_GPU_CAN_BLCG)) {
 		for (i = 0; i < size; i++) {
@@ -613,7 +634,8 @@ void gv11b_blcg_ltc_load_gating_prod(struct gk20a *g,
 	bool prod)
 {
 	u32 i;
-	u32 size = (u32)(sizeof(gv11b_blcg_ltc) / GATING_DESC_SIZE);
+	u32 size = nvgpu_safe_cast_u64_to_u32(sizeof(gv11b_blcg_ltc)
+							/ GATING_DESC_SIZE);
 
 	if (nvgpu_is_enabled(g, NVGPU_GPU_CAN_BLCG)) {
 		for (i = 0; i < size; i++) {
@@ -629,7 +651,8 @@ void gv11b_blcg_pwr_csb_load_gating_prod(struct gk20a *g,
 	bool prod)
 {
 	u32 i;
-	u32 size = (u32)(sizeof(gv11b_blcg_pwr_csb) / GATING_DESC_SIZE);
+	u32 size = nvgpu_safe_cast_u64_to_u32(sizeof(gv11b_blcg_pwr_csb)
+							/ GATING_DESC_SIZE);
 
 	if (nvgpu_is_enabled(g, NVGPU_GPU_CAN_BLCG)) {
 		for (i = 0; i < size; i++) {
@@ -645,7 +668,8 @@ void gv11b_blcg_pmu_load_gating_prod(struct gk20a *g,
 	bool prod)
 {
 	u32 i;
-	u32 size = (u32)(sizeof(gv11b_blcg_pmu) / GATING_DESC_SIZE);
+	u32 size = nvgpu_safe_cast_u64_to_u32(sizeof(gv11b_blcg_pmu)
+							/ GATING_DESC_SIZE);
 
 	if (nvgpu_is_enabled(g, NVGPU_GPU_CAN_BLCG)) {
 		for (i = 0; i < size; i++) {
@@ -661,7 +685,8 @@ void gv11b_blcg_xbar_load_gating_prod(struct gk20a *g,
 	bool prod)
 {
 	u32 i;
-	u32 size = (u32)(sizeof(gv11b_blcg_xbar) / GATING_DESC_SIZE);
+	u32 size = nvgpu_safe_cast_u64_to_u32(sizeof(gv11b_blcg_xbar)
+							/ GATING_DESC_SIZE);
 
 	if (nvgpu_is_enabled(g, NVGPU_GPU_CAN_BLCG)) {
 		for (i = 0; i < size; i++) {
@@ -677,7 +702,8 @@ void gv11b_blcg_hshub_load_gating_prod(struct gk20a *g,
 	bool prod)
 {
 	u32 i;
-	u32 size = (u32)(sizeof(gv11b_blcg_hshub) / GATING_DESC_SIZE);
+	u32 size = nvgpu_safe_cast_u64_to_u32(sizeof(gv11b_blcg_hshub)
+							/ GATING_DESC_SIZE);
 
 	if (nvgpu_is_enabled(g, NVGPU_GPU_CAN_BLCG)) {
 		for (i = 0; i < size; i++) {
@@ -693,7 +719,8 @@ void gr_gv11b_pg_gr_load_gating_prod(struct gk20a *g,
 	bool prod)
 {
 	u32 i;
-	u32 size = (u32)(sizeof(gv11b_pg_gr) / GATING_DESC_SIZE);
+	u32 size = nvgpu_safe_cast_u64_to_u32(sizeof(gv11b_pg_gr)
+							/ GATING_DESC_SIZE);
 
 	if (nvgpu_is_enabled(g, NVGPU_GPU_CAN_BLCG)) {
 		for (i = 0; i < size; i++) {
