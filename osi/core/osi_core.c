@@ -275,7 +275,7 @@ int osi_pad_calibrate(struct osi_core_priv_data *osi_core)
 {
 	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
 	    (osi_core->ops->pad_calibrate != OSI_NULL)) {
-		return osi_core->ops->pad_calibrate(osi_core);
+		return osi_core->ops->pad_calibrate(osi_core->base);
 	}
 
 	return -1;
