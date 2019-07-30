@@ -376,6 +376,10 @@ struct nvmap_sciipc_map {
 #define NVMAP_IOC_GET_SCIIPCID _IOR(NVMAP_IOC_MAGIC, 103, \
 		struct nvmap_sciipc_map)
 
-#define NVMAP_IOC_MAXNR (_IOC_NR(NVMAP_IOC_GET_SCIIPCID))
+/* Get Nvmap handle from SCI_IPC_ID */
+#define NVMAP_IOC_HANDLE_FROM_SCIIPCID _IOR(NVMAP_IOC_MAGIC, 104, \
+		struct nvmap_sciipc_map)
+
+#define NVMAP_IOC_MAXNR (_IOC_NR(NVMAP_IOC_HANDLE_FROM_SCIIPCID))
 
 #endif /* __UAPI_LINUX_NVMAP_H */

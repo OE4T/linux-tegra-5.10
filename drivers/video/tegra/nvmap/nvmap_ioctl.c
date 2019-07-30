@@ -939,8 +939,42 @@ int nvmap_ioctl_get_sci_ipc_id(struct file *filp, void __user *arg)
 exit:
 	return ret;
 }
+
+int nvmap_ioctl_handle_from_sci_ipc_id(struct file *filp, void __user *arg)
+{
+	struct nvmap_client *client = filp->private_data;
+	NvSciIpcEndpointVuid pr_vuid, lclu_vuid;
+	struct nvmap_sciipc_map op;
+	int ret = 0;
+
+	if (copy_from_user(&op, arg, sizeof(op))) {
+		ret =  -EFAULT;
+		goto exit;
+	}
+
+	ret = nvmap_validate_sci_ipc_params(client, op.auth_token,
+		&pr_vuid, &lclu_vuid);
+	if (ret)
+		goto exit;
+
+	ret = nvmap_get_handle_from_sci_ipc_id(client, op.flags,
+			 op.sci_ipc_id, lclu_vuid, &op.handle);
+	if (ret)
+		goto exit;
+
+	if (copy_to_user(arg, &op, sizeof(op))) {
+		pr_err("copy_to_user failed\n");
+		ret = -EINVAL;
+	}
+exit:
+	return ret;
+}
 #else
 int nvmap_ioctl_get_sci_ipc_id(struct file *filp, void __user *arg)
+{
+	return -EPERM;
+}
+int nvmap_ioctl_handle_from_sci_ipc_id(struct file *filp, void __user *arg)
 {
 	return -EPERM;
 }
