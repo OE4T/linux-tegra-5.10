@@ -202,33 +202,37 @@ utils:
 ## Common elements.
 ##
 
-acr:
+acr_fusa:
   safe: yes
   owner: Mahantesh K
   sources: [ common/acr/acr.c,
              common/acr/acr_blob_alloc.c,
              common/acr/acr_blob_alloc.h,
-             common/acr/acr_blob_construct_v0.c,
-             common/acr/acr_blob_construct_v0.h,
              common/acr/acr_blob_construct_v1.c,
              common/acr/acr_blob_construct_v1.h,
              common/acr/acr_bootstrap.c,
              common/acr/acr_bootstrap.h,
              common/acr/acr_falcon_bl.h,
              common/acr/acr_priv.h,
+             common/acr/acr_wpr.c,
+             common/acr/acr_wpr.h,
+             common/acr/acr_sw_gv11b.c,
+             common/acr/acr_sw_gv11b.h,
+             include/nvgpu/acr.h ]
+
+acr:
+  safe: no
+  owner: Mahantesh K
+  sources: [ common/acr/acr_blob_construct_v0.c,
+             common/acr/acr_blob_construct_v0.h,
              common/acr/acr_sw_gp10b.c,
              common/acr/acr_sw_gp10b.h,
              common/acr/acr_sw_gv100.c,
-             common/acr/acr_wpr.c,
-             common/acr/acr_wpr.h,
+             common/acr/acr_sw_gv100.h,
              common/acr/acr_sw_gm20b.c,
              common/acr/acr_sw_gm20b.h,
-             common/acr/acr_sw_gv100.h,
-             common/acr/acr_sw_gv11b.c,
-             common/acr/acr_sw_gv11b.h,
              common/acr/acr_sw_tu104.c,
-             common/acr/acr_sw_tu104.h,
-             include/nvgpu/acr.h ]
+             common/acr/acr_sw_tu104.h ]
 
 engine_queues:
   owner: Sagar K
@@ -267,21 +271,28 @@ engine_queues:
       deps: [ ]
       tags: unit-testable
 
-falcon:
+falcon_fusa:
   owner: Sagar K
   safe: yes
   gpu: both
   sources: [ common/falcon/falcon.c,
              common/falcon/falcon_sw_gk20a.c,
-             common/falcon/falcon_sw_gp106.c,
-             common/falcon/falcon_sw_gv100.c,
-             common/falcon/falcon_sw_tu104.c,
              common/falcon/falcon_sw_gk20a.h,
-             common/falcon/falcon_sw_gp106.h,
-             common/falcon/falcon_sw_gv100.h,
-             common/falcon/falcon_sw_tu104.h,
              include/nvgpu/falcon.h,
              include/nvgpu/flcnif_cmn.h ]
+  deps: [ ]
+  tags:
+
+falcon:
+  owner: Sagar K
+  safe: no
+  gpu: dgpu
+  sources: [ common/falcon/falcon_sw_gp106.c,
+             common/falcon/falcon_sw_gv100.c,
+             common/falcon/falcon_sw_tu104.c,
+             common/falcon/falcon_sw_gp106.h,
+             common/falcon/falcon_sw_gv100.h,
+             common/falcon/falcon_sw_tu104.h ]
   deps: [ ]
   tags:
 
@@ -823,6 +834,7 @@ pmu:
 
     debug:
       safe: yes
+      gpu: dgpu
       owner: Sagar K
       sources: [ common/pmu/pmu_debug.c,
                  include/nvgpu/pmu/debug.h ]
