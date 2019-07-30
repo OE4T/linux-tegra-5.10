@@ -4,6 +4,7 @@ mods-y                             += mods_mem.o
 mods-y                             += mods_irq.o
 mods-y                             += mods_clock.o
 mods-$(CONFIG_ARCH_TEGRA)          += mods_tegraprod.o
+mods-$(CONFIG_ARCH_TEGRA_19x_SOC)  += mods_ras.o
 mods-$(CONFIG_PCI)                 += mods_pci.o
 mods-$(CONFIG_ACPI)                += mods_acpi.o
 mods-$(CONFIG_ARCH_TEGRA)	   += mods_dmabuf.o

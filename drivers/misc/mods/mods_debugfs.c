@@ -29,6 +29,10 @@
 
 static struct dentry *mods_debugfs_dir;
 
+#ifdef CONFIG_ARCH_TEGRA_19x_SOC
+#include "mods_ras.h"
+#endif
+
 #if defined(MODS_TEGRA) && defined(MODS_HAS_KFUSE)
 #include <soc/tegra/kfuse.h>
 #endif
@@ -474,6 +478,39 @@ static int mods_mi_set(void *data, u64 val)
 	mods_set_multi_instance((int)val);
 	return 0;
 }
+
+#ifdef CONFIG_ARCH_TEGRA_19x_SOC
+static int mods_set_err_sel(void *data, u64 val)
+{
+	set_err_sel(val);
+	return 0;
+}
+DEFINE_SIMPLE_ATTRIBUTE(mods_err_sel_fops, 0, mods_set_err_sel, "%llu\n");
+
+static int mods_set_err_ctrl(void *data, u64 val)
+{
+	set_err_ctrl(val);
+	return 0;
+}
+
+static int mods_get_err_ctrl(void *data, u64 *val)
+{
+	*val = get_err_ctrl();
+	return 0;
+}
+
+DEFINE_SIMPLE_ATTRIBUTE(mods_err_ctrl_fops, mods_get_err_ctrl,
+				mods_set_err_ctrl, "%llu\n");
+
+static int mods_enable_cpu_core_reporting(void *data, u64 val)
+{
+	enable_cpu_core_reporting(val);
+	return 0;
+}
+DEFINE_SIMPLE_ATTRIBUTE(mods_enable_cpu_fops, 0, mods_enable_cpu_core_reporting,
+								"%llu\n");
+#endif
+
 DEFINE_SIMPLE_ATTRIBUTE(mods_mi_fops, mods_mi_get, mods_mi_set, "%llu\n");
 
 void mods_remove_debugfs(void)
@@ -484,6 +521,10 @@ void mods_remove_debugfs(void)
 
 int mods_create_debugfs(struct miscdevice *modsdev)
 {
+#ifdef MODS_HAS_DEBUGFS
+#ifdef CONFIG_ARCH_TEGRA_19x_SOC
+	struct dentry *ras_debugfs_entry;
+#endif
 	struct dentry *retval;
 	int err = 0;
 #ifdef CONFIG_TEGRA_DC
@@ -532,6 +573,36 @@ int mods_create_debugfs(struct miscdevice *modsdev)
 		err = -EIO;
 		goto remove_out;
 	}
+
+#ifdef CONFIG_ARCH_TEGRA_19x_SOC
+	if (of_find_node_by_name(NULL, "carmel_ras")) {
+		ras_debugfs_entry = debugfs_create_dir("ras", mods_debugfs_dir);
+		if (IS_ERR(ras_debugfs_entry)) {
+			err = -EIO;
+			goto remove_out;
+		}
+
+		retval = debugfs_create_file("err_sel", 0644,
+			ras_debugfs_entry, 0, &mods_err_sel_fops);
+		if (IS_ERR(retval)) {
+			err = -EIO;
+			goto remove_out;
+		}
+
+		retval = debugfs_create_file("err_ctrl", 0644,
+			ras_debugfs_entry, 0, &mods_err_ctrl_fops);
+		if (IS_ERR(retval)) {
+			err = -EIO;
+			goto remove_out;
+		}
+		retval = debugfs_create_file("ccplex_config", 0644,
+			ras_debugfs_entry, 0, &mods_enable_cpu_fops);
+		if (IS_ERR(retval)) {
+			err = -EIO;
+			goto remove_out;
+		}
+	}
+#endif
 
 	retval = debugfs_create_file("debug", 0644,
 		mods_debugfs_dir, 0, &mods_debug_fops);
@@ -693,5 +764,8 @@ remove_out:
 	dev_err(modsdev->this_device, "could not create debugfs\n");
 	mods_remove_debugfs();
 	return err;
+#else
+	return 0;
+#endif
 }
 
