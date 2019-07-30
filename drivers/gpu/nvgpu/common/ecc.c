@@ -26,6 +26,7 @@
 #include <nvgpu/gr/gr_utils.h>
 #include <nvgpu/ltc.h>
 #include <nvgpu/nvgpu_err.h>
+#include <nvgpu/safe_ops.h>
 
 static void nvgpu_ecc_stat_add(struct gk20a *g, struct nvgpu_ecc_stat *stat)
 {
@@ -34,7 +35,7 @@ static void nvgpu_ecc_stat_add(struct gk20a *g, struct nvgpu_ecc_stat *stat)
 	nvgpu_init_list_node(&stat->node);
 
 	nvgpu_list_add_tail(&stat->node, &ecc->stats_list);
-	ecc->stats_count++;
+	ecc->stats_count = nvgpu_safe_add_s32(ecc->stats_count, 1);
 }
 
 static void nvgpu_ecc_init(struct gk20a *g)
@@ -53,13 +54,16 @@ int nvgpu_ecc_counter_init_per_tpc(struct gk20a *g,
 	u32 gpc, tpc;
 	int err = 0;
 
-	stats = nvgpu_kzalloc(g, sizeof(*stats) * gpc_count);
+	stats = nvgpu_kzalloc(g, nvgpu_safe_mult_u64(sizeof(*stats),
+			      gpc_count));
 	if (stats == NULL) {
 		return -ENOMEM;
 	}
 	for (gpc = 0; gpc < gpc_count; gpc++) {
-		stats[gpc] = nvgpu_kzalloc(g, sizeof(*stats[gpc]) *
-				nvgpu_gr_config_get_gpc_tpc_count(gr_config, gpc));
+		stats[gpc] = nvgpu_kzalloc(g,
+			nvgpu_safe_mult_u64(sizeof(*stats[gpc]),
+				nvgpu_gr_config_get_gpc_tpc_count(gr_config,
+								  gpc)));
 		if (stats[gpc] == NULL) {
 			err = -ENOMEM;
 			break;
@@ -82,7 +86,7 @@ int nvgpu_ecc_counter_init_per_tpc(struct gk20a *g,
 #ifdef CONFIG_NVGPU_LOGGING
 			(void) snprintf(stats[gpc][tpc].name,
 					NVGPU_ECC_STAT_NAME_MAX_SIZE,
-					"gpc%d_tpc%d_%s", gpc, tpc, name);
+					"gpc%u_tpc%u_%s", gpc, tpc, name);
 #endif
 			nvgpu_ecc_stat_add(g, &stats[gpc][tpc]);
 		}
@@ -100,14 +104,15 @@ int nvgpu_ecc_counter_init_per_gpc(struct gk20a *g,
 	u32 gpc_count = nvgpu_gr_config_get_gpc_count(gr_config);
 	u32 gpc;
 
-	stats = nvgpu_kzalloc(g, sizeof(*stats) * gpc_count);
+	stats = nvgpu_kzalloc(g, nvgpu_safe_mult_u64(sizeof(*stats),
+						     gpc_count));
 	if (stats == NULL) {
 		return -ENOMEM;
 	}
 	for (gpc = 0; gpc < gpc_count; gpc++) {
 #ifdef CONFIG_NVGPU_LOGGING
 		(void) snprintf(stats[gpc].name, NVGPU_ECC_STAT_NAME_MAX_SIZE,
-				"gpc%d_%s", gpc, name);
+				"gpc%u_%s", gpc, name);
 #endif
 		nvgpu_ecc_stat_add(g, &stats[gpc]);
 	}
@@ -141,13 +146,15 @@ int nvgpu_ecc_counter_init_per_lts(struct gk20a *g,
 	u32 ltc_count = nvgpu_ltc_get_ltc_count(g);
 	u32 slices_per_ltc = nvgpu_ltc_get_slices_per_ltc(g);
 
-	stats = nvgpu_kzalloc(g, sizeof(*stats) * ltc_count);
+	stats = nvgpu_kzalloc(g, nvgpu_safe_mult_u64(sizeof(*stats),
+						     ltc_count));
 	if (stats == NULL) {
 		return -ENOMEM;
 	}
 	for (ltc = 0; ltc < ltc_count; ltc++) {
 		stats[ltc] = nvgpu_kzalloc(g,
-			sizeof(*stats[ltc]) * slices_per_ltc);
+			nvgpu_safe_mult_u64(sizeof(*stats[ltc]),
+					    slices_per_ltc));
 		if (stats[ltc] == NULL) {
 			err = -ENOMEM;
 			break;
@@ -168,7 +175,7 @@ int nvgpu_ecc_counter_init_per_lts(struct gk20a *g,
 #ifdef CONFIG_NVGPU_LOGGING
 			(void) snprintf(stats[ltc][lts].name,
 					NVGPU_ECC_STAT_NAME_MAX_SIZE,
-					"ltc%d_lts%d_%s", ltc, lts, name);
+					"ltc%u_lts%u_%s", ltc, lts, name);
 #endif
 			nvgpu_ecc_stat_add(g, &stats[ltc][lts]);
 		}
@@ -185,7 +192,8 @@ int nvgpu_ecc_counter_init_per_fbpa(struct gk20a *g,
 	u32 num_fbpa = nvgpu_get_litter_value(g, GPU_LIT_NUM_FBPAS);
 	struct nvgpu_ecc_stat *stats;
 
-	stats = nvgpu_kzalloc(g, sizeof(*stats) * (size_t)num_fbpa);
+	stats = nvgpu_kzalloc(g, nvgpu_safe_mult_u64(sizeof(*stats),
+						     (size_t)num_fbpa));
 	if (stats == NULL) {
 		return -ENOMEM;
 	}
