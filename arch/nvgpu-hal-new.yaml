@@ -3,14 +3,18 @@
 # HAL units. These are the units that have access to HW.
 #
 
-bus:
+bus_fusa:
   safe: yes
   owner: Terje B
-  sources: [ hal/bus/bus_gk20a.c,
-             hal/bus/bus_gk20a_fusa.c,
+  sources: [ hal/bus/bus_gk20a_fusa.c,
              hal/bus/bus_gk20a.h,
              hal/bus/bus_gm20b_fusa.c, hal/bus/bus_gm20b.h,
-             hal/bus/bus_gp10b_fusa.c, hal/bus/bus_gp10b.h,
+             hal/bus/bus_gp10b_fusa.c, hal/bus/bus_gp10b.h ]
+
+bus:
+  safe: no
+  owner: Terje B
+  sources: [ hal/bus/bus_gk20a.c,
              hal/bus/bus_gv100.c, hal/bus/bus_gv100.h,
              hal/bus/bus_tu104.c, hal/bus/bus_tu104.h ]
 
@@ -19,9 +23,7 @@ ltc:
   children:
     ltc_fusa:
       safe: yes
-      sources: [ hal/ltc/ltc_gm20b.c,
-                 hal/ltc/ltc_gm20b_dbg.c,
-                 hal/ltc/ltc_gm20b_fusa.c,
+      sources: [ hal/ltc/ltc_gm20b_fusa.c,
                  hal/ltc/ltc_gm20b.h,
                  hal/ltc/ltc_gp10b_fusa.c,
                  hal/ltc/ltc_gp10b.h,
@@ -30,6 +32,7 @@ ltc:
     ltc:
       safe: no
       sources: [ hal/ltc/ltc_gm20b.c,
+                 hal/ltc/ltc_gm20b_dbg.c,
                  hal/ltc/ltc_gp10b.c,
                  hal/ltc/ltc_gv11b.c,
                  hal/ltc/ltc_tu104.c,
@@ -46,35 +49,43 @@ ltc:
                  hal/ltc/intr/ltc_intr_gm20b.h,
                  hal/ltc/intr/ltc_intr_gp10b.c ]
 
-init:
+init_fusa:
   safe: yes
+  owner: Philip E
+  sources: [ hal/init/hal_gv11b.c,
+             hal/init/hal_gv11b.h,
+             hal/init/hal_init.c,
+             hal/init/hal_gv11b_litter.c,
+             hal/init/hal_gv11b_litter.h ]
+
+init:
+  safe: no
   owner: Philip E
   sources: [ hal/init/hal_gm20b.c,
              hal/init/hal_gm20b.h,
              hal/init/hal_gp10b.c,
              hal/init/hal_gp10b.h,
-             hal/init/hal_gv11b.c,
-             hal/init/hal_gv11b.h,
-             hal/init/hal_init.c,
              hal/init/hal_tu104.c,
              hal/init/hal_tu104.h,
              hal/init/hal_gm20b_litter.c,
              hal/init/hal_gm20b_litter.h,
              hal/init/hal_gp10b_litter.c,
              hal/init/hal_gp10b_litter.h,
-             hal/init/hal_gv11b_litter.c,
-             hal/init/hal_gv11b_litter.h,
              hal/init/hal_tu104_litter.c,
              hal/init/hal_tu104_litter.h ]
 
-priv_ring:
+priv_ring_fusa:
   safe: yes
   owner: Seema K
-  sources: [ hal/priv_ring/priv_ring_gm20b.c,
-             hal/priv_ring/priv_ring_gm20b_fusa.c,
+  sources: [ hal/priv_ring/priv_ring_gm20b_fusa.c,
              hal/priv_ring/priv_ring_gm20b.h,
              hal/priv_ring/priv_ring_gp10b_fusa.c,
              hal/priv_ring/priv_ring_gp10b.h ]
+
+priv_ring:
+  safe: no
+  owner: Seema K
+  sources: [ hal/priv_ring/priv_ring_gm20b.c ]
 
 ptimer:
   safe: yes
@@ -82,11 +93,17 @@ ptimer:
   sources: [ hal/ptimer/ptimer_gk20a_fusa.c,
              hal/ptimer/ptimer_gk20a.h ]
 
-cg:
+cg_fusa:
   safe: yes
   owner: Seema K
   sources: [ hal/power_features/cg/gating_reglist.h,
-             hal/power_features/cg/gm20b_gating_reglist.c,
+             hal/power_features/cg/gv11b_gating_reglist.c,
+             hal/power_features/cg/gv11b_gating_reglist.h ]
+
+cg:
+  safe: no
+  owner: Seema K
+  sources: [ hal/power_features/cg/gm20b_gating_reglist.c,
              hal/power_features/cg/gm20b_gating_reglist.h,
              hal/power_features/cg/gp106_gating_reglist.c,
              hal/power_features/cg/gp106_gating_reglist.h,
@@ -94,10 +111,9 @@ cg:
              hal/power_features/cg/gp10b_gating_reglist.h,
              hal/power_features/cg/gv100_gating_reglist.c,
              hal/power_features/cg/gv100_gating_reglist.h,
-             hal/power_features/cg/gv11b_gating_reglist.c,
-             hal/power_features/cg/gv11b_gating_reglist.h,
              hal/power_features/cg/tu104_gating_reglist.c,
              hal/power_features/cg/tu104_gating_reglist.h ]
+
 rc:
   safe: no
   owner: Seema K
@@ -109,18 +125,23 @@ rc:
 fbpa:
   safe: yes
   owner: Seshendra G
+  gpu: dgpu
   sources: [ hal/fbpa/fbpa_tu104.c,   hal/fbpa/fbpa_tu104.h ]
 
 clk:
   safe: yes
   owner: Ramesh M
+  gpu: dgpu
+  sources: [ hal/clk/clk_tu104.c,
+             hal/clk/clk_tu104.h ]
+
+clk_igpu:
+  safe: no
+  owner: Ramesh M
   gpu: igpu
   sources: [ hal/clk/clk_gk20a.h,
              hal/clk/clk_gm20b.c,
-             hal/clk/clk_gm20b.h,
-             hal/clk/clk_tu104.c,
-             hal/clk/clk_tu104.h ]
-
+             hal/clk/clk_gm20b.h ]
 
 fifo:
   safe: yes
@@ -132,77 +153,103 @@ fifo:
                  hal/fifo/userd_gk20a.h,
                  hal/fifo/userd_gv11b.c,
                  hal/fifo/userd_gv11b.h ]
-    ramfc:
+    ramfc_fusa:
       safe: yes
-      sources: [ hal/fifo/ramfc_gk20a.c,
-                 hal/fifo/ramin_gk20a_fusa.c,
+      sources: [ hal/fifo/ramin_gk20a_fusa.c,
                  hal/fifo/ramfc_gk20a.h,
-                 hal/fifo/ramfc_gp10b.c,
                  hal/fifo/ramfc_gp10b_fusa.c,
                  hal/fifo/ramfc_gp10b.h,
                  hal/fifo/ramfc_gv11b_fusa.c,
-                 hal/fifo/ramfc_gv11b.h,
+                 hal/fifo/ramfc_gv11b.h ]
+
+    ramfc:
+      safe: no
+      sources: [ hal/fifo/ramfc_gk20a.c,
+                 hal/fifo/ramfc_gp10b.c,
                  hal/fifo/ramfc_tu104.c,
                  hal/fifo/ramfc_tu104.h ]
-    ramin:
+
+    ramin_fusa:
       safe: yes
       sources: [ hal/fifo/ramin_gp10b.h,
-                 hal/fifo/ramin_gk20a.h,
                  hal/fifo/ramin_gv11b.h,
                  hal/fifo/ramin_gm20b.h,
                  hal/fifo/ramin_gv11b_fusa.c,
                  hal/fifo/ramin_gp10b_fusa.c,
-                 hal/fifo/ramin_gm20b_fusa.c,
-                 hal/fifo/ramin_gk20a.c ]
-    runlist:
+                 hal/fifo/ramin_gm20b_fusa.c ]
+
+    ramin:
+      safe: no
+      sources: [ hal/fifo/ramin_gk20a.h,
+                 hal/fifo/ramin_gk20a.c,
+                 hal/fifo/ramin_tu104.c,
+                 hal/fifo/ramin_tu104.h ]
+
+    runlist_fusa:
       safe: yes
       sources: [ hal/fifo/runlist_fifo_gk20a.c,
                  hal/fifo/runlist_fifo_gk20a_fusa.c,
                  hal/fifo/runlist_fifo_gk20a.h,
-                 hal/fifo/runlist_fifo_gv100.c,
-                 hal/fifo/runlist_fifo_gv100.h,
                  hal/fifo/runlist_fifo_gv11b.c,
                  hal/fifo/runlist_fifo_gv11b_fusa.c,
                  hal/fifo/runlist_fifo_gv11b.h,
-                 hal/fifo/runlist_fifo_tu104.c,
-                 hal/fifo/runlist_fifo_tu104.h,
                  hal/fifo/runlist_ram_gk20a.c,
                  hal/fifo/runlist_ram_gk20a.h,
                  hal/fifo/runlist_ram_gv11b_fusa.c,
-                 hal/fifo/runlist_ram_gv11b.h,
+                 hal/fifo/runlist_ram_gv11b.h ]
+
+    runlist:
+      safe: no
+      sources: [ hal/fifo/runlist_fifo_gv100.c,
+                 hal/fifo/runlist_fifo_gv100.h,
+                 hal/fifo/runlist_fifo_tu104.c,
+                 hal/fifo/runlist_fifo_tu104.h,
                  hal/fifo/runlist_ram_tu104.c,
                  hal/fifo/runlist_ram_tu104.h ]
-    channel:
+
+    channel_fusa:
       safe: yes
-      sources: [ hal/fifo/channel_gk20a.c,
-                 hal/fifo/channel_gk20a_fusa.c,
+      sources: [ hal/fifo/channel_gk20a_fusa.c,
                  hal/fifo/channel_gk20a.h,
-                 hal/fifo/channel_gm20b.c,
                  hal/fifo/channel_gm20b_fusa.c,
                  hal/fifo/channel_gm20b.h,
-                 hal/fifo/channel_gv100.c,
-                 hal/fifo/channel_gv100.h,
                  hal/fifo/channel_gv11b_fusa.c,
                  hal/fifo/channel_gv11b.h ]
-    tsg:
+    channel:
+      safe: no
+      sources: [ hal/fifo/channel_gk20a.c,
+                 hal/fifo/channel_gm20b.c,
+                 hal/fifo/channel_gv100.c,
+                 hal/fifo/channel_gv100.h ]
+    tsg_fusa:
       safe: yes
       sources: [ hal/fifo/tsg_gv11b.h,
-                 hal/fifo/tsg_gv11b_fusa.c,
-                 hal/fifo/tsg_gk20a.h,
+                 hal/fifo/tsg_gv11b_fusa.c ]
+
+    tsg:
+      safe: no
+      sources: [ hal/fifo/tsg_gk20a.h,
                  hal/fifo/tsg_gk20a.c ]
-    fifo:
+
+    fifo_fusa:
      safe: yes
-     sources: [ hal/fifo/fifo_intr_gk20a.c,
-                hal/fifo/fifo_intr_gk20a_fusa.c,
+     sources: [ hal/fifo/fifo_intr_gk20a_fusa.c,
                 hal/fifo/fifo_intr_gk20a.h,
                 hal/fifo/fifo_intr_gv11b_fusa.c,
                 hal/fifo/fifo_intr_gv11b.h,
+                hal/fifo/ctxsw_timeout_gv11b_fusa.c,
+                hal/fifo/ctxsw_timeout_gv11b.h,
+                hal/fifo/fifo_gk20a_fusa.c,
+                hal/fifo/fifo_gk20a.h,
+                hal/fifo/fifo_gv11b_fusa.c,
+                hal/fifo/fifo_gv11b.h ]
+    fifo:
+     safe: no
+     sources: [ hal/fifo/fifo_intr_gk20a.c,
                 hal/fifo/fifo_intr_gv100.c,
                 hal/fifo/fifo_intr_gv100.h,
                 hal/fifo/ctxsw_timeout_gk20a.c,
                 hal/fifo/ctxsw_timeout_gk20a.h,
-                hal/fifo/ctxsw_timeout_gv11b_fusa.c,
-                hal/fifo/ctxsw_timeout_gv11b.h,
                 hal/fifo/mmu_fault_gk20a.c,
                 hal/fifo/mmu_fault_gk20a.h,
                 hal/fifo/mmu_fault_gm20b.c,
@@ -210,73 +257,86 @@ fifo:
                 hal/fifo/mmu_fault_gp10b.c,
                 hal/fifo/mmu_fault_gp10b.h,
                 hal/fifo/fifo_gk20a.c,
-                hal/fifo/fifo_gk20a_fusa.c,
-                hal/fifo/fifo_gk20a.h,
-                hal/fifo/fifo_gv11b_fusa.c,
-                hal/fifo/fifo_gv11b.h,
                 hal/fifo/fifo_tu104.c,
                 hal/fifo/fifo_tu104.h ]
-    engine_status:
+
+    engine_status_fusa:
      safe: yes
-     sources: [ hal/fifo/engine_status_gm20b.c,
-                hal/fifo/engine_status_gm20b_fusa.c,
+     sources: [ hal/fifo/engine_status_gm20b_fusa.c,
                 hal/fifo/engine_status_gm20b.h,
                 hal/fifo/engine_status_gv100_fusa.c,
                 hal/fifo/engine_status_gv100.h ]
+    engine_status:
+     safe: no
+     sources: [ hal/fifo/engine_status_gm20b.c ]
 
-    engines:
+    engines_fusa:
      safe: yes
-     sources: [ hal/fifo/engines_gm20b.c,
-                hal/fifo/engines_gm20b.h,
-                hal/fifo/engines_gp10b_fusa.c,
+     sources: [ hal/fifo/engines_gp10b_fusa.c,
                 hal/fifo/engines_gp10b.h,
                 hal/fifo/engines_gv11b_fusa.c,
                 hal/fifo/engines_gv11b.h ]
+
+    engines:
+     safe: no
+     sources: [ hal/fifo/engines_gm20b.c,
+                hal/fifo/engines_gm20b.h ]
 
     pbdma_status:
       safe: yes
       sources: [ hal/fifo/pbdma_status_gm20b_fusa.c,
                  hal/fifo/pbdma_status_gm20b.h ]
 
-    pbdma:
+    pbdma_fusa:
       safe: yes
-      sources: [ hal/fifo/pbdma_gm20b.c,
-                 hal/fifo/pbdma_gm20b_fusa.c,
+      sources: [ hal/fifo/pbdma_gm20b_fusa.c,
                  hal/fifo/pbdma_gm20b.h,
-                 hal/fifo/pbdma_gp10b.c,
                  hal/fifo/pbdma_gp10b_fusa.c,
                  hal/fifo/pbdma_gp10b.h,
                  hal/fifo/pbdma_gv11b_fusa.c,
-                 hal/fifo/pbdma_gv11b.h,
-                 hal/fifo/pbdma_tu104.c,
-                 hal/fifo/pbdma_tu104.h,
-                 hal/fifo/ramin_tu104.c,
-                 hal/fifo/ramin_tu104.h ]
+                 hal/fifo/pbdma_gv11b.h ]
 
-    preempt:
+    pbdma:
+      safe: no
+      sources: [ hal/fifo/pbdma_gm20b.c,
+                 hal/fifo/pbdma_gp10b.c,
+                 hal/fifo/pbdma_tu104.c,
+                 hal/fifo/pbdma_tu104.h ]
+
+    preempt_fusa:
      safe: yes
-     sources: [ hal/fifo/preempt_gk20a.c,
-                hal/fifo/preempt_gk20a.h,
-                hal/fifo/preempt_gv11b_fusa.c,
+     sources: [ hal/fifo/preempt_gv11b_fusa.c,
                 hal/fifo/preempt_gv11b.h ]
 
-    usermode:
+    preempt:
+     safe: no
+     sources: [ hal/fifo/preempt_gk20a.c,
+                hal/fifo/preempt_gk20a.h ]
+
+    usermode_fusa:
       safe: yes
       sources: [ hal/fifo/usermode_gv11b_fusa.c,
-                 hal/fifo/usermode_gv11b.h,
-                 hal/fifo/usermode_tu104.c,
+                 hal/fifo/usermode_gv11b.h ]
+
+    usermode:
+      safe: no
+      sources: [ hal/fifo/usermode_tu104.c,
                  hal/fifo/usermode_tu104.h ]
 
-fuse:
+fuse_fusa:
   safe: yes
   owner: Seema K
-  sources: [ hal/fuse/fuse_gm20b.c,
-             hal/fuse/fuse_gm20b_fusa.c,
+  sources: [ hal/fuse/fuse_gm20b_fusa.c,
              hal/fuse/fuse_gm20b.h,
-             hal/fuse/fuse_gp106.c,
-             hal/fuse/fuse_gp106.h,
              hal/fuse/fuse_gp10b_fusa.c,
              hal/fuse/fuse_gp10b.h ]
+
+fuse:
+  safe: no
+  owner: Seema K
+  sources: [ hal/fuse/fuse_gm20b.c,
+             hal/fuse/fuse_gp106.c,
+             hal/fuse/fuse_gp106.h ]
 
 gsp:
   safe: no
@@ -370,15 +430,19 @@ cbc:
              hal/cbc/cbc_tu104.c,
              hal/cbc/cbc_tu104.h ]
 
-ce:
+ce_fusa:
   safe: yes
+  owner: Thomas F
+  sources: [ hal/ce/ce_gp10b_fusa.c,
+             hal/ce/ce_gp10b.h,
+             hal/ce/ce_gv11b_fusa.c,
+             hal/ce/ce_gv11b.h ]
+
+ce:
+  safe: no
   owner: Thomas F
   sources: [ hal/ce/ce2_gk20a.c,
              hal/ce/ce2_gk20a.h,
-             hal/ce/ce_gp10b_fusa.c,
-             hal/ce/ce_gp10b.h,
-             hal/ce/ce_gv11b_fusa.c,
-             hal/ce/ce_gv11b.h,
              hal/ce/ce_tu104.c,
              hal/ce/ce_tu104.h ]
 
@@ -410,49 +474,59 @@ gr:
                  hal/gr/ctxsw_prog/ctxsw_prog_gm20b_dbg.c,
                  hal/gr/ctxsw_prog/ctxsw_prog_gp10b.c,
                  hal/gr/ctxsw_prog/ctxsw_prog_gv11b.c]
-    config:
+    config_fusa:
       safe: yes
-      sources: [ hal/gr/config/gr_config_gm20b.c,
-                 hal/gr/config/gr_config_gm20b_fusa.c,
+      sources: [ hal/gr/config/gr_config_gm20b_fusa.c,
                  hal/gr/config/gr_config_gm20b.h,
                  hal/gr/config/gr_config_gv100_fusa.c,
                  hal/gr/config/gr_config_gv100.h ]
-    init:
+
+    config:
+      safe: no
+      sources: [ hal/gr/config/gr_config_gm20b.c ]
+
+    init_fusa:
       safe: yes
-      sources: [ hal/gr/init/gr_init_gm20b.c,
-                 hal/gr/init/gr_init_gm20b_fusa.c,
+      sources: [ hal/gr/init/gr_init_gm20b_fusa.c,
                  hal/gr/init/gr_init_gm20b.h,
-                 hal/gr/init/gr_init_gp10b.c,
                  hal/gr/init/gr_init_gp10b_fusa.c,
                  hal/gr/init/gr_init_gp10b.h,
+                 hal/gr/init/gr_init_gv11b_fusa.c,
+                 hal/gr/init/gr_init_gv11b.h ]
+    init:
+      safe: no
+      sources: [ hal/gr/init/gr_init_gm20b.c,
+                 hal/gr/init/gr_init_gp10b.c,
                  hal/gr/init/gr_init_gv100.c,
                  hal/gr/init/gr_init_gv100.h,
                  hal/gr/init/gr_init_gv11b.c,
-                 hal/gr/init/gr_init_gv11b_fusa.c,
-                 hal/gr/init/gr_init_gv11b.h,
                  hal/gr/init/gr_init_tu104.c,
                  hal/gr/init/gr_init_tu104.h ]
-    intr:
+    intr_fusa:
       safe: yes
-      sources: [ hal/gr/intr/gr_intr_gm20b.c,
-                 hal/gr/intr/gr_intr_gm20b_fusa.c,
+      sources: [ hal/gr/intr/gr_intr_gm20b_fusa.c,
                  hal/gr/intr/gr_intr_gm20b.h,
-                 hal/gr/intr/gr_intr_gp10b.c,
                  hal/gr/intr/gr_intr_gp10b_fusa.c,
                  hal/gr/intr/gr_intr_gp10b.h,
                  hal/gr/intr/gr_intr_gv11b_fusa.c,
-                 hal/gr/intr/gr_intr_gv11b.h,
+                 hal/gr/intr/gr_intr_gv11b.h ]
+    intr:
+      safe: no
+      sources: [ hal/gr/intr/gr_intr_gm20b.c,
+                 hal/gr/intr/gr_intr_gp10b.c,
                  hal/gr/intr/gr_intr_tu104.c,
                  hal/gr/intr/gr_intr_tu104.h ]
-    falcon:
+    falcon_fusa:
       safe: yes
-      sources: [ hal/gr/falcon/gr_falcon_gm20b.c,
-                 hal/gr/falcon/gr_falcon_gm20b_fusa.c,
+      sources: [ hal/gr/falcon/gr_falcon_gm20b_fusa.c,
                  hal/gr/falcon/gr_falcon_gm20b.h,
                  hal/gr/falcon/gr_falcon_gp10b_fusa.c,
                  hal/gr/falcon/gr_falcon_gp10b.h,
                  hal/gr/falcon/gr_falcon_gv11b_fusa.c,
                  hal/gr/falcon/gr_falcon_gv11b.h ]
+    falcon:
+      safe: no
+      sources: [ hal/gr/falcon/gr_falcon_gm20b.c ]
     fecs_trace:
       safe: no
       sources: [ hal/gr/fecs_trace/fecs_trace_gm20b.c,
@@ -515,19 +589,23 @@ falcon:
   owner: Sagar K
   sources: [ hal/falcon/falcon_gk20a.c ]
 
-mc:
+mc_fusa:
   safe: yes
   owner: Seema K
-  sources: [ hal/mc/mc_gm20b.c,
-             hal/mc/mc_gm20b_fusa.c,
+  sources: [ hal/mc/mc_gm20b_fusa.c,
              hal/mc/mc_gm20b.h,
-             hal/mc/mc_gp10b.c,
              hal/mc/mc_gp10b_fusa.c,
              hal/mc/mc_gp10b.h,
+             hal/mc/mc_gv11b_fusa.c,
+             hal/mc/mc_gv11b.h ]
+
+mc:
+  safe: no
+  owner: Seema K
+  sources: [ hal/mc/mc_gm20b.c,
+             hal/mc/mc_gp10b.c,
              hal/mc/mc_gv100.c,
              hal/mc/mc_gv100.h,
-             hal/mc/mc_gv11b_fusa.c,
-             hal/mc/mc_gv11b.h,
              hal/mc/mc_tu104.c,
              hal/mc/mc_tu104.h ]
 
@@ -598,8 +676,15 @@ sec2:
              hal/sec2/sec2_tu104.c,
              hal/sec2/sec2_tu104.h ]
 
-netlist:
+netlist_fusa:
   safe: yes
+  owner: Seshendra G
+  gpu: both
+  sources: [ hal/netlist/netlist_gv11b_fusa.c,
+             hal/netlist/netlist_gv11b.h ]
+
+netlist:
+  safe: no
   owner: Seshendra G
   gpu: both
   sources: [ hal/netlist/netlist_gm20b.c,
@@ -608,8 +693,6 @@ netlist:
              hal/netlist/netlist_gp10b.h,
              hal/netlist/netlist_gv100.c,
              hal/netlist/netlist_gv100.h,
-             hal/netlist/netlist_gv11b_fusa.c,
-             hal/netlist/netlist_gv11b.h,
              hal/netlist/netlist_tu104.c,
              hal/netlist/netlist_tu104.h ]
 
@@ -640,41 +723,49 @@ pramin:
              hal/pramin/pramin_tu104.c,
              hal/pramin/pramin_tu104.h ]
 
-class:
+class_fusa:
   safe: yes
   owner: Seshendra G
-  sources: [ hal/class/class_gm20b.c,
-             hal/class/class_gm20b_fusa.c,
+  sources: [ hal/class/class_gm20b_fusa.c,
              hal/class/class_gm20b.h,
              hal/class/class_gp10b_fusa.c,
              hal/class/class_gp10b.h,
              hal/class/class_gv11b_fusa.c,
-             hal/class/class_gv11b.h,
+             hal/class/class_gv11b.h ]
+
+class:
+  safe: no
+  owner: Seshendra G
+  sources: [ hal/class/class_gm20b.c,
              hal/class/class_tu104.c,
              hal/class/class_tu104.h ]
 
 func:
   safe: yes
   owner: Terje B
+  gpu: dgpu
   sources: [ hal/func/func_tu104.c,
              hal/func/func_tu104.h ]
 
-top:
+top_fusa:
   safe: yes
   owner: Tejal K
-  gpu: igpu
   sources: [ include/nvgpu/top.h,
-             hal/top/top_gm20b.c,
              hal/top/top_gm20b_fusa.c,
              hal/top/top_gm20b.h,
              hal/top/top_gp10b_fusa.c,
              hal/top/top_gp10b.h,
+             hal/top/top_gv11b_fusa.c,
+             hal/top/top_gv11b.h ]
+
+top:
+  safe: no
+  owner: Tejal K
+  sources: [ hal/top/top_gm20b.c,
              hal/top/top_gp106.c,
              hal/top/top_gp106.h,
              hal/top/top_gv100.c,
-             hal/top/top_gv100.h,
-             hal/top/top_gv11b_fusa.c,
-             hal/top/top_gv11b.h ]
+             hal/top/top_gv100.h ]
 
 bios:
   safe: yes
