@@ -96,6 +96,10 @@ struct wpr_carveout_info;
 #define LSF_SEC2_UCODE_DESC_BIN "sec2_ucode_desc.bin"
 #define LSF_SEC2_UCODE_SIG_BIN "sec2_sig.bin"
 
+#define LSF_SEC2_UCODE_IMAGE_FUSA_BIN "sec2_ucode_fusa_image.bin"
+#define LSF_SEC2_UCODE_DESC_FUSA_BIN "sec2_ucode_fusa_desc.bin"
+#define LSF_SEC2_UCODE_SIG_FUSA_BIN "sec2_fusa_sig.bin"
+
 #define ACR_COMPLETION_TIMEOUT_MS 10000U /*in msec */
 
 struct acr_lsf_config {

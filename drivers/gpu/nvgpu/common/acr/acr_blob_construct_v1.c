@@ -267,8 +267,17 @@ int nvgpu_acr_lsf_sec2_ucode_details_v1(struct gk20a *g, void *lsf_ucode_img)
 	int err = 0;
 
 	nvgpu_acr_dbg(g, "requesting SEC2 ucode in %s", g->name);
-	sec2_fw = nvgpu_request_firmware(g, LSF_SEC2_UCODE_IMAGE_BIN,
-		NVGPU_REQUEST_FIRMWARE_NO_SOC);
+
+	if (g->is_fusa_sku) {
+		sec2_fw = nvgpu_request_firmware(g,
+			LSF_SEC2_UCODE_IMAGE_FUSA_BIN,
+			NVGPU_REQUEST_FIRMWARE_NO_SOC);
+	} else {
+		sec2_fw = nvgpu_request_firmware(g,
+			LSF_SEC2_UCODE_IMAGE_BIN,
+			NVGPU_REQUEST_FIRMWARE_NO_SOC);
+	}
+
 	if (sec2_fw == NULL) {
 		nvgpu_err(g, "failed to load sec2 ucode!!");
 		return -ENOENT;
@@ -277,8 +286,16 @@ int nvgpu_acr_lsf_sec2_ucode_details_v1(struct gk20a *g, void *lsf_ucode_img)
 	ucode_image = (u32 *)sec2_fw->data;
 
 	nvgpu_acr_dbg(g, "requesting SEC2 ucode desc in %s", g->name);
-	sec2_desc = nvgpu_request_firmware(g, LSF_SEC2_UCODE_DESC_BIN,
-		NVGPU_REQUEST_FIRMWARE_NO_SOC);
+	if (g->is_fusa_sku) {
+		sec2_desc = nvgpu_request_firmware(g,
+			LSF_SEC2_UCODE_DESC_FUSA_BIN,
+			NVGPU_REQUEST_FIRMWARE_NO_SOC);
+	} else {
+		sec2_desc = nvgpu_request_firmware(g,
+			LSF_SEC2_UCODE_DESC_BIN,
+			NVGPU_REQUEST_FIRMWARE_NO_SOC);
+	}
+
 	if (sec2_desc == NULL) {
 		nvgpu_err(g, "failed to load SEC2 ucode desc!!");
 		err = -ENOENT;
@@ -287,8 +304,15 @@ int nvgpu_acr_lsf_sec2_ucode_details_v1(struct gk20a *g, void *lsf_ucode_img)
 
 	desc = (struct ls_falcon_ucode_desc *)sec2_desc->data;
 
-	sec2_sig = nvgpu_request_firmware(g, LSF_SEC2_UCODE_SIG_BIN,
-		NVGPU_REQUEST_FIRMWARE_NO_SOC);
+	if (g->is_fusa_sku) {
+		sec2_sig = nvgpu_request_firmware(g,
+			LSF_SEC2_UCODE_SIG_FUSA_BIN,
+			NVGPU_REQUEST_FIRMWARE_NO_SOC);
+	} else {
+		sec2_sig = nvgpu_request_firmware(g,
+			LSF_SEC2_UCODE_SIG_BIN,
+			NVGPU_REQUEST_FIRMWARE_NO_SOC);
+	}
 	if (sec2_sig == NULL) {
 		nvgpu_err(g, "failed to load SEC2 sig!!");
 		err = -ENOENT;
