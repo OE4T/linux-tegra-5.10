@@ -551,11 +551,104 @@ static void nvgpu_gr_falcon_load_gpccs_with_bootloader(struct gk20a *g,
 		g->ops.gr.falcon.get_gpccs_start_reg_offset());
 }
 
-int nvgpu_gr_falcon_load_secure_ctxsw_ucode(struct gk20a *g,
+static int gr_falcon_sec2_or_ls_pmu_bootstrap(struct gk20a *g,
+				 bool *bootstrap, u32 falcon_id_mask)
+{
+	int err = 0;
+	bool bootstrap_set = false;
+
+#ifdef CONFIG_NVGPU_DGPU
+	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_SEC2_RTOS)) {
+		bootstrap_set = true;
+		err = nvgpu_sec2_bootstrap_ls_falcons(g,
+			&g->sec2, FALCON_ID_FECS);
+		if (err == 0) {
+			err = nvgpu_sec2_bootstrap_ls_falcons(g,
+				&g->sec2, FALCON_ID_GPCCS);
+		}
+	} else
+#endif
+#ifdef CONFIG_NVGPU_LS_PMU
+	if (g->support_ls_pmu) {
+		bootstrap_set = true;
+		err = nvgpu_pmu_lsfm_bootstrap_ls_falcon(g,
+				g->pmu, g->pmu->lsfm,
+				falcon_id_mask);
+	}
+#endif
+
+	*bootstrap = bootstrap_set;
+	return err;
+}
+
+static int gr_falcon_recovery_bootstrap(struct gk20a *g,
+					struct nvgpu_gr_falcon *falcon)
+{
+	int err = 0;
+	bool bootstrap = false;
+	u32 falcon_idmask = BIT32(FALCON_ID_FECS) | BIT32(FALCON_ID_GPCCS);
+
+	if (!nvgpu_is_enabled(g, NVGPU_SEC_SECUREGPCCS)) {
+		nvgpu_gr_falcon_load_gpccs_with_bootloader(g, falcon);
+#ifdef CONFIG_NVGPU_LS_PMU
+		err = nvgpu_pmu_lsfm_bootstrap_ls_falcon(g, g->pmu,
+				g->pmu->lsfm, BIT32(FALCON_ID_FECS));
+#endif
+	} else {
+		/* bind WPR VA inst block */
+		nvgpu_gr_falcon_bind_instblk(g, falcon);
+		err = gr_falcon_sec2_or_ls_pmu_bootstrap(g,
+					&bootstrap,
+					falcon_idmask);
+		if (!bootstrap) {
+			err = nvgpu_acr_bootstrap_hs_acr(g, g->acr);
+			if (err != 0) {
+				nvgpu_err(g,
+					"ACR GR LSF bootstrap failed");
+			}
+		}
+	}
+
+	return err;
+}
+
+static int gr_falcon_coldboot_bootstrap(struct gk20a *g,
 					struct nvgpu_gr_falcon *falcon)
 {
 	int err = 0;
 	u8 falcon_id_mask = 0;
+	bool bootstrap = false;
+
+	if (!nvgpu_is_enabled(g, NVGPU_SEC_SECUREGPCCS)) {
+		nvgpu_gr_falcon_load_gpccs_with_bootloader(g, falcon);
+	} else {
+		/* bind WPR VA inst block */
+		nvgpu_gr_falcon_bind_instblk(g, falcon);
+		if (nvgpu_acr_is_lsf_lazy_bootstrap(g, g->acr,
+						FALCON_ID_FECS)) {
+			falcon_id_mask |= BIT8(FALCON_ID_FECS);
+		}
+		if (nvgpu_acr_is_lsf_lazy_bootstrap(g, g->acr,
+						FALCON_ID_GPCCS)) {
+			falcon_id_mask |= BIT8(FALCON_ID_GPCCS);
+		}
+
+		err = gr_falcon_sec2_or_ls_pmu_bootstrap(g,
+					&bootstrap,
+					(u32)falcon_id_mask);
+		if (!bootstrap) {
+			/* GR falcons bootstrapped by ACR */
+			err = 0;
+		}
+	}
+
+	return err;
+}
+
+int nvgpu_gr_falcon_load_secure_ctxsw_ucode(struct gk20a *g,
+					struct nvgpu_gr_falcon *falcon)
+{
+	int err = 0;
 
 	nvgpu_log_fn(g, " ");
 
@@ -567,39 +660,7 @@ int nvgpu_gr_falcon_load_secure_ctxsw_ucode(struct gk20a *g,
 
 	if (nvgpu_is_enabled(g, NVGPU_PMU_FECS_BOOTSTRAP_DONE)) {
 		/* this must be recovery so bootstrap fecs and gpccs */
-		if (!nvgpu_is_enabled(g, NVGPU_SEC_SECUREGPCCS)) {
-			nvgpu_gr_falcon_load_gpccs_with_bootloader(g, falcon);
-#ifdef CONFIG_NVGPU_LS_PMU
-			err = nvgpu_pmu_lsfm_bootstrap_ls_falcon(g, g->pmu,
-					g->pmu->lsfm, BIT32(FALCON_ID_FECS));
-#endif
-		} else {
-			/* bind WPR VA inst block */
-			nvgpu_gr_falcon_bind_instblk(g, falcon);
-#ifdef CONFIG_NVGPU_DGPU
-			if (nvgpu_is_enabled(g, NVGPU_SUPPORT_SEC2_RTOS)) {
-				err = nvgpu_sec2_bootstrap_ls_falcons(g,
-					&g->sec2, FALCON_ID_FECS);
-				err = nvgpu_sec2_bootstrap_ls_falcons(g,
-					&g->sec2, FALCON_ID_GPCCS);
-			} else
-#endif
-#ifdef CONFIG_NVGPU_LS_PMU
-			if (g->support_ls_pmu) {
-				err = nvgpu_pmu_lsfm_bootstrap_ls_falcon(g,
-						g->pmu, g->pmu->lsfm,
-						BIT32(FALCON_ID_FECS) |
-						BIT32(FALCON_ID_GPCCS));
-			} else
-#endif
-			{
-				err = nvgpu_acr_bootstrap_hs_acr(g, g->acr);
-				if (err != 0) {
-					nvgpu_err(g,
-						"ACR GR LSF bootstrap failed");
-				}
-			}
-		}
+		err = gr_falcon_recovery_bootstrap(g, falcon);
 		if (err != 0) {
 			nvgpu_err(g, "Unable to recover GR falcon");
 			return err;
@@ -608,44 +669,10 @@ int nvgpu_gr_falcon_load_secure_ctxsw_ucode(struct gk20a *g,
 	} else {
 		/* cold boot or rg exit */
 		nvgpu_set_enabled(g, NVGPU_PMU_FECS_BOOTSTRAP_DONE, true);
-		if (!nvgpu_is_enabled(g, NVGPU_SEC_SECUREGPCCS)) {
-			nvgpu_gr_falcon_load_gpccs_with_bootloader(g, falcon);
-		} else {
-			/* bind WPR VA inst block */
-			nvgpu_gr_falcon_bind_instblk(g, falcon);
-			if (nvgpu_acr_is_lsf_lazy_bootstrap(g, g->acr,
-							FALCON_ID_FECS)) {
-				falcon_id_mask |= BIT8(FALCON_ID_FECS);
-			}
-			if (nvgpu_acr_is_lsf_lazy_bootstrap(g, g->acr,
-							FALCON_ID_GPCCS)) {
-				falcon_id_mask |= BIT8(FALCON_ID_GPCCS);
-			}
-
-#ifdef CONFIG_NVGPU_DGPU
-			if (nvgpu_is_enabled(g, NVGPU_SUPPORT_SEC2_RTOS)) {
-				err = nvgpu_sec2_bootstrap_ls_falcons(g,
-					&g->sec2, FALCON_ID_FECS);
-				err = nvgpu_sec2_bootstrap_ls_falcons(g,
-					&g->sec2, FALCON_ID_GPCCS);
-			} else
-#endif
-#ifdef CONFIG_NVGPU_LS_PMU
-			if (g->support_ls_pmu) {
-				err = nvgpu_pmu_lsfm_bootstrap_ls_falcon(g,
-						g->pmu, g->pmu->lsfm,
-						falcon_id_mask);
-			} else
-#endif
-			{
-				/* GR falcons bootstrapped by ACR */
-				err = 0;
-			}
-
-			if (err != 0) {
-				nvgpu_err(g, "Unable to boot GPCCS");
-				return err;
-			}
+		err = gr_falcon_coldboot_bootstrap(g, falcon);
+		if (err != 0) {
+			nvgpu_err(g, "Unable to boot GPCCS");
+			return err;
 		}
 	}
 
