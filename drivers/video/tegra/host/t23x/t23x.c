@@ -64,6 +64,7 @@
 #include "streamid_regs.c"
 #include "cg_regs.c"
 #include "classid_vm_regs.c"
+#include "mmio_vm_regs.c"
 
 static dma_addr_t nvhost_t23x_get_reloc_phys_addr(dma_addr_t phys_addr,
 						  u32 reloc_type)
@@ -740,6 +741,13 @@ static void t23x_init_map_regs(struct platform_device *pdev)
 		host1x_hypervisor_writel(pdev, host1x_classid_vm_r[i],
 					0xff);
 	}
+
+	/* Update relevant MMIO-to-VM mapping table entries to VM1 (0x1) */
+	for (i = 0; i < ARRAY_SIZE(host1x_mmio_vm_r); i++) {
+		host1x_hypervisor_writel(pdev, host1x_mmio_vm_r[i],
+					0x1);
+	}
+
 }
 
 #include "host1x/host1x_cdma_t186.c"
