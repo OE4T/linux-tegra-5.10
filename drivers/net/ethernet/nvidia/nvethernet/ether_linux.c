@@ -3551,6 +3551,151 @@ static int ether_remove(struct platform_device *pdev)
 	return 0;
 }
 
+#ifdef CONFIG_PM
+static int ether_suspend_noirq(struct device *dev)
+{
+	struct net_device *ndev = dev_get_drvdata(dev);
+	struct ether_priv_data *pdata = netdev_priv(ndev);
+	struct osi_core_priv_data *osi_core = pdata->osi_core;
+	struct osi_dma_priv_data *osi_dma = pdata->osi_dma;
+	unsigned int i = 0, chan = 0;
+
+	if (!netif_running(ndev))
+		return 0;
+
+	if (pdata->phydev) {
+		phy_stop(pdata->phydev);
+		if (gpio_is_valid(pdata->phy_reset))
+			gpio_set_value(pdata->phy_reset, 0);
+	}
+
+	netif_tx_disable(ndev);
+	ether_napi_disable(pdata);
+
+	osi_hw_dma_deinit(osi_dma);
+	osi_hw_core_deinit(osi_core);
+
+	for (i = 0; i < osi_dma->num_dma_chans; i++) {
+		chan = osi_dma->dma_chans[i];
+		osi_disable_chan_tx_intr(osi_dma, chan);
+		osi_disable_chan_rx_intr(osi_dma, chan);
+	}
+
+	free_dma_resources(osi_dma, dev);
+
+	/* disable MAC clocks */
+	ether_disable_clks(pdata);
+
+	return 0;
+}
+
+static int ether_resume(struct ether_priv_data *pdata)
+{
+	struct osi_core_priv_data *osi_core = pdata->osi_core;
+	struct osi_dma_priv_data *osi_dma = pdata->osi_dma;
+	struct device *dev = pdata->dev;
+	struct net_device *ndev = pdata->ndev;
+	int ret = 0;
+
+	if (pdata->mac_rst) {
+		ret = reset_control_reset(pdata->mac_rst);
+		if (ret < 0) {
+			dev_err(dev, "failed to reset mac hw\n");
+			return -1;
+		}
+	}
+
+	ret = osi_poll_for_swr(osi_core);
+	if (ret < 0) {
+		dev_err(dev, "failed to poll mac software reset\n");
+		return ret;
+	}
+
+	ret = osi_pad_calibrate(osi_core);
+	if (ret < 0) {
+		dev_err(dev, "failed to do pad caliberation\n");
+		return ret;
+	}
+
+	osi_set_rx_buf_len(osi_dma);
+
+	ret = ether_allocate_dma_resources(pdata);
+	if (ret < 0) {
+		dev_err(dev, "failed to allocate dma resources\n");
+		return ret;
+	}
+
+	/* initialize mac/mtl/dma common registers */
+	ret = osi_hw_core_init(osi_core,
+			       pdata->hw_feat.tx_fifo_size,
+			       pdata->hw_feat.rx_fifo_size);
+	if (ret < 0) {
+		dev_err(dev,
+			"%s: failed to initialize mac hw core with reason %d\n",
+			__func__, ret);
+		goto err_core;
+	}
+
+	/* dma init */
+	ret = osi_hw_dma_init(osi_dma);
+	if (ret < 0) {
+		dev_err(dev,
+			"%s: failed to initialize mac hw dma with reason %d\n",
+			__func__, ret);
+		goto err_dma;
+	}
+
+	/* start the mac */
+	osi_start_mac(osi_core);
+	/* enable NAPI */
+	ether_napi_enable(pdata);
+	/* start phy */
+	phy_start(pdata->phydev);
+	/* start network queues */
+	netif_tx_start_all_queues(ndev);
+
+	return 0;
+
+err_dma:
+	osi_hw_core_deinit(osi_core);
+err_core:
+	free_dma_resources(osi_dma, dev);
+
+	return ret;
+}
+
+static int ether_resume_noirq(struct device *dev)
+{
+	struct net_device *ndev = dev_get_drvdata(dev);
+	struct ether_priv_data *pdata = netdev_priv(ndev);
+	int ret = 0;
+
+	if (!netif_running(ndev))
+		return 0;
+
+	ether_enable_clks(pdata);
+
+	if (gpio_is_valid(pdata->phy_reset) &&
+	    !gpio_get_value(pdata->phy_reset)) {
+		/* deassert phy reset */
+		gpio_set_value(pdata->phy_reset, 1);
+	}
+
+	ret = ether_resume(pdata);
+	if (ret < 0) {
+		dev_err(dev, "failed to resume the MAC\n");
+		return ret;
+	}
+
+	return 0;
+}
+
+static const struct dev_pm_ops ether_pm_ops = {
+	.suspend_noirq = ether_suspend_noirq,
+	.resume_noirq = ether_resume_noirq,
+};
+#endif
+
 static const struct of_device_id ether_of_match[] = {
 	{ .compatible = "nvidia,nveqos" },
 	{},
@@ -3563,6 +3708,9 @@ static struct platform_driver ether_driver = {
 	.driver = {
 		.name = "nvethernet",
 		.of_match_table = ether_of_match,
+#ifdef CONFIG_PM
+		.pm = &ether_pm_ops,
+#endif
 	},
 };
 
