@@ -96,16 +96,17 @@ u32 gk20a_fifo_pbdma_isr(struct gk20a *g)
 	u32 pbdma_pending_bitmask = nvgpu_readl(g, fifo_intr_pbdma_id_r());
 	u32 error_notifier;
 	bool recover;
+	struct nvgpu_pbdma_status_info pbdma_status;
 
 	for (pbdma_id = 0; pbdma_id < num_pbdma; pbdma_id++) {
 		if (fifo_intr_pbdma_id_status_v(pbdma_pending_bitmask, pbdma_id) != 0U) {
 			nvgpu_log(g, gpu_dbg_intr, "pbdma id %d intr pending",
 				pbdma_id);
 			recover = g->ops.pbdma.handle_intr(g, pbdma_id,
-				&error_notifier);
+				&error_notifier, &pbdma_status);
 			if (recover) {
 				nvgpu_rc_pbdma_fault(g, f, pbdma_id,
-					error_notifier);
+					error_notifier, &pbdma_status);
 			}
 		}
 	}

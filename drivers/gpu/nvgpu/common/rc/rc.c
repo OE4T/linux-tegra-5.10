@@ -77,25 +77,36 @@ void nvgpu_rc_ctxsw_timeout(struct gk20a *g, u32 eng_bitmask,
 }
 
 void nvgpu_rc_pbdma_fault(struct gk20a *g, struct nvgpu_fifo *f,
-			u32 pbdma_id, u32 error_notifier)
+			u32 pbdma_id, u32 error_notifier,
+			struct nvgpu_pbdma_status_info *pbdma_status)
 {
 	u32 id;
-	struct nvgpu_pbdma_status_info pbdma_status;
+	u32 id_type = PBDMA_STATUS_ID_TYPE_INVALID;
 
 	nvgpu_log(g, gpu_dbg_info, "pbdma id %d error notifier %d",
 			pbdma_id, error_notifier);
 
-	g->ops.pbdma_status.read_pbdma_status_info(g, pbdma_id,
-		&pbdma_status);
-	/* Remove channel from runlist */
-	id = pbdma_status.id;
-	if (pbdma_status.id_type == PBDMA_STATUS_ID_TYPE_TSGID) {
+	if (nvgpu_pbdma_status_is_chsw_valid(pbdma_status) ||
+			nvgpu_pbdma_status_is_chsw_save(pbdma_status)) {
+		id = pbdma_status->id;
+		id_type = pbdma_status->id_type;
+	} else if (nvgpu_pbdma_status_is_chsw_load(pbdma_status) ||
+			nvgpu_pbdma_status_is_chsw_switch(pbdma_status)) {
+		id = pbdma_status->next_id;
+		id_type = pbdma_status->next_id_type;
+	} else {
+		/* Nothing to do here */
+		nvgpu_err(g, "Invalid pbdma_status.id");
+		return;
+	}
+
+	if (id_type == PBDMA_STATUS_ID_TYPE_TSGID) {
 		struct nvgpu_tsg *tsg = nvgpu_tsg_get_from_id(g, id);
 
 		nvgpu_tsg_set_error_notifier(g, tsg, error_notifier);
 		nvgpu_rc_tsg_and_related_engines(g, tsg, true,
 			RC_TYPE_PBDMA_FAULT);
-	} else if(pbdma_status.id_type == PBDMA_STATUS_ID_TYPE_CHID) {
+	} else if(id_type == PBDMA_STATUS_ID_TYPE_CHID) {
 		struct nvgpu_channel *ch = nvgpu_channel_from_id(g, id);
 		struct nvgpu_tsg *tsg;
 		if (ch == NULL) {

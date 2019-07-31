@@ -41,12 +41,14 @@ struct gk20a;
 struct nvgpu_fifo;
 struct nvgpu_tsg;
 struct nvgpu_channel;
+struct nvgpu_pbdma_status_info;
 
 void nvgpu_rc_ctxsw_timeout(struct gk20a *g, u32 eng_bitmask,
 				struct nvgpu_tsg *tsg, bool debug_dump);
 
 void nvgpu_rc_pbdma_fault(struct gk20a *g, struct nvgpu_fifo *f,
-			u32 pbdma_id, u32 error_notifier);
+			u32 pbdma_id, u32 error_notifier,
+			struct nvgpu_pbdma_status_info *pbdma_status);
 
 void nvgpu_rc_runlist_update(struct gk20a *g, u32 runlist_id);
 

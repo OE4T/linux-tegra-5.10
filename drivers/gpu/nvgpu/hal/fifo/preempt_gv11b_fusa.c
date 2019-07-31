@@ -173,10 +173,7 @@ int gv11b_fifo_preempt_poll_pbdma(struct gk20a *g, u32 tsgid,
 		 */
 
 		/* Ignore un-needed return value "recover" */
-		(void)g->ops.pbdma.handle_intr(g, pbdma_id, NULL);
-
-		g->ops.pbdma_status.read_pbdma_status_info(g, pbdma_id,
-			&pbdma_status);
+		(void)g->ops.pbdma.handle_intr(g, pbdma_id, NULL, &pbdma_status);
 
 		if (nvgpu_pbdma_status_is_chsw_valid(&pbdma_status) ||
 			nvgpu_pbdma_status_is_chsw_save(&pbdma_status)) {

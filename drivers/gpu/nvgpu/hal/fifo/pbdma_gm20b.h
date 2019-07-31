@@ -29,11 +29,13 @@ struct gk20a;
 struct nvgpu_debug_context;
 struct nvgpu_channel_dump_info;
 struct nvgpu_gpfifo_entry;
+struct nvgpu_pbdma_status_info;
 
 bool gm20b_pbdma_handle_intr_0(struct gk20a *g, u32 pbdma_id,
 			u32 pbdma_intr_0, u32 *error_notifier);
 bool gm20b_pbdma_handle_intr(struct gk20a *g, u32 pbdma_id,
-			u32 *error_notifier);
+			u32 *error_notifier,
+			struct nvgpu_pbdma_status_info *pbdma_status);
 
 u32 gm20b_pbdma_read_data(struct gk20a *g, u32 pbdma_id);
 void gm20b_pbdma_reset_header(struct gk20a *g, u32 pbdma_id);

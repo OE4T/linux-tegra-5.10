@@ -116,6 +116,7 @@ struct _resmgr_context;
 struct nvgpu_gpfifo_entry;
 struct vm_gk20a_mapping_batch;
 struct pmu_pg_stats_data;
+struct nvgpu_pbdma_status_info;
 
 enum nvgpu_flush_op;
 enum gk20a_mem_rw_flag;
@@ -1172,7 +1173,8 @@ struct gpu_ops {
 				u32 *error_notifier);
 		/* error_notifier can be NULL */
 		bool (*handle_intr)(struct gk20a *g, u32 pbdma_id,
-				u32 *error_notifier);
+				u32 *error_notifier,
+				struct nvgpu_pbdma_status_info *pbdma_status);
 		u32 (*get_signature)(struct gk20a *g);
 		void (*dump_status)(struct gk20a *g,
 				struct nvgpu_debug_context *o);

@@ -356,7 +356,8 @@ u32 gm20b_pbdma_restartable_0_intr_descs(void)
 }
 
 bool gm20b_pbdma_handle_intr(struct gk20a *g, u32 pbdma_id,
-			u32 *error_notifier)
+			u32 *error_notifier,
+			struct nvgpu_pbdma_status_info *pbdma_status)
 {
 	u32 intr_error_notifier = NVGPU_ERR_NOTIFIER_PBDMA_ERROR;
 
@@ -372,6 +373,8 @@ bool gm20b_pbdma_handle_intr(struct gk20a *g, u32 pbdma_id,
 
 		if (g->ops.pbdma.handle_intr_0(g, pbdma_id, pbdma_intr_0,
 			&intr_error_notifier)) {
+			g->ops.pbdma_status.read_pbdma_status_info(g,
+				pbdma_id, pbdma_status);
 			recover = true;
 		}
 		nvgpu_writel(g, pbdma_intr_0_r(pbdma_id), pbdma_intr_0);
@@ -384,6 +387,8 @@ bool gm20b_pbdma_handle_intr(struct gk20a *g, u32 pbdma_id,
 
 		if (g->ops.pbdma.handle_intr_1(g, pbdma_id, pbdma_intr_1,
 			&intr_error_notifier)) {
+			g->ops.pbdma_status.read_pbdma_status_info(g,
+				pbdma_id, pbdma_status);
 			recover = true;
 		}
 		nvgpu_writel(g, pbdma_intr_1_r(pbdma_id), pbdma_intr_1);
