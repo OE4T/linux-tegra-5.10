@@ -28,6 +28,27 @@
 
 #include <nvgpu/hw/gv11b/hw_gr_gv11b.h>
 
+static void gr_falcon_set_fecs_ecc_error_status(u32 ecc_status,
+		struct nvgpu_fecs_ecc_status *fecs_ecc_status)
+{
+	if ((ecc_status &
+	     gr_fecs_falcon_ecc_status_corrected_err_imem_m()) != 0U) {
+		fecs_ecc_status->imem_corrected_err = true;
+	}
+	if ((ecc_status &
+	     gr_fecs_falcon_ecc_status_uncorrected_err_imem_m()) != 0U) {
+		fecs_ecc_status->imem_uncorrected_err = true;
+	}
+	if ((ecc_status &
+	     gr_fecs_falcon_ecc_status_corrected_err_dmem_m()) != 0U) {
+		fecs_ecc_status->dmem_corrected_err = true;
+	}
+	if ((ecc_status &
+	     gr_fecs_falcon_ecc_status_uncorrected_err_dmem_m()) != 0U) {
+		fecs_ecc_status->dmem_uncorrected_err = true;
+	}
+}
+
 void gv11b_gr_falcon_handle_fecs_ecc_error(struct gk20a *g,
 			struct nvgpu_fecs_ecc_status *fecs_ecc_status)
 {
@@ -83,22 +104,9 @@ void gv11b_gr_falcon_handle_fecs_ecc_error(struct gk20a *g,
 		nvgpu_log(g, gpu_dbg_intr,
 			"fecs ecc interrupt intr: 0x%x", gr_fecs_intr);
 
-		if ((ecc_status &
-		     gr_fecs_falcon_ecc_status_corrected_err_imem_m()) != 0U) {
-			fecs_ecc_status->imem_corrected_err = true;
-		}
-		if ((ecc_status &
-		     gr_fecs_falcon_ecc_status_uncorrected_err_imem_m()) != 0U) {
-			fecs_ecc_status->imem_uncorrected_err = true;
-		}
-		if ((ecc_status &
-		     gr_fecs_falcon_ecc_status_corrected_err_dmem_m()) != 0U) {
-			fecs_ecc_status->dmem_corrected_err = true;
-		}
-		if ((ecc_status &
-		     gr_fecs_falcon_ecc_status_uncorrected_err_dmem_m()) != 0U) {
-			fecs_ecc_status->dmem_uncorrected_err = true;
-		}
+		gr_falcon_set_fecs_ecc_error_status(ecc_status,
+							fecs_ecc_status);
+
 		if ((corrected_overflow != 0U) || (uncorrected_overflow != 0U)) {
 			nvgpu_info(g, "fecs ecc counter overflow!");
 		}
