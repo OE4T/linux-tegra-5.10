@@ -2734,7 +2734,7 @@ static inline int eqos_poll_for_tsinit_complete(void *addr,
 			cond = 0;
 		}
 		count++;
-		osd_msleep(1U);
+		osd_udelay(1000U);
 	}
 
 	return 0;
@@ -2823,7 +2823,7 @@ static inline int eqos_poll_for_addend_complete(void *addr,
 			cond = 0;
 		}
 		count++;
-		osd_msleep(1U);
+		osd_udelay(1000U);
 	}
 
 	return 0;
@@ -2904,7 +2904,7 @@ static inline int eqos_poll_for_update_ts_complete(void *addr,
 			cond = 0;
 		}
 		count++;
-		osd_msleep(1U);
+		osd_udelay(1000U);
 	}
 
 	return 0;
