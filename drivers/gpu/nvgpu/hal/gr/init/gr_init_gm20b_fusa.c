@@ -377,22 +377,22 @@ void gm20b_gr_init_load_method_init(struct gk20a *g,
 	u32 last_method_data = 0U;
 
 	if (sw_method_init->count != 0U) {
-		nvgpu_writel(g, gr_pri_mme_shadow_raw_data_r(),
+		nvgpu_writel(g, gr_pri_mme_shadow_ram_data_r(),
 			     sw_method_init->l[0U].value);
-		nvgpu_writel(g, gr_pri_mme_shadow_raw_index_r(),
-			     gr_pri_mme_shadow_raw_index_write_trigger_f() |
+		nvgpu_writel(g, gr_pri_mme_shadow_ram_index_r(),
+			     gr_pri_mme_shadow_ram_index_write_trigger_f() |
 			     sw_method_init->l[0U].addr);
 		last_method_data = sw_method_init->l[0U].value;
 	}
 
 	for (i = 1U; i < sw_method_init->count; i++) {
 		if (sw_method_init->l[i].value != last_method_data) {
-			nvgpu_writel(g, gr_pri_mme_shadow_raw_data_r(),
+			nvgpu_writel(g, gr_pri_mme_shadow_ram_data_r(),
 				sw_method_init->l[i].value);
 			last_method_data = sw_method_init->l[i].value;
 		}
-		nvgpu_writel(g, gr_pri_mme_shadow_raw_index_r(),
-			gr_pri_mme_shadow_raw_index_write_trigger_f() |
+		nvgpu_writel(g, gr_pri_mme_shadow_ram_index_r(),
+			gr_pri_mme_shadow_ram_index_write_trigger_f() |
 			sw_method_init->l[i].addr);
 	}
 }

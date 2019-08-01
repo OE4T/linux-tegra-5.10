@@ -360,9 +360,9 @@
 #define gr_fe_object_table_nvclass_v(r)                  (((r) >> 0U) & 0xffffU)
 #define gr_fe_tpc_fs_r(i)\
 		(nvgpu_safe_add_u32(0x0040a200U, nvgpu_safe_mult_u32((i), 4U)))
-#define gr_pri_mme_shadow_raw_index_r()                            (0x00404488U)
-#define gr_pri_mme_shadow_raw_index_write_trigger_f()              (0x80000000U)
-#define gr_pri_mme_shadow_raw_data_r()                             (0x0040448cU)
+#define gr_pri_mme_shadow_ram_index_r()                            (0x00404488U)
+#define gr_pri_mme_shadow_ram_index_write_trigger_f()              (0x80000000U)
+#define gr_pri_mme_shadow_ram_data_r()                             (0x0040448cU)
 #define gr_mme_hww_esr_r()                                         (0x00404490U)
 #define gr_mme_hww_esr_missing_macro_data_pending_f()                     (0x1U)
 #define gr_mme_hww_esr_illegal_opcode_pending_f()                         (0x4U)
