@@ -565,6 +565,62 @@ static int ether_config_l2_da_filter(struct net_device *dev,
 }
 
 /**
+ *	ether_config_loopback_mode- This function is invoked by ioctl
+ *	when user issues an ioctl command to enable/disable MAC loopback mode.
+ *
+ *	@dev: pointer to net device structure.
+ *	@flags: flag to indicate whether MAC loopback mode to be enabled or
+ *	disabled.
+ *
+ *	Algorithm:
+ *	1) check if loopback mode enalbed/disable already and return success.
+ *	2) OSI call to configure loopback mode in HW.
+ *
+ *	Dependencies: MAC and PHY need to be initialized.
+ *
+ *	Protection: None.
+ *
+ *	Return 0- sucessful, Negative - error
+ */
+static int ether_config_loopback_mode(struct net_device *ndev,
+				      unsigned int flags)
+{
+	struct ether_priv_data *pdata = netdev_priv(ndev);
+	struct osi_core_priv_data *osi_core = pdata->osi_core;
+	int ret = 0;
+
+	if ((flags && (pdata->mac_loopback_mode == OSI_ENABLE)) ||
+	    (!flags && (pdata->mac_loopback_mode == OSI_DISABLE))) {
+		dev_info(pdata->dev, "Loopback mode is already configured\n");
+		return ret;
+	}
+
+	if (flags) {
+		netif_carrier_on(ndev);
+		ret = osi_config_mac_loopback(osi_core, OSI_ENABLE);
+		if (ret < 0) {
+			dev_err(pdata->dev,
+				"Failed to enable MAC Loopback\n");
+		} else {
+			pdata->mac_loopback_mode = OSI_ENABLE;
+			dev_info(pdata->dev, "MAC loopback enabled\n");
+		}
+	} else {
+		netif_carrier_off(ndev);
+		ret = osi_config_mac_loopback(osi_core, OSI_DISABLE);
+		if (ret < 0) {
+			dev_err(pdata->dev,
+				"Failed to disable MAC Loopback\n");
+		} else {
+			pdata->mac_loopback_mode = OSI_DISABLE;
+			dev_info(pdata->dev, "MAC loopback disabled\n");
+		}
+	}
+
+	return ret;
+}
+
+/**
  *	ether_priv_ioctl - Handle private IOCTLs
  *	@ndev: network device structure
  *	@ifr: Interface request structure used for socket ioctl's.
@@ -640,6 +696,9 @@ int ether_handle_priv_ioctl(struct net_device *ndev,
 		break;
 	case EQOS_L2_DA_FILTERING_CMD:
 		ret = ether_config_l2_da_filter(ndev, &ifdata);
+		break;
+	case ETHER_CONFIG_LOOPBACK_MODE:
+		ret = ether_config_loopback_mode(ndev, ifdata.if_flags);
 		break;
 	default:
 		break;
