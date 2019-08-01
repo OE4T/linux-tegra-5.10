@@ -589,6 +589,11 @@
 #define gr_fe_tpc_pesmask_req_send_f()                             (0x80000000U)
 #define gr_fe_tpc_pesmask_mask_m()                          (U32(0xffffU) << 0U)
 #define gr_pri_mme_shadow_ram_index_r()                            (0x00404488U)
+#define gr_pri_mme_shadow_ram_index_nvclass_f(v)      ((U32(v) & 0xffffU) << 0U)
+#define gr_pri_mme_shadow_ram_index_method_address_f(v)\
+				((U32(v) & 0xfffU) << 16U)
+#define gr_pri_mme_shadow_ram_index_fepipe_f(v)         ((U32(v) & 0x1U) << 29U)
+#define gr_pri_mme_shadow_ram_index_fepipe_fe0_f()                        (0x0U)
 #define gr_pri_mme_shadow_ram_index_write_trigger_f()              (0x80000000U)
 #define gr_pri_mme_shadow_ram_data_r()                             (0x0040448cU)
 #define gr_mme_hww_esr_r()                                         (0x00404490U)
