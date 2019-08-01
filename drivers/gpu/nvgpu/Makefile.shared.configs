@@ -93,6 +93,10 @@ NVGPU_COMMON_CFLAGS                  += -DCONFIG_NVGPU_CHANNEL_TSG_CONTROL
 CONFIG_NVGPU_LOGGING                 := 1
 NVGPU_COMMON_CFLAGS                  += -DCONFIG_NVGPU_LOGGING
 
+# Enable recovery for safety build until sw quiesce is done
+CONFIG_NVGPU_RECOVERY           := 1
+NVGPU_COMMON_CFLAGS             += -DCONFIG_NVGPU_RECOVERY
+
 #
 # Flags enabled only for safety debug and regular build profile.
 #

@@ -71,7 +71,9 @@
 #include "hal/fuse/fuse_gp10b.h"
 #include "hal/ptimer/ptimer_gk20a.h"
 #include "hal/regops/regops_gv11b.h"
+#ifdef CONFIG_NVGPU_RECOVERY
 #include "hal/rc/rc_gv11b.h"
+#endif
 #include "hal/fifo/fifo_gk20a.h"
 #include "hal/fifo/fifo_gv11b.h"
 #include "hal/fifo/pbdma_gm20b.h"
@@ -833,7 +835,9 @@ static const struct gpu_ops gv11b_ops = {
 		.init_pbdma_map = gk20a_fifo_init_pbdma_map,
 		.is_preempt_pending = gv11b_fifo_is_preempt_pending,
 		.reset_enable_hw = gv11b_init_fifo_reset_enable_hw,
+#ifdef CONFIG_NVGPU_RECOVERY
 		.recover = gv11b_fifo_recover,
+#endif
 		.intr_set_recover_mask = gv11b_fifo_intr_set_recover_mask,
 		.intr_unset_recover_mask = gv11b_fifo_intr_unset_recover_mask,
 		.setup_sw = nvgpu_fifo_setup_sw,

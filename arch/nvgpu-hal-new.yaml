@@ -119,7 +119,7 @@ rc:
   owner: Seema K
   sources: [ hal/rc/rc_gk20a.c,
              hal/rc/rc_gk20a.h,
-             hal/rc/rc_gv11b_fusa.c,
+             hal/rc/rc_gv11b.c,
              hal/rc/rc_gv11b.h ]
 
 fbpa:

@@ -187,3 +187,10 @@ config NVGPU_HAL_NON_FUSA
 	help
 	  Enable/Disable the support of HALs from chips that do not have functional
 	  safety certification
+
+config NVGPU_RECOVERY
+	bool "Recovery support"
+	depends on GK20A
+	default y
+	help
+	  Support recovery on failure (which may involve engine reset)

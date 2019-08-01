@@ -62,6 +62,14 @@ ifeq ($(CONFIG_NVGPU_HAL_NON_FUSA),y)
 ccflags-y += -DCONFIG_NVGPU_HAL_NON_FUSA
 endif
 
+ifeq ($(CONFIG_NVGPU_RECOVERY),y)
+ccflags-y += -DCONFIG_NVGPU_RECOVERY
+nvgpu-y += \
+	common/rc/rc.o \
+	hal/rc/rc_gk20a.o \
+	hal/rc/rc_gv11b.o
+endif
+
 obj-$(CONFIG_GK20A) := nvgpu.o
 
 # OS independent parts of nvgpu. The work to collect files here
@@ -252,7 +260,6 @@ nvgpu-y += \
 	hal/fuse/fuse_gm20b.o \
 	hal/fuse/fuse_gp106.o \
 	hal/func/func_tu104.o \
-	hal/rc/rc_gk20a.o \
 	hal/fifo/fifo_gk20a.o \
 	hal/fifo/fifo_tu104.o \
 	hal/fifo/preempt_gk20a.o \
@@ -490,7 +497,6 @@ nvgpu-y += \
 	common/sim/sim.o \
 	common/sim/sim_pci.o \
 	common/sim/sim_netlist.o \
-	common/rc/rc.o \
 	common/fifo/fifo.o \
 	common/fifo/preempt.o \
 	common/fifo/channel.o \
@@ -640,7 +646,6 @@ nvgpu-y += \
 	hal/priv_ring/priv_ring_gm20b_fusa.o \
 	hal/priv_ring/priv_ring_gp10b_fusa.o \
 	hal/ptimer/ptimer_gk20a_fusa.o \
-	hal/rc/rc_gv11b_fusa.o \
 	hal/sync/syncpt_cmdbuf_gv11b_fusa.o \
 	hal/therm/therm_gm20b_fusa.o \
 	hal/therm/therm_gv11b_fusa.o \

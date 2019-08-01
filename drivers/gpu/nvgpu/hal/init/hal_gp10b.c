@@ -96,7 +96,9 @@
 #include "hal/fifo/mmu_fault_gm20b.h"
 #include "hal/fifo/mmu_fault_gp10b.h"
 #include "hal/fifo/ctxsw_timeout_gk20a.h"
+#ifdef CONFIG_NVGPU_RECOVERY
 #include "hal/rc/rc_gk20a.h"
+#endif
 #include "hal/gr/ecc/ecc_gp10b.h"
 #include "hal/gr/fecs_trace/fecs_trace_gm20b.h"
 #include "hal/gr/config/gr_config_gm20b.h"
@@ -675,7 +677,9 @@ static const struct gpu_ops gp10b_ops = {
 		.init_pbdma_map = gk20a_fifo_init_pbdma_map,
 		.is_preempt_pending = gk20a_fifo_is_preempt_pending,
 		.reset_enable_hw = gk20a_init_fifo_reset_enable_hw,
+#ifdef CONFIG_NVGPU_RECOVERY
 		.recover = gk20a_fifo_recover,
+#endif
 		.intr_set_recover_mask = gk20a_fifo_intr_set_recover_mask,
 		.intr_unset_recover_mask = gk20a_fifo_intr_unset_recover_mask,
 		.setup_sw = nvgpu_fifo_setup_sw,
