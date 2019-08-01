@@ -22,6 +22,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/timers.h>
 #include <nvgpu/falcon.h>
+#include <nvgpu/safe_ops.h>
 
 #include "falcon_sw_gk20a.h"
 #ifdef CONFIG_NVGPU_DGPU
@@ -430,7 +431,7 @@ struct nvgpu_falcon *nvgpu_falcon_get_instance(struct gk20a *g, u32 flcn_id)
 
 static int falcon_sw_init(struct gk20a *g, struct nvgpu_falcon *flcn)
 {
-	u32 ver = g->params.gpu_arch + g->params.gpu_impl;
+	u32 ver = nvgpu_safe_add_u32(g->params.gpu_arch, g->params.gpu_impl);
 	int err = 0;
 
 	switch (ver) {
