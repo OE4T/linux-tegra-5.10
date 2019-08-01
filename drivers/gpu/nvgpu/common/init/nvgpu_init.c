@@ -47,6 +47,9 @@
 #include <nvgpu/channel_sync.h>
 #include <nvgpu/gr/gr.h>
 #include <nvgpu/nvgpu_init.h>
+#ifndef CONFIG_NVGPU_CE
+#include <nvgpu/engines.h>
+#endif
 
 #ifdef CONFIG_NVGPU_TRACE
 #include <trace/events/gk20a.h>
@@ -490,6 +493,8 @@ int nvgpu_finalize_poweron(struct gk20a *g)
 		nvgpu_err(g, "failed to init ce");
 		goto done;
 	}
+#else
+	g->ops.mc.reset(g, nvgpu_engine_get_all_ce_reset_mask(g));
 #endif
 
 #ifdef CONFIG_NVGPU_DGPU
