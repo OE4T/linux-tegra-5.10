@@ -308,5 +308,5 @@ void gm20b_fb_read_wpr_info(struct gk20a *g, u64 *wpr_base, u64 *wpr_size)
 			(val << WPR_INFO_ADDR_ALIGNMENT));
 
 	*wpr_base = wpr_start;
-	*wpr_size = (wpr_end - wpr_start);
+	*wpr_size = nvgpu_safe_sub_u64(wpr_end, wpr_start);
 }

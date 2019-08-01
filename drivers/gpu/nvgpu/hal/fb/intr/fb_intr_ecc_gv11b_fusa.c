@@ -146,10 +146,14 @@ static void gv11b_fb_intr_handle_ecc_l2tlb(struct gk20a *g, u32 ecc_status)
 			BIT32(fb_mmu_l2tlb_ecc_uncorrected_err_count_total_s());
 	}
 
-	g->ecc.fb.mmu_l2tlb_ecc_corrected_err_count[0].counter +=
-							corrected_delta;
-	g->ecc.fb.mmu_l2tlb_ecc_uncorrected_err_count[0].counter +=
-							uncorrected_delta;
+	g->ecc.fb.mmu_l2tlb_ecc_corrected_err_count[0].counter =
+		nvgpu_safe_add_u32(
+			g->ecc.fb.mmu_l2tlb_ecc_corrected_err_count[0].counter,
+			corrected_delta);
+	g->ecc.fb.mmu_l2tlb_ecc_uncorrected_err_count[0].counter =
+		nvgpu_safe_add_u32(
+		       g->ecc.fb.mmu_l2tlb_ecc_uncorrected_err_count[0].counter,
+		       uncorrected_delta);
 
 	if ((ecc_status &
 		fb_mmu_l2tlb_ecc_status_corrected_err_l2tlb_sa_data_m())
@@ -224,10 +228,14 @@ static void gv11b_fb_intr_handle_ecc_hubtlb(struct gk20a *g, u32 ecc_status)
 			BIT32(fb_mmu_hubtlb_ecc_uncorrected_err_count_total_s());
 	}
 
-	g->ecc.fb.mmu_hubtlb_ecc_corrected_err_count[0].counter +=
-							corrected_delta;
-	g->ecc.fb.mmu_hubtlb_ecc_uncorrected_err_count[0].counter +=
-							uncorrected_delta;
+	g->ecc.fb.mmu_hubtlb_ecc_corrected_err_count[0].counter =
+		nvgpu_safe_add_u32(
+			g->ecc.fb.mmu_hubtlb_ecc_corrected_err_count[0].counter,
+			corrected_delta);
+	g->ecc.fb.mmu_hubtlb_ecc_uncorrected_err_count[0].counter =
+		nvgpu_safe_add_u32(
+		      g->ecc.fb.mmu_hubtlb_ecc_uncorrected_err_count[0].counter,
+		      uncorrected_delta);
 
 	if ((ecc_status &
 	     fb_mmu_hubtlb_ecc_status_corrected_err_sa_data_m()) != 0U) {
@@ -301,10 +309,14 @@ static void gv11b_fb_intr_handle_ecc_fillunit(struct gk20a *g, u32 ecc_status)
 			BIT32(fb_mmu_fillunit_ecc_uncorrected_err_count_total_s());
 	}
 
-	g->ecc.fb.mmu_fillunit_ecc_corrected_err_count[0].counter +=
-							corrected_delta;
-	g->ecc.fb.mmu_fillunit_ecc_uncorrected_err_count[0].counter +=
-							uncorrected_delta;
+	g->ecc.fb.mmu_fillunit_ecc_corrected_err_count[0].counter =
+		nvgpu_safe_add_u32(
+		      g->ecc.fb.mmu_fillunit_ecc_corrected_err_count[0].counter,
+		      corrected_delta);
+	g->ecc.fb.mmu_fillunit_ecc_uncorrected_err_count[0].counter =
+		nvgpu_safe_add_u32(
+		    g->ecc.fb.mmu_fillunit_ecc_uncorrected_err_count[0].counter,
+		    uncorrected_delta);
 
 	if ((ecc_status &
 		fb_mmu_fillunit_ecc_status_corrected_err_pte_data_m()) != 0U) {
