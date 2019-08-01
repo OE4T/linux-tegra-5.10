@@ -24,6 +24,7 @@
 #include <nvgpu/kmem.h>
 #include <nvgpu/log.h>
 #include <nvgpu/fbp.h>
+#include <nvgpu/safe_ops.h>
 
 #include "fbp_priv.h"
 
@@ -60,11 +61,13 @@ int nvgpu_fbp_init_support(struct gk20a *g)
 	 */
 	fbp_en_mask = g->ops.fuse.fuse_status_opt_fbp(g);
 	fbp_en_mask = ~fbp_en_mask;
-	fbp_en_mask = fbp_en_mask & (BIT32(fbp->max_fbps_count) - 1U);
+	fbp_en_mask = fbp_en_mask &
+		nvgpu_safe_sub_u32(BIT32(fbp->max_fbps_count), 1U);
 	fbp->fbp_en_mask = fbp_en_mask;
 
 	fbp->fbp_rop_l2_en_mask =
-		nvgpu_kzalloc(g, fbp->max_fbps_count * sizeof(u32));
+		nvgpu_kzalloc(g,
+			nvgpu_safe_mult_u64(fbp->max_fbps_count, sizeof(u32)));
 	if (fbp->fbp_rop_l2_en_mask == NULL) {
 		nvgpu_kfree(g, fbp);
 		return -ENOMEM;
@@ -72,7 +75,7 @@ int nvgpu_fbp_init_support(struct gk20a *g)
 
 	fbp_en_mask_tmp = fbp_en_mask;
 	max_ltc_per_fbp = g->ops.top.get_max_ltc_per_fbp(g);
-	rop_l2_all_en = BIT32(max_ltc_per_fbp) - 1U;
+	rop_l2_all_en = nvgpu_safe_sub_u32(BIT32(max_ltc_per_fbp), 1U);
 
 	/* mask of Rop_L2 for each FBP */
 	for_each_set_bit(i, &fbp_en_mask_tmp, fbp->max_fbps_count) {
