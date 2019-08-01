@@ -48,7 +48,7 @@ int nvgpu_vm_area_validate_buffer(struct vm_gk20a *vm,
 	struct gk20a *g = vm->mm->g;
 	struct nvgpu_vm_area *vm_area;
 	struct nvgpu_mapped_buf *buffer;
-	u64 map_end = map_addr + map_size;
+	u64 map_end = nvgpu_safe_add_u64(map_addr, map_size);
 
 	/* can wrap around with insane map_size; zero is disallowed too */
 	if (map_end <= map_addr) {

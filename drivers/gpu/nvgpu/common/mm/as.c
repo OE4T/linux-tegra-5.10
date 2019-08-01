@@ -39,7 +39,8 @@ static int generate_as_share_id(struct gk20a_as *as)
 	struct gk20a *g = gk20a_from_as(as);
 
 	nvgpu_log_fn(g, " ");
-	return ++as->last_share_id;
+	as->last_share_id = nvgpu_safe_add_s32(as->last_share_id, 1);
+	return as->last_share_id;
 }
 /* still dumb */
 static void release_as_share_id(struct gk20a_as *as, int id)
@@ -82,13 +83,14 @@ static int gk20a_vm_alloc_share(struct gk20a_as_share *as_share,
 	}
 
 	p = strncpy(name, "as_", sizeof("as_"));
-	(void) nvgpu_strnadd_u32(p, (u32)as_share->id,
+	(void) nvgpu_strnadd_u32(p, nvgpu_safe_cast_s32_to_u32(as_share->id),
 					sizeof(name) - sizeof("as_"), 10U);
 
 	vm = nvgpu_vm_init(g, big_page_size,
 			   U64(big_page_size) << U64(10),
 			   mm->channel.kernel_size,
-			   mm->channel.user_size + mm->channel.kernel_size,
+			   nvgpu_safe_add_u64(mm->channel.user_size,
+			   mm->channel.kernel_size),
 			   !mm->disable_bigpage,
 			   userspace_managed, unified_va, name);
 	if (vm == NULL) {

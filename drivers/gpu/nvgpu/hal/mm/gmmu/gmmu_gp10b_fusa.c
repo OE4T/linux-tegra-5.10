@@ -88,8 +88,10 @@ static void update_gmmu_pde3_locked(struct vm_gk20a *vm,
 	pde_v[0] |= gmmu_new_pde_vol_true_f();
 	pde_v[1] |= nvgpu_safe_cast_u64_to_u32(phys_addr >> 24);
 
-	nvgpu_pd_write(g, pd, (size_t)pd_offset + (size_t)0, pde_v[0]);
-	nvgpu_pd_write(g, pd, (size_t)pd_offset + (size_t)1, pde_v[1]);
+	nvgpu_pd_write(g, pd, (size_t)nvgpu_safe_add_u32(pd_offset, 0U),
+								pde_v[0]);
+	nvgpu_pd_write(g, pd, (size_t)nvgpu_safe_add_u32(pd_offset, 1U),
+								pde_v[1]);
 
 	pte_dbg(g, attrs,
 		"PDE: i=%-4u size=%-2u offs=%-4u pgsz: -- | "
@@ -152,10 +154,14 @@ static void update_gmmu_pde0_locked(struct vm_gk20a *vm,
 		pde_v[1] |= big_addr >> 28;
 	}
 
-	nvgpu_pd_write(g, pd, (size_t)pd_offset + (size_t)0, pde_v[0]);
-	nvgpu_pd_write(g, pd, (size_t)pd_offset + (size_t)1, pde_v[1]);
-	nvgpu_pd_write(g, pd, (size_t)pd_offset + (size_t)2, pde_v[2]);
-	nvgpu_pd_write(g, pd, (size_t)pd_offset + (size_t)3, pde_v[3]);
+	nvgpu_pd_write(g, pd, (size_t)nvgpu_safe_add_u32(pd_offset, 0U),
+								pde_v[0]);
+	nvgpu_pd_write(g, pd, (size_t)nvgpu_safe_add_u32(pd_offset, 1U),
+								pde_v[1]);
+	nvgpu_pd_write(g, pd, (size_t)nvgpu_safe_add_u32(pd_offset, 2U),
+								pde_v[2]);
+	nvgpu_pd_write(g, pd, (size_t)nvgpu_safe_add_u32(pd_offset, 3U),
+								pde_v[3]);
 
 	pte_dbg(g, attrs,
 		"PDE: i=%-4u size=%-2u offs=%-4u pgsz: %c%c | "
@@ -297,8 +303,10 @@ static void update_gmmu_pte_locked(struct vm_gk20a *vm,
 		pte_w[1], pte_w[0]);
 #endif
 
-	nvgpu_pd_write(g, pd, (size_t)pd_offset + (size_t)0, pte_w[0]);
-	nvgpu_pd_write(g, pd, (size_t)pd_offset + (size_t)1, pte_w[1]);
+	nvgpu_pd_write(g, pd, (size_t)nvgpu_safe_add_u32(pd_offset, 0U),
+								pte_w[0]);
+	nvgpu_pd_write(g, pd, (size_t)nvgpu_safe_add_u32(pd_offset, 1U),
+								pte_w[1]);
 }
 
 #define GP10B_PDE0_ENTRY_SIZE 16U

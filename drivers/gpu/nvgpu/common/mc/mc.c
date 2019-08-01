@@ -62,7 +62,7 @@ u32 nvgpu_mc_boot_0(struct gk20a *g, u32 *arch, u32 *impl, u32 *rev)
  */
 static int cyclic_delta(int a, int b)
 {
-	return a - b;
+	return nvgpu_safe_sub_s32(a, b);
 }
 
 /**

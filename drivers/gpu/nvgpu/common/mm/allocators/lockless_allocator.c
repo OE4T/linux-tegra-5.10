@@ -55,7 +55,7 @@ static u64 nvgpu_lockless_alloc_end(struct nvgpu_allocator *a)
 {
 	struct nvgpu_lockless_allocator *pa = a->priv;
 
-	return pa->base + pa->length;
+	return nvgpu_safe_add_u64(pa->base, pa->length);
 }
 
 static u64 nvgpu_lockless_alloc(struct nvgpu_allocator *a, u64 len)
@@ -97,7 +97,7 @@ static void nvgpu_lockless_free(struct nvgpu_allocator *a, u64 addr)
 	int head, ret;
 	u64 cur_idx;
 
-	cur_idx = (addr - pa->base) / pa->blk_size;
+	cur_idx = nvgpu_safe_sub_u64(addr, pa->base) / pa->blk_size;
 
 	alloc_dbg(a, "Free node # %llu @ addr 0x%llx", cur_idx, addr);
 
