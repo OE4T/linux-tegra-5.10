@@ -30,6 +30,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/netlist.h>
 #include <nvgpu/string.h>
+#include <nvgpu/safe_ops.h>
 
 #include "netlist_priv.h"
 #include "netlist_defs.h"
@@ -49,35 +50,41 @@
 struct netlist_av *nvgpu_netlist_alloc_av_list(struct gk20a *g,
 						struct netlist_av_list *avl)
 {
-	avl->l = nvgpu_kzalloc(g, avl->count * sizeof(*avl->l));
+	avl->l = nvgpu_kzalloc(g, nvgpu_safe_mult_u64(avl->count,
+						      sizeof(*avl->l)));
 	return avl->l;
 }
 
 struct netlist_av64 *nvgpu_netlist_alloc_av64_list(struct gk20a *g,
 						struct netlist_av64_list *avl)
 {
-	avl->l = nvgpu_kzalloc(g, avl->count * sizeof(*avl->l));
+	avl->l = nvgpu_kzalloc(g, nvgpu_safe_mult_u64(avl->count,
+						      sizeof(*avl->l)));
 	return avl->l;
 }
 
 struct netlist_aiv *nvgpu_netlist_alloc_aiv_list(struct gk20a *g,
 				       struct netlist_aiv_list *aivl)
 {
-	aivl->l = nvgpu_kzalloc(g, aivl->count * sizeof(*aivl->l));
+	aivl->l = nvgpu_kzalloc(g, nvgpu_safe_mult_u64(aivl->count,
+						       sizeof(*aivl->l)));
 	return aivl->l;
 }
 
 u32 *nvgpu_netlist_alloc_u32_list(struct gk20a *g,
 					struct netlist_u32_list *u32l)
 {
-	u32l->l = nvgpu_kzalloc(g, u32l->count * sizeof(*u32l->l));
+	u32l->l = nvgpu_kzalloc(g, nvgpu_safe_mult_u64(u32l->count,
+						       sizeof(*u32l->l)));
 	return u32l->l;
 }
 
 static int nvgpu_netlist_alloc_load_u32_list(struct gk20a *g, u8 *src, u32 len,
 			struct netlist_u32_list *u32_list)
 {
-	u32_list->count = (len + U32(sizeof(u32)) - 1U) / U32(sizeof(u32));
+	u32_list->count = nvgpu_safe_add_u32(len,
+				nvgpu_safe_cast_u64_to_u32(sizeof(u32) - 1UL))
+							/ U32(sizeof(u32));
 	if (nvgpu_netlist_alloc_u32_list(g, u32_list) == NULL) {
 		return -ENOMEM;
 	}
