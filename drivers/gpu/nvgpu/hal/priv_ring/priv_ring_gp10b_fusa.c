@@ -29,6 +29,7 @@
 #include <nvgpu/utils.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/nvgpu_err.h>
+#include <nvgpu/safe_ops.h>
 
 #include <nvgpu/hw/gp10b/hw_pri_ringmaster_gp10b.h>
 #include <nvgpu/hw/gp10b/hw_pri_ringstation_sys_gp10b.h>
@@ -167,19 +168,25 @@ void gp10b_priv_ring_isr(struct gk20a *g)
 			if ((status1 & BIT32(gpc)) == 0U) {
 				continue;
 			}
-			gpc_offset = gpc * gpc_stride;
+			gpc_offset = nvgpu_safe_mult_u32(gpc, gpc_stride);
 			error_info = nvgpu_readl(g,
-				pri_ringstation_gpc_gpc0_priv_error_info_r() + gpc_offset);
+				nvgpu_safe_add_u32(
+				   pri_ringstation_gpc_gpc0_priv_error_info_r(),
+				   gpc_offset));
 			error_code = nvgpu_readl(g,
-				pri_ringstation_gpc_gpc0_priv_error_code_r() + gpc_offset);
+				nvgpu_safe_add_u32(
+				   pri_ringstation_gpc_gpc0_priv_error_code_r(),
+				   gpc_offset));
 			nvgpu_err(g, "GPC%u write error. ADR 0x%08x "
 				"WRDAT 0x%08x "
 				"INFO 0x%08x (subid 0x%08x priv level %d), "
 				"CODE 0x%08x", gpc,
-				nvgpu_readl(g,
-				pri_ringstation_gpc_gpc0_priv_error_adr_r() + gpc_offset),
-				nvgpu_readl(g,
-				pri_ringstation_gpc_gpc0_priv_error_wrdat_r() + gpc_offset),
+				nvgpu_readl(g, nvgpu_safe_add_u32(
+				    pri_ringstation_gpc_gpc0_priv_error_adr_r(),
+				    gpc_offset)),
+				nvgpu_readl(g, nvgpu_safe_add_u32(
+				  pri_ringstation_gpc_gpc0_priv_error_wrdat_r(),
+				  gpc_offset)),
 				error_info,
 				pri_ringstation_gpc_gpc0_priv_error_info_subid_v(error_info),
 				pri_ringstation_gpc_gpc0_priv_error_info_priv_level_v(error_info),
