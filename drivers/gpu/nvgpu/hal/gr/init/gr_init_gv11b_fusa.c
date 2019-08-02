@@ -42,6 +42,14 @@
 #define GR_ECC_SCRUBBING_TIMEOUT_MAX_US 1000U
 #define GR_ECC_SCRUBBING_TIMEOUT_DEFAULT_US 10U
 
+#ifdef NV_BUILD_CONFIGURATION_IS_SAFETY
+#define STATS_COUNTER_BUNDLE 0x00a9
+#define NVC397_SET_STATISTICS_COUNTER_ALPHA_BETA_CLOCKS_ENABLE 0x8000U
+#define NVC397_SET_STATISTICS_COUNTER_SCG_CLOCKS_ENABLE 0x10000U
+#define NVC397_SET_STATISTICS_COUNTER_METHOD_ADDR 0x0d68
+
+#endif
+
 /*
  * Each gpc can have maximum 32 tpcs, so each tpc index need
  * 5 bits. Each map register(32bits) can hold 6 tpcs info.
@@ -845,3 +853,88 @@ void gv11b_gr_init_detect_sm_arch(struct gk20a *g)
 	g->params.sm_arch_warp_count =
 		gr_gpc0_tpc0_sm_arch_warp_count_v(v);
 }
+
+#ifdef NV_BUILD_CONFIGURATION_IS_SAFETY
+int gv11b_gr_init_load_sw_bundle_init(struct gk20a *g,
+		struct netlist_av_list *sw_bundle_init)
+{
+	u32 i;
+	int err = 0;
+	u32 last_bundle_data = 0U;
+	u32 bundle_data = 0;
+
+	for (i = 0U; i < sw_bundle_init->count; i++) {
+		if (i == 0U || last_bundle_data != sw_bundle_init->l[i].value) {
+			bundle_data = sw_bundle_init->l[i].value;
+			/*
+			 * For safety golden context comparison,
+			 * stats idle clock counter needs to be disabled.
+			 * To avoid MPC and FE mismatches, stats counter
+			 * bundle need to be re-programed through mme shadow
+			 * registers
+			 */
+			if (sw_bundle_init->l[i].addr == STATS_COUNTER_BUNDLE) {
+				bundle_data = bundle_data &
+					~(NVC397_SET_STATISTICS_COUNTER_ALPHA_BETA_CLOCKS_ENABLE |
+					NVC397_SET_STATISTICS_COUNTER_SCG_CLOCKS_ENABLE);
+			}
+			nvgpu_writel(g, gr_pipe_bundle_data_r(), bundle_data);
+			last_bundle_data = bundle_data;
+		}
+
+		nvgpu_writel(g, gr_pipe_bundle_address_r(),
+			     sw_bundle_init->l[i].addr);
+
+		if (gr_pipe_bundle_address_value_v(sw_bundle_init->l[i].addr) ==
+		    GR_GO_IDLE_BUNDLE) {
+			err = g->ops.gr.init.wait_idle(g);
+			if (err != 0) {
+				return err;
+			}
+		}
+
+		err = g->ops.gr.init.wait_fe_idle(g);
+		if (err != 0) {
+			return err;
+		}
+	}
+
+	return err;
+}
+
+static u32 gv11b_gr_init_get_stats_bundle_data(struct gk20a *g,
+					struct netlist_av_list *sw_bundle_init)
+{
+	u32 bundle_data = 0U;
+	u32 i = 0U;
+
+	for (i = 0U; i < sw_bundle_init->count; i++) {
+		if (sw_bundle_init->l[i].addr == STATS_COUNTER_BUNDLE) {
+			bundle_data = sw_bundle_init->l[i].value;
+			nvgpu_log_info(g, "sw bundel %d value: %x, address %x",
+				i, sw_bundle_init->l[i].value,
+				sw_bundle_init->l[i].addr);
+		}
+	}
+	return bundle_data;
+}
+
+void gv11b_gr_init_restore_stats_counter_bundle_data(struct gk20a *g,
+				struct netlist_av_list *sw_bundle_init)
+{
+	u32 fepipe0 = gr_pri_mme_shadow_ram_index_fepipe_fe0_f();
+	u32 class = gr_fe_object_table_nvclass_v(gr_fe_object_table_r(fepipe0));
+	u32 bundle_value = 0U;
+
+	bundle_value = gv11b_gr_init_get_stats_bundle_data(g, sw_bundle_init);
+	nvgpu_writel(g, gr_pri_mme_shadow_ram_data_r(), bundle_value);
+	nvgpu_writel(g, gr_pri_mme_shadow_ram_index_r(),
+		gr_pri_mme_shadow_ram_index_nvclass_f(class) |
+		gr_pri_mme_shadow_ram_index_method_address_f(
+			(NVC397_SET_STATISTICS_COUNTER_METHOD_ADDR >> 2)) |
+		gr_pri_mme_shadow_ram_index_fepipe_f(fepipe0) |
+		 gr_pri_mme_shadow_ram_index_write_trigger_f());
+
+}
+
+#endif

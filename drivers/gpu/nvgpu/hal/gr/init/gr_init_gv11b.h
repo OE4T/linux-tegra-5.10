@@ -87,4 +87,11 @@ void gv11b_gr_init_commit_gfxp_wfi_timeout(struct gk20a *g,
 	struct nvgpu_gr_ctx *gr_ctx, bool patch);
 #endif /* CONFIG_NVGPU_GRAPHICS */
 
+#ifdef NV_BUILD_CONFIGURATION_IS_SAFETY
+void gv11b_gr_init_restore_stats_counter_bundle_data(struct gk20a *g,
+			struct netlist_av_list *sw_bundle_init);
+int gv11b_gr_init_load_sw_bundle_init(struct gk20a *g,
+				struct netlist_av_list *sw_bundle_init);
+#endif
+
 #endif /* NVGPU_GR_INIT_GV11B_H */
