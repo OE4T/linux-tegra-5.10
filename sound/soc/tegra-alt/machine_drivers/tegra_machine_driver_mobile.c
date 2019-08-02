@@ -854,8 +854,6 @@ static int tegra_machine_driver_probe(struct platform_device *pdev)
 		dev_dbg(&pdev->dev, "Missing property mclk-fs\n");
 	}
 
-	tegra_machine_dma_set_mask(pdev);
-
 	ret = add_dai_links(pdev);
 	if (ret < 0)
 		goto cleanup_asoc;
