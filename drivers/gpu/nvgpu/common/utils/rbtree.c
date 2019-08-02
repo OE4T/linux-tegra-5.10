@@ -21,6 +21,7 @@
  */
 
 #include <nvgpu/rbtree.h>
+#include <nvgpu/bug.h>
 
 /*
  * rotate node x to left
@@ -197,6 +198,7 @@ static void delete_fixup(struct nvgpu_rbtree_node **root,
 		 * x==NULL is never possible (tree invariant)
 		 */
 		if (parent_of_x == NULL) {
+			nvgpu_assert(x != NULL);
 			parent_of_x = x->parent;
 			continue;
 		}

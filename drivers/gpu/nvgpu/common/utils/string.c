@@ -22,6 +22,7 @@
 
 #include <nvgpu/string.h>
 #include <nvgpu/log.h>
+#include <nvgpu/safe_ops.h>
 
 void
 nvgpu_memcpy(u8 *destb, const u8 *srcb, size_t n)
@@ -50,12 +51,12 @@ int nvgpu_strnadd_u32(char *dst, const u32 value, size_t size, u32 radix)
 	n = 0;
 	v = value;
 	do {
-		n++;
+		n = nvgpu_safe_add_s32(n, 1);
 		v = v / radix;
 	} while (v > 0U);
 
 	/* bail out if there is not room for '\0' */
-	if (n >= (int)size) {
+	if (n >= nvgpu_safe_cast_u64_to_s32(size)) {
 		return 0;
 	}
 

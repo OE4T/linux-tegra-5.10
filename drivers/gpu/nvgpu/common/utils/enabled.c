@@ -23,6 +23,7 @@
 #include <nvgpu/enabled.h>
 #include <nvgpu/bitops.h>
 #include <nvgpu/gk20a.h>
+#include <nvgpu/safe_ops.h>
 
 int nvgpu_init_enabled_flags(struct gk20a *g)
 {
@@ -48,16 +49,16 @@ void nvgpu_free_enabled_flags(struct gk20a *g)
 	nvgpu_kfree(g, g->enabled_flags);
 }
 
-bool nvgpu_is_enabled(struct gk20a *g, int flag)
+bool nvgpu_is_enabled(struct gk20a *g, u32 flag)
 {
-	return nvgpu_test_bit((u32)flag, g->enabled_flags);
+	return nvgpu_test_bit(flag, g->enabled_flags);
 }
 
-void nvgpu_set_enabled(struct gk20a *g, int flag, bool state)
+void nvgpu_set_enabled(struct gk20a *g, u32 flag, bool state)
 {
 	if (state) {
-		nvgpu_set_bit((u32)flag, g->enabled_flags);
+		nvgpu_set_bit(flag, g->enabled_flags);
 	} else {
-		nvgpu_clear_bit((u32)flag, g->enabled_flags);
+		nvgpu_clear_bit(flag, g->enabled_flags);
 	}
 }
