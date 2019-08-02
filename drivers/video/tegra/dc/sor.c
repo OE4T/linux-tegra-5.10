@@ -872,18 +872,25 @@ struct tegra_dc_sor_data *tegra_dc_sor_init(struct tegra_dc *dc,
 		goto err_allocate;
 	}
 
-	INIT_DELAYED_WORK(&sor->work, tegra_sor_hda_config);
+	if (of_property_read_bool(sor_np, "nvidia,sor-audio-not-supported"))
+		sor->audio_support = false;
+	else
+		sor->audio_support = true;
 
-	sor->irq = of_irq_to_resource(sor_np, 0, NULL);
-	if (!(sor->irq < 0)) {
-		err = request_threaded_irq(sor->irq,
-				NULL, tegra_sor_irq,
-				IRQF_ONESHOT,
-				dev_name(&dc->ndev->dev), sor);
-		if (err) {
-			dev_err(&dc->ndev->dev,
+	if (sor->audio_support) {
+		INIT_DELAYED_WORK(&sor->work, tegra_sor_hda_config);
+
+		sor->irq = of_irq_to_resource(sor_np, 0, NULL);
+		if (!(sor->irq < 0)) {
+			err = request_threaded_irq(sor->irq,
+					NULL, tegra_sor_irq,
+					IRQF_ONESHOT,
+					dev_name(&dc->ndev->dev), sor);
+			if (err) {
+				dev_err(&dc->ndev->dev,
 				"hdmi: request_threaded_irq failed: %d\n", err);
-			goto err_free_sor;
+				goto err_free_sor;
+			}
 		}
 	}
 
@@ -1008,11 +1015,6 @@ bypass_pads:
 		dev_err(&dc->ndev->dev, "%s: error reading nvidia,xbar-ctrl\n",
 					__func__);
 
-	if (of_property_read_bool(sor_np, "nvidia,sor-audio-not-supported"))
-		sor->audio_support = false;
-	else
-		sor->audio_support = true;
-
 	if (tegra_dc_is_nvdisplay()) {
 		sor->win_state_arr = devm_kzalloc(&dc->ndev->dev,
 					tegra_dc_get_numof_dispwindows() *
@@ -1109,7 +1111,7 @@ void tegra_dc_sor_destroy(struct tegra_dc_sor_data *sor)
 	devm_pinctrl_put(sor->pinctrl_sor);
 	sor->dpd_enable = NULL;
 	sor->dpd_disable = NULL;
-	if (!(sor->irq < 0))
+	if ((!(sor->irq < 0)) && sor->audio_support)
 		free_irq(sor->irq, sor);
 
 	if (tegra_dc_is_nvdisplay())
@@ -2005,8 +2007,12 @@ void tegra_dc_sor_attach(struct tegra_dc_sor_data *sor)
 	 * is used for interoperability between the HDA codec driver and the
 	 * HDMI/DP driver.
 	 */
-	tegra_sor_writel(sor, NV_SOR_INT_ENABLE, NV_SOR_INT_CODEC_SCRATCH0);
-	tegra_sor_writel(sor, NV_SOR_INT_MASK, NV_SOR_INT_CODEC_SCRATCH0);
+	if (sor->audio_support) {
+		tegra_sor_writel(sor, NV_SOR_INT_ENABLE,
+					NV_SOR_INT_CODEC_SCRATCH0);
+		tegra_sor_writel(sor, NV_SOR_INT_MASK,
+					NV_SOR_INT_CODEC_SCRATCH0);
+	}
 
 	tegra_dc_writel(dc, reg_val, DC_CMD_STATE_ACCESS);
 	tegra_dc_put(dc);
@@ -2200,7 +2206,8 @@ void tegra_dc_sor_detach(struct tegra_dc_sor_data *sor)
 
 	tegra_dc_get(dc);
 
-	cancel_delayed_work_sync(&sor->work);
+	if (sor->audio_support)
+		cancel_delayed_work_sync(&sor->work);
 
 	/* Mask DC interrupts during the 2 dummy frames required for detach */
 	dc_int_mask = tegra_dc_readl(dc, DC_CMD_INT_MASK);
