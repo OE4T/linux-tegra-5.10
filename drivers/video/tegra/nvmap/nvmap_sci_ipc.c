@@ -20,6 +20,7 @@
 #include <linux/slab.h>
 #include <linux/nvmap.h>
 #include <linux/rbtree.h>
+#include <linux/list.h>
 
 #include <linux/nvscierror.h>
 #include <linux/nvsciipc_interface.h>
@@ -29,6 +30,12 @@
 struct nvmap_sci_ipc {
 	struct rb_root entries;
 	struct mutex mlock;
+	struct list_head free_sid_list;
+};
+
+struct free_sid_node {
+	struct list_head list;
+	u32 sid;
 };
 
 /* An rb-tree root node for holding sci_ipc_id of clients */
@@ -75,7 +82,21 @@ static u32 nvmap_unique_sci_ipc_id(void)
 	static atomic_t unq_id = { 0 };
 	u32 id;
 
+	if (!list_empty(&nvmapsciipc->free_sid_list)) {
+		struct free_sid_node *fnode = list_first_entry(
+			&nvmapsciipc->free_sid_list,
+			typeof(*fnode),
+			list);
+
+		id = fnode->sid;
+		list_del(&fnode->list);
+		kfree(fnode);
+		goto ret_id;
+	}
+
 	id = atomic_add_return(2, &unq_id);
+
+ret_id:
 	WARN_ON(id == 0);
 	return id;
 }
@@ -225,6 +246,22 @@ int nvmap_get_handle_from_sci_ipc_id(struct nvmap_client *client, u32 flags,
 	fd = nvmap_get_dmabuf_fd(client, ref->handle);
 	*h = fd;
 	fd_install(fd, ref->handle->dmabuf->file);
+
+	entry->refcount--;
+	if (entry->refcount == 0U) {
+		struct free_sid_node *free_node;
+
+		rb_erase(&entry->entry, &nvmapsciipc->entries);
+		free_node = kzalloc(sizeof(*free_node), GFP_KERNEL);
+		if (free_node == NULL) {
+			ret = -ENOMEM;
+			kfree(entry);
+			goto unlock;
+		}
+		free_node->sid = entry->sci_ipc_id;
+		list_add_tail(&free_node->list, &nvmapsciipc->free_sid_list);
+		kfree(entry);
+	}
 unlock:
 	mutex_unlock(&nvmapsciipc->mlock);
 	return ret;
@@ -236,7 +273,7 @@ int nvmap_sci_ipc_init(void)
 	if (!nvmapsciipc)
 		return -ENOMEM;
 	nvmapsciipc->entries = RB_ROOT;
-
+	INIT_LIST_HEAD(&nvmapsciipc->free_sid_list);
 	mutex_init(&nvmapsciipc->mlock);
 
 	return 0;
@@ -245,6 +282,7 @@ int nvmap_sci_ipc_init(void)
 void nvmap_sci_ipc_exit(void)
 {
 	struct nvmap_sci_ipc_entry *e;
+	struct free_sid_node *fnode;
 	struct rb_node *n;
 
 	mutex_lock(&nvmapsciipc->mlock);
@@ -253,6 +291,12 @@ void nvmap_sci_ipc_exit(void)
 		rb_erase(&e->entry, &nvmapsciipc->entries);
 		kfree(e);
 	}
+
+	list_for_each_entry(fnode, &nvmapsciipc->free_sid_list, list) {
+		list_del(&fnode->list);
+		kfree(fnode);
+	}
+
 	nvmapsciipc = NULL;
 	mutex_unlock(&nvmapsciipc->mlock);
 }
