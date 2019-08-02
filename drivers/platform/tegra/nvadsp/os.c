@@ -41,7 +41,6 @@
 #include <linux/tegra-firmwares.h>
 #include <linux/reset.h>
 #include <linux/poll.h>
-#include <linux/version.h>
 
 #include <asm/uaccess.h>
 
@@ -2148,9 +2147,8 @@ static ssize_t tegrafw_read_adsp(struct device *dev,
 int __init nvadsp_os_probe(struct platform_device *pdev)
 {
 	struct nvadsp_drv_data *drv_data = platform_get_drvdata(pdev);
-	struct device *dev = &pdev->dev;
-	uint64_t dma_mask;
 	uint16_t com_mid = ADSP_COM_MBOX_ID;
+	struct device *dev = &pdev->dev;
 	int ret = 0;
 
 	priv.unit_fpga_reset_reg = drv_data->base_regs[UNIT_FPGA_RST];
@@ -2165,14 +2163,6 @@ int __init nvadsp_os_probe(struct platform_device *pdev)
 	if (of_device_is_compatible(dev->of_node, "nvidia,tegra210-adsp")) {
 		drv_data->assert_adsp = __assert_adsp;
 		drv_data->deassert_adsp = __deassert_adsp;
-	}
-
-	ret = of_property_read_u64(dev->of_node, "dma-mask", &dma_mask);
-	if (ret) {
-		dev_err(&pdev->dev, "Missing property dma-mask\n");
-		goto end;
-	} else {
-		dma_set_mask_and_coherent(&pdev->dev, dma_mask);
 	}
 
 	ret = nvadsp_os_init(pdev);
