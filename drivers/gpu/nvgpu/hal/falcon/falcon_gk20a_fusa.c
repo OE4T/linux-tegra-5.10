@@ -200,7 +200,7 @@ int gk20a_falcon_copy_to_imem(struct nvgpu_falcon *flcn, u32 dst,
 		if (i % 64U == 0U) {
 			/* tag is always 256B aligned */
 			nvgpu_writel(g,
-				base_addr + falcon_falcon_imemt_r(0),
+				base_addr + falcon_falcon_imemt_r(port),
 				tag);
 			tag++;
 		}
