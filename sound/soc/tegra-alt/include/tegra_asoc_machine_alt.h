@@ -493,8 +493,6 @@ int tegra_machine_add_codec_jack_control(struct snd_soc_card *card,
 					 struct snd_soc_pcm_runtime *rtd,
 					 struct snd_soc_jack *jack);
 
-void tegra_machine_dma_set_mask(struct platform_device *pdev);
-
 /* new helper functions for populating sound card DAI links and codec confs */
 int tegra_asoc_populate_dai_links(struct platform_device *pdev);
 int tegra_asoc_populate_codec_confs(struct platform_device *pdev);
