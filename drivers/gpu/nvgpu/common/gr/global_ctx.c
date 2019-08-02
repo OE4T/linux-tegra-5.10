@@ -26,6 +26,10 @@
 #include <nvgpu/kmem.h>
 #include <nvgpu/bug.h>
 #include <nvgpu/dma.h>
+#ifdef NV_BUILD_CONFIGURATION_IS_SAFETY
+#include <nvgpu/safe_ops.h>
+#include <nvgpu/string.h>
+#endif
 
 #include <nvgpu/gr/global_ctx.h>
 
@@ -285,6 +289,44 @@ nvgpu_gr_global_ctx_init_local_golden_image(struct gk20a *g,
 
 	return local_golden_image;
 }
+
+#ifdef NV_BUILD_CONFIGURATION_IS_SAFETY
+bool nvgpu_gr_global_ctx_compare_golden_images(struct gk20a *g,
+	bool is_sysmem,
+	struct nvgpu_gr_global_ctx_local_golden_image *local_golden_image1,
+	struct nvgpu_gr_global_ctx_local_golden_image *local_golden_image2,
+	size_t size)
+{
+	bool is_identical = true;
+	u32 *data1 = local_golden_image1->context;
+	u32 *data2 = local_golden_image2->context;
+	u32 i;
+
+	/*
+	 * In case of sysmem, direct mem compare can be used.
+	 * For vidmem, word by word comparison only works and
+	 * it is too early to use ce engine for read operations.
+	 */
+	if (is_sysmem) {
+		if (nvgpu_memcmp((u8 *)data1, (u8 *)data2, size) != 0) {
+			is_identical = false;
+		}
+	} else {
+		for( i = 0U; i < U32(size/sizeof(u32));
+					i = nvgpu_safe_add_u32(i, 1U)) {
+			if (*(data1 + i) != *(data2 + i)) {
+				is_identical = false;
+				nvgpu_log_info(g,
+				"mismatch i = %u golden1: %u golden2 %u",
+				i, *(data1 + i), *(data2 + i));
+				break;
+			}
+		}
+	}
+	nvgpu_log_info(g, "%s result %u", __func__, is_identical);
+	return is_identical;
+}
+#endif
 
 void nvgpu_gr_global_ctx_load_local_golden_image(struct gk20a *g,
 	struct nvgpu_gr_global_ctx_local_golden_image *local_golden_image,
