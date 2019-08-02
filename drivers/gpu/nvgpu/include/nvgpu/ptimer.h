@@ -23,6 +23,7 @@
 #define NVGPU_PTIMER_H
 
 #include <nvgpu/types.h>
+#include <nvgpu/safe_ops.h>
 
 struct gk20a;
 
@@ -37,12 +38,14 @@ struct nvgpu_cpu_time_correlation_sample {
 
 static inline u32 ptimer_scalingfactor10x(u32 ptimer_src_freq)
 {
-	return U32((U64(PTIMER_REF_FREQ_HZ) * U64(10)) / U64(ptimer_src_freq));
+	return nvgpu_safe_cast_u64_to_u32((U64(PTIMER_REF_FREQ_HZ) * U64(10))
+						/ U64(ptimer_src_freq));
 }
 
 static inline u32 scale_ptimer(u32 timeout , u32 scale10x)
 {
-	if (((timeout*10U) % scale10x) >= (scale10x/2U)) {
+	nvgpu_assert(scale10x != 0U);
+	if ((nvgpu_safe_mult_u32(timeout, 10U) % scale10x) >= (scale10x/2U)) {
 		return ((timeout * 10U) / scale10x) + 1U;
 	} else {
 		return (timeout * 10U) / scale10x;
