@@ -54,6 +54,7 @@
 #include <nvgpu/fifo/userd.h>
 #include <nvgpu/fence.h>
 #include <nvgpu/preempt.h>
+#include <nvgpu/safe_ops.h>
 #ifdef CONFIG_NVGPU_DEBUGGER
 #include <nvgpu/gr/gr.h>
 #endif
@@ -90,7 +91,7 @@ static struct nvgpu_channel *allocate_channel(struct nvgpu_fifo *f)
 		nvgpu_list_del(&ch->free_chs);
 		WARN_ON(nvgpu_atomic_read(&ch->ref_count) != 0);
 		WARN_ON(ch->referenceable);
-		f->used_channels++;
+		f->used_channels = nvgpu_safe_add_u32(f->used_channels, 1U);
 	}
 	nvgpu_mutex_release(&f->free_chs_mutex);
 
@@ -115,7 +116,7 @@ static void free_channel(struct nvgpu_fifo *f,
 	nvgpu_mutex_acquire(&f->free_chs_mutex);
 	/* add to head to increase visibility of timing-related bugs */
 	nvgpu_list_add(&ch->free_chs, &f->free_chs);
-	f->used_channels--;
+	f->used_channels = nvgpu_safe_sub_u32(f->used_channels, 1U);
 	nvgpu_mutex_release(&f->free_chs_mutex);
 
 	/*

@@ -41,6 +41,7 @@
 #include <nvgpu/gr/gr_falcon.h>
 #include <nvgpu/gr/gr.h>
 #include <nvgpu/fifo.h>
+#include <nvgpu/safe_ops.h>
 
 #define FECS_METHOD_WFI_RESTORE	0x80000U
 
@@ -477,14 +478,14 @@ int nvgpu_engine_setup_sw(struct gk20a *g)
 	size_t size;
 
 	f->max_engines = nvgpu_get_litter_value(g, GPU_LIT_HOST_NUM_ENGINES);
-	size = f->max_engines * sizeof(*f->engine_info);
+	size = nvgpu_safe_mult_u64(f->max_engines, sizeof(*f->engine_info));
 	f->engine_info = nvgpu_kzalloc(g, size);
 	if (f->engine_info == NULL) {
 		nvgpu_err(g, "no mem for engine info");
 		return -ENOMEM;
 	}
 
-	size = f->max_engines * sizeof(u32);
+	size = nvgpu_safe_mult_u64(f->max_engines, sizeof(u32));
 	f->active_engines_list = nvgpu_kzalloc(g, size);
 	if (f->active_engines_list == NULL) {
 		nvgpu_err(g, "no mem for active engine list");
@@ -983,7 +984,8 @@ u32 nvgpu_engine_mmu_fault_id_to_veid(struct gk20a *g, u32 mmu_fault_id,
 	num_subctx = f->max_subctx_count;
 
 	if (mmu_fault_id >= gr_eng_fault_id &&
-			mmu_fault_id < (gr_eng_fault_id + num_subctx)) {
+			mmu_fault_id < nvgpu_safe_add_u32(gr_eng_fault_id,
+						num_subctx)) {
 		veid = mmu_fault_id - gr_eng_fault_id;
 	}
 

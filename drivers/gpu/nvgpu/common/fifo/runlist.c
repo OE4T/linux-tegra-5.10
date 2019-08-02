@@ -29,6 +29,7 @@
 #include <nvgpu/bug.h>
 #include <nvgpu/dma.h>
 #include <nvgpu/rc.h>
+#include <nvgpu/safe_ops.h>
 #ifdef CONFIG_NVGPU_LS_PMU
 #include <nvgpu/pmu/mutex.h>
 #endif
@@ -116,7 +117,7 @@ static u32 nvgpu_runlist_append_tsg(struct gk20a *g,
 		nvgpu_log_info(g, "rl entries left %d runlist [0] %x [1] %x",
 			*entries_left,
 			(*runlist_entry)[0], (*runlist_entry)[1]);
-		count++;
+		count = nvgpu_safe_add_u32(count, 1U);
 		*runlist_entry += runlist_entry_words;
 		(*entries_left)--;
 	}
@@ -344,7 +345,8 @@ static bool gk20a_runlist_modify_active_locked(struct gk20a *g, u32 runlist_id,
 		} else {
 			/* new, and belongs to a tsg */
 			nvgpu_set_bit(tsg->tsgid, runlist->active_tsgs);
-			tsg->num_active_channels++;
+			tsg->num_active_channels = nvgpu_safe_add_u32(
+					tsg->num_active_channels, 1U);
 		}
 	} else {
 		if (!nvgpu_test_and_clear_bit(ch->chid,
@@ -352,7 +354,9 @@ static bool gk20a_runlist_modify_active_locked(struct gk20a *g, u32 runlist_id,
 			/* wasn't there */
 			return false;
 		} else {
-			if (--tsg->num_active_channels == 0U) {
+			tsg->num_active_channels = nvgpu_safe_sub_u32(
+				tsg->num_active_channels, 1U);
+			if (tsg->num_active_channels == 0U) {
 				/* was the only member of this tsg */
 				nvgpu_clear_bit(tsg->tsgid,
 						runlist->active_tsgs);
@@ -724,21 +728,21 @@ int nvgpu_runlist_setup_sw(struct gk20a *g)
 	f->runlist_entry_size = g->ops.runlist.entry_size(g);
 	f->num_runlist_entries = g->ops.runlist.length_max(g);
 	f->max_runlists = g->ops.runlist.count_max();
-	f->runlist_info = nvgpu_kzalloc(g,
-			sizeof(*f->runlist_info) * f->max_runlists);
+	f->runlist_info = nvgpu_kzalloc(g, nvgpu_safe_mult_u64(
+				sizeof(*f->runlist_info), f->max_runlists));
 	if (f->runlist_info == NULL) {
 		goto clean_up_runlist;
 	}
 
 	for (runlist_id = 0; runlist_id < f->max_runlists; runlist_id++) {
 		if (nvgpu_engine_is_valid_runlist_id(g, runlist_id)) {
-			num_runlists++;
+			num_runlists = nvgpu_safe_add_u32(num_runlists, 1U);
 		}
 	}
 	f->num_runlists = num_runlists;
 
-	f->active_runlist_info = nvgpu_kzalloc(g,
-			 sizeof(*f->active_runlist_info) * num_runlists);
+	f->active_runlist_info = nvgpu_kzalloc(g, nvgpu_safe_mult_u64(
+			 sizeof(*f->active_runlist_info), num_runlists));
 	if (f->active_runlist_info == NULL) {
 		goto clean_up_runlist;
 	}
@@ -757,7 +761,7 @@ int nvgpu_runlist_setup_sw(struct gk20a *g)
 		runlist = &f->active_runlist_info[i];
 		runlist->runlist_id = runlist_id;
 		f->runlist_info[runlist_id] = runlist;
-		i++;
+		i = nvgpu_safe_add_u32(i, 1U);
 
 		runlist->active_channels =
 			nvgpu_kzalloc(g, DIV_ROUND_UP(f->num_channels,

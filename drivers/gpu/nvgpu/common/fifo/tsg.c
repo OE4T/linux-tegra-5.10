@@ -33,6 +33,7 @@
 #include <nvgpu/gr/config.h>
 #include <nvgpu/gr/ctx.h>
 #include <nvgpu/runlist.h>
+#include <nvgpu/safe_ops.h>
 
 void nvgpu_tsg_disable(struct nvgpu_tsg *tsg)
 {
@@ -794,9 +795,8 @@ int nvgpu_tsg_alloc_sm_error_states_mem(struct gk20a *g,
 		return -EINVAL;
 	}
 
-	tsg->sm_error_states = nvgpu_kzalloc(g,
-			sizeof(struct nvgpu_tsg_sm_error_state)
-			* num_sm);
+	tsg->sm_error_states = nvgpu_kzalloc(g, nvgpu_safe_mult_u64(
+			sizeof(struct nvgpu_tsg_sm_error_state), num_sm));
 	if (tsg->sm_error_states == NULL) {
 		nvgpu_err(g, "sm_error_states mem allocation failed");
 		return -ENOMEM;
