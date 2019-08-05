@@ -20,11 +20,11 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef GSP_GV100_H
-#define GSP_GV100_H
+#ifndef GSP_TU104_H
+#define GSP_TU104_H
 
-int gv100_gsp_reset(struct gk20a *g);
-void gv100_gsp_flcn_setup_boot_config(struct gk20a *g);
-u32 gv100_gsp_falcon_base_addr(void);
+int tu104_gsp_reset(struct gk20a *g);
+void tu104_gsp_flcn_setup_boot_config(struct gk20a *g);
+u32 tu104_gsp_falcon_base_addr(void);
 
-#endif /*GSP_GV100_H */
+#endif /* GSP_TU104_H */

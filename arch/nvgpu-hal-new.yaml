@@ -340,8 +340,8 @@ fuse:
 
 gsp:
   safe: no
-  sources: [ hal/gsp/gsp_gv100.c,
-             hal/gsp/gsp_gv100.h ]
+  sources: [ hal/gsp/gsp_tu104.c,
+             hal/gsp/gsp_tu104.h ]
 
 mm:
   safe: yes

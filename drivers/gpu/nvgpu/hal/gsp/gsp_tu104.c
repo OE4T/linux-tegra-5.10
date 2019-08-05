@@ -27,11 +27,11 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/bug.h>
 
-#include "gsp_gv100.h"
+#include "gsp_tu104.h"
 
-#include <nvgpu/hw/gv100/hw_pgsp_gv100.h>
+#include <nvgpu/hw/tu104/hw_pgsp_tu104.h>
 
-int gv100_gsp_reset(struct gk20a *g)
+int tu104_gsp_reset(struct gk20a *g)
 {
 	if (g->is_fusa_sku) {
 		return 0;
@@ -46,7 +46,7 @@ int gv100_gsp_reset(struct gk20a *g)
 	return 0;
 }
 
-void gv100_gsp_flcn_setup_boot_config(struct gk20a *g)
+void tu104_gsp_flcn_setup_boot_config(struct gk20a *g)
 {
 	struct mm_gk20a *mm = &g->mm;
 	u32 inst_block_ptr;
@@ -102,7 +102,7 @@ void gv100_gsp_flcn_setup_boot_config(struct gk20a *g)
 	gk20a_writel(g, pgsp_falcon_engctl_r(), data);
 }
 
-u32 gv100_gsp_falcon_base_addr(void)
+u32 tu104_gsp_falcon_base_addr(void)
 {
 	return pgsp_falcon_irqsset_r();
 }

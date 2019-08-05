@@ -145,7 +145,7 @@
 #include "hal/pmu/pmu_tu104.h"
 #include "hal/falcon/falcon_gk20a.h"
 #include "hal/nvdec/nvdec_tu104.h"
-#include "hal/gsp/gsp_gv100.h"
+#include "hal/gsp/gsp_tu104.h"
 #include "hal/perf/perf_gv11b.h"
 #ifdef CONFIG_NVGPU_DGPU
 #include "hal/sec2/sec2_tu104.h"
@@ -1423,9 +1423,9 @@ static const struct gpu_ops tu104_ops = {
 	},
 #endif
 	.gsp = {
-		.falcon_base_addr = gv100_gsp_falcon_base_addr,
-		.falcon_setup_boot_config = gv100_gsp_flcn_setup_boot_config,
-		.gsp_reset = gv100_gsp_reset,
+		.falcon_base_addr = tu104_gsp_falcon_base_addr,
+		.falcon_setup_boot_config = tu104_gsp_flcn_setup_boot_config,
+		.gsp_reset = tu104_gsp_reset,
 	},
 	.top = {
 		.device_info_parse_enum = gm20b_device_info_parse_enum,
