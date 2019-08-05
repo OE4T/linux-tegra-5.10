@@ -668,9 +668,7 @@ sec2:
   safe: yes
   owner: Sagar K
   gpu: dgpu
-  sources: [ hal/sec2/sec2_gp106.c,
-             hal/sec2/sec2_gp106.h,
-             hal/sec2/sec2_tu104.c,
+  sources: [ hal/sec2/sec2_tu104.c,
              hal/sec2/sec2_tu104.h ]
 
 netlist_fusa:

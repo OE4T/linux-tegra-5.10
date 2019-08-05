@@ -287,7 +287,6 @@ nvgpu-y += \
 	hal/nvlink/link_mode_transitions_gv100.o \
 	hal/nvlink/link_mode_transitions_tu104.o \
 	hal/gsp/gsp_gv100.o \
-	hal/sec2/sec2_gp106.o \
 	hal/sec2/sec2_tu104.o \
 	hal/sync/sema_cmdbuf_gk20a.o \
 	hal/sync/sema_cmdbuf_gv11b.o \
