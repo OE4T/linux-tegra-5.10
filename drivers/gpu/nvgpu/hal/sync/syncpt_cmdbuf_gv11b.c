@@ -30,6 +30,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/channel.h>
 #include <nvgpu/nvhost.h>
+#include <nvgpu/safe_ops.h>
 
 #include "syncpt_cmdbuf_gv11b.h"
 
@@ -47,11 +48,13 @@ void gv11b_syncpt_add_wait_cmd(struct gk20a *g,
 
 	/* sema_addr_lo */
 	nvgpu_mem_wr32(g, cmd->mem, off++, 0x20010017);
-	nvgpu_mem_wr32(g, cmd->mem, off++, gpu_va & 0xffffffff);
+	nvgpu_mem_wr32(g, cmd->mem, off++,
+			nvgpu_safe_cast_u64_to_u32(gpu_va & 0xffffffffU));
 
 	/* sema_addr_hi */
 	nvgpu_mem_wr32(g, cmd->mem, off++, 0x20010018);
-	nvgpu_mem_wr32(g, cmd->mem, off++, (gpu_va >> 32) & 0xff);
+	nvgpu_mem_wr32(g, cmd->mem, off++,
+			nvgpu_safe_cast_u64_to_u32((gpu_va >> 32U) & 0xffU));
 
 	/* payload_lo */
 	nvgpu_mem_wr32(g, cmd->mem, off++, 0x20010019);
@@ -59,11 +62,11 @@ void gv11b_syncpt_add_wait_cmd(struct gk20a *g,
 
 	/* payload_hi : ignored */
 	nvgpu_mem_wr32(g, cmd->mem, off++, 0x2001001a);
-	nvgpu_mem_wr32(g, cmd->mem, off++, 0);
+	nvgpu_mem_wr32(g, cmd->mem, off++, 0U);
 
 	/* sema_execute : acq_strict_geq | switch_en | 32bit */
 	nvgpu_mem_wr32(g, cmd->mem, off++, 0x2001001b);
-	nvgpu_mem_wr32(g, cmd->mem, off++, 0x2 | (1 << 12));
+	nvgpu_mem_wr32(g, cmd->mem, off, 0x2U | ((u32)1U << 12U));
 }
 
 u32 gv11b_syncpt_get_wait_cmd_size(void)
@@ -86,11 +89,13 @@ void gv11b_syncpt_add_incr_cmd(struct gk20a *g,
 
 	/* sema_addr_lo */
 	nvgpu_mem_wr32(g, cmd->mem, off++, 0x20010017);
-	nvgpu_mem_wr32(g, cmd->mem, off++, gpu_va & 0xffffffff);
+	nvgpu_mem_wr32(g, cmd->mem, off++,
+			nvgpu_safe_cast_u64_to_u32(gpu_va & 0xffffffffU));
 
 	/* sema_addr_hi */
 	nvgpu_mem_wr32(g, cmd->mem, off++, 0x20010018);
-	nvgpu_mem_wr32(g, cmd->mem, off++, (gpu_va >> 32) & 0xff);
+	nvgpu_mem_wr32(g, cmd->mem, off++,
+			nvgpu_safe_cast_u64_to_u32((gpu_va >> 32U) & 0xffU));
 
 	/* payload_lo */
 	nvgpu_mem_wr32(g, cmd->mem, off++, 0x20010019);
@@ -102,8 +107,8 @@ void gv11b_syncpt_add_incr_cmd(struct gk20a *g,
 
 	/* sema_execute : release | wfi | 32bit */
 	nvgpu_mem_wr32(g, cmd->mem, off++, 0x2001001b);
-	nvgpu_mem_wr32(g, cmd->mem, off++,
-		0x1 | ((wfi_cmd ? 0x1 : 0x0) << 20));
+	nvgpu_mem_wr32(g, cmd->mem, off, (0x1U |
+					((u32)(wfi_cmd ? 0x1U : 0x0U) << 20U)));
 }
 
 u32 gv11b_syncpt_get_incr_cmd_size(bool wfi_cmd)
