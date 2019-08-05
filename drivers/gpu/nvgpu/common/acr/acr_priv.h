@@ -86,9 +86,6 @@ struct wpr_carveout_info;
 #define GM20B_FECS_UCODE_SIG "fecs_sig.bin"
 #define T18x_GPCCS_UCODE_SIG "gpccs_sig.bin"
 
-#define GV100_FECS_UCODE_SIG "gv100/fecs_sig.bin"
-#define GV100_GPCCS_UCODE_SIG "gv100/gpccs_sig.bin"
-
 #define TU104_FECS_UCODE_SIG "tu104/fecs_sig.bin"
 #define TU104_GPCCS_UCODE_SIG "tu104/gpccs_sig.bin"
 

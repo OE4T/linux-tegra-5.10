@@ -129,7 +129,6 @@ nvgpu-y += \
 	common/acr/acr_bootstrap.o \
 	common/acr/acr_sw_gm20b.o \
 	common/acr/acr_sw_gp10b.o \
-	common/acr/acr_sw_gv100.o \
 	common/acr/acr_sw_gv11b.o \
 	common/acr/acr_sw_tu104.o \
 	common/pmu/super_surface/super_surface.o \

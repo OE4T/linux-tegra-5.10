@@ -33,7 +33,6 @@
 #endif
 #include "acr_sw_gv11b.h"
 #ifdef CONFIG_NVGPU_DGPU
-#include "acr_sw_gv100.h"
 #include "acr_sw_tu104.h"
 #endif
 
@@ -165,9 +164,6 @@ int nvgpu_acr_init(struct gk20a *g, struct nvgpu_acr **acr)
 		nvgpu_gv11b_acr_sw_init(g, *acr);
 		break;
 #ifdef CONFIG_NVGPU_DGPU
-	case NVGPU_GPUID_GV100:
-		nvgpu_gv100_acr_sw_init(g, *acr);
-		break;
 	case NVGPU_GPUID_TU104:
 		nvgpu_tu104_acr_sw_init(g, *acr);
 		break;

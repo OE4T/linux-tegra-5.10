@@ -574,7 +574,6 @@ srcs += common/sec2/sec2.c \
 	common/falcon/falcon_sw_gp106.c \
 	common/falcon/falcon_sw_gv100.c \
 	common/falcon/falcon_sw_tu104.c \
-	common/acr/acr_sw_gv100.c \
 	common/acr/acr_sw_tu104.c \
 	common/mm/allocators/page_allocator.c \
 	common/mm/vidmem.c \

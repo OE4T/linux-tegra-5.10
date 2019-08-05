@@ -227,8 +227,6 @@ acr:
              common/acr/acr_blob_construct_v0.h,
              common/acr/acr_sw_gp10b.c,
              common/acr/acr_sw_gp10b.h,
-             common/acr/acr_sw_gv100.c,
-             common/acr/acr_sw_gv100.h,
              common/acr/acr_sw_gm20b.c,
              common/acr/acr_sw_gm20b.h,
              common/acr/acr_sw_tu104.c,
