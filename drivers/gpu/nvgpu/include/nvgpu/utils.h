@@ -34,12 +34,13 @@
 
 static inline u32 u64_hi32(u64 n)
 {
-	return (u32)((n >> 32) & ~(u32)0);
+	return nvgpu_safe_cast_u64_to_u32(nvgpu_safe_cast_u64_to_u32(n >> 32)
+					  & ~(u32)0);
 }
 
 static inline u32 u64_lo32(u64 n)
 {
-	return (u32)(n & ~(u32)0);
+	return nvgpu_safe_cast_u64_to_u32(n & ~(u32)0);
 }
 
 static inline u64 hi32_lo32_to_u64(u32 hi, u32 lo)
