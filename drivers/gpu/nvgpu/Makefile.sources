@@ -228,7 +228,6 @@ srcs += hal/mm/mm_gv11b_fusa.c \
 	hal/mc/mc_gp10b_fusa.c \
 	hal/mc/mc_gv11b_fusa.c \
 	hal/netlist/netlist_gv11b_fusa.c \
-	hal/pmu/pmu_gp106_fusa.c \
 	hal/pmu/pmu_gv11b_fusa.c \
 	hal/priv_ring/priv_ring_gm20b_fusa.c \
 	hal/priv_ring/priv_ring_gp10b_fusa.c \
@@ -304,7 +303,6 @@ srcs += hal/init/hal_gp10b.c \
 	hal/netlist/netlist_gm20b.c \
 	hal/netlist/netlist_gp10b.c \
 	hal/sync/syncpt_cmdbuf_gk20a.c \
-	hal/pmu/pmu_gp106.c \
 	hal/pmu/pmu_gv11b.c \
 	hal/top/top_gm20b.c \
 	hal/top/top_gp106.c \

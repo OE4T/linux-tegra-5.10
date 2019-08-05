@@ -294,7 +294,6 @@ nvgpu-y += \
 	hal/pmu/pmu_gk20a.o \
 	hal/pmu/pmu_gm20b.o \
 	hal/pmu/pmu_gp10b.o \
-	hal/pmu/pmu_gp106.o \
 	hal/pmu/pmu_gv11b.o \
 	hal/pmu/pmu_tu104.o \
 	hal/pramin/pramin_gp10b.o \
@@ -637,7 +636,6 @@ nvgpu-y += \
 	hal/mc/mc_gp10b_fusa.o \
 	hal/mc/mc_gv11b_fusa.o \
 	hal/netlist/netlist_gv11b_fusa.o \
-	hal/pmu/pmu_gp106_fusa.o \
 	hal/pmu/pmu_gv11b_fusa.o \
 	hal/priv_ring/priv_ring_gm20b_fusa.o \
 	hal/priv_ring/priv_ring_gp10b_fusa.o \

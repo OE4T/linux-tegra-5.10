@@ -140,7 +140,6 @@
 #include "hal/gr/gr/gr_tu104.h"
 #include "hal/pmu/pmu_gk20a.h"
 #include "hal/pmu/pmu_gm20b.h"
-#include "hal/pmu/pmu_gp106.h"
 #include "hal/pmu/pmu_gp10b.h"
 #include "hal/pmu/pmu_gv11b.h"
 #include "hal/pmu/pmu_tu104.h"
@@ -1119,7 +1118,7 @@ static const struct gpu_ops tu104_ops = {
 	},
 #ifdef CONFIG_NVGPU_LS_PMU
 	.pmu = {
-		.falcon_base_addr = gp106_pmu_falcon_base_addr,
+		.falcon_base_addr = tu104_pmu_falcon_base_addr,
 		.pmu_queue_tail = gk20a_pmu_queue_tail,
 		.pmu_get_queue_head = tu104_pmu_queue_head_r,
 		.pmu_mutex_release = gk20a_pmu_mutex_release,
@@ -1143,15 +1142,15 @@ static const struct gpu_ops tu104_ops = {
 		.pmu_reset = nvgpu_pmu_reset,
 		.pmu_queue_head = gk20a_pmu_queue_head,
 		.pmu_get_queue_tail_size = tu104_pmu_queue_tail__size_1_v,
-		.reset_engine = gp106_pmu_engine_reset,
+		.reset_engine = gv11b_pmu_engine_reset,
 		.write_dmatrfbase = gp10b_write_dmatrfbase,
 		.pmu_mutex_size = tu104_pmu_mutex__size_1_v,
-		.is_engine_in_reset = gp106_pmu_is_engine_in_reset,
+		.is_engine_in_reset = gv11b_pmu_is_engine_in_reset,
 		.pmu_get_queue_tail = tu104_pmu_queue_tail_r,
 		.get_irqdest = gk20a_pmu_get_irqdest,
 		.handle_ext_irq = gv11b_pmu_handle_ext_irq,
 		.is_debug_mode_enabled = gm20b_pmu_is_debug_mode_en,
-		.setup_apertures = gp106_pmu_setup_apertures,
+		.setup_apertures = tu104_pmu_setup_apertures,
 		.secured_pmu_start = gm20b_secured_pmu_start,
 		.pmu_clear_bar0_host_err_status =
 			gm20b_clear_pmu_bar0_host_err_status,

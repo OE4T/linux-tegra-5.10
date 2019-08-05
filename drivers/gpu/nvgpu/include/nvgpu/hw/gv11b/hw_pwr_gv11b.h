@@ -398,4 +398,7 @@
 #define pwr_fbif_transcfg_mem_type_v(r)                     (((r) >> 2U) & 0x1U)
 #define pwr_fbif_transcfg_mem_type_virtual_f()                            (0x0U)
 #define pwr_fbif_transcfg_mem_type_physical_f()                           (0x4U)
+#define pwr_falcon_engine_r()                                      (0x0010a3c0U)
+#define pwr_falcon_engine_reset_true_f()                                  (0x1U)
+#define pwr_falcon_engine_reset_false_f()                                 (0x0U)
 #endif

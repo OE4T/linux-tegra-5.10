@@ -636,9 +636,7 @@ fb:
 pmu_fusa:
   safe: yes
   owner: Mahantesh K
-  sources: [ hal/pmu/pmu_gp106_fusa.c,
-             hal/pmu/pmu_gp106.h,
-             hal/pmu/pmu_gv11b_fusa.c,
+  sources: [ hal/pmu/pmu_gv11b_fusa.c,
              hal/pmu/pmu_gv11b.h ]
 
 pmu:
@@ -648,7 +646,6 @@ pmu:
              hal/pmu/pmu_gk20a.h,
              hal/pmu/pmu_gm20b.c,
              hal/pmu/pmu_gm20b.h,
-             hal/pmu/pmu_gp106.c,
              hal/pmu/pmu_gp10b.c,
              hal/pmu/pmu_gp10b.h,
              hal/pmu/pmu_gv11b.c,

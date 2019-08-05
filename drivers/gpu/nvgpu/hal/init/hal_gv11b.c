@@ -130,7 +130,6 @@
 #include "hal/pmu/pmu_gk20a.h"
 #include "hal/pmu/pmu_gm20b.h"
 #endif
-#include "hal/pmu/pmu_gp106.h"
 #include "hal/pmu/pmu_gv11b.h"
 #include "hal/sync/syncpt_cmdbuf_gv11b.h"
 #include "hal/sync/sema_cmdbuf_gv11b.h"
@@ -1097,8 +1096,8 @@ static const struct gpu_ops gv11b_ops = {
 		.is_pmu_supported = gv11b_is_pmu_supported,
 		.falcon_base_addr = gv11b_pmu_falcon_base_addr,
 		.pmu_reset = nvgpu_pmu_reset,
-		.reset_engine = gp106_pmu_engine_reset,
-		.is_engine_in_reset = gp106_pmu_is_engine_in_reset,
+		.reset_engine = gv11b_pmu_engine_reset,
+		.is_engine_in_reset = gv11b_pmu_is_engine_in_reset,
 		.is_debug_mode_enabled = gv11b_pmu_is_debug_mode_en,
 		.setup_apertures = gv11b_setup_apertures,
 		.secured_pmu_start = gv11b_secured_pmu_start,
