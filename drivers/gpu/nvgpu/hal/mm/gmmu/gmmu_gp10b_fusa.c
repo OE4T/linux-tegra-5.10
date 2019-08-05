@@ -342,10 +342,10 @@ static u32 gp10b_get_pde0_pgsz(struct gk20a *g, const struct gk20a_mmu_level *l,
 		(gmmu_new_dual_pde_aperture_small_sys_mem_ncoh_f() |
 		 gmmu_new_dual_pde_aperture_small_sys_mem_coh_f() |
 		 gmmu_new_dual_pde_aperture_small_video_memory_f())) != 0U) {
-		u32 new_pde_addr_big_sys =
+		u32 new_pde_addr_small_sys =
 			gmmu_new_dual_pde_address_small_sys_f(~U32(0U));
 		u64 addr = ((U64(pde_v[3]) << U64(32)) |
-			(U64(pde_v[2]) & U64(new_pde_addr_big_sys))) <<
+			(U64(pde_v[2]) & U64(new_pde_addr_small_sys))) <<
 			U64(gmmu_new_dual_pde_address_shift_v());
 
 		if (addr != 0ULL) {
