@@ -32,9 +32,11 @@ struct nvgpu_vm_area *nvgpu_vm_area_find(struct vm_gk20a *vm, u64 addr)
 
 	nvgpu_list_for_each_entry(vm_area, &vm->vm_area_list,
 				  nvgpu_vm_area, vm_area_list) {
-		if (addr >= vm_area->addr &&
-		    addr < nvgpu_safe_add_u64(vm_area->addr, vm_area->size)) {
-			return vm_area;
+		if (addr >= vm_area->addr) {
+			if (addr < nvgpu_safe_add_u64(vm_area->addr,
+							vm_area->size)) {
+				return vm_area;
+			}
 		}
 	}
 
@@ -73,10 +75,13 @@ int nvgpu_vm_area_validate_buffer(struct vm_gk20a *vm,
 	}
 
 	/* Mapped area should fit inside va, if there's one */
-	if (vm_area != NULL && map_end > nvgpu_safe_add_u64(vm_area->addr,
+	if (vm_area != NULL) {
+		if (map_end > nvgpu_safe_add_u64(vm_area->addr,
 							    vm_area->size)) {
-		nvgpu_warn(g, "fixed offset mapping size overflows va node");
-		return -EINVAL;
+			nvgpu_warn(g,
+				"fixed offset mapping size overflows va node");
+			return -EINVAL;
+		}
 	}
 
 	/* check that this mapping does not collide with existing
@@ -84,10 +89,11 @@ int nvgpu_vm_area_validate_buffer(struct vm_gk20a *vm,
 	 * that is less than our buffer end */
 	buffer = nvgpu_vm_find_mapped_buf_less_than(
 		vm, nvgpu_safe_add_u64(map_addr, map_size));
-	if (buffer != NULL &&
-	    nvgpu_safe_add_u64(buffer->addr, buffer->size) > map_addr) {
-		nvgpu_warn(g, "overlapping buffer map requested");
-		return -EINVAL;
+	if (buffer != NULL) {
+		if (nvgpu_safe_add_u64(buffer->addr, buffer->size) > map_addr) {
+			nvgpu_warn(g, "overlapping buffer map requested");
+			return -EINVAL;
+		}
 	}
 
 	*pvm_area = vm_area;

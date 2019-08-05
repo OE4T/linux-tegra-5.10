@@ -276,7 +276,7 @@ static inline bool nvgpu_atomic64_sub_and_test_impl(long x, nvgpu_atomic64_t *v)
 	({								\
 		typeof(*(p)) tmp = (old);				\
 									\
-		(void) nvgpu_atomic_cmpxchg((nvgpu_atomic_t *) (p), tmp,\
+		(void) nvgpu_atomic_cmpxchg((nvgpu_atomic_t *)(void *)(p), tmp,\
 			(new));						\
 		tmp;							\
 	})
