@@ -196,7 +196,8 @@ utils:
              common/utils/string.c,
              common/utils/worker.c,
              common/utils/rbtree.c,
-             common/utils/enabled.c ]
+             common/utils/enabled.c,
+             common/utils/assert.c ]
 
 ##
 ## Common elements.

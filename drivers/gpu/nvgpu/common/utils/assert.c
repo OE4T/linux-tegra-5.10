@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,21 +20,18 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-
-#include <nvgpu/pmu/pmu_perfmon.h>
+#include <nvgpu/gk20a.h>
+#include <nvgpu/bug.h>
 #include <nvgpu/log.h>
-#include "pmu_perfmon_sw_gm20b.h"
 
-void nvgpu_gm20b_perfmon_sw_init(struct gk20a *g,
-		struct nvgpu_pmu_perfmon *perfmon)
+void nvgpu_do_assert_print(struct gk20a *g, const char *fmt, ...)
 {
-	nvgpu_log_fn(g, " ");
+#ifdef CONFIG_NVGPU_LOGGING
+	va_list args;
 
-	perfmon->init_perfmon = nvgpu_pmu_init_perfmon;
-	perfmon->start_sampling =
-		nvgpu_pmu_perfmon_start_sampling;
-	perfmon->stop_sampling =
-		nvgpu_pmu_perfmon_stop_sampling;
-	perfmon->get_samples_rpc = NULL;
+	va_start(args, fmt);
+	nvgpu_err(g, fmt, args);
+	va_end(args);
+#endif
+	nvgpu_do_assert();
 }
-

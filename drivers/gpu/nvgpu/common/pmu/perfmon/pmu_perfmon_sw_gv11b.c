@@ -21,6 +21,7 @@
  */
 
 #include <nvgpu/pmu/pmu_perfmon.h>
+#include <nvgpu/log.h>
 #include "pmu_perfmon_sw_gv11b.h"
 
 void nvgpu_gv11b_perfmon_sw_init(struct gk20a *g,

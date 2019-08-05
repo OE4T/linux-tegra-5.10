@@ -26,6 +26,7 @@
 #include <stdatomic.h>
 #include <nvgpu/types.h>
 #include <nvgpu/safe_ops.h>
+#include <nvgpu/utils.h>
 
 /*
  * Note: this code uses the GCC builtins to implement atomics.

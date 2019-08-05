@@ -28,8 +28,6 @@
 #include <nvgpu/posix/bug.h>
 #endif
 
-#include <nvgpu/log.h>
-
 /*
  * Define an assert macro that code within nvgpu can use.
  *
@@ -69,10 +67,7 @@ static inline void nvgpu_assert(bool cond)
  */
 #define nvgpu_do_assert()	nvgpu_assert(false)
 
-#define nvgpu_do_assert_print(g, fmt, ...)		\
-	do {						\
-		nvgpu_err(g, fmt, ##__VA_ARGS__);	\
-		nvgpu_do_assert();			\
-	} while (false)
+struct gk20a;
+void nvgpu_do_assert_print(struct gk20a *g, const char *fmt, ...);
 
 #endif /* NVGPU_BUG_H */

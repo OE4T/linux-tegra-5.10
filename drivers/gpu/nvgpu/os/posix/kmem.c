@@ -23,6 +23,7 @@
 #include <stdlib.h>
 
 #include <nvgpu/bug.h>
+#include <nvgpu/log.h>
 #include <nvgpu/kmem.h>
 #include <nvgpu/types.h>
 #include <nvgpu/atomic.h>
