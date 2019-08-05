@@ -269,21 +269,13 @@ static int tegra_mipi_wait(struct tegra_mipi *mipi, int lanes)
 
 	timeout = jiffies + msecs_to_jiffies(MIPI_CAL_TIMEOUT_MSEC);
 	while (time_before(jiffies, timeout)) {
+		usleep_range(125, 150);
 		regmap_read(mipi->regmap, ADDR(CIL_MIPI_CAL_STATUS), &val);
 		if (((val & lanes) == lanes) && ((val & CAL_ACTIVE) == 0)) {
 			trace_mipical_result("CIL_MIPI_CAL_STATUS", val);
 			return 0;
 		}
-		usleep_range(10, 50);
 	}
-	/* Sometimes there is false timeout. Sleep past the timeout and did
-	 * not check the status again.
-	 * Later status register dump shows no timeout.
-	 * Add another check here in case sleep past the timeout.
-	 */
-	regmap_read(mipi->regmap, ADDR(CIL_MIPI_CAL_STATUS), &val);
-	if (((val & lanes) == lanes) && ((val & CAL_ACTIVE) == 0))
-		return 0;
 	dev_err(mipi->dev, "Mipi cal timeout,val:%x, lanes:%x\n", val, lanes);
 	tegra_mipi_print(mipi);
 	return -ETIMEDOUT;
