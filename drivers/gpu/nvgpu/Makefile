@@ -472,8 +472,6 @@ nvgpu-y += \
 	common/vbios/bios_sw_tu104.o \
 	common/falcon/falcon.o \
 	common/falcon/falcon_sw_gk20a.o \
-	common/falcon/falcon_sw_gp106.o \
-	common/falcon/falcon_sw_gv100.o \
 	common/falcon/falcon_sw_tu104.o \
 	common/engine_queues/engine_mem_queue.o \
 	common/engine_queues/engine_dmem_queue.o \
