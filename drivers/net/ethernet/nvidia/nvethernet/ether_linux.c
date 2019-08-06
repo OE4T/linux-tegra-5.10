@@ -1111,8 +1111,16 @@ static struct thermal_cooling_device_ops ether_cdev_ops = {
  */
 static int ether_therm_init(struct ether_priv_data *pdata)
 {
-	pdata->tcd = thermal_cooling_device_register("tegra-eqos", pdata,
-						      &ether_cdev_ops);
+	struct device_node *np = NULL;
+
+	np = of_find_node_by_name(NULL, "eqos-cool-dev");
+	if (!np) {
+		dev_err(pdata->dev, "failed to get eqos-cool-dev\n");
+		return -ENODEV;
+	}
+	pdata->tcd = thermal_of_cooling_device_register(np,
+							"tegra-eqos", pdata,
+							&ether_cdev_ops);
 	if (!pdata->tcd) {
 		return -ENODEV;
 	} else if (IS_ERR(pdata->tcd)) {
