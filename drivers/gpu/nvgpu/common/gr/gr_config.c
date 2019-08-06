@@ -45,7 +45,8 @@ static void gr_config_init_pes_tpc(struct gk20a *g,
 		 * TPCs connected to it.
 		 */
 		if (pes_tpc_count != 0U) {
-			config->gpc_ppc_count[gpc_index]++;
+			config->gpc_ppc_count[gpc_index] = nvgpu_safe_add_u32(
+				config->gpc_ppc_count[gpc_index], 1U);
 		}
 
 		config->pes_tpc_count[pes_index][gpc_index] = pes_tpc_count;
