@@ -898,9 +898,9 @@ int nvmap_ioctl_get_heap_size(struct file *filp, void __user *arg)
 
 }
 
-int nvmap_ioctl_get_offset_in_heap(struct file *filp, void __user *arg)
+int nvmap_ioctl_get_handle_parameters(struct file *filp, void __user *arg)
 {
-	struct nvmap_offset_in_heap op;
+	struct nvmap_handle_parameters op;
 	struct nvmap_handle *handle;
 
 	if (copy_from_user(&op, arg, sizeof(op)))
@@ -910,7 +910,29 @@ int nvmap_ioctl_get_offset_in_heap(struct file *filp, void __user *arg)
 	if (handle == NULL)
 		goto exit;
 
-	op.offs = handle->offs;
+	if (!handle->alloc) {
+		op.heap = 0;
+	} else {
+		op.heap = handle->heap_type;
+	}
+
+	/* heap_number, only valid for IVM carveout */
+	op.heap_number = handle->peer;
+
+	op.size = handle->size;
+
+	if (handle->userflags & NVMAP_HANDLE_PHYS_CONTIG) {
+		op.contig = 1U;
+	} else {
+		op.contig = 0U;
+	}
+
+	op.align = handle->align;
+
+	op.offset = handle->offs;
+
+	op.coherency = handle->flags;
+
 	if (copy_to_user(arg, &op, sizeof(op)))
 		return -EFAULT;
 	return 0;

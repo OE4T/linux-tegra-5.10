@@ -67,7 +67,7 @@ int nvmap_ioctl_get_heap_size(struct file *filp, void __user *arg);
 void kasan_memcpy_toio(void __iomem *to, const void *from,
 			size_t count);
 
-int nvmap_ioctl_get_offset_in_heap(struct file *filp, void __user *arg);
+int nvmap_ioctl_get_handle_parameters(struct file *filp, void __user *arg);
 
 int nvmap_ioctl_get_sci_ipc_id(struct file *filp, void __user *arg);
 

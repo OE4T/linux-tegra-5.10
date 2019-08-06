@@ -253,16 +253,24 @@ struct nvmap_heap_size {
 	__u64 size;
 };
 
-struct nvmap_offset_in_heap {
-	__u32 handle;		/* nvmap handle */
-	__u64 offs;		/* offset to be filled from IVM mem pool */
-};
-
 struct nvmap_sciipc_map {
 	__u64 auth_token;    /* AuthToken */
 	__u32 flags;       /* Exporter permission flags */
 	__u32 sci_ipc_id;  /* FromImportId */
 	__u32 handle;      /* Nvmap handle */
+};
+
+struct nvmap_handle_parameters {
+    __u8 contig;
+    __u32 import_id;
+    __u32 handle;
+    __u32 heap_number;
+    __u32 access_flags;
+    __u64 heap;
+    __u64 align;
+    __u64 coherency;
+    __u64 size;
+    __u64 offset;
 };
 
 #define NVMAP_IOC_MAGIC 'N'
@@ -359,8 +367,8 @@ struct nvmap_sciipc_map {
 #define NVMAP_IOC_GET_HEAP_SIZE \
 	_IOR(NVMAP_IOC_MAGIC, 26, struct nvmap_heap_size)
 
-#define NVMAP_IOC_GET_OFFSET_IN_HEAP \
-	_IOR(NVMAP_IOC_MAGIC, 27, struct nvmap_offset_in_heap)
+#define NVMAP_IOC_PARAMETERS \
+	_IOR(NVMAP_IOC_MAGIC, 27, struct nvmap_handle_parameters)
 
 /* START of T124 IOCTLS */
 /* Actually allocates memory for the specified handle, with kind */

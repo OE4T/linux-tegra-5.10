@@ -463,8 +463,8 @@ static long nvmap_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 		err = nvmap_ioctl_get_heap_size(filp, uarg);
 		break;
 
-	case NVMAP_IOC_GET_OFFSET_IN_HEAP:
-		err = nvmap_ioctl_get_offset_in_heap(filp, uarg);
+	case NVMAP_IOC_PARAMETERS:
+		err = nvmap_ioctl_get_handle_parameters(filp, uarg);
 		break;
 
 	case NVMAP_IOC_GET_SCIIPCID:
