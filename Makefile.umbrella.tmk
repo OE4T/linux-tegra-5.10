@@ -42,6 +42,7 @@ NV_REPOSITORY_COMPONENTS += userspace/units/posix/bug
 NV_REPOSITORY_COMPONENTS += userspace/units/posix/sizes
 NV_REPOSITORY_COMPONENTS += userspace/units/init
 NV_REPOSITORY_COMPONENTS += userspace/units/posix/thread
+NV_REPOSITORY_COMPONENTS += userspace/units/posix/cond
 NV_REPOSITORY_COMPONENTS += userspace/units/interface/bsearch
 NV_REPOSITORY_COMPONENTS += userspace/units/interface/lock
 NV_REPOSITORY_COMPONENTS += userspace/units/interface/atomic

@@ -112,6 +112,17 @@ nvgpu_channel_refch_from_inst_ptr
 nvgpu_channel_setup_sw
 nvgpu_channel_sync_create
 nvgpu_check_gpu_state
+nvgpu_cond_broadcast
+nvgpu_cond_broadcast_interruptible
+nvgpu_cond_broadcast_locked
+nvgpu_cond_destroy
+nvgpu_cond_init
+nvgpu_cond_lock
+nvgpu_cond_signal
+nvgpu_cond_signal_interruptible
+nvgpu_cond_signal_locked
+nvgpu_cond_timedwait
+nvgpu_cond_unlock
 nvgpu_detect_chip
 nvgpu_dma_alloc
 nvgpu_dma_alloc_get_fault_injection
