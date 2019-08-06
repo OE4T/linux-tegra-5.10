@@ -49,28 +49,34 @@ struct gk20a;
 struct nvgpu_fifo;
 
 void nvgpu_cg_init_gr_load_gating_prod(struct gk20a *g);
-void nvgpu_cg_elcg_enable(struct gk20a *g);
-void nvgpu_cg_elcg_disable(struct gk20a *g);
 void nvgpu_cg_elcg_enable_no_wait(struct gk20a *g);
 void nvgpu_cg_elcg_disable_no_wait(struct gk20a *g);
-void nvgpu_cg_elcg_set_elcg_enabled(struct gk20a *g, bool enable);
 
-void nvgpu_cg_blcg_mode_enable(struct gk20a *g);
-void nvgpu_cg_blcg_mode_disable(struct gk20a *g);
 void nvgpu_cg_blcg_fb_ltc_load_enable(struct gk20a *g);
 void nvgpu_cg_blcg_fifo_load_enable(struct gk20a *g);
 void nvgpu_cg_blcg_pmu_load_enable(struct gk20a *g);
 void nvgpu_cg_blcg_ce_load_enable(struct gk20a *g);
 void nvgpu_cg_blcg_gr_load_enable(struct gk20a *g);
-void nvgpu_cg_blcg_set_blcg_enabled(struct gk20a *g, bool enable);
 
-void nvgpu_cg_slcg_gr_perf_ltc_load_enable(struct gk20a *g);
-void nvgpu_cg_slcg_gr_perf_ltc_load_disable(struct gk20a *g);
 void nvgpu_cg_slcg_fb_ltc_load_enable(struct gk20a *g);
 void nvgpu_cg_slcg_priring_load_enable(struct gk20a *g);
 void nvgpu_cg_slcg_fifo_load_enable(struct gk20a *g);
 void nvgpu_cg_slcg_pmu_load_enable(struct gk20a *g);
 void nvgpu_cg_slcg_ce2_load_enable(struct gk20a *g);
+
+#ifdef CONFIG_NVGPU_NON_FUSA
+
+void nvgpu_cg_elcg_enable(struct gk20a *g);
+void nvgpu_cg_elcg_disable(struct gk20a *g);
+void nvgpu_cg_elcg_set_elcg_enabled(struct gk20a *g, bool enable);
+
+void nvgpu_cg_blcg_mode_enable(struct gk20a *g);
+void nvgpu_cg_blcg_mode_disable(struct gk20a *g);
+void nvgpu_cg_blcg_set_blcg_enabled(struct gk20a *g, bool enable);
+
+void nvgpu_cg_slcg_gr_perf_ltc_load_enable(struct gk20a *g);
+void nvgpu_cg_slcg_gr_perf_ltc_load_disable(struct gk20a *g);
 void nvgpu_cg_slcg_set_slcg_enabled(struct gk20a *g, bool enable);
 
+#endif
 #endif /*NVGPU_POWER_FEATURES_CG_H*/

@@ -129,7 +129,6 @@ srcs += common/utils/assert.c \
 	common/ptimer/ptimer.c \
 	common/sync/channel_sync.c \
 	common/sync/channel_sync_syncpt.c \
-	common/power_features/power_features.c \
 	common/power_features/cg/cg.c \
 	common/fifo/preempt.c \
 	common/fifo/channel.c \
@@ -641,4 +640,8 @@ ifeq ($(CONFIG_NVGPU_SIM),1)
 srcs += common/sim/sim.c \
 	common/sim/sim_pci.c \
 	common/sim/sim_netlist.c
+endif
+
+ifeq ($(CONFIG_NVGPU_NON_FUSA),1)
+srcs +=	common/power_features/power_features.c
 endif

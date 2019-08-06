@@ -945,11 +945,10 @@ sync:
       sources: [ common/sync/channel_sync_semaphore.c,
                  include/nvgpu/channel_sync_semaphore.h ]
 power_features:
-  safe: no
   owner: Seema K
   children:
     power_features:
-      safe: yes
+      safe: no
       sources: [ common/power_features/power_features.c,
                  include/nvgpu/power_features/power_features.h ]
     cg:

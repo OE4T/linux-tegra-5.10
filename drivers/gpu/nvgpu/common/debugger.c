@@ -207,8 +207,9 @@ int nvgpu_dbg_set_powergate(struct dbg_session_gk20a *dbg_s, bool disable_powerg
 			return err;
 		}
 
+#ifdef CONFIG_NVGPU_NON_FUSA
 		err = nvgpu_cg_pg_disable(g);
-
+#endif
 		if (err == 0) {
 			dbg_s->is_pg_disabled = true;
 			nvgpu_log(g, gpu_dbg_gpu_dbg | gpu_dbg_fn,
@@ -219,17 +220,18 @@ int nvgpu_dbg_set_powergate(struct dbg_session_gk20a *dbg_s, bool disable_powerg
 		/* release pending exceptions to fault/be handled as usual */
 		/*TBD: ordering of these? */
 
+#ifdef CONFIG_NVGPU_NON_FUSA
 		err = nvgpu_cg_pg_enable(g);
-
-		nvgpu_log(g, gpu_dbg_gpu_dbg | gpu_dbg_fn, "module idle");
-
-		gk20a_idle(g);
-
+#endif
 		if (err == 0) {
 			dbg_s->is_pg_disabled = false;
 			nvgpu_log(g, gpu_dbg_gpu_dbg | gpu_dbg_fn,
 					"pg enabled");
 		}
+
+		nvgpu_log(g, gpu_dbg_gpu_dbg | gpu_dbg_fn, "module idle");
+
+		gk20a_idle(g);
 	}
 
 	nvgpu_log(g, gpu_dbg_fn|gpu_dbg_gpu_dbg, "%s powergate mode = %s done",
