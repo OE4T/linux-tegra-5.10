@@ -73,6 +73,7 @@ static unsigned long nvgpu_posix_find_next_bit(const unsigned long *addr,
 	unsigned long idx, idx_max;
 	unsigned long w;
 	unsigned long start_mask;
+	const unsigned long *base_addr = (const unsigned long *)&addr[0];
 
 	/*
 	 * We make a mask we can XOR into the word so that we can invert the
@@ -96,7 +97,7 @@ static unsigned long nvgpu_posix_find_next_bit(const unsigned long *addr,
 	start_mask = ~0UL << (start & (BITS_PER_LONG - 1UL));
 
 	idx = start / BITS_PER_LONG;
-	w = (addr[idx] ^ invert_mask) & start_mask;
+	w = (base_addr[idx] ^ invert_mask) & start_mask;
 
 	start = round_up(start, BITS_PER_LONG);
 
@@ -114,7 +115,7 @@ static unsigned long nvgpu_posix_find_next_bit(const unsigned long *addr,
 
 		start = nvgpu_safe_add_u64(start, BITS_PER_LONG);
 
-		w = addr[idx] ^ invert_mask;
+		w = base_addr[idx] ^ invert_mask;
 	}
 
 	return min(n, (nvgpu_safe_add_u64(((nvgpu_ffs(w)) - 1UL),
