@@ -83,7 +83,8 @@ u32 gp10b_get_num_engine_type_entries(struct gk20a *g, u32 engine_type)
 				top_device_info_type_enum_v(table_entry));
 			if (top_device_info_type_enum_v(table_entry) ==
 								engine_type) {
-				num_entries++;
+				num_entries = nvgpu_safe_add_u32(num_entries,
+								 1U);
 			}
 		}
 	}
