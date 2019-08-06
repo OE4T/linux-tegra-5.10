@@ -25,54 +25,48 @@
 #define ISP5_SDL_PARAM_UNSPECIFIED	U32_C(0xFFFFFFFF)
 
 /**
- * ISP5 SDL binary - header
- *
- * @param version		Monotonically-increasing version number
- * @param num_vectors		No. of test descriptors (vectors)
- * @param payload_crc32		CRC32 (unsigned) on binary payload (after
- *				header)
- * @param payload_offset	Offset [byte] to the payload region (also the
- *				header size)
- * @param input_base_offset     Offset [byte] to input images region from
- *				payload_offset
- * @param push_buffer2_offset	Offset [byte] to push_buffer2 allocation from
- *				payload_offset
- * @param output_buffers_offset	Offset [byte] to MW[0/1/2] output buffers
- *				scratch surface from payload_offset
+ * @brief isp5_sdl_header - ISP5 SDL binary header
  */
 struct isp5_sdl_header {
+	/** Monotonically-increasing version number. */
 	uint32_t version;
+	/** No. of test descriptors (vectors). */
 	uint32_t num_vectors;
+	/** CRC32 (unsigned) on binary payload (after header). */
 	uint32_t payload_crc32;
+	/** Byte offset to the payload region (also the header size). */
 	uint32_t payload_offset;
+	/** Byte offset to input images region from payload_offset. */
 	uint32_t input_base_offset;
+	/** Byte offset to push_buffer2 allocation from payload_offset. */
 	uint32_t push_buffer2_offset;
+	/** Byte offset to MW[0/1/2] output buffers scratch surface from payload_offset.*/
 	uint32_t output_buffers_offset;
+	/** Reserved. */
 	uint32_t __reserved[9];
 } CAMRTC_DIAG_DMA_ALIGN;
 
 /**
- * ISP5 SDL binary - test descriptor
- *
- * @param test_index		Zero-index test number (0...num_vectors-1)
- * @param input_width		Input image width [px] (same for all inputs)
- * @param input_height		Input image height [px] (same for all inputs)
- * @param input_offset[3]	Offset [byte] to the nth input image of the
- *				test vector from input_base_offset
- * @param output_crc32[3]	Golden CRC32 values for MW0, MW1 and MW2 output
- * @param push_buffer1_size	ISP5 push buffer 1 size [dword]
- * @param push_buffer1		ISP5 frame push buffer 1
- * @param config_buffer		ISP5 frame config buffer (isp5_configbuffer)
+ * @brief isp5_sdl_test_descriptor - ISP5 SDL binary test descriptor
  */
 struct isp5_sdl_test_descriptor {
+	/** Zero-index test number (0...num_vectors-1). */
 	uint32_t test_index;
+	/** Input image width [px] (same for all inputs). */
 	uint16_t input_width;
+	/** Input image height [px] (same for all inputs). */
 	uint16_t input_height;
+	/** Offset [byte] to the nth input image of the test vector from input_base_offset. */
 	uint32_t input_offset[3];
+	/** Golden CRC32 values for MW0, MW1 and MW2 output. */
 	uint32_t output_crc32[3];
+	/** Reserved. */
 	uint32_t __reserved[7];
+	/** ISP5 push buffer 1 size in dwords. */
 	uint32_t push_buffer1_size;
+	/** ISP5 frame push buffer 1 */
 	uint32_t push_buffer1[4096] CAMRTC_DIAG_DMA_ALIGN;
+	/** ISP5 frame config buffer structure (isp5_configbuffer). */
 	uint8_t config_buffer[128] CAMRTC_DIAG_DMA_ALIGN;
 } CAMRTC_DIAG_DMA_ALIGN;
 

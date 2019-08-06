@@ -17,14 +17,16 @@
 #pragma GCC diagnostic error "-Wpadded"
 
 /**
- * Message types for RCE diagnostics channel
+ * @defgroup MessageType Message types for RCE diagnostics channel
+ * @{
  */
-
 #define CAMRTC_DIAG_ISP5_SDL_SETUP_REQ		U32_C(0x01)
 #define CAMRTC_DIAG_ISP5_SDL_SETUP_RESP		U32_C(0x02)
+/**@}*/
 
 /**
- * Result codes
+ * @defgroup ResultCodes Diagnostics channel Result codes
+ * @{
  */
 #define CAMRTC_DIAG_SUCCESS			U32_C(0x00)
 #define CAMRTC_DIAG_ERROR_INVAL			U32_C(0x01)
@@ -32,42 +34,49 @@
 #define CAMRTC_DIAG_ERROR_BUSY			U32_C(0x03)
 #define CAMRTC_DIAG_ERROR_TIMEOUT		U32_C(0x04)
 #define CAMRTC_DIAG_ERROR_UNKNOWN		U32_C(0xFF)
+/**@}*/
 
 /**
- * Setup ISP5 SDL periodic diagnostics
+ * @brief camrtc_diag_isp5_sdl_setup_req - ISP5 SDL periodic diagnostics setup request.
  *
  * Submit the pinned addresses of the ISP5 SDL test vectors binary to RCE to
  * enable periodic diagnostics.
- *
- * @param rce_iova	Binary base address (RCE STREAMID)
- * @param isp_iova	Binary base address (ISP STREAMID)
- * @param size		Total size of the test binary
- * @param period	Period [ms] b/w diag. tests submitted in batch,
- *			0 for no repeat
  */
 struct camrtc_diag_isp5_sdl_setup_req {
+	/** Binary base address (RCE STREAMID). */
 	iova_t rce_iova;
+	/** Binary base address (ISP STREAMID). */
 	iova_t isp_iova;
+	/** Total size of the test binary. */
 	uint32_t size;
+	/** Period [ms] b/w diagnostics tests submitted in batch, zero for no repeat. */
 	uint32_t period;
 } CAMRTC_DIAG_IVC_ALIGN;
 
+/**
+ * @brief camrtc_diag_isp5_sdl_setup_resp - ISP5 SDL periodic diagnostics setup response.
+ *
+ * Setup status is returned in the result field.
+ */
 struct camrtc_diag_isp5_sdl_setup_resp {
+	/** SDL setup status returned to caller. */
 	uint32_t result;
+	/** Reserved. */
 	uint32_t __pad32[1];
 } CAMRTC_DIAG_IVC_ALIGN;
 
 /**
- * Message definition for camrtc diagnostics
- *
- * @param msg_type		Message data type
- * @param transaction_id	ID associated w/ request
+ * @brief camrtc_diag_msg - Message definition for camrtc diagnostics
  */
 struct camrtc_diag_msg {
+	/** @ref MessageType "Message type". */
 	uint32_t msg_type;
+	/** ID associated w/ request. */
 	uint32_t transaction_id;
 	union {
+		/** SDL setup req structure. */
 		struct camrtc_diag_isp5_sdl_setup_req isp5_sdl_setup_req;
+		/** SDL setup resp structure. */
 		struct camrtc_diag_isp5_sdl_setup_resp isp5_sdl_setup_resp;
 	};
 } CAMRTC_DIAG_IVC_ALIGN;
