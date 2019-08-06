@@ -40,8 +40,7 @@
 #define LSF_DATA_SIZE_ALIGNMENT         (256U)
 #define LSF_CODE_SIZE_ALIGNMENT         (256U)
 
-/* MMU excepts sub_wpr sizes in units of 4K */
-#define SUB_WPR_SIZE_ALIGNMENT	(4096U)
+#define LSF_UCODE_DATA_ALIGNMENT 4096U
 
 /*
  * Maximum WPR Header size
@@ -58,20 +57,11 @@
 	LSF_SHARED_DATA_SUB_WPR_USE_CASE_ID_MAX), \
 	LSF_SUB_WPR_HEADER_ALIGNMENT))
 
-
-#define LSF_UCODE_DATA_ALIGNMENT 4096U
-
+/* MMU excepts sub_wpr sizes in units of 4K */
+#define SUB_WPR_SIZE_ALIGNMENT	(4096U)
 
 /* Defined for 1MB alignment */
-#define SHIFT_1MB	(20U)
 #define SHIFT_4KB	(12U)
-
-/*
- * Maximum WPR Header size
- */
-#define LSF_WPR_HEADERS_TOTAL_SIZE_MAX	\
-	(ALIGN_UP(((u32)sizeof(struct lsf_wpr_header_v1) * FALCON_ID_END), \
-		LSF_WPR_HEADER_ALIGNMENT))
 
 /* shared sub_wpr use case IDs */
 enum {
@@ -178,15 +168,10 @@ struct ls_falcon_ucode_desc {
 };
 
 struct flcn_ucode_img_v1 {
-	u32 *header;
 	u32 *data;
 	struct ls_falcon_ucode_desc *desc;
 	u32 data_size;
-	void *fw_ver;
-	u8 load_entire_os_data;
 	struct lsf_ucode_desc_v1 *lsf_desc;
-	u8 free_res_allocs;
-	u32 flcn_inst;
 };
 
 struct lsfm_managed_ucode_img_v2 {

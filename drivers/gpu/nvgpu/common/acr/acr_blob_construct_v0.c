@@ -63,8 +63,6 @@ int nvgpu_acr_lsf_pmu_ucode_details_v0(struct gk20a *g, void *lsf_ucode_img)
 	p_img->desc = (struct pmu_ucode_desc *)(void *)fw_desc->data;
 	p_img->data = (u32 *)(void *)fw_image->data;
 	p_img->data_size = p_img->desc->image_size;
-	p_img->fw_ver = NULL;
-	p_img->header = NULL;
 	p_img->lsf_desc = (struct lsf_ucode_desc *)lsf_desc;
 
 exit:
@@ -124,8 +122,6 @@ int nvgpu_acr_lsf_fecs_ucode_details_v0(struct gk20a *g, void *lsf_ucode_img)
 	p_img->data = nvgpu_gr_falcon_get_surface_desc_cpu_va(gr_falcon);
 	p_img->data_size = p_img->desc->image_size;
 
-	p_img->fw_ver = NULL;
-	p_img->header = NULL;
 	p_img->lsf_desc = (struct lsf_ucode_desc *)lsf_desc;
 	nvgpu_acr_dbg(g, "fecs fw loaded\n");
 	nvgpu_release_firmware(g, fecs_sig);
@@ -195,8 +191,6 @@ int nvgpu_acr_lsf_gpccs_ucode_details_v0(struct gk20a *g, void *lsf_ucode_img)
 		((u8 *)nvgpu_gr_falcon_get_surface_desc_cpu_va(gr_falcon) +
 							gpccs->boot.offset);
 	p_img->data_size = ALIGN(p_img->desc->image_size, 256U);
-	p_img->fw_ver = NULL;
-	p_img->header = NULL;
 	p_img->lsf_desc = (struct lsf_ucode_desc *)lsf_desc;
 	nvgpu_acr_dbg(g, "gpccs fw loaded\n");
 	nvgpu_release_firmware(g, gpccs_sig);
@@ -206,42 +200,6 @@ free_lsf_desc:
 rel_sig:
 	nvgpu_release_firmware(g, gpccs_sig);
 	return err;
-}
-
-/*
- * lsfm_parse_no_loader_ucode: parses UCODE header of falcon &
- * updates values in LSB header
- */
-static void lsfm_parse_no_loader_ucode(u32 *p_ucodehdr,
-	struct lsf_lsb_header *lsb_hdr)
-{
-
-	u32 code_size = 0;
-	u32 data_size = 0;
-	u32 i = 0;
-	u32 total_apps = p_ucodehdr[FLCN_NL_UCODE_HDR_NUM_APPS_IND];
-
-	/* Lets calculate code size*/
-	code_size += p_ucodehdr[FLCN_NL_UCODE_HDR_OS_CODE_SIZE_IND];
-	for (i = 0; i < total_apps; i++) {
-		code_size += p_ucodehdr[FLCN_NL_UCODE_HDR_APP_CODE_SIZE_IND
-			(total_apps, i)];
-	}
-	code_size += p_ucodehdr[FLCN_NL_UCODE_HDR_OS_OVL_SIZE_IND(total_apps)];
-
-	/* Calculate data size*/
-	data_size += p_ucodehdr[FLCN_NL_UCODE_HDR_OS_DATA_SIZE_IND];
-	for (i = 0; i < total_apps; i++) {
-		data_size += p_ucodehdr[FLCN_NL_UCODE_HDR_APP_DATA_SIZE_IND
-			(total_apps, i)];
-	}
-
-	lsb_hdr->ucode_size = code_size;
-	lsb_hdr->data_size = data_size;
-	lsb_hdr->bl_code_size = p_ucodehdr[FLCN_NL_UCODE_HDR_OS_CODE_SIZE_IND];
-	lsb_hdr->bl_imem_off = 0;
-	lsb_hdr->bl_data_off = p_ucodehdr[FLCN_NL_UCODE_HDR_OS_DATA_OFF_IND];
-	lsb_hdr->bl_data_size = p_ucodehdr[FLCN_NL_UCODE_HDR_OS_DATA_SIZE_IND];
 }
 
 /*
@@ -261,64 +219,44 @@ static void lsfm_fill_static_lsb_hdr_info(struct gk20a *g,
 	}
 	pnode->lsb_header.ucode_size = pnode->ucode_img.data_size;
 
-	/* The remainder of the LSB depends on the loader usage */
-	if (pnode->ucode_img.header != NULL) {
-		/* Does not use a loader */
-		pnode->lsb_header.data_size = 0;
-		pnode->lsb_header.bl_code_size = 0;
-		pnode->lsb_header.bl_data_off = 0;
-		pnode->lsb_header.bl_data_size = 0;
+	/* Uses a loader. that is has a desc */
+	pnode->lsb_header.data_size = 0;
 
-		lsfm_parse_no_loader_ucode(pnode->ucode_img.header,
-			&(pnode->lsb_header));
+	/*
+	 * The loader code size is already aligned (padded) such that
+	 * the code following it is aligned, but the size in the image
+	 * desc is not, bloat it up to be on a 256 byte alignment.
+	 */
+	pnode->lsb_header.bl_code_size = ALIGN(
+		pnode->ucode_img.desc->bootloader_size,
+		LSF_BL_CODE_SIZE_ALIGNMENT);
+	full_app_size = ALIGN(pnode->ucode_img.desc->app_size,
+		LSF_BL_CODE_SIZE_ALIGNMENT) +
+		pnode->lsb_header.bl_code_size;
+	pnode->lsb_header.ucode_size = ALIGN(
+		pnode->ucode_img.desc->app_resident_data_offset,
+		LSF_BL_CODE_SIZE_ALIGNMENT) +
+		pnode->lsb_header.bl_code_size;
+	pnode->lsb_header.data_size = full_app_size -
+		pnode->lsb_header.ucode_size;
+	/*
+	 * Though the BL is located at 0th offset of the image, the VA
+	 * is different to make sure that it doesn't collide the actual
+	 * OS VA range
+	 */
+	pnode->lsb_header.bl_imem_off =
+		pnode->ucode_img.desc->bootloader_imem_offset;
 
-		/*
-		 * Set LOAD_CODE_AT_0 and DMACTL_REQ_CTX.
-		 * True for all method based falcons
-		 */
-		data = NV_FLCN_ACR_LSF_FLAG_LOAD_CODE_AT_0_TRUE |
-			NV_FLCN_ACR_LSF_FLAG_DMACTL_REQ_CTX_TRUE;
+	pnode->lsb_header.flags = 0;
+
+	if (falcon_id == FALCON_ID_PMU) {
+		data = NV_FLCN_ACR_LSF_FLAG_DMACTL_REQ_CTX_TRUE;
 		pnode->lsb_header.flags = data;
-	} else {
-		/* Uses a loader. that is has a desc */
-		pnode->lsb_header.data_size = 0;
+	}
 
-		/*
-		 * The loader code size is already aligned (padded) such that
-		 * the code following it is aligned, but the size in the image
-		 * desc is not, bloat it up to be on a 256 byte alignment.
-		 */
-		pnode->lsb_header.bl_code_size = ALIGN(
-			pnode->ucode_img.desc->bootloader_size,
-			LSF_BL_CODE_SIZE_ALIGNMENT);
-		full_app_size = ALIGN(pnode->ucode_img.desc->app_size,
-			LSF_BL_CODE_SIZE_ALIGNMENT) +
-			pnode->lsb_header.bl_code_size;
-		pnode->lsb_header.ucode_size = ALIGN(
-			pnode->ucode_img.desc->app_resident_data_offset,
-			LSF_BL_CODE_SIZE_ALIGNMENT) +
-			pnode->lsb_header.bl_code_size;
-		pnode->lsb_header.data_size = full_app_size -
-			pnode->lsb_header.ucode_size;
-		/*
-		 * Though the BL is located at 0th offset of the image, the VA
-		 * is different to make sure that it doesn't collide the actual
-		 * OS VA range
-		 */
-		pnode->lsb_header.bl_imem_off =
-			pnode->ucode_img.desc->bootloader_imem_offset;
-
-		pnode->lsb_header.flags = 0;
-
-		if (falcon_id == FALCON_ID_PMU) {
-			data = NV_FLCN_ACR_LSF_FLAG_DMACTL_REQ_CTX_TRUE;
-			pnode->lsb_header.flags = data;
-		}
-
-		if (g->acr->lsf[falcon_id].is_priv_load) {
-			pnode->lsb_header.flags |=
-				NV_FLCN_ACR_LSF_FLAG_FORCE_PRIV_LOAD_TRUE;
-		}
+	if (g->acr->lsf[falcon_id].is_priv_load) {
+		pnode->lsb_header.flags |=
+			NV_FLCN_ACR_LSF_FLAG_FORCE_PRIV_LOAD_TRUE;
 	}
 }
 
@@ -385,8 +323,7 @@ static int lsfm_discover_ucode_images(struct gk20a *g,
 				 * base falonId from the image and adding the
 				 * engine-designated falcon instance.
 				 */
-				falcon_id = ucode_img.lsf_desc->falcon_id +
-					ucode_img.flcn_inst;
+				falcon_id = ucode_img.lsf_desc->falcon_id;
 
 				err = lsfm_add_ucode_img(g, plsfm, &ucode_img,
 					falcon_id);
@@ -446,31 +383,22 @@ static int lsf_gen_wpr_requirements(struct gk20a *g, struct ls_flcn_mgr *plsfm)
 		 * args to this space within the WPR region (before locking down)
 		 * and the HS bin will then copy them to DMEM 0 for the loader.
 		 */
-		if (pnode->ucode_img.header == NULL) {
-			/*
-			 * Track the size for LSB details filled in later
-			 * Note that at this point we don't know what kind of
-			 * boot loader desc, so we just take the size of the
-			 * generic one, which is the largest it will will ever be.
-			 */
-			/* Align (size bloat) and save off generic descriptor size */
-			pnode->lsb_header.bl_data_size = ALIGN(
-				(u32)sizeof(pnode->bl_gen_desc),
-				LSF_BL_DATA_SIZE_ALIGNMENT);
+		/*
+		 * Track the size for LSB details filled in later
+		 * Note that at this point we don't know what kind of
+		 * boot loader desc, so we just take the size of the
+		 * generic one, which is the largest it will will ever be.
+		 */
+		/* Align (size bloat) and save off generic descriptor size */
+		pnode->lsb_header.bl_data_size = ALIGN(
+			(u32)sizeof(pnode->bl_gen_desc),
+			LSF_BL_DATA_SIZE_ALIGNMENT);
 
-			/* Align, save off, and include the additional BL data */
-			wpr_offset = ALIGN(wpr_offset,
-				LSF_BL_DATA_ALIGNMENT);
-			pnode->lsb_header.bl_data_off = wpr_offset;
-			wpr_offset += pnode->lsb_header.bl_data_size;
-		} else {
-			/*
-			 * bl_data_off is already assigned in static
-			 * information. But that is from start of the image
-			 */
-			pnode->lsb_header.bl_data_off +=
-				(wpr_offset - pnode->ucode_img.data_size);
-		}
+		/* Align, save off, and include the additional BL data */
+		wpr_offset = ALIGN(wpr_offset,
+			LSF_BL_DATA_ALIGNMENT);
+		pnode->lsb_header.bl_data_off = wpr_offset;
+		wpr_offset += pnode->lsb_header.bl_data_size;
 
 		/* Finally, update ucode surface size to include updates */
 		pnode->full_ucode_size = wpr_offset -
@@ -729,19 +657,18 @@ static int lsfm_init_wpr_contents(struct gk20a *g, struct ls_flcn_mgr *plsfm,
 		nvgpu_acr_dbg(g, "flags :%x",
 				pnode->lsb_header.flags);
 
-		/* If this falcon has a boot loader and related args, flush them */
-		if (pnode->ucode_img.header == NULL) {
-			/* Populate gen bl and flush to memory */
-			err = lsfm_fill_flcn_bl_gen_desc(g, pnode);
-			if (err != 0) {
-				nvgpu_err(g, "bl_gen_desc failed err=%d", err);
-				return err;
-			}
-			nvgpu_mem_wr_n(g, ucode,
-					pnode->lsb_header.bl_data_off,
-					&pnode->bl_gen_desc,
-					pnode->bl_gen_desc_size);
+		/* this falcon has a boot loader and related args, flush them */
+		/* Populate gen bl and flush to memory */
+		err = lsfm_fill_flcn_bl_gen_desc(g, pnode);
+		if (err != 0) {
+			nvgpu_err(g, "bl_gen_desc failed err=%d", err);
+			return err;
 		}
+		nvgpu_mem_wr_n(g, ucode,
+				pnode->lsb_header.bl_data_off,
+				&pnode->bl_gen_desc,
+				pnode->bl_gen_desc_size);
+
 		/* Copying of ucode */
 		nvgpu_mem_wr_n(g, ucode, pnode->lsb_header.ucode_off,
 				pnode->ucode_img.data,

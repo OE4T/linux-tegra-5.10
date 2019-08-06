@@ -47,13 +47,6 @@
 #define SHIFT_1MB	(20U)
 #define SHIFT_4KB	(12U)
 
-/*
- * Maximum WPR Header size
- */
-#define LSF_WPR_HEADERS_TOTAL_SIZE_MAX	\
-	(ALIGN_UP(((u32)sizeof(struct lsf_wpr_header_v1) * FALCON_ID_END), \
-		LSF_WPR_HEADER_ALIGNMENT))
-
 /*Light Secure Bootstrap header related defines*/
 #define NV_FLCN_ACR_LSF_FLAG_LOAD_CODE_AT_0_FALSE       0U
 #define NV_FLCN_ACR_LSF_FLAG_LOAD_CODE_AT_0_TRUE        BIT32(0)
@@ -126,17 +119,12 @@ union flcn_bl_generic_desc {
 };
 
 struct flcn_ucode_img {
-	u32  *header; /* only some falcons have header */
 	u32  *data;
 	struct pmu_ucode_desc *desc; /* only some falcons have descriptor */
 	u32  data_size;
-	void *fw_ver; /* CTRL_GPU_GET_FIRMWARE_VERSION_PARAMS struct */
-	u8   load_entire_os_data; /* load the whole osData section at boot time.*/
 	/* NULL if not a light secure falcon. */
 	struct lsf_ucode_desc *lsf_desc;
 	/* True if there a resources to freed by the client. */
-	u8 free_res_allocs;
-	u32 flcn_inst;
 };
 
 /*
