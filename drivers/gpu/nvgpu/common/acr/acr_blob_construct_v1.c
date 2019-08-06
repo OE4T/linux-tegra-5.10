@@ -478,6 +478,7 @@ exit:
 	return err;
 }
 
+#ifdef CONFIG_NVGPU_DGPU
 /* Discover all supported shared data falcon SUB WPRs */
 static int lsfm_discover_and_add_sub_wprs(struct gk20a *g,
 		struct ls_flcn_mgr_v1 *plsfm)
@@ -522,14 +523,18 @@ static int lsfm_discover_and_add_sub_wprs(struct gk20a *g,
 
 	return 0;
 }
+#endif
 
 /* Generate WPR requirements for ACR allocation request */
 static int lsf_gen_wpr_requirements(struct gk20a *g,
 		struct ls_flcn_mgr_v1 *plsfm)
 {
 	struct lsfm_managed_ucode_img_v2 *pnode = plsfm->ucode_img_list;
+#ifdef CONFIG_NVGPU_DGPU
 	struct lsfm_sub_wpr *pnode_sub_wpr = plsfm->psub_wpr_list;
-	u32 wpr_offset, sub_wpr_header;
+	u32 sub_wpr_header;
+#endif
+	u32 wpr_offset;
 
 	/*
 	 * Start with an array of WPR headers at the base of the WPR.
@@ -540,6 +545,7 @@ static int lsf_gen_wpr_requirements(struct gk20a *g,
 	wpr_offset = nvgpu_safe_mult_u32(U32(sizeof(struct lsf_wpr_header_v1)),
 		nvgpu_safe_add_u32(U32(plsfm->managed_flcn_cnt), U32(1)));
 
+#ifdef CONFIG_NVGPU_DGPU
 	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_MULTIPLE_WPR)) {
 		wpr_offset = ALIGN_UP(wpr_offset, LSF_WPR_HEADERS_TOTAL_SIZE_MAX);
 		/*
@@ -553,6 +559,7 @@ static int lsf_gen_wpr_requirements(struct gk20a *g,
 						U32(1)));
 		wpr_offset = nvgpu_safe_add_u32(wpr_offset, sub_wpr_header);
 	}
+#endif
 
 	/*
 	 * Walk the managed falcons, accounting for the LSB structs
@@ -616,6 +623,7 @@ static int lsf_gen_wpr_requirements(struct gk20a *g,
 		pnode = pnode->next;
 	}
 
+#ifdef CONFIG_NVGPU_DGPU
 	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_MULTIPLE_WPR)) {
 		/*
 		 * Walk through the sub wpr headers to accommodate
@@ -632,6 +640,7 @@ static int lsf_gen_wpr_requirements(struct gk20a *g,
 		}
 		wpr_offset = ALIGN_UP(wpr_offset, SUB_WPR_SIZE_ALIGNMENT);
 	}
+#endif
 
 	plsfm->wpr_size = wpr_offset;
 	return 0;
@@ -713,6 +722,7 @@ static int lsfm_fill_flcn_bl_gen_desc(struct gk20a *g,
 		pnode->wpr_header.falcon_id);
 }
 
+#ifdef CONFIG_NVGPU_DGPU
 static void lsfm_init_sub_wpr_contents(struct gk20a *g,
 	struct ls_flcn_mgr_v1 *plsfm, struct nvgpu_mem *ucode)
 {
@@ -746,6 +756,7 @@ static void lsfm_init_sub_wpr_contents(struct gk20a *g,
 		nvgpu_safe_mult_u32(plsfm->managed_sub_wpr_count, temp_size)),
 		&last_sub_wpr_header, temp_size);
 }
+#endif
 
 static int lsfm_init_wpr_contents(struct gk20a *g,
 		struct ls_flcn_mgr_v1 *plsfm, struct nvgpu_mem *ucode)
@@ -761,9 +772,11 @@ static int lsfm_init_wpr_contents(struct gk20a *g,
 	(void) memset(&last_wpr_hdr, 0, sizeof(struct lsf_wpr_header_v1));
 	i = 0;
 
+#ifdef CONFIG_NVGPU_DGPU
 	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_MULTIPLE_WPR)) {
 		lsfm_init_sub_wpr_contents(g, plsfm, ucode);
 	}
+#endif
 
 	/*
 	 * Walk the managed falcons, flush WPR and LSB headers to FB.
@@ -927,12 +940,14 @@ int nvgpu_acr_prepare_ucode_blob_v1(struct gk20a *g)
 		goto exit_err;
 	}
 
+#ifdef CONFIG_NVGPU_DGPU
 	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_MULTIPLE_WPR)) {
 		err = lsfm_discover_and_add_sub_wprs(g, plsfm);
 		if (err != 0) {
 			goto exit_err;
 		}
 	}
+#endif
 
 	if ((plsfm->managed_flcn_cnt != 0U) &&
 		(g->acr->ucode_blob.cpu_va == NULL)) {

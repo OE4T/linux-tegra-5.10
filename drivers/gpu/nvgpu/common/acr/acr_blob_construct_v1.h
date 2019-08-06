@@ -51,6 +51,7 @@
 #define LSF_LSB_HEADER_TOTAL_SIZE_MAX	(\
 	ALIGN_UP(sizeof(struct lsf_lsb_header_v1), LSF_LSB_HEADER_ALIGNMENT))
 
+#ifdef CONFIG_NVGPU_DGPU
 /* Maximum SUB WPR header size */
 #define LSF_SUB_WPR_HEADERS_TOTAL_SIZE_MAX	(ALIGN_UP( \
 	(sizeof(struct lsf_shared_sub_wpr_header) * \
@@ -83,6 +84,7 @@ enum {
 #define LSF_SHARED_DATA_SUB_WPR_FRTS_VBIOS_TABLES_SIZE_IN_4K	(0x100U)
 /* 4K */
 #define LSF_SHARED_DATA_SUB_WPR_PLAYREADY_SHARED_DATA_SIZE_IN_4K	(0x1U)
+#endif
 
 /*Light Secure Bootstrap header related defines*/
 #define NV_FLCN_ACR_LSF_FLAG_LOAD_CODE_AT_0_FALSE       0U
@@ -184,6 +186,7 @@ struct lsfm_managed_ucode_img_v2 {
 	struct flcn_ucode_img_v1 ucode_img;
 };
 
+#ifdef CONFIG_NVGPU_DGPU
 /*
  * LSF shared SubWpr Header
  *
@@ -206,13 +209,16 @@ struct lsfm_sub_wpr {
 	struct lsfm_sub_wpr *pnext;
 	struct lsf_shared_sub_wpr_header sub_wpr_header;
 };
+#endif
 
 struct ls_flcn_mgr_v1 {
 	u16 managed_flcn_cnt;
 	u32 wpr_size;
 	struct lsfm_managed_ucode_img_v2 *ucode_img_list;
+#ifdef CONFIG_NVGPU_DGPU
 	u16 managed_sub_wpr_count;
 	struct lsfm_sub_wpr *psub_wpr_list;
+#endif
 };
 
 int nvgpu_acr_prepare_ucode_blob_v1(struct gk20a *g);
