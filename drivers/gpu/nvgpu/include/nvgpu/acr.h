@@ -32,14 +32,13 @@ int nvgpu_acr_init(struct gk20a *g, struct nvgpu_acr **acr);
 #ifdef CONFIG_NVGPU_DGPU
 int nvgpu_acr_alloc_blob_prerequisite(struct gk20a *g, struct nvgpu_acr *acr,
 	size_t size);
+int nvgpu_acr_self_hs_load_bootstrap(struct gk20a *g, struct nvgpu_falcon *flcn,
+	struct nvgpu_firmware *hs_fw, u32 timeout);
 #endif
 int nvgpu_acr_construct_execute(struct gk20a *g, struct nvgpu_acr *acr);
 int nvgpu_acr_bootstrap_hs_acr(struct gk20a *g, struct nvgpu_acr *acr);
 bool nvgpu_acr_is_lsf_lazy_bootstrap(struct gk20a *g, struct nvgpu_acr *acr,
 	u32 falcon_id);
-
-int nvgpu_acr_self_hs_load_bootstrap(struct gk20a *g, struct nvgpu_falcon *flcn,
-	struct nvgpu_firmware *hs_fw, u32 timeout);
 
 #endif /* NVGPU_ACR_H */
 

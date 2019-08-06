@@ -222,8 +222,9 @@ struct ls_flcn_mgr_v1 {
 };
 
 int nvgpu_acr_prepare_ucode_blob_v1(struct gk20a *g);
-
+#ifdef CONFIG_NVGPU_LS_PMU
 int nvgpu_acr_lsf_pmu_ucode_details_v1(struct gk20a *g, void *lsf_ucode_img);
+#endif
 int nvgpu_acr_lsf_fecs_ucode_details_v1(struct gk20a *g, void *lsf_ucode_img);
 int nvgpu_acr_lsf_gpccs_ucode_details_v1(struct gk20a *g, void *lsf_ucode_img);
 #ifdef CONFIG_NVGPU_DGPU

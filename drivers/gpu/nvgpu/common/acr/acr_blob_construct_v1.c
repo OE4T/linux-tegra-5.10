@@ -224,8 +224,8 @@ int nvgpu_acr_lsf_gpccs_ucode_details_v1(struct gk20a *g, void *lsf_ucode_img)
 		ALIGN(gpccs->code.offset, 256U);
 	p_img->desc->app_resident_data_size = ALIGN(gpccs->data.size, 256U);
 	p_img->data = (u32 *)
-		((u8 *)nvgpu_gr_falcon_get_surface_desc_cpu_va(gr_falcon) +
-					gpccs->boot.offset);
+	(void *)((u8 *)nvgpu_gr_falcon_get_surface_desc_cpu_va(gr_falcon)
+				+ gpccs->boot.offset);
 	p_img->data_size = ALIGN(p_img->desc->image_size, 256U);
 	p_img->lsf_desc = (struct lsf_ucode_desc_v1 *)lsf_desc;
 
@@ -488,7 +488,7 @@ static int lsfm_discover_and_add_sub_wprs(struct gk20a *g,
 	u32 sub_wpr_index;
 
 	for (sub_wpr_index = 1;
-		sub_wpr_index <= LSF_SHARED_DATA_SUB_WPR_USE_CASE_ID_MAX;
+		sub_wpr_index <= (u32) LSF_SHARED_DATA_SUB_WPR_USE_CASE_ID_MAX;
 		sub_wpr_index++) {
 
 		switch (sub_wpr_index) {
@@ -858,7 +858,7 @@ static int lsfm_init_wpr_contents(struct gk20a *g,
 	/* Tag the terminator WPR header with an invalid falcon ID. */
 	last_wpr_hdr.falcon_id = FALCON_ID_INVALID;
 	tmp = nvgpu_safe_mult_u32(plsfm->managed_flcn_cnt,
-					sizeof(struct lsf_wpr_header_v1));
+					(u32)sizeof(struct lsf_wpr_header_v1));
 	nvgpu_assert(tmp <= U32_MAX);
 	nvgpu_mem_wr_n(g, ucode, (u32)tmp, &last_wpr_hdr,
 		(u32)sizeof(struct lsf_wpr_header_v1));

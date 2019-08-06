@@ -207,8 +207,7 @@ static int acr_hs_bl_exec(struct gk20a *g, struct nvgpu_acr *acr,
 	/* Fill HS BL info */
 	bl_info.bl_src = hs_bl->hs_bl_ucode.cpu_va;
 	bl_info.bl_desc = acr_desc->ptr_bl_dmem_desc;
-	nvgpu_assert(acr_desc->bl_dmem_desc_size <= U32_MAX);
-	bl_info.bl_desc_size = (u32)acr_desc->bl_dmem_desc_size;
+	bl_info.bl_desc_size = acr_desc->bl_dmem_desc_size;
 	nvgpu_assert(hs_bl->hs_bl_ucode.size <= U32_MAX);
 	bl_info.bl_size = (u32)hs_bl->hs_bl_ucode.size;
 	bl_info.bl_start_tag = hs_bl->hs_bl_desc->bl_start_tag;

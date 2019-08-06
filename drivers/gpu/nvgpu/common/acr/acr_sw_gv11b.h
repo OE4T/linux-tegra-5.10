@@ -25,6 +25,7 @@
 
 struct gk20a;
 struct nvgpu_acr;
+struct hs_acr;
 
 void gv11b_acr_fill_bl_dmem_desc(struct gk20a *g, struct nvgpu_acr *acr,
 	struct hs_acr *acr_desc, u32 *acr_ucode_header);
