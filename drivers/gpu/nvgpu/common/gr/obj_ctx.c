@@ -423,6 +423,12 @@ int nvgpu_gr_obj_ctx_alloc_golden_ctx_image(struct gk20a *g,
 	struct netlist_av_list *sw_method_init =
 				nvgpu_netlist_get_sw_method_init_av_list(g);
 	u32 data;
+#ifdef NV_BUILD_CONFIGURATION_IS_SAFETY
+	struct netlist_av_list *sw_bundle_init =
+			nvgpu_netlist_get_sw_bundle_init_av_list(g);
+	struct nvgpu_gr_global_ctx_local_golden_image *local_golden_image2 =
+									NULL;
+#endif
 
 	nvgpu_log_fn(g, " ");
 
@@ -519,6 +525,14 @@ restore_fe_go_idle:
 	/* load method init */
 	g->ops.gr.init.load_method_init(g, sw_method_init);
 
+#ifdef NV_BUILD_CONFIGURATION_IS_SAFETY
+	/* restore stats bundle data through mme shadow methods */
+	if (g->ops.gr.init.restore_stats_counter_bundle_data != 0) {
+		g->ops.gr.init.restore_stats_counter_bundle_data(g,
+							sw_bundle_init);
+	}
+#endif
+
 	err = g->ops.gr.init.wait_idle(g);
 	if (err != 0) {
 		goto clean_up;
@@ -527,6 +541,23 @@ restore_fe_go_idle:
 #ifdef CONFIG_NVGPU_GRAPHICS
 	err = nvgpu_gr_ctx_init_zcull(g, gr_ctx);
 	if (err != 0) {
+		goto clean_up;
+	}
+#endif
+
+#ifdef NV_BUILD_CONFIGURATION_IS_SAFETY
+	/*
+	 * Save ctx data before first golden context save. Restore same data
+	 * before second golden context save. This temporary copy is
+	 * saved in local_golden_image2.
+	 */
+
+	size = nvgpu_gr_obj_ctx_get_golden_image_size(golden_image);
+
+	local_golden_image2 =
+		nvgpu_gr_global_ctx_init_local_golden_image(g, gr_mem, size);
+	if (local_golden_image2 == NULL) {
+		err = -ENOMEM;
 		goto clean_up;
 	}
 #endif
@@ -547,6 +578,42 @@ restore_fe_go_idle:
 		goto clean_up;
 	}
 
+#ifdef NV_BUILD_CONFIGURATION_IS_SAFETY
+	/* Before second golden context save restore to before known state */
+	nvgpu_gr_global_ctx_load_local_golden_image(g,
+						local_golden_image2, gr_mem);
+	/* free local copy now */
+	nvgpu_gr_global_ctx_deinit_local_golden_image(g, local_golden_image2);
+	local_golden_image2 = NULL;
+
+	/* Initiate second golden context save */
+	data = g->ops.gr.falcon.get_fecs_current_ctx_data(g, inst_block);
+	err = g->ops.gr.falcon.ctrl_ctxsw(g,
+			NVGPU_GR_FALCON_METHOD_GOLDEN_IMAGE_SAVE, data, NULL);
+	if (err != 0) {
+		goto clean_up;
+	}
+
+	/* Copy the data to local buffer */
+	local_golden_image2 =
+		nvgpu_gr_global_ctx_init_local_golden_image(g, gr_mem, size);
+	if (local_golden_image2 == NULL) {
+		err = -ENOMEM;
+		goto clean_up;
+	}
+
+	/* Compare two golden context images */
+	if (!nvgpu_gr_global_ctx_compare_golden_images(g,
+		nvgpu_mem_is_sysmem(gr_mem),
+		golden_image->local_golden_image,
+		local_golden_image2,
+		size)) {
+		nvgpu_err(g, "golden context mismatch");
+		err = -ENOMEM;
+		goto clean_up;
+	}
+#endif
+
 	golden_image->ready = true;
 #ifdef CONFIG_NVGPU_LS_PMU
 	nvgpu_pmu_set_golden_image_initialized(g, true);
@@ -554,6 +621,12 @@ restore_fe_go_idle:
 	g->ops.gr.falcon.set_current_ctx_invalid(g);
 
 clean_up:
+#ifdef NV_BUILD_CONFIGURATION_IS_SAFETY
+	if (local_golden_image2 != NULL) {
+		nvgpu_gr_global_ctx_deinit_local_golden_image(g,
+							local_golden_image2);
+	}
+#endif
 	if (err != 0) {
 		nvgpu_err(g, "fail");
 	} else {
