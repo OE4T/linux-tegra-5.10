@@ -31,9 +31,16 @@ bios:
 
 ce:
   safe: yes
-  gpu: dgpu
   owner: Thomas F
   sources: [ common/ce/ce.c,
+             include/nvgpu/ce.h ]
+  deps:
+
+ce_app:
+  safe: yes
+  gpu: dgpu
+  owner: Thomas F
+  sources: [ common/ce/ce_app.c,
              common/ce/ce_priv.h,
              include/nvgpu/ce.h ]
   deps:

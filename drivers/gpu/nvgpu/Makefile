@@ -40,7 +40,6 @@ ccflags-y += -DCONFIG_NVGPU_GRAPHICS
 ccflags-y += -DCONFIG_NVGPU_CHANNEL_TSG_SCHEDULING
 ccflags-y += -DCONFIG_NVGPU_CHANNEL_TSG_CONTROL
 ccflags-y += -DCONFIG_NVGPU_POWER_PG
-ccflags-y += -DCONFIG_NVGPU_CE
 ccflags-y += -DCONFIG_NVGPU_KERNEL_MODE_SUBMIT
 ccflags-y += -DCONFIG_NVGPU_COMPRESSION
 ccflags-y += -DCONFIG_NVGPU_SIM
@@ -515,6 +514,7 @@ nvgpu-y += \
 	common/fence/fence.o \
 	common/ecc.o \
 	common/ce/ce.o \
+	common/ce/ce_app.o \
 	common/debugger.o
 
 nvgpu-$(CONFIG_TEGRA_GR_VIRTUALIZATION) += \

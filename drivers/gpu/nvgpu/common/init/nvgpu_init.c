@@ -47,9 +47,6 @@
 #include <nvgpu/channel_sync.h>
 #include <nvgpu/gr/gr.h>
 #include <nvgpu/nvgpu_init.h>
-#ifndef CONFIG_NVGPU_CE
-#include <nvgpu/engines.h>
-#endif
 
 #ifdef CONFIG_NVGPU_TRACE
 #include <trace/events/gk20a.h>
@@ -136,10 +133,8 @@ int nvgpu_prepare_poweroff(struct gk20a *g)
 	nvgpu_falcon_sw_free(g, FALCON_ID_GSPLITE);
 	nvgpu_falcon_sw_free(g, FALCON_ID_NVDEC);
 	nvgpu_falcon_sw_free(g, FALCON_ID_SEC2);
-#endif
 
-#ifdef CONFIG_NVGPU_CE
-	nvgpu_ce_suspend(g);
+	nvgpu_ce_app_suspend(g);
 #endif
 
 #ifdef CONFIG_NVGPU_DGPU
@@ -494,17 +489,19 @@ int nvgpu_finalize_poweron(struct gk20a *g)
 	g->ops.fb.set_debug_mode(g, g->mmu_debug_ctrl);
 #endif
 
-#ifdef CONFIG_NVGPU_CE
 	err = nvgpu_ce_init_support(g);
 	if (err != 0) {
 		nvgpu_err(g, "failed to init ce");
 		goto done;
 	}
-#else
-	g->ops.mc.reset(g, nvgpu_engine_get_all_ce_reset_mask(g));
-#endif
 
 #ifdef CONFIG_NVGPU_DGPU
+	err = nvgpu_ce_app_init_support(g);
+	if (err != 0) {
+		nvgpu_err(g, "failed to init ce app");
+		goto done;
+	}
+
 	if (g->ops.xve.available_speeds != NULL) {
 		u32 speed;
 
@@ -655,8 +652,8 @@ static void gk20a_free_cb(struct nvgpu_ref *refcount)
 
 	nvgpu_log(g, gpu_dbg_shutdown, "Freeing GK20A struct!");
 
-#ifdef CONFIG_NVGPU_CE
-	nvgpu_ce_destroy(g);
+#ifdef CONFIG_NVGPU_DGPU
+	nvgpu_ce_app_destroy(g);
 #endif
 
 #ifdef CONFIG_NVGPU_COMPRESSION

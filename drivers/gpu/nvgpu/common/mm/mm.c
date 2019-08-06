@@ -114,19 +114,17 @@ static int nvgpu_alloc_sysmem_flush(struct gk20a *g)
 	return nvgpu_dma_alloc_sys(g, SZ_4K, &g->mm.sysmem_flush);
 }
 
-#ifdef CONFIG_NVGPU_CE
+#ifdef CONFIG_NVGPU_DGPU
 static void nvgpu_remove_mm_ce_support(struct mm_gk20a *mm)
 {
-#ifdef CONFIG_NVGPU_DGPU
 	struct gk20a *g = gk20a_from_mm(mm);
 
 	if (mm->vidmem.ce_ctx_id != NVGPU_CE_INVAL_CTX_ID) {
-		nvgpu_ce_delete_context(g, mm->vidmem.ce_ctx_id);
+		nvgpu_ce_app_delete_context(g, mm->vidmem.ce_ctx_id);
 	}
 	mm->vidmem.ce_ctx_id = NVGPU_CE_INVAL_CTX_ID;
 
 	nvgpu_vm_put(mm->ce.vm);
-#endif
 }
 #endif
 
@@ -303,14 +301,13 @@ static int nvgpu_init_mmu_debug(struct mm_gk20a *mm)
 	return -ENOMEM;
 }
 
-#ifdef CONFIG_NVGPU_CE
+#if defined(CONFIG_NVGPU_DGPU)
 void nvgpu_init_mm_ce_context(struct gk20a *g)
 {
-#if defined(CONFIG_NVGPU_DGPU)
 	if (g->mm.vidmem.size > 0U &&
 	   (g->mm.vidmem.ce_ctx_id == NVGPU_CE_INVAL_CTX_ID)) {
 		g->mm.vidmem.ce_ctx_id =
-			nvgpu_ce_create_context(g,
+			nvgpu_ce_app_create_context(g,
 				nvgpu_engine_get_fast_ce_runlist_id(g),
 				-1,
 				-1);
@@ -320,9 +317,8 @@ void nvgpu_init_mm_ce_context(struct gk20a *g)
 				"Failed to allocate CE context for vidmem page clearing support");
 		}
 	}
-#endif
 }
-#endif /* NVGPU_FENCE_CE */
+#endif
 
 static int nvgpu_init_mm_reset_enable_hw(struct gk20a *g)
 {
@@ -523,7 +519,7 @@ static int nvgpu_init_mm_setup_sw(struct gk20a *g)
 	}
 
 	mm->remove_support = nvgpu_remove_mm_support;
-#ifdef CONFIG_NVGPU_CE
+#ifdef CONFIG_NVGPU_DGPU
 	mm->remove_ce_support = nvgpu_remove_mm_ce_support;
 #endif
 

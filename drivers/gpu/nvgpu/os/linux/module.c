@@ -469,7 +469,7 @@ int gk20a_pm_finalize_poweron(struct device *dev)
 	if (err)
 		goto done;
 
-#ifdef CONFIG_NVGPU_CE
+#ifdef CONFIG_NVGPU_DGPU
 	nvgpu_init_mm_ce_context(g);
 #endif
 

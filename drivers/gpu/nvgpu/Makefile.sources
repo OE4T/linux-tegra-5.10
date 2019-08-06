@@ -140,6 +140,7 @@ srcs += common/utils/assert.c \
 	common/fifo/pbdma_status.c \
 	common/mc/mc.c \
 	common/rc/rc.c \
+	common/ce/ce.c \
 	hal/init/hal_gv11b.c \
 	hal/init/hal_gv11b_litter.c \
 	hal/init/hal_init.c \
@@ -365,10 +366,6 @@ srcs += hal/regops/regops_gm20b.c \
 endif
 endif
 
-ifeq ($(CONFIG_NVGPU_CE),1)
-srcs += common/ce/ce.c
-endif
-
 ifeq ($(CONFIG_NVGPU_KERNEL_MODE_SUBMIT),1)
 srcs += common/fifo/submit.c
 endif
@@ -581,6 +578,7 @@ srcs += common/sec2/sec2.c \
 	common/mm/allocators/page_allocator.c \
 	common/mm/vidmem.c \
 	common/pramin.c \
+	common/ce/ce_app.c \
 	hal/mm/mm_gv100.c \
 	hal/mm/mm_tu104.c \
 	hal/mc/mc_gv100.c  \

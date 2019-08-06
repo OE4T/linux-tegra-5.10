@@ -69,17 +69,19 @@ enum {
 	NVGPU_CE_GPU_CTX_DELETED           = (1 << 1),
 };
 
-/* global CE app related apis */
 int nvgpu_ce_init_support(struct gk20a *g);
-void nvgpu_ce_suspend(struct gk20a *g);
-void nvgpu_ce_destroy(struct gk20a *g);
+
+/* global CE app related apis */
+int nvgpu_ce_app_init_support(struct gk20a *g);
+void nvgpu_ce_app_suspend(struct gk20a *g);
+void nvgpu_ce_app_destroy(struct gk20a *g);
 
 /* CE app utility functions */
-u32 nvgpu_ce_create_context(struct gk20a *g,
+u32 nvgpu_ce_app_create_context(struct gk20a *g,
 		u32 runlist_id,
 		int timeslice,
 		int runlist_level);
-void nvgpu_ce_delete_context(struct gk20a *g,
+void nvgpu_ce_app_delete_context(struct gk20a *g,
 		u32 ce_ctx_id);
 int nvgpu_ce_execute_ops(struct gk20a *g,
 		u32 ce_ctx_id,
