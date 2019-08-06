@@ -58,8 +58,12 @@ void gv11b_clear_pmu_bar0_host_err_status(struct gk20a *g);
 int gv11b_pmu_bar0_error_status(struct gk20a *g, u32 *bar0_status,
 	u32 *etype);
 bool gv11b_pmu_validate_mem_integrity(struct gk20a *g);
+
+#ifdef CONFIG_NVGPU_INJECT_HWERR
 struct nvgpu_hw_err_inject_info_desc * gv11b_pmu_intr_get_err_desc(struct gk20a *g);
 int gv11b_pmu_inject_ecc_error(struct gk20a *g,
 		struct nvgpu_hw_err_inject_info *err, u32 error_info);
+
+#endif /* CONFIG_NVGPU_INJECT_HWERR */
 
 #endif /* PMU_GV11B_H */
