@@ -24,6 +24,7 @@
 #include <nvgpu/mm.h>
 #include <nvgpu/io.h>
 #include <nvgpu/gk20a.h>
+#include <nvgpu/safe_ops.h>
 
 #include "bus_gp10b.h"
 
@@ -34,7 +35,8 @@ int gp10b_bus_bar2_bind(struct gk20a *g, struct nvgpu_mem *bar2_inst)
 	struct nvgpu_timeout timeout;
 	int err = 0;
 	u64 iova = nvgpu_inst_block_addr(g, bar2_inst);
-	u32 ptr_v = (u32)(iova >> bus_bar2_block_ptr_shift_v());
+	u32 ptr_v = nvgpu_safe_cast_u64_to_u32(iova
+					>> bus_bar2_block_ptr_shift_v());
 
 	nvgpu_log_info(g, "bar2 inst block ptr: 0x%08x", ptr_v);
 
