@@ -179,6 +179,7 @@ void nvgpu_gr_ctx_set_tsgid(struct nvgpu_gr_ctx *gr_ctx, u32 tsgid);
 
 u32 nvgpu_gr_ctx_get_tsgid(struct nvgpu_gr_ctx *gr_ctx);
 
+#ifdef CONFIG_NVGPU_CILP
 bool nvgpu_gr_ctx_get_cilp_preempt_pending(struct nvgpu_gr_ctx *gr_ctx);
 
 void nvgpu_gr_ctx_set_cilp_preempt_pending(struct nvgpu_gr_ctx *gr_ctx,
@@ -186,6 +187,7 @@ void nvgpu_gr_ctx_set_cilp_preempt_pending(struct nvgpu_gr_ctx *gr_ctx,
 
 bool nvgpu_gr_ctx_desc_force_preemption_cilp(
 		struct nvgpu_gr_ctx_desc *gr_ctx_desc);
+#endif /* CONFIG_NVGPU_CILP */
 
 #ifdef CONFIG_NVGPU_GRAPHICS
 int nvgpu_gr_ctx_alloc_ctxsw_buffers(struct gk20a *g,
