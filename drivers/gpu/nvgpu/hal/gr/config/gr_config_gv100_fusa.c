@@ -65,6 +65,7 @@ static int gr_gv100_scg_calculate_perf(struct nvgpu_gr_config *gr_config,
 
 	deviation /= nvgpu_gr_config_get_gpc_count(gr_config);
 
+	nvgpu_assert(max_tpc_gpc != 0U);
 	norm_tpc_deviation = deviation / max_tpc_gpc;
 
 	tpc_balance = nvgpu_safe_sub_u32(scale_factor, norm_tpc_deviation);

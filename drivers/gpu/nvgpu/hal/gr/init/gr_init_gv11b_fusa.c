@@ -622,14 +622,16 @@ u32 gv11b_gr_init_get_alpha_cb_default_size(struct gk20a *g)
 
 u32 gv11b_gr_init_get_attrib_cb_size(struct gk20a *g, u32 tpc_count)
 {
+	nvgpu_assert(tpc_count != 0U);
 	return min(g->ops.gr.init.get_attrib_cb_default_size(g),
-		 gr_gpc0_ppc0_cbm_beta_cb_size_v_f(~U32(0U)) / tpc_count);
+		gr_gpc0_ppc0_cbm_beta_cb_size_v_f(~U32(0U)) / tpc_count);
 }
 
 u32 gv11b_gr_init_get_alpha_cb_size(struct gk20a *g, u32 tpc_count)
 {
+	nvgpu_assert(tpc_count != 0U);
 	return min(g->ops.gr.init.get_alpha_cb_default_size(g),
-		 gr_gpc0_ppc0_cbm_alpha_cb_size_v_f(~U32(0U)) / tpc_count);
+		gr_gpc0_ppc0_cbm_alpha_cb_size_v_f(~U32(0U)) / tpc_count);
 }
 
 u32 gv11b_gr_init_get_global_attr_cb_size(struct gk20a *g, u32 tpc_count,
