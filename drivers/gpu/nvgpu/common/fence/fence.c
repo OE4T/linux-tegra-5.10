@@ -261,7 +261,7 @@ static int nvgpu_fence_syncpt_wait(struct nvgpu_fence_type *f, u32 timeout)
 {
 	return nvgpu_nvhost_syncpt_wait_timeout_ext(
 			f->nvhost_dev, f->syncpt_id, f->syncpt_value,
-			timeout, NULL, NULL);
+			timeout, NULL);
 }
 
 static bool nvgpu_fence_syncpt_is_expired(struct nvgpu_fence_type *f)

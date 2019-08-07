@@ -120,7 +120,7 @@ u32 nvgpu_nvhost_get_syncpt_client_managed(
 
 int nvgpu_nvhost_syncpt_wait_timeout_ext(
 	struct nvgpu_nvhost_dev *nvhost_dev, u32 id,
-	u32 thresh, u32 timeout, u32 *value, struct timespec *ts)
+	u32 thresh, u32 timeout, u32 *value)
 {
 	BUG();
 	return 0;
