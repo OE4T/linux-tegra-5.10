@@ -64,6 +64,15 @@ static inline s64 nvgpu_safe_add_s64(s64 sl_a, s64 sl_b)
 	}
 }
 
+static inline u8 nvgpu_safe_sub_u8(u8 uc_a, u8 uc_b)
+{
+	if (uc_a < uc_b) {
+		BUG();
+	} else {
+		return uc_a - uc_b;
+	}
+}
+
 static inline u32 nvgpu_safe_sub_u32(u32 ui_a, u32 ui_b)
 {
 	if (ui_a < ui_b) {

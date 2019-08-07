@@ -183,10 +183,12 @@ static inline u32 be32_to_cpu(u32 x)
 static inline unsigned int nvgpu_posix_hweight8(uint8_t x)
 {
 	unsigned int ret;
-	uint8_t result = x - ((x >> 1) & 0x55U);
+	uint8_t result = ((U8(x) >> U8(1)) & U8(0x55));
 
-	result = (result & 0x33U) + ((result >> 2) & 0x33U);
-	result = (result + (result >> 4)) & 0x0FU;
+	result = nvgpu_safe_sub_u8(x, result);
+
+	result = (result & U8(0x33)) + ((result >> U8(2)) & U8(0x33));
+	result = (result + (result >> U8(4))) & U8(0x0f);
 	ret = (unsigned int)result;
 
 	return ret;
