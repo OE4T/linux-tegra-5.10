@@ -21,6 +21,7 @@
 #include <linux/clk.h>
 #include <linux/clocksource.h>
 #include <linux/completion.h>
+#include <linux/cpumask.h>
 #include <linux/delay.h>
 #include <linux/dma-mapping.h>
 #include <linux/init.h>
@@ -482,6 +483,9 @@ static int hda_tegra_first_init(struct azx *chip, struct platform_device *pdev)
 	unsigned int num_sdo_lines;
 	int irq_id = platform_get_irq(pdev, 0);
 	const char *card_name;
+#ifdef CONFIG_ANDROID
+	cpumask_t mask;
+#endif /* #ifdef CONFIG_ANDROID */
 
 	err = hda_tegra_init_chip(chip, pdev);
 	if (err)
@@ -495,6 +499,12 @@ static int hda_tegra_first_init(struct azx *chip, struct platform_device *pdev)
 			irq_id);
 		return err;
 	}
+#ifdef CONFIG_ANDROID
+	/* We want to run on all but CPU0 because SMC call can block us on CPU0 */
+	cpumask_setall(&mask);
+	cpumask_clear_cpu(0, &mask);
+	irq_set_affinity_hint(irq_id, &mask);
+#endif /* #ifdef CONFIG_ANDROID */
 	bus->irq = irq_id;
 
 	synchronize_irq(bus->irq);
