@@ -59,14 +59,11 @@ static void gv11b_acr_patch_wpr_info_to_ucode(struct gk20a *g,
 		acr_ucode_header = (u32 *)(void *)(acr_fw->data +
 			acr_fw_hdr->hdr_offset);
 
-		/* During recovery need to update blob size as 0x0*/
-		acr_desc->acr_dmem_desc_v1 = (struct flcn_acr_desc_v1 *)(void *)
-			((u8 *)(acr_desc->acr_ucode.cpu_va) +
-			acr_ucode_header[2U]);
-
 		/* Patch WPR info to ucode */
 		acr_dmem_desc = (struct flcn_acr_desc_v1 *)(void *)
 			&(((u8 *)acr_ucode_data)[acr_ucode_header[2U]]);
+
+		acr_desc->acr_dmem_desc_v1 = acr_dmem_desc;
 
 		acr_dmem_desc->nonwpr_ucode_blob_start =
 			nvgpu_mem_get_addr(g, &g->acr->ucode_blob);
@@ -76,40 +73,6 @@ static void gv11b_acr_patch_wpr_info_to_ucode(struct gk20a *g,
 		acr_dmem_desc->regions.no_regions = 1U;
 		acr_dmem_desc->wpr_offset = 0U;
 	}
-}
-
-void gv11b_acr_fill_bl_dmem_desc(struct gk20a *g,
-	struct nvgpu_acr *acr, struct hs_acr *acr_desc,
-	u32 *acr_ucode_header)
-{
-	struct nvgpu_mem *acr_ucode_mem = &acr_desc->acr_ucode;
-	struct flcn_bl_dmem_desc_v1 *bl_dmem_desc =
-		&acr_desc->bl_dmem_desc_v1;
-
-	nvgpu_log_fn(g, " ");
-
-	(void) memset(bl_dmem_desc, 0, sizeof(struct flcn_bl_dmem_desc_v1));
-
-	bl_dmem_desc->signature[0] = 0U;
-	bl_dmem_desc->signature[1] = 0U;
-	bl_dmem_desc->signature[2] = 0U;
-	bl_dmem_desc->signature[3] = 0U;
-	bl_dmem_desc->ctx_dma = GK20A_PMU_DMAIDX_VIRT;
-
-	flcn64_set_dma(&bl_dmem_desc->code_dma_base,
-		acr_ucode_mem->gpu_va);
-
-	bl_dmem_desc->non_sec_code_off  = acr_ucode_header[0U];
-	bl_dmem_desc->non_sec_code_size = acr_ucode_header[1U];
-	bl_dmem_desc->sec_code_off = acr_ucode_header[5U];
-	bl_dmem_desc->sec_code_size = acr_ucode_header[6U];
-	bl_dmem_desc->code_entry_point = 0U;
-
-	flcn64_set_dma(&bl_dmem_desc->data_dma_base,
-		nvgpu_safe_add_u64(acr_ucode_mem->gpu_va,
-						acr_ucode_header[2U]));
-
-	bl_dmem_desc->data_size = acr_ucode_header[3U];
 }
 
 /* LSF static config functions */
@@ -186,17 +149,10 @@ static u32 gv11b_acr_lsf_conifg(struct gk20a *g,
 
 static void gv11b_acr_default_sw_init(struct gk20a *g, struct hs_acr *acr_desc)
 {
-	struct hs_flcn_bl *hs_bl = &acr_desc->acr_hs_bl;
-
 	nvgpu_log_fn(g, " ");
-
-	hs_bl->bl_fw_name = HSBIN_ACR_BL_UCODE_IMAGE;
 
 	acr_desc->acr_type = ACR_DEFAULT;
 	acr_desc->acr_fw_name = HSBIN_ACR_UCODE_IMAGE;
-
-	acr_desc->ptr_bl_dmem_desc = &acr_desc->bl_dmem_desc_v1;
-	acr_desc->bl_dmem_desc_size = (u32)sizeof(struct flcn_bl_dmem_desc_v1);
 
 	acr_desc->acr_flcn = g->pmu->flcn;
 	acr_desc->report_acr_engine_bus_err_status =
@@ -223,5 +179,4 @@ void nvgpu_gv11b_acr_sw_init(struct gk20a *g, struct nvgpu_acr *acr)
 	acr->alloc_blob_space = nvgpu_acr_alloc_blob_space_sys;
 	acr->bootstrap_hs_acr = nvgpu_acr_bootstrap_hs_ucode;
 	acr->patch_wpr_info_to_ucode = gv11b_acr_patch_wpr_info_to_ucode;
-	acr->acr_fill_bl_dmem_desc = gv11b_acr_fill_bl_dmem_desc;
 }

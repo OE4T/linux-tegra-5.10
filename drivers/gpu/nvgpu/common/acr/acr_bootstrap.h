@@ -141,14 +141,6 @@ struct bin_hdr {
 	u32 data_size;
 };
 
-struct hs_flcn_bl {
-	const char *bl_fw_name;
-	struct nvgpu_firmware *hs_bl_fw;
-	struct hsflcn_bl_desc *hs_bl_desc;
-	struct bin_hdr *hs_bl_bin_hdr;
-	struct nvgpu_mem hs_bl_ucode;
-};
-
 struct acr_fw_header {
 	u32 sig_dbg_offset;
 	u32 sig_dbg_size;
@@ -169,21 +161,9 @@ struct hs_acr {
 #define ACR_ASB_FUSA		4U
 	u32 acr_type;
 
-	/* HS bootloader to validate & load ACR ucode */
-	struct hs_flcn_bl acr_hs_bl;
-
 	/* ACR ucode */
 	const char *acr_fw_name;
 	struct nvgpu_firmware *acr_fw;
-	struct nvgpu_mem acr_ucode;
-
-	union {
-		struct flcn_bl_dmem_desc bl_dmem_desc;
-		struct flcn_bl_dmem_desc_v1 bl_dmem_desc_v1;
-	};
-
-	void *ptr_bl_dmem_desc;
-	u32 bl_dmem_desc_size;
 
 	union{
 		struct flcn_acr_desc *acr_dmem_desc;

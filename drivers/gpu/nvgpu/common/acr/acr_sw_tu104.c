@@ -211,19 +211,11 @@ static void tu104_acr_ahesasc_fusa_ucode_select(struct gk20a *g,
 static void tu104_acr_ahesasc_sw_init(struct gk20a *g,
 	struct hs_acr *acr_ahesasc)
 {
-	struct hs_flcn_bl *hs_bl = &acr_ahesasc->acr_hs_bl;
-
-	hs_bl->bl_fw_name = HSBIN_ACR_BL_UCODE_IMAGE;
-
 	if (tu104_acr_is_fusa_enabled(g)) {
 		tu104_acr_ahesasc_fusa_ucode_select(g, acr_ahesasc);
 	} else {
 		tu104_acr_ahesasc_non_fusa_ucode_select(g, acr_ahesasc);
 	}
-
-	acr_ahesasc->ptr_bl_dmem_desc = &acr_ahesasc->bl_dmem_desc_v1;
-	acr_ahesasc->bl_dmem_desc_size =
-		(u32)sizeof(struct flcn_bl_dmem_desc_v1);
 
 	acr_ahesasc->acr_flcn = &g->sec2.flcn;
 }
@@ -256,18 +248,11 @@ static void tu104_acr_asb_fusa_ucode_select(struct gk20a *g,
 static void tu104_acr_asb_sw_init(struct gk20a *g,
 	struct hs_acr *acr_asb)
 {
-	struct hs_flcn_bl *hs_bl = &acr_asb->acr_hs_bl;
-
-	hs_bl->bl_fw_name = HSBIN_ACR_BL_UCODE_IMAGE;
-
 	if (tu104_acr_is_fusa_enabled(g)) {
 		tu104_acr_asb_fusa_ucode_select(g, acr_asb);
 	} else {
 		tu104_acr_asb_non_fusa_ucode_select(g, acr_asb);
 	}
-
-	acr_asb->ptr_bl_dmem_desc = &acr_asb->bl_dmem_desc_v1;
-	acr_asb->bl_dmem_desc_size = (u32)sizeof(struct flcn_bl_dmem_desc_v1);
 
 	acr_asb->acr_flcn = &g->gsp_flcn;
 }
@@ -284,7 +269,6 @@ void nvgpu_tu104_acr_sw_init(struct gk20a *g, struct nvgpu_acr *acr)
 	acr->bootstrap_owner = FALCON_ID_GSPLITE;
 	acr->bootstrap_hs_acr = tu104_bootstrap_hs_acr;
 	acr->patch_wpr_info_to_ucode = tu104_acr_patch_wpr_info_to_ucode;
-	acr->acr_fill_bl_dmem_desc = gv11b_acr_fill_bl_dmem_desc;
 
 	/* Init ACR-AHESASC */
 	tu104_acr_ahesasc_sw_init(g, &acr->acr_ahesasc);
