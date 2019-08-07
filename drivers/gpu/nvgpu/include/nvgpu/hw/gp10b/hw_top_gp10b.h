@@ -70,6 +70,7 @@
 #define top_slices_per_ltc_r()                                     (0x0002245cU)
 #define top_slices_per_ltc_value_v(r)                      (((r) >> 0U) & 0x1fU)
 #define top_num_ltcs_r()                                           (0x00022454U)
+#define top_num_ltcs_value_v(r)                            (((r) >> 0U) & 0x1fU)
 #define top_device_info_r(i)\
 		(nvgpu_safe_add_u32(0x00022700U, nvgpu_safe_mult_u32((i), 4U)))
 #define top_device_info__size_1_v()                                (0x00000040U)

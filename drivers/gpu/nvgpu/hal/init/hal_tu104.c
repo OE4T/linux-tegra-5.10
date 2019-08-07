@@ -1455,6 +1455,7 @@ static const struct gpu_ops tu104_ops = {
 		.get_max_fbpas_count = gv100_top_get_max_fbpas_count,
 		.get_max_ltc_per_fbp = gm20b_top_get_max_ltc_per_fbp,
 		.get_max_lts_per_ltc = gm20b_top_get_max_lts_per_ltc,
+		.get_num_ltcs = gm20b_top_get_num_ltcs,
 		.get_num_lce = gv11b_top_get_num_lce,
 	},
 	.chip_init_gpu_characteristics = tu104_init_gpu_characteristics,

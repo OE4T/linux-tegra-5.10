@@ -30,7 +30,6 @@
 #include "ltc_gv11b.h"
 
 #include <nvgpu/hw/gv11b/hw_ltc_gv11b.h>
-#include <nvgpu/hw/gv11b/hw_top_gv11b.h>
 
 #include <nvgpu/utils.h>
 

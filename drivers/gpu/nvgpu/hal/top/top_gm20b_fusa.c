@@ -120,3 +120,11 @@ u32 gm20b_top_get_max_lts_per_ltc(struct gk20a *g)
 	tmp = nvgpu_readl(g,  top_slices_per_ltc_r());
 	return top_slices_per_ltc_value_v(tmp);
 }
+
+u32 gm20b_top_get_num_ltcs(struct gk20a *g)
+{
+	u32 tmp;
+
+	tmp = nvgpu_readl(g, top_num_ltcs_r());
+	return top_num_ltcs_value_v(tmp);
+}

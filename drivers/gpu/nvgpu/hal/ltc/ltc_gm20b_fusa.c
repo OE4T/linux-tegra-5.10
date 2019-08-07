@@ -37,8 +37,6 @@
 #include <nvgpu/safe_ops.h>
 
 #include <nvgpu/hw/gm20b/hw_ltc_gm20b.h>
-#include <nvgpu/hw/gm20b/hw_top_gm20b.h>
-#include <nvgpu/hw/gm20b/hw_pri_ringmaster_gm20b.h>
 
 #include "ltc_gm20b.h"
 

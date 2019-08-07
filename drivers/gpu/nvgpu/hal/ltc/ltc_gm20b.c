@@ -37,8 +37,6 @@
 #include <nvgpu/safe_ops.h>
 
 #include <nvgpu/hw/gm20b/hw_ltc_gm20b.h>
-#include <nvgpu/hw/gm20b/hw_top_gm20b.h>
-#include <nvgpu/hw/gm20b/hw_pri_ringmaster_gm20b.h>
 
 #include "ltc_gm20b.h"
 
@@ -49,8 +47,8 @@ void gm20b_ltc_init_fs_state(struct gk20a *g)
 
 	nvgpu_log_info(g, "initialize gm20b l2");
 
-	g->ltc->max_ltc_count = gk20a_readl(g, top_num_ltcs_r());
-	g->ltc->ltc_count = gk20a_readl(g, pri_ringmaster_enum_ltc_r());
+	g->ltc->max_ltc_count = g->ops.top.get_num_ltcs(g);
+	g->ltc->ltc_count = g->ops.priv_ring.enum_ltc(g);
 	nvgpu_log_info(g, "%d ltcs out of %d", g->ltc->ltc_count,
 					g->ltc->max_ltc_count);
 

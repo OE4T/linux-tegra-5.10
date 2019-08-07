@@ -72,6 +72,7 @@
 #define top_slices_per_ltc_r()                                     (0x0002245cU)
 #define top_slices_per_ltc_value_v(r)                      (((r) >> 0U) & 0x1fU)
 #define top_num_ltcs_r()                                           (0x00022454U)
+#define top_num_ltcs_value_v(r)                            (((r) >> 0U) & 0x1fU)
 #define top_num_ces_r()                                            (0x00022444U)
 #define top_num_ces_value_v(r)                             (((r) >> 0U) & 0x1fU)
 #define top_device_info_r(i)\

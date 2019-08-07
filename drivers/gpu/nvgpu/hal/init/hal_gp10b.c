@@ -1140,6 +1140,7 @@ static const struct gpu_ops gp10b_ops = {
 		.get_max_fbps_count = gm20b_top_get_max_fbps_count,
 		.get_max_ltc_per_fbp = gm20b_top_get_max_ltc_per_fbp,
 		.get_max_lts_per_ltc = gm20b_top_get_max_lts_per_ltc,
+		.get_num_ltcs = gm20b_top_get_num_ltcs,
 	},
 	.chip_init_gpu_characteristics = gp10b_init_gpu_characteristics,
 	.get_litter_value = gp10b_get_litter_value,

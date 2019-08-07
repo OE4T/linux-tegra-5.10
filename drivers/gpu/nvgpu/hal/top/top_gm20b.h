@@ -47,5 +47,6 @@ u32 gm20b_top_get_max_tpc_per_gpc_count(struct gk20a *g);
 u32 gm20b_top_get_max_fbps_count(struct gk20a *g);
 u32 gm20b_top_get_max_ltc_per_fbp(struct gk20a *g);
 u32 gm20b_top_get_max_lts_per_ltc(struct gk20a *g);
+u32 gm20b_top_get_num_ltcs(struct gk20a *g);
 
 #endif
