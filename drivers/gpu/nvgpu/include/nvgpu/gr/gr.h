@@ -31,7 +31,9 @@ struct nvgpu_gr_config;
 u32 nvgpu_gr_get_no_of_sm(struct gk20a *g);
 int nvgpu_gr_prepare_sw(struct gk20a *g);
 int nvgpu_gr_enable_hw(struct gk20a *g);
+#ifdef CONFIG_NVGPU_ENGINE_RESET
 int nvgpu_gr_reset(struct gk20a *g);
+#endif
 int nvgpu_gr_init_support(struct gk20a *g);
 u32 nvgpu_gr_gpc_offset(struct gk20a *g, u32 gpc);
 u32 nvgpu_gr_tpc_offset(struct gk20a *g, u32 tpc);

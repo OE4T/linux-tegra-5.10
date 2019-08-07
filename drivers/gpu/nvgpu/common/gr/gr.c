@@ -563,6 +563,7 @@ int nvgpu_gr_enable_hw(struct gk20a *g)
 	return 0;
 }
 
+#ifdef CONFIG_NVGPU_ENGINE_RESET
 int nvgpu_gr_reset(struct gk20a *g)
 {
 	int err;
@@ -616,6 +617,7 @@ int nvgpu_gr_reset(struct gk20a *g)
 	nvgpu_cond_signal(&g->gr->init_wq);
 	return err;
 }
+#endif
 
 int nvgpu_gr_init_support(struct gk20a *g)
 {

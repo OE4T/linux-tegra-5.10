@@ -264,7 +264,9 @@ void gv11b_fifo_recover(struct gk20a *g, u32 act_eng_bitmask,
 					"channel recovery to channel free");
 			} else {
 #endif
+#ifdef CONFIG_NVGPU_ENGINE_RESET
 				nvgpu_engine_reset(g, engine_id);
+#endif
 #ifdef CONFIG_NVGPU_DEBUGGER
 			}
 #endif

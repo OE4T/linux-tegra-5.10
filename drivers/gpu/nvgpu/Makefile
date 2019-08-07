@@ -19,6 +19,7 @@ ccflags-y += -D__NVGPU_PREVENT_UNTRUSTED_SPECULATION
 
 ifeq ($(CONFIG_NVGPU_DEBUGGER),y)
 ccflags-y += -DCONFIG_NVGPU_DEBUGGER
+ccflags-y += -DCONFIG_NVGPU_ENGINE_RESET
 endif
 
 ifeq ($(CONFIG_TEGRA_NVLINK),y)
@@ -65,6 +66,7 @@ endif
 
 ifeq ($(CONFIG_NVGPU_RECOVERY),y)
 ccflags-y += -DCONFIG_NVGPU_RECOVERY
+ccflags-y += -DCONFIG_NVGPU_ENGINE_RESET
 nvgpu-y += \
 	hal/rc/rc_gk20a.o \
 	hal/rc/rc_gv11b.o

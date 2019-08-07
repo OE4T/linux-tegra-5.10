@@ -523,6 +523,7 @@ void nvgpu_engine_cleanup_sw(struct gk20a *g)
 	f->active_engines_list = NULL;
 }
 
+#ifdef CONFIG_NVGPU_ENGINE_RESET
 void nvgpu_engine_reset(struct gk20a *g, u32 engine_id)
 {
 	enum nvgpu_fifo_engine engine_enum = NVGPU_ENGINE_INVAL;
@@ -600,6 +601,7 @@ void nvgpu_engine_reset(struct gk20a *g, u32 engine_id)
 			g->ops.mc.reset(g, engine_info->reset_mask);
 	}
 }
+#endif
 
 u32 nvgpu_engine_get_fast_ce_runlist_id(struct gk20a *g)
 {

@@ -284,11 +284,13 @@ int nvgpu_engine_disable_activity_all(struct gk20a *g,
 
 int nvgpu_engine_wait_for_idle(struct gk20a *g);
 #endif
+#ifdef CONFIG_NVGPU_ENGINE_RESET
 /**
  * Called from recovery. This will not be part of the safety build after
  * recovery is not supported in the safety build.
  */
 void nvgpu_engine_reset(struct gk20a *g, u32 engine_id);
+#endif
 /**
  * @brief Get runlist id for the last available #NVGPU_ENGINE_ASYNC_CE
  *         engine enum type.

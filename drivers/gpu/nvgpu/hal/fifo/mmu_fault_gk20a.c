@@ -363,7 +363,9 @@ bool gk20a_fifo_handle_mmu_fault_locked(
 					   " deferring channel recovery to channel free");
 			} else {
 #endif
+#ifdef CONFIG_NVGPU_ENGINE_RESET
 				nvgpu_engine_reset(g, engine_id);
+#endif
 #ifdef CONFIG_NVGPU_DEBUGGER
 			}
 #endif
