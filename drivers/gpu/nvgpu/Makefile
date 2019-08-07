@@ -65,7 +65,6 @@ endif
 ifeq ($(CONFIG_NVGPU_RECOVERY),y)
 ccflags-y += -DCONFIG_NVGPU_RECOVERY
 nvgpu-y += \
-	common/rc/rc.o \
 	hal/rc/rc_gk20a.o \
 	hal/rc/rc_gv11b.o
 endif
@@ -194,6 +193,7 @@ nvgpu-y += \
 	common/nvlink/nvlink.o \
 	common/nvlink/nvlink_gv100.o \
 	common/nvlink/nvlink_tu104.o \
+	common/rc/rc.o \
 	hal/mc/mc_gp10b.o  \
 	hal/mc/mc_gv100.o \
 	hal/mc/mc_tu104.o \

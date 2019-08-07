@@ -38,6 +38,7 @@ void nvgpu_rc_fifo_recover(struct gk20a *g, u32 eng_bitmask,
 			u32 hw_id, bool id_is_tsg,
 			bool id_is_known, bool debug_dump, u32 rc_type)
 {
+#ifdef CONFIG_NVGPU_RECOVERY
 	unsigned int id_type;
 
 	if (debug_dump) {
@@ -56,11 +57,15 @@ void nvgpu_rc_fifo_recover(struct gk20a *g, u32 eng_bitmask,
 
 	g->ops.fifo.recover(g, eng_bitmask, hw_id, id_type,
 				 rc_type, NULL);
+#else
+	nvgpu_err(g, "recovery not supported");
+#endif
 }
 
 void nvgpu_rc_ctxsw_timeout(struct gk20a *g, u32 eng_bitmask,
 				struct nvgpu_tsg *tsg, bool debug_dump)
 {
+#ifdef CONFIG_NVGPU_RECOVERY
 	nvgpu_tsg_set_error_notifier(g, tsg,
 		NVGPU_ERR_NOTIFIER_FIFO_ERROR_IDLE_TIMEOUT);
 
@@ -74,12 +79,16 @@ void nvgpu_rc_ctxsw_timeout(struct gk20a *g, u32 eng_bitmask,
 
 	nvgpu_rc_fifo_recover(g, eng_bitmask, tsg->tsgid, true, true, debug_dump,
 			RC_TYPE_CTXSW_TIMEOUT);
+#else
+	nvgpu_err(g, "recovery not supported");
+#endif
 }
 
 void nvgpu_rc_pbdma_fault(struct gk20a *g, struct nvgpu_fifo *f,
 			u32 pbdma_id, u32 error_notifier,
 			struct nvgpu_pbdma_status_info *pbdma_status)
 {
+#ifdef CONFIG_NVGPU_RECOVERY
 	u32 id;
 	u32 id_type = PBDMA_STATUS_ID_TYPE_INVALID;
 
@@ -127,29 +136,41 @@ void nvgpu_rc_pbdma_fault(struct gk20a *g, struct nvgpu_fifo *f,
 	} else {
 		nvgpu_err(g, "Invalid pbdma_status.id_type");
 	}
+#else
+	nvgpu_err(g, "recovery not supported");
+#endif
 }
 
 void nvgpu_rc_runlist_update(struct gk20a *g, u32 runlist_id)
 {
+#ifdef CONFIG_NVGPU_RECOVERY
 	u32 eng_bitmask = nvgpu_engine_get_runlist_busy_engines(g, runlist_id);
 
 	if (eng_bitmask != 0U) {
 		nvgpu_rc_fifo_recover(g, eng_bitmask, INVAL_ID, false, false, true,
 				RC_TYPE_RUNLIST_UPDATE_TIMEOUT);
 	}
+#else
+	nvgpu_err(g, "recovery not supported");
+#endif
 }
 
 void nvgpu_rc_preempt_timeout(struct gk20a *g, struct nvgpu_tsg *tsg)
 {
+#ifdef CONFIG_NVGPU_RECOVERY
 	nvgpu_tsg_set_error_notifier(g, tsg,
 		NVGPU_ERR_NOTIFIER_FIFO_ERROR_IDLE_TIMEOUT);
 
 	nvgpu_rc_tsg_and_related_engines(g, tsg, true, RC_TYPE_PREEMPT_TIMEOUT);
+#else
+	nvgpu_err(g, "recovery not supported");
+#endif
 }
 
 void nvgpu_rc_gr_fault(struct gk20a *g, struct nvgpu_tsg *tsg,
 		struct nvgpu_channel *ch)
 {
+#ifdef CONFIG_NVGPU_RECOVERY
 	u32 gr_engine_id;
 	u32 gr_eng_bitmask = 0U;
 
@@ -171,18 +192,26 @@ void nvgpu_rc_gr_fault(struct gk20a *g, struct nvgpu_tsg *tsg,
 		nvgpu_rc_fifo_recover(g, gr_eng_bitmask, INVAL_ID,
 				   false, false, true, RC_TYPE_GR_FAULT);
 	}
+#else
+	nvgpu_err(g, "recovery not supported");
+#endif
 }
 
 void nvgpu_rc_sched_error_bad_tsg(struct gk20a *g)
 {
+#ifdef CONFIG_NVGPU_RECOVERY
 	/* id is unknown, preempt all runlists and do recovery */
 	nvgpu_rc_fifo_recover(g, 0, INVAL_ID, false, false, false,
 		RC_TYPE_SCHED_ERR);
+#else
+	nvgpu_err(g, "recovery not supported");
+#endif
 }
 
 void nvgpu_rc_tsg_and_related_engines(struct gk20a *g, struct nvgpu_tsg *tsg,
 			 bool debug_dump, u32 rc_type)
 {
+#ifdef CONFIG_NVGPU_RECOVERY
 	u32 eng_bitmask = 0U;
 	int err = 0;
 
@@ -245,5 +274,8 @@ void nvgpu_rc_tsg_and_related_engines(struct gk20a *g, struct nvgpu_tsg *tsg,
 
 #ifdef CONFIG_NVGPU_DEBUGGER
 	nvgpu_mutex_release(&g->dbg_sessions_lock);
+#endif
+#else
+	nvgpu_err(g, "recovery not supported");
 #endif
 }

@@ -43,7 +43,6 @@ struct nvgpu_tsg;
 struct nvgpu_channel;
 struct nvgpu_pbdma_status_info;
 
-#ifdef CONFIG_NVGPU_RECOVERY
 void nvgpu_rc_ctxsw_timeout(struct gk20a *g, u32 eng_bitmask,
 				struct nvgpu_tsg *tsg, bool debug_dump);
 
@@ -65,46 +64,5 @@ void nvgpu_rc_fifo_recover(struct gk20a *g,
 			u32 hw_id, /* if ~0, will be queried from HW */
 			bool id_is_tsg, /* ignored if hw_id == ~0 */
 			bool id_is_known, bool debug_dump, u32 rc_type);
-#else
-static inline void nvgpu_rc_ctxsw_timeout(struct gk20a *g, u32 eng_bitmask,
-			struct nvgpu_tsg *tsg, bool debug_dump)
-{
-}
 
-static inline void nvgpu_rc_pbdma_fault(struct gk20a *g, struct nvgpu_fifo *f,
-			u32 pbdma_id, u32 error_notifier)
-{
-}
-
-static inline void nvgpu_rc_runlist_update(struct gk20a *g, u32 runlist_id)
-{
-}
-
-static inline void nvgpu_rc_preempt_timeout(struct gk20a *g, struct nvgpu_tsg *tsg)
-{
-}
-
-static inline void nvgpu_rc_gr_fault(struct gk20a *g,
-			struct nvgpu_tsg *tsg, struct nvgpu_channel *ch)
-{
-}
-
-static inline void nvgpu_rc_sched_error_bad_tsg(struct gk20a *g)
-{
-}
-
-static inline void nvgpu_rc_tsg_and_related_engines(struct gk20a *g, struct nvgpu_tsg *tsg,
-			 bool debug_dump, u32 rc_type)
-{
-}
-
-static inline void nvgpu_rc_fifo_recover(struct gk20a *g,
-			u32 eng_bitmask, /* if zero, will be queried from HW */
-			u32 hw_id, /* if ~0, will be queried from HW */
-			bool id_is_tsg, /* ignored if hw_id == ~0 */
-			bool id_is_known, bool debug_dump, u32 rc_type)
-{
-}
-
-#endif
 #endif /* NVGPU_RC_H */

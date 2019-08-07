@@ -140,6 +140,7 @@ srcs += common/utils/assert.c \
 	common/fifo/engines.c \
 	common/fifo/pbdma_status.c \
 	common/mc/mc.c \
+	common/rc/rc.c \
 	hal/init/hal_gv11b.c \
 	hal/init/hal_gv11b_litter.c \
 	hal/init/hal_init.c \
@@ -388,8 +389,7 @@ srcs += common/fifo/userd.c \
 endif
 
 ifeq ($(CONFIG_NVGPU_RECOVERY),1)
-srcs += common/rc/rc.c \
-	hal/rc/rc_gv11b.c
+srcs += hal/rc/rc_gv11b.c
 ifeq ($(CONFIG_NVGPU_HAL_NON_FUSA),1)
 srcs += hal/rc/rc_gk20a.c
 endif
