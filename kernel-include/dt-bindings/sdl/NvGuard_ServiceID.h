@@ -11,53 +11,49 @@
 #ifndef NVGUARD_SERVICEID_H
 #define NVGUARD_SERVICEID_H
 
-/* *************** SERVICE ID for CCPLEX_FPS*************** */
+/* *************** SERVICE ID for CCPLEX*************** */
 /*  IDs for SW Error Handler */
-#define NVGUARD_SERVICE_CCPLEX_FPS_MAX_SWERR 0U
+#define NVGUARD_SERVICE_CCPLEX_MAX_SWERR 0U
 /* IDs for Diagnostics Test Services */
-/** DESCRIPTION : Periodic test for permanent fault diagnostic of FPS in CCPLEX 0x0121c400 */
-#define NVGUARD_SERVICE_CCPLEX_FPS_DIAG_PF_PERIODIC_TEST0 0x0121c400
-/** DESCRIPTION : Periodic test for permanent fault diagnostic of FPS in CCPLEX 0x0121c401 */
-#define NVGUARD_SERVICE_CCPLEX_FPS_DIAG_PF_PERIODIC_TEST1 0x0121c401
-/** DESCRIPTION : Periodic test for permanent fault diagnostic of FPS in CCPLEX 0x0121c402 */
-#define NVGUARD_SERVICE_CCPLEX_FPS_DIAG_PF_PERIODIC_TEST2 0x0121c402
-/** DESCRIPTION : Periodic test for permanent fault diagnostic of FPS in CCPLEX 0x0121c403 */
-#define NVGUARD_SERVICE_CCPLEX_FPS_DIAG_PF_PERIODIC_TEST3 0x0121c403
-/** DESCRIPTION : Periodic test for permanent fault diagnostic of FPS in CCPLEX 0x0121c404 */
-#define NVGUARD_SERVICE_CCPLEX_FPS_DIAG_PF_PERIODIC_TEST4 0x0121c404
-/** DESCRIPTION : Periodic test for permanent fault diagnostic of FPS in CCPLEX 0x0121c405 */
-#define NVGUARD_SERVICE_CCPLEX_FPS_DIAG_PF_PERIODIC_TEST5 0x0121c405
-/** DESCRIPTION : Periodic test for permanent fault diagnostic of FPS in CCPLEX 0x0121c406 */
-#define NVGUARD_SERVICE_CCPLEX_FPS_DIAG_PF_PERIODIC_TEST6 0x0121c406
-/** DESCRIPTION : Periodic test for permanent fault diagnostic of FPS in CCPLEX 0x0121c407 */
-#define NVGUARD_SERVICE_CCPLEX_FPS_DIAG_PF_PERIODIC_TEST7 0x0121c407
-#define NVGUARD_SERVICE_CCPLEX_FPS_MAX_DIAG 8U
+/** DESCRIPTION : test for permanent fault diagnostic of FPS in CCPLEX */
+#define NVGUARD_SERVICE_CCPLEX_DIAG_FPS_PF_TEST0 0x0120b000U
+/** DESCRIPTION : test for permanent fault diagnostic of FPS in CCPLEX */
+#define NVGUARD_SERVICE_CCPLEX_DIAG_FPS_PF_TEST1 0x0120b001U
+/** DESCRIPTION : test for permanent fault diagnostic of FPS in CCPLEX */
+#define NVGUARD_SERVICE_CCPLEX_DIAG_FPS_PF_TEST2 0x0120b002U
+/** DESCRIPTION : test for permanent fault diagnostic of FPS in CCPLEX */
+#define NVGUARD_SERVICE_CCPLEX_DIAG_FPS_PF_TEST3 0x0120b003U
+/** DESCRIPTION : test for permanent fault diagnostic of FPS in CCPLEX */
+#define NVGUARD_SERVICE_CCPLEX_DIAG_FPS_PF_TEST4 0x0120b004U
+/** DESCRIPTION : test for permanent fault diagnostic of FPS in CCPLEX */
+#define NVGUARD_SERVICE_CCPLEX_DIAG_FPS_PF_TEST5 0x0120b005U
+/** DESCRIPTION : test for permanent fault diagnostic of FPS in CCPLEX */
+#define NVGUARD_SERVICE_CCPLEX_DIAG_FPS_PF_TEST6 0x0120b006U
+/** DESCRIPTION : test for permanent fault diagnostic of FPS in CCPLEX */
+#define NVGUARD_SERVICE_CCPLEX_DIAG_FPS_PF_TEST7 0x0120b007U
+/** DESCRIPTION : test for GIC HW diagnostic in CCPLEX */
+#define NVGUARD_SERVICE_CCPLEX_DIAG_GIC_SDL_TEST0 0x0120b008U
+/** DESCRIPTION : test for GIC HW diagnostic in CCPLEX */
+#define NVGUARD_SERVICE_CCPLEX_DIAG_GIC_SDL_TEST1 0x0120b009U
+/** DESCRIPTION : test for GIC HW diagnostic in CCPLEX */
+#define NVGUARD_SERVICE_CCPLEX_DIAG_GIC_SDL_TEST2 0x0120b00aU
+/** DESCRIPTION : test for GIC HW diagnostic in CCPLEX */
+#define NVGUARD_SERVICE_CCPLEX_DIAG_GIC_SDL_TEST3 0x0120b00bU
+/** DESCRIPTION : test for GIC HW diagnostic in CCPLEX */
+#define NVGUARD_SERVICE_CCPLEX_DIAG_GIC_SDL_TEST4 0x0120b00cU
+/** DESCRIPTION : test for GIC HW diagnostic in CCPLEX */
+#define NVGUARD_SERVICE_CCPLEX_DIAG_GIC_SDL_TEST5 0x0120b00dU
+/** DESCRIPTION : test for GIC HW diagnostic in CCPLEX */
+#define NVGUARD_SERVICE_CCPLEX_DIAG_GIC_SDL_TEST6 0x0120b00eU
+/** DESCRIPTION : test for GIC HW diagnostic in CCPLEX */
+#define NVGUARD_SERVICE_CCPLEX_DIAG_GIC_SDL_TEST7 0x0120b00fU
+#define NVGUARD_SERVICE_CCPLEX_MAX_DIAG 16U
 /* IDs for HW Error Handlers */
-#define NVGUARD_SERVICE_CCPLEX_FPS_MAX_HWERR 0U
-/* *************** END SERVICE ID for CCPLEX_FPS*************** */
+/** DESCRIPTION :   */
+#define NVGUARD_SERVICE_CCPLEX_HSMERR_CCPLEX_UE 0x0100b0fcU
+/** DESCRIPTION :   */
+#define NVGUARD_SERVICE_CCPLEX_HSMERR_CCPLEX_CE 0x0100b1e3U
+#define NVGUARD_SERVICE_CCPLEX_MAX_HWERR 2U
+/* *************** END SERVICE ID for CCPLEX*************** */
 
-/* *************** SERVICE ID for CCPLEX_GIC*************** */
-/*  IDs for SW Error Handler */
-#define NVGUARD_SERVICE_CCPLEX_GIC_MAX_SWERR 0U
-/* IDs for Diagnostics Test Services */
-/** DESCRIPTION : Periodic test for GIC HW diagnostic in CCPLEX 0x0121c800 */
-#define NVGUARD_SERVICE_CCPLEX_GIC_DIAG_SDL_PERIODIC_TEST0 0x0121c800
-/** DESCRIPTION : Periodic test for GIC HW diagnostic in CCPLEX 0x0121c801 */
-#define NVGUARD_SERVICE_CCPLEX_GIC_DIAG_SDL_PERIODIC_TEST1 0x0121c801
-/** DESCRIPTION : Periodic test for GIC HW diagnostic in CCPLEX 0x0121c802 */
-#define NVGUARD_SERVICE_CCPLEX_GIC_DIAG_SDL_PERIODIC_TEST2 0x0121c802
-/** DESCRIPTION : Periodic test for GIC HW diagnostic in CCPLEX 0x0121c803 */
-#define NVGUARD_SERVICE_CCPLEX_GIC_DIAG_SDL_PERIODIC_TEST3 0x0121c803
-/** DESCRIPTION : Periodic test for GIC HW diagnostic in CCPLEX 0x0121c804 */
-#define NVGUARD_SERVICE_CCPLEX_GIC_DIAG_SDL_PERIODIC_TEST4 0x0121c804
-/** DESCRIPTION : Periodic test for GIC HW diagnostic in CCPLEX 0x0121c805 */
-#define NVGUARD_SERVICE_CCPLEX_GIC_DIAG_SDL_PERIODIC_TEST5 0x0121c805
-/** DESCRIPTION : Periodic test for GIC HW diagnostic in CCPLEX 0x0121c806 */
-#define NVGUARD_SERVICE_CCPLEX_GIC_DIAG_SDL_PERIODIC_TEST6 0x0121c806
-/** DESCRIPTION : Periodic test for GIC HW diagnostic in CCPLEX 0x0121c807 */
-#define NVGUARD_SERVICE_CCPLEX_GIC_DIAG_SDL_PERIODIC_TEST7 0x0121c807
-#define NVGUARD_SERVICE_CCPLEX_GIC_MAX_DIAG 8U
-/* IDs for HW Error Handlers */
-#define NVGUARD_SERVICE_CCPLEX_GIC_MAX_HWERR 0U
-/* *************** END SERVICE ID for CCPLEX_GIC*************** */
-#endif
+#endif //NVGUARD_SERVICEID_H
