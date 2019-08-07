@@ -51,6 +51,7 @@
  *   - @ref SWUTS-posix-timers
  *   - @ref SWUTS-sdl
  *   - @ref SWUTS-acr
+ *   - @ref SWUTS-cg
  *
  */
 

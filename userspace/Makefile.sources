@@ -83,5 +83,6 @@ UNITS :=				\
 	$(UNIT_SRC)/gr/falcon			\
 	$(UNIT_SRC)/gr/config		\
 	$(UNIT_SRC)/gr/init		\
-	$(UNIT_SRC)/gr/intr	\
-	$(UNIT_SRC)/acr
+	$(UNIT_SRC)/gr/intr		\
+	$(UNIT_SRC)/acr			\
+	$(UNIT_SRC)/cg

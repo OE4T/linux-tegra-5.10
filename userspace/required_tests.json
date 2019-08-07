@@ -295,6 +295,71 @@
         "unit": "buddy_allocator"
     },
     {
+        "test": "blcg_ce",
+        "test_level": 0,
+        "unit": "cg"
+    },
+    {
+        "test": "blcg_fb_ltc",
+        "test_level": 0,
+        "unit": "cg"
+    },
+    {
+        "test": "blcg_fifo",
+        "test_level": 0,
+        "unit": "cg"
+    },
+    {
+        "test": "blcg_gr",
+        "test_level": 0,
+        "unit": "cg"
+    },
+    {
+        "test": "blcg_gr_load_gating_prod",
+        "test_level": 0,
+        "unit": "cg"
+    },
+    {
+        "test": "blcg_pmu",
+        "test_level": 0,
+        "unit": "cg"
+    },
+    {
+        "test": "init",
+        "test_level": 0,
+        "unit": "cg"
+    },
+    {
+        "test": "slcg_ce2",
+        "test_level": 0,
+        "unit": "cg"
+    },
+    {
+        "test": "slcg_fb_ltc",
+        "test_level": 0,
+        "unit": "cg"
+    },
+    {
+        "test": "slcg_fifo",
+        "test_level": 0,
+        "unit": "cg"
+    },
+    {
+        "test": "slcg_gr_load_gating_prod",
+        "test_level": 0,
+        "unit": "cg"
+    },
+    {
+        "test": "slcg_pmu",
+        "test_level": 0,
+        "unit": "cg"
+    },
+    {
+        "test": "slcg_priring",
+        "test_level": 0,
+        "unit": "cg"
+    },
+    {
         "test": "enabled_flags_false_check",
         "test_level": 0,
         "unit": "enabled"
