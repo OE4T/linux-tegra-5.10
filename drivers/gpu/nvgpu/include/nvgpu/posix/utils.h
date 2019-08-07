@@ -214,10 +214,13 @@ static inline unsigned int nvgpu_posix_hweight32(uint32_t x)
 static inline unsigned int nvgpu_posix_hweight64(uint64_t x)
 {
 	unsigned int ret;
+	u32 lo, hi;
 
-	ret =  nvgpu_posix_hweight32((uint32_t)x);
-	ret += nvgpu_posix_hweight32((uint32_t)((x &
-					0xffffffff00000000U) >> 32));
+	lo = nvgpu_safe_cast_u64_to_u32(x & ~(u32)0);
+	hi = nvgpu_safe_cast_u64_to_u32(x >> 32) & ~(u32)0;
+
+	ret =  nvgpu_posix_hweight32(lo);
+	ret += nvgpu_posix_hweight32(hi);
 
 	return ret;
 }
