@@ -44,6 +44,45 @@
 #define OSI_MIN_TX_COALESCE_USEC	32U
 #define OSI_MIN_TX_COALESCE_FRAMES	1U
 
+/**
+ * @addtogroup - LPI-Timers LPI configuration macros
+ *
+ * @brief LPI timers and config register field masks.
+ * @{
+ */
+/* LPI LS timer - minimum time (in milliseconds) for which the link status from
+ * PHY should be up before the LPI pattern can be transmitted to the PHY.
+ * Default 1sec.
+ */
+#define OSI_DEFAULT_LPI_LS_TIMER	(unsigned int)1000
+#define OSI_LPI_LS_TIMER_MASK		0x3FFU
+#define OSI_LPI_LS_TIMER_SHIFT		16U
+/* LPI TW timer - minimum time (in microseconds) for which MAC wait after it
+ * stops transmitting LPI pattern before resuming normal tx.
+ * Default 21us
+ */
+#define OSI_DEFAULT_LPI_TW_TIMER	0x15U
+#define OSI_LPI_TW_TIMER_MASK		0xFFFFU
+/* LPI entry timer - Time in microseconds that MAC will wait to enter LPI mode
+ * after all tx is complete.
+ * Default 1sec.
+ */
+#define OSI_LPI_ENTRY_TIMER_MASK	0xFFFF8U
+
+/* LPI entry timer - Time in microseconds that MAC will wait to enter LPI mode
+ * after all tx is complete. Default 1sec.
+ */
+#define OSI_DEFAULT_TX_LPI_TIMER	0xF4240U
+
+/* Max Tx LPI timer (in usecs) based on the timer value field length in HW
+ * MAC_LPI_ENTRY_TIMER register */
+#define OSI_MAX_TX_LPI_TIMER		0xFFFF8U
+
+/* Min Tx LPI timer (in usecs) based on the timer value field length in HW
+ * MAC_LPI_ENTRY_TIMER register */
+#define OSI_MIN_TX_LPI_TIMER		0x8U
+/** @} */
+
 #define OSI_PAUSE_FRAMES_ENABLE		0U
 #define OSI_PAUSE_FRAMES_DISABLE	1U
 #define OSI_FLOW_CTRL_TX		OSI_BIT(0)

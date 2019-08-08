@@ -916,3 +916,19 @@ int osi_reset_mmc(struct osi_core_priv_data *osi_core)
 
 	return -1;
 }
+
+int osi_configure_eee(struct osi_core_priv_data *osi_core,
+		      unsigned int tx_lpi_enabled, unsigned int tx_lpi_timer)
+{
+	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
+	    (osi_core->ops->core_init != OSI_NULL) &&
+	    (tx_lpi_timer <= OSI_MAX_TX_LPI_TIMER) &&
+	    (tx_lpi_timer >= OSI_MIN_TX_LPI_TIMER) &&
+	    (tx_lpi_timer % OSI_MIN_TX_LPI_TIMER == OSI_NONE)) {
+		osi_core->ops->configure_eee(osi_core, tx_lpi_enabled,
+					     tx_lpi_timer);
+		return 0;
+	}
+
+	return -1;
+}

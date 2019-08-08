@@ -245,6 +245,9 @@ struct osi_core_ops {
 	void (*read_mmc)(struct osi_core_priv_data *osi_core);
 	/** Called to reset MMC HW counter structure */
 	void (*reset_mmc)(struct osi_core_priv_data *osi_core);
+	void (*configure_eee)(struct osi_core_priv_data *osi_core,
+			      unsigned int tx_lpi_enabled,
+			      unsigned int tx_lpi_timer);
 };
 
 /**
@@ -1000,4 +1003,23 @@ int osi_l3l4_filter(struct osi_core_priv_data *osi_core,
 		    unsigned int dma_routing_enable, unsigned int dma_chan,
 		    unsigned int is_l4_filter);
 
+/**
+ * @brief osi_configure_eee - Configure EEE LPI in MAC.
+ *
+ * Algorithm: This routine invokes configuration of EEE LPI in the MAC.
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in] tx_lpi_enabled: Enable (1)/disable (0) tx lpi
+ * @param[in] tx_lpi_timer: Tx LPI entry timer in usecs upto
+ *	      OSI_MAX_TX_LPI_TIMER (in steps of 8usec)
+ *
+ * @note
+ *	1) MAC and PHY should be init and started. see osi_start_mac()
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+int osi_configure_eee(struct osi_core_priv_data *osi_core,
+		      unsigned int tx_lpi_enabled,
+		      unsigned int tx_lpi_timer);
 #endif /* OSI_CORE_H */
