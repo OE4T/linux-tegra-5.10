@@ -473,7 +473,9 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 		.preempt_tsg = vgpu_fifo_preempt_tsg,
 		.is_preempt_pending = NULL,
 		.reset_enable_hw = NULL,
+#ifdef CONFIG_NVGPU_RECOVERY
 		.recover = NULL,
+#endif
 		.setup_sw = vgpu_fifo_setup_sw,
 		.cleanup_sw = vgpu_fifo_cleanup_sw,
 		.set_sm_exception_type_mask = vgpu_set_sm_exception_type_mask,

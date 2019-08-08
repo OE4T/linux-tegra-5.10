@@ -58,7 +58,7 @@ void nvgpu_rc_fifo_recover(struct gk20a *g, u32 eng_bitmask,
 	g->ops.fifo.recover(g, eng_bitmask, hw_id, id_type,
 				 rc_type, NULL);
 #else
-	nvgpu_err(g, "recovery not supported");
+	WARN_ON(!g->sw_quiesce_pending);
 #endif
 }
 
@@ -80,7 +80,7 @@ void nvgpu_rc_ctxsw_timeout(struct gk20a *g, u32 eng_bitmask,
 	nvgpu_rc_fifo_recover(g, eng_bitmask, tsg->tsgid, true, true, debug_dump,
 			RC_TYPE_CTXSW_TIMEOUT);
 #else
-	nvgpu_err(g, "recovery not supported");
+	WARN_ON(!g->sw_quiesce_pending);
 #endif
 }
 
@@ -136,7 +136,7 @@ void nvgpu_rc_pbdma_fault(struct gk20a *g, u32 pbdma_id, u32 error_notifier,
 		nvgpu_err(g, "Invalid pbdma_status.id_type");
 	}
 #else
-	nvgpu_err(g, "recovery not supported");
+	WARN_ON(!g->sw_quiesce_pending);
 #endif
 }
 
@@ -150,7 +150,7 @@ void nvgpu_rc_runlist_update(struct gk20a *g, u32 runlist_id)
 				RC_TYPE_RUNLIST_UPDATE_TIMEOUT);
 	}
 #else
-	nvgpu_err(g, "recovery not supported");
+	WARN_ON(!g->sw_quiesce_pending);
 #endif
 }
 
@@ -162,7 +162,7 @@ void nvgpu_rc_preempt_timeout(struct gk20a *g, struct nvgpu_tsg *tsg)
 
 	nvgpu_rc_tsg_and_related_engines(g, tsg, true, RC_TYPE_PREEMPT_TIMEOUT);
 #else
-	nvgpu_err(g, "recovery not supported");
+	WARN_ON(!g->sw_quiesce_pending);
 #endif
 }
 
@@ -192,7 +192,7 @@ void nvgpu_rc_gr_fault(struct gk20a *g, struct nvgpu_tsg *tsg,
 				   false, false, true, RC_TYPE_GR_FAULT);
 	}
 #else
-	nvgpu_err(g, "recovery not supported");
+	WARN_ON(!g->sw_quiesce_pending);
 #endif
 }
 
@@ -203,7 +203,7 @@ void nvgpu_rc_sched_error_bad_tsg(struct gk20a *g)
 	nvgpu_rc_fifo_recover(g, 0, INVAL_ID, false, false, false,
 		RC_TYPE_SCHED_ERR);
 #else
-	nvgpu_err(g, "recovery not supported");
+	WARN_ON(!g->sw_quiesce_pending);
 #endif
 }
 
@@ -275,6 +275,6 @@ void nvgpu_rc_tsg_and_related_engines(struct gk20a *g, struct nvgpu_tsg *tsg,
 	nvgpu_mutex_release(&g->dbg_sessions_lock);
 #endif
 #else
-	nvgpu_err(g, "recovery not supported");
+	WARN_ON(!g->sw_quiesce_pending);
 #endif
 }
