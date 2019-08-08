@@ -269,7 +269,6 @@ srcs += hal/init/hal_gp10b.c \
 	hal/priv_ring/priv_ring_gm20b.c \
 	hal/power_features/cg/gm20b_gating_reglist.c \
 	hal/power_features/cg/gp10b_gating_reglist.c \
-	hal/power_features/cg/gp106_gating_reglist.c \
 	hal/ce/ce2_gk20a.c \
 	hal/therm/therm_gm20b.c \
 	hal/therm/therm_gp10b.c \
@@ -597,7 +596,6 @@ srcs += common/sec2/sec2.c \
 	hal/fbpa/fbpa_tu104.c \
 	hal/init/hal_tu104.c \
 	hal/init/hal_tu104_litter.c \
-	hal/power_features/cg/gv100_gating_reglist.c \
 	hal/power_features/cg/tu104_gating_reglist.c \
 	hal/ltc/ltc_tu104.c \
 	hal/fb/fb_gv100.c \

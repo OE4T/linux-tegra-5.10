@@ -236,9 +236,7 @@ nvgpu-y += \
 	hal/init/hal_gv11b_litter.o \
 	hal/init/hal_init.o \
 	hal/perf/perf_gv11b.o \
-	hal/power_features/cg/gp106_gating_reglist.o \
 	hal/power_features/cg/gp10b_gating_reglist.o \
-	hal/power_features/cg/gv100_gating_reglist.o \
 	hal/power_features/cg/gv11b_gating_reglist.o \
 	hal/power_features/cg/tu104_gating_reglist.o \
 	hal/regops/regops_gv11b.o \

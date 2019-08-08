@@ -106,12 +106,8 @@ cg:
   owner: Seema K
   sources: [ hal/power_features/cg/gm20b_gating_reglist.c,
              hal/power_features/cg/gm20b_gating_reglist.h,
-             hal/power_features/cg/gp106_gating_reglist.c,
-             hal/power_features/cg/gp106_gating_reglist.h,
              hal/power_features/cg/gp10b_gating_reglist.c,
              hal/power_features/cg/gp10b_gating_reglist.h,
-             hal/power_features/cg/gv100_gating_reglist.c,
-             hal/power_features/cg/gv100_gating_reglist.h,
              hal/power_features/cg/tu104_gating_reglist.c,
              hal/power_features/cg/tu104_gating_reglist.h ]
 
