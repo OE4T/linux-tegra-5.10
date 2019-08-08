@@ -1010,6 +1010,9 @@ static const struct file_operations dmirror_fops = {
 	.open		= dummy_fops_open,
 	.release	= dummy_fops_release,
 	.unlocked_ioctl = dummy_fops_unlocked_ioctl,
+#ifdef CONFIG_COMPAT
+	.compat_ioctl	= dummy_fops_unlocked_ioctl,
+#endif
 	.llseek		= default_llseek,
 	.owner		= THIS_MODULE,
 };
