@@ -959,9 +959,7 @@ static void gv11b_gr_intr_report_l1_tag_corrected_err(struct gk20a *g,
 	}
 }
 
-static void gv11b_gr_intr_handle_l1_tag_exception(struct gk20a *g, u32 gpc, u32 tpc,
-			bool *post_event, struct nvgpu_channel *fault_ch,
-			u32 *hww_global_esr)
+static void gv11b_gr_intr_handle_l1_tag_exception(struct gk20a *g, u32 gpc, u32 tpc)
 {
 	u32 gpc_stride = nvgpu_get_litter_value(g, GPU_LIT_GPC_STRIDE);
 	u32 tpc_in_gpc_stride = nvgpu_get_litter_value(g, GPU_LIT_TPC_IN_GPC_STRIDE);
@@ -1058,9 +1056,7 @@ static void gv11b_gr_intr_handle_l1_tag_exception(struct gk20a *g, u32 gpc, u32 
 			gr_pri_gpc0_tpc0_sm_l1_tag_ecc_status_reset_task_f());
 }
 
-static void gv11b_gr_intr_handle_lrf_exception(struct gk20a *g, u32 gpc, u32 tpc,
-			bool *post_event, struct nvgpu_channel *fault_ch,
-			u32 *hww_global_esr)
+static void gv11b_gr_intr_handle_lrf_exception(struct gk20a *g, u32 gpc, u32 tpc)
 {
 	u32 gpc_stride = nvgpu_get_litter_value(g, GPU_LIT_GPC_STRIDE);
 	u32 tpc_in_gpc_stride = nvgpu_get_litter_value(g, GPU_LIT_TPC_IN_GPC_STRIDE);
@@ -1176,9 +1172,7 @@ static void gv11b_gr_intr_handle_lrf_exception(struct gk20a *g, u32 gpc, u32 tpc
 			gr_pri_gpc0_tpc0_sm_lrf_ecc_status_reset_task_f());
 }
 
-static void gv11b_gr_intr_handle_cbu_exception(struct gk20a *g, u32 gpc, u32 tpc,
-			bool *post_event, struct nvgpu_channel *fault_ch,
-			u32 *hww_global_esr)
+static void gv11b_gr_intr_handle_cbu_exception(struct gk20a *g, u32 gpc, u32 tpc)
 {
 	u32 gpc_stride = nvgpu_get_litter_value(g, GPU_LIT_GPC_STRIDE);
 	u32 tpc_in_gpc_stride = nvgpu_get_litter_value(g, GPU_LIT_TPC_IN_GPC_STRIDE);
@@ -1283,9 +1277,7 @@ static void gv11b_gr_intr_handle_cbu_exception(struct gk20a *g, u32 gpc, u32 tpc
 			gr_pri_gpc0_tpc0_sm_cbu_ecc_status_reset_task_f());
 }
 
-static void gv11b_gr_intr_handle_l1_data_exception(struct gk20a *g, u32 gpc, u32 tpc,
-			bool *post_event, struct nvgpu_channel *fault_ch,
-			u32 *hww_global_esr)
+static void gv11b_gr_intr_handle_l1_data_exception(struct gk20a *g, u32 gpc, u32 tpc)
 {
 	u32 gpc_stride = nvgpu_get_litter_value(g, GPU_LIT_GPC_STRIDE);
 	u32 tpc_in_gpc_stride = nvgpu_get_litter_value(g, GPU_LIT_TPC_IN_GPC_STRIDE);
@@ -1460,9 +1452,7 @@ static void gv11b_gr_intr_report_icache_corrected_err(struct gk20a *g,
 	}
 }
 
-static void gv11b_gr_intr_handle_icache_exception(struct gk20a *g, u32 gpc, u32 tpc,
-			bool *post_event, struct nvgpu_channel *fault_ch,
-			u32 *hww_global_esr)
+static void gv11b_gr_intr_handle_icache_exception(struct gk20a *g, u32 gpc, u32 tpc)
 {
 	u32 gpc_stride = nvgpu_get_litter_value(g, GPU_LIT_GPC_STRIDE);
 	u32 tpc_in_gpc_stride = nvgpu_get_litter_value(g, GPU_LIT_TPC_IN_GPC_STRIDE);
@@ -1559,24 +1549,22 @@ static void gv11b_gr_intr_handle_icache_exception(struct gk20a *g, u32 gpc, u32 
 }
 
 void gv11b_gr_intr_handle_tpc_sm_ecc_exception(struct gk20a *g,
-		u32 gpc, u32 tpc,
-		bool *post_event, struct nvgpu_channel *fault_ch,
-		u32 *hww_global_esr)
+					u32 gpc, u32 tpc)
 {
 	/* Check for L1 tag ECC errors. */
-	gv11b_gr_intr_handle_l1_tag_exception(g, gpc, tpc, post_event, fault_ch, hww_global_esr);
+	gv11b_gr_intr_handle_l1_tag_exception(g, gpc, tpc);
 
 	/* Check for LRF ECC errors. */
-	gv11b_gr_intr_handle_lrf_exception(g, gpc, tpc, post_event, fault_ch, hww_global_esr);
+	gv11b_gr_intr_handle_lrf_exception(g, gpc, tpc);
 
 	/* Check for CBU ECC errors. */
-	gv11b_gr_intr_handle_cbu_exception(g, gpc, tpc, post_event, fault_ch, hww_global_esr);
+	gv11b_gr_intr_handle_cbu_exception(g, gpc, tpc);
 
 	/* Check for L1 data ECC errors. */
-	gv11b_gr_intr_handle_l1_data_exception(g, gpc, tpc, post_event, fault_ch, hww_global_esr);
+	gv11b_gr_intr_handle_l1_data_exception(g, gpc, tpc);
 
 	/* Check for L0 && L1 icache ECC errors. */
-	gv11b_gr_intr_handle_icache_exception(g, gpc, tpc, post_event, fault_ch, hww_global_esr);
+	gv11b_gr_intr_handle_icache_exception(g, gpc, tpc);
 }
 
 void gv11b_gr_intr_get_esr_sm_sel(struct gk20a *g, u32 gpc, u32 tpc,

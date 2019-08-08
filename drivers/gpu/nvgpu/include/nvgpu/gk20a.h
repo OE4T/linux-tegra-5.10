@@ -895,9 +895,7 @@ struct gpu_ops {
 			void (*flush_channel_tlb)(struct gk20a *g);
 			void (*set_hww_esr_report_mask)(struct gk20a *g);
 			void (*handle_tpc_sm_ecc_exception)(struct gk20a *g,
-				u32 gpc, u32 tpc,
-				bool *post_event, struct nvgpu_channel *fault_ch,
-				u32 *hww_global_esr);
+				u32 gpc, u32 tpc);
 			void (*get_esr_sm_sel)(struct gk20a *g, u32 gpc, u32 tpc,
 					 u32 *esr_sm_sel);
 			void (*clear_sm_hww)(struct gk20a *g, u32 gpc, u32 tpc,

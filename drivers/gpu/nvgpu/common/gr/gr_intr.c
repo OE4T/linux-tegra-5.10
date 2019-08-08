@@ -80,8 +80,7 @@ static int gr_intr_handle_tpc_exception(struct gk20a *g, u32 gpc, u32 tpc,
 				"GPC%d TPC%d: SM exception pending", gpc, tpc);
 
 		if (g->ops.gr.intr.handle_tpc_sm_ecc_exception != NULL) {
-			g->ops.gr.intr.handle_tpc_sm_ecc_exception(g, gpc, tpc,
-				post_event, fault_ch, hww_global_esr);
+			g->ops.gr.intr.handle_tpc_sm_ecc_exception(g, gpc, tpc);
 		}
 
 		g->ops.gr.intr.get_esr_sm_sel(g, gpc, tpc, &esr_sm_sel);
