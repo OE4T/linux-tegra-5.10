@@ -45,6 +45,7 @@ int gp10b_gr_intr_handle_fecs_error(struct gk20a *g,
 			struct nvgpu_gr_isr_data *isr_data);
 void gp10b_gr_intr_set_coalesce_buffer_size(struct gk20a *g, u32 data);
 void gp10b_gr_intr_set_go_idle_timeout(struct gk20a *g, u32 data);
+#ifdef CONFIG_NVGPU_HAL_NON_FUSA
 void gp10b_gr_intr_handle_tex_exception(struct gk20a *g, u32 gpc, u32 tpc);
 int gp10b_gr_intr_handle_sw_method(struct gk20a *g, u32 addr,
 				     u32 class_num, u32 offset, u32 data);
@@ -52,4 +53,5 @@ int gp10b_gr_intr_handle_sm_exception(struct gk20a *g,
 			u32 gpc, u32 tpc, u32 sm,
 			bool *post_event, struct nvgpu_channel *fault_ch,
 			u32 *hww_global_esr);
+#endif /* CONFIG_NVGPU_HAL_NON_FUSA */
 #endif /* NVGPU_GR_INTR_GP10B_H */
