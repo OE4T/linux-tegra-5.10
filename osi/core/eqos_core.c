@@ -1236,8 +1236,8 @@ static void eqos_configure_mac(struct osi_core_priv_data *osi_core)
 	/* Enable MAC interrupts */
 	/* Read MAC IMR Register */
 	value = osi_readl((unsigned char *)osi_core->base + EQOS_MAC_IMR);
-	/* RGSMIIIM - RGMII/SMII interrupt Enable */
-	/* TODO: LPI need to be enabled during EEE implementation */
+	/* RGSMIIIE - RGMII/SMII interrupt Enable.
+	 * LPIIE is not enabled. MMC LPI counters is maintained in HW */
 	value |= EQOS_IMR_RGSMIIIE;
 
 	eqos_core_safety_writel(value, (unsigned char *)osi_core->base +
@@ -3210,6 +3210,96 @@ static void eqos_core_deinit(struct osi_core_priv_data *osi_core)
 }
 
 /**
+ * @brief eqos_disable_tx_lpi - Helper function to disable Tx LPI.
+ *
+ * Algorithm:
+ *	1) Clear the bits to enable Tx LPI, Tx LPI automate, LPI Tx Timer and
+ *	PHY Link status in the LPI control/status register
+ *
+ * @param[in] addr: base address of memory mapped register space of MAC.
+ *
+ * @note MAC has to be out of reset, and clocks supplied.
+ */
+static inline void eqos_disable_tx_lpi(void *addr)
+{
+	unsigned int lpi_csr = 0;
+
+	/* Disable LPI control bits */
+	lpi_csr = osi_readl((unsigned char *)addr + EQOS_MAC_LPI_CSR);
+	lpi_csr &= ~(EQOS_MAC_LPI_CSR_LPITE | EQOS_MAC_LPI_CSR_LPITXA |
+		     EQOS_MAC_LPI_CSR_PLS | EQOS_MAC_LPI_CSR_LPIEN);
+	osi_writel(lpi_csr, (unsigned char *)addr + EQOS_MAC_LPI_CSR);
+}
+
+/**
+ * @brief eqos_configure_eee - Configure the EEE LPI mode
+ *
+ * Algorithm: This routine configures EEE LPI mode in the MAC.
+ * 	1) The time (in microsecond) to wait before resuming transmission after
+ *	exiting from LPI,
+ *	2) The time (in millisecond) to wait before LPI pattern can be
+ *	transmitted after PHY link is up) are not configurable. Default values
+ *	are used in this routine.
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in] tx_lpi_enable: enable (1)/disable (0) flag for Tx lpi
+ * @param[in] tx_lpi_timer: Tx LPI entry timer in usec. Valid upto
+ *	      OSI_MAX_TX_LPI_TIMER in steps of 8usec.
+ *
+ * @note
+ *	Required clks and resets has to be enabled.
+ *	MAC/PHY should be initialized
+ */
+static void eqos_configure_eee(struct osi_core_priv_data *osi_core,
+			       unsigned int tx_lpi_enabled,
+			       unsigned int tx_lpi_timer)
+{
+	unsigned int lpi_csr = 0;
+	unsigned int lpi_timer_ctrl = 0;
+	unsigned int lpi_entry_timer = 0;
+	unsigned char *addr =  (unsigned char *)osi_core->base;
+
+	if (tx_lpi_enabled != OSI_DISABLE) {
+		/* Configure the following timers.
+		 * 1. LPI LS timer - minimum time (in milliseconds) for
+		 * which the link status from PHY should be up before
+		 * the LPI pattern can be transmitted to the PHY.
+		 * Default 1sec
+		 * 2. LPI TW timer - minimum time (in microseconds) for
+		 * which MAC waits after it stops transmitting LPI
+		 * pattern before resuming normal tx. Default 21us
+		 * 3. LPI entry timer - Time in microseconds that MAC
+		 * will wait to enter LPI mode after all tx is complete.
+		 * Default 1sec
+		 */
+		lpi_timer_ctrl |= ((OSI_DEFAULT_LPI_LS_TIMER &
+				   OSI_LPI_LS_TIMER_MASK) <<
+				   OSI_LPI_LS_TIMER_SHIFT);
+		lpi_timer_ctrl |= (OSI_DEFAULT_LPI_TW_TIMER &
+				   OSI_LPI_TW_TIMER_MASK);
+		osi_writel(lpi_timer_ctrl, addr + EQOS_MAC_LPI_TIMER_CTRL);
+
+		lpi_entry_timer |= (tx_lpi_timer &
+				    OSI_LPI_ENTRY_TIMER_MASK);
+		osi_writel(lpi_entry_timer, addr + EQOS_MAC_LPI_EN_TIMER);
+
+		/* Set LPI timer enable and LPI Tx automate, so that MAC
+		 * can enter/exit Tx LPI on its own using timers above.
+		 * Set LPI Enable & PHY links status (PLS) up.
+		 */
+		lpi_csr = osi_readl(addr + EQOS_MAC_LPI_CSR);
+		lpi_csr |= (EQOS_MAC_LPI_CSR_LPITE |
+			    EQOS_MAC_LPI_CSR_LPITXA |
+			    EQOS_MAC_LPI_CSR_PLS |
+			    EQOS_MAC_LPI_CSR_LPIEN);
+		osi_writel(lpi_csr, addr + EQOS_MAC_LPI_CSR);
+	} else {
+		/* Disable LPI control bits */
+		eqos_disable_tx_lpi(osi_core->base);
+	}
+}
+
+/**
  * @brief eqos_core_ops - EQOS MAC core operations
  */
 static struct osi_core_ops eqos_core_ops = {
@@ -3252,6 +3342,7 @@ static struct osi_core_ops eqos_core_ops = {
 	.config_ssir = eqos_config_ssir,
 	.read_mmc = eqos_read_mmc,
 	.reset_mmc = eqos_reset_mmc,
+	.configure_eee = eqos_configure_eee,
 };
 
 /**

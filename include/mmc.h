@@ -188,7 +188,18 @@ struct osi_mmc_counters {
 	/** This counter provides the number of packets received with Receive
 	 * error or Packet Extension error on the GMII or MII interface */
 	unsigned long mmc_rx_ctrl_frames_g;
-
+	/** This counter provides the number of microseconds Tx LPI is asserted
+	 * in the MAC controller */
+	unsigned long mmc_tx_lpi_usec_cntr;
+	/** This counter provides the number of times MAC controller has
+	 * entered Tx LPI. */
+	unsigned long mmc_tx_lpi_tran_cntr;
+	/** This counter provides the number of microseconds Rx LPI is asserted
+	 * in the MAC controller */
+	unsigned long mmc_rx_lpi_usec_cntr;
+	/** This counter provides the number of times MAC controller has
+	 * entered Rx LPI.*/
+	unsigned long mmc_rx_lpi_tran_cntr;
 	/** This counter provides the number of good IPv4 datagrams received
 	 * with the TCP, UDP, or ICMP payload */
 	unsigned long mmc_rx_ipv4_gd;
