@@ -97,6 +97,13 @@ NVGPU_COMMON_CFLAGS                  += -DCONFIG_NVGPU_LOGGING
 CONFIG_NVGPU_RECOVERY           := 1
 NVGPU_COMMON_CFLAGS             += -DCONFIG_NVGPU_RECOVERY
 
+ifeq ($(profile),safety_release)
+
+# Enable golden context verification only for safety build
+NVGPU_COMMON_CFLAGS             += -DCONFIG_NVGPU_GR_GOLDEN_CTX_VERIFICATION
+
+endif
+
 #
 # Flags enabled only for safety debug and regular build profile.
 #

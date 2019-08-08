@@ -42,7 +42,7 @@
 #define GR_ECC_SCRUBBING_TIMEOUT_MAX_US 1000U
 #define GR_ECC_SCRUBBING_TIMEOUT_DEFAULT_US 10U
 
-#ifdef NV_BUILD_CONFIGURATION_IS_SAFETY
+#ifdef CONFIG_NVGPU_GR_GOLDEN_CTX_VERIFICATION
 #define STATS_COUNTER_BUNDLE 0x00a9
 #define NVC397_SET_STATISTICS_COUNTER_ALPHA_BETA_CLOCKS_ENABLE 0x8000U
 #define NVC397_SET_STATISTICS_COUNTER_SCG_CLOCKS_ENABLE 0x10000U
@@ -854,7 +854,7 @@ void gv11b_gr_init_detect_sm_arch(struct gk20a *g)
 		gr_gpc0_tpc0_sm_arch_warp_count_v(v);
 }
 
-#ifdef NV_BUILD_CONFIGURATION_IS_SAFETY
+#ifdef CONFIG_NVGPU_GR_GOLDEN_CTX_VERIFICATION
 int gv11b_gr_init_load_sw_bundle_init(struct gk20a *g,
 		struct netlist_av_list *sw_bundle_init)
 {

@@ -489,7 +489,7 @@ static const struct gpu_ops gv11b_ops = {
 			.wait_empty = gp10b_gr_init_wait_empty,
 			.wait_idle = gm20b_gr_init_wait_idle,
 			.wait_fe_idle = gm20b_gr_init_wait_fe_idle,
-#ifdef NV_BUILD_CONFIGURATION_IS_SAFETY
+#ifdef CONFIG_NVGPU_GR_GOLDEN_CTX_VERIFICATION
 			.restore_stats_counter_bundle_data =
 				gv11b_gr_init_restore_stats_counter_bundle_data,
 #endif
@@ -534,7 +534,7 @@ static const struct gpu_ops gv11b_ops = {
 				gp10b_gr_init_commit_global_cb_manager,
 			.pipe_mode_override = gm20b_gr_init_pipe_mode_override,
 			.load_sw_bundle_init =
-#ifdef NV_BUILD_CONFIGURATION_IS_SAFETY
+#ifdef CONFIG_NVGPU_GR_GOLDEN_CTX_VERIFICATION
 				gv11b_gr_init_load_sw_bundle_init,
 #else
 				gm20b_gr_init_load_sw_bundle_init,

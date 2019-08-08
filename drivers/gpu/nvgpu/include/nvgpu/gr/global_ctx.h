@@ -96,7 +96,7 @@ void nvgpu_gr_global_ctx_deinit_local_golden_image(struct gk20a *g,
 u32 *nvgpu_gr_global_ctx_get_local_golden_image_ptr(
 	struct nvgpu_gr_global_ctx_local_golden_image *local_golden_image);
 #endif
-#ifdef NV_BUILD_CONFIGURATION_IS_SAFETY
+#ifdef CONFIG_NVGPU_GR_GOLDEN_CTX_VERIFICATION
 bool nvgpu_gr_global_ctx_compare_golden_images(struct gk20a *g,
 	bool is_sysmem,
 	struct nvgpu_gr_global_ctx_local_golden_image *local_golden_image1,

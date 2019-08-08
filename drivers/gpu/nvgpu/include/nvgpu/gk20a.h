@@ -747,7 +747,7 @@ struct gpu_ops {
 			int (*preemption_state)(struct gk20a *g);
 			void (*fe_go_idle_timeout)(struct gk20a *g,
 				bool enable);
-#ifdef NV_BUILD_CONFIGURATION_IS_SAFETY
+#ifdef CONFIG_NVGPU_GR_GOLDEN_CTX_VERIFICATION
 			void (*restore_stats_counter_bundle_data)(
 					struct gk20a *g,
 					struct netlist_av_list *sw_bundle_init);

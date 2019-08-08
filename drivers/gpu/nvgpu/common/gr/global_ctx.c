@@ -26,7 +26,7 @@
 #include <nvgpu/kmem.h>
 #include <nvgpu/bug.h>
 #include <nvgpu/dma.h>
-#ifdef NV_BUILD_CONFIGURATION_IS_SAFETY
+#ifdef CONFIG_NVGPU_GR_GOLDEN_CTX_VERIFICATION
 #include <nvgpu/safe_ops.h>
 #include <nvgpu/string.h>
 #endif
@@ -290,7 +290,7 @@ nvgpu_gr_global_ctx_init_local_golden_image(struct gk20a *g,
 	return local_golden_image;
 }
 
-#ifdef NV_BUILD_CONFIGURATION_IS_SAFETY
+#ifdef CONFIG_NVGPU_GR_GOLDEN_CTX_VERIFICATION
 bool nvgpu_gr_global_ctx_compare_golden_images(struct gk20a *g,
 	bool is_sysmem,
 	struct nvgpu_gr_global_ctx_local_golden_image *local_golden_image1,
