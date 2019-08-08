@@ -166,6 +166,7 @@ int nvgpu_prepare_poweroff(struct gk20a *g)
 int nvgpu_finalize_poweron(struct gk20a *g)
 {
 	int err = 0;
+	u32 fuse_status;
 #if defined(CONFIG_TEGRA_GK20A_NVHOST)
 	u64 nr_pages;
 #endif
@@ -344,14 +345,20 @@ int nvgpu_finalize_poweron(struct gk20a *g)
 	g->ops.mc.intr_enable(g);
 
 	/*
-	 *  Overwrite can_tpc_powergate to false if the chip is ES fused and
-	 *  already optimized with some TPCs already floorswept
-	 *  via fuse. We will not support TPC-PG in those cases.
+	 *  Power gate the chip as per the TPC PG mask
+	 *  and the fuse_status register.
+	 *  If TPC PG mask is invalid halt the GPU poweron.
 	 */
+	g->can_tpc_powergate = false;
+	fuse_status = g->ops.fuse.fuse_status_opt_tpc_gpc(g, 0);
 
-	if (g->ops.fuse.fuse_status_opt_tpc_gpc(g, 0) != 0x0U) {
-		g->can_tpc_powergate = false;
-		g->tpc_pg_mask = 0x0;
+	if (g->ops.tpc.tpc_powergate) {
+		err = g->ops.tpc.tpc_powergate(g, fuse_status);
+	}
+
+	if (err) {
+		nvgpu_err(g, "failed to power ON GPU");
+		goto done;
 	}
 
 	nvgpu_mutex_acquire(&g->tpc_pg_lock);

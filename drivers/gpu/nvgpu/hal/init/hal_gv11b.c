@@ -147,10 +147,12 @@
 #include "common/pmu/pg/pg_sw_gp106.h"
 #include "common/pmu/pg/pg_sw_gv11b.h"
 #endif
+#include "common/clk_arb/clk_arb_gp10b.h"
+
 #include "hal/fifo/channel_gk20a.h"
 #include "hal/fifo/channel_gm20b.h"
 #include "hal/fifo/channel_gv11b.h"
-#include "common/clk_arb/clk_arb_gp10b.h"
+#include "hal/tpc/tpc_gv11b.h"
 
 #include "hal_gv11b.h"
 #include "hal_gv11b_litter.h"
@@ -1341,6 +1343,9 @@ static const struct gpu_ops gv11b_ops = {
 		.get_num_ltcs = gm20b_top_get_num_ltcs,
 		.get_num_lce = gv11b_top_get_num_lce,
 	},
+	.tpc = {
+		.tpc_powergate = gv11b_tpc_powergate,
+	},
 	.chip_init_gpu_characteristics = gv11b_init_gpu_characteristics,
 	.get_litter_value = gv11b_get_litter_value,
 };
@@ -1393,6 +1398,7 @@ int gv11b_init_hal(struct gk20a *g)
 	gops->falcon = gv11b_ops.falcon;
 	gops->priv_ring = gv11b_ops.priv_ring;
 	gops->fuse = gv11b_ops.fuse;
+	gops->tpc = gv11b_ops.tpc;
 #ifdef CONFIG_NVGPU_CLK_ARB
 	gops->clk_arb = gv11b_ops.clk_arb;
 #endif

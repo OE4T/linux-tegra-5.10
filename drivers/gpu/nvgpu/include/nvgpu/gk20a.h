@@ -214,7 +214,7 @@ struct railgate_stats {
 
 #define nvgpu_get_litter_value(g, v) ((g)->ops.get_litter_value((g), v))
 
-#define MAX_TPC_PG_CONFIGS      3
+#define MAX_TPC_PG_CONFIGS      9
 
 struct nvgpu_gpfifo_userdata {
 	struct nvgpu_gpfifo_entry __user *entries;
@@ -1911,6 +1911,9 @@ struct gpu_ops {
 		void (*falcon_setup_boot_config)(struct gk20a *g);
 		int (*gsp_reset)(struct gk20a *g);
 	} gsp;
+	struct {
+		int (*tpc_powergate)(struct gk20a *g, u32 fuse_status);
+	} tpc;
 	void (*semaphore_wakeup)(struct gk20a *g, bool post_events);
 };
 

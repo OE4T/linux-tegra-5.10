@@ -776,3 +776,9 @@ xve:
   sources: [ include/nvgpu/xve.h,
              hal/xve/xve_gp106.c,
              hal/xve/xve_gp106.h ]
+
+tpc:
+  safe: no
+  owner: Divya S
+  sources: [ hal/tpc/tpc_gv11b.c,
+             hal/tpc/tpc_gv11b.h ]

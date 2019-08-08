@@ -149,6 +149,7 @@ srcs += common/utils/assert.c \
 	hal/fifo/runlist_fifo_gv11b.c \
 	hal/fifo/runlist_ram_gk20a.c \
 	hal/fifo/userd_gk20a.c \
+	hal/tpc/tpc_gv11b.c \
 	hal/sync/syncpt_cmdbuf_gv11b.c
 
 # Source files below are functionaly safe (FuSa) and must always be included.

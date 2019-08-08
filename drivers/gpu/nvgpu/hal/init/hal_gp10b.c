@@ -1142,6 +1142,9 @@ static const struct gpu_ops gp10b_ops = {
 		.get_max_lts_per_ltc = gm20b_top_get_max_lts_per_ltc,
 		.get_num_ltcs = gm20b_top_get_num_ltcs,
 	},
+	.tpc = {
+		.tpc_powergate = NULL,
+	},
 	.chip_init_gpu_characteristics = gp10b_init_gpu_characteristics,
 	.get_litter_value = gp10b_get_litter_value,
 };
@@ -1203,6 +1206,7 @@ int gp10b_init_hal(struct gk20a *g)
 	gops->priv_ring = gp10b_ops.priv_ring;
 
 	gops->fuse = gp10b_ops.fuse;
+	gops->tpc = gp10b_ops.tpc;
 	gops->top = gp10b_ops.top;
 
 	/* Lone Functions */

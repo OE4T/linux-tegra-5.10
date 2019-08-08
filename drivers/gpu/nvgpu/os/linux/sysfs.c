@@ -818,8 +818,10 @@ static bool is_tpc_mask_valid(struct gk20a *g, u32 tpc_mask)
 	bool valid = false;
 
 	for (i = 0; i < MAX_TPC_PG_CONFIGS; i++) {
-		if (tpc_mask == g->valid_tpc_mask[i])
+		if (tpc_mask == g->valid_tpc_mask[i]) {
 			valid = true;
+			break;
+		}
 	}
 	return valid;
 }
@@ -833,11 +835,6 @@ static ssize_t tpc_pg_mask_store(struct device *dev,
 					nvgpu_gr_get_golden_image_ptr(g);
 
 	nvgpu_mutex_acquire(&g->tpc_pg_lock);
-
-	if (!g->can_tpc_powergate) {
-		nvgpu_info(g, "TPC-PG not enabled for the platform");
-		goto exit;
-	}
 
 	if (kstrtoul(buf, 10, &val) < 0) {
 		nvgpu_err(g, "invalid value");
@@ -855,7 +852,9 @@ static ssize_t tpc_pg_mask_store(struct device *dev,
 		nvgpu_mutex_release(&g->tpc_pg_lock);
 		return -ENODEV;
 	}
-
+	/* checking that the value from userspace is within
+	 * the  possible valid TPC configurations.
+	 */
 	if (is_tpc_mask_valid(g, (u32)val)) {
 		g->tpc_pg_mask = val;
 	} else {
