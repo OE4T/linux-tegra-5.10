@@ -79,7 +79,8 @@ srcs += os/posix/bug.c \
 	os/posix/bsearch.c \
 	os/posix/os_sched.c \
 	os/posix/bitmap.c \
-	os/posix/kmem.c
+	os/posix/kmem.c \
+	os/posix/file_ops.c
 
 srcs += common/utils/assert.c \
 	common/utils/enabled.c \

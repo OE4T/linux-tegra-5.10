@@ -140,3 +140,10 @@ bitops:
   sources: [ os/posix/bitmap.c,
              include/nvgpu/posix/bitops.h ]
   deps:
+
+file_ops:
+  safe: yes
+  owner: Prateek S
+  sources: [ os/posix/file_ops.c,
+             include/nvgpu/posix/file_ops.h ]
+  deps:
