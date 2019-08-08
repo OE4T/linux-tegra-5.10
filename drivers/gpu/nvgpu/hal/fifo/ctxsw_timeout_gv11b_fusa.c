@@ -33,7 +33,7 @@
 
 #include <nvgpu/hw/gv11b/hw_fifo_gv11b.h>
 
-static const char * const invalid_str = "invalid";
+static const char *invalid_str = "invalid";
 
 static const char *const ctxsw_timeout_status_desc[] = {
 	"awaiting ack",

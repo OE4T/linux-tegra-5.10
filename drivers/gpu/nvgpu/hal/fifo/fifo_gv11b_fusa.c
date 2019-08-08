@@ -29,6 +29,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/unit.h>
 #include <nvgpu/power_features/cg.h>
+#include <nvgpu/safe_ops.h>
 
 #include <nvgpu/hw/gv11b/hw_fifo_gv11b.h>
 
@@ -94,7 +95,9 @@ u32 gv11b_fifo_mmu_fault_id_to_pbdma_id(struct gk20a *g, u32 mmu_fault_id)
 	fault_id_pbdma0 = fifo_cfg0_pbdma_fault_id_v(reg_val);
 
 	if (mmu_fault_id >= fault_id_pbdma0 &&
-			mmu_fault_id <= fault_id_pbdma0 + num_pbdma - 1U) {
+			mmu_fault_id <= nvgpu_safe_sub_u32(
+					nvgpu_safe_add_u32(fault_id_pbdma0,
+						num_pbdma), 1U)) {
 		return mmu_fault_id - fault_id_pbdma0;
 	}
 

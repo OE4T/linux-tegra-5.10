@@ -23,6 +23,7 @@
 #include <nvgpu/channel.h>
 #include <nvgpu/runlist.h>
 #include <nvgpu/gk20a.h>
+#include <nvgpu/safe_ops.h>
 
 #include "runlist_ram_gv11b.h"
 
@@ -47,7 +48,7 @@ void gv11b_runlist_get_tsg_entry(struct nvgpu_tsg *tsg,
 
 	while (timeout > RL_MAX_TIMESLICE_TIMEOUT) {
 		timeout >>= 1U;
-		scale++;
+		scale = nvgpu_safe_add_u32(scale, 1U);
 	}
 
 	if (scale > RL_MAX_TIMESLICE_SCALE) {

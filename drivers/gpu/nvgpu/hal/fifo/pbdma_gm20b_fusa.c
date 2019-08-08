@@ -33,6 +33,7 @@
 #include <nvgpu/ptimer.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/pbdma_status.h>
+#include <nvgpu/safe_ops.h>
 
 #include <nvgpu/hw/gm20b/hw_pbdma_gm20b.h>
 
@@ -60,11 +61,12 @@ static bool gm20b_pbdma_is_sw_method_subch(struct gk20a *g, u32 pbdma_id,
 	u32 pbdma_method_stride;
 	u32 pbdma_method_reg, pbdma_method_subch;
 
-	pbdma_method_stride = pbdma_method1_r(pbdma_id) -
-				pbdma_method0_r(pbdma_id);
+	pbdma_method_stride = nvgpu_safe_sub_u32(pbdma_method1_r(pbdma_id),
+				pbdma_method0_r(pbdma_id));
 
-	pbdma_method_reg = pbdma_method0_r(pbdma_id) +
-			(pbdma_method_index * pbdma_method_stride);
+	pbdma_method_reg = nvgpu_safe_add_u32(pbdma_method0_r(pbdma_id),
+				nvgpu_safe_mult_u32(pbdma_method_index,
+					pbdma_method_stride));
 
 	pbdma_method_subch = pbdma_method0_subch_v(
 			nvgpu_readl(g, pbdma_method_reg));
@@ -203,11 +205,12 @@ void gm20b_pbdma_reset_method(struct gk20a *g, u32 pbdma_id,
 	u32 pbdma_method_stride;
 	u32 pbdma_method_reg;
 
-	pbdma_method_stride = pbdma_method1_r(pbdma_id) -
-				pbdma_method0_r(pbdma_id);
+	pbdma_method_stride = nvgpu_safe_sub_u32(pbdma_method1_r(pbdma_id),
+				pbdma_method0_r(pbdma_id));
 
-	pbdma_method_reg = pbdma_method0_r(pbdma_id) +
-		(pbdma_method_index * pbdma_method_stride);
+	pbdma_method_reg = nvgpu_safe_add_u32(pbdma_method0_r(pbdma_id),
+				nvgpu_safe_mult_u32(pbdma_method_index,
+					pbdma_method_stride));
 
 	nvgpu_writel(g, pbdma_method_reg,
 			pbdma_method0_valid_true_f() |
@@ -237,7 +240,7 @@ u32 gm20b_pbdma_acquire_val(u64 timeout)
 	BUG_ON(tmp > U64(U32_MAX));
 	val_len = (u32)tmp + 32U;
 	if (val_len == 32U) {
-		val_len = (u32)nvgpu_fls(timeout);
+		val_len = nvgpu_safe_cast_u64_to_u32(nvgpu_fls(timeout));
 	}
 	if (val_len > 16U + pbdma_acquire_timeout_exp_max_v()) { /* man: 16bits */
 		exponent = pbdma_acquire_timeout_exp_max_v();
@@ -410,7 +413,8 @@ u32 gm20b_pbdma_get_gp_base(u64 gpfifo_base)
 u32 gm20b_pbdma_get_gp_base_hi(u64 gpfifo_base, u32 gpfifo_entry)
 {
 	return 	(pbdma_gp_base_hi_offset_f(u64_hi32(gpfifo_base)) |
-		pbdma_gp_base_hi_limit2_f((u32)ilog2(gpfifo_entry)));
+		pbdma_gp_base_hi_limit2_f(
+			nvgpu_safe_cast_u64_to_u32(ilog2(gpfifo_entry))));
 }
 
 u32 gm20b_pbdma_get_fc_subdevice(void)

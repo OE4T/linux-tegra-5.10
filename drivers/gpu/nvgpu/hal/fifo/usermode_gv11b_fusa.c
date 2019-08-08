@@ -25,6 +25,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/channel.h>
 #include <nvgpu/fifo.h>
+#include <nvgpu/safe_ops.h>
 
 #include "usermode_gv11b.h"
 
@@ -44,7 +45,7 @@ u32 gv11b_usermode_doorbell_token(struct nvgpu_channel *ch)
 {
 	struct gk20a *g = ch->g;
 	struct nvgpu_fifo *f = &g->fifo;
-	u32 hw_chid = f->channel_base + ch->chid;
+	u32 hw_chid = nvgpu_safe_add_u32(f->channel_base, ch->chid);
 
 	return usermode_notify_channel_pending_id_f(hw_chid);
 }

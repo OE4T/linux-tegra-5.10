@@ -25,6 +25,7 @@
 #include <nvgpu/log.h>
 #include <nvgpu/errno.h>
 #include <nvgpu/gk20a.h>
+#include <nvgpu/safe_ops.h>
 
 #include <nvgpu/hw/gp10b/hw_fifo_gp10b.h>
 
@@ -108,7 +109,7 @@ int gp10b_engine_init_ce_info(struct nvgpu_fifo *f)
 		/* engine_id starts from 0 to NV_HOST_NUM_ENGINES */
 		f->active_engines_list[f->num_engines] =
 						dev_info.engine_id;
-		++f->num_engines;
+		f->num_engines = nvgpu_safe_add_u32(f->num_engines, 1U);
 		nvgpu_log_info(g, "gr info: engine_id %d runlist_id %d "
 			"intr_id %d reset_id %d engine_type %d "
 			"engine_enum %d inst_id %d",
