@@ -426,7 +426,7 @@ int nvgpu_gr_obj_ctx_alloc_golden_ctx_image(struct gk20a *g,
 #ifdef CONFIG_NVGPU_GR_GOLDEN_CTX_VERIFICATION
 	struct netlist_av_list *sw_bundle_init =
 			nvgpu_netlist_get_sw_bundle_init_av_list(g);
-	struct nvgpu_gr_global_ctx_local_golden_image *local_golden_image2 =
+	struct nvgpu_gr_global_ctx_local_golden_image *local_golden_image_temp =
 									NULL;
 #endif
 
@@ -549,14 +549,14 @@ restore_fe_go_idle:
 	/*
 	 * Save ctx data before first golden context save. Restore same data
 	 * before second golden context save. This temporary copy is
-	 * saved in local_golden_image2.
+	 * saved in local_golden_image_temp.
 	 */
 
 	size = nvgpu_gr_obj_ctx_get_golden_image_size(golden_image);
 
-	local_golden_image2 =
+	local_golden_image_temp =
 		nvgpu_gr_global_ctx_init_local_golden_image(g, gr_mem, size);
-	if (local_golden_image2 == NULL) {
+	if (local_golden_image_temp == NULL) {
 		err = -ENOMEM;
 		goto clean_up;
 	}
@@ -581,10 +581,11 @@ restore_fe_go_idle:
 #ifdef CONFIG_NVGPU_GR_GOLDEN_CTX_VERIFICATION
 	/* Before second golden context save restore to before known state */
 	nvgpu_gr_global_ctx_load_local_golden_image(g,
-						local_golden_image2, gr_mem);
+					local_golden_image_temp, gr_mem);
 	/* free local copy now */
-	nvgpu_gr_global_ctx_deinit_local_golden_image(g, local_golden_image2);
-	local_golden_image2 = NULL;
+	nvgpu_gr_global_ctx_deinit_local_golden_image(g,
+						local_golden_image_temp);
+	local_golden_image_temp = NULL;
 
 	/* Initiate second golden context save */
 	data = g->ops.gr.falcon.get_fecs_current_ctx_data(g, inst_block);
@@ -595,9 +596,9 @@ restore_fe_go_idle:
 	}
 
 	/* Copy the data to local buffer */
-	local_golden_image2 =
+	local_golden_image_temp =
 		nvgpu_gr_global_ctx_init_local_golden_image(g, gr_mem, size);
-	if (local_golden_image2 == NULL) {
+	if (local_golden_image_temp == NULL) {
 		err = -ENOMEM;
 		goto clean_up;
 	}
@@ -606,7 +607,7 @@ restore_fe_go_idle:
 	if (!nvgpu_gr_global_ctx_compare_golden_images(g,
 		nvgpu_mem_is_sysmem(gr_mem),
 		golden_image->local_golden_image,
-		local_golden_image2,
+		local_golden_image_temp,
 		size)) {
 		nvgpu_err(g, "golden context mismatch");
 		err = -ENOMEM;
@@ -622,9 +623,9 @@ restore_fe_go_idle:
 
 clean_up:
 #ifdef CONFIG_NVGPU_GR_GOLDEN_CTX_VERIFICATION
-	if (local_golden_image2 != NULL) {
+	if (local_golden_image_temp != NULL) {
 		nvgpu_gr_global_ctx_deinit_local_golden_image(g,
-							local_golden_image2);
+						local_golden_image_temp);
 	}
 #endif
 	if (err != 0) {
