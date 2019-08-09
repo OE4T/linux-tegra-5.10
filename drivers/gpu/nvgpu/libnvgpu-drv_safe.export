@@ -90,6 +90,7 @@ nvgpu_gr_config_set_sm_info_sm_index
 nvgpu_gr_config_get_sm_info_sm_index
 nvgpu_gr_config_set_gpc_tpc_mask
 nvgpu_gr_config_get_gpc_tpc_mask
+nvgpu_can_busy
 nvgpu_channel_alloc_inst
 nvgpu_channel_cleanup_sw
 nvgpu_channel_close
@@ -103,6 +104,8 @@ nvgpu_channel_setup_bind
 nvgpu_channel_refch_from_inst_ptr
 nvgpu_channel_setup_sw
 nvgpu_channel_sync_create
+nvgpu_check_gpu_state
+nvgpu_detect_chip
 nvgpu_dma_alloc
 nvgpu_dma_alloc_get_fault_injection
 nvgpu_dma_alloc_flags_sys
@@ -111,6 +114,7 @@ nvgpu_dma_alloc_map_sys
 nvgpu_dma_alloc_sys
 nvgpu_dma_free
 nvgpu_dma_unmap_free
+nvgpu_get
 nvgpu_falcon_bl_bootstrap
 nvgpu_falcon_bootstrap
 nvgpu_falcon_copy_to_dmem
@@ -208,6 +212,7 @@ nvgpu_posix_io_writel_reg_space
 nvgpu_posix_is_fault_injection_triggered
 nvgpu_posix_probe
 nvgpu_posix_register_io
+nvgpu_put
 nvgpu_raw_spinlock_acquire
 nvgpu_raw_spinlock_init
 nvgpu_raw_spinlock_release
