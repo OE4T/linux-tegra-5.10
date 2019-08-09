@@ -28,24 +28,12 @@
 #include <nvgpu/timers.h>
 #include <nvgpu/soc.h>
 #include <nvgpu/enabled.h>
-#include <nvgpu/fifo.h>
-#include <nvgpu/acr.h>
-#include <nvgpu/pmu.h>
-#include <nvgpu/ce.h>
 #include <nvgpu/gmmu.h>
-#include <nvgpu/ltc.h>
-#include <nvgpu/cbc.h>
-#include <nvgpu/ecc.h>
-#include <nvgpu/fbp.h>
 #include <nvgpu/vidmem.h>
-#include <nvgpu/mm.h>
 #include <nvgpu/soc.h>
-#include <nvgpu/clk_arb.h>
-#include <nvgpu/therm.h>
 #include <nvgpu/mc.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/channel_sync.h>
-#include <nvgpu/gr/gr.h>
 #include <nvgpu/nvgpu_init.h>
 
 #ifdef CONFIG_NVGPU_TRACE
@@ -101,45 +89,47 @@ int nvgpu_prepare_poweroff(struct gk20a *g)
 #ifdef CONFIG_NVGPU_LS_PMU
 	/* disable elpg before gr or fifo suspend */
 	if (g->support_ls_pmu) {
-		ret = nvgpu_pmu_destroy(g, g->pmu);
+		ret = g->ops.pmu.pmu_destroy(g, g->pmu);
 	}
 #endif
 
 #ifdef CONFIG_NVGPU_DGPU
 	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_SEC2_RTOS)) {
-		tmp_ret = nvgpu_sec2_destroy(g);
+		tmp_ret = g->ops.sec2.sec2_destroy(g);
 		if ((tmp_ret != 0) && (ret == 0)) {
 			ret = tmp_ret;
 		}
 	}
 #endif
-	tmp_ret = nvgpu_gr_suspend(g);
+	tmp_ret = g->ops.gr.gr_suspend(g);
 	if ((tmp_ret != 0) && (ret == 0)) {
 		ret = tmp_ret;
 	}
-	tmp_ret = nvgpu_mm_suspend(g);
+	tmp_ret = g->ops.mm.mm_suspend(g);
 	if ((tmp_ret != 0) && (ret == 0)) {
 		ret = tmp_ret;
 	}
-	tmp_ret = nvgpu_fifo_suspend(g);
+	tmp_ret = g->ops.fifo.fifo_suspend(g);
 	if ((tmp_ret != 0) && (ret == 0)) {
 		ret = tmp_ret;
 	}
 
-	nvgpu_falcon_sw_free(g, FALCON_ID_PMU);
-	nvgpu_falcon_sw_free(g, FALCON_ID_FECS);
+	g->ops.falcon.falcon_sw_free(g, FALCON_ID_PMU);
+	g->ops.falcon.falcon_sw_free(g, FALCON_ID_FECS);
 
 #ifdef CONFIG_NVGPU_DGPU
-	nvgpu_falcon_sw_free(g, FALCON_ID_GSPLITE);
-	nvgpu_falcon_sw_free(g, FALCON_ID_NVDEC);
-	nvgpu_falcon_sw_free(g, FALCON_ID_SEC2);
+	g->ops.falcon.falcon_sw_free(g, FALCON_ID_GSPLITE);
+	g->ops.falcon.falcon_sw_free(g, FALCON_ID_NVDEC);
+	g->ops.falcon.falcon_sw_free(g, FALCON_ID_SEC2);
 
-	nvgpu_ce_app_suspend(g);
+	g->ops.ce.ce_app_suspend(g);
 #endif
 
 #ifdef CONFIG_NVGPU_DGPU
-	/* deinit the bios */
-	nvgpu_bios_sw_deinit(g, g->bios);
+	if (g->ops.bios.bios_sw_deinit != NULL) {
+		/* deinit the bios */
+		g->ops.bios.bios_sw_deinit(g, g->bios);
+	}
 #endif
 
 	/* Disable GPCPLL */
@@ -189,45 +179,45 @@ int nvgpu_finalize_poweron(struct gk20a *g)
 	 * Do this early so any early VMs that get made are capable of mapping
 	 * buffers.
 	 */
-	err = nvgpu_pd_cache_init(g);
+	err = g->ops.mm.pd_cache_init(g);
 	if (err != 0) {
 		return err;
 	}
 
 	/* init interface layer support for PMU falcon */
-	err = nvgpu_falcon_sw_init(g, FALCON_ID_PMU);
+	err = g->ops.falcon.falcon_sw_init(g, FALCON_ID_PMU);
 	if (err != 0) {
 		nvgpu_err(g, "failed to sw init FALCON_ID_PMU");
 		goto exit;
 	}
 
-	err = nvgpu_falcon_sw_init(g, FALCON_ID_FECS);
+	err = g->ops.falcon.falcon_sw_init(g, FALCON_ID_FECS);
 	if (err != 0) {
 		nvgpu_err(g, "failed to sw init FALCON_ID_FECS");
 		goto done_pmu;
 	}
 
 #ifdef CONFIG_NVGPU_DGPU
-	err = nvgpu_falcon_sw_init(g, FALCON_ID_SEC2);
+	err = g->ops.falcon.falcon_sw_init(g, FALCON_ID_SEC2);
 	if (err != 0) {
 		nvgpu_err(g, "failed to sw init FALCON_ID_SEC2");
 		goto done_fecs;
 	}
 
-	err = nvgpu_falcon_sw_init(g, FALCON_ID_NVDEC);
+	err = g->ops.falcon.falcon_sw_init(g, FALCON_ID_NVDEC);
 	if (err != 0) {
 		nvgpu_err(g, "failed to sw init FALCON_ID_NVDEC");
 		goto done_sec2;
 	}
 
-	err = nvgpu_falcon_sw_init(g, FALCON_ID_GSPLITE);
+	err = g->ops.falcon.falcon_sw_init(g, FALCON_ID_GSPLITE);
 	if (err != 0) {
 		nvgpu_err(g, "failed to sw init FALCON_ID_GSPLITE");
 		goto done_nvdec;
 	}
 #endif
 
-	err = nvgpu_pmu_early_init(g, &g->pmu);
+	err = g->ops.pmu.pmu_early_init(g, &g->pmu);
 	if (err != 0) {
 		nvgpu_err(g, "failed to early init pmu sw");
 		goto done;
@@ -235,7 +225,7 @@ int nvgpu_finalize_poweron(struct gk20a *g)
 
 #ifdef CONFIG_NVGPU_DGPU
 	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_SEC2_RTOS)) {
-		err = nvgpu_init_sec2_setup_sw(g, &g->sec2);
+		err = g->ops.sec2.init_sec2_setup_sw(g, &g->sec2);
 		if (err != 0) {
 			nvgpu_err(g, "failed to init sec2 sw setup");
 			goto done;
@@ -244,7 +234,7 @@ int nvgpu_finalize_poweron(struct gk20a *g)
 #endif
 	if (nvgpu_is_enabled(g, NVGPU_SEC_PRIVSECURITY)) {
 		/* Init chip specific ACR properties */
-		err = nvgpu_acr_init(g, &g->acr);
+		err = g->ops.acr.acr_init(g, &g->acr);
 		if (err != 0) {
 			nvgpu_err(g, "ACR init failed %d", err);
 			goto done;
@@ -252,7 +242,7 @@ int nvgpu_finalize_poweron(struct gk20a *g)
 	}
 
 #ifdef CONFIG_NVGPU_DGPU
-	err = nvgpu_bios_sw_init(g, &g->bios);
+	err = g->ops.bios.bios_sw_init(g, &g->bios);
 	if (err != 0) {
 		nvgpu_err(g, "BIOS SW init failed %d", err);
 		goto done;
@@ -311,19 +301,19 @@ int nvgpu_finalize_poweron(struct gk20a *g)
 		goto done;
 	}
 
-	err = nvgpu_init_ltc_support(g);
+	err = g->ops.ltc.init_ltc_support(g);
 	if (err != 0) {
 		nvgpu_err(g, "failed to init ltc");
 		goto done;
 	}
 
-	err = nvgpu_init_mm_support(g);
+	err = g->ops.mm.init_mm_support(g);
 	if (err != 0) {
 		nvgpu_err(g, "failed to init gk20a mm");
 		goto done;
 	}
 
-	err = nvgpu_fifo_init_support(g);
+	err = g->ops.fifo.fifo_init_support(g);
 	if (err != 0) {
 		nvgpu_err(g, "failed to init gk20a fifo");
 		goto done;
@@ -367,14 +357,14 @@ int nvgpu_finalize_poweron(struct gk20a *g)
 #endif
 
 	/* prepare portion of sw required for enable hw */
-	err = nvgpu_gr_prepare_sw(g);
+	err = g->ops.gr.gr_prepare_sw(g);
 	if (err != 0) {
 		nvgpu_err(g, "failed to prepare sw");
 		nvgpu_mutex_release(&g->tpc_pg_lock);
 		goto done;
 	}
 
-	err = nvgpu_gr_enable_hw(g);
+	err = g->ops.gr.gr_enable_hw(g);
 	if (err != 0) {
 		nvgpu_err(g, "failed to enable gr");
 		nvgpu_mutex_release(&g->tpc_pg_lock);
@@ -383,7 +373,7 @@ int nvgpu_finalize_poweron(struct gk20a *g)
 
 	if (nvgpu_is_enabled(g, NVGPU_SEC_PRIVSECURITY)) {
 		/* construct ucode blob, load & bootstrap LSF's using HS ACR */
-		err = nvgpu_acr_construct_execute(g, g->acr);
+		err = g->ops.acr.acr_construct_execute(g, g->acr);
 		if (err != 0) {
 			nvgpu_mutex_release(&g->tpc_pg_lock);
 			goto done;
@@ -392,7 +382,7 @@ int nvgpu_finalize_poweron(struct gk20a *g)
 
 #ifdef CONFIG_NVGPU_DGPU
 	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_SEC2_RTOS)) {
-		err = nvgpu_init_sec2_support(g);
+		err = g->ops.sec2.init_sec2_support(g);
 		if (err != 0) {
 			nvgpu_err(g, "failed to init sec2");
 			nvgpu_mutex_release(&g->tpc_pg_lock);
@@ -402,7 +392,7 @@ int nvgpu_finalize_poweron(struct gk20a *g)
 #endif
 
 #ifdef CONFIG_NVGPU_LS_PMU
-	err = nvgpu_pmu_init(g, g->pmu);
+	err = g->ops.pmu.pmu_init(g, g->pmu);
 	if (err != 0) {
 		nvgpu_err(g, "failed to init gk20a pmu");
 		nvgpu_mutex_release(&g->tpc_pg_lock);
@@ -410,39 +400,41 @@ int nvgpu_finalize_poweron(struct gk20a *g)
 	}
 #endif
 
-	err = nvgpu_fbp_init_support(g);
+	err = g->ops.fbp.fbp_init_support(g);
 	if (err != 0) {
 		nvgpu_err(g, "failed to init gk20a fbp");
 		nvgpu_mutex_release(&g->tpc_pg_lock);
 		goto done;
 	}
 
-	err = nvgpu_gr_init_support(g);
+	err = g->ops.gr.gr_init_support(g);
 	if (err != 0) {
 		nvgpu_err(g, "failed to init gk20a gr");
 		nvgpu_mutex_release(&g->tpc_pg_lock);
 		goto done;
 	}
 
-	err = nvgpu_ecc_init_support(g);
-	if (err != 0) {
-		nvgpu_err(g, "failed to init ecc");
-		nvgpu_mutex_release(&g->tpc_pg_lock);
-		goto done;
+	if (g->ops.gr.ecc.ecc_init_support != NULL) {
+		err = g->ops.gr.ecc.ecc_init_support(g);
+		if (err != 0) {
+			nvgpu_err(g, "failed to init ecc");
+			nvgpu_mutex_release(&g->tpc_pg_lock);
+			goto done;
+		}
 	}
 
 	nvgpu_mutex_release(&g->tpc_pg_lock);
 
 #ifdef CONFIG_NVGPU_LS_PMU
 	if (nvgpu_is_enabled(g, NVGPU_PMU_PSTATE)) {
-		err = nvgpu_pmu_pstate_sw_setup(g);
+		err = g->ops.pmu.pmu_pstate_sw_setup(g);
 		if (err != 0) {
 			nvgpu_err(g, "failed to init pstates");
 			nvgpu_mutex_release(&g->tpc_pg_lock);
 			goto done;
 		}
 
-		err = nvgpu_pmu_pstate_pmu_setup(g);
+		err = g->ops.pmu.pmu_pstate_pmu_setup(g);
 		if (err != 0) {
 			nvgpu_err(g, "failed to init pstates");
 			goto done;
@@ -460,7 +452,7 @@ int nvgpu_finalize_poweron(struct gk20a *g)
 #endif
 	{
 #ifdef CONFIG_NVGPU_CLK_ARB
-		err = nvgpu_clk_arb_init_arbiter(g);
+		err = g->ops.clk_arb.clk_arb_init_arbiter(g);
 		if (err != 0) {
 			nvgpu_err(g, "failed to init clk arb");
 			goto done;
@@ -468,14 +460,14 @@ int nvgpu_finalize_poweron(struct gk20a *g)
 #endif
 	}
 
-	err = nvgpu_init_therm_support(g);
+	err = g->ops.therm.init_therm_support(g);
 	if (err != 0) {
 		nvgpu_err(g, "failed to init gk20a therm");
 		goto done;
 	}
 
 #ifdef CONFIG_NVGPU_COMPRESSION
-	err = nvgpu_cbc_init_support(g);
+	err = g->ops.cbc.cbc_init_support(g);
 	if (err != 0) {
 		nvgpu_err(g, "failed to init cbc");
 		goto done;
@@ -489,14 +481,14 @@ int nvgpu_finalize_poweron(struct gk20a *g)
 	g->ops.fb.set_debug_mode(g, g->mmu_debug_ctrl);
 #endif
 
-	err = nvgpu_ce_init_support(g);
+	err = g->ops.ce.ce_init_support(g);
 	if (err != 0) {
 		nvgpu_err(g, "failed to init ce");
 		goto done;
 	}
 
 #ifdef CONFIG_NVGPU_DGPU
-	err = nvgpu_ce_app_init_support(g);
+	err = g->ops.ce.ce_app_init_support(g);
 	if (err != 0) {
 		nvgpu_err(g, "failed to init ce app");
 		goto done;
@@ -552,16 +544,16 @@ int nvgpu_finalize_poweron(struct gk20a *g)
 
 done:
 #ifdef CONFIG_NVGPU_DGPU
-	nvgpu_falcon_sw_free(g, FALCON_ID_GSPLITE);
+	g->ops.falcon.falcon_sw_free(g, FALCON_ID_GSPLITE);
 done_nvdec:
-	nvgpu_falcon_sw_free(g, FALCON_ID_NVDEC);
+	g->ops.falcon.falcon_sw_free(g, FALCON_ID_NVDEC);
 done_sec2:
-	nvgpu_falcon_sw_free(g, FALCON_ID_SEC2);
+	g->ops.falcon.falcon_sw_free(g, FALCON_ID_SEC2);
 done_fecs:
 #endif
-	nvgpu_falcon_sw_free(g, FALCON_ID_FECS);
+	g->ops.falcon.falcon_sw_free(g, FALCON_ID_FECS);
 done_pmu:
-	nvgpu_falcon_sw_free(g, FALCON_ID_PMU);
+	g->ops.falcon.falcon_sw_free(g, FALCON_ID_PMU);
 exit:
 	if (err != 0) {
 		g->power_on = false;
@@ -653,20 +645,28 @@ static void gk20a_free_cb(struct nvgpu_ref *refcount)
 	nvgpu_log(g, gpu_dbg_shutdown, "Freeing GK20A struct!");
 
 #ifdef CONFIG_NVGPU_DGPU
-	nvgpu_ce_app_destroy(g);
+	if (g->ops.ce.ce_app_destroy != NULL) {
+		g->ops.ce.ce_app_destroy(g);
+	}
 #endif
 
 #ifdef CONFIG_NVGPU_COMPRESSION
-	nvgpu_cbc_remove_support(g);
+	if (g->ops.cbc.cbc_remove_support != NULL) {
+		g->ops.cbc.cbc_remove_support(g);
+	}
 #endif
 
-	nvgpu_ecc_remove_support(g);
+	if (g->ops.gr.ecc.ecc_remove_support != NULL) {
+		g->ops.gr.ecc.ecc_remove_support(g);
+	}
 
 	if (g->remove_support != NULL) {
 		g->remove_support(g);
 	}
 
-	nvgpu_ltc_remove_support(g);
+	if (g->ops.ltc.ltc_remove_support != NULL) {
+		g->ops.ltc.ltc_remove_support(g);
+	}
 
 	if (g->gfree != NULL) {
 		g->gfree(g);

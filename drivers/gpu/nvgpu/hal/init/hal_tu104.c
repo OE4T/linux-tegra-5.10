@@ -185,6 +185,14 @@
 
 #include <nvgpu/ptimer.h>
 #include <nvgpu/error_notifier.h>
+#include <nvgpu/acr.h>
+#include <nvgpu/ce.h>
+#include <nvgpu/pmu.h>
+#ifdef CONFIG_NVGPU_LS_PMU
+#include <nvgpu/pmu/pmu_pstate.h>
+#endif
+#include <nvgpu/fbp.h>
+#include <nvgpu/therm.h>
 #include <nvgpu/clk_arb.h>
 #include <nvgpu/class.h>
 #include <nvgpu/debugger.h>
@@ -226,10 +234,20 @@ static void tu104_init_gpu_characteristics(struct gk20a *g)
 
 
 static const struct gpu_ops tu104_ops = {
+	.acr = {
+		.acr_init = nvgpu_acr_init,
+		.acr_construct_execute = nvgpu_acr_construct_execute,
+	},
 	.bios = {
+#ifdef CONFIG_NVGPU_DGPU
+		.bios_sw_init = nvgpu_bios_sw_init,
+		.bios_sw_deinit = nvgpu_bios_sw_deinit,
+#endif /* CONFIG_NVGPU_DGPU */
 		.get_aon_secure_scratch_reg = tu104_get_aon_secure_scratch_reg,
 	},
 	.ltc = {
+		.init_ltc_support = nvgpu_init_ltc_support,
+		.ltc_remove_support = nvgpu_ltc_remove_support,
 		.determine_L2_size_bytes = gp10b_determine_L2_size_bytes,
 		.init_fs_state = ltc_tu104_init_fs_state,
 		.flush = gm20b_flush_ltc,
@@ -255,6 +273,8 @@ static const struct gpu_ops tu104_ops = {
 	},
 #ifdef CONFIG_NVGPU_COMPRESSION
 	.cbc = {
+		.cbc_init_support = nvgpu_cbc_init_support,
+		.cbc_remove_support = nvgpu_cbc_remove_support,
 		.init = tu104_cbc_init,
 		.get_base_divisor = tu104_cbc_get_base_divisor,
 		.alloc_comptags = tu104_cbc_alloc_comptags,
@@ -263,6 +283,12 @@ static const struct gpu_ops tu104_ops = {
 	},
 #endif
 	.ce = {
+		.ce_init_support = nvgpu_ce_init_support,
+#ifdef CONFIG_NVGPU_DGPU
+		.ce_app_init_support = nvgpu_ce_app_init_support,
+		.ce_app_suspend = nvgpu_ce_app_suspend,
+		.ce_app_destroy = nvgpu_ce_app_destroy,
+#endif
 		.set_pce2lce_mapping = tu104_ce_set_pce2lce_mapping,
 		.isr_stall = gv11b_ce_stall_isr,
 		.isr_nonstall = NULL,
@@ -272,6 +298,10 @@ static const struct gpu_ops tu104_ops = {
 		.init_prod_values = gv11b_ce_init_prod_values,
 	},
 	.gr = {
+		.gr_prepare_sw = nvgpu_gr_prepare_sw,
+		.gr_enable_hw = nvgpu_gr_enable_hw,
+		.gr_init_support = nvgpu_gr_init_support,
+		.gr_suspend = nvgpu_gr_suspend,
 #ifdef CONFIG_NVGPU_DEBUGGER
 		.get_gr_status = gr_gm20b_get_gr_status,
 		.set_alpha_circular_buffer_size =
@@ -333,6 +363,8 @@ static const struct gpu_ops tu104_ops = {
 		.esr_bpt_pending_events = gv11b_gr_esr_bpt_pending_events,
 #endif /* CONFIG_NVGPU_DEBUGGER */
 		.ecc = {
+			.ecc_init_support = nvgpu_ecc_init_support,
+			.ecc_remove_support = nvgpu_ecc_remove_support,
 			.detect = NULL,
 			.init = tu104_ecc_init,
 		},
@@ -864,6 +896,8 @@ static const struct gpu_ops tu104_ops = {
 			tu104_blcg_hshub_load_gating_prod,
 	},
 	.fifo = {
+		.fifo_init_support = nvgpu_fifo_init_support,
+		.fifo_suspend = nvgpu_fifo_suspend,
 		.init_fifo_setup_hw = tu104_init_fifo_setup_hw,
 		.preempt_channel = gv11b_fifo_preempt_channel,
 		.preempt_tsg = gv11b_fifo_preempt_tsg,
@@ -1084,6 +1118,9 @@ static const struct gpu_ops tu104_ops = {
 		.is_fw_defined = tu104_netlist_is_firmware_defined,
 	},
 	.mm = {
+		.init_mm_support = nvgpu_init_mm_support,
+		.pd_cache_init = nvgpu_pd_cache_init,
+		.mm_suspend = nvgpu_mm_suspend,
 		.vm_bind_channel = nvgpu_vm_bind_channel,
 		.setup_hw = nvgpu_mm_setup_hw,
 		.is_bar1_supported = gv11b_mm_is_bar1_supported,
@@ -1117,6 +1154,7 @@ static const struct gpu_ops tu104_ops = {
 		}
 	},
 	.therm = {
+		.init_therm_support = nvgpu_init_therm_support,
 		/* PROD values match with H/W INIT values */
 		.init_elcg_mode = gv11b_therm_init_elcg_mode,
 		.init_blcg_mode = gm20b_therm_init_blcg_mode,
@@ -1130,6 +1168,13 @@ static const struct gpu_ops tu104_ops = {
 	},
 #ifdef CONFIG_NVGPU_LS_PMU
 	.pmu = {
+		/* Init */
+		.pmu_early_init = nvgpu_pmu_early_init,
+		.pmu_init = nvgpu_pmu_init,
+		.pmu_pstate_sw_setup = nvgpu_pmu_pstate_sw_setup,
+		.pmu_pstate_pmu_setup = nvgpu_pmu_pstate_pmu_setup,
+		.pmu_destroy = nvgpu_pmu_destroy,
+
 		.falcon_base_addr = tu104_pmu_falcon_base_addr,
 		.pmu_queue_tail = gk20a_pmu_queue_tail,
 		.pmu_get_queue_head = tu104_pmu_queue_head_r,
@@ -1179,6 +1224,7 @@ static const struct gpu_ops tu104_ops = {
 	},
 #ifdef CONFIG_NVGPU_CLK_ARB
 	.clk_arb = {
+		.clk_arb_init_arbiter = nvgpu_clk_arb_init_arbiter,
 		.check_clk_arb_support = gv100_check_clk_arb_support,
 		.get_arbiter_clk_domains = gv100_get_arbiter_clk_domains,
 		.get_arbiter_f_points = gv100_get_arbiter_f_points,
@@ -1312,6 +1358,8 @@ static const struct gpu_ops tu104_ops = {
 		.disable_shadow_rom = NULL,
 	},
 	.falcon = {
+		.falcon_sw_init = nvgpu_falcon_sw_init,
+		.falcon_sw_free = nvgpu_falcon_sw_free,
 		.reset = gk20a_falcon_reset,
 		.is_falcon_cpu_halted =  gk20a_is_falcon_cpu_halted,
 		.is_falcon_idle =  gk20a_is_falcon_idle,
@@ -1334,6 +1382,9 @@ static const struct gpu_ops tu104_ops = {
 		.copy_from_imem = gk20a_falcon_copy_from_imem,
 		.get_falcon_ctls = gk20a_falcon_get_ctls,
 #endif
+	},
+	.fbp = {
+		.fbp_init_support = nvgpu_fbp_init_support,
 	},
 	.priv_ring = {
 		.enable_priv_ring = gm20b_priv_ring_enable,
@@ -1416,6 +1467,9 @@ static const struct gpu_ops tu104_ops = {
 #endif
 #ifdef CONFIG_NVGPU_DGPU
 	.sec2 = {
+		.init_sec2_setup_sw = nvgpu_init_sec2_setup_sw,
+		.init_sec2_support = nvgpu_init_sec2_support,
+		.sec2_destroy = nvgpu_sec2_destroy,
 		.secured_sec2_start = tu104_start_sec2_secure,
 		.enable_irq = tu104_sec2_enable_irq,
 		.is_interrupted = tu104_sec2_is_interrupted,
@@ -1467,6 +1521,8 @@ int tu104_init_hal(struct gk20a *g)
 	struct gpu_ops *gops = &g->ops;
 
 	gops->bios = tu104_ops.bios;
+	gops->acr = tu104_ops.acr;
+	gops->fbp = tu104_ops.fbp;
 	gops->ltc = tu104_ops.ltc;
 #ifdef CONFIG_NVGPU_COMPRESSION
 	gops->cbc = tu104_ops.cbc;

@@ -48,6 +48,7 @@
  */
 
 struct gk20a;
+struct nvgpu_acr;
 struct nvgpu_fifo;
 struct nvgpu_channel;
 struct nvgpu_gr;
@@ -239,6 +240,13 @@ enum nvgpu_event_id_type {
 
 struct gpu_ops {
 	struct {
+		int (*acr_init)(struct gk20a *g, struct nvgpu_acr **acr);
+		int (*acr_construct_execute)(struct gk20a *g,
+						struct nvgpu_acr *acr);
+	} acr;
+	struct {
+		int (*init_ltc_support)(struct gk20a *g);
+		void (*ltc_remove_support)(struct gk20a *g);
 		u64 (*determine_L2_size_bytes)(struct gk20a *gk20a);
 		struct nvgpu_hw_err_inject_info_desc * (*get_ltc_err_desc)
 			(struct gk20a *g);
@@ -276,6 +284,8 @@ struct gpu_ops {
 	} ltc;
 #ifdef CONFIG_NVGPU_COMPRESSION
 	struct {
+		int (*cbc_init_support)(struct gk20a *g);
+		void (*cbc_remove_support)(struct gk20a *g);
 		void (*init)(struct gk20a *g, struct nvgpu_cbc *cbc);
 		u64 (*get_base_divisor)(struct gk20a *g);
 		int (*alloc_comptags)(struct gk20a *g,
@@ -286,6 +296,10 @@ struct gpu_ops {
 	} cbc;
 #endif
 	struct {
+		int (*ce_init_support)(struct gk20a *g);
+		int (*ce_app_init_support)(struct gk20a *g);
+		void (*ce_app_suspend)(struct gk20a *g);
+		void (*ce_app_destroy)(struct gk20a *g);
 		void (*set_pce2lce_mapping)(struct gk20a *g);
 		void (*isr_stall)(struct gk20a *g, u32 inst_id, u32 pri_base);
 		u32 (*isr_nonstall)(struct gk20a *g, u32 inst_id, u32 pri_base);
@@ -294,6 +308,10 @@ struct gpu_ops {
 		void (*init_prod_values)(struct gk20a *g);
 	} ce;
 	struct {
+		int (*gr_prepare_sw)(struct gk20a *g);
+		int (*gr_enable_hw)(struct gk20a *g);
+		int (*gr_init_support)(struct gk20a *g);
+		int (*gr_suspend)(struct gk20a *g);
 #ifdef CONFIG_NVGPU_DEBUGGER
 		u32 (*get_gr_status)(struct gk20a *g);
 		void (*access_smpc_reg)(struct gk20a *g, u32 quad, u32 offset);
@@ -422,6 +440,8 @@ struct gpu_ops {
 #endif
 
 		struct {
+			int (*ecc_init_support)(struct gk20a *g);
+			void (*ecc_remove_support)(struct gk20a *g);
 			void (*detect)(struct gk20a *g);
 			int (*init)(struct gk20a *g);
 			struct nvgpu_hw_err_inject_info_desc * (*get_mmu_err_desc)
@@ -1041,6 +1061,8 @@ struct gpu_ops {
 		void (*pg_gr_load_gating_prod)(struct gk20a *g, bool prod);
 	} cg;
 	struct {
+		int (*fifo_init_support)(struct gk20a *g);
+		int (*fifo_suspend)(struct gk20a *g);
 		int (*setup_sw)(struct gk20a *g);
 		void (*cleanup_sw)(struct gk20a *g);
 		int (*init_fifo_setup_hw)(struct gk20a *g);
@@ -1330,6 +1352,9 @@ struct gpu_ops {
 		bool (*is_fw_defined)(void);
 	} netlist;
 	struct {
+		int (*pd_cache_init)(struct gk20a *g);
+		int (*init_mm_support)(struct gk20a *g);
+		int (*mm_suspend)(struct gk20a *g);
 		int (*vm_bind_channel)(struct vm_gk20a *vm,
 				struct nvgpu_channel *ch);
 		int (*setup_hw)(struct gk20a *g);
@@ -1408,6 +1433,7 @@ struct gpu_ops {
 	} pramin;
 #endif
 	struct {
+		int (*init_therm_support)(struct gk20a *g);
 		int (*init_therm_setup_hw)(struct gk20a *g);
 		void (*init_elcg_mode)(struct gk20a *g, u32 mode, u32 engine);
 		void (*init_blcg_mode)(struct gk20a *g, u32 mode, u32 engine);
@@ -1427,6 +1453,12 @@ struct gpu_ops {
 		u32 (*idle_slowdown_disable)(struct gk20a *g);
 	} therm;
 	struct {
+		int (*pmu_early_init)(struct gk20a *g,
+						struct nvgpu_pmu **pmu_p);
+		int (*pmu_init)(struct gk20a *g, struct nvgpu_pmu *pmu);
+		int (*pmu_destroy)(struct gk20a *g, struct nvgpu_pmu *pmu);
+		int (*pmu_pstate_sw_setup)(struct gk20a *g);
+		int (*pmu_pstate_pmu_setup)(struct gk20a *g);
 		struct nvgpu_hw_err_inject_info_desc * (*get_pmu_err_desc)
 			(struct gk20a *g);
 		bool (*is_pmu_supported)(struct gk20a *g);
@@ -1535,6 +1567,7 @@ struct gpu_ops {
 	} clk;
 #ifdef CONFIG_NVGPU_CLK_ARB
 	struct {
+		int (*clk_arb_init_arbiter)(struct gk20a *g);
 		int (*arbiter_clk_init)(struct gk20a *g);
 		bool (*check_clk_arb_support)(struct gk20a *g);
 		u32 (*get_arbiter_clk_domains)(struct gk20a *g);
@@ -1671,6 +1704,10 @@ struct gpu_ops {
 	} ptimer;
 
 	struct {
+		int (*bios_sw_init)(struct gk20a *g,
+					struct nvgpu_bios **bios);
+		void (*bios_sw_deinit)(struct gk20a *g,
+					struct nvgpu_bios *bios);
 		u32 (*get_aon_secure_scratch_reg)(struct gk20a *g, u32 i);
 	} bios;
 
@@ -1713,6 +1750,8 @@ struct gpu_ops {
 	} xve;
 #endif
 	struct {
+		int (*falcon_sw_init)(struct gk20a *g, u32 flcn_id);
+		void (*falcon_sw_free)(struct gk20a *g, u32 flcn_id);
 		void (*reset)(struct nvgpu_falcon *flcn);
 		bool (*is_falcon_cpu_halted)(struct nvgpu_falcon *flcn);
 		bool (*is_falcon_idle)(struct nvgpu_falcon *flcn);
@@ -1748,6 +1787,9 @@ struct gpu_ops {
 					u32 *sctl, u32 *cpuctl);
 #endif
 	} falcon;
+	struct {
+		int (*fbp_init_support)(struct gk20a *g);
+	} fbp;
 	struct {
 		void (*enable_priv_ring)(struct gk20a *g);
 		void (*isr)(struct gk20a *g);
@@ -1880,6 +1922,10 @@ struct gpu_ops {
 						u32 value);
 	} top;
 	struct {
+		int (*init_sec2_setup_sw)(struct gk20a *g,
+						struct nvgpu_sec2 *sec2);
+		int (*init_sec2_support)(struct gk20a *g);
+		int (*sec2_destroy)(struct gk20a *g);
 		void (*secured_sec2_start)(struct gk20a *g);
 		void (*enable_irq)(struct nvgpu_sec2 *sec2, bool enable);
 		bool (*is_interrupted)(struct nvgpu_sec2 *sec2);

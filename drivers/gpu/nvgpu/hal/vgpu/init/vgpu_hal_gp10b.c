@@ -28,6 +28,15 @@
 #include <nvgpu/channel.h>
 #include <nvgpu/gr/gr.h>
 #include <nvgpu/gr/gr_intr.h>
+#include <nvgpu/acr.h>
+#include <nvgpu/ce.h>
+#include <nvgpu/pmu.h>
+#ifdef CONFIG_NVGPU_LS_PMU
+#include <nvgpu/pmu/pmu_pstate.h>
+#endif
+#include <nvgpu/fbp.h>
+#include <nvgpu/therm.h>
+#include <nvgpu/clk_arb.h>
 
 #include <nvgpu/vgpu/ce_vgpu.h>
 #include <nvgpu/vgpu/vm_vgpu.h>
@@ -106,7 +115,18 @@
 #include <nvgpu/hw/gp10b/hw_pwr_gp10b.h>
 
 static const struct gpu_ops vgpu_gp10b_ops = {
+	.acr = {
+		.acr_init = nvgpu_acr_init,
+		.acr_construct_execute = nvgpu_acr_construct_execute,
+	},
+#ifdef CONFIG_NVGPU_DGPU
+	.bios = {
+		.bios_sw_init = nvgpu_bios_sw_init,
+	},
+#endif /* CONFIG_NVGPU_DGPU */
 	.ltc = {
+		.init_ltc_support = nvgpu_init_ltc_support,
+		.ltc_remove_support = nvgpu_ltc_remove_support,
 		.determine_L2_size_bytes = vgpu_determine_L2_size_bytes,
 		.init_fs_state = vgpu_ltc_init_fs_state,
 		.flush = NULL,
@@ -130,6 +150,8 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 	},
 #ifdef CONFIG_NVGPU_COMPRESSION
 	.cbc = {
+		.cbc_init_support = nvgpu_cbc_init_support,
+		.cbc_remove_support = nvgpu_cbc_remove_support,
 		.init = NULL,
 		.alloc_comptags = vgpu_cbc_alloc_comptags,
 		.ctrl = NULL,
@@ -137,11 +159,21 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 	},
 #endif
 	.ce = {
+		.ce_init_support = nvgpu_ce_init_support,
+#ifdef CONFIG_NVGPU_DGPU
+		.ce_app_init_support = nvgpu_ce_app_init_support,
+		.ce_app_suspend = nvgpu_ce_app_suspend,
+		.ce_app_destroy = nvgpu_ce_app_destroy,
+#endif
 		.isr_stall = NULL,
 		.isr_nonstall = NULL,
 		.get_num_pce = vgpu_ce_get_num_pce,
 	},
 	.gr = {
+		.gr_prepare_sw = nvgpu_gr_prepare_sw,
+		.gr_enable_hw = nvgpu_gr_enable_hw,
+		.gr_init_support = nvgpu_gr_init_support,
+		.gr_suspend = nvgpu_gr_suspend,
 #ifdef CONFIG_NVGPU_DEBUGGER
 		.set_alpha_circular_buffer_size = NULL,
 		.set_circular_buffer_size = NULL,
@@ -433,6 +465,8 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 		.pg_gr_load_gating_prod = NULL,
 	},
 	.fifo = {
+		.fifo_init_support = nvgpu_fifo_init_support,
+		.fifo_suspend = nvgpu_fifo_suspend,
 		.init_fifo_setup_hw = vgpu_init_fifo_setup_hw,
 		.preempt_channel = vgpu_fifo_preempt_channel,
 		.preempt_tsg = vgpu_fifo_preempt_tsg,
@@ -598,6 +632,9 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 		.is_fw_defined = gp10b_netlist_is_firmware_defined,
 	},
 	.mm = {
+		.init_mm_support = nvgpu_init_mm_support,
+		.pd_cache_init = nvgpu_pd_cache_init,
+		.mm_suspend = nvgpu_mm_suspend,
 		.vm_bind_channel = vgpu_vm_bind_channel,
 		.setup_hw = NULL,
 		.is_bar1_supported = gm20b_mm_is_bar1_supported,
@@ -632,6 +669,7 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 	},
 #endif
 	.therm = {
+		.init_therm_support = nvgpu_init_therm_support,
 		.init_therm_setup_hw = NULL,
 		.init_elcg_mode = NULL,
 		.init_blcg_mode = NULL,
@@ -639,6 +677,11 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 	},
 #ifdef CONFIG_NVGPU_LS_PMU
 	.pmu = {
+		.pmu_early_init = nvgpu_pmu_early_init,
+		.pmu_init = nvgpu_pmu_init,
+		.pmu_pstate_sw_setup = nvgpu_pmu_pstate_sw_setup,
+		.pmu_pstate_pmu_setup = nvgpu_pmu_pstate_pmu_setup,
+		.pmu_destroy = nvgpu_pmu_destroy,
 		.pmu_setup_elpg = NULL,
 		.pmu_get_queue_head = NULL,
 		.pmu_get_queue_head_size = NULL,
@@ -669,6 +712,7 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 	},
 #endif
 	.clk_arb = {
+		.clk_arb_init_arbiter = nvgpu_clk_arb_init_arbiter,
 		.check_clk_arb_support = gp10b_check_clk_arb_support,
 		.get_arbiter_clk_domains = gp10b_get_arbiter_clk_domains,
 		.get_arbiter_f_points = gp10b_get_arbiter_f_points,
@@ -769,6 +813,13 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 		.get_max_buffer_size = vgpu_css_get_buffer_size,
 	},
 #endif
+	.falcon = {
+		.falcon_sw_init = nvgpu_falcon_sw_init,
+		.falcon_sw_free = nvgpu_falcon_sw_free,
+	},
+	.fbp = {
+		.fbp_init_support = nvgpu_fbp_init_support,
+	},
 	.priv_ring = {
 		.enable_priv_ring = NULL,
 		.isr = NULL,
@@ -804,6 +855,9 @@ int vgpu_gp10b_init_hal(struct gk20a *g)
 	struct gpu_ops *gops = &g->ops;
 	struct vgpu_priv_data *priv = vgpu_get_priv_data(g);
 
+	gops->acr = vgpu_gp10b_ops.acr;
+	gops->bios = vgpu_gp10b_ops.bios;
+	gops->fbp = vgpu_gp10b_ops.fbp;
 	gops->ltc = vgpu_gp10b_ops.ltc;
 #ifdef CONFIG_NVGPU_COMPRESSION
 	gops->cbc = vgpu_gp10b_ops.cbc;

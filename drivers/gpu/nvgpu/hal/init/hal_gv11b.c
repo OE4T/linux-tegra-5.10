@@ -22,6 +22,15 @@
  * DEALINGS IN THE SOFTWARE.
  */
 #include <nvgpu/gk20a.h>
+#include <nvgpu/acr.h>
+#include <nvgpu/ce.h>
+#include <nvgpu/pmu.h>
+#ifdef CONFIG_NVGPU_LS_PMU
+#include <nvgpu/pmu/pmu_pstate.h>
+#endif
+#include <nvgpu/fbp.h>
+#include <nvgpu/therm.h>
+#include <nvgpu/clk_arb.h>
 #include <nvgpu/fuse.h>
 #include <nvgpu/pbdma.h>
 #include <nvgpu/engines.h>
@@ -187,7 +196,18 @@ static void gv11b_init_gpu_characteristics(struct gk20a *g)
 }
 
 static const struct gpu_ops gv11b_ops = {
+	.acr = {
+		.acr_init = nvgpu_acr_init,
+		.acr_construct_execute = nvgpu_acr_construct_execute,
+	},
+#ifdef CONFIG_NVGPU_DGPU
+	.bios = {
+		.bios_sw_init = nvgpu_bios_sw_init,
+	},
+#endif /* CONFIG_NVGPU_DGPU */
 	.ltc = {
+		.init_ltc_support = nvgpu_init_ltc_support,
+		.ltc_remove_support = nvgpu_ltc_remove_support,
 #ifdef CONFIG_NVGPU_INJECT_HWERR
 		.get_ltc_err_desc =
 			gv11b_ltc_get_err_desc,
@@ -217,12 +237,20 @@ static const struct gpu_ops gv11b_ops = {
 	},
 #ifdef CONFIG_NVGPU_COMPRESSION
 	.cbc = {
+		.cbc_init_support = nvgpu_cbc_init_support,
+		.cbc_remove_support = nvgpu_cbc_remove_support,
 		.init = gv11b_cbc_init,
 		.alloc_comptags = gp10b_cbc_alloc_comptags,
 		.ctrl = gp10b_cbc_ctrl,
 	},
 #endif
 	.ce = {
+		.ce_init_support = nvgpu_ce_init_support,
+#ifdef CONFIG_NVGPU_DGPU
+		.ce_app_init_support = nvgpu_ce_app_init_support,
+		.ce_app_suspend = nvgpu_ce_app_suspend,
+		.ce_app_destroy = nvgpu_ce_app_destroy,
+#endif
 		.isr_stall = gv11b_ce_stall_isr,
 		.isr_nonstall = gp10b_ce_nonstall_isr,
 		.get_num_pce = gv11b_ce_get_num_pce,
@@ -231,6 +259,10 @@ static const struct gpu_ops gv11b_ops = {
 		.init_prod_values = gv11b_ce_init_prod_values,
 	},
 	.gr = {
+		.gr_prepare_sw = nvgpu_gr_prepare_sw,
+		.gr_enable_hw = nvgpu_gr_enable_hw,
+		.gr_init_support = nvgpu_gr_init_support,
+		.gr_suspend = nvgpu_gr_suspend,
 #ifdef CONFIG_NVGPU_DEBUGGER
 		.get_gr_status = gr_gm20b_get_gr_status,
 		.set_alpha_circular_buffer_size =
@@ -293,6 +325,8 @@ static const struct gpu_ops gv11b_ops = {
 		.esr_bpt_pending_events = gv11b_gr_esr_bpt_pending_events,
 #endif /* CONFIG_NVGPU_DEBUGGER */
 		.ecc = {
+			.ecc_init_support = nvgpu_ecc_init_support,
+			.ecc_remove_support = nvgpu_ecc_remove_support,
 			.detect = gv11b_ecc_detect_enabled_units,
 			.init = gv11b_ecc_init,
 #ifdef CONFIG_NVGPU_INJECT_HWERR
@@ -836,6 +870,8 @@ static const struct gpu_ops gv11b_ops = {
 			gr_gv11b_pg_gr_load_gating_prod,
 	},
 	.fifo = {
+		.fifo_init_support = nvgpu_fifo_init_support,
+		.fifo_suspend = nvgpu_fifo_suspend,
 		.init_fifo_setup_hw = gv11b_init_fifo_setup_hw,
 		.preempt_channel = gv11b_fifo_preempt_channel,
 		.preempt_tsg = gv11b_fifo_preempt_tsg,
@@ -1058,6 +1094,9 @@ static const struct gpu_ops gv11b_ops = {
 		.is_fw_defined = gv11b_netlist_is_firmware_defined,
 	},
 	.mm = {
+		.init_mm_support = nvgpu_init_mm_support,
+		.pd_cache_init = nvgpu_pd_cache_init,
+		.mm_suspend = nvgpu_mm_suspend,
 		.vm_bind_channel = nvgpu_vm_bind_channel,
 		.setup_hw = nvgpu_mm_setup_hw,
 		.is_bar1_supported = gv11b_mm_is_bar1_supported,
@@ -1091,6 +1130,7 @@ static const struct gpu_ops gv11b_ops = {
 		}
 	},
 	.therm = {
+		.init_therm_support = nvgpu_init_therm_support,
 		.init_therm_setup_hw = gv11b_init_therm_setup_hw,
 		.init_elcg_mode = gv11b_therm_init_elcg_mode,
 		.init_blcg_mode = gm20b_therm_init_blcg_mode,
@@ -1107,6 +1147,7 @@ static const struct gpu_ops gv11b_ops = {
 		 * ops can be assigned/ignored as per build flag request
 		 */
 		/* Basic init ops */
+		.pmu_early_init = nvgpu_pmu_early_init,
 		.is_pmu_supported = gv11b_is_pmu_supported,
 		.falcon_base_addr = gv11b_pmu_falcon_base_addr,
 		.pmu_reset = nvgpu_pmu_reset,
@@ -1122,6 +1163,11 @@ static const struct gpu_ops gv11b_ops = {
 		.bar0_error_status = gv11b_pmu_bar0_error_status,
 		.validate_mem_integrity = gv11b_pmu_validate_mem_integrity,
 #ifdef CONFIG_NVGPU_LS_PMU
+		/* Init */
+		.pmu_init = nvgpu_pmu_init,
+		.pmu_pstate_sw_setup = nvgpu_pmu_pstate_sw_setup,
+		.pmu_pstate_pmu_setup = nvgpu_pmu_pstate_pmu_setup,
+		.pmu_destroy = nvgpu_pmu_destroy,
 		/* ISR */
 		.pmu_enable_irq = gk20a_pmu_enable_irq,
 		.get_irqdest = gv11b_pmu_get_irqdest,
@@ -1160,6 +1206,7 @@ static const struct gpu_ops gv11b_ops = {
 	},
 #ifdef CONFIG_NVGPU_CLK_ARB
 	.clk_arb = {
+		.clk_arb_init_arbiter = nvgpu_clk_arb_init_arbiter,
 		.check_clk_arb_support = gp10b_check_clk_arb_support,
 		.get_arbiter_clk_domains = gp10b_get_arbiter_clk_domains,
 		.get_arbiter_f_points = gp10b_get_arbiter_f_points,
@@ -1274,6 +1321,8 @@ static const struct gpu_ops gv11b_ops = {
 	},
 #endif
 	.falcon = {
+		.falcon_sw_init = nvgpu_falcon_sw_init,
+		.falcon_sw_free = nvgpu_falcon_sw_free,
 		.reset = gk20a_falcon_reset,
 		.is_falcon_cpu_halted =  gk20a_is_falcon_cpu_halted,
 		.is_falcon_idle =  gk20a_is_falcon_idle,
@@ -1296,6 +1345,9 @@ static const struct gpu_ops gv11b_ops = {
 		.copy_from_imem = gk20a_falcon_copy_from_imem,
 		.get_falcon_ctls = gk20a_falcon_get_ctls,
 #endif
+	},
+	.fbp = {
+		.fbp_init_support = nvgpu_fbp_init_support,
 	},
 	.priv_ring = {
 		.enable_priv_ring = gm20b_priv_ring_enable,
@@ -1354,6 +1406,9 @@ int gv11b_init_hal(struct gk20a *g)
 {
 	struct gpu_ops *gops = &g->ops;
 
+	gops->acr = gv11b_ops.acr;
+	gops->bios = gv11b_ops.bios;
+	gops->fbp = gv11b_ops.fbp;
 	gops->ltc = gv11b_ops.ltc;
 #ifdef CONFIG_NVGPU_COMPRESSION
 	gops->cbc = gv11b_ops.cbc;
