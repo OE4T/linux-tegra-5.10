@@ -207,10 +207,13 @@ struct gk20a;
 /* DGPU Thermal Alert */
 #define NVGPU_SUPPORT_DGPU_THERMAL_ALERT	79U
 
+/* Recovery support */
+#define NVGPU_SUPPORT_RECOVERY			80U
+
 /*
  * Must be greater than the largest bit offset in the above list.
  */
-#define NVGPU_MAX_ENABLED_BITS			80U
+#define NVGPU_MAX_ENABLED_BITS			81U
 
 /**
  * nvgpu_is_enabled - Check if the passed flag is enabled.

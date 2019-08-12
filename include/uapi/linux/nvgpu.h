@@ -170,6 +170,8 @@ struct nvgpu_gpu_zbc_query_table_args {
 #define NVGPU_GPU_FLAGS_DRIVER_REDUCED_PROFILE		(1ULL << 31)
 /* Set MMU debug mode is available */
 #define NVGPU_GPU_FLAGS_SUPPORT_SET_CTX_MMU_DEBUG_MODE	(1ULL << 32)
+/* Recovery is enabled */
+#define NVGPU_GPU_FLAGS_SUPPORT_RECOVERY	(1ULL << 33)
 /* SM LRF ECC is enabled */
 #define NVGPU_GPU_FLAGS_ECC_ENABLED_SM_LRF	(1ULL << 60)
 /* SM SHM ECC is enabled */
