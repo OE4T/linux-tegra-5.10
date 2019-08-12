@@ -299,7 +299,7 @@ static irqreturn_t ether_tx_chan_isr(int irq, void *data)
 		spin_lock_irqsave(&pdata->rlock, flags);
 		osi_disable_chan_tx_intr(osi_dma, chan);
 		spin_unlock_irqrestore(&pdata->rlock, flags);
-		__napi_schedule(&tx_napi->napi);
+		__napi_schedule_irqoff(&tx_napi->napi);
 	}
 
 	return IRQ_HANDLED;
@@ -343,7 +343,7 @@ static irqreturn_t ether_rx_chan_isr(int irq, void *data)
 		spin_lock_irqsave(&pdata->rlock, flags);
 		osi_disable_chan_rx_intr(osi_dma, chan);
 		spin_unlock_irqrestore(&pdata->rlock, flags);
-		__napi_schedule(&rx_napi->napi);
+		__napi_schedule_irqoff(&rx_napi->napi);
 	}
 
 	return IRQ_HANDLED;
