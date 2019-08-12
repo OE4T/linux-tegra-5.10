@@ -325,6 +325,11 @@
         "unit": "cg"
     },
     {
+        "test": "elcg",
+        "test_level": 0,
+        "unit": "cg"
+    },
+    {
         "test": "init",
         "test_level": 0,
         "unit": "cg"

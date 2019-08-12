@@ -114,6 +114,8 @@ nvgpu_cg_slcg_fifo_load_enable
 nvgpu_cg_slcg_pmu_load_enable
 nvgpu_cg_slcg_ce2_load_enable
 nvgpu_cg_init_gr_load_gating_prod
+nvgpu_cg_elcg_enable_no_wait
+nvgpu_cg_elcg_disable_no_wait
 nvgpu_gr_alloc
 nvgpu_gr_free
 nvgpu_gr_init

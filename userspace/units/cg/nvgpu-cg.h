@@ -65,3 +65,39 @@ struct unit_module;
  * otherwise.
  */
 int test_cg(struct unit_module *m, struct gk20a *g, void *args);
+
+/**
+ * Test specification for: test_elcg
+ *
+ * Description: The cg unit shall be able to setup the engine therm register
+ * values to enable/disable ELCG.
+ *
+ * Test Type: Feature based
+ *
+ * Input: None
+ *
+ * Steps:
+ * - Initialize the test environment:
+ *   - Register read/write IO callbacks.
+ *   - Add relevant fuse registers to the register space.
+ *   - Initialize hal to setup the hal functions.
+ * - Initialize fifo support to configure ELCG at engine level.
+ * - Add the engine therm registers to the register space.
+ * - Invoke the nvgpu function to enable/disable ELCG.
+ *   - Verify that cg mode isn't set in therm registers as ELCG enabled flag
+ *     isn't set.
+ * - Enable ELCG enabled flag.
+ * - Invoke the nvgpu function to enable/disable ELCG.
+ *   - Verify that cg mode isn't set in therm registers as ELCG platform
+ *     capability isn't set.
+ * - Set the platform capability.
+ * - Invoke the nvgpu function to enable/disable ELCG.
+ *   - Verify that cg mode is set in therm registers.
+ * - Any invalid accesses by nvgpu will be caught through ABORTs and
+ *   test fails if ABORTs are encountered.
+ * - Delete engine therm registers from the registere space.
+ *
+ * Output: Returns PASS if the steps above were executed successfully. FAIL
+ * otherwise.
+ */
+int test_elcg(struct unit_module *m, struct gk20a *g, void *args);

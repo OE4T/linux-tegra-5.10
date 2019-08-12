@@ -29,10 +29,12 @@
 #include <nvgpu/posix/io.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/hw/gp10b/hw_fuse_gp10b.h>
+#include <nvgpu/hw/gv11b/hw_therm_gv11b.h>
 
 #include "hal/init/hal_gv11b.h"
 #include "hal/power_features/cg/gating_reglist.h"
 #include "hal/power_features/cg/gv11b_gating_reglist.h"
+#include "../fifo/nvgpu-fifo.h"
 
 #include "nvgpu-cg.h"
 
@@ -421,6 +423,145 @@ int test_cg(struct unit_module *m, struct gk20a *g, void *args)
 	return UNIT_SUCCESS;
 }
 
+static int elcg_add_engine_therm_regs(struct gk20a *g)
+{
+	u32 engine_idx;
+	u32 active_engine_id = 0;
+	struct nvgpu_fifo *f = &g->fifo;
+
+	for (engine_idx = 0; engine_idx < f->num_engines; ++engine_idx) {
+		active_engine_id = f->active_engines_list[engine_idx];
+
+		if (nvgpu_posix_io_add_reg_space(g,
+			therm_gate_ctrl_r(active_engine_id), 0x4) != 0) {
+			return UNIT_FAIL;
+		}
+	}
+
+	return UNIT_SUCCESS;
+}
+
+static void elcg_delete_engine_therm_regs(struct gk20a *g)
+{
+	u32 engine_idx;
+	u32 active_engine_id = 0;
+	struct nvgpu_fifo *f = &g->fifo;
+
+	for (engine_idx = 0; engine_idx < f->num_engines; ++engine_idx) {
+		active_engine_id = f->active_engines_list[engine_idx];
+
+		nvgpu_posix_io_delete_reg_space(g,
+			therm_gate_ctrl_r(active_engine_id));
+	}
+}
+
+static int verify_elcg_status(struct gk20a *g, u32 cg_mode)
+{
+	u32 engine_idx;
+	u32 active_engine_id = 0;
+	struct nvgpu_fifo *f = &g->fifo;
+	int err = UNIT_SUCCESS;
+	u32 gate_r;
+
+	for (engine_idx = 0; engine_idx < f->num_engines; ++engine_idx) {
+		active_engine_id = f->active_engines_list[engine_idx];
+		gate_r = nvgpu_readl(g, therm_gate_ctrl_r(active_engine_id));
+
+		if (cg_mode == ELCG_RUN) {
+			if (get_field(gate_r,
+					therm_gate_ctrl_eng_clk_m()) !=
+					therm_gate_ctrl_eng_clk_run_f()) {
+				err = UNIT_FAIL;
+				break;
+			}
+
+			if (get_field(gate_r,
+					therm_gate_ctrl_idle_holdoff_m()) !=
+					therm_gate_ctrl_idle_holdoff_on_f()) {
+				err = UNIT_FAIL;
+				break;
+			}
+		} else if (cg_mode == ELCG_AUTO) {
+			if (get_field(gate_r,
+					therm_gate_ctrl_eng_clk_m()) !=
+					therm_gate_ctrl_eng_clk_auto_f()) {
+				err = UNIT_FAIL;
+				break;
+			}
+		}
+	}
+
+	return err;
+}
+
+static int test_elcg_api(struct gk20a *g, int exp_err)
+{
+	int err;
+
+	nvgpu_cg_elcg_enable_no_wait(g);
+	err = verify_elcg_status(g, ELCG_AUTO);
+	if (err != exp_err) {
+		return UNIT_FAIL;
+	}
+
+	nvgpu_cg_elcg_disable_no_wait(g);
+	err = verify_elcg_status(g, ELCG_RUN);
+	if (err != exp_err) {
+		return UNIT_FAIL;
+	}
+
+	return UNIT_SUCCESS;
+}
+
+int test_elcg(struct unit_module *m, struct gk20a *g, void *args)
+{
+	int err;
+
+	err = test_fifo_init_support(m, g, NULL);
+	if (err != 0) {
+		unit_return_fail(m, "failed to init fifo support\n");
+		return err;
+	}
+
+	err = elcg_add_engine_therm_regs(g);
+	if (err != 0) {
+		unit_return_fail(m, "failed to add engine therm registers\n");
+		return err;
+	}
+
+	if (test_elcg_api(g, UNIT_FAIL) != UNIT_SUCCESS) {
+		unit_return_fail(m, "enabled flag not yet set\n");
+	}
+
+	nvgpu_set_enabled(g, NVGPU_GPU_CAN_ELCG, true);
+
+	if (test_elcg_api(g, UNIT_FAIL) != UNIT_SUCCESS) {
+		unit_return_fail(m, "platform capability not yet set\n");
+	}
+
+	g->elcg_enabled = true;
+
+	if (test_elcg_api(g, UNIT_SUCCESS) != UNIT_SUCCESS) {
+		unit_return_fail(m,
+				 "elcg enable disable not setup correctly\n");
+	}
+
+	/* Check that no invalid register access occurred */
+	if (nvgpu_posix_io_get_error_code(g) != 0) {
+		unit_return_fail(m, "Invalid register accessed\n");
+	}
+
+	elcg_delete_engine_therm_regs(g);
+
+	err = test_fifo_remove_support(m, g, NULL);
+	if (err != 0) {
+		unit_return_fail(m, "failed to remove fifo support\n");
+		return err;
+	}
+
+	return UNIT_SUCCESS;
+}
+
 struct unit_module_test cg_tests[] = {
 	UNIT_TEST(init, init_test_env, NULL, 0),
 
@@ -440,6 +581,8 @@ struct unit_module_test cg_tests[] = {
 		  &slcg_gr_load_gating_prod, 0),
 	UNIT_TEST(blcg_gr_load_gating_prod, test_cg,
 		  &blcg_gr_load_gating_prod, 0),
+
+	UNIT_TEST(elcg, test_elcg, NULL, 0),
 };
 
 UNIT_MODULE(cg, cg_tests, UNIT_PRIO_NVGPU_TEST);
