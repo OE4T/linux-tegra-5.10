@@ -61,14 +61,6 @@ NVGPU_COMMON_CFLAGS		+=		\
 	-DCONFIG_TEGRA_GR_VIRTUALIZATION	\
 	-DCONFIG_PCI_MSI
 
-# Enable debugger APIs for safety build until devctl whitelisting is done
-CONFIG_NVGPU_DEBUGGER           := 1
-NVGPU_COMMON_CFLAGS             += -DCONFIG_NVGPU_DEBUGGER
-
-# Enable CILP preemption for safety build until devctl whitelisting is done
-CONFIG_NVGPU_CILP               := 1
-NVGPU_COMMON_CFLAGS             += -DCONFIG_NVGPU_CILP
-
 # Enable Channel WDT for safety build until we switch to user mode submits only
 NVGPU_COMMON_CFLAGS		+= -DCONFIG_NVGPU_CHANNEL_WDT
 
@@ -129,6 +121,12 @@ NVGPU_COMMON_CFLAGS             += -DCONFIG_NVGPU_ACR_LEGACY
 
 CONFIG_NVGPU_ENGINE_QUEUE       := 1
 NVGPU_COMMON_CFLAGS             += -DCONFIG_NVGPU_ENGINE_QUEUE
+
+CONFIG_NVGPU_DEBUGGER           := 1
+NVGPU_COMMON_CFLAGS             += -DCONFIG_NVGPU_DEBUGGER
+
+CONFIG_NVGPU_CILP               := 1
+NVGPU_COMMON_CFLAGS             += -DCONFIG_NVGPU_CILP
 
 CONFIG_NVGPU_CYCLESTATS         := 1
 NVGPU_COMMON_CFLAGS             += -DCONFIG_NVGPU_CYCLESTATS
