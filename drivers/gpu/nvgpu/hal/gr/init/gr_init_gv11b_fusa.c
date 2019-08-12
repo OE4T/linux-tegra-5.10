@@ -43,10 +43,10 @@
 #define GR_ECC_SCRUBBING_TIMEOUT_DEFAULT_US 10U
 
 #ifdef CONFIG_NVGPU_GR_GOLDEN_CTX_VERIFICATION
-#define STATS_COUNTER_BUNDLE 0x00a9
+#define STATS_COUNTER_BUNDLE 0x00A9U
 #define NVC397_SET_STATISTICS_COUNTER_ALPHA_BETA_CLOCKS_ENABLE 0x8000U
 #define NVC397_SET_STATISTICS_COUNTER_SCG_CLOCKS_ENABLE 0x10000U
-#define NVC397_SET_STATISTICS_COUNTER_METHOD_ADDR 0x0d68
+#define NVC397_SET_STATISTICS_COUNTER_METHOD_ADDR 0x0D68U
 
 #endif
 
@@ -911,7 +911,7 @@ static u32 gv11b_gr_init_get_stats_bundle_data(struct gk20a *g,
 	for (i = 0U; i < sw_bundle_init->count; i++) {
 		if (sw_bundle_init->l[i].addr == STATS_COUNTER_BUNDLE) {
 			bundle_data = sw_bundle_init->l[i].value;
-			nvgpu_log_info(g, "sw bundel %d value: %x, address %x",
+			nvgpu_log_info(g, "sw bundle %d value: %x, address %x",
 				i, sw_bundle_init->l[i].value,
 				sw_bundle_init->l[i].addr);
 		}
@@ -923,15 +923,16 @@ void gv11b_gr_init_restore_stats_counter_bundle_data(struct gk20a *g,
 				struct netlist_av_list *sw_bundle_init)
 {
 	u32 fepipe0 = gr_pri_mme_shadow_ram_index_fepipe_fe0_f();
-	u32 class = gr_fe_object_table_nvclass_v(gr_fe_object_table_r(fepipe0));
+	u32 fe_tbl_class =
+		gr_fe_object_table_nvclass_v(gr_fe_object_table_r(fepipe0));
 	u32 bundle_value = 0U;
 
 	bundle_value = gv11b_gr_init_get_stats_bundle_data(g, sw_bundle_init);
 	nvgpu_writel(g, gr_pri_mme_shadow_ram_data_r(), bundle_value);
 	nvgpu_writel(g, gr_pri_mme_shadow_ram_index_r(),
-		gr_pri_mme_shadow_ram_index_nvclass_f(class) |
+		gr_pri_mme_shadow_ram_index_nvclass_f(fe_tbl_class) |
 		gr_pri_mme_shadow_ram_index_method_address_f(
-			(NVC397_SET_STATISTICS_COUNTER_METHOD_ADDR >> 2)) |
+		    ((u32)NVC397_SET_STATISTICS_COUNTER_METHOD_ADDR >> 2U)) |
 		gr_pri_mme_shadow_ram_index_fepipe_f(fepipe0) |
 		 gr_pri_mme_shadow_ram_index_write_trigger_f());
 
