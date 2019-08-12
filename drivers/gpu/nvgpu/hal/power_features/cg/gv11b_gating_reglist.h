@@ -45,10 +45,10 @@ void gv11b_slcg_fb_load_gating_prod(struct gk20a *g,
 void gv11b_slcg_fifo_load_gating_prod(struct gk20a *g,
 	bool prod);
 
-void gr_gv11b_slcg_gr_load_gating_prod(struct gk20a *g,
+void gv11b_slcg_gr_load_gating_prod(struct gk20a *g,
 	bool prod);
 
-void ltc_gv11b_slcg_ltc_load_gating_prod(struct gk20a *g,
+void gv11b_slcg_ltc_load_gating_prod(struct gk20a *g,
 	bool prod);
 
 void gv11b_slcg_perf_load_gating_prod(struct gk20a *g,

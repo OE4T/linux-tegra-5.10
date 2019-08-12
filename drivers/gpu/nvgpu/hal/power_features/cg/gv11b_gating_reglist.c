@@ -174,7 +174,7 @@ static const struct gating_desc gv11b_blcg_ce[] = {
 };
 
 /* blcg ctxsw prog */
-static const struct gating_desc gv11b_blcg_ctxsw_prog[] = {
+static const struct gating_desc gv11b_blcg_ctxsw_firmware[] = {
 };
 
 /* blcg fb */
@@ -294,7 +294,7 @@ void gv11b_slcg_bus_load_gating_prod(struct gk20a *g,
 		for (i = 0; i < size; i++) {
 			u32 reg = gv11b_slcg_bus[i].addr;
 			u32 val = prod ? gv11b_slcg_bus[i].prod :
-					gv11b_slcg_bus[i].disable;
+					 gv11b_slcg_bus[i].disable;
 			gk20a_writel(g, reg, val);
 		}
 	}
@@ -311,7 +311,7 @@ void gv11b_slcg_ce2_load_gating_prod(struct gk20a *g,
 		for (i = 0; i < size; i++) {
 			u32 reg = gv11b_slcg_ce2[i].addr;
 			u32 val = prod ? gv11b_slcg_ce2[i].prod :
-					gv11b_slcg_ce2[i].disable;
+					 gv11b_slcg_ce2[i].disable;
 			gk20a_writel(g, reg, val);
 		}
 	}
@@ -328,7 +328,7 @@ void gv11b_slcg_chiplet_load_gating_prod(struct gk20a *g,
 		for (i = 0; i < size; i++) {
 			u32 reg = gv11b_slcg_chiplet[i].addr;
 			u32 val = prod ? gv11b_slcg_chiplet[i].prod :
-					gv11b_slcg_chiplet[i].disable;
+					 gv11b_slcg_chiplet[i].disable;
 			gk20a_writel(g, reg, val);
 		}
 	}
@@ -352,7 +352,7 @@ void gv11b_slcg_fb_load_gating_prod(struct gk20a *g,
 		for (i = 0; i < size; i++) {
 			u32 reg = gv11b_slcg_fb[i].addr;
 			u32 val = prod ? gv11b_slcg_fb[i].prod :
-					gv11b_slcg_fb[i].disable;
+					 gv11b_slcg_fb[i].disable;
 			gk20a_writel(g, reg, val);
 		}
 	}
@@ -369,13 +369,13 @@ void gv11b_slcg_fifo_load_gating_prod(struct gk20a *g,
 		for (i = 0; i < size; i++) {
 			u32 reg = gv11b_slcg_fifo[i].addr;
 			u32 val = prod ? gv11b_slcg_fifo[i].prod :
-					gv11b_slcg_fifo[i].disable;
+					 gv11b_slcg_fifo[i].disable;
 			gk20a_writel(g, reg, val);
 		}
 	}
 }
 
-void gr_gv11b_slcg_gr_load_gating_prod(struct gk20a *g,
+void gv11b_slcg_gr_load_gating_prod(struct gk20a *g,
 	bool prod)
 {
 	u32 i;
@@ -386,13 +386,13 @@ void gr_gv11b_slcg_gr_load_gating_prod(struct gk20a *g,
 		for (i = 0; i < size; i++) {
 			u32 reg = gv11b_slcg_gr[i].addr;
 			u32 val = prod ? gv11b_slcg_gr[i].prod :
-					gv11b_slcg_gr[i].disable;
+					 gv11b_slcg_gr[i].disable;
 			gk20a_writel(g, reg, val);
 		}
 	}
 }
 
-void ltc_gv11b_slcg_ltc_load_gating_prod(struct gk20a *g,
+void gv11b_slcg_ltc_load_gating_prod(struct gk20a *g,
 	bool prod)
 {
 	u32 i;
@@ -400,10 +400,10 @@ void ltc_gv11b_slcg_ltc_load_gating_prod(struct gk20a *g,
 							/ GATING_DESC_SIZE);
 
 	if (nvgpu_is_enabled(g, NVGPU_GPU_CAN_SLCG)) {
-	for (i = 0; i < size; i++) {
+		for (i = 0; i < size; i++) {
 			u32 reg = gv11b_slcg_ltc[i].addr;
 			u32 val = prod ? gv11b_slcg_ltc[i].prod :
-					gv11b_slcg_ltc[i].disable;
+					 gv11b_slcg_ltc[i].disable;
 			gk20a_writel(g, reg, val);
 		}
 	}
@@ -566,14 +566,14 @@ void gv11b_blcg_ctxsw_firmware_load_gating_prod(struct gk20a *g,
 	bool prod)
 {
 	u32 i;
-	u32 size = nvgpu_safe_cast_u64_to_u32(sizeof(gv11b_blcg_ctxsw_prog)
+	u32 size = nvgpu_safe_cast_u64_to_u32(sizeof(gv11b_blcg_ctxsw_firmware)
 							/ GATING_DESC_SIZE);
 
 	if (nvgpu_is_enabled(g, NVGPU_GPU_CAN_BLCG)) {
 		for (i = 0; i < size; i++) {
-			u32 reg = gv11b_blcg_ctxsw_prog[i].addr;
-			u32 val = prod ? gv11b_blcg_ctxsw_prog[i].prod :
-					 gv11b_blcg_ctxsw_prog[i].disable;
+			u32 reg = gv11b_blcg_ctxsw_firmware[i].addr;
+			u32 val = prod ? gv11b_blcg_ctxsw_firmware[i].prod :
+					 gv11b_blcg_ctxsw_firmware[i].disable;
 			gk20a_writel(g, reg, val);
 		}
 	}
@@ -590,7 +590,7 @@ void gv11b_blcg_fb_load_gating_prod(struct gk20a *g,
 		for (i = 0; i < size; i++) {
 			u32 reg = gv11b_blcg_fb[i].addr;
 			u32 val = prod ? gv11b_blcg_fb[i].prod :
-					gv11b_blcg_fb[i].disable;
+					 gv11b_blcg_fb[i].disable;
 			gk20a_writel(g, reg, val);
 		}
 	}
@@ -604,7 +604,7 @@ void gv11b_blcg_fifo_load_gating_prod(struct gk20a *g,
 							/ GATING_DESC_SIZE);
 
 	if (nvgpu_is_enabled(g, NVGPU_GPU_CAN_BLCG)) {
-	for (i = 0; i < size; i++) {
+		for (i = 0; i < size; i++) {
 			u32 reg = gv11b_blcg_fifo[i].addr;
 			u32 val = prod ? gv11b_blcg_fifo[i].prod :
 					 gv11b_blcg_fifo[i].disable;
