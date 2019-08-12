@@ -441,10 +441,14 @@ int gk20a_pm_finalize_poweron(struct device *dev)
 	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_DGPU_THERMAL_ALERT) &&
 		nvgpu_platform_is_silicon(g)) {
 		err = nvgpu_request_therm_irq(l);
-		if (err) {
+		if (err && (err != -ENOENT)) {
 			nvgpu_err(g, "thermal interrupt request failed %d",
 				err);
 			goto done;
+		}
+		if (err == -ENOENT) {
+			nvgpu_info(g, "nvgpu-therm-gpio DT entry is missing. "
+				"Thermal Alert feature will not be enabled");
 		}
 	}
 
