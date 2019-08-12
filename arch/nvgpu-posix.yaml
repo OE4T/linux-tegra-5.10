@@ -33,7 +33,8 @@ all:
              os/posix/posix-vgpu.c,
              os/posix/posix-vidmem.c,
              os/posix/fecs_trace_posix.c,
-             os/posix/stubs.c ]
+             os/posix/stubs.c,
+             os/posix/posix-vpr.c ]
 
 headers:
   safe: no

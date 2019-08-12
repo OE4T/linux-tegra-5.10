@@ -126,3 +126,7 @@ os_sched:
 nvhost:
   safe: yes
   sources: [ include/nvgpu/nvhost.h ]
+
+vpr:
+  safe: no
+  sources: [ include/nvgpu/vpr.h ]

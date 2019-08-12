@@ -30,6 +30,7 @@
 #include <nvgpu/bug.h>
 #include <nvgpu/fence.h>
 #include <nvgpu/profile.h>
+#include <nvgpu/vpr.h>
 
 #ifdef CONFIG_NVGPU_TRACE
 #include <trace/events/gk20a.h>
@@ -405,6 +406,7 @@ static int nvgpu_submit_channel_gpfifo(struct nvgpu_channel *c,
 	 *  - pre- or post-fence functionality
 	 *  - channel wdt
 	 *  - GPU rail-gating with non-deterministic channels
+	 *  - VPR resize enabled with non-deterministic channels
 	 *  - buffer refcounting
 	 *
 	 * If none of the conditions are met, then job tracking is not
@@ -413,8 +415,9 @@ static int nvgpu_submit_channel_gpfifo(struct nvgpu_channel *c,
 	 */
 	need_job_tracking = (flag_fence_wait ||
 			flag_fence_get ||
-			(nvgpu_is_enabled(g, NVGPU_CAN_RAILGATE)
-			 && !c->deterministic) ||
+			((nvgpu_is_enabled(g, NVGPU_CAN_RAILGATE) ||
+				nvgpu_is_vpr_resize_enabled()) &&
+				!c->deterministic) ||
 			!skip_buffer_refcounting);
 
 #ifdef CONFIG_NVGPU_CHANNEL_WDT

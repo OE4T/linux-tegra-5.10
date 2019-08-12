@@ -355,7 +355,8 @@ nvgpu-y += \
 	os/linux/os_ops_tu104.o \
 	os/linux/bsearch.o \
 	os/linux/sdl/sdl_stub.o \
-	os/linux/dmabuf_vidmem.o
+	os/linux/dmabuf_vidmem.o \
+	os/linux/vpr.o
 
 nvgpu-$(CONFIG_DEBUG_FS) += \
 	os/linux/debug.o \
