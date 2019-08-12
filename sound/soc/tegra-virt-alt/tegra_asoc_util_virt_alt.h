@@ -189,7 +189,7 @@
 
 #define I2S_SET_RATE(ename, reg) \
 	SOC_SINGLE_EXT(ename, reg,	\
-	0, 48000, 0,	\
+	0, 96000, 0,	\
 	tegra_virt_i2s_get_rate,	\
 	tegra_virt_i2s_set_rate)
 
