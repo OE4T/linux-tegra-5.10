@@ -33,6 +33,8 @@
 
 #include "../falcon_utf.h"
 
+struct utf_falcon *utf_falcons[FALCON_ID_END];
+
 static struct nvgpu_falcon *pmu_flcn;
 static struct nvgpu_falcon *gpccs_flcn;
 static struct nvgpu_falcon *uninit_flcn;
@@ -44,6 +46,71 @@ static u32 *rand_test_data;
 #define MAX_MEM_TYPE				(MEM_IMEM + 1)
 
 #define RAND_DATA_SIZE				(SZ_4K)
+
+static struct utf_falcon *get_utf_falcon_from_addr(struct gk20a *g, u32 addr)
+{
+	struct utf_falcon *flcn = NULL;
+	u32 flcn_base;
+	u32 i;
+
+	for (i = 0; i < FALCON_ID_END; i++) {
+		if (utf_falcons[i] == NULL || utf_falcons[i]->flcn == NULL) {
+			continue;
+		}
+
+		flcn_base = utf_falcons[i]->flcn->flcn_base;
+		if ((addr >= flcn_base) &&
+		    (addr < (flcn_base + UTF_FALCON_MAX_REG_OFFSET))) {
+			flcn = utf_falcons[i];
+			break;
+		}
+	}
+
+	return flcn;
+}
+
+static void writel_access_reg_fn(struct gk20a *g,
+				 struct nvgpu_reg_access *access)
+{
+	struct utf_falcon *flcn = NULL;
+
+	flcn = get_utf_falcon_from_addr(g, access->addr);
+	if (flcn != NULL) {
+		nvgpu_utf_falcon_writel_access_reg_fn(g, flcn, access);
+	} else {
+		nvgpu_posix_io_writel_reg_space(g, access->addr, access->value);
+	}
+	nvgpu_posix_io_record_access(g, access);
+}
+
+static void readl_access_reg_fn(struct gk20a *g,
+				struct nvgpu_reg_access *access)
+{
+	struct utf_falcon *flcn = NULL;
+
+	flcn = get_utf_falcon_from_addr(g, access->addr);
+	if (flcn != NULL) {
+		nvgpu_utf_falcon_readl_access_reg_fn(g, flcn, access);
+	} else {
+		access->value = nvgpu_posix_io_readl_reg_space(g, access->addr);
+	}
+}
+
+static struct nvgpu_posix_io_callbacks utf_falcon_reg_callbacks = {
+	.writel          = writel_access_reg_fn,
+	.writel_check    = writel_access_reg_fn,
+	.bar1_writel     = writel_access_reg_fn,
+	.usermode_writel = writel_access_reg_fn,
+
+	.__readl         = readl_access_reg_fn,
+	.readl           = readl_access_reg_fn,
+	.bar1_readl      = readl_access_reg_fn,
+};
+
+static void utf_falcon_register_io(struct gk20a *g)
+{
+	nvgpu_posix_register_io(g, &utf_falcon_reg_callbacks);
+}
 
 static void init_rand_buffer(void)
 {
@@ -64,7 +131,7 @@ static int init_falcon_test_env(struct unit_module *m, struct gk20a *g)
 	int err = 0;
 
 	nvgpu_posix_io_init_reg_space(g);
-	nvgpu_utf_falcon_register_io(g);
+	utf_falcon_register_io(g);
 
 	/*
 	 * Fuse register fuse_opt_priv_sec_en_r() is read during init_hal hence
@@ -87,14 +154,15 @@ static int init_falcon_test_env(struct unit_module *m, struct gk20a *g)
 	}
 
 	/* Initialize utf & nvgpu falcon for test usage */
-	err = nvgpu_utf_falcon_init(m, g, FALCON_ID_PMU);
-	if (err) {
-		return err;
+	utf_falcons[FALCON_ID_PMU] = nvgpu_utf_falcon_init(m, g, FALCON_ID_PMU);
+	if (utf_falcons[FALCON_ID_PMU] == NULL) {
+		return -ENODEV;
 	}
 
-	err = nvgpu_utf_falcon_init(m, g, FALCON_ID_GPCCS);
-	if (err) {
-		return err;
+	utf_falcons[FALCON_ID_GPCCS] =
+				nvgpu_utf_falcon_init(m, g, FALCON_ID_GPCCS);
+	if (utf_falcons[FALCON_ID_GPCCS] == NULL) {
+		return -ENODEV;
 	}
 
 	/* Set falcons for test usage */
@@ -120,7 +188,8 @@ static int free_falcon_test_env(struct unit_module *m, struct gk20a *g,
 	}
 
 	nvgpu_kfree(g, rand_test_data);
-	nvgpu_utf_falcon_free(g, FALCON_ID_PMU);
+	nvgpu_utf_falcon_free(g, utf_falcons[FALCON_ID_GPCCS]);
+	nvgpu_utf_falcon_free(g, utf_falcons[FALCON_ID_PMU]);
 	return UNIT_SUCCESS;
 }
 

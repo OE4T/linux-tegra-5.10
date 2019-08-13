@@ -29,56 +29,9 @@
 
 #include "falcon_utf.h"
 
-struct utf_falcon utf_falcons[FALCON_ID_END];
-
-static struct utf_falcon *get_utf_falcon_from_id(struct gk20a *g, u32 falcon_id)
-{
-	struct utf_falcon *flcn = NULL;
-
-	switch (falcon_id) {
-	case FALCON_ID_PMU:
-	case FALCON_ID_FECS:
-	case FALCON_ID_GPCCS:
-#ifdef CONFIG_NVGPU_DGPU
-	case FALCON_ID_GSPLITE:
-	case FALCON_ID_NVDEC:
-	case FALCON_ID_SEC2:
-	case FALCON_ID_MINION:
-#endif
-		flcn = &utf_falcons[falcon_id];
-		break;
-	default:
-		break;
-	}
-
-	return flcn;
-}
-
-static struct utf_falcon *get_utf_falcon_from_addr(struct gk20a *g, u32 addr)
-{
-	struct utf_falcon *flcn = NULL;
-	u32 flcn_base;
-	u32 i;
-
-	for (i = 0; i < FALCON_ID_END; i++) {
-		if (utf_falcons[i].flcn == NULL) {
-			continue;
-		}
-
-		flcn_base = utf_falcons[i].flcn->flcn_base;
-		if ((addr >= flcn_base) &&
-		    (addr < (flcn_base + UTF_FALCON_MAX_REG_OFFSET))) {
-			flcn = get_utf_falcon_from_id(g, i);
-			break;
-		}
-	}
-
-	return flcn;
-}
-
-static void falcon_writel_access_reg_fn(struct gk20a *g,
-					struct utf_falcon *flcn,
-					struct nvgpu_reg_access *access)
+void nvgpu_utf_falcon_writel_access_reg_fn(struct gk20a *g,
+					   struct utf_falcon *flcn,
+					   struct nvgpu_reg_access *access)
 {
 	u32 addr_mask = falcon_falcon_dmemc_offs_m() |
 			falcon_falcon_dmemc_blk_m();
@@ -123,9 +76,9 @@ static void falcon_writel_access_reg_fn(struct gk20a *g,
 	nvgpu_posix_io_writel_reg_space(g, access->addr, access->value);
 }
 
-static void falcon_readl_access_reg_fn(struct gk20a *g,
-				       struct utf_falcon *flcn,
-				       struct nvgpu_reg_access *access)
+void nvgpu_utf_falcon_readl_access_reg_fn(struct gk20a *g,
+					  struct utf_falcon *flcn,
+					  struct nvgpu_reg_access *access)
 {
 	u32 addr_mask = falcon_falcon_dmemc_offs_m() |
 			falcon_falcon_dmemc_blk_m();
@@ -176,72 +129,27 @@ static void falcon_readl_access_reg_fn(struct gk20a *g,
 	}
 }
 
-static void writel_access_reg_fn(struct gk20a *g,
-				 struct nvgpu_reg_access *access)
-{
-	struct utf_falcon *flcn = NULL;
-
-	flcn = get_utf_falcon_from_addr(g, access->addr);
-	if (flcn != NULL) {
-		falcon_writel_access_reg_fn(g, flcn, access);
-	} else {
-		nvgpu_posix_io_writel_reg_space(g, access->addr, access->value);
-	}
-	nvgpu_posix_io_record_access(g, access);
-}
-
-static void readl_access_reg_fn(struct gk20a *g,
-				struct nvgpu_reg_access *access)
-{
-	struct utf_falcon *flcn = NULL;
-
-	flcn = get_utf_falcon_from_addr(g, access->addr);
-	if (flcn != NULL) {
-		falcon_readl_access_reg_fn(g, flcn, access);
-	} else {
-		access->value = nvgpu_posix_io_readl_reg_space(g, access->addr);
-	}
-}
-
-static struct nvgpu_posix_io_callbacks utf_falcon_reg_callbacks = {
-	.writel          = writel_access_reg_fn,
-	.writel_check    = writel_access_reg_fn,
-	.bar1_writel     = writel_access_reg_fn,
-	.usermode_writel = writel_access_reg_fn,
-
-	.__readl         = readl_access_reg_fn,
-	.readl           = readl_access_reg_fn,
-	.bar1_readl      = readl_access_reg_fn,
-};
-
-void nvgpu_utf_falcon_register_io(struct gk20a *g)
-{
-	nvgpu_posix_register_io(g, &utf_falcon_reg_callbacks);
-}
-
-int nvgpu_utf_falcon_init(struct unit_module *m, struct gk20a *g, u32 flcn_id)
+struct utf_falcon *nvgpu_utf_falcon_init(struct unit_module *m,
+					 struct gk20a *g, u32 flcn_id)
 {
 	struct utf_falcon *utf_flcn;
 	struct nvgpu_falcon *flcn;
 	u32 flcn_size;
 	u32 flcn_base;
 	u32 hwcfg_r, hwcfg1_r, ports;
-	int err = 0;
 
-	if (utf_falcons[flcn_id].flcn != NULL) {
-		unit_err(m, "Falcon already initialized!\n");
-		return -EINVAL;
-	}
-
-	err = nvgpu_falcon_sw_init(g, flcn_id);
-	if (err != 0) {
+	if (nvgpu_falcon_sw_init(g, flcn_id) != 0) {
 		unit_err(m, "nvgpu Falcon init failed!\n");
-		return err;
+		return NULL;
 	}
 
 	flcn = nvgpu_falcon_get_instance(g, flcn_id);
 
-	utf_flcn = &utf_falcons[flcn_id];
+	utf_flcn = (struct utf_falcon *) malloc(sizeof(struct utf_falcon));
+	if (!utf_flcn) {
+		return NULL;
+	}
+
 	utf_flcn->flcn = flcn;
 
 	flcn_base = flcn->flcn_base;
@@ -249,8 +157,7 @@ int nvgpu_utf_falcon_init(struct unit_module *m, struct gk20a *g, u32 flcn_id)
 					 flcn_base,
 					 UTF_FALCON_MAX_REG_OFFSET) != 0) {
 		unit_err(m, "Falcon add reg space failed!\n");
-		nvgpu_falcon_sw_free(g, flcn_id);
-		return -ENOMEM;
+		goto out;
 	}
 
 	/*
@@ -269,51 +176,45 @@ int nvgpu_utf_falcon_init(struct unit_module *m, struct gk20a *g, u32 flcn_id)
 
 	utf_flcn->imem = (u32 *) nvgpu_kzalloc(g, UTF_FALCON_IMEM_DMEM_SIZE);
 	if (utf_flcn->imem == NULL) {
-		err = -ENOMEM;
 		unit_err(m, "Falcon imem alloc failed!\n");
-		goto out;
+		goto out_reg_space;
 	}
 
 	utf_flcn->dmem = (u32 *) nvgpu_kzalloc(g, UTF_FALCON_IMEM_DMEM_SIZE);
 	if (utf_flcn->dmem == NULL) {
-		err = -ENOMEM;
 		unit_err(m, "Falcon dmem alloc failed!\n");
-		goto clean_imem;
+		goto free_imem;
 	}
 
-	return 0;
+	return utf_flcn;
 
-clean_imem:
+free_imem:
 	nvgpu_kfree(g, utf_flcn->imem);
-out:
+out_reg_space:
 	nvgpu_posix_io_delete_reg_space(g, flcn_base);
+out:
 	nvgpu_falcon_sw_free(g, flcn_id);
+	free(utf_flcn);
 
-	return err;
+	return NULL;
 }
 
-void nvgpu_utf_falcon_free(struct gk20a *g, u32 flcn_id)
+void nvgpu_utf_falcon_free(struct gk20a *g, struct utf_falcon *utf_flcn)
 {
-	struct utf_falcon *utf_flcn;
-
-	utf_flcn = &utf_falcons[flcn_id];
-
-	if (utf_flcn->flcn == NULL)
+	if (utf_flcn == NULL || utf_flcn->flcn == NULL)
 		return;
 
 	nvgpu_kfree(g, utf_flcn->dmem);
 	nvgpu_kfree(g, utf_flcn->imem);
 	nvgpu_posix_io_delete_reg_space(g, utf_flcn->flcn->flcn_base);
-	nvgpu_falcon_sw_free(g, flcn_id);
-	utf_flcn->flcn = NULL;
+	nvgpu_falcon_sw_free(g, utf_flcn->flcn->flcn_id);
+	free(utf_flcn);
 }
 
-void nvgpu_utf_falcon_set_dmactl(struct gk20a *g, u32 flcn_id, u32 reg_data)
+void nvgpu_utf_falcon_set_dmactl(struct gk20a *g, struct utf_falcon *utf_flcn,
+				 u32 reg_data)
 {
-	struct utf_falcon *utf_flcn;
 	u32 flcn_base;
-
-	utf_flcn = &utf_falcons[flcn_id];
 
 	flcn_base = utf_flcn->flcn->flcn_base;
 

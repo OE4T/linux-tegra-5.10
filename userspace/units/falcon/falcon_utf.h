@@ -38,9 +38,16 @@ struct utf_falcon {
 	u32 *dmem;
 };
 
-void nvgpu_utf_falcon_register_io(struct gk20a *g);
-int nvgpu_utf_falcon_init(struct unit_module *m, struct gk20a *g, u32 flcn_id);
-void nvgpu_utf_falcon_set_dmactl(struct gk20a *g, u32 flcn_id, u32 reg_data);
-void nvgpu_utf_falcon_free(struct gk20a *g, u32 flcn_id);
+void nvgpu_utf_falcon_writel_access_reg_fn(struct gk20a *g,
+					   struct utf_falcon *flcn,
+					   struct nvgpu_reg_access *access);
+void nvgpu_utf_falcon_readl_access_reg_fn(struct gk20a *g,
+					  struct utf_falcon *flcn,
+					  struct nvgpu_reg_access *access);
+struct utf_falcon *nvgpu_utf_falcon_init(struct unit_module *m,
+					 struct gk20a *g, u32 flcn_id);
+void nvgpu_utf_falcon_free(struct gk20a *g, struct utf_falcon *utf_flcn);
+void nvgpu_utf_falcon_set_dmactl(struct gk20a *g, struct utf_falcon *utf_flcn,
+				 u32 reg_data);
 
 #endif
