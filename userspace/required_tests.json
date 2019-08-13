@@ -1502,5 +1502,17 @@
         "test": "gr_intr_cleanup",
         "test_level": 0,
         "unit": "nvgpu_gr_intr"
+    },
+    {
+       "test": "acr_init",
+       "test_level": 0,
+       "unit": "nvgpu-acr"
+    },
+    {
+      "test": "acr_free_falcon_test_env",
+      "test_level": 0,
+      "unit": "nvgpu-acr"
     }
+
+
 ]

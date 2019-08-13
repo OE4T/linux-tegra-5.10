@@ -49,5 +49,7 @@
  *   - @ref SWUTS-posix-thread
  *   - @ref SWUTS-posix-timers
  *   - @ref SWUTS-sdl
+ *   - @ref SWUTS-acr
  *
  */
+

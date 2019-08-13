@@ -21,3 +21,4 @@ INPUT += ../../../userspace/units/posix/fault-injection/posix-fault-injection-dm
 INPUT += ../../../userspace/units/posix/sizes/posix-sizes.h
 INPUT += ../../../userspace/units/posix/thread/posix-thread.h
 INPUT += ../../../userspace/units/posix/timers/posix-timers.h
+INPUT += ../../../userspace/units/acr/nvgpu-acr.h
