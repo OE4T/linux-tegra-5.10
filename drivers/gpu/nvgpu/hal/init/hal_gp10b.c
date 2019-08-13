@@ -188,8 +188,10 @@ static const struct gpu_ops gp10b_ops = {
 		.split_ltc_broadcast_addr = gm20b_ltc_split_ltc_broadcast_addr,
 #endif /* CONFIG_NVGPU_DEBUGGER */
 		.intr = {
+#ifdef CONFIG_NVGPU_FALCON_NON_FUSA
 			.configure = gp10b_ltc_intr_configure,
 			.isr = gp10b_ltc_intr_isr,
+#endif
 			.en_illegal_compstat = NULL,
 		},
 	},

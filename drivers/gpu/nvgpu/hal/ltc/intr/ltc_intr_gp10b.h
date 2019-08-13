@@ -29,8 +29,10 @@
 
 struct gk20a;
 
+void gp10b_ltc_intr_handle_lts_interrupts(struct gk20a *g, u32 ltc, u32 slice);
+#ifdef CONFIG_NVGPU_FALCON_NON_FUSA
 void gp10b_ltc_intr_configure(struct gk20a *g);
 void gp10b_ltc_intr_isr(struct gk20a *g, u32 ltc);
-void gp10b_ltc_intr_handle_lts_interrupts(struct gk20a *g, u32 ltc, u32 slice);
+#endif
 
 #endif

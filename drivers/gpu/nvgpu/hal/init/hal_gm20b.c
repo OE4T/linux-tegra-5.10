@@ -143,10 +143,12 @@ static const struct gpu_ops gm20b_ops = {
 	.ltc = {
 		.init_ltc_support = nvgpu_init_ltc_support,
 		.ltc_remove_support = nvgpu_ltc_remove_support,
+		.flush = gm20b_flush_ltc,
+#ifdef CONFIG_NVGPU_FALCON_NON_FUSA
 		.determine_L2_size_bytes = gm20b_determine_L2_size_bytes,
 		.init_fs_state = gm20b_ltc_init_fs_state,
-		.flush = gm20b_flush_ltc,
 		.set_enabled = gm20b_ltc_set_enabled,
+#endif
 #ifdef CONFIG_NVGPU_GRAPHICS
 		.set_zbc_color_entry = gm20b_ltc_set_zbc_color_entry,
 		.set_zbc_depth_entry = gm20b_ltc_set_zbc_depth_entry,
