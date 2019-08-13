@@ -39,6 +39,7 @@
 #include "hal/mc/mc_tu104.h"
 #include "hal/bus/bus_gk20a.h"
 #include "hal/bus/bus_gv100.h"
+#include "hal/bus/bus_gv11b.h"
 #include "hal/bus/bus_tu104.h"
 #include "hal/ce/ce_gp10b.h"
 #include "hal/ce/ce_gv11b.h"
@@ -1319,6 +1320,7 @@ static const struct gpu_ops tu104_ops = {
 		.isr = gk20a_bus_isr,
 		.bar1_bind = NULL,
 		.bar2_bind = bus_tu104_bar2_bind,
+		.configure_debug_bus = gv11b_bus_configure_debug_bus,
 #ifdef CONFIG_NVGPU_DGPU
 		.set_bar0_window = gk20a_bus_set_bar0_window,
 #endif

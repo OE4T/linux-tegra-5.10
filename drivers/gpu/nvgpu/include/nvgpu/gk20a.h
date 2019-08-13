@@ -1696,6 +1696,7 @@ struct gpu_ops {
 #endif
 		u32 (*read_sw_scratch)(struct gk20a *g, u32 index);
 		void (*write_sw_scratch)(struct gk20a *g, u32 index, u32 val);
+		void (*configure_debug_bus)(struct gk20a *g);
 	} bus;
 
 	struct {

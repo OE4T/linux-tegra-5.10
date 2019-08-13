@@ -581,6 +581,7 @@ nvgpu-y += \
 	hal/bus/bus_gk20a_fusa.o \
 	hal/bus/bus_gm20b_fusa.o \
 	hal/bus/bus_gp10b_fusa.o \
+	hal/bus/bus_gv11b_fusa.o \
 	hal/ce/ce_gp10b_fusa.o \
 	hal/ce/ce_gv11b_fusa.o \
 	hal/class/class_gm20b_fusa.o \

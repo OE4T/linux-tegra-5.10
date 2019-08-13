@@ -9,7 +9,8 @@ bus_fusa:
   sources: [ hal/bus/bus_gk20a_fusa.c,
              hal/bus/bus_gk20a.h,
              hal/bus/bus_gm20b_fusa.c, hal/bus/bus_gm20b.h,
-             hal/bus/bus_gp10b_fusa.c, hal/bus/bus_gp10b.h ]
+             hal/bus/bus_gp10b_fusa.c, hal/bus/bus_gp10b.h,
+             hal/bus/bus_gv11b_fusa.c, hal/bus/bus_gv11b.h ]
 
 bus:
   safe: no

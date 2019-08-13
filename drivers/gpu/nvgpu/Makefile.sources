@@ -165,6 +165,7 @@ srcs += hal/mm/mm_gv11b_fusa.c \
 	hal/bus/bus_gk20a_fusa.c \
 	hal/bus/bus_gm20b_fusa.c \
 	hal/bus/bus_gp10b_fusa.c \
+	hal/bus/bus_gv11b_fusa.c \
 	hal/ce/ce_gp10b_fusa.c \
 	hal/ce/ce_gv11b_fusa.c \
 	hal/class/class_gm20b_fusa.c \

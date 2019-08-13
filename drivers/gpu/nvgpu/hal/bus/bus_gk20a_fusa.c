@@ -44,6 +44,10 @@ void gk20a_bus_init_hw(struct gk20a *g)
 	}
 
 	gk20a_writel(g, bus_intr_en_0_r(), intr_en_mask);
+
+	if (g->ops.bus.configure_debug_bus != NULL) {
+		g->ops.bus.configure_debug_bus(g);
+	}
 }
 
 void gk20a_bus_isr(struct gk20a *g)

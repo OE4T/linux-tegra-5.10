@@ -104,4 +104,8 @@
 #define bus_intr_en_0_pri_squash_m()                           (U32(0x1U) << 1U)
 #define bus_intr_en_0_pri_fecserr_m()                          (U32(0x1U) << 2U)
 #define bus_intr_en_0_pri_timeout_m()                          (U32(0x1U) << 3U)
+#define bus_debug_sel_0_r()                                        (0x000010a0U)
+#define bus_debug_sel_1_r()                                        (0x000010a4U)
+#define bus_debug_sel_2_r()                                        (0x000010a8U)
+#define bus_debug_sel_3_r()                                        (0x000010acU)
 #endif

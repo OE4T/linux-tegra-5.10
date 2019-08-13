@@ -55,6 +55,7 @@
 #include "hal/bus/bus_gk20a.h"
 #include "hal/bus/bus_gp10b.h"
 #include "hal/bus/bus_gm20b.h"
+#include "hal/bus/bus_gv11b.h"
 #include "hal/ce/ce_gv11b.h"
 #include "hal/class/class_gv11b.h"
 #include "hal/priv_ring/priv_ring_gm20b.h"
@@ -1298,6 +1299,7 @@ static const struct gpu_ops gv11b_ops = {
 		.isr = gk20a_bus_isr,
 		.bar1_bind = gm20b_bus_bar1_bind,
 		.bar2_bind = gp10b_bus_bar2_bind,
+		.configure_debug_bus = gv11b_bus_configure_debug_bus,
 #ifdef CONFIG_NVGPU_DGPU
 		.set_bar0_window = gk20a_bus_set_bar0_window,
 #endif
