@@ -10,8 +10,6 @@ gv11b_fb_write_mmu_fault_buffer_size
 find_first_bit
 find_first_zero_bit
 find_next_bit
-gk20a_runlist_get_ch_entry
-gk20a_runlist_get_tsg_entry
 gk20a_mm_fb_flush
 gk20a_ramin_alloc_size
 gk20a_ramin_base_shift

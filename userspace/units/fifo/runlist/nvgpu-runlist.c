@@ -31,6 +31,50 @@
 
 #include "hal/fifo/runlist_ram_gk20a.h"
 #include "hal/fifo/tsg_gk20a.h"
+#include "nvgpu/hw/gk20a/hw_ram_gk20a.h"
+
+#define RL_MAX_TIMESLICE_TIMEOUT ram_rl_entry_timeslice_timeout_v(U32_MAX)
+#define RL_MAX_TIMESLICE_SCALE ram_rl_entry_timeslice_scale_v(U32_MAX)
+
+/*
+ * This helper function mimics the non-FUSA gk20a_runlist_get_tsg_entry
+ * function that has a simpler logic than other chips but is sufficient for
+ * runlist test purposes.
+ */
+static void generic_runlist_get_tsg_entry(struct nvgpu_tsg *tsg,
+		u32 *runlist, u32 timeslice)
+{
+	u32 timeout = timeslice;
+	u32 scale = 0U;
+
+	while (timeout > RL_MAX_TIMESLICE_TIMEOUT) {
+		timeout >>= 1U;
+		scale++;
+	}
+
+	if (scale > RL_MAX_TIMESLICE_SCALE) {
+		timeout = RL_MAX_TIMESLICE_TIMEOUT;
+		scale = RL_MAX_TIMESLICE_SCALE;
+	}
+
+	runlist[0] = ram_rl_entry_id_f(tsg->tsgid) |
+			ram_rl_entry_type_tsg_f() |
+			ram_rl_entry_tsg_length_f(tsg->num_active_channels) |
+			ram_rl_entry_timeslice_scale_f(scale) |
+			ram_rl_entry_timeslice_timeout_f(timeout);
+	runlist[1] = 0;
+}
+
+/*
+ * This helper function mimics the non-FUSA gk20a_runlist_get_ch_entry
+ * function that has a simpler logic than other chips but is sufficient for
+ * runlist test purposes.
+ */
+static void generic_runlist_get_ch_entry(struct nvgpu_channel *ch, u32 *runlist)
+{
+	runlist[0] = ram_rl_entry_chid_f(ch->chid);
+	runlist[1] = 0;
+}
 
 static void setup_fifo(struct gk20a *g, unsigned long *tsg_map,
 		unsigned long *ch_map, struct nvgpu_tsg *tsgs,
@@ -68,8 +112,8 @@ static void setup_fifo(struct gk20a *g, unsigned long *tsg_map,
 	 * entries are enough. The logic is same across chips.
 	 */
 	f->runlist_entry_size = 2 * sizeof(u32);
-	g->ops.runlist.get_tsg_entry = gk20a_runlist_get_tsg_entry;
-	g->ops.runlist.get_ch_entry = gk20a_runlist_get_ch_entry;
+	g->ops.runlist.get_tsg_entry = generic_runlist_get_tsg_entry;
+	g->ops.runlist.get_ch_entry = generic_runlist_get_ch_entry;
 	g->ops.tsg.default_timeslice_us = nvgpu_tsg_default_timeslice_us;
 
 	g->runlist_interleave = interleave;

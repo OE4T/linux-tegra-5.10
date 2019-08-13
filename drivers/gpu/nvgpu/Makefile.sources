@@ -145,9 +145,7 @@ srcs += common/utils/assert.c \
 	hal/init/hal_gv11b_litter.c \
 	hal/init/hal_init.c \
 	hal/power_features/cg/gv11b_gating_reglist.c \
-	hal/fifo/runlist_fifo_gk20a.c \
 	hal/fifo/runlist_fifo_gv11b.c \
-	hal/fifo/runlist_ram_gk20a.c \
 	hal/fifo/userd_gk20a.c \
 	hal/tpc/tpc_gv11b.c \
 	hal/sync/syncpt_cmdbuf_gv11b.c
@@ -300,6 +298,8 @@ srcs += hal/init/hal_gp10b.c \
 	hal/fifo/mmu_fault_gm20b.c \
 	hal/fifo/mmu_fault_gp10b.c \
 	hal/fifo/ctxsw_timeout_gk20a.c \
+	hal/fifo/runlist_fifo_gk20a.c \
+	hal/fifo/runlist_ram_gk20a.c \
 	hal/netlist/netlist_gm20b.c \
 	hal/netlist/netlist_gp10b.c \
 	hal/sync/syncpt_cmdbuf_gk20a.c \

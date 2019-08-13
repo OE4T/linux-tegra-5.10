@@ -126,4 +126,81 @@ void gk20a_runlist_write_state(struct gk20a *g, u32 runlists_mask,
 	nvgpu_writel(g, fifo_sched_disable_r(), reg_val);
 }
 
+#ifdef CONFIG_NVGPU_CHANNEL_TSG_SCHEDULING
 /* trigger host preempt of GR pending load ctx if that ctx is not for ch */
+int gk20a_fifo_reschedule_preempt_next(struct nvgpu_channel *ch,
+		bool wait_preempt)
+{
+	struct gk20a *g = ch->g;
+	struct nvgpu_runlist_info *runlist =
+		g->fifo.runlist_info[ch->runlist_id];
+	int ret = 0;
+	u32 gr_eng_id = 0;
+	u32 fecsstat0 = 0, fecsstat1 = 0;
+	u32 preempt_id;
+	u32 preempt_type = 0;
+	struct nvgpu_engine_status_info engine_status;
+
+	if (1U != nvgpu_engine_get_ids(
+		g, &gr_eng_id, 1, NVGPU_ENGINE_GR)) {
+		return ret;
+	}
+	if ((runlist->eng_bitmask & BIT32(gr_eng_id)) == 0U) {
+		return ret;
+	}
+
+	if (wait_preempt) {
+		u32 val = nvgpu_readl(g, fifo_preempt_r());
+
+		if ((val & fifo_preempt_pending_true_f()) != 0U) {
+			return ret;
+		}
+	}
+
+	fecsstat0 = g->ops.gr.falcon.read_fecs_ctxsw_mailbox(g,
+			NVGPU_GR_FALCON_FECS_CTXSW_MAILBOX0);
+	g->ops.engine_status.read_engine_status_info(g, gr_eng_id,
+							&engine_status);
+	if (nvgpu_engine_status_is_ctxsw_switch(&engine_status)) {
+		nvgpu_engine_status_get_next_ctx_id_type(&engine_status,
+			&preempt_id, &preempt_type);
+	} else {
+		return ret;
+	}
+	if ((preempt_id == ch->tsgid) && (preempt_type != 0U)) {
+		return ret;
+	}
+	fecsstat1 = g->ops.gr.falcon.read_fecs_ctxsw_mailbox(g,
+			NVGPU_GR_FALCON_FECS_CTXSW_MAILBOX0);
+	if (fecsstat0 != FECS_MAILBOX_0_ACK_RESTORE ||
+		fecsstat1 != FECS_MAILBOX_0_ACK_RESTORE) {
+		/* preempt useless if FECS acked save and started restore */
+		return ret;
+	}
+
+	g->ops.fifo.preempt_trigger(g, preempt_id, preempt_type != 0U);
+#ifdef TRACEPOINTS_ENABLED
+	trace_gk20a_reschedule_preempt_next(ch->chid, fecsstat0,
+		engine_status.reg_data, fecsstat1,
+		g->ops.gr.falcon.read_fecs_ctxsw_mailbox(g,
+			NVGPU_GR_FALCON_FECS_CTXSW_MAILBOX0),
+		nvgpu_readl(g, fifo_preempt_r()));
+#endif
+	if (wait_preempt) {
+		if (g->ops.fifo.is_preempt_pending(g, preempt_id,
+			preempt_type) != 0) {
+				nvgpu_err(g, "fifo preempt timed out");
+				/*
+				 * This function does not care if preempt
+				 * times out since it is here only to improve
+				 * latency. If a timeout happens, it will be
+				 * handled by other fifo handling code.
+				 */
+		}
+	}
+#ifdef TRACEPOINTS_ENABLED
+	trace_gk20a_reschedule_preempted_next(ch->chid);
+#endif
+	return ret;
+}
+#endif
