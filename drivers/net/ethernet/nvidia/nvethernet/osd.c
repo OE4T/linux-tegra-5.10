@@ -311,7 +311,8 @@ void osd_transmit_complete(void *priv, void *buffer, unsigned long dmaaddr,
 		txq = netdev_get_tx_queue(ndev, qinx);
 
 		if (netif_tx_queue_stopped(txq) &&
-		    ether_avail_txdesc_cnt(tx_ring) >= TX_DESC_THRESHOLD) {
+		    (ether_avail_txdesc_cnt(tx_ring) >
+		    ETHER_TX_DESC_THRESHOLD)) {
 			netif_tx_wake_queue(txq);
 			netdev_dbg(ndev, "Tx ring[%d] - waking Txq\n", chan);
 		}

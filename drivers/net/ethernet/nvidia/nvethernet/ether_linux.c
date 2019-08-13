@@ -1385,7 +1385,7 @@ static int ether_tx_swcx_alloc(struct device *dev,
 	struct skb_frag_struct *frag;
 	unsigned int page_idx, page_offset;
 	unsigned int max_data_len_per_txd = (unsigned int)
-		ETHER_MAX_DATA_LEN_PER_TXD_BUF; // 4KB
+					ETHER_TX_MAX_BUFF_SIZE;
 
 	memset(tx_pkt_cx, 0, sizeof(*tx_pkt_cx));
 
@@ -1503,10 +1503,9 @@ static int ether_tx_swcx_alloc(struct device *dev,
 	for (i = 0; i < num_frags; i++) {
 		offset = 0;
 		frag = &skb_shinfo(skb)->frags[i];
-		len = frag->size;
+		len = skb_frag_size(frag);
 		while (len) {
 			tx_swcx = tx_ring->tx_swcx + cur_tx_idx;
-
 			if (unlikely(tx_swcx->len)) {
 				goto desc_not_free;
 			}
@@ -1639,7 +1638,7 @@ static int ether_start_xmit(struct sk_buff *skb, struct net_device *ndev)
 
 	osi_hw_transmit(osi_dma, chan);
 
-	if (ether_avail_txdesc_cnt(tx_ring) < TX_DESC_THRESHOLD) {
+	if (ether_avail_txdesc_cnt(tx_ring) <= ETHER_TX_DESC_THRESHOLD) {
 		netif_stop_subqueue(ndev, qinx);
 		netdev_dbg(ndev, "Tx ring[%d] insufficient desc.\n", chan);
 	}

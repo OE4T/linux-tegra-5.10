@@ -120,14 +120,20 @@
 /**
  * @brief Maximum buffer length per DMA descriptor (4KB).
  */
-#define ETHER_MAX_DATA_LEN_PER_TXD_BUF BIT(12)
+#define ETHER_TX_MAX_BUFF_SIZE	0x3FFF
 
-/**
- * @brief In-case of TSO/GSO, Tx ring needs atleast MAX_SKB_FRAGS +
- * 	  one context descriptor +
- * 	  one descriptor for header/linear buffer payload
+/* Descriptors required for maximum contiguous TSO/GSO packet
+ * one extra descriptor if there is linear buffer payload
  */
-#define TX_DESC_THRESHOLD	(MAX_SKB_FRAGS + 2)
+#define ETHER_TX_MAX_SPLIT	((GSO_MAX_SIZE / ETHER_TX_MAX_BUFF_SIZE) + 1)
+
+/* Maximum possible descriptors needed for an SKB:
+ * - Maximum number of SKB frags
+ * - Maximum descriptors for contiguous TSO/GSO packet
+ * - Possible context descriptor
+ * - Possible TSO header descriptor
+ */
+#define ETHER_TX_DESC_THRESHOLD	(MAX_SKB_FRAGS + ETHER_TX_MAX_SPLIT + 2)
 
 /**
  *@brief Returns count of available transmit descriptors
