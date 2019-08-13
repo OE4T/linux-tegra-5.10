@@ -56,7 +56,7 @@ void nvgpu_gr_obj_ctx_commit_inst(struct gk20a *g, struct nvgpu_mem *inst_block,
 	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_TSG_SUBCONTEXTS)) {
 		nvgpu_gr_subctx_load_ctx_header(g, subctx, gr_ctx, gpu_va);
 
-		ctxheader = nvgpu_gr_subctx_get_ctx_header(g, subctx);
+		ctxheader = nvgpu_gr_subctx_get_ctx_header(subctx);
 		nvgpu_gr_obj_ctx_commit_inst_gpu_va(g, inst_block,
 			ctxheader->gpu_va);
 	} else {

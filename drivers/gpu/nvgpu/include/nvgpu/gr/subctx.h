@@ -43,8 +43,7 @@ void nvgpu_gr_subctx_load_ctx_header(struct gk20a *g,
 void nvgpu_gr_subctx_set_patch_ctx(struct gk20a *g,
 	struct nvgpu_gr_subctx *subctx, struct nvgpu_gr_ctx *gr_ctx);
 
-struct nvgpu_mem *nvgpu_gr_subctx_get_ctx_header(struct gk20a *g,
-	struct nvgpu_gr_subctx *subctx);
+struct nvgpu_mem *nvgpu_gr_subctx_get_ctx_header(struct nvgpu_gr_subctx *subctx);
 
 #ifdef CONFIG_NVGPU_GRAPHICS
 void nvgpu_gr_subctx_zcull_setup(struct gk20a *g, struct nvgpu_gr_subctx *subctx,

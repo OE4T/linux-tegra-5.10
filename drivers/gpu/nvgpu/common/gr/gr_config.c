@@ -54,8 +54,7 @@ static void gr_config_init_pes_tpc(struct gk20a *g,
 	}
 }
 
-static void gr_config_init_gpc_skip_mask(struct gk20a *g,
-					struct nvgpu_gr_config *config,
+static void gr_config_init_gpc_skip_mask(struct nvgpu_gr_config *config,
 					u32 gpc_index)
 {
 	u32 pes_heavy_index;
@@ -327,7 +326,7 @@ struct nvgpu_gr_config *nvgpu_gr_config_init(struct gk20a *g)
 		config->ppc_count = nvgpu_safe_add_u32(config->ppc_count,
 					config->gpc_ppc_count[gpc_index]);
 
-		gr_config_init_gpc_skip_mask(g, config, gpc_index);
+		gr_config_init_gpc_skip_mask(config, gpc_index);
 	}
 
 	gr_config_log_info(g, config);

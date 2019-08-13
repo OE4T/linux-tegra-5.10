@@ -720,7 +720,7 @@ void nvgpu_gr_intr_handle_semaphore_pending(struct gk20a *g,
 }
 
 static u32 gr_intr_handle_exception_interrupts(struct gk20a *g,
-		u32 gr_intr, u32 *clear_intr,
+		u32 *clear_intr,
 		struct nvgpu_tsg *tsg, u32 *global_esr,
 		struct nvgpu_gr_intr_info *intr_info,
 		struct nvgpu_gr_isr_data *isr_data)
@@ -949,8 +949,8 @@ int nvgpu_gr_intr_stall_isr(struct gk20a *g)
 	need_reset |= gr_intr_handle_error_interrupts(g, gr_intr,
 				&clear_intr, &intr_info, &isr_data);
 
-	need_reset |= gr_intr_handle_exception_interrupts(g, gr_intr,
-			&clear_intr, tsg, &global_esr, &intr_info, &isr_data);
+	need_reset |= gr_intr_handle_exception_interrupts(g, &clear_intr,
+				tsg, &global_esr, &intr_info, &isr_data);
 
 	if (need_reset != 0U) {
 		nvgpu_rc_gr_fault(g, tsg, isr_data.ch);

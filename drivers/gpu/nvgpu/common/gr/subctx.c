@@ -123,8 +123,7 @@ void nvgpu_gr_subctx_set_patch_ctx(struct gk20a *g,
 		 nvgpu_gr_ctx_get_patch_ctx_mem(gr_ctx)->gpu_va);
 }
 
-struct nvgpu_mem *nvgpu_gr_subctx_get_ctx_header(struct gk20a *g,
-		struct nvgpu_gr_subctx *subctx)
+struct nvgpu_mem *nvgpu_gr_subctx_get_ctx_header(struct nvgpu_gr_subctx *subctx)
 {
 	return &subctx->ctx_header;
 }
