@@ -23,6 +23,19 @@
 #include <nvgpu/bug.h>
 #include <nvgpu/thread.h>
 #include <nvgpu/os_sched.h>
+#ifdef NVGPU_UNITTEST_FAULT_INJECTION_ENABLEMENT
+#include <nvgpu/posix/posix-fault-injection.h>
+#endif
+
+#ifdef NVGPU_UNITTEST_FAULT_INJECTION_ENABLEMENT
+_Thread_local struct nvgpu_posix_fault_inj thread_fi = {
+					.enabled = false,.counter = 0U,};
+
+struct nvgpu_posix_fault_inj *nvgpu_thread_get_fault_injection(void)
+{
+	return &thread_fi;
+}
+#endif
 
 /**
  * Use pthreads to mostly emulate the Linux kernel APIs. There are some things
@@ -60,6 +73,12 @@ int nvgpu_thread_create(struct nvgpu_thread *thread,
 {
 	pthread_attr_t attr;
 	int ret;
+
+#ifdef NVGPU_UNITTEST_FAULT_INJECTION_ENABLEMENT
+	if (nvgpu_posix_fault_injection_handle_call(&thread_fi)) {
+		return -EINVAL;
+	}
+#endif
 
 	(void) memset(thread, 0, sizeof(*thread));
 

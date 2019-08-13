@@ -57,6 +57,10 @@ struct nvgpu_thread {
 	char tname[NVGPU_THREAD_POSIX_MAX_NAMELEN];
 };
 
+#ifdef NVGPU_UNITTEST_FAULT_INJECTION_ENABLEMENT
+struct nvgpu_posix_fault_inj *nvgpu_thread_get_fault_injection(void);
+#endif
+
 int nvgpu_thread_create_priority(struct nvgpu_thread *thread,
 			void *data, int (*threadfn)(void *data),
 			int priority, const char *name);

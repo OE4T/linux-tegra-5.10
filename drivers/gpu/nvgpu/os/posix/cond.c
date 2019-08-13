@@ -22,10 +22,29 @@
 
 #include <nvgpu/cond.h>
 #include <nvgpu/static_analysis.h>
+#ifdef NVGPU_UNITTEST_FAULT_INJECTION_ENABLEMENT
+#include <nvgpu/posix/posix-fault-injection.h>
+#endif
+
+#ifdef NVGPU_UNITTEST_FAULT_INJECTION_ENABLEMENT
+_Thread_local struct nvgpu_posix_fault_inj cond_fi = {
+					.enabled = false,.counter = 0U,};
+
+struct nvgpu_posix_fault_inj *nvgpu_cond_get_fault_injection(void)
+{
+	return &cond_fi;
+}
+#endif
 
 int nvgpu_cond_init(struct nvgpu_cond *cond)
 {
 	int ret;
+
+#ifdef NVGPU_UNITTEST_FAULT_INJECTION_ENABLEMENT
+	if (nvgpu_posix_fault_injection_handle_call(&cond_fi)) {
+		return -EINVAL;
+	}
+#endif
 
 	ret = pthread_condattr_init(&cond->attr);
 	if (ret != 0) {

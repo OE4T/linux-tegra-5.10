@@ -35,6 +35,10 @@ struct nvgpu_cond {
 	pthread_condattr_t attr;
 };
 
+#ifdef NVGPU_UNITTEST_FAULT_INJECTION_ENABLEMENT
+struct nvgpu_posix_fault_inj *nvgpu_cond_get_fault_injection(void);
+#endif
+
 int nvgpu_cond_timedwait(struct nvgpu_cond *c, unsigned int *ms);
 void nvgpu_cond_signal_locked(struct nvgpu_cond *cond);
 int nvgpu_cond_broadcast_locked(struct nvgpu_cond *cond);
