@@ -39,6 +39,7 @@ u32 gm20b_gr_falcon_gpccs_base_addr(void);
 void gm20b_gr_falcon_fecs_dump_stats(struct gk20a *g);
 u32 gm20b_gr_falcon_get_fecs_ctx_state_store_major_rev_id(struct gk20a *g);
 u32 gm20b_gr_falcon_get_fecs_ctxsw_mailbox_size(void);
+#ifdef CONFIG_NVGPU_GR_FALCON_NON_SECURE_BOOT
 void gm20b_gr_falcon_load_gpccs_dmem(struct gk20a *g,
 			const u32 *ucode_u32_data, u32 ucode_u32_size);
 void gm20b_gr_falcon_load_fecs_dmem(struct gk20a *g,
@@ -47,10 +48,12 @@ void gm20b_gr_falcon_load_gpccs_imem(struct gk20a *g,
 			const u32 *ucode_u32_data, u32 ucode_u32_size);
 void gm20b_gr_falcon_load_fecs_imem(struct gk20a *g,
 			const u32 *ucode_u32_data, u32 ucode_u32_size);
+void gm20b_gr_falcon_start_ucode(struct gk20a *g);
+void gm20b_gr_falcon_fecs_host_int_enable(struct gk20a *g);
+#endif
 #ifdef CONFIG_NVGPU_SIM
 void gm20b_gr_falcon_configure_fmodel(struct gk20a *g);
 #endif
-void gm20b_gr_falcon_start_ucode(struct gk20a *g);
 void gm20b_gr_falcon_start_gpccs(struct gk20a *g);
 void gm20b_gr_falcon_start_fecs(struct gk20a *g);
 u32 gm20b_gr_falcon_get_gpccs_start_reg_offset(void);
@@ -77,7 +80,6 @@ u32 gm20b_gr_falcon_get_fecs_current_ctx_data(struct gk20a *g,
 						struct nvgpu_mem *inst_block);
 int gm20b_gr_falcon_init_ctx_state(struct gk20a *g,
 		struct nvgpu_gr_falcon_query_sizes *sizes);
-void gm20b_gr_falcon_fecs_host_int_enable(struct gk20a *g);
 u32 gm20b_gr_falcon_read_fecs_ctxsw_status0(struct gk20a *g);
 u32 gm20b_gr_falcon_read_fecs_ctxsw_status1(struct gk20a *g);
 
