@@ -74,7 +74,7 @@ u32  gv11b_fb_read_mmu_fault_info(struct gk20a *g);
 u32  gv11b_fb_read_mmu_fault_status(struct gk20a *g);
 void gv11b_fb_write_mmu_fault_status(struct gk20a *g, u32 reg_val);
 
-u32 gv11b_fb_get_replay_cancel_global_val(struct gk20a *g);
-u32 gv11b_fb_get_replay_start_ack_all(struct gk20a *g);
+u32 gv11b_fb_get_replay_cancel_global_val(void);
+u32 gv11b_fb_get_replay_start_ack_all(void);
 
 #endif /* NVGPU_FB_MMU_FAULT_GV11B_H */

@@ -651,12 +651,12 @@ void gv11b_fb_handle_mmu_fault(struct gk20a *g, u32 niso_intr)
 			fb_mmu_fault_status_valid_clear_f());
 }
 
-u32 gv11b_fb_get_replay_cancel_global_val(struct gk20a *g)
+u32 gv11b_fb_get_replay_cancel_global_val(void)
 {
 	return fb_mmu_invalidate_replay_cancel_global_f();
 }
 
-u32 gv11b_fb_get_replay_start_ack_all(struct gk20a *g)
+u32 gv11b_fb_get_replay_start_ack_all(void)
 {
 	return fb_mmu_invalidate_replay_start_ack_all_f();
 }

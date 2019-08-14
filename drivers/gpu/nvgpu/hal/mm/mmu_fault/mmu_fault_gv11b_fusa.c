@@ -423,17 +423,17 @@ void gv11b_mm_mmu_fault_handle_mmu_fault_common(struct gk20a *g,
 #endif
 			if (err != 0) {
 				*invalidate_replay_val |=
-					gv11b_fb_get_replay_cancel_global_val(g);
+					gv11b_fb_get_replay_cancel_global_val();
 			} else {
 #ifdef CONFIG_NVGPU_REPLAYABLE_FAULT
 				*invalidate_replay_val |=
-					gv11b_fb_get_replay_start_ack_all(g);
+					gv11b_fb_get_replay_start_ack_all();
 #endif
 			}
 		} else {
 			/* cancel faults other than invalid pte */
 			*invalidate_replay_val |=
-				gv11b_fb_get_replay_cancel_global_val(g);
+				gv11b_fb_get_replay_cancel_global_val();
 		}
 		/*
 		 * refch in mmufault is assigned at the time of copying
