@@ -80,8 +80,6 @@ NVGPU_COMMON_CFLAGS             += -DCONFIG_NVGPU_KERNEL_MODE_SUBMIT
 # Enable fences for safety build till until we switch to user mode submits only
 CONFIG_NVGPU_FENCE              := 1
 
-NVGPU_COMMON_CFLAGS             += -DCONFIG_NVGPU_FIFO_ENGINE_ACTIVITY
-
 # Enable Channel/TSG Scheduling for safety build until devctl whitelisting is done
 CONFIG_NVGPU_CHANNEL_TSG_SCHEDULING  := 1
 NVGPU_COMMON_CFLAGS                  += -DCONFIG_NVGPU_CHANNEL_TSG_SCHEDULING
@@ -200,6 +198,8 @@ NVGPU_COMMON_CFLAGS             += -DCONFIG_NVGPU_SW_SEMAPHORE
 # Enable powergate lib for normal build
 CONFIG_NVGPU_USE_POWERGATE_LIB  := 1
 NVGPU_COMMON_CFLAGS             += -DCONFIG_NVGPU_USE_POWERGATE_LIB
+
+NVGPU_COMMON_CFLAGS             += -DCONFIG_NVGPU_FIFO_ENGINE_ACTIVITY
 
 endif
 endif
