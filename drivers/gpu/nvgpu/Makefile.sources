@@ -89,7 +89,6 @@ srcs += common/utils/assert.c \
 	common/mm/allocators/nvgpu_allocator.c \
 	common/mm/allocators/bitmap_allocator.c \
 	common/mm/allocators/buddy_allocator.c \
-	common/mm/allocators/lockless_allocator.c \
 	common/mm/gmmu/page_table.c \
 	common/mm/gmmu/pd_cache.c \
 	common/mm/as.c \
@@ -397,7 +396,8 @@ endif
 endif
 
 ifeq ($(CONFIG_NVGPU_FENCE),1)
-srcs += common/fence/fence.c
+srcs += common/fence/fence.c \
+	common/mm/allocators/lockless_allocator.c
 endif
 
 ifeq ($(CONFIG_NVGPU_FECS_TRACE),1)

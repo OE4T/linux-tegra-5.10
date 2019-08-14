@@ -259,6 +259,7 @@ int nvgpu_allocator_init(struct gk20a *g, struct nvgpu_allocator *na,
 			      u64 base, u64 length, u64 blk_size, u64 max_order,
 			      u64 flags, enum nvgpu_allocator_type alloc_type);
 
+#ifdef CONFIG_NVGPU_FENCE
 /*
  * Lockless allocatior initializers.
  * Note: This allocator can only allocate fixed-size structures of a
@@ -267,6 +268,7 @@ int nvgpu_allocator_init(struct gk20a *g, struct nvgpu_allocator *na,
 int nvgpu_lockless_allocator_init(struct gk20a *g, struct nvgpu_allocator *na,
 				  const char *name, u64 base, u64 length,
 				  u64 blk_size, u64 flags);
+#endif
 
 #define GPU_BALLOC_MAX_ORDER		63U
 
