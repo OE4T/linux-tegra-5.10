@@ -159,8 +159,7 @@ static const char *aperture_name[APERTURE_MAX_ENUM + 1] = {
 	[APERTURE_MAX_ENUM]	= "UNKNOWN",
 };
 
-static inline const char *nvgpu_aperture_str(struct gk20a *g,
-					     enum nvgpu_aperture aperture)
+static inline const char *nvgpu_aperture_str(enum nvgpu_aperture aperture)
 {
 	if ((aperture < APERTURE_INVALID) || (aperture >= APERTURE_MAX_ENUM)) {
 		return aperture_name[APERTURE_MAX_ENUM];
