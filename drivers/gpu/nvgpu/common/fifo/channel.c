@@ -1466,7 +1466,15 @@ void nvgpu_channel_update(struct nvgpu_channel *c)
 bool nvgpu_channel_update_and_check_ctxsw_timeout(struct nvgpu_channel *ch,
 		u32 timeout_delta_ms, bool *progress)
 {
-	u32 gpfifo_get = channel_update_gpfifo_get(ch->g, ch);
+	u32 gpfifo_get;
+
+	if (ch->usermode_submit_enabled) {
+		ch->ctxsw_timeout_accumulated_ms += timeout_delta_ms;
+		*progress = false;
+		goto done;
+	}
+
+	gpfifo_get = channel_update_gpfifo_get(ch->g, ch);
 
 	if (gpfifo_get == ch->ctxsw_timeout_gpfifo_get) {
 		/* didn't advance since previous ctxsw timeout check */
@@ -1480,6 +1488,7 @@ bool nvgpu_channel_update_and_check_ctxsw_timeout(struct nvgpu_channel *ch,
 
 	ch->ctxsw_timeout_gpfifo_get = gpfifo_get;
 
+done:
 	return nvgpu_is_timeouts_enabled(ch->g) &&
 		ch->ctxsw_timeout_accumulated_ms > ch->ctxsw_timeout_max_ms;
 }
