@@ -163,6 +163,10 @@ int nvgpu_gr_fecs_trace_deinit(struct gk20a *g)
 {
 	struct nvgpu_gr_fecs_trace *trace = g->fecs_trace;
 
+	if (trace == NULL) {
+		return 0;
+	}
+
 	/*
 	 * Check if tracer was enabled before attempting to stop the
 	 * tracer thread.

@@ -48,15 +48,21 @@ void nvgpu_pmu_pstate_deinit(struct gk20a *g)
 {
 	pmgr_pmu_free_pmupstate(g);
 	nvgpu_therm_pmu_free_pmupstate(g, g->pmu);
-	nvgpu_perf_pmu_free_pmupstate(g);
-	nvgpu_clk_domain_free_pmupstate(g);
-	nvgpu_clk_prog_free_pmupstate(g);
-	nvgpu_clk_vf_point_free_pmupstate(g);
-	nvgpu_clk_freq_domain_free_pmupstate(g);
-	nvgpu_clk_freq_controller_free_pmupstate(g);
-	nvgpu_clk_fll_free_pmupstate(g);
-	nvgpu_clk_vin_free_pmupstate(g);
-	nvgpu_clk_free_pmupstate(g);
+
+	if (g->perf_pmu != NULL) {
+		nvgpu_perf_pmu_free_pmupstate(g);
+	}
+
+	if (g->pmu->clk_pmu != NULL) {
+		nvgpu_clk_domain_free_pmupstate(g);
+		nvgpu_clk_prog_free_pmupstate(g);
+		nvgpu_clk_vf_point_free_pmupstate(g);
+		nvgpu_clk_freq_domain_free_pmupstate(g);
+		nvgpu_clk_freq_controller_free_pmupstate(g);
+		nvgpu_clk_fll_free_pmupstate(g);
+		nvgpu_clk_vin_free_pmupstate(g);
+		nvgpu_clk_free_pmupstate(g);
+	}
 
 	if (g->ops.clk.mclk_deinit != NULL) {
 		g->ops.clk.mclk_deinit(g);
