@@ -3,6 +3,10 @@ ccflags-y += -I$(srctree.nvidia)/drivers/video/tegra/host
 ccflags-y += -Idrivers/video/tegra/host
 ccflags-y += -Werror
 
+ifeq ($(CONFIG_TEGRA_T23X_GRHOST),y)
+ccflags-y += -I$(srctree.nvidia-t23x)/drivers/video/tegra/host
+endif
+
 nvhost-host1x-objs  = \
 	host1x.o
 

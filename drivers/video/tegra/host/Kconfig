@@ -2,7 +2,7 @@ if ARCH_TEGRA
 
 config TEGRA_T23X_GRHOST
 	tristate "Tegra 23x graphics host driver"
-	depends on TEGRA_GRHOST && ARCH_TEGRA_19x_SOC
+	depends on TEGRA_GRHOST && ARCH_TEGRA_23x_SOC
 	default y
 	help
 	  Driver for the Tegra graphics host hardware.
