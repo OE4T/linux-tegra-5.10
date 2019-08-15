@@ -407,9 +407,45 @@ void nvhost_flcn_ctxtsw_init(struct platform_device *pdev)
 			 flcn_itfen_ctxen_enable_f()));
 }
 
+static u32 nvhost_flcn_generate_debuginfo_poison_v1(void)
+{
+	/* Fields (version 1):
+	 * - Bits 0-3:   Platform ID: 0=si, 1=qt, 2=fpga, 3=vdk
+	 * - Bits 28-31: Field format version: 1=(this version)
+	 */
+	const u32 field_fmt_ver = 0x1;
+
+	/* Silicon (default value) */
+	u32 platform_id = 0x0;
+
+	/* Special values for alternative platforms */
+	if (tegra_platform_is_qt())
+		platform_id = 0x1;
+	else if (tegra_platform_is_fpga())
+		platform_id = 0x2;
+	else if (tegra_platform_is_vdk())
+		platform_id = 0x3;
+
+	return ((field_fmt_ver << 28) | (platform_id & 0xf));
+}
+
+static u32 nvhost_flcn_generate_debuginfo_poison(void)
+{
+	/* This value allows passing extra debug information
+	 * to the engine before boot.
+	 */
+
+	/* Use version 1 */
+	return nvhost_flcn_generate_debuginfo_poison_v1();
+}
+
 int nvhost_flcn_start(struct platform_device *pdev, u32 bootvec)
 {
 	int err = 0;
+
+	/* write poison before falcon boot */
+	host1x_writel(pdev, flcn_debuginfo_r(),
+		      nvhost_flcn_generate_debuginfo_poison());
 
 	/* boot falcon */
 	dev_dbg(&pdev->dev, "flcn_boot: start falcon\n");
