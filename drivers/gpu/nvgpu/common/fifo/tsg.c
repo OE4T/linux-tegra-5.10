@@ -298,7 +298,7 @@ void nvgpu_tsg_unbind_channel_check_ctx_reload(struct nvgpu_tsg *tsg,
 	}
 }
 
-static void nvgpu_tsg_destroy(struct gk20a *g, struct nvgpu_tsg *tsg)
+static void nvgpu_tsg_destroy(struct nvgpu_tsg *tsg)
 {
 	nvgpu_mutex_destroy(&tsg->event_id_list_lock);
 }
@@ -332,7 +332,7 @@ void nvgpu_tsg_cleanup_sw(struct gk20a *g)
 	for (tsgid = 0; tsgid < f->num_channels; tsgid++) {
 		struct nvgpu_tsg *tsg = &f->tsg[tsgid];
 
-		nvgpu_tsg_destroy(g, tsg);
+		nvgpu_tsg_destroy(tsg);
 	}
 
 	nvgpu_vfree(g, f->tsg);

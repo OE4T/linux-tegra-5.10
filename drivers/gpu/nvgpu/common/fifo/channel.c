@@ -2251,8 +2251,8 @@ void nvgpu_channel_free_usermode_buffers(struct nvgpu_channel *c)
 	}
 }
 
-static bool nvgpu_channel_ctxsw_timeout_debug_dump_state(struct gk20a *g,
-		struct nvgpu_channel *ch)
+static bool nvgpu_channel_ctxsw_timeout_debug_dump_state(
+				struct nvgpu_channel *ch)
 {
 	bool verbose = false;
 	if (nvgpu_is_err_notifier_set(ch,
@@ -2282,7 +2282,7 @@ bool nvgpu_channel_mark_error(struct gk20a *g, struct nvgpu_channel *ch)
 {
 	bool verbose;
 
-	verbose = nvgpu_channel_ctxsw_timeout_debug_dump_state(g, ch);
+	verbose = nvgpu_channel_ctxsw_timeout_debug_dump_state(ch);
 	nvgpu_channel_set_has_timedout_and_wakeup_wqs(g, ch);
 
 	return verbose;
@@ -2375,7 +2375,7 @@ void nvgpu_channel_deterministic_unidle(struct gk20a *g)
 	nvgpu_rwsem_up_write(&g->deterministic_busy);
 }
 
-static void nvgpu_channel_destroy(struct gk20a *g, struct nvgpu_channel *c)
+static void nvgpu_channel_destroy(struct nvgpu_channel *c)
 {
 	nvgpu_mutex_destroy(&c->ioctl_lock);
 #ifdef CONFIG_NVGPU_KERNEL_MODE_SUBMIT
@@ -2409,7 +2409,7 @@ void nvgpu_channel_cleanup_sw(struct gk20a *g)
 			nvgpu_channel_kill(ch);
 		}
 
-		nvgpu_channel_destroy(g, ch);
+		nvgpu_channel_destroy(ch);
 	}
 
 	nvgpu_vfree(g, f->channel);
@@ -2498,7 +2498,7 @@ clean_up:
 	for (i = 0; i < chid; i++) {
 		struct nvgpu_channel *ch = &f->channel[i];
 
-		nvgpu_channel_destroy(g, ch);
+		nvgpu_channel_destroy(ch);
 	}
 	nvgpu_vfree(g, f->channel);
 	f->channel = NULL;

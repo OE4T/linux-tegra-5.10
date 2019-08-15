@@ -84,8 +84,7 @@ void nvgpu_rc_ctxsw_timeout(struct gk20a *g, u32 eng_bitmask,
 #endif
 }
 
-void nvgpu_rc_pbdma_fault(struct gk20a *g, struct nvgpu_fifo *f,
-			u32 pbdma_id, u32 error_notifier,
+void nvgpu_rc_pbdma_fault(struct gk20a *g, u32 pbdma_id, u32 error_notifier,
 			struct nvgpu_pbdma_status_info *pbdma_status)
 {
 #ifdef CONFIG_NVGPU_RECOVERY
