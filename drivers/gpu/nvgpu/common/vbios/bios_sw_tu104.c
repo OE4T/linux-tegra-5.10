@@ -36,6 +36,80 @@
 #define NV_PGC6_AON_SECURE_SCRATCH_GROUP_05_0_GFW_BOOT_PROGRESS_COMPLETED \
 		0xFFU
 
+#define NVGPU_PG189_MIN_VBIOS		0x90041800U
+
+#define NVGPU_PG189_0600_VBIOS		0x90047200U
+#define NVGPU_PG189_0601_VBIOS		0x90045a00U
+#define NVGPU_PG189_0610_VBIOS		0U
+
+struct nvgpu_vbios_board {
+	u16 board_id;
+	u32 vbios_version;
+};
+
+#define NVGPU_PG189_NUM_VBIOS_BOARDS	4U
+
+static struct nvgpu_vbios_board vbios_boards[NVGPU_PG189_NUM_VBIOS_BOARDS] = {
+	/* SKU 600 ES/CS, SKU 606*/
+	[0] = {
+		.board_id = 0x0068,
+		.vbios_version = NVGPU_PG189_0600_VBIOS,
+	},
+	/* SKU 600 QS */
+	[1] = {
+		.board_id = 0x0183,
+		.vbios_version = NVGPU_PG189_0600_VBIOS,
+	},
+	/* SKU 601 CS */
+	[2] = {
+		.board_id = 0x00E8,
+		.vbios_version = NVGPU_PG189_0601_VBIOS,
+	},
+	/* SKU 610 */
+	[3] = {
+		.board_id = 0x01a3,
+		.vbios_version = NVGPU_PG189_0610_VBIOS,
+	},
+};
+
+static int tu104_bios_verify_version(struct gk20a *g)
+{
+	struct nvgpu_vbios_board *board = NULL;
+	u32 i;
+
+	nvgpu_info(g, "VBIOS board id %04x", g->bios->vbios_board_id);
+
+	nvgpu_info(g, "VBIOS version %08x:%02x\n",
+		g->bios->vbios_version,
+		g->bios->vbios_oem_version);
+
+	if (g->bios->vbios_version < NVGPU_PG189_MIN_VBIOS) {
+		nvgpu_err(g, "unsupported VBIOS version %08x",
+			g->bios->vbios_version);
+		return -EINVAL;
+	}
+
+	for (i = 0; i < NVGPU_PG189_NUM_VBIOS_BOARDS; i++) {
+		if (g->bios->vbios_board_id == vbios_boards[i].board_id) {
+			board = &vbios_boards[i];
+		}
+	}
+
+	if (board == NULL) {
+		nvgpu_warn(g, "unknown board id %04x",
+			g->bios->vbios_board_id);
+		return 0;
+	}
+
+	if ((board->vbios_version != 0U) &&
+		(g->bios->vbios_version < board->vbios_version)) {
+		nvgpu_warn(g, "VBIOS version should be at least %08x",
+			board->vbios_version);
+	}
+
+	return 0;
+}
+
 int tu104_bios_verify_devinit(struct gk20a *g)
 {
 	struct nvgpu_timeout timeout;
@@ -80,6 +154,7 @@ void nvgpu_tu104_bios_sw_init(struct gk20a *g,
 		struct nvgpu_bios *bios)
 {
 	bios->init = tu104_bios_init;
+	bios->verify_version = tu104_bios_verify_version;
 	bios->preos_wait_for_halt = NULL;
 	bios->preos_reload_check = NULL;
 	bios->preos_bios = NULL;

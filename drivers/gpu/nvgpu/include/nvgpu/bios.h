@@ -1239,6 +1239,7 @@ struct bios_bit {
 #define TOKEN_ID_CLOCK_PTRS                     0x43U
 #define TOKEN_ID_VIRT_PTRS                      0x56U
 #define TOKEN_ID_MEMORY_PTRS                    0x4DU
+#define TOKEN_ID_BIOS_BOARD_ID_PTRS             0x69U
 #define MEMORY_PTRS_V1                          1U
 #define MEMORY_PTRS_V2                          2U
 
@@ -1432,6 +1433,11 @@ struct pci_ext_data_struct {
 	u8 flags;
 } __packed;
 
+struct bios_board_id {
+	u8 padding[11];
+	u16 board_id;
+} __packed;
+
 struct nvgpu_bios_ucode {
 	u8 *bootloader;
 	u32 bootloader_phys_base;
@@ -1448,6 +1454,7 @@ struct nvgpu_bios_ucode {
 struct nvgpu_bios {
 	u32 vbios_version;
 	u8 vbios_oem_version;
+	u16 vbios_board_id;
 
 	u8 *data;
 	size_t size;
@@ -1476,6 +1483,7 @@ struct nvgpu_bios {
 
 	u32 nvlink_config_data_offset;
 	int (*init)(struct gk20a *g);
+	int (*verify_version)(struct gk20a *g);
 	int (*preos_wait_for_halt)(struct gk20a *g);
 	void (*preos_reload_check)(struct gk20a *g);
 	int (*preos_bios)(struct gk20a *g);

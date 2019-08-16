@@ -405,6 +405,14 @@ static void nvgpu_bios_parse_memory_ptrs(struct gk20a *g, u16 offset, u8 version
 	return;
 }
 
+static void nvgpu_bios_parse_bios_board_id_ptrs(struct gk20a *g, u16 offset)
+{
+	struct bios_board_id board;
+
+	nvgpu_memcpy((u8 *)&board, &g->bios->data[offset], sizeof(board));
+	g->bios->vbios_board_id = board.board_id;
+}
+
 static void nvgpu_bios_parse_devinit_appinfo(struct gk20a *g, u32 dmem_offset)
 {
 	struct devinit_engine_interface interface;
@@ -755,6 +763,10 @@ static void nvgpu_bios_parse_bit(struct gk20a *g, u32 offset)
 		case TOKEN_ID_MEMORY_PTRS:
 			nvgpu_bios_parse_memory_ptrs(g, token.data_ptr,
 				token.data_version);
+			break;
+		case TOKEN_ID_BIOS_BOARD_ID_PTRS:
+			nvgpu_bios_parse_bios_board_id_ptrs(g,
+				token.data_ptr);
 			break;
 		default:
 			nvgpu_log_info(g, "Token id %d not supported",

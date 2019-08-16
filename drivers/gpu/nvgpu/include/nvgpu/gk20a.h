@@ -2210,10 +2210,6 @@ struct gk20a {
 	struct nvgpu_mem_alloc_tracker *kmallocs;
 #endif
 
-	/* The minimum VBIOS version supported */
-	u32 vbios_min_version;
-	u32 vbios_compatible_version;
-
 	/* memory training sequence and mclk switch scripts */
 	u32 mem_config_idx;
 

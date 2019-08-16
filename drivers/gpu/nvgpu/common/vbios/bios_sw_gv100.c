@@ -255,21 +255,11 @@ int gv100_bios_init(struct gk20a *g)
 		goto free_firmware;
 	}
 
-	if (g->bios->vbios_version < g->vbios_min_version) {
-		nvgpu_err(g, "unsupported VBIOS version %08x",
-					g->bios->vbios_version);
-		err = -EINVAL;
-		goto free_firmware;
-	} else {
-		nvgpu_info(g, "VBIOS version %08x", g->bios->vbios_version);
-	}
-
-	if ((g->vbios_compatible_version != 0U) &&
-		(g->bios->vbios_version != g->vbios_compatible_version)) {
-			nvgpu_err(g, "VBIOS version %08x is not officially supported.",
-			g->bios->vbios_version);
-			nvgpu_err(g, "Update to VBIOS %08x, or use at your own risks.",
-				g->vbios_compatible_version);
+	if (g->bios->verify_version != NULL) {
+		if (g->bios->verify_version(g) < 0) {
+			err = -EINVAL;
+			goto free_firmware;
+		}
 	}
 
 	nvgpu_log_fn(g, "done");
@@ -384,6 +374,7 @@ void nvgpu_gv100_bios_sw_init(struct gk20a *g,
 		struct nvgpu_bios *bios)
 {
 	bios->init = gv100_bios_init;
+	bios->verify_version = NULL;
 	bios->preos_wait_for_halt = gv100_bios_preos_wait_for_halt;
 	bios->preos_reload_check = gv100_bios_preos_reload_check;
 	bios->preos_bios = gv100_bios_preos;
