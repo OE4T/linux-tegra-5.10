@@ -1203,6 +1203,9 @@ static int nvhost_ioctl_channel_attach_syncpt(
 	if (args->flags == NVHOST_IOCTL_CHANNEL_ATTACH_SYNCPT_ATTACH) {
 		for (i = 0; i < NVHOST_MODULE_MAX_SYNCPTS; i++) {
 			if (!syncpt_list[i]) {
+				/* Don't drop the reference. It's held until
+				 * the detach call.
+				 */
 				syncpt_list[i] = syncpt_id;
 				break;
 			}
@@ -1215,6 +1218,9 @@ static int nvhost_ioctl_channel_attach_syncpt(
 	} else {
 		for (i = 0; i < NVHOST_MODULE_MAX_SYNCPTS; i++) {
 			if (syncpt_list[i] == syncpt_id) {
+				/* Drop the ref taken during attach call. */
+				nvhost_syncpt_put_ref(&host->syncpt, syncpt_id);
+				/* Drop the ref taken above. */
 				nvhost_syncpt_put_ref(&host->syncpt, syncpt_id);
 				syncpt_list[i] = 0;
 				break;
