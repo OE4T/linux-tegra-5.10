@@ -64,7 +64,7 @@ static int tu104_pmu_handle_perf_event(struct gk20a *g, void *pmumsg)
 	switch (msg->rpc_hdr.function) {
 	case NV_PMU_RPC_ID_PERF_VFE_CALLBACK:
 		perf_pmu->vfe_init.state_change = true;
-		(void) nvgpu_cond_signal(&perf_pmu->vfe_init.wq);
+		(void) nvgpu_cond_signal_interruptible(&perf_pmu->vfe_init.wq);
 		break;
 	case NV_PMU_RPC_ID_PERF_SEQ_COMPLETION:
 		nvgpu_log_info(g, "Change Seq Completed");

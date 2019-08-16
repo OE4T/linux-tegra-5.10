@@ -68,7 +68,7 @@ void nvgpu_pmu_fw_state_change(struct gk20a *g, struct nvgpu_pmu *pmu,
 	if (post_change_event) {
 		if (g->can_elpg) {
 			pmu->pg->pg_init.state_change = true;
-			nvgpu_cond_signal(&pmu->pg->pg_init.wq);
+			nvgpu_cond_signal_interruptible(&pmu->pg->pg_init.wq);
 		}
 	}
 }

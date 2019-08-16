@@ -75,7 +75,7 @@ static int gv100_pmu_handle_perf_event(struct gk20a *g, void *pmumsg)
 	switch (msg->msg_type) {
 	case NV_PMU_PERF_MSG_ID_VFE_CALLBACK:
 		perf_pmu->vfe_init.state_change = true;
-		nvgpu_cond_signal(&perf_pmu->vfe_init.wq);
+		nvgpu_cond_signal_interruptible(&perf_pmu->vfe_init.wq);
 		break;
 	default:
 		WARN_ON(true);
