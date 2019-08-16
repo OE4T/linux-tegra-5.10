@@ -14,6 +14,7 @@
 
 #include "debug_sched.h"
 #include "os_linux.h"
+#include <nvgpu/nvgpu_init.h>
 
 #include <linux/debugfs.h>
 #include <linux/seq_file.h>

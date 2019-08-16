@@ -16,6 +16,7 @@
 #include "os_linux.h"
 
 #include <nvgpu/gk20a.h>
+#include <nvgpu/nvgpu_init.h>
 
 #include <linux/debugfs.h>
 #include <linux/uaccess.h>

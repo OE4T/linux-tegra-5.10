@@ -40,6 +40,7 @@
 #include <nvgpu/runlist.h>
 #include <nvgpu/utils.h>
 #include <nvgpu/gk20a.h>
+#include <nvgpu/nvgpu_init.h>
 #include <nvgpu/string.h>
 #include <nvgpu/fence.h>
 

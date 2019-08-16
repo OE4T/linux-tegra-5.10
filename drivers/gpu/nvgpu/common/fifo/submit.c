@@ -21,6 +21,7 @@
  */
 
 #include <nvgpu/gk20a.h>
+#include <nvgpu/nvgpu_init.h>
 #include <nvgpu/channel.h>
 #include <nvgpu/ltc.h>
 #include <nvgpu/os_sched.h>

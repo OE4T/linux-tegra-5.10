@@ -33,6 +33,7 @@
 #include <nvgpu/pmu/pmu_perfmon.h>
 #include <nvgpu/pmu/fw.h>
 #include <nvgpu/pmu/pmu_pg.h>
+#include <nvgpu/nvgpu_init.h>
 
 #include "os_linux.h"
 #include "sysfs.h"

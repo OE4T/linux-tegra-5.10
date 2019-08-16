@@ -31,6 +31,7 @@
 #include <nvgpu/utils.h>
 #include <nvgpu/timers.h>
 #include <nvgpu/gk20a.h>
+#include <nvgpu/nvgpu_init.h>
 #include <nvgpu/therm.h>
 #include <nvgpu/pmu/pmuif/ctrlclk.h>
 

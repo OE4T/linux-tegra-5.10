@@ -22,6 +22,7 @@
 
 #include <nvgpu/pmu/pmu_perfmon.h>
 #include <nvgpu/gk20a.h>
+#include <nvgpu/nvgpu_init.h>
 #include <nvgpu/falcon.h>
 #include <nvgpu/bug.h>
 #include <nvgpu/enabled.h>

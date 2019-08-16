@@ -163,7 +163,7 @@ int nvgpu_can_busy(struct gk20a *g);
  *
  * @return pointer to g if successful, otherwise 0.
  */
-struct gk20a * __must_check nvgpu_get(struct gk20a *g);
+struct gk20a * nvgpu_get(struct gk20a *g);
 
 /**
  * @brief Decrement ref count on driver.
@@ -191,5 +191,42 @@ void nvgpu_check_gpu_state(struct gk20a *g);
  * This is called during HAL initialization.
  */
 void nvgpu_init_gpu_characteristics(struct gk20a *g);
+
+/**
+ * @brief Takes a reference for keeping gpu busy but not try to initialize it.
+ * Does nothing for safety.
+ *
+ * @param g [in] The GPU
+ */
+void gk20a_busy_noresume(struct gk20a *g);
+
+/**
+ * @brief Drops a reference for gpu. Does nothing for safety.
+ *
+ * @param g [in] The GPU
+ */
+void gk20a_idle_nosuspend(struct gk20a *g);
+
+/**
+ * @brief Takes a reference for keeping gpu busy and initialize it if this is
+ * first reference. Also, takes a power ref if power saving is supported. On
+ * safety it just checks if GPU is in usable state.
+ *
+ * @param g [in] The GPU
+ *
+ * @return 0 in case of success, -ENODEV in case of failure.
+ *
+ * This is called mostly by the devctl path to check if proceeding further is
+ * allowed or not.
+ */
+int gk20a_busy(struct gk20a *g);
+
+/**
+ * @brief Drops a reference for gpu, put on idle if power saving is supported
+ * and power ref goes to 0. Does nothing for safety.
+ *
+ * @param g [in] The GPU
+ */
+void gk20a_idle(struct gk20a *g);
 
 #endif /* NVGPU_INIT_H */

@@ -13,6 +13,7 @@
  */
 
 #include <nvgpu/types.h>
+#include <nvgpu/nvgpu_init.h>
 
 #include "debug_bios.h"
 #include "os_linux.h"

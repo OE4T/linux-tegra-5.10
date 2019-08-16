@@ -39,6 +39,7 @@
  *   - @ref unit-devctl
  *   - @ref unit-sdl
  *   - @ref unit-init
+ *   - @ref unit-qnx_init
  *   - @ref unit-falcon
  *   - @ref unit-os_utils
  *   - @ref unit-acr
@@ -2329,10 +2330,6 @@ bool is_nvgpu_gpu_state_valid(struct gk20a *g);
 #define GK20A_BAR1_IORESOURCE_MEM	1U
 #define GK20A_SIM_IORESOURCE_MEM	2U
 
-void gk20a_busy_noresume(struct gk20a *g);
-void gk20a_idle_nosuspend(struct gk20a *g);
-int __must_check gk20a_busy(struct gk20a *g);
-void gk20a_idle(struct gk20a *g);
 #ifdef CONFIG_PM
 int gk20a_do_idle_impl(struct gk20a *g, bool force_reset);
 int gk20a_do_unidle_impl(struct gk20a *g);

@@ -21,6 +21,7 @@
  */
 
 #include <nvgpu/gk20a.h>
+#include <nvgpu/nvgpu_init.h>
 #include <nvgpu/list.h>
 #include <nvgpu/log.h>
 #include <nvgpu/log2.h>

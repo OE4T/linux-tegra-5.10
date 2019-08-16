@@ -27,6 +27,7 @@
 #include <nvgpu/mm.h>
 #include <nvgpu/io.h>
 #include <nvgpu/gk20a.h>
+#include <nvgpu/nvgpu_init.h>
 #include <nvgpu/timers.h>
 
 #include <nvgpu/hw/gk20a/hw_flush_gk20a.h>

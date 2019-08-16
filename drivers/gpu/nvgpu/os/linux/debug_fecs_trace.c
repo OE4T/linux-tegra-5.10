@@ -17,6 +17,7 @@
 #include <linux/debugfs.h>
 
 #include <nvgpu/gr/fecs_trace.h>
+#include <nvgpu/nvgpu_init.h>
 
 #include "os_linux.h"
 

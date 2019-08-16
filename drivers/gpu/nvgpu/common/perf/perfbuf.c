@@ -24,6 +24,7 @@
 #include <nvgpu/sizes.h>
 #include <nvgpu/perfbuf.h>
 #include <nvgpu/gk20a.h>
+#include <nvgpu/nvgpu_init.h>
 
 int nvgpu_perfbuf_enable_locked(struct gk20a *g, u64 offset, u32 size)
 {

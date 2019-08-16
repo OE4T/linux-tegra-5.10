@@ -24,6 +24,7 @@
 #include <nvgpu/ptimer.h>
 #include <nvgpu/timers.h>
 #include <nvgpu/gk20a.h>
+#include <nvgpu/nvgpu_init.h>
 
 int nvgpu_get_timestamps_zipper(struct gk20a *g,
 		u32 source_id, u32 count,
