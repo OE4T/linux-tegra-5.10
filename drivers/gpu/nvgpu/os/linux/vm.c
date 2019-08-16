@@ -66,7 +66,7 @@ static u32 nvgpu_vm_translate_linux_flags(struct gk20a *g, u32 flags)
 }
 
 static struct nvgpu_mapped_buf *nvgpu_vm_find_mapped_buf_reverse(
-	struct vm_gk20a *vm, struct dma_buf *dmabuf, u32 kind)
+	struct vm_gk20a *vm, struct dma_buf *dmabuf, s16 kind)
 {
 	struct nvgpu_rbtree_node *node = NULL;
 	struct nvgpu_rbtree_node *root = vm->mapped_buffers;
@@ -126,7 +126,7 @@ struct nvgpu_mapped_buf *nvgpu_vm_find_mapping(struct vm_gk20a *vm,
 					       struct nvgpu_os_buffer *os_buf,
 					       u64 map_addr,
 					       u32 flags,
-					       int kind)
+					       s16 kind)
 {
 	struct gk20a *g = gk20a_from_vm(vm);
 	struct nvgpu_mapped_buf *mapped_buffer = NULL;
@@ -137,7 +137,7 @@ struct nvgpu_mapped_buf *nvgpu_vm_find_mapping(struct vm_gk20a *vm,
 			return NULL;
 
 		if (mapped_buffer->os_priv.dmabuf != os_buf->dmabuf ||
-		    mapped_buffer->kind != (u32)kind)
+		    mapped_buffer->kind != kind)
 			return NULL;
 	} else {
 		mapped_buffer =

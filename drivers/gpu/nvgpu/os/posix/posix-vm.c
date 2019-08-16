@@ -36,7 +36,7 @@ struct nvgpu_mapped_buf *nvgpu_vm_find_mapping(struct vm_gk20a *vm,
 					       struct nvgpu_os_buffer *os_buf,
 					       u64 map_addr,
 					       u32 flags,
-					       int kind)
+					       s16 kind)
 {
 	/*
 	 * No map caching for now.

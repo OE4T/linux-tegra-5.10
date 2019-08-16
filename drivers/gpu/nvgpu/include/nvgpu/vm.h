@@ -117,7 +117,7 @@ struct nvgpu_mapped_buf {
 	u32 pgsz_idx;
 
 	u32 flags;
-	u32 kind;
+	s16 kind;
 	bool va_allocated;
 
 	/*
@@ -260,7 +260,7 @@ struct nvgpu_mapped_buf *nvgpu_vm_find_mapping(struct vm_gk20a *vm,
 					       struct nvgpu_os_buffer *os_buf,
 					       u64 map_addr,
 					       u32 flags,
-					       int kind);
+					       s16 kind);
 
 /**
  * Map a DMA buffer into the passed VM context.
