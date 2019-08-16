@@ -578,21 +578,10 @@ u32 nvgpu_gr_config_get_gpc_zcb_count(struct nvgpu_gr_config *config,
 
 void nvgpu_gr_config_deinit(struct gk20a *g, struct nvgpu_gr_config *config)
 {
-	u32 index;
-
-	nvgpu_kfree(g, config->gpc_tpc_count);
-	nvgpu_kfree(g, config->gpc_ppc_count);
-	nvgpu_kfree(g, config->gpc_skip_mask);
-	nvgpu_kfree(g, config->gpc_tpc_mask);
+	gr_config_free_mem(g, config);
 #ifdef CONFIG_NVGPU_GRAPHICS
-	nvgpu_kfree(g, config->gpc_zcb_count);
 	nvgpu_kfree(g, config->map_tiles);
 #endif
-	for (index = 0U; index < config->pe_count_per_gpc;
-			    index++) {
-		nvgpu_kfree(g, config->pes_tpc_count[index]);
-		nvgpu_kfree(g, config->pes_tpc_mask[index]);
-	}
 	nvgpu_kfree(g, config->sm_to_cluster);
 }
 
