@@ -589,6 +589,7 @@ struct nvhost_device_data t19_nvdla0_info = {
 	.bwmgr_client_id	= TEGRA_BWMGR_CLIENT_DLA0,
 	.transcfg_addr		= 0x0444,
 	.transcfg_val		= 0x20,
+	.firmware_not_in_subdir = true,
 };
 
 struct nvhost_device_data t19_nvdla1_info = {
@@ -621,6 +622,7 @@ struct nvhost_device_data t19_nvdla1_info = {
 	.bwmgr_client_id	= TEGRA_BWMGR_CLIENT_DLA1,
 	.transcfg_addr		= 0x0444,
 	.transcfg_val		= 0x20,
+	.firmware_not_in_subdir = true,
 };
 #endif
 
