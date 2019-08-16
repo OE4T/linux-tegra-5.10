@@ -1714,6 +1714,7 @@ static void channel_free(struct nvgpu_channel *ch, bool force)
 #endif
 	}
 
+	nvgpu_mutex_acquire(&ch->sync_lock);
 	if (ch->user_sync != NULL) {
 		/*
 		 * Set user managed syncpoint to safe state
