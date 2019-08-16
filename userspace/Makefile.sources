@@ -70,6 +70,8 @@ UNITS :=				\
 	$(UNIT_SRC)/fifo/tsg		\
 	$(UNIT_SRC)/list		\
 	$(UNIT_SRC)/enabled		\
+	$(UNIT_SRC)/gr			\
+	$(UNIT_SRC)/gr/config		\
 	$(UNIT_SRC)/falcon		\
 	$(UNIT_SRC)/falcon/falcon_tests		\
 	$(UNIT_SRC)/pmu
