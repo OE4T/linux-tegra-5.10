@@ -21,10 +21,8 @@
  */
 
 #include <osd.h>
-#include <osi_dma.h>
+#include "osi_dma_local.h"
 #include <osi_dma_txrx.h>
-
-int dma_desc_init(struct osi_dma_priv_data *osi_dma);
 
 /**
  * @brief get_rx_csum - Get the Rx checksum from descriptor if valid
@@ -57,11 +55,11 @@ static inline void get_rx_csum(struct osi_rx_desc *rx_desc,
 }
 
 /**
- * @brief get_rx_vlan_from_desc - Get Rx VLAN from descriptor 
+ * @brief get_rx_vlan_from_desc - Get Rx VLAN from descriptor
  *
  * Algorithm:
  *	1) Check if the descriptor has any type set.
- *	2) If set, set a per packet context flag indicating packet is VLAN 
+ *	2) If set, set a per packet context flag indicating packet is VLAN
  *	tagged.
  *	3) Extract VLAN tag ID from the descriptor
  *
@@ -775,17 +773,6 @@ static void tx_dma_desc_init(struct osi_dma_priv_data *osi_dma)
 	}
 }
 
-/**
- * @brief dma_desc_init - Initialize DMA Tx/Rx descriptors
- *
- * Algorithm: Transmit and Receive desctiptors will be initialized with
- *	required values so that MAC DMA can understand and act accordingly.
- *
- * @param[in] osi_dma: OSI DMA private data structure.
- *
- * @retval 0 on success
- * @retval -1 on failure.
- */
 int dma_desc_init(struct osi_dma_priv_data *osi_dma)
 {
 	int ret = 0;
