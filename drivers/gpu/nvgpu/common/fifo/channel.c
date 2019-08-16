@@ -1357,6 +1357,8 @@ void nvgpu_channel_clean_up_jobs(struct nvgpu_channel *c,
 			break;
 		}
 
+		nvgpu_mutex_acquire(&c->sync_lock);
+
 		WARN_ON(c->sync == NULL);
 
 		if (c->sync != NULL) {
@@ -1366,16 +1368,15 @@ void nvgpu_channel_clean_up_jobs(struct nvgpu_channel *c,
 			}
 
 			if (g->aggressive_sync_destroy_thresh != 0U) {
-				nvgpu_mutex_acquire(&c->sync_lock);
 				if (nvgpu_channel_sync_put_ref_and_check(c->sync)
 					&& g->aggressive_sync_destroy) {
 					nvgpu_channel_sync_destroy(c->sync,
 						false);
 					c->sync = NULL;
 				}
-				nvgpu_mutex_release(&c->sync_lock);
 			}
 		}
+		nvgpu_mutex_release(&c->sync_lock);
 
 		if (job->num_mapped_buffers != 0U) {
 			nvgpu_vm_put_buffers(vm, job->mapped_buffers,

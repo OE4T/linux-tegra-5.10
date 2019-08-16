@@ -59,19 +59,17 @@ static int nvgpu_submit_prepare_syncs(struct nvgpu_channel *c,
 	bool flag_sync_fence = (flags & NVGPU_SUBMIT_FLAGS_SYNC_FENCE) != 0U;
 	bool flag_fence_wait = (flags & NVGPU_SUBMIT_FLAGS_FENCE_WAIT) != 0U;
 
+	nvgpu_mutex_acquire(&c->sync_lock);
 	if (g->aggressive_sync_destroy_thresh != 0U) {
-		nvgpu_mutex_acquire(&c->sync_lock);
 		if (c->sync == NULL) {
 			c->sync = nvgpu_channel_sync_create(c, false);
 			if (c->sync == NULL) {
 				err = -ENOMEM;
-				nvgpu_mutex_release(&c->sync_lock);
 				goto fail;
 			}
 			new_sync_created = true;
 		}
 		nvgpu_channel_sync_get_ref(c->sync);
-		nvgpu_mutex_release(&c->sync_lock);
 	}
 
 	if ((g->ops.channel.set_syncpt != NULL) && new_sync_created) {
@@ -163,6 +161,7 @@ static int nvgpu_submit_prepare_syncs(struct nvgpu_channel *c,
 		goto clean_up_incr_cmd;
 	}
 
+	nvgpu_mutex_release(&c->sync_lock);
 	return 0;
 
 clean_up_incr_cmd:
@@ -181,6 +180,7 @@ clean_up_wait_cmd:
 		job->wait_cmd = NULL;
 	}
 fail:
+	nvgpu_mutex_release(&c->sync_lock);
 	*wait_cmd = NULL;
 	return err;
 }
