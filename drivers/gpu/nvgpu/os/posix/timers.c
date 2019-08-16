@@ -249,11 +249,7 @@ s64 nvgpu_current_time_ns(void)
 
 u64 nvgpu_hr_timestamp(void)
 {
-	s64 count;
-
-	count = nvgpu_current_time_us();
-
-	return nvgpu_safe_cast_s64_to_u64(count);
+	return nvgpu_get_cycles();
 }
 
 u64 nvgpu_hr_timestamp_us(void)

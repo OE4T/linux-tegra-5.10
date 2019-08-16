@@ -61,3 +61,8 @@ u64 nvgpu_us_counter(void)
 {
 	return (u64)nvgpu_current_time_us();
 }
+
+u64 nvgpu_get_cycles(void)
+{
+	return (u64)nvgpu_current_time_us();
+}

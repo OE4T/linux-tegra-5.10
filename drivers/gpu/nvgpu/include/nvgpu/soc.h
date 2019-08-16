@@ -35,4 +35,5 @@ bool nvgpu_is_soc_t194_a01(struct gk20a *g);
 int nvgpu_init_soc_vars(struct gk20a *g);
 void nvgpu_delay_usecs(unsigned int usecs);
 u64 nvgpu_us_counter(void);
+u64 nvgpu_get_cycles(void);
 #endif /* NVGPU_SOC_H */
