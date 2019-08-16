@@ -20,9 +20,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#include <osi_dma.h>
-
-extern int dma_desc_init(struct osi_dma_priv_data *osi_dma);
+#include "osi_dma_local.h"
 
 int osi_init_dma_ops(struct osi_dma_priv_data *osi_dma)
 {
@@ -61,9 +59,20 @@ int osi_hw_dma_init(struct osi_dma_priv_data *osi_dma)
 	for (i = 0; i < osi_dma->num_dma_chans; i++) {
 		chan = osi_dma->dma_chans[i];
 
-		osi_enable_chan_tx_intr(osi_dma, chan);
-		osi_enable_chan_rx_intr(osi_dma, chan);
-		osi_start_dma(osi_dma, chan);
+		ret = osi_enable_chan_tx_intr(osi_dma, chan);
+		if (ret != 0) {
+			return ret;
+		}
+
+		ret = osi_enable_chan_rx_intr(osi_dma, chan);
+		if (ret != 0) {
+			return ret;
+		}
+
+		ret = osi_start_dma(osi_dma, chan);
+		if (ret != 0) {
+			return ret;
+		}
 	}
 
 	return ret;
@@ -72,16 +81,20 @@ int osi_hw_dma_init(struct osi_dma_priv_data *osi_dma)
 int  osi_hw_dma_deinit(struct osi_dma_priv_data *osi_dma)
 {
 	unsigned int i;
+	int ret = 0;
 
 	if (osi_dma == OSI_NULL) {
 		return -1;
 	}
 
 	for (i = 0; i < osi_dma->num_dma_chans; i++) {
-		osi_stop_dma(osi_dma, osi_dma->dma_chans[i]);
+		ret = osi_stop_dma(osi_dma, osi_dma->dma_chans[i]);
+		if (ret != 0) {
+			return ret;
+		}
 	}
 
-	return 0;
+	return ret;
 }
 
 int osi_disable_chan_tx_intr(struct osi_dma_priv_data *osi_dma,

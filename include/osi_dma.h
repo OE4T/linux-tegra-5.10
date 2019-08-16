@@ -756,7 +756,4 @@ int osi_clear_tx_pkt_err_stats(struct osi_dma_priv_data *osi_dma);
  */
 int osi_clear_rx_pkt_err_stats(struct osi_dma_priv_data *osi_dma);
 
-/* Function prototype needed for misra */
-struct osi_dma_chan_ops *eqos_get_dma_chan_ops(void);
-void *eqos_get_dma_safety_config(void);
 #endif /* OSI_DMA_H */

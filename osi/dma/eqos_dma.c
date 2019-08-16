@@ -21,7 +21,7 @@
  */
 
 #include <osi_common.h>
-#include <osi_dma.h>
+#include "osi_dma_local.h"
 #include "eqos_dma.h"
 
 /**
