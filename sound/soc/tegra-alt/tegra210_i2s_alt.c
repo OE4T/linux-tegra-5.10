@@ -742,7 +742,30 @@ static struct snd_soc_dai_driver tegra210_i2s_dais[] = {
 		},
 		.ops = &tegra210_i2s_dai_ops,
 		.symmetric_rates = 1,
-	}
+	},
+	{
+		.name = "DUMMY",
+		.playback = {
+			.stream_name = "Dummy Playback",
+			.channels_min = 1,
+			.channels_max = 16,
+			.rates = SNDRV_PCM_RATE_8000_192000,
+			.formats = SNDRV_PCM_FMTBIT_S8 |
+				SNDRV_PCM_FMTBIT_S16_LE |
+				SNDRV_PCM_FMTBIT_S24_LE |
+				SNDRV_PCM_FMTBIT_S32_LE,
+		},
+		.capture = {
+			.stream_name = "Dummy Capture",
+			.channels_min = 1,
+			.channels_max = 16,
+			.rates = SNDRV_PCM_RATE_8000_192000,
+			.formats = SNDRV_PCM_FMTBIT_S8 |
+				SNDRV_PCM_FMTBIT_S16_LE |
+				SNDRV_PCM_FMTBIT_S24_LE |
+				SNDRV_PCM_FMTBIT_S32_LE,
+		},
+	},
 };
 
 static int tegra210_i2s_loopback_get(struct snd_kcontrol *kcontrol,
@@ -890,6 +913,8 @@ static const struct snd_soc_dapm_widget tegra210_i2s_widgets[] = {
 	SND_SOC_DAPM_AIF_OUT_E("DAP TX", NULL, 0, TEGRA210_I2S_AXBAR_RX_ENABLE,
 				TEGRA210_I2S_AXBAR_RX_EN_SHIFT, 0,
 				tegra210_i2s_tx_stop, SND_SOC_DAPM_PRE_PMU),
+	SND_SOC_DAPM_MIC("Dummy Input", NULL),
+	SND_SOC_DAPM_SPK("Dummy Output", NULL),
 };
 
 static const struct snd_soc_dapm_route tegra210_i2s_routes[] = {
@@ -900,6 +925,9 @@ static const struct snd_soc_dapm_route tegra210_i2s_routes[] = {
 	{ "DAP RX",       NULL, "DAP Receive" },
 	{ "CIF TX",       NULL, "DAP RX" },
 	{ "CIF Transmit", NULL, "CIF TX" },
+
+	{"Dummy Capture", NULL, "Dummy Input"},
+	{"Dummy Output",  NULL, "Dummy Playback"},
 };
 
 static struct snd_soc_codec_driver tegra210_i2s_codec = {
