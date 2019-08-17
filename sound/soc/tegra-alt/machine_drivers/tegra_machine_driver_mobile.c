@@ -140,30 +140,11 @@ static const struct snd_soc_dapm_widget tegra_machine_dapm_widgets[] = {
 	SND_SOC_DAPM_SPK("d2 Headphone", NULL),
 	SND_SOC_DAPM_SPK("d3 Headphone", NULL),
 
-	SND_SOC_DAPM_HP("w Headphone", NULL),
 	SND_SOC_DAPM_HP("x Headphone", NULL),
 	SND_SOC_DAPM_HP("y Headphone", NULL),
-	SND_SOC_DAPM_HP("z Headphone", NULL),
-	SND_SOC_DAPM_HP("l Headphone", NULL),
-	SND_SOC_DAPM_HP("m Headphone", NULL),
-	SND_SOC_DAPM_HP("n Headphone", NULL),
-	SND_SOC_DAPM_HP("o Headphone", NULL),
-	SND_SOC_DAPM_HP("s Headphone", NULL),
-
 	SND_SOC_DAPM_MIC("Int Mic", NULL),
-	SND_SOC_DAPM_MIC("w Mic", NULL),
 	SND_SOC_DAPM_MIC("x Mic", NULL),
 	SND_SOC_DAPM_MIC("y Mic", NULL),
-	SND_SOC_DAPM_MIC("z Mic", NULL),
-	SND_SOC_DAPM_MIC("l Mic", NULL),
-	SND_SOC_DAPM_MIC("m Mic", NULL),
-	SND_SOC_DAPM_MIC("n Mic", NULL),
-	SND_SOC_DAPM_MIC("o Mic", NULL),
-	SND_SOC_DAPM_MIC("a Mic", NULL),
-	SND_SOC_DAPM_MIC("b Mic", NULL),
-	SND_SOC_DAPM_MIC("c Mic", NULL),
-	SND_SOC_DAPM_MIC("d Mic", NULL),
-	SND_SOC_DAPM_MIC("s Mic", NULL),
 };
 
 static struct snd_soc_pcm_stream tegra_machine_asrc_link_params[] = {
@@ -372,50 +353,6 @@ static int tegra_machine_dai_init(struct snd_soc_pcm_runtime *runtime,
 			dev_err(card->dev, "codec_dai clock not set\n");
 			return err;
 		}
-	}
-
-	rtd = snd_soc_get_pcm_runtime(card, "spdif-dit-0");
-	if (rtd) {
-		dai_params =
-		(struct snd_soc_pcm_stream *)rtd->dai_link->params;
-
-		dai_params->rate_min = srate;
-	}
-
-	rtd = snd_soc_get_pcm_runtime(card, "spdif-dit-1");
-	if (rtd) {
-		dai_params =
-		(struct snd_soc_pcm_stream *)rtd->dai_link->params;
-
-		dai_params->rate_min = srate;
-	}
-
-	/* set clk rate for i2s3 dai link*/
-	rtd = snd_soc_get_pcm_runtime(card, "spdif-dit-2");
-	if (rtd) {
-		dai_params =
-		(struct snd_soc_pcm_stream *)rtd->dai_link->params;
-
-		dai_params->rate_min = srate;
-	}
-
-	rtd = snd_soc_get_pcm_runtime(card, "spdif-dit-3");
-	if (rtd) {
-		dai_params =
-		(struct snd_soc_pcm_stream *)rtd->dai_link->params;
-
-		dai_params->rate_min = srate;
-	}
-
-	rtd = snd_soc_get_pcm_runtime(card, "spdif-dit-5");
-	if (rtd) {
-		dai_params =
-		(struct snd_soc_pcm_stream *)rtd->dai_link->params;
-
-		/* update link_param to update hw_param for DAPM */
-		dai_params->rate_min = srate;
-		dai_params->channels_min = channels;
-		dai_params->formats = formats;
 	}
 
 	rtd = snd_soc_get_pcm_runtime(card, "dspk-playback-r");
@@ -758,6 +695,7 @@ static int tegra_machine_driver_probe(struct platform_device *pdev)
 	struct tegra_machine *machine;
 	int ret = 0;
 	const struct of_device_id *match;
+	char *prop;
 
 	card->dev = &pdev->dev;
 	/* parse card name first to log errors with proper device name */
@@ -790,10 +728,17 @@ static int tegra_machine_driver_probe(struct platform_device *pdev)
 	if (machine->soc_data->write_idle_bias_off_state)
 		card->dapm.idle_bias_off = true;
 
-	ret = snd_soc_of_parse_audio_routing(card,
-				"nvidia,audio-routing");
-	if (ret)
-		return ret;
+	/*
+	 * Below property of routing map is required only when there are DAPM input/output
+	 * widgets available for external codec, which require them to be connected to machine
+	 * source/sink DAPM widgets.
+	 */
+	prop = "nvidia,audio-routing";
+	if (of_property_read_bool(np, prop)) {
+		ret = snd_soc_of_parse_audio_routing(card, prop);
+		if (ret < 0)
+			return ret;
+	}
 
 	memset(&machine->audio_clock, 0, sizeof(machine->audio_clock));
 	if (of_property_read_u32(np, "mclk-fs",

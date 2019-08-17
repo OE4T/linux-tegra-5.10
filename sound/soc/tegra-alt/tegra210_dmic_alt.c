@@ -338,6 +338,16 @@ static struct snd_soc_dai_driver tegra210_dmic_dais[] = {
 		},
 		.ops = &tegra210_dmic_dai_ops,
 		.symmetric_rates = 1,
+	},
+	{
+		.name = "DUMMY_SOURCE",
+		.capture = {
+			.stream_name = "Dummy Capture",
+			.channels_min = 1,
+			.channels_max = 2,
+			.rates = SNDRV_PCM_RATE_8000_48000,
+			.formats = SNDRV_PCM_FMTBIT_S16_LE,
+		},
 	}
 };
 
@@ -346,12 +356,14 @@ static const struct snd_soc_dapm_widget tegra210_dmic_widgets[] = {
 			     0, 0),
 	SND_SOC_DAPM_AIF_IN("DMIC RX", NULL, 0, TEGRA210_DMIC_ENABLE,
 			    0, 0),
+	SND_SOC_DAPM_MIC("Dummy Input", NULL),
 };
 
 static const struct snd_soc_dapm_route tegra210_dmic_routes[] = {
 	{ "DMIC RX",       NULL, "DMIC Receive" },
 	{ "DMIC TX",       NULL, "DMIC RX" },
 	{ "DMIC Transmit", NULL, "DMIC TX" },
+	{ "Dummy Capture", NULL, "Dummy Input" },
 };
 
 static const char * const tegra210_dmic_ch_select[] = {
