@@ -284,6 +284,7 @@
 					link-name = "rt565x-codec-sysclk-bclk1";
 					codec-dai = <&e2614_rt5658>;
 					codec-dai-name = "rt5659-aif1";
+					name-prefix = "y";
 				};
 			};
 			overrides@14 {
@@ -326,6 +327,7 @@
 					link-name = "rt565x-codec-sysclk-bclk1";
 					codec-dai = <&e2614_rt5658>;
 					codec-dai-name = "rt5659-aif1";
+					name-prefix = "y";
 				};
 			};
 		};
@@ -345,6 +347,7 @@
 					link-name = "rt565x-codec-sysclk-bclk1";
 					codec-dai = <&e2614_rt5658_i2c3>;
 					codec-dai-name = "rt5659-aif1";
+					name-prefix = "y";
 				};
 			};
 		};
