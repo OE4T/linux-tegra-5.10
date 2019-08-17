@@ -86,23 +86,7 @@
 			"x DMIC L1",            "x Int Mic",
 			"x DMIC L2",            "x Int Mic",
 			"x DMIC R1",            "x Int Mic",
-			"x DMIC R2",            "x Int Mic",
-			"y Headphone",          "y OUT",
-			"y IN",                 "y Mic",
-			"z Headphone",          "z OUT",
-			"z IN",                 "z Mic",
-			"m Headphone",          "m OUT",
-			"m IN",                 "m Mic",
-			"n Headphone",          "n OUT",
-			"n IN",                 "n Mic",
-			"o Headphone",          "o OUT",
-			"o IN",                 "o Mic",
-			"a IN",                 "a Mic",
-			"b IN",                 "b Mic",
-			"c IN",                 "c Mic",
-			"d IN",                 "d Mic",
-			"d1 Headphone",         "d1 OUT",
-			"d2 Headphone",         "d2 OUT";
+			"x DMIC R2",            "x Int Mic";
 
 		mclk-fs = <256>;
 
@@ -119,6 +103,7 @@
 				link-name = "rt565x-playback";
 				codec-dai = <&rt5658>;
 				codec-dai-name = "rt5659-aif1";
+				name-prefix = "x";
 			};
 
 			/* Override with BT SCO entries */
