@@ -25,6 +25,7 @@
 #include <nvgpu/types.h>
 #include <nvgpu/io.h>
 #include <nvgpu/enabled.h>
+#include <nvgpu/utils.h>
 #include <nvgpu/static_analysis.h>
 
 #include "gating_reglist.h"
@@ -300,6 +301,16 @@ void gv11b_slcg_bus_load_gating_prod(struct gk20a *g,
 	}
 }
 
+u32 gv11b_slcg_bus_gating_prod_size(void)
+{
+	return ARRAY_SIZE(gv11b_slcg_bus);
+}
+
+const struct gating_desc *gv11b_slcg_bus_get_gating_prod(void)
+{
+	return gv11b_slcg_bus;
+}
+
 void gv11b_slcg_ce2_load_gating_prod(struct gk20a *g,
 	bool prod)
 {
@@ -315,6 +326,16 @@ void gv11b_slcg_ce2_load_gating_prod(struct gk20a *g,
 			gk20a_writel(g, reg, val);
 		}
 	}
+}
+
+u32 gv11b_slcg_ce2_gating_prod_size(void)
+{
+	return ARRAY_SIZE(gv11b_slcg_ce2);
+}
+
+const struct gating_desc *gv11b_slcg_ce2_get_gating_prod(void)
+{
+	return gv11b_slcg_ce2;
 }
 
 void gv11b_slcg_chiplet_load_gating_prod(struct gk20a *g,
@@ -334,11 +355,31 @@ void gv11b_slcg_chiplet_load_gating_prod(struct gk20a *g,
 	}
 }
 
+u32 gv11b_slcg_chiplet_gating_prod_size(void)
+{
+	return ARRAY_SIZE(gv11b_slcg_chiplet);
+}
+
+const struct gating_desc *gv11b_slcg_chiplet_get_gating_prod(void)
+{
+	return gv11b_slcg_chiplet;
+}
+
 void gv11b_slcg_ctxsw_firmware_load_gating_prod(struct gk20a *g,
 	bool prod)
 {
 	if (nvgpu_is_enabled(g, NVGPU_GPU_CAN_SLCG)) {
 	}
+}
+
+u32 gv11b_slcg_ctxsw_firmware_gating_prod_size(void)
+{
+	return 0;
+}
+
+const struct gating_desc *gv11b_slcg_ctxsw_firmware_get_gating_prod(void)
+{
+	return NULL;
 }
 
 void gv11b_slcg_fb_load_gating_prod(struct gk20a *g,
@@ -358,6 +399,16 @@ void gv11b_slcg_fb_load_gating_prod(struct gk20a *g,
 	}
 }
 
+u32 gv11b_slcg_fb_gating_prod_size(void)
+{
+	return ARRAY_SIZE(gv11b_slcg_fb);
+}
+
+const struct gating_desc *gv11b_slcg_fb_get_gating_prod(void)
+{
+	return gv11b_slcg_fb;
+}
+
 void gv11b_slcg_fifo_load_gating_prod(struct gk20a *g,
 	bool prod)
 {
@@ -373,6 +424,16 @@ void gv11b_slcg_fifo_load_gating_prod(struct gk20a *g,
 			gk20a_writel(g, reg, val);
 		}
 	}
+}
+
+u32 gv11b_slcg_fifo_gating_prod_size(void)
+{
+	return ARRAY_SIZE(gv11b_slcg_fifo);
+}
+
+const struct gating_desc *gv11b_slcg_fifo_get_gating_prod(void)
+{
+	return gv11b_slcg_fifo;
 }
 
 void gv11b_slcg_gr_load_gating_prod(struct gk20a *g,
@@ -392,6 +453,16 @@ void gv11b_slcg_gr_load_gating_prod(struct gk20a *g,
 	}
 }
 
+u32 gv11b_slcg_gr_gating_prod_size(void)
+{
+	return ARRAY_SIZE(gv11b_slcg_gr);
+}
+
+const struct gating_desc *gv11b_slcg_gr_get_gating_prod(void)
+{
+	return gv11b_slcg_gr;
+}
+
 void gv11b_slcg_ltc_load_gating_prod(struct gk20a *g,
 	bool prod)
 {
@@ -407,6 +478,16 @@ void gv11b_slcg_ltc_load_gating_prod(struct gk20a *g,
 			gk20a_writel(g, reg, val);
 		}
 	}
+}
+
+u32 gv11b_slcg_ltc_gating_prod_size(void)
+{
+	return ARRAY_SIZE(gv11b_slcg_ltc);
+}
+
+const struct gating_desc *gv11b_slcg_ltc_get_gating_prod(void)
+{
+	return gv11b_slcg_ltc;
 }
 
 void gv11b_slcg_perf_load_gating_prod(struct gk20a *g,
@@ -426,6 +507,16 @@ void gv11b_slcg_perf_load_gating_prod(struct gk20a *g,
 	}
 }
 
+u32 gv11b_slcg_perf_gating_prod_size(void)
+{
+	return ARRAY_SIZE(gv11b_slcg_perf);
+}
+
+const struct gating_desc *gv11b_slcg_perf_get_gating_prod(void)
+{
+	return gv11b_slcg_perf;
+}
+
 void gv11b_slcg_priring_load_gating_prod(struct gk20a *g,
 	bool prod)
 {
@@ -441,6 +532,16 @@ void gv11b_slcg_priring_load_gating_prod(struct gk20a *g,
 			gk20a_writel(g, reg, val);
 		}
 	}
+}
+
+u32 gv11b_slcg_priring_gating_prod_size(void)
+{
+	return ARRAY_SIZE(gv11b_slcg_priring);
+}
+
+const struct gating_desc *gv11b_slcg_priring_get_gating_prod(void)
+{
+	return gv11b_slcg_priring;
 }
 
 void gv11b_slcg_pwr_csb_load_gating_prod(struct gk20a *g,
@@ -460,6 +561,16 @@ void gv11b_slcg_pwr_csb_load_gating_prod(struct gk20a *g,
 	}
 }
 
+u32 gv11b_slcg_pwr_csb_gating_prod_size(void)
+{
+	return ARRAY_SIZE(gv11b_slcg_pwr_csb);
+}
+
+const struct gating_desc *gv11b_slcg_pwr_csb_get_gating_prod(void)
+{
+	return gv11b_slcg_pwr_csb;
+}
+
 void gv11b_slcg_pmu_load_gating_prod(struct gk20a *g,
 	bool prod)
 {
@@ -475,6 +586,16 @@ void gv11b_slcg_pmu_load_gating_prod(struct gk20a *g,
 			gk20a_writel(g, reg, val);
 		}
 	}
+}
+
+u32 gv11b_slcg_pmu_gating_prod_size(void)
+{
+	return ARRAY_SIZE(gv11b_slcg_pmu);
+}
+
+const struct gating_desc *gv11b_slcg_pmu_get_gating_prod(void)
+{
+	return gv11b_slcg_pmu;
 }
 
 void gv11b_slcg_therm_load_gating_prod(struct gk20a *g,
@@ -494,6 +615,16 @@ void gv11b_slcg_therm_load_gating_prod(struct gk20a *g,
 	}
 }
 
+u32 gv11b_slcg_therm_gating_prod_size(void)
+{
+	return ARRAY_SIZE(gv11b_slcg_therm);
+}
+
+const struct gating_desc *gv11b_slcg_therm_get_gating_prod(void)
+{
+	return gv11b_slcg_therm;
+}
+
 void gv11b_slcg_xbar_load_gating_prod(struct gk20a *g,
 	bool prod)
 {
@@ -509,6 +640,16 @@ void gv11b_slcg_xbar_load_gating_prod(struct gk20a *g,
 			gk20a_writel(g, reg, val);
 		}
 	}
+}
+
+u32 gv11b_slcg_xbar_gating_prod_size(void)
+{
+	return ARRAY_SIZE(gv11b_slcg_xbar);
+}
+
+const struct gating_desc *gv11b_slcg_xbar_get_gating_prod(void)
+{
+	return gv11b_slcg_xbar;
 }
 
 void gv11b_slcg_hshub_load_gating_prod(struct gk20a *g,
@@ -528,6 +669,16 @@ void gv11b_slcg_hshub_load_gating_prod(struct gk20a *g,
 	}
 }
 
+u32 gv11b_slcg_hshub_gating_prod_size(void)
+{
+	return ARRAY_SIZE(gv11b_slcg_hshub);
+}
+
+const struct gating_desc *gv11b_slcg_hshub_get_gating_prod(void)
+{
+	return gv11b_slcg_hshub;
+}
+
 void gv11b_blcg_bus_load_gating_prod(struct gk20a *g,
 	bool prod)
 {
@@ -543,6 +694,16 @@ void gv11b_blcg_bus_load_gating_prod(struct gk20a *g,
 			gk20a_writel(g, reg, val);
 		}
 	}
+}
+
+u32 gv11b_blcg_bus_gating_prod_size(void)
+{
+	return ARRAY_SIZE(gv11b_blcg_bus);
+}
+
+const struct gating_desc *gv11b_blcg_bus_get_gating_prod(void)
+{
+	return gv11b_blcg_bus;
 }
 
 void gv11b_blcg_ce_load_gating_prod(struct gk20a *g,
@@ -562,6 +723,16 @@ void gv11b_blcg_ce_load_gating_prod(struct gk20a *g,
 	}
 }
 
+u32 gv11b_blcg_ce_gating_prod_size(void)
+{
+	return ARRAY_SIZE(gv11b_blcg_ce);
+}
+
+const struct gating_desc *gv11b_blcg_ce_get_gating_prod(void)
+{
+	return gv11b_blcg_ce;
+}
+
 void gv11b_blcg_ctxsw_firmware_load_gating_prod(struct gk20a *g,
 	bool prod)
 {
@@ -577,6 +748,16 @@ void gv11b_blcg_ctxsw_firmware_load_gating_prod(struct gk20a *g,
 			gk20a_writel(g, reg, val);
 		}
 	}
+}
+
+u32 gv11b_blcg_ctxsw_firmware_gating_prod_size(void)
+{
+	return ARRAY_SIZE(gv11b_blcg_ctxsw_firmware);
+}
+
+const struct gating_desc *gv11b_blcg_ctxsw_firmware_get_gating_prod(void)
+{
+	return gv11b_blcg_ctxsw_firmware;
 }
 
 void gv11b_blcg_fb_load_gating_prod(struct gk20a *g,
@@ -596,6 +777,16 @@ void gv11b_blcg_fb_load_gating_prod(struct gk20a *g,
 	}
 }
 
+u32 gv11b_blcg_fb_gating_prod_size(void)
+{
+	return ARRAY_SIZE(gv11b_blcg_fb);
+}
+
+const struct gating_desc *gv11b_blcg_fb_get_gating_prod(void)
+{
+	return gv11b_blcg_fb;
+}
+
 void gv11b_blcg_fifo_load_gating_prod(struct gk20a *g,
 	bool prod)
 {
@@ -611,6 +802,16 @@ void gv11b_blcg_fifo_load_gating_prod(struct gk20a *g,
 			gk20a_writel(g, reg, val);
 		}
 	}
+}
+
+u32 gv11b_blcg_fifo_gating_prod_size(void)
+{
+	return ARRAY_SIZE(gv11b_blcg_fifo);
+}
+
+const struct gating_desc *gv11b_blcg_fifo_get_gating_prod(void)
+{
+	return gv11b_blcg_fifo;
 }
 
 void gv11b_blcg_gr_load_gating_prod(struct gk20a *g,
@@ -630,6 +831,16 @@ void gv11b_blcg_gr_load_gating_prod(struct gk20a *g,
 	}
 }
 
+u32 gv11b_blcg_gr_gating_prod_size(void)
+{
+	return ARRAY_SIZE(gv11b_blcg_gr);
+}
+
+const struct gating_desc *gv11b_blcg_gr_get_gating_prod(void)
+{
+	return gv11b_blcg_gr;
+}
+
 void gv11b_blcg_ltc_load_gating_prod(struct gk20a *g,
 	bool prod)
 {
@@ -645,6 +856,16 @@ void gv11b_blcg_ltc_load_gating_prod(struct gk20a *g,
 			gk20a_writel(g, reg, val);
 		}
 	}
+}
+
+u32 gv11b_blcg_ltc_gating_prod_size(void)
+{
+	return ARRAY_SIZE(gv11b_blcg_ltc);
+}
+
+const struct gating_desc *gv11b_blcg_ltc_get_gating_prod(void)
+{
+	return gv11b_blcg_ltc;
 }
 
 void gv11b_blcg_pwr_csb_load_gating_prod(struct gk20a *g,
@@ -664,6 +885,16 @@ void gv11b_blcg_pwr_csb_load_gating_prod(struct gk20a *g,
 	}
 }
 
+u32 gv11b_blcg_pwr_csb_gating_prod_size(void)
+{
+	return ARRAY_SIZE(gv11b_blcg_pwr_csb);
+}
+
+const struct gating_desc *gv11b_blcg_pwr_csb_get_gating_prod(void)
+{
+	return gv11b_blcg_pwr_csb;
+}
+
 void gv11b_blcg_pmu_load_gating_prod(struct gk20a *g,
 	bool prod)
 {
@@ -679,6 +910,16 @@ void gv11b_blcg_pmu_load_gating_prod(struct gk20a *g,
 			gk20a_writel(g, reg, val);
 		}
 	}
+}
+
+u32 gv11b_blcg_pmu_gating_prod_size(void)
+{
+	return ARRAY_SIZE(gv11b_blcg_pmu);
+}
+
+const struct gating_desc *gv11b_blcg_pmu_get_gating_prod(void)
+{
+	return gv11b_blcg_pmu;
 }
 
 void gv11b_blcg_xbar_load_gating_prod(struct gk20a *g,
@@ -698,6 +939,16 @@ void gv11b_blcg_xbar_load_gating_prod(struct gk20a *g,
 	}
 }
 
+u32 gv11b_blcg_xbar_gating_prod_size(void)
+{
+	return ARRAY_SIZE(gv11b_blcg_xbar);
+}
+
+const struct gating_desc *gv11b_blcg_xbar_get_gating_prod(void)
+{
+	return gv11b_blcg_xbar;
+}
+
 void gv11b_blcg_hshub_load_gating_prod(struct gk20a *g,
 	bool prod)
 {
@@ -715,6 +966,16 @@ void gv11b_blcg_hshub_load_gating_prod(struct gk20a *g,
 	}
 }
 
+u32 gv11b_blcg_hshub_gating_prod_size(void)
+{
+	return ARRAY_SIZE(gv11b_blcg_hshub);
+}
+
+const struct gating_desc *gv11b_blcg_hshub_get_gating_prod(void)
+{
+	return gv11b_blcg_hshub;
+}
+
 void gr_gv11b_pg_gr_load_gating_prod(struct gk20a *g,
 	bool prod)
 {
@@ -730,4 +991,14 @@ void gr_gv11b_pg_gr_load_gating_prod(struct gk20a *g,
 			gk20a_writel(g, reg, val);
 		}
 	}
+}
+
+u32 gr_gv11b_pg_gr_gating_prod_size(void)
+{
+	return ARRAY_SIZE(gv11b_pg_gr);
+}
+
+const struct gating_desc *gr_gv11b_pg_gr_get_gating_prod(void)
+{
+	return gv11b_pg_gr;
 }
