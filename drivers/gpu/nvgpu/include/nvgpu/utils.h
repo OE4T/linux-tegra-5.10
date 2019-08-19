@@ -61,6 +61,7 @@ static inline u32 get_field(u32 reg, u32 mask)
 /*
  * MISRA Rule 11.6 compliant IP address generator.
  */
-#define NVGPU_GET_IP		({ __label__ __here; __here: &&__here; })
+#define NVGPU_GET_IP		\
+	({ __label__ label_here; label_here: &&label_here; })
 
 #endif /* NVGPU_UTILS_H */
