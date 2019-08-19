@@ -212,35 +212,47 @@ u32 gm20b_fb_mmu_debug_rd(struct gk20a *g)
 void gm20b_fb_dump_vpr_info(struct gk20a *g)
 {
 	u32 val;
+	u32 addr_lo, addr_hi, cya_lo, cya_hi;
 
 	/* print vpr info */
 	val = gk20a_readl(g, fb_mmu_vpr_info_r());
 	val &= ~0x3U;
 	val |= fb_mmu_vpr_info_index_addr_lo_v();
 	gk20a_writel(g, fb_mmu_vpr_info_r(), val);
+
+	addr_lo = gk20a_readl(g, fb_mmu_vpr_info_r());
+	addr_hi = gk20a_readl(g, fb_mmu_vpr_info_r());
+	cya_lo = gk20a_readl(g, fb_mmu_vpr_info_r());
+	cya_hi = gk20a_readl(g, fb_mmu_vpr_info_r());
+
 	nvgpu_err(g, "VPR: %08x %08x %08x %08x",
-		gk20a_readl(g, fb_mmu_vpr_info_r()),
-		gk20a_readl(g, fb_mmu_vpr_info_r()),
-		gk20a_readl(g, fb_mmu_vpr_info_r()),
-		gk20a_readl(g, fb_mmu_vpr_info_r()));
+		addr_lo, addr_hi, cya_lo, cya_hi);
 }
 
 void gm20b_fb_dump_wpr_info(struct gk20a *g)
 {
 	u32 val;
+	u32 allow_read, allow_write;
+	u32 wpr1_addr_lo, wpr1_addr_hi;
+	u32 wpr2_addr_lo, wpr2_addr_hi;
 
 	/* print wpr info */
 	val = gk20a_readl(g, fb_mmu_wpr_info_r());
 	val &= ~0xfU;
 	val |= (fb_mmu_wpr_info_index_allow_read_v());
 	gk20a_writel(g, fb_mmu_wpr_info_r(), val);
+
+	allow_read = gk20a_readl(g, fb_mmu_wpr_info_r());
+	allow_write = gk20a_readl(g, fb_mmu_wpr_info_r());
+	wpr1_addr_lo = gk20a_readl(g, fb_mmu_wpr_info_r());
+	wpr1_addr_hi = gk20a_readl(g, fb_mmu_wpr_info_r());
+	wpr2_addr_lo = gk20a_readl(g, fb_mmu_wpr_info_r());
+	wpr2_addr_hi = gk20a_readl(g, fb_mmu_wpr_info_r());
+
 	nvgpu_err(g, "WPR: %08x %08x %08x %08x %08x %08x",
-		gk20a_readl(g, fb_mmu_wpr_info_r()),
-		gk20a_readl(g, fb_mmu_wpr_info_r()),
-		gk20a_readl(g, fb_mmu_wpr_info_r()),
-		gk20a_readl(g, fb_mmu_wpr_info_r()),
-		gk20a_readl(g, fb_mmu_wpr_info_r()),
-		gk20a_readl(g, fb_mmu_wpr_info_r()));
+		allow_read, allow_write,
+		wpr1_addr_lo, wpr1_addr_hi,
+		wpr2_addr_lo, wpr2_addr_hi);
 }
 
 static int gm20b_fb_vpr_info_fetch_wait(struct gk20a *g,
