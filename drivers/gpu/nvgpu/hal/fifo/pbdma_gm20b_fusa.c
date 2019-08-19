@@ -103,6 +103,26 @@ void gm20b_pbdma_disable_and_clear_all_intr(struct gk20a *g)
 	}
 }
 
+static void gm20b_pbdma_dump_intr_0(struct gk20a *g, u32 pbdma_id,
+				u32 pbdma_intr_0)
+{
+	u32 header = nvgpu_readl(g, pbdma_pb_header_r(pbdma_id));
+	u32 data = g->ops.pbdma.read_data(g, pbdma_id);
+	u32 shadow_0 = nvgpu_readl(g, pbdma_gp_shadow_0_r(pbdma_id));
+	u32 shadow_1 = nvgpu_readl(g, pbdma_gp_shadow_1_r(pbdma_id));
+	u32 method0 = nvgpu_readl(g, pbdma_method0_r(pbdma_id));
+	u32 method1 = nvgpu_readl(g, pbdma_method1_r(pbdma_id));
+	u32 method2 = nvgpu_readl(g, pbdma_method2_r(pbdma_id));
+	u32 method3 = nvgpu_readl(g, pbdma_method3_r(pbdma_id));
+
+	nvgpu_err(g,
+		"pbdma_intr_0(%d):0x%08x PBH: %08x "
+		"SHADOW: %08x gp shadow0: %08x gp shadow1: %08x"
+		"M0: %08x %08x %08x %08x ",
+		pbdma_id, pbdma_intr_0, header, data,
+		shadow_0, shadow_1, method0, method1, method2, method3);
+}
+
 bool gm20b_pbdma_handle_intr_0(struct gk20a *g, u32 pbdma_id,
 			u32 pbdma_intr_0, u32 *error_notifier)
 {
@@ -122,20 +142,7 @@ bool gm20b_pbdma_handle_intr_0(struct gk20a *g, u32 pbdma_id,
 				pbdma_intr_fault_type_desc[bit]);
 		}
 
-		nvgpu_err(g,
-			"pbdma_intr_0(%d):0x%08x PBH: %08x "
-			"SHADOW: %08x gp shadow0: %08x gp shadow1: %08x"
-			"M0: %08x %08x %08x %08x ",
-			pbdma_id, pbdma_intr_0,
-			nvgpu_readl(g, pbdma_pb_header_r(pbdma_id)),
-			g->ops.pbdma.read_data(g, pbdma_id),
-			nvgpu_readl(g, pbdma_gp_shadow_0_r(pbdma_id)),
-			nvgpu_readl(g, pbdma_gp_shadow_1_r(pbdma_id)),
-			nvgpu_readl(g, pbdma_method0_r(pbdma_id)),
-			nvgpu_readl(g, pbdma_method1_r(pbdma_id)),
-			nvgpu_readl(g, pbdma_method2_r(pbdma_id)),
-			nvgpu_readl(g, pbdma_method3_r(pbdma_id))
-			);
+		gm20b_pbdma_dump_intr_0(g, pbdma_id, pbdma_intr_0);
 
 		recover = true;
 	}

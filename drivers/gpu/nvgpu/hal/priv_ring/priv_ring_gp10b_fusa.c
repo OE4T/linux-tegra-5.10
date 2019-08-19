@@ -116,6 +116,7 @@ void gp10b_priv_ring_isr(struct gk20a *g)
 	u32 gpc_stride, gpc_offset;
 	u32 error_info;
 	u32 error_code;
+	u32 error_adr, error_wrdat;
 
 #ifdef CONFIG_NVGPU_SIM
 	if (nvgpu_is_enabled(g, NVGPU_IS_FMODEL)) {
@@ -148,11 +149,15 @@ void gp10b_priv_ring_isr(struct gk20a *g)
 			nvgpu_readl(g, pri_ringstation_sys_priv_error_info_r());
 		error_code =
 			nvgpu_readl(g, pri_ringstation_sys_priv_error_code_r());
+		error_adr =
+			nvgpu_readl(g, pri_ringstation_sys_priv_error_adr_r());
+		error_wrdat =
+			nvgpu_readl(g, pri_ringstation_sys_priv_error_wrdat_r());
 		nvgpu_err(g, "SYS write error. ADR 0x%08x WRDAT 0x%08x "
 				"INFO 0x%08x (subid 0x%08x priv level %d), "
 				"CODE 0x%08x",
-			nvgpu_readl(g, pri_ringstation_sys_priv_error_adr_r()),
-			nvgpu_readl(g, pri_ringstation_sys_priv_error_wrdat_r()),
+			error_adr,
+			error_wrdat,
 			error_info,
 			pri_ringstation_sys_priv_error_info_subid_v(error_info),
 			pri_ringstation_sys_priv_error_info_priv_level_v(error_info),
@@ -177,16 +182,21 @@ void gp10b_priv_ring_isr(struct gk20a *g)
 				nvgpu_safe_add_u32(
 				   pri_ringstation_gpc_gpc0_priv_error_code_r(),
 				   gpc_offset));
+			error_adr = nvgpu_readl(g,
+				nvgpu_safe_add_u32(
+				  pri_ringstation_gpc_gpc0_priv_error_adr_r(),
+				  gpc_offset));
+			error_wrdat = nvgpu_readl(g,
+				nvgpu_safe_add_u32(
+				  pri_ringstation_gpc_gpc0_priv_error_wrdat_r(),
+				  gpc_offset));
+
 			nvgpu_err(g, "GPC%u write error. ADR 0x%08x "
 				"WRDAT 0x%08x "
 				"INFO 0x%08x (subid 0x%08x priv level %d), "
 				"CODE 0x%08x", gpc,
-				nvgpu_readl(g, nvgpu_safe_add_u32(
-				    pri_ringstation_gpc_gpc0_priv_error_adr_r(),
-				    gpc_offset)),
-				nvgpu_readl(g, nvgpu_safe_add_u32(
-				  pri_ringstation_gpc_gpc0_priv_error_wrdat_r(),
-				  gpc_offset)),
+				error_adr,
+				error_wrdat,
 				error_info,
 				pri_ringstation_gpc_gpc0_priv_error_info_subid_v(error_info),
 				pri_ringstation_gpc_gpc0_priv_error_info_priv_level_v(error_info),
