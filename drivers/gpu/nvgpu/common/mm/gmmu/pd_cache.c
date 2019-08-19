@@ -435,7 +435,6 @@ static void nvgpu_pd_cache_do_free(struct gk20a *g,
 }
 
 static struct nvgpu_pd_mem_entry *nvgpu_pd_cache_look_up(
-	struct gk20a *g,
 	struct nvgpu_pd_cache *cache,
 	struct nvgpu_gmmu_pd *pd)
 {
@@ -457,7 +456,7 @@ static void nvgpu_pd_cache_free(struct gk20a *g, struct nvgpu_pd_cache *cache,
 
 	pd_dbg(g, "PD-Free  [C] 0x%p", pd->mem);
 
-	pentry = nvgpu_pd_cache_look_up(g, cache, pd);
+	pentry = nvgpu_pd_cache_look_up(cache, pd);
 	if (pentry == NULL) {
 		nvgpu_do_assert_print(g, "Attempting to free non-existent pd");
 		return;

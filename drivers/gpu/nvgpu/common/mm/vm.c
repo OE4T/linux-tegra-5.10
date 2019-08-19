@@ -65,8 +65,7 @@ static void nvgpu_vm_do_unmap(struct nvgpu_mapped_buf *mapped_buffer,
  * Attempt to find a reserved memory area to determine PTE size for the passed
  * mapping. If no reserved area can be found use small pages.
  */
-static u32 nvgpu_vm_get_pte_size_fixed_map(struct vm_gk20a *vm,
-					   u64 base, u64 size)
+static u32 nvgpu_vm_get_pte_size_fixed_map(struct vm_gk20a *vm, u64 base)
 {
 	struct nvgpu_vm_area *vm_area;
 
@@ -132,7 +131,7 @@ static u32 nvgpu_vm_get_pte_size(struct vm_gk20a *vm, u64 base, u64 size)
 	}
 
 	if (base != 0ULL) {
-		return nvgpu_vm_get_pte_size_fixed_map(vm, base, size);
+		return nvgpu_vm_get_pte_size_fixed_map(vm, base);
 	}
 
 	if (size >= vm->gmmu_page_sizes[GMMU_PAGE_SIZE_BIG] &&

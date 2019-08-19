@@ -43,9 +43,9 @@ static int generate_as_share_id(struct gk20a_as *as)
 	return as->last_share_id;
 }
 /* still dumb */
-static void release_as_share_id(struct gk20a_as *as, int id)
+static void release_as_share_id(struct gk20a_as_share *as_share)
 {
-	struct gk20a *g = gk20a_from_as(as);
+	struct gk20a *g = gk20a_from_as(as_share->as);
 
 	nvgpu_log_fn(g, " ");
 	return;
@@ -183,7 +183,7 @@ int gk20a_as_release_share(struct gk20a_as_share *as_share)
 	gk20a_idle(g);
 
 release_fail:
-	release_as_share_id(as_share->as, as_share->id);
+	release_as_share_id(as_share);
 	nvgpu_put(g);
 	nvgpu_kfree(g, as_share);
 
