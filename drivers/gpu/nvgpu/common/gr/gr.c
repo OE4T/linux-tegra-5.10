@@ -367,6 +367,50 @@ static int nvgpu_gr_init_ctx_state(struct gk20a *g)
 	return nvgpu_gr_falcon_init_ctx_state(g, g->gr->falcon);
 }
 
+static int gr_init_ctx_and_map_zbc(struct gk20a *g)
+{
+	struct nvgpu_gr *gr = g->gr;
+	int err = 0;
+
+	gr->gr_ctx_desc = nvgpu_gr_ctx_desc_alloc(g);
+	if (gr->gr_ctx_desc == NULL) {
+		err = -ENOMEM;
+		goto clean_up;
+	}
+
+#ifdef CONFIG_NVGPU_GRAPHICS
+	nvgpu_gr_ctx_set_size(g->gr->gr_ctx_desc, NVGPU_GR_CTX_PREEMPT_CTXSW,
+			nvgpu_gr_falcon_get_preempt_image_size(g->gr->falcon));
+#endif
+	gr->global_ctx_buffer = nvgpu_gr_global_ctx_desc_alloc(g);
+	if (gr->global_ctx_buffer == NULL) {
+		err = -ENOMEM;
+		goto clean_up;
+	}
+
+	err = gr_alloc_global_ctx_buffers(g);
+	if (err != 0) {
+		goto clean_up;
+	}
+
+	err = gr_init_access_map(g, gr);
+	if (err != 0) {
+		goto clean_up;
+	}
+
+#ifdef CONFIG_NVGPU_GRAPHICS
+	err = nvgpu_gr_zbc_init(g, &gr->zbc);
+	if (err != 0) {
+		goto clean_up;
+	}
+#endif /* CONFIG_NVGPU_GRAPHICS */
+
+	return 0;
+
+clean_up:
+	return err;
+}
+
 static int gr_init_setup_sw(struct gk20a *g)
 {
 	struct nvgpu_gr *gr = g->gr;
@@ -418,37 +462,10 @@ static int gr_init_setup_sw(struct gk20a *g)
 	}
 #endif /* CONFIG_NVGPU_GRAPHICS */
 
-	gr->gr_ctx_desc = nvgpu_gr_ctx_desc_alloc(g);
-	if (gr->gr_ctx_desc == NULL) {
-		goto clean_up;
-	}
-
-#ifdef CONFIG_NVGPU_GRAPHICS
-	nvgpu_gr_ctx_set_size(g->gr->gr_ctx_desc, NVGPU_GR_CTX_PREEMPT_CTXSW,
-			nvgpu_gr_falcon_get_preempt_image_size(g->gr->falcon));
-#endif
-
-	gr->global_ctx_buffer = nvgpu_gr_global_ctx_desc_alloc(g);
-	if (gr->global_ctx_buffer == NULL) {
-		goto clean_up;
-	}
-
-	err = gr_alloc_global_ctx_buffers(g);
+	err = gr_init_ctx_and_map_zbc(g);
 	if (err != 0) {
 		goto clean_up;
 	}
-
-	err = gr_init_access_map(g, gr);
-	if (err != 0) {
-		goto clean_up;
-	}
-
-#ifdef CONFIG_NVGPU_GRAPHICS
-	err = nvgpu_gr_zbc_init(g, &gr->zbc);
-	if (err != 0) {
-		goto clean_up;
-	}
-#endif /* CONFIG_NVGPU_GRAPHICS */
 
 	gr->intr = nvgpu_gr_intr_init_support(g);
 	if (gr->intr == NULL) {
