@@ -434,7 +434,7 @@ static int falcon_sw_init(struct gk20a *g, struct nvgpu_falcon *flcn)
 	int err = 0;
 
 	switch (ver) {
-#ifdef CONFIG_NVGPU_COMMON_NON_FUSA
+#ifdef CONFIG_NVGPU_NON_FUSA
 	case GK20A_GPUID_GM20B:
 	case GK20A_GPUID_GM20B_B:
 		gk20a_falcon_sw_init(flcn);

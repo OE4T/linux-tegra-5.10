@@ -112,7 +112,9 @@ void nvgpu_udelay(unsigned int usecs);
 s64 nvgpu_current_time_ms(void);
 s64 nvgpu_current_time_ns(void);
 s64 nvgpu_current_time_us(void);
+#ifdef CONFIG_NVGPU_NON_FUSA
 u64 nvgpu_hr_timestamp_us(void);
+#endif
 u64 nvgpu_hr_timestamp(void);
 
 #endif /* NVGPU_TIMERS_H */
