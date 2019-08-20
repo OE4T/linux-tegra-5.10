@@ -20,6 +20,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
+#include "vm.h"
 #include <stdio.h>
 
 #include <unit/unit.h>
@@ -347,26 +348,7 @@ exit:
 	return ret;
 }
 
-/*
- * This is the test for requirement NVGPU-RQCD-45.C1.
- * Requirement: The VM unit shall be able to map a buffer of memory such that
- * the GPU may access that memory.
- *
- * This test does the following:
- *    - Initialize a VM with the following characteristics:
- *         - 64KB large page support enabled
- *         - Low hole size = 64MB
- *         - Address space size = 128GB
- *         - Kernel reserved space size = 4GB
- *    - Map a 4KB buffer into the VM
- *         - Check that the resulting GPU virtual address is aligned to 4KB
- *         - Unmap the buffer
- *    - Map a 64KB buffer into the VM
- *         - Check that the resulting GPU virtual address is aligned to 64KB
- *         - Unmap the buffer
- *    - Uninitialize the VM
- */
-static int test_map_buf(struct unit_module *m, struct gk20a *g, void *__args)
+int test_map_buf(struct unit_module *m, struct gk20a *g, void *__args)
 {
 	int ret = UNIT_SUCCESS;
 	struct vm_gk20a *vm = NULL;
@@ -477,29 +459,7 @@ exit:
 	return ret;
 }
 
-/*
- * This is the test for requirement NVGPU-RQCD-45.C2.
- * Requirement: When a GPU virtual address is passed into the nvgpu_vm_map()
- * function the resulting GPU virtual address of the map does/does not match
- * the requested GPU virtual address.
- *
- * This test does the following:
- *    - Initialize a VM with the following characteristics:
- *         - 64KB large page support enabled
- *         - Low hole size = 64MB
- *         - Address space size = 128GB
- *         - Kernel reserved space size = 4GB
- *    - Map a 4KB buffer into the VM at a specific GPU virtual address
- *         - Check that the resulting GPU virtual address is aligned to 4KB
- *         - Check that the resulting GPU VA is the same as the requested GPU VA
- *         - Unmap the buffer
- *    - Map a 64KB buffer into the VM at a specific GPU virtual address
- *         - Check that the resulting GPU virtual address is aligned to 64KB
- *         - Check that the resulting GPU VA is the same as the requested GPU VA
- *         - Unmap the buffer
- *    - Uninitialize the VM
- */
-static int test_map_buf_gpu_va(struct unit_module *m,
+int test_map_buf_gpu_va(struct unit_module *m,
 			       struct gk20a *g,
 			       void *__args)
 {
@@ -644,21 +604,7 @@ static int test_batch_mm_l2_flush(struct gk20a *g, bool invalidate)
 	return 0;
 }
 
-/*
- * This test exercises the VM unit's batch mode. Batch mode is used to optimize
- * cache flushes.
- *
- * This test does the following:
- *    - Initialize a VM with the following characteristics:
- *         - 64KB large page support enabled
- *         - Low hole size = 64MB
- *         - Address space size = 128GB
- *         - Kernel reserved space size = 4GB
- *    - Map/unmap 10 4KB buffers using batch mode
- *    - Disable batch mode and verify cache flush counts
- *    - Uninitialize the VM
- */
-static int test_batch(struct unit_module *m, struct gk20a *g, void *__args)
+int test_batch(struct unit_module *m, struct gk20a *g, void *__args)
 {
 	int ret = UNIT_SUCCESS;
 	struct vm_gk20a *vm = NULL;
