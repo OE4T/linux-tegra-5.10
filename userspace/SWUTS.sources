@@ -1,0 +1,3 @@
+INPUT += ../../../userspace/SWUTS.h
+INPUT += ../../../userspace/units/mm/vm/vm.h
+

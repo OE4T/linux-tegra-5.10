@@ -41,6 +41,12 @@
  *   - @ref unit-falcon
  *   - Etc, etc.
  *
+ * NVGPU Software Unit Design Documentation
+ * ========================================
+ *
+ * For each top level unit, a corresponding Unit Test Specification is
+ * available in the @ref NVGPU-SWUTS
+ *
  * nvgpu-driver Level Requirements Table
  * =====================================
  *
