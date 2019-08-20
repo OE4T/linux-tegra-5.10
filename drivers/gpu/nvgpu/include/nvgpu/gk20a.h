@@ -2000,6 +2000,12 @@ struct gk20a {
 	bool suspended;
 	bool sw_ready;
 
+#ifndef CONFIG_NVGPU_RECOVERY
+	bool sw_quiesce_pending;
+	struct nvgpu_cond sw_quiesce_cond;
+	struct nvgpu_thread sw_quiesce_thread;
+#endif
+
 	u64 log_mask;
 	u32 log_trace;
 

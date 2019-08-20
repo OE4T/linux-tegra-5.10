@@ -534,6 +534,16 @@ static int gk20a_lockout_registers(struct gk20a *g)
 	return 0;
 }
 
+void nvgpu_disable_irqs(struct gk20a *g)
+{
+	if (g->irqs_enabled) {
+		disable_irq(g->irq_stall);
+		if (g->irq_stall != g->irq_nonstall)
+			disable_irq(g->irq_nonstall);
+		g->irqs_enabled = 0;
+	}
+}
+
 static int gk20a_pm_prepare_poweroff(struct device *dev)
 {
 	struct gk20a *g = get_gk20a(dev);
@@ -553,12 +563,7 @@ static int gk20a_pm_prepare_poweroff(struct device *dev)
 
 	/* disable IRQs and wait for completion */
 	irqs_enabled = g->irqs_enabled;
-	if (irqs_enabled) {
-		disable_irq(g->irq_stall);
-		if (g->irq_stall != g->irq_nonstall)
-			disable_irq(g->irq_nonstall);
-		g->irqs_enabled = 0;
-	}
+	nvgpu_disable_irqs(g);
 
 	gk20a_scale_suspend(dev);
 
@@ -1319,21 +1324,19 @@ static int gk20a_pm_deinit(struct device *dev)
 	return 0;
 }
 
-int nvgpu_start_gpu_idle(struct gk20a *g)
+void nvgpu_start_gpu_idle(struct gk20a *g)
 {
 	struct nvgpu_os_linux *l = nvgpu_os_linux_from_gk20a(g);
 
 	down_write(&l->busy_lock);
-
-	/*
-	 * Set NVGPU_DRIVER_IS_DYING to avoid gpu being marked
-	 * busy to submit new work to gpu.
-	 */
 	nvgpu_set_enabled(g, NVGPU_DRIVER_IS_DYING, true);
-
+	/*
+	 * GR SW ready needs to be invalidated at this time with the busy lock
+	 * held to prevent a racing condition on the gr/mm code
+	 */
+	nvgpu_gr_sw_ready(g, false);
+	g->sw_ready = false;
 	up_write(&l->busy_lock);
-
-	return 0;
 }
 
 int nvgpu_wait_for_gpu_idle(struct gk20a *g)
@@ -1360,13 +1363,7 @@ void gk20a_driver_start_unload(struct gk20a *g)
 
 	nvgpu_log(g, gpu_dbg_shutdown, "Driver is now going down!\n");
 
-	down_write(&l->busy_lock);
-	nvgpu_set_enabled(g, NVGPU_DRIVER_IS_DYING, true);
-	/* GR SW ready needs to be invalidated at this time with the busy lock
-	 * held to prevent a racing condition on the gr/mm code */
-	nvgpu_gr_sw_ready(g, false);
-	g->sw_ready = false;
-	up_write(&l->busy_lock);
+	nvgpu_start_gpu_idle(g);
 
 	if (g->is_virtual)
 		return;

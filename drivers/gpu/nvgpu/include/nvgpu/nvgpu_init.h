@@ -23,6 +23,9 @@
 #ifndef NVGPU_INIT_H
 #define NVGPU_INIT_H
 
+struct gk20a;
+struct nvgpu_ref;
+
 /**
  * @file
  * @page unit-init Unit Init
@@ -98,6 +101,49 @@ int nvgpu_finalize_poweron(struct gk20a *g);
  * @return 0 in case of success, < 0 in case of failure.
  */
 int nvgpu_prepare_poweroff(struct gk20a *g);
+
+/**
+ * @brief Enter SW Quiesce state
+ *
+ * @param g [in] The GPU
+ *
+ * Enters SW quiesce state:
+ * - set sw_quiesce_pending: When this flag is set, interrupt
+ *   handlers exit after masking interrupts. This should help mitigate
+ *   an interrupt storm.
+ * - wake up thread to complete quiescing.
+ *
+ * The thread performs the following:
+ * - set NVGPU_DRIVER_IS_DYING to prevent allocation of new resources
+ * - disable interrupts
+ * - disable fifo scheduling
+ * - preempt all runlists
+ * - set error notifier for all active channels
+ *
+ * @note: For channels with usermode submit enabled, userspace can
+ * still ring doorbell, but this will not trigger any work on
+ * engines since fifo scheduling is disabled.
+ */
+void nvgpu_sw_quiesce(struct gk20a *g);
+
+/**
+ * @brief Start GPU idle
+ *
+ * @param g [in] The GPU
+ *
+ * Set #NVGPU_DRIVER_IS_DYING to prevent allocation of new resources.
+ * User API call will fail once this flag is set, as gk20a_busy will fail.
+ */
+void nvgpu_start_gpu_idle(struct gk20a *g);
+
+/**
+ * @brief Disable interrupt handlers
+ *
+ * @param g [in] The GPU
+ *
+ * Disable interrupt handlers.
+ */
+void nvgpu_disable_irqs(struct gk20a *g);
 
 /**
  * @brief Check if the device can go busy

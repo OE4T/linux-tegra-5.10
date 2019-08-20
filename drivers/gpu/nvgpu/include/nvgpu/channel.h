@@ -754,6 +754,21 @@ int nvgpu_channel_setup_sw(struct gk20a *g);
  */
 void nvgpu_channel_cleanup_sw(struct gk20a *g);
 
+#ifndef CONFIG_NVGPU_RECOVERY
+/**
+ * @brief Emergency quiescing of channels
+ *
+ * @param g[in]		Pointer to GPU driver struct.
+ *
+ * Driver has encountered uncorrectable error, and is entering
+ * SW Quiesce state. For each channel:
+ * - set error notifier
+ * - mark channel as unserviceable
+ * - signal on wait queues (notify_wq and semaphore_wq)
+ */
+void nvgpu_channel_sw_quiesce(struct gk20a *g);
+#endif
+
 /**
  * @brief Close channel
  *

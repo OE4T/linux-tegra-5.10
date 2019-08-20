@@ -20,6 +20,9 @@
 
 #include <nvgpu/atomic.h>
 #include <nvgpu/unit.h>
+#ifndef CONFIG_NVGPU_RECOVERY
+#include <nvgpu/nvgpu_init.h>
+#endif
 #include "os_linux.h"
 
 irqreturn_t nvgpu_intr_stall(struct gk20a *g)
@@ -39,6 +42,11 @@ irqreturn_t nvgpu_intr_stall(struct gk20a *g)
 		return IRQ_NONE;
 
 	g->ops.mc.intr_stall_pause(g);
+#ifndef CONFIG_NVGPU_RECOVERY
+	if (g->sw_quiesce_pending) {
+		return IRQ_NONE;
+	}
+#endif
 
 	nvgpu_atomic_inc(&g->hw_irq_stall_count);
 
@@ -90,6 +98,11 @@ irqreturn_t nvgpu_intr_nonstall(struct gk20a *g)
 		return IRQ_NONE;
 
 	g->ops.mc.intr_nonstall_pause(g);
+#ifndef CONFIG_NVGPU_RECOVERY
+	if (g->sw_quiesce_pending) {
+		return IRQ_NONE;
+	}
+#endif
 
 	ops = g->ops.mc.isr_nonstall(g);
 	if (ops) {

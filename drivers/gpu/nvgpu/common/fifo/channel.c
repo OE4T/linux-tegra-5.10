@@ -2296,6 +2296,25 @@ void nvgpu_channel_set_error_notifier(struct gk20a *g, struct nvgpu_channel *ch,
 	g->ops.channel.set_error_notifier(ch, error_notifier);
 }
 
+#ifndef CONFIG_NVGPU_RECOVERY
+void nvgpu_channel_sw_quiesce(struct gk20a *g)
+{
+	struct nvgpu_fifo *f = &g->fifo;
+	struct nvgpu_channel *ch;
+	u32 chid;
+
+	for (chid = 0; chid < f->num_channels; chid++) {
+		ch = nvgpu_channel_get(&f->channel[chid]);
+		if (ch != NULL) {
+			nvgpu_channel_set_error_notifier(g, ch,
+				NVGPU_ERR_NOTIFIER_FIFO_ERROR_IDLE_TIMEOUT);
+			nvgpu_channel_set_has_timedout_and_wakeup_wqs(g, ch);
+			nvgpu_channel_put(ch);
+		}
+	}
+}
+#endif
+
 /*
  * Stop deterministic channel activity for do_idle() when power needs to go off
  * momentarily but deterministic channels keep power refs for potentially a

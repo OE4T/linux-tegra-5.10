@@ -24,6 +24,7 @@
 #include <linux/debugfs.h>
 
 #include <nvgpu/lock.h>
+#include <nvgpu/nvgpu_init.h>
 
 #include "module.h"
 #include "platform_gk20a.h"
@@ -527,11 +528,7 @@ static int nvgpu_pci_gpu_power_off(char *dev_name)
 	g = get_gk20a(dev);
 	pgpios = &pp->gpios;
 
-	ret = nvgpu_start_gpu_idle(g);
-	if (ret) {
-		pr_err("nvgpu: start gpu idle failed\n");
-		goto out;
-	}
+	nvgpu_start_gpu_idle(g);
 
 	ret = nvgpu_wait_for_gpu_idle(g);
 	if (ret) {

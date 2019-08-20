@@ -28,6 +28,7 @@
 #include <nvgpu/types.h>
 #include <nvgpu/atomic.h>
 #include <nvgpu/nvgpu_common.h>
+#include <nvgpu/nvgpu_init.h>
 #include <nvgpu/os_sched.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/enabled.h>
@@ -42,6 +43,15 @@
 void nvgpu_kernel_restart(void *cmd)
 {
 	BUG();
+}
+
+void nvgpu_start_gpu_idle(struct gk20a *g)
+{
+	nvgpu_set_enabled(g, NVGPU_DRIVER_IS_DYING, true);
+}
+
+void nvgpu_disable_irqs(struct gk20a *g)
+{
 }
 
 /*

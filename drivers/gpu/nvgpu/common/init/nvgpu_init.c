@@ -73,6 +73,91 @@ static void gk20a_mask_interrupts(struct gk20a *g)
 	}
 }
 
+#ifndef CONFIG_NVGPU_RECOVERY
+static int nvgpu_sw_quiesce_thread(void *data)
+{
+	struct gk20a *g = data;
+	int err = 0;
+
+	/* wait until all SW quiesce is requested */
+	NVGPU_COND_WAIT(&g->sw_quiesce_cond,
+		g->sw_quiesce_pending ||
+		nvgpu_thread_should_stop(&g->sw_quiesce_thread), 0U);
+
+	if (nvgpu_thread_should_stop(&g->sw_quiesce_thread)) {
+		goto done;
+	}
+
+	nvgpu_err(g, "sw quiesce in progress");
+
+	nvgpu_mutex_acquire(&g->power_lock);
+
+	if (!g->power_on || g->is_virtual) {
+		err = -EINVAL;
+		goto idle;
+	}
+
+	nvgpu_start_gpu_idle(g);
+	nvgpu_disable_irqs(g);
+	gk20a_mask_interrupts(g);
+	nvgpu_fifo_sw_quiesce(g);
+
+idle:
+	nvgpu_mutex_release(&g->power_lock);
+	nvgpu_err(g, "sw quiesce done, err=%d", err);
+
+done:
+	nvgpu_log_info(g, "done");
+	return err;
+}
+
+static int nvgpu_sw_quiesce_init_support(struct gk20a *g)
+{
+	int err;
+
+	nvgpu_cond_init(&g->sw_quiesce_cond);
+	g->sw_quiesce_pending = false;
+
+	err = nvgpu_thread_create(&g->sw_quiesce_thread, g,
+			nvgpu_sw_quiesce_thread, "sw-quiesce");
+	if (err != 0) {
+		return err;
+	}
+
+	return 0;
+}
+
+static void nvgpu_sw_quiesce_remove_support(struct gk20a *g)
+{
+	nvgpu_thread_stop(&g->sw_quiesce_thread);
+	nvgpu_cond_destroy(&g->sw_quiesce_cond);
+}
+#endif
+
+void nvgpu_sw_quiesce(struct gk20a *g)
+{
+#ifndef CONFIG_NVGPU_RECOVERY
+	if (g->is_virtual) {
+		goto fail;
+	}
+
+	nvgpu_err(g, "SW quiesce requested");
+
+	/*
+	 * When this flag is set, interrupt handlers should
+	 * exit after masking interrupts. This should mitigate
+	 * interrupt storm cases.
+	 */
+	g->sw_quiesce_pending = true;
+
+	nvgpu_cond_signal(&g->sw_quiesce_cond);
+	return;
+
+fail:
+#endif
+	nvgpu_err(g, "sw quiesce not supported");
+}
+
 int nvgpu_prepare_poweroff(struct gk20a *g)
 {
 	int tmp_ret, ret = 0;
@@ -163,6 +248,14 @@ int nvgpu_finalize_poweron(struct gk20a *g)
 	}
 
 	g->power_on = true;
+
+#ifndef CONFIG_NVGPU_RECOVERY
+	err = nvgpu_sw_quiesce_init_support(g);
+	if (err != 0) {
+		nvgpu_err(g, "failed to init sw-quiesce support");
+		goto done;
+	}
+#endif
 
 #ifdef CONFIG_NVGPU_DGPU
 	/*
@@ -667,6 +760,10 @@ static void gk20a_free_cb(struct nvgpu_ref *refcount)
 	if (g->ops.ltc.ltc_remove_support != NULL) {
 		g->ops.ltc.ltc_remove_support(g);
 	}
+
+#ifndef CONFIG_NVGPU_RECOVERY
+	nvgpu_sw_quiesce_remove_support(g);
+#endif
 
 	if (g->gfree != NULL) {
 		g->gfree(g);

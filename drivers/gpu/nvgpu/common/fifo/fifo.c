@@ -263,3 +263,24 @@ int nvgpu_fifo_suspend(struct gk20a *g)
 	nvgpu_log_fn(g, "done");
 	return 0;
 }
+
+#ifndef CONFIG_NVGPU_RECOVERY
+void nvgpu_fifo_sw_quiesce(struct gk20a *g)
+{
+	u32 runlist_mask;
+
+	nvgpu_runlist_lock_active_runlists(g);
+
+	/* Disable all runlists */
+	runlist_mask = nvgpu_runlist_get_runlists_mask(g,
+			0U, ID_TYPE_UNKNOWN, 0U, 0U);
+	g->ops.runlist.write_state(g, runlist_mask, RUNLIST_DISABLED);
+
+	/* Preempt all runlists (runlist->reset_eng_bitmask will be ignored)*/
+	g->ops.fifo.preempt_runlists_for_rc(g, runlist_mask);
+
+	nvgpu_channel_sw_quiesce(g);
+
+	nvgpu_runlist_unlock_active_runlists(g);
+}
+#endif

@@ -254,6 +254,7 @@ nvgpu_sgt_ipa_to_pa
 nvgpu_spinlock_acquire
 nvgpu_spinlock_init
 nvgpu_spinlock_release
+nvgpu_sw_quiesce
 nvgpu_userd_init_slabs
 nvgpu_usermode_writel
 nvgpu_vfree_impl
