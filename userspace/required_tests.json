@@ -1327,5 +1327,35 @@
         "test": "pmu_remove_support",
         "test_level": 0,
         "unit": "nvgpu-pmu"
+    },
+    {
+        "test": "init_support",
+        "test_level": 0,
+        "unit": "nvgpu_gr_config"
+    },
+    {
+        "test": "config_init",
+        "test_level": 0,
+        "unit": "nvgpu_gr_config"
+    },
+    {
+        "test": "config_check_init",
+        "test_level": 0,
+        "unit": "nvgpu_gr_config"
+    },
+    {
+        "test": "config_check_set_get",
+        "test_level": 0,
+        "unit": "nvgpu_gr_config"
+    },
+    {
+        "test": "config_deinit",
+        "test_level": 0,
+        "unit": "nvgpu_gr_config"
+    },
+    {
+        "test": "remove_support",
+        "test_level": 0,
+        "unit": "nvgpu_gr_config"
     }
 ]
