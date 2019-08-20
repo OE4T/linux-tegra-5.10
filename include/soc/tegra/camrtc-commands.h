@@ -8,13 +8,22 @@
  * license agreement from NVIDIA CORPORATION is strictly prohibited.
  */
 
+/**
+ * @file camrtc-commands.h
+ *
+ * @brief Commands used with "nvidia,tegra-camrtc-hsp-vm" & "nvidia,tegra-hsp-mailbox"
+ * protocol
+ */
+
 #ifndef INCLUDE_CAMRTC_COMMANDS_H
 #define INCLUDE_CAMRTC_COMMANDS_H
 
 #include "camrtc-common.h"
 
-/* Messages used with "nvidia,tegra-camrtc-hsp-vm" protocol */
-
+/**
+ * @defgroup HspVmMsgs Definitions for "nvidia,tegra-camrtc-hsp-vm" protocol
+ * @{
+ */
 #define CAMRTC_HSP_MSG(_id, _param) \
 	(((uint32_t)(_id) << 24U) | ((uint32_t)(_param) & 0xffffffU))
 #define CAMRTC_HSP_MSG_ID(_msg) \
@@ -35,18 +44,23 @@
 
 #define CAMRTC_HSP_UNKNOWN	0x7FU
 
-/* Shared semaphore bits (FW->VM) */
+/** Shared semaphore bits (FW->VM) */
 #define CAMRTC_HSP_SS_FW_MASK   0xFFFFU
 #define CAMRTC_HSP_SS_FW_SHIFT  0U
 
-/* Shared semaphore bits (VM->FW) */
+/** Shared semaphore bits (VM->FW) */
 #define CAMRTC_HSP_SS_VM_MASK   0x7FFF0000U
 #define CAMRTC_HSP_SS_VM_SHIFT  16U
 
-/* Bits used by IVC channels */
+/** Bits used by IVC channels */
 #define CAMRTC_HSP_SS_IVC_MASK  0xFFU
 
-/* Commands used with "nvidia,tegra-hsp-mailbox" protocol */
+/** @} */
+
+/**
+ * @defgroup HspMailboxMsgs Definitions for "nvidia,tegra-hsp-mailbox" protocol
+ * @{
+ */
 #define RTCPU_COMMAND(id, value) \
 	(((uint32_t)RTCPU_CMD_ ## id << U32_C(24)) | ((uint32_t)value))
 
@@ -71,15 +85,15 @@
 #define RTCPU_FW_VERSION 1U
 #define RTCPU_FW_SM2_VERSION 2U
 #define RTCPU_FW_SM3_VERSION 3U
-/* SM4 firmware can restore itself after suspend */
+/** SM4 firmware can restore itself after suspend */
 #define RTCPU_FW_SM4_VERSION 4U
 
-/* SM5 firmware supports IVC synchronization  */
+/** SM5 firmware supports IVC synchronization  */
 #define RTCPU_FW_SM5_VERSION 5U
-/* SM5 driver supports IVC synchronization  */
+/** SM5 driver supports IVC synchronization  */
 #define RTCPU_DRIVER_SM5_VERSION 5U
 
-/* SM6 firmware/driver supports camrtc-hsp-vm protocol  */
+/** SM6 firmware/driver supports camrtc-hsp-vm protocol  */
 #define RTCPU_FW_SM6_VERSION 6U
 #define RTCPU_DRIVER_SM6_VERSION 6U
 
@@ -98,5 +112,7 @@
 #define RTCPU_FW_INVALID_VERSION (0xFFFFFFU)
 
 #define RTCPU_RESUME_ERROR (0xFFFFFFU)
+
+/** @} */
 
 #endif /* INCLUDE_CAMRTC_COMMANDS_H */

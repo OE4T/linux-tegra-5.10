@@ -8,6 +8,12 @@
  * license agreement from NVIDIA CORPORATION is strictly prohibited.
  */
 
+/**
+ * @file camrtc-capture-messages.h
+ *
+ * @brief Capture control and Capture IVC messages
+ */
+
 #ifndef INCLUDE_CAMRTC_CAPTURE_MESSAGES_H
 #define INCLUDE_CAMRTC_CAPTURE_MESSAGES_H
 
@@ -16,27 +22,27 @@
 #pragma GCC diagnostic error "-Wpadded"
 
 /**
- * Standard message header for all capture IVC messages.
+ * @brief Standard message header for all capture and capture-control IVC messages.
  *
  * Control Requests not associated with a specific channel
  * will use an opaque transaction ID rather than channel_id.
  * The transaction ID in the response message is copied from
  * the request message.
- *
- * @param msg_id	Message identifier.
- * @param channel_id	Channel identifier.
- * @param transaction	Transaction id.
  */
 struct CAPTURE_MSG_HEADER {
+	/** Message identifier. */
 	uint32_t msg_id;
 	union {
+		/** Channel number. */
 		uint32_t channel_id;
+		/** Transaction id. */
 		uint32_t transaction;
 	};
 } __CAPTURE_IVC_ALIGN;
 
 /**
- * Message types for capture control channel messages.
+ * @defgroup ViCapCtrlMsgType Message types for capture-control IVC channel messages.
+ * @{
  */
 #define CAPTURE_CHANNEL_SETUP_REQ		U32_C(0x10)
 #define CAPTURE_CHANNEL_SETUP_RESP		U32_C(0x11)
@@ -52,25 +58,52 @@ struct CAPTURE_MSG_HEADER {
 #define CAPTURE_SYNCGEN_ENABLE_RESP		U32_C(0x1B)
 #define CAPTURE_SYNCGEN_DISABLE_REQ		U32_C(0x1C)
 #define CAPTURE_SYNCGEN_DISABLE_RESP		U32_C(0x1D)
+/** @} */
 
 /**
- * Message types for capture channel messages.
+ * @defgroup IspCapCtrlMsgType Message types for ISP capture-control IVC channel messages.
+ * @{
+ */
+#define CAPTURE_CHANNEL_ISP_SETUP_REQ		U32_C(0x20)
+#define CAPTURE_CHANNEL_ISP_SETUP_RESP		U32_C(0x21)
+#define CAPTURE_CHANNEL_ISP_RESET_REQ		U32_C(0x22)
+#define CAPTURE_CHANNEL_ISP_RESET_RESP		U32_C(0x23)
+#define CAPTURE_CHANNEL_ISP_RELEASE_REQ		U32_C(0x24)
+#define CAPTURE_CHANNEL_ISP_RELEASE_RESP	U32_C(0x25)
+/** @} */
+
+/**
+ * @defgroup ViCapMsgType Message types for capture channel IVC messages.
+ * @{
  */
 #define	CAPTURE_REQUEST_REQ			U32_C(0x01)
 #define	CAPTURE_STATUS_IND			U32_C(0x02)
 #define	CAPTURE_RESET_BARRIER_IND		U32_C(0x03)
+/** @} */
 
 /**
- * Invalid message type. This can be used to
- * respond to an invalid request.
+ * @defgroup IspCapMsgType Message types for ISP capture channel IVC messages.
+ * @{
+ */
+#define CAPTURE_ISP_REQUEST_REQ			U32_C(0x04)
+#define CAPTURE_ISP_STATUS_IND			U32_C(0x05)
+#define CAPTURE_ISP_PROGRAM_REQUEST_REQ		U32_C(0x06)
+#define CAPTURE_ISP_PROGRAM_STATUS_IND		U32_C(0x07)
+#define CAPTURE_ISP_RESET_BARRIER_IND		U32_C(0x08)
+#define CAPTURE_ISP_EX_STATUS_IND		U32_C(0x09)
+/** @} */
+
+/**
+ * @brief Invalid message type. This can be used to respond to an invalid request.
  */
 #define CAPTURE_MSG_ID_INVALID			U32_C(0xFFFFFFFF)
 
-/**
- * Result codes.
- */
 typedef uint32_t capture_result;
 
+/**
+ * @defgroup CapErrorCodes Unsigned 32-bit return values for the capture-control IVC messages.
+ * @{
+ */
 #define CAPTURE_OK				U32_C(0)
 #define CAPTURE_ERROR_INVALID_PARAMETER		U32_C(1)
 #define CAPTURE_ERROR_NO_MEMORY			U32_C(2)
@@ -80,297 +113,452 @@ typedef uint32_t capture_result;
 #define CAPTURE_ERROR_OVERFLOW			U32_C(6)
 #define CAPTURE_ERROR_NO_RESOURCES		U32_C(7)
 #define CAPTURE_ERROR_TIMEOUT			U32_C(8)
+/** @} */
 
-
-/** Set up RTCPU side resources for a capture pipe-line.
+/**
+ * @brief VI capture channel setup request message.
  *
- * The client shall use the transaction id field in the
- * standard message header to assocuiate request and response.
- *
- * @param channel_config	Capture channel configuration.
+ * Setup the VI Falcon channel context and initialize the
+ * RCE capture channel context. The GOS tables are also configured.
+ * The client shall use the transaction id field
+ * in the standard message header to associate request and response.
  */
 struct CAPTURE_CHANNEL_SETUP_REQ_MSG {
+	/** Capture channel configuration. */
 	struct capture_channel_config	channel_config;
 } __CAPTURE_IVC_ALIGN;
 
-/** Acknowledge capture channel setup request.
+/**
+ * @brief VI Capture channel setup response message.
  *
  * The transaction id field in the standard message header
  * will be copied from the associated request.
  *
- * The setup response message returns a @a channel_id, which
+ * The setup response message returns a channel_id, which
  * identifies this set of resources and is used to refer to the
  * allocated capture channel in subsequent messages.
- *
- * @param result		Return value.
- * @param channel_id		Capture channel identifier for the new channel.
- * @param vi_channel_mask	Allocated VI channel(s).
  */
 struct CAPTURE_CHANNEL_SETUP_RESP_MSG {
+	/** Capture result return value. See @ref CapErrorCodes "Return values" */
 	capture_result result;
+	/** Capture channel identifier for the new channel. */
 	uint32_t channel_id;
+	/** Allocated VI channel(s). */
 	uint64_t vi_channel_mask;
 } __CAPTURE_IVC_ALIGN;
 
-/** Reset a capture channel.
- *
- * Halt the associated VI channel. Flush the request queue for the
- * channel and increment syncpoints in the request queue to their target
- * values.
- *
- * @param reset_flags		Reset flags.
+/**
+ * @defgroup CapResetFlags VI Capture channel reset flags
+ * @{
  */
-struct CAPTURE_CHANNEL_RESET_REQ_MSG {
-	uint32_t reset_flags;
-
 /** Reset the channel without waiting for FE first. */
 #define CAPTURE_CHANNEL_RESET_FLAG_IMMEDIATE	U32_C(0x01)
+/** @} */
 
-	uint32_t __pad;
-} __CAPTURE_IVC_ALIGN;
-
-/** Acknowledge a capture channel reset.
- *
- * The response is sent after the RTCPU side channel cleanup is
- * complete.
- *
- * @param result	Return value.
- */
-struct CAPTURE_CHANNEL_RESET_RESP_MSG {
-	capture_result result;
-	uint32_t __pad;
-} __CAPTURE_IVC_ALIGN;
-
-/** Reset a capture channel and release all the associated resources.
+/**
+ * @brief Reset a VI capture channel.
  *
  * Halt the associated VI channel. Flush the request queue for the
  * channel and increment syncpoints in the request queue to their target
  * values.
- *
- * @param reset_flags		Reset flags.
  */
-struct CAPTURE_CHANNEL_RELEASE_REQ_MSG {
-	/** See CAPTURE_CHANNEL_RESET_REQ_MSG for details. */
+struct CAPTURE_CHANNEL_RESET_REQ_MSG {
+	/** @ref CapResetFlags "Reset flags" */
 	uint32_t reset_flags;
+	/** Reserved */
 	uint32_t __pad;
 } __CAPTURE_IVC_ALIGN;
 
-/** Acknowledge a capture channel release.
+/**
+ * @brief VI capture channel reset response message.
  *
- * The release is acknowledged after the channel cleanup is complete
- * and all resources have been freed on RTCPU.
- *
- * @param result	Return value.
+ * The response is sent after the RCE side channel cleanup is
+ * complete. If the reset barrier is not received within the timeout
+ * interval a CAPTURE_ERROR_TIMEOUT error is reported as the return value.
+ * If the reset succeeds then the return value is CAPTURE_OK.
  */
-struct CAPTURE_CHANNEL_RELEASE_RESP_MSG {
+struct CAPTURE_CHANNEL_RESET_RESP_MSG {
+	/** Reset status return value. See @ref CapErrorCodes "Return values" */
 	capture_result result;
 	uint32_t __pad;
 } __CAPTURE_IVC_ALIGN;
 
-/** Configure the piece-wise linear function used by the VI companding module.
+/**
+ * @brief Release a VI capture channel and all the associated resources.
+ *
+ * Halt the associated VI channel and release the channel context.
+ */
+struct CAPTURE_CHANNEL_RELEASE_REQ_MSG {
+	/** Reset flags. Currently not used in release request. */
+	uint32_t reset_flags;
+	uint32_t __pad;
+} __CAPTURE_IVC_ALIGN;
+
+/**
+ * @brief Capture channel release response message.
+ *
+ * The release is acknowledged after the channel cleanup is complete
+ * and all resources have been freed on RCE.
+ */
+struct CAPTURE_CHANNEL_RELEASE_RESP_MSG {
+	/** Release status return value. See @ref CapErrorCodes "Return values" */
+	capture_result result;
+	uint32_t __pad;
+} __CAPTURE_IVC_ALIGN;
+
+/**
+ * @brief Configure the piece-wise linear function used by the VI companding module.
  *
  * The companding table is shared by all capture channels and must be
- * configured before enabling companding for a specific capture.
+ * configured before enabling companding for a specific capture. Each channel
+ * can explicitly enable processing by the companding unit i.e the channels can
+ * opt-out of the global companding config. See @ref CapErrorCodes "Capture request return codes"
+ * for more details on the return values.
  */
 struct CAPTURE_COMPAND_CONFIG_REQ_MSG {
+	/** VI companding configuration */
 	struct vi_compand_config compand_config;
 } __CAPTURE_IVC_ALIGN;
 
-/** Acknowledge a companding configuration.
+/**
+ * @brief VI Companding unit configuration response message.
+ *
+ * Informs the client the status of VI companding unit configuration request.
+ * A return value of CAPTURE_OK in the result field indicates the request
+ * message succeeded. Any other value indicates an error.
  */
 struct CAPTURE_COMPAND_CONFIG_RESP_MSG {
+	/** Companding config setup result. See @ref CapErrorCodes "Return values". */
 	capture_result result;
 	uint32_t __pad;
 } __CAPTURE_IVC_ALIGN;
 
-/** Configure the PDAF pattern.
- *
- * @param	pdaf_config	PDAF configuration data.
+/**
+ * @brief Configure the Phase Detection Auto Focus (PDAF) pattern.
  */
 struct CAPTURE_PDAF_CONFIG_REQ_MSG {
+	/** PDAF configuration data */
 	struct vi_pdaf_config pdaf_config;
 } __CAPTURE_IVC_ALIGN;
 
-/** Acknowledge CAPTURE_PDAF_CONFIG_REQ
+/**
+ * @brief Configure PDAF unit response message
  *
- * @param result		Return value.
+ * Returns the status PDAF unit configuration request.
+ * A return value of CAPTURE_OK in the result field indicates the request
+ * message succeeded. Any other value indicates an error. See
+ * @ref CapErrorCodes "Capture request return codes" for more details on
+ * the return values.
  */
 struct CAPTURE_PDAF_CONFIG_RESP_MSG {
+	/** PDAF config setup result. See @ref CapErrorCodes "Return values". */
 	capture_result result;
+	/** Reserved */
 	uint32_t __pad;
 } __CAPTURE_IVC_ALIGN;
 
-/** Enable SLVS-EC synchronization
+/*
+ * @brief Enable SLVS-EC synchronization
  *
  * Enable the generation of XVS and XHS synchronization signals for a
  * SLVS-EC sensor.
  */
 struct CAPTURE_SYNCGEN_ENABLE_REQ_MSG {
+	/** Syncgen unit */
 	uint32_t unit;
+	/** Reserved */
 	uint32_t __pad;
+	/** VI SYNCGEN unit configuration */
 	struct vi_syncgen_config syncgen_config;
 } __CAPTURE_IVC_ALIGN;
 
-/** Acknowledge CAPTURE_SYNCGEN_ENABLE_REQ. */
+/**
+ * @brief Enable SLVS-EC synchronization response message.
+ *
+ * Returns the status of enable SLVS-EC synchronization request.
+ * A return value of CAPTURE_OK in the result field indicates the request
+ * message succeeded. Any other value indicates an error. See
+ * @ref CapErrorCodes "Capture request return codes" for more details on
+ * the return values.
+ */
 struct CAPTURE_SYNCGEN_ENABLE_RESP_MSG {
+	/** Syncgen unit */
 	uint32_t unit;
+	/** Syncgen enable request result. See @ref CapErrorCodes "Return values". */
 	capture_result result;
 } __CAPTURE_IVC_ALIGN;
 
-/** Disable SLVS-EC synchronization
+/**
+ * @brief Disable SLVS-EC synchronization
  *
  * Disable the generation of XVS and XHS synchronization signals for a
  * SLVS-EC sensor.
  */
 struct CAPTURE_SYNCGEN_DISABLE_REQ_MSG {
+	/** Syncgen unit */
 	uint32_t unit;
+	/** Syncgen specific flags */
 	uint32_t syncgen_disable_flags;
 
-/* Disable SYNCGEN without waiting for frame end */
+/** Disable SYNCGEN without waiting for frame end */
 #define CAPTURE_SYNCGEN_DISABLE_FLAG_IMMEDIATE	U32_C(0x01)
 
 } __CAPTURE_IVC_ALIGN;
 
-/** Acknowledge CAPTURE_SYNCGEN_DISABLE_REQ. */
+/**
+ * @brief Disable SLVS-EC synchronization response message.
+ *
+ * Returns the status of the SLVS-EC synchronization request message.
+ * A return value of CAPTURE_OK in the result field indicates the request
+ * message succeeded. Any other value indicates an error. See
+ * @ref CapErrorCodes "Capture request return codes" for more details on
+ * the return values.
+ */
 struct CAPTURE_SYNCGEN_DISABLE_RESP_MSG {
+	/** Syncgen unit */
 	uint32_t unit;
+	/** Syncgen disable request result .See @ref CapErrorCodes "Return values". */
 	capture_result result;
 } __CAPTURE_IVC_ALIGN;
 
-/**
- * Phy IVC messages
- */
 
-/* Open an Phy stream */
+/**
+ * @brief Open an NVCSI stream request message
+ */
 struct CAPTURE_PHY_STREAM_OPEN_REQ_MSG {
+	/** NVCSI stream Id */
 	uint32_t stream_id;
+	/** NVCSI port */
 	uint32_t csi_port;
+	/** See @ref NvPhyType "Physical type" */
 	uint32_t phy_type;
+	/** Reserved */
 	uint32_t __pad32;
 } __CAPTURE_IVC_ALIGN;
 
+/**
+ * @brief NVCSI stream open response message
+ */
 struct CAPTURE_PHY_STREAM_OPEN_RESP_MSG {
+	/** Stream open request status. See @ref CapErrorCodes "Return values". */
 	uint32_t result;
+	/** Reserved */
 	uint32_t __pad32;
 } __CAPTURE_IVC_ALIGN;
 
-/* Close an NvPhy stream */
+/**
+ * @brief NVCSI stream close request message
+ */
 struct CAPTURE_PHY_STREAM_CLOSE_REQ_MSG {
+	/** NVCSI stream Id */
 	uint32_t stream_id;
+	/** NVCSI port */
 	uint32_t csi_port;
+	/** See @ref NvPhyType "Physical type" */
 	uint32_t phy_type;
+	/** Reserved */
 	uint32_t __pad32;
 } __CAPTURE_IVC_ALIGN;
 
+/**
+ * @brief NVCSI stream close response message
+ */
 struct CAPTURE_PHY_STREAM_CLOSE_RESP_MSG {
+	/** Stream close request status. See @ref CapErrorCodes "Return values". */
 	uint32_t result;
+	/** Reserved */
 	uint32_t __pad32;
 } __CAPTURE_IVC_ALIGN;
 
-/* Reset an NvPhy stream */
+/**
+ * @brief Physical stream reset message
+ */
 struct CAPTURE_PHY_STREAM_RESET_REQ_MSG {
+	/** NVCSI stream Id */
 	uint32_t stream_id;
+	/** NVCSI port */
 	uint32_t csi_port;
+	/** See @ref NvPhyType "Physical type" */
 	uint32_t phy_type;
+	/** Reserved */
 	uint32_t __pad32;
 } __CAPTURE_IVC_ALIGN;
 
+/**
+ * @brief Physical stream reset response message
+ */
 struct CAPTURE_PHY_STREAM_RESET_RESP_MSG {
+	/** Stream reset request status. See @ref CapErrorCodes "Return values". */
 	uint32_t result;
+	/** Reserved */
 	uint32_t __pad32;
 } __CAPTURE_IVC_ALIGN;
 
-/* Debug: Dump Registers for an NvPhy stream */
+/**
+ * @brief Physical stream dump registers request message. (Debug only)
+ */
 struct CAPTURE_PHY_STREAM_DUMPREGS_REQ_MSG {
+	/** NVCSI stream Id */
 	uint32_t stream_id;
+	/** NVCSI port */
 	uint32_t csi_port;
 } __CAPTURE_IVC_ALIGN;
 
+/**
+ * @brief Physical stream dump registers response message. (Debug only)
+ */
 struct CAPTURE_PHY_STREAM_DUMPREGS_RESP_MSG {
+	/** Stream dump registers request status. See @ref CapErrorCodes "Return values". */
 	uint32_t result;
 	uint32_t __pad32;
 } __CAPTURE_IVC_ALIGN;
 
 /**
- * NVCSI IVC messages
+ * @brief Set NVCSI stream configuration request message.
  */
-
-/* Set config for an NVCSI stream */
 struct CAPTURE_CSI_STREAM_SET_CONFIG_REQ_MSG {
+	/** NVCSI stream Id */
 	uint32_t stream_id;
+	/** NVCSI port */
 	uint32_t csi_port;
+	/** @ref NvCsiConfigFlags "NVCSI Configuration Flags" */
 	uint32_t config_flags;
+	/** Reserved */
 	uint32_t __pad32;
+	/** NVCSI super control and interface logic (SCIL aka brick) configuration */
 	struct nvcsi_brick_config brick_config;
+	/** NVCSI control and interface logic (CIL) partition configuration */
 	struct nvcsi_cil_config cil_config;
+	/** User-defined error configuration */
 	struct nvcsi_error_config error_config;
 } __CAPTURE_IVC_ALIGN;
 
+/**
+ * @brief Set NVCSI stream configuration response message.
+ */
 struct CAPTURE_CSI_STREAM_SET_CONFIG_RESP_MSG {
+	/** NVCSI stream config request status. See @ref CapErrorCodes "Return values". */
 	uint32_t result;
+	/** Reserved */
 	uint32_t __pad32;
 } __CAPTURE_IVC_ALIGN;
 
-/* Set DPCM config for an NVCSI stream */
+/**
+ * @brief Set NVCSI stream parameter request message.
+ */
 struct CAPTURE_CSI_STREAM_SET_PARAM_REQ_MSG {
+	/** NVCSI stream Id */
 	uint32_t stream_id;
+	/** NVCSI stream virtual channel id */
 	uint32_t virtual_channel_id;
+	/** @ref NvCsiParamType "NVCSI Parameter Type" */
 	uint32_t param_type;
+	/** Reserved */
 	uint32_t __pad32;
 	union {
+		/** Set DPCM config for an NVCSI stream */
 		struct nvcsi_dpcm_config dpcm_config;
+		/** NVCSI virtual channel data type override config */
 		struct nvcsi_dt_override_config dt_override_config;
+		/** NVCSI watchdog timer config */
 		struct nvcsi_watchdog_config watchdog_config;
 	};
 } __CAPTURE_IVC_ALIGN;
 
+/**
+ * @brief Set NVCSI stream parameter response message.
+ */
 struct CAPTURE_CSI_STREAM_SET_PARAM_RESP_MSG {
+	/** NVCSI set stream parameter request status. See @ref CapErrorCodes "Return values". */
 	uint32_t result;
+	/** Reserved */
 	uint32_t __pad32;
 } __CAPTURE_IVC_ALIGN;
 
-/* Set TPG config for an NVCSI stream */
+
+/**
+ * @brief NVCSI test pattern generator (TPG) stream config request message.
+ */
 struct CAPTURE_CSI_STREAM_TPG_SET_CONFIG_REQ_MSG {
+	/** TPG configuration */
 	union nvcsi_tpg_config tpg_config;
 } __CAPTURE_IVC_ALIGN;
 
+/**
+ * @brief NVCSI TPG stream config response message.
+ */
 struct CAPTURE_CSI_STREAM_TPG_SET_CONFIG_RESP_MSG {
+	/** Set TPG config request status. See @ref CapErrorCodes "Return values". */
 	uint32_t result;
+	/** Reserved */
 	uint32_t __pad32;
 } __CAPTURE_IVC_ALIGN;
 
-/* Start TPG for an NVCSI stream */
+/**
+ * @brief Start NVCSI TPG streaming request message.
+ */
 struct CAPTURE_CSI_STREAM_TPG_START_REQ_MSG {
+	/** NVCSI stream Id */
 	uint32_t stream_id;
+	/** NVCSI stream virtual channel id */
 	uint32_t virtual_channel_id;
+	/** TPG rate configuration */
 	struct nvcsi_tpg_rate_config tpg_rate_config;
 } __CAPTURE_IVC_ALIGN;
 
+/**
+ * @brief Start NVCSI TPG streaming response message.
+ */
 struct CAPTURE_CSI_STREAM_TPG_START_RESP_MSG {
+	/** TPG start request status. See @ref CapErrorCodes "Return values". */
 	uint32_t result;
+	/** Reserved */
 	uint32_t __pad32;
 } __CAPTURE_IVC_ALIGN;
 
-/* Start TPG for an NVCSI stream */
+
+/**
+ * @brief Start NVCSI TPG streaming at specified frame rate request message.
+ *
+ * This message is similar to CAPTURE_CSI_STREAM_TPG_START_REQ_MSG. Here the frame rate
+ * and clock is specified using which the TPG rate config will be calculated.
+ */
 struct CAPTURE_CSI_STREAM_TPG_START_RATE_REQ_MSG {
+	/** NVCSI stream Id */
 	uint32_t stream_id;
+	/** NVCSI stream virtual channel id */
 	uint32_t virtual_channel_id;
+	/** TPG frame rate */
 	uint32_t frame_rate;
+	/** CSI clock rate */
 	uint32_t csi_clk_rate;
 } __CAPTURE_IVC_ALIGN;
 
+/**
+ * @brief NVCSI TPG stream start at a specified frame rate response message.
+ */
 struct CAPTURE_CSI_STREAM_TPG_START_RATE_RESP_MSG {
+	/** TPG start rate request status. See @ref CapErrorCodes "Return values". */
 	uint32_t result;
+	/** Reserved */
 	uint32_t __pad32;
 } __CAPTURE_IVC_ALIGN;
 
-/* Stop TPG for an NVCSI stream */
+/**
+ * @brief Stop NVCSI TPG streaming request message.
+ */
 struct CAPTURE_CSI_STREAM_TPG_STOP_REQ_MSG {
+	/** NVCSI stream Id */
 	uint32_t stream_id;
+	/** NVCSI stream virtual channel id */
 	uint32_t virtual_channel_id;
 } __CAPTURE_IVC_ALIGN;
 
+/**
+ * @brief Stop NVCSI TPG streaming response message.
+ */
 struct CAPTURE_CSI_STREAM_TPG_STOP_RESP_MSG {
+	/** Stop TPG steaming request status. See @ref CapErrorCodes "Return values". */
 	uint32_t result;
 	uint32_t __pad32;
 } __CAPTURE_IVC_ALIGN;
@@ -415,62 +603,53 @@ struct CAPTURE_CHANNEL_TPG_STOP_RESP_MSG {
 	uint32_t __pad;
 } __CAPTURE_IVC_ALIGN;
 
-#define VI_NUM_INJECT_EVENTS 10U /* Max number of events */
 
-/* Event injection configuration. */
-/* A capture request must be sent before this message */
+/**
+ * @brief Max number of events
+ */
+#define VI_NUM_INJECT_EVENTS 10U
+
+/**
+ * @brief Event injection configuration.
+ *
+ * A capture request must be sent before this message
+ */
 struct CAPTURE_CHANNEL_EI_REQ_MSG {
+	/** Event data used for event injection */
 	struct event_inject_msg events[VI_NUM_INJECT_EVENTS];
+	/** Number of error events */
 	uint8_t num_events;
+	/** Reserved */
 	uint8_t __pad[7];
 } __CAPTURE_IVC_ALIGN;
 
+/**
+ * @brief Acknowledge Event Injection request
+ */
 struct CAPTURE_CHANNEL_EI_RESP_MSG {
+	/** Stop TPG steaming request status. See @ref CapErrorCodes "Return values". */
 	capture_result result;
+	/** Reserved */
 	uint32_t __pad;
 } __CAPTURE_IVC_ALIGN;
 
+/**
+ * @brief Event injection channel reset request.
+ */
 struct CAPTURE_CHANNEL_EI_RESET_REQ_MSG {
+	/** Reserved */
 	uint8_t __pad[8];
 } __CAPTURE_IVC_ALIGN;
 
+/**
+ * @brief Acknowledge Event injection channel reset request.
+ */
 struct CAPTURE_CHANNEL_EI_RESET_RESP_MSG {
+	/** Event injection channel reset request result. See @ref CapErrorCodes "Return values". */
 	capture_result result;
+	/** Reserved */
 	uint32_t __pad;
 } __CAPTURE_IVC_ALIGN;
-
-struct CAPTURE_HSM_CHANSEL_ERROR_MASK_RESP_MSG {
-	capture_result result;
-	uint32_t __pad;
-} __CAPTURE_IVC_ALIGN;
-
-
-/**
- * Capture ISP channel messages
- */
-
-/**
- * Message types for isp capture control channel messages.
- */
-#define CAPTURE_CHANNEL_ISP_SETUP_REQ		U32_C(0x20)
-#define CAPTURE_CHANNEL_ISP_SETUP_RESP		U32_C(0x21)
-#define CAPTURE_CHANNEL_ISP_RESET_REQ		U32_C(0x22)
-#define CAPTURE_CHANNEL_ISP_RESET_RESP		U32_C(0x23)
-#define CAPTURE_CHANNEL_ISP_RELEASE_REQ		U32_C(0x24)
-#define CAPTURE_CHANNEL_ISP_RELEASE_RESP	U32_C(0x25)
-
-/**
- * Message types for isp capture channel messages.
- */
-#define CAPTURE_ISP_REQUEST_REQ			U32_C(0x04)
-#define CAPTURE_ISP_STATUS_IND			U32_C(0x05)
-
-#define CAPTURE_ISP_PROGRAM_REQUEST_REQ		U32_C(0x06)
-#define CAPTURE_ISP_PROGRAM_STATUS_IND		U32_C(0x07)
-
-#define CAPTURE_ISP_RESET_BARRIER_IND		U32_C(0x08)
-
-#define CAPTURE_ISP_EX_STATUS_IND		U32_C(0x09)
 
 /* Message types for test pattern generator */
 /* DEPRECATED - to be removed */
@@ -481,8 +660,9 @@ struct CAPTURE_HSM_CHANSEL_ERROR_MASK_RESP_MSG {
 #define CAPTURE_CHANNEL_TPG_STOP_REQ    U32_C(0x34)
 #define CAPTURE_CHANNEL_TPG_STOP_RESP   U32_C(0x35)
 
-/**`
- * Message types for NvPhy
+/**
+ * @defgroup PhyStreamMsgType Message types for NvPhy
+ * @{
  */
 #define CAPTURE_PHY_STREAM_OPEN_REQ		U32_C(0x36)
 #define CAPTURE_PHY_STREAM_OPEN_RESP		U32_C(0x37)
@@ -492,9 +672,11 @@ struct CAPTURE_HSM_CHANSEL_ERROR_MASK_RESP_MSG {
 #define CAPTURE_PHY_STREAM_RESET_RESP		U32_C(0x3B)
 #define CAPTURE_PHY_STREAM_DUMPREGS_REQ		U32_C(0x3C)
 #define CAPTURE_PHY_STREAM_DUMPREGS_RESP	U32_C(0x3D)
+/** @} */
 
 /**
- * Message types for NvCsi
+ * @defgroup NvCsiMsgType Message types for NVCSI
+ * @{
  */
 #define CAPTURE_CSI_STREAM_SET_CONFIG_REQ	U32_C(0x40)
 #define CAPTURE_CSI_STREAM_SET_CONFIG_RESP	U32_C(0x41)
@@ -508,34 +690,62 @@ struct CAPTURE_HSM_CHANSEL_ERROR_MASK_RESP_MSG {
 #define CAPTURE_CSI_STREAM_TPG_STOP_RESP	U32_C(0x49)
 #define CAPTURE_CSI_STREAM_TPG_START_RATE_REQ	U32_C(0x4A)
 #define CAPTURE_CSI_STREAM_TPG_START_RATE_RESP	U32_C(0x4B)
+/** @} */
 
+/**
+ * @defgroup NvCsiMsgType Message types for NVCSI
+ * @{
+ */
 #define CAPTURE_CHANNEL_EI_REQ		U32_C(0x50)
 #define CAPTURE_CHANNEL_EI_RESP		U32_C(0x51)
 #define CAPTURE_CHANNEL_EI_RESET_REQ	U32_C(0x52)
 #define CAPTURE_CHANNEL_EI_RESET_RESP	U32_C(0x53)
-
-#define CAPTURE_HSM_CHANSEL_ERROR_MASK_REQ	U32_C(0x54)
-#define CAPTURE_HSM_CHANSEL_ERROR_MASK_RESP	U32_C(0x55)
+/** @} */
 
 /**
- * Mask CHANSEL errors from HSM reporting
+ * @addtogroup ViCapCtrlMsgType
+ * @{
+ */
+#define CAPTURE_HSM_CHANSEL_ERROR_MASK_REQ	U32_C(0x54)
+#define CAPTURE_HSM_CHANSEL_ERROR_MASK_RESP	U32_C(0x55)
+/** @} */
+
+/**
+ * @addtogroup ViCapCtrlMsgs
+ * @{
+ */
+/**
+ * @brief Set CHANSEL error mask from HSM reporting message
  */
 struct CAPTURE_HSM_CHANSEL_ERROR_MASK_REQ_MSG {
+	/** VI EC/HSM global CHANSEL error mask configuration */
 	struct vi_hsm_chansel_error_mask_config hsm_chansel_error_config;
 } __CAPTURE_IVC_ALIGN;
 
-/** Set up RTCPU side resources for ISP capture pipe-line.
+/**
+ * @brief Acknowledge CHANEL error mask request
+ */
+struct CAPTURE_HSM_CHANSEL_ERROR_MASK_RESP_MSG {
+	/** HSM CHANSEL error mask request result. See @ref CapErrorCodes "Return values". */
+	capture_result result;
+	/** Reserved */
+	uint32_t __pad;
+} __CAPTURE_IVC_ALIGN;
+/** @} */
+
+/**
+ * @brief Set up RCE side resources for ISP capture pipe-line.
  *
  * The client shall use the transaction id field in the
  * standard message header to associate request and response.
- *
- * @param channel_config	Capture channel configuration.
  */
 struct CAPTURE_CHANNEL_ISP_SETUP_REQ_MSG {
+	/** ISP process channel configuration. */
 	struct capture_channel_isp_config	channel_config;
 } __CAPTURE_IVC_ALIGN;
 
-/** Acknowledge isp capture channel setup request.
+/**
+ * @brief Acknowledge isp capture channel setup request.
  *
  * The transaction id field in the standard message header
  * will be copied from the associated request.
@@ -543,12 +753,11 @@ struct CAPTURE_CHANNEL_ISP_SETUP_REQ_MSG {
  * The setup response message returns a channel_id, which
  * identifies this set of resources and is used to refer to the
  * allocated capture channel in subsequent messages.
- *
- * @param result		Return value.
- * @param channel_id		Capture channel identifier for the new channel.
  */
 struct CAPTURE_CHANNEL_ISP_SETUP_RESP_MSG {
+	/** ISP process channel setup request status. See @ref CapErrorCodes "Return values". */
 	capture_result result;
+	/** ISP process identifier */
 	uint32_t channel_id;
 } __CAPTURE_IVC_ALIGN;
 
@@ -562,7 +771,7 @@ typedef struct CAPTURE_CHANNEL_RELEASE_RESP_MSG
 			CAPTURE_CHANNEL_ISP_RELEASE_RESP_MSG;
 
 /**
- * Message definition for capture control channel messages.
+ * @brief Message frame for capture-control IVC channel.
  */
 struct CAPTURE_CONTROL_MSG {
 	struct CAPTURE_MSG_HEADER header;
@@ -646,7 +855,7 @@ struct CAPTURE_CONTROL_MSG {
 } __CAPTURE_IVC_ALIGN;
 
 /**
- * Enqueue a new capture request on a capture channel.
+ * @brief Enqueue a new capture request on a capture channel.
  *
  * The request contains channel identifier and the capture sequence
  * number, which are required to schedule the capture request. The
@@ -668,38 +877,40 @@ struct CAPTURE_CONTROL_MSG {
  * programmed the VI accordingly.
  *
  * If the flag CAPTURE_FLAG_STATUS_REPORT_ENABLE is set in the capture
- * descriptor, RTCPU will store the capture status into status field
- * of the descriptor. RTCPU will also send a CAPTURE_STATUS_IND
+ * descriptor, RCE will store the capture status into status field
+ * of the descriptor. RCE will also send a CAPTURE_STATUS_IND
  * message to indicate that capture has completed. The capture status
  * record contains information about the capture, such as CSI frame
  * number, start-of-frame and end-of-frame timestamps, as well as
  * error status.
  *
- * If the flag CAPTURE_FLAG_ERROR_REPORT_ENABLE is set, RTCPU will send a
+ * If the flag CAPTURE_FLAG_ERROR_REPORT_ENABLE is set, RCE will send a
  * CAPTURE_STATUS_IND upon an error, even if
  * CAPTURE_FLAG_STATUS_REPORT_ENABLE is not set.
- *
- * @param buffer_index	Buffer index identifying capture descriptor.
  */
 struct CAPTURE_REQUEST_REQ_MSG {
+	/** Buffer index identifying capture descriptor. */
 	uint32_t buffer_index;
-	uint32_t __pad;
-} __CAPTURE_IVC_ALIGN;
-
-/** Capture status indication.
- *
- * The message is sent after the capture status record has been
- * written into the capture request descriptor.
- *
- * @param buffer_index	Buffer index identifying capture descriptor.
- */
-struct CAPTURE_STATUS_IND_MSG {
-	uint32_t buffer_index;
+	/** Reserved */
 	uint32_t __pad;
 } __CAPTURE_IVC_ALIGN;
 
 /**
- * Send new isp_capture request on a capture channel.
+ * @brief Capture status indication.
+ *
+ * The message is sent after the capture status record has been
+ * written into the capture request descriptor.
+ */
+struct CAPTURE_STATUS_IND_MSG {
+	/** Buffer index identifying capture descriptor. */
+	uint32_t buffer_index;
+	/** Reserved */
+	uint32_t __pad;
+} __CAPTURE_IVC_ALIGN;
+
+
+/**
+ * @brief Send new isp_capture request on a capture channel.
  *
  * The request contains channel identifier and the capture sequence
  * number (ring-buffer index), which are required to schedule the
@@ -707,12 +918,12 @@ struct CAPTURE_STATUS_IND_MSG {
  * The actual capture programming is stored in isp_capture_descriptor,
  * stored in DRAM ring buffer, which includes the sequence, ISP
  * surfaces' details, surface related configs, ISP PB2 iova, input prefences,
- * and isp_capture status written by RTCPU.
+ * and isp_capture status written by RCE.
  *
  * NvCapture UMD allocates the pool of isp_capture descriptors in setup call,
  * where each isp_capture_desc is followed by corresponding PB2 memory
  * (ATOM aligned).
- * RTCPU would generate the PB2 using surface details found in isp_capture
+ * RCE would generate the PB2 using surface details found in isp_capture
  * descriptor.
  * The ring-buffer (pool) would look like below:
  *
@@ -728,7 +939,7 @@ struct CAPTURE_STATUS_IND_MSG {
  * UMD fills isp_capture_desc and submits the request to KMD which pins the
  * surfaces and PB and then does the in-place replacement with iovas' within
  * isp_capture_descriptor.
- * KMD then sends the isp_capture request to RTCPU over capture ivc channel.
+ * KMD then sends the isp_capture request to RCE over capture ivc channel.
  *
  * The isp capture request message is asynchronous. Capture completion is
  * indicated by incrementing the progress syncpoint a pre-calculated
@@ -740,44 +951,45 @@ struct CAPTURE_STATUS_IND_MSG {
  * a number of times = <num-stats-enabled>.
  *
  * If the flag CAPTURE_FLAG_ISP_STATUS_REPORT_ENABLE is set in the isp
- * capture descriptor, RTCPU will store the capture status into status field
- * of the descriptor. RTCPU will also send a CAPTURE_ISP_STATUS_IND
+ * capture descriptor, RCE will store the capture status into status field
+ * of the descriptor. RCE will also send a CAPTURE_ISP_STATUS_IND
  * message to indicate that capture has completed.
  *
- * If the flag CAPTURE_FLAG_ISP_ERROR_REPORT_ENABLE is set, RTCPU will send a
+ * If the flag CAPTURE_FLAG_ISP_ERROR_REPORT_ENABLE is set, RCE will send a
  * CAPTURE_ISP_STATUS_IND upon an error, even if
  * CAPTURE_FLAG_ISP_STATUS_REPORT_ENABLE is not set.
  *
  * Typedef-ed CAPTURE_REQUEST_REQ_MSG.
  *
- * @param buffer_index: isp_capture_descriptor index in ring buffer.
+ * The buffer_index field is isp_capture_descriptor index in ring buffer.
  */
 typedef struct CAPTURE_REQUEST_REQ_MSG CAPTURE_ISP_REQUEST_REQ_MSG;
 
-/** ISP Capture status indication.
+/**
+ * @brief ISP Capture status indication.
  *
  * The message is sent after the capture status record has been
  * written into the capture request descriptor.
  *
- * @param buffer_index	Buffer index identifying capture descriptor.
+ * The buffer_index	in this case is identifying the ISP capture descriptor.
  */
 typedef struct CAPTURE_STATUS_IND_MSG CAPTURE_ISP_STATUS_IND_MSG;
 
-/** Extended ISP capture status indication.
+/**
+ * @brief Extended ISP capture status indication.
  *
  * The message is sent after the capture status record has been
  * written into the capture request descriptor.
- *
- * @param process_buffer_index	Buffer index identifying ISP process descriptor.
- * @param program_buffer_index	Buffer index identifying ISP program descriptor.
  */
 struct CAPTURE_ISP_EX_STATUS_IND_MSG {
+	/** Buffer index identifying ISP process descriptor. */
 	uint32_t process_buffer_index;
+	/** Buffer index identifying ISP program descriptor. */
 	uint32_t program_buffer_index;
 } __CAPTURE_IVC_ALIGN;
 
 /**
- * Send new isp_program request on a capture ivc channel.
+ * @brief Send new isp_program request on a capture ivc channel.
  *
  * The request contains channel identifier and the program sequence
  * number (ring-buffer index).
@@ -785,7 +997,7 @@ struct CAPTURE_ISP_EX_STATUS_IND_MSG {
  * descriptor, which includes the offset to isp_program
  * buffer (which has PB1 containing ISP HW settings), sequence,
  * settings-id, activation-flags, isp_program buffer size, iova's
- * of ISP PB1 and isp_program status written by RTCPU.
+ * of ISP PB1 and isp_program status written by RCE.
  *
  * NvCapture UMD allocates the pool of isp_program descriptors in setup call,
  * where each isp_pgram_descriptor is followed by corresponding isp_program
@@ -804,19 +1016,19 @@ struct CAPTURE_ISP_EX_STATUS_IND_MSG {
  * NvISP fills these and submits the isp_program request to KMD which pins the
  * PB and then does the in-place replacement with iova within
  * isp_program_descriptor.
- * KMD then sends the isp_program request to RTCPU over capture ivc channel.
+ * KMD then sends the isp_program request to RCE over capture ivc channel.
  *
- * The sequence is the frame_id which tells RTCPU, that the given isp_program
+ * The sequence is the frame_id which tells RCE, that the given isp_program
  * must be used from that frame_id onwards until UMD provides new one.
- * So RTCPU will use the sequence field to select the correct isp_program from
+ * So RCE will use the sequence field to select the correct isp_program from
  * the isp_program descriptors' ring buffer for given frame request and will
  * keep on using it for further frames until the new isp_program (desc) is
  * provided to be used.
- * RTCPU populates both matched isp_program (reads from isp program desc) and
+ * RCE populates both matched isp_program (reads from isp program desc) and
  * isp capture descriptor and forms single task descriptor for given frame
  * request and feeds it to falcon, which further programs it to ISP.
  *
- * settings_id is unique id for isp_program, NvCapture and RTCPU will use
+ * settings_id is unique id for isp_program, NvCapture and RCE will use
  * the ring buffer array index as settings_id.
  * It can also be used to select the correct isp_program for the given
  * frame, in that case, UMD writes this unique settings_id to sensor's
@@ -824,38 +1036,39 @@ struct CAPTURE_ISP_EX_STATUS_IND_MSG {
  * when the given settings/gains are applied on that particular frame
  * coming from sensor.
  *
- * RTCPU reads this settings_id back from embedded data and uses it to select
+ * RCE reads this settings_id back from embedded data and uses it to select
  * the corresponding isp_program from the isp_program desc ring buffer.
- * The activation_flags tells the RTCPU which id (sequence or settings_id) to
+ * The activation_flags tells the RCE which id (sequence or settings_id) to
  * use to select correct isp_program for the given frame.
  *
  * As same isp_program can be used for multiple frames, it can not be freed
- * when the frame capture is done. RTCPU will send a separate status
+ * when the frame capture is done. RCE will send a separate status
  * indication CAPTURE_ISP_PROGRAM_STATUS_IND message to CCPEX to notify
  * that the given isp_program is no longer in use and can be freed or reused.
  * settings_id (ring-buffer index) field is used to uniquely identify the
  * correct isp_program.
- * RTCPU also writes the isp_program status in isp program descriptor.
+ * RCE also writes the isp_program status in isp program descriptor.
  *
  * Typedef-ed CAPTURE_REQUEST_REQ_MSG.
  *
- * @param buffer_index: isp_program descriptor index in ring buffer.
+ * The buffer_index field is the isp_program descriptor index in ring buffer.
  */
 typedef struct CAPTURE_REQUEST_REQ_MSG CAPTURE_ISP_PROGRAM_REQUEST_REQ_MSG;
 
-/** ISP program status indication.
+/**
+ * @brief ISP program status indication.
  *
  * The message is sent to notify CCPLEX about the isp_program which is expired
  * so UMD client can free or reuse it.
  *
  * Typedef-ed CAPTURE_STATUS_IND_MSG.
  *
- * @param buffer_index: Buffer index identifying ISP program descriptor.
+ * The buffer_index field in this case is identifying ISP program descriptor.
  */
 typedef struct CAPTURE_STATUS_IND_MSG CAPTURE_ISP_PROGRAM_STATUS_IND_MSG;
 
 /**
- * Message definition for capture channel messages.
+ * @brief Message frame for capture IVC channel.
  */
 struct CAPTURE_MSG {
 	struct CAPTURE_MSG_HEADER header;

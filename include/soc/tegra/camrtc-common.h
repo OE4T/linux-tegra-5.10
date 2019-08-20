@@ -8,6 +8,12 @@
  * license agreement from NVIDIA CORPORATION is strictly prohibited.
  */
 
+/**
+ * @file camrtc-common.h
+ *
+ * @brief RCE common header file
+ */
+
 #ifndef INCLUDE_CAMRTC_COMMON_H
 #define INCLUDE_CAMRTC_COMMON_H
 
