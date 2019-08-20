@@ -30,8 +30,7 @@ struct ucode_bin_header_v1_flcn {
 	u32 os_bin_header_offset;
 	u32 os_bin_data_offset;
 	u32 os_bin_size;
-	u32 reserved[3];
-	u32 bin_ver_tag;
+	u32 reserved[4];
 };
 
 struct ucode_os_header_v1_flcn {
@@ -57,7 +56,7 @@ struct flcn_os_image {
 	u32 code_size;
 	u32 code_offset;
 	u32 size;
-	u32 bin_ver_tag;
+	u32 reserved;
 };
 
 struct flcn {
