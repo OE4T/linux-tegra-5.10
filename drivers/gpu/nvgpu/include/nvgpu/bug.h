@@ -67,6 +67,16 @@ static inline void nvgpu_assert(bool cond)
  */
 #define nvgpu_do_assert()	nvgpu_assert(false)
 
+/*
+ * Define compile-time assert check.
+ */
+#define ASSERT_CONCAT_(a, b) a##b
+#define ASSERT_CONCAT(a, b) ASSERT_CONCAT_(a, b)
+#define nvgpu_static_assert(e)						\
+	enum {								\
+		ASSERT_CONCAT(assert_line_, __LINE__) = 1 / (!!(e))	\
+	}
+
 struct gk20a;
 void nvgpu_do_assert_print(struct gk20a *g, const char *fmt, ...);
 
