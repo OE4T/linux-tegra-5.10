@@ -22,6 +22,7 @@
 #include <linux/etherdevice.h>
 #include <linux/net_tstamp.h>
 #include <linux/interrupt.h>
+#include <linux/workqueue.h>
 #include <linux/spinlock.h>
 #include <linux/of_gpio.h>
 #include <linux/of_mdio.h>
@@ -160,6 +161,12 @@ static inline int ether_avail_txdesc_cnt(struct osi_tx_ring *tx_ring)
 #define ETHER_MAX_THERM_STATE		5UL
 #endif /* THERMAL_CAL */
 
+/**
+ * @brief Timer to trigger Work queue periodically which read HW counters
+ * and store locally. If data is at line rate, 2^32 entry get will filled in
+ * 36 second for 1 G interface and 3.6 sec for 10 G interface.
+ */
+#define ETHER_STATS_TIMER		3U
 /**
  * @brief DMA Transmit Channel NAPI
  */
@@ -300,14 +307,16 @@ struct ether_priv_data {
 	raw_spinlock_t ptp_lock;
 	/** Clocks enable check */
 	bool clks_enable;
+	/** Delayed work queue to read RMON counters periodically */
+	struct delayed_work ether_stats_work;
 };
 
 /**
  * @brief Set ethtool operations
- * 
+ *
  * @param[in] ndev: network device instance
  *
- * @note Network device needs to created. 
+ * @note Network device needs to created.
  */
 void ether_set_ethtool_ops(struct net_device *ndev);
 /**
@@ -315,7 +324,7 @@ void ether_set_ethtool_ops(struct net_device *ndev);
  *
  * @param[in] dev: device instance
  *
- * @retval 0 - success, 
+ * @retval 0 - success,
  * @retval "negative value" - failure.
  */
 int ether_sysfs_register(struct device *dev);
@@ -340,7 +349,7 @@ void ether_sysfs_unregister(struct device *dev);
  * 	 network device created
  *
  * @retval 0 on success
- * @retval "negative value" on Failure 
+ * @retval "negative value" on Failure
  */
 int ether_ptp_init(struct ether_priv_data *pdata);
 
@@ -365,7 +374,7 @@ void ether_ptp_remove(struct ether_priv_data *pdata);
  *
  * @note PTP clock driver need to be successfully registered during
  * 	 initialization and HW need to support PTP functionality.
- * 
+ *
  * @retval 0 on success
  * @retval "negative value" on Failure
  */

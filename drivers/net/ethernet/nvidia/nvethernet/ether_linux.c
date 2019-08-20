@@ -17,6 +17,68 @@
 #include "ether_linux.h"
 
 /**
+ * @brief Work Queue function to call osi_read_mmc() periodically.
+ *
+ * Algorithm: call osi_read_mmc in periodic manner to avoid possibility of
+ * overrun of 32 bit MMC hw registers.
+ *
+ * @param[in] work: work structure
+ *
+ * @note MAC and PHY need to be initialized.
+ */
+static inline void ether_stats_work_func(struct work_struct *work)
+{
+	struct delayed_work *dwork = to_delayed_work(work);
+	struct ether_priv_data *pdata = container_of(dwork,
+			struct ether_priv_data, ether_stats_work);
+	struct osi_core_priv_data *osi_core = pdata->osi_core;
+	int ret;
+
+	ret = osi_read_mmc(osi_core);
+	if (ret < 0) {
+		dev_err(pdata->dev, "failed to read MMC counters %s\n",
+			__func__);
+	}
+	schedule_delayed_work(&pdata->ether_stats_work,
+			      msecs_to_jiffies(ETHER_STATS_TIMER * 1000));
+}
+
+/**
+ * @brief Start delayed workqueue.
+ *
+ * Algorithm: Start workqueue to read RMON HW counters periodically.
+ * Workqueue will get schedule in every ETHER_STATS_TIMER sec.
+ * Workqueue will be scheduled only if HW supports RMON HW counters.
+ *
+ * @param[in] pdata:OSD private data
+ *
+ * @note MAC and PHY need to be initialized.
+ */
+static inline void ether_stats_work_queue_start(struct ether_priv_data *pdata)
+{
+	if (pdata->hw_feat.mmc_sel == OSI_ENABLE) {
+		schedule_delayed_work(&pdata->ether_stats_work,
+				      msecs_to_jiffies(ETHER_STATS_TIMER *
+						       1000));
+	}
+}
+
+/**
+ * @brief Stop delayed workqueue.
+ *
+ * Algorithm:
+ *  Cancel workqueue.
+ *
+ * @param[in] pdata:OSD private data
+ */
+static inline void ether_stats_work_queue_stop(struct ether_priv_data *pdata)
+{
+	if (pdata->hw_feat.mmc_sel == OSI_ENABLE) {
+		cancel_delayed_work_sync(&pdata->ether_stats_work);
+	}
+}
+
+/**
  * @brief Disable all MAC related clks
  *
  * Algorithm: Release the reference counter for the clks by using
@@ -1216,6 +1278,9 @@ static int ether_open(struct net_device *dev)
 	/* start network queues */
 	netif_tx_start_all_queues(pdata->ndev);
 
+	/* call function to schedule workqueue */
+	ether_stats_work_queue_start(pdata);
+
 	return ret;
 
 err_hw_init:
@@ -1262,6 +1327,9 @@ static int ether_close(struct net_device *dev)
 {
 	struct ether_priv_data *pdata = netdev_priv(dev);
 	int ret = 0;
+
+	/* Stop workqueue to get further scheduled */
+	ether_stats_work_queue_stop(pdata);
 
 	/* Stop and disconnect the PHY */
 	if (pdata->phydev != NULL) {
@@ -3257,10 +3325,11 @@ static void init_filter_values(struct ether_priv_data *pdata)
  * 1) Get the number of channels from DT.
  * 2) Allocate the network device for those many channels.
  * 3) Parse MAC and PHY DT.
- * 4) Get all required clks/reset/IRQ's
+ * 4) Get all required clks/reset/IRQ's.
  * 5) Register MDIO bus and network device.
- * 6) initialize spinlock
- * 7) Update filter value based on HW feature
+ * 6) Initialize spinlock.
+ * 7) Update filter value based on HW feature.
+ * 8) Initialize Workqueue to read MMC counters periodically.
  *
  * @param[in] pdev: platform device associated with platform driver.
  *
@@ -3421,6 +3490,8 @@ static int ether_probe(struct platform_device *pdev)
 	if (gpio_is_valid(pdata->phy_reset)) {
 		gpio_set_value(pdata->phy_reset, OSI_DISABLE);
 	}
+	/* Initialization of delayed workqueue */
+	INIT_DELAYED_WORK(&pdata->ether_stats_work, ether_stats_work_func);
 
 	return 0;
 
@@ -3489,6 +3560,9 @@ static int ether_suspend_noirq(struct device *dev)
 
 	if (!netif_running(ndev))
 		return 0;
+
+	/* Stop workqueue while DUT is going to suspend state */
+	ether_stats_work_queue_stop(pdata);
 
 	if (pdata->phydev) {
 		phy_stop(pdata->phydev);
@@ -3580,6 +3654,8 @@ static int ether_resume(struct ether_priv_data *pdata)
 	phy_start(pdata->phydev);
 	/* start network queues */
 	netif_tx_start_all_queues(ndev);
+	/* re-start workqueue */
+	ether_stats_work_queue_start(pdata);
 
 	return 0;
 
