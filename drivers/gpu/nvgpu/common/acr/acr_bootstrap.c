@@ -138,8 +138,8 @@ struct vm_gk20a* acr_get_engine_vm(struct gk20a *g, u32 falcon_id)
 	return vm;
 }
 
-static int acr_hs_bl_exec(struct gk20a *g, struct nvgpu_acr *acr,
-	struct hs_acr *acr_desc, bool b_wait_for_halt)
+static int acr_hs_bl_exec(struct gk20a *g, struct hs_acr *acr_desc,
+	bool b_wait_for_halt)
 {
 	struct nvgpu_firmware *hs_bl_fw = acr_desc->acr_hs_bl.hs_bl_fw;
 	struct hsflcn_bl_desc *hs_bl_desc;
@@ -375,7 +375,7 @@ int nvgpu_acr_bootstrap_hs_ucode(struct gk20a *g, struct nvgpu_acr *acr,
 		acr->acr_fill_bl_dmem_desc(g, acr, acr_desc, acr_ucode_header);
 	}
 
-	status = acr_hs_bl_exec(g, acr, acr_desc, true);
+	status = acr_hs_bl_exec(g, acr_desc, true);
 	if (status != 0) {
 		goto err_free_ucode_map;
 	}
