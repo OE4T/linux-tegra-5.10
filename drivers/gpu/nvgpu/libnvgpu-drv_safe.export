@@ -97,6 +97,7 @@ nvgpu_gr_config_set_sm_info_sm_index
 nvgpu_gr_config_get_sm_info_sm_index
 nvgpu_gr_config_set_gpc_tpc_mask
 nvgpu_gr_config_get_gpc_tpc_mask
+nvgpu_hr_timestamp
 nvgpu_can_busy
 nvgpu_channel_alloc_inst
 nvgpu_channel_cleanup_sw
@@ -123,6 +124,9 @@ nvgpu_cond_signal_interruptible
 nvgpu_cond_signal_locked
 nvgpu_cond_timedwait
 nvgpu_cond_unlock
+nvgpu_current_time_ms
+nvgpu_current_time_ns
+nvgpu_current_time_us
 nvgpu_detect_chip
 nvgpu_dma_alloc
 nvgpu_dma_alloc_get_fault_injection
@@ -197,6 +201,7 @@ nvgpu_mm_get_available_big_page_sizes
 nvgpu_mm_get_default_big_page_size
 nvgpu_mm_setup_hw
 nvgpu_mm_suspend
+nvgpu_msleep
 nvgpu_mutex_acquire
 nvgpu_mutex_destroy
 nvgpu_mutex_init
@@ -248,6 +253,9 @@ nvgpu_readl
 nvgpu_readl_impl
 nvgpu_runlist_construct_locked
 nvgpu_rwsem_init
+nvgpu_timeout_expired_msg_impl
+nvgpu_timeout_init
+nvgpu_timeout_peek_expired
 nvgpu_tsg_abort
 nvgpu_tsg_bind_channel
 nvgpu_tsg_check_and_get_from_id
@@ -282,8 +290,10 @@ nvgpu_thread_is_running
 nvgpu_thread_should_stop
 nvgpu_thread_stop
 nvgpu_thread_stop_graceful
+nvgpu_udelay
 nvgpu_userd_init_slabs
 nvgpu_usermode_writel
+nvgpu_usleep_range
 nvgpu_vfree_impl
 nvgpu_vm_area_alloc
 nvgpu_vm_area_free
