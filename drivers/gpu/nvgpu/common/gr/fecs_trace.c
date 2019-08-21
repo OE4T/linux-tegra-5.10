@@ -302,6 +302,11 @@ int nvgpu_gr_fecs_trace_disable(struct gk20a *g)
 	}
 
 	nvgpu_mutex_acquire(&trace->enable_lock);
+	if (trace->enable_count <= 0U) {
+		nvgpu_mutex_release(&trace->enable_lock);
+		return 0;
+	}
+
 	trace->enable_count--;
 	if (trace->enable_count == 0U) {
 		if (nvgpu_is_enabled(g, NVGPU_FECS_TRACE_FEATURE_CONTROL)) {
