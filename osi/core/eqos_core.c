@@ -2621,20 +2621,13 @@ static int eqos_config_vlan_filtering(struct osi_core_priv_data *osi_core,
  * @param[in] base: Base address from OSI core private data structure.
  * @param[in] vid: VLAN ID to be programmed.
  *
- * @note MAC should be init and started. see osi_start_mac()
- *
- * @retval 0 on success
- * @retval -1 on failure.
+ * @retval 0 always
  */
 static inline int eqos_update_vlan_id(void *base, unsigned int vid)
 {
-	unsigned int value;
-
-	value = osi_readl((unsigned char *)base + EQOS_MAC_VLAN_TR);
-	/* 0:15 of register */
-	value &= ~EQOS_MAC_VLAN_TR_VL;
-	value |= vid & EQOS_MAC_VLAN_TR_VL;
-	osi_writel(value, (unsigned char *)base + EQOS_MAC_VLAN_TR);
+	/* Don't add VLAN ID to TR register which is eventually set TR
+	 * to 0x0 and allow all tagged packets
+	 */
 
 	return 0;
 }
