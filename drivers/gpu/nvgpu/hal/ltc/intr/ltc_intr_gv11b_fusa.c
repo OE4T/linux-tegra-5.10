@@ -166,6 +166,12 @@ static void gv11b_ltc_intr_handle_lts_interrupts(struct gk20a *g,
 			"ltc:%d lts: %d cache ecc interrupt intr: 0x%x",
 			ltc, slice, ltc_intr3);
 
+		if (slice > 255U) {
+			nvgpu_log(g, gpu_dbg_intr, "Invalid slice id=%d",
+					slice);
+			slice = slice & 0xFFU;
+		}
+
 		if ((ecc_status &
 			ltc_ltc0_lts0_l2_cache_ecc_status_corrected_err_rstg_m()) != 0U) {
 			(void) nvgpu_report_ecc_err(g,
