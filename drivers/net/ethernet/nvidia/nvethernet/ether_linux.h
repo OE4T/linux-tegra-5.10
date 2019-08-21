@@ -43,51 +43,103 @@
 #include <mmc.h>
 #include "ioctl.h"
 
+/**
+ * @brief Max number of Ethernet IRQs supported in HW
+ */
 #define ETHER_MAX_IRQS			4
+/**
+ * @brief Maximum index for IRQ numbers array.
+ */
 #define ETHER_IRQ_MAX_IDX		8
+/**
+ * @brief Size of Ethernet IRQ name.
+ */
 #define ETHER_IRQ_NAME_SZ		32
+
+/**
+ * @addtogroup Ethernet Transmit Queue Priority
+ *
+ * @brief Macros to define the default, maximum and invalid range of Transmit
+ * queue priority. These macros are used to check the bounds of Tx queue
+ * priority provided in the device tree.
+ * @{
+ */
 #define ETHER_QUEUE_PRIO_DEFAULT	0U
 #define ETHER_QUEUE_PRIO_MAX		7U
 #define ETHER_QUEUE_PRIO_INVALID	0xFFU
+/** @} */
+
+/**
+ * @brief Ethernet default PTP clock frequency
+ */
 #define ETHER_DFLT_PTP_CLK		312500000U
 
+/**
+ * @addtogroup CONFIG Ethernet configuration error codes
+ *
+ * @brief Error codes for fail/success.
+ * @{
+ */
 #define EQOS_CONFIG_FAIL		-3
 #define EQOS_CONFIG_SUCCESS		0
+/** @} */
 
+/**
+ * @addtogroup ADDR Ethernet MAC address register count
+ *
+ * @brief MAC L2 address filter count
+ * @{
+ */
 #define ETHER_ADDR_REG_CNT_128		128
 #define ETHER_ADDR_REG_CNT_64		64
 #define ETHER_ADDR_REG_CNT_32		32
 #define ETHER_ADDR_REG_CNT_1		1
+/** @} */
 
+/**
+ * @addtogroup HW MAC HW Filter Hash Table size
+ *
+ * @brief Represents Hash Table sizes.
+ * @{
+ */
 #define HW_HASH_TBL_SZ_3		3
 #define HW_HASH_TBL_SZ_2		2
 #define HW_HASH_TBL_SZ_1		1
 #define HW_HASH_TBL_SZ_0		0
+/** @} */
 
+/**
+ * @brief Ethernet Maximum HW MTU
+ */
 #define ETHER_MAX_HW_MTU			9000U
+/**
+ * @brief Ethernet default platform supported MTU
+ */
 #define ETHER_DEFAULT_PLATFORM_MTU		1500U
 
-/* Map max. 4KB buffer per Tx descriptor */
+/**
+ * @brief Maximum buffer length per DMA descriptor (4KB).
+ */
 #define ETHER_MAX_DATA_LEN_PER_TXD_BUF BIT(12)
 
-/* Incase of TSO/GSO, Tx ring needs atmost MAX_SKB_FRAGS +
- * one context descriptor +
- * one descriptor for header/linear buffer payload
+/**
+ * @brief In-case of TSO/GSO, Tx ring needs atleast MAX_SKB_FRAGS +
+ * 	  one context descriptor +
+ * 	  one descriptor for header/linear buffer payload
  */
 #define TX_DESC_THRESHOLD	(MAX_SKB_FRAGS + 2)
 
 /**
- *	ether_avail_txdesc_count - Return count of available tx desc.
- *	@tx_ring: Tx ring instance associated with channel number
+ *@brief Returns count of available transmit descriptors
  *
- *	Algorithm: Check the difference between current desc index
- *	and the desc. index to be cleaned.
+ * Algorithm: Check the difference between current descriptor index
+ * and the descriptor index to be cleaned.
  *
- *	Dependencies: MAC needs to be initialized and Tx ring allocated.
+ * @param[in] tx_ring: Tx ring instance associated with channel number
  *
- *	Protection: None.
+ * @note MAC needs to be initialized and Tx ring allocated.
  *
- *	Return: Number of available descriptors in the given Tx ring.
+ * @returns Number of available descriptors in the given Tx ring.
  */
 static inline int ether_avail_txdesc_cnt(struct osi_tx_ring *tx_ring)
 {
@@ -96,173 +148,219 @@ static inline int ether_avail_txdesc_cnt(struct osi_tx_ring *tx_ring)
 }
 
 #ifdef THERMAL_CAL
-/* The DT binding for ethernet device has 5 thermal zones in steps of
+/* @brief The DT binding for ethernet device has 5 thermal zones in steps of
  * 35 degress from -40C to 110C. Each zone corresponds to a state.
  */
 #define ETHER_MAX_THERM_STATE		5UL
 #endif /* THERMAL_CAL */
 
 /**
- *	struct ether_tx_napi - DMA Transmit Channel NAPI
- *	@chan: Transmit channel number
- *	@pdata: OSD private data
- *	@napi: NAPI instance associated with transmit channel
+ * @brief DMA Transmit Channel NAPI
  */
 struct ether_tx_napi {
+	/** Transmit channel number */
 	unsigned int chan;
+	/** OSD private data */
 	struct ether_priv_data *pdata;
+	/** NAPI instance associated with transmit channel */
 	struct napi_struct napi;
 };
 
 /**
- *	struct ether_rx_napi - DMA Receive Channel NAPI
- *	@chan: Receive channel number
- *	@pdata: OSD Private data
- *	@napi: NAPI instance associated with receive channel
+ *@brief DMA Receive Channel NAPI
  */
 struct ether_rx_napi {
+	/** Receive channel number */
 	unsigned int chan;
+	/** OSD private data */
 	struct ether_priv_data *pdata;
+	/** NAPI instance associated with transmit channel */
 	struct napi_struct napi;
 };
 
 /**
- *	struct ether_priv_data - Ethernet driver private data
- *	@osi_core:	OSI core private data
- *	@osi_dma:	OSI DMA private data
- *	@hwfeat:	HW supported feature list
- *	@tx_napi:	Array of DMA Transmit channel NAPI
- *	@rx_napi:	Array of DMA Receive channel NAPI
- *	@ndev:	Network device associated with driver
- *	@dev:	Base device associated with driver
- *	@mac_rst:	Reset for the MAC
- *	@pllrefe_clk:	PLLREFE clock
- *	@axi_clk:	Clock from AXI
- *	@axi_cbb_clk:	Clock from AXI CBB
- *	@rx_clk:	Receive clock (which will be driven from the PHY)
- *	@ptp_ref_clk:	PTP reference clock from AXI
- *	@tx_clk:	Transmit clock
- *	@phy_node:	Pointer to PHY device tree node
- *	@mdio_node:	Pointer to MDIO device tree node
- *	@mii:		Pointer to MII bus instance
- *	@phydev:	Pointer to the PHY device
- *	@interface:	Interface type assciated with MAC (SGMII/RGMII/...)
- *			this information will be provided with phy-mode DT
- *			entry
- *	@oldlink:	Previous detected link
- *	@speed:		PHY link speed
- *	@oldduplex:	Previous detected mode
- *	@phy_reset:	Reset for PHY
- *	@rx_irq_alloc_mask:	Tx IRQ alloc mask
- *	@tx_irq_alloc_mask:	Rx IRQ alloc mask
- *	@common_irq:	Common IRQ number for MAC
- *	@tx_irqs:	Array of DMA Transmit channel IRQ numbers
- *	@rx_irqs:	Array of DMA Receive channel IRQ numbers
- *	@dma_mask:	memory allocation mask
- *	@mac_loopback_mode:	MAC loopback mode
- *	@txq_prio:	Array of MTL queue TX priority
- *	@hw_feat_cur_state:	Current state of features enabled in HW
- *	@tcd:		Pointer to thermal cooling device which this driver
- *			registers with the kernel. Kernel will invoke the
- *			callback ops for this cooling device when temperate
- *			in thermal zone defined in DT binding for this driver
- *			is tripped.
- *	@therm_state:	Atomic variable to hold the current temperature zone
- *			which has triggered.
- *	@lock:		Spin lock for filter code
- *	@ioctl_lock:		Spin lock for filter code ioctl path
- *	@max_hash_table_size:	hash table size; 0, 64,128 or 256
- *	@num_mac_addr_regs:	max address register count, 2*mac_addr64_sel
- *	@last_mc_filter_index:	Last Multicast address reg filter index, If 0,
- *				no MC address added
- *	@last_uc_filter_index:	Last Unicast address reg filter index, If 0, no
- *				MC and UC address added.
- *	@l3_l4_filter:		L3_l4 filter enabled 1: enabled
- *	@vlan_hash_filtering:	vlan hash filter 1: hash, 0: perfect
- *	@l2_filtering_mode:	l2 filter mode 1: hash 0: perfect
- *	@ptp_clock_ops:		PTP clock operations structure.
- *	@ptp_clock:		PTP system clock
- *	@ptp_ref_clock_speed:	PTP reference clock supported by platform
- *	@hwts_tx_en:		HW tx time stamping enable
- *	@hwts_rx_en:		HW rx time stamping enable
- *	@max_platform_mtu:	Max MTU supported by platform
- *	@ptp_lock:		Lock for accessing PTP registers
+ * @brief Ethernet driver private data
  */
 struct ether_priv_data {
+ 	/** OSI core private data */
 	struct osi_core_priv_data *osi_core;
+	/** OSI DMA private data */
 	struct osi_dma_priv_data *osi_dma;
-
+	/** HW supported feature list */
 	struct osi_hw_features hw_feat;
+	/** Array of DMA Transmit channel NAPI */
 	struct ether_tx_napi *tx_napi[OSI_EQOS_MAX_NUM_CHANS];
+	/** Array of DMA Receive channel NAPI */
 	struct ether_rx_napi *rx_napi[OSI_EQOS_MAX_NUM_CHANS];
-
+	/** Network device associated with driver */
 	struct net_device *ndev;
+	/** Base device associated with driver */
 	struct device *dev;
-
+	/** Reset for the MAC */
 	struct reset_control *mac_rst;
+	/** PLLREFE clock */
 	struct clk *pllrefe_clk;
+	/** Clock from AXI */
 	struct clk *axi_clk;
+	/** Clock from AXI CBB */
 	struct clk *axi_cbb_clk;
+	/** Receive clock (which will be driven from the PHY) */
 	struct clk *rx_clk;
+	/** PTP reference clock from AXI */
 	struct clk *ptp_ref_clk;
+	/** Transmit clock */
 	struct clk *tx_clk;
-
+	/** Pointer to PHY device tree node */
 	struct device_node *phy_node;
+	/** Pointer to MDIO device tree node */
 	struct device_node *mdio_node;
+	/** Pointer to MII bus instance */
 	struct mii_bus *mii;
+	/** Pointer to the PHY device */
 	struct phy_device *phydev;
+	/** Interface type assciated with MAC (SGMII/RGMII/...)
+	 * this information will be provided with phy-mode DT entry */
 	int interface;
+	/** Previous detected link */
 	unsigned int oldlink;
+	/** PHY link speed */
 	int speed;
+	/** Previous detected mode */
 	int oldduplex;
+	/** Reset for PHY */
 	int phy_reset;
-
+	/** Rx IRQ alloc mask */
 	unsigned int rx_irq_alloc_mask;
+	/** Tx IRQ alloc mask */
 	unsigned int tx_irq_alloc_mask;
+	/** Common IRQ alloc mask */
 	unsigned int common_irq_alloc_mask;
-
+	/** Common IRQ number for MAC */
 	int common_irq;
+	/** Array of DMA Transmit channel IRQ numbers */
 	int tx_irqs[ETHER_MAX_IRQS];
+	/** Array of DMA Receive channel IRQ numbers */
 	int rx_irqs[ETHER_MAX_IRQS];
+	/** memory allocation mask */
 	unsigned long long dma_mask;
+	/** Current state of features enabled in HW*/
 	netdev_features_t hw_feat_cur_state;
-
-	/* for MAC loopback */
+	/** MAC loopback mode */
 	unsigned int mac_loopback_mode;
-	unsigned int txq_prio[OSI_EQOS_MAX_NUM_QUEUES];
+	/** Array of MTL queue TX priority */
+	unsigned int txq_prio[OSI_EQOS_MAX_NUM_CHANS];
 
 #ifdef THERMAL_CAL
+ 	/** Pointer to thermal cooling device which this driver registers
+	 * with the kernel. Kernel will invoke the callback ops for this
+	 * cooling device when temperate in thermal zone defined in DT
+	 * binding for this driver is tripped */
 	struct thermal_cooling_device *tcd;
+	/** Atomic variable to hold the current temperature zone
+	 * whcih has triggered */
 	atomic_t therm_state;
 #endif /* THERMAL_CAL */
-
-	/* for filtering */
+	/** Spin lock for filter code */
 	spinlock_t lock;
+	/** Spin lock for Tx/Rx interrupt enable registers */
 	spinlock_t rlock;
-	/* spin lock for ioctl path */
+	/** spin lock for filter code ioctl path */
 	spinlock_t ioctl_lock;
+	/** max address register count, 2*mac_addr64_sel */
 	int num_mac_addr_regs;
+	/** Last Multicast address reg filter index, If 0,no MC address added */
 	int last_mc_filter_index;
+	/** Last Unicast address reg filter index, If 0,no MC address added */
 	int last_uc_filter_index;
+	/** L3_l4 filter enabled 1: enabled */
 	unsigned int l3_l4_filter;
+	/** vlan hash filter 1: hash, 0: perfect */
 	unsigned int vlan_hash_filtering;
+	/** PTP clock operations structure */
 	unsigned int l2_filtering_mode;
-
-	/* for PTP */
+	/** PTP clock operations structure */
 	struct ptp_clock_info ptp_clock_ops;
+	/** PTP system clock */
 	struct ptp_clock *ptp_clock;
+	/** PTP reference clock supported by platform */
 	unsigned int ptp_ref_clock_speed;
+	/** HW tx time stamping enable */
 	unsigned int hwts_tx_en;
+	/** HW rx time stamping enable */
 	unsigned int hwts_rx_en;
+	/** Max MTU supported by platform */
 	unsigned int max_platform_mtu;
+	/** Spin lock for PTP registers */
 	raw_spinlock_t ptp_lock;
 };
 
+/**
+ * @brief Set ethtool operations
+ * 
+ * @param[in] ndev: network device instance
+ *
+ * @note Network device needs to created. 
+ */
 void ether_set_ethtool_ops(struct net_device *ndev);
+/**
+ * @brief Creates Ethernet sysfs group
+ *
+ * @param[in] dev: device instance
+ *
+ * @retval 0 - success, 
+ * @retval "negative value" - failure.
+ */
 int ether_sysfs_register(struct device *dev);
+
+/**
+ * @brief Removes Ethernet sysfs group
+ *
+ * @param[in] dev: device instance
+ *
+ * @note  nvethernet sysfs group need to be registered during probe.
+ */
 void ether_sysfs_unregister(struct device *dev);
+
+/**
+ * @brief Function to register ptp clock driver
+ *
+ * Algorithm: This function is used to register the ptp clock driver to kernel
+ *
+ * @param[in] pdata: Pointer to private data structure.
+ *
+ * @note Driver probe need to be completed successfully with ethernet
+ * 	 network device created
+ *
+ * @retval 0 on success
+ * @retval "negative value" on Failure 
+ */
 int ether_ptp_init(struct ether_priv_data *pdata);
+
+/**
+ * @brief Function to unregister ptp clock driver
+ *
+ * Algorithm: This function is used to remove ptp clock driver from kernel.
+ *
+ * @param[in] pdata: Pointer to private data structure.
+ *
+ * @note PTP clock driver need to be successfully registered during init
+ */
 void ether_ptp_remove(struct ether_priv_data *pdata);
+
+/**
+ * @brief Function to handle PTP settings.
+ *
+ * Algorithm: This function is used to handle the hardware PTP settings.
+ *
+ * @param[in] pdata Pointer to private data structure.
+ * @param[in] ifr Interface request structure used for socket ioctl
+ *
+ * @note PTP clock driver need to be successfully registered during
+ * 	 initialization and HW need to support PTP functionality.
+ * 
+ * @retval 0 on success
+ * @retval "negative value" on Failure
+ */
 int ether_handle_hwtstamp_ioctl(struct ether_priv_data *pdata,
 				struct ifreq *ifr);
 int ether_handle_priv_ts_ioctl(struct ether_priv_data *pdata,

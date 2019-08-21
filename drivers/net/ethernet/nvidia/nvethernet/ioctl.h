@@ -17,6 +17,10 @@
 #ifndef IOCTL_H
 #define IOCTL_H
 
+/**
+ *@addtogroup IOCTL Helper MACROS
+ * @{
+ */
 #define NUM_BYTES_IN_IPADDR	4
 #define MAX_IP_ADDR_BYTE	0xFF
 /* Remote wakeup filter */
@@ -39,67 +43,75 @@
 #define ETHER_CONFIG_ARP_OFFLOAD	36
 #define ETHER_CONFIG_LOOPBACK_MODE	40
 #define ETHER_GET_AVB_ALGORITHM		46
+/** @} */
 
 /**
- *	struct ether_ifr_data - Private data of struct ifreq
- *	@flags: Flags used for specific ioctl - like enable/disable
- *	@qinx: Queue index to be used for certain ioctls.
- *		Not in use, keep for app compatibility.
- *		Some applications already use this same struct
- *	@cmd: The private ioctl command number.
- *	@context_setup: Used to indicate if context descriptor needs
- *		to be setup to handle ioctl.
- *		Not in use, keep for app compatibility.
- *	@connected_speed: Used to query the connected link speed.
- *		Not in use, keep for app compatibility.
- *	@rwk_filter_values: Used to set Remote wakeup filters.
- *		Not in use, keep for app compatibility.
- *	@rwk_filter_length: Number of remote wakeup filters to use.
- *		Not in use, keep for app compatibility.
- *	@command_error: The return value of IOCTL handler func.
- *		This is passed back to user space application.
- *	@test_done: Not in use, keep for app compatibility.
- *	@ptr: IOCTL cmd specific structure pointer.
+ * @brief struct ether_ifr_data - Private data of struct ifreq
  */
 struct ether_ifr_data {
+	/** Flags used for specific ioctl - like enable/disable */
 	unsigned int if_flags;
+	/** qinx: Queue index to be used for certain ioctls */
 	unsigned int qinx;
+	/** The private ioctl command number */
 	unsigned int ifcmd;
+	/** Used to indicate if context descriptor needs to be setup to
+	 * handle ioctl */
 	unsigned int context_setup;
+	/** Used to query the connected link speed */
 	unsigned int connected_speed;
+ 	/** Used to set Remote wakeup filters */
 	unsigned int rwk_filter_values[EQOS_RWK_FILTER_LENGTH];
+	/** Number of remote wakeup filters to use */
 	unsigned int rwk_filter_length;
+	/** The return value of IOCTL handler func */
 	int command_error;
+	/** test_done: Not in use, keep for app compatibility */
 	int test_done;
+	/** IOCTL cmd specific structure pointer */
 	void *ptr;
 };
 
 /**
- *	struct arp_offload_param - Parameter to support ARP offload.
- *	@ip_addr: Byte array for decimal representation of IP address.
- *	For example, 192.168.1.3 is represented as
- *		ip_addr[0] = '192'
- *		ip_addr[1] = '168'
- *		ip_addr[2] = '1'
- *		ip_addr[3] = '3'
+ * @brief struct arp_offload_param - Parameter to support ARP offload.
  */
 struct arp_offload_param {
+	/** ip_addr: Byte array for decimal representation of IP address.
+	 * For example, 192.168.1.3 is represented as
+	 * ip_addr[0] = '192' ip_addr[1] = '168' ip_addr[2] = '1' 
+	 * ip_addr[3] = '3' */
 	unsigned char ip_addr[NUM_BYTES_IN_IPADDR];
 };
 
 /**
- *	struct ifr_data_timestamp_struct - common data structure between
+ * @brief struct ifr_data_timestamp_struct - common data structure between
  *	driver and application for sharing info through private TS ioctl
- *	@clockid: Clock ID
- *	@kernel_ts: Store kernel time
- *	@hw_ptp_ts: Store HW time
  */
 struct ifr_data_timestamp_struct {
+	/** Clock ID */
 	clockid_t clockid;
+	/** Store kernel time */
 	struct timespec kernel_ts;
+	/** Store HW time */
 	struct timespec hw_ptp_ts;
 };
 
+/**
+ * @brief ether_priv_ioctl - Handle private IOCTLs
+ *	Algorithm:
+ *	1) Copy the priv command data from user space.
+ *	2) Check the priv command cmd and invoke handler func.
+ *	if it is supported.
+ *	3) Copy result back to user space.
+ *
+ * @param[in] ndev: network device structure
+ * @param[in] ifr: Interface request structure used for socket ioctl's.
+ *
+ * @note Interface should be running (enforced by caller).
+ *
+ * @retval 0 on success
+ * @retval negative value on failure.
+ */
 int ether_handle_priv_ioctl(struct net_device *ndev,
 			    struct ifreq *ifr);
 #endif

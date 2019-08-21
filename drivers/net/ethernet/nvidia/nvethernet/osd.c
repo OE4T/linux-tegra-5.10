@@ -18,16 +18,11 @@
 #include <osd.h>
 
 /**
- *	osd_udelay - Adds delay in micro seconds.
- *	@usec:	Delay number in micro seconds.
+ * @brief Adds delay in micro seconds.
  *
- *      Algorithm: Invokes OSD delay function for adding delay
+ * Algorithm: Invokes OSD delay function for adding delay
  *
- *	Dependencies: None
- *
- *	Protection: None.
- *
- *	Return: None.
+ * @param[in] usec: Delay number in micro seconds.
  */
 void osd_udelay(unsigned long usec)
 {
@@ -35,17 +30,12 @@ void osd_udelay(unsigned long usec)
 }
 
 /**
- *	osd_usleep_range - Adds sleep in micro seconds
- *	@umin:	Minimum sleep required in micro seconds.
- *	@umax:	Maximum sleep required in micro seconds.
+ * @brief Adds sleep in micro seconds
  *
- *	Algorithm: Invokes OSD function to add sleep.
+ * Algorithm: Invokes OSD function to add sleep.
  *
- *	Dependencies: None
- *
- *	Protection: None.
- *
- *	Return: None.
+ * @param[in] umin: Minimum sleep required in micro seconds.
+ * @param[in] umax: Maximum sleep required in micro seconds.
  */
 void osd_usleep_range(unsigned long umin, unsigned long umax)
 {
@@ -53,16 +43,11 @@ void osd_usleep_range(unsigned long umin, unsigned long umax)
 }
 
 /**
- *	osd_msleep - Adds sleep in milli seconds.
- *	@msec:  Minimum sleep required in milli seconds.
+ * @brief Adds sleep in milli seconds.
  *
- *      Algorithm: Invokes OSD function to add sleep.
+ * Algorithm: Invokes OSD function to add sleep.
  *
- *	Dependencies: None
- *
- *	Protection: None.
- *
- *	Return: None.
+ * @param[in] msec:  Minimum sleep required in milli seconds.
  */
 void osd_msleep(unsigned int msec)
 {
@@ -70,17 +55,12 @@ void osd_msleep(unsigned int msec)
 }
 
 /**
- *	osd_info - Prints log at INFO log level
- *	@priv: OSD private data
- *	@fmt: log format
+ * @brief Prints log at INFO log level
  *
- *	Algorithm: Invokes OSD function to prints the data in kernel log
+ * Algorithm: Invokes OSD function to prints the data in kernel log
  *
- *	Dependencies: None
- *
- *	Protection: None.
- *
- *	Return: None.
+ * @param[in] priv: OSD private data
+ * @param[in] fmt: log format
  */
 void osd_info(void *priv, const char *fmt, ...)
 {
@@ -88,17 +68,12 @@ void osd_info(void *priv, const char *fmt, ...)
 }
 
 /**
- *	osd_err - Prints log at ERR log level
- *	@priv: OSD private data
- *	@fmt: log format
+ * @brief Prints log at ERR log level
  *
- *	Algorithm: Invokes OSD function to prints the data in kernel log
+ * Algorithm: Invokes OSD function to prints the data in kernel log
  *
- *	Dependencies: None
- *
- *	Protection: None.
- *
- *	Return: None.
+ * @param[in] priv: OSD private data
+ * @param[in] fmt: log format
  */
 void osd_err(void *priv, const char *fmt, ...)
 {
@@ -106,19 +81,17 @@ void osd_err(void *priv, const char *fmt, ...)
 }
 
 /**
- *	ether_alloc_skb - Allocate and DMA map Rx buffer.
- *	@pdata: OSD private data structure.
- *	@rx_swcx: Rx ring software context.
- *	@dma_rx_buf_len: DMA Rx buffer length.
+ * @brief Allocate and DMA map Rx buffer.
  *
- *	Algorithm: Allocate network buffer (skb) and map skb->data to
- *	DMA mappable address.
+ * Algorithm: Allocate network buffer (skb) and map skb->data to
+ * DMA mappable address.
  *
- *	Dependencies: None.
+ * @param[in] pdata: OSD private data structure.
+ * @param[in] rx_swcx: Rx ring software context.
+ * @param[in] dma_rx_buf_len: DMA Rx buffer length.
  *
- *	Protection: None.
- *
- *	Return: 0 - success, ENOMEM - failure.
+ * @retval 0 on Sucess
+ * @retval  ENOMEM on failure.
  */
 static inline int ether_alloc_skb(struct ether_priv_data *pdata,
 				  struct osi_rx_swcx *rx_swcx,
@@ -148,23 +121,18 @@ static inline int ether_alloc_skb(struct ether_priv_data *pdata,
 }
 
 /**
- *      ether_realloc_rx_skb - Re-fill DMA channel Rx ring
- *      @osi: OSI private data structure.
- *      @rx_ring: DMA channel Rx ring instance.
- *      @chan: DMA Rx channel number.
+ * @brief Re-fill DMA channel Rx ring.
  *
- *      Algorithm: Re-fill Rx DMA channel ring until dirty rx index is equal to
- *      current rx index.
- *      1) Invokes OSD layer to allocate the buffer and map the buffer to DMA
- *      mappable address.
- *      2) Fill Rx descriptors with required data.
- *      3) Program DMA rx channel tail pointer.
+ * Algorithm: Re-fill Rx DMA channel ring until dirty rx index is equal
+ * to current rx index.
+ * 1) Invokes OSD layer to allocate the buffer and map the buffer to DMA
+ * mappable address.
+ * 2) Fill Rx descriptors with required data.
+ * 3) Program DMA rx channel tail pointer.
  *
- *      Dependencies: None.
- *
- *      Protection: None.
- *
- *      Return: None.
+ * @param[in] pdata: OSD private data structure.
+ * @param[in] rx_ring: DMA channel Rx ring instance.
+ * @param[in] chan: DMA Rx channel number.
  */
 static void ether_realloc_rx_skb(struct ether_priv_data *pdata,
 				 struct osi_rx_ring *rx_ring,
@@ -196,25 +164,22 @@ static void ether_realloc_rx_skb(struct ether_priv_data *pdata,
 }
 
 /**
- *	osd_receive_packet - Handover received packet to network stack.
- *	@priv: OSD private data structure.
- *	@rxring: Pointer to DMA channel Rx ring.
- *	@chan: DMA Rx channel number.
- *	@dma_buf_len: Rx DMA buffer length.
- *	@rx_pkt_len: Received packet length.
+ * @brief Handover received packet to network stack.
  *
- *	Algorithm:
- *	1) Unmap the DMA buffer address.
- *	2) Updates socket buffer with len and ether type and handover to
- *	Linux network stack.
- *	3) Refill the Rx ring based on threshold.
+ * Algorithm:
+ * 1) Unmap the DMA buffer address.
+ * 2) Updates socket buffer with len and ether type and handover to
+ * Linux network stack.
+ * 3) Refill the Rx ring based on threshold.
  *
- *	Dependencies: Rx completion need to make sure that Rx descriptors
- *	processed properly.
+ * @param[in] priv: OSD private data structure.
+ * @param[in] rxring: Pointer to DMA channel Rx ring.
+ * @param[in] chan: DMA Rx channel number.
+ * @param[in] dma_buf_len: Rx DMA buffer length.
+ * @param[in] rxpkt_cx: Received packet context.
+ * @param[in] rx_pkt_swcx: Received packet sw context.
  *
- *	Protection: None.
- *
- *	Return: None.
+ * @note Rx completion need to make sure that Rx descriptors processed properly.
  */
 void osd_receive_packet(void *priv, void *rxring, unsigned int chan,
 			unsigned int dma_buf_len, void *rxpkt_cx,
@@ -283,26 +248,22 @@ void osd_receive_packet(void *priv, void *rxring, unsigned int chan,
 }
 
 /**
- *	osd_transmit_complete - Transmit completion routine.
- *	@priv: OSD private data structure.
- *	@buffer: Buffer address to free.
- *	@dmaaddr: DMA address to unmap.
- *	@len: Length of data.
- *	@tx_done_pkt_cx: Pointer to struct which has tx done status info.
- *	This struct has flags to indicate tx error, whether DMA address
- *	is mapped from paged/linear buffer.
+ * @brief osd_transmit_complete - Transmit completion routine.
  *
- *	Algorithm:
- *	1) Updates stats for linux network stack.
- *	2) unmap and free the buffer DMA address and buffer.
- *	3) Time stamp will be update to stack if available.
+ * Algorithm:
+ * 1) Updates stats for linux network stack.
+ * 2) unmap and free the buffer DMA address and buffer.
+ * 3) Time stamp will be update to stack if available.
  *
- *	Dependencies: Tx completion need to make sure that Tx descriptors
- *	processed properly.
+ * @param[in] priv: OSD private data structure.
+ * @param[in] buffer: Buffer address to free.
+ * @param[in] dmaaddr: DMA address to unmap.
+ * @param[in] len: Length of data.
+ * @param[in] tx_done_pkt_cx: Pointer to struct which has tx done status info.
+ * This struct has flags to indicate tx error, whether DMA address
+ * is mapped from paged/linear buffer.
  *
- *	Protection: None.
- *
- *	Return: None.
+ * @note Tx completion need to make sure that Tx descriptors processed properly.
  */
 void osd_transmit_complete(void *priv, void *buffer, unsigned long dmaaddr,
 			   unsigned int len, void *tx_done_pkt_cx)
