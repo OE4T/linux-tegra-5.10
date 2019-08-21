@@ -438,6 +438,10 @@ int nvgpu_engine_wait_for_idle(struct gk20a *g)
 	}
 
 	for (i = 0; i < host_num_engines; i++) {
+		if (!nvgpu_engine_check_valid_id(g, i)) {
+			continue;
+		}
+
 		ret = -ETIMEDOUT;
 		do {
 			g->ops.engine_status.read_engine_status_info(g, i,

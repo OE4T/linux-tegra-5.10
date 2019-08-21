@@ -605,7 +605,10 @@ static void nvgpu_pci_remove(struct pci_dev *pdev)
 	WARN(err, "gpu failed to clear pci power");
 
 	err = nvgpu_nvlink_deinit(g);
-	WARN(err, "gpu failed to remove nvlink");
+	/* ENODEV is a legal error if there is no NVLINK */
+	if (err != -ENODEV) {
+		WARN(err, "gpu failed to remove nvlink");
+	}
 
 	gk20a_driver_start_unload(g);
 
@@ -655,7 +658,10 @@ void nvgpu_pci_shutdown(struct pci_dev *pdev)
 
 	if (is_nvgpu_gpu_state_valid(g)) {
 		err = nvgpu_nvlink_deinit(g);
-		WARN(err, "gpu failed to remove nvlink");
+		/* ENODEV is a legal error if there is no NVLINK */
+		if (err != -ENODEV) {
+			WARN(err, "gpu failed to remove nvlink");
+		}
 	} else
 		nvgpu_err(g, "skipped nvlink deinit");
 

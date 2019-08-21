@@ -25,8 +25,6 @@
 
 #include <nvgpu/types.h>
 
-#define MAX_INTR_TOP_REGS	(2U)
-
 #define NV_CPU_INTR_SUBTREE_TO_TOP_IDX(i)	((i) / 32U)
 #define NV_CPU_INTR_SUBTREE_TO_TOP_BIT(i)	((i) % 32U)
 #define NV_CPU_INTR_SUBTREE_TO_LEAF_REG0(i)	((i)*2U)

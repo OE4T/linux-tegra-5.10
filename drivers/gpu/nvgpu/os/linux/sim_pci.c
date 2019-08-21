@@ -54,11 +54,8 @@ static bool _nvgpu_pci_is_simulation(struct gk20a *g, u32 sim_base)
 void nvgpu_remove_sim_support_linux_pci(struct gk20a *g)
 {
 	struct sim_nvgpu_linux *sim_linux;
-	bool is_simulation;
 
-	is_simulation = _nvgpu_pci_is_simulation(g, sim_r());
-
-	if (!is_simulation) {
+	if (!nvgpu_is_enabled(g, NVGPU_IS_FMODEL)) {
 		return;
 	}
 

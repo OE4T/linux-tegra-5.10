@@ -367,7 +367,7 @@ void intr_tu104_stall_resume(struct gk20a *g)
 void intr_tu104_log_pending_intrs(struct gk20a *g)
 {
 	bool pending;
-	u32 intr, i;
+	u32 intr, i, size;
 
 	intr = intr_tu104_nonstall(g);
 	if (intr != 0U) {
@@ -386,7 +386,8 @@ void intr_tu104_log_pending_intrs(struct gk20a *g)
 		}
 	}
 
-	for (i = 0U; i < MAX_INTR_TOP_REGS; i++) {
+	size = func_priv_cpu_intr_top__size_1_v();
+	for (i = 0U; i < size; i++) {
 		intr = nvgpu_func_readl(g,
 			func_priv_cpu_intr_top_r(i));
 		if (intr == 0U) {

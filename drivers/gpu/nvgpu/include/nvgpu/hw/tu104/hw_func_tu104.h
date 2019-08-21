@@ -74,6 +74,7 @@
 #define func_priv_cpu_intr_leaf_en_clear__size_1_v()               (0x00000008U)
 #define func_priv_cpu_intr_top_r(i)\
 		(nvgpu_safe_add_u32(0x00001600U, nvgpu_safe_mult_u32((i), 4U)))
+#define func_priv_cpu_intr_top__size_1_v()                         (0x00000001U)
 #define func_priv_cpu_intr_leaf_r(i)\
 		(nvgpu_safe_add_u32(0x00001000U, nvgpu_safe_mult_u32((i), 4U)))
 #define func_priv_mmu_fault_buffer_lo_r(i)\
