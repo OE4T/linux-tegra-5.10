@@ -203,7 +203,6 @@ bool tegra_edid_is_scdc_present(struct tegra_edid *edid);
 bool tegra_edid_is_420db_present(struct tegra_edid *edid);
 bool tegra_edid_is_hfvsdb_present(struct tegra_edid *edid);
 bool tegra_edid_require_dv_vsif(struct tegra_edid *edid);
-bool tegra_edid_support_dv_ll(struct tegra_edid *edid);
 bool tegra_edid_support_dv_std_422(struct tegra_edid *edid);
 bool tegra_edid_support_yuv422(struct tegra_edid *edid);
 bool tegra_edid_support_yuv444(struct tegra_edid *edid);

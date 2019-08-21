@@ -2421,8 +2421,10 @@ static void tegra_hdmi_dv_infoframe(struct tegra_hdmi *hdmi)
 	tegra_sor_writel(sor, NV_SOR_HDMI_VSI_INFOFRAME_CTRL, 0);
 
 	if (tegra_edid_require_dv_vsif(hdmi->edid)) {
-		/* Dolby Vision VSVDB v1-12 byte and v2 version need Dolby VSIF
-		 * to be send continuously.
+		/*
+		 * Dolby Vision VSVDB v1, 12-byte with low-latency
+		 * support and VSVDB v2 require Dolby VSIF to be
+		 * send continuously.
 		 */
 		tegra_hdmi_dv_infoframe_update(hdmi);
 
@@ -2442,9 +2444,10 @@ static void tegra_hdmi_dv_infoframe(struct tegra_hdmi *hdmi)
 			NV_SOR_HDMI_VSI_INFOFRAME_CTRL_CHECKSUM_ENABLE);
 	} else {
 		/*
-		 * Dolby Vision VSVDB v0 and v1-15 byte version need HDMI 1.4b
-		 * VSIF length 24 to be send continuously. If DV signal is
-		 * turned off then send normal LLC length VSIF.
+		 * Dolby Vision VSVDB v0, v1-15 byte, and v1-12 byte without
+		 * low-latency support need HDMI 1.4b VSIF length 24 to be
+		 * send continuously. If DV signal is turned off then send
+		 * normal LLC length VSIF.
 		 */
 		tegra_hdmi_vendor_infoframe(hdmi,
 			hdmi->hdmi_dv_signal == TEGRA_DC_EXT_DV_SIGNAL_NONE ?

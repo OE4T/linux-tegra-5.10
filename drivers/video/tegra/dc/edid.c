@@ -795,17 +795,9 @@ bool tegra_edid_require_dv_vsif(struct tegra_edid *edid)
 		return false;
 	}
 
-	return ((edid->data->dv_caps.vsvdb_ver == TEGRA_DC_DV_VSVDB_V1_12B) ||
-		(edid->data->dv_caps.vsvdb_ver == TEGRA_DC_DV_VSVDB_V2));
-}
-
-bool tegra_edid_support_dv_ll(struct tegra_edid *edid)
-{
-	if (!edid || !edid->data) {
-		pr_warn("edid invalid\n");
-		return false;
-	}
-
+	/* Dolby Vision VSVDB version 1, 12-byte with low-latency
+	 * support and VSVDB version 2 require Dolby VSIF.
+	 */
 	if (((edid->data->dv_caps.vsvdb_ver == TEGRA_DC_DV_VSVDB_V1_12B) &&
 	     (edid->data->dv_caps.v1_12b.low_latency == 0x1)) ||
 	    (edid->data->dv_caps.vsvdb_ver == TEGRA_DC_DV_VSVDB_V2))
