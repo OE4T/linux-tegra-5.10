@@ -520,7 +520,7 @@ out:
 		nvgpu_log_fn(g, "done");
 	}
 
-	return 0;
+	return err;
 }
 
 int nvgpu_gr_prepare_sw(struct gk20a *g)
@@ -720,6 +720,7 @@ void nvgpu_gr_free(struct gk20a *g)
 	g->gr = NULL;
 }
 
+#if defined(CONFIG_NVGPU_RECOVERY) || defined(CONFIG_NVGPU_DEBUGGER)
 /**
  * Stop processing (stall) context switches at FECS:-
  * If fecs is sent stop_ctxsw method, elpg entry/exit cannot happen
@@ -809,6 +810,7 @@ ctxsw_already_enabled:
 
 	return err;
 }
+#endif
 
 void nvgpu_gr_remove_support(struct gk20a *g)
 {
