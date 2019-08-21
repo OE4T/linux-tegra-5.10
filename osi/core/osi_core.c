@@ -640,7 +640,7 @@ int  osi_update_vlan_id(struct osi_core_priv_data *osi_core,
 			unsigned int vid)
 {
 	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
-	    (osi_core->ops->update_vlan_id != OSI_NULL && vid != 0U)) {
+	    (osi_core->ops->update_vlan_id != OSI_NULL)) {
 		return osi_core->ops->update_vlan_id(osi_core->base,
 						    vid);
 	}
