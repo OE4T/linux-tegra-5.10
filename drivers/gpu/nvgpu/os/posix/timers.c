@@ -124,7 +124,7 @@ static void nvgpu_timeout_expired_msg_print(struct nvgpu_timeout *timeout,
 
 static int nvgpu_timeout_expired_msg_cpu(struct nvgpu_timeout *timeout)
 {
-	if (get_time_ns() >= timeout->time) {
+	if (get_time_ns() > timeout->time) {
 		return -ETIMEDOUT;
 	}
 
