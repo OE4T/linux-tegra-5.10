@@ -17,18 +17,15 @@
 #include "ether_linux.h"
 
 /**
- *	ether_mac_loopback_show - Shows the current setting of MAC loopback
- *	@dev: Device data.
- *	@attr: Device attribute
- *	@buf: Buffer to store the current MAC loopback setting
+ * @brief Shows the current setting of MAC loopback
  *
- *	Algorithm: Display the current MAC loopback setting.
+ * Algorithm: Display the current MAC loopback setting.
  *
- *	Dependencies: MAC and PHY need to be initialized.
+ * @param[in] dev: Device data.
+ * @param[in] attr: Device attribute
+ * @param[in] buf: Buffer to store the current MAC loopback setting
  *
- *	Protection: None.
- *
- *	Return: None.
+ * @note MAC and PHY need to be initialized.
  */
 static ssize_t ether_mac_loopback_show(struct device *dev,
 				       struct device_attribute *attr, char *buf)
@@ -41,19 +38,18 @@ static ssize_t ether_mac_loopback_show(struct device *dev,
 }
 
 /**
- *	ether_mac_loopback_store - Set the user setting of MAC loopback mode
- *	@dev: Device data.
- *	@attr: Device attribute
- *	@buf: Buffer which contains the user settings of MAC loopback
- *	@size: size of buffer
+ * @brief Set the user setting of MAC loopback mode
  *
- *	Algorithm: This is used to set the user mode settings of MAC loopback.
+ * Algorithm: This is used to set the user mode settings of MAC loopback.
  *
- *	Dependencies: MAC and PHY need to be initialized.
+ * @param[in] dev: Device data.
+ * @param[in] attr: Device attribute
+ * @param[in] buf: Buffer which contains the user settings of MAC loopback
+ * @param[in] size: size of buffer
  *
- *	Protection: None.
+ * @note MAC and PHY need to be initialized.
  *
- *	Return: size of buffer.
+ * @return size of buffer.
  */
 static ssize_t ether_mac_loopback_store(struct device *dev,
 					struct device_attribute *attr,
@@ -97,51 +93,35 @@ static ssize_t ether_mac_loopback_store(struct device *dev,
 	return size;
 }
 
+/**
+ * @brief Sysfs attribute for MAC loopback
+ *
+ */
 static DEVICE_ATTR(mac_loopback, (S_IRUGO | S_IWUSR),
 		   ether_mac_loopback_show,
 		   ether_mac_loopback_store);
 
+/**
+ * @brief Attributes for nvethernet sysfs
+ */
 static struct attribute *ether_sysfs_attrs[] = {
 	&dev_attr_mac_loopback.attr,
 	NULL
 };
 
+/**
+ * @brief Ethernet sysfs attribute group
+ */
 static struct attribute_group ether_attribute_group = {
 	.name = "nvethernet",
 	.attrs = ether_sysfs_attrs,
 };
-
-/**
- *	ether_sysfs_register - Creates nvethernet sysfs group
- *	@dev: Net device data.
- *
- *	Algorithm: Creates the sysfs group.
- *
- *	Dependencies: MAC and PHY need to be initialized.
- *
- *	Protection: None.
- *
- *	Return: 0 - success, negative value - failure.
- */
 
 int ether_sysfs_register(struct device *dev)
 {
 	/* Create nvethernet sysfs group under /sys/devices/<ether_device>/ */
 	return sysfs_create_group(&dev->kobj, &ether_attribute_group);
 }
-
-/**
- *	ether_sysfs_unregister - Removes nvethernet sysfs group
- *	@dev: Net device data.
- *
- *	Algorithm: Removes the sysfs group.
- *
- *	Dependencies: nvethernet sysfs group need to be registered during probe.
- *
- *	Protection: None.
- *
- *	Return: None.
- */
 
 void ether_sysfs_unregister(struct device *dev)
 {

@@ -17,17 +17,12 @@
 #include "ether_linux.h"
 
 /**
- *	ether_disable_clks - Disable all MAC related clks.
- *	@pdata: OSD private data.
+ * @brief Disable all MAC related clks
  *
- *	Algorithm: Release the reference counter for the clks by using
- *	clock subsystem provided API's.
+ * Algorithm: Release the reference counter for the clks by using
+ * clock subsystem provided API's
  *
- *	Dependencies: None.
- *
- *	Protection: None.
- *
- *	Return: None.
+ * @param[in] pdata: OSD private data.
  */
 static void ether_disable_clks(struct ether_priv_data *pdata)
 {
@@ -57,16 +52,14 @@ static void ether_disable_clks(struct ether_priv_data *pdata)
 }
 
 /**
- *	ether_enable_clks - Enable all MAC related clks.
- *	@pdata: OSD private data.
+ * @brief Enable all MAC related clks.
  *
- *	Algorithm: Enables the clks by using clock subsystem provided API's.
+ * Algorithm: Enables the clks by using clock subsystem provided API's.
  *
- *	Dependencies: None.
+ * @param[in] pdata: OSD private data.
  *
- *	Protection: None.
- *
- *	Return: 0 - success, negative value - failure.
+ * @retval 0 on success
+ * @retval "negative value" on failure.
  */
 static int ether_enable_clks(struct ether_priv_data *pdata)
 {
@@ -141,18 +134,15 @@ err_axi_cbb:
 }
 
 /**
- *	ether_adjust_link - Adjust link call back
- *	@dev: Net device data.
+ * @brief Adjust link call back
  *
- *	Algorithm: Callback function called by the PHY subsystem
- *	whenever there is a link detected or link changed on the
- *	physical layer.
+ * Algorithm: Callback function called by the PHY subsystem
+ * whenever there is a link detected or link changed on the
+ * physical layer.
  *
- *	Dependencies: MAC and PHY need to be initialized.
+ * @param[in] dev: Network device data.
  *
- *	Protection: None.
- *
- *	Return: None.
+ * @note MAC and PHY need to be initialized.
  */
 static void ether_adjust_link(struct net_device *dev)
 {
@@ -221,18 +211,16 @@ static void ether_adjust_link(struct net_device *dev)
 }
 
 /**
- *	ether_phy_init - Initialize the PHY
- *	@dev: Net device data.
+ * @brief Initialize the PHY
  *
- *	Algorithm:
- *	1) Reset the PHY
- *	2) Connect to the phy described in the device tree.
+ * Algorithm: 1) Resets the PHY. 2) Connect to the phy described in the device tree.
  *
- *	Dependencies: MAC and PHY need to be initialized.
+ * @param[in] dev: Network device data.
  *
- *	Protection: None.
+ * @note MAC needs to be out of reset.
  *
- *	Return: 0 - success, negative value - failure.
+ * @retval 0 on success
+ * @retval "negative value" on failure.
  */
 static int ether_phy_init(struct net_device *dev)
 {
@@ -276,21 +264,21 @@ static int ether_phy_init(struct net_device *dev)
 }
 
 /**
- *	ether_tx_chan_isr - Tx done ISR Routine.
- *	@irq: IRQ number.
- *	@data: Tx NAPI private data structure.
+ * @brief Transmit done ISR Routine.
  *
- *	Algorithm:
- *	1) Get channel number private data passed to ISR.
- *	2) Invoke OSI layer to clear Tx interrupt source.
- *	3) Disable DMA Tx channel interrupt.
- *	4) Schedule TX NAPI poll handler to cleanup the buffer.
+ * Algorithm:
+ * 1) Get channel number private data passed to ISR.
+ * 2) Invoke OSI layer to clear Tx interrupt source.
+ * 3) Disable DMA Tx channel interrupt.
+ * 4) Schedule TX NAPI poll handler to cleanup the buffer.
  *
- *	Dependencies: MAC and PHY need to be initialized.
+ * @param[in] irq: IRQ number.
+ * @param[in] data: Tx NAPI private data structure.
  *
- *	Protection: None.
+ * @note MAC and PHY need to be initialized.
  *
- *	Return: IRQ_HANDLED - success, IRQ_NONE - failure.
+ * @retval IRQ_HANDLED on success
+ * @retval IRQ_NONE on failure.
  */
 static irqreturn_t ether_tx_chan_isr(int irq, void *data)
 {
@@ -318,23 +306,23 @@ static irqreturn_t ether_tx_chan_isr(int irq, void *data)
 }
 
 /**
- *	ether_rx_chan_isr - Rx done ISR Routine
- *	@irq: IRQ number
- *	@data: Rx NAPI private data structure.
+ * @brief Receive done ISR Routine
  *
- *	Algorithm:
- *	1) Get Rx channel number from Rx NAPI private data which will be passed
- *	during request_irq() API.
- *	2) Invoke OSI layer to clear Rx interrupt source.
- *	3) Disable DMA Rx channel interrupt.
- *	4) Schedule Rx NAPI poll handler to get data from HW and pass to the
- *	Linux network stack.
+ * Algorithm:
+ * 1) Get Rx channel number from Rx NAPI private data which will be passed
+ * during request_irq() API.
+ * 2) Invoke OSI layer to clear Rx interrupt source.
+ * 3) Disable DMA Rx channel interrupt.
+ * 4) Schedule Rx NAPI poll handler to get data from HW and pass to the
+ * Linux network stack.
  *
- *	Dependencies: MAC and PHY need to be initialized.
+ * @param[in] irq: IRQ number
+ * @param[in] data: Rx NAPI private data structure.
  *
- *	Protection: None.
+ * @note MAC and PHY need to be initialized.
  *
- *	Return: IRQ_HANDLED - success, IRQ_NONE - failure.
+ * @retval IRQ_HANDLED on success
+ * @retval IRQ_NONE on failure.
  */
 static irqreturn_t ether_rx_chan_isr(int irq, void *data)
 {
@@ -362,17 +350,17 @@ static irqreturn_t ether_rx_chan_isr(int irq, void *data)
 }
 
 /**
- *	ether_common_isr - Common ISR Routine
- *	@irq: IRQ number.
- *	@data: Private data from ISR.
+ * @brief Common ISR Routine
  *
- *	Algorithm: Invoker OSI layer to handle common interrupt.
+ * Algorithm: Invoke OSI layer to handle common interrupt.
  *
- *	Dependencies: MAC and PHY need to be initialized.
+ * @param[in] irq: IRQ number.
+ * @param[in] data: Private data from ISR.
  *
- *	Protection: None.
+ * @note MAC and PHY need to be initialized.
  *
- *	Return: IRQ_HANDLED - success, IRQ_NONE - failure.
+ * @retval IRQ_HANDLED on success
+ * @retval IRQ_NONE on failure.
  */
 static irqreturn_t ether_common_isr(int irq, void *data)
 {
@@ -383,20 +371,16 @@ static irqreturn_t ether_common_isr(int irq, void *data)
 }
 
 /**
- *	ether_free_irqs - Free IRQs
- *	@pdata: OS dependent private data structure.
+ * @brief Free IRQs
  *
- *	Algorithm: This routine takes care of freeing
- *	below IRQs
- *	1) Common IRQ
- *	2) TX IRQ
- *	3) RX IRQ
+ * Algorithm: This routine takes care of freeing below IRQs
+ * 1) Common IRQ
+ * 2) TX IRQ
+ * 3) RX IRQ
  *
- *	Dependencies: IRQs should have registered.
+ * @param[in] pdata: OS dependent private data structure.
  *
- *	Protection: None.
- *
- *	Return: NONE.
+ * @note IRQs should have registered.
  */
 static void ether_free_irqs(struct ether_priv_data *pdata)
 {
@@ -425,20 +409,19 @@ static void ether_free_irqs(struct ether_priv_data *pdata)
 }
 
 /**
- *	ether_request_irqs - register IRQs
- *	@pdata: OS dependent private data structure.
+ * @brief Register IRQs
  *
- *	Algorithm: This routine takes care of requesting
- *	below IRQs
- *	1) Common IRQ
- *	2) TX IRQ
- *	3) RX IRQ
+ * Algorithm: This routine takes care of requesting below IRQs
+ * 1) Common IRQ
+ * 2) TX IRQ
+ * 3) RX IRQ
  *
- *	Dependencies: IRQ numbers need to be known.
+ * @param[in] pdata: OS dependent private data structure.
  *
- *	Protection: None.
+ * @note IRQ numbers need to be known.
  *
- *	Return: 0 - success, negative value - failure.
+ * @retval 0 on success
+ * @retval "negative value" on failure.
  */
 static int ether_request_irqs(struct ether_priv_data *pdata)
 {
@@ -497,16 +480,13 @@ err_chan_irq:
 }
 
 /**
- *	ether_napi_disable - Disable NAPI.
- *	@pdata: OSD private data structure.
+ * @brief Disable NAPI.
  *
- *	Algorithm: Disable Tx and Rx NAPI for the channels which are enabled.
+ * Algorithm: Disable Tx and Rx NAPI for the channels which are enabled.
  *
- *	Dependencies: NAPI resources need to be allocated as part of probe().
+ * @param[in] pdata: OSD private data structure.
  *
- *	Protection: None.
- *
- *	Return: None.
+ * @note NAPI resources need to be allocated as part of probe().
  */
 static void ether_napi_disable(struct ether_priv_data *pdata)
 {
@@ -523,16 +503,13 @@ static void ether_napi_disable(struct ether_priv_data *pdata)
 }
 
 /**
- *	ether_napi_enable - Enable NAPI.
- *	@pdata: OSD private data structure.
+ * @brief Enable NAPI.
  *
- *	Algorithm: Enable Tx and Rx NAPI for the channels which are enabled.
+ * Algorithm: Enable Tx and Rx NAPI for the channels which are enabled.
  *
- *	Dependencies: NAPI resources need to be allocated as part of probe().
+ * @param[in] pdata: OSD private data structure.
  *
- *	Protection: None.
- *
- *	Return: None.
+ * @note NAPI resources need to be allocated as part of probe().
  */
 static void ether_napi_enable(struct ether_priv_data *pdata)
 {
@@ -548,6 +525,13 @@ static void ether_napi_enable(struct ether_priv_data *pdata)
 	}
 }
 
+/**
+ * @brief Free receive skbs
+ * 
+ * @param[in] rx_swcx: Rx pkt SW context
+ * @param[in] dev: device instance associated with driver.
+ * @param[in] rx_buf_len: Receive buffer length 
+ */
 static void ether_free_rx_skbs(struct osi_rx_swcx *rx_swcx, struct device *dev,
 			       unsigned int rx_buf_len)
 {
@@ -568,17 +552,12 @@ static void ether_free_rx_skbs(struct osi_rx_swcx *rx_swcx, struct device *dev,
 }
 
 /**
- *	free_rx_dma_resources - Frees allocated Rx DMA resources.
- *	@osi:	OSI private data structure.
- *
+ * @brief free_rx_dma_resources - Frees allocated Rx DMA resources.
  *	Algorithm: Release all DMA Rx resources which are allocated as part of
  *	allocated_rx_dma_ring() API.
  *
- *	Dependencies: None.
- *
- *	Protection: None.
- *
- *	Return: None.
+ * @param[in] osi_dma: OSI DMA private data structure.
+ * @param[in] dev: device instance associated with driver.
  */
 static void free_rx_dma_resources(struct osi_dma_priv_data *osi_dma,
 				  struct device *dev)
@@ -610,19 +589,20 @@ static void free_rx_dma_resources(struct osi_dma_priv_data *osi_dma,
 }
 
 /**
- *	allocate_rx_dma_resource - Allocate Rx DMA ring
- *	@osi: OSI private data structure.
- *	@chan: Rx DMA channel number.
+ * @brief Allocate Rx DMA channel ring resources
  *
- *	Algorithm: DMA receive ring will be created for valid channel number.
- *	Receive ring updates with descriptors and software context associated
- *	with each receive descriptor.
+ * Algorithm: DMA receive ring will be created for valid channel number.
+ * Receive ring updates with descriptors and software context associated
+ * with each receive descriptor.
  *
- *	Dependencies: Invalid channel need to be updated.
+ * @param[in] osi_dma: OSI DMA private data structure.
+ * @param[in] dev: device instance associated with driver.
+ * @param[in] chan: Rx DMA channel number.
  *
- *	Protection: None.
+ * @note Invalid channel need to be updated.
  *
- *	Return: 0 - success, negative value - failure
+ * @retval 0 on success
+ * @retval "negative value" on failure.
  */
 static int allocate_rx_dma_resource(struct osi_dma_priv_data *osi_dma,
 				    struct device *dev,
@@ -672,6 +652,15 @@ err_rx_desc:
 	return ret;
 }
 
+/**
+ * @brief Allocate receive buffers for a DMA channel ring
+ *
+ * @param[in] pdata: OSD private data.
+ * @param[in] rx_ring: rxring data structure.
+ *
+ * @retval 0 on success
+ * @retval "negative value" on failure.
+ */
 static int ether_allocate_rx_buffers(struct ether_priv_data *pdata,
 				     struct osi_rx_ring *rx_ring)
 {
@@ -708,17 +697,18 @@ static int ether_allocate_rx_buffers(struct ether_priv_data *pdata,
 }
 
 /**
- *	allocate_rx_dma_resources - Allocate rx DMA resources.
- *	@osi: OSI private data structure.
+ * @brief Allocate Receive DMA channel ring resources.
  *
- *	Algorithm: DMA receive ring will be created for valid channel number
- *	provided through DT
+ * Algorithm: DMA receive ring will be created for valid channel number
+ * provided through DT
  *
- *	Dependencies: Invalid channel need to be updated.
+ * @param[in] osi_dma: OSI private data structure.
+ * @param[in] pdata: OSD private data.
  *
- *	Protection: None.
+ * @note Invalid channel need to be updated.
  *
- *	Return: 0 - success, negative value - failure
+ * @retval 0 on success
+ * @retval "negative value" on failure.
  */
 static int ether_allocate_rx_dma_resources(struct osi_dma_priv_data *osi_dma,
 					   struct ether_priv_data *pdata)
@@ -752,17 +742,13 @@ exit:
 }
 
 /**
- *	free_tx_dma_resources - Frees allocated DMA resources.
- *	@osi:	OSI private data structure.
+ * @brief Frees allocated DMA resources.
  *
- *	Algorithm: Release all DMA Tx resources which are allocated as part of
- *	allocated_tx_dma_ring() API.
+ * Algorithm: Release all DMA Tx resources which are allocated as part of
+ * allocated_tx_dma_ring() API.
  *
- *	Dependencies: None.
- *
- *	Protection: None.
- *
- *	Return: None.
+ * @param[in] osi_dma: OSI private data structure.
+ * @param[in] dev: device instance associated with driver.
  */
 static void free_tx_dma_resources(struct osi_dma_priv_data *osi_dma,
 				  struct device *dev)
@@ -793,19 +779,18 @@ static void free_tx_dma_resources(struct osi_dma_priv_data *osi_dma,
 }
 
 /**
- *	allocate_tx_dma_resource - Allocate Tx DMA ring
- *	@osi: OSI private data structure.
- *	@chan: Channel number.
+ * @brief Allocate Tx DMA ring
  *
- *	Algorithm: DMA transmit ring will be created for valid channel number.
- *	Transmit ring updates with descriptors and software context associated
- *	with each transmit descriptor.
+ * Algorithm: DMA transmit ring will be created for valid channel number.
+ * Transmit ring updates with descriptors and software context associated
+ * with each transmit descriptor.
  *
- *	Dependencies: None.
+ * @param[in] osi_dma: OSI  DMA private data structure.
+ * @param[in] dev: device instance associated with driver.
+ * @param[in] chan: Channel number.
  *
- *	Protection: None.
- *
- *	Return: 0 - success, negative value - failure
+ * @retval 0 on success
+ * @retval "negative value" on failure.
  */
 static int allocate_tx_dma_resource(struct osi_dma_priv_data *osi_dma,
 				    struct device *dev,
@@ -855,17 +840,18 @@ err_tx_desc:
 }
 
 /**
- *	ether_allocate_tx_dma_resources - Allocate Tx DMA resources.
- *	@osi: OSI private data structure.
+ * @brief Allocate Tx DMA resources.
  *
- *	Algorithm: DMA transmit ring will be created for valid channel number
- *	provided through DT
+ * Algorithm: DMA transmit ring will be created for valid channel number
+ * provided through DT
  *
- *	Dependencies: Invalid channel need to be updated.
+ * @param[in] osi_dma: OSI  DMA private data structure.
+ * @param[in] dev: device instance associated with driver.
  *
- *	Protection: None.
+ * @note Invalid channel need to be updated.
  *
- *	Return: 0 - success, negative value - failure
+ * @retval 0 on success
+ * @retval "negative value" on failure.
  */
 static int ether_allocate_tx_dma_resources(struct osi_dma_priv_data *osi_dma,
 					   struct device *dev)
@@ -892,41 +878,20 @@ exit:
 }
 
 /**
- *	ether_init_invalid_chan_ring -
- *				Updates invalid channels list and DMA rings.
- *	@osi:	OSI private data structure.
+ * @brief Updates invalid channels list and DMA rings.
  *
- *	Algorithm:
- *	1) Initialize all DMA Tx/Rx pointers to NULL so that for valid
- *	dma_addr_t *channels Tx/Rx rings will be created.
+ * Algorithm: Initialize all DMA Tx/Rx pointers to NULL so that for valid
+ * dma_addr_t *channels Tx/Rx rings will be created.
  *
- *	For ex: If the number of channels are 2 (nvidia,num_dma_chans = <2>)
- *	and channel numbers are 2 and 3 (nvidia,dma_chans = <2 3>),
- *	then only for channel 2 and 3 DMA rings will be allocated in
- *	allocate_tx/rx_dma_resources() function.
+ * For ex: If the number of channels are 2 (nvidia,num_dma_chans = <2>)
+ * and channel numbers are 2 and 3 (nvidia,dma_chans = <2 3>),
+ * then only for channel 2 and 3 DMA rings will be allocated in
+ * allocate_tx/rx_dma_resources() function.
  *
- *	Representation of Tx ring will be like -
- *	osi->tx_ring[0] = NULL,
- *	osi->tx_ring[1] = NULL,
- *	osi->tx_ring[2] = allocated pointer for DMA Tx 2 ring.
- *	osi->tx_ring[3] = allocated pointer for DMA Tx 3 ring.
- *	osi_>tx_ring[4] = NULL,
- *	.
- *	.
- *	osi_>tx_ring[9] = NULL.
+ * @param[in] osi_dma: OSI  DMA private data structure.
  *
- *	This is useful in start_xmit() to get directly Tx ring based on the
- *	channel number return from select_queue() API.
- *
- *	2) Second for loop makes remaing channel numbers as invalid numbers
- *	so that only valid channel will go and allocate/free the DMA resources.
- *
- *	Dependencies: OSD needs to be update number of channels and channel
- *	numbers in OSI private data structure.
- *
- *	Protection: None.
- *
- *	Return: None.
+ * @note OSD needs to be update number of channels and channel
+ * numbers in OSI private data structure.
  */
 static void ether_init_invalid_chan_ring(struct osi_dma_priv_data *osi_dma)
 {
@@ -943,16 +908,13 @@ static void ether_init_invalid_chan_ring(struct osi_dma_priv_data *osi_dma)
 }
 
 /**
- *	free_dma_resources - Freeing allocated DMA resources.
- *	@osi: OSI private data structure.
+ * @brief Frees allocated DMA resources.
  *
- *	Algorithm: Frees all DMA resources which are allocates with
- *	allocate_dma_resources() API.
+ * Algorithm: Frees all DMA resources which are allocates with
+ * allocate_dma_resources() API.
  *
- *	Dependencies: None.
- *	Protection: None.
- *	Return: None.
- *
+ * @param[in] osi_dma: OSI private data structure.
+ * @param[in] dev: device instance associated with driver.
  */
 void free_dma_resources(struct osi_dma_priv_data *osi_dma, struct device *dev)
 {
@@ -961,19 +923,16 @@ void free_dma_resources(struct osi_dma_priv_data *osi_dma, struct device *dev)
 }
 
 /**
- *	allocate_dma_resources - Allocate DMA resources for Tx and Rx.
- *	@osi: OSI private data structure.
+ * @brief Allocate DMA resources for Tx and Rx.
  *
- *	Algorithm:
- *	1) updates invalid channels with numbers.
- *	2) Allocate Tx DMA resources.
- *	3) Allocate Rx DMA resources.
+ * Algorithm:
+ * 1) Allocate Tx DMA resources.
+ * 2) Allocate Rx DMA resources.
  *
- *	Dependencies: None.
+ * @param[in] pdata: OSD private data structure.
  *
- *	Protection: None.
- *
- *	Return:	0 - success, -1 - failure.
+ * @retval 0 on success
+ * @retval "negative value" on failure.
  */
 static int ether_allocate_dma_resources(struct ether_priv_data *pdata)
 {
@@ -998,20 +957,19 @@ static int ether_allocate_dma_resources(struct ether_priv_data *pdata)
 
 #ifdef THERMAL_CAL
 /**
- *	ether_get_max_therm_state - Set current thermal state.
- *	@tcd: Ethernet thermal cooling device pointer.
- *	@state: Variable to read max thermal state.
+ * @brief Set current thermal state.
  *
- *	Algorithm: Fill the max supported thermal state for ethernet cooling
- *	device in variable provided by caller.
+ * Algorithm: Fill the max supported thermal state for ethernet cooling
+ * device in variable provided by caller.
  *
- *	Dependencies: MAC needs to be out of reset. Once cooling device ops are
- *	registered, it can be called anytime from kernel. MAC has to be in
- *	sufficient state to allow pad calibration.
+ * @param[in] tcd: Ethernet thermal cooling device pointer.
+ * @param[in] state: Variable to read max thermal state.
  *
- *	Protection: None.
+ * @note MAC needs to be out of reset. Once cooling device ops are
+ * registered, it can be called anytime from kernel. MAC has to be in
+ * sufficient state to allow pad calibration.
  *
- *	Return: 0 - succcess. Does not fail as function is only reading var.
+ * return: 0 - succcess. Does not fail as function is only reading variable.
  */
 static int ether_get_max_therm_state(struct thermal_cooling_device *tcd,
 				     unsigned long *state)
@@ -1022,20 +980,19 @@ static int ether_get_max_therm_state(struct thermal_cooling_device *tcd,
 }
 
 /**
- *	ether_get_cur_therm_state - Get current thermal state.
- *	@tcd: Ethernet thermal cooling device pointer.
- *	@state: Variable to read current thermal state.
+ * @brief Get current thermal state.
  *
- *	Algorithm: Atomically get the current thermal state of etherent
- *	cooling device.
+ * Algorithm: Atomically get the current thermal state of etherent
+ * cooling device.
  *
- *	Dependencies: MAC needs to be out of reset. Once cooling device ops are
- *	registered, it can be called anytime from kernel. MAC has to be in
- *	sufficient state to allow pad calibration.
+ * @param[in] tcd: Ethernet thermal cooling device pointer.
+ * @param[in] state: Variable to read current thermal state.
  *
- *	Protection: None.
+ * @note MAC needs to be out of reset. Once cooling device ops are
+ * registered, it can be called anytime from kernel. MAC has to be in
+ * sufficient state to allow pad calibration.
  *
- *	Return: 0 - succcess. Does not fail as function is only reading var.
+ * @return: succcess on 0.
  */
 static int ether_get_cur_therm_state(struct thermal_cooling_device *tcd,
 				     unsigned long *state)
@@ -1048,20 +1005,20 @@ static int ether_get_cur_therm_state(struct thermal_cooling_device *tcd,
 }
 
 /**
- *	ether_set_cur_therm_state - Set current thermal state.
- *	@tcd: Ethernet thermal cooling device pointer.
- *	@state: The thermal state to set.
+ * @brief Set current thermal state.
  *
- *	Algorithm: Atomically set the desired state provided as argument.
- *	Trigger pad calibration for each state change.
+ * Algorithm: Atomically set the desired state provided as argument.
+ * Trigger pad calibration for each state change.
  *
- *	Dependencies: MAC needs to be out of reset. Once cooling device ops are
- *	registered, it can be called anytime from kernel. MAC has to be in
- *	sufficient state to allow pad calibration.
+ * @param[in] tcd: Ethernet thermal cooling device pointer.
+ * @param[in] state: The thermal state to set.
  *
- *	Protection: None.
+ * @note MAC needs to be out of reset. Once cooling device ops are
+ * registered, it can be called anytime from kernel. MAC has to be in
+ * sufficient state to allow pad calibration.
  *
- *	Return: 0 - succcess, -ve value - failure.
+ * @retval 0 on success
+ * @retval negative value on failure.
  */
 static int ether_set_cur_therm_state(struct thermal_cooling_device *tcd,
 				     unsigned long state)
@@ -1093,21 +1050,21 @@ static struct thermal_cooling_device_ops ether_cdev_ops = {
 };
 
 /**
- *	ether_therm_init - Register thermal cooling device with kernel.
- *	@pdata: Pointer to driver private data structure.
+ * @brief Register thermal cooling device with kernel.
  *
- *	Algorithm: Register thermal cooling device read from DT. The cooling
- *	device ops struct passed as argument will be used by thermal framework
- *	to callback the ethernet driver when temperature trip points are
- *	triggered, so that ethernet driver can do pad calibration.
+ * Algorithm: Register thermal cooling device read from DT. The cooling
+ * device ops struct passed as argument will be used by thermal framework
+ * to callback the ethernet driver when temperature trip points are
+ * triggered, so that ethernet driver can do pad calibration.
  *
- *	Dependencies: MAC needs to be out of reset. Once cooling device ops are
- *	registered, it can be called anytime from kernel. MAC has to be in
- *	sufficient state to allow pad calibration.
+ * @param[in] pdata: Pointer to driver private data structure.
  *
- *	Protection: None.
+ * @ote MAC needs to be out of reset. Once cooling device ops are
+ * registered, it can be called anytime from kernel. MAC has to be in
+ * sufficient state to allow pad calibration.
  *
- *	Return: 0 - succcess, -ve value - failure.
+ * @retval 0 on success
+ * @retval negative value on failure.
  */
 static int ether_therm_init(struct ether_priv_data *pdata)
 {
@@ -1132,21 +1089,21 @@ static int ether_therm_init(struct ether_priv_data *pdata)
 #endif /* THERMAL_CAL */
 
 /**
- *	ether_open - Call back to handle bring up of Ethernet interface
- *	@dev: Net device data structure.
+ * @brief Call back to handle bring up of Ethernet interface
  *
- *	Algorithm: This routine takes care of below
- *	1) PHY initialization
- *	2) request tx/rx/common irqs
- *	3) HW initialization
- *	4) Starting the PHY
+ * Algorithm: This routine takes care of below
+ * 1) PHY initialization
+ * 2) request tx/rx/common irqs
+ * 3) HW initialization
+ * 4) Starting the PHY
  *
- *	Dependencies: Ethernet driver probe need to be completed successfully
- *	with ethernet network device created.
+ * @param[in] dev: Net device data structure.
  *
- *	Protection: None.
+ * @note Ethernet driver probe need to be completed successfully
+ * with ethernet network device created.
  *
- *	Return: 0 - success, negative value - failure.
+ * @retval 0 on success
+ * @retval "negative value" on failure.
  */
 static int ether_open(struct net_device *dev)
 {
@@ -1285,18 +1242,18 @@ err_mac_rst:
 }
 
 /**
- *	ether_close - Call back to handle bring down of Ethernet interface
- *	@dev: Net device data structure.
+ * @brief Call back to handle bring down of Ethernet interface
  *
- *	Algorithm: This routine takes care of below
- *	1) Stopping PHY
- *	2) Freeing tx/rx/common irqs
+ * Algorithm: This routine takes care of below
+ * 1) Stopping PHY
+ * 2) Freeing tx/rx/common irqs
  *
- *	Dependencies: MAC Interface need to be registered.
+ * @param[in] dev: Net device data structure.
  *
- *	Protection: None.
+ * @note  MAC Interface need to be registered.
  *
- *	Return: 0 - success, negative value - failure.
+ * @retval 0 on success
+ * @retval "negative value" on failure.
  */
 static int ether_close(struct net_device *dev)
 {
@@ -1350,20 +1307,19 @@ static int ether_close(struct net_device *dev)
 }
 
 /**
- *	ether_handle_tso - Helper func to check if TSO is used in given skb.
- *	@tx_pkt_cx: Pointer to packet context information structure.
- *	@skb: socket buffer.
+ * @brief Helper function to check if TSO is used in given skb.
  *
- *	Algorithm:
- *	1) Check if driver received a TSO/LSO/GSO packet
- *	2) If so, store the packet details like MSS(Maximum Segment Size),
- *	packet header length, packet payload length, tcp/udp header length.
+ * Algorithm:
+ * 1) Check if driver received a TSO/LSO/GSO packet
+ * 2) If so, store the packet details like MSS(Maximum Segment Size),
+ * packet header length, packet payload length, tcp/udp header length.
  *
- *	Dependencies: None.
+ * @param[in] tx_pkt_cx: Pointer to packet context information structure.
+ * @param[in] skb: socket buffer.
  *
- *	Protection: None.
- *
- *	Return: 0 - Not a TSO packet, 1 - success, -ve value - failure.
+ * @retval 0 if not a TSO packet
+ * @retval 1 on success
+ * @retval "negative value" on failure.
  */
 static int ether_handle_tso(struct osi_tx_pkt_cx *tx_pkt_cx,
 			    struct sk_buff *skb)
@@ -1403,21 +1359,19 @@ static int ether_handle_tso(struct osi_tx_pkt_cx *tx_pkt_cx,
 }
 
 /**
- *	ether_tx_swcx_alloc - Tx ring software context allocation.
- *	@dev: device instance associated with driver.
- *	@tx_ring: Tx ring instance associated with channel number.
- *	@skb: socket buffer.
+ * @brief Tx ring software context allocation.
  *
- *	Algorithm:
- *	1) Map skb data buffer to DMA mappable address.
- *	2) Updated dma address, len and buffer address. This info will be used
- *	OSI layer for data transmission and buffer cleanup.
+ * Algorithm:
+ * 1) Map skb data buffer to DMA mappable address.
+ * 2) Updated dma address, len and buffer address. This info will be used
+ * OSI layer for data transmission and buffer cleanup.
  *
- *	Dependencies: None.
+ * @param[in] dev: device instance associated with driver.
+ * @param[in] tx_ring: Tx ring instance associated with channel number.
+ * @param[in] skb: socket buffer.
  *
- *	Protection: None.
- *
- *	Return: number of descriptors - success, -1 - failure.
+ * @retval "number of descriptors" on success
+ * @retval "negative value"  on failure.
  */
 static int ether_tx_swcx_alloc(struct device *dev,
 			       struct osi_tx_ring *tx_ring,
@@ -1613,22 +1567,19 @@ dma_map_failed:
 }
 
 /**
- *	ether_select_queue - Select queue based on user priority
- *	@dev: Network device pointer
- *	@skb: sk_buff pointer, buffer data to send
- *	@accel_priv: private data used for L2 forwarding offload
- *	@fallback: fallback function pointer
+ * @brief Select queue based on user priority
  *
- *	Algorithm:
- *	1) Select the correct queue index based which has priority of queue
- *	same as skb->priority
- *	2) default select queue array index 0
+ * Algorithm:
+ * 1) Select the correct queue index based which has priority of queue
+ * same as skb->priority
+ * 2) default select queue array index 0
  *
- *	Dependencies: None.
+ * @param[in] dev: Network device pointer
+ * @param[in] skb: sk_buff pointer, buffer data to send
+ * @param[in] accel_priv: private data used for L2 forwarding offload
+ * @param[in] fallback: fallback function pointer
  *
- *	Protection: None.
- *
- *	Return: tx queue array index - success, -1 - failure.
+ * @retval "transmit queue index"
  */
 static unsigned short ether_select_queue(struct net_device *dev,
 					 struct sk_buff *skb,
@@ -1652,19 +1603,19 @@ static unsigned short ether_select_queue(struct net_device *dev,
 }
 
 /**
- *	ether_start_xmit - Network layer hook for data transmission.
- *	@skb: SKB data structure.
- *	@ndev: Net device structure.
+ * @brief Network layer hook for data transmission.
  *
- *	Algorithm:
- *	1) Allocate software context (DMA address for the buffer) for the data.
- *	2) Invoke OSI for data transmission.
+ * Algorithm:
+ * 1) Allocate software context (DMA address for the buffer) for the data.
+ * 2) Invoke OSI for data transmission.
  *
- *	Dependencies: MAC and PHY need to be initialized.
+ * @param[in] skb: SKB data structure.
+ * @param[in] ndev: Net device structure.
  *
- *	Protection: None.
+ * @note  MAC and PHY need to be initialized.
  *
- *	Return: 0 - success, negative value - failure.
+ * @retval 0 on success
+ * @retval "negative value" on failure.
  */
 static int ether_start_xmit(struct sk_buff *skb, struct net_device *ndev)
 {
@@ -1697,21 +1648,17 @@ static int ether_start_xmit(struct sk_buff *skb, struct net_device *ndev)
 }
 
 /**
- *	ether_prepare_mc_list- function to configure the multicast
- *	address in device.
+ * @brief Function to configure the multicast address in device.
  *
- *	@dev: Pointer to net_device structure.
+ * Algorithm: This function collects all the multicast addresses and updates the
+ * device.
  *
- *	Algorithm:
- *	This function collects all the multicast addresses and updates the
- *	device.
+ * @param[in] dev: Pointer to net_device structure.
  *
- *	Dependencies: MAC and PHY need to be initialized.
+ * @note  MAC and PHY need to be initialized.
  *
- *	Protection: None.
- *
- *	Return: OSI_PERFECT_FILTER_MODE - perfect filtering is seleted
- *	OSI_HASH_FILTER_MODE - if hash filtering is seleted.
+ * @retval 0 if perfect filtering is seleted
+ * @retval 1 if hash filtering is seleted.
  */
 static int ether_prepare_mc_list(struct net_device *dev)
 {
@@ -1773,21 +1720,18 @@ static int ether_prepare_mc_list(struct net_device *dev)
 }
 
 /**
- *	ether_prepare_uc_list- function to configure the unicast address
- *	in device.
+ * @brief Function to configure the unicast address
+ * in device.
  *
- *	@dev - pointer to net_device structure.
+ * Algorithm: This function collects all the unicast addresses and updates the
+ * device.
  *
- *	Algorithm:
- *	This function collects all the unicast addresses and updates the
- *	device.
+ * @param[in] dev: pointer to net_device structure.
  *
- *	Dependencies: MAC and PHY need to be initialized.
+ * @note  MAC and PHY need to be initialized.
  *
- *	Protection: None.
- *
- *	Return: OSI_PERFECT_FILTER_MODE - perfect filtering is seleted
- *	OSI_HASH_FILTER_MODE - if hash filtering is seleted.
+ * @retval 0 if perfect filtering is seleted
+ * @retval 1 if hash filtering is seleted.
  */
 static int ether_prepare_uc_list(struct net_device *dev)
 {
@@ -1848,19 +1792,15 @@ static int ether_prepare_uc_list(struct net_device *dev)
 }
 
 /**
- *	ether_set_rx_mode - This function is used to set RX mode.
+ * @brief This function is used to set RX mode.
  *
- *	@dev - pointer to net_device structure.
+ * Algorithm: Based on Network interface flag, MAC registers are programmed to
+ * set mode.
  *
- *	Algorithm:
- *	Based on Network interface flag, MAC registers are programmed to set
- *	mode
+ * @param[in] dev - pointer to net_device structure.
  *
- *	Dependencies: MAC and PHY need to be initialized.
- *
- *	Protection: Spinlock is used for protection.
- *
- *	Return: None
+ * @note MAC and PHY need to be initialized.
+ *	 Spinlock is used for protection.
  */
 static void ether_set_rx_mode(struct net_device *dev)
 {
@@ -1924,20 +1864,20 @@ static void ether_set_rx_mode(struct net_device *dev)
 }
 
 /**
- *	ether_ioctl - network stack IOCTL hook to driver
- *	@ndev: network device structure
- *	@rq: Interface request structure used for socket
- *	@cmd: IOCTL command code
+ * @brief Network stack IOCTL hook to driver
  *
- *	Algorithm:
- *	1) Invokes MII API for phy read/write based on IOCTL command
- *	2) SIOCDEVPRIVATE for private ioctl
+ * Algorithm:
+ * 1) Invokes MII API for phy read/write based on IOCTL command
+ * 2) SIOCDEVPRIVATE for private ioctl
  *
- *	Dependencies: Ethernet interface need to be up.
+ * @param[in] dev: network device structure
+ * @param[in] rq: Interface request structure used for socket
+ * @param[in] cmd: IOCTL command code
  *
- *	Protection: None.
+ * @note  Ethernet interface need to be up.
  *
- *	Return: 0 - success, negative value - failure.
+ * @retval 0 on success
+ * @retval "negative value" on failure.
  */
 static int ether_ioctl(struct net_device *dev, struct ifreq *rq, int cmd)
 {
@@ -1988,19 +1928,19 @@ static int ether_ioctl(struct net_device *dev, struct ifreq *rq, int cmd)
 }
 
 /**
- *	ether_set_mac_addr - Set MAC address
- *	@ndev: Network device structure
- *	@addr: MAC address to be programmed.
+ * @brief Set MAC address
  *
- *	Algorithm:
- *	1) Checks whether given MAC address is valid or not
- *	2) Stores the MAC address in OSI core structure
+ * Algorithm:
+ * 1) Checks whether given MAC address is valid or not
+ * 2) Stores the MAC address in OSI core structure
  *
- *	Dependencies: Ethernet interface need to be down to set MAC address
+ * @param[in] ndev: Network device structure
+ * @param[in] addr: MAC address to be programmed.
  *
- *	Protection: None.
+ * @note  Ethernet interface need to be down to set MAC address
  *
- *	Return: 0 - success, negative value - failure.
+ * @retval 0 on success
+ * @retval "negative value" on failure.
  */
 static int ether_set_mac_addr(struct net_device *ndev, void *addr)
 {
@@ -2021,19 +1961,19 @@ static int ether_set_mac_addr(struct net_device *ndev, void *addr)
 }
 
 /**
- *     ether_change_mtu - Change MAC MTU size
- *     @ndev: Network device structure
- *     @new_mtu: New MTU size to set.
+ * @brief Change MAC MTU size
  *
- *     Algorithm:
- *     1) Check and return if interface is up.
- *     2) Stores new MTU size set by user in OSI core data structure.
+ * Algorithm:
+ * 1) Check and return if interface is up.
+ * 2) Stores new MTU size set by user in OSI core data structure.
+ *     
+ * @param[in] ndev: Network device structure
+ * @param[in] new_mtu: New MTU size to set.
  *
- *     Dependencies: Ethernet interface need to be down to change MTU size
+ * @note  Ethernet interface need to be down to change MTU size
  *
- *     Protection: None.
- *
- *     Return: 0 - success, negative value - failure.
+ * @retval 0 on success
+ * @retval "negative value" on failure.
  */
 static int ether_change_mtu(struct net_device *ndev, int new_mtu)
 {
@@ -2056,21 +1996,21 @@ static int ether_change_mtu(struct net_device *ndev, int new_mtu)
 }
 
 /**
- *	ether_set_features - Change HW features for the given ndev
- *	@ndev: Network device structure
- *	@feat: New features to be updated
+ * @brief Change HW features for the given network device.
  *
- *	Algorithm:
- *	1) Check if HW supports feature requested to be changed
- *	2) If supported, check the current status of the feature and if it
- *	needs to be toggled, do so.
+ * Algorithm:
+ * 1) Check if HW supports feature requested to be changed
+ * 2) If supported, check the current status of the feature and if it
+ * needs to be toggled, do so.
  *
- *	Dependencies: Ethernet interface needs to be up. Stack will enforce
- *	the check.
+ * @param[in] ndev: Network device structure
+ * @param[in] feat: New features to be updated
  *
- *	Protection: None.
+ * @note  Ethernet interface needs to be up. Stack will enforce
+ * the check.
  *
- *	Return: 0 - success, negative value - failure.
+ * @retval 0 on success
+ * @retval "negative value" on failure.
  */
 static int ether_set_features(struct net_device *ndev, netdev_features_t feat)
 {
@@ -2105,24 +2045,23 @@ static int ether_set_features(struct net_device *ndev, netdev_features_t feat)
 }
 
 /**
- *	ether_vlan_rx_add_vid- Add VLAN ID. This function is invoked by upper
- *	layer when a new VLAN id is registered. This function updates the HW
- *	filter with new VLAN id. New vlan id can be added with vconfig -
- *	vconfig add <interface_name > <vlan_id>
+ * @brief Adds VLAN ID. This function is invoked by upper
+ * layer when a new VLAN id is registered. This function updates the HW
+ * filter with new VLAN id. New vlan id can be added with vconfig -
+ * vconfig add interface_name  vlan_id
  *
- *	@ndev: Network device structure
- *	@proto: VLAN proto VLAN_PROTO_8021Q = 0 VLAN_PROTO_8021AD = 1
- *	@vid: VLAN ID.
+ * Algorithm:
+ * 1) Check for hash or perfect filtering.
+ * 2) invoke osi call accordingly.
  *
- *	Algorithm:
- *	1) Check for hash or perfect filtering.
- *	2) invoke osi call accordingly.
+ * @param[in] ndev: Network device structure
+ * @param[in] vlan_proto: VLAN proto VLAN_PROTO_8021Q = 0 VLAN_PROTO_8021AD = 1
+ * @param[in] vid: VLAN ID.
  *
- *	Dependencies: Ethernet interface should be up
+ * @note Ethernet interface should be up
  *
- *	Protection: None.
- *
- *	Return: 0 - success Negative - failure
+ * @retval 0 on success
+ * @retval "negative value" on failure.
  */
 static int ether_vlan_rx_add_vid(struct net_device *ndev, __be16 vlan_proto,
 				 u16 vid)
@@ -2142,24 +2081,23 @@ static int ether_vlan_rx_add_vid(struct net_device *ndev, __be16 vlan_proto,
 }
 
 /**
- *	ether_vlan_rx_kill_vid- Remove VLAN ID. This function is invoked by
- *	upper layer when a new VALN id is removed. This function updates the HW
- *	filter. vlan id can be removed with vconfig -
- *	vconfig rem <interface_name > <vlan_id>
+ * @brief Removes VLAN ID. This function is invoked by
+ * upper layer when a new VALN id is removed. This function updates the
+ * HW filter. vlan id can be removed with vconfig - 
+ * vconfig rem interface_name vlan_id
  *
- *	@ndev: Network device structure
- *	@vlan_proto: VLAN proto VLAN_PROTO_8021Q = 0 VLAN_PROTO_8021AD = 1
- *	@vid: VLAN ID.
+ * Algorithm:
+ * 1) Check for hash or perfect filtering.
+ * 2) invoke osi call accordingly.
  *
- *	Algorithm:
- *	1) Check for hash or perfect filtering.
- *	2) invoke osi call accordingly.
+ * @param[in] ndev: Network device structure
+ * @param[in] vlan_proto: VLAN proto VLAN_PROTO_8021Q = 0 VLAN_PROTO_8021AD = 1
+ * @param[in] vid: VLAN ID.
  *
- *	Dependencies: Ethernet interface should be up
+ * @note Ethernet interface should be up
  *
- *	Protection: None.
- *
- *	Return: 0 - success Negative - failure
+ * @retval 0 on success
+ * @retval "negative value" on failure.
  */
 static int ether_vlan_rx_kill_vid(struct net_device *ndev, __be16 vlan_proto,
 				  u16 vid)
@@ -2180,7 +2118,9 @@ static int ether_vlan_rx_kill_vid(struct net_device *ndev, __be16 vlan_proto,
 
 	return ret;
 }
-
+/**
+ * @brief Ethernet network device operations
+ */
 static const struct net_device_ops ether_netdev_ops = {
 	.ndo_open = ether_open,
 	.ndo_stop = ether_close,
@@ -2196,18 +2136,17 @@ static const struct net_device_ops ether_netdev_ops = {
 };
 
 /**
- *	ether_napi_poll_rx - NAPI poll handler for receive.
- *	@napi: NAPI instance for Rx NAPI.
- *	@budget: NAPI budget.
+ * @brief NAPI poll handler for receive.
  *
- *	Algorithm: Invokes OSI layer to read data from HW and pass onto the
- *	Linux network stack.
+ * Algorithm: Invokes OSI layer to read data from HW and pass onto the
+ * Linux network stack.
  *
- *	Dependencies: Probe and INIT needs to be completed successfully.
+ * @param[in] napi: NAPI instance for Rx NAPI.
+ * @param[in] budget: NAPI budget.
  *
- *	Protection: None.
+ * @note  Probe and INIT needs to be completed successfully.
  *
- *	Return: number of packets received.
+ *@return number of packets received.
  */
 static int ether_napi_poll_rx(struct napi_struct *napi, int budget)
 {
@@ -2231,18 +2170,17 @@ static int ether_napi_poll_rx(struct napi_struct *napi, int budget)
 }
 
 /**
- *	ether_napi_poll_tx - NAPI poll handler for transmission.
- *	@napi: NAPI instance for tx NAPI.
- *	@budget: NAPI budget.
+ * @brief NAPI poll handler for transmission.
  *
- *	Algorithm: Invokes OSI layer to read data from HW and pass onto the
- *	Linux network stack.
+ * Algorithm: Invokes OSI layer to read data from HW and pass onto the
+ * Linux network stack.
  *
- *	Dependencies: Probe and INIT needs to be completed successfully.
+ * @param[in] napi: NAPI instance for tx NAPI.
+ * @param[in] budget: NAPI budget.
  *
- *	Protection: None.
+ * @note  Probe and INIT needs to be completed successfully.
  *
- *	Return: Number of Tx buffer cleaned.
+ * @return Number of Tx buffer cleaned.
  */
 static int ether_napi_poll_tx(struct napi_struct *napi, int budget)
 {
@@ -2267,17 +2205,17 @@ static int ether_napi_poll_tx(struct napi_struct *napi, int budget)
 }
 
 /**
- *	ether_alloc_napi - Allocate NAPI resources.
- *	@pdata: OSD private data structure.
+ * @brief Allocate NAPI resources.
  *
- *	Algorithm: Allocate NAPI instances for the channels which are enabled.
+ * Algorithm: Allocate NAPI instances for the channels which are enabled.
  *
- *	Dependencies: Number of channels and channel numbers needs to be
- *	updated in OSI private data structure.
+ * @param[in] pdata: OSD private data structure.
  *
- *	Protection: None.
- *
- *	Return: None.
+ * @note Number of channels and channel numbers needs to be
+ * updated in OSI private data structure.
+ * 
+ * @retval 0 on success
+ * @retval "negative value" on failure.
  */
 static int ether_alloc_napi(struct ether_priv_data *pdata)
 {
@@ -2321,20 +2259,20 @@ static int ether_alloc_napi(struct ether_priv_data *pdata)
 }
 
 /**
- *	ether_mdio_write - MII call back for MDIO register write.
- *	@bus: MDIO bus instances.
- *	@phyaddr: PHY address (ID).
- *	@phyreg: PHY register to write.
- *	@phydata: Data to be written in register.
+ * @brief MII call back for MDIO register write.
  *
- *	Algorimthm: Invoke OSI layer for PHY register write.
- *	phy_write() API from Linux PHY subsystem will call this.
+ * Algorithm: Invoke OSI layer for PHY register write.
+ * phy_write() API from Linux PHY subsystem will call this.
  *
- *	Dependencies: MAC has to be out of reset.
+ * @param[in] bus: MDIO bus instances.
+ * @param[in] phyaddr: PHY address (ID).
+ * @param[in] phyreg: PHY register to write.
+ * @param[in] phydata: Data to be written in register.
  *
- *	Protection: None.
+ * @note  MAC has to be out of reset.
  *
- *	Return: 0 - success, -1 - failure.
+ * @retval 0 on success
+ * @retval "negative value" on failure.
  */
 static int ether_mdio_write(struct mii_bus *bus, int phyaddr, int phyreg,
 			    u16 phydata)
@@ -2347,19 +2285,19 @@ static int ether_mdio_write(struct mii_bus *bus, int phyaddr, int phyreg,
 }
 
 /**
- *	ether_mdio_read - MII call back for MDIO register read.
- *	@bus: MDIO bus instances.
- *	@phyaddr: PHY address (ID).
- *	@phyreg: PHY register to read.
+ * @brief MII call back for MDIO register read.
  *
- *	Algorimthm: Invoke OSI layer for PHY register read.
- *	phy_read() API from Linux subsystem will call this.
+ * Algorithm: Invoke OSI layer for PHY register read.
+ * phy_read() API from Linux subsystem will call this.
  *
- *	Dependencies: MAC has to be out of reset.
+ * @param[in] bus: MDIO bus instances.
+ * @param[in] phyaddr: PHY address (ID).
+ * @param[in] phyreg: PHY register to read.
  *
- *	Protection: None.
+ * @note  MAC has to be out of reset.
  *
- *	Return: data from PHY register - success, -1 - failure.
+ * @retval data from PHY register on success
+ * @retval "nagative value" on failure.
  */
 static int ether_mdio_read(struct mii_bus *bus, int phyaddr, int phyreg)
 {
@@ -2371,17 +2309,15 @@ static int ether_mdio_read(struct mii_bus *bus, int phyaddr, int phyreg)
 }
 
 /**
- *	ether_mdio_register - MDIO bus register
- *	@pdata: OSD private data.
+ * @brief MDIO bus registration.
  *
- *	Algorithm: Registers MDIO bus if there is mdio sub DT node
- *	as part of MAC DT node.
+ * Algorithm: Registers MDIO bus if there is mdio sub DT node
+ * as part of MAC DT node.
  *
- *	Dependencies: None.
+ * @param[in] pdata: OSD private data.
  *
- *	Protection: None.
- *
- *	Return: 0 - success, negative value - failure.
+ * @retval 0 on success
+ * @retval "negative value" on failure.
  */
 static int ether_mdio_register(struct ether_priv_data *pdata)
 {
@@ -2422,18 +2358,16 @@ exit:
 }
 
 /**
- *	ether_get_irqs - Read IRQ numbers from DT.
- *	@pdev: Platform device associated with driver.
- *	@pdata: OSD private data.
- *	@num_chans: Number of channels.
+ * @brief Read IRQ numbers from DT.
  *
- *	Algorithm: Reads the IRQ numbers from DT based on number of channels.
+ * Algorithm: Reads the IRQ numbers from DT based on number of channels.
  *
- *	Dependencies: None.
+ * @param[in] pdev: Platform device associated with driver.
+ * @param[in] pdata: OSD private data.
+ * @param[in] num_chans: Number of channels.
  *
- *	Protection: None.
- *
- *	Return: 0 - success, negative value - failure.
+ * @retval 0 on success
+ * @retval "negative value" on failure.
  */
 static int ether_get_irqs(struct platform_device *pdev,
 			  struct ether_priv_data *pdata,
@@ -2470,19 +2404,19 @@ static int ether_get_irqs(struct platform_device *pdev,
 }
 
 /**
- *	ether_get_mac_address_dtb - Get MAC address from DT
- *	@node_name: Device tree node name.
- *	@property_name: DT property name inside DT node.
- *	@mac_addr: MAC address.
+ * @brief Get MAC address from DT
  *
- *	Algorithm: Populates MAC address by reading DT node.
+ * Algorithm: Populates MAC address by reading DT node.
  *
- *	Dependencies: Bootloader needs to updates chosen DT node with MAC
- *	address.
+ * @param[in] node_name: Device tree node name.
+ * @param[in] property_name: DT property name inside DT node.
+ * @param[in] mac_addr: MAC address.
  *
- *	Protection: None.
+ * @note Bootloader needs to updates chosen DT node with MAC
+ * address.
  *
- *	Return: 0 - success, -1 - failure.
+ * @retval 0 on success
+ * @retval "negative value" on failure.
  */
 static int ether_get_mac_address_dtb(const char *node_name,
 				     const char *property_name,
@@ -2539,17 +2473,16 @@ err_out:
 }
 
 /**
- *	ether_get_mac_address - Get MAC address from DT
- *	@pdata: OSD private data.
+ * @brief Get MAC address from DT
  *
- *	Algorithm: Populates MAC address by reading DT node.
+ * Algorithm: Populates MAC address by reading DT node.
  *
- *	Dependencies: Bootloader needs to updates chosen DT node with MAC
- *	address.
+ * @param[in] pdata: OSD private data.
  *
- *	Protection: None.
+ * @note Bootloader needs to updates chosen DT node with MAC address.
  *
- *	Return: 0 - success, -1 - failure.
+ * @retval 0 on success
+ * @retval "negative value" on failure.
  */
 static int ether_get_mac_address(struct ether_priv_data *pdata)
 {
@@ -2576,16 +2509,11 @@ static int ether_get_mac_address(struct ether_priv_data *pdata)
 }
 
 /**
- *	ether_put_clks - Put back MAC related clocks.
- *	@pdata: OSD private data.
+ * @brief Put back MAC related clocks.
  *
- *	Algorithm: Put back or release the MAC related clocks.
+ * Algorithm: Put back or release the MAC related clocks.
  *
- *	Dependencies: None.
- *
- *	Protection: None.
- *
- *	Return: None.
+ * @param[in] pdata: OSD private data.
  */
 static inline void ether_put_clks(struct ether_priv_data *pdata)
 {
@@ -2612,16 +2540,14 @@ static inline void ether_put_clks(struct ether_priv_data *pdata)
 }
 
 /**
- *	ether_get_clks - Get MAC related clocks.
- *	@pdata: OSD private data.
+ * @brief Get MAC related clocks.
  *
- *	Algorithm: Get the clocks from DT and stores in OSD private data.
+ * Algorithm: Get the clocks from DT and stores in OSD private data.
  *
- *	Dependencies: None.
+ * @param[in] pdata: OSD private data.
  *
- *	Protection: None.
- *
- *	Return: 0 - success, negative value - failure.
+ * @retval 0 on success
+ * @retval "negative value" on failure.
  */
 static int ether_get_clks(struct ether_priv_data *pdata)
 {
@@ -2686,19 +2612,17 @@ err_axi_cbb:
 }
 
 /**
- *	ether_configure_car - Get Reset and MAC related clocks.
- *	@pdev: Platform device.
- *	@pdata: OSD private data.
+ * @brief Get Reset and MAC related clocks.
  *
- *	Algorithm: Get the resets and MAC related clocks from DT and stores in
- *	OSD private data. It also sets MDC clock rate by invoking OSI layer
- *	with osi_set_mdc_clk_rate().
+ * Algorithm: Get the resets and MAC related clocks from DT and stores in
+ * OSD private data. It also sets MDC clock rate by invoking OSI layer
+ * with osi_set_mdc_clk_rate().
  *
- *	Dependencies: None.
+ * @param[in] pdev: Platform device.
+ * @param[in] pdata: OSD private data.
  *
- *	Protection: None.
- *
- *	Return: 0 - success, negative value - failure.
+ * @retval 0 on success
+ * @retval "negative value" on failure.
  */
 static int ether_configure_car(struct platform_device *pdev,
 			       struct ether_priv_data *pdata)
@@ -2793,17 +2717,15 @@ exit:
 }
 
 /**
- *	ether_init_plat_resources - Get platform resources
- *	@pdev: Platform device associated with platform driver.
- *	@pdata: OSD private data.
+ * @brief Get platform resources
  *
- *	Algorithm: Populates base address, clks, reset and MAC address.
+ * Algorithm: Populates base address, clks, reset and MAC address.
  *
- *	Dependencies: None.
+ * @param[in] pdev: Platform device associated with platform driver.
+ * @param[in] pdata: OSD private data.
  *
- *	Protection: None.
- *
- *	Return: 0 - success, negative value - failure.
+ * @retval 0 on success
+ * @retval "negative value" on failure.
  */
 static int ether_init_plat_resources(struct platform_device *pdev,
 				     struct ether_priv_data *pdata)
@@ -2849,17 +2771,15 @@ rst_clk_fail:
 }
 
 /**
- *	ether_parse_phy_dt - Parse PHY DT.
- *	@pdata: OS dependent private data structure.
- *	@node: DT node entry of MAC
+ * @brief Parse PHY DT.
  *
- *	Algorithm: Reads PHY DT. Updates required data.
+ * Algorithm: Reads PHY DT. Updates required data.
  *
- *	Dependencies: None
+ * @param[in] pdata: OS dependent private data structure.
+ * @param[in] node: DT node entry of MAC
  *
- *	Protection: None
- *
- *	Return: 0 - success, negative value - failure
+ * @retval 0 on success
+ * @retval "negative value" on failure.
  */
 static int ether_parse_phy_dt(struct ether_priv_data *pdata,
 			      struct device_node *node)
@@ -2890,22 +2810,19 @@ static int ether_parse_phy_dt(struct ether_priv_data *pdata,
 }
 
 /**
- *	ether_parse_queue_prio - Parse queue priority DT.
- *	@pdata: OS dependent private data structure.
- *	@pdt_prop: name of property
- *	@pval: structure pointer where value will be filed
- *	@val_def: default value if DT entry not reset
- *	@num_entries: number of entries to be read form DT
+ * @brief Parse queue priority DT.
  *
- *	Algorithm: Reads queue priority form DT. Updates
- *	data either by DT values or by default value.
+ * Algorithm: Reads queue priority form DT. Updates
+ * data either by DT values or by default value.
  *
- *	Dependencies: All queue priorities should be different
- *	from DT.
+ * @param[in] pdata: OS dependent private data structure.
+ * @param[in] pdt_prop: name of property
+ * @param[in] pval: structure pointer where value will be filed
+ * @param[in] val_def: default value if DT entry not reset
+ * @param[in] val_max: max value supported
+ * @param[in] num_entries: number of entries to be read form DT
  *
- *	Protection: None
- *
- *	Return: void
+ * @note All queue priorities should be different from DT.
  */
 static void ether_parse_queue_prio(struct ether_priv_data *pdata,
 				   const char *pdt_prop,
@@ -2951,16 +2868,14 @@ static void ether_parse_queue_prio(struct ether_priv_data *pdata,
 }
 
 /**
- *	ether_parse_dt - Parse MAC and PHY DT.
- *	@pdata: OS dependent private data structure.
+ * @brief Parse MAC and PHY DT.
  *
- *	Algorithm: Reads MAC and PHY DT. Updates required data.
+ * Algorithm: Reads MAC and PHY DT. Updates required data.
  *
- *	Dependencies: None
+ * @param[in] pdata: OS dependent private data structure.
  *
- *	Protection: None
- *
- *	Return: 0 - success, negative value - failure
+ * @retval 0 on success
+ * @retval "negative value" on failure.
  */
 static int ether_parse_dt(struct ether_priv_data *pdata)
 {
@@ -3132,22 +3047,17 @@ exit:
 }
 
 /**
- *	ether_get_num_dma_chan_mtl_q - Populate number of MTL and DMA channels.
- *	@pdev: Platform device
- *	@num_chans: Number of channels
- *	@mac:	MAC type based on compatible property
- *	@num_mtl_queues: Number of MTL queues.
+ * @brief Populate number of MTL and DMA channels.
  *
- *	Algorithm:
- *	1) Updates MAC HW type based on DT compatible property.
- *	2) Read number of channels from DT.
- *	3) Updates number of channels based on min and max number of channels
+ * Algorithm:
+ * 1) Updates MAC HW type based on DT compatible property.
+ * 2) Read number of channels from DT.
+ * 3) Updates number of channels based on min and max number of channels
  *
- *	Dependencies: None
- *
- *	Protection: None
- *
- *	Return: None.
+ * @param[in] pdev: Platform device
+ * @param[in] num_dma_chans: Number of channels
+ * @param[in] mac: MAC type based on compatible property
+ * @param[in] num_mtl_queues: Number of MTL queues.
  */
 static void ether_get_num_dma_chan_mtl_q(struct platform_device *pdev,
 					 unsigned int *num_dma_chans,
@@ -3197,19 +3107,18 @@ static void ether_get_num_dma_chan_mtl_q(struct platform_device *pdev,
 }
 
 /**
- *	ether_set_dma_mask - set dma mask.
- *	@pdata: OS dependent private data structure.
+ * @brief Set DMA address mask.
  *
- *	Algorithm:
- *	Based on the value read from HW addressing mode is set accordingly
+ * Algorithm:
+ * Based on the addressing capability (address bit length) supported in the HW,
+ * the dma mask is set accordingly.
  *
- *	Dependencies: MAC_HW_Feature1 register need to read and store the
- *	value of ADDR64.
+ * @param[in] pdata: OS dependent private data structure.
  *
- *	Protection: None.
+ * @note MAC_HW_Feature1 register need to read and store the value of ADDR64.
  *
- *	Return: 0 - success, negative value - failure.
- *
+ * @retval 0 on success
+ * @retval "negative value" on failure.
  */
 static int ether_set_dma_mask(struct ether_priv_data *pdata)
 {
@@ -3244,21 +3153,20 @@ static int ether_set_dma_mask(struct ether_priv_data *pdata)
 	return ret;
 }
 
-/**	ether_set_ndev_features - Set the network device feature flags
- *	@ndev: Network device instance
- *	@pdata: OS dependent private data structure.
+/**
+ * @brief Set the network device feature flags
  *
- *	Algorithm:
- *	1) Check the HW features supported
- *	2) Enable corresponding feature flag so that network subsystem of OS
- *		is aware of device capabilities.
- *	3) Update current enable/disable state of features currently enabled
+ * Algorithm:
+ * 1) Check the HW features supported
+ * 2) Enable corresponding feature flag so that network subsystem of OS
+ * is aware of device capabilities.
+ * 3) Update current enable/disable state of features currently enabled
+ * 
+ * @param[in] ndev: Network device instance
+ * @param[in] pdata: OS dependent private data structure.
  *
- *	Dependencies: Netdev allocated and HW features are already parsed.
+ * @note Netdev allocated and HW features are already parsed.
  *
- *	Protection: None
- *
- *	Return: None.
  */
 static void ether_set_ndev_features(struct net_device *ndev,
 				    struct ether_priv_data *pdata)
@@ -3302,21 +3210,14 @@ static void ether_set_ndev_features(struct net_device *ndev,
 }
 
 /**
- *	init_filter_values- static function to initialize filter reg
- *	count in private data structure
+ * @brief Static function to initialize filter register count
+ * in private data structure
  *
- *	@ether_priv_data: ethernet private data structure
+ * Algorithm: Updates addr_reg_cnt based on HW feature
  *
- *	Algorithm:
- *	1) update addr_reg_cnt based on HW feature
+ * @param[in] pdata: ethernet private data structure
  *
- *	Dependencies: MAC_HW_Feature1 register need to read and store the
- *	value of ADDR64.
- *
- *	Protection: None.
- *
- *	Return: None.
- *
+ * @note MAC_HW_Feature1 register need to read and store the value of ADDR64.
  */
 static void init_filter_values(struct ether_priv_data *pdata)
 {
@@ -3332,23 +3233,21 @@ static void init_filter_values(struct ether_priv_data *pdata)
 }
 
 /**
- *	ether_probe - Ethernet platform driver probe.
- *	@pdev:	platform device associated with platform driver.
+ * @brief Ethernet platform driver probe.
  *
- *	Algorithm:
- *	1) Get the number of channels from DT.
- *	2) Allocate the network device for those many channels.
- *	3) Parse MAC and PHY DT.
- *	4) Get all required clks/reset/IRQ's
- *	5) Register MDIO bus and network device.
- *      6) initialize spinlock
- *      7) Update filter value based on HW feature
+ * Algorithm:
+ * 1) Get the number of channels from DT.
+ * 2) Allocate the network device for those many channels.
+ * 3) Parse MAC and PHY DT.
+ * 4) Get all required clks/reset/IRQ's
+ * 5) Register MDIO bus and network device.
+ * 6) initialize spinlock
+ * 7) Update filter value based on HW feature
  *
- *	Dependencies: Device tree need to be updated with proper DT properties.
+ * @param[in] pdev: platform device associated with platform driver.
  *
- *	Protection: None.
- *
- *	Return: 0 - success, negative value - failure.
+ * @retval 0 on success
+ * @retval "negative value" on failure
  *
  */
 static int ether_probe(struct platform_device *pdev)
@@ -3527,16 +3426,14 @@ err_dma_ops:
 }
 
 /**
- *	ether_remove - Ethernet platform driver remove.
- *	@pdev:	Platform device associated with platform driver.
+ * @brief Ethernet platform driver remove.
  *
- *	Alogorithm: Release all the resources
+ * Alogorithm: Release all the resources
  *
- *	Dependencies: None.
+ * @param[in] pdev: Platform device associated with platform driver.
  *
- *	Protection: None.
- *
- *	Return: 0 - success, negative value - failure.
+ * @retval 0 on success
+ * @retval "negative value" on failure.
  */
 static int ether_remove(struct platform_device *pdev)
 {
@@ -3708,12 +3605,18 @@ static const struct dev_pm_ops ether_pm_ops = {
 };
 #endif
 
+/**
+ * @brief Ethernet device tree compatible match name
+ */
 static const struct of_device_id ether_of_match[] = {
 	{ .compatible = "nvidia,nveqos" },
 	{},
 };
 MODULE_DEVICE_TABLE(of, ether_of_match);
 
+/**
+ * @brief Ethernet platform driver instance
+ */
 static struct platform_driver ether_driver = {
 	.probe = ether_probe,
 	.remove = ether_remove,

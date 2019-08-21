@@ -17,14 +17,17 @@
 #include "ether_linux.h"
 #include <linux/platform/tegra/ptp-notifier.h>
 
-/* raw spinlock to get HW PTP time and kernel time atomically */
+/**
+ * @brief DEFINE_RAW_SPINLOCK: raw spinlock to get HW PTP time and kernel time atomically
+ *
+ */
 static DEFINE_RAW_SPINLOCK(ether_ts_lock);
 
 /**
- * ether_get_ptptime get PTP time
- * @data: OSI core private data structure
+ * @brief Function used to get PTP time
+ * @param[in] data: OSI core private data structure
  *
- * Return: nano seconds
+ * @retval "nano seconds" of MAC system time
  */
 static inline u64 ether_get_ptptime(void *data)
 {
@@ -50,18 +53,16 @@ static inline u64 ether_get_ptptime(void *data)
 }
 
 /**
- *	ether_adjust_time: Adjust hardware time
- *	@ptp: Pointer to ptp_clock_info structure.
- * 	@delta: Desired change in nanoseconds.
+ * @brief Adjust MAC hardware time
  *
- *	Algorithm: This function is used to shift/adjust the time of the
- *	hardware clock.
+ * Algorithm: This function is used to shift/adjust the time of the
+ * hardware clock.
  *
- *	Dependencies:
+ * @param[in] ptp: Pointer to ptp_clock_info structure.
+ * @param[in] delta: Desired change in nanoseconds.
  *
- *	Protection: None.
- *
- *	Return: 0 - success, negative value - failure.
+ * @retval 0 on success
+ * @retval "negative value" on failure.
  */
 static int ether_adjust_time(struct ptp_clock_info *ptp, s64 delta)
 {
@@ -86,18 +87,16 @@ static int ether_adjust_time(struct ptp_clock_info *ptp, s64 delta)
 }
 
 /**
- *	ether_adjust_freq: Adjust hardware time
- *	@ptp: Pointer to ptp_clock_info structure.
- *	@ppb: Desired period change in parts per billion.
+ * @brief Adjust MAC hardware frequency
  *
- *	Algorithm: This function is used to adjust the frequency of the
- *	hardware clock.
+ * Algorithm: This function is used to adjust the frequency of the
+ * hardware clock.
  *
- *	Dependencies:
+ * @param[in] ptp: Pointer to ptp_clock_info structure.
+ * @param[in] ppb: Desired period change in parts per billion.
  *
- *	Protection: None.
- *
- *	Return: 0 - success, negative value - failure.
+ * @retval 0 on success
+ * @retval "negative value" on failure.
  */
 static int ether_adjust_freq(struct ptp_clock_info *ptp, s32 ppb)
 {
@@ -122,18 +121,16 @@ static int ether_adjust_freq(struct ptp_clock_info *ptp, s32 ppb)
 }
 
 /**
- *	ether_get_time: Get current time
- *	@ptp: Pointer to ptp_clock_info structure.
- *	@ts: Pointer to hole time.
+ * @brief Gets current hardware time
  *
- *	Algorithm: This function is used to read the current time from the
- *	hardware clock
+ * Algorithm: This function is used to read the current time from the
+ * hardware clock
  *
- *	Dependencies:
+ * @param[in] ptp: Pointer to ptp_clock_info structure.
+ * @param[in] ts: Pointer to hole time.
  *
- *	Protection: None.
- *
- *	Return: 0 - success, negative value - failure.
+ * @retval 0 on success
+ * @retval "negative value" on failure.
  */
 static int ether_get_time(struct ptp_clock_info *ptp, struct timespec *ts)
 {
@@ -156,18 +153,16 @@ static int ether_get_time(struct ptp_clock_info *ptp, struct timespec *ts)
 }
 
 /**
- *	ether_set_time: Set current time
- *	@ptp: Pointer to ptp_clock_info structure.
- *	@ts: Time value to set.
+ * @brief Set current system time to MAC Hardware
  *
- *	Algorithm: This function is used to set the current time to the
- *	hardware clock.
+ * Algorithm: This function is used to set the current time to the
+ * hardware clock.
  *
- *	Dependencies:
+ * @param[in] ptp: Pointer to ptp_clock_info structure.
+ * @param[in] ts: Time value to set.
  *
- *	Protection: None.
- *
- *	Return: 0 - success, negative value - failure.
+ * @retval 0 on success
+ * @retval "negative value" on failure.
  */
 static int ether_set_time(struct ptp_clock_info *ptp,
 		const struct timespec *ts)
@@ -192,7 +187,9 @@ static int ether_set_time(struct ptp_clock_info *ptp,
 	return ret;
 }
 
-/* structure describing a PTP hardware clock */
+/**
+ * @brief Describing Ethernet PTP hardware clock
+ */
 static struct ptp_clock_info ether_ptp_clock_ops = {
 	.owner = THIS_MODULE,
 	.name = "ether_ptp_clk",
@@ -207,20 +204,6 @@ static struct ptp_clock_info ether_ptp_clock_ops = {
 	.settime64 = ether_set_time,
 };
 
-/**
- *	ether_ptp_init: Function to register ptp clock driver.
- *	@pdata:	Pointer to private data structure.
- *
- *	Algorithm: This function is used to register the ptp clock
- *	driver to kernel.
- *
- *	Dependencies: Ethernet driver probe need to be completed successfully
- *	with ethernet network device created.
- *
- *	Protection: None.
- *
- *	Return: 0 - success, negative value - failure.
- */
 int ether_ptp_init(struct ether_priv_data *pdata)
 {
 	if (pdata->hw_feat.tsstssel == OSI_DISABLE) {
@@ -247,19 +230,6 @@ int ether_ptp_init(struct ether_priv_data *pdata)
 	return 0;
 }
 
-/**
- *	ether_ptp_remove: Function to de register ptp clock driver.
- *	@pdata:	Pointer to private data structure.
- *
- *	Algorithm: This function is used to de register the ptp clock
- *
- *	Dependencies: PTP clock driver need to be sucessfully registered during
- *	initialization
- *
- *	Protection: None.
- *
- *	Return: None.
- */
 void ether_ptp_remove(struct ether_priv_data *pdata)
 {
 	if (pdata->ptp_clock) {
@@ -267,20 +237,6 @@ void ether_ptp_remove(struct ether_priv_data *pdata)
 	}
 }
 
-/**
- *	ether_handle_hwtstamp_ioctl: Function to handle PTP settings.
- *	@pdata:	Pointer to private data structure.
- *	@ifr:	Interface request structure used for socket ioctl
- *
- *	Algorithm: This function is used to handle the hardware PTP settings.
- *
- *	Dependencies: PTP clock driver need to be sucessfully registered during
- *	initialization and HW need to support PTP functionality.
- *
- *	Protection: None.
- *
- *	Return: None.
- */
 int ether_handle_hwtstamp_ioctl(struct ether_priv_data *pdata,
 		struct ifreq *ifr)
 {
@@ -441,17 +397,19 @@ int ether_handle_hwtstamp_ioctl(struct ether_priv_data *pdata,
 }
 
 /**
- *	ether_handle_priv_ts_ioctl: Function to handle PTP priv IOCTL
- *	@pdata: Pointer to private data structure.
- *	@ifr: Interface request structure used for socket ioctl
+ * @brief Function to handle PTP private IOCTL
  *
- *	Algorithm: This function is used to query hardware time and
- *	the kernel time simultaneously.
+ * Algorithm: This function is used to query hardware time and
+ * the kernel time simultaneously.
  *
- *	Dependencies: PTP clock driver need to be successfully registered during
+ * @param [in] pdata: Pointer to private data structure.
+ * @param [in] ifr: Interface request structure used for socket ioctl
+ *
+ * @note PTP clock driver need to be successfully registered during
  *	initialization and HW need to support PTP functionality.
  *
- *	Return: 0 on success, negative value on failure.
+ * @retval 0 on success.
+ * @retval "negative value" on failure.
  */
 
 int ether_handle_priv_ts_ioctl(struct ether_priv_data *pdata,

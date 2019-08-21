@@ -17,19 +17,17 @@
 #include "ether_linux.h"
 
 /**
- *	ether_set_avb_algo - function to handle private ioctl
- *	EQOS_AVB_ALGORITHM
- *	@ndev: network device structure
- *	@ifdata: interface private data structure
+ * @brief Function to handle private ioctl - EQOS_AVB_ALGORITHM
  *
- *	Algorithm:
- *	- Call osi_set_avb with user passed data
+ * Algorithm: Call osi_set_avb with user passed data
  *
- *	Dependencies: Ethernet interface need to be up.
+ * @param[in] ndev: network device structure
+ * @param[in] ifdata: interface private data structure
  *
- *	Protection: None.
+ * @note Ethernet interface need to be up.
  *
- *	Return: 0 - success, negative value - failure.
+ * @retval 0 on Sucess
+ * @retval "nagative value" on Failure
  */
 static int ether_set_avb_algo(struct net_device *ndev,
 			      struct ether_ifr_data *ifdata)
@@ -57,20 +55,19 @@ static int ether_set_avb_algo(struct net_device *ndev,
 }
 
 /**
- *	ether_get_avb_algo - function to get avb data from registers.
- *	This function is called for EQOS_GET_AVB_ALGORITHM
- *	@ndev: network device structure
- *	@ifdata: interface private data structure
+ * @brief Function to get avb data from registers. This function is called for
+ * EQOS_GET_AVB_ALGORITHM
  *
- *	Algorithm:
- *	- Call osi_get_avb with user passed data(qindex)
+ * Algorithm: Call osi_get_avb with user passed data(qindex)
  *
- *	Dependencies: Ethernet interface need to be up. Caller should
- *	check for return vlaue before using return value.
+ * @param[in] ndev: network device structure
+ * @param[in] ifdata: interface private data structure
  *
- *	Protection: None.
+ * @note Ethernet interface need to be up. Caller should check for return
+ * value before using return value.
  *
- *	Return: 0 - success, negative value - failure.
+ * @retval 0 on Sucess
+ * @retval "negative value" on Failure
  */
 static int ether_get_avb_algo(struct net_device *ndev,
 			      struct ether_ifr_data *ifdata)
@@ -109,22 +106,22 @@ static int ether_get_avb_algo(struct net_device *ndev,
 	return ret;
 }
 
-/*
- *	ether_config_arp_offload - Handle ioctl to enable/disable ARP offload
- *	@pdata: OS dependent private data structure.
- *	@ifrd_p: Interface request private data pointer.
+/**
+ * @brief Handle ioctl to enable/disable ARP offload
  *
- *	Algorithm:
- *	1) Copy the priv data from user space. This includes the IP address
- *	to be updated in HW.
- *	2) Check if IP address provided in priv data is valid.
- *	3) If IP address is valid, invoke OSI API to update HW registers.
+ * Algorithm:
+ * 1) Copy the priv data from user space. This includes the IP address
+ * to be updated in HW.
+ * 2) Check if IP address provided in priv data is valid.
+ * 3) If IP address is valid, invoke OSI API to update HW registers.
  *
- *	Dependencies: Interface should be running (enforced by caller).
+ * @param[in] pdata: OS dependent private data structure.
+ * @param[in] ifrd_p: Interface request private data pointer.
+ * 
+ * @note Interface should be running (enforced by caller).
  *
- *	Protection: None.
- *
- *	Return: 0 - success, -ve value - failure
+ * @retval 0 on Sucess
+ * @retval "negative value" on Failure
  */
 static int ether_config_arp_offload(struct ether_priv_data *pdata,
 				    struct ether_ifr_data *ifrd_p)
@@ -163,22 +160,21 @@ static int ether_config_arp_offload(struct ether_priv_data *pdata,
 }
 
 /**
- *	ether_config_l3_l4_filtering- This function is invoked by ioctl
- *	when user issues an ioctl command to enable/disable L3/L4 filtering.
+ * @brief This function is invoked by ioctl when user issues an ioctl command
+ * to enable/disable L3/L4 filtering.
  *
- *	@dev: pointer to net device structure.
- *	@filter_flags: flag to indicate whether L3/L4 filtering to be
- *	enabled/disabled.
+ * Algorithm:
+ * 1) check if filter enalbed/disable already and return success.
+ * 2) OSI call to update register
  *
- *	Algorithm:
- *	1) check if filter enalbed/disable already and return success.
- *	2) OSI call to update register
+ * @param[in] dev: pointer to net device structure.
+ * @param[in] filter_flags: flag to indicate whether L3/L4 filtering to be
+ *	      enabled/disabled.
  *
- *	Dependencies: MAC and PHY need to be initialized.
+ * @note MAC and PHY need to be initialized.
  *
- *	Protection: None.
- *
- *	Return 0- sucessful, non-zero - error
+ * @retval 0 on Sucess
+ * @retval "negative value" on Failure
  *
  */
 static int ether_config_l3_l4_filtering(struct net_device *dev,
@@ -205,24 +201,23 @@ static int ether_config_l3_l4_filtering(struct net_device *dev,
 }
 
 /**
- *	ether_config_ip4_filters - this function is invoked by ioctl function
- *	when user issues an ioctl command to configure L3(IPv4) filtering.
+ * @brief This function is invoked by ioctl function when user issues an ioctl
+ * command to configure L3(IPv4) filtering.
  *
- *	@dev: Pointer to net device structure.
- *	@ifdata: pointer to IOCTL specific structure.
+ * Algorithm:
+ * 1) Layer 3 and Layer 4 Filter Enable, if already not.
+ * 2) Enable/disable IPv4 filtering.
+ * 3) Select source/destination address matching.
+ * 4) Select perfect/inverse matching.
+ * 5) Update the IPv4 address into MAC register.
  *
- *	Algorithm:
- *	1) Layer 3 and Layer 4 Filter Enable, if already not.
- *	2) Enable/disable IPv4 filtering.
- *	3) Select source/destination address matching.
- *	4) Select perfect/inverse matching.
- *	5) Update the IPv4 address into MAC register.
+ * @param[in] dev: Pointer to net device structure.
+ * @param[in] ifdata: pointer to IOCTL specific structure.
+ * 
+ * @note MAC and PHY need to be initialized.
  *
- *	Dependencies: MAC and PHY need to be initialized.
- *
- *	Protection: None.
- *
- *	Return 0- sucessful, non-zero - error
+ * @retval 0 on Sucess
+ * @retval "negative value" on Failure
  */
 static int ether_config_ip4_filters(struct net_device *dev,
 				    struct ether_ifr_data *ifdata)
@@ -287,23 +282,22 @@ static int ether_config_ip4_filters(struct net_device *dev,
 }
 
 /**
- *	ether_config_ip6_filters- This function is invoked by ioctl when user
- *	issues an ioctl command to configure L3(IPv6) filtering.
+ * @brief This function is invoked by ioctl when user issues an ioctl command
+ * to configure L3 (IPv6) filtering.
  *
- *	@dev: pointer to net device structure.
- *	@ifdata:pointer to IOCTL specific structure.
+ * Algorithm:
+ * 1) Enable/disable IPv6 filtering.
+ * 2) Select source/destination address matching.
+ * 3) Select perfect/inverse matching.
+ * 4) Update the IPv6 address into MAC register.
  *
- *	Algorithm:
- *	1) Enable/disable IPv6 filtering.
- *	2) Select source/destination address matching.
- *	3) Select perfect/inverse matching.
- *	4) Update the IPv6 address into MAC register.
+ * @param[in] dev: net device structure instance.
+ * @param[in] ifdata: IOCTL specific structure instance.
  *
- *	Dependencies: MAC and PHY need to be initialized.
+ * @note MAC and PHY need to be initialized.
  *
- *	Protection: None.
- *	Return 0- sucessful, non-zero - error
- *
+ * @retval 0 on Sucess
+ * @retval "negative value" on Failure
  */
 static int ether_config_ip6_filters(struct net_device *dev,
 				    struct ether_ifr_data *ifdata)
@@ -365,27 +359,24 @@ static int ether_config_ip6_filters(struct net_device *dev,
 }
 
 /**
- *	ether_config_tcp_udp_filters-  This function is invoked by
- *	ioctl function when user issues an ioctl command to configure
- *	L4(TCP/UDP) filtering.
+ * @brief This function is invoked by ioctl function when user issues an ioctl
+ * command to configure L4(TCP/UDP) filtering.
  *
- *	@dev: pointer to net device structure.
- *	@ifdata: pointer to IOCTL specific structure.
- *	@tcp_udp: flag to indicate TCP/UDP filtering.
+ * Algorithm:
+ * 1) Enable/disable L4 filtering.
+ * 2) Select TCP/UDP filtering.
+ * 3) Select source/destination port matching.
+ * 4) select perfect/inverse matching.
+ * 5) Update the port number into MAC register.
  *
- *	Algorithm:
- *	1) Enable/disable L4 filtering.
- *	2) Select TCP/UDP filtering.
- *	3) Select source/destination port matching.
- *	4) select perfect/inverse matching.
- *	5) Update the port number into MAC register.
+ * @param[in] dev: pointer to net device structure.
+ * @param[in] ifdata: pointer to IOCTL specific structure.
+ * @param[in] tcp_udp: flag to indicate TCP/UDP filtering.
+ * 
+ * @note MAC and PHY need to be initialized.
  *
- *	Dependencies: MAC and PHY need to be initialized.
- *
- *	Protection: None.
- *
- *	Return 0- sucessful, non-zero - error
- *
+ * @retval 0 on Sucess
+ * @retval "negative value" on Failure
  */
 static int ether_config_tcp_udp_filters(struct net_device *dev,
 					struct ether_ifr_data *ifdata,
@@ -452,22 +443,20 @@ static int ether_config_tcp_udp_filters(struct net_device *dev,
 }
 
 /**
- *	ether_config_vlan_filter- This function is invoked by ioctl function
- *	when user issues an ioctl command to configure VALN filtering.
+ * @brief This function is invoked by ioctl functio when user issues an ioctl
+ * command to configure VALN filtering.
  *
- *	@dev: pointer to net device structure.
- *	@ifdata: pointer to IOCTL specific structure.
+ * Algorithm:
+ * 1) enable/disable VLAN filtering.
+ * 2) select perfect/hash filtering.
  *
- *	Algorithm:
- *	1) enable/disable VLAN filtering.
- *	2) select perfect/hash filtering.
+ * @param[in] dev: pointer to net device structure.
+ * @param[in] ifdata: pointer to IOCTL specific structure.
  *
- *	Dependencies: MAC and PHY need to be initialized.
+ * @note MAC and PHY need to be initialized.
  *
- *	Protection: None.
- *
- *	Return 0- sucessful, non-zero - error
- *
+ * @retval 0 on Sucess
+ * @retval "negative value" on Failure
  */
 static int ether_config_vlan_filter(struct net_device *dev,
 				    struct ether_ifr_data *ifdata)
@@ -509,22 +498,20 @@ static int ether_config_vlan_filter(struct net_device *dev,
 }
 
 /**
- *	ether_config_l2_da_filter- This function is invoked by ioctl function
- *	when user issues an ioctl command to configure L2 destination
- *	addressing filtering mode.
+ * @brief This function is invoked by ioctl function when user issues an ioctl
+ * command to configure L2 destination addressing filtering mode.
  *
- *	@dev: Pointer to net device structure.
- *	@ifdata: Pointer to IOCTL specific structure.
+ * Algorithm:
+ * 1) Selects perfect/hash filtering.
+ * 2) Selects perfect/inverse matching.
  *
- *	Algorithm:
- *	1) Selects perfect/hash filtering.
- *	2) Selects perfect/inverse matching.
+ * @param[in] dev: Pointer to net device structure.
+ * @param[in] ifdata: Pointer to IOCTL specific structure.
  *
- *	Dependencies: MAC and PHY need to be initialized.
+ * @note MAC and PHY need to be initialized.
  *
- *	Protection: None.
- *
- *	Return 0- sucessful, non-zero - error
+ * @retval 0 on Sucess
+ * @retval "negative value" on Failure
  */
 static int ether_config_l2_da_filter(struct net_device *dev,
 				     struct ether_ifr_data *ifdata)
@@ -565,22 +552,21 @@ static int ether_config_l2_da_filter(struct net_device *dev,
 }
 
 /**
- *	ether_config_loopback_mode- This function is invoked by ioctl
- *	when user issues an ioctl command to enable/disable MAC loopback mode.
+ * @brief This function is invoked by ioctl when user issues an ioctl command
+ * to enable/disable MAC loopback mode.
  *
- *	@dev: pointer to net device structure.
- *	@flags: flag to indicate whether MAC loopback mode to be enabled or
+ * Algorithm:
+ * 1) check if loopback mode enalbed/disable already and return success.
+ * 2) OSI call to configure loopback mode in HW.
+ *
+ * @param[in] ndev: pointer to net device structure.
+ * @param[in] flags: flag to indicate whether MAC loopback mode to be enabled or
  *	disabled.
  *
- *	Algorithm:
- *	1) check if loopback mode enalbed/disable already and return success.
- *	2) OSI call to configure loopback mode in HW.
- *
- *	Dependencies: MAC and PHY need to be initialized.
- *
- *	Protection: None.
- *
- *	Return 0- sucessful, Negative - error
+ * @note MAC and PHY need to be initialized.
+ * 
+ * @retval 0 on Sucess
+ * @retval "negative value" on Failure
  */
 static int ether_config_loopback_mode(struct net_device *ndev,
 				      unsigned int flags)
@@ -621,21 +607,20 @@ static int ether_config_loopback_mode(struct net_device *ndev,
 }
 
 /**
- *	ether_priv_ioctl - Handle private IOCTLs
- *	@ndev: network device structure
- *	@ifr: Interface request structure used for socket ioctl's.
+ * @brief ether_priv_ioctl - Handle private IOCTLs
  *
- *	Algorithm:
- *	1) Copy the priv command data from user space.
- *	2) Check the priv command cmd and invoke handler func.
- *	if it is supported.
- *	3) Copy result back to user space.
+ * Algorithm:
+ * 1) Copy the priv command data from user space.
+ * 2) Check the priv command cmd and invoke handler function if it is supported
+ * 3) Copy result back to user space.
  *
- *	Dependencies: Interface should be running (enforced by caller).
+ * @param[in] ndev: network device structure
+ * @param[in] ifr: Interface request structure used for socket ioctl's.
  *
- *	Protection: None.
+ * @note Interface should be running (enforced by caller).
  *
- *	Return: 0 - success, negative value - failure.
+ * @retval 0 on Sucess
+ * @retval "negative value" on Failure
  */
 int ether_handle_priv_ioctl(struct net_device *ndev,
 			    struct ifreq *ifr)

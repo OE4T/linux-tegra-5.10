@@ -16,21 +16,37 @@
 
 #include "ether_linux.h"
 
+/**
+ * @addtogroup MMC Stats array length.
+ *
+ * @brief Helper macro to find MMC stats array length.
+ * @{
+ */
 #define OSI_ARRAY_SIZE(x)  ((int)sizeof((x)) / (int)sizeof((x)[0]))
 #define EQOS_MMC_STATS_LEN OSI_ARRAY_SIZE(eqos_mmc)
+/** @} */
 
+/**
+ * @brief EQOS stats
+ */
 struct eqos_stats {
+	/** Name of the stat */
 	char stat_string[ETH_GSTRING_LEN];
+	/** size of the stat */
 	size_t sizeof_stat;
+	/** stat offset */
 	size_t stat_offset;
 };
 
-/* DMA extra status */
-/* Structure variable name MUST up to MAX length of ETH_GSTRING_LEN */
+/**
+ * @brief Name of extra DMA stat, with length of name not more than ETH_GSTRING_LEN
+ */
 #define EQOS_DMA_EXTRA_STAT(a) \
 { (#a), FIELD_SIZEOF(struct osi_xtra_dma_stat_counters, a), \
 	offsetof(struct osi_dma_priv_data, dstats.a)}
-
+/**
+ * @brief EQOS DMA extra statistics
+ */
 static const struct eqos_stats eqos_dstrings_stats[] = {
 	EQOS_DMA_EXTRA_STAT(tx_clean_n[0]),
 	EQOS_DMA_EXTRA_STAT(tx_clean_n[1]),
@@ -55,14 +71,20 @@ static const struct eqos_stats eqos_dstrings_stats[] = {
 	EQOS_DMA_EXTRA_STAT(q_rx_pkt_n[3]),
 };
 
+/**
+ * @brief EQOS extra DMA statistics array length
+ */
 #define EQOS_EXTRA_DMA_STAT_LEN OSI_ARRAY_SIZE(eqos_dstrings_stats)
 
-/* core extra status */
-/* Structure variable name MUST up to MAX length of ETH_GSTRING_LEN */
+/**
+ * @brief Name of extra EQOS stats, with length of name not more than ETH_GSTRING_LEN MAC
+ */
 #define EQOS_EXTRA_STAT(b) \
 { #b, FIELD_SIZEOF(struct osi_xtra_stat_counters, b), \
 	offsetof(struct osi_core_priv_data, xstats.b)}
-
+/**
+ * @brief EQOS extra statistics
+ */
 static const struct eqos_stats eqos_gstrings_stats[] = {
 	EQOS_EXTRA_STAT(re_alloc_rxbuf_failed[0]),
 	EQOS_EXTRA_STAT(re_alloc_rxbuf_failed[1]),
@@ -102,14 +124,22 @@ static const struct eqos_stats eqos_gstrings_stats[] = {
 	EQOS_EXTRA_STAT(link_connect_count),
 };
 
+/**
+ * @brief EQOS extra statistics array length
+ */
 #define EQOS_EXTRA_STAT_LEN OSI_ARRAY_SIZE(eqos_gstrings_stats)
 
-/* HW MAC Management counters */
-/* Structure variable name MUST up to MAX length of ETH_GSTRING_LEN */
+/**
+ * @brief HW MAC Management counters
+ * 	  Structure variable name MUST up to MAX length of ETH_GSTRING_LEN
+ */
 #define EQOS_MMC_STAT(c) \
 { #c, FIELD_SIZEOF(struct osi_mmc_counters, c), \
 	offsetof(struct osi_core_priv_data, mmc.c)}
 
+/**
+ * @brief MMC statistics
+ */
 static const struct eqos_stats eqos_mmc[] = {
 	/* MMC TX counters */
 	EQOS_MMC_STAT(mmc_tx_octetcount_gb),
@@ -206,20 +236,16 @@ static const struct eqos_stats eqos_mmc[] = {
 };
 
 /**
- *	ether_get_ethtool_stats: This function is invoked by kernel when user
- *	requests to get the extended statistics about the device.
+ * @brief This function is invoked by kernel when user requests to get the
+ *  extended statistics about the device.
  *
- *	@dev: pointer to net device structure.
- *	@dummy: dummy parameter of ethtool_stats type.
- *	@data: Pointer in which MMC statistics should be put.
+ *  Algorithm: read mmc register and create strings
  *
- *	Algorithm: read mmc register and create sctrings
+ * @param[in] dev: pointer to net device structure.
+ * @param[in] dummy: dummy parameter of ethtool_stats type.
+ * @param[in] data: Pointer in which MMC statistics should be put.
  *
- *	Dependencies: Network device needs to created.
- *
- *	Protection: None.
- *
- *	Return: void
+ * @note Network device needs to created.
  */
 static void ether_get_ethtool_stats(struct net_device *dev,
 				    struct ethtool_stats *dummy,
@@ -265,19 +291,16 @@ static void ether_get_ethtool_stats(struct net_device *dev,
 }
 
 /**
- *	ether_get_sset_count- This function gets number of strings that
- *	@get_strings will write.
+ * @brief This function gets number of strings
  *
- *	@dev: Pointer to net device structure.
- *	@sset: String set value.
+ * Algorithm: return number of strings.
  *
- *	Algorithm: retrun number of strings.
+ * @param[in] dev: Pointer to net device structure.
+ * @param[in] sset: String set value.
  *
- *	Dependencies: Network device needs to created.
+ * @note Network device needs to created.
  *
- *	Protection: None.
- *
- *	Return: Numbers of strings(total length)
+ * @return Numbers of strings(total length)
  */
 static int ether_get_sset_count(struct net_device *dev, int sset)
 {
@@ -309,20 +332,17 @@ static int ether_get_sset_count(struct net_device *dev, int sset)
 	return len;
 }
 
-/**	ether_get_strings - This function returns a set of strings that describe
- *	the requested objects.
+/**	
+ * @brief This function returns a set of strings that describe
+ * the requested objects.
  *
- *	@dev: Pointer to net device structure.
- *	@stringset:  String set value.
- *	@data: Pointer in which requested string should be put.
+ * Algorithm: return number of strings.
  *
- *	Algorithm: retrun number of strings.
+ * @param[in] dev: Pointer to net device structure.
+ * @param[in] stringset:  String set value.
+ * @param[in] data: Pointer in which requested string should be put.
  *
- *	Dependencies: Network device needs to created.
- *
- *	Protection: None.
- *
- *	Return: void
+ * @note Network device needs to created.
  */
 static void ether_get_strings(struct net_device *dev, u32 stringset, u8 *data)
 {
@@ -365,17 +385,14 @@ static void ether_get_strings(struct net_device *dev, u32 stringset, u8 *data)
 }
 
 /**
- *	ether_get_pauseparam - Get pause frame settings
- *	@ndev: network device instance
- *	@pause: Pause parameters that are set currently
+ * @brief Get pause frame settings
  *
- *	Algorithm: Gets pause frame configuration
+ * Algorithm: Gets pause frame configuration
  *
- *	Dependencies: Network device needs to created.
+ * @param[in] ndev: network device instance
+ * @param[out] pause: Pause parameters that are set currently
  *
- *	Protection: None.
- *
- *	Return: None.
+ * @note Network device needs to created.
  */
 static void ether_get_pauseparam(struct net_device *ndev,
 				 struct ethtool_pauseparam *pause)
@@ -413,17 +430,17 @@ static void ether_get_pauseparam(struct net_device *ndev,
 }
 
 /**
- *	ether_set_pauseparam - Set pause frame settings
- *	@ndev: network device instance
- *	@pause: Pause frame settings
+ * @brief Set pause frame settings
  *
- *	Algorithm: Sets pause frame settings
+ * Algorithm: Sets pause frame settings
  *
- *	Dependencies: Network device needs to created.
+ * @param[in] ndev: network device instance
+ * @param[in] pause: Pause frame settings
  *
- *	Protection: None.
+ * @note Network device needs to created.
  *
- *	Return: 0 - success, negative value - failure.
+ * @retval 0 on Sucess
+ * @retval "negative value" on failure.
  */
 static int ether_set_pauseparam(struct net_device *ndev,
 				struct ethtool_pauseparam *pause)
@@ -477,17 +494,16 @@ static int ether_set_pauseparam(struct net_device *ndev,
 }
 
 /**
- *	ether_get_ts_info: Get HW supported time stamping.
- *	@net: Net device data.
- *	@info: Holds device supported timestamping types
+ * @brief Get HW supported time stamping.
  *
- *	Algorithm: Function used to query the PTP capabilities for given netdev.
+ * Algorithm: Function used to query the PTP capabilities for given netdev.
  *
- *	Dependencies: HW need to support PTP functionality.
+ * @param[in] net: Net device data.
+ * @param[in] info: Holds device supported timestamping types
  *
- *	Protection: None.
+ * @note HW need to support PTP functionality.
  *
- *	Return: Return can't be a -ve value.
+ * @return zero on success
  */
 static int ether_get_ts_info(struct net_device *net,
 		struct ethtool_ts_info *info)
@@ -515,21 +531,20 @@ static int ether_get_ts_info(struct net_device *net,
 }
 
 /**
- *	ether_set_coalesce: Set interrupt coalescing parameters.
- *	@dev: Net device data.
- *	@ec: pointer to ethtool_coalesce structure
+ * @brief Set interrupt coalescing parameters.
  *
- *	Algorithm: This function is invoked by kernel when user request to set
- *	interrupt coalescing parameters. This driver maintains same coalescing
- *	parameters for all the channels, hence same changes will be applied to
- *	all the channels.
+ * Algorithm: This function is invoked by kernel when user request to set
+ * interrupt coalescing parameters. This driver maintains same coalescing
+ * parameters for all the channels, hence same changes will be applied to
+ * all the channels.
  *
- *	Dependencies:
- *	1) Interface need to be bring down for setting these parameters
+ * @param[in] dev: Net device data.
+ * @param[in] ec: pointer to ethtool_coalesce structure
  *
- *	Protection: None.
+ * @note Interface need to be bring down for setting these parameters
  *
- *	Return: 0 on success and -ve number on failure.
+ * @retval 0 on Sucess
+ * @retval "negative value" on failure.
  */
 static int ether_set_coalesce(struct net_device *dev,
 			      struct ethtool_coalesce *ec)
@@ -582,21 +597,19 @@ static int ether_set_coalesce(struct net_device *dev,
 }
 
 /**
- *	ether_get_coalesce: Set interrupt coalescing parameters.
- *	@dev: Net device data.
- *	@ec: pointer to ethtool_coalesce structure
+ * @brief Set interrupt coalescing parameters.
  *
- *	Algorithm: This function is invoked by kernel when user request to get
- *	interrupt coalescing parameters. As coalescing parameters are same
- *	for all the channels, so this function will get coalescing
- *	details from channel zero and return.
+ * Algorithm: This function is invoked by kernel when user request to get
+ * interrupt coalescing parameters. As coalescing parameters are same
+ * for all the channels, so this function will get coalescing
+ * details from channel zero and return.
  *
- *	Dependencies:
- *	1) MAC and PHY need to be initialized.
+ * @param[in] dev: Net device data.
+ * @param[in] ec: pointer to ethtool_coalesce structure
  *
- *	Protection: None.
+ * @note MAC and PHY need to be initialized.
  *
- *	Return: 0.
+ * @retval 0 on Success.
  */
 static int ether_get_coalesce(struct net_device *dev,
 			      struct ethtool_coalesce *ec)
@@ -610,6 +623,9 @@ static int ether_get_coalesce(struct net_device *dev,
 	return 0;
 }
 
+/**
+ * @brief Set of ethtool operations
+ */
 static const struct ethtool_ops ether_ethtool_ops = {
 	.get_link = ethtool_op_get_link,
 	.get_link_ksettings = phy_ethtool_get_link_ksettings,
@@ -624,17 +640,6 @@ static const struct ethtool_ops ether_ethtool_ops = {
 	.set_coalesce = ether_set_coalesce,
 };
 
-/**
- *	ether_set_ethtool_ops - Set ethtool operations
- *	@ndev: network device instance
- *
- *	Algorithm: Sets ethtool operations in network
- *	device structure.
- *
- *	Dependencies: Network device needs to created.
- *	Protection: None.
- *	Return: None.
- */
 void ether_set_ethtool_ops(struct net_device *ndev)
 {
 	ndev->ethtool_ops = &ether_ethtool_ops;
