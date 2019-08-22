@@ -20,6 +20,7 @@
 #include <dt-bindings/memory/tegra234-smmu-streamid.h>
 #include "tegra234-soc-cbb.dtsi"
 #include "tegra234-soc/tegra234-soc-memory.dtsi"
+#include "tegra234-soc-pcie-fpga.dtsi"
 
 / {
 	aliases {
