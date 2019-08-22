@@ -2655,16 +2655,18 @@ static int tegra_pcie_dw_host_init(struct pcie_port *pp)
 	int count = 200;
 
 	if (tegra_platform_is_fpga()) {
-		/* Program correct VID and DID on FPGA */
-		dw_pcie_write(pci->dbi_base + PCI_VENDOR_ID, 2, 0x10DE);
-		dw_pcie_write(pci->dbi_base + PCI_DEVICE_ID, 2, 0x1AD1);
-
-		/* Required for L1.1 working on FPGA */
 		val = readl(pcie->appl_base + APPL_GTH_PHY);
+		/* FPGA specific PHY initialization */
+		val |= APPL_GTH_PHY_RST;
+		/* Required for L1.1 working on FPGA */
 		val &= 0xFFFF0003;
 		val &= ~(0x2);
 		val |= 0x7F4;
 		writel(val, pcie->appl_base + APPL_GTH_PHY);
+
+		/* Program correct VID and DID on FPGA */
+		dw_pcie_write(pci->dbi_base + PCI_VENDOR_ID, 2, 0x10DE);
+		dw_pcie_write(pci->dbi_base + PCI_DEVICE_ID, 2, 0x1AD1);
 
 		/* Program correct L0s and L1 exit latencies */
 		dw_pcie_read(pci->dbi_base + CFG_LINK_CAP, 4, &tmp);
@@ -2840,13 +2842,6 @@ static int tegra_pcie_dw_host_init(struct pcie_port *pp)
 	dw_pcie_setup_rc(pp);
 
 	dw_pcie_writel_dbi(pci, PCI_BASE_ADDRESS_0, 0x00000000);
-
-	/* FPGA specific PHY initialization */
-	if (tegra_platform_is_fpga()) {
-		val = readl(pcie->appl_base + APPL_GTH_PHY);
-		val |= APPL_GTH_PHY_RST;
-		writel(val, pcie->appl_base + APPL_GTH_PHY);
-	}
 
 	clk_set_rate(pcie->core_clk, GEN4_CORE_CLK_FREQ);
 
