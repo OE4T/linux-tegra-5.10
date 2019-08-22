@@ -1014,6 +1014,10 @@ int nvgpu_vm_map(struct vm_gk20a *vm,
 
 	binfo.flags = flags;
 	binfo.size = nvgpu_os_buf_get_size(os_buf);
+	if (binfo.size == 0UL) {
+		nvgpu_err(g, "Invalid buffer size");
+		return -EINVAL;
+	}
 	binfo.incompr_kind = incompr_kind;
 
 #ifdef CONFIG_NVGPU_COMPRESSION
