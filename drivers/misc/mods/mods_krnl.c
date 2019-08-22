@@ -460,6 +460,10 @@ static int __init mods_init_module(void)
 		return rc;
 
 #if defined(CONFIG_ARCH_TEGRA)
+	rc = smmu_driver_init();
+	if (rc < 0)
+		return rc;
+
 	/* tegra prod */
 	mods_tegra_prod_init(&mods_dev);
 #endif
@@ -485,6 +489,10 @@ static void __exit mods_exit_module(void)
 	mods_remove_debugfs();
 
 	mods_cleanup_irq();
+
+#if defined(CONFIG_ARCH_TEGRA)
+	smmu_driver_exit();
+#endif
 
 #if defined(CONFIG_PCI)
 	pci_unregister_driver(&mods_pci_driver);
@@ -2192,6 +2200,17 @@ static long mods_krnl_ioctl(struct file  *fp,
 		MODS_IOCTL(MODS_ESC_DMA_COPY_TO_USER,
 			   esc_mods_dma_copy_to_user,
 			   MODS_DMA_COPY_TO_USER);
+		break;
+	case MODS_ESC_IOMMU_DMA_MAP_MEMORY:
+		MODS_IOCTL(MODS_ESC_IOMMU_DMA_MAP_MEMORY,
+			   esc_mods_iommu_dma_map_memory,
+			   MODS_IOMMU_DMA_MAP_MEMORY);
+		break;
+
+	case MODS_ESC_IOMMU_DMA_UNMAP_MEMORY:
+		MODS_IOCTL(MODS_ESC_IOMMU_DMA_UNMAP_MEMORY,
+			   esc_mods_iommu_dma_unmap_memory,
+			   MODS_IOMMU_DMA_MAP_MEMORY);
 		break;
 #if defined(CONFIG_DMA_ENGINE)
 	case MODS_ESC_DMA_REQUEST_HANDLE:

@@ -32,6 +32,11 @@ static int mods_post_alloc(struct mods_client     *client,
 			   u64                     phys_addr,
 			   struct MODS_MEM_INFO   *p_mem_info);
 
+#if defined(CONFIG_ARCH_TEGRA)
+static int mods_smmu_unmap_memory(struct mods_client   *client,
+				  struct MODS_MEM_INFO *p_mem_info);
+#endif
+
 /****************************
  * DMA MAP HELPER FUNCTIONS *
  ****************************/
@@ -530,6 +535,11 @@ static void mods_free_pages(struct mods_client   *client,
 	unsigned int i;
 
 	mods_restore_cache(p_mem_info);
+
+#if defined(CONFIG_ARCH_TEGRA)
+	if (p_mem_info->iommu_mapped)
+		mods_smmu_unmap_memory(client, p_mem_info);
+#endif
 
 	/* release in reverse order */
 	for (i = p_mem_info->num_chunks; i > 0; ) {
@@ -2033,6 +2043,198 @@ int esc_mods_dma_unmap_memory(struct mods_client         *client,
 #endif
 
 #ifdef CONFIG_ARCH_TEGRA
+/* map dma buffer by iommu */
+int esc_mods_iommu_dma_map_memory(struct mods_client               *client,
+				  struct MODS_IOMMU_DMA_MAP_MEMORY *p)
+{
+	struct sg_table     *sgt;
+	struct scatterlist  *sg;
+	u64                  iova;
+	bool                 is_coherent;
+	int                  smmudev_idx;
+	struct MODS_MEM_INFO *p_mem_info;
+	char                 *dev_name = p->dev_name;
+	struct mods_smmu_dev *smmu_pdev = NULL;
+	u32                  num_chunks = 0;
+	int                  ents, i, err = 0;
+	size_t iova_offset = 0;
+	DEFINE_DMA_ATTRS(attrs);
+
+	LOG_ENT();
+
+	if (!(p->flags & MODS_IOMMU_MAP_CONTIGUOUS)) {
+		cl_error("contiguous flag not set\n");
+		err = -EINVAL;
+		goto failed;
+	}
+	p_mem_info = (struct MODS_MEM_INFO *)(size_t)p->memory_handle;
+	if (p_mem_info->iommu_mapped) {
+		cl_error("smmu is already mapped\n");
+		err = -EINVAL;
+		goto failed;
+	}
+
+	smmudev_idx = get_mods_smmu_device_index(dev_name);
+	if (smmudev_idx >= 0)
+		smmu_pdev = get_mods_smmu_device(smmudev_idx);
+	if (!smmu_pdev || smmudev_idx < 0) {
+		cl_error("smmu device %s is not found\n", dev_name);
+		err = -ENODEV;
+		goto failed;
+	}
+
+	/* do smmu mapping */
+	num_chunks = p_mem_info->num_chunks;
+	is_coherent = is_device_dma_coherent(smmu_pdev->dev);
+	cl_debug(DEBUG_MEM_DETAILED,
+		 "smmu_map_sg: dev_name=%s, pages=%u, chunks=%u, %s\n",
+		 dev_name,
+		 p_mem_info->num_pages,
+		 num_chunks,
+		 is_coherent ? "conherent" : "non-coherent");
+	dma_set_attr(DMA_ATTR_SKIP_IOVA_GAP, __DMA_ATTR(attrs));
+	sgt = vzalloc(sizeof(*sgt));
+	if (!sgt) {
+		err = -ENOMEM;
+		goto failed;
+	}
+	err = sg_alloc_table(sgt, num_chunks, GFP_KERNEL);
+	if (err) {
+		cl_error("failed to allocate sg table, err=%d\n",
+		err);
+		kvfree(sgt);
+		goto failed;
+	}
+	sg = sgt->sgl;
+	for (i = 0; i < num_chunks; i++) {
+		u32 size = PAGE_SIZE << p_mem_info->pages[i].order;
+
+		sg_set_page(sg,
+			    p_mem_info->pages[i].p_page,
+			    size,
+			    0);
+		sg = sg_next(sg);
+	}
+
+	ents = dma_map_sg_attrs(smmu_pdev->dev, sgt->sgl, sgt->nents,
+				DMA_BIDIRECTIONAL, __DMA_ATTR(attrs));
+	if (ents <= 0) {
+		cl_error("failed to map sg attrs. err=%d\n", ents);
+		sg_free_table(sgt);
+		kvfree(sgt);
+		err = -ENOMEM;
+		goto failed;
+	}
+
+	p_mem_info->smmudev_idx = smmudev_idx;
+	p_mem_info->iommu_mapped = 1;
+	iova = sg_dma_address(sgt->sgl);
+	p_mem_info->pages[0].dev_addr = iova;
+	p_mem_info->sgt = sgt;
+
+	/* Check if IOVAs are contiguous */
+	iova_offset = 0;
+	for_each_sg(sgt->sgl, sg, sgt->nents, i) {
+		iova_offset = iova_offset + sg->offset;
+		if (sg_dma_address(sg) != (iova + iova_offset)
+		    || sg_dma_len(sg) != sg->length) {
+			cl_error("sg not contiguous:dma 0x%llx, iova 0x%llx\n",
+				 sg_dma_address(sg),
+				 (u64)(iova + iova_offset));
+			err = -EINVAL;
+			break;
+		}
+	}
+	if (err) {
+		dma_unmap_sg_attrs(smmu_pdev->dev, sgt->sgl, sgt->nents,
+				   DMA_BIDIRECTIONAL, __DMA_ATTR(attrs));
+		sg_free_table(sgt);
+		kvfree(sgt);
+		p_mem_info->sgt = NULL;
+		p_mem_info->smmudev_idx = 0;
+		p_mem_info->iommu_mapped = 0;
+		goto failed;
+	}
+
+	p->physical_address = iova;
+	cl_debug(DEBUG_MEM_DETAILED,
+		 "phyaddr = 0x%llx, smmu iova = 0x%llx, ents=%d\n",
+		 (u64)p_mem_info->pages[0].dma_addr, iova, ents);
+failed:
+	LOG_EXT();
+	return err;
+}
+
+/* unmap dma buffer by iommu */
+int esc_mods_iommu_dma_unmap_memory(struct mods_client               *client,
+				    struct MODS_IOMMU_DMA_MAP_MEMORY *p)
+{
+	struct MODS_MEM_INFO *p_mem_info;
+	int                  err;
+
+	LOG_ENT();
+
+	p_mem_info = (struct MODS_MEM_INFO *)(size_t)p->memory_handle;
+	err = mods_smmu_unmap_memory(client, p_mem_info);
+
+	LOG_EXT();
+	return err;
+}
+
+static int mods_smmu_unmap_memory(struct mods_client   *client,
+				  struct MODS_MEM_INFO *p_mem_info)
+{
+	struct sg_table      *sgt;
+	bool                  is_coherent;
+	u32                   smmudev_idx;
+	int                   err = 0;
+	struct mods_smmu_dev *smmu_pdev = NULL;
+	DEFINE_DMA_ATTRS(attrs);
+
+	LOG_ENT();
+
+	if (unlikely(!p_mem_info)) {
+		cl_error("%s nullptr\n", __func__);
+		err = -EINVAL;
+		goto failed;
+	}
+	if (p_mem_info->sgt == NULL || !p_mem_info->iommu_mapped) {
+		cl_error("smmu buffer is not mapped, handle=0x%llx\n",
+			 (u64)p_mem_info);
+		err = -EINVAL;
+		goto failed;
+	}
+
+	smmudev_idx = p_mem_info->smmudev_idx;
+	smmu_pdev = get_mods_smmu_device(smmudev_idx);
+	if (!smmu_pdev) {
+		cl_error("smmu device on index %u is not found\n",
+			 smmudev_idx);
+		err = -ENODEV;
+		goto failed;
+	}
+
+	sgt = p_mem_info->sgt;
+	dma_set_attr(DMA_ATTR_SKIP_IOVA_GAP, __DMA_ATTR(attrs));
+	dma_unmap_sg_attrs(smmu_pdev->dev, sgt->sgl, sgt->nents,
+			   DMA_BIDIRECTIONAL, __DMA_ATTR(attrs));
+	is_coherent = is_device_dma_coherent(smmu_pdev->dev);
+	cl_debug(DEBUG_MEM_DETAILED,
+		 "smmu: dma_unmap_sg_attrs: %s %s, iova=0x%llx, pages=%d\n",
+		 smmu_pdev->dev_name,
+		 is_coherent ? "coherent" : "non-coherent",
+		 p_mem_info->pages[0].dev_addr,
+		 p_mem_info->num_pages);
+	sg_free_table(sgt);
+	kvfree(sgt);
+	p_mem_info->sgt = NULL;
+	p_mem_info->smmudev_idx = 0;
+	p_mem_info->iommu_mapped = 0;
+
+failed:
+	LOG_EXT();
+	return err;
+}
 
 static void clear_contiguous_cache(struct mods_client *client,
 				   u64                 virt_start,

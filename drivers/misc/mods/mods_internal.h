@@ -166,6 +166,8 @@ struct MODS_MEM_INFO {
 	u8              contig     : 1; /* true/false */
 	u8              dma32      : 1; /* true/false */
 	u8              force_numa : 1; /* true/false */
+	u8              iommu_mapped: 1;/* true/false*/
+	u8              smmudev_idx;    /* smmu dev idex*/
 	struct pci_dev *dev;            /* (optional) pci_dev this allocation
 					 * is for.
 					 */
@@ -176,6 +178,8 @@ struct MODS_MEM_INFO {
 	struct list_head dma_map_list;
 
 	struct list_head list;
+
+	struct sg_table *sgt;   /* scatterlist for dma mapping */
 
 	/* information about allocated pages */
 	struct MODS_PHYS_CHUNK pages[1];
@@ -193,6 +197,11 @@ struct SYS_MAP_MEMORY {
 	u64 mapping_length; /* tells how many bytes were mapped */
 
 	struct list_head   list;
+};
+
+struct mods_smmu_dev {
+	struct device *dev;
+	char dev_name[MAX_DT_SIZE];
 };
 
 /* functions used to avoid global debug variables */
@@ -453,6 +462,10 @@ int esc_mods_dma_map_memory(struct mods_client         *client,
 			    struct MODS_DMA_MAP_MEMORY *p);
 int esc_mods_dma_unmap_memory(struct mods_client         *client,
 			      struct MODS_DMA_MAP_MEMORY *p);
+int esc_mods_iommu_dma_map_memory(struct mods_client               *client,
+				  struct MODS_IOMMU_DMA_MAP_MEMORY *p);
+int esc_mods_iommu_dma_unmap_memory(struct mods_client               *client,
+				    struct MODS_IOMMU_DMA_MAP_MEMORY *p);
 
 #ifdef CONFIG_ARM
 int esc_mods_memory_barrier(struct mods_client *client);
@@ -671,6 +684,13 @@ void mods_exit_dmabuf(void);
 #else
 static inline int mods_init_dmabuf(void) { return 0; }
 static inline void mods_exit_dmabuf(void) {}
+#endif
+
+#if defined(CONFIG_ARCH_TEGRA)
+int get_mods_smmu_device_index(const char *name);
+struct mods_smmu_dev *get_mods_smmu_device(u32 index);
+int smmu_driver_init(void);
+void smmu_driver_exit(void);
 #endif
 
 #endif	/* _MODS_INTERNAL_H_  */

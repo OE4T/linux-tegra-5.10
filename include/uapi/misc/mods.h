@@ -1188,6 +1188,20 @@ struct MODS_MSR {
 	__u32 high;
 };
 
+/* MODS_ESC_IOMMU_DMA_MAP_MEMORY */
+struct MODS_IOMMU_DMA_MAP_MEMORY {
+	/* IN */
+	__u64 memory_handle;
+	char  dev_name[MAX_DT_SIZE];
+	__u8  flags;
+	__u8  reserved[7]; /* For alignment */
+
+	/* OUT */
+	__u64 physical_address;
+};
+
+#define MODS_IOMMU_MAP_CONTIGUOUS 1
+
 #pragma pack(pop)
 
 /* ************************************************************************* */
@@ -1490,5 +1504,11 @@ struct MODS_MSR {
 #define MODS_ESC_MAP_GPIO                  \
 		   _IOWR(MODS_IOC_MAGIC, 128,            \
 		   struct MODS_GPIO_INFO)
+#define MODS_ESC_IOMMU_DMA_MAP_MEMORY \
+		    _IOW(MODS_IOC_MAGIC, 129, \
+		    struct MODS_IOMMU_DMA_MAP_MEMORY)
+#define MODS_ESC_IOMMU_DMA_UNMAP_MEMORY \
+		    _IOW(MODS_IOC_MAGIC, 130, \
+		    struct MODS_IOMMU_DMA_MAP_MEMORY)
 
 #endif /* _MODS_H_  */
