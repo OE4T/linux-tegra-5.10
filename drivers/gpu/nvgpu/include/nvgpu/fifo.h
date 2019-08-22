@@ -1,5 +1,5 @@
 /*
- * fifo common definitions (gr host)
+ * FIFO common definitions.
  *
  * Copyright (c) 2011-2019, NVIDIA CORPORATION.  All rights reserved.
  *
@@ -62,6 +62,7 @@
  * TODO
  *
  *   + include/nvgpu/pbdma.h
+ *   + include/nvgpu/pbdma_status.h
  *
  * Engines
  * -------
@@ -69,6 +70,7 @@
  * TODO
  *
  *   + include/nvgpu/engines.h
+ *   + include/nvgpu/engine_status.h
  *
  * Preempt
  * -------
@@ -158,16 +160,6 @@
  *   - TODO
  *   - TODO
  *
- * Requirements
- * ============
- *
- * Added this section to link to unit level requirements. Seems like it's
- * missing from the IPP template.
- *
- * Requirement    | Link
- * -----------    | ------------------------------------------------------------
- * NVGPU-RQCD-xx  | https://nvidia.jamacloud.com/perspective.req#/items/xxxxxxxx
- *
  * Open Items
  * ==========
  *
@@ -200,8 +192,7 @@
  */
 #define CTXSW_TIMEOUT_PERIOD_MS		100U
 
-#define PBDMA_SUBDEVICE_ID		1U
-
+/** Subctx id 0 */
 #define CHANNEL_INFO_VEID0		0U
 
 struct gk20a;
@@ -211,16 +202,29 @@ struct nvgpu_channel;
 struct nvgpu_tsg;
 
 struct nvgpu_fifo {
+	/** Pointer to GPU driver struct. */
 	struct gk20a *g;
+	/** Number of channels supported by the h/w. */
 	unsigned int num_channels;
+	/** Runlist entry size in bytes as supported by h/w. */
 	unsigned int runlist_entry_size;
+	/** Number of runlist entries per runlist as supported by the h/w. */
 	unsigned int num_runlist_entries;
 
+	/** Number of PBDMA supported by the h/w. */
 	unsigned int num_pbdma;
+	/**
+	 * This is the area of memory allocated by kernel to store pbdma_map for
+	 * #num_pbdma supported by the chip. This area of memory is used to
+	 * store pbdma map value as read from h/w register. Pbdma_map value
+	 * gives a bitmask describing the runlists that the given pbdma
+	 * will service. Pointer is indexed by pbdma_id starting with 0 to
+	 * #num_pbdma - 1.
+	 */
 	u32 *pbdma_map;
 
 	/**
-	 * This is the area of memory alloced by kernel to keep information for
+	 * This is the area of memory allocated by kernel to keep information for
 	 * #max_engines supported by the chip. This information is filled up
 	 * with device info h/w registers' values. Pointer is indexed by
 	 * engine_id defined by h/w.
@@ -240,7 +244,7 @@ struct nvgpu_fifo {
 	 */
 	u32 num_engines;
 	/**
-	 * This is the area of memory alloced by kernel for #max_engines
+	 * This is the area of memory allocated by kernel for #max_engines
 	 * supported by the chip. This is needed to map engine_id defined
 	 * by s/w to engine_id defined by device info h/w registers.
 	 * This area of memory is indexed by s/w defined engine_id starting
@@ -248,16 +252,20 @@ struct nvgpu_fifo {
 	 */
 	u32 *active_engines_list;
 
-	/* Pointers to runlists, indexed by real hw runlist_id.
+	/**
+	 * Pointers to runlists, indexed by real hw runlist_id.
 	 * If a runlist is active, then runlist_info[runlist_id] points
 	 * to one entry in active_runlist_info. Otherwise, it is NULL.
 	 */
 	struct nvgpu_runlist_info **runlist_info;
+	/** Number of runlists supported by the h/w. */
 	u32 max_runlists;
 
-	/* Array of runlists that are actually in use */
+	/** Array of runlists that are actually in use. */
 	struct nvgpu_runlist_info *active_runlist_info;
-	u32 num_runlists; /* number of active runlists */
+	/** Number of active runlists. */
+	u32 num_runlists;
+
 #ifdef CONFIG_DEBUG_FS
 	struct {
 		struct nvgpu_profile *data;
@@ -276,29 +284,84 @@ struct nvgpu_fifo {
 	u64 userd_gpu_va;
 #endif
 
+	/**
+	 * Number of channels in use. This is incremented by one when a
+	 * channel is opened and decremented by one when a channel is closed by
+	 * userspace.
+	 */
 	unsigned int used_channels;
+	/**
+	 * This is the zero initialized area of memory allocated by kernel for
+	 * storing channel specific data i.e. #nvgpu_channel struct info for
+	 * #num_channels number of channels.
+	 */
 	struct nvgpu_channel *channel;
-	/* zero-kref'd channels here */
+	/** List of channels available for allocation */
 	struct nvgpu_list_node free_chs;
+	/**
+	 * Lock used to read and update #free_chs list. Channel entry is
+	 * removed when a channel is openend and added back to the #free_ch list
+	 * when channel is closed by userspace.
+	 * This lock is also used to protect #used_channels.
+	 */
 	struct nvgpu_mutex free_chs_mutex;
+
+	/** Lock used to prevent multiple recoveries. */
 	struct nvgpu_mutex engines_reset_mutex;
+
+	/** Lock used to update h/w runlist registers for submitting runlist. */
 	struct nvgpu_spinlock runlist_submit_lock;
 
+	/**
+	 * This is the zero initialized area of memory allocated by kernel for
+	 * storing TSG specific data i.e. #nvgpu_tsg struct info for
+	 * #num_channels number of TSG.
+	 */
 	struct nvgpu_tsg *tsg;
+	/**
+	 * Lock used to read and update #nvgpu_tsg.in_use. TSG entry is
+	 * in use when a TSG is openend and not in use when TSG is closed
+	 * by userspace. Refer #nvgpu_tsg.in_use in tsg.h.
+	 */
 	struct nvgpu_mutex tsg_inuse_mutex;
 
+	/**
+	 * Pointer to a function that will be executed when FIFO support
+	 * is requested to be removed. This is supposed to clean up
+	 * all s/w resources used by FIFO module e.g. Channel, TSG, PBDMA,
+	 * Runlist, Engines and USERD.
+	 */
 	void (*remove_support)(struct nvgpu_fifo *f);
+
+	/**
+	 * nvgpu_fifo_setup_sw is skipped if this flag is set to true.
+	 * This gets set to true after successful completion of
+	 * nvgpu_fifo_setup_sw.
+	 */
 	bool sw_ready;
+
+	/** FIFO interrupt related fields. */
 	struct {
-		/* share info between isrs and non-isr code */
+		/** Share info between isrs and non-isr code. */
 		struct {
+			/** Lock for bottom half of isr. */
 			struct nvgpu_mutex mutex;
 		} isr;
+		/** PBDMA interrupt specific data. */
 		struct {
+			/** H/w specific unrecoverable PBDMA interrupts. */
 			u32 device_fatal_0;
+			/**
+			 * H/w specific recoverable PBDMA interrupts that are
+			 * limited to channels. Fixing and clearing the
+			 * interrupt will allow PBDMA to continue.
+			 */
 			u32 channel_fatal_0;
+			/** H/w specific recoverable PBDMA interrupts. */
 			u32 restartable_0;
 		} pbdma;
+
+		/** Engine interrupt specific data. */
 		struct {
 
 		} engine;
@@ -312,18 +375,105 @@ struct nvgpu_fifo {
 	struct nvgpu_mutex deferred_reset_mutex;
 #endif
 
-	/** max number of veid supported by the chip */
+	/** Max number of sub context i.e. veid supported by the h/w. */
 	u32 max_subctx_count;
+	/** Used for vgpu. */
 	u32 channel_base;
 };
 
+/**
+ * @brief Initialize FIFO software context.
+ *
+ * @param g[in]		The GPU driver struct.
+ *
+ * Calls function to do setup_sw. Refer #nvgpu_fifo_setup_sw.
+ * If setup_sw was successful, call function to do setup_hw. This is to take
+ * care of h/w specific setup related to FIFO module.
+ *
+ * @return 0 in case of success, < 0 in case of failure.
+ * @retval Error returned by setup_sw and setup_hw routines.
+ */
 int nvgpu_fifo_init_support(struct gk20a *g);
+
+/**
+ * @brief Initialize FIFO software context and mark it ready to be used.
+ *
+ * @param g[in]		The GPU driver struct.
+ *
+ * Return if #nvgpu_fifo.sw_ready is set to true i.e. s/w set up is already
+ * done.
+ * Call #nvgpu_fifo_setup_sw_common to do s/w set up.
+ * Init channel worker.
+ * Mark FIFO s/w ready by setting #nvgpu_fifo.sw_ready to true.
+ *
+ * @return 0 in case of success, < 0 in case of failure.
+ */
 int nvgpu_fifo_setup_sw(struct gk20a *g);
+
+/**
+ * @brief Initialize FIFO software context.
+ *
+ * @param g[in]		The GPU driver struct.
+ *
+ * Init mutexes needed by FIFO module. Refer #nvgpu_fifo struct.
+ * Do #nvgpu_channel_setup_sw.
+ * Do #nvgpu_tsg_setup_sw.
+ * Do pbdma.setup_sw.
+ * Do #nvgpu_engine_setup_sw.
+ * Do #nvgpu_runlist_setup_sw.
+ * Do userd.setup_sw.
+ * Init #nvgpu_fifo.remove_support function pointer.
+ *
+ * @return 0 in case of success, < 0 in case of failure.
+ * @note In case of failure, cleanup_sw for the blocks that are already
+ *       initialized is also taken care of by this function.
+ */
 int nvgpu_fifo_setup_sw_common(struct gk20a *g);
+
+/**
+ * @brief Clean up FIFO software context.
+ *
+ * @param g[in]		The GPU driver struct.
+ *
+ * Deinit Channel worker thread.
+ * Calls #nvgpu_fifo_cleanup_sw_common.
+ */
 void nvgpu_fifo_cleanup_sw(struct gk20a *g);
+
+/**
+ * @brief Clean up FIFO software context and related resources.
+ *
+ * @param g[in]		The GPU driver struct.
+ *
+ * Do userd.cleanup_sw.
+ * Do #nvgpu_channel_cleanup_sw.
+ * Do #nvgpu_tsg_cleanup_sw.
+ * Do #nvgpu_runlist_cleanup_sw.
+ * Do #nvgpu_engine_cleanup_sw.
+ * Do pbdma.setup_sw.
+ * Destroy mutexes used by FIFO module. Refer #nvgpu_fifo struct.
+ */
 void nvgpu_fifo_cleanup_sw_common(struct gk20a *g);
 
+/**
+ * @brief Decode PBDMA channel status and Engine status read from h/w register.
+ *
+ * @param index[in]	Status value used to index into the constant array of
+ *			constant characters.
+ *
+ * Decode PBDMA channel status and Engine status value read from h/w
+ * register into string format.
+ */
 const char *nvgpu_fifo_decode_pbdma_ch_eng_status(u32 index);
+
+/**
+ * @brief Suspend FIFO support while preparing GPU for poweroff.
+ *
+ * @param g[in]		The GPU driver struct.
+ *
+ * Suspending FIFO will disable BAR1 snooping (if supported by h/w) and also
+ * FIFO interrupts.
+ */
 int nvgpu_fifo_suspend(struct gk20a *g);
 #ifndef CONFIG_NVGPU_RECOVERY
 void nvgpu_fifo_sw_quiesce(struct gk20a *g);
