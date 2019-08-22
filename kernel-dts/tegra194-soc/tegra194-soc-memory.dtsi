@@ -644,4 +644,21 @@
 	dma_test: dma_test {
 		compatible = "nvidia,dma_test";
 	};
+
+	mods_smmu: mods_smmu {
+		compatible = "nvidia,mods_smmu";
+		iommus = <&smmu TEGRA_SID_SMMU_TEST>;
+		dma-coherent;
+		dev-names = "mods_smmu";
+		status = "disabled";
+	};
+
+	mods_iso_smmu: mods_iso_smmu {
+		compatible = "nvidia,mods_smmu";
+		iommus = <&smmu TEGRA_SID_SMMU_TEST>;
+		iso-smmu;
+		non-coherent;
+		dev-names = "mods_iso_smmu";
+		status = "disabled";
+	};
 };
