@@ -803,8 +803,13 @@ static irqreturn_t tegra_pcie_rp_irq_handler(struct tegra_pcie_dw *pcie)
 			writel(APPL_INTR_STATUS_L1_8_0_BW_MGT_INT_STS,
 			       pcie->appl_base + APPL_INTR_STATUS_L1_8_0);
 
+			/* Clear BW Management Status */
 			dw_pcie_read(pci->dbi_base +
-					 CFG_LINK_STATUS_CONTROL, 4, &val);
+				     CFG_LINK_STATUS_CONTROL, 4, &val);
+			val |= CFG_LINK_STATUS_BW_MAN_STATUS;
+			dw_pcie_write(pci->dbi_base +
+				      CFG_LINK_STATUS_CONTROL, 4, val);
+
 			dev_dbg(pci->dev, "Link Speed : Gen-%u\n", (val >> 16) &
 					   PCI_EXP_LNKSTA_CLS);
 		}
