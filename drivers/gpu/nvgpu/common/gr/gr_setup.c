@@ -99,15 +99,10 @@ int nvgpu_gr_setup_bind_ctxsw_zcull(struct gk20a *g, struct nvgpu_channel *c,
 }
 #endif
 
-int nvgpu_gr_setup_alloc_obj_ctx(struct nvgpu_channel *c, u32 class_num,
-		u32 flags)
+static int nvgpu_gr_setup_validate_channel_and_class(struct gk20a *g,
+					struct nvgpu_channel *c, u32 class_num)
 {
-	struct gk20a *g = c->g;
-	struct nvgpu_gr_ctx *gr_ctx;
-	struct nvgpu_tsg *tsg = NULL;
 	int err = 0;
-
-	nvgpu_log_fn(g, " ");
 
 	/* an address space needs to have been bound at this point.*/
 	if (!nvgpu_channel_as_bound(c) && (c->vm == NULL)) {
@@ -121,8 +116,41 @@ int nvgpu_gr_setup_alloc_obj_ctx(struct nvgpu_channel *c, u32 class_num,
 		nvgpu_err(g,
 			   "invalid obj class 0x%x", class_num);
 		err = -EINVAL;
+	}
+
+	return err;
+}
+
+static int nvgpu_gr_setup_alloc_subctx(struct gk20a *g, struct nvgpu_channel *c)
+{
+	int err = 0;
+
+	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_TSG_SUBCONTEXTS)) {
+		if (c->subctx == NULL) {
+			c->subctx = nvgpu_gr_subctx_alloc(g, c->vm);
+			if (c->subctx == NULL) {
+				err = -ENOMEM;
+			}
+		}
+	}
+
+	return err;
+}
+
+int nvgpu_gr_setup_alloc_obj_ctx(struct nvgpu_channel *c, u32 class_num,
+		u32 flags)
+{
+	struct gk20a *g = c->g;
+	struct nvgpu_gr_ctx *gr_ctx;
+	struct nvgpu_tsg *tsg = NULL;
+	int err = 0;
+
+	nvgpu_log_fn(g, " ");
+
+	if (nvgpu_gr_setup_validate_channel_and_class(g, c, class_num) != 0) {
 		goto out;
 	}
+
 	c->obj_class = class_num;
 
 	tsg = nvgpu_tsg_from_ch(c);
@@ -132,14 +160,11 @@ int nvgpu_gr_setup_alloc_obj_ctx(struct nvgpu_channel *c, u32 class_num,
 
 	gr_ctx = tsg->gr_ctx;
 
-	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_TSG_SUBCONTEXTS)) {
-		if (c->subctx == NULL) {
-			c->subctx = nvgpu_gr_subctx_alloc(g, c->vm);
-			if (c->subctx == NULL) {
-				err = -ENOMEM;
-				goto out;
-			}
-		}
+
+	err = nvgpu_gr_setup_alloc_subctx(g, c);
+	if (err != 0) {
+		nvgpu_err(g, "failed to allocate gr subctx buffer");
+		goto out;
 	}
 
 	if (!nvgpu_mem_is_valid(nvgpu_gr_ctx_get_ctx_mem(gr_ctx))) {
@@ -224,6 +249,34 @@ void nvgpu_gr_setup_free_subctx(struct nvgpu_channel *c)
 	}
 }
 
+static bool nvgpu_gr_setup_validate_preemption_mode(u32 *graphics_preempt_mode,
+				u32 *compute_preempt_mode,
+				struct nvgpu_gr_ctx *gr_ctx)
+{
+#ifdef CONFIG_NVGPU_GRAPHICS
+	/* skip setting anything if both modes are already set */
+	if ((*graphics_preempt_mode != 0U) &&
+		(*graphics_preempt_mode ==
+			nvgpu_gr_ctx_get_graphics_preemption_mode(gr_ctx))) {
+		*graphics_preempt_mode = 0;
+	}
+#endif /* CONFIG_NVGPU_GRAPHICS */
+
+	if ((*compute_preempt_mode != 0U) &&
+	    (*compute_preempt_mode ==
+		    nvgpu_gr_ctx_get_compute_preemption_mode(gr_ctx))) {
+		*compute_preempt_mode = 0;
+	}
+
+	if ((*graphics_preempt_mode == 0U) && (*compute_preempt_mode == 0U)) {
+		return false;
+	}
+
+	return true;
+}
+
+
+
 int nvgpu_gr_setup_set_preemption_mode(struct nvgpu_channel *ch,
 					u32 graphics_preempt_mode,
 					u32 compute_preempt_mode)
@@ -248,22 +301,8 @@ int nvgpu_gr_setup_set_preemption_mode(struct nvgpu_channel *ch,
 	vm = tsg->vm;
 	gr_ctx = tsg->gr_ctx;
 
-#ifdef CONFIG_NVGPU_GRAPHICS
-	/* skip setting anything if both modes are already set */
-	if ((graphics_preempt_mode != 0U) &&
-		(graphics_preempt_mode ==
-			nvgpu_gr_ctx_get_graphics_preemption_mode(gr_ctx))) {
-		graphics_preempt_mode = 0;
-	}
-#endif /* CONFIG_NVGPU_GRAPHICS */
-
-	if ((compute_preempt_mode != 0U) &&
-	    (compute_preempt_mode ==
-		    nvgpu_gr_ctx_get_compute_preemption_mode(gr_ctx))) {
-		compute_preempt_mode = 0;
-	}
-
-	if ((graphics_preempt_mode == 0U) && (compute_preempt_mode == 0U)) {
+	if (nvgpu_gr_setup_validate_preemption_mode(&graphics_preempt_mode,
+				&compute_preempt_mode, gr_ctx) == false) {
 		return 0;
 	}
 
