@@ -434,47 +434,14 @@ error:
 	return err;
 }
 
-/*
- * init global golden image from a fresh gr_ctx in channel ctx.
- * save a copy in local_golden_image in ctx_vars
- */
-int nvgpu_gr_obj_ctx_alloc_golden_ctx_image(struct gk20a *g,
-	struct nvgpu_gr_obj_ctx_golden_image *golden_image,
-	struct nvgpu_gr_global_ctx_buffer_desc *global_ctx_buffer,
-	struct nvgpu_gr_config *config,
-	struct nvgpu_gr_ctx *gr_ctx,
-	struct nvgpu_mem *inst_block)
+static int nvgpu_gr_obj_ctx_init_hw_state(struct gk20a *g,
+					struct nvgpu_mem *inst_block)
 {
-	u32 i;
-	u64 size;
-	struct nvgpu_mem *gr_mem;
 	int err = 0;
+	u32 data;
+	u32 i;
 	struct netlist_aiv_list *sw_ctx_load =
 				nvgpu_netlist_get_sw_ctx_load_aiv_list(g);
-	struct netlist_av_list *sw_method_init =
-				nvgpu_netlist_get_sw_method_init_av_list(g);
-	u32 data;
-#ifdef CONFIG_NVGPU_GR_GOLDEN_CTX_VERIFICATION
-	struct netlist_av_list *sw_bundle_init =
-			nvgpu_netlist_get_sw_bundle_init_av_list(g);
-	struct nvgpu_gr_global_ctx_local_golden_image *local_golden_image_temp =
-									NULL;
-#endif
-
-	nvgpu_log_fn(g, " ");
-
-	gr_mem = nvgpu_gr_ctx_get_ctx_mem(gr_ctx);
-
-	/*
-	 * golden ctx is global to all channels. Although only the first
-	 * channel initializes golden image, driver needs to prevent multiple
-	 * channels from initializing golden ctx at the same time
-	 */
-	nvgpu_mutex_acquire(&golden_image->ctx_mutex);
-
-	if (golden_image->ready) {
-		goto clean_up;
-	}
 
 	err = g->ops.gr.init.fe_pwr_mode_force_on(g, true);
 	if (err != 0) {
@@ -509,13 +476,25 @@ int nvgpu_gr_obj_ctx_alloc_golden_ctx_image(struct gk20a *g,
 			goto clean_up;
 		}
 	}
-
 	nvgpu_cg_blcg_gr_load_enable(g);
 
 	err = g->ops.gr.init.wait_idle(g);
-	if (err != 0) {
-		goto clean_up;
-	}
+
+clean_up:
+	return err;
+}
+
+static int nvgpu_gr_obj_ctx_commit_hw_state(struct gk20a *g,
+	struct nvgpu_gr_global_ctx_buffer_desc *global_ctx_buffer,
+	struct nvgpu_gr_config *config, struct nvgpu_gr_ctx *gr_ctx)
+{
+	int err = 0;
+	struct netlist_av_list *sw_method_init =
+				nvgpu_netlist_get_sw_method_init_av_list(g);
+#ifdef CONFIG_NVGPU_GR_GOLDEN_CTX_VERIFICATION
+	struct netlist_av_list *sw_bundle_init =
+			nvgpu_netlist_get_sw_bundle_init_av_list(g);
+#endif
 
 	/* disable fe_go_idle */
 	g->ops.gr.init.fe_go_idle_timeout(g, false);
@@ -565,16 +544,25 @@ restore_fe_go_idle:
 #endif
 
 	err = g->ops.gr.init.wait_idle(g);
-	if (err != 0) {
-		goto clean_up;
-	}
 
-#ifdef CONFIG_NVGPU_GRAPHICS
-	err = nvgpu_gr_ctx_init_zcull(g, gr_ctx);
-	if (err != 0) {
-		goto clean_up;
-	}
+clean_up:
+	return err;
+}
+
+static int nvgpu_gr_obj_ctx_save_golden_ctx(struct gk20a *g,
+	struct nvgpu_gr_obj_ctx_golden_image *golden_image,
+	struct nvgpu_gr_ctx *gr_ctx, struct nvgpu_mem *inst_block)
+{
+	int err = 0;
+	struct nvgpu_mem *gr_mem;
+	u64 size;
+	u32 data;
+#ifdef CONFIG_NVGPU_GR_GOLDEN_CTX_VERIFICATION
+	struct nvgpu_gr_global_ctx_local_golden_image *local_golden_image_temp =
+									NULL;
 #endif
+
+	gr_mem = nvgpu_gr_ctx_get_ctx_mem(gr_ctx);
 
 #ifdef CONFIG_NVGPU_GR_GOLDEN_CTX_VERIFICATION
 	/*
@@ -642,15 +630,8 @@ restore_fe_go_idle:
 		size)) {
 		nvgpu_err(g, "golden context mismatch");
 		err = -ENOMEM;
-		goto clean_up;
 	}
 #endif
-
-	golden_image->ready = true;
-#ifdef CONFIG_NVGPU_LS_PMU
-	nvgpu_pmu_set_golden_image_initialized(g, true);
-#endif
-	g->ops.gr.falcon.set_current_ctx_invalid(g);
 
 clean_up:
 #ifdef CONFIG_NVGPU_GR_GOLDEN_CTX_VERIFICATION
@@ -659,6 +640,67 @@ clean_up:
 						local_golden_image_temp);
 	}
 #endif
+	return err;
+}
+
+/*
+ * init global golden image from a fresh gr_ctx in channel ctx.
+ * save a copy in local_golden_image in ctx_vars
+ */
+int nvgpu_gr_obj_ctx_alloc_golden_ctx_image(struct gk20a *g,
+	struct nvgpu_gr_obj_ctx_golden_image *golden_image,
+	struct nvgpu_gr_global_ctx_buffer_desc *global_ctx_buffer,
+	struct nvgpu_gr_config *config,
+	struct nvgpu_gr_ctx *gr_ctx,
+	struct nvgpu_mem *inst_block)
+{
+	int err = 0;
+
+	nvgpu_log_fn(g, " ");
+
+
+	/*
+	 * golden ctx is global to all channels. Although only the first
+	 * channel initializes golden image, driver needs to prevent multiple
+	 * channels from initializing golden ctx at the same time
+	 */
+	nvgpu_mutex_acquire(&golden_image->ctx_mutex);
+
+	if (golden_image->ready) {
+		goto clean_up;
+	}
+
+	err = nvgpu_gr_obj_ctx_init_hw_state(g, inst_block);
+	if (err != 0) {
+		goto clean_up;
+	}
+
+	err = nvgpu_gr_obj_ctx_commit_hw_state(g, global_ctx_buffer,
+							config, gr_ctx);
+	if (err != 0) {
+		goto clean_up;
+	}
+
+#ifdef CONFIG_NVGPU_GRAPHICS
+	err = nvgpu_gr_ctx_init_zcull(g, gr_ctx);
+	if (err != 0) {
+		goto clean_up;
+	}
+#endif
+
+	err = nvgpu_gr_obj_ctx_save_golden_ctx(g, golden_image,
+							gr_ctx, inst_block);
+	if (err != 0) {
+		goto clean_up;
+	}
+
+	golden_image->ready = true;
+#ifdef CONFIG_NVGPU_LS_PMU
+	nvgpu_pmu_set_golden_image_initialized(g, true);
+#endif
+	g->ops.gr.falcon.set_current_ctx_invalid(g);
+
+clean_up:
 	if (err != 0) {
 		nvgpu_err(g, "fail");
 	} else {
