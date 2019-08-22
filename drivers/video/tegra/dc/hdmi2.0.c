@@ -2617,13 +2617,6 @@ static int _tegra_hdmi_v2_x_config(struct tegra_hdmi *hdmi)
 #undef SCDC_STABILIZATION_DELAY_MS
 }
 
-static int tegra_hdmi_v2_x_config(struct tegra_hdmi *hdmi)
-{
-	_tegra_hdmi_v2_x_config(hdmi);
-
-	return 0;
-}
-
 static void tegra_hdmi_scdc_worker(struct work_struct *work)
 {
 	struct tegra_hdmi *hdmi = container_of(to_delayed_work(work),
@@ -2883,7 +2876,6 @@ static int tegra_hdmi_controller_enable(struct tegra_hdmi *hdmi)
 	tegra_sor_writel(sor,  NV_SOR_PWR, 0x80000001);
 
 	if (tegra_sor_get_link_rate(hdmi->dc) > 340000000) {
-		tegra_hdmi_v2_x_config(hdmi);
 		schedule_delayed_work(&hdmi->scdc_work,
 			msecs_to_jiffies(HDMI_SCDC_MONITOR_TIMEOUT_MS));
 	}
