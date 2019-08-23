@@ -138,7 +138,7 @@
 #define fifo_intr_pbdma_id_status_f(v, i)\
 		((U32(v) & 0x1U) << (0U + (i)*1U))
 #define fifo_intr_pbdma_id_status_v(r, i)\
-		(((r) >> (0U + i*1U)) & 0x1U)
+		(((r) >> (0U + (i)*1U)) & 0x1U)
 #define fifo_intr_pbdma_id_status__size_1_v()                      (0x00000001U)
 #define fifo_intr_runlist_r()                                      (0x00002a00U)
 #define fifo_fb_timeout_r()                                        (0x00002a04U)

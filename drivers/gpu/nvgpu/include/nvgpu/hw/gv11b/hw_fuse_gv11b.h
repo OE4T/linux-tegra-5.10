@@ -82,7 +82,7 @@
 		(nvgpu_safe_add_u32(0x00021d70U, nvgpu_safe_mult_u32((i), 4U)))
 #define fuse_status_opt_fbp_r()                                    (0x00021d38U)
 #define fuse_status_opt_fbp_idx_v(r, i)\
-		(((r) >> (0U + i*1U)) & 0x1U)
+		(((r) >> (0U + (i)*1U)) & 0x1U)
 #define fuse_opt_ecc_en_r()                                        (0x00021228U)
 #define fuse_opt_feature_fuses_override_disable_r()                (0x000213f0U)
 #define fuse_opt_sec_debug_en_r()                                  (0x00021218U)
