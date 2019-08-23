@@ -312,7 +312,7 @@ bool nvgpu_gr_global_ctx_compare_golden_images(struct gk20a *g,
 			is_identical = false;
 		}
 	} else {
-		for( i = 0U; i < U32(size/sizeof(u32));
+		for( i = 0U; i < nvgpu_safe_cast_u64_to_u32(size/sizeof(u32));
 					i = nvgpu_safe_add_u32(i, 1U)) {
 			if (*(data1 + i) != *(data2 + i)) {
 				is_identical = false;
