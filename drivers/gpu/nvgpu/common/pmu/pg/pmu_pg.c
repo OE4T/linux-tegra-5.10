@@ -798,6 +798,8 @@ static void pmu_pg_kill_task(struct gk20a *g, struct nvgpu_pmu *pmu,
 			nvgpu_udelay(2);
 		} while (nvgpu_timeout_expired_msg(&timeout,
 			"timeout - waiting PMU state machine thread stop") == 0);
+		/* Reset the flag for next time */
+		pmu->pg->pg_init.state_destroy = false;
 	} else {
 		nvgpu_thread_join(&pg->pg_init.state_task);
 	}
@@ -821,7 +823,7 @@ static int pmu_pg_task(void *arg)
 		pmu->pg->pg_init.state_change = false;
 		pmu_state = nvgpu_pmu_get_fw_state(g, pmu);
 
-		if (pmu_state == PMU_FW_STATE_EXIT) {
+		if (pmu->pg->pg_init.state_destroy) {
 			nvgpu_pmu_dbg(g, "pmu state exit");
 			break;
 		}

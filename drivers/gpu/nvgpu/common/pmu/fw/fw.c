@@ -65,6 +65,10 @@ void nvgpu_pmu_fw_state_change(struct gk20a *g, struct nvgpu_pmu *pmu,
 	nvgpu_smp_wmb();
 	pmu->fw->state = pmu_state;
 
+	/* Set a sticky flag to indicate PMU state exit */
+	if (pmu_state == PMU_FW_STATE_EXIT) {
+		pmu->pg->pg_init.state_destroy = true;
+	}
 	if (post_change_event) {
 		if (g->can_elpg) {
 			pmu->pg->pg_init.state_change = true;

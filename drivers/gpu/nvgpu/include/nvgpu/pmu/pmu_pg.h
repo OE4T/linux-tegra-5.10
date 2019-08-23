@@ -61,6 +61,7 @@ struct pmu_pg_stats_data;
 
 struct nvgpu_pg_init {
 	bool state_change;
+	bool state_destroy;
 	struct nvgpu_cond wq;
 	struct nvgpu_thread state_task;
 };
