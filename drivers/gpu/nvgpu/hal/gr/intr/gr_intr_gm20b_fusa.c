@@ -456,6 +456,7 @@ u64 gm20b_gr_intr_tpc_enabled_exceptions(struct gk20a *g)
 {
 	u32 sm_id;
 	u64 tpc_exception_en = 0;
+	u32 sm_bit_in_tpc = 0U;
 	u32 offset, regval, tpc_offset, gpc_offset;
 	u32 gpc_stride = nvgpu_get_litter_value(g, GPU_LIT_GPC_STRIDE);
 	u32 tpc_in_gpc_stride = nvgpu_get_litter_value(g, GPU_LIT_TPC_IN_GPC_STRIDE);
@@ -474,9 +475,9 @@ u64 gm20b_gr_intr_tpc_enabled_exceptions(struct gk20a *g)
 		regval = gk20a_readl(g,	nvgpu_safe_add_u32(
 			      gr_gpc0_tpc0_tpccs_tpc_exception_en_r(), offset));
 		/* Each bit represents corresponding enablement state, bit 0 corrsponds to SM0 */
-		tpc_exception_en |=
-			(u64)gr_gpc0_tpc0_tpccs_tpc_exception_en_sm_v(regval) <<
-				(u64)sm_id;
+		sm_bit_in_tpc =
+			gr_gpc0_tpc0_tpccs_tpc_exception_en_sm_v(regval);
+		tpc_exception_en |= (u64)sm_bit_in_tpc << sm_id;
 	}
 
 	return tpc_exception_en;

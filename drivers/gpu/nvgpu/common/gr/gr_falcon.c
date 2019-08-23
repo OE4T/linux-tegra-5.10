@@ -600,7 +600,7 @@ static int gr_falcon_recovery_bootstrap(struct gk20a *g,
 		err = gr_falcon_sec2_or_ls_pmu_bootstrap(g,
 					&bootstrap,
 					falcon_idmask);
-		if (!bootstrap) {
+		if ((err == 0) && (!bootstrap)) {
 			err = nvgpu_acr_bootstrap_hs_acr(g, g->acr);
 			if (err != 0) {
 				nvgpu_err(g,
@@ -636,7 +636,7 @@ static int gr_falcon_coldboot_bootstrap(struct gk20a *g,
 		err = gr_falcon_sec2_or_ls_pmu_bootstrap(g,
 					&bootstrap,
 					(u32)falcon_id_mask);
-		if (!bootstrap) {
+		if ((err == 0) && (!bootstrap)) {
 			/* GR falcons bootstrapped by ACR */
 			err = 0;
 		}

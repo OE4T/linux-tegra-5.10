@@ -69,9 +69,11 @@ static int nvgpu_gr_obj_ctx_init_ctxsw_preemption_mode(struct gk20a *g,
 	struct nvgpu_gr_ctx *gr_ctx, struct vm_gk20a *vm,
 	u32 class_num, u32 flags)
 {
+#if defined(CONFIG_NVGPU_GRAPHICS) || defined(CONFIG_NVGPU_CILP)
 	int err;
-	u32 graphics_preempt_mode = 0;
-	u32 compute_preempt_mode = 0;
+	u32 graphics_preempt_mode = 0U;
+	u32 compute_preempt_mode = 0U;
+#endif
 
 	nvgpu_log_fn(g, " ");
 
@@ -81,7 +83,6 @@ static int nvgpu_gr_obj_ctx_init_ctxsw_preemption_mode(struct gk20a *g,
 			nvgpu_gr_ctx_init_compute_preemption_mode(gr_ctx,
 				NVGPU_PREEMPTION_MODE_COMPUTE_CTA);
 		}
-
 		return 0;
 	}
 
@@ -96,6 +97,7 @@ static int nvgpu_gr_obj_ctx_init_ctxsw_preemption_mode(struct gk20a *g,
 	}
 #endif
 
+#if defined(CONFIG_NVGPU_GRAPHICS) || defined(CONFIG_NVGPU_CILP)
 	if ((graphics_preempt_mode != 0U) || (compute_preempt_mode != 0U)) {
 		err = nvgpu_gr_obj_ctx_set_ctxsw_preemption_mode(g, config,
 			gr_ctx_desc, gr_ctx, vm, class_num, graphics_preempt_mode,
@@ -105,6 +107,7 @@ static int nvgpu_gr_obj_ctx_init_ctxsw_preemption_mode(struct gk20a *g,
 			return err;
 		}
 	}
+#endif
 
 	nvgpu_log_fn(g, "done");
 
@@ -203,9 +206,6 @@ static int nvgpu_gr_obj_ctx_set_compute_preemption_mode(struct gk20a *g,
 
 	return 0;
 }
-
-
-
 
 int nvgpu_gr_obj_ctx_set_ctxsw_preemption_mode(struct gk20a *g,
 	struct nvgpu_gr_config *config, struct nvgpu_gr_ctx_desc *gr_ctx_desc,
@@ -537,7 +537,7 @@ restore_fe_go_idle:
 
 #ifdef CONFIG_NVGPU_GR_GOLDEN_CTX_VERIFICATION
 	/* restore stats bundle data through mme shadow methods */
-	if (g->ops.gr.init.restore_stats_counter_bundle_data != 0) {
+	if (g->ops.gr.init.restore_stats_counter_bundle_data != NULL) {
 		g->ops.gr.init.restore_stats_counter_bundle_data(g,
 							sw_bundle_init);
 	}

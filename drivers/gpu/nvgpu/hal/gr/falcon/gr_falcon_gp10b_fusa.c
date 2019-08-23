@@ -72,8 +72,8 @@ int gp10b_gr_falcon_ctrl_ctxsw(struct gk20a *g, u32 fecs_method,
 	nvgpu_log_info(g, "fecs method %d data 0x%x ret_val %p",
 				fecs_method, data, ret_val);
 
-	switch (fecs_method) {
 #ifdef CONFIG_NVGPU_GRAPHICS
+	switch (fecs_method) {
 	case NVGPU_GR_FALCON_METHOD_PREEMPT_IMAGE_SIZE:
 		op.method.addr =
 			gr_fecs_method_push_adr_discover_preemption_image_size_v();
@@ -90,11 +90,14 @@ int gp10b_gr_falcon_ctrl_ctxsw(struct gk20a *g, u32 fecs_method,
 		op.cond.ok = GR_IS_UCODE_OP_EQUAL;
 		ret = gm20b_gr_falcon_submit_fecs_sideband_method_op(g, op);
 	break;
-#endif
+
 	default:
+#endif
 		ret = gm20b_gr_falcon_ctrl_ctxsw(g, fecs_method, data, ret_val);
+#ifdef CONFIG_NVGPU_GRAPHICS
 	break;
 	}
+#endif
 	return ret;
 
 }
