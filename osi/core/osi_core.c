@@ -866,7 +866,7 @@ int osi_ptp_configuration(struct osi_core_priv_data *osi_core,
 		 * 2^x * y == (y << x), hence
 		 * 2^32 * 6250000 ==> (6250000 << 32)
 		 */
-		temp = (unsigned long)(OSI_ETHER_SYSCLOCK << 32);
+		temp = ((unsigned long)OSI_ETHER_SYSCLOCK << 32);
 		temp1 = div_u64(temp,
 				(unsigned long)osi_core->ptp_config.ptp_ref_clk_rate);
 		if (temp1 < UINT_MAX) {

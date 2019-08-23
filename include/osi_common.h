@@ -36,7 +36,7 @@
 #define OSI_INVALID_VALUE	0xFFFFFFFFU
 
 /* System clock is 62.5MHz */
-#define OSI_ETHER_SYSCLOCK		62500000ULL
+#define OSI_ETHER_SYSCLOCK		62500000U
 #define OSI_ONE_MEGA_HZ			1000000U
 #define OSI_MAX_RX_COALESCE_USEC	1020U
 #define OSI_MIN_RX_COALESCE_USEC	3U
@@ -57,6 +57,9 @@
 #ifndef UINT_MAX
 #define UINT_MAX			(~0U)
 #endif
+#ifndef INT_MAX
+#define INT_MAX				(0x7FFFFFFF)
+#endif
 
 /* MAC Time stamp contorl reg bit fields */
 #define OSI_MAC_TCR_TSENA		OSI_BIT(0)
@@ -74,7 +77,8 @@
 #define OSI_MAC_TCR_SNAPTYPSEL_3	(OSI_BIT(16) | OSI_BIT(17))
 #define OSI_MAC_TCR_AV8021ASMEN		OSI_BIT(28)
 
-#define OSI_UCHAR_MAX			0xFFU
+#define OSI_ULLONG_MAX			(~0ULL)
+#define OSI_UCHAR_MAX			(0xFFU)
 
 /* Default maximum Gaint Packet Size Limit */
 #define OSI_MAX_MTU_SIZE	9000U
@@ -122,6 +126,13 @@
 #define OSI_IP4_FILTER		0U
 #define OSI_IP6_FILTER		1U
 
+#define CHECK_CHAN_BOUND(chan)						\
+	{								\
+		if ((chan) >= OSI_EQOS_MAX_NUM_CHANS) {			\
+			return;						\
+		}							\
+	}								\
+
 #define OSI_BIT(nr)             ((unsigned int)1 << (nr))
 
 #define OSI_EQOS_MAC_4_10       0x41U
@@ -142,7 +153,7 @@
 #define MAX_ETH_FRAME_LEN_DEFAULT \
 	(NV_ETH_FRAME_LEN + NV_ETH_FCS_LEN + NV_VLAN_HLEN)
 
-#define L32(data)       ((data) & 0xFFFFFFFFUL)
+#define L32(data)       ((data) & 0xFFFFFFFFU)
 #define H32(data)       (((data) & 0xFFFFFFFF00000000UL) >> 32UL)
 
 #define OSI_INVALID_CHAN_NUM    0xFFU
