@@ -296,7 +296,7 @@ void gv11b_slcg_bus_load_gating_prod(struct gk20a *g,
 			u32 reg = gv11b_slcg_bus[i].addr;
 			u32 val = prod ? gv11b_slcg_bus[i].prod :
 					 gv11b_slcg_bus[i].disable;
-			gk20a_writel(g, reg, val);
+			nvgpu_writel(g, reg, val);
 		}
 	}
 }
@@ -323,7 +323,7 @@ void gv11b_slcg_ce2_load_gating_prod(struct gk20a *g,
 			u32 reg = gv11b_slcg_ce2[i].addr;
 			u32 val = prod ? gv11b_slcg_ce2[i].prod :
 					 gv11b_slcg_ce2[i].disable;
-			gk20a_writel(g, reg, val);
+			nvgpu_writel(g, reg, val);
 		}
 	}
 }
@@ -350,7 +350,7 @@ void gv11b_slcg_chiplet_load_gating_prod(struct gk20a *g,
 			u32 reg = gv11b_slcg_chiplet[i].addr;
 			u32 val = prod ? gv11b_slcg_chiplet[i].prod :
 					 gv11b_slcg_chiplet[i].disable;
-			gk20a_writel(g, reg, val);
+			nvgpu_writel(g, reg, val);
 		}
 	}
 }
@@ -394,7 +394,7 @@ void gv11b_slcg_fb_load_gating_prod(struct gk20a *g,
 			u32 reg = gv11b_slcg_fb[i].addr;
 			u32 val = prod ? gv11b_slcg_fb[i].prod :
 					 gv11b_slcg_fb[i].disable;
-			gk20a_writel(g, reg, val);
+			nvgpu_writel(g, reg, val);
 		}
 	}
 }
@@ -421,7 +421,7 @@ void gv11b_slcg_fifo_load_gating_prod(struct gk20a *g,
 			u32 reg = gv11b_slcg_fifo[i].addr;
 			u32 val = prod ? gv11b_slcg_fifo[i].prod :
 					 gv11b_slcg_fifo[i].disable;
-			gk20a_writel(g, reg, val);
+			nvgpu_writel(g, reg, val);
 		}
 	}
 }
@@ -448,7 +448,7 @@ void gv11b_slcg_gr_load_gating_prod(struct gk20a *g,
 			u32 reg = gv11b_slcg_gr[i].addr;
 			u32 val = prod ? gv11b_slcg_gr[i].prod :
 					 gv11b_slcg_gr[i].disable;
-			gk20a_writel(g, reg, val);
+			nvgpu_writel(g, reg, val);
 		}
 	}
 }
@@ -475,7 +475,7 @@ void gv11b_slcg_ltc_load_gating_prod(struct gk20a *g,
 			u32 reg = gv11b_slcg_ltc[i].addr;
 			u32 val = prod ? gv11b_slcg_ltc[i].prod :
 					 gv11b_slcg_ltc[i].disable;
-			gk20a_writel(g, reg, val);
+			nvgpu_writel(g, reg, val);
 		}
 	}
 }
@@ -502,7 +502,7 @@ void gv11b_slcg_perf_load_gating_prod(struct gk20a *g,
 			u32 reg = gv11b_slcg_perf[i].addr;
 			u32 val = prod ? gv11b_slcg_perf[i].prod :
 					 gv11b_slcg_perf[i].disable;
-			gk20a_writel(g, reg, val);
+			nvgpu_writel(g, reg, val);
 		}
 	}
 }
@@ -529,7 +529,7 @@ void gv11b_slcg_priring_load_gating_prod(struct gk20a *g,
 			u32 reg = gv11b_slcg_priring[i].addr;
 			u32 val = prod ? gv11b_slcg_priring[i].prod :
 					 gv11b_slcg_priring[i].disable;
-			gk20a_writel(g, reg, val);
+			nvgpu_writel(g, reg, val);
 		}
 	}
 }
@@ -556,7 +556,7 @@ void gv11b_slcg_pwr_csb_load_gating_prod(struct gk20a *g,
 			u32 reg = gv11b_slcg_pwr_csb[i].addr;
 			u32 val = prod ? gv11b_slcg_pwr_csb[i].prod :
 					 gv11b_slcg_pwr_csb[i].disable;
-			gk20a_writel(g, reg, val);
+			nvgpu_writel(g, reg, val);
 		}
 	}
 }
@@ -583,7 +583,7 @@ void gv11b_slcg_pmu_load_gating_prod(struct gk20a *g,
 			u32 reg = gv11b_slcg_pmu[i].addr;
 			u32 val = prod ? gv11b_slcg_pmu[i].prod :
 					 gv11b_slcg_pmu[i].disable;
-			gk20a_writel(g, reg, val);
+			nvgpu_writel(g, reg, val);
 		}
 	}
 }
@@ -610,7 +610,7 @@ void gv11b_slcg_therm_load_gating_prod(struct gk20a *g,
 			u32 reg = gv11b_slcg_therm[i].addr;
 			u32 val = prod ? gv11b_slcg_therm[i].prod :
 					 gv11b_slcg_therm[i].disable;
-			gk20a_writel(g, reg, val);
+			nvgpu_writel(g, reg, val);
 		}
 	}
 }
@@ -637,7 +637,7 @@ void gv11b_slcg_xbar_load_gating_prod(struct gk20a *g,
 			u32 reg = gv11b_slcg_xbar[i].addr;
 			u32 val = prod ? gv11b_slcg_xbar[i].prod :
 					 gv11b_slcg_xbar[i].disable;
-			gk20a_writel(g, reg, val);
+			nvgpu_writel(g, reg, val);
 		}
 	}
 }
@@ -664,7 +664,7 @@ void gv11b_slcg_hshub_load_gating_prod(struct gk20a *g,
 			u32 reg = gv11b_slcg_hshub[i].addr;
 			u32 val = prod ? gv11b_slcg_hshub[i].prod :
 					 gv11b_slcg_hshub[i].disable;
-			gk20a_writel(g, reg, val);
+			nvgpu_writel(g, reg, val);
 		}
 	}
 }
@@ -691,7 +691,7 @@ void gv11b_blcg_bus_load_gating_prod(struct gk20a *g,
 			u32 reg = gv11b_blcg_bus[i].addr;
 			u32 val = prod ? gv11b_blcg_bus[i].prod :
 					 gv11b_blcg_bus[i].disable;
-			gk20a_writel(g, reg, val);
+			nvgpu_writel(g, reg, val);
 		}
 	}
 }
@@ -718,7 +718,7 @@ void gv11b_blcg_ce_load_gating_prod(struct gk20a *g,
 			u32 reg = gv11b_blcg_ce[i].addr;
 			u32 val = prod ? gv11b_blcg_ce[i].prod :
 					 gv11b_blcg_ce[i].disable;
-			gk20a_writel(g, reg, val);
+			nvgpu_writel(g, reg, val);
 		}
 	}
 }
@@ -745,7 +745,7 @@ void gv11b_blcg_ctxsw_firmware_load_gating_prod(struct gk20a *g,
 			u32 reg = gv11b_blcg_ctxsw_firmware[i].addr;
 			u32 val = prod ? gv11b_blcg_ctxsw_firmware[i].prod :
 					 gv11b_blcg_ctxsw_firmware[i].disable;
-			gk20a_writel(g, reg, val);
+			nvgpu_writel(g, reg, val);
 		}
 	}
 }
@@ -772,7 +772,7 @@ void gv11b_blcg_fb_load_gating_prod(struct gk20a *g,
 			u32 reg = gv11b_blcg_fb[i].addr;
 			u32 val = prod ? gv11b_blcg_fb[i].prod :
 					 gv11b_blcg_fb[i].disable;
-			gk20a_writel(g, reg, val);
+			nvgpu_writel(g, reg, val);
 		}
 	}
 }
@@ -799,7 +799,7 @@ void gv11b_blcg_fifo_load_gating_prod(struct gk20a *g,
 			u32 reg = gv11b_blcg_fifo[i].addr;
 			u32 val = prod ? gv11b_blcg_fifo[i].prod :
 					 gv11b_blcg_fifo[i].disable;
-			gk20a_writel(g, reg, val);
+			nvgpu_writel(g, reg, val);
 		}
 	}
 }
@@ -826,7 +826,7 @@ void gv11b_blcg_gr_load_gating_prod(struct gk20a *g,
 			u32 reg = gv11b_blcg_gr[i].addr;
 			u32 val = prod ? gv11b_blcg_gr[i].prod :
 					 gv11b_blcg_gr[i].disable;
-			gk20a_writel(g, reg, val);
+			nvgpu_writel(g, reg, val);
 		}
 	}
 }
@@ -853,7 +853,7 @@ void gv11b_blcg_ltc_load_gating_prod(struct gk20a *g,
 			u32 reg = gv11b_blcg_ltc[i].addr;
 			u32 val = prod ? gv11b_blcg_ltc[i].prod :
 					 gv11b_blcg_ltc[i].disable;
-			gk20a_writel(g, reg, val);
+			nvgpu_writel(g, reg, val);
 		}
 	}
 }
@@ -880,7 +880,7 @@ void gv11b_blcg_pwr_csb_load_gating_prod(struct gk20a *g,
 			u32 reg = gv11b_blcg_pwr_csb[i].addr;
 			u32 val = prod ? gv11b_blcg_pwr_csb[i].prod :
 					 gv11b_blcg_pwr_csb[i].disable;
-			gk20a_writel(g, reg, val);
+			nvgpu_writel(g, reg, val);
 		}
 	}
 }
@@ -907,7 +907,7 @@ void gv11b_blcg_pmu_load_gating_prod(struct gk20a *g,
 			u32 reg = gv11b_blcg_pmu[i].addr;
 			u32 val = prod ? gv11b_blcg_pmu[i].prod :
 					 gv11b_blcg_pmu[i].disable;
-			gk20a_writel(g, reg, val);
+			nvgpu_writel(g, reg, val);
 		}
 	}
 }
@@ -934,7 +934,7 @@ void gv11b_blcg_xbar_load_gating_prod(struct gk20a *g,
 			u32 reg = gv11b_blcg_xbar[i].addr;
 			u32 val = prod ? gv11b_blcg_xbar[i].prod :
 					 gv11b_blcg_xbar[i].disable;
-			gk20a_writel(g, reg, val);
+			nvgpu_writel(g, reg, val);
 		}
 	}
 }
@@ -961,7 +961,7 @@ void gv11b_blcg_hshub_load_gating_prod(struct gk20a *g,
 			u32 reg = gv11b_blcg_hshub[i].addr;
 			u32 val = prod ? gv11b_blcg_hshub[i].prod :
 					 gv11b_blcg_hshub[i].disable;
-			gk20a_writel(g, reg, val);
+			nvgpu_writel(g, reg, val);
 		}
 	}
 }
@@ -988,7 +988,7 @@ void gr_gv11b_pg_gr_load_gating_prod(struct gk20a *g,
 			u32 reg = gv11b_pg_gr[i].addr;
 			u32 val = prod ? gv11b_pg_gr[i].prod :
 					 gv11b_pg_gr[i].disable;
-			gk20a_writel(g, reg, val);
+			nvgpu_writel(g, reg, val);
 		}
 	}
 }
