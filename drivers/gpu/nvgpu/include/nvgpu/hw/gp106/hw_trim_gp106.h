@@ -57,7 +57,7 @@
 #define NVGPU_HW_TRIM_GP106_H
 
 #include <nvgpu/types.h>
-#include <nvgpu/safe_ops.h>
+#include <nvgpu/static_analysis.h>
 
 #define trim_gpc_bcast_clk_cntr_ncgpcclk_cfg_r()                   (0x00132924U)
 #define trim_gpc_bcast_clk_cntr_ncgpcclk_cfg_noofipclks_s()                (16U)

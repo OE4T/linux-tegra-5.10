@@ -57,7 +57,7 @@
 #define NVGPU_HW_PROJ_TU104_H
 
 #include <nvgpu/types.h>
-#include <nvgpu/safe_ops.h>
+#include <nvgpu/static_analysis.h>
 
 #define proj_gpc_base_v()                                          (0x00500000U)
 #define proj_gpc_shared_base_v()                                   (0x00418000U)

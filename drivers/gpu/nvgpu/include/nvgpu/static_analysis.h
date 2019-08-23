@@ -20,11 +20,99 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NVGPU_SAFE_OPS_H
-#define NVGPU_SAFE_OPS_H
+#ifndef NVGPU_STATIC_ANALYSIS_H
+#define NVGPU_STATIC_ANALYSIS_H
+
+/**
+ * @file
+ *
+ * Macros/functions/etc for static analysis of nvgpu code.
+ */
 
 #include <nvgpu/types.h>
 #include <nvgpu/bug.h>
+
+/**
+ * These macros are used for whitelisting coverity violations. The macros are
+ * only enabled when a coverity scan is being run.
+ */
+#ifdef NV_IS_COVERITY
+/**
+ * NVGPU_MISRA - Define a MISRA rule for NVGPU_COV_WHITELIST.
+ *
+ * @param type - This should be Rule or Directive depending on if you're dealing
+ *               with a MISRA rule or directive.
+ * @param num  - This is the MISRA rule/directive number. Replace hyphens and
+ *               periods in the rule/directive number with underscores. Example:
+ *               14.2 should be 14_2.
+ *
+ * This is a convenience macro for defining a MISRA rule for the
+ * NVGPU_COV_WHITELIST macro.
+ *
+ * Example 1: For defining MISRA rule 14.2, use NVGPU_MISRA(Rule, 14_2).
+ * Example 2: For defining MISRA directive 4.7, use NVGPU_MISRA(Directive, 4_7).
+ */
+#define NVGPU_MISRA(type, num)	MISRA_C_2012_##type##_##num
+
+/**
+ * NVGPU_CERT - Define a CERT C rule for NVGPU_COV_WHITELIST.
+ *
+ * @param num - This is the CERT C rule number. Replace hyphens and periods in
+ *              the rule number with underscores. Example: INT30-C should be
+ *              INT30_C.
+ *
+ * This is a convenience macro for defining a CERT C rule for the
+ * NVGPU_COV_WHITELIST macro.
+ *
+ * Example: For defining CERT C rule INT30-C, use NVGPU_CERT(INT30_C).
+ */
+#define NVGPU_CERT(num)		CERT_##num
+
+/**
+ * Helper macro for stringifying the _Pragma() string
+ */
+#define NVGPU_COV_STRING(x)	#x
+
+/**
+ * NVGPU_COV_WHITELIST - Whitelist a coverity violation on the next line.
+ *
+ * @param type        - This is the whitelisting category. Valid values are
+ *                      deviate or false_positive.
+ *                      deviate is for an approved rule deviation.
+ *                      false_positive is normally used for a bug in coverity
+ *                      which causes a false violation to appear in the scan.
+ * @param checker     - This is the MISRA or CERT C rule causing the violation.
+ *                      Use the NVGPU_MISRA() or NVGPU_CERT() macro to define
+ *                      this field.
+ * @param comment_str - This is the comment that you want associated with this
+ *                      whitelisting. This should normally be a bug number
+ *                      (ex: coverity bug) or JIRA task ID (ex: RFD). Unlike the
+ *                      other arguments, this argument must be a quoted string.
+ *
+ * Use this macro to whitelist a coverity violation in the next line of code.
+ *
+ * Example 1: Whitelist a MISRA rule 14.2 violation due to a deviation
+ * documented in the JIRA TID-123 RFD:
+ * NVGPU_COV_WHITELIST(deviate, NVGPU_MISRA(Rule, 14_2), "JIRA TID-123")
+ * // Next line of code with a rule 14.2 violation
+ *
+ * Example 2: Whitelist violations for CERT C rules INT30-C and STR30-C caused
+ * by coverity bugs:
+ * NVGPU_COV_WHITELIST(false_positive, NVGPU_CERT(INT30_C), "Bug 123456")
+ * NVGPU_COV_WHITELIST(false_positive, NVGPU_CERT(STR30_C), "Bug 123457")
+ * // Next line of code with INT30-C and STR30-C violations
+ */
+#define NVGPU_COV_WHITELIST(type, checker, comment_str) \
+	_Pragma(NVGPU_COV_STRING(coverity compliance type checker comment_str))
+#else
+/**
+ * no-op macros for normal compilation - whitelisting is disabled when a
+ * coverity scan is NOT being run
+ */
+#define NVGPU_MISRA(type, num)
+#define NVGPU_CERT(num)
+#define NVGPU_COV_WHITELIST(type, checker, comment_str)
+#endif
 
 static inline u32 nvgpu_safe_add_u32(u32 ui_a, u32 ui_b)
 {
@@ -290,4 +378,4 @@ static inline s32 nvgpu_safe_cast_s64_to_s32(s64 sl_a)
 		return (s32)sl_a;
 	}
 }
-#endif /* NVGPU_SAFE_OPS_H */
+#endif /* NVGPU_STATIC_ANALYSIS_H */

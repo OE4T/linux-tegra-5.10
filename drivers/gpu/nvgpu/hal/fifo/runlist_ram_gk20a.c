@@ -27,7 +27,7 @@
 #include <nvgpu/engine_status.h>
 #include <nvgpu/engines.h>
 #include <nvgpu/gr/gr_falcon.h>
-#include <nvgpu/safe_ops.h>
+#include <nvgpu/static_analysis.h>
 
 #include "runlist_ram_gk20a.h"
 

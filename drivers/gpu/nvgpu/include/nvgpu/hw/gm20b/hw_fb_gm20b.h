@@ -57,7 +57,7 @@
 #define NVGPU_HW_FB_GM20B_H
 
 #include <nvgpu/types.h>
-#include <nvgpu/safe_ops.h>
+#include <nvgpu/static_analysis.h>
 
 #define fb_fbhub_num_active_ltcs_r()                               (0x00100800U)
 #define fb_mmu_ctrl_r()                                            (0x00100c80U)

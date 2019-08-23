@@ -57,7 +57,7 @@
 #define NVGPU_HW_FB_GV100_H
 
 #include <nvgpu/types.h>
-#include <nvgpu/safe_ops.h>
+#include <nvgpu/static_analysis.h>
 
 #define fb_fbhub_num_active_ltcs_r()                               (0x00100800U)
 #define fb_fbhub_num_active_ltcs_use_nvlink_f(v)       ((U32(v) & 0xffU) << 16U)

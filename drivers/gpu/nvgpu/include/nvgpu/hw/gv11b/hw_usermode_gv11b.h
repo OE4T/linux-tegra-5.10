@@ -57,7 +57,7 @@
 #define NVGPU_HW_USERMODE_GV11B_H
 
 #include <nvgpu/types.h>
-#include <nvgpu/safe_ops.h>
+#include <nvgpu/static_analysis.h>
 
 #define usermode_cfg0_r()                                          (0x00810000U)
 #define usermode_cfg0_class_id_f(v)                   ((U32(v) & 0xffffU) << 0U)

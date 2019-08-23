@@ -57,7 +57,7 @@
 #define NVGPU_HW_LTC_GP106_H
 
 #include <nvgpu/types.h>
-#include <nvgpu/safe_ops.h>
+#include <nvgpu/static_analysis.h>
 
 #define ltc_ltcs_lts0_cbc_ctrl1_r()                                (0x0014046cU)
 #define ltc_ltc0_lts0_dstg_cfg0_r()                                (0x00140518U)

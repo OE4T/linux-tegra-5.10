@@ -57,7 +57,7 @@
 #define NVGPU_HW_CTRL_TU104_H
 
 #include <nvgpu/types.h>
-#include <nvgpu/safe_ops.h>
+#include <nvgpu/static_analysis.h>
 
 #define ctrl_doorbell_r(i)\
 		(nvgpu_safe_add_u32(0x00b64000U, nvgpu_safe_mult_u32((i), 8U)))

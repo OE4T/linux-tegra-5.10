@@ -57,7 +57,7 @@
 #define NVGPU_HW_PNVDEC_TU104_H
 
 #include <nvgpu/types.h>
-#include <nvgpu/safe_ops.h>
+#include <nvgpu/static_analysis.h>
 
 #define pnvdec_falcon_irqsset_r(i)\
 		(nvgpu_safe_add_u32(0x00830000U, nvgpu_safe_mult_u32((i), 16384U)))

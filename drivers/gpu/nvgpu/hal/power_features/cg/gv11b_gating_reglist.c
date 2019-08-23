@@ -25,7 +25,7 @@
 #include <nvgpu/types.h>
 #include <nvgpu/io.h>
 #include <nvgpu/enabled.h>
-#include <nvgpu/safe_ops.h>
+#include <nvgpu/static_analysis.h>
 
 #include "gating_reglist.h"
 #include "gv11b_gating_reglist.h"

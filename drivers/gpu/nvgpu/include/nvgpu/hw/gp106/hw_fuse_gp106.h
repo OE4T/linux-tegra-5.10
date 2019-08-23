@@ -57,7 +57,7 @@
 #define NVGPU_HW_FUSE_GP106_H
 
 #include <nvgpu/types.h>
-#include <nvgpu/safe_ops.h>
+#include <nvgpu/static_analysis.h>
 
 #define fuse_status_opt_gpc_r()                                    (0x00021c1cU)
 #define fuse_status_opt_tpc_gpc_r(i)\

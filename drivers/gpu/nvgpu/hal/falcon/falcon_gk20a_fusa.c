@@ -23,7 +23,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/falcon.h>
 #include <nvgpu/string.h>
-#include <nvgpu/safe_ops.h>
+#include <nvgpu/static_analysis.h>
 
 #include "falcon_gk20a.h"
 

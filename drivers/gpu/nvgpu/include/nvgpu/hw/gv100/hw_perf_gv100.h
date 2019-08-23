@@ -57,7 +57,7 @@
 #define NVGPU_HW_PERF_GV100_H
 
 #include <nvgpu/types.h>
-#include <nvgpu/safe_ops.h>
+#include <nvgpu/static_analysis.h>
 
 #define perf_pmmgpc_perdomain_offset_v()                           (0x00000200U)
 #define perf_pmmsys_perdomain_offset_v()                           (0x00000200U)

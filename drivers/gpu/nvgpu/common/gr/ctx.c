@@ -21,7 +21,7 @@
  */
 
 #include <nvgpu/gk20a.h>
-#include <nvgpu/safe_ops.h>
+#include <nvgpu/static_analysis.h>
 #include <nvgpu/gr/global_ctx.h>
 #include <nvgpu/gr/ctx.h>
 #include <nvgpu/vm.h>

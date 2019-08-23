@@ -57,7 +57,7 @@
 #define NVGPU_HW_PRI_RINGSTATION_SYS_GP106_H
 
 #include <nvgpu/types.h>
-#include <nvgpu/safe_ops.h>
+#include <nvgpu/static_analysis.h>
 
 #define pri_ringstation_sys_master_config_r(i)\
 		(nvgpu_safe_add_u32(0x00122300U, nvgpu_safe_mult_u32((i), 4U)))

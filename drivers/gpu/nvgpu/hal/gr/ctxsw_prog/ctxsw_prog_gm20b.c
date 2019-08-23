@@ -23,7 +23,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/utils.h>
 #include <nvgpu/nvgpu_mem.h>
-#include <nvgpu/safe_ops.h>
+#include <nvgpu/static_analysis.h>
 
 #include "ctxsw_prog_gm20b.h"
 

@@ -57,7 +57,7 @@
 #define NVGPU_HW_TIMER_GV100_H
 
 #include <nvgpu/types.h>
-#include <nvgpu/safe_ops.h>
+#include <nvgpu/static_analysis.h>
 
 #define timer_pri_timeout_r()                                      (0x00009080U)
 #define timer_pri_timeout_period_f(v)               ((U32(v) & 0xffffffU) << 0U)

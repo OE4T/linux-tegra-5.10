@@ -57,7 +57,7 @@
 #define NVGPU_HW_TRIM_TU104_H
 
 #include <nvgpu/types.h>
-#include <nvgpu/safe_ops.h>
+#include <nvgpu/static_analysis.h>
 
 #define trim_sys_nvlink_uphy_cfg_r()                               (0x00132410U)
 #define trim_sys_nvlink_uphy_cfg_lockdect_wait_dly_length_f(v)\

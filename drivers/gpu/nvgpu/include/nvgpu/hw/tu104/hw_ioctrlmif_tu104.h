@@ -57,7 +57,7 @@
 #define NVGPU_HW_IOCTRLMIF_TU104_H
 
 #include <nvgpu/types.h>
-#include <nvgpu/safe_ops.h>
+#include <nvgpu/static_analysis.h>
 
 #define ioctrlmif_rx_err_contain_en_0_r()                          (0x00000e0cU)
 #define ioctrlmif_rx_err_contain_en_0_rxramdataparityerr_f(v)\

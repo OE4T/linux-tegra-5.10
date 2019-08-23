@@ -57,7 +57,7 @@
 #define NVGPU_HW_CE_GP106_H
 
 #include <nvgpu/types.h>
-#include <nvgpu/safe_ops.h>
+#include <nvgpu/static_analysis.h>
 
 #define ce_intr_status_r(i)\
 		(nvgpu_safe_add_u32(0x00104410U, nvgpu_safe_mult_u32((i), 128U)))

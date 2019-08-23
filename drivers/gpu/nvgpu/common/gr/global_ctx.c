@@ -27,7 +27,7 @@
 #include <nvgpu/bug.h>
 #include <nvgpu/dma.h>
 #ifdef CONFIG_NVGPU_GR_GOLDEN_CTX_VERIFICATION
-#include <nvgpu/safe_ops.h>
+#include <nvgpu/static_analysis.h>
 #include <nvgpu/string.h>
 #endif
 

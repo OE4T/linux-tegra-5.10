@@ -57,7 +57,7 @@
 #define NVGPU_HW_TRIM_GM20B_H
 
 #include <nvgpu/types.h>
-#include <nvgpu/safe_ops.h>
+#include <nvgpu/static_analysis.h>
 
 #define trim_sys_gpcpll_cfg_r()                                    (0x00137000U)
 #define trim_sys_gpcpll_cfg_enable_m()                         (U32(0x1U) << 0U)

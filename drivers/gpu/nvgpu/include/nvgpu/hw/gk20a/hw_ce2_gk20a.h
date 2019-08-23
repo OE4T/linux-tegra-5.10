@@ -57,7 +57,7 @@
 #define NVGPU_HW_CE2_GK20A_H
 
 #include <nvgpu/types.h>
-#include <nvgpu/safe_ops.h>
+#include <nvgpu/static_analysis.h>
 
 #define ce2_intr_status_r()                                        (0x00106908U)
 #define ce2_intr_status_blockpipe_pending_f()                             (0x1U)

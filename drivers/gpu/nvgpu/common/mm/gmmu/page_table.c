@@ -35,7 +35,7 @@
 #include <nvgpu/sizes.h>
 #include <nvgpu/types.h>
 #include <nvgpu/gk20a.h>
-#include <nvgpu/safe_ops.h>
+#include <nvgpu/static_analysis.h>
 
 
 #define nvgpu_gmmu_dbg(g, attrs, fmt, args...)				\

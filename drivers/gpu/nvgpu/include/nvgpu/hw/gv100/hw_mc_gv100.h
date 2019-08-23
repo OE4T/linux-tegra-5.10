@@ -57,7 +57,7 @@
 #define NVGPU_HW_MC_GV100_H
 
 #include <nvgpu/types.h>
-#include <nvgpu/safe_ops.h>
+#include <nvgpu/static_analysis.h>
 
 #define mc_boot_0_r()                                              (0x00000000U)
 #define mc_boot_0_architecture_v(r)                       (((r) >> 24U) & 0x1fU)

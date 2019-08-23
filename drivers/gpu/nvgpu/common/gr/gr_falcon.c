@@ -39,7 +39,7 @@
 #include <nvgpu/sec2/lsfm.h>
 #endif
 #include <nvgpu/dma.h>
-#include <nvgpu/safe_ops.h>
+#include <nvgpu/static_analysis.h>
 
 #include "gr_falcon_priv.h"
 

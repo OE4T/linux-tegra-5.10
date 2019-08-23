@@ -57,7 +57,7 @@
 #define NVGPU_HW_NVTLC_GV100_H
 
 #include <nvgpu/types.h>
-#include <nvgpu/safe_ops.h>
+#include <nvgpu/static_analysis.h>
 
 #define nvtlc_tx_err_report_en_0_r()                               (0x00000708U)
 #define nvtlc_rx_err_report_en_0_r()                               (0x00000f08U)

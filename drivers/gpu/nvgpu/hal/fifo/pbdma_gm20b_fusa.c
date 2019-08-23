@@ -33,7 +33,7 @@
 #include <nvgpu/ptimer.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/pbdma_status.h>
-#include <nvgpu/safe_ops.h>
+#include <nvgpu/static_analysis.h>
 
 #include <nvgpu/hw/gm20b/hw_pbdma_gm20b.h>
 

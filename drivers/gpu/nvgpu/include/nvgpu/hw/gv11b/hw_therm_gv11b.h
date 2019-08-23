@@ -57,7 +57,7 @@
 #define NVGPU_HW_THERM_GV11B_H
 
 #include <nvgpu/types.h>
-#include <nvgpu/safe_ops.h>
+#include <nvgpu/static_analysis.h>
 
 #define therm_use_a_r()                                            (0x00020798U)
 #define therm_use_a_ext_therm_0_enable_f()                                (0x1U)

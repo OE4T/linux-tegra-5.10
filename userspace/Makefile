@@ -91,6 +91,12 @@ CFLAGS    = -Wall -Wextra -ggdb  -Werror -Wno-unused-parameter               \
 LIB_PATHS = -L$(OUT) -L$(UNIT_OUT)
 LIBS      = -lpthread -pthread -lgcov -ldl
 
+# NV_IS_COVERITY is used by violation whitelisting macros which use pragma
+# directives. Whitelisting is only enabled when a coverity scan is being run.
+ifeq ($(NV_BUILD_CONFIGURATION_IS_COVERITY),1)
+CFLAGS   += -Wno-unknown-pragmas
+CONFIGS  += -DNV_IS_COVERITY
+endif
 
 # Source files. We expect $(OBJS) and $(HEADERS) to get filled in here.
 include Makefile.sources

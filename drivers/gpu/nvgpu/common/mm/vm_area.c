@@ -24,7 +24,7 @@
 #include <nvgpu/vm_area.h>
 #include <nvgpu/barrier.h>
 #include <nvgpu/gk20a.h>
-#include <nvgpu/safe_ops.h>
+#include <nvgpu/static_analysis.h>
 
 struct nvgpu_vm_area *nvgpu_vm_area_find(struct vm_gk20a *vm, u64 addr)
 {

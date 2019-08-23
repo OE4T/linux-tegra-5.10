@@ -22,7 +22,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/timers.h>
 #include <nvgpu/falcon.h>
-#include <nvgpu/safe_ops.h>
+#include <nvgpu/static_analysis.h>
 
 #include "falcon_sw_gk20a.h"
 #ifdef CONFIG_NVGPU_DGPU

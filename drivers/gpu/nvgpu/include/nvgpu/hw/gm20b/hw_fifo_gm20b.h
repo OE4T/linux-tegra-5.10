@@ -57,7 +57,7 @@
 #define NVGPU_HW_FIFO_GM20B_H
 
 #include <nvgpu/types.h>
-#include <nvgpu/safe_ops.h>
+#include <nvgpu/static_analysis.h>
 
 #define fifo_bar1_base_r()                                         (0x00002254U)
 #define fifo_bar1_base_ptr_f(v)                    ((U32(v) & 0xfffffffU) << 0U)

@@ -57,7 +57,7 @@
 #define NVGPU_HW_PERF_GK20A_H
 
 #include <nvgpu/types.h>
-#include <nvgpu/safe_ops.h>
+#include <nvgpu/static_analysis.h>
 
 #define perf_pmasys_control_r()                                    (0x001b4000U)
 #define perf_pmasys_control_membuf_status_v(r)              (((r) >> 4U) & 0x1U)

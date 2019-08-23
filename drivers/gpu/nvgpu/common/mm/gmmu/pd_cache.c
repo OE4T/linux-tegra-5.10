@@ -29,7 +29,7 @@
 #include <nvgpu/log2.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/enabled.h>
-#include <nvgpu/safe_ops.h>
+#include <nvgpu/static_analysis.h>
 
 #include "pd_cache_priv.h"
 

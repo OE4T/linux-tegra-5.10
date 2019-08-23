@@ -57,7 +57,7 @@
 #define NVGPU_HW_CCSR_GP10B_H
 
 #include <nvgpu/types.h>
-#include <nvgpu/safe_ops.h>
+#include <nvgpu/static_analysis.h>
 
 #define ccsr_channel_inst_r(i)\
 		(nvgpu_safe_add_u32(0x00800000U, nvgpu_safe_mult_u32((i), 8U)))

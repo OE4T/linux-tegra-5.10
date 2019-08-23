@@ -23,7 +23,7 @@
 #define NVGPU_GR_GLOBAL_CTX_H
 
 #include <nvgpu/nvgpu_mem.h>
-#include <nvgpu/safe_ops.h>
+#include <nvgpu/static_analysis.h>
 
 #define NVGPU_GR_GLOBAL_CTX_PRIV_ACCESS_MAP_SIZE \
 			nvgpu_safe_mult_u32(512U, 1024U)

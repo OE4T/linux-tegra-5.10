@@ -57,7 +57,7 @@
 #define NVGPU_HW_THERM_TU104_H
 
 #include <nvgpu/types.h>
-#include <nvgpu/safe_ops.h>
+#include <nvgpu/static_analysis.h>
 
 #define therm_weight_1_r()                                         (0x00020024U)
 #define therm_config1_r()                                          (0x00020050U)

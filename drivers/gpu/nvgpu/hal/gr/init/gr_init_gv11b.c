@@ -25,7 +25,7 @@
 #include <nvgpu/soc.h>
 #include <nvgpu/log.h>
 #include <nvgpu/bug.h>
-#include <nvgpu/safe_ops.h>
+#include <nvgpu/static_analysis.h>
 #include <nvgpu/gr/ctx.h>
 #include <nvgpu/ltc.h>
 #include <nvgpu/netlist.h>

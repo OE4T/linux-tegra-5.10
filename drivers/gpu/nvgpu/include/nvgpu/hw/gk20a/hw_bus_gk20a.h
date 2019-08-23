@@ -57,7 +57,7 @@
 #define NVGPU_HW_BUS_GK20A_H
 
 #include <nvgpu/types.h>
-#include <nvgpu/safe_ops.h>
+#include <nvgpu/static_analysis.h>
 
 #define bus_bar0_window_r()                                        (0x00001700U)
 #define bus_bar0_window_base_f(v)                   ((U32(v) & 0xffffffU) << 0U)

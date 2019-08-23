@@ -24,7 +24,7 @@
 #define NVGPU_GR_UTILS_H
 
 #include <nvgpu/types.h>
-#include <nvgpu/safe_ops.h>
+#include <nvgpu/static_analysis.h>
 
 struct gk20a;
 struct nvgpu_gr_falcon;

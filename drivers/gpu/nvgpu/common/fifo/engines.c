@@ -41,7 +41,7 @@
 #include <nvgpu/gr/gr_falcon.h>
 #include <nvgpu/gr/gr.h>
 #include <nvgpu/fifo.h>
-#include <nvgpu/safe_ops.h>
+#include <nvgpu/static_analysis.h>
 
 #define FECS_METHOD_WFI_RESTORE	0x80000U
 

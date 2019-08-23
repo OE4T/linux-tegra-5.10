@@ -57,7 +57,7 @@
 #define NVGPU_HW_CTXSW_PROG_GV11B_H
 
 #include <nvgpu/types.h>
-#include <nvgpu/safe_ops.h>
+#include <nvgpu/static_analysis.h>
 
 #define ctxsw_prog_fecs_header_v()                                 (0x00000100U)
 #define ctxsw_prog_gpccs_header_stride_v()                         (0x00000100U)

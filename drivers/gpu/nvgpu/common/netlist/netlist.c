@@ -30,7 +30,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/netlist.h>
 #include <nvgpu/string.h>
-#include <nvgpu/safe_ops.h>
+#include <nvgpu/static_analysis.h>
 
 #include "netlist_priv.h"
 #include "netlist_defs.h"

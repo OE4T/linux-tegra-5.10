@@ -57,7 +57,7 @@
 #define NVGPU_HW_GR_TU104_H
 
 #include <nvgpu/types.h>
-#include <nvgpu/safe_ops.h>
+#include <nvgpu/static_analysis.h>
 
 #define gr_intr_r()                                                (0x00400100U)
 #define gr_intr_notify_pending_f()                                        (0x1U)

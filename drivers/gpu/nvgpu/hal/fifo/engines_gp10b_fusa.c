@@ -25,7 +25,7 @@
 #include <nvgpu/log.h>
 #include <nvgpu/errno.h>
 #include <nvgpu/gk20a.h>
-#include <nvgpu/safe_ops.h>
+#include <nvgpu/static_analysis.h>
 
 #include <nvgpu/hw/gp10b/hw_fifo_gp10b.h>
 

@@ -22,7 +22,7 @@
 
 #include <nvgpu/gk20a.h>
 #include <nvgpu/gmmu.h>
-#include <nvgpu/safe_ops.h>
+#include <nvgpu/static_analysis.h>
 
 #include <nvgpu/hw/gp10b/hw_gmmu_gp10b.h>
 

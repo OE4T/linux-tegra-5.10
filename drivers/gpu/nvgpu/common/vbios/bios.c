@@ -25,7 +25,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/string.h>
 #include <nvgpu/soc.h>
-#include <nvgpu/safe_ops.h>
+#include <nvgpu/static_analysis.h>
 
 #include "bios_sw_gv100.h"
 #include "bios_sw_tu104.h"

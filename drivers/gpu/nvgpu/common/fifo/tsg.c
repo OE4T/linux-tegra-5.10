@@ -33,7 +33,7 @@
 #include <nvgpu/gr/config.h>
 #include <nvgpu/gr/ctx.h>
 #include <nvgpu/runlist.h>
-#include <nvgpu/safe_ops.h>
+#include <nvgpu/static_analysis.h>
 
 void nvgpu_tsg_disable(struct nvgpu_tsg *tsg)
 {

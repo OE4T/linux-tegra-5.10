@@ -57,7 +57,7 @@
 #define NVGPU_HW_FIFO_TU104_H
 
 #include <nvgpu/types.h>
-#include <nvgpu/safe_ops.h>
+#include <nvgpu/static_analysis.h>
 
 #define fifo_userd_writeback_r()                                   (0x0000225cU)
 #define fifo_userd_writeback_timer_f(v)                 ((U32(v) & 0xffU) << 0U)

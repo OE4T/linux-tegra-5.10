@@ -57,7 +57,7 @@
 #define NVGPU_HW_NVL_TU104_H
 
 #include <nvgpu/types.h>
-#include <nvgpu/safe_ops.h>
+#include <nvgpu/static_analysis.h>
 
 #define nvl_link_state_r()                                         (0x00000000U)
 #define nvl_link_state_state_f(v)                       ((U32(v) & 0xffU) << 0U)

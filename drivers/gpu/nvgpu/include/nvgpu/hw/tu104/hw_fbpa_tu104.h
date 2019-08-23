@@ -57,7 +57,7 @@
 #define NVGPU_HW_FBPA_TU104_H
 
 #include <nvgpu/types.h>
-#include <nvgpu/safe_ops.h>
+#include <nvgpu/static_analysis.h>
 
 #define fbpa_0_intr_status_r()                                     (0x00900398U)
 #define fbpa_0_intr_status_sec_subp0_pending_f()                          (0x1U)

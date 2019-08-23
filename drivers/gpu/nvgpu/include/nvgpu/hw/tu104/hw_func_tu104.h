@@ -57,7 +57,7 @@
 #define NVGPU_HW_FUNC_TU104_H
 
 #include <nvgpu/types.h>
-#include <nvgpu/safe_ops.h>
+#include <nvgpu/static_analysis.h>
 
 #define func_full_phys_offset_v()                                  (0x00b80000U)
 #define func_doorbell_r()                                          (0x00030090U)

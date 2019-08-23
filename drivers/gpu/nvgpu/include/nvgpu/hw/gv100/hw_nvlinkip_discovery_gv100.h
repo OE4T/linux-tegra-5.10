@@ -57,7 +57,7 @@
 #define NVGPU_HW_NVLINKIP_DISCOVERY_GV100_H
 
 #include <nvgpu/types.h>
-#include <nvgpu/safe_ops.h>
+#include <nvgpu/static_analysis.h>
 
 #define nvlinkip_discovery_common_entry_f(v)             ((U32(v) & 0x3U) << 0U)
 #define nvlinkip_discovery_common_entry_v(r)                (((r) >> 0U) & 0x3U)

@@ -33,7 +33,7 @@
 #include <nvgpu/ce.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/engines.h>
-#include <nvgpu/safe_ops.h>
+#include <nvgpu/static_analysis.h>
 #include <nvgpu/power_features/cg.h>
 
 int nvgpu_mm_suspend(struct gk20a *g)

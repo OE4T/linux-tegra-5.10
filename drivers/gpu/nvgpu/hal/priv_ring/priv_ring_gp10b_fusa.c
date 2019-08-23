@@ -29,7 +29,7 @@
 #include <nvgpu/utils.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/nvgpu_err.h>
-#include <nvgpu/safe_ops.h>
+#include <nvgpu/static_analysis.h>
 
 #include <nvgpu/hw/gp10b/hw_pri_ringmaster_gp10b.h>
 #include <nvgpu/hw/gp10b/hw_pri_ringstation_sys_gp10b.h>

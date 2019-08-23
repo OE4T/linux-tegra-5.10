@@ -26,7 +26,7 @@
 #include <nvgpu/debug.h>
 #include <nvgpu/power_features/pg.h>
 #include <nvgpu/soc.h>
-#include <nvgpu/safe_ops.h>
+#include <nvgpu/static_analysis.h>
 #include <nvgpu/gr/gr_utils.h>
 #include <nvgpu/pmu/pmuif/ctrlclk.h>
 

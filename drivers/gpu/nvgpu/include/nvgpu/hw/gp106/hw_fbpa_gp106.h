@@ -57,7 +57,7 @@
 #define NVGPU_HW_FBPA_GP106_H
 
 #include <nvgpu/types.h>
-#include <nvgpu/safe_ops.h>
+#include <nvgpu/static_analysis.h>
 
 #define fbpa_cstatus_r()                                           (0x009a020cU)
 #define fbpa_cstatus_ramamount_v(r)                     (((r) >> 0U) & 0x1ffffU)

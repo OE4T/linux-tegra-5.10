@@ -57,7 +57,7 @@
 #define NVGPU_HW_FB_GV11B_H
 
 #include <nvgpu/types.h>
-#include <nvgpu/safe_ops.h>
+#include <nvgpu/static_analysis.h>
 
 #define fb_fbhub_num_active_ltcs_r()                               (0x00100800U)
 #define fb_fbhub_num_active_ltcs_hub_sys_atomic_mode_m()      (U32(0x1U) << 25U)

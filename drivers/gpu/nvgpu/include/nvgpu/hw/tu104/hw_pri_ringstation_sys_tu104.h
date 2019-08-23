@@ -57,7 +57,7 @@
 #define NVGPU_HW_PRI_RINGSTATION_SYS_TU104_H
 
 #include <nvgpu/types.h>
-#include <nvgpu/safe_ops.h>
+#include <nvgpu/static_analysis.h>
 
 #define pri_ringstation_sys_decode_config_r()                      (0x00122204U)
 #define pri_ringstation_sys_decode_config_ring_m()             (U32(0x7U) << 0U)

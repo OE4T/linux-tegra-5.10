@@ -57,7 +57,7 @@
 #define NVGPU_HW_FB_GK20A_H
 
 #include <nvgpu/types.h>
-#include <nvgpu/safe_ops.h>
+#include <nvgpu/static_analysis.h>
 
 #define fb_mmu_ctrl_r()                                            (0x00100c80U)
 #define fb_mmu_ctrl_vm_pg_size_f(v)                      ((U32(v) & 0x1U) << 0U)

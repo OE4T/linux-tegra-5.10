@@ -57,7 +57,7 @@
 #define NVGPU_HW_IOCTRL_GV100_H
 
 #include <nvgpu/types.h>
-#include <nvgpu/safe_ops.h>
+#include <nvgpu/static_analysis.h>
 
 #define ioctrl_reset_r()                                           (0x00000140U)
 #define ioctrl_reset_sw_post_reset_delay_microseconds_v()          (0x00000008U)

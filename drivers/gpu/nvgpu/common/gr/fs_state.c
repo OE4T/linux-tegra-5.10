@@ -21,7 +21,7 @@
  */
 
 #include <nvgpu/gk20a.h>
-#include <nvgpu/safe_ops.h>
+#include <nvgpu/static_analysis.h>
 
 #include <nvgpu/gr/config.h>
 #include <nvgpu/gr/fs_state.h>

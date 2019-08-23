@@ -57,7 +57,7 @@
 #define NVGPU_HW_XP_GV100_H
 
 #include <nvgpu/types.h>
-#include <nvgpu/safe_ops.h>
+#include <nvgpu/static_analysis.h>
 
 #define xp_dl_mgr_r(i)\
 		(nvgpu_safe_add_u32(0x0008b8c0U, nvgpu_safe_mult_u32((i), 4U)))

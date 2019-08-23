@@ -57,7 +57,7 @@
 #define NVGPU_HW_XVE_TU104_H
 
 #include <nvgpu/types.h>
-#include <nvgpu/safe_ops.h>
+#include <nvgpu/static_analysis.h>
 
 #define xve_rom_ctrl_r()                                           (0x00000050U)
 #define xve_rom_ctrl_rom_shadow_f(v)                     ((U32(v) & 0x1U) << 0U)

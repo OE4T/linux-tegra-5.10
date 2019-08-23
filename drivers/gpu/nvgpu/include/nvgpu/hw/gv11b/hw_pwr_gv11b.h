@@ -57,7 +57,7 @@
 #define NVGPU_HW_PWR_GV11B_H
 
 #include <nvgpu/types.h>
-#include <nvgpu/safe_ops.h>
+#include <nvgpu/static_analysis.h>
 
 #define pwr_falcon_irqsset_r()                                     (0x0010a000U)
 #define pwr_falcon_irqsset_swgen0_set_f()                                (0x40U)

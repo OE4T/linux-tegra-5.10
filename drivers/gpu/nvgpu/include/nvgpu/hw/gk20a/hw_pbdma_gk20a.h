@@ -57,7 +57,7 @@
 #define NVGPU_HW_PBDMA_GK20A_H
 
 #include <nvgpu/types.h>
-#include <nvgpu/safe_ops.h>
+#include <nvgpu/static_analysis.h>
 
 #define pbdma_gp_entry1_r()                                        (0x10000004U)
 #define pbdma_gp_entry1_get_hi_v(r)                        (((r) >> 0U) & 0xffU)

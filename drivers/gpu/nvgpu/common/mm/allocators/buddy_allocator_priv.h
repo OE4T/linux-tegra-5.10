@@ -25,7 +25,7 @@
 
 #include <nvgpu/rbtree.h>
 #include <nvgpu/list.h>
-#include <nvgpu/safe_ops.h>
+#include <nvgpu/static_analysis.h>
 
 struct nvgpu_kmem_cache;
 struct nvgpu_allocator;

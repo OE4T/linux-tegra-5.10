@@ -23,7 +23,7 @@
 #include <nvgpu/enabled.h>
 #include <nvgpu/bitops.h>
 #include <nvgpu/gk20a.h>
-#include <nvgpu/safe_ops.h>
+#include <nvgpu/static_analysis.h>
 
 int nvgpu_init_enabled_flags(struct gk20a *g)
 {

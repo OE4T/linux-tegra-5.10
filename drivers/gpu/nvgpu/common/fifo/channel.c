@@ -54,7 +54,7 @@
 #include <nvgpu/fifo/userd.h>
 #include <nvgpu/fence.h>
 #include <nvgpu/preempt.h>
-#include <nvgpu/safe_ops.h>
+#include <nvgpu/static_analysis.h>
 #ifdef CONFIG_NVGPU_DEBUGGER
 #include <nvgpu/gr/gr.h>
 #endif

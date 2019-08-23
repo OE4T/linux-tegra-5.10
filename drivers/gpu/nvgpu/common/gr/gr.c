@@ -25,7 +25,7 @@
 #include <nvgpu/bug.h>
 #include <nvgpu/unit.h>
 #include <nvgpu/errno.h>
-#include <nvgpu/safe_ops.h>
+#include <nvgpu/static_analysis.h>
 #include <nvgpu/gr/gr.h>
 #include <nvgpu/gr/config.h>
 #include <nvgpu/gr/gr_intr.h>

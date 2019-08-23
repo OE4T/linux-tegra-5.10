@@ -57,7 +57,7 @@
 #define NVGPU_HW_PRI_RINGSTATION_GPC_TU104_H
 
 #include <nvgpu/types.h>
-#include <nvgpu/safe_ops.h>
+#include <nvgpu/static_analysis.h>
 
 #define pri_ringstation_gpc_gpc0_priv_error_adr_r()                (0x00128120U)
 #define pri_ringstation_gpc_gpc0_priv_error_wrdat_r()              (0x00128124U)

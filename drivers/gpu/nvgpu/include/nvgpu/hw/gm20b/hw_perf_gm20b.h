@@ -57,7 +57,7 @@
 #define NVGPU_HW_PERF_GM20B_H
 
 #include <nvgpu/types.h>
-#include <nvgpu/safe_ops.h>
+#include <nvgpu/static_analysis.h>
 
 #define perf_pmmsys_base_v()                                       (0x001b0000U)
 #define perf_pmmsys_extent_v()                                     (0x001b0fffU)

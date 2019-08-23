@@ -57,7 +57,7 @@
 #define NVGPU_HW_PRAM_GP10B_H
 
 #include <nvgpu/types.h>
-#include <nvgpu/safe_ops.h>
+#include <nvgpu/static_analysis.h>
 
 #define pram_data032_r(i)\
 		(nvgpu_safe_add_u32(0x00700000U, nvgpu_safe_mult_u32((i), 4U)))

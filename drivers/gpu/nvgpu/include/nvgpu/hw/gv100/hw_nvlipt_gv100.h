@@ -57,7 +57,7 @@
 #define NVGPU_HW_NVLIPT_GV100_H
 
 #include <nvgpu/types.h>
-#include <nvgpu/safe_ops.h>
+#include <nvgpu/static_analysis.h>
 
 #define nvlipt_intr_control_link0_r()                              (0x000004b4U)
 #define nvlipt_intr_control_link0_stallenable_f(v)       ((U32(v) & 0x1U) << 0U)

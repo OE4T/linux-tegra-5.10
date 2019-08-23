@@ -24,7 +24,7 @@
 #define NVGPU_UTILS_H
 
 #include <nvgpu/types.h>
-#include <nvgpu/safe_ops.h>
+#include <nvgpu/static_analysis.h>
 
 #ifdef __KERNEL__
 #include <linux/kernel.h>

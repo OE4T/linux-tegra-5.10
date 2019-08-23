@@ -57,7 +57,7 @@
 #define NVGPU_HW_TOP_GV100_H
 
 #include <nvgpu/types.h>
-#include <nvgpu/safe_ops.h>
+#include <nvgpu/static_analysis.h>
 
 #define top_num_gpcs_r()                                           (0x00022430U)
 #define top_num_gpcs_value_v(r)                            (((r) >> 0U) & 0x1fU)

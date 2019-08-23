@@ -27,7 +27,7 @@
 #include <nvgpu/hal_init.h>
 #include <nvgpu/mc.h>
 #include <nvgpu/soc.h>
-#include <nvgpu/safe_ops.h>
+#include <nvgpu/static_analysis.h>
 
 #include "hal_gm20b.h"
 #include "hal_gp10b.h"

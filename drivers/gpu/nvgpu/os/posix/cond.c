@@ -21,7 +21,7 @@
  */
 
 #include <nvgpu/cond.h>
-#include <nvgpu/safe_ops.h>
+#include <nvgpu/static_analysis.h>
 
 int nvgpu_cond_init(struct nvgpu_cond *cond)
 {

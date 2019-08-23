@@ -57,7 +57,7 @@
 #define NVGPU_HW_LTC_GV100_H
 
 #include <nvgpu/types.h>
-#include <nvgpu/safe_ops.h>
+#include <nvgpu/static_analysis.h>
 
 #define ltc_pltcg_base_v()                                         (0x00140000U)
 #define ltc_pltcg_extent_v()                                       (0x0017ffffU)

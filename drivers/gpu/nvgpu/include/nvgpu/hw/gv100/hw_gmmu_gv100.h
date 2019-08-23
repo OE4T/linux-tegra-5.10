@@ -57,7 +57,7 @@
 #define NVGPU_HW_GMMU_GV100_H
 
 #include <nvgpu/types.h>
-#include <nvgpu/safe_ops.h>
+#include <nvgpu/static_analysis.h>
 
 #define gmmu_new_pde_is_pte_w()                                             (0U)
 #define gmmu_new_pde_is_pte_false_f()                                     (0x0U)

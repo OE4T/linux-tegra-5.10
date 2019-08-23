@@ -57,7 +57,7 @@
 #define NVGPU_HW_PRI_RINGMASTER_GP10B_H
 
 #include <nvgpu/types.h>
-#include <nvgpu/safe_ops.h>
+#include <nvgpu/static_analysis.h>
 
 #define pri_ringmaster_command_r()                                 (0x0012004cU)
 #define pri_ringmaster_command_cmd_m()                        (U32(0x3fU) << 0U)

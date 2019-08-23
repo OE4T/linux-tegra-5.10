@@ -22,7 +22,7 @@
 
 #include <nvgpu/gk20a.h>
 #include <nvgpu/io.h>
-#include <nvgpu/safe_ops.h>
+#include <nvgpu/static_analysis.h>
 #include <nvgpu/gr/config.h>
 
 #include "gr_config_gm20b.h"

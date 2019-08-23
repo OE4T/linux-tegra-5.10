@@ -23,7 +23,7 @@
 #ifndef NVGPU_POSIX_UTILS_H
 #define NVGPU_POSIX_UTILS_H
 
-#include <nvgpu/safe_ops.h>
+#include <nvgpu/static_analysis.h>
 
 #define min_t(type, a, b)		\
 	({				\

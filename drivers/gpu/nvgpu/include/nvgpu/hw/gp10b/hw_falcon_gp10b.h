@@ -57,7 +57,7 @@
 #define NVGPU_HW_FALCON_GP10B_H
 
 #include <nvgpu/types.h>
-#include <nvgpu/safe_ops.h>
+#include <nvgpu/static_analysis.h>
 
 #define falcon_falcon_irqsset_r()                                  (0x00000000U)
 #define falcon_falcon_irqsset_swgen0_set_f()                             (0x40U)

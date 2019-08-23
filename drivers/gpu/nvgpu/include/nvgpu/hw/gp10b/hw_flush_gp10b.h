@@ -57,7 +57,7 @@
 #define NVGPU_HW_FLUSH_GP10B_H
 
 #include <nvgpu/types.h>
-#include <nvgpu/safe_ops.h>
+#include <nvgpu/static_analysis.h>
 
 #define flush_l2_system_invalidate_r()                             (0x00070004U)
 #define flush_l2_system_invalidate_pending_v(r)             (((r) >> 0U) & 0x1U)

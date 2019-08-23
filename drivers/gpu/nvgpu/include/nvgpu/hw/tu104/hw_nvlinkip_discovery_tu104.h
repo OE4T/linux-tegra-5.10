@@ -57,6 +57,6 @@
 #define NVGPU_HW_NVLINKIP_DISCOVERY_TU104_H
 
 #include <nvgpu/types.h>
-#include <nvgpu/safe_ops.h>
+#include <nvgpu/static_analysis.h>
 
 #endif

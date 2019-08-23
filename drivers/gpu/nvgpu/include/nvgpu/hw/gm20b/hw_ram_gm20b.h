@@ -57,7 +57,7 @@
 #define NVGPU_HW_RAM_GM20B_H
 
 #include <nvgpu/types.h>
-#include <nvgpu/safe_ops.h>
+#include <nvgpu/static_analysis.h>
 
 #define ram_in_ramfc_s()                                                 (4096U)
 #define ram_in_ramfc_w()                                                    (0U)

@@ -23,7 +23,7 @@
 #define NVGPU_PTIMER_H
 
 #include <nvgpu/types.h>
-#include <nvgpu/safe_ops.h>
+#include <nvgpu/static_analysis.h>
 
 struct gk20a;
 

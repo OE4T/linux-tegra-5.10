@@ -57,7 +57,7 @@
 #define NVGPU_HW_MINION_TU104_H
 
 #include <nvgpu/types.h>
-#include <nvgpu/safe_ops.h>
+#include <nvgpu/static_analysis.h>
 
 #define minion_minion_status_r()                                   (0x00000830U)
 #define minion_minion_status_status_f(v)                ((U32(v) & 0xffU) << 0U)

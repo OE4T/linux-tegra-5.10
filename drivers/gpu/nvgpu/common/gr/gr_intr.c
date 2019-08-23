@@ -25,7 +25,7 @@
 #include <nvgpu/io.h>
 #include <nvgpu/channel.h>
 #include <nvgpu/rc.h>
-#include <nvgpu/safe_ops.h>
+#include <nvgpu/static_analysis.h>
 #include <nvgpu/error_notifier.h>
 #include <nvgpu/power_features/pg.h>
 #if defined(CONFIG_NVGPU_CYCLESTATS)

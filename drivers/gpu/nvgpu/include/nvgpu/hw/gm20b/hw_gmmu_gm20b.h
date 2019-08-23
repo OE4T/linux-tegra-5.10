@@ -57,7 +57,7 @@
 #define NVGPU_HW_GMMU_GM20B_H
 
 #include <nvgpu/types.h>
-#include <nvgpu/safe_ops.h>
+#include <nvgpu/static_analysis.h>
 
 #define gmmu_pde_aperture_big_w()                                           (0U)
 #define gmmu_pde_aperture_big_invalid_f()                                 (0x0U)

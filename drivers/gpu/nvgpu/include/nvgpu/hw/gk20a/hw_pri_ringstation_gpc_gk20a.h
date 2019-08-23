@@ -57,7 +57,7 @@
 #define NVGPU_HW_PRI_RINGSTATION_GPC_GK20A_H
 
 #include <nvgpu/types.h>
-#include <nvgpu/safe_ops.h>
+#include <nvgpu/static_analysis.h>
 
 #define pri_ringstation_gpc_master_config_r(i)\
 		(nvgpu_safe_add_u32(0x00128300U, nvgpu_safe_mult_u32((i), 4U)))
