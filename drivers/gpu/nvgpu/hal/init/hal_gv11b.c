@@ -920,7 +920,9 @@ static const struct gpu_ops gv11b_ops = {
 		.intr_enable = gv11b_pbdma_intr_enable,
 		.acquire_val = gm20b_pbdma_acquire_val,
 		.get_signature = gp10b_pbdma_get_signature,
+#ifdef CONFIG_NVGPU_HAL_NON_FUSA
 		.dump_status = gm20b_pbdma_dump_status,
+#endif
 		.handle_intr_0 = gv11b_pbdma_handle_intr_0,
 		.handle_intr_1 = gv11b_pbdma_handle_intr_1,
 		.handle_intr = gm20b_pbdma_handle_intr,

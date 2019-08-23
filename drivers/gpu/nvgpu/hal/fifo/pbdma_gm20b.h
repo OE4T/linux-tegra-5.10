@@ -42,7 +42,6 @@ void gm20b_pbdma_reset_header(struct gk20a *g, u32 pbdma_id);
 void gm20b_pbdma_reset_method(struct gk20a *g, u32 pbdma_id,
 			u32 pbdma_method_index);
 u32 gm20b_pbdma_acquire_val(u64 timeout);
-void gm20b_pbdma_dump_status(struct gk20a *g, struct nvgpu_debug_context *o);
 
 void gm20b_pbdma_format_gpfifo_entry(struct gk20a *g,
 		struct nvgpu_gpfifo_entry *gpfifo_entry,
@@ -78,6 +77,7 @@ void gm20b_pbdma_syncpoint_debug_dump(struct gk20a *g,
 void gm20b_pbdma_setup_hw(struct gk20a *g);
 u32 gm20b_pbdma_get_fc_formats(void);
 u32 gm20b_pbdma_get_fc_pb_header(void);
+void gm20b_pbdma_dump_status(struct gk20a *g, struct nvgpu_debug_context *o);
 #endif
 
 #endif /* NVGPU_PBDMA_GM20B_H */

@@ -811,9 +811,7 @@ bool nvgpu_channel_mark_error(struct gk20a *g, struct nvgpu_channel *ch);
  */
 void nvgpu_channel_abort(struct nvgpu_channel *ch, bool channel_preempt);
 
-#ifdef CONFIG_NVGPU_KERNEL_MODE_SUBMIT
 void nvgpu_channel_abort_clean_up(struct nvgpu_channel *ch);
-#endif
 
 /**
  * @brief Wake up all threads waiting on semaphore wait

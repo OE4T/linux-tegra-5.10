@@ -26,8 +26,10 @@
 
 #include <nvgpu/types.h>
 
+#ifdef CONFIG_NVGPU_HAL_NON_FUSA
 int gk20a_init_fifo_reset_enable_hw(struct gk20a *g);
 int gk20a_init_fifo_setup_hw(struct gk20a *g);
+#endif
 void gk20a_fifo_bar1_snooping_disable(struct gk20a *g);
 void gk20a_fifo_init_pbdma_map(struct gk20a *g, u32 *pbdma_map, u32 num_pbdma);
 u32 gk20a_fifo_get_runlist_timeslice(struct gk20a *g);

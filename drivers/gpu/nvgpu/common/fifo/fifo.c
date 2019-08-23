@@ -193,9 +193,9 @@ int nvgpu_fifo_setup_sw(struct gk20a *g)
 #ifdef CONFIG_NVGPU_KERNEL_MODE_SUBMIT
 clean_up:
 	nvgpu_fifo_cleanup_sw_common(g);
-#endif
 
 	return err;
+#endif
 }
 
 int nvgpu_fifo_init_support(struct gk20a *g)
