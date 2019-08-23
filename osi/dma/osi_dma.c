@@ -195,6 +195,11 @@ int osi_stop_dma(struct osi_dma_priv_data *osi_dma,
 
 unsigned int osi_get_refill_rx_desc_cnt(struct osi_rx_ring *rx_ring)
 {
+	if (rx_ring->cur_rx_idx >= RX_DESC_CNT ||
+	    rx_ring->refill_idx >= RX_DESC_CNT) {
+		return 0;
+	}
+
 	return (rx_ring->cur_rx_idx - rx_ring->refill_idx) & (RX_DESC_CNT - 1U);
 }
 
@@ -239,9 +244,16 @@ int osi_update_rx_tailptr(struct osi_dma_priv_data *osi_dma,
 	unsigned long tailptr = 0;
 	unsigned int refill_idx = rx_ring->refill_idx;
 
+	if (refill_idx >= RX_DESC_CNT) {
+		return -1;
+	}
+
 	DECR_RX_DESC_INDEX(refill_idx, 1U);
 	tailptr = rx_ring->rx_desc_phy_addr +
 		  (refill_idx * sizeof(struct osi_rx_desc));
+	if (tailptr < rx_ring->rx_desc_phy_addr) {
+		return -1;
+	}
 
 	if (osi_dma != OSI_NULL && osi_dma->ops != OSI_NULL &&
 	    osi_dma->ops->update_rx_tailptr != OSI_NULL) {

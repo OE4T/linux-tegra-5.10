@@ -109,6 +109,10 @@ static void eqos_core_safety_init(struct osi_core_priv_data *osi_core)
 						      EQOS_MTL_RXQ_DMA_MAP0;
 	for (i = 0U; i < osi_core->num_mtl_queues; i++) {
 		idx = osi_core->mtl_queues[i];
+		if (idx >= OSI_EQOS_MAX_NUM_CHANS) {
+			continue;
+		}
+
 		config->reg_addr[EQOS_MTL_CH0_TX_OP_MODE_IDX + idx] = base +
 						EQOS_MTL_CHX_TX_OP_MODE(idx);
 		config->reg_addr[EQOS_MTL_TXQ0_QW_IDX + idx] = base +
@@ -142,6 +146,10 @@ static void eqos_core_safety_init(struct osi_core_priv_data *osi_core)
 	config->reg_mask[EQOS_MTL_RXQ_DMA_MAP0_IDX] = EQOS_RXQ_DMA_MAP0_MASK;
 	for (i = 0U; i < osi_core->num_mtl_queues; i++) {
 		idx = osi_core->mtl_queues[i];
+		if (idx >= OSI_EQOS_MAX_NUM_CHANS) {
+			continue;
+		}
+
 		config->reg_mask[EQOS_MTL_CH0_TX_OP_MODE_IDX + idx] =
 						EQOS_MTL_TXQ_OP_MODE_MASK;
 		config->reg_mask[EQOS_MTL_TXQ0_QW_IDX + idx] =
@@ -541,21 +549,21 @@ static int eqos_poll_for_swr(void *addr)
 static void eqos_set_mdc_clk_rate(struct osi_core_priv_data *osi_core,
 				  unsigned long csr_clk_rate)
 {
-	unsigned int csr_clk_speed = (unsigned int)(csr_clk_rate / 1000000U);
+	unsigned long csr_clk_speed = csr_clk_rate / 1000000UL;
 
-	if (csr_clk_speed > 500U) {
+	if (csr_clk_speed > 500UL) {
 		osi_core->mdc_cr = EQOS_CSR_500_800M;
-	} else if (csr_clk_speed > 300U) {
+	} else if (csr_clk_speed > 300UL) {
 		osi_core->mdc_cr = EQOS_CSR_300_500M;
-	} else if (csr_clk_speed > 250U) {
+	} else if (csr_clk_speed > 250UL) {
 		osi_core->mdc_cr = EQOS_CSR_250_300M;
-	} else if (csr_clk_speed > 150U) {
+	} else if (csr_clk_speed > 150UL) {
 		osi_core->mdc_cr = EQOS_CSR_150_250M;
-	} else if (csr_clk_speed > 100U) {
+	} else if (csr_clk_speed > 100UL) {
 		osi_core->mdc_cr = EQOS_CSR_100_150M;
-	} else if (csr_clk_speed > 60U) {
+	} else if (csr_clk_speed > 60UL) {
 		osi_core->mdc_cr = EQOS_CSR_60_100M;
-	} else if (csr_clk_speed > 35U) {
+	} else if (csr_clk_speed > 35UL) {
 		osi_core->mdc_cr = EQOS_CSR_35_60M;
 	} else {
 		/* for CSR < 35mhz */
@@ -648,6 +656,10 @@ static unsigned int eqos_calculate_per_queue_fifo(unsigned int fifo_size,
 {
 	unsigned int q_fifo_size = 0;  /* calculated fifo size per queue */
 	unsigned int p_fifo = EQOS_256; /* per queue fifo size program value */
+
+	if (queue_count == 0U) {
+		return 0U;
+	}
 
 	/* calculate Tx/Rx fifo share per queue */
 	switch (fifo_size) {
@@ -819,6 +831,10 @@ static int eqos_flush_mtl_tx_queue(void *addr, unsigned int qinx)
 	unsigned int count;
 	unsigned int value;
 	int cond = 1;
+
+	if (qinx >= OSI_EQOS_MAX_NUM_CHANS) {
+		return -1;
+	}
 
 	/* Read Tx Q Operating Mode Register and flush TxQ */
 	value = osi_readl((unsigned char *)addr +
@@ -1499,6 +1515,9 @@ static void eqos_handle_common_intr(struct osi_core_priv_data *osi_core)
 		/* Handle Non-TI/RI interrupts */
 		for (i = 0; i < osi_core->num_mtl_queues; i++) {
 			qinx = osi_core->mtl_queues[i];
+			if (qinx >= OSI_EQOS_MAX_NUM_CHANS) {
+				continue;
+			}
 
 			/* read dma channel status register */
 			dma_sr = osi_readl((unsigned char *)base +
@@ -3032,7 +3051,7 @@ static void eqos_config_tscr(void *addr, unsigned int ptp_filter)
  */
 static void eqos_config_ssir(void *addr, unsigned int ptp_clock)
 {
-	unsigned int val;
+	unsigned long long val;
 	unsigned int mac_tcr;
 
 	mac_tcr = osi_readl((unsigned char *)addr + EQOS_MAC_TCR);
@@ -3044,10 +3063,9 @@ static void eqos_config_ssir(void *addr, unsigned int ptp_clock)
 	 */
 
 	if ((mac_tcr & EQOS_MAC_TCR_TSCFUPDT) == EQOS_MAC_TCR_TSCFUPDT) {
-		val = ((1U * (unsigned int)OSI_NSEC_PER_SEC) /
-		       (unsigned int)OSI_ETHER_SYSCLOCK);
+		val = ((1U * OSI_NSEC_PER_SEC) / OSI_ETHER_SYSCLOCK);
 	} else {
-		val = ((1U * (unsigned int)OSI_NSEC_PER_SEC) / ptp_clock);
+		val = ((1U * OSI_NSEC_PER_SEC) / ptp_clock);
 	}
 
 	/* 0.465ns accurecy */
@@ -3059,8 +3077,11 @@ static void eqos_config_ssir(void *addr, unsigned int ptp_clock)
 
 	val |= val << EQOS_MAC_SSIR_SSINC_SHIFT;
 	/* update Sub-second Increment Value */
-	eqos_core_safety_writel(val, (unsigned char *)addr + EQOS_MAC_SSIR,
-				EQOS_MAC_SSIR_IDX);
+	if (val < UINT_MAX) {
+		eqos_core_safety_writel((unsigned int)val,
+					(unsigned char *)addr + EQOS_MAC_SSIR,
+					EQOS_MAC_SSIR_IDX);
+	}
 }
 
 /**

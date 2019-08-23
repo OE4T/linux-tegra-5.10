@@ -159,6 +159,10 @@ static int get_rx_hwstamp(struct osi_rx_desc *rx_desc,
 
 		rx_pkt_cx->ns = context_desc->rdes0 +
 				(OSI_NSEC_PER_SEC * context_desc->rdes1);
+		if (rx_pkt_cx->ns < context_desc->rdes0) {
+			/* Will not hit this case */
+			return -1;
+		}
 	}
 	return ret;
 }
@@ -195,6 +199,10 @@ int osi_process_rx_completions(struct osi_dma_priv_data *osi,
 	struct osi_rx_desc *context_desc = OSI_NULL;
 	int received = 0;
 	int ret = 0;
+
+	if (rx_ring->cur_rx_idx >= RX_DESC_CNT) {
+		return -1;
+	}
 
 	while (received < budget) {
 		osi_memset(rx_pkt_cx, 0U, sizeof(*rx_pkt_cx));
@@ -411,14 +419,21 @@ int osi_process_tx_completions(struct osi_dma_priv_data *osi,
 		    ((tx_desc->tdes3 & TDES3_CTXT) == 0U)) {
 			/* check tx tstamp status */
 			if ((tx_desc->tdes3 & TDES3_TTSS) != 0U) {
-				txdone_pkt_cx->flags |= OSI_TXDONE_CX_TS;
 				/* tx timestamp captured for this packet */
 				ns = tx_desc->tdes0;
 				vartdes1 = tx_desc->tdes1;
-				if (vartdes1 < UINT_MAX) {
-					ns = ns + (vartdes1 * OSI_NSEC_PER_SEC);
+				if (OSI_NSEC_PER_SEC >
+						(OSI_ULLONG_MAX / vartdes1)) {
+					/* Will not hit this case */
+				} else if (OSI_ULLONG_MAX -
+					(vartdes1 * OSI_NSEC_PER_SEC) < ns) {
+					/* Will not hit this case */
+				} else {
+					txdone_pkt_cx->flags |=
+						OSI_TXDONE_CX_TS;
+					txdone_pkt_cx->ns = ns +
+						(vartdes1 * OSI_NSEC_PER_SEC);
 				}
-				txdone_pkt_cx->ns = ns;
 			} else {
 				/* Do nothing here */
 			}
@@ -442,7 +457,9 @@ int osi_process_tx_completions(struct osi_dma_priv_data *osi,
 		tx_swcx->buf_phy_addr = 0;
 		tx_swcx->is_paged_buf = 0;
 		INCR_TX_DESC_INDEX(entry, 1U);
-		processed++;
+		if (processed < INT_MAX) {
+			processed++;
+		}
 
 		/* Don't wait to update tx_ring->clean-idx. It will
 		 * be used by OSD layer to determine the num. of available
@@ -526,9 +543,19 @@ static inline void fill_first_desc(struct osi_tx_pkt_cx *tx_pkt_cx,
 				   struct osi_tx_desc *tx_desc,
 				   struct osi_tx_swcx *tx_swcx)
 {
+	unsigned long tmp;
+
 	/* update the first buffer pointer and length */
-	tx_desc->tdes0 = (unsigned int)L32(tx_swcx->buf_phy_addr);
-	tx_desc->tdes1 = (unsigned int)H32(tx_swcx->buf_phy_addr);
+	tmp = L32(tx_swcx->buf_phy_addr);
+	if (tmp < UINT_MAX) {
+		tx_desc->tdes0 = (unsigned int)tmp;
+	}
+
+	tmp = H32(tx_swcx->buf_phy_addr);
+	if (tmp < UINT_MAX) {
+		tx_desc->tdes1 = (unsigned int)tmp;
+	}
+
 	tx_desc->tdes2 = tx_swcx->len;
 	/* Mark it as First descriptor */
 	tx_desc->tdes3 |= TDES3_FD;
@@ -581,9 +608,17 @@ void osi_hw_transmit(struct osi_dma_priv_data *osi, unsigned int chan)
 	struct osi_tx_desc *last_desc = OSI_NULL;
 	struct osi_tx_desc *first_desc = OSI_NULL;
 	struct osi_tx_desc *cx_desc = OSI_NULL;
-	unsigned long tailptr;
+	unsigned long tailptr, tmp;
 	unsigned int i;
 	int cntx_desc_consumed;
+
+	if (entry >= TX_DESC_CNT) {
+		return;
+	}
+	if (desc_cnt == 0U) {
+		/* Will not hit this case */
+		return;
+	}
 
 	/* Context decriptor for VLAN/TSO */
 	if ((tx_pkt_cx->flags & OSI_PKT_CX_VLAN) == OSI_PKT_CX_VLAN) {
@@ -611,7 +646,6 @@ void osi_hw_transmit(struct osi_dma_priv_data *osi, unsigned int chan)
 	/* Fill first descriptor */
 	fill_first_desc(tx_pkt_cx, tx_desc, tx_swcx);
 
-
 	INCR_TX_DESC_INDEX(entry, 1U);
 
 	first_desc = tx_desc;
@@ -622,8 +656,15 @@ void osi_hw_transmit(struct osi_dma_priv_data *osi, unsigned int chan)
 
 	/* Fill remaining descriptors */
 	for (i = 0; i < desc_cnt; i++) {
-		tx_desc->tdes0 = (unsigned int)L32(tx_swcx->buf_phy_addr);
-		tx_desc->tdes1 = (unsigned int)H32(tx_swcx->buf_phy_addr);
+		tmp = L32(tx_swcx->buf_phy_addr);
+		if (tmp < UINT_MAX) {
+			tx_desc->tdes0 = (unsigned int)tmp;
+		}
+
+		tmp = H32(tx_swcx->buf_phy_addr);
+		if (tmp < UINT_MAX) {
+			tx_desc->tdes1 = (unsigned int)tmp;
+		}
 		tx_desc->tdes2 = tx_swcx->len;
 		/* set HW OWN bit for descriptor*/
 		tx_desc->tdes3 |= TDES3_OWN;
@@ -649,6 +690,10 @@ void osi_hw_transmit(struct osi_dma_priv_data *osi, unsigned int chan)
 
 	tailptr = tx_ring->tx_desc_phy_addr +
 		  (entry * sizeof(struct osi_tx_desc));
+	if (tailptr < tx_ring->tx_desc_phy_addr) {
+		/* Will not hit this case */
+		return;
+	}
 
 	ops->update_tx_tailptr(osi->base, chan, tailptr);
 	tx_ring->cur_tx_idx = entry;
@@ -674,7 +719,7 @@ static int rx_dma_desc_initialization(struct osi_dma_priv_data *osi,
 	struct osi_rx_desc *rx_desc = OSI_NULL;
 	struct osi_rx_swcx *rx_swcx = OSI_NULL;
 	struct osi_dma_chan_ops *ops = osi->ops;
-	unsigned long tailptr = 0;
+	unsigned long tailptr = 0, tmp;
 	unsigned int i;
 	int ret = 0;
 
@@ -685,8 +730,16 @@ static int rx_dma_desc_initialization(struct osi_dma_priv_data *osi,
 		rx_swcx = rx_ring->rx_swcx + i;
 		rx_desc = rx_ring->rx_desc + i;
 
-		rx_desc->rdes0 = (unsigned int)L32(rx_swcx->buf_phy_addr);
-		rx_desc->rdes1 = (unsigned int)H32(rx_swcx->buf_phy_addr);
+		tmp = L32(rx_swcx->buf_phy_addr);
+		if (tmp < UINT_MAX) {
+			rx_desc->rdes0 = (unsigned int)tmp;
+		}
+
+		tmp = H32(rx_swcx->buf_phy_addr);
+		if (tmp < UINT_MAX) {
+			rx_desc->rdes1 = (unsigned int)tmp;
+		}
+
 		rx_desc->rdes2 = 0;
 		rx_desc->rdes3 = (RDES3_OWN | RDES3_IOC | RDES3_B1V);
 		/* reconfigure INTE bit if RX watchdog timer is enabled */
@@ -697,6 +750,10 @@ static int rx_dma_desc_initialization(struct osi_dma_priv_data *osi,
 
 	tailptr = rx_ring->rx_desc_phy_addr +
 		  sizeof(struct osi_rx_desc) * (RX_DESC_CNT - 1U);
+	if (tailptr < rx_ring->rx_desc_phy_addr) {
+		/* Will not hit this case */
+		return -1;
+	}
 
 	ops->set_rx_ring_len(osi->base, chan, (RX_DESC_CNT - 1U));
 	ops->update_rx_tailptr(osi->base, chan, tailptr);

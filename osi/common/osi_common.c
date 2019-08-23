@@ -126,17 +126,11 @@ int osi_get_mac_version(void *addr, unsigned int *mac_ver)
 void osi_memset(void *s, unsigned int c, unsigned long count)
 {
 	unsigned char *xs = s;
-	int brk = 1;
 
-	while (brk != 0) {
+	while (count != 0UL) {
 		if (c < OSI_UCHAR_MAX) {
 			*xs++ = (unsigned char)c;
 		}
-		if (count > 0U) {
-			count--;
-		}
-		if (count == 0U) {
-			brk = 0;
-		}
+		count--;
 	}
 }
