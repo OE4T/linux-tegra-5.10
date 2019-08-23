@@ -17,8 +17,13 @@
  */
 
 #include "tegra234-soc/tegra234-soc-minimal.dtsi"
+#include <dt-bindings/memory/tegra234-smmu-streamid.h>
 
 / {
+	aliases {
+		i2c3 = &dp_aux_ch1_i2c;
+	};
+
 	mc_sid@2c00000 {
 		compatible = "nvidia,tegra234-mc-sid";
 		reg = <0x0 0x02c00000 0x0 0x00010000>; /* MC_SID_BASE */
@@ -167,5 +172,39 @@
 		iso-smmu-id = <2>;
 
 		status = "disabled";
+	};
+
+	miscreg@00100000 {
+		compatible = "nvidia,tegra186-miscreg";
+		reg = <0x0 0x00100000 0x0 0xf000>, /* Chipid */
+		      <0x0 0x0010f000 0x0 0x1000>; /* Straps */
+		status = "disabled";
+	};
+
+	dp_aux_ch1_i2c: i2c@3190000 {
+		#address-cells = <1>;
+		#size-cells = <0>;
+		compatible = "nvidia,tegra194-i2c";
+		reg = <0x0 0x3190000 0x0 0x100>;
+		nvidia,hw-instance-id = <0x3>;
+		interrupts = <0 TEGRA194_IRQ_I2C4 0x04>;
+		status = "disabled";
+		clock-frequency = <100000>;
+	};
+
+	nvdisplay@13800000 {
+		compatible = "nvidia,tegra234-display";
+		reg-names = "nvdisplay", "dpaux0", "dpaux1";
+		reg = <0x0 0x13800000 0x0 0xEFFFF  /* nvdisplay */
+		       0x0 0x155C0000 0x0 0xFFFF   /* dpaux0 */
+		       0x0 0x155D0000 0x0 0xFFFF>; /* dpaux1 */
+		interrupt-names = "nvdisplay", "dpaux0", "dpaux1";
+		interrupts = <0 416 4
+			      0 419 4
+			      0 420 4>;
+		status = "disabled";
+		iommus = <&smmu TEGRA_SID_NVDISPLAY>;
+		iso-smmu;
+		non-coherent;
 	};
 };
