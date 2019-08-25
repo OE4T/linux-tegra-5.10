@@ -2852,8 +2852,9 @@ static void ether_parse_queue_prio(struct ether_priv_data *pdata,
 		tval[i] = pval[i];
 	}
 
-	/* If Some priority is alreay give to queue or priority in DT more than
-	 * MAX priority, assig default priority to queue with error message
+	/* If Some priority is already given to queue or priority in DT is
+	 * more than MAX priority, assign default priority to queue with
+	 * error message
 	 */
 	for (i = 0; i < num_entries; i++) {
 		mtlq = osi_core->mtl_queues[i];
@@ -2861,6 +2862,7 @@ static void ether_parse_queue_prio(struct ether_priv_data *pdata,
 			dev_err(pdata->dev, "%s():Wrong or duplicate priority"
 				" in DT entry for Q(%d)\n", __func__, mtlq);
 			pval[mtlq] = val_def;
+			continue;
 		}
 		pval[mtlq] = tval[i];
 		pmask |= 1U << tval[i];
