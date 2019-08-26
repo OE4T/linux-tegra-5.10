@@ -55,8 +55,10 @@ void nvgpu_cond_unlock(struct nvgpu_cond *cond);
 #define NVGPU_COND_WAIT_LOCKED(cond, condition, timeout_ms)	\
 ({								\
 	int ret = 0;						\
-	NVGPU_COND_WAIT_TIMEOUT_LOCKED(cond, condition, ret,	\
-		timeout_ms ? timeout_ms :			\
+	u32 cond_timeout_ms = (timeout_ms);			\
+	NVGPU_COND_WAIT_TIMEOUT_LOCKED((cond), (condition),	\
+		(ret),						\
+		((cond_timeout_ms) != 0U) ? (cond_timeout_ms) :	\
 		NVGPU_COND_WAIT_TIMEOUT_MAX_MS);		\
 	ret;							\
 })
