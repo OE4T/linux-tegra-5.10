@@ -166,7 +166,11 @@ static void gv11b_ltc_intr_handle_lts_interrupts(struct gk20a *g,
 			"ltc:%d lts: %d cache ecc interrupt intr: 0x%x",
 			ltc, slice, ltc_intr3);
 
-		if (slice > 255U) {
+		/* This check has been added to ensure that the slice id is less
+		 * than 8-bits and hence, it can be packed as part of LSB 8-bits
+		 * along with the LTC id while reporting LTC related ECC errors.
+		 */
+		if (slice > U8_MAX) {
 			nvgpu_log(g, gpu_dbg_intr, "Invalid slice id=%d",
 					slice);
 			slice = slice & 0xFFU;

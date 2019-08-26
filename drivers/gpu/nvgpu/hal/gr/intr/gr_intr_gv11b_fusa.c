@@ -900,7 +900,11 @@ void gv11b_gr_intr_set_hww_esr_report_mask(struct gk20a *g)
 static void gv11b_gr_intr_report_l1_tag_uncorrected_err(struct gk20a *g,
 			u32 l1_tag_ecc_status, u32 gpc, u32 tpc)
 {
-	if (tpc > 255U) {
+	/* This check has been added to ensure that the TPC id is less than
+	 * 8-bits and hence, it can be packed as part of LSB 8-bits along with
+	 * the GPC id while reporting SM related ECC errors.
+	 */
+	if (tpc > U8_MAX) {
 		nvgpu_log(g, gpu_dbg_intr, "Invalid tpc id=%d", tpc);
 		tpc = tpc & 0xFFU;
 	}
@@ -931,7 +935,11 @@ static void gv11b_gr_intr_report_l1_tag_uncorrected_err(struct gk20a *g,
 static void gv11b_gr_intr_report_l1_tag_corrected_err(struct gk20a *g,
 			u32 l1_tag_ecc_status, u32 gpc, u32 tpc)
 {
-	if (tpc > 255U) {
+	/* This check has been added to ensure that the TPC id is less than
+	 * 8-bits and hence, it can be packed as part of LSB 8-bits along with
+	 * the GPC id while reporting SM related ECC errors.
+	 */
+	if (tpc > U8_MAX) {
 		nvgpu_log(g, gpu_dbg_intr, "Invalid tpc id=%d", tpc);
 		tpc = tpc & 0xFFU;
 	}
@@ -1114,7 +1122,11 @@ static void gv11b_gr_intr_handle_lrf_exception(struct gk20a *g, u32 gpc, u32 tpc
 	is_lrf_ecc_uncorrected_total_err_overflow =
 		gr_pri_gpc0_tpc0_sm_lrf_ecc_status_uncorrected_err_total_counter_overflow_v(lrf_ecc_status) != 0U;
 
-	if (tpc > 255U) {
+	/* This check has been added to ensure that the TPC id is less than
+	 * 8-bits and hence, it can be packed as part of LSB 8-bits along with
+	 * the GPC id while reporting SM related ECC errors.
+	 */
+	if (tpc > U8_MAX) {
 		nvgpu_log(g, gpu_dbg_intr, "Invalid tpc id=%d", tpc);
 		tpc = tpc & 0xFFU;
 	}
@@ -1221,7 +1233,11 @@ static void gv11b_gr_intr_handle_cbu_exception(struct gk20a *g, u32 gpc, u32 tpc
 	is_cbu_ecc_uncorrected_total_err_overflow =
 		gr_pri_gpc0_tpc0_sm_cbu_ecc_status_uncorrected_err_total_counter_overflow_v(cbu_ecc_status) != 0U;
 
-	if (tpc > 255U) {
+	/* This check has been added to ensure that the TPC id is less than
+	 * 8-bits and hence, it can be packed as part of LSB 8-bits along with
+	 * the GPC id while reporting SM related ECC errors.
+	 */
+	if (tpc > U8_MAX) {
 		nvgpu_log(g, gpu_dbg_intr, "Invalid tpc id=%d", tpc);
 		tpc = tpc & 0xFFU;
 	}
@@ -1322,7 +1338,11 @@ static void gv11b_gr_intr_handle_l1_data_exception(struct gk20a *g, u32 gpc, u32
 	is_l1_data_ecc_uncorrected_total_err_overflow =
 		gr_pri_gpc0_tpc0_sm_l1_data_ecc_status_uncorrected_err_total_counter_overflow_v(l1_data_ecc_status) != 0U;
 
-	if (tpc > 255U) {
+	/* This check has been added to ensure that the TPC id is less than
+	 * 8-bits and hence, it can be packed as part of LSB 8-bits along with
+	 * the GPC id while reporting SM related ECC errors.
+	 */
+	if (tpc > U8_MAX) {
 		nvgpu_log(g, gpu_dbg_intr, "Invalid tpc id=%d", tpc);
 		tpc = tpc & 0xFFU;
 	}
@@ -1381,7 +1401,11 @@ static void gv11b_gr_intr_handle_l1_data_exception(struct gk20a *g, u32 gpc, u32
 static void gv11b_gr_intr_report_icache_uncorrected_err(struct gk20a *g,
 			u32 icache_ecc_status, u32 gpc, u32 tpc)
 {
-	if (tpc > 255U) {
+	/* This check has been added to ensure that the TPC id is less than
+	 * 8-bits and hence, it can be packed as part of LSB 8-bits along with
+	 * the GPC id while reporting SM related ECC errors.
+	 */
+	if (tpc > U8_MAX) {
 		nvgpu_log(g, gpu_dbg_intr, "Invalid tpc id=%d", tpc);
 		tpc = tpc & 0xFFU;
 	}
@@ -1418,7 +1442,11 @@ static void gv11b_gr_intr_report_icache_uncorrected_err(struct gk20a *g,
 static void gv11b_gr_intr_report_icache_corrected_err(struct gk20a *g,
 			u32 icache_ecc_status, u32 gpc, u32 tpc)
 {
-	if (tpc > 255U) {
+	/* This check has been added to ensure that the TPC id is less than
+	 * 8-bits and hence, it can be packed as part of LSB 8-bits along with
+	 * the GPC id while reporting SM related ECC errors.
+	 */
+	if (tpc > U8_MAX) {
 		nvgpu_log(g, gpu_dbg_intr, "Invalid tpc id=%d", tpc);
 		tpc = tpc & 0xFFU;
 	}
