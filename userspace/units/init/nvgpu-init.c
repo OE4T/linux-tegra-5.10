@@ -79,7 +79,7 @@ static void no_return(struct gk20a *g)
 	/* noop */
 }
 
-static int test_setup_env(struct unit_module *m,
+int test_setup_env(struct unit_module *m,
 			  struct gk20a *g, void *args)
 {
 	/* Create mc register space */
@@ -100,7 +100,7 @@ static int test_setup_env(struct unit_module *m,
 	return UNIT_SUCCESS;
 }
 
-static int test_free_env(struct unit_module *m,
+int test_free_env(struct unit_module *m,
 			 struct gk20a *g, void *args)
 {
 	/* Free mc register space */
@@ -110,7 +110,7 @@ static int test_free_env(struct unit_module *m,
 	return UNIT_SUCCESS;
 }
 
-static int test_can_busy(struct unit_module *m,
+int test_can_busy(struct unit_module *m,
 			 struct gk20a *g, void *args)
 {
 	int ret = UNIT_SUCCESS;
@@ -146,7 +146,7 @@ static int test_can_busy(struct unit_module *m,
 	return ret;
 }
 
-static int test_get_put(struct unit_module *m,
+int test_get_put(struct unit_module *m,
 			struct gk20a *g, void *args)
 {
 	int ret = UNIT_SUCCESS;
@@ -217,7 +217,7 @@ static int test_get_put(struct unit_module *m,
 	return ret;
 }
 
-static int test_check_gpu_state(struct unit_module *m,
+int test_check_gpu_state(struct unit_module *m,
 				struct gk20a *g, void *args)
 {
 	/* Valid state */
@@ -238,7 +238,7 @@ static int test_check_gpu_state(struct unit_module *m,
 	return UNIT_SUCCESS;
 }
 
-static int test_hal_init(struct unit_module *m,
+int test_hal_init(struct unit_module *m,
 			 struct gk20a *g, void *args)
 {
 	nvgpu_posix_io_writel_reg_space(g, mc_boot_0_r(), MC_BOOT_0_GV11B);

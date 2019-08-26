@@ -23,8 +23,8 @@
 #ifndef UNIT_NVGPU_INIT_H
 #define UNIT_NVGPU_INIT_H
 
-#include <unit/unit.h>
-#include <nvgpu/gk20a.h>
+struct gk20a;
+struct unit_module;
 
 /** @addtogroup SWUTS-init
  *  @{
@@ -48,7 +48,7 @@
  * - UNIT_FAIL if encounters an error creating reg space
  * - UNIT_SUCCESS otherwise
  */
-static int test_setup_env(struct unit_module *m,
+int test_setup_env(struct unit_module *m,
 			  struct gk20a *g, void *args);
 
 /**
@@ -66,7 +66,7 @@ static int test_setup_env(struct unit_module *m,
  * Output:
  * - UNIT_SUCCESS always
  */
-static int test_free_env(struct unit_module *m,
+int test_free_env(struct unit_module *m,
 			 struct gk20a *g, void *args);
 
 /**
@@ -87,7 +87,7 @@ static int test_free_env(struct unit_module *m,
  * - UNIT_FAIL if nvgpu_can_busy() returns the incorrect value.
  * - UNIT_SUCCESS otherwise
  */
-static int test_can_busy(struct unit_module *m,
+int test_can_busy(struct unit_module *m,
 			 struct gk20a *g, void *args);
 
 /**
@@ -117,7 +117,7 @@ static int test_can_busy(struct unit_module *m,
  *   incorrect
  * - UNIT_SUCCESS otherwise
  */
-static int test_get_put(struct unit_module *m,
+int test_get_put(struct unit_module *m,
 			struct gk20a *g, void *args);
 
 /**
@@ -145,7 +145,7 @@ static int test_get_put(struct unit_module *m,
  *   the test.
  * - UNIT_SUCCESS otherwise
  */
-static int test_check_gpu_state(struct unit_module *m,
+int test_check_gpu_state(struct unit_module *m,
 				struct gk20a *g, void *args);
 
 /**
@@ -167,7 +167,7 @@ static int test_check_gpu_state(struct unit_module *m,
  * - UNIT_FAIL if HAL initialization fails
  * - UNIT_SUCCESS otherwise
  */
-static int test_hal_init(struct unit_module *m,
+int test_hal_init(struct unit_module *m,
 			 struct gk20a *g, void *args);
 
 
