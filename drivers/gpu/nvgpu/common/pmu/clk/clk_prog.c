@@ -59,7 +59,7 @@ static int getslaveclk_prog_1x_master(struct gk20a *g,
 		struct clk_prog_1x_master *p1xmaster,
 		u8 slave_clk_domain,
 		u16 *pclkmhz,
-		u16 masterclkmhz);
+		u16 masterclkmhz, u8 *ratio);
 
 static int _clk_progs_pmudatainit(struct gk20a *g,
 		struct boardobjgrp *pboardobjgrp,
@@ -1298,7 +1298,7 @@ done:
 static int getslaveclk_prog_1x_master(struct gk20a *g,
 		struct nvgpu_clk_pmupstate *pclk,
 		struct clk_prog_1x_master *p1xmaster,
-		u8 slave_clk_domain, u16 *pclkmhz, u16 masterclkmhz
+		u8 slave_clk_domain, u16 *pclkmhz, u16 masterclkmhz, u8 *ratio
 )
 {
 	struct nvgpu_clk_progs *pclkprogobjs;
@@ -1362,6 +1362,7 @@ static int getslaveclk_prog_1x_master(struct gk20a *g,
 			*pclkmhz = (masterclkmhz * pslaveents->ratio)/100U;
 			/* Floor/Quantize all the slave clocks to the multiple of step size*/
 			*pclkmhz = (*pclkmhz / FREQ_STEP_SIZE_MHZ) * FREQ_STEP_SIZE_MHZ;
+			*ratio = pslaveents->ratio;
 		} else {
 			/* only support ratio for now */
 			return -EINVAL;

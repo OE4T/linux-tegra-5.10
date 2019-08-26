@@ -47,7 +47,7 @@ typedef int vf_lookup(struct gk20a *g, struct nvgpu_clk_pmupstate *pclk,
 typedef int get_slaveclk(struct gk20a *g, struct nvgpu_clk_pmupstate *pclk,
 			struct clk_prog_1x_master *p1xmaster,
 			u8 slave_clk_domain_idx, u16 *pclkmhz,
-			u16 masterclkmhz);
+			u16 masterclkmhz, u8 *ratio);
 
 typedef int get_fpoints(struct gk20a *g, struct nvgpu_clk_pmupstate *pclk,
 			struct clk_prog_1x_master *p1xmaster,

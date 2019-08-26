@@ -34,6 +34,7 @@
 #include <nvgpu/timers.h>
 #include <nvgpu/pmu/pmu_pstate.h>
 #include <nvgpu/pmu/perf_pstate.h>
+#include <nvgpu/pmu/clk/clk_vf_point.h>
 
 void nvgpu_clkrpc_pmucmdhandler(struct gk20a *g, struct pmu_msg *msg,
 		void *param, u32 status)
@@ -57,24 +58,25 @@ void nvgpu_clkrpc_pmucmdhandler(struct gk20a *g, struct pmu_msg *msg,
 int nvgpu_clk_domain_freq_to_volt(struct gk20a *g, u8 clkdomain_idx,
 	u32 *pclkmhz, u32 *pvoltuv, u8 railidx)
 {
-	struct nv_pmu_rpc_clk_domain_35_prog_freq_to_volt  rpc;
-	struct nvgpu_pmu *pmu = g->pmu;
-	int status = -EINVAL;
 
-	(void)memset(&rpc, 0,
-		sizeof(struct nv_pmu_rpc_clk_domain_35_prog_freq_to_volt));
-	rpc.volt_rail_idx =
-			nvgpu_volt_rail_volt_domain_convert_to_idx(g, railidx);
-	rpc.clk_domain_idx = clkdomain_idx;
-	rpc.voltage_type = CTRL_VOLT_DOMAIN_LOGIC;
-	rpc.input.value = *pclkmhz;
-	PMU_RPC_EXECUTE_CPB(status, pmu, CLK,
-		CLK_DOMAIN_35_PROG_FREQ_TO_VOLT, &rpc, 0);
-	if (status != 0) {
-		nvgpu_err(g, "Failed to execute Freq to Volt RPC status=0x%x",
-			status);
+	struct nvgpu_clk_vf_points *pclk_vf_points;
+	struct boardobjgrp *pboardobjgrp;
+	struct boardobj *pboardobj = NULL;
+	int status = -EINVAL;
+	struct clk_vf_point *pclk_vf_point;
+	u8 index;
+
+	nvgpu_log_info(g, " ");
+	pclk_vf_points = g->pmu->clk_pmu->clk_vf_pointobjs;
+	pboardobjgrp = &pclk_vf_points->super.super;
+
+	BOARDOBJGRP_FOR_EACH(pboardobjgrp, struct boardobj*, pboardobj, index) {
+		pclk_vf_point = (struct clk_vf_point *)(void *)pboardobj;
+		if((*pclkmhz) <= pclk_vf_point->pair.freq_mhz) {
+			*pvoltuv = pclk_vf_point->pair.voltage_uv;
+			return 0;
+		}
 	}
-	*pvoltuv = rpc.output.value;
 	return status;
 }
 

@@ -778,7 +778,8 @@ static int clkdomaingetslaveclk(struct gk20a *g,
 	pprog1xmaster = (struct clk_prog_1x_master *)(void *)pprog;
 
 	status = pprog1xmaster->getslaveclk(g, pclk, pprog1xmaster,
-			slaveidx, pclkmhz, masterclkmhz);
+			slaveidx, pclkmhz, masterclkmhz, &pdomain->ratio_domain);
+
 	return status;
 }
 
@@ -1604,7 +1605,8 @@ static void clk_set_p0_clk_per_domain(struct gk20a *g, u8 *gpcclk_domain,
 				nvgpu_err(g, "failed to get XBARCLK P0 info");
 				break;
 			}
-			max_ratio = (vf_point->xbar_mhz*100U)/vf_point->gpc_mhz;
+			max_ratio = pclk_domain->ratio_domain;
+
 			if (vf_point->xbar_mhz < p0_info->min_mhz) {
 				vf_point->xbar_mhz = p0_info->min_mhz;
 			}
@@ -1630,7 +1632,7 @@ static void clk_set_p0_clk_per_domain(struct gk20a *g, u8 *gpcclk_domain,
 				nvgpu_err(g, "failed to get SYSCLK P0 info");
 				break;
 			}
-			max_ratio = (vf_point->sys_mhz*100U)/vf_point->gpc_mhz;
+			max_ratio = pclk_domain->ratio_domain;
 			if (vf_point->sys_mhz < p0_info->min_mhz) {
 				vf_point->sys_mhz = p0_info->min_mhz;
 			}
@@ -1656,7 +1658,7 @@ static void clk_set_p0_clk_per_domain(struct gk20a *g, u8 *gpcclk_domain,
 				nvgpu_err(g, "failed to get NVDCLK P0 info");
 				break;
 			}
-			max_ratio = (vf_point->nvd_mhz*100U)/vf_point->gpc_mhz;
+			max_ratio = pclk_domain->ratio_domain;
 			if (vf_point->nvd_mhz < p0_info->min_mhz) {
 				vf_point->nvd_mhz = p0_info->min_mhz;
 			}
@@ -1682,7 +1684,7 @@ static void clk_set_p0_clk_per_domain(struct gk20a *g, u8 *gpcclk_domain,
 				nvgpu_err(g, "failed to get HOSTCLK P0 info");
 				break;
 			}
-			max_ratio = (vf_point->host_mhz*100U)/vf_point->gpc_mhz;
+			max_ratio = pclk_domain->ratio_domain;
 			if (vf_point->host_mhz < p0_info->min_mhz) {
 				vf_point->host_mhz = p0_info->min_mhz;
 			}
