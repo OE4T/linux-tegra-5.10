@@ -385,6 +385,51 @@
         "unit": "fault_injection"
     },
     {
+        "test": "init_can_busy",
+        "test_level": 0,
+        "unit": "init"
+    },
+    {
+        "test": "init_check_gpu_state",
+        "test_level": 0,
+        "unit": "init"
+    },
+    {
+        "test": "init_free_env",
+        "test_level": 0,
+        "unit": "init"
+    },
+    {
+        "test": "init_get_put",
+        "test_level": 0,
+        "unit": "init"
+    },
+    {
+        "test": "init_hal_init",
+        "test_level": 0,
+        "unit": "init"
+    },
+    {
+        "test": "init_poweroff",
+        "test_level": 0,
+        "unit": "init"
+    },
+    {
+        "test": "init_poweron",
+        "test_level": 0,
+        "unit": "init"
+    },
+    {
+        "test": "init_poweron_branches",
+        "test_level": 0,
+        "unit": "init"
+    },
+    {
+        "test": "init_setup_env",
+        "test_level": 0,
+        "unit": "init"
+    },
+    {
         "test": "test_bsearch",
         "test_level": 0,
         "unit": "interface_bsearch"
