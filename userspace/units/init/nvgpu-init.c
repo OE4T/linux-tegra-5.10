@@ -266,6 +266,8 @@ int test_get_put(struct unit_module *m,
 	/* to cover the cases where these are set */
 	g->remove_support = no_return;
 	g->gfree = no_return;
+	g->ops.gr.ecc.ecc_remove_support = no_return;
+	g->ops.ltc.ltc_remove_support = no_return;
 
 	if (g != nvgpu_get(g)) {
 		ret = UNIT_FAIL;
@@ -597,6 +599,7 @@ int test_poweroff(struct unit_module *m, struct gk20a *g, void *args)
 	g->ops.mc.intr_mask = NULL;
 	g->ops.mc.log_pending_intrs = NULL;
 	g->ops.channel.suspend_all_serviceable_ch = NULL;
+	g->ops.clk.suspend_clk_support = NULL;
 	err = nvgpu_prepare_poweroff(g);
 	if (err != 0) {
 		unit_return_fail(m, "nvgpu_prepare_poweroff returned fail\n");
