@@ -24,24 +24,93 @@
 
 #include <nvgpu/types.h>
 
+/**
+ * @file
+ *
+ * common.gr.setup unit interface
+ */
 struct gk20a;
 struct nvgpu_channel;
 struct vm_gk20a;
 struct nvgpu_gr_ctx;
 
+/**
+ * @brief Allocate and setup object context s/w image for GPU channel.
+ *
+ * @param c[in]			Pointer to GPU channel.
+ * @param class_num[in]		GPU class ID.
+ * @param flags[in]		Flags for context allocation.
+ *
+ * This function allocates and sets up object context for a GPU channel.
+ * The steps include:
+ *
+ * - Validating GPU class ID in parameter list.
+ * - Allocating GR engine context image.
+ * - Allocating subcontext image.
+ * - Allocating patch context image.
+ * - Creating Golden context imaage upon first request to allocate
+ *   object context.
+ * - Initializating context preemption mode.
+ * - Initializing various other fields in context image.
+ * - Mapping global context buffers into context image.
+ * - Committing the context image into channel instance block.
+ *
+ * @return 0 in case of success, < 0 in case of failure.
+ * @retval -ENOMEM if memory allocation fails for any context image.
+ * @retval -EINVAL if invalid GPU class ID is provided.
+ */
+int nvgpu_gr_setup_alloc_obj_ctx(struct nvgpu_channel *c, u32 class_num,
+		u32 flags);
+
+/**
+ * @brief Free GR engine context image.
+ *
+ * @param g[in]			Pointer to GPU driver struct.
+ * @param vm[in]		Pointer to virtual memory.
+ * @param gr_ctx[in]		Pointer to GR engine context image.
+ *
+ * This function will free memory allocated for patch context image and
+ * GR engine context image in #nvgpu_gr_setup_alloc_obj_ctx().
+ */
+void nvgpu_gr_setup_free_gr_ctx(struct gk20a *g,
+		struct vm_gk20a *vm, struct nvgpu_gr_ctx *gr_ctx);
+
+/**
+ * @brief Free GR engine subcontext.
+ *
+ * @param c[in]			Pointer to GPU channel.
+ *
+ * This function will free memory allocated for GR engine subcontext
+ * image in #nvgpu_gr_setup_alloc_obj_ctx().
+ */
+void nvgpu_gr_setup_free_subctx(struct nvgpu_channel *c);
+
+/**
+ * @brief Setup preemption mode in GR engine context image.
+ *
+ * @param ch[in]			Pointer to GPU channel.
+ * @param graphics_preempt_mode[in]	Requested graphics preemption mode.
+ * @param compute_preempt_mode[in]	Requested compute preemption mode.
+ *
+ * This function will program newly requested preemption modes into
+ * GR engine context image. This function is typically needed if user
+ * application needs to change default preemption modes already set in
+ * #nvgpu_gr_setup_alloc_obj_ctx().
+ *
+ * Note that if requested preemption modes are already set, this
+ * function will return 0.
+ *
+ * @return 0 in case of success, < 0 in case of failure.
+ * @retval -EINVAL if invalid preemption modes are provided.
+ * @retval -EINVAL if invalid GPU channel pointer is provided.
+ */
+int nvgpu_gr_setup_set_preemption_mode(struct nvgpu_channel *ch,
+					u32 graphics_preempt_mode,
+					u32 compute_preempt_mode);
+
 #ifdef CONFIG_NVGPU_GRAPHICS
 int nvgpu_gr_setup_bind_ctxsw_zcull(struct gk20a *g, struct nvgpu_channel *c,
 			u64 zcull_va, u32 mode);
 #endif
-
-int nvgpu_gr_setup_alloc_obj_ctx(struct nvgpu_channel *c, u32 class_num,
-		u32 flags);
-void nvgpu_gr_setup_free_gr_ctx(struct gk20a *g,
-		struct vm_gk20a *vm, struct nvgpu_gr_ctx *gr_ctx);
-void nvgpu_gr_setup_free_subctx(struct nvgpu_channel *c);
-
-int nvgpu_gr_setup_set_preemption_mode(struct nvgpu_channel *ch,
-					u32 graphics_preempt_mode,
-					u32 compute_preempt_mode);
 
 #endif /* NVGPU_GR_SETUP_H */
