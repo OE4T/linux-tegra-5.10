@@ -129,6 +129,7 @@ nvgpu_falcon_sw_init
 nvgpu_falcon_wait_for_halt
 nvgpu_falcon_wait_idle
 nvgpu_fifo_init_support
+nvgpu_finalize_poweron
 nvgpu_free
 nvgpu_free_enabled_flags
 nvgpu_free_fixed
@@ -212,6 +213,7 @@ nvgpu_posix_io_writel_reg_space
 nvgpu_posix_is_fault_injection_triggered
 nvgpu_posix_probe
 nvgpu_posix_register_io
+nvgpu_prepare_poweroff
 nvgpu_put
 nvgpu_raw_spinlock_acquire
 nvgpu_raw_spinlock_init

@@ -170,5 +170,79 @@ int test_check_gpu_state(struct unit_module *m,
 int test_hal_init(struct unit_module *m,
 			 struct gk20a *g, void *args);
 
+/**
+ * Test specification for: test_poweron
+ *
+ * Description: Test nvgpu_finalize_poweron
+ *
+ * Test Type: Feature based
+ *
+ * Input:
+ * - test_setup_env() must be called before.
+ *
+ * Steps:
+ * 1) Setup poweron init function pointers.
+ * 2) Call nvgpu_finalize_poweron().
+ * 3) Check return status.
+ * - These 3 basic steps are repeated:
+ *   a) For the case where all units return success.
+ *   b) Once each for individual unit returning failure.
+ * - Lastly, it verifies the case where the the deviceis already powered on.
+ *
+ * Output:
+ * - UNIT_FAIL if nvgpu_finalize_poweron() ever returns the unexpected value.
+ * - UNIT_SUCCESS otherwise
+ */
+int test_poweron(struct unit_module *m, struct gk20a *g, void *args);
+
+/**
+ * Test specification for: test_poweron_branches
+ *
+ * Description: Test branches in nvgpu_finalize_poweron not covered by the
+ * basic path already covered in test_poweron.
+ *
+ * Test Type: Feature based
+ *
+ * Input:
+ * - test_setup_env() must be called before.
+ *
+ * Steps:
+ * 1) Setup poweron init function pointers to NULL and enable flags.
+ * 2) Call nvgpu_finalize_poweron().
+ * 3) Check return status.
+ * 4) Test syncpt handling by enabling syncpts, altering syncpt flags, and
+ *    manipluatin mem calls to cover other paths in the syncpt init.
+ *
+ * Output:
+ * - UNIT_FAIL if nvgpu_finalize_poweron() ever returns the unexpected value.
+ * - UNIT_SUCCESS otherwise
+ */
+int test_poweron_branches(struct unit_module *m, struct gk20a *g, void *args);
+
+/**
+ * Test specification for: test_poweroff
+ *
+ * Description: Test nvgpu_prepare_poweroff
+ *
+ * Test Type: Feature based
+ *
+ * Input:
+ * - test_setup_env() must be called before.
+ *
+ * Steps:
+ * 1) Setup poweroff init function pointers.
+ * 2) Call nvgpu_finalize_poweron().
+ * 3) Check return status.
+ * - These 3 basic steps are repeated:
+ *   a) For the case where all units return success.
+ *   b) Once each for individual unit returning failure.
+ *   b) To complete branch coverage, with appropriate function poiners set to
+ *      NULL.
+ *
+ * Output:
+ * - UNIT_FAIL if nvgpu_finalize_poweron() ever returns the unexpected value.
+ * - UNIT_SUCCESS otherwise
+ */
+int test_poweroff(struct unit_module *m, struct gk20a *g, void *args);
 
 #endif /* UNIT_NVGPU_INIT_H */
