@@ -74,6 +74,8 @@
  * Static Design
  * =============
  *
+ *   + include/nvgpu/gr/fs_state.h
+ *
  * Resource utilization
  * --------------------
  *
