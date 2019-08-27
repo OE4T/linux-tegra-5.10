@@ -427,6 +427,16 @@ static const struct channel_cfg t186_chcfg = {
 	.ib_ch_cnt = 1
 };
 
+static const struct channel_cfg t194_safe_chcfg = {
+	.channel_mask = 0x200f,
+	.per_cpu_ch_0 = 3,
+	.per_cpu_ch_cnt = 1,
+	.thread_ch_0 = 0,
+	.thread_ch_cnt = 3,
+	.ib_ch_cnt = 0
+};
+
+
 static const struct pconfig t210_cfg = {
 	.chcfg = &t210_chcfg,
 	.ops = &t210_mail_ops,
@@ -446,10 +456,19 @@ static const struct pconfig t186_hv_cfg = {
 	.hv = 1
 };
 
+static const struct pconfig t194_safe_hv_cfg = {
+	.chcfg = &t194_safe_chcfg,
+	.ops = &t186_hv_mail_ops,
+	.hv = 1
+};
+
 const struct of_device_id bpmp_of_matches[] = {
 	{ .compatible = "nvidia,tegra186-bpmp", .data = &t186_native_cfg },
 	{ .compatible = "nvidia,tegra186-bpmp-hv", .data = &t186_hv_cfg },
 	{ .compatible = "nvidia,tegra210-bpmp", .data = &t210_cfg },
+	{ .compatible = "nvidia,tegra194-safe-bpmp-hv",
+	  .data = &t194_safe_hv_cfg
+	},
 	{}
 };
 
