@@ -44,7 +44,6 @@
 	ethernet@2490000 {
 		compatible = "nvidia,nveqos";
 		reg = <0x0 0x02490000 0x0 0x10000>;    /* EQOS Base Register */
-		reg-names = "eqos_base";
 		interrupts = 	<0 194 0x4>,	/* common */
 				<0 186 0x4>,	/* tx0 */
 				<0 187 0x4>,	/* tx1 */
@@ -53,8 +52,7 @@
 				<0 190 0x4>,	/* rx0 */
 				<0 191 0x4>,	/* rx1 */
 				<0 192 0x4>,	/* rx2 */
-				<0 193 0x4>,	/* rx3 */
-				<0 195 0x4>;	/* Unused - power */
+				<0 193 0x4>;	/* rx3 */
 		clocks = <&bpmp_clks TEGRA194_CLK_PLLREFE_VCOOUT>,
 			 <&bpmp_clks TEGRA194_CLK_EQOS_AXI>,
 			 <&bpmp_clks TEGRA194_CLK_EQOS_RX>,
@@ -71,16 +69,15 @@
 		nvidia,rx-queue-prio = <0x2 0x1 0x30 0x48>;
 		nvidia,dcs-enable = <0x0>;
 		nvidia,tx-queue-prio = <0x0 0x7 0x2 0x3>;
-		/* bootloader should update MAC address */
-		nvidia,local-mac-address = <0x00 0x00 0x00 0x00 0x00 0x00>;
 		iommus = <&smmu TEGRA_SID_EQOS>;
 		iommu-resv-regions = <0x0 0x0 0x0 0x40000000 0x0 0x60000000 0xffffffff 0xffffffff>;
 		iommu-group-id = <TEGRA_IOMMU_GROUP_APE>;
 		dma-coherent;
-		nvidia,csr_clock_speed = <0x19>; /* CSR clock speed 25MHz */
-		nvidia,iso_bw = <81920>; /* sum of read and write bw, 80Mb/s */
-		nvidia,rx_riwt = <124>; /* usec value for Rx watchdog interrupt */
-		nvidia,slot_intvl_val = <0x07C>;
+		/* usec value for Rx watchdog interrupt */
+		nvidia,rx_riwt = <512>;
+		/* PTP_ref clock speed in Hz (312.5 MHz)*/
+		nvidia,ptp_ref_clock_speed = <312500000>;
+		nvidia,queue_prio = <0 1 2 3>;
 		status = "disabled";
 		eqos_cool_dev: eqos-cool-dev {
 			cooling-min-state = <0>;
