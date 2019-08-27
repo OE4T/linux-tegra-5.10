@@ -1,4 +1,3 @@
-#
 # Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
@@ -18,9 +17,17 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
-#
 
-test_gr_init_support
-test_gr_remove_support
-test_gr_init_prepare
+.SUFFIXES:
+
+OBJS   = nvgpu-gr-init.o
+MODULE = nvgpu-gr-init
+
+LIB_PATHS += -lnvgpu-gr
+include ../../Makefile.units
+
+lib$(MODULE).so: nvgpu-gr
+
+nvgpu-gr:
+	$(MAKE) -C ..
 

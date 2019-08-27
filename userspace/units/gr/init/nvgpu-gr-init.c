@@ -19,26 +19,25 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef UNIT_NVGPU_GR_H
-#define UNIT_NVGPU_GR_H
 
-#include <nvgpu/types.h>
 
-#ifdef UNIT_GR_DEBUG
-#define unit_verbose	unit_info
-#else
-#define unit_verbose(unit, msg, ...) \
-	do { \
-		if (0) \
-			{ unit_info(unit, msg, ##__VA_ARGS__); \
-		} \
-	} while (0)
-#endif
+#include <stdlib.h>
 
-int test_gr_init_support(struct unit_module *m,
-		struct gk20a *g, void *args);
-int test_gr_remove_support(struct unit_module *m,
-		struct gk20a *g, void *args);
-int test_gr_init_prepare(struct unit_module *m,
-		struct gk20a *g, void *args);
-#endif /* UNIT_NVGPU_GR_H */
+#include <unit/unit.h>
+#include <unit/io.h>
+
+#include <nvgpu/posix/io.h>
+#include <nvgpu/gk20a.h>
+#include <nvgpu/gr/gr.h>
+
+#include "common/gr/gr_priv.h"
+
+#include "../nvgpu-gr.h"
+
+struct unit_module_test nvgpu_gr_init_tests[] = {
+	UNIT_TEST(init_support, test_gr_init_support, NULL, 0),
+	UNIT_TEST(init_prepare, test_gr_init_prepare, NULL, 0),
+	UNIT_TEST(remove_support, test_gr_remove_support, NULL, 0),
+};
+
+UNIT_MODULE(nvgpu_gr_init, nvgpu_gr_init_tests, UNIT_PRIO_NVGPU_TEST);
