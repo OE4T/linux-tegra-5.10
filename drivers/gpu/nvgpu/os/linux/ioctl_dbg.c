@@ -1115,7 +1115,7 @@ static int nvgpu_dbg_gpu_ioctl_set_mmu_debug_mode(
 		goto clean_up;
 	}
 
-	err = nvgpu_tsg_set_mmu_debug_mode(nvgpu_tsg_from_ch(ch), ch, enable);
+	err = nvgpu_tsg_set_mmu_debug_mode(ch, enable);
 	if (err) {
 		nvgpu_err(g, "set mmu debug mode failed, err=%d", err);
 	}

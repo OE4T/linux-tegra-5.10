@@ -597,9 +597,9 @@ struct nvgpu_channel {
 	bool is_privileged_channel;
 #ifdef CONFIG_NVGPU_DEBUGGER
 	/**
-	 * MMU Debugger Mode is enabled for this channel.
+	 * MMU Debugger Mode is enabled for this channel if refcnt > 0
 	 */
-	bool mmu_debug_mode_enabled;
+	u32 mmu_debug_mode_refcnt;
 #endif
 };
 

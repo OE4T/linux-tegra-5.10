@@ -185,11 +185,12 @@ static int nvgpu_tsg_unbind_channel_common(struct nvgpu_tsg *tsg,
 	nvgpu_rwsem_up_write(&tsg->ch_list_lock);
 
 #ifdef CONFIG_NVGPU_DEBUGGER
-	if (ch->mmu_debug_mode_enabled) {
-		err = nvgpu_tsg_set_mmu_debug_mode(tsg, ch, false);
+	while (ch->mmu_debug_mode_refcnt > 0U) {
+		err = nvgpu_tsg_set_mmu_debug_mode(ch, false);
 		if (err != 0) {
 			nvgpu_err(g, "disable mmu debug mode failed ch:%u",
 				ch->chid);
+			break;
 		}
 	}
 #endif
@@ -887,13 +888,14 @@ void nvgpu_tsg_reset_faulted_eng_pbdma(struct gk20a *g, struct nvgpu_tsg *tsg,
 }
 
 #ifdef CONFIG_NVGPU_DEBUGGER
-int nvgpu_tsg_set_mmu_debug_mode(struct nvgpu_tsg *tsg,
-		struct nvgpu_channel *ch, bool enable)
+int nvgpu_tsg_set_mmu_debug_mode(struct nvgpu_channel *ch, bool enable)
 {
 	struct gk20a *g;
 	int err = 0;
+	u32 ch_refcnt;
 	u32 tsg_refcnt;
 	u32 fb_refcnt;
+	struct nvgpu_tsg *tsg = nvgpu_tsg_from_ch(ch);
 
 	if ((ch == NULL) || (tsg == NULL)) {
 		return -EINVAL;
@@ -906,17 +908,11 @@ int nvgpu_tsg_set_mmu_debug_mode(struct nvgpu_tsg *tsg,
 	}
 
 	if (enable) {
-		if (ch->mmu_debug_mode_enabled) {
-			/* already enabled for this channel */
-			return 0;
-		}
+		ch_refcnt = ch->mmu_debug_mode_refcnt + 1U;
 		tsg_refcnt = tsg->mmu_debug_mode_refcnt + 1U;
 		fb_refcnt = g->mmu_debug_mode_refcnt + 1U;
 	} else {
-		if (!ch->mmu_debug_mode_enabled) {
-			/* already disabled for this channel */
-			return 0;
-		}
+		ch_refcnt = ch->mmu_debug_mode_refcnt - 1U;
 		tsg_refcnt = tsg->mmu_debug_mode_refcnt - 1U;
 		fb_refcnt = g->mmu_debug_mode_refcnt - 1U;
 	}
@@ -941,7 +937,7 @@ int nvgpu_tsg_set_mmu_debug_mode(struct nvgpu_tsg *tsg,
 		g->ops.fb.set_mmu_debug_mode(g, fb_refcnt > 0U);
 	}
 
-	ch->mmu_debug_mode_enabled = enable;
+	ch->mmu_debug_mode_refcnt = ch_refcnt;
 	tsg->mmu_debug_mode_refcnt = tsg_refcnt;
 	g->mmu_debug_mode_refcnt = fb_refcnt;
 
