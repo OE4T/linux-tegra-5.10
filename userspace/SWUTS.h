@@ -30,6 +30,7 @@
  * The following pages cover the various unit test specifications needed
  * to test the NVGPU driver.
  *
+ *   - @ref SWUTS-enabled
  *   - @ref SWUTS-mm-vm
  *
  */
