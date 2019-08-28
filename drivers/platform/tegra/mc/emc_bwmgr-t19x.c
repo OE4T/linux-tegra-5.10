@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2018, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -11,6 +11,8 @@
  * more details.
  */
 
+#include <linux/types.h>
+#include <linux/platform/tegra/mc.h>
 #include <linux/platform/tegra/bwmgr_mc.h>
 #include <linux/platform/tegra/emc_bwmgr.h>
 #include <linux/io.h>
@@ -673,18 +675,16 @@ struct bwmgr_ops *bwmgr_eff_init_t19x(void)
 {
 	int ch_num = 0;
 	u32 dram, ch, ecc;
-	void __iomem *mc_base, *emc_base;
+	void __iomem *emc_base;
 
-	mc_base = ioremap(MC_BASE, 0x00010000);
 	emc_base = ioremap(EMC_BASE, 0x00010000);
 
 	dram = readl(emc_base + EMC_FBIO_CFG5_0) & DRAM_MASK;
-	ch = readl(mc_base + MC_EMEM_ADR_CFG_CHANNEL_ENABLE_0) & CH_MASK;
-	ecc = readl(mc_base + MC_ECC_CONTROL_0) & ECC_MASK;
-	dram_rank = readl(mc_base + MC_EMEM_ADR_CFG_0) & RANK_MASK;
+	ch = mc_readl(MC_EMEM_ADR_CFG_CHANNEL_ENABLE_0) & CH_MASK;
+	ecc = mc_readl(MC_ECC_CONTROL_0) & ECC_MASK;
+	dram_rank = mc_readl(MC_EMEM_ADR_CFG_0) & RANK_MASK;
 
 	iounmap(emc_base);
-	iounmap(mc_base);
 
 	while (ch) {
 		if (ch & 1)

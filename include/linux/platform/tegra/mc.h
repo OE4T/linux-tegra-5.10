@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2010-2012 Google, Inc.
- * Copyright (C) 2013-2018, NVIDIA Corporation.  All rights reserved.
+ * Copyright (C) 2013-2019, NVIDIA Corporation.  All rights reserved.
  *
  * Author:
  *	Erik Gilling <konkers@google.com>
@@ -67,6 +67,10 @@ static inline int mc_multi_channel(void)
  */
 static inline u32 __mc_readl(int idx, u32 reg)
 {
+	if (is_tegra_safety_build()) {
+		WARN_ONCE(1, "VM isn't allowed to read MC register space in Safety Build");
+		return 0x0;
+	}
 	if (WARN(!mc, "Read before MC init'ed"))
 		return 0;
 
@@ -92,6 +96,10 @@ static inline u32 __mc_readl(int idx, u32 reg)
  */
 static inline void __mc_writel(int idx, u32 val, u32 reg)
 {
+	if (is_tegra_safety_build()) {
+		WARN_ONCE(1, "VM isn't allowed to write into MC register space in Safety Build");
+		return;
+	}
 	if (WARN(!mc, "Write before MC init'ed"))
 		return;
 
@@ -107,6 +115,10 @@ static inline void __mc_writel(int idx, u32 val, u32 reg)
 
 static inline u32 __mc_raw_readl(int idx, u32 reg)
 {
+	if (is_tegra_safety_build()) {
+		WARN_ONCE(1, "VM isn't allowed to read MC register space in Safety Build");
+		return 0x0;
+	}
 	if (WARN(!mc, "Read before MC init'ed"))
 		return 0;
 
@@ -121,6 +133,10 @@ static inline u32 __mc_raw_readl(int idx, u32 reg)
 
 static inline void __mc_raw_writel(int idx, u32 val, u32 reg)
 {
+	if (is_tegra_safety_build()) {
+		WARN_ONCE(1, "VM isn't allowed to write into MC register space in Safety Build");
+		return;
+	}
 	if (WARN(!mc, "Write before MC init'ed"))
 		return;
 
