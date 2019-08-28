@@ -646,7 +646,7 @@ static void tegra_xudc_limit_port_speed(struct tegra_xudc *xudc)
 	val = xudc_readl(xudc, SSPX_CORE_CNT65);
 	val &= ~(SSPX_CORE_CNT65_TX_SCD_END_TRPT_MID_MASK);
 	val |= SSPX_CORE_CNT65_TX_SCD_END_TRPT_MID(0x4B0);
-	xudc_writel(xudc, val, SSPX_CORE_CNT66);
+	xudc_writel(xudc, val, SSPX_CORE_CNT65);
 
 	val = xudc_readl(xudc, SSPX_CORE_CNT66);
 	val &= ~(SSPX_CORE_CNT66_TX_SCD_BIT0_TRPT_MID_MASK);
@@ -682,7 +682,7 @@ static void tegra_xudc_restore_port_speed(struct tegra_xudc *xudc)
 	val = xudc_readl(xudc, SSPX_CORE_CNT65);
 	val &= ~(SSPX_CORE_CNT65_TX_SCD_END_TRPT_MID_MASK);
 	val |= SSPX_CORE_CNT65_TX_SCD_END_TRPT_MID(0xE10);
-	xudc_writel(xudc, val, SSPX_CORE_CNT66);
+	xudc_writel(xudc, val, SSPX_CORE_CNT65);
 
 	val = xudc_readl(xudc, SSPX_CORE_CNT66);
 	val &= ~(SSPX_CORE_CNT66_TX_SCD_BIT0_TRPT_MID_MASK);
@@ -705,6 +705,10 @@ static void tegra_xudc_device_mode_on(struct tegra_xudc *xudc)
 	int err;
 
 	pm_runtime_get_sync(xudc->dev);
+
+
+	if (xudc->soc->port_speed_quirk)
+		tegra_xudc_limit_port_speed(xudc);
 
 	err = phy_power_on(xudc->curr_utmi_phy);
 	if (err < 0)
@@ -3433,9 +3437,6 @@ static void tegra_xudc_device_params_init(struct tegra_xudc *xudc)
 
 		xudc_writel(xudc, val, BLCG);
 	}
-
-	if (xudc->soc->port_speed_quirk)
-		tegra_xudc_limit_port_speed(xudc);
 
 	/* Set a reasonable U3 exit timer value. */
 	val = xudc_readl(xudc, SSPX_CORE_PADCTL4);
