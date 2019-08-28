@@ -128,6 +128,11 @@ static int iommu_context_dev_probe(struct platform_device *pdev)
 {
 	struct iommu_ctx *ctx;
 
+	if (!nvhost_get_chip_ops()) {
+		dev_err(&pdev->dev, "nvhost was not initialized. aborting.");
+		return -ENODEV;
+	}
+
 	if (!pdev->dev.archdata.iommu) {
 		dev_err(&pdev->dev, "iommu is not enabled for context device. aborting.");
 		return -ENOSYS;
