@@ -141,6 +141,8 @@ static void gp10b_tegra_scale_exit(struct device *dev)
 static int gp10b_tegra_probe(struct device *dev)
 {
 	struct gk20a_platform *platform = dev_get_drvdata(dev);
+	bool joint_xpu_rail = false;
+	struct gk20a *g = platform->g;
 #ifdef CONFIG_TEGRA_GK20A_NVHOST
 	int ret;
 
@@ -154,6 +156,17 @@ static int gp10b_tegra_probe(struct device *dev)
 		return ret;
 
 	platform->disable_bigpage = !dev->archdata.iommu;
+
+#ifdef CONFIG_OF
+	joint_xpu_rail = of_property_read_bool(of_chosen,
+				"nvidia,tegra-joint_xpu_rail");
+#endif
+
+	if (joint_xpu_rail) {
+		nvgpu_log_info(g, "XPU rails are joint\n");
+		platform->can_railgate_init = false;
+		nvgpu_set_enabled(g, NVGPU_CAN_RAILGATE, false);
+	}
 
 	gp10b_tegra_get_clocks(dev);
 	nvgpu_linux_init_clk_support(platform->g);
