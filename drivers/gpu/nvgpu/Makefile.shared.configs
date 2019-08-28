@@ -108,8 +108,6 @@ NVGPU_COMMON_CFLAGS             += -DCONFIG_NVGPU_SYSFS
 
 NVGPU_COMMON_CFLAGS             += -DCONFIG_NVGPU_FALCON_DEBUG
 
-NVGPU_COMMON_CFLAGS             += -DCONFIG_NVGPU_INJECT_HWERR
-
 #
 # Flags enabled only for regular build profile.
 #
@@ -199,6 +197,9 @@ NVGPU_COMMON_CFLAGS             += -DCONFIG_NVGPU_FIFO_ENGINE_ACTIVITY
 # Enable dynamic busy/idle support
 CONFIG_NVGPU_DYNAMIC_BUSY_IDLE_SUPPORT := 1
 NVGPU_COMMON_CFLAGS             += -DCONFIG_NVGPU_DYNAMIC_BUSY_IDLE_SUPPORT
+
+# Enable HW based error injection support
+NVGPU_COMMON_CFLAGS             += -DCONFIG_NVGPU_INJECT_HWERR
 
 endif
 endif
