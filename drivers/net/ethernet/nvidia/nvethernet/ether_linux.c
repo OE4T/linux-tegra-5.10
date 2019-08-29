@@ -652,7 +652,9 @@ static void ether_free_irqs(struct ether_priv_data *pdata)
 		pdata->common_irq_alloc_mask = 0U;
 	}
 
-	if (pdata->osi_core->mac_ver > OSI_EQOS_MAC_5_00) {
+	if (pdata->osi_core->mac_ver > OSI_EQOS_MAC_5_00 ||
+	    (pdata->osi_core->mac_ver == OSI_MGBE_MAC_3_00) ||
+	    (pdata->osi_core->mac_ver == OSI_MGBE_MAC_3_10)) {
 		for (i = 0; i < pdata->osi_dma->num_vm_irqs; i++) {
 			if (pdata->rx_irq_alloc_mask & (OSI_ENABLE << i)) {
 				devm_free_irq(pdata->dev, pdata->vm_irqs[i],
@@ -842,7 +844,9 @@ static int ether_request_irqs(struct ether_priv_data *pdata)
 	}
 	pdata->common_irq_alloc_mask = 1;
 
-	if (osi_core->mac_ver > OSI_EQOS_MAC_5_00) {
+	if (osi_core->mac_ver > OSI_EQOS_MAC_5_00 ||
+	    (osi_core->mac_ver == OSI_MGBE_MAC_3_10) ||
+	    (osi_core->mac_ver == OSI_MGBE_MAC_3_00)) {
 		for (i = 0; i < osi_dma->num_vm_irqs; i++) {
 			snprintf(irq_names[j], ETHER_IRQ_NAME_SZ, "%s.vm%d",
 				 netdev_name(pdata->ndev), i);
@@ -998,7 +1002,7 @@ static void free_rx_dma_resources(struct osi_dma_priv_data *osi_dma,
 	struct osi_rx_ring *rx_ring = NULL;
 	unsigned int i;
 
-	for (i = 0; i < OSI_EQOS_MAX_NUM_CHANS; i++) {
+	for (i = 0; i < OSI_MGBE_MAX_NUM_CHANS; i++) {
 		rx_ring = osi_dma->rx_ring[i];
 
 		if (rx_ring != NULL) {
@@ -1150,7 +1154,7 @@ static int ether_allocate_rx_dma_resources(struct osi_dma_priv_data *osi_dma,
 	unsigned int i;
 	int ret = 0;
 
-	for (i = 0; i < OSI_EQOS_MAX_NUM_CHANS; i++) {
+	for (i = 0; i < OSI_MGBE_MAX_NUM_CHANS; i++) {
 		chan = osi_dma->dma_chans[i];
 
 		if (chan != OSI_INVALID_CHAN_NUM) {
@@ -1190,7 +1194,7 @@ static void free_tx_dma_resources(struct osi_dma_priv_data *osi_dma,
 	struct osi_tx_ring *tx_ring = NULL;
 	unsigned int i;
 
-	for (i = 0; i < OSI_EQOS_MAX_NUM_CHANS; i++) {
+	for (i = 0; i < OSI_MGBE_MAX_NUM_CHANS; i++) {
 		tx_ring = osi_dma->tx_ring[i];
 
 		if (tx_ring != NULL) {
@@ -1293,7 +1297,7 @@ static int ether_allocate_tx_dma_resources(struct osi_dma_priv_data *osi_dma,
 	unsigned int i;
 	int ret = 0;
 
-	for (i = 0; i < OSI_EQOS_MAX_NUM_CHANS; i++) {
+	for (i = 0; i < OSI_MGBE_MAX_NUM_CHANS; i++) {
 		chan = osi_dma->dma_chans[i];
 
 		if (chan != OSI_INVALID_CHAN_NUM) {
@@ -1330,12 +1334,12 @@ static void ether_init_invalid_chan_ring(struct osi_dma_priv_data *osi_dma)
 {
 	unsigned int i;
 
-	for (i = 0; i < OSI_EQOS_MAX_NUM_CHANS; i++) {
+	for (i = 0; i < OSI_MGBE_MAX_NUM_CHANS; i++) {
 		osi_dma->tx_ring[i] = NULL;
 		osi_dma->rx_ring[i] = NULL;
 	}
 
-	for (i = osi_dma->num_dma_chans; i < OSI_EQOS_MAX_NUM_CHANS; i++) {
+	for (i = osi_dma->num_dma_chans; i < OSI_MGBE_MAX_NUM_CHANS; i++) {
 		osi_dma->dma_chans[i] = OSI_INVALID_CHAN_NUM;
 	}
 }
@@ -3216,7 +3220,9 @@ static int ether_get_irqs(struct platform_device *pdev,
 		dev_err(&pdev->dev, "failed to get common IRQ number\n");
 		return pdata->common_irq;
 	}
-	if (osi_core->mac_ver > OSI_EQOS_MAC_5_00) {
+	if (osi_core->mac_ver > OSI_EQOS_MAC_5_00 ||
+	    (osi_core->mac_ver == OSI_MGBE_MAC_3_10) ||
+	    (osi_core->mac_ver == OSI_MGBE_MAC_3_00)) {
 		ret = ether_get_vm_irq_data(pdev, pdata);
 		if (ret < 0) {
 			dev_err(pdata->dev, "failed to get VM IRQ info\n");
@@ -3724,7 +3730,7 @@ static void ether_parse_queue_prio(struct ether_priv_data *pdata,
 	struct device_node *pnode = pdata->dev->of_node;
 	unsigned int i, pmask = 0x0U;
 	unsigned int mtlq;
-	unsigned int tval[OSI_EQOS_MAX_NUM_QUEUES];
+	unsigned int tval[OSI_MGBE_MAX_NUM_QUEUES];
 	int ret = 0;
 
 	ret = of_property_read_u32_array(pnode, pdt_prop, pval, num_entries);
@@ -3775,7 +3781,7 @@ static int ether_parse_dt(struct ether_priv_data *pdata)
 	struct platform_device *pdev = to_platform_device(dev);
 	struct osi_core_priv_data *osi_core = pdata->osi_core;
 	struct osi_dma_priv_data *osi_dma = pdata->osi_dma;
-	unsigned int tmp_value[OSI_EQOS_MAX_NUM_QUEUES];
+	unsigned int tmp_value[OSI_MGBE_MAX_NUM_QUEUES];
 	struct device_node *np = dev->of_node;
 	int ret = -EINVAL;
 	unsigned int i, mtlq, chan;
@@ -4091,6 +4097,12 @@ static void ether_get_num_dma_chan_mtl_q(struct platform_device *pdev,
 		max_chans = OSI_EQOS_MAX_NUM_CHANS;
 	}
 
+	ret = of_device_is_compatible(np, "nvidia,nvmgbe");
+	if (ret != 0) {
+		*mac = OSI_MAC_HW_MGBE;
+		max_chans = OSI_MGBE_MAX_NUM_CHANS;
+	}
+
 	/* parse the number of DMA channels */
 	ret = of_property_read_u32(np, "nvidia,num-dma-chans", num_dma_chans);
 	if (ret != 0) {
@@ -4208,14 +4220,21 @@ static void init_filter_values(struct ether_priv_data *pdata)
  * Algorithm: Updates OSI whether respective platform is Pre-silicon or not
  *
  * @param[in] osi_core: OSI core private data structure
+ * @param[in] osi_dma: OSI dma private data structure
  */
-static inline void tegra_pre_si_platform(struct osi_core_priv_data *osi_core)
+static inline void tegra_pre_si_platform(struct osi_core_priv_data *osi_core,
+					 struct osi_dma_priv_data *osi_dma)
 {
 	/* VDK set true for both VDK/uFPGA */
-	if (tegra_platform_is_vdk())
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 9, 0))
+	if (tegra_platform_is_vdk()) {
 		osi_core->pre_si = 1;
-	else
-		osi_core->pre_si = 0;
+		osi_dma->pre_si = 1;
+	}
+	return;
+#endif
+	osi_core->pre_si = 0;
+	osi_dma->pre_si = 0;
 }
 
 /**
@@ -4289,7 +4308,7 @@ static int ether_probe(struct platform_device *pdev)
 	osi_core->mtu = ndev->mtu;
 	osi_dma->mtu = ndev->mtu;
 
-	tegra_pre_si_platform(osi_core);
+	tegra_pre_si_platform(osi_core, osi_dma);
 
 	/* Parse the ethernet DT node */
 	ret = ether_parse_dt(pdata);
@@ -4680,6 +4699,7 @@ static const struct dev_pm_ops ether_pm_ops = {
  */
 static const struct of_device_id ether_of_match[] = {
 	{ .compatible = "nvidia,nveqos" },
+	{ .compatible = "nvidia,nvmgbe" },
 	{},
 };
 MODULE_DEVICE_TABLE(of, ether_of_match);
