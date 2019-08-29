@@ -701,7 +701,8 @@ static int channel_setup_kernelmode(struct nvgpu_channel *c,
 	gpfifo_gpu_va = c->gpfifo.mem.gpu_va;
 
 	c->gpfifo.entry_num = gpfifo_size;
-	c->gpfifo.get = c->gpfifo.put = 0;
+	c->gpfifo.get = 0;
+	c->gpfifo.put = 0;
 
 	nvgpu_log_info(g, "channel %d : gpfifo_base 0x%016llx, size %d",
 		c->chid, gpfifo_gpu_va, c->gpfifo.entry_num);
