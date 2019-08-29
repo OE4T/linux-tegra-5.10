@@ -215,8 +215,14 @@ void nvgpu_ecc_free(struct gk20a *g)
 {
 	struct nvgpu_ecc *ecc = &g->ecc;
 	struct nvgpu_gr_config *gr_config = nvgpu_gr_get_config_ptr(g);
-	u32 gpc_count = nvgpu_gr_config_get_gpc_count(gr_config);
+	u32 gpc_count;
 	u32 i;
+
+	if (gr_config == NULL) {
+		return;
+	}
+
+	gpc_count = nvgpu_gr_config_get_gpc_count(gr_config);
 
 	for (i = 0; i < gpc_count; i++) {
 		if (ecc->gr.sm_lrf_ecc_single_err_count != NULL) {
