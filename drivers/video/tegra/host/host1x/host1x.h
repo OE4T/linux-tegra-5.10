@@ -3,7 +3,7 @@
  *
  * Tegra Graphics Host Driver Entrypoint
  *
- * Copyright (c) 2010-2018, NVIDIA Corporation. All rights reserved.
+ * Copyright (c) 2010-2019, NVIDIA Corporation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -85,12 +85,12 @@ struct host1x_device_info {
 	char		*resources[NVHOST_MODULE_MAX_IORESOURCE_MEM];
 	/* host1x: number of resources */
 	int		nb_resources;
-
 	/* cmdfifo only accessible from hypervisor? */
 	bool		secure_cmdfifo;
-
 	/* ctrl device node name if not default */
 	const char	*ctrl_name;
+	/* Size of a syncpoint page in the syncpoint<->mss interface */
+	uint32_t	syncpt_page_size;
 };
 
 struct nvhost_master {

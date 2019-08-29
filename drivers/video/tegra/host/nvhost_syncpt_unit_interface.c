@@ -30,10 +30,10 @@
 #include "nvhost_syncpt_unit_interface.h"
 
 #define SYNCPT_SIZE		0x1000
-#define SYNCPT_APERTURE_SIZE	0x400000
 
 struct syncpt_unit_interface {
 	dma_addr_t start;
+	uint32_t syncpt_page_size;
 
 	int cv_dev_count;
 	dma_addr_t cv_dev_address_table[NVMAP_MAX_GOS_PAGES];
@@ -412,7 +412,8 @@ dma_addr_t nvhost_syncpt_address(struct platform_device *engine_pdev, u32 id)
 	struct syncpt_unit_interface *syncpt_unit_interface =
 			pdata->syncpt_unit_interface;
 
-	return syncpt_unit_interface->start + SYNCPT_SIZE * id;
+	return syncpt_unit_interface->start +
+	       syncpt_unit_interface->syncpt_page_size * id;
 }
 
 /**
@@ -435,6 +436,7 @@ dma_addr_t nvhost_syncpt_address(struct platform_device *engine_pdev, u32 id)
 int nvhost_syncpt_unit_interface_init(struct platform_device *engine_pdev)
 {
 	struct nvhost_device_data *pdata = platform_get_drvdata(engine_pdev);
+	struct nvhost_master *host = nvhost_get_host(engine_pdev);
 	struct syncpt_unit_interface *syncpt_unit_interface;
 	struct platform_device *host_pdev;
 	dma_addr_t range_start;
@@ -483,6 +485,7 @@ int nvhost_syncpt_unit_interface_init(struct platform_device *engine_pdev)
 	}
 
 	syncpt_unit_interface->start = range_start;
+	syncpt_unit_interface->syncpt_page_size = host->info.syncpt_page_size;
 	pdata->syncpt_unit_interface = syncpt_unit_interface;
 
 	nvhost_dbg_info("%s: unit interface initialized to range %llu-%llu",
