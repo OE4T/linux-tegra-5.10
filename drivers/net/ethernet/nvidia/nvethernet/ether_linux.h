@@ -278,9 +278,9 @@ struct ether_priv_data {
 	/** HW supported feature list */
 	struct osi_hw_features hw_feat;
 	/** Array of DMA Transmit channel NAPI */
-	struct ether_tx_napi *tx_napi[OSI_EQOS_MAX_NUM_CHANS];
+	struct ether_tx_napi *tx_napi[OSI_MGBE_MAX_NUM_CHANS];
 	/** Array of DMA Receive channel NAPI */
-	struct ether_rx_napi *rx_napi[OSI_EQOS_MAX_NUM_CHANS];
+	struct ether_rx_napi *rx_napi[OSI_MGBE_MAX_NUM_CHANS];
 	/** Network device associated with driver */
 	struct net_device *ndev;
 	/** Base device associated with driver */
@@ -339,7 +339,7 @@ struct ether_priv_data {
 	/** MAC loopback mode */
 	unsigned int mac_loopback_mode;
 	/** Array of MTL queue TX priority */
-	unsigned int txq_prio[OSI_EQOS_MAX_NUM_CHANS];
+	unsigned int txq_prio[OSI_MGBE_MAX_NUM_CHANS];
 
 #ifdef THERMAL_CAL
  	/** Pointer to thermal cooling device which this driver registers

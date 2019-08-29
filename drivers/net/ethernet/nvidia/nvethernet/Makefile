@@ -34,6 +34,8 @@ nvethernet-objs:= ether_linux.o \
 		  $(OSI_DMA)/osi_dma_txrx.o \
 		  $(OSI_CORE)/eqos_core.o \
 		  $(OSI_CORE)/ivc_core.o \
+		  $(OSI_CORE)/mgbe_core.o \
+		  $(OSI_DMA)/mgbe_dma.o \
 		  $(OSI_CORE)/eqos_mmc.o \
 		  $(OSI_DMA)/eqos_dma.o
 
