@@ -4830,7 +4830,8 @@ int stmmac_resume(struct device *dev)
 
 	stmmac_reset_queues_param(priv);
 
-	stmmac_clear_descriptors(priv);
+	/* initialize Tx/Rx DMA descriptor rings */
+	init_dma_desc_rings(ndev, GFP_KERNEL);
 
 	stmmac_hw_setup(ndev, false);
 	stmmac_init_coalesce(priv);
