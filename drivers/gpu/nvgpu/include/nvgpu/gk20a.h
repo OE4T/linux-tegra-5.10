@@ -745,8 +745,10 @@ struct gpu_ops {
 			void (*pes_vsc_stream)(struct gk20a *g);
 			void (*gpc_mmu)(struct gk20a *g);
 			void (*fifo_access)(struct gk20a *g, bool enable);
+#ifdef CONFIG_NVGPU_SET_FALCON_ACCESS_MAP
 			void (*get_access_map)(struct gk20a *g,
 				      u32 **whitelist, u32 *num_entries);
+#endif
 			u32 (*get_sm_id_size)(void);
 			int (*sm_id_config)(struct gk20a *g, u32 *tpc_sm_id,
 					    struct nvgpu_gr_config *gr_config);

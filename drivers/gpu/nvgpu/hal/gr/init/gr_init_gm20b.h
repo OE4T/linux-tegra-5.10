@@ -69,8 +69,10 @@ u32 gm20b_gr_init_get_patch_slots(struct gk20a *g,
 
 #ifdef CONFIG_NVGPU_HAL_NON_FUSA
 void gm20b_gr_init_gpc_mmu(struct gk20a *g);
+#ifdef CONFIG_NVGPU_SET_FALCON_ACCESS_MAP
 void gm20b_gr_init_get_access_map(struct gk20a *g,
 				   u32 **whitelist, u32 *num_entries);
+#endif
 void gm20b_gr_init_sm_id_numbering(struct gk20a *g, u32 gpc, u32 tpc, u32 smid,
 				   struct nvgpu_gr_config *gr_config);
 u32 gm20b_gr_init_get_sm_id_size(void);

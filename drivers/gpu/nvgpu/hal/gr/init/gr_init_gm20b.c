@@ -77,6 +77,7 @@ void gm20b_gr_init_gpc_mmu(struct gk20a *g)
 			nvgpu_ltc_get_ltc_count(g));
 }
 
+#ifdef CONFIG_NVGPU_SET_FALCON_ACCESS_MAP
 void gm20b_gr_init_get_access_map(struct gk20a *g,
 				   u32 **whitelist, u32 *num_entries)
 {
@@ -119,6 +120,7 @@ void gm20b_gr_init_get_access_map(struct gk20a *g,
 	array_size = ARRAY_SIZE(wl_addr_gm20b);
 	*num_entries = nvgpu_safe_cast_u64_to_u32(array_size);
 }
+#endif
 
 void gm20b_gr_init_sm_id_numbering(struct gk20a *g, u32 gpc, u32 tpc, u32 smid,
 				   struct nvgpu_gr_config *gr_config)

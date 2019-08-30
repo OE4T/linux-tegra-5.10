@@ -35,8 +35,10 @@ u32 gv11b_gr_init_get_nonpes_aware_tpc(struct gk20a *g, u32 gpc, u32 tpc,
 void gv11b_gr_init_ecc_scrub_reg(struct gk20a *g,
 				 struct nvgpu_gr_config *gr_config);
 void gv11b_gr_init_gpc_mmu(struct gk20a *g);
+#ifdef CONFIG_NVGPU_SET_FALCON_ACCESS_MAP
 void gv11b_gr_init_get_access_map(struct gk20a *g,
 				   u32 **whitelist, u32 *num_entries);
+#endif
 void gv11b_gr_init_sm_id_numbering(struct gk20a *g, u32 gpc, u32 tpc, u32 smid,
 				   struct nvgpu_gr_config *gr_config);
 int gv11b_gr_init_sm_id_config(struct gk20a *g, u32 *tpc_sm_id,

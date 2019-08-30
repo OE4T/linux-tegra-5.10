@@ -373,7 +373,9 @@ static const struct gpu_ops gm20b_ops = {
 			.pes_vsc_stream = gm20b_gr_init_pes_vsc_stream,
 			.gpc_mmu = gm20b_gr_init_gpc_mmu,
 			.fifo_access = gm20b_gr_init_fifo_access,
+#ifdef CONFIG_NVGPU_SET_FALCON_ACCESS_MAP
 			.get_access_map = gm20b_gr_init_get_access_map,
+#endif
 			.get_sm_id_size = gm20b_gr_init_get_sm_id_size,
 			.sm_id_config = gm20b_gr_init_sm_id_config,
 			.sm_id_numbering = gm20b_gr_init_sm_id_numbering,

@@ -37,6 +37,7 @@
 
 #define GFXP_WFI_TIMEOUT_COUNT_DEFAULT 100000U
 
+#ifdef CONFIG_NVGPU_SET_FALCON_ACCESS_MAP
 void gp10b_gr_init_get_access_map(struct gk20a *g,
 				   u32 **whitelist, u32 *num_entries)
 {
@@ -79,6 +80,7 @@ void gp10b_gr_init_get_access_map(struct gk20a *g,
 	array_size = ARRAY_SIZE(wl_addr_gp10b);
 	*num_entries = nvgpu_safe_cast_u64_to_u32(array_size);
 }
+#endif
 
 int gp10b_gr_init_sm_id_config(struct gk20a *g, u32 *tpc_sm_id,
 			       struct nvgpu_gr_config *gr_config)

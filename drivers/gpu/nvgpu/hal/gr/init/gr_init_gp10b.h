@@ -51,8 +51,10 @@ void gp10b_gr_init_get_default_preemption_modes(
 	u32 *default_graphics_preempt_mode, u32 *default_compute_preempt_mode);
 
 #ifdef CONFIG_NVGPU_HAL_NON_FUSA
+#ifdef CONFIG_NVGPU_SET_FALCON_ACCESS_MAP
 void gp10b_gr_init_get_access_map(struct gk20a *g,
 				   u32 **whitelist, u32 *num_entries);
+#endif
 int gp10b_gr_init_sm_id_config(struct gk20a *g, u32 *tpc_sm_id,
 			       struct nvgpu_gr_config *gr_config);
 int gp10b_gr_init_fs_state(struct gk20a *g);
