@@ -49,6 +49,7 @@ static void ether_disable_clks(struct ether_priv_data *pdata)
 	if (!IS_ERR_OR_NULL(pdata->pllrefe_clk)) {
 		clk_disable_unprepare(pdata->pllrefe_clk);
 	}
+	pdata->clks_enable = false;
 }
 
 /**
@@ -106,6 +107,8 @@ static int ether_enable_clks(struct ether_priv_data *pdata)
 			goto err_tx;
 		}
 	}
+
+	pdata->clks_enable = true;
 
 	return 0;
 
@@ -2279,6 +2282,12 @@ static int ether_mdio_write(struct mii_bus *bus, int phyaddr, int phyreg,
 	struct net_device *ndev = bus->priv;
 	struct ether_priv_data *pdata = netdev_priv(ndev);
 
+	if (!pdata->clks_enable) {
+		dev_err(pdata->dev,
+			"%s:No clks available, skipping PHY write\n", __func__);
+		return -ENODEV;
+	}
+
 	return osi_write_phy_reg(pdata->osi_core, (unsigned int)phyaddr,
 				 (unsigned int)phyreg, phydata);
 }
@@ -2302,6 +2311,12 @@ static int ether_mdio_read(struct mii_bus *bus, int phyaddr, int phyreg)
 {
 	struct net_device *ndev = bus->priv;
 	struct ether_priv_data *pdata = netdev_priv(ndev);
+
+	if (!pdata->clks_enable) {
+		dev_err(pdata->dev,
+			"%s:No clks available, skipping PHY read\n", __func__);
+		return -ENODEV;
+	}
 
 	return osi_read_phy_reg(pdata->osi_core, (unsigned int)phyaddr,
 				(unsigned int)phyreg);

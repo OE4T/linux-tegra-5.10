@@ -298,6 +298,8 @@ struct ether_priv_data {
 	unsigned int max_platform_mtu;
 	/** Spin lock for PTP registers */
 	raw_spinlock_t ptp_lock;
+	/** Clocks enable check */
+	bool clks_enable;
 };
 
 /**
