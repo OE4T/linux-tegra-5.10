@@ -517,6 +517,62 @@ struct engine_status_surface {
 } __CAPTURE_IVC_ALIGN;
 
 /**
+ * @brief NVCSI error status
+ *
+ * Represents error reported from CSI source used by capture descriptor.
+ *
+ */
+struct nvcsi_error_status {
+	/**
+	 * NVCSI error reported for stream used by capture descriptor
+	 *
+	 * Stream error affects multiple virtual channel.
+	 * It will be is reported only once, for the first capture channel
+	 * which retrieved the error report.
+	 *
+	 * This error cause data packet drops and should trigger VI errors in
+	 * affected virtual channels.
+	 */
+	uint32_t nvcsi_stream_bits;
+#define NVCSI_STREAM_ERR_STAT_PH_BOTH_CRC_ERR			(U32_C(1) << 1U)
+#define NVCSI_STREAM_ERR_STAT_PH_ECC_MULTI_BIT_ERR		(U32_C(1) << 0U)
+
+	/**
+	 * NVCSI errors reported for stream virtual channel used by capture descriptor
+	 */
+	uint32_t nvcsi_virtual_channel_bits;
+#define NVCSI_VC_ERR_INTR_STAT_PH_SINGLE_CRC_ERR_VC0		(U32_C(1) << 4U)
+#define NVCSI_VC_ERR_INTR_STAT_PD_WC_SHORT_ERR_VC0		(U32_C(1) << 3U)
+#define NVCSI_VC_ERR_INTR_STAT_PD_CRC_ERR_VC0			(U32_C(1) << 2U)
+#define NVCSI_VC_ERR_INTR_STAT_PH_ECC_SINGLE_BIT_ERR_VC0	(U32_C(1) << 1U)
+#define NVCSI_VC_ERR_INTR_STAT_PPFSM_TIMEOUT_VC0		(U32_C(1) << 0U)
+
+	/**
+	 * NVCSI errors reported for CIL interface used by capture descriptor
+	 */
+	uint32_t cil_a_error_bits;
+	uint32_t cil_b_error_bits;
+#define NVCSI_ERR_CIL_DATA_LANE_SOT_2LSB_ERR1		(U32_C(1) << 16U)
+#define NVCSI_ERR_CIL_DATA_LANE_SOT_2LSB_ERR0		(U32_C(1) << 15U)
+#define NVCSI_ERR_CIL_DATA_LANE_ESC_MODE_SYNC_ERR1	(U32_C(1) << 14U)
+#define NVCSI_ERR_CIL_DATA_LANE_ESC_MODE_SYNC_ERR0	(U32_C(1) << 13U)
+#define NVCSI_ERR_DPHY_CIL_LANE_ALIGN_ERR		(U32_C(1) << 12U)
+#define NVCSI_ERR_DPHY_CIL_DESKEW_CALIB_ERR_CTRL	(U32_C(1) << 11U)
+#define NVCSI_ERR_DPHY_CIL_DESKEW_CALIB_ERR_LANE1	(U32_C(1) << 10U)
+#define NVCSI_ERR_DPHY_CIL_DESKEW_CALIB_ERR_LANE0	(U32_C(1) << 9U)
+#define NVCSI_ERR_CIL_DATA_LANE_RXFIFO_FULL_ERR1	(U32_C(1) << 8U)
+#define NVCSI_ERR_CIL_DATA_LANE_CTRL_ERR1		(U32_C(1) << 7U)
+#define NVCSI_ERR_CIL_DATA_LANE_SOT_MB_ERR1             (U32_C(1) << 6U)
+#define NVCSI_ERR_CIL_DATA_LANE_SOT_SB_ERR1             (U32_C(1) << 5U)
+#define NVCSI_ERR_CIL_DATA_LANE_RXFIFO_FULL_ERR0        (U32_C(1) << 4U)
+#define NVCSI_ERR_CIL_DATA_LANE_CTRL_ERR0               (U32_C(1) << 3U)
+#define NVCSI_ERR_CIL_DATA_LANE_SOT_MB_ERR0             (U32_C(1) << 2U)
+#define NVCSI_ERR_CIL_DATA_LANE_SOT_SB_ERR0		(U32_C(1) << 1U)
+#define NVCSI_ERR_DPHY_CIL_CLK_LANE_CTRL_ERR		(U32_C(1) << 0U)
+};
+
+
+/**
  * @brief Frame capture status record
  */
 struct capture_status {
@@ -714,6 +770,26 @@ struct capture_status {
 	/** Non-classified error */
 	#define CAPTURE_STATUS_NOTIFY_BIT_NON_CLASSIFIED_0			(U64_C(1) << 63U)
 	/** @} */
+
+	/**
+	 * NVCSI error status.
+	 *
+	 * Error bits representing errors which were reported by NVCSI since
+	 * previous capture.
+	 *
+	 * Multiple errors of same kind are collated into single bit.
+	 *
+	 * NVCSI error status is likely, but not guaranteed to affect current frame:
+	 *
+	 * 1. NVCSI error status is retrieved at end-of-frame VI event. NVCSI may already
+	 * retrieve next frame data at this time.
+	 *
+	 * 2. NVCSI Error may also indicate error from older CSI data if there were frame
+	 * skips between captures.
+	 *
+	 */
+	struct nvcsi_error_status nvcsi_err_status;
+
 } __CAPTURE_IVC_ALIGN;
 
 /**
@@ -974,6 +1050,9 @@ struct capture_descriptor {
 
 	/** Capture result record – written by RCE */
 	struct capture_status status;
+
+	/** Reserved */
+	uint32_t __pad32[12];
 
 } __CAPTURE_DESCRIPTOR_ALIGN;
 
