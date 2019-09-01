@@ -393,7 +393,6 @@ struct capture_status {
 #define CAPTURE_STATUS_NOTIFIER_BACKEND_DOWN	U32_C(13)
 #define CAPTURE_STATUS_FALCON_ERROR		U32_C(14)
 #define CAPTURE_STATUS_CHANSEL_NOMATCH		U32_C(15)
-#define CAPTURE_STATUS_ABORTED			U32_C(16)
 
 	uint64_t sof_timestamp;
 	uint64_t eof_timestamp;
