@@ -2369,6 +2369,7 @@ void nvgpu_channel_deterministic_unidle(struct gk20a *g)
 {
 	struct nvgpu_fifo *f = &g->fifo;
 	u32 chid;
+	int err;
 
 	for (chid = 0; chid < f->num_channels; chid++) {
 		struct nvgpu_channel *ch = nvgpu_channel_from_id(g, chid);
@@ -2382,7 +2383,8 @@ void nvgpu_channel_deterministic_unidle(struct gk20a *g)
 		 * which we took in deterministic_idle.
 		 */
 		if (ch->deterministic && !ch->deterministic_railgate_allowed) {
-			if (gk20a_busy(g) != 0) {
+			err = gk20a_busy(g);
+			if (err != 0) {
 				nvgpu_err(g, "cannot busy() again!");
 			}
 			/* Took this in idle() */
@@ -2536,6 +2538,7 @@ int nvgpu_channel_suspend_all_serviceable_ch(struct gk20a *g)
 	u32 chid;
 	bool channels_in_use = false;
 	u32 active_runlist_ids = 0;
+	int err;
 
 	nvgpu_log_fn(g, " ");
 
@@ -2555,7 +2558,8 @@ int nvgpu_channel_suspend_all_serviceable_ch(struct gk20a *g)
 				nvgpu_err(g, "failed to disable channel/TSG");
 			}
 			/* preempt the channel */
-			if (nvgpu_preempt_channel(g, ch) != 0) {
+			err = nvgpu_preempt_channel(g, ch);
+			if (err != 0) {
 				nvgpu_err(g, "failed to preempt channel/TSG");
 			}
 			/* wait for channel update notifiers */

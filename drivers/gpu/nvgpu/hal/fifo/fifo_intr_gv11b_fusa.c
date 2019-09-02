@@ -36,6 +36,13 @@
 
 #include <nvgpu/hw/gv11b/hw_fifo_gv11b.h>
 
+#define FIFO_INTR_0_ERR_MASK (fifo_intr_0_bind_error_pending_f() |	\
+				fifo_intr_0_sched_error_pending_f() |	\
+				fifo_intr_0_chsw_error_pending_f() |	\
+				fifo_intr_0_memop_timeout_pending_f() | \
+				fifo_intr_0_lb_error_pending_f())
+
+
 static const char *const gv11b_sched_error_str[] = {
 	"xxx-0",
 	"xxx-1",
@@ -72,23 +79,9 @@ static const char *const gv11b_sched_error_str[] = {
 	"bad_tsg",
 };
 
-static u32 gv11b_fifo_intr_0_error_mask(struct gk20a *g)
-{
-	u32 intr_0_error_mask =
-		fifo_intr_0_bind_error_pending_f() |
-		fifo_intr_0_sched_error_pending_f() |
-		fifo_intr_0_chsw_error_pending_f() |
-		fifo_intr_0_memop_timeout_pending_f() |
-		fifo_intr_0_lb_error_pending_f();
-
-	return intr_0_error_mask;
-}
-
 static u32 gv11b_fifo_intr_0_en_mask(struct gk20a *g)
 {
-	u32 intr_0_en_mask;
-
-	intr_0_en_mask = gv11b_fifo_intr_0_error_mask(g);
+	u32 intr_0_en_mask = FIFO_INTR_0_ERR_MASK;
 
 	intr_0_en_mask |= fifo_intr_0_pbdma_intr_pending_f() |
 				 fifo_intr_0_ctxsw_timeout_pending_f();
@@ -125,6 +118,7 @@ void gv11b_fifo_intr_0_enable(struct gk20a *g, bool enable)
 bool gv11b_fifo_handle_sched_error(struct gk20a *g)
 {
 	u32 sched_error;
+	int err;
 
 	sched_error = nvgpu_readl(g, fifo_intr_sched_error_r());
 
@@ -135,8 +129,12 @@ bool gv11b_fifo_handle_sched_error(struct gk20a *g)
 		nvgpu_err(g, "fifo sched error code not supported");
 	}
 
-	(void) nvgpu_report_host_err(g, NVGPU_ERR_MODULE_HOST,
+	err = nvgpu_report_host_err(g, NVGPU_ERR_MODULE_HOST,
 			0, GPU_HOST_PFIFO_SCHED_ERROR, sched_error);
+
+	if (err != 0) {
+		nvgpu_info(g, "failed to report fifo sched error");
+	}
 
 	if (sched_error == SCHED_ERROR_CODE_BAD_TSG) {
 		/* id is unknown, preempt all runlists and do recovery */
@@ -149,13 +147,19 @@ bool gv11b_fifo_handle_sched_error(struct gk20a *g)
 static u32 gv11b_fifo_intr_handle_errors(struct gk20a *g, u32 fifo_intr)
 {
 	u32 handled = 0U;
+	int err;
 
 	nvgpu_log_fn(g, "fifo_intr=0x%08x", fifo_intr);
 
 	if ((fifo_intr & fifo_intr_0_bind_error_pending_f()) != 0U) {
 		u32 bind_error = nvgpu_readl(g, fifo_intr_bind_error_r());
-		(void) nvgpu_report_host_err(g, NVGPU_ERR_MODULE_HOST, 0,
+		err = nvgpu_report_host_err(g, NVGPU_ERR_MODULE_HOST, 0,
 				GPU_HOST_PFIFO_BIND_ERROR, bind_error);
+
+		if (err != 0) {
+			nvgpu_info(g, "failed to report fifo bind error");
+		}
+
 		nvgpu_err(g, "fifo bind error: 0x%08x", bind_error);
 		handled |= fifo_intr_0_bind_error_pending_f();
 	}
@@ -166,8 +170,13 @@ static u32 gv11b_fifo_intr_handle_errors(struct gk20a *g, u32 fifo_intr)
 	}
 
 	if ((fifo_intr & fifo_intr_0_memop_timeout_pending_f()) != 0U) {
-		(void) nvgpu_report_host_err(g, NVGPU_ERR_MODULE_HOST, 0,
+		err = nvgpu_report_host_err(g, NVGPU_ERR_MODULE_HOST, 0,
 				GPU_HOST_PFIFO_MEMOP_TIMEOUT_ERROR, 0);
+
+		if (err != 0) {
+			nvgpu_info(g, "failed to report fifo memop error");
+		}
+
 		nvgpu_err(g, "fifo memop timeout error");
 		handled |= fifo_intr_0_memop_timeout_pending_f();
 	}
@@ -175,8 +184,13 @@ static u32 gv11b_fifo_intr_handle_errors(struct gk20a *g, u32 fifo_intr)
 	if ((fifo_intr & fifo_intr_0_lb_error_pending_f()) != 0U) {
 		u32 lb_error = nvgpu_readl(g, fifo_intr_lb_error_r());
 
-		(void) nvgpu_report_host_err(g, NVGPU_ERR_MODULE_HOST, 0,
+		err = nvgpu_report_host_err(g, NVGPU_ERR_MODULE_HOST, 0,
 				GPU_HOST_PFIFO_LB_ERROR, lb_error);
+
+		if (err != 0) {
+			nvgpu_info(g, "failed to report fifo lb error");
+		}
+
 		nvgpu_err(g, "fifo lb error");
 		handled |= fifo_intr_0_lb_error_pending_f();
 	}
@@ -188,6 +202,7 @@ void gv11b_fifo_intr_0_isr(struct gk20a *g)
 {
 	u32 clear_intr = 0U;
 	u32 fifo_intr = nvgpu_readl(g, fifo_intr_0_r());
+	u32 intr_0_en_mask = 0U;
 
 	/* TODO: sw_ready is needed only for recovery part */
 	if (!g->fifo.sw_ready) {
@@ -201,8 +216,9 @@ void gv11b_fifo_intr_0_isr(struct gk20a *g)
 
 	nvgpu_log(g, gpu_dbg_intr, "fifo isr %08x", fifo_intr);
 
-	if (unlikely((fifo_intr & gv11b_fifo_intr_0_error_mask(g)) !=
-							0U)) {
+	intr_0_en_mask = FIFO_INTR_0_ERR_MASK;
+
+	if (unlikely((fifo_intr & intr_0_en_mask) != 0U)) {
 		clear_intr |= gv11b_fifo_intr_handle_errors(g,
 				fifo_intr);
 	}
