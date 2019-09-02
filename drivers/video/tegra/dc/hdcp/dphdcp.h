@@ -1,7 +1,7 @@
 /*
  * dphdcp.h: dp hdcp driver.
  *
- * Copyright (c) 2015-2018, NVIDIA CORPORATION, All rights reserved.
+ * Copyright (c) 2015-2021, NVIDIA CORPORATION, All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -79,6 +79,7 @@ struct tegra_dphdcp {
 
 #ifdef CONFIG_DPHDCP
 void tegra_dphdcp_set_plug(struct tegra_dphdcp *dphdcp, bool hpd);
+int tegra_dphdcp_set_policy(struct tegra_dphdcp *nvhdcp, int pol);
 struct tegra_dphdcp *tegra_dphdcp_create(struct tegra_dc_dp_data *dp,
 						int id, int bus);
 void tegra_dphdcp_debugfs_init(struct tegra_dphdcp *dphdcp);
