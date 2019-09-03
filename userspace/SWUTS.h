@@ -33,8 +33,8 @@
  *   - @ref SWUTS-enabled
  *   - @ref SWUTS-init
  *   - @ref SWUTS-interface-atomic
+ *   - @ref SWUTS-mm-nvgpu-mem
  *   - @ref SWUTS-mm-vm
  *   - @ref SWUTS-sdl
  *
  */
-

@@ -41,6 +41,8 @@
 #include <nvgpu/hw/gk20a/hw_pram_gk20a.h>
 #include <nvgpu/hw/gk20a/hw_bus_gk20a.h>
 
+#include "nvgpu_mem.h"
+
 /*
  * MEM_ADDRESS represents arbitrary memory start address. Init function will
  * allocate MEM_PAGES number of pages in memory.
@@ -128,17 +130,9 @@ static void free_vidmem_env(struct unit_module *m, struct gk20a *g)
 }
 
 /*
- * Test APERTURE_VIDMEM branch of:
- * nvgpu_memset()
- * nvgpu_mem_wr()
- * nvgpu_mem_rd()
- * nvgpu_mem_wr_n()
- * nvgpu_mem_rd_n()
- *
- * For vidmem, all write, read or memset calls are converted to pramin calls.
- * As pramin functions are already tested, this test checks branch execution.
+ * Test APERTURE_VIDMEM branch of nvgpu_mem read and write functions
  */
-static int test_nvgpu_mem_vidmem(struct unit_module *m,
+int test_nvgpu_mem_vidmem(struct unit_module *m,
 					struct gk20a *g, void *args)
 {
 	int err;
@@ -159,35 +153,14 @@ static int test_nvgpu_mem_vidmem(struct unit_module *m,
 		unit_return_fail(m, "Vidmem init failed with err=%d\n", err);
 	}
 
-	/*
-	 * Test nvgpu_memset() - APERTURE_VIDMEM branch
-	 * For vidmem, nvgpu_pramin_memset is tested in pramin module.
-	 */
 	nvgpu_memset(g, test_mem, 0, memset_pattern, TEST_SIZE);
 
-	/*
-	 * Test nvgpu_mem_wr() - APERTURE_VIDMEM branch
-	 * For vidmem, nvgpu_pramin_wr is tested in pramin module.
-	 */
 	nvgpu_mem_wr(g, test_mem, 0, memset_pattern);
 
-	/*
-	 * Test nvgpu_mem_rd() - APERTURE_VIDMEM branch
-	 * For vidmem, nvgpu_pramin_rd_n is tested in pramin module.
-	 */
 	nvgpu_mem_rd(g, test_mem, 0);
-
-	/*
-	 * Test nvgpu_mem_wr_n() - APERTURE_VIDMEM branch
-	 * For vidmem, nvgpu_pramin_wr_n is tested in pramin module.
-	 */
 
 	nvgpu_mem_wr_n(g, test_mem, 0, data_src, data_size);
 
-	/*
-	 * Test nvgpu_mem_rd_n() - APERTURE_VIDMEM branch
-	 * For vidmem, nvgpu_pramin_rd_n is tested by pramin module.
-	 */
 	nvgpu_mem_rd_n(g, test_mem, 0, (void *)data_src, data_size);
 
 	nvgpu_kfree(g, data_src);
@@ -200,11 +173,7 @@ static int test_nvgpu_mem_vidmem(struct unit_module *m,
 }
 #endif
 
-/*
- * Test nvgpu_aperture_mask()
- * Check if appropriate mask is returned for each case.
- */
-static int test_nvgpu_aperture_mask(struct unit_module *m,
+int test_nvgpu_aperture_mask(struct unit_module *m,
 					struct gk20a *g, void *args)
 {
 	u32 sysmem_mask = 1;
@@ -309,11 +278,9 @@ static int test_nvgpu_aperture_mask(struct unit_module *m,
 }
 
 /*
- * Test: test_nvgpu_mem_phys_ops
- *
- * Test all nvgpu_sgt_ops functions provided by nvgpu_mem unit
-*/
-static int test_nvgpu_mem_iommu_translate(struct unit_module *m,
+ * Test for iommu translate
+ */
+int test_nvgpu_mem_iommu_translate(struct unit_module *m,
 					struct gk20a *g, void *args)
 {
 	u64 temp_phys;
@@ -322,7 +289,6 @@ static int test_nvgpu_mem_iommu_translate(struct unit_module *m,
 	struct nvgpu_os_posix *p = nvgpu_os_posix_from_gk20a(g);
 
 	/*
-	 * Test nvgpu_mem_iommu_translate
 	 * Case: mm is not iommuable
 	 * This is specified in nvgpu_os_posix structure.
 	 */
@@ -334,7 +300,6 @@ static int test_nvgpu_mem_iommu_translate(struct unit_module *m,
 	}
 
 	/*
-	 * Test nvgpu_mem_iommu_translate
 	 * Case: mm is not iommuable
 	 * But, mm_is_iommuable = true.
 	 */
@@ -347,7 +312,6 @@ static int test_nvgpu_mem_iommu_translate(struct unit_module *m,
 	}
 
 	/*
-	 * Test nvgpu_mem_iommu_translate
 	 * Case: mm is iommuable
 	 * Set HAL to enable iommu_translate
 	 */
@@ -359,7 +323,7 @@ static int test_nvgpu_mem_iommu_translate(struct unit_module *m,
 			"iommu_translate did not translate address\n");
 	}
 
-	/* Reset settings */
+	/* Reset iommuable settings */
 	p->mm_is_iommuable = false;
 
 	return UNIT_SUCCESS;
@@ -371,7 +335,7 @@ static int test_nvgpu_mem_iommu_translate(struct unit_module *m,
  * Testing function in APERTURE_SYSMEM and APERTURE_INVALID case.
  *
  */
-static int test_nvgpu_memset_sysmem(struct unit_module *m,
+int test_nvgpu_memset_sysmem(struct unit_module *m,
 					struct gk20a *g, void *args)
 {
 	u32 i;
@@ -410,19 +374,9 @@ static int test_nvgpu_memset_sysmem(struct unit_module *m,
 }
 
 /*
- * Test:
- *	nvgpu_mem_is_valid()
- *	nvgpu_mem_is_sysmem()
- *	APERTURE_SYSMEM and APERTURE_INVALID branch of:
- *		nvgpu_memset()
- *		nvgpu_mem_wr()
- *		nvgpu_mem_rd()
- *		nvgpu_mem_wr_n()
- *		nvgpu_mem_rd_n()
- *
- * Test all write and read calls.
+ * Test all memory write and read calls.
  */
-static int test_nvgpu_mem_wr_rd(struct unit_module *m,
+int test_nvgpu_mem_wr_rd(struct unit_module *m,
 					struct gk20a *g, void *args)
 {
 	u32 i;
@@ -438,13 +392,12 @@ static int test_nvgpu_mem_wr_rd(struct unit_module *m,
 
 	/* Case: APERTURE_INVALID */
 	test_mem->aperture = APERTURE_INVALID;
-	/* Confirm nvgpu_mem is set to SYSMEM*/
+
 	if (nvgpu_mem_is_sysmem(test_mem) != false) {
 		unit_return_fail(m, "nvgpu_mem_is_sysmem "
 			"returns true for APERTURE_INVALID\n");
 	}
 
-	/* Confirm nvgpu_mem is allocated*/
 	if (nvgpu_mem_is_valid(test_mem) != false) {
 		unit_return_fail(m, "nvgpu_mem_is_valid "
 			"returns true for APERTURE_INVALID\n");
@@ -460,7 +413,7 @@ static int test_nvgpu_mem_wr_rd(struct unit_module *m,
 
 	/* Case: APERTURE_SYSMEM */
 	test_mem->aperture = APERTURE_SYSMEM;
-	/* Confirm nvgpu_mem is set to SYSMEM*/
+
 	if (nvgpu_mem_is_sysmem(test_mem) != true) {
 		unit_return_fail(m, "nvgpu_mem_is_sysmem "
 			"returns false for APERTURE_SYSMEM\n");
@@ -476,10 +429,6 @@ static int test_nvgpu_mem_wr_rd(struct unit_module *m,
 
 	/* Case: APERTURE_SYSMEM */
 
-	/*
-	 * Test nvgpu_mem_wr()
-	 * further calls nvgpu_mem_wr32()
-	 */
 	nvgpu_mem_wr(g, test_mem, test_offset, data_pattern);
 	if (test_cpu_va[(test_offset / (u32)sizeof(u32))] != data_pattern) {
 		unit_err(m,
@@ -487,10 +436,6 @@ static int test_nvgpu_mem_wr_rd(struct unit_module *m,
 		goto return_fail;
 	}
 
-	/*
-	 * Test nvgpu_mem_rd()
-	 * further calls nvgpu_mem_rd32()
-	 */
 	data_rd = nvgpu_mem_rd(g, test_mem, test_offset);
 	if (data_rd != data_pattern) {
 		unit_err(m,
@@ -498,9 +443,6 @@ static int test_nvgpu_mem_wr_rd(struct unit_module *m,
 		goto return_fail;
 	}
 
-	/*
-	 * Test nvgpu_mem_wr_n()
-	 */
 	data_src = (u32 *) nvgpu_kmalloc(g, data_size);
 	if (data_src == NULL) {
 		unit_err(m, "Could not allocate data_src\n");
@@ -517,9 +459,6 @@ static int test_nvgpu_mem_wr_rd(struct unit_module *m,
 		}
 	}
 
-	/*
-	 * Test nvgpu_mem_rd_n()
-	 */
 	data_rd_buf = (u32 *) nvgpu_kzalloc(g, data_size);
 	if (data_rd_buf == NULL) {
 		unit_err(m, "Could not allocate data_rd_buf\n");
@@ -535,9 +474,6 @@ static int test_nvgpu_mem_wr_rd(struct unit_module *m,
 		}
 	}
 
-	/*
-	 * Test nvgpu_mem_rd32_pair()
-	 */
 	data_rd_pair = nvgpu_mem_rd32_pair(g, test_mem, 0, 1);
 	if (data_rd_pair != ((u64)data_pattern |
 					((u64)data_pattern << 32ULL))) {
@@ -548,39 +484,24 @@ static int test_nvgpu_mem_wr_rd(struct unit_module *m,
 	/* Case: APERTURE_INVALID */
 	test_mem->aperture = APERTURE_INVALID;
 
-	/*
-	 * Test nvgpu_mem_wr()
-	 * further calls nvgpu_mem_wr32()
-	 */
 	if (!EXPECT_BUG(nvgpu_mem_wr(g, test_mem, test_offset, data_pattern))) {
 		unit_err(m,
 			"APERTURE_INVALID: mem_wr did not BUG() as expected\n");
 		goto free_buffers;
 	}
 
-	/*
-	 * Test nvgpu_mem_rd()
-	 * further calls nvgpu_mem_rd32()
-	 */
 	if (!EXPECT_BUG(nvgpu_mem_rd(g, test_mem, test_offset))) {
 		unit_err(m, "APERTURE_INVALID: "
 			"mem_rd did not BUG() as expected\n");
 		goto free_buffers;
 	}
 
-	/*
-	 * Test nvgpu_mem_wr_n()
-	 */
 	if (!EXPECT_BUG(nvgpu_mem_wr_n(g, test_mem, 0, data_src, data_size))) {
 		unit_err(m, "APERTURE_INVALID: "
 			"mem_wr_n did not BUG() as expected\n");
 		goto free_buffers;
 	}
 
-
-	/*
-	 * Test nvgpu_mem_rd_n()
-	 */
 	if (!EXPECT_BUG(nvgpu_mem_rd_n(g, test_mem, 0,
 				(void *)data_rd_buf, data_size))) {
 		unit_err(m, "APERTURE_INVALID: "
@@ -609,10 +530,8 @@ return_fail:
 
 /*
  * Test: test_nvgpu_mem_phys_ops
- *
- * Test all nvgpu_sgt_ops functions provided by nvgpu_mem unit
-*/
-static int test_nvgpu_mem_phys_ops(struct unit_module *m,
+ */
+int test_nvgpu_mem_phys_ops(struct unit_module *m,
 					struct gk20a *g, void *args)
 {
 	u64 ret;
@@ -620,7 +539,6 @@ static int test_nvgpu_mem_phys_ops(struct unit_module *m,
 	struct nvgpu_sgt *test_sgt = test_mem->phys_sgt;
 	struct nvgpu_sgl *test_sgl = test_sgt->sgl;
 
-	/* Test nvgpu_mem_phys_sgl_next */
 	struct nvgpu_sgl *temp_sgl = test_sgt->ops->sgl_next(test_sgl);
 
 	if (temp_sgl != NULL) {
@@ -628,46 +546,39 @@ static int test_nvgpu_mem_phys_ops(struct unit_module *m,
 			"nvgpu_mem_phys_sgl_next not NULL as expected\n");
 	}
 
-	/* Test nvgpu_mem_phys_sgl_dma */
 	ret = test_sgt->ops->sgl_dma(test_sgl);
 	if (ret != MEM_ADDRESS) {
 		unit_return_fail(m,
 		"nvgpu_mem_phys_sgl_dma not equal to phys as expected\n");
 	}
 
-	/* Test nvgpu_mem_phys_sgl_phys */
 	ret = test_sgt->ops->sgl_phys(g, test_sgl);
 	if (ret != MEM_ADDRESS) {
 		unit_return_fail(m,
 		"nvgpu_mem_phys_sgl_phys not equal to phys as expected\n");
 	}
 
-	/* Test nvgpu_mem_phys_sgl_ipa */
 	ret = test_sgt->ops->sgl_ipa(g, test_sgl);
 	if (ret != MEM_ADDRESS) {
 		unit_return_fail(m, "nvgpu_mem_phys_sgl_ipa incorrect\n");
 	}
 
-	/* Test nvgpu_mem_phys_sgl_ipa_to_pa */
 	ret = test_sgt->ops->sgl_ipa_to_pa(g, test_sgl, 0ULL, NULL);
 	if (ret != 0ULL) {
 		unit_return_fail(m,
 			"nvgpu_mem_phys_sgl_ipa_to_pa not zero as expected\n");
 	}
 
-	/* Test nvgpu_mem_phys_sgl_length */
 	ret = test_sgt->ops->sgl_length(test_sgl);
 	if (ret != MEM_SIZE) {
 		unit_return_fail(m, "nvgpu_mem_phys_sgl_length incorrect\n");
 	}
 
-	/* Test nvgpu_mem_phys_sgl_gpu_addr */
 	ret = test_sgt->ops->sgl_gpu_addr(g, test_sgl, attrs);
 	if (ret != MEM_ADDRESS) {
 		unit_return_fail(m, "nvgpu_mem_phys_sgl_gpu_addr incorrect\n");
 	}
 
-	/* Test nvgpu_mem sgt_iommuable */
 	if (test_sgt->ops->sgt_iommuable != NULL) {
 		unit_return_fail(m, "physical nvgpu_mems is not IOMMU'able\n");
 	}
@@ -680,17 +591,7 @@ static int test_nvgpu_mem_phys_ops(struct unit_module *m,
 	return UNIT_SUCCESS;
 }
 
-/*
- * Test nvgpu_mem_create_from_phys()
- *
- * 1. With memory failure, check that init fails with -ENOMEM
- * 2. Init works in regular scenario
- *
- * This test should be first to execute. Newly inited memory will be
- * used by rest of the tests in this module.
- */
-
-static int test_nvgpu_mem_create_from_phys(struct unit_module *m,
+int test_nvgpu_mem_create_from_phys(struct unit_module *m,
 					struct gk20a *g, void *args)
 {
 	int err;
@@ -751,7 +652,7 @@ static int test_nvgpu_mem_create_from_phys(struct unit_module *m,
 	return UNIT_SUCCESS;
 }
 
-static int test_free_nvgpu_mem(struct unit_module *m,
+int test_free_nvgpu_mem(struct unit_module *m,
 					struct gk20a *g, void *args)
 {
 	test_mem->aperture = APERTURE_SYSMEM;
