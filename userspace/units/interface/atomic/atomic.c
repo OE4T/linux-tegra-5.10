@@ -1456,7 +1456,7 @@ struct atomic_test_args xchg_not_atomic_arg = {
 	.start_val = 1,
 	.value = 1,
 	.loop_count = 10000,
-	.repeat_count = 10000, /* for threaded test */
+	.repeat_count = 5000, /* for threaded test */
 };
 struct atomic_test_args xchg_32_arg = {
 	.op = op_cmpxchg,
@@ -1464,7 +1464,7 @@ struct atomic_test_args xchg_32_arg = {
 	.start_val = 1,
 	.value = 1,
 	.loop_count = 10000,
-	.repeat_count = 10000, /* for threaded test */
+	.repeat_count = 5000, /* for threaded test */
 };
 struct atomic_test_args xchg_64_arg = {
 	.op = op_cmpxchg,
@@ -1472,7 +1472,7 @@ struct atomic_test_args xchg_64_arg = {
 	.start_val = INT_MAX,
 	.value = 1,
 	.loop_count = 10000,
-	.repeat_count = 10000, /* for threaded test */
+	.repeat_count = 5000, /* for threaded test */
 };
 struct atomic_test_args cmpxchg_not_atomic_arg = {
 	.op = op_cmpxchg,
