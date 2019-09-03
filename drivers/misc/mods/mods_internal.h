@@ -153,8 +153,6 @@ struct MODS_DMA_MAP {
 
 /* system memory allocation tracking */
 struct MODS_MEM_INFO {
-	u64             logical_addr;   /* kernel logical address */
-	u64             length;         /* actual number of bytes allocated */
 	u32             num_pages;      /* number of allocated pages */
 	u32             num_chunks;     /* max number of contig chunks */
 	int             numa_node;      /* numa node for the allocation */
@@ -415,6 +413,8 @@ int esc_mods_alloc_pages_2(struct mods_client        *client,
 			   struct MODS_ALLOC_PAGES_2 *p);
 int esc_mods_free_pages(struct mods_client     *client,
 			struct MODS_FREE_PAGES *p);
+int esc_mods_merge_pages(struct mods_client      *client,
+			 struct MODS_MERGE_PAGES *p);
 int esc_mods_set_mem_type(struct mods_client      *client,
 			  struct MODS_MEMORY_TYPE *p);
 int esc_mods_get_phys_addr(struct mods_client               *client,

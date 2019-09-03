@@ -25,7 +25,7 @@
 
 /* Driver version */
 #define MODS_DRIVER_VERSION_MAJOR 3
-#define MODS_DRIVER_VERSION_MINOR 93
+#define MODS_DRIVER_VERSION_MINOR 94
 #define MODS_DRIVER_VERSION ((MODS_DRIVER_VERSION_MAJOR << 8) | \
 			     ((MODS_DRIVER_VERSION_MINOR/10) << 4) | \
 			     (MODS_DRIVER_VERSION_MINOR%10))
@@ -125,6 +125,19 @@ struct MODS_DEVICE_ALLOC_PAGES {
 struct MODS_FREE_PAGES {
 	/* IN */
 	__u64	memory_handle;
+};
+
+#define MODS_MAX_MERGE_HANDLES 64
+
+/* MODS_ESC_MERGE_PAGES */
+struct MODS_MERGE_PAGES {
+	/* IN */
+	__u64 in_memory_handles[MODS_MAX_MERGE_HANDLES];
+	__u32 num_in_handles;
+	__u32 dummy_align;
+
+	/* OUT */
+	__u64 memory_handle;
 };
 
 /* MODS_ESC_GET_PHYSICAL_ADDRESS */
@@ -1428,5 +1441,7 @@ struct MODS_MSR {
 		   _IOW(MODS_IOC_MAGIC, 123, struct MODS_PCI_BUS_REMOVE_DEV)
 #define MODS_ESC_ALLOC_PAGES_2 \
 		   _IOWR(MODS_IOC_MAGIC, 124, struct MODS_ALLOC_PAGES_2)
+#define MODS_ESC_MERGE_PAGES \
+		   _IOWR(MODS_IOC_MAGIC, 125, struct MODS_MERGE_PAGES)
 
 #endif /* _MODS_H_  */

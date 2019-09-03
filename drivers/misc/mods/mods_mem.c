@@ -670,7 +670,7 @@ static int mods_alloc_contig_sys_pages(struct mods_client   *client,
 
 	p_page = mods_alloc_pages(client, p_mem_info, order, &is_wb);
 
-	if (!p_page && p_mem_info->logical_addr == 0) {
+	if (!p_page) {
 		LOG_EXT();
 		return -ENOMEM;
 	}
@@ -684,7 +684,6 @@ static int mods_alloc_contig_sys_pages(struct mods_client   *client,
 	if (phys_addr == 0) {
 		mods_error_printk("failed to determine physical address\n");
 		mods_free_pages(client, p_mem_info);
-		p_mem_info->logical_addr = 0;
 		LOG_EXT();
 		return -ENOMEM;
 	}
@@ -694,7 +693,6 @@ static int mods_alloc_contig_sys_pages(struct mods_client   *client,
 		mods_error_printk("dma_addr 0x%llx exceeds supported range\n",
 				  dma_addr);
 		mods_free_pages(client, p_mem_info);
-		p_mem_info->logical_addr = 0;
 		LOG_EXT();
 		return -ENOMEM;
 	}
@@ -703,26 +701,25 @@ static int mods_alloc_contig_sys_pages(struct mods_client   *client,
 
 	mods_debug_printk(DEBUG_MEM,
 	    "alloc contig 0x%lx bytes, 2^%u pages, %s, node %d,%s phys 0x%llx\n",
-	    (unsigned long)p_mem_info->length,
+	    (unsigned long)p_mem_info->num_pages << PAGE_SHIFT,
 	    p_mem_info->pages[0].order,
 	    mods_get_prot_str(p_mem_info->cache_type),
 	    p_mem_info->numa_node,
 	    p_mem_info->dma32 ? " dma32," : "",
 	    (unsigned long long)dma_addr);
 
-	end_addr = dma_addr + p_mem_info->length;
+	end_addr = dma_addr +
+		   ((unsigned long)p_mem_info->num_pages << PAGE_SHIFT);
 	if ((p_mem_info->dma32) &&
 	    (end_addr > 0x100000000ULL)) {
 		mods_error_printk("allocation exceeds 32-bit addressing\n");
 		mods_free_pages(client, p_mem_info);
-		p_mem_info->logical_addr = 0;
 		LOG_EXT();
 		return -ENOMEM;
 	}
 
 	if (mods_post_alloc(p_mem_info->pages, phys_addr, p_mem_info)) {
 		mods_free_pages(client, p_mem_info);
-		p_mem_info->logical_addr = 0;
 		LOG_EXT();
 		return -EINVAL;
 	}
@@ -797,7 +794,7 @@ static int mods_alloc_noncontig_sys_pages(struct mods_client   *client,
 		chunk->dma_addr = dma_addr;
 		mods_debug_printk(DEBUG_MEM,
 		    "alloc 0x%lx bytes [%u], 2^%u pages, %s, node %d,%s phys 0x%llx\n",
-		    (unsigned long)p_mem_info->length,
+		    (unsigned long)p_mem_info->num_pages << PAGE_SHIFT,
 		    (unsigned int)num_chunks,
 		    chunk->order,
 		    mods_get_prot_str(p_mem_info->cache_type),
@@ -827,6 +824,23 @@ static int mods_register_alloc(struct mods_client   *client,
 	list_add(&p_mem_info->list, &client->mem_alloc_list);
 	mutex_unlock(&client->mtx);
 	return OK;
+}
+
+static int validate_mem_handle(struct mods_client   *client,
+			       struct MODS_MEM_INFO *p_mem_info)
+{
+	struct list_head *head = &client->mem_alloc_list;
+	struct list_head *iter;
+
+	list_for_each(iter, head) {
+		struct MODS_MEM_INFO *p_mem =
+			list_entry(iter, struct MODS_MEM_INFO, list);
+
+		if (p_mem == p_mem_info)
+			return true;
+	}
+
+	return false;
 }
 
 static int mods_unregister_and_free(struct mods_client   *client,
@@ -1094,10 +1108,10 @@ static struct MODS_MEM_INFO *optimize_chunks(struct mods_client   *client,
 
 		p_new_mem_info = kzalloc(alloc_size,
 					 GFP_KERNEL | __GFP_NORETRY);
-		atomic_inc(&client->num_allocs);
 	}
 
 	if (p_new_mem_info) {
+		atomic_inc(&client->num_allocs);
 		memcpy(p_new_mem_info, p_mem_info, alloc_size);
 		p_new_mem_info->num_chunks = num_chunks;
 		INIT_LIST_HEAD(&p_new_mem_info->dma_map_list);
@@ -1173,6 +1187,16 @@ int esc_mods_alloc_pages_2(struct mods_client        *client,
 		goto failed;
 	}
 
+#ifdef CONFIG_PPC64
+	if ((p->flags & MODS_ALLOC_CACHE_MASK) != MODS_ALLOC_CACHED) {
+		mods_error_printk("unsupported cache attr %u (%s)\n",
+			p->flags & MODS_ALLOC_CACHE_MASK,
+			mods_get_prot_str(p->flags & MODS_ALLOC_CACHE_MASK));
+		err = -ENOMEM;
+		goto failed;
+	}
+#endif
+
 	p_mem_info = kzalloc(alloc_size, GFP_KERNEL | __GFP_NORETRY);
 	if (unlikely(!p_mem_info)) {
 		mods_error_printk("failed to allocate auxiliary 0x%x bytes\n",
@@ -1183,14 +1207,8 @@ int esc_mods_alloc_pages_2(struct mods_client        *client,
 	atomic_inc(&client->num_allocs);
 
 	p_mem_info->num_chunks   = num_chunks;
-	p_mem_info->length       = p->num_bytes;
-	p_mem_info->logical_addr = 0;
 	p_mem_info->num_pages    = num_pages;
-#ifdef CONFIG_PPC64
-	p_mem_info->cache_type   = MODS_ALLOC_CACHED;
-#else
 	p_mem_info->cache_type   = p->flags & MODS_ALLOC_CACHE_MASK;
-#endif
 	p_mem_info->dma32        = (p->flags & MODS_ALLOC_DMA32) ? true : false;
 	p_mem_info->contig       = (p->flags & MODS_ALLOC_CONTIGUOUS)
 				   ? true : false;
@@ -1266,8 +1284,8 @@ int esc_mods_alloc_pages_2(struct mods_client        *client,
 
 	if (err) {
 		mods_error_printk(
-			"failed to alloc 0x%llx %s bytes, %s, node %d%s\n",
-			(unsigned long long)p_mem_info->length,
+			"failed to alloc 0x%lx %s bytes, %s, node %d%s\n",
+			(unsigned long)p_mem_info->num_pages << PAGE_SHIFT,
 			(p->flags & MODS_ALLOC_CONTIGUOUS)
 				? "contiguous" : "non-contiguous",
 			mods_get_prot_str(p_mem_info->cache_type),
@@ -1431,6 +1449,170 @@ int esc_mods_free_pages(struct mods_client *client, struct MODS_FREE_PAGES *p)
 
 	err = mods_unregister_and_free(client,
 	    (struct MODS_MEM_INFO *)(size_t)p->memory_handle);
+
+	LOG_EXT();
+
+	return err;
+}
+
+int esc_mods_merge_pages(struct mods_client      *client,
+			 struct MODS_MERGE_PAGES *p)
+{
+	int          err        = OK;
+	u32          num_chunks = 0;
+	u32          alloc_size = 0;
+	unsigned int i;
+	struct MODS_MEM_INFO *p_mem_info;
+
+	LOG_ENT();
+
+	if (unlikely(p->num_in_handles < 2 ||
+		     p->num_in_handles > MODS_MAX_MERGE_HANDLES)) {
+		mods_error_printk("invalid number of input handles: %u\n",
+				  p->num_in_handles);
+		LOG_EXT();
+		return -EINVAL;
+	}
+
+	if (unlikely(mutex_lock_interruptible(&client->mtx))) {
+		LOG_EXT();
+		return -EINTR;
+	}
+
+	{
+		const char *err_msg = NULL;
+
+		p_mem_info = (struct MODS_MEM_INFO *)(size_t)
+			     p->in_memory_handles[0];
+
+		if (!validate_mem_handle(client, p_mem_info)) {
+			mods_error_printk("handle 0: invalid handle %p\n",
+					  p_mem_info);
+			err = -EINVAL;
+			goto failed;
+		}
+
+		if (unlikely(!list_empty(&p_mem_info->dma_map_list))) {
+			mods_error_printk("handle 0: found dma mappings\n");
+			err = -EINVAL;
+			goto failed;
+		}
+
+		num_chunks = p_mem_info->num_chunks;
+
+		for (i = 1; i < p->num_in_handles; i++) {
+			unsigned int j;
+			struct MODS_MEM_INFO *p_other =
+				(struct MODS_MEM_INFO *)(size_t)
+					p->in_memory_handles[i];
+
+			if (!validate_mem_handle(client, p_other)) {
+				mods_error_printk("handle %u: invalid handle %p\n",
+						  i, p);
+				err = -EINVAL;
+				goto failed;
+			}
+
+			for (j = 0; j < i; j++) {
+				if (unlikely(p->in_memory_handles[i] ==
+					     p->in_memory_handles[j])) {
+					err_msg = "duplicate handle";
+					break;
+				}
+			}
+			if (err_msg)
+				break;
+
+			if (unlikely(p_mem_info->cache_type !=
+				     p_other->cache_type)) {
+				err_msg = "cache attr mismatch";
+				break;
+			}
+
+			if (unlikely(p_mem_info->force_numa &&
+			    p_mem_info->numa_node != p_other->numa_node)) {
+				err_msg = "numa node mismatch";
+				break;
+			}
+
+			if (unlikely(p_mem_info->dma32 != p_other->dma32)) {
+				err_msg = "dma32 mismatch";
+				break;
+			}
+
+			if (p_mem_info->dev) {
+				if (unlikely(p_mem_info->dev !=
+					     p_other->dev)) {
+					err_msg = "device mismatch";
+					break;
+				}
+
+				if (unlikely(p_mem_info->pages[0].mapped !=
+					     p_other->pages[0].mapped)) {
+					err_msg = "dma mapping mismatch";
+					break;
+				}
+			}
+
+			if (unlikely(!list_empty(&p_other->dma_map_list))) {
+				err_msg = "found dma mappings";
+				break;
+			}
+
+			num_chunks += p_other->num_chunks;
+		}
+
+		if (unlikely(err_msg)) {
+			mods_error_printk("merging handle %u: %s\n",
+					  i, err_msg);
+			err = -EINVAL;
+			goto failed;
+		}
+	}
+
+	alloc_size = sizeof(*p_mem_info) +
+		     (num_chunks - 1) * sizeof(struct MODS_PHYS_CHUNK);
+
+	p_mem_info = kzalloc(alloc_size, GFP_KERNEL | __GFP_NORETRY);
+	if (unlikely(!p_mem_info)) {
+		err = -ENOMEM;
+		goto failed;
+	}
+	atomic_inc(&client->num_allocs);
+
+	for (i = 0; i < p->num_in_handles; i++) {
+		struct MODS_MEM_INFO *p_other = (struct MODS_MEM_INFO *)(size_t)
+						p->in_memory_handles[i];
+		u32 other_chunks = p_other->num_chunks;
+		u32 other_size = sizeof(*p_other) +
+			(other_chunks - 1) * sizeof(struct MODS_PHYS_CHUNK);
+
+		list_del(&p_other->list);
+
+		if (i == 0) {
+			memcpy(p_mem_info, p_other, other_size);
+			p_mem_info->contig = false;
+			INIT_LIST_HEAD(&p_mem_info->dma_map_list);
+			list_add(&p_mem_info->list, &client->mem_alloc_list);
+		} else {
+			memcpy(&p_mem_info->pages[p_mem_info->num_chunks],
+			       &p_other->pages[0],
+			       other_chunks * sizeof(struct MODS_PHYS_CHUNK));
+
+			p_mem_info->num_chunks += other_chunks;
+			p_mem_info->num_pages  += p_other->num_pages;
+		}
+
+		kfree(p_other);
+		atomic_dec(&client->num_allocs);
+	}
+
+	WARN_ON(num_chunks != p_mem_info->num_chunks);
+
+	p->memory_handle = (u64)(size_t)p_mem_info;
+
+failed:
+	mutex_unlock(&client->mtx);
 
 	LOG_EXT();
 

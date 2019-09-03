@@ -733,14 +733,16 @@ static int mods_krnl_close(struct inode *ip, struct file *fp)
 
 	mods_disable_all_devices(client);
 
-	if (atomic_read(&client->num_allocs) ||
-	    atomic_read(&client->num_pages)) {
+	{
+		unsigned long num_allocs = atomic_read(&client->num_allocs);
+		unsigned long num_pages  = atomic_read(&client->num_pages);
 
-		mods_error_printk("not all allocations have been freed, allocs=%u, pages=%u\n",
-			      (unsigned int)atomic_read(&client->num_allocs),
-			      (unsigned int)atomic_read(&client->num_pages));
-		if (!final_err)
-			final_err = -ENOMEM;
+		if (num_allocs || num_pages) {
+			mods_error_printk("not all allocations have been freed, allocs=%lu, pages=%lu\n",
+					  num_allocs, num_pages);
+			if (!final_err)
+				final_err = -ENOMEM;
+		}
 	}
 
 	mods_free_client(client->client_id);
@@ -1567,6 +1569,11 @@ static long mods_krnl_ioctl(struct file  *fp,
 	case MODS_ESC_FREE_PAGES:
 		MODS_IOCTL(MODS_ESC_FREE_PAGES,
 			   esc_mods_free_pages, MODS_FREE_PAGES);
+		break;
+
+	case MODS_ESC_MERGE_PAGES:
+		MODS_IOCTL(MODS_ESC_MERGE_PAGES,
+			   esc_mods_merge_pages, MODS_MERGE_PAGES);
 		break;
 
 	case MODS_ESC_GET_PHYSICAL_ADDRESS:
