@@ -1,4 +1,5 @@
 INPUT += ../../../userspace/SWUTS.h
 INPUT += ../../../userspace/units/enabled/nvgpu-enabled.h
+INPUT += ../../../userspace/units/init/nvgpu-init.h
 INPUT += ../../../userspace/units/mm/vm/vm.h
 

@@ -31,6 +31,7 @@
  * to test the NVGPU driver.
  *
  *   - @ref SWUTS-enabled
+ *   - @ref SWUTS-init
  *   - @ref SWUTS-mm-vm
  *
  */
