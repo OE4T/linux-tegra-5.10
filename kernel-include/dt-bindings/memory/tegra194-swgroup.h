@@ -25,36 +25,36 @@
 /*
  * This is the t19x specific component of the new SID dt-binding.
  */
-#define TEGRA_SID_RCE		0x2a	/* 42 */
-#define TEGRA_SID_RCE_VM2	0x2b	/* 43 */
+#define TEGRA_SID_RCE		0x2aU	/* 42 */
+#define TEGRA_SID_RCE_VM2	0x2bU	/* 43 */
 
-#define TEGRA_SID_RCE_RM	0x2F	/* 47 */
-#define TEGRA_SID_VIFALC	0x30	/* 48 */
-#define TEGRA_SID_ISPFALC	0x31	/* 49 */
+#define TEGRA_SID_RCE_RM	0x2FU	/* 47 */
+#define TEGRA_SID_VIFALC	0x30U	/* 48 */
+#define TEGRA_SID_ISPFALC	0x31U	/* 49 */
 
-#define TEGRA_SID_MIU		0x50	/* 80 */
+#define TEGRA_SID_MIU		0x50U	/* 80 */
 
-#define TEGRA_SID_NVDLA0	0x51	/* 81 */
-#define TEGRA_SID_NVDLA1	0x52	/* 82 */
+#define TEGRA_SID_NVDLA0	0x51U	/* 81 */
+#define TEGRA_SID_NVDLA1	0x52U	/* 82 */
 
-#define TEGRA_SID_PVA0		0x53	/* 83 */
-#define TEGRA_SID_PVA1		0x54	/* 84 */
+#define TEGRA_SID_PVA0		0x53U	/* 83 */
+#define TEGRA_SID_PVA1		0x54U	/* 84 */
 
-#define TEGRA_SID_NVENC1	0x55	/* 85 */
+#define TEGRA_SID_NVENC1	0x55U	/* 85 */
 
-#define TEGRA_SID_PCIE0		0x56	/* 86 */
-#define TEGRA_SID_PCIE1		0x57	/* 87 */
-#define TEGRA_SID_PCIE2		0x58	/* 88 */
-#define TEGRA_SID_PCIE3		0x59	/* 89 */
-#define TEGRA_SID_PCIE4		0x5A	/* 90 */
-#define TEGRA_SID_PCIE5		0x5B	/* 91 */
+#define TEGRA_SID_PCIE0		0x56U	/* 86 */
+#define TEGRA_SID_PCIE1		0x57U	/* 87 */
+#define TEGRA_SID_PCIE2		0x58U	/* 88 */
+#define TEGRA_SID_PCIE3		0x59U	/* 89 */
+#define TEGRA_SID_PCIE4		0x5AU	/* 90 */
+#define TEGRA_SID_PCIE5		0x5BU	/* 91 */
 
-#define TEGRA_SID_NVDEC1	0x5C	/* 92 */
+#define TEGRA_SID_NVDEC1	0x5CU	/* 92 */
 
-#define TEGRA_SID_RCE_VM3	0x61	/* 97 */
+#define TEGRA_SID_RCE_VM3	0x61U	/* 97 */
 
-#define TEGRA_SID_VI_VM2	0x62	/* 98 */
-#define TEGRA_SID_VI_VM3	0x63	/* 99 */
-#define TEGRA_SID_RCE_SERVER	0x64	/* 100 */
+#define TEGRA_SID_VI_VM2	0x62U	/* 98 */
+#define TEGRA_SID_VI_VM3	0x63U	/* 99 */
+#define TEGRA_SID_RCE_SERVER	0x64U	/* 100 */
 
 #endif
