@@ -39,7 +39,6 @@
 #include "nvgpu-gr-gv11b.h"
 #include "nvgpu-gr-gv11b-regs.h"
 
-#define NV_PBB_FBHUB_REGSPACE 0x100B00
 /*
  * Mock I/O
  */
@@ -134,81 +133,19 @@ int test_gr_setup_gv11b_reg_space(struct unit_module *m, struct gk20a *g)
 	}
 
 	/*
-	 * GPCS_SWDX reg space
-	 *
-	 */
-	if (nvgpu_posix_io_add_reg_space(g,
-		gr_gpcs_swdx_dss_zbc_color_r_r(0), 0xEFF) != 0) {
-		unit_err(m, "Add gpcs swdx reg space failed!\n");
-		goto clean_up_fs_space;
-	}
-
-	/*
-	 * PRI_GPCS_GCC reg space
-	 *
-	 */
-	if (nvgpu_posix_io_add_reg_space(g,
-		gr_pri_gpcs_gcc_dbg_r(), 0x60) != 0) {
-		unit_err(m, "Add gpcs swdx reg space failed!\n");
-		goto clean_up_swdx_space;
-	}
-
-	/*
-	 * PRI_GPCS_TPCS reg space
-	 *
-	 */
-	if (nvgpu_posix_io_add_reg_space(g,
-		gr_gpcs_tpcs_pe_vaf_r(), 0x7FF) != 0) {
-		unit_err(m, "Add gpcs swdx reg space failed!\n");
-		goto clean_up_gcc_space;
-	}
-
-	/*
-	 * PRI_GPCS_PPCS reg space
-	 *
-	 */
-	if (nvgpu_posix_io_add_reg_space(g,
-		gr_gpcs_tpcs_pes_vsc_vpc_r(), 0x1FF) != 0) {
-		unit_err(m, "Add gpcs swdx reg space failed!\n");
-		goto clean_up_gcc_tpcs_space;
-	}
-
-	/*
-	 * FB partition reg space
-	 *
-	 */
-	if (nvgpu_posix_io_add_reg_space(g,
-		NV_PBB_FBHUB_REGSPACE, 0x1FF) != 0) {
-		unit_err(m, "Add gpcs swdx reg space failed!\n");
-		goto clean_up_gcc_ppcs_space;
-	}
-
-	/*
 	 * MC register mc_enable_r() is set during gr_init_prepare_hw hence
 	 * add it to reg space
 	 */
 	if (nvgpu_posix_io_add_reg_space(g,
 					 mc_enable_r(), 0x4) != 0) {
 		unit_err(m, "Add mc enable reg space failed!\n");
-		goto clean_up_fbhub_space;
+		goto clean_up_priv_ring;
 	}
 
 	(void)nvgpu_posix_register_io(g, &gr_test_reg_callbacks);
 
 	return 0;
 
-clean_up_fbhub_space:
-	nvgpu_posix_io_delete_reg_space(g, NV_PBB_FBHUB_REGSPACE);
-clean_up_gcc_ppcs_space:
-	nvgpu_posix_io_delete_reg_space(g, gr_gpcs_tpcs_pes_vsc_vpc_r());
-clean_up_gcc_tpcs_space:
-	nvgpu_posix_io_delete_reg_space(g, gr_gpcs_tpcs_pe_vaf_r());
-clean_up_gcc_space:
-	nvgpu_posix_io_delete_reg_space(g, gr_pri_gpcs_gcc_dbg_r());
-clean_up_swdx_space:
-	nvgpu_posix_io_delete_reg_space(g, gr_gpcs_swdx_dss_zbc_color_r_r(0));
-clean_up_fs_space:
-	nvgpu_posix_io_unregister_reg_space(g, &gv11b_gr_fs_reg_space);
 clean_up_pes_tpc_mask:
 	nvgpu_posix_io_unregister_reg_space(g, &gv11b_gr_pes_tpc_mask_reg_space);
 clean_up_priv_ring:
@@ -227,11 +164,6 @@ clean_up_master:
 
 void test_gr_cleanup_gv11b_reg_space(struct unit_module *m, struct gk20a *g)
 {
-	nvgpu_posix_io_delete_reg_space(g, NV_PBB_FBHUB_REGSPACE);
-	nvgpu_posix_io_delete_reg_space(g, gr_gpcs_tpcs_pes_vsc_vpc_r());
-	nvgpu_posix_io_delete_reg_space(g, gr_gpcs_tpcs_pe_vaf_r());
-	nvgpu_posix_io_delete_reg_space(g, gr_pri_gpcs_gcc_dbg_r());
-	nvgpu_posix_io_delete_reg_space(g, gr_gpcs_swdx_dss_zbc_color_r_r(0));
 	nvgpu_posix_io_unregister_reg_space(g, &gv11b_top_reg_space);
 	nvgpu_posix_io_unregister_reg_space(g, &gv11b_master_reg_space);
 	nvgpu_posix_io_unregister_reg_space(g, &gv11b_fuse_reg_space);

@@ -22,5 +22,4 @@
 
 test_gr_init_support
 test_gr_remove_support
-test_gr_init_prepare
 

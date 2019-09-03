@@ -61,31 +61,9 @@ fail:
 	return UNIT_FAIL;
 }
 
-int test_gr_init_prepare(struct unit_module *m, struct gk20a *g, void *args)
-{
-	int err;
-
-	err = nvgpu_gr_prepare_sw(g);
-	if (err) {
-		goto prep_fail;
-	}
-
-	err = nvgpu_gr_enable_hw(g);
-	if (err) {
-		goto prep_fail;
-	}
-
-	return UNIT_SUCCESS;
-
-prep_fail:
-	return UNIT_FAIL;
-
-}
-
 int test_gr_remove_support(struct unit_module *m,
 		struct gk20a *g, void *args)
 {
-	test_gr_cleanup_gv11b_reg_space(m, g);
 	nvgpu_gr_free(g);
 
 	return UNIT_SUCCESS;
