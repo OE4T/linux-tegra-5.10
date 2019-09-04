@@ -428,7 +428,7 @@ struct nvgpu_falcon *nvgpu_falcon_get_instance(struct gk20a *g, u32 flcn_id)
 	return flcn;
 }
 
-static int falcon_sw_init(struct gk20a *g, struct nvgpu_falcon *flcn)
+static int falcon_sw_chip_init(struct gk20a *g, struct nvgpu_falcon *flcn)
 {
 	u32 ver = nvgpu_safe_add_u32(g->params.gpu_arch, g->params.gpu_impl);
 	int err = 0;
@@ -474,7 +474,7 @@ int nvgpu_falcon_sw_init(struct gk20a *g, u32 flcn_id)
 	flcn->g = g;
 
 	/* call SW init methods to assign flcn base & support of a falcon */
-	err = falcon_sw_init(g, flcn);
+	err = falcon_sw_chip_init(g, flcn);
 	if (err != 0) {
 		nvgpu_err(g, "Chip specific falcon sw init failed %d", err);
 		return err;
