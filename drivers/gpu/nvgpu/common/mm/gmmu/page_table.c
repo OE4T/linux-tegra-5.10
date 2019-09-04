@@ -60,8 +60,8 @@ static int pd_allocate(struct vm_gk20a *vm,
 		       struct nvgpu_gmmu_pd *pd,
 		       const struct gk20a_mmu_level *l,
 		       struct nvgpu_gmmu_attrs *attrs);
-static u32 pd_size(const struct gk20a_mmu_level *l,
-		   struct nvgpu_gmmu_attrs *attrs);
+static u32 pd_get_size(const struct gk20a_mmu_level *l,
+		struct nvgpu_gmmu_attrs *attrs);
 /*
  * Core GMMU map function for the kernel to use. If @addr is 0 then the GPU
  * VA will be allocated for you. If addr is non-zero then the buffer will be
@@ -195,7 +195,7 @@ int nvgpu_gmmu_init_page_table(struct vm_gk20a *vm)
 	 * Currently PAGE_SIZE is used, even when 64K, to work around an issue
 	 * with the PDB TLB invalidate code not being pd_cache aware yet.
 	 */
-	pdb_size = ALIGN(pd_size(&vm->mmu_levels[0], &attrs), PAGE_SIZE);
+	pdb_size = ALIGN(pd_get_size(&vm->mmu_levels[0], &attrs), PAGE_SIZE);
 
 	err = nvgpu_pd_alloc(vm, &vm->pdb, pdb_size);
 	if (err != 0) {
@@ -243,7 +243,7 @@ static u32 pd_entries(const struct gk20a_mmu_level *l,
 /*
  * Computes the size of a PD table (in bytes).
  */
-static u32 pd_size(const struct gk20a_mmu_level *l,
+static u32 pd_get_size(const struct gk20a_mmu_level *l,
 		   struct nvgpu_gmmu_attrs *attrs)
 {
 	return nvgpu_safe_mult_u32(pd_entries(l, attrs), l->entry_size);
@@ -266,7 +266,7 @@ static int pd_allocate(struct vm_gk20a *vm,
 	 * the underlying DMA memory here.
 	 */
 	if (pd->mem != NULL) {
-		if (pd->pd_size >= pd_size(l, attrs)) {
+		if (pd->pd_size >= pd_get_size(l, attrs)) {
 			return 0;
 		}
 	}
@@ -276,7 +276,7 @@ static int pd_allocate(struct vm_gk20a *vm,
 		pd->mem = NULL;
 	}
 
-	err = nvgpu_pd_alloc(vm, pd, pd_size(l, attrs));
+	err = nvgpu_pd_alloc(vm, pd, pd_get_size(l, attrs));
 	if (err != 0) {
 		nvgpu_info(vm->mm->g, "error allocating page directory!");
 		return err;
