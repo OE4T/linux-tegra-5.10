@@ -28,6 +28,8 @@
 #include <nvgpu/atomic.h>
 #include <nvgpu/bug.h>
 
+#include "atomic.h"
+
 struct atomic_struct {
 	long not_atomic;
 	nvgpu_atomic_t atomic;
@@ -429,14 +431,8 @@ static int single_set_and_read(struct unit_module *m,
 	return  UNIT_SUCCESS;
 }
 
-/*
- * Test atomic read and set operations single threaded for proper functionality
- *
- * Tests setting the limit values for each size.
- * Loops through setting each bit in a 32/64bit value.
- */
-static int test_atomic_set_and_read(struct unit_module *m,
-				    struct gk20a *g, void *__args)
+int test_atomic_set_and_read(struct unit_module *m,
+				struct gk20a *g, void *__args)
 {
 	struct atomic_test_args *args = (struct atomic_test_args *)__args;
 	const unsigned int loop_limit = args->type == ATOMIC_32 ?
@@ -462,18 +458,8 @@ static int test_atomic_set_and_read(struct unit_module *m,
 	return UNIT_SUCCESS;
 }
 
-/*
- * Test arithmetic atomic operations single threaded for proper functionality
- *   inc, dec, add, sub and friends (except add_unless)
- * Sets a start value from args
- * Loops (iterations per args param)
- * Validates final result
- *
- * For *_and_test ops, the args should make sure the loop traverses across 0
- * to test the "test" part.
- */
-static int test_atomic_arithmetic(struct unit_module *m,
-			       struct gk20a *g, void *__args)
+int test_atomic_arithmetic(struct unit_module *m,
+				struct gk20a *g, void *__args)
 {
 	struct atomic_test_args *args = (struct atomic_test_args *)__args;
 	struct atomic_struct atomic = {0};
@@ -682,17 +668,7 @@ static bool correct_thread_iteration_count(struct unit_module *m,
 	return true;
 }
 
-/*
- * Test arithmetic operations in threads to verify atomicity.
- *
- * Sets initial start value
- * Kicks off threads to loop running ops
- * When threads finish loops, verify values
- *
- * With the ops that have a return, save the final value for each thread and
- * use that to try to ensure that the threads aren't executing sequentially.
- */
-static int test_atomic_arithmetic_threaded(struct unit_module *m,
+int test_atomic_arithmetic_threaded(struct unit_module *m,
 					struct gk20a *g, void *__args)
 {
 	struct atomic_test_args *args = (struct atomic_test_args *)__args;
@@ -883,18 +859,7 @@ static void *arithmetic_and_test_updater_thread(void *__args)
 	return NULL;
 }
 
-/*
- * Test arithmetic *_and_test functions in threads to verify atomicity
- *
- * Set the atomic to a value to allow the arithmetic op to pass 0.
- * Start a lot of threads that will each execute the atomic op once.
- * Check iteration count to make sure only one thread saw 0.
- *   Note: The final value isn't verified because we are testing the atomicity
- *         of the operation and the testing. And the non-atomic case may fail
- *         the final value before failing the test being tested for.
- * Repeat until reaching the input argument repeat_count or seeing a failure.
- */
-static int test_atomic_arithmetic_and_test_threaded(struct unit_module *m,
+int test_atomic_arithmetic_and_test_threaded(struct unit_module *m,
 						struct gk20a *g, void *__args)
 {
 	struct atomic_test_args *args = (struct atomic_test_args *)__args;
@@ -945,6 +910,12 @@ static int test_atomic_arithmetic_and_test_threaded(struct unit_module *m,
 			result = UNIT_FAIL;
 			break;
 		}
+		/*
+		 * Note: The final value isn't verified because we are testing
+		 * the atomicity of the operation and the testing. And the
+		 * non-atomic case may fail the final value before failing the
+		 * test being tested for.
+		 */
 	} while (repeat-- > 0);
 
 	/* signal the end to the threads, then wake them */
@@ -966,14 +937,8 @@ static int test_atomic_arithmetic_and_test_threaded(struct unit_module *m,
 	}
 }
 
-/*
- * Test xchg op single threaded for proper functionality
- *
- * Loops calling xchg op with different values making sure the returned
- * value is the last one written.
- */
-static int test_atomic_xchg(struct unit_module *m,
-			    struct gk20a *g, void *__args)
+int test_atomic_xchg(struct unit_module *m,
+			struct gk20a *g, void *__args)
 {
 	struct atomic_test_args *args = (struct atomic_test_args *)__args;
 	struct atomic_struct atomic = {0};
@@ -1035,17 +1000,8 @@ static void *xchg_thread(void *__args)
 	return NULL;
 }
 
-/*
- * Test atomic exchange operation
- *
- * Set the atomic to a starting value.
- * Setup and start the exchange threads.
- *   Setup includes setting each thread's "xchg_val" to its thread number.
- * When threads complete, loop through the thread's xchg_val and make sure
- * each number is unique and someone still has the starting value.
- */
-static int test_atomic_xchg_threaded(struct unit_module *m,
-				     struct gk20a *g, void *__args)
+int test_atomic_xchg_threaded(struct unit_module *m,
+				struct gk20a *g, void *__args)
 {
 	struct atomic_test_args *args = (struct atomic_test_args *)__args;
 	struct atomic_struct atomic = {0};
@@ -1131,14 +1087,8 @@ exit:
 	}
 }
 
-/*
- * Test cmpxchg single threaded for proper functionality
- *
- * Loop calling cmpxchg. Alternating between matching and not matching.
- * Verify correct behavior for each call.
- */
-static int test_atomic_cmpxchg(struct unit_module *m,
-			       struct gk20a *g, void *__args)
+int test_atomic_cmpxchg(struct unit_module *m,
+			struct gk20a *g, void *__args)
 {
 	struct atomic_test_args *args = (struct atomic_test_args *)__args;
 	struct atomic_struct atomic = {0};
@@ -1202,17 +1152,8 @@ static int test_atomic_cmpxchg(struct unit_module *m,
 	return UNIT_SUCCESS;
 }
 
-/*
- * Test add_unless op single threaded for proper functionality
- *
- * Note: there is only a 32-bit operation
- *
- * Loop through calling the operation. Alternating whether the add should
- * occur or not (i.e. changing the "unless" value).
- * Verify correct behavior for each operation.
- */
-static int test_atomic_add_unless(struct unit_module *m,
-				  struct gk20a *g, void *__args)
+int test_atomic_add_unless(struct unit_module *m,
+				struct gk20a *g, void *__args)
 {
 	struct atomic_test_args *args = (struct atomic_test_args *)__args;
 	struct atomic_struct atomic = {0};
