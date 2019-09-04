@@ -51,7 +51,7 @@ static int gv11b_fb_fix_page_fault(struct gk20a *g,
 		 struct mmu_fault_info *mmufault);
 #endif
 
-static const char invalid_str[] = "invalid";
+static const char mmufault_invalid_str[] = "invalid";
 
 static const char *const gv11b_fault_type_descs[] = {
 	"invalid pde",
@@ -123,7 +123,7 @@ void gv11b_mm_mmu_fault_parse_mmu_fault_info(struct mmu_fault_info *mmufault)
 {
 	if (mmufault->fault_type >= ARRAY_SIZE(gv11b_fault_type_descs)) {
 		nvgpu_do_assert();
-		mmufault->fault_type_desc =  invalid_str;
+		mmufault->fault_type_desc = mmufault_invalid_str;
 	} else {
 		mmufault->fault_type_desc =
 			 gv11b_fault_type_descs[mmufault->fault_type];
@@ -132,13 +132,13 @@ void gv11b_mm_mmu_fault_parse_mmu_fault_info(struct mmu_fault_info *mmufault)
 	if (mmufault->client_type >=
 			ARRAY_SIZE(gv11b_fault_client_type_descs)) {
 		nvgpu_do_assert();
-		mmufault->client_type_desc = invalid_str;
+		mmufault->client_type_desc = mmufault_invalid_str;
 	} else {
 		mmufault->client_type_desc =
 			 gv11b_fault_client_type_descs[mmufault->client_type];
 	}
 
-	mmufault->client_id_desc = invalid_str;
+	mmufault->client_id_desc = mmufault_invalid_str;
 	if (mmufault->client_type == gmmu_fault_client_type_hub_v()) {
 		if (!(mmufault->client_id >=
 				 ARRAY_SIZE(gv11b_hub_client_descs))) {
