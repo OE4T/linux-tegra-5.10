@@ -935,5 +935,5 @@ static void __exit tegra194_cbb_exit(void)
 	platform_driver_unregister(&tegra194_cbb_driver);
 }
 
-arch_initcall(tegra194_cbb_init);
+pure_initcall(tegra194_cbb_init);
 module_exit(tegra194_cbb_exit);

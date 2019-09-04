@@ -348,7 +348,7 @@ static void __exit tegra_cbb_exit(void)
 {
 }
 
-postcore_initcall(tegra_cbb_init);
+pure_initcall(tegra_cbb_init);
 module_exit(tegra_cbb_exit);
 
 MODULE_LICENSE("GPL v2");
