@@ -33,6 +33,12 @@ struct falc_u64 {
 	u32 hi;
 };
 
+static inline void flcn64_set_dma(struct falc_u64 *dma_addr, u64 value)
+{
+	dma_addr->lo |= u64_lo32(value);
+	dma_addr->hi |= u64_hi32(value);
+}
+
 struct falc_dma_addr {
 	u32 dma_base;
 	/*

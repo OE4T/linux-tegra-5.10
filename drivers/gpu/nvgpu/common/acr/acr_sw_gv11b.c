@@ -35,12 +35,6 @@
 #include "acr_bootstrap.h"
 #include "acr_sw_gv11b.h"
 
-static void flcn64_set_dma(struct falc_u64 *dma_addr, u64 value)
-{
-	dma_addr->lo |= u64_lo32(value);
-	dma_addr->hi |= u64_hi32(value);
-}
-
 static void gv11b_acr_patch_wpr_info_to_ucode(struct gk20a *g,
 	struct nvgpu_acr *acr, struct hs_acr *acr_desc, bool is_recovery)
 {

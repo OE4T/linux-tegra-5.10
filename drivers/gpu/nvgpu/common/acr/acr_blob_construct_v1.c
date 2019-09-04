@@ -33,12 +33,6 @@
 #include "acr_wpr.h"
 #include "acr_priv.h"
 
-static void flcn64_set_dma(struct falc_u64 *dma_addr, u64 value)
-{
-	dma_addr->lo |= u64_lo32(value);
-	dma_addr->hi |= u64_hi32(value);
-}
-
 #ifdef CONFIG_NVGPU_LS_PMU
 int nvgpu_acr_lsf_pmu_ucode_details_v1(struct gk20a *g, void *lsf_ucode_img)
 {
