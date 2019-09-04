@@ -32,20 +32,15 @@
 #include <nvgpu/posix/io.h>
 
 
-u32 gv11b_priv_ring_regs[] = {
+u32 gr_gv11b_priv_ring_regs[] = {
+/* 0x00120060 */ 0x00000000, 0x00000cd7, 0xbadf5040, 0x00000000,
 /* 0x00120070 */ 0x00000001, 0x00000001, 0x00000001, 0x00000000,
 /* 0x00120080 */ 0x00010a00, 0x00162648, 0x020080c2, 0x4081e088,
 /* 0x00120090 */ 0x01040842, 0xbadf5040, 0x00000000, 0x00000000,
 /* 0x001200a0 */ 0x0000008f, 0x0000008f, 0x00000001, 0x00000001,
 };
 
-struct nvgpu_posix_io_reg_space gv11b_priv_ring_reg_space = {
-	.base = 0x00120070,
-	.size = sizeof(gv11b_priv_ring_regs),
-	.data = gv11b_priv_ring_regs,
-};
-
-u32 gv11b_master_regs[] = {
+u32 gr_gv11b_master_regs[] = {
 /* 0x00000000 */ 0x15b000a1, 0x00000000, 0x00000000, 0xbadf5040,
 /* 0x00000010 */ 0xbadf5040, 0xbadf5040, 0xbadf5040, 0xbadf5040,
 /* 0x00000020 */ 0xbadf5040, 0xbadf5040, 0xbadf5040, 0xbadf5040,
@@ -304,13 +299,7 @@ u32 gv11b_master_regs[] = {
 /* 0x00000ff0 */ 0xbadf5040, 0xbadf5040, 0xbadf5040, 0xbadf5040,
 };
 
-struct nvgpu_posix_io_reg_space gv11b_master_reg_space = {
-	.base = 0x00000000,
-	.size = sizeof(gv11b_master_regs),
-	.data = gv11b_master_regs,
-};
-
-u32 gv11b_fuse_regs[] = {
+u32 gr_gv11b_fuse_regs[] = {
 /* 0x00021000 */ 0x000000ff, 0xbadf5040, 0xbadf5040, 0xbadf5040,
 /* 0x00021010 */ 0xbadf5040, 0xbadf5040, 0xbadf5040, 0xbadf5040,
 /* 0x00021020 */ 0xbadf5040, 0xbadf5040, 0xbadf5040, 0xbadf5040,
@@ -569,13 +558,7 @@ u32 gv11b_fuse_regs[] = {
 /* 0x00021ff0 */ 0xbadf5040, 0xbadf5040, 0xbadf5040, 0xbadf5040,
 };
 
-struct nvgpu_posix_io_reg_space gv11b_fuse_reg_space = {
-	.base = 0x00021000,
-	.size = sizeof(gv11b_fuse_regs),
-	.data = gv11b_fuse_regs,
-};
-
-u32 gv11b_top_regs[] = {
+u32 gr_gv11b_top_regs[] = {
 /* 0x00022400 */ 0x00010000, 0x00000000, 0x00000000, 0x00000000,
 /* 0x00022410 */ 0xbadf5040, 0xbadf5040, 0xbadf5040, 0x00000081,
 /* 0x00022420 */ 0x04444924, 0x00000010, 0xbadf5040, 0xbadf5040,
@@ -642,13 +625,7 @@ u32 gv11b_top_regs[] = {
 /* 0x000227f0 */ 0x00000000, 0x00000000, 0x00000000, 0x00000000,
 };
 
-struct nvgpu_posix_io_reg_space gv11b_top_reg_space = {
-	.base = 0x22400,
-	.size = sizeof(gv11b_top_regs),
-	.data = gv11b_top_regs,
-};
-
-u32 gv11b_gr_regs[] = {
+u32 gr_gv11b_gr_regs[] = {
 /* 0x00400080 */ 0x00300bd2, 0x00000000, 0xf607bfe7, 0x00060000,
 /* 0x00400090 */ 0x00000030, 0xbadf5040, 0xbadf5040, 0xbadf5040,
 /* 0x004000a0 */ 0xbadf5040, 0xbadf5040, 0xbadf5040, 0xbadf5040,
@@ -3251,37 +3228,58 @@ u32 gv11b_gr_regs[] = {
 /* 0x0040a2f0 */ 0x00000000, 0x00000000, 0x00000000, 0x00000000,
 };
 
-struct nvgpu_posix_io_reg_space gv11b_gr_reg_space = {
-	.base = 0x00400080,
-	.size = sizeof(gv11b_gr_regs),
-	.data = gv11b_gr_regs,
-};
-
 /*
  * GR pes_tpc_mask registers
  */
-u32 gv11b_gr_pes_tpc_mask_regs[] = {
+u32 gr_gv11b_pes_tpc_mask_regs[] = {
 /* 0x00500c30 */ 0x00000005, 0x0000000a, 0x00000000, 0x00000000,
-};
-
-struct nvgpu_posix_io_reg_space gv11b_gr_pes_tpc_mask_reg_space = {
-	.base = 0x00500c30,
-	.size = sizeof(gv11b_gr_pes_tpc_mask_regs),
-	.data = gv11b_gr_pes_tpc_mask_regs,
 };
 
 /*
  * GR floor sweeping registers
  */
-u32 gv11b_gr_fs_regs[] = {
+u32 gr_gv11b_fs_regs[] = {
 /* 0x00502604 */ 0x02010001, 0x00040004, 0x00000000, 0x00000000,
 /* 0x00502614 */ 0x00000a20, 0x00000000, 0x00000000, 0x00001440,
 };
 
-struct nvgpu_posix_io_reg_space gv11b_gr_fs_reg_space = {
-	.base = 0x00502604,
-	.size = sizeof(gv11b_gr_fs_regs),
-	.data = gv11b_gr_fs_regs,
+#define gr_array_reg_space(x) sizeof(x)/sizeof(struct nvgpu_posix_io_reg_space)
+struct nvgpu_posix_io_reg_space  gr_gv11b_initialized_reg_space[] = {
+	[0] = {
+		.base = 0x00120060,
+		.size = sizeof(gr_gv11b_priv_ring_regs),
+		.data = gr_gv11b_priv_ring_regs,
+	      },
+	[1] = {
+		.base = 0x00000000,
+		.size = sizeof(gr_gv11b_master_regs),
+		.data = gr_gv11b_master_regs,
+	      },
+	[2] = {
+		.base = 0x00021000,
+		.size = sizeof(gr_gv11b_fuse_regs),
+		.data = gr_gv11b_fuse_regs,
+	      },
+	[3] = {
+		.base = 0x00022400,
+		.size = sizeof(gr_gv11b_top_regs),
+		.data = gr_gv11b_top_regs,
+	      },
+	[4] = {
+		.base = 0x00400080,
+		.size = sizeof(gr_gv11b_gr_regs),
+		.data = gr_gv11b_gr_regs,
+	      },
+	[5] = {
+		.base = 0x00500c30,
+		.size = sizeof(gr_gv11b_pes_tpc_mask_regs),
+		.data = gr_gv11b_pes_tpc_mask_regs,
+	      },
+	[6] = {
+		.base = 0x00502604,
+		.size = sizeof(gr_gv11b_fs_regs),
+		.data = gr_gv11b_fs_regs,
+	      },
 };
 
 #endif /* UNIT_NVGPU_GR_GV11B_REGS_H */

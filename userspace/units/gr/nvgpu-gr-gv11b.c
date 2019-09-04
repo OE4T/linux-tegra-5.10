@@ -86,52 +86,65 @@ static struct nvgpu_posix_io_callbacks gr_test_reg_callbacks = {
 	.tegra_fuse_readl = tegra_fuse_readl_access_reg_fn,
 };
 
+static void gr_io_delete_initialized_reg_space(struct unit_module *m, struct gk20a *g)
+{
+	u32 i = 0;
+	u32 arr_size = gr_array_reg_space(gr_gv11b_initialized_reg_space);
+
+	for (i = 0; i < arr_size; i++) {
+		u32 base = gr_gv11b_initialized_reg_space[i].base;
+
+		nvgpu_posix_io_delete_reg_space(g, base);
+	}
+}
+
+static int gr_io_add_initialized_reg_space(struct unit_module *m, struct gk20a *g)
+{
+	int ret = UNIT_SUCCESS;
+	u32 arr_size = gr_array_reg_space(gr_gv11b_initialized_reg_space);
+	u32 i = 0, j = 0;
+	u32 base, size;
+	struct nvgpu_posix_io_reg_space *gr_io_reg;
+
+	for (i = 0; i < arr_size; i++) {
+		base = gr_gv11b_initialized_reg_space[i].base;
+		size = gr_gv11b_initialized_reg_space[i].size;
+
+		if (nvgpu_posix_io_add_reg_space(g, base, size) != 0) {
+			unit_err(m, "failed to add reg space for %08x\n", base);
+			ret = UNIT_FAIL;
+			goto clean_init_reg_space;
+		}
+
+		gr_io_reg = nvgpu_posix_io_get_reg_space(g, base);
+		if (gr_io_reg == NULL) {
+			unit_err(m, "failed to get reg space for %08x\n", base);
+			ret = UNIT_FAIL;
+			goto clean_init_reg_space;
+		}
+
+		memcpy(gr_io_reg->data, gr_gv11b_initialized_reg_space[i].data, size);
+	}
+
+	return ret;
+
+clean_init_reg_space:
+	for (j = 0; j < i; j++) {
+		base = gr_gv11b_initialized_reg_space[j].base;
+		nvgpu_posix_io_delete_reg_space(g, base);
+	}
+
+	return ret;
+}
+
 int test_gr_setup_gv11b_reg_space(struct unit_module *m, struct gk20a *g)
 {
 	/* Create register space */
 	nvgpu_posix_io_init_reg_space(g);
 
-	if (nvgpu_posix_io_register_reg_space(g,
-			&gv11b_master_reg_space) != 0) {
-		unit_err(m, "%s: failed to create master register space\n",
-				__func__);
+	if (gr_io_add_initialized_reg_space(m, g) == UNIT_FAIL) {
+		unit_err(m, "failed to get initialized reg space\n");
 		return UNIT_FAIL;
-	}
-
-	if (nvgpu_posix_io_register_reg_space(g, &gv11b_top_reg_space) != 0) {
-		unit_err(m, "%s: failed to create top register space\n",
-				__func__);
-		goto clean_up_master;
-	}
-
-	if (nvgpu_posix_io_register_reg_space(g, &gv11b_fuse_reg_space) != 0) {
-		unit_err(m, "%s: failed to create fuse register space\n",
-				__func__);
-		goto clean_up_top;
-	}
-
-	if (nvgpu_posix_io_register_reg_space(g, &gv11b_gr_reg_space) != 0) {
-		unit_err(m, "%s: failed to create gr register space\n",
-				__func__);
-		goto clean_up_fuse;
-	}
-
-	if (nvgpu_posix_io_register_reg_space(g, &gv11b_priv_ring_reg_space) != 0) {
-		unit_err(m, "%s: failed to create priv_ring register space\n",
-				__func__);
-		goto clean_up_gr;
-	}
-
-	if (nvgpu_posix_io_register_reg_space(g, &gv11b_gr_pes_tpc_mask_reg_space) != 0) {
-		unit_err(m, "%s: failed to create gr pes_tpc_mask register space\n",
-				__func__);
-		goto clean_up_priv_ring;
-	}
-
-	if (nvgpu_posix_io_register_reg_space(g, &gv11b_gr_fs_reg_space) != 0) {
-		unit_err(m, "%s: failed to create gr floorsweep register space\n",
-				__func__);
-		goto clean_up_pes_tpc_mask;
 	}
 
 	/*
@@ -141,7 +154,7 @@ int test_gr_setup_gv11b_reg_space(struct unit_module *m, struct gk20a *g)
 	if (nvgpu_posix_io_add_reg_space(g,
 		gr_gpcs_swdx_dss_zbc_color_r_r(0), 0xEFF) != 0) {
 		unit_err(m, "Add gpcs swdx reg space failed!\n");
-		goto clean_up_fs_space;
+		goto clean_up_reg_space;
 	}
 
 	/*
@@ -208,20 +221,7 @@ clean_up_gcc_space:
 	nvgpu_posix_io_delete_reg_space(g, gr_pri_gpcs_gcc_dbg_r());
 clean_up_swdx_space:
 	nvgpu_posix_io_delete_reg_space(g, gr_gpcs_swdx_dss_zbc_color_r_r(0));
-clean_up_fs_space:
-	nvgpu_posix_io_unregister_reg_space(g, &gv11b_gr_fs_reg_space);
-clean_up_pes_tpc_mask:
-	nvgpu_posix_io_unregister_reg_space(g, &gv11b_gr_pes_tpc_mask_reg_space);
-clean_up_priv_ring:
-	nvgpu_posix_io_unregister_reg_space(g, &gv11b_priv_ring_reg_space);
-clean_up_gr:
-	nvgpu_posix_io_unregister_reg_space(g, &gv11b_gr_reg_space);
-clean_up_fuse:
-	nvgpu_posix_io_unregister_reg_space(g, &gv11b_fuse_reg_space);
-clean_up_top:
-	nvgpu_posix_io_unregister_reg_space(g, &gv11b_top_reg_space);
-clean_up_master:
-	nvgpu_posix_io_unregister_reg_space(g, &gv11b_master_reg_space);
+clean_up_reg_space:
 	return -ENOMEM;
 }
 
@@ -233,11 +233,5 @@ void test_gr_cleanup_gv11b_reg_space(struct unit_module *m, struct gk20a *g)
 	nvgpu_posix_io_delete_reg_space(g, gr_gpcs_tpcs_pe_vaf_r());
 	nvgpu_posix_io_delete_reg_space(g, gr_pri_gpcs_gcc_dbg_r());
 	nvgpu_posix_io_delete_reg_space(g, gr_gpcs_swdx_dss_zbc_color_r_r(0));
-	nvgpu_posix_io_unregister_reg_space(g, &gv11b_top_reg_space);
-	nvgpu_posix_io_unregister_reg_space(g, &gv11b_master_reg_space);
-	nvgpu_posix_io_unregister_reg_space(g, &gv11b_fuse_reg_space);
-	nvgpu_posix_io_unregister_reg_space(g, &gv11b_gr_reg_space);
-	nvgpu_posix_io_unregister_reg_space(g, &gv11b_priv_ring_reg_space);
-	nvgpu_posix_io_unregister_reg_space(g, &gv11b_gr_pes_tpc_mask_reg_space);
-	nvgpu_posix_io_unregister_reg_space(g, &gv11b_gr_fs_reg_space);
+	gr_io_delete_initialized_reg_space(m, g);
 }

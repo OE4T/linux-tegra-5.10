@@ -73,6 +73,7 @@ NV_REPOSITORY_COMPONENTS += userspace/units/falcon/falcon_tests
 NV_REPOSITORY_COMPONENTS += userspace/units/pmu
 NV_REPOSITORY_COMPONENTS += userspace/units/gr
 NV_REPOSITORY_COMPONENTS += userspace/units/gr/config
+NV_REPOSITORY_COMPONENTS += userspace/units/gr/init
 endif
 
 # Local Variables:

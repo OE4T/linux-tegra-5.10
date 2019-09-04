@@ -1402,5 +1402,20 @@
         "test": "remove_support",
         "test_level": 0,
         "unit": "nvgpu_gr_config"
+    },
+    {
+        "test": "init_support",
+        "test_level": 0,
+        "unit": "nvgpu_gr_init"
+    },
+    {
+        "test": "init_prepare",
+        "test_level": 0,
+        "unit": "nvgpu_gr_init"
+    },
+    {
+        "test": "remove_support",
+        "test_level": 0,
+        "unit": "nvgpu_gr_init"
     }
 ]

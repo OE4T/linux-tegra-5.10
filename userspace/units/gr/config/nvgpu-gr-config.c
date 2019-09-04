@@ -291,7 +291,6 @@ set_get_fail:
 
 struct unit_module_test nvgpu_gr_config_tests[] = {
 	UNIT_TEST(init_support, test_gr_init_support, NULL, 0),
-	UNIT_TEST(init_prepare, test_gr_init_prepare, NULL, 0),
 	UNIT_TEST(config_init, test_gr_config_init, NULL, 0),
 	UNIT_TEST(config_check_init, test_gr_config_count, NULL, 0),
 	UNIT_TEST(config_check_set_get, test_gr_config_set_get, NULL, 0),
