@@ -1160,7 +1160,8 @@ static int ether_therm_init(struct ether_priv_data *pdata)
  * 1) PHY initialization
  * 2) request tx/rx/common irqs
  * 3) HW initialization
- * 4) Starting the PHY
+ * 4) OSD private data structure initialization
+ * 5) Starting the PHY
  *
  * @param[in] dev: Net device data structure.
  *
@@ -1257,6 +1258,12 @@ static int ether_open(struct net_device *dev)
 			__func__, ret);
 		goto err_hw_init;
 	}
+
+	/* As all registers reset as part of ether_close(), reset private
+	 * structure variable as well */
+	pdata->vlan_hash_filtering = OSI_PERFECT_FILTER_MODE;
+	pdata->l3_l4_filter = OSI_DISABLE;
+	pdata->l2_filtering_mode = OSI_PERFECT_FILTER_MODE;
 
 	/* Start the MAC */
 	osi_start_mac(pdata->osi_core);
@@ -1870,7 +1877,6 @@ static int ether_prepare_uc_list(struct net_device *dev)
  * @param[in] dev - pointer to net_device structure.
  *
  * @note MAC and PHY need to be initialized.
- *	 Spinlock is used for protection.
  */
 static void ether_set_rx_mode(struct net_device *dev)
 {
@@ -1878,8 +1884,6 @@ static void ether_set_rx_mode(struct net_device *dev)
 	struct osi_core_priv_data *osi_core = pdata->osi_core;
 	struct osi_filter filter = {0};
 	int mode, ret;
-
-	spin_lock_bh(&pdata->lock);
 
 	if ((dev->flags & IFF_PROMISC) == IFF_PROMISC) {
 		dev_dbg(pdata->dev, "enabling Promiscuous mode\n");
@@ -1929,8 +1933,6 @@ static void ether_set_rx_mode(struct net_device *dev)
 	if (ret != 0) {
 		dev_err(pdata->dev, "osi_config_mac_pkt_filter_reg failed\n");
 	}
-
-	spin_unlock_bh(&pdata->lock);
 }
 
 /**
@@ -3476,8 +3478,6 @@ static int ether_probe(struct platform_device *pdev)
 		goto err_netdev;
 	}
 
-	spin_lock_init(&pdata->lock);
-	spin_lock_init(&pdata->ioctl_lock);
 	spin_lock_init(&pdata->rlock);
 	init_filter_values(pdata);
 	/* Disable Clocks */

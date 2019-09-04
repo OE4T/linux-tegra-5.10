@@ -192,9 +192,7 @@ static int ether_config_l3_l4_filtering(struct net_device *dev,
 
 	ret = osi_config_l3_l4_filter_enable(osi_core, filter_flags);
 	if (ret == 0) {
-		spin_lock_bh(&pdata->ioctl_lock);
 		pdata->l3_l4_filter = filter_flags;
-		spin_unlock_bh(&pdata->ioctl_lock);
 	}
 
 	return ret;
@@ -253,14 +251,12 @@ static int ether_config_ip4_filters(struct net_device *dev,
 	}
 
 	/* enable IPFE bit in MAC_Packet_Filter for L3/L4 if already not */
-	spin_lock_bh(&pdata->ioctl_lock);
 	if (pdata->l3_l4_filter == OSI_DISABLE) {
 		ret = osi_config_l3_l4_filter_enable(osi_core, OSI_ENABLE);
 		if (ret == 0) {
 			pdata->l3_l4_filter = OSI_ENABLE;
 		}
 	}
-	spin_unlock_bh(&pdata->ioctl_lock);
 
 	/* configure the L3 filters */
 	ret = osi_config_l3_filters(osi_core, l_l3_filter.filter_no,
@@ -333,14 +329,12 @@ static int ether_config_ip6_filters(struct net_device *dev,
 	}
 
 	/* enable IPFE bit in MAC_Packet_Filter for L3/L4 if already not */
-	spin_lock_bh(&pdata->ioctl_lock);
 	if (pdata->l3_l4_filter == OSI_DISABLE) {
 		ret = osi_config_l3_l4_filter_enable(osi_core, OSI_ENABLE);
 		if (ret == 0) {
 			pdata->l3_l4_filter = OSI_ENABLE;
 		}
 	}
-	spin_unlock_bh(&pdata->ioctl_lock);
 
 	/* configure the L3 filters */
 	ret = osi_config_l3_filters(osi_core, l_l3_filter.filter_no,
@@ -414,14 +408,12 @@ static int ether_config_tcp_udp_filters(struct net_device *dev,
 	}
 
 	/* enable IPFE bit in MAC_Packet_Filter for L3/L4 if already not */
-	spin_lock_bh(&pdata->ioctl_lock);
 	if (pdata->l3_l4_filter == OSI_DISABLE) {
 		ret = osi_config_l3_l4_filter_enable(osi_core, OSI_ENABLE);
 		if (ret == 0) {
 			pdata->l3_l4_filter = OSI_ENABLE;
 		}
 	}
-	spin_unlock_bh(&pdata->ioctl_lock);
 
 	/* configure the L4 filters */
 	ret = osi_config_l4_filters(osi_core, l_l4_filter.filter_no,

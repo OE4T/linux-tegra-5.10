@@ -273,12 +273,8 @@ struct ether_priv_data {
 	 * whcih has triggered */
 	atomic_t therm_state;
 #endif /* THERMAL_CAL */
-	/** Spin lock for filter code */
-	spinlock_t lock;
 	/** Spin lock for Tx/Rx interrupt enable registers */
 	spinlock_t rlock;
-	/** spin lock for filter code ioctl path */
-	spinlock_t ioctl_lock;
 	/** max address register count, 2*mac_addr64_sel */
 	int num_mac_addr_regs;
 	/** Last Multicast address reg filter index, If 0,no MC address added */
