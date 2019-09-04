@@ -25,6 +25,10 @@
 		/delete-property/ gpio-ranges;
 	};
 
+	gpio-keys {
+		status = "disabled";
+	};
+
 	ethernet@2490000 {
 		compatible = "nvidia,tegra186-eqos",
 			     "snps,dwc-qos-ethernet-4.10";
