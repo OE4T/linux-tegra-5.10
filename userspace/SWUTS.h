@@ -40,6 +40,7 @@
  *   - @ref SWUTS-mm-allocators-buddy-allocator
  *   - @ref SWUTS-mm-nvgpu-mem
  *   - @ref SWUTS-mm-nvgpu-sgt
+ *   - @ref SWUTS-mm-mm
  *   - @ref SWUTS-mm-vm
  *   - @ref SWUTS-fuse
  *   - @ref SWUTS-posix-fault-injection

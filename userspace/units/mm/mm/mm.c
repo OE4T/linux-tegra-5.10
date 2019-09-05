@@ -20,6 +20,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
+#include "mm.h"
 #include <unit/io.h>
 #include <unit/unit.h>
 #include <unit/core.h>
@@ -31,6 +32,7 @@
 #include "hal/mm/mm_gv11b.h"
 #include "hal/mm/cache/flush_gk20a.h"
 #include "hal/mm/cache/flush_gv11b.h"
+#include "hal/mm/gmmu/gmmu_gm20b.h"
 #include "hal/mm/gmmu/gmmu_gp10b.h"
 #include "hal/mm/gmmu/gmmu_gv11b.h"
 #include "hal/mm/mmu_fault/mmu_fault_gv11b.h"
@@ -43,10 +45,20 @@
 #include <nvgpu/hw/gv11b/hw_fb_gv11b.h>
 #include <nvgpu/hw/gv11b/hw_flush_gv11b.h>
 
-#define TEST_ADDRESS 0x10002000
+#include <nvgpu/bug.h>
+#include <nvgpu/posix/dma.h>
+#include <nvgpu/posix/kmem.h>
+#include <nvgpu/posix/posix-fault-injection.h>
+
+#define TEST_ADDRESS		0x10002000
+#define ARBITRARY_ERROR		-42
+#define ERROR_TYPE_KMEM		0
+#define ERROR_TYPE_DMA		1
+#define ERROR_TYPE_HAL		2
 
 struct unit_module *current_module;
 bool test_flag;
+int int_empty_hal_return_error_after;
 
 /*
  * Write callback (for all nvgpu_writel calls).
@@ -109,18 +121,346 @@ static void init_platform(struct unit_module *m, struct gk20a *g, bool is_iGPU)
 	/* Enable extra features to increase line coverage */
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_SEC2_VM, true);
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_GSP_VM, true);
+	nvgpu_set_enabled(g, NVGPU_MM_FORCE_128K_PMU_VM, true);
 }
 
 /*
- * Init the minimum set of HALs to use DMA amd GMMU features, then call the
- * init_mm base function.
+ * Simple HAL function to exercise branches and return an arbitrary error
+ * code after a given number of calls.
  */
-static int init_mm(struct unit_module *m, struct gk20a *g)
+static int int_empty_hal(struct gk20a *g)
+{
+	if (int_empty_hal_return_error_after > 0) {
+		int_empty_hal_return_error_after--;
+	}
+
+	if (int_empty_hal_return_error_after == 0) {
+		return ARBITRARY_ERROR;
+	}
+	return 0;
+}
+
+/* Similar HAL to mimic the bus.bar1_bind and bus.bar2_bind HALs */
+static int int_empty_hal_bar_bind(struct gk20a *g, struct nvgpu_mem *bar_inst)
+{
+	/* Re-use int_empty_hal to leverage the error injection mechanism */
+	return int_empty_hal(g);
+}
+
+/* Simple HAL with no return value */
+static void void_empty_hal(struct gk20a *g)
+{
+	return;
+}
+
+/*
+ * Helper function to factorize the testing of the many possible error cases
+ * in nvgpu_init_mm_support.
+ * It supports 3 types of error injection (kmalloc, dma, and empty_hal). The
+ * chosen error will occur after 'count' calls. It will return 0 if the
+ * expected_error occurred, and 1 otherwise.
+ * The 'step' parameter is used in case of failure to more easily trace the
+ * issue in logs.
+ */
+static int nvgpu_init_mm_support_inject_error(struct unit_module *m,
+	struct gk20a *g, int error_type, int count, int expected_error,
+	int step)
 {
 	int err;
+	struct nvgpu_posix_fault_inj *dma_fi =
+		nvgpu_dma_alloc_get_fault_injection();
+	struct nvgpu_posix_fault_inj *kmem_fi =
+		nvgpu_kmem_get_fault_injection();
+
+	if (error_type == ERROR_TYPE_KMEM) {
+		nvgpu_posix_enable_fault_injection(kmem_fi, true, count);
+	} else if (error_type == ERROR_TYPE_DMA) {
+		nvgpu_posix_enable_fault_injection(dma_fi, true, count);
+	} else if (error_type == ERROR_TYPE_HAL) {
+		int_empty_hal_return_error_after = count;
+	}
+
+	err = nvgpu_init_mm_support(g);
+
+	nvgpu_posix_enable_fault_injection(kmem_fi, false, 0);
+	nvgpu_posix_enable_fault_injection(dma_fi, false, 0);
+	int_empty_hal_return_error_after = -1;
+
+	if (err != expected_error) {
+		unit_err(m, "init_mm_support didn't fail as expected step=%d err=%d\n",
+			step, err);
+		return 1;
+	}
+
+	return 0;
+}
+
+int test_nvgpu_init_mm(struct unit_module *m, struct gk20a *g, void *args)
+{
+	int err;
+	int errors = 0;
+
+	/*
+	 * We need to call nvgpu_init_mm_support but first make it fail to
+	 * test (numerous) error handling cases
+	 */
+
+	int_empty_hal_return_error_after = -1;
+
+	/* Making g->ops.ramin.init_pdb_cache_war fail */
+	errors += nvgpu_init_mm_support_inject_error(m, g, ERROR_TYPE_HAL, 1,
+						     ARBITRARY_ERROR, 1);
+
+	/* Making g->ops.fb.apply_pdb_cache_war fail */
+	errors += nvgpu_init_mm_support_inject_error(m, g, ERROR_TYPE_HAL, 2,
+						     ARBITRARY_ERROR, 2);
+
+	/* Making nvgpu_alloc_sysmem_flush fail */
+	errors += nvgpu_init_mm_support_inject_error(m, g, ERROR_TYPE_DMA, 0,
+						     -ENOMEM, 3);
+
+	/*
+	 * Making nvgpu_alloc_sysmem_flush fail again with NULL HALs to test
+	 * branches in nvgpu_init_mm_pdb_cache_war
+	 */
+	g->ops.ramin.init_pdb_cache_war = NULL;
+	g->ops.fb.apply_pdb_cache_war = NULL;
+	errors += nvgpu_init_mm_support_inject_error(m, g, ERROR_TYPE_DMA, 0,
+						     -ENOMEM, 3);
+	g->ops.ramin.init_pdb_cache_war = int_empty_hal;
+	g->ops.fb.apply_pdb_cache_war = int_empty_hal;
+
+	/* Making nvgpu_init_bar1_vm fail on VM init */
+	errors += nvgpu_init_mm_support_inject_error(m, g, ERROR_TYPE_KMEM, 0,
+						     -ENOMEM, 4);
+
+	/* Making nvgpu_init_bar1_vm fail on alloc_inst_block */
+	errors += nvgpu_init_mm_support_inject_error(m, g, ERROR_TYPE_DMA, 2,
+						     -ENOMEM, 5);
+
+	/* Making nvgpu_init_bar2_vm fail */
+	errors += nvgpu_init_mm_support_inject_error(m, g, ERROR_TYPE_DMA, 4,
+						     -ENOMEM, 6);
+
+	/* Making nvgpu_init_system_vm fail on the PMU VM init */
+	errors += nvgpu_init_mm_support_inject_error(m, g, ERROR_TYPE_KMEM, 29,
+						     -ENOMEM, 7);
+
+	/* Making nvgpu_init_system_vm fail again with extra branch coverage */
+	g->ops.mm.init_bar2_vm = NULL;
+	errors += nvgpu_init_mm_support_inject_error(m, g, ERROR_TYPE_KMEM, 20,
+						     -ENOMEM, 8);
+	g->ops.mm.init_bar2_vm = gp10b_mm_init_bar2_vm;
+
+	/* Making nvgpu_init_system_vm fail on alloc_inst_block */
+	errors += nvgpu_init_mm_support_inject_error(m, g, ERROR_TYPE_DMA, 6,
+						     -ENOMEM, 9);
+
+	/* Making nvgpu_init_hwpm fail */
+	errors += nvgpu_init_mm_support_inject_error(m, g, ERROR_TYPE_DMA, 7,
+						     -ENOMEM, 10);
+
+	/* Making nvgpu_init_engine_ucode_vm(sec2) fail on VM init */
+	errors += nvgpu_init_mm_support_inject_error(m, g, ERROR_TYPE_KMEM, 46,
+						     -ENOMEM, 11);
+
+	/* Making nvgpu_init_engine_ucode_vm(sec2) fail on alloc_inst_block */
+	errors += nvgpu_init_mm_support_inject_error(m, g, ERROR_TYPE_DMA, 9,
+						     -ENOMEM, 12);
+
+	/* Making nvgpu_init_engine_ucode_vm(gsp) fail */
+	errors += nvgpu_init_mm_support_inject_error(m, g, ERROR_TYPE_DMA, 11,
+						     -ENOMEM, 13);
+
+	/* Making nvgpu_init_cde_vm fail */
+	errors += nvgpu_init_mm_support_inject_error(m, g, ERROR_TYPE_KMEM, 80,
+						     -ENOMEM, 14);
+
+	/* Making nvgpu_init_ce_vm fail */
+	errors += nvgpu_init_mm_support_inject_error(m, g, ERROR_TYPE_KMEM, 98,
+						     -ENOMEM, 15);
+
+	/* Making nvgpu_init_mmu_debug fail on wr_mem DMA alloc */
+	errors += nvgpu_init_mm_support_inject_error(m, g, ERROR_TYPE_DMA, 14,
+						     -ENOMEM, 16);
+
+	/* Making nvgpu_init_mmu_debug fail on rd_mem DMA alloc */
+	errors += nvgpu_init_mm_support_inject_error(m, g, ERROR_TYPE_DMA, 15,
+						     -ENOMEM, 17);
+
+	/* Making g->ops.mm.mmu_fault.setup_sw fail */
+	errors += nvgpu_init_mm_support_inject_error(m, g, ERROR_TYPE_HAL, 3,
+						     ARBITRARY_ERROR, 18);
+
+	/*
+	 * Extra cases for branch coverage: change support flags to test
+	 * other branches
+	 */
+	nvgpu_set_enabled(g, NVGPU_SUPPORT_SEC2_VM, false);
+	nvgpu_set_enabled(g, NVGPU_SUPPORT_GSP_VM, false);
+	nvgpu_set_enabled(g, NVGPU_MM_FORCE_128K_PMU_VM, false);
+	g->has_cde = false;
+
+	errors += nvgpu_init_mm_support_inject_error(m, g, ERROR_TYPE_HAL, 3,
+						     ARBITRARY_ERROR, 19);
+
+	nvgpu_set_enabled(g, NVGPU_SUPPORT_SEC2_VM, true);
+	nvgpu_set_enabled(g, NVGPU_SUPPORT_GSP_VM, true);
+	nvgpu_set_enabled(g, NVGPU_MM_FORCE_128K_PMU_VM, true);
+	g->has_cde = true;
+
+	/*
+	 * Extra cases for branch coverage: remove some HALs to test branches
+	 * in nvgpu_init_mm_reset_enable_hw
+	 */
+	g->ops.mc.fb_reset = NULL;
+	g->ops.fb.init_fs_state = NULL;
+
+	errors += nvgpu_init_mm_support_inject_error(m, g, ERROR_TYPE_HAL, 3,
+						     ARBITRARY_ERROR, 20);
+
+	g->ops.mc.fb_reset = void_empty_hal;
+	g->ops.fb.init_fs_state = void_empty_hal;
+
+	if (errors != 0) {
+		return UNIT_FAIL;
+	}
+
+	/* Now it should succeed */
+	err = nvgpu_init_mm_support(g);
+	if (err != 0) {
+		unit_return_fail(m, "nvgpu_init_mm_support failed (1) err=%d\n",
+				err);
+	}
+
+	/*
+	 * Now running it again should succeed too but will hit some
+	 * "already initialized" paths
+	 */
+	err = nvgpu_init_mm_support(g);
+	if (err != 0) {
+		unit_return_fail(m, "nvgpu_init_mm_support failed (2) err=%d\n",
+				err);
+	}
+
+	/*
+	 * Extra case for branch coverage: remove mmu_fault.setup_sw HALs to
+	 * test branch in nvgpu_init_mm_setup_sw
+	 */
+	g->ops.mm.mmu_fault.setup_sw = NULL;
+	g->ops.mm.setup_hw = NULL;
+	g->mm.sw_ready = false;
+	err = nvgpu_init_mm_support(g);
+	if (err != 0) {
+		unit_return_fail(m, "nvgpu_init_mm_support failed (3) err=%d\n",
+				err);
+	}
+	g->ops.mm.mmu_fault.setup_sw = int_empty_hal;
+	g->ops.mm.setup_hw = int_empty_hal;
+
+	return UNIT_SUCCESS;
+}
+
+int test_nvgpu_mm_setup_hw(struct unit_module *m, struct gk20a *g, void *args)
+{
+	int err;
+
+	/*
+	 * We need to call nvgpu_mm_setup_hw but first make it fail to test
+	 * error handling and other corner cases
+	 */
+	g->ops.bus.bar1_bind = int_empty_hal_bar_bind;
+	int_empty_hal_return_error_after = 1;
+	err = nvgpu_mm_setup_hw(g);
+	if (err != ARBITRARY_ERROR) {
+		unit_return_fail(m, "nvgpu_mm_setup_hw did not fail as expected (1) err=%d\n",
+				err);
+	}
+
+	g->ops.bus.bar2_bind = int_empty_hal_bar_bind;
+	int_empty_hal_return_error_after = 2;
+	err = nvgpu_mm_setup_hw(g);
+	if (err != ARBITRARY_ERROR) {
+		unit_return_fail(m, "nvgpu_mm_setup_hw did not fail as expected (2) err=%d\n",
+				err);
+	}
+	int_empty_hal_return_error_after = -1;
+	g->ops.bus.bar1_bind = NULL;
+	g->ops.bus.bar2_bind = NULL;
+
+	/* Make flush fail */
+	g->ops.mm.cache.fb_flush = int_empty_hal;
+	int_empty_hal_return_error_after = 1;
+	err = nvgpu_mm_setup_hw(g);
+	if (err != -EBUSY) {
+		unit_return_fail(m, "nvgpu_mm_setup_hw did not fail as expected (3) err=%d\n",
+				err);
+	}
+	/* Make the 2nd call to flush fail */
+	int_empty_hal_return_error_after = 2;
+	err = nvgpu_mm_setup_hw(g);
+	if (err != -EBUSY) {
+		unit_return_fail(m, "nvgpu_mm_setup_hw did not fail as expected (4) err=%d\n",
+				err);
+	}
+	int_empty_hal_return_error_after = -1;
+	g->ops.mm.cache.fb_flush = gk20a_mm_fb_flush;
+
+	/* Success but no branch on g->ops.fb.set_mmu_page_size != NULL */
+	err = nvgpu_mm_setup_hw(g);
+	if (err != 0) {
+		unit_return_fail(m, "nvgpu_mm_setup_hw failed (1) err=%d\n",
+				err);
+	}
+
+	/* Success but branch on g->ops.fb.set_mmu_page_size != NULL */
+	g->ops.fb.set_mmu_page_size = NULL;
+	err = nvgpu_mm_setup_hw(g);
+	if (err != 0) {
+		unit_return_fail(m, "nvgpu_mm_setup_hw failed (2) err=%d\n",
+				err);
+	}
+
+	/* Success but branch on error return from g->ops.bus.bar2_bind */
+	g->ops.bus.bar2_bind = int_empty_hal_bar_bind;
+	err = nvgpu_mm_setup_hw(g);
+	if (err != 0) {
+		unit_return_fail(m, "nvgpu_mm_setup_hw failed (3) err=%d\n",
+				err);
+	}
+
+	/* Success but branch on g->ops.mm.mmu_fault.setup_hw != NULL */
+	g->ops.mm.mmu_fault.setup_hw = NULL;
+	err = nvgpu_mm_setup_hw(g);
+	if (err != 0) {
+		unit_return_fail(m, "nvgpu_mm_setup_hw failed (4) err=%d\n",
+				err);
+	}
+
+	return UNIT_SUCCESS;
+}
+
+int test_mm_init_hal(struct unit_module *m, struct gk20a *g, void *args)
+{
+	g->log_mask = 0;
+	if (verbose_lvl(m) >= 1) {
+		g->log_mask = gpu_dbg_map;
+	}
+	if (verbose_lvl(m) >= 2) {
+		g->log_mask |= gpu_dbg_map_v;
+	}
+	if (verbose_lvl(m) >= 3) {
+		g->log_mask |= gpu_dbg_pte;
+	}
+
+	current_module = m;
+
+	init_platform(m, g, true);
+
 	struct nvgpu_os_posix *p = nvgpu_os_posix_from_gk20a(g);
 
 	p->mm_is_iommuable = true;
+	g->has_cde = true;
 
 	g->ops.mm.gmmu.get_default_big_page_size =
 		gp10b_mm_get_default_big_page_size;
@@ -144,6 +484,23 @@ static int init_mm(struct unit_module *m, struct gk20a *g)
 	g->ops.fb.init_hw = gv11b_fb_init_hw;
 	g->ops.fb.intr.enable = gv11b_fb_intr_enable;
 
+	/* Add bar2 to have more init/cleanup logic */
+	g->ops.mm.init_bar2_vm = gp10b_mm_init_bar2_vm;
+	g->ops.mm.init_bar2_vm(g);
+
+	/*
+	 * For extra coverage. Note: the goal of this unit test is to validate
+	 * the mm.mm unit, not the underlying HALs.
+	 */
+	g->ops.fb.apply_pdb_cache_war = int_empty_hal;
+	g->ops.fb.init_fs_state = void_empty_hal;
+	g->ops.fb.set_mmu_page_size = void_empty_hal;
+	g->ops.mc.fb_reset = void_empty_hal;
+	g->ops.mm.mmu_fault.setup_hw = void_empty_hal;
+	g->ops.mm.mmu_fault.setup_sw = int_empty_hal;
+	g->ops.mm.setup_hw = int_empty_hal;
+	g->ops.ramin.init_pdb_cache_war = int_empty_hal;
+
 	nvgpu_posix_register_io(g, &mmu_faults_callbacks);
 	nvgpu_posix_io_init_reg_space(g);
 
@@ -161,58 +518,10 @@ static int init_mm(struct unit_module *m, struct gk20a *g)
 		unit_return_fail(m, "BAR1 is not supported on Volta+\n");
 	}
 
-	g->has_cde = true;
-	err = nvgpu_init_mm_support(g);
-	if (err != 0) {
-		unit_return_fail(m, "nvgpu_init_mm_support failed err=%d\n",
-				err);
-	}
-
-	err = nvgpu_mm_setup_hw(g);
-	if (err != 0) {
-		unit_return_fail(m, "nvgpu_mm_setup_hw failed err=%d\n",
-				err);
-	}
-
 	return UNIT_SUCCESS;
 }
 
-/*
- * Test: test_mm_mm_init
- * This test must be run once and be the first one as it initializes the MM
- * subsystem.
- */
-static int test_mm_init(struct unit_module *m, struct gk20a *g, void *args)
-{
-	g->log_mask = 0;
-	if (verbose_lvl(m) >= 1) {
-		g->log_mask = gpu_dbg_map;
-	}
-	if (verbose_lvl(m) >= 2) {
-		g->log_mask |= gpu_dbg_map_v;
-	}
-	if (verbose_lvl(m) >= 3) {
-		g->log_mask |= gpu_dbg_pte;
-	}
-
-	current_module = m;
-
-	init_platform(m, g, true);
-
-	if (init_mm(m, g) != 0) {
-		unit_return_fail(m, "nvgpu_init_mm_support failed\n");
-	}
-
-	return UNIT_SUCCESS;
-}
-
-/*
- * Test: test_mm_suspend
- * Test nvgpu_mm_suspend and run through some branches depending on enabled
- * HALs.
- */
-static int test_mm_suspend(struct unit_module *m, struct gk20a *g,
-				void *args)
+int test_mm_suspend(struct unit_module *m, struct gk20a *g, void *args)
 {
 	int err;
 
@@ -253,18 +562,9 @@ static void helper_deinit_pdb_cache_war(struct gk20a *g)
 	test_flag = true;
 }
 
-/*
- * Test: test_mm_remove_mm_support
- * Test mm.remove_support and run through some branches depending on enabled
- * HALs.
- */
-static int test_mm_remove_mm_support(struct unit_module *m, struct gk20a *g,
+int test_mm_remove_mm_support(struct unit_module *m, struct gk20a *g,
 				void *args)
 {
-	/* Add BAR2 to have more VMs to free */
-	g->ops.mm.init_bar2_vm = gp10b_mm_init_bar2_vm;
-	g->ops.mm.init_bar2_vm(g);
-
 	/*
 	 * Since the last step of the removal is to call
 	 * g->ops.ramin.deinit_pdb_cache_war, it is a good indication that
@@ -286,6 +586,17 @@ static int test_mm_remove_mm_support(struct unit_module *m, struct gk20a *g,
 	g->ops.mm.remove_bar2_vm = gp10b_mm_remove_bar2_vm;
 	g->mm.remove_support(&g->mm);
 
+	/* Extra cases for branch coverage */
+	nvgpu_set_enabled(g, NVGPU_SUPPORT_SEC2_VM, false);
+	nvgpu_set_enabled(g, NVGPU_SUPPORT_GSP_VM, false);
+	g->has_cde = false;
+
+	g->mm.remove_support(&g->mm);
+
+	nvgpu_set_enabled(g, NVGPU_SUPPORT_SEC2_VM, true);
+	nvgpu_set_enabled(g, NVGPU_SUPPORT_GSP_VM, true);
+	g->has_cde = true;
+
 	return UNIT_SUCCESS;
 }
 
@@ -293,7 +604,7 @@ static int test_mm_remove_mm_support(struct unit_module *m, struct gk20a *g,
  * Test: test_mm_page_sizes
  * Test a couple of page_size related functions
  */
-static int test_mm_page_sizes(struct unit_module *m, struct gk20a *g,
+int test_mm_page_sizes(struct unit_module *m, struct gk20a *g,
 				void *args)
 {
 	if (nvgpu_mm_get_default_big_page_size(g) != SZ_64K) {
@@ -308,41 +619,93 @@ static int test_mm_page_sizes(struct unit_module *m, struct gk20a *g,
 	if (nvgpu_mm_get_available_big_page_sizes(g) != 0) {
 		unit_return_fail(m, "unexpected big page size (3)\n");
 	}
+	if (nvgpu_mm_get_default_big_page_size(g) != 0) {
+		unit_return_fail(m, "unexpected big page size (4)\n");
+	}
 	g->mm.disable_bigpage = false;
+
+	/* Case of non NULL g->ops.mm.gmmu.get_big_page_sizes */
+	g->ops.mm.gmmu.get_big_page_sizes = gm20b_mm_get_big_page_sizes;
+	if (nvgpu_mm_get_available_big_page_sizes(g) != (SZ_64K | SZ_128K)) {
+		unit_return_fail(m, "unexpected big page size (5)\n");
+	}
+	g->ops.mm.gmmu.get_big_page_sizes = NULL;
 
 	return UNIT_SUCCESS;
 }
 
-/*
- * Test: test_mm_inst_block
- * Test nvgpu_inst_block_ptr.
- */
-static int test_mm_inst_block(struct unit_module *m, struct gk20a *g,
+int test_mm_inst_block(struct unit_module *m, struct gk20a *g,
 				void *args)
 {
 	u32 addr;
 	struct nvgpu_mem *block = malloc(sizeof(struct nvgpu_mem));
+	int ret = UNIT_FAIL;
 
 	block->aperture = APERTURE_SYSMEM;
 	block->cpu_va = (void *) TEST_ADDRESS;
 
 	g->ops.ramin.base_shift = gk20a_ramin_base_shift;
 	addr = nvgpu_inst_block_ptr(g, block);
-	free(block);
 
 	if (addr != ((u32) TEST_ADDRESS >> g->ops.ramin.base_shift())) {
-		unit_return_fail(m, "invalid inst_block_ptr address\n");
+		unit_err(m, "invalid inst_block_ptr address (1)\n");
+		goto cleanup;
 	}
 
-	return UNIT_SUCCESS;
+	/* Run again with NVLINK support for code coverage */
+	nvgpu_set_enabled(g, NVGPU_SUPPORT_NVLINK, true);
+	addr = nvgpu_inst_block_ptr(g, block);
+	nvgpu_set_enabled(g, NVGPU_SUPPORT_NVLINK, false);
+
+	if (addr != ((u32) TEST_ADDRESS >> g->ops.ramin.base_shift())) {
+		unit_err(m, "invalid inst_block_ptr address (2)\n");
+		goto cleanup;
+	}
+
+	ret = UNIT_SUCCESS;
+cleanup:
+	free(block);
+	return ret;
+}
+
+int test_mm_alloc_inst_block(struct unit_module *m, struct gk20a *g,
+				void *args)
+{
+	struct nvgpu_mem *mem = malloc(sizeof(struct nvgpu_mem));
+	struct nvgpu_posix_fault_inj *dma_fi =
+		nvgpu_dma_alloc_get_fault_injection();
+	int result = UNIT_FAIL;
+
+	if (nvgpu_alloc_inst_block(g, mem) != 0) {
+		unit_err(m, "alloc_inst failed unexpectedly\n");
+		goto cleanup;
+	}
+
+	nvgpu_posix_enable_fault_injection(dma_fi, true, 0);
+
+	if (nvgpu_alloc_inst_block(g, mem) == 0) {
+		unit_err(m, "alloc_inst did not fail as expected\n");
+		goto cleanup;
+	}
+
+	result = UNIT_SUCCESS;
+
+cleanup:
+	nvgpu_posix_enable_fault_injection(dma_fi, false, 0);
+	free(mem);
+
+	return result;
 }
 
 struct unit_module_test nvgpu_mm_mm_tests[] = {
-	UNIT_TEST(init, test_mm_init, NULL, 0),
+	UNIT_TEST(init_hal, test_mm_init_hal, NULL, 0),
+	UNIT_TEST(init_mm, test_nvgpu_init_mm, NULL, 0),
+	UNIT_TEST(init_mm_hw, test_nvgpu_mm_setup_hw, NULL, 0),
 	UNIT_TEST(suspend, test_mm_suspend, NULL, 0),
 	UNIT_TEST(remove_support, test_mm_remove_mm_support, NULL, 0),
 	UNIT_TEST(page_sizes, test_mm_page_sizes, NULL, 0),
 	UNIT_TEST(inst_block, test_mm_inst_block, NULL, 0),
+	UNIT_TEST(alloc_inst_block, test_mm_alloc_inst_block, NULL, 0),
 };
 
 UNIT_MODULE(mm.mm, nvgpu_mm_mm_tests, UNIT_PRIO_NVGPU_TEST);

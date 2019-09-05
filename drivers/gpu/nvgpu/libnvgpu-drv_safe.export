@@ -14,6 +14,7 @@ gk20a_mm_fb_flush
 gk20a_ramin_alloc_size
 gk20a_ramin_base_shift
 gm20b_fb_tlb_invalidate
+gm20b_mm_get_big_page_sizes
 gm20b_ramin_set_big_page_size
 gp10b_mm_get_default_big_page_size
 gp10b_mm_get_iommu_bit
