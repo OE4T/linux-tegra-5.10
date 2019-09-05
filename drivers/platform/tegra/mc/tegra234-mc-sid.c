@@ -520,22 +520,6 @@ static struct sid_to_oids sid_to_oids[] = {
 		.name = "ISP",
 	},
 	{
-		.sid	= TEGRA_SID_MGBE,
-		.noids	= 8,
-		.oid	= {
-			MGBEARD,
-			MGBEAWR,
-			MGBEBRD,
-			MGBEBWR,
-			MGBECRD,
-			MGBECWR,
-			MGBEDRD,
-			MGBEDWR,
-		},
-		.ord = NO_OVERRIDE,
-		.name = "MGBE",
-	},
-	{
 		.sid	= TEGRA_SID_NVDEC,
 		.noids	= 3,
 		.oid	= {
