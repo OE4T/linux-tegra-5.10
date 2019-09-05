@@ -1,7 +1,4 @@
-/**
- * @file include/media/fusa-capture/capture-isp-channel.h
- * @brief ISP channel character device driver header for T186/T194
- *
+/*
  * Copyright (c) 2017-2019 NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
@@ -12,6 +9,13 @@
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
  * more details.
+ */
+
+/**
+ * @file include/media/fusa-capture/capture-isp-channel.h
+ *
+ * @brief ISP channel character device driver header for the T186/T194 Camera
+ * RTCPU platform.
  */
 
 #ifndef __FUSA_CAPTURE_ISP_CHANNEL_H__
@@ -29,11 +33,12 @@ struct isp_channel_drv;
  */
 struct isp_channel_drv_ops {
 	/**
-	 * Request a syncpt allocation from Host1x
+	 * @brief Request a syncpt allocation from Host1x.
 	 *
 	 * @param[in]	pdev		ISP platform_device
 	 * @param[in]	name		syncpt name
 	 * @param[out]	syncpt_id	assigned syncpt id
+	 *
 	 * @returns	0 (success), neg. errno (failure)
 	 */
 	int (*alloc_syncpt)(
@@ -42,7 +47,7 @@ struct isp_channel_drv_ops {
 		uint32_t *syncpt_id);
 
 	/**
-	 * Release a syncpt to Host1x
+	 * @brief Release a syncpt to Host1x.
 	 *
 	 * @param[in]	pdev	ISP platform_device
 	 * @param[in]	id	syncpt id to free
@@ -52,7 +57,7 @@ struct isp_channel_drv_ops {
 		uint32_t id);
 
 	/**
-	 * Retrieve the GoS table allocated in the ISP-THI carveout
+	 * @brief Retrieve the GoS table allocated in the ISP-THI carveout.
 	 *
 	 * @param[in]	pdev	ISP platform_device
 	 * @param[out]	table	GoS table pointer
@@ -62,12 +67,13 @@ struct isp_channel_drv_ops {
 		const dma_addr_t **table);
 
 	/**
-	 * Get a syncpt's GoS backing in the ISP-THI carveout
+	 * @brief Get a syncpt's GoS backing in the ISP-THI carveout.
 	 *
 	 * @param[in]	pdev		ISP platform_device
 	 * @param[in]	id		syncpt id
 	 * @param[out]	gos_index	GoS id
 	 * @param[out]	gos_offset	Offset of syncpt within GoS [dword]
+	 *
 	 * @returns	0 (success), neg. errno (failure)
 	 */
 	int (*get_syncpt_gos_backing)(
@@ -79,15 +85,15 @@ struct isp_channel_drv_ops {
 };
 
 /**
- * @brief ISP channel context (character device)
+ * @brief ISP channel context (character device).
  */
 struct tegra_isp_channel {
-	struct device *isp_dev; /**< ISP device. */
-	struct platform_device *ndev; /**< ISP platform_device. */
-	struct isp_channel_drv *drv; /**< ISP channel driver context. */
-	void *priv; /**< ISP channel private context. */
-	struct isp_capture *capture_data; /**< ISP channel capture context. */
-	const struct isp_channel_drv_ops *ops; /**< ISP syncpt/gos fops. */
+	struct device *isp_dev; /**< ISP device */
+	struct platform_device *ndev; /**< ISP platform_device */
+	struct isp_channel_drv *drv; /**< ISP channel driver context */
+	void *priv; /**< ISP channel private context */
+	struct isp_capture *capture_data; /**< ISP channel capture context */
+	const struct isp_channel_drv_ops *ops; /**< ISP syncpt/gos fops */
 };
 
 /**
@@ -99,6 +105,7 @@ struct tegra_isp_channel {
  *
  * @param[in]	ndev	ISP platform_device context
  * @param[in]	ops	isp_channel_drv_ops fops
+ *
  * @returns	0 (success), neg. errno (failure)
  */
 int isp_channel_drv_register(

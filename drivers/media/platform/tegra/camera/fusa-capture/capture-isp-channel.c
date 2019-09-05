@@ -1,7 +1,4 @@
-/**
- * @file drivers/media/platform/tegra/camera/fusa-capture/capture-isp-channel.c
- * @brief ISP channel character device driver for T186/T194
- *
+/*
  * Copyright (c) 2017-2019 NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
@@ -12,6 +9,13 @@
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
  * more details.
+ */
+
+/**
+ * @file drivers/media/platform/tegra/camera/fusa-capture/capture-isp-channel.c
+ *
+ * @brief ISP channel character device driver for the T186/T194 Camera RTCPU
+ * platform.
  */
 
 #include <asm/ioctls.h>
@@ -26,14 +30,194 @@
 #include <linux/stddef.h>
 #include <linux/uaccess.h>
 
+#include "nvhost_acm.h"
 #include <media/fusa-capture/capture-isp.h>
+
 #include <media/fusa-capture/capture-isp-channel.h>
 
-#include "nvhost_acm.h"
+/**
+ * @todo This parameter is platform-dependent and should be retrieved from the
+ * Device Tree.
+ */
+#define MAX_ISP_CHANNELS	64
 
-#include "capture-isp-channel-priv.h"
+/**
+ * @brief ISP channel character device driver context.
+ */
+struct isp_channel_drv {
+	struct device *dev; /**< ISP kernel @em device */
+	u8 num_channels; /**< No. of ISP channel character devices */
+	struct mutex lock; /**< ISP channel driver context lock. */
+	struct platform_device *ndev; /**< ISP kernel @em platform_device */
+	const struct isp_channel_drv_ops *ops;
+		/**< ISP fops for Host1x syncpt/gos allocations */
+	struct tegra_isp_channel *channels[];
+		/**< Allocated ISP channel contexts */
+};
 
-int isp_channel_power_on(
+/**
+ * @defgroup ISP_CHANNEL_IOCTLS
+ *
+ * @brief ISP channel character device IOCTL API
+ *
+ * Clients in the UMD may open sysfs character devices representing ISP
+ * channels, and perform configuration, and enqueue buffers in capture and
+ * program requests to the low-level RCE subsystem via these IOCTLs.
+ *
+ * @{
+ */
+
+/**
+ * @brief Set up ISP channel resources and request FW channel allocation in RCE.
+ *
+ * Initialize the ISP channel context and synchronization primitives, pin memory
+ * for the capture and program process descriptor queues, set up the buffer
+ * management table, initialize the capture/capture-control IVC channels and
+ * request ISP FW channel allocation in RCE.
+ *
+ * @param[in]	ptr	Pointer to a struct @ref isp_capture_setup
+ *
+ * @returns	0 (success), neg. errno (failure)
+ */
+#define ISP_CAPTURE_SETUP \
+	_IOW('I', 1, struct isp_capture_setup)
+
+/**
+ * @brief Release the ISP FW channel allocation in RCE, and all resources and
+ * contexts in the KMD.
+ *
+ * @param[in]	rel	uint32_t bitmask of @ref CAPTURE_CHANNEL_RESET_FLAGS
+ * @returns	0 (success), neg. errno (failure)
+ */
+#define ISP_CAPTURE_RELEASE \
+	_IOW('I', 2, __u32)
+
+/**
+ * @brief Reset the ISP channel in RCE synchronously w/ the KMD; all pending
+ * capture/program descriptors in the queue are discarded and syncpoint values
+ * fast-forwarded to unblock waiting clients.
+ *
+ * @param[in]	rst	uint32_t bitmask of @ref CAPTURE_CHANNEL_RESET_FLAGS
+ *
+ * @returns	0 (success), neg. errno (failure)
+ */
+#define ISP_CAPTURE_RESET \
+	_IOW('I', 3, __u32)
+
+/**
+ * @brief Retrieve the ids and current values of the progress, stats progress
+ * syncpoints, and ISP FW channel allocated by RCE.
+ *
+ * If successful, the queried values are written back to the input struct.
+ *
+ * @param[in,out]	ptr	Pointer to a struct @ref isp_capture_info
+ *
+ * @returns	0 (success), neg. errno (failure)
+ */
+#define ISP_CAPTURE_GET_INFO \
+	_IOR('I', 4, struct isp_capture_info)
+
+/**
+ * @brief Enqueue a process capture request to RCE, input and prefences are
+ * allocated, and the addresses to surface buffers in the descriptor (referenced
+ * by the buffer_index) are pinned and patched.
+ *
+ * @param[in]	ptr	Pointer to a struct @ref isp_capture_req
+ *
+ * @returns	0 (success), neg. errno (failure)
+ */
+#define ISP_CAPTURE_REQUEST \
+	_IOW('I', 5, struct isp_capture_req)
+
+/**
+ * @brief Wait on the next completion of an enqueued frame, signalled by RCE.
+ * The status in the frame's capture descriptor is safe to read when this
+ * completes w/o a -ETIMEDOUT or other error.
+ *
+ * @note This call completes for the frame at the head of the FIFO queue, and is
+ * not necessarily for the most recently enqueued process capture request.
+ *
+ * @param[in]	status	uint32_t timeout [ms], 0 for indefinite
+ *
+ * @returns	0 (success), neg. errno (failure)
+ */
+#define ISP_CAPTURE_STATUS \
+	_IOW('I', 6, __u32)
+
+/**
+ * @brief Enqueue a program request to RCE, the addresses to the push buffer in
+ * the descriptor (referenced by the buffer_index) are pinned and patched.
+ *
+ * @param[in]	ptr	Pointer to a struct @ref isp_program_req
+ *
+ * @returns	0 (success), neg. errno (failure)
+ */
+#define ISP_CAPTURE_PROGRAM_REQUEST \
+	_IOW('I', 7, struct isp_program_req)
+
+/**
+ * @brief Wait on the next completion of an enqueued program, signalled by RCE.
+ * The program execution is finished and is safe to free when this call
+ * completes.
+ *
+ * @note This call completes for the program at the head of the FIFO queue, and
+ * is not necessarily for the most recently enqueued program request.
+
+ * @returns	0 (success), neg. errno (failure)
+ */
+#define ISP_CAPTURE_PROGRAM_STATUS \
+	_IOW('I', 8, __u32)
+
+/**
+ * @brief Enqueue a joint capture and program request to RCE; this is equivalent
+ * to calling @ref ISP_CAPTURE_PROGRAM_REQUEST and @ref ISP_CAPTURE_REQUEST
+ * sequentially, but the number of KMD-RCE IVC transmissions is reduced to one
+ * in each direction for every frame.
+ *
+ * @param[in]	ptr	Pointer to a struct @ref isp_capture_req_ex
+ *
+ * @returns	0 (success), neg. errno (failure)
+ */
+#define ISP_CAPTURE_REQUEST_EX \
+	_IOW('I', 9, struct isp_capture_req_ex)
+
+/**
+ * @brief Set up the combined capture and program process progress status
+ * notifier array, which is a replacement for the blocking
+ * @ref ISP_CAPTURE_STATUS and @ref ISP_CAPTURE_PROGRAM_STATUS calls; allowing
+ * for out-of-order frame process completion notifications.
+ *
+ * The values written by the KMD are any of the
+ * @ref CAPTURE_PROGRESS_NOTIFIER_STATES.
+ *
+ * @param[in]	ptr	Pointer to a struct @ref isp_capture_progress_status_req
+ *
+ * @returns	0 (success), neg. errno (failure)
+ */
+#define ISP_CAPTURE_SET_PROGRESS_STATUS_NOTIFIER \
+	_IOW('I', 10, struct isp_capture_progress_status_req)
+
+/**
+ * @brief Perform an operation on the surface buffer by setting the bitwise
+ * @a flag field with @ref CAPTURE_BUFFER_OPS flags.
+ *
+ * @param[in]	ptr	Pointer to a struct @ref isp_buffer_req.
+ *
+ * @returns	0 (success), neg. errno (failure)
+ */
+#define ISP_CAPTURE_BUFFER_REQUEST \
+	_IOW('I', 11, struct isp_buffer_req)
+
+/** @} */
+
+/**
+ * @brief Power on ISP via Host1x. The ISP channel is registered as an NvHost
+ * ISP client and the reference count is incremented by one.
+ *
+ * @param[in]	chan	ISP channel context
+ * @returns	0 (success), neg. errno (failure)
+ */
+static int isp_channel_power_on(
 	struct tegra_isp_channel *chan)
 {
 	int ret = 0;
@@ -57,7 +241,13 @@ int isp_channel_power_on(
 	return 0;
 }
 
-void isp_channel_power_off(
+/**
+ * @brief Power off ISP via Host1x. The NvHost module reference count is
+ * decreased by one and the ISP channel is unregistered as a client.
+ *
+ * @param[in]	chan	ISP channel context
+ */
+static void isp_channel_power_off(
 	struct tegra_isp_channel *chan)
 {
 	dev_dbg(chan->isp_dev, "isp_channel_power_off\n");
@@ -69,7 +259,22 @@ void isp_channel_power_off(
 static struct isp_channel_drv *chdrv_;
 static DEFINE_MUTEX(chdrv_lock);
 
-int isp_channel_open(
+/**
+ * @brief Open an ISP channel character device node, power on the camera
+ * subsystem and initialize the channel driver context.
+ *
+ * The act of opening an ISP channel character device node does not entail the
+ * reservation of an ISP channel, ISP_CAPTURE_SETUP must be called afterwards
+ * to request an allocation by RCE.
+ *
+ * This is the @a open file operation handler for an ISP channel node.
+ *
+ * @param[in]	inode	ISP channel character device inode struct
+ * @param[in]	file	ISP channel character device file struct
+ *
+ * @returns	0 (success), neg. errno (failure)
+ */
+static int isp_channel_open(
 	struct inode *inode,
 	struct file *file)
 {
@@ -130,7 +335,21 @@ error:
 	return err;
 }
 
-int isp_channel_release(
+/**
+ * @brief Release an ISP channel character device node, power off the camera
+ * subsystem and free the ISP channel driver context.
+ *
+ * Under normal operation, ISP_CAPTURE_RESET followed by ISP_CAPTURE_RELEASE
+ * should be called before releasing the file handle on the device node.
+ *
+ * This is the @a release file operation handler for an ISP channel node.
+ *
+ * @param[in]	inode	ISP channel character device inode struct
+ * @param[in]	file	ISP channel character device file struct
+ *
+ * @returns	0
+ */
+static int isp_channel_release(
 	struct inode *inode,
 	struct file *file)
 {
@@ -152,7 +371,23 @@ int isp_channel_release(
 	return 0;
 }
 
-long isp_channel_ioctl(
+/**
+ * @brief Process an IOCTL call on an ISP channel character device.
+ *
+ * Depending on the specific IOCTL, the argument (@a arg) may be a pointer to a
+ * defined struct payload that is copied from or back to user-space. This memory
+ * is allocated and mapped from user-space and must be kept available until
+ * after the IOCTL call completes.
+ *
+ * This is the @a ioctl file operation handler for an ISP channel node.
+ *
+ * @param[in]		file	ISP channel character device file struct
+ * @param[in]		cmd	ISP channel IOCTL command
+ * @param[in,out]	arg	IOCTL argument; numerical value or pointer
+ *
+ * @returns		0 (success), neg. errno (failure)
+ */
+static long isp_channel_ioctl(
 	struct file *file,
 	unsigned int cmd,
 	unsigned long arg)
@@ -214,7 +449,7 @@ long isp_channel_ioctl(
 		err = isp_capture_request(chan, &req);
 		if (err)
 			dev_err(chan->isp_dev,
-				"isp capture request submit failed\n");
+				"isp process capture request submit failed\n");
 		break;
 	}
 
@@ -226,7 +461,7 @@ long isp_channel_ioctl(
 		err = isp_capture_status(chan, status);
 		if (err)
 			dev_err(chan->isp_dev,
-				"isp capture get status failed\n");
+				"isp process get status failed\n");
 		break;
 	}
 
@@ -238,7 +473,7 @@ long isp_channel_ioctl(
 		err = isp_capture_program_request(chan, &program_req);
 		if (err)
 			dev_err(chan->isp_dev,
-				"isp program request submit failed\n");
+				"isp process program request submit failed\n");
 		break;
 	}
 
@@ -247,7 +482,7 @@ long isp_channel_ioctl(
 
 		if (err)
 			dev_err(chan->isp_dev,
-				"isp program get status failed\n");
+				"isp process program get status failed\n");
 		break;
 	}
 
@@ -259,7 +494,7 @@ long isp_channel_ioctl(
 		err = isp_capture_request_ex(chan, &req);
 		if (err)
 			dev_err(chan->isp_dev,
-				"isp capture request extended submit failed\n");
+				"isp process request extended submit failed\n");
 		break;
 	}
 	case _IOC_NR(ISP_CAPTURE_SET_PROGRESS_STATUS_NOTIFIER): {
@@ -368,6 +603,11 @@ void isp_channel_drv_unregister(
 }
 EXPORT_SYMBOL(isp_channel_drv_unregister);
 
+/**
+ * @brief Initialize the ISP channel driver device (major).
+ *
+ * @returns	0 (success), PTR_ERR or neg. ISP channel major no. (failuure)
+ */
 static int __init isp_channel_drv_init(void)
 {
 	isp_channel_class = class_create(THIS_MODULE, "capture-isp-channel");
@@ -384,6 +624,9 @@ static int __init isp_channel_drv_init(void)
 	return 0;
 }
 
+/**
+ * @brief De-initialize the ISP channel driver device (major).
+ */
 static void __exit isp_channel_drv_exit(void)
 {
 	unregister_chrdev(isp_channel_major, "capture-isp-channel");

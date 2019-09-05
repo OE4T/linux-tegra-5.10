@@ -1,7 +1,4 @@
-/**
- * @file drivers/media/platform/tegra/camera/fusa-capture/capture-vi.c
- * @brief VI channel operations for T186/T194
- *
+/*
  * Copyright (c) 2017-2019 NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
@@ -14,20 +11,449 @@
  * more details.
  */
 
+/**
+ * @file drivers/media/platform/tegra/camera/fusa-capture/capture-vi.c
+ *
+ * @brief VI channel operations for the T186/T194 Camera RTCPU platform.
+ */
+
 #include <linux/completion.h>
 #include <linux/nvhost.h>
 #include <linux/of_platform.h>
 #include <linux/printk.h>
 #include <linux/slab.h>
 #include <linux/tegra-capture-ivc.h>
+
 #include <asm/arch_timer.h>
 #include <uapi/linux/nvhost_events.h>
 #include <camera/nvcamera_log.h>
+#include "soc/tegra/camrtc-capture.h"
+#include "soc/tegra/camrtc-capture-messages.h"
+#include <media/fusa-capture/capture-vi-channel.h>
+#include <media/fusa-capture/capture-common.h>
 
 #include <media/fusa-capture/capture-vi.h>
 
-#include "capture-vi-priv.h"
+/**
+ * @brief Invalid VI channel ID; the channel is not initialized.
+ */
+#define CAPTURE_CHANNEL_INVALID_ID	U16_C(0xFFFF)
 
+/**
+ * @brief Invalid VI channel mask; no channels are allocated.
+ */
+#define CAPTURE_CHANNEL_INVALID_MASK	U64_C(0x0)
+
+/**
+ * @brief Invalid NVCSI stream ID; the stream is not initialized.
+ */
+#define NVCSI_STREAM_INVALID_ID		U32_C(0xFFFF)
+
+/**
+ * @brief INVALID NVCSI TPG virtual channel ID; the TPG stream is not enabled.
+ */
+#define NVCSI_STREAM_INVALID_TPG_VC_ID	U32_C(0xFFFF)
+
+/**
+ * @brief Initialize a VI syncpoint and get its GoS backing.
+ *
+ * @param[in]	chan	VI channel context
+ * @param[in]	name	Syncpoint name
+ * @param[in]	enable	Whether to initialize or just clear @a sp
+ * @param[out]	sp	Syncpoint handle
+ *
+ * @returns	0 (success), neg. errno (failure)
+ */
+static int vi_capture_setup_syncpt(
+	struct tegra_vi_channel *chan,
+	const char *name,
+	bool enable,
+	struct syncpoint_info *sp)
+{
+	struct platform_device *pdev = chan->ndev;
+	uint32_t gos_index, gos_offset;
+	int err;
+
+	memset(sp, 0, sizeof(*sp));
+	sp->gos_index = GOS_INDEX_INVALID;
+
+	if (!enable)
+		return 0;
+
+	err = chan->ops->alloc_syncpt(pdev, name, &sp->id);
+	if (err)
+		return err;
+
+	err = nvhost_syncpt_read_ext_check(pdev, sp->id, &sp->threshold);
+	if (err)
+		goto cleanup;
+
+	err = chan->ops->get_syncpt_gos_backing(pdev, sp->id, &sp->shim_addr,
+				&gos_index, &gos_offset);
+	if (err)
+		goto cleanup;
+
+	sp->gos_index = gos_index;
+	sp->gos_offset = gos_offset;
+
+	return 0;
+
+cleanup:
+	chan->ops->release_syncpt(pdev, sp->id);
+	memset(sp, 0, sizeof(*sp));
+
+	return err;
+}
+
+/**
+ * @brief Release a VI syncpoint and clear its handle.
+ *
+ * @param[in]	chan	VI channel context
+ * @param[out]	sp	Syncpoint handle
+ */
+static void vi_capture_release_syncpt(
+	struct tegra_vi_channel *chan,
+	struct syncpoint_info *sp)
+{
+	if (sp->id)
+		chan->ops->release_syncpt(chan->ndev, sp->id);
+
+	memset(sp, 0, sizeof(*sp));
+}
+
+/**
+ * @brief Release the VI channel progress, embedded data and line timer
+ * syncpoints.
+ *
+ * @param[in]	chan	VI channel context
+ */
+static void vi_capture_release_syncpts(
+	struct tegra_vi_channel *chan)
+{
+	struct vi_capture *capture = chan->capture_data;
+
+	vi_capture_release_syncpt(chan, &capture->progress_sp);
+	vi_capture_release_syncpt(chan, &capture->embdata_sp);
+	vi_capture_release_syncpt(chan, &capture->linetimer_sp);
+}
+
+/**
+ * @brief Set up the VI channel progress, embedded data and line timer
+ * syncpoints.
+ *
+ * @param[in]	chan	VI channel context
+ * @param[in]	flags	Bitmask for channel flags, see
+ *			@ref CAPTURE_CHANNEL_FLAGS
+ *
+ * @returns	0 (success), neg. errno (failure)
+ */
+static int vi_capture_setup_syncpts(
+	struct tegra_vi_channel *chan,
+	uint32_t flags)
+{
+	struct vi_capture *capture = chan->capture_data;
+	int err = 0;
+
+	chan->ops->get_gos_table(chan->ndev,
+				&capture->num_gos_tables,
+				&capture->gos_tables);
+
+	err = vi_capture_setup_syncpt(chan, "progress", true,
+			&capture->progress_sp);
+	if (err < 0)
+		goto fail;
+
+	err = vi_capture_setup_syncpt(chan, "embdata",
+				(flags & CAPTURE_CHANNEL_FLAG_EMBDATA) != 0,
+				&capture->embdata_sp);
+	if (err < 0)
+		goto fail;
+
+	err = vi_capture_setup_syncpt(chan, "linetimer",
+				(flags & CAPTURE_CHANNEL_FLAG_LINETIMER) != 0,
+				&capture->linetimer_sp);
+	if (err < 0)
+		goto fail;
+
+	return 0;
+
+fail:
+	vi_capture_release_syncpts(chan);
+	return err;
+}
+
+/**
+ * @brief Read the value of a VI channel syncpoint.
+ *
+ * @param[in]	chan	VI channel context
+ * @param[in]	sp	Syncpoint handle
+ * @param[out]	val	Syncpoint value
+ *
+ * @returns	0 (success), neg. errno (failure)
+ */
+static int vi_capture_read_syncpt(
+	struct tegra_vi_channel *chan,
+	struct syncpoint_info *sp,
+	uint32_t *val)
+{
+	int err;
+
+	if (sp->id) {
+		err = nvhost_syncpt_read_ext_check(chan->ndev,
+						sp->id, val);
+		if (err < 0) {
+			dev_err(chan->dev,
+				"%s: get syncpt %i val failed\n", __func__,
+				sp->id);
+			return -EINVAL;
+		}
+	}
+
+	return 0;
+}
+
+/**
+ * @brief VI channel callback function for @em capture IVC messages.
+ *
+ * @param[in]	ivc_resp	IVC @ref CAPTURE_MSG from RCE
+ * @param[in]	pcontext	VI channel capture context
+ */
+static void vi_capture_ivc_status_callback(
+	const void *ivc_resp,
+	const void *pcontext)
+{
+	struct CAPTURE_MSG *status_msg = (struct CAPTURE_MSG *)ivc_resp;
+	struct vi_capture *capture = (struct vi_capture *)pcontext;
+	struct tegra_vi_channel *chan = capture->vi_channel;
+	uint32_t buffer_index;
+
+	if (unlikely(capture == NULL)) {
+		dev_err(chan->dev, "%s: invalid context", __func__);
+		return;
+	}
+
+	if (unlikely(status_msg == NULL)) {
+		dev_err(chan->dev, "%s: invalid response", __func__);
+		return;
+	}
+
+	switch (status_msg->header.msg_id) {
+	case CAPTURE_STATUS_IND:
+		buffer_index = status_msg->capture_status_ind.buffer_index;
+		if (capture->is_mem_pinned)
+			vi_capture_request_unpin(chan, buffer_index);
+		dma_sync_single_range_for_cpu(capture->rtcpu_dev,
+			capture->requests.iova,
+			buffer_index * capture->request_size,
+			capture->request_size, DMA_FROM_DEVICE);
+
+		if (capture->is_progress_status_notifier_set) {
+			capture_common_set_progress_status(
+					&capture->progress_status_notifier,
+					buffer_index,
+					capture->progress_status_buffer_depth,
+					PROGRESS_STATUS_DONE);
+		} else {
+			/*
+			 * Only fire completions if not using
+			 * the new progress status buffer mechanism
+			 */
+			complete(&capture->capture_resp);
+		}
+		dev_dbg(chan->dev, "%s: status chan_id %u msg_id %u\n",
+				__func__, status_msg->header.channel_id,
+				status_msg->header.msg_id);
+		break;
+	default:
+		dev_err(chan->dev,
+			"%s: unknown capture resp", __func__);
+		break;
+	}
+}
+
+/**
+ * @brief Send a @em capture-control IVC message to RCE on a VI channel, and
+ * block w/ timeout, waiting for the RCE response.
+ *
+ * @param[in]	chan	VI channel context
+ * @param[in]	msg	IVC message payload
+ * @param[in]	size	Size of @a msg [byte]
+ * @param[in]	resp_id	IVC message identifier, see @CAPTURE_MSG_IDS
+ *
+ * @returns	0 (success), neg. errno (failure)
+ */
+static int vi_capture_ivc_send_control(
+	struct tegra_vi_channel *chan,
+	const struct CAPTURE_CONTROL_MSG *msg,
+	size_t size,
+	uint32_t resp_id)
+{
+	struct vi_capture *capture = chan->capture_data;
+	struct CAPTURE_MSG_HEADER resp_header = msg->header;
+	uint32_t timeout = HZ;
+	int err = 0;
+
+	dev_dbg(chan->dev, "%s: sending chan_id %u msg_id %u\n",
+			__func__, resp_header.channel_id, resp_header.msg_id);
+	resp_header.msg_id = resp_id;
+	/* Send capture control IVC message */
+	mutex_lock(&capture->control_msg_lock);
+	err = tegra_capture_ivc_control_submit(msg, size);
+	if (err < 0) {
+		dev_err(chan->dev, "IVC control submit failed\n");
+		goto fail;
+	}
+
+	timeout = wait_for_completion_timeout(
+			&capture->control_resp, timeout);
+	if (timeout <= 0) {
+		dev_err(chan->dev,
+			"no reply from camera processor\n");
+		err = -ETIMEDOUT;
+		goto fail;
+	}
+
+	if (memcmp(&resp_header, &capture->control_resp_msg.header,
+			sizeof(resp_header)) != 0) {
+		dev_err(chan->dev,
+			"unexpected response from camera processor\n");
+		err = -EINVAL;
+		goto fail;
+	}
+
+	mutex_unlock(&capture->control_msg_lock);
+	dev_dbg(chan->dev, "%s: response chan_id %u msg_id %u\n",
+			__func__, capture->control_resp_msg.header.channel_id,
+			capture->control_resp_msg.header.msg_id);
+	return 0;
+
+fail:
+	mutex_unlock(&capture->control_msg_lock);
+	return err;
+}
+
+/**
+ * @brief VI channel callback function for @em capture-control IVC messages,
+ * this unblocks the channel's @em capture-control completion.
+ *
+ * @param[in]	ivc_resp	IVC @ref CAPTURE_CONTROL_MSG from RCE
+ * @param[in]	pcontext	VI channel capture context
+ */
+static void vi_capture_ivc_control_callback(
+	const void *ivc_resp,
+	const void *pcontext)
+{
+	const struct CAPTURE_CONTROL_MSG *control_msg = ivc_resp;
+	struct vi_capture *capture = (struct vi_capture *)pcontext;
+	struct tegra_vi_channel *chan = capture->vi_channel;
+
+	if (unlikely(capture == NULL)) {
+		dev_err(chan->dev, "%s: invalid context", __func__);
+		return;
+	}
+
+	if (unlikely(control_msg == NULL)) {
+		dev_err(chan->dev, "%s: invalid response", __func__);
+		return;
+	}
+
+	switch (control_msg->header.msg_id) {
+	case CAPTURE_CHANNEL_SETUP_RESP:
+	case CAPTURE_CHANNEL_RESET_RESP:
+	case CAPTURE_CHANNEL_RELEASE_RESP:
+	case CAPTURE_COMPAND_CONFIG_RESP:
+	case CAPTURE_PDAF_CONFIG_RESP:
+	case CAPTURE_SYNCGEN_ENABLE_RESP:
+	case CAPTURE_SYNCGEN_DISABLE_RESP:
+	case CAPTURE_PHY_STREAM_OPEN_RESP:
+	case CAPTURE_PHY_STREAM_CLOSE_RESP:
+	case CAPTURE_PHY_STREAM_DUMPREGS_RESP:
+	case CAPTURE_CSI_STREAM_SET_CONFIG_RESP:
+	case CAPTURE_CSI_STREAM_SET_PARAM_RESP:
+	case CAPTURE_CSI_STREAM_TPG_SET_CONFIG_RESP:
+	case CAPTURE_CSI_STREAM_TPG_START_RESP:
+	case CAPTURE_CSI_STREAM_TPG_START_RATE_RESP:
+	case CAPTURE_CSI_STREAM_TPG_STOP_RESP:
+	case CAPTURE_CHANNEL_EI_RESP:
+	case CAPTURE_HSM_CHANSEL_ERROR_MASK_RESP:
+		memcpy(&capture->control_resp_msg, control_msg,
+				sizeof(*control_msg));
+		complete(&capture->control_resp);
+		break;
+	default:
+		dev_err(chan->dev,
+			"%s: unknown capture control resp 0x%x", __func__,
+			control_msg->header.msg_id);
+		break;
+	}
+}
+
+/**
+ * @brief Disable the VI channel's NVCSI TPG stream in RCE.
+ *
+ * @param[in]	chan	VI channel context
+ *
+ * @returns	0 (success), neg. errno (failure)
+ */
+static int csi_stream_tpg_disable(
+	struct tegra_vi_channel *chan)
+{
+	struct vi_capture *capture = chan->capture_data;
+	struct CAPTURE_CONTROL_MSG control_desc;
+	struct CAPTURE_CONTROL_MSG *resp_msg = &capture->control_resp_msg;
+	int err = 0;
+
+	memset(&control_desc, 0, sizeof(control_desc));
+	control_desc.header.msg_id = CAPTURE_CSI_STREAM_TPG_STOP_REQ;
+	control_desc.header.channel_id = capture->channel_id;
+	control_desc.csi_stream_tpg_stop_req.stream_id = capture->stream_id;
+	control_desc.csi_stream_tpg_stop_req.virtual_channel_id =
+		capture->virtual_channel_id;
+
+	err = vi_capture_ivc_send_control(chan, &control_desc,
+		sizeof(control_desc), CAPTURE_CSI_STREAM_TPG_STOP_RESP);
+	if ((err < 0) ||
+			(resp_msg->csi_stream_tpg_stop_resp.result
+				!= CAPTURE_OK))
+		return err;
+
+	capture->virtual_channel_id = NVCSI_STREAM_INVALID_TPG_VC_ID;
+
+	return 0;
+}
+
+/**
+ * @brief Disable the VI channel's NVCSI stream in RCE.
+ *
+ * @param[in]	chan	VI channel context
+ *
+ * @returns	0 (success), neg. errno (failure)
+ */
+static int csi_stream_close(
+	struct tegra_vi_channel *chan)
+{
+	struct vi_capture *capture = chan->capture_data;
+	struct CAPTURE_CONTROL_MSG control_desc;
+	struct CAPTURE_CONTROL_MSG *resp_msg = &capture->control_resp_msg;
+	int err = 0;
+
+	memset(&control_desc, 0, sizeof(control_desc));
+	control_desc.header.msg_id = CAPTURE_PHY_STREAM_CLOSE_REQ;
+	control_desc.header.channel_id = capture->channel_id;
+	control_desc.phy_stream_close_req.phy_type = NVPHY_TYPE_CSI;
+	control_desc.phy_stream_close_req.stream_id = capture->stream_id;
+	control_desc.phy_stream_close_req.csi_port = capture->csi_port;
+
+	err = vi_capture_ivc_send_control(chan, &control_desc,
+		sizeof(control_desc), CAPTURE_PHY_STREAM_CLOSE_RESP);
+	if ((err < 0) ||
+			(resp_msg->phy_stream_close_resp.result != CAPTURE_OK))
+		return err;
+
+	capture->stream_id = NVCSI_STREAM_INVALID_ID;
+
+	return 0;
+}
 
 int vi_capture_init(
 	struct tegra_vi_channel *chan,
@@ -73,7 +499,7 @@ int vi_capture_init(
 
 	capture->stream_id = NVCSI_STREAM_INVALID_ID;
 	capture->csi_port = NVCSI_PORT_UNSPECIFIED;
-	capture->virtual_channel_id = NVCSI_TPG_INVALID_ID;
+	capture->virtual_channel_id = NVCSI_STREAM_INVALID_TPG_VC_ID;
 
 	return 0;
 }
@@ -407,7 +833,7 @@ int csi_stream_release(
 	if (capture->stream_id == NVCSI_STREAM_INVALID_ID)
 		return 0;
 
-	if (capture->virtual_channel_id != NVCSI_TPG_INVALID_ID) {
+	if (capture->virtual_channel_id != NVCSI_STREAM_INVALID_TPG_VC_ID) {
 		err = csi_stream_tpg_disable(chan);
 		if (err < 0) {
 			dev_err(chan->dev,
@@ -516,7 +942,7 @@ int vi_capture_control_message(
 		break;
 	case CAPTURE_CSI_STREAM_TPG_STOP_REQ:
 		resp_id = CAPTURE_CSI_STREAM_TPG_STOP_RESP;
-		capture->virtual_channel_id = NVCSI_TPG_INVALID_ID;
+		capture->virtual_channel_id = NVCSI_STREAM_INVALID_TPG_VC_ID;
 		break;
 	case CAPTURE_CHANNEL_EI_REQ:
 		resp_id = CAPTURE_CHANNEL_EI_RESP;
@@ -801,330 +1227,4 @@ int vi_capture_set_progress_status_notifier(
 	capture->progress_status_buffer_depth = req->buffer_depth;
 	capture->is_progress_status_notifier_set = true;
 	return err;
-}
-
-/*
- * Capture VI supporting functions (internal)
- */
-
-int vi_capture_setup_syncpt(
-	struct tegra_vi_channel *chan,
-	const char *name,
-	bool enable,
-	struct syncpoint_info *sp)
-{
-	struct platform_device *pdev = chan->ndev;
-	uint32_t gos_index, gos_offset;
-	int err;
-
-	memset(sp, 0, sizeof(*sp));
-	sp->gos_index = GOS_INDEX_INVALID;
-
-	if (!enable)
-		return 0;
-
-	err = chan->ops->alloc_syncpt(pdev, name, &sp->id);
-	if (err)
-		return err;
-
-	err = nvhost_syncpt_read_ext_check(pdev, sp->id, &sp->threshold);
-	if (err)
-		goto cleanup;
-
-	err = chan->ops->get_syncpt_gos_backing(pdev, sp->id, &sp->shim_addr,
-				&gos_index, &gos_offset);
-	if (err)
-		goto cleanup;
-
-	sp->gos_index = gos_index;
-	sp->gos_offset = gos_offset;
-
-	return 0;
-
-cleanup:
-	chan->ops->release_syncpt(pdev, sp->id);
-	memset(sp, 0, sizeof(*sp));
-
-	return err;
-}
-
-void vi_capture_release_syncpt(
-	struct tegra_vi_channel *chan,
-	struct syncpoint_info *sp)
-{
-	if (sp->id)
-		chan->ops->release_syncpt(chan->ndev, sp->id);
-
-	memset(sp, 0, sizeof(*sp));
-}
-
-int vi_capture_setup_syncpts(
-	struct tegra_vi_channel *chan,
-	uint32_t flags)
-{
-	struct vi_capture *capture = chan->capture_data;
-	int err = 0;
-
-	chan->ops->get_gos_table(chan->ndev,
-				&capture->num_gos_tables,
-				&capture->gos_tables);
-
-	err = vi_capture_setup_syncpt(chan, "progress", true,
-			&capture->progress_sp);
-	if (err < 0)
-		goto fail;
-
-	err = vi_capture_setup_syncpt(chan, "embdata",
-				(flags & CAPTURE_CHANNEL_FLAG_EMBDATA) != 0,
-				&capture->embdata_sp);
-	if (err < 0)
-		goto fail;
-
-	err = vi_capture_setup_syncpt(chan, "linetimer",
-				(flags & CAPTURE_CHANNEL_FLAG_LINETIMER) != 0,
-				&capture->linetimer_sp);
-	if (err < 0)
-		goto fail;
-
-	return 0;
-
-fail:
-	vi_capture_release_syncpts(chan);
-	return err;
-}
-
-void vi_capture_release_syncpts(
-	struct tegra_vi_channel *chan)
-{
-	struct vi_capture *capture = chan->capture_data;
-
-	vi_capture_release_syncpt(chan, &capture->progress_sp);
-	vi_capture_release_syncpt(chan, &capture->embdata_sp);
-	vi_capture_release_syncpt(chan, &capture->linetimer_sp);
-}
-
-int vi_capture_read_syncpt(
-	struct tegra_vi_channel *chan,
-	struct syncpoint_info *sp,
-	uint32_t *val)
-{
-	int err;
-
-	if (sp->id) {
-		err = nvhost_syncpt_read_ext_check(chan->ndev,
-						sp->id, val);
-		if (err < 0) {
-			dev_err(chan->dev,
-				"%s: get syncpt %i val failed\n", __func__,
-				sp->id);
-			return -EINVAL;
-		}
-	}
-
-	return 0;
-}
-
-void vi_capture_ivc_status_callback(
-	const void *ivc_resp,
-	const void *pcontext)
-{
-	struct CAPTURE_MSG *status_msg = (struct CAPTURE_MSG *)ivc_resp;
-	struct vi_capture *capture = (struct vi_capture *)pcontext;
-	struct tegra_vi_channel *chan = capture->vi_channel;
-	uint32_t buffer_index;
-
-	if (unlikely(capture == NULL)) {
-		dev_err(chan->dev, "%s: invalid context", __func__);
-		return;
-	}
-
-	if (unlikely(status_msg == NULL)) {
-		dev_err(chan->dev, "%s: invalid response", __func__);
-		return;
-	}
-
-	switch (status_msg->header.msg_id) {
-	case CAPTURE_STATUS_IND:
-		buffer_index = status_msg->capture_status_ind.buffer_index;
-		if (capture->is_mem_pinned)
-			vi_capture_request_unpin(chan, buffer_index);
-		dma_sync_single_range_for_cpu(capture->rtcpu_dev,
-			capture->requests.iova,
-			buffer_index * capture->request_size,
-			capture->request_size, DMA_FROM_DEVICE);
-
-		if (capture->is_progress_status_notifier_set) {
-			capture_common_set_progress_status(
-					&capture->progress_status_notifier,
-					buffer_index,
-					capture->progress_status_buffer_depth,
-					PROGRESS_STATUS_DONE);
-		} else {
-			/*
-			 * Only fire completions if not using
-			 * the new progress status buffer mechanism
-			 */
-			complete(&capture->capture_resp);
-		}
-		dev_dbg(chan->dev, "%s: status chan_id %u msg_id %u\n",
-				__func__, status_msg->header.channel_id,
-				status_msg->header.msg_id);
-		break;
-	default:
-		dev_err(chan->dev,
-			"%s: unknown capture resp", __func__);
-		break;
-	}
-}
-
-int vi_capture_ivc_send_control(
-	struct tegra_vi_channel *chan,
-	const struct CAPTURE_CONTROL_MSG *msg,
-	size_t size,
-	uint32_t resp_id)
-{
-	struct vi_capture *capture = chan->capture_data;
-	struct CAPTURE_MSG_HEADER resp_header = msg->header;
-	uint32_t timeout = HZ;
-	int err = 0;
-
-	dev_dbg(chan->dev, "%s: sending chan_id %u msg_id %u\n",
-			__func__, resp_header.channel_id, resp_header.msg_id);
-	resp_header.msg_id = resp_id;
-	/* Send capture control IVC message */
-	mutex_lock(&capture->control_msg_lock);
-	err = tegra_capture_ivc_control_submit(msg, size);
-	if (err < 0) {
-		dev_err(chan->dev, "IVC control submit failed\n");
-		goto fail;
-	}
-
-	timeout = wait_for_completion_timeout(
-			&capture->control_resp, timeout);
-	if (timeout <= 0) {
-		dev_err(chan->dev,
-			"no reply from camera processor\n");
-		err = -ETIMEDOUT;
-		goto fail;
-	}
-
-	if (memcmp(&resp_header, &capture->control_resp_msg.header,
-			sizeof(resp_header)) != 0) {
-		dev_err(chan->dev,
-			"unexpected response from camera processor\n");
-		err = -EINVAL;
-		goto fail;
-	}
-
-	mutex_unlock(&capture->control_msg_lock);
-	dev_dbg(chan->dev, "%s: response chan_id %u msg_id %u\n",
-			__func__, capture->control_resp_msg.header.channel_id,
-			capture->control_resp_msg.header.msg_id);
-	return 0;
-
-fail:
-	mutex_unlock(&capture->control_msg_lock);
-	return err;
-}
-
-void vi_capture_ivc_control_callback(
-	const void *ivc_resp,
-	const void *pcontext)
-{
-	const struct CAPTURE_CONTROL_MSG *control_msg = ivc_resp;
-	struct vi_capture *capture = (struct vi_capture *)pcontext;
-	struct tegra_vi_channel *chan = capture->vi_channel;
-
-	if (unlikely(capture == NULL)) {
-		dev_err(chan->dev, "%s: invalid context", __func__);
-		return;
-	}
-
-	if (unlikely(control_msg == NULL)) {
-		dev_err(chan->dev, "%s: invalid response", __func__);
-		return;
-	}
-
-	switch (control_msg->header.msg_id) {
-	case CAPTURE_CHANNEL_SETUP_RESP:
-	case CAPTURE_CHANNEL_RESET_RESP:
-	case CAPTURE_CHANNEL_RELEASE_RESP:
-	case CAPTURE_COMPAND_CONFIG_RESP:
-	case CAPTURE_PDAF_CONFIG_RESP:
-	case CAPTURE_SYNCGEN_ENABLE_RESP:
-	case CAPTURE_SYNCGEN_DISABLE_RESP:
-	case CAPTURE_PHY_STREAM_OPEN_RESP:
-	case CAPTURE_PHY_STREAM_CLOSE_RESP:
-	case CAPTURE_PHY_STREAM_DUMPREGS_RESP:
-	case CAPTURE_CSI_STREAM_SET_CONFIG_RESP:
-	case CAPTURE_CSI_STREAM_SET_PARAM_RESP:
-	case CAPTURE_CSI_STREAM_TPG_SET_CONFIG_RESP:
-	case CAPTURE_CSI_STREAM_TPG_START_RESP:
-	case CAPTURE_CSI_STREAM_TPG_START_RATE_RESP:
-	case CAPTURE_CSI_STREAM_TPG_STOP_RESP:
-	case CAPTURE_CHANNEL_EI_RESP:
-	case CAPTURE_HSM_CHANSEL_ERROR_MASK_RESP:
-		memcpy(&capture->control_resp_msg, control_msg,
-				sizeof(*control_msg));
-		complete(&capture->control_resp);
-		break;
-	default:
-		dev_err(chan->dev,
-			"%s: unknown capture control resp 0x%x", __func__,
-			control_msg->header.msg_id);
-		break;
-	}
-}
-
-int csi_stream_tpg_disable(
-	struct tegra_vi_channel *chan)
-{
-	struct vi_capture *capture = chan->capture_data;
-	struct CAPTURE_CONTROL_MSG control_desc;
-	struct CAPTURE_CONTROL_MSG *resp_msg = &capture->control_resp_msg;
-	int err = 0;
-
-	memset(&control_desc, 0, sizeof(control_desc));
-	control_desc.header.msg_id = CAPTURE_CSI_STREAM_TPG_STOP_REQ;
-	control_desc.header.channel_id = capture->channel_id;
-	control_desc.csi_stream_tpg_stop_req.stream_id = capture->stream_id;
-	control_desc.csi_stream_tpg_stop_req.virtual_channel_id =
-		capture->virtual_channel_id;
-
-	err = vi_capture_ivc_send_control(chan, &control_desc,
-		sizeof(control_desc), CAPTURE_CSI_STREAM_TPG_STOP_RESP);
-	if ((err < 0) ||
-			(resp_msg->csi_stream_tpg_stop_resp.result
-				!= CAPTURE_OK))
-		return err;
-
-	capture->virtual_channel_id = NVCSI_TPG_INVALID_ID;
-
-	return 0;
-}
-
-int csi_stream_close(
-	struct tegra_vi_channel *chan)
-{
-	struct vi_capture *capture = chan->capture_data;
-	struct CAPTURE_CONTROL_MSG control_desc;
-	struct CAPTURE_CONTROL_MSG *resp_msg = &capture->control_resp_msg;
-	int err = 0;
-
-	memset(&control_desc, 0, sizeof(control_desc));
-	control_desc.header.msg_id = CAPTURE_PHY_STREAM_CLOSE_REQ;
-	control_desc.header.channel_id = capture->channel_id;
-	control_desc.phy_stream_close_req.phy_type = NVPHY_TYPE_CSI;
-	control_desc.phy_stream_close_req.stream_id = capture->stream_id;
-	control_desc.phy_stream_close_req.csi_port = capture->csi_port;
-
-	err = vi_capture_ivc_send_control(chan, &control_desc,
-		sizeof(control_desc), CAPTURE_PHY_STREAM_CLOSE_RESP);
-	if ((err < 0) ||
-			(resp_msg->phy_stream_close_resp.result != CAPTURE_OK))
-		return err;
-
-	capture->stream_id = NVCSI_STREAM_INVALID_ID;
-
-	return 0;
 }

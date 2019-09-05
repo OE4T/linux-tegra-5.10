@@ -1,7 +1,4 @@
-/**
- * @file drivers/media/platform/tegra/camera/fusa-capture/capture-common.c
- * @brief VI/ISP channel common operations for T186/T194
- *
+/*
  * Copyright (c) 2017-2019 NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
@@ -14,6 +11,13 @@
  * more details.
  */
 
+/**
+ * @file drivers/media/platform/tegra/camera/fusa-capture/capture-common.c
+ *
+ * @brief VI/ISP channel common operations for the T186/T194 Camera RTCPU
+ * platform.
+ */
+
 #include <linux/dma-buf.h>
 #include <linux/dma-mapping.h>
 #include <linux/nospec.h>
@@ -21,72 +25,91 @@
 #include <linux/slab.h>
 #include <linux/hashtable.h>
 #include <linux/atomic.h>
-#include <media/fusa-capture/capture-common.h>
 #include <media/mc_common.h>
 
-#include "capture-common-priv.h"
+#include <media/fusa-capture/capture-common.h>
 
-struct capture_buffer_table *create_buffer_table(
-	struct device *dev)
-{
-	struct capture_buffer_table *tab;
+/**
+ * @brief Debug print macro to prepend function name and line in code.
+ */
+#define fmt(_f) "%s:%d:" _f "\n", __func__, __LINE__
 
-	tab = kmalloc(sizeof(*tab), GFP_KERNEL);
+/**
+ * @brief Capture buffer management table.
+ */
+struct capture_buffer_table {
+	struct device *dev; /**< Originating device (VI or ISP) */
+	struct kmem_cache *cache; /**< SLAB allocator cache */
+	rwlock_t hlock; /**< Reader/writer lock on table contents */
+	DECLARE_HASHTABLE(hhead, 4U); /**< Buffer hashtable head */
+};
 
-	if (likely(tab != NULL)) {
-		tab->cache = KMEM_CACHE(capture_mapping, 0U);
+/**
+ * @brief Capture surface NvRm and IOVA addresses handle.
+ */
+union capture_surface {
+	uint64_t raw; /**< Pinned VI or ISP IOVA address */
+	struct {
+		uint32_t offset; /**< NvRm handle (upper 32 bits) */
+		uint32_t hmem;
+			/**<
+			 * Offset of surface or pushbuffer address in descriptor
+			 * (lower 32 bits) [byte]
+			 */
+	};
+};
 
-		if (likely(tab->cache != NULL)) {
-			tab->dev = dev;
-			hash_init(tab->hhead);
-			rwlock_init(&tab->hlock);
-		} else {
-			kfree(tab);
-			tab = NULL;
-		}
-	}
+/**
+ * @brief Capture buffer mapping (pinned).
+ */
+struct capture_mapping {
+	struct hlist_node hnode; /**< Hash table node struct */
+	atomic_t refcnt; /**< Capture mapping reference count */
+	struct dma_buf *buf; /** Capture mapping dma_buf */
+	struct dma_buf_attachment *atch;
+		/**< dma_buf attachment (VI or ISP device) */
+	struct sg_table *sgt; /**< Scatterlist to dma_buf attachment */
+	unsigned int flag; /**< Bitmask access flag */
+};
 
-	return tab;
-}
-
-void destroy_buffer_table(
-	struct capture_buffer_table *tab)
-{
-	size_t bkt;
-	struct hlist_node *next;
-	struct capture_mapping *pin;
-
-	write_lock(&tab->hlock);
-
-	hash_for_each_safe(tab->hhead, bkt, next, pin, hnode) {
-		hash_del(&pin->hnode);
-		dma_buf_unmap_attachment(
-			pin->atch, pin->sgt, flag_dma_direction(pin->flag));
-		dma_buf_detach(pin->buf, pin->atch);
-		dma_buf_put(pin->buf);
-		kmem_cache_free(tab->cache, pin);
-	}
-
-	write_unlock(&tab->hlock);
-
-	kmem_cache_destroy(tab->cache);
-	kfree(tab);
-}
-
-inline bool flag_compatible(
+/**
+ * @brief Determine whether all the bits of @a other are set in @a self.
+ *
+ * @param[in]	self	Bitmask flag to be compared
+ * @param[in]	other	Bitmask value(s) to compare
+ *
+ * @retval	true	compatible
+ * @retval	false	not compatible
+ */
+static inline bool flag_compatible(
 	unsigned int self,
 	unsigned int other)
 {
 	return (self & other) == other;
 }
 
-inline unsigned int flag_access_mode(
+/**
+ * @brief Determine whether BUFFER_RDWR is set in @a flag.
+ *
+ * @param[in]	flag	Bitmask flag to be compared
+ *
+ * @retval	true	BUFFER_RDWR set
+ * @retval	false	BUFFER_RDWR not set
+ */
+static inline unsigned int flag_access_mode(
 	unsigned int flag)
 {
 	return flag & BUFFER_RDWR;
 }
 
-inline enum dma_data_direction flag_dma_direction(
+/**
+ * @brief Map capture common buffer access flag to a Linux dma_data_direction.
+ *
+ * @param[in]	flag	Bitmask access flag of capture common buffer
+ *
+ * @returns	@ref dma_data_direction mapping
+ */
+static inline enum dma_data_direction flag_dma_direction(
 	unsigned int flag)
 {
 	static const enum dma_data_direction dir[4U] = {
@@ -99,7 +122,14 @@ inline enum dma_data_direction flag_dma_direction(
 	return dir[flag_access_mode(flag)];
 }
 
-inline dma_addr_t mapping_iova(
+/**
+ * @brief Retrieve the scatterlist IOVA address of the capture surface mapping.
+ *
+ * @param[in]	pin	The capture_mapping of the buffer
+ *
+ * @returns	Physical address of scatterlist mapping
+ */
+static inline dma_addr_t mapping_iova(
 	const struct capture_mapping *pin)
 {
 	dma_addr_t addr = sg_dma_address(pin->sgt->sgl);
@@ -107,19 +137,45 @@ inline dma_addr_t mapping_iova(
 	return (addr != 0) ? addr : sg_phys(pin->sgt->sgl);
 }
 
-inline struct dma_buf *mapping_buf(
+/**
+ * @brief Retrieve the dma_buf pointer of a capture surface mapping.
+ *
+ * @param[in]	pin	The capture_mapping of the buffer
+ *
+ * @returns	Pointer to the capture_mapping @ref dma_buf
+ */
+static inline struct dma_buf *mapping_buf(
 	const struct capture_mapping *pin)
 {
 	return pin->buf;
 }
 
-inline bool mapping_preserved(
+/**
+ * @brief Determine whether BUFFER_ADD is set in the capture surface mapping's
+ * access flag.
+ *
+ * @param[in]	pin	The capture_mapping of the buffer
+ *
+ * @retval	true	BUFFER_ADD set
+ * @retval	false	BUFFER_ADD not set
+ */
+static inline bool mapping_preserved(
 	const struct capture_mapping *pin)
 {
 	return (bool)(pin->flag & BUFFER_ADD);
 }
 
-inline void set_mapping_preservation(
+/**
+ * @brief Set or unset the BUFFER_ADD bit in the capture surface mapping's
+ * access flag, and correspondingly increment or decrement the mapping's refcnt.
+ *
+ * @param[in]	pin	The capture_mapping of the buffer
+ * @param[in]	val	The capture_mapping of the buffer
+ *
+ * @retval	true	BUFFER_ADD set
+ * @retval	false	BUFFER_ADD not set
+ */
+static inline void set_mapping_preservation(
 	struct capture_mapping *pin,
 	bool val)
 {
@@ -132,6 +188,18 @@ inline void set_mapping_preservation(
 	}
 }
 
+/**
+ * @brief Iteratively search a capture buffer management table to find the entry
+ * with @a buf, and @a flag bits set in the capture mapping.
+ *
+ * On success, the capture mapping is incremented by one if it is non-zero.
+ *
+ * @param[in]	tab	The capture buffer management table
+ * @param[in]	buf	The mapping dma_buf pointer to match
+ * @param[in]	flag	The mapping bitmask access flag to compare
+ *
+ * @returns	@ref capture_mapping pointer (success), NULL (failure)
+ */
 struct capture_mapping *find_mapping(
 	struct capture_buffer_table *tab,
 	struct dma_buf *buf,
@@ -160,6 +228,16 @@ struct capture_mapping *find_mapping(
 	return NULL;
 }
 
+/**
+ * @brief Add an NvRm buffer to the buffer management table and initialize its
+ * refcnt to 1.
+ *
+ * @param[in]	tab	The capture buffer management table
+ * @param[in]	fd	The NvRm handle
+ * @param[in]	flag	The mapping bitmask access flag to set
+ *
+ * @returns	@ref capture_mapping pointer (success), PTR_ERR (failure)
+ */
 struct capture_mapping *get_mapping(
 	struct capture_buffer_table *tab,
 	uint32_t fd,
@@ -221,31 +299,51 @@ err0:
 	return err;
 }
 
-void put_mapping(
-	struct capture_buffer_table *t,
-	struct capture_mapping *pin)
+struct capture_buffer_table *create_buffer_table(
+	struct device *dev)
 {
-	bool zero;
+	struct capture_buffer_table *tab;
 
-	zero = atomic_dec_and_test(&pin->refcnt);
-	if (zero) {
-		if (unlikely(mapping_preserved(pin))) {
-			dev_err(t->dev,
-				fmt("unexpected put for a preserved mapping"));
-			atomic_inc(&pin->refcnt);
-			return;
+	tab = kmalloc(sizeof(*tab), GFP_KERNEL);
+
+	if (likely(tab != NULL)) {
+		tab->cache = KMEM_CACHE(capture_mapping, 0U);
+
+		if (likely(tab->cache != NULL)) {
+			tab->dev = dev;
+			hash_init(tab->hhead);
+			rwlock_init(&tab->hlock);
+		} else {
+			kfree(tab);
+			tab = NULL;
 		}
+	}
 
-		write_lock(&t->hlock);
+	return tab;
+}
+
+void destroy_buffer_table(
+	struct capture_buffer_table *tab)
+{
+	size_t bkt;
+	struct hlist_node *next;
+	struct capture_mapping *pin;
+
+	write_lock(&tab->hlock);
+
+	hash_for_each_safe(tab->hhead, bkt, next, pin, hnode) {
 		hash_del(&pin->hnode);
-		write_unlock(&t->hlock);
-
 		dma_buf_unmap_attachment(
 			pin->atch, pin->sgt, flag_dma_direction(pin->flag));
 		dma_buf_detach(pin->buf, pin->atch);
 		dma_buf_put(pin->buf);
-		kmem_cache_free(t->cache, pin);
+		kmem_cache_free(tab->cache, pin);
 	}
+
+	write_unlock(&tab->hlock);
+
+	kmem_cache_destroy(tab->cache);
+	kfree(tab);
 }
 
 static DEFINE_MUTEX(req_lock);
@@ -306,6 +404,40 @@ end:
 	return err;
 }
 
+int capture_buffer_add(
+	struct capture_buffer_table *t,
+	uint32_t fd)
+{
+	return capture_buffer_request(t, fd, BUFFER_ADD | BUFFER_RDWR);
+}
+
+void put_mapping(
+	struct capture_buffer_table *t,
+	struct capture_mapping *pin)
+{
+	bool zero;
+
+	zero = atomic_dec_and_test(&pin->refcnt);
+	if (zero) {
+		if (unlikely(mapping_preserved(pin))) {
+			dev_err(t->dev,
+				fmt("unexpected put for a preserved mapping"));
+			atomic_inc(&pin->refcnt);
+			return;
+		}
+
+		write_lock(&t->hlock);
+		hash_del(&pin->hnode);
+		write_unlock(&t->hlock);
+
+		dma_buf_unmap_attachment(
+			pin->atch, pin->sgt, flag_dma_direction(pin->flag));
+		dma_buf_detach(pin->buf, pin->atch);
+		dma_buf_put(pin->buf);
+		kmem_cache_free(t->cache, pin);
+	}
+}
+
 int capture_common_setup_progress_status_notifier(
 	struct capture_common_status_notifier *status_notifier,
 	uint32_t mem,
@@ -342,6 +474,26 @@ int capture_common_setup_progress_status_notifier(
 	return 0;
 }
 
+int capture_common_release_progress_status_notifier(
+	struct capture_common_status_notifier *progress_status_notifier)
+{
+	struct dma_buf *dmabuf = progress_status_notifier->buf;
+	void *va = progress_status_notifier->va;
+
+	if (dmabuf != NULL) {
+		if (va != NULL)
+			dma_buf_vunmap(dmabuf, va);
+
+		dma_buf_put(dmabuf);
+	}
+
+	progress_status_notifier->buf = NULL;
+	progress_status_notifier->va = NULL;
+	progress_status_notifier->offset = 0;
+
+	return 0;
+}
+
 int capture_common_set_progress_status(
 	struct capture_common_status_notifier *progress_status_notifier,
 	uint32_t buffer_slot,
@@ -366,26 +518,6 @@ int capture_common_set_progress_status(
 	wmb();
 
 	status_notifier[buffer_slot] = new_val;
-
-	return 0;
-}
-
-int capture_common_release_progress_status_notifier(
-	struct capture_common_status_notifier *progress_status_notifier)
-{
-	struct dma_buf *dmabuf = progress_status_notifier->buf;
-	void *va = progress_status_notifier->va;
-
-	if (dmabuf != NULL) {
-		if (va != NULL)
-			dma_buf_vunmap(dmabuf, va);
-
-		dma_buf_put(dmabuf);
-	}
-
-	progress_status_notifier->buf = NULL;
-	progress_status_notifier->va = NULL;
-	progress_status_notifier->offset = 0;
 
 	return 0;
 }

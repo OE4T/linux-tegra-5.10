@@ -1,7 +1,4 @@
-/**
- * @file include/media/fusa-capture/capture-common.h
- * @brief VI/ISP channel common operations header for T186/T194
- *
+/*
  * Copyright (c) 2017-2019 NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
@@ -14,10 +11,20 @@
  * more details.
  */
 
+/**
+ * @file include/media/fusa-capture/capture-common.h
+ *
+ * @brief VI/ISP channel common operations header for the T186/T194 Camera RTCPU
+ * platform.
+ */
+
 #ifndef __FUSA_CAPTURE_COMMON_H__
 #define __FUSA_CAPTURE_COMMON_H__
 
 #include <media/mc_common.h>
+
+struct capture_buffer_table;
+struct capture_mapping;
 
 /**
  * @defgroup CAPTURE_PROGRESS_NOTIFIER_STATES
@@ -46,23 +53,25 @@
  * @{
  */
 
-/** DMA @em to device data direction. */
+/** @brief DMA @em to device data direction. */
 #define BUFFER_READ	(U32_C(0x01))
-/** DMA @em from device data direction. */
+
+/** @brief DMA @em from device data direction. */
 #define BUFFER_WRITE	(U32_C(0x02))
-/** Add buffer to the channel's management table. */
+
+/** @brief Add buffer to the channel's management table. */
 #define BUFFER_ADD	(U32_C(0x04))
-/** DMA bidirectional data direction. */
+
+/** @brief DMA bidirectional data direction. */
 #define BUFFER_RDWR	(BUFFER_READ | BUFFER_WRITE)
 
 /** @} */
 
-struct capture_buffer_table;
-
 /**
  * @brief Initialize the capture surface management table for SLAB allocations.
  *
- * @param[in]	dev	Originating device (VI, ISP)
+ * @param[in]	dev	Originating device (VI or ISP)
+ *
  * @returns	pointer to table on success, NULL on error
  */
 struct capture_buffer_table *create_buffer_table(
@@ -82,6 +91,7 @@ void destroy_buffer_table(
  * @param[in,out]	tab	Surface buffer management table
  * @param[in]		memfd	FD or NvRm handle to buffer
  * @param[in]		flag	Surface BUFFER_* op bitmask
+ *
  * @returns		0 (success), neg. errno (failure)
  */
 int capture_buffer_request(
@@ -94,16 +104,12 @@ int capture_buffer_request(
  *
  * @param[in,out]	t	Surface buffer management table
  * @param[in]		fd	FD or NvRm handle to buffer
+ *
  * @returns		0 (success), neg. errno (failure)
  */
-static inline int capture_buffer_add(
+int capture_buffer_add(
 	struct capture_buffer_table *t,
-	uint32_t fd)
-{
-	return capture_buffer_request(t, fd, BUFFER_ADD | BUFFER_RDWR);
-}
-
-struct capture_mapping;
+	uint32_t fd);
 
 /**
  * @brief Decrement refcount for buffer mapping, and release it if it reaches
@@ -112,11 +118,12 @@ struct capture_mapping;
  * @param[in,out]	t	Surface buffer management table
  * @param[in,out]	pin	Surface buffer to unpin
  */
-void put_mapping(struct capture_buffer_table *t,
+void put_mapping(
+	struct capture_buffer_table *t,
 	struct capture_mapping *pin);
 
 /**
- * @brief Capture surface buffer context
+ * @brief Capture surface buffer context.
  */
 struct capture_common_buf {
 	struct dma_buf *buf; /**< dma_buf context */
@@ -126,7 +133,7 @@ struct capture_common_buf {
 };
 
 /**
- * @brief List of buffers to unpin for a capture request
+ * @brief List of buffers to unpin for a capture request.
  */
 struct capture_common_unpins {
 	uint32_t num_unpins; /**< No. of entries in data[] */
@@ -134,7 +141,7 @@ struct capture_common_unpins {
 };
 
 /**
- * @brief Pin and reloc struct for a capture request
+ * @brief Pin and reloc struct for a capture request.
  */
 struct capture_common_pin_req {
 	struct device *dev; /**< Originating device (vi, isp) */
@@ -155,7 +162,7 @@ struct capture_common_pin_req {
 };
 
 /**
- * @brief Progress status notifier handle
+ * @brief Progress status notifier handle.
  */
 struct capture_common_status_notifier {
 	struct dma_buf *buf; /**< dma_buf handle */
@@ -170,6 +177,7 @@ struct capture_common_status_notifier {
  * @param[in]	mem		FD or NvRm handle to buffer
  * @param[in]	buffer_size	Buffer size [byte]
  * @param[in]	mem_offset	Status notifier offset [byte]
+ *
  * @returns	0 (success), neg. errno (failure)
  */
 int capture_common_setup_progress_status_notifier(
@@ -179,12 +187,24 @@ int capture_common_setup_progress_status_notifier(
 	uint32_t mem_offset);
 
 /**
- * @brief Update the progress status for a capture request
+ * @brief Release the progress status notifier handle.
+ *
+ * @param[in,out]	progress_status_notifier	Progress status notifier
+ *							handle to release
+ *
+ * @returns		0
+ */
+int capture_common_release_progress_status_notifier(
+	struct capture_common_status_notifier *progress_status_notifier);
+
+/**
+ * @brief Update the progress status for a capture request.
  *
  * @param[in]	progress_status_notifier	Progress status notifier handle
  * @param[in]	buffer_slot			Capture descriptor index
  * @param[in]	buffer_depth			Capture descriptor queue size
  * @param[in]	new_val				Progress status to set
+ *
  * @returns	0 (success), neg. errno (failure)
  */
 int capture_common_set_progress_status(
@@ -194,32 +214,26 @@ int capture_common_set_progress_status(
 	uint8_t new_val);
 
 /**
- * @brief Release the progress status notifier handle
- *
- * @param[in,out]	progress_status_notifier	Progress status notifier
- *							handle to release
- * @returns		0
- */
-int capture_common_release_progress_status_notifier(
-	struct capture_common_status_notifier *progress_status_notifier);
-
-/**
- * @brief Pins buffer memory, returns dma_buf handles for unpinning
+ * @brief Pins buffer memory, returns dma_buf handles for unpinning.
  *
  * @param[in]	dev		target device (rtcpu)
  * @param[in]	mem		FD or NvRm handle to buffer
  * @param[out]	unpin_data	struct w/ dma_buf handles for unpinning
+ *
  * @returns	0 (success), neg. errno (failure)
  */
-int capture_common_pin_memory(struct device *dev,
-	uint32_t mem, struct capture_common_buf *unpin_data);
+int capture_common_pin_memory(
+	struct device *dev,
+	uint32_t mem,
+	struct capture_common_buf *unpin_data);
 
 /**
  * @brief Unpins buffer memory, releasing dma_buf resources.
  *
  * @param[in,out]	unpin_data	data handle to be unpinned
  */
-void capture_common_unpin_memory(struct capture_common_buf *unpin_data);
+void capture_common_unpin_memory(
+	struct capture_common_buf *unpin_data);
 
 /**
  * @brief Pins the physical address for each provided capture surface address
@@ -231,6 +245,7 @@ void capture_common_unpin_memory(struct capture_common_buf *unpin_data);
  * @param[in,out]	req	Capture descriptor capture_common_pin_req struct
  * @returns		0 (success), neg. errno (failure)
  */
-int capture_common_request_pin_and_reloc(struct capture_common_pin_req *req);
+int capture_common_request_pin_and_reloc(
+	struct capture_common_pin_req *req);
 
 #endif /* __FUSA_CAPTURE_COMMON_H__*/

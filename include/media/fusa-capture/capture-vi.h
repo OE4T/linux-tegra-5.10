@@ -1,7 +1,4 @@
-/**
- * @file include/media/fusa-capture/capture-vi.h
- * @brief VI channel operations header for T186/T194
- *
+/*
  * Copyright (c) 2017-2019 NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
@@ -12,6 +9,12 @@
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
  * more details.
+ */
+
+/**
+ * @file include/media/fusa-capture/capture-vi.h
+ *
+ * @brief VI channel operations header for the T186/T194 Camera RTCPU platform.
  */
 
 #ifndef __FUSA_CAPTURE_VI_H__
@@ -34,62 +37,65 @@ struct tegra_vi_channel;
 struct capture_buffer_table;
 
 /**
- * @brief VI channel capture context
+ * @brief VI channel capture context.
  */
 struct vi_capture {
-	uint16_t channel_id; /**< RCE-assigned capture channel id. */
-	struct device *rtcpu_dev; /**< rtcpu device. */
-	struct tegra_vi_channel *vi_channel; /**< VI channel context. */
+	uint16_t channel_id; /**< RCE-assigned VI FW channel id */
+	struct device *rtcpu_dev; /**< rtcpu device */
+	struct tegra_vi_channel *vi_channel; /**< VI channel context */
 	struct capture_buffer_table *buf_ctx;
-		/**< Surface buffer management table. */
-	struct capture_common_buf requests; /**< Capture descriptors queue. */
+		/**< Surface buffer management table */
+	struct capture_common_buf requests; /**< Capture descriptors queue */
 	size_t request_buf_size;
-		/**< Size of capture descriptor queue [byte]. */
-	uint32_t queue_depth; /**< No. of capture descriptors in queue. */
-	uint32_t request_size; /**< Size of single capture descriptor [byte]. */
-	bool is_mem_pinned; /**< Whether capture request memory is pinned. */
+		/**< Size of capture descriptor queue [byte] */
+	uint32_t queue_depth; /**< No. of capture descriptors in queue */
+	uint32_t request_size; /**< Size of single capture descriptor [byte] */
+	bool is_mem_pinned; /**< Whether capture request memory is pinned */
 
 	struct capture_common_status_notifier progress_status_notifier;
-		/**< Capture progress status notifier context. */
+		/**< Capture progress status notifier context */
 	uint32_t progress_status_buffer_depth;
-		/**< No. of capture descriptors. */
+		/**< No. of capture descriptors */
 	bool is_progress_status_notifier_set;
-		/**< Whether progress_status_notifer has been initialized. */
+		/**< Whether progress_status_notifer has been initialized */
 
-	uint32_t stream_id; /**< NVCSI PixelParser index [0-5]. */
-	uint32_t csi_port; /**< NVCSI ports A-H [0-7]. */
-	uint32_t virtual_channel_id; /**< CSI virtual channel id [0-15]. */
+	uint32_t stream_id; /**< NVCSI PixelParser index [0-5] */
+	uint32_t csi_port; /**< NVCSI ports A-H [0-7] */
+	uint32_t virtual_channel_id; /**< CSI virtual channel id [0-15] */
 
-	uint32_t num_gos_tables; /**< No. of cv devices in gos_tables. */
-	const dma_addr_t *gos_tables; /**< IOVA addresses of all GoS devices. */
+	uint32_t num_gos_tables; /**< No. of cv devices in gos_tables */
+	const dma_addr_t *gos_tables; /**< IOVA addresses of all GoS devices */
 
-	struct syncpoint_info progress_sp; /**< Syncpt for frame progress. */
-	struct syncpoint_info embdata_sp; /**< Syncpt for embedded metadata. */
-	struct syncpoint_info linetimer_sp; /**< Syncpt for frame line timer. */
+	struct syncpoint_info progress_sp; /**< Syncpoint for frame progress */
+	struct syncpoint_info embdata_sp;
+		/**< Syncpoint for embedded metadata */
+	struct syncpoint_info linetimer_sp;
+		/**< Syncpoint for frame line timer */
 
 	struct completion control_resp;
-		/**< Completion for capture-control IVC response. */
+		/**< Completion for capture-control IVC response */
 	struct completion capture_resp;
 		/**<
 		 * Completion for capture requests (frame), if progress status
-		 * notifier is not in use.
+		 * notifier is not in use
 		 */
 	struct mutex control_msg_lock;
-		/**< Lock for capture-control IVC control_resp_msg. */
+		/**< Lock for capture-control IVC control_resp_msg */
 	struct CAPTURE_CONTROL_MSG control_resp_msg;
-		/**< capture-control IVC resp msg written to by callback. */
+		/**< capture-control IVC resp msg written to by callback */
 
 	struct mutex reset_lock;
-		/**< Channel lock for reset/abort support (via RCE). */
-	struct mutex unpins_list_lock; /**< Lock for unpins_list. */
+		/**< Channel lock for reset/abort support (via RCE) */
+	struct mutex unpins_list_lock; /**< Lock for unpins_list */
 	struct capture_common_unpins **unpins_list;
-		/**< List of capture request buffer unpins. */
+		/**< List of capture request buffer unpins */
 
-	uint64_t vi_channel_mask; /**< Bitmask of RCE-assigned VI channel(s). */
+	uint64_t vi_channel_mask;
+		/**< Bitmask of RCE-assigned VI FW channel(s). */
 };
 
 /**
- * @brief VI channel setup config (IOCTL payload)
+ * @brief VI channel setup config (IOCTL payload).
  *
  * These fields are used to set up the VI channel and capture contexts, and will
  * be copied verbatim in the IVC capture_channel_config struct to allocate VI
@@ -98,80 +104,80 @@ struct vi_capture {
 struct vi_capture_setup {
 	uint32_t channel_flags;
 		/**<
-		 * Bitmask for channel flags, see @ref CAPTURE_CHANNEL_FLAGS.
+		 * Bitmask for channel flags, see @ref CAPTURE_CHANNEL_FLAGS
 		 */
 	uint32_t error_mask_correctable;
 		/**<
 		 * Bitmask for correctable channel errors. See
-		 * @ref CAPTURE_CHANNEL_ERRORS.
+		 * @ref CAPTURE_CHANNEL_ERRORS
 		 */
 	uint64_t vi_channel_mask;
-		/**<
-		 * Bitmask of VI channels to consider for allocation by RCE.
-		 */
+		/**< Bitmask of VI channels to consider for allocation by RCE */
 	uint32_t queue_depth; /**< No. of capture descriptors in queue. */
 	uint32_t request_size;
-		/**< Size of a single capture descriptor [byte]. */
+		/**< Size of a single capture descriptor [byte] */
 	union {
-		uint32_t mem; /**< Capture descriptors queue NvRm handle. */
+		uint32_t mem; /**< Capture descriptors queue NvRm handle */
 		uint64_t iova;
 			/**<
 			 * Capture descriptors queue base address (written back
-			 * after pinning by KMD).
+			 * after pinning by KMD)
 			 */
 	};
 	uint8_t slvsec_stream_main;
-		/**< SLVS-EC main stream (hardcode to 0x00). */
+		/**< SLVS-EC main stream (hardcode to 0x00) */
 	uint8_t slvsec_stream_sub;
-		/**< SLVS-EC sub stream (hardcode to 0xFF - disabled). */
+		/**< SLVS-EC sub stream (hardcode to 0xFF - disabled) */
 	uint16_t __pad_slvsec1;
 	uint32_t error_mask_uncorrectable;
 		/**<
 		 * Bitmask for correctable channel errors. See
-		 * @ref CAPTURE_CHANNEL_ERRORS.
+		 * @ref CAPTURE_CHANNEL_ERRORS
 		 */
 	uint64_t stop_on_error_notify_bits;
 		/**<
 		 * Bitmask for NOTIFY errors that force channel stop upon
-		 * receipt.
+		 * receipt
 		 */
 	uint64_t reserved[2];
 } __VI_CAPTURE_ALIGN;
 
 /**
- * @brief VI capture info (resp. to query)
+ * @brief VI capture info (resp. to query).
  */
 struct vi_capture_info {
 	struct vi_capture_syncpts {
-		uint32_t progress_syncpt; /**< Progress syncpt id. */
-		uint32_t progress_syncpt_val; /**< Progress syncpt value. */
-		uint32_t emb_data_syncpt; /**< Embedded metadata syncpt id. */
+		uint32_t progress_syncpt; /**< Progress syncpoint id */
+		uint32_t progress_syncpt_val; /**< Progress syncpoint value. */
+		uint32_t emb_data_syncpt; /**< Embedded metadata syncpoint id */
 		uint32_t emb_data_syncpt_val;
 			/**< Embedded metadata syncpt value. */
-		uint32_t line_timer_syncpt; /**< Line timer syncpt id. */
-		uint32_t line_timer_syncpt_val; /**< Line timer syncpt value. */
+		uint32_t line_timer_syncpt; /**< Line timer syncpoint id */
+		uint32_t line_timer_syncpt_val;
+			/**< Line timer syncpoint value */
 	} syncpts;
-	uint32_t hw_channel_id; /**< RCE-assigned capture channel id. */
+	uint32_t hw_channel_id; /**< RCE-assigned VI FW channel id */
 	uint32_t __pad;
-	uint64_t vi_channel_mask; /**< Bitmask of RCE-assigned VI channel(s). */
+	uint64_t vi_channel_mask;
+		/**< Bitmask of RCE-assigned VI FW channel(s) */
 } __VI_CAPTURE_ALIGN;
 
 /**
  * @brief Container for CAPTURE_CONTROL_MSG req./resp. from FuSa UMD (IOCTL
- *	  payload)
+ * payload).
  *
  * The response and request pointers may be to the same memory allocation; in
  * which case the request message will be overwritten by the response.
  */
 struct vi_capture_control_msg {
 	uint64_t ptr; /**< Pointer to capture-control message req. */
-	uint32_t size; /**< Size of req./resp. msg [byte]. */
+	uint32_t size; /**< Size of req./resp. msg [byte] */
 	uint32_t __pad;
 	uint64_t response; /**< Pointer to capture-control message resp. */
 } __VI_CAPTURE_ALIGN;
 
 /**
- * @brief VI capture request (IOCTL payload)
+ * @brief VI capture request (IOCTL payload).
  */
 struct vi_capture_req {
 	uint32_t buffer_index; /**< Capture descriptor index. */
@@ -202,13 +208,13 @@ struct vi_buffer_req {
 } __VI_CAPTURE_ALIGN;
 
 /**
- * The compand configuration describes a piece-wise linear
- * tranformation function used by the VI companding module.
+ * @brief The compand configuration describes a piece-wise linear tranformation
+ * function used by the VI companding module.
  */
 #define VI_CAPTURE_NUM_COMPAND_KNEEPTS 10
 
 /**
- * @brief VI compand setup config (IOCTL payload)
+ * @brief VI compand setup config (IOCTL payload).
  */
 struct vi_capture_compand {
 	uint32_t base[VI_CAPTURE_NUM_COMPAND_KNEEPTS];
@@ -228,6 +234,7 @@ struct vi_capture_compand {
  * @param[in,out]	chan		Allocated VI channel context,
  *					partially-initialized
  * @param[in]		is_mem_pinned	Whether capture request memory is pinned
+ *
  * @returns		0 (success), neg. errno (failure)
  */
 int vi_capture_init(
@@ -236,15 +243,10 @@ int vi_capture_init(
 
 /**
  * @brief De-initialize a VI capture channel, closing open VI/NVCSI streams, and
- *	  freeing the buffer management table and channel capture context.
+ * freeing the buffer management table and channel capture context.
  *
  * The VI channel context is not freed in this function, only the capture
  * context is.
- *
- * The VI/NVCSI channel/streams (allocated by RCE) should normally be released
- * when this function is called, but they may still be active due to programming
- * error or client UMD crash. In such cases, they will be called automatically
- * by the @em Abort functionality.
  *
  * @param[in,out]	chan		VI channel context
  */
@@ -253,11 +255,12 @@ void vi_capture_shutdown(
 
 /**
  * @brief Open a VI channel in RCE, sending channel configuration to request a
- *	  HW channel allocation. Syncpts are allocated by the KMD in this
- *	  subroutine.
+ * HW channel allocation. Syncpoints are allocated by the KMD in this
+ * subroutine.
  *
  * @param[in,out]	chan	VI channel context
  * @param[in]		setup	VI channel setup config
+ *
  * @returns		0 (success), neg. errno (failure)
  */
 int vi_capture_setup(
@@ -266,7 +269,7 @@ int vi_capture_setup(
 
 /**
  * @brief Reset an opened VI channel, all pending capture requests to RCE are
- *	  discarded.
+ * discarded.
  *
  * The channel's progress syncpoint is advanced to the threshold of the latest
  * capture request to unblock any waiting observers.
@@ -277,6 +280,7 @@ int vi_capture_setup(
  * @param[in]	chan		VI channel context
  * @param[in]	reset_flags	Bitmask for VI channel reset options
  *				(CAPTURE_CHANNEL_RESET_FLAG_*)
+ *
  * @returns	0 (success), neg. errno (failure)
  */
 int vi_capture_reset(
@@ -285,12 +289,13 @@ int vi_capture_reset(
 
 /**
  * @brief Release an opened VI channel; the RCE channel allocation, syncpts and
- *	  ivc channel callbacks are released.
+ * IVC channel callbacks are released.
  *
  * @param[in]	chan		VI channel context
  * @param[in]	reset_flags	Bitmask for VI channel reset options
  *				(CAPTURE_CHANNEL_RESET_FLAG_*)
- * @returns	0 (success), neg. errno (failure)
+ *
+ *  @returns	0 (success), neg. errno (failure)
  */
 int vi_capture_release(
 	struct tegra_vi_channel *chan,
@@ -298,13 +303,14 @@ int vi_capture_release(
 
 /**
  * @brief Release the TPG and/or NVCSI stream on a VI channel, if they are
- *	  active (called by @em Abort functionality).
+ * active.
  *
  * This function normally does not execute except in the event of abnormal UMD
  * termination, as it is the client's responsibility to open and close NVCSI and
  * TPG sources.
  *
  * @param[in]	chan	VI channel context
+ *
  * @returns	0 (success), neg. errno (failure)
  */
 int csi_stream_release(
@@ -317,6 +323,7 @@ int csi_stream_release(
  *
  * @param[in]		chan	VI channel context
  * @param[in,out]	msg	capture-control IVC container w/ req./resp. pair
+ *
  * @returns		0 (success), neg. errno (failure)
  */
 int vi_capture_control_message(
@@ -325,7 +332,7 @@ int vi_capture_control_message(
 
 /**
  * @brief Query a VI channel's syncpt ids and values, and retrieve the
- *	  RCE-assigned VI HW channel id and mask.
+ * RCE-assigned VI FW channel id and mask.
  *
  * @param[in]	chan	VI channel context
  * @param[out]	info	VI channel info response
@@ -342,6 +349,7 @@ int vi_capture_get_info(
  *
  * @param[in]	chan	VI channel context
  * @param[in]	req	VI capture request
+ *
  * @returns	0 (success), neg. errno (failure)
  */
 int vi_capture_request(
@@ -358,6 +366,7 @@ int vi_capture_request(
  * @param[in]	chan		VI channel context
  * @param[in]	timeout_ms	Time to wait for status completion [ms], set to
  *				0 for indefinite
+ *
  * @returns	0 (success), neg. errno (failure)
  */
 int vi_capture_status(
@@ -365,10 +374,11 @@ int vi_capture_status(
 	int32_t timeout_ms);
 
 /**
- * @brief Setup VI compand in RCE
+ * @brief Setup VI compand in RCE.
  *
  * @param[in]	chan	VI channel context
  * @param[in]	compand	VI compand setup config
+ *
  * @returns	0 (success), neg. errno (failure)
  */
 int vi_capture_set_compand(
@@ -376,10 +386,11 @@ int vi_capture_set_compand(
 	struct vi_capture_compand *compand);
 
 /**
- * @brief Setup VI channel capture status progress notifier
+ * @brief Setup VI channel capture status progress notifier.
  *
  * @param[in]	chan	VI channel context
  * @param[in]	req	VI capture progress status setup config
+ *
  * @returns	0 (success), neg. errno (failure)
  */
 int vi_capture_set_progress_status_notifier(

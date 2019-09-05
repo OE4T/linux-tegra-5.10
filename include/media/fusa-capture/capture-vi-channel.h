@@ -1,7 +1,4 @@
-/**
- * @file include/media/fusa-capture/capture-vi-channel.h
- * @brief VI channel character device driver header for T186/T194
- *
+/*
  * Copyright (c) 2017-2019 NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
@@ -12,6 +9,13 @@
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
  * more details.
+ */
+
+/**
+ * @file include/media/fusa-capture/capture-vi-channel.h
+ *
+ * @brief VI channel character device driver header for the T186/T194 Camera
+ * RTCPU platform.
  */
 
 #ifndef __FUSA_CAPTURE_VI_CHANNEL_H__
@@ -29,46 +33,57 @@ struct vi_channel_drv;
  */
 struct vi_channel_drv_ops {
 	/**
-	 * Request a syncpt allocation from Host1x
+	 * Request a syncpt allocation from Host1x.
 	 *
 	 * @param[in]	pdev		VI platform_device
 	 * @param[in]	name		syncpt name
 	 * @param[out]	syncpt_id	assigned syncpt id
+	 *
 	 * @returns	0 (success), neg. errno (failure)
 	 */
-	int (*alloc_syncpt)(struct platform_device *pdev, const char *name,
-			uint32_t *syncpt_id);
+	int (*alloc_syncpt)(
+		struct platform_device *pdev,
+		const char *name,
+		uint32_t *syncpt_id);
 
 	/**
-	 * Release a syncpt to Host1x
+	 * Release a syncpt to Host1x.
 	 *
 	 * @param[in]	pdev	VI platform_device
 	 * @param[in]	id	syncpt id to free
 	 */
-	void (*release_syncpt)(struct platform_device *pdev, uint32_t id);
+	void (*release_syncpt)(
+		struct platform_device *pdev,
+		uint32_t id);
 
 	/**
-	 * Retrieve the GoS table allocated in the VI-THI carveout
+	 * Retrieve the GoS table allocated in the VI-THI carveout.
 	 *
 	 * @param[in]	pdev	VI platform_device
 	 * @param[out]	count	No. of carveout devices
 	 * @param[out]	table	GoS table pointer
 	 */
-	void (*get_gos_table)(struct platform_device *pdev, int *count,
-			const dma_addr_t **table);
+	void (*get_gos_table)(
+		struct platform_device *pdev,
+		int *count,
+		const dma_addr_t **table);
 
 	/**
-	 * Get a syncpt's GoS backing in the VI-THI carveout
+	 * Get a syncpt's GoS backing in the VI-THI carveout.
 	 *
 	 * @param[in]	pdev		VI platform_device
 	 * @param[in]	id		syncpt id
 	 * @param[out]	gos_index	GoS id
 	 * @param[out]	gos_offset	Offset of syncpt within GoS [dword]
+	 *
 	 * @returns	0 (success), neg. errno (failure)
 	 */
-	int (*get_syncpt_gos_backing)(struct platform_device *pdev, uint32_t id,
-			dma_addr_t *syncpt_addr, uint32_t *gos_index,
-			uint32_t *gos_offset);
+	int (*get_syncpt_gos_backing)(
+		struct platform_device *pdev,
+		uint32_t id,
+		dma_addr_t *syncpt_addr,
+		uint32_t *gos_index,
+		uint32_t *gos_offset);
 };
 
 /**
@@ -86,7 +101,7 @@ struct tegra_vi_channel {
 
 /**
  * @brief Create the VI channels driver contexts, and instantiate
- *	  MAX_VI_CHANNELS many channel character device nodes.
+ * MAX_VI_CHANNELS many channel character device nodes.
  *
  * VI channel nodes appear in the filesystem as:
  * /dev/capture-vi-channel{0..MAX_VI_CHANNELS-1}
@@ -127,7 +142,7 @@ void vi_capture_request_unpin(
 
 /**
  * @brief Open a VI channel character device node, power on the camera subsystem
- *	  and initialize the channel driver context.
+ * and initialize the channel driver context.
  *
  * The act of opening a VI channel character device node does not entail the
  * reservation of a VI channel, VI_CAPTURE_SETUP must be called afterwards to
@@ -135,6 +150,7 @@ void vi_capture_request_unpin(
  *
  * @param[in]	channel		VI channel enumerated node iminor no.
  * @param[in]	is_mem_pinned	Whether capture request memory will be pinned
+ *
  * @returns	tegra_vi_channel pointer (success), ERR_PTR (failure)
  */
 struct tegra_vi_channel *vi_channel_open_ex(
@@ -143,7 +159,7 @@ struct tegra_vi_channel *vi_channel_open_ex(
 
 /**
  * @brief Release a VI channel character device node, power off the camera
- *	  subsystem and free the VI channel driver context.
+ * subsystem and free the VI channel driver context.
  *
  * Under normal operation, the NVCSI stream and TPG source should be closed, and
  * VI_CAPTURE_RESET followed by VI_CAPTURE_RELEASE should be called before
@@ -155,6 +171,7 @@ struct tegra_vi_channel *vi_channel_open_ex(
  *
  * @param[in]	channel	VI channel enumerated node iminor no.
  * @param[in]	chan	VI channel context
+ *
  * @returns	0
  */
 int vi_channel_close_ex(

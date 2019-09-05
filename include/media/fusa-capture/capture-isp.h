@@ -1,7 +1,4 @@
-/**
- * @file include/media/fusa-capture/capture-isp.h
- * @brief ISP channel operations header for T186/T194
- *
+/*
  * Copyright (c) 2017-2019 NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
@@ -12,6 +9,12 @@
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
  * more details.
+ */
+
+/**
+ * @file include/media/fusa-capture/capture-isp.h
+ *
+ * @brief ISP channel operations header for the T186/T194 Camera RTCPU platform.
  */
 
 #ifndef __FUSA_CAPTURE_ISP_H__
@@ -31,17 +34,17 @@
 struct tegra_isp_channel;
 
 /**
- * @brief ISP descriptor relocs config
+ * @brief ISP descriptor relocs config.
  */
 struct capture_isp_reloc {
-	uint32_t num_relocs; /**< No. of buffers to pin/reloc. */
+	uint32_t num_relocs; /**< No. of buffers to pin/reloc */
 	uint32_t __pad;
 	uint64_t reloc_relatives;
-		/**< Offsets buffer addresses to patch in descriptor. */
+		/**< Offsets buffer addresses to patch in descriptor */
 } __ISP_CAPTURE_ALIGN;
 
 /**
- * @brief ISP channel setup config (IOCTL payload)
+ * @brief ISP channel setup config (IOCTL payload).
  *
  * These fields are used to set up the ISP channel and capture contexts, and
  * will be copied verbatim in the IVC capture_channel_isp_config struct to
@@ -50,76 +53,75 @@ struct capture_isp_reloc {
 struct isp_capture_setup {
 	uint32_t channel_flags;
 		/**<
-		 * Bitmask for channel flags, see
-		 * @ref CAPTURE_ISP_CHANNEL_FLAGS.
+		 * Bitmask for channel flags, see @ref CAPTURE_ISP_CHANNEL_FLAGS
 		 */
 	uint32_t __pad_flags;
 
-	/* ISP capture descriptor queue (ring buffer) */
-	uint32_t queue_depth; /**< No. of capture descriptors in queue. */
+	/* ISP process capture descriptor queue (ring buffer) */
+	uint32_t queue_depth;
+		/**< No. of process capture descriptors in queue */
 	uint32_t request_size;
-		/**< Size of a single capture descriptor [byte]. */
-	uint32_t mem; /**< Capture descriptors queue NvRm handle. */
+		/**< Size of a single process capture descriptor [byte] */
+	uint32_t mem; /**< Process capture descriptors queue NvRm handle */
 
-	/* ISP program descriptor queue (ring buffer) */
+	/* ISP process program descriptor queue (ring buffer) */
 	uint32_t isp_program_queue_depth;
-		/**< No. of program descriptors in queue. */
+		/**< No. of process program descriptors in queue */
 	uint32_t isp_program_request_size;
-		/**< Size of a single program descriptor [byte]. */
-	uint32_t isp_program_mem; /**< Program descriptors queue NvRm handle. */
+		/**< Size of a single process program descriptor [byte] */
+	uint32_t isp_program_mem;
+		/**< Process program descriptors queue NvRm handle */
 	uint32_t error_mask_correctable;
 		/**<
 		 * Bitmask for correctable channel errors. See
-		 * @ref CAPTURE_ISP_CHANNEL_ERRORS.
+		 * @ref CAPTURE_ISP_CHANNEL_ERRORS
 		 */
 	uint32_t error_mask_uncorrectable;
 		/**<
 		 * Bitmask for uncorrectable channel errors. See
-		 * @ref CAPTURE_ISP_CHANNEL_ERRORS.
+		 * @ref CAPTURE_ISP_CHANNEL_ERRORS
 		 */
 } __ISP_CAPTURE_ALIGN;
 
 /**
- * @brief ISP capture info (resp. to query)
+ * @brief ISP capture info (resp. to query).
  */
 struct isp_capture_info {
 	struct isp_capture_syncpts {
-		uint32_t progress_syncpt; /**< Progress syncpt id. */
-		uint32_t progress_syncpt_val; /**< Progress syncpt value. */
+		uint32_t progress_syncpt; /**< Progress syncpoint id */
+		uint32_t progress_syncpt_val; /**< Progress syncpoint value */
 		uint32_t stats_progress_syncpt;
-			/**< Stats progress syncpt id. */
+			/**< Stats progress syncpoint id */
 		uint32_t stats_progress_syncpt_val;
-			/**< Stats progress syncpt value. */
+			/**< Stats progress syncpoint value */
 	} syncpts;
-	uint32_t channel_id; /**< RCE-assigned isp capture channel id. */
+	uint32_t channel_id; /**< RCE-assigned ISP FW channel id */
 } __ISP_CAPTURE_ALIGN;
 
 /**
- * @brief ISP capture request (IOCTL payload)
+ * @brief ISP process capture request (IOCTL payload).
  */
 struct isp_capture_req {
-	uint32_t buffer_index; /**< Capture descriptor index. */
+	uint32_t buffer_index; /**< Process descriptor index */
 	uint32_t __pad;
 	struct capture_isp_reloc isp_relocs;
 		/**<
-		 * Surface buffers pin/reloc. config. See
-		 * @ref capture_isp_reloc.
+		 * Surface buffers pin/reloc config. See @ref capture_isp_reloc
 		 */
 	struct capture_isp_reloc inputfences_relocs;
 		/**<
-		 * Inputfences to pin/reloc. config. See
-		 * @ref capture_isp_reloc.
+		 * Inputfences to pin/reloc. config. See @ref capture_isp_reloc
 		 */
-	uint32_t gos_relative; /* GoS offset [byte]. */
-	uint32_t sp_relative; /* Syncpt offset [byte]. */
+	uint32_t gos_relative; /* GoS offset [byte] */
+	uint32_t sp_relative; /* Syncpt offset [byte] */
 	struct capture_isp_reloc prefences_relocs;
 		/**<
-		 * Prefences to pin/reloc. config. See @ref capture_isp_reloc.
+		 * Prefences to pin/reloc. config. See @ref capture_isp_reloc
 		 */
 } __ISP_CAPTURE_ALIGN;
 
 /**
- * @brief ISP program request (IOCTL payload)
+ * @brief ISP process program request (IOCTL payload).
  */
 struct isp_program_req {
 	uint32_t buffer_index; /**< Program descriptor index. */
@@ -127,48 +129,49 @@ struct isp_program_req {
 	struct capture_isp_reloc isp_program_relocs;
 		/**<
 		 * Push buffers to pin/reloc. config. See
-		 * @ref capture_isp_reloc.
+		 * @ref capture_isp_reloc
 		 */
 } __ISP_CAPTURE_ALIGN;
 
 /**
- * @brief ISP joint capture+program request (IOCTL payload)
+ * @brief ISP joint capture+program request (IOCTL payload).
  */
 struct isp_capture_req_ex {
-	struct isp_capture_req capture_req; /**< ISP capture request. */
-	struct isp_program_req program_req; /**< ISP program request. */
+	struct isp_capture_req capture_req; /**< ISP capture process request */
+	struct isp_program_req program_req; /**< ISP program process request */
 	uint32_t __pad[4];
 } __ISP_CAPTURE_ALIGN;
 
 /**
- * @brief ISP capture progress status setup config (IOCTL payload)
+ * @brief ISP capture progress status setup config (IOCTL payload).
  */
 struct isp_capture_progress_status_req {
-	uint32_t mem; /**< NvRm handle to buffer region start. */
-	uint32_t mem_offset; /**< Status notifier offset [byte]. */
+	uint32_t mem; /**< NvRm handle to buffer region start */
+	uint32_t mem_offset; /**< Status notifier offset [byte] */
 	uint32_t process_buffer_depth;
-		/**< Capture descriptor queue size [num]. */
+		/**< Process capture descriptor queue size [num] */
 	uint32_t program_buffer_depth;
-		/**< Program descriptor queue size [num]. */
+		/**< Process program descriptor queue size [num] */
 	uint32_t __pad[4];
 } __ISP_CAPTURE_ALIGN;
 
 /**
- * @brief Add ISP capture buffer to management table (IOCTL payload)
+ * @brief Add ISP capture buffer to management table (IOCTL payload).
  */
 struct isp_buffer_req {
-	uint32_t mem; /**< NvRm handle to buffer. */
-	uint32_t flag; /**< Buffer @ref CAPTURE_BUFFER_OPS bitmask. */
+	uint32_t mem; /**< NvRm handle to buffer */
+	uint32_t flag; /**< Buffer @ref CAPTURE_BUFFER_OPS bitmask */
 } __ISP_CAPTURE_ALIGN;
 
 /**
- * @brief Initialize an ISP channel capture context (at channel open)
+ * @brief Initialize an ISP channel capture context (at channel open).
  *
  * The ISP channel context is already partially-initialized by the calling
  * function, the channel capture context is allocated and linked here.
  *
  * @param[in,out]	chan		Allocated ISP channel context,
  *					partially-initialized
+
  * @returns		0 (success), neg. errno (failure)
  */
 int isp_capture_init(
@@ -197,6 +200,7 @@ void isp_capture_shutdown(
  *
  * @param[in,out]	chan	ISP channel context
  * @param[in]		setup	ISP channel setup config
+ *
  * @returns		0 (success), neg. errno (failure)
  */
 int isp_capture_setup(
@@ -204,7 +208,7 @@ int isp_capture_setup(
 	struct isp_capture_setup *setup);
 
 /**
- * @brief Reset an opened ISP channel, all pending capture requests to RCE are
+ * @brief Reset an opened ISP channel, all pending process requests to RCE are
  * discarded.
  *
  * The channel's progress syncpoint is advanced to the threshold of the latest
@@ -216,6 +220,7 @@ int isp_capture_setup(
  * @param[in]	chan		VI channel context
  * @param[in]	reset_flags	Bitmask for ISP channel reset options
  *				(CAPTURE_CHANNEL_RESET_FLAG_*)
+
  * @returns	0 (success), neg. errno (failure)
  */
 int isp_capture_reset(
@@ -223,12 +228,13 @@ int isp_capture_reset(
 	uint32_t reset_flags);
 
 /**
- * @brief Release an opened ISP channel; the RCE channel allocation, syncpts and
- * ivc channel callbacks are released.
+ * @brief Release an opened ISP channel; the RCE channel allocation, syncpoints
+ * and IVC channel callbacks are released.
  *
  * @param[in]	chan		ISP channel context
  * @param[in]	reset_flags	Bitmask for ISP channel reset options
  *				(CAPTURE_CHANNEL_RESET_FLAG_*)
+ *
  * @returns	0 (success), neg. errno (failure)
  */
 int isp_capture_release(
@@ -236,11 +242,12 @@ int isp_capture_release(
 	uint32_t reset_flags);
 
 /**
- * @brief Query an ISP channel's syncpt ids and values, and retrieve the
- * RCE-assigned ISP channel id.
+ * @brief Query an ISP channel's syncpoint ids and values, and retrieve the
+ * RCE-assigned ISP FW channel id.
  *
  * @param[in]	chan	ISP channel context
  * @param[out]	info	ISP channel info response
+ *
  * @returns	0 (success), neg. errno (failure)
  */
 int isp_capture_get_info(
@@ -254,7 +261,8 @@ int isp_capture_get_info(
  * This is a non-blocking call.
  *
  * @param[in]	chan	ISP channel context
- * @param[in]	req	ISP capture request
+ * @param[in]	req	ISP process capture request
+ *
  * @returns	0 (success), neg. errno (failure)
  */
 int isp_capture_request(
@@ -274,6 +282,7 @@ int isp_capture_request(
  * @param[in]	chan		ISP channel context
  * @param[in]	timeout_ms	Time to wait for status completion [ms], set to
  *				0 for indefinite
+ *
  * @returns	0 (success), neg. errno (failure)
  */
 int isp_capture_status(
@@ -288,6 +297,7 @@ int isp_capture_status(
  *
  * @param[in]	chan	ISP channel context
  * @param[in]	req	ISP program request
+ *
  * @returns	0 (success), neg. errno (failure)
  */
 int isp_capture_program_request(
@@ -306,6 +316,7 @@ int isp_capture_program_request(
  * functionality in the future, deprecating it.
  *
  * @param[in]	chan		ISP channel context
+ *
  * @returns	0 (success), neg. errno (failure)
  */
 int isp_capture_program_status(
@@ -323,7 +334,8 @@ int isp_capture_program_status(
  * This is a non-blocking call.
  *
  * @param[in]	chan	ISP channel context
- * @param[in]	req	ISP extended capture request
+ * @param[in]	req	ISP extended process request
+ *
  * @returns	0 (success), neg. errno (failure)
  */
 int isp_capture_request_ex(
@@ -335,6 +347,7 @@ int isp_capture_request_ex(
  *
  * @param[in]	chan	ISP channel context
  * @param[in]	req	ISP capture progress status setup config
+ *
  * @returns	0 (success), neg. errno (failure)
  */
 int isp_capture_set_progress_status_notifier(
@@ -346,6 +359,7 @@ int isp_capture_set_progress_status_notifier(
  *
  * @param[in]	chan	ISP channel context
  * @param[in]	req	ISP capture buffer request
+ *
  * @returns		0 (success), neg. errno (failure)
  */
 int isp_capture_buffer_request(
