@@ -20,6 +20,9 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
+#ifndef UNIT_NVGPU_ENABLED_H
+#define UNIT_NVGPU_ENABLED_H
+
 struct gk20a;
 struct unit_module;
 
@@ -62,8 +65,8 @@ int test_nvgpu_init_enabled_flags(struct unit_module *m, struct gk20a *g,
  *
  * Steps:
  * - Check flag value
- *   - Iterate over each flag
- *   - Check if flag value is false
+ *   - As flags are allocated for unit test, flag value is expected to be false
+ *   - Iterate over each flag and check if flag value is false
  *
  * Output: Returns SUCCESS if the steps above were executed successfully. FAIL
  * otherwise.
@@ -111,3 +114,4 @@ int test_nvgpu_set_enabled(struct unit_module *m, struct gk20a *g, void *args);
  */
 int test_nvgpu_free_enabled_flags(struct unit_module *m,
 						struct gk20a *g, void *args);
+#endif /* UNIT_NVGPU_ENABLED_H */
