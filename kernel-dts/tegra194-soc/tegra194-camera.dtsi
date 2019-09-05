@@ -167,6 +167,14 @@
 			nvidia,frame-count = <512>;
 			nvidia,frame-size = <64>;
 		};
+		diag@5 {
+			compatible = "nvidia,tegra186-camera-diagnostics";
+			nvidia,service = "diag";
+			nvidia,version = <0>;
+			nvidia,group = <1>;
+			nvidia,frame-count = <1>;
+			nvidia,frame-size = <64>;
+		};
 	};
 
 	tegra-rtcpu-trace {
