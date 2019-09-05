@@ -320,7 +320,7 @@ void nvgpu_init_mm_ce_context(struct gk20a *g)
 }
 #endif
 
-static int nvgpu_init_mm_reset_enable_hw(struct gk20a *g)
+static void nvgpu_init_mm_reset_enable_hw(struct gk20a *g)
 {
 	if (g->ops.mc.fb_reset != NULL) {
 		g->ops.mc.fb_reset(g);
@@ -333,8 +333,6 @@ static int nvgpu_init_mm_reset_enable_hw(struct gk20a *g)
 	if (g->ops.fb.init_fs_state != NULL) {
 		g->ops.fb.init_fs_state(g);
 	}
-
-	return 0;
 }
 
 static int nvgpu_init_bar1_vm(struct mm_gk20a *mm)
@@ -604,10 +602,7 @@ int nvgpu_init_mm_support(struct gk20a *g)
 {
 	int err;
 
-	err = nvgpu_init_mm_reset_enable_hw(g);
-	if (err != 0) {
-		return err;
-	}
+	nvgpu_init_mm_reset_enable_hw(g);
 
 	err = nvgpu_init_mm_pdb_cache_war(g);
 	if (err != 0) {
