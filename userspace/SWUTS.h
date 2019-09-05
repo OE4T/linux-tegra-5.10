@@ -34,6 +34,7 @@
  *   - @ref SWUTS-init
  *   - @ref SWUTS-interface-atomic
  *   - @ref SWUTS-mm-vm
+ *   - @ref SWUTS-sdl
  *
  */
 
