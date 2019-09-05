@@ -190,6 +190,11 @@ static const struct __extcon_info {
 		.id = EXTCON_DISP_AUDIO_AUX3,
 		.name = "AUDIO_AUX3",
 	},
+	[EXTCON_DISP_DSIHPD] = {
+		.type = EXTCON_TYPE_DISP,
+		.id = EXTCON_DISP_DSIHPD,
+		.name = "DSIHPD",
+	},
 
 	/* Miscellaneous external connector */
 	[EXTCON_DOCK] = {

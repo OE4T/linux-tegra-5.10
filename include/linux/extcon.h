@@ -80,6 +80,7 @@
 #define EXTCON_DISP_AUDIO_AUX1	47	/* Audio for SOR 1 */
 #define EXTCON_DISP_AUDIO_AUX2	48	/* Audio for SOR 2 */
 #define EXTCON_DISP_AUDIO_AUX3	49	/* Audio for SOR 3 */
+#define EXTCON_DISP_DSIHPD	50	/* DSI with hotplug support */
 
 /* Miscellaneous external connector */
 #define EXTCON_DOCK		60
