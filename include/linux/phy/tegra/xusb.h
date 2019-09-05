@@ -8,6 +8,7 @@
 
 struct tegra_xusb_padctl;
 struct device;
+enum usb_device_speed;
 
 struct tegra_xusb_padctl *tegra_xusb_padctl_get(struct device *dev);
 void tegra_xusb_padctl_put(struct tegra_xusb_padctl *padctl);
@@ -31,4 +32,11 @@ void tegra_xusb_padctl_enable_clamp_en_early(struct tegra_xusb_padctl *padctl,
 						struct phy *phy);
 void tegra_xusb_padctl_disable_clamp_en_early(struct tegra_xusb_padctl *padctl,
 						struct phy *phy);
+int tegra_xusb_padctl_enable_phy_sleepwalk(struct tegra_xusb_padctl *padctl, struct phy *phy,
+					   enum usb_device_speed speed);
+int tegra_xusb_padctl_disable_phy_sleepwalk(struct tegra_xusb_padctl *padctl, struct phy *phy);
+int tegra_xusb_padctl_enable_phy_wake(struct tegra_xusb_padctl *padctl, struct phy *phy);
+int tegra_xusb_padctl_disable_phy_wake(struct tegra_xusb_padctl *padctl, struct phy *phy);
+bool tegra_xusb_padctl_remote_wake_detected(struct tegra_xusb_padctl *padctl, struct phy *phy);
+
 #endif /* PHY_TEGRA_XUSB_H */
