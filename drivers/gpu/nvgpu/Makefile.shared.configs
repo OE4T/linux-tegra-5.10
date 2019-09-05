@@ -73,14 +73,6 @@ NVGPU_COMMON_CFLAGS             += -DCONFIG_NVGPU_KERNEL_MODE_SUBMIT
 CONFIG_NVGPU_FENCE              := 1
 NVGPU_COMMON_CFLAGS             += -DCONFIG_NVGPU_FENCE
 
-# Enable Channel/TSG Scheduling for safety build until devctl whitelisting is done
-CONFIG_NVGPU_CHANNEL_TSG_SCHEDULING  := 1
-NVGPU_COMMON_CFLAGS                  += -DCONFIG_NVGPU_CHANNEL_TSG_SCHEDULING
-
-# Enable Channel/TSG Control for safety build until devctl whitelisting is done
-CONFIG_NVGPU_CHANNEL_TSG_CONTROL     := 1
-NVGPU_COMMON_CFLAGS                  += -DCONFIG_NVGPU_CHANNEL_TSG_CONTROL
-
 CONFIG_NVGPU_LOGGING                 := 1
 NVGPU_COMMON_CFLAGS                  += -DCONFIG_NVGPU_LOGGING
 
@@ -203,6 +195,14 @@ NVGPU_COMMON_CFLAGS             += -DCONFIG_NVGPU_DYNAMIC_BUSY_IDLE_SUPPORT
 
 # Enable HW based error injection support
 NVGPU_COMMON_CFLAGS             += -DCONFIG_NVGPU_INJECT_HWERR
+
+# Enable Channel/TSG Scheduling
+CONFIG_NVGPU_CHANNEL_TSG_SCHEDULING  := 1
+NVGPU_COMMON_CFLAGS                  += -DCONFIG_NVGPU_CHANNEL_TSG_SCHEDULING
+
+# Enable Channel/TSG Control
+CONFIG_NVGPU_CHANNEL_TSG_CONTROL     := 1
+NVGPU_COMMON_CFLAGS                  += -DCONFIG_NVGPU_CHANNEL_TSG_CONTROL
 
 endif
 endif
