@@ -124,14 +124,7 @@
 #define PLL_BASE_LOCK BIT(27)
 #define PLLCX_BASE_LOCK BIT(26)
 #define PLLE_MISC_LOCK BIT(11)
-#define PLLE_MISC_IDDQ_SW_CTRL BIT(14)
 #define PLLRE_MISC_LOCK BIT(27)
-
-#define PLLE_AUX_USE_LOCKDET BIT(3)
-#define PLLE_AUX_SS_SEQ_INCLUDE BIT(31)
-#define PLLE_AUX_ENABLE_SWCTL BIT(4)
-#define PLLE_AUX_SS_SWCTL BIT(6)
-#define PLLE_AUX_SEQ_ENABLE BIT(24)
 
 #define PLL_MISC_LOCK_ENABLE 18
 #define PLLC_MISC_LOCK_ENABLE 24
@@ -418,6 +411,14 @@ static unsigned long tegra210_input_freq[] = {
 #define PLLRE_BASE_DEFAULT_MASK		0x1c000000
 #define PLLRE_MISC0_WRITE_MASK		0x67ffffff
 
+/* PLLE */
+#define PLLE_MISC_IDDQ_SW_CTRL		(1 << 14)
+#define PLLE_AUX_USE_LOCKDET		(1 << 3)
+#define PLLE_AUX_SS_SEQ_INCLUDE		(1 << 31)
+#define PLLE_AUX_ENABLE_SWCTL		(1 << 4)
+#define PLLE_AUX_SS_SWCTL		(1 << 6)
+#define PLLE_AUX_SEQ_ENABLE		(1 << 24)
+
 /* PLLX */
 #define PLLX_USE_DYN_RAMP		1
 #define PLLX_BASE_LOCK			(1 << 27)
@@ -535,26 +536,34 @@ bool tegra210_plle_hw_sequence_is_enabled(void)
 }
 EXPORT_SYMBOL_GPL(tegra210_plle_hw_sequence_is_enabled);
 
-void tegra210_plle_hw_sequence_start(void)
+int tegra210_plle_hw_sequence_start(void)
 {
-	u32 val;
+	u32 value;
 
 	if (tegra210_plle_hw_sequence_is_enabled())
-		return;
+		return 0;
 
-	val = readl_relaxed(clk_base + PLLE_MISC0);
-	val &= ~PLLE_MISC_IDDQ_SW_CTRL;
-	writel_relaxed(val, clk_base + PLLE_MISC0);
+	/* skip if PLLE is not enabled yet */
+	value = readl_relaxed(clk_base + PLLE_MISC0);
+	if (!(value & PLLE_MISC_LOCK))
+		return -EIO;
 
-	val = readl_relaxed(clk_base + PLLE_AUX);
-	val |= (PLLE_AUX_USE_LOCKDET | PLLE_AUX_SS_SEQ_INCLUDE);
-	val &= ~(PLLE_AUX_ENABLE_SWCTL | PLLE_AUX_SS_SWCTL);
-	writel_relaxed(val, clk_base + PLLE_AUX);
+	value &= ~PLLE_MISC_IDDQ_SW_CTRL;
+	writel_relaxed(value, clk_base + PLLE_MISC0);
 
-	udelay(1);
+	value = readl_relaxed(clk_base + PLLE_AUX);
+	value |= (PLLE_AUX_USE_LOCKDET | PLLE_AUX_SS_SEQ_INCLUDE);
+	value &= ~(PLLE_AUX_ENABLE_SWCTL | PLLE_AUX_SS_SWCTL);
+	writel_relaxed(value, clk_base + PLLE_AUX);
 
-	val |= PLLE_AUX_SEQ_ENABLE;
-	writel_relaxed(val, clk_base + PLLE_AUX);
+	fence_udelay(1, clk_base);
+
+	value |= PLLE_AUX_SEQ_ENABLE;
+	writel_relaxed(value, clk_base + PLLE_AUX);
+
+	fence_udelay(1, clk_base);
+
+	return 0;
 }
 EXPORT_SYMBOL_GPL(tegra210_plle_hw_sequence_start);
 
