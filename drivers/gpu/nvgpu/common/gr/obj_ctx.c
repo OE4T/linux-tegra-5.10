@@ -114,6 +114,7 @@ static int nvgpu_gr_obj_ctx_init_ctxsw_preemption_mode(struct gk20a *g,
 	return 0;
 }
 
+#ifdef CONFIG_NVGPU_GRAPHICS
 static int nvgpu_gr_obj_ctx_set_graphics_preemption_mode(struct gk20a *g,
 	struct nvgpu_gr_config *config, struct nvgpu_gr_ctx_desc *gr_ctx_desc,
 	struct nvgpu_gr_ctx *gr_ctx, struct vm_gk20a *vm,
@@ -123,7 +124,6 @@ static int nvgpu_gr_obj_ctx_set_graphics_preemption_mode(struct gk20a *g,
 
 	/* set preemption modes */
 	switch (graphics_preempt_mode) {
-#ifdef CONFIG_NVGPU_GRAPHICS
 	case NVGPU_PREEMPTION_MODE_GRAPHICS_GFXP:
 		{
 		u32 rtv_cb_size;
@@ -164,7 +164,6 @@ static int nvgpu_gr_obj_ctx_set_graphics_preemption_mode(struct gk20a *g,
 			graphics_preempt_mode);
 		break;
 		}
-#endif /* CONFIG_NVGPU_GRAPHICS */
 	case NVGPU_PREEMPTION_MODE_GRAPHICS_WFI:
 		nvgpu_gr_ctx_init_graphics_preemption_mode(gr_ctx,
 			graphics_preempt_mode);
@@ -176,11 +175,10 @@ static int nvgpu_gr_obj_ctx_set_graphics_preemption_mode(struct gk20a *g,
 		break;
 	}
 
-#ifdef CONFIG_NVGPU_GRAPHICS
 fail:
-#endif
 	return err;
 }
+#endif
 
 static int nvgpu_gr_obj_ctx_set_compute_preemption_mode(struct gk20a *g,
 	struct nvgpu_gr_ctx *gr_ctx, u32 class_num, u32 compute_preempt_mode)
@@ -239,12 +237,14 @@ int nvgpu_gr_obj_ctx_set_ctxsw_preemption_mode(struct gk20a *g,
 		goto fail;
 	}
 
+#ifdef CONFIG_NVGPU_GRAPHICS
 	err = nvgpu_gr_obj_ctx_set_graphics_preemption_mode(g, config,
 				gr_ctx_desc, gr_ctx, vm, graphics_preempt_mode);
 
 	if (err != 0) {
 		goto fail;
 	}
+#endif
 
 	err = nvgpu_gr_obj_ctx_set_compute_preemption_mode(g, gr_ctx,
 					class_num, compute_preempt_mode);

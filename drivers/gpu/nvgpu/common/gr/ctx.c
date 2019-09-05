@@ -576,39 +576,6 @@ void nvgpu_gr_ctx_patch_write(struct gk20a *g,
 	}
 }
 
-void nvgpu_gr_ctx_reset_patch_count(struct gk20a *g,
-	struct nvgpu_gr_ctx *gr_ctx)
-{
-	u32 tmp;
-
-	tmp = g->ops.gr.ctxsw_prog.get_patch_count(g, &gr_ctx->mem);
-	if (tmp == 0U) {
-		gr_ctx->patch_ctx.data_count = 0;
-	}
-}
-
-void nvgpu_gr_ctx_set_patch_ctx(struct gk20a *g, struct nvgpu_gr_ctx *gr_ctx,
-	bool set_patch_addr)
-{
-	g->ops.gr.ctxsw_prog.set_patch_count(g, &gr_ctx->mem,
-		gr_ctx->patch_ctx.data_count);
-	if (set_patch_addr) {
-		g->ops.gr.ctxsw_prog.set_patch_addr(g, &gr_ctx->mem,
-			gr_ctx->patch_ctx.mem.gpu_va);
-	}
-}
-
-void nvgpu_gr_ctx_init_graphics_preemption_mode(struct nvgpu_gr_ctx *gr_ctx,
-	u32 graphics_preempt_mode)
-{
-	gr_ctx->graphics_preempt_mode = graphics_preempt_mode;
-}
-
-u32 nvgpu_gr_ctx_get_graphics_preemption_mode(struct nvgpu_gr_ctx *gr_ctx)
-{
-	return gr_ctx->graphics_preempt_mode;
-}
-
 void nvgpu_gr_ctx_init_compute_preemption_mode(struct nvgpu_gr_ctx *gr_ctx,
 	u32 compute_preempt_mode)
 {
@@ -623,9 +590,19 @@ u32 nvgpu_gr_ctx_get_compute_preemption_mode(struct nvgpu_gr_ctx *gr_ctx)
 bool nvgpu_gr_ctx_check_valid_preemption_mode(struct nvgpu_gr_ctx *gr_ctx,
 	u32 graphics_preempt_mode, u32 compute_preempt_mode)
 {
+#ifdef CONFIG_NVGPU_GRAPHICS
 	if ((graphics_preempt_mode == 0U) && (compute_preempt_mode == 0U)) {
 		return false;
 	}
+#else
+	if (graphics_preempt_mode != 0U) {
+		return false;
+	}
+
+	if (compute_preempt_mode == 0U) {
+		return false;
+	}
+#endif
 
 #ifndef CONFIG_NVGPU_CILP
 	if (compute_preempt_mode > NVGPU_PREEMPTION_MODE_COMPUTE_CTA) {
@@ -640,11 +617,13 @@ bool nvgpu_gr_ctx_check_valid_preemption_mode(struct nvgpu_gr_ctx *gr_ctx,
 	}
 #endif
 
+#ifdef CONFIG_NVGPU_GRAPHICS
 	/* Do not allow lower preemption modes than current ones */
 	if ((graphics_preempt_mode != 0U) &&
 	    (graphics_preempt_mode < gr_ctx->graphics_preempt_mode)) {
 		return false;
 	}
+#endif
 
 	if ((compute_preempt_mode != 0U) &&
 	    (compute_preempt_mode < gr_ctx->compute_preempt_mode)) {
@@ -689,6 +668,17 @@ u32 nvgpu_gr_ctx_get_tsgid(struct nvgpu_gr_ctx *gr_ctx)
 }
 
 #ifdef CONFIG_NVGPU_GRAPHICS
+void nvgpu_gr_ctx_init_graphics_preemption_mode(struct nvgpu_gr_ctx *gr_ctx,
+	u32 graphics_preempt_mode)
+{
+	gr_ctx->graphics_preempt_mode = graphics_preempt_mode;
+}
+
+u32 nvgpu_gr_ctx_get_graphics_preemption_mode(struct nvgpu_gr_ctx *gr_ctx)
+{
+	return gr_ctx->graphics_preempt_mode;
+}
+
 void nvgpu_gr_ctx_set_zcull_ctx(struct gk20a *g, struct nvgpu_gr_ctx *gr_ctx,
 	u32 mode, u64 gpu_va)
 {
@@ -926,6 +916,28 @@ void nvgpu_gr_ctx_set_cilp_preempt_pending(struct nvgpu_gr_ctx *gr_ctx,
 #endif
 
 #ifdef CONFIG_NVGPU_DEBUGGER
+void nvgpu_gr_ctx_reset_patch_count(struct gk20a *g,
+	struct nvgpu_gr_ctx *gr_ctx)
+{
+	u32 tmp;
+
+	tmp = g->ops.gr.ctxsw_prog.get_patch_count(g, &gr_ctx->mem);
+	if (tmp == 0U) {
+		gr_ctx->patch_ctx.data_count = 0;
+	}
+}
+
+void nvgpu_gr_ctx_set_patch_ctx(struct gk20a *g, struct nvgpu_gr_ctx *gr_ctx,
+	bool set_patch_addr)
+{
+	g->ops.gr.ctxsw_prog.set_patch_count(g, &gr_ctx->mem,
+		gr_ctx->patch_ctx.data_count);
+	if (set_patch_addr) {
+		g->ops.gr.ctxsw_prog.set_patch_addr(g, &gr_ctx->mem,
+			gr_ctx->patch_ctx.mem.gpu_va);
+	}
+}
+
 int nvgpu_gr_ctx_alloc_pm_ctx(struct gk20a *g,
 	struct nvgpu_gr_ctx *gr_ctx,
 	struct nvgpu_gr_ctx_desc *gr_ctx_desc,
