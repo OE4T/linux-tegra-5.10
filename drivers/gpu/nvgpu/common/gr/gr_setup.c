@@ -336,11 +336,7 @@ int nvgpu_gr_setup_set_preemption_mode(struct nvgpu_channel *ch,
 	nvgpu_gr_obj_ctx_update_ctxsw_preemption_mode(g, g->gr->config, gr_ctx,
 		ch->subctx);
 
-	err = nvgpu_gr_ctx_patch_write_begin(g, gr_ctx, true);
-	if (err != 0) {
-		nvgpu_err(g, "can't map patch context");
-		goto enable_ch;
-	}
+	nvgpu_gr_ctx_patch_write_begin(g, gr_ctx, true);
 	g->ops.gr.init.commit_global_cb_manager(g, g->gr->config, gr_ctx,
 		true);
 	nvgpu_gr_ctx_patch_write_end(g, gr_ctx, true);

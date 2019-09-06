@@ -516,7 +516,7 @@ int nvgpu_gr_ctx_load_golden_ctx_image(struct gk20a *g,
  * should be minimized; thus, bundle the sequence of these writes together, and
  * set them up and close with _ctx_patch_write_begin/_ctx_patch_write_end.
  */
-int nvgpu_gr_ctx_patch_write_begin(struct gk20a *g,
+void nvgpu_gr_ctx_patch_write_begin(struct gk20a *g,
 	struct nvgpu_gr_ctx *gr_ctx,
 	bool update_patch_count)
 {
@@ -527,7 +527,6 @@ int nvgpu_gr_ctx_patch_write_begin(struct gk20a *g,
 		nvgpu_log(g, gpu_dbg_info, "patch count reset to %d",
 					gr_ctx->patch_ctx.data_count);
 	}
-	return 0;
 }
 
 void nvgpu_gr_ctx_patch_write_end(struct gk20a *g,

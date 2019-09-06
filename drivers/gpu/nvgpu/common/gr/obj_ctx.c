@@ -258,7 +258,6 @@ void nvgpu_gr_obj_ctx_update_ctxsw_preemption_mode(struct gk20a *g,
 	struct nvgpu_gr_ctx *gr_ctx, struct nvgpu_gr_subctx *subctx)
 {
 #ifdef CONFIG_NVGPU_GRAPHICS
-	int err;
 	u64 addr;
 	u32 size;
 	struct nvgpu_mem *mem;
@@ -285,11 +284,7 @@ void nvgpu_gr_obj_ctx_update_ctxsw_preemption_mode(struct gk20a *g,
 		nvgpu_gr_ctx_set_preemption_buffer_va(g, gr_ctx);
 	}
 
-	err = nvgpu_gr_ctx_patch_write_begin(g, gr_ctx, true);
-	if (err != 0) {
-		nvgpu_err(g, "can't map patch context");
-		goto out;
-	}
+	nvgpu_gr_ctx_patch_write_begin(g, gr_ctx, true);
 
 	addr = nvgpu_gr_ctx_get_betacb_ctxsw_buffer(gr_ctx)->gpu_va;
 	g->ops.gr.init.commit_global_attrib_cb(g, gr_ctx,
@@ -324,7 +319,6 @@ void nvgpu_gr_obj_ctx_update_ctxsw_preemption_mode(struct gk20a *g,
 
 	nvgpu_gr_ctx_patch_write_end(g, gr_ctx, true);
 
-out:
 #endif
 	nvgpu_log_fn(g, "done");
 }
@@ -339,11 +333,7 @@ int nvgpu_gr_obj_ctx_commit_global_ctx_buffers(struct gk20a *g,
 	nvgpu_log_fn(g, " ");
 
 	if (patch) {
-		int err;
-		err = nvgpu_gr_ctx_patch_write_begin(g, gr_ctx, false);
-		if (err != 0) {
-			return err;
-		}
+		nvgpu_gr_ctx_patch_write_begin(g, gr_ctx, false);
 	}
 
 	/* global pagepool buffer */

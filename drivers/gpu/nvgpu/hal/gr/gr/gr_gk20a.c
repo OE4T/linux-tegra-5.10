@@ -1525,10 +1525,7 @@ static int gr_exec_ctx_ops(struct nvgpu_channel *ch,
 	}
 	offset_addrs = offsets + max_offsets;
 
-	err = nvgpu_gr_ctx_patch_write_begin(g, gr_ctx, false);
-	if (err != 0) {
-		goto cleanup;
-	}
+	nvgpu_gr_ctx_patch_write_begin(g, gr_ctx, false);
 
 	err = g->ops.mm.cache.l2_flush(g, true);
 	if (err != 0) {
