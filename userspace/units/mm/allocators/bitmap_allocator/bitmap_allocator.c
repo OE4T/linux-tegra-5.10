@@ -30,6 +30,7 @@
 #include <nvgpu/posix/posix-fault-injection.h>
 
 #include "common/mm/allocators/bitmap_allocator_priv.h"
+#include "bitmap_allocator.h"
 
 #define BA_DEFAULT_BASE		SZ_1K
 #define BA_DEFAULT_LENGTH	(SZ_64K << 1)
@@ -41,10 +42,7 @@
 
 static struct nvgpu_allocator *na;
 
-/*
- * Test bitmap_allocator with GPU_ALLOC_NO_ALLOC_PAGE enabled
- */
-static int test_nvgpu_bitmap_allocator_critical(struct unit_module *m,
+int test_nvgpu_bitmap_allocator_critical(struct unit_module *m,
 					struct gk20a *g, void *args)
 {
 	u64 base = BA_DEFAULT_BASE;
@@ -59,10 +57,6 @@ static int test_nvgpu_bitmap_allocator_critical(struct unit_module *m,
 		unit_return_fail(m, "Could not allocate nvgpu_allocator\n");
 	}
 
-	/*
-	 * Initialize bitmap allocator
-	 * This ba will be used in this test.
-	 */
 	if (nvgpu_allocator_init(g, na, NULL, "test_bitmap", base, length,
 				blk_size, 0ULL, flags, BITMAP_ALLOCATOR) != 0) {
 		nvgpu_kfree(g, na);
@@ -118,10 +112,7 @@ fail:
 
 }
 
-/*
- * Test bitmap_allocator allocs
- */
-static int test_nvgpu_bitmap_allocator_alloc(struct unit_module *m,
+int test_nvgpu_bitmap_allocator_alloc(struct unit_module *m,
 					struct gk20a *g, void *args)
 {
 	u64 alloc0, alloc3k, alloc4k, alloc_at64, addr, addr_fail;
@@ -238,11 +229,7 @@ static int test_nvgpu_bitmap_allocator_alloc(struct unit_module *m,
 	return UNIT_SUCCESS;
 }
 
-/*
- * Tests bitmap_allocator basic ops
- * Bitmap attributes are set corresponding to default init values
- */
-static int test_nvgpu_bitmap_allocator_ops(struct unit_module *m,
+int test_nvgpu_bitmap_allocator_ops(struct unit_module *m,
 					struct gk20a *g, void *args)
 {
 	u64 addr;
@@ -269,10 +256,7 @@ static int test_nvgpu_bitmap_allocator_ops(struct unit_module *m,
 	return UNIT_SUCCESS;
 }
 
-/*
- * De-initialize bitmap allocator
- */
-static int test_nvgpu_bitmap_allocator_destroy(struct unit_module *m,
+int test_nvgpu_bitmap_allocator_destroy(struct unit_module *m,
 					struct gk20a *g, void *args)
 {
 	na->ops->fini(na);
@@ -281,11 +265,7 @@ static int test_nvgpu_bitmap_allocator_destroy(struct unit_module *m,
 	return UNIT_SUCCESS;
 }
 
-/*
- * Tests nvgpu_bitmap_allocator_init()
- * This test considers multiple conditions to initialize bitmap allocator
- */
-static int test_nvgpu_bitmap_allocator_init(struct unit_module *m,
+int test_nvgpu_bitmap_allocator_init(struct unit_module *m,
 					struct gk20a *g, void *args)
 {
 	u64 base = BA_DEFAULT_BASE;
