@@ -262,7 +262,7 @@ void gv11b_gr_intr_set_shader_exceptions(struct gk20a *g, u32 data)
 }
 
 void gv11b_gr_intr_handle_gcc_exception(struct gk20a *g, u32 gpc,
-				u32 tpc, u32 gpc_exception,
+				u32 gpc_exception,
 				u32 *corrected_err, u32 *uncorrected_err)
 {
 	u32 offset = nvgpu_gr_gpc_offset(g, gpc);

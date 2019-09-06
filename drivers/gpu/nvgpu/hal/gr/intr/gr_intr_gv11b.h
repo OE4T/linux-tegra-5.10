@@ -67,7 +67,7 @@ int gv11b_gr_intr_handle_sw_method(struct gk20a *g, u32 addr,
 				     u32 class_num, u32 offset, u32 data);
 void gv11b_gr_intr_set_shader_exceptions(struct gk20a *g, u32 data);
 void gv11b_gr_intr_handle_gcc_exception(struct gk20a *g, u32 gpc,
-			u32 tpc, u32 gpc_exception,
+			u32 gpc_exception,
 			u32 *corrected_err, u32 *uncorrected_err);
 void gv11b_gr_intr_handle_gpc_gpcmmu_exception(struct gk20a *g, u32 gpc,
 		u32 gpc_exception, u32 *corrected_err, u32 *uncorrected_err);

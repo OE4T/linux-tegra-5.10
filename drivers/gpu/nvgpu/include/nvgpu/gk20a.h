@@ -879,7 +879,7 @@ struct gpu_ops {
 			void (*handle_notify_pending)(struct gk20a *g,
 				struct nvgpu_gr_isr_data *isr_data);
 			void (*handle_gcc_exception)(struct gk20a *g, u32 gpc,
-				u32 tpc, u32 gpc_exception,
+				u32 gpc_exception,
 				u32 *corrected_err, u32 *uncorrected_err);
 			void (*handle_gpc_gpcmmu_exception)(struct gk20a *g,
 				u32 gpc, u32 gpc_exception,
