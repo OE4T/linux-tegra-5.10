@@ -162,8 +162,8 @@ struct nvgpu_tsg {
 	 * TPC PG is specific to chip.
 	 */
 	u32  num_active_tpcs;
-	/** Set to non-zero if dynamic TPC PG is requested to be enabled. */
-	u8   tpc_pg_enabled;
+	/** Set to true if dynamic TPC PG is requested to be enabled. */
+	bool tpc_pg_enabled;
 	/**
 	 * Set to true if dynamic TPC PG is enabled and #num_active_tpcs is
 	 * non-zero.
