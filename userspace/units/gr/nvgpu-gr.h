@@ -39,5 +39,6 @@ int test_gr_init_support(struct unit_module *m,
 		struct gk20a *g, void *args);
 int test_gr_remove_support(struct unit_module *m,
 		struct gk20a *g, void *args);
-
+int test_gr_init_prepare(struct unit_module *m,
+		struct gk20a *g, void *args);
 #endif /* UNIT_NVGPU_GR_H */

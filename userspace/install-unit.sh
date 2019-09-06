@@ -103,6 +103,7 @@ fi
 # Building the necessary directory structure. It may not be present
 # first time this is run.
 ssh $target mkdir -p nvgpu_unit/units
+ssh $target mkdir -p nvgpu_unit/firmware
 ssh $target mkdir -p $TOP/kernel
 if [ $? != 0 ]; then
     echo
@@ -121,6 +122,7 @@ jcp $TOP/kernel/nvgpu/userspace/gcov.sh                  nvgpu_unit/gcov.sh
 jcp $TOP/kernel/nvgpu/userspace/testlist.py              nvgpu_unit/testlist.py
 jcp $TOP/kernel/nvgpu/userspace/required_tests.json      \
 	nvgpu_unit/required_tests.json
+jcp $TOP/kernel/nvgpu/userspace/firmware/ nvgpu_unit/firmware/
 
 find $nvgpu_bins/userspace/units -name "*.so" -not -path "*unit.so" \
     -not -path "*drv.so" -exec ls {} \; | while read unit_so ; do
