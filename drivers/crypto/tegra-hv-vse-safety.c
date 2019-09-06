@@ -2756,7 +2756,9 @@ MODULE_DEVICE_TABLE(of, tegra_hv_vse_safety_of_match);
 
 static irqreturn_t tegra_vse_irq_handler(int irq, void *data)
 {
-	complete(&tegra_vse_complete);
+	if (tegra_hv_ivc_can_read(g_ivck)) {
+		complete(&tegra_vse_complete);
+	}
 	return IRQ_HANDLED;
 }
 
@@ -2779,12 +2781,9 @@ static int tegra_vse_kthread(void *unused)
 	if (!ivc_msg)
 		return -ENOMEM;
 
-	disable_irq(g_ivck->irq);
 	while (!kthread_should_stop()) {
-		enable_irq(g_ivck->irq);
 		err = 0;
 		ret = wait_for_completion_interruptible(&tegra_vse_complete);
-		disable_irq(g_ivck->irq);
 		if (ret < 0) {
 			pr_err("%s completion err\n", __func__);
 			reinit_completion(&tegra_vse_complete);
