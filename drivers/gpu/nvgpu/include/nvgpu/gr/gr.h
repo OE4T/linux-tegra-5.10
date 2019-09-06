@@ -78,6 +78,7 @@
  *   + include/nvgpu/gr/setup.h
  *   + include/nvgpu/gr/config.h
  *   + include/nvgpu/gr/ctx.h
+ *   + include/nvgpu/gr/subctx.h
  *
  * Resource utilization
  * --------------------
