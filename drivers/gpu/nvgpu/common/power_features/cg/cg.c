@@ -65,10 +65,6 @@ void nvgpu_cg_elcg_enable_no_wait(struct gk20a *g)
 {
 	nvgpu_log_fn(g, " ");
 
-	if (!nvgpu_is_enabled(g, NVGPU_GPU_CAN_ELCG)) {
-		return;
-	}
-
 	nvgpu_mutex_acquire(&g->cg_pg_lock);
 	if (g->elcg_enabled) {
 		nvgpu_cg_set_mode(g, ELCG_MODE, ELCG_AUTO);
@@ -81,10 +77,6 @@ void nvgpu_cg_elcg_disable_no_wait(struct gk20a *g)
 {
 	nvgpu_log_fn(g, " ");
 
-	if (!nvgpu_is_enabled(g, NVGPU_GPU_CAN_ELCG)) {
-		return;
-	}
-
 	nvgpu_mutex_acquire(&g->cg_pg_lock);
 	if (g->elcg_enabled) {
 		nvgpu_cg_set_mode(g, ELCG_MODE, ELCG_RUN);
@@ -95,10 +87,6 @@ void nvgpu_cg_elcg_disable_no_wait(struct gk20a *g)
 void nvgpu_cg_blcg_fb_ltc_load_enable(struct gk20a *g)
 {
 	nvgpu_log_fn(g, " ");
-
-	if (!nvgpu_is_enabled(g, NVGPU_GPU_CAN_BLCG)) {
-		return;
-	}
 
 	nvgpu_mutex_acquire(&g->cg_pg_lock);
 	if (!g->blcg_enabled) {
@@ -118,10 +106,6 @@ void nvgpu_cg_blcg_fifo_load_enable(struct gk20a *g)
 {
 	nvgpu_log_fn(g, " ");
 
-	if (!nvgpu_is_enabled(g, NVGPU_GPU_CAN_BLCG)) {
-		return;
-	}
-
 	nvgpu_mutex_acquire(&g->cg_pg_lock);
 	if (!g->blcg_enabled) {
 		goto done;
@@ -136,10 +120,6 @@ done:
 void nvgpu_cg_blcg_pmu_load_enable(struct gk20a *g)
 {
 	nvgpu_log_fn(g, " ");
-
-	if (!nvgpu_is_enabled(g, NVGPU_GPU_CAN_BLCG)) {
-		return;
-	}
 
 	nvgpu_mutex_acquire(&g->cg_pg_lock);
 	if (!g->blcg_enabled) {
@@ -156,10 +136,6 @@ void nvgpu_cg_blcg_ce_load_enable(struct gk20a *g)
 {
 	nvgpu_log_fn(g, " ");
 
-	if (!nvgpu_is_enabled(g, NVGPU_GPU_CAN_BLCG)) {
-		return;
-	}
-
 	nvgpu_mutex_acquire(&g->cg_pg_lock);
 	if (!g->blcg_enabled) {
 		goto done;
@@ -175,10 +151,6 @@ void nvgpu_cg_blcg_gr_load_enable(struct gk20a *g)
 {
 	nvgpu_log_fn(g, " ");
 
-	if (!nvgpu_is_enabled(g, NVGPU_GPU_CAN_BLCG)) {
-		return;
-	}
-
 	nvgpu_mutex_acquire(&g->cg_pg_lock);
 	if (!g->blcg_enabled) {
 		goto done;
@@ -193,10 +165,6 @@ done:
 void nvgpu_cg_slcg_fb_ltc_load_enable(struct gk20a *g)
 {
 	nvgpu_log_fn(g, " ");
-
-	if (!nvgpu_is_enabled(g, NVGPU_GPU_CAN_SLCG)) {
-		return;
-	}
 
 	nvgpu_mutex_acquire(&g->cg_pg_lock);
 	if (!g->slcg_enabled) {
@@ -216,10 +184,6 @@ void nvgpu_cg_slcg_priring_load_enable(struct gk20a *g)
 {
 	nvgpu_log_fn(g, " ");
 
-	if (!nvgpu_is_enabled(g, NVGPU_GPU_CAN_SLCG)) {
-		return;
-	}
-
 	nvgpu_mutex_acquire(&g->cg_pg_lock);
 	if (!g->slcg_enabled) {
 		goto done;
@@ -235,9 +199,6 @@ void nvgpu_cg_slcg_fifo_load_enable(struct gk20a *g)
 {
 	nvgpu_log_fn(g, " ");
 
-	if (!nvgpu_is_enabled(g, NVGPU_GPU_CAN_SLCG)) {
-		return;
-	}
 	nvgpu_mutex_acquire(&g->cg_pg_lock);
 	if (!g->slcg_enabled) {
 		goto done;
@@ -253,10 +214,6 @@ void nvgpu_cg_slcg_pmu_load_enable(struct gk20a *g)
 {
 	nvgpu_log_fn(g, " ");
 
-	if (!nvgpu_is_enabled(g, NVGPU_GPU_CAN_SLCG)) {
-		return;
-	}
-
 	nvgpu_mutex_acquire(&g->cg_pg_lock);
 	if (!g->slcg_enabled) {
 		goto done;
@@ -271,10 +228,6 @@ done:
 void nvgpu_cg_slcg_ce2_load_enable(struct gk20a *g)
 {
 	nvgpu_log_fn(g, " ");
-
-	if (!nvgpu_is_enabled(g, NVGPU_GPU_CAN_SLCG)) {
-		return;
-	}
 
 	nvgpu_mutex_acquire(&g->cg_pg_lock);
 	if (!g->slcg_enabled) {
@@ -293,9 +246,6 @@ void nvgpu_cg_init_gr_load_gating_prod(struct gk20a *g)
 
 	nvgpu_mutex_acquire(&g->cg_pg_lock);
 
-	if (!nvgpu_is_enabled(g, NVGPU_GPU_CAN_SLCG)) {
-		goto check_can_blcg;
-	}
 	if (!g->slcg_enabled) {
 		goto check_can_blcg;
 	}
@@ -324,9 +274,6 @@ void nvgpu_cg_init_gr_load_gating_prod(struct gk20a *g)
 	}
 
 check_can_blcg:
-	if (!nvgpu_is_enabled(g, NVGPU_GPU_CAN_BLCG)) {
-		goto pg_gr_load;
-	}
 	if (!g->blcg_enabled) {
 		goto pg_gr_load;
 	}
@@ -359,10 +306,6 @@ void nvgpu_cg_elcg_enable(struct gk20a *g)
 {
 	nvgpu_log_fn(g, " ");
 
-	if (!nvgpu_is_enabled(g, NVGPU_GPU_CAN_ELCG)) {
-		return;
-	}
-
 	g->ops.gr.init.wait_initialized(g);
 
 	nvgpu_mutex_acquire(&g->cg_pg_lock);
@@ -375,10 +318,6 @@ void nvgpu_cg_elcg_enable(struct gk20a *g)
 void nvgpu_cg_elcg_disable(struct gk20a *g)
 {
 	nvgpu_log_fn(g, " ");
-
-	if (!nvgpu_is_enabled(g, NVGPU_GPU_CAN_ELCG)) {
-		return;
-	}
 
 	g->ops.gr.init.wait_initialized(g);
 
@@ -394,10 +333,6 @@ void nvgpu_cg_blcg_mode_enable(struct gk20a *g)
 {
 	nvgpu_log_fn(g, " ");
 
-	if (!nvgpu_is_enabled(g, NVGPU_GPU_CAN_BLCG)) {
-		return;
-	}
-
 	g->ops.gr.init.wait_initialized(g);
 
 	nvgpu_mutex_acquire(&g->cg_pg_lock);
@@ -411,10 +346,6 @@ void nvgpu_cg_blcg_mode_enable(struct gk20a *g)
 void nvgpu_cg_blcg_mode_disable(struct gk20a *g)
 {
 	nvgpu_log_fn(g, " ");
-
-	if (!nvgpu_is_enabled(g, NVGPU_GPU_CAN_BLCG)) {
-		return;
-	}
 
 	g->ops.gr.init.wait_initialized(g);
 
@@ -430,10 +361,6 @@ void nvgpu_cg_blcg_mode_disable(struct gk20a *g)
 void nvgpu_cg_slcg_gr_perf_ltc_load_enable(struct gk20a *g)
 {
 	nvgpu_log_fn(g, " ");
-
-	if (!nvgpu_is_enabled(g, NVGPU_GPU_CAN_SLCG)) {
-		return;
-	}
 
 	g->ops.gr.init.wait_initialized(g);
 
@@ -458,10 +385,6 @@ void nvgpu_cg_slcg_gr_perf_ltc_load_disable(struct gk20a *g)
 {
 	nvgpu_log_fn(g, " ");
 
-	if (!nvgpu_is_enabled(g, NVGPU_GPU_CAN_SLCG)) {
-		return;
-	}
-
 	g->ops.gr.init.wait_initialized(g);
 
 	nvgpu_mutex_acquire(&g->cg_pg_lock);
@@ -485,10 +408,6 @@ void nvgpu_cg_elcg_set_elcg_enabled(struct gk20a *g, bool enable)
 {
 	nvgpu_log_fn(g, " ");
 
-	if (!nvgpu_is_enabled(g, NVGPU_GPU_CAN_ELCG)) {
-		return;
-	}
-
 	g->ops.gr.init.wait_initialized(g);
 
 	nvgpu_mutex_release(&g->cg_pg_lock);
@@ -511,10 +430,6 @@ void nvgpu_cg_blcg_set_blcg_enabled(struct gk20a *g, bool enable)
 	bool load = false;
 
 	nvgpu_log_fn(g, " ");
-
-	if (!nvgpu_is_enabled(g, NVGPU_GPU_CAN_BLCG)) {
-		return;
-	}
 
 	g->ops.gr.init.wait_initialized(g);
 
@@ -575,10 +490,6 @@ void nvgpu_cg_slcg_set_slcg_enabled(struct gk20a *g, bool enable)
 	bool load = false;
 
 	nvgpu_log_fn(g, " ");
-
-	if (!nvgpu_is_enabled(g, NVGPU_GPU_CAN_SLCG)) {
-		return;
-	}
 
 	g->ops.gr.init.wait_initialized(g);
 
