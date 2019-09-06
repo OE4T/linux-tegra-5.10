@@ -40,26 +40,13 @@
 
 #include "ltc_gm20b.h"
 
-/*
- * Performs a full flush of the L2 cache.
- */
-void gm20b_flush_ltc(struct gk20a *g)
+static int gm20b_ltc_wait_for_clean(struct gk20a *g)
 {
 	struct nvgpu_timeout timeout;
 	u32 ltc;
 	u32 ltc_stride = nvgpu_get_litter_value(g, GPU_LIT_LTC_STRIDE);
 	bool is_clean_pending_set = false;
-	bool is_invalidate_pending_set = false;
-	int err;
-
-	/* Clean... */
-	nvgpu_writel_check(g, ltc_ltcs_ltss_tstg_cmgmt1_r(),
-		ltc_ltcs_ltss_tstg_cmgmt1_clean_pending_f() |
-		ltc_ltcs_ltss_tstg_cmgmt1_max_cycles_between_cleans_3_f() |
-		ltc_ltcs_ltss_tstg_cmgmt1_clean_wait_for_fb_to_pull_true_f() |
-		ltc_ltcs_ltss_tstg_cmgmt1_clean_evict_last_class_true_f() |
-		ltc_ltcs_ltss_tstg_cmgmt1_clean_evict_normal_class_true_f() |
-		ltc_ltcs_ltss_tstg_cmgmt1_clean_evict_first_class_true_f());
+	int err = 0;
 
 	/* Wait on each LTC individually. */
 	for (ltc = 0; ltc < g->ltc->ltc_count; ltc++) {
@@ -85,7 +72,7 @@ void gm20b_flush_ltc(struct gk20a *g)
 		err = nvgpu_timeout_init(g, &timeout, 5, NVGPU_TIMER_CPU_TIMER);
 		if (err != 0) {
 			nvgpu_err(g, "nvgpu_timeout_init failed err=%d", err);
-			return;
+			return -ETIMEDOUT;
 		}
 
 		do {
@@ -101,16 +88,17 @@ void gm20b_flush_ltc(struct gk20a *g)
 			}
 		} while (is_clean_pending_set && (err == 0));
 	}
+	return err;
+}
 
-	/* And invalidate. */
-	nvgpu_writel_check(g, ltc_ltcs_ltss_tstg_cmgmt0_r(),
-	     ltc_ltcs_ltss_tstg_cmgmt0_invalidate_pending_f() |
-	     ltc_ltcs_ltss_tstg_cmgmt0_max_cycles_between_invalidates_3_f() |
-	     ltc_ltcs_ltss_tstg_cmgmt0_invalidate_evict_last_class_true_f() |
-	     ltc_ltcs_ltss_tstg_cmgmt0_invalidate_evict_normal_class_true_f() |
-	     ltc_ltcs_ltss_tstg_cmgmt0_invalidate_evict_first_class_true_f());
+static int gm20b_ltc_wait_for_invalidate(struct gk20a *g)
+{
+	u32 ltc;
+	u32 ltc_stride = nvgpu_get_litter_value(g, GPU_LIT_LTC_STRIDE);
+	struct nvgpu_timeout timeout;
+	bool is_invalidate_pending_set = false;
+	int err = 0;
 
-	/* Wait on each LTC individually. */
 	for (ltc = 0; ltc < g->ltc->ltc_count; ltc++) {
 		u32 op_pending;
 
@@ -118,7 +106,7 @@ void gm20b_flush_ltc(struct gk20a *g)
 		err = nvgpu_timeout_init(g, &timeout, 5, NVGPU_TIMER_CPU_TIMER);
 		if (err != 0) {
 			nvgpu_err(g, "nvgpu_timeout_init failed err=%d", err);
-			return;
+			return -ETIMEDOUT;
 		}
 
 		do {
@@ -133,6 +121,42 @@ void gm20b_flush_ltc(struct gk20a *g)
 				err = -ETIMEDOUT;
 			}
 		} while (is_invalidate_pending_set && (err == 0));
+	}
+	return err;
+}
+
+
+/*
+ * Performs a full flush of the L2 cache.
+ */
+void gm20b_flush_ltc(struct gk20a *g)
+{
+
+	/* Clean... */
+	nvgpu_writel_check(g, ltc_ltcs_ltss_tstg_cmgmt1_r(),
+		ltc_ltcs_ltss_tstg_cmgmt1_clean_pending_f() |
+		ltc_ltcs_ltss_tstg_cmgmt1_max_cycles_between_cleans_3_f() |
+		ltc_ltcs_ltss_tstg_cmgmt1_clean_wait_for_fb_to_pull_true_f() |
+		ltc_ltcs_ltss_tstg_cmgmt1_clean_evict_last_class_true_f() |
+		ltc_ltcs_ltss_tstg_cmgmt1_clean_evict_normal_class_true_f() |
+		ltc_ltcs_ltss_tstg_cmgmt1_clean_evict_first_class_true_f());
+
+	/* Wait on each LTC individually. */
+	if (gm20b_ltc_wait_for_clean(g) != 0) {
+		nvgpu_err(g, "gm20b_ltc_wait_for_clean failed");
+	}
+
+	/* And invalidate. */
+	nvgpu_writel_check(g, ltc_ltcs_ltss_tstg_cmgmt0_r(),
+	     ltc_ltcs_ltss_tstg_cmgmt0_invalidate_pending_f() |
+	     ltc_ltcs_ltss_tstg_cmgmt0_max_cycles_between_invalidates_3_f() |
+	     ltc_ltcs_ltss_tstg_cmgmt0_invalidate_evict_last_class_true_f() |
+	     ltc_ltcs_ltss_tstg_cmgmt0_invalidate_evict_normal_class_true_f() |
+	     ltc_ltcs_ltss_tstg_cmgmt0_invalidate_evict_first_class_true_f());
+
+	/* Wait on each LTC individually. */
+	if (gm20b_ltc_wait_for_invalidate(g) != 0) {
+		nvgpu_err(g, "gm20b_ltc_wait_for_invalidate failed");
 	}
 }
 
