@@ -1237,8 +1237,10 @@ static void eqos_configure_mac(struct osi_core_priv_data *osi_core)
 	 * Enable VLAN Tag in RX Status
 	 * Disable VLAN Type Check
 	 */
-	value |= EQOS_MAC_VLANTR_EVLS_ALWAYS_STRIP | EQOS_MAC_VLANTR_EVLRXS |
-		 EQOS_MAC_VLANTR_DOVLTC;
+	if (osi_core->strip_vlan_tag == OSI_ENABLE) {
+		value |= EQOS_MAC_VLANTR_EVLS_ALWAYS_STRIP;
+	}
+	value |= EQOS_MAC_VLANTR_EVLRXS | EQOS_MAC_VLANTR_DOVLTC;
 	value &= ~EQOS_MAC_VLANTR_ERIVLT;
 	osi_writel(value, (unsigned char *)osi_core->base + EQOS_MAC_VLAN_TAG);
 

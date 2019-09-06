@@ -340,6 +340,8 @@ struct osi_core_priv_data {
 	/** Functional safety config to do periodic read-verify of
 	 * certain safety critical registers */
 	void *safety_config;
+	/** VLAN tag stripping enable(1) or disable(0) */
+	unsigned int strip_vlan_tag;
 };
 
 /**
