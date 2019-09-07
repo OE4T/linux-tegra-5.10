@@ -3051,6 +3051,8 @@ static int ether_parse_dt(struct ether_priv_data *pdata)
 		}
 		osi_dma->use_riwt = OSI_ENABLE;
 	}
+	/* Enable VLAN strip by default */
+	osi_core->strip_vlan_tag = OSI_ENABLE;
 
 	ret = ether_parse_phy_dt(pdata, np);
 	if (ret < 0) {
