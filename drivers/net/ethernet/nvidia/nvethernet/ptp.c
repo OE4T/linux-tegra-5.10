@@ -34,6 +34,7 @@ static inline u64 ether_get_ptptime(void *data)
 	struct ether_priv_data *pdata = data;
 	struct osi_core_priv_data *osi_core = pdata->osi_core;
 	unsigned long flags;
+	unsigned long long ns;
 	unsigned int sec, nsec;
 	int ret = -1;
 
@@ -47,9 +48,11 @@ static inline u64 ether_get_ptptime(void *data)
 		return ret;
 	}
 
+	ns = nsec + (sec * OSI_NSEC_PER_SEC);
+
 	raw_spin_unlock_irqrestore(&pdata->ptp_lock, flags);
 
-	return (u64)nsec;
+	return ns;
 }
 
 /**
@@ -418,6 +421,7 @@ int ether_handle_priv_ts_ioctl(struct ether_priv_data *pdata,
 	struct ifr_data_timestamp_struct req;
 	struct osi_core_priv_data *osi_core = pdata->osi_core;
 	unsigned long flags;
+	unsigned int sec, nsec;
 	int ret = -1;
 
 	if (ifr->ifr_data == NULL) {
@@ -446,15 +450,16 @@ int ether_handle_priv_ts_ioctl(struct ether_priv_data *pdata,
 		dev_err(pdata->dev, "Unsupported clockid\n");
 	}
 
-	ret = osi_get_systime_from_mac(osi_core,
-				       (unsigned int *)&req.hw_ptp_ts.tv_sec,
-				       (unsigned int *)&req.hw_ptp_ts.tv_nsec);
+	ret = osi_get_systime_from_mac(osi_core, &sec, &nsec);
 	if (ret != 0) {
 		dev_err(pdata->dev, "%s: Failed to read systime from MAC %d\n",
 			__func__, ret);
 		raw_spin_unlock_irqrestore(&ether_ts_lock, flags);
 		return ret;
 	}
+	req.hw_ptp_ts.tv_sec = sec;
+	req.hw_ptp_ts.tv_nsec = nsec;
+
 	raw_spin_unlock_irqrestore(&ether_ts_lock, flags);
 
 	dev_dbg(pdata->dev, "tv_sec = %ld, tv_nsec = %ld\n",
