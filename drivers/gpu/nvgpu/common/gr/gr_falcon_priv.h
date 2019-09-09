@@ -87,14 +87,12 @@ enum wait_ucode_status {
 	WAIT_UCODE_OK
 };
 
-enum {
-	GR_IS_UCODE_OP_EQUAL,
-	GR_IS_UCODE_OP_NOT_EQUAL,
-	GR_IS_UCODE_OP_AND,
-	GR_IS_UCODE_OP_LESSER,
-	GR_IS_UCODE_OP_LESSER_EQUAL,
-	GR_IS_UCODE_OP_SKIP
-};
+#define	GR_IS_UCODE_OP_EQUAL		0U
+#define	GR_IS_UCODE_OP_NOT_EQUAL	1U
+#define	GR_IS_UCODE_OP_AND		2U
+#define	GR_IS_UCODE_OP_LESSER		3U
+#define	GR_IS_UCODE_OP_LESSER_EQUAL	4U
+#define	GR_IS_UCODE_OP_SKIP		5U
 
 enum {
 	eUcodeHandshakeInitComplete = 1,

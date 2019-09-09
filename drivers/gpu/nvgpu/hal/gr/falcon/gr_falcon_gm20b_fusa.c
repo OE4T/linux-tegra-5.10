@@ -341,86 +341,158 @@ int gm20b_gr_falcon_wait_mem_scrubbing(struct gk20a *g)
 	return -ETIMEDOUT;
 }
 
-static void gm20b_gr_falcon_check_ctx_opcode_failure(struct gk20a *g,
-			u32 opc_fail, u32 reg,
-			u32 mailbox_fail, enum wait_ucode_status *check)
+static bool gm20b_gr_falcon_check_valid_gr_opcode(struct gk20a *g,
+			u32 opc_status, enum wait_ucode_status *check)
 {
-	switch (opc_fail) {
+	bool is_valid = false;
+
+	switch (opc_status) {
 	case GR_IS_UCODE_OP_EQUAL:
-		if (reg == mailbox_fail) {
-			*check = WAIT_UCODE_ERROR;
-		}
-		break;
 	case GR_IS_UCODE_OP_NOT_EQUAL:
-		if (reg != mailbox_fail) {
-			*check = WAIT_UCODE_ERROR;
-		}
-		break;
 	case GR_IS_UCODE_OP_AND:
-		if ((reg & mailbox_fail) != 0U) {
-			*check = WAIT_UCODE_ERROR;
-		}
-		break;
 	case GR_IS_UCODE_OP_LESSER:
-		if (reg < mailbox_fail) {
-			*check = WAIT_UCODE_ERROR;
-		}
-		break;
 	case GR_IS_UCODE_OP_LESSER_EQUAL:
-		if (reg <= mailbox_fail) {
-			*check = WAIT_UCODE_ERROR;
-		}
+		is_valid = true;
 		break;
 	case GR_IS_UCODE_OP_SKIP:
-		/* do no check on fail*/
+		/* do no check on status*/
 		break;
 	default:
 		nvgpu_err(g,
-			   "invalid fail opcode 0x%x", opc_fail);
+			   "invalid opcode 0x%x", opc_status);
 		*check = WAIT_UCODE_ERROR;
 		break;
 	}
+
+	return is_valid;
 }
 
-static void gm20b_gr_falcon_check_ctx_opcode_success(struct gk20a *g,
-			u32 opc_success, u32 reg,
-			u32 mailbox_ok, enum wait_ucode_status *check)
+static bool gm20b_gr_falcon_gr_opcode_equal(u32 opc_status, bool is_fail,
+		u32 mailbox_status, u32 reg, enum wait_ucode_status *check)
 {
-	switch (opc_success) {
-	case GR_IS_UCODE_OP_EQUAL:
-		if (reg == mailbox_ok) {
-			*check = WAIT_UCODE_OK;
-		}
-		break;
-	case GR_IS_UCODE_OP_NOT_EQUAL:
-		if (reg != mailbox_ok) {
-			*check = WAIT_UCODE_OK;
-		}
-		break;
-	case GR_IS_UCODE_OP_AND:
-		if ((reg & mailbox_ok) != 0U) {
-			*check = WAIT_UCODE_OK;
-		}
-		break;
-	case GR_IS_UCODE_OP_LESSER:
-		if (reg < mailbox_ok) {
-			*check = WAIT_UCODE_OK;
-		}
-		break;
-	case GR_IS_UCODE_OP_LESSER_EQUAL:
-		if (reg <= mailbox_ok) {
-			*check = WAIT_UCODE_OK;
-		}
-		break;
-	case GR_IS_UCODE_OP_SKIP:
-		/* do no success check */
-		break;
-	default:
-		nvgpu_err(g,
-			   "invalid success opcode 0x%x", opc_success);
+	bool match = false;
 
-		*check = WAIT_UCODE_ERROR;
-		break;
+	if (opc_status == GR_IS_UCODE_OP_EQUAL) {
+		match = true;
+		if (reg == mailbox_status) {
+			if (is_fail) {
+				*check = WAIT_UCODE_ERROR;
+			} else {
+				*check = WAIT_UCODE_OK;
+			}
+		}
+	}
+
+	return match;
+}
+
+static bool gm20b_gr_falcon_gr_opcode_not_equal(u32 opc_status, bool is_fail,
+		u32 mailbox_status, u32 reg, enum wait_ucode_status *check)
+{
+	bool match = false;
+
+	if (opc_status == GR_IS_UCODE_OP_NOT_EQUAL) {
+		match = true;
+		if (reg != mailbox_status) {
+			if (is_fail) {
+				*check = WAIT_UCODE_ERROR;
+			} else {
+				*check = WAIT_UCODE_OK;
+			}
+		}
+	}
+
+	return match;
+}
+
+static bool gm20b_gr_falcon_gr_opcode_and(u32 opc_status, bool is_fail,
+		u32 mailbox_status, u32 reg, enum wait_ucode_status *check)
+{
+	bool match = false;
+
+	if (opc_status == GR_IS_UCODE_OP_AND) {
+		match = true;
+		if ((reg & mailbox_status) != 0U) {
+			if (is_fail) {
+				*check = WAIT_UCODE_ERROR;
+			} else {
+				*check = WAIT_UCODE_OK;
+			}
+		}
+	}
+
+	return match;
+}
+
+static bool gm20b_gr_falcon_gr_opcode_less(u32 opc_status, bool is_fail,
+		u32 mailbox_status, u32 reg, enum wait_ucode_status *check)
+{
+	bool match = false;
+
+	if (opc_status == GR_IS_UCODE_OP_LESSER) {
+		match = true;
+		if (reg < mailbox_status) {
+			if (is_fail) {
+				*check = WAIT_UCODE_ERROR;
+			} else {
+				*check = WAIT_UCODE_OK;
+			}
+		}
+	}
+
+	return match;
+}
+
+static bool gm20b_gr_falcon_gr_opcode_less_equal(u32 opc_status, bool is_fail,
+		u32 mailbox_status, u32 reg, enum wait_ucode_status *check)
+{
+	bool match = false;
+
+	if (opc_status == GR_IS_UCODE_OP_LESSER_EQUAL) {
+		match = true;
+		if (reg <= mailbox_status) {
+			if (is_fail) {
+				*check = WAIT_UCODE_ERROR;
+			} else {
+				*check = WAIT_UCODE_OK;
+			}
+		}
+	}
+
+	return match;
+}
+
+static void gm20b_gr_falcon_check_ctx_opcode_status(struct gk20a *g,
+			u32 opc_status, bool is_fail, u32 reg,
+			u32 mailbox_status, enum wait_ucode_status *check)
+{
+	if (!gm20b_gr_falcon_check_valid_gr_opcode(g, opc_status, check)) {
+		return;
+	}
+
+	if (gm20b_gr_falcon_gr_opcode_equal(opc_status, is_fail,
+				mailbox_status, reg, check)) {
+		return;
+	}
+
+	if (gm20b_gr_falcon_gr_opcode_not_equal(opc_status, is_fail,
+				mailbox_status, reg, check)) {
+		return;
+	}
+
+	if (gm20b_gr_falcon_gr_opcode_and(opc_status, is_fail,
+				mailbox_status, reg, check)) {
+		return;
+	}
+
+	if (gm20b_gr_falcon_gr_opcode_less(opc_status, is_fail,
+				mailbox_status, reg, check)) {
+		return;
+	}
+
+	if (gm20b_gr_falcon_gr_opcode_less_equal(opc_status, is_fail,
+				mailbox_status, reg, check)) {
+		return;
 	}
 }
 
@@ -432,7 +504,7 @@ static int gm20b_gr_falcon_ctx_wait_ucode(struct gk20a *g, u32 mailbox_id,
 	struct nvgpu_timeout timeout;
 	u32 delay = GR_FECS_POLL_INTERVAL;
 	enum wait_ucode_status check = WAIT_UCODE_LOOP;
-	u32 reg;
+	u32 reg = 0U;
 	int err;
 
 	nvgpu_log_fn(g, " ");
@@ -459,10 +531,10 @@ static int gm20b_gr_falcon_ctx_wait_ucode(struct gk20a *g, u32 mailbox_id,
 			*mailbox_ret = reg;
 		}
 
-		gm20b_gr_falcon_check_ctx_opcode_success(g, opc_success,
+		gm20b_gr_falcon_check_ctx_opcode_status(g, opc_success, false,
 						reg, mailbox_ok, &check);
 
-		gm20b_gr_falcon_check_ctx_opcode_failure(g, opc_fail,
+		gm20b_gr_falcon_check_ctx_opcode_status(g, opc_fail, true,
 						reg, mailbox_fail, &check);
 
 		if (sleepduringwait) {
