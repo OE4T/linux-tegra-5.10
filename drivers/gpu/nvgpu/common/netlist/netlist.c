@@ -378,6 +378,26 @@ static bool nvgpu_netlist_handle_debugger_region_id(struct gk20a *g,
 		err = nvgpu_netlist_alloc_load_aiv_list(g,
 			src, size, &netlist_vars->ctxsw_regs.pm_cau);
 		break;
+	case NETLIST_REGIONID_NVPERF_SYS_CONTROL:
+		nvgpu_log_info(g, "NETLIST_REGIONID_NVPERF_SYS_CONTROL");
+		err = nvgpu_netlist_alloc_load_aiv_list(g,
+			src, size, &netlist_vars->ctxsw_regs.perf_sys_control);
+		break;
+	case NETLIST_REGIONID_NVPERF_FBP_CONTROL:
+		nvgpu_log_info(g, "NETLIST_REGIONID_NVPERF_FBP_CONTROL");
+		err = nvgpu_netlist_alloc_load_aiv_list(g,
+			src, size, &netlist_vars->ctxsw_regs.perf_fbp_control);
+		break;
+	case NETLIST_REGIONID_NVPERF_GPC_CONTROL:
+		nvgpu_log_info(g, "NETLIST_REGIONID_NVPERF_GPC_CONTROL");
+		err = nvgpu_netlist_alloc_load_aiv_list(g,
+			src, size, &netlist_vars->ctxsw_regs.perf_gpc_control);
+		break;
+	case NETLIST_REGIONID_NVPERF_PMA_CONTROL:
+		nvgpu_log_info(g, "NETLIST_REGIONID_NVPERF_PMA_CONTROL");
+		err = nvgpu_netlist_alloc_load_aiv_list(g,
+			src, size, &netlist_vars->ctxsw_regs.perf_pma_control);
+		break;
 	default:
 		handled = false;
 		break;
@@ -536,6 +556,10 @@ clean_up:
 		nvgpu_kfree(g, netlist_vars->ctxsw_regs.pm_ucgpc.l);
 		nvgpu_kfree(g, netlist_vars->ctxsw_regs.etpc.l);
 		nvgpu_kfree(g, netlist_vars->ctxsw_regs.pm_cau.l);
+		nvgpu_kfree(g, netlist_vars->ctxsw_regs.perf_sys_control.l);
+		nvgpu_kfree(g, netlist_vars->ctxsw_regs.perf_fbp_control.l);
+		nvgpu_kfree(g, netlist_vars->ctxsw_regs.perf_gpc_control.l);
+		nvgpu_kfree(g, netlist_vars->ctxsw_regs.perf_pma_control.l);
 #endif /* CONFIG_NVGPU_DEBUGGER */
 		nvgpu_release_firmware(g, netlist_fw);
 		err = -ENOENT;
@@ -607,6 +631,10 @@ void nvgpu_netlist_deinit_ctx_vars(struct gk20a *g)
 	nvgpu_kfree(g, netlist_vars->ctxsw_regs.pm_ltc.l);
 	nvgpu_kfree(g, netlist_vars->ctxsw_regs.pm_fbpa.l);
 	nvgpu_kfree(g, netlist_vars->ctxsw_regs.pm_cau.l);
+	nvgpu_kfree(g, netlist_vars->ctxsw_regs.perf_sys_control.l);
+	nvgpu_kfree(g, netlist_vars->ctxsw_regs.perf_fbp_control.l);
+	nvgpu_kfree(g, netlist_vars->ctxsw_regs.perf_gpc_control.l);
+	nvgpu_kfree(g, netlist_vars->ctxsw_regs.perf_pma_control.l);
 #endif /* CONFIG_NVGPU_DEBUGGER */
 
 	nvgpu_kfree(g, netlist_vars);
@@ -803,6 +831,30 @@ struct netlist_aiv_list *nvgpu_netlist_get_etpc_ctxsw_regs(struct gk20a *g)
 struct netlist_aiv_list *nvgpu_netlist_get_pm_cau_ctxsw_regs(struct gk20a *g)
 {
 	return &g->netlist_vars->ctxsw_regs.pm_cau;
+}
+
+struct netlist_aiv_list *nvgpu_netlist_get_perf_sys_control_ctxsw_regs(
+		struct gk20a *g)
+{
+	return &g->netlist_vars->ctxsw_regs.perf_sys_control;
+}
+
+struct netlist_aiv_list *nvgpu_netlist_get_perf_fbp_control_ctxsw_regs(
+		struct gk20a *g)
+{
+	return &g->netlist_vars->ctxsw_regs.perf_fbp_control;
+}
+
+struct netlist_aiv_list *nvgpu_netlist_get_perf_gpc_control_ctxsw_regs(
+		struct gk20a *g)
+{
+	return &g->netlist_vars->ctxsw_regs.perf_gpc_control;
+}
+
+struct netlist_aiv_list *nvgpu_netlist_get_perf_pma_control_ctxsw_regs(
+		struct gk20a *g)
+{
+	return &g->netlist_vars->ctxsw_regs.perf_pma_control;
 }
 #endif /* CONFIG_NVGPU_DEBUGGER */
 

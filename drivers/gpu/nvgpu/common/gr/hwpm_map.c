@@ -300,40 +300,40 @@ static int add_ctxsw_buffer_map_entries_gpcs(struct gk20a *g,
 		}
 
 		*offset = ALIGN(*offset, 256U);
+
+		base = (g->ops.perf.get_pmm_per_chiplet_offset() * gpc_num);
+		if (add_ctxsw_buffer_map_entries(map,
+				nvgpu_netlist_get_perf_gpc_control_ctxsw_regs(g),
+				count, offset, max_cnt, base, ~U32(0U)) != 0) {
+			return -EINVAL;
+		}
+
+		*offset = ALIGN(*offset, 256U);
 	}
 	return 0;
 }
 
 /*
- *            PM CTXSW BUFFER LAYOUT :
- *|---------------------------------------------|0x00 <----PM CTXSW BUFFER BASE
- *|                                             |
+ * PM CTXSW BUFFER LAYOUT:
+ *|=============================================|0x00 <----PM CTXSW BUFFER BASE
  *|        LIST_compressed_pm_ctx_reg_SYS       |Space allocated: numRegs words
- *|---------------------------------------------|
- *|                                             |
  *|    LIST_compressed_nv_perf_ctx_reg_SYS      |Space allocated: numRegs words
- *|---------------------------------------------|
- *|                                             |
- *|    LIST_compressed_nv_perf_ctx_reg_sysrouter|Space allocated: numRegs words
- *|---------------------------------------------|
- *| PADDING for 256 byte alignment on Volta+    |
- *|---------------------------------------------|<----256 byte aligned
- *|                                             |
- *|    LIST_compressed_nv_perf_ctx_reg_PMA      |Space allocated: numRegs words
- *|---------------------------------------------|
+ *|  LIST_compressed_nv_perf_ctx_reg_sysrouter  |Space allocated: numRegs words
+ *|  PADDING for 256 byte alignment on Maxwell+ |
+ *|=============================================|<----256 byte aligned on Maxwell and later
+ *| LIST_compressed_nv_perf_sys_control_ctx_regs|Space allocated: numRegs words (+ padding)
+ *|        PADDING for 256 byte alignment       |(If reg list is empty, 0 bytes allocated.)
+ *|=============================================|<----256 byte aligned
+ *|    LIST_compressed_nv_perf_ctx_reg_PMA      |Space allocated: numRegs words (+ padding)
  *|        PADDING for 256 byte alignment       |
- *|---------------------------------------------|<----256 byte aligned
- *|    LIST_compressed_nv_perf_fbp_ctx_regs     |
- *|                                             |Space allocated: numRegs * n words (for n FB units)
- *|---------------------------------------------|
- *| LIST_compressed_nv_perf_fbprouter_ctx_regs  |
- *|                                             |Space allocated: numRegs * n words (for n FB units)
- *|---------------------------------------------|
- *|    LIST_compressed_pm_fbpa_ctx_regs         |
- *|                                             |Space allocated: numRegs * n words (for n FB units)
- *|---------------------------------------------|
- *|    LIST_compressed_pm_rop_ctx_regs          |
- *|---------------------------------------------|
+ *|=============================================|<----256 byte aligned (if prev segment exists)
+ *| LIST_compressed_nv_perf_pma_control_ctx_regs|Space allocated: numRegs words (+ padding)
+ *|        PADDING for 256 byte alignment       |(If reg list is empty, 0 bytes allocated.)
+ *|=============================================|<----256 byte aligned
+ *|    LIST_compressed_nv_perf_fbp_ctx_regs     |Space allocated: numRegs * n words (for n FB units)
+ *| LIST_compressed_nv_perf_fbprouter_ctx_regs  |Space allocated: numRegs * n words (for n FB units)
+ *|    LIST_compressed_pm_fbpa_ctx_regs         |Space allocated: numRegs * n words (for n FB units)
+ *|    LIST_compressed_pm_rop_ctx_regs          |Space allocated: numRegs * n words (for n FB units)
  *|    LIST_compressed_pm_ltc_ctx_regs          |
  *|                                  LTC0 LTS0  |
  *|                                  LTC1 LTS0  |Space allocated: numRegs * n words (for n LTC units)
@@ -344,10 +344,15 @@ static int add_ctxsw_buffer_map_entries_gpcs(struct gk20a *g,
  *|                                  LTC0 LTSn  |
  *|                                  LTC1 LTSn  |
  *|                                  LTCn LTSn  |
- *|---------------------------------------------|
  *|        PADDING for 256 byte alignment       |
- *|---------------------------------------------|<----256 byte aligned
- *|                            GPC0  REG0 TPC0  |Each GPC has space allocated to accommodate
+ *|=============================================|<----256 byte aligned on Maxwell and later
+ *| LIST_compressed_nv_perf_fbp_control_ctx_regs|Space allocated: numRegs words + padding
+ *|        PADDING for 256 byte alignment       |(If reg list is empty, 0 bytes allocated.)
+ *|=============================================|<----256 byte aligned on Maxwell and later
+ *
+ * Each "GPCn PRI register" segment above has this layout:
+ *|=============================================|<----256 byte aligned
+ *|                            GPC0  REG0 TPC0  |Each GPC has space allocated to accomodate
  *|                                  REG0 TPC1  |    all the GPC/TPC register lists
  *| Lists in each GPC region:        REG0 TPCn  |Per GPC allocated space is always 256 byte aligned
  *|  LIST_pm_ctx_reg_TPC             REG1 TPC0  |
@@ -358,15 +363,11 @@ static int add_ctxsw_buffer_map_entries_gpcs(struct gk20a *g,
  *|  List_pm_ctx_reg_uc_GPC          REGn TPCn  |
  *|  LIST_nv_perf_ctx_reg_GPC                   |
  *|  LIST_nv_perf_gpcrouter_ctx_reg             |
- *|  LIST_nv_perf_ctx_reg_CAU                   |
- *|                                       ----  |--
- *|                            GPC1         .   |
- *|                                         .   |<----
- *|---------------------------------------------|
- *=                                             =
- *|                            GPCn             |
- *=                                             =
- *|---------------------------------------------|
+ *|  LIST_nv_perf_ctx_reg_CAU (Tur)             |
+ *|=============================================|
+ *| LIST_compressed_nv_perf_gpc_control_ctx_regs|Space allocated: numRegs words + padding
+ *|        PADDING for 256 byte alignment       |(If reg list is empty, 0 bytes allocated.)
+ *|=============================================|<----256 byte aligned on Maxwell and later
  */
 
 static int nvgpu_gr_hwpm_map_create(struct gk20a *g,
@@ -422,6 +423,19 @@ static int nvgpu_gr_hwpm_map_create(struct gk20a *g,
 		goto cleanup;
 	}
 
+	/* Add entries from _LIST_nv_perf_sys_control_ctx_reg*/
+	if (nvgpu_netlist_get_perf_sys_control_ctxsw_regs(g)->count > 0U) {
+		offset = ALIGN(offset, 256U);
+
+		ret = add_ctxsw_buffer_map_entries(map,
+			nvgpu_netlist_get_perf_sys_control_ctxsw_regs(g),
+			&count, &offset,
+			hwpm_ctxsw_reg_count_max, 0, ~U32(0U));
+		if (ret != 0) {
+			goto cleanup;
+		}
+	}
+
 	if (g->ops.gr.hwpm_map.align_regs_perf_pma) {
 		g->ops.gr.hwpm_map.align_regs_perf_pma(&offset);
 	}
@@ -429,6 +443,16 @@ static int nvgpu_gr_hwpm_map_create(struct gk20a *g,
 	/* Add entries from _LIST_nv_perf_pma_ctx_reg*/
 	ret = add_ctxsw_buffer_map_entries(map,
 		nvgpu_netlist_get_perf_pma_ctxsw_regs(g), &count, &offset,
+			hwpm_ctxsw_reg_count_max, 0, ~U32(0U));
+	if (ret != 0) {
+		goto cleanup;
+	}
+
+	offset = ALIGN(offset, 256U);
+
+	/* Add entries from _LIST_nv_perf_pma_control_ctx_reg*/
+	ret = add_ctxsw_buffer_map_entries(map,
+		nvgpu_netlist_get_perf_pma_control_ctxsw_regs(g), &count, &offset,
 			hwpm_ctxsw_reg_count_max, 0, ~U32(0U));
 	if (ret != 0) {
 		goto cleanup;
@@ -481,6 +505,18 @@ static int nvgpu_gr_hwpm_map_create(struct gk20a *g,
 			nvgpu_netlist_get_pm_ltc_ctxsw_regs(g), &count, &offset,
 			hwpm_ctxsw_reg_count_max, 0, num_ltc, ~U32(0U),
 			ltc_stride, ~U32(0U)) != 0) {
+		goto cleanup;
+	}
+
+	offset = ALIGN(offset, 256U);
+
+	/* Add entries from _LIST_nv_perf_fbp_control_ctx_regs */
+	if (add_ctxsw_buffer_map_entries_subunits(map,
+			nvgpu_netlist_get_perf_fbp_control_ctxsw_regs(g),
+			&count, &offset, hwpm_ctxsw_reg_count_max, 0,
+			num_fbps, ~U32(0U),
+			g->ops.perf.get_pmm_per_chiplet_offset(),
+			~U32(0U)) != 0) {
 		goto cleanup;
 	}
 

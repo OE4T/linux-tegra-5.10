@@ -376,6 +376,14 @@ struct netlist_aiv_list *nvgpu_netlist_get_pm_rop_ctxsw_regs(struct gk20a *g);
 struct netlist_aiv_list *nvgpu_netlist_get_pm_ucgpc_ctxsw_regs(struct gk20a *g);
 struct netlist_aiv_list *nvgpu_netlist_get_etpc_ctxsw_regs(struct gk20a *g);
 struct netlist_aiv_list *nvgpu_netlist_get_pm_cau_ctxsw_regs(struct gk20a *g);
+struct netlist_aiv_list *nvgpu_netlist_get_perf_sys_control_ctxsw_regs(
+		struct gk20a *g);
+struct netlist_aiv_list *nvgpu_netlist_get_perf_fbp_control_ctxsw_regs(
+		struct gk20a *g);
+struct netlist_aiv_list *nvgpu_netlist_get_perf_gpc_control_ctxsw_regs(
+		struct gk20a *g);
+struct netlist_aiv_list *nvgpu_netlist_get_perf_pma_control_ctxsw_regs(
+		struct gk20a *g);
 #endif /* CONFIG_NVGPU_DEBUGGER */
 
 #ifdef CONFIG_NVGPU_NON_FUSA

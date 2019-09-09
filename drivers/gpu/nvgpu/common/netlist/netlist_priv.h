@@ -74,6 +74,10 @@ struct netlist_aiv_list;
 #define NETLIST_REGIONID_SW_BUNDLE64_INIT	34
 #ifdef CONFIG_NVGPU_DEBUGGER
 #define NETLIST_REGIONID_NVPERF_PMCAU		35
+#define NETLIST_REGIONID_NVPERF_SYS_CONTROL	52
+#define NETLIST_REGIONID_NVPERF_FBP_CONTROL	53
+#define NETLIST_REGIONID_NVPERF_GPC_CONTROL	54
+#define NETLIST_REGIONID_NVPERF_PMA_CONTROL	55
 #endif
 
 struct netlist_region {
@@ -139,6 +143,10 @@ struct nvgpu_netlist_vars {
 		struct netlist_aiv_list pm_ucgpc;
 		struct netlist_aiv_list etpc;
 		struct netlist_aiv_list pm_cau;
+		struct netlist_aiv_list perf_sys_control;
+		struct netlist_aiv_list perf_fbp_control;
+		struct netlist_aiv_list perf_gpc_control;
+		struct netlist_aiv_list perf_pma_control;
 	} ctxsw_regs;
 #endif /* CONFIG_NVGPU_DEBUGGER */
 };
