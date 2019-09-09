@@ -34,8 +34,9 @@
 
 #include <hal/bus/bus_gk20a.h>
 #include <hal/mm/gmmu/gmmu_gp10b.h>
-
 #include <nvgpu/hw/gk20a/hw_pram_gk20a.h>
+
+#include "buddy_allocator.h"
 
 #define SZ_8K			(SZ_4K << 1)
 #define BA_DEFAULT_BASE		SZ_4K
@@ -122,7 +123,7 @@ static struct vm_gk20a *init_vm_env(struct unit_module *m, struct gk20a *g,
  * nvgpu_buddy_allocator initialized with big pages enabled vm
  * Test buddy allocator functionality with big pages
  */
-static int test_buddy_allocator_with_big_pages(struct unit_module *m,
+int test_buddy_allocator_with_big_pages(struct unit_module *m,
 					struct gk20a *g, void *args)
 {
 	u64 base = 0x4000000;	/* PDE aligned */
@@ -268,7 +269,7 @@ fail:
  * nvgpu_buddy_allocator initialized with big pages disabled
  * Test buddy allocator functionality with big pages
  */
-static int test_buddy_allocator_with_small_pages(struct unit_module *m,
+int test_buddy_allocator_with_small_pages(struct unit_module *m,
 					struct gk20a *g, void *args)
 {
 	u64 base = SZ_1K;
@@ -420,7 +421,7 @@ fail:
 /*
  * Test buddy_allocator allocs
  */
-static int test_nvgpu_buddy_allocator_alloc(struct unit_module *m,
+int test_nvgpu_buddy_allocator_alloc(struct unit_module *m,
 					struct gk20a *g, void *args)
 {
 	u64 base = SZ_4K;
@@ -600,7 +601,7 @@ cleanup:
 /*
  * Tests buddy_allocator carveouts
  */
-static int test_nvgpu_buddy_allocator_carveout(struct unit_module *m,
+int test_nvgpu_buddy_allocator_carveout(struct unit_module *m,
 					struct gk20a *g, void *args)
 {
 	int err;
@@ -702,7 +703,7 @@ static int test_nvgpu_buddy_allocator_carveout(struct unit_module *m,
 /*
  * Tests buddy_allocator basic ops and allocations
  */
-static int test_nvgpu_buddy_allocator_basic_ops(struct unit_module *m,
+int test_nvgpu_buddy_allocator_basic_ops(struct unit_module *m,
 					struct gk20a *g, void *args)
 {
 	u64 addr;
@@ -815,7 +816,7 @@ static int test_nvgpu_buddy_allocator_basic_ops(struct unit_module *m,
 /*
  * De-initialize buddy allocator
  */
-static int test_nvgpu_buddy_allocator_destroy(struct unit_module *m,
+int test_nvgpu_buddy_allocator_destroy(struct unit_module *m,
 					struct gk20a *g, void *args)
 {
 	na->ops->fini(na);
@@ -827,7 +828,7 @@ static int test_nvgpu_buddy_allocator_destroy(struct unit_module *m,
  * Tests nvgpu_buddy_allocator_init()
  * This test considers multiple conditions to initialize buddy allocator
  */
-static int test_nvgpu_buddy_allocator_init(struct unit_module *m,
+int test_nvgpu_buddy_allocator_init(struct unit_module *m,
 					struct gk20a *g, void *args)
 {
 	u64 base = BA_DEFAULT_BASE;
