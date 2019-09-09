@@ -42,6 +42,7 @@
  *   - @ref unit-falcon
  *   - @ref unit-os_utils
  *   - @ref unit-acr
+ *   - @ref unit-cg
  *   - Etc, etc.
  *
  * NVGPU Software Unit Design Documentation
