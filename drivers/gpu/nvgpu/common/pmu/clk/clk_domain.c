@@ -26,7 +26,6 @@
 #include <nvgpu/boardobjgrp.h>
 #include <nvgpu/boardobjgrp_e32.h>
 #include <nvgpu/boardobjgrp_e255.h>
-#include <nvgpu/pmu/boardobjgrp_classes.h>
 #include <nvgpu/boardobjgrpmask.h>
 #include <nvgpu/pmu/pmuif/ctrlclk.h>
 #include <nvgpu/pmu/clk/clk_vf_point.h>

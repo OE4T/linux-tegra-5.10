@@ -30,6 +30,13 @@
 
 #define NV_PMU_VOLT_VALUE_0V_IN_UV	(0U)
 
+/* ------------- VOLT_RAIL's GRP_SET defines and structures ------------- */
+
+#define NV_PMU_VOLT_BOARDOBJGRP_CLASS_ID_VOLT_RAIL		0x00U
+#define NV_PMU_VOLT_BOARDOBJGRP_CLASS_ID_VOLT_DEVICE		0x01U
+#define NV_PMU_VOLT_BOARDOBJGRP_CLASS_ID_VOLT_POLICY		0x02U
+
+
 struct nv_pmu_volt_volt_rail_boardobjgrp_set_header {
 	struct nv_pmu_boardobjgrp_e32 super;
 };

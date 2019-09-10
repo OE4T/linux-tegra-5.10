@@ -25,7 +25,6 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/boardobjgrp.h>
 #include <nvgpu/boardobjgrp_e32.h>
-#include <nvgpu/pmu/boardobjgrp_classes.h>
 #include <nvgpu/boardobjgrpmask.h>
 #include <nvgpu/boardobj.h>
 #include <nvgpu/string.h>

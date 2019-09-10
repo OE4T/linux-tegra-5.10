@@ -22,7 +22,6 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/boardobjgrp.h>
 #include <nvgpu/boardobjgrp_e32.h>
-#include <nvgpu/pmu/boardobjgrp_classes.h>
 #include <nvgpu/pmu/therm.h>
 #include <nvgpu/pmu/pmuif/nvgpu_cmdif.h>
 #include <nvgpu/pmu/cmd.h>

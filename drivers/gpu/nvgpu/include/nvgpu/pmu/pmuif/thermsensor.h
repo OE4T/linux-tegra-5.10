@@ -28,6 +28,9 @@
 #include "ctrltherm.h"
 #include "boardobj.h"
 
+#define NV_PMU_THERM_BOARDOBJGRP_CLASS_ID_THERM_DEVICE      0x00
+#define NV_PMU_THERM_BOARDOBJGRP_CLASS_ID_THERM_CHANNEL     0x01
+
 #define NV_PMU_THERM_CMD_ID_BOARDOBJ_GRP_SET                         0x0000000B
 #define NV_PMU_THERM_MSG_ID_BOARDOBJ_GRP_SET                        0x00000008
 

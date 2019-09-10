@@ -59,6 +59,19 @@
 #define CLKWHICH_NVDCLK		20U
 #define CLKWHICH_PCIEGENCLK	26U
 
+/*
+ * Enumeration of BOARDOBJGRP class IDs within OBJCLK.  Used as "classId"
+ * argument for communications between Kernel and PMU via the various generic
+ * BOARDOBJGRP interfaces.
+ */
+#define NV_PMU_CLK_BOARDOBJGRP_CLASS_ID_CLK_DOMAIN                         0x00U
+#define NV_PMU_CLK_BOARDOBJGRP_CLASS_ID_CLK_PROG                           0x01U
+#define NV_PMU_CLK_BOARDOBJGRP_CLASS_ID_VIN_DEVICE                         0x02U
+#define NV_PMU_CLK_BOARDOBJGRP_CLASS_ID_FLL_DEVICE                         0x03U
+#define NV_PMU_CLK_BOARDOBJGRP_CLASS_ID_CLK_VF_POINT                       0x04U
+#define NV_PMU_CLK_BOARDOBJGRP_CLASS_ID_CLK_FREQ_CONTROLLER                0x05U
+#define NV_PMU_CLK_BOARDOBJGRP_CLASS_ID_CLK_FREQ_DOMAIN                    0x07U
+
 #define NV_PMU_RPC_ID_CLK_CNTR_SAMPLE_DOMAIN                               0x01U
 #define NV_PMU_RPC_ID_CLK_CLK_DOMAIN_35_PROG_VOLT_TO_FREQ                  0x02U
 #define NV_PMU_RPC_ID_CLK_CLK_DOMAIN_35_PROG_FREQ_TO_VOLT                  0x03U
