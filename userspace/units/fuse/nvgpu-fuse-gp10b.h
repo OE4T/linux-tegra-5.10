@@ -23,20 +23,146 @@
 #ifndef __UNIT_NVGPU_FUSE_GP10B_H__
 #define __UNIT_NVGPU_FUSE_GP10B_H__
 
+struct gk20a;
+struct unit_module;
+
+/** @addtogroup SWUTS-fuse
+ *  @{
+ */
+
 extern struct fuse_test_args gp10b_init_args;
 
+/**
+ * Test specification for: test_fuse_gp10b_check_sec
+ *
+ * Description: Verify fuse API check_priv_security() when security fuse is
+ *              enabled.
+ *
+ * Test Type: Feature based
+ *
+ * Input: test_fuse_device_common_init() must be called for this GPU.
+ *
+ * Steps:
+ * - Setup the security regs appropriately.
+ * - Call the fuse API check_priv_security().
+ * - Verify Security flags are enabled/disabled correctly.
+ *
+ * Output: Returns SUCCESS if the steps above were executed successfully. FAIL
+ * otherwise.
+ */
 int test_fuse_gp10b_check_sec(struct unit_module *m,
 			      struct gk20a *g, void *__args);
+
+/**
+ * Test specification for: test_fuse_gp10b_check_gcplex_fail
+ *
+ * Description: Verify fuse API check_priv_security() handles an error from
+ *              reading gcplex.
+ *
+ * Test Type: Feature based
+ *
+ * Input: test_fuse_device_common_init() must be called for this GPU.
+ *
+ * Steps:
+ * - Override HAL for reading gcplex so it returns an error.
+ * - Call the fuse API check_priv_security(), which will read gcplex, and verify
+ *   an error is returned.
+ *
+ * Output: Returns SUCCESS if the steps above were executed successfully. FAIL
+ * otherwise.
+ */
 int test_fuse_gp10b_check_gcplex_fail(struct unit_module *m,
 				      struct gk20a *g, void *__args);
+
+/**
+ * Test specification for: test_fuse_gp10b_check_sec_invalid_gcplex
+ *
+ * Description: Verify fuse API check_priv_security() handles invalid gcplex
+ *              configurations of WPR and VPR bits.
+ *
+ * Test Type: Feature based
+ *
+ * Input: test_fuse_device_common_init() must be called for this GPU.
+ *
+ * Steps:
+ * - Override HAL for reading gcplex so the WPR/VPR configuration can be
+ *   overwritten.
+ * - Enable Security fuse.
+ * - Write an invalid WPR/VPR configuration into the gcplex override by using
+ *   the overridden HAL.
+ * - Call the fuse API check_priv_security() and verify an error is returned.
+ * - Repeat the previous 2 steps for all invalid combinations of WPR/VPR
+ *   configurations.
+ *
+ * Output: Returns SUCCESS if the steps above were executed successfully. FAIL
+ * otherwise.
+ */
 int test_fuse_gp10b_check_sec_invalid_gcplex(struct unit_module *m,
 					     struct gk20a *g, void *__args);
+
+/**
+ * Test specification for: test_fuse_gp10b_check_non_sec
+ *
+ * Description:  Verify fuse API check_priv_security() when security fuse is
+ *               disabled.
+ *
+ * Test Type: Feature based
+ *
+ * Input: test_fuse_device_common_init() must be called for this GPU.
+ *
+ * Steps:
+ * - Disable Security fuse.
+ * - Call the fuse API check_priv_security().
+ * - Verify correct security flags are disabled.
+ *
+ * Output: Returns SUCCESS if the steps above were executed successfully. FAIL
+ * otherwise.
+ */
 int test_fuse_gp10b_check_non_sec(struct unit_module *m,
 				  struct gk20a *g, void *__args);
+
+/**
+ * Test specification for: test_fuse_gp10b_ecc
+ *
+ * Description: Verify fuse reports ECC enable correctly.
+ *
+ * Test Type: Feature based
+ *
+ * Input: test_fuse_device_common_init() must be called for this GPU.
+ *
+ * Steps:
+ * - Disable ECC fuse.
+ * - Verify API is_opt_ecc_enable() returns false.
+ * - Enable ECC fuse.
+ * - Verify API is_opt_ecc_enable() returns true.
+ *
+ * Output: Returns SUCCESS if the steps above were executed successfully. FAIL
+ * otherwise.
+ */
 int test_fuse_gp10b_ecc(struct unit_module *m,
 			struct gk20a *g, void *__args);
+
+/**
+ * Test specification for: test_fuse_gp10b_feature_override_disable
+ *
+ * Description: Verify fuse reports Feature Override enable correctly.
+ *
+ * Test Type: Feature based
+ *
+ * Input: test_fuse_device_common_init() must be called for this GPU.
+ *
+ * Steps:
+ * - Disable Feature Override fuse.
+ * - Verify API is_opt_feature_override_disable() returns false.
+ * - Enable Feature Override fuse.
+ * - Verify API is_opt_feature_override_disable() returns true.
+ *
+ * Output: Returns SUCCESS if the steps above were executed successfully. FAIL
+ * otherwise.
+ */
 int test_fuse_gp10b_feature_override_disable(struct unit_module *m,
 					     struct gk20a *g, void *__args);
+
 #ifdef CONFIG_NVGPU_SIM
 int test_fuse_gp10b_check_fmodel(struct unit_module *m,
 				 struct gk20a *g, void *__args);

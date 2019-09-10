@@ -45,10 +45,6 @@ struct fuse_test_args gp10b_init_args = {
 	.sec_fuse_addr = GP10B_FUSE_OPT_PRIV_SEC_EN,
 };
 
-/*
- * Verify fuse API check_priv_security() when security fuse is enabled.
- * Tests with secure debug enabled and disabled.
- */
 int test_fuse_gp10b_check_sec(struct unit_module *m,
 			      struct gk20a *g, void *__args)
 {
@@ -88,9 +84,6 @@ int test_fuse_gp10b_check_sec(struct unit_module *m,
 	return ret;
 }
 
-/*
- * Verify fuse API check_priv_security() handles an error from reading gcplex
- */
 int test_fuse_gp10b_check_gcplex_fail(struct unit_module *m,
 				      struct gk20a *g, void *__args)
 {
@@ -110,10 +103,6 @@ int test_fuse_gp10b_check_gcplex_fail(struct unit_module *m,
 	return ret;
 }
 
-/*
- * Verify fuse API check_priv_security() handles invalid gcplex configurations
- * of WPR and VPR bits.
- */
 int test_fuse_gp10b_check_sec_invalid_gcplex(struct unit_module *m,
 					     struct gk20a *g, void *__args)
 {
@@ -148,9 +137,6 @@ int test_fuse_gp10b_check_sec_invalid_gcplex(struct unit_module *m,
 }
 
 
-/*
- * Verify fuse API check_priv_security() when security fuse is enabled.
- */
 int test_fuse_gp10b_check_non_sec(struct unit_module *m,
 				  struct gk20a *g, void *__args)
 {
@@ -179,7 +165,6 @@ int test_fuse_gp10b_check_non_sec(struct unit_module *m,
 	return ret;
 }
 
-/* Verify fuse reports ECC enable correctly */
 int test_fuse_gp10b_ecc(struct unit_module *m,
 			struct gk20a *g, void *__args)
 {
@@ -207,7 +192,6 @@ int test_fuse_gp10b_ecc(struct unit_module *m,
 	return ret;
 }
 
-/* Verify fuse reports feature override correctly */
 int test_fuse_gp10b_feature_override_disable(struct unit_module *m,
 			struct gk20a *g, void *__args)
 {

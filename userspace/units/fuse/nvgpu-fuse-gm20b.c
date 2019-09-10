@@ -53,10 +53,6 @@ struct fuse_test_args gm20b_init_args = {
 	.sec_fuse_addr = GM20B_FUSE_STATUS_OPT_PRIV_SEC_EN,
 };
 
-/*
- * Verify fuse API check_priv_security() when security fuse is enabled.
- * Tests with secure debug enabled and disabled.
- */
 int test_fuse_gm20b_check_sec(struct unit_module *m,
 			      struct gk20a *g, void *__args)
 {
@@ -97,9 +93,6 @@ int test_fuse_gm20b_check_sec(struct unit_module *m,
 	return ret;
 }
 
-/*
- * Verify fuse API check_priv_security() handles an error from reading gcplex
- */
 int test_fuse_gm20b_check_gcplex_fail(struct unit_module *m,
 			 struct gk20a *g, void *__args)
 {
@@ -119,10 +112,6 @@ int test_fuse_gm20b_check_gcplex_fail(struct unit_module *m,
 	return ret;
 }
 
-/*
- * Verify fuse API check_priv_security() handles invalid gcplex configurations
- * of WPR and VPR bits.
- */
 int test_fuse_gm20b_check_sec_invalid_gcplex(struct unit_module *m,
 					     struct gk20a *g, void *__args)
 {
@@ -157,10 +146,6 @@ int test_fuse_gm20b_check_sec_invalid_gcplex(struct unit_module *m,
 	return ret;
 }
 
-
-/*
- * Verify fuse API check_priv_security() when security fuse is enabled.
- */
 int test_fuse_gm20b_check_non_sec(struct unit_module *m,
 				  struct gk20a *g, void *__args)
 {
@@ -190,7 +175,6 @@ int test_fuse_gm20b_check_non_sec(struct unit_module *m,
 	return ret;
 }
 
-/* Verify fuse reads for basic value return APIs */
 int test_fuse_gm20b_basic_fuses(struct unit_module *m,
 				struct gk20a *g, void *__args)
 {

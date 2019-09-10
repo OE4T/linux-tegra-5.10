@@ -23,22 +23,126 @@
 #ifndef __UNIT_NVGPU_FUSE_GM20B_H__
 #define __UNIT_NVGPU_FUSE_GM20B_H__
 
+struct gk20a;
+struct unit_module;
+
+/** @addtogroup SWUTS-fuse
+ *  @{
+ */
+
 extern struct fuse_test_args gm20b_init_args;
 
+/**
+ * Test specification for: test_fuse_gm20b_check_sec
+ *
+ * Description: Verify fuse API check_priv_security() when security fuse is
+ *              enabled.
+ *
+ * Test Type: Feature based
+ *
+ * Input: test_fuse_device_common_init() must be called for this GPU.
+ *
+ * Steps:
+ * - Setup the security regs appropriately.
+ * - Call the fuse API check_priv_security().
+ * - Verify Security flags are enabled/disabled correctly.
+ * - Repeat above steps for ACR enabled and disabled.
+ *
+ * Output: Returns SUCCESS if the steps above were executed successfully. FAIL
+ * otherwise.
+ */
 int test_fuse_gm20b_check_sec(struct unit_module *m,
 			      struct gk20a *g, void *__args);
+
+/**
+ * Test specification for: test_fuse_gm20b_check_gcplex_fail
+ *
+ * Description: Verify fuse API check_priv_security() handles an error from
+ *              reading gcplex.
+ *
+ * Test Type: Feature based
+ *
+ * Input: test_fuse_device_common_init() must be called for this GPU.
+ *
+ * Steps:
+ * - Override HAL for reading gcplex so it returns an error.
+ * - Call the fuse API check_priv_security(), which will read gcplex, and verify
+ *   an error is returned.
+ *
+ * Output: Returns SUCCESS if the steps above were executed successfully. FAIL
+ * otherwise.
+ */
 int test_fuse_gm20b_check_gcplex_fail(struct unit_module *m,
 			 struct gk20a *g, void *__args);
+
+/**
+ * Test specification for: test_fuse_gm20b_check_sec_invalid_gcplex
+ *
+ * Description: Verify fuse API check_priv_security() handles invalid gcplex
+ *              configurations of WPR and VPR bits.
+ *
+ * Test Type: Feature based
+ *
+ * Input: test_fuse_device_common_init() must be called for this GPU.
+ *
+ * Steps:
+ * - Override HAL for reading gcplex so the WPR/VPR configuration can be
+ *   overwritten.
+ * - Enable Security fuse.
+ * - Write an invalid WPR/VPR configuration into the gcplex override by using
+ *   the overridden HAL.
+ * - Call the fuse API check_priv_security() and verify an error is returned.
+ * - Repeat the previous 2 steps for all invalid combinations of WPR/VPR
+ *   configurations.
+ *
+ * Output: Returns SUCCESS if the steps above were executed successfully. FAIL
+ * otherwise.
+ */
 int test_fuse_gm20b_check_sec_invalid_gcplex(struct unit_module *m,
 					     struct gk20a *g, void *__args);
-int test_fuse_gm20b_ecc(struct unit_module *m,
-			struct gk20a *g, void *__args);
-int test_fuse_gm20b_feature_override_disable(struct unit_module *m,
-					     struct gk20a *g, void *__args);
+
+/**
+ * Test specification for: test_fuse_gm20b_check_non_sec
+ *
+ * Description:  Verify fuse API check_priv_security() when security fuse is
+ *               disabled.
+ *
+ * Test Type: Feature based
+ *
+ * Input: test_fuse_device_common_init() must be called for this GPU.
+ *
+ * Steps:
+ * - Disable Security fuse.
+ * - Call the fuse API check_priv_security().
+ * - Verify correct security flags are disabled.
+ *
+ * Output: Returns SUCCESS if the steps above were executed successfully. FAIL
+ * otherwise.
+ */
 int test_fuse_gm20b_check_non_sec(struct unit_module *m,
 				  struct gk20a *g, void *__args);
+
+/**
+ * Test specification for: test_fuse_gm20b_basic_fuses
+ *
+ * Description:  Verify fuse reads for basic value-return APIs.
+ *
+ * Test Type: Feature based
+ *
+ * Input: test_fuse_device_common_init() must be called for this GPU.
+ *
+ * Steps:
+ * - For each fuse API that returns the value of the fuse, do the following:
+ *   - Write valid values to the fuse register in the mock IO.
+ *   - Call the API to read fuse.
+ *   - Verify the correct value is returned.
+ *
+ * Output: Returns SUCCESS if the steps above were executed successfully. FAIL
+ * otherwise.
+ */
 int test_fuse_gm20b_basic_fuses(struct unit_module *m,
 				struct gk20a *g, void *__args);
+
 #ifdef CONFIG_NVGPU_SIM
 int test_fuse_gm20b_check_fmodel(struct unit_module *m,
 				 struct gk20a *g, void *__args);

@@ -89,14 +89,8 @@ int read_gcplex_config_fuse_fail(struct gk20a *g, u32 *val)
 	return -ENODEV;
 }
 
-/*
- * Initialization for this unit test.
- *   Setup g struct
- *   Setup fuse ops
- *   Setup mock I/O
- */
-static int test_fuse_device_common_init(struct unit_module *m,
-					struct gk20a *g, void *__args)
+int test_fuse_device_common_init(struct unit_module *m,
+				struct gk20a *g, void *__args)
 {
 	int ret = UNIT_SUCCESS;
 	int result;
@@ -129,7 +123,7 @@ static int test_fuse_device_common_init(struct unit_module *m,
 	return ret;
 }
 
-static int test_fuse_device_common_cleanup(struct unit_module *m,
+int test_fuse_device_common_cleanup(struct unit_module *m,
 				    struct gk20a *g, void *__args)
 {
 	struct fuse_test_args *args = (struct fuse_test_args *)__args;

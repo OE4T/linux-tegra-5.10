@@ -35,6 +35,7 @@
  *   - @ref SWUTS-interface-atomic
  *   - @ref SWUTS-mm-nvgpu-mem
  *   - @ref SWUTS-mm-vm
+ *   - @ref SWUTS-fuse
  *   - @ref SWUTS-sdl
  *
  */
