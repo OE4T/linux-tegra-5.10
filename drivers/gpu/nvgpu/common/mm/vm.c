@@ -422,7 +422,7 @@ int nvgpu_vm_do_init(struct mm_gk20a *mm,
 					nvgpu_safe_cast_u64_to_u32(SZ_4K);
 	vm->gmmu_page_sizes[GMMU_PAGE_SIZE_BIG]    = big_page_size;
 	vm->gmmu_page_sizes[GMMU_PAGE_SIZE_KERNEL] =
-					nvgpu_safe_cast_u64_to_u32(SZ_4K);
+					nvgpu_safe_cast_u64_to_u32(PAGE_SIZE);
 
 	/* Set up vma pointers. */
 	vm->vma[GMMU_PAGE_SIZE_SMALL]  = &vm->user;
