@@ -167,8 +167,6 @@ static void gm20b_acr_default_sw_init(struct gk20a *g, struct hs_acr *hs_acr)
 
 	/* set on which falcon ACR need to execute*/
 	hs_acr->acr_flcn = g->pmu->flcn;
-	hs_acr->acr_flcn_setup_boot_config =
-		g->ops.pmu.flcn_setup_boot_config;
 	hs_acr->acr_engine_bus_err_status =
 		g->ops.pmu.bar0_error_status;
 }

@@ -219,7 +219,10 @@ static int acr_hs_bl_exec(struct gk20a *g, struct hs_acr *acr_desc,
 	}
 
 	/* setup falcon apertures, boot-config */
-	acr_desc->acr_flcn_setup_boot_config(g);
+	err = nvgpu_falcon_setup_bootstrap_config(acr_desc->acr_flcn);
+	if (err != 0) {
+		goto err_unmap_bl;
+	}
 
 	nvgpu_falcon_mailbox_write(acr_desc->acr_flcn, FALCON_MAILBOX_0,
 		0xDEADA5A5U);

@@ -36,9 +36,13 @@ void tu104_falcon_engine_dependency_ops(struct nvgpu_falcon *flcn)
 	switch (flcn->flcn_id) {
 	case FALCON_ID_GSPLITE:
 		flcn_eng_dep_ops->reset_eng = g->ops.gsp.gsp_reset;
+		flcn_eng_dep_ops->setup_bootstrap_config =
+			g->ops.gsp.falcon_setup_boot_config;
 		break;
 	case FALCON_ID_SEC2:
 		flcn_eng_dep_ops->reset_eng = g->ops.sec2.sec2_reset;
+		flcn_eng_dep_ops->setup_bootstrap_config =
+			g->ops.sec2.flcn_setup_boot_config;
 		flcn_eng_dep_ops->copy_to_emem = g->ops.sec2.sec2_copy_to_emem;
 		flcn_eng_dep_ops->copy_from_emem =
 						g->ops.sec2.sec2_copy_from_emem;

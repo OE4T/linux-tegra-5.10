@@ -279,6 +279,19 @@ int nvgpu_falcon_bootstrap(struct nvgpu_falcon *flcn, u32 boot_vector)
 	return flcn->g->ops.falcon.bootstrap(flcn, boot_vector);
 }
 
+int nvgpu_falcon_setup_bootstrap_config(struct nvgpu_falcon *flcn)
+{
+	if (!is_falcon_valid(flcn)) {
+		return -EINVAL;
+	}
+
+	if (flcn->flcn_engine_dep_ops.setup_bootstrap_config != NULL) {
+		flcn->flcn_engine_dep_ops.setup_bootstrap_config(flcn->g);
+	}
+
+	return 0;
+}
+
 u32 nvgpu_falcon_mailbox_read(struct nvgpu_falcon *flcn, u32 mailbox_index)
 {
 	struct gk20a *g;

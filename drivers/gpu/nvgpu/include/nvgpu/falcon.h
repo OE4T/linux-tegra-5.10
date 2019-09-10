@@ -218,6 +218,8 @@ struct nvgpu_falcon_bl_info {
 struct nvgpu_falcon_engine_dependency_ops {
 	/** reset function specific to engine */
 	int (*reset_eng)(struct gk20a *g);
+	/** Falcon bootstrap config function specific to engine */
+	void (*setup_bootstrap_config)(struct gk20a *g);
 	/** copy functions for SEC2 falcon engines on dGPU that supports EMEM */
 	int (*copy_from_emem)(struct gk20a *g, u32 src, u8 *dst,
 		u32 size, u8 port);
@@ -356,6 +358,18 @@ int nvgpu_falcon_copy_to_imem(struct nvgpu_falcon *flcn,
  * @return 0 in case of success, < 0 in case of failure.
  */
 int nvgpu_falcon_bootstrap(struct nvgpu_falcon *flcn, u32 boot_vector);
+
+/**
+ * @brief Sets bootstrap configuration required for the Falcon boot.
+ *
+ * @param flcn [in] The falcon
+ *
+ * Set the virtual and physical apertures, context interface attributes &
+ * instance block address.
+ *
+ * @return 0 in case of success, < 0 in case of failure.
+ */
+int nvgpu_falcon_setup_bootstrap_config(struct nvgpu_falcon *flcn);
 
 /**
  * @brief Read the falcon mailbox register.

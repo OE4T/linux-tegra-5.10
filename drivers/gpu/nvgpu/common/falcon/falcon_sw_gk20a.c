@@ -34,6 +34,8 @@ void gk20a_falcon_engine_dependency_ops(struct nvgpu_falcon *flcn)
 	switch (flcn->flcn_id) {
 	case FALCON_ID_PMU:
 		flcn_eng_dep_ops->reset_eng = g->ops.pmu.pmu_reset;
+		flcn_eng_dep_ops->setup_bootstrap_config =
+			g->ops.pmu.flcn_setup_boot_config;
 		break;
 	default:
 		/* NULL assignment make sure

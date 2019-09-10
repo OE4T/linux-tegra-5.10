@@ -226,8 +226,6 @@ static void tu104_acr_ahesasc_sw_init(struct gk20a *g,
 		(u32)sizeof(struct flcn_bl_dmem_desc_v1);
 
 	acr_ahesasc->acr_flcn = &g->sec2.flcn;
-	acr_ahesasc->acr_flcn_setup_boot_config =
-		g->ops.sec2.flcn_setup_boot_config;
 }
 
 /* ACR-ASB(ACR SEC2 booter) init*/
@@ -272,8 +270,6 @@ static void tu104_acr_asb_sw_init(struct gk20a *g,
 	acr_asb->bl_dmem_desc_size = (u32)sizeof(struct flcn_bl_dmem_desc_v1);
 
 	acr_asb->acr_flcn = &g->gsp_flcn;
-	acr_asb->acr_flcn_setup_boot_config =
-		g->ops.gsp.falcon_setup_boot_config;
 }
 
 void nvgpu_tu104_acr_sw_init(struct gk20a *g, struct nvgpu_acr *acr)

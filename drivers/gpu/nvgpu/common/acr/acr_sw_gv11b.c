@@ -199,8 +199,6 @@ static void gv11b_acr_default_sw_init(struct gk20a *g, struct hs_acr *acr_desc)
 	acr_desc->bl_dmem_desc_size = (u32)sizeof(struct flcn_bl_dmem_desc_v1);
 
 	acr_desc->acr_flcn = g->pmu->flcn;
-	acr_desc->acr_flcn_setup_boot_config =
-		g->ops.pmu.flcn_setup_boot_config;
 	acr_desc->report_acr_engine_bus_err_status =
 		nvgpu_pmu_report_bar0_pri_err_status;
 	acr_desc->acr_engine_bus_err_status =
