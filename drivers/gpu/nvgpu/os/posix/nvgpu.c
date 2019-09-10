@@ -37,6 +37,19 @@
 
 #include "os_posix.h"
 
+#ifdef NVGPU_UNITTEST_FAULT_INJECTION_ENABLEMENT
+#include <nvgpu/posix/posix-fault-injection.h>
+#endif
+
+#ifdef NVGPU_UNITTEST_FAULT_INJECTION_ENABLEMENT
+_Thread_local struct nvgpu_posix_fault_inj nvgpu_fi;
+
+struct nvgpu_posix_fault_inj *nvgpu_nvgpu_get_fault_injection(void)
+{
+	return &nvgpu_fi;
+}
+#endif
+
 /*
  * Somewhat meaningless in userspace...
  */
@@ -67,6 +80,11 @@ void gk20a_idle_nosuspend(struct gk20a *g)
 
 int gk20a_busy(struct gk20a *g)
 {
+#ifdef NVGPU_UNITTEST_FAULT_INJECTION_ENABLEMENT
+	if (nvgpu_posix_fault_injection_handle_call(&nvgpu_fi)) {
+		return -ENODEV;
+	}
+#endif
 	nvgpu_atomic_inc(&g->usage_count);
 
 	return 0;
@@ -90,6 +108,12 @@ struct gk20a *nvgpu_posix_probe(void)
 {
 	struct gk20a *g;
 	struct nvgpu_os_posix *p;
+
+#ifdef NVGPU_UNITTEST_FAULT_INJECTION_ENABLEMENT
+	if (nvgpu_posix_fault_injection_handle_call(&nvgpu_fi)) {
+		return NULL;
+	}
+#endif
 
 	p = malloc(sizeof(*p));
 

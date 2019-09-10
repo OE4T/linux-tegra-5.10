@@ -25,4 +25,8 @@
 
 void nvgpu_kernel_restart(void *cmd);
 
+#ifdef NVGPU_UNITTEST_FAULT_INJECTION_ENABLEMENT
+struct nvgpu_posix_fault_inj *nvgpu_nvgpu_get_fault_injection(void);
+#endif
+
 #endif
