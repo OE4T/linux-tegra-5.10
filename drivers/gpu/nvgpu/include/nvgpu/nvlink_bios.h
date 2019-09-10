@@ -40,7 +40,7 @@ struct nvlink_config_data_hdr_v1 {
 	u32 link_refclk_mask;
 	u8 train_at_boot;
 	u32 ac_coupling_mask;
-} __packed;
+} __attribute__((packed));
 
 #define LWPR_NVLINK_TABLE_10_HDR_VER_10         0x10U
 #define LPWR_NVLINK_TABLE_10_HDR_SIZE_06        6U
@@ -52,7 +52,7 @@ struct lpwr_nvlink_table_hdr_v1 {
 	u8 entry_count;
 	u8 default_entry_idx;
 	u8 line_rate_initpll_ordinal;
-} __packed;
+} __attribute__((packed));
 
 struct gk20a;
 

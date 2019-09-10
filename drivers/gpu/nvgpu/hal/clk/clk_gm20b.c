@@ -416,7 +416,8 @@ static void clk_set_dfs_coeff(struct gk20a *g, u32 dfs_coeff)
 	gk20a_writel(g, trim_gpc_bcast_gpcpll_dvfs2_r(), data);
 }
 
-static void __maybe_unused clk_set_dfs_det_max(struct gk20a *g, u32 dfs_det_max)
+static void __attribute__((unused)) clk_set_dfs_det_max(struct gk20a *g,
+							u32 dfs_det_max)
 {
 	u32 data = gk20a_readl(g, trim_gpc_bcast_gpcpll_dvfs2_r());
 	data |= DFS_EXT_STROBE;

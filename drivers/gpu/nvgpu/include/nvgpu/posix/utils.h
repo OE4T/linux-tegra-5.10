@@ -235,13 +235,15 @@ static inline unsigned int nvgpu_posix_hweight64(uint64_t x)
  * here.
  */
 #define __must_check		__attribute__((warn_unused_result))
-#define __maybe_unused		__attribute__((unused))
-#define __iomem
+
+#ifndef __user
 #define __user
+#else
+#error "__user already defined !!"
+#endif
+
 #define unlikely(x)	(x)
 #define likely(x)	(x)
-
-#define __stringify(x)		#x
 
 /*
  * Prevent compiler optimizations from mangling writes. But likely most uses of
@@ -256,8 +258,6 @@ static inline unsigned int nvgpu_posix_hweight64(uint64_t x)
 #define container_of(ptr, type, member) ({                    \
 	const typeof(((type *)0)->member) *__mptr = (ptr);    \
 	(type *)((char *)__mptr - offsetof(type, member)); })
-
-#define __packed __attribute__((packed))
 
 #define MAX_ERRNO	4095
 

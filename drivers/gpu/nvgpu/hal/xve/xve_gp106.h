@@ -52,7 +52,7 @@ enum xv_speed_change_steps {
 	nvgpu_log(g, gpu_dbg_xv, fmt, ##args)
 
 #define xv_sc_dbg(g, step, fmt, args...)					\
-	xv_dbg(g, "[%d] %15s | " fmt, step, __stringify(step), ##args)
+	xv_dbg(g, "[%d] %15s | " fmt, step, nvgpu_stringify(step), ##args)
 
 void xve_xve_writel_gp106(struct gk20a *g, u32 reg, u32 val);
 u32 xve_xve_readl_gp106(struct gk20a *g, u32 reg);

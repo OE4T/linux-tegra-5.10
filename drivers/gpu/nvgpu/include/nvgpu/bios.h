@@ -79,7 +79,7 @@ struct bit_token {
 	u8 data_version;
 	u16 data_size;
 	u16 data_ptr;
-} __packed;
+} __attribute__((packed));
 
 /*
  * BIOS_GET_FIELD returns the value of a given field 'name' of the param 'value'
@@ -93,7 +93,7 @@ struct bit_token {
 struct fll_descriptor_header {
 	u8 version;
 	u8 size;
-} __packed;
+} __attribute__((packed));
 
 #define FLL_DESCRIPTOR_HEADER_10_SIZE_6     6U
 #define FLL_DESCRIPTOR_HEADER_10_SIZE_7     7U
@@ -105,7 +105,7 @@ struct fll_descriptor_header_10 {
 	u8 entry_count;
 	u16 max_min_freq_mhz;
 	u8 freq_margin_vfe_idx;
-} __packed;
+} __attribute__((packed));
 
 #define FLL_DESCRIPTOR_ENTRY_10_SIZE     15U
 
@@ -121,7 +121,7 @@ struct fll_descriptor_entry_10 {
 	u8 freq_ctrl_idx;
 	u16 ref_freq_mhz;
 	u16 ffr_cutoff_freq_mhz;
-} __packed;
+} __attribute__((packed));
 
 #define NV_FLL_DESC_FLL_PARAMS_MDIV_MASK 0x1FU
 #define NV_FLL_DESC_FLL_PARAMS_MDIV_SHIFT 0U
@@ -142,13 +142,13 @@ struct vin_descriptor_header_10 {
 	u8 entry_count;
 	u8 flags0;
 	u32 vin_cal;
-} __packed;
+} __attribute__((packed));
 
 struct vin_descriptor_entry_10 {
 	u8 vin_device_type;
 	u8 volt_domain_vbios;
 	u8 vin_device_id;
-} __packed;
+} __attribute__((packed));
 
 #define NV_VIN_DESC_FLAGS0_VIN_CAL_REVISION_MASK 0x7U
 #define NV_VIN_DESC_FLAGS0_VIN_CAL_REVISION_SHIFT 0U
@@ -186,7 +186,7 @@ struct vbios_clocks_table_35_header {
 	u8 clocks_hal;
 	u16 cntr_sampling_periodms;
 	u16 reference_window;
-} __packed;
+} __attribute__((packed));
 
 #define VBIOS_CLOCKS_TABLE_35_ENTRY_SIZE_11                                0x0BU
 struct vbios_clocks_table_35_entry {
@@ -195,7 +195,7 @@ struct vbios_clocks_table_35_entry {
 	u32 param1;
 	u16 param2;
 	u16 param3;
-} __packed;
+} __attribute__((packed));
 
 #define NV_VBIOS_CLOCKS_TABLE_1X_ENTRY_FLAGS0_USAGE_MASK                   0x1FU
 #define NV_VBIOS_CLOCKS_TABLE_1X_ENTRY_FLAGS0_USAGE_SHIFT                     0U
@@ -252,7 +252,7 @@ struct vbios_clock_programming_table_1x_header {
 	u8 slave_entry_count;
 	u8 vf_entry_size;
 	u8 vf_entry_count;
-} __packed;
+} __attribute__((packed));
 
 #define VBIOS_CLOCK_PROGRAMMING_TABLE_35_HEADER_SIZE_0A                    0x0AU
 #define VBIOS_CLOCK_PROGRAMMING_TABLE_35_HEADER_VERSION                    0x35U
@@ -267,7 +267,7 @@ struct vbios_clock_programming_table_35_header {
 	u8 vf_entry_count;
 	u8 vf_sec_entry_size;
 	u8 vf_sec_entry_count;
-} __packed;
+} __attribute__((packed));
 
 #define VBIOS_CLOCK_PROGRAMMING_TABLE_1X_ENTRY_SIZE_05                     0x05U
 #define VBIOS_CLOCK_PROGRAMMING_TABLE_1X_ENTRY_SIZE_0D                     0x0DU
@@ -278,7 +278,7 @@ struct vbios_clock_programming_table_1x_entry {
 	u8 param1;
 	u32 rsvd;
 	u32 rsvd1;
-} __packed;
+} __attribute__((packed));
 
 #define NV_VBIOS_CLOCK_PROGRAMMING_TABLE_1X_ENTRY_FLAGS0_TYPE_MASK         0x0FU
 #define NV_VBIOS_CLOCK_PROGRAMMING_TABLE_1X_ENTRY_FLAGS0_TYPE_SHIFT        0x00U
@@ -308,7 +308,7 @@ struct vbios_clock_programming_table_1x_entry {
 struct vbios_clock_programming_table_1x_slave_entry {
 	u8 clk_dom_idx;
 	u16 param0;
-} __packed;
+} __attribute__((packed));
 
 #define NV_VBIOS_CLOCK_PROGRAMMING_TABLE_1X_SLAVE_ENTRY_PARAM0_MASTER_RATIO_RATIO_MASK 0xFFU
 #define NV_VBIOS_CLOCK_PROGRAMMING_TABLE_1X_SLAVE_ENTRY_PARAM0_MASTER_RATIO_RATIO_SHIFT 0x00U
@@ -320,18 +320,18 @@ struct vbios_clock_programming_table_1x_slave_entry {
 struct vbios_clock_programming_table_1x_vf_entry {
 	u8 vfe_idx;
 	u8 param0;
-} __packed;
+} __attribute__((packed));
 
 #define VBIOS_CLOCK_PROGRAMMING_TABLE_35_VF_ENTRY_SIZE_01                  0x01U
 struct vbios_clock_programming_table_35_vf_entry {
 	u8 vfe_idx;
-} __packed;
+} __attribute__((packed));
 
 #define VBIOS_CLOCK_PROGRAMMING_TABLE_35_VF_SEC_ENTRY_SIZE_02		   0x02U
 struct vbios_clock_programming_table_35_vf_sec_entry {
 	u8 sec_vfe_idx;
 	u8 param0;
-} __packed;
+} __attribute__((packed));
 
 #define NV_VBIOS_CLOCK_PROGRAMMING_TABLE_1X_VF_ENTRY_PARAM0_FLL_GAIN_VFE_IDX_MASK 0xFFU
 #define NV_VBIOS_CLOCK_PROGRAMMING_TABLE_1X_VF_ENTRY_PARAM0_FLL_GAIN_VFE_IDX_SHIFT 0X00U
@@ -349,7 +349,7 @@ struct vbios_vfe_3x_header_struct {
 	u8 polling_periodms;
 	u8 vfe_var_rppm_entry_count;
 	u8 vfe_equ_rppm_entry_count;
-} __packed;
+} __attribute__((packed));
 
 #define VBIOS_VFE_3X_HEADER_SIZE_07                                     0x07U
 #define VBIOS_VFE_3X_HEADER_SIZE_09                                     0x09U
@@ -364,7 +364,7 @@ struct vbios_vfe_3x_var_entry_struct {
 	u32 param1;
 	u32 param2;
 	u32 param3;
-} __packed;
+} __attribute__((packed));
 
 #define VBIOS_VFE_3X_VAR_ENTRY_TYPE_DISABLED                               0x00U
 #define VBIOS_VFE_3X_VAR_ENTRY_TYPE_SINGLE_FREQUENCY                       0x01U
@@ -446,7 +446,7 @@ struct vbios_vfe_3x_equ_entry_struct {
 	u32 param1;
 	u32 param2;
 	u8 param3;
-} __packed;
+} __attribute__((packed));
 
 
 #define VBIOS_VFE_3X_EQU_ENTRY_TYPE_DISABLED                               0x00U
@@ -534,7 +534,7 @@ struct vfield_reg_header {
 	u8 version;
 	u8 entry_size;
 	u8 count;
-} __packed;
+} __attribute__((packed));
 
 #define VBIOS_VFIELD_REG_TABLE_VERSION_1_0  0x10U
 
@@ -545,7 +545,7 @@ struct vfield_reg_entry {
 	u32 reg;
 	u32 reg_index;
 	u32 index;
-} __packed;
+} __attribute__((packed));
 
 #define VFIELD_HEADER_SIZE 3U
 
@@ -553,7 +553,7 @@ struct vfield_header {
 	u8 version;
 	u8 entry_size;
 	u8 count;
-} __packed;
+} __attribute__((packed));
 
 #define VBIOS_VFIELD_TABLE_VERSION_1_0  0x10U
 
@@ -566,7 +566,7 @@ struct vfield_header {
 struct vfield_entry {
 	u8 strap_id;
 	u16 strap_desc;
-} __packed;
+} __attribute__((packed));
 
 #define PERF_CLK_DOMAINS_IDX_MAX		(32U)
 #define PERF_CLK_DOMAINS_IDX_INVALID		PERF_CLK_DOMAINS_IDX_MAX
@@ -585,7 +585,7 @@ struct vbios_pstate_header_6x {
 	u8 initial_pstate;
 	u8 cpi_support_level;
 	u8 cpi_features;
-} __packed;
+} __attribute__((packed));
 
 #define VBIOS_PSTATE_HEADER_6X_FLAGS0_PSTATES_MASK                0x1U
 #define VBIOS_PSTATE_HEADER_6X_FLAGS0_PSTATES_SHIFT               0x0U
@@ -604,7 +604,7 @@ struct vbios_pstate_header_6x {
 struct vbios_pstate_entry_clock_6x {
 	u16 param0;
 	u32 param1;
-} __packed;
+} __attribute__((packed));
 
 struct vbios_pstate_entry_6x {
 	u8 pstate_level;
@@ -614,7 +614,7 @@ struct vbios_pstate_entry_6x {
 	u8 nvlink_idx;
 	struct vbios_pstate_entry_clock_6x
 		nvgpu_clockEntry[PERF_CLK_DOMAINS_IDX_MAX];
-} __packed;
+} __attribute__((packed));
 
 #define VBIOS_PSTATE_6X_FLAGS0_PSTATE_CAP_MASK                     0x3U
 #define VBIOS_PSTATE_6X_FLAGS0_PSTATE_CAP_SHIFT                    0x0U
@@ -671,7 +671,7 @@ struct vbios_memory_clock_header_1x {
 	u8 script_list_count;
 	u32 cmd_script_list_ptr;
 	u8 cmd_script_list_count;
-} __packed;
+} __attribute__((packed));
 
 #define VBIOS_MEMORY_CLOCK_BASE_ENTRY_11_2_SIZE				20U
 
@@ -685,7 +685,7 @@ struct vbios_memory_clock_base_entry_11 {
 	u8 flags1;
 	u8 ref_mpllssf_freq_delta;
 	u8 flags2;
-} __packed;
+} __attribute__((packed));
 
 /* Script Pointer Index */
 /* #define VBIOS_MEMORY_CLOCK_BASE_ENTRY_11_FLAGS1_SCRIPT_INDEX		3:2*/
@@ -704,7 +704,7 @@ struct pwr_sensors_2x_header {
 	u8 table_entry_size;
 	u8 num_table_entries;
 	u32 ba_script_pointer;
-} __packed;
+} __attribute__((packed));
 
 #define VBIOS_POWER_SENSORS_2X_ENTRY_SIZE_15                         0x00000015U
 
@@ -715,7 +715,7 @@ struct pwr_sensors_2x_entry {
 	u32 sensor_param1;
 	u32 sensor_param2;
 	u32 sensor_param3;
-} __packed;
+} __attribute__((packed));
 
 #define NV_VBIOS_POWER_SENSORS_2X_ENTRY_FLAGS0_CLASS_MASK                   0xFU
 #define NV_VBIOS_POWER_SENSORS_2X_ENTRY_FLAGS0_CLASS_SHIFT                    0U
@@ -754,7 +754,7 @@ struct pwr_topology_2x_header {
 	u8 num_table_entries;
 	u8 rel_entry_size;
 	u8 num_rel_entries;
-} __packed;
+} __attribute__((packed));
 
 #define VBIOS_POWER_TOPOLOGY_2X_ENTRY_SIZE_16                        0x00000016U
 
@@ -766,7 +766,7 @@ struct pwr_topology_2x_entry {
 	u32 curr_corr_offset;
 	u32 param1;
 	u32 param2;
-} __packed;
+} __attribute__((packed));
 
 #define NV_VBIOS_POWER_TOPOLOGY_2X_ENTRY_FLAGS0_CLASS_MASK                  0xFU
 #define NV_VBIOS_POWER_TOPOLOGY_2X_ENTRY_FLAGS0_CLASS_SHIFT                   0U
@@ -803,7 +803,7 @@ struct pwr_policy_3x_header_struct {
 	u8 sm_bus_policy_idx;
 	u8 table_viol_entry_size;
 	u8 num_table_viol_entries;
-} __packed;
+} __attribute__((packed));
 
 #define VBIOS_POWER_POLICY_3X_ENTRY_SIZE_2E                          0x0000002EU
 
@@ -825,7 +825,7 @@ struct pwr_policy_3x_entry_struct {
 	u16 ratio_max;
 	u8 sample_mult;
 	u32 filter_param;
-} __packed;
+} __attribute__((packed));
 
 #define NV_VBIOS_POWER_POLICY_3X_ENTRY_FLAGS0_CLASS_MASK                    0xFU
 #define NV_VBIOS_POWER_POLICY_3X_ENTRY_FLAGS0_CLASS_SHIFT                     0U
@@ -857,7 +857,7 @@ struct vbios_voltage_rail_table_1x_header {
 	u8 table_entry_size;
 	u8 num_table_entries;
 	u8 volt_domain_hal;
-} __packed;
+} __attribute__((packed));
 
 #define NV_VBIOS_VOLTAGE_RAIL_1X_ENTRY_SIZE_07		0X00000007U
 #define NV_VBIOS_VOLTAGE_RAIL_1X_ENTRY_SIZE_08		0X00000008U
@@ -876,7 +876,7 @@ struct vbios_voltage_rail_table_1x_entry {
 	u8 vmin_limit_vfe_equ_idx;
 	u8 volt_margin_limit_vfe_equ_idx;
 	u8 volt_scale_exp_pwr_equ_idx;
-} __packed;
+} __attribute__((packed));
 
 /* Voltage Device Table */
 struct vbios_voltage_device_table_1x_header {
@@ -884,7 +884,7 @@ struct vbios_voltage_device_table_1x_header {
 	u8 header_size;
 	u8 table_entry_size;
 	u8 num_table_entries;
-} __packed;
+} __attribute__((packed));
 
 struct vbios_voltage_device_table_1x_entry {
 	u8 type;
@@ -895,7 +895,7 @@ struct vbios_voltage_device_table_1x_entry {
 	u32 param2;
 	u32 param3;
 	u32 param4;
-} __packed;
+} __attribute__((packed));
 
 #define NV_VBIOS_VOLTAGE_DEVICE_1X_ENTRY_TYPE_INVALID		0x00U
 #define NV_VBIOS_VOLTAGE_DEVICE_1X_ENTRY_TYPE_PSV		0x02U
@@ -948,7 +948,7 @@ struct vbios_voltage_policy_table_1x_header {
 	u8 table_entry_size;
 	u8 num_table_entries;
 	u8 perf_core_vf_seq_policy_idx;
-} __packed;
+} __attribute__((packed));
 
 struct vbios_voltage_policy_table_1x_entry {
 	u8 type;
@@ -956,7 +956,7 @@ struct vbios_voltage_policy_table_1x_entry {
 	u32 param1;
 	u32 param2;
 	u32 param3;
-} __packed;
+} __attribute__((packed));
 
 #define NV_VBIOS_VOLTAGE_POLICY_1X_ENTRY_TYPE_INVALID			0x00U
 #define NV_VBIOS_VOLTAGE_POLICY_1X_ENTRY_TYPE_SINGLE_RAIL		0x01U
@@ -1040,7 +1040,7 @@ struct therm_channel_1x_header {
 	u8 board_pri_ch_idx;
 	u8 mem_pri_ch_idx;
 	u8 pwr_supply_pri_ch_idx;
-} __packed;
+} __attribute__((packed));
 
 struct therm_channel_1x_entry {
 	u8 class_id;
@@ -1048,7 +1048,7 @@ struct therm_channel_1x_entry {
 	u8 param1;
 	u8 param2;
 	u8 flags;
-} __packed;
+} __attribute__((packed));
 
 #define NV_VBIOS_THERM_CHANNEL_1X_ENTRY_CLASS_DEVICE                       0x01U
 
@@ -1065,7 +1065,7 @@ struct vbios_fct_1x_header {
 	u8 entry_size;
 	u8 entry_count;
 	u16 sampling_period_ms;
-} __packed;
+} __attribute__((packed));
 
 struct vbios_fct_1x_entry {
 	u8 flags0;
@@ -1079,7 +1079,7 @@ struct vbios_fct_1x_entry {
 	u32 param6;
 	u32 param7;
 	u32 param8;
-} __packed;
+} __attribute__((packed));
 
 #define NV_VBIOS_FCT_1X_ENTRY_FLAGS0_TYPE_MASK U8(GENMASK(3, 0))
 #define NV_VBIOS_FCT_1X_ENTRY_FLAGS0_TYPE_SHIFT 0U
@@ -1148,7 +1148,7 @@ struct nvgpu_bios_lpwr_idx_table_1x_header {
 	u8 entry_size;
 	u8 entry_count;
 	u16 base_sampling_period;
-} __packed;
+} __attribute__((packed));
 
 struct nvgpu_bios_lpwr_idx_table_1x_entry {
 	u8 pcie_idx;
@@ -1156,7 +1156,7 @@ struct nvgpu_bios_lpwr_idx_table_1x_entry {
 	u8 ms_idx;
 	u8 di_idx;
 	u8 gc6_idx;
-} __packed;
+} __attribute__((packed));
 
 /* LPWR MS Table*/
 struct nvgpu_bios_lpwr_ms_table_1x_header {
@@ -1166,13 +1166,13 @@ struct nvgpu_bios_lpwr_ms_table_1x_header {
 	u8 entry_count;
 	u8 default_entry_idx;
 	u16 idle_threshold_us;
-} __packed;
+} __attribute__((packed));
 
 struct nvgpu_bios_lpwr_ms_table_1x_entry {
 	u32 feautre_mask;
 	u16 dynamic_current_logic;
 	u16 dynamic_current_sram;
-} __packed;
+} __attribute__((packed));
 
 #define NV_VBIOS_LPWR_MS_FEATURE_MASK_MS_MASK    U32(GENMASK(0, 0))
 #define NV_VBIOS_LPWR_MS_FEATURE_MASK_MS_SHIFT    0U
@@ -1193,11 +1193,11 @@ struct nvgpu_bios_lpwr_gr_table_1x_header {
 	u8 default_entry_idx;
 	u16 idle_threshold_us;
 	u8 adaptive_gr_multiplier;
-} __packed;
+} __attribute__((packed));
 
 struct nvgpu_bios_lpwr_gr_table_1x_entry {
 	u32 feautre_mask;
-} __packed;
+} __attribute__((packed));
 
 #define NV_VBIOS_LPWR_GR_FEATURE_MASK_GR_MASK U32(GENMASK(0, 0))
 #define NV_VBIOS_LPWR_GR_FEATURE_MASK_GR_SHIFT 0U
@@ -1230,7 +1230,7 @@ struct bios_bit {
 	u8 token_size;
 	u8 token_entries;
 	u8 header_checksum;
-} __packed;
+} __attribute__((packed));
 
 #define TOKEN_ID_BIOSDATA                       0x42U
 #define TOKEN_ID_NVINIT_PTRS                    0x49U
@@ -1248,13 +1248,13 @@ struct memory_ptrs_v1 {
 	u8 mem_strap_data_count;
 	u16 mem_strap_xlat_tbl_ptr;
 	u8 rsvd1[8];
-} __packed;
+} __attribute__((packed));
 
 struct memory_ptrs_v2 {
 	u8 mem_strap_data_count;
 	u16 mem_strap_xlat_tbl_ptr;
 	u8 rsvd[14];
-} __packed;
+} __attribute__((packed));
 
 struct biosdata {
 	u32 version;
@@ -1265,7 +1265,7 @@ struct biosdata {
 	u16 boardid;
 	u16 framecount;
 	u8 biosmoddate[8];
-} __packed;
+} __attribute__((packed));
 
 struct nvinit_ptrs {
 	u16 initscript_table_ptr;
@@ -1283,11 +1283,11 @@ struct nvinit_ptrs {
 	u16 bootscripts_ptr;
 	u16 bootscripts_size;
 	u16 nvlink_config_data_ptr;
-} __packed;
+} __attribute__((packed));
 
 struct falcon_data_v2 {
 	u32 falcon_ucode_table_ptr;
-} __packed;
+} __attribute__((packed));
 
 struct falcon_ucode_table_hdr_v1 {
 	u8 version;
@@ -1296,13 +1296,13 @@ struct falcon_ucode_table_hdr_v1 {
 	u8 entry_count;
 	u8 desc_version;
 	u8 desc_size;
-} __packed;
+} __attribute__((packed));
 
 struct falcon_ucode_table_entry_v1 {
 	u8 application_id;
 	u8 target_id;
 	u32 desc_ptr;
-} __packed;
+} __attribute__((packed));
 
 #define TARGET_ID_PMU                           0x01U
 #define APPLICATION_ID_DEVINIT                  0x04U
@@ -1340,7 +1340,7 @@ struct falcon_ucode_desc_v1 {
 	u32 dmem_offset;
 	u32 dmem_phys_base;
 	u32 dmem_load_size;
-} __packed;
+} __attribute__((packed));
 
 struct falcon_ucode_desc_v2 {
 	u32 v_desc;
@@ -1358,7 +1358,7 @@ struct falcon_ucode_desc_v2 {
 	u32 dmem_load_size;
 	u32 alt_imem_load_size;
 	u32 alt_dmem_load_size;
-} __packed;
+} __attribute__((packed));
 
 union falcon_ucode_desc {
 	struct falcon_ucode_desc_v1 v1;
@@ -1370,12 +1370,12 @@ struct application_interface_table_hdr_v1 {
 	u8 header_size;
 	u8 entry_size;
 	u8 entry_count;
-} __packed;
+} __attribute__((packed));
 
 struct application_interface_entry_v1 {
 	u32 id;
 	u32 dmem_offset;
-} __packed;
+} __attribute__((packed));
 
 #define APPINFO_ID_DEVINIT                      0x01U
 
@@ -1400,14 +1400,14 @@ struct devinit_engine_interface {
 	u32 io_cond_table_virt_base;
 	u32 data_arrays_table_virt_base;
 	u32 gpio_assignment_table_virt_base;
-} __packed;
+} __attribute__((packed));
 
 struct pci_exp_rom {
 	u16 sig;
 	u8 reserved[0x16];
 	u16 pci_data_struct_ptr;
 	u32 size_of_block;
-} __packed;
+} __attribute__((packed));
 
 struct pci_data_struct {
 	u32 sig;
@@ -1422,7 +1422,7 @@ struct pci_data_struct {
 	u8 code_type;
 	u8 last_image;
 	u16 max_runtime_image_len;
-} __packed;
+} __attribute__((packed));
 
 struct pci_ext_data_struct {
 	u32 sig;
@@ -1431,12 +1431,12 @@ struct pci_ext_data_struct {
 	u16 sub_image_len;
 	u8 priv_last_image;
 	u8 flags;
-} __packed;
+} __attribute__((packed));
 
 struct bios_board_id {
 	u8 padding[11];
 	u16 board_id;
-} __packed;
+} __attribute__((packed));
 
 struct nvgpu_bios_ucode {
 	u8 *bootloader;
