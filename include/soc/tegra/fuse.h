@@ -103,6 +103,9 @@ extern u32 tegra_get_sku_id(void);
 extern enum tegra_revision tegra_chip_get_revision(void);
 extern bool is_t210b01_sku(void);
 
+/* check if safety build */
+bool is_tegra_safety_build(void);
+
 /* tegra-platform.c declarations */
 extern enum tegra_platform tegra_get_platform(void);
 extern bool tegra_cpu_is_asim(void);
