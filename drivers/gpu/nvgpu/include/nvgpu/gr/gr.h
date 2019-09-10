@@ -80,6 +80,7 @@
  *   + include/nvgpu/gr/ctx.h
  *   + include/nvgpu/gr/subctx.h
  *   + include/nvgpu/gr/global_ctx.h
+ *   + include/nvgpu/gr/obj_ctx.h
  *
  * Resource utilization
  * --------------------

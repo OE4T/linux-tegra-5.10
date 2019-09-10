@@ -635,7 +635,7 @@ clean_up:
 
 /*
  * init global golden image from a fresh gr_ctx in channel ctx.
- * save a copy in local_golden_image in ctx_vars
+ * save a copy in local_golden_image.
  */
 int nvgpu_gr_obj_ctx_alloc_golden_ctx_image(struct gk20a *g,
 	struct nvgpu_gr_obj_ctx_golden_image *golden_image,
