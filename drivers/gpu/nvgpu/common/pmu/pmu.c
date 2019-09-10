@@ -472,11 +472,6 @@ int nvgpu_pmu_reset(struct gk20a *g)
 
 	nvgpu_log_fn(g, " %s ", g->name);
 
-	err = nvgpu_falcon_wait_idle(pmu->flcn);
-	if (err != 0) {
-		goto exit;
-	}
-
 	err = pmu_enable(pmu, false);
 	if (err != 0) {
 		goto exit;
