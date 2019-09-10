@@ -10,9 +10,12 @@ gv11b_fb_write_mmu_fault_buffer_size
 find_first_bit
 find_first_zero_bit
 find_next_bit
+gk20a_as_alloc_share
+gk20a_as_release_share
 gk20a_mm_fb_flush
 gk20a_ramin_alloc_size
 gk20a_ramin_base_shift
+gk20a_vm_release_share
 gm20b_fb_tlb_invalidate
 gm20b_mm_get_big_page_sizes
 gm20b_ramin_set_big_page_size
@@ -275,6 +278,7 @@ nvgpu_mutex_destroy
 nvgpu_mutex_init
 nvgpu_mutex_release
 nvgpu_mutex_tryacquire
+nvgpu_nvgpu_get_fault_injection
 nvgpu_pd_alloc
 nvgpu_pd_cache_fini
 nvgpu_pd_cache_init
@@ -379,3 +383,4 @@ nvgpu_test_bit
 nvgpu_test_and_clear_bit
 nvgpu_test_and_set_bit
 vm_aspace_id
+

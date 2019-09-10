@@ -39,6 +39,7 @@
  *   - @ref SWUTS-interface-atomic
  *   - @ref SWUTS-mm-allocators-bitmap-allocator
  *   - @ref SWUTS-mm-allocators-buddy-allocator
+ *   - @ref SWUTS-mm-as
  *   - @ref SWUTS-mm-nvgpu-mem
  *   - @ref SWUTS-mm-nvgpu-sgt
  *   - @ref SWUTS-mm-mm

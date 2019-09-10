@@ -55,6 +55,7 @@ NV_REPOSITORY_COMPONENTS += userspace/units/mm/allocators/buddy_allocator
 NV_REPOSITORY_COMPONENTS += userspace/units/mm/allocators/nvgpu_allocator
 NV_REPOSITORY_COMPONENTS += userspace/units/mm/allocators/bitmap_allocator
 NV_REPOSITORY_COMPONENTS += userspace/units/mm/allocators/page_allocator
+NV_REPOSITORY_COMPONENTS += userspace/units/mm/as
 NV_REPOSITORY_COMPONENTS += userspace/units/mm/dma
 NV_REPOSITORY_COMPONENTS += userspace/units/mm/gmmu/pd_cache
 NV_REPOSITORY_COMPONENTS += userspace/units/mm/gmmu/page_table
