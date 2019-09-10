@@ -53,6 +53,7 @@ struct fuse_test_args gm20b_init_args = {
 	.sec_fuse_addr = GM20B_FUSE_STATUS_OPT_PRIV_SEC_EN,
 };
 
+#ifdef CONFIG_NVGPU_HAL_NON_FUSA
 int test_fuse_gm20b_check_sec(struct unit_module *m,
 			      struct gk20a *g, void *__args)
 {
@@ -174,6 +175,7 @@ int test_fuse_gm20b_check_non_sec(struct unit_module *m,
 
 	return ret;
 }
+#endif /* CONFIG_NVGPU_HAL_NON_FUSA */
 
 int test_fuse_gm20b_basic_fuses(struct unit_module *m,
 				struct gk20a *g, void *__args)
@@ -218,6 +220,7 @@ int test_fuse_gm20b_basic_fuses(struct unit_module *m,
 			}
 		}
 
+#ifdef CONFIG_NVGPU_HAL_NON_FUSA
 		nvgpu_posix_io_writel_reg_space(g, GM20B_FUSE_STATUS_OPT_GPC,
 						set);
 		/*
@@ -230,6 +233,7 @@ int test_fuse_gm20b_basic_fuses(struct unit_module *m,
 				__func__, val, set);
 			ret = UNIT_FAIL;
 		}
+#endif
 
 		for (i = 0; i < GM20B_MAX_GPC_COUNT; i++) {
 			g->ops.fuse.fuse_ctrl_opt_tpc_gpc(g, i, set*i);

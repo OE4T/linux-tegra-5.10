@@ -22,8 +22,12 @@
 
 OBJS   = nvgpu-fuse.o \
 	 nvgpu-fuse-gm20b.o \
-	 nvgpu-fuse-gp10b.o \
-	 nvgpu-fuse-tu104.o
+	 nvgpu-fuse-gp10b.o
+
+ifeq ($(CONFIG_NVGPU_HAL_NON_FUSA),1)
+OBJS	+= nvgpu-fuse-tu104.o
+endif
+
 MODULE = nvgpu-fuse
 
 include ../Makefile.units

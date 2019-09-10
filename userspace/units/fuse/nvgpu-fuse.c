@@ -28,12 +28,18 @@
 #include <nvgpu/hal_init.h>
 #include <nvgpu/enabled.h>
 
+#include "nvgpu-fuse.h"
 #include "nvgpu-fuse-priv.h"
 #include "nvgpu-fuse-gp10b.h"
 #include "nvgpu-fuse-gm20b.h"
 #ifdef CONFIG_NVGPU_DGPU
 #include "nvgpu-fuse-tu104.h"
 #endif
+
+
+#define NV_PMC_BOOT_0_ARCHITECTURE_GV110	(0x00000015 << \
+						 NVGPU_GPU_ARCHITECTURE_SHIFT)
+#define NV_PMC_BOOT_0_IMPLEMENTATION_B		0xB
 
 /*
  * Mock I/O
@@ -106,8 +112,13 @@ int test_fuse_device_common_init(struct unit_module *m,
 
 	(void)nvgpu_posix_register_io(g, &test_reg_callbacks);
 
+#ifdef CONFIG_NVGPU_HAL_NON_FUSA
 	g->params.gpu_arch = args->gpu_arch << NVGPU_GPU_ARCHITECTURE_SHIFT;
 	g->params.gpu_impl = args->gpu_impl;
+#else
+	g->params.gpu_arch = NV_PMC_BOOT_0_ARCHITECTURE_GV110;
+	g->params.gpu_impl = NV_PMC_BOOT_0_IMPLEMENTATION_B;
+#endif
 
 	nvgpu_posix_io_writel_reg_space(g, args->sec_fuse_addr, 0x0);
 
@@ -160,6 +171,7 @@ struct unit_module_test fuse_tests[] = {
 
 	UNIT_TEST(fuse_gm20b_init, test_fuse_device_common_init,
 		  &gm20b_init_args, 0),
+#ifdef CONFIG_NVGPU_HAL_NON_FUSA
 	UNIT_TEST(fuse_gm20b_check_sec, test_fuse_gm20b_check_sec, NULL, 0),
 	UNIT_TEST(fuse_gm20b_check_sec_invalid_gcplex,
 		  test_fuse_gm20b_check_sec_invalid_gcplex,
@@ -173,6 +185,7 @@ struct unit_module_test fuse_tests[] = {
 		  test_fuse_gm20b_check_non_sec,
 		  NULL,
 		  0),
+#endif
 	UNIT_TEST(fuse_gm20b_basic_fuses, test_fuse_gm20b_basic_fuses, NULL, 0),
 #ifdef CONFIG_NVGPU_SIM
 	UNIT_TEST(fuse_gm20b_check_fmodel, test_fuse_gm20b_check_fmodel, NULL, 0),
