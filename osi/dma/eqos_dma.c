@@ -156,6 +156,18 @@ static int eqos_validate_dma_regs(struct osi_dma_priv_data *osi_dma)
 			continue;
 		}
 
+		/* FIXME
+		 * QNX OSD currently overwrites following registers and
+		 * therefore validation fails using this API. Add an
+		 * exception for following registers until QNX OSD completely
+		 * moves to common library.
+		 */
+		if ((i == EQOS_DMA_CH0_TDRL_IDX) ||
+			(i == EQOS_DMA_CH0_RDRL_IDX))
+		{
+			continue;
+		}
+
 		cur_val = osi_readl((unsigned char *)config->reg_addr[i]);
 		cur_val &= config->reg_mask[i];
 
