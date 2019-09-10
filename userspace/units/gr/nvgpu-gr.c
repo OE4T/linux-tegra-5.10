@@ -29,13 +29,16 @@
 #include <nvgpu/posix/io.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/gr/gr.h>
+#include <nvgpu/gr/gr_falcon.h>
+
+#include "common/gr/gr_falcon_priv.h"
 
 #include "hal/init/hal_gv11b.h"
 
 #include "nvgpu-gr.h"
 #include "nvgpu-gr-gv11b.h"
 
-int test_gr_init_support(struct unit_module *m, struct gk20a *g, void *args)
+int test_gr_init_setup(struct unit_module *m, struct gk20a *g, void *args)
 {
 	int err;
 
@@ -51,7 +54,7 @@ int test_gr_init_support(struct unit_module *m, struct gk20a *g, void *args)
 	 */
 	err = nvgpu_gr_alloc(g);
 	if (err != 0) {
-		unit_err(m, " Gr allocation failed!\n");
+		unit_err(m, "Gr allocation failed\n");
 		return -ENOMEM;
 	}
 
@@ -61,28 +64,72 @@ fail:
 	return UNIT_FAIL;
 }
 
+static int test_gr_falcon_load_ctxsw_ucode(struct gk20a *g,
+				struct nvgpu_gr_falcon *falcon)
+{
+	int err = 0;
+	err = nvgpu_gr_falcon_init_ctxsw_ucode(g, falcon);
+	if (err == 0) {
+		falcon->skip_ucode_init = true;
+	}
+
+	return err;
+}
+
 int test_gr_init_prepare(struct unit_module *m, struct gk20a *g, void *args)
 {
 	int err;
 
 	err = nvgpu_gr_prepare_sw(g);
-	if (err) {
-		goto prep_fail;
+	if (err != 0) {
+		unit_return_fail(m, "nvgpu_gr_prepare_sw returned fail\n");
 	}
 
 	err = nvgpu_gr_enable_hw(g);
-	if (err) {
-		goto prep_fail;
+	if (err != 0) {
+		unit_return_fail(m, "nvgpu_gr_enable_hw returned fail\n");
 	}
 
 	return UNIT_SUCCESS;
-
-prep_fail:
-	return UNIT_FAIL;
-
 }
 
-int test_gr_remove_support(struct unit_module *m,
+int test_gr_init_support(struct unit_module *m, struct gk20a *g, void *args)
+{
+	int err;
+
+	nvgpu_gr_init(g);
+
+	g->ops.ltc.init_ltc_support(g);
+	g->ops.mm.init_mm_support(g);
+
+	/* over-ride the falcon load_ctxsw_ucode */
+	g->ops.gr.falcon.load_ctxsw_ucode = test_gr_falcon_load_ctxsw_ucode;
+
+	err = nvgpu_gr_init_support(g);
+	if (err != 0) {
+		unit_return_fail(m, "nvgpu_gr_init_support returned fail\n");
+	}
+
+	return UNIT_SUCCESS;
+}
+
+int test_gr_suspend(struct unit_module *m, struct gk20a *g, void *args)
+{
+	if (nvgpu_gr_suspend(g) != 0) {
+		unit_return_fail(m, "nvgpu_gr_suspend returned fail\n");
+	}
+
+	return UNIT_SUCCESS;
+}
+
+int test_gr_remove_support(struct unit_module *m, struct gk20a *g, void *args)
+{
+	nvgpu_gr_remove_support(g);
+
+	return UNIT_SUCCESS;
+}
+
+int test_gr_remove_setup(struct unit_module *m,
 		struct gk20a *g, void *args)
 {
 	test_gr_cleanup_gv11b_reg_space(m, g);

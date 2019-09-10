@@ -59,6 +59,13 @@ nvgpu_bitmap_set
 nvgpu_bsearch
 nvgpu_gr_alloc
 nvgpu_gr_free
+nvgpu_gr_init
+nvgpu_gr_init_support
+nvgpu_gr_remove_support
+nvgpu_gr_prepare_sw
+nvgpu_gr_enable_hw
+nvgpu_gr_suspend
+nvgpu_gr_falcon_init_ctxsw_ucode
 nvgpu_gr_config_init
 nvgpu_gr_config_deinit
 nvgpu_gr_config_get_max_gpc_count
@@ -91,8 +98,6 @@ nvgpu_gr_config_get_sm_info_sm_index
 nvgpu_gr_config_set_gpc_tpc_mask
 nvgpu_gr_config_get_gpc_tpc_mask
 nvgpu_can_busy
-nvgpu_gr_prepare_sw
-nvgpu_gr_enable_hw
 nvgpu_channel_alloc_inst
 nvgpu_channel_cleanup_sw
 nvgpu_channel_close

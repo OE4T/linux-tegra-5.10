@@ -41,7 +41,7 @@ static int test_gr_config_init(struct unit_module *m,
 {
 	unit_gr_config = nvgpu_gr_config_init(g);
 	if (unit_gr_config == NULL) {
-		return UNIT_FAIL;
+		unit_return_fail(m, "nvgpu_gr_config_init returned fail\n");
 	}
 
 	return UNIT_SUCCESS;
@@ -105,56 +105,47 @@ static int test_gr_config_count(struct unit_module *m,
 
 	val = nvgpu_gr_config_get_max_gpc_count(unit_gr_config);
 	if (val != gv11b_gr_config.max_gpc_count) {
-		unit_err(m, " mismatch in max_gpc_count\n");
-		goto init_fail;
+		unit_return_fail(m, "mismatch in max_gpc_count\n");
 	}
 
 	val = nvgpu_gr_config_get_max_tpc_count(unit_gr_config);
 	if (val != gv11b_gr_config.max_tpc_count) {
-		unit_err(m, " mismatch in max_tpc_count\n");
-		goto init_fail;
+		unit_return_fail(m, "mismatch in max_tpc_count\n");
 	}
 
 	val = nvgpu_gr_config_get_max_tpc_per_gpc_count(unit_gr_config);
 	if (val != gv11b_gr_config.max_tpc_per_gpc_count) {
-		unit_err(m, " mismatch in max_tpc_per_gpc_count\n");
-		goto init_fail;
+		unit_return_fail(m, "mismatch in max_tpc_per_gpc_count\n");
 	}
 
 	val = nvgpu_gr_config_get_gpc_count(unit_gr_config);
 	if (val != gv11b_gr_config.gpc_count) {
-		unit_err(m, " mismatch in gpc_count\n");
-		goto init_fail;
+		unit_return_fail(m, "mismatch in gpc_count\n");
 	}
 
 	val = nvgpu_gr_config_get_tpc_count(unit_gr_config);
 	if (val != gv11b_gr_config.tpc_count) {
-		unit_err(m, " mismatch in tpc_count\n");
-		goto init_fail;
+		unit_return_fail(m, "mismatch in tpc_count\n");
 	}
 
 	val = nvgpu_gr_config_get_ppc_count(unit_gr_config);
 	if (val != gv11b_gr_config.ppc_count) {
-		unit_err(m, " mismatch in ppc_count\n");
-		goto init_fail;
+		unit_return_fail(m, "mismatch in ppc_count\n");
 	}
 
 	val = nvgpu_gr_config_get_pe_count_per_gpc(unit_gr_config);
 	if (val != gv11b_gr_config.pe_count_per_gpc) {
-		unit_err(m, " mismatch in pe_count_per_gpc\n");
-		goto init_fail;
+		unit_err(m, "mismatch in pe_count_per_gpc\n");
 	}
 
 	val = nvgpu_gr_config_get_sm_count_per_tpc(unit_gr_config);
 	if (val != gv11b_gr_config.sm_count_per_tpc) {
-		unit_err(m, " mismatch in sm_count_per_tpc\n");
-		goto init_fail;
+		unit_err(m, "mismatch in sm_count_per_tpc\n");
 	}
 
 	val = nvgpu_gr_config_get_gpc_mask(unit_gr_config);
 	if (val != gv11b_gr_config.gpc_mask) {
-		unit_err(m, " mismatch in gpc_mask\n");
-		goto init_fail;
+		unit_return_fail(m, "mismatch in gpc_mask\n");
 	}
 
 	for (gindex = 0U; gindex < gv11b_gr_config.gpc_count;
@@ -162,22 +153,19 @@ static int test_gr_config_count(struct unit_module *m,
 		val = nvgpu_gr_config_get_gpc_ppc_count(unit_gr_config,
 							gindex);
 		if (val != gv11b_gr_config.gpc_ppc_count[gindex]) {
-			unit_err(m, " mismatch in gpc_ppc_count\n");
-			goto init_fail;
+			unit_return_fail(m, "mismatch in gpc_ppc_count\n");
 		}
 
 		val = nvgpu_gr_config_get_gpc_skip_mask(unit_gr_config,
 							gindex);
 		if (val != gv11b_gr_config.gpc_skip_mask[gindex]) {
-			unit_err(m, " mismatch in gpc_skip_mask\n");
-			goto init_fail;
+			unit_return_fail(m, "mismatch in gpc_skip_mask\n");
 		}
 
 		val = nvgpu_gr_config_get_gpc_tpc_count(unit_gr_config,
 							gindex);
 		if (val != gv11b_gr_config.gpc_tpc_count[gindex]) {
-			unit_err(m, " mismatch in gpc_tpc_count\n");
-			goto init_fail;
+			unit_return_fail(m, "mismatch in gpc_tpc_count\n");
 		}
 
 		for (pindex = 0U; pindex < gv11b_gr_config.gpc_count;
@@ -187,8 +175,8 @@ static int test_gr_config_count(struct unit_module *m,
 			val = nvgpu_gr_config_get_pes_tpc_count(
 					unit_gr_config, gindex, pindex);
 			if (val != pes_tpc_val) {
-				unit_err(m, " mismatch in pes_tpc_count\n");
-				goto init_fail;
+				unit_return_fail(m,
+					"mismatch in pes_tpc_count\n");
 			}
 
 			pes_tpc_val =
@@ -196,8 +184,8 @@ static int test_gr_config_count(struct unit_module *m,
 			val = nvgpu_gr_config_get_pes_tpc_mask(
 					unit_gr_config, gindex, pindex);
 			if (val != pes_tpc_val) {
-				unit_err(m, " mismatch in pes_tpc_count\n");
-				goto init_fail;
+				unit_return_fail(m,
+					"mismatch in pes_tpc_count\n");
 			}
 		}
 	}
@@ -207,20 +195,15 @@ static int test_gr_config_count(struct unit_module *m,
 	 */
 	reg_base = nvgpu_gr_config_get_gpc_tpc_mask_base(unit_gr_config);
 	if (reg_base == NULL) {
-		unit_err(m, " Invalid gpc_tpc_mask_base\n");
-		goto init_fail;
+		unit_return_fail(m, "Invalid gpc_tpc_mask_base\n");
 	}
 
 	reg_base = nvgpu_gr_config_get_gpc_tpc_count_base(unit_gr_config);
 	if (reg_base == NULL) {
-		unit_err(m, " Invalid gpc_tpc_count_base\n");
-		goto init_fail;
+		unit_return_fail(m, "Invalid gpc_tpc_count_base\n");
 	}
 
 	return UNIT_SUCCESS;
-
-init_fail:
-	return UNIT_FAIL;
 }
 
 static int test_gr_config_set_get(struct unit_module *m,
@@ -238,38 +221,33 @@ static int test_gr_config_set_get(struct unit_module *m,
 	val = (u32)rand();
 	nvgpu_gr_config_set_no_of_sm(unit_gr_config, val);
 	if (val != nvgpu_gr_config_get_no_of_sm(unit_gr_config)) {
-		unit_err(m, " mismatch in no_of_sm\n");
-		goto set_get_fail;
+		unit_return_fail(m, "mismatch in no_of_sm\n");
 	}
 
 	sm_info = nvgpu_gr_config_get_sm_info(unit_gr_config, 0);
 	val = (u32)rand();
 	nvgpu_gr_config_set_sm_info_gpc_index(sm_info, val);
 	if (val != nvgpu_gr_config_get_sm_info_gpc_index(sm_info)) {
-		unit_err(m, " mismatch in sm_info_gindex\n");
-		goto set_get_fail;
+		unit_return_fail(m, "mismatch in sm_info_gindex\n");
 	}
 
 	val = (u32)rand();
 	nvgpu_gr_config_set_sm_info_tpc_index(sm_info, val);
 	if (val != nvgpu_gr_config_get_sm_info_tpc_index(sm_info)) {
-		unit_err(m, " mismatch in sm_info_tpc_index\n");
-		goto set_get_fail;
+		unit_return_fail(m, "mismatch in sm_info_tpc_index\n");
 	}
 
 	val = (u32)rand();
 	nvgpu_gr_config_set_sm_info_global_tpc_index(sm_info, val);
 	if (val !=
 		nvgpu_gr_config_get_sm_info_global_tpc_index(sm_info)) {
-		unit_err(m, " mismatch in sm_info_global_tpc_index\n");
-		goto set_get_fail;
+		unit_return_fail(m, "mismatch in sm_info_global_tpc_index\n");
 	}
 
 	val = (u32)rand();
 	nvgpu_gr_config_set_sm_info_sm_index(sm_info, val);
 	if (val != nvgpu_gr_config_get_sm_info_sm_index(sm_info)) {
-		unit_err(m, " mismatch in sm_info_sm_index\n");
-		goto set_get_fail;
+		unit_return_fail(m, "mismatch in sm_info_sm_index\n");
 	}
 
 	for (gindex = 0U; gindex < unit_gr_config->gpc_count;
@@ -278,24 +256,20 @@ static int test_gr_config_set_get(struct unit_module *m,
 		nvgpu_gr_config_set_gpc_tpc_mask(unit_gr_config, gindex, val);
 		if (val !=
 		    nvgpu_gr_config_get_gpc_tpc_mask(unit_gr_config, gindex)) {
-			unit_err(m, " mismatch in gpc_tpc_mask\n");
-			goto set_get_fail;
+			unit_return_fail(m, "mismatch in gpc_tpc_mask\n");
 		}
 	}
 
 	return UNIT_SUCCESS;
-
-set_get_fail:
-	return UNIT_FAIL;
 }
 
 struct unit_module_test nvgpu_gr_config_tests[] = {
-	UNIT_TEST(init_support, test_gr_init_support, NULL, 0),
+	UNIT_TEST(gr_init_setup, test_gr_init_setup, NULL, 0),
 	UNIT_TEST(config_init, test_gr_config_init, NULL, 0),
 	UNIT_TEST(config_check_init, test_gr_config_count, NULL, 0),
 	UNIT_TEST(config_check_set_get, test_gr_config_set_get, NULL, 0),
 	UNIT_TEST(config_deinit, test_gr_config_deinit, NULL, 0),
-	UNIT_TEST(remove_support, test_gr_remove_support, NULL, 0),
+	UNIT_TEST(gr_remove_setup, test_gr_remove_setup, NULL, 0),
 };
 
 UNIT_MODULE(nvgpu_gr_config, nvgpu_gr_config_tests, UNIT_PRIO_NVGPU_TEST);

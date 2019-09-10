@@ -20,7 +20,10 @@
 # DEALINGS IN THE SOFTWARE.
 #
 
-test_gr_init_support
-test_gr_remove_support
+test_gr_init_setup
+test_gr_remove_setup
 test_gr_init_prepare
+test_gr_init_support
+test_gr_suspend
+test_gr_remove_support
 

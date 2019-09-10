@@ -24,21 +24,43 @@
 
 #include <nvgpu/types.h>
 
-#ifdef UNIT_GR_DEBUG
-#define unit_verbose	unit_info
-#else
-#define unit_verbose(unit, msg, ...) \
-	do { \
-		if (0) \
-			{ unit_info(unit, msg, ##__VA_ARGS__); \
-		} \
-	} while (0)
-#endif
+struct gk20a;
+struct unit_module;
 
-int test_gr_init_support(struct unit_module *m,
-		struct gk20a *g, void *args);
-int test_gr_remove_support(struct unit_module *m,
-		struct gk20a *g, void *args);
-int test_gr_init_prepare(struct unit_module *m,
-		struct gk20a *g, void *args);
+/**
+ * Allocate and add needed register spaces
+ * Initialize gv11b hal
+ * Allocate memory for gr unit
+ */
+int test_gr_init_setup(struct unit_module *m, struct gk20a *g, void *args);
+
+/**
+ * Delete the memory for gr unit
+ * Delete and remove the register spaces
+ */
+int test_gr_remove_setup(struct unit_module *m, struct gk20a *g, void *args);
+
+/**
+ * call init_prepare functions to GR driver for
+ * nvgpu_gr_prepare_sw and nvgpu_gr_enable_hw
+ */
+int test_gr_init_prepare(struct unit_module *m, struct gk20a *g, void *args);
+
+/**
+ * Override falcon.load_ctxsw_ucode hal and call
+ * nvgpu_gr_falcon_init_ctxsw_ucode.
+ * Initialize ltc and mm units
+ * Call nvgpu_gr_init_support driver function
+ */
+int test_gr_init_support(struct unit_module *m, struct gk20a *g, void *args);
+
+/**
+ * Support nvgpu_gr_suspend driver function
+ */
+int test_gr_suspend(struct unit_module *m, struct gk20a *g, void *args);
+
+/**
+ * Support nvgpu_gr_remove_support driver function
+ */
+int test_gr_remove_support(struct unit_module *m, struct gk20a *g, void *args);
 #endif /* UNIT_NVGPU_GR_H */

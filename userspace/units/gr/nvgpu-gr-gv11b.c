@@ -21,7 +21,7 @@
  */
 
 #include <stdlib.h>
-#include <sys/types.h>
+#include <nvgpu/types.h>
 #include <unistd.h>
 #include <unit/io.h>
 #include <unit/unit.h>
@@ -41,6 +41,7 @@
 
 #define NV_PBB_FBHUB_REGSPACE 0x100B00
 #define NV_PRI_GPCCS_PPCS_PES_VSC_VPC_REGSPACE 0x41BE04
+#define NV_PRI_GPCCS_PPC0_PES_REGSPACE 0x503010
 /*
  * Mock I/O
  */
@@ -188,13 +189,33 @@ int test_gr_setup_gv11b_reg_space(struct unit_module *m, struct gk20a *g)
 	}
 
 	/*
+	 * PRI_GPCS_PPC0 reg space
+	 *
+	 */
+	if (nvgpu_posix_io_add_reg_space(g,
+		NV_PRI_GPCCS_PPC0_PES_REGSPACE, 0x2FFF) != 0) {
+		unit_err(m, "Add gpcs ppc0 pes reg space failed!\n");
+		goto clean_up_gcc_ppcs_space;
+	}
+
+	/*
+	 * PRI_GPCS_GPM reg space
+	 *
+	 */
+	if (nvgpu_posix_io_add_reg_space(g,
+		gr_gpc0_gpm_pd_sm_id_r(0), 0x10) != 0) {
+		unit_err(m, "Add gpcs gpm reg space failed!\n");
+		goto clean_up_gcc_ppc0_space;
+	}
+
+	/*
 	 * FB partition reg space
 	 *
 	 */
 	if (nvgpu_posix_io_add_reg_space(g,
 		NV_PBB_FBHUB_REGSPACE, 0x1FF) != 0) {
 		unit_err(m, "Add fbhub reg space failed!\n");
-		goto clean_up_gcc_ppcs_space;
+		goto clean_up_gcc_gpm_space;
 	}
 
 	/*
@@ -213,8 +234,12 @@ int test_gr_setup_gv11b_reg_space(struct unit_module *m, struct gk20a *g)
 
 clean_up_fbhub_space:
 	nvgpu_posix_io_delete_reg_space(g, NV_PBB_FBHUB_REGSPACE);
+clean_up_gcc_gpm_space:
+	nvgpu_posix_io_delete_reg_space(g, gr_gpc0_gpm_pd_sm_id_r(0));
+clean_up_gcc_ppc0_space:
+	nvgpu_posix_io_delete_reg_space(g, NV_PRI_GPCCS_PPC0_PES_REGSPACE);
 clean_up_gcc_ppcs_space:
-	nvgpu_posix_io_delete_reg_space(g, gr_gpcs_tpcs_pes_vsc_vpc_r());
+	nvgpu_posix_io_delete_reg_space(g, NV_PRI_GPCCS_PPCS_PES_VSC_VPC_REGSPACE);
 clean_up_gcc_tpcs_space:
 	nvgpu_posix_io_delete_reg_space(g, gr_gpcs_tpcs_pe_vaf_r());
 clean_up_gcc_space:
@@ -229,7 +254,9 @@ clean_up_reg_space:
 void test_gr_cleanup_gv11b_reg_space(struct unit_module *m, struct gk20a *g)
 {
 	nvgpu_posix_io_delete_reg_space(g, NV_PBB_FBHUB_REGSPACE);
-	nvgpu_posix_io_delete_reg_space(g, gr_gpcs_tpcs_pes_vsc_vpc_r());
+	nvgpu_posix_io_delete_reg_space(g, gr_gpc0_gpm_pd_sm_id_r(0));
+	nvgpu_posix_io_delete_reg_space(g, NV_PRI_GPCCS_PPC0_PES_REGSPACE);
+	nvgpu_posix_io_delete_reg_space(g, NV_PRI_GPCCS_PPCS_PES_VSC_VPC_REGSPACE);
 	nvgpu_posix_io_delete_reg_space(g, gr_gpcs_tpcs_pe_vaf_r());
 	nvgpu_posix_io_delete_reg_space(g, gr_pri_gpcs_gcc_dbg_r());
 	nvgpu_posix_io_delete_reg_space(g, gr_gpcs_swdx_dss_zbc_color_r_r(0));

@@ -35,9 +35,12 @@
 #include "../nvgpu-gr.h"
 
 struct unit_module_test nvgpu_gr_init_tests[] = {
-	UNIT_TEST(init_support, test_gr_init_support, NULL, 0),
-	UNIT_TEST(init_prepare, test_gr_init_prepare, NULL, 0),
-	UNIT_TEST(remove_support, test_gr_remove_support, NULL, 0),
+	UNIT_TEST(gr_init_setup, test_gr_init_setup, NULL, 0),
+	UNIT_TEST(gr_init_prepare, test_gr_init_prepare, NULL, 0),
+	UNIT_TEST(gr_init_support, test_gr_init_support, NULL, 0),
+	UNIT_TEST(gr_suspend, test_gr_suspend, NULL, 0),
+	UNIT_TEST(gr_remove_support, test_gr_remove_support, NULL, 0),
+	UNIT_TEST(gr_remove_setup, test_gr_remove_setup, NULL, 0),
 };
 
 UNIT_MODULE(nvgpu_gr_init, nvgpu_gr_init_tests, UNIT_PRIO_NVGPU_TEST);

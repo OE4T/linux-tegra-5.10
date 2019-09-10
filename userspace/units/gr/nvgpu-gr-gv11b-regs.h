@@ -24,13 +24,9 @@
 #define UNIT_NVGPU_GR_GV11b_REGS_H
 
 #include <stdlib.h>
-#include <sys/types.h>
+#include <nvgpu/types.h>
 #include <unistd.h>
-#include <unit/io.h>
-#include <unit/unit.h>
-
 #include <nvgpu/posix/io.h>
-
 
 u32 gr_gv11b_priv_ring_regs[] = {
 /* 0x00120060 */ 0x00000000, 0x00000cd7, 0xbadf5040, 0x00000000,
@@ -3281,5 +3277,4 @@ struct nvgpu_posix_io_reg_space  gr_gv11b_initialized_reg_space[] = {
 		.data = gr_gv11b_fs_regs,
 	      },
 };
-
 #endif /* UNIT_NVGPU_GR_GV11B_REGS_H */
