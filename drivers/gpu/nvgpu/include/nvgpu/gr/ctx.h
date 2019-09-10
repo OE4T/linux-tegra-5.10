@@ -46,83 +46,83 @@ struct zcull_ctx_desc;
 
 /*
  * allocate a minimum of 1 page (4KB) worth of patch space, this is 512 entries
- * of address and data pairs
+ * of address and data pairs.
  */
-/** Number of slots required in patch buffer per entry */
+/** Number of slots required in patch buffer per entry. */
 #define PATCH_CTX_SLOTS_REQUIRED_PER_ENTRY	2U
-/** Number of slots per PAGE_SIZE */
+/** Number of slots per PAGE_SIZE. */
 #define PATCH_CTX_SLOTS_PER_PAGE \
 	(PAGE_SIZE/(PATCH_CTX_SLOTS_REQUIRED_PER_ENTRY * (u32)sizeof(u32)))
-/** Get number of entries in patch buffer given the size of buffer */
+/** Get number of entries in patch buffer given the size of buffer. */
 #define PATCH_CTX_ENTRIES_FROM_SIZE(size) ((size)/sizeof(u32))
 
-/** S/W defined value for WFI graphics preemption mode */
+/** S/W defined value for WFI graphics preemption mode. */
 #define NVGPU_PREEMPTION_MODE_GRAPHICS_WFI	BIT32(0)
 #ifdef CONFIG_NVGPU_GRAPHICS
-/** S/W defined value for GFxP graphics preemption mode */
+/** S/W defined value for GFxP graphics preemption mode. */
 #define NVGPU_PREEMPTION_MODE_GRAPHICS_GFXP	BIT32(1)
 #endif
 
-/** S/W defined value for WFI compute preemption mode */
+/** S/W defined value for WFI compute preemption mode. */
 #define NVGPU_PREEMPTION_MODE_COMPUTE_WFI	BIT32(0)
-/** S/W defined value for CTA compute preemption mode */
+/** S/W defined value for CTA compute preemption mode. */
 #define NVGPU_PREEMPTION_MODE_COMPUTE_CTA	BIT32(1)
 #ifdef CONFIG_NVGPU_CILP
-/** S/W defined value for CILP compute preemption mode */
+/** S/W defined value for CILP compute preemption mode. */
 #define NVGPU_PREEMPTION_MODE_COMPUTE_CILP	BIT32(2)
 #endif
 
-/** S/W defined index for Graphics context buffer */
+/** S/W defined index for Graphics context buffer. */
 #define NVGPU_GR_CTX_CTX		0U
 #ifdef CONFIG_NVGPU_DEBUGGER
-/** S/W defined index for PM context buffer */
+/** S/W defined index for PM context buffer. */
 #define NVGPU_GR_CTX_PM_CTX		1U
 #endif
-/** S/W defined index for patch context buffer */
+/** S/W defined index for patch context buffer. */
 #define NVGPU_GR_CTX_PATCH_CTX		2U
 #ifdef CONFIG_NVGPU_GRAPHICS
-/** S/W defined index for preempt ctxsw buffer */
+/** S/W defined index for preempt ctxsw buffer. */
 #define NVGPU_GR_CTX_PREEMPT_CTXSW	3U
-/** S/W defined index for spill ctxsw buffer */
+/** S/W defined index for spill ctxsw buffer. */
 #define NVGPU_GR_CTX_SPILL_CTXSW	4U
-/** S/W defined index for betacb ctxsw buffer */
+/** S/W defined index for betacb ctxsw buffer. */
 #define NVGPU_GR_CTX_BETACB_CTXSW	5U
-/** S/W defined index for pagepool ctxsw buffer */
+/** S/W defined index for pagepool ctxsw buffer. */
 #define NVGPU_GR_CTX_PAGEPOOL_CTXSW	6U
-/** S/W defined index for rtvcb ctxsw buffer */
+/** S/W defined index for rtvcb ctxsw buffer. */
 #define NVGPU_GR_CTX_GFXP_RTVCB_CTXSW	7U
-/** Number of context buffers */
+/** Number of context buffers. */
 #define NVGPU_GR_CTX_COUNT		8U
 #else
-/** Number of context buffers */
+/** Number of context buffers. */
 #define NVGPU_GR_CTX_COUNT		3U
 #endif
 
 /*
- * either ATTRIBUTE or ATTRIBUTE_VPR maps to NVGPU_GR_CTX_ATTRIBUTE_VA
+ * either ATTRIBUTE or ATTRIBUTE_VPR maps to NVGPU_GR_CTX_ATTRIBUTE_VA.
 */
-/** S/W defined index for circular context buffer virtual address */
+/** S/W defined index for circular context buffer virtual address. */
 #define NVGPU_GR_CTX_CIRCULAR_VA		0U
-/** S/W defined index for pagepool context buffer virtual address */
+/** S/W defined index for pagepool context buffer virtual address. */
 #define NVGPU_GR_CTX_PAGEPOOL_VA		1U
-/** S/W defined index for attribute context buffer virtual address */
+/** S/W defined index for attribute context buffer virtual address. */
 #define NVGPU_GR_CTX_ATTRIBUTE_VA		2U
-/** S/W defined index for access map buffer virtual address */
+/** S/W defined index for access map buffer virtual address. */
 #define NVGPU_GR_CTX_PRIV_ACCESS_MAP_VA		3U
-/** S/W defined index for RTV circular context buffer virtual address */
+/** S/W defined index for RTV circular context buffer virtual address. */
 #define NVGPU_GR_CTX_RTV_CIRCULAR_BUFFER_VA	4U
 #ifdef CONFIG_NVGPU_FECS_TRACE
-/** S/W defined index for fecs trace buffer virtual address */
+/** S/W defined index for fecs trace buffer virtual address. */
 #define NVGPU_GR_CTX_FECS_TRACE_BUFFER_VA	5U
 #endif
-/** Number of context buffer virtual addresses */
+/** Number of context buffer virtual addresses. */
 #define NVGPU_GR_CTX_VA_COUNT			6U
 
 #ifdef CONFIG_NVGPU_DEBUGGER
 /* PM Context Switch Modes */
 /** This mode says that the pms are not to be context switched. */
 #define NVGPU_GR_CTX_HWPM_CTXSW_MODE_NO_CTXSW               (0x00000000U)
-/** This mode says that the pms in Mode-B are to be context switched */
+/** This mode says that the pms in Mode-B are to be context switched. */
 #define NVGPU_GR_CTX_HWPM_CTXSW_MODE_CTXSW                  (0x00000001U)
 /** This mode says that the pms in Mode-E (stream out) are to be context switched. */
 #define NVGPU_GR_CTX_HWPM_CTXSW_MODE_STREAM_OUT_CTXSW       (0x00000002U)
@@ -152,13 +152,13 @@ void nvgpu_gr_ctx_desc_free(struct gk20a *g,
 	struct nvgpu_gr_ctx_desc *desc);
 
 /**
- * @brief Set size of global context buffer with given index.
+ * @brief Set size of GR context buffer with given index.
  *
  * @param desc[in]		Pointer to context descriptor struct.
- * @param index[in]		Index of global context buffer.
+ * @param index[in]		Index of GR context buffer.
  * @param size[in]		Size of buffer to be set.
  *
- * This function sets size of global context buffer with given buffer
+ * This function sets size of GR context buffer with given buffer
  * index.
  */
 void nvgpu_gr_ctx_set_size(struct nvgpu_gr_ctx_desc *gr_ctx_desc,
