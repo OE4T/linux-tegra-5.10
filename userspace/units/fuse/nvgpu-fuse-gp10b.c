@@ -129,6 +129,8 @@ int test_fuse_gp10b_check_sec_invalid_gcplex(struct unit_module *m,
 	int gcplex_entries = sizeof(gcplex_values)/sizeof(gcplex_values[0]);
 	int i;
 
+	g->ops.fuse.read_gcplex_config_fuse = read_gcplex_config_fuse_pass;
+
 	nvgpu_posix_io_writel_reg_space(g, GP10B_FUSE_OPT_PRIV_SEC_EN, 0x1);
 
 	for (i = 0; i < gcplex_entries; i++) {
