@@ -73,4 +73,7 @@
 #define timer_pri_timeout_fecs_errcode_r()                         (0x0000908cU)
 #define timer_time_0_r()                                           (0x00009400U)
 #define timer_time_1_r()                                           (0x00009410U)
+#define timer_gr_tick_freq_r()                                     (0x00009480U)
+#define timer_gr_tick_freq_select_f(v)                   ((U32(v) & 0x7U) << 0U)
+#define timer_gr_tick_freq_select_max_f()                                 (0x0U)
 #endif

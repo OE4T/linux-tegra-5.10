@@ -650,6 +650,7 @@ nvgpu-y += \
 	hal/priv_ring/priv_ring_gm20b_fusa.o \
 	hal/priv_ring/priv_ring_gp10b_fusa.o \
 	hal/ptimer/ptimer_gk20a_fusa.o \
+	hal/ptimer/ptimer_gp10b.o \
 	hal/sync/syncpt_cmdbuf_gv11b_fusa.o \
 	hal/therm/therm_gm20b_fusa.o \
 	hal/therm/therm_gv11b_fusa.o \

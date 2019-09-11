@@ -382,6 +382,12 @@ int nvgpu_finalize_poweron(struct gk20a *g)
 		}
 	}
 
+#ifdef CONFIG_NVGPU_DEBUGGER
+	if (g->ops.ptimer.config_gr_tick_freq != NULL) {
+		g->ops.ptimer.config_gr_tick_freq(g);
+	}
+#endif
+
 	if (g->ops.fb.mem_unlock != NULL && !g->is_fusa_sku) {
 		err = g->ops.fb.mem_unlock(g);
 		if (err != 0) {

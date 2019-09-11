@@ -88,11 +88,17 @@ priv_ring:
   owner: Seema K
   sources: [ hal/priv_ring/priv_ring_gm20b.c ]
 
-ptimer:
+ptimer_fusa:
   safe: yes
   owner: Terje B
   sources: [ hal/ptimer/ptimer_gk20a_fusa.c,
              hal/ptimer/ptimer_gk20a.h ]
+
+ptimer:
+  safe: no
+  owner: Deepak N
+  sources: [ hal/ptimer/ptimer_gp10b.c,
+             hal/ptimer/ptimer_gp10b.h ]
 
 cg_fusa:
   safe: yes

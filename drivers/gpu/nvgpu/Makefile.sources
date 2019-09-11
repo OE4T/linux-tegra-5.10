@@ -351,6 +351,7 @@ srcs += common/debugger.c \
 	hal/gr/ctxsw_prog/ctxsw_prog_gm20b_dbg.c \
 	hal/gr/hwpm_map/hwpm_map_gv100.c \
 	hal/ltc/ltc_gm20b_dbg.c \
+	hal/ptimer/ptimer_gp10b.c \
 	hal/perf/perf_gv11b.c \
 	hal/gr/gr/gr_gk20a.c \
 	hal/gr/gr/gr_gm20b.c \

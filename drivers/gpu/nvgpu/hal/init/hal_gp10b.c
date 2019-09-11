@@ -83,6 +83,7 @@
 #include "hal/fuse/fuse_gm20b.h"
 #include "hal/fuse/fuse_gp10b.h"
 #include "hal/ptimer/ptimer_gk20a.h"
+#include "hal/ptimer/ptimer_gp10b.h"
 #include "hal/regops/regops_gp10b.h"
 #include "hal/fifo/fifo_gk20a.h"
 #include "hal/fifo/preempt_gk20a.h"
@@ -1109,6 +1110,9 @@ static const struct gpu_ops gp10b_ops = {
 		.read_ptimer = gk20a_read_ptimer,
 #ifdef CONFIG_NVGPU_IOCTL_NON_FUSA
 		.get_timestamps_zipper = nvgpu_get_timestamps_zipper,
+#endif
+#ifdef CONFIG_NVGPU_DEBUGGER
+		.config_gr_tick_freq = gp10b_ptimer_config_gr_tick_freq,
 #endif
 	},
 #if defined(CONFIG_NVGPU_CYCLESTATS)

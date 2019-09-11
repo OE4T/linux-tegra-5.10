@@ -1714,6 +1714,9 @@ struct gpu_ops {
 			u32 source_id, u32 count,
 			struct nvgpu_cpu_time_correlation_sample *samples);
 #endif
+#ifdef CONFIG_NVGPU_DEBUGGER
+		void (*config_gr_tick_freq)(struct gk20a *g);
+#endif
 	} ptimer;
 
 	struct {
