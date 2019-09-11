@@ -34,10 +34,10 @@
 #include "acr_bootstrap.h"
 #include "acr_priv.h"
 
-static int acr_wait_for_completion(struct gk20a *g,
-	struct nvgpu_falcon *flcn, unsigned int timeout)
+static int acr_wait_for_completion(struct gk20a *g, struct hs_acr *acr_desc,
+	unsigned int timeout)
 {
-	u32 flcn_id = nvgpu_falcon_get_id(flcn);
+	u32 flcn_id;
 #ifdef CONFIG_NVGPU_FALCON_NON_FUSA
 	u32 sctl, cpuctl;
 #endif
@@ -48,18 +48,17 @@ static int acr_wait_for_completion(struct gk20a *g,
 
 	nvgpu_log_fn(g, " ");
 
-	completion = nvgpu_falcon_wait_for_halt(flcn, timeout);
+	flcn_id = nvgpu_falcon_get_id(acr_desc->acr_flcn);
+
+	completion = nvgpu_falcon_wait_for_halt(acr_desc->acr_flcn, timeout);
 	if (completion != 0) {
 		nvgpu_err(g, "flcn-%d: HS ucode boot timed out", flcn_id);
-#ifdef CONFIG_NVGPU_FALCON_DEBUG
-		nvgpu_falcon_dump_stats(flcn);
-#endif
 		error_type = ACR_BOOT_TIMEDOUT;
 		goto exit;
 	}
 
-	if (g->acr->acr.acr_engine_bus_err_status != NULL) {
-		completion = g->acr->acr.acr_engine_bus_err_status(g,
+	if (acr_desc->acr_engine_bus_err_status != NULL) {
+		completion = acr_desc->acr_engine_bus_err_status(g,
 			&bar0_status, &error_type);
 		if (completion != 0) {
 			nvgpu_err(g, "flcn-%d: ACR engine bus error", flcn_id);
@@ -67,20 +66,20 @@ static int acr_wait_for_completion(struct gk20a *g,
 		}
 	}
 
-	nvgpu_acr_dbg(g, "flcn-%d: HS ucode capabilities %x", flcn_id,
-		nvgpu_falcon_mailbox_read(flcn, FALCON_MAILBOX_1));
-
-	data = nvgpu_falcon_mailbox_read(flcn, FALCON_MAILBOX_0);
+	data = nvgpu_falcon_mailbox_read(acr_desc->acr_flcn, FALCON_MAILBOX_0);
 	if (data != 0U) {
 		nvgpu_err(g, "flcn-%d: HS ucode boot failed, err %x", flcn_id,
-			data);
+				data);
+		nvgpu_err(g, "flcn-%d: Mailbox-1 : 0x%x", flcn_id,
+				nvgpu_falcon_mailbox_read(acr_desc->acr_flcn,
+				FALCON_MAILBOX_1));
 		completion = -EAGAIN;
 		error_type = ACR_BOOT_FAILED;
 		goto exit;
 	}
 
 #ifdef CONFIG_NVGPU_FALCON_NON_FUSA
-	nvgpu_falcon_get_ctls(flcn, &sctl, &cpuctl);
+	nvgpu_falcon_get_ctls(acr_desc->acr_flcn, &sctl, &cpuctl);
 
 	nvgpu_acr_dbg(g, "flcn-%d: sctl reg %x cpuctl reg %x",
 			flcn_id, sctl, cpuctl);
@@ -90,20 +89,25 @@ static int acr_wait_for_completion(struct gk20a *g,
 	 * When engine-falcon is used for ACR bootstrap, validate the integrity
 	 * of falcon IMEM and DMEM.
 	 */
-	if (g->acr->acr.acr_validate_mem_integrity != NULL) {
-		if (!g->acr->acr.acr_validate_mem_integrity(g)) {
+	if (acr_desc->acr_validate_mem_integrity != NULL) {
+		if (!acr_desc->acr_validate_mem_integrity(g)) {
 			nvgpu_err(g, "flcn-%d: memcheck failed", flcn_id);
 			completion = -EAGAIN;
 			error_type = ACR_BOOT_FAILED;
 		}
 	}
+
 exit:
 	if (completion != 0) {
-		if (g->acr->acr.report_acr_engine_bus_err_status != NULL) {
-			g->acr->acr.report_acr_engine_bus_err_status(g,
+#ifdef CONFIG_NVGPU_FALCON_DEBUG
+		nvgpu_falcon_dump_stats(acr_desc->acr_flcn);
+#endif
+		if (acr_desc->report_acr_engine_bus_err_status != NULL) {
+			acr_desc->report_acr_engine_bus_err_status(g,
 				bar0_status, error_type);
 		}
 	}
+
 	return completion;
 }
 
@@ -146,7 +150,11 @@ int nvgpu_acr_bootstrap_hs_ucode(struct gk20a *g, struct nvgpu_acr *acr,
 	struct hs_acr *acr_desc)
 {
 	struct nvgpu_firmware *acr_fw = acr_desc->acr_fw;
-	int status = 0;
+	struct bin_hdr *hs_bin_hdr = NULL;
+	struct acr_fw_header *fw_hdr = NULL;
+	u32 *ucode_header = NULL;
+	u32 *ucode = NULL;
+	int err = 0;
 
 	nvgpu_acr_dbg(g, "ACR TYPE %x ", acr_desc->acr_type);
 
@@ -166,60 +174,43 @@ int nvgpu_acr_bootstrap_hs_ucode(struct gk20a *g, struct nvgpu_acr *acr,
 		acr->patch_wpr_info_to_ucode(g, acr, acr_desc, false);
 	}
 
-	/* Load acr ucode and bootstrap */
-	status = nvgpu_acr_self_hs_load_bootstrap(g, acr_desc->acr_flcn, acr_fw,
-					ACR_COMPLETION_TIMEOUT_MS);
-	if (status != 0) {
+
+	hs_bin_hdr = (struct bin_hdr *)(void *)acr_fw->data;
+	fw_hdr = (struct acr_fw_header *)(void *)(acr_fw->data +
+			hs_bin_hdr->header_offset);
+	ucode_header = (u32 *)(void *)(acr_fw->data + fw_hdr->hdr_offset);
+	ucode = (u32 *)(void *)(acr_fw->data + hs_bin_hdr->data_offset);
+
+	/* Patch Ucode signatures */
+	if (acr_ucode_patch_sig(g, ucode,
+		(u32 *)(void *)(acr_fw->data + fw_hdr->sig_prod_offset),
+		(u32 *)(void *)(acr_fw->data + fw_hdr->sig_dbg_offset),
+		(u32 *)(void *)(acr_fw->data + fw_hdr->patch_loc),
+		(u32 *)(void *)(acr_fw->data + fw_hdr->patch_sig),
+		fw_hdr->sig_dbg_size) < 0) {
+		nvgpu_err(g, "HS ucode patch signatures fail");
+		err = -EPERM;
+		goto err_free_ucode;
+	}
+
+	err = nvgpu_falcon_hs_ucode_load_bootstrap(acr_desc->acr_flcn,
+			ucode, ucode_header);
+	if (err != 0) {
+		nvgpu_err(g, "HS ucode load & bootstrap failed");
+		goto err_free_ucode;
+	}
+
+	/* wait for complete & halt */
+	err = acr_wait_for_completion(g, acr_desc, ACR_COMPLETION_TIMEOUT_MS);
+	if (err != 0) {
+		nvgpu_err(g, "HS ucode completion err %d", err);
 		goto err_free_ucode;
 	}
 
 	return 0;
+
 err_free_ucode:
 	nvgpu_release_firmware(g, acr_fw);
 	acr_desc->acr_fw = NULL;
-	return status;
-}
-
-int nvgpu_acr_self_hs_load_bootstrap(struct gk20a *g, struct nvgpu_falcon *flcn,
-		struct nvgpu_firmware *hs_fw, u32 timeout)
-{
-	struct bin_hdr *hs_bin_hdr = NULL;
-	struct acr_fw_header *fw_hdr = NULL;
-	u32 *ucode_header = NULL;
-	u32 *ucode = NULL;
-	int err = 0;
-
-	hs_bin_hdr = (struct bin_hdr *)(void *)hs_fw->data;
-	fw_hdr = (struct acr_fw_header *)(void *)(hs_fw->data +
-				hs_bin_hdr->header_offset);
-	ucode_header = (u32 *)(void *)(hs_fw->data + fw_hdr->hdr_offset);
-	ucode = (u32 *)(void *)(hs_fw->data + hs_bin_hdr->data_offset);
-
-	/* Patch Ucode signatures */
-	if (acr_ucode_patch_sig(g, ucode,
-		(u32 *)(void *)(hs_fw->data + fw_hdr->sig_prod_offset),
-		(u32 *)(void *)(hs_fw->data + fw_hdr->sig_dbg_offset),
-		(u32 *)(void *)(hs_fw->data + fw_hdr->patch_loc),
-		(u32 *)(void *)(hs_fw->data + fw_hdr->patch_sig),
-		fw_hdr->sig_dbg_size) < 0) {
-		nvgpu_err(g, "HS ucode patch signatures fail");
-		err = -EPERM;
-		goto exit;
-	}
-
-	err = nvgpu_falcon_hs_ucode_load_bootstrap(flcn, ucode, ucode_header);
-	if (err != 0) {
-		nvgpu_err(g, "HS ucode load & bootstrap failed");
-		goto exit;
-	}
-
-	/* wait for complete & halt */
-	err = acr_wait_for_completion(g, flcn, timeout);
-	if (err != 0) {
-		nvgpu_err(g, "HS ucode completion err %d", err);
-	}
-
-exit:
 	return err;
 }
-

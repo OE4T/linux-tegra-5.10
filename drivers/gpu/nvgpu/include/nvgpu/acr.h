@@ -172,8 +172,6 @@ int nvgpu_acr_init(struct gk20a *g, struct nvgpu_acr **acr);
 int nvgpu_acr_alloc_blob_prerequisite(struct gk20a *g, struct nvgpu_acr *acr,
 	size_t size);
 #endif
-int nvgpu_acr_self_hs_load_bootstrap(struct gk20a *g, struct nvgpu_falcon *flcn,
-	struct nvgpu_firmware *hs_fw, u32 timeout);
 
 /**
  * @brief Construct blob of LS ucode's in non-wpr memory. Load and bootstrap HS
