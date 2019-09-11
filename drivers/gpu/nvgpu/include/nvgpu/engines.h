@@ -185,7 +185,24 @@ bool nvgpu_engine_check_valid_id(struct gk20a *g, u32 engine_id);
  */
 u32 nvgpu_engine_get_gr_id(struct gk20a *g);
 /**
- * @brief Get intr mask for the engines supported by the chip.
+ * @brief Get intr mask for the GR engine supported by the chip.
+ *
+ * @param g[in]			The GPU driver struct.
+ *
+ * For each of #nvgpu_fifo.num_engines, get pointer to
+ * #nvgpu_engine_info. Use this to get #nvgpu_engine_info.intr_mask.
+ * If #nvgpu_engine_info.engine_num type matches with
+ * #NVGPU_ENGINE_GR, local intr_mask variable is logically ORed with
+ * #nvgpu_engine_info.intr_mask.
+ *
+ * @return Interrupt mask for GR engine.
+ * @retval 0 if #nvgpu_fifo.num_engines is 0.
+ * @retval 0 if all of the supported engine enum types don't match with
+ *         #NVGPU_ENGINE_GR.
+ */
+u32 nvgpu_gr_engine_interrupt_mask(struct gk20a *g);
+/**
+ * @brief Get intr mask for the CE engines supported by the chip.
  *
  * @param g [in]		The GPU driver struct.
  *
@@ -193,16 +210,18 @@ u32 nvgpu_engine_get_gr_id(struct gk20a *g);
  * #nvgpu_engine_info. Use this to get #nvgpu_engine_info.intr_mask.
  * If #nvgpu_engine_info.engine_num type matches with
  * #NVGPU_ENGINE_GRCE or #NVGPU_ENGINE_ASYNC_CE but interrupt handlers
- * are not supported, local intr_mask variable is not logically ORed with
+ * are not supported or engine_enum type matches with #NVGPU_ENGINE_GR
+ * , local intr_mask variable is not logically ORed with
  * #nvgpu_engine_info.intr_mask.
  *
- * @return Interrupt mask for h/w engines that support interrupt handlers.
+ * @return Interrupt mask for CE engines that support interrupt handlers.
  * @retval 0 if #nvgpu_fifo.num_engines is 0.
  * @retval 0 if all of the supported engine enum types match with
  *         #NVGPU_ENGINE_GRCE or #NVGPU_ENGINE_ASYNC_CE and does not
- *         support interrupt handler.
+ *         support interrupt handler or engine enum type matches with
+ *         #NVGPU_ENGINE_GR.
  */
-u32 nvgpu_engine_interrupt_mask(struct gk20a *g);
+u32 nvgpu_ce_engine_interrupt_mask(struct gk20a *g);
 /**
  * @brief Get intr mask for the h/w engine id.
  *

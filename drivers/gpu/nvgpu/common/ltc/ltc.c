@@ -73,6 +73,12 @@ int nvgpu_init_ltc_support(struct gk20a *g)
 		}
 	}
 
+	if (g->ops.ltc.intr.configure != NULL) {
+		nvgpu_mc_intr_stall_unit_config(g, MC_INTR_UNIT_LTC,
+						MC_INTR_ENABLE);
+		g->ops.ltc.intr.configure(g);
+	}
+
 	return 0;
 }
 

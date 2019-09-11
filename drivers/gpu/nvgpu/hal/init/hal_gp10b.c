@@ -1060,10 +1060,9 @@ static const struct gpu_ops gp10b_ops = {
 	.mc = {
 		.get_chip_details = gm20b_get_chip_details,
 		.intr_mask = mc_gp10b_intr_mask,
-		.intr_enable = mc_gp10b_intr_enable,
-#ifdef CONFIG_NVGPU_LS_PMU
-		.intr_pmu_unit_config = mc_gp10b_intr_pmu_unit_config,
-#endif
+		.intr_enable = NULL,
+		.intr_stall_unit_config = mc_gp10b_intr_stall_unit_config,
+		.intr_nonstall_unit_config = mc_gp10b_intr_nonstall_unit_config,
 		.isr_stall = mc_gp10b_isr_stall,
 		.intr_stall = mc_gp10b_intr_stall,
 		.intr_stall_pause = mc_gp10b_intr_stall_pause,

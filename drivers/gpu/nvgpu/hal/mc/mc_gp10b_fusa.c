@@ -40,9 +40,48 @@ void mc_gp10b_intr_mask(struct gk20a *g)
 {
 	nvgpu_writel(g, mc_intr_en_clear_r(NVGPU_MC_INTR_STALLING),
 				U32_MAX);
+	g->mc.intr_mask_restore[NVGPU_MC_INTR_STALLING] = 0;
 
 	nvgpu_writel(g, mc_intr_en_clear_r(NVGPU_MC_INTR_NONSTALLING),
 				U32_MAX);
+	g->mc.intr_mask_restore[NVGPU_MC_INTR_NONSTALLING] = 0;
+}
+
+static u32 mc_gp10b_intr_pending_f(struct gk20a *g, u32 unit)
+{
+	u32 intr_pending_f = 0;
+
+	switch (unit) {
+	case MC_INTR_UNIT_BUS:
+		intr_pending_f = mc_intr_pbus_pending_f();
+		break;
+	case MC_INTR_UNIT_PRIV_RING:
+		intr_pending_f = mc_intr_priv_ring_pending_f();
+		break;
+	case MC_INTR_UNIT_FIFO:
+		intr_pending_f = mc_intr_pfifo_pending_f();
+		break;
+	case MC_INTR_UNIT_LTC:
+		intr_pending_f = mc_intr_ltc_pending_f();
+		break;
+	case MC_INTR_UNIT_GR:
+		intr_pending_f = nvgpu_gr_engine_interrupt_mask(g);
+		break;
+	case MC_INTR_UNIT_PMU:
+		intr_pending_f = mc_intr_pmu_pending_f();
+		break;
+	case MC_INTR_UNIT_HUB:
+		intr_pending_f = mc_intr_replayable_fault_pending_f();
+		break;
+	case MC_INTR_UNIT_CE:
+		intr_pending_f = nvgpu_ce_engine_interrupt_mask(g);
+		break;
+	default:
+		nvgpu_err(g, "Invalid MC interrupt unit specified !!!");
+		break;
+	}
+
+	return intr_pending_f;
 }
 
 static void mc_gp10b_isr_stall_secondary_1(struct gk20a *g, u32 mc_intr_0)
@@ -64,7 +103,6 @@ static void mc_gp10b_isr_stall_secondary_1(struct gk20a *g, u32 mc_intr_0)
 	}
 #endif
 }
-
 
 static void mc_gp10b_isr_stall_secondary_0(struct gk20a *g, u32 mc_intr_0)
 {
@@ -104,6 +142,42 @@ static void mc_gp10b_isr_stall_engine(struct gk20a *g,
 		g->ops.ce.isr_stall(g,
 			g->fifo.engine_info[act_eng_id].inst_id,
 			g->fifo.engine_info[act_eng_id].pri_base);
+	}
+}
+
+void mc_gp10b_intr_stall_unit_config(struct gk20a *g, u32 unit, bool enable)
+{
+	u32 unit_pending_f = mc_gp10b_intr_pending_f(g, unit);
+	u32 reg = 0U;
+
+	if (enable) {
+		reg = mc_intr_en_set_r(NVGPU_MC_INTR_STALLING);
+		g->mc.intr_mask_restore[NVGPU_MC_INTR_STALLING] |=
+			unit_pending_f;
+		nvgpu_writel(g, reg, unit_pending_f);
+	} else {
+		reg = mc_intr_en_clear_r(NVGPU_MC_INTR_STALLING);
+		g->mc.intr_mask_restore[NVGPU_MC_INTR_STALLING] &=
+			~unit_pending_f;
+		nvgpu_writel(g, reg, unit_pending_f);
+	}
+}
+
+void mc_gp10b_intr_nonstall_unit_config(struct gk20a *g, u32 unit, bool enable)
+{
+	u32 unit_pending_f = mc_gp10b_intr_pending_f(g, unit);
+	u32 reg = 0U;
+
+	if (enable) {
+		reg = mc_intr_en_set_r(NVGPU_MC_INTR_NONSTALLING);
+		g->mc.intr_mask_restore[NVGPU_MC_INTR_NONSTALLING] |=
+			unit_pending_f;
+		nvgpu_writel(g, reg, unit_pending_f);
+	} else {
+		reg = mc_intr_en_clear_r(NVGPU_MC_INTR_NONSTALLING);
+		g->mc.intr_mask_restore[NVGPU_MC_INTR_NONSTALLING] &=
+			~unit_pending_f;
+		nvgpu_writel(g, reg, unit_pending_f);
 	}
 }
 

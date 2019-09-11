@@ -102,4 +102,16 @@ struct nvgpu_raw_spinlock {
 	struct __nvgpu_posix_lock lock;
 };
 
+static inline void nvgpu_spinlock_irqsave(struct nvgpu_spinlock *mutex,
+					  unsigned long flags)
+{
+	nvgpu_posix_lock_acquire(&mutex->lock);
+}
+
+static inline void nvgpu_spinunlock_irqrestore(struct nvgpu_spinlock *mutex,
+					       unsigned long flags)
+{
+	nvgpu_posix_lock_release(&mutex->lock);
+}
+
 #endif /* NVGPU_POSIX_LOCK_H */

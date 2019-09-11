@@ -618,7 +618,6 @@ mc:
   safe: no
   owner: Seema K
   sources: [ hal/mc/mc_gm20b.c,
-             hal/mc/mc_gp10b.c,
              hal/mc/mc_gv100.c,
              hal/mc/mc_gv100.h,
              hal/mc/mc_tu104.c,

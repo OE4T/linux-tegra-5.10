@@ -445,7 +445,7 @@ void gk20a_pmu_enable_irq(struct nvgpu_pmu *pmu, bool enable)
 
 	nvgpu_log_fn(g, " ");
 
-	g->ops.mc.intr_pmu_unit_config(g, MC_INTR_UNIT_DISABLE);
+	nvgpu_mc_intr_stall_unit_config(g, MC_INTR_UNIT_PMU, MC_INTR_DISABLE);
 
 	nvgpu_falcon_set_irq(pmu->flcn, false, 0x0, 0x0);
 
@@ -461,9 +461,10 @@ void gk20a_pmu_enable_irq(struct nvgpu_pmu *pmu, bool enable)
 			pwr_falcon_irqmset_swgen0_f(1) |
 			pwr_falcon_irqmset_swgen1_f(1);
 
-		nvgpu_falcon_set_irq(pmu->flcn, true, intr_mask, intr_dest);
+		nvgpu_mc_intr_stall_unit_config(g, MC_INTR_UNIT_PMU,
+						 MC_INTR_ENABLE);
 
-		g->ops.mc.intr_pmu_unit_config(g, MC_INTR_UNIT_ENABLE);
+		nvgpu_falcon_set_irq(pmu->flcn, true, intr_mask, intr_dest);
 	}
 
 	nvgpu_log_fn(g, "done");

@@ -36,6 +36,7 @@
 #include <nvgpu/tsg.h>
 #include <nvgpu/vm_area.h>
 #include <nvgpu/nvgpu_err.h>
+#include <nvgpu/mc.h>
 
 void nvgpu_fifo_cleanup_sw_common(struct gk20a *g)
 {
@@ -248,6 +249,18 @@ const char *nvgpu_fifo_decode_pbdma_ch_eng_status(u32 index)
 	}
 }
 
+static void disable_fifo_interrupts(struct gk20a *g)
+{
+	/** Disable fifo intr */
+	g->ops.fifo.intr_0_enable(g, false);
+	g->ops.fifo.intr_1_enable(g, false);
+
+	nvgpu_mc_intr_stall_unit_config(g, MC_INTR_UNIT_FIFO,
+					MC_INTR_DISABLE);
+	nvgpu_mc_intr_nonstall_unit_config(g, MC_INTR_UNIT_FIFO,
+					   MC_INTR_DISABLE);
+}
+
 int nvgpu_fifo_suspend(struct gk20a *g)
 {
 	nvgpu_log_fn(g, " ");
@@ -256,9 +269,7 @@ int nvgpu_fifo_suspend(struct gk20a *g)
 		g->ops.fifo.bar1_snooping_disable(g);
 	}
 
-	/* disable fifo intr */
-	g->ops.fifo.intr_0_enable(g, false);
-	g->ops.fifo.intr_1_enable(g, false);
+	disable_fifo_interrupts(g);
 
 	nvgpu_log_fn(g, "done");
 	return 0;

@@ -64,3 +64,86 @@ void nvgpu_wait_for_deferred_interrupts(struct gk20a *g)
 			nvgpu_atomic_read(&g->mc.sw_irq_nonstall_last_handled))
 		<= 0, 0U);
 }
+
+void nvgpu_mc_intr_mask(struct gk20a *g)
+{
+	unsigned long flags = 0;
+
+	if (g->ops.mc.intr_mask != NULL) {
+		nvgpu_spinlock_irqsave(&g->mc.intr_lock, flags);
+		g->ops.mc.intr_mask(g);
+		nvgpu_spinunlock_irqrestore(&g->mc.intr_lock, flags);
+	}
+}
+
+void nvgpu_mc_log_pending_intrs(struct gk20a *g)
+{
+	if (g->ops.mc.log_pending_intrs != NULL) {
+		g->ops.mc.log_pending_intrs(g);
+	}
+}
+
+void nvgpu_mc_intr_enable(struct gk20a *g)
+{
+	unsigned long flags = 0;
+
+	if (g->ops.mc.intr_enable != NULL) {
+		nvgpu_spinlock_irqsave(&g->mc.intr_lock, flags);
+		g->ops.mc.intr_enable(g);
+		nvgpu_spinunlock_irqrestore(&g->mc.intr_lock, flags);
+	}
+}
+
+void nvgpu_mc_intr_stall_unit_config(struct gk20a *g, u32 unit, bool enable)
+{
+	unsigned long flags = 0;
+
+	nvgpu_spinlock_irqsave(&g->mc.intr_lock, flags);
+	g->ops.mc.intr_stall_unit_config(g, unit, enable);
+	nvgpu_spinunlock_irqrestore(&g->mc.intr_lock, flags);
+}
+
+void nvgpu_mc_intr_nonstall_unit_config(struct gk20a *g, u32 unit, bool enable)
+{
+	unsigned long flags = 0;
+
+	nvgpu_spinlock_irqsave(&g->mc.intr_lock, flags);
+	g->ops.mc.intr_nonstall_unit_config(g, unit, enable);
+	nvgpu_spinunlock_irqrestore(&g->mc.intr_lock, flags);
+}
+
+void nvgpu_mc_intr_stall_pause(struct gk20a *g)
+{
+	unsigned long flags = 0;
+
+	nvgpu_spinlock_irqsave(&g->mc.intr_lock, flags);
+	g->ops.mc.intr_stall_pause(g);
+	nvgpu_spinunlock_irqrestore(&g->mc.intr_lock, flags);
+}
+
+void nvgpu_mc_intr_stall_resume(struct gk20a *g)
+{
+	unsigned long flags = 0;
+
+	nvgpu_spinlock_irqsave(&g->mc.intr_lock, flags);
+	g->ops.mc.intr_stall_resume(g);
+	nvgpu_spinunlock_irqrestore(&g->mc.intr_lock, flags);
+}
+
+void nvgpu_mc_intr_nonstall_pause(struct gk20a *g)
+{
+	unsigned long flags = 0;
+
+	nvgpu_spinlock_irqsave(&g->mc.intr_lock, flags);
+	g->ops.mc.intr_nonstall_pause(g);
+	nvgpu_spinunlock_irqrestore(&g->mc.intr_lock, flags);
+}
+
+void nvgpu_mc_intr_nonstall_resume(struct gk20a *g)
+{
+	unsigned long flags = 0;
+
+	nvgpu_spinlock_irqsave(&g->mc.intr_lock, flags);
+	g->ops.mc.intr_nonstall_resume(g);
+	nvgpu_spinunlock_irqrestore(&g->mc.intr_lock, flags);
+}

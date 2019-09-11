@@ -136,25 +136,6 @@ bool intr_tu104_vector_intr_pending(struct gk20a *g, u32 intr_vector)
 		BIT32(NV_CPU_INTR_GPU_VECTOR_TO_LEAF_BIT(intr_vector))) != 0U);
 }
 
-static void intr_tu104_stall_enable(struct gk20a *g)
-{
-	u32 eng_intr_mask = nvgpu_engine_interrupt_mask(g);
-
-	nvgpu_writel(g, mc_intr_en_clear_r(NVGPU_MC_INTR_STALLING), U32_MAX);
-
-	g->mc.intr_mask_restore[NVGPU_MC_INTR_STALLING] =
-				mc_intr_pfifo_pending_f() |
-				mc_intr_priv_ring_pending_f() |
-				mc_intr_pbus_pending_f() |
-				mc_intr_ltc_pending_f() |
-				mc_intr_nvlink_pending_f() |
-				mc_intr_pfb_pending_f() |
-				eng_intr_mask;
-
-	nvgpu_writel(g, mc_intr_en_set_r(NVGPU_MC_INTR_STALLING),
-			g->mc.intr_mask_restore[NVGPU_MC_INTR_STALLING]);
-}
-
 static void intr_tu104_nonstall_enable(struct gk20a *g)
 {
 	u32 i;
@@ -202,28 +183,84 @@ static void intr_tu104_nonstall_enable(struct gk20a *g)
 		u64_hi32(nonstall_intr_mask));
 }
 
+static u32 intr_tu104_intr_pending_f(struct gk20a *g, u32 unit)
+{
+	u32 intr_pending_f = 0;
+
+	switch (unit) {
+	case MC_INTR_UNIT_BUS:
+		intr_pending_f = mc_intr_pbus_pending_f();
+		break;
+	case MC_INTR_UNIT_PRIV_RING:
+		intr_pending_f = mc_intr_priv_ring_pending_f();
+		break;
+	case MC_INTR_UNIT_FIFO:
+		intr_pending_f = mc_intr_pfifo_pending_f();
+		break;
+	case MC_INTR_UNIT_LTC:
+		intr_pending_f = mc_intr_ltc_pending_f();
+		break;
+	case MC_INTR_UNIT_GR:
+		intr_pending_f = nvgpu_gr_engine_interrupt_mask(g);
+		break;
+	case MC_INTR_UNIT_PMU:
+		intr_pending_f = mc_intr_pmu_pending_f();
+		break;
+	case MC_INTR_UNIT_CE:
+		intr_pending_f = nvgpu_ce_engine_interrupt_mask(g);
+		break;
+	case MC_INTR_UNIT_NVLINK:
+		intr_pending_f = mc_intr_nvlink_pending_f();
+		break;
+	case MC_INTR_UNIT_FBPA:
+		intr_pending_f = mc_intr_pfb_pending_f();
+		break;
+	default:
+		nvgpu_err(g, "Invalid MC interrupt unit specified !!!");
+		break;
+	}
+
+	return intr_pending_f;
+}
+
+void intr_tu104_stall_unit_config(struct gk20a *g, u32 unit, bool enable)
+{
+	u32 unit_pending_f = intr_tu104_intr_pending_f(g, unit);
+	u32 reg = 0U;
+
+	if (enable) {
+		reg = mc_intr_en_set_r(NVGPU_MC_INTR_STALLING);
+		g->mc.intr_mask_restore[NVGPU_MC_INTR_STALLING] |=
+			unit_pending_f;
+		nvgpu_writel(g, reg, unit_pending_f);
+	} else {
+		reg = mc_intr_en_clear_r(NVGPU_MC_INTR_STALLING);
+		g->mc.intr_mask_restore[NVGPU_MC_INTR_STALLING] &=
+			~unit_pending_f;
+		nvgpu_writel(g, reg, unit_pending_f);
+	}
+}
+
+void intr_tu104_nonstall_unit_config(struct gk20a *g, u32 unit, bool enable)
+{
+	intr_tu104_nonstall_enable(g);
+}
+
 void intr_tu104_mask(struct gk20a *g)
 {
 	u32 size, reg, i;
 
 	nvgpu_writel(g, mc_intr_en_clear_r(NVGPU_MC_INTR_STALLING), U32_MAX);
+	g->mc.intr_mask_restore[NVGPU_MC_INTR_STALLING] = 0;
 
 	nvgpu_writel(g, mc_intr_en_clear_r(NVGPU_MC_INTR_NONSTALLING), U32_MAX);
+	g->mc.intr_mask_restore[NVGPU_MC_INTR_NONSTALLING] = 0;
 
 	size = func_priv_cpu_intr_top_en_clear__size_1_v();
 	for (i = 0U; i < size; i++) {
 		reg = func_priv_cpu_intr_top_en_clear_r(i);
 		nvgpu_func_writel(g, reg, U32_MAX);
 	}
-}
-
-/* Enable all required interrupts */
-int intr_tu104_enable(struct gk20a *g)
-{
-	intr_tu104_stall_enable(g);
-	intr_tu104_nonstall_enable(g);
-
-	return 0;
 }
 
 /* Return non-zero if nonstall interrupts are pending */

@@ -96,43 +96,80 @@ void gm20b_mc_intr_mask(struct gk20a *g)
 		mc_intr_en_0_inta_disabled_f());
 	nvgpu_writel(g, mc_intr_en_1_r(),
 		mc_intr_en_1_inta_disabled_f());
+	nvgpu_writel(g, mc_intr_mask_0_r(), 0);
+	nvgpu_writel(g, mc_intr_mask_1_r(), 0);
 }
 
-int gm20b_mc_intr_enable(struct gk20a *g)
+void gm20b_mc_intr_enable(struct gk20a *g)
 {
-	u32 eng_intr_mask = nvgpu_engine_interrupt_mask(g);
-
-	nvgpu_writel(g, mc_intr_mask_1_r(),
-		     mc_intr_pfifo_pending_f()
-		     | eng_intr_mask);
 	nvgpu_writel(g, mc_intr_en_1_r(),
 		mc_intr_en_1_inta_hardware_f());
 
-	nvgpu_writel(g, mc_intr_mask_0_r(),
-		     mc_intr_pfifo_pending_f()
-		     | mc_intr_priv_ring_pending_f()
-		     | mc_intr_ltc_pending_f()
-		     | mc_intr_pbus_pending_f()
-		     | eng_intr_mask);
 	nvgpu_writel(g, mc_intr_en_0_r(),
 		mc_intr_en_0_inta_hardware_f());
-
-	return 0;
 }
 
-void gm20b_mc_intr_pmu_unit_config(struct gk20a *g, bool enable)
+static u32 gm20b_mc_intr_pending_f(struct gk20a *g, u32 unit)
 {
+	u32 intr_pending_f = 0;
+
+	switch (unit) {
+	case MC_INTR_UNIT_BUS:
+		intr_pending_f = mc_intr_pbus_pending_f();
+		break;
+	case MC_INTR_UNIT_PRIV_RING:
+		intr_pending_f = mc_intr_priv_ring_pending_f();
+		break;
+	case MC_INTR_UNIT_FIFO:
+		intr_pending_f = mc_intr_pfifo_pending_f();
+		break;
+	case MC_INTR_UNIT_LTC:
+		intr_pending_f = mc_intr_ltc_pending_f();
+		break;
+	case MC_INTR_UNIT_GR:
+		intr_pending_f = nvgpu_gr_engine_interrupt_mask(g);
+		break;
+	case MC_INTR_UNIT_PMU:
+		intr_pending_f = mc_intr_mask_0_pmu_enabled_f();
+		break;
+	case MC_INTR_UNIT_CE:
+		intr_pending_f = nvgpu_ce_engine_interrupt_mask(g);
+		break;
+	default:
+		nvgpu_err(g, "Invalid MC interrupt unit specified !!!");
+		break;
+	}
+
+	return intr_pending_f;
+}
+
+void gm20b_mc_intr_stall_unit_config(struct gk20a *g, u32 unit, bool enable)
+{
+	u32 unit_pending_f = gm20b_mc_intr_pending_f(g, unit);
+
 	if (enable) {
 		nvgpu_writel(g, mc_intr_mask_0_r(),
 			nvgpu_readl(g, mc_intr_mask_0_r()) |
-			mc_intr_mask_0_pmu_enabled_f());
+			unit_pending_f);
 	} else {
 		nvgpu_writel(g, mc_intr_mask_0_r(),
 			nvgpu_readl(g, mc_intr_mask_0_r()) &
-			~mc_intr_mask_0_pmu_enabled_f());
+			~unit_pending_f);
+	}
+}
+
+void gm20b_mc_intr_nonstall_unit_config(struct gk20a *g, u32 unit, bool enable)
+{
+	u32 unit_pending_f = gm20b_mc_intr_pending_f(g, unit);
+
+	if (enable) {
+		nvgpu_writel(g, mc_intr_mask_1_r(),
+			nvgpu_readl(g, mc_intr_mask_1_r()) |
+			unit_pending_f);
+	} else {
 		nvgpu_writel(g, mc_intr_mask_1_r(),
 			nvgpu_readl(g, mc_intr_mask_1_r()) &
-			~mc_intr_mask_1_pmu_enabled_f());
+			~unit_pending_f);
 	}
 }
 

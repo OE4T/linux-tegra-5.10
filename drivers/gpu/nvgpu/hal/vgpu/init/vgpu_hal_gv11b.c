@@ -876,9 +876,8 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 		.get_chip_details = NULL,
 		.intr_mask = NULL,
 		.intr_enable = NULL,
-#ifdef CONFIG_NVGPU_LS_PMU
-		.intr_pmu_unit_config = NULL,
-#endif
+		.intr_stall_unit_config = NULL,
+		.intr_nonstall_unit_config = NULL,
 		.isr_stall = NULL,
 		.intr_stall = NULL,
 		.intr_stall_pause = NULL,

@@ -28,6 +28,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/nvgpu_sgt.h>
 #include <nvgpu/nvgpu_err.h>
+#include <nvgpu/mc.h>
 
 #include "bus_gk20a.h"
 
@@ -43,7 +44,9 @@ int gk20a_bus_init_hw(struct gk20a *g)
 				bus_intr_en_0_pri_timeout_m();
 	}
 
-	gk20a_writel(g, bus_intr_en_0_r(), intr_en_mask);
+	nvgpu_mc_intr_stall_unit_config(g, MC_INTR_UNIT_BUS, MC_INTR_ENABLE);
+
+	nvgpu_writel(g, bus_intr_en_0_r(), intr_en_mask);
 
 	if (g->ops.bus.configure_debug_bus != NULL) {
 		g->ops.bus.configure_debug_bus(g);
@@ -57,7 +60,7 @@ void gk20a_bus_isr(struct gk20a *g)
 	u32 val;
 	u32 err_type = GPU_HOST_INVALID_ERROR;
 
-	val = gk20a_readl(g, bus_intr_0_r());
+	val = nvgpu_readl(g, bus_intr_0_r());
 
 	if ((val & (bus_intr_0_pri_squash_m() |
 			bus_intr_0_pri_fecserr_m() |
@@ -83,5 +86,5 @@ void gk20a_bus_isr(struct gk20a *g)
 	}
 	nvgpu_report_host_err(g, NVGPU_ERR_MODULE_HOST,
 			0, err_type, val);
-	gk20a_writel(g, bus_intr_0_r(), val);
+	nvgpu_writel(g, bus_intr_0_r(), val);
 }

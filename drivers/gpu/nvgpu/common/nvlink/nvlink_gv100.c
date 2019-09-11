@@ -35,6 +35,7 @@
 #include <nvgpu/nvlink_minion.h>
 #include <nvgpu/nvlink_link_mode_transitions.h>
 #include <nvgpu/gops_mc.h>
+#include <nvgpu/mc.h>
 
 #include "nvlink_gv100.h"
 
@@ -843,6 +844,9 @@ int gv100_nvlink_early_init(struct gk20a *g)
 	nvgpu_log(g, gpu_dbg_nvlink, "mc_reset_nvlink_mask: 0x%x",
 							mc_reset_nvlink_mask);
 	g->ops.mc.reset(g, mc_reset_nvlink_mask);
+
+	nvgpu_mc_intr_stall_unit_config(g, MC_INTR_UNIT_NVLINK,
+					MC_INTR_ENABLE);
 
 	err = g->ops.nvlink.discover_link(g);
 	if ((err != 0) || (g->nvlink.discovered_links == 0U)) {

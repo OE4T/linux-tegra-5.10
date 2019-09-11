@@ -387,6 +387,8 @@ int vgpu_probe(struct platform_device *pdev)
 
 	nvgpu_spinlock_init(&gk20a->mc.enable_lock);
 
+	nvgpu_spinlock_init(&gk20a->mc.intr_lock);
+
 	gk20a->ch_wdt_init_limit_ms = platform->ch_wdt_init_limit_ms;
 
 	/* Initialize the platform interface. */

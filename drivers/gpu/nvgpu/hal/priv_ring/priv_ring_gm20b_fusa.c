@@ -29,6 +29,7 @@
 #include <nvgpu/io.h>
 #include <nvgpu/utils.h>
 #include <nvgpu/power_features/cg.h>
+#include <nvgpu/mc.h>
 
 #include "priv_ring_gm20b.h"
 
@@ -54,6 +55,9 @@ int gm20b_priv_ring_enable(struct gk20a *g)
 	nvgpu_writel(g, pri_ringstation_sys_decode_config_r(), 0x2);
 
 	(void) nvgpu_readl(g, pri_ringstation_sys_decode_config_r());
+
+	nvgpu_mc_intr_stall_unit_config(g, MC_INTR_UNIT_PRIV_RING,
+					 MC_INTR_ENABLE);
 
 	return 0;
 }

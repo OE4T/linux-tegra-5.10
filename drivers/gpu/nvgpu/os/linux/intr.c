@@ -40,7 +40,7 @@ irqreturn_t nvgpu_intr_stall(struct gk20a *g)
 	if (unlikely(!mc_intr_0))
 		return IRQ_NONE;
 
-	g->ops.mc.intr_stall_pause(g);
+	nvgpu_mc_intr_stall_pause(g);
 #ifndef CONFIG_NVGPU_RECOVERY
 	if (g->sw_quiesce_pending) {
 		return IRQ_NONE;
@@ -68,7 +68,7 @@ irqreturn_t nvgpu_intr_thread_stall(struct gk20a *g)
 
 	hw_irq_count = nvgpu_atomic_read(&g->mc.hw_irq_stall_count);
 	g->ops.mc.isr_stall(g);
-	g->ops.mc.intr_stall_resume(g);
+	nvgpu_mc_intr_stall_resume(g);
 	/* sync handled irq counter before re-enabling interrupts */
 	nvgpu_atomic_set(&g->mc.sw_irq_stall_last_handled, hw_irq_count);
 
@@ -96,7 +96,7 @@ irqreturn_t nvgpu_intr_nonstall(struct gk20a *g)
 	if (unlikely(!non_stall_intr_val))
 		return IRQ_NONE;
 
-	g->ops.mc.intr_nonstall_pause(g);
+	nvgpu_mc_intr_nonstall_pause(g);
 #ifndef CONFIG_NVGPU_RECOVERY
 	if (g->sw_quiesce_pending) {
 		return IRQ_NONE;
@@ -119,7 +119,7 @@ irqreturn_t nvgpu_intr_nonstall(struct gk20a *g)
 	/* sync handled irq counter before re-enabling interrupts */
 	nvgpu_atomic_set(&g->mc.sw_irq_nonstall_last_handled, hw_irq_count);
 
-	g->ops.mc.intr_nonstall_resume(g);
+	nvgpu_mc_intr_nonstall_resume(g);
 
 	nvgpu_cond_broadcast(&g->mc.sw_irq_nonstall_last_handled_cond);
 

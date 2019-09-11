@@ -195,7 +195,7 @@ u32 nvgpu_engine_act_interrupt_mask(struct gk20a *g, u32 act_eng_id)
 	return 0;
 }
 
-u32 nvgpu_engine_interrupt_mask(struct gk20a *g)
+u32 nvgpu_gr_engine_interrupt_mask(struct gk20a *g)
 {
 	u32 eng_intr_mask = 0;
 	unsigned int i;
@@ -204,9 +204,35 @@ u32 nvgpu_engine_interrupt_mask(struct gk20a *g)
 
 	for (i = 0; i < g->fifo.num_engines; i++) {
 		u32 intr_mask;
+
 		active_engine_id = g->fifo.active_engines_list[i];
 		intr_mask = g->fifo.engine_info[active_engine_id].intr_mask;
 		engine_enum = g->fifo.engine_info[active_engine_id].engine_enum;
+
+		if (engine_enum != NVGPU_ENGINE_GR) {
+			continue;
+		}
+
+		eng_intr_mask |= intr_mask;
+	}
+
+	return eng_intr_mask;
+}
+
+u32 nvgpu_ce_engine_interrupt_mask(struct gk20a *g)
+{
+	u32 eng_intr_mask = 0;
+	unsigned int i;
+	u32 active_engine_id = 0;
+	enum nvgpu_fifo_engine engine_enum;
+
+	for (i = 0; i < g->fifo.num_engines; i++) {
+		u32 intr_mask;
+
+		active_engine_id = g->fifo.active_engines_list[i];
+		intr_mask = g->fifo.engine_info[active_engine_id].intr_mask;
+		engine_enum = g->fifo.engine_info[active_engine_id].engine_enum;
+
 		if (((engine_enum == NVGPU_ENGINE_GRCE) ||
 		     (engine_enum == NVGPU_ENGINE_ASYNC_CE)) &&
 		    ((g->ops.ce.isr_stall == NULL) ||

@@ -27,6 +27,7 @@
 #include <nvgpu/io.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/hw/tu104/hw_fbpa_tu104.h>
+#include <nvgpu/mc.h>
 
 #include "hal/fbpa/fbpa_tu104.h"
 
@@ -34,12 +35,15 @@ int tu104_fbpa_init(struct gk20a *g)
 {
 	u32 val;
 
-	val = gk20a_readl(g, fbpa_ecc_intr_ctrl_r());
+	val = nvgpu_readl(g, fbpa_ecc_intr_ctrl_r());
 	val |= fbpa_ecc_intr_ctrl_sec_intr_en_enabled_f() |
 		fbpa_ecc_intr_ctrl_ded_intr_en_enabled_f();
-	gk20a_writel(g, fbpa_ecc_intr_ctrl_r(), val);
+
+	nvgpu_mc_intr_stall_unit_config(g, MC_INTR_UNIT_FBPA, MC_INTR_ENABLE);
+
+	nvgpu_writel(g, fbpa_ecc_intr_ctrl_r(), val);
 	/* read back broadcast register */
-	(void) gk20a_readl(g, fbpa_ecc_intr_ctrl_r());
+	(void) nvgpu_readl(g, fbpa_ecc_intr_ctrl_r());
 
 	return 0;
 }
@@ -51,7 +55,7 @@ static void tu104_fbpa_handle_ecc_intr(struct gk20a *g,
 	u32 offset = nvgpu_get_litter_value(g, GPU_LIT_FBPA_STRIDE) * fbpa_id;
 	u32 cnt_idx = fbpa_id * 2U + subp_id;
 
-	status = gk20a_readl(g, offset + fbpa_0_ecc_status_r(subp_id));
+	status = nvgpu_readl(g, offset + fbpa_0_ecc_status_r(subp_id));
 
 	if ((status & fbpa_0_ecc_status_sec_counter_overflow_pending_f()) != 0U) {
 		nvgpu_err(g, "fbpa %u subp %u ecc sec counter overflow",
@@ -64,20 +68,20 @@ static void tu104_fbpa_handle_ecc_intr(struct gk20a *g,
 	}
 
 	if ((status & fbpa_0_ecc_status_sec_intr_pending_f()) != 0U) {
-		sec_cnt = gk20a_readl(g,
+		sec_cnt = nvgpu_readl(g,
 				offset + fbpa_0_ecc_sec_count_r(subp_id));
-		gk20a_writel(g, offset + fbpa_0_ecc_sec_count_r(subp_id), 0u);
+		nvgpu_writel(g, offset + fbpa_0_ecc_sec_count_r(subp_id), 0u);
 		g->ecc.fbpa.fbpa_ecc_sec_err_count[cnt_idx].counter += sec_cnt;
 	}
 
 	if ((status & fbpa_0_ecc_status_ded_intr_pending_f()) != 0U) {
-		ded_cnt = gk20a_readl(g,
+		ded_cnt = nvgpu_readl(g,
 				offset + fbpa_0_ecc_ded_count_r(subp_id));
-		gk20a_writel(g, offset + fbpa_0_ecc_ded_count_r(subp_id), 0u);
+		nvgpu_writel(g, offset + fbpa_0_ecc_ded_count_r(subp_id), 0u);
 		g->ecc.fbpa.fbpa_ecc_ded_err_count[cnt_idx].counter += ded_cnt;
 	}
 
-	gk20a_writel(g, offset + fbpa_0_ecc_status_r(subp_id), status);
+	nvgpu_writel(g, offset + fbpa_0_ecc_status_r(subp_id), status);
 }
 
 void tu104_fbpa_handle_intr(struct gk20a *g, u32 fbpa_id)
@@ -90,7 +94,7 @@ void tu104_fbpa_handle_intr(struct gk20a *g, u32 fbpa_id)
 
 	offset = nvgpu_get_litter_value(g, GPU_LIT_FBPA_STRIDE) * fbpa_id;
 
-	status = gk20a_readl(g, offset + fbpa_0_intr_status_r());
+	status = nvgpu_readl(g, offset + fbpa_0_intr_status_r());
 	if ((status & (ecc_subp0_mask | ecc_subp1_mask)) == 0U) {
 		nvgpu_err(g, "unknown interrupt fbpa %u status %08x",
 				fbpa_id, status);

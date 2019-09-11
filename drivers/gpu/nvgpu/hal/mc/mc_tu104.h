@@ -49,8 +49,9 @@ void intr_tu104_vector_en_clear(struct gk20a *g, u32 intr_vector);
 bool intr_tu104_vector_intr_pending(struct gk20a *g, u32 intr_vector);
 void intr_tu104_intr_clear_leaf_vector(struct gk20a *g, u32 intr_vector);
 
+void intr_tu104_stall_unit_config(struct gk20a *g, u32 unit, bool enable);
+void intr_tu104_nonstall_unit_config(struct gk20a *g, u32 unit, bool enable);
 void intr_tu104_mask(struct gk20a *g);
-int intr_tu104_enable(struct gk20a *g);
 u32  intr_tu104_stall(struct gk20a *g);
 void intr_tu104_stall_pause(struct gk20a *g);
 void intr_tu104_stall_resume(struct gk20a *g);

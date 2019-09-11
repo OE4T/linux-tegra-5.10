@@ -39,6 +39,7 @@
 #include "os/posix/os_posix.h"
 #include "hal/fifo/channel_gv11b.h"
 
+#include "hal/mc/mc_gp10b.h"
 #include "hal/mm/mmu_fault/mmu_fault_gv11b.h"
 #include "hal/mm/mm_gv11b.h"
 #include "hal/mm/cache/flush_gk20a.h"
@@ -119,6 +120,10 @@ static int init_mm(struct unit_module *m, struct gk20a *g)
 	int err;
 
 	p->mm_is_iommuable = true;
+
+	g->ops.mc.intr_stall_unit_config = mc_gp10b_intr_stall_unit_config;
+	g->ops.mc.intr_nonstall_unit_config =
+					mc_gp10b_intr_nonstall_unit_config;
 
 	/* Minimum HALs for page_table */
 	g->ops.mm.gmmu.get_default_big_page_size =

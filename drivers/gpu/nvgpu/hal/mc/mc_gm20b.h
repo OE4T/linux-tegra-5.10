@@ -43,8 +43,11 @@ bool gm20b_mc_is_enabled(struct gk20a *g, enum nvgpu_unit unit);
 
 #ifdef CONFIG_NVGPU_HAL_NON_FUSA
 void gm20b_mc_intr_mask(struct gk20a *g);
-int gm20b_mc_intr_enable(struct gk20a *g);
-void gm20b_mc_intr_pmu_unit_config(struct gk20a *g, bool enable);
+void gm20b_mc_intr_enable(struct gk20a *g);
+void gm20b_mc_intr_stall_unit_config(struct gk20a *g, u32 unit,
+				     bool enable);
+void gm20b_mc_intr_nonstall_unit_config(struct gk20a *g, u32 unit,
+					bool enable);
 void gm20b_mc_isr_stall(struct gk20a *g);
 u32  gm20b_mc_intr_stall(struct gk20a *g);
 void gm20b_mc_intr_stall_pause(struct gk20a *g);

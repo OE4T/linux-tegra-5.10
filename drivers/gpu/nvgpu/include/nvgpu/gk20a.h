@@ -184,9 +184,6 @@ struct railgate_stats {
 };
 #endif
 
-#define MC_INTR_UNIT_DISABLE	false
-#define MC_INTR_UNIT_ENABLE		true
-
 #define GPU_LIT_NUM_GPCS	0
 #define GPU_LIT_NUM_PES_PER_GPC 1
 #define GPU_LIT_NUM_ZCULL_BANKS 2

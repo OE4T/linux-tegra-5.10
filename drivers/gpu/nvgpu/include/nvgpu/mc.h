@@ -153,11 +153,39 @@ enum nvgpu_unit {
 #define NVGPU_NONSTALL_OPS_WAKEUP_SEMAPHORE	BIT32(0)
 #define NVGPU_NONSTALL_OPS_POST_EVENTS		BIT32(1)
 
+/** MC interrupt for Bus unit. */
+#define MC_INTR_UNIT_BUS	0
+/** MC interrupt for PRIV_RING unit. */
+#define MC_INTR_UNIT_PRIV_RING	1
+/** MC interrupt for FIFO unit. */
+#define MC_INTR_UNIT_FIFO	2
+/** MC interrupt for LTC unit. */
+#define MC_INTR_UNIT_LTC	3
+/** MC interrupt for HUB unit. */
+#define MC_INTR_UNIT_HUB	4
+/** MC interrupt for GR unit. */
+#define MC_INTR_UNIT_GR		5
+/** MC interrupt for PMU unit. */
+#define MC_INTR_UNIT_PMU	6
+/** MC interrupt for CE unit. */
+#define MC_INTR_UNIT_CE		7
+/** MC interrupt for NVLINK unit. */
+#define MC_INTR_UNIT_NVLINK	8
+/** MC interrupt for FBPA unit. */
+#define MC_INTR_UNIT_FBPA	9
+
+/** Value to be passed to mc.intr_*_unit_config to enable the interrupt. */
+#define MC_INTR_ENABLE		true
+/** Value to be passed to mc.intr_*_unit_config to disable the interrupt. */
+#define MC_INTR_DISABLE		false
+
 /**
  * This struct holds the variables needed to manage the configuration and
  * interrupt handling of the units/engines.
  */
 struct nvgpu_mc {
+	struct nvgpu_spinlock intr_lock;
+
 	/** Lock to access the mc_enable_r */
 	struct nvgpu_spinlock enable_lock;
 
@@ -245,5 +273,183 @@ struct nvgpu_mc {
  *   read non-stalling interrupt atomic count.
  */
 void nvgpu_wait_for_deferred_interrupts(struct gk20a *g);
+
+/**
+ * @brief Clear the GPU device interrupts at master level.
+ *
+ * @param g [in]	The GPU driver struct.
+ *
+ * This function is invoked before powering off or finishing
+ * SW quiesce of nvgpu driver.
+ *
+ * Steps:
+ * - Acquire the spinlock g->mc.intr_lock.
+ * - Write U32_MAX to the stalling interrupts enable clear register.
+ *   mc_intr_en_clear_r are write only registers which clear
+ *   the corresponding bit in INTR_EN whenever a 1 is written
+ *   to it.
+ * - Set g->mc.intr_mask_restore[NVGPU_MC_INTR_STALLING] and
+ *   g->mc.intr_mask_restore[NVGPU_MC_INTR_NONSTALLING] to 0.
+ * - Write U32_MAX to the non-stalling interrupts enable clear register.
+ * - Release the spinlock g->mc.intr_lock.
+ */
+void nvgpu_mc_intr_mask(struct gk20a *g);
+
+void nvgpu_mc_log_pending_intrs(struct gk20a *g);
+
+void nvgpu_mc_intr_enable(struct gk20a *g);
+
+/**
+ * @brief Enable the stalling interrupts for GPU unit at the master
+ *        level.
+ *
+ * @param g [in]	The GPU driver struct.
+ * @param unit [in]	Value designating the GPU HW unit/engine
+ *                      controlled by MC. Supported values are:
+ *			  - #MC_INTR_UNIT_BUS
+ *			  - #MC_INTR_UNIT_PRIV_RING
+ *			  - #MC_INTR_UNIT_FIFO
+ *			  - #MC_INTR_UNIT_LTC
+ *			  - #MC_INTR_UNIT_HUB
+ *			  - #MC_INTR_UNIT_GR
+ *			  - #MC_INTR_UNIT_PMU
+ *			  - #MC_INTR_UNIT_CE
+ *			  - #MC_INTR_UNIT_NVLINK
+ *			  - #MC_INTR_UNIT_FBPA
+ * @param enable [in]	Boolean control to enable/disable the stalling
+ *			interrupt. Supported values are:
+ *			  - #MC_INTR_ENABLE
+ *			  - #MC_INTR_DISABLE
+ *
+ * This function is invoked during individual unit's init before
+ * enabling that unit's interrupts.
+ *
+ * Steps:
+ * - Get the interrupt bitmask for \a unit.
+ * - Acquire the spinlock g->mc.intr_lock.
+ * - If interrupt is to be enabled
+ *   - Set interrupt bitmask in
+ *     #intr_mask_restore[#NVGPU_MC_INTR_STALLING].
+ *   - Write the interrupt bitmask to the register
+ *     mc_intr_en_set_r(#NVGPU_MC_INTR_STALLING).
+ * - Else
+ *   - Clear interrupt bitmask in
+ *     #intr_mask_restore[#NVGPU_MC_INTR_STALLING].
+ *   - Write the interrupt bitmask to the register
+ *     mc_intr_en_clear_r(#NVGPU_MC_INTR_STALLING).
+ * - Release the spinlock g->mc.intr_lock.
+ */
+void nvgpu_mc_intr_stall_unit_config(struct gk20a *g, u32 unit, bool enable);
+
+/**
+ * @brief Enable the non-stalling interrupts for GPU unit at the master
+ *        level.
+ *
+ * @param g [in]	The GPU driver struct.
+ * @param unit [in]	Value designating the GPU HW unit/engine
+ *                      controlled by MC. Supported values are:
+ *			  - #MC_INTR_UNIT_BUS
+ *			  - #MC_INTR_UNIT_PRIV_RING
+ *			  - #MC_INTR_UNIT_FIFO
+ *			  - #MC_INTR_UNIT_LTC
+ *			  - #MC_INTR_UNIT_HUB
+ *			  - #MC_INTR_UNIT_GR
+ *			  - #MC_INTR_UNIT_PMU
+ *			  - #MC_INTR_UNIT_CE
+ *			  - #MC_INTR_UNIT_NVLINK
+ *			  - #MC_INTR_UNIT_FBPA
+ * @param enable [in]	Boolean control to enable/disable the stalling
+ *			interrupt. Supported values are:
+ *			  - #MC_INTR_ENABLE
+ *			  - #MC_INTR_DISABLE
+ *
+ * This function is invoked during individual unit's init before
+ * enabling that unit's interrupts.
+ *
+ * Steps:
+ * - Get the interrupt bitmask for \a unit.
+ * - Acquire the spinlock g->mc.intr_lock.
+ * - If interrupt is to be enabled
+ *   - Set interrupt bitmask in
+ *     #intr_mask_restore[#NVGPU_MC_INTR_NONSTALLING].
+ *   - Write the interrupt bitmask to the register
+ *     mc_intr_en_set_r(#NVGPU_MC_INTR_NONSTALLING).
+ * - Else
+ *   - Clear interrupt bitmask in
+ *     #intr_mask_restore[#NVGPU_MC_INTR_NONSTALLING].
+ *   - Write the interrupt bitmask to the register
+ *     mc_intr_en_clear_r(#NVGPU_MC_INTR_NONSTALLING).
+ * - Release the spinlock g->mc.intr_lock.
+ */
+void nvgpu_mc_intr_nonstall_unit_config(struct gk20a *g, u32 unit, bool enable);
+
+/**
+ * @brief Disable/Pause the stalling interrupts.
+ *
+ * @param g [in]	The GPU driver struct.
+ *
+ * This function is invoked to disable the stalling interrupts before
+ * the ISR is executed.
+ *
+ * Steps:
+ * - Acquire the spinlock g->mc.intr_lock.
+ * - Write U32_MAX to the stalling interrupts enable clear register
+ *   (mc_intr_en_clear_r(#NVGPU_MC_INTR_STALLING)).
+ * - Release the spinlock g->mc.intr_lock.
+ */
+void nvgpu_mc_intr_stall_pause(struct gk20a *g);
+
+/**
+ * @brief Enable/Resume the stalling interrupts.
+ *
+ * @param g [in]	The GPU driver struct.
+ *
+ * This function is invoked to enable the stalling interrupts after
+ * the ISR is executed.
+ *
+ * Steps:
+ * - Acquire the spinlock g->mc.intr_lock.
+ * - Enable the stalling interrupts as configured during #intr_enable.
+ *   Write #intr_mask_restore[#NVGPU_MC_INTR_STALLING] to the
+ *   stalling interrupts enable set register
+ *   (mc_intr_en_set_r(#NVGPU_MC_INTR_STALLING)).
+ * - Release the spinlock g->mc.intr_lock.
+ */
+void nvgpu_mc_intr_stall_resume(struct gk20a *g);
+
+/**
+ * @brief Disable/Pause the non-stalling interrupts.
+ *
+ * @param g [in]	The GPU driver struct.
+ *
+ * This function is invoked to disable the non-stalling interrupts
+ * before the ISR is executed.
+ *
+ * Steps:
+ * - Acquire the spinlock g->mc.intr_lock.
+ * - Write U32_MAX to the non-stalling interrupts enable clear register
+ *   (mc_intr_en_clear_r(#NVGPU_MC_INTR_NONSTALLING)).
+ * - Release the spinlock g->mc.intr_lock.
+ */
+void nvgpu_mc_intr_nonstall_pause(struct gk20a *g);
+
+/**
+ * @brief Enable/Resume the non-stalling interrupts.
+ *
+ * @param g [in]	The GPU driver struct.
+ *
+ * This function is invoked to enable the non-stalling interrupts after
+ * the ISR is executed.
+ *
+ * Steps:
+ * - Acquire the spinlock g->mc.intr_lock.
+ * - Enable the non-stalling interrupts as configured during
+ *   #intr_enable.
+ *   Write #intr_mask_restore[#NVGPU_MC_INTR_NONSTALLING]
+ *   to the non-stalling interrupts enable set register
+ *   (mc_intr_en_set_r(#NVGPU_MC_INTR_NONSTALLING)).
+ * - Release the spinlock g->mc.intr_lock.
+ */
+void nvgpu_mc_intr_nonstall_resume(struct gk20a *g);
 
 #endif

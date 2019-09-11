@@ -514,7 +514,6 @@ static void set_poweron_funcs_success(struct gk20a *g)
 	setup_simple_init_func_success(&g->ops.ce.ce_init_support, i++);
 	setup_simple_init_func_success(&g->ops.bus.init_hw, i++);
 	setup_simple_init_func_success(&g->ops.priv_ring.enable_priv_ring, i++);
-	setup_simple_init_func_success(&g->ops.mc.intr_enable, i++);
 	setup_simple_init_func_success(&g->ops.channel.resume_all_serviceable_ch, i++);
 	setup_simple_init_func_success(&g->ops.pmu.pmu_early_init, i++);
 	setup_simple_init_func_success(&g->ops.acr.acr_init, i++);

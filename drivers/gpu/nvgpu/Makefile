@@ -195,7 +195,6 @@ nvgpu-y += \
 	common/nvlink/nvlink_gv100.o \
 	common/nvlink/nvlink_tu104.o \
 	common/rc/rc.o \
-	hal/mc/mc_gp10b.o  \
 	hal/mc/mc_gv100.o \
 	hal/mc/mc_tu104.o \
 	hal/bus/bus_gk20a.o \

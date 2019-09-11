@@ -31,6 +31,8 @@ struct gk20a;
 enum nvgpu_unit;
 
 void mc_gp10b_intr_mask(struct gk20a *g);
+void mc_gp10b_intr_stall_unit_config(struct gk20a *g, u32 unit, bool enable);
+void mc_gp10b_intr_nonstall_unit_config(struct gk20a *g, u32 unit, bool enable);
 void mc_gp10b_isr_stall(struct gk20a *g);
 bool mc_gp10b_is_intr1_pending(struct gk20a *g,
 				      enum nvgpu_unit unit, u32 mc_intr_1);
@@ -43,13 +45,5 @@ u32  mc_gp10b_intr_nonstall(struct gk20a *g);
 void mc_gp10b_intr_nonstall_pause(struct gk20a *g);
 void mc_gp10b_intr_nonstall_resume(struct gk20a *g);
 void mc_gp10b_ltc_isr(struct gk20a *g);
-
-#ifdef CONFIG_NVGPU_LS_PMU
-void mc_gp10b_intr_pmu_unit_config(struct gk20a *g, bool enable);
-#endif
-
-#ifdef CONFIG_NVGPU_HAL_NON_FUSA
-int mc_gp10b_intr_enable(struct gk20a *g);
-#endif
 
 #endif

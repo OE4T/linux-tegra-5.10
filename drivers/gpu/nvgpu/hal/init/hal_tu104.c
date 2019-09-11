@@ -1292,11 +1292,10 @@ static const struct gpu_ops tu104_ops = {
 #endif
 	.mc = {
 		.get_chip_details = gm20b_get_chip_details,
-		.intr_enable = intr_tu104_enable,
 		.intr_mask = intr_tu104_mask,
-#ifdef CONFIG_NVGPU_LS_PMU
-		.intr_pmu_unit_config = mc_gp10b_intr_pmu_unit_config,
-#endif
+		.intr_enable = NULL,
+		.intr_stall_unit_config = intr_tu104_stall_unit_config,
+		.intr_nonstall_unit_config = intr_tu104_nonstall_unit_config,
 		.isr_stall = mc_gp10b_isr_stall,
 		.intr_stall = intr_tu104_stall,
 		.intr_stall_pause = intr_tu104_stall_pause,

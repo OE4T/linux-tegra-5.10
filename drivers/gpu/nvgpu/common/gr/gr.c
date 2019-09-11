@@ -151,6 +151,21 @@ void nvgpu_gr_init(struct gk20a *g)
 	(void)nvgpu_cond_init(&g->gr->init_wq);
 }
 
+static void disable_gr_interrupts(struct gk20a *g)
+{
+	/** Disable gr intr */
+	g->ops.gr.intr.enable_interrupts(g, false);
+
+	/** Disable all exceptions */
+	g->ops.gr.intr.enable_exceptions(g, g->gr->config, false);
+
+	/** Disable interrupts at MC level */
+	nvgpu_mc_intr_stall_unit_config(g, MC_INTR_UNIT_GR,
+					MC_INTR_DISABLE);
+	nvgpu_mc_intr_nonstall_unit_config(g, MC_INTR_UNIT_GR,
+					   MC_INTR_DISABLE);
+}
+
 int nvgpu_gr_suspend(struct gk20a *g)
 {
 	int ret = 0;
@@ -165,11 +180,7 @@ int nvgpu_gr_suspend(struct gk20a *g)
 	/* Disable fifo access */
 	g->ops.gr.init.fifo_access(g, false);
 
-	/* disable gr intr */
-	g->ops.gr.intr.enable_interrupts(g, false);
-
-	/* disable all exceptions */
-	g->ops.gr.intr.enable_exceptions(g, g->gr->config, false);
+	disable_gr_interrupts(g);
 
 	g->ops.gr.intr.flush_channel_tlb(g);
 
@@ -177,6 +188,16 @@ int nvgpu_gr_suspend(struct gk20a *g)
 
 	nvgpu_log_fn(g, "done");
 	return ret;
+}
+
+static void enable_gr_interrupts(struct gk20a *g)
+{
+	/** Enable interrupts at MC level */
+	nvgpu_mc_intr_stall_unit_config(g, MC_INTR_UNIT_GR, MC_INTR_ENABLE);
+	nvgpu_mc_intr_nonstall_unit_config(g, MC_INTR_UNIT_GR, MC_INTR_ENABLE);
+
+	/** Enable interrupts */
+	g->ops.gr.intr.enable_interrupts(g, true);
 }
 
 static int gr_init_setup_hw(struct gk20a *g)
@@ -207,26 +228,25 @@ static int gr_init_setup_hw(struct gk20a *g)
 
 	/* TBD: reload gr ucode when needed */
 
-	/* enable interrupts */
-	g->ops.gr.intr.enable_interrupts(g, true);
+	enable_gr_interrupts(g);
 
-	/* enable fecs error interrupts */
+	/** Enable fecs error interrupts */
 	g->ops.gr.falcon.fecs_host_int_enable(g);
 
 	g->ops.gr.intr.enable_hww_exceptions(g);
 	g->ops.gr.intr.set_hww_esr_report_mask(g);
 
-	/* enable TPC exceptions per GPC */
+	/** Enable TPC exceptions per GPC */
 	g->ops.gr.intr.enable_gpc_exceptions(g, gr->config);
+
+	/** TBD: enable per BE exceptions */
 
 	/* enable ECC for L1/SM */
 	if (g->ops.gr.init.ecc_scrub_reg != NULL) {
 		g->ops.gr.init.ecc_scrub_reg(g, gr->config);
 	}
 
-	/* TBD: enable per BE exceptions */
-
-	/* reset and enable exceptions */
+	/** Reset and enable exceptions */
 	g->ops.gr.intr.enable_exceptions(g, gr->config, true);
 
 #ifdef CONFIG_NVGPU_GRAPHICS
@@ -515,8 +535,7 @@ static int gr_init_reset_enable_hw(struct gk20a *g)
 
 	nvgpu_log_fn(g, " ");
 
-	/* enable interrupts */
-	g->ops.gr.intr.enable_interrupts(g, true);
+	enable_gr_interrupts(g);
 
 	/* load non_ctx init */
 	for (i = 0; i < sw_non_ctx_load->count; i++) {

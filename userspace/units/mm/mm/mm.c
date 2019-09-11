@@ -31,6 +31,7 @@
 
 #include "os/posix/os_posix.h"
 
+#include "hal/mc/mc_gp10b.h"
 #include "hal/mm/mm_gp10b.h"
 #include "hal/mm/mm_gv11b.h"
 #include "hal/mm/cache/flush_gk20a.h"
@@ -464,6 +465,10 @@ int test_mm_init_hal(struct unit_module *m, struct gk20a *g, void *args)
 
 	p->mm_is_iommuable = true;
 	g->has_cde = true;
+
+	g->ops.mc.intr_stall_unit_config = mc_gp10b_intr_stall_unit_config;
+	g->ops.mc.intr_nonstall_unit_config =
+					mc_gp10b_intr_nonstall_unit_config;
 
 	g->ops.mm.gmmu.get_default_big_page_size =
 		gp10b_mm_get_default_big_page_size;

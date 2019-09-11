@@ -36,6 +36,17 @@
 
 #include "fifo_gv11b.h"
 
+static void enable_fifo_interrupts(struct gk20a *g)
+{
+	nvgpu_mc_intr_stall_unit_config(g, MC_INTR_UNIT_FIFO,
+					MC_INTR_ENABLE);
+	nvgpu_mc_intr_nonstall_unit_config(g, MC_INTR_UNIT_FIFO,
+					   MC_INTR_ENABLE);
+
+	g->ops.fifo.intr_0_enable(g, true);
+	g->ops.fifo.intr_1_enable(g, true);
+}
+
 int gv11b_init_fifo_reset_enable_hw(struct gk20a *g)
 {
 	u32 timeout;
@@ -65,8 +76,7 @@ int gv11b_init_fifo_reset_enable_hw(struct gk20a *g)
 
 	g->ops.pbdma.setup_hw(g);
 
-	g->ops.fifo.intr_0_enable(g, true);
-	g->ops.fifo.intr_1_enable(g, true);
+	enable_fifo_interrupts(g);
 
 	nvgpu_log_fn(g, "done");
 

@@ -65,13 +65,8 @@ void nvgpu_check_gpu_state(struct gk20a *g)
 
 static void gk20a_mask_interrupts(struct gk20a *g)
 {
-	if (g->ops.mc.intr_mask != NULL) {
-		g->ops.mc.intr_mask(g);
-	}
-
-	if (g->ops.mc.log_pending_intrs != NULL) {
-		g->ops.mc.log_pending_intrs(g);
-	}
+	nvgpu_mc_intr_mask(g);
+	nvgpu_mc_log_pending_intrs(g);
 }
 
 #ifndef CONFIG_NVGPU_RECOVERY
@@ -474,6 +469,22 @@ static int nvgpu_init_syncpt_mem(struct gk20a *g)
 	return 0;
 }
 
+static int nvgpu_init_interrupt_setup(struct gk20a *g)
+{
+	/**
+	 * Disable all interrupts at the start.
+	 */
+	nvgpu_mc_intr_mask(g);
+
+	/**
+	 * For certain chips like gm20b, there is global interrupt control in
+	 * registers mc_intr_en_*_r. Program them here upfront.
+	 */
+	nvgpu_mc_intr_enable(g);
+
+	return 0;
+}
+
 typedef int (*nvgpu_init_func_t)(struct gk20a *g);
 struct nvgpu_init_table_t {
 	nvgpu_init_func_t func;
@@ -522,6 +533,7 @@ int nvgpu_finalize_poweron(struct gk20a *g)
 #ifdef CONFIG_NVGPU_DGPU
 		NVGPU_INIT_TABLE_ENTRY(g->ops.bios.bios_sw_init, NO_FLAG),
 #endif
+		NVGPU_INIT_TABLE_ENTRY(&nvgpu_init_interrupt_setup, NO_FLAG),
 		NVGPU_INIT_TABLE_ENTRY(g->ops.bus.init_hw, NO_FLAG),
 		NVGPU_INIT_TABLE_ENTRY(g->ops.priv_ring.enable_priv_ring,
 				       NO_FLAG),
@@ -548,7 +560,6 @@ int nvgpu_finalize_poweron(struct gk20a *g)
 		NVGPU_INIT_TABLE_ENTRY(g->ops.fifo.fifo_init_support, NO_FLAG),
 		NVGPU_INIT_TABLE_ENTRY(g->ops.therm.elcg_init_idle_filters,
 				       NO_FLAG),
-		NVGPU_INIT_TABLE_ENTRY(g->ops.mc.intr_enable, NO_FLAG),
 		NVGPU_INIT_TABLE_ENTRY(&nvgpu_init_power_gate, NO_FLAG),
 		NVGPU_INIT_TABLE_ENTRY(&nvgpu_init_acquire_tpc_pg_lock, NO_FLAG),
 #ifdef CONFIG_NVGPU_DEBUGGER

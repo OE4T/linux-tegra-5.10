@@ -34,36 +34,6 @@
 
 #include <nvgpu/hw/gv100/hw_mc_gv100.h>
 
-int mc_gv100_intr_enable(struct gk20a *g)
-{
-	u32 eng_intr_mask = nvgpu_engine_interrupt_mask(g);
-
-	nvgpu_writel(g, mc_intr_en_clear_r(NVGPU_MC_INTR_STALLING),
-				U32_MAX);
-	nvgpu_writel(g, mc_intr_en_clear_r(NVGPU_MC_INTR_NONSTALLING),
-				U32_MAX);
-	g->mc.intr_mask_restore[NVGPU_MC_INTR_STALLING] =
-				mc_intr_pfifo_pending_f() |
-				mc_intr_hub_pending_f() |
-				mc_intr_priv_ring_pending_f() |
-				mc_intr_pbus_pending_f() |
-				mc_intr_ltc_pending_f() |
-				mc_intr_nvlink_pending_f() |
-				eng_intr_mask;
-
-	g->mc.intr_mask_restore[NVGPU_MC_INTR_NONSTALLING] =
-				mc_intr_pfifo_pending_f()
-			     | eng_intr_mask;
-
-	nvgpu_writel(g, mc_intr_en_set_r(NVGPU_MC_INTR_STALLING),
-			g->mc.intr_mask_restore[NVGPU_MC_INTR_STALLING]);
-
-	nvgpu_writel(g, mc_intr_en_set_r(NVGPU_MC_INTR_NONSTALLING),
-			g->mc.intr_mask_restore[NVGPU_MC_INTR_NONSTALLING]);
-
-	return 0;
-}
-
 bool gv100_mc_is_intr_nvlink_pending(struct gk20a *g, u32 mc_intr_0)
 {
 	return ((mc_intr_0 & mc_intr_nvlink_pending_f()) != 0U);

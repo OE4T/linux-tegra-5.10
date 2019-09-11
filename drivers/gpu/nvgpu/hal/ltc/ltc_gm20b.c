@@ -35,6 +35,7 @@
 #include <nvgpu/utils.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/static_analysis.h>
+#include <nvgpu/mc.h>
 
 #include <nvgpu/hw/gm20b/hw_ltc_gm20b.h>
 
@@ -65,8 +66,6 @@ void gm20b_ltc_init_fs_state(struct gk20a *g)
 	gk20a_writel(g, ltc_ltcs_ltss_dstg_cfg0_r(),
 		     gk20a_readl(g, ltc_ltc0_lts0_dstg_cfg0_r()) |
 		     ltc_ltcs_ltss_dstg_cfg0_vdc_4to2_disable_m());
-
-	g->ops.ltc.intr.configure(g);
 }
 
 /*

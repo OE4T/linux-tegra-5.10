@@ -25,6 +25,7 @@
 #include <nvgpu/log.h>
 #include <nvgpu/io.h>
 #include <nvgpu/gk20a.h>
+#include <nvgpu/mc.h>
 
 #include "hal/fb/fb_gv11b.h"
 #include "hal/fb/fb_mmu_fault_gv11b.h"
@@ -33,7 +34,6 @@
 #include "fb_intr_ecc_gv11b.h"
 
 #include <nvgpu/hw/gv11b/hw_fb_gv11b.h>
-
 
 void gv11b_fb_intr_enable(struct gk20a *g)
 {
@@ -47,6 +47,8 @@ void gv11b_fb_intr_enable(struct gk20a *g)
 		fb_niso_intr_en_set_mmu_replayable_fault_overflow_m() |
 #endif
 		fb_niso_intr_en_set_mmu_ecc_uncorrected_error_notify_m();
+
+	nvgpu_mc_intr_stall_unit_config(g, MC_INTR_UNIT_HUB, MC_INTR_ENABLE);
 
 	nvgpu_writel(g, fb_niso_intr_en_set_r(0), mask);
 }
@@ -65,6 +67,8 @@ void gv11b_fb_intr_disable(struct gk20a *g)
 		fb_niso_intr_en_set_mmu_ecc_uncorrected_error_notify_m();
 
 	nvgpu_writel(g, fb_niso_intr_en_clr_r(0), mask);
+
+	nvgpu_mc_intr_stall_unit_config(g, MC_INTR_UNIT_HUB, MC_INTR_DISABLE);
 }
 
 void gv11b_fb_intr_isr(struct gk20a *g)

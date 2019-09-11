@@ -111,6 +111,8 @@ gv11b_blcg_hshub_gating_prod_size
 gv11b_blcg_hshub_get_gating_prod
 gv11b_netlist_is_firmware_defined
 gv11b_top_get_num_lce
+mc_gp10b_intr_stall_unit_config
+mc_gp10b_intr_nonstall_unit_config
 nvgpu_acr_bootstrap_hs_acr
 nvgpu_acr_construct_execute
 nvgpu_acr_init

@@ -73,53 +73,6 @@ struct gops_mc {
 				u32 *arch, u32 *impl, u32 *rev);
 
 	/**
-	 * @brief Clear the GPU device interrupts at master level.
-	 *
-	 * @param g [in]	The GPU driver struct.
-	 *
-	 * This function is invoked before powering off or finishing
-	 * SW quiesce of nvgpu driver.
-	 *
-	 * Steps:
-	 * - Write U32_MAX to the stalling interrupts enable clear register.
-	 *   mc_intr_en_clear_r are write only registers which clear
-	 *   the corresponding bit in INTR_EN whenever a 1 is written
-	 *   to it.
-	 * - Write U32_MAX to the non-stalling interrupts enable clear register.
-	 */
-	void (*intr_mask)(struct gk20a *g);
-
-	/**
-	 * @brief Enable the applicable GPU device interrupts at master level.
-	 *
-	 * @param g [in]	The GPU driver struct.
-	 *
-	 * This function is invoked during #nvgpu_finalize_poweron before
-	 * enabling the individual HW units interrupts.
-	 *
-	 * Steps:
-	 * - Get the engine interrupts mask for supported FIFO engines by
-	 *   calling #nvgpu_engine_interrupt_mask.
-	 * - Clear the GPU device interrupts.
-	 * - Set the master level interrupts masks to be used for
-	 *   enabling/disabling the interrupts at runtime in
-	 *   #intr_stall_pause, #intr_stall_resume,
-	 *   #intr_nonstall_pause and #intr_nonstall_resume.
-	 *   - Initialize the stalling interrupts bitmask
-	 *     #intr_mask_restore[#NVGPU_MC_INTR_STALLING] with various
-	 *     units (FIFO, HUB, PRIV_RING, PBUS, LTC) OR'ing with engine
-	 *     interrupts mask.
-	 *   - Initialize the non-stalling interrupts bitmask
-	 *     #intr_mask_restore[#NVGPU_MC_INTR_NONSTALLING] with FIFO
-	 *     unit OR'ing with engine interrupts mask.
-	 * - Write the bitmasks to the stalling and the non-stalling interrupts
-	 *   enable registers respectively (mc_intr_en_set_r()).
-	 *
-	 * @return 0 in case of success, < 0 in case of failure.
-	 */
-	int (*intr_enable)(struct gk20a *g);
-
-	/**
 	 * @brief Read the the stalling interrupts status register.
 	 *
 	 * @param g [in]	The GPU driver struct.
@@ -134,20 +87,6 @@ struct gops_mc {
 	 * @return value read from mc_intr_r(#NVGPU_MC_INTR_STALLING).
 	 */
 	u32 (*intr_stall)(struct gk20a *g);
-
-	/**
-	 * @brief Disable/Pause the stalling interrupts.
-	 *
-	 * @param g [in]	The GPU driver struct.
-	 *
-	 * This function is invoked to disable the stalling interrupts before
-	 * the ISR is executed.
-	 *
-	 * Steps:
-	 * - Write U32_MAX to the stalling interrupts enable clear register
-	 *   (mc_intr_en_clear_r(#NVGPU_MC_INTR_STALLING)).
-	 */
-	void (*intr_stall_pause)(struct gk20a *g);
 
 	/**
 	 * @brief Interrupt Service Routine (ISR) for handling the stalling
@@ -185,22 +124,6 @@ struct gops_mc {
 	void (*isr_stall)(struct gk20a *g);
 
 	/**
-	 * @brief Enable/Resume the stalling interrupts.
-	 *
-	 * @param g [in]	The GPU driver struct.
-	 *
-	 * This function is invoked to enable the stalling interrupts after
-	 * the ISR is executed.
-	 *
-	 * Steps:
-	 * - Enable the stalling interrupts as configured during #intr_enable.
-	 *   Write #intr_mask_restore[#NVGPU_MC_INTR_STALLING] to the
-	 *   stalling interrupts enable set register
-	 *   (mc_intr_en_set_r(#NVGPU_MC_INTR_STALLING)).
-	 */
-	void (*intr_stall_resume)(struct gk20a *g);
-
-	/**
 	 * @brief Read the non-stalling interrupts status register.
 	 *
 	 * @param g [in]	The GPU driver struct.
@@ -215,20 +138,6 @@ struct gops_mc {
 	 * @return value read from mc_intr_r(#NVGPU_MC_INTR_NONSTALLING).
 	 */
 	u32 (*intr_nonstall)(struct gk20a *g);
-
-	/**
-	 * @brief Disable/Pause the non-stalling interrupts.
-	 *
-	 * @param g [in]	The GPU driver struct.
-	 *
-	 * This function is invoked to disable the non-stalling interrupts
-	 * before the ISR is executed.
-	 *
-	 * Steps:
-	 * - Write U32_MAX to the non-stalling interrupts enable clear register
-	 *   (mc_intr_en_clear_r(#NVGPU_MC_INTR_NONSTALLING)).
-	 */
-	void (*intr_nonstall_pause)(struct gk20a *g);
 
 	/**
 	 * @brief Interrupt Service Routine (ISR) for handling the non-stalling
@@ -255,23 +164,6 @@ struct gops_mc {
 	 * workqueue.
 	 */
 	u32 (*isr_nonstall)(struct gk20a *g);
-
-	/**
-	 * @brief Enable/Resume the non-stalling interrupts.
-	 *
-	 * @param g [in]	The GPU driver struct.
-	 *
-	 * This function is invoked to enable the non-stalling interrupts after
-	 * the ISR is executed.
-	 *
-	 * Steps:
-	 * - Enable the non-stalling interrupts as configured during
-	 *   #intr_enable.
-	 *   Write #intr_mask_restore[#NVGPU_MC_INTR_NONSTALLING]
-	 *   to the non-stalling interrupts enable set register
-	 *   (mc_intr_en_set_r(#NVGPU_MC_INTR_NONSTALLING)).
-	 */
-	void (*intr_nonstall_resume)(struct gk20a *g);
 
 	/**
 	 * @brief Check if stalling or engine interrupts are pending.
@@ -345,10 +237,10 @@ struct gops_mc {
 	 * @param g [in]	The GPU driver struct.
 	 * @param unit [in]	Value designating the GPU HW unit/engine
 	 *                      controlled by MC. Supported values are:
-	 *			  - NVGPU_UNIT_FIFO
-	 *			  - NVGPU_UNIT_PERFMON
-	 *			  - NVGPU_UNIT_GRAPH
-	 *			  - NVGPU_UNIT_BLG
+	 *			  - #NVGPU_UNIT_FIFO
+	 *			  - #NVGPU_UNIT_PERFMON
+	 *			  - #NVGPU_UNIT_GRAPH
+	 *			  - #NVGPU_UNIT_BLG
 	 *
 	 * This function is invoked to get the reset mask of the engines for
 	 * resetting CE, GR, FIFO during #nvgpu_finalize_poweron.
@@ -385,6 +277,24 @@ struct gops_mc {
 
 	/** @cond DOXYGEN_SHOULD_SKIP_THIS */
 
+	void (*intr_mask)(struct gk20a *g);
+
+	void (*intr_enable)(struct gk20a *g);
+
+	void (*intr_stall_unit_config)(struct gk20a *g, u32 unit,
+				bool enable);
+
+	void (*intr_nonstall_unit_config)(struct gk20a *g, u32 unit,
+				bool enable);
+
+	void (*intr_stall_pause)(struct gk20a *g);
+
+	void (*intr_stall_resume)(struct gk20a *g);
+
+	void (*intr_nonstall_pause)(struct gk20a *g);
+
+	void (*intr_nonstall_resume)(struct gk20a *g);
+
 	void (*enable)(struct gk20a *g, u32 units);
 
 	void (*disable)(struct gk20a *g, u32 units);
@@ -407,10 +317,6 @@ struct gops_mc {
 	void (*fbpa_isr)(struct gk20a *g);
 #endif
 
-#ifdef CONFIG_NVGPU_LS_PMU
-	void (*intr_pmu_unit_config)(struct gk20a *g,
-			bool enable);
-#endif
 	/** @endcond DOXYGEN_SHOULD_SKIP_THIS */
 };
 

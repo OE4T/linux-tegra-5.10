@@ -26,6 +26,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/nvgpu_err.h>
 #include <nvgpu/static_analysis.h>
+#include <nvgpu/mc.h>
 
 #include "ltc_gv11b.h"
 
@@ -53,9 +54,6 @@ void gv11b_ltc_init_fs_state(struct gk20a *g)
 	g->ltc->slices_per_ltc = ltc_ltcs_ltss_cbc_param_slices_per_ltc_v(reg);;
 	g->ltc->cacheline_size =
 		line_size << ltc_ltcs_ltss_cbc_param_cache_line_size_v(reg);
-
-	g->ops.ltc.intr.configure(g);
-
 }
 
 int gv11b_lts_ecc_init(struct gk20a *g)
