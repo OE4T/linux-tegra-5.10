@@ -312,6 +312,7 @@ int nvgpu_dma_alloc_map_sys(struct vm_gk20a *vm, size_t size,
 int nvgpu_dma_alloc_map_flags_sys(struct vm_gk20a *vm, unsigned long flags,
 		size_t size, struct nvgpu_mem *mem);
 
+#ifdef CONFIG_NVGPU_DGPU
 /**
  * nvgpu_dma_alloc_map_vid - Allocate DMA memory and map into GMMU.
  *
@@ -344,6 +345,7 @@ int nvgpu_dma_alloc_map_vid(struct vm_gk20a *vm, size_t size,
  */
 int nvgpu_dma_alloc_map_flags_vid(struct vm_gk20a *vm, unsigned long flags,
 		size_t size, struct nvgpu_mem *mem);
+#endif /* CONFIG_NVGPU_DGPU */
 
 /**
  * nvgpu_dma_unmap_free - Free a DMA allocation
@@ -366,6 +368,8 @@ void nvgpu_dma_unmap_free(struct vm_gk20a *vm, struct nvgpu_mem *mem);
  * Don't use these directly. Instead use nvgpu_dma_free().
  */
 void nvgpu_dma_free_sys(struct gk20a *g, struct nvgpu_mem *mem);
+#ifdef CONFIG_NVGPU_DGPU
 void nvgpu_dma_free_vid(struct gk20a *g, struct nvgpu_mem *mem);
+#endif
 
 #endif /*  NVGPU_DMA_H */

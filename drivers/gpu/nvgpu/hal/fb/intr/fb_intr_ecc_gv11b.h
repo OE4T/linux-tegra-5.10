@@ -33,9 +33,11 @@ struct nvgpu_hw_err_inject_info;
 struct nvgpu_hw_err_inject_info_desc;
 
 void gv11b_fb_intr_handle_ecc(struct gk20a *g);
+#ifdef CONFIG_NVGPU_INJECT_HWERR
 struct nvgpu_hw_err_inject_info_desc *
 		gv11b_fb_intr_get_hubmmu_err_desc(struct gk20a *g);
 int gv11b_fb_intr_inject_hubmmu_ecc_error(struct gk20a *g,
 		struct nvgpu_hw_err_inject_info *err, u32 error_info);
+#endif
 
 #endif /* NVGPU_FB_INTR_ECC_GV11B_H */
