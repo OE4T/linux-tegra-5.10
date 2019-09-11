@@ -34,6 +34,20 @@
 #include "acr_bootstrap.h"
 #include "acr_blob_construct_v0.h"
 
+static int gm20b_bootstrap_hs_acr(struct gk20a *g, struct nvgpu_acr *acr)
+{
+	int err = 0;
+
+	nvgpu_log_fn(g, " ");
+
+	err = nvgpu_acr_bootstrap_hs_ucode(g, g->acr, &g->acr->acr);
+	if (err != 0) {
+		nvgpu_err(g, "ACR bootstrap failed");
+	}
+
+	return err;
+}
+
 static void gm20b_acr_patch_wpr_info_to_ucode(struct gk20a *g,
 	struct nvgpu_acr *acr, struct hs_acr *acr_desc, bool is_recovery)
 {
@@ -145,7 +159,7 @@ void nvgpu_gm20b_acr_sw_init(struct gk20a *g, struct nvgpu_acr *acr)
 	acr->prepare_ucode_blob = nvgpu_acr_prepare_ucode_blob_v0;
 	acr->get_wpr_info = nvgpu_acr_wpr_info_sys;
 	acr->alloc_blob_space = nvgpu_acr_alloc_blob_space_sys;
-	acr->bootstrap_hs_acr = nvgpu_acr_bootstrap_hs_ucode;
+	acr->bootstrap_hs_acr = gm20b_bootstrap_hs_acr;
 	acr->patch_wpr_info_to_ucode =
 		gm20b_acr_patch_wpr_info_to_ucode;
 }

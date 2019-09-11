@@ -33,8 +33,7 @@
 #include "acr_sw_gv11b.h"
 #include "acr_sw_tu104.h"
 
-static int tu104_bootstrap_hs_acr(struct gk20a *g, struct nvgpu_acr *acr,
-	struct hs_acr *acr_type)
+static int tu104_bootstrap_hs_acr(struct gk20a *g, struct nvgpu_acr *acr)
 {
 	int err = 0;
 

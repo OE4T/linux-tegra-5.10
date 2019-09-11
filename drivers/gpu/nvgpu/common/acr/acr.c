@@ -86,7 +86,7 @@ int nvgpu_acr_bootstrap_hs_acr(struct gk20a *g, struct nvgpu_acr *acr)
 		return -EINVAL;
 	}
 
-	err = acr->bootstrap_hs_acr(g, acr, &acr->acr);
+	err = acr->bootstrap_hs_acr(g, acr);
 	if (err != 0) {
 		nvgpu_err(g, "ACR bootstrap failed");
 	}

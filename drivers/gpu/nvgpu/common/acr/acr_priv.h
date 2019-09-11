@@ -142,8 +142,7 @@ struct nvgpu_acr {
 		struct nvgpu_mem *mem);
 	void (*patch_wpr_info_to_ucode)(struct gk20a *g, struct nvgpu_acr *acr,
 		struct hs_acr *acr_desc, bool is_recovery);
-	int (*bootstrap_hs_acr)(struct gk20a *g, struct nvgpu_acr *acr,
-		struct hs_acr *acr_desc);
+	int (*bootstrap_hs_acr)(struct gk20a *g, struct nvgpu_acr *acr);
 
 	void (*get_wpr_info)(struct gk20a *g, struct wpr_carveout_info *inf);
 };
