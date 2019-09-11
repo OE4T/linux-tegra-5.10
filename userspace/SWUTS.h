@@ -31,6 +31,7 @@
  * to test the NVGPU driver.
  *
  *   - @ref SWUTS-enabled
+ *   - @ref SWUTS-fifo
  *   - @ref SWUTS-init
  *   - @ref SWUTS-interface-atomic
  *   - @ref SWUTS-mm-allocators-bitmap-allocator

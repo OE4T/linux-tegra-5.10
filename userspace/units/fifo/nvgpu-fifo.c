@@ -145,6 +145,8 @@ int test_fifo_remove_support(struct unit_module *m,
 		g->fifo.remove_support(&g->fifo);
 	}
 
+	test_fifo_cleanup_gv11b_reg_space(m, g);
+
 	return UNIT_SUCCESS;
 }
 

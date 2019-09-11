@@ -35,10 +35,64 @@
 	} while (0)
 #endif
 
+/** @addtogroup SWUTS-fifo
+ *  @{
+ *
+ * Software Unit Test Specification for fifo
+ */
+
+/**
+ * Test specification for: test_fifo_init_support
+ *
+ * Description: The FIFO unit shall initialize all sub-units.
+ *
+ * Test Type: Feature based
+ *
+ * Input: None
+ *
+ * Steps:
+ * - Setup gv11b register spaces for MASTER, TOP, FIFO, PBDMA, CCSR
+ *   and USERMODE. This allows some HAL to read emulated values of gv11b
+ *   registers.
+ * - Init HAL for to use gv11b defaults
+ * - Stub some HALs that would require reg access
+ *   - g->ops.gr.init.get_no_of_sm
+ * - Also stub the following HAL, since BAR1 is not initialized,
+ *   and USERD not used in safety build
+ *   - g->ops.userd.setup_sw
+ * - Additionnaly the following HALs are set to NULL, as currenty
+ *   not needed for subsequent tests.
+ *   - g->ops.fifo.init_fifo_setup_hw = NULL;
+ *   - g->ops.tsg.init_eng_method_buffers = NULL;
+ * - Call nvgpu_fifo_init_support
+ * - Cleanup gv11b register spaces.
+ *
+ * Output: Returns PASS if FIFO unit could be initialized. FAIL otherwise.
+ */
 int test_fifo_init_support(struct unit_module *m,
 		struct gk20a *g, void *args);
+
+/**
+ * Test specification for: test_fifo_remove_support
+ *
+ * Description: The FIFO unit shall de-initialize all sub-units.
+ *
+ * Test Type: Feature based
+ *
+ * Input: test_fifo_init_support() called for this GPU.
+ *
+ * Steps:
+ * - Call g->fifo.remove_support if defined
+ * - Cleanup gv11b register spaces.
+ *
+ * Output: Returns PASS if FIFO unit could be initialized. FAIL otherwise.
+ */
 int test_fifo_remove_support(struct unit_module *m,
 		struct gk20a *g, void *args);
+
+/**
+ * @}
+ */
 
 bool test_fifo_subtest_pruned(u32 branches, u32 final_branches);
 char *test_fifo_flags_str(u32 flags, const char *labels[]);
