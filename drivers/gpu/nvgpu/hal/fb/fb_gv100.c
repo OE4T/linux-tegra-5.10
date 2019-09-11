@@ -39,7 +39,7 @@
 #include <nvgpu/timers.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/unit.h>
-#include <nvgpu/acr.h>
+#include <nvgpu/firmware.h>
 
 #include "fb_gv100.h"
 
@@ -51,6 +51,26 @@
 
 #define MEM_UNLOCK_PROD_BIN		"mem_unlock.bin"
 #define MEM_UNLOCK_DBG_BIN		"mem_unlock_dbg.bin"
+
+struct mem_unlock_bin_hdr {
+	u32 bin_magic;
+	u32 bin_ver;
+	u32 bin_size;
+	u32 header_offset;
+	u32 data_offset;
+	u32 data_size;
+};
+
+struct mem_unlock_fw_header {
+	u32 sig_dbg_offset;
+	u32 sig_dbg_size;
+	u32 sig_prod_offset;
+	u32 sig_prod_size;
+	u32 patch_loc;
+	u32 patch_sig;
+	u32 hdr_offset;
+	u32 hdr_size;
+};
 
 void gv100_fb_reset(struct gk20a *g)
 {
@@ -75,9 +95,43 @@ void gv100_fb_reset(struct gk20a *g)
 	gk20a_writel(g, fb_mmu_priv_level_mask_r(), val);
 }
 
+/*
+ * Patch signatures into ucode image
+ */
+static int fb_ucode_patch_sig(struct gk20a *g,
+	unsigned int *p_img, unsigned int *p_prod_sig,
+	unsigned int *p_dbg_sig, unsigned int *p_patch_loc,
+	unsigned int *p_patch_ind, u32 sig_size)
+{
+	unsigned int i, j, *p_sig;
+
+	if (!g->ops.pmu.is_debug_mode_enabled(g)) {
+		p_sig = p_prod_sig;
+	} else {
+		p_sig = p_dbg_sig;
+	}
+
+	/* Patching logic:*/
+	sig_size = sig_size / 4U;
+	for (i = 0U; i < sizeof(*p_patch_loc)>>2U; i++) {
+		for (j = 0U; j < sig_size; j++) {
+			p_img[nvgpu_safe_add_u32((p_patch_loc[i]>>2U), j)] =
+				p_sig[nvgpu_safe_add_u32((p_patch_ind[i]<<2U),
+					j)];
+		}
+	}
+
+	return 0;
+}
+
 int gv100_fb_memory_unlock(struct gk20a *g)
 {
 	struct nvgpu_firmware *mem_unlock_fw = NULL;
+	struct mem_unlock_bin_hdr *hs_bin_hdr = NULL;
+	struct mem_unlock_fw_header *fw_hdr = NULL;
+	u32 *ucode_header = NULL;
+	u32 *ucode = NULL;
+	u32 data = 0;
 	int err = 0;
 
 	nvgpu_log_fn(g, " ");
@@ -100,10 +154,45 @@ int gv100_fb_memory_unlock(struct gk20a *g)
 	/* Enable nvdec */
 	g->ops.mc.enable(g, g->ops.mc.reset_mask(g, NVGPU_UNIT_NVDEC));
 
-	err = nvgpu_acr_self_hs_load_bootstrap(g, &g->nvdec_flcn, mem_unlock_fw,
-		MEM_UNLOCK_TIMEOUT );
+	hs_bin_hdr = (struct mem_unlock_bin_hdr *)(void *)mem_unlock_fw->data;
+	fw_hdr = (struct mem_unlock_fw_header *)(void *)(mem_unlock_fw->data +
+			hs_bin_hdr->header_offset);
+	ucode_header = (u32 *)(void *)(mem_unlock_fw->data +
+					fw_hdr->hdr_offset);
+	ucode = (u32 *)(void *)(mem_unlock_fw->data + hs_bin_hdr->data_offset);
+
+	/* Patch Ucode signatures */
+	if (fb_ucode_patch_sig(g, ucode,
+		(u32 *)(void *)(mem_unlock_fw->data + fw_hdr->sig_prod_offset),
+		(u32 *)(void *)(mem_unlock_fw->data + fw_hdr->sig_dbg_offset),
+		(u32 *)(void *)(mem_unlock_fw->data + fw_hdr->patch_loc),
+		(u32 *)(void *)(mem_unlock_fw->data + fw_hdr->patch_sig),
+		fw_hdr->sig_dbg_size) < 0) {
+		nvgpu_err(g, "mem unlock ucode patch signatures fail");
+		err = -EPERM;
+		goto exit;
+	}
+
+	err = nvgpu_falcon_hs_ucode_load_bootstrap(&g->nvdec_flcn, ucode,
+			ucode_header);
 	if (err != 0) {
-		nvgpu_err(g, "mem unlock HS ucode failed, err-0x%x", err);
+		nvgpu_err(g, "mem unlock ucode load & bootstrap failed");
+		goto exit;
+	}
+
+	if (nvgpu_falcon_wait_for_halt(&g->nvdec_flcn,
+		MEM_UNLOCK_TIMEOUT) != 0) {
+		nvgpu_err(g, "mem unlock ucode boot timed out");
+#ifdef CONFIG_NVGPU_FALCON_DEBUG
+		nvgpu_falcon_dump_stats(&g->nvdec_flcn);
+#endif
+		goto exit;
+	}
+
+	data = nvgpu_falcon_mailbox_read(&g->nvdec_flcn, FALCON_MAILBOX_0);
+	if (data != 0U) {
+		nvgpu_err(g, "mem unlock ucode boot failed, err %x", data);
+		goto exit;
 	}
 
 exit:
