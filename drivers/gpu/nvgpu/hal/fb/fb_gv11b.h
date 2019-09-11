@@ -29,7 +29,6 @@ struct gk20a;
 
 void gv11b_fb_init_hw(struct gk20a *g);
 void gv11b_fb_init_fs_state(struct gk20a *g);
-void gv11b_fb_reset(struct gk20a *g);
 
 #ifdef CONFIG_NVGPU_COMPRESSION
 struct nvgpu_cbc;
