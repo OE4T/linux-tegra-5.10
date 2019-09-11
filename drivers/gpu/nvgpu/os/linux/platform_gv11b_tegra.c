@@ -84,7 +84,7 @@ static int gv11b_tegra_probe(struct device *dev)
 	if (err)
 		return err;
 
-	platform->disable_bigpage = !dev->archdata.iommu;
+	platform->disable_bigpage = !dev->archdata.iommu && (PAGE_SIZE < SZ_64K);
 
 #ifdef CONFIG_OF
 	joint_xpu_rail = of_property_read_bool(of_chosen,
