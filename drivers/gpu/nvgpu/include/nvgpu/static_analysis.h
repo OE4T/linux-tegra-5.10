@@ -32,10 +32,11 @@
 #include <nvgpu/types.h>
 #include <nvgpu/bug.h>
 
-/**
- * These macros are used for whitelisting coverity violations. The macros are
- * only enabled when a coverity scan is being run.
+/** @name Coverity Whitelisting
+ *  These macros are used for whitelisting coverity violations. The macros are
+ *  only enabled when a coverity scan is being run.
  */
+/**@{*/
 #ifdef NV_IS_COVERITY
 /**
  * NVGPU_MISRA - Define a MISRA rule for NVGPU_COV_WHITELIST.
@@ -49,7 +50,7 @@
  * This is a convenience macro for defining a MISRA rule for the
  * NVGPU_COV_WHITELIST macro.
  *
- * Example 1: For defining MISRA rule 14.2, use NVGPU_MISRA(Rule, 14_2).
+ * Example 1: For defining MISRA rule 14.2, use NVGPU_MISRA(Rule, 14_2).\n
  * Example 2: For defining MISRA directive 4.7, use NVGPU_MISRA(Directive, 4_7).
  */
 #define NVGPU_MISRA(type, num)	MISRA_C_2012_##type##_##num
@@ -77,8 +78,8 @@
  * NVGPU_COV_WHITELIST - Whitelist a coverity violation on the next line.
  *
  * @param type        - This is the whitelisting category. Valid values are
- *                      deviate or false_positive.
- *                      deviate is for an approved rule deviation.
+ *                      deviate or false_positive.\n
+ *                      deviate is for an approved rule deviation.\n
  *                      false_positive is normally used for a bug in coverity
  *                      which causes a false violation to appear in the scan.
  * @param checker     - This is the MISRA or CERT C rule causing the violation.
@@ -92,14 +93,14 @@
  * Use this macro to whitelist a coverity violation in the next line of code.
  *
  * Example 1: Whitelist a MISRA rule 14.2 violation due to a deviation
- * documented in the JIRA TID-123 RFD:
- * NVGPU_COV_WHITELIST(deviate, NVGPU_MISRA(Rule, 14_2), "JIRA TID-123")
+ * documented in the JIRA TID-123 RFD:\n
+ * NVGPU_COV_WHITELIST(deviate, NVGPU_MISRA(Rule, 14_2), "JIRA TID-123")\n
  * // Next line of code with a rule 14.2 violation
  *
  * Example 2: Whitelist violations for CERT C rules INT30-C and STR30-C caused
- * by coverity bugs:
- * NVGPU_COV_WHITELIST(false_positive, NVGPU_CERT(INT30_C), "Bug 123456")
- * NVGPU_COV_WHITELIST(false_positive, NVGPU_CERT(STR30_C), "Bug 123457")
+ * by coverity bugs:\n
+ * NVGPU_COV_WHITELIST(false_positive, NVGPU_CERT(INT30_C), "Bug 123456")\n
+ * NVGPU_COV_WHITELIST(false_positive, NVGPU_CERT(STR30_C), "Bug 123457")\n
  * // Next line of code with INT30-C and STR30-C violations
  */
 #define NVGPU_COV_WHITELIST(type, checker, comment_str) \
@@ -113,6 +114,7 @@
 #define NVGPU_CERT(num)
 #define NVGPU_COV_WHITELIST(type, checker, comment_str)
 #endif
+/**@}*/ /* "Coverity Whitelisting" doxygen group */
 
 static inline u32 nvgpu_safe_add_u32(u32 ui_a, u32 ui_b)
 {
