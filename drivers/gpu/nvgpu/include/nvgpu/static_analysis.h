@@ -380,4 +380,36 @@ static inline s32 nvgpu_safe_cast_s64_to_s32(s64 sl_a)
 		return (s32)sl_a;
 	}
 }
+
+#define NVGPU_PRECISION(v) _Generic(v, \
+		unsigned int : __builtin_popcount, \
+		unsigned long : __builtin_popcountl, \
+		unsigned long long : __builtin_popcountll, \
+		default : __builtin_popcount)(v)
+
+static inline void nvgpu_safety_checks(void)
+{
+	/*
+	 * For CERT-C INT35-C rule
+	 * Check compatibility between size (in bytes) and precision
+	 * (in bits) of unsigned int. BUG() if two are not same.
+	 */
+	if (sizeof(unsigned int) * 8U != NVGPU_PRECISION(UINT_MAX)) {
+		BUG();
+	}
+
+	/*
+	 * For CERT-C INT34-C rule
+	 * Check precision of unsigned types. Shift operands have been
+	 * checked to be less than these values.
+	 */
+	if (NVGPU_PRECISION(UCHAR_MAX) != 8 ||
+		NVGPU_PRECISION(USHRT_MAX) != 16 ||
+		NVGPU_PRECISION(UINT_MAX) != 32 ||
+		NVGPU_PRECISION(ULONG_MAX) != 64 ||
+		NVGPU_PRECISION(ULLONG_MAX) != 64) {
+		BUG();
+	}
+}
+
 #endif /* NVGPU_STATIC_ANALYSIS_H */
