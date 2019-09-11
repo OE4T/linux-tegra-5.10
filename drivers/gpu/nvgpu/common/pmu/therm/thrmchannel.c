@@ -29,6 +29,7 @@
 #include <nvgpu/string.h>
 
 #include "thrmchannel.h"
+#include "thrmdev.h"
 #include "thrm.h"
 
 static int _therm_channel_pmudatainit_device(struct gk20a *g,
@@ -182,6 +183,11 @@ static int devinit_get_therm_channel_table(struct gk20a *g,
 		}
 
 		therm_channel_data.device.therm_dev_idx = therm_channel_table_entry->param0;
+		/* Check for valid therm device index */
+		if (!nvgpu_therm_dev_idx_is_valid(g->pmu->therm_pmu,
+				therm_channel_data.device.therm_dev_idx)) {
+			continue;
+		}
 		therm_channel_data.device.therm_dev_prov_idx = therm_channel_table_entry->param1;
 
 		therm_channel_size = sizeof(struct therm_channel_device);

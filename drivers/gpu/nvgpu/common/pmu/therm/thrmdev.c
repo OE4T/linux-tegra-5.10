@@ -32,6 +32,12 @@
 #include "thrmdev.h"
 #include "thrm.h"
 
+bool nvgpu_therm_dev_idx_is_valid(struct therm_pmupstate *therm_pmu, u8 idx)
+{
+	return boardobjgrp_idxisvalid(
+			&(therm_pmu->therm_deviceobjs.super.super), idx);
+}
+
 static int _therm_device_pmudata_instget(struct gk20a *g,
 			struct nv_pmu_boardobjgrp *pmuboardobjgrp,
 			struct nv_pmu_boardobj **ppboardobjpmudata,
