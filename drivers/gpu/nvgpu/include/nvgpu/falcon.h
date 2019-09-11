@@ -410,6 +410,21 @@ int nvgpu_falcon_bl_bootstrap(struct nvgpu_falcon *flcn,
 	struct nvgpu_falcon_bl_info *bl_info);
 
 /**
+ * @brief Bootstrap the falcon with HS ucode.
+ *
+ * @param flcn  [in] The falcon
+ * @param ucode [in] ucode to be copied
+ * @param ucode_header [in] ucode header
+ *
+ * Copies HS ucode source and descriptor to IMEM and DMEM and then
+ * bootstraps the falcon.
+ *
+ * @return 0 in case of success, < 0 in case of failure.
+ */
+int nvgpu_falcon_hs_ucode_load_bootstrap(struct nvgpu_falcon *flcn, u32 *ucode,
+	u32 *ucode_header);
+
+/**
  * @brief Get the size of falcon's memory.
  *
  * @param flcn [in] The falcon

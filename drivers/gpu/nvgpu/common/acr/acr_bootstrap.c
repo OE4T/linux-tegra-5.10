@@ -187,15 +187,7 @@ int nvgpu_acr_self_hs_load_bootstrap(struct gk20a *g, struct nvgpu_falcon *flcn,
 	struct acr_fw_header *fw_hdr = NULL;
 	u32 *ucode_header = NULL;
 	u32 *ucode = NULL;
-	u32 sec_imem_dest = 0U;
 	int err = 0;
-
-	/* falcon reset */
-	err = nvgpu_falcon_reset(flcn);
-	if (err != 0) {
-		nvgpu_err(g, "nvgpu_falcon_reset() failed err=%d", err);
-		return err;
-	}
 
 	hs_bin_hdr = (struct bin_hdr *)(void *)hs_fw->data;
 	fw_hdr = (struct acr_fw_header *)(void *)(hs_fw->data +
@@ -215,54 +207,9 @@ int nvgpu_acr_self_hs_load_bootstrap(struct gk20a *g, struct nvgpu_falcon *flcn,
 		goto exit;
 	}
 
-	/* setup falcon apertures, boot-config */
-	err = nvgpu_falcon_setup_bootstrap_config(flcn);
+	err = nvgpu_falcon_hs_ucode_load_bootstrap(flcn, ucode, ucode_header);
 	if (err != 0) {
-		goto exit;
-	}
-
-	/* Copy Non Secure IMEM code */
-	err = nvgpu_falcon_copy_to_imem(flcn, 0U,
-		(u8 *)&ucode[ucode_header[OS_CODE_OFFSET] >> 2U],
-		ucode_header[OS_CODE_SIZE], 0U, false,
-		GET_IMEM_TAG(ucode_header[OS_CODE_OFFSET]));
-	if (err != 0) {
-		nvgpu_err(g, "HS ucode non-secure code to IMEM failed");
-		goto exit;
-	}
-
-	/* Put secure code after non-secure block */
-	sec_imem_dest = GET_NEXT_BLOCK(ucode_header[OS_CODE_SIZE]);
-
-	err = nvgpu_falcon_copy_to_imem(flcn, sec_imem_dest,
-		(u8 *)&ucode[ucode_header[APP_0_CODE_OFFSET] >> 2U],
-		ucode_header[APP_0_CODE_SIZE], 0U, true,
-		GET_IMEM_TAG(ucode_header[APP_0_CODE_OFFSET]));
-	if (err != 0) {
-		nvgpu_err(g, "HS ucode secure code to IMEM failed");
-		goto exit;
-	}
-
-	/* load DMEM: ensure that signatures are patched */
-	err = nvgpu_falcon_copy_to_dmem(flcn, 0U, (u8 *)&ucode[
-		ucode_header[OS_DATA_OFFSET] >> 2U],
-		ucode_header[OS_DATA_SIZE], 0U);
-	if (err != 0) {
-		nvgpu_err(g, "HS ucode data copy to DMEM failed");
-		goto exit;
-	}
-
-	/*
-	 * Write non-zero value to mailbox register which is updated by
-	 * HS bin to denote its return status.
-	 */
-	nvgpu_falcon_mailbox_write(flcn, FALCON_MAILBOX_0, 0xdeadbeefU);
-
-	/* set BOOTVEC to start of non-secure code */
-	err = nvgpu_falcon_bootstrap(flcn, 0U);
-	if (err != 0) {
-		nvgpu_err(g, "HS ucode bootstrap failed err-%d on falcon-%d", err,
-			nvgpu_falcon_get_id(flcn));
+		nvgpu_err(g, "HS ucode load & bootstrap failed");
 		goto exit;
 	}
 
