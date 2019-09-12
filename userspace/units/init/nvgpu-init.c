@@ -376,7 +376,6 @@ static void set_poweron_funcs_success(struct gk20a *g)
 
 	/* these don't even return anything */
 	g->ops.bus.init_hw = no_return;
-	g->ops.clk.disable_slowboot = no_return;
 	g->ops.priv_ring.enable_priv_ring = no_return;
 	g->ops.mc.intr_enable = no_return;
 	g->ops.channel.resume_all_serviceable_ch = no_return;
@@ -507,7 +506,6 @@ int test_poweron_branches(struct unit_module *m, struct gk20a *g, void *args)
 	set_poweron_funcs_success(g);
 
 	/* hit all the NULL pointer checks */
-	g->ops.clk.disable_slowboot = NULL;
 	g->ops.clk.init_clk_support = NULL;
 	g->ops.fb.init_fbpa = NULL;
 	g->ops.fb.mem_unlock = NULL;

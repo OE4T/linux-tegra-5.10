@@ -1279,7 +1279,6 @@ struct gpu_ops {
 	} pmu;
 	struct {
 		int (*init_debugfs)(struct gk20a *g);
-		void (*disable_slowboot)(struct gk20a *g);
 		int (*init_clk_support)(struct gk20a *g);
 		void (*suspend_clk_support)(struct gk20a *g);
 		u32 (*get_crystal_clk_hz)(struct gk20a *g);

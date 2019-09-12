@@ -346,10 +346,6 @@ int nvgpu_finalize_poweron(struct gk20a *g)
 #endif
 	g->ops.bus.init_hw(g);
 
-	if (g->ops.clk.disable_slowboot != NULL) {
-		g->ops.clk.disable_slowboot(g);
-	}
-
 	g->ops.priv_ring.enable_priv_ring(g);
 
 	/* TBD: move this after graphics init in which blcg/slcg is enabled.
