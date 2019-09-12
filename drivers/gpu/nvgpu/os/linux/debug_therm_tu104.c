@@ -15,6 +15,7 @@
  */
 
 #include <linux/debugfs.h>
+#include <nvgpu/pmu/therm.h>
 
 #include "os_linux.h"
 
@@ -24,10 +25,7 @@ static int therm_get_internal_sensor_curr_temp(void *data, u64 *val)
 	u32 readval;
 	int err;
 
-	if (!g->ops.therm.get_internal_sensor_curr_temp)
-		return -EINVAL;
-
-	err = g->ops.therm.get_internal_sensor_curr_temp(g, &readval);
+	err = nvgpu_therm_channel_get_curr_temp(g, &readval);
 	if (!err)
 		*val = readval;
 

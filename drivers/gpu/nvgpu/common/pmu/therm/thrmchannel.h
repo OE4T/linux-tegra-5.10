@@ -27,6 +27,7 @@
 #include <nvgpu/types.h>
 #include <nvgpu/boardobj.h>
 #include <nvgpu/boardobjgrp.h>
+#include <nvgpu/boardobjgrp_e32.h>
 
 struct gk20a;
 
@@ -46,6 +47,11 @@ struct therm_channel_device {
 	struct therm_channel super;
 	u8 therm_dev_idx;
 	u8 therm_dev_prov_idx;
+};
+
+struct therm_channel_get_status {
+	struct boardobj super;
+	u32 curr_temp;
 };
 
 int therm_channel_sw_setup(struct gk20a *g);

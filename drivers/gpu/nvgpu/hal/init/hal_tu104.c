@@ -1173,8 +1173,6 @@ static const struct gpu_ops tu104_ops = {
 		.init_blcg_mode = gm20b_therm_init_blcg_mode,
 		.elcg_init_idle_filters = NULL,
 #ifdef CONFIG_NVGPU_LS_PMU
-		.get_internal_sensor_curr_temp =
-			tu104_get_internal_sensor_curr_temp,
 		.get_internal_sensor_limits =
 			tu104_get_internal_sensor_limits,
 #endif

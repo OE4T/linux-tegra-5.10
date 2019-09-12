@@ -44,6 +44,7 @@
 #include <nvgpu/gr/warpstate.h>
 #include <nvgpu/channel.h>
 #include <nvgpu/pmu/pmgr.h>
+#include <nvgpu/pmu/therm.h>
 #include <nvgpu/power_features/pg.h>
 #include <nvgpu/fence.h>
 #include <nvgpu/channel_sync_syncpt.h>
@@ -1512,20 +1513,26 @@ static int nvgpu_gpu_get_temperature(struct gk20a *g,
 
 	nvgpu_log_fn(g, " ");
 
+#ifdef CONFIG_NVGPU_SIM
+	if (nvgpu_is_enabled(g, NVGPU_IS_FMODEL)) {
+		return 0;
+	}
+#endif
+
 	if (args->reserved[0] || args->reserved[1] || args->reserved[2])
 		return -EINVAL;
 
 	if (!nvgpu_is_enabled(g, NVGPU_SUPPORT_GET_TEMPERATURE))
 		return -EINVAL;
 
-	if (!g->ops.therm.get_internal_sensor_curr_temp)
-		return -EINVAL;
-
 	err = gk20a_busy(g);
 	if (err)
 		return err;
 
-	err = g->ops.therm.get_internal_sensor_curr_temp(g, &temp_f24_8);
+	err = nvgpu_therm_channel_get_curr_temp(g, &temp_f24_8);
+	if (err) {
+		return err;
+	}
 
 	gk20a_idle(g);
 

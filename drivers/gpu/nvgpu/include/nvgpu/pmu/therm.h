@@ -27,6 +27,8 @@
 struct gk20a;
 struct nvgpu_pmu;
 struct nv_pmu_therm_msg;
+struct nv_pmu_rpc_header;
+struct pmu_msg;
 
 void nvgpu_pmu_handle_therm_event(struct gk20a *g, struct nvgpu_pmu *pmu,
 	struct pmu_msg *msg, struct nv_pmu_rpc_header *rpc);
@@ -39,5 +41,6 @@ int nvgpu_therm_configure_therm_alert(struct gk20a *g, struct nvgpu_pmu *pmu);
 #endif
 void nvgpu_pmu_therm_rpc_handler(struct gk20a *g, struct nvgpu_pmu *pmu,
 				 struct nv_pmu_rpc_header *rpc);
+int nvgpu_therm_channel_get_curr_temp(struct gk20a *g, u32 *temp);
 
 #endif /* NVGPU_PMU_THREM_H */

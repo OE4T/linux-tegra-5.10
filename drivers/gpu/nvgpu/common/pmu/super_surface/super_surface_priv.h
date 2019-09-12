@@ -161,6 +161,8 @@ struct nv_pmu_super_surface {
 				therm_channel_grp_set;
 			struct nv_pmu_therm_therm_device_boardobj_grp_set
 				therm_device_grp_set;
+			struct nv_pmu_therm_therm_channel_boardobj_grp_get_status
+				therm_channel_grp_get_status;
 		} therm;
 		struct {
 			struct perf_change_seq_pmu_script script_curr;

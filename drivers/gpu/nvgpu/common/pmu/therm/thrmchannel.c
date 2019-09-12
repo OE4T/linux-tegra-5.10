@@ -27,6 +27,7 @@
 #include <nvgpu/boardobjgrp_e32.h>
 #include <nvgpu/pmu/boardobjgrp_classes.h>
 #include <nvgpu/string.h>
+#include <nvgpu/pmu/therm.h>
 
 #include "thrmchannel.h"
 #include "thrmdev.h"
@@ -122,6 +123,25 @@ static int _therm_channel_pmudata_instget(struct gk20a *g,
 
 	nvgpu_log_info(g, " Done");
 
+	return 0;
+}
+
+static int therm_channel_pmustatus_instget(struct gk20a *g,
+	void *pboardobjgrppmu, struct nv_pmu_boardobj_query
+	**ppboardobjpmustatus, u8 idx)
+{
+	struct nv_pmu_therm_therm_channel_boardobj_grp_get_status *pmu_status =
+		(struct nv_pmu_therm_therm_channel_boardobj_grp_get_status *)
+		(void *)pboardobjgrppmu;
+
+	/*check whether pmuboardobjgrp has a valid boardobj in index*/
+	if (((u32)BIT(idx) &
+		pmu_status->hdr.data.super.obj_mask.super.data[0]) == 0U) {
+		return -EINVAL;
+	}
+
+	*ppboardobjpmustatus = (struct nv_pmu_boardobj_query *)
+			&pmu_status->objects[idx].data.board_obj;
 	return 0;
 }
 
@@ -243,6 +263,7 @@ int therm_channel_sw_setup(struct gk20a *g)
 
 	/* Override the Interfaces */
 	pboardobjgrp->pmudatainstget = _therm_channel_pmudata_instget;
+	pboardobjgrp->pmustatusinstget = therm_channel_pmustatus_instget;
 
 	status = devinit_get_therm_channel_table(g, pthermchannelobjs);
 	if (status != 0) {
@@ -260,7 +281,106 @@ int therm_channel_sw_setup(struct gk20a *g)
 		goto done;
 	}
 
+	status = BOARDOBJGRP_PMU_CMD_GRP_GET_STATUS_CONSTRUCT(g, pboardobjgrp,
+			therm, THERM, therm_channel, THERM_CHANNEL);
+	if (status != 0) {
+		nvgpu_err(g,
+			"error constructing THERM_GET_STATUS interface - 0x%x",
+			status);
+		goto done;
+	}
+
 done:
 	nvgpu_log_info(g, " done status %x", status);
+	return status;
+}
+
+static int therm_channel_currtemp_update(struct gk20a *g,
+		struct boardobj *board_obj_ptr,
+		struct nv_pmu_boardobj *ppmudata)
+{
+	struct therm_channel_get_status *therm_channel_obj;
+	struct nv_pmu_therm_therm_channel_boardobj_get_status *pstatus;
+
+	nvgpu_log_info(g, " ");
+
+	therm_channel_obj = (struct therm_channel_get_status *)
+		(void *)board_obj_ptr;
+	pstatus = (struct nv_pmu_therm_therm_channel_boardobj_get_status *)
+		(void *)ppmudata;
+
+	if (pstatus->super.type != therm_channel_obj->super.type) {
+		nvgpu_err(g, "pmu data and boardobj type not matching");
+		return -EINVAL;
+	}
+
+	therm_channel_obj->curr_temp = pstatus->current_temp;
+	return 0;
+}
+
+static int therm_channel_boardobj_grp_get_status(struct gk20a *g)
+{
+	struct boardobjgrp *pboardobjgrp = NULL;
+	struct boardobjgrpmask *pboardobjgrpmask;
+	struct nv_pmu_boardobjgrp_super *pboardobjgrppmu;
+	struct boardobj *pboardobj = NULL;
+	struct nv_pmu_boardobj_query *pboardobjpmustatus = NULL;
+	int status;
+	u8 index;
+
+	nvgpu_log_info(g, " ");
+
+	pboardobjgrp = &g->pmu->therm_pmu->therm_channelobjs.super.super;
+	pboardobjgrpmask = &g->pmu->therm_pmu->therm_channelobjs.super.mask.super;
+	status = pboardobjgrp->pmugetstatus(g, pboardobjgrp, pboardobjgrpmask);
+	if (status != 0) {
+		nvgpu_err(g, "err getting boardobjs from pmu");
+		return status;
+	}
+	pboardobjgrppmu = pboardobjgrp->pmu.getstatus.buf;
+
+	BOARDOBJGRP_FOR_EACH(pboardobjgrp, struct boardobj*, pboardobj, index) {
+		status = pboardobjgrp->pmustatusinstget(g,
+				(struct nv_pmu_boardobjgrp *)(void *)pboardobjgrppmu,
+				&pboardobjpmustatus, index);
+		if (status != 0) {
+			nvgpu_err(g, "could not get status object instance");
+			return status;
+		}
+		status = therm_channel_currtemp_update(g, pboardobj,
+				(struct nv_pmu_boardobj *)(void *)pboardobjpmustatus);
+		if (status != 0) {
+			nvgpu_err(g, "could not update therm_channel status");
+			return status;
+		}
+	}
+	return 0;
+
+}
+
+int nvgpu_therm_channel_get_curr_temp(struct gk20a *g, u32 *temp)
+{
+	struct boardobjgrp *pboardobjgrp;
+	struct boardobj *pboardobj = NULL;
+	struct therm_channel_get_status *therm_channel_status = NULL;
+	int status;
+	u8 index;
+
+	status = therm_channel_boardobj_grp_get_status(g);
+	if (status != 0) {
+		nvgpu_err(g, "therm_channel get status failed");
+		return status;
+	}
+
+	pboardobjgrp = &g->pmu->therm_pmu->therm_channelobjs.super.super;
+
+	BOARDOBJGRP_FOR_EACH(pboardobjgrp, struct boardobj*, pboardobj, index) {
+		therm_channel_status = (struct therm_channel_get_status *)
+				(void *)pboardobj;
+		if (therm_channel_status->curr_temp != 0U) {
+			*temp = therm_channel_status->curr_temp;
+			return status;
+		}
+	}
 	return status;
 }

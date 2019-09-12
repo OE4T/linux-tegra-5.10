@@ -117,7 +117,6 @@ struct gops_therm {
 	int (*elcg_init_idle_filters)(struct gk20a *g);
 
 	/** @cond DOXYGEN_SHOULD_SKIP_THIS */
-	int (*get_internal_sensor_curr_temp)(struct gk20a *g, u32 *temp_f24_8);
 	void (*get_internal_sensor_limits)(s32 *max_24_8,
 							s32 *min_24_8);
 	void (*throttle_enable)(struct gk20a *g, u32 val);

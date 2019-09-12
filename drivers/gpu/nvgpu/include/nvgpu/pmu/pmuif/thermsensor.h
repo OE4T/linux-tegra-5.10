@@ -30,6 +30,8 @@
 
 #define NV_PMU_THERM_CMD_ID_BOARDOBJ_GRP_SET                         0x0000000B
 #define NV_PMU_THERM_MSG_ID_BOARDOBJ_GRP_SET                        0x00000008
+#define NV_PMU_THERM_CMD_ID_BOARDOBJ_GRP_GET_STATUS                  0x00000001U
+#define NV_PMU_THERM_MSG_ID_BOARDOBJ_GRP_GET_STATUS                  0x00000001U
 
 struct nv_pmu_therm_therm_device_boardobjgrp_set_header {
 	struct nv_pmu_boardobjgrp_e32 super;
@@ -101,5 +103,23 @@ union nv_pmu_therm_therm_channel_boardobj_set_union {
 };
 
 NV_PMU_BOARDOBJ_GRP_SET_MAKE_E32(therm, therm_channel);
+
+struct nv_pmu_therm_therm_channel_boardobjgrp_get_status_header {
+	struct nv_pmu_boardobjgrp_e32 super;
+};
+
+struct nv_pmu_therm_therm_channel_boardobj_get_status
+{
+	struct nv_pmu_boardobj_query super;
+	u32 current_temp;
+};
+
+union nv_pmu_therm_therm_channel_boardobj_get_status_union
+{
+	struct nv_pmu_boardobj_query board_obj;
+	struct nv_pmu_therm_therm_channel_boardobj_get_status therm_channel;
+};
+
+NV_PMU_BOARDOBJ_GRP_GET_STATUS_MAKE_E32(therm, therm_channel);
 
 #endif /* NVGPU_PMUIF_THERMSENSOR_H */
