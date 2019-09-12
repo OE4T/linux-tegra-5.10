@@ -21,10 +21,10 @@
  */
 
 /**
- * @addtogroup SWUTS-posix.sizes
+ * @addtogroup SWUTS-posix-sizes
  * @{
  *
- * Software Unit Test Specification for posix.sizes
+ * Software Unit Test Specification for posix-sizes
  */
 
 #ifndef __UNIT_POSIX_SIZES_H__

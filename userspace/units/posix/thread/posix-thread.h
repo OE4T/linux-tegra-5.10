@@ -21,11 +21,10 @@
  */
 
 /**
- * @file
+ * @addtogroup SWUTS-posix-thread
+ * @{
  *
- * Software Unit Test Specification for posix.thread
- *
- * @page swuts-posix.thread
+ * Software Unit Test Specification for posix-thread
  */
 #ifndef __UNIT_POSIX_THREAD_H__
 #define __UNIT_POSIX_THREAD_H__

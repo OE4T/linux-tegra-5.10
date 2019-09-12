@@ -38,6 +38,8 @@
  *   - @ref SWUTS-mm-nvgpu-mem
  *   - @ref SWUTS-mm-vm
  *   - @ref SWUTS-fuse
+ *   - @ref SWUTS-posix-sizes
+ *   - @ref SWUTS-posix-thread
  *   - @ref SWUTS-sdl
  *
  */
