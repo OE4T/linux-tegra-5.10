@@ -292,7 +292,6 @@ nvgpu_thread_should_stop
 nvgpu_thread_stop
 nvgpu_thread_stop_graceful
 nvgpu_udelay
-nvgpu_userd_init_slabs
 nvgpu_usermode_writel
 nvgpu_usleep_range
 nvgpu_vfree_impl

@@ -61,18 +61,6 @@ NVGPU_COMMON_CFLAGS		+=		\
 	-DCONFIG_TEGRA_GR_VIRTUALIZATION	\
 	-DCONFIG_PCI_MSI
 
-# Enable Channel WDT for safety build until we switch to user mode submits only
-NVGPU_COMMON_CFLAGS		+= -DCONFIG_NVGPU_CHANNEL_WDT
-
-# Enable Kernel Mode submit for safety build until we switch to user mode
-# submits only
-CONFIG_NVGPU_KERNEL_MODE_SUBMIT := 1
-NVGPU_COMMON_CFLAGS             += -DCONFIG_NVGPU_KERNEL_MODE_SUBMIT
-
-# Enable fences for safety build till until we switch to user mode submits only
-CONFIG_NVGPU_FENCE              := 1
-NVGPU_COMMON_CFLAGS             += -DCONFIG_NVGPU_FENCE
-
 CONFIG_NVGPU_LOGGING                 := 1
 NVGPU_COMMON_CFLAGS                  += -DCONFIG_NVGPU_LOGGING
 
@@ -184,6 +172,18 @@ NVGPU_COMMON_CFLAGS                += -DCONFIG_NVGPU_SET_FALCON_ACCESS_MAP
 # Enable SW Semaphore for normal build
 CONFIG_NVGPU_SW_SEMAPHORE       := 1
 NVGPU_COMMON_CFLAGS             += -DCONFIG_NVGPU_SW_SEMAPHORE
+
+# Enable Channel WDT for safety build until we switch to user mode submits only
+NVGPU_COMMON_CFLAGS		+= -DCONFIG_NVGPU_CHANNEL_WDT
+
+# Enable Kernel Mode submit for safety build until we switch to user mode
+# submits only
+CONFIG_NVGPU_KERNEL_MODE_SUBMIT := 1
+NVGPU_COMMON_CFLAGS             += -DCONFIG_NVGPU_KERNEL_MODE_SUBMIT
+
+# Enable fences for safety build till until we switch to user mode submits only
+CONFIG_NVGPU_FENCE              := 1
+NVGPU_COMMON_CFLAGS             += -DCONFIG_NVGPU_FENCE
 
 # Enable powergate lib for normal build
 CONFIG_NVGPU_USE_POWERGATE_LIB  := 1
