@@ -127,6 +127,7 @@ void gp10b_gr_init_commit_global_bundle_cb(struct gk20a *g,
 	nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_scc_bundle_cb_base_r(),
 		gr_scc_bundle_cb_base_addr_39_8_f(cb_addr), patch);
 
+	NVGPU_COV_WHITELIST(false_positive, NVGPU_MISRA(Rule, 14_3), "Bug 2615925")
 	nvgpu_assert(size <= U32_MAX);
 	nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_scc_bundle_cb_size_r(),
 		gr_scc_bundle_cb_size_div_256b_f(size) |
