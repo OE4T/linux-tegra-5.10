@@ -223,7 +223,7 @@ void gm20b_pbdma_reset_method(struct gk20a *g, u32 pbdma_id,
 			pbdma_method0_valid_true_f() |
 			pbdma_method0_first_true_f() |
 			pbdma_method0_addr_f(
-			     pbdma_udma_nop_r() >> 2));
+			     U32(pbdma_udma_nop_r()) >> 2));
 }
 
 u32 gm20b_pbdma_acquire_val(u64 timeout)
