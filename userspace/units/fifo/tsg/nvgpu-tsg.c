@@ -44,6 +44,7 @@
 #include "hal/init/hal_gv11b.h"
 
 #include "../nvgpu-fifo.h"
+#include "nvgpu-tsg.h"
 
 #ifdef TSG_UNIT_DEBUG
 #define unit_verbose	unit_info
@@ -170,7 +171,7 @@ static u32 stub_gr_init_get_no_of_sm_0(struct gk20a *g)
 	return 0;
 }
 
-static int test_tsg_open(struct unit_module *m,
+int test_tsg_open(struct unit_module *m,
 		struct gk20a *g, void *args)
 {
 	struct nvgpu_fifo *f = &g->fifo;
@@ -272,7 +273,7 @@ static const char *f_tsg_bind[] = {
 	"eng_method_buffer",
 };
 
-static int test_tsg_bind_channel(struct unit_module *m,
+int test_tsg_bind_channel(struct unit_module *m,
 		struct gk20a *g, void *args)
 {
 	struct nvgpu_fifo *f = &g->fifo;
@@ -465,7 +466,7 @@ static bool unbind_pruned(u32 branches)
 	return false;
 }
 
-static int test_tsg_unbind_channel(struct unit_module *m,
+int test_tsg_unbind_channel(struct unit_module *m,
 		struct gk20a *g, void *args)
 {
 	struct gpu_ops gops = g->ops;
@@ -543,8 +544,11 @@ static int test_tsg_unbind_channel(struct unit_module *m,
 			assert(chB->unserviceable);
 			assert(chA->tsgid == NVGPU_INVALID_TSG_ID);
 		} else {
+			assert(chA->tsgid == NVGPU_INVALID_TSG_ID);
+			assert(nvgpu_list_empty(&chA->ch_entry));
 			/* check that TSG has not been torn down */
 			assert(!chB->unserviceable);
+			assert(!nvgpu_list_empty(&chB->ch_entry));
 			assert(!nvgpu_list_empty(&tsg->ch_list));
 		}
 
@@ -608,7 +612,7 @@ static void stub_gr_setup_free_gr_ctx(struct gk20a *g,
 }
 
 
-static int test_tsg_release(struct unit_module *m,
+int test_tsg_release(struct unit_module *m,
 		struct gk20a *g, void *args)
 {
 	struct nvgpu_fifo *f = &g->fifo;
@@ -739,7 +743,7 @@ static void stub_channel_read_state_NEXT(struct gk20a *g,
 	state->next = true;
 }
 
-static int test_tsg_unbind_channel_check_hw_state(struct unit_module *m,
+int test_tsg_unbind_channel_check_hw_state(struct unit_module *m,
 		struct gk20a *g, void *args)
 {
 	struct gpu_ops gops = g->ops;
@@ -824,7 +828,7 @@ static void stub_channel_force_ctx_reload(struct nvgpu_channel *ch)
 	stub[0].chid = ch->chid;
 }
 
-static int test_tsg_unbind_channel_check_ctx_reload(struct unit_module *m,
+int test_tsg_unbind_channel_check_ctx_reload(struct unit_module *m,
 		struct gk20a *g, void *args)
 {
 	struct gpu_ops gops = g->ops;
@@ -926,7 +930,7 @@ static void stub_channel_disable(struct nvgpu_channel *ch)
 	stub[2].count++;
 }
 
-static int test_tsg_enable(struct unit_module *m,
+int test_tsg_enable(struct unit_module *m,
 		struct gk20a *g, void *args)
 {
 	struct gpu_ops gops = g->ops;
@@ -1020,7 +1024,7 @@ done:
 	return ret;
 }
 
-static int test_tsg_check_and_get_from_id(struct unit_module *m,
+int test_tsg_check_and_get_from_id(struct unit_module *m,
 		struct gk20a *g, void *args)
 {
 	struct nvgpu_tsg *tsg;
@@ -1066,7 +1070,7 @@ static void stub_channel_abort_clean_up(struct nvgpu_channel *ch)
 	stub[1].chid = ch->chid;
 }
 
-static int test_tsg_abort(struct unit_module *m, struct gk20a *g, void *args)
+int test_tsg_abort(struct unit_module *m, struct gk20a *g, void *args)
 {
 	struct gpu_ops gops = g->ops;
 	struct nvgpu_tsg *tsgA = NULL;
@@ -1177,7 +1181,7 @@ static const char *f_tsg_setup_sw[] = {
 	"vzalloc_fail",
 };
 
-static int test_tsg_setup_sw(struct unit_module *m,
+int test_tsg_setup_sw(struct unit_module *m,
 		struct gk20a *g, void *args)
 {
 	struct gpu_ops gops = g->ops;

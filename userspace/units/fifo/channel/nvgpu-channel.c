@@ -522,7 +522,7 @@ unbind:
 		 * - ch->sync != NULL
 		 * - allow railgate for deterministic channel
 		 * - unlink all debug sessions
-		 * - free pre-allocated resouretes
+		 * - free pre-allocated resources
 		 * - channel refcount tracking
 		 */
 		assert(ch->g == NULL);
