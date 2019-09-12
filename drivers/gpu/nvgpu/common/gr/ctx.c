@@ -624,7 +624,10 @@ bool nvgpu_gr_ctx_check_valid_preemption_mode(struct nvgpu_gr_ctx *gr_ctx,
 	}
 #endif
 
-	if ((compute_preempt_mode != 0U) &&
+	if (
+#ifdef CONFIG_NVGPU_GRAPHICS
+	    (compute_preempt_mode != 0U) &&
+#endif
 	    (compute_preempt_mode < gr_ctx->compute_preempt_mode)) {
 		return false;
 	}

@@ -147,7 +147,8 @@ int nvgpu_gr_setup_alloc_obj_ctx(struct nvgpu_channel *c, u32 class_num,
 
 	nvgpu_log_fn(g, " ");
 
-	if (nvgpu_gr_setup_validate_channel_and_class(g, c, class_num) != 0) {
+	err = nvgpu_gr_setup_validate_channel_and_class(g, c, class_num);
+	if (err != 0) {
 		goto out;
 	}
 

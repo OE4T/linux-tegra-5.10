@@ -221,8 +221,9 @@ int nvgpu_gr_global_ctx_buffer_alloc(struct gk20a *g,
 		return -EINVAL;
 	}
 
-	if (nvgpu_gr_global_ctx_buffer_sys_alloc(g, desc) != 0) {
-			goto clean_up;
+	err = nvgpu_gr_global_ctx_buffer_sys_alloc(g, desc);
+	if (err != 0) {
+		goto clean_up;
 	}
 
 #ifdef CONFIG_NVGPU_FECS_TRACE

@@ -113,14 +113,15 @@ static int gr_gv11b_ecc_scrub_is_done(struct gk20a *g,
 	return 0;
 }
 
-static int gr_gv11b_ecc_scrub_sm_lrf(struct gk20a *g,
+static void gr_gv11b_ecc_scrub_sm_lrf(struct gk20a *g,
 				     struct nvgpu_gr_config *gr_config)
 {
 	u32 scrub_mask, scrub_done;
+	int err = 0;
 
 	if (!nvgpu_is_enabled(g, NVGPU_ECC_ENABLED_SM_LRF)) {
 		nvgpu_log_info(g, "ECC SM LRF is disabled");
-		return 0;
+		return;
 	}
 
 	nvgpu_log_info(g, "gr_gv11b_ecc_scrub_sm_lrf");
@@ -147,19 +148,23 @@ static int gr_gv11b_ecc_scrub_sm_lrf(struct gk20a *g,
 		gr_pri_gpc0_tpc0_sm_lrf_ecc_control_scrub_qrfdp6_init_f() |
 		gr_pri_gpc0_tpc0_sm_lrf_ecc_control_scrub_qrfdp7_init_f());
 
-	return gr_gv11b_ecc_scrub_is_done(g, gr_config,
+	err = gr_gv11b_ecc_scrub_is_done(g, gr_config,
 				gr_pri_gpc0_tpc0_sm_lrf_ecc_control_r(),
 				scrub_mask, scrub_done);
+	if (err != 0) {
+		nvgpu_warn(g, "ECC SCRUB SM LRF Failed");
+	}
 }
 
-static int gr_gv11b_ecc_scrub_sm_l1_data(struct gk20a *g,
+static void gr_gv11b_ecc_scrub_sm_l1_data(struct gk20a *g,
 					 struct nvgpu_gr_config *gr_config)
 {
 	u32 scrub_mask, scrub_done;
+	int err = 0;
 
 	if (!nvgpu_is_enabled(g, NVGPU_ECC_ENABLED_SM_L1_DATA)) {
 		nvgpu_log_info(g, "ECC L1DATA is disabled");
-		return 0;
+		return;
 	}
 	nvgpu_log_info(g, "gr_gv11b_ecc_scrub_sm_l1_data");
 	scrub_mask =
@@ -172,19 +177,24 @@ static int gr_gv11b_ecc_scrub_sm_l1_data(struct gk20a *g,
 	scrub_done =
 		(gr_pri_gpc0_tpc0_sm_l1_data_ecc_control_scrub_el1_0_init_f() |
 		gr_pri_gpc0_tpc0_sm_l1_data_ecc_control_scrub_el1_1_init_f());
-	return gr_gv11b_ecc_scrub_is_done(g, gr_config,
+
+	err = gr_gv11b_ecc_scrub_is_done(g, gr_config,
 				gr_pri_gpc0_tpc0_sm_l1_data_ecc_control_r(),
 				scrub_mask, scrub_done);
+	if (err != 0) {
+		nvgpu_warn(g, "ECC SCRUB SM L1 DATA Failed");
+	}
 }
 
-static int gr_gv11b_ecc_scrub_sm_l1_tag(struct gk20a *g,
+static void gr_gv11b_ecc_scrub_sm_l1_tag(struct gk20a *g,
 					struct nvgpu_gr_config *gr_config)
 {
 	u32 scrub_mask, scrub_done;
+	int err = 0;
 
 	if (!nvgpu_is_enabled(g, NVGPU_ECC_ENABLED_SM_L1_TAG)) {
 		nvgpu_log_info(g, "ECC L1TAG is disabled");
-		return 0;
+		return;
 	}
 	nvgpu_log_info(g, "gr_gv11b_ecc_scrub_sm_l1_tag");
 	scrub_mask =
@@ -200,19 +210,24 @@ static int gr_gv11b_ecc_scrub_sm_l1_tag(struct gk20a *g,
 	  gr_pri_gpc0_tpc0_sm_l1_tag_ecc_control_scrub_el1_1_init_f() |
 	  gr_pri_gpc0_tpc0_sm_l1_tag_ecc_control_scrub_pixprf_init_f() |
 	  gr_pri_gpc0_tpc0_sm_l1_tag_ecc_control_scrub_miss_fifo_init_f());
-	return gr_gv11b_ecc_scrub_is_done(g, gr_config,
+
+	err = gr_gv11b_ecc_scrub_is_done(g, gr_config,
 				gr_pri_gpc0_tpc0_sm_l1_tag_ecc_control_r(),
 				scrub_mask, scrub_done);
+	if (err != 0) {
+		nvgpu_warn(g, "ECC SCRUB SM L1 TAG Failed");
+	}
 }
 
-static int gr_gv11b_ecc_scrub_sm_cbu(struct gk20a *g,
+static void gr_gv11b_ecc_scrub_sm_cbu(struct gk20a *g,
 				     struct nvgpu_gr_config *gr_config)
 {
 	u32 scrub_mask, scrub_done;
+	int err = 0;
 
 	if (!nvgpu_is_enabled(g, NVGPU_ECC_ENABLED_SM_CBU)) {
 		nvgpu_log_info(g, "ECC CBU is disabled");
-		return 0;
+		return;
 	}
 	nvgpu_log_info(g, "gr_gv11b_ecc_scrub_sm_cbu");
 	scrub_mask =
@@ -227,19 +242,24 @@ static int gr_gv11b_ecc_scrub_sm_cbu(struct gk20a *g,
 	  gr_pri_gpc0_tpc0_sm_cbu_ecc_control_scrub_warp_sm1_init_f() |
 	  gr_pri_gpc0_tpc0_sm_cbu_ecc_control_scrub_barrier_sm0_init_f() |
 	  gr_pri_gpc0_tpc0_sm_cbu_ecc_control_scrub_barrier_sm1_init_f());
-	return gr_gv11b_ecc_scrub_is_done(g, gr_config,
+
+	err = gr_gv11b_ecc_scrub_is_done(g, gr_config,
 				gr_pri_gpc0_tpc0_sm_cbu_ecc_control_r(),
 				scrub_mask, scrub_done);
+	if (err != 0) {
+		nvgpu_warn(g, "ECC SCRUB SM CBU Failed");
+	}
 }
 
-static int gr_gv11b_ecc_scrub_sm_icahe(struct gk20a *g,
+static void gr_gv11b_ecc_scrub_sm_icahe(struct gk20a *g,
 				       struct nvgpu_gr_config *gr_config)
 {
 	u32 scrub_mask, scrub_done;
+	int err = 0;
 
 	if (!nvgpu_is_enabled(g, NVGPU_ECC_ENABLED_SM_ICACHE)) {
 		nvgpu_log_info(g, "ECC ICAHE is disabled");
-		return 0;
+		return;
 	}
 	nvgpu_log_info(g, "gr_gv11b_ecc_scrub_sm_icahe");
 	scrub_mask =
@@ -255,32 +275,29 @@ static int gr_gv11b_ecc_scrub_sm_icahe(struct gk20a *g,
 	  gr_pri_gpc0_tpc0_sm_icache_ecc_control_scrub_l0_predecode_init_f() |
 	  gr_pri_gpc0_tpc0_sm_icache_ecc_control_scrub_l1_data_init_f() |
 	  gr_pri_gpc0_tpc0_sm_icache_ecc_control_scrub_l1_predecode_init_f());
-	return gr_gv11b_ecc_scrub_is_done(g, gr_config,
+
+	err = gr_gv11b_ecc_scrub_is_done(g, gr_config,
 				gr_pri_gpc0_tpc0_sm_icache_ecc_control_r(),
 				scrub_mask, scrub_done);
+	if (err != 0) {
+		nvgpu_warn(g, "ECC SCRUB SM ICACHE Failed");
+	}
 }
 
 void gv11b_gr_init_ecc_scrub_reg(struct gk20a *g,
 				 struct nvgpu_gr_config *gr_config)
 {
-	nvgpu_log_fn(g, "ecc srub start ");
+	nvgpu_log_fn(g, "ecc srub start");
 
-	if (gr_gv11b_ecc_scrub_sm_lrf(g, gr_config) != 0) {
-		nvgpu_warn(g, "ECC SCRUB SM LRF Failed");
-	}
-	if (gr_gv11b_ecc_scrub_sm_l1_data(g, gr_config) != 0) {
-		nvgpu_warn(g, "ECC SCRUB SM L1 DATA Failed");
-	}
-	if (gr_gv11b_ecc_scrub_sm_l1_tag(g, gr_config) != 0) {
-		nvgpu_warn(g, "ECC SCRUB SM L1 TAG Failed");
-	}
-	if (gr_gv11b_ecc_scrub_sm_cbu(g, gr_config) != 0) {
-		nvgpu_warn(g, "ECC SCRUB SM CBU Failed");
-	}
-	if (gr_gv11b_ecc_scrub_sm_icahe(g, gr_config) != 0) {
-		nvgpu_warn(g, "ECC SCRUB SM ICACHE Failed");
-	}
+	gr_gv11b_ecc_scrub_sm_lrf(g, gr_config);
 
+	gr_gv11b_ecc_scrub_sm_l1_data(g, gr_config);
+
+	gr_gv11b_ecc_scrub_sm_l1_tag(g, gr_config);
+
+	gr_gv11b_ecc_scrub_sm_cbu(g, gr_config);
+
+	gr_gv11b_ecc_scrub_sm_icahe(g, gr_config);
 }
 
 u32 gv11b_gr_init_get_nonpes_aware_tpc(struct gk20a *g, u32 gpc, u32 tpc,
