@@ -123,8 +123,15 @@ struct nvgpu_ecc {
 
 int nvgpu_ecc_counter_init_per_tpc(struct gk20a *g,
 		struct nvgpu_ecc_stat ***stat, const char *name);
-#define NVGPU_ECC_COUNTER_INIT_PER_TPC(stat) \
-	nvgpu_ecc_counter_init_per_tpc(g, &g->ecc.gr.stat, #stat)
+#define NVGPU_ECC_COUNTER_INIT_PER_TPC(stat)		\
+	do {						\
+		int err = 0;				\
+		err = nvgpu_ecc_counter_init_per_tpc(g,	\
+				&g->ecc.gr.stat, #stat);\
+		if (err != 0) {				\
+			return err;			\
+		}					\
+	} while (false)
 
 int nvgpu_ecc_counter_init_per_gpc(struct gk20a *g,
 		struct nvgpu_ecc_stat **stat, const char *name);

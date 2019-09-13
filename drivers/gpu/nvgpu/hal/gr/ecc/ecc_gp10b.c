@@ -126,66 +126,27 @@ void gp10b_ecc_detect_enabled_units(struct gk20a *g)
 
 static int gp10b_ecc_init_tpc_sm(struct gk20a *g)
 {
-	int err = 0;
+	NVGPU_ECC_COUNTER_INIT_PER_TPC(sm_lrf_ecc_single_err_count);
+	NVGPU_ECC_COUNTER_INIT_PER_TPC(sm_lrf_ecc_double_err_count);
+	NVGPU_ECC_COUNTER_INIT_PER_TPC(sm_shm_ecc_sec_count);
+	NVGPU_ECC_COUNTER_INIT_PER_TPC(sm_shm_ecc_sed_count);
+	NVGPU_ECC_COUNTER_INIT_PER_TPC(sm_shm_ecc_ded_count);
 
-	err = NVGPU_ECC_COUNTER_INIT_PER_TPC(sm_lrf_ecc_single_err_count);
-	if (err != 0) {
-		goto init_tpc_sm_err;
-	}
-	err = NVGPU_ECC_COUNTER_INIT_PER_TPC(sm_lrf_ecc_double_err_count);
-	if (err != 0) {
-		goto init_tpc_sm_err;
-	}
-	err = NVGPU_ECC_COUNTER_INIT_PER_TPC(sm_shm_ecc_sec_count);
-	if (err != 0) {
-		goto init_tpc_sm_err;
-	}
-	err = NVGPU_ECC_COUNTER_INIT_PER_TPC(sm_shm_ecc_sed_count);
-	if (err != 0) {
-		goto init_tpc_sm_err;
-	}
-	err = NVGPU_ECC_COUNTER_INIT_PER_TPC(sm_shm_ecc_ded_count);
-
-init_tpc_sm_err:
-	return err;
+	return 0;
 }
 
 static int gp10b_ecc_init_tpc_tex(struct gk20a *g)
 {
-	int err = 0;
+	NVGPU_ECC_COUNTER_INIT_PER_TPC(tex_ecc_total_sec_pipe0_count);
+	NVGPU_ECC_COUNTER_INIT_PER_TPC(tex_ecc_total_ded_pipe0_count);
+	NVGPU_ECC_COUNTER_INIT_PER_TPC(tex_unique_ecc_sec_pipe0_count);
+	NVGPU_ECC_COUNTER_INIT_PER_TPC(tex_unique_ecc_ded_pipe0_count);
+	NVGPU_ECC_COUNTER_INIT_PER_TPC(tex_ecc_total_sec_pipe1_count);
+	NVGPU_ECC_COUNTER_INIT_PER_TPC(tex_ecc_total_ded_pipe1_count);
+	NVGPU_ECC_COUNTER_INIT_PER_TPC(tex_unique_ecc_sec_pipe1_count);
+	NVGPU_ECC_COUNTER_INIT_PER_TPC(tex_unique_ecc_ded_pipe1_count);
 
-	err = NVGPU_ECC_COUNTER_INIT_PER_TPC(tex_ecc_total_sec_pipe0_count);
-	if (err != 0) {
-		goto init_tpc_tex_err;
-	}
-	err = NVGPU_ECC_COUNTER_INIT_PER_TPC(tex_ecc_total_ded_pipe0_count);
-	if (err != 0) {
-		goto init_tpc_tex_err;
-	}
-	err = NVGPU_ECC_COUNTER_INIT_PER_TPC(tex_unique_ecc_sec_pipe0_count);
-	if (err != 0) {
-		goto init_tpc_tex_err;
-	}
-	err = NVGPU_ECC_COUNTER_INIT_PER_TPC(tex_unique_ecc_ded_pipe0_count);
-	if (err != 0) {
-		goto init_tpc_tex_err;
-	}
-	err = NVGPU_ECC_COUNTER_INIT_PER_TPC(tex_ecc_total_sec_pipe1_count);
-	if (err != 0) {
-		goto init_tpc_tex_err;
-	}
-	err = NVGPU_ECC_COUNTER_INIT_PER_TPC(tex_ecc_total_ded_pipe1_count);
-	if (err != 0) {
-		goto init_tpc_tex_err;
-	}
-	err = NVGPU_ECC_COUNTER_INIT_PER_TPC(tex_unique_ecc_sec_pipe1_count);
-	if (err != 0) {
-		goto init_tpc_tex_err;
-	}
-	err = NVGPU_ECC_COUNTER_INIT_PER_TPC(tex_unique_ecc_ded_pipe1_count);
-
-init_tpc_tex_err:
-	return err;
+	return 0;
 }
 
 static int gp10b_ecc_init_tpc(struct gk20a *g)

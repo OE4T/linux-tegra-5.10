@@ -482,56 +482,18 @@ void gv11b_ecc_detect_enabled_units(struct gk20a *g)
 
 static int gv11b_ecc_init_tpc(struct gk20a *g)
 {
-	int err = 0;
+	NVGPU_ECC_COUNTER_INIT_PER_TPC(sm_lrf_ecc_single_err_count);
+	NVGPU_ECC_COUNTER_INIT_PER_TPC(sm_lrf_ecc_double_err_count);
+	NVGPU_ECC_COUNTER_INIT_PER_TPC(sm_l1_tag_ecc_corrected_err_count);
+	NVGPU_ECC_COUNTER_INIT_PER_TPC(sm_l1_tag_ecc_uncorrected_err_count);
+	NVGPU_ECC_COUNTER_INIT_PER_TPC(sm_cbu_ecc_corrected_err_count);
+	NVGPU_ECC_COUNTER_INIT_PER_TPC(sm_cbu_ecc_uncorrected_err_count);
+	NVGPU_ECC_COUNTER_INIT_PER_TPC(sm_l1_data_ecc_corrected_err_count);
+	NVGPU_ECC_COUNTER_INIT_PER_TPC(sm_l1_data_ecc_uncorrected_err_count);
+	NVGPU_ECC_COUNTER_INIT_PER_TPC(sm_icache_ecc_corrected_err_count);
+	NVGPU_ECC_COUNTER_INIT_PER_TPC(sm_icache_ecc_uncorrected_err_count);
 
-	err = NVGPU_ECC_COUNTER_INIT_PER_TPC(sm_lrf_ecc_single_err_count);
-	if (err != 0) {
-		goto init_tpc_done;
-	}
-	err = NVGPU_ECC_COUNTER_INIT_PER_TPC(sm_lrf_ecc_double_err_count);
-	if (err != 0) {
-		goto init_tpc_done;
-	}
-	err = NVGPU_ECC_COUNTER_INIT_PER_TPC(
-			sm_l1_tag_ecc_corrected_err_count);
-	if (err != 0) {
-		goto init_tpc_done;
-	}
-	err = NVGPU_ECC_COUNTER_INIT_PER_TPC(
-			sm_l1_tag_ecc_uncorrected_err_count);
-	if (err != 0) {
-		goto init_tpc_done;
-	}
-	err = NVGPU_ECC_COUNTER_INIT_PER_TPC(
-			sm_cbu_ecc_corrected_err_count);
-	if (err != 0) {
-		goto init_tpc_done;
-	}
-	err = NVGPU_ECC_COUNTER_INIT_PER_TPC(
-			sm_cbu_ecc_uncorrected_err_count);
-	if (err != 0) {
-		goto init_tpc_done;
-	}
-	err = NVGPU_ECC_COUNTER_INIT_PER_TPC(
-			sm_l1_data_ecc_corrected_err_count);
-	if (err != 0) {
-		goto init_tpc_done;
-	}
-	err = NVGPU_ECC_COUNTER_INIT_PER_TPC(
-			sm_l1_data_ecc_uncorrected_err_count);
-	if (err != 0) {
-		goto init_tpc_done;
-	}
-	err = NVGPU_ECC_COUNTER_INIT_PER_TPC(
-			sm_icache_ecc_corrected_err_count);
-	if (err != 0) {
-		goto init_tpc_done;
-	}
-	err = NVGPU_ECC_COUNTER_INIT_PER_TPC(
-			sm_icache_ecc_uncorrected_err_count);
-
-init_tpc_done:
-	return err;
+	return 0;
 }
 
 static int gv11b_ecc_init_gpc(struct gk20a *g)
