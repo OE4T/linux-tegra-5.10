@@ -64,10 +64,6 @@ NVGPU_COMMON_CFLAGS		+=		\
 CONFIG_NVGPU_LOGGING                 := 1
 NVGPU_COMMON_CFLAGS                  += -DCONFIG_NVGPU_LOGGING
 
-# Enable recovery for safety build until sw quiesce is done
-CONFIG_NVGPU_RECOVERY           := 1
-NVGPU_COMMON_CFLAGS             += -DCONFIG_NVGPU_RECOVERY
-
 ifeq ($(profile),$(filter $(profile),safety_debug safety_release))
 
 # Enable golden context verification only for safety debug/release build
@@ -102,6 +98,9 @@ NVGPU_COMMON_CFLAGS             += -DCONFIG_NVGPU_ENGINE_QUEUE
 
 CONFIG_NVGPU_DEBUGGER           := 1
 NVGPU_COMMON_CFLAGS             += -DCONFIG_NVGPU_DEBUGGER
+
+CONFIG_NVGPU_RECOVERY           := 1
+NVGPU_COMMON_CFLAGS             += -DCONFIG_NVGPU_RECOVERY
 
 CONFIG_NVGPU_CILP               := 1
 NVGPU_COMMON_CFLAGS             += -DCONFIG_NVGPU_CILP
