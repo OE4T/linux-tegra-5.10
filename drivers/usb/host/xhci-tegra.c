@@ -2417,6 +2417,8 @@ static int tegra_xusb_probe(struct platform_device *pdev)
 	}
 
 	tegra_xusb_enable_eu3s(tegra);
+	/* Enable Async suspend mode, to resume early */
+	device_enable_async_suspend(tegra->dev);
 
 	/* Init BWMGR for EMC boost */
 	if (tegra->emc_boost_enabled)
