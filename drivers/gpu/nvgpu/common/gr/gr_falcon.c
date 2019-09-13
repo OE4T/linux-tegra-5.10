@@ -73,6 +73,7 @@ void nvgpu_gr_falcon_remove_support(struct gk20a *g,
 	nvgpu_kfree(g, falcon);
 }
 
+#ifdef CONFIG_NVGPU_POWER_PG
 int nvgpu_gr_falcon_bind_fecs_elpg(struct gk20a *g)
 {
 #ifdef CONFIG_NVGPU_LS_PMU
@@ -126,6 +127,7 @@ int nvgpu_gr_falcon_bind_fecs_elpg(struct gk20a *g)
 	return 0;
 #endif
 }
+#endif
 
 int nvgpu_gr_falcon_init_ctxsw(struct gk20a *g, struct nvgpu_gr_falcon *falcon)
 {
@@ -179,17 +181,19 @@ u32 nvgpu_gr_falcon_get_golden_image_size(struct nvgpu_gr_falcon *falcon)
 	return falcon->sizes.golden_image_size;
 }
 
+#ifdef CONFIG_NVGPU_DEBUGGER
 u32 nvgpu_gr_falcon_get_pm_ctxsw_image_size(struct nvgpu_gr_falcon *falcon)
 {
 	return falcon->sizes.pm_ctxsw_image_size;
 }
+#endif
 
+#ifdef CONFIG_NVGPU_GRAPHICS
 u32 nvgpu_gr_falcon_get_preempt_image_size(struct nvgpu_gr_falcon *falcon)
 {
 	return falcon->sizes.preempt_image_size;
 }
 
-#ifdef CONFIG_NVGPU_GRAPHICS
 u32 nvgpu_gr_falcon_get_zcull_image_size(struct nvgpu_gr_falcon *falcon)
 {
 	return falcon->sizes.zcull_image_size;
@@ -684,11 +688,13 @@ int nvgpu_gr_falcon_load_secure_ctxsw_ucode(struct gk20a *g,
 	return 0;
 }
 
+#ifdef CONFIG_NVGPU_ENGINE_RESET
 struct nvgpu_mutex *nvgpu_gr_falcon_get_fecs_mutex(
 					struct nvgpu_gr_falcon *falcon)
 {
 	return &falcon->fecs_mutex;
 }
+#endif
 struct nvgpu_ctxsw_ucode_segments *nvgpu_gr_falcon_get_fecs_ucode_segments(
 					struct nvgpu_gr_falcon *falcon)
 {

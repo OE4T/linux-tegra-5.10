@@ -622,12 +622,14 @@ int nvgpu_gr_reset(struct gk20a *g)
 		return err;
 	}
 
+#ifdef CONFIG_NVGPU_POWER_PG
 	if (g->can_elpg) {
 		err = nvgpu_gr_falcon_bind_fecs_elpg(g);
 		if (err != 0) {
 			return err;
 		}
 	}
+#endif
 
 	nvgpu_cg_init_gr_load_gating_prod(g);
 
@@ -660,12 +662,14 @@ int nvgpu_gr_init_support(struct gk20a *g)
 		return err;
 	}
 
+#ifdef CONFIG_NVGPU_POWER_PG
 	if (g->can_elpg) {
 		err = nvgpu_gr_falcon_bind_fecs_elpg(g);
 		if (err != 0) {
 			return err;
 		}
 	}
+#endif
 
 	err = gr_init_setup_sw(g);
 	if (err != 0) {

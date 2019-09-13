@@ -843,11 +843,7 @@ int gm20b_gr_falcon_ctrl_ctxsw(struct gk20a *g, u32 fecs_method,
 		sleepduringwait = true;
 		break;
 #endif
-/*
- * Replace CONFIG_NVGPU_GRAPHICS switch here with relevant
- * power feature switch.
- */
-#ifdef CONFIG_NVGPU_GRAPHICS
+#ifdef CONFIG_NVGPU_POWER_PG
 	case NVGPU_GR_FALCON_METHOD_REGLIST_DISCOVER_IMAGE_SIZE:
 		op.method.addr =
 			gr_fecs_method_push_adr_discover_reglist_image_size_v();
