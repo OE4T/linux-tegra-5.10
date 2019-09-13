@@ -934,7 +934,7 @@ void nvgpu_channel_deterministic_unidle(struct gk20a *g);
  * @retval NULL if the channel is dead or being freed elsewhere and you must
  *         not touch it.
  */
-struct nvgpu_channel *__must_check nvgpu_channel_get__func(
+struct nvgpu_channel *nvgpu_channel_get__func(
 		struct nvgpu_channel *ch, const char *caller);
 #define nvgpu_channel_get(ch) nvgpu_channel_get__func(ch, __func__)
 
@@ -963,7 +963,7 @@ void nvgpu_channel_put__func(struct nvgpu_channel *ch, const char *caller);
  * @retval NULL if #chid is invalid, or if the channel is dead or being freed
  *	   elsewhere and should not be used.
  */
-struct nvgpu_channel *__must_check nvgpu_channel_from_id__func(
+struct nvgpu_channel *nvgpu_channel_from_id__func(
 		struct gk20a *g, u32 chid, const char *caller);
 #define nvgpu_channel_from_id(g, chid)	\
 	nvgpu_channel_from_id__func(g, chid, __func__)
