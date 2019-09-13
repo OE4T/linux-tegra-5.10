@@ -642,7 +642,8 @@ void nvgpu_runlist_cleanup_sw(struct gk20a *g)
 	u32 i, j;
 	struct nvgpu_runlist_info *runlist;
 
-	if ((f == NULL) || (f->runlist_info == NULL)) {
+	if ((f == NULL) || (f->runlist_info == NULL) ||
+					(f->active_runlist_info == NULL)) {
 		return;
 	}
 
