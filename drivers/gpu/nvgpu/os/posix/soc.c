@@ -66,3 +66,8 @@ u64 nvgpu_get_cycles(void)
 {
 	return (u64)nvgpu_current_time_us();
 }
+
+int nvgpu_init_soc_vars(struct gk20a *g)
+{
+	return 0;
+}

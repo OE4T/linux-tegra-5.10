@@ -617,7 +617,6 @@ void nvgpu_channel_update_priv_cmd_q_and_free_entry(
 	struct nvgpu_channel *ch, struct priv_cmd_entry *e);
 int nvgpu_channel_worker_init(struct gk20a *g);
 void nvgpu_channel_worker_deinit(struct gk20a *g);
-struct nvgpu_channel *nvgpu_channel_get_from_file(int fd);
 void nvgpu_channel_update(struct nvgpu_channel *c);
 int nvgpu_channel_alloc_job(struct nvgpu_channel *c,
 		struct nvgpu_channel_job **job_out);

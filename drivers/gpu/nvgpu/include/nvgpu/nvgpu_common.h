@@ -23,14 +23,6 @@
 #ifndef NVGPU_COMMON_H
 #define NVGPU_COMMON_H
 
-struct gk20a;
-struct class;
-
-int nvgpu_probe(struct gk20a *g,
-		const char *debugfs_symlink,
-		const char *interface_name,
-		struct class *device_class);
-
 void nvgpu_kernel_restart(void *cmd);
 
 #endif

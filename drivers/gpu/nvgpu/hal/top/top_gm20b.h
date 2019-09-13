@@ -33,13 +33,16 @@ struct nvgpu_device_info;
 int gm20b_device_info_parse_enum(struct gk20a *g, u32 table_entry,
 					u32 *engine_id, u32 *runlist_id,
 					u32 *intr_id, u32 *reset_id);
+#ifdef CONFIG_NVGPU_HAL_NON_FUSA
 int gm20b_device_info_parse_data(struct gk20a *g, u32 table_entry, u32 *inst_id,
 					u32 *pri_base, u32 *fault_id);
 int gm20b_get_device_info(struct gk20a *g, struct nvgpu_device_info *dev_info,
 					u32 engine_type, u32 inst_id);
-bool gm20b_is_engine_gr(struct gk20a *g, u32 engine_type);
 bool gm20b_is_engine_ce(struct gk20a *g, u32 engine_type);
 u32 gm20b_get_ce_inst_id(struct gk20a *g, u32 engine_type);
+#endif
+
+bool gm20b_is_engine_gr(struct gk20a *g, u32 engine_type);
 
 u32 gm20b_top_get_max_gpc_count(struct gk20a *g);
 u32 gm20b_top_get_max_tpc_per_gpc_count(struct gk20a *g);

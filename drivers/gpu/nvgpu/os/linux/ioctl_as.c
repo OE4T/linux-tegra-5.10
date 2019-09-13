@@ -33,6 +33,7 @@
 
 #include "platform_gk20a.h"
 #include "ioctl_as.h"
+#include "ioctl_channel.h"
 #include "os_linux.h"
 
 static u32 gk20a_as_translate_as_alloc_space_flags(struct gk20a *g, u32 flags)

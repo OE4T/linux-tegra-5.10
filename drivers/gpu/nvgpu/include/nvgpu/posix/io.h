@@ -92,8 +92,6 @@ void nvgpu_posix_io_reset_error_code(struct gk20a *g);
 
 /* allocate and register reg_space */
 int nvgpu_posix_io_add_reg_space(struct gk20a *g, u32 base, u32 size);
-int nvgpu_posix_io_add_reg_space_ext(struct gk20a *g, u32 base, u32 size,
-	u32 *data);
 struct nvgpu_posix_io_reg_space *nvgpu_posix_io_get_reg_space(struct gk20a *g,
 	u32 addr);
 void nvgpu_posix_io_delete_reg_space(struct gk20a *g, u32 base);

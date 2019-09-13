@@ -17,6 +17,14 @@
 #ifndef NVGPU_LINUX_DRIVER_COMMON
 #define NVGPU_LINUX_DRIVER_COMMON
 
+struct gk20a;
+struct class;
+
+int nvgpu_probe(struct gk20a *g,
+		const char *debugfs_symlink,
+		const char *interface_name,
+		struct class *device_class);
+
 void nvgpu_init_gk20a(struct gk20a *g);
 
 #endif

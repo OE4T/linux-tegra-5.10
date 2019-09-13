@@ -21,6 +21,7 @@ struct inode;
 struct file;
 struct gk20a;
 struct nvgpu_channel_open_args;
+struct nvgpu_channel;
 
 struct gk20a_cs_snapshot_client_linux {
 	struct gk20a_cs_snapshot_client cs_client;
@@ -28,6 +29,8 @@ struct gk20a_cs_snapshot_client_linux {
 	u32			dmabuf_fd;
 	struct dma_buf		*dma_handler;
 };
+
+struct nvgpu_channel *nvgpu_channel_get_from_file(int fd);
 
 int gk20a_channel_open(struct inode *inode, struct file *filp);
 int gk20a_channel_release(struct inode *inode, struct file *filp);

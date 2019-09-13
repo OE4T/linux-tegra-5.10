@@ -71,6 +71,7 @@ enum {
 
 int nvgpu_ce_init_support(struct gk20a *g);
 
+#ifdef CONFIG_NVGPU_DGPU
 /* global CE app related apis */
 int nvgpu_ce_app_init_support(struct gk20a *g);
 void nvgpu_ce_app_suspend(struct gk20a *g);
@@ -93,5 +94,5 @@ int nvgpu_ce_execute_ops(struct gk20a *g,
 		u32 request_operation,
 		u32 submit_flags,
 		struct nvgpu_fence_type **fence_out);
-
+#endif
 #endif /*NVGPU_CE_H*/

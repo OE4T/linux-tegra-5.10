@@ -32,8 +32,10 @@ struct nvgpu_mem;
 
 void gm20b_fb_init_hw(struct gk20a *g);
 int gm20b_fb_tlb_invalidate(struct gk20a *g, struct nvgpu_mem *pdb);
+#ifdef CONFIG_NVGPU_HAL_NON_FUSA
 void fb_gm20b_init_fs_state(struct gk20a *g);
 void gm20b_fb_set_mmu_page_size(struct gk20a *g);
+#endif
 u32 gm20b_fb_mmu_ctrl(struct gk20a *g);
 u32 gm20b_fb_mmu_debug_ctrl(struct gk20a *g);
 u32 gm20b_fb_mmu_debug_wr(struct gk20a *g);
