@@ -442,6 +442,31 @@ static inline s32 nvgpu_safe_cast_s64_to_s32(s64 sl_a)
 	}
 }
 
+/*
+ * Skip unaligned access check in NvGPU when it's built for unit testing with
+ * __NVGPU_UNIT_TEST__. As NvGPU UT build is not used on any production system,
+ * there is no need to consider security aspects related NvGPU UT build.
+ */
+#if !defined(__NVGPU_UNIT_TEST__)
+
+/*
+ * NvGPU driver is built for ARM targets with unaligned-access enabled. Confirm
+ * enabling of unaligned-access with a check for __ARM_FEATURE_UNALIGNED.
+ *
+ * This confirmation helps argue NvGPU security in context of CERT-C EXP36-C and
+ * INT36-C violations which flag misalignment.
+ *
+ * If and when NvGPU is built using a different compiler/architecture (non-ARM),
+ * a similar check for that architecture is required. If an unaligned access is
+ * not possible, then the CERT-C violations due to unaligned access need to be
+ * fixed.
+ */
+#if !defined(__ARM_FEATURE_UNALIGNED)
+#error "__ARM_FEATURE_UNALIGNED not defined. Check static_analysis.h"
+#endif
+
+#endif
+
 #define NVGPU_PRECISION(v) _Generic(v, \
 		unsigned int : __builtin_popcount, \
 		unsigned long : __builtin_popcountl, \
