@@ -250,9 +250,9 @@ int nvgpu_finalize_poweron(struct gk20a *g)
 	g->power_on = true;
 
 #ifdef CONFIG_NVGPU_RECOVERY
-	nvgpu_set_enabled(g, NVGPU_SUPPORT_RECOVERY, true);
+	nvgpu_set_enabled(g, NVGPU_SUPPORT_FAULT_RECOVERY, true);
 #else
-	nvgpu_set_enabled(g, NVGPU_SUPPORT_RECOVERY, false);
+	nvgpu_set_enabled(g, NVGPU_SUPPORT_FAULT_RECOVERY, false);
 	err = nvgpu_sw_quiesce_init_support(g);
 	if (err != 0) {
 		nvgpu_err(g, "failed to init sw-quiesce support");
