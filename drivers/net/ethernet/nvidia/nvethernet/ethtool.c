@@ -498,23 +498,28 @@ static int ether_set_pauseparam(struct net_device *ndev,
  *
  * Algorithm: Function used to query the PTP capabilities for given netdev.
  *
- * @param[in] net: Net device data.
+ * @param[in] ndev: Net device data.
  * @param[in] info: Holds device supported timestamping types
  *
  * @note HW need to support PTP functionality.
  *
  * @return zero on success
  */
-static int ether_get_ts_info(struct net_device *net,
+static int ether_get_ts_info(struct net_device *ndev,
 		struct ethtool_ts_info *info)
 {
+	struct ether_priv_data *pdata = netdev_priv(ndev);
+
 	info->so_timestamping = SOF_TIMESTAMPING_TX_HARDWARE |
 				SOF_TIMESTAMPING_RX_HARDWARE |
 				SOF_TIMESTAMPING_TX_SOFTWARE |
 				SOF_TIMESTAMPING_RX_SOFTWARE |
 				SOF_TIMESTAMPING_RAW_HARDWARE |
 				SOF_TIMESTAMPING_SOFTWARE;
-	info->phc_index = 0;
+
+	if (pdata->ptp_clock) {
+		info->phc_index = ptp_clock_index(pdata->ptp_clock);
+	}
 
 	info->tx_types = (1 << HWTSTAMP_TX_OFF) | (1 << HWTSTAMP_TX_ON);
 
