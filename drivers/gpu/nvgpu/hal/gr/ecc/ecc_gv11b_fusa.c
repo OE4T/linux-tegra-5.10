@@ -29,16 +29,14 @@
 #include "ecc_gv11b.h"
 
 #ifdef CONFIG_NVGPU_INJECT_HWERR
-int gv11b_gr_intr_inject_fecs_ecc_error(struct gk20a *g,
+void gv11b_gr_intr_inject_fecs_ecc_error(struct gk20a *g,
 		struct nvgpu_hw_err_inject_info *err, u32 error_info)
 {
 	nvgpu_info(g, "Injecting FECS fault %s", err->name);
 	nvgpu_writel(g, err->get_reg_addr(), err->get_reg_val(1U));
-
-	return 0;
 }
 
-int gv11b_gr_intr_inject_gpccs_ecc_error(struct gk20a *g,
+void gv11b_gr_intr_inject_gpccs_ecc_error(struct gk20a *g,
 		struct nvgpu_hw_err_inject_info *err, u32 error_info)
 {
 	unsigned int gpc_stride = nvgpu_get_litter_value(g, GPU_LIT_GPC_STRIDE);
@@ -48,11 +46,9 @@ int gv11b_gr_intr_inject_gpccs_ecc_error(struct gk20a *g,
 
 	nvgpu_info(g, "Injecting GPCCS fault %s for gpc: %d", err->name, gpc);
 	nvgpu_writel(g, reg_addr, err->get_reg_val(1U));
-
-	return 0;
 }
 
-int gv11b_gr_intr_inject_sm_ecc_error(struct gk20a *g,
+void gv11b_gr_intr_inject_sm_ecc_error(struct gk20a *g,
 		struct nvgpu_hw_err_inject_info *err,
 		u32 error_info)
 {
@@ -69,11 +65,9 @@ int gv11b_gr_intr_inject_sm_ecc_error(struct gk20a *g,
 	nvgpu_info(g, "Injecting SM fault %s for gpc: %d, tpc: %d",
 			err->name, gpc, tpc);
 	nvgpu_writel(g, reg_addr, err->get_reg_val(1U));
-
-	return 0;
 }
 
-int gv11b_gr_intr_inject_mmu_ecc_error(struct gk20a *g,
+void gv11b_gr_intr_inject_mmu_ecc_error(struct gk20a *g,
 		struct nvgpu_hw_err_inject_info *err, u32 error_info)
 {
 	unsigned int gpc_stride = nvgpu_get_litter_value(g, GPU_LIT_GPC_STRIDE);
@@ -83,11 +77,9 @@ int gv11b_gr_intr_inject_mmu_ecc_error(struct gk20a *g,
 
 	nvgpu_info(g, "Injecting MMU fault %s for gpc: %d", err->name, gpc);
 	nvgpu_writel(g, reg_addr, err->get_reg_val(1U));
-
-	return 0;
 }
 
-int gv11b_gr_intr_inject_gcc_ecc_error(struct gk20a *g,
+void gv11b_gr_intr_inject_gcc_ecc_error(struct gk20a *g,
 		struct nvgpu_hw_err_inject_info *err, u32 error_info)
 {
 	unsigned int gpc_stride = nvgpu_get_litter_value(g,
@@ -98,8 +90,6 @@ int gv11b_gr_intr_inject_gcc_ecc_error(struct gk20a *g,
 
 	nvgpu_info(g, "Injecting GCC fault %s for gpc: %d", err->name, gpc);
 	nvgpu_writel(g, reg_addr, err->get_reg_val(1U));
-
-	return 0;
 }
 
 static inline u32 fecs_falcon_ecc_control_r(void)

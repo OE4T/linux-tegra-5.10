@@ -500,7 +500,7 @@ void gv11b_mm_mmu_fault_handle_nonreplay_replay_fault(struct gk20a *g,
 			sub_err_type = GPU_HUBMMU_NONREPLAYABLE_FAULT_NOTIFY;
 		}
 
-		(void) nvgpu_report_mmu_err(g, NVGPU_ERR_MODULE_HUBMMU,
+		nvgpu_report_mmu_err(g, NVGPU_ERR_MODULE_HUBMMU,
 			GPU_HUBMMU_PAGE_FAULT_ERROR,
 			mmufault,
 			fault_status,

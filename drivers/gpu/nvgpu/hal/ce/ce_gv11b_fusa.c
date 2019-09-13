@@ -61,7 +61,7 @@ void gv11b_ce_stall_isr(struct gk20a *g, u32 inst_id, u32 pri_base)
 	 * reset to get back to a working state.
 	 */
 	if ((ce_intr & ce_intr_status_invalid_config_pending_f()) != 0U) {
-		(void) nvgpu_report_ce_err(g, NVGPU_ERR_MODULE_CE, inst_id,
+		nvgpu_report_ce_err(g, NVGPU_ERR_MODULE_CE, inst_id,
 				GPU_CE_INVALID_CONFIG, ce_intr);
 		nvgpu_log(g, gpu_dbg_intr,
 			"ce: inst %d: invalid config", inst_id);
@@ -75,7 +75,7 @@ void gv11b_ce_stall_isr(struct gk20a *g, u32 inst_id, u32 pri_base)
 	 * reset before operations can start again, if not the entire GPU.
 	 */
 	if ((ce_intr & ce_intr_status_mthd_buffer_fault_pending_f()) != 0U) {
-		(void) nvgpu_report_ce_err(g, NVGPU_ERR_MODULE_CE, inst_id,
+		nvgpu_report_ce_err(g, NVGPU_ERR_MODULE_CE, inst_id,
 				GPU_CE_METHOD_BUFFER_FAULT, ce_intr);
 		nvgpu_log(g, gpu_dbg_intr,
 			"ce: inst %d: mthd buffer fault", inst_id);

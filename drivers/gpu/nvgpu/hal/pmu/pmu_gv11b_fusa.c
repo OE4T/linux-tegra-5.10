@@ -40,13 +40,11 @@
 #define ALIGN_4KB     12
 
 #ifdef CONFIG_NVGPU_INJECT_HWERR
-int gv11b_pmu_inject_ecc_error(struct gk20a *g,
+void gv11b_pmu_inject_ecc_error(struct gk20a *g,
 		struct nvgpu_hw_err_inject_info *err, u32 error_info)
 {
 	nvgpu_info(g, "Injecting PMU fault %s", err->name);
 	nvgpu_writel(g, err->get_reg_addr(), err->get_reg_val(1U));
-
-	return 0;
 }
 
 static inline u32 pmu_falcon_ecc_control_r(void)
@@ -183,7 +181,7 @@ int gv11b_pmu_correct_ecc(struct gk20a *g, u32 ecc_status, u32 ecc_addr)
 
 	if ((ecc_status &
 		pwr_pmu_falcon_ecc_status_corrected_err_imem_m()) != 0U) {
-		(void) nvgpu_report_ecc_err(g, NVGPU_ERR_MODULE_PMU, 0,
+		nvgpu_report_ecc_err(g, NVGPU_ERR_MODULE_PMU, 0,
 			GPU_PMU_FALCON_IMEM_ECC_CORRECTED,
 			ecc_addr,
 			g->ecc.pmu.pmu_ecc_corrected_err_count[0].counter);
@@ -191,7 +189,7 @@ int gv11b_pmu_correct_ecc(struct gk20a *g, u32 ecc_status, u32 ecc_addr)
 	}
 	if ((ecc_status &
 		pwr_pmu_falcon_ecc_status_uncorrected_err_imem_m()) != 0U) {
-		(void) nvgpu_report_ecc_err(g, NVGPU_ERR_MODULE_PMU, 0,
+		nvgpu_report_ecc_err(g, NVGPU_ERR_MODULE_PMU, 0,
 			GPU_PMU_FALCON_IMEM_ECC_UNCORRECTED,
 			ecc_addr,
 			g->ecc.pmu.pmu_ecc_uncorrected_err_count[0].counter);
@@ -200,7 +198,7 @@ int gv11b_pmu_correct_ecc(struct gk20a *g, u32 ecc_status, u32 ecc_addr)
 	}
 	if ((ecc_status &
 		pwr_pmu_falcon_ecc_status_corrected_err_dmem_m()) != 0U) {
-		(void) nvgpu_report_ecc_err(g, NVGPU_ERR_MODULE_PMU, 0,
+		nvgpu_report_ecc_err(g, NVGPU_ERR_MODULE_PMU, 0,
 			GPU_PMU_FALCON_DMEM_ECC_CORRECTED,
 			ecc_addr,
 			g->ecc.pmu.pmu_ecc_corrected_err_count[0].counter);
@@ -208,7 +206,7 @@ int gv11b_pmu_correct_ecc(struct gk20a *g, u32 ecc_status, u32 ecc_addr)
 	}
 	if ((ecc_status &
 		pwr_pmu_falcon_ecc_status_uncorrected_err_dmem_m()) != 0U) {
-		(void) nvgpu_report_ecc_err(g, NVGPU_ERR_MODULE_PMU, 0,
+		nvgpu_report_ecc_err(g, NVGPU_ERR_MODULE_PMU, 0,
 			GPU_PMU_FALCON_DMEM_ECC_UNCORRECTED,
 			ecc_addr,
 			g->ecc.pmu.pmu_ecc_uncorrected_err_count[0].counter);

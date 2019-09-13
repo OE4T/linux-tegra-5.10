@@ -394,7 +394,7 @@ void nvgpu_pmu_remove_support(struct gk20a *g, struct nvgpu_pmu *pmu)
 void nvgpu_pmu_report_bar0_pri_err_status(struct gk20a *g, u32 bar0_status,
 	u32 error_type)
 {
-	(void) nvgpu_report_pmu_err(g, NVGPU_ERR_MODULE_PMU,
+	nvgpu_report_pmu_err(g, NVGPU_ERR_MODULE_PMU,
 		GPU_PMU_BAR0_ERROR_TIMEOUT, error_type, bar0_status);
 }
 

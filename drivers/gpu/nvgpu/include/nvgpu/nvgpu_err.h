@@ -302,7 +302,7 @@ struct gr_err_info {
 struct nvgpu_hw_err_inject_info {
 	/** String representation of error. */
 	const char *name;
-	int (*inject_hw_fault)(struct gk20a *g,
+	void (*inject_hw_fault)(struct gk20a *g,
 			struct nvgpu_hw_err_inject_info *err, u32 err_info);
 	u32 (*get_reg_addr)(void);
 	u32 (*get_reg_val)(u32 val);
@@ -334,12 +334,10 @@ struct nvgpu_hw_err_inject_info_desc {
  *   - Forms error packet and checks whether it exceeds the max size.
  *   - Sends error packet to report error to 3LSS.
  *
- * @return 0 in case of success, <0 in case of failure.
- * @retval -EINVAL in case of (1) invalid HW unit ID, (2) invalid error ID,
- *         (3) clock get time API failed, (4) the size of error packet exceeds
- *         maximum allowed size.
+ * @return None
+ * @retval None
  */
-int nvgpu_report_host_err(struct gk20a *g, u32 hw_unit,
+void nvgpu_report_host_err(struct gk20a *g, u32 hw_unit,
 	u32 inst, u32 err_id, u32 intr_info);
 
 /**
@@ -359,12 +357,10 @@ int nvgpu_report_host_err(struct gk20a *g, u32 hw_unit,
  *   - Forms error packet and checks whether it exceeds the max size.
  *   - Sends error packet to report error to 3LSS.
  *
- * @return 0 in case of success, <0 in case of failure.
- * @retval -EINVAL in case of (1) invalid HW unit ID, (2) invalid error ID,
- *         (3) clock get time API failed, (4) the size of error packet exceeds
- *         maximum allowed size.
+ * @return None
+ * @retval None
  */
-int nvgpu_report_ce_err(struct gk20a *g, u32 hw_unit,
+void nvgpu_report_ce_err(struct gk20a *g, u32 hw_unit,
 	u32 inst, u32 err_id, u32 intr_info);
 
 /**
@@ -386,12 +382,10 @@ int nvgpu_report_ce_err(struct gk20a *g, u32 hw_unit,
  *   - Forms error packet and checks whether it exceeds the max size.
  *   - Sends error packet to report error to 3LSS.
  *
- * @return 0 in case of success, <0 in case of failure.
- * @retval -EINVAL in case of (1) invalid HW unit ID, (2) invalid error ID,
- *         (3) clock get time API failed, (4) the size of error packet exceeds
- *         maximum allowed size.
+ * @return None
+ * @retval None
  */
-int nvgpu_report_ecc_err(struct gk20a *g, u32 hw_unit, u32 inst,
+void nvgpu_report_ecc_err(struct gk20a *g, u32 hw_unit, u32 inst,
 		u32 err_id, u64 err_addr, u64 err_count);
 
 /**
@@ -410,12 +404,10 @@ int nvgpu_report_ecc_err(struct gk20a *g, u32 hw_unit, u32 inst,
  *   - Forms error packet and checks whether it exceeds the max size.
  *   - Sends error packet to report error to 3LSS.
  *
- * @return 0 in case of success, <0 in case of failure.
- * @retval -EINVAL in case of (1) invalid HW unit ID, (2) invalid error ID,
- *         (3) clock get time API failed, (4) the size of error packet exceeds
- *         maximum allowed size.
+ * @return None
+ * @retval None
  */
-int nvgpu_report_ctxsw_err(struct gk20a *g, u32 hw_unit, u32 err_id,
+void nvgpu_report_ctxsw_err(struct gk20a *g, u32 hw_unit, u32 err_id,
 		void *data);
 
 /**
@@ -436,12 +428,10 @@ int nvgpu_report_ctxsw_err(struct gk20a *g, u32 hw_unit, u32 err_id,
  *   - Forms error packet and checks whether it exceeds the max size.
  *   - Sends error packet to report error to 3LSS.
  *
- * @return 0 in case of success, <0 in case of failure.
- * @retval -EINVAL in case of (1) invalid HW unit ID, (2) invalid error ID,
- *         (3) clock get time API failed, (4) the size of error packet exceeds
- *         maximum allowed size.
+ * @return None
+ * @retval None
  */
-int nvgpu_report_gr_err(struct gk20a *g, u32 hw_unit, u32 inst,
+void nvgpu_report_gr_err(struct gk20a *g, u32 hw_unit, u32 inst,
 		u32 err_id, struct gr_err_info *err_info, u32 sub_err_type);
 
 /**
@@ -461,12 +451,10 @@ int nvgpu_report_gr_err(struct gk20a *g, u32 hw_unit, u32 inst,
  *   - Forms error packet and checks whether it exceeds the max size.
  *   - Sends error packet to report error to 3LSS.
  *
- * @return 0 in case of success, <0 in case of failure.
- * @retval -EINVAL in case of (1) invalid HW unit ID, (2) invalid error ID,
- *         (3) clock get time API failed, (4) the size of error packet exceeds
- *         maximum allowed size.
+ * @return None
+ * @retval None
  */
-int nvgpu_report_pmu_err(struct gk20a *g, u32 hw_unit, u32 err_id,
+void nvgpu_report_pmu_err(struct gk20a *g, u32 hw_unit, u32 err_id,
 	u32 sub_err_type, u32 status);
 
 /**
@@ -486,12 +474,10 @@ int nvgpu_report_pmu_err(struct gk20a *g, u32 hw_unit, u32 err_id,
  *   - Forms error packet and checks whether it exceeds the max size.
  *   - Sends error packet to report error to 3LSS.
  *
- * @return 0 in case of success, <0 in case of failure.
- * @retval -EINVAL in case of (1) invalid HW unit ID, (2) invalid error ID,
- *         (3) clock get time API failed, (4) the size of error packet exceeds
- *         maximum allowed size.
+ * @return None
+ * @retval None
  */
-int nvgpu_report_pri_err(struct gk20a *g, u32 hw_unit, u32 inst,
+void nvgpu_report_pri_err(struct gk20a *g, u32 hw_unit, u32 inst,
 		u32 err_id, u32 err_addr, u32 err_code);
 
 /**
@@ -511,12 +497,10 @@ int nvgpu_report_pri_err(struct gk20a *g, u32 hw_unit, u32 inst,
  *   - Forms error packet and checks whether it exceeds the max size.
  *   - Sends error packet to report error to 3LSS.
  *
- * @return 0 in case of success, <0 in case of failure.
- * @retval -EINVAL in case of (1) invalid HW unit ID, (2) invalid error ID,
- *         (3) clock get time API failed, (4) the size of error packet exceeds
- *         maximum allowed size.
+ * @return None
+ * @retval None
  */
-int nvgpu_report_mmu_err(struct gk20a *g, u32 hw_unit,
+void nvgpu_report_mmu_err(struct gk20a *g, u32 hw_unit,
 		u32 err_id, struct mmu_fault_info *fault_info,
 		u32 status, u32 sub_err_type);
 

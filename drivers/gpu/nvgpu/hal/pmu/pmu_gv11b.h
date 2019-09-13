@@ -61,7 +61,7 @@ bool gv11b_pmu_validate_mem_integrity(struct gk20a *g);
 
 #ifdef CONFIG_NVGPU_INJECT_HWERR
 struct nvgpu_hw_err_inject_info_desc * gv11b_pmu_intr_get_err_desc(struct gk20a *g);
-int gv11b_pmu_inject_ecc_error(struct gk20a *g,
+void gv11b_pmu_inject_ecc_error(struct gk20a *g,
 		struct nvgpu_hw_err_inject_info *err, u32 error_info);
 
 #endif /* CONFIG_NVGPU_INJECT_HWERR */

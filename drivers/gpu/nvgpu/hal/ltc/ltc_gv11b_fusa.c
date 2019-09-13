@@ -34,7 +34,7 @@
 #include <nvgpu/utils.h>
 
 #ifdef CONFIG_NVGPU_INJECT_HWERR
-int gv11b_ltc_inject_ecc_error(struct gk20a *g,
+void gv11b_ltc_inject_ecc_error(struct gk20a *g,
 		struct nvgpu_hw_err_inject_info *err, u32 error_info)
 {
 	u32 ltc_stride = nvgpu_get_litter_value(g, GPU_LIT_LTC_STRIDE);
@@ -48,8 +48,6 @@ int gv11b_ltc_inject_ecc_error(struct gk20a *g,
 	nvgpu_info(g, "Injecting LTC fault %s for ltc: %d, lts: %d",
 			err->name, ltc, lts);
 	nvgpu_writel(g, reg_addr, err->get_reg_val(1U));
-
-	return 0;
 }
 
 static inline u32 ltc0_lts0_l1_cache_ecc_control_r(void)

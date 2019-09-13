@@ -581,7 +581,7 @@ void gv11b_fb_handle_mmu_fault(struct gk20a *g, u32 niso_intr)
 	if ((niso_intr &
 	     fb_niso_intr_mmu_other_fault_notify_m()) != 0U) {
 
-		(void) nvgpu_report_mmu_err(g, NVGPU_ERR_MODULE_HUBMMU,
+		nvgpu_report_mmu_err(g, NVGPU_ERR_MODULE_HUBMMU,
 			GPU_HUBMMU_PAGE_FAULT_ERROR,
 			NULL,
 			fault_status,
@@ -610,7 +610,7 @@ void gv11b_fb_handle_mmu_fault(struct gk20a *g, u32 niso_intr)
 		if ((niso_intr &
 		     fb_niso_intr_mmu_nonreplayable_fault_overflow_m()) != 0U) {
 
-			(void) nvgpu_report_mmu_err(g, NVGPU_ERR_MODULE_HUBMMU,
+			nvgpu_report_mmu_err(g, NVGPU_ERR_MODULE_HUBMMU,
 				GPU_HUBMMU_PAGE_FAULT_ERROR,
 				NULL,
 				fault_status,
@@ -634,7 +634,7 @@ void gv11b_fb_handle_mmu_fault(struct gk20a *g, u32 niso_intr)
 		if ((niso_intr &
 		     fb_niso_intr_mmu_replayable_fault_overflow_m()) != 0U) {
 
-			(void) nvgpu_report_mmu_err(g, NVGPU_ERR_MODULE_HUBMMU,
+			nvgpu_report_mmu_err(g, NVGPU_ERR_MODULE_HUBMMU,
 				GPU_HUBMMU_PAGE_FAULT_ERROR,
 				NULL,
 				fault_status,

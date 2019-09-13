@@ -34,23 +34,23 @@ void gv11b_ecc_detect_enabled_units(struct gk20a *g);
 int gv11b_ecc_init(struct gk20a *g);
 
 #ifdef CONFIG_NVGPU_INJECT_HWERR
-int gv11b_gr_intr_inject_fecs_ecc_error(struct gk20a *g,
+void gv11b_gr_intr_inject_fecs_ecc_error(struct gk20a *g,
 		struct nvgpu_hw_err_inject_info *err, u32 error_info);
 struct nvgpu_hw_err_inject_info_desc *
 gv11b_gr_intr_get_fecs_err_desc(struct gk20a *g);
-int gv11b_gr_intr_inject_gpccs_ecc_error(struct gk20a *g,
+void gv11b_gr_intr_inject_gpccs_ecc_error(struct gk20a *g,
 		struct nvgpu_hw_err_inject_info *err, u32 error_info);
 struct nvgpu_hw_err_inject_info_desc *
 gv11b_gr_intr_get_gpccs_err_desc(struct gk20a *g);
-int gv11b_gr_intr_inject_sm_ecc_error(struct gk20a *g,
+void gv11b_gr_intr_inject_sm_ecc_error(struct gk20a *g,
 		struct nvgpu_hw_err_inject_info *err, u32 error_info);
 struct nvgpu_hw_err_inject_info_desc *
 gv11b_gr_intr_get_sm_err_desc(struct gk20a *g);
-int gv11b_gr_intr_inject_mmu_ecc_error(struct gk20a *g,
+void gv11b_gr_intr_inject_mmu_ecc_error(struct gk20a *g,
 		struct nvgpu_hw_err_inject_info *err, u32 error_info);
 struct nvgpu_hw_err_inject_info_desc *
 gv11b_gr_intr_get_mmu_err_desc(struct gk20a *g);
-int gv11b_gr_intr_inject_gcc_ecc_error(struct gk20a *g,
+void gv11b_gr_intr_inject_gcc_ecc_error(struct gk20a *g,
 		struct nvgpu_hw_err_inject_info *err, u32 error_info);
 struct nvgpu_hw_err_inject_info_desc *
 gv11b_gr_intr_get_gcc_err_desc(struct gk20a *g);

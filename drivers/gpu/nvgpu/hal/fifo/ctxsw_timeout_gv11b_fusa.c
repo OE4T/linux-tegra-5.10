@@ -188,7 +188,6 @@ bool gv11b_fifo_handle_ctxsw_timeout(struct gk20a *g)
 	u32 info_status;
 	const char *info_status_str;
 	struct nvgpu_tsg *tsg = NULL;
-	int err;
 
 	/* get ctxsw timedout engines */
 	ctxsw_timeout_engines = nvgpu_readl(g, fifo_intr_ctxsw_timeout_r());
@@ -218,13 +217,9 @@ bool gv11b_fifo_handle_ctxsw_timeout(struct gk20a *g)
 				continue;
 			}
 
-			err = nvgpu_report_host_err(g, NVGPU_ERR_MODULE_HOST,
+			nvgpu_report_host_err(g, NVGPU_ERR_MODULE_HOST,
 					0, GPU_HOST_PFIFO_CTXSW_TIMEOUT_ERROR,
 					tsgid);
-
-			if (err != 0) {
-				nvgpu_info(g, "failed to report ctxsw_timeout_errors");
-			}
 
 #ifdef CONFIG_NVGPU_KERNEL_MODE_SUBMIT
 			recover = g->ops.tsg.check_ctxsw_timeout(tsg,

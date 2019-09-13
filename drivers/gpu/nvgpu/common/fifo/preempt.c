@@ -57,7 +57,6 @@ void nvgpu_preempt_poll_tsg_on_pbdma(struct gk20a *g,
 	unsigned long runlist_served_pbdmas;
 	unsigned long pbdma_id_bit;
 	u32 tsgid, pbdma_id;
-	int err;
 
 	if (g->ops.fifo.preempt_poll_pbdma == NULL) {
 		return;
@@ -78,15 +77,10 @@ void nvgpu_preempt_poll_tsg_on_pbdma(struct gk20a *g,
 		 * GPU. Any sort of hang indicates the entire GPU’s
 		 * memory system would be blocked.
 		 */
-		if (g->ops.fifo.preempt_poll_pbdma(g, tsgid,
-				pbdma_id) != 0) {
-			err = nvgpu_report_host_err(g, NVGPU_ERR_MODULE_HOST,
+		if (g->ops.fifo.preempt_poll_pbdma(g, tsgid, pbdma_id) != 0) {
+			nvgpu_report_host_err(g, NVGPU_ERR_MODULE_HOST,
 					pbdma_id,
 					GPU_HOST_PBDMA_PREEMPT_ERROR, 0);
-			if (err == 0) {
-				nvgpu_info(g, "failed to report PBDMA preempt failed error");
-			}
-
 			nvgpu_err(g, "PBDMA preempt failed");
 		}
 	}

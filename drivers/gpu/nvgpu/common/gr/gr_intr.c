@@ -52,7 +52,7 @@ static void gr_intr_report_ctxsw_error(struct gk20a *g, u32 err_type, u32 chid,
 	err_info.mailbox_value = mailbox_value;
 	err_info.chid = chid;
 
-	(void) nvgpu_report_ctxsw_err(g, NVGPU_ERR_MODULE_FECS,
+	nvgpu_report_ctxsw_err(g, NVGPU_ERR_MODULE_FECS,
 		err_type, (void *)&err_info);
 }
 
@@ -226,7 +226,7 @@ static void gr_intr_report_sm_exception(struct gk20a *g, u32 gpc, u32 tpc,
 	err_info.tpc = tpc;
 	err_info.sm = sm;
 	info.sm_mcerr_info = &err_info;
-	(void) nvgpu_report_gr_err(g, NVGPU_ERR_MODULE_SM, inst,
+	nvgpu_report_gr_err(g, NVGPU_ERR_MODULE_SM, inst,
 			GPU_SM_MACHINE_CHECK_ERROR, &info, 0U);
 }
 
@@ -337,7 +337,7 @@ void nvgpu_gr_intr_report_exception(struct gk20a *g, u32 inst,
 	err_info.tsgid = tsgid;
 	err_info.status = status;
 	info.exception_info = &err_info;
-	(void) nvgpu_report_gr_err(g, NVGPU_ERR_MODULE_PGRAPH,
+	nvgpu_report_gr_err(g, NVGPU_ERR_MODULE_PGRAPH,
 			inst, err_type, &info, sub_err_type);
 }
 
