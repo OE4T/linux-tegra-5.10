@@ -1,7 +1,7 @@
 /*
  * imx204.c - imx204 sensor driver
  *
- * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -441,7 +441,7 @@ static struct v4l2_subdev_ops imx204_subdev_ops = {
 	.pad	= &imx204_subdev_pad_ops,
 };
 static struct of_device_id imx204_of_match[] = {
-	{ .compatible = "nvidia,imx204-spi", },
+	{ .compatible = "sony,imx204", },
 	{ },
 };
 MODULE_DEVICE_TABLE(of, imx204_of_match);

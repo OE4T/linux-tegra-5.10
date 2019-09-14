@@ -1,7 +1,7 @@
 /*
  * imx185.c - imx185 sensor driver
  *
- * Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -59,7 +59,7 @@
 #define IMX185_FUSE_ID_STR_SIZE	(IMX185_FUSE_ID_SIZE * 2)
 
 static const struct of_device_id imx185_of_match[] = {
-	{ .compatible = "nvidia,imx185",},
+	{ .compatible = "sony,imx185",},
 	{ },
 };
 MODULE_DEVICE_TABLE(of, imx185_of_match);

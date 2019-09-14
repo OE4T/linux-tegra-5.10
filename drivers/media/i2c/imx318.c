@@ -1,7 +1,7 @@
 /*
  * imx318.c - imx318 sensor driver
  *
- * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -48,7 +48,7 @@
 #define IMX318_GROUP_HOLD_ADDR				0x0104
 
 static const struct of_device_id imx318_of_match[] = {
-	{ .compatible = "nvidia,imx318",},
+	{ .compatible = "sony,imx318",},
 	{ },
 };
 MODULE_DEVICE_TABLE(of, imx318_of_match);

@@ -1,7 +1,7 @@
 /*
  * ov9281.c - ov9281 sensor driver
  *
- * Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -1134,7 +1134,7 @@ static int ov9281_verify_chip_id(struct ov9281 *priv)
 }
 
 static const struct of_device_id ov9281_of_match[] = {
-	{ .compatible = "nvidia,ov9281", },
+	{ .compatible = "ovti,ov9281", },
 	{ },
 };
 

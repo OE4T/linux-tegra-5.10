@@ -68,7 +68,7 @@
 #define IMX274_FUSE_ID_STR_SIZE		(IMX274_FUSE_ID_SIZE * 2)
 
 static const struct of_device_id imx274_of_match[] = {
-	{ .compatible = "nvidia,imx274", },
+	{ .compatible = "sony,imx274", },
 	{ },
 };
 MODULE_DEVICE_TABLE(of, imx274_of_match);

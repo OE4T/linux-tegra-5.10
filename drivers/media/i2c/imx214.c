@@ -1,7 +1,7 @@
 /*
  * imx214.c - imx214 sensor driver
  *
- * Copyright (c) 2013-2017, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2013-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -504,7 +504,7 @@ static struct v4l2_subdev_ops imx214_subdev_ops = {
 };
 
 static struct of_device_id imx214_of_match[] = {
-	{ .compatible = "nvidia,imx214", },
+	{ .compatible = "sony,imx214", },
 	{ },
 };
 

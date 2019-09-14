@@ -385,7 +385,7 @@ static int ov5693_set_exposure_short(struct tegracam_device *tc_dev, s64 val);
 
 static const struct of_device_id ov5693_of_match[] = {
 	{
-		.compatible = "nvidia,ov5693",
+		.compatible = "ovti,ov5693",
 	},
 	{ },
 };

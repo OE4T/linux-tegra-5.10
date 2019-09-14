@@ -1,7 +1,7 @@
 /*
  * imx268.c - imx268 sensor driver
  *
- * Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -49,7 +49,7 @@
 #define IMX268_FRAME_LENGTH_ADDR_LSB		0x0341
 
 static const struct of_device_id imx268_of_match[] = {
-	{ .compatible = "nvidia,imx268", },
+	{ .compatible = "sony,imx268", },
 	{ },
 };
 MODULE_DEVICE_TABLE(of, imx268_of_match);

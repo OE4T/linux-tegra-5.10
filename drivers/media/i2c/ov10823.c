@@ -1,7 +1,7 @@
 /*
  * ov10823.c - ov10823 sensor driver
  *
- * Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -732,7 +732,7 @@ static struct v4l2_subdev_ops ov10823_subdev_ops = {
 };
 
 static struct of_device_id ov10823_of_match[] = {
-	{ .compatible = "nvidia,ov10823", },
+	{ .compatible = "ovti,ov10823", },
 	{ },
 };
 

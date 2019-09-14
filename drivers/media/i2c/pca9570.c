@@ -1,7 +1,7 @@
 /*
  * pca9570.c - pca9570 IO Expander driver
  *
- * Copyright (c) 2016-2017, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -333,7 +333,7 @@ static const struct i2c_device_id pca9570_id[] = {
 };
 
 const static struct of_device_id pca9570_of_match[] = {
-	{ .compatible = "nvidia,pca9570", },
+	{ .compatible = "nxp,pca9570", },
 	{ },
 };
 MODULE_DEVICE_TABLE(i2c, pca9570_id);

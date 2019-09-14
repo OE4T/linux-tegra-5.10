@@ -50,7 +50,7 @@
 #define IMX390_ANALOG_GAIN_SP1L_ADDR	0x001A
 
 const struct of_device_id imx390_of_match[] = {
-	{ .compatible = "nvidia,imx390",},
+	{ .compatible = "sony,imx390",},
 	{ },
 };
 MODULE_DEVICE_TABLE(of, imx390_of_match);

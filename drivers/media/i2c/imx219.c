@@ -53,7 +53,7 @@
 #define IMX219_FINE_INTEG_TIME_ADDR_LSB		0x0389
 
 static const struct of_device_id imx219_of_match[] = {
-	{ .compatible = "nvidia,imx219", },
+	{ .compatible = "sony,imx219", },
 	{ },
 };
 MODULE_DEVICE_TABLE(of, imx219_of_match);

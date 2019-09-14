@@ -741,7 +741,7 @@ ret:
 EXPORT_SYMBOL(max9296_setup_streaming);
 
 const struct of_device_id max9296_of_match[] = {
-	{ .compatible = "nvidia,max9296", },
+	{ .compatible = "maxim,max9296", },
 	{ },
 };
 MODULE_DEVICE_TABLE(of, max9296_of_match);

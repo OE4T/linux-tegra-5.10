@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2017, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2015-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -174,7 +174,7 @@ static struct lc898212_reg lc898212_init_setting[] = {
 };
 
 const static struct of_device_id lc898212_of_match[] = {
-	{ .compatible = "nvidia,lc898212", },
+	{ .compatible = "onnn,lc898212", },
 	{ },
 };
 MODULE_DEVICE_TABLE(of, lc898212_of_match);
