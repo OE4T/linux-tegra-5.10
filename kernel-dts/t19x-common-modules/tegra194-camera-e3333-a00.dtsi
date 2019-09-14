@@ -211,7 +211,7 @@
 		tca9548@77 {
 			i2c@0 {
 				ov5693_a@36 {
-					compatible = "nvidia,ov5693";
+					compatible = "ovti,ov5693";
 					reg = <0x36>;
 					devnode = "video0";
 
@@ -436,7 +436,7 @@
 
 			i2c@1 {
 				ov5693_b@36 {
-					compatible = "nvidia,ov5693";
+					compatible = "ovti,ov5693";
 					reg = <0x36>;
 					devnode = "video1";
 
@@ -661,7 +661,7 @@
 
 			i2c@2 {
 				ov5693_c@36 {
-					compatible = "nvidia,ov5693";
+					compatible = "ovti,ov5693";
 					reg = <0x36>;
 					devnode = "video2";
 
@@ -886,7 +886,7 @@
 
 			i2c@3 {
 				ov5693_d@36 {
-					compatible = "nvidia,ov5693";
+					compatible = "ovti,ov5693";
 					reg = <0x36>;
 					devnode = "video3";
 
@@ -1111,7 +1111,7 @@
 
 			i2c@4 {
 				ov5693_e@36 {
-					compatible = "nvidia,ov5693";
+					compatible = "ovti,ov5693";
 					reg = <0x36>;
 					devnode = "video4";
 
@@ -1336,7 +1336,7 @@
 
 			i2c@5 {
 				ov5693_g@36 {
-					compatible = "nvidia,ov5693";
+					compatible = "ovti,ov5693";
 					reg = <0x36>;
 					devnode = "video5";
 

@@ -63,7 +63,7 @@
 
 	i2c@3180000 {
 		ov5693_c@36 {
-			compatible = "nvidia,ov5693";
+			compatible = "ovti,ov5693";
 			/* I2C device address */
 			reg = <0x36>;
 

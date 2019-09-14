@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2015-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -63,7 +63,7 @@
 
 	i2c@3160000 {
 		imx268_a@1a {
-			compatible = "nvidia,imx268";
+			compatible = "sony,imx268";
 			/* I2C device address */
 			reg = <0x1a>;
 

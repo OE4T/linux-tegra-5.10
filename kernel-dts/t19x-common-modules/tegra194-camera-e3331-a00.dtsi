@@ -63,7 +63,7 @@
 		tca9546@70 {
 			i2c@0 {
 				imx318_a@10 {
-					compatible = "nvidia,imx318";
+					compatible = "sony,imx318";
 					reg = <0x10>;
 
 					/* Physical dimensions of sensor */

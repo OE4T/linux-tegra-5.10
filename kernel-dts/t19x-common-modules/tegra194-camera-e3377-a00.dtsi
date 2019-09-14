@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -69,7 +69,7 @@
 		status = "okay";
 		spi-max-frequency = <12000000>;
 		imx204@0 {
-			compatible = "nvidia,imx204-spi";
+			compatible = "sony,imx204";
 			reg = <0>;
 			status = "okay";
 			spi-max-frequency = <12000000>;
@@ -84,7 +84,7 @@
 			/* Define any required hw resources needed by driver */
 			/* ie, clocks, io pins, power sources */
 			/* mclk = "cam_mclk1"; Not in use. */
-			devname = "imx204-spi";
+			devname = "imx204";
 
 			/* Sensor Model */
 			sensor_model = "imx204";

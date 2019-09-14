@@ -94,7 +94,7 @@
 		tca9546@70 {
 			i2c@0 {
 			imx274_a@1a {
-				compatible = "nvidia,imx274";
+				compatible = "sony,imx274";
 				/* I2C device address */
 				reg = <0x1a>;
 
@@ -417,7 +417,7 @@
 			};
 			i2c@1 {
 			imx274_c@1a {
-				compatible = "nvidia,imx274";
+				compatible = "sony,imx274";
 				/* I2C device address */
 				reg = <0x1a>;
 

@@ -65,7 +65,7 @@
 		tca9546@70 {
 			i2c@0 {
 			imx185_a@1a {
-				compatible = "nvidia,imx185";
+				compatible = "sony,imx185";
 
 				reg = <0x1a>;
 				devnode = "video0";
