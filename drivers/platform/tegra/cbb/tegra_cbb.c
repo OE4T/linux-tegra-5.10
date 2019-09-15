@@ -161,22 +161,28 @@ static int cbb_noc_dbgfs_init(void) { return 0; }
 
 void tegra_cbb_stallen(void __iomem *addr)
 {
-	cbberr_ops->stallen(addr);
+	if (cbberr_ops->stallen)
+		cbberr_ops->stallen(addr);
 }
 
 void tegra_cbb_faulten(void __iomem *addr)
 {
-	cbberr_ops->faulten(addr);
+	if (cbberr_ops->faulten)
+		cbberr_ops->faulten(addr);
 }
 
 void tegra_cbb_errclr(void __iomem *addr)
 {
-	cbberr_ops->errclr(addr);
+	if (cbberr_ops->errclr)
+		cbberr_ops->errclr(addr);
 }
 
 unsigned int tegra_cbb_errvld(void __iomem *addr)
 {
-	return cbberr_ops->errvld(addr);
+	if (cbberr_ops->errvld)
+		return cbberr_ops->errvld(addr);
+	else
+		return 0;
 }
 
 void tegra_cbberr_set_ops(struct tegra_cbberr_ops *tegra_cbb_err_ops)
@@ -253,22 +259,26 @@ int tegra_cbb_err_getirq(struct platform_device *pdev,
 		int *nonsecure_irq, int *secure_irq, int *num_intr)
 {
 	int err = 0;
-	*nonsecure_irq = 0;
+	int intr_indx = 0;
+
+	*nonsecure_irq = 0x0;
+	*secure_irq = 0x0;
 
 	*num_intr = platform_irq_count(pdev);
 	if (!*num_intr)
 		return -EINVAL;
 
 	if (*num_intr == 2) {
-		*nonsecure_irq = platform_get_irq(pdev, 0);
+		*nonsecure_irq = platform_get_irq(pdev, intr_indx);
 		if (*nonsecure_irq <= 0) {
 			dev_err(&pdev->dev, "can't get irq (%d)\n",
 					*nonsecure_irq);
 			return -ENOENT;
 		}
+		intr_indx++;
 	}
 
-	*secure_irq = platform_get_irq(pdev, 1);
+	*secure_irq = platform_get_irq(pdev, intr_indx);
 	if (*secure_irq <= 0) {
 		dev_err(&pdev->dev, "can't get irq (%d)\n", *secure_irq);
 		return -ENOENT;
@@ -313,7 +323,6 @@ int tegra_cbberr_register_hook_en(struct platform_device *pdev,
 	}
 
 	cbberr_ops->cbb_error_enable(cbb_init_data.vaddr);
-
 	dsb(sy);
 
 	return ret;
@@ -333,7 +342,8 @@ static int __init tegra_cbb_init(void)
 	 * CBB don't exist on the simulator
 	 */
 	if (tegra_cpu_is_asim() &&
-		(tegra_get_chipid() != TEGRA_CHIPID_TEGRA19))
+		(tegra_get_chipid() != TEGRA_CHIPID_TEGRA19) &&
+		(tegra_get_chipid() != TEGRA_CHIPID_TEGRA23))
 		return -EINVAL;
 
 	err = cbb_noc_dbgfs_init();

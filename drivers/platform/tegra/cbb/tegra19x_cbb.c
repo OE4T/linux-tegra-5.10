@@ -486,7 +486,8 @@ static irqreturn_t tegra194_cbb_error_isr(int irq, void *dev_id)
 				/* If illegal request is from CCPLEX(id:0x1)
 				 * master then call BUG() to crash system.
 				 */
-				if(mstr_id == 0x1)
+				if ((mstr_id == 0x1) &&
+						(errlog->erd_mask_inband_err))
 					is_inband_err = 1;
 			}
 		}
@@ -767,6 +768,7 @@ static int tegra194_cbb_errlogger_init(struct platform_device *pdev,
 	errlog->name      = bdata->name;
 	errlog->tegra_cbb_master_id = bdata->tegra_cbb_master_id;
 	errlog->is_ax2apb_bridge_connected = bdata->is_ax2apb_bridge_connected;
+	errlog->erd_mask_inband_err = bdata->erd_mask_inband_err;
 
 	tegra_cbberr_set_ops(&tegra194_cbb_errlogger_ops);
 	tegra194_cbb_noc_set_clk_en_ops(errlog, bdata);
@@ -917,7 +919,7 @@ static struct platform_driver tegra194_cbb_driver = {
 	.remove         = tegra194_cbb_remove,
 	.driver = {
 		.owner  = THIS_MODULE,
-		.name   = "tegra-cbb",
+		.name   = "tegra19x-cbb",
 		.of_match_table = of_match_ptr(tegra194_cbb_match),
 #ifdef CONFIG_PM_SLEEP
 		.pm     = &tegra194_cbb_pm,

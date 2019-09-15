@@ -8,6 +8,7 @@ KBUILD_CFLAGS += -I$(srctree)/arch/arm/mach-tegra \
 ccflags-y += -Werror
 obj-$(CONFIG_TEGRA_MCE) += tegra-mce.o
 obj-$(CONFIG_NV_TEGRA_MC) += mc/
+obj-$(CONFIG_TEGRA_CBB_NOC) += cbb/
 obj-$(CONFIG_ARCH_TEGRA_18x_SOC) += tegra18_speedo.o
 obj-$(CONFIG_TEGRA_DC) += panel-simulator.o
 obj-$(CONFIG_ARCH_TEGRA_18x_SOC) += tegra18x-mce.o
@@ -65,7 +66,6 @@ obj-y += t19x_cache.o
 obj-y += cvnas.o
 obj-$(CONFIG_ARCH_TEGRA_210_SOC) += mselect.o
 obj-$(CONFIG_TEGRA_19X_RAS) += carmel_ras.o
-obj-$(CONFIG_TEGRA_CBB_NOC) += tegra_cbb.o tegra19x_cbb.o
 ifeq ($(CONFIG_HW_PERF_EVENTS), y)
 obj-$(CONFIG_ARCH_TEGRA_19x_SOC) += tegra19_perf_uncore.o
 endif

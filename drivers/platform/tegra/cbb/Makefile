@@ -1,0 +1,14 @@
+#
+# Control Backbone Driver code.
+#
+
+GCOV_PROFILE := y
+
+ccflags-y += -I$(srctree)/drivers/platform/tegra/include
+
+ccflags-y += -Werror
+
+obj-$(CONFIG_TEGRA_CBB_NOC) += tegra_cbb.o
+
+obj-$(CONFIG_ARCH_TEGRA_19x_SOC)        += tegra19x_cbb.o
+
