@@ -33,11 +33,27 @@ struct nvgpu_gr_falcon *nvgpu_gr_get_falcon_ptr(struct gk20a *g)
 	return g->gr->falcon;
 }
 
-struct nvgpu_gr_obj_ctx_golden_image *nvgpu_gr_get_golden_image_ptr(
-							struct gk20a *g)
+struct nvgpu_gr_config *nvgpu_gr_get_config_ptr(struct gk20a *g)
 {
-	return g->gr->golden_image;
+	return g->gr->config;
 }
+
+struct nvgpu_gr_intr *nvgpu_gr_get_intr_ptr(struct gk20a *g)
+{
+	return g->gr->intr;
+}
+
+#ifdef CONFIG_NVGPU_NON_FUSA
+u32 nvgpu_gr_get_override_ecc_val(struct gk20a *g)
+{
+	return g->gr->fecs_feature_override_ecc_val;
+}
+
+void nvgpu_gr_override_ecc_val(struct gk20a *g, u32 ecc_val)
+{
+	g->gr->fecs_feature_override_ecc_val = ecc_val;
+}
+#endif
 
 #ifdef CONFIG_NVGPU_GRAPHICS
 struct nvgpu_gr_zcull *nvgpu_gr_get_zcull_ptr(struct gk20a *g)
@@ -51,16 +67,6 @@ struct nvgpu_gr_zbc *nvgpu_gr_get_zbc_ptr(struct gk20a *g)
 }
 #endif
 
-struct nvgpu_gr_config *nvgpu_gr_get_config_ptr(struct gk20a *g)
-{
-	return g->gr->config;
-}
-
-struct nvgpu_gr_intr *nvgpu_gr_get_intr_ptr(struct gk20a *g)
-{
-	return g->gr->intr;
-}
-
 #ifdef CONFIG_NVGPU_FECS_TRACE
 struct nvgpu_gr_global_ctx_buffer_desc *nvgpu_gr_get_global_ctx_buffer_ptr(
 							struct gk20a *g)
@@ -68,16 +74,6 @@ struct nvgpu_gr_global_ctx_buffer_desc *nvgpu_gr_get_global_ctx_buffer_ptr(
 	return g->gr->global_ctx_buffer;
 }
 #endif
-
-u32 nvgpu_gr_get_override_ecc_val(struct gk20a *g)
-{
-	return g->gr->fecs_feature_override_ecc_val;
-}
-
-void nvgpu_gr_override_ecc_val(struct gk20a *g, u32 ecc_val)
-{
-	g->gr->fecs_feature_override_ecc_val = ecc_val;
-}
 
 #ifdef CONFIG_NVGPU_CILP
 u32 nvgpu_gr_get_cilp_preempt_pending_chid(struct gk20a *g)
@@ -93,6 +89,12 @@ void nvgpu_gr_clear_cilp_preempt_pending_chid(struct gk20a *g)
 #endif
 
 #ifdef CONFIG_NVGPU_DEBUGGER
+struct nvgpu_gr_obj_ctx_golden_image *nvgpu_gr_get_golden_image_ptr(
+		struct gk20a *g)
+{
+	return g->gr->golden_image;
+}
+
 struct nvgpu_gr_hwpm_map *nvgpu_gr_get_hwpm_map_ptr(struct gk20a *g)
 {
 	return g->gr->hwpm_map;

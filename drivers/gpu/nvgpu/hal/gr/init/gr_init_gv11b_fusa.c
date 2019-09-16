@@ -504,7 +504,9 @@ void gv11b_gr_init_tpc_mask(struct gk20a *g, u32 gpc_index, u32 pes_tpc_mask)
 int gv11b_gr_init_fs_state(struct gk20a *g)
 {
 	u32 data;
+#ifdef CONFIG_NVGPU_NON_FUSA
 	u32 ecc_val;
+#endif
 	int err = 0;
 	u32 ver = g->params.gpu_arch + g->params.gpu_impl;
 
@@ -549,10 +551,12 @@ int gv11b_gr_init_fs_state(struct gk20a *g)
 			 gr_gpcs_tpcs_sm_disp_ctrl_re_suppress_disable_f());
 	nvgpu_writel(g, gr_gpcs_tpcs_sm_disp_ctrl_r(), data);
 
+#ifdef CONFIG_NVGPU_NON_FUSA
 	ecc_val = nvgpu_gr_get_override_ecc_val(g);
 	if (ecc_val != 0U) {
 		nvgpu_writel(g, gr_fecs_feature_override_ecc_r(), ecc_val);
 	}
+#endif
 
 	data = nvgpu_readl(g, gr_debug_0_r());
 	data = set_field(data,

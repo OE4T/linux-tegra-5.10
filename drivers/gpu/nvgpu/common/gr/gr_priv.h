@@ -68,7 +68,9 @@ struct nvgpu_gr {
 	void (*remove_support)(struct gk20a *g);
 	bool sw_ready;
 
+#ifdef CONFIG_NVGPU_NON_FUSA
 	u32 fecs_feature_override_ecc_val;
+#endif
 
 #ifdef CONFIG_NVGPU_CILP
 	u32 cilp_preempt_pending_chid;
