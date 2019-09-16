@@ -137,6 +137,7 @@ static inline s32 nvgpu_safe_add_s32(s32 si_a, s32 si_b)
 
 static inline u64 nvgpu_safe_add_u64(u64 ul_a, u64 ul_b)
 {
+NVGPU_COV_WHITELIST(false_positive, NVGPU_CERT(INT30_C), "Bug 2643092")
 	if (ULONG_MAX - ul_a < ul_b) {
 		BUG();
 	} else {
