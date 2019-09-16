@@ -29,6 +29,8 @@
 #include <nvgpu/sizes.h>
 #include <os/posix/os_posix.h>
 
+#include "nvgpu_sgt.h"
+
 /* nvgpu_sgt_ops overrides for basic api testing */
 #define EXPECTED_U64 0x123456789ABCDEF0ULL
 static u64 ops_sgl_gpu_addr(struct gk20a *g, void *sgl,
@@ -54,20 +56,7 @@ static struct nvgpu_sgt_ops nvgpu_sgt_ops = {
 	.sgl_ipa_to_pa = ops_sgl_ipa_to_pa,
 };
 
-/*
- * Test: test_nvgpu_sgt_basic_apis
- * Tests for the simple APIs provided by nvgpu_sgt unit
- * APIs tested:
- *      nvgpu_sgt_create_from_mem
- *      nvgpu_sgt_get_dma
- *      nvgpu_sgt_get_phys
- *      nvgpu_sgt_iommuable
- *      nvgpu_sgt_get_gpu_addr
- *      nvgpu_sgt_get_ipa
- *      nvgpu_sgt_ipa_to_pa
- *      nvgpu_sgt_free
- */
-static int test_nvgpu_sgt_basic_apis(struct unit_module *m, struct gk20a *g,
+int test_nvgpu_sgt_basic_apis(struct unit_module *m, struct gk20a *g,
 				     void *args)
 {
 	int ret = UNIT_SUCCESS;
@@ -163,12 +152,7 @@ end:
 	return ret;
 }
 
-/*
- * Test: test_nvgpu_sgt_get_next
- * Tests test_nvgpu_sgt_get_next API by building sgl's and verifying
- * correct pointers returned by calling the API
- */
-static int test_nvgpu_sgt_get_next(struct unit_module *m, struct gk20a *g,
+int test_nvgpu_sgt_get_next(struct unit_module *m, struct gk20a *g,
 				   void *args)
 {
 	int ret = UNIT_SUCCESS;
@@ -344,12 +328,7 @@ static int test_table_nvgpu_sgt_alignment_non_iommu(struct unit_module *m,
 	return ret;
 }
 
-/*
- * Test: test_nvgpu_sgt_alignment_non_iommu
- * Walks table above to test a variety of different sgl's to test alignment
- * API calculates correctly when there is no IOMMU.
- */
-static int test_nvgpu_sgt_alignment_non_iommu(struct unit_module *m,
+int test_nvgpu_sgt_alignment_non_iommu(struct unit_module *m,
 					      struct gk20a *g, void *args)
 {
 	int ret = UNIT_SUCCESS;
@@ -371,17 +350,7 @@ static int test_nvgpu_sgt_alignment_non_iommu(struct unit_module *m,
 	return ret;
 }
 
-/*
- * Test the alignment API for the case where there is an IOMMU
- * For this case, we need:
- *  1. an IOMMU
- *  2. the sgt to be marked IOMMU'able
- *  3. DMA addr != 0
- * So, we check we don't use the IOMMU code path by not having these right.
- * To make sure we didn't we make the DMA address and size different.
- * Because if it's IOMMU'able the alignment is based on the DMA address.
- */
-static int test_nvgpu_sgt_alignment_with_iommu(struct unit_module *m,
+int test_nvgpu_sgt_alignment_with_iommu(struct unit_module *m,
 					       struct gk20a *g, void *args)
 {
 	int ret = UNIT_SUCCESS;

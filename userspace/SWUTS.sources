@@ -8,6 +8,7 @@ INPUT += ../../../userspace/units/interface/atomic/atomic.h
 INPUT += ../../../userspace/units/mm/allocators/bitmap_allocator/bitmap_allocator.h
 INPUT += ../../../userspace/units/mm/allocators/buddy_allocator/buddy_allocator.h
 INPUT += ../../../userspace/units/mm/nvgpu_mem/nvgpu_mem.h
+INPUT += ../../../userspace/units/mm/nvgpu_sgt/nvgpu_sgt.h
 INPUT += ../../../userspace/units/mm/vm/vm.h
 INPUT += ../../../userspace/units/posix/sizes/posix-sizes.h
 INPUT += ../../../userspace/units/posix/thread/posix-thread.h
