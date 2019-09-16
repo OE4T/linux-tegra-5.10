@@ -48,8 +48,15 @@ DTC_INCLUDE += $(tegra-dtstree)/soc/t19x/kernel-include
 DTC_INCLUDE += $(tegra-dtstree)/soc/t19x/kernel-dts
 DTC_INCLUDE += $(tegra-dtstree)/platform/t19x/common/kernel-dts
 
+ifeq ($(CONFIG_ARCH_TEGRA_23x_SOC),y)
+DTC_INCLUDE += $(tegra-dtstree)/soc/t23x/kernel-include
+DTC_INCLUDE += $(tegra-dtstree)/soc/t23x/kernel-dts
+DTC_INCLUDE += $(tegra-dtstree)/platform/t23x/common/kernel-dts
+endif
+
 DTC_CPP_FLAGS += -DLINUX_VERSION=500
 
+dtb-$(CONFIG_ARCH_TEGRA_23x_SOC) += nvidia/tegra234-sim-vdk.dtb
 dtb-$(CONFIG_ARCH_TEGRA_194_SOC) += nvidia/tegra194-p2888-0001-p2822-0000.dtb
 dtb-$(CONFIG_ARCH_TEGRA_186_SOC) += nvidia/tegra186-quill-p3310-1000-c03-00-base.dtb
 dtb-$(CONFIG_ARCH_TEGRA_186_SOC) += nvidia/tegra186-quill-p3310-1000-a00-00-base.dtb
