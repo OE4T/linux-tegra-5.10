@@ -235,4 +235,17 @@ void eqos_init_core_ops(struct core_ops *ops);
  * - De-initialization: No
  */
 void ivc_init_core_ops(struct core_ops *ops);
+
+/**
+ * @brief mgbe_init_core_ops - Initialize MGBE core operations.
+ *
+ * @param[in] ops: Core operations pointer.
+ *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: No
+ * - De-initialization: No
+ */
+void mgbe_init_core_ops(struct core_ops *ops);
 #endif /* INCLUDED_CORE_LOCAL_H */

@@ -428,7 +428,9 @@ nve32_t osi_process_rx_completions(struct osi_dma_priv_data *osi_dma,
 		rx_pkt_cx->flags |= OSI_PKT_CX_VALID;
 
 		if ((rx_desc->rdes3 & RDES3_LD) == RDES3_LD) {
-			if ((rx_desc->rdes3 & RDES3_ES_BITS) != 0U) {
+			if ((rx_desc->rdes3 &
+			    (((osi_dma->mac == OSI_MAC_HW_MGBE) ?
+			    RDES3_ES_MGBE : RDES3_ES_BITS))) != 0U) {
 				/* reset validity if any of the error bits
 				 * are set
 				 */
@@ -771,7 +773,8 @@ nve32_t osi_process_tx_completions(struct osi_dma_priv_data *osi_dma,
 			}
 		}
 
-		if (((tx_desc->tdes3 & TDES3_LD) == TDES3_LD) &&
+		if ((osi_dma->mac != OSI_MAC_HW_MGBE) &&
+		    ((tx_desc->tdes3 & TDES3_LD) == TDES3_LD) &&
 		    ((tx_desc->tdes3 & TDES3_CTXT) != TDES3_CTXT)) {
 			/* check tx tstamp status */
 			if ((tx_desc->tdes3 & TDES3_TTSS) == TDES3_TTSS) {
@@ -1232,7 +1235,12 @@ static nve32_t rx_dma_desc_initialization(struct osi_dma_priv_data *osi_dma,
 		}
 
 		rx_desc->rdes2 = 0;
-		rx_desc->rdes3 = (RDES3_IOC | RDES3_B1V);
+		rx_desc->rdes3 = RDES3_IOC;
+
+		if (osi_dma->mac == OSI_MAC_HW_EQOS) {
+			rx_desc->rdes3 |= RDES3_B1V;
+		}
+
 		/* reconfigure INTE bit if RX watchdog timer is enabled */
 		if (osi_dma->use_riwt == OSI_ENABLE) {
 			rx_desc->rdes3 &= ~RDES3_IOC;

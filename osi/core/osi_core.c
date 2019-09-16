@@ -123,6 +123,19 @@ nve32_t osi_read_phy_reg(struct osi_core_priv_data *const osi_core,
 
 nve32_t osi_init_core_ops(struct osi_core_priv_data *const osi_core)
 {
+	typedef void (*init_ops_arr)(struct core_ops *);
+	typedef void *(*safety_init)(void);
+
+	init_ops_arr i_ops[2][2] = {
+		{ eqos_init_core_ops, ivc_init_core_ops },
+		{ mgbe_init_core_ops, OSI_NULL }
+	};
+
+	safety_init s_init[2][2] = {
+		{ eqos_get_core_safety_config, ivc_get_core_safety_config },
+		{ OSI_NULL, OSI_NULL }
+	};
+
 	if (osi_core == OSI_NULL) {
 		return -1;
 	}
@@ -134,42 +147,36 @@ nve32_t osi_init_core_ops(struct osi_core_priv_data *const osi_core)
 		return -1;
 	}
 
-	if (osi_core->mac != OSI_MAC_HW_EQOS) {
+	if (osi_core->mac > OSI_MAC_HW_MGBE) {
 		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
 			     "Invalid MAC HW type\n", 0ULL);
 		return -1;
 	}
 
-	if (osi_core->use_virtualization == OSI_DISABLE) {
-		/* Get EQOS HW core ops */
-		eqos_init_core_ops(ops_p);
-		/* Explicitly set osi_core->safety_config = OSI_NULL if
-		 * a particular MAC version does not need SW safety
-		 * mechanisms like periodic read-verify.
-		 */
+	if (osi_core->use_virtualization > OSI_ENABLE) {
+		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+			     "Invalid use_virtualization value\n", 0ULL);
+		return -1;
+	}
+
+	if (i_ops[osi_core->mac][osi_core->use_virtualization] != OSI_NULL) {
+		i_ops[osi_core->mac][osi_core->use_virtualization](ops_p);
+	}
+
+	if (s_init[osi_core->mac][osi_core->use_virtualization] != OSI_NULL) {
 		osi_core->safety_config =
-			(void *)eqos_get_core_safety_config();
-	} else {
-		/* Get IVC HW core ops */
-		ivc_init_core_ops(ops_p);
-		/* Explicitly set osi_core->safety_config = OSI_NULL if
-		 * a particular MAC version does not need SW safety
-		 * mechanisms like periodic read-verify.
-		 */
-		osi_core->safety_config =
-			(void *)ivc_get_core_safety_config();
+			s_init[osi_core->mac][osi_core->use_virtualization]();
 	}
 
 	if (validate_func_ptrs(osi_core) < 0) {
 		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
-			     "core: function ptrs validation failed\n", 0ULL);
+				"core: function ptrs validation failed\n", 0ULL);
 		return -1;
 	}
 
 	g_core.init_done = OSI_ENABLE;
 
 	return 0;
-
 }
 
 nve32_t osi_poll_for_mac_reset_complete(

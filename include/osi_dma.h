@@ -387,11 +387,11 @@ struct osi_tx_ring {
  */
 struct osi_xtra_dma_stat_counters {
 	/** Per Q TX packet count */
-	nveu64_t q_tx_pkt_n[OSI_EQOS_MAX_NUM_QUEUES];
+	nveu64_t q_tx_pkt_n[OSI_MGBE_MAX_NUM_QUEUES];
 	/** Per Q RX packet count */
-	nveu64_t q_rx_pkt_n[OSI_EQOS_MAX_NUM_QUEUES];
+	nveu64_t q_rx_pkt_n[OSI_MGBE_MAX_NUM_QUEUES];
 	/** Per Q TX complete call count */
-	nveu64_t tx_clean_n[OSI_EQOS_MAX_NUM_QUEUES];
+	nveu64_t tx_clean_n[OSI_MGBE_MAX_NUM_QUEUES];
 	/** Total number of tx packets count */
 	nveu64_t tx_pkt_n;
 	/** Total number of rx packet count */
@@ -413,7 +413,7 @@ struct osi_vm_irq_data {
 	/** Number of VM channels per VM IRQ */
 	nveu32_t num_vm_chans;
 	/** Array of VM channel list */
-	nveu32_t vm_chans[OSI_EQOS_MAX_NUM_CHANS];
+	nveu32_t vm_chans[OSI_MGBE_MAX_NUM_CHANS];
 };
 
 /**
@@ -443,9 +443,9 @@ struct osd_dma_ops {
  */
 struct osi_dma_priv_data {
 	/** Array of pointers to DMA Tx channel Ring */
-	struct osi_tx_ring *tx_ring[OSI_EQOS_MAX_NUM_CHANS];
+	struct osi_tx_ring *tx_ring[OSI_MGBE_MAX_NUM_CHANS];
 	/** Array of pointers to DMA Rx channel Ring */
-	struct osi_rx_ring *rx_ring[OSI_EQOS_MAX_NUM_CHANS];
+	struct osi_rx_ring *rx_ring[OSI_MGBE_MAX_NUM_CHANS];
 	/** Memory mapped base address of MAC IP */
 	void *base;
 	/** Pointer to OSD private data structure */
@@ -455,7 +455,7 @@ struct osi_dma_priv_data {
 	/** Number of channels enabled in MAC */
 	nveu32_t num_dma_chans;
 	/** Array of supported DMA channels */
-	nveu32_t dma_chans[OSI_EQOS_MAX_NUM_CHANS];
+	nveu32_t dma_chans[OSI_MGBE_MAX_NUM_CHANS];
 	/** DMA Rx channel buffer length at HW level */
 	nveu32_t rx_buf_len;
 	/** MTU size */
@@ -486,9 +486,9 @@ struct osi_dma_priv_data {
 	 * certain safety critical dma registers */
 	void *safety_config;
 	/** Array of DMA channel slot snterval value from DT */
-	nveu32_t slot_interval[OSI_EQOS_MAX_NUM_CHANS];
+	nveu32_t slot_interval[OSI_MGBE_MAX_NUM_CHANS];
 	/** Array of DMA channel slot enabled status from DT*/
-	nveu32_t slot_enabled[OSI_EQOS_MAX_NUM_CHANS];
+	nveu32_t slot_enabled[OSI_MGBE_MAX_NUM_CHANS];
 	/** number of VM IRQ's */
 	nveu32_t num_vm_irqs;
 	/** Array of VM IRQ's */
@@ -499,6 +499,8 @@ struct osi_dma_priv_data {
 	void *resv_buf_virt_addr;
 	/** Physical address of reserved DMA buffer */
 	nveu64_t resv_buf_phy_addr;
+	/** Tegra Pre-si platform info */
+	nveu32_t pre_si;
 };
 
 

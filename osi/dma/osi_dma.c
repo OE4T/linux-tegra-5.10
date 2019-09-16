@@ -79,7 +79,8 @@ static inline nve32_t validate_args(struct osi_dma_priv_data *osi_dma)
 static inline nve32_t validate_dma_chan_num(struct osi_dma_priv_data *osi_dma,
 					    nveu32_t chan)
 {
-	if (chan >= OSI_EQOS_MAX_NUM_CHANS) {
+	/* TODO: Get the max channel number based on mac/mac_ver */
+	if (chan >= OSI_MGBE_MAX_NUM_CHANS) {
 		OSI_DMA_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
 			    "Invalid DMA channel number\n", 0ULL);
 		return -1;
@@ -157,6 +158,18 @@ static nve32_t validate_func_ptrs(struct osi_dma_priv_data *osi_dma)
 
 nve32_t osi_init_dma_ops(struct osi_dma_priv_data *osi_dma)
 {
+	typedef void (*init_ops_arr)(struct dma_chan_ops *temp);
+	typedef void *(*safety_init)(void);
+
+	init_ops_arr i_ops[2] = {
+		eqos_init_dma_chan_ops, mgbe_init_dma_chan_ops
+	};
+
+	safety_init s_init[2] = {
+		eqos_get_dma_safety_config, OSI_NULL
+	};
+
+
 	if (osi_dma == OSI_NULL) {
 		return -1;
 	}
@@ -168,20 +181,17 @@ nve32_t osi_init_dma_ops(struct osi_dma_priv_data *osi_dma)
 		return -1;
 	}
 
-	if (osi_dma->mac != OSI_MAC_HW_EQOS) {
+	if (osi_dma->mac > OSI_MAC_HW_MGBE) {
 		OSI_DMA_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
 			    "DMA: Invalid MAC HW type\n", 0ULL);
 		return -1;
 	}
 
-	/* Get EQOS HW DMA operations */
-	eqos_init_dma_chan_ops(ops_p);
+	i_ops[osi_dma->mac](ops_p);
 
-	/* Explicitly set osi_dma->safety_config = OSI_NULL if
-	 * a particular MAC version does not need SW safety mechanisms
-	 * like periodic read-verify.
-	 */
-	osi_dma->safety_config = (void *)eqos_get_dma_safety_config();
+	if (s_init[osi_dma->mac] != OSI_NULL) {
+		osi_dma->safety_config = s_init[osi_dma->mac]();
+	}
 
 	if (validate_func_ptrs(osi_dma) < 0) {
 		OSI_DMA_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
@@ -203,7 +213,7 @@ nve32_t osi_hw_dma_init(struct osi_dma_priv_data *osi_dma)
 		return -1;
 	}
 
-	if (osi_dma->num_dma_chans > OSI_EQOS_MAX_NUM_CHANS) {
+	if (osi_dma->num_dma_chans > OSI_MGBE_MAX_NUM_CHANS) {
 		OSI_DMA_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
 			    "Invalid number of DMA channels\n", 0ULL);
 		return -1;
@@ -260,7 +270,7 @@ nve32_t osi_hw_dma_deinit(struct osi_dma_priv_data *osi_dma)
 		return -1;
 	}
 
-	if (osi_dma->num_dma_chans > OSI_EQOS_MAX_NUM_CHANS) {
+	if (osi_dma->num_dma_chans > OSI_MGBE_MAX_NUM_CHANS) {
 		OSI_DMA_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
 			    "Invalid number of DMA channels\n", 0ULL);
 		return -1;
@@ -493,6 +503,8 @@ static inline nve32_t rx_dma_desc_validate_args(
 	}
 
 	if (validate_dma_chan_num(osi_dma, chan) < 0) {
+		OSI_DMA_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+			    "dma: Invalid channel\n", 0ULL);
 		return -1;
 	}
 
@@ -584,7 +596,11 @@ nve32_t osi_rx_dma_desc_init(struct osi_dma_priv_data *osi_dma,
 		}
 
 		rx_desc->rdes2 = 0;
-		rx_desc->rdes3 = (RDES3_IOC | RDES3_B1V);
+		rx_desc->rdes3 = RDES3_IOC;
+
+		if (osi_dma->mac == OSI_MAC_HW_EQOS) {
+			rx_desc->rdes3 |= RDES3_B1V;
+		}
 
 		/* Reset IOC bit if RWIT is enabled */
 		rx_dma_handle_ioc(osi_dma, rx_ring, rx_desc);
@@ -721,7 +737,7 @@ nve32_t osi_config_slot_function(struct osi_dma_priv_data *osi_dma,
 		chan = osi_dma->dma_chans[i];
 
 		if ((chan == 0x0U) ||
-		    (chan >= OSI_EQOS_MAX_NUM_CHANS)) {
+		    (chan >= OSI_MGBE_MAX_NUM_CHANS)) {
 			/* Ignore 0 and invalid channels */
 			continue;
 		}

@@ -68,6 +68,8 @@
 	(RDES3_ERR_CRC | RDES3_ERR_GP | RDES3_ERR_WD | \
 	RDES3_ERR_ORUN | RDES3_ERR_RE | RDES3_ERR_DRIB)
 
+/** MGBE error summary bits for Received packet */
+#define RDES3_ES_MGBE		0x8000U
 /**
  * @addtogroup EQOS_TxDesc Transmit Descriptors bit fields
  *

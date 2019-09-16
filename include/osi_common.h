@@ -142,15 +142,25 @@
 #define OSI_MAX_MTU_SIZE	16383U
 
 #define EQOS_DMA_CHX_STATUS(x)		((0x0080U * (x)) + 0x1160U)
+#define MGBE_DMA_CHX_STATUS(x)		((0x0080U * (x)) + 0x3160U)
+#define EQOS_DMA_CHX_IER(x)		((0x0080U * (x)) + 0x1134U)
 
 /* FIXME add logic based on HW version */
 #define OSI_EQOS_MAX_NUM_CHANS		4U
 #define OSI_EQOS_MAX_NUM_QUEUES		4U
+#define OSI_MGBE_MAX_NUM_CHANS		10U
+#define OSI_MGBE_MAX_NUM_QUEUES		10U
+
+/* HW supports 8 Hash table regs, but eqos_validate_core_regs only checks 4 */
+#define OSI_EQOS_MAX_HASH_REGS		4U
 
 #define MAC_VERSION		0x110
 #define MAC_VERSION_SNVER_MASK	0x7FU
 
 #define OSI_MAC_HW_EQOS		0U
+#define OSI_MAC_HW_MGBE		1U
+#define OSI_ETH_ALEN		6U
+#define OSI_MAX_VM_IRQS		5U
 
 #define OSI_NULL                ((void *)0)
 #define OSI_ENABLE		1U
@@ -161,8 +171,28 @@
 
 #define OSI_EQOS_MAC_4_10       0x41U
 #define OSI_EQOS_MAC_5_00       0x50U
+#define OSI_EQOS_MAC_5_10       0x51U
 #define OSI_EQOS_MAC_5_30       0x53U
+#define OSI_MGBE_MAC_3_00	0x30U
+#define OSI_MGBE_MAC_3_10	0x31U
+
 #define OSI_MAX_VM_IRQS              5U
+#define OSI_IP4_FILTER		0U
+#define OSI_IP6_FILTER		1U
+
+#define CHECK_CHAN_BOUND(chan)						\
+	{								\
+		if ((chan) >= OSI_EQOS_MAX_NUM_CHANS) {			\
+			return;						\
+		}							\
+	}								\
+
+#define MGBE_CHECK_CHAN_BOUND(chan)					\
+	{								\
+		if ((chan) >= OSI_MGBE_MAX_NUM_CHANS) {			\
+			return;						\
+		}							\
+	}								\
 
 #ifndef OSI_STRIPPED_LIB
 #define OSI_L2_FILTER_INDEX_ANY		127U
@@ -176,6 +206,10 @@
 
 #define MAX_ETH_FRAME_LEN_DEFAULT \
 	(NV_ETH_FRAME_LEN + NV_ETH_FCS_LEN + NV_VLAN_HLEN)
+#define OSI_MTU_SIZE_16K	16000U
+#define OSI_MTU_SIZE_8K		8000U
+#define OSI_MTU_SIZE_4K		4000U
+#define OSI_MTU_SIZE_2K		2000U
 #define OSI_INVALID_CHAN_NUM    0xFFU
 #endif /* OSI_STRIPPED_LIB */
 
