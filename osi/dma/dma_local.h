@@ -92,14 +92,38 @@ struct dma_local {
 	/** DMA channel operations */
 	struct dma_chan_ops ops;
 	/** Flag to represent OSI DMA software init done */
-	unsigned int init_done;
+	nveu32_t init_done;
 	/** Holds the MAC version of MAC controller */
 	nveu32_t mac_ver;
 	/** Represents whether DMA interrupts are VM or Non-VM */
 	nveu32_t vm_intr;
 };
 
+/**
+ * @brief eqos_init_dma_chan_ops - Initialize eqos DMA operations.
+ *
+ * @param[in] ops: DMA channel operations pointer.
+ *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: No
+ * - De-initialization: No
+ */
 void eqos_init_dma_chan_ops(struct dma_chan_ops *ops);
+
+/**
+ * @brief mgbe_init_dma_chan_ops - Initialize MGBE DMA operations.
+ *
+ * @param[in] ops: DMA channel operations pointer.
+ *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: No
+ * - De-initialization: No
+ */
+void mgbe_init_dma_chan_ops(struct dma_chan_ops *ops);
 
 /**
  * @brief osi_hw_transmit - Initialize Tx DMA descriptors for a channel

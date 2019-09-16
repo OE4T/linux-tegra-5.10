@@ -669,11 +669,11 @@ struct osi_core_priv_data {
 	/** Number of MTL queues enabled in MAC */
 	nveu32_t num_mtl_queues;
 	/** Array of MTL queues */
-	nveu32_t mtl_queues[OSI_EQOS_MAX_NUM_CHANS];
+	nveu32_t mtl_queues[OSI_MGBE_MAX_NUM_CHANS];
 	/** List of MTL Rx queue mode that need to be enabled */
-	nveu32_t rxq_ctrl[OSI_EQOS_MAX_NUM_CHANS];
+	nveu32_t rxq_ctrl[OSI_MGBE_MAX_NUM_CHANS];
 	/** Rx MTl Queue mapping based on User Priority field */
-	nveu32_t rxq_prio[OSI_EQOS_MAX_NUM_CHANS];
+	nveu32_t rxq_prio[OSI_MGBE_MAX_NUM_CHANS];
 	/** MAC HW type EQOS based on DT compatible */
 	nveu32_t mac;
 	/** MAC version */

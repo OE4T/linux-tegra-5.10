@@ -53,4 +53,5 @@
 #define DECR_RX_DESC_INDEX(idx, i) ((idx) = ((idx) - (i)) & (RX_DESC_CNT - 1U))
 #endif /* !OSI_STRIPPED_LIB */
 /** @} */
+
 #endif /* INCLUDED_OSI_DMA_TXRX_H */
