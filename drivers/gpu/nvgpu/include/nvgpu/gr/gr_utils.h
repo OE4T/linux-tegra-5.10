@@ -26,11 +26,18 @@
 #include <nvgpu/types.h>
 #include <nvgpu/static_analysis.h>
 
+/**
+ * @file
+ *
+ * common.gr.utils unit interface
+ */
 struct gk20a;
 struct nvgpu_gr_falcon;
-struct nvgpu_gr_obj_ctx_golden_image;
 struct nvgpu_gr_config;
 struct nvgpu_gr_intr;
+#ifdef CONFIG_NVGPU_DEBUGGER
+struct nvgpu_gr_obj_ctx_golden_image;
+#endif
 #ifdef CONFIG_NVGPU_GRAPHICS
 struct nvgpu_gr_zbc;
 struct nvgpu_gr_zcull;
@@ -42,15 +49,53 @@ struct nvgpu_gr_hwpm_map;
 struct nvgpu_gr_global_ctx_buffer_desc;
 #endif
 
-static inline u32 nvgpu_gr_checksum_u32(u32 a, u32 b)
-{
-	return nvgpu_safe_cast_u64_to_u32(((u64)a + (u64)b) & (U32_MAX));
-}
+/**
+ * @brief Compute checksum.
+ *
+ * @param a[in]		First unsigned integer.
+ * @param b[in]		Second unsigned integer.
+ *
+ * This function will calculate checksum of two unsigned integers and
+ * return the result. This function is typically needed to calculate
+ * checksum of falcon ucode boot binary.
+ *
+ * @return Checksum of two unsigned integers.
+ */
+u32 nvgpu_gr_checksum_u32(u32 a, u32 b);
 
-/* gr struct pointers */
+/**
+ * @brief Get GR falcon data struct pointer.
+ *
+ * @param g[in]			Pointer to GPU driver struct.
+ *
+ * This function returns pointer to #nvgpu_gr_falcon structure.
+ *
+ * @return Pointer to GR falcon data struct.
+ */
 struct nvgpu_gr_falcon *nvgpu_gr_get_falcon_ptr(struct gk20a *g);
+
+/**
+ * @brief Get GR configuration struct pointer.
+ *
+ * @param g[in]			Pointer to GPU driver struct.
+ *
+ * This function returns pointer to #nvgpu_gr_config structure.
+ *
+ * @return Pointer to GR configuration struct.
+ */
 struct nvgpu_gr_config *nvgpu_gr_get_config_ptr(struct gk20a *g);
+
+/**
+ * @brief Get GR interrupt data struct pointer.
+ *
+ * @param g[in]			Pointer to GPU driver struct.
+ *
+ * This function returns pointer to #nvgpu_gr_intr structure.
+ *
+ * @return Pointer to GR interrupt data struct.
+ */
 struct nvgpu_gr_intr *nvgpu_gr_get_intr_ptr(struct gk20a *g);
+
 #ifdef CONFIG_NVGPU_NON_FUSA
 /* gr variables */
 u32 nvgpu_gr_get_override_ecc_val(struct gk20a *g);

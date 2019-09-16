@@ -28,6 +28,11 @@
 
 #include "gr_priv.h"
 
+u32 nvgpu_gr_checksum_u32(u32 a, u32 b)
+{
+	return nvgpu_safe_cast_u64_to_u32(((u64)a + (u64)b) & (U32_MAX));
+}
+
 struct nvgpu_gr_falcon *nvgpu_gr_get_falcon_ptr(struct gk20a *g)
 {
 	return g->gr->falcon;
