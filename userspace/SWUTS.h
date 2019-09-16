@@ -32,6 +32,7 @@
  *
  *   - @ref SWUTS-enabled
  *   - @ref SWUTS-fifo
+ *   - @ref SWUTS-fifo-channel
  *   - @ref SWUTS-fifo-tsg
  *   - @ref SWUTS-init
  *   - @ref SWUTS-interface-atomic

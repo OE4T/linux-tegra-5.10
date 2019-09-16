@@ -37,6 +37,7 @@
 #include <nvgpu/posix/posix-fault-injection.h>
 
 #include "../nvgpu-fifo.h"
+#include "nvgpu-channel.h"
 
 #define MAX_STUB	2
 
@@ -85,7 +86,7 @@ static u32 stub_channel_count(struct gk20a *g)
 	return 32;
 }
 
-static int test_channel_setup_sw(struct unit_module *m,
+int test_channel_setup_sw(struct unit_module *m,
 		struct gk20a *g, void *args)
 {
 	struct gpu_ops gops = g->ops;
@@ -177,7 +178,7 @@ static int stub_channel_alloc_inst_ENOMEM(struct gk20a *g,
 	return -ENOMEM;
 }
 
-static int test_channel_open(struct unit_module *m,
+int test_channel_open(struct unit_module *m,
 		struct gk20a *g, void *args)
 {
 	struct nvgpu_fifo *f = &g->fifo;
@@ -372,7 +373,7 @@ static bool channel_close_pruned(u32 branches, u32 final)
 	return false;
 }
 
-static int test_channel_close(struct unit_module *m,
+int test_channel_close(struct unit_module *m,
 		struct gk20a *g, void *args)
 {
 	struct gpu_ops gops = g->ops;
@@ -620,7 +621,7 @@ static int stub_mm_l2_flush(struct gk20a *g, bool invalidate)
 	return 0;
 }
 
-static int test_channel_setup_bind(struct unit_module *m,
+int test_channel_setup_bind(struct unit_module *m,
 		struct gk20a *g, void *args)
 {
 	struct gpu_ops gops = g->ops;
@@ -760,7 +761,7 @@ static const char *f_channel_alloc_inst[] = {
 	"nomem",
 };
 
-static int test_channel_alloc_inst(struct unit_module *m,
+int test_channel_alloc_inst(struct unit_module *m,
 		struct gk20a *g, void *args)
 {
 	struct nvgpu_channel *ch = NULL;
@@ -841,7 +842,7 @@ static const char *f_channel_from_inst[] = {
 	"match_b",
 };
 
-static int test_channel_from_inst(struct unit_module *m,
+int test_channel_from_inst(struct unit_module *m,
 		struct gk20a *g, void *args)
 {
 	struct nvgpu_channel *ch = NULL;
@@ -944,7 +945,7 @@ static void stub_tsg_disable(struct nvgpu_tsg *tsg)
 	stub[1].tsgid = tsg->tsgid;
 }
 
-static int test_channel_enable_disable_tsg(struct unit_module *m,
+int test_channel_enable_disable_tsg(struct unit_module *m,
 		struct gk20a *g, void *args)
 {
 	struct gpu_ops gops = g->ops;
