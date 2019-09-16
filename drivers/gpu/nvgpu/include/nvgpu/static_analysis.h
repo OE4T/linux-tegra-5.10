@@ -293,6 +293,7 @@ static inline u32 nvgpu_safe_cast_bool_to_u32(bool bl_a)
 
 static inline u8 nvgpu_safe_cast_s8_to_u8(s8 sc_a)
 {
+NVGPU_COV_WHITELIST(false_positive, NVGPU_CERT(STR34_C), "Bug 2673832")
 	if (sc_a < 0) {
 		BUG();
 	} else {
