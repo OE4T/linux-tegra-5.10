@@ -105,9 +105,20 @@ int test_gr_init_support(struct unit_module *m, struct gk20a *g, void *args)
 	/* over-ride the falcon load_ctxsw_ucode */
 	g->ops.gr.falcon.load_ctxsw_ucode = test_gr_falcon_load_ctxsw_ucode;
 
+	/* init gpu characteristics */
+	g->ops.chip_init_gpu_characteristics(g);
+
 	err = nvgpu_gr_init_support(g);
 	if (err != 0) {
 		unit_return_fail(m, "nvgpu_gr_init_support returned fail\n");
+	}
+
+	/* gr ecc init */
+	if (g->ops.gr.ecc.ecc_init_support != NULL) {
+		err = g->ops.gr.ecc.ecc_init_support(g);
+		if (err != 0) {
+			unit_return_fail(m, "gr_ecc_init failed\n");
+		}
 	}
 
 	return UNIT_SUCCESS;
