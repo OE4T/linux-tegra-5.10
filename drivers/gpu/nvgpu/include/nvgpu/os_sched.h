@@ -28,22 +28,46 @@
 struct gk20a;
 
 /**
- * nvgpu_current_tid - Query the id of current thread
+ * @brief Query the id of current thread.
  *
+ * @param g [in]	GPU driver struct.
+ *
+ * Shall return the thread id of the calling thread.
+ *
+ * @return Thread ID of the calling thread.
  */
 int nvgpu_current_tid(struct gk20a *g);
 
 /**
- * nvgpu_current_pid - Query the id of current process
+ * @brief Query the id of current process.
  *
+ * @param g [in]	GPU driver struct.
+ *
+ * Shall return the process id of the calling process.
+ *
+ * @return Process ID of the calling process.
  */
 int nvgpu_current_pid(struct gk20a *g);
 
+/**
+ * @brief Print the name of current thread.
+ *
+ * @param g [in]		GPU driver struct.
+ * @param func_name [in]	Calling function name.
+ * @param line [in]		Calling line number.
+ * @param ctx [in]		Context pointer.
+ * @param type [in]		Log level.
+ *
+ * Implements the printing of the current thread name along with the provided
+ * data. Implementation of this function is OS specific. For QNX, pthread
+ * name is printed along with other provided inputs. For POSIX build, pthread
+ * name is printed only if the build has support for GNU extensions which
+ * provides the thread name.
+ */
 void nvgpu_print_current_impl(struct gk20a *g, const char *func_name, int line,
 		void *ctx, enum nvgpu_log_type type);
 /**
- * nvgpu_print_current - print the name of current calling process
- *
+ * Print the name of calling thread.
  */
 #define nvgpu_print_current(g, ctx, type) \
 	nvgpu_print_current_impl(g, __func__, __LINE__, ctx, type)

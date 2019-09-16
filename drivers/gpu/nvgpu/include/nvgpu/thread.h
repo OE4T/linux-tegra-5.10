@@ -33,71 +33,79 @@
 #include <nvgpu/utils.h>
 
 /**
- * nvgpu_thread_create - Create and run a new thread.
+ * @brief Create and run a new thread.
  *
- * @thread - thread structure to use
- * @data - data to pass to threadfn
- * @threadfn - Thread function
- * @name - name of the thread
+ * @param thread [in]	Thread structure to use.
+ * @param data [in]	Data to pass to threadfn.
+ * @param threadfn [in]	Thread function.
+ * @param name [in]	Name of the thread.
  *
  * Create a thread and run threadfn in it. The thread stays alive as long as
  * threadfn is running. As soon as threadfn returns the thread is destroyed.
+ * The threadfn needs to continuously poll #nvgpu_thread_should_stop() to
+ * determine if it should exit.
  *
- * threadfn needs to continuously poll nvgpu_thread_should_stop() to determine
- * if it should exit.
+ * @return Return 0 on success, otherwise returns error number to indicate the
+ * error.
  */
 int nvgpu_thread_create(struct nvgpu_thread *thread,
 		void *data,
 		int (*threadfn)(void *data), const char *name);
 
 /**
- * nvgpu_thread_stop - Destroy or request to destroy a thread
+ * @brief Stop a thread.
  *
- * @thread - thread to stop
+ * @param thread [in]	Thread to stop.
  *
- * Request a thread to stop by setting nvgpu_thread_should_stop() to
- * true and wait for thread to exit.
+ * A thread can be requested to stop by calling this function. This function
+ * places a request to cancel the corresponding thread by setting a status and
+ * waits until that thread exits.
  */
 void nvgpu_thread_stop(struct nvgpu_thread *thread);
 
 /**
- * nvgpu_thread_stop_graceful - Request a thread to be destroyed gracefully.
+ * @brief Request a thread to be stopped gracefully.
  *
- * @thread - thread to stop
- * @cb - callback function to trigger graceful exit
- * @data - thread data
+ * @param thread [in]		Thread to stop.
+ * @param thread_stop_fn [in]	Callback function to trigger graceful exit.
+ * @param data [in]		Thread data.
  *
- * Request a thread to stop by setting nvgpu_thread_should_stop() to
- * true and wait for thread to exit.
+ * Request a thread to stop by setting the status of the thread appropriately.
+ * In posix implementation, the callback function \a thread_stop_fn is invoked
+ * and waits till the thread exits.
  */
 void nvgpu_thread_stop_graceful(struct nvgpu_thread *thread,
 		void (*thread_stop_fn)(void *data), void *data);
 
 /**
- * nvgpu_thread_should_stop - Query if thread should stop
+ * @brief Query if thread should stop.
  *
- * @thread
+ * @param thread [in]	Thread to be queried for stop status.
  *
  * Return true if thread should exit. Can be run only in the thread's own
- * context and with the thread as parameter.
+ * context.
+ *
+ * @return TRUE if the thread has to stop, else FALSE.
  */
 bool nvgpu_thread_should_stop(struct nvgpu_thread *thread);
 
 /**
- * nvgpu_thread_is_running - Query if thread is running
+ * @brief Query if thread is running.
  *
- * @thread
+ * @param thread [in]	Thread to be queried for running status.
  *
- * Return true if thread is started.
+ * Returns a boolean value based on the current running status of the thread.
+ *
+ * @return TRUE if the current running status of the thread is 1, else FALSE.
  */
 bool nvgpu_thread_is_running(struct nvgpu_thread *thread);
 
 /**
- * nvgpu_thread_join - join a thread to reclaim resources
- * after it has exited
+ * @brief Join a thread to reclaim resources after it has exited.
  *
- * @thread - thread to join
+ * @param thread [in] - Thread to join.
  *
+ * The calling thread waits till the thread referenced by \a thread exits.
  */
 void nvgpu_thread_join(struct nvgpu_thread *thread);
 

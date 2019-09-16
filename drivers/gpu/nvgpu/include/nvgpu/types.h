@@ -53,29 +53,83 @@
  * overflows the 32 bit data type. So in this case we need an explicit cast to
  * 64 bits in order to prevent undefined behavior.
  */
+
+/**
+ * Type cast \a x to unsigned char.
+ */
 #define U8(x)	((u8)(x))
+
+/**
+ * Type cast \a x to unsigned short.
+ */
 #define U16(x)	((u16)(x))
+
+/**
+ * Type cast \a x to unsigned int.
+ */
 #define U32(x)	((u32)(x))
+
+/**
+ * Type cast \a x to unsigned long long.
+ */
 #define U64(x)	((u64)(x))
 
+/**
+ * Type cast \a x to signed char.
+ */
 #define S8(x)	((s8)(x))
+
+/**
+ * Type cast \a x to signed short.
+ */
 #define S16(x)	((s16)(x))
+
+/**
+ * Type cast \a x to signed int.
+ */
 #define S32(x)	((s32)(x))
+
+/**
+ * Type cast \a x to signed long long.
+ */
 #define S64(x)	((s64)(x))
 
 /* Linux uses U8_MAX, U32_MAX, etc instead of UCHAR_MAX, UINT32_MAX. We define
  * them here for non-Linux OSes
  */
 #if !defined(__KERNEL__) && !defined(U8_MAX)
+/**
+ * Maximum value for unsigned 8 bit.
+ */
 #define U8_MAX		U8(0xff)
+
+/**
+ * Maximum value for unsigned 16 bit.
+ */
 #define U16_MAX		U16(0xffff)
+
+/**
+ * Maximum value for unsigned 32 bit.
+ */
 #define U32_MAX		U32(~U32(0))
+
+/**
+ * Maximum value for unsigned 64 bit.
+ */
 #define U64_MAX		U64(~U64(0))
 #endif
 
 #if defined(__KERNEL__) && !defined(UCHAR_MAX)
 /* Linux doesn't define these max values, and we can't use limits.h */
+
+/**
+ * Maximum value for unsigned char.
+ */
 #define UCHAR_MAX U8_MAX
+
+/**
+ * Maximum value for signed char.
+ */
 #define SCHAR_MAX (U8_MAX/2)
 #endif
 
