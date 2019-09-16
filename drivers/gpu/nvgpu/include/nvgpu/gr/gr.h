@@ -82,6 +82,7 @@
  *   + include/nvgpu/gr/global_ctx.h
  *   + include/nvgpu/gr/obj_ctx.h
  *   + include/nvgpu/gr/gr_falcon.h
+ *   + include/nvgpu/gr/gr_intr.h
  *
  * Resource utilization
  * --------------------
