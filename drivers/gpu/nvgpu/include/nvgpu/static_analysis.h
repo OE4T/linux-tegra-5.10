@@ -366,6 +366,7 @@ static inline s32 nvgpu_safe_cast_u64_to_s32(u64 ul_a)
 
 static inline s64 nvgpu_safe_cast_u64_to_s64(u64 ul_a)
 {
+NVGPU_COV_WHITELIST(false_positive, NVGPU_MISRA(Rule, 14_3), "Bug 2615925")
 	if (ul_a > LONG_MAX) {
 		BUG();
 	} else {
