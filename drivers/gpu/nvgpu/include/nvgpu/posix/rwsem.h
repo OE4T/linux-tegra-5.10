@@ -26,6 +26,9 @@
 #include <pthread.h>
 
 struct nvgpu_rwsem {
+	/**
+	 * pthread_rwlock_t used internally to implement nvgpu rwsem.
+	 */
 	pthread_rwlock_t rw_sem;
 };
 
