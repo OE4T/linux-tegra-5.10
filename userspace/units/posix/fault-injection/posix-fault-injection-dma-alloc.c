@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -55,7 +55,6 @@ static bool verify_fi_disabled(struct unit_module *m)
 	return true;
 }
 
-/* This test is for test environment initialization */
 int test_dma_alloc_init(struct unit_module *m,
 			struct gk20a *g, void *__args)
 {
@@ -67,10 +66,6 @@ int test_dma_alloc_init(struct unit_module *m,
 	}
 }
 
-/*
- * This test verifies the default case for dma_alloc operations when fault
- * injection is disabled.
- */
 int test_dma_alloc_fi_default(struct unit_module *m,
 			      struct gk20a *g, void *__args)
 {
@@ -111,10 +106,6 @@ test_exit:
 	return ret;
 }
 
-/*
- * This test enables fault injection for dma_alloc immediately then verifies the
- * first call to a dma_alloc fails.
- */
 int test_dma_alloc_fi_enabled(struct unit_module *m,
 			      struct gk20a *g, void *__args)
 {
@@ -160,7 +151,6 @@ test_exit:
 	return ret;
 }
 
-/* This is a test of delayed fault injection enabling for dma_alloc */
 int test_dma_alloc_fi_delayed_enable(struct unit_module *m,
 				     struct gk20a *g, void *__args)
 {

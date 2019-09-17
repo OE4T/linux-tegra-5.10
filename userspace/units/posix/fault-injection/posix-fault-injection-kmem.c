@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -55,7 +55,6 @@ static bool verify_fi_disabled(struct unit_module *m)
 	return true;
 }
 
-/* This test is for test environment initialization */
 int test_kmem_init(struct unit_module *m,
 		   struct gk20a *g, void *__args)
 {
@@ -67,10 +66,6 @@ int test_kmem_init(struct unit_module *m,
 	}
 }
 
-/*
- * This test simply tests the default case of fault injection disabled for
- * calling kmem cache routines.
- */
 int test_kmem_cache_fi_default(struct unit_module *m,
 			       struct gk20a *g, void *__args)
 {
@@ -108,11 +103,6 @@ test_exit:
 	return ret;
 }
 
-/*
- * This test enables fault injection for kmem immediately then verifies the
- * first call to a kmem cache API (in this case nvgpu_kmem_cache_create())
- * fails.
- */
 int test_kmem_cache_fi_enabled(struct unit_module *m,
 			       struct gk20a *g, void *__args)
 {
@@ -158,7 +148,6 @@ test_exit:
 	return ret;
 }
 
-/* This is a test of delayed fault injection for kmem_cache APIs */
 int test_kmem_cache_fi_delayed_enable(struct unit_module *m,
 				      struct gk20a *g, void *__args)
 {
@@ -228,10 +217,6 @@ test_exit:
 	return ret;
 }
 
-/*
- * This test validates delayed disabling of fault injection for calling kmem
- * cache routines.
- */
 int test_kmem_cache_fi_delayed_disable(struct unit_module *m,
 				       struct gk20a *g, void *__args)
 {
@@ -298,10 +283,6 @@ test_exit:
 	return ret;
 }
 
-/*
- * This test validates the default case for kmem kmalloc routines when fault
- * injection is disabled.
- */
 int test_kmem_kmalloc_fi_default(struct unit_module *m,
 				 struct gk20a *g, void *__args)
 {
@@ -340,10 +321,6 @@ test_exit:
 	return ret;
 }
 
-/*
- * This test verifies that kmalloc routines return errors after fault
- * injection is enabled immediately.
- */
 int test_kmem_kmalloc_fi_enabled(struct unit_module *m,
 				 struct gk20a *g, void *__args)
 {
@@ -389,11 +366,6 @@ test_exit:
 	return ret;
 }
 
-/*
- * This test validates that when a fault injection is enabled with a delayed
- * number of calls, the kmem kmalloc routines only report errors after the
- * delayed number of calls have been made.
- */
 int test_kmem_kmalloc_fi_delayed_enable(struct unit_module *m,
 					struct gk20a *g, void *__args)
 {
@@ -462,11 +434,6 @@ test_exit:
 	return ret;
 }
 
-/*
- * This test verifies that if fault injection is enabled and then set to be
- * disabled after a delayed number of calls, the kmalloc routines return errors
- * until the number of calls have been made, then they return valid results.
- */
 int test_kmem_kmalloc_fi_delayed_disable(struct unit_module *m,
 					 struct gk20a *g, void *__args)
 {

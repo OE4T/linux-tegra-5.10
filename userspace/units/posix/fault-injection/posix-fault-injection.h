@@ -20,28 +20,35 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-/**
- * @file
- * @page NVGPU-SWUTS
+#ifndef UNIT_FAULT_INJECTION_H
+#define UNIT_FAULT_INJECTION_H
+
+struct gk20a;
+struct unit_module;
+
+/** @addtogroup SWUTS-posix-fault-injection
+ *  @{
  *
- * NVGPU Software Unit Test Specifications
- * =======================================
- *
- * The following pages cover the various unit test specifications needed
- * to test the NVGPU driver.
- *
- *   - @ref SWUTS-enabled
- *   - @ref SWUTS-init
- *   - @ref SWUTS-interface-atomic
- *   - @ref SWUTS-mm-allocators-bitmap-allocator
- *   - @ref SWUTS-mm-allocators-buddy-allocator
- *   - @ref SWUTS-mm-nvgpu-mem
- *   - @ref SWUTS-mm-nvgpu-sgt
- *   - @ref SWUTS-mm-vm
- *   - @ref SWUTS-fuse
- *   - @ref SWUTS-posix-fault-injection
- *   - @ref SWUTS-posix-sizes
- *   - @ref SWUTS-posix-thread
- *   - @ref SWUTS-sdl
- *
+ * Software Unit Test Specification for posix-fault-injection
  */
+
+/**
+ * Test specification for: test_fault_injection_init
+ *
+ * Description: General initialization required for posix fault injection tests.
+ *
+ * Test Type: Other (Setup)
+ *
+ * Input: None
+ *
+ * Steps:
+ * - Set the enabled flag NVGPU_MM_UNIFIED_MEMORY flag required for the mm unit
+ *   to function properly for these tests.
+ *
+ * Output: Returns SUCCESS if the steps above were executed successfully. FAIL
+ * otherwise.
+ */
+int test_fault_injection_init(struct unit_module *m,
+			      struct gk20a *g, void *__args);
+
+#endif /* UNIT_FAULT_INJECTION_H */

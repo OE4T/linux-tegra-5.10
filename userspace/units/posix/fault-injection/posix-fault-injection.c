@@ -23,10 +23,11 @@
 #include <nvgpu/enabled.h>
 #include <unit/unit.h>
 #include <unit/io.h>
+#include "posix-fault-injection.h"
 #include "posix-fault-injection-kmem.h"
 #include "posix-fault-injection-dma-alloc.h"
 
-static int test_fault_injection_init(struct unit_module *m,
+int test_fault_injection_init(struct unit_module *m,
 			      struct gk20a *g, void *__args)
 {
 	nvgpu_set_enabled(g, NVGPU_MM_UNIFIED_MEMORY, true);
