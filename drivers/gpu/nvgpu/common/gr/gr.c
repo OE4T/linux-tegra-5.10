@@ -429,8 +429,10 @@ static int gr_init_setup_sw(struct gk20a *g)
 
 	gr->g = g;
 
+#if defined(CONFIG_NVGPU_RECOVERY) || defined(CONFIG_NVGPU_DEBUGGER)
 	nvgpu_mutex_init(&gr->ctxsw_disable_mutex);
 	gr->ctxsw_disable_count = 0;
+#endif
 
 	err = nvgpu_gr_obj_ctx_init(g, &gr->golden_image,
 			nvgpu_gr_falcon_get_golden_image_size(g->gr->falcon));

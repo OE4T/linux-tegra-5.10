@@ -577,7 +577,7 @@ int gm20b_gr_falcon_wait_ctxsw_ready(struct gk20a *g)
 
 	ret = gm20b_gr_falcon_ctx_wait_ucode(g, 0, NULL,
 				      GR_IS_UCODE_OP_EQUAL,
-				      eUcodeHandshakeInitComplete,
+				      FALCON_UCODE_HANDSHAKE_INIT_COMPLETE,
 				      GR_IS_UCODE_OP_SKIP, 0, false);
 	if (ret != 0) {
 		nvgpu_err(g, "falcon ucode init timeout");

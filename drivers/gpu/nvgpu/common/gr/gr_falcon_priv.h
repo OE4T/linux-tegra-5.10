@@ -28,100 +28,172 @@
 
 struct nvgpu_ctxsw_ucode_segments;
 
+/** GPCCS boot signature for T18X chip, type: with reserved. */
+#define FALCON_UCODE_SIG_T18X_GPCCS_WITH_RESERVED	0x68edab34U
+
+/** FECS boot signature for T21X chip, type: with DMEM size. */
+#define FALCON_UCODE_SIG_T21X_FECS_WITH_DMEM_SIZE	0x9121ab5cU
+/** FECS boot signature for T21X chip, type: with reserved. */
+#define FALCON_UCODE_SIG_T21X_FECS_WITH_RESERVED	0x9125ab5cU
+/** FECS boot signature for T21X chip, type: without reserved. */
+#define FALCON_UCODE_SIG_T21X_FECS_WITHOUT_RESERVED	0x93671b7dU
+/** FECS boot signature for T21X chip, type: without reserved2. */
+#define FALCON_UCODE_SIG_T21X_FECS_WITHOUT_RESERVED2	0x4d6cbc10U
+/** GPCCS boot signature for T21X chip, type: with reserved. */
+#define FALCON_UCODE_SIG_T21X_GPCCS_WITH_RESERVED	0x3d3d65e2U
+/** GPCCS boot signature for T21X chip, type: without reserved. */
+#define FALCON_UCODE_SIG_T21X_GPCCS_WITHOUT_RESERVED	0x393161daU
+
+/** FECS boot signature for T12X chip, type: with reserved. */
+#define FALCON_UCODE_SIG_T12X_FECS_WITH_RESERVED	0x8a621f78U
+/** FECS boot signature for T12X chip, type: without reserved. */
+#define FALCON_UCODE_SIG_T12X_FECS_WITHOUT_RESERVED	0x67e5344bU
+/** FECS boot signature for T12X chip, type: older. */
+#define FALCON_UCODE_SIG_T12X_FECS_OLDER		0x56da09fU
+
+/** GPCCS boot signature for T12X chip, type: with reserved. */
+#define FALCON_UCODE_SIG_T12X_GPCCS_WITH_RESERVED	0x303465d5U
+/** GPCCS boot signature for T12X chip, type: without reserved. */
+#define FALCON_UCODE_SIG_T12X_GPCCS_WITHOUT_RESERVED	0x3fdd33d3U
+/** GPCCS boot signature for T12X chip, type: older. */
+#define FALCON_UCODE_SIG_T12X_GPCCS_OLDER		0x53d7877U
+
+enum wait_ucode_status {
+	/** Status of ucode wait operation : LOOP. */
+	WAIT_UCODE_LOOP,
+	/** Status of ucode wait operation : timedout. */
+	WAIT_UCODE_TIMEOUT,
+	/** Status of ucode wait operation : error. */
+	WAIT_UCODE_ERROR,
+	/** Status of ucode wait operation : success. */
+	WAIT_UCODE_OK
+};
+
+/** Falcon operation condition : EQUAL. */
+#define	GR_IS_UCODE_OP_EQUAL			0U
+/** Falcon operation condition : NOT_EQUAL. */
+#define	GR_IS_UCODE_OP_NOT_EQUAL		1U
+/** Falcon operation condition : AND. */
+#define	GR_IS_UCODE_OP_AND			2U
+/** Falcon operation condition : LESSER. */
+#define	GR_IS_UCODE_OP_LESSER			3U
+/** Falcon operation condition : LESSER_EQUAL. */
+#define	GR_IS_UCODE_OP_LESSER_EQUAL		4U
+/** Falcon operation condition : SKIP. */
+#define	GR_IS_UCODE_OP_SKIP			5U
+
+/** Mailbox value in case of successful operation. */
+#define FALCON_UCODE_HANDSHAKE_INIT_COMPLETE	1U
+
+/**
+ * FECS method operation structure.
+ *
+ * This structure defines the protocol for communication with FECS
+ * microcontroller.
+ */
 struct nvgpu_fecs_method_op {
 	struct {
+		/** Method address to send to FECS microcontroller. */
 		u32 addr;
+		/** Method data to send to FECS microcontroller. */
 		u32 data;
 	} method;
 
 	struct {
+		/** Mailbox ID to perform operation. */
 		u32 id;
+		/** Mailbox data to be written. */
 		u32 data;
+		/** Mailbox clear value. */
 		u32 clr;
+		/** Last read mailbox value. */
 		u32 *ret;
+		/** Mailbox value in case of operation success. */
 		u32 ok;
+		/** Mailbox value in case of operation failure. */
 		u32 fail;
 	} mailbox;
 
 	struct {
+		/** Operation success condition. */
 		u32 ok;
+		/** Operation fail condition. */
 		u32 fail;
 	} cond;
-
 };
 
+/**
+ * CTXSW falcon bootloader descriptor structure.
+ */
 struct nvgpu_ctxsw_bootloader_desc {
+	/** Start offset, unused. */
 	u32 start_offset;
+	/** Size, unused. */
 	u32 size;
+	/** IMEM offset. */
 	u32 imem_offset;
+	/** Falcon boot vector. */
 	u32 entry_point;
 };
 
+/**
+ * CTXSW ucode information structure.
+ */
 struct nvgpu_ctxsw_ucode_info {
-	u64 *p_va;
+	/** Memory to store ucode instance block. */
 	struct nvgpu_mem inst_blk_desc;
+	/** Memory to store ucode contents locally. */
 	struct nvgpu_mem surface_desc;
+	/** Ucode segments for FECS. */
 	struct nvgpu_ctxsw_ucode_segments fecs;
+	/** Ucode segments for GPCCS. */
 	struct nvgpu_ctxsw_ucode_segments gpccs;
 };
 
+/**
+ * Structure to store various sizes queried from FECS
+ */
 struct nvgpu_gr_falcon_query_sizes {
+	/** Size of golden context image. */
 	u32 golden_image_size;
+
+#ifdef CONFIG_NVGPU_DEBUGGER
 	u32 pm_ctxsw_image_size;
+#endif
+
+#ifdef CONFIG_NVGPU_GRAPHICS
 	u32 preempt_image_size;
 	u32 zcull_image_size;
+#endif
 };
 
+/**
+ * GR falcon data structure.
+ *
+ * This structure stores all data required to load and boot CTXSW ucode,
+ * and also to communicate with FECS microcontroller.
+ */
 struct nvgpu_gr_falcon {
+	/**
+	 * CTXSW ucode information structure.
+	 */
 	struct nvgpu_ctxsw_ucode_info ctxsw_ucode_info;
-	struct nvgpu_mutex fecs_mutex; /* protect fecs method */
+
+	/**
+	 * Mutex to protect all FECS methods.
+	 */
+	struct nvgpu_mutex fecs_mutex;
+
+	/**
+	 * Flag to skip ucode initialization if it is already done.
+	 */
 	bool skip_ucode_init;
 
+	/**
+	 * Structure to hold various sizes that are queried from FECS
+	 * microcontroller.
+	 */
 	struct nvgpu_gr_falcon_query_sizes sizes;
 };
 
-enum wait_ucode_status {
-	WAIT_UCODE_LOOP,
-	WAIT_UCODE_TIMEOUT,
-	WAIT_UCODE_ERROR,
-	WAIT_UCODE_OK
-};
-
-#define	GR_IS_UCODE_OP_EQUAL		0U
-#define	GR_IS_UCODE_OP_NOT_EQUAL	1U
-#define	GR_IS_UCODE_OP_AND		2U
-#define	GR_IS_UCODE_OP_LESSER		3U
-#define	GR_IS_UCODE_OP_LESSER_EQUAL	4U
-#define	GR_IS_UCODE_OP_SKIP		5U
-
-enum {
-	eUcodeHandshakeInitComplete = 1,
-	eUcodeHandshakeMethodFinished
-};
-
-/* sums over the ucode files as sequences of u32, computed to the
- * boot_signature field in the structure above */
-
-/* T18X FECS remains same as T21X,
- * so FALCON_UCODE_SIG_T21X_FECS_WITH_RESERVED used
- * for T18X*/
-#define FALCON_UCODE_SIG_T18X_GPCCS_WITH_RESERVED	0x68edab34U
-#define FALCON_UCODE_SIG_T21X_FECS_WITH_DMEM_SIZE	0x9121ab5cU
-#define FALCON_UCODE_SIG_T21X_FECS_WITH_RESERVED	0x9125ab5cU
-#define FALCON_UCODE_SIG_T12X_FECS_WITH_RESERVED	0x8a621f78U
-#define FALCON_UCODE_SIG_T12X_FECS_WITHOUT_RESERVED	0x67e5344bU
-#define FALCON_UCODE_SIG_T12X_FECS_OLDER		0x56da09fU
-
-#define FALCON_UCODE_SIG_T21X_GPCCS_WITH_RESERVED	0x3d3d65e2U
-#define FALCON_UCODE_SIG_T12X_GPCCS_WITH_RESERVED	0x303465d5U
-#define FALCON_UCODE_SIG_T12X_GPCCS_WITHOUT_RESERVED	0x3fdd33d3U
-#define FALCON_UCODE_SIG_T12X_GPCCS_OLDER		0x53d7877U
-
-#define FALCON_UCODE_SIG_T21X_FECS_WITHOUT_RESERVED	0x93671b7dU
-#define FALCON_UCODE_SIG_T21X_FECS_WITHOUT_RESERVED2	0x4d6cbc10U
-
-#define FALCON_UCODE_SIG_T21X_GPCCS_WITHOUT_RESERVED	0x393161daU
-
-
 #endif /* GR_FALCON_PRIV_H */
-
