@@ -35,34 +35,70 @@
  * This could be revisited later, though.
  */
 struct __nvgpu_posix_lock {
+	/** Pthread mutex structure used internally to implement lock */
 	pthread_mutex_t mutex;
 };
 
+/**
+ * @brief Acquire the lock.
+ *
+ * @param lock [in]	Lock to acquire.
+ *
+ * Internal implementation of lock acquire used by public APIs of mutex,
+ * spinlock and raw spinlock. Uses pthread_mutex_lock to acquire the lock.
+ */
 static inline void nvgpu_posix_lock_acquire(struct __nvgpu_posix_lock *lock)
 {
 	(void) pthread_mutex_lock(&lock->mutex);
 }
 
+/**
+ * @brief Attempt to acquire the lock.
+ *
+ * @param lock [in]	Lock to acquire.
+ *
+ * Internal implementation of lock try and acquire used by public mutex APIs.
+ * Uses pthread_mutex_trylock to try and acquire the lock.
+ *
+ * @return Returns 0 on success; otherwise, returns error number.
+ */
 static inline int nvgpu_posix_lock_try_acquire(
 	struct __nvgpu_posix_lock *lock)
 {
 	return pthread_mutex_trylock(&lock->mutex);
 }
 
+/**
+ * @brief Release the lock.
+ *
+ * @param lock [in]	Lock to release.
+ *
+ * Internal implementation of lock release used by public APIs of mutex,
+ * spinlock and raw spinlock. Uses pthread_mutex_unlock to release the lock.
+ */
 static inline void nvgpu_posix_lock_release(struct __nvgpu_posix_lock *lock)
 {
 	(void) pthread_mutex_unlock(&lock->mutex);
 }
 
 struct nvgpu_mutex {
+	/**
+	 * nvgpu lock structure used to implement mutex APIs.
+	 */
 	struct __nvgpu_posix_lock lock;
 };
 
 struct nvgpu_spinlock {
+	/**
+	 * nvgpu lock structure used to implement spinlock APIs.
+	 */
 	struct __nvgpu_posix_lock lock;
 };
 
 struct nvgpu_raw_spinlock {
+	/**
+	 * nvgpu lock structure used to implement raw spinlock APIs.
+	 */
 	struct __nvgpu_posix_lock lock;
 };
 
