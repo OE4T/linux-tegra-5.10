@@ -341,10 +341,6 @@ int gv100_gr_config_init_sm_id_table(struct gk20a *g,
 	u32 tbl_size = 0U;
 	u32 temp = 0U;
 
-	if (gr_config == NULL) {
-		return -ENOMEM;
-	}
-
 	tbl_size = nvgpu_safe_mult_u32(tpc_cnt, (u32)sizeof(u32));
 	gpc_table = nvgpu_kzalloc(g, tbl_size);
 	tpc_table = nvgpu_kzalloc(g, tbl_size);
