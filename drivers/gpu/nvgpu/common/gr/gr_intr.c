@@ -817,10 +817,11 @@ static u32 gr_intr_handle_illegal_interrupts(struct gk20a *g,
 	}
 
 	if (intr_info->illegal_method != 0U) {
-		nvgpu_gr_intr_report_exception(g, 0U,
+		if (gr_intr_handle_illegal_method(g, isr_data) != 0) {
+			nvgpu_gr_intr_report_exception(g, 0U,
 				GPU_PGRAPH_ILLEGAL_ERROR, gr_intr,
 				GPU_PGRAPH_ILLEGAL_METHOD);
-		if (gr_intr_handle_illegal_method(g, isr_data) != 0) {
+
 			do_reset = 1U;
 		}
 		*clear_intr &= ~intr_info->illegal_method;
