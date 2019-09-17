@@ -34,34 +34,42 @@ struct gk20a;
 struct nvgpu_gr_falcon;
 
 #if defined(CONFIG_NVGPU_DEBUGGER) || defined(CONFIG_NVGPU_RECOVERY)
-#define NVGPU_GR_FALCON_METHOD_CTXSW_STOP 0
-#define NVGPU_GR_FALCON_METHOD_CTXSW_START 1
+#define NVGPU_GR_FALCON_METHOD_CTXSW_STOP			0
+#define NVGPU_GR_FALCON_METHOD_CTXSW_START			1
 #endif
+
 /** Falcon method to halt FE pipeline. */
-#define NVGPU_GR_FALCON_METHOD_HALT_PIPELINE 2
+#define NVGPU_GR_FALCON_METHOD_HALT_PIPELINE			2
+
 #ifdef CONFIG_NVGPU_FECS_TRACE
-#define NVGPU_GR_FALCON_METHOD_FECS_TRACE_FLUSH 3
+#define NVGPU_GR_FALCON_METHOD_FECS_TRACE_FLUSH			3
 #endif
+
 /** Falcon method to query golden context image size. */
-#define NVGPU_GR_FALCON_METHOD_CTXSW_DISCOVER_IMAGE_SIZE 4
+#define NVGPU_GR_FALCON_METHOD_CTXSW_DISCOVER_IMAGE_SIZE	4
+
 #ifdef CONFIG_NVGPU_GRAPHICS
-#define NVGPU_GR_FALCON_METHOD_CTXSW_DISCOVER_ZCULL_IMAGE_SIZE 5
+#define NVGPU_GR_FALCON_METHOD_CTXSW_DISCOVER_ZCULL_IMAGE_SIZE 	5
 #endif
+
 #ifdef CONFIG_NVGPU_DEBUGGER
-#define NVGPU_GR_FALCON_METHOD_CTXSW_DISCOVER_PM_IMAGE_SIZE 6
+#define NVGPU_GR_FALCON_METHOD_CTXSW_DISCOVER_PM_IMAGE_SIZE	6
 #endif
+
 #ifdef CONFIG_NVGPU_POWER_PG
-#define NVGPU_GR_FALCON_METHOD_REGLIST_DISCOVER_IMAGE_SIZE 7
-#define NVGPU_GR_FALCON_METHOD_REGLIST_BIND_INSTANCE 8
-#define NVGPU_GR_FALCON_METHOD_REGLIST_SET_VIRTUAL_ADDRESS 9
+#define NVGPU_GR_FALCON_METHOD_REGLIST_DISCOVER_IMAGE_SIZE	7
+#define NVGPU_GR_FALCON_METHOD_REGLIST_BIND_INSTANCE		8
+#define NVGPU_GR_FALCON_METHOD_REGLIST_SET_VIRTUAL_ADDRESS	9
 #endif
+
 /** Falcon method to bind the instance block. */
-#define NVGPU_GR_FALCON_METHOD_ADDRESS_BIND_PTR 10
+#define NVGPU_GR_FALCON_METHOD_ADDRESS_BIND_PTR			10
 /** Falcon method to save golden context image. */
-#define NVGPU_GR_FALCON_METHOD_GOLDEN_IMAGE_SAVE 11
+#define NVGPU_GR_FALCON_METHOD_GOLDEN_IMAGE_SAVE		11
+
 #ifdef CONFIG_NVGPU_GRAPHICS
-#define NVGPU_GR_FALCON_METHOD_PREEMPT_IMAGE_SIZE 12
-#define NVGPU_GR_FALCON_METHOD_CONFIGURE_CTXSW_INTR 13
+#define NVGPU_GR_FALCON_METHOD_PREEMPT_IMAGE_SIZE		12
+#define NVGPU_GR_FALCON_METHOD_CONFIGURE_CTXSW_INTR		13
 #endif
 
 /** Falcon index of mailbox 0. */
@@ -100,9 +108,14 @@ struct nvgpu_ctxsw_ucode_segments {
 };
 
 struct nvgpu_fecs_host_intr_status {
-	/** Write this value to clear HOST_INT0 context switch error interrupt. */
+	/**
+	 * Write this value to clear HOST_INT0 context switch error interrupt.
+	 */
 	u32 ctxsw_intr0;
-	/** Write this value to clear HOST_INT1 context save completion interrupt. */
+	/**
+	 * Write this value to clear HOST_INT1 context save completion
+	 * interrupt.
+	 */
 	u32 ctxsw_intr1;
 	/** This flag is set for fault raised during ctxsw transaction. */
 	bool fault_during_ctxsw_active;
