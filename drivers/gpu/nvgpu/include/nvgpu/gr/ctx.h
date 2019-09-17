@@ -573,9 +573,11 @@ int nvgpu_gr_ctx_set_hwpm_mode(struct gk20a *g, struct nvgpu_gr_ctx *gr_ctx,
 void nvgpu_gr_ctx_set_boosted_ctx(struct nvgpu_gr_ctx *gr_ctx, bool boost);
 bool nvgpu_gr_ctx_get_boosted_ctx(struct nvgpu_gr_ctx *gr_ctx);
 #endif
+#endif /* CONFIG_NVGPU_DEBUGGER */
 
+#ifdef CONFIG_DEBUG_FS
 bool nvgpu_gr_ctx_desc_dump_ctxsw_stats_on_channel_close(
 		struct nvgpu_gr_ctx_desc *gr_ctx_desc);
-#endif /* CONFIG_NVGPU_DEBUGGER */
+#endif
 
 #endif /* NVGPU_INCLUDE_GR_CTX_H */

@@ -45,8 +45,10 @@ void gp10b_ctxsw_prog_set_compute_preemption_mode_cilp(struct gk20a *g,
 #ifdef CONFIG_NVGPU_DEBUGGER
 void gp10b_ctxsw_prog_set_pmu_options_boost_clock_frequencies(struct gk20a *g,
 	struct nvgpu_mem *ctx_mem, u32 boosted_ctx);
+#endif /* CONFIG_NVGPU_DEBUGGER */
+#ifdef CONFIG_DEBUG_FS
 void gp10b_ctxsw_prog_dump_ctxsw_stats(struct gk20a *g,
 	struct nvgpu_mem *ctx_mem);
-#endif /* CONFIG_NVGPU_DEBUGGER */
+#endif
 
 #endif /* NVGPU_CTXSW_PROG_GP10B_H */

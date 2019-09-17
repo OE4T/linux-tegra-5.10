@@ -540,6 +540,8 @@ struct gpu_ops {
 			void (*set_pmu_options_boost_clock_frequencies)(
 				struct gk20a *g,
 				struct nvgpu_mem *ctx_mem, u32 boosted_ctx);
+#endif
+#ifdef CONFIG_DEBUG_FS
 			void (*dump_ctxsw_stats)(struct gk20a *g,
 				struct nvgpu_mem *ctx_mem);
 #endif

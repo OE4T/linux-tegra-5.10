@@ -1041,11 +1041,13 @@ bool nvgpu_gr_ctx_get_boosted_ctx(struct nvgpu_gr_ctx *gr_ctx)
 }
 #endif
 
+#ifdef CONFIG_DEBUG_FS
 bool nvgpu_gr_ctx_desc_dump_ctxsw_stats_on_channel_close(
 		struct nvgpu_gr_ctx_desc *gr_ctx_desc)
 {
 	return gr_ctx_desc->dump_ctxsw_stats_on_channel_close;
 }
+#endif
 
 int nvgpu_gr_ctx_set_smpc_mode(struct gk20a *g, struct nvgpu_gr_ctx *gr_ctx,
 	bool enable)

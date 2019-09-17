@@ -281,8 +281,10 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 			.get_local_priv_register_ctl_offset =
 				gm20b_ctxsw_prog_get_local_priv_register_ctl_offset,
 			.set_pmu_options_boost_clock_frequencies = NULL,
-			.dump_ctxsw_stats = gp10b_ctxsw_prog_dump_ctxsw_stats,
 #endif /* CONFIG_NVGPU_DEBUGGER */
+#ifdef CONFIG_DEBUG_FS
+			.dump_ctxsw_stats = gp10b_ctxsw_prog_dump_ctxsw_stats,
+#endif
 #ifdef CONFIG_NVGPU_FECS_TRACE
 			.hw_get_ts_tag_invalid_timestamp =
 				gm20b_ctxsw_prog_hw_get_ts_tag_invalid_timestamp,

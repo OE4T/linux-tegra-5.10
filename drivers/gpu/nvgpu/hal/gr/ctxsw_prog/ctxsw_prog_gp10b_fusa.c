@@ -46,7 +46,9 @@ void gp10b_ctxsw_prog_set_pmu_options_boost_clock_frequencies(struct gk20a *g,
 	u32 data = ctxsw_prog_main_image_pmu_options_boost_clock_frequencies_f(boosted_ctx);
 	nvgpu_mem_wr(g, ctx_mem, ctxsw_prog_main_image_pmu_options_o(), data);
 }
+#endif /* CONFIG_NVGPU_DEBUGGER */
 
+#ifdef CONFIG_DEBUG_FS
 void gp10b_ctxsw_prog_dump_ctxsw_stats(struct gk20a *g,
 	struct nvgpu_mem *ctx_mem)
 {
@@ -91,7 +93,7 @@ void gp10b_ctxsw_prog_dump_ctxsw_stats(struct gk20a *g,
 		nvgpu_mem_rd(g, ctx_mem,
 			ctxsw_prog_main_image_compute_preemption_options_o()));
 }
-#endif /* CONFIG_NVGPU_DEBUGGER */
+#endif
 
 void gp10b_ctxsw_prog_set_compute_preemption_mode_cta(struct gk20a *g,
 	struct nvgpu_mem *ctx_mem)

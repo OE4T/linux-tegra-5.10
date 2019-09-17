@@ -360,7 +360,9 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 				gv11b_ctxsw_prog_set_context_buffer_ptr,
 			.set_type_per_veid_header =
 				gv11b_ctxsw_prog_set_type_per_veid_header,
+#ifdef CONFIG_DEBUG_FS
 			.dump_ctxsw_stats = gp10b_ctxsw_prog_dump_ctxsw_stats,
+#endif
 		},
 		.config = {
 			.get_gpc_tpc_mask = vgpu_gr_get_gpc_tpc_mask,

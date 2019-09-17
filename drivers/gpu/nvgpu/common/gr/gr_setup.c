@@ -224,7 +224,7 @@ void nvgpu_gr_setup_free_gr_ctx(struct gk20a *g,
 	nvgpu_log_fn(g, " ");
 
 	if (gr_ctx != NULL) {
-#ifdef CONFIG_NVGPU_DEBUGGER
+#ifdef CONFIG_DEBUG_FS
 		if ((g->ops.gr.ctxsw_prog.dump_ctxsw_stats != NULL) &&
 		     nvgpu_gr_ctx_desc_dump_ctxsw_stats_on_channel_close(
 					g->gr->gr_ctx_desc)) {
