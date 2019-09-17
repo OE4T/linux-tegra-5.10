@@ -85,6 +85,9 @@ struct nvgpu_gr_falcon;
 /** Falcon index of mailbox 7. */
 #define NVGPU_GR_FALCON_FECS_CTXSW_MAILBOX7 7U
 
+/**
+ * Description of one ucode segment.
+ */
 struct nvgpu_ctxsw_ucode_segment {
 	/** Offset of segment in the ucode. */
 	u32 offset;
@@ -92,6 +95,9 @@ struct nvgpu_ctxsw_ucode_segment {
 	u32 size;
 };
 
+/**
+ * Description of ucode layout and boot/code/data segments of ucode.
+ */
 struct nvgpu_ctxsw_ucode_segments {
 	/** Falcon boot vector. */
 	u32 boot_entry;
@@ -107,6 +113,9 @@ struct nvgpu_ctxsw_ucode_segments {
 	struct nvgpu_ctxsw_ucode_segment data;
 };
 
+/**
+ * Details needed to handle FECS interrupts.
+ */
 struct nvgpu_fecs_host_intr_status {
 	/**
 	 * Write this value to clear HOST_INT0 context switch error interrupt.
@@ -125,6 +134,9 @@ struct nvgpu_fecs_host_intr_status {
 	bool watchdog_active;
 };
 
+/**
+ * Book keeping for ECC errors originating from FECS.
+ */
 struct nvgpu_fecs_ecc_status {
 	/* This flag is set if IMEM corrected error is hit. */
 	bool imem_corrected_err;

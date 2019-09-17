@@ -69,7 +69,18 @@
  * Data Structures
  * ===============
  *
- * common.gr unit does not expose any public data structure.
+ * All the major data structures are defined privately in common.gr
+ * unit. However common.gr unit exposes below public data structures
+ * to support ucode handling in common.acr unit:
+ *
+ *   + struct nvgpu_ctxsw_ucode_segment
+ *
+ *       This struct describes single ucode segment.
+ *
+ *   + struct nvgpu_ctxsw_ucode_segments
+ *
+ *       This struct describes the ucode layout and includes description
+ *       of boot/data/code segments of ucode.
  *
  * Static Design
  * =============
