@@ -25,7 +25,15 @@
 
 struct nvgpu_mem;
 
+/**
+ * GR subcontext data structure.
+ *
+ * One subcontext is allocated per GPU channel.
+ */
 struct nvgpu_gr_subctx {
+	/**
+	 * Memory to hold subcontext header image.
+	 */
 	struct nvgpu_mem ctx_header;
 };
 

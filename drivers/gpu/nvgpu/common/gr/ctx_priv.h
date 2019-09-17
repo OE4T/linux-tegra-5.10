@@ -25,27 +25,53 @@
 
 struct nvgpu_mem;
 
+/**
+ * Patch context buffer descriptor structure.
+ *
+ * Pointer to this structure is maintained in #nvgpu_gr_ctx structure.
+ */
 struct patch_desc {
+	/**
+	 * Memory to hold patch context buffer.
+	 */
 	struct nvgpu_mem mem;
+
+	/**
+	 * Count of entries written into patch context buffer.
+	 */
 	u32 data_count;
 };
 
+#ifdef CONFIG_NVGPU_GRAPHICS
 struct zcull_ctx_desc {
 	u64 gpu_va;
 	u32 ctx_sw_mode;
 };
+#endif
 
+#ifdef CONFIG_NVGPU_DEBUGGER
 struct pm_ctx_desc {
 	struct nvgpu_mem mem;
 	u64 gpu_va;
 	u32 pm_mode;
 };
+#endif
 
+/**
+ * GR context descriptor structure.
+ *
+ * This structure stores various properties of all GR context buffers.
+ */
 struct nvgpu_gr_ctx_desc {
+	/**
+	 * Array to store all GR context buffer sizes.
+	 */
 	u32 size[NVGPU_GR_CTX_COUNT];
+
 #ifdef CONFIG_NVGPU_GRAPHICS
 	bool force_preemption_gfxp;
 #endif
+
 #ifdef CONFIG_NVGPU_CILP
 	bool force_preemption_cilp;
 #endif
@@ -55,9 +81,27 @@ struct nvgpu_gr_ctx_desc {
 #endif
 };
 
+/**
+ * Graphics context buffer structure.
+ *
+ * This structure stores all the properties of a graphcis context
+ * buffer. One graphics context is allocated per GPU Time Slice
+ * Group (TSG).
+ */
 struct nvgpu_gr_ctx {
+	/**
+	 * Context ID read from graphics context buffer.
+	 */
 	u32 ctx_id;
+
+	/**
+	 * Flag to indicate if above context ID is valid or not.
+	 */
 	bool ctx_id_valid;
+
+	/**
+	 * Memory to hold graphics context buffer.
+	 */
 	struct nvgpu_mem mem;
 
 #ifdef CONFIG_NVGPU_GRAPHICS
@@ -68,17 +112,36 @@ struct nvgpu_gr_ctx {
 	struct nvgpu_mem gfxp_rtvcb_ctxsw_buffer;
 #endif
 
+	/**
+	 * Patch context buffer descriptor struct.
+	 */
 	struct patch_desc	patch_ctx;
-	struct zcull_ctx_desc	zcull_ctx;
-	struct pm_ctx_desc	pm_ctx;
 
+#ifdef CONFIG_NVGPU_GRAPHICS
+	struct zcull_ctx_desc	zcull_ctx;
+#endif
+#ifdef CONFIG_NVGPU_DEBUGGER
+	struct pm_ctx_desc	pm_ctx;
+#endif
+
+	/**
+	 * Graphics preemption mode of the graphics context.
+	 */
 	u32 graphics_preempt_mode;
+
+	/**
+	 * Compute preemption mode of the graphics context.
+	 */
 	u32 compute_preempt_mode;
 
+#ifdef CONFIG_NVGPU_NON_FUSA
 	bool golden_img_loaded;
+#endif
+
 #ifdef CONFIG_NVGPU_CILP
 	bool cilp_preempt_pending;
 #endif
+
 #ifdef CONFIG_NVGPU_DEBUGGER
 	bool boosted_ctx;
 #endif
@@ -87,10 +150,27 @@ struct nvgpu_gr_ctx {
 	u64 virt_ctx;
 #endif
 
+	/**
+	 * Array to store GPU virtual addresses of all global context
+	 * buffers.
+	 */
 	u64	global_ctx_buffer_va[NVGPU_GR_CTX_VA_COUNT];
+
+	/**
+	 * Array to store indexes of global context buffers
+	 * corresponding to GPU virtual addresses above.
+	 */
 	u32	global_ctx_buffer_index[NVGPU_GR_CTX_VA_COUNT];
+
+	/**
+	 * Flag to indicate if global context buffers are mapped and
+	 * #global_ctx_buffer_va array is populated.
+	 */
 	bool	global_ctx_buffer_mapped;
 
+	/**
+	 * TSG identifier corresponding to the graphics context.
+	 */
 	u32 tsgid;
 };
 

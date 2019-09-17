@@ -28,12 +28,30 @@
 
 struct nvgpu_gr_global_ctx_local_golden_image;
 
+/**
+ * Golden context image descriptor structure.
+ *
+ * This structure stores details of the Golden context image.
+ */
 struct nvgpu_gr_obj_ctx_golden_image {
+	/**
+	 * Flag to indicate if Golden context image is ready or not.
+	 */
 	bool ready;
+
+	/**
+	 * Mutex to hold for accesses to Golden context image.
+	 */
 	struct nvgpu_mutex ctx_mutex;
 
+	/**
+	 * Size of Golden context image.
+	 */
 	size_t size;
 
+	/**
+	 * Pointer to local Golden context image struct.
+	 */
 	struct nvgpu_gr_global_ctx_local_golden_image *local_golden_image;
 };
 
