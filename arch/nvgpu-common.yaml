@@ -654,6 +654,11 @@ pmu:
       sources: [ common/pmu/pmu.c,
                  include/nvgpu/pmu.h ]
 
+    pmu_rtos_init:
+      safe: no
+      owner: Mahantesh K
+      sources: [ common/pmu/pmu_rtos_init.c ]
+
     pmu_pstate:
       safe: yes
       gpu: dgpu

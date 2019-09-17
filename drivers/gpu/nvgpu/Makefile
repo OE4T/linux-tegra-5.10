@@ -171,6 +171,7 @@ nvgpu-y += \
 	common/pmu/lpwr/rppg.o \
 	common/pmu/lpwr/lpwr.o \
 	common/pmu/pmu_pstate.o \
+	common/pmu/pmu_rtos_init.o \
 	common/pmu/clk/clk_vin.o \
 	common/pmu/clk/clk_fll.o \
 	common/pmu/clk/clk_domain.o \

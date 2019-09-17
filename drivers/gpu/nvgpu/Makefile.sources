@@ -484,6 +484,7 @@ srcs += \
 	common/pmu/pmu_debug.c \
 	common/pmu/pmu_mutex.c \
 	common/pmu/pmu_pstate.c \
+	common/pmu/pmu_rtos_init.c \
 	hal/therm/therm_tu104.c \
 	hal/pmu/pmu_gk20a.c \
 	hal/pmu/pmu_gm20b.c \

@@ -114,7 +114,6 @@ struct pmu_payload {
 	struct pmu_in_out_payload_desc out;
 	struct pmu_rpc_desc rpc;
 };
-#endif
 
 struct pmu_ucode_desc {
 	u32 descriptor_size;
@@ -147,6 +146,7 @@ struct pmu_ucode_desc {
 	struct {u32 start; u32 size; } load_ovl[GK20A_PMU_UCODE_NB_MAX_OVERLAY];
 	u32 compressed;
 };
+#endif
 
 struct nvgpu_pmu {
 	struct gk20a *g;
@@ -194,17 +194,12 @@ int nvgpu_pmu_lock_acquire(struct gk20a *g, struct nvgpu_pmu *pmu,
 	u32 id, u32 *token);
 int nvgpu_pmu_lock_release(struct gk20a *g, struct nvgpu_pmu *pmu,
 	u32 id, u32 *token);
-#endif
 
-/* PMU RTOS init/setup functions */
-int nvgpu_pmu_early_init(struct gk20a *g, struct nvgpu_pmu **pmu_p);
-
-#ifdef CONFIG_NVGPU_LS_PMU
-int nvgpu_pmu_init(struct gk20a *g, struct nvgpu_pmu *pmu);
+/* PMU RTOS init/setup functions*/
+int nvgpu_pmu_rtos_early_init(struct gk20a *g, struct nvgpu_pmu *pmu);
+int nvgpu_pmu_rtos_init(struct gk20a *g, struct nvgpu_pmu *pmu);
 int nvgpu_pmu_destroy(struct gk20a *g, struct nvgpu_pmu *pmu);
 #endif
-
-void nvgpu_pmu_remove_support(struct gk20a *g, struct nvgpu_pmu *pmu);
 
 /* PMU H/W error functions */
 void nvgpu_pmu_report_bar0_pri_err_status(struct gk20a *g, u32 bar0_status,
@@ -213,5 +208,8 @@ void nvgpu_pmu_report_bar0_pri_err_status(struct gk20a *g, u32 bar0_status,
 /* PMU engine reset function */
 int nvgpu_pmu_reset(struct gk20a *g);
 
+/* PMU init/setup functions */
+int nvgpu_pmu_early_init(struct gk20a *g, struct nvgpu_pmu **pmu_p);
+void nvgpu_pmu_remove_support(struct gk20a *g, struct nvgpu_pmu *pmu);
 #endif /* NVGPU_PMU_H */
 

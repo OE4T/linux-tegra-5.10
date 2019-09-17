@@ -880,7 +880,6 @@ static const struct gpu_ops gm20b_ops = {
 #ifdef CONFIG_NVGPU_LS_PMU
 	.pmu = {
 		/* Init */
-		.pmu_init = nvgpu_pmu_init,
 		.pmu_pstate_sw_setup = nvgpu_pmu_pstate_sw_setup,
 		.pmu_pstate_pmu_setup = nvgpu_pmu_pstate_pmu_setup,
 		.pmu_destroy = nvgpu_pmu_destroy,
