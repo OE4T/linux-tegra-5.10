@@ -42,26 +42,14 @@ struct nvgpu_pmu_lsfm;
 struct pmu_super_surface;
 struct nvgpu_pmu_pg;
 struct nvgpu_pmu_perfmon;
+struct nvgpu_clk_pmupstate;
 #endif
 
 #define nvgpu_pmu_dbg(g, fmt, args...) \
 	nvgpu_log(g, gpu_dbg_pmu, fmt, ##args)
 
-struct nvgpu_clk_pmupstate;
-
 /* defined by pmu hw spec */
 #define GK20A_PMU_VA_SIZE		(512U * 1024U * 1024U)
-#define GK20A_PMU_UCODE_SIZE_MAX	(256U * 1024U)
-#define GK20A_PMU_SEQ_BUF_SIZE		4096U
-
-#define GK20A_PMU_TRACE_BUFSIZE		0x4000U    /* 4K */
-#define GK20A_PMU_DMEM_BLKSIZE2		8U
-
-#define PMU_MODE_MISMATCH_STATUS_MAILBOX_R  6U
-#define PMU_MODE_MISMATCH_STATUS_VAL        0xDEADDEADU
-
-#define GK20A_PMU_UCODE_NB_MAX_OVERLAY	    32U
-#define GK20A_PMU_UCODE_NB_MAX_DATE_LENGTH  64U
 
 #define	GK20A_PMU_DMAIDX_UCODE		U32(0)
 #define	GK20A_PMU_DMAIDX_VIRT		U32(1)
@@ -83,11 +71,6 @@ struct nvgpu_clk_pmupstate;
 #define	PMU_BAR0_WRITE_HOSTERR		8U
 #define	PMU_BAR0_READ_FECSERR		9U
 #define	PMU_BAR0_WRITE_FECSERR		10U
-#define	ACR_BOOT_TIMEDOUT		11U
-#define	ACR_BOOT_FAILED			12U
-
-/* pmu load const defines */
-#define PMU_BUSY_CYCLES_NORM_MAX		(1000U)
 
 #ifdef CONFIG_NVGPU_LS_PMU
 struct rpc_handler_payload {
@@ -115,12 +98,15 @@ struct pmu_payload {
 	struct pmu_rpc_desc rpc;
 };
 
+#define PMU_UCODE_NB_MAX_OVERLAY	    32U
+#define PMU_UCODE_NB_MAX_DATE_LENGTH  64U
+
 struct pmu_ucode_desc {
 	u32 descriptor_size;
 	u32 image_size;
 	u32 tools_version;
 	u32 app_version;
-	char date[GK20A_PMU_UCODE_NB_MAX_DATE_LENGTH];
+	char date[PMU_UCODE_NB_MAX_DATE_LENGTH];
 	u32 bootloader_start_offset;
 	u32 bootloader_size;
 	u32 bootloader_imem_offset;
@@ -143,7 +129,7 @@ struct pmu_ucode_desc {
 	 */
 	u32 app_resident_data_size;
 	u32 nb_overlays;
-	struct {u32 start; u32 size; } load_ovl[GK20A_PMU_UCODE_NB_MAX_OVERLAY];
+	struct {u32 start; u32 size; } load_ovl[PMU_UCODE_NB_MAX_OVERLAY];
 	u32 compressed;
 };
 #endif
@@ -211,5 +197,6 @@ int nvgpu_pmu_reset(struct gk20a *g);
 /* PMU init/setup functions */
 int nvgpu_pmu_early_init(struct gk20a *g, struct nvgpu_pmu **pmu_p);
 void nvgpu_pmu_remove_support(struct gk20a *g, struct nvgpu_pmu *pmu);
+
 #endif /* NVGPU_PMU_H */
 

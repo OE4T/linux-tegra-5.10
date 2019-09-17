@@ -26,6 +26,7 @@
 #include <nvgpu/bug.h>
 #include <nvgpu/pmu/cmd.h>
 #include <nvgpu/pmu/lsfm.h>
+#include <nvgpu/pmu/fw.h>
 
 #include "lsfm_sw_gm20b.h"
 
@@ -180,7 +181,7 @@ int gm20b_pmu_lsfm_pmu_cmd_line_args_copy(struct gk20a *g,
 		g->ops.clk.get_rate(g, CTRL_CLK_DOMAIN_PWRCLK));
 	pmu->fw->ops.set_cmd_line_args_secure_mode(pmu, 1U);
 	pmu->fw->ops.set_cmd_line_args_trace_size(
-		pmu, GK20A_PMU_TRACE_BUFSIZE);
+		pmu, PMU_RTOS_TRACE_BUFSIZE);
 	pmu->fw->ops.set_cmd_line_args_trace_dma_base(pmu);
 	pmu->fw->ops.set_cmd_line_args_trace_dma_idx(
 		pmu, GK20A_PMU_DMAIDX_VIRT);

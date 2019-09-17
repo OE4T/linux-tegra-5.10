@@ -54,20 +54,20 @@ static void print_pmu_trace(struct nvgpu_pmu *pmu)
 	u32 *trace1;
 
 	/* allocate system memory to copy pmu trace buffer */
-	tracebuffer = nvgpu_kzalloc(g, GK20A_PMU_TRACE_BUFSIZE);
+	tracebuffer = nvgpu_kzalloc(g, PMU_RTOS_TRACE_BUFSIZE);
 	if (tracebuffer == NULL) {
 		return;
 	}
 
 	/* read pmu traces into system memory buffer */
 	nvgpu_mem_rd_n(g, &pmu->trace_buf, 0, tracebuffer,
-		GK20A_PMU_TRACE_BUFSIZE);
+		PMU_RTOS_TRACE_BUFSIZE);
 
 	trace = (char *)tracebuffer;
 	trace1 = (u32 *)tracebuffer;
 
 	nvgpu_err(g, "dump PMU trace buffer");
-	for (i = 0U; i < GK20A_PMU_TRACE_BUFSIZE; i += 0x40U) {
+	for (i = 0U; i < PMU_RTOS_TRACE_BUFSIZE; i += 0x40U) {
 		for (j = 0U; j < 0x40U; j++) {
 			if (trace1[(i / 4U) + j] != 0U) {
 				break;
@@ -126,7 +126,7 @@ int nvgpu_pmu_debug_init(struct gk20a *g, struct nvgpu_pmu *pmu)
 	struct vm_gk20a *vm = mm->pmu.vm;
 	int err = 0;
 
-	err = nvgpu_dma_alloc_map(vm, GK20A_PMU_TRACE_BUFSIZE,
+	err = nvgpu_dma_alloc_map(vm, PMU_RTOS_TRACE_BUFSIZE,
 			&pmu->trace_buf);
 	if (err != 0) {
 		nvgpu_err(g, "failed to allocate pmu trace buffer\n");

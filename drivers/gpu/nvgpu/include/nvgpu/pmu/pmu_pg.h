@@ -38,6 +38,8 @@ struct vm_gk20a;
 struct pmu_pg_stats_data;
 
 /*PG defines used by nvpgu-pmu*/
+#define PMU_PG_SEQ_BUF_SIZE		4096U
+
 #define PMU_PG_IDLE_THRESHOLD_SIM		1000U
 #define PMU_PG_POST_POWERUP_IDLE_THRESHOLD_SIM	4000000U
 /* TBD: QT or else ? */

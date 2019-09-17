@@ -29,6 +29,9 @@ struct gk20a;
 struct nvgpu_pmu;
 struct pmu_mutexes;
 
+#define PMU_MODE_MISMATCH_STATUS_MAILBOX_R  6U
+#define PMU_MODE_MISMATCH_STATUS_VAL        0xDEADDEADU
+
 void gk20a_pmu_dump_falcon_stats(struct nvgpu_pmu *pmu);
 void gk20a_pmu_init_perfmon_counter(struct gk20a *g);
 void gk20a_pmu_pg_idle_counter_config(struct gk20a *g, u32 pg_engine_id);

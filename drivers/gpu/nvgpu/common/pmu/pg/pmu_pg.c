@@ -901,7 +901,7 @@ static int pmu_pg_init_seq_buf(struct gk20a *g, struct nvgpu_pmu *pmu,
 	int err;
 	u8 *ptr;
 
-	err = nvgpu_dma_alloc_map_sys(vm, GK20A_PMU_SEQ_BUF_SIZE,
+	err = nvgpu_dma_alloc_map_sys(vm, PMU_PG_SEQ_BUF_SIZE,
 				&pg->seq_buf);
 	if (err != 0) {
 		return err;
@@ -913,7 +913,7 @@ static int pmu_pg_init_seq_buf(struct gk20a *g, struct nvgpu_pmu *pmu,
 	ptr[1] = 0; ptr[2] = 1; ptr[3] = 0;
 	ptr[4] = 0; ptr[5] = 0; ptr[6] = 0; ptr[7] = 0;
 
-	pg->seq_buf.size = GK20A_PMU_SEQ_BUF_SIZE;
+	pg->seq_buf.size = PMU_PG_SEQ_BUF_SIZE;
 
 	return err;
 }

@@ -102,10 +102,10 @@ u32 gk20a_falcon_get_mem_size(struct nvgpu_falcon *flcn,
 
 	if (mem_type == MEM_DMEM) {
 		mem_size = falcon_falcon_hwcfg_dmem_size_v(hwcfg_val)
-			<< GK20A_PMU_DMEM_BLKSIZE2;
+			<< FALCON_DMEM_BLKSIZE2;
 	} else {
 		mem_size = falcon_falcon_hwcfg_imem_size_v(hwcfg_val)
-			<< GK20A_PMU_DMEM_BLKSIZE2;
+			<< FALCON_DMEM_BLKSIZE2;
 	}
 
 	return mem_size;

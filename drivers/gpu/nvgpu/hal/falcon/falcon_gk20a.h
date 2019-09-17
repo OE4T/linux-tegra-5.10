@@ -59,6 +59,8 @@
 #define FALCON_REG_RSVD2	(31U)
 #define FALCON_REG_SIZE		(32U)
 
+#define FALCON_DMEM_BLKSIZE2	8U
+
 void gk20a_falcon_reset(struct nvgpu_falcon *flcn);
 bool gk20a_is_falcon_cpu_halted(struct nvgpu_falcon *flcn);
 bool gk20a_is_falcon_idle(struct nvgpu_falcon *flcn);

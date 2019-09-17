@@ -153,6 +153,12 @@ struct nvgpu_firmware;
 struct nvgpu_acr;
 
 /**
+ * This assigns an unique index for errors in ACR unit.
+ */
+#define	ACR_BOOT_TIMEDOUT		11U
+#define	ACR_BOOT_FAILED			12U
+
+/**
  * @brief ACR initialization to allocate memory for ACR unit & set static
  *        properties and ops for LS ucode blob construction as well as for
  *        ACR HS ucode bootstrap.

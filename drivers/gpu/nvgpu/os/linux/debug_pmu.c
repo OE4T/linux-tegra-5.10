@@ -16,6 +16,7 @@
 #include <nvgpu/pmu/pmu_perfmon.h>
 #include <nvgpu/pmu/debug.h>
 #include <nvgpu/pmu/pmu_pg.h>
+#include <nvgpu/pmu/fw.h>
 
 #include "debug_pmu.h"
 #include "os_linux.h"
@@ -271,18 +272,18 @@ static int falc_trace_show(struct seq_file *s, void *data)
 	u32 *trace1;
 
 	/* allocate system memory to copy pmu trace buffer */
-	tracebuffer = nvgpu_kzalloc(g, GK20A_PMU_TRACE_BUFSIZE);
+	tracebuffer = nvgpu_kzalloc(g, PMU_RTOS_TRACE_BUFSIZE);
 	if (tracebuffer == NULL)
 		return -ENOMEM;
 
 	/* read pmu traces into system memory buffer */
 	nvgpu_mem_rd_n(g, &pmu->trace_buf,
-		       0, tracebuffer, GK20A_PMU_TRACE_BUFSIZE);
+		       0, tracebuffer, PMU_RTOS_TRACE_BUFSIZE);
 
 	trace = (char *)tracebuffer;
 	trace1 = (u32 *)tracebuffer;
 
-	for (i = 0; i < GK20A_PMU_TRACE_BUFSIZE; i += 0x40) {
+	for (i = 0; i < PMU_RTOS_TRACE_BUFSIZE; i += 0x40) {
 		for (j = 0; j < 0x40; j++)
 			if (trace1[(i / 4) + j])
 				break;

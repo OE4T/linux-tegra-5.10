@@ -35,6 +35,10 @@ struct boardobjgrp;
 struct boardobjgrp_pmu_cmd;
 struct boardobjgrpmask;
 
+#define PMU_RTOS_UCODE_SIZE_MAX	(256U * 1024U)
+
+#define PMU_RTOS_TRACE_BUFSIZE		0x4000U    /* 4K */
+
 /* Choices for pmu_state */
 #define PMU_FW_STATE_OFF			0U /* PMU is off */
 #define PMU_FW_STATE_STARTING		1U /* PMU is on, but not booted */

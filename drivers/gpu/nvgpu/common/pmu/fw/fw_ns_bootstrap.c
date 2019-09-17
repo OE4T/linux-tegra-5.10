@@ -42,7 +42,7 @@ static int pmu_prepare_ns_ucode_blob(struct gk20a *g)
 	ucode_image = (u32 *)(void *)((u8 *)desc + desc->descriptor_size);
 
 	if (!nvgpu_mem_is_valid(&rtos_fw->ucode)) {
-		err = nvgpu_dma_alloc_map_sys(vm, GK20A_PMU_UCODE_SIZE_MAX,
+		err = nvgpu_dma_alloc_map_sys(vm, PMU_RTOS_UCODE_SIZE_MAX,
 				&rtos_fw->ucode);
 		if (err != 0) {
 			goto exit;
@@ -98,7 +98,7 @@ int nvgpu_pmu_ns_fw_bootstrap(struct gk20a *g, struct nvgpu_pmu *pmu)
 	g->ops.pmu.setup_apertures(g);
 
 	pmu->fw->ops.set_cmd_line_args_trace_size(
-		pmu, GK20A_PMU_TRACE_BUFSIZE);
+		pmu, PMU_RTOS_TRACE_BUFSIZE);
 	pmu->fw->ops.set_cmd_line_args_trace_dma_base(pmu);
 	pmu->fw->ops.set_cmd_line_args_trace_dma_idx(
 		pmu, GK20A_PMU_DMAIDX_VIRT);

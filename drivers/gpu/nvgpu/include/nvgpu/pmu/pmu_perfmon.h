@@ -34,6 +34,9 @@ struct pmu_perfmon_msg;
 struct rpc_handler_payload;
 struct nv_pmu_rpc_header;
 
+/* pmu load const defines */
+#define PMU_BUSY_CYCLES_NORM_MAX		(1000U)
+
 struct nvgpu_pmu_perfmon {
 	struct pmu_perfmon_counter_v2 perfmon_counter_v2;
 	u64 perfmon_events_cnt;
