@@ -18,6 +18,7 @@
 
 #include "tegra234-soc/tegra234-soc-minimal.dtsi"
 #include <dt-bindings/memory/tegra234-smmu-streamid.h>
+#include "tegra234-soc-cbb.dtsi"
 
 / {
 	aliases {
@@ -207,5 +208,15 @@
 		iommus = <&smmu TEGRA_SID_NVDISPLAY>;
 		iso-smmu;
 		non-coherent;
+	};
+
+	rce-en@BE00000 {
+		compatible = "nvidia,tegra234-RCE-EN";
+		status = "disabled";
+	};
+
+	sce-en@B600000 {
+		compatible = "nvidia,tegra234-SCE-EN";
+		status = "disabled";
 	};
 };

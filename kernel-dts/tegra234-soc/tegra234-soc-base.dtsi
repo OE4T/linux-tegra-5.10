@@ -36,6 +36,7 @@
 #include "tegra234-soc/tegra234-soc-power-domain.dtsi"
 #include "tegra234-soc-memory.dtsi"
 #include "tegra234-trusty.dtsi"
+#include "tegra234-soc-cbb.dtsi"
 #include "tegra234-soc-pcie.dtsi"
 #include "tegra234-soc-eqos.dtsi"
 #include "tegra234-soc-uart.dtsi"
