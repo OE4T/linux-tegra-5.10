@@ -63,8 +63,6 @@ snd-soc-tegra-alt-t210ref-objs			:= machine_drivers/tegra_t210ref_alt.o
 snd-soc-tegra-alt-t186ref-objs			:= machine_drivers/tegra_t186ref_alt.o
 snd-soc-tegra-machine-driver-mobile-objs	:= machine_drivers/tegra_machine_driver_mobile.o
 snd-soc-tegra-alt-t186ref-p2382-objs		:= machine_drivers/tegra_t186ref_p2382_alt.o
-snd-soc-tegra-alt-t186ref-bali-objs		:= machine_drivers/tegra_t186ref_bali_alt.o
-snd-soc-tegra-alt-t186ref-boden-objs		:= machine_drivers/tegra_t186ref_boden_alt.o
 snd-soc-tegra-alt-t186ref-p4573-objs		:= machine_drivers/tegra_t186ref_p4573_alt.o
 snd-soc-tegra-alt-t210ref-p2382-objs		:= machine_drivers/tegra_t210ref_p2382_alt.o \
                                                 	machine_drivers/tegra_maui_alt.o
@@ -76,6 +74,4 @@ obj-$(CONFIG_SND_SOC_TEGRA_T186REF_FPGA_ALT)	+= snd-soc-tegra-alt-t186ref.o
 obj-$(CONFIG_SND_SOC_TEGRA_T210REF_MOBILE_ALT)	+= snd-soc-tegra-machine-driver-mobile.o
 obj-$(CONFIG_SND_SOC_TEGRA_T186REF_MOBILE_ALT)	+= snd-soc-tegra-machine-driver-mobile.o
 obj-$(CONFIG_SND_SOC_TEGRA_T186REF_AUTO_ALT)	+= snd-soc-tegra-alt-t186ref-p2382.o
-obj-$(CONFIG_SND_SOC_TEGRA_T186REF_AUTO_ALT)	+= snd-soc-tegra-alt-t186ref-bali.o
-obj-$(CONFIG_SND_SOC_TEGRA_T186REF_AUTO_ALT)	+= snd-soc-tegra-alt-t186ref-boden.o
 obj-$(CONFIG_SND_SOC_TEGRA_T186REF_P4573_ALT)	+= snd-soc-tegra-alt-t186ref-p4573.o
