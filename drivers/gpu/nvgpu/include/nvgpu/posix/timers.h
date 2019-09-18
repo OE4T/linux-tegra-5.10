@@ -30,6 +30,20 @@
 #include <nvgpu/log.h>
 
 
+/**
+ * @brief Private handler of CPU timeout, should not be used directly.
+ *
+ * @param timeout [in]	Timeout object.
+ * @param caller [in]	Instruction pointer of the caller.
+ * @param fmt [in]	Format of the variable length argument.
+ * @param arg... [in]	Variable length arguments.
+ *
+ * Posix implementation of the CPU timeout handler. Checks if the timeout
+ * duration has expired or not.
+ *
+ * @return Shall return 0 if the timeout has not expired; otherwise, an error
+ * number indicating a timeout is returned.
+ */
 #define nvgpu_timeout_expired_msg_cpu(timeout, caller, fmt, arg...)	\
 ({									\
 	struct nvgpu_timeout *t_ptr = (timeout);			\
@@ -44,6 +58,21 @@
 	(int)ret;							\
 })
 
+/**
+ * @brief Private handler of retry timeout, should not be used directly.
+ *
+ * @param timeout [in]	Timeout object.
+ * @param caller [in]	Instruction pointer of the caller.
+ * @param fmt [in]	Format of the variable length argument.
+ * @param arg... [in]	Variable length arguments.
+ *
+ * Posix implementation of the retry timeout handler. Checks if the retry limit
+ * has reached, return an error value to indicate a timeout if the retry limit
+ * has reached else increment the retry count and return.
+ *
+ * @return Shall return 0 if the timeout has not expired; otherwise, an error
+ * number indicating a timeout is returned.
+ */
 #define nvgpu_timeout_expired_msg_retry(timeout, caller, fmt, arg...)	\
 ({									\
 	struct nvgpu_timeout *t_ptr = (timeout);			\
@@ -60,6 +89,20 @@
 	(int)ret;							\
 })
 
+/**
+ * @brief Private handler of userspace timeout, should not be used directly.
+ *
+ * @param timeout [in]	Timeout object.
+ * @param caller [in]	Instruction pointer of the caller.
+ * @param fmt [in]	Format of the variable length argument.
+ * @param arg... [in]	Variable length arguments.
+ *
+ * Posix implementation of the timeout handler. Differentiates between a CPU
+ * timer and a retry timer and handles accordingly.
+ *
+ * @return Shall return 0 if the timeout has not expired; otherwise, an error
+ * number indicating a timeout is returned.
+ */
 #define nvgpu_timeout_expired_msg_impl(timeout, caller, fmt, arg...)	\
 ({									\
 	int ret = 0;							\
