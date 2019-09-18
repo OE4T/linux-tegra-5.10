@@ -711,14 +711,86 @@ static void nvgpu_init_runlist_enginfo(struct gk20a *g, struct nvgpu_fifo *f)
 	nvgpu_log_fn(g, "done");
 }
 
+static int nvgpu_init_active_runlist_mapping(struct gk20a *g)
+{
+	struct nvgpu_runlist_info *runlist;
+	struct nvgpu_fifo *f = &g->fifo;
+	unsigned int runlist_id;
+	size_t runlist_size;
+	u32 i, j;
+	int err = 0;
+
+	/*
+	 * In most case we want to loop through active runlists only. Here
+	 * we need to loop through all possible runlists, to build the mapping
+	 * between runlist_info[runlist_id] and active_runlist_info[i].
+	 */
+	i = 0U;
+	for (runlist_id = 0; runlist_id < f->max_runlists; runlist_id++) {
+		if (!nvgpu_engine_is_valid_runlist_id(g, runlist_id)) {
+			/* skip inactive runlist */
+			continue;
+		}
+		runlist = &f->active_runlist_info[i];
+		runlist->runlist_id = runlist_id;
+		f->runlist_info[runlist_id] = runlist;
+		i = nvgpu_safe_add_u32(i, 1U);
+
+		runlist->active_channels =
+			nvgpu_kzalloc(g, DIV_ROUND_UP(f->num_channels,
+						      BITS_PER_BYTE));
+		if (runlist->active_channels == NULL) {
+			err = -ENOMEM;
+			goto clean_up_runlist;
+		}
+
+		runlist->active_tsgs =
+			nvgpu_kzalloc(g, DIV_ROUND_UP(f->num_channels,
+						      BITS_PER_BYTE));
+		if (runlist->active_tsgs == NULL) {
+			err = -ENOMEM;
+			goto clean_up_runlist;
+		}
+
+		runlist_size = (size_t)f->runlist_entry_size *
+				(size_t)f->num_runlist_entries;
+		nvgpu_log(g, gpu_dbg_info,
+				"runlist_entries %d runlist size %zu",
+				f->num_runlist_entries, runlist_size);
+
+		for (j = 0; j < MAX_RUNLIST_BUFFERS; j++) {
+			err = nvgpu_dma_alloc_flags_sys(g,
+					g->is_virtual ?
+					  0ULL : NVGPU_DMA_PHYSICALLY_ADDRESSED,
+					runlist_size,
+					&runlist->mem[j]);
+			if (err != 0) {
+				nvgpu_err(g, "memory allocation failed");
+				err = -ENOMEM;
+				goto clean_up_runlist;
+			}
+		}
+
+		nvgpu_mutex_init(&runlist->runlist_lock);
+
+		/*
+                 * None of buffers is pinned if this value doesn't change.
+		 * Otherwise, one of them (cur_buffer) must have been pinned.
+                 */
+		runlist->cur_buffer = MAX_RUNLIST_BUFFERS;
+	}
+
+	return 0;
+
+clean_up_runlist:
+	return err;
+}
+
 int nvgpu_runlist_setup_sw(struct gk20a *g)
 {
 	struct nvgpu_fifo *f = &g->fifo;
-	struct nvgpu_runlist_info *runlist;
-	unsigned int runlist_id;
-	u32 i, j;
 	u32 num_runlists = 0U;
-	size_t runlist_size;
+	unsigned int runlist_id;
 	int err = 0;
 
 	nvgpu_log_fn(g, " ");
@@ -748,58 +820,9 @@ int nvgpu_runlist_setup_sw(struct gk20a *g)
 	}
 	nvgpu_log_info(g, "num_runlists=%u", num_runlists);
 
-	/* In most case we want to loop through active runlists only. Here
-	 * we need to loop through all possible runlists, to build the mapping
-	 * between runlist_info[runlist_id] and active_runlist_info[i].
-	 */
-	i = 0U;
-	for (runlist_id = 0; runlist_id < f->max_runlists; runlist_id++) {
-		if (!nvgpu_engine_is_valid_runlist_id(g, runlist_id)) {
-			/* skip inactive runlist */
-			continue;
-		}
-		runlist = &f->active_runlist_info[i];
-		runlist->runlist_id = runlist_id;
-		f->runlist_info[runlist_id] = runlist;
-		i = nvgpu_safe_add_u32(i, 1U);
-
-		runlist->active_channels =
-			nvgpu_kzalloc(g, DIV_ROUND_UP(f->num_channels,
-						      BITS_PER_BYTE));
-		if (runlist->active_channels == NULL) {
-			goto clean_up_runlist;
-		}
-
-		runlist->active_tsgs =
-			nvgpu_kzalloc(g, DIV_ROUND_UP(f->num_channels,
-						      BITS_PER_BYTE));
-		if (runlist->active_tsgs == NULL) {
-			goto clean_up_runlist;
-		}
-
-		runlist_size = (size_t)f->runlist_entry_size *
-				(size_t)f->num_runlist_entries;
-		nvgpu_log(g, gpu_dbg_info,
-				"runlist_entries %d runlist size %zu",
-				f->num_runlist_entries, runlist_size);
-
-		for (j = 0; j < MAX_RUNLIST_BUFFERS; j++) {
-			err = nvgpu_dma_alloc_flags_sys(g,
-					g->is_virtual ?
-					  0ULL : NVGPU_DMA_PHYSICALLY_ADDRESSED,
-					runlist_size,
-					&runlist->mem[j]);
-			if (err != 0) {
-				nvgpu_err(g, "memory allocation failed");
-				goto clean_up_runlist;
-			}
-		}
-
-		nvgpu_mutex_init(&runlist->runlist_lock);
-
-		/* None of buffers is pinned if this value doesn't change.
-		    Otherwise, one of them (cur_buffer) must have been pinned. */
-		runlist->cur_buffer = MAX_RUNLIST_BUFFERS;
+	err = nvgpu_init_active_runlist_mapping(g);
+	if (err != 0) {
+		goto clean_up_runlist;
 	}
 
 	nvgpu_init_runlist_enginfo(g, f);
@@ -820,8 +843,10 @@ u32 nvgpu_runlist_get_runlists_mask(struct gk20a *g, u32 id,
 	struct nvgpu_fifo *f = &g->fifo;
 	struct nvgpu_runlist_info *runlist;
 
+	bool bitmask_disabled = (act_eng_bitmask == 0U && pbdma_bitmask == 0U);
+
 	/* engine and/or pbdma ids are known */
-	if (act_eng_bitmask != 0U || pbdma_bitmask != 0U) {
+	if (!bitmask_disabled) {
 		for (i = 0U; i < f->num_runlists; i++) {
 			runlist = &f->active_runlist_info[i];
 
@@ -842,7 +867,7 @@ u32 nvgpu_runlist_get_runlists_mask(struct gk20a *g, u32 id,
 			runlists_mask |= BIT32(f->channel[id].runlist_id);
 		}
 	} else {
-		if (act_eng_bitmask == 0U && pbdma_bitmask == 0U) {
+		if (bitmask_disabled) {
 			nvgpu_log(g, gpu_dbg_info, "id_type_unknown, engine "
 				"and pbdma ids are unknown");
 
