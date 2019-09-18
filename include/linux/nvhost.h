@@ -3,7 +3,7 @@
  *
  * Tegra graphics host driver
  *
- * Copyright (c) 2009-2019, NVIDIA Corporation. All rights reserved.
+ * Copyright (c) 2009-2020, NVIDIA Corporation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -106,6 +106,11 @@ struct nvhost_gating_register {
 	u64 addr;
 	u32 prod;
 	u32 disable;
+};
+
+struct nvhost_actmon_register {
+	u32 addr;
+	u32 val;
 };
 
 struct nvhost_clock {
@@ -246,6 +251,9 @@ struct nvhost_device_data {
 	bool				linear_emc;
 	/* Offset to actmon registers */
 	u32				actmon_regs;
+	/* WEIGHT_COUNT of actmon */
+	u32				actmon_weight_count;
+	struct nvhost_actmon_register	*actmon_setting_regs;
 	/* Devfreq governor name */
 	const char			*devfreq_governor;
 	unsigned long freqs[NVHOST_MODULE_MAX_FREQS];
