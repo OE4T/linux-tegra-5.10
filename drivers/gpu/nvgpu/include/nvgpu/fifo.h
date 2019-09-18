@@ -475,7 +475,23 @@ const char *nvgpu_fifo_decode_pbdma_ch_eng_status(u32 index);
  * FIFO interrupts.
  */
 int nvgpu_fifo_suspend(struct gk20a *g);
+
 #ifndef CONFIG_NVGPU_RECOVERY
+/**
+ * @brief Emergency quiescing of FIFO.
+ *
+ * @param g[in]		The GPU driver struct.
+ *
+ * Gracefully put FIFO into a non-functioning state to ensure that no corrupted
+ * work is completed because of the fault. This is because the freedom
+ * from interference may not always be shown between the faulted and
+ * the non-faulted TSG contexts.
+ * - Disable all runlists
+ * - Preempt all runlists
+ * - Quiesce all channels
+ *
+ * @see nvgpu_channel_sw_quiesce
+ */
 void nvgpu_fifo_sw_quiesce(struct gk20a *g);
 #endif
 
