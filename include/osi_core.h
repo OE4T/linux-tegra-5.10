@@ -182,7 +182,7 @@ struct osi_core_ops {
 	int (*update_mac_addr_low_high_reg)(
 					    struct osi_core_priv_data *osi_core,
 					    unsigned int index,
-					    unsigned char value[],
+					    const unsigned char value[],
 					    unsigned int dma_routing_enable,
 					    unsigned int dma_chan,
 					    unsigned int addr_mask,
@@ -757,7 +757,7 @@ int osi_config_mac_pkt_filter_reg(struct osi_core_priv_data *osi_core,
  */
 int osi_update_mac_addr_low_high_reg(struct osi_core_priv_data *osi_core,
 				     unsigned int index,
-				     unsigned char value[],
+				     const unsigned char value[],
 				     unsigned int dma_routing_enable,
 				     unsigned int dma_chan,
 				     unsigned int addr_mask,
