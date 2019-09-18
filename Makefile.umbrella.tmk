@@ -74,6 +74,7 @@ NV_REPOSITORY_COMPONENTS += userspace/units/pmu
 NV_REPOSITORY_COMPONENTS += userspace/units/gr
 NV_REPOSITORY_COMPONENTS += userspace/units/gr/config
 NV_REPOSITORY_COMPONENTS += userspace/units/gr/init
+NV_REPOSITORY_COMPONENTS += userspace/units/gr/intr
 endif
 
 # Local Variables:

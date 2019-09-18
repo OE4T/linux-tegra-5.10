@@ -1487,5 +1487,20 @@
         "test": "gr_remove_setup",
         "test_level": 0,
         "unit": "nvgpu_gr_init"
+    },
+    {
+        "test": "gr_intr_setup",
+        "test_level": 0,
+        "unit": "nvgpu_gr_intr"
+    },
+    {
+        "test": "gr_intr_channel_free",
+        "test_level": 0,
+        "unit": "nvgpu_gr_intr"
+    },
+    {
+        "test": "gr_intr_cleanup",
+        "test_level": 0,
+        "unit": "nvgpu_gr_intr"
     }
 ]

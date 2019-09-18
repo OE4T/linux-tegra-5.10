@@ -317,14 +317,16 @@ unlock:
 void nvgpu_gr_intr_report_exception(struct gk20a *g, u32 inst,
 		u32 err_type, u32 status, u32 sub_err_type)
 {
-	struct nvgpu_channel *ch;
+	struct nvgpu_channel *ch = NULL;
 	struct gr_exception_info err_info;
 	struct gr_err_info info;
 	u32 tsgid, chid, curr_ctx;
 
 	tsgid = NVGPU_INVALID_TSG_ID;
 	curr_ctx = g->ops.gr.falcon.get_current_ctx(g);
-	ch = nvgpu_gr_intr_get_channel_from_ctx(g, curr_ctx, &tsgid);
+	if (curr_ctx != 0U) {
+		ch = nvgpu_gr_intr_get_channel_from_ctx(g, curr_ctx, &tsgid);
+	}
 	chid = ch != NULL ? ch->chid : NVGPU_INVALID_CHANNEL_ID;
 	if (ch != NULL) {
 		nvgpu_channel_put(ch);
@@ -944,7 +946,7 @@ int nvgpu_gr_intr_stall_isr(struct gk20a *g)
 	u32 need_reset = 0U;
 	struct nvgpu_tsg *tsg = NULL;
 	u32 global_esr = 0;
-	u32 chid;
+	u32 chid = NVGPU_INVALID_CHANNEL_ID;
 	u32 gr_intr = g->ops.gr.intr.read_pending_interrupts(g, &intr_info);
 	u32 clear_intr = gr_intr;
 
@@ -955,12 +957,17 @@ int nvgpu_gr_intr_stall_isr(struct gk20a *g)
 		return 0;
 	}
 
+	(void) memset(&isr_data, 0, sizeof(struct nvgpu_gr_isr_data));
+
 	/* Disable fifo access */
 	g->ops.gr.init.fifo_access(g, false);
 
 	g->ops.gr.intr.trapped_method_info(g, &isr_data);
 
-	tsg = gr_intr_get_channel_from_ctx(g, gr_intr, &chid, &isr_data);
+	if (isr_data.curr_ctx != 0U) {
+		tsg = gr_intr_get_channel_from_ctx(g, gr_intr, &chid,
+							&isr_data);
+	}
 
 	gr_intr_handle_pending_interrupts(g, &clear_intr,
 					&intr_info, &isr_data);
