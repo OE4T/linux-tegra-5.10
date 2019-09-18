@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015-2018, NVIDIA Corporation. All rights reserved.
+ * Copyright (C) 2015-2019, NVIDIA Corporation. All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -12,6 +12,7 @@
  *
  */
 
+#include <soc/tegra/chip-id.h>
 #include <linux/platform_device.h>
 #include <linux/tegra_nvadsp.h>
 #include <linux/tegra-hsp.h>
@@ -68,10 +69,9 @@ int nvadsp_os_t18x_init(struct platform_device *pdev)
 {
 	struct device *dev = &pdev->dev;
 	struct nvadsp_drv_data *drv_data = platform_get_drvdata(pdev);
-	struct device_node *node = dev->of_node;
 	int ret, adma_ch_page, val = 0;
 
-	if (of_device_is_compatible(node, "nvidia,tegra18x-adsp-hv")) {
+	if (is_tegra_hypervisor_mode()) {
 
 		adma_ch_page = tegra_adma_query_dma_page();
 

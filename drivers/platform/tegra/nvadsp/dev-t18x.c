@@ -11,7 +11,7 @@
  * GNU General Public License for more details.
  *
  */
-
+#include <soc/tegra/chip-id.h>
 #include <linux/platform_device.h>
 #include <linux/tegra_nvadsp.h>
 #include <linux/reset.h>
@@ -264,9 +264,8 @@ int nvadsp_reset_t18x_init(struct platform_device *pdev)
 	int ret = 0;
 
 #ifdef CONFIG_TEGRA_VIRT_AUDIO_IVC
-	struct device_node *node = dev->of_node;
 
-	if (of_device_is_compatible(node, "nvidia,tegra18x-adsp-hv")) {
+	if (is_tegra_hypervisor_mode()) {
 		d->assert_adsp = __virt_assert_t18x_adsp;
 		d->deassert_adsp = __virt_deassert_t18x_adsp;
 		d->adspall_rst = NULL;

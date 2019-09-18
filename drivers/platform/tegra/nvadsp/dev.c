@@ -462,9 +462,6 @@ static const struct of_device_id nvadsp_of_match[] = {
 		.compatible = "nvidia,tegra18x-adsp",
 		.data = &tegrat18x_adsp_chipdata,
 	}, {
-		.compatible = "nvidia,tegra18x-adsp-hv",
-		.data = &tegrat18x_adsp_chipdata,
-	}, {
 	},
 };
 #endif

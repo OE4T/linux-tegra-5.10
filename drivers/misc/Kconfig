@@ -20,13 +20,6 @@ config SAF775x_HWDEP
         default n
         depends on I2C || SPI
 
-config SAF36XX_HWDEP
-        tristate "SAF36XX HWDEP Driver"
-        default n
-        depends on SPI && SPI_MASTER
-        help
-          Provides interfaces for flashing SAF36XX
-
 config SENSORS_NCT1008
 	tristate "ON Semiconductor Temperature Sensor"
 	default n
