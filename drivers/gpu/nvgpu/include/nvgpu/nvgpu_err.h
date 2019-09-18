@@ -156,12 +156,10 @@ struct ctxsw_err_info {
 /**
  * This assigns an unique index for errors in MMU unit.
  */
-#define GPU_MMU_L1TLB_ECC_CORRECTED		(0U)
-#define GPU_MMU_L1TLB_ECC_UNCORRECTED		(1U)
-#define GPU_MMU_L1TLB_SA_DATA_ECC_CORRECTED	(2U)
-#define GPU_MMU_L1TLB_SA_DATA_ECC_UNCORRECTED	(3U)
-#define GPU_MMU_L1TLB_FA_DATA_ECC_CORRECTED	(4U)
-#define GPU_MMU_L1TLB_FA_DATA_ECC_UNCORRECTED	(5U)
+#define GPU_MMU_L1TLB_SA_DATA_ECC_CORRECTED	(0U)
+#define GPU_MMU_L1TLB_SA_DATA_ECC_UNCORRECTED	(1U)
+#define GPU_MMU_L1TLB_FA_DATA_ECC_CORRECTED	(2U)
+#define GPU_MMU_L1TLB_FA_DATA_ECC_UNCORRECTED	(3U)
 
 /**
  * This assigns an unique index for errors in GCC unit.
