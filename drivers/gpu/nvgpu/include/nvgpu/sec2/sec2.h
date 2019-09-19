@@ -64,7 +64,7 @@ struct nvgpu_sec2 {
 };
 
 /* sec2 init */
-int nvgpu_init_sec2_setup_sw(struct gk20a *g, struct nvgpu_sec2 *sec2);
+int nvgpu_init_sec2_setup_sw(struct gk20a *g);
 int nvgpu_init_sec2_support(struct gk20a *g);
 int nvgpu_sec2_destroy(struct gk20a *g);
 

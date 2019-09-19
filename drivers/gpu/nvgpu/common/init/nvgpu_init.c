@@ -354,7 +354,7 @@ int nvgpu_finalize_poweron(struct gk20a *g)
 
 #ifdef CONFIG_NVGPU_DGPU
 	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_SEC2_RTOS)) {
-		err = g->ops.sec2.init_sec2_setup_sw(g, &g->sec2);
+		err = g->ops.sec2.init_sec2_setup_sw(g);
 		if (err != 0) {
 			nvgpu_err(g, "failed to init sec2 sw setup");
 			goto done;

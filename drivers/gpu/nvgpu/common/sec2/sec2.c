@@ -38,24 +38,24 @@ static void nvgpu_remove_sec2_support(struct nvgpu_sec2 *sec2)
 	nvgpu_mutex_destroy(&sec2->isr_mutex);
 }
 
-int nvgpu_init_sec2_setup_sw(struct gk20a *g, struct nvgpu_sec2 *sec2)
+int nvgpu_init_sec2_setup_sw(struct gk20a *g)
 {
 	int err = 0;
 
 	nvgpu_log_fn(g, " ");
 
-	sec2->g = g;
+	g->sec2.g = g;
 
-	err = nvgpu_sec2_sequences_alloc(g, &sec2->sequences);
+	err = nvgpu_sec2_sequences_alloc(g, &g->sec2.sequences);
 	if (err != 0) {
 		return err;
 	}
 
-	nvgpu_sec2_sequences_init(g, &sec2->sequences);
+	nvgpu_sec2_sequences_init(g, &g->sec2.sequences);
 
-	nvgpu_mutex_init(&sec2->isr_mutex);
+	nvgpu_mutex_init(&g->sec2.isr_mutex);
 
-	sec2->remove_support = nvgpu_remove_sec2_support;
+	g->sec2.remove_support = nvgpu_remove_sec2_support;
 
 	return err;
 }

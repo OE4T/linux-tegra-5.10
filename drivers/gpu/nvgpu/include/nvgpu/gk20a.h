@@ -1679,8 +1679,7 @@ struct gpu_ops {
 						u32 value);
 	} top;
 	struct {
-		int (*init_sec2_setup_sw)(struct gk20a *g,
-						struct nvgpu_sec2 *sec2);
+		int (*init_sec2_setup_sw)(struct gk20a *g);
 		int (*init_sec2_support)(struct gk20a *g);
 		int (*sec2_destroy)(struct gk20a *g);
 		void (*secured_sec2_start)(struct gk20a *g);
