@@ -123,18 +123,27 @@ static void gm20b_pbdma_dump_intr_0(struct gk20a *g, u32 pbdma_id,
 		shadow_0, shadow_1, method0, method1, method2, method3);
 }
 
+static u32 pbdma_get_intr_descs(struct gk20a *g)
+{
+	struct nvgpu_fifo *f = &g->fifo;
+	u32 intr_descs = (f->intr.pbdma.device_fatal_0 |
+				f->intr.pbdma.channel_fatal_0 |
+	      				f->intr.pbdma.restartable_0);
+
+	return intr_descs;
+}
+
 bool gm20b_pbdma_handle_intr_0(struct gk20a *g, u32 pbdma_id,
 			u32 pbdma_intr_0, u32 *error_notifier)
 {
-	struct nvgpu_fifo *f = &g->fifo;
+
 	bool recover = false;
 	u32 i;
 	unsigned long pbdma_intr_err;
 	unsigned long bit;
+	u32 intr_descs = pbdma_get_intr_descs(g);
 
-	if (((f->intr.pbdma.device_fatal_0 |
-	      f->intr.pbdma.channel_fatal_0 |
-	      f->intr.pbdma.restartable_0) & pbdma_intr_0) != 0U) {
+	if ((intr_descs & pbdma_intr_0) != 0U) {
 
 		pbdma_intr_err = (unsigned long)pbdma_intr_0;
 		for_each_set_bit(bit, &pbdma_intr_err, 32U) {

@@ -128,6 +128,38 @@ void gv11b_fifo_preempt_runlists_for_rc(struct gk20a *g, u32 runlists_mask)
 #endif
 }
 
+static int fifo_preempt_check_tsg_on_pbdma(u32 tsgid,
+		struct nvgpu_pbdma_status_info *pbdma_status)
+{
+	int ret = -EBUSY;
+
+	if (nvgpu_pbdma_status_is_chsw_valid(pbdma_status) ||
+		nvgpu_pbdma_status_is_chsw_save(pbdma_status)) {
+
+		if (tsgid != pbdma_status->id) {
+			ret = 0;
+		}
+
+	} else if (nvgpu_pbdma_status_is_chsw_load(pbdma_status)) {
+
+		if (tsgid != pbdma_status->next_id) {
+			ret = 0;
+		}
+
+	} else if (nvgpu_pbdma_status_is_chsw_switch(pbdma_status)) {
+
+		if ((tsgid != pbdma_status->next_id) &&
+			 (tsgid != pbdma_status->id)) {
+			ret = 0;
+		}
+	} else {
+		/* pbdma status is invalid i.e. it is not loaded */
+		ret = 0;
+	}
+
+	return ret;
+}
+
 int gv11b_fifo_preempt_poll_pbdma(struct gk20a *g, u32 tsgid,
 				 u32 pbdma_id)
 {
@@ -175,31 +207,8 @@ int gv11b_fifo_preempt_poll_pbdma(struct gk20a *g, u32 tsgid,
 		/* Ignore un-needed return value "recover" */
 		(void)g->ops.pbdma.handle_intr(g, pbdma_id, NULL, &pbdma_status);
 
-		if (nvgpu_pbdma_status_is_chsw_valid(&pbdma_status) ||
-			nvgpu_pbdma_status_is_chsw_save(&pbdma_status)) {
-
-			if (tsgid != pbdma_status.id) {
-				ret = 0;
-				break;
-			}
-
-		} else if (nvgpu_pbdma_status_is_chsw_load(&pbdma_status)) {
-
-			if (tsgid != pbdma_status.next_id) {
-				ret = 0;
-				break;
-			}
-
-		} else if (nvgpu_pbdma_status_is_chsw_switch(&pbdma_status)) {
-
-			if ((tsgid != pbdma_status.next_id) &&
-				 (tsgid != pbdma_status.id)) {
-				ret = 0;
-				break;
-			}
-		} else {
-			/* pbdma status is invalid i.e. it is not loaded */
-			ret = 0;
+		ret = fifo_preempt_check_tsg_on_pbdma(tsgid, &pbdma_status);
+		if (ret == 0) {
 			break;
 		}
 
@@ -212,6 +221,56 @@ int gv11b_fifo_preempt_poll_pbdma(struct gk20a *g, u32 tsgid,
 				"tsgid: %u", pbdma_id,
 				pbdma_status.pbdma_reg_status, tsgid);
 	}
+	return ret;
+}
+
+static int fifo_check_eng_intr_pending(struct gk20a *g, u32 id,
+			 u32 eng_stat, u32 ctx_stat, u32 eng_intr_pending,
+			 u32 act_eng_id, u32 *reset_eng_bitmask)
+{
+	int ret = -EBUSY;
+
+	if (ctx_stat == fifo_engine_status_ctx_status_ctxsw_switch_v()) {
+		/* Eng save hasn't started yet. Continue polling */
+		if (eng_intr_pending != 0U) {
+			/* if eng intr, stop polling */
+			*reset_eng_bitmask |= BIT32(act_eng_id);
+			ret = 0;
+		}
+
+	} else if (ctx_stat == fifo_engine_status_ctx_status_valid_v() ||
+			ctx_stat ==
+				fifo_engine_status_ctx_status_ctxsw_save_v()) {
+
+		if (id == fifo_engine_status_id_v(eng_stat)) {
+			if (eng_intr_pending != 0U) {
+				/* preemption will not finish */
+				*reset_eng_bitmask |= BIT32(act_eng_id);
+				ret = 0;
+			}
+		} else {
+			/* context is not running on the engine */
+			ret = 0;
+		}
+
+	} else if (ctx_stat == fifo_engine_status_ctx_status_ctxsw_load_v()) {
+
+		if (id == fifo_engine_status_next_id_v(eng_stat)) {
+			if (eng_intr_pending != 0U) {
+				/* preemption will not finish */
+				*reset_eng_bitmask |= BIT32(act_eng_id);
+				ret = 0;
+			}
+		} else {
+			/* context is not running on the engine */
+			ret = 0;
+		}
+
+	} else {
+		/* Preempt should be finished */
+		ret = 0;
+	}
+
 	return ret;
 }
 
@@ -288,55 +347,13 @@ static int gv11b_fifo_preempt_poll_eng(struct gk20a *g, u32 id,
 					"stall intr set, "
 					"preemption might not finish");
 		}
-		if (ctx_stat ==
-			 fifo_engine_status_ctx_status_ctxsw_switch_v()) {
-			/* Eng save hasn't started yet. Continue polling */
-			if (eng_intr_pending != 0U) {
-				/* if eng intr, stop polling */
-				*reset_eng_bitmask |= BIT32(act_eng_id);
-				ret = 0;
-				break;
-			}
-
-		} else if (ctx_stat ==
-			 fifo_engine_status_ctx_status_valid_v() ||
-				ctx_stat ==
-			 fifo_engine_status_ctx_status_ctxsw_save_v()) {
-
-			if (id == fifo_engine_status_id_v(eng_stat)) {
-				if (eng_intr_pending != 0U) {
-					/* preemption will not finish */
-					*reset_eng_bitmask |= BIT32(act_eng_id);
-					ret = 0;
-					break;
-				}
-			} else {
-				/* context is not running on the engine */
-				ret = 0;
-				break;
-			}
-
-		} else if (ctx_stat ==
-			 fifo_engine_status_ctx_status_ctxsw_load_v()) {
-
-			if (id == fifo_engine_status_next_id_v(eng_stat)) {
-				if (eng_intr_pending != 0U) {
-					/* preemption will not finish */
-					*reset_eng_bitmask |= BIT32(act_eng_id);
-					ret = 0;
-					break;
-				}
-			} else {
-				/* context is not running on the engine */
-				ret = 0;
-				break;
-			}
-
-		} else {
-			/* Preempt should be finished */
-			ret = 0;
+		ret = fifo_check_eng_intr_pending(g, id, eng_stat, ctx_stat,
+				eng_intr_pending, act_eng_id,
+				reset_eng_bitmask);
+		if (ret == 0) {
 			break;
 		}
+
 		nvgpu_usleep_range(delay, delay * 2U);
 		delay = min_t(u32, delay << 1, POLL_DELAY_MAX_US);
 	} while (nvgpu_timeout_expired(&timeout) == 0);
