@@ -94,7 +94,7 @@ int nvgpu_acr_bootstrap_hs_acr(struct gk20a *g, struct nvgpu_acr *acr)
 	return err;
 }
 
-int nvgpu_acr_construct_execute(struct gk20a *g, struct nvgpu_acr *acr)
+int nvgpu_acr_construct_execute(struct gk20a *g)
 {
 	int err = 0;
 
@@ -103,17 +103,17 @@ int nvgpu_acr_construct_execute(struct gk20a *g, struct nvgpu_acr *acr)
 		return 0;
 	}
 #endif
-	if (acr == NULL) {
+	if (g->acr == NULL) {
 		return -EINVAL;
 	}
 
-	err = acr->prepare_ucode_blob(g);
+	err = g->acr->prepare_ucode_blob(g);
 	if (err != 0) {
 		nvgpu_err(g, "ACR ucode blob prepare failed");
 		goto done;
 	}
 
-	err = nvgpu_acr_bootstrap_hs_acr(g, acr);
+	err = nvgpu_acr_bootstrap_hs_acr(g, g->acr);
 	if (err != 0) {
 		nvgpu_err(g, "Bootstrap HS ACR failed");
 	}
@@ -123,7 +123,7 @@ done:
 }
 
 /* ACR init */
-int nvgpu_acr_init(struct gk20a *g, struct nvgpu_acr **acr)
+int nvgpu_acr_init(struct gk20a *g)
 {
 	u32 ver = nvgpu_safe_add_u32(g->params.gpu_arch,
 					g->params.gpu_impl);
@@ -135,7 +135,7 @@ int nvgpu_acr_init(struct gk20a *g, struct nvgpu_acr **acr)
 	}
 #endif
 
-	if (*acr != NULL) {
+	if (g->acr != NULL) {
 		/*
 		 * Recovery/unrailgate case, we do not need to do ACR init as ACR is
 		 * set during cold boot & doesn't execute ACR clean up as part off
@@ -144,7 +144,7 @@ int nvgpu_acr_init(struct gk20a *g, struct nvgpu_acr **acr)
 		return err;
 	}
 
-	*acr = (struct nvgpu_acr *) nvgpu_kzalloc(g, sizeof(struct nvgpu_acr));
+	g->acr = (struct nvgpu_acr *)nvgpu_kzalloc(g, sizeof(struct nvgpu_acr));
 	if (g->acr == NULL) {
 		err = -ENOMEM;
 		goto done;
@@ -154,22 +154,22 @@ int nvgpu_acr_init(struct gk20a *g, struct nvgpu_acr **acr)
 #ifdef CONFIG_NVGPU_ACR_LEGACY
 	case GK20A_GPUID_GM20B:
 	case GK20A_GPUID_GM20B_B:
-		nvgpu_gm20b_acr_sw_init(g, *acr);
+		nvgpu_gm20b_acr_sw_init(g, g->acr);
 		break;
 	case NVGPU_GPUID_GP10B:
-		nvgpu_gp10b_acr_sw_init(g, *acr);
+		nvgpu_gp10b_acr_sw_init(g, g->acr);
 		break;
 #endif
 	case NVGPU_GPUID_GV11B:
-		nvgpu_gv11b_acr_sw_init(g, *acr);
+		nvgpu_gv11b_acr_sw_init(g, g->acr);
 		break;
 #ifdef CONFIG_NVGPU_DGPU
 	case NVGPU_GPUID_TU104:
-		nvgpu_tu104_acr_sw_init(g, *acr);
+		nvgpu_tu104_acr_sw_init(g, g->acr);
 		break;
 #endif
 	default:
-		nvgpu_kfree(g, *acr);
+		nvgpu_kfree(g, g->acr);
 		err = -EINVAL;
 		nvgpu_err(g, "no support for GPUID %x", ver);
 		break;

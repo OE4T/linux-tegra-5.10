@@ -259,9 +259,8 @@ enum nvgpu_event_id_type {
 
 struct gpu_ops {
 	struct {
-		int (*acr_init)(struct gk20a *g, struct nvgpu_acr **acr);
-		int (*acr_construct_execute)(struct gk20a *g,
-						struct nvgpu_acr *acr);
+		int (*acr_init)(struct gk20a *g);
+		int (*acr_construct_execute)(struct gk20a *g);
 	} acr;
 	struct {
 		int (*init_ltc_support)(struct gk20a *g);

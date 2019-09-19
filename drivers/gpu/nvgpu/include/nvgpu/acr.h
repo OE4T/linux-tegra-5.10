@@ -164,7 +164,6 @@ struct nvgpu_acr;
  *        ACR HS ucode bootstrap.
  *
  * @param g   [in] The GPU driver struct.
- * @param acr [in] The ACR private data struct.
  *
  * Initializes ACR unit private data struct in the GPU driver based on current
  * chip. Allocate memory for #nvgpu_acr data struct & sets the static properties
@@ -172,7 +171,7 @@ struct nvgpu_acr;
  *
  * @return 0 in case of success, < 0 in case of failure.
  */
-int nvgpu_acr_init(struct gk20a *g, struct nvgpu_acr **acr);
+int nvgpu_acr_init(struct gk20a *g);
 
 #ifdef CONFIG_NVGPU_DGPU
 int nvgpu_acr_alloc_blob_prerequisite(struct gk20a *g, struct nvgpu_acr *acr,
@@ -184,7 +183,6 @@ int nvgpu_acr_alloc_blob_prerequisite(struct gk20a *g, struct nvgpu_acr *acr,
  *        ACR ucode on specified engine Falcon
  *
  * @param g   [in] The GPU driver struct.
- * @param acr [in] The ACR private data struct
  *
  * Construct blob of LS ucode in non-wpr memory. Allocation happens in non-WPR
  * system/FB memory based on type of GPU iGPU/dGPU currently in execution. Next,
@@ -192,7 +190,7 @@ int nvgpu_acr_alloc_blob_prerequisite(struct gk20a *g, struct nvgpu_acr *acr,
  *
  * @return 0 in case of success, < 0 in case of failure.
  */
-int nvgpu_acr_construct_execute(struct gk20a *g, struct nvgpu_acr *acr);
+int nvgpu_acr_construct_execute(struct gk20a *g);
 
 /**
  * @brief Read, Load and Bootstrap HS ACR ucode on Engine's Falcon.

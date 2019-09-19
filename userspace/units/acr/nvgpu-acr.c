@@ -168,7 +168,7 @@ int test_acr_init(struct unit_module *m,
 	/*
 	 * initialize PMU
 	 */
-	err =  nvgpu_pmu_early_init(g, &g->pmu);
+	err =  nvgpu_pmu_early_init(g);
 	if (err != 0) {
 		unit_return_fail(m, "nvgpu_pmu_early_init failed\n");
 	}
@@ -178,7 +178,7 @@ int test_acr_init(struct unit_module *m,
 	 * due to memory allocation failure
 	 */
 	nvgpu_posix_enable_fault_injection(kmem_fi, true, 0);
-	err = nvgpu_acr_init(g, &g->acr);
+	err = nvgpu_acr_init(g);
 
 	if (err != -ENOMEM) {
 		unit_return_fail(m,
@@ -197,7 +197,7 @@ int test_acr_init(struct unit_module *m,
 	g->params.gpu_arch = NV_PMC_BOOT_0_ARCHITECTURE_INVALID;
 	g->params.gpu_impl = NV_PMC_BOOT_0_IMPLEMENTATION_INVALID;
 
-	err = nvgpu_acr_init(g, &g->acr);
+	err = nvgpu_acr_init(g);
 	if (err != -EINVAL) {
 		unit_return_fail(m, "Version failure of chip for \
 				nvgpu_acr_init() didn't happen as expected\n");
@@ -213,7 +213,7 @@ int test_acr_init(struct unit_module *m,
 	g->params.gpu_arch = NV_PMC_BOOT_0_ARCHITECTURE_GV110;
 	g->params.gpu_impl = NV_PMC_BOOT_0_IMPLEMENTATION_B;
 
-	err = nvgpu_acr_init(g, &g->acr);
+	err = nvgpu_acr_init(g);
 	if (err != 0) {
 		unit_return_fail(m, "nvgpu_acr_init() failed\n");
 	}

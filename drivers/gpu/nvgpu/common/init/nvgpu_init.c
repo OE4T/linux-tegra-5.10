@@ -363,7 +363,7 @@ int nvgpu_finalize_poweron(struct gk20a *g)
 #endif
 	if (nvgpu_is_enabled(g, NVGPU_SEC_PRIVSECURITY)) {
 		/* Init chip specific ACR properties */
-		err = g->ops.acr.acr_init(g, &g->acr);
+		err = g->ops.acr.acr_init(g);
 		if (err != 0) {
 			nvgpu_err(g, "ACR init failed %d", err);
 			goto done;
@@ -504,7 +504,7 @@ int nvgpu_finalize_poweron(struct gk20a *g)
 
 	if (nvgpu_is_enabled(g, NVGPU_SEC_PRIVSECURITY)) {
 		/* construct ucode blob, load & bootstrap LSF's using HS ACR */
-		err = g->ops.acr.acr_construct_execute(g, g->acr);
+		err = g->ops.acr.acr_construct_execute(g);
 		if (err != 0) {
 			nvgpu_mutex_release(&g->tpc_pg_lock);
 			goto done;
