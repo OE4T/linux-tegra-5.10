@@ -158,6 +158,72 @@ fail:
 	nvgpu_err(g, "sw quiesce not supported");
 }
 
+/* init interface layer support for all falcons */
+static int nvgpu_falcons_sw_init(struct gk20a *g)
+{
+	int err;
+
+	err = g->ops.falcon.falcon_sw_init(g, FALCON_ID_PMU);
+	if (err != 0) {
+		nvgpu_err(g, "failed to sw init FALCON_ID_PMU");
+		return err;
+	}
+
+	err = g->ops.falcon.falcon_sw_init(g, FALCON_ID_FECS);
+	if (err != 0) {
+		nvgpu_err(g, "failed to sw init FALCON_ID_FECS");
+		goto done_pmu;
+	}
+
+#ifdef CONFIG_NVGPU_DGPU
+	err = g->ops.falcon.falcon_sw_init(g, FALCON_ID_SEC2);
+	if (err != 0) {
+		nvgpu_err(g, "failed to sw init FALCON_ID_SEC2");
+		goto done_fecs;
+	}
+
+	err = g->ops.falcon.falcon_sw_init(g, FALCON_ID_NVDEC);
+	if (err != 0) {
+		nvgpu_err(g, "failed to sw init FALCON_ID_NVDEC");
+		goto done_sec2;
+	}
+
+	err = g->ops.falcon.falcon_sw_init(g, FALCON_ID_GSPLITE);
+	if (err != 0) {
+		nvgpu_err(g, "failed to sw init FALCON_ID_GSPLITE");
+		goto done_nvdec;
+	}
+#endif
+
+	return 0;
+
+#ifdef CONFIG_NVGPU_DGPU
+done_nvdec:
+	g->ops.falcon.falcon_sw_free(g, FALCON_ID_NVDEC);
+done_sec2:
+	g->ops.falcon.falcon_sw_free(g, FALCON_ID_SEC2);
+done_fecs:
+	g->ops.falcon.falcon_sw_free(g, FALCON_ID_FECS);
+#endif
+done_pmu:
+	g->ops.falcon.falcon_sw_free(g, FALCON_ID_PMU);
+
+	return err;
+}
+
+/* handle poweroff and error case for all falcons interface layer support */
+static void nvgpu_falcons_sw_free(struct gk20a *g)
+{
+	g->ops.falcon.falcon_sw_free(g, FALCON_ID_PMU);
+	g->ops.falcon.falcon_sw_free(g, FALCON_ID_FECS);
+
+#ifdef CONFIG_NVGPU_DGPU
+	g->ops.falcon.falcon_sw_free(g, FALCON_ID_GSPLITE);
+	g->ops.falcon.falcon_sw_free(g, FALCON_ID_NVDEC);
+	g->ops.falcon.falcon_sw_free(g, FALCON_ID_SEC2);
+#endif
+}
+
 int nvgpu_prepare_poweroff(struct gk20a *g)
 {
 	int tmp_ret, ret = 0;
@@ -199,14 +265,9 @@ int nvgpu_prepare_poweroff(struct gk20a *g)
 		ret = tmp_ret;
 	}
 
-	g->ops.falcon.falcon_sw_free(g, FALCON_ID_PMU);
-	g->ops.falcon.falcon_sw_free(g, FALCON_ID_FECS);
+	nvgpu_falcons_sw_free(g);
 
 #ifdef CONFIG_NVGPU_DGPU
-	g->ops.falcon.falcon_sw_free(g, FALCON_ID_GSPLITE);
-	g->ops.falcon.falcon_sw_free(g, FALCON_ID_NVDEC);
-	g->ops.falcon.falcon_sw_free(g, FALCON_ID_SEC2);
-
 	g->ops.ce.ce_app_suspend(g);
 #endif
 
@@ -280,38 +341,10 @@ int nvgpu_finalize_poweron(struct gk20a *g)
 		return err;
 	}
 
-	/* init interface layer support for PMU falcon */
-	err = g->ops.falcon.falcon_sw_init(g, FALCON_ID_PMU);
+	err = nvgpu_falcons_sw_init(g);
 	if (err != 0) {
-		nvgpu_err(g, "failed to sw init FALCON_ID_PMU");
-		goto exit;
+		return err;
 	}
-
-	err = g->ops.falcon.falcon_sw_init(g, FALCON_ID_FECS);
-	if (err != 0) {
-		nvgpu_err(g, "failed to sw init FALCON_ID_FECS");
-		goto done_pmu;
-	}
-
-#ifdef CONFIG_NVGPU_DGPU
-	err = g->ops.falcon.falcon_sw_init(g, FALCON_ID_SEC2);
-	if (err != 0) {
-		nvgpu_err(g, "failed to sw init FALCON_ID_SEC2");
-		goto done_fecs;
-	}
-
-	err = g->ops.falcon.falcon_sw_init(g, FALCON_ID_NVDEC);
-	if (err != 0) {
-		nvgpu_err(g, "failed to sw init FALCON_ID_NVDEC");
-		goto done_sec2;
-	}
-
-	err = g->ops.falcon.falcon_sw_init(g, FALCON_ID_GSPLITE);
-	if (err != 0) {
-		nvgpu_err(g, "failed to sw init FALCON_ID_GSPLITE");
-		goto done_nvdec;
-	}
-#endif
 
 	err = g->ops.pmu.pmu_early_init(g, &g->pmu);
 	if (err != 0) {
@@ -641,17 +674,8 @@ int nvgpu_finalize_poweron(struct gk20a *g)
 	goto exit;
 
 done:
-#ifdef CONFIG_NVGPU_DGPU
-	g->ops.falcon.falcon_sw_free(g, FALCON_ID_GSPLITE);
-done_nvdec:
-	g->ops.falcon.falcon_sw_free(g, FALCON_ID_NVDEC);
-done_sec2:
-	g->ops.falcon.falcon_sw_free(g, FALCON_ID_SEC2);
-done_fecs:
-#endif
-	g->ops.falcon.falcon_sw_free(g, FALCON_ID_FECS);
-done_pmu:
-	g->ops.falcon.falcon_sw_free(g, FALCON_ID_PMU);
+	nvgpu_falcons_sw_free(g);
+
 exit:
 	if (err != 0) {
 		g->power_on = false;
