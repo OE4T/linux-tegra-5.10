@@ -122,8 +122,7 @@ void nvgpu_utf_falcon_readl_access_reg_fn(struct gk20a *g,
 		ctrl_r = nvgpu_posix_io_readl_reg_space(g,
 				flcn_base + falcon_falcon_dmemc_r(0));
 
-		offset = access->value & addr_mask;
-		access->value = offset * 4U;
+		access->value = ctrl_r & addr_mask;
 	} else {
 		access->value = nvgpu_posix_io_readl_reg_space(g, access->addr);
 	}
