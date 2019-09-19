@@ -32,29 +32,81 @@
 #include <nvgpu/posix/utils.h>
 #endif
 
+/** Stringification macro. */
 #define nvgpu_stringify(x)          #x
 
+/**
+ * @brief Higher 32 bits from 64 bit.
+ *
+ * @param n [in]	Input value.
+ *
+ * Returns the most significant 32 bits of the 64 bit input value.
+ *
+ * @return Most significant 32 bits of \a n.
+ */
 static inline u32 u64_hi32(u64 n)
 {
 	return nvgpu_safe_cast_u64_to_u32(nvgpu_safe_cast_u64_to_u32(n >> 32)
 					  & ~(u32)0);
 }
 
+/**
+ * @brief Lower 32 bits from 64 bit.
+ *
+ * @param n [in]	Input value.
+ *
+ * Returns the least significant 32 bits of the 64 bit input value.
+ *
+ * @return Least significant 32 bits of \a n.
+ */
 static inline u32 u64_lo32(u64 n)
 {
 	return nvgpu_safe_cast_u64_to_u32(n & ~(u32)0);
 }
 
+/**
+ * @brief 64 bit from two 32 bit values.
+ *
+ * @param hi [in]	Higher 32 bits.
+ * @param lo [in]	Lower 32 bits.
+ *
+ * Returns a 64 bit value by combining the two 32 bit input values.
+ *
+ * @return 64 bit value of which the least significant 32 bits are \a lo and
+ * most significant 32 bits are \a hi.
+ */
 static inline u64 hi32_lo32_to_u64(u32 hi, u32 lo)
 {
 	return  (((u64)hi) << 32) | (u64)lo;
 }
 
+/**
+ * @brief Sets a particular field value in input data.
+ *
+ * @param val [in]	Value to set the field in.
+ * @param mask [in]	Mask for the field.
+ * @param field [in]	Field value.
+ *
+ * Uses the \a mask value to clear the bits that are part of the field and
+ * sets the value mentioned in \a field in those bit positions.
+ *
+ * @return Returns \a val with updated field.
+ */
 static inline u32 set_field(u32 val, u32 mask, u32 field)
 {
 	return ((val & ~mask) | field);
 }
 
+/**
+ * @brief Gets a particular field value from input data.
+ *
+ * @param reg [in]	Value to get the field from.
+ * @param mask [in]	Mask for the field.
+ *
+ * Returns the field value at mask position in reg.
+ *
+ * @return Field value from \a reg according to the \a mask.
+ */
 static inline u32 get_field(u32 reg, u32 mask)
 {
 	return (reg & mask);
@@ -63,6 +115,7 @@ static inline u32 get_field(u32 reg, u32 mask)
 /*
  * MISRA Rule 11.6 compliant IP address generator.
  */
+/** Instruction pointer address generator. */
 #define NVGPU_GET_IP		\
 	({ __label__ label_here; label_here: &&label_here; })
 
