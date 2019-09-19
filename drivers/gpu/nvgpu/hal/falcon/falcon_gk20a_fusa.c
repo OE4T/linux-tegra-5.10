@@ -165,6 +165,7 @@ int gk20a_falcon_copy_to_dmem(struct nvgpu_falcon *flcn,
 	if (data != (nvgpu_safe_add_u32(dst, size) & addr_mask)) {
 		nvgpu_warn(flcn->g, "copy failed. bytes written %d, expected %d",
 			data - dst, size);
+		return -EIO;
 	}
 
 	return 0;
