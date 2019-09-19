@@ -247,7 +247,9 @@ static int gr_gv100_scg_estimate_perf(struct gk20a *g,
 	err = gr_gv100_scg_calculate_perf(gr_config, scale_factor,
 			scg_num_pes, num_tpc_gpc, max_tpc_gpc,
 			min_scg_gpc_pix_perf, average_tpcs, perf);
-
+	if (err != 0) {
+		nvgpu_err(g, "scg perf calculation failed");
+	}
 free_resources:
 	nvgpu_kfree(g, num_tpc_gpc);
 	return err;

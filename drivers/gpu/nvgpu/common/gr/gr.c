@@ -363,12 +363,19 @@ static int gr_init_config(struct gk20a *g, struct nvgpu_gr *gr)
 
 static int nvgpu_gr_init_ctx_state(struct gk20a *g)
 {
+	int err = 0;
+
 	if (g->gr->golden_image != NULL &&
-			nvgpu_gr_obj_ctx_is_golden_image_ready(g->gr->golden_image)) {
-		return 0;
+		nvgpu_gr_obj_ctx_is_golden_image_ready(g->gr->golden_image)) {
+		return err;
 	}
 
-	return nvgpu_gr_falcon_init_ctx_state(g, g->gr->falcon);
+	err = nvgpu_gr_falcon_init_ctx_state(g, g->gr->falcon);
+	if (err != 0) {
+		nvgpu_err(g, "gr ctx_state init failed");
+	}
+
+	return err;
 }
 
 static int gr_init_ctx_and_map_zbc(struct gk20a *g)
