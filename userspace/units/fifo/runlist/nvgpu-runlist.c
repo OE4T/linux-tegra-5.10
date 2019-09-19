@@ -32,6 +32,7 @@
 #include "hal/fifo/runlist_ram_gk20a.h"
 #include "hal/fifo/tsg_gk20a.h"
 #include "nvgpu/hw/gk20a/hw_ram_gk20a.h"
+#include "nvgpu-runlist.h"
 
 #define RL_MAX_TIMESLICE_TIMEOUT ram_rl_entry_timeslice_timeout_v(U32_MAX)
 #define RL_MAX_TIMESLICE_SCALE ram_rl_entry_timeslice_scale_v(U32_MAX)
@@ -213,8 +214,7 @@ static struct tsg_fmt_test_args {
  * Check that inserting a single tsg of any level with a number of channels
  * works as expected.
  */
-static int test_tsg_format_gen(struct unit_module *m, struct gk20a *g,
-		void *args)
+int test_tsg_format_gen(struct unit_module *m, struct gk20a *g, void *args)
 {
 	struct nvgpu_fifo *f = &g->fifo;
 	struct nvgpu_runlist_info runlist;
@@ -344,10 +344,7 @@ static int test_flat_gen(struct unit_module *m, struct gk20a *g, u32 sizelimit)
 			expected, ARRAY_SIZE(expected));
 }
 
-/*
- * Test the normal case that a successful construct is correct.
- */
-static int test_flat(struct unit_module *m, struct gk20a *g, void *args)
+int test_flat(struct unit_module *m, struct gk20a *g, void *args)
 {
 	return test_flat_gen(m, g, 0);
 }
@@ -356,44 +353,29 @@ static int test_flat(struct unit_module *m, struct gk20a *g, void *args)
  * Just a corner case, space for just one tsg header; even the first channel
  * entry doesn't fit.
  */
-static int test_flat_oversize_tiny(struct unit_module *m, struct gk20a *g,
+int test_flat_oversize_tiny(struct unit_module *m, struct gk20a *g,
 		void *args)
 {
 	return test_flat_gen(m, g, 1);
 }
 
-/*
- * One tsg header with its channel fit.
- */
-static int test_flat_oversize_single(struct unit_module *m, struct gk20a *g,
+int test_flat_oversize_single(struct unit_module *m, struct gk20a *g,
 		void *args)
 {
 	return test_flat_gen(m, g, 2);
 }
 
-/*
- * The second channel would get chopped off.
- */
-static int test_flat_oversize_onehalf(struct unit_module *m, struct gk20a *g,
-		void *args)
+int test_flat_oversize_onehalf(struct unit_module *m, struct gk20a *g, void *args)
 {
 	return test_flat_gen(m, g, 3);
 }
 
-/*
- * Two full entries fit exactly.
- */
-static int test_flat_oversize_two(struct unit_module *m, struct gk20a *g,
-		void *args)
+int test_flat_oversize_two(struct unit_module *m, struct gk20a *g, void *args)
 {
 	return test_flat_gen(m, g, 4);
 }
 
-/*
- * All but the last channel entry fit.
- */
-static int test_flat_oversize_end(struct unit_module *m, struct gk20a *g,
-		void *args)
+int test_flat_oversize_end(struct unit_module *m, struct gk20a *g, void *args)
 {
 	return test_flat_gen(m, g, 11);
 }
@@ -458,7 +440,7 @@ static struct interleave_test_args {
 	{ (2 + 1 + 2 + 1 + 2) * 2 },
 };
 
-static int test_interleaving_gen_all_run(struct unit_module *m,
+int test_interleaving_gen_all_run(struct unit_module *m,
 		struct gk20a *g, void *args)
 {
 	struct interleave_test_args *test_args = args;
@@ -469,7 +451,7 @@ static int test_interleaving_gen_all_run(struct unit_module *m,
 /*
  * Only l0 items.
  */
-static int test_interleaving_l0(struct unit_module *m,
+int test_interleaving_l0(struct unit_module *m,
 		struct gk20a *g, void *args)
 {
 	u32 levels[] = { 0, 0 };
@@ -484,7 +466,7 @@ static int test_interleaving_l0(struct unit_module *m,
 /*
  * Only l1 items.
  */
-static int test_interleaving_l1(struct unit_module *m,
+int test_interleaving_l1(struct unit_module *m,
 		struct gk20a *g, void *args)
 {
 	u32 levels[] = { 1, 1 };
@@ -498,7 +480,7 @@ static int test_interleaving_l1(struct unit_module *m,
 /*
  * Only l2 items.
  */
-static int test_interleaving_l2(struct unit_module *m,
+int test_interleaving_l2(struct unit_module *m,
 		struct gk20a *g, void *args)
 {
 	u32 levels[] = { 2, 2 };
@@ -512,7 +494,7 @@ static int test_interleaving_l2(struct unit_module *m,
 /*
  * Only low and medium priority items.
  */
-static int test_interleaving_l0_l1(struct unit_module *m,
+int test_interleaving_l0_l1(struct unit_module *m,
 		struct gk20a *g, void *args)
 {
 	u32 l1 = 0, l2 = 1, m1 = 2, m2 = 3;
@@ -527,7 +509,7 @@ static int test_interleaving_l0_l1(struct unit_module *m,
 /*
  * Only medium and high priority items.
  */
-static int test_interleaving_l1_l2(struct unit_module *m,
+int test_interleaving_l1_l2(struct unit_module *m,
 		struct gk20a *g, void *args)
 {
 	u32 m1 = 0, m2 = 1, h1 = 2, h2 = 3;
@@ -542,7 +524,7 @@ static int test_interleaving_l1_l2(struct unit_module *m,
 /*
  * Only low and high priority items.
  */
-static int test_interleaving_l0_l2(struct unit_module *m,
+int test_interleaving_l0_l2(struct unit_module *m,
 		struct gk20a *g, void *args)
 {
 	u32 l1 = 0, l2 = 1, h1 = 2, h2 = 3;
