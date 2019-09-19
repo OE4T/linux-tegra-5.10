@@ -346,7 +346,7 @@ int nvgpu_finalize_poweron(struct gk20a *g)
 		return err;
 	}
 
-	err = g->ops.pmu.pmu_early_init(g, &g->pmu);
+	err = g->ops.pmu.pmu_early_init(g);
 	if (err != 0) {
 		nvgpu_err(g, "failed to early init pmu sw");
 		goto done;
@@ -523,7 +523,7 @@ int nvgpu_finalize_poweron(struct gk20a *g)
 #endif
 
 #ifdef CONFIG_NVGPU_LS_PMU
-	err = nvgpu_pmu_rtos_init(g, g->pmu);
+	err = nvgpu_pmu_rtos_init(g);
 	if (err != 0) {
 		nvgpu_err(g, "failed to init gk20a pmu");
 		nvgpu_mutex_release(&g->tpc_pg_lock);

@@ -209,17 +209,17 @@ exit:
 	return err;
 }
 
-int nvgpu_pmu_rtos_init(struct gk20a *g, struct nvgpu_pmu *pmu)
+int nvgpu_pmu_rtos_init(struct gk20a *g)
 {
 	int err = 0;
 
 	nvgpu_log_fn(g, " ");
 
-	if (!g->support_ls_pmu) {
+	if (!g->support_ls_pmu || (g->pmu == NULL)) {
 		goto exit;
 	}
 
-	err = pmu_sw_setup(g, pmu);
+	err = pmu_sw_setup(g, g->pmu);
 	if (err != 0) {
 		goto exit;
 	}
@@ -252,8 +252,8 @@ int nvgpu_pmu_rtos_init(struct gk20a *g, struct nvgpu_pmu *pmu)
 			g->ops.pmu.setup_apertures(g);
 		}
 
-		err = nvgpu_pmu_lsfm_ls_pmu_cmdline_args_copy(g, pmu,
-			pmu->lsfm);
+		err = nvgpu_pmu_lsfm_ls_pmu_cmdline_args_copy(g, g->pmu,
+			g->pmu->lsfm);
 		if (err != 0) {
 			goto exit;
 		}
@@ -271,13 +271,13 @@ int nvgpu_pmu_rtos_init(struct gk20a *g, struct nvgpu_pmu *pmu)
 		}
 	} else {
 		/* non-secure boot */
-		err = nvgpu_pmu_ns_fw_bootstrap(g, pmu);
+		err = nvgpu_pmu_ns_fw_bootstrap(g, g->pmu);
 		if (err != 0) {
 			goto exit;
 		}
 	}
 
-	nvgpu_pmu_fw_state_change(g, pmu, PMU_FW_STATE_STARTING, false);
+	nvgpu_pmu_fw_state_change(g, g->pmu, PMU_FW_STATE_STARTING, false);
 
 exit:
 	return err;

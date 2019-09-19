@@ -329,7 +329,7 @@ int nvgpu_pmu_lock_release(struct gk20a *g, struct nvgpu_pmu *pmu,
 
 /* PMU RTOS init/setup functions*/
 int nvgpu_pmu_rtos_early_init(struct gk20a *g, struct nvgpu_pmu *pmu);
-int nvgpu_pmu_rtos_init(struct gk20a *g, struct nvgpu_pmu *pmu);
+int nvgpu_pmu_rtos_init(struct gk20a *g);
 int nvgpu_pmu_destroy(struct gk20a *g, struct nvgpu_pmu *pmu);
 #endif
 
@@ -366,7 +366,6 @@ int nvgpu_pmu_reset(struct gk20a *g);
  *        detected chip,
  *
  * @param g         [in] The GPU driver struct.
- * @param nvgpu_pmu [in] The PMU unit.
  *
  * Initializes PMU unit data struct in the GPU driver based on detected chip.
  * Allocate memory for #nvgpu_pmu data struct & set PMU Engine h/w properties,
@@ -375,7 +374,7 @@ int nvgpu_pmu_reset(struct gk20a *g);
  *
  * @return 0 in case of success, < 0 in case of failure.
  */
-int nvgpu_pmu_early_init(struct gk20a *g, struct nvgpu_pmu **pmu_p);
+int nvgpu_pmu_early_init(struct gk20a *g);
 
 /**
  * @brief PMU remove to free space allocted for PMU unit

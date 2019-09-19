@@ -154,7 +154,7 @@ static int test_pmu_early_init(struct unit_module *m,
 	 * allocation failure
 	 */
 	nvgpu_posix_enable_fault_injection(kmem_fi, true, 0);
-	err = nvgpu_pmu_early_init(g, &g->pmu);
+	err = nvgpu_pmu_early_init(g);
 
 	if (err != -ENOMEM) {
 		unit_return_fail(m,
@@ -165,7 +165,7 @@ static int test_pmu_early_init(struct unit_module *m,
 	nvgpu_pmu_remove_support(g, g->pmu);
 
 	/* Case 2: nvgpu_pmu_early_init() passes */
-	err = nvgpu_pmu_early_init(g, &g->pmu);
+	err = nvgpu_pmu_early_init(g);
 	if (err != 0) {
 		unit_return_fail(m, "nvgpu_pmu_early_init failed\n");
 	}
@@ -175,7 +175,7 @@ static int test_pmu_early_init(struct unit_module *m,
 
 	/* case 3: */
 	g->support_ls_pmu = false;
-	err =  nvgpu_pmu_early_init(g, &g->pmu);
+	err =  nvgpu_pmu_early_init(g);
 	if (err != 0) {
 		unit_return_fail(m, "support_ls_pmu failed\n");
 	}
@@ -185,7 +185,7 @@ static int test_pmu_early_init(struct unit_module *m,
 	/* case 4: */
 	g->support_ls_pmu = true;
 	g->ops.pmu.is_pmu_supported = stub_gv11b_is_pmu_supported;
-	err = nvgpu_pmu_early_init(g, &g->pmu);
+	err = nvgpu_pmu_early_init(g);
 
 	if (g->support_ls_pmu != false || g->can_elpg != false ||
 		g->elpg_enabled != false || g->aelpg_enabled != false) {
@@ -203,7 +203,7 @@ static int test_pmu_remove_support(struct unit_module *m,
 {
 	int err;
 
-	err =  nvgpu_pmu_early_init(g, &g->pmu);
+	err =  nvgpu_pmu_early_init(g);
 	if (err != 0) {
 		unit_return_fail(m, "support_ls_pmu failed\n");
 	}
@@ -228,7 +228,7 @@ static int test_pmu_reset(struct unit_module *m,
 	}
 
 	/* initialize PMU */
-	err =  nvgpu_pmu_early_init(g, &g->pmu);
+	err =  nvgpu_pmu_early_init(g);
 	if (err != 0) {
 		unit_return_fail(m, "nvgpu_pmu_early_init failed\n");
 	}

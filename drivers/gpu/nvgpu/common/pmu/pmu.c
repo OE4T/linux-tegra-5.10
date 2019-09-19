@@ -143,14 +143,14 @@ void nvgpu_pmu_remove_support(struct gk20a *g, struct nvgpu_pmu *pmu)
 }
 
 /* PMU unit init */
-int nvgpu_pmu_early_init(struct gk20a *g, struct nvgpu_pmu **pmu_p)
+int nvgpu_pmu_early_init(struct gk20a *g)
 {
 	int err = 0;
 	struct nvgpu_pmu *pmu;
 
 	nvgpu_log_fn(g, " ");
 
-	if (*pmu_p != NULL) {
+	if (g->pmu != NULL) {
 		/* skip alloc/reinit for unrailgate sequence */
 		nvgpu_pmu_dbg(g, "skip pmu init for unrailgate sequence");
 		goto exit;
@@ -162,7 +162,7 @@ int nvgpu_pmu_early_init(struct gk20a *g, struct nvgpu_pmu **pmu_p)
 		goto exit;
 	}
 
-	*pmu_p = pmu;
+	g->pmu = pmu;
 	pmu->g = g;
 	pmu->flcn = &g->pmu_flcn;
 
