@@ -2567,6 +2567,8 @@ int nvgpu_channel_suspend_all_serviceable_ch(struct gk20a *g)
 				g->os_channel.work_completion_cancel_sync(ch);
 			}
 
+			g->ops.channel.unbind(ch);
+
 			channels_in_use = true;
 
 			active_runlist_ids |=  BIT32(ch->runlist_id);
@@ -2578,22 +2580,6 @@ int nvgpu_channel_suspend_all_serviceable_ch(struct gk20a *g)
 	if (channels_in_use) {
 		nvgpu_assert(nvgpu_runlist_reload_ids(g,
 				active_runlist_ids, false) == 0);
-
-		for (chid = 0; chid < f->num_channels; chid++) {
-			struct nvgpu_channel *ch =
-				nvgpu_channel_from_id(g, chid);
-
-			if (ch != NULL) {
-				if (nvgpu_channel_check_unserviceable(ch)) {
-					nvgpu_log_info(g, "do not unbind "
-							"recovered channel %d",
-							chid);
-				} else {
-					g->ops.channel.unbind(ch);
-				}
-				nvgpu_channel_put(ch);
-			}
-		}
 	}
 
 	nvgpu_log_fn(g, "done");
