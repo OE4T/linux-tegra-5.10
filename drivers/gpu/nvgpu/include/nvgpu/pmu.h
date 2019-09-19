@@ -45,12 +45,150 @@ struct nvgpu_pmu_perfmon;
 struct nvgpu_clk_pmupstate;
 #endif
 
+/**
+ * @file
+ * @page unit-PMU Unit PMU(Programmable Management Unit)
+ *
+ * Acronyms
+ * ========
+ * PMU    - Programmable Management Unit
+ * ACR    - Access Controlled Regions
+ * FALCON - Fast Logic Controller
+ * RTOS   - Real time operating system
+ * NS     - Non Secure
+ * LS     - Light Secure
+ * HS     - Heavy Secure
+ * VM     - virtual memory
+ *
+ * Overview
+ * ========
+ *
+ * The PMU unit is responsible for managing the PMU Engine on the GPU & the PMU
+ * RTOS ucode. The PMU unit helps to load different ucode's(iGPU-ACR & PMU RTOS)
+ * onto PMU Engine Falcon at different stages of GPU boot process. Once PMU RTOS
+ * is up then PMU Engine h/w is controlled by both PMU unit as well as PMU RTOS
+ * executing on PMU Engine Flacon. In the absence of PMU RTOS support only PMU
+ * unit controls PMU Engine by supporting below listed h/w functionalities in
+ * the PMU Engine h/w management section.
+ *
+ * Below are the two features supported by the PMU unit
+ *
+ * - The PMU Engine h/w.
+ * - The PMU RTOS.
+ *
+ * The PMU Engine h/w management
+ * -----------------------------
+ * The PMU unit is responsible for below PMU Engine h/w related functionalities:
+ *   - Reset & enable PMU Engine to bring into good known state.
+ *   - PMU Engine clock gating support configuration.
+ *   - PMU Engine interrupt configuration & handling.
+ *   - PMU Engine H/W error detection, handling & reporting to 3LSS.
+ *   - Functions to control supported h/w functionalities.
+ *
+ * The PMU RTOS management
+ * -----------------------
+ * The PMU unit is responsible for loading PMU RTOS onto PMU Engine Falcon and
+ * bootstrap. In non-secure mode(NS PMU RTOS), load & bootstrap is handled by
+ * PMU unit. In secure mode(LS PMU RTOS), signature verification followed by
+ * loading of ucode onto PMU Engine falcon is handled by HS ACR ucode and
+ * bootstrap is done by PMU unit. Upon PMU RTOS bootup, PMU RTOS sends init
+ * message to PMU unit to ACK PMU RTOS is up & ready to accept inputs from PMU
+ * unit. PMU unit decodes init message to establish communication with PMU RTOS
+ * by creating command & message queues as per init message parameters. Upon
+ * successful communication establishment, its PMU sub-unit responsible to
+ * communicate with PMU RTOS to get its tasks executed as required.
+ *
+ * Data Structures
+ * ===============
+ *
+ * The major data structures exposed by PMU unit in nvgpu is:
+ *
+ *   + struct nvgpu_pmu
+ *       The data struct holds PMU Engine h/w properties, PMU RTOS supporting
+ *       data structs, sub-unit's data structs & ops of the PMU unit which will
+ *       be populated based on the detected chip.
+ *
+ * Static Design
+ * =============
+ *
+ * PMU Initialization
+ * ------------------
+ *
+ * PMU unit initialization happens as part of early NVGPU poweron sequence by
+ * calling nvgpu_pmu_early_init(). At PMU init stage memory gets allocated for
+ * PMU unit's data struct #struct nvgpu_pmu. The data struct holds PMU Engine
+ * h/w properties, PMU RTOS supporting data structs, sub-unit's data structs &
+ * ops of the PMU unit which will be populated based on the detected chip.
+ *
+ * PMU Teardown
+ * ------------
+ *
+ * The function nvgpu_pmu_remove_support() is called from nvgpu_remove() as part
+ * of poweroff sequence to clear and free the memory space allocated for PMU
+ * unit.
+ *
+ * External APIs
+ * -------------
+ *   + nvgpu_pmu_early_init()
+ *   + nvgpu_pmu_remove_support()
+ *
+ * Dynamic Design
+ * ==============
+ *
+ * Operation listed based on features of PMU unit:
+ *
+ * PMU Engine h/w
+ * --------------
+ *   + PMU Engine reset:
+ *     Engine reset is required before loading any ucode onto
+ *     PMU Engine Falcon. The reset sequence also configures PMU Engine clock
+ *     gating & interrupts if interrupt support is enabled.
+ *   + Error detection & reporting:
+ *     Different types of PMU BAR0 error will be detected & reported to 3LSS
+ *     during ucode load & execution of ucode on PMU Engine Falcon.
+ *
+ * PMU RTOS
+ * --------
+ * Loading & bootstrap of PMU RTOS ucode on to PMU Engine Falcon differs based
+ * on secure mode.
+ *    + NS PMU RTOS: load & bootstrap is handled by PMU unit. PMU RTOS ucode
+ *      will be loaded onto IMEM/DMEM & trigger execution.
+ *    + LS PMU RTOS: signature verification followed by loading of ucode onto
+ *      PMU Engine falcon is handled by HS ACR ucode and bootstrap is done by
+ *      PMU unit.
+ *
+ * Upon successful PMU RTOS load & bootstrap, PMU subunits related to PMU RTOS
+ * will be initialized by sending subunit specific commands to PMU RTOS. Next,
+ * PMU subunit waits to receive ACK to confirm init is done. Once subunit init
+ * is successful then commands and message will be exchanged between PMU UNIT
+ * and PMU RTOS to get subunit specific operation executed.
+ *
+ * External APIs
+ * -------------
+ *   + nvgpu_pmu_reset()
+ *   + nvgpu_pmu_report_bar0_pri_err_status()
+ *   + nvgpu_pmu_rtos_init()
+ *   + nvgpu_pmu_destroy()
+ *
+ */
+
+/**
+ *  The PMU unit debugging macro
+ */
 #define nvgpu_pmu_dbg(g, fmt, args...) \
 	nvgpu_log(g, gpu_dbg_pmu, fmt, ##args)
 
-/* defined by pmu hw spec */
+/**
+ *  The PMU unit system memory VM space
+ */
 #define GK20A_PMU_VA_SIZE		(512U * 1024U * 1024U)
 
+/**
+ * The PMU's frame-buffer interface block has several slots/indices which can
+ * be bound to support DMA to various surfaces in memory. These defines give
+ * name to each index based on type of memory-aperture the index is used to
+ * access.
+ */
 #define	GK20A_PMU_DMAIDX_UCODE		U32(0)
 #define	GK20A_PMU_DMAIDX_VIRT		U32(1)
 #define	GK20A_PMU_DMAIDX_PHYS_VID	U32(2)
@@ -60,6 +198,9 @@ struct nvgpu_clk_pmupstate;
 #define	GK20A_PMU_DMAIDX_PELPG		U32(6)
 #define	GK20A_PMU_DMAIDX_END		U32(7)
 
+/**
+ * This assigns an unique index for errors in PMU unit.
+ */
 #define	PMU_BAR0_SUCCESS		0U
 #define	PMU_BAR0_HOST_READ_TOUT		1U
 #define	PMU_BAR0_HOST_WRITE_TOUT	2U
@@ -134,6 +275,11 @@ struct pmu_ucode_desc {
 };
 #endif
 
+/**
+ * This data struct holds PMU Engine h/w properties, PMU RTOS supporting data
+ * structs, sub-unit's data structs & ops of the PMU unit which will be
+ * populated based on the detected chip.
+ */
 struct nvgpu_pmu {
 	struct gk20a *g;
 	bool sw_ready;
@@ -187,15 +333,57 @@ int nvgpu_pmu_rtos_init(struct gk20a *g, struct nvgpu_pmu *pmu);
 int nvgpu_pmu_destroy(struct gk20a *g, struct nvgpu_pmu *pmu);
 #endif
 
-/* PMU H/W error functions */
+/**
+ * @brief Report PMU BAR0 error to 3LSS.
+ *
+ * @param g           [in] The GPU driver struct.
+ * @param bar0_status [in] bar0 error status value.
+ * @param err_type    [in] Error type.
+ *
+ * This function reports PMU BAR0 error to 3LSS.
+ *
+ */
 void nvgpu_pmu_report_bar0_pri_err_status(struct gk20a *g, u32 bar0_status,
 	u32 error_type);
 
-/* PMU engine reset function */
+/**
+ * @brief Reset the PMU Engine.
+ *
+ * @param g   [in] The GPU driver struct.
+ *
+ * Dose the PMU Engine reset to bring into good known state. The reset sequence
+ * also configures PMU Engine clock gating & interrupts if interrupt support is
+ * enabled.
+ *
+ * @return 0 in case of success, < 0 in case of failure.
+ */
 int nvgpu_pmu_reset(struct gk20a *g);
 
-/* PMU init/setup functions */
+/**
+ * @brief PMU early initialization to allocate memory for PMU unit & set PMU
+ *        Engine h/w properties, PMU RTOS supporting data structs, sub-unit's
+ *        data structs & ops of the PMU unit by populating data based on the
+ *        detected chip,
+ *
+ * @param g         [in] The GPU driver struct.
+ * @param nvgpu_pmu [in] The PMU unit.
+ *
+ * Initializes PMU unit data struct in the GPU driver based on detected chip.
+ * Allocate memory for #nvgpu_pmu data struct & set PMU Engine h/w properties,
+ * PMU RTOS supporting data structs & ops of the PMU unit by populating data
+ * based on the detected chip.
+ *
+ * @return 0 in case of success, < 0 in case of failure.
+ */
 int nvgpu_pmu_early_init(struct gk20a *g, struct nvgpu_pmu **pmu_p);
+
+/**
+ * @brief PMU remove to free space allocted for PMU unit
+ *
+ * @param g [in] The GPU
+ * @param nvgpu_pmu [in] The PMU unit.
+ *
+ */
 void nvgpu_pmu_remove_support(struct gk20a *g, struct nvgpu_pmu *pmu);
 
 #endif /* NVGPU_PMU_H */

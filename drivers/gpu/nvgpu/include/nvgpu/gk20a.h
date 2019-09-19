@@ -43,6 +43,7 @@
  *   - @ref unit-os_utils
  *   - @ref unit-acr
  *   - @ref unit-cg
+ *   - @ref unit-pmu
  *   - Etc, etc.
  *
  * NVGPU Software Unit Design Documentation
