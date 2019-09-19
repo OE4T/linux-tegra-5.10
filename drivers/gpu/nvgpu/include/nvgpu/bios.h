@@ -1492,7 +1492,7 @@ struct nvgpu_bios {
 };
 int nvgpu_bios_devinit(struct gk20a *g, struct nvgpu_bios *bios);
 int nvgpu_bios_preos_wait_for_halt(struct gk20a *g, struct nvgpu_bios *bios);
-int nvgpu_bios_sw_init(struct gk20a *g, struct nvgpu_bios **bios);
+int nvgpu_bios_sw_init(struct gk20a *g);
 void nvgpu_bios_sw_deinit(struct gk20a *g, struct nvgpu_bios *bios);
 int nvgpu_bios_parse_rom(struct gk20a *g);
 u8 nvgpu_bios_read_u8(struct gk20a *g, u32 offset);

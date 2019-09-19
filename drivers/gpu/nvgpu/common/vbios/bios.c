@@ -151,8 +151,7 @@ struct bit_token *nvgpu_bios_get_bit_token(struct gk20a *g, u8 token_id)
 	return token;
 }
 
-int nvgpu_bios_sw_init(struct gk20a *g,
-		struct nvgpu_bios **bios)
+int nvgpu_bios_sw_init(struct gk20a *g)
 {
 	u32 ver = nvgpu_safe_add_u32(g->params.gpu_arch, g->params.gpu_impl);
 	int err = 0;
@@ -167,35 +166,35 @@ int nvgpu_bios_sw_init(struct gk20a *g,
 		goto done;
 	}
 
-	if (*bios != NULL) {
+	if (g->bios != NULL) {
 		/* skip alloc/reinit for unrailgate sequence */
 		nvgpu_pmu_dbg(g, "skip bios init for unrailgate sequence");
 		goto done;
 	}
 
-	*bios = (struct nvgpu_bios *)
+	g->bios = (struct nvgpu_bios *)
 		nvgpu_kzalloc(g, sizeof(struct nvgpu_bios));
-	if (*bios == NULL) {
+	if (g->bios == NULL) {
 		err = -ENOMEM;
 		goto done;
 	}
 
 	switch (ver) {
 	case NVGPU_GPUID_GV100:
-		nvgpu_gv100_bios_sw_init(g, *bios);
+		nvgpu_gv100_bios_sw_init(g, g->bios);
 		break;
 
 	case NVGPU_GPUID_TU104:
-		nvgpu_tu104_bios_sw_init(g, *bios);
+		nvgpu_tu104_bios_sw_init(g, g->bios);
 		break;
 	default:
-		nvgpu_kfree(g, *bios);
+		nvgpu_kfree(g, g->bios);
 		err = 0;
 		break;
 	}
 
-	if ((*bios)->init != NULL) {
-		err = (*bios)->init(g);
+	if ((g->bios)->init != NULL) {
+		err = g->bios->init(g);
 		if (err != 0) {
 			nvgpu_falcon_sw_free(g, FALCON_ID_FECS);
 		}

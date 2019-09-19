@@ -1460,8 +1460,7 @@ struct gpu_ops {
 	} ptimer;
 
 	struct {
-		int (*bios_sw_init)(struct gk20a *g,
-					struct nvgpu_bios **bios);
+		int (*bios_sw_init)(struct gk20a *g);
 		void (*bios_sw_deinit)(struct gk20a *g,
 					struct nvgpu_bios *bios);
 		u32 (*get_aon_secure_scratch_reg)(struct gk20a *g, u32 i);

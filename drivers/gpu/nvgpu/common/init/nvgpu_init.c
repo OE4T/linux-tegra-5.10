@@ -371,7 +371,7 @@ int nvgpu_finalize_poweron(struct gk20a *g)
 	}
 
 #ifdef CONFIG_NVGPU_DGPU
-	err = g->ops.bios.bios_sw_init(g, &g->bios);
+	err = g->ops.bios.bios_sw_init(g);
 	if (err != 0) {
 		nvgpu_err(g, "BIOS SW init failed %d", err);
 		goto done;
