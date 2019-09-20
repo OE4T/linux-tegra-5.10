@@ -41,6 +41,7 @@
 				micbias-voltage-m-volts = <3000>;
 				VDDA-supply = <&hdr40_vdd_3v3>;
 				VDDIO-supply = <&hdr40_vdd_3v3>;
+				#sound-dai-cells = <0>;
 				status = "okay";
 			};
 		};
@@ -49,7 +50,7 @@
 	fragment@2 {
 		target = <&tegra_sound>;
 		__overlay__ {
-			nvidia,audio-routing =
+			nvidia-audio-card,routing =
 				"x Headphone",		"x HP_OUT",
 				"x MIC_IN",		"x Mic",
 				"x ADC",		"x Mic Bias";
@@ -60,10 +61,12 @@
 		target = <&hdr40_snd_link_i2s>;
 		__overlay__ {
 			link-name = "fe-pi-audio-z-v2";
-			codec-dai = <&sgtl5000>;
-			codec-dai-name = "sgtl5000";
 			bitclock-master;
 			frame-master;
+
+			codec {
+				sound-dai = <&sgtl5000>;
+			};
 		};
 	};
 
