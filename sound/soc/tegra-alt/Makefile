@@ -14,6 +14,7 @@ CFLAGS_tegra_pcm_alt.o 				+= -Wno-shift-count-overflow
 snd-soc-tegra-alt-utils-objs 			:= utils/tegra_asoc_utils_alt.o		\
 							utils/tegra_pcm_alt.o		\
 							utils/tegra_asoc_machine_alt.o	\
+							utils/tegra_asoc_dt_parser.o \
 							utils/tegra_isomgr_bw_alt.o	\
 							utils/ahub_unit_fpga_clock.o	\
 							utils/tegra210_xbar_utils_alt.o
