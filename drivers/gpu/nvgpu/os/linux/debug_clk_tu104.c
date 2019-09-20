@@ -203,6 +203,20 @@ static const struct file_operations vftable_fops = {
 	.release = single_release,
 };
 
+static int tu104_change_seq_time(void *data , u64 *val)
+{
+	struct gk20a *g = (struct gk20a *)data;
+	s64 readval;
+
+	if (!g->ops.clk.get_change_seq_time)
+		return -EINVAL;
+
+	g->ops.clk.get_change_seq_time(g, &readval);
+	*val = (u64)readval;
+	return 0;
+}
+DEFINE_SIMPLE_ATTRIBUTE(change_seq_fops, tu104_change_seq_time, NULL, "%llu\n");
+
 int tu104_clk_init_debugfs(struct gk20a *g)
 {
 	struct nvgpu_os_linux *l = nvgpu_os_linux_from_gk20a(g);
@@ -226,6 +240,8 @@ int tu104_clk_init_debugfs(struct gk20a *g)
 				g, &xbar_cfc_fops);
 	d = debugfs_create_file("gpc", S_IRUGO | S_IWUSR, clk_freq_ctlr_root,
 				g, &gpc_cfc_fops);
+	d = debugfs_create_file("change_seq_time_us", S_IRUGO, clocks_root,
+				g, &change_seq_fops);
 
 	nvgpu_log(g, gpu_dbg_info, "g=%p", g);
 

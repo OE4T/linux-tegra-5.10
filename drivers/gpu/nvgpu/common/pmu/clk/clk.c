@@ -282,6 +282,7 @@ int nvgpu_clk_set_req_fll_clk_ps35(struct gk20a *g,
 	struct nvgpu_pmu *pmu = g->pmu;
 	struct nv_pmu_rpc_perf_change_seq_queue_change rpc;
 	struct ctrl_perf_change_seq_change_input change_input;
+	struct change_seq_pmu *change_seq_pmu = &g->perf_pmu->changeseq_pmu;
 	int status = 0;
 	u8 gpcclk_domain = 0U;
 	u32 gpcclk_voltuv = 0U, gpcclk_clkmhz = 0U;
@@ -340,6 +341,8 @@ int nvgpu_clk_set_req_fll_clk_ps35(struct gk20a *g,
 	rpc.change = change_input;
 	rpc.change.pstate_index =
 			nvgpu_get_pstate_entry_idx(g, CTRL_PERF_PSTATE_P0);
+	change_seq_pmu->change_state = 0U;
+	change_seq_pmu->start_time = nvgpu_current_time_us();
 	PMU_RPC_EXECUTE_CPB(status, pmu, PERF,
 			CHANGE_SEQ_QUEUE_CHANGE, &rpc, 0);
 	if (status != 0) {
@@ -349,8 +352,11 @@ int nvgpu_clk_set_req_fll_clk_ps35(struct gk20a *g,
 
 	/* Wait for sync change to complete. */
 	if ((rpc.change.flags & CTRL_PERF_CHANGE_SEQ_CHANGE_ASYNC) == 0U) {
-		nvgpu_msleep(20);
+		pmu_wait_message_cond(g->pmu,
+			nvgpu_get_poll_timeout(g),
+			&change_seq_pmu->change_state, 1U);
 	}
+	change_seq_pmu->stop_time = nvgpu_current_time_us();
 	return status;
 }
 

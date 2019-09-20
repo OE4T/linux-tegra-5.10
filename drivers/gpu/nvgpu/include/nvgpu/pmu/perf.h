@@ -78,6 +78,9 @@ struct change_seq_pmu {
 	struct change_seq_pmu_script script_curr;
 	struct change_seq_pmu_script script_last;
 	struct change_seq_pmu_script script_query;
+	u32 change_state;
+	s64 start_time;
+	s64 stop_time;
 };
 
 struct perf_pmupstate {

@@ -59,6 +59,7 @@ static int tu104_pmu_handle_perf_event(struct gk20a *g, void *pmumsg)
 	struct pmu_nvgpu_rpc_perf_event *msg =
 			(struct pmu_nvgpu_rpc_perf_event *)pmumsg;
 	struct perf_pmupstate *perf_pmu = g->perf_pmu;
+	struct change_seq_pmu *change_pmu = &g->perf_pmu->changeseq_pmu;
 
 	nvgpu_log_fn(g, " ");
 	switch (msg->rpc_hdr.function) {
@@ -67,6 +68,7 @@ static int tu104_pmu_handle_perf_event(struct gk20a *g, void *pmumsg)
 		(void) nvgpu_cond_signal_interruptible(&perf_pmu->vfe_init.wq);
 		break;
 	case NV_PMU_RPC_ID_PERF_SEQ_COMPLETION:
+		change_pmu->change_state = 1U;
 		nvgpu_log_info(g, "Change Seq Completed");
 		break;
 	case NV_PMU_RPC_ID_PERF_PSTATES_INVALIDATE:

@@ -36,4 +36,5 @@ int tu104_clk_domain_get_f_points(
 	u32 *pfpointscount,
 	u16 *pfreqpointsinmhz);
 unsigned long tu104_clk_maxrate(struct gk20a *g, u32 api_domain);
+void tu104_get_change_seq_time(struct gk20a *g, s64 *change_time);
 #endif /* CLK_TU104_H */

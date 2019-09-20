@@ -34,6 +34,7 @@
 #include <nvgpu/soc.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/clk.h>
+#include <nvgpu/pmu/perf.h>
 #include <nvgpu/clk_arb.h>
 #include <nvgpu/pmu/clk/clk.h>
 #include <nvgpu/pmu/clk/clk_domain.h>
@@ -367,4 +368,12 @@ unsigned long tu104_clk_maxrate(struct gk20a *g, u32 api_domain)
 	}
 
 	return (max_mhz * 1000UL * 1000UL);
+}
+
+void tu104_get_change_seq_time(struct gk20a *g, s64 *change_time)
+{
+	struct change_seq_pmu *change_seq_pmu = &g->perf_pmu->changeseq_pmu;
+	s64 diff = change_seq_pmu->stop_time - change_seq_pmu->start_time;
+
+	*change_time = diff;
 }

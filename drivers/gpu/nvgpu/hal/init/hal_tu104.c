@@ -1227,6 +1227,7 @@ static const struct gpu_ops tu104_ops = {
 		.perf_pmu_vfe_load = nvgpu_perf_pmu_vfe_load_ps35,
 		.clk_domain_get_f_points = tu104_clk_domain_get_f_points,
 		.get_maxrate = tu104_clk_maxrate,
+		.get_change_seq_time = tu104_get_change_seq_time,
 	},
 #ifdef CONFIG_NVGPU_CLK_ARB
 	.clk_arb = {

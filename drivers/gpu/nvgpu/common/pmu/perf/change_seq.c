@@ -100,6 +100,7 @@ int nvgpu_perf_change_seq_sw_setup(struct gk20a *g)
 	perf_change_seq_pmu->b_lock = false;
 	perf_change_seq_pmu->cpu_step_id_mask = 0;
 	perf_change_seq_pmu->cpu_adverised_step_id_mask = 0;
+	perf_change_seq_pmu->change_state = 0U;
 
 exit:
 	return status;
