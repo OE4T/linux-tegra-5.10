@@ -1429,6 +1429,46 @@
         "unit": "nvgpu-pmu"
     },
     {
+        "test": "gr_falcon_init",
+        "test_level": 0,
+        "unit": "nvgpu_gr_falcon"
+    },
+    {
+        "test": "gr_falcon_init_ctxsw",
+        "test_level": 0,
+        "unit": "nvgpu_gr_falcon"
+    },
+    {
+        "test": "gr_falcon_nonsecure_gpccs_init_ctxsw",
+        "test_level": 0,
+        "unit": "nvgpu_gr_falcon"
+    },
+    {
+        "test": "gr_falcon_recovery_ctxsw",
+        "test_level": 0,
+        "unit": "nvgpu_gr_falcon"
+    },
+    {
+        "test": "gr_falcon_nonsecure_gpccs_recovery_ctxsw",
+        "test_level": 0,
+        "unit": "nvgpu_gr_falcon"
+    },
+    {
+        "test": "gr_falcon_query_test",
+        "test_level": 0,
+        "unit": "nvgpu_gr_falcon"
+    },
+    {
+        "test": "gr_falcon_init_ctx_state",
+        "test_level": 0,
+        "unit": "nvgpu_gr_falcon"
+    },
+    {
+        "test": "gr_falcon_deinit",
+        "test_level": 0,
+        "unit": "nvgpu_gr_falcon"
+    },
+    {
         "test": "gr_init_setup",
         "test_level": 0,
         "unit": "nvgpu_gr_config"
