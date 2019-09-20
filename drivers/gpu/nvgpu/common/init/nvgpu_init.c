@@ -523,11 +523,13 @@ int nvgpu_finalize_poweron(struct gk20a *g)
 #endif
 
 #ifdef CONFIG_NVGPU_LS_PMU
-	err = nvgpu_pmu_rtos_init(g);
-	if (err != 0) {
-		nvgpu_err(g, "failed to init gk20a pmu");
-		nvgpu_mutex_release(&g->tpc_pg_lock);
-		goto done;
+	if (g->ops.pmu.pmu_rtos_init != NULL) {
+		err = g->ops.pmu.pmu_rtos_init(g);
+		if (err != 0) {
+			nvgpu_err(g, "failed to init gk20a pmu");
+			nvgpu_mutex_release(&g->tpc_pg_lock);
+			goto done;
+		}
 	}
 #endif
 

@@ -1177,6 +1177,7 @@ static const struct gpu_ops tu104_ops = {
 	.pmu = {
 		/* Init */
 		.pmu_early_init = nvgpu_pmu_early_init,
+		.pmu_rtos_init = nvgpu_pmu_rtos_init,
 		.pmu_pstate_sw_setup = nvgpu_pmu_pstate_sw_setup,
 		.pmu_pstate_pmu_setup = nvgpu_pmu_pstate_pmu_setup,
 		.pmu_destroy = nvgpu_pmu_destroy,

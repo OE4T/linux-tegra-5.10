@@ -1173,6 +1173,7 @@ static const struct gpu_ops gv11b_ops = {
 		.validate_mem_integrity = gv11b_pmu_validate_mem_integrity,
 #ifdef CONFIG_NVGPU_LS_PMU
 		/* Init */
+		.pmu_rtos_init = nvgpu_pmu_rtos_init,
 		.pmu_pstate_sw_setup = nvgpu_pmu_pstate_sw_setup,
 		.pmu_pstate_pmu_setup = nvgpu_pmu_pstate_pmu_setup,
 		.pmu_destroy = nvgpu_pmu_destroy,

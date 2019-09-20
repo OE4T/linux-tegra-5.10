@@ -884,6 +884,7 @@ static const struct gpu_ops gm20b_ops = {
 		.pmu_pstate_pmu_setup = nvgpu_pmu_pstate_pmu_setup,
 		.pmu_destroy = nvgpu_pmu_destroy,
 		.pmu_early_init = nvgpu_pmu_early_init,
+		.pmu_rtos_init = nvgpu_pmu_rtos_init,
 
 		.is_pmu_supported = gm20b_is_pmu_supported,
 		.falcon_base_addr = gk20a_pmu_falcon_base_addr,
