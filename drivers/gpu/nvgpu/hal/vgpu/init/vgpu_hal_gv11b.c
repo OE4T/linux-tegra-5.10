@@ -141,11 +141,17 @@
 
 #include <nvgpu/hw/gv11b/hw_pwr_gv11b.h>
 
-static void vgpu_gv11b_init_gpu_characteristics(struct gk20a *g)
+static int vgpu_gv11b_init_gpu_characteristics(struct gk20a *g)
 {
+	int err;
+
 	nvgpu_log_fn(g, " ");
 
-	vgpu_init_gpu_characteristics(g);
+	err = vgpu_init_gpu_characteristics(g);
+	if (err != 0) {
+		nvgpu_err(g, "failed to init GPU characteristics");
+		return err;
+	}
 
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_TSG_SUBCONTEXTS, true);
 	nvgpu_set_enabled(g, NVGPU_USE_COHERENT_SYSMEM, true);
@@ -160,6 +166,8 @@ static void vgpu_gv11b_init_gpu_characteristics(struct gk20a *g)
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_PREEMPTION_GFXP, true);
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_PLATFORM_ATOMIC, true);
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_SET_CTX_MMU_DEBUG_MODE, true);
+
+	return 0;
 }
 
 static const struct gpu_ops vgpu_gv11b_ops = {

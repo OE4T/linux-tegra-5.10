@@ -43,7 +43,7 @@ struct gops_channel {
 	void (*force_ctx_reload)(struct nvgpu_channel *ch);
 	void (*abort_clean_up)(struct nvgpu_channel *ch);
 	int (*suspend_all_serviceable_ch)(struct gk20a *g);
-	void (*resume_all_serviceable_ch)(struct gk20a *g);
+	int (*resume_all_serviceable_ch)(struct gk20a *g);
 	void (*set_error_notifier)(struct nvgpu_channel *ch, u32 error);
 	void (*reset_faulted)(struct gk20a *g, struct nvgpu_channel *ch,
 			bool eng, bool pbdma);

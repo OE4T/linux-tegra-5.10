@@ -26,7 +26,7 @@
 
 struct gk20a;
 
-void gp10b_ptimer_config_gr_tick_freq(struct gk20a *g);
+int gp10b_ptimer_config_gr_tick_freq(struct gk20a *g);
 
 #endif /* CONFIG_NVGPU_DEBUGGER */
 #endif /* PTIMER_GP10B_H */

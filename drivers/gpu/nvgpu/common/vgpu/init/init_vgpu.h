@@ -27,7 +27,7 @@ struct gk20a;
 
 u64 vgpu_connect(void);
 void vgpu_remove_support_common(struct gk20a *g);
-void vgpu_init_gpu_characteristics(struct gk20a *g);
+int vgpu_init_gpu_characteristics(struct gk20a *g);
 int vgpu_get_constants(struct gk20a *g);
 int vgpu_finalize_poweron_common(struct gk20a *g);
 

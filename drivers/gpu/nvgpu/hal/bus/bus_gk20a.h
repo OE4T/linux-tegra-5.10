@@ -30,7 +30,7 @@ struct nvgpu_sgt;
 struct nvgpu_sgl;
 
 void gk20a_bus_isr(struct gk20a *g);
-void gk20a_bus_init_hw(struct gk20a *g);
+int gk20a_bus_init_hw(struct gk20a *g);
 #ifdef CONFIG_NVGPU_DGPU
 u32 gk20a_bus_set_bar0_window(struct gk20a *g, struct nvgpu_mem *mem,
 		       struct nvgpu_sgt *sgt,

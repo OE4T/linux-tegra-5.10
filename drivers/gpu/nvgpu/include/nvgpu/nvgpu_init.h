@@ -189,8 +189,10 @@ void nvgpu_check_gpu_state(struct gk20a *g);
  * @param g [in] The GPU
  *
  * This is called during HAL initialization.
+ *
+ * @return 0 in case of success, < 0 in case of failure.
  */
-void nvgpu_init_gpu_characteristics(struct gk20a *g);
+int nvgpu_init_gpu_characteristics(struct gk20a *g);
 
 /**
  * @brief Takes a reference for keeping gpu busy but not try to initialize it.

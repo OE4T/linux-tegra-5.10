@@ -30,7 +30,7 @@ struct gk20a;
 #ifdef CONFIG_NVGPU_HAL_NON_FUSA
 void gm20b_priv_ring_isr(struct gk20a *g);
 #endif
-void gm20b_priv_ring_enable(struct gk20a *g);
+int gm20b_priv_ring_enable(struct gk20a *g);
 void gm20b_priv_set_timeout_settings(struct gk20a *g);
 u32 gm20b_priv_ring_enum_ltc(struct gk20a *g);
 

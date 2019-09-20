@@ -33,7 +33,7 @@
 
 #include <nvgpu/hw/gk20a/hw_bus_gk20a.h>
 
-void gk20a_bus_init_hw(struct gk20a *g)
+int gk20a_bus_init_hw(struct gk20a *g)
 {
 	u32 intr_en_mask = 0;
 
@@ -48,6 +48,8 @@ void gk20a_bus_init_hw(struct gk20a *g)
 	if (g->ops.bus.configure_debug_bus != NULL) {
 		g->ops.bus.configure_debug_bus(g);
 	}
+
+	return 0;
 }
 
 void gk20a_bus_isr(struct gk20a *g)

@@ -98,7 +98,7 @@ void gm20b_mc_intr_mask(struct gk20a *g)
 		mc_intr_en_1_inta_disabled_f());
 }
 
-void gm20b_mc_intr_enable(struct gk20a *g)
+int gm20b_mc_intr_enable(struct gk20a *g)
 {
 	u32 eng_intr_mask = nvgpu_engine_interrupt_mask(g);
 
@@ -116,6 +116,8 @@ void gm20b_mc_intr_enable(struct gk20a *g)
 		     | eng_intr_mask);
 	nvgpu_writel(g, mc_intr_en_0_r(),
 		mc_intr_en_0_inta_hardware_f());
+
+	return 0;
 }
 
 void gm20b_mc_intr_pmu_unit_config(struct gk20a *g, bool enable)

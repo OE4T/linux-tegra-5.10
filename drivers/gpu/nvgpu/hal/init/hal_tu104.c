@@ -219,9 +219,15 @@
 
 #include <nvgpu/hw/tu104/hw_pwr_tu104.h>
 
-static void tu104_init_gpu_characteristics(struct gk20a *g)
+static int tu104_init_gpu_characteristics(struct gk20a *g)
 {
-	nvgpu_init_gpu_characteristics(g);
+	int err;
+
+	err = nvgpu_init_gpu_characteristics(g);
+	if (err != 0) {
+		nvgpu_err(g, "failed to init GPU characteristics");
+		return err;
+	}
 
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_TSG_SUBCONTEXTS, true);
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_GET_TEMPERATURE, true);
@@ -231,6 +237,8 @@ static void tu104_init_gpu_characteristics(struct gk20a *g)
 	}
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_USERMODE_SUBMIT, true);
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_DEVICE_EVENTS, true);
+
+	return 0;
 }
 
 

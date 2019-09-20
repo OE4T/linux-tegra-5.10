@@ -103,11 +103,17 @@ void vgpu_remove_support_common(struct gk20a *g)
 	nvgpu_kfree(g, priv->freqs);
 }
 
-void vgpu_init_gpu_characteristics(struct gk20a *g)
+int vgpu_init_gpu_characteristics(struct gk20a *g)
 {
+	int err;
+
 	nvgpu_log_fn(g, " ");
 
-	nvgpu_init_gpu_characteristics(g);
+	err = nvgpu_init_gpu_characteristics(g);
+	if (err != 0) {
+		nvgpu_err(g, "failed to init GPU characteristics");
+		return err;
+	}
 
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_PREEMPTION_GFXP, true);
 
@@ -116,6 +122,8 @@ void vgpu_init_gpu_characteristics(struct gk20a *g)
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_RESCHEDULE_RUNLIST, false);
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_SPARSE_ALLOCS, false);
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_SET_CTX_MMU_DEBUG_MODE, false);
+
+	return 0;
 }
 
 int vgpu_get_constants(struct gk20a *g)
@@ -204,9 +212,17 @@ int vgpu_finalize_poweron_common(struct gk20a *g)
 	}
 #endif
 
-	g->ops.chip_init_gpu_characteristics(g);
+	err = g->ops.chip_init_gpu_characteristics(g);
+	if (err != 0) {
+		nvgpu_err(g, "failed to init GPU characteristics");
+		return err;
+	}
 
-	g->ops.channel.resume_all_serviceable_ch(g);
+	err = g->ops.channel.resume_all_serviceable_ch(g);
+	if (err != 0) {
+		nvgpu_err(g, "Failed to resume channels");
+		return err;
+	}
 
 	return 0;
 }

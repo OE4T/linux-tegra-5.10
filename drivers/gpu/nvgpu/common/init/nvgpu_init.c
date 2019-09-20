@@ -377,9 +377,18 @@ int nvgpu_finalize_poweron(struct gk20a *g)
 		goto done;
 	}
 #endif
-	g->ops.bus.init_hw(g);
 
-	g->ops.priv_ring.enable_priv_ring(g);
+	err = g->ops.bus.init_hw(g);
+	if (err != 0) {
+		nvgpu_err(g, "failed to init bus HW");
+		goto done;
+	}
+
+	err = g->ops.priv_ring.enable_priv_ring(g);
+	if (err != 0) {
+		nvgpu_err(g, "failed to init priv_ring");
+		goto done;
+	}
 
 	/* TBD: move this after graphics init in which blcg/slcg is enabled.
 	   This function removes SlowdownOnBoot which applies 32x divider
@@ -458,7 +467,11 @@ int nvgpu_finalize_poweron(struct gk20a *g)
 		}
 	}
 
-	g->ops.mc.intr_enable(g);
+	err = g->ops.mc.intr_enable(g);
+	if (err != 0) {
+		nvgpu_err(g, "failed to enable interrupts");
+		goto done;
+	}
 
 	/*
 	 *  Power gate the chip as per the TPC PG mask
@@ -607,7 +620,12 @@ int nvgpu_finalize_poweron(struct gk20a *g)
 	}
 #endif
 
-	g->ops.chip_init_gpu_characteristics(g);
+	err = g->ops.chip_init_gpu_characteristics(g);
+	if (err != 0) {
+		nvgpu_err(g, "failed to init chip gpu characteristics");
+		goto done;
+	}
+
 
 #ifdef CONFIG_NVGPU_DEBUGGER
 	/* Restore the debug setting */
@@ -670,7 +688,11 @@ int nvgpu_finalize_poweron(struct gk20a *g)
 #endif
 
 	if (g->ops.channel.resume_all_serviceable_ch != NULL) {
-		g->ops.channel.resume_all_serviceable_ch(g);
+		err = g->ops.channel.resume_all_serviceable_ch(g);
+		if (err != 0) {
+			nvgpu_err(g, "Failed to resume channels");
+			goto done;
+		}
 	}
 
 	goto exit;
@@ -703,7 +725,7 @@ int nvgpu_can_busy(struct gk20a *g)
 	}
 }
 
-void nvgpu_init_gpu_characteristics(struct gk20a *g)
+int nvgpu_init_gpu_characteristics(struct gk20a *g)
 {
 #ifdef NV_BUILD_CONFIGURATION_IS_SAFETY
 	nvgpu_set_enabled(g, NVGPU_DRIVER_REDUCED_PROFILE, true);
@@ -751,6 +773,8 @@ void nvgpu_init_gpu_characteristics(struct gk20a *g)
 		g->ops.gr.init_cyclestats(g);
 	}
 #endif
+
+	return 0;
 }
 
 static struct gk20a *gk20a_from_refcount(struct nvgpu_ref *refcount)

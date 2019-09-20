@@ -2635,7 +2635,7 @@ int nvgpu_channel_suspend_all_serviceable_ch(struct gk20a *g)
 	return 0;
 }
 
-void nvgpu_channel_resume_all_serviceable_ch(struct gk20a *g)
+int nvgpu_channel_resume_all_serviceable_ch(struct gk20a *g)
 {
 	struct nvgpu_fifo *f = &g->fifo;
 	u32 chid;
@@ -2668,6 +2668,8 @@ void nvgpu_channel_resume_all_serviceable_ch(struct gk20a *g)
 	}
 
 	nvgpu_log_fn(g, "done");
+
+	return 0;
 }
 
 void nvgpu_channel_semaphore_wakeup(struct gk20a *g, bool post_events)

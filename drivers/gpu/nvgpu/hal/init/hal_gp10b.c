@@ -153,11 +153,19 @@
 
 #include <nvgpu/hw/gp10b/hw_pwr_gp10b.h>
 
-static void gp10b_init_gpu_characteristics(struct gk20a *g)
+static int gp10b_init_gpu_characteristics(struct gk20a *g)
 {
-	nvgpu_init_gpu_characteristics(g);
+	int err;
+
+	err = nvgpu_init_gpu_characteristics(g);
+	if (err != 0) {
+		nvgpu_err(g, "failed to init GPU characteristics");
+		return err;
+	}
 	g->ops.gr.ecc.detect(g);
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_RESCHEDULE_RUNLIST, true);
+
+	return 0;
 }
 
 static const struct gpu_ops gp10b_ops = {

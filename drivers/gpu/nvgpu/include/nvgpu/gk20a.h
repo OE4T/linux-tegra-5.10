@@ -1365,7 +1365,7 @@ struct gpu_ops {
 #endif
 	struct {
 		void (*intr_mask)(struct gk20a *g);
-		void (*intr_enable)(struct gk20a *g);
+		int (*intr_enable)(struct gk20a *g);
 		void (*intr_pmu_unit_config)(struct gk20a *g,
 				bool enable);
 		void (*isr_stall)(struct gk20a *g);
@@ -1429,10 +1429,10 @@ struct gpu_ops {
 #endif
 
 	u32 (*get_litter_value)(struct gk20a *g, int value);
-	void (*chip_init_gpu_characteristics)(struct gk20a *g);
+	int (*chip_init_gpu_characteristics)(struct gk20a *g);
 
 	struct {
-		void (*init_hw)(struct gk20a *g);
+		int (*init_hw)(struct gk20a *g);
 		void (*isr)(struct gk20a *g);
 		int (*bar1_bind)(struct gk20a *g, struct nvgpu_mem *bar1_inst);
 		int (*bar2_bind)(struct gk20a *g, struct nvgpu_mem *bar1_inst);
@@ -1455,7 +1455,7 @@ struct gpu_ops {
 			struct nvgpu_cpu_time_correlation_sample *samples);
 #endif
 #ifdef CONFIG_NVGPU_DEBUGGER
-		void (*config_gr_tick_freq)(struct gk20a *g);
+		int (*config_gr_tick_freq)(struct gk20a *g);
 #endif
 	} ptimer;
 
@@ -1546,7 +1546,7 @@ struct gpu_ops {
 		int (*fbp_init_support)(struct gk20a *g);
 	} fbp;
 	struct {
-		void (*enable_priv_ring)(struct gk20a *g);
+		int (*enable_priv_ring)(struct gk20a *g);
 		void (*isr)(struct gk20a *g);
 		void (*decode_error_code)(struct gk20a *g, u32 error_code);
 		void (*set_ppriv_timeout_settings)(struct gk20a *g);

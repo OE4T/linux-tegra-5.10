@@ -35,7 +35,7 @@
 
 #include <nvgpu/hw/gv100/hw_mc_gv100.h>
 
-void mc_gv100_intr_enable(struct gk20a *g)
+int mc_gv100_intr_enable(struct gk20a *g)
 {
 	u32 eng_intr_mask = nvgpu_engine_interrupt_mask(g);
 
@@ -62,6 +62,7 @@ void mc_gv100_intr_enable(struct gk20a *g)
 	nvgpu_writel(g, mc_intr_en_set_r(NVGPU_MC_INTR_NONSTALLING),
 			g->mc_intr_mask_restore[NVGPU_MC_INTR_NONSTALLING]);
 
+	return 0;
 }
 
 bool gv100_mc_is_intr_nvlink_pending(struct gk20a *g, u32 mc_intr_0)

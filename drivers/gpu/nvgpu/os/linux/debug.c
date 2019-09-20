@@ -199,6 +199,7 @@ static ssize_t disable_bigpage_write(struct file *file, const char __user *user_
 	int buf_size;
 	bool bv;
 	struct gk20a *g = file->private_data;
+	int err;
 
 	buf_size = min(count, (sizeof(buf)-1));
 	if (copy_from_user(buf, user_buf, buf_size))
@@ -206,7 +207,11 @@ static ssize_t disable_bigpage_write(struct file *file, const char __user *user_
 
 	if (strtobool(buf, &bv) == 0) {
 		g->mm.disable_bigpage = bv;
-		nvgpu_init_gpu_characteristics(g);
+		err = nvgpu_init_gpu_characteristics(g);
+		if (err != 0) {
+			nvgpu_err(g, "failed to init GPU characteristics");
+			return -ENOSYS;
+		}
 	}
 
 	return count;

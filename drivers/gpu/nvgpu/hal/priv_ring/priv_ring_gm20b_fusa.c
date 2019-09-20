@@ -36,12 +36,12 @@
 #include <nvgpu/hw/gm20b/hw_pri_ringstation_sys_gm20b.h>
 #include <nvgpu/hw/gm20b/hw_pri_ringstation_gpc_gm20b.h>
 
-void gm20b_priv_ring_enable(struct gk20a *g)
+int gm20b_priv_ring_enable(struct gk20a *g)
 {
 #ifdef CONFIG_NVGPU_SIM
 	if (nvgpu_is_enabled(g, NVGPU_IS_FMODEL)) {
 		nvgpu_log_info(g, "priv ring is already enabled");
-		return;
+		return 0;
 	}
 #endif
 
@@ -54,6 +54,8 @@ void gm20b_priv_ring_enable(struct gk20a *g)
 	nvgpu_writel(g, pri_ringstation_sys_decode_config_r(), 0x2);
 
 	(void) nvgpu_readl(g, pri_ringstation_sys_decode_config_r());
+
+	return 0;
 }
 
 void gm20b_priv_set_timeout_settings(struct gk20a *g)

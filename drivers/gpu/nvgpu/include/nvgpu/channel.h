@@ -887,8 +887,10 @@ int nvgpu_channel_suspend_all_serviceable_ch(struct gk20a *g);
  * @param g[in]		Pointer to GPU driver struct.
  *
  * Bind all serviceable channels contexts back to hardware.
+ *
+ * @return 0 in case of success, < 0 in case of failure.
  */
-void nvgpu_channel_resume_all_serviceable_ch(struct gk20a *g);
+int nvgpu_channel_resume_all_serviceable_ch(struct gk20a *g);
 
 /**
  * @brief Stop deterministic channel activity for do_idle().

@@ -183,9 +183,16 @@
 
 #include <nvgpu/hw/gv11b/hw_pwr_gv11b.h>
 
-static void gv11b_init_gpu_characteristics(struct gk20a *g)
+static int gv11b_init_gpu_characteristics(struct gk20a *g)
 {
-	nvgpu_init_gpu_characteristics(g);
+	int err;
+
+	err = nvgpu_init_gpu_characteristics(g);
+	if (err != 0) {
+		nvgpu_err(g, "failed to init GPU characteristics");
+		return err;
+	}
+
 	g->ops.gr.ecc.detect(g);
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_TSG_SUBCONTEXTS, true);
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_SCG, true);
@@ -195,6 +202,8 @@ static void gv11b_init_gpu_characteristics(struct gk20a *g)
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_SYNCPOINT_ADDRESS, true);
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_USER_SYNCPOINT, true);
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_USERMODE_SUBMIT, true);
+
+	return 0;
 }
 
 static const struct gpu_ops gv11b_ops = {

@@ -217,10 +217,12 @@ void intr_tu104_mask(struct gk20a *g)
 }
 
 /* Enable all required interrupts */
-void intr_tu104_enable(struct gk20a *g)
+int intr_tu104_enable(struct gk20a *g)
 {
 	intr_tu104_stall_enable(g);
 	intr_tu104_nonstall_enable(g);
+
+	return 0;
 }
 
 /* Return non-zero if nonstall interrupts are pending */

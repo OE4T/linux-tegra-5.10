@@ -46,7 +46,7 @@ void mc_gp10b_intr_nonstall_resume(struct gk20a *g);
 void mc_gp10b_ltc_isr(struct gk20a *g);
 
 #ifdef CONFIG_NVGPU_HAL_NON_FUSA
-void mc_gp10b_intr_enable(struct gk20a *g);
+int mc_gp10b_intr_enable(struct gk20a *g);
 #endif
 
 #endif
