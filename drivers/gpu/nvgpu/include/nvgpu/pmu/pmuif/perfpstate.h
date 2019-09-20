@@ -34,6 +34,7 @@ struct ctrl_perf_pstate_clk_entry;
 struct nv_pmu_perf_pstate_boardobjgrp_set_header {
 	struct nv_pmu_boardobjgrp_e32 super;
 	u8 numClkDomains;
+	u8 boot_pstate_idx;
 };
 
 struct nv_pmu_perf_pstate {

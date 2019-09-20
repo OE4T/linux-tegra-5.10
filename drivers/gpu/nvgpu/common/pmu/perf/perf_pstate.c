@@ -339,6 +339,8 @@ static int perf_pstate_pmudatainit(struct gk20a *g,
 	}
 
 	pset->numClkDomains = pprogs->num_clk_domains;
+	pset->boot_pstate_idx =
+			nvgpu_get_pstate_entry_idx(g, CTRL_PERF_PSTATE_P0);
 
 done:
 	return status;
