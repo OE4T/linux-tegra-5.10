@@ -343,6 +343,7 @@ nvgpu_tsg_unbind_channel_check_hw_state
 nvgpu_tsg_unbind_channel_check_ctx_reload
 nvgpu_set_bit
 nvgpu_set_enabled
+nvgpu_set_power_state
 nvgpu_set_pte
 nvgpu_sgt_alignment
 nvgpu_sgt_create_from_mem

@@ -17,12 +17,10 @@
 #include <linux/irqreturn.h>
 
 #include <nvgpu/gk20a.h>
+#include <nvgpu/nvgpu_init.h>
 
 #include <nvgpu/atomic.h>
 #include <nvgpu/unit.h>
-#ifndef CONFIG_NVGPU_RECOVERY
-#include <nvgpu/nvgpu_init.h>
-#endif
 #include "os_linux.h"
 
 irqreturn_t nvgpu_intr_stall(struct gk20a *g)
@@ -33,7 +31,7 @@ irqreturn_t nvgpu_intr_stall(struct gk20a *g)
 	trace_mc_gk20a_intr_stall(g->name);
 #endif
 
-	if (!g->power_on)
+	if (nvgpu_is_powered_off(g))
 		return IRQ_NONE;
 
 	/* not from gpu when sharing irq with others */
@@ -89,7 +87,7 @@ irqreturn_t nvgpu_intr_nonstall(struct gk20a *g)
 	int ops_old, ops_new, ops = 0;
 	struct nvgpu_os_linux *l = nvgpu_os_linux_from_gk20a(g);
 
-	if (!g->power_on)
+	if (nvgpu_is_powered_off(g))
 		return IRQ_NONE;
 
 	/* not from gpu when sharing irq with others */

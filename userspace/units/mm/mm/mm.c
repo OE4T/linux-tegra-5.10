@@ -25,6 +25,7 @@
 #include <unit/unit.h>
 #include <unit/core.h>
 
+#include <nvgpu/nvgpu_init.h>
 #include <nvgpu/posix/io.h>
 #include "os/posix/os_posix.h"
 
@@ -525,14 +526,14 @@ int test_mm_suspend(struct unit_module *m, struct gk20a *g, void *args)
 {
 	int err;
 
-	g->power_on = false;
+	nvgpu_set_power_state(g, NVGPU_STATE_POWERED_OFF);
 	err = nvgpu_mm_suspend(g);
 	if (err != -ETIMEDOUT) {
 		unit_return_fail(m, "suspend did not fail as expected err=%d\n",
 				err);
 	}
 
-	g->power_on = true;
+	nvgpu_set_power_state(g, NVGPU_STATE_POWERED_ON);
 	err = nvgpu_mm_suspend(g);
 	if (err != 0) {
 		unit_return_fail(m, "suspend fail err=%d\n", err);
@@ -545,7 +546,7 @@ int test_mm_suspend(struct unit_module *m, struct gk20a *g, void *args)
 	 */
 	g->ops.fb.intr.disable = gv11b_fb_intr_disable;
 	g->ops.mm.mmu_fault.disable_hw = gv11b_mm_mmu_fault_disable_hw;
-	g->power_on = true;
+	nvgpu_set_power_state(g, NVGPU_STATE_POWERED_ON);
 	err = nvgpu_mm_suspend(g);
 	if (err != 0) {
 		unit_return_fail(m, "suspend fail err=%d\n", err);

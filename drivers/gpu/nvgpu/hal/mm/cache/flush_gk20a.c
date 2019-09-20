@@ -45,7 +45,7 @@ void gk20a_mm_cbc_clean(struct gk20a *g)
 	nvgpu_log_fn(g, " ");
 
 	gk20a_busy_noresume(g);
-	if (!g->power_on) {
+	if (nvgpu_is_powered_off(g)) {
 		goto hw_was_off;
 	}
 

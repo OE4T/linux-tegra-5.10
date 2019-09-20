@@ -80,6 +80,8 @@ static void vgpu_init_vars(struct gk20a *g, struct gk20a_platform *platform)
 	struct nvgpu_os_linux *l = nvgpu_os_linux_from_gk20a(g);
 	struct vgpu_priv_data *priv = vgpu_get_priv_data(g);
 
+	nvgpu_spinlock_init(&g->power_spinlock);
+
 	nvgpu_mutex_init(&g->power_lock);
 	nvgpu_mutex_init(&g->clk_arb_enable_lock);
 	nvgpu_mutex_init(&g->cg_pg_lock);
@@ -174,7 +176,7 @@ int vgpu_pm_prepare_poweroff(struct device *dev)
 
 	nvgpu_mutex_acquire(&g->power_lock);
 
-	if (!g->power_on)
+	if (nvgpu_is_powered_off(g))
 		goto done;
 
 	if (g->ops.channel.suspend_all_serviceable_ch != NULL) {
@@ -185,7 +187,8 @@ int vgpu_pm_prepare_poweroff(struct device *dev)
 		goto done;
 	}
 
-	g->power_on = false;
+	nvgpu_set_power_state(g, NVGPU_STATE_POWERED_OFF);
+
  done:
 	nvgpu_mutex_release(&g->power_lock);
 
@@ -202,10 +205,10 @@ int vgpu_pm_finalize_poweron(struct device *dev)
 
 	nvgpu_mutex_acquire(&g->power_lock);
 
-	if (g->power_on)
+	if (nvgpu_is_powered_on(g))
 		goto done;
 
-	g->power_on = true;
+	nvgpu_set_power_state(g, NVGPU_STATE_POWERING_ON);
 
 	err = vgpu_finalize_poweron_common(g);
 	if (err)
@@ -222,10 +225,9 @@ int vgpu_pm_finalize_poweron(struct device *dev)
 
 	g->sw_ready = true;
 
-done:
-	if (err)
-		g->power_on = false;
+	nvgpu_set_power_state(g, NVGPU_STATE_POWERED_ON);
 
+done:
 	nvgpu_mutex_release(&g->power_lock);
 	return err;
 }

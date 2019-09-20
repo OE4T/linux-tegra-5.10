@@ -384,7 +384,7 @@ int nvgpu_pmu_busy_cycles_norm(struct gk20a *g, u32 *norm)
 	u32 intr_status;
 
 	gk20a_busy_noresume(g);
-	if (!g->power_on) {
+	if (nvgpu_is_powered_off(g)) {
 		*norm = 0;
 		goto exit;
 	}
@@ -423,7 +423,7 @@ exit:
 void nvgpu_pmu_get_load_counters(struct gk20a *g, u32 *busy_cycles,
 				 u32 *total_cycles)
 {
-	if (!g->power_on || gk20a_busy(g) != 0) {
+	if (nvgpu_is_powered_off(g) || gk20a_busy(g) != 0) {
 		*busy_cycles = 0;
 		*total_cycles = 0;
 		return;
@@ -437,7 +437,7 @@ void nvgpu_pmu_get_load_counters(struct gk20a *g, u32 *busy_cycles,
 
 void nvgpu_pmu_reset_load_counters(struct gk20a *g)
 {
-	if (!g->power_on || gk20a_busy(g) != 0) {
+	if (nvgpu_is_powered_off(g) || gk20a_busy(g) != 0) {
 		return;
 	}
 

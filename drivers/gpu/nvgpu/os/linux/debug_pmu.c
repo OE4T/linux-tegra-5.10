@@ -83,7 +83,7 @@ static int mscg_stat_show(struct seq_file *s, void *data)
 	int err;
 
 	/* Don't unnecessarily power on the device */
-	if (g->power_on) {
+	if (nvgpu_is_powered_on(g)) {
 		err = gk20a_busy(g);
 		if (err)
 			return err;
@@ -141,7 +141,7 @@ static int mscg_transitions_show(struct seq_file *s, void *data)
 	u32 total_gating_cnt;
 	int err;
 
-	if (g->power_on) {
+	if (nvgpu_is_powered_on(g)) {
 		err = gk20a_busy(g);
 		if (err)
 			return err;
@@ -177,7 +177,7 @@ static int elpg_stat_show(struct seq_file *s, void *data)
 	int err;
 
 	/* Don't unnecessarily power on the device */
-	if (g->power_on) {
+	if (nvgpu_is_powered_on(g)) {
 		err = gk20a_busy(g);
 		if (err)
 			return err;
@@ -234,7 +234,7 @@ static int elpg_transitions_show(struct seq_file *s, void *data)
 	u32 total_gating_cnt;
 	int err;
 
-	if (g->power_on) {
+	if (nvgpu_is_powered_on(g)) {
 		err = gk20a_busy(g);
 		if (err)
 			return err;
@@ -358,7 +358,7 @@ static ssize_t perfmon_events_enable_write(struct file *file,
 		return -EINVAL;
 
 	/* Don't turn on gk20a unnecessarily */
-	if (g->power_on) {
+	if (nvgpu_is_powered_on(g)) {
 		err = gk20a_busy(g);
 		if (err)
 			return err;

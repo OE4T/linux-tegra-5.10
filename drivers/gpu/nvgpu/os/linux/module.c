@@ -400,8 +400,10 @@ int gk20a_pm_finalize_poweron(struct device *dev)
 
 	nvgpu_mutex_acquire(&g->power_lock);
 
-	if (g->power_on)
+	if (nvgpu_is_powered_on(g))
 		goto done;
+
+	nvgpu_set_power_state(g, NVGPU_STATE_POWERING_ON);
 
 #ifdef CONFIG_NVGPU_TRACE
 	trace_gk20a_finalize_poweron(dev_name(dev));
@@ -508,10 +510,9 @@ int gk20a_pm_finalize_poweron(struct device *dev)
 
 	g->sw_ready = true;
 
-done:
-	if (err)
-		g->power_on = false;
+	nvgpu_set_power_state(g, NVGPU_STATE_POWERED_ON);
 
+done:
 	nvgpu_mutex_release(&g->power_lock);
 	return err;
 }
@@ -557,6 +558,67 @@ void nvgpu_disable_irqs(struct gk20a *g)
 	}
 }
 
+void nvgpu_set_power_state(struct gk20a *g, u32 state)
+{
+	unsigned long flags;
+
+	nvgpu_spinlock_irqsave(&g->power_spinlock, flags);
+	g->power_on_state = state;
+	nvgpu_spinunlock_irqrestore(&g->power_spinlock, flags);
+}
+
+const char *nvgpu_get_power_state(struct gk20a *g)
+{
+	unsigned long flags;
+	const char *str = NULL;
+	u32 state;
+
+	nvgpu_spinlock_irqsave(&g->power_spinlock, flags);
+	state = g->power_on_state;
+	nvgpu_spinunlock_irqrestore(&g->power_spinlock, flags);
+
+	switch (state) {
+	case NVGPU_STATE_POWERED_OFF:
+		str = "off";
+		break;
+	case NVGPU_STATE_POWERING_ON:
+		str = "powering on";
+		break;
+	case NVGPU_STATE_POWERED_ON:
+		str = "on";
+		break;
+	default:
+		nvgpu_err(g, "Invalid nvgpu power state.");
+		break;
+	}
+
+	return str;
+}
+
+bool nvgpu_is_powered_on(struct gk20a *g)
+{
+	unsigned long flags;
+	u32 power_on;
+
+	nvgpu_spinlock_irqsave(&g->power_spinlock, flags);
+	power_on = g->power_on_state;
+	nvgpu_spinunlock_irqrestore(&g->power_spinlock, flags);
+
+	return power_on == NVGPU_STATE_POWERED_ON;
+}
+
+bool nvgpu_is_powered_off(struct gk20a *g)
+{
+	unsigned long flags;
+	u32 power_on;
+
+	nvgpu_spinlock_irqsave(&g->power_spinlock, flags);
+	power_on = g->power_on_state;
+	nvgpu_spinunlock_irqrestore(&g->power_spinlock, flags);
+
+	return power_on == NVGPU_STATE_POWERED_OFF;
+}
+
 static int gk20a_pm_prepare_poweroff(struct device *dev)
 {
 	struct gk20a *g = get_gk20a(dev);
@@ -571,7 +633,7 @@ static int gk20a_pm_prepare_poweroff(struct device *dev)
 
 	nvgpu_mutex_acquire(&g->power_lock);
 
-	if (!g->power_on)
+	if (nvgpu_is_powered_off(g))
 		goto done;
 
 	/* disable IRQs and wait for completion */
@@ -596,6 +658,9 @@ static int gk20a_pm_prepare_poweroff(struct device *dev)
 	gk20a_lockout_registers(g);
 
 	nvgpu_hide_usermode_for_poweroff(g);
+
+	nvgpu_set_power_state(g, NVGPU_STATE_POWERED_OFF);
+
 	nvgpu_mutex_release(&g->power_lock);
 	return 0;
 
@@ -1102,7 +1167,7 @@ int nvgpu_quiesce(struct gk20a *g)
 	int err;
 	struct device *dev = dev_from_gk20a(g);
 
-	if (g->power_on) {
+	if (nvgpu_is_powered_on(g)) {
 		err = nvgpu_wait_for_idle(g);
 		if (err) {
 			nvgpu_err(g, "failed to idle GPU, err=%d", err);
@@ -1149,7 +1214,7 @@ static void gk20a_pm_shutdown(struct platform_device *pdev)
 	if (gk20a_gpu_is_virtual(&pdev->dev))
 		return;
 
-	if (!g->power_on)
+	if (nvgpu_is_powered_off(g))
 		goto finish;
 
 	gk20a_driver_start_unload(g);
@@ -1237,7 +1302,7 @@ static int gk20a_pm_suspend(struct device *dev)
 	int ret = 0;
 	int idle_usage_count = 0;
 
-	if (!g->power_on) {
+	if (nvgpu_is_powered_off(g)) {
 		if (platform->suspend)
 			ret = platform->suspend(dev);
 		if (ret)

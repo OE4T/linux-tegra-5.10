@@ -23,6 +23,8 @@
 #ifndef NVGPU_INIT_H
 #define NVGPU_INIT_H
 
+#include <nvgpu/types.h>
+
 struct gk20a;
 struct nvgpu_ref;
 
@@ -153,6 +155,47 @@ int nvgpu_enable_irqs(struct gk20a *g);
  * Disable interrupt handlers.
  */
 void nvgpu_disable_irqs(struct gk20a *g);
+
+#define NVGPU_STATE_POWERED_OFF		0U
+#define NVGPU_STATE_POWERING_ON		1U
+#define NVGPU_STATE_POWERED_ON		2U
+
+/**
+ * @brief Set the nvgpu power state
+ *
+ * @param g [in] The GPU
+ * @param state Power state
+ *
+ * Set the nvgpu power state.
+ */
+void nvgpu_set_power_state(struct gk20a *g, u32 state);
+
+/**
+ * @brief Get the nvgpu power state
+ *
+ * @param g [in] The GPU
+ *
+ * Returns the nvgpu power state.
+ */
+const char *nvgpu_get_power_state(struct gk20a *g);
+
+/**
+ * @brief Return the nvgpu power-on state
+ *
+ * @param g [in] The GPU
+ *
+ * Return true if nvgpu is in powered on state, else false.
+ */
+bool nvgpu_is_powered_on(struct gk20a *g);
+
+/**
+ * @brief Return the nvgpu power-off state
+ *
+ * @param g [in] The GPU
+ *
+ * Return true if nvgpu is in powered off state, else false.
+ */
+bool nvgpu_is_powered_off(struct gk20a *g);
 
 /**
  * @brief Check if the device can go busy

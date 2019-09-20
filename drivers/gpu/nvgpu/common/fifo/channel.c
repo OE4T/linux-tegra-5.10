@@ -1305,7 +1305,7 @@ void nvgpu_channel_clean_up_jobs(struct nvgpu_channel *c,
 		return;
 	}
 
-	if (!c->g->power_on) { /* shutdown case */
+	if (nvgpu_is_powered_off(c->g)) { /* shutdown case */
 		nvgpu_channel_put(c);
 		return;
 	}
@@ -1462,7 +1462,7 @@ void nvgpu_channel_clean_up_jobs(struct nvgpu_channel *c,
  */
 void nvgpu_channel_update(struct nvgpu_channel *c)
 {
-	if (!c->g->power_on) { /* shutdown case */
+	if (nvgpu_is_powered_off(c->g)) { /* shutdown case */
 		return;
 	}
 

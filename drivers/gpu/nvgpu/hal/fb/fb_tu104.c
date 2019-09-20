@@ -32,6 +32,7 @@
 #include <nvgpu/utils.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/bug.h>
+#include <nvgpu/nvgpu_init.h>
 
 #include "hal/fb/fb_gv11b.h"
 #include "hal/fb/fb_gv100.h"
@@ -60,7 +61,7 @@ int fb_tu104_tlb_invalidate(struct gk20a *g, struct nvgpu_mem *pdb)
 	 * hw. Use the power_on flag to skip tlb invalidation when gpu
 	 * power is turned off
 	 */
-	if (!g->power_on) {
+	if (nvgpu_is_powered_off(g)) {
 		return 0;
 	}
 

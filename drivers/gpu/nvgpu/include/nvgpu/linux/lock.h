@@ -64,6 +64,12 @@ static inline void nvgpu_spinlock_release(struct nvgpu_spinlock *spinlock)
 	spin_unlock(&spinlock->spinlock);
 };
 
+#define nvgpu_spinlock_irqsave(lock, flags) \
+		spin_lock_irqsave(lock.spinlock, flags)
+
+#define nvgpu_spinunlock_irqrestore(lock, flags) \
+		spin_unlock_irqrestore(lock.spinlock, flags)
+
 static inline void nvgpu_raw_spinlock_init(struct nvgpu_raw_spinlock *spinlock)
 {
 	raw_spin_lock_init(&spinlock->spinlock);

@@ -92,7 +92,7 @@ static int nvgpu_sw_quiesce_thread(void *data)
 
 	nvgpu_mutex_acquire(&g->power_lock);
 
-	if (!g->power_on || g->is_virtual) {
+	if (nvgpu_is_powered_off(g) || g->is_virtual) {
 		err = -EINVAL;
 		goto idle;
 	}
@@ -288,8 +288,6 @@ int nvgpu_prepare_poweroff(struct gk20a *g)
 	}
 #endif
 	gk20a_mask_interrupts(g);
-
-	g->power_on = false;
 
 	return ret;
 }
@@ -561,12 +559,6 @@ int nvgpu_finalize_poweron(struct gk20a *g)
 
 	nvgpu_log_fn(g, " ");
 
-	if (g->power_on) {
-		return 0;
-	}
-
-	g->power_on = true;
-
 #ifdef CONFIG_NVGPU_RECOVERY
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_FAULT_RECOVERY, true);
 #else
@@ -622,10 +614,6 @@ done:
 	nvgpu_falcons_sw_free(g);
 
 exit:
-	if (err != 0) {
-		g->power_on = false;
-	}
-
 	return err;
 }
 

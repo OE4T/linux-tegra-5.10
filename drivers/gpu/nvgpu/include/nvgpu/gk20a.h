@@ -1680,8 +1680,9 @@ struct gk20a {
 
 	const char *name;
 
+	u32 power_on_state;
+
 	bool gpu_reset_done;
-	bool power_on;
 	bool suspended;
 	bool sw_ready;
 
@@ -1741,6 +1742,8 @@ struct gk20a {
 	u32 ctxsw_wdt_period_us;
 
 	struct nvgpu_mutex power_lock;
+
+	struct nvgpu_spinlock power_spinlock;
 
 	/* Channel priorities */
 	u32 tsg_timeslice_low_priority_us;

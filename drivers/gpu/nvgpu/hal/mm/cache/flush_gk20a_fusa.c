@@ -45,7 +45,7 @@ int gk20a_mm_fb_flush(struct gk20a *g)
 	nvgpu_log_fn(g, " ");
 
 	gk20a_busy_noresume(g);
-	if (!g->power_on) {
+	if (nvgpu_is_powered_off(g)) {
 		gk20a_idle_nosuspend(g);
 		return 0;
 	}
@@ -157,7 +157,7 @@ void gk20a_mm_l2_invalidate(struct gk20a *g)
 {
 	struct mm_gk20a *mm = &g->mm;
 	gk20a_busy_noresume(g);
-	if (g->power_on) {
+	if (!nvgpu_is_powered_off(g)) {
 		nvgpu_mutex_acquire(&mm->l2_op_lock);
 		gk20a_mm_l2_invalidate_locked(g);
 		nvgpu_mutex_release(&mm->l2_op_lock);
@@ -176,7 +176,7 @@ int gk20a_mm_l2_flush(struct gk20a *g, bool invalidate)
 	nvgpu_log_fn(g, " ");
 
 	gk20a_busy_noresume(g);
-	if (!g->power_on) {
+	if (nvgpu_is_powered_off(g)) {
 		goto hw_was_off;
 	}
 

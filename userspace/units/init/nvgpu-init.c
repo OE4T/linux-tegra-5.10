@@ -390,7 +390,7 @@ int test_poweron(struct unit_module *m, struct gk20a *g, void *args)
 	/* loop over the simple cases */
 	for (i = 0; i < simple_init_func_ptrs_count; i++) {
 		*simple_init_func_ptrs[i] = return_fail;
-		g->power_on = false;
+		nvgpu_set_power_state(g, NVGPU_STATE_POWERED_OFF);
 		err = nvgpu_finalize_poweron(g);
 		if (err == 0) {
 			unit_return_fail(m,
@@ -403,7 +403,7 @@ int test_poweron(struct unit_module *m, struct gk20a *g, void *args)
 	/* handle the exceptions */
 
 	falcon_fail_on_id = FALCON_ID_PMU;
-	g->power_on = false;
+	nvgpu_set_power_state(g, NVGPU_STATE_POWERED_OFF);
 	err = nvgpu_finalize_poweron(g);
 	if (err == 0) {
 		unit_return_fail(m,
@@ -411,7 +411,7 @@ int test_poweron(struct unit_module *m, struct gk20a *g, void *args)
 	}
 
 	falcon_fail_on_id = FALCON_ID_FECS;
-	g->power_on = false;
+	nvgpu_set_power_state(g, NVGPU_STATE_POWERED_OFF);
 	err = nvgpu_finalize_poweron(g);
 	if (err == 0) {
 		unit_return_fail(m,
@@ -420,7 +420,7 @@ int test_poweron(struct unit_module *m, struct gk20a *g, void *args)
 	falcon_fail_on_id = U32_MAX; /* stop failing */
 
 	g->ops.tpc.tpc_powergate = return_failure_u32_param;
-	g->power_on = false;
+	nvgpu_set_power_state(g, NVGPU_STATE_POWERED_OFF);
 	err = nvgpu_finalize_poweron(g);
 	if (err == 0) {
 		unit_return_fail(m,
@@ -429,7 +429,7 @@ int test_poweron(struct unit_module *m, struct gk20a *g, void *args)
 	g->ops.tpc.tpc_powergate = return_success_u32_param;
 
 	/* test the case of already being powered on */
-	g->power_on = true;
+	nvgpu_set_power_state(g, NVGPU_STATE_POWERED_ON);
 	err = nvgpu_finalize_poweron(g);
 	if (err != 0) {
 		unit_return_fail(m,
@@ -458,7 +458,7 @@ int test_poweron_branches(struct unit_module *m, struct gk20a *g, void *args)
 	g->ops.therm.elcg_init_idle_filters = NULL;
 	g->ops.gr.ecc.ecc_init_support = NULL;
 	g->ops.channel.resume_all_serviceable_ch = NULL;
-	g->power_on = false;
+	nvgpu_set_power_state(g, NVGPU_STATE_POWERED_OFF);
 	err = nvgpu_finalize_poweron(g);
 	if (err != 0) {
 		unit_return_fail(m,
@@ -468,14 +468,14 @@ int test_poweron_branches(struct unit_module *m, struct gk20a *g, void *args)
 	/* test the syncpoint paths here */
 	nvgpu_set_enabled(g, NVGPU_HAS_SYNCPOINTS, true);
 	g->syncpt_unit_size = 0UL;
-	g->power_on = false;
+	nvgpu_set_power_state(g, NVGPU_STATE_POWERED_OFF);
 	err = nvgpu_finalize_poweron(g);
 	if (err != 0) {
 		unit_return_fail(m,
 			"nvgpu_finalize_poweron returned fail\n");
 	}
 	g->syncpt_unit_size = 2UL;
-	g->power_on = false;
+	nvgpu_set_power_state(g, NVGPU_STATE_POWERED_OFF);
 	err = nvgpu_finalize_poweron(g);
 	if (err != 0) {
 		unit_return_fail(m,
@@ -485,7 +485,7 @@ int test_poweron_branches(struct unit_module *m, struct gk20a *g, void *args)
 	 * This redundant call will hit the case where memory is already
 	 * valid
 	 */
-	g->power_on = false;
+	nvgpu_set_power_state(g, NVGPU_STATE_POWERED_OFF);
 	err = nvgpu_finalize_poweron(g);
 	if (err != 0) {
 		unit_return_fail(m,
@@ -493,7 +493,7 @@ int test_poweron_branches(struct unit_module *m, struct gk20a *g, void *args)
 	}
 	nvgpu_dma_free(g, &g->syncpt_mem);
 	nvgpu_posix_enable_fault_injection(kmem_fi, true, 0);
-	g->power_on = false;
+	nvgpu_set_power_state(g, NVGPU_STATE_POWERED_OFF);
 	err = nvgpu_finalize_poweron(g);
 	if (err == 0) {
 		unit_return_fail(m,

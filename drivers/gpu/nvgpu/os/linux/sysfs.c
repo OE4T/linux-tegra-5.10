@@ -260,7 +260,7 @@ static ssize_t gpu_powered_on_show(struct device *dev,
 {
 	struct gk20a *g = get_gk20a(dev);
 
-	return snprintf(buf, PAGE_SIZE, "%u\n", g->power_on);
+	return snprintf(buf, PAGE_SIZE, "%s\n", nvgpu_get_power_state(g));
 }
 
 static DEVICE_ATTR(gpu_powered_on, S_IRUGO, gpu_powered_on_show, NULL);
@@ -406,7 +406,7 @@ static ssize_t gk20a_load_show(struct device *dev,
 	ssize_t res;
 	int err;
 
-	if (!g->power_on) {
+	if (nvgpu_is_powered_off(g)) {
 		busy_time = 0;
 	} else {
 		err = gk20a_busy(g);
@@ -435,7 +435,7 @@ static ssize_t elpg_enable_store(struct device *dev,
 	if (kstrtoul(buf, 10, &val) < 0)
 		return -EINVAL;
 
-	if (!g->power_on) {
+	if (nvgpu_is_powered_off(g)) {
 		return -EAGAIN;
 	} else {
 		err = gk20a_busy(g);
@@ -487,7 +487,7 @@ static ssize_t ldiv_slowdown_factor_store(struct device *dev,
 	if (val == g->ldiv_slowdown_factor)
 		return count;
 
-	if (!g->power_on) {
+	if (nvgpu_is_powered_off(g)) {
 		g->ldiv_slowdown_factor = val;
 	} else {
 		err = gk20a_busy(g);
@@ -530,7 +530,7 @@ static ssize_t mscg_enable_store(struct device *dev,
 	if (kstrtoul(buf, 10, &val) < 0)
 		return -EINVAL;
 
-	if (!g->power_on) {
+	if (nvgpu_is_powered_off(g)) {
 		g->mscg_enabled = val ? true : false;
 	} else {
 		err = gk20a_busy(g);
