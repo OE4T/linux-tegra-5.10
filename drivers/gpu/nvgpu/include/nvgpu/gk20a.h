@@ -1850,7 +1850,7 @@ struct gk20a {
 	struct nvgpu_cond sw_irq_nonstall_last_handled_cond;
 	nvgpu_atomic_t sw_irq_nonstall_last_handled;
 
-	int irqs_enabled;
+	bool irqs_enabled;
 	u32 irq_stall; /* can be same as irq_nonstall in case of PCI */
 	u32 irq_nonstall;
 

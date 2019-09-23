@@ -63,6 +63,11 @@ void nvgpu_start_gpu_idle(struct gk20a *g)
 	nvgpu_set_enabled(g, NVGPU_DRIVER_IS_DYING, true);
 }
 
+int nvgpu_enable_irqs(struct gk20a *g)
+{
+	return 0;
+}
+
 void nvgpu_disable_irqs(struct gk20a *g)
 {
 }

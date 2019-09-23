@@ -487,10 +487,11 @@ int gk20a_pm_finalize_poweron(struct device *dev)
 	trace_gk20a_finalize_poweron_done(dev_name(dev));
 #endif
 
-	enable_irq(g->irq_stall);
-	if (g->irq_stall != g->irq_nonstall)
-		enable_irq(g->irq_nonstall);
-	g->irqs_enabled = 1;
+	err = nvgpu_enable_irqs(g);
+	if (err) {
+		nvgpu_err(g, "failed to enable irqs %d", err);
+		goto done;
+	}
 
 	gk20a_scale_resume(dev_from_gk20a(g));
 
@@ -534,13 +535,25 @@ static int gk20a_lockout_registers(struct gk20a *g)
 	return 0;
 }
 
+int nvgpu_enable_irqs(struct gk20a *g)
+{
+	if (!g->irqs_enabled) {
+		enable_irq(g->irq_stall);
+		if (g->irq_stall != g->irq_nonstall)
+			enable_irq(g->irq_nonstall);
+		g->irqs_enabled = true;
+	}
+
+	return 0;
+}
+
 void nvgpu_disable_irqs(struct gk20a *g)
 {
 	if (g->irqs_enabled) {
 		disable_irq(g->irq_stall);
 		if (g->irq_stall != g->irq_nonstall)
 			disable_irq(g->irq_nonstall);
-		g->irqs_enabled = 0;
+		g->irqs_enabled = false;
 	}
 }
 
@@ -552,7 +565,7 @@ static int gk20a_pm_prepare_poweroff(struct device *dev)
 #endif
 	struct gk20a_platform *platform = gk20a_get_platform(dev);
 	bool irqs_enabled;
-	int ret = 0;
+	int ret = 0, err = 0;
 
 	nvgpu_log_fn(g, " ");
 
@@ -589,10 +602,10 @@ static int gk20a_pm_prepare_poweroff(struct device *dev)
 error:
 	/* re-enabled IRQs if previously enabled */
 	if (irqs_enabled) {
-		enable_irq(g->irq_stall);
-		if (g->irq_stall != g->irq_nonstall)
-			enable_irq(g->irq_nonstall);
-		g->irqs_enabled = 1;
+		err = nvgpu_enable_irqs(g);
+		if (err) {
+			nvgpu_err(g, "failed to enable irqs %d", err);
+		}
 	}
 
 	gk20a_scale_resume(dev);

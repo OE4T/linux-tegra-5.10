@@ -137,6 +137,15 @@ void nvgpu_sw_quiesce(struct gk20a *g);
 void nvgpu_start_gpu_idle(struct gk20a *g);
 
 /**
+ * @brief Enable interrupt handlers
+ *
+ * @param g [in] The GPU
+ *
+ * Enable interrupt handlers.
+ */
+int nvgpu_enable_irqs(struct gk20a *g);
+
+/**
  * @brief Disable interrupt handlers
  *
  * @param g [in] The GPU
