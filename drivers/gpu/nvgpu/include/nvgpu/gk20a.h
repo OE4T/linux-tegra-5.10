@@ -90,7 +90,6 @@ struct nvgpu_clk_arb;
 #ifdef CONFIG_NVGPU_FECS_TRACE
 struct nvgpu_gpu_ctxsw_trace_filter;
 #endif
-struct priv_cmd_entry;
 struct nvgpu_setup_bind_args;
 struct perf_pmupstate;
 struct boardobjgrp;
@@ -112,8 +111,6 @@ struct nvgpu_gr_zcull_info;
 struct nvgpu_gr_tpc_exception;
 struct nvgpu_gr_intr_info;
 struct nvgpu_channel_hw_state;
-struct nvgpu_engine_status_info;
-struct nvgpu_pbdma_status_info;
 struct nvgpu_gr_config;
 struct nvgpu_fecs_method_op;
 struct nvgpu_mem;
@@ -129,7 +126,6 @@ struct _resmgr_context;
 struct nvgpu_gpfifo_entry;
 struct vm_gk20a_mapping_batch;
 struct pmu_pg_stats_data;
-struct nvgpu_pbdma_status_info;
 
 enum nvgpu_flush_op;
 enum gk20a_mem_rw_flag;
@@ -161,6 +157,17 @@ enum ctxsw_addr_type;
 #include <nvgpu/semaphore.h>
 #include <nvgpu/fifo.h>
 #include <nvgpu/unit.h>
+
+#include <nvgpu/gops_fifo.h>
+#include <nvgpu/gops_ramfc.h>
+#include <nvgpu/gops_ramin.h>
+#include <nvgpu/gops_runlist.h>
+#include <nvgpu/gops_userd.h>
+#include <nvgpu/gops_engine.h>
+#include <nvgpu/gops_pbdma.h>
+#include <nvgpu/gops_sync.h>
+#include <nvgpu/gops_channel.h>
+#include <nvgpu/gops_tsg.h>
 
 #include "hal/clk/clk_gk20a.h"
 
@@ -1075,278 +1082,16 @@ struct gpu_ops {
 		void (*blcg_hshub_load_gating_prod)(struct gk20a *g, bool prod);
 		void (*pg_gr_load_gating_prod)(struct gk20a *g, bool prod);
 	} cg;
-	struct {
-		int (*fifo_init_support)(struct gk20a *g);
-		int (*fifo_suspend)(struct gk20a *g);
-		int (*setup_sw)(struct gk20a *g);
-		void (*cleanup_sw)(struct gk20a *g);
-		int (*init_fifo_setup_hw)(struct gk20a *g);
-		int (*preempt_channel)(struct gk20a *g, struct nvgpu_channel *ch);
-		int (*preempt_tsg)(struct gk20a *g, struct nvgpu_tsg *tsg);
-		void (*preempt_runlists_for_rc)(struct gk20a *g,
-				u32 runlists_bitmask);
-		void (*preempt_trigger)(struct gk20a *g,
-				u32 id, unsigned int id_type);
-		int (*preempt_poll_pbdma)(struct gk20a *g, u32 tsgid,
-				 u32 pbdma_id);
-		void (*init_pbdma_map)(struct gk20a *g,
-				u32 *pbdma_map, u32 num_pbdma);
-		int (*is_preempt_pending)(struct gk20a *g, u32 id,
-			unsigned int id_type);
-		int (*reset_enable_hw)(struct gk20a *g);
-#ifdef CONFIG_NVGPU_RECOVERY
-		void (*recover)(struct gk20a *g, u32 act_eng_bitmask,
-			u32 id, unsigned int id_type, unsigned int rc_type,
-			 struct mmu_fault_info *mmfault);
-#endif
-		void (*intr_set_recover_mask)(struct gk20a *g);
-		void (*intr_unset_recover_mask)(struct gk20a *g);
-#ifdef CONFIG_NVGPU_DEBUGGER
-		int (*set_sm_exception_type_mask)(struct nvgpu_channel *ch,
-				u32 exception_mask);
-#endif
-		void (*intr_0_enable)(struct gk20a *g, bool enable);
-		void (*intr_0_isr)(struct gk20a *g);
-		void (*intr_1_enable)(struct gk20a *g, bool enable);
-		u32  (*intr_1_isr)(struct gk20a *g);
-		bool (*handle_sched_error)(struct gk20a *g);
-		void (*ctxsw_timeout_enable)(struct gk20a *g, bool enable);
-		bool (*handle_ctxsw_timeout)(struct gk20a *g);
-		/* mmu fault hals */
-		void (*trigger_mmu_fault)(struct gk20a *g,
-				unsigned long engine_ids_bitmask);
-		void (*get_mmu_fault_info)(struct gk20a *g, u32 mmu_fault_id,
-			struct mmu_fault_info *mmfault);
-		void (*get_mmu_fault_desc)(struct mmu_fault_info *mmfault);
-		void (*get_mmu_fault_client_desc)(
-					struct mmu_fault_info *mmfault);
-		void (*get_mmu_fault_gpc_desc)(struct mmu_fault_info *mmfault);
-		u32 (*get_runlist_timeslice)(struct gk20a *g);
-		u32 (*get_pb_timeslice)(struct gk20a *g);
-		bool (*is_mmu_fault_pending)(struct gk20a *g);
-		u32  (*mmu_fault_id_to_pbdma_id)(struct gk20a *g,
-					u32 mmu_fault_id);
-		void (*bar1_snooping_disable)(struct gk20a *g);
-
-	} fifo;
-	struct {
-		int (*setup)(struct nvgpu_channel *ch, u64 gpfifo_base,
-				u32 gpfifo_entries, u64 pbdma_acquire_timeout,
-				u32 flags);
-		void (*capture_ram_dump)(struct gk20a *g,
-				struct nvgpu_channel *ch,
-				struct nvgpu_channel_dump_info *info);
-		int (*commit_userd)(struct nvgpu_channel *ch);
-		u32 (*get_syncpt)(struct nvgpu_channel *ch);
-		void (*set_syncpt)(struct nvgpu_channel *ch, u32 syncpt);
-	} ramfc;
-	struct {
-		void (*set_gr_ptr)(struct gk20a *g,
-				struct nvgpu_mem *inst_block, u64 gpu_va);
-		void (*set_big_page_size)(struct gk20a *g,
-				struct nvgpu_mem *mem, u32 size);
-		void (*init_pdb)(struct gk20a *g, struct nvgpu_mem *inst_block,
-				u64 pdb_addr, struct nvgpu_mem *pdb_mem);
-		void (*init_subctx_pdb)(struct gk20a *g,
-				struct nvgpu_mem *inst_block,
-				struct nvgpu_mem *pdb_mem,
-				bool replayable);
-		int (*init_pdb_cache_war)(struct gk20a *g);
-		void (*deinit_pdb_cache_war)(struct gk20a *g);
-		void (*set_adr_limit)(struct gk20a *g,
-				struct nvgpu_mem *inst_block, u64 va_limit);
-		u32 (*base_shift)(void);
-		u32 (*alloc_size)(void);
-		void (*set_eng_method_buffer)(struct gk20a *g,
-				struct nvgpu_mem *inst_block, u64 gpu_va);
-	} ramin;
-	struct {
-		int (*reschedule)(struct nvgpu_channel *ch, bool preempt_next);
-		int (*reschedule_preempt_next_locked)(struct nvgpu_channel *ch,
-				bool wait_preempt);
-		int (*update_for_channel)(struct gk20a *g, u32 runlist_id,
-				struct nvgpu_channel *ch, bool add,
-				bool wait_for_finish);
-		int (*reload)(struct gk20a *g, u32 runlist_id,
-				bool add, bool wait_for_finish);
-		u32 (*count_max)(void);
-		u32 (*entry_size)(struct gk20a *g);
-		u32 (*length_max)(struct gk20a *g);
-		void (*get_tsg_entry)(struct nvgpu_tsg *tsg,
-				u32 *runlist, u32 timeslice);
-		void (*get_ch_entry)(struct nvgpu_channel *ch, u32 *runlist);
-		void (*hw_submit)(struct gk20a *g, u32 runlist_id,
-			u32 count, u32 buffer_index);
-		int (*wait_pending)(struct gk20a *g, u32 runlist_id);
-		void (*write_state)(struct gk20a *g, u32 runlists_mask,
-				u32 runlist_state);
-	} runlist;
-	struct {
-		int (*setup_sw)(struct gk20a *g);
-		void (*cleanup_sw)(struct gk20a *g);
-		void (*init_mem)(struct gk20a *g, struct nvgpu_channel *c);
-#ifdef CONFIG_NVGPU_KERNEL_MODE_SUBMIT
-		u32 (*gp_get)(struct gk20a *g, struct nvgpu_channel *c);
-		void (*gp_put)(struct gk20a *g, struct nvgpu_channel *c);
-		u64 (*pb_get)(struct gk20a *g, struct nvgpu_channel *c);
-#endif
-		u32 (*entry_size)(struct gk20a *g);
-	} userd;
-
-	struct {
-		bool (*is_fault_engine_subid_gpc)(struct gk20a *g,
-					 u32 engine_subid);
-		u32 (*get_mask_on_id)(struct gk20a *g,
-			u32 id, bool is_tsg);
-		int (*init_info)(struct nvgpu_fifo *f);
-		int (*init_ce_info)(struct nvgpu_fifo *f);
-	} engine;
-
-	struct {
-		int (*setup_sw)(struct gk20a *g);
-		void (*cleanup_sw)(struct gk20a *g);
-		void (*setup_hw)(struct gk20a *g);
-		void (*intr_enable)(struct gk20a *g, bool enable);
-		bool (*handle_intr_0)(struct gk20a *g,
-				u32 pbdma_id, u32 pbdma_intr_0,
-				u32 *error_notifier);
-		bool (*handle_intr_1)(struct gk20a *g,
-				u32 pbdma_id, u32 pbdma_intr_1,
-				u32 *error_notifier);
-		/* error_notifier can be NULL */
-		bool (*handle_intr)(struct gk20a *g, u32 pbdma_id,
-				u32 *error_notifier,
-				struct nvgpu_pbdma_status_info *pbdma_status);
-		u32 (*get_signature)(struct gk20a *g);
-		void (*dump_status)(struct gk20a *g,
-				struct nvgpu_debug_context *o);
-		u32 (*acquire_val)(u64 timeout);
-		u32 (*read_data)(struct gk20a *g, u32 pbdma_id);
-		void (*reset_header)(struct gk20a *g, u32 pbdma_id);
-		u32 (*device_fatal_0_intr_descs)(void);
-		u32 (*channel_fatal_0_intr_descs)(void);
-		u32 (*restartable_0_intr_descs)(void);
-		bool (*find_for_runlist)(struct gk20a *g,
-				u32 runlist_id, u32 *pbdma_id);
-		void (*format_gpfifo_entry)(struct gk20a *g,
-				struct nvgpu_gpfifo_entry *gpfifo_entry,
-				u64 pb_gpu_va, u32 method_size);
-		u32 (*get_gp_base)(u64 gpfifo_base);
-		u32 (*get_gp_base_hi)(u64 gpfifo_base, u32 gpfifo_entry);
-		u32 (*get_fc_formats)(void);
-		u32 (*get_fc_pb_header)(void);
-		u32 (*get_fc_subdevice)(void);
-		u32 (*get_fc_target)(void);
-		u32 (*get_ctrl_hce_priv_mode_yes)(void);
-		u32 (*get_userd_aperture_mask)(struct gk20a *g,
-				struct nvgpu_mem *mem);
-		u32 (*get_userd_addr)(u32 addr_lo);
-		u32 (*get_userd_hi_addr)(u32 addr_hi);
-		u32 (*get_fc_runlist_timeslice)(void);
-		u32 (*get_config_auth_level_privileged)(void);
-		u32 (*set_channel_info_veid)(u32 channel_id);
-		u32 (*config_userd_writeback_enable)(void);
-		u32 (*allowed_syncpoints_0_index_f)(u32 syncpt);
-		u32 (*allowed_syncpoints_0_valid_f)(void);
-		u32 (*allowed_syncpoints_0_index_v)(u32 offset);
-	} pbdma;
-
-	struct {
-#ifdef CONFIG_TEGRA_GK20A_NVHOST
-		struct {
-			int (*alloc_buf)(struct nvgpu_channel *c,
-					u32 syncpt_id,
-					struct nvgpu_mem *syncpt_buf);
-			void (*free_buf)(struct nvgpu_channel *c,
-					struct nvgpu_mem *syncpt_buf);
-#ifdef CONFIG_NVGPU_KERNEL_MODE_SUBMIT
-			void (*add_wait_cmd)(struct gk20a *g,
-					struct priv_cmd_entry *cmd, u32 off,
-					u32 id, u32 thresh, u64 gpu_va);
-			u32 (*get_wait_cmd_size)(void);
-			void (*add_incr_cmd)(struct gk20a *g,
-					bool wfi_cmd,
-					struct priv_cmd_entry *cmd,
-					u32 id, u64 gpu_va);
-			u32 (*get_incr_cmd_size)(bool wfi_cmd);
-			u32 (*get_incr_per_release)(void);
-#endif
-			int (*get_sync_ro_map)(struct vm_gk20a *vm,
-					u64 *base_gpuva, u32 *sync_size);
-		} syncpt;
-#endif /* CONFIG_TEGRA_GK20A_NVHOST */
-#ifdef CONFIG_NVGPU_KERNEL_MODE_SUBMIT
-		struct {
-			u32 (*get_wait_cmd_size)(void);
-			u32 (*get_incr_cmd_size)(void);
-			void (*add_cmd)(struct gk20a *g,
-				struct nvgpu_semaphore *s, u64 sema_va,
-				struct priv_cmd_entry *cmd,
-				u32 off, bool acquire, bool wfi);
-		} sema;
-#endif
-	} sync;
-	struct {
-		int (*alloc_inst)(struct gk20a *g, struct nvgpu_channel *ch);
-		void (*free_inst)(struct gk20a *g, struct nvgpu_channel *ch);
-		void (*bind)(struct nvgpu_channel *ch);
-		void (*unbind)(struct nvgpu_channel *ch);
-		void (*enable)(struct nvgpu_channel *ch);
-		void (*disable)(struct nvgpu_channel *ch);
-		u32 (*count)(struct gk20a *g);
-		void (*read_state)(struct gk20a *g, struct nvgpu_channel *ch,
-				struct nvgpu_channel_hw_state *state);
-		void (*force_ctx_reload)(struct nvgpu_channel *ch);
-		void (*abort_clean_up)(struct nvgpu_channel *ch);
-		int (*suspend_all_serviceable_ch)(struct gk20a *g);
-		void (*resume_all_serviceable_ch)(struct gk20a *g);
-		void (*set_error_notifier)(struct nvgpu_channel *ch, u32 error);
-		void (*reset_faulted)(struct gk20a *g, struct nvgpu_channel *ch,
-				bool eng, bool pbdma);
-#ifdef CONFIG_NVGPU_KERNEL_MODE_SUBMIT
-		int (*set_syncpt)(struct nvgpu_channel *ch);
-#endif
-		void (*debug_dump)(struct gk20a *g,
-				struct nvgpu_debug_context *o,
-				struct nvgpu_channel_dump_info *info);
-	} channel;
-	struct {
-		int (*open)(struct nvgpu_tsg *tsg);
-		void (*release)(struct nvgpu_tsg *tsg);
-		int (*init_eng_method_buffers)(struct gk20a *g,
-				struct nvgpu_tsg *tsg);
-		void (*deinit_eng_method_buffers)(struct gk20a *g,
-				struct nvgpu_tsg *tsg);
-		void (*enable)(struct nvgpu_tsg *tsg);
-		void (*disable)(struct nvgpu_tsg *tsg);
-		int (*bind_channel)(struct nvgpu_tsg *tsg,
-				struct nvgpu_channel *ch);
-		void (*bind_channel_eng_method_buffers)(struct nvgpu_tsg *tsg,
-				struct nvgpu_channel *ch);
-		int (*unbind_channel)(struct nvgpu_tsg *tsg,
-				struct nvgpu_channel *ch);
-		int (*unbind_channel_check_hw_state)(struct nvgpu_tsg *tsg,
-				struct nvgpu_channel *ch);
-		void (*unbind_channel_check_ctx_reload)(struct nvgpu_tsg *tsg,
-				struct nvgpu_channel *ch,
-				struct nvgpu_channel_hw_state *state);
-		void (*unbind_channel_check_eng_faulted)(struct nvgpu_tsg *tsg,
-				struct nvgpu_channel *ch,
-				struct nvgpu_channel_hw_state *state);
-#ifdef CONFIG_NVGPU_KERNEL_MODE_SUBMIT
-		bool (*check_ctxsw_timeout)(struct nvgpu_tsg *tsg,
-				bool *verbose, u32 *ms);
-#endif
-#ifdef CONFIG_NVGPU_CHANNEL_TSG_CONTROL
-		int (*force_reset)(struct nvgpu_channel *ch,
-					u32 err_code, bool verbose);
-		void (*post_event_id)(struct nvgpu_tsg *tsg,
-				      enum nvgpu_event_id_type event_id);
-#endif
-		int (*set_timeslice)(struct nvgpu_tsg *tsg, u32 timeslice_us);
-		u32 (*default_timeslice_us)(struct gk20a *g);
-		int (*set_interleave)(struct nvgpu_tsg *tsg, u32 new_level);
-	} tsg;
+	struct gops_fifo fifo;
+	struct gops_ramfc ramfc;
+	struct gops_ramin ramin;
+	struct gops_runlist runlist;
+	struct gops_userd userd;
+	struct gops_engine engine;
+	struct gops_pbdma pbdma;
+	struct gops_sync sync;
+	struct gops_channel channel;
+	struct gops_tsg tsg;
 	struct {
 		void (*setup_hw)(struct gk20a *g);
 		void (*ring_doorbell)(struct nvgpu_channel *ch);
@@ -1354,16 +1099,8 @@ struct gpu_ops {
 		u64 (*base)(struct gk20a *g);
 		u64 (*bus_base)(struct gk20a *g);
 	} usermode;
-	struct {
-		void (*read_engine_status_info) (struct gk20a *g,
-			u32 engine_id, struct nvgpu_engine_status_info *status);
-		void (*dump_engine_status)(struct gk20a *g,
-				struct nvgpu_debug_context *o);
-	} engine_status;
-	struct {
-		void (*read_pbdma_status_info) (struct gk20a *g,
-			u32 engine_id, struct nvgpu_pbdma_status_info *status);
-	} pbdma_status;
+	struct gops_engine_status engine_status;
+	struct gops_pbdma_status pbdma_status;
 	struct {
 		int (*get_netlist_name)(struct gk20a *g, int index, char *name);
 		bool (*is_fw_defined)(void);
