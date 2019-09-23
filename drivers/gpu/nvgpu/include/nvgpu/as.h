@@ -29,28 +29,98 @@
 struct vm_gk20a;
 struct gk20a;
 
+/**
+ * Basic structure to identify an address space (AS).
+ */
 struct gk20a_as {
-	int last_share_id; /* dummy allocator for now */
+	/**
+	 * Incrementing id to identify the AS, dummy allocator for now.
+	 */
+	int last_share_id;
 };
 
+/**
+ * Basic structure to share an AS.
+ */
 struct gk20a_as_share {
+	/**
+	 * The AS to share.
+	 */
 	struct gk20a_as *as;
+
+	/**
+	 * The VM used by the AS.
+	 */
 	struct vm_gk20a *vm;
+
+	/**
+	 * Simple incrementing id to identify the share.
+	 */
 	int id;
 };
 
-/*
- * AS allocation flags.
+/**
+ * AS allocation flag for userspace managed
  */
 #define NVGPU_AS_ALLOC_USERSPACE_MANAGED	BIT32(0)
+
+/**
+ * AS allocation flag for unified VA
+ */
 #define NVGPU_AS_ALLOC_UNIFIED_VA		BIT32(1)
 
+/**
+ * @brief Release an AS share.
+ *
+ * @param as_share [in] The address space share to release.
+ *
+ * Call gk20a_vm_release_share on the provided \a as_share and release the
+ * corresponding share id.
+ *
+ * @return 0 in case of success, < 0 in case of failure.
+ */
 int gk20a_as_release_share(struct gk20a_as_share *as_share);
+
+/**
+ * @brief Set internal pointers to NULL and decrement reference count on the VM.
+ *
+ * @param as_share [in] The address space share to release.
+ *
+ * Release the \a as_share provided in argument by marking the internal pointers
+ * between the share and its VM as NULL, and freeing it.
+ *
+ * @return 0 in case of success, < 0 in case of failure.
+ */
 int gk20a_vm_release_share(struct gk20a_as_share *as_share);
 
-/* if big_page_size == 0, the default big page size is used */
+/**
+ * @brief Allocate an AS share.
+ *
+ * @param g [in]		The GPU
+ * @param big_page_size [in]	Big page size to use for the VM
+ * @param flags [in]		NVGPU_AS_ALLOC_* flags
+ * @params out [out]		The resulting, allocated, gk20a_as_share
+ *				structure
+ *
+ * Allocate the gk20a_as_share structure and the VM associated with it, based
+ * on the provided \a big_page_size and NVGPU_AS_ALLOC_* \a flags.
+ *
+ * Notes: if \a big_page_size == 0, the default big page size is used.
+ *
+ * @return 0 in case of success, < 0 in case of failure.
+ */
 int gk20a_as_alloc_share(struct gk20a *g, u32 big_page_size,
 			 u32 flags, struct gk20a_as_share **out);
 
+/**
+ * @brief Retrieve the instance of gk20a from a gk20a_as instance.
+ *
+ * @param as [in] The address space
+ *
+ * Given an instance of gk20a_as, retrieve a pointer to the underlying gk20a
+ * instance.
+ *
+ * @return pointer to the underlying GPU (gk20a).
+ */
 struct gk20a *gk20a_from_as(struct gk20a_as *as);
 #endif /* NVGPU_AS_H */
