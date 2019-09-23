@@ -172,18 +172,42 @@ void gv11b_ecc_detect_enabled_units(struct gk20a *g)
 	}
 }
 
+static int gv11b_ecc_init_sm_corrected_err_count(struct gk20a *g)
+{
+	NVGPU_ECC_COUNTER_INIT_PER_TPC(sm_l1_tag_ecc_corrected_err_count);
+	NVGPU_ECC_COUNTER_INIT_PER_TPC(sm_cbu_ecc_corrected_err_count);
+	NVGPU_ECC_COUNTER_INIT_PER_TPC(sm_l1_data_ecc_corrected_err_count);
+	NVGPU_ECC_COUNTER_INIT_PER_TPC(sm_icache_ecc_corrected_err_count);
+
+	return 0;
+}
+
+static int gv11b_ecc_init_sm_uncorrected_err_count(struct gk20a *g)
+{
+	NVGPU_ECC_COUNTER_INIT_PER_TPC(sm_l1_tag_ecc_uncorrected_err_count);
+	NVGPU_ECC_COUNTER_INIT_PER_TPC(sm_cbu_ecc_uncorrected_err_count);
+	NVGPU_ECC_COUNTER_INIT_PER_TPC(sm_l1_data_ecc_uncorrected_err_count);
+	NVGPU_ECC_COUNTER_INIT_PER_TPC(sm_icache_ecc_uncorrected_err_count);
+
+	return 0;
+}
+
 static int gv11b_ecc_init_tpc(struct gk20a *g)
 {
+	int err;
+
 	NVGPU_ECC_COUNTER_INIT_PER_TPC(sm_lrf_ecc_single_err_count);
 	NVGPU_ECC_COUNTER_INIT_PER_TPC(sm_lrf_ecc_double_err_count);
-	NVGPU_ECC_COUNTER_INIT_PER_TPC(sm_l1_tag_ecc_corrected_err_count);
-	NVGPU_ECC_COUNTER_INIT_PER_TPC(sm_l1_tag_ecc_uncorrected_err_count);
-	NVGPU_ECC_COUNTER_INIT_PER_TPC(sm_cbu_ecc_corrected_err_count);
-	NVGPU_ECC_COUNTER_INIT_PER_TPC(sm_cbu_ecc_uncorrected_err_count);
-	NVGPU_ECC_COUNTER_INIT_PER_TPC(sm_l1_data_ecc_corrected_err_count);
-	NVGPU_ECC_COUNTER_INIT_PER_TPC(sm_l1_data_ecc_uncorrected_err_count);
-	NVGPU_ECC_COUNTER_INIT_PER_TPC(sm_icache_ecc_corrected_err_count);
-	NVGPU_ECC_COUNTER_INIT_PER_TPC(sm_icache_ecc_uncorrected_err_count);
+
+	err = gv11b_ecc_init_sm_corrected_err_count(g);
+	if (err != 0) {
+		return err;
+	}
+
+	err = gv11b_ecc_init_sm_uncorrected_err_count(g);
+	if (err != 0) {
+		return err;
+	}
 
 	return 0;
 }
