@@ -105,6 +105,53 @@
  */
 #define NVGPU_COV_WHITELIST(type, checker, comment_str) \
 	_Pragma(NVGPU_COV_STRING(coverity compliance type checker comment_str))
+
+/**
+ * NVGPU_COV_WHITELIST_BLOCK_BEGIN - Whitelist a coverity violation for a block
+ *                                   of code.
+ *
+ * @param type        - This is the whitelisting category. Valid values are
+ *                      deviate or false_positive.\n
+ *                      deviate is for an approved rule deviation.\n
+ *                      false_positive is normally used for a bug in coverity
+ *                      which causes a false violation to appear in the scan.
+ * @param num         - This is number of violations expected within the block.
+ * @param checker     - This is the MISRA or CERT C rule causing the violation.
+ *                      Use the NVGPU_MISRA() or NVGPU_CERT() macro to define
+ *                      this field.
+ * @param comment_str - This is the comment that you want associated with this
+ *                      whitelisting. This should normally be a bug number
+ *                      (ex: coverity bug) or JIRA task ID (ex: RFD). Unlike the
+ *                      other arguments, this argument must be a quoted string.
+ *
+ * Use this macro to whitelist a coverity violation for a block of code. It
+ * must be terminated by an NVGPU_COV_WHITELIST_BLOCK_END()
+ *
+ * Example: Whitelist 10 MISRA rule 14.2 violation due to a deviation
+ * documented in the JIRA TID-123 RFD:\n
+ * NVGPU_COV_WHITELIST_BLOCK_BEGIN(deviate, 10, NVGPU_MISRA(Rule, 14_2), "JIRA TID-123")\n
+ *  > Next block of code with 10 rule 14.2 violations
+ * NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Rule, 14_2))\n
+ *
+ */
+#define NVGPU_COV_WHITELIST_BLOCK_BEGIN(type, num, checker, comment_str) \
+	_Pragma(NVGPU_COV_STRING(coverity compliance block type:num checker comment_str))
+
+/**
+ * NVGPU_COV_WHITELIST_BLOCK_END - End whitelist a block of code.that is
+ *                                 whitelisted with a
+ *                                 NVGPU_COV_WHITELIST_BLOCK_BEGIN
+ *
+ * @param checker     - This is the MISRA or CERT C rule causing the violation.
+ *                      Use the NVGPU_MISRA() or NVGPU_CERT() macro to define
+ *                      this field.
+ *
+ * Use this macro to mark the end of the block whitelisted by
+ * NVGPU_COV_WHITELIST_BLOCK_END()
+ *
+ */
+#define NVGPU_COV_WHITELIST_BLOCK_END(checker) \
+	_Pragma(NVGPU_COV_STRING(coverity compliance end_block checker))
 #else
 /**
  * no-op macros for normal compilation - whitelisting is disabled when a
@@ -113,6 +160,8 @@
 #define NVGPU_MISRA(type, num)
 #define NVGPU_CERT(num)
 #define NVGPU_COV_WHITELIST(type, checker, comment_str)
+#define NVGPU_COV_WHITELIST_BLOCK_BEGIN(type, num, checker, comment_str)
+#define NVGPU_COV_WHITELIST_BLOCK_END(checker)
 #endif
 /**@}*/ /* "Coverity Whitelisting" doxygen group */
 
