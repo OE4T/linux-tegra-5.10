@@ -23,6 +23,7 @@
 #ifndef NVGPU_POSIX_COND_H
 #define NVGPU_POSIX_COND_H
 
+#include <nvgpu/static_analysis.h>
 #include <nvgpu/bug.h>
 #include <nvgpu/lock.h>
 
@@ -115,6 +116,7 @@ do {									\
 		ret = nvgpu_cond_timedwait(cond,			\
 				&cond_wait_timeout_timeout);		\
 	}								\
+NVGPU_COV_WHITELIST(false_positive, NVGPU_MISRA(Rule, 14_4), "Bug 2623654") \
 } while (false)
 
 #endif /* NVGPU_POSIX_COND_H */

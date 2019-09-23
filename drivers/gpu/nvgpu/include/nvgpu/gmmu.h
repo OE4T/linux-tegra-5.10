@@ -260,6 +260,7 @@ void nvgpu_gmmu_unmap_locked(struct vm_gk20a *vm,
 		} else {						\
 			nvgpu_log(g, gpu_dbg_pte, fmt, ##args);		\
 		}							\
+NVGPU_COV_WHITELIST(false_positive, NVGPU_MISRA(Rule, 14_4), "Bug 2623654") \
 	} while (false)
 
 #endif /* NVGPU_GMMU_H */

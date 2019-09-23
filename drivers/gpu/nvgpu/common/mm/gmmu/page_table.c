@@ -45,6 +45,7 @@
 		} else {						\
 			nvgpu_log(g, gpu_dbg_map, fmt, ##args);		\
 		}							\
+NVGPU_COV_WHITELIST(false_positive, NVGPU_MISRA(Rule, 14_4), "Bug 2623654") \
 	} while (false)
 
 #define nvgpu_gmmu_dbg_v(g, attrs, fmt, args...)			\
@@ -54,6 +55,7 @@
 		} else {						\
 			nvgpu_log(g, gpu_dbg_map_v, fmt, ##args);	\
 		}							\
+NVGPU_COV_WHITELIST(false_positive, NVGPU_MISRA(Rule, 14_4), "Bug 2623654") \
 	} while (false)
 
 static int pd_allocate(struct vm_gk20a *vm,
