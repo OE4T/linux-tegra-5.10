@@ -53,6 +53,7 @@
  *   - @ref SWUTS-acr
  *   - @ref SWUTS-cg
  *   - @ref SWUTS-init_test
+ *   - @ref SWUTS-channel_os
  *
  */
 
