@@ -35,59 +35,89 @@
 #include <nvgpu_rmos/include/nvgpu_mem.h>
 #endif
 
+/**
+ * Memory Interface for all GPU accessible memory.
+ */
+
 struct page;
 struct sg_table;
-
 struct gk20a;
 struct nvgpu_allocator;
 struct nvgpu_gmmu_attrs;
 struct nvgpu_page_alloc;
 struct nvgpu_sgt;
 
-#define NVGPU_MEM_DMA_ERROR		(~0ULL)
-
-/*
- * Real location of a buffer - nvgpu_aperture_mask() will deduce what will be
- * told to the gpu about the aperture, but this flag designates where the
- * memory actually was allocated from.
+/**
+ * This flag variable designates where the memory actually was allocated from.
  */
 enum nvgpu_aperture {
-	APERTURE_INVALID = 0, /* unallocated or N/A */
+	/**
+	 * Unallocated or invalid memory structure.
+	 */
+	APERTURE_INVALID = 0,
+	/**
+	 * This memory is located in SYSMEM.
+	 */
 	APERTURE_SYSMEM,
-
-	 /* Don't use directly. Use APERTURE_SYSMEM, this is used internally. */
+	/**
+	 * This coherent memory is located in SYSMEM. Note: This type is used
+	 * internally. Use APERTURE_SYSMEM.
+	 */
 	APERTURE_SYSMEM_COH,
-
+	/**
+	 * This memory is located in VIDMEM.
+	 */
 	APERTURE_VIDMEM,
-	/* This should always be last in the list */
+	/**
+	 * This gives maximum type of memory locations. Note: This should always
+	 * be defined last.
+	 */
 	APERTURE_MAX_ENUM
 };
 
+/**
+ * The nvgpu_mem structure defines abstracted GPU accessible memory regions.
+ */
 struct nvgpu_mem {
-	/*
-	 * Populated for all nvgpu_mem structs - vidmem or system.
+	/**
+	 * Indicates memory type of original allocation.
 	 */
 	enum nvgpu_aperture			 aperture;
+	/**
+	 * Size of memory segment requested during creation.
+	 */
 	size_t					 size;
+	/**
+	 * Total amount of memory allocated after aligning requested size.
+	 */
 	size_t					 aligned_size;
+	/**
+	 * Address of mapped GPU memory, if any.
+	 */
 	u64					 gpu_va;
+	/**
+	 * Flag to indicate write memory barrier requirement.
+	 */
 	bool					 skip_wmb;
+	/**
+	 * Indicates if gpu_va address is valid.
+	 */
 	bool					 free_gpu_va;
 
-	/*
+	/**
 	 * Set when a nvgpu_mem struct is not a "real" nvgpu_mem struct. Instead
 	 * the struct is just a copy of another nvgpu_mem struct.
 	 */
 #define NVGPU_MEM_FLAG_SHADOW_COPY		 BIT64(0)
 
-	/*
+	/**
 	 * Specify that the GVA mapping is a fixed mapping - that is the caller
 	 * chose the GPU VA, not the GMMU mapping function. Only relevant for
 	 * VIDMEM.
 	 */
 #define NVGPU_MEM_FLAG_FIXED			 BIT64(1)
 
-	/*
+	/**
 	 * Set for user generated VIDMEM allocations. This triggers a special
 	 * cleanup path that clears the vidmem on free. Given that the VIDMEM is
 	 * zeroed on boot this means that all user vidmem allocations are
@@ -95,7 +125,7 @@ struct nvgpu_mem {
 	 */
 #define NVGPU_MEM_FLAG_USER_MEM			 BIT64(2)
 
-	/*
+	/**
 	 * Internal flag that specifies this struct has not been made with DMA
 	 * memory and as a result should not try to use the DMA routines for
 	 * freeing the backing memory.
@@ -104,7 +134,8 @@ struct nvgpu_mem {
 	 * nvgpu_mem in a system specific way.
 	 */
 #define NVGPU_MEM_FLAG_NO_DMA			 BIT64(3)
-	/*
+
+	/**
 	 * Some nvgpu_mem objects act as facades to memory buffers owned by
 	 * someone else. This internal flag specifies that the sgt field is
 	 * "borrowed", and it must not be freed by us.
@@ -113,28 +144,51 @@ struct nvgpu_mem {
 	 * outlives the nvgpu_mem.
 	 */
 #define NVGPU_MEM_FLAG_FOREIGN_SGT		 BIT64(4)
+
+	/**
+	 * Store flag bits indicating conditions for nvgpu_mem struct instance.
+	 */
 	unsigned long				 mem_flags;
 
-	/*
-	 * Only populated for a sysmem allocation.
+	/**
+	 * Pointer to sysmem memory address. Only populated for a sysmem
+	 * allocation.
 	 */
 	void					*cpu_va;
 
 #ifdef CONFIG_NVGPU_DGPU
-	/*
-	 * Fields only populated for vidmem allocations.
+
+	/**
+	 * Pointer to allocated chunks of pages constituting requested vidmem
+	 * type memory. This memory is allocated from GPU vidmem memory.
+	 * Evidently, only populated for vidmem allocations.
 	 */
 	struct nvgpu_page_alloc			*vidmem_alloc;
+
+	/**
+	 * Pointer to GPU vidmem allocator. This allocator is used to allocate
+	 * memory pointed by #vidmem_alloc. Only populated for vidmem
+	 * allocations.
+	 */
 	struct nvgpu_allocator			*allocator;
+
+	/**
+	 * Clear list entry node. This node is used to register this nvgpu_mem
+	 * vidmem instance in GPU vidmem allocations list. This node can be used
+	 * to search outstanding vidmem allocations. Only populated for vidmem
+	 * allocations.
+	 */
 	struct nvgpu_list_node			 clear_list_entry;
 #endif
 
-	/*
-	 * Fields for direct "physical" nvgpu_mem structs.
+	/**
+	 * Pointer to scatter gather table for direct "physical" nvgpu_mem
+	 * structs.
 	 */
 	struct nvgpu_sgt			*phys_sgt;
 
-	/*
+	/**
+	 * Structure containing system specific memory pointers.
 	 * This is defined by the system specific header. It can be empty if
 	 * there's no system specific stuff for a given system.
 	 */
@@ -159,6 +213,13 @@ static const char *aperture_name[APERTURE_MAX_ENUM + 1] = {
 	[APERTURE_MAX_ENUM]	= "UNKNOWN",
 };
 
+/**
+ * @brief Convert aperture type to string.
+ *
+ * @param[in] aperture		Aperture type.
+ *
+ * @return Aperture type string.
+ */
 static inline const char *nvgpu_aperture_str(enum nvgpu_aperture aperture)
 {
 	if ((aperture < APERTURE_INVALID) || (aperture >= APERTURE_MAX_ENUM)) {
@@ -167,12 +228,31 @@ static inline const char *nvgpu_aperture_str(enum nvgpu_aperture aperture)
 	return aperture_name[aperture];
 }
 
+/**
+ * @brief Check if given aperture is of type SYSMEM.
+ *
+ * @param[in] ap	Aperture type.
+ *
+ * @return True if aperture is SYSMEM type, false otherwise.
+ */
 bool nvgpu_aperture_is_sysmem(enum nvgpu_aperture ap);
+
+/**
+ * @brief Check if given memory is of SYSMEM type.
+ *
+ * @param[in] mem	Pointer to nvgpu_mem structure.
+ *
+ * @return True if memory is SYSMEM type, false otherwise.
+ */
 bool nvgpu_mem_is_sysmem(struct nvgpu_mem *mem);
 
-/*
- * Returns true if the passed nvgpu_mem has been allocated (i.e it's valid for
- * subsequent use).
+/**
+ * @brief Check if given nvgpu_mem structure is valid for subsequent use.
+ *
+ * @param[in] mem	Pointer to nvgpu_mem structure.
+ *			Cannot be NULL.
+ *
+ * @return True if the passed nvgpu_mem has been allocated, false otherwise.
  */
 static inline bool nvgpu_mem_is_valid(struct nvgpu_mem *mem)
 {
@@ -189,13 +269,15 @@ static inline bool nvgpu_mem_is_valid(struct nvgpu_mem *mem)
 }
 
 /**
- * nvgpu_mem_create_from_mem - Create a new nvgpu_mem struct from an old one.
+ * @brief Create a new nvgpu_mem struct from an old one.
  *
- * @g          - The GPU.
- * @dest       - Destination nvgpu_mem to hold resulting memory description.
- * @src        - Source memory. Must be valid.
- * @start_page - Starting page to use.
- * @nr_pages   - Number of pages to place in the new nvgpu_mem.
+ * @param[in] g			Pointer to GPU structure
+ * @param[out] dest		Pointer to destination nvgpu_mem to hold
+ *				resulting memory description.
+ * @param[in] src		Pointer to source memory.
+ *				Cannot be NULL. Must be valid.
+ * @param[in] start_page	Start page of created memory.
+ * @param[in] nr_pages		Number of pages to place in the new nvgpu_mem.
  *
  * Create a new nvgpu_mem struct describing a subsection of the @src nvgpu_mem.
  * This will create an nvpgu_mem object starting at @start_page and is @nr_pages
@@ -216,21 +298,22 @@ static inline bool nvgpu_mem_is_valid(struct nvgpu_mem *mem)
  * nvgpu_dma_unmap_free() function depending on whether or not the resulting
  * nvgpu_mem has been mapped.
  *
- * This will return 0 on success. An error is returned if the resulting
- * nvgpu_mem would not make sense or if a new scatter gather table cannot be
- * created.
+ * @return 0 in case of success, < 0 in case of failure.
+ * @retval -EINVAl in case of incorrect input values.
+ * @retval -ENOMEM in case there is not enough memory for scatter gather table
+ * creation.
  */
 int nvgpu_mem_create_from_mem(struct gk20a *g,
 			      struct nvgpu_mem *dest, struct nvgpu_mem *src,
 			      u64 start_page, size_t nr_pages);
 
 /**
- * nvgpu_mem_create_from_phys - Create an nvgpu_mem from physical mem.
+ * @brief Create an nvgpu_mem structure from given physical memory.
  *
- * @g        - The GPU.
- * @dest     - nvgpu_mem to initialize.
- * @src_phys - start address of physical mem
- * @nr_pages - The number of pages in phys.
+ * @param[in] g			Pointer to GPU structure.
+ * @param[out] dest		Memory pointer to be populated after mem create.
+ * @param[in] src_phys		Start address of physical memory.
+ * @param[in] nr_pages		Number of pages requested.
  *
  * Create a new nvgpu_mem struct from a physical memory aperture. The physical
  * memory aperture needs to be contiguous for requested @nr_pages. This API
@@ -242,12 +325,19 @@ int nvgpu_mem_create_from_mem(struct gk20a *g,
  * nvgpu_dma_unmap_free() function depending on whether or not the resulting
  * nvgpu_mem has been mapped.
  *
- * Returns 0 on success, or a relevant error otherwise.
+ * @return 0 in case of success, < 0 in case of failure.
+ * @retval -ENOMEM in case there is not enough memory to allocate agt and agl.
  */
 int nvgpu_mem_create_from_phys(struct gk20a *g, struct nvgpu_mem *dest,
 			       u64 src_phys, u64 nr_pages);
 
-/*
+#ifdef CONFIG_NVGPU_DGPU
+/**
+ * @brief Free vidmem buffer.
+ *
+ * @param[in] g			Pointer to GPU structure.
+ * @param[in] vidmem		Pointer to nvgou_mem structure to be freed.
+ *
  * Really free a vidmem buffer. There's a fair amount of work involved in
  * freeing vidmem buffers in the DMA API. This handles none of that - it only
  * frees the underlying vidmem specific structures used in vidmem buffers.
@@ -255,44 +345,165 @@ int nvgpu_mem_create_from_phys(struct gk20a *g, struct nvgpu_mem *dest,
  * This is implemented in the OS specific code. If it's not necessary it can
  * be a noop. But the symbol must at least be present.
  */
-#ifdef CONFIG_NVGPU_DGPU
 void nvgpu_mem_free_vidmem_alloc(struct gk20a *g, struct nvgpu_mem *vidmem);
 #endif
+
 /*
  * Buffer accessors. Sysmem buffers always have a CPU mapping and vidmem
  * buffers are accessed via PRAMIN.
  */
 
-/* word-indexed offset */
+/**
+ * @brief Read data word from memory.
+ *
+ * @param[in] g		Pointer to GPU structure.
+ * @param[in] mem	Pointer to nvgpu_mem structure.
+ * @param[in] w		Word index.
+ *
+ * @return Data word read from memory.
+ */
 u32 nvgpu_mem_rd32(struct gk20a *g, struct nvgpu_mem *mem, u64 w);
-/* word-indexed offsets */
+
+/**
+ * @brief Read two data words from memory.
+ *
+ * @param[in] g         Pointer to GPU structure.
+ * @param[in] mem       Pointer to nvgpu_mem structure.
+ * @param[in] lo	Low word index.
+ * @param[in] hi	High word index.
+ *
+ * @return Double data word read from memory.
+ */
 u64 nvgpu_mem_rd32_pair(struct gk20a *g, struct nvgpu_mem *mem,
 		u32 lo, u32 hi);
-/* byte offset (32b-aligned) */
+
+/**
+ * @brief Read data word from memory containing data at given byte offset.
+ *
+ * @param[in] g         Pointer to GPU structure.
+ * @param[in] mem       Pointer to nvgpu_mem structure.
+ * @param[in] offset	Byte offset (32b-aligned).
+ *
+ * @return Data word read from memory.
+ */
 u32 nvgpu_mem_rd(struct gk20a *g, struct nvgpu_mem *mem, u64 offset);
-/* memcpy to cpu, offset and size in bytes (32b-aligned) */
+
+/**
+ * @brief Copy size amount bytes from memory to cpu.
+ *
+ * @param[in] g         Pointer to GPU structure.
+ * @param[in] mem       Pointer to nvgpu_mem structure.
+ * @param[in] offset    Byte offset (32b-aligned).
+ * @param[out] dest	Pointer to destination cpu memory.
+ * @param[in] size	Number of bytes to be read (32b-aligned).
+ */
 void nvgpu_mem_rd_n(struct gk20a *g, struct nvgpu_mem *mem, u64 offset,
 		void *dest, u64 size);
 
-/* word-indexed offset */
+/**
+ * @brief Write data word to memory.
+ *
+ * @param[in] g		Pointer to GPU structure.
+ * @param[in] mem	Pointer to nvgpu_mem structure.
+ * @param[in] w		Word index.
+ * @param[in] data	Data word to be written.
+ */
 void nvgpu_mem_wr32(struct gk20a *g, struct nvgpu_mem *mem, u64 w, u32 data);
-/* byte offset (32b-aligned) */
+
+/**
+ * @brief Write data word to memory.
+ *
+ * @param[in] g		Pointer to GPU structure.
+ * @param[in] mem	Pointer to nvgpu_mem structure.
+ * @param[in] w		Word index.
+ * @param[in] data	Data word to be written.
+ */
 void nvgpu_mem_wr(struct gk20a *g, struct nvgpu_mem *mem, u64 offset, u32 data);
-/* memcpy from cpu, offset and size in bytes (32b-aligned) */
+
+/**
+ * @brief Copy size amount bytes from cpu to memory.
+ *
+ * @param[in] g         Pointer to GPU structure.
+ * @param[in] mem       Pointer to nvgpu_mem structure.
+ * @param[in] offset    Byte offset (32b-aligned).
+ * @param[in] src	Pointer to source cpu memory.
+ * @param[in] size	Number of bytes to be written (32b-aligned).
+ */
 void nvgpu_mem_wr_n(struct gk20a *g, struct nvgpu_mem *mem, u64 offset,
 		void *src, u64 size);
-/* size and offset in bytes (32b-aligned), filled with the constant byte c */
+
+/**
+ * @brief Fill size amount of memory bytes with constant byte value.
+ *
+ * @param[in] g         Pointer to GPU structure.
+ * @param[in] mem       Pointer to nvgpu_mem structure.
+ * @param[in] offset    Byte offset (32b-aligned).
+ * @param[in] c		Byte value to be written to memory.
+ * @param[in] size	Number of bytes to be read (32b-aligned).
+ */
 void nvgpu_memset(struct gk20a *g, struct nvgpu_mem *mem, u64 offset,
 		u32 c, u64 size);
 
+/**
+ * @brief Request memory address.
+ *
+ * @param[in] g		Pointer to GPU structure.
+ * @param[in] mem	Pointer to nvgpu_mem structure.
+ *
+ * @return sysmem address.
+ */
 u64 nvgpu_mem_get_addr(struct gk20a *g, struct nvgpu_mem *mem);
+
+/**
+ * @brief Request memory address.
+ *
+ * @param[in] g		Pointer to GPU structure.
+ * @param[in] mem	Pointer to nvgpu_mem structure.
+ *
+ * @return Sysmem address.
+ */
 u64 nvgpu_mem_get_phys_addr(struct gk20a *g, struct nvgpu_mem *mem);
 
+/**
+ * @brief Get raw aperture mask value.
+ *
+ * @param[in] g			Pointer to GPU structure.
+ * @param[in] aperture		Aperture value.
+ * @param[in] sysmem_mask	Mask for sysmem memory.
+ * @param[in] sysmem_coh_mask	Mask for coherent sysmem memory.
+ * @param[in] vidmem_mask	Mask for vidmem memory.
+ *
+ * @return Raw aperture mask value in case of success, 0 in case of failure.
+ */
 u32 nvgpu_aperture_mask_raw(struct gk20a *g, enum nvgpu_aperture aperture,
 		u32 sysmem_mask, u32 sysmem_coh_mask, u32 vidmem_mask);
+
+/**
+ * @brief Get aperture mask value.
+ *
+ * @param[in] g			Pointer to GPU structure.
+ * @param[in] mem		Pointer to nvgpu_mem structure.
+ * @param[in] sysmem_mask	Mask for sysmem memory.
+ * @param[in] sysmem_coh_mask	Mask for coherent sysmem memory.
+ * @param[in] vidmem_mask	Mask for vidmem memory.
+ *
+ * Right coherency aperture should be used.
+ * This function doesn'y add any checks.
+ *
+ * @return Aperture mask value in case of success, 0 in case of failure.
+ */
 u32 nvgpu_aperture_mask(struct gk20a *g, struct nvgpu_mem *mem,
 		u32 sysmem_mask, u32 sysmem_coh_mask, u32 vidmem_mask);
 
+/**
+ * @brief Get iommu memory address.
+ *
+ * @param[in] g		Pointer to GPU structure.
+ * @param[in] phys	Physical memory address.
+ *
+ * @return IOMMU translated physical address if GPU MM is iommuable, physical
+ * address otherwise.
+ */
 u64 nvgpu_mem_iommu_translate(struct gk20a *g, u64 phys);
 
 #endif /* NVGPU_MEM_H */
