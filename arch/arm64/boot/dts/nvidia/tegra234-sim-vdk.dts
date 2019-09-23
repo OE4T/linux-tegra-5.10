@@ -1,0 +1,2 @@
+#include "../../../../../../../hardware/nvidia/platform/t23x/sim/kernel-dts/tegra234-sim-vdk.dts"
+
