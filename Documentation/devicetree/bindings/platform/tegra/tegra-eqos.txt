@@ -134,6 +134,11 @@ Optional properties:
 				for an Rx descriptor for which IOC bit is not set.
 				The RIWT field is programmed as (<val> * 256) / 62.5
 
+MDIO node
+- mdio:				Child of Ethernet controller which holds the PHY
+				devices connected via MDIO bus
+- compatible:			Should be "nvidia,eqos-mdio"
+
 Example:
 
 	ether_qos@2490000 {
@@ -172,5 +177,9 @@ Example:
 		nvidia,ptp_ref_clock_speed = <125>;
 		nvidia,use_multi_queues
 		nvidia,brcm_phy_apd_mode;
-
+		mdio {
+			compatible = "nvidia,eqos-mdio";
+			#address-cells = <1>;
+			#size-cells = <0>;
+		};
 	}
