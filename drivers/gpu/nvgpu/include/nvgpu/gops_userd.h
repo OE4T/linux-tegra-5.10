@@ -31,12 +31,14 @@ struct gops_userd {
 	int (*setup_sw)(struct gk20a *g);
 	void (*cleanup_sw)(struct gk20a *g);
 	void (*init_mem)(struct gk20a *g, struct nvgpu_channel *c);
+	u32 (*entry_size)(struct gk20a *g);
+
 #ifdef CONFIG_NVGPU_KERNEL_MODE_SUBMIT
 	u32 (*gp_get)(struct gk20a *g, struct nvgpu_channel *c);
 	void (*gp_put)(struct gk20a *g, struct nvgpu_channel *c);
 	u64 (*pb_get)(struct gk20a *g, struct nvgpu_channel *c);
 #endif
-	u32 (*entry_size)(struct gk20a *g);
+
 };
 
 

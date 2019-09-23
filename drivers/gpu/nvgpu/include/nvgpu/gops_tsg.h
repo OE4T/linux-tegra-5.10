@@ -55,19 +55,22 @@ struct gops_tsg {
 	void (*unbind_channel_check_eng_faulted)(struct nvgpu_tsg *tsg,
 			struct nvgpu_channel *ch,
 			struct nvgpu_channel_hw_state *state);
+	int (*set_timeslice)(struct nvgpu_tsg *tsg, u32 timeslice_us);
+	u32 (*default_timeslice_us)(struct gk20a *g);
+	int (*set_interleave)(struct nvgpu_tsg *tsg, u32 new_level);
+
 #ifdef CONFIG_NVGPU_KERNEL_MODE_SUBMIT
 	bool (*check_ctxsw_timeout)(struct nvgpu_tsg *tsg,
 			bool *verbose, u32 *ms);
 #endif
+
 #ifdef CONFIG_NVGPU_CHANNEL_TSG_CONTROL
 	int (*force_reset)(struct nvgpu_channel *ch,
 				u32 err_code, bool verbose);
 	void (*post_event_id)(struct nvgpu_tsg *tsg,
 			      enum nvgpu_event_id_type event_id);
 #endif
-	int (*set_timeslice)(struct nvgpu_tsg *tsg, u32 timeslice_us);
-	u32 (*default_timeslice_us)(struct gk20a *g);
-	int (*set_interleave)(struct nvgpu_tsg *tsg, u32 new_level);
+
 };
 
 #endif

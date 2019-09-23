@@ -48,17 +48,8 @@ struct gops_fifo {
 	int (*is_preempt_pending)(struct gk20a *g, u32 id,
 		unsigned int id_type);
 	int (*reset_enable_hw)(struct gk20a *g);
-#ifdef CONFIG_NVGPU_RECOVERY
-	void (*recover)(struct gk20a *g, u32 act_eng_bitmask,
-		u32 id, unsigned int id_type, unsigned int rc_type,
-		 struct mmu_fault_info *mmfault);
-#endif
 	void (*intr_set_recover_mask)(struct gk20a *g);
 	void (*intr_unset_recover_mask)(struct gk20a *g);
-#ifdef CONFIG_NVGPU_DEBUGGER
-	int (*set_sm_exception_type_mask)(struct nvgpu_channel *ch,
-			u32 exception_mask);
-#endif
 	void (*intr_0_enable)(struct gk20a *g, bool enable);
 	void (*intr_0_isr)(struct gk20a *g);
 	void (*intr_1_enable)(struct gk20a *g, bool enable);
@@ -80,6 +71,17 @@ struct gops_fifo {
 	u32  (*mmu_fault_id_to_pbdma_id)(struct gk20a *g,
 				u32 mmu_fault_id);
 	void (*bar1_snooping_disable)(struct gk20a *g);
+
+#ifdef CONFIG_NVGPU_RECOVERY
+	void (*recover)(struct gk20a *g, u32 act_eng_bitmask,
+		u32 id, unsigned int id_type, unsigned int rc_type,
+		 struct mmu_fault_info *mmfault);
+#endif
+
+#ifdef CONFIG_NVGPU_DEBUGGER
+	int (*set_sm_exception_type_mask)(struct nvgpu_channel *ch,
+			u32 exception_mask);
+#endif
 
 };
 

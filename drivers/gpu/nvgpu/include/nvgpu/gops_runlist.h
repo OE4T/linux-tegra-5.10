@@ -28,9 +28,6 @@ struct gk20a;
 struct nvgpu_channel;
 
 struct gops_runlist {
-	int (*reschedule)(struct nvgpu_channel *ch, bool preempt_next);
-	int (*reschedule_preempt_next_locked)(struct nvgpu_channel *ch,
-			bool wait_preempt);
 	int (*update_for_channel)(struct gk20a *g, u32 runlist_id,
 			struct nvgpu_channel *ch, bool add,
 			bool wait_for_finish);
@@ -47,6 +44,11 @@ struct gops_runlist {
 	int (*wait_pending)(struct gk20a *g, u32 runlist_id);
 	void (*write_state)(struct gk20a *g, u32 runlists_mask,
 			u32 runlist_state);
+
+	/** NON FUSA */
+	int (*reschedule)(struct nvgpu_channel *ch, bool preempt_next);
+	int (*reschedule_preempt_next_locked)(struct nvgpu_channel *ch,
+			bool wait_preempt);
 };
 
 #endif

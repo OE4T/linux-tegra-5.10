@@ -32,6 +32,7 @@ struct priv_cmd_entry;
 struct nvgpu_semaphore;
 
 struct gops_sync {
+
 #ifdef CONFIG_TEGRA_GK20A_NVHOST
 	struct {
 		int (*alloc_buf)(struct nvgpu_channel *c,
@@ -55,6 +56,7 @@ struct gops_sync {
 				u64 *base_gpuva, u32 *sync_size);
 	} syncpt;
 #endif /* CONFIG_TEGRA_GK20A_NVHOST */
+
 #ifdef CONFIG_NVGPU_KERNEL_MODE_SUBMIT
 	struct {
 		u32 (*get_wait_cmd_size)(void);

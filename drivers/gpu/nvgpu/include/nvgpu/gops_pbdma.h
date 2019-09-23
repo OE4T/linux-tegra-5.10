@@ -25,9 +25,11 @@
 #include <nvgpu/types.h>
 
 struct gk20a;
-struct nvgpu_debug_context;
 struct nvgpu_gpfifo_entry;
 struct nvgpu_pbdma_status_info;
+
+/** NON FUSA */
+struct nvgpu_debug_context;
 
 struct gops_pbdma_status {
 	void (*read_pbdma_status_info)(struct gk20a *g,
@@ -45,13 +47,10 @@ struct gops_pbdma {
 	bool (*handle_intr_1)(struct gk20a *g,
 			u32 pbdma_id, u32 pbdma_intr_1,
 			u32 *error_notifier);
-	/* error_notifier can be NULL */
 	bool (*handle_intr)(struct gk20a *g, u32 pbdma_id,
 			u32 *error_notifier,
 			struct nvgpu_pbdma_status_info *pbdma_status);
 	u32 (*get_signature)(struct gk20a *g);
-	void (*dump_status)(struct gk20a *g,
-			struct nvgpu_debug_context *o);
 	u32 (*acquire_val)(u64 timeout);
 	u32 (*read_data)(struct gk20a *g, u32 pbdma_id);
 	void (*reset_header)(struct gk20a *g, u32 pbdma_id);
@@ -81,6 +80,10 @@ struct gops_pbdma {
 	u32 (*allowed_syncpoints_0_index_f)(u32 syncpt);
 	u32 (*allowed_syncpoints_0_valid_f)(void);
 	u32 (*allowed_syncpoints_0_index_v)(u32 offset);
+
+	/** NON FUSA */
+	void (*dump_status)(struct gk20a *g,
+			struct nvgpu_debug_context *o);
 };
 
 #endif

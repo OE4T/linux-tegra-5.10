@@ -47,12 +47,14 @@ struct gops_channel {
 	void (*set_error_notifier)(struct nvgpu_channel *ch, u32 error);
 	void (*reset_faulted)(struct gk20a *g, struct nvgpu_channel *ch,
 			bool eng, bool pbdma);
-#ifdef CONFIG_NVGPU_KERNEL_MODE_SUBMIT
-	int (*set_syncpt)(struct nvgpu_channel *ch);
-#endif
 	void (*debug_dump)(struct gk20a *g,
 			struct nvgpu_debug_context *o,
 			struct nvgpu_channel_dump_info *info);
+
+#ifdef CONFIG_NVGPU_KERNEL_MODE_SUBMIT
+	int (*set_syncpt)(struct nvgpu_channel *ch);
+#endif
+
 };
 
 #endif
