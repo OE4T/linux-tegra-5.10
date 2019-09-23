@@ -158,6 +158,71 @@ static u32 gr_gv100_find_max_gpc(u32 *num_tpc_gpc, u32 gpc_id, u32 max_tpc_gpc)
 				num_tpc_gpc[gpc_id] : max_tpc_gpc;
 }
 
+static int gr_gr100_find_perf_reduction_rate_gpc(struct gk20a *g,
+			struct nvgpu_gr_config *gr_config,
+			u32 *gpc_tpc_mask, u32 disable_gpc_id,
+			u32 disable_tpc_id, u32 *min_scg_gpc_pix_perf,
+			u32 *max_tpc_gpc, u32 *scg_num_pes, u32 *average_tpcs,
+			u32 *num_tpc_gpc)
+{
+	int err = 0;
+	u32 scale_factor = 512U; /* Use fx23.9 */
+	u32 gpc_id;
+	u32 scg_gpc_pix_perf = 0U;
+	bool is_tpc_removed_gpc = false;
+	bool is_tpc_removed_pes = false;
+	u32 tpc_cnt = 0U;
+
+	for (gpc_id = 0;
+	     gpc_id < nvgpu_gr_config_get_gpc_count(gr_config);
+	     gpc_id++) {
+
+		err = gr_gv100_remove_logical_tpc(gr_config, gpc_id,
+				gpc_tpc_mask, disable_gpc_id, disable_tpc_id,
+				&is_tpc_removed_gpc, num_tpc_gpc);
+		if (err != 0) {
+			goto perf_rate_calc_fail;
+		}
+
+		/* track balancing of tpcs across gpcs */
+		*average_tpcs = nvgpu_safe_add_u32(*average_tpcs,
+					num_tpc_gpc[gpc_id]);
+
+		/* save the maximum numer of gpcs */
+		*max_tpc_gpc = gr_gv100_find_max_gpc(num_tpc_gpc,
+					gpc_id, *max_tpc_gpc);
+
+		/*
+		 * Calculate ratio between TPC count and post-FS and post-SCG
+		 *
+		 * ratio represents relative throughput of the GPC
+		 */
+		tpc_cnt = nvgpu_gr_config_get_gpc_tpc_count(gr_config, gpc_id);
+		if (tpc_cnt > 0U) {
+			scg_gpc_pix_perf = nvgpu_safe_mult_u32(scale_factor,
+						num_tpc_gpc[gpc_id]) / tpc_cnt;
+		}
+
+		if (*min_scg_gpc_pix_perf > scg_gpc_pix_perf) {
+			*min_scg_gpc_pix_perf = scg_gpc_pix_perf;
+		}
+
+		/* Calculate # of surviving PES */
+		err = gr_gv100_calc_valid_pes(gr_config, gpc_id, gpc_tpc_mask,
+				disable_gpc_id, disable_tpc_id,
+				&is_tpc_removed_pes, scg_num_pes);
+		if (err != 0) {
+			goto perf_rate_calc_fail;
+		}
+	}
+
+	if (!is_tpc_removed_gpc || !is_tpc_removed_pes) {
+		err = -EINVAL;
+	}
+
+perf_rate_calc_fail:
+	return err;
+}
 /*
  * Estimate performance if the given logical TPC in the given logical GPC were
  * removed.
@@ -173,10 +238,6 @@ static int gr_gv100_scg_estimate_perf(struct gk20a *g,
 	u32 scg_num_pes = 0U;
 	u32 min_scg_gpc_pix_perf = scale_factor; /* Init perf as maximum */
 	u32 average_tpcs = 0U;		/* Average of # of TPCs per GPC */
-	u32 scg_gpc_pix_perf = 0U;
-	u32 gpc_id;
-	bool is_tpc_removed_gpc = false;
-	bool is_tpc_removed_pes = false;
 	u32 max_tpc_gpc = 0U;
 	u32 tpc_cnt = nvgpu_safe_mult_u32((u32)sizeof(u32),
 				nvgpu_get_litter_value(g, GPU_LIT_NUM_GPCS));
@@ -187,51 +248,10 @@ static int gr_gv100_scg_estimate_perf(struct gk20a *g,
 	}
 
 	/* Calculate pix-perf-reduction-rate per GPC and find bottleneck TPC */
-	for (gpc_id = 0;
-	     gpc_id < nvgpu_gr_config_get_gpc_count(gr_config);
-	     gpc_id++) {
-
-		err = gr_gv100_remove_logical_tpc(gr_config, gpc_id,
-				gpc_tpc_mask, disable_gpc_id, disable_tpc_id,
-				&is_tpc_removed_gpc, num_tpc_gpc);
-		if (err != 0) {
-			goto free_resources;
-		}
-
-		/* track balancing of tpcs across gpcs */
-		average_tpcs = nvgpu_safe_add_u32(average_tpcs,
-					num_tpc_gpc[gpc_id]);
-
-		/* save the maximum numer of gpcs */
-		max_tpc_gpc = gr_gv100_find_max_gpc(num_tpc_gpc,
-					gpc_id, max_tpc_gpc);
-
-		/*
-		 * Calculate ratio between TPC count and post-FS and post-SCG
-		 *
-		 * ratio represents relative throughput of the GPC
-		 */
-		tpc_cnt = nvgpu_gr_config_get_gpc_tpc_count(gr_config, gpc_id);
-		if (tpc_cnt > 0U) {
-			scg_gpc_pix_perf = nvgpu_safe_mult_u32(scale_factor,
-						num_tpc_gpc[gpc_id]) / tpc_cnt;
-		}
-
-		if (min_scg_gpc_pix_perf > scg_gpc_pix_perf) {
-			min_scg_gpc_pix_perf = scg_gpc_pix_perf;
-		}
-
-		/* Calculate # of surviving PES */
-		err = gr_gv100_calc_valid_pes(gr_config, gpc_id, gpc_tpc_mask,
-				disable_gpc_id, disable_tpc_id,
-				&is_tpc_removed_pes, &scg_num_pes);
-		if (err != 0) {
-			goto free_resources;
-		}
-	}
-
-	if (!is_tpc_removed_gpc || !is_tpc_removed_pes) {
-		err = -EINVAL;
+	err = gr_gr100_find_perf_reduction_rate_gpc(g, gr_config, gpc_tpc_mask,
+			disable_gpc_id, disable_tpc_id, &min_scg_gpc_pix_perf,
+			&max_tpc_gpc, &scg_num_pes, &average_tpcs, num_tpc_gpc);
+	if (err != 0) {
 		goto free_resources;
 	}
 
