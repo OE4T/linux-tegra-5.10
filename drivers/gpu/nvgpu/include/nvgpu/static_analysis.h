@@ -269,6 +269,15 @@ static inline u32 nvgpu_safe_cast_u64_to_u32(u64 ul_a)
 	}
 }
 
+static inline u8 nvgpu_safe_cast_u64_to_u8(u64 ul_a)
+{
+	if (ul_a > UCHAR_MAX) {
+		BUG();
+	} else {
+		return (u8)ul_a;
+	}
+}
+
 static inline u32 nvgpu_safe_cast_s64_to_u32(s64 l_a)
 {
 	if ((l_a < 0) || (l_a > UINT_MAX)) {
