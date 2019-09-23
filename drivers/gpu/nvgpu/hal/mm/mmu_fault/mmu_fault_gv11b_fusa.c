@@ -40,6 +40,7 @@
 #include <nvgpu/ltc.h>
 #include <nvgpu/rc.h>
 #include <nvgpu/mmu_fault.h>
+#include <nvgpu/nvgpu_init.h>
 
 #include <nvgpu/hw/gv11b/hw_gmmu_gv11b.h>
 
@@ -479,6 +480,18 @@ void gv11b_mm_mmu_fault_handle_mmu_fault_common(struct gk20a *g,
 	}
 
 	gv11b_fb_mmu_fault_info_dump(g, mmufault);
+
+	/**
+	 * If nvgpu power-on is yet to complete, don't attempt further fault
+	 * handling. Access to fault buffers is synchronized as nvgpu driver
+	 * reads the fault buffer registers before proceeding with fault
+	 * handling.
+	 * However, MMU fault handling needs to be synchronized with GR/FIFO/
+	 * quiesce/recovery related setup through nvgpu power-on state.
+	 */
+	if (!nvgpu_is_powered_on(g)) {
+		return;
+	}
 
 	num_lce = g->ops.top.get_num_lce(g);
 	if (mmufault->mmu_engine_id >=

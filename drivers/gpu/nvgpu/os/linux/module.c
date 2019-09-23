@@ -454,6 +454,12 @@ int gk20a_pm_finalize_poweron(struct device *dev)
 		}
 	}
 
+	err = nvgpu_enable_irqs(g);
+	if (err) {
+		nvgpu_err(g, "failed to enable irqs %d", err);
+		goto done;
+	}
+
 	err = nvgpu_finalize_poweron(g);
 	if (err)
 		goto done;
@@ -489,12 +495,6 @@ int gk20a_pm_finalize_poweron(struct device *dev)
 	trace_gk20a_finalize_poweron_done(dev_name(dev));
 #endif
 
-	err = nvgpu_enable_irqs(g);
-	if (err) {
-		nvgpu_err(g, "failed to enable irqs %d", err);
-		goto done;
-	}
-
 	gk20a_scale_resume(dev_from_gk20a(g));
 
 #ifdef CONFIG_NVGPU_SUPPORT_CDE
@@ -513,6 +513,10 @@ int gk20a_pm_finalize_poweron(struct device *dev)
 	nvgpu_set_power_state(g, NVGPU_STATE_POWERED_ON);
 
 done:
+	if (err != 0) {
+		nvgpu_disable_irqs(g);
+	}
+
 	nvgpu_mutex_release(&g->power_lock);
 	return err;
 }
