@@ -60,6 +60,10 @@
 		/delete-property/ gpio-ranges;
 	};
 
+	hda@3510000 {
+		power-domains = <&bpmp TEGRA186_POWER_DOMAIN_DISP>;
+	};
+
 	ethernet@2490000 {
 		compatible = "nvidia,tegra186-eqos",
 			     "snps,dwc-qos-ethernet-4.10";
