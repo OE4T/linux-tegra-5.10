@@ -28,7 +28,14 @@
 #include <setjmp.h>
 #endif
 
+/**
+ * Macro to be used upon identifying a buggy behaviour in the code.
+ * Implementation is specific to OS.  For QNX and Posix implementation
+ * refer to nvgpu_posix_bug.
+ */
 #define BUG()					nvgpu_posix_bug("")
+
+/** Macro to handle a buggy code only upon meeting the condition. */
 #define BUG_ON(cond)				\
 	do {					\
 		if (cond) {			\
@@ -36,11 +43,14 @@
 		}				\
 	} while (false)
 
+/** Define for issuing warning on condition with message. */
 #define WARN(cond, msg, arg...)			\
 			((void) nvgpu_posix_warn(cond, msg, ##arg))
+/** Define for issuing warning on condition. */
 #define WARN_ON(cond)				\
 			((void) nvgpu_posix_warn(cond, ""))
 
+/** Define for issuing warning once on condition with message. */
 #define WARN_ONCE(cond, msg, arg...)		\
 	({static bool warn_once_warned = false;	\
 	  if (!warn_once_warned) {		\
@@ -50,17 +60,61 @@
 	  cond; })
 
 
+/**
+ * @brief Dumps the stack.
+ *
+ * @param void.
+ *
+ * Dumps the call stack in user space build.
+ */
 void dump_stack(void);
 
+/**
+ * @brief Bug.
+ *
+ * @param fmt [in]	Format of variable argument list.
+ * @param ... [in]	Variable length arguments.
+ *
+ * Function to be invoked upon identifying bug in the code.
+ */
 void nvgpu_posix_bug(const char *fmt, ...) __attribute__ ((noreturn));
+
+/**
+ * @brief Issues Warning.
+ *
+ * @param cond [in]	Condition to check to issue warning.
+ * @param fmt [in]	Format of variable argument list.
+ * @param ... [in]	Variable length arguments.
+ *
+ * Used to report significant issues that needs prompt attention.
+ * Warning is issued if the condition is met.
+ *
+ * @return Value of \a cond is returned.
+ */
 bool nvgpu_posix_warn(bool cond, const char *fmt, ...);
 
 #ifdef __NVGPU_UNIT_TEST__
 /* Provide a simple API for BUG() handling */
+
+/**
+ * @brief Bug handler register.
+ *
+ * @param handler [in]	Bug handler
+ *
+ * Registers a handler for handling bug.  Used in unit testing.
+ */
 void bug_handler_register(jmp_buf *handler);
+
+/**
+ * @brief Cancels the bug handler.
+ *
+ * @param void.
+ *
+ * Cancels the handler for handling bug.  Used in unit testing.
+ */
 void bug_handler_cancel(void);
 
-/*
+/**
  * Macro to indicate that a BUG() call is expected when executing
  * the "code_to_run" block of code. The macro uses a statement expression
  * and the setjmp API to set a long jump point that gets called by the BUG()
