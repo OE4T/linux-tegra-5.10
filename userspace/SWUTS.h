@@ -43,9 +43,11 @@
  *   - @ref SWUTS-mm-mm
  *   - @ref SWUTS-mm-vm
  *   - @ref SWUTS-fuse
+ *   - @ref SWUTS-posix-cond
  *   - @ref SWUTS-posix-fault-injection
  *   - @ref SWUTS-posix-sizes
  *   - @ref SWUTS-posix-thread
+ *   - @ref SWUTS-posix-timers
  *   - @ref SWUTS-sdl
  *
  */

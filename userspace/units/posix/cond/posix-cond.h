@@ -21,10 +21,10 @@
  */
 
 /**
- * @addtogroup SWUTS-posix.cond
+ * @addtogroup SWUTS-posix-cond
  * @{
  *
- * Software Unit Test Specification for posix.cond
+ * Software Unit Test Specification for posix-cond
  */
 
 #ifndef __UNIT_POSIX_COND_H__
