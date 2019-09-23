@@ -38,16 +38,6 @@
  */
 #include <netinet/in.h>
 
-#ifdef false
-#undef false
-#endif
-#define false (0 != 0)
-
-#ifdef true
-#undef true
-#endif
-#define true (0 == 0)
-
 typedef unsigned char		u8;
 typedef unsigned short		u16;
 typedef unsigned int		u32;
