@@ -312,11 +312,16 @@ fifo:
       safe: yes
       sources: [ common/fifo/channel.c,
                  include/nvgpu/channel.h,
+                 include/nvgpu/gops_channel.h,
+                 include/nvgpu/gops_ramfc.h,
+                 include/nvgpu/gops_ramin.h,
+                 include/nvgpu/gops_sync.h,
                  include/nvgpu/error_notifier.h ]
       deps: [ ]
     tsg:
       safe: yes
       sources: [ common/fifo/tsg.c,
+                 include/nvgpu/gops_tsg.h,
                  include/nvgpu/tsg.h ]
       deps: [ ]
     submit:
@@ -327,16 +332,19 @@ fifo:
     runlist:
       safe: yes
       sources: [ common/fifo/runlist.c,
+                 include/nvgpu/gops_runlist.h,
                  include/nvgpu/runlist.h ]
       deps: [ ]
     userd:
       safe: no
       sources: [ common/fifo/userd.c,
+                 include/nvgpu/gops_userd.h,
                  include/nvgpu/fifo/userd.h ]
       deps: [ ]
     pbdma:
       safe: yes
       sources: [ common/fifo/pbdma.c,
+                 include/nvgpu/gops_pbdma.h,
                  include/nvgpu/pbdma.h ]
       deps: [ ]
     pbdma_status:
@@ -352,6 +360,7 @@ fifo:
     engines:
       safe: yes
       sources: [ common/fifo/engines.c,
+                 include/nvgpu/gops_engine.h,
                  include/nvgpu/engines.h ]
       deps: []
 
@@ -364,6 +373,7 @@ fifo:
     fifo:
       safe: yes
       sources: [ common/fifo/fifo.c,
+                 include/nvgpu/gops_fifo.h,
                  include/nvgpu/fifo.h ]
 
 gr:
