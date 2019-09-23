@@ -50,6 +50,9 @@ int gv11b_ramfc_setup(struct nvgpu_channel *ch, u64 gpfifo_base,
 	}
 #endif
 
+	nvgpu_log_info(g, "%llu %u", pbdma_acquire_timeout,
+		g->ops.pbdma.acquire_val(pbdma_acquire_timeout));
+
 	g->ops.ramin.init_subctx_pdb(g, mem, ch->vm->pdb.mem, replayable);
 
 	nvgpu_mem_wr32(g, mem, ram_fc_gp_base_w(),
