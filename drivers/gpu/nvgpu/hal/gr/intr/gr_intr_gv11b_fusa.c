@@ -101,35 +101,6 @@ int gv11b_gr_intr_handle_fecs_error(struct gk20a *g,
 	return gp10b_gr_intr_handle_fecs_error(g, ch_ptr, isr_data);
 }
 
-void gv11b_gr_intr_set_tex_in_dbg(struct gk20a *g, u32 data)
-{
-	u32 val;
-	u32 flag;
-
-	nvgpu_log_fn(g, " ");
-
-	val = nvgpu_readl(g, gr_gpcs_tpcs_tex_in_dbg_r());
-	flag = (data & NVC397_SET_TEX_IN_DBG_TSL1_RVCH_INVALIDATE) != 0U
-		? 1U : 0U;
-	val = set_field(val, gr_gpcs_tpcs_tex_in_dbg_tsl1_rvch_invalidate_m(),
-			gr_gpcs_tpcs_tex_in_dbg_tsl1_rvch_invalidate_f(flag));
-	nvgpu_writel(g, gr_gpcs_tpcs_tex_in_dbg_r(), val);
-
-	val = nvgpu_readl(g, gr_gpcs_tpcs_sm_l1tag_ctrl_r());
-	flag = (data &
-		NVC397_SET_TEX_IN_DBG_SM_L1TAG_CTRL_CACHE_SURFACE_LD) != 0U
-		? 1U : 0U;
-	val = set_field(val, gr_gpcs_tpcs_sm_l1tag_ctrl_cache_surface_ld_m(),
-			gr_gpcs_tpcs_sm_l1tag_ctrl_cache_surface_ld_f(flag));
-	flag = (data &
-		NVC397_SET_TEX_IN_DBG_SM_L1TAG_CTRL_CACHE_SURFACE_ST) != 0U
-		? 1U : 0U;
-
-	val = set_field(val, gr_gpcs_tpcs_sm_l1tag_ctrl_cache_surface_st_m(),
-			gr_gpcs_tpcs_sm_l1tag_ctrl_cache_surface_st_f(flag));
-	nvgpu_writel(g, gr_gpcs_tpcs_sm_l1tag_ctrl_r(), val);
-}
-
 void gv11b_gr_intr_set_skedcheck(struct gk20a *g, u32 data)
 {
 	u32 reg_val;
@@ -1792,3 +1763,34 @@ u32 gv11b_gr_intr_ctxsw_checksum_mismatch_mailbox_val(void)
 {
 	return gr_fecs_ctxsw_mailbox_value_ctxsw_checksum_mismatch_v();
 }
+
+#if defined(CONFIG_NVGPU_DEBUGGER) && defined(CONFIG_NVGPU_GRAPHICS)
+void gv11b_gr_intr_set_tex_in_dbg(struct gk20a *g, u32 data)
+{
+	u32 val;
+	u32 flag;
+
+	nvgpu_log_fn(g, " ");
+
+	val = nvgpu_readl(g, gr_gpcs_tpcs_tex_in_dbg_r());
+	flag = (data & NVC397_SET_TEX_IN_DBG_TSL1_RVCH_INVALIDATE) != 0U
+		? 1U : 0U;
+	val = set_field(val, gr_gpcs_tpcs_tex_in_dbg_tsl1_rvch_invalidate_m(),
+			gr_gpcs_tpcs_tex_in_dbg_tsl1_rvch_invalidate_f(flag));
+	nvgpu_writel(g, gr_gpcs_tpcs_tex_in_dbg_r(), val);
+
+	val = nvgpu_readl(g, gr_gpcs_tpcs_sm_l1tag_ctrl_r());
+	flag = (data &
+		NVC397_SET_TEX_IN_DBG_SM_L1TAG_CTRL_CACHE_SURFACE_LD) != 0U
+		? 1U : 0U;
+	val = set_field(val, gr_gpcs_tpcs_sm_l1tag_ctrl_cache_surface_ld_m(),
+			gr_gpcs_tpcs_sm_l1tag_ctrl_cache_surface_ld_f(flag));
+	flag = (data &
+		NVC397_SET_TEX_IN_DBG_SM_L1TAG_CTRL_CACHE_SURFACE_ST) != 0U
+		? 1U : 0U;
+
+	val = set_field(val, gr_gpcs_tpcs_sm_l1tag_ctrl_cache_surface_st_m(),
+			gr_gpcs_tpcs_sm_l1tag_ctrl_cache_surface_st_f(flag));
+	nvgpu_writel(g, gr_gpcs_tpcs_sm_l1tag_ctrl_r(), val);
+}
+#endif

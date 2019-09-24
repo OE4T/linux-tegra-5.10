@@ -62,7 +62,6 @@ int gv11b_gr_intr_handle_fecs_error(struct gk20a *g,
 				struct nvgpu_gr_isr_data *isr_data);
 void gv11b_gr_intr_set_shader_cut_collector(struct gk20a *g, u32 data);
 void gv11b_gr_intr_set_skedcheck(struct gk20a *g, u32 data);
-void gv11b_gr_intr_set_tex_in_dbg(struct gk20a *g, u32 data);
 int gv11b_gr_intr_handle_sw_method(struct gk20a *g, u32 addr,
 				     u32 class_num, u32 offset, u32 data);
 void gv11b_gr_intr_set_shader_exceptions(struct gk20a *g, u32 data);
@@ -109,5 +108,9 @@ u32 gv11b_gr_intr_get_sm_no_lock_down_hww_global_esr_mask(struct gk20a *g);
 u64 gv11b_gr_intr_get_sm_hww_warp_esr_pc(struct gk20a *g, u32 offset);
 
 u32 gv11b_gr_intr_ctxsw_checksum_mismatch_mailbox_val(void);
+
+#if defined(CONFIG_NVGPU_DEBUGGER) && defined(CONFIG_NVGPU_GRAPHICS)
+void gv11b_gr_intr_set_tex_in_dbg(struct gk20a *g, u32 data);
+#endif
 
 #endif /* NVGPU_GR_INTR_GV11B_H */
