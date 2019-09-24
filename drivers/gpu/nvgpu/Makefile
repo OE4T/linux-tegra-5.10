@@ -209,6 +209,7 @@ nvgpu-y += \
 	hal/clk/clk_gm20b.o \
 	hal/clk/clk_tu104.o \
 	hal/gr/ecc/ecc_gp10b.o \
+	hal/gr/ecc/ecc_gv11b.o \
 	hal/gr/ecc/ecc_tu104.o \
 	hal/gr/zcull/zcull_gm20b.o \
 	hal/gr/zcull/zcull_gv11b.o \
@@ -257,6 +258,7 @@ nvgpu-y += \
 	hal/fb/fb_gv100.o \
 	hal/fb/fb_tu104.o \
 	hal/fb/fb_mmu_fault_tu104.o \
+	hal/fb/intr/fb_intr_ecc_gv11b.o \
 	hal/fb/intr/fb_intr_gv100.o \
 	hal/fb/intr/fb_intr_tu104.o \
 	hal/fuse/fuse_gm20b.o \
@@ -685,6 +687,7 @@ nvgpu-$(CONFIG_NVGPU_HAL_NON_FUSA) += \
 	hal/ltc/ltc_gm20b.o \
 	hal/ltc/ltc_gm20b_dbg.o \
 	hal/mc/mc_gm20b.o \
+	hal/mm/cache/flush_gk20a.o \
 	hal/mm/mm_gm20b.o \
 	hal/mm/mm_gk20a.o \
 	hal/mm/mm_gv100.o \

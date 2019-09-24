@@ -39,54 +39,6 @@
 
 #define ALIGN_4KB     12
 
-#ifdef CONFIG_NVGPU_INJECT_HWERR
-void gv11b_pmu_inject_ecc_error(struct gk20a *g,
-		struct nvgpu_hw_err_inject_info *err, u32 error_info)
-{
-	nvgpu_info(g, "Injecting PMU fault %s", err->name);
-	nvgpu_writel(g, err->get_reg_addr(), err->get_reg_val(1U));
-}
-
-static inline u32 pmu_falcon_ecc_control_r(void)
-{
-	return pwr_pmu_falcon_ecc_control_r();
-}
-
-static inline u32 pmu_falcon_ecc_control_inject_corrected_err_f(u32 v)
-{
-	return pwr_pmu_falcon_ecc_control_inject_corrected_err_f(v);
-}
-
-static inline u32 pmu_falcon_ecc_control_inject_uncorrected_err_f(u32 v)
-{
-	return pwr_pmu_falcon_ecc_control_inject_uncorrected_err_f(v);
-}
-
-static struct nvgpu_hw_err_inject_info pmu_ecc_err_desc[] = {
-	NVGPU_ECC_ERR("falcon_imem_ecc_corrected",
-			gv11b_pmu_inject_ecc_error,
-			pmu_falcon_ecc_control_r,
-			pmu_falcon_ecc_control_inject_corrected_err_f),
-	NVGPU_ECC_ERR("falcon_imem_ecc_uncorrected",
-			gv11b_pmu_inject_ecc_error,
-			pmu_falcon_ecc_control_r,
-			pmu_falcon_ecc_control_inject_uncorrected_err_f),
-};
-
-static struct nvgpu_hw_err_inject_info_desc pmu_err_desc;
-
-struct nvgpu_hw_err_inject_info_desc *
-gv11b_pmu_intr_get_err_desc(struct gk20a *g)
-{
-	pmu_err_desc.info_ptr = pmu_ecc_err_desc;
-	pmu_err_desc.info_size = nvgpu_safe_cast_u64_to_u32(
-			sizeof(pmu_ecc_err_desc) /
-			sizeof(struct nvgpu_hw_err_inject_info));
-
-	return &pmu_err_desc;
-}
-#endif /* CONFIG_NVGPU_INJECT_HWERR */
-
 /* error handler */
 void gv11b_clear_pmu_bar0_host_err_status(struct gk20a *g)
 {

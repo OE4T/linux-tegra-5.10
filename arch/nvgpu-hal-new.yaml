@@ -364,12 +364,15 @@ mm:
       safe: no
       sources: [ hal/mm/gmmu/gmmu_gk20a.c,
                  hal/mm/gmmu/gmmu_gm20b.c]
-    cache:
+    cache_fusa:
       safe: yes
       sources: [ hal/mm/cache/flush_gk20a_fusa.c,
                  hal/mm/cache/flush_gk20a.h,
                  hal/mm/cache/flush_gv11b_fusa.c,
                  hal/mm/cache/flush_gv11b.h ]
+    cache:
+      safe: no
+      sources: [ hal/mm/cache/flush_gk20a.c ]
     mmu_fault:
       safe: yes
       sources: [ hal/mm/mmu_fault/mmu_fault_gv11b_fusa.c,
@@ -459,7 +462,8 @@ gr:
                 hal/gr/ecc/ecc_gv11b.h ]
     ecc:
       safe: no
-      sources: [hal/gr/ecc/ecc_gp10b.c,
+      sources: [hal/gr/ecc/ecc_gv11b.c,
+                hal/gr/ecc/ecc_gp10b.c,
                 hal/gr/ecc/ecc_tu104.c,
                 hal/gr/ecc/ecc_gp10b.h,
                 hal/gr/ecc/ecc_tu104.h ]
@@ -634,7 +638,8 @@ fb:
              hal/fb/fb_tu104.c, hal/fb/fb_tu104.h,
              hal/fb/intr/fb_intr_gv100.h, hal/fb/intr/fb_intr_gv100.c,
              hal/fb/fb_mmu_fault_tu104.h, hal/fb/fb_mmu_fault_tu104.c,
-             hal/fb/intr/fb_intr_tu104.c, hal/fb/intr/fb_intr_tu104.h ]
+             hal/fb/intr/fb_intr_tu104.c, hal/fb/intr/fb_intr_tu104.h,
+             hal/fb/intr/fb_intr_ecc_gv11b.c ]
 
 pmu_fusa:
   safe: yes

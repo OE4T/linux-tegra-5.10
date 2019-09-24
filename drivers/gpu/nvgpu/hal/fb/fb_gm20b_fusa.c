@@ -42,39 +42,6 @@
 #define VPR_INFO_FETCH_WAIT	(5)
 #define WPR_INFO_ADDR_ALIGNMENT 0x0000000c
 
-#ifdef CONFIG_NVGPU_DEBUGGER
-bool gm20b_fb_debug_mode_enabled(struct gk20a *g)
-{
-	u32 debug_ctrl = gk20a_readl(g, fb_mmu_debug_ctrl_r());
-	return fb_mmu_debug_ctrl_debug_v(debug_ctrl) ==
-			fb_mmu_debug_ctrl_debug_enabled_v();
-}
-
-void gm20b_fb_set_mmu_debug_mode(struct gk20a *g, bool enable)
-{
-	u32 reg_val, fb_debug_ctrl;
-
-	if (enable) {
-		fb_debug_ctrl = fb_mmu_debug_ctrl_debug_enabled_f();
-		g->mmu_debug_ctrl = true;
-	} else {
-		fb_debug_ctrl = fb_mmu_debug_ctrl_debug_disabled_f();
-		g->mmu_debug_ctrl = false;
-	}
-
-	reg_val = nvgpu_readl(g, fb_mmu_debug_ctrl_r());
-	reg_val = set_field(reg_val,
-			fb_mmu_debug_ctrl_debug_m(), fb_debug_ctrl);
-	nvgpu_writel(g, fb_mmu_debug_ctrl_r(), reg_val);
-}
-
-void gm20b_fb_set_debug_mode(struct gk20a *g, bool enable)
-{
-	gm20b_fb_set_mmu_debug_mode(g, enable);
-	g->ops.gr.set_debug_mode(g, enable);
-}
-#endif
-
 void gm20b_fb_init_hw(struct gk20a *g)
 {
 	u64 addr = nvgpu_mem_get_addr(g, &g->mm.sysmem_flush) >> 8;

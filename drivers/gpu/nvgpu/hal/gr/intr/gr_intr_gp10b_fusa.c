@@ -53,8 +53,10 @@ static int gp10b_gr_intr_clear_cilp_preempt_pending(struct gk20a *g,
 
 	gr_ctx = tsg->gr_ctx;
 
-	/* The ucode is self-clearing, so all we need to do here is
-	   to clear cilp_preempt_pending. */
+	/*
+	 * The ucode is self-clearing, so all we need to do here is
+	 * to clear cilp_preempt_pending.
+	 */
 	if (!nvgpu_gr_ctx_get_cilp_preempt_pending(gr_ctx)) {
 		nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gpu_dbg | gpu_dbg_intr,
 				"CILP is already cleared for chid %d\n",
