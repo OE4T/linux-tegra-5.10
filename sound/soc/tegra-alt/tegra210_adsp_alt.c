@@ -1391,7 +1391,7 @@ static int tegra210_adsp_compr_open(struct snd_compr_stream *cstream)
 	struct tegra210_adsp *adsp =
 		snd_soc_platform_get_drvdata(rtd->platform);
 	struct tegra210_adsp_compr_rtd *prtd;
-	uint32_t fe_reg = rtd->codec_dai->id;
+	uint32_t fe_reg = rtd->codec_dai->id + 1;
 	int ret;
 	int i;
 
@@ -1719,7 +1719,7 @@ static int tegra210_adsp_pcm_open(struct snd_pcm_substream *substream)
 	struct tegra210_adsp *adsp =
 		snd_soc_platform_get_drvdata(rtd->platform);
 	struct tegra210_adsp_pcm_rtd *prtd;
-	uint32_t fe_reg = rtd->codec_dai->id;
+	uint32_t fe_reg = rtd->codec_dai->id + 1;
 	uint32_t source;
 	int i, ret = 0;
 
@@ -2068,7 +2068,7 @@ static int tegra210_adsp_fe_hw_params(struct snd_pcm_substream *substream,
 {
 
 	struct tegra210_adsp *adsp = snd_soc_dai_get_drvdata(dai);
-	uint32_t fe_reg = dai->id;
+	uint32_t fe_reg = dai->id + 1;
 
 	if (substream->stream == SNDRV_PCM_STREAM_PLAYBACK) {
 		adsp->pcm_path[fe_reg][SNDRV_PCM_STREAM_PLAYBACK].rate
@@ -2235,7 +2235,7 @@ static int tegra210_adsp_admaif_hw_params(struct snd_pcm_substream *substream,
 	struct snd_pcm_runtime *runtime = NULL;
 	struct tegra210_adsp_app *app;
 	nvfx_adma_init_params_t adma_params;
-	uint32_t be_reg = dai->id;
+	uint32_t be_reg = dai->id + 1;
 	uint32_t admaif_id = be_reg - ADSP_ADMAIF_START + 1;
 	uint32_t source, apm_in_reg;
 	int i, ret;
@@ -2861,31 +2861,9 @@ static struct snd_soc_dai_ops tegra210_adsp_eavb_dai_ops = {
 		},							\
 	}
 
-static struct snd_soc_dai_driver tegra210_adsp_dai[] = {
-	ADSP_PCM_DAI(1),
-	ADSP_PCM_DAI(2),
-	ADSP_PCM_DAI(3),
-	ADSP_PCM_DAI(4),
-	ADSP_PCM_DAI(5),
-	ADSP_PCM_DAI(6),
-	ADSP_PCM_DAI(7),
-	ADSP_PCM_DAI(8),
-	ADSP_PCM_DAI(9),
-	ADSP_PCM_DAI(10),
-	ADSP_PCM_DAI(11),
-	ADSP_PCM_DAI(12),
-	ADSP_PCM_DAI(13),
-	ADSP_PCM_DAI(14),
-	ADSP_PCM_DAI(15),
-	ADSP_COMPR_DAI(1),
-	ADSP_COMPR_DAI(2),
-	ADSP_EAVB_DAI(),
-};
-
 #define ADSP_FE_CODEC_DAI(idx)					\
 	{							\
 		.name = "ADSP-FE" #idx,				\
-		.id = ADSP_FE_START + (idx - 1),			\
 		.playback = {					\
 			.stream_name = "ADSP-FE" #idx " Receive",\
 			.channels_min = 1,			\
@@ -2912,7 +2890,6 @@ static struct snd_soc_dai_driver tegra210_adsp_dai[] = {
 #define ADSP_ADMAIF_CODEC_DAI(idx)				\
 	{							\
 		.name = "ADSP-ADMAIF" #idx,			\
-		.id = ADSP_ADMAIF_START + (idx - 1),		\
 		.playback = {					\
 		.stream_name = "ADSP-ADMAIF" #idx " Receive",	\
 			.channels_min = 1,			\
@@ -2933,7 +2910,6 @@ static struct snd_soc_dai_driver tegra210_adsp_dai[] = {
 #define ADSP_EAVB_CODEC_DAI()					\
 	{							\
 		.name = "ADSP-EAVB",				\
-		.id = ADSP_EAVB_START,				\
 		.playback = {					\
 		.stream_name = "ADSP-EAVB Receive",		\
 			.channels_min = 1,			\
@@ -2989,6 +2965,24 @@ static struct snd_soc_dai_driver tegra210_adsp_codec_dai[] = {
 	ADSP_ADMAIF_CODEC_DAI(18),
 	ADSP_ADMAIF_CODEC_DAI(19),
 	ADSP_ADMAIF_CODEC_DAI(20),
+	ADSP_PCM_DAI(1),
+	ADSP_PCM_DAI(2),
+	ADSP_PCM_DAI(3),
+	ADSP_PCM_DAI(4),
+	ADSP_PCM_DAI(5),
+	ADSP_PCM_DAI(6),
+	ADSP_PCM_DAI(7),
+	ADSP_PCM_DAI(8),
+	ADSP_PCM_DAI(9),
+	ADSP_PCM_DAI(10),
+	ADSP_PCM_DAI(11),
+	ADSP_PCM_DAI(12),
+	ADSP_PCM_DAI(13),
+	ADSP_PCM_DAI(14),
+	ADSP_PCM_DAI(15),
+	ADSP_COMPR_DAI(1),
+	ADSP_COMPR_DAI(2),
+	ADSP_EAVB_DAI(),
 };
 
 /* This array is linked with tegra210_adsp_virt_regs enum defines. Any thing
@@ -4380,7 +4374,6 @@ static struct snd_kcontrol_new tegra210_adsp_controls[] = {
 	APM_CONTROL("Secure Mode", 1),
 };
 
-
 static int tegra210_adsp_component_probe(struct snd_soc_component *component)
 {
 	component->read = tegra210_adsp_read;
@@ -4389,19 +4382,18 @@ static int tegra210_adsp_component_probe(struct snd_soc_component *component)
 	return 0;
 }
 
-static const struct snd_soc_component_driver tegra210_adsp_component = {
-	.name		= "tegra210-adsp",
-	.dapm_widgets		= tegra210_adsp_widgets,
-	.num_dapm_widgets	= ARRAY_SIZE(tegra210_adsp_widgets),
-	.dapm_routes		= tegra210_adsp_routes,
-	.num_dapm_routes	= ARRAY_SIZE(tegra210_adsp_routes),
-	.controls		= tegra210_adsp_controls,
-	.num_controls		= ARRAY_SIZE(tegra210_adsp_controls),
-	.probe			= tegra210_adsp_component_probe,
-};
-
 static struct snd_soc_codec_driver tegra210_adsp_codec = {
 	.idle_bias_off = 1,
+	.component_driver = {
+		.name			= "tegra210-adsp",
+		.probe			= tegra210_adsp_component_probe,
+		.dapm_widgets		= tegra210_adsp_widgets,
+		.num_dapm_widgets	= ARRAY_SIZE(tegra210_adsp_widgets),
+		.dapm_routes		= tegra210_adsp_routes,
+		.num_dapm_routes	= ARRAY_SIZE(tegra210_adsp_routes),
+		.controls		= tegra210_adsp_controls,
+		.num_controls		= ARRAY_SIZE(tegra210_adsp_controls),
+	},
 };
 
 static int tegra210_adsp_pcm_probe(struct snd_soc_platform *platform)
@@ -4715,19 +4707,12 @@ static int tegra210_adsp_audio_platform_probe(struct platform_device *pdev)
 		goto err_pm_disable;
 	}
 
-	ret = snd_soc_register_component(&pdev->dev, &tegra210_adsp_component,
-			tegra210_adsp_dai, ARRAY_SIZE(tegra210_adsp_dai));
-	if (ret) {
-		dev_err(&pdev->dev, "Could not register component: %d\n", ret);
-		goto err_unregister_platform;
-	}
-
 	ret = snd_soc_register_codec(&pdev->dev, &tegra210_adsp_codec,
 				     tegra210_adsp_codec_dai,
 				     ARRAY_SIZE(tegra210_adsp_codec_dai));
 	if (ret != 0) {
 		dev_err(&pdev->dev, "Could not register CODEC: %d\n", ret);
-		goto err_unregister_component;
+		goto err_unregister_platform;
 	}
 
 	for (i = 0; i < (APM_IN_END - APM_IN_START + 1); i++) {
@@ -4760,8 +4745,6 @@ err_release_netlink:
 	netlink_kernel_release(adsp->nl_sk);
 err_unregister_codec:
 	snd_soc_unregister_codec(&pdev->dev);
-err_unregister_component:
-	snd_soc_unregister_component(&pdev->dev);
 err_unregister_platform:
 	snd_soc_unregister_platform(&pdev->dev);
 err_pm_disable:
@@ -4776,7 +4759,6 @@ static int tegra210_adsp_audio_platform_remove(struct platform_device *pdev)
 
 	netlink_kernel_release(adsp->nl_sk);
 	snd_soc_unregister_codec(&pdev->dev);
-	snd_soc_unregister_component(&pdev->dev);
 	pm_runtime_disable(&pdev->dev);
 	tegra_pd_remove_device(&pdev->dev);
 	snd_soc_unregister_platform(&pdev->dev);
