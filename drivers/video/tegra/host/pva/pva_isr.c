@@ -29,10 +29,12 @@ static irqreturn_t pva_isr(int irq, void *dev_id)
 {
 	struct pva *pva = dev_id;
 	struct platform_device *pdev = pva->pdev;
-	u32 checkpoint = host1x_readl(pdev, cfg_ccq_status8_r());
+	u32 checkpoint = host1x_readl(pdev,
+		cfg_ccq_status_r(pva->version, 0, 8));
 	u32 status7 = pva_read_mailbox(pdev, PVA_MBOX_ISR);
 	u32 status5 = pva_read_mailbox(pdev, PVA_MBOX_AISR);
-	u32 lic_int_status = host1x_readl(pdev, sec_lic_intr_status_r());
+	u32 lic_int_status = host1x_readl(pdev,
+		sec_lic_intr_status_r(pva->version));
 	u32 h1xflgs;
 	bool recover = false;
 
@@ -80,7 +82,7 @@ static irqreturn_t pva_isr(int irq, void *dev_id)
 			     lic_int_status);
 
 		/* Clear the interrupt */
-		host1x_writel(pva->pdev, sec_lic_intr_status_r(),
+		host1x_writel(pva->pdev, sec_lic_intr_status_r(pva->version),
 			      (lic_int_status & h1xflgs));
 		recover = true;
 	}

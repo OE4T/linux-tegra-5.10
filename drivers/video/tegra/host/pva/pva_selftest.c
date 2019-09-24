@@ -161,7 +161,7 @@ int pva_run_ucode_selftest(struct platform_device *pdev)
 		nvhost_dbg_info("uCode SELFTEST UnKnown State");
 
 	/* Get CCQ8 register value */
-	reg_status = host1x_readl(pdev, cfg_ccq_status8_r());
+	reg_status = host1x_readl(pdev, cfg_ccq_status_r(pva->version, 0, 8));
 	nvhost_dbg_info("Major 0x%x, Minor 0x%x, Flags 0x%x, Trace Sequence 0x%x \n",
 			(reg_status & 0xFF000000) >> 24,
 			(reg_status & 0x00FF0000) >> 16,

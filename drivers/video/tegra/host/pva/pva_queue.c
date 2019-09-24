@@ -35,6 +35,7 @@
 
 
 #include <uapi/linux/nvhost_pva_ioctl.h>
+#include <soc/tegra/chip-id.h>
 
 #include "nvhost_syncpt_unit_interface.h"
 #include "../drivers/staging/android/sync.h"
@@ -46,7 +47,7 @@
 #include "pva_ccq.h"
 #include "pva_queue.h"
 #include "dev.h"
-#include "hw_cfg_pva.h"
+#include "pva_regs.h"
 #include "t194/hardware_t194.h"
 #include "pva-vpu-perf.h"
 
@@ -284,8 +285,6 @@ static void pva_task_unpin_mem(struct pva_submit_task *task)
 
 static int pva_task_pin_mem(struct pva_submit_task *task)
 {
-	u32 cvsram_base = nvcvnas_get_cvsram_base();
-	u32 cvsram_sz = nvcvnas_get_cvsram_size();
 	int err;
 	int i;
 	int j;
@@ -315,23 +314,8 @@ static int pva_task_pin_mem(struct pva_submit_task *task)
 
 	/* Pin input surfaces */
 	for (i = 0; i < task->num_input_surfaces; i++) {
-		/* HACK: nvmap doesn't support CVNAS yet */
-		if (task->input_surfaces[i].surface_handle == 0) {
-			u32 offset = task->input_surfaces[i].surface_offset;
-
-			if (offset > cvsram_sz) {
-				err = -EINVAL;
-				goto err_map_handle;
-			}
-
-			task->input_surfaces_ext[i].dma_addr = cvsram_base;
-			task->input_surfaces_ext[i].size = cvsram_sz - offset;
-			task->input_surfaces_ext[i].heap =
-				NVHOST_BUFFERS_HEAP_CVNAS;
-		} else {
-			PIN_MEMORY(task->input_surfaces_ext[i],
-				task->input_surfaces[i].surface_handle);
-		}
+		PIN_MEMORY(task->input_surfaces_ext[i],
+			task->input_surfaces[i].surface_handle);
 
 		if (task->input_surfaces[i].roi_handle)
 			PIN_MEMORY(task->input_surface_rois_ext[i],
@@ -1486,7 +1470,8 @@ static int pva_task_submit_channel_ccq(struct pva_submit_task *task,
 	 * register
 	 */
 	cmdbuf[0] = nvhost_opcode_setpayload(2);
-	cmdbuf[1] = nvhost_opcode_nonincr_w(cfg_ccq_r() >> 2);
+	cmdbuf[1] =
+		nvhost_opcode_nonincr_w(cfg_ccq_r(task->pva->version, 0) >> 2);
 	cmdbuf[2] = (u32)(fifo_cmd >> 32);
 	cmdbuf[3] = (u32)(fifo_cmd & 0xffffffff);
 

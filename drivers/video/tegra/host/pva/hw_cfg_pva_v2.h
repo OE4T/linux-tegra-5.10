@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -47,111 +47,90 @@
  *         comparison with unshifted values appropriate for use in field <y>
  *         of register <x>.
  */
-#ifndef _hw_cfg_pva_h_
-#define _hw_cfg_pva_h_
+#ifndef _hw_cfg_pva_gen2_h_
+#define _hw_cfg_pva_gen2_h_
+#include "hw_cfg_pva_v1.h"
+#define V2_SID_CONTROL_BASE 0x240000U
 
-static inline u32 cfg_user_sid_r(void)
+static inline u32 v2_cfg_user_sid_vm_r(u32 idx)
 {
-	return 0x70000;
+	return V2_SID_CONTROL_BASE + 0x4U * idx;
 }
-static inline u32 cfg_ccq_r(void)
+
+static inline u32 v2_cfg_priv_sid_r(void)
 {
-	return 0x71000;
+	return V2_SID_CONTROL_BASE + 0x20U;
 }
-static inline u32 cfg_vps0user_lsegreg_r(void)
+
+static inline u32 v2_cfg_vps_sid_r(void)
 {
-	return 0x71004;
+	return V2_SID_CONTROL_BASE + 0x24U;
 }
-static inline u32 cfg_vps1user_lsegreg_r(void)
+
+#define V2_ADDRESS_CONTROL_BASE 0x250000U
+
+static inline u32 v2_cfg_r5user_lsegreg_r(void)
 {
-	return 0x71008;
+	return V2_ADDRESS_CONTROL_BASE + 0x8U;
 }
-static inline u32 cfg_r5user_lsegreg_r(void)
+
+static inline u32 v2_cfg_priv_ar1_lsegreg_r(void)
 {
-	return 0x7100c;
+	return V2_ADDRESS_CONTROL_BASE + 0xCU;
 }
-static inline u32 cfg_vps0user_usegreg_r(void)
+
+static inline u32 v2_cfg_priv_ar2_lsegreg_r(void)
 {
-	return 0x71010;
+	return V2_ADDRESS_CONTROL_BASE + 0x10U;
 }
-static inline u32 cfg_vps1user_usegreg_r(void)
+
+static inline u32 v2_cfg_r5user_usegreg_r(void)
 {
-	return 0x71014;
+	return V2_ADDRESS_CONTROL_BASE + 0x1CU;
 }
-static inline u32 cfg_r5user_usegreg_r(void)
+
+static inline u32 v2_cfg_priv_ar1_usegreg_r(void)
 {
-	return 0x71018;
+	return V2_ADDRESS_CONTROL_BASE + 0x20U;
 }
-static inline u32 cfg_ccq_status0_r(void)
+
+static inline u32 v2_cfg_priv_ar2_usegreg_r(void)
 {
-	return 0x72000;
+	return V2_ADDRESS_CONTROL_BASE + 0x24U;
 }
-static inline u32 cfg_ccq_status1_r(void)
+
+static inline u32 v2_cfg_priv_ar1_start_r(void)
 {
-	return 0x72004;
+	return V2_ADDRESS_CONTROL_BASE + 0x28U;
 }
-static inline u32 cfg_ccq_status2_r(void)
+
+static inline u32 v2_cfg_priv_ar1_end_r(void)
 {
-	return 0x72008;
+	return V2_ADDRESS_CONTROL_BASE + 0x2CU;
 }
-static inline u32 cfg_ccq_status3_r(void)
+
+static inline u32 v2_cfg_priv_ar2_start_r(void)
 {
-	return 0x7200c;
+	return V2_ADDRESS_CONTROL_BASE + 0x30U;
 }
-static inline u32 cfg_ccq_status4_r(void)
+
+static inline u32 v2_cfg_priv_ar2_end_r(void)
 {
-	return 0x72010;
+	return V2_ADDRESS_CONTROL_BASE + 0x34U;
 }
-static inline u32 cfg_ccq_status5_r(void)
+
+#define V2_CFG_CCQ_BASE 0x260000U
+#define V2_CFG_CCQ_SIZE 0x010000U
+
+static inline u32 v2_cfg_ccq_r(u32 idx)
 {
-	return 0x72014;
+	return V2_CFG_CCQ_BASE + V2_CFG_CCQ_SIZE * idx;
 }
-static inline u32 cfg_ccq_status6_r(void)
+
+static inline u32 v2_cfg_ccq_status_r(u32 ccq_idx, u32 status_idx)
 {
-	return 0x72018;
+	return V2_CFG_CCQ_BASE + V2_CFG_CCQ_SIZE * ccq_idx + 0x4U
+		+ 0x4U * status_idx;
 }
-static inline u32 cfg_ccq_status7_r(void)
-{
-	return 0x7201c;
-}
-static inline u32 cfg_ccq_status8_r(void)
-{
-	return 0x72020;
-}
-static inline u32 cfg_priv_sid_r(void)
-{
-	return 0x80000;
-}
-static inline u32 cfg_priv_ar1_lsegreg_r(void)
-{
-	return 0x80004;
-}
-static inline u32 cfg_priv_ar1_usegreg_r(void)
-{
-	return 0x80008;
-}
-static inline u32 cfg_priv_ar2_lsegreg_r(void)
-{
-	return 0x8000c;
-}
-static inline u32 cfg_priv_ar2_usegreg_r(void)
-{
-	return 0x80010;
-}
-static inline u32 cfg_priv_ar1_start_r(void)
-{
-	return 0x80014;
-}
-static inline u32 cfg_priv_ar1_end_r(void)
-{
-	return 0x80018;
-}
-static inline u32 cfg_priv_ar2_start_r(void)
-{
-	return 0x8001c;
-}
-static inline u32 cfg_priv_ar2_end_r(void)
-{
-	return 0x80020;
-}
+
 #endif

@@ -1,7 +1,7 @@
 /*
  * PVA Command Queue Interface handling
  *
- * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -27,7 +27,7 @@
 #include "pva.h"
 #include "pva_ccq.h"
 
-#include "hw_cfg_pva.h"
+#include "pva_regs.h"
 
 #define MAX_CCQ_ELEMENTS	6
 
@@ -42,7 +42,8 @@ static int pva_ccq_wait(struct pva *pva, int timeout)
 
 	while (time_before(jiffies, end_jiffies) ||
 	       (pva->timeout_enabled == false)) {
-		u32 val = host1x_readl(pva->pdev, cfg_ccq_status2_r());
+		u32 val = host1x_readl(pva->pdev,
+			cfg_ccq_status_r(pva->version, 0, 2));
 
 		if (val <= MAX_CCQ_ELEMENTS)
 			return 0;
@@ -64,8 +65,9 @@ int pva_ccq_send(struct pva *pva, u64 cmd)
 		goto err_wait_ccq;
 
 	/* Make the writes to CCQ */
-	host1x_writel(pva->pdev, cfg_ccq_r(), (u32)(cmd >> 32));
-	host1x_writel(pva->pdev, cfg_ccq_r(), (u32)(cmd & 0xffffffff));
+	host1x_writel(pva->pdev, cfg_ccq_r(pva->version, 0), (u32)(cmd >> 32));
+	host1x_writel(pva->pdev,
+		cfg_ccq_r(pva->version, 0), (u32)(cmd & 0xffffffff));
 
 	mutex_unlock(&pva->ccq_mutex);
 

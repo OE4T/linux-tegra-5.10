@@ -47,12 +47,12 @@
  *         comparison with unshifted values appropriate for use in field <y>
  *         of register <x>.
  */
-#ifndef _hw_sec_pva_h_
-#define _hw_sec_pva_h_
+#ifndef _hw_sec_pva_v1_h_
+#define _hw_sec_pva_v1_h_
 
-static inline u32 sec_lic_intr_enable_r(void)
+static inline u32 v1_sec_lic_intr_enable_r(void)
 {
-	return 0x2804c;
+	return 0x2804CU;
 }
 static inline u32 sec_lic_intr_enable_dma0_f(u32 v)
 {
@@ -78,8 +78,8 @@ static inline u32 sec_lic_intr_enable_wdt_f(u32 v)
 {
 	return (v & 0x1) << 0;
 }
-static inline u32 sec_lic_intr_status_r(void)
+static inline u32 v1_sec_lic_intr_status_r(void)
 {
-	return 0x28054;
+	return 0x28054U;
 }
 #endif

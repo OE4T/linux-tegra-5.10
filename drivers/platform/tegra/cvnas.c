@@ -1,7 +1,7 @@
 /*
  * drivers/platform/tegra/cvnas.c
  *
- * Copyright (C) 2017-2018, NVIDIA Corporation.  All rights reserved.
+ * Copyright (C) 2017-2019, NVIDIA Corporation.  All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -394,16 +394,24 @@ EXPORT_SYMBOL(nvcvnas_idle);
 
 phys_addr_t nvcvnas_get_cvsram_base(void)
 {
-	struct cvnas_device *cvnas_dev = dev_get_drvdata(&cvnas_plat_dev->dev);
+	struct cvnas_device *cvnas_dev;
 
+	if (!cvnas_plat_dev)
+		return 0;
+
+	cvnas_dev = dev_get_drvdata(&cvnas_plat_dev->dev);
 	return cvnas_dev->cvsram_base;
 }
 EXPORT_SYMBOL(nvcvnas_get_cvsram_base);
 
 size_t nvcvnas_get_cvsram_size(void)
 {
-	struct cvnas_device *cvnas_dev = dev_get_drvdata(&cvnas_plat_dev->dev);
+	struct cvnas_device *cvnas_dev;
 
+	if (!cvnas_plat_dev)
+		return 0;
+
+	cvnas_dev = dev_get_drvdata(&cvnas_plat_dev->dev);
 	return cvnas_dev->cvsram_size;
 }
 EXPORT_SYMBOL(nvcvnas_get_cvsram_size);

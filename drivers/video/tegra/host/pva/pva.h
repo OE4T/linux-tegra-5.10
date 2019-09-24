@@ -3,7 +3,7 @@
  *
  * Tegra PVA header
  *
- * Copyright (c) 2016-2018, NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -151,6 +151,7 @@ struct pva_func_table {
 /**
  * @brief		Driver private data, shared with all applications
  *
+ * version      pva version; 1 or 2
  * pdev			Pointer to the PVA device
  * pool			Pointer to Queue table available for the PVA
  * fw_info		firmware information struct
@@ -173,6 +174,7 @@ struct pva_func_table {
  *
  */
 struct pva {
+	int version;
 	struct platform_device *pdev;
 	struct nvhost_queue_pool *pool;
 	struct pva_fw fw_info;

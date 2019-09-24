@@ -1,7 +1,7 @@
 /*
  * PVA driver for T194
  *
- * Copyright (c) 2016-2018, NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -41,6 +41,9 @@
 #include "bus_client.h"
 #include "nvhost_acm.h"
 #include "t194/t194.h"
+#ifdef CONFIG_TEGRA_T23X_GRHOST
+#include "t23x/t23x.h"
+#endif
 #include "nvhost_queue.h"
 #include "pva_queue.h"
 #include "pva.h"
@@ -58,6 +61,12 @@ static struct of_device_id tegra_pva_of_match[] = {
 		.name = "pva1",
 		.compatible = "nvidia,tegra194-pva",
 		.data = (struct nvhost_device_data *)&t19_pva1_info },
+#ifdef CONFIG_TEGRA_T23X_GRHOST
+	{
+		.name = "pva0",
+		.compatible = "nvidia,tegra234-pva",
+		.data = (struct nvhost_device_data *)&t23x_pva0_info },
+#endif
 	{ },
 };
 
@@ -103,19 +112,20 @@ static int pva_init_fw(struct platform_device *pdev)
 	/* Set the Ucode Header address for R5 */
 	/* Program user seg subtracting the offset */
 	ucode_useg_addr = priv1_buffer->pa - R5_USER_SEGREG_OFFSET;
-	host1x_writel(pdev, cfg_r5user_lsegreg_r(),
+	host1x_writel(pdev, cfg_r5user_lsegreg_r(pva->version),
 		PVA_LOW32(ucode_useg_addr));
-	host1x_writel(pdev, cfg_r5user_usegreg_r(),
+	host1x_writel(pdev, cfg_r5user_usegreg_r(pva->version),
 		PVA_EXTRACT64(ucode_useg_addr, 39, 32, u32));
 
 	/* Program the extra memory to be used by R5 */
 	ucode_useg_addr = priv2_buffer->pa - fw_info->priv2_reg_offset;
-	host1x_writel(pdev, cfg_priv_ar2_start_r(), fw_info->priv2_reg_offset);
-	host1x_writel(pdev, cfg_priv_ar2_end_r(),
-			fw_info->priv2_reg_offset + priv2_buffer->size);
-	host1x_writel(pdev, cfg_priv_ar2_lsegreg_r(),
+	host1x_writel(pdev, cfg_priv_ar2_start_r(pva->version),
+		fw_info->priv2_reg_offset);
+	host1x_writel(pdev, cfg_priv_ar2_end_r(pva->version),
+		fw_info->priv2_reg_offset + priv2_buffer->size);
+	host1x_writel(pdev, cfg_priv_ar2_lsegreg_r(pva->version),
 		PVA_LOW32(ucode_useg_addr));
-	host1x_writel(pdev, cfg_priv_ar2_usegreg_r(),
+	host1x_writel(pdev, cfg_priv_ar2_usegreg_r(pva->version),
 		PVA_EXTRACT64(ucode_useg_addr, 39, 32, u32));
 
 	/* check the type of segments and their offset and address */
@@ -153,13 +163,16 @@ static int pva_init_fw(struct platform_device *pdev)
 			const u32 ar1_end =
 				useg->addr + priv1_buffer->size - useg->offset;
 
-			host1x_writel(pdev, cfg_priv_ar1_start_r(), ar1_start);
-			host1x_writel(pdev, cfg_priv_ar1_end_r(), ar1_end);
-			host1x_writel(pdev, cfg_priv_ar1_lsegreg_r(),
-				      useg_addr_low);
-			host1x_writel(pdev, cfg_priv_ar1_usegreg_r(),
-				      useg_addr_high);
-
+			host1x_writel(pdev,
+				cfg_priv_ar1_start_r(pva->version), ar1_start);
+			host1x_writel(pdev,
+				cfg_priv_ar1_end_r(pva->version), ar1_end);
+			host1x_writel(pdev,
+				cfg_priv_ar1_lsegreg_r(pva->version),
+				useg_addr_low);
+			host1x_writel(pdev,
+				cfg_priv_ar1_usegreg_r(pva->version),
+				useg_addr_high);
 			break;
 		}
 
@@ -611,21 +624,25 @@ int pva_finalize_poweron(struct platform_device *pdev)
 	struct pva *pva = pdata->private_data;
 	int err = 0;
 
-	/* Enable LIC_INTERRUPT line for HSP1 and WDT */
-	host1x_writel(pva->pdev, sec_lic_intr_enable_r(),
+	/* Enable LIC_INTERRUPT line for HSP1, H1X and WDT */
+	host1x_writel(pva->pdev, sec_lic_intr_enable_r(pva->version),
 		sec_lic_intr_enable_hsp_f(SEC_LIC_INTR_HSP1) |
 		sec_lic_intr_enable_h1x_f(SEC_LIC_INTR_H1X_ALL) |
 		sec_lic_intr_enable_wdt_f(SEC_LIC_INTR_WDT));
 
 	err = pva_load_fw(pdev);
-	if (err < 0)
+	if (err < 0) {
+		nvhost_err(&pdev->dev, " pva fw failed to load\n");
 		goto err_poweron;
+	}
 
 	enable_irq(pva->irq);
 
 	err = pva_init_fw(pdev);
-	if (err < 0)
+	if (err < 0) {
+		nvhost_err(&pdev->dev, " pva fw failed to init\n");
 		goto err_poweron;
+	}
 
 	pva_set_log_level(pva, pva->log_level);
 
@@ -703,6 +720,13 @@ static int pva_probe(struct platform_device *pdev)
 	}
 
 	/* Initialize PVA private data */
+	if (tegra_get_chipid() == TEGRA_CHIPID_TEGRA23) {
+		pva->version = 2;
+		nvhost_dbg_info("PVA gen2 detected.");
+	} else {
+		pva->version = 1;
+		nvhost_dbg_info("PVA gen1 detected.");
+	}
 	pva->pdev = pdev;
 
 
@@ -723,7 +747,13 @@ static int pva_probe(struct platform_device *pdev)
 	init_waitqueue_head(&pva->mailbox_waitqueue);
 	mutex_init(&pva->mailbox_mutex);
 	mutex_init(&pva->ccq_mutex);
-	pva->submit_mode = PVA_SUBMIT_MODE_MMIO_CCQ;
+	if (pva->version == 2)
+		/* Default to mailbox until CCQ submission is supported in PVA
+		 * gen 2
+		 */
+		pva->submit_mode = PVA_SUBMIT_MODE_MAILBOX;
+	else
+		pva->submit_mode = PVA_SUBMIT_MODE_MMIO_CCQ;
 	pva->slcg_disable = 0;
 	pva->vmem_war_disable = 0;
 	pva->vpu_perf_counters_enable = false;

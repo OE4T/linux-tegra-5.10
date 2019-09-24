@@ -1,7 +1,7 @@
 /*
  * PVA mailbox code
  *
- * Copyright (c) 2016-2018, NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -60,7 +60,8 @@ u32 pva_read_mailbox(struct platform_device *pdev, u32 mbox_id)
 {
 	u32 side_bits = 0;
 	u32 mbox_value = 0;
-	u32 side_channel_addr = pva_get_mb_reg_ex(PVA_MBOX_SIDE_CHANNEL_HOST_RD);
+	u32 side_channel_addr =
+		pva_get_mb_reg_ex(PVA_MBOX_SIDE_CHANNEL_HOST_RD);
 
 	side_bits = host1x_readl(pdev, side_channel_addr);
 	mbox_value = host1x_readl(pdev, pva_get_mb_reg_ex(mbox_id));
@@ -73,7 +74,8 @@ u32 pva_read_mailbox(struct platform_device *pdev, u32 mbox_id)
 void pva_write_mailbox(struct platform_device *pdev, u32 mbox_id, u32 value)
 {
 	u32 side_bits = 0;
-	u32 side_channel_addr = pva_get_mb_reg_ex(PVA_MBOX_SIDE_CHANNEL_HOST_WR);
+	u32 side_channel_addr =
+		pva_get_mb_reg_ex(PVA_MBOX_SIDE_CHANNEL_HOST_WR);
 
 	side_bits = host1x_readl(pdev, side_channel_addr);
 	side_bits &= ~(1 << mbox_id);
@@ -156,7 +158,8 @@ void pva_mailbox_isr(struct pva *pva)
 	/* Get all the valid status register data */
 	if (int_status & PVA_VALID_STATUS3) {
 		pva->mailbox_status_regs.status[PVA_CCQ_STATUS3_INDEX] =
-			host1x_readl(pdev, cfg_ccq_status3_r());
+			host1x_readl(pdev,
+			cfg_ccq_status_r(pva->version, 0, 3));
 
 		if (int_status & PVA_CMD_ERROR)
 			pva->mailbox_status_regs.error =
@@ -167,19 +170,23 @@ void pva_mailbox_isr(struct pva *pva)
 
 	if (int_status & PVA_VALID_STATUS4)
 		pva->mailbox_status_regs.status[PVA_CCQ_STATUS4_INDEX] =
-			host1x_readl(pdev, cfg_ccq_status4_r());
+			host1x_readl(pdev,
+			cfg_ccq_status_r(pva->version, 0, 4));
 
 	if (int_status & PVA_VALID_STATUS5)
 		pva->mailbox_status_regs.status[PVA_CCQ_STATUS5_INDEX] =
-			host1x_readl(pdev, cfg_ccq_status5_r());
+			host1x_readl(pdev,
+			cfg_ccq_status_r(pva->version, 0, 5));
 
 	if (int_status & PVA_VALID_STATUS6)
 		pva->mailbox_status_regs.status[PVA_CCQ_STATUS6_INDEX] =
-			host1x_readl(pdev, cfg_ccq_status6_r());
+			host1x_readl(pdev,
+			cfg_ccq_status_r(pva->version, 0, 6));
 
 	if (int_status & PVA_VALID_STATUS7)
 		pva->mailbox_status_regs.status[PVA_CCQ_STATUS7_INDEX] =
-			host1x_readl(pdev, cfg_ccq_status7_r());
+			host1x_readl(pdev,
+			cfg_ccq_status_r(pva->version, 0, 7));
 
 	/* Clear the mailbox interrupt status */
 	int_status = int_status & PVA_READY;
