@@ -294,13 +294,270 @@ int nvgpu_prepare_poweroff(struct gk20a *g)
 	return ret;
 }
 
+static bool have_tpc_pg_lock = false;
+
+static int nvgpu_init_acquire_tpc_pg_lock(struct gk20a *g)
+{
+	nvgpu_mutex_acquire(&g->tpc_pg_lock);
+	have_tpc_pg_lock = true;
+	return 0;
+}
+
+static int nvgpu_init_release_tpc_pg_lock(struct gk20a *g)
+{
+	nvgpu_mutex_release(&g->tpc_pg_lock);
+	have_tpc_pg_lock = false;
+	return 0;
+}
+
+static int nvgpu_init_fb_mem_unlock(struct gk20a *g)
+{
+	int err;
+
+	if ((g->ops.fb.mem_unlock != NULL) && (!g->is_fusa_sku)) {
+		err = g->ops.fb.mem_unlock(g);
+		if (err != 0) {
+			return err;
+		}
+	} else {
+		nvgpu_log_info(g, "skipping fb mem_unlock");
+	}
+
+	return 0;
+}
+
+static int nvgpu_init_power_gate(struct gk20a *g)
+{
+	int err;
+	u32 fuse_status;
+
+	/*
+	 *  Power gate the chip as per the TPC PG mask
+	 *  and the fuse_status register.
+	 *  If TPC PG mask is invalid halt the GPU poweron.
+	 */
+	g->can_tpc_powergate = false;
+	fuse_status = g->ops.fuse.fuse_status_opt_tpc_gpc(g, 0);
+
+	if (g->ops.tpc.tpc_powergate != NULL) {
+		err = g->ops.tpc.tpc_powergate(g, fuse_status);
+		if (err != 0) {
+			return err;
+		}
+	}
+
+	return 0;
+}
+
+#ifdef CONFIG_NVGPU_DEBUGGER
+static int nvgpu_init_power_gate_gr(struct gk20a *g)
+{
+	if (g->can_tpc_powergate && (g->ops.gr.powergate_tpc != NULL)) {
+		g->ops.gr.powergate_tpc(g);
+	}
+	return 0;
+}
+#endif
+
+static int nvgpu_init_boot_clk_or_clk_arb(struct gk20a *g)
+{
+	int err = 0;
+
+#ifdef CONFIG_NVGPU_LS_PMU
+	if (nvgpu_is_enabled(g, NVGPU_PMU_PSTATE) &&
+		(g->pmu->fw->ops.clk.clk_set_boot_clk != NULL)) {
+		err = g->pmu->fw->ops.clk.clk_set_boot_clk(g);
+		if (err != 0) {
+			nvgpu_err(g, "failed to set boot clk");
+			return err;
+		}
+	} else
+#endif
+	{
+#ifdef CONFIG_NVGPU_CLK_ARB
+		err = g->ops.clk_arb.clk_arb_init_arbiter(g);
+		if (err != 0) {
+			nvgpu_err(g, "failed to init clk arb");
+			return err;
+		}
+#endif
+	}
+
+	return err;
+}
+
+static int nvgpu_init_set_debugger_mode(struct gk20a *g)
+{
+#ifdef CONFIG_NVGPU_DEBUGGER
+	/* Restore the debug setting */
+	g->ops.fb.set_debug_mode(g, g->mmu_debug_ctrl);
+#endif
+	return 0;
+}
+
+static int nvgpu_init_xve_set_speed(struct gk20a *g)
+{
+#ifdef CONFIG_NVGPU_DGPU
+	int err;
+
+	if (g->ops.xve.available_speeds != NULL) {
+		u32 speed;
+
+		if (!nvgpu_is_enabled(g, NVGPU_SUPPORT_ASPM) &&
+				(g->ops.xve.disable_aspm != NULL)) {
+			g->ops.xve.disable_aspm(g);
+		}
+
+		g->ops.xve.available_speeds(g, &speed);
+
+		/* Set to max speed */
+		speed = (u32)nvgpu_fls(speed);
+
+		if (speed > 0U) {
+			speed = BIT32((speed - 1U));
+		} else {
+			speed = BIT32(speed);
+		}
+
+		err = g->ops.xve.set_speed(g, speed);
+		if (err != 0) {
+			nvgpu_err(g, "Failed to set PCIe bus speed!");
+			return err;
+		}
+	}
+#endif
+	return 0;
+}
+
+static int nvgpu_init_syncpt_mem(struct gk20a *g)
+{
+#if defined(CONFIG_TEGRA_GK20A_NVHOST)
+	int err;
+	u64 nr_pages;
+
+	if (nvgpu_has_syncpoints(g) && (g->syncpt_unit_size != 0UL)) {
+		if (!nvgpu_mem_is_valid(&g->syncpt_mem)) {
+			nr_pages = U64(DIV_ROUND_UP(g->syncpt_unit_size,
+						    PAGE_SIZE));
+			err = nvgpu_mem_create_from_phys(g, &g->syncpt_mem,
+					g->syncpt_unit_base, nr_pages);
+			if (err != 0) {
+				nvgpu_err(g, "Failed to create syncpt mem");
+				return err;
+			}
+		}
+	}
+#endif
+	return 0;
+}
+
+typedef int (*nvgpu_init_func_t)(struct gk20a *g);
+struct nvgpu_init_table_t {
+	nvgpu_init_func_t func;
+	const char *name;
+	u32 enable_flag;
+};
+#define NVGPU_INIT_TABLE_ENTRY(ops_ptr, enable_flag) \
+	{ (ops_ptr), #ops_ptr,  (enable_flag) }
+
+#define NO_FLAG 0U
 int nvgpu_finalize_poweron(struct gk20a *g)
 {
 	int err = 0;
-	u32 fuse_status;
-#if defined(CONFIG_TEGRA_GK20A_NVHOST)
-	u64 nr_pages;
+	/*
+	 * This cannot be static because we use the func ptrs as initializers
+	 * and static variables require constant literals for initializers.
+	 */
+	const struct nvgpu_init_table_t nvgpu_init_table[] = {
+		/*
+		 * Do this early so any early VMs that get made are capable of
+		 * mapping buffers.
+		 */
+		NVGPU_INIT_TABLE_ENTRY(g->ops.mm.pd_cache_init, NO_FLAG),
+		NVGPU_INIT_TABLE_ENTRY(&nvgpu_falcons_sw_init, NO_FLAG),
+		NVGPU_INIT_TABLE_ENTRY(g->ops.pmu.pmu_early_init, NO_FLAG),
+#ifdef CONFIG_NVGPU_DGPU
+		NVGPU_INIT_TABLE_ENTRY(g->ops.sec2.init_sec2_setup_sw,
+				       NVGPU_SUPPORT_SEC2_RTOS),
 #endif
+		NVGPU_INIT_TABLE_ENTRY(g->ops.acr.acr_init,
+				       NVGPU_SEC_PRIVSECURITY),
+#ifdef CONFIG_NVGPU_DGPU
+		NVGPU_INIT_TABLE_ENTRY(g->ops.bios.bios_sw_init, NO_FLAG),
+#endif
+		NVGPU_INIT_TABLE_ENTRY(g->ops.bus.init_hw, NO_FLAG),
+		NVGPU_INIT_TABLE_ENTRY(g->ops.priv_ring.enable_priv_ring,
+				       NO_FLAG),
+		/* TBD: move this after graphics init in which blcg/slcg is
+		 * enabled. This function removes SlowdownOnBoot which applies
+		 * 32x divider on gpcpll bypass path. The purpose of slowdown is
+		 * to save power during boot but it also significantly slows
+		 * down gk20a init on simulation and emulation. We should remove
+		 * SOB after graphics power saving features (blcg/slcg) are
+		 * enabled. For now, do it here.
+		 */
+		NVGPU_INIT_TABLE_ENTRY(g->ops.clk.init_clk_support, NO_FLAG),
+		NVGPU_INIT_TABLE_ENTRY(g->ops.nvlink.init,
+				       NVGPU_SUPPORT_NVLINK),
+		NVGPU_INIT_TABLE_ENTRY(g->ops.fb.init_fbpa, NO_FLAG),
+#ifdef CONFIG_NVGPU_DEBUGGER
+		NVGPU_INIT_TABLE_ENTRY(g->ops.ptimer.config_gr_tick_freq,
+				       NO_FLAG),
+#endif
+		NVGPU_INIT_TABLE_ENTRY(&nvgpu_init_fb_mem_unlock, NO_FLAG),
+		NVGPU_INIT_TABLE_ENTRY(g->ops.fifo.reset_enable_hw, NO_FLAG),
+		NVGPU_INIT_TABLE_ENTRY(g->ops.ltc.init_ltc_support, NO_FLAG),
+		NVGPU_INIT_TABLE_ENTRY(g->ops.mm.init_mm_support, NO_FLAG),
+		NVGPU_INIT_TABLE_ENTRY(g->ops.fifo.fifo_init_support, NO_FLAG),
+		NVGPU_INIT_TABLE_ENTRY(g->ops.therm.elcg_init_idle_filters,
+				       NO_FLAG),
+		NVGPU_INIT_TABLE_ENTRY(g->ops.mc.intr_enable, NO_FLAG),
+		NVGPU_INIT_TABLE_ENTRY(&nvgpu_init_power_gate, NO_FLAG),
+		NVGPU_INIT_TABLE_ENTRY(&nvgpu_init_acquire_tpc_pg_lock, NO_FLAG),
+#ifdef CONFIG_NVGPU_DEBUGGER
+		NVGPU_INIT_TABLE_ENTRY(&nvgpu_init_power_gate_gr, NO_FLAG),
+#endif
+		/* prepare portion of sw required for enable hw */
+		NVGPU_INIT_TABLE_ENTRY(g->ops.gr.gr_prepare_sw, NO_FLAG),
+		NVGPU_INIT_TABLE_ENTRY(g->ops.gr.gr_enable_hw, NO_FLAG),
+		NVGPU_INIT_TABLE_ENTRY(g->ops.acr.acr_construct_execute,
+				       NVGPU_SEC_PRIVSECURITY),
+#ifdef CONFIG_NVGPU_DGPU
+		NVGPU_INIT_TABLE_ENTRY(g->ops.sec2.init_sec2_support,
+				       NVGPU_SUPPORT_SEC2_RTOS),
+#endif
+#ifdef CONFIG_NVGPU_LS_PMU
+		NVGPU_INIT_TABLE_ENTRY(g->ops.pmu.pmu_rtos_init, NO_FLAG),
+#endif
+		NVGPU_INIT_TABLE_ENTRY(g->ops.fbp.fbp_init_support, NO_FLAG),
+		NVGPU_INIT_TABLE_ENTRY(g->ops.gr.gr_init_support, NO_FLAG),
+		NVGPU_INIT_TABLE_ENTRY(g->ops.gr.ecc.ecc_init_support, NO_FLAG),
+		NVGPU_INIT_TABLE_ENTRY(&nvgpu_init_release_tpc_pg_lock,
+				       NO_FLAG),
+#ifdef CONFIG_NVGPU_LS_PMU
+		NVGPU_INIT_TABLE_ENTRY(g->ops.pmu.pmu_pstate_sw_setup,
+				       NVGPU_PMU_PSTATE),
+		NVGPU_INIT_TABLE_ENTRY(g->ops.pmu.pmu_pstate_pmu_setup,
+				       NVGPU_PMU_PSTATE),
+#endif
+		NVGPU_INIT_TABLE_ENTRY(&nvgpu_init_boot_clk_or_clk_arb, NO_FLAG),
+		NVGPU_INIT_TABLE_ENTRY(g->ops.therm.init_therm_support, NO_FLAG),
+#ifdef CONFIG_NVGPU_COMPRESSION
+		NVGPU_INIT_TABLE_ENTRY(g->ops.cbc.cbc_init_support, NO_FLAG),
+#endif
+		NVGPU_INIT_TABLE_ENTRY(g->ops.chip_init_gpu_characteristics,
+				       NO_FLAG),
+		NVGPU_INIT_TABLE_ENTRY(&nvgpu_init_set_debugger_mode, NO_FLAG),
+		NVGPU_INIT_TABLE_ENTRY(g->ops.ce.ce_init_support, NO_FLAG),
+#ifdef CONFIG_NVGPU_DGPU
+		NVGPU_INIT_TABLE_ENTRY(g->ops.ce.ce_app_init_support, NO_FLAG),
+#endif
+		NVGPU_INIT_TABLE_ENTRY(&nvgpu_init_xve_set_speed, NO_FLAG),
+		NVGPU_INIT_TABLE_ENTRY(&nvgpu_init_syncpt_mem, NO_FLAG),
+		NVGPU_INIT_TABLE_ENTRY(g->ops.channel.resume_all_serviceable_ch,
+				       NO_FLAG),
+	};
+	size_t i;
 
 	nvgpu_log_fn(g, " ");
 
@@ -332,372 +589,36 @@ int nvgpu_finalize_poweron(struct gk20a *g)
 	}
 #endif
 
-	/*
-	 * Do this early so any early VMs that get made are capable of mapping
-	 * buffers.
-	 */
-	err = g->ops.mm.pd_cache_init(g);
-	if (err != 0) {
-		return err;
-	}
-
-	err = nvgpu_falcons_sw_init(g);
-	if (err != 0) {
-		return err;
-	}
-
-	err = g->ops.pmu.pmu_early_init(g);
-	if (err != 0) {
-		nvgpu_err(g, "failed to early init pmu sw");
-		goto done;
-	}
-
-#ifdef CONFIG_NVGPU_DGPU
-	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_SEC2_RTOS)) {
-		err = g->ops.sec2.init_sec2_setup_sw(g);
-		if (err != 0) {
-			nvgpu_err(g, "failed to init sec2 sw setup");
-			goto done;
-		}
-	}
-#endif
-	if (nvgpu_is_enabled(g, NVGPU_SEC_PRIVSECURITY)) {
-		/* Init chip specific ACR properties */
-		err = g->ops.acr.acr_init(g);
-		if (err != 0) {
-			nvgpu_err(g, "ACR init failed %d", err);
-			goto done;
-		}
-	}
-
-#ifdef CONFIG_NVGPU_DGPU
-	err = g->ops.bios.bios_sw_init(g);
-	if (err != 0) {
-		nvgpu_err(g, "BIOS SW init failed %d", err);
-		goto done;
-	}
-#endif
-
-	err = g->ops.bus.init_hw(g);
-	if (err != 0) {
-		nvgpu_err(g, "failed to init bus HW");
-		goto done;
-	}
-
-	err = g->ops.priv_ring.enable_priv_ring(g);
-	if (err != 0) {
-		nvgpu_err(g, "failed to init priv_ring");
-		goto done;
-	}
-
-	/* TBD: move this after graphics init in which blcg/slcg is enabled.
-	   This function removes SlowdownOnBoot which applies 32x divider
-	   on gpcpll bypass path. The purpose of slowdown is to save power
-	   during boot but it also significantly slows down gk20a init on
-	   simulation and emulation. We should remove SOB after graphics power
-	   saving features (blcg/slcg) are enabled. For now, do it here. */
-	if (g->ops.clk.init_clk_support != NULL) {
-		err = g->ops.clk.init_clk_support(g);
-		if (err != 0) {
-			nvgpu_err(g, "failed to init gk20a clk");
-			goto done;
-		}
-	}
-
-	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_NVLINK)) {
-		err = g->ops.nvlink.init(g);
-		if (err != 0) {
-			nvgpu_err(g, "failed to init nvlink");
-			goto done;
-		}
-	}
-
-	if (g->ops.fb.init_fbpa != NULL) {
-		err = g->ops.fb.init_fbpa(g);
-		if (err != 0) {
-			nvgpu_err(g, "failed to init fbpa");
-			goto done;
-		}
-	}
-
-#ifdef CONFIG_NVGPU_DEBUGGER
-	if (g->ops.ptimer.config_gr_tick_freq != NULL) {
-		g->ops.ptimer.config_gr_tick_freq(g);
-	}
-#endif
-
-	if (g->ops.fb.mem_unlock != NULL && !g->is_fusa_sku) {
-		err = g->ops.fb.mem_unlock(g);
-		if (err != 0) {
-			nvgpu_err(g, "failed to unlock memory");
-			goto done;
-		}
-	}
-
-	err = g->ops.fifo.reset_enable_hw(g);
-
-	if (err != 0) {
-		nvgpu_err(g, "failed to reset gk20a fifo");
-		goto done;
-	}
-
-	err = g->ops.ltc.init_ltc_support(g);
-	if (err != 0) {
-		nvgpu_err(g, "failed to init ltc");
-		goto done;
-	}
-
-	err = g->ops.mm.init_mm_support(g);
-	if (err != 0) {
-		nvgpu_err(g, "failed to init gk20a mm");
-		goto done;
-	}
-
-	err = g->ops.fifo.fifo_init_support(g);
-	if (err != 0) {
-		nvgpu_err(g, "failed to init gk20a fifo");
-		goto done;
-	}
-
-	if (g->ops.therm.elcg_init_idle_filters != NULL) {
-		err = g->ops.therm.elcg_init_idle_filters(g);
-		if (err != 0) {
-			nvgpu_err(g, "failed to init elcg idle filters");
-			goto done;
-		}
-	}
-
-	err = g->ops.mc.intr_enable(g);
-	if (err != 0) {
-		nvgpu_err(g, "failed to enable interrupts");
-		goto done;
-	}
-
-	/*
-	 *  Power gate the chip as per the TPC PG mask
-	 *  and the fuse_status register.
-	 *  If TPC PG mask is invalid halt the GPU poweron.
-	 */
-	g->can_tpc_powergate = false;
-	fuse_status = g->ops.fuse.fuse_status_opt_tpc_gpc(g, 0);
-
-	if (g->ops.tpc.tpc_powergate) {
-		err = g->ops.tpc.tpc_powergate(g, fuse_status);
-	}
-
-	if (err) {
-		nvgpu_err(g, "failed to power ON GPU");
-		goto done;
-	}
-
-	nvgpu_mutex_acquire(&g->tpc_pg_lock);
-
-#ifdef CONFIG_NVGPU_DEBUGGER
-	if (g->can_tpc_powergate) {
-		if (g->ops.gr.powergate_tpc != NULL) {
-			g->ops.gr.powergate_tpc(g);
-		}
-	}
-#endif
-
-	/* prepare portion of sw required for enable hw */
-	err = g->ops.gr.gr_prepare_sw(g);
-	if (err != 0) {
-		nvgpu_err(g, "failed to prepare sw");
-		nvgpu_mutex_release(&g->tpc_pg_lock);
-		goto done;
-	}
-
-	err = g->ops.gr.gr_enable_hw(g);
-	if (err != 0) {
-		nvgpu_err(g, "failed to enable gr");
-		nvgpu_mutex_release(&g->tpc_pg_lock);
-		goto done;
-	}
-
-	if (nvgpu_is_enabled(g, NVGPU_SEC_PRIVSECURITY)) {
-		/* construct ucode blob, load & bootstrap LSF's using HS ACR */
-		err = g->ops.acr.acr_construct_execute(g);
-		if (err != 0) {
-			nvgpu_mutex_release(&g->tpc_pg_lock);
-			goto done;
-		}
-	}
-
-#ifdef CONFIG_NVGPU_DGPU
-	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_SEC2_RTOS)) {
-		err = g->ops.sec2.init_sec2_support(g);
-		if (err != 0) {
-			nvgpu_err(g, "failed to init sec2");
-			nvgpu_mutex_release(&g->tpc_pg_lock);
-			goto done;
-		}
-	}
-#endif
-
-#ifdef CONFIG_NVGPU_LS_PMU
-	if (g->ops.pmu.pmu_rtos_init != NULL) {
-		err = g->ops.pmu.pmu_rtos_init(g);
-		if (err != 0) {
-			nvgpu_err(g, "failed to init gk20a pmu");
-			nvgpu_mutex_release(&g->tpc_pg_lock);
-			goto done;
-		}
-	}
-#endif
-
-	err = g->ops.fbp.fbp_init_support(g);
-	if (err != 0) {
-		nvgpu_err(g, "failed to init gk20a fbp");
-		nvgpu_mutex_release(&g->tpc_pg_lock);
-		goto done;
-	}
-
-	err = g->ops.gr.gr_init_support(g);
-	if (err != 0) {
-		nvgpu_err(g, "failed to init gk20a gr");
-		nvgpu_mutex_release(&g->tpc_pg_lock);
-		goto done;
-	}
-
-	if (g->ops.gr.ecc.ecc_init_support != NULL) {
-		err = g->ops.gr.ecc.ecc_init_support(g);
-		if (err != 0) {
-			nvgpu_err(g, "failed to init ecc");
-			nvgpu_mutex_release(&g->tpc_pg_lock);
-			goto done;
-		}
-	}
-
-	nvgpu_mutex_release(&g->tpc_pg_lock);
-
-#ifdef CONFIG_NVGPU_LS_PMU
-	if (nvgpu_is_enabled(g, NVGPU_PMU_PSTATE)) {
-		err = g->ops.pmu.pmu_pstate_sw_setup(g);
-		if (err != 0) {
-			nvgpu_err(g, "failed to init pstates");
-			nvgpu_mutex_release(&g->tpc_pg_lock);
-			goto done;
-		}
-
-		err = g->ops.pmu.pmu_pstate_pmu_setup(g);
-		if (err != 0) {
-			nvgpu_err(g, "failed to init pstates");
-			goto done;
-		}
-	}
-
-	if (nvgpu_is_enabled(g, NVGPU_PMU_PSTATE) &&
-		(g->pmu->fw->ops.clk.clk_set_boot_clk != NULL)) {
-		err = g->pmu->fw->ops.clk.clk_set_boot_clk(g);
-		if (err != 0) {
-			nvgpu_err(g, "failed to set boot clk");
-			goto done;
-		}
-	} else
-#endif
-	{
-#ifdef CONFIG_NVGPU_CLK_ARB
-		err = g->ops.clk_arb.clk_arb_init_arbiter(g);
-		if (err != 0) {
-			nvgpu_err(g, "failed to init clk arb");
-			goto done;
-		}
-#endif
-	}
-
-	err = g->ops.therm.init_therm_support(g);
-	if (err != 0) {
-		nvgpu_err(g, "failed to init gk20a therm");
-		goto done;
-	}
-
-#ifdef CONFIG_NVGPU_COMPRESSION
-	err = g->ops.cbc.cbc_init_support(g);
-	if (err != 0) {
-		nvgpu_err(g, "failed to init cbc");
-		goto done;
-	}
-#endif
-
-	err = g->ops.chip_init_gpu_characteristics(g);
-	if (err != 0) {
-		nvgpu_err(g, "failed to init chip gpu characteristics");
-		goto done;
-	}
-
-
-#ifdef CONFIG_NVGPU_DEBUGGER
-	/* Restore the debug setting */
-	g->ops.fb.set_debug_mode(g, g->mmu_debug_ctrl);
-#endif
-
-	err = g->ops.ce.ce_init_support(g);
-	if (err != 0) {
-		nvgpu_err(g, "failed to init ce");
-		goto done;
-	}
-
-#ifdef CONFIG_NVGPU_DGPU
-	err = g->ops.ce.ce_app_init_support(g);
-	if (err != 0) {
-		nvgpu_err(g, "failed to init ce app");
-		goto done;
-	}
-
-	if (g->ops.xve.available_speeds != NULL) {
-		u32 speed;
-
-		if (!nvgpu_is_enabled(g, NVGPU_SUPPORT_ASPM) &&
-				(g->ops.xve.disable_aspm != NULL)) {
-			g->ops.xve.disable_aspm(g);
-		}
-
-		g->ops.xve.available_speeds(g, &speed);
-
-		/* Set to max speed */
-		speed = (u32)nvgpu_fls(speed);
-
-		if (speed > 0U) {
-			speed = BIT32((speed - 1U));
+	for (i = 0; i < ARRAY_SIZE(nvgpu_init_table); i++) {
+		if ((nvgpu_init_table[i].enable_flag != 0ULL) &&
+		    !nvgpu_is_enabled(g, nvgpu_init_table[i].enable_flag)) {
+			nvgpu_log_info(g, "Skipping initializing %s (not enabled)",
+				       nvgpu_init_table[i].name);
+		} else if (nvgpu_init_table[i].func == NULL) {
+			nvgpu_log_info(g, "Skipping initializing %s (NULL func)",
+				       nvgpu_init_table[i].name);
 		} else {
-			speed = BIT32(speed);
-		}
-
-		err = g->ops.xve.set_speed(g, speed);
-		if (err != 0) {
-			nvgpu_err(g, "Failed to set PCIe bus speed!");
-			goto done;
-		}
-	}
-#endif
-
-#if defined(CONFIG_TEGRA_GK20A_NVHOST)
-	if (nvgpu_has_syncpoints(g) && (g->syncpt_unit_size != 0UL)) {
-		if (!nvgpu_mem_is_valid(&g->syncpt_mem)) {
-			nr_pages = U64(DIV_ROUND_UP(g->syncpt_unit_size,
-						    PAGE_SIZE));
-			err = nvgpu_mem_create_from_phys(g, &g->syncpt_mem,
-					g->syncpt_unit_base, nr_pages);
+			nvgpu_log_info(g, "Initializing %s",
+				       nvgpu_init_table[i].name);
+			err = nvgpu_init_table[i].func(g);
 			if (err != 0) {
-				nvgpu_err(g, "Failed to create syncpt mem");
+				nvgpu_err(g, "Failed initialization for: %s",
+					nvgpu_init_table[i].name);
 				goto done;
 			}
-		}
-	}
-#endif
-
-	if (g->ops.channel.resume_all_serviceable_ch != NULL) {
-		err = g->ops.channel.resume_all_serviceable_ch(g);
-		if (err != 0) {
-			nvgpu_err(g, "Failed to resume channels");
-			goto done;
 		}
 	}
 
 	goto exit;
 
 done:
+	if (have_tpc_pg_lock) {
+		int release_err = nvgpu_init_release_tpc_pg_lock(g);
+
+		if (release_err != 0) {
+			nvgpu_err(g, "failed to release tpc_gp_lock");
+		}
+	}
 	nvgpu_falcons_sw_free(g);
 
 exit:
