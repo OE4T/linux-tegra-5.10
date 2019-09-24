@@ -36,8 +36,12 @@ if [ -f nvgpu_unit ]; then
         # target, so use that dir structure
         LD_LIBRARY_PATH=".:units"
         cores=$(cat /proc/cpuinfo |grep processor |wc -l)
+
+	# Ignore number of cores for now; it seems that the parallel unit
+	# tests are just too buggy and that they really don't save much
+	# actual computing time.
         NVGPU_UNIT="./nvgpu_unit --nvtest --unit-load-path units/ --no-color \
-                 --num-threads $cores"
+                 --num-threads 1"
 else
         # running on host
         LD_LIBRARY_PATH="build:build/units"
