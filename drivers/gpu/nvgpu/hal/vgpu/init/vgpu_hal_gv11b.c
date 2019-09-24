@@ -107,6 +107,7 @@
 #include <nvgpu/clk_arb.h>
 
 #include "common/vgpu/init/init_vgpu.h"
+#include "common/vgpu/fb/fb_vgpu.h"
 #include "common/vgpu/fifo/fifo_vgpu.h"
 #include "common/vgpu/fifo/channel_vgpu.h"
 #include "common/vgpu/fifo/tsg_vgpu.h"
@@ -158,7 +159,7 @@ static void vgpu_gv11b_init_gpu_characteristics(struct gk20a *g)
 #endif
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_PREEMPTION_GFXP, true);
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_PLATFORM_ATOMIC, true);
-	nvgpu_set_enabled(g, NVGPU_SUPPORT_SET_CTX_MMU_DEBUG_MODE, false);
+	nvgpu_set_enabled(g, NVGPU_SUPPORT_SET_CTX_MMU_DEBUG_MODE, true);
 }
 
 static const struct gpu_ops vgpu_gv11b_ops = {
@@ -271,7 +272,7 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 		.get_offset_in_gpccs_segment =
 			gr_gk20a_get_offset_in_gpccs_segment,
 		.set_debug_mode = gm20b_gr_set_debug_mode,
-		.set_mmu_debug_mode = NULL,
+		.set_mmu_debug_mode = vgpu_gr_set_mmu_debug_mode,
 #endif
 		.ctxsw_prog = {
 			.hw_get_fecs_header_size =
@@ -525,7 +526,7 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 #ifdef CONFIG_NVGPU_DEBUGGER
 		.is_debug_mode_enabled = NULL,
 		.set_debug_mode = vgpu_mm_mmu_set_debug_mode,
-		.set_mmu_debug_mode = NULL,
+		.set_mmu_debug_mode = vgpu_fb_set_mmu_debug_mode,
 #endif
 		.tlb_invalidate = vgpu_mm_tlb_invalidate,
 		.write_mmu_fault_buffer_lo_hi =

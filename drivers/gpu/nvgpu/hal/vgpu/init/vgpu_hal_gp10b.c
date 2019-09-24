@@ -90,6 +90,7 @@
 #include "common/clk_arb/clk_arb_gp10b.h"
 
 #include "common/vgpu/init/init_vgpu.h"
+#include "common/vgpu/fb/fb_vgpu.h"
 #include "common/vgpu/fifo/fifo_vgpu.h"
 #include "common/vgpu/fifo/channel_vgpu.h"
 #include "common/vgpu/fifo/tsg_vgpu.h"
@@ -437,7 +438,7 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 #ifdef CONFIG_NVGPU_DEBUGGER
 		.is_debug_mode_enabled = NULL,
 		.set_debug_mode = vgpu_mm_mmu_set_debug_mode,
-		.set_mmu_debug_mode = NULL,
+		.set_mmu_debug_mode = vgpu_fb_set_mmu_debug_mode,
 #endif
 		.tlb_invalidate = vgpu_mm_tlb_invalidate,
 	},

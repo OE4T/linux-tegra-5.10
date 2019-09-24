@@ -95,6 +95,8 @@ void vgpu_gr_handle_sm_esr_event(struct gk20a *g,
 int vgpu_init_gr_support(struct gk20a *g);
 #ifdef CONFIG_NVGPU_DEBUGGER
 u64 vgpu_gr_gk20a_tpc_enabled_exceptions(struct gk20a *g);
+int vgpu_gr_set_mmu_debug_mode(struct gk20a *g,
+		struct nvgpu_channel *ch, bool enable);
 #endif
 
 #endif /* NVGPU_GR_VGPU_H */

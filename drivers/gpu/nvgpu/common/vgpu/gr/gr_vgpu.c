@@ -1498,6 +1498,7 @@ int vgpu_gr_set_preemption_mode(struct nvgpu_channel *ch,
 }
 
 #ifdef CONFIG_NVGPU_DEBUGGER
+
 u64 vgpu_gr_gk20a_tpc_enabled_exceptions(struct gk20a *g)
 {
 	struct tegra_vgpu_cmd_msg msg = {};
@@ -1519,4 +1520,27 @@ u64 vgpu_gr_gk20a_tpc_enabled_exceptions(struct gk20a *g)
 	tpc_exception_en = p->tpc_exception_en_sm_mask;
 	return tpc_exception_en;
 }
+
+int vgpu_gr_set_mmu_debug_mode(struct gk20a *g,
+		struct nvgpu_channel *ch, bool enable)
+{
+	struct tegra_vgpu_cmd_msg msg = {};
+	struct tegra_vgpu_gr_set_mmu_debug_mode_params *p =
+				&msg.params.gr_set_mmu_debug_mode;
+	int err;
+
+	msg.cmd = TEGRA_VGPU_CMD_GR_SET_MMU_DEBUG_MODE;
+	msg.handle = vgpu_get_handle(g);
+	p->ch_handle = ch->virt_ctx;
+	p->enable = enable ? 1U : 0U;
+	err = vgpu_comm_sendrecv(&msg, sizeof(msg), sizeof(msg));
+	err = err != 0 ? err : msg.ret;
+	if (err != 0) {
+		nvgpu_err(g,
+			"gr set mmu debug mode failed err %d", err);
+	}
+
+	return err;
+}
+
 #endif
