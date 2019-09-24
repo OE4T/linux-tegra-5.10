@@ -687,6 +687,31 @@ static void balloc_get_parent_range(struct nvgpu_buddy_allocator *a,
 	*porder = order;
 }
 
+static struct nvgpu_buddy *balloc_get_target_buddy(
+				struct nvgpu_buddy_allocator *a,
+				struct nvgpu_buddy *bud,
+				u64 base, u64 order, u32 pte_size)
+{
+	/* Split this buddy as necessary until we get the target buddy. */
+	while (bud->start != base || bud->order != order) {
+		if (balloc_split_buddy(a, bud, pte_size) != 0) {
+			alloc_dbg(balloc_owner(a),
+				  "split buddy failed? {0x%llx, %llu}",
+				  bud->start, bud->order);
+			balloc_coalesce(a, bud);
+			return NULL;
+		}
+
+		if (base < bud->right->start) {
+			bud = bud->left;
+		} else {
+			bud = bud->right;
+		}
+	}
+
+	return bud;
+}
+
 /*
  * Makes a buddy at the passed address. This will make all parent buddies
  * necessary for this buddy to exist as well.
@@ -746,23 +771,8 @@ static struct nvgpu_buddy *balloc_make_fixed_buddy(
 		return NULL;
 	}
 
-	/* Split this buddy as necessary until we get the target buddy. */
-	while (bud->start != base || bud->order != order) {
-		if (balloc_split_buddy(a, bud, pte_size) != 0) {
-			alloc_dbg(balloc_owner(a),
-				  "split buddy failed? {0x%llx, %llu}",
-				  bud->start, bud->order);
-			balloc_coalesce(a, bud);
-			return NULL;
-		}
-
-		if (base < bud->right->start) {
-			bud = bud->left;
-		} else {
-			bud = bud->right;
-		}
-
-	}
+	/* Get target buddy */
+	bud = balloc_get_target_buddy(a, bud, base, order, pte_size);
 
 	return bud;
 }
@@ -1339,35 +1349,11 @@ static const struct nvgpu_allocator_ops buddy_ops = {
 #endif
 };
 
-/*
- * Initialize a buddy allocator. Returns 0 on success. This allocator does
- * not necessarily manage bytes. It manages distinct ranges of resources. This
- * allows the allocator to work for things like comp_tags, semaphores, etc.
- *
- * @allocator: Ptr to an allocator struct to init.
- * @vm: GPU VM to associate this allocator with. Can be NULL. Will be used to
- *      get PTE size for GVA spaces.
- * @name: Name of the allocator. Doesn't have to be static storage.
- * @base: The base address of the resource pool being managed.
- * @size: Number of resources in the pool.
- * @blk_size: Minimum number of resources to allocate at once. For things like
- *            semaphores this is 1. For GVA this might be as much as 64k. This
- *            corresponds to order 0. Must be power of 2.
- * @max_order: Pick a maximum order. If you leave this as 0, the buddy allocator
- *             will try and pick a reasonable max order.
- * @flags: Extra flags necessary. See GPU_BALLOC_*.
- */
-int nvgpu_buddy_allocator_init(struct gk20a *g, struct nvgpu_allocator *na,
-			       struct vm_gk20a *vm, const char *name,
-			       u64 base, u64 size, u64 blk_size,
-			       u64 max_order, u64 flags)
+static int nvgpu_buddy_check_argument_limits(struct vm_gk20a *vm, u64 size,
+				u64 blk_size, u64 max_order, u64 flags)
 {
-	int err;
-	u64 pde_size;
-	struct nvgpu_buddy_allocator *a;
-	bool is_gva_space = (flags & GPU_ALLOC_GVA_SPACE) != 0ULL;
 	bool is_blk_size_pwr_2;
-	u64 base_big_page, size_big_page;
+	bool is_gva_space = (flags & GPU_ALLOC_GVA_SPACE) != 0ULL;
 
 	/* blk_size must be greater than 0 and a power of 2. */
 	if (blk_size == 0U) {
@@ -1392,15 +1378,17 @@ int nvgpu_buddy_allocator_init(struct gk20a *g, struct nvgpu_allocator *na,
 		return -EINVAL;
 	}
 
-	a = nvgpu_kzalloc(g, sizeof(struct nvgpu_buddy_allocator));
-	if (a == NULL) {
-		return -ENOMEM;
-	}
+	return 0;
+}
 
-	err = nvgpu_alloc_common_init(na, g, name, a, false, &buddy_ops);
-	if (err != 0) {
-		goto fail;
-	}
+static int nvgpu_buddy_set_attributes(struct nvgpu_buddy_allocator *a,
+				struct nvgpu_allocator *na, struct vm_gk20a *vm,
+				u64 base, u64 size, u64 blk_size, u64 max_order,
+				u64 flags)
+{
+	u64 pde_size;
+	u64 base_big_page, size_big_page;
+	bool is_gva_space = (flags & GPU_ALLOC_GVA_SPACE) != 0ULL;
 
 	a->base = base;
 	a->length = size;
@@ -1443,6 +1431,57 @@ int nvgpu_buddy_allocator_init(struct gk20a *g, struct nvgpu_allocator *na,
 
 	a->flags = flags;
 	a->max_order = max_order;
+	return 0;
+}
+
+/*
+ * Initialize a buddy allocator. Returns 0 on success. This allocator does
+ * not necessarily manage bytes. It manages distinct ranges of resources. This
+ * allows the allocator to work for things like comp_tags, semaphores, etc.
+ *
+ * @allocator: Ptr to an allocator struct to init.
+ * @vm: GPU VM to associate this allocator with. Can be NULL. Will be used to
+ *      get PTE size for GVA spaces.
+ * @name: Name of the allocator. Doesn't have to be static storage.
+ * @base: The base address of the resource pool being managed.
+ * @size: Number of resources in the pool.
+ * @blk_size: Minimum number of resources to allocate at once. For things like
+ *            semaphores this is 1. For GVA this might be as much as 64k. This
+ *            corresponds to order 0. Must be power of 2.
+ * @max_order: Pick a maximum order. If you leave this as 0, the buddy allocator
+ *             will try and pick a reasonable max order.
+ * @flags: Extra flags necessary. See GPU_BALLOC_*.
+ */
+int nvgpu_buddy_allocator_init(struct gk20a *g, struct nvgpu_allocator *na,
+			       struct vm_gk20a *vm, const char *name,
+			       u64 base, u64 size, u64 blk_size,
+			       u64 max_order, u64 flags)
+{
+	int err;
+	bool is_gva_space = (flags & GPU_ALLOC_GVA_SPACE) != 0ULL;
+	struct nvgpu_buddy_allocator *a;
+
+	err = nvgpu_buddy_check_argument_limits(vm, size, blk_size, max_order,
+							flags);
+	if (err != 0) {
+		return err;
+	}
+
+	a = nvgpu_kzalloc(g, sizeof(struct nvgpu_buddy_allocator));
+	if (a == NULL) {
+		return -ENOMEM;
+	}
+
+	err = nvgpu_alloc_common_init(na, g, name, a, false, &buddy_ops);
+	if (err != 0) {
+		goto fail;
+	}
+
+	err = nvgpu_buddy_set_attributes(a, na, vm, base, size, blk_size,
+					max_order, flags);
+	if (err != 0) {
+		goto fail;
+	}
 
 	balloc_allocator_align(a);
 	balloc_compute_max_order(a);

@@ -400,13 +400,9 @@ static const struct nvgpu_allocator_ops bitmap_ops = {
 #endif
 };
 
-
-int nvgpu_bitmap_allocator_init(struct gk20a *g, struct nvgpu_allocator *na,
-				const char *name, u64 base, u64 length,
-				u64 blk_size, u64 flags)
+static int nvgpu_bitmap_check_argument_limits(u64 base, u64 length,
+								u64 blk_size)
 {
-	int err;
-	struct nvgpu_bitmap_allocator *a;
 	bool is_blk_size_pwr_2;
 	bool is_base_aligned;
 	bool is_length_aligned;
@@ -427,6 +423,21 @@ int nvgpu_bitmap_allocator_init(struct gk20a *g, struct nvgpu_allocator *na,
 
 	if (length == 0ULL) {
 		return -EINVAL;
+	}
+
+	return 0;
+}
+
+int nvgpu_bitmap_allocator_init(struct gk20a *g, struct nvgpu_allocator *na,
+				const char *name, u64 base, u64 length,
+				u64 blk_size, u64 flags)
+{
+	int err;
+	struct nvgpu_bitmap_allocator *a;
+
+	err = nvgpu_bitmap_check_argument_limits(base, length, blk_size);
+	if (err != 0) {
+		return err;
 	}
 
 	if (base == 0ULL) {
