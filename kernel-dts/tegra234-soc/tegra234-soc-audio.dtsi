@@ -170,7 +170,8 @@
 			clock-names = "ahub", "parent", "apb2ape", "xbar.ape";
 			assigned-clocks = <&bpmp_clks TEGRA234_CLK_AHUB>;
 			assigned-parent-clocks =
-				<&bpmp_clks TEGRA234_CLK_PLLA_OUT0>;
+				<&bpmp_clks TEGRA234_CLK_PLLP_OUT0>;
+			assigned-clock-rates = <102000000>;
 			status = "disabled";
 
 			#address-cells = <2>;
