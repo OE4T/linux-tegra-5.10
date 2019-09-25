@@ -1539,6 +1539,11 @@
         "unit": "nvgpu_gr_intr"
     },
     {
+        "test": "gr_intr_sw_method",
+        "test_level": 0,
+        "unit": "nvgpu_gr_intr"
+    },
+    {
         "test": "gr_intr_cleanup",
         "test_level": 0,
         "unit": "nvgpu_gr_intr"
@@ -1553,6 +1558,4 @@
       "test_level": 0,
       "unit": "nvgpu-acr"
     }
-
-
 ]
