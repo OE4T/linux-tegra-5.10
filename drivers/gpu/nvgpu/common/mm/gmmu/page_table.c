@@ -374,6 +374,45 @@ static int pd_allocate_children(struct vm_gk20a *vm,
 }
 
 /*
+ * If the next level has an update_entry function then we know
+ * that _this_ level points to PDEs (not PTEs). Thus we need to
+ * have a bunch of children PDs.
+ */
+static int nvgpu_set_pd_level_is_next_level_pde(struct vm_gk20a *vm,
+				struct nvgpu_gmmu_pd *pd,
+				struct nvgpu_gmmu_pd **next_pd_ptr,
+				const struct gk20a_mmu_level *l,
+				const struct gk20a_mmu_level *next_l,
+				u32 pd_idx,
+				struct nvgpu_gmmu_attrs *attrs)
+{
+	struct nvgpu_gmmu_pd *next_pd = *next_pd_ptr;
+
+	if (next_l->update_entry != NULL) {
+		if (pd_allocate_children(vm, l, pd, attrs) != 0) {
+			return -ENOMEM;
+		}
+
+		/*
+		 * Get the next PD so that we know what to put in this
+		 * current PD. If the next level is actually PTEs then
+		 * we don't need this - we will just use the real
+		 * physical target.
+		 */
+		next_pd = &pd->entries[pd_idx];
+
+		/*
+		 * Allocate the backing memory for next_pd.
+		 */
+		if (pd_allocate(vm, next_pd, next_l, attrs) != 0) {
+			return -ENOMEM;
+		}
+	}
+	*next_pd_ptr = next_pd;
+	return 0;
+}
+
+/*
  * This function programs the GMMU based on two ranges: a physical range and a
  * GPU virtual range. The virtual is mapped to the physical. Physical in this
  * case can mean either a real physical sysmem address or a IO virtual address
@@ -447,30 +486,10 @@ static int nvgpu_set_pd_level(struct vm_gk20a *vm,
 				virt_addr & (pde_range - 1U));
 		chunk_size = min(length, tmp_len);
 
-		/*
-		 * If the next level has an update_entry function then we know
-		 * that _this_ level points to PDEs (not PTEs). Thus we need to
-		 * have a bunch of children PDs.
-		 */
-		if (next_l->update_entry != NULL) {
-			if (pd_allocate_children(vm, l, pd, attrs) != 0) {
-				return -ENOMEM;
-			}
-
-			/*
-			 * Get the next PD so that we know what to put in this
-			 * current PD. If the next level is actually PTEs then
-			 * we don't need this - we will just use the real
-			 * physical target.
-			 */
-			next_pd = &pd->entries[pd_idx];
-
-			/*
-			 * Allocate the backing memory for next_pd.
-			 */
-			if (pd_allocate(vm, next_pd, next_l, attrs) != 0) {
-				return -ENOMEM;
-			}
+		err = nvgpu_set_pd_level_is_next_level_pde(vm, pd, &next_pd,
+						l, next_l, pd_idx, attrs);
+		if (err != 0) {
+			return err;
 		}
 
 		/*
@@ -522,6 +541,167 @@ static int nvgpu_set_pd_level(struct vm_gk20a *vm,
 	return 0;
 }
 
+static int nvgpu_gmmu_do_update_page_table_sgl(struct vm_gk20a *vm,
+				struct nvgpu_sgt *sgt, struct nvgpu_sgl *sgl,
+				u64 *space_to_skip_ptr,
+				u64 *virt_addr_ptr, u64 *length_ptr,
+				u64 phys_addr_val, u64 ipa_addr_val,
+				u64 phys_length_val, u64 sgl_length_val,
+				struct nvgpu_gmmu_attrs *attrs)
+{
+	struct gk20a *g = gk20a_from_vm(vm);
+	u64 space_to_skip = *space_to_skip_ptr;
+	u64 virt_addr = *virt_addr_ptr;
+	u64 length = *length_ptr;
+	u64 phys_addr = phys_addr_val;
+	u64 ipa_addr = ipa_addr_val;
+	u64 phys_length = phys_length_val;
+	u64 sgl_length = sgl_length_val;
+	int err;
+
+	while (sgl_length > 0ULL && length > 0ULL) {
+		/*
+		 * Holds the size of the portion of SGL that is backed
+		 * with physically contiguous memory.
+		 */
+		u64 sgl_contiguous_length;
+		/*
+		 * Number of bytes of the SGL entry that is actually
+		 * mapped after accounting for space_to_skip.
+		 */
+		u64 mapped_sgl_length;
+
+		/*
+		 * For virtualized OSes translate IPA to PA. Retrieve
+		 * the size of the underlying physical memory chunk to
+		 * which SGL has been mapped.
+		 */
+		phys_addr = nvgpu_sgt_ipa_to_pa(g, sgt, sgl, ipa_addr,
+				&phys_length);
+		phys_addr = nvgpu_safe_add_u64(
+				g->ops.mm.gmmu.gpu_phys_addr(g, attrs,
+							     phys_addr),
+				space_to_skip);
+
+		/*
+		 * For virtualized OSes when phys_length is less than
+		 * sgl_length check if space_to_skip exceeds phys_length
+		 * if so skip this memory chunk
+		 */
+		if (space_to_skip >= phys_length) {
+			space_to_skip -= phys_length;
+			ipa_addr = nvgpu_safe_add_u64(ipa_addr,
+						      phys_length);
+			sgl_length -= phys_length;
+			continue;
+		}
+
+		sgl_contiguous_length = min(phys_length, sgl_length);
+		mapped_sgl_length = min(length, sgl_contiguous_length -
+				space_to_skip);
+
+		err = nvgpu_set_pd_level(vm, &vm->pdb,
+					 0U,
+					 phys_addr,
+					 virt_addr,
+					 mapped_sgl_length,
+					 attrs);
+		if (err != 0) {
+			return err;
+		}
+
+		/*
+		 * Update the map pointer and the remaining length.
+		 */
+		virt_addr  = nvgpu_safe_add_u64(virt_addr,
+						mapped_sgl_length);
+		length     = nvgpu_safe_sub_u64(length,
+						mapped_sgl_length);
+		sgl_length = nvgpu_safe_sub_u64(sgl_length,
+				nvgpu_safe_add_u64(mapped_sgl_length,
+						   space_to_skip));
+		ipa_addr   = nvgpu_safe_add_u64(ipa_addr,
+				nvgpu_safe_add_u64(mapped_sgl_length,
+						   space_to_skip));
+
+		/*
+		 * Space has been skipped so zero this for future
+		 * chunks.
+		 */
+		space_to_skip = 0;
+	}
+	*space_to_skip_ptr = space_to_skip;
+	*virt_addr_ptr = virt_addr;
+	*length_ptr = length;
+	return 0;
+}
+
+static int nvgpu_gmmu_do_update_page_table_no_iommu(struct vm_gk20a *vm,
+				struct nvgpu_sgt *sgt, u64 space_to_skip_val,
+				u64 virt_addr_val, u64 length_val,
+				struct nvgpu_gmmu_attrs *attrs)
+{
+	struct gk20a *g = gk20a_from_vm(vm);
+	struct nvgpu_sgl *sgl;
+	u64 space_to_skip = space_to_skip_val;
+	u64 virt_addr = virt_addr_val;
+	u64 length = length_val;
+	int err;
+
+	nvgpu_sgt_for_each_sgl(sgl, sgt) {
+		/*
+		 * ipa_addr == phys_addr for non virtualized OSes.
+		 */
+		u64 phys_addr = 0ULL;
+		u64 ipa_addr = 0ULL;
+		/*
+		 * For non virtualized OSes SGL entries are contiguous in
+		 * physical memory (sgl_length == phys_length). For virtualized
+		 * OSes SGL entries are mapped to intermediate physical memory
+		 * which may subsequently point to discontiguous physical
+		 * memory. Therefore phys_length may not be equal to sgl_length.
+		 */
+		u64 phys_length = 0ULL;
+		u64 sgl_length = 0ULL;
+
+		/*
+		 * Cut out sgl ents for space_to_skip.
+		 */
+		if (space_to_skip != 0ULL &&
+		    space_to_skip >= nvgpu_sgt_get_length(sgt, sgl)) {
+			space_to_skip -= nvgpu_sgt_get_length(sgt, sgl);
+			continue;
+		}
+
+		/*
+		 * IPA and PA have 1:1 mapping for non virtualized OSes.
+		 */
+		ipa_addr = nvgpu_sgt_get_ipa(g, sgt, sgl);
+
+		/*
+		 * For non-virtualized OSes SGL entries are contiguous and hence
+		 * sgl_length == phys_length. For virtualized OSes the
+		 * phys_length will be updated by nvgpu_sgt_ipa_to_pa.
+		 */
+		sgl_length = nvgpu_sgt_get_length(sgt, sgl);
+		phys_length = sgl_length;
+
+		err = nvgpu_gmmu_do_update_page_table_sgl(vm, sgt, sgl,
+				&space_to_skip, &virt_addr, &length,
+				phys_addr, ipa_addr,
+				phys_length, sgl_length,
+				attrs);
+		if (err != 0) {
+			return err;
+		}
+
+		if (length == 0ULL) {
+			break;
+		}
+	}
+	return 0;
+}
+
 static int nvgpu_gmmu_do_update_page_table(struct vm_gk20a *vm,
 					   struct nvgpu_sgt *sgt,
 					   u64 space_to_skip,
@@ -530,7 +710,6 @@ static int nvgpu_gmmu_do_update_page_table(struct vm_gk20a *vm,
 					   struct nvgpu_gmmu_attrs *attrs)
 {
 	struct gk20a *g = gk20a_from_vm(vm);
-	struct nvgpu_sgl *sgl;
 	bool is_iommuable, sgt_is_iommuable;
 	int err = 0;
 
@@ -585,120 +764,8 @@ static int nvgpu_gmmu_do_update_page_table(struct vm_gk20a *vm,
 	 * Handle cases (2), (3), and (4): do the no-IOMMU mapping. In this case
 	 * we really are mapping physical pages directly.
 	 */
-	nvgpu_sgt_for_each_sgl(sgl, sgt) {
-		/*
-		 * ipa_addr == phys_addr for non virtualized OSes.
-		 */
-		u64 phys_addr;
-		u64 ipa_addr;
-		/*
-		 * For non virtualized OSes SGL entries are contiguous in
-		 * physical memory (sgl_length == phys_length). For virtualized
-		 * OSes SGL entries are mapped to intermediate physical memory
-		 * which may subsequently point to discontiguous physical
-		 * memory. Therefore phys_length may not be equal to sgl_length.
-		 */
-		u64 phys_length;
-		u64 sgl_length;
-
-		/*
-		 * Cut out sgl ents for space_to_skip.
-		 */
-		if (space_to_skip != 0ULL &&
-		    space_to_skip >= nvgpu_sgt_get_length(sgt, sgl)) {
-			space_to_skip -= nvgpu_sgt_get_length(sgt, sgl);
-			continue;
-		}
-
-		/*
-		 * IPA and PA have 1:1 mapping for non virtualized OSes.
-		 */
-		ipa_addr = nvgpu_sgt_get_ipa(g, sgt, sgl);
-
-		/*
-		 * For non-virtualized OSes SGL entries are contiguous and hence
-		 * sgl_length == phys_length. For virtualized OSes the
-		 * phys_length will be updated by nvgpu_sgt_ipa_to_pa.
-		 */
-		sgl_length = nvgpu_sgt_get_length(sgt, sgl);
-		phys_length = sgl_length;
-
-		while (sgl_length > 0ULL && length > 0ULL) {
-			/*
-			 * Holds the size of the portion of SGL that is backed
-			 * with physically contiguous memory.
-			 */
-			u64 sgl_contiguous_length;
-			/*
-			 * Number of bytes of the SGL entry that is actually
-			 * mapped after accounting for space_to_skip.
-			 */
-			u64 mapped_sgl_length;
-
-			/*
-			 * For virtualized OSes translate IPA to PA. Retrieve
-			 * the size of the underlying physical memory chunk to
-			 * which SGL has been mapped.
-			 */
-			phys_addr = nvgpu_sgt_ipa_to_pa(g, sgt, sgl, ipa_addr,
-					&phys_length);
-			phys_addr = nvgpu_safe_add_u64(
-					g->ops.mm.gmmu.gpu_phys_addr(g, attrs,
-								     phys_addr),
-					space_to_skip);
-
-			/*
-			 * For virtualized OSes when phys_length is less than
-			 * sgl_length check if space_to_skip exceeds phys_length
-			 * if so skip this memory chunk
-			 */
-			if (space_to_skip >= phys_length) {
-				space_to_skip -= phys_length;
-				ipa_addr = nvgpu_safe_add_u64(ipa_addr,
-							      phys_length);
-				sgl_length -= phys_length;
-				continue;
-			}
-
-			sgl_contiguous_length = min(phys_length, sgl_length);
-			mapped_sgl_length = min(length, sgl_contiguous_length -
-					space_to_skip);
-
-			err = nvgpu_set_pd_level(vm, &vm->pdb,
-						 0U,
-						 phys_addr,
-						 virt_addr,
-						 mapped_sgl_length,
-						 attrs);
-			if (err != 0) {
-				return err;
-			}
-
-			/*
-			 * Update the map pointer and the remaining length.
-			 */
-			virt_addr  = nvgpu_safe_add_u64(virt_addr,
-							mapped_sgl_length);
-			length     = nvgpu_safe_sub_u64(length,
-							mapped_sgl_length);
-			sgl_length = nvgpu_safe_sub_u64(sgl_length,
-					nvgpu_safe_add_u64(mapped_sgl_length,
-							   space_to_skip));
-			ipa_addr   = nvgpu_safe_add_u64(ipa_addr,
-					nvgpu_safe_add_u64(mapped_sgl_length,
-							   space_to_skip));
-
-			/*
-			 * Space has been skipped so zero this for future
-			 * chunks.
-			 */
-			space_to_skip = 0;
-		}
-
-		if (length == 0ULL) {
-			break;
-		}
-	}
+	err = nvgpu_gmmu_do_update_page_table_no_iommu(vm, sgt, space_to_skip,
+						virt_addr, length, attrs);
 
 	return err;
 }
@@ -718,6 +785,34 @@ static int nvgpu_gmmu_do_update_page_table(struct vm_gk20a *vm,
  * [*] Note: the "physical" address may actually be an IO virtual address in the
  *     case of SMMU usage.
  */
+static void nvgpu_gmmu_update_page_table_dbg_print(struct gk20a *g,
+		struct nvgpu_gmmu_attrs *attrs, struct vm_gk20a *vm,
+		struct nvgpu_sgt *sgt, u64 space_to_skip,
+		u64 virt_addr, u64 length, u32 page_size)
+{
+	nvgpu_gmmu_dbg(g, attrs,
+		"vm=%s "
+		"%-5s GPU virt %#-12llx +%#-9llx    phys %#-12llx "
+		"phys offset: %#-4llx;  pgsz: %3dkb perm=%-2s | "
+		"kind=%#02x APT=%-6s %c%c%c%c%c",
+		vm->name,
+		(sgt != NULL) ? "MAP" : "UNMAP",
+		virt_addr,
+		length,
+		(sgt != NULL) ?
+		nvgpu_sgt_get_phys(g, sgt, sgt->sgl) : 0ULL,
+		space_to_skip,
+		page_size >> 10,
+		nvgpu_gmmu_perm_str(attrs->rw_flag),
+		attrs->kind_v,
+		nvgpu_aperture_str(attrs->aperture),
+		attrs->cacheable ? 'C' : '-',
+		attrs->sparse    ? 'S' : '-',
+		attrs->priv      ? 'P' : '-',
+		attrs->valid     ? 'V' : '-',
+		attrs->platform_atomic ? 'A' : '-');
+}
+
 static int nvgpu_gmmu_update_page_table(struct vm_gk20a *vm,
 					struct nvgpu_sgt *sgt,
 					u64 space_to_skip,
@@ -747,27 +842,8 @@ static int nvgpu_gmmu_update_page_table(struct vm_gk20a *vm,
 	 */
 	length = nvgpu_align_map_length(vm, length, attrs);
 
-	nvgpu_gmmu_dbg(g, attrs,
-		       "vm=%s "
-		       "%-5s GPU virt %#-12llx +%#-9llx    phys %#-12llx "
-		       "phys offset: %#-4llx;  pgsz: %3dkb perm=%-2s | "
-		       "kind=%#02x APT=%-6s %c%c%c%c%c",
-		       vm->name,
-		       (sgt != NULL) ? "MAP" : "UNMAP",
-		       virt_addr,
-		       length,
-		       (sgt != NULL) ?
-				nvgpu_sgt_get_phys(g, sgt, sgt->sgl) : 0ULL,
-		       space_to_skip,
-		       page_size >> 10,
-		       nvgpu_gmmu_perm_str(attrs->rw_flag),
-		       attrs->kind_v,
-		       nvgpu_aperture_str(attrs->aperture),
-		       attrs->cacheable ? 'C' : '-',
-		       attrs->sparse    ? 'S' : '-',
-		       attrs->priv      ? 'P' : '-',
-		       attrs->valid     ? 'V' : '-',
-		       attrs->platform_atomic ? 'A' : '-');
+	nvgpu_gmmu_update_page_table_dbg_print(g, attrs, vm, sgt,
+				space_to_skip, virt_addr, length, page_size);
 
 	err = nvgpu_gmmu_do_update_page_table(vm,
 					      sgt,
@@ -967,6 +1043,56 @@ u32 nvgpu_pte_words(struct gk20a *g)
 	return l->entry_size / (u32)sizeof(u32);
 }
 
+/* Walk last level of page table to find PTE */
+static int nvgpu_locate_pte_last_level(struct gk20a *g,
+				struct nvgpu_gmmu_pd *pd,
+				const struct gk20a_mmu_level *l,
+				struct nvgpu_gmmu_pd **pd_out,
+				u32 *pd_idx_out, u32 *pd_offs_out,
+				u32 *data, u32 pd_idx)
+{
+	u32 pte_base;
+	u32 pte_size;
+	u32 i;
+
+	if (pd->mem == NULL) {
+		return -EINVAL;
+	}
+
+	/*
+	 * Take into account the real offset into the nvgpu_mem
+	 * since the PD may be located at an offset other than 0
+	 * (due to PD packing).
+	 */
+	pte_base = nvgpu_safe_add_u32(
+		pd->mem_offs / (u32)sizeof(u32),
+		nvgpu_pd_offset_from_index(l, pd_idx));
+	pte_size = l->entry_size / (u32)sizeof(u32);
+
+	if (data != NULL) {
+		for (i = 0; i < pte_size; i++) {
+			u32 tmp_word = nvgpu_safe_add_u32(i,
+						pte_base);
+			data[i] = nvgpu_mem_rd32(g, pd->mem,
+					tmp_word);
+		}
+	}
+
+	if (pd_out != NULL) {
+		*pd_out = pd;
+	}
+
+	if (pd_idx_out != NULL) {
+		*pd_idx_out = pd_idx;
+	}
+
+	if (pd_offs_out != NULL) {
+		*pd_offs_out = nvgpu_pd_offset_from_index(l,
+				pd_idx);
+	}
+	return 0;
+}
+
 /*
  * Recursively walk the pages tables to find the PTE.
  */
@@ -981,9 +1107,6 @@ static int nvgpu_locate_pte(struct gk20a *g, struct vm_gk20a *vm,
 	const struct gk20a_mmu_level *l;
 	const struct gk20a_mmu_level *next_l;
 	u32 pd_idx;
-	u32 pte_base;
-	u32 pte_size;
-	u32 i;
 	bool done = false;
 
 	do {
@@ -1011,41 +1134,12 @@ static int nvgpu_locate_pte(struct gk20a *g, struct vm_gk20a *vm,
 			pd = pd_next;
 			lvl = nvgpu_safe_add_u32(lvl, 1);
 		} else {
-			if (pd->mem == NULL) {
-				return -EINVAL;
+			int err = nvgpu_locate_pte_last_level(g, pd, l, pd_out,
+				pd_idx_out, pd_offs_out, data, pd_idx);
+			if (err != 0) {
+				return err;
 			}
 
-			/*
-			 * Take into account the real offset into the nvgpu_mem
-			 * since the PD may be located at an offset other than 0
-			 * (due to PD packing).
-			 */
-			pte_base = nvgpu_safe_add_u32(
-				pd->mem_offs / (u32)sizeof(u32),
-				nvgpu_pd_offset_from_index(l, pd_idx));
-			pte_size = l->entry_size / (u32)sizeof(u32);
-
-			if (data != NULL) {
-				for (i = 0; i < pte_size; i++) {
-					u32 tmp_word = nvgpu_safe_add_u32(i,
-								pte_base);
-					data[i] = nvgpu_mem_rd32(g, pd->mem,
-							tmp_word);
-				}
-			}
-
-			if (pd_out != NULL) {
-				*pd_out = pd;
-			}
-
-			if (pd_idx_out != NULL) {
-				*pd_idx_out = pd_idx;
-			}
-
-			if (pd_offs_out != NULL) {
-				*pd_offs_out = nvgpu_pd_offset_from_index(l,
-						pd_idx);
-			}
 			done = true;
 		}
 	} while (!done);
