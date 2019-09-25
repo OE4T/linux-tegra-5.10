@@ -110,7 +110,6 @@ int test_fifo_init_support(struct unit_module *m, struct gk20a *g, void *args)
 	gv11b_init_hal(g);
 	g->ops.fifo.init_fifo_setup_hw = NULL;
 	g->ops.gr.init.get_no_of_sm = stub_gv11b_gr_init_get_no_of_sm;
-	g->ops.tsg.init_eng_method_buffers = NULL;
 
 	global_m = m;
 
@@ -122,6 +121,7 @@ int test_fifo_init_support(struct unit_module *m, struct gk20a *g, void *args)
 	 */
 	g->ops.userd.setup_sw = stub_userd_setup_sw;
 #endif
+	g->ops.mm.init_mm_support(g);
 
 	err = nvgpu_fifo_init_support(g);
 	if (err != 0) {

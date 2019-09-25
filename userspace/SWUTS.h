@@ -39,6 +39,7 @@
  *   - @ref SWUTS-fifo-channel
  *   - @ref SWUTS-fifo-runlist
  *   - @ref SWUTS-fifo-tsg
+ *   - @ref SWUTS-fifo-tsg-gv11b
  *   - @ref SWUTS-init
  *   - @ref SWUTS-interface-atomic
  *   - @ref SWUTS-mm-allocators-bitmap-allocator

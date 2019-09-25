@@ -207,6 +207,8 @@ nvgpu_dma_alloc_map_sys
 nvgpu_dma_alloc_sys
 nvgpu_dma_free
 nvgpu_dma_unmap_free
+nvgpu_engine_get_fast_ce_runlist_id
+nvgpu_engine_get_gr_runlist_id
 nvgpu_get
 nvgpu_falcon_bl_bootstrap
 nvgpu_falcon_bootstrap

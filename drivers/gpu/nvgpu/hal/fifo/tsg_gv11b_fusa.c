@@ -102,26 +102,13 @@ void gv11b_tsg_bind_channel_eng_method_buffers(struct nvgpu_tsg *tsg,
 	g->ops.ramin.set_eng_method_buffer(g, &ch->inst_block, gpu_va);
 }
 
-static u32 gv11b_tsg_get_eng_method_buffer_size(struct gk20a *g)
-{
-	u32 buffer_size;
-	u32 page_size = U32(PAGE_SIZE);
-
-	buffer_size =  nvgpu_safe_add_u32(nvgpu_safe_mult_u32((9U + 1U + 3U),
-				g->ops.ce.get_num_pce(g)), 2U);
-	buffer_size = nvgpu_safe_mult_u32((27U * 5U), buffer_size);
-	buffer_size = roundup(buffer_size, page_size);
-	nvgpu_log_info(g, "method buffer size in bytes %d", buffer_size);
-
-	return buffer_size;
-}
-
 int gv11b_tsg_init_eng_method_buffers(struct gk20a *g, struct nvgpu_tsg *tsg)
 {
 	struct vm_gk20a *vm = g->mm.bar2.vm;
 	int err = 0;
 	int i;
-	unsigned int runque, method_buffer_size;
+	unsigned int runque, buffer_size;
+	u32 page_size = U32(PAGE_SIZE);
 	unsigned int num_pbdma = g->fifo.num_pbdma;
 
 	if (tsg->eng_method_buffers != NULL) {
@@ -129,11 +116,11 @@ int gv11b_tsg_init_eng_method_buffers(struct gk20a *g, struct nvgpu_tsg *tsg)
 		return 0;
 	}
 
-	method_buffer_size = gv11b_tsg_get_eng_method_buffer_size(g);
-	if (method_buffer_size == 0U) {
-		nvgpu_info(g, "ce will hit MTHD_BUFFER_FAULT");
-		return -EINVAL;
-	}
+	buffer_size =  nvgpu_safe_add_u32(nvgpu_safe_mult_u32((9U + 1U + 3U),
+				g->ops.ce.get_num_pce(g)), 2U);
+	buffer_size = nvgpu_safe_mult_u32((27U * 5U), buffer_size);
+	buffer_size = roundup(buffer_size, page_size);
+	nvgpu_log_info(g, "method buffer size in bytes %d", buffer_size);
 
 	tsg->eng_method_buffers = nvgpu_kzalloc(g,
 			num_pbdma * sizeof(struct nvgpu_mem));
@@ -143,7 +130,7 @@ int gv11b_tsg_init_eng_method_buffers(struct gk20a *g, struct nvgpu_tsg *tsg)
 	}
 
 	for (runque = 0; runque < num_pbdma; runque++) {
-		err = nvgpu_dma_alloc_map_sys(vm, method_buffer_size,
+		err = nvgpu_dma_alloc_map_sys(vm, buffer_size,
 					&tsg->eng_method_buffers[runque]);
 		if (err != 0) {
 			nvgpu_err(g, "alloc eng method buffers, runque=%d",

@@ -1,6 +1,4 @@
-################################### tell Emacs this is a -*- makefile-gmake -*-
-#
-# Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+# Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -19,17 +17,16 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
-#
-# tmake for SW Mobile component makefile
-#
-###############################################################################
 
-NVGPU_UNIT_NAME=nvgpu-tsg
+.SUFFIXES:
 
-include $(NV_SOURCE)/kernel/nvgpu/userspace/units/Makefile.units.common.interface.tmk
+OBJS   = nvgpu-tsg-gv11b.o
+MODULE = nvgpu-tsg-gv11b
 
-# Local Variables:
-# indent-tabs-mode: t
-# tab-width: 8
-# End:
-# vi: set tabstop=8 noexpandtab:
+LIB_PATHS += -lnvgpu-fifo
+include ../../../Makefile.units
+
+lib$(MODULE).so: fifo
+
+fifo:
+	$(MAKE) -C ../..

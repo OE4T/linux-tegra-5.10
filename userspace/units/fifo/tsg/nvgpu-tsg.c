@@ -47,6 +47,7 @@
 #include "nvgpu-tsg.h"
 
 #ifdef TSG_UNIT_DEBUG
+#undef unit_verbose
 #define unit_verbose	unit_info
 #else
 #define unit_verbose(unit, msg, ...) \

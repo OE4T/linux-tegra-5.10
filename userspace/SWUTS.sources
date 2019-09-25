@@ -9,6 +9,7 @@ INPUT += ../../../userspace/units/fifo/nvgpu-fifo.h
 INPUT += ../../../userspace/units/fifo/channel/nvgpu-channel.h
 INPUT += ../../../userspace/units/fifo/runlist/nvgpu-runlist.h
 INPUT += ../../../userspace/units/fifo/tsg/nvgpu-tsg.h
+INPUT += ../../../userspace/units/fifo/tsg/gv11b/nvgpu-tsg-gv11b.h
 INPUT += ../../../userspace/units/fuse/nvgpu-fuse.h
 INPUT += ../../../userspace/units/fuse/nvgpu-fuse-gm20b.h
 INPUT += ../../../userspace/units/fuse/nvgpu-fuse-gp10b.h

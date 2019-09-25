@@ -13476,9 +13476,24 @@ static struct nvgpu_posix_io_callbacks test_reg_callbacks = {
 	.tegra_fuse_readl = tegra_fuse_readl_access_reg_fn,
 };
 
+struct test_reg_space {
+	u32 base;
+	u32 size;
+	u32 *data;
+	void (*init)(u32 *data, u32 size);
+};
 
-#define fifo_array_reg_space(x) sizeof(x)/sizeof(struct nvgpu_posix_io_reg_space)
-struct nvgpu_posix_io_reg_space  fifo_gv11b_initialized_reg_space[] = {
+static void init_reg_space_usermode(u32 *data, u32 size)
+{
+	u32 i;
+
+	for (i = 0U; i < size/4U; i++) {
+		data[i] = 0xbadf1100;
+	}
+}
+
+#define NUM_REG_SPACES 11U
+struct test_reg_space reg_spaces[NUM_REG_SPACES] = {
 	[0] = {	/* FUSE */
 		.base = 0x00021000,
 		.size = sizeof(gv11b_fuse_regs),
@@ -13508,38 +13523,56 @@ struct nvgpu_posix_io_reg_space  fifo_gv11b_initialized_reg_space[] = {
 		.base = 0x2000,
 		.size = sizeof(gv11b_fifo_regs),
 		.data = gv11b_fifo_regs,
-	}
+	},
+	[6] = { /* USERMODE */
+		.base = usermode_cfg0_r(),
+		.size = 0x10000,
+		.data = NULL,
+		.init = init_reg_space_usermode,
+	},
+	[7] = { /* CE */
+		.base = 0x104000,
+		.size = 0x2000,
+		.data = NULL,
+	},
+	[8] = { /* PBUS */
+		.base = 0x1000,
+		.size = 0x1000,
+		.data = NULL,
+	},
+	[9] = { /* HSUB_COMMON */
+		.base = 0x1fbc00,
+		.size = 0x400,
+		.data = NULL,
+	},
+	[10] = { /* PFB */
+		.base = 0x100000,
+		.size = 0x1000,
+		.data = NULL,
+	},
 };
 
-struct nvgpu_posix_io_reg_space gv11b_usermode_reg_space = {
-	.base = 0x00810000,
-	.size = 0x10000,
-	.data = NULL,
-};
-
-static void fifo_io_delete_initialized_reg_space(struct unit_module *m, struct gk20a *g)
+static void fifo_io_delete_reg_spaces(struct unit_module *m, struct gk20a *g)
 {
 	u32 i = 0;
-	u32 arr_size = fifo_array_reg_space(fifo_gv11b_initialized_reg_space);
 
-	for (i = 0; i < arr_size; i++) {
-		u32 base = fifo_gv11b_initialized_reg_space[i].base;
+	for (i = 0; i < NUM_REG_SPACES; i++) {
+		u32 base = reg_spaces[i].base;
 
 		nvgpu_posix_io_delete_reg_space(g, base);
 	}
 }
 
-static int fifo_io_add_initialized_reg_space(struct unit_module *m, struct gk20a *g)
+static int fifo_io_add_reg_spaces(struct unit_module *m, struct gk20a *g)
 {
 	int ret = 0;
-	u32 arr_size = fifo_array_reg_space(fifo_gv11b_initialized_reg_space);
 	u32 i = 0, j = 0;
 	u32 base, size;
 	struct nvgpu_posix_io_reg_space *reg_space;
 
-	for (i = 0; i < arr_size; i++) {
-		base = fifo_gv11b_initialized_reg_space[i].base;
-		size = fifo_gv11b_initialized_reg_space[i].size;
+	for (i = 0; i < NUM_REG_SPACES; i++) {
+		base = reg_spaces[i].base;
+		size = reg_spaces[i].size;
 
 		if (nvgpu_posix_io_add_reg_space(g, base, size) != 0) {
 			unit_err(m, "failed to add reg space for %08x\n", base);
@@ -13552,16 +13585,26 @@ static int fifo_io_add_initialized_reg_space(struct unit_module *m, struct gk20a
 			unit_err(m, "failed to get reg space for %08x\n", base);
 			ret = -EINVAL;
 			goto clean_init_reg_space;
+		} else {
+			unit_info(m, " IO reg space %08x:%08x\n", base + size -1, base);
 		}
 
-		memcpy(reg_space->data, fifo_gv11b_initialized_reg_space[i].data, size);
+		if (reg_spaces[i].data != NULL) {
+			memcpy(reg_space->data, reg_spaces[i].data, size);
+		} else {
+			if (reg_spaces[i].init != NULL) {
+				reg_spaces[i].init(reg_space->data, size);
+			} else {
+				memset(reg_space->data, 0, size);
+			}
+		}
 	}
 
 	return ret;
 
 clean_init_reg_space:
 	for (j = 0; j < i; j++) {
-		base = fifo_gv11b_initialized_reg_space[j].base;
+		base = reg_spaces[j].base;
 		nvgpu_posix_io_delete_reg_space(g, base);
 	}
 
@@ -13570,46 +13613,20 @@ clean_init_reg_space:
 
 int test_fifo_setup_gv11b_reg_space(struct unit_module *m, struct gk20a *g)
 {
-	u32 i;
-	struct nvgpu_posix_io_reg_space *reg_space;
-
 	/* Create register space */
 	nvgpu_posix_io_init_reg_space(g);
 
-	if (fifo_io_add_initialized_reg_space(m, g) != 0) {
+	if (fifo_io_add_reg_spaces(m, g) != 0) {
 		unit_err(m, "failed to get initialized reg space\n");
 		return UNIT_FAIL;
-	}
-
-	/* USERMODE reg space */
-	if (nvgpu_posix_io_add_reg_space(g, usermode_cfg0_r(), 0x10000) != 0) {
-		unit_err(m, "Add USERMODE reg space failed!\n");
-		goto clean_up_reg_space;
-	}
-
-	reg_space = nvgpu_posix_io_get_reg_space(g, usermode_cfg0_r());
-	if (reg_space == NULL) {
-		unit_err(m, "failed to get reg space for %08x\n",
-				usermode_cfg0_r());
-		goto clean_up_reg_space;
-	}
-
-	for (i = 0U; i < reg_space->size / 4U; i++) {
-		reg_space->data[i] = 0xbadf1100;
 	}
 
 	(void)nvgpu_posix_register_io(g, &test_reg_callbacks);
 
 	return 0;
-
-clean_up_reg_space:
-	nvgpu_posix_io_delete_reg_space(g, usermode_cfg0_r());
-	fifo_io_delete_initialized_reg_space(m, g);
-	return -ENOMEM;
 }
 
 void test_fifo_cleanup_gv11b_reg_space(struct unit_module *m, struct gk20a *g)
 {
-	nvgpu_posix_io_delete_reg_space(g, usermode_cfg0_r());
-	fifo_io_delete_initialized_reg_space(m, g);
+	fifo_io_delete_reg_spaces(m, g);
 }
