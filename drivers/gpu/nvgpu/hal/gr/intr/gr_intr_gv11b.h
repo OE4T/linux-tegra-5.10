@@ -56,6 +56,7 @@ struct nvgpu_gr_isr_data;
 #define NVC3C0_SET_SHADER_CUT_COLLECTOR		0x250U
 
 #define NVA297_SET_SHADER_EXCEPTIONS_ENABLE_FALSE	U32(0)
+#define NVA297_SET_SHADER_EXCEPTIONS_ENABLE_TRUE	U32(1)
 
 int gv11b_gr_intr_handle_fecs_error(struct gk20a *g,
 				struct nvgpu_channel *ch_ptr,
