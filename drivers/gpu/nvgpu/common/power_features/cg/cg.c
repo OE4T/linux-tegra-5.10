@@ -240,16 +240,8 @@ done:
 	nvgpu_mutex_release(&g->cg_pg_lock);
 }
 
-void nvgpu_cg_init_gr_load_gating_prod(struct gk20a *g)
+static void cg_init_gr_slcg_load_gating_prod(struct gk20a *g)
 {
-	nvgpu_log_fn(g, " ");
-
-	nvgpu_mutex_acquire(&g->cg_pg_lock);
-
-	if (!g->slcg_enabled) {
-		goto check_can_blcg;
-	}
-
 	if (g->ops.cg.slcg_bus_load_gating_prod != NULL) {
 		g->ops.cg.slcg_bus_load_gating_prod(g, true);
 	}
@@ -272,11 +264,10 @@ void nvgpu_cg_init_gr_load_gating_prod(struct gk20a *g)
 	if (g->ops.cg.slcg_hshub_load_gating_prod != NULL) {
 		g->ops.cg.slcg_hshub_load_gating_prod(g, true);
 	}
+}
 
-check_can_blcg:
-	if (!g->blcg_enabled) {
-		goto pg_gr_load;
-	}
+static void cg_init_gr_blcg_load_gating_prod(struct gk20a *g)
+{
 	if (g->ops.cg.blcg_bus_load_gating_prod != NULL) {
 		g->ops.cg.blcg_bus_load_gating_prod(g, true);
 	}
@@ -293,6 +284,27 @@ check_can_blcg:
 	if (g->ops.cg.blcg_hshub_load_gating_prod != NULL) {
 		g->ops.cg.blcg_hshub_load_gating_prod(g, true);
 	}
+}
+
+void nvgpu_cg_init_gr_load_gating_prod(struct gk20a *g)
+{
+	nvgpu_log_fn(g, " ");
+
+	nvgpu_mutex_acquire(&g->cg_pg_lock);
+
+	if (!g->slcg_enabled) {
+		goto check_can_blcg;
+	}
+
+	cg_init_gr_slcg_load_gating_prod(g);
+
+check_can_blcg:
+	if (!g->blcg_enabled) {
+		goto pg_gr_load;
+	}
+
+	cg_init_gr_blcg_load_gating_prod(g);
+
 pg_gr_load:
 	if (g->ops.cg.pg_gr_load_gating_prod != NULL) {
 		g->ops.cg.pg_gr_load_gating_prod(g, true);
