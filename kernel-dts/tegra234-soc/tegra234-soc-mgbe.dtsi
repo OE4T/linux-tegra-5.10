@@ -1,0 +1,65 @@
+/*
+ * tegra234-soc-mgbe.dtsi: Ethernet MGBE DTSI file.
+ *
+ * Copyright (c) 2020, NVIDIA CORPORATION.  All rights reserved.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; version 2 of the License.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+ * more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ *
+ */
+
+/ {
+	mgbe_vm_irq_config: mgbe-vm-irq-config {
+		nvidia,num-vm-irqs = <5>;
+		vm_irq1 {
+			nvidia,num-vm-channels = <2>;
+			nvidia,vm-channels = <0 1>;
+		};
+		vm_irq2 {
+			nvidia,num-vm-channels = <2>;
+			nvidia,vm-channels = <2 3>;
+		};
+		vm_irq3 {
+			nvidia,num-vm-channels = <2>;
+			nvidia,vm-channels = <4 5>;
+		};
+		vm_irq4 {
+			nvidia,num-vm-channels = <2>;
+			nvidia,vm-channels = <6 7>;
+		};
+		vm_irq5 {
+			nvidia,num-vm-channels = <2>;
+			nvidia,vm-channels = <8 9>;
+		};
+	};
+
+	ethernet@6810000 {
+		compatible = "nvidia,nvmgbe";
+		reg = <0x0 0x06810000 0x0 0x10000>;    /* MGBE Base Register */
+		interrupts = 	<0 384 0x4>,	/* common */
+				<0 385 0x4>,	/* vm0 */
+				<0 386 0x4>,	/* vm1 */
+				<0 387 0x4>,	/* vm2 */
+				<0 388 0x4>,	/* vm3 */
+				<0 389 0x4>;	/* vm4 */
+		iommus = <&smmu TEGRA_SID_MGBE>;
+		nvidia,num-dma-chans = <10>;
+		nvidia,dma-chans = <0 1 2 3 4 5 6 7 8 9>;
+		nvidia,num-mtl-queues = <10>;
+		nvidia,mtl-queues = <0 1 2 3 4 5 6 7 8 9>;
+		nvidia,rxq_enable_ctrl = <2 2 2 2 2 2 2 2 2 2>;
+		nvidia,vm-irq-config = <&mgbe_vm_irq_config>;
+		nvidia,tx-queue-prio = <0 1 2 3 4 5 6 7 0 0>;
+		status = "disabled";
+	};
+};
