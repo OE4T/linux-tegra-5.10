@@ -41,9 +41,7 @@ struct camrtc_hsp {
 	u32 cookie;
 	spinlock_t sendlock;
 	struct tegra_hsp_ss *ss;
-	struct tegra_hsp_sm_pair *ivc_pair;
 	void (*group_notify)(struct device *dev, u16 group);
-	struct tegra_hsp_sm_pair *cmd_pair;
 	struct device dev;
 	struct mutex mutex;
 	struct completion emptied;
@@ -63,36 +61,6 @@ struct camrtc_hsp_op {
 	int (*ping)(struct camrtc_hsp *, u32 data, long *timeout);
 	int (*get_fw_hash)(struct camrtc_hsp *, u32 index, long *timeout);
 };
-
-static void camrtc_hsp_ivc_notify(void *data, u32 value)
-{
-	struct camrtc_hsp *camhsp = data;
-
-	camhsp->group_notify(camhsp->dev.parent, (u16)0xFFFFU);
-}
-
-static void camrtc_hsp_cmd_group_ring(struct camrtc_hsp *camhsp,
-		u16 group)
-{
-	(void)group;
-
-	tegra_hsp_sm_pair_write(camhsp->ivc_pair, 1);
-}
-
-static void camrtc_hsp_full_notify(void *data, u32 value)
-{
-	struct camrtc_hsp *camhsp = data;
-
-	atomic_set(&camhsp->response, value);
-	wake_up(&camhsp->response_waitq);
-}
-
-static void camrtc_hsp_empty_notify(void *data, u32 empty_value)
-{
-	struct camrtc_hsp *camhsp = data;
-
-	complete(&camhsp->emptied);
-}
 
 static int camrtc_hsp_send(struct camrtc_hsp *camhsp,
 		int request, long *timeout)
@@ -138,206 +106,6 @@ static int camrtc_hsp_sendrecv(struct camrtc_hsp *camhsp,
 	return ret;
 }
 
-/* ---------------------------------------------------------------------- */
-
-static int camrtc_hsp_cmd_send(struct camrtc_hsp *camhsp, int request,
-		long *timeout);
-static void camrtc_hsp_cmd_group_ring(struct camrtc_hsp *camhsp, u16 group);
-static int camrtc_hsp_cmd_sync(struct camrtc_hsp *camhsp, long *timeout);
-static int camrtc_hsp_cmd_init(struct camrtc_hsp *camhsp, long *timeout);
-static int camrtc_hsp_cmd_fw_version(struct camrtc_hsp *camhsp, long *timeout);
-static int camrtc_hsp_cmd_resume(struct camrtc_hsp *camhsp, long *timeout);
-static int camrtc_hsp_cmd_suspend(struct camrtc_hsp *camhsp, long *timeout);
-static int camrtc_hsp_cmd_bye(struct camrtc_hsp *camhsp, long *timeout);
-static int camrtc_hsp_cmd_ch_setup(struct camrtc_hsp *camhsp,
-		dma_addr_t iova, long *timeout);
-static int camrtc_hsp_cmd_ping(struct camrtc_hsp *camhsp,
-		u32 data, long *timeout);
-static int camrtc_hsp_cmd_get_fw_hash(struct camrtc_hsp *camhsp, u32 index,
-		long *timeout);
-
-static const struct camrtc_hsp_op camrtc_hsp_cmd_ops = {
-	.send = camrtc_hsp_cmd_send,
-	.group_ring = camrtc_hsp_cmd_group_ring,
-	.sync = camrtc_hsp_cmd_sync,
-	.resume = camrtc_hsp_cmd_resume,
-	.suspend = camrtc_hsp_cmd_suspend,
-	.bye = camrtc_hsp_cmd_bye,
-	.ping = camrtc_hsp_cmd_ping,
-	.ch_setup = camrtc_hsp_cmd_ch_setup,
-	.get_fw_hash = camrtc_hsp_cmd_get_fw_hash,
-};
-
-static int camrtc_hsp_cmd_send(struct camrtc_hsp *camhsp,
-		int request, long *timeout)
-{
-	for (;;) {
-		if (tegra_hsp_sm_pair_is_empty(camhsp->cmd_pair))
-			break;
-
-		if (*timeout <= 0)
-			return -ETIMEDOUT;
-
-		/*
-		 * The reinit_completion() resets the completion to 0.
-		 *
-		 * The tegra_hsp_sm_tx_enable_notify() guarantees that
-		 * the empty notify gets called at least once even if the
-		 * mailbox was already empty, so no empty events are missed
-		 * even if the mailbox gets emptied between the calls to
-		 * reinit_completion() and enable_empty_notify().
-		 *
-		 * The tegra_hsp_sm_tx_enable_notify() may or may not
-		 * do reference counting (on APE it does, elsewhere it does
-		 * not). If the mailbox is initially empty, the emptied is
-		 * already complete()d here, and the code ends up enabling
-		 * empty notify twice, and when the mailbox gets empty,
-		 * emptied gets complete() twice, and we always run the loop
-		 * one extra time.
-		 *
-		 * Note that the complete() call above lets only one waiting
-		 * task to run. The mailbox exchange is protected by a mutex,
-		 * so only one task can be waiting here.
-		 */
-		reinit_completion(&camhsp->emptied);
-
-		tegra_hsp_sm_pair_enable_empty_notify(camhsp->cmd_pair);
-
-		*timeout = wait_for_completion_timeout(
-			&camhsp->emptied, *timeout);
-	}
-
-	atomic_set(&camhsp->response, -1);
-
-	tegra_hsp_sm_pair_write(camhsp->cmd_pair, (u32)request);
-
-	return 0;
-}
-
-/* Sendrecv with locking and default timeout */
-static int camrtc_hsp_command(struct camrtc_hsp *camhsp,
-		u32 command, long *timeout)
-{
-	int response;
-
-	response = camrtc_hsp_sendrecv(camhsp, command, timeout);
-
-	return response;
-}
-
-static int camrtc_hsp_cmd_sync(struct camrtc_hsp *camhsp, long *timeout)
-{
-	int ret = camrtc_hsp_cmd_init(camhsp, timeout);
-
-	if (ret >= 0)
-		ret = camrtc_hsp_cmd_fw_version(camhsp, timeout);
-
-	return ret;
-}
-
-static int camrtc_hsp_cmd_init(struct camrtc_hsp *camhsp, long *timeout)
-{
-	struct device *dev = &camhsp->dev;
-	u32 command = RTCPU_COMMAND(INIT, 0);
-	int ret = camrtc_hsp_sendrecv(camhsp, command, timeout);
-
-	if (ret < 0)
-		return ret;
-
-	if (ret != command) {
-		dev_err(dev, "RTCPU sync problem (response=0x%08x)\n", ret);
-		return -EIO;
-	}
-
-	return 0;
-}
-
-static int camrtc_hsp_cmd_fw_version(struct camrtc_hsp *camhsp, long *timeout)
-{
-	u32 command = RTCPU_COMMAND(FW_VERSION, RTCPU_DRIVER_SM5_VERSION);
-	u32 response = camrtc_hsp_sendrecv(camhsp, command, timeout);
-
-	if (response < 0)
-		return response;
-
-	if (RTCPU_GET_COMMAND_ID(response) != RTCPU_CMD_FW_VERSION ||
-		RTCPU_GET_COMMAND_VALUE(response) < RTCPU_FW_SM4_VERSION) {
-		dev_err(&camhsp->dev,
-			"RTCPU version mismatch (response=0x%08x)\n", response);
-		return -EIO;
-	}
-
-	return (int)RTCPU_GET_COMMAND_VALUE(response);
-}
-
-static int camrtc_hsp_cmd_resume(struct camrtc_hsp *camhsp, long *timeout)
-{
-	return camrtc_hsp_cmd_fw_version(camhsp, timeout);
-}
-
-static int camrtc_hsp_cmd_suspend(struct camrtc_hsp *camhsp, long *timeout)
-{
-	u32 command = RTCPU_COMMAND(PM_SUSPEND, 0);
-	int expect = RTCPU_COMMAND(PM_SUSPEND, RTCPU_PM_SUSPEND_SUCCESS);
-	int response = camrtc_hsp_command(camhsp, command, timeout);
-
-	if (response == expect)
-		return 0;
-
-	return response != 0 ? response : -EIO;
-}
-
-static int camrtc_hsp_cmd_bye(struct camrtc_hsp *camhsp, long *timeout)
-{
-	u32 command = RTCPU_COMMAND(PM_SUSPEND, 1);
-	int expect = RTCPU_COMMAND(PM_SUSPEND, RTCPU_PM_SUSPEND_SUCCESS);
-	int response = camrtc_hsp_command(camhsp, command, timeout);
-
-	if (response == expect)
-		return 0;
-
-	return response != 0 ? response : -EIO;
-}
-
-static int camrtc_hsp_cmd_ch_setup(
-	struct camrtc_hsp *camhsp, dma_addr_t iova, long *timeout)
-{
-	u32 command = RTCPU_COMMAND(CH_SETUP, iova >> 8);
-	int response = camrtc_hsp_command(camhsp, command, timeout);
-
-	if (response < 0)
-		return response;
-
-	if (RTCPU_GET_COMMAND_ID(response) == RTCPU_CMD_ERROR)
-		return (int)RTCPU_GET_COMMAND_VALUE(response);
-
-	return 0;
-}
-
-static int camrtc_hsp_cmd_ping(
-	struct camrtc_hsp *camhsp, u32 data, long *timeout)
-{
-	u32 command = RTCPU_COMMAND(PING, data & 0xffffffU);
-	int response = camrtc_hsp_command(camhsp, command, timeout);
-
-	if (response >= 0)
-		response = RTCPU_GET_COMMAND_VALUE(response);
-
-	return response;
-}
-
-static int camrtc_hsp_cmd_get_fw_hash(struct camrtc_hsp *camhsp,
-		u32 index, long *timeout)
-{
-	u32 command = RTCPU_COMMAND(FW_HASH, index);
-	int ret = camrtc_hsp_command(camhsp, command, timeout);
-
-	if (ret >= 0 && RTCPU_GET_COMMAND_ID(ret) == RTCPU_CMD_FW_HASH)
-		return (int)RTCPU_GET_COMMAND_VALUE(ret);
-	else
-		return -EIO;
-}
-
 #if LINUX_VERSION_CODE < KERNEL_VERSION(4, 14, 0)
 static struct device_node *of_get_compatible_child(
 	const struct device_node *parent,
@@ -353,54 +121,6 @@ static struct device_node *of_get_compatible_child(
 	return child;
 }
 #endif
-
-static int camrtc_hsp_cmd_probe(struct camrtc_hsp *camhsp)
-{
-	struct device_node *np = camhsp->dev.parent->of_node;
-	int err = -ENOTSUPP;
-	char const *obtain = "";
-
-	np = of_get_compatible_child(np, "nvidia,tegra186-hsp-mailbox");
-	if (!of_device_is_available(np)) {
-		dev_warn(&camhsp->dev, "no hsp protocol \"%s\"\n",
-			"nvidia,tegra186-hsp-mailbox");
-		of_node_put(np);
-		return -ENOTSUPP;
-	}
-
-	camhsp->cmd_pair = of_tegra_hsp_sm_pair_by_name(np, obtain = "cmd-pair",
-			camrtc_hsp_full_notify,
-			camrtc_hsp_empty_notify,
-			camhsp);
-	if (IS_ERR(camhsp->cmd_pair)) {
-		err = PTR_ERR(camhsp->cmd_pair);
-		goto fail;
-	}
-
-	camhsp->ivc_pair = of_tegra_hsp_sm_pair_by_name(np, obtain = "ivc-pair",
-			camrtc_hsp_ivc_notify,
-			NULL,
-			camhsp);
-	if (IS_ERR(camhsp->ivc_pair)) {
-		err = PTR_ERR(camhsp->ivc_pair);
-		goto fail;
-	}
-
-	camhsp->dev.of_node = np;
-	camhsp->op = &camrtc_hsp_cmd_ops;
-	dev_set_name(&camhsp->dev, "%s:%s",
-		dev_name(camhsp->dev.parent), camhsp->dev.of_node->name);
-	dev_dbg(&camhsp->dev, "probed\n");
-
-	return 0;
-
-fail:
-	if (err != -EPROBE_DEFER)
-		dev_err(&camhsp->dev, "%s: failed to obtain %s: %d\n",
-			np->name, obtain, err);
-	of_node_put(np);
-	return err;
-}
 
 /* ---------------------------------------------------------------------- */
 /* Protocol nvidia,tegra-camrtc-hsp-vm */
@@ -684,7 +404,7 @@ static int camrtc_hsp_vm_probe(struct camrtc_hsp *camhsp)
 	np = of_get_compatible_child(np, "nvidia,tegra-camrtc-hsp-vm");
 	if (!of_device_is_available(np)) {
 		of_node_put(np);
-		dev_info(&camhsp->dev, "no hsp protocol \"%s\"\n",
+		dev_err(&camhsp->dev, "no hsp protocol \"%s\"\n",
 			"nvidia,tegra-camrtc-hsp-vm");
 		return -ENOTSUPP;
 	}
@@ -911,10 +631,6 @@ static void camrtc_hsp_combo_dev_release(struct device *dev)
 {
 	struct camrtc_hsp *camhsp = container_of(dev, struct camrtc_hsp, dev);
 
-	if (!IS_ERR_OR_NULL(camhsp->cmd_pair))
-		tegra_hsp_sm_pair_free(camhsp->cmd_pair);
-	if (!IS_ERR_OR_NULL(camhsp->ivc_pair))
-		tegra_hsp_sm_pair_free(camhsp->ivc_pair);
 	if (!IS_ERR_OR_NULL(camhsp->rx))
 		tegra_hsp_sm_rx_free(camhsp->rx);
 	if (!IS_ERR_OR_NULL(camhsp->tx))
@@ -931,10 +647,6 @@ static int camrtc_hsp_probe(struct camrtc_hsp *camhsp)
 	int ret;
 
 	ret = camrtc_hsp_vm_probe(camhsp);
-	if (ret != -ENOTSUPP)
-		return ret;
-
-	ret = camrtc_hsp_cmd_probe(camhsp);
 	if (ret != -ENOTSUPP)
 		return ret;
 
