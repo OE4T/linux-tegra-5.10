@@ -101,6 +101,95 @@ int nvgpu_vm_area_validate_buffer(struct vm_gk20a *vm,
 	return 0;
 }
 
+static int nvgpu_vm_area_alloc_get_pagesize_index(struct vm_gk20a *vm,
+					u32 *pgsz_idx_ptr, u32 page_size)
+{
+	u32 pgsz_idx = *pgsz_idx_ptr;
+
+	for (; pgsz_idx < GMMU_NR_PAGE_SIZES; pgsz_idx++) {
+		if (vm->gmmu_page_sizes[pgsz_idx] == page_size) {
+			break;
+		}
+	}
+
+	*pgsz_idx_ptr = pgsz_idx;
+
+	if (pgsz_idx > GMMU_PAGE_SIZE_BIG) {
+		return -EINVAL;
+	}
+
+	/*
+	 * pgsz_idx isn't likely to get too crazy, since it starts at 0 and
+	 * increments but this ensures that we still have a definitely valid
+	 * page size before proceeding.
+	 */
+	nvgpu_speculation_barrier();
+
+	if (!vm->big_pages && pgsz_idx == GMMU_PAGE_SIZE_BIG) {
+		return -EINVAL;
+	}
+
+	return 0;
+}
+
+static int nvgpu_vm_area_alloc_memory(struct nvgpu_allocator *vma, u64 our_addr,
+			u32 pages, u32 page_size, u32 flags,
+			u64 *vaddr_start_ptr)
+{
+	u64 vaddr_start = 0;
+
+	if ((flags & NVGPU_VM_AREA_ALLOC_FIXED_OFFSET) != 0U) {
+		vaddr_start = nvgpu_alloc_fixed(vma, our_addr,
+						(u64)pages *
+						(u64)page_size,
+						page_size);
+	} else {
+		vaddr_start = nvgpu_alloc_pte(vma,
+					      (u64)pages *
+					      (u64)page_size,
+					      page_size);
+	}
+
+	if (vaddr_start == 0ULL) {
+		return -ENOMEM;
+	}
+
+	*vaddr_start_ptr = vaddr_start;
+	return 0;
+}
+
+static int nvgpu_vm_area_alloc_gmmu_map(struct vm_gk20a *vm,
+			struct nvgpu_vm_area *vm_area, u64 vaddr_start,
+			u32 pgsz_idx, u32 flags)
+{
+	struct gk20a *g = vm->mm->g;
+
+	if ((flags & NVGPU_VM_AREA_ALLOC_SPARSE) != 0U) {
+		u64 map_addr = g->ops.mm.gmmu.map(vm, vaddr_start,
+					 NULL,
+					 0,
+					 vm_area->size,
+					 pgsz_idx,
+					 0,
+					 0,
+					 flags,
+					 gk20a_mem_flag_none,
+					 false,
+					 true,
+					 false,
+					 NULL,
+					 APERTURE_INVALID);
+		if (map_addr == 0ULL) {
+			return -ENOMEM;
+		}
+
+		vm_area->sparse = true;
+	}
+	nvgpu_list_add_tail(&vm_area->vm_area_list, &vm->vm_area_list);
+
+	return 0;
+}
+
 int nvgpu_vm_area_alloc(struct vm_gk20a *vm, u32 pages, u32 page_size,
 			u64 *addr, u32 flags)
 {
@@ -125,24 +214,8 @@ int nvgpu_vm_area_alloc(struct vm_gk20a *vm, u32 pages, u32 page_size,
 		  "ADD vm_area: pgsz=%#-8x pages=%-9u a/o=%#-14llx flags=0x%x",
 		  page_size, pages, our_addr, flags);
 
-	for (; pgsz_idx < GMMU_NR_PAGE_SIZES; pgsz_idx++) {
-		if (vm->gmmu_page_sizes[pgsz_idx] == page_size) {
-			break;
-		}
-	}
-
-	if (pgsz_idx > GMMU_PAGE_SIZE_BIG) {
-		return -EINVAL;
-	}
-
-	/*
-	 * pgsz_idx isn't likely to get too crazy, since it starts at 0 and
-	 * increments but this ensures that we still have a definitely valid
-	 * page size before proceeding.
-	 */
-	nvgpu_speculation_barrier();
-
-	if (!vm->big_pages && pgsz_idx == GMMU_PAGE_SIZE_BIG) {
+	if (nvgpu_vm_area_alloc_get_pagesize_index(vm, &pgsz_idx,
+							page_size) != 0) {
 		return -EINVAL;
 	}
 
@@ -152,19 +225,8 @@ int nvgpu_vm_area_alloc(struct vm_gk20a *vm, u32 pages, u32 page_size,
 	}
 
 	vma = vm->vma[pgsz_idx];
-	if ((flags & NVGPU_VM_AREA_ALLOC_FIXED_OFFSET) != 0U) {
-		vaddr_start = nvgpu_alloc_fixed(vma, our_addr,
-						(u64)pages *
-						(u64)page_size,
-						page_size);
-	} else {
-		vaddr_start = nvgpu_alloc_pte(vma,
-					      (u64)pages *
-					      (u64)page_size,
-					      page_size);
-	}
-
-	if (vaddr_start == 0ULL) {
+	if (nvgpu_vm_area_alloc_memory(vma, our_addr, pages,
+				page_size, flags, &vaddr_start) != 0) {
 		goto clean_up_err;
 	}
 
@@ -177,29 +239,11 @@ int nvgpu_vm_area_alloc(struct vm_gk20a *vm, u32 pages, u32 page_size,
 
 	nvgpu_mutex_acquire(&vm->update_gmmu_lock);
 
-	if ((flags & NVGPU_VM_AREA_ALLOC_SPARSE) != 0U) {
-		u64 map_addr = g->ops.mm.gmmu.map(vm, vaddr_start,
-					 NULL,
-					 0,
-					 vm_area->size,
-					 pgsz_idx,
-					 0,
-					 0,
-					 flags,
-					 gk20a_mem_flag_none,
-					 false,
-					 true,
-					 false,
-					 NULL,
-					 APERTURE_INVALID);
-		if (map_addr == 0ULL) {
-			nvgpu_mutex_release(&vm->update_gmmu_lock);
-			goto clean_up_err;
-		}
-
-		vm_area->sparse = true;
+	if (nvgpu_vm_area_alloc_gmmu_map(vm, vm_area, vaddr_start,
+						pgsz_idx, flags) != 0) {
+		nvgpu_mutex_release(&vm->update_gmmu_lock);
+		goto clean_up_err;
 	}
-	nvgpu_list_add_tail(&vm_area->vm_area_list, &vm->vm_area_list);
 
 	nvgpu_mutex_release(&vm->update_gmmu_lock);
 
