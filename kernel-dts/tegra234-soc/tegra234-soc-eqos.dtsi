@@ -42,7 +42,7 @@
 	ethernet@2850000 {
 		compatible = "nvidia,nveqos";
 		reg = <0x0 0x02850000 0x0 0x10000>;    /* EQOS Base Register */
-		reg-names = "eqos_base";
+		reg-names = "mac-base";
 		interrupts = <0 194 0x4>,       /* common */
 			     <0 186 0x4>, /* vm0 */
 			     <0 187 0x4>, /* vm1 */

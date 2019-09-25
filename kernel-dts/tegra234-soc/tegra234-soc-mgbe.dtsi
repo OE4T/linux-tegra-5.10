@@ -45,7 +45,9 @@
 
 	ethernet@6810000 {
 		compatible = "nvidia,nvmgbe";
-		reg = <0x0 0x06810000 0x0 0x10000>;    /* MGBE Base Register */
+		reg = <0x0 0x06810000 0x0 0x10000>, /* MGBE base */
+		      <0x0 0x068A0000 0x0 0x10000>; /* XPCS base */
+		reg-names = "mac-base", "xpcs-base";
 		interrupts = 	<0 384 0x4>,	/* common */
 				<0 385 0x4>,	/* vm0 */
 				<0 386 0x4>,	/* vm1 */
