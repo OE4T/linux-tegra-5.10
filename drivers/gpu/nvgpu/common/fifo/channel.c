@@ -1569,40 +1569,12 @@ static void nvgpu_channel_usermode_deinit(struct nvgpu_channel *ch)
 	ch->usermode_submit_enabled = false;
 }
 
-/* call ONLY when no references to the channel exist: after the last put */
-static void channel_free(struct nvgpu_channel *ch, bool force)
+static void channel_free_invoke_unbind(struct nvgpu_channel *ch)
 {
-	struct gk20a *g = ch->g;
+	int err = 0;
 	struct nvgpu_tsg *tsg;
-	struct nvgpu_fifo *f = &g->fifo;
-	struct vm_gk20a *ch_vm = ch->vm;
-	unsigned long timeout;
-#ifdef CONFIG_NVGPU_DEBUGGER
-	struct dbg_session_gk20a *dbg_s;
-	struct dbg_session_data *session_data, *tmp_s;
-	struct dbg_session_channel_data *ch_data, *tmp;
-	bool deferred_reset_pending;
-#endif
-	int err;
+	struct gk20a *g = ch->g;
 
-	if (g == NULL) {
-		nvgpu_do_assert_print(g, "ch already freed");
-		return;
-	}
-
-	nvgpu_log_fn(g, " ");
-
-	timeout = nvgpu_get_poll_timeout(g);
-
-#ifdef CONFIG_NVGPU_TRACE
-	trace_gk20a_free_channel(ch->chid);
-#endif
-
-	/*
-	 * Disable channel/TSG and unbind here. This should not be executed if
-	 * HW access is not available during shutdown/removal path as it will
-	 * trigger a timeout
-	 */
 	if (!nvgpu_is_enabled(g, NVGPU_DRIVER_IS_DYING)) {
 		/* abort channel and remove from runlist */
 		tsg = nvgpu_tsg_from_ch(ch);
@@ -1626,6 +1598,140 @@ static void channel_free(struct nvgpu_channel *ch, bool force)
 			 */
 		}
 	}
+}
+
+static void channel_free_invoke_deferred_engine_reset(struct nvgpu_channel *ch)
+{
+#ifdef CONFIG_NVGPU_DEBUGGER
+	struct gk20a *g = ch->g;
+	struct nvgpu_fifo *f = &g->fifo;
+	bool deferred_reset_pending;
+
+	/* if engine reset was deferred, perform it now */
+	nvgpu_mutex_acquire(&f->deferred_reset_mutex);
+	deferred_reset_pending = g->fifo.deferred_reset_pending;
+	nvgpu_mutex_release(&f->deferred_reset_mutex);
+
+	if (deferred_reset_pending) {
+		nvgpu_log(g, gpu_dbg_intr | gpu_dbg_gpu_dbg, "engine reset was"
+				" deferred, running now");
+		nvgpu_mutex_acquire(&g->fifo.engines_reset_mutex);
+
+		nvgpu_assert(nvgpu_channel_deferred_reset_engines(g, ch) == 0);
+
+		nvgpu_mutex_release(&g->fifo.engines_reset_mutex);
+	}
+#endif
+}
+
+static void channel_free_invoke_sync_destroy(struct nvgpu_channel *ch)
+{
+	nvgpu_mutex_acquire(&ch->sync_lock);
+	if (ch->user_sync != NULL) {
+		/*
+		 * Set user managed syncpoint to safe state
+		 * But it's already done if channel is recovered
+		 */
+		if (nvgpu_channel_check_unserviceable(ch)) {
+			nvgpu_channel_sync_destroy(ch->user_sync, false);
+		} else {
+			nvgpu_channel_sync_destroy(ch->user_sync, true);
+		}
+		ch->user_sync = NULL;
+	}
+	nvgpu_mutex_release(&ch->sync_lock);
+}
+
+static void channel_free_unlink_debug_session(struct nvgpu_channel *ch)
+{
+#ifdef CONFIG_NVGPU_DEBUGGER
+	struct gk20a *g = ch->g;
+	struct dbg_session_gk20a *dbg_s;
+	struct dbg_session_data *session_data, *tmp_s;
+	struct dbg_session_channel_data *ch_data, *tmp;
+
+	/* unlink all debug sessions */
+	nvgpu_mutex_acquire(&g->dbg_sessions_lock);
+
+	nvgpu_list_for_each_entry_safe(session_data, tmp_s,
+			&ch->dbg_s_list, dbg_session_data, dbg_s_entry) {
+		dbg_s = session_data->dbg_s;
+		nvgpu_mutex_acquire(&dbg_s->ch_list_lock);
+		nvgpu_list_for_each_entry_safe(ch_data, tmp, &dbg_s->ch_list,
+				dbg_session_channel_data, ch_entry) {
+			if (ch_data->chid == ch->chid) {
+				if (ch_data->unbind_single_channel(dbg_s,
+						ch_data) != 0) {
+					nvgpu_err(g,
+						"unbind failed for chid: %d",
+						ch_data->chid);
+				}
+			}
+		}
+		nvgpu_mutex_release(&dbg_s->ch_list_lock);
+	}
+
+	nvgpu_mutex_release(&g->dbg_sessions_lock);
+#endif
+}
+
+static void channel_free_wait_for_refs(struct nvgpu_channel *ch,
+		int wait_value, bool force)
+{
+	/* wait until no more refs to the channel */
+	if (!force) {
+		nvgpu_channel_wait_until_counter_is_N(
+			ch, &ch->ref_count, wait_value, &ch->ref_count_dec_wq,
+			__func__, "references");
+	}
+
+}
+
+static void channel_free_put_deterministic_ref_from_init(
+		struct nvgpu_channel *ch)
+{
+	struct gk20a *g = ch->g;
+
+	/* put back the channel-wide submit ref from init */
+	if (ch->deterministic) {
+		nvgpu_rwsem_down_read(&g->deterministic_busy);
+		ch->deterministic = false;
+		if (!ch->deterministic_railgate_allowed) {
+			gk20a_idle(g);
+		}
+		ch->deterministic_railgate_allowed = false;
+
+		nvgpu_rwsem_up_read(&g->deterministic_busy);
+	}
+}
+
+/* call ONLY when no references to the channel exist: after the last put */
+static void channel_free(struct nvgpu_channel *ch, bool force)
+{
+	struct gk20a *g = ch->g;
+	struct nvgpu_fifo *f = &g->fifo;
+	struct vm_gk20a *ch_vm = ch->vm;
+	unsigned long timeout;
+
+	if (g == NULL) {
+		nvgpu_do_assert_print(g, "ch already freed");
+		return;
+	}
+
+	nvgpu_log_fn(g, " ");
+
+	timeout = nvgpu_get_poll_timeout(g);
+
+#ifdef CONFIG_NVGPU_TRACE
+	trace_gk20a_free_channel(ch->chid);
+#endif
+
+	/*
+	 * Disable channel/TSG and unbind here. This should not be executed if
+	 * HW access is not available during shutdown/removal path as it will
+	 * trigger a timeout
+	 */
+	channel_free_invoke_unbind(ch);
 
 	/*
 	 * OS channel close may require that syncpoint should be set to some
@@ -1639,11 +1745,7 @@ static void channel_free(struct nvgpu_channel *ch, bool force)
 	}
 
 	/* wait until there's only our ref to the channel */
-	if (!force) {
-		nvgpu_channel_wait_until_counter_is_N(
-			ch, &ch->ref_count, 1, &ch->ref_count_dec_wq,
-			__func__, "references");
-	}
+	channel_free_wait_for_refs(ch, 1, force);
 
 	/* wait until all pending interrupts for recently completed
 	 * jobs are handled */
@@ -1664,29 +1766,9 @@ static void channel_free(struct nvgpu_channel *ch, bool force)
 	/* matches with the initial reference in nvgpu_channel_open_new() */
 	nvgpu_atomic_dec(&ch->ref_count);
 
-	/* wait until no more refs to the channel */
-	if (!force) {
-		nvgpu_channel_wait_until_counter_is_N(
-			ch, &ch->ref_count, 0, &ch->ref_count_dec_wq,
-			__func__, "references");
-	}
+	channel_free_wait_for_refs(ch, 0, force);
 
-#ifdef CONFIG_NVGPU_DEBUGGER
-	/* if engine reset was deferred, perform it now */
-	nvgpu_mutex_acquire(&f->deferred_reset_mutex);
-	deferred_reset_pending = g->fifo.deferred_reset_pending;
-	nvgpu_mutex_release(&f->deferred_reset_mutex);
-
-	if (deferred_reset_pending) {
-		nvgpu_log(g, gpu_dbg_intr | gpu_dbg_gpu_dbg, "engine reset was"
-				" deferred, running now");
-		nvgpu_mutex_acquire(&g->fifo.engines_reset_mutex);
-
-		nvgpu_assert(nvgpu_channel_deferred_reset_engines(g, ch) == 0);
-
-		nvgpu_mutex_release(&g->fifo.engines_reset_mutex);
-	}
-#endif
+	channel_free_invoke_deferred_engine_reset(ch);
 
 	if (!nvgpu_channel_as_bound(ch)) {
 		goto unbind;
@@ -1715,20 +1797,7 @@ static void channel_free(struct nvgpu_channel *ch, bool force)
 #endif
 	}
 
-	nvgpu_mutex_acquire(&ch->sync_lock);
-	if (ch->user_sync != NULL) {
-		/*
-		 * Set user managed syncpoint to safe state
-		 * But it's already done if channel is recovered
-		 */
-		if (nvgpu_channel_check_unserviceable(ch)) {
-			nvgpu_channel_sync_destroy(ch->user_sync, false);
-		} else {
-			nvgpu_channel_sync_destroy(ch->user_sync, true);
-		}
-		ch->user_sync = NULL;
-	}
-	nvgpu_mutex_release(&ch->sync_lock);
+	channel_free_invoke_sync_destroy(ch);
 
 #ifdef CONFIG_NVGPU_SW_SEMAPHORE
 	/*
@@ -1754,17 +1823,7 @@ unbind:
 	g->ops.channel.unbind(ch);
 	g->ops.channel.free_inst(g, ch);
 
-	/* put back the channel-wide submit ref from init */
-	if (ch->deterministic) {
-		nvgpu_rwsem_down_read(&g->deterministic_busy);
-		ch->deterministic = false;
-		if (!ch->deterministic_railgate_allowed) {
-			gk20a_idle(g);
-		}
-		ch->deterministic_railgate_allowed = false;
-
-		nvgpu_rwsem_up_read(&g->deterministic_busy);
-	}
+	channel_free_put_deterministic_ref_from_init(ch);
 
 	ch->vpr = false;
 	ch->vm = NULL;
@@ -1773,30 +1832,7 @@ unbind:
 	WARN_ON(ch->sync != NULL);
 #endif
 
-#ifdef CONFIG_NVGPU_DEBUGGER
-	/* unlink all debug sessions */
-	nvgpu_mutex_acquire(&g->dbg_sessions_lock);
-
-	nvgpu_list_for_each_entry_safe(session_data, tmp_s,
-			&ch->dbg_s_list, dbg_session_data, dbg_s_entry) {
-		dbg_s = session_data->dbg_s;
-		nvgpu_mutex_acquire(&dbg_s->ch_list_lock);
-		nvgpu_list_for_each_entry_safe(ch_data, tmp, &dbg_s->ch_list,
-				dbg_session_channel_data, ch_entry) {
-			if (ch_data->chid == ch->chid) {
-				if (ch_data->unbind_single_channel(dbg_s,
-						ch_data) != 0) {
-					nvgpu_err(g,
-						"unbind failed for chid: %d",
-						ch_data->chid);
-				}
-			}
-		}
-		nvgpu_mutex_release(&dbg_s->ch_list_lock);
-	}
-
-	nvgpu_mutex_release(&g->dbg_sessions_lock);
-#endif
+	channel_free_unlink_debug_session(ch);
 
 #if GK20A_CHANNEL_REFCOUNT_TRACKING
 	(void) memset(ch->ref_actions, 0, sizeof(ch->ref_actions));
