@@ -403,6 +403,69 @@ clean_up_va:
 	return err;
 }
 
+static int nvgpu_init_mm_setup_bar(struct gk20a *g)
+{
+	struct mm_gk20a *mm = &g->mm;
+	int err;
+
+	err = nvgpu_init_bar1_vm(mm);
+	if (err != 0) {
+		return err;
+	}
+
+	if (g->ops.mm.init_bar2_vm != NULL) {
+		err = g->ops.mm.init_bar2_vm(g);
+		if (err != 0) {
+			return err;
+		}
+	}
+	err = nvgpu_init_system_vm(mm);
+	if (err != 0) {
+		return err;
+	}
+
+	err = nvgpu_init_hwpm(mm);
+	if (err != 0) {
+		return err;
+	}
+
+	return err;
+}
+
+static int nvgpu_init_mm_setup_vm(struct gk20a *g)
+{
+	struct mm_gk20a *mm = &g->mm;
+	int err;
+
+	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_SEC2_VM)) {
+		err = nvgpu_init_engine_ucode_vm(g, &mm->sec2, "sec2");
+		if (err != 0) {
+			return err;
+		}
+	}
+
+	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_GSP_VM)) {
+		err = nvgpu_init_engine_ucode_vm(g, &mm->gsp, "gsp");
+		if (err != 0) {
+			return err;
+		}
+	}
+
+	if (g->has_cde) {
+		err = nvgpu_init_cde_vm(mm);
+			if (err != 0) {
+				return err;
+			}
+	}
+
+	err = nvgpu_init_ce_vm(mm);
+	if (err != 0) {
+		return err;
+	}
+
+	return err;
+}
+
 static int nvgpu_init_mm_setup_sw(struct gk20a *g)
 {
 	struct mm_gk20a *mm = &g->mm;
@@ -453,49 +516,12 @@ static int nvgpu_init_mm_setup_sw(struct gk20a *g)
 		return err;
 	}
 
-	err = nvgpu_init_bar1_vm(mm);
+	err = nvgpu_init_mm_setup_bar(g);
 	if (err != 0) {
 		return err;
 	}
 
-	if (g->ops.mm.init_bar2_vm != NULL) {
-		err = g->ops.mm.init_bar2_vm(g);
-		if (err != 0) {
-			return err;
-		}
-	}
-	err = nvgpu_init_system_vm(mm);
-	if (err != 0) {
-		return err;
-	}
-
-	err = nvgpu_init_hwpm(mm);
-	if (err != 0) {
-		return err;
-	}
-
-	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_SEC2_VM)) {
-		err = nvgpu_init_engine_ucode_vm(g, &mm->sec2, "sec2");
-		if (err != 0) {
-			return err;
-		}
-	}
-
-	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_GSP_VM)) {
-		err = nvgpu_init_engine_ucode_vm(g, &mm->gsp, "gsp");
-		if (err != 0) {
-			return err;
-		}
-	}
-
-	if (g->has_cde) {
-		err = nvgpu_init_cde_vm(mm);
-			if (err != 0) {
-				return err;
-			}
-	}
-
-	err = nvgpu_init_ce_vm(mm);
+	err = nvgpu_init_mm_setup_vm(g);
 	if (err != 0) {
 		return err;
 	}
