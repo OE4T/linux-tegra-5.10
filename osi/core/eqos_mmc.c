@@ -47,18 +47,17 @@ static inline unsigned long update_mmc_val(struct osi_core_priv_data *osi_core,
 					   unsigned long last_value,
 					   unsigned long offset)
 {
-	unsigned long long temp;
+	unsigned long temp;
 	unsigned int value = osi_readl((unsigned char *)osi_core->base +
 				       offset);
 
-	temp = (unsigned long long)last_value;
-	temp = temp + (unsigned long long)value;
-	if (temp > ULONG_MAX) {
+	temp = last_value + value;
+	if (temp < last_value) {
 		osd_err(osi_core->osd, "Value overflow for offset = 0x%x resetting  all counters\n",
 			offset);
 		eqos_reset_mmc(osi_core);
 	} else {
-		return (unsigned long)temp;
+		return temp;
 	}
 
 	return 0;

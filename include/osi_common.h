@@ -51,9 +51,6 @@
 #define OSI_ADDRESS_40BIT		1
 #define OSI_ADDRESS_48BIT		2
 
-#ifndef ULONG_MAX
-#define ULONG_MAX			(~0UL)
-#endif
 #ifndef UINT_MAX
 #define UINT_MAX			(~0U)
 #endif
@@ -495,17 +492,14 @@ static inline int is_valid_mac_version(unsigned int mac_ver)
 static inline unsigned long osi_update_stats_counter(unsigned long last_value,
 						     unsigned long incr)
 {
-	unsigned long long temp;
+	unsigned long temp = last_value + incr;
 
-	temp = (unsigned long long)last_value;
-	temp = temp + incr;
-	if (temp > ULONG_MAX) {
-		/* Do nothing */
-	} else {
-		return (unsigned long)temp;
+	if (temp < last_value) {
+		/* Stats overflow, so reset it to zero */
+		return 0UL;
 	}
 
-	return last_value;
+	return temp;
 }
 
 /**

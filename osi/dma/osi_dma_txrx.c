@@ -183,9 +183,10 @@ static inline void get_rx_err_stats(struct osi_rx_desc *rx_desc,
 {
 	/* increment rx crc if we see CE bit set */
 	if ((rx_desc->rdes3 & RDES3_ERR_CRC) == RDES3_ERR_CRC) {
-		if (pkt_err_stats.rx_crc_error < ULONG_MAX) {
-			pkt_err_stats.rx_crc_error++;
-		}
+		pkt_err_stats.rx_crc_error =
+			osi_update_stats_counter(
+					pkt_err_stats.rx_crc_error,
+					1UL);
 	}
 }
 
@@ -273,76 +274,82 @@ static inline void get_tx_err_stats(struct osi_tx_desc *tx_desc,
 {
 	/* IP Header Error */
 	if ((tx_desc->tdes3 & TDES3_IP_HEADER_ERR) == TDES3_IP_HEADER_ERR) {
-		if (pkt_err_stats.ip_header_error < ULONG_MAX) {
-			pkt_err_stats.ip_header_error++;
-		}
+		pkt_err_stats.ip_header_error =
+			osi_update_stats_counter(
+					pkt_err_stats.ip_header_error,
+					1UL);
 	}
 
 	/* Jabber timeout Error */
 	if ((tx_desc->tdes3 & TDES3_JABBER_TIMEO_ERR) ==
 	    TDES3_JABBER_TIMEO_ERR) {
-		if (pkt_err_stats.jabber_timeout_error < ULONG_MAX) {
-			pkt_err_stats.jabber_timeout_error++;
-		}
+		pkt_err_stats.jabber_timeout_error =
+			osi_update_stats_counter(
+					pkt_err_stats.jabber_timeout_error,
+					1UL);
 	}
 
 	/* Packet Flush Error */
 	if ((tx_desc->tdes3 & TDES3_PKT_FLUSH_ERR) == TDES3_PKT_FLUSH_ERR) {
-		if (pkt_err_stats.pkt_flush_error < ULONG_MAX) {
-			pkt_err_stats.pkt_flush_error++;
-		}
+		pkt_err_stats.pkt_flush_error =
+			osi_update_stats_counter(
+					pkt_err_stats.pkt_flush_error, 1UL);
 	}
 
 	/* Payload Checksum Error */
 	if ((tx_desc->tdes3 & TDES3_PL_CHK_SUM_ERR) == TDES3_PL_CHK_SUM_ERR) {
-		if (pkt_err_stats.payload_cs_error < ULONG_MAX) {
-			pkt_err_stats.payload_cs_error++;
-		}
+		pkt_err_stats.payload_cs_error =
+			osi_update_stats_counter(
+					pkt_err_stats.payload_cs_error, 1UL);
 	}
 
 	/* Loss of Carrier Error */
 	if ((tx_desc->tdes3 & TDES3_LOSS_CARRIER_ERR) ==
 	    TDES3_LOSS_CARRIER_ERR) {
-		if (pkt_err_stats.loss_of_carrier_error < ULONG_MAX) {
-			pkt_err_stats.loss_of_carrier_error++;
-		}
+		pkt_err_stats.loss_of_carrier_error =
+			osi_update_stats_counter(
+					pkt_err_stats.loss_of_carrier_error,
+					1UL);
 	}
 
 	/* No Carrier Error */
 	if ((tx_desc->tdes3 & TDES3_NO_CARRIER_ERR) == TDES3_NO_CARRIER_ERR) {
-		if (pkt_err_stats.no_carrier_error < ULONG_MAX) {
-			pkt_err_stats.no_carrier_error++;
-		}
+		pkt_err_stats.no_carrier_error =
+			osi_update_stats_counter(
+					pkt_err_stats.no_carrier_error, 1UL);
 	}
 
 	/* Late Collision Error */
 	if ((tx_desc->tdes3 & TDES3_LATE_COL_ERR) == TDES3_LATE_COL_ERR) {
-		if (pkt_err_stats.late_collision_error < ULONG_MAX) {
-			pkt_err_stats.late_collision_error++;
-		}
+		pkt_err_stats.late_collision_error =
+			osi_update_stats_counter(
+					pkt_err_stats.late_collision_error,
+					1UL);
 	}
 
 	/* Execessive Collision Error */
 	if ((tx_desc->tdes3 & TDES3_EXCESSIVE_COL_ERR) ==
 	    TDES3_EXCESSIVE_COL_ERR) {
-		if (pkt_err_stats.excessive_collision_error < ULONG_MAX) {
-			pkt_err_stats.excessive_collision_error++;
-		}
+		pkt_err_stats.excessive_collision_error =
+			osi_update_stats_counter(
+				pkt_err_stats.excessive_collision_error,
+				1UL);
 	}
 
 	/* Excessive Deferal Error */
 	if ((tx_desc->tdes3 & TDES3_EXCESSIVE_DEF_ERR) ==
 	    TDES3_EXCESSIVE_DEF_ERR) {
-		if (pkt_err_stats.excessive_deferal_error < ULONG_MAX) {
-			pkt_err_stats.excessive_deferal_error++;
-		}
+		pkt_err_stats.excessive_deferal_error =
+			osi_update_stats_counter(
+					pkt_err_stats.excessive_deferal_error,
+					1UL);
 	}
 
 	/* Under Flow Error */
 	if ((tx_desc->tdes3 & TDES3_UNDER_FLOW_ERR) == TDES3_UNDER_FLOW_ERR) {
-		if (pkt_err_stats.underflow_error < ULONG_MAX) {
-			pkt_err_stats.underflow_error++;
-		}
+		pkt_err_stats.underflow_error =
+			osi_update_stats_counter(pkt_err_stats.underflow_error,
+						 1UL);
 	}
 }
 
