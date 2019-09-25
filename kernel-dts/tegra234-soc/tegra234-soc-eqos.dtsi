@@ -1,7 +1,7 @@
 /*
  * tegra194-soc-eqos.dtsi: Ethernet QOS DTSI file.
  *
- * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,59 +18,44 @@
  *
  */
 
-#include <dt-bindings/clock/tegra234-clock.h>
-#include <dt-bindings/reset/tegra194-reset.h>
-
-#define MAKE_EQOS_TRIP(name, temp, hyst) \
-	eqos_##name: eqos-##name@temp { \
-		temperature = <(temp)>; \
-		hysteresis = <hyst>; \
-		type = "active"; \
-	}
-
-#define MAP_EQOS(name, state) \
-	map_eqos_##name { \
-		trip = <&eqos_##name>; \
-		cooling-device = <&eqos_cool_dev state state>; \
-		cdev-type = "tegra-eqos"; \
-	}
-
-
 / {
-	ether_qos@2490000 {
-		compatible = "nvidia,eqos";
-		reg = <0x0 0x02490000 0x0 0x10000>;    /* EQOS Base Register */
-		reg-names = "eqos_base";
-		interrupts = 	<0 194 0x4>,	/* common */
-				<0 195 0x4>,	/* power */
-				<0 190 0x4>,	/* rx0 */
-				<0 186 0x4>,	/* tx0 */
-				<0 191 0x4>,	/* rx1 */
-				<0 187 0x4>,	/* tx1 */
-				<0 192 0x4>,	/* rx2 */
-				<0 188 0x4>,	/* tx2 */
-				<0 193 0x4>,	/* rx3 */
-				<0 189 0x4>;	/* tx3 */
-		clocks = <&bpmp_clks TEGRA234_CLK_EQOS_AXI>,
-			<&bpmp_clks TEGRA234_CLK_EQOS_RX>,
-			<&bpmp_clks TEGRA234_CLK_EQOS_PTP_REF>,
-			<&bpmp_clks TEGRA234_CLK_EQOS_TX>,
-			<&bpmp_clks TEGRA234_CLK_AXI_CBB>;
-		clock-names = "eqos_axi", "eqos_rx", "eqos_ptp_ref", "eqos_tx", "axi_cbb";
-		resets = <&bpmp_resets TEGRA194_RESET_EQOS>;
-		reset-names = "eqos_rst";
-		/* bootloader should update MAC address */
-		nvidia,local-mac-address = <0x00 0x00 0x00 0x00 0x00 0x00>;
-		iommus = <&smmu TEGRA_SID_EQOS>;
-		nvidia,csr_clock_speed = <0x19>; /* CSR clock speed 25MHz */
-		nvidia,iso_bw = <81920>; /* sum of read and write bw, 80Mb/s */
-		nvidia,slot_intvl_val = <0x07C>;
-		status = "disabled";
-		eqos_cool_dev: eqos-cool-dev {
-			cooling-min-state = <0>;
-			cooling-max-state = <5>;
-			#cooling-cells = <2>;
+	eqos_vm_irq_config: vm-irq-config {
+		nvidia,num-vm-irqs = <4>;
+		vm_irq1 {
+			nvidia,num-vm-channels = <2>;
+			nvidia,vm-channels = <0 1>;
+		};
+		vm_irq2 {
+			nvidia,num-vm-channels = <2>;
+			nvidia,vm-channels = <2 3>;
+		};
+		vm_irq3 {
+			nvidia,num-vm-channels = <2>;
+			nvidia,vm-channels = <4 5>;
+		};
+		vm_irq4 {
+			nvidia,num-vm-channels = <2>;
+			nvidia,vm-channels = <6 7>;
 		};
 	};
 
+	ethernet@2850000 {
+		compatible = "nvidia,nveqos";
+		reg = <0x0 0x02850000 0x0 0x10000>;    /* EQOS Base Register */
+		reg-names = "eqos_base";
+		interrupts = <0 194 0x4>,       /* common */
+			     <0 186 0x4>, /* vm0 */
+			     <0 187 0x4>, /* vm1 */
+			     <0 188 0x4>, /* vm2 */
+			     <0 189 0x4>; /* vm3 */
+		iommus = <&smmu TEGRA_SID_EQOS>;
+		nvidia,num-dma-chans = <8>;
+		nvidia,num-mtl-queues = <8>;
+		nvidia,mtl-queues = <0 1 2 3 4 5 6 7>;
+		nvidia,dma-chans = <0 1 2 3 4 5 6 7>;
+		nvidia,rx-queue-prio = <0x2 0x1 0x30 0x48 0x0 0x0 0x0 0x0>;
+		nvidia,rxq_enable_ctrl = <2 2 2 2 2 2 2 2>;
+		nvidia,vm-irq-config = <&eqos_vm_irq_config>;
+		status = "disabled";
+	};
 };
