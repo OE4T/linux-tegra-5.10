@@ -116,7 +116,7 @@ static u32 gv11b_tsg_get_eng_method_buffer_size(struct gk20a *g)
 	return buffer_size;
 }
 
-void gv11b_tsg_init_eng_method_buffers(struct gk20a *g, struct nvgpu_tsg *tsg)
+int gv11b_tsg_init_eng_method_buffers(struct gk20a *g, struct nvgpu_tsg *tsg)
 {
 	struct vm_gk20a *vm = g->mm.bar2.vm;
 	int err = 0;
@@ -125,38 +125,43 @@ void gv11b_tsg_init_eng_method_buffers(struct gk20a *g, struct nvgpu_tsg *tsg)
 	unsigned int num_pbdma = g->fifo.num_pbdma;
 
 	if (tsg->eng_method_buffers != NULL) {
-		return;
+		nvgpu_warn(g, "eng method buffers already allocated");
+		return 0;
 	}
 
 	method_buffer_size = gv11b_tsg_get_eng_method_buffer_size(g);
 	if (method_buffer_size == 0U) {
 		nvgpu_info(g, "ce will hit MTHD_BUFFER_FAULT");
-		return;
+		return -EINVAL;
 	}
 
 	tsg->eng_method_buffers = nvgpu_kzalloc(g,
-					num_pbdma * sizeof(struct nvgpu_mem));
+			num_pbdma * sizeof(struct nvgpu_mem));
+	if (tsg->eng_method_buffers == NULL) {
+		nvgpu_err(g, "could not alloc eng method buffers");
+		return -ENOMEM;
+	}
 
 	for (runque = 0; runque < num_pbdma; runque++) {
 		err = nvgpu_dma_alloc_map_sys(vm, method_buffer_size,
 					&tsg->eng_method_buffers[runque]);
 		if (err != 0) {
-			break;
+			nvgpu_err(g, "alloc eng method buffers, runque=%d",
+					runque);
+			goto clean_up;
 		}
 	}
-	if (err != 0) {
-		for (i = ((int)runque - 1); i >= 0; i--) {
-			nvgpu_dma_unmap_free(vm,
-				 &tsg->eng_method_buffers[i]);
-		}
 
-		nvgpu_kfree(g, tsg->eng_method_buffers);
-		tsg->eng_method_buffers = NULL;
-		nvgpu_err(g, "could not alloc eng method buffers");
-		return;
-	}
 	nvgpu_log_info(g, "eng method buffers allocated");
+	return 0;
 
+clean_up:
+	for (i = ((int)runque - 1); i >= 0; i--) {
+		nvgpu_dma_unmap_free(vm, &tsg->eng_method_buffers[i]);
+	}
+	nvgpu_kfree(g, tsg->eng_method_buffers);
+	tsg->eng_method_buffers = NULL;
+	return -ENOMEM;
 }
 
 void gv11b_tsg_deinit_eng_method_buffers(struct gk20a *g,

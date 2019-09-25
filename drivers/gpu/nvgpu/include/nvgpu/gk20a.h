@@ -1312,7 +1312,7 @@ struct gpu_ops {
 	struct {
 		int (*open)(struct nvgpu_tsg *tsg);
 		void (*release)(struct nvgpu_tsg *tsg);
-		void (*init_eng_method_buffers)(struct gk20a *g,
+		int (*init_eng_method_buffers)(struct gk20a *g,
 				struct nvgpu_tsg *tsg);
 		void (*deinit_eng_method_buffers)(struct gk20a *g,
 				struct nvgpu_tsg *tsg);

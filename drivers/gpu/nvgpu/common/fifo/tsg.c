@@ -675,7 +675,12 @@ int nvgpu_tsg_open_common(struct gk20a *g, struct nvgpu_tsg *tsg, pid_t pid)
 	}
 
 	if (g->ops.tsg.init_eng_method_buffers != NULL) {
-		g->ops.tsg.init_eng_method_buffers(g, tsg);
+		err = g->ops.tsg.init_eng_method_buffers(g, tsg);
+		if (err != 0) {
+			nvgpu_err(g, "tsg %d init eng method bufs failed %d",
+				  tsg->tsgid, err);
+			goto clean_up;
+		}
 	}
 
 	if (g->ops.tsg.open != NULL) {
