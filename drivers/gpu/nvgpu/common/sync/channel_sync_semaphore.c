@@ -337,7 +337,6 @@ nvgpu_channel_sync_semaphore_create(
 {
 	struct nvgpu_channel_sync_semaphore *sema;
 	struct gk20a *g = c->g;
-	char pool_name[20];
 	int asid = -1;
 	int err;
 
@@ -352,7 +351,6 @@ nvgpu_channel_sync_semaphore_create(
 	}
 	sema->c = c;
 
-	sprintf(pool_name, "semaphore_pool-%d", c->chid);
 	sema->pool = c->vm->sema_pool;
 
 	if (c->vm->as_share != NULL) {
