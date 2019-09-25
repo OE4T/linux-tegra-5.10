@@ -295,6 +295,35 @@ static void delete_fixup(struct nvgpu_rbtree_node **root,
 	}
 }
 
+static void swap_in_new_child(struct nvgpu_rbtree_node *old,
+			      struct nvgpu_rbtree_node *new,
+			      struct nvgpu_rbtree_node **root)
+{
+	if (old->parent != NULL) {
+		if (old == old->parent->left) {
+			old->parent->left = new;
+		} else {
+			old->parent->right = new;
+		}
+	} else {
+		*root = new;
+	}
+}
+
+static void adopt_children(struct nvgpu_rbtree_node *old,
+			   struct nvgpu_rbtree_node *new)
+{
+	new->left = old->left;
+	if (old->left != NULL) {
+		old->left->parent = new;
+	}
+
+	new->right = old->right;
+	if (old->right != NULL) {
+		old->right->parent = new;
+	}
+}
+
 void nvgpu_rbtree_unlink(struct nvgpu_rbtree_node *node,
 		    struct nvgpu_rbtree_node **root)
 {
@@ -330,16 +359,8 @@ void nvgpu_rbtree_unlink(struct nvgpu_rbtree_node *node,
 	if (x != NULL) {
 		x->parent = parent_of_x;
 	}
-
-	if (y->parent != NULL) {
-		if (y == y->parent->left) {
-			y->parent->left = x;
-		} else {
-			y->parent->right = x;
-		}
-	} else {
-		*root = x;
-	}
+	/* update the parent's links */
+	swap_in_new_child(y, x, root);
 
 	y_was_black = !y->is_red;
 	if (y != z) {
@@ -347,27 +368,11 @@ void nvgpu_rbtree_unlink(struct nvgpu_rbtree_node *node,
 		 * the memory for z can be freed
 		 */
 		y->parent = z->parent;
-		if (z->parent != NULL) {
-			if (z == z->parent->left) {
-				z->parent->left = y;
-			} else {
-				z->parent->right = y;
-			}
-		} else {
-			*root = y;
-		}
+		swap_in_new_child(z, y, root);
 
 		y->is_red = z->is_red;
 
-		y->left = z->left;
-		if (z->left != NULL) {
-			z->left->parent = y;
-		}
-
-		y->right = z->right;
-		if (z->right != NULL) {
-			z->right->parent = y;
-		}
+		adopt_children(z, y);
 
 		if (parent_of_x == z) {
 			parent_of_x = y;
