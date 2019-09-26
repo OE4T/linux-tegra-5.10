@@ -397,6 +397,13 @@ static int nvgpu_vm_init_vma_allocators(struct gk20a *g, struct vm_gk20a *vm,
 {
 	int err = 0;
 	char alloc_name[32];
+	size_t name_len;
+
+	name_len  = strlen("gk20a_") + strlen(name);
+	if (name_len >= 32U) {
+		nvgpu_err(g, "Invalid MAX_NAME_SIZE %lu %u", name_len, 32U);
+		return -EINVAL;
+	}
 
 	/*
 	 * User VMA.

@@ -115,7 +115,7 @@ struct nvgpu_acr {
 	u32 bootstrap_owner;
 
 	/* LSF properties */
-	u32 lsf_enable_mask;
+	u64 lsf_enable_mask;
 	struct acr_lsf_config lsf[FALCON_ID_END];
 
 	/*

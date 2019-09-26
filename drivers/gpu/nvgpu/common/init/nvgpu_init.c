@@ -127,7 +127,12 @@ static int nvgpu_sw_quiesce_init_support(struct gk20a *g)
 
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_FAULT_RECOVERY, false);
 
-	nvgpu_cond_init(&g->sw_quiesce_cond);
+	err = nvgpu_cond_init(&g->sw_quiesce_cond);
+	if (err != 0) {
+		nvgpu_err(g, "nvgpu_cond_init() failed err=%d", err);
+		return err;
+	}
+
 	g->sw_quiesce_pending = false;
 
 	err = nvgpu_thread_create(&g->sw_quiesce_thread, g,

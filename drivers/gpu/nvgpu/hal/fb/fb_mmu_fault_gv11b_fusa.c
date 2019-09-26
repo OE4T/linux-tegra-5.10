@@ -170,9 +170,14 @@ void gv11b_fb_fault_buf_set_state_hw(struct gk20a *g,
 	} else {
 		struct nvgpu_timeout timeout;
 		u32 delay = POLL_DELAY_MIN_US;
+		int err;
 
-		nvgpu_timeout_init(g, &timeout, nvgpu_get_poll_timeout(g),
+		err = nvgpu_timeout_init(g, &timeout, nvgpu_get_poll_timeout(g),
 			   NVGPU_TIMER_CPU_TIMER);
+		if (err != 0) {
+			nvgpu_err(g, "nvgpu_timeout_init() failed err=%d", err);
+			return;
+		}
 
 		reg_val &= (~(fb_mmu_fault_buffer_size_enable_m()));
 		g->ops.fb.write_mmu_fault_buffer_size(g, index, reg_val);
@@ -686,7 +691,11 @@ int gv11b_fb_mmu_invalidate_replay(struct gk20a *g,
 	nvgpu_writel(g, fb_mmu_invalidate_r(), reg_val);
 
 	/* retry 200 times */
-	nvgpu_timeout_init(g, &timeout, 200U, NVGPU_TIMER_RETRY_TIMER);
+	err = nvgpu_timeout_init(g, &timeout, 200U, NVGPU_TIMER_RETRY_TIMER);
+	if (err != 0) {
+		nvgpu_err(g, "nvgpu_timeout_init() failed err=%d", err);
+		return err;
+	}
 	do {
 		reg_val = nvgpu_readl(g, fb_mmu_ctrl_r());
 		if (fb_mmu_ctrl_pri_fifo_empty_v(reg_val) !=

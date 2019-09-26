@@ -785,9 +785,10 @@ int nvgpu_gr_disable_ctxsw(struct gk20a *g)
 	nvgpu_mutex_acquire(&gr->ctxsw_disable_mutex);
 
 	/* check for gr->ctxsw_disable_count overflow */
-	if (INT_MAX < gr->ctxsw_disable_count) {
+	if (INT_MAX == gr->ctxsw_disable_count) {
 		nvgpu_err(g, "ctxsw_disable_count overflow");
-		return -ERANGE;
+		err = -ERANGE;
+		goto out;
 	}
 
 	gr->ctxsw_disable_count++;
@@ -814,6 +815,7 @@ int nvgpu_gr_disable_ctxsw(struct gk20a *g)
 		nvgpu_log_info(g, "ctxsw disabled, ctxsw_disable_count: %d",
 			gr->ctxsw_disable_count);
 	}
+out:
 	nvgpu_mutex_release(&gr->ctxsw_disable_mutex);
 
 	return err;

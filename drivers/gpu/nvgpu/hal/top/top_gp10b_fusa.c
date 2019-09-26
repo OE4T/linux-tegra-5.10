@@ -102,6 +102,12 @@ static int gp10b_check_device_match(struct gk20a *g,
 						&dev_info->runlist_id,
 						&dev_info->intr_id,
 						&dev_info->reset_id);
+			if (ret != 0) {
+				nvgpu_err(g,
+					"Error parsing Enum Entry 0x%x",
+					entry_data);
+				return ret;
+			}
 		}
 		if (g->ops.top.device_info_parse_data != NULL) {
 			ret = g->ops.top.device_info_parse_data(g,
