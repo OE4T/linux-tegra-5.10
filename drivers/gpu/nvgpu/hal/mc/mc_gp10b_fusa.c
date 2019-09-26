@@ -68,6 +68,66 @@ void mc_gp10b_intr_pmu_unit_config(struct gk20a *g, bool enable)
 	}
 }
 
+static void mc_gp10b_isr_stall_secondary_1(struct gk20a *g, u32 mc_intr_0)
+{
+	if ((mc_intr_0 & mc_intr_ltc_pending_f()) != 0U) {
+		g->ops.mc.ltc_isr(g);
+	}
+	if ((mc_intr_0 & mc_intr_pbus_pending_f()) != 0U) {
+		g->ops.bus.isr(g);
+	}
+	if ((g->ops.mc.is_intr_nvlink_pending != NULL) &&
+			g->ops.mc.is_intr_nvlink_pending(g, mc_intr_0)) {
+		g->ops.nvlink.intr.isr(g);
+	}
+	if ((mc_intr_0 & mc_intr_pfb_pending_f()) != 0U &&
+			(g->ops.mc.fbpa_isr != NULL)) {
+		g->ops.mc.fbpa_isr(g);
+	}
+}
+
+
+static void mc_gp10b_isr_stall_secondary_0(struct gk20a *g, u32 mc_intr_0)
+{
+	if ((g->ops.mc.is_intr_hub_pending != NULL) &&
+			g->ops.mc.is_intr_hub_pending(g, mc_intr_0)) {
+		g->ops.fb.intr.isr(g);
+	}
+	if ((mc_intr_0 & mc_intr_pfifo_pending_f()) != 0U) {
+		g->ops.fifo.intr_0_isr(g);
+	}
+#ifdef CONFIG_NVGPU_LS_PMU
+	if ((mc_intr_0 & mc_intr_pmu_pending_f()) != 0U) {
+		g->ops.pmu.pmu_isr(g);
+	}
+#endif
+	if ((mc_intr_0 & mc_intr_priv_ring_pending_f()) != 0U) {
+		g->ops.priv_ring.isr(g);
+	}
+}
+
+static void mc_gp10b_isr_stall_engine(struct gk20a *g,
+			enum nvgpu_fifo_engine engine_enum, u32 act_eng_id)
+{
+	/* GR Engine */
+	if (engine_enum == NVGPU_ENGINE_GR) {
+		int ret_err = nvgpu_pg_elpg_protected_call(g,
+					g->ops.gr.intr.stall_isr(g));
+		if (ret_err != 0) {
+			nvgpu_err(g, "Unable to handle gr interrupt");
+		}
+	}
+
+	/* CE Engine */
+	if (((engine_enum == NVGPU_ENGINE_GRCE) ||
+			(engine_enum == NVGPU_ENGINE_ASYNC_CE)) &&
+			(g->ops.ce.isr_stall != NULL)) {
+		g->ops.ce.isr_stall(g,
+			g->fifo.engine_info[act_eng_id].inst_id,
+			g->fifo.engine_info[act_eng_id].pri_base);
+	}
+}
+
 void mc_gp10b_isr_stall(struct gk20a *g)
 {
 	u32 mc_intr_0;
@@ -87,54 +147,11 @@ void mc_gp10b_isr_stall(struct gk20a *g)
 			continue;
 		}
 		engine_enum = g->fifo.engine_info[act_eng_id].engine_enum;
-		/* GR Engine */
-		if (engine_enum == NVGPU_ENGINE_GR) {
-			int ret_err = nvgpu_pg_elpg_protected_call(g,
-						g->ops.gr.intr.stall_isr(g));
-			if (ret_err != 0) {
-				nvgpu_err(g, "Unable to handle gr interrupt");
-			}
-		}
-
-		/* CE Engine */
-		if (((engine_enum == NVGPU_ENGINE_GRCE) ||
-				(engine_enum == NVGPU_ENGINE_ASYNC_CE)) &&
-				(g->ops.ce.isr_stall != NULL)) {
-			g->ops.ce.isr_stall(g,
-				g->fifo.engine_info[act_eng_id].inst_id,
-				g->fifo.engine_info[act_eng_id].pri_base);
-		}
-	}
-	if ((g->ops.mc.is_intr_hub_pending != NULL) &&
-		 g->ops.mc.is_intr_hub_pending(g, mc_intr_0)) {
-		g->ops.fb.intr.isr(g);
-	}
-	if ((mc_intr_0 & mc_intr_pfifo_pending_f()) != 0U) {
-		g->ops.fifo.intr_0_isr(g);
-	}
-#ifdef CONFIG_NVGPU_LS_PMU
-	if ((mc_intr_0 & mc_intr_pmu_pending_f()) != 0U) {
-		g->ops.pmu.pmu_isr(g);
-	}
-#endif
-	if ((mc_intr_0 & mc_intr_priv_ring_pending_f()) != 0U) {
-		g->ops.priv_ring.isr(g);
-	}
-	if ((mc_intr_0 & mc_intr_ltc_pending_f()) != 0U) {
-		g->ops.mc.ltc_isr(g);
-	}
-	if ((mc_intr_0 & mc_intr_pbus_pending_f()) != 0U) {
-		g->ops.bus.isr(g);
-	}
-	if ((g->ops.mc.is_intr_nvlink_pending != NULL) &&
-			g->ops.mc.is_intr_nvlink_pending(g, mc_intr_0)) {
-		g->ops.nvlink.intr.isr(g);
-	}
-	if ((mc_intr_0 & mc_intr_pfb_pending_f()) != 0U &&
-			(g->ops.mc.fbpa_isr != NULL)) {
-		g->ops.mc.fbpa_isr(g);
+		mc_gp10b_isr_stall_engine(g, engine_enum, act_eng_id);
 	}
 
+	mc_gp10b_isr_stall_secondary_0(g, mc_intr_0);
+	mc_gp10b_isr_stall_secondary_1(g, mc_intr_0);
 	nvgpu_log(g, gpu_dbg_intr, "stall intr done 0x%08x", mc_intr_0);
 
 }
