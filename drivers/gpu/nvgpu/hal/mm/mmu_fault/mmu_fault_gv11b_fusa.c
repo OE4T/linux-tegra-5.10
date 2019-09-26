@@ -451,42 +451,14 @@ void gv11b_mm_mmu_fault_handle_mmu_fault_common(struct gk20a *g,
 	}
 }
 
-void gv11b_mm_mmu_fault_handle_nonreplay_replay_fault(struct gk20a *g,
-		 u32 fault_status, u32 index)
+static void gv11b_mm_mmu_fault_handle_buf_valid_entry(struct gk20a *g,
+		struct nvgpu_mem *mem, struct mmu_fault_info *mmufault,
+		u32 *invalidate_replay_val_ptr, u32 rd32_val, u32 fault_status,
+		u32 index, u32 get_indx, u32 offset, u32 entries)
 {
-	u32 get_indx, offset, rd32_val, entries;
-	struct nvgpu_mem *mem;
-	struct mmu_fault_info *mmufault;
-	u32 invalidate_replay_val = 0U;
+	u32 sub_err_type =  0U;
 	u64 prev_fault_addr =  0ULL;
 	u64 next_fault_addr =  0ULL;
-	u32 sub_err_type =  0U;
-	int err;
-
-	if (gv11b_fb_is_fault_buffer_empty(g, index, &get_indx)) {
-		nvgpu_log(g, gpu_dbg_intr,
-			"SPURIOUS mmu fault: reg index:%d", index);
-		return;
-	}
-	nvgpu_log(g, gpu_dbg_intr, "%s MMU FAULT",
-			index == NVGPU_MMU_FAULT_REPLAY_REG_INDX ?
-					"REPLAY" : "NON-REPLAY");
-
-	nvgpu_log(g, gpu_dbg_intr, "get ptr = %d", get_indx);
-
-	mem = &g->mm.hw_fault_buf[index];
-	mmufault = &g->mm.fault_info[index];
-
-	entries = gv11b_fb_fault_buffer_size_val(g, index);
-	nvgpu_log(g, gpu_dbg_intr, "buffer num entries = %d", entries);
-
-	offset = nvgpu_safe_mult_u32(get_indx, gmmu_fault_buf_size_v()) /
-			U32(sizeof(u32));
-	nvgpu_log(g, gpu_dbg_intr, "starting word offset = 0x%x", offset);
-
-	rd32_val = nvgpu_mem_rd32(g, mem,
-		 nvgpu_safe_add_u32(offset, gmmu_fault_buf_entry_valid_w()));
-	nvgpu_log(g, gpu_dbg_intr, "entry valid offset val = 0x%x", rd32_val);
 
 	while ((rd32_val & gmmu_fault_buf_entry_valid_m()) != 0U) {
 
@@ -543,9 +515,49 @@ void gv11b_mm_mmu_fault_handle_nonreplay_replay_fault(struct gk20a *g,
 		}
 
 		gv11b_mm_mmu_fault_handle_mmu_fault_common(g, mmufault,
-				 &invalidate_replay_val);
+				invalidate_replay_val_ptr);
 
 	}
+}
+
+void gv11b_mm_mmu_fault_handle_nonreplay_replay_fault(struct gk20a *g,
+		 u32 fault_status, u32 index)
+{
+	u32 get_indx, offset, rd32_val, entries;
+	struct nvgpu_mem *mem;
+	struct mmu_fault_info *mmufault;
+	u32 invalidate_replay_val = 0U;
+	int err;
+
+	if (gv11b_fb_is_fault_buffer_empty(g, index, &get_indx)) {
+		nvgpu_log(g, gpu_dbg_intr,
+			"SPURIOUS mmu fault: reg index:%d", index);
+		return;
+	}
+	nvgpu_log(g, gpu_dbg_intr, "%s MMU FAULT",
+			index == NVGPU_MMU_FAULT_REPLAY_REG_INDX ?
+					"REPLAY" : "NON-REPLAY");
+
+	nvgpu_log(g, gpu_dbg_intr, "get ptr = %d", get_indx);
+
+	mem = &g->mm.hw_fault_buf[index];
+	mmufault = &g->mm.fault_info[index];
+
+	entries = gv11b_fb_fault_buffer_size_val(g, index);
+	nvgpu_log(g, gpu_dbg_intr, "buffer num entries = %d", entries);
+
+	offset = nvgpu_safe_mult_u32(get_indx, gmmu_fault_buf_size_v()) /
+			U32(sizeof(u32));
+	nvgpu_log(g, gpu_dbg_intr, "starting word offset = 0x%x", offset);
+
+	rd32_val = nvgpu_mem_rd32(g, mem,
+		 nvgpu_safe_add_u32(offset, gmmu_fault_buf_entry_valid_w()));
+	nvgpu_log(g, gpu_dbg_intr, "entry valid offset val = 0x%x", rd32_val);
+
+	gv11b_mm_mmu_fault_handle_buf_valid_entry(g, mem, mmufault,
+				&invalidate_replay_val, rd32_val, fault_status,
+				index, get_indx, offset, entries);
+
 	if (index == NVGPU_MMU_FAULT_REPLAY_REG_INDX &&
 	    invalidate_replay_val != 0U) {
 		err = gv11b_fb_replay_or_cancel_faults(g,
