@@ -287,15 +287,192 @@ static void gv11b_fb_copy_from_hw_fault_buf(struct gk20a *g,
 	gv11b_mm_mmu_fault_parse_mmu_fault_info(mmufault);
 }
 
+static bool gv11b_mm_mmu_fault_handle_mmu_fault_ce(struct gk20a *g,
+		struct mmu_fault_info *mmufault, u32 *invalidate_replay_val,
+		u32 num_lce)
+{
+	int err = 0;
+	struct nvgpu_tsg *tsg = NULL;
+
+	if (mmufault->mmu_engine_id <
+		nvgpu_safe_add_u32(gmmu_fault_mmu_eng_id_ce0_v(),
+				   num_lce)) {
+		/* CE page faults are not reported as replayable */
+		nvgpu_log(g, gpu_dbg_intr, "CE Faulted");
+#ifdef CONFIG_NVGPU_REPLAYABLE_FAULT
+		err = gv11b_fb_fix_page_fault(g, mmufault);
+#else
+		err = -EINVAL;
+#endif
+
+		if (mmufault->refch != NULL) {
+			tsg = nvgpu_tsg_from_ch(mmufault->refch);
+			nvgpu_tsg_reset_faulted_eng_pbdma(g, tsg,
+							true, true);
+		}
+		if (err == 0) {
+			nvgpu_log(g, gpu_dbg_intr,
+						"CE Page Fault Fixed");
+			*invalidate_replay_val = 0;
+			if (mmufault->refch != NULL) {
+				nvgpu_channel_put(mmufault->refch);
+				mmufault->refch = NULL;
+			}
+			return true;
+		}
+		/* Do recovery */
+		nvgpu_log(g, gpu_dbg_intr, "CE Page Fault Not Fixed");
+	}
+	return false;
+}
+
+static bool gv11b_mm_mmu_fault_handle_mmu_fault_refch(struct gk20a *g,
+		struct mmu_fault_info *mmufault, u32 *id_ptr,
+		unsigned int *id_type_ptr, unsigned int *rc_type_ptr)
+{
+	struct nvgpu_tsg *tsg = NULL;
+
+	if (mmufault->refch->mmu_nack_handled) {
+		/*
+		 * We have already recovered for the same
+		 * context, skip doing another recovery.
+		 */
+		mmufault->refch->mmu_nack_handled = false;
+		/*
+		 * Recovery path can be entered twice for the
+		 * same error in case of mmu nack. If mmu
+		 * nack interrupt is handled before mmu fault
+		 * then channel reference is increased to avoid
+		 * closing the channel by userspace. Decrement
+		 * channel reference.
+		 */
+		nvgpu_channel_put(mmufault->refch);
+		/*
+		 * refch in mmufault is assigned at the time
+		 * of copying fault info from snap reg or bar2
+		 * fault buf.
+		 */
+		nvgpu_channel_put(mmufault->refch);
+		return true;
+	} else {
+		/*
+		 * Indicate recovery is handled if mmu fault is
+		 * a result of mmu nack.
+		 */
+		mmufault->refch->mmu_nack_handled = true;
+	}
+
+	tsg = nvgpu_tsg_from_ch(mmufault->refch);
+	if (tsg != NULL) {
+		*id_ptr = mmufault->refch->tsgid;
+		*id_type_ptr = ID_TYPE_TSG;
+		*rc_type_ptr = RC_TYPE_MMU_FAULT;
+	} else {
+		nvgpu_err(g, "chid: %d is referenceable but "
+				"not bound to tsg",
+				mmufault->refch->chid);
+		*id_type_ptr = ID_TYPE_CHANNEL;
+		*rc_type_ptr = RC_TYPE_NO_RC;
+	}
+	return false;
+}
+
+static bool gv11b_mm_mmu_fault_handle_non_replayable(struct gk20a *g,
+					struct mmu_fault_info *mmufault)
+{
+	unsigned int id_type = ID_TYPE_UNKNOWN;
+	u32 act_eng_bitmask = 0U;
+	u32 id = NVGPU_INVALID_TSG_ID;
+	unsigned int rc_type = RC_TYPE_NO_RC;
+	bool ret = false;
+
+	if (mmufault->fault_type ==
+			gmmu_fault_type_unbound_inst_block_v()) {
+		/*
+		 * Bug 1847172: When an engine faults due to an unbound
+		 * instance block, the fault cannot be isolated to a
+		 * single context so we need to reset the entire runlist
+		 */
+		rc_type = RC_TYPE_MMU_FAULT;
+
+	} else if (mmufault->refch != NULL) {
+		ret = gv11b_mm_mmu_fault_handle_mmu_fault_refch(g, mmufault,
+				&id, &id_type, &rc_type);
+		if (ret) {
+			return ret;
+		}
+	} else {
+		/* Nothing to do here */
+	}
+
+	/* engine is faulted */
+	if (mmufault->faulted_engine != NVGPU_INVALID_ENG_ID) {
+		act_eng_bitmask = BIT32(mmufault->faulted_engine);
+		rc_type = RC_TYPE_MMU_FAULT;
+	}
+
+	/*
+	 * refch in mmufault is assigned at the time of copying
+	 * fault info from snap reg or bar2 fault buf
+	 */
+	if (mmufault->refch != NULL) {
+		nvgpu_channel_put(mmufault->refch);
+		mmufault->refch = NULL;
+	}
+
+	if (rc_type != RC_TYPE_NO_RC) {
+#ifdef CONFIG_NVGPU_RECOVERY
+		g->ops.fifo.recover(g, act_eng_bitmask,
+			id, id_type, rc_type, mmufault);
+#else
+		nvgpu_err(g, "mmu fault id=%u id_type=%u act_eng_bitmask=%08x",
+			id, id_type, act_eng_bitmask);
+#endif
+	}
+	return ret;
+}
+
+static void gv11b_mm_mmu_fault_handle_replayable(struct gk20a *g,
+		struct mmu_fault_info *mmufault, u32 *invalidate_replay_val)
+{
+	int err = 0;
+
+	if (mmufault->fault_type == gmmu_fault_type_pte_v()) {
+		nvgpu_log(g, gpu_dbg_intr, "invalid pte! try to fix");
+#ifdef CONFIG_NVGPU_REPLAYABLE_FAULT
+		err = gv11b_fb_fix_page_fault(g, mmufault);
+#else
+		err = -EINVAL;
+#endif
+		if (err != 0) {
+			*invalidate_replay_val |=
+				gv11b_fb_get_replay_cancel_global_val();
+		} else {
+#ifdef CONFIG_NVGPU_REPLAYABLE_FAULT
+			*invalidate_replay_val |=
+				gv11b_fb_get_replay_start_ack_all();
+#endif
+		}
+	} else {
+		/* cancel faults other than invalid pte */
+		*invalidate_replay_val |=
+			gv11b_fb_get_replay_cancel_global_val();
+	}
+	/*
+	 * refch in mmufault is assigned at the time of copying
+	 * fault info from snap reg or bar2 fault buf
+	 */
+	if (mmufault->refch != NULL) {
+		nvgpu_channel_put(mmufault->refch);
+		mmufault->refch = NULL;
+	}
+}
+
 void gv11b_mm_mmu_fault_handle_mmu_fault_common(struct gk20a *g,
 		 struct mmu_fault_info *mmufault, u32 *invalidate_replay_val)
 {
-	unsigned int id_type = ID_TYPE_UNKNOWN;
-	u32 num_lce, act_eng_bitmask = 0U;
-	int err = 0;
-	u32 id = NVGPU_INVALID_TSG_ID;
-	unsigned int rc_type = RC_TYPE_NO_RC;
-	struct nvgpu_tsg *tsg = NULL;
+	u32 num_lce;
+	bool ret = false;
 
 	if (!mmufault->valid) {
 		return;
@@ -306,148 +483,21 @@ void gv11b_mm_mmu_fault_handle_mmu_fault_common(struct gk20a *g,
 	num_lce = g->ops.top.get_num_lce(g);
 	if (mmufault->mmu_engine_id >=
 			gmmu_fault_mmu_eng_id_ce0_v()) {
-		if (mmufault->mmu_engine_id <
-			nvgpu_safe_add_u32(gmmu_fault_mmu_eng_id_ce0_v(),
-					   num_lce)) {
-			/* CE page faults are not reported as replayable */
-			nvgpu_log(g, gpu_dbg_intr, "CE Faulted");
-#ifdef CONFIG_NVGPU_REPLAYABLE_FAULT
-			err = gv11b_fb_fix_page_fault(g, mmufault);
-#else
-			err = -EINVAL;
-#endif
-
-			if (mmufault->refch != NULL) {
-				tsg = nvgpu_tsg_from_ch(mmufault->refch);
-				nvgpu_tsg_reset_faulted_eng_pbdma(g, tsg,
-								true, true);
-			}
-			if (err == 0) {
-				nvgpu_log(g, gpu_dbg_intr,
-							"CE Page Fault Fixed");
-				*invalidate_replay_val = 0;
-				if (mmufault->refch != NULL) {
-					nvgpu_channel_put(mmufault->refch);
-					mmufault->refch = NULL;
-				}
-				return;
-			}
-			/* Do recovery */
-			nvgpu_log(g, gpu_dbg_intr, "CE Page Fault Not Fixed");
+		ret = gv11b_mm_mmu_fault_handle_mmu_fault_ce(g, mmufault,
+			invalidate_replay_val, num_lce);
+		if (ret) {
+			return;
 		}
 	}
 
 	if (!mmufault->replayable_fault) {
-		if (mmufault->fault_type ==
-				gmmu_fault_type_unbound_inst_block_v()) {
-		/*
-		 * Bug 1847172: When an engine faults due to an unbound
-		 * instance block, the fault cannot be isolated to a
-		 * single context so we need to reset the entire runlist
-		 */
-			rc_type = RC_TYPE_MMU_FAULT;
-
-		} else if (mmufault->refch != NULL) {
-			if (mmufault->refch->mmu_nack_handled) {
-				/*
-				 * We have already recovered for the same
-				 * context, skip doing another recovery.
-				 */
-				mmufault->refch->mmu_nack_handled = false;
-				/*
-				 * Recovery path can be entered twice for the
-				 * same error in case of mmu nack. If mmu
-				 * nack interrupt is handled before mmu fault
-				 * then channel reference is increased to avoid
-				 * closing the channel by userspace. Decrement
-				 * channel reference.
-				 */
-				nvgpu_channel_put(mmufault->refch);
-				/*
-				 * refch in mmufault is assigned at the time
-				 * of copying fault info from snap reg or bar2
-				 * fault buf.
-				 */
-				nvgpu_channel_put(mmufault->refch);
-				return;
-			} else {
-				/*
-				 * Indicate recovery is handled if mmu fault is
-				 * a result of mmu nack.
-				 */
-				mmufault->refch->mmu_nack_handled = true;
-			}
-
-			tsg = nvgpu_tsg_from_ch(mmufault->refch);
-			if (tsg != NULL) {
-				id = mmufault->refch->tsgid;
-				id_type = ID_TYPE_TSG;
-				rc_type = RC_TYPE_MMU_FAULT;
-			} else {
-				nvgpu_err(g, "chid: %d is referenceable but "
-						"not bound to tsg",
-						mmufault->refch->chid);
-				id_type = ID_TYPE_CHANNEL;
-				rc_type = RC_TYPE_NO_RC;
-			}
-		} else {
-			/* Nothing to do here */
-		}
-
-		/* engine is faulted */
-		if (mmufault->faulted_engine != NVGPU_INVALID_ENG_ID) {
-			act_eng_bitmask = BIT32(mmufault->faulted_engine);
-			rc_type = RC_TYPE_MMU_FAULT;
-		}
-
-		/*
-		 * refch in mmufault is assigned at the time of copying
-		 * fault info from snap reg or bar2 fault buf
-		 */
-		if (mmufault->refch != NULL) {
-			nvgpu_channel_put(mmufault->refch);
-			mmufault->refch = NULL;
-		}
-
-		if (rc_type != RC_TYPE_NO_RC) {
-#ifdef CONFIG_NVGPU_RECOVERY
-			g->ops.fifo.recover(g, act_eng_bitmask,
-				id, id_type, rc_type, mmufault);
-#else
-			nvgpu_err(g, "mmu fault id=%u id_type=%u act_eng_bitmask=%08x",
-				id, id_type, act_eng_bitmask);
-#endif
+		ret = gv11b_mm_mmu_fault_handle_non_replayable(g, mmufault);
+		if (ret) {
+			return;
 		}
 	} else {
-		if (mmufault->fault_type == gmmu_fault_type_pte_v()) {
-			nvgpu_log(g, gpu_dbg_intr, "invalid pte! try to fix");
-#ifdef CONFIG_NVGPU_REPLAYABLE_FAULT
-			err = gv11b_fb_fix_page_fault(g, mmufault);
-#else
-			err = -EINVAL;
-#endif
-			if (err != 0) {
-				*invalidate_replay_val |=
-					gv11b_fb_get_replay_cancel_global_val();
-			} else {
-#ifdef CONFIG_NVGPU_REPLAYABLE_FAULT
-				*invalidate_replay_val |=
-					gv11b_fb_get_replay_start_ack_all();
-#endif
-			}
-		} else {
-			/* cancel faults other than invalid pte */
-			*invalidate_replay_val |=
-				gv11b_fb_get_replay_cancel_global_val();
-		}
-		/*
-		 * refch in mmufault is assigned at the time of copying
-		 * fault info from snap reg or bar2 fault buf
-		 */
-		if (mmufault->refch != NULL) {
-			nvgpu_channel_put(mmufault->refch);
-			mmufault->refch = NULL;
-		}
+		gv11b_mm_mmu_fault_handle_replayable(g, mmufault,
+						invalidate_replay_val);
 	}
 }
 
