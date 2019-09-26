@@ -129,7 +129,7 @@ static void thread_error_handler(int sig, siginfo_t *siginfo, void *context)
 			"  Signal %d in Test: %s.%s!\n", sig,
 			thread_local_module->name, thread_local_test->name);
 	core_add_test_record(thread_local_module->fw, thread_local_module,
-			thread_local_test, false);
+			thread_local_test, FAILED);
 	sem_post(&unit_thread_semaphore);
 	pthread_exit(NULL);
 }
