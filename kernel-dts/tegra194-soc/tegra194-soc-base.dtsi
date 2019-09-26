@@ -391,6 +391,8 @@
 			 <&smmu TEGRA_SID_HC_VM7>;
 		dma-coherent;
 
+		dma-ranges = <0x0 0x0 0x0 0x0 0x7f 0xffff0000>;
+
 		#address-cells = <2>;
 		#size-cells = <2>;
 
