@@ -210,6 +210,21 @@ int nvgpu_ecc_counter_init_per_fbpa(struct gk20a *g,
 	return 0;
 }
 
+/* helper function that frees the count array if non-NULL. */
+static void free_ecc_stat_count_array(struct gk20a *g,
+				      struct nvgpu_ecc_stat **stat,
+				      u32 gpc_count)
+{
+	u32 i;
+
+	if (stat != NULL) {
+		for (i = 0; i < gpc_count; i++) {
+			nvgpu_kfree(g, stat[i]);
+		}
+		nvgpu_kfree(g, stat);
+	}
+}
+
 /* release all ecc_stat */
 void nvgpu_ecc_free(struct gk20a *g)
 {
@@ -224,112 +239,51 @@ void nvgpu_ecc_free(struct gk20a *g)
 
 	gpc_count = nvgpu_gr_config_get_gpc_count(gr_config);
 
-	for (i = 0; i < gpc_count; i++) {
-		if (ecc->gr.sm_lrf_ecc_single_err_count != NULL) {
-			nvgpu_kfree(g, ecc->gr.sm_lrf_ecc_single_err_count[i]);
-		}
-
-		if (ecc->gr.sm_lrf_ecc_double_err_count != NULL) {
-			nvgpu_kfree(g, ecc->gr.sm_lrf_ecc_double_err_count[i]);
-		}
-
-		if (ecc->gr.sm_shm_ecc_sec_count != NULL) {
-			nvgpu_kfree(g, ecc->gr.sm_shm_ecc_sec_count[i]);
-		}
-
-		if (ecc->gr.sm_shm_ecc_sed_count != NULL) {
-			nvgpu_kfree(g, ecc->gr.sm_shm_ecc_sed_count[i]);
-		}
-
-		if (ecc->gr.sm_shm_ecc_ded_count != NULL) {
-			nvgpu_kfree(g, ecc->gr.sm_shm_ecc_ded_count[i]);
-		}
-
-		if (ecc->gr.tex_ecc_total_sec_pipe0_count != NULL) {
-			nvgpu_kfree(g, ecc->gr.tex_ecc_total_sec_pipe0_count[i]);
-		}
-
-		if (ecc->gr.tex_ecc_total_ded_pipe0_count != NULL) {
-			nvgpu_kfree(g, ecc->gr.tex_ecc_total_ded_pipe0_count[i]);
-		}
-
-		if (ecc->gr.tex_unique_ecc_sec_pipe0_count != NULL) {
-			nvgpu_kfree(g, ecc->gr.tex_unique_ecc_sec_pipe0_count[i]);
-		}
-
-		if (ecc->gr.tex_unique_ecc_ded_pipe0_count != NULL) {
-			nvgpu_kfree(g, ecc->gr.tex_unique_ecc_ded_pipe0_count[i]);
-		}
-
-		if (ecc->gr.tex_ecc_total_sec_pipe1_count != NULL) {
-			nvgpu_kfree(g, ecc->gr.tex_ecc_total_sec_pipe1_count[i]);
-		}
-
-		if (ecc->gr.tex_ecc_total_ded_pipe1_count != NULL) {
-			nvgpu_kfree(g, ecc->gr.tex_ecc_total_ded_pipe1_count[i]);
-		}
-
-		if (ecc->gr.tex_unique_ecc_sec_pipe1_count != NULL) {
-			nvgpu_kfree(g, ecc->gr.tex_unique_ecc_sec_pipe1_count[i]);
-		}
-
-		if (ecc->gr.tex_unique_ecc_ded_pipe1_count != NULL) {
-			nvgpu_kfree(g, ecc->gr.tex_unique_ecc_ded_pipe1_count[i]);
-		}
-
-		if (ecc->gr.sm_l1_tag_ecc_corrected_err_count != NULL) {
-			nvgpu_kfree(g, ecc->gr.sm_l1_tag_ecc_corrected_err_count[i]);
-		}
-
-		if (ecc->gr.sm_l1_tag_ecc_uncorrected_err_count != NULL) {
-			nvgpu_kfree(g, ecc->gr.sm_l1_tag_ecc_uncorrected_err_count[i]);
-		}
-
-		if (ecc->gr.sm_cbu_ecc_corrected_err_count != NULL) {
-			nvgpu_kfree(g, ecc->gr.sm_cbu_ecc_corrected_err_count[i]);
-		}
-
-		if (ecc->gr.sm_cbu_ecc_uncorrected_err_count != NULL) {
-			nvgpu_kfree(g, ecc->gr.sm_cbu_ecc_uncorrected_err_count[i]);
-		}
-
-		if (ecc->gr.sm_l1_data_ecc_corrected_err_count != NULL) {
-			nvgpu_kfree(g, ecc->gr.sm_l1_data_ecc_corrected_err_count[i]);
-		}
-
-		if (ecc->gr.sm_l1_data_ecc_uncorrected_err_count != NULL) {
-			nvgpu_kfree(g, ecc->gr.sm_l1_data_ecc_uncorrected_err_count[i]);
-		}
-
-		if (ecc->gr.sm_icache_ecc_corrected_err_count != NULL) {
-			nvgpu_kfree(g, ecc->gr.sm_icache_ecc_corrected_err_count[i]);
-		}
-
-		if (ecc->gr.sm_icache_ecc_uncorrected_err_count != NULL) {
-			nvgpu_kfree(g, ecc->gr.sm_icache_ecc_uncorrected_err_count[i]);
-		}
-	}
-	nvgpu_kfree(g, ecc->gr.sm_lrf_ecc_single_err_count);
-	nvgpu_kfree(g, ecc->gr.sm_lrf_ecc_double_err_count);
-	nvgpu_kfree(g, ecc->gr.sm_shm_ecc_sec_count);
-	nvgpu_kfree(g, ecc->gr.sm_shm_ecc_sed_count);
-	nvgpu_kfree(g, ecc->gr.sm_shm_ecc_ded_count);
-	nvgpu_kfree(g, ecc->gr.tex_ecc_total_sec_pipe0_count);
-	nvgpu_kfree(g, ecc->gr.tex_ecc_total_ded_pipe0_count);
-	nvgpu_kfree(g, ecc->gr.tex_unique_ecc_sec_pipe0_count);
-	nvgpu_kfree(g, ecc->gr.tex_unique_ecc_ded_pipe0_count);
-	nvgpu_kfree(g, ecc->gr.tex_ecc_total_sec_pipe1_count);
-	nvgpu_kfree(g, ecc->gr.tex_ecc_total_ded_pipe1_count);
-	nvgpu_kfree(g, ecc->gr.tex_unique_ecc_sec_pipe1_count);
-	nvgpu_kfree(g, ecc->gr.tex_unique_ecc_ded_pipe1_count);
-	nvgpu_kfree(g, ecc->gr.sm_l1_tag_ecc_corrected_err_count);
-	nvgpu_kfree(g, ecc->gr.sm_l1_tag_ecc_uncorrected_err_count);
-	nvgpu_kfree(g, ecc->gr.sm_cbu_ecc_corrected_err_count);
-	nvgpu_kfree(g, ecc->gr.sm_cbu_ecc_uncorrected_err_count);
-	nvgpu_kfree(g, ecc->gr.sm_l1_data_ecc_corrected_err_count);
-	nvgpu_kfree(g, ecc->gr.sm_l1_data_ecc_uncorrected_err_count);
-	nvgpu_kfree(g, ecc->gr.sm_icache_ecc_corrected_err_count);
-	nvgpu_kfree(g, ecc->gr.sm_icache_ecc_uncorrected_err_count);
+	free_ecc_stat_count_array(g, ecc->gr.sm_lrf_ecc_single_err_count,
+				  gpc_count);
+	free_ecc_stat_count_array(g, ecc->gr.sm_lrf_ecc_double_err_count,
+				  gpc_count);
+	free_ecc_stat_count_array(g, ecc->gr.sm_shm_ecc_sec_count,
+				  gpc_count);
+	free_ecc_stat_count_array(g, ecc->gr.sm_shm_ecc_sed_count,
+				  gpc_count);
+	free_ecc_stat_count_array(g, ecc->gr.sm_shm_ecc_ded_count,
+				  gpc_count);
+	free_ecc_stat_count_array(g, ecc->gr.tex_ecc_total_sec_pipe0_count,
+				  gpc_count);
+	free_ecc_stat_count_array(g, ecc->gr.tex_ecc_total_ded_pipe0_count,
+				  gpc_count);
+	free_ecc_stat_count_array(g, ecc->gr.tex_unique_ecc_sec_pipe0_count,
+				  gpc_count);
+	free_ecc_stat_count_array(g, ecc->gr.tex_unique_ecc_ded_pipe0_count,
+				  gpc_count);
+	free_ecc_stat_count_array(g, ecc->gr.tex_ecc_total_sec_pipe1_count,
+				  gpc_count);
+	free_ecc_stat_count_array(g, ecc->gr.tex_ecc_total_ded_pipe1_count,
+				  gpc_count);
+	free_ecc_stat_count_array(g, ecc->gr.tex_unique_ecc_sec_pipe1_count,
+				  gpc_count);
+	free_ecc_stat_count_array(g, ecc->gr.tex_unique_ecc_ded_pipe1_count,
+				  gpc_count);
+	free_ecc_stat_count_array(g, ecc->gr.sm_l1_tag_ecc_corrected_err_count,
+				  gpc_count);
+	free_ecc_stat_count_array(g,
+				  ecc->gr.sm_l1_tag_ecc_uncorrected_err_count,
+				  gpc_count);
+	free_ecc_stat_count_array(g, ecc->gr.sm_cbu_ecc_corrected_err_count,
+				  gpc_count);
+	free_ecc_stat_count_array(g, ecc->gr.sm_cbu_ecc_uncorrected_err_count,
+				  gpc_count);
+	free_ecc_stat_count_array(g, ecc->gr.sm_l1_data_ecc_corrected_err_count,
+				  gpc_count);
+	free_ecc_stat_count_array(g,
+				  ecc->gr.sm_l1_data_ecc_uncorrected_err_count,
+				  gpc_count);
+	free_ecc_stat_count_array(g, ecc->gr.sm_icache_ecc_corrected_err_count,
+				  gpc_count);
+	free_ecc_stat_count_array(g,
+				  ecc->gr.sm_icache_ecc_uncorrected_err_count,
+				  gpc_count);
 
 	nvgpu_kfree(g, ecc->gr.gcc_l15_ecc_corrected_err_count);
 	nvgpu_kfree(g, ecc->gr.gcc_l15_ecc_uncorrected_err_count);
