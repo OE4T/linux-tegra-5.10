@@ -157,7 +157,7 @@ int nvgpu_thread_create_priority(struct nvgpu_thread *thread,
 		return ret;
 	}
 
-	ret = pthread_attr_setschedpolicy(&attr, SCHED_FIFO);
+	ret = pthread_attr_setschedpolicy(&attr, SCHED_RR);
 	if (ret != 0) {
 		(void) pthread_attr_destroy(&attr);
 		return ret;
