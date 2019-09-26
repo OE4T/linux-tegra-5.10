@@ -23,6 +23,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/gmmu.h>
 #include <nvgpu/static_analysis.h>
+#include <nvgpu/string.h>
 
 #include <nvgpu/hw/gp10b/hw_gmmu_gp10b.h>
 
@@ -125,15 +126,7 @@ static void update_gmmu_pde0_locked(struct vm_gk20a *vm,
 		tmp_addr = phys_addr >> gmmu_new_dual_pde_address_shift_v();
 		nvgpu_assert(u64_hi32(tmp_addr) == 0U);
 		small_addr = (u32)tmp_addr;
-	}
 
-	if (big_valid) {
-		tmp_addr = phys_addr >> gmmu_new_dual_pde_address_big_shift_v();
-		nvgpu_assert(u64_hi32(tmp_addr) == 0U);
-		big_addr = (u32)tmp_addr;
-	}
-
-	if (small_valid) {
 		pde_v[2] |=
 			gmmu_new_dual_pde_address_small_sys_f(small_addr);
 		pde_v[2] |= nvgpu_aperture_mask(g, next_pd->mem,
@@ -145,6 +138,10 @@ static void update_gmmu_pde0_locked(struct vm_gk20a *vm,
 	}
 
 	if (big_valid) {
+		tmp_addr = phys_addr >> gmmu_new_dual_pde_address_big_shift_v();
+		nvgpu_assert(u64_hi32(tmp_addr) == 0U);
+		big_addr = (u32)tmp_addr;
+
 		pde_v[0] |= gmmu_new_dual_pde_address_big_sys_f(big_addr);
 		pde_v[0] |= gmmu_new_dual_pde_vol_big_true_f();
 		pde_v[0] |= nvgpu_aperture_mask(g, next_pd->mem,
@@ -238,6 +235,50 @@ static void update_pte_sparse(u32 *pte_w)
 	pte_w[0] |= gmmu_new_pte_vol_true_f();
 }
 
+static char *map_attrs_to_str(char *dest, struct nvgpu_gmmu_attrs *attrs)
+{
+	dest[0] = attrs->cacheable ? 'C' : '-';
+	dest[1] = attrs->sparse    ? 'S' : '-';
+	dest[2] = attrs->priv      ? 'P' : '-';
+	dest[3] = attrs->valid     ? 'V' : '-';
+	dest[4] = attrs->platform_atomic ? 'A' : '-';
+
+	return dest;
+}
+
+static void pte_dbg_print(struct gk20a *g,
+		struct nvgpu_gmmu_attrs *attrs,
+		const char *vm_name, u32 pd_idx, u32 mmu_level_entry_size,
+		u64 virt_addr, u64 phys_addr, u32 page_size, u32 *pte_w)
+{
+	char attrs_str[5];
+	char ctag_str[32] = "\0";
+#ifdef CONFIG_NVGPU_COMPRESSION
+	u32 ctag = nvgpu_safe_cast_u64_to_u32(attrs->ctag /
+					g->ops.fb.compression_page_size(g));
+	(void)strcpy(ctag_str, "ctag=0x");
+	(void)nvgpu_strnadd_u32(ctag_str, ctag, (u32)strlen(ctag_str), 10U);
+#endif
+
+	pte_dbg(g, attrs,
+		"vm=%s "
+		"PTE: i=%-4u size=%-2u | "
+		"GPU %#-12llx  phys %#-12llx "
+		"pgsz: %3dkb perm=%-2s kind=%#02x APT=%-6s %-5s "
+		"%s "
+		"[0x%08x, 0x%08x]",
+		vm_name,
+		pd_idx, mmu_level_entry_size,
+		virt_addr, phys_addr,
+		page_size >> 10,
+		nvgpu_gmmu_perm_str(attrs->rw_flag),
+		attrs->kind_v,
+		nvgpu_aperture_str(attrs->aperture),
+		map_attrs_to_str(attrs_str, attrs),
+		ctag_str,
+		pte_w[1], pte_w[0]);
+}
+
 static void update_gmmu_pte_locked(struct vm_gk20a *vm,
 				   const struct gk20a_mmu_level *l,
 				   struct nvgpu_gmmu_pd *pd,
@@ -259,49 +300,8 @@ static void update_gmmu_pte_locked(struct vm_gk20a *vm,
 		}
 	}
 
-#ifdef CONFIG_NVGPU_COMPRESSION
-	pte_dbg(g, attrs,
-		"vm=%s "
-		"PTE: i=%-4u size=%-2u | "
-		"GPU %#-12llx  phys %#-12llx "
-		"pgsz: %3dkb perm=%-2s kind=%#02x APT=%-6s %c%c%c%c%c "
-		"ctag=0x%08llx "
-		"[0x%08x, 0x%08x]",
-		vm->name,
-		pd_idx, l->entry_size,
-		virt_addr, phys_addr,
-		page_size >> 10,
-		nvgpu_gmmu_perm_str(attrs->rw_flag),
-		attrs->kind_v,
-		nvgpu_aperture_str(attrs->aperture),
-		attrs->cacheable ? 'C' : '-',
-		attrs->sparse    ? 'S' : '-',
-		attrs->priv      ? 'P' : '-',
-		attrs->valid     ? 'V' : '-',
-		attrs->platform_atomic ? 'A' : '-',
-		attrs->ctag / g->ops.fb.compression_page_size(g),
-		pte_w[1], pte_w[0]);
-#else
-	pte_dbg(g, attrs,
-		"vm=%s "
-		"PTE: i=%-4u size=%-2u | "
-		"GPU %#-12llx  phys %#-12llx "
-		"pgsz: %3dkb perm=%-2s kind=%#02x APT=%-6s %c%c%c%c%c "
-		"[0x%08x, 0x%08x]",
-		vm->name,
-		pd_idx, l->entry_size,
-		virt_addr, phys_addr,
-		page_size >> 10,
-		nvgpu_gmmu_perm_str(attrs->rw_flag),
-		attrs->kind_v,
-		nvgpu_aperture_str(attrs->aperture),
-		attrs->cacheable ? 'C' : '-',
-		attrs->sparse    ? 'S' : '-',
-		attrs->priv      ? 'P' : '-',
-		attrs->valid     ? 'V' : '-',
-		attrs->platform_atomic ? 'A' : '-',
-		pte_w[1], pte_w[0]);
-#endif
+	pte_dbg_print(g, attrs, vm->name, pd_idx, l->entry_size, virt_addr,
+		phys_addr, page_size, pte_w);
 
 	nvgpu_pd_write(g, pd, (size_t)nvgpu_safe_add_u32(pd_offset, 0U),
 								pte_w[0]);
