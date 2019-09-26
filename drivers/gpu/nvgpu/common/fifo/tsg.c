@@ -173,17 +173,6 @@ static int nvgpu_tsg_unbind_channel_common(struct nvgpu_tsg *tsg,
 		goto fail_enable_tsg;
 	}
 
-	/* Remove channel from TSG and re-enable rest of the channels */
-	nvgpu_rwsem_down_write(&tsg->ch_list_lock);
-	nvgpu_list_del(&ch->ch_entry);
-	ch->tsgid = NVGPU_INVALID_TSG_ID;
-
-	/* another thread could have re-enabled the channel because it was
-	 * still on the list at that time, so make sure it's truly disabled
-	 */
-	g->ops.channel.disable(ch);
-	nvgpu_rwsem_up_write(&tsg->ch_list_lock);
-
 #ifdef CONFIG_NVGPU_DEBUGGER
 	while (ch->mmu_debug_mode_refcnt > 0U) {
 		err = nvgpu_tsg_set_mmu_debug_mode(ch, false);
@@ -194,6 +183,17 @@ static int nvgpu_tsg_unbind_channel_common(struct nvgpu_tsg *tsg,
 		}
 	}
 #endif
+
+	/* Remove channel from TSG and re-enable rest of the channels */
+	nvgpu_rwsem_down_write(&tsg->ch_list_lock);
+	nvgpu_list_del(&ch->ch_entry);
+	ch->tsgid = NVGPU_INVALID_TSG_ID;
+
+	/* another thread could have re-enabled the channel because it was
+	 * still on the list at that time, so make sure it's truly disabled
+	 */
+	g->ops.channel.disable(ch);
+	nvgpu_rwsem_up_write(&tsg->ch_list_lock);
 
 	/*
 	 * Don't re-enable all channels if TSG has timed out already
