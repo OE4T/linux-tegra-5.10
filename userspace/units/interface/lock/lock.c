@@ -32,9 +32,7 @@
 #include <pthread.h>
 #include <semaphore.h>
 
-#define TYPE_MUTEX		0
-#define TYPE_SPINLOCK		1
-#define TYPE_RAW_SPINLOCK	2
+#include "lock.h"
 
 /* Parameter structure to pass to worker threads */
 struct worker_parameters {
@@ -47,11 +45,7 @@ struct worker_parameters {
 sem_t worker_sem;
 bool test_shared_flag;
 
-/*
- * Simple test to check mutex init routine
- */
-static int test_mutex_init(struct unit_module *m, struct gk20a *g,
-					void *args)
+int test_mutex_init(struct unit_module *m, struct gk20a *g, void *args)
 {
 	struct nvgpu_mutex mutex;
 
@@ -61,11 +55,7 @@ static int test_mutex_init(struct unit_module *m, struct gk20a *g,
 	return UNIT_SUCCESS;
 }
 
-/*
- * Test to verify the behavior of mutex tryacquire function.
- */
-static int test_mutex_tryacquire(struct unit_module *m, struct gk20a *g,
-					void *args)
+int test_mutex_tryacquire(struct unit_module *m, struct gk20a *g, void *args)
 {
 	struct nvgpu_mutex mutex;
 	int status;
@@ -154,7 +144,7 @@ static void *lock_worker(void *args)
  * release functions.
  * The "args" argument is an int indicating the lock type.
  */
-static int test_lock_acquire_release(struct unit_module *m, struct gk20a *g,
+int test_lock_acquire_release(struct unit_module *m, struct gk20a *g,
 					void *args)
 {
 	struct nvgpu_mutex mutex;
