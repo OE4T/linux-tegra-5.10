@@ -30,7 +30,6 @@
  */
 
 #include <nvgpu/types.h>
-#include <nvgpu/bug.h>
 
 /** @name Coverity Whitelisting
  *  These macros are used for whitelisting coverity violations. The macros are
@@ -164,6 +163,12 @@
 #define NVGPU_COV_WHITELIST_BLOCK_END(checker)
 #endif
 /**@}*/ /* "Coverity Whitelisting" doxygen group */
+
+/*
+ * bug.h needs the whitelist macros, so wait to include it until after those
+ * are defined.
+ */
+#include <nvgpu/bug.h>
 
 static inline u32 nvgpu_safe_add_u32(u32 ui_a, u32 ui_b)
 {

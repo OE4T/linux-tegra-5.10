@@ -279,7 +279,13 @@ void nvgpu_vm_mapping_batch_finish_locked(
 	int err;
 
 	/* hanging kref_put batch pointer? */
+NVGPU_COV_WHITELIST_BLOCK_BEGIN(false_positive, 1, NVGPU_MISRA(Rule, 10_3), "Bug 2277532")
+NVGPU_COV_WHITELIST_BLOCK_BEGIN(false_positive, 1, NVGPU_MISRA(Rule, 14_4), "Bug 2277532")
+NVGPU_COV_WHITELIST_BLOCK_BEGIN(false_positive, 1, NVGPU_MISRA(Rule, 15_6), "Bug 2277532")
 	WARN_ON(vm->kref_put_batch == mapping_batch);
+NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Rule, 10_3))
+NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Rule, 14_4))
+NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Rule, 15_6))
 
 	if (mapping_batch->need_tlb_invalidate) {
 		struct gk20a *g = gk20a_from_vm(vm);
@@ -929,7 +935,11 @@ int nvgpu_vm_get_buffers(struct vm_gk20a *vm,
 		nvgpu_rbtree_enum_next(&node, node);
 	}
 
+NVGPU_COV_WHITELIST_BLOCK_BEGIN(false_positive, 1, NVGPU_MISRA(Rule, 14_4), "Bug 2277532")
+NVGPU_COV_WHITELIST_BLOCK_BEGIN(false_positive, 1, NVGPU_MISRA(Rule, 15_6), "Bug 2277532")
 	BUG_ON(i != vm->num_user_mapped_buffers);
+NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Rule, 14_4))
+NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Rule, 15_6))
 
 	*num_buffers = vm->num_user_mapped_buffers;
 	*mapped_buffers = buffer_list;

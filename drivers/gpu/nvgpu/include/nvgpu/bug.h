@@ -27,6 +27,7 @@
 #else
 #include <nvgpu/posix/bug.h>
 #endif
+#include <nvgpu/static_analysis.h>
 
 /*
  * Define an assert macro that code within nvgpu can use.
@@ -56,7 +57,11 @@
  */
 static inline void nvgpu_assert(bool cond)
 {
+NVGPU_COV_WHITELIST_BLOCK_BEGIN(false_positive, 1, NVGPU_MISRA(Rule, 14_4), "Bug 2277532")
+NVGPU_COV_WHITELIST_BLOCK_BEGIN(false_positive, 1, NVGPU_MISRA(Rule, 15_6), "Bug 2277532")
 	BUG_ON(!cond);
+NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Rule, 14_4))
+NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Rule, 15_6))
 }
 #endif
 

@@ -115,7 +115,13 @@ static void balloc_compute_max_order(struct nvgpu_buddy_allocator *a)
 static void balloc_allocator_align(struct nvgpu_buddy_allocator *a)
 {
 	a->start = ALIGN(a->base, a->blk_size);
+NVGPU_COV_WHITELIST_BLOCK_BEGIN(false_positive, 1, NVGPU_MISRA(Rule, 10_3), "Bug 2277532")
+NVGPU_COV_WHITELIST_BLOCK_BEGIN(false_positive, 1, NVGPU_MISRA(Rule, 14_4), "Bug 2277532")
+NVGPU_COV_WHITELIST_BLOCK_BEGIN(false_positive, 1, NVGPU_MISRA(Rule, 15_6), "Bug 2277532")
 	WARN_ON(a->start != a->base);
+NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Rule, 10_3))
+NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Rule, 14_4))
+NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Rule, 15_6))
 	nvgpu_assert(a->blk_size > 0ULL);
 	a->end   = nvgpu_safe_add_u64(a->base, a->length) &
 						~(a->blk_size - 1U);
@@ -327,7 +333,11 @@ static void nvgpu_buddy_allocator_destroy(struct nvgpu_allocator *na)
 	 * Now clean up the unallocated buddies.
 	 */
 	for (i = 0U; i < GPU_BALLOC_ORDER_LIST_LEN; i++) {
+NVGPU_COV_WHITELIST_BLOCK_BEGIN(false_positive, 1, NVGPU_MISRA(Rule, 14_4), "Bug 2277532")
+NVGPU_COV_WHITELIST_BLOCK_BEGIN(false_positive, 1, NVGPU_MISRA(Rule, 15_6), "Bug 2277532")
 		BUG_ON(a->buddy_list_alloced[i] != 0U);
+NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Rule, 14_4))
+NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Rule, 15_6))
 
 		while (!nvgpu_list_empty(balloc_get_order_list(a, i))) {
 			bud = nvgpu_list_first_entry(
@@ -770,7 +780,11 @@ static u64 balloc_do_alloc_fixed(struct nvgpu_buddy_allocator *a,
 	 * in the lists that hold buddies. This leads to some very strange
 	 * crashes.
 	 */
+NVGPU_COV_WHITELIST_BLOCK_BEGIN(false_positive, 1, NVGPU_MISRA(Rule, 14_4), "Bug 2277532")
+NVGPU_COV_WHITELIST_BLOCK_BEGIN(false_positive, 1, NVGPU_MISRA(Rule, 15_6), "Bug 2277532")
 	BUG_ON(pte_size == BALLOC_PTE_SIZE_INVALID);
+NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Rule, 14_4))
+NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Rule, 15_6))
 
 	shifted_base = balloc_base_shift(a, base);
 	if (shifted_base == 0U) {

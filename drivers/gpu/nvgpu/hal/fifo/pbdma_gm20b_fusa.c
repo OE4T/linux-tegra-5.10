@@ -253,7 +253,11 @@ u32 gm20b_pbdma_acquire_val(u64 timeout)
 	timeout *= 1000000UL; /* ms -> ns */
 	do_div(timeout, 1024U); /* in unit of 1024ns */
 	tmp = nvgpu_fls(timeout >> 32U);
+NVGPU_COV_WHITELIST_BLOCK_BEGIN(false_positive, 1, NVGPU_MISRA(Rule, 14_4), "Bug 2277532")
+NVGPU_COV_WHITELIST_BLOCK_BEGIN(false_positive, 1, NVGPU_MISRA(Rule, 15_6), "Bug 2277532")
 	BUG_ON(tmp > U64(U32_MAX));
+NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Rule, 14_4))
+NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Rule, 15_6))
 	val_len = (u32)tmp + 32U;
 	if (val_len == 32U) {
 		val_len = nvgpu_safe_cast_u64_to_u32(nvgpu_fls(timeout));
@@ -263,11 +267,19 @@ u32 gm20b_pbdma_acquire_val(u64 timeout)
 		mantissa = pbdma_acquire_timeout_man_max_v();
 	} else if (val_len > 16U) {
 		exponent = val_len - 16U;
+NVGPU_COV_WHITELIST_BLOCK_BEGIN(false_positive, 1, NVGPU_MISRA(Rule, 14_4), "Bug 2277532")
+NVGPU_COV_WHITELIST_BLOCK_BEGIN(false_positive, 1, NVGPU_MISRA(Rule, 15_6), "Bug 2277532")
 		BUG_ON((timeout >> exponent) > U64(U32_MAX));
+NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Rule, 14_4))
+NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Rule, 15_6))
 		mantissa = (u32)(timeout >> exponent);
 	} else {
 		exponent = 0;
+NVGPU_COV_WHITELIST_BLOCK_BEGIN(false_positive, 1, NVGPU_MISRA(Rule, 14_4), "Bug 2277532")
+NVGPU_COV_WHITELIST_BLOCK_BEGIN(false_positive, 1, NVGPU_MISRA(Rule, 15_6), "Bug 2277532")
 		BUG_ON(timeout > U64(U32_MAX));
+NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Rule, 14_4))
+NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Rule, 15_6))
 		mantissa = (u32)timeout;
 	}
 
