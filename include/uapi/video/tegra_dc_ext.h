@@ -354,9 +354,21 @@ enum tegra_dc_ext_avi_colorimetry {
 	TEGRA_DC_EXT_AVI_COLORIMETRY_BT2020_YCC_RGB,
 } __attribute__((__packed__));
 
+/*
+ * Client data used by tegra_dc to force color components
+ */
+enum tegra_dc_ext_avi_color_components_change {
+	TEGRA_DC_EXT_AVI_COLOR_COMPONENTS_DEFAULT,
+	TEGRA_DC_EXT_AVI_COLOR_COMPONENTS_RGB,
+	TEGRA_DC_EXT_AVI_COLOR_COMPONENTS_YUV422,
+	TEGRA_DC_EXT_AVI_COLOR_COMPONENTS_YUV444,
+	TEGRA_DC_EXT_AVI_COLOR_COMPONENTS_YUV420,
+} __attribute__((__packed__));
+
 struct tegra_dc_ext_avi {
 	__u8 avi_colorimetry;
-	__u8 reserved[25];
+	__u8 avi_color_components;
+	__u8 reserved[24];
 };
 
 /*

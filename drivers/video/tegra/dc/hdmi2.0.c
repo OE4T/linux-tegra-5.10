@@ -2155,6 +2155,24 @@ static void tegra_hdmi_avi_infoframe_update(struct tegra_hdmi *hdmi)
 	avi->act_fmt_valid = HDMI_AVI_ACTIVE_FORMAT_INVALID;
 	avi->rgb_ycc = tegra_hdmi_get_rgb_ycc(hdmi);
 
+	switch (hdmi->avi_color_components) {
+	case TEGRA_DC_EXT_AVI_COLOR_COMPONENTS_RGB:
+		avi->rgb_ycc = HDMI_AVI_RGB;
+		break;
+	case TEGRA_DC_EXT_AVI_COLOR_COMPONENTS_YUV422:
+		avi->rgb_ycc = HDMI_AVI_YCC_422;
+		break;
+	case TEGRA_DC_EXT_AVI_COLOR_COMPONENTS_YUV444:
+		avi->rgb_ycc = HDMI_AVI_YCC_444;
+		break;
+	case TEGRA_DC_EXT_AVI_COLOR_COMPONENTS_YUV420:
+		avi->rgb_ycc = HDMI_AVI_YCC_420;
+		break;
+	default:
+		/* Let default value as it is.*/
+		break;
+	}
+
 	avi->act_format = HDMI_AVI_ACTIVE_FORMAT_SAME;
 	avi->aspect_ratio = tegra_hdmi_get_aspect_ratio(hdmi);
 	avi->colorimetry = tegra_hdmi_is_ex_colorimetry(hdmi) ?
@@ -2244,6 +2262,7 @@ static int tegra_dc_hdmi_set_avi(struct tegra_dc *dc,
 	struct tegra_hdmi *hdmi = tegra_dc_get_outdata(dc);
 
 	hdmi->avi_colorimetry = avi->avi_colorimetry;
+	hdmi->avi_color_components = avi->avi_color_components;
 	/* Setting AVI infoframe externally */
 	tegra_hdmi_avi_infoframe(hdmi);
 
