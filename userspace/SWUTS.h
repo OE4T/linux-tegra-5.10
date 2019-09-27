@@ -33,6 +33,7 @@
  *   - @ref SWUTS-enabled
  *   - @ref SWUTS-interface-bsearch
  *   - @ref SWUTS-interface-lock
+ *   - @ref SWUTS-interface-rbtree
  *   - @ref SWUTS-fifo
  *   - @ref SWUTS-fifo-channel
  *   - @ref SWUTS-fifo-runlist

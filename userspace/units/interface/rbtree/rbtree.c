@@ -27,56 +27,7 @@
 #include <nvgpu/rbtree.h>
 #include <stdlib.h>
 
-/*
- * To make testing easier, most tests will use the same rbtree that is built
- * according to:
- * - The tree will contain 9 nodes (10 insertions, but one rejected as
- *   duplicate)
- * - The values in the tree express a range. All nodes have the same range.
- * - The values and the order in which they are inserted is carefully chosen
- *   to maximize code coverage by ensuring that all corner cases are hit
- */
-#define INITIAL_ELEMENTS 10
-#define RANGE_SIZE 10U
-
-/*
- * Sample tree used throughout this unit. Node values below are key_start.
- *
- *         130 (Black)
- *        /   \
- *       /     \
- *     50       200  (Red)
- *    /  \     /   \
- *   30  80   170   300  (Black)
- *  /        /
- * 10      120  (Red)
- *
- * NOTE: There is a duplicate entry that will be ignored during insertion.
- */
-#define DUPLICATE_VALUE 300
-u64 initial_key_start[] = {50, 30, 80, 100, 170, 10, 200, DUPLICATE_VALUE,
-	DUPLICATE_VALUE, 120};
-
-/*
- * The following key value should not exist or cover a range from the keys
- * above.
- */
-#define INVALID_KEY_START 2000
-
-/*
- * The following key will be used to search and range_search in the tree. It is
- * chosen so that paths taken will involve both left and right branches.
- */
-#define SEARCH_KEY 120
-
-/*
- * The values below will cause the red-black properties to be violated upon
- * insertion into the tree defined above. As a result, these will trigger
- * specific cases during the tree rebalancing procedure.
- */
-#define RED_BLACK_VIOLATION_1 20
-#define RED_BLACK_VIOLATION_2 320
-
+#include "rbtree.h"
 
 struct nvgpu_rbtree_node *elements[INITIAL_ELEMENTS];
 
@@ -194,13 +145,7 @@ static void free_test_tree(struct unit_module *m,
 	/* No need to explicitly free the root as it was one of the elements */
 }
 
-/*
- * Test to check the nvgpu_rbtree_insert operation.
- * First will create the test tree and check that it is valid.
- * Then it will insert some well chosen values to target specific branches
- * in the re-balancing code.
- */
-static int test_insert(struct unit_module *m, struct gk20a *g, void *args)
+int test_insert(struct unit_module *m, struct gk20a *g, void *args)
 {
 	struct nvgpu_rbtree_node *root = NULL;
 	struct nvgpu_rbtree_node *node1, *node2 = NULL;
@@ -236,13 +181,7 @@ free_tree:
 	return status;
 }
 
-/*
- * Test to check the nvgpu_rbtree_unlink operation by removing every node from
- * the tree.
- * This test will also use the nvgpu_rbtree_search operation to check that
- * the node was effectively removed.
- */
-static int test_unlink(struct unit_module *m, struct gk20a *g, void *args)
+int test_unlink(struct unit_module *m, struct gk20a *g, void *args)
 {
 	struct nvgpu_rbtree_node *root = NULL;
 	struct nvgpu_rbtree_node *result = NULL;
@@ -301,11 +240,7 @@ cleanup:
 	return status;
 }
 
-/*
- * Test to check the nvgpu_rbtree_search and nvgpu_rbtree_range_search routines
- * and go over some error handling.
- */
-static int test_search(struct unit_module *m, struct gk20a *g, void *args)
+int test_search(struct unit_module *m, struct gk20a *g, void *args)
 {
 	struct nvgpu_rbtree_node *root = NULL;
 	struct nvgpu_rbtree_node *result1, *result2 = NULL;
@@ -370,11 +305,7 @@ cleanup:
 	return status;
 }
 
-/*
- * Test to check the nvgpu_rbtree_enum_start routine and go over some error
- * handling.
- */
-static int test_enum(struct unit_module *m, struct gk20a *g, void *args)
+int test_enum(struct unit_module *m, struct gk20a *g, void *args)
 {
 	struct nvgpu_rbtree_node *root = NULL;
 	struct nvgpu_rbtree_node *node = NULL;
@@ -414,13 +345,7 @@ cleanup:
 	return status;
 }
 
-/*
- * Test to check the nvgpu_rbtree_enum_next routine and go over some error
- * handling.
- * nvgpu_rbtree_enum_next will find the next node whose key_start value is
- * greater than the one in the provided node.
- */
-static int test_enum_next(struct unit_module *m, struct gk20a *g, void *args)
+int test_enum_next(struct unit_module *m, struct gk20a *g, void *args)
 {
 	struct nvgpu_rbtree_node *root = NULL;
 	struct nvgpu_rbtree_node *node = NULL;
@@ -468,11 +393,7 @@ cleanup:
 	return status;
 }
 
-/*
- * Test to check the nvgpu_rbtree_less_than_search routine.
- * Given a key_start value, find a node with a lower key_start value.
- */
-static int test_search_less(struct unit_module *m, struct gk20a *g, void *args)
+int test_search_less(struct unit_module *m, struct gk20a *g, void *args)
 {
 	struct nvgpu_rbtree_node *root = NULL;
 	struct nvgpu_rbtree_node *result;
@@ -505,12 +426,7 @@ cleanup:
 	return status;
 }
 
-/*
- * Test corner cases in nvgpu_rbtree_unlink (and delete_fixup) to increase
- * branch and line coverage.
- */
-static int test_unlink_corner_cases(struct unit_module *m, struct gk20a *g,
-	void *args)
+int test_unlink_corner_cases(struct unit_module *m, struct gk20a *g, void *args)
 {
 	struct nvgpu_rbtree_node *root = NULL;
 	u64 more_key_start[] = {0x1000, 0x61000, 0x79000, 0x7d000, 0x7f000,
