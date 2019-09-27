@@ -2491,7 +2491,7 @@ void nvgpu_channel_cleanup_sw(struct gk20a *g)
 
 int nvgpu_channel_init_support(struct gk20a *g, u32 chid)
 {
-	struct nvgpu_channel *c = g->fifo.channel+chid;
+	struct nvgpu_channel *c = &g->fifo.channel[chid];
 	int err;
 
 	c->g = NULL;
@@ -2684,7 +2684,7 @@ void nvgpu_channel_semaphore_wakeup(struct gk20a *g, bool post_events)
 	nvgpu_assert(g->ops.mm.cache.fb_flush(g) == 0);
 
 	for (chid = 0; chid < f->num_channels; chid++) {
-		struct nvgpu_channel *c = g->fifo.channel+chid;
+		struct nvgpu_channel *c = &g->fifo.channel[chid];
 		if (nvgpu_channel_get(c) != NULL) {
 			if (nvgpu_atomic_read(&c->bound) != 0) {
 
