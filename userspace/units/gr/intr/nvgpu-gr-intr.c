@@ -167,10 +167,230 @@ static int test_gr_intr_sw_exceptions(struct unit_module *m,
 	return UNIT_SUCCESS;
 }
 
+static void gr_intr_gpc_gpcmmu_esr_regs(struct gk20a *g)
+{
+	u32 esr_reg = gr_gpc0_mmu_gpcmmu_global_esr_ecc_corrected_m() |
+			gr_gpc0_mmu_gpcmmu_global_esr_ecc_uncorrected_m();
+
+	nvgpu_posix_io_writel_reg_space(g,
+		gr_gpc0_mmu_gpcmmu_global_esr_r(), esr_reg);
+}
+
+static void gr_intr_gpc_gpccs_esr_regs(struct gk20a *g)
+{
+	u32 esr_reg = gr_gpc0_gpccs_hww_esr_ecc_corrected_m() |
+			gr_gpc0_gpccs_hww_esr_ecc_uncorrected_m();
+
+	nvgpu_posix_io_writel_reg_space(g,
+		gr_gpc0_gpccs_hww_esr_r(), esr_reg);
+}
+
+struct test_gr_intr_gpc_ecc_status {
+	u32 status_val;
+	u32 status_reg;
+	u32 corr_reg;
+	u32 uncorr_reg;
+};
+
+struct test_gr_intr_gpc_ecc_status gpc_ecc_reg[] = {
+	[0] = { /* L1 tag ecc regs */
+		.status_val = 0xFFF,
+		.status_reg = gr_pri_gpc0_tpc0_sm_l1_tag_ecc_status_r(),
+		.corr_reg = gr_pri_gpc0_tpc0_sm_l1_tag_ecc_corrected_err_count_r(),
+		.uncorr_reg = gr_pri_gpc0_tpc0_sm_l1_tag_ecc_uncorrected_err_count_r(),
+	      },
+	[1] = { /* LRF ecc regs */
+		.status_val = 0xFFFFFFF,
+		.status_reg = gr_pri_gpc0_tpc0_sm_lrf_ecc_status_r(),
+		.corr_reg = gr_pri_gpc0_tpc0_sm_lrf_ecc_corrected_err_count_r(),
+		.uncorr_reg = gr_pri_gpc0_tpc0_sm_lrf_ecc_uncorrected_err_count_r(),
+	      },
+	[2] = { /* CBU ecc regs */
+		.status_val = 0xF00FF,
+		.status_reg = gr_pri_gpc0_tpc0_sm_cbu_ecc_status_r(),
+		.corr_reg = gr_pri_gpc0_tpc0_sm_cbu_ecc_corrected_err_count_r(),
+		.uncorr_reg = gr_pri_gpc0_tpc0_sm_cbu_ecc_uncorrected_err_count_r(),
+	      },
+	[3] = { /* L1 data regs */
+		.status_val = 0xF0F,
+		.status_reg = gr_pri_gpc0_tpc0_sm_l1_data_ecc_status_r(),
+		.corr_reg = gr_pri_gpc0_tpc0_sm_l1_data_ecc_corrected_err_count_r(),
+		.uncorr_reg = gr_pri_gpc0_tpc0_sm_l1_data_ecc_uncorrected_err_count_r(),
+	      },
+	[4] = { /* ICACHE regs */
+		.status_val = 0xF00FF,
+		.status_reg = gr_pri_gpc0_tpc0_sm_icache_ecc_status_r(),
+		.corr_reg = gr_pri_gpc0_tpc0_sm_icache_ecc_corrected_err_count_r(),
+		.uncorr_reg = gr_pri_gpc0_tpc0_sm_icache_ecc_uncorrected_err_count_r(),
+	      },
+	[5] = { /* MMU_L1TLB regs */
+		.status_val = 0xF000F,
+		.status_reg = gr_gpc0_mmu_l1tlb_ecc_status_r(),
+		.corr_reg = gr_gpc0_mmu_l1tlb_ecc_corrected_err_count_r(),
+		.uncorr_reg = gr_gpc0_mmu_l1tlb_ecc_uncorrected_err_count_r(),
+	      },
+	[6] = { /* GPCCS_FALCON regs */
+		.status_val = 0xF33,
+		.status_reg = gr_gpc0_gpccs_falcon_ecc_status_r(),
+		.corr_reg = gr_gpc0_gpccs_falcon_ecc_corrected_err_count_r(),
+		.uncorr_reg = gr_gpc0_gpccs_falcon_ecc_uncorrected_err_count_r(),
+	      },
+	[7] = { /* GCC_L15 regs */
+		.status_val = 0xF33,
+		.status_reg = gr_pri_gpc0_gcc_l15_ecc_status_r(),
+		.corr_reg = gr_pri_gpc0_gcc_l15_ecc_corrected_err_count_r(),
+		.uncorr_reg = gr_pri_gpc0_gcc_l15_ecc_uncorrected_err_count_r(),
+	      },
+};
+
+static void gr_intr_gpc_ecc_err_regs(struct gk20a *g)
+{
+	u32 cnt = 20U;
+	int i;
+	int arry_cnt = sizeof(gpc_ecc_reg)/
+			sizeof(struct test_gr_intr_gpc_ecc_status);
+
+	for (i = 0; i < arry_cnt; i++) {
+
+		nvgpu_posix_io_writel_reg_space(g,
+				gpc_ecc_reg[i].corr_reg, cnt);
+		nvgpu_posix_io_writel_reg_space(g,
+				gpc_ecc_reg[i].uncorr_reg, cnt);
+		nvgpu_posix_io_writel_reg_space(g,
+				gpc_ecc_reg[i].status_reg,
+				gpc_ecc_reg[i].status_val);
+	}
+}
+
+static void gr_test_enable_gpc_exception_intr(struct gk20a *g)
+{
+	/* Set exception pending */
+	nvgpu_posix_io_writel_reg_space(g, gr_intr_r(),
+				gr_intr_exception_pending_f());
+
+	/* Set gpc exception */
+	nvgpu_posix_io_writel_reg_space(g, gr_exception_r(),
+						gr_exception_gpc_m());
+
+	/* Set gpc exception1 */
+	nvgpu_posix_io_writel_reg_space(g, gr_exception1_r(),
+					gr_exception1_gpc_0_pending_f());
+}
+
+static int gr_test_gpc_exception_intr(struct gk20a *g)
+{
+	int err = UNIT_SUCCESS;
+
+	/* enable gpc exception interrupt bit */
+	gr_test_enable_gpc_exception_intr(g);
+
+	/* Call interrupt routine */
+	err = g->ops.gr.intr.stall_isr(g);
+
+	return err;
+}
+
+static void gr_test_set_gpc_exceptions(struct gk20a *g, bool full)
+{
+	u32 gpc_exception = 0;
+
+	/* Set exceptions for gpcmmu/gcc/tpc */
+	gpc_exception = gr_gpc0_gpccs_gpc_exception_gpcmmu_m() |
+			gr_gpc0_gpccs_gpc_exception_gpccs_m() |
+			gr_gpcs_gpccs_gpc_exception_en_gcc_f(1U) |
+			gr_gpcs_gpccs_gpc_exception_en_tpc_f(1U);
+	if (full) {
+	/* Set exceptions for prop/zcull/setup/pes/gpccs */
+		gpc_exception |= gr_gpc0_gpccs_gpc_exception_prop_m() |
+			gr_gpc0_gpccs_gpc_exception_zcull_m() |
+			gr_gpc0_gpccs_gpc_exception_setup_m() |
+			gr_gpc0_gpccs_gpc_exception_pes0_m() |
+			gr_gpc0_gpccs_gpc_exception_pes1_m();
+	}
+
+	nvgpu_posix_io_writel_reg_space(g, gr_gpc0_gpccs_gpc_exception_r(),
+					gpc_exception);
+}
+
+#define TPC_EXCEPTION_TEX	(0x1U << 0U)
+#define TPC_EXCEPTION_SM	(0x1U << 1U)
+static void gr_test_set_tpc_exceptions(struct gk20a *g)
+{
+	u32 tpc_exception = 0;
+
+	/* Tpc exceptions for mpc/pe */
+	tpc_exception = gr_gpc0_tpc0_tpccs_tpc_exception_mpc_m() |
+			gr_gpc0_tpc0_tpccs_tpc_exception_pe_m();
+
+	/* Tpc exceptions for tex/sm */
+	tpc_exception |= TPC_EXCEPTION_TEX | TPC_EXCEPTION_SM;
+
+	nvgpu_posix_io_writel_reg_space(g, gr_gpc0_tpc0_tpccs_tpc_exception_r(),
+					tpc_exception);
+}
+
+#define TPC_SM0_ESR_SEL	(0x1U << 0U)
+#define TPC_SM1_ESR_SEL	(0x1U << 1U)
+static void gr_test_set_tpc_esr_sm(struct gk20a *g)
+{
+	nvgpu_posix_io_writel_reg_space(g,
+		gr_gpc0_tpc0_sm_tpc_esr_sm_sel_r(),
+		TPC_SM0_ESR_SEL | TPC_SM1_ESR_SEL);
+}
+
+static int test_gr_intr_gpc_exceptions(struct unit_module *m,
+		struct gk20a *g, void *args)
+{
+	int err;
+
+	/**
+	 * Negative test to verify gpc_exception interrupt without
+	 * enabling any gpc_exception.
+	 */
+	err = gr_test_gpc_exception_intr(g);
+	if (err != 0) {
+		unit_return_fail(m, "isr failed without gpc exceptions\n");
+	}
+
+	/**
+	 * Negative test to verify gpc_exception interrupt with
+	 * enabling all gpc_exceptions, but without setting the ecc status
+	 * registers
+	 */
+	gr_test_set_gpc_exceptions(g, true);
+	gr_test_set_tpc_exceptions(g);
+
+	err = gr_test_gpc_exception_intr(g);
+	if (err != 0) {
+		unit_return_fail(m, "gpc exceptions without ecc status failed\n");
+	}
+
+	/**
+	 * Negative test to verify gpc_exception interrupt with
+	 * enabling all gpc_exceptions and by setting the ecc status
+	 * registers
+	 */
+	gr_test_set_gpc_exceptions(g, false);
+	gr_test_set_tpc_exceptions(g);
+	gr_test_set_tpc_esr_sm(g);
+
+	gr_intr_gpc_gpcmmu_esr_regs(g);
+	gr_intr_gpc_gpccs_esr_regs(g);
+	gr_intr_gpc_ecc_err_regs(g);
+
+	err = gr_test_gpc_exception_intr(g);
+	if (err != 0) {
+		unit_return_fail(m, "stall isr failed\n");
+	}
+
+	return UNIT_SUCCESS;
+}
+
 struct unit_module_test nvgpu_gr_intr_tests[] = {
 	UNIT_TEST(gr_intr_setup, test_gr_intr_setup, NULL, 0),
 	UNIT_TEST(gr_intr_channel_free, test_gr_intr_without_channel, NULL, 0),
 	UNIT_TEST(gr_intr_sw_method, test_gr_intr_sw_exceptions, NULL, 0),
+	UNIT_TEST(gr_intr_gpc_exceptions, test_gr_intr_gpc_exceptions, NULL, 0),
 	UNIT_TEST(gr_intr_cleanup, test_gr_intr_cleanup, NULL, 0),
 };
 

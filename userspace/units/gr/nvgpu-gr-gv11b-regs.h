@@ -3242,14 +3242,14 @@ u32 gr_gv11b_fs_regs[] = {
 #define gr_array_reg_space(x) sizeof(x)/sizeof(struct nvgpu_posix_io_reg_space)
 struct nvgpu_posix_io_reg_space  gr_gv11b_initialized_reg_space[] = {
 	[0] = {
-		.base = 0x00120060,
-		.size = sizeof(gr_gv11b_priv_ring_regs),
-		.data = gr_gv11b_priv_ring_regs,
-	      },
-	[1] = {
 		.base = 0x00000000,
 		.size = sizeof(gr_gv11b_master_regs),
 		.data = gr_gv11b_master_regs,
+	      },
+	[1] = {
+		.base = 0x00120060,
+		.size = sizeof(gr_gv11b_priv_ring_regs),
+		.data = gr_gv11b_priv_ring_regs,
 	      },
 	[2] = {
 		.base = 0x00021000,
