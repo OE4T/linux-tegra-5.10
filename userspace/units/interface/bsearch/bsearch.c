@@ -26,12 +26,7 @@
 #include <nvgpu/bsearch.h>
 #include <stdlib.h>
 
-/* The test will create a table of size TABLE_SIZE with ordered values from 0
- * to TABLE_SIZE-1. Then the test will bsearch the SEARCH_FOR value.
- * So obviously, this condition must be met: 0 <= SEARCH_FOR < TABLE_SIZE-1
- */
-#define TABLE_SIZE 1000
-#define SEARCH_FOR 727
+#include "bsearch.h"
 
 u32 num_iterations = 0;
 
@@ -45,12 +40,7 @@ static int int_compare(const void *a, const void *b)
 	return (*((const int *)a) - *((const int *)b));
 }
 
-/*
- * Simple test for bsearch. The goal here is code coverage, the underlying
- * implementation of bsearch is provided by the stdlib.
- */
-static int test_bsearch(struct unit_module *m, struct gk20a *g,
-					void *args)
+int test_bsearch(struct unit_module *m, struct gk20a *g, void *args)
 {
 	int sorted_table[TABLE_SIZE];
 	int i;

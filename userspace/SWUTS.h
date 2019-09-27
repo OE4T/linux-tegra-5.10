@@ -31,6 +31,7 @@
  * to test the NVGPU driver.
  *
  *   - @ref SWUTS-enabled
+ *   - @ref SWUTS-interface-bsearch
  *   - @ref SWUTS-fifo
  *   - @ref SWUTS-fifo-channel
  *   - @ref SWUTS-fifo-runlist

@@ -1,6 +1,7 @@
 INPUT += ../../../userspace/SWUTS.h
 INPUT += ../../../userspace/units/cg/nvgpu-cg.h
 INPUT += ../../../userspace/units/enabled/nvgpu-enabled.h
+INPUT += ../../../userspace/units/interface/bsearch/bsearch.h
 INPUT += ../../../userspace/units/fifo/nvgpu-fifo.h
 INPUT += ../../../userspace/units/fifo/channel/nvgpu-channel.h
 INPUT += ../../../userspace/units/fifo/runlist/nvgpu-runlist.h
