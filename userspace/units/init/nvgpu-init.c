@@ -107,29 +107,6 @@ static int falcon_sw_init(struct gk20a *g, u32 falcon_id)
 	return 0;
 }
 
-/* pmu_early_init is passed a unique struct */
-struct nvgpu_pmu;
-static int pmu_early_init_return = 0;
-static int pmu_early_init(struct gk20a *g, struct nvgpu_pmu **pmu)
-{
-	return pmu_early_init_return;
-}
-
-/* acr_init is passed a unique struct */
-struct nvgpu_acr;
-static int acr_init_return = 0;
-static int acr_init(struct gk20a *g, struct nvgpu_acr **acr)
-{
-	return acr_init_return;
-}
-
-/* acr_construct_execute is passed a unique struct */
-static int acr_construct_execute_return = 0;
-static int acr_construct_execute(struct gk20a *g, struct nvgpu_acr *acr)
-{
-	return acr_construct_execute_return;
-}
-
 /* generic for passing in a u32 */
 static int return_success_u32_param(struct gk20a *g, u32 dummy)
 {
@@ -372,25 +349,20 @@ static void set_poweron_funcs_success(struct gk20a *g)
 	setup_simple_init_func_success(&g->ops.gr.ecc.ecc_init_support, i++);
 	setup_simple_init_func_success(&g->ops.therm.init_therm_support, i++);
 	setup_simple_init_func_success(&g->ops.ce.ce_init_support, i++);
+	setup_simple_init_func_success(&g->ops.bus.init_hw, i++);
+	setup_simple_init_func_success(&g->ops.priv_ring.enable_priv_ring, i++);
+	setup_simple_init_func_success(&g->ops.mc.intr_enable, i++);
+	setup_simple_init_func_success(&g->ops.channel.resume_all_serviceable_ch, i++);
+	setup_simple_init_func_success(&g->ops.pmu.pmu_early_init, i++);
+	setup_simple_init_func_success(&g->ops.acr.acr_init, i++);
+	setup_simple_init_func_success(&g->ops.acr.acr_construct_execute, i++);
 	simple_init_func_ptrs_count = i;
-
-	/* these don't even return anything */
-	g->ops.bus.init_hw = no_return;
-	g->ops.priv_ring.enable_priv_ring = no_return;
-	g->ops.mc.intr_enable = no_return;
-	g->ops.channel.resume_all_serviceable_ch = no_return;
 
 	/* these are the exceptions */
 	g->ops.falcon.falcon_sw_init = falcon_sw_init;
 	falcon_fail_on_id = U32_MAX; /* don't fail */
-	g->ops.pmu.pmu_early_init = pmu_early_init;
-	pmu_early_init_return = 0;
-	g->ops.acr.acr_init = acr_init;
-	acr_init_return = 0;
 	g->ops.fuse.fuse_status_opt_tpc_gpc = return_u32_u32_param;
 	g->ops.tpc.tpc_powergate = return_success_u32_param;
-	g->ops.acr.acr_construct_execute = acr_construct_execute;
-	acr_construct_execute_return = 0;
 	g->ops.falcon.falcon_sw_free = no_return_u32_param;
 
 	/* used in support functions */
@@ -422,7 +394,8 @@ int test_poweron(struct unit_module *m, struct gk20a *g, void *args)
 		err = nvgpu_finalize_poweron(g);
 		if (err == 0) {
 			unit_return_fail(m,
-				"nvgpu_finalize_poweron errantly returned success\n");
+				"nvgpu_finalize_poweron errantly returned success i=%d\n",
+				i);
 		}
 		*simple_init_func_ptrs[i] = return_success;
 	}
@@ -446,25 +419,6 @@ int test_poweron(struct unit_module *m, struct gk20a *g, void *args)
 	}
 	falcon_fail_on_id = U32_MAX; /* stop failing */
 
-	pmu_early_init_return = -1;
-	g->power_on = false;
-	err = nvgpu_finalize_poweron(g);
-	if (err == 0) {
-		unit_return_fail(m,
-			"nvgpu_finalize_poweron errantly returned success\n");
-	}
-	pmu_early_init_return = 0;
-
-	acr_init_return = -1;
-	g->power_on = false;
-	err = nvgpu_finalize_poweron(g);
-	if (err == 0) {
-		unit_return_fail(m,
-			"nvgpu_finalize_poweron errantly returned success\n");
-	}
-	acr_init_return = 0;
-
-
 	g->ops.tpc.tpc_powergate = return_failure_u32_param;
 	g->power_on = false;
 	err = nvgpu_finalize_poweron(g);
@@ -473,15 +427,6 @@ int test_poweron(struct unit_module *m, struct gk20a *g, void *args)
 			"nvgpu_finalize_poweron errantly returned success\n");
 	}
 	g->ops.tpc.tpc_powergate = return_success_u32_param;
-
-	acr_construct_execute_return = -1;
-	g->power_on = false;
-	err = nvgpu_finalize_poweron(g);
-	if (err == 0) {
-		unit_return_fail(m,
-			"nvgpu_finalize_poweron errantly returned success\n");
-	}
-	acr_construct_execute_return = 0;
 
 	/* test the case of already being powered on */
 	g->power_on = true;
