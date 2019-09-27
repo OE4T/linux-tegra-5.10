@@ -88,6 +88,7 @@ gv11b_blcg_hshub_gating_prod_size
 gv11b_blcg_hshub_get_gating_prod
 gv11b_netlist_is_firmware_defined
 nvgpu_acr_init
+nvgpu_acr_is_lsf_lazy_bootstrap
 nvgpu_alloc
 nvgpu_alloc_base
 nvgpu_alloc_common_init

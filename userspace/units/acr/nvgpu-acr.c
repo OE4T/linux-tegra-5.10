@@ -30,13 +30,24 @@
 #include <nvgpu/hal_init.h>
 #include <nvgpu/posix/io.h>
 #include <nvgpu/posix/posix-fault-injection.h>
+#include <nvgpu/gr/gr.h>
+#include <nvgpu/lock.h>
 
+#include <common/acr/acr_blob_construct_v1.h>
+#include <common/acr/acr_wpr.h>
+#include <common/acr/acr_priv.h>
 #include <nvgpu/hw/gv11b/hw_fuse_gv11b.h>
+#include <nvgpu/hw/gv11b/hw_gr_gv11b.h>
+#include <nvgpu/hw/gv11b/hw_mc_gv11b.h>
+#include <nvgpu/hw/gv11b/hw_fb_gv11b.h>
+#include <nvgpu/hw/gv11b/hw_flush_gv11b.h>
 
 #include "nvgpu-acr.h"
 #include "../falcon/falcon_utf.h"
+#include "../gr/nvgpu-gr-gv11b-regs.h"
+#include "../gr/nvgpu-gr-gv11b.h"
 
-struct utf_falcon *pmu_flcn;
+struct utf_falcon *pmu_flcn, *gpccs_flcn;
 
 #define NV_PMC_BOOT_0_ARCHITECTURE_GV110        (0x00000015 << \
 						NVGPU_GPU_ARCHITECTURE_SHIFT)
@@ -46,19 +57,30 @@ struct utf_falcon *pmu_flcn;
 						NVGPU_GPU_ARCHITECTURE_SHIFT)
 #define NV_PMC_BOOT_0_IMPLEMENTATION_INVALID	0xD
 
-static struct utf_falcon *pmu_flcn_from_addr(struct gk20a *g, u32 addr)
+#define NV_PBB_FBHUB_REGSPACE 0x100B00
+
+static struct utf_falcon *get_flcn_from_addr(struct gk20a *g, u32 addr)
 {
 	struct utf_falcon *flcn = NULL;
 	u32 flcn_base;
 
-	if (pmu_flcn == NULL || pmu_flcn->flcn == NULL) {
+	if (pmu_flcn == NULL || gpccs_flcn == NULL) {
+		return NULL;
+	}
+	if (pmu_flcn->flcn == NULL || gpccs_flcn->flcn == NULL) {
 		return NULL;
 	}
 
 	flcn_base = pmu_flcn->flcn->flcn_base;
 	if ((addr >= flcn_base) &&
-	    (addr < (flcn_base + UTF_FALCON_MAX_REG_OFFSET))) {
+		(addr < (flcn_base + UTF_FALCON_MAX_REG_OFFSET))) {
 		flcn = pmu_flcn;
+	} else {
+		flcn_base = gpccs_flcn->flcn->flcn_base;
+		if ((addr >= flcn_base) &&
+			(addr < (flcn_base + UTF_FALCON_MAX_REG_OFFSET))) {
+			flcn = gpccs_flcn;
+		}
 	}
 
 	return flcn;
@@ -69,7 +91,7 @@ static void writel_access_reg_fn(struct gk20a *g,
 {
 	struct utf_falcon *flcn = NULL;
 
-	flcn = pmu_flcn_from_addr(g, access->addr);
+	flcn = get_flcn_from_addr(g, access->addr);
 	if (flcn != NULL) {
 		nvgpu_utf_falcon_writel_access_reg_fn(g, flcn, access);
 	} else {
@@ -83,7 +105,7 @@ static void readl_access_reg_fn(struct gk20a *g,
 {
 	struct utf_falcon *flcn = NULL;
 
-	flcn = pmu_flcn_from_addr(g, access->addr);
+	flcn = get_flcn_from_addr(g, access->addr);
 	if (flcn != NULL) {
 		nvgpu_utf_falcon_readl_access_reg_fn(g, flcn, access);
 	} else {
@@ -140,15 +162,208 @@ static int init_acr_falcon_test_env(struct unit_module *m, struct gk20a *g)
 	}
 
 	/*
+	 * Register space: FB_MMU
+	 *
+	 */
+	if (nvgpu_posix_io_add_reg_space(g, fb_niso_intr_r(), 0x800) != 0) {
+		unit_return_fail(m, "nvgpu_posix_io_add_reg_space failed\n");
+	}
+
+	/*
+	 * Register space: HW_FLUSH
+	 *
+	 */
+	if (nvgpu_posix_io_add_reg_space(g, flush_fb_flush_r(), 0x20) != 0) {
+		unit_return_fail(m, "nvgpu_posix_io_add_reg_space failed\n");
+	}
+
+	if (g->ops.mm.is_bar1_supported(g)) {
+		unit_return_fail(m, "BAR1 is not supported on Volta+\n");
+	}
+
+
+	/*
 	 * Initialize utf & nvgpu falcon
 	 * for test usage
+	 *
 	 */
 	pmu_flcn = nvgpu_utf_falcon_init(m, g, FALCON_ID_PMU);
 	if (pmu_flcn == NULL) {
 		return -ENODEV;
 	}
+	gpccs_flcn = nvgpu_utf_falcon_init(m, g, FALCON_ID_GPCCS);
+	if (gpccs_flcn == NULL) {
+		return -ENODEV;
+	}
 
 	return 0;
+}
+
+int test_acr_is_lsf_lazy_bootstrap(struct unit_module *m,
+				struct gk20a *g, void *args)
+{
+	bool ret = false;
+	int err;
+	/*
+	 * initialize falcon
+	 *
+	 */
+	if (init_acr_falcon_test_env(m, g) != 0) {
+		unit_return_fail(m, "Module init failed\n");
+	}
+
+	err = test_gr_setup_gv11b_reg_space(m, g);
+	if (err != 0) {
+		goto fail;
+	}
+
+	nvgpu_set_enabled(g, NVGPU_SEC_SECUREGPCCS, true);
+	err = nvgpu_gr_alloc(g);
+	if (err != 0) {
+		unit_err(m, " Gr allocation failed!\n");
+		return -ENOMEM;
+	}
+
+	/*
+	 * initialize PMU
+	 *
+	 */
+	err = g->ops.pmu.pmu_early_init(g);
+	if (err != 0) {
+		unit_return_fail(m, "nvgpu_pmu_early_init failed\n");
+	}
+	err = g->ops.acr.acr_init(g);
+	if (err != 0) {
+		unit_return_fail(m, "nvgpu_acr_init failed\n");
+	}
+
+	err = g->ops.mm.init_mm_support(g);
+	if (err != 0) {
+		unit_return_fail(m, "failed to init gk20a mm");
+	}
+
+	nvgpu_mutex_acquire(&g->tpc_pg_lock);
+
+	/*
+	 * prepare portion of sw required
+	 * for enable hw
+	 *
+	 */
+	err = nvgpu_gr_prepare_sw(g);
+	if (err != 0) {
+		nvgpu_mutex_release(&g->tpc_pg_lock);
+		unit_return_fail(m, "failed to prepare sw");
+	}
+
+	err = nvgpu_gr_enable_hw(g);
+	if (err != 0) {
+		nvgpu_mutex_release(&g->tpc_pg_lock);
+		unit_return_fail(m, "failed to enable gr");
+	}
+
+	/*
+	 * case 1: pass scenario
+	 */
+	ret = nvgpu_acr_is_lsf_lazy_bootstrap(g, g->acr,
+					FALCON_ID_FECS);
+	if (ret) {
+		unit_return_fail(m, "failed to test lazy bootstrap\n");
+	}
+
+	g->acr = NULL;
+	ret = nvgpu_acr_is_lsf_lazy_bootstrap(g, g->acr,
+						FALCON_ID_FECS);
+	if (ret != false) {
+		unit_return_fail(m, "lazy bootstrap failure didn't happen as \
+				expected\n");
+	}
+
+	nvgpu_mutex_release(&g->tpc_pg_lock);
+
+	return UNIT_SUCCESS;
+
+fail:
+	return UNIT_FAIL;
+}
+
+int test_acr_prepare_ucode_blob(struct unit_module *m,
+				struct gk20a *g, void *args)
+{
+	int err;
+
+	/*
+	 * initialize falcon
+	 *
+	 */
+	if (init_acr_falcon_test_env(m, g) != 0) {
+		unit_return_fail(m, "Module init failed\n");
+	}
+
+	err = test_gr_setup_gv11b_reg_space(m, g);
+	if (err != 0) {
+		goto fail;
+	}
+
+	nvgpu_set_enabled(g, NVGPU_SEC_SECUREGPCCS, true);
+
+	err = nvgpu_gr_alloc(g);
+	if (err != 0) {
+		unit_err(m, " Gr allocation failed!\n");
+		return -ENOMEM;
+	}
+
+	/*
+	 * initialize PMU
+	 *
+	 */
+	err = g->ops.pmu.pmu_early_init(g);
+	if (err != 0) {
+		unit_return_fail(m, "nvgpu_pmu_early_init failed\n");
+	}
+
+	err = g->ops.acr.acr_init(g);
+	if (err != 0) {
+		unit_return_fail(m, "nvgpu_acr_init failed\n");
+	}
+
+	err = g->ops.mm.init_mm_support(g);
+	if (err != 0) {
+		unit_return_fail(m, "failed to init gk20a mm");
+	}
+
+	nvgpu_mutex_acquire(&g->tpc_pg_lock);
+
+	/*
+	 * prepare portion of sw required
+	 * for enable hw
+	 *
+	 */
+	err = nvgpu_gr_prepare_sw(g);
+	if (err != 0) {
+		nvgpu_mutex_release(&g->tpc_pg_lock);
+		unit_return_fail(m, "failed to prepare sw");
+	}
+
+	err = nvgpu_gr_enable_hw(g);
+	if (err != 0) {
+		nvgpu_mutex_release(&g->tpc_pg_lock);
+		unit_return_fail(m, "failed to enable gr");
+	}
+
+	/* case:pass
+	 *
+	 */
+	err = g->acr->prepare_ucode_blob(g);
+	if (err != 0) {
+		unit_return_fail(m, "test failed\n");
+	}
+
+	nvgpu_mutex_release(&g->tpc_pg_lock);
+
+	return UNIT_SUCCESS;
+
+fail:
+	return UNIT_FAIL;
 }
 
 int test_acr_init(struct unit_module *m,
@@ -163,6 +378,11 @@ int test_acr_init(struct unit_module *m,
 	 */
 	if (init_acr_falcon_test_env(m, g) != 0) {
 		unit_return_fail(m, "Module init failed\n");
+	}
+
+	err = test_gr_setup_gv11b_reg_space(m, g);
+	if (err != 0) {
+		goto fail;
 	}
 
 	/*
@@ -212,13 +432,16 @@ int test_acr_init(struct unit_module *m,
 	 */
 	g->params.gpu_arch = NV_PMC_BOOT_0_ARCHITECTURE_GV110;
 	g->params.gpu_impl = NV_PMC_BOOT_0_IMPLEMENTATION_B;
-
+	g->acr = NULL;
 	err = nvgpu_acr_init(g);
 	if (err != 0) {
 		unit_return_fail(m, "nvgpu_acr_init() failed\n");
 	}
 
 	return UNIT_SUCCESS;
+
+fail:
+	return UNIT_FAIL;
 }
 
 int free_falcon_test_env(struct unit_module *m, struct gk20a *g,
@@ -246,6 +469,9 @@ int free_falcon_test_env(struct unit_module *m, struct gk20a *g,
 
 struct unit_module_test nvgpu_acr_tests[] = {
 	UNIT_TEST(acr_init, test_acr_init, NULL, 0),
+	UNIT_TEST(acr_prepare_ucode_blob, test_acr_prepare_ucode_blob, NULL, 0),
+	UNIT_TEST(acr_is_lsf_lazy_bootstrap,
+				test_acr_is_lsf_lazy_bootstrap, NULL, 0),
 	UNIT_TEST(acr_free_falcon_test_env, free_falcon_test_env, NULL, 0),
 
 };

@@ -1699,6 +1699,17 @@
        "unit": "nvgpu-acr"
     },
     {
+       "test": "acr_prepare_ucode_blob",
+       "test_level": 0,
+       "unit": "nvgpu-acr"
+    },
+    {
+       "test": "acr_is_lsf_lazy_bootstrap",
+       "test_level": 0,
+       "unit": "nvgpu-acr"
+    },
+
+    {
       "test": "acr_free_falcon_test_env",
       "test_level": 0,
       "unit": "nvgpu-acr"

@@ -23,11 +23,16 @@
 OBJS   = nvgpu-acr.o
 MODULE = nvgpu-acr
 
-LIB_PATHS += -lfalcon_utf
+LIB_PATHS += -lfalcon_utf \
+	     -lnvgpu-gr
 
 include ../Makefile.units
 
-lib$(MODULE).so: falcon_utf
+lib$(MODULE).so: falcon_utf \
+		 nvgpu-gr
 
 falcon_utf:
 	$(MAKE) -C ../falcon
+
+nvgpu-gr:
+	$(MAKE) -C ../gr

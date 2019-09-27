@@ -53,6 +53,57 @@ struct unit_module;
 int test_acr_init(struct unit_module *m, struct gk20a *g, void *args);
 
 /**
+ * Test specification for: test_acr_prepare_ucode_blob
+ *
+ * Description: The test_acr_init shall test the blob creation of
+ * the ACR unit
+ *
+ * Test Type: Feature based
+ *
+ * Input: None
+ * Steps:
+ * - Initialize the falcon test environment
+ * - Set the flag NVGPU_SEC_SECUREGPCCS
+ * - Allocate memory for GR
+ * - Initialize the PMU
+ * - Initialize the ACR unit
+ * - Initialize the MMU
+ * - Prepare SW and HW for GR
+ * - Prepare ucode BLOB
+ *
+ * Output: Returns PASS if the steps above were executed successfully. FAIL
+ * otherwise.
+ */
+
+int test_acr_prepare_ucode_blob(struct unit_module *m, struct gk20a *g,
+					void *__args);
+/**
+ * Test specification for: test_acr_is_lsf_lazy_bootstrap
+ *
+ * Description: The test_acr_init shall test the lazy bootstrap of
+ * the ACR unit
+ *
+ * Test Type: Feature based
+ *
+ * Input: None
+ *
+ * Steps:
+ * - Initialize the falcon test environment
+ * - Set the flag NVGPU_SEC_SECUREGPCCS
+ * - Allocate memory for GR
+ * - Initialize the PMU
+ * - Initialize the ACR unit
+ * - Initialize the MMU
+ * - Prepare SW and HW for GR
+ * - lsf lazy bootstrap
+ *
+ * Output: Returns PASS if the steps above were executed successfully. FAIL
+ * otherwise.
+ */
+
+int test_acr_is_lsf_lazy_bootstrap(struct unit_module *m, struct gk20a *g,
+					void *__args);
+/**
  * Test specification for: free_falcon_test_env
  *
  * Description: The free_falcon_test_env shall free up the falcon
