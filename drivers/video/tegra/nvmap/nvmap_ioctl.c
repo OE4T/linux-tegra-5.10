@@ -936,6 +936,8 @@ int nvmap_ioctl_get_handle_parameters(struct file *filp, void __user *arg)
 
 	op.coherency = handle->flags;
 
+	nvmap_handle_put(handle);
+
 	if (copy_to_user(arg, &op, sizeof(op)))
 		return -EFAULT;
 	return 0;
