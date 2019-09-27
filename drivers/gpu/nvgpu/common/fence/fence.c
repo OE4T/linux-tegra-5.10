@@ -45,7 +45,7 @@ static void nvgpu_fence_free(struct nvgpu_ref *ref)
 	if (nvgpu_os_fence_is_initialized(&f->os_fence)) {
 		f->os_fence.ops->drop_ref(&f->os_fence);
 	}
-#ifdef CONFIG_NVGPU_SW_SEMAPHPORE
+#ifdef CONFIG_NVGPU_SW_SEMAPHORE
 	if (f->semaphore != NULL) {
 		nvgpu_semaphore_put(f->semaphore);
 	}
@@ -196,7 +196,7 @@ void nvgpu_fence_init(struct nvgpu_fence_type *f,
 	}
 	f->ops = ops;
 	f->syncpt_id = NVGPU_INVALID_SYNCPT_ID;
-#ifdef CONFIG_NVGPU_SW_SEMAPHPORE
+#ifdef CONFIG_NVGPU_SW_SEMAPHORE
 	f->semaphore = NULL;
 #endif
 	f->os_fence = os_fence;
