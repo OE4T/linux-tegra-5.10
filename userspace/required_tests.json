@@ -1614,6 +1614,11 @@
         "unit": "nvgpu_gr_intr"
     },
     {
+        "test": "gr_intr_fecs_exceptions",
+        "test_level": 0,
+        "unit": "nvgpu_gr_intr"
+    },
+    {
         "test": "gr_intr_gpc_exceptions",
         "test_level": 0,
         "unit": "nvgpu_gr_intr"

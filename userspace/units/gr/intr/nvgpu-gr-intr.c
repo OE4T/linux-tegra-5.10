@@ -386,10 +386,67 @@ static int test_gr_intr_gpc_exceptions(struct unit_module *m,
 	return UNIT_SUCCESS;
 }
 
+static void gr_intr_fecs_ecc_err_regs(struct gk20a *g)
+{
+	u32 cnt = 20U;
+	u32 ecc_status =
+	 gr_fecs_falcon_ecc_status_corrected_err_imem_m() |
+	 gr_fecs_falcon_ecc_status_corrected_err_dmem_m() |
+	 gr_fecs_falcon_ecc_status_uncorrected_err_imem_m() |
+	 gr_fecs_falcon_ecc_status_uncorrected_err_dmem_m() |
+	 gr_fecs_falcon_ecc_status_corrected_err_total_counter_overflow_m() |
+	 gr_fecs_falcon_ecc_status_uncorrected_err_total_counter_overflow_m();
+
+	nvgpu_posix_io_writel_reg_space(g,
+		gr_fecs_falcon_ecc_corrected_err_count_r(), cnt);
+	nvgpu_posix_io_writel_reg_space(g,
+		gr_fecs_falcon_ecc_uncorrected_err_count_r(), cnt);
+	nvgpu_posix_io_writel_reg_space(g,
+		gr_fecs_falcon_ecc_status_r(), ecc_status);
+}
+
+static int test_gr_intr_fecs_exceptions(struct unit_module *m,
+		struct gk20a *g, void *args)
+{
+	int err, i;
+	u32 fecs_status[6] = {
+		gr_fecs_host_int_enable_ctxsw_intr0_enable_f() |
+		gr_fecs_host_int_enable_ctxsw_intr1_enable_f(),
+		gr_fecs_host_int_enable_fault_during_ctxsw_enable_f(),
+		gr_fecs_host_int_enable_umimp_firmware_method_enable_f(),
+		gr_fecs_host_int_enable_umimp_illegal_method_enable_f(),
+		gr_fecs_host_int_enable_watchdog_enable_f(),
+		gr_fecs_host_int_enable_ecc_corrected_enable_f() |
+		gr_fecs_host_int_enable_ecc_uncorrected_enable_f(),
+	};
+
+	for (i = 0; i < 6; i++) {
+		/* Set fecs error pending */
+		nvgpu_posix_io_writel_reg_space(g, gr_intr_r(),
+					gr_intr_fecs_error_pending_f());
+
+		/* Set fecs host register status */
+		nvgpu_posix_io_writel_reg_space(g, gr_fecs_host_int_status_r(),
+					fecs_status[i]);
+
+		/* Set fecs ecc registers */
+		if (i == 5) {
+			gr_intr_fecs_ecc_err_regs(g);
+		}
+
+		err = g->ops.gr.intr.stall_isr(g);
+		if (err != 0) {
+			unit_return_fail(m, "failed in fecs error interrupts\n");
+		}
+	}
+	return UNIT_SUCCESS;
+}
+
 struct unit_module_test nvgpu_gr_intr_tests[] = {
 	UNIT_TEST(gr_intr_setup, test_gr_intr_setup, NULL, 0),
 	UNIT_TEST(gr_intr_channel_free, test_gr_intr_without_channel, NULL, 0),
 	UNIT_TEST(gr_intr_sw_method, test_gr_intr_sw_exceptions, NULL, 0),
+	UNIT_TEST(gr_intr_fecs_exceptions, test_gr_intr_fecs_exceptions, NULL, 0),
 	UNIT_TEST(gr_intr_gpc_exceptions, test_gr_intr_gpc_exceptions, NULL, 0),
 	UNIT_TEST(gr_intr_cleanup, test_gr_intr_cleanup, NULL, 0),
 };
