@@ -142,7 +142,7 @@ static int t194_capture_support_probe(struct platform_device *pdev)
 	mutex_init(&info->lock);
 	platform_set_drvdata(pdev, info);
 
-	(void) dma_set_mask_and_coherent(&pdev->dev, DMA_BIT_MASK(40));
+	(void) dma_set_mask_and_coherent(&pdev->dev, DMA_BIT_MASK(39));
 
 	err = nvhost_client_device_get_resources(pdev);
 	if (err)
