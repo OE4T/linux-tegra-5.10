@@ -67,7 +67,10 @@ struct nvgpu_kmem_cache;
  * Since this is a fairly high overhead operation and is only necessary for
  * debugging actual bugs it's left here for developers to enable.
  */
-/* #define __NVGPU_SAVE_KALLOC_STACK_TRACES */
+
+#if 0
+#define __NVGPU_SAVE_KALLOC_STACK_TRACES
+#endif
 
 /*
  * Defined per-OS.

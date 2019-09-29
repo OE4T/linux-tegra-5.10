@@ -38,7 +38,13 @@
 #include <nvgpu/types.h>
 #include <nvgpu/utils.h>
 
-/* #define ALLOCATOR_DEBUG_FINE */
+/*
+ * Enable this flag to get finer control over allocator debug messaging
+ * (see below).
+ */
+#if 0
+#define ALLOCATOR_DEBUG_FINE
+#endif
 
 struct nvgpu_allocator;
 struct nvgpu_alloc_carveout;
