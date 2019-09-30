@@ -32,6 +32,7 @@
 #include <nvgpu/hw/gv11b/hw_falcon_gv11b.h>
 
 #include "../falcon_utf.h"
+#include "nvgpu-falcon.h"
 
 struct utf_falcon *utf_falcons[FALCON_ID_END];
 
@@ -331,8 +332,8 @@ out:
  * Valid/Invalid: Passing valid ID should succeed the call to function
  * nvgpu_falcon_sw_init|free. Otherwise it should fail with error.
  */
-static int test_falcon_sw_init_free(struct unit_module *m, struct gk20a *g,
-				    void *__args)
+int test_falcon_sw_init_free(struct unit_module *m, struct gk20a *g,
+			     void *__args)
 {
 	int err;
 
@@ -419,8 +420,7 @@ static void flcn_mem_scrub_fail(void *data)
  *        falcon_falcon_cpuctl_hreset_f(1).
  * Invalid: Reset of uninitialized and null falcon fails with error -EINVAL.
  */
-static int test_falcon_reset(struct unit_module *m, struct gk20a *g,
-			     void *__args)
+int test_falcon_reset(struct unit_module *m, struct gk20a *g, void *__args)
 {
 	struct {
 		struct nvgpu_falcon *flcn;
@@ -467,8 +467,7 @@ static int test_falcon_reset(struct unit_module *m, struct gk20a *g,
  *        Set the mem scrubbing status as pending and call should return
  *        -ETIMEDOUT.
  */
-static int test_falcon_mem_scrub(struct unit_module *m, struct gk20a *g,
-				 void *__args)
+int test_falcon_mem_scrub(struct unit_module *m, struct gk20a *g, void *__args)
 {
 	struct {
 		struct nvgpu_falcon *flcn;
@@ -535,8 +534,7 @@ static void flcn_idle_fail(void *data)
  *        call should return 0. Set it to non-idle and call should return
  *        -ETIMEDOUT.
  */
-static int test_falcon_idle(struct unit_module *m, struct gk20a *g,
-			    void *__args)
+int test_falcon_idle(struct unit_module *m, struct gk20a *g, void *__args)
 {
 	struct {
 		struct nvgpu_falcon *flcn;
@@ -596,8 +594,7 @@ static void flcn_halt_fail(void *data)
  *        call should return 0. Set it to non-halted and call should return
  *        -ETIMEDOUT.
  */
-static int test_falcon_halt(struct unit_module *m, struct gk20a *g,
-			    void *__args)
+int test_falcon_halt(struct unit_module *m, struct gk20a *g, void *__args)
 {
 #define FALCON_WAIT_HALT 200
 	struct {
@@ -633,8 +630,8 @@ static int test_falcon_halt(struct unit_module *m, struct gk20a *g,
  * Invalid: Read and write for uninitialized Falcon fails
  *	    with error -EINVAL.
  */
-static int test_falcon_mem_rw_init(struct unit_module *m, struct gk20a *g,
-				   void *__args)
+int test_falcon_mem_rw_init(struct unit_module *m, struct gk20a *g,
+			    void *__args)
 {
 	u32 dst = 0;
 	int err = 0, i;
@@ -668,8 +665,8 @@ static int test_falcon_mem_rw_init(struct unit_module *m, struct gk20a *g,
  * Invalid: Reading and writing data out of Falcon memory bounds should
  *	    return error -EINVAL.
  */
-static int test_falcon_mem_rw_range(struct unit_module *m, struct gk20a *g,
-				    void *__args)
+int test_falcon_mem_rw_range(struct unit_module *m, struct gk20a *g,
+			     void *__args)
 {
 	u32 byte_cnt = RAND_DATA_SIZE;
 	u32 dst = 0;
@@ -742,8 +739,8 @@ static int test_falcon_mem_rw_range(struct unit_module *m, struct gk20a *g,
  * Invalid: Reading and writing data out of non-word-aligned offset in Falcon
  *	    memory should return error -EINVAL.
  */
-static int test_falcon_mem_rw_aligned(struct unit_module *m, struct gk20a *g,
-				      void *__args)
+int test_falcon_mem_rw_aligned(struct unit_module *m, struct gk20a *g,
+			       void *__args)
 {
 	u32 byte_cnt = RAND_DATA_SIZE;
 	u32 dst = 0, i;
@@ -783,8 +780,8 @@ static int test_falcon_mem_rw_aligned(struct unit_module *m, struct gk20a *g,
 /*
  * Reading/writing zero bytes should return error -EINVAL.
  */
-static int test_falcon_mem_rw_zero(struct unit_module *m, struct gk20a *g,
-				   void *__args)
+int test_falcon_mem_rw_zero(struct unit_module *m, struct gk20a *g,
+			    void *__args)
 {
 	u32 byte_cnt = 0;
 	u32 dst = 0, i;
@@ -817,8 +814,7 @@ static int test_falcon_mem_rw_zero(struct unit_module *m, struct gk20a *g,
  *        Read the value through this interface and verify that it matches
  *        the register value.
  */
-static int test_falcon_mailbox(struct unit_module *m, struct gk20a *g,
-			       void *__args)
+int test_falcon_mailbox(struct unit_module *m, struct gk20a *g, void *__args)
 {
 #define	SAMPLE_MAILBOX_DATA	0xDEADBEED
 	u32 val, reg_data, mailbox_addr, i;
@@ -887,8 +883,7 @@ static bool falcon_check_reg_group(struct gk20a *g,
  *        nvgpu_falcon_bl_info struct and verify IMEM, DMEM and registers
  *        related to nvgpu_falcon_bootstrap interface.
  */
-static int test_falcon_bootstrap(struct unit_module *m, struct gk20a *g,
-				 void *__args)
+int test_falcon_bootstrap(struct unit_module *m, struct gk20a *g, void *__args)
 {
 #define BL_DESC_SIZE	64
 	struct nvgpu_falcon_bl_info bl_info;

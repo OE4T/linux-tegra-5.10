@@ -4,6 +4,7 @@ INPUT += ../../../userspace/units/enabled/nvgpu-enabled.h
 INPUT += ../../../userspace/units/interface/bsearch/bsearch.h
 INPUT += ../../../userspace/units/interface/lock/lock.h
 INPUT += ../../../userspace/units/interface/rbtree/rbtree.h
+INPUT += ../../../userspace/units/falcon/falcon_tests/nvgpu-falcon.h
 INPUT += ../../../userspace/units/fifo/nvgpu-fifo.h
 INPUT += ../../../userspace/units/fifo/channel/nvgpu-channel.h
 INPUT += ../../../userspace/units/fifo/runlist/nvgpu-runlist.h
