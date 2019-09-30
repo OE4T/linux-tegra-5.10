@@ -1212,15 +1212,6 @@ static int ether_open(struct net_device *dev)
 		goto err_phy_init;
 	}
 
-	/* request tx/rx/common irq */
-	ret = ether_request_irqs(pdata);
-	if (ret < 0) {
-		dev_err(&dev->dev,
-			"%s: failed to get tx rx irqs with reason %d\n",
-			__func__, ret);
-		goto err_r_irq;
-	}
-
 	osi_set_rx_buf_len(pdata->osi_dma);
 
 	ret = ether_allocate_dma_resources(pdata);
@@ -1265,9 +1256,6 @@ static int ether_open(struct net_device *dev)
 	pdata->l3_l4_filter = OSI_DISABLE;
 	pdata->l2_filtering_mode = OSI_PERFECT_FILTER_MODE;
 
-	/* Start the MAC */
-	osi_start_mac(pdata->osi_core);
-
 	/* Initialize PTP */
 	ret = ether_ptp_init(pdata);
 	if (ret < 0) {
@@ -1277,7 +1265,20 @@ static int ether_open(struct net_device *dev)
 		goto err_hw_init;
 	}
 
+	/* Enable napi before requesting irq to be ready to handle it */
 	ether_napi_enable(pdata);
+
+	/* request tx/rx/common irq */
+	ret = ether_request_irqs(pdata);
+	if (ret < 0) {
+		dev_err(&dev->dev,
+			"%s: failed to get tx rx irqs with reason %d\n",
+			__func__, ret);
+		goto err_r_irq;
+	}
+
+	/* Start the MAC */
+	osi_start_mac(pdata->osi_core);
 
 	/* start PHY */
 	phy_start(pdata->phydev);
@@ -1290,6 +1291,9 @@ static int ether_open(struct net_device *dev)
 
 	return ret;
 
+err_r_irq:
+	ether_napi_disable(pdata);
+	ether_ptp_remove(pdata);
 err_hw_init:
 #ifdef THERMAL_CAL
 	thermal_cooling_device_unregister(pdata->tcd);
@@ -1297,8 +1301,6 @@ err_therm:
 #endif /* THERMAL_CAL */
 	free_dma_resources(pdata->osi_dma, pdata->dev);
 err_alloc:
-	ether_free_irqs(pdata);
-err_r_irq:
 	if (pdata->phydev) {
 		phy_disconnect(pdata->phydev);
 	}
@@ -3650,10 +3652,10 @@ static int ether_resume(struct ether_priv_data *pdata)
 		goto err_dma;
 	}
 
-	/* start the mac */
-	osi_start_mac(osi_core);
 	/* enable NAPI */
 	ether_napi_enable(pdata);
+	/* start the mac */
+	osi_start_mac(osi_core);
 	/* start phy */
 	phy_start(pdata->phydev);
 	/* start network queues */
