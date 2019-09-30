@@ -385,6 +385,66 @@
         "unit": "enabled"
     },
     {
+        "test": "falcon_bootstrap",
+        "test_level": 0,
+        "unit": "falcon"
+    },
+    {
+        "test": "falcon_free_test_env",
+        "test_level": 0,
+        "unit": "falcon"
+    },
+    {
+        "test": "falcon_halt",
+        "test_level": 0,
+        "unit": "falcon"
+    },
+    {
+        "test": "falcon_idle",
+        "test_level": 0,
+        "unit": "falcon"
+    },
+    {
+        "test": "falcon_mailbox",
+        "test_level": 0,
+        "unit": "falcon"
+    },
+    {
+        "test": "falcon_mem_rw_aligned",
+        "test_level": 0,
+        "unit": "falcon"
+    },
+    {
+        "test": "falcon_mem_rw_init",
+        "test_level": 0,
+        "unit": "falcon"
+    },
+    {
+        "test": "falcon_mem_rw_range",
+        "test_level": 0,
+        "unit": "falcon"
+    },
+    {
+        "test": "falcon_mem_rw_zero",
+        "test_level": 0,
+        "unit": "falcon"
+    },
+    {
+        "test": "falcon_mem_scrub",
+        "test_level": 0,
+        "unit": "falcon"
+    },
+    {
+        "test": "falcon_reset",
+        "test_level": 0,
+        "unit": "falcon"
+    },
+    {
+        "test": "falcon_sw_init_free",
+        "test_level": 0,
+        "unit": "falcon"
+    },
+    {
         "test": "cache_default",
         "test_level": 0,
         "unit": "fault_injection"
@@ -1457,31 +1517,6 @@
         "test": "map_buf_gpu_va",
         "test_level": 0,
         "unit": "vm"
-    },
-    {
-        "test": "falcon_mem_rw_init",
-        "test_level": 0,
-        "unit": "falcon"
-    },
-    {
-        "test": "falcon_mem_rw_range",
-        "test_level": 0,
-        "unit": "falcon"
-    },
-    {
-        "test": "falcon_mem_rw_aligned",
-        "test_level": 0,
-        "unit": "falcon"
-    },
-    {
-        "test": "falcon_mem_rw_zero",
-        "test_level": 0,
-        "unit": "falcon"
-    },
-    {
-        "test": "falcon_free_test_env",
-        "test_level": 0,
-        "unit": "falcon"
     },
     {
         "test": "pmu_early_init",
