@@ -419,6 +419,10 @@ nvgpu_readl_impl
 nvgpu_request_firmware
 nvgpu_runlist_construct_locked
 nvgpu_rwsem_init
+nvgpu_rwsem_down_read
+nvgpu_rwsem_down_write
+nvgpu_rwsem_up_read
+nvgpu_rwsem_up_write
 nvgpu_timeout_init
 nvgpu_timeout_peek_expired
 nvgpu_tsg_abort
