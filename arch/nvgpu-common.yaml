@@ -538,7 +538,8 @@ mm:
     mm:
       safe: yes
       sources: [ common/mm/mm.c,
-                 include/nvgpu/mm.h ]
+                 include/nvgpu/mm.h,
+                 include/nvgpu/gops_mm.h ]
       deps: [ ]
     nvgpu_mem:
       safe: yes
