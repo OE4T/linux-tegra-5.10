@@ -69,7 +69,6 @@ static struct snd_soc_dai_driver tegra210_xbar_dais[] = {
 	DAI(AFC5),
 	DAI(AFC6),
 	DAI(OPE1),
-	DAI(OPE2),
 	DAI(SPKPROT1),
 	DAI(MVC1),
 	DAI(MVC2),
@@ -100,6 +99,7 @@ static struct snd_soc_dai_driver tegra210_xbar_dais[] = {
 	DAI(ADX2-3),
 	DAI(ADX2-4),
 	DAI(ADX2),
+	DAI(OPE2),
 };
 
 static struct snd_soc_dai_driver tegra186_xbar_dais[] = {
