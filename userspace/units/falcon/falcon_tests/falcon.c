@@ -793,7 +793,7 @@ int test_falcon_mem_rw_zero(struct unit_module *m, struct gk20a *g,
 
 	for (i = 0; i < MAX_MEM_TYPE; i++) {
 		/* write/read zero bytes should fail*/
-		err = falcon_check_read_write(g, m, pmu_flcn, MEM_IMEM, dst,
+		err = falcon_check_read_write(g, m, pmu_flcn, i, dst,
 					      byte_cnt, -EINVAL);
 		if (err) {
 			return UNIT_FAIL;
