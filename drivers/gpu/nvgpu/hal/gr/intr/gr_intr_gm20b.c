@@ -346,6 +346,19 @@ u32 gm20b_gr_intr_get_sm_no_lock_down_hww_global_esr_mask(struct gk20a *g)
 	return global_esr_mask;
 }
 
+void gm20b_gr_intr_tpc_exception_sm_enable(struct gk20a *g)
+{
+	u32 tpc_exception_en = nvgpu_readl(g,
+				gr_gpc0_tpc0_tpccs_tpc_exception_en_r());
+
+	tpc_exception_en &=
+			~gr_gpc0_tpc0_tpccs_tpc_exception_en_sm_enabled_f();
+	tpc_exception_en |= gr_gpc0_tpc0_tpccs_tpc_exception_en_sm_enabled_f();
+	nvgpu_writel(g,
+		     gr_gpcs_tpcs_tpccs_tpc_exception_en_r(),
+		     tpc_exception_en);
+}
+
 #ifdef CONFIG_NVGPU_DEBUGGER
 u64 gm20b_gr_intr_tpc_enabled_exceptions(struct gk20a *g)
 {

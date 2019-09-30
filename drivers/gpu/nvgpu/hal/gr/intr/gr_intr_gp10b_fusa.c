@@ -182,6 +182,7 @@ clean_up:
 	return nvgpu_gr_intr_handle_fecs_error(g, ch_ptr, isr_data);
 }
 
+#if defined(CONFIG_NVGPU_DEBUGGER) && defined(CONFIG_NVGPU_GRAPHICS)
 void gp10b_gr_intr_set_go_idle_timeout(struct gk20a *g, u32 data)
 {
 	nvgpu_writel(g, gr_fe_go_idle_timeout_r(), data);
@@ -200,3 +201,4 @@ void gp10b_gr_intr_set_coalesce_buffer_size(struct gk20a *g, u32 data)
 
 	nvgpu_log_fn(g, "done");
 }
+#endif

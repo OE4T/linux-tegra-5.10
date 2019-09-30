@@ -55,9 +55,8 @@ u32 gm20b_gr_intr_get_tpc_exception(struct gk20a *g, u32 offset,
 			struct nvgpu_gr_tpc_exception *pending_tpc);
 void gm20b_gr_intr_enable_interrupts(struct gk20a *g, bool enable);
 u32 gm20b_gr_intr_nonstall_isr(struct gk20a *g);
-void gm20ab_gr_intr_tpc_exception_sm_disable(struct gk20a *g, u32 offset);
-void gm20ab_gr_intr_tpc_exception_sm_enable(struct gk20a *g);
 #ifdef CONFIG_NVGPU_HAL_NON_FUSA
+void gm20b_gr_intr_tpc_exception_sm_enable(struct gk20a *g);
 int gm20b_gr_intr_handle_sw_method(struct gk20a *g, u32 addr,
 				  u32 class_num, u32 offset, u32 data);
 void gm20b_gr_intr_set_shader_exceptions(struct gk20a *g, u32 data);
@@ -83,6 +82,7 @@ u32 gm20b_gr_intr_get_sm_no_lock_down_hww_global_esr_mask(struct gk20a *g);
 #endif /* CONFIG_NVGPU_HAL_NON_FUSA */
 #ifdef CONFIG_NVGPU_DEBUGGER
 u64 gm20b_gr_intr_tpc_enabled_exceptions(struct gk20a *g);
+void gm20b_gr_intr_tpc_exception_sm_disable(struct gk20a *g, u32 offset);
 #endif /* CONFIG_NVGPU_DEBUGGER */
 
 #endif /* NVGPU_GR_INTR_GM20B_H */

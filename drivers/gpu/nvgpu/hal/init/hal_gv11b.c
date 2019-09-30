@@ -673,10 +673,6 @@ static const struct gpu_ops gv11b_ops = {
 					gv11b_gr_intr_enable_gpc_exceptions,
 			.enable_exceptions = gv11b_gr_intr_enable_exceptions,
 			.nonstall_isr = gm20b_gr_intr_nonstall_isr,
-			.tpc_exception_sm_enable =
-				gm20ab_gr_intr_tpc_exception_sm_enable,
-			.tpc_exception_sm_disable =
-				gm20ab_gr_intr_tpc_exception_sm_disable,
 			.handle_sm_exception =
 				nvgpu_gr_intr_handle_sm_exception,
 			.stall_isr = nvgpu_gr_intr_stall_isr,
@@ -698,12 +694,18 @@ static const struct gpu_ops gv11b_ops = {
 				gv11b_gr_intr_get_sm_hww_global_esr,
 			.get_sm_no_lock_down_hww_global_esr_mask =
 				gv11b_gr_intr_get_sm_no_lock_down_hww_global_esr_mask,
+			.get_ctxsw_checksum_mismatch_mailbox_val =
+				gv11b_gr_intr_ctxsw_checksum_mismatch_mailbox_val,
+#ifdef CONFIG_NVGPU_HAL_NON_FUSA
+			.tpc_exception_sm_enable =
+				gm20b_gr_intr_tpc_exception_sm_enable,
+#endif
 #ifdef CONFIG_NVGPU_DEBUGGER
+			.tpc_exception_sm_disable =
+				gm20b_gr_intr_tpc_exception_sm_disable,
 			.tpc_enabled_exceptions =
 				gm20b_gr_intr_tpc_enabled_exceptions,
 #endif
-			.get_ctxsw_checksum_mismatch_mailbox_val =
-				gv11b_gr_intr_ctxsw_checksum_mismatch_mailbox_val,
 		},
 		.falcon = {
 			.handle_fecs_ecc_error =
