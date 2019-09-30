@@ -1396,7 +1396,15 @@ struct vi_hsm_csimux_error_mask_config {
 } CAPTURE_IVC_ALIGN;
 
 /**
- * @defgroup NvCsiStreamErr NVCSI stream novc+vc error flags
+ * @defgroup NVCSI_HOST1X_INTR_FLAGS NVCSI Host1x client global interrupt flags
+ * @{
+ */
+/** Error bit indicating Host1x client timeout error */
+#define NVCSI_INTR_FLAG_HOST1X_TIMEOUT_ERR			(U32_C(1) << 0)
+/** @} */
+
+/**
+ * @defgroup NVCSI_STREAM_INTR_FLAGS NVCSI stream novc+vc interrupt flags
  * @{
  */
 /** Multi bit error in the DPHY packet header */
@@ -1416,7 +1424,7 @@ struct vi_hsm_csimux_error_mask_config {
 /** @} */
 
 /**
- * @defgroup NvCsiCilIntrErr NVCSI phy/cil interrupt error flags
+ * @defgroup NVCSI_CIL_INTR_FLAGS NVCSI phy/cil interrupt flags
  * @{
  */
 #define NVCSI_INTR_FLAG_CIL_INTR_DPHY_ERR_CLK_LANE_CTRL		MK_BIT32(0)
@@ -1439,7 +1447,7 @@ struct vi_hsm_csimux_error_mask_config {
 /** @} */
 
 /**
- * @defgroup NvCsiCilIntr0Err NVCSI phy/cil interrupt0 error flags
+ * @defgroup NVCSI_CIL_INTR0_FLAGS NVCSI phy/cil intr0 flags
  * @{
  */
 #define NVCSI_INTR_FLAG_CIL_INTR0_DPHY_ERR_CLK_LANE_CTRL	MK_BIT32(0)
@@ -1467,7 +1475,7 @@ struct vi_hsm_csimux_error_mask_config {
 /** @} */
 
 /**
- * @defgroup NvCsiCilIntr0Err NVCSI phy/cil interrupt1 error flags
+ * @defgroup NVCSI_CIL_INTR1_FLAGS NVCSI phy/cil intr1 flags
  * @{
  */
 #define NVCSI_INTR_FLAG_CIL_INTR1_DATA_LANE_ESC_CMD_REC0	MK_BIT32(0)
@@ -1484,7 +1492,7 @@ struct vi_hsm_csimux_error_mask_config {
 /** @} */
 
 /**
- * @defgroup NvCsiIntrCfg NVCSI interrupt config bit masks
+ * @defgroup NVCSI_INTR_CONFIG_MASK NVCSI interrupt config bit masks
  * @{
  */
 #define NVCSI_INTR_CONFIG_MASK_HOST1X		MK_U32(0x1)
@@ -1497,7 +1505,7 @@ struct vi_hsm_csimux_error_mask_config {
 /** @} */
 
 /**
- * @defgroup NvCsiIntrCfgShift NVCSI interrupt config bit shifts
+ * @defgroup NVCSI_INTR_CONFIG_MASK_SHIFTS NVCSI interrupt config bit shifts
  * @{
  */
 #define NVCSI_INTR_CONFIG_SHIFT_STREAM_NOVC	MK_U32(0x0)
@@ -1511,26 +1519,71 @@ struct vi_hsm_csimux_error_mask_config {
  * otherwise default settings will be used.
  */
 struct nvcsi_error_config {
-	/** Mask Host1x timeout interrupt*/
-	uint32_t host1x_intr_mask;
-	/** Host1x Interrupt error type. 0 - Corrected error, 1 - Uncorrected error. */
-	uint32_t host1x_intr_type;
-	/** Mask status2vi NOTIFY reporting */
+	/**
+	 * @brief Host1x client global interrupt mask (to LIC)
+	 * Bit field mapping: @ref NVCSI_HOST1X_INTR_FLAGS
+	 */
+	uint32_t host1x_intr_mask_lic;
+	/**
+	 * @brief Host1x client global interrupt mask (to HSM)
+	 * Bit field mapping: @ref NVCSI_HOST1X_INTR_FLAGS
+	 */
+	uint32_t host1x_intr_mask_hsm;
+	/**
+	 * @brief Host1x client global interrupt error type classification
+	 * (to HSM)
+	 * Bit field mapping: @ref NVCSI_HOST1X_INTR_FLAGS
+	 * (0 - corrected, 1 - uncorrected)
+	 */
+	uint32_t host1x_intr_type_hsm;
+
+	/** NVCSI status2vi forwarding mask (to VI NOTIFY) */
 	uint32_t status2vi_notify_mask;
-	/** Mask stream intrs */
-	uint32_t stream_intr_mask;
-	/** CSI stream Interrupt error type. 0 - Corrected error, 1 - Uncorrected error. */
-	uint32_t stream_intr_type;
-	/** Mask cil intrs */
-	uint32_t cil_intr_mask;
-	/** CIL interrupt error type. 0 - Corrected error, 1 - Uncorrected error. */
-	uint32_t cil_intr_type;
-	/** Mask cil intr0 intrs */
-	uint32_t cil_intr0_mask;
-	/** Mask cil intr1 intrs */
-	uint32_t cil_intr1_mask;
+
+	/**
+	 * @brief NVCSI stream novc+vc interrupt mask (to LIC)
+	 * Bit field mapping: @ref NVCSI_STREAM_INTR_FLAGS
+	 */
+	uint32_t stream_intr_mask_lic;
+	/**
+	 * @brief NVCSI stream novc+vc interrupt mask (to HSM)
+	 * Bit field mapping: @ref NVCSI_STREAM_INTR_FLAGS
+	 */
+	uint32_t stream_intr_mask_hsm;
+	/**
+	 * @brief NVCSI stream novc+vc interrupt error type classification
+	 * (to HSM)
+	 * Bit field mapping: @ref NVCSI_STREAM_INTR_FLAGS
+	 * (0 - corrected, 1 - uncorrected)
+	 */
+	uint32_t stream_intr_type_hsm;
+
+	/**
+	 * @brief NVCSI phy/cil interrupt mask (to HSM)
+	 * Bit field mapping: @ref NVCSI_CIL_INTR_FLAGS
+	 */
+	uint32_t cil_intr_mask_hsm;
+	/**
+	 * @brief NVCSI phy/cil interrupt error type classification
+	 * (to HSM)
+	 * Bit field mapping: @ref NVCSI_CIL_INTR_FLAGS
+	 * (0 - corrected, 1 - uncorrected)
+	 */
+	uint32_t cil_intr_type_hsm;
+	/**
+	 * @brief NVCSI phy/cil intr0 interrupt mask (to LIC)
+	 * Bit field mapping: @ref NVCSI_CIL_INTR0_FLAGS
+	 */
+	uint32_t cil_intr0_mask_lic;
+	/**
+	 * @brief NVCSI phy/cil intr1 interrupt mask (to LIC)
+	 * Bit field mapping: @ref NVCSI_CIL_INTR1_FLAGS
+	 */
+	uint32_t cil_intr1_mask_lic;
+
 	/** Reserved */
 	uint32_t __pad32;
+
 	/** VI EC/HSM error masking configuration */
 	struct vi_hsm_csimux_error_mask_config csimux_config;
 } CAPTURE_IVC_ALIGN;
