@@ -63,12 +63,12 @@ static inline u64 ether_get_ptptime(void *data)
  * hardware clock.
  *
  * @param[in] ptp: Pointer to ptp_clock_info structure.
- * @param[in] delta: Desired change in nanoseconds.
+ * @param[in] nsec_delta: Desired change in nanoseconds w.r.t System time
  *
  * @retval 0 on success
  * @retval "negative value" on failure.
  */
-static int ether_adjust_time(struct ptp_clock_info *ptp, s64 delta)
+static int ether_adjust_time(struct ptp_clock_info *ptp, s64 nsec_delta)
 {
 	struct ether_priv_data *pdata = container_of(ptp,
 						     struct ether_priv_data,
@@ -78,7 +78,7 @@ static int ether_adjust_time(struct ptp_clock_info *ptp, s64 delta)
 
 	raw_spin_lock(&pdata->ptp_lock);
 
-	ret = osi_adjust_time(osi_core, delta);
+	ret = osi_adjust_time(osi_core, nsec_delta);
 	if (ret < 0) {
 		dev_err(pdata->dev,
 			"%s:failed to adjust time with reason %d\n",
