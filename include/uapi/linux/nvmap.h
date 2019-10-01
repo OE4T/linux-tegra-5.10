@@ -273,6 +273,18 @@ struct nvmap_handle_parameters {
     __u64 offset;
 };
 
+/**
+ * Struct used while querying heap parameters
+ */
+struct nvmap_query_heap_params {
+	__u32 heap_mask;
+	__u32 flags;
+	__u8 contig;
+	__u64 total;
+	__u64 free;
+	__u64 largest_free_block;
+};
+
 #define NVMAP_IOC_MAGIC 'N'
 
 /* Creates a new memory handle. On input, the argument is the size of the new
@@ -388,6 +400,10 @@ struct nvmap_handle_parameters {
 #define NVMAP_IOC_HANDLE_FROM_SCIIPCID _IOR(NVMAP_IOC_MAGIC, 104, \
 		struct nvmap_sciipc_map)
 
-#define NVMAP_IOC_MAXNR (_IOC_NR(NVMAP_IOC_HANDLE_FROM_SCIIPCID))
+/* Get heap parameters such as total and frre size */
+#define NVMAP_IOC_QUERY_HEAP_PARAMS _IOR(NVMAP_IOC_MAGIC, 105, \
+		struct nvmap_query_heap_params)
+
+#define NVMAP_IOC_MAXNR (_IOC_NR(NVMAP_IOC_QUERY_HEAP_PARAMS))
 
 #endif /* __UAPI_LINUX_NVMAP_H */
