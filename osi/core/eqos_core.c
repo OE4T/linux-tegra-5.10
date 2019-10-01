@@ -1325,7 +1325,8 @@ static void eqos_configure_dma(void *base)
  * @param[in] tx_fifo_size: MTL TX FIFO size
  * @param[in] rx_fifo_size: MTL RX FIFO size
  *
- * @note 1) MAC should be out of reset. See osi_poll_for_swr() for details.
+ * @note 1) MAC should be out of reset. See osi_poll_for_mac_reset_complete()
+ *          for details.
  *	 2) osi_core->base needs to be filled based on ioremap.
  *	 3) osi_core->num_mtl_queues needs to be filled.
  *	 4) osi_core->mtl_queues[qinx] need to be filled.
@@ -2946,9 +2947,9 @@ static inline int eqos_poll_for_update_ts_complete(void *addr,
 }
 
 /**
- * @brief eqos_adjust_systime - Adjust system time
+ * @brief eqos_adjust_mactime - Adjust MAC time with system time
  *
- * Algorithm: Update the system time
+ * Algorithm: Update MAC time with system time
  *
  * @param[in] addr: Base address indicating the start of
  * 	      memory mapped IO region of the MAC.
@@ -2963,7 +2964,7 @@ static inline int eqos_poll_for_update_ts_complete(void *addr,
  * @retval 0 on success
  * @retval -1 on failure.
  */
-static int eqos_adjust_systime(void *addr, unsigned int sec, unsigned int nsec,
+static int eqos_adjust_mactime(void *addr, unsigned int sec, unsigned int nsec,
 			       unsigned int add_sub,
 			       unsigned int one_nsec_accuracy)
 {
@@ -3336,7 +3337,7 @@ static struct osi_core_ops eqos_core_ops = {
 	.update_vlan_id = eqos_update_vlan_id,
 	.set_systime_to_mac = eqos_set_systime_to_mac,
 	.config_addend = eqos_config_addend,
-	.adjust_systime = eqos_adjust_systime,
+	.adjust_mactime = eqos_adjust_mactime,
 	.get_systime_from_mac = eqos_get_systime_from_mac,
 	.config_tscr = eqos_config_tscr,
 	.config_ssir = eqos_config_ssir,
