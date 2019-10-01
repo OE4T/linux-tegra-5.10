@@ -134,7 +134,7 @@
 	};
 
 	pcie@141a0000 {
-		status = "disabled";
+		status = "okay";
 
 		nvidia,disable-aspm-states = <0xf>;
 		nvidia,enable-power-down;

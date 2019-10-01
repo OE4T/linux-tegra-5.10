@@ -67,6 +67,12 @@
 					status = "okay";
 				};
 			};
+			override@3 {
+				target = <&{/gpio@c2f0000/pex-refclk-sel-high}>;
+				_overlay_ {
+					status = "disabled";
+				};
+			};
 		};
 
 		fragment-pcie-c5-ep {
@@ -85,6 +91,12 @@
 				};
 			};
 			override@2 {
+				target = <&{/gpio@c2f0000/pex-refclk-sel-low}>;
+				_overlay_ {
+					status = "disabled";
+				};
+			};
+			override@3 {
 				target = <&{/gpio@c2f0000/pex-refclk-sel-high}>;
 				_overlay_ {
 					status = "okay";
