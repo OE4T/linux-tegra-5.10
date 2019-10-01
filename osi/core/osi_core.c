@@ -192,7 +192,7 @@ int osi_init_core_ops(struct osi_core_priv_data *osi_core)
 	return -1;
 }
 
-int osi_poll_for_swr(struct osi_core_priv_data *osi_core)
+int osi_poll_for_mac_reset_complete(struct osi_core_priv_data *osi_core)
 {
 	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
 	    (osi_core->ops->poll_for_swr != OSI_NULL)) {
@@ -773,7 +773,7 @@ int osi_adjust_freq(struct osi_core_priv_data *osi_core, int ppb)
 	return ret;
 }
 
-int osi_adjust_time(struct osi_core_priv_data *osi_core, long delta)
+int osi_adjust_time(struct osi_core_priv_data *osi_core, long long nsec_delta)
 {
 	unsigned int neg_adj = 0;
 	unsigned int sec = 0, nsec = 0;
@@ -782,11 +782,11 @@ int osi_adjust_time(struct osi_core_priv_data *osi_core, long delta)
 	unsigned long udelta = 0;
 	int ret = -1;
 
-	if (delta < 0) {
+	if (nsec_delta < 0) {
 		neg_adj = 1;
-		delta = -delta;
+		nsec_delta = -nsec_delta;
 	}
-	udelta = (unsigned long) delta;
+	udelta = (unsigned long long) nsec_delta;
 	quotient = div_u64_rem(udelta, OSI_NSEC_PER_SEC, &reminder);
 	if (quotient <= UINT_MAX) {
 		sec = (unsigned int)quotient;
@@ -800,8 +800,8 @@ int osi_adjust_time(struct osi_core_priv_data *osi_core, long delta)
 	}
 
 	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
-	    (osi_core->ops->adjust_systime != OSI_NULL)) {
-		ret = osi_core->ops->adjust_systime(osi_core->base, sec, nsec,
+	    (osi_core->ops->adjust_mactime != OSI_NULL)) {
+		ret = osi_core->ops->adjust_mactime(osi_core->base, sec, nsec,
 					neg_adj,
 					osi_core->ptp_config.one_nsec_accuracy);
 	}

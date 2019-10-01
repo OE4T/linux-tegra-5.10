@@ -26,7 +26,7 @@
 osi_init_core_ops
 osi_write_phy_reg
 osi_read_phy_reg
-osi_poll_for_swr
+osi_poll_for_mac_reset_complete
 osi_set_mdc_clk_rate
 osi_hw_core_init
 osi_hw_core_deinit

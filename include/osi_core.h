@@ -231,8 +231,8 @@ struct osi_core_ops {
 				  unsigned int nsec);
 	/** Called to set the addend value to adjust the time */
 	int (*config_addend)(void *addr, unsigned int addend);
-	/** Called to adjust the system time */
-	int (*adjust_systime)(void *addr, unsigned int sec, unsigned int nsec,
+	/** Called to adjust the mac time */
+	int (*adjust_mactime)(void *addr, unsigned int sec, unsigned int nsec,
 			      unsigned int neg_adj,
 			      unsigned int one_nsec_accuracy);
 	/** Called to get the current time from MAC */
@@ -350,7 +350,7 @@ struct osi_core_priv_data {
 };
 
 /**
- * @brief osi_poll_for_swr - Poll Software reset bit in MAC HW
+ * @brief osi_poll_for_mac_reset_complete - Poll Software reset bit in MAC HW
  *
  * Algorithm: Invokes EQOS routine to check for SWR (software reset)
  * bit in DMA Basic mode register to make sure IP reset was successful.
@@ -363,7 +363,7 @@ struct osi_core_priv_data {
  * @retval -1 on failure.
  */
 
-int osi_poll_for_swr(struct osi_core_priv_data *osi_core);
+int osi_poll_for_mac_reset_complete(struct osi_core_priv_data *osi_core);
 
 /**
  * @brief osi_set_mdc_clk_rate - Derive MDC clock based on provided AXI_CBB clk.
@@ -393,7 +393,8 @@ int osi_set_mdc_clk_rate(struct osi_core_priv_data *osi_core,
  * @param[in] rx_fifo_size: OSI core private data structure.
  *
  * @note
- * 1) MAC should be out of reset. See osi_poll_for_swr() for details.
+ * 1) MAC should be out of reset. See osi_poll_for_mac_reset_complete()
+ *    for details.
  * 2) osi_core->base needs to be filled based on ioremap.
  * 3) osi_core->num_mtl_queues needs to be filled.
  * 4)osi_core->mtl_queues[qinx] need to be filled.
@@ -900,13 +901,13 @@ int osi_set_systime_to_mac(struct osi_core_priv_data *osi_core,
 int osi_adjust_freq(struct osi_core_priv_data *osi_core, int ppb);
 
 /**
- * @brief osi_adjust_time - Adjust time
+ * @brief osi_adjust_time - Adjust MAC time with system time
  *
  * Algorithm: Adjust/update the MAC time (delta time from MAC to system time
  * passed in nanoseconds, can be + or -).
  *
  * @param[in] osi_core: OSI core private data structure.
- * @param[in] delta: Delta time
+ * @param[in] nsec_delta: Delta time in nano seconds
  *
  * @note
  *	1) MAC should be init and started. see osi_start_mac()
@@ -915,7 +916,7 @@ int osi_adjust_freq(struct osi_core_priv_data *osi_core, int ppb);
  * @retval 0 on success
  * @retval -1 on failure.
  */
-int osi_adjust_time(struct osi_core_priv_data *osi_core, long delta);
+int osi_adjust_time(struct osi_core_priv_data *osi_core, long long nsec_delta);
 
 /**
  * @brief osi_get_systime_from_mac - Get system time
