@@ -1286,7 +1286,7 @@ static int ether_open(struct net_device *dev)
 		}
 	}
 
-	ret = osi_poll_for_swr(osi_core);
+	ret = osi_poll_for_mac_reset_complete(osi_core);
 	if (ret < 0) {
 		dev_err(&dev->dev, "failed to poll MAC Software reset\n");
 		goto err_poll_swr;
@@ -3982,7 +3982,7 @@ static int ether_resume(struct ether_priv_data *pdata)
 		}
 	}
 
-	ret = osi_poll_for_swr(osi_core);
+	ret = osi_poll_for_mac_reset_complete(osi_core);
 	if (ret < 0) {
 		dev_err(dev, "failed to poll mac software reset\n");
 		return ret;
