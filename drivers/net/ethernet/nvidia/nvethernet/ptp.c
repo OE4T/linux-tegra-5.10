@@ -23,6 +23,7 @@
  */
 static DEFINE_RAW_SPINLOCK(ether_ts_lock);
 
+#ifdef CONFIG_TEGRA_PTP_NOTIFIER
 /**
  * @brief Function used to get PTP time
  * @param[in] data: OSI core private data structure
@@ -54,6 +55,7 @@ static inline u64 ether_get_ptptime(void *data)
 
 	return ns;
 }
+#endif
 
 /**
  * @brief Adjust MAC hardware time
@@ -391,8 +393,10 @@ int ether_handle_hwtstamp_ioctl(struct ether_priv_data *pdata,
 		osi_core->ptp_config.one_nsec_accuracy = OSI_ENABLE;
 		/* Enable the PTP configuration */
 		osi_ptp_configuration(osi_core, OSI_ENABLE);
+#ifdef CONFIG_TEGRA_PTP_NOTIFIER
 		/* Register broadcasting MAC timestamp to clients */
 		tegra_register_hwtime_source(ether_get_ptptime, pdata);
+#endif
 	}
 
 	return (copy_to_user(ifr->ifr_data, &config,

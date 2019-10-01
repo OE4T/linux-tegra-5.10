@@ -144,7 +144,7 @@ config TEGRA_WAKEUP
 config TEGRA_PTP_NOTIFIER
 	tristate "Enable PTP Notifier"
 	depends on ARCH_TEGRA_18x_SOC
-	default y if EQOS
+	default y if EQOS || NVETHERNET
 
 config TEGRA_SAFETY_SCE
 	tristate "Enable CCPLEX-SCE communication Driver for Safety"
