@@ -521,32 +521,6 @@ struct nvhost_device_data t23x_vic_info = {
 #endif
 
 #if defined(CONFIG_TEGRA_GRHOST_PVA)
-struct nvhost_device_data t23x_pva1_info = {
-	.num_channels		= 1,
-	.clocks			= {
-		{"axi", UINT_MAX,},
-		{"vps0", UINT_MAX,},
-		{"vps1", UINT_MAX,},
-	},
-	.ctrl_ops		= &tegra_pva_ctrl_ops,
-	.devfs_name_family	= "pva",
-	.class			= NV_PVA1_CLASS_ID,
-	.autosuspend_delay      = 500,
-	.finalize_poweron	= pva_finalize_poweron,
-	.prepare_poweroff	= pva_prepare_poweroff,
-	.firmware_name		= "nvhost_pva010.fw",
-	.resource_policy	= RESOURCE_PER_CHANNEL_INSTANCE,
-	.vm_regs		= {
-		{0x70000, true, 0},
-		{0x80000, false, 0},
-		{0x80000, false, 8} },
-	.poweron_reset		= true,
-	.serialize		= true,
-	.push_work_done		= true,
-	.get_reloc_phys_addr	= nvhost_t23x_get_reloc_phys_addr,
-	.can_powergate		= true,
-};
-
 struct nvhost_device_data t23x_pva0_info = {
 	.num_channels		= 1,
 	.clocks			= {
@@ -560,12 +534,23 @@ struct nvhost_device_data t23x_pva0_info = {
 	.autosuspend_delay      = 500,
 	.finalize_poweron	= pva_finalize_poweron,
 	.prepare_poweroff	= pva_prepare_poweroff,
-	.firmware_name		= "nvhost_pva010.fw",
+	.firmware_name		= "nvhost_pva020.fw",
 	.resource_policy	= RESOURCE_PER_CHANNEL_INSTANCE,
 	.vm_regs		= {
-		{0x70000, true, 0},
-		{0x80000, false, 0},
-		{0x80000, false, 8} },
+		{0x240000, false, 0},
+		{0x240004, false, 0},
+		{0x240008, false, 0},
+		{0x24000c, false, 0},
+		{0x240010, false, 0},
+		{0x240014, false, 0},
+		{0x240018, false, 0},
+		{0x24001c, false, 0},
+		{0x240020, false, 0},
+		{0x240020, false, 8},
+		{0x240020, false, 16},
+		{0x240024, false, 0},
+		{0x240024, false, 8}
+		},
 	.poweron_reset		= true,
 	.serialize		= true,
 	.get_reloc_phys_addr	= nvhost_t23x_get_reloc_phys_addr,
