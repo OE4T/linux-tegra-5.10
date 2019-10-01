@@ -65,10 +65,10 @@ void nvgpu_rc_fifo_recover(struct gk20a *g, u32 eng_bitmask,
 void nvgpu_rc_ctxsw_timeout(struct gk20a *g, u32 eng_bitmask,
 				struct nvgpu_tsg *tsg, bool debug_dump)
 {
-#ifdef CONFIG_NVGPU_RECOVERY
 	nvgpu_tsg_set_error_notifier(g, tsg,
 		NVGPU_ERR_NOTIFIER_FIFO_ERROR_IDLE_TIMEOUT);
 
+#ifdef CONFIG_NVGPU_RECOVERY
 #ifdef CONFIG_NVGPU_CHANNEL_WDT
 	/*
 	 * Cancel all channels' wdt since ctxsw timeout might
@@ -87,7 +87,6 @@ void nvgpu_rc_ctxsw_timeout(struct gk20a *g, u32 eng_bitmask,
 void nvgpu_rc_pbdma_fault(struct gk20a *g, u32 pbdma_id, u32 error_notifier,
 			struct nvgpu_pbdma_status_info *pbdma_status)
 {
-#ifdef CONFIG_NVGPU_RECOVERY
 	u32 id;
 	u32 id_type = PBDMA_STATUS_ID_TYPE_INVALID;
 
@@ -135,9 +134,6 @@ void nvgpu_rc_pbdma_fault(struct gk20a *g, u32 pbdma_id, u32 error_notifier,
 	} else {
 		nvgpu_err(g, "Invalid pbdma_status.id_type");
 	}
-#else
-	WARN_ON(!g->sw_quiesce_pending);
-#endif
 }
 
 void nvgpu_rc_runlist_update(struct gk20a *g, u32 runlist_id)
@@ -156,14 +152,10 @@ void nvgpu_rc_runlist_update(struct gk20a *g, u32 runlist_id)
 
 void nvgpu_rc_preempt_timeout(struct gk20a *g, struct nvgpu_tsg *tsg)
 {
-#ifdef CONFIG_NVGPU_RECOVERY
 	nvgpu_tsg_set_error_notifier(g, tsg,
 		NVGPU_ERR_NOTIFIER_FIFO_ERROR_IDLE_TIMEOUT);
 
 	nvgpu_rc_tsg_and_related_engines(g, tsg, true, RC_TYPE_PREEMPT_TIMEOUT);
-#else
-	WARN_ON(!g->sw_quiesce_pending);
-#endif
 }
 
 void nvgpu_rc_gr_fault(struct gk20a *g, struct nvgpu_tsg *tsg,
@@ -275,6 +267,27 @@ void nvgpu_rc_tsg_and_related_engines(struct gk20a *g, struct nvgpu_tsg *tsg,
 	nvgpu_mutex_release(&g->dbg_sessions_lock);
 #endif
 #else
+	WARN_ON(!g->sw_quiesce_pending);
+#endif
+}
+
+void nvgpu_rc_mmu_fault(struct gk20a *g, u32 act_eng_bitmask,
+			u32 id, unsigned int id_type, unsigned int rc_type,
+			 struct mmu_fault_info *mmufault)
+{
+	nvgpu_err(g, "mmu fault id=%u id_type=%u act_eng_bitmask=%08x",
+		id, id_type, act_eng_bitmask);
+
+#ifdef CONFIG_NVGPU_RECOVERY
+	g->ops.fifo.recover(g, act_eng_bitmask,
+		id, id_type, rc_type, mmufault);
+#else
+	if (id != INVAL_ID && id_type == ID_TYPE_TSG) {
+		struct nvgpu_tsg *tsg = &g->fifo.tsg[id];
+		nvgpu_tsg_set_ctx_mmu_error(g, tsg);
+		nvgpu_tsg_mark_error(g, tsg);
+	}
+
 	WARN_ON(!g->sw_quiesce_pending);
 #endif
 }

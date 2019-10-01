@@ -422,13 +422,8 @@ static bool gv11b_mm_mmu_fault_handle_non_replayable(struct gk20a *g,
 	}
 
 	if (rc_type != RC_TYPE_NO_RC) {
-#ifdef CONFIG_NVGPU_RECOVERY
-		g->ops.fifo.recover(g, act_eng_bitmask,
+		nvgpu_rc_mmu_fault(g, act_eng_bitmask,
 			id, id_type, rc_type, mmufault);
-#else
-		nvgpu_err(g, "mmu fault id=%u id_type=%u act_eng_bitmask=%08x",
-			id, id_type, act_eng_bitmask);
-#endif
 	}
 	return ret;
 }

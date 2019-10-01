@@ -87,6 +87,7 @@ static int nvgpu_sw_quiesce_thread(void *data)
 	if (nvgpu_thread_should_stop(&g->sw_quiesce_thread)) {
 		goto done;
 	}
+	nvgpu_wait_for_deferred_interrupts(g);
 
 	nvgpu_err(g, "sw quiesce in progress");
 

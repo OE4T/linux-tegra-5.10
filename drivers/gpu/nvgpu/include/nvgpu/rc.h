@@ -42,6 +42,7 @@ struct nvgpu_fifo;
 struct nvgpu_tsg;
 struct nvgpu_channel;
 struct nvgpu_pbdma_status_info;
+struct mmu_fault_info;
 
 void nvgpu_rc_ctxsw_timeout(struct gk20a *g, u32 eng_bitmask,
 				struct nvgpu_tsg *tsg, bool debug_dump);
@@ -57,6 +58,9 @@ void nvgpu_rc_gr_fault(struct gk20a *g,
 void nvgpu_rc_sched_error_bad_tsg(struct gk20a *g);
 void nvgpu_rc_tsg_and_related_engines(struct gk20a *g, struct nvgpu_tsg *tsg,
 			 bool debug_dump, u32 rc_type);
+void nvgpu_rc_mmu_fault(struct gk20a *g, u32 act_eng_bitmask,
+			u32 id, unsigned int id_type, unsigned int rc_type,
+			 struct mmu_fault_info *mmufault);
 
 void nvgpu_rc_fifo_recover(struct gk20a *g,
 			u32 eng_bitmask, /* if zero, will be queried from HW */
