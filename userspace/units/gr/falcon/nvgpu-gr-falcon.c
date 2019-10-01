@@ -151,19 +151,21 @@ static int test_gr_falcon_nonsecure_gpccs_recovery_ctxsw(struct unit_module *m,
 static int test_gr_falcon_query_test(struct unit_module *m,
 				struct gk20a *g, void *args)
 {
-
+#ifdef CONFIG_NVGPU_ENGINE_RESET
 	struct nvgpu_mutex *fecs_mutex =
 		nvgpu_gr_falcon_get_fecs_mutex(unit_gr_falcon);
+#endif
 	struct nvgpu_ctxsw_ucode_segments *fecs =
 		nvgpu_gr_falcon_get_fecs_ucode_segments(unit_gr_falcon);
 	struct nvgpu_ctxsw_ucode_segments *gpccs =
 		nvgpu_gr_falcon_get_gpccs_ucode_segments(unit_gr_falcon);
 	void *cpu_va = nvgpu_gr_falcon_get_surface_desc_cpu_va(unit_gr_falcon);
 
+#ifdef CONFIG_NVGPU_ENGINE_RESET
 	if (fecs_mutex == NULL) {
 		unit_return_fail(m, "nvgpu_gr_falcon_get_fecs_mutex failed\n");
 	}
-
+#endif
 	if (fecs == NULL) {
 		unit_return_fail(m,
 			"nvgpu_gr_falcon_get_fecs_ucode_segments failed\n");

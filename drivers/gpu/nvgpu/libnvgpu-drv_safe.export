@@ -130,7 +130,6 @@ nvgpu_gr_remove_support
 nvgpu_gr_prepare_sw
 nvgpu_gr_enable_hw
 nvgpu_gr_suspend
-nvgpu_gr_falcon_get_fecs_mutex
 nvgpu_gr_falcon_get_fecs_ucode_segments
 nvgpu_gr_falcon_get_gpccs_ucode_segments
 nvgpu_gr_falcon_get_surface_desc_cpu_va

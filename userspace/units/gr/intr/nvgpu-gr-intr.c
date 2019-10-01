@@ -57,12 +57,14 @@ struct test_gr_intr_sw_mthd_exceptions {
 	int data[2];
 };
 
+#ifdef CONFIG_NVGPU_RECOVERY
 static void gr_test_intr_fifo_recover(struct gk20a *g, u32 bitmask, u32 id,
 		unsigned int id_type, unsigned int rc_type,
 		struct mmu_fault_info *mmufault)
 {
 	/* Remove once recovery support get disable for safety */
 }
+#endif
 
 static int test_gr_intr_setup(struct unit_module *m,
 		struct gk20a *g, void *args)
@@ -345,7 +347,9 @@ static int test_gr_intr_without_channel(struct unit_module *m,
 
 	g->ops.gr.intr.log_mme_exception = gr_test_intr_log_mme_exception;
 	g->ops.gr.intr.handle_tex_exception = gr_test_intr_tex_exception;
+#ifdef CONFIG_NVGPU_RECOVERY
 	g->ops.fifo.recover = gr_test_intr_fifo_recover;
+#endif
 
 	/* Set trapped address datahigh bit */
 	nvgpu_posix_io_writel_reg_space(g, gr_trapped_addr_r(),
