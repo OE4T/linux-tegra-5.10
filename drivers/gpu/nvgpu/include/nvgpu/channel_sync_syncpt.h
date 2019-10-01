@@ -49,12 +49,14 @@ u32 nvgpu_channel_sync_get_syncpt_id(struct nvgpu_channel_sync_syncpt *s);
  */
 u64 nvgpu_channel_sync_get_syncpt_address(struct nvgpu_channel_sync_syncpt *s);
 
+#ifdef CONFIG_NVGPU_KERNEL_MODE_SUBMIT
 /*
  * Generate a gpu wait cmdbuf from raw fence(can be syncpoints or semaphores).
  * Returns a gpu cmdbuf that performs the wait when executed.
  */
 int nvgpu_channel_sync_wait_syncpt(struct nvgpu_channel_sync_syncpt *s,
 	u32 id, u32 thresh, struct priv_cmd_entry *entry);
+#endif
 
 /*
  * Converts a valid struct nvgpu_channel_sync ptr to
