@@ -234,7 +234,7 @@ static int nvgpu_submit_append_gpfifo_user_direct(struct nvgpu_channel *c,
 		u32 length1 = len - length0;
 
 		err = g->os_channel.copy_user_gpfifo(
-				gpfifo_cpu + start, userdata,
+				&gpfifo_cpu[start], userdata,
 				0, length0);
 		if (err != 0) {
 			return err;
@@ -248,7 +248,7 @@ static int nvgpu_submit_append_gpfifo_user_direct(struct nvgpu_channel *c,
 		}
 	} else {
 		err = g->os_channel.copy_user_gpfifo(
-				gpfifo_cpu + start, userdata,
+				&gpfifo_cpu[start], userdata,
 				0, len);
 		if (err != 0) {
 			return err;
@@ -274,7 +274,7 @@ static void nvgpu_submit_append_gpfifo_common(struct nvgpu_channel *c,
 		/* wrap-around */
 		u32 length0 = gpfifo_size - start;
 		u32 length1 = len - length0;
-		struct nvgpu_gpfifo_entry *src2 = src + length0;
+		struct nvgpu_gpfifo_entry *src2 = &src[length0];
 
 		nvgpu_mem_wr_n(g, gpfifo_mem, start, src, length0);
 		nvgpu_mem_wr_n(g, gpfifo_mem, 0, src2, length1);

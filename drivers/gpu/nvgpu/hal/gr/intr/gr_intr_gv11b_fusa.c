@@ -1691,7 +1691,7 @@ u32 gv11b_gr_intr_record_sm_error_state(struct gk20a *g, u32 gpc, u32 tpc, u32 s
 		goto record_fail;
 	}
 
-	sm_error_states = tsg->sm_error_states + sm_id;
+	sm_error_states = &tsg->sm_error_states[sm_id];
 	gv11b_gr_intr_read_sm_error_state(g, offset, sm_error_states);
 
 record_fail:
