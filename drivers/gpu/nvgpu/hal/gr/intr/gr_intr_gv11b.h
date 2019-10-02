@@ -97,7 +97,7 @@ void gv11b_gr_intr_get_esr_sm_sel(struct gk20a *g, u32 gpc, u32 tpc,
 				u32 *esr_sm_sel);
 void gv11b_gr_intr_clear_sm_hww(struct gk20a *g, u32 gpc, u32 tpc, u32 sm,
 				u32 global_esr);
-int gv11b_gr_intr_handle_ssync_hww(struct gk20a *g, u32 *ssync_esr);
+void gv11b_gr_intr_handle_ssync_hww(struct gk20a *g, u32 *ssync_esr);
 u32 gv11b_gr_intr_record_sm_error_state(struct gk20a *g, u32 gpc, u32 tpc, u32 sm,
 				struct nvgpu_channel *fault_ch);
 

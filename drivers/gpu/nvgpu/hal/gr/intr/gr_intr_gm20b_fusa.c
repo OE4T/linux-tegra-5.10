@@ -130,12 +130,8 @@ static u32 gr_gm20b_intr_check_gr_ssync_exception(struct gk20a *g,
 		u32 ssync_esr = 0;
 
 		if (g->ops.gr.intr.handle_ssync_hww != NULL) {
-			if (g->ops.gr.intr.handle_ssync_hww(g, &ssync_esr)
-					!= 0) {
-				reset_gpc = 1U;
-			}
-		} else {
-			nvgpu_err(g, "unhandled ssync exception");
+			g->ops.gr.intr.handle_ssync_hww(g, &ssync_esr);
+			reset_gpc = 1U;
 		}
 		nvgpu_gr_intr_report_exception(g, 0,
 				GPU_PGRAPH_SSYNC_EXCEPTION,

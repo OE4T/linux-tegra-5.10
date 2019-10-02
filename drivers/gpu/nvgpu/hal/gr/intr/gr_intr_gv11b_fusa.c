@@ -1615,17 +1615,14 @@ void gv11b_gr_intr_clear_sm_hww(struct gk20a *g, u32 gpc, u32 tpc, u32 sm,
 				gr_gpc0_tpc0_sm0_hww_warp_esr_r(), offset)));
 }
 
-int gv11b_gr_intr_handle_ssync_hww(struct gk20a *g, u32 *ssync_esr)
+void gv11b_gr_intr_handle_ssync_hww(struct gk20a *g, u32 *ssync_esr)
 {
 	u32 ssync = nvgpu_readl(g, gr_ssync_hww_esr_r());
 
-	if (ssync_esr != NULL) {
-		*ssync_esr = ssync;
-	}
+	*ssync_esr = ssync;
 	nvgpu_err(g, "ssync exception: esr 0x%08x", ssync);
 	nvgpu_writel(g, gr_ssync_hww_esr_r(),
 			 gr_ssync_hww_esr_reset_active_f());
-	return -EFAULT;
 }
 
 static void gv11b_gr_intr_read_sm_error_state(struct gk20a *g,

@@ -940,7 +940,7 @@ struct gpu_ops {
 					 u32 *esr_sm_sel);
 			void (*clear_sm_hww)(struct gk20a *g, u32 gpc, u32 tpc,
 				u32 sm, u32 global_esr);
-			int (*handle_ssync_hww)(struct gk20a *g, u32 *ssync_esr);
+			void (*handle_ssync_hww)(struct gk20a *g, u32 *ssync_esr);
 			void (*log_mme_exception)(struct gk20a *g);
 			u32 (*record_sm_error_state)(struct gk20a *g, u32 gpc,
 				u32 tpc, u32 sm, struct nvgpu_channel *fault_ch);
