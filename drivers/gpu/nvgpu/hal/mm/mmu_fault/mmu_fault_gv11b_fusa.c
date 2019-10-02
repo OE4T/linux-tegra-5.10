@@ -529,6 +529,7 @@ static void gv11b_mm_mmu_fault_handle_buf_valid_entry(struct gk20a *g,
 			sub_err_type);
 
 		nvgpu_assert(get_indx < U32_MAX);
+		nvgpu_assert(entries != 0U);
 		get_indx = (get_indx + 1U) % entries;
 		nvgpu_log(g, gpu_dbg_intr, "new get index = %d", get_indx);
 
