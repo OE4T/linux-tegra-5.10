@@ -29,6 +29,8 @@
 #include <linux/string.h>
 #endif
 
+struct gk20a;
+
 /**
  * nvgpu_memcpy - Copy memory buffer
  *
@@ -62,5 +64,14 @@ int nvgpu_memcmp(const u8 *b1, const u8 *b2, size_t n);
  * Returns 0 if there was no room to add '\0'
  */
 int nvgpu_strnadd_u32(char *dst, const u32 value, size_t size, u32 radix);
+
+/**
+ * nvgpu_mem_is_word_aligned - Check that memory address is word (4-byte)
+ * aligned.
+ *
+ * @g - struct gk20a.
+ * @addr - memory address.
+ */
+bool nvgpu_mem_is_word_aligned(struct gk20a *g, u8 *addr);
 
 #endif /* NVGPU_STRING_H */

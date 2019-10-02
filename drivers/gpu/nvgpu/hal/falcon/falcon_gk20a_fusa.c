@@ -128,12 +128,51 @@ u8 gk20a_falcon_get_ports_count(struct nvgpu_falcon *flcn,
 	return ports;
 }
 
+#define FALCON_UNALIGNED_MEMCPY_BLOCK_SIZE	256U
+
+static void falcon_copy_to_dmem_unaligned_src(struct nvgpu_falcon *flcn,
+					      u8 *src, u32 size, u8 port)
+{
+	u32 src_tmp[FALCON_UNALIGNED_MEMCPY_BLOCK_SIZE];
+	u32 bytes_extra = 0U;
+	u32 elem_size = 0U;
+	u32 offset = 0U;
+	u32 elems = 0U;
+	u32 i = 0U;
+
+	while ((offset + sizeof(src_tmp)) < size) {
+		nvgpu_memcpy((u8 *)&src_tmp[0], &src[offset],
+			     sizeof(src_tmp));
+		for (i = 0; i < ARRAY_SIZE(src_tmp); i++) {
+			gk20a_falcon_writel(flcn,
+					    falcon_falcon_dmemd_r(port),
+					    src_tmp[i]);
+		}
+		offset += (u32) sizeof(src_tmp);
+	}
+
+	if (offset < size) {
+		bytes_extra = size - offset;
+		elem_size =
+			nvgpu_safe_cast_u64_to_u32(sizeof(src_tmp[0]));
+		elems = bytes_extra / elem_size;
+
+		nvgpu_memcpy((u8 *)&src_tmp[0], &src[offset],
+			     (u64)elems * elem_size);
+		for (i = 0; i < elems; i++) {
+			gk20a_falcon_writel(flcn,
+					    falcon_falcon_dmemd_r(port),
+					    src_tmp[i]);
+		}
+	}
+}
+
 int gk20a_falcon_copy_to_dmem(struct nvgpu_falcon *flcn,
 		u32 dst, u8 *src, u32 size, u8 port)
 {
 	u32 i = 0U, words = 0U, bytes = 0U;
 	u32 data = 0U, addr_mask = 0U;
-	u32 *src_u32 = (u32 *)src;
+	u32 *src_u32 = NULL;
 
 	nvgpu_log_fn(flcn->g, "dest dmem offset - %x, size - %x", dst, size);
 
@@ -148,9 +187,15 @@ int gk20a_falcon_copy_to_dmem(struct nvgpu_falcon *flcn,
 	gk20a_falcon_writel(flcn, falcon_falcon_dmemc_r(port),
 			    dst | falcon_falcon_dmemc_aincw_f(1));
 
-	for (i = 0; i < words; i++) {
-		gk20a_falcon_writel(flcn, falcon_falcon_dmemd_r(port),
-				    src_u32[i]);
+	if (likely(nvgpu_mem_is_word_aligned(flcn->g, src))) {
+		src_u32 = (u32 *)src;
+
+		for (i = 0; i < words; i++) {
+			gk20a_falcon_writel(flcn, falcon_falcon_dmemd_r(port),
+					    src_u32[i]);
+		}
+	} else {
+		falcon_copy_to_dmem_unaligned_src(flcn, src, size, port);
 	}
 
 	if (bytes > 0U) {
@@ -171,10 +216,70 @@ int gk20a_falcon_copy_to_dmem(struct nvgpu_falcon *flcn,
 	return 0;
 }
 
+static void falcon_copy_to_imem_unaligned_src(struct nvgpu_falcon *flcn,
+					      u8 *src, u32 size, u8 port,
+					      u32 tag)
+{
+	u32 src_tmp[FALCON_UNALIGNED_MEMCPY_BLOCK_SIZE];
+	u32 bytes_extra = 0U;
+	u32 elem_size = 0U;
+	u32 offset = 0U;
+	u32 elems = 0U;
+	u32 i = 0U;
+	u32 j = 0U;
+
+	while ((offset + sizeof(src_tmp)) < size) {
+		nvgpu_memcpy((u8 *)&src_tmp[0], &src[offset],
+			     sizeof(src_tmp));
+		for (i = 0; i < ARRAY_SIZE(src_tmp); i++) {
+			if (j++ % 64U == 0U) {
+				/* tag is always 256B aligned */
+				gk20a_falcon_writel(flcn,
+					falcon_falcon_imemt_r(port), tag);
+				tag = nvgpu_safe_add_u32(tag, 1U);
+			}
+
+			gk20a_falcon_writel(flcn,
+					    falcon_falcon_imemd_r(port),
+					    src_tmp[i]);
+		}
+		offset += (u32) sizeof(src_tmp);
+	}
+
+	if (offset < size) {
+		bytes_extra = size - offset;
+		elem_size =
+			nvgpu_safe_cast_u64_to_u32(sizeof(src_tmp[0]));
+		elems = bytes_extra / elem_size;
+
+		nvgpu_memcpy((u8 *)&src_tmp[0], &src[offset],
+			     (u64)elems * elem_size);
+		for (i = 0; i < elems; i++) {
+			if (j++ % 64U == 0U) {
+				/* tag is always 256B aligned */
+				gk20a_falcon_writel(flcn,
+					falcon_falcon_imemt_r(port), tag);
+				tag = nvgpu_safe_add_u32(tag, 1U);
+			}
+
+			gk20a_falcon_writel(flcn,
+					    falcon_falcon_imemd_r(port),
+					    src_tmp[i]);
+		}
+	}
+
+	/* WARNING : setting remaining bytes in block to 0x0 */
+	while (j % 64U != 0U) {
+		gk20a_falcon_writel(flcn,
+				    falcon_falcon_imemd_r(port), 0);
+		j++;
+	}
+}
+
 int gk20a_falcon_copy_to_imem(struct nvgpu_falcon *flcn, u32 dst,
 		u8 *src, u32 size, u8 port, bool sec, u32 tag)
 {
-	u32 *src_u32 = (u32 *)src;
+	u32 *src_u32 = NULL;
 	u32 words = 0U;
 	u32 blk = 0U;
 	u32 i = 0U;
@@ -194,22 +299,30 @@ int gk20a_falcon_copy_to_imem(struct nvgpu_falcon *flcn, u32 dst,
 			falcon_falcon_imemc_aincw_f(1) |
 			falcon_falcon_imemc_secure_f(sec ? 1U : 0U));
 
-	for (i = 0U; i < words; i++) {
-		if (i % 64U == 0U) {
-			/* tag is always 256B aligned */
-			gk20a_falcon_writel(flcn, falcon_falcon_imemt_r(port),
-					    tag);
-			tag = nvgpu_safe_add_u32(tag, 1U);
+	if (likely(nvgpu_mem_is_word_aligned(flcn->g, src))) {
+		src_u32 = (u32 *)src;
+
+		for (i = 0U; i < words; i++) {
+			if (i % 64U == 0U) {
+				/* tag is always 256B aligned */
+				gk20a_falcon_writel(flcn,
+					falcon_falcon_imemt_r(port), tag);
+				tag = nvgpu_safe_add_u32(tag, 1U);
+			}
+
+			gk20a_falcon_writel(flcn, falcon_falcon_imemd_r(port),
+					    src_u32[i]);
 		}
 
-		gk20a_falcon_writel(flcn, falcon_falcon_imemd_r(port),
-				    src_u32[i]);
-	}
-
-	/* WARNING : setting remaining bytes in block to 0x0 */
-	while (i % 64U != 0U) {
-		gk20a_falcon_writel(flcn, falcon_falcon_imemd_r(port), 0);
-		i++;
+		/* WARNING : setting remaining bytes in block to 0x0 */
+		while (i % 64U != 0U) {
+			gk20a_falcon_writel(flcn,
+					    falcon_falcon_imemd_r(port), 0);
+			i++;
+		}
+	} else {
+		falcon_copy_to_imem_unaligned_src(flcn, src, size,
+						  port, tag);
 	}
 
 	return 0;
