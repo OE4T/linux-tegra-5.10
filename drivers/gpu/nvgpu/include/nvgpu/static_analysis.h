@@ -485,7 +485,8 @@ static inline void nvgpu_safety_checks(void)
 	 * Check compatibility between size (in bytes) and precision
 	 * (in bits) of unsigned int. BUG() if two are not same.
 	 */
-	if (sizeof(unsigned int) * 8U != NVGPU_PRECISION(UINT_MAX)) {
+	if (sizeof(unsigned int) * 8U !=
+		nvgpu_safe_cast_s32_to_u64(NVGPU_PRECISION(UINT_MAX))) {
 		BUG();
 	}
 
