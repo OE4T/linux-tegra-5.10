@@ -209,6 +209,10 @@ static void gr_intr_report_sm_exception(struct gk20a *g, u32 gpc, u32 tpc,
 
 	tsgid = NVGPU_INVALID_TSG_ID;
 	curr_ctx = g->ops.gr.falcon.get_current_ctx(g);
+	if (curr_ctx == 0U) {
+		return;
+	}
+
 	ch = nvgpu_gr_intr_get_channel_from_ctx(g, curr_ctx, &tsgid);
 	chid = ch != NULL ? ch->chid : NVGPU_INVALID_CHANNEL_ID;
 	if (ch != NULL) {
