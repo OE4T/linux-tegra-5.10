@@ -91,10 +91,52 @@ static int test_gr_intr_cleanup(struct unit_module *m,
 	return UNIT_SUCCESS;
 }
 
+static void gr_test_intr_log_mme_exception(struct gk20a *g)
+{
+	/* do nothing */
+}
+
+static void gr_test_intr_tex_exception(struct gk20a *g, u32 gpc, u32 tpc)
+{
+	/* do nothing */
+}
+
+static int gr_test_nonstall_isr(struct unit_module *m,
+				struct gk20a *g)
+{
+	int err;
+
+	/* Call without setting any non stall interrupt */
+	err = g->ops.gr.intr.nonstall_isr(g);
+	if (err != 0) {
+		return err;
+	}
+
+	/* Call with setting any non stall interrupt */
+	nvgpu_posix_io_writel_reg_space(g, gr_intr_nonstall_r(),
+			gr_intr_nonstall_trap_pending_f());
+
+	err = g->ops.gr.intr.nonstall_isr(g);
+	if (err == 0) {
+		err = UNIT_FAIL;
+		unit_return_fail(m, "nonstall_isr failed\n");
+	}
+
+	return UNIT_SUCCESS;
+}
+
+#define GR_TEST_TRAPPED_ADDR_DATAHIGH 0x01000000
 static int test_gr_intr_without_channel(struct unit_module *m,
 		struct gk20a *g, void *args)
 {
 	int err;
+
+	g->ops.gr.intr.log_mme_exception = gr_test_intr_log_mme_exception;
+	g->ops.gr.intr.handle_tex_exception = gr_test_intr_tex_exception;
+
+	/* Set trapped address datahigh bit */
+	nvgpu_posix_io_writel_reg_space(g, gr_trapped_addr_r(),
+				GR_TEST_TRAPPED_ADDR_DATAHIGH);
 
 	/* Set exception for FE, MEMFMT, PD, SCC, DS, SSYNC, MME, SKED */
 	nvgpu_posix_io_writel_reg_space(g, gr_exception_r(),
@@ -106,6 +148,11 @@ static int test_gr_intr_without_channel(struct unit_module *m,
 	err = g->ops.gr.intr.stall_isr(g);
 	if (err != 0) {
 		unit_return_fail(m, "stall_isr failed\n");
+	}
+
+	err = gr_test_nonstall_isr(m, g);
+	if (err != 0) {
+		unit_return_fail(m, "nonstall_isr failed\n");
 	}
 
 	return UNIT_SUCCESS;
@@ -333,9 +380,20 @@ static void gr_test_set_tpc_exceptions(struct gk20a *g)
 #define TPC_SM1_ESR_SEL	(0x1U << 1U)
 static void gr_test_set_tpc_esr_sm(struct gk20a *g)
 {
+	u32 global_esr_mask = 0U;
+
 	nvgpu_posix_io_writel_reg_space(g,
 		gr_gpc0_tpc0_sm_tpc_esr_sm_sel_r(),
 		TPC_SM0_ESR_SEL | TPC_SM1_ESR_SEL);
+
+	/* set global esr for sm */
+	global_esr_mask = nvgpu_posix_io_readl_reg_space(g,
+		gr_gpc0_tpc0_sm0_hww_global_esr_r());
+	global_esr_mask	|=
+		gr_gpc0_tpc0_sm0_hww_global_esr_multiple_warp_errors_pending_f();
+
+	nvgpu_posix_io_writel_reg_space(g,
+		gr_gpc0_tpc0_sm0_hww_global_esr_r(), global_esr_mask);
 }
 
 static int test_gr_intr_gpc_exceptions(struct unit_module *m,
