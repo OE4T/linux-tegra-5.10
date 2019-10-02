@@ -194,19 +194,19 @@ static int gv11b_ecc_init_sm_uncorrected_err_count(struct gk20a *g)
 
 static int gv11b_ecc_init_tpc(struct gk20a *g)
 {
-	int err;
+	int ret;
 
 	NVGPU_ECC_COUNTER_INIT_PER_TPC(sm_lrf_ecc_single_err_count);
 	NVGPU_ECC_COUNTER_INIT_PER_TPC(sm_lrf_ecc_double_err_count);
 
-	err = gv11b_ecc_init_sm_corrected_err_count(g);
-	if (err != 0) {
-		return err;
+	ret = gv11b_ecc_init_sm_corrected_err_count(g);
+	if (ret != 0) {
+		return ret;
 	}
 
-	err = gv11b_ecc_init_sm_uncorrected_err_count(g);
-	if (err != 0) {
-		return err;
+	ret = gv11b_ecc_init_sm_uncorrected_err_count(g);
+	if (ret != 0) {
+		return ret;
 	}
 
 	return 0;
