@@ -1355,6 +1355,10 @@ static int eqos_core_init(struct osi_core_priv_data *osi_core,
 	osi_writel(EQOS_MMC_CNTRL_CNTRST, (unsigned char *)osi_core->base +
 		   EQOS_MMC_CNTRL);
 
+	/* AXI ASID CTRL */
+	osi_writel(EQOS_AXI_ASID_CTRL_VAL,
+		   (unsigned char *)osi_core->base + EQOS_AXI_ASID_CTRL);
+
 	/* Mapping MTL Rx queue and DMA Rx channel */
 	/* TODO: Need to add EQOS_MTL_RXQ_DMA_MAP1 for EQOS */
 	value = osi_readl((unsigned char *)osi_core->base +
