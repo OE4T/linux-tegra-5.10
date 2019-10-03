@@ -333,9 +333,8 @@ static int ether_phy_init(struct net_device *dev)
  *
  * Algorithm:
  * 1) Get channel number private data passed to ISR.
- * 2) Invoke OSI layer to clear Tx interrupt source.
- * 3) Disable DMA Tx channel interrupt.
- * 4) Schedule TX NAPI poll handler to cleanup the buffer.
+ * 2) Disable DMA Tx channel interrupt.
+ * 3) Schedule TX NAPI poll handler to cleanup the buffer.
  *
  * @param[in] irq: IRQ number.
  * @param[in] data: Tx NAPI private data structure.
@@ -355,16 +354,19 @@ static irqreturn_t ether_tx_chan_isr(int irq, void *data)
 	unsigned long flags;
 	unsigned long val;
 
-	osi_clear_tx_intr(osi_dma, chan);
+	spin_lock_irqsave(&pdata->rlock, flags);
+	osi_disable_chan_tx_intr(osi_dma, chan);
+	spin_unlock_irqrestore(&pdata->rlock, flags);
+
 	val = osi_core->xstats.tx_normal_irq_n[chan];
 	osi_core->xstats.tx_normal_irq_n[chan] =
 		osi_update_stats_counter(val, 1U);
 
 	if (likely(napi_schedule_prep(&tx_napi->napi))) {
-		spin_lock_irqsave(&pdata->rlock, flags);
-		osi_disable_chan_tx_intr(osi_dma, chan);
-		spin_unlock_irqrestore(&pdata->rlock, flags);
 		__napi_schedule_irqoff(&tx_napi->napi);
+	} else {
+		pr_err("Tx DMA-%d IRQ when NAPI already scheduled!\n", chan);
+		WARN_ON(true);
 	}
 
 	return IRQ_HANDLED;
@@ -376,9 +378,8 @@ static irqreturn_t ether_tx_chan_isr(int irq, void *data)
  * Algorithm:
  * 1) Get Rx channel number from Rx NAPI private data which will be passed
  * during request_irq() API.
- * 2) Invoke OSI layer to clear Rx interrupt source.
- * 3) Disable DMA Rx channel interrupt.
- * 4) Schedule Rx NAPI poll handler to get data from HW and pass to the
+ * 2) Disable DMA Rx channel interrupt.
+ * 3) Schedule Rx NAPI poll handler to get data from HW and pass to the
  * Linux network stack.
  *
  * @param[in] irq: IRQ number
@@ -398,17 +399,19 @@ static irqreturn_t ether_rx_chan_isr(int irq, void *data)
 	unsigned int chan = rx_napi->chan;
 	unsigned long val, flags;
 
-	osi_clear_rx_intr(osi_dma, chan);
+	spin_lock_irqsave(&pdata->rlock, flags);
+	osi_disable_chan_rx_intr(osi_dma, chan);
+	spin_unlock_irqrestore(&pdata->rlock, flags);
+
 	val = osi_core->xstats.rx_normal_irq_n[chan];
 	osi_core->xstats.rx_normal_irq_n[chan] =
 		osi_update_stats_counter(val, 1U);
 
-
 	if (likely(napi_schedule_prep(&rx_napi->napi))) {
-		spin_lock_irqsave(&pdata->rlock, flags);
-		osi_disable_chan_rx_intr(osi_dma, chan);
-		spin_unlock_irqrestore(&pdata->rlock, flags);
 		__napi_schedule_irqoff(&rx_napi->napi);
+	} else {
+		pr_err("Rx DMA-%d IRQ when NAPI already scheduled!\n", chan);
+		WARN_ON(true);
 	}
 
 	return IRQ_HANDLED;

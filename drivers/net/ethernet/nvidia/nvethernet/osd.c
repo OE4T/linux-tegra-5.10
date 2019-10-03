@@ -135,12 +135,12 @@ static inline int ether_alloc_skb(struct ether_priv_data *pdata,
 	struct sk_buff *skb = NULL;
 	dma_addr_t dma_addr;
 
-	if (rx_swcx->ptp_swcx) {
-		rx_swcx->ptp_swcx = 0;
+	if ((rx_swcx->flags & OSI_RX_SWCX_PTP) == OSI_RX_SWCX_PTP) {
 		/* Skip buffer allocation and DMA mapping since
 		 * PTP software context will have valid buffer and
 		 * DMA addresses so use them as is.
 		 */
+		rx_swcx->flags |= OSI_RX_SWCX_BUF_VALID;
 		return 0;
 	}
 
@@ -160,6 +160,7 @@ static inline int ether_alloc_skb(struct ether_priv_data *pdata,
 
 	rx_swcx->buf_virt_addr = skb;
 	rx_swcx->buf_phy_addr = dma_addr;
+	rx_swcx->flags |= OSI_RX_SWCX_BUF_VALID;
 
 	return 0;
 }
@@ -172,7 +173,6 @@ static inline int ether_alloc_skb(struct ether_priv_data *pdata,
  * 1) Invokes OSD layer to allocate the buffer and map the buffer to DMA
  * mappable address.
  * 2) Fill Rx descriptors with required data.
- * 3) Program DMA rx channel tail pointer.
  *
  * @param[in] pdata: OSD private data structure.
  * @param[in] rx_ring: DMA channel Rx ring instance.
@@ -187,11 +187,12 @@ static void ether_realloc_rx_skb(struct ether_priv_data *pdata,
 	struct osi_rx_swcx *rx_swcx = NULL;
 	struct osi_rx_desc *rx_desc = NULL;
 	unsigned long val;
+	unsigned int local_refill_idx = rx_ring->refill_idx;
 	int ret = 0;
 
-	while (rx_ring->refill_idx != rx_ring->cur_rx_idx) {
-		rx_swcx = rx_ring->rx_swcx + rx_ring->refill_idx;
-		rx_desc = rx_ring->rx_desc + rx_ring->refill_idx;
+	while (local_refill_idx != rx_ring->cur_rx_idx) {
+		rx_swcx = rx_ring->rx_swcx + local_refill_idx;
+		rx_desc = rx_ring->rx_desc + local_refill_idx;
 
 		ret = ether_alloc_skb(pdata, rx_swcx, osi_dma->rx_buf_len);
 		if (ret < 0) {
@@ -200,11 +201,13 @@ static void ether_realloc_rx_skb(struct ether_priv_data *pdata,
 				osi_update_stats_counter(val, 1UL);
 			break;
 		}
-		osi_rx_dma_desc_init(rx_swcx, rx_desc, osi_dma->use_riwt);
-		INCR_RX_DESC_INDEX(rx_ring->refill_idx, 1U);
+		INCR_RX_DESC_INDEX(local_refill_idx, 1U);
 	}
 
-	osi_update_rx_tailptr(osi_dma, rx_ring, chan);
+	ret = osi_rx_dma_desc_init(osi_dma, rx_ring, chan);
+	if (ret < 0) {
+		dev_err(pdata->dev, "Failed to refill Rx ring %u\n", chan);
+	}
 }
 
 /**
