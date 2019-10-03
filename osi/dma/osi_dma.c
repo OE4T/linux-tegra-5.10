@@ -145,30 +145,6 @@ int osi_enable_chan_rx_intr(struct osi_dma_priv_data *osi_dma,
 	return -1;
 }
 
-int osi_clear_tx_intr(struct osi_dma_priv_data *osi_dma,
-		      unsigned int chan)
-{
-	if ((osi_dma != OSI_NULL) && (osi_dma->ops != OSI_NULL) &&
-	    (osi_dma->ops->clear_tx_intr != OSI_NULL)) {
-		osi_dma->ops->clear_tx_intr(osi_dma->base, chan);
-		return 0;
-	}
-
-	return -1;
-}
-
-int osi_clear_rx_intr(struct osi_dma_priv_data *osi_dma,
-		      unsigned int chan)
-{
-	if ((osi_dma != OSI_NULL) && (osi_dma->ops != OSI_NULL) &&
-	    (osi_dma->ops->clear_rx_intr != OSI_NULL)) {
-		osi_dma->ops->clear_rx_intr(osi_dma->base, chan);
-		return 0;
-	}
-
-	return -1;
-}
-
 int  osi_start_dma(struct osi_dma_priv_data *osi_dma,
 		   unsigned int chan)
 {
@@ -203,14 +179,43 @@ unsigned int osi_get_refill_rx_desc_cnt(struct osi_rx_ring *rx_ring)
 	return (rx_ring->cur_rx_idx - rx_ring->refill_idx) & (RX_DESC_CNT - 1U);
 }
 
-int osi_rx_dma_desc_init(struct osi_rx_swcx *rx_swcx,
-			 struct osi_rx_desc *rx_desc,
-			 unsigned int use_riwt)
+int osi_rx_dma_desc_init(struct osi_dma_priv_data *osi_dma,
+			 struct osi_rx_ring *rx_ring, unsigned int chan)
 {
 	/* for CERT-C error */
 	unsigned long temp;
+	unsigned long tailptr = 0;
+	struct osi_rx_swcx *rx_swcx = OSI_NULL;
+	struct osi_rx_desc *rx_desc = OSI_NULL;
 
-	if (rx_swcx != OSI_NULL && rx_desc != OSI_NULL) {
+	/* Validate args */
+	if (!(osi_dma != OSI_NULL && osi_dma->ops != OSI_NULL &&
+	    osi_dma->ops->update_rx_tailptr != OSI_NULL)) {
+		return -1;
+	}
+
+	if (!(rx_ring != OSI_NULL && rx_ring->rx_swcx != OSI_NULL &&
+	    rx_ring->rx_desc != OSI_NULL)) {
+		return -1;
+	}
+
+	if (chan >= OSI_EQOS_MAX_NUM_CHANS) {
+		return -1;
+	}
+
+	/* Refill buffers */
+	while (rx_ring->refill_idx != rx_ring->cur_rx_idx) {
+		rx_swcx = rx_ring->rx_swcx + rx_ring->refill_idx;
+		rx_desc = rx_ring->rx_desc + rx_ring->refill_idx;
+
+		if ((rx_swcx->flags & OSI_RX_SWCX_BUF_VALID) !=
+		    OSI_RX_SWCX_BUF_VALID) {
+			break;
+		}
+
+		rx_swcx->flags = 0;
+
+		/* Populate the newly allocated buffer address */
 		temp = L32(rx_swcx->buf_phy_addr);
 		if (temp > UINT_MAX) {
 			/* error case do nothing */
@@ -224,43 +229,32 @@ int osi_rx_dma_desc_init(struct osi_rx_swcx *rx_swcx,
 		} else {
 			rx_desc->rdes1 = (unsigned int)temp;
 		}
+
 		rx_desc->rdes2 = 0;
 		rx_desc->rdes3 = (RDES3_OWN | RDES3_IOC | RDES3_B1V);
-	} else {
-		return -1;
-	}
-	/* reset IOC bit if RWIT is enabled */
-	if (use_riwt == OSI_ENABLE) {
-		rx_desc->rdes3 &= ~RDES3_IOC;
-	}
 
-	return 0;
-}
+		/* reset IOC bit if RWIT is enabled */
+		if (osi_dma->use_riwt == OSI_ENABLE) {
+			rx_desc->rdes3 &= ~RDES3_IOC;
+		}
 
-int osi_update_rx_tailptr(struct osi_dma_priv_data *osi_dma,
-			  struct osi_rx_ring *rx_ring,
-			  unsigned int chan)
-{
-	unsigned long tailptr = 0;
-	unsigned int refill_idx = rx_ring->refill_idx;
-
-	if (refill_idx >= RX_DESC_CNT) {
-		return -1;
+		INCR_RX_DESC_INDEX(rx_ring->refill_idx, 1U);
 	}
 
-	DECR_RX_DESC_INDEX(refill_idx, 1U);
+	/* Update the Rx tail ptr  whenever buffer is replenished to
+	 * kick the Rx DMA to resume if it is in suspend. Always set
+	 * Rx tailptr to 1 greater than last descriptor in the ring since HW
+	 * knows to loop over to start of ring.
+	 */
 	tailptr = rx_ring->rx_desc_phy_addr +
-		  (refill_idx * sizeof(struct osi_rx_desc));
+		  (sizeof(struct osi_rx_desc) * (RX_DESC_CNT));
+
 	if (tailptr < rx_ring->rx_desc_phy_addr) {
+		/* Will not hit this case, used for CERT-C compliance */
 		return -1;
 	}
 
-	if (osi_dma != OSI_NULL && osi_dma->ops != OSI_NULL &&
-	    osi_dma->ops->update_rx_tailptr != OSI_NULL) {
-		osi_dma->ops->update_rx_tailptr(osi_dma->base, chan, tailptr);
-	} else {
-		return -1;
-	}
+	osi_dma->ops->update_rx_tailptr(osi_dma->base, chan, tailptr);
 
 	return 0;
 }

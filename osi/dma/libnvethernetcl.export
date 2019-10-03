@@ -27,13 +27,10 @@ osi_disable_chan_tx_intr
 osi_enable_chan_tx_intr
 osi_disable_chan_rx_intr
 osi_enable_chan_rx_intr
-osi_clear_tx_intr
-osi_clear_rx_intr
 osi_start_dma
 osi_stop_dma
 osi_get_refill_rx_desc_cnt
 osi_rx_dma_desc_init
-osi_update_rx_tailptr
 osi_set_rx_buf_len
 osi_hw_transmit
 osi_process_tx_completions

@@ -82,6 +82,18 @@
 /** @} */
 
 /**
+ * @addtogroup EQOS-RX Rx SW context flags
+ *
+ * @brief Flags to share info about the Rx SW context structure per descriptor
+ * between OSI and OSD.
+ * @{
+ */
+/* Rx swcx flags */
+#define OSI_RX_SWCX_PTP		OSI_BIT(0)
+#define OSI_RX_SWCX_BUF_VALID	OSI_BIT(1)
+/** @} */
+
+/**
  * @brief OSI packet error stats
  */
 struct osi_pkt_err_stats {
@@ -133,8 +145,8 @@ struct osi_rx_swcx {
 	void *buf_virt_addr;
 	/** Length of buffer */
 	unsigned int len;
-	/** PTP software context */
-	unsigned int ptp_swcx;
+	/** Flags to share info about Rx swcx between OSD and OSI */
+	unsigned int flags;
 };
 
 /**
@@ -280,10 +292,6 @@ struct osi_dma_chan_ops {
 	/** Called to update Rx ring tail pointer */
 	void (*update_rx_tailptr)(void *addr, unsigned int chan,
 				  unsigned long tailptr);
-	/** Called to clear Tx interrupt source */
-	void (*clear_tx_intr)(void *addr, unsigned int chan);
-	/** Called to clear Rx interrupt source */
-	void (*clear_rx_intr)(void *addr, unsigned int chan);
 	/** Called to disable DMA Tx channel interrupts at wrapper level */
 	void (*disable_chan_tx_intr)(void *addr, unsigned int chan);
 	/** Called to enable DMA Tx channel interrupts at wrapper level */
@@ -443,44 +451,6 @@ int osi_enable_chan_rx_intr(struct osi_dma_priv_data *osi_dma,
 			    unsigned int chan);
 
 /**
- * @brief osi_clear_tx_intr - Handles Tx interrupt source.
- *
- * Algorithm: Clear Tx interrupt source at wrapper level and DMA level.
- *
- * @param[in] osi_dma: DMA private data.
- * @param[in] chan: DMA tx channel number.
- *
- * @note
- *	1) MAC needs to be out of reset and proper clocks need to be configured.
- *	2) DMA HW init need to be completed successfully, see osi_hw_dma_init
- *
- * @retval 0 on success
- * @retval -1 on failure.
- */
-int osi_clear_tx_intr(struct osi_dma_priv_data *osi_dma,
-		      unsigned int chan);
-
-/**
- * @brief osi_clear_rx_intr - Handles Rx interrupt source.
- *
- * Algorithm: Clear Rx interrupt source at wrapper level and DMA level.
- *
- * @param[in] osi_dma: DMA private data.
- * @param[in] chan: DMA rx channel number.
- *
- * @note
- *	1) MAC needs to be out of reset and proper clocks need to be configured.
- *	2) DMA HW init need to be completed successfully, see osi_hw_dma_init
- *	3) Mapping of physical IRQ line to DMA channel need to be maintained at
- *	OS Dependent layer and pass corresponding channel number.
- *
- * @retval 0 on success
- * @retval -1 on failure.
- */
-int osi_clear_rx_intr(struct osi_dma_priv_data *osi_dma,
-		      unsigned int chan);
-
-/**
  * @brief Start DMA
  *
  * Algorithm: Start the DMA for specific MAC
@@ -535,9 +505,9 @@ unsigned int osi_get_refill_rx_desc_cnt(struct osi_rx_ring *rx_ring);
  *
  * Algorithm: Initialise a Rx DMA descriptor.
  *
- * @param[in] rx_swcx: OSI DMA Rx ring software context
- * @param[in] rx_desc: OSI DMA Rx ring descriptor
- * @param[in] use_riwt: to enable Rx WDT and disable IOC
+ * @param[in] osi_dma: OSI DMA private data struture.
+ * @param[in] rx_ring: HW ring corresponding to Rx DMA channel.
+ * @param[in] chan: Rx DMA channel number
  *
  * @note
  *	1) MAC needs to be out of reset and proper clocks need to be configured.
@@ -547,27 +517,8 @@ unsigned int osi_get_refill_rx_desc_cnt(struct osi_rx_ring *rx_ring);
  * @retval 0 on success
  * @retval -1 on failure.
  */
-int osi_rx_dma_desc_init(struct osi_rx_swcx *rx_swcx,
-			 struct osi_rx_desc *rx_desc,
-			 unsigned int use_riwt);
-
-/**
- * @brief osi_update_rx_tailptr - Updates DMA Rx ring tail pointer
- *
- * @param[in] osi_dma: OSI DMA private data struture.
- * @param[in] rx_ring: Pointer to DMA Rx ring.
- * @param[in] chan: DMA channel number.
- *
- * @note
- *	1) MAC needs to be out of reset and proper clocks need to be configured.
- *	2) DMA HW init need to be completed successfully, see osi_hw_dma_init
- *
- * @retval 0 on success
- * @retval -1 on failure.
- */
-int osi_update_rx_tailptr(struct osi_dma_priv_data *osi_dma,
-			  struct osi_rx_ring *rx_ring,
-			  unsigned int chan);
+int osi_rx_dma_desc_init(struct osi_dma_priv_data *osi_dma,
+			 struct osi_rx_ring *rx_ring, unsigned int chan);
 
 /**
  * @brief Updates rx buffer length.
