@@ -2916,140 +2916,86 @@
         "test_level": 0
     },
     {
-        "test": "test_flat",
+        "test": "test_flat_gen",
         "case": "flat",
         "unit": "nvgpu_runlist",
         "test_level": 0
     },
     {
-        "test": "test_flat_oversize_end",
-        "case": "flat_oversize_end",
+        "test": "test_runlist_get_mask",
+        "case": "get_mask",
         "unit": "nvgpu_runlist",
         "test_level": 0
     },
     {
-        "test": "test_flat_oversize_onehalf",
-        "case": "flat_oversize_onehalf",
+        "test": "test_fifo_init_support",
+        "case": "init_support",
         "unit": "nvgpu_runlist",
         "test_level": 0
     },
     {
-        "test": "test_flat_oversize_single",
-        "case": "flat_oversize_single",
+        "test": "test_interleave_dual",
+        "case": "interleave_dual",
         "unit": "nvgpu_runlist",
         "test_level": 0
     },
     {
-        "test": "test_flat_oversize_tiny",
-        "case": "flat_oversize_tiny",
+        "test": "test_interleaving_levels",
+        "case": "interleave_level",
         "unit": "nvgpu_runlist",
         "test_level": 0
     },
     {
-        "test": "test_flat_oversize_two",
-        "case": "flat_oversize_two",
+        "test": "test_runlist_interleave_level_name",
+        "case": "interleave_level_name",
         "unit": "nvgpu_runlist",
         "test_level": 0
     },
     {
-        "test": "test_interleaving_gen_all_run",
-        "case": "interleaving",
+        "test": "test_interleave_single",
+        "case": "interleave_single",
         "unit": "nvgpu_runlist",
         "test_level": 0
     },
     {
-        "test": "test_interleaving_l0",
-        "case": "interleaving_l0",
+        "test": "test_runlist_lock_unlock_active_runlists",
+        "case": "lock_unlock_active_runlists",
         "unit": "nvgpu_runlist",
         "test_level": 0
     },
     {
-        "test": "test_interleaving_l0_l1",
-        "case": "interleaving_l0_l1",
+        "test": "test_runlist_reload_ids",
+        "case": "reload_ids",
         "unit": "nvgpu_runlist",
         "test_level": 0
     },
     {
-        "test": "test_interleaving_l0_l2",
-        "case": "interleaving_l0_l2",
+        "test": "test_fifo_remove_support",
+        "case": "remove_support",
         "unit": "nvgpu_runlist",
         "test_level": 0
     },
     {
-        "test": "test_interleaving_l1",
-        "case": "interleaving_l1",
+        "test": "test_runlist_update_locked",
+        "case": "runlist_update",
         "unit": "nvgpu_runlist",
         "test_level": 0
     },
     {
-        "test": "test_interleaving_l1_l2",
-        "case": "interleaving_l1_l2",
+        "test": "test_runlist_set_state",
+        "case": "set_state",
         "unit": "nvgpu_runlist",
         "test_level": 0
     },
     {
-        "test": "test_interleaving_l2",
-        "case": "interleaving_l2",
-        "unit": "nvgpu_runlist",
-        "test_level": 0
-    },
-    {
-        "test": "test_interleaving_gen_all_run",
-        "case": "interleaving_oversize_l2",
-        "unit": "nvgpu_runlist",
-        "test_level": 0
-    },
-    {
-        "test": "test_interleaving_gen_all_run",
-        "case": "interleaving_oversize_l2_l1_l2",
-        "unit": "nvgpu_runlist",
-        "test_level": 0
-    },
-    {
-        "test": "test_interleaving_gen_all_run",
-        "case": "interleaving_oversize_l2_l1_l2_l1",
-        "unit": "nvgpu_runlist",
-        "test_level": 0
-    },
-    {
-        "test": "test_interleaving_gen_all_run",
-        "case": "interleaving_oversize_l2_l1_l2_l1_l2",
-        "unit": "nvgpu_runlist",
-        "test_level": 0
-    },
-    {
-        "test": "test_interleaving_gen_all_run",
-        "case": "interleaving_oversize_tiny",
+        "test": "test_runlist_setup_sw",
+        "case": "setup_sw",
         "unit": "nvgpu_runlist",
         "test_level": 0
     },
     {
         "test": "test_tsg_format_gen",
-        "case": "tsg_format_ch1",
-        "unit": "nvgpu_runlist",
-        "test_level": 0
-    },
-    {
-        "test": "test_tsg_format_gen",
-        "case": "tsg_format_ch1_timeslice",
-        "unit": "nvgpu_runlist",
-        "test_level": 0
-    },
-    {
-        "test": "test_tsg_format_gen",
-        "case": "tsg_format_ch2",
-        "unit": "nvgpu_runlist",
-        "test_level": 0
-    },
-    {
-        "test": "test_tsg_format_gen",
-        "case": "tsg_format_ch3_inactive2",
-        "unit": "nvgpu_runlist",
-        "test_level": 0
-    },
-    {
-        "test": "test_tsg_format_gen",
-        "case": "tsg_format_ch5",
+        "case": "tsg_format_flat",
         "unit": "nvgpu_runlist",
         "test_level": 0
     },

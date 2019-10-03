@@ -23,4 +23,10 @@
 OBJS   = nvgpu-runlist.o
 MODULE = nvgpu-runlist
 
+LIB_PATHS += -lnvgpu-fifo
 include ../../Makefile.units
+
+lib$(MODULE).so: fifo
+
+fifo:
+	$(MAKE) -C ..

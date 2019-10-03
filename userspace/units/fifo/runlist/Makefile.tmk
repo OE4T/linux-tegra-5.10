@@ -25,6 +25,11 @@
 ###############################################################################
 
 NVGPU_UNIT_NAME=nvgpu-runlist
+NVGPU_UNIT_SRCS = nvgpu-runlist.c
+
+NVGPU_UNIT_INTERFACE_DIRS := \
+	$(NV_COMPONENT_DIR)/.. \
+	$(NV_SOURCE)/kernel/nvgpu/drivers/gpu/nvgpu
 
 include $(NV_COMPONENT_DIR)/../../Makefile.units.common.tmk
 

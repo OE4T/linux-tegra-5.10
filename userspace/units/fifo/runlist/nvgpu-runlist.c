@@ -28,11 +28,82 @@
 #include <nvgpu/channel.h>
 #include <nvgpu/runlist.h>
 #include <nvgpu/gk20a.h>
+#include <nvgpu/posix/posix-fault-injection.h>
+#include <nvgpu/posix/dma.h>
+#include <nvgpu/io.h>
 
 #include "hal/fifo/runlist_ram_gk20a.h"
 #include "hal/fifo/tsg_gk20a.h"
 #include "nvgpu/hw/gk20a/hw_ram_gk20a.h"
 #include "nvgpu-runlist.h"
+#include "nvgpu/hw/gk20a/hw_fifo_gk20a.h"
+
+#define RL_MAX_TIMESLICE_TIMEOUT ram_rl_entry_timeslice_timeout_v(U32_MAX)
+#define RL_MAX_TIMESLICE_SCALE ram_rl_entry_timeslice_scale_v(U32_MAX)
+
+#include "../nvgpu-fifo.h"
+
+#ifdef RUNLIST_UNIT_DEBUG
+#define unit_verbose	unit_info
+#else
+#define unit_verbose(unit, msg, ...) \
+	do { \
+		if (0) { \
+			unit_info(unit, msg, ##__VA_ARGS__); \
+		} \
+	} while (0)
+#endif
+
+#define assert(cond)	unit_assert(cond, goto done)
+
+struct runlist_unit_ctx {
+	u32 branches;
+};
+
+static struct runlist_unit_ctx unit_ctx;
+
+#define MAX_STUB	4
+
+struct stub_ctx {
+	const char *name;
+	u32 count;
+	u32 chid;
+	u32 tsgid;
+};
+
+struct stub_ctx stub[MAX_STUB];
+
+static void subtest_setup(u32 branches)
+{
+	u32 i;
+
+	unit_ctx.branches = branches;
+
+	memset(stub, 0, sizeof(stub));
+	for (i = 0; i < MAX_STUB; i++) {
+		stub[i].name = "";
+		stub[i].count = 0;
+		stub[i].chid = NVGPU_INVALID_CHANNEL_ID;
+		stub[i].tsgid = NVGPU_INVALID_TSG_ID;
+	}
+}
+
+#define pruned test_fifo_subtest_pruned
+#define branches_str test_fifo_flags_str
+
+static u32 get_log2(u32 num)
+{
+	u32 res = 0;
+
+	if (num == 0) {
+		return 0;
+	}
+	while (num > 0) {
+		res++;
+		num >>= 1;
+	}
+	return res - 1U;
+}
 
 #define RL_MAX_TIMESLICE_TIMEOUT ram_rl_entry_timeslice_timeout_v(U32_MAX)
 #define RL_MAX_TIMESLICE_SCALE ram_rl_entry_timeslice_scale_v(U32_MAX)
@@ -43,7 +114,7 @@
  * runlist test purposes.
  */
 static void generic_runlist_get_tsg_entry(struct nvgpu_tsg *tsg,
-		u32 *runlist, u32 timeslice)
+	u32 *runlist, u32 timeslice)
 {
 	u32 timeout = timeslice;
 	u32 scale = 0U;
@@ -88,6 +159,7 @@ static void setup_fifo(struct gk20a *g, unsigned long *tsg_map,
 	struct nvgpu_runlist_info *runlist = runlists[0];
 
 	/* we only use the runlist 0 here */
+	runlist->mem[0].aperture = APERTURE_SYSMEM;
 	runlist->mem[0].cpu_va = rl_data;
 
 	runlist->active_tsgs = tsg_map;
@@ -123,7 +195,6 @@ static void setup_fifo(struct gk20a *g, unsigned long *tsg_map,
 	nvgpu_bitmap_set(runlist->active_tsgs, 0, num_tsgs);
 	/* same; these are only used if a high enough tsg appears */
 	nvgpu_bitmap_set(runlist->active_channels, 0, num_channels);
-
 }
 
 static void setup_tsg(struct nvgpu_tsg *tsgs, struct nvgpu_channel *chs,
@@ -133,7 +204,6 @@ static void setup_tsg(struct nvgpu_tsg *tsgs, struct nvgpu_channel *chs,
 	struct nvgpu_channel *ch = &chs[i];
 
 	tsg->tsgid = i;
-	nvgpu_rwsem_init(&tsg->ch_list_lock);
 	nvgpu_init_list_node(&tsg->ch_list);
 	tsg->num_active_channels = 1;
 	tsg->interleave_level = level;
@@ -144,7 +214,7 @@ static void setup_tsg(struct nvgpu_tsg *tsgs, struct nvgpu_channel *chs,
 }
 
 static void setup_tsg_multich(struct nvgpu_tsg *tsgs, struct nvgpu_channel *chs,
-		u32 i, u32 level, u32 ch_capacity, u32 ch_active)
+	u32 i, u32 level, u32 ch_capacity, u32 ch_active)
 {
 	struct nvgpu_tsg *tsg = &tsgs[i];
 	struct nvgpu_channel *ch = &chs[i + 1];
@@ -172,8 +242,9 @@ static int run_format_test(struct unit_module *m, struct nvgpu_fifo *f,
 
 	/* entry capacity: tsg header and some channels */
 	n = nvgpu_runlist_construct_locked(f, f->runlist_info[0], 0, 1 + n_ch);
+
 	if (n != 1 + n_ch) {
-		unit_return_fail(m, "number of entries mismatch %d\n", n);
+		return -1;
 	}
 	if (memcmp(rl_data, expect_header, 2 * sizeof(u32)) != 0) {
 		unit_err(m, "rl_data[0]=%08x", rl_data[0]);
@@ -181,13 +252,15 @@ static int run_format_test(struct unit_module *m, struct nvgpu_fifo *f,
 		unit_err(m, "expect_header[0]=%08x", expect_header[0]);
 		unit_err(m, "expect_header[1]=%08x", expect_header[1]);
 
-		unit_return_fail(m, "tsg header mismatch\n");
+		unit_err(m, "tsg header mismatch\n");
+		return -1;
 	}
 	if (memcmp(rl_data + 2, expect_channel, 2 * n_ch * sizeof(u32)) != 0) {
-		unit_return_fail(m, "channel data mismatch\n");
+		unit_err(m, "channel data mismatch\n");
+		return -1;
 	}
 
-	return UNIT_SUCCESS;
+	return 0;
 }
 
 static struct tsg_fmt_test_args {
@@ -214,6 +287,24 @@ static struct tsg_fmt_test_args {
  * Check that inserting a single tsg of any level with a number of channels
  * works as expected.
  */
+#define F_RUNLIST_FORMAT_FAIL_ENTRIES0		BIT(0)
+#define F_RUNLIST_FORMAT_CH2			BIT(1)
+#define F_RUNLIST_FORMAT_CH5			BIT(2)
+#define F_RUNLIST_FORMAT_CH1_TIMESLICE		BIT(3)
+#define F_RUNLIST_FORMAT_CH3_INACTIVE2		BIT(4)
+#define F_RUNLIST_FORMAT_FAIL_ENTRY1		BIT(5)
+#define F_RUNLIST_FORMAT_LAST			BIT(6)
+
+static const char *f_runlist_format[] = {
+	"priority_0_one_channel",
+	"fail_zero_entries",
+	"priority_1_two_channels",
+	"priority_2_five_channels",
+	"one_channel_nondefault_timeslice_timeout",
+	"three_channels_with_two_inactives_in_the_middle",
+	"fail_one_entry",
+};
+
 int test_tsg_format_gen(struct unit_module *m, struct gk20a *g, void *args)
 {
 	struct nvgpu_fifo *f = &g->fifo;
@@ -226,29 +317,70 @@ int test_tsg_format_gen(struct unit_module *m, struct gk20a *g, void *args)
 	/* header + at most five channels */
 	const u32 entries_in_list_max = 1 + 5;
 	u32 rl_data[2 * entries_in_list_max];
-	u32 ret;
-	struct tsg_fmt_test_args *test_args = args;
+	struct tsg_fmt_test_args *test_args;
+	u32 branches = 0U;
+	int ret = UNIT_FAIL;
+	int err = 0;
+	u32 fail = F_RUNLIST_FORMAT_FAIL_ENTRIES0 |
+			F_RUNLIST_FORMAT_FAIL_ENTRY1;
+	u32 prune = F_RUNLIST_FORMAT_CH2 | F_RUNLIST_FORMAT_CH5 |
+			F_RUNLIST_FORMAT_CH1_TIMESLICE |
+			F_RUNLIST_FORMAT_CH3_INACTIVE2 |
+			fail;
 	(void)test_args->timeslice;
 
 	setup_fifo(g, &active_tsgs_map, &active_chs_map, tsgs, chs, 1, 5,
 			&runlists, rl_data, false);
 
-	active_chs_map = test_args->chs_bitmap;
+	for (branches = 0U; branches < F_RUNLIST_FORMAT_LAST;
+		branches++) {
+		if (pruned(branches, prune)) {
+			unit_verbose(m, "%s branches=%u (pruned)\n", __func__,
+				branches);
+			continue;
+		}
+		unit_verbose(m, "%s branches=%u\n", __func__, branches);
+		subtest_setup(branches);
 
-	if (test_args->timeslice == 0U) {
-		tsgs[0].timeslice_us = g->ops.tsg.default_timeslice_us(g);
-	} else {
-		tsgs[0].timeslice_us = test_args->timeslice;
+		if (branches & fail) {
+			test_args = &tsg_fmt_tests[0];
+		} else {
+			test_args = &tsg_fmt_tests[get_log2(branches)];
+		}
+
+		active_chs_map = test_args->chs_bitmap;
+
+		if (test_args->timeslice == 0U) {
+			tsgs[0].timeslice_us =
+					g->ops.tsg.default_timeslice_us(g);
+		} else {
+			tsgs[0].timeslice_us = test_args->timeslice;
+		}
+
+		if (branches & fail) {
+			err = run_format_test(m, f, &tsgs[0], chs,
+				test_args->level, get_log2(branches)-1, rl_data,
+				test_args->expect_header,
+				test_args->expect_channel);
+			assert(err != 0);
+		} else {
+			err = run_format_test(m, f, &tsgs[0], chs,
+				test_args->level, test_args->channels, rl_data,
+				test_args->expect_header,
+				test_args->expect_channel);
+			assert(err == 0);
+		}
+
+	}
+	ret = UNIT_SUCCESS;
+
+done:
+	if (ret != UNIT_SUCCESS) {
+		unit_err(m, "%s branches=%s\n", __func__,
+		branches_str(branches, f_runlist_format));
 	}
 
-	ret = run_format_test(m, f, &tsgs[0], chs, test_args->level,
-			test_args->channels, rl_data,
-			test_args->expect_header, test_args->expect_channel);
-	if (ret != 0) {
-		unit_return_fail(m, "bad format\n");
-	}
-
-	return UNIT_SUCCESS;
+	return ret;
 }
 
 /* compare 1:1 tsg-channel entries against expectations */
@@ -276,9 +408,9 @@ static int check_same_simple_tsgs(struct unit_module *m, u32 *expected,
 
 /* Common stuff for all tests below to reduce boilerplate */
 static int test_common_gen(struct unit_module *m, struct gk20a *g,
-		bool interleave, u32 sizelimit,
-		u32 *levels, u32 levels_count,
-		u32 *expected, u32 expect_count)
+	bool interleave, u32 sizelimit,
+	u32 *levels, u32 levels_count,
+	u32 *expected, u32 expect_count)
 {
 	struct nvgpu_fifo *f = &g->fifo;
 	struct nvgpu_runlist_info runlist;
@@ -296,21 +428,22 @@ static int test_common_gen(struct unit_module *m, struct gk20a *g,
 	u32 i = 0;
 
 	setup_fifo(g, &active_tsgs_map, &active_chs_map, tsgs, chs,
-			levels_count, 6, &runlists, rl_data, interleave);
+		levels_count, 6, &runlists, rl_data, interleave);
 
 	for (i = 0; i < levels_count; i++) {
 		setup_tsg(tsgs, chs, i, levels[i]);
 	}
 
 	n = nvgpu_runlist_construct_locked(f, &runlist, 0,
-			sizelimit != 0U ? sizelimit : entries_in_list);
+		sizelimit != 0U ? sizelimit : entries_in_list);
 
 	if (sizelimit != 0 && sizelimit != entries_in_list) {
 		/* Less than enough size is always a negative test here */
 		if (n != 0xffffffffU) {
-			unit_return_fail(m,
+			unit_info(m,
 				"limit %d, expected failure, got %u\n",
 				sizelimit, n);
+			return UNIT_FAIL;
 		}
 		/*
 		 * Compare what we got; should be good up until the limit. For
@@ -321,14 +454,30 @@ static int test_common_gen(struct unit_module *m, struct gk20a *g,
 	}
 
 	if (n != entries_in_list) {
-		unit_return_fail(m, "expected %u entries, got %u\n",
+		unit_info(m, "expected %u entries, got %u\n",
 				entries_in_list, n);
+		return UNIT_FAIL;
 	}
 
 	return check_same_simple_tsgs(m, expected, rl_data, tsgs_in_list);
 }
 
-static int test_flat_gen(struct unit_module *m, struct gk20a *g, u32 sizelimit)
+#define F_RUNLIST_FLAT_GEN_OVERSIZE_TINY	BIT(0)
+#define F_RUNLIST_FLAT_GEN_OVERSIZE_SINGLE	BIT(1)
+#define F_RUNLIST_FLAT_GEN_OVERSIZE_ONEHALF	BIT(2)
+#define F_RUNLIST_FLAT_GEN_OVERSIZE_TWO		BIT(3)
+#define F_RUNLIST_FLAT_GEN_OVERSIZE_END		BIT(4)
+#define F_RUNLIST_FLAT_GEN_LAST			BIT(5)
+
+static const char *f_runlist_flat[] = {
+	"runlist_flat_oversize_tiny",
+	"runlist_flat_oversize_single",
+	"runlist_flat_oversize_onehalf",
+	"runlist_flat_oversize_two",
+	"runlist_flat_oversize_end",
+};
+
+int test_flat_gen(struct unit_module *m, struct gk20a *g, void *args)
 {
 	u32 levels[] = {
 		/* Some random-ish order of priority levels */
@@ -338,76 +487,217 @@ static int test_flat_gen(struct unit_module *m, struct gk20a *g, u32 sizelimit)
 		/* High (2) indices first, then medium (1), then low (0). */
 		2, 5, 1, 3, 0, 4,
 	};
+	u32 sizelimits[] = {
+		0, 1, 2, 3, 4, 11,
+	};
+	u32 branches = 0U;
+	int ret = UNIT_FAIL;
+	u32 prune = F_RUNLIST_FLAT_GEN_OVERSIZE_TINY |
+			F_RUNLIST_FLAT_GEN_OVERSIZE_SINGLE |
+			F_RUNLIST_FLAT_GEN_OVERSIZE_ONEHALF |
+			F_RUNLIST_FLAT_GEN_OVERSIZE_TWO |
+			F_RUNLIST_FLAT_GEN_OVERSIZE_END;
 
-	return test_common_gen(m, g, false, sizelimit,
+	for (branches = 0U; branches < F_RUNLIST_FLAT_GEN_LAST; branches++) {
+
+		if (pruned(branches, prune)) {
+			unit_verbose(m, "%s branches=%u (pruned)\n", __func__,
+				branches);
+			continue;
+		}
+		unit_verbose(m, "%s branches=%u\n", __func__, branches);
+		subtest_setup(branches);
+
+		ret = test_common_gen(m, g, false,
+			sizelimits[get_log2(branches)],
 			levels, ARRAY_SIZE(levels),
 			expected, ARRAY_SIZE(expected));
+		if (ret != UNIT_SUCCESS) {
+			unit_err(m, "%s branches=%s\n", __func__,
+			branches_str(branches, f_runlist_flat));
+			break;
+		}
+	}
+
+	return ret;
 }
 
-int test_flat(struct unit_module *m, struct gk20a *g, void *args)
+#define F_RUNLIST_INTERLEAVE_SINGLE_L0		BIT(0)
+#define F_RUNLIST_INTERLEAVE_SINGLE_L1		BIT(1)
+#define F_RUNLIST_INTERLEAVE_SINGLE_L2		BIT(2)
+#define F_RUNLIST_INTERLEAVE_SINGLE_LAST	BIT(3)
+
+static const char *f_runlist_interleave_single[] = {
+	"only_L0_items",
+	"only_L1_items",
+	"only_L2_items",
+};
+
+static struct interleave_single_args {
+	u32 n_levels;
+	u32 levels[2];
+	u32 n_expected;
+	u32 expected[2];
+} interleave_single_tests[] = {
+	/* Only l0 items */
+	{ 2, { 0, 0 }, 2, { 0, 1 } },
+	/* Only l1 items */
+	{ 2, { 1, 1 }, 2, { 0, 1 } },
+	/* Only l2 items */
+	{ 2, { 2, 2 }, 2, { 0, 1 } },
+};
+
+int test_interleave_single(struct unit_module *m, struct gk20a *g, void *args)
 {
-	return test_flat_gen(m, g, 0);
+	struct interleave_single_args *single_args;
+	u32 branches = 0U;
+	int ret = UNIT_FAIL;
+	u32 prune = F_RUNLIST_INTERLEAVE_SINGLE_L0 |
+			F_RUNLIST_INTERLEAVE_SINGLE_L1 |
+			F_RUNLIST_INTERLEAVE_SINGLE_L2;
+
+	for (branches = 0U; branches < F_RUNLIST_INTERLEAVE_SINGLE_LAST;
+		branches++) {
+
+		if (pruned(branches, prune)) {
+			unit_verbose(m, "%s branches=%u (pruned)\n", __func__,
+				branches);
+			continue;
+		}
+		unit_verbose(m, "%s branches=%u\n", __func__, branches);
+		subtest_setup(branches);
+
+		single_args = &interleave_single_tests[get_log2(branches)];
+
+		ret = test_common_gen(m, g, true, 2 * single_args->n_expected,
+			single_args->levels, single_args->n_levels,
+			single_args->expected, single_args->n_expected);
+
+		if (ret != UNIT_SUCCESS) {
+			unit_err(m, "%s branches=%s\n", __func__,
+			branches_str(branches, f_runlist_interleave_single));
+			break;
+		}
+	}
+
+	return ret;
 }
 
-/*
- * Just a corner case, space for just one tsg header; even the first channel
- * entry doesn't fit.
- */
-int test_flat_oversize_tiny(struct unit_module *m, struct gk20a *g,
-		void *args)
+#define F_RUNLIST_INTERLEAVE_DUAL_L0_L1		BIT(0)
+#define F_RUNLIST_INTERLEAVE_DUAL_L1_L2		BIT(1)
+#define F_RUNLIST_INTERLEAVE_DUAL_L0_L2		BIT(2)
+#define F_RUNLIST_INTERLEAVE_DUAL_L0_L2_FAIL	BIT(3)
+#define F_RUNLIST_INTERLEAVE_DUAL_LAST		BIT(4)
+
+static const char *f_runlist_interleave_dual[] = {
+	"only_L0_and_L1_items",
+	"only_L1_and_L2_items",
+	"only_L0_and_L2_items",
+	"L0_and_L2_items_2_entries",
+};
+
+static struct interleave_dual_args {
+	u32 n_levels;
+	u32 levels[4];
+	u32 n_expected;
+	u32 expected[6];
+} interleave_dual_tests[] = {
+	/* Only low and medium priority items. */
+	{ 4, { 0, 0, 1, 1 }, 6, { 2, 3, 0, 2, 3, 1 } },
+	/* Only medium and high priority items. */
+	{ 4, { 1, 1, 2, 2 }, 6, { 2, 3, 0, 2, 3, 1 } },
+	/* Only low and high priority items. */
+	{ 4, { 0, 0, 2, 2 }, 6, { 2, 3, 0, 2, 3, 1 } },
+	/* Only low and high priority items. */
+	{ 4, { 0, 0, 2, 2 }, 2, { 2, 3, 0, 2, 3, 1 } },
+};
+
+int test_interleave_dual(struct unit_module *m, struct gk20a *g, void *args)
 {
-	return test_flat_gen(m, g, 1);
+	struct interleave_dual_args *dual_args;
+
+	u32 branches = 0U;
+	int ret = UNIT_FAIL;
+	int err;
+	u32 fail = F_RUNLIST_INTERLEAVE_DUAL_L0_L2_FAIL;
+	u32 prune = F_RUNLIST_INTERLEAVE_DUAL_L0_L1 |
+			F_RUNLIST_INTERLEAVE_DUAL_L1_L2 |
+			F_RUNLIST_INTERLEAVE_DUAL_L0_L2 |
+			fail;
+
+	for (branches = 1U; branches < F_RUNLIST_INTERLEAVE_DUAL_LAST;
+		branches++) {
+
+		if (pruned(branches, prune)) {
+			unit_verbose(m, "%s branches=%u (pruned)\n", __func__,
+				branches);
+			continue;
+		}
+		unit_verbose(m, "%s branches=%u\n", __func__, branches);
+		subtest_setup(branches);
+
+		dual_args = &interleave_dual_tests[get_log2(branches)];
+
+		err = test_common_gen(m, g, true, 2 * dual_args->n_expected,
+				dual_args->levels, dual_args->n_levels,
+				dual_args->expected, dual_args->n_expected);
+
+		if (branches & fail) {
+			assert(err != UNIT_SUCCESS);
+		} else {
+			assert(err == UNIT_SUCCESS);
+		}
+	}
+
+	ret = UNIT_SUCCESS;
+
+done:
+	if (ret != UNIT_SUCCESS) {
+		unit_err(m, "%s branches=%s\n", __func__,
+		branches_str(branches, f_runlist_interleave_dual));
+	}
+
+	return ret;
 }
 
-int test_flat_oversize_single(struct unit_module *m, struct gk20a *g,
-		void *args)
-{
-	return test_flat_gen(m, g, 2);
-}
-
-int test_flat_oversize_onehalf(struct unit_module *m, struct gk20a *g, void *args)
-{
-	return test_flat_gen(m, g, 3);
-}
-
-int test_flat_oversize_two(struct unit_module *m, struct gk20a *g, void *args)
-{
-	return test_flat_gen(m, g, 4);
-}
-
-int test_flat_oversize_end(struct unit_module *m, struct gk20a *g, void *args)
-{
-	return test_flat_gen(m, g, 11);
-}
-
-/* Common stuff for all tests below */
-static int test_interleaving_gen(struct unit_module *m, struct gk20a *g,
-		u32 sizelimit,
-		u32 *levels, u32 levels_count,
-		u32 *expected, u32 expect_count)
-{
-	return test_common_gen(m, g, true, sizelimit, levels, levels_count,
-			expected, expect_count);
-}
-
-/* Items in all levels, interleaved */
-static int test_interleaving_gen_all(struct unit_module *m, struct gk20a *g,
-		u32 sizelimit)
-{
-	/*
-	 * Named channel ids for us humans to parse.
-	 *
-	 * This works such that the first two TSGs, IDs 0 and 1 (with just one
-	 * channel each) are at interleave level "low" ("l0"), the next IDs 2
-	 * and 3 are at level "med" ("l2"), and the last IDs 4 and 5 are at
-	 * level "hi" ("l2"). Runlist construction doesn't care, so we use an
-	 * easy to understand order.
-	 *
-	 * When debugging this test and/or the runlist code, the logs of any
-	 * interleave test should follow the order in the "expected" array. We
-	 * start at the highest level, so the first IDs added should be h1 and
-	 * h2, i.e., 4 and 5, etc.
+static struct interleave_level_test_args {
+u32 sizelimit;
+} interleave_level_tests[] = {
+	/* All priority items. */
+	{ 0 },
+	/* Fail at level 2 immediately: space for just a tsg header,
+	 * no ch entries.
 	 */
+	{ 1 },
+	/* Insert both l2 entries, then fail at l1 level. */
+	{ 2 * 2 },
+	/* Insert both l2 entries, one l1, and just one l2: fail at last l2. */
+	{ (2 + 1 + 1) * 2 },
+	/* Stop at exactly the first l2 entry in the first l1-l0 transition. */
+	{ (2 + 1 + 2 + 1) * 2 },
+	/* Stop at exactly the first l0 entry that doesn't fit. */
+	{ (2 + 1 + 2 + 1 + 2) * 2 },
+};
+
+#define F_RUNLIST_INTERLEAVE_LEVELS_ALL_PRIO    BIT(0)
+#define F_RUNLIST_INTERLEAVE_LEVELS_FAIL_L2     BIT(1)
+#define F_RUNLIST_INTERLEAVE_LEVELS_FAIL_L1     BIT(2)
+#define F_RUNLIST_INTERLEAVE_LEVELS_FIT         BIT(3)
+#define F_RUNLIST_INTERLEAVE_LEVELS_FAIL_L0     BIT(4)
+#define F_RUNLIST_INTERLEAVE_LEVELS_LAST        BIT(5)
+
+static const char *f_runlist_interleave_levels[] = {
+	"interleaving",
+	"interleaving_oversize_tiny",
+	"interleaving_oversize_l2",
+	"interleaving_oversize_l2_l1_l2",
+	"interleaving_oversize_l2_l1_l2_l1",
+	"interleaving_oversize_l2_l1_l2_l1_l2",
+};
+
+int test_interleaving_levels(struct unit_module *m, struct gk20a *g, void *args)
+{
+	u32 sizelimit;
 	u32 l1 = 0, l2 = 1;
 	u32 m1 = 2, m2 = 3;
 	u32 h1 = 4, h2 = 5;
@@ -418,161 +708,623 @@ static int test_interleaving_gen_all(struct unit_module *m, struct gk20a *g,
 		h1, h2, m1, h1, h2, m2, h1, h2, l2,
 	};
 
-	return test_interleaving_gen(m, g, sizelimit,
-			levels, ARRAY_SIZE(levels),
-			expected, ARRAY_SIZE(expected));
+	u32 branches = 1U;
+	int ret = UNIT_FAIL;
+	u32 prune = F_RUNLIST_INTERLEAVE_LEVELS_ALL_PRIO |
+			F_RUNLIST_INTERLEAVE_LEVELS_FAIL_L2 |
+			F_RUNLIST_INTERLEAVE_LEVELS_FAIL_L1 |
+			F_RUNLIST_INTERLEAVE_LEVELS_FIT |
+			F_RUNLIST_INTERLEAVE_LEVELS_FAIL_L0;
+
+	for (branches = 0U; branches < F_RUNLIST_INTERLEAVE_LEVELS_LAST;
+		branches++) {
+
+		if (pruned(branches, prune)) {
+			unit_verbose(m, "%s branches=%u (pruned)\n", __func__,
+				branches);
+			continue;
+		}
+		unit_verbose(m, "%s branches=%u\n", __func__, branches);
+		subtest_setup(branches);
+
+		sizelimit = interleave_level_tests[
+						get_log2(branches)].sizelimit;
+
+		ret = test_common_gen(m, g, true, sizelimit, levels,
+			ARRAY_SIZE(levels), expected, ARRAY_SIZE(expected));
+
+		if (ret != UNIT_SUCCESS) {
+			unit_err(m, "%s branches=%s\n", __func__,
+			branches_str(branches, f_runlist_interleave_levels));
+			break;
+		}
+	}
+	return ret;
 }
 
-static struct interleave_test_args {
-	u32 sizelimit;
-} interleave_tests[] = {
-/* All priority items. */
-	{ 0 },
-/* Fail at level 2 immediately: space for just a tsg header, no ch entries. */
-	{ 1 },
-/* Insert both l2 entries, then fail at l1 level. */
-	{ 2 * 2 },
-/* Insert both l2 entries, one l1, and just one l2: fail at last l2. */
-	{ (2 + 1 + 1) * 2 },
-/* Stop at exactly the first l2 entry in the first l1-l0 transition. */
-	{ (2 + 1 + 2 + 1) * 2 },
-/* Stop at exactly the first l0 entry that doesn't fit. */
-	{ (2 + 1 + 2 + 1 + 2) * 2 },
+#define F_RUNLIST_INTERLEAVE_LEVEL_LOW			BIT(0)
+#define F_RUNLIST_INTERLEAVE_LEVEL_MEDIUM		BIT(1)
+#define F_RUNLIST_INTERLEAVE_LEVEL_HIGH			BIT(2)
+#define F_RUNLIST_INTERLEAVE_LEVEL_DEFAULT		BIT(3)
+#define F_RUNLIST_INTERLEAVE_LEVEL_LAST			BIT(4)
+
+static const char *f_runlist_interleave_level_name[] = {
+	"LOW",
+	"MEDIUM",
+	"HIGH",
+	"?"
 };
 
-int test_interleaving_gen_all_run(struct unit_module *m,
-		struct gk20a *g, void *args)
+int test_runlist_interleave_level_name(struct unit_module *m,
+				struct gk20a *g, void *args)
 {
-	struct interleave_test_args *test_args = args;
+	int err = 0;
+	u32 branches = 0U;
+	int ret = UNIT_FAIL;
+	u32 fail = F_RUNLIST_INTERLEAVE_LEVEL_MEDIUM |
+		F_RUNLIST_INTERLEAVE_LEVEL_HIGH |
+		F_RUNLIST_INTERLEAVE_LEVEL_DEFAULT;
+	u32 prune = fail;
+	const char *interleave_level_name = NULL;
 
-	return test_interleaving_gen_all(m, g, test_args->sizelimit);
+	err = nvgpu_runlist_setup_sw(g);
+	assert(err == 0);
+
+	for (branches = 0U; branches < F_RUNLIST_INTERLEAVE_LEVEL_LAST;
+		branches++) {
+
+		if (pruned(branches, prune)) {
+			unit_verbose(m, "%s branches=%u (pruned)\n", __func__,
+				branches);
+			continue;
+		}
+		unit_verbose(m, "%s branches=%u\n", __func__, branches);
+		subtest_setup(branches);
+
+		interleave_level_name =
+			nvgpu_runlist_interleave_level_name(get_log2(branches));
+		assert(strcmp(interleave_level_name,
+			f_runlist_interleave_level_name[
+						get_log2(branches)]) == 0);
+	}
+
+	ret = UNIT_SUCCESS;
+
+done:
+	if (ret != UNIT_SUCCESS) {
+		unit_err(m, "%s failed\n", __func__);
+	}
+
+	nvgpu_runlist_cleanup_sw(g);
+	return ret;
 }
 
-/*
- * Only l0 items.
- */
-int test_interleaving_l0(struct unit_module *m,
-		struct gk20a *g, void *args)
-{
-	u32 levels[] = { 0, 0 };
-	/* The channel id sequence is trivial here and in most of the below */
-	u32 expected[] = { 0, 1 };
+#define F_RUNLIST_SET_STATE_DISABLED		BIT(0)
+#define F_RUNLIST_SET_STATE_ENABLED		BIT(1)
+#define F_RUNLIST_SET_STATE_LAST		BIT(2)
 
-	return test_interleaving_gen(m, g, 2 * ARRAY_SIZE(expected),
-			levels, ARRAY_SIZE(levels),
-			expected, ARRAY_SIZE(expected));
+static const char *f_runlist_set_state[] = {
+	"set_state_disabled",
+	"set_state_enabled",
+};
+
+int test_runlist_set_state(struct unit_module *m, struct gk20a *g, void *args)
+{
+	u32 reg_val, reg_expected;
+	u32 runlist_mask = BIT(0U);
+	int err = 0;
+	u32 branches = 0U;
+	int ret = UNIT_FAIL;
+	u32 fail = F_RUNLIST_SET_STATE_ENABLED | F_RUNLIST_SET_STATE_DISABLED;
+	u32 prune = fail;
+
+	err = nvgpu_runlist_setup_sw(g);
+	assert(err == 0);
+
+	reg_expected = nvgpu_readl(g, fifo_sched_disable_r());
+
+	for (branches = 1U; branches < F_RUNLIST_SET_STATE_LAST; branches++) {
+
+		if (pruned(branches, prune)) {
+			unit_verbose(m, "%s branches=%u (pruned)\n", __func__,
+				branches);
+			continue;
+		}
+		unit_verbose(m, "%s branches=%u\n", __func__, branches);
+		subtest_setup(branches);
+
+		if (branches & F_RUNLIST_SET_STATE_DISABLED) {
+			nvgpu_runlist_set_state(g, runlist_mask,
+							RUNLIST_DISABLED);
+			reg_val = nvgpu_readl(g, fifo_sched_disable_r());
+			reg_expected = reg_expected | runlist_mask;
+			assert(reg_val == reg_expected);
+		} else {
+			nvgpu_runlist_set_state(g, runlist_mask,
+							RUNLIST_ENABLED);
+			reg_val = nvgpu_readl(g, fifo_sched_disable_r());
+			reg_expected = reg_expected & ~runlist_mask;
+			assert(reg_val == reg_expected);
+		}
+	}
+
+	ret = UNIT_SUCCESS;
+
+done:
+	if (ret != UNIT_SUCCESS) {
+		unit_err(m, "%s branches=%s\n", __func__,
+			branches_str(branches, f_runlist_set_state));
+	}
+
+	nvgpu_runlist_cleanup_sw(g);
+	return ret;
 }
 
-/*
- * Only l1 items.
- */
-int test_interleaving_l1(struct unit_module *m,
-		struct gk20a *g, void *args)
-{
-	u32 levels[] = { 1, 1 };
-	u32 expected[] = { 0, 1 };
+#define F_RUNLIST_LOCK_UNLOCK_ACTIVE_RUNLISTS_LAST		BIT(0)
 
-	return test_interleaving_gen(m, g, 2 * ARRAY_SIZE(expected),
-			levels, ARRAY_SIZE(levels),
-			expected, ARRAY_SIZE(expected));
+int test_runlist_lock_unlock_active_runlists(struct unit_module *m,
+				struct gk20a *g, void *args)
+{
+	int err = 0;
+	u32 branches = 0U;
+	int ret = UNIT_FAIL;
+	u32 fail = 0U;
+	u32 prune = fail;
+
+	err = nvgpu_runlist_setup_sw(g);
+	assert(err == 0);
+
+	for (branches = 0U;
+		branches < F_RUNLIST_LOCK_UNLOCK_ACTIVE_RUNLISTS_LAST;
+		branches++) {
+
+		if (pruned(branches, prune)) {
+			unit_verbose(m, "%s branches=%u (pruned)\n", __func__,
+				branches);
+			continue;
+		}
+		unit_verbose(m, "%s branches=%u\n", __func__, branches);
+		subtest_setup(branches);
+
+		nvgpu_runlist_lock_active_runlists(g);
+		nvgpu_runlist_unlock_active_runlists(g);
+
+		nvgpu_runlist_lock_active_runlists(g);
+		nvgpu_runlist_unlock_runlists(g, 3U);
+
+		nvgpu_runlist_unlock_runlists(g, 0U);
+	}
+
+	ret = UNIT_SUCCESS;
+
+done:
+	if (ret != UNIT_SUCCESS) {
+		unit_err(m, "%s failed\n", __func__);
+	}
+
+	nvgpu_runlist_cleanup_sw(g);
+	return ret;
 }
 
-/*
- * Only l2 items.
- */
-int test_interleaving_l2(struct unit_module *m,
-		struct gk20a *g, void *args)
-{
-	u32 levels[] = { 2, 2 };
-	u32 expected[] = { 0, 1 };
+#define F_RUNLIST_GET_MASK_ID_TYPE_KNOWN		BIT(0)
+#define F_RUNLIST_GET_MASK_ID_TYPE_TSG			BIT(1)
+#define F_RUNLIST_GET_MASK_ACT_ENG_BITMASK_NONZERO	BIT(2)
+#define F_RUNLIST_GET_MASK_PBDMA_BITMASK_NONZERO	BIT(3)
+#define F_RUNLIST_GET_MASK_LAST				BIT(4)
 
-	return test_interleaving_gen(m, g, 2 * ARRAY_SIZE(expected),
-			levels, ARRAY_SIZE(levels),
-			expected, ARRAY_SIZE(expected));
+static const char *f_runlist_get_mask[] = {
+	"ID_type_known",
+	"act_eng_bitmask_nonzero",
+	"pbdma_bitmask_nonzero",
+};
+
+int test_runlist_get_mask(struct unit_module *m, struct gk20a *g, void *args)
+{
+	unsigned int id_type = ID_TYPE_UNKNOWN;
+	u32 act_eng_bitmask = 0U;
+	u32 pbdma_bitmask = 0U;
+	u32 ret_mask = 0U;
+	int err = 0;
+	u32 branches = 0U;
+	int ret = UNIT_FAIL;
+	u32 fail = 0U;
+	u32 prune = fail;
+
+	err = nvgpu_runlist_setup_sw(g);
+	assert(err == 0);
+
+	for (branches = 0U; branches < F_RUNLIST_GET_MASK_LAST; branches++) {
+
+		if (pruned(branches, prune)) {
+			unit_verbose(m, "%s branches=%s (pruned)\n", __func__,
+				branches_str(branches, f_runlist_get_mask));
+			continue;
+		}
+		unit_verbose(m, "%s branches=%s\n", __func__,
+			branches_str(branches, f_runlist_get_mask));
+		subtest_setup(branches);
+
+		id_type = (branches & F_RUNLIST_GET_MASK_ID_TYPE_KNOWN) ?
+				((branches & F_RUNLIST_GET_MASK_ID_TYPE_TSG) ?
+					ID_TYPE_TSG : ID_TYPE_CHANNEL) :
+				ID_TYPE_UNKNOWN;
+
+		act_eng_bitmask = (branches &
+				F_RUNLIST_GET_MASK_ACT_ENG_BITMASK_NONZERO) ?
+				1U : 0U;
+
+		pbdma_bitmask = (branches &
+				F_RUNLIST_GET_MASK_PBDMA_BITMASK_NONZERO) ?
+				1U : 0U;
+
+		ret_mask = nvgpu_runlist_get_runlists_mask(g, 0U, id_type,
+			act_eng_bitmask, pbdma_bitmask);
+
+	}
+
+	if (branches == 0U) {
+		assert(ret_mask == 3U);
+	} else {
+		assert(ret_mask == 1U);
+	}
+
+	ret = UNIT_SUCCESS;
+
+done:
+	if (ret != UNIT_SUCCESS) {
+		unit_err(m, "%s branches=%s\n", __func__,
+			branches_str(branches, f_runlist_get_mask));
+	}
+
+	nvgpu_runlist_cleanup_sw(g);
+	return ret;
 }
 
-/*
- * Only low and medium priority items.
- */
-int test_interleaving_l0_l1(struct unit_module *m,
-		struct gk20a *g, void *args)
-{
-	u32 l1 = 0, l2 = 1, m1 = 2, m2 = 3;
-	u32 levels[] = { 0, 0, 1, 1 };
-	u32 expected[] = { m1, m2, l1, m1, m2, l2 };
+#define F_RUNLIST_SETUP_ALLOC_RUNLIST_INFO_FAIL		BIT(0)
+#define F_RUNLIST_SETUP_ALLOC_ACTIVE_RUNLIST_INFO_FAIL	BIT(1)
+#define F_RUNLIST_SETUP_ALLOC_ACTIVE_CHANNELS_FAIL	BIT(2)
+#define F_RUNLIST_SETUP_ALLOC_ACTIVE_TSGS_FAIL		BIT(3)
+#define F_RUNLIST_SETUP_ALLOC_DMA_FLAGS_SYS_FAIL	BIT(4)
+#define F_RUNLIST_SETUP_GPU_IS_VIRTUAL			BIT(5)
+#define F_RUNLIST_SETUP_LAST				BIT(6)
 
-	return test_interleaving_gen(m, g, 2 * ARRAY_SIZE(expected),
-			levels, ARRAY_SIZE(levels),
-			expected, ARRAY_SIZE(expected));
+static const char *f_runlist_setup[] = {
+	"alloc_runlist_info_fail",
+	"alloc_active_runlist_info_fail",
+	"alloc_active_channels_fail",
+	"alloc_active_tsgs_fail",
+	"alloc_dma_flags_sys_fail",
+	"GPU_is_virtual"
+};
+
+int test_runlist_setup_sw(struct unit_module *m, struct gk20a *g, void *args)
+{
+	struct nvgpu_posix_fault_inj *kmem_fi;
+	struct nvgpu_posix_fault_inj *dma_fi;
+	u32 branches = 0U;
+	int err = 0;
+	int ret = UNIT_FAIL;
+	u32 fail = F_RUNLIST_SETUP_ALLOC_RUNLIST_INFO_FAIL |
+			F_RUNLIST_SETUP_ALLOC_ACTIVE_RUNLIST_INFO_FAIL |
+			F_RUNLIST_SETUP_ALLOC_ACTIVE_CHANNELS_FAIL |
+			F_RUNLIST_SETUP_ALLOC_ACTIVE_TSGS_FAIL |
+			F_RUNLIST_SETUP_ALLOC_DMA_FLAGS_SYS_FAIL;
+	u32 prune = fail;
+
+	kmem_fi = nvgpu_kmem_get_fault_injection();
+	dma_fi = nvgpu_dma_alloc_get_fault_injection();
+
+	for (branches = 0U; branches < F_RUNLIST_SETUP_LAST; branches++) {
+
+		if (pruned(branches, prune)) {
+			unit_verbose(m, "%s branches=%s (pruned)\n", __func__,
+				branches_str(branches, f_runlist_setup));
+			continue;
+		}
+		unit_verbose(m, "%s branches=%s\n", __func__,
+			branches_str(branches, f_runlist_setup));
+		subtest_setup(branches);
+
+		if ((branches >= F_RUNLIST_SETUP_ALLOC_RUNLIST_INFO_FAIL) &&
+			(branches <= F_RUNLIST_SETUP_ALLOC_ACTIVE_TSGS_FAIL)) {
+			nvgpu_posix_enable_fault_injection(kmem_fi,
+				branches & fail ? true : false,
+				get_log2(branches));
+		}
+
+		nvgpu_posix_enable_fault_injection(dma_fi,
+			branches & F_RUNLIST_SETUP_ALLOC_DMA_FLAGS_SYS_FAIL ?
+			true : false, 0);
+
+		if (branches & F_RUNLIST_SETUP_GPU_IS_VIRTUAL) {
+			g->is_virtual = true;
+		}
+
+		err = nvgpu_runlist_setup_sw(g);
+
+		g->is_virtual = false;
+		nvgpu_posix_enable_fault_injection(kmem_fi, false, 0);
+		nvgpu_posix_enable_fault_injection(dma_fi, false, 0);
+
+		if (branches & fail) {
+			assert(err != 0);
+		} else {
+			assert(err == 0);
+			nvgpu_runlist_cleanup_sw(g);
+		}
+	}
+
+	ret = UNIT_SUCCESS;
+
+done:
+	if (ret != UNIT_SUCCESS) {
+		unit_err(m, "%s branches=%s\n", __func__,
+			branches_str(branches, f_runlist_setup));
+	}
+
+	return ret;
 }
 
-/*
- * Only medium and high priority items.
- */
-int test_interleaving_l1_l2(struct unit_module *m,
-		struct gk20a *g, void *args)
+static int gk20a_runlist_wait_pending_timedout(struct gk20a *g, u32 runlist_id)
 {
-	u32 m1 = 0, m2 = 1, h1 = 2, h2 = 3;
-	u32 levels[] = { 1, 1, 2, 2 };
-	u32 expected[] = { h1, h2, m1, h1, h2, m2 };
-
-	return test_interleaving_gen(m, g, 2 * ARRAY_SIZE(expected),
-			levels, ARRAY_SIZE(levels),
-			expected, ARRAY_SIZE(expected));
+	return -ETIMEDOUT;
 }
 
-/*
- * Only low and high priority items.
- */
-int test_interleaving_l0_l2(struct unit_module *m,
-		struct gk20a *g, void *args)
+static int gk20a_runlist_wait_pending_interrupted(struct gk20a *g,
+								u32 runlist_id)
 {
-	u32 l1 = 0, l2 = 1, h1 = 2, h2 = 3;
-	u32 levels[] = { 0, 0, 2, 2 };
-	u32 expected[] = { h1, h2, l1, h1, h2, l2 };
+	return -EINTR;
+}
 
-	return test_interleaving_gen(m, g, 2 * ARRAY_SIZE(expected),
-			levels, ARRAY_SIZE(levels),
-			expected, ARRAY_SIZE(expected));
+static void gk20a_runlist_hw_submit_stub(struct gk20a *g, u32 runlist_id,
+			u32 count, u32 buffer_index)
+{
+	return;
+}
+
+#define F_RUNLIST_RELOAD_IDS_GPU_NULL		BIT(0)
+#define F_RUNLIST_RELOAD_IDS_NO_RUNLIST		BIT(1)
+#define F_RUNLIST_RELOAD_IDS_WAIT_TIMEOUT	BIT(2)
+#define F_RUNLIST_RELOAD_IDS_WAIT_INTERRUPT	BIT(3)
+#define F_RUNLIST_RELOAD_IDS_REMOVE_CHANNELS	BIT(4)
+#define F_RUNLIST_RELOAD_IDS_RESTORE_CHANNELS	BIT(5)
+#define F_RUNLIST_RELOAD_IDS_LAST		BIT(6)
+
+static const char *f_runlist_reload_ids[] = {
+	"null_gpu_pointer",
+	"no_runlist_selected",
+	"runlist_wait_pending_timeout",
+	"runlist_wait_pending_interrupted",
+	"remove_active_channels_from_runlist",
+	"restore_active_channels_from_runlist",
+};
+
+int test_runlist_reload_ids(struct unit_module *m, struct gk20a *g, void *args)
+{
+	struct gpu_ops gops = g->ops;
+	struct nvgpu_runlist_info runlist;
+	struct nvgpu_runlist_info *runlists = &runlist;
+	unsigned long active_tsgs_map = 0;
+	unsigned long active_chs_map = 0;
+	struct nvgpu_tsg tsgs[1] = { {0} };
+	struct nvgpu_channel chs[5] = { {0} };
+	/* header + at most five channels */
+	const u32 entries_in_list_max = 1 + 5;
+	u32 rl_data[2 * entries_in_list_max];
+	u32 rl_data_1[2 * entries_in_list_max];
+	u32 runlist_ids;
+	bool add;
+	u32 branches;
+	int ret = UNIT_FAIL;
+	int err;
+	u32 fail = F_RUNLIST_RELOAD_IDS_GPU_NULL |
+			F_RUNLIST_RELOAD_IDS_WAIT_TIMEOUT |
+			F_RUNLIST_RELOAD_IDS_WAIT_INTERRUPT;
+	u32 prune = F_RUNLIST_RELOAD_IDS_NO_RUNLIST |
+			F_RUNLIST_RELOAD_IDS_REMOVE_CHANNELS |
+			F_RUNLIST_RELOAD_IDS_RESTORE_CHANNELS |
+			fail;
+
+	setup_fifo(g, &active_tsgs_map, &active_chs_map, tsgs, chs, 1, 5,
+			&runlists, rl_data, false);
+
+	setup_tsg_multich(&tsgs[0], chs, 0, 2, 5, 3);
+
+	runlist.mem[1].aperture = APERTURE_SYSMEM;
+	runlist.mem[1].cpu_va = rl_data_1;
+
+	g->ops.runlist.hw_submit = gk20a_runlist_hw_submit_stub;
+
+	for (branches = 1U; branches < F_RUNLIST_RELOAD_IDS_LAST;
+		branches++) {
+
+		if (pruned(branches, prune)) {
+			unit_verbose(m, "%s branches=%u (pruned)\n", __func__,
+				branches);
+			continue;
+		}
+		unit_verbose(m, "%s branches=%u\n", __func__, branches);
+		subtest_setup(branches);
+
+		runlist_ids = (branches & F_RUNLIST_RELOAD_IDS_NO_RUNLIST) ?
+				0U : 1U;
+		add = (branches & F_RUNLIST_RELOAD_IDS_RESTORE_CHANNELS) ?
+				true : false;
+
+		if (branches & F_RUNLIST_RELOAD_IDS_WAIT_TIMEOUT) {
+			g->ops.runlist.wait_pending =
+					gk20a_runlist_wait_pending_timedout;
+		} else if (branches & F_RUNLIST_RELOAD_IDS_WAIT_INTERRUPT) {
+			g->ops.runlist.wait_pending =
+					gk20a_runlist_wait_pending_interrupted;
+		} else {
+			g->ops.runlist.wait_pending = gops.runlist.wait_pending;
+		}
+
+		if (branches & F_RUNLIST_RELOAD_IDS_GPU_NULL) {
+			err = nvgpu_runlist_reload_ids(NULL, runlist_ids, add);
+		} else {
+			err = nvgpu_runlist_reload_ids(g, runlist_ids, add);
+		}
+
+		if (branches & fail) {
+			assert(err != 0);
+		} else {
+			assert(err == 0);
+		}
+
+	}
+	ret = UNIT_SUCCESS;
+
+done:
+	if (ret != UNIT_SUCCESS) {
+		unit_err(m, "%s branches=%s\n", __func__,
+		branches_str(branches, f_runlist_reload_ids));
+	}
+
+	g->ops = gops;
+	return ret;
+}
+
+#define F_RUNLIST_UPDATE_ADD1				BIT(0)
+#define F_RUNLIST_UPDATE_ADD2				BIT(1)
+#define F_RUNLIST_UPDATE_CH_NULL			BIT(2)
+#define F_RUNLIST_UPDATE_CH_NO_UPDATE			BIT(3)
+#define F_RUNLIST_UPDATE_WAIT_FOR_FINISH		BIT(4)
+#define F_RUNLIST_UPDATE_RECONSTRUCT_FAIL		BIT(5)
+#define F_RUNLIST_UPDATE_REMOVE_ALL_CHANNELS		BIT(6)
+#define F_RUNLIST_UPDATE_LAST				BIT(7)
+
+static const char *f_runlist_update[] = {
+	"add_ch",
+	"add_ch_again",
+	"update_null_ch",
+	"update_ch_with_invalid_tsgid",
+	"wait_for_finish",
+	"update_reconstruct_fail",
+	"remove_all_channels",
+};
+
+int test_runlist_update_locked(struct unit_module *m, struct gk20a *g,
+			void *args)
+{
+	struct gpu_ops gops = g->ops;
+	struct nvgpu_runlist_info runlist;
+	struct nvgpu_runlist_info *runlists = &runlist;
+	unsigned long active_tsgs_map = 0;
+	unsigned long active_chs_map = 0;
+	struct nvgpu_tsg tsgs[1] = { {0} };
+	struct nvgpu_channel chs[3] = { {0} };
+	/* header + at most three channels */
+	const u32 entries_in_list_max = 1 + 3;
+	u32 rl_data[2 * entries_in_list_max];
+	u32 rl_data_1[2 * entries_in_list_max];
+	bool add, wait_for_finish;
+	struct nvgpu_channel *ch = NULL;
+
+	u32 branches = 0U;
+	int ret = UNIT_FAIL;
+	int err;
+	u32 fail = F_RUNLIST_UPDATE_RECONSTRUCT_FAIL;
+	u32 prune = F_RUNLIST_UPDATE_CH_NO_UPDATE |
+			F_RUNLIST_UPDATE_REMOVE_ALL_CHANNELS | fail;
+
+	setup_fifo(g, &active_tsgs_map, &active_chs_map, tsgs, chs, 1, 3,
+			&runlists, rl_data, false);
+
+	setup_tsg_multich(&tsgs[0], chs, 0, 0, 3, 3);
+	g->ops.runlist.hw_submit = gk20a_runlist_hw_submit_stub;
+
+	runlist.mem[1].aperture = APERTURE_SYSMEM;
+	runlist.mem[1].cpu_va = rl_data_1;
+
+	chs[2].g = g;
+	chs[1].g = g;
+	chs[0].g = g;
+
+	for (branches = 0U; branches < F_RUNLIST_UPDATE_LAST;
+		branches++) {
+
+		if (pruned(branches, prune)) {
+			unit_verbose(m, "%s branches=%u (pruned)\n", __func__,
+				branches);
+			continue;
+		}
+		unit_verbose(m, "%s branches=%u\n", __func__, branches);
+		subtest_setup(branches);
+
+		chs[0].tsgid = (branches & F_RUNLIST_UPDATE_CH_NO_UPDATE) ?
+				NVGPU_INVALID_TSG_ID : 0;
+
+		add = (branches &
+			(F_RUNLIST_UPDATE_ADD1 | F_RUNLIST_UPDATE_ADD2)) ?
+			true : false;
+		wait_for_finish =
+			(branches & F_RUNLIST_UPDATE_WAIT_FOR_FINISH) ?
+			true : false;
+
+		if (branches & F_RUNLIST_UPDATE_CH_NULL) {
+			ch = NULL;
+		} else {
+			ch = &chs[0];
+		}
+
+		if (branches & F_RUNLIST_UPDATE_RECONSTRUCT_FAIL) {
+			g->fifo.num_runlist_entries = 0U;
+			/* force null ch and add = true to execute fail path */
+			ch = NULL;
+			add = true;
+		} else {
+			g->fifo.num_runlist_entries = 65536U;
+		}
+
+		if (branches & F_RUNLIST_UPDATE_REMOVE_ALL_CHANNELS) {
+			err = nvgpu_runlist_update_locked(g, 0U, &chs[1], false,
+							false);
+			err = nvgpu_runlist_update_locked(g, 0U, &chs[2], false,
+							false);
+		}
+
+		err = nvgpu_runlist_update_locked(g, 0U, ch, add,
+							wait_for_finish);
+
+
+
+		if (branches & fail) {
+			assert(err != 0);
+		} else {
+			assert(err == 0);
+		}
+	}
+
+	ret = UNIT_SUCCESS;
+
+done:
+	if (ret != UNIT_SUCCESS) {
+		unit_err(m, "%s branches %u=%s\n", __func__, branches,
+		branches_str(branches, f_runlist_update));
+	}
+
+	g->ops = gops;
+	return ret;
 }
 
 struct unit_module_test nvgpu_runlist_tests[] = {
-	UNIT_TEST(tsg_format_ch1, test_tsg_format_gen, &tsg_fmt_tests[0], 0),
-	UNIT_TEST(tsg_format_ch2, test_tsg_format_gen, &tsg_fmt_tests[1], 0),
-	UNIT_TEST(tsg_format_ch5, test_tsg_format_gen, &tsg_fmt_tests[2], 0),
-	UNIT_TEST(tsg_format_ch1_timeslice, test_tsg_format_gen,
-			&tsg_fmt_tests[3], 0),
-	UNIT_TEST(tsg_format_ch3_inactive2, test_tsg_format_gen,
-			&tsg_fmt_tests[4], 0),
 
-	UNIT_TEST(flat, test_flat, NULL, 0),
-
-	UNIT_TEST(flat_oversize_tiny, test_flat_oversize_tiny, NULL, 0),
-	UNIT_TEST(flat_oversize_single, test_flat_oversize_single, NULL, 0),
-	UNIT_TEST(flat_oversize_onehalf, test_flat_oversize_onehalf, NULL, 0),
-	UNIT_TEST(flat_oversize_two, test_flat_oversize_two, NULL, 0),
-	UNIT_TEST(flat_oversize_end, test_flat_oversize_end, NULL, 0),
-
-	UNIT_TEST(interleaving,
-		  test_interleaving_gen_all_run, &interleave_tests[0], 0),
-
-	UNIT_TEST(interleaving_oversize_tiny,
-		  test_interleaving_gen_all_run, &interleave_tests[1], 0),
-	UNIT_TEST(interleaving_oversize_l2,
-		  test_interleaving_gen_all_run, &interleave_tests[2], 0),
-	UNIT_TEST(interleaving_oversize_l2_l1_l2,
-		  test_interleaving_gen_all_run, &interleave_tests[3], 0),
-	UNIT_TEST(interleaving_oversize_l2_l1_l2_l1,
-		  test_interleaving_gen_all_run, &interleave_tests[4], 0),
-	UNIT_TEST(interleaving_oversize_l2_l1_l2_l1_l2,
-		  test_interleaving_gen_all_run, &interleave_tests[5], 0),
-
-	UNIT_TEST(interleaving_l0, test_interleaving_l0, NULL, 0),
-	UNIT_TEST(interleaving_l1, test_interleaving_l1, NULL, 0),
-	UNIT_TEST(interleaving_l2, test_interleaving_l2, NULL, 0),
-	UNIT_TEST(interleaving_l0_l1, test_interleaving_l0_l1, NULL, 0),
-	UNIT_TEST(interleaving_l1_l2, test_interleaving_l1_l2, NULL, 0),
-	UNIT_TEST(interleaving_l0_l2, test_interleaving_l0_l2, NULL, 0),
+	UNIT_TEST(init_support, test_fifo_init_support, &unit_ctx, 0),
+	UNIT_TEST(setup_sw, test_runlist_setup_sw, NULL, 0),
+	UNIT_TEST(get_mask, test_runlist_get_mask, NULL, 0),
+	UNIT_TEST(lock_unlock_active_runlists, test_runlist_lock_unlock_active_runlists, NULL, 0),
+	UNIT_TEST(set_state, test_runlist_set_state, NULL, 0),
+	UNIT_TEST(interleave_level_name, test_runlist_interleave_level_name, NULL, 0),
+	UNIT_TEST(remove_support, test_fifo_remove_support, &unit_ctx, 0),
+	UNIT_TEST(tsg_format_flat, test_tsg_format_gen, NULL, 0),
+	UNIT_TEST(flat, test_flat_gen, NULL, 0),
+	UNIT_TEST(interleave_single, test_interleave_single, NULL, 0),
+	UNIT_TEST(interleave_dual, test_interleave_dual, NULL, 0),
+	UNIT_TEST(interleave_level, test_interleaving_levels, NULL, 0),
+	UNIT_TEST(reload_ids, test_runlist_reload_ids, NULL, 0),
+	UNIT_TEST(runlist_update, test_runlist_update_locked, NULL, 0),
 };
 
 UNIT_MODULE(nvgpu_runlist, nvgpu_runlist_tests, UNIT_PRIO_NVGPU_TEST);

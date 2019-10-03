@@ -33,11 +33,112 @@ struct gk20a;
  * Software Unit Test Specification for fifo/runlist */
 
 /**
+ * Test specification for: test_runlist_setup_sw
+ *
+ * Description: Test runlist context initialization.
+ *
+ * Test Type: Feature based
+ *
+ * Targets: nvgpu_runlist_setup_sw, nvgpu_init_active_runlist_mapping,
+ *          nvgpu_init_runlist_enginfo, nvgpu_runlist_cleanup_sw
+ *
+ * Input: test_fifo_init_support
+ *
+ * Steps:
+ * - Determine runlist details and allocate memory for runlist buffers, bitmaps.
+ * - Check clean-up code for failing conditions.
+ *
+ * Output: Returns PASS if all branches gave expected results. FAIL otherwise.
+ */
+int test_runlist_setup_sw(struct unit_module *m, struct gk20a *g, void *args);
+
+/**
+ * Test specification for: test_runlist_get_mask
+ *
+ * Description: Check lists of runlists servicing engine/PBDMA/TSG.
+ *
+ * Test Type: Feature based
+ *
+ * Targets: nvgpu_runlist_get_runlists_mask
+ *
+ * Input: test_fifo_init_support
+ *
+ * Steps:
+ * - Look up runlists servicing known engines or PBDMA.
+ * - From given id_type, look up runlists servicing channels/TSG.
+ *
+ * Output: Returns PASS if all branches gave expected results. FAIL otherwise.
+ */
+int test_runlist_get_mask(struct unit_module *m, struct gk20a *g, void *args);
+
+/**
+ * Test specification for: test_runlist_lock_unlock_active_runlists
+ *
+ * Description: Acquire and release runlist lock.
+ *
+ * Test Type: Feature based
+ *
+ * Targets: nvgpu_runlist_lock_active_runlists,
+ *          nvgpu_runlist_unlock_active_runlists, nvgpu_runlist_unlock_runlists
+ *
+ * Input: test_fifo_init_support
+ *
+ * Steps:
+ * - Acquire lock for active runlists.
+ * - Release runlist lock for active runlists.
+ * - Release runlist lock for selected runlists.
+ *
+ * Output: Returns PASS if all branches gave expected results. FAIL otherwise.
+ */
+int test_runlist_lock_unlock_active_runlists(struct unit_module *m,
+						struct gk20a *g, void *args);
+
+/**
+ * Test specification for: test_runlist_set_state
+ *
+ * Description: Test enable/disable of runlists.
+ *
+ * Test Type: Feature based
+ *
+ * Targets: nvgpu_runlist_set_state
+ *
+ * Input: test_fifo_init_support
+ *
+ * Steps:
+ * - Enable/Disable given selected runlist.
+ *
+ * Output: Returns PASS if all branches gave expected results. FAIL otherwise.
+ */
+int test_runlist_set_state(struct unit_module *m, struct gk20a *g, void *args);
+
+/**
+ * Test specification for: test_runlist_interleave_level_name
+ *
+ * Description: Get runlist interleave level name as string.
+ *
+ * Test Type: Feature based
+ *
+ * Targets: nvgpu_runlist_interleave_level_name
+ *
+ * Input: test_fifo_init_support
+ *
+ * Steps:
+ * - Check correct string is returned for runlist interleave level name.
+ *
+ * Output: Returns PASS if all branches gave expected results. FAIL otherwise.
+ */
+int test_runlist_interleave_level_name(struct unit_module *m,
+						struct gk20a *g, void *args);
+
+/**
  * Test specification for: test_tsg_format_gen
  *
  * Description: Test format of TSG runlist entry
  *
  * Test Type: Feature based
+ *
+ * Targets: nvgpu_runlist_construct_locked, nvgpu_runlist_append_flat,
+ *          nvgpu_runlist_append_prio, nvgpu_runlist_append_tsg
  *
  * Input: None
  *
@@ -54,6 +155,9 @@ struct gk20a;
  *   - runlist interleavel level.
  *   - runlist timeslice.
  *   - expected RL entry (header+channels).
+ * - Check that failure conditions also work as expected:
+ *   - TSG entry with zero entries
+ *   - TSG entry with one entry (i.e. no space channel)
  *
  * After allocating channels and binding them to TSG, the TSG is added to
  * runlist by calling nvgpu_runlist_construct_locked.
@@ -65,11 +169,14 @@ struct gk20a;
 int test_tsg_format_gen(struct unit_module *m, struct gk20a *g, void *args);
 
 /**
- * Test specification for: test_flat
+ * Test specification for: test_flat_gen
  *
  * Description: Build runlist without interleaving (aka "flat")
  *
  * Test Type: Feature based
+ *
+ * Targets: nvgpu_runlist_construct_locked, nvgpu_runlist_append_flat,
+ *          nvgpu_runlist_append_prio, nvgpu_runlist_append_tsg
  *
  * Input: None
  *
@@ -80,105 +187,89 @@ int test_tsg_format_gen(struct unit_module *m, struct gk20a *g, void *args);
  *   nvgpu_runlist_construct_locked.
  * - Check that resulting runlist is ordered according to priorities
  *   (higher priorities first).
+ * - Check that flat runlists are generated with given sizelimit constraints:
+ *   - Max sizelimit. Generated runlist indices match expected order.
+ *   - Sizelimit = 1. Failure is expected, space for just one TSG header.
+ *   - Sizelimit = 2. Only one TSG header with its channels fits the runlist.
+ *   - Sizelimit = 3. Second TSG's channels are chopped off.
+ *   - Sizelimit = 4. Two full TSG entries fit exactly.
+ *   - Sizelimit = 11. Sizelimit set to (n x TSG - 1) entries. All but the last
+ *     channel entry fit.
  *
  * Output: Returns PASS if all branches gave expected results. FAIL otherwise.
  */
-int test_flat(struct unit_module *m, struct gk20a *g, void *args);
+int test_flat_gen(struct unit_module *m, struct gk20a *g, void *args);
 
 /**
- * Test specification for: test_flat_oversize_tiny
+ * Test specification for: test_interleave_single
  *
- * Description: Only one TSG header can fit the runlist
- *              (not even its channels)
+ * Description: Build runlist with interleaving, single level only
  *
  * Test Type: Feature based
+ *
+ * Targets: nvgpu_runlist_construct_locked, nvgpu_runlist_append_low,
+ *          nvgpu_runlist_append_med, nvgpu_runlist_append_hi,
+ *          nvgpu_runlist_append_tsg, nvgpu_runlist_append_prio
  *
  * Input: None
  *
  * Steps:
- * - Same as #test_flat, except that runlist size
- *   is set to 1 entry, and that failure is expected when
- *   calling nvgpu_runlist_construct_locked.
+ * - Create TSGs and channels, such that the first two TSGs, IDs 0 and 1
+ *   (with just one channel each) are at interleave level "low" ("l0"), the
+ *   next IDs 2 and 3 are at level "med" ("l1"), and the last IDs 4 and 5
+ *   are at level "hi" ("l2"). Runlist construction doesn't care, so we use
+ *   an easy to understand order.
+ * - TSGs are added to runlists using nvgpu_runlist_construct_locked, with
+ *   interleave enabled.
+ * - Expected order of TSGs is stored in an array, and actual runlist is
+ *   compared with expected order.
+ * - If runlist is too small to accommodate all TSGs/channels, an error
+ *   is expected for nvgpu_runlist_construct_locked, and actual truncated
+ *   runlist is compared with first elements of expected array.
+ * - When debugging this test and/or the runlist code, the logs of any
+ *   interleave test should follow the order in the "expected" array. Since
+ *   only one level is available every run, IDs added should be 0 and 1.
+ * - This test runs for levels: l0, l1, l2 separately.
  *
  * Output: Returns PASS if all branches gave expected results. FAIL otherwise.
  */
-int test_flat_oversize_tiny(struct unit_module *m, struct gk20a *g, void *args);
+int test_interleave_single(struct unit_module *m, struct gk20a *g, void *args);
 
 /**
- * Test specification for: test_flat_oversize_single
+ * Test specification for: test_interleave_dual
  *
- * Description: Only one TSG header with its channels fits the runlist
+ * Description: Build runlist with interleaving, two different levels
  *
  * Test Type: Feature based
+ *
+ * Targets: nvgpu_runlist_construct_locked, nvgpu_runlist_append_low,
+ *          nvgpu_runlist_append_med, nvgpu_runlist_append_hi,
+ *          nvgpu_runlist_append_tsg, nvgpu_runlist_append_prio
  *
  * Input: None
  *
  * Steps:
- * - Same as #test_flat, except that runlist size
- *   is set to 2 entries, and that failure is expected when
- *   calling nvgpu_runlist_construct_locked.
- * - Check that whatever was inserted in the runlist matches expected TSGs.
+ * - Create TSGs and channels, such that the first two TSGs, IDs 0 and 1
+ *   (with just one channel each) are at interleave level "low" ("l0"), the
+ *   next IDs 2 and 3 are at level "med" ("l1"), and the last IDs 4 and 5
+ *   are at level "hi" ("l2"). Runlist construction doesn't care, so we use
+ *   an easy to understand order.
+ * - TSGs are added to runlists using nvgpu_runlist_construct_locked, with
+ *   interleave enabled.
+ * - Expected order of TSGs is stored in an array, and actual runlist is
+ *   compared with expected order.
+ * - If runlist is too small to accommodate all TSGs/channels, an error
+ *   is expected for nvgpu_runlist_construct_locked, and actual truncated
+ *   runlist is compared with first elements of expected array.
+ * - When debugging this test and/or the runlist code, the logs of any
+ *   interleave test should follow the order in the "expected" array. Every
+ *   test includes two different priority levels, so the expected array
+ *   should interleave higher priorities before lower priority items.
+ * - This test runs for level combinations: l0 and l1, l1 and l2, l0 and l2.
  *
  * Output: Returns PASS if all branches gave expected results. FAIL otherwise.
  */
-int test_flat_oversize_single(struct unit_module *m, struct gk20a *g, void *args);
-
-/**
- * Test specification for: test_flat_oversize_onehalf
- *
- * Description: Second TSG's channels are chopped off.
- *
- * Test Type: Feature based
- *
- * Input: None
- *
- * Steps:
- * - Same as #test_flat, except that runlist size
- *   is set to 3 entries, and that failure is expected when
- *   calling nvgpu_runlist_construct_locked.
- * - Check that whatever was inserted in the runlist matches expected TSGs.
- *
- * Output: Returns PASS if all branches gave expected results. FAIL otherwise.
- */
-int test_flat_oversize_onehalf(struct unit_module *m, struct gk20a *g, void *args);
-
-/**
- * Test specification for: test_flat_oversize_two
- *
- * Description: Two full TSG entries fit exactly
- *
- * Test Type: Feature based
- *
- * Input: None
- *
- * Steps:
- * - Same as #test_flat, except that runlist size
- *   is set to 4 entries, and that failure is expected when
- *   calling nvgpu_runlist_construct_locked.
- * - Check that whatever was inserted in the runlist matches expected TSGs.
- *
- * Output: Returns PASS if all branches gave expected results. FAIL otherwise.
- */
-int test_flat_oversize_two(struct unit_module *m, struct gk20a *g, void *args);
-
-/**
- * Test specification for: test_flat_oversize_end
- *
- * Description: All but the last channel entry fit.
- *
- * Test Type: Feature based
- *
- * Input: None
- *
- * Steps:
- * - Same as #test_flat, except that runlist size
- *   is set to (n x TSG - 1) entries, and that failure is expected when
- *   calling nvgpu_runlist_construct_locked.
- * - Check that whatever was inserted in the runlist matches expected TSGs.
- *
- * Output: Returns PASS if all branches gave expected results. FAIL otherwise.
- */
-int test_flat_oversize_end(struct unit_module *m, struct gk20a *g, void *args);
+int test_interleave_dual(struct unit_module *m, struct gk20a *g, void *args);
 
 /**
  * Test specification for: test_interleaving_gen_all_run
@@ -187,135 +278,85 @@ int test_flat_oversize_end(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Test Type: Feature based
  *
+ * Targets: nvgpu_runlist_construct_locked, nvgpu_runlist_append_low,
+ *          nvgpu_runlist_append_med, nvgpu_runlist_append_hi,
+ *          nvgpu_runlist_append_tsg, nvgpu_runlist_append_prio
+ *
  * Input: None
  *
  * Steps:
- *  - Create TSGs and channels, such that the first two TSGs, IDs 0 and 1
- *    (with just one channel each) are at interleave level "low" ("l0"), the
- *    next IDs 2 and 3 are at level "med" ("l1"), and the last IDs 4 and 5
- *    are at level "hi" ("l2"). Runlist construction doesn't care, so we use
- *    an easy to understand order.
- *  - When debugging this test and/or the runlist code, the logs of any
- *    interleave test should follow the order in the "expected" array. We
- *    start at the highest level, so the first IDs added should be h1 and
- *    h2, i.e., 4 and 5, etc.
- *  - TSGs are added to runlists using nvgpu_runlist_construct_locked, with
- *    interleave enabled.
- *  - Expected order of TSGs is stored in an array, and actual runlist is
- *    compared with expected order.
- *  - If runlist is too small to accomodate all TSGs/channels, an error
- *    is expected for nvgpu_runlist_construct_locked, and actual truncated
- *    runlist is compared with first elements of expected array.
- *  - This test runs for levels: l0, l1, l2.
+ * - Create TSGs and channels, such that the first two TSGs, IDs 0 and 1
+ *   (with just one channel each) are at interleave level "low" ("l0"), the
+ *   next IDs 2 and 3 are at level "med" ("l1"), and the last IDs 4 and 5
+ *   are at level "hi" ("l2"). Runlist construction doesn't care, so we use
+ *   an easy to understand order.
+ * - When debugging this test and/or the runlist code, the logs of any
+ *   interleave test should follow the order in the "expected" array. We
+ *   start at the highest level, so the first IDs added should be h1 and
+ *   h2, i.e., 4 and 5, etc.
+ * - TSGs are added to runlists using nvgpu_runlist_construct_locked, with
+ *   interleave enabled.
+ * - Expected order of TSGs is stored in an array, and actual runlist is
+ *   compared with expected order.
+ * - If runlist is too small to accommodate all TSGs/channels, an error
+ *   is expected for nvgpu_runlist_construct_locked, and actual truncated
+ *   runlist is compared with first elements of expected array.
+ * - Following conditions are tested:
+ *   - All priority items are interleaved.
+ *   - Space for only one TSG header. Failure expected.
+ *   - Space for both l2 entries, no space for l1 entry.
+ *   - Insert both l2 entries, one l1, and just one l2: fail at last l2.
+ *   - Stop at exactly the first l2 entry in the first l1-l0 transition.
+ *   - Stop at exactly the first l0 entry that doesn't fit.
  *
  * Output: Returns PASS if all branches gave expected results. FAIL otherwise.
  */
-int test_interleaving_gen_all_run(struct unit_module *m, struct gk20a *g, void *args);
+int test_interleaving_levels(struct unit_module *m, struct gk20a *g,
+								void *args);
 
 /**
- * Test specification for: test_interleaving_l0
+ * Test specification for: test_runlist_reload_ids
  *
- * Description: Build runlist with interleaving, l0 level only
+ * Description: Reload given runlists.
  *
  * Test Type: Feature based
  *
+ * Targets: nvgpu_runlist_reload_ids
+ *
  * Input: None
  *
  * Steps:
- *  - Same as #test_interleaving_gen_all_run but with only two TSGs
- *    which are at interleave level "low" (l0)
+ * - Reload runlist with different conditions:
+ *   - Null GPU pointer
+ *   - No runlist selected. Function returns without reloading any runlist.
+ *   - Pending wait times out.
+ *   - Runlist update pending wait is interrupted.
+ *   - Remove/Restore all channels.
  *
  * Output: Returns PASS if all branches gave expected results. FAIL otherwise.
  */
-int test_interleaving_l0(struct unit_module *m, struct gk20a *g, void *args);
+int test_runlist_reload_ids(struct unit_module *m, struct gk20a *g, void *args);
 
 /**
- * Test specification for: test_interleaving_l1
+ * Test specification for: test_runlist_update_locked
  *
- * Description: Build runlist with interleaving, l1 level only
+ * Description: Add/remove channel from runlist.
  *
  * Test Type: Feature based
  *
- * Input: None
- *
- * Steps:
- *  - Same as #test_interleaving_gen_all_run but with only two TSGs
- *    which are at interleave level "med" (l1).
- *
- * Output: Returns PASS if all branches gave expected results. FAIL otherwise.
- */
-int test_interleaving_l1(struct unit_module *m, struct gk20a *g, void *args);
-
-/**
- * Test specification for: test_interleaving_l2
- *
- * Description: Build runlist with interleaving, l2 level only
- *
- * Test Type: Feature based
+ * Targets: nvgpu_runlist_update_locked, gk20a_runlist_modify_active_locked,
+ *          gk20a_runlist_reconstruct_locked
  *
  * Input: None
  *
  * Steps:
- *  - Same as #test_interleaving_gen_all_run but with only two TSGs
- *    which are at interleave level "high" (l2)
+ * - Check that channels can be added to runlist.
+ * - Check that channels can be removed from runlist.
+ * - Check that runlist update fails for invalid tsg id and zero runlist entries
  *
  * Output: Returns PASS if all branches gave expected results. FAIL otherwise.
  */
-int test_interleaving_l2(struct unit_module *m, struct gk20a *g, void *args);
-
-/**
- * Test specification for: test_interleaving_l0_l1
- *
- * Description: Build runlist with interleaving, l0 and l1 levels
- *
- * Test Type: Feature based
- *
- * Input: None
- *
- * Steps:
- *  - Same as #test_interleaving_gen_all_run but with low and medium
- *    interleave level TSGs (l0 and l1)
- *
- * Output: Returns PASS if all branches gave expected results. FAIL otherwise.
- */
-int test_interleaving_l0_l1(struct unit_module *m, struct gk20a *g, void *args);
-
-/**
- * Test specification for: test_interleaving_l1_l2
- *
- * Description: Build runlist with interleaving, l1 and l2 levels
- *
- * Test Type: Feature based
- *
- * Input: None
- *
- * Steps:
- *  - Same as #test_interleaving_gen_all_run but with medium and high
- *    interleave level TSGs (l1 and l2)
- *
- * Output: Returns PASS if all branches gave expected results. FAIL otherwise.
- */
-int test_interleaving_l1_l2(struct unit_module *m, struct gk20a *g, void *args);
-
-/**
- * Test specification for: test_interleaving_l0_l2
- *
- * Description: Build runlist with interleaving, l0 and l2 levels
- *
- * Test Type: Feature based
- *
- * Input: None
- *
- * Steps:
- *  - Same as #test_interleaving_gen_all_run but with low and high
- *    interleave level TSGs (l0 and l2)
- *
- * Output: Returns PASS if all branches gave expected results. FAIL otherwise.
- */
-int test_interleaving_l0_l2(struct unit_module *m, struct gk20a *g, void *args);
-
-/**
- * @}
- */
+int test_runlist_update_locked(struct unit_module *m, struct gk20a *g,
+								void *args);
 
 #endif /* UNIT_NVGPU_RUNLIST_H */
