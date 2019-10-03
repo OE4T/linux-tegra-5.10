@@ -215,6 +215,12 @@ void nvgpu_thread_stop_graceful(struct nvgpu_thread *thread,
 
 bool nvgpu_thread_should_stop(struct nvgpu_thread *thread)
 {
+#ifdef NVGPU_UNITTEST_FAULT_INJECTION_ENABLEMENT
+	if (nvgpu_posix_fault_injection_handle_call(&thread_fi)) {
+		return true;
+	}
+#endif
+
 	return (nvgpu_atomic_read(&thread->running) == 0);
 }
 
