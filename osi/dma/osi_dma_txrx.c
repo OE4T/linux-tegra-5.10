@@ -249,7 +249,7 @@ int osi_process_rx_completions(struct osi_dma_priv_data *osi,
 				 * software context addresses directly since
 				 * those are valid.
 				 */
-				ptp_rx_swcx->ptp_swcx = 1;
+				ptp_rx_swcx->flags |= OSI_RX_SWCX_PTP;
 				/* Context descriptor was consumed. Its skb
 				 * and DMA mapping will be recycled
 				 */
@@ -764,11 +764,11 @@ static int rx_dma_desc_initialization(struct osi_dma_priv_data *osi,
 			rx_desc->rdes3 &= ~RDES3_IOC;
 		}
 
-		rx_swcx->ptp_swcx = 0;
+		rx_swcx->flags = 0;
 	}
 
 	tailptr = rx_ring->rx_desc_phy_addr +
-		  sizeof(struct osi_rx_desc) * (RX_DESC_CNT - 1U);
+		  sizeof(struct osi_rx_desc) * (RX_DESC_CNT);
 	if (tailptr < rx_ring->rx_desc_phy_addr) {
 		/* Will not hit this case */
 		return -1;

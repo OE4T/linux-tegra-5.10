@@ -201,10 +201,23 @@ static int eqos_validate_dma_regs(struct osi_dma_priv_data *osi_dma)
  */
 static void eqos_disable_chan_tx_intr(void *addr, unsigned int chan)
 {
-	unsigned int cntrl;
+	unsigned int cntrl, status;
 
 	CHECK_CHAN_BOUND(chan);
 
+	/* Clear irq before disabling */
+	status = osi_readl((unsigned char *)addr +
+			   EQOS_VIRT_INTR_CHX_STATUS(chan));
+	if ((status & EQOS_VIRT_INTR_CHX_STATUS_TX) ==
+	    EQOS_VIRT_INTR_CHX_STATUS_TX) {
+		osi_writel(EQOS_DMA_CHX_STATUS_CLEAR_TX,
+			   (unsigned char *)addr + EQOS_DMA_CHX_STATUS(chan));
+		osi_writel(EQOS_VIRT_INTR_CHX_STATUS_TX,
+			   (unsigned char *)addr +
+			   EQOS_VIRT_INTR_CHX_STATUS(chan));
+	}
+
+	/* Disable the irq */
 	cntrl = osi_readl((unsigned char *)addr +
 			  EQOS_VIRT_INTR_CHX_CNTRL(chan));
 	cntrl &= ~EQOS_VIRT_INTR_CHX_CNTRL_TX;
@@ -251,10 +264,23 @@ static void eqos_enable_chan_tx_intr(void *addr, unsigned int chan)
  */
 static void eqos_disable_chan_rx_intr(void *addr, unsigned int chan)
 {
-	unsigned int cntrl;
+	unsigned int cntrl, status;
 
 	CHECK_CHAN_BOUND(chan);
 
+	/* Clear irq before disabling */
+	status = osi_readl((unsigned char *)addr +
+			   EQOS_VIRT_INTR_CHX_STATUS(chan));
+	if ((status & EQOS_VIRT_INTR_CHX_STATUS_RX) ==
+	     EQOS_VIRT_INTR_CHX_STATUS_RX) {
+		osi_writel(EQOS_DMA_CHX_STATUS_CLEAR_RX,
+			   (unsigned char *)addr + EQOS_DMA_CHX_STATUS(chan));
+		osi_writel(EQOS_VIRT_INTR_CHX_STATUS_RX,
+			   (unsigned char *)addr +
+			   EQOS_VIRT_INTR_CHX_STATUS(chan));
+	}
+
+	/* Disable irq */
 	cntrl = osi_readl((unsigned char *)addr +
 			  EQOS_VIRT_INTR_CHX_CNTRL(chan));
 	cntrl &= ~EQOS_VIRT_INTR_CHX_CNTRL_RX;
@@ -283,68 +309,6 @@ static void eqos_enable_chan_rx_intr(void *addr, unsigned int chan)
 	cntrl |= EQOS_VIRT_INTR_CHX_CNTRL_RX;
 	osi_writel(cntrl, (unsigned char *)addr +
 		   EQOS_VIRT_INTR_CHX_CNTRL(chan));
-}
-
-/**
- * @brief eqos_clear_tx_intr - Handle EQOS DMA Tx channel interrupts.
- *
- * Algorithm: Clear DMA Tx interrupt source at wrapper and DMA level.
- *
- * @param[in] addr: Base address indicating the start of
- * 	      memory mapped IO region of the MAC.
- * @param[in] chan: DMA Tx channel number.
- *
- * @note 1) MAC needs to be out of reset and proper clocks need to be configured
- *	2) DMA HW init need to be completed successfully, see osi_hw_dma_init
- *	3) Mapping of physical IRQ line to DMA channel need to be maintained at
- *	OSDependent layer and pass corresponding channel number.
- */
-static void eqos_clear_tx_intr(void *addr, unsigned int chan)
-{
-	unsigned int status;
-
-	CHECK_CHAN_BOUND(chan);
-
-	status = osi_readl((unsigned char *)addr +
-			   EQOS_VIRT_INTR_CHX_STATUS(chan));
-	if ((status & EQOS_VIRT_INTR_CHX_STATUS_TX) == 1U) {
-		osi_writel(EQOS_DMA_CHX_STATUS_CLEAR_TX,
-			   (unsigned char *)addr + EQOS_DMA_CHX_STATUS(chan));
-		osi_writel(EQOS_VIRT_INTR_CHX_STATUS_TX,
-			   (unsigned char *)addr +
-			   EQOS_VIRT_INTR_CHX_STATUS(chan));
-	}
-}
-
-/**
- * @brief eqos_clear_rx_intr - Handles DMA Rx channel interrupts.
- *
- * Algorithm: Clear DMA Rx interrupt source at wrapper and DMA level.
- *
- * @param[in] addr: Base address indicating the start of
- * 	      memory mapped IO region of the MAC.
- * @param[in] chan: DMA Rx channel number.
- *
- * @note 1) MAC needs to be out of reset and proper clocks need to be configured
- *	2) DMA HW init need to be completed successfully, see osi_hw_dma_init
- *	3) Mapping of physical IRQ line to DMA channel need to be maintained at
- *	OSDependent layer and pass corresponding channel number.
- */
-static void eqos_clear_rx_intr(void *addr, unsigned int chan)
-{
-	unsigned int status;
-
-	CHECK_CHAN_BOUND(chan);
-
-	status = osi_readl((unsigned char *)addr +
-			   EQOS_VIRT_INTR_CHX_STATUS(chan));
-	if ((status & EQOS_VIRT_INTR_CHX_STATUS_RX) == 2U) {
-		osi_writel(EQOS_DMA_CHX_STATUS_CLEAR_RX,
-			   (unsigned char *)addr + EQOS_DMA_CHX_STATUS(chan));
-		osi_writel(EQOS_VIRT_INTR_CHX_STATUS_RX,
-			   (unsigned char *)addr +
-			   EQOS_VIRT_INTR_CHX_STATUS(chan));
-	}
 }
 
 /**
@@ -728,8 +692,6 @@ static struct osi_dma_chan_ops eqos_dma_chan_ops = {
 	.set_rx_ring_start_addr = eqos_set_rx_ring_start_addr,
 	.update_tx_tailptr = eqos_update_tx_tailptr,
 	.update_rx_tailptr = eqos_update_rx_tailptr,
-	.clear_tx_intr = eqos_clear_tx_intr,
-	.clear_rx_intr = eqos_clear_rx_intr,
 	.disable_chan_tx_intr = eqos_disable_chan_tx_intr,
 	.enable_chan_tx_intr = eqos_enable_chan_tx_intr,
 	.disable_chan_rx_intr = eqos_disable_chan_rx_intr,
