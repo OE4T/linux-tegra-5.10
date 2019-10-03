@@ -383,170 +383,14 @@ static int nvgpu_init_sema_pool(struct vm_gk20a *vm)
 }
 #endif
 
-/*
- * Initialize a preallocated vm
- */
-int nvgpu_vm_do_init(struct mm_gk20a *mm,
-		     struct vm_gk20a *vm,
-		     u32 big_page_size,
-		     u64 low_hole,
-		     u64 kernel_reserved,
-		     u64 aperture_size,
-		     bool big_pages,
-		     bool userspace_managed,
-		     bool unified_va,
-		     const char *name)
+static int nvgpu_vm_init_vma_allocators(struct gk20a *g, struct vm_gk20a *vm,
+			u64 user_vma_start, u64 user_vma_limit,
+			u64 user_lp_vma_start, u64 user_lp_vma_limit,
+			u64 kernel_vma_start, u64 kernel_vma_limit,
+			u64 kernel_vma_flags, const char *name)
 {
-	char alloc_name[32];
-	u64 kernel_vma_flags;
-	u64 user_vma_start, user_vma_limit;
-	u64 user_lp_vma_start, user_lp_vma_limit;
-	u64 kernel_vma_start, kernel_vma_limit;
-	struct gk20a *g = gk20a_from_mm(mm);
 	int err = 0;
-
-	if (nvgpu_safe_add_u64(kernel_reserved, low_hole) > aperture_size) {
-		nvgpu_do_assert_print(g,
-			"Overlap between user and kernel spaces");
-		return -ENOMEM;
-	}
-
-	if (vm->guest_managed && kernel_reserved != 0U) {
-		nvgpu_do_assert_print(g,
-			"Cannot use guest managed VM with kernel space");
-		return -EINVAL;
-	}
-
-	nvgpu_log_info(g, "Init space for %s: valimit=0x%llx, "
-		       "LP size=0x%x lowhole=0x%llx",
-		       name, aperture_size,
-		       (unsigned int)big_page_size, low_hole);
-
-	vm->mm = mm;
-
-	vm->gmmu_page_sizes[GMMU_PAGE_SIZE_SMALL]  =
-					nvgpu_safe_cast_u64_to_u32(SZ_4K);
-	vm->gmmu_page_sizes[GMMU_PAGE_SIZE_BIG]    = big_page_size;
-	vm->gmmu_page_sizes[GMMU_PAGE_SIZE_KERNEL] =
-					nvgpu_safe_cast_u64_to_u32(PAGE_SIZE);
-
-	/* Set up vma pointers. */
-	vm->vma[GMMU_PAGE_SIZE_SMALL]  = &vm->user;
-	vm->vma[GMMU_PAGE_SIZE_BIG]    = &vm->user;
-	vm->vma[GMMU_PAGE_SIZE_KERNEL] = &vm->kernel;
-	if (!unified_va) {
-		vm->vma[GMMU_PAGE_SIZE_BIG] = &vm->user_lp;
-	}
-
-	vm->va_start  = low_hole;
-	vm->va_limit  = aperture_size;
-
-	vm->big_page_size     = vm->gmmu_page_sizes[GMMU_PAGE_SIZE_BIG];
-	vm->userspace_managed = userspace_managed;
-	vm->unified_va        = unified_va;
-	vm->mmu_levels        =
-		g->ops.mm.gmmu.get_mmu_levels(g, vm->big_page_size);
-
-#ifdef CONFIG_TEGRA_GR_VIRTUALIZATION
-	if (g->is_virtual && userspace_managed) {
-		nvgpu_err(g, "vGPU: no userspace managed addr space support");
-		return -ENOSYS;
-	}
-#endif
-
-	if (g->ops.mm.vm_as_alloc_share != NULL) {
-		err = g->ops.mm.vm_as_alloc_share(g, vm);
-		if (err != 0) {
-			nvgpu_err(g, "Failed to init gpu vm!");
-			return err;
-		}
-	}
-
-	/* Initialize the page table data structures. */
-	(void) strncpy(vm->name, name,
-		       min(strlen(name), (size_t)(sizeof(vm->name)-1ULL)));
-	err = nvgpu_gmmu_init_page_table(vm);
-	if (err != 0) {
-		goto clean_up_gpu_vm;
-	}
-
-	/* Setup vma limits. */
-	if (kernel_reserved + low_hole < aperture_size) {
-		/*
-		 * If big_pages are disabled for this VM then it only makes
-		 * sense to make one VM, same as if the unified address flag
-		 * is set.
-		 */
-		if (!big_pages || unified_va) {
-			user_vma_start = low_hole;
-			user_vma_limit = vm->va_limit - kernel_reserved;
-			user_lp_vma_start = user_vma_limit;
-			user_lp_vma_limit = user_vma_limit;
-		} else {
-			user_vma_start = low_hole;
-			user_vma_limit = nvgpu_gmmu_va_small_page_limit();
-			user_lp_vma_start = nvgpu_gmmu_va_small_page_limit();
-			user_lp_vma_limit = vm->va_limit - kernel_reserved;
-		}
-	} else {
-		user_vma_start = 0;
-		user_vma_limit = 0;
-		user_lp_vma_start = 0;
-		user_lp_vma_limit = 0;
-	}
-	kernel_vma_start = vm->va_limit - kernel_reserved;
-	kernel_vma_limit = vm->va_limit;
-
-	nvgpu_log_info(g, "user_vma     [0x%llx,0x%llx)",
-		       user_vma_start, user_vma_limit);
-	if (!unified_va) {
-		nvgpu_log_info(g, "user_lp_vma  [0x%llx,0x%llx)",
-			       user_lp_vma_start, user_lp_vma_limit);
-	}
-	nvgpu_log_info(g, "kernel_vma   [0x%llx,0x%llx)",
-		       kernel_vma_start, kernel_vma_limit);
-
-	if ((user_vma_start > user_vma_limit) ||
-		(user_lp_vma_start > user_lp_vma_limit) ||
-		(!vm->guest_managed && kernel_vma_start >= kernel_vma_limit)) {
-		nvgpu_err(g, "Invalid vm configuration");
-		nvgpu_do_assert();
-		err = -EINVAL;
-		goto clean_up_page_tables;
-	}
-
-	kernel_vma_flags = (kernel_reserved + low_hole) == aperture_size ?
-		0ULL : GPU_ALLOC_GVA_SPACE;
-
-	/*
-	 * A "user" area only makes sense for the GVA spaces. For VMs where
-	 * there is no "user" area user_vma_start will be equal to
-	 * user_vma_limit (i.e a 0 sized space). In such a situation the kernel
-	 * area must be non-zero in length.
-	 */
-	if (user_vma_start >= user_vma_limit &&
-	    kernel_vma_start >= kernel_vma_limit) {
-		err = -EINVAL;
-		goto clean_up_page_tables;
-	}
-
-	/*
-	 * Determine if big pages are possible in this VM. If a split address
-	 * space is used then check the user_lp vma instead of the user vma.
-	 */
-	if (big_pages) {
-		if (unified_va) {
-			vm->big_pages = nvgpu_big_pages_possible(vm,
-					user_vma_start,
-					user_vma_limit - user_vma_start);
-		} else {
-			vm->big_pages = nvgpu_big_pages_possible(vm,
-					user_lp_vma_start,
-					user_lp_vma_limit - user_lp_vma_start);
-		}
-	} else {
-		vm->big_pages = false;
-	}
+	char alloc_name[32];
 
 	/*
 	 * User VMA.
@@ -564,7 +408,7 @@ int nvgpu_vm_do_init(struct mm_gk20a *mm,
 						 GPU_ALLOC_GVA_SPACE,
 						 BUDDY_ALLOCATOR);
 		if (err != 0) {
-			goto clean_up_page_tables;
+			return err;
 		}
 	} else {
 		/*
@@ -617,6 +461,263 @@ int nvgpu_vm_do_init(struct mm_gk20a *mm,
 			goto clean_up_allocators;
 		}
 	}
+	return 0;
+
+clean_up_allocators:
+	if (nvgpu_alloc_initialized(&vm->kernel)) {
+		nvgpu_alloc_destroy(&vm->kernel);
+	}
+	if (nvgpu_alloc_initialized(&vm->user)) {
+		nvgpu_alloc_destroy(&vm->user);
+	}
+	if (nvgpu_alloc_initialized(&vm->user_lp)) {
+		nvgpu_alloc_destroy(&vm->user_lp);
+	}
+	return err;
+}
+
+static void nvgpu_vm_init_check_big_pages(struct vm_gk20a *vm,
+				u64 user_vma_start, u64 user_vma_limit,
+				u64 user_lp_vma_start, u64 user_lp_vma_limit,
+				bool big_pages, bool unified_va)
+{
+	/*
+	 * Determine if big pages are possible in this VM. If a split address
+	 * space is used then check the user_lp vma instead of the user vma.
+	 */
+	if (!big_pages) {
+		vm->big_pages = false;
+	} else {
+		if (unified_va) {
+			vm->big_pages = nvgpu_big_pages_possible(vm,
+					user_vma_start,
+					user_vma_limit - user_vma_start);
+		} else {
+			vm->big_pages = nvgpu_big_pages_possible(vm,
+					user_lp_vma_start,
+					user_lp_vma_limit - user_lp_vma_start);
+		}
+	}
+}
+
+static int nvgpu_vm_init_check_vma_limits(struct gk20a *g, struct vm_gk20a *vm,
+				u64 user_vma_start, u64 user_vma_limit,
+				u64 user_lp_vma_start, u64 user_lp_vma_limit,
+				u64 kernel_vma_start, u64 kernel_vma_limit)
+{
+	if ((user_vma_start > user_vma_limit) ||
+		(user_lp_vma_start > user_lp_vma_limit) ||
+		(!vm->guest_managed && kernel_vma_start >= kernel_vma_limit)) {
+		nvgpu_err(g, "Invalid vm configuration");
+		nvgpu_do_assert();
+		return -EINVAL;
+	}
+
+	/*
+	 * A "user" area only makes sense for the GVA spaces. For VMs where
+	 * there is no "user" area user_vma_start will be equal to
+	 * user_vma_limit (i.e a 0 sized space). In such a situation the kernel
+	 * area must be non-zero in length.
+	 */
+	if (user_vma_start >= user_vma_limit &&
+	    kernel_vma_start >= kernel_vma_limit) {
+		return -EINVAL;
+	}
+
+	return 0;
+}
+
+static int nvgpu_vm_init_vma(struct gk20a *g, struct vm_gk20a *vm,
+		     u64 low_hole,
+		     u64 kernel_reserved,
+		     u64 aperture_size,
+		     bool big_pages,
+		     bool unified_va,
+		     const char *name)
+{
+	int err = 0;
+	u64 user_vma_start, user_vma_limit;
+	u64 user_lp_vma_start, user_lp_vma_limit;
+	u64 kernel_vma_start, kernel_vma_limit;
+	u64 kernel_vma_flags;
+
+	/* Setup vma limits. */
+	if (kernel_reserved + low_hole < aperture_size) {
+		/*
+		 * If big_pages are disabled for this VM then it only makes
+		 * sense to make one VM, same as if the unified address flag
+		 * is set.
+		 */
+		if (!big_pages || unified_va) {
+			user_vma_start = low_hole;
+			user_vma_limit = vm->va_limit - kernel_reserved;
+			user_lp_vma_start = user_vma_limit;
+			user_lp_vma_limit = user_vma_limit;
+		} else {
+			user_vma_start = low_hole;
+			user_vma_limit = nvgpu_gmmu_va_small_page_limit();
+			user_lp_vma_start = nvgpu_gmmu_va_small_page_limit();
+			user_lp_vma_limit = vm->va_limit - kernel_reserved;
+		}
+	} else {
+		user_vma_start = 0;
+		user_vma_limit = 0;
+		user_lp_vma_start = 0;
+		user_lp_vma_limit = 0;
+	}
+	kernel_vma_start = vm->va_limit - kernel_reserved;
+	kernel_vma_limit = vm->va_limit;
+
+	nvgpu_log_info(g, "user_vma     [0x%llx,0x%llx)",
+		       user_vma_start, user_vma_limit);
+	if (!unified_va) {
+		nvgpu_log_info(g, "user_lp_vma  [0x%llx,0x%llx)",
+			       user_lp_vma_start, user_lp_vma_limit);
+	}
+	nvgpu_log_info(g, "kernel_vma   [0x%llx,0x%llx)",
+		       kernel_vma_start, kernel_vma_limit);
+
+	err = nvgpu_vm_init_check_vma_limits(g, vm,
+					user_vma_start, user_vma_limit,
+					user_lp_vma_start, user_lp_vma_limit,
+					kernel_vma_start, kernel_vma_limit);
+	if (err != 0) {
+		goto clean_up_page_tables;
+	}
+
+	kernel_vma_flags = (kernel_reserved + low_hole) == aperture_size ?
+			0ULL : GPU_ALLOC_GVA_SPACE;
+
+	nvgpu_vm_init_check_big_pages(vm, user_vma_start, user_vma_limit,
+				user_lp_vma_start, user_lp_vma_limit,
+				big_pages, unified_va);
+
+	err = nvgpu_vm_init_vma_allocators(g, vm,
+			user_vma_start, user_vma_limit,
+			user_lp_vma_start, user_lp_vma_limit,
+			kernel_vma_start, kernel_vma_limit,
+			kernel_vma_flags, name);
+	if (err != 0) {
+		goto clean_up_page_tables;
+	}
+
+	return 0;
+
+clean_up_page_tables:
+	/* Cleans up nvgpu_gmmu_init_page_table() */
+	nvgpu_pd_free(vm, &vm->pdb);
+	return err;
+}
+
+static int nvgpu_vm_init_attributes(struct mm_gk20a *mm,
+		     struct vm_gk20a *vm,
+		     u32 big_page_size,
+		     u64 low_hole,
+		     u64 kernel_reserved,
+		     u64 aperture_size,
+		     bool big_pages,
+		     bool userspace_managed,
+		     bool unified_va,
+		     const char *name)
+{
+	struct gk20a *g = gk20a_from_mm(mm);
+
+	if (nvgpu_safe_add_u64(kernel_reserved, low_hole) > aperture_size) {
+		nvgpu_do_assert_print(g,
+			"Overlap between user and kernel spaces");
+		return -ENOMEM;
+	}
+
+	if (vm->guest_managed && kernel_reserved != 0U) {
+		nvgpu_do_assert_print(g,
+			"Cannot use guest managed VM with kernel space");
+		return -EINVAL;
+	}
+
+	nvgpu_log_info(g, "Init space for %s: valimit=0x%llx, "
+		       "LP size=0x%x lowhole=0x%llx",
+		       name, aperture_size,
+		       (unsigned int)big_page_size, low_hole);
+
+	vm->mm = mm;
+
+	vm->gmmu_page_sizes[GMMU_PAGE_SIZE_SMALL]  =
+					nvgpu_safe_cast_u64_to_u32(SZ_4K);
+	vm->gmmu_page_sizes[GMMU_PAGE_SIZE_BIG]    = big_page_size;
+	vm->gmmu_page_sizes[GMMU_PAGE_SIZE_KERNEL] =
+					nvgpu_safe_cast_u64_to_u32(PAGE_SIZE);
+
+	/* Set up vma pointers. */
+	vm->vma[GMMU_PAGE_SIZE_SMALL]  = &vm->user;
+	vm->vma[GMMU_PAGE_SIZE_BIG]    = &vm->user;
+	vm->vma[GMMU_PAGE_SIZE_KERNEL] = &vm->kernel;
+	if (!unified_va) {
+		vm->vma[GMMU_PAGE_SIZE_BIG] = &vm->user_lp;
+	}
+
+	vm->va_start  = low_hole;
+	vm->va_limit  = aperture_size;
+
+	vm->big_page_size     = vm->gmmu_page_sizes[GMMU_PAGE_SIZE_BIG];
+	vm->userspace_managed = userspace_managed;
+	vm->unified_va        = unified_va;
+	vm->mmu_levels        =
+		g->ops.mm.gmmu.get_mmu_levels(g, vm->big_page_size);
+
+#ifdef CONFIG_TEGRA_GR_VIRTUALIZATION
+	if (g->is_virtual && userspace_managed) {
+		nvgpu_err(g, "vGPU: no userspace managed addr space support");
+		return -ENOSYS;
+	}
+#endif
+	return 0;
+}
+
+/*
+ * Initialize a preallocated vm
+ */
+int nvgpu_vm_do_init(struct mm_gk20a *mm,
+		     struct vm_gk20a *vm,
+		     u32 big_page_size,
+		     u64 low_hole,
+		     u64 kernel_reserved,
+		     u64 aperture_size,
+		     bool big_pages,
+		     bool userspace_managed,
+		     bool unified_va,
+		     const char *name)
+{
+	struct gk20a *g = gk20a_from_mm(mm);
+	int err = 0;
+
+	err = nvgpu_vm_init_attributes(mm, vm, big_page_size, low_hole,
+		kernel_reserved, aperture_size, big_pages, userspace_managed,
+		unified_va, name);
+	if (err != 0) {
+		return err;
+	}
+
+	if (g->ops.mm.vm_as_alloc_share != NULL) {
+		err = g->ops.mm.vm_as_alloc_share(g, vm);
+		if (err != 0) {
+			nvgpu_err(g, "Failed to init gpu vm!");
+			return err;
+		}
+	}
+
+	/* Initialize the page table data structures. */
+	(void) strncpy(vm->name, name,
+		       min(strlen(name), (size_t)(sizeof(vm->name)-1ULL)));
+	err = nvgpu_gmmu_init_page_table(vm);
+	if (err != 0) {
+		goto clean_up_gpu_vm;
+	}
+
+	err = nvgpu_vm_init_vma(g, vm, low_hole, kernel_reserved, aperture_size,
+					big_pages, unified_va, name);
+	if (err != 0) {
+		goto clean_up_gpu_vm;
+	}
 
 	vm->mapped_buffers = NULL;
 
@@ -647,19 +748,6 @@ clean_up_gmmu_lock:
 	nvgpu_mutex_destroy(&vm->update_gmmu_lock);
 	nvgpu_mutex_destroy(&vm->syncpt_ro_map_lock);
 #endif
-clean_up_allocators:
-	if (nvgpu_alloc_initialized(&vm->kernel)) {
-		nvgpu_alloc_destroy(&vm->kernel);
-	}
-	if (nvgpu_alloc_initialized(&vm->user)) {
-		nvgpu_alloc_destroy(&vm->user);
-	}
-	if (nvgpu_alloc_initialized(&vm->user_lp)) {
-		nvgpu_alloc_destroy(&vm->user_lp);
-	}
-clean_up_page_tables:
-	/* Cleans up nvgpu_gmmu_init_page_table() */
-	nvgpu_pd_free(vm, &vm->pdb);
 clean_up_gpu_vm:
 	if (g->ops.mm.vm_as_free_share != NULL) {
 		g->ops.mm.vm_as_free_share(vm);
@@ -935,11 +1023,7 @@ int nvgpu_vm_get_buffers(struct vm_gk20a *vm,
 		nvgpu_rbtree_enum_next(&node, node);
 	}
 
-NVGPU_COV_WHITELIST_BLOCK_BEGIN(false_positive, 1, NVGPU_MISRA(Rule, 14_4), "Bug 2277532")
-NVGPU_COV_WHITELIST_BLOCK_BEGIN(false_positive, 1, NVGPU_MISRA(Rule, 15_6), "Bug 2277532")
 	BUG_ON(i != vm->num_user_mapped_buffers);
-NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Rule, 14_4))
-NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Rule, 15_6))
 
 	*num_buffers = vm->num_user_mapped_buffers;
 	*mapped_buffers = buffer_list;
@@ -976,148 +1060,36 @@ void nvgpu_vm_put_buffers(struct vm_gk20a *vm,
 	nvgpu_big_free(vm->mm->g, mapped_buffers);
 }
 
-int nvgpu_vm_map(struct vm_gk20a *vm,
+static int nvgpu_vm_map_compression_comptags(struct vm_gk20a *vm,
 		 struct nvgpu_os_buffer *os_buf,
 		 struct nvgpu_sgt *sgt,
-		 u64 map_addr,
+		 u64 *map_addr_ptr,
 		 u64 map_size,
 		 u64 phys_offset,
 		 enum gk20a_mem_rw_flag rw,
 		 u32 flags,
-		 s16 compr_kind,
-		 s16 incompr_kind,
 		 struct vm_gk20a_mapping_batch *batch,
 		 enum nvgpu_aperture aperture,
-		 struct nvgpu_mapped_buf **mapped_buffer_arg)
+		 struct nvgpu_ctag_buffer_info *binfo_ptr)
 {
 	struct gk20a *g = gk20a_from_vm(vm);
-	struct nvgpu_mapped_buf *mapped_buffer = NULL;
-	struct nvgpu_ctag_buffer_info binfo = { 0 };
-	struct nvgpu_vm_area *vm_area = NULL;
 	int err = 0;
-	u64 align;
-	u32 ctag_offset = 0;
 	bool clear_ctags = false;
-	bool va_allocated = true;
-
-	/*
-	 * The kind used as part of the key for map caching. HW may
-	 * actually be programmed with the fallback kind in case the
-	 * key kind is compressible but we're out of comptags.
-	 */
-	s16 map_key_kind;
-
+	u32 ctag_offset = 0;
+	u64 map_addr = *map_addr_ptr;
 	/*
 	 * The actual GMMU PTE kind
 	 */
 	u8 pte_kind;
 
-	*mapped_buffer_arg = NULL;
-
-	if (vm->userspace_managed &&
-	    (flags & NVGPU_VM_MAP_FIXED_OFFSET) == 0U) {
-		nvgpu_err(g,
-			  "non-fixed-offset mapping not available on "
-			  "userspace managed address spaces");
-		return -EINVAL;
-	}
-
-	binfo.flags = flags;
-	binfo.size = nvgpu_os_buf_get_size(os_buf);
-	if (binfo.size == 0UL) {
-		nvgpu_err(g, "Invalid buffer size");
-		return -EINVAL;
-	}
-	binfo.incompr_kind = incompr_kind;
-
 #ifdef CONFIG_NVGPU_COMPRESSION
-	if (vm->enable_ctag && compr_kind != NVGPU_KIND_INVALID) {
-		binfo.compr_kind = compr_kind;
-	} else {
-		binfo.compr_kind = NVGPU_KIND_INVALID;
-	}
-
-	if (compr_kind != NVGPU_KIND_INVALID) {
-		map_key_kind = compr_kind;
-	} else {
-		map_key_kind = incompr_kind;
-	}
-#else
-	map_key_kind = incompr_kind;
-#endif
-
-	/*
-	 * Check if this buffer is already mapped.
-	 */
-	if (!vm->userspace_managed) {
-		nvgpu_mutex_acquire(&vm->update_gmmu_lock);
-		mapped_buffer = nvgpu_vm_find_mapping(vm,
-						      os_buf,
-						      map_addr,
-						      binfo.flags,
-						      map_key_kind);
-
-		if (mapped_buffer != NULL) {
-			nvgpu_ref_get(&mapped_buffer->ref);
-			nvgpu_mutex_release(&vm->update_gmmu_lock);
-			*mapped_buffer_arg = mapped_buffer;
-			return 0;
-		}
-		nvgpu_mutex_release(&vm->update_gmmu_lock);
-	}
-
-	/*
-	 * Generate a new mapping!
-	 */
-	mapped_buffer = nvgpu_kzalloc(g, sizeof(*mapped_buffer));
-	if (mapped_buffer == NULL) {
-		nvgpu_warn(g, "oom allocating tracking buffer");
-		return -ENOMEM;
-	}
-	*mapped_buffer_arg = mapped_buffer;
-
-	align = nvgpu_sgt_alignment(g, sgt);
-	if (g->mm.disable_bigpage) {
-		binfo.pgsz_idx = GMMU_PAGE_SIZE_SMALL;
-	} else {
-		binfo.pgsz_idx = nvgpu_vm_get_pte_size(vm, map_addr,
-						min_t(u64, binfo.size, align));
-	}
-	map_size = (map_size != 0ULL) ? map_size : binfo.size;
-	map_size = ALIGN(map_size, SZ_4K);
-
-	if ((map_size > binfo.size) ||
-	    (phys_offset > (binfo.size - map_size))) {
-		err = -EINVAL;
-		goto clean_up_nolock;
-	}
-
-	nvgpu_mutex_acquire(&vm->update_gmmu_lock);
-
-	/*
-	 * Check if we should use a fixed offset for mapping this buffer.
-	 */
-	if ((flags & NVGPU_VM_MAP_FIXED_OFFSET) != 0U)  {
-		err = nvgpu_vm_area_validate_buffer(vm,
-						    map_addr,
-						    map_size,
-						    binfo.pgsz_idx,
-						    &vm_area);
-		if (err != 0) {
-			goto clean_up;
-		}
-
-		va_allocated = false;
-	}
-
-#ifdef CONFIG_NVGPU_COMPRESSION
-	err = nvgpu_vm_compute_compression(vm, &binfo);
+	err = nvgpu_vm_compute_compression(vm, binfo_ptr);
 	if (err != 0) {
 		nvgpu_err(g, "failure setting up compression");
-		goto clean_up;
+		goto ret_err;
 	}
 
-	if ((binfo.compr_kind != NVGPU_KIND_INVALID) &&
+	if ((binfo_ptr->compr_kind != NVGPU_KIND_INVALID) &&
 	    ((flags & NVGPU_VM_MAP_FIXED_OFFSET) != 0U)) {
 		/*
 		 * Fixed-address compressible mapping is
@@ -1136,11 +1108,11 @@ int nvgpu_vm_map(struct vm_gk20a *vm,
 				  "Misaligned compressible-kind fixed-address "
 				  "mapping");
 			err = -EINVAL;
-			goto clean_up;
+			goto ret_err;
 		}
 	}
 
-	if (binfo.compr_kind != NVGPU_KIND_INVALID) {
+	if (binfo_ptr->compr_kind != NVGPU_KIND_INVALID) {
 		struct gk20a_comptags comptags = { 0 };
 
 		/*
@@ -1158,7 +1130,7 @@ int nvgpu_vm_map(struct vm_gk20a *vm,
 			 * allocation and break compressible map aliasing.
 			 */
 			nvgpu_err(g, "Error %d setting up comptags", err);
-			goto clean_up;
+			goto ret_err;
 		}
 
 		/*
@@ -1175,7 +1147,7 @@ int nvgpu_vm_map(struct vm_gk20a *vm,
 					gk20a_comptags_finish_clear(
 						os_buf, err == 0);
 					if (err != 0) {
-						goto clean_up;
+						goto ret_err;
 					}
 				}
 			} else {
@@ -1197,32 +1169,32 @@ int nvgpu_vm_map(struct vm_gk20a *vm,
 	/*
 	 * Figure out the kind and ctag offset for the GMMU page tables
 	 */
-	if (binfo.compr_kind != NVGPU_KIND_INVALID && ctag_offset != 0U) {
+	if (binfo_ptr->compr_kind != NVGPU_KIND_INVALID && ctag_offset != 0U) {
 		/*
 		 * Adjust the ctag_offset as per the buffer map offset
 		 */
 		ctag_offset += (u32)(phys_offset >>
 			ilog2(g->ops.fb.compression_page_size(g)));
-		nvgpu_assert((binfo.compr_kind >= 0) &&
-			     (binfo.compr_kind <= (s16)U8_MAX));
-		pte_kind = (u8)binfo.compr_kind;
+		nvgpu_assert((binfo_ptr->compr_kind >= 0) &&
+			     (binfo_ptr->compr_kind <= (s16)U8_MAX));
+		pte_kind = (u8)binfo_ptr->compr_kind;
 	} else
 #endif
-	if (binfo.incompr_kind != NVGPU_KIND_INVALID) {
+	if (binfo_ptr->incompr_kind != NVGPU_KIND_INVALID) {
 		/*
 		 * Incompressible kind, ctag offset will not be programmed
 		 */
 		ctag_offset = 0;
-		nvgpu_assert((binfo.incompr_kind >= 0) &&
-		             (binfo.incompr_kind <= (s16)U8_MAX));
-		pte_kind = (u8)binfo.incompr_kind;
+		nvgpu_assert((binfo_ptr->incompr_kind >= 0) &&
+				(binfo_ptr->incompr_kind <= (s16)U8_MAX));
+		pte_kind = (u8)binfo_ptr->incompr_kind;
 	} else {
 		/*
 		 * Caller required compression, but we cannot provide it
 		 */
 		nvgpu_err(g, "No comptags and no incompressible fallback kind");
 		err = -ENOMEM;
-		goto clean_up;
+		goto ret_err;
 	}
 
 #ifdef CONFIG_NVGPU_COMPRESSION
@@ -1236,10 +1208,10 @@ int nvgpu_vm_map(struct vm_gk20a *vm,
 				      sgt,
 				      phys_offset,
 				      map_size,
-				      binfo.pgsz_idx,
+				      binfo_ptr->pgsz_idx,
 				      pte_kind,
 				      ctag_offset,
-				      binfo.flags,
+				      binfo_ptr->flags,
 				      rw,
 				      clear_ctags,
 				      false,
@@ -1255,6 +1227,191 @@ int nvgpu_vm_map(struct vm_gk20a *vm,
 
 	if (map_addr == 0ULL) {
 		err = -ENOMEM;
+		goto ret_err;
+	}
+
+	*map_addr_ptr = map_addr;
+
+ret_err:
+	return err;
+}
+
+static int nvgpu_vm_new_mapping(struct vm_gk20a *vm,
+			struct nvgpu_os_buffer *os_buf,
+			struct nvgpu_mapped_buf *mapped_buffer,
+			struct nvgpu_sgt *sgt,
+			struct nvgpu_ctag_buffer_info *binfo_ptr,
+			u64 map_addr, u64 *map_size_ptr,
+			u64 phys_offset, s16 map_key_kind,
+			struct nvgpu_mapped_buf **mapped_buffer_arg)
+{
+	struct gk20a *g = gk20a_from_vm(vm);
+	u64 align;
+	u64 map_size = *map_size_ptr;
+
+	/*
+	 * Check if this buffer is already mapped.
+	 */
+	if (!vm->userspace_managed) {
+		nvgpu_mutex_acquire(&vm->update_gmmu_lock);
+		mapped_buffer = nvgpu_vm_find_mapping(vm,
+						      os_buf,
+						      map_addr,
+						      binfo_ptr->flags,
+						      map_key_kind);
+
+		if (mapped_buffer != NULL) {
+			nvgpu_ref_get(&mapped_buffer->ref);
+			nvgpu_mutex_release(&vm->update_gmmu_lock);
+			*mapped_buffer_arg = mapped_buffer;
+			return 1;
+		}
+		nvgpu_mutex_release(&vm->update_gmmu_lock);
+	}
+
+	/*
+	 * Generate a new mapping!
+	 */
+	mapped_buffer = nvgpu_kzalloc(g, sizeof(*mapped_buffer));
+	if (mapped_buffer == NULL) {
+		nvgpu_warn(g, "oom allocating tracking buffer");
+		return -ENOMEM;
+	}
+	*mapped_buffer_arg = mapped_buffer;
+
+	align = nvgpu_sgt_alignment(g, sgt);
+	if (g->mm.disable_bigpage) {
+		binfo_ptr->pgsz_idx = GMMU_PAGE_SIZE_SMALL;
+	} else {
+		binfo_ptr->pgsz_idx = nvgpu_vm_get_pte_size(vm, map_addr,
+					min_t(u64, binfo_ptr->size, align));
+	}
+	map_size = (map_size != 0ULL) ? map_size : binfo_ptr->size;
+	map_size = ALIGN(map_size, SZ_4K);
+
+	if ((map_size > binfo_ptr->size) ||
+	    (phys_offset > (binfo_ptr->size - map_size))) {
+		return -EINVAL;
+	}
+
+	*map_size_ptr = map_size;
+	return 0;
+}
+
+static int nvgpu_vm_map_check_attributes(struct vm_gk20a *vm,
+			struct nvgpu_os_buffer *os_buf,
+			struct nvgpu_ctag_buffer_info *binfo_ptr,
+			u32 flags,
+			s16 compr_kind,
+			s16 incompr_kind,
+			s16 *map_key_kind_ptr)
+{
+	struct gk20a *g = gk20a_from_vm(vm);
+
+	if (vm->userspace_managed &&
+	    (flags & NVGPU_VM_MAP_FIXED_OFFSET) == 0U) {
+		nvgpu_err(g,
+			  "non-fixed-offset mapping not available on "
+			  "userspace managed address spaces");
+		return -EINVAL;
+	}
+
+	binfo_ptr->flags = flags;
+	binfo_ptr->size = nvgpu_os_buf_get_size(os_buf);
+	if (binfo_ptr->size == 0UL) {
+		nvgpu_err(g, "Invalid buffer size");
+		return -EINVAL;
+	}
+	binfo_ptr->incompr_kind = incompr_kind;
+
+#ifdef CONFIG_NVGPU_COMPRESSION
+	if (vm->enable_ctag && compr_kind != NVGPU_KIND_INVALID) {
+		binfo_ptr->compr_kind = compr_kind;
+	} else {
+		binfo_ptr->compr_kind = NVGPU_KIND_INVALID;
+	}
+
+	if (compr_kind != NVGPU_KIND_INVALID) {
+		*map_key_kind_ptr = compr_kind;
+	} else {
+		*map_key_kind_ptr = incompr_kind;
+	}
+#else
+	*map_key_kind_ptr = incompr_kind;
+#endif
+	return 0;
+}
+
+int nvgpu_vm_map(struct vm_gk20a *vm,
+		 struct nvgpu_os_buffer *os_buf,
+		 struct nvgpu_sgt *sgt,
+		 u64 map_addr,
+		 u64 map_size,
+		 u64 phys_offset,
+		 enum gk20a_mem_rw_flag rw,
+		 u32 flags,
+		 s16 compr_kind,
+		 s16 incompr_kind,
+		 struct vm_gk20a_mapping_batch *batch,
+		 enum nvgpu_aperture aperture,
+		 struct nvgpu_mapped_buf **mapped_buffer_arg)
+{
+	struct gk20a *g = gk20a_from_vm(vm);
+	struct nvgpu_mapped_buf *mapped_buffer = NULL;
+	struct nvgpu_ctag_buffer_info binfo = { 0 };
+	struct nvgpu_vm_area *vm_area = NULL;
+	int err = 0;
+	bool va_allocated = true;
+
+	/*
+	 * The kind used as part of the key for map caching. HW may
+	 * actually be programmed with the fallback kind in case the
+	 * key kind is compressible but we're out of comptags.
+	 */
+	s16 map_key_kind;
+
+	*mapped_buffer_arg = NULL;
+
+	err = nvgpu_vm_map_check_attributes(vm, os_buf, &binfo, flags,
+			compr_kind, incompr_kind, &map_key_kind);
+	if (err != 0) {
+		return err;
+	}
+
+	err = nvgpu_vm_new_mapping(vm, os_buf, mapped_buffer, sgt, &binfo,
+			map_addr, &map_size, phys_offset, map_key_kind,
+			mapped_buffer_arg);
+
+	mapped_buffer = *mapped_buffer_arg;
+	if (err < 0) {
+		goto clean_up_nolock;
+	}
+	if (err == 1) {
+		return 0;
+	}
+
+	nvgpu_mutex_acquire(&vm->update_gmmu_lock);
+
+	/*
+	 * Check if we should use a fixed offset for mapping this buffer.
+	 */
+	if ((flags & NVGPU_VM_MAP_FIXED_OFFSET) != 0U)  {
+		err = nvgpu_vm_area_validate_buffer(vm,
+						    map_addr,
+						    map_size,
+						    binfo.pgsz_idx,
+						    &vm_area);
+		if (err != 0) {
+			goto clean_up;
+		}
+
+		va_allocated = false;
+	}
+
+	err = nvgpu_vm_map_compression_comptags(vm, os_buf, sgt, &map_addr,
+				map_size, phys_offset, rw, flags, batch,
+				aperture, &binfo);
+	if (err != 0) {
 		goto clean_up;
 	}
 
