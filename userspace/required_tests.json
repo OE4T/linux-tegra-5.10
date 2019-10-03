@@ -1677,5 +1677,25 @@
       "test": "acr_free_falcon_test_env",
       "test_level": 0,
       "unit": "nvgpu-acr"
+    },
+    {
+       "test": "netlist_init_support",
+       "test_level": 0,
+       "unit": "nvgpu-netlist"
+    },
+    {
+      "test": "netlist_query_tests",
+      "test_level": 0,
+      "unit": "nvgpu-netlist"
+    },
+    {
+      "test": "netlist_negative_tests",
+      "test_level": 0,
+      "unit": "nvgpu-netlist"
+    },
+    {
+      "test": "netlist_remove_support",
+      "test_level": 0,
+      "unit": "nvgpu-netlist"
     }
 ]

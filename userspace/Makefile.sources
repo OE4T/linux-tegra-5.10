@@ -70,6 +70,7 @@ UNITS :=				\
 	$(UNIT_SRC)/mm/page_table_faults \
 	$(UNIT_SRC)/mm/nvgpu_mem	\
 	$(UNIT_SRC)/mm/vm		\
+	$(UNIT_SRC)/netlist		\
 	$(UNIT_SRC)/fifo		\
 	$(UNIT_SRC)/fifo/channel	\
 	$(UNIT_SRC)/fifo/runlist	\

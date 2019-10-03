@@ -35,6 +35,7 @@
  *   - @ref SWUTS-interface-lock
  *   - @ref SWUTS-interface-rbtree
  *   - @ref SWUTS-falcon
+ *   - @ref SWUTS-netlist
  *   - @ref SWUTS-fifo
  *   - @ref SWUTS-fifo-channel
  *   - @ref SWUTS-fifo-runlist
