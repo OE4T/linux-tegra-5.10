@@ -78,7 +78,7 @@
 #include <nvgpu/types.h>
 #include <nvgpu/list.h>
 
-#define NVGPU_ECC_STAT_NAME_MAX_SIZE	100
+#define NVGPU_ECC_STAT_NAME_MAX_SIZE	100UL
 
 struct gk20a;
 

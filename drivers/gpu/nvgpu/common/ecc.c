@@ -26,6 +26,7 @@
 #include <nvgpu/gr/gr_utils.h>
 #include <nvgpu/ltc.h>
 #include <nvgpu/static_analysis.h>
+#include <nvgpu/string.h>
 
 static void nvgpu_ecc_stat_add(struct gk20a *g, struct nvgpu_ecc_stat *stat)
 {
@@ -51,6 +52,7 @@ int nvgpu_ecc_counter_init_per_tpc(struct gk20a *g,
 	struct nvgpu_gr_config *gr_config = nvgpu_gr_get_config_ptr(g);
 	u32 gpc_count = nvgpu_gr_config_get_gpc_count(gr_config);
 	u32 gpc, tpc;
+	char gpc_str[10] = {0}, tpc_str[10] = {0};
 	int err = 0;
 
 	stats = nvgpu_kzalloc(g, nvgpu_safe_mult_u64(sizeof(*stats),
@@ -65,34 +67,55 @@ int nvgpu_ecc_counter_init_per_tpc(struct gk20a *g,
 								  gpc)));
 		if (stats[gpc] == NULL) {
 			err = -ENOMEM;
-			break;
+			goto fail;
 		}
-	}
-
-	if (err != 0) {
-		while (gpc-- != 0u) {
-			nvgpu_kfree(g, stats[gpc]);
-		}
-
-		nvgpu_kfree(g, stats);
-		return err;
 	}
 
 	for (gpc = 0; gpc < gpc_count; gpc++) {
 		for (tpc = 0;
 		     tpc < nvgpu_gr_config_get_gpc_tpc_count(gr_config, gpc);
 		     tpc++) {
-#ifdef CONFIG_NVGPU_LOGGING
-			(void) snprintf(stats[gpc][tpc].name,
-					NVGPU_ECC_STAT_NAME_MAX_SIZE,
-					"gpc%u_tpc%u_%s", gpc, tpc, name);
-#endif
+			/**
+			 * Store stats name as below:
+			 * gpc<gpc_value>_tpc<tpc_value>_<name_string>
+			 */
+			(void)strcpy(stats[gpc][tpc].name, "gpc");
+			(void)nvgpu_strnadd_u32(gpc_str, gpc,
+							sizeof(gpc_str), 10U);
+			(void)strncat(stats[gpc][tpc].name, gpc_str,
+						NVGPU_ECC_STAT_NAME_MAX_SIZE -
+						strlen(stats[gpc][tpc].name));
+			(void)strncat(stats[gpc][tpc].name, "_tpc",
+						NVGPU_ECC_STAT_NAME_MAX_SIZE -
+						strlen(stats[gpc][tpc].name));
+			(void)nvgpu_strnadd_u32(tpc_str, tpc,
+							sizeof(tpc_str), 10U);
+			(void)strncat(stats[gpc][tpc].name, tpc_str,
+						NVGPU_ECC_STAT_NAME_MAX_SIZE -
+						strlen(stats[gpc][tpc].name));
+			(void)strncat(stats[gpc][tpc].name, "_",
+						NVGPU_ECC_STAT_NAME_MAX_SIZE -
+						strlen(stats[gpc][tpc].name));
+			(void)strncat(stats[gpc][tpc].name, name,
+						NVGPU_ECC_STAT_NAME_MAX_SIZE -
+						strlen(stats[gpc][tpc].name));
+
 			nvgpu_ecc_stat_add(g, &stats[gpc][tpc]);
 		}
 	}
 
 	*stat = stats;
-	return 0;
+
+fail:
+	if (err != 0) {
+		while (gpc-- != 0u) {
+			nvgpu_kfree(g, stats[gpc]);
+		}
+
+		nvgpu_kfree(g, stats);
+	}
+
+	return err;
 }
 
 int nvgpu_ecc_counter_init_per_gpc(struct gk20a *g,
@@ -102,17 +125,31 @@ int nvgpu_ecc_counter_init_per_gpc(struct gk20a *g,
 	struct nvgpu_gr_config *gr_config = nvgpu_gr_get_config_ptr(g);
 	u32 gpc_count = nvgpu_gr_config_get_gpc_count(gr_config);
 	u32 gpc;
+	char gpc_str[10] = {0};
 
 	stats = nvgpu_kzalloc(g, nvgpu_safe_mult_u64(sizeof(*stats),
 						     gpc_count));
 	if (stats == NULL) {
 		return -ENOMEM;
 	}
+
 	for (gpc = 0; gpc < gpc_count; gpc++) {
-#ifdef CONFIG_NVGPU_LOGGING
-		(void) snprintf(stats[gpc].name, NVGPU_ECC_STAT_NAME_MAX_SIZE,
-				"gpc%u_%s", gpc, name);
-#endif
+		/**
+		 * Store stats name as below:
+		 * gpc<gpc_value>_<name_string>
+		 */
+		(void)strcpy(stats[gpc].name, "gpc");
+		(void)nvgpu_strnadd_u32(gpc_str, gpc, sizeof(gpc_str), 10U);
+		(void)strncat(stats[gpc].name, gpc_str,
+					NVGPU_ECC_STAT_NAME_MAX_SIZE -
+					strlen(stats[gpc].name));
+		(void)strncat(stats[gpc].name, "_",
+					NVGPU_ECC_STAT_NAME_MAX_SIZE -
+					strlen(stats[gpc].name));
+		(void)strncat(stats[gpc].name, name,
+					NVGPU_ECC_STAT_NAME_MAX_SIZE -
+					strlen(stats[gpc].name));
+
 		nvgpu_ecc_stat_add(g, &stats[gpc]);
 	}
 
@@ -130,7 +167,7 @@ int nvgpu_ecc_counter_init(struct gk20a *g,
 		return -ENOMEM;
 	}
 
-	(void)strncpy(stats->name, name, NVGPU_ECC_STAT_NAME_MAX_SIZE - 1);
+	(void)strncpy(stats->name, name, NVGPU_ECC_STAT_NAME_MAX_SIZE - 1U);
 	nvgpu_ecc_stat_add(g, stats);
 	*stat = stats;
 	return 0;
@@ -141,6 +178,7 @@ int nvgpu_ecc_counter_init_per_lts(struct gk20a *g,
 {
 	struct nvgpu_ecc_stat **stats;
 	u32 ltc, lts;
+	char ltc_str[10] = {0}, lts_str[10] = {0};
 	int err = 0;
 	u32 ltc_count = nvgpu_ltc_get_ltc_count(g);
 	u32 slices_per_ltc = nvgpu_ltc_get_slices_per_ltc(g);
@@ -156,32 +194,53 @@ int nvgpu_ecc_counter_init_per_lts(struct gk20a *g,
 					    slices_per_ltc));
 		if (stats[ltc] == NULL) {
 			err = -ENOMEM;
-			break;
+			goto fail;
 		}
 	}
 
+	for (ltc = 0; ltc < ltc_count; ltc++) {
+		for (lts = 0; lts < slices_per_ltc; lts++) {
+			/**
+			 * Store stats name as below:
+			 * ltc<ltc_value>_lts<lts_value>_<name_string>
+			 */
+			(void)strcpy(stats[ltc][lts].name, "ltc");
+			(void)nvgpu_strnadd_u32(ltc_str, ltc,
+							sizeof(ltc_str), 10U);
+			(void)strncat(stats[ltc][lts].name, ltc_str,
+						NVGPU_ECC_STAT_NAME_MAX_SIZE -
+						strlen(stats[ltc][lts].name));
+			(void)strncat(stats[ltc][lts].name, "_lts",
+						NVGPU_ECC_STAT_NAME_MAX_SIZE -
+						strlen(stats[ltc][lts].name));
+			(void)nvgpu_strnadd_u32(lts_str, lts,
+							sizeof(lts_str), 10U);
+			(void)strncat(stats[ltc][lts].name, lts_str,
+						NVGPU_ECC_STAT_NAME_MAX_SIZE -
+						strlen(stats[ltc][lts].name));
+			(void)strncat(stats[ltc][lts].name, "_",
+						NVGPU_ECC_STAT_NAME_MAX_SIZE -
+						strlen(stats[ltc][lts].name));
+			(void)strncat(stats[ltc][lts].name, name,
+						NVGPU_ECC_STAT_NAME_MAX_SIZE -
+						strlen(stats[ltc][lts].name));
+
+			nvgpu_ecc_stat_add(g, &stats[ltc][lts]);
+		}
+	}
+
+	*stat = stats;
+
+fail:
 	if (err != 0) {
 		while (ltc-- > 0u) {
 			nvgpu_kfree(g, stats[ltc]);
 		}
 
 		nvgpu_kfree(g, stats);
-		return err;
 	}
 
-	for (ltc = 0; ltc < ltc_count; ltc++) {
-		for (lts = 0; lts < slices_per_ltc; lts++) {
-#ifdef CONFIG_NVGPU_LOGGING
-			(void) snprintf(stats[ltc][lts].name,
-					NVGPU_ECC_STAT_NAME_MAX_SIZE,
-					"ltc%u_lts%u_%s", ltc, lts, name);
-#endif
-			nvgpu_ecc_stat_add(g, &stats[ltc][lts]);
-		}
-	}
-
-	*stat = stats;
-	return 0;
+	return err;
 }
 
 int nvgpu_ecc_counter_init_per_fbpa(struct gk20a *g,
@@ -190,6 +249,7 @@ int nvgpu_ecc_counter_init_per_fbpa(struct gk20a *g,
 	u32 i;
 	u32 num_fbpa = nvgpu_get_litter_value(g, GPU_LIT_NUM_FBPAS);
 	struct nvgpu_ecc_stat *stats;
+	char fbpa_str[10] = {0};
 
 	stats = nvgpu_kzalloc(g, nvgpu_safe_mult_u64(sizeof(*stats),
 						     (size_t)num_fbpa));
@@ -198,10 +258,22 @@ int nvgpu_ecc_counter_init_per_fbpa(struct gk20a *g,
 	}
 
 	for (i = 0; i < num_fbpa; i++) {
-#ifdef CONFIG_NVGPU_LOGGING
-		(void) snprintf(stats[i].name, NVGPU_ECC_STAT_NAME_MAX_SIZE,
-				"fbpa%u_%s", i, name);
-#endif
+		/**
+		 * Store stats name as below:
+		 * fbpa<fbpa_value>_<name_string>
+		 */
+		(void)strcpy(stats[i].name, "fbpa");
+		(void)nvgpu_strnadd_u32(fbpa_str, i, sizeof(fbpa_str), 10U);
+		(void)strncat(stats[i].name, fbpa_str,
+					NVGPU_ECC_STAT_NAME_MAX_SIZE -
+					strlen(stats[i].name));
+		(void)strncat(stats[i].name, "_",
+					NVGPU_ECC_STAT_NAME_MAX_SIZE -
+					strlen(stats[i].name));
+		(void)strncat(stats[i].name, name,
+					NVGPU_ECC_STAT_NAME_MAX_SIZE -
+					strlen(stats[i].name));
+
 		nvgpu_ecc_stat_add(g, &stats[i]);
 	}
 

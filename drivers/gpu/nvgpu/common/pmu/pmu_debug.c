@@ -26,6 +26,7 @@
 #include <nvgpu/dma.h>
 #include <nvgpu/pmu/pmu_pg.h>
 #include <nvgpu/pmu/debug.h>
+#include <nvgpu/string.h>
 
 bool nvgpu_find_hex_in_string(char *strings, struct gk20a *g, u32 *hex_pos)
 {
@@ -47,11 +48,11 @@ static void print_pmu_trace(struct nvgpu_pmu *pmu)
 {
 	struct gk20a *g = pmu->g;
 	u32 i = 0, j = 0, k, l, m;
-	int count;
-	char part_str[40], buf[0x40];
+	char part_str[40], hex_str[10], buf[0x40] = {0};
 	void *tracebuffer;
 	char *trace;
 	u32 *trace1;
+	u32 buf_size = nvgpu_safe_cast_u64_to_u32(sizeof(buf));
 
 	/* allocate system memory to copy pmu trace buffer */
 	tracebuffer = nvgpu_kzalloc(g, PMU_RTOS_TRACE_BUFSIZE);
@@ -76,22 +77,38 @@ static void print_pmu_trace(struct nvgpu_pmu *pmu)
 		if (j == 0x40U) {
 			break;
 		}
-		count = scnprintf(buf, 0x40, "Index %x: ", trace1[(i / 4U)]);
+		(void)nvgpu_strnadd_u32(hex_str, trace1[(i / 4U)],
+							sizeof(hex_str), 16U);
+		(void)strncat(buf, "Index", nvgpu_safe_sub_u32(buf_size,
+				nvgpu_safe_cast_u64_to_u32(strlen(buf))));
+		(void)strncat(buf, hex_str, nvgpu_safe_sub_u32(buf_size,
+				nvgpu_safe_cast_u64_to_u32(strlen(buf))));
+		(void)strncat(buf, ": ", nvgpu_safe_sub_u32(buf_size,
+				nvgpu_safe_cast_u64_to_u32(strlen(buf))));
 		l = 0;
 		m = 0;
 		while (nvgpu_find_hex_in_string((trace+i+20+m), g, &k)) {
 			if (k >= 40U) {
 				break;
 			}
-			(void) strncpy(part_str, (trace+i+20+m), k);
+			(void)strncpy(part_str, (trace+i+20+m), k);
 			part_str[k] = '\0';
-			count += scnprintf((buf + count), 0x40, "%s0x%x",
-					part_str, trace1[(i / 4U) + 1U + l]);
+			(void)nvgpu_strnadd_u32(hex_str,
+					trace1[(i / 4U) + 1U + l],
+					sizeof(hex_str), 16U);
+			(void)strncat(buf, part_str, nvgpu_safe_sub_u32(
+					buf_size, nvgpu_safe_cast_u64_to_u32(
+								strlen(buf))));
+			(void)strncat(buf, "0x", nvgpu_safe_sub_u32(buf_size,
+				nvgpu_safe_cast_u64_to_u32(strlen(buf))));
+			(void)strncat(buf, hex_str, nvgpu_safe_sub_u32(buf_size,
+				nvgpu_safe_cast_u64_to_u32(strlen(buf))));
 			l++;
 			m += k + 2U;
 		}
 
-		(void) scnprintf((buf + count), 0x40, "%s", (trace+i+20+m));
+		(void)strncat(buf, (trace+i+20+m), nvgpu_safe_sub_u32(buf_size,
+				nvgpu_safe_cast_u64_to_u32(strlen(buf))));
 		nvgpu_err(g, "%s", buf);
 	}
 

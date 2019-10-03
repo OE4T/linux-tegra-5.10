@@ -364,53 +364,6 @@
  */
 #define MHZ_TO_HZ_ULL(a) ((u64)(a) * MHZ)
 
-/*
- * Caps return at the size of the buffer not what would have been written if buf
- * were arbitrarily sized.
- */
-#ifdef CONFIG_NVGPU_LOGGING
-/**
- * @brief Format a string and store it in buffer.
- *
- * @param buf [in,out]	Buffer to hold the formatted string.
- * @param size [in]	Size of the buf.
- * @param format [in]	Format of the input string.
- * @param args [in]	Variable length args.
- *
- * Formats the string and places it in the location referenced by input
- * parameter buf.
- *
- * @return Returns the number of characters printed in a successful scenario,
- * Otherwise returns the error code.
- */
-static inline int scnprintf(char *buf, size_t size, const char *format, ...)
-{
-	size_t ret;
-	va_list args;
-
-	va_start(args, format);
-	ret = (size_t)vsnprintf(buf, size, format, args);
-	va_end(args);
-
-	return ret <= size ? (int)ret : (int)size;
-}
-#else
-/**
- * @brief Dummy function for scnprintf if logging is disabled.
- *
- * @param buf [in,out]	Buffer to hold the formatted string.
- * @param size [in]	Size of the buf.
- * @param format [in]	Format of the input string.
- * @param args [in]	Variable length args.
- *
- * @return Returns 0.
- */
-static inline int scnprintf(char *buf, size_t size, const char *format, ...)
-{
-	return 0;
-}
-#endif
-
 /**
  * @brief Endian conversion.
  *
