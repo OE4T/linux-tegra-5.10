@@ -122,6 +122,7 @@
 
 #include <nvgpu/types.h>
 #include <nvgpu/lock.h>
+#include <nvgpu/static_analysis.h>
 
 /** Falcon ID for PMU engine */
 #define FALCON_ID_PMU       (0U)
@@ -150,8 +151,8 @@
 #define GET_IMEM_TAG(IMEM_ADDR) ((IMEM_ADDR) >> 8U)
 
 #define GET_NEXT_BLOCK(ADDR) \
-	(((((ADDR) + (FALCON_BLOCK_SIZE - 1U)) & ~(FALCON_BLOCK_SIZE-1U)) \
-		/ FALCON_BLOCK_SIZE) << 8U)
+	(((nvgpu_safe_add_u32((ADDR), (FALCON_BLOCK_SIZE - 1U)) \
+		& ~(FALCON_BLOCK_SIZE-1U)) / FALCON_BLOCK_SIZE) << 8U)
 
 /**
  * Falcon ucode header format
