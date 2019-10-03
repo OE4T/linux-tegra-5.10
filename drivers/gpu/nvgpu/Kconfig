@@ -174,11 +174,11 @@ config NVGPU_COMPRESSION
 	  Support for compression
 
 config NVGPU_LOGGING
-	bool "Logging for non-safety build"
+	bool "NVGPU logging"
 	depends on GK20A
 	default y
 	help
-	  Enable/Disable logging for non-safety builds
+	  Enable/Disable NVGPU logging
 
 config NVGPU_HAL_NON_FUSA
 	bool "Support non-functionally safe HALs"

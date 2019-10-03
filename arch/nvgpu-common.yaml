@@ -68,6 +68,12 @@ ecc:
              include/nvgpu/ecc.h ]
   deps:
 
+log:
+  safe: yes
+  owner: Vedashree V
+  sources: [ common/log_common.c ]
+  deps:
+
 # Pretty sure this can be marked as not-safe since we plan to use
 # usermode submits in the safety build.
 fence:
@@ -203,8 +209,7 @@ utils:
              common/utils/string.c,
              common/utils/worker.c,
              common/utils/rbtree.c,
-             common/utils/enabled.c,
-             common/utils/assert.c ]
+             common/utils/enabled.c ]
 
 ##
 ## Common elements.

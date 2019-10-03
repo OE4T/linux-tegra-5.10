@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,18 +20,10 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#include <nvgpu/gk20a.h>
-#include <nvgpu/bug.h>
 #include <nvgpu/log.h>
+#include <nvgpu/gk20a.h>
 
-void nvgpu_do_assert_print(struct gk20a *g, const char *fmt, ...)
+bool nvgpu_log_mask_enabled(struct gk20a *g, u64 log_mask)
 {
-#ifdef CONFIG_NVGPU_LOGGING
-	va_list args;
-
-	va_start(args, fmt);
-	nvgpu_err(g, fmt, args);
-	va_end(args);
-#endif
-	nvgpu_do_assert();
+	return (g->log_mask & log_mask) != 0ULL;
 }

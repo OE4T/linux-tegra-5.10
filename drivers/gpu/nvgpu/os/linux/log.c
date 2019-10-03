@@ -17,7 +17,7 @@
 #include <linux/kernel.h>
 #include <linux/device.h>
 
-#include <nvgpu/log.h>
+#include <nvgpu/linux/log.h>
 #include <nvgpu/gk20a.h>
 
 #include "platform_gk20a.h"
@@ -44,11 +44,6 @@ static const char *log_types[] = {
 	"DBG",
 	"INFO",
 };
-
-bool nvgpu_log_mask_enabled(struct gk20a *g, u64 log_mask)
-{
-	return (g->log_mask & log_mask) != 0ULL;
-}
 
 static inline const char *nvgpu_log_name(struct gk20a *g)
 {

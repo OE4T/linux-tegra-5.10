@@ -83,6 +83,11 @@ NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Rule, 15_6))
 	}
 
 struct gk20a;
-void nvgpu_do_assert_print(struct gk20a *g, const char *fmt, ...);
+
+#define nvgpu_do_assert_print(g, fmt, arg...)				\
+	do {								\
+		nvgpu_err(g, fmt, ##arg);				\
+		nvgpu_do_assert();					\
+	} while (false)
 
 #endif /* NVGPU_BUG_H */

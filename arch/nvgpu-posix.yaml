@@ -43,6 +43,7 @@ headers:
              include/nvgpu/posix/circ_buf.h,
              include/nvgpu/posix/dma.h,
              include/nvgpu/posix/io.h,
+             include/nvgpu/posix/log.h,
              include/nvgpu/posix/log2.h,
              include/nvgpu/posix/nvgpu_mem.h,
              include/nvgpu/posix/pci.h,

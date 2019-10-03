@@ -76,7 +76,7 @@ lock:
 
 log:
   safe: yes
-  sources: [ include/nvgpu/log.h ]
+  sources: [ include/nvgpu/log.h, include/nvgpu/log_common.h ]
 
 log2:
   safe: yes

@@ -78,7 +78,6 @@ obj-$(CONFIG_GK20A) := nvgpu.o
 # is in progress.
 
 nvgpu-y += \
-	common/utils/assert.o \
 	common/utils/enabled.o \
 	common/utils/rbtree.o \
 	common/utils/string.o \
@@ -514,6 +513,7 @@ nvgpu-y += \
 	common/fifo/userd.o \
 	common/fence/fence.o \
 	common/ecc.o \
+	common/log_common.o \
 	common/ce/ce.o \
 	common/ce/ce_app.o \
 	common/debugger.o

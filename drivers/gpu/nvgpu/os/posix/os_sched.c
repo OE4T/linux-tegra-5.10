@@ -42,31 +42,44 @@ int nvgpu_current_tid(struct gk20a *g)
 void nvgpu_print_current_impl(struct gk20a *g, const char *func_name, int line,
 		void *ctx, enum nvgpu_log_type type)
 {
+	char *log_message = "(unknown process)";
+
 #if defined(__NVGPU_POSIX__)
 #ifdef _GNU_SOURCE
 	char current_tname[CURRENT_NAME_LEN];
 
 	/* pthread_getname_np() will return null terminated string on success */
 	if (pthread_getname_np(0, current_tname, CURRENT_NAME_LEN) == 0) {
-		nvgpu_log_msg_impl(g, func_name, line, type, "%s",
-					current_tname);
-	} else {
-		nvgpu_log_msg_impl(g, func_name, line, type,
-					"(unknown process)");
+		log_message = current_tname;
 	}
 #else
-	nvgpu_log_msg_impl(g, func_name, line, type, "(unknown process)");
+	nvgpu_err(g, "(unknown process)");
+	return;
 #endif
 #else
 	char current_tname[CURRENT_NAME_LEN];
 
 	/* pthread_getname_np() will return null terminated string on success */
 	if (pthread_getname_np(0, current_tname, CURRENT_NAME_LEN) == 0) {
-		nvgpu_log_msg_impl(g, func_name, line, type, "%s",
-					current_tname);
-	} else {
-		nvgpu_log_msg_impl(g, func_name, line, type,
-					"(unknown process)");
+		log_message = current_tname;
 	}
 #endif
+
+	switch (type) {
+	case NVGPU_ERROR:
+		nvgpu_err(g, "%s", log_message);
+		break;
+	case NVGPU_WARNING:
+		nvgpu_warn(g, "%s", log_message);
+		break;
+	case NVGPU_DEBUG:
+		nvgpu_log(g, 0U, "%s", log_message);
+		break;
+	case NVGPU_INFO:
+		nvgpu_info(g, "%s", log_message);
+		break;
+	default:
+		nvgpu_err(g, "%s", log_message);
+		break;
+	}
 }
