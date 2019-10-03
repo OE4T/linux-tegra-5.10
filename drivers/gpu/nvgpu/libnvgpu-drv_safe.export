@@ -250,6 +250,7 @@ nvgpu_kmem_cache_destroy
 nvgpu_kmem_cache_free
 nvgpu_kmem_get_fault_injection
 nvgpu_kzalloc_impl
+nvgpu_log_msg_impl
 nvgpu_memset
 nvgpu_mem_create_from_phys
 nvgpu_mem_iommu_translate
@@ -327,7 +328,6 @@ nvgpu_readl
 nvgpu_readl_impl
 nvgpu_runlist_construct_locked
 nvgpu_rwsem_init
-nvgpu_timeout_expired_msg_impl
 nvgpu_timeout_init
 nvgpu_timeout_peek_expired
 nvgpu_tsg_abort

@@ -692,7 +692,7 @@ int gv11b_fb_mmu_invalidate_replay(struct gk20a *g,
 		}
 		nvgpu_udelay(5);
 	} while (nvgpu_timeout_expired_msg(&timeout,
-			"invalidate replay failed 0x%lx",
+			"invalidate replay failed 0x%x",
 			invalidate_replay_val) == 0);
 	if (err != 0) {
 		nvgpu_err(g, "invalidate replay timedout");

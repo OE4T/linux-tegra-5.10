@@ -26,6 +26,10 @@
 #include <nvgpu/types.h>
 #include <nvgpu/utils.h>
 
+#ifndef __KERNEL__
+#include <nvgpu/posix/timers.h>
+#endif
+
 struct gk20a;
 
 /*
@@ -89,15 +93,7 @@ bool nvgpu_timeout_peek_expired(struct nvgpu_timeout *timeout);
 	nvgpu_timeout_expired_msg_impl(__timeout, NVGPU_GET_IP, "")
 
 #define nvgpu_timeout_expired_msg(__timeout, fmt, args...)		\
-	nvgpu_timeout_expired_msg_impl(__timeout, NVGPU_GET_IP,	\
-				    fmt, ##args)
-
-/*
- * Don't use this directly.
- */
-int nvgpu_timeout_expired_msg_impl(struct nvgpu_timeout *timeout,
-			      void *caller, const char *fmt, ...);
-
+	nvgpu_timeout_expired_msg_impl(__timeout, NVGPU_GET_IP,	fmt, ##args)
 
 /*
  * Waits and delays.
@@ -116,5 +112,13 @@ s64 nvgpu_current_time_us(void);
 u64 nvgpu_hr_timestamp_us(void);
 #endif
 u64 nvgpu_hr_timestamp(void);
+
+#ifdef __KERNEL__
+/*
+ * Don't use this directly.
+ */
+int nvgpu_timeout_expired_msg_impl(struct nvgpu_timeout *timeout,
+			      void *caller, const char *fmt, ...);
+#endif
 
 #endif /* NVGPU_TIMERS_H */
