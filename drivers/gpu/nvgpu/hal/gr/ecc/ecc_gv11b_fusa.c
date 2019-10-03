@@ -136,6 +136,9 @@ void gv11b_ecc_detect_enabled_units(struct gk20a *g)
 	u32 fecs_feature_override_ecc =
 			nvgpu_readl(g,
 				gr_fecs_feature_override_ecc_r());
+	u32 fecs_feature_override_ecc_1 =
+			nvgpu_readl(g,
+				gr_fecs_feature_override_ecc_1_r());
 
 	if (opt_feature_fuses_override_disable) {
 		if (opt_ecc_en) {
@@ -162,7 +165,7 @@ void gv11b_ecc_detect_enabled_units(struct gk20a *g)
 				fecs_feature_override_ecc, opt_ecc_en);
 		/* SM ICACHE*/
 		gv11b_ecc_enable_smicache(g,
-				fecs_feature_override_ecc, opt_ecc_en);
+				fecs_feature_override_ecc_1, opt_ecc_en);
 		/* LTC */
 		gv11b_ecc_enable_ltc(g,
 				fecs_feature_override_ecc, opt_ecc_en);
