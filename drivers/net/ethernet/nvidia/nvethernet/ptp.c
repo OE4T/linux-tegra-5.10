@@ -15,7 +15,6 @@
  */
 
 #include "ether_linux.h"
-#include <linux/platform/tegra/ptp-notifier.h>
 
 /**
  * @brief DEFINE_RAW_SPINLOCK: raw spinlock to get HW PTP time and kernel time atomically
