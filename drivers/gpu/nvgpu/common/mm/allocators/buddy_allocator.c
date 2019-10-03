@@ -1393,7 +1393,7 @@ static int nvgpu_buddy_set_attributes(struct nvgpu_buddy_allocator *a,
 	a->base = base;
 	a->length = size;
 	a->blk_size = blk_size;
-	a->blk_shift = (nvgpu_ffs(blk_size) - 1UL);
+	a->blk_shift = nvgpu_safe_sub_u64(nvgpu_ffs(blk_size), 1UL);
 	a->owner = na;
 
 	/*
@@ -1402,7 +1402,7 @@ static int nvgpu_buddy_set_attributes(struct nvgpu_buddy_allocator *a,
 	 */
 	if (a->base == 0U) {
 		a->base = a->blk_size;
-		a->length -= a->blk_size;
+		a->length = nvgpu_safe_sub_u64(a->length, a->blk_size);
 	}
 
 	a->vm = vm;

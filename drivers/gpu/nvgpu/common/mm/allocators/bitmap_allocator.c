@@ -442,7 +442,7 @@ int nvgpu_bitmap_allocator_init(struct gk20a *g, struct nvgpu_allocator *na,
 
 	if (base == 0ULL) {
 		base = blk_size;
-		length -= blk_size;
+		length = nvgpu_safe_sub_u64(length, blk_size);
 	}
 
 	a = nvgpu_kzalloc(g, sizeof(struct nvgpu_bitmap_allocator));
