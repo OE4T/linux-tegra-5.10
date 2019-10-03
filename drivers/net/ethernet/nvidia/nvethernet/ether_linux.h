@@ -17,6 +17,7 @@
 #ifndef ETHER_LINUX_H
 #define ETHER_LINUX_H
 
+#include <linux/platform/tegra/ptp-notifier.h>
 #include <linux/ptp_clock_kernel.h>
 #include <linux/platform_device.h>
 #include <linux/etherdevice.h>

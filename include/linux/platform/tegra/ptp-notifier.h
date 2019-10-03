@@ -19,6 +19,9 @@
 #ifndef __PTP_NOTIFIER_H
 #define __PTP_NOTIFIER_H
 
+#include <linux/types.h>
+#include <linux/notifier.h>
+
 #if IS_ENABLED(CONFIG_TEGRA_PTP_NOTIFIER)
 /* register / unregister HW time source */
 void tegra_register_hwtime_source(u64 (*func)(void *), void *data);
