@@ -1233,6 +1233,7 @@ imx214_remove(struct i2c_client *client)
 	v4l2_ctrl_handler_free(&priv->ctrl_handler);
 	camera_common_cleanup(s_data);
 
+	imx214_eeprom_device_release(priv);
 	return 0;
 }
 
