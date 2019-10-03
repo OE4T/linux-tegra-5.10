@@ -1624,6 +1624,11 @@
         "unit": "nvgpu_gr_init"
     },
     {
+        "test": "gr_ecc_features",
+        "test_level": 0,
+        "unit": "nvgpu_gr_init"
+    },
+    {
         "test": "gr_remove_support",
         "test_level": 0,
         "unit": "nvgpu_gr_init"
