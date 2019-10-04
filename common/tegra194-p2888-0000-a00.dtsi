@@ -84,6 +84,7 @@
 
 		nvidia,disable-aspm-states = <0xf>;
 		nvidia,enable-power-down;
+		nvidia,disable-clock-request;
 
 #if LINUX_VERSION >= 500
 		phys = <&p2u_hsio_2>, <&p2u_hsio_3>, <&p2u_hsio_4>,
@@ -103,6 +104,7 @@
 
 		nvidia,disable-aspm-states = <0xc>;
 		nvidia,enable-power-down;
+		nvidia,disable-clock-request;
 
 		nvidia,max-speed = <2>;
 #if LINUX_VERSION >= 500
@@ -121,6 +123,7 @@
 					GPIO_ACTIVE_HIGH>;
 		nvidia,disable-aspm-states = <0xf>;
 		nvidia,enable-power-down;
+		nvidia,disable-clock-request;
 #if LINUX_VERSION >= 500
 		phys = <&p2u_hsio_7>;
 		phy-names = "p2u-0";
@@ -135,6 +138,7 @@
 
 		nvidia,disable-aspm-states = <0xf>;
 		nvidia,enable-power-down;
+		nvidia,disable-clock-request;
 
 		nvidia,plat-gpios =
 			<
