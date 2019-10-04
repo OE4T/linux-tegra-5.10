@@ -91,6 +91,49 @@ u32 gp10b_get_num_engine_type_entries(struct gk20a *g, u32 engine_type)
 	return num_entries;
 }
 
+static int gp10b_check_device_match(struct gk20a *g,
+				    struct nvgpu_device_info *dev_info,
+				    u32 entry_engine, u32 engine_type,
+				    u32 entry_data, u32 inst_id, u32 entry_enum)
+{
+	int ret;
+
+	if ((top_device_info_type_enum_v(entry_engine) == engine_type)
+		&& (top_device_info_data_inst_id_v(entry_data) ==
+							inst_id)) {
+		dev_info->engine_type = engine_type;
+		if (g->ops.top.device_info_parse_enum != NULL) {
+			ret = g->ops.top.device_info_parse_enum(g,
+						entry_enum,
+						&dev_info->engine_id,
+						&dev_info->runlist_id,
+						&dev_info->intr_id,
+						&dev_info->reset_id);
+			if (ret != 0) {
+				nvgpu_err(g,
+					"Error parsing Enum Entry 0x%x",
+					entry_enum);
+				return ret;
+			}
+		}
+		if (g->ops.top.device_info_parse_data != NULL) {
+			ret = g->ops.top.device_info_parse_data(g,
+						entry_data,
+						&dev_info->inst_id,
+						&dev_info->pri_base,
+						&dev_info->fault_id);
+			if (ret != 0) {
+				nvgpu_err(g,
+					"Error parsing Data Entry 0x%x",
+					entry_data);
+				return ret;
+			}
+		}
+	}
+
+	return 0;
+}
+
 int gp10b_get_device_info(struct gk20a *g, struct nvgpu_device_info *dev_info,
 						u32 engine_type, u32 inst_id)
 {
@@ -130,37 +173,10 @@ int gp10b_get_device_info(struct gk20a *g, struct nvgpu_device_info *dev_info,
 			continue;
 		}
 
-		if ((top_device_info_type_enum_v(entry_engine) == engine_type)
-			&& (top_device_info_data_inst_id_v(entry_data) ==
-								inst_id)) {
-			dev_info->engine_type = engine_type;
-			if (g->ops.top.device_info_parse_enum != NULL) {
-				ret = g->ops.top.device_info_parse_enum(g,
-							entry_enum,
-							&dev_info->engine_id,
-							&dev_info->runlist_id,
-							&dev_info->intr_id,
-							&dev_info->reset_id);
-				if (ret != 0) {
-					nvgpu_err(g,
-						"Error parsing Enum Entry 0x%x",
-						entry_enum);
-					return ret;
-				}
-			}
-			if (g->ops.top.device_info_parse_data != NULL) {
-				ret = g->ops.top.device_info_parse_data(g,
-							entry_data,
-							&dev_info->inst_id,
-							&dev_info->pri_base,
-							&dev_info->fault_id);
-				if (ret != 0) {
-					nvgpu_err(g,
-						"Error parsing Data Entry 0x%x",
-						entry_data);
-					return ret;
-				}
-			}
+		ret = gp10b_check_device_match(g, dev_info, entry_engine,
+				engine_type, entry_data, inst_id, entry_enum);
+		if (ret != 0) {
+			return ret;
 		}
 	}
 	return ret;
