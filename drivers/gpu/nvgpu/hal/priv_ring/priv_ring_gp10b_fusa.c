@@ -107,29 +107,11 @@ void gp10b_priv_ring_decode_error_code(struct gk20a *g,
 	}
 }
 
-void gp10b_priv_ring_isr(struct gk20a *g)
+static void gp10b_priv_ring_isr_handle_status0(struct gk20a *g, u32 status0)
 {
-	u32 status0, status1;
-	u32 cmd;
-	s32 retry;
-	u32 gpc;
-	u32 gpc_stride, gpc_offset;
 	u32 error_info;
 	u32 error_code;
 	u32 error_adr, error_wrdat;
-
-#ifdef CONFIG_NVGPU_SIM
-	if (nvgpu_is_enabled(g, NVGPU_IS_FMODEL)) {
-		nvgpu_info(g, "unhandled priv ring intr");
-		return;
-	}
-#endif
-
-	status0 = nvgpu_readl(g, pri_ringmaster_intr_status0_r());
-	status1 = nvgpu_readl(g, pri_ringmaster_intr_status1_r());
-
-	nvgpu_err(g, "ringmaster intr status0: 0x%08x, status1: 0x%08x",
-			status0, status1);
 
 	if (pri_ringmaster_intr_status0_ring_start_conn_fault_v(status0) != 0U) {
 		nvgpu_err(g,
@@ -166,6 +148,15 @@ void gp10b_priv_ring_isr(struct gk20a *g)
 			g->ops.priv_ring.decode_error_code(g, error_code);
 		}
 	}
+}
+
+static void gp10b_priv_ring_isr_handle_status1(struct gk20a *g, u32 status1)
+{
+	u32 error_info;
+	u32 error_code;
+	u32 error_adr, error_wrdat;
+	u32 gpc;
+	u32 gpc_stride, gpc_offset;
 
 	if (status1 != 0U) {
 		gpc_stride = nvgpu_get_litter_value(g, GPU_LIT_GPC_PRIV_STRIDE);
@@ -212,6 +203,30 @@ void gp10b_priv_ring_isr(struct gk20a *g)
 			}
 		}
 	}
+}
+
+void gp10b_priv_ring_isr(struct gk20a *g)
+{
+	u32 status0, status1;
+	u32 cmd;
+	s32 retry;
+
+#ifdef CONFIG_NVGPU_SIM
+	if (nvgpu_is_enabled(g, NVGPU_IS_FMODEL)) {
+		nvgpu_info(g, "unhandled priv ring intr");
+		return;
+	}
+#endif
+
+	status0 = nvgpu_readl(g, pri_ringmaster_intr_status0_r());
+	status1 = nvgpu_readl(g, pri_ringmaster_intr_status1_r());
+
+	nvgpu_err(g, "ringmaster intr status0: 0x%08x, status1: 0x%08x",
+			status0, status1);
+
+	gp10b_priv_ring_isr_handle_status0(g, status0);
+	gp10b_priv_ring_isr_handle_status1(g, status1);
+
 	/* clear interrupt */
 	cmd = nvgpu_readl(g, pri_ringmaster_command_r());
 	cmd = set_field(cmd, pri_ringmaster_command_cmd_m(),
