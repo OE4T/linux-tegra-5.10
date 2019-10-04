@@ -33,7 +33,39 @@ struct sync_pt;
 struct sync_fence;
 struct timespec;
 
+/**
+ * @file Functions that initialize the sync points
+ *  and describe other functionalities.
+ */
+
+/**
+ * @brief Initialzes the nvhost device for nvgpu.
+ *
+ * @param g [in]	The GPU super structure.
+ *
+ * - Allocate memory for g.nvhost_dev.
+ * - Get the type of the hardware(t186/t194) by calling
+ *   #NvTegraSysGetChipId().
+ * - Initialize the number of synpoints according to the
+ *   associated hardware.
+ * - Allocate and initialize different fields associated with
+ *   nvhost device.
+ *
+ * @return		0, if success.
+ *			-ENOMEM, if it fails.
+ */
 int nvgpu_get_nvhost_dev(struct gk20a *g);
+
+/**
+ * @brief Free the nvhost device.
+ *
+ * @param g [in]	The GPU super structure.
+ *
+ * - Free the different fields of nvhost device initialized by
+ *   #nvgpu_get_nvhost_dev().
+ *
+ * @return		None.
+ */
 void nvgpu_free_nvhost_dev(struct gk20a *g);
 
 #ifdef CONFIG_NVGPU_KERNEL_MODE_SUBMIT
@@ -69,18 +101,97 @@ const char *nvgpu_nvhost_syncpt_get_name(struct nvgpu_nvhost_dev *nvgpu_syncpt_d
 
 #endif
 
+/**
+ * @brief Increment the value of given sync point to the maximum value.
+ *
+ * @param nvgpu_syncpt_dev [in]	Sync point device.
+ * @param id [in]		Sync point id.
+ *
+ * - Read the current value of the given sync point by calling
+ *   #NvRmHost1xSyncpointRead().
+ * - Read the max value of the sync point set at allocation of the
+ *   sync point.
+ * - If the max value is less than current, increment the syncpoint
+ *   by the difference(max - current) using #NvRmHost1xSyncpointIncrement().
+ *
+ * @return			None.
+ */
 void nvgpu_nvhost_syncpt_set_min_eq_max_ext(struct nvgpu_nvhost_dev *nvgpu_syncpt_dev,
 	u32 id);
+
+/**
+ * @brief Read the maximum value of given sync point id.
+ *
+ * @param nvgpu_syncpt_dev [in]	Sync point device.
+ * @param id [in]		Sync point id.
+ *
+ * - Read the max value of the given sync point by reading one of
+ *   the max value array stored in nvhost sync point device structure.
+ *
+ * @return			Maximum value of the sync point.
+ */
 u32 nvgpu_nvhost_syncpt_read_maxval(struct nvgpu_nvhost_dev *nvgpu_syncpt_dev,
 	u32 id);
+
+/**
+ * @brief Set the value of given syncpoint to a value where all waiters of the
+ *  sync point can be safely released.
+ *
+ * @param nvgpu_syncpt_dev [in]	Sync point device.
+ * @param id [in]		Sync point id.
+ *
+ * - Read the current value of the sync point by #NvRmHost1xSyncpointRead().
+ * - Increment the value by 256. This is just to make the sync point safe
+ *   where all waiters of the sync point can be safely released.
+ *
+ * @return			None.
+ */
 void nvgpu_nvhost_syncpt_set_safe_state(
 	struct nvgpu_nvhost_dev *nvgpu_syncpt_dev, u32 id);
 
+/**
+ * @brief Check the given sync point id is valid or not.
+ *
+ * @param nvgpu_syncpt_dev [in]	Sync point device.
+ * @param id [in]		Sync point id.
+ *
+ * - Validate the sync point id.
+ *
+ * @return			TRUE, If id is valid.
+ *				FALSE, If id is not valid.
+ */
 bool nvgpu_nvhost_syncpt_is_valid_pt_ext(struct nvgpu_nvhost_dev *nvgpu_syncpt_dev,
 	u32 id);
+
+/**
+ * @brief Free the sync point created by #nvgpu_nvhost_get_syncpt_client_managed().
+ *
+ * @param nvgpu_syncpt_dev [in]	Sync point device.
+ * @param id [in]		Sync point id.
+ *
+ * - Check the validity of the given sync point.
+ * - Free the fields allocated by #nvgpu_nvhost_get_syncpt_client_managed().
+ *
+ * @return			None.
+ */
 void nvgpu_nvhost_syncpt_put_ref_ext(struct nvgpu_nvhost_dev *nvgpu_syncpt_dev,
 	u32 id);
 
+/**
+ * @brief Allocate a sync point managed by a client.
+ *
+ * @param nvgpu_syncpt_dev [in]	Sync point device.
+ * @param name [in]		Name of the sync point.
+ *
+ * - Call #nvgpu_nvhost_allocate_syncpoint() to allocate sync point.
+ *   -- nvgpu_nvhost_allocate_syncpoint() will do the following
+ *      - Call #NvRmHost1xSyncpointAllocate() to allocate sync point.
+ *      - Call #NvRmHost1xSyncpointGetId() to get the ID.
+ *      - Call #NvRmHost1xWaiterAllocate() to get waiter handle if needed.
+ *      - Store the above datas in to the nvgpu nvhost device.
+ *
+ * @return			Sync point id allocated.
+ */
 u32 nvgpu_nvhost_get_syncpt_client_managed(struct nvgpu_nvhost_dev *nvgpu_syncpt_dev,
 	const char *syncpt_name);
 
@@ -96,9 +207,33 @@ struct sync_fence *nvgpu_nvhost_sync_create_fence(
 #endif /* CONFIG_SYNC */
 
 #ifdef CONFIG_TEGRA_T19X_GRHOST
+
+/**
+ * @brief Initializes the address and size of memory mapped
+ * sync point unit region(MSS).
+ *
+ * @param nvgpu_syncpt_dev [in]	Sync point device.
+ * @param base [out]		Base address where it mapped.
+ * @param size [out]		Size of the mapping.
+ *
+ * - Retrieve the value of base and size from the given
+ *   sync point device.
+ *
+ * @return			Zero.
+ */
 int nvgpu_nvhost_syncpt_unit_interface_get_aperture(
 		struct nvgpu_nvhost_dev *nvgpu_syncpt_dev,
 		u64 *base, size_t *size);
+
+/**
+ * @brief Get offset of the sync point from MSS aperture base.
+ *
+ * @param syncpt_id [in]	Sync point id.
+ *
+ * - Multiply the id with 0x1000.
+ *
+ * @return			Sync point offset.
+ */
 u32 nvgpu_nvhost_syncpt_unit_interface_get_byte_offset(u32 syncpt_id);
 int nvgpu_nvhost_syncpt_init(struct gk20a *g);
 #else
