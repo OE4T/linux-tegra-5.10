@@ -1648,7 +1648,6 @@ int tu104_init_hal(struct gk20a *g)
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_DGPU_PCIE_SCRIPT_EXECUTE, true);
 
 	/* for now */
-	gops->clk.support_clk_freq_controller = false;
 	gops->clk.support_pmgr_domain = false;
 	gops->clk.support_lpwr_pg = false;
 	gops->clk.support_clk_freq_domain = false;
@@ -1686,8 +1685,6 @@ int tu104_init_hal(struct gk20a *g)
 #ifdef CONFIG_NVGPU_CLK_ARB
 		gops->clk_arb.get_arbiter_clk_domains = NULL;
 #endif
-		gops->clk.support_clk_freq_controller = false;
-
 	} else
 #endif
 	{

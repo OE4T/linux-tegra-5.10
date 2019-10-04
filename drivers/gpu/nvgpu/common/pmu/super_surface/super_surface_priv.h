@@ -127,8 +127,6 @@ struct nv_pmu_super_surface {
 				clk_vin_device_grp_set;
 			struct nv_pmu_clk_clk_domain_boardobj_grp_set
 				clk_domain_grp_set;
-			struct nv_pmu_clk_clk_freq_controller_boardobj_grp_set
-				clk_freq_controller_grp_set;
 			struct nv_pmu_clk_clk_fll_device_boardobj_grp_set
 				clk_fll_device_grp_set;
 			struct nv_pmu_clk_clk_prog_boardobj_grp_set

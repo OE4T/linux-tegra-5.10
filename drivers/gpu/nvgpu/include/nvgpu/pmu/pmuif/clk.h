@@ -494,64 +494,15 @@ struct nv_pmu_clk_vf_change_inject_v1 {
 
 #define NV_NV_PMU_CLK_LOAD_ACTION_MASK_VIN_HW_CAL_PROGRAM_YES      (0x00000001U)
 
-struct nv_pmu_clk_load_payload_freq_controllers {
-	struct ctrl_boardobjgrp_mask_e32 load_mask;
-};
-
 struct nv_pmu_clk_load {
 	u8 feature;
 	u32 action_mask;
-	union {
-		struct nv_pmu_clk_load_payload_freq_controllers
-							freq_controllers;
-	} payload;
 };
 
 struct nv_pmu_clk_freq_effective_avg {
 	u32 clkDomainMask;
 	u32 freqkHz[CTRL_BOARDOBJ_MAX_BOARD_OBJECTS];
 };
-
-/* CLK_FREQ_CONTROLLER */
-#define NV_PMU_CLK_LOAD_ACTION_MASK_FREQ_CONTROLLER_CALLBACK_NO	 (0x00000000U)
-#define NV_PMU_CLK_LOAD_ACTION_MASK_FREQ_CONTROLLER_CALLBACK_YES (0x00000002U)
-
-struct nv_pmu_clk_clk_freq_controller_boardobjgrp_set_header {
-	struct nv_pmu_boardobjgrp_e32  super;
-	u32 sampling_period_ms;
-	u8 volt_policy_idx;
-};
-
-struct nv_pmu_clk_clk_freq_controller_boardobj_set {
-	struct nv_pmu_boardobj super;
-	u8   controller_id;
-	u8   parts_freq_mode;
-	bool bdisable;
-	u32  clk_domain;
-	s16  freq_cap_noise_unaware_vmin_above;
-	s16  freq_cap_noise_unaware_vmin_below;
-	s16  freq_hyst_pos_mhz;
-	s16  freq_hyst_neg_mhz;
-};
-
-struct nv_pmu_clk_clk_freq_controller_pi_boardobj_set {
-	struct nv_pmu_clk_clk_freq_controller_boardobj_set super;
-	s32 prop_gain;
-	s32 integ_gain;
-	s32 integ_decay;
-	s32 volt_delta_min;
-	s32 volt_delta_max;
-	u8  slowdown_pct_min;
-	bool bpoison;
-};
-
-union nv_pmu_clk_clk_freq_controller_boardobj_set_union {
-	struct nv_pmu_boardobj board_obj;
-	struct nv_pmu_clk_clk_freq_controller_boardobj_set super;
-	struct nv_pmu_clk_clk_freq_controller_pi_boardobj_set pi;
-};
-
-NV_PMU_BOARDOBJ_GRP_SET_MAKE_E32(clk, clk_freq_controller);
 
 #define NV_NV_PMU_CLK_LOAD_ACTION_MASK_FREQ_EFFECTIVE_AVG_CALLBACK_NO \
 								   (0x00000000U)

@@ -431,7 +431,6 @@ struct gpu_ops {
 		void (*get_change_seq_time)(struct gk20a *g, s64 *change_time);
 		void (*change_host_clk_source)(struct gk20a *g);
 		bool split_rail_support;
-		bool support_clk_freq_controller;
 		bool support_pmgr_domain;
 		bool support_lpwr_pg;
 		int (*perf_pmu_vfe_load)(struct gk20a *g);

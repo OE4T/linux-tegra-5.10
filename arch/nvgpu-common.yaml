@@ -781,12 +781,6 @@ pmu:
           sources: [ common/pmu/clk/clk_fll.c,
                      include/nvgpu/pmu/clk/clk_fll.h ]
 
-        freq_controller:
-          safe: yes
-          gpu: dgpu
-          sources: [ common/pmu/clk/clk_freq_controller.c,
-                     common/pmu/clk/clk_freq_controller.h,
-                     include/nvgpu/pmu/clk/clk_freq_controller.h ]
         prog:
           safe: yes
           gpu: dgpu

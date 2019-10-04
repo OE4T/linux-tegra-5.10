@@ -34,7 +34,6 @@
 #include <nvgpu/pmu/clk/clk_vin.h>
 #include <nvgpu/pmu/clk/clk_domain.h>
 #include <nvgpu/pmu/clk/clk_prog.h>
-#include <nvgpu/pmu/clk/clk_freq_controller.h>
 #include <nvgpu/pmu/clk/clk_freq_domain.h>
 #include <nvgpu/pmu/clk/clk_vf_point.h>
 #include <nvgpu/pmu/pmgr.h>
@@ -58,7 +57,6 @@ void nvgpu_pmu_pstate_deinit(struct gk20a *g)
 		nvgpu_clk_prog_free_pmupstate(g);
 		nvgpu_clk_vf_point_free_pmupstate(g);
 		nvgpu_clk_freq_domain_free_pmupstate(g);
-		nvgpu_clk_freq_controller_free_pmupstate(g);
 		nvgpu_clk_fll_free_pmupstate(g);
 		nvgpu_clk_vin_free_pmupstate(g);
 		nvgpu_clk_free_pmupstate(g);
@@ -101,12 +99,6 @@ static int pmu_pstate_clk_init(struct gk20a *g)
 	err = nvgpu_clk_freq_domain_init_pmupstate(g);
 	if (err != 0) {
 		nvgpu_clk_freq_domain_free_pmupstate(g);
-		return err;
-	}
-
-	err = nvgpu_clk_freq_controller_init_pmupstate(g);
-	if (err != 0) {
-		nvgpu_clk_freq_controller_free_pmupstate(g);
 		return err;
 	}
 
@@ -221,14 +213,6 @@ static int pmu_pstate_clk_sw_setup(struct gk20a *g)
 		err = nvgpu_clk_freq_domain_sw_setup(g);
 		if (err != 0) {
 			nvgpu_clk_freq_domain_free_pmupstate(g);
-			return err;
-		}
-	}
-
-	if (g->ops.clk.support_clk_freq_controller) {
-		err = nvgpu_clk_freq_controller_sw_setup(g);
-		if (err != 0) {
-			nvgpu_clk_freq_controller_free_pmupstate(g);
 			return err;
 		}
 	}
@@ -396,13 +380,6 @@ static int pmu_pstate_clk_pmu_setup(struct gk20a *g)
 	err = nvgpu_clk_fll_pmu_setup(g);
 	if (err != 0) {
 		return err;
-	}
-
-	if (g->ops.clk.support_clk_freq_controller) {
-		err = nvgpu_clk_freq_controller_pmu_setup(g);
-		if (err != 0) {
-			return err;
-		}
 	}
 
 	if (g->ops.clk.support_vf_point &&

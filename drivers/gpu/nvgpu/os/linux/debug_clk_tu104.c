@@ -23,13 +23,11 @@
 #include <nvgpu/boardobj.h>
 #include <nvgpu/boardobjgrp_e32.h>
 #include <nvgpu/boardobjgrp_e255.h>
-#include <nvgpu/pmu/clk/clk_freq_controller.h>
 #include <nvgpu/pmu/clk/clk_vf_point.h>
 #include <nvgpu/pmu/clk/clk_fll.h>
 #include <nvgpu/pmu/clk/clk.h>
 
 #include "hal/clk/clk_tu104.h"
-#include "common/pmu/clk/clk_freq_controller.h"
 
 void nvgpu_clk_arb_pstate_change_lock(struct gk20a *g, bool lock);
 
@@ -47,123 +45,6 @@ static int tu104_get_rate_show(void *data , u64 *val)
 	return 0;
 }
 DEFINE_SIMPLE_ATTRIBUTE(get_rate_fops, tu104_get_rate_show, NULL, "%llu\n");
-
-static int sys_cfc_read(void *data , u64 *val)
-{
-	struct gk20a *g = (struct gk20a *)data;
-
-	bool bload = nvgpu_boardobjgrpmask_bit_get(
-			&g->pmu->clk_pmu->clk_freq_controllers->
-			freq_ctrl_load_mask.super,
-		CTRL_CLK_CLK_FREQ_CONTROLLER_ID_SYS);
-
-	/* val = 1 implies CLFC is loaded or enabled */
-	*val = bload ? 1 : 0;
-	return 0;
-}
-static int sys_cfc_write(void *data , u64 val)
-{
-	struct gk20a *g = (struct gk20a *)data;
-	int status;
-	/* val = 1 implies load or enable the CLFC */
-	bool bload = val ? true : false;
-
-	nvgpu_clk_arb_pstate_change_lock(g, true);
-	status = nvgpu_clk_pmu_freq_controller_load(g, bload,
-					CTRL_CLK_CLK_FREQ_CONTROLLER_ID_SYS);
-	nvgpu_clk_arb_pstate_change_lock(g, false);
-
-	return status;
-}
-DEFINE_SIMPLE_ATTRIBUTE(sys_cfc_fops, sys_cfc_read, sys_cfc_write, "%llu\n");
-
-static int ltc_cfc_read(void *data , u64 *val)
-{
-	struct gk20a *g = (struct gk20a *)data;
-
-	bool bload = nvgpu_boardobjgrpmask_bit_get(
-			&g->pmu->clk_pmu->clk_freq_controllers->
-			freq_ctrl_load_mask.super,
-		CTRL_CLK_CLK_FREQ_CONTROLLER_ID_LTC);
-
-	/* val = 1 implies CLFC is loaded or enabled */
-	*val = bload ? 1 : 0;
-	return 0;
-}
-static int ltc_cfc_write(void *data , u64 val)
-{
-	struct gk20a *g = (struct gk20a *)data;
-	int status;
-	/* val = 1 implies load or enable the CLFC */
-	bool bload = val ? true : false;
-
-	nvgpu_clk_arb_pstate_change_lock(g, true);
-	status = nvgpu_clk_pmu_freq_controller_load(g, bload,
-					CTRL_CLK_CLK_FREQ_CONTROLLER_ID_LTC);
-	nvgpu_clk_arb_pstate_change_lock(g, false);
-
-	return status;
-}
-DEFINE_SIMPLE_ATTRIBUTE(ltc_cfc_fops, ltc_cfc_read, ltc_cfc_write, "%llu\n");
-
-static int xbar_cfc_read(void *data , u64 *val)
-{
-	struct gk20a *g = (struct gk20a *)data;
-
-	bool bload = nvgpu_boardobjgrpmask_bit_get(
-			&g->pmu->clk_pmu->clk_freq_controllers->
-			freq_ctrl_load_mask.super,
-		CTRL_CLK_CLK_FREQ_CONTROLLER_ID_XBAR);
-
-	/* val = 1 implies CLFC is loaded or enabled */
-	*val = bload ? 1 : 0;
-	return 0;
-}
-static int xbar_cfc_write(void *data , u64 val)
-{
-	struct gk20a *g = (struct gk20a *)data;
-	int status;
-	/* val = 1 implies load or enable the CLFC */
-	bool bload = val ? true : false;
-
-	nvgpu_clk_arb_pstate_change_lock(g, true);
-	status = nvgpu_clk_pmu_freq_controller_load(g, bload,
-			CTRL_CLK_CLK_FREQ_CONTROLLER_ID_XBAR);
-	nvgpu_clk_arb_pstate_change_lock(g, false);
-
-	return status;
-}
-DEFINE_SIMPLE_ATTRIBUTE(xbar_cfc_fops, xbar_cfc_read,
-			xbar_cfc_write, "%llu\n");
-
-static int gpc_cfc_read(void *data , u64 *val)
-{
-	struct gk20a *g = (struct gk20a *)data;
-
-	bool bload = nvgpu_boardobjgrpmask_bit_get(
-			&g->pmu->clk_pmu->clk_freq_controllers->
-			freq_ctrl_load_mask.super,
-		CTRL_CLK_CLK_FREQ_CONTROLLER_ID_GPC0);
-
-	/* val = 1 implies CLFC is loaded or enabled */
-	*val = bload ? 1 : 0;
-	return 0;
-}
-static int gpc_cfc_write(void *data , u64 val)
-{
-	struct gk20a *g = (struct gk20a *)data;
-	int status;
-	/* val = 1 implies load or enable the CLFC */
-	bool bload = val ? true : false;
-
-	nvgpu_clk_arb_pstate_change_lock(g, true);
-	status = nvgpu_clk_pmu_freq_controller_load(g, bload,
-			CTRL_CLK_CLK_FREQ_CONTROLLER_ID_GPC0);
-	nvgpu_clk_arb_pstate_change_lock(g, false);
-
-	return status;
-}
-DEFINE_SIMPLE_ATTRIBUTE(gpc_cfc_fops, gpc_cfc_read, gpc_cfc_write, "%llu\n");
 
 static int vftable_show(struct seq_file *s, void *unused)
 {
@@ -232,14 +113,6 @@ int tu104_clk_init_debugfs(struct gk20a *g)
 	if (clk_freq_ctlr_root == NULL)
 		return -ENOMEM;
 
-	d = debugfs_create_file("sys", S_IRUGO | S_IWUSR, clk_freq_ctlr_root,
-				g, &sys_cfc_fops);
-	d = debugfs_create_file("ltc", S_IRUGO | S_IWUSR, clk_freq_ctlr_root,
-				g, &ltc_cfc_fops);
-	d = debugfs_create_file("xbar", S_IRUGO | S_IWUSR, clk_freq_ctlr_root,
-				g, &xbar_cfc_fops);
-	d = debugfs_create_file("gpc", S_IRUGO | S_IWUSR, clk_freq_ctlr_root,
-				g, &gpc_cfc_fops);
 	d = debugfs_create_file("change_seq_time_us", S_IRUGO, clocks_root,
 				g, &change_seq_fops);
 

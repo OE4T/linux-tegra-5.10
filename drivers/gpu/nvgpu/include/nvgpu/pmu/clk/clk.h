@@ -33,7 +33,6 @@ struct nvgpu_clk_domains;
 struct nvgpu_clk_progs;
 struct nvgpu_clk_vf_points;
 struct nvgpu_clk_mclk_state;
-struct nvgpu_clk_freq_controllers;
 struct nvgpu_clk_freq_domain_grp;
 struct nvgpu_clk_slave_freq;
 struct ctrl_perf_change_seq_change_input;
@@ -75,7 +74,6 @@ struct nvgpu_clk_pmupstate {
 	struct nvgpu_clk_domains *clk_domainobjs;
 	struct nvgpu_clk_progs *clk_progobjs;
 	struct nvgpu_clk_vf_points *clk_vf_pointobjs;
-	struct nvgpu_clk_freq_controllers *clk_freq_controllers;
 	struct nvgpu_clk_freq_domain_grp *freq_domain_grp_objs;
 
 	/* clk_domain unit functions */
