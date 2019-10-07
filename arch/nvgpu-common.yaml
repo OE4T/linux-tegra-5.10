@@ -606,6 +606,12 @@ clk_arb:
              common/clk_arb/clk_arb_gv100.c,
              common/clk_arb/clk_arb_gv100.h ]
 
+therm:
+  safe: yes
+  owner: Seshendra G
+  sources: [ common/therm/therm.c,
+             include/nvgpu/therm.h ]
+
 pmu:
   children:
     pmuif:
@@ -882,10 +888,7 @@ pmu:
       safe: yes
       gpu: dgpu
       owner: Abdul S
-      # This common/therm/therm.c file should most likely just be deleted. It has one
-      # function that just calls some HALs and that's it.
-      sources: [ common/therm/therm.c,
-                 common/pmu/therm/thrm.c,
+      sources: [ common/pmu/therm/thrm.c,
                  common/pmu/therm/thrm.h,
                  common/pmu/therm/thrmchannel.c,
                  common/pmu/therm/thrmchannel.h,
@@ -893,7 +896,6 @@ pmu:
                  common/pmu/therm/thrmdev.h,
                  common/pmu/therm/thrmpmu.c,
                  common/pmu/therm/thrmpmu.h,
-                 include/nvgpu/therm.h,
                  include/nvgpu/pmu/therm.h ]
 
     volt:
