@@ -1075,10 +1075,10 @@ struct capture_descriptor {
 
 #define CAPTURE_PREFENCE_ARRAY_SIZE		2
 
-	/** Number of traditional prefences for given capture request */
-	uint32_t prefence_count;
-	/** Syncpoint info for each one of inputfences */
-	struct syncpoint_info prefence[CAPTURE_PREFENCE_ARRAY_SIZE];
+	/** @deprecated  */
+	uint32_t prefence_count CAMRTC_DEPRECATED;
+	/** @deprecated */
+	struct syncpoint_info prefence[CAPTURE_PREFENCE_ARRAY_SIZE] CAMRTC_DEPRECATED;
 
 	/** VI Channel configuration */
 	struct vi_channel_config ch_cfg;
@@ -1755,19 +1755,14 @@ struct nvcsi_tpg_rate_config {
 
 /**
  * @defgroup IspErrorMask ISP Channel error mask
+ * @deprecated
  */
 /** @{ */
-/** Error bit indicating unsupported push buffer opcode encountered*/
 #define CAPTURE_ISP_CHANNEL_ERROR_DMA_PBUF_ERR		(U32_C(1) << 0)
-/** Error bit indicating word count in a state buffer and state DMA size mismatch*/
 #define CAPTURE_ISP_CHANNEL_ERROR_DMA_SBUF_ERR		(U32_C(1) << 1)
-/** Error bit indicating that DMA detected an incorrect bus transaction sequence*/
 #define CAPTURE_ISP_CHANNEL_ERROR_DMA_SEQ_ERR		(U32_C(1) << 2)
-/** Error bit indicating incorrect FRAME_ID or STREAM_ID detected on state write bus*/
 #define CAPTURE_ISP_CHANNEL_ERROR_FRAMEID_ERR		(U32_C(1) << 3)
-/** Error bit indicating a timeout occured */
 #define CAPTURE_ISP_CHANNEL_ERROR_TIMEOUT		(U32_C(1) << 4)
-/** Error mask for all the above errors */
 #define CAPTURE_ISP_CHANNEL_ERROR_ALL			U32_C(0x001F)
 /** @} */
 
@@ -1815,23 +1810,10 @@ struct capture_channel_isp_config {
 	/** Statistics buffer syncpoint info */
 	struct syncpoint_info stats_progress_sp;
 
-	/**
-	 * Bitmask of the errors that are treated as correctable.
-	 * In case of correctable errors syncpoints of active capture are advanced (in falcon)
-	 * and error is reported and capture continues.
-	 * See @ref IspErrorMask "ISP channel error bitmask".
-	 */
-	uint32_t error_mask_correctable;
-	/**
-	 * Bitmask of the errors that are treated as uncorrectable.
-	 * In case of uncorrectable errors, syncpoints of active capture are
-	 * advanced (in falcon) and isp channel is ABORTed by ISP
-	 * tasklist driver which halts the captures on the channel with
-	 * immediate effect, and then error is reported. Client needs
-	 * to RESET the channel explicitly in reaction to the uncorrectable errors reported.
-	 * See @ref IspErrorMask "ISP channel error bitmask".
-	 */
-	uint32_t error_mask_uncorrectable;
+	/** @deprecated */
+	uint32_t error_mask_correctable CAMRTC_DEPRECATED;
+	/** @deprecated */
+	uint32_t error_mask_uncorrectable CAMRTC_DEPRECATED;
 
 #define HAVE_ISP_GOS_TABLES
 	/** Number of active ISP GOS tables in isp_gos_tables[] */
