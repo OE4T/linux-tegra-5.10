@@ -259,9 +259,18 @@ struct capture_channel_config {
 	/** rtcpu internal data field - Should be set to zero */
 	uint32_t channel_id;
 	/**
-	 * A bit mask indicating which VI channels to consider for allocation. This allows the client
-	 * VM to statically partition VI channels for its own purposes. The RTCPU will enforce any
-	 * partitioning between VMs.
+	 * A bit mask indicating which VI channels to consider for allocation.
+	 * This allows the client to enforce allocation of HW VI channel in particular range for its own
+	 * purpose.
+	 *
+	 * Beware that client VM may have restricted range of available VI channels.
+	 *
+	 * In most of the cases client can set to ~0ULL to let RTCPU to allocate any available channel
+	 * permitted for client VM.
+	 *
+	 * This mask is expected to be useful for following use-cases:
+	 * 1. Debugging functionality of particular HW VI channel.
+	 * 2. Verify that RTCPU enforces VI channel permissions defined in VM DT.
 	 */
 	uint64_t vi_channel_mask;
 	/**
