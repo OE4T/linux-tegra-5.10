@@ -28,25 +28,41 @@
 #include <unit/io.h>
 
 #include <nvgpu/posix/io.h>
+#include <nvgpu/types.h>
 #include <nvgpu/gk20a.h>
-#include <nvgpu/gr/gr.h>
 #include <nvgpu/channel.h>
 #include <nvgpu/runlist.h>
-#include <nvgpu/dma.h>
+#include <nvgpu/tsg.h>
 
 #include <nvgpu/hw/gv11b/hw_gr_gv11b.h>
 
 #include "hal/gr/intr/gr_intr_gv11b.h"
 #include "hal/gr/intr/gr_intr_gp10b.h"
 
+#include "common/gr/gr_intr_priv.h"
 #include "common/gr/gr_priv.h"
 
 #include "../nvgpu-gr.h"
+
+#define TPC_EXCEPTION_TEX	(0x1U << 0U)
+#define TPC_EXCEPTION_SM	(0x1U << 1U)
+#define TPC_SM0_ESR_SEL		(0x1U << 0U)
+#define TPC_SM1_ESR_SEL		(0x1U << 1U)
+
+#define GR_TEST_TRAPPED_ADDR_DATAHIGH	0x01000000
+#define GR_TEST_CHANNEL_MAP_TLB_SIZE	0x2
 
 struct test_gr_intr_sw_mthd_exceptions {
 	int trapped_addr;
 	int data[2];
 };
+
+static void gr_test_intr_fifo_recover(struct gk20a *g, u32 bitmask, u32 id,
+		unsigned int id_type, unsigned int rc_type,
+		struct mmu_fault_info *mmufault)
+{
+	/* Remove once recovery support get disable for safety */
+}
 
 static int test_gr_intr_setup(struct unit_module *m,
 		struct gk20a *g, void *args)
@@ -91,6 +107,203 @@ static int test_gr_intr_cleanup(struct unit_module *m,
 	return UNIT_SUCCESS;
 }
 
+static u32 stub_channel_count(struct gk20a *g)
+{
+	return 4;
+}
+
+static int stub_runlist_update_for_channel(struct gk20a *g, u32 runlist_id,
+		struct nvgpu_channel *ch, bool add, bool wait_for_finish)
+{
+	return 0;
+}
+
+static int gr_test_intr_allocate_ch(struct unit_module *m,
+				    struct gk20a *g)
+{
+	int err;
+	struct nvgpu_channel *ch = NULL;
+	u32 tsgid = getpid();
+
+	err = nvgpu_channel_setup_sw(g);
+	if (err != 0) {
+		unit_return_fail(m, "failed channel setup\n");
+	}
+
+	ch = nvgpu_channel_open_new(g, NVGPU_INVALID_RUNLIST_ID,
+				false, tsgid, tsgid);
+	if (ch == NULL) {
+		unit_return_fail(m, "failed channel open\n");
+	}
+
+	/* Set pending interrupt for notify and semaphore */
+	nvgpu_posix_io_writel_reg_space(g, gr_intr_r(),
+				gr_intr_notify_pending_f() |
+				gr_intr_semaphore_pending_f()|
+				gr_intr_illegal_notify_pending_f());
+
+	err = g->ops.gr.intr.stall_isr(g);
+	if (err != 0) {
+		unit_err(m, "failed stall isr\n");
+	}
+
+	nvgpu_channel_close(ch);
+	return (err == 0) ? UNIT_SUCCESS: UNIT_FAIL;
+}
+
+
+static int gr_test_intr_block_ptr_as_current_ctx(struct unit_module *m,
+				struct gk20a *g, struct nvgpu_channel *ch,
+				u32 pid)
+{
+	int err, i;
+	struct nvgpu_gr_intr *intr = g->gr->intr;
+	u32 tsgid = nvgpu_inst_block_ptr(g, &ch->inst_block);
+
+	err = g->ops.gr.intr.stall_isr(g);
+	if (err != 0) {
+		unit_return_fail(m, "failed stall isr\n");
+	}
+
+	nvgpu_posix_io_writel_reg_space(g, gr_fecs_current_ctx_r(),
+							tsgid);
+
+	err = g->ops.gr.intr.stall_isr(g);
+	if (err != 0) {
+		unit_return_fail(m, "failed stall isr\n");
+	}
+
+	/* Make all entry valid so code with flush one */
+	for (i = 0; i < GR_TEST_CHANNEL_MAP_TLB_SIZE; i++) {
+		intr->chid_tlb[i].curr_ctx = pid;
+	}
+
+	err = g->ops.gr.intr.stall_isr(g);
+	if (err != 0) {
+		unit_return_fail(m, "failed stall isr\n");
+	}
+
+	return UNIT_SUCCESS;
+}
+
+static int gr_test_intr_cache_current_ctx(struct gk20a *g,
+					struct nvgpu_channel *ch, u32 pid)
+{
+	int i;
+	struct nvgpu_gr_intr *intr = g->gr->intr;
+
+	nvgpu_posix_io_writel_reg_space(g, gr_fecs_current_ctx_r(),
+							pid);
+	/* setting the cache */
+	for (i = 0; i < GR_TEST_CHANNEL_MAP_TLB_SIZE; i++) {
+		intr->chid_tlb[i].chid = ch->chid;
+		intr->chid_tlb[i].tsgid = ch->tsgid;
+		intr->chid_tlb[i].curr_ctx = pid;
+	}
+
+	return g->ops.gr.intr.stall_isr(g);
+}
+
+static int gr_test_intr_allocate_ch_tsg(struct unit_module *m,
+					struct gk20a *g)
+{
+	u32 tsgid = getpid();
+	struct nvgpu_channel *ch = NULL;
+	struct nvgpu_tsg *tsg = NULL;
+	int err;
+
+	err = nvgpu_channel_setup_sw(g);
+	if (err != 0) {
+		unit_return_fail(m, "failed channel setup\n");
+	}
+
+	err = nvgpu_tsg_setup_sw(g);
+	if (err != 0) {
+		unit_return_fail(m, "failed tsg setup\n");
+	}
+
+	tsg = nvgpu_tsg_open(g, tsgid);
+	if (tsg == NULL) {
+		unit_return_fail(m, "failed tsg open\n");
+	}
+
+	ch = nvgpu_channel_open_new(g, NVGPU_INVALID_RUNLIST_ID,
+				false, tsgid, tsgid);
+	if (ch == NULL) {
+		unit_err(m, "failed channel open\n");
+		goto ch_cleanup;
+	}
+
+	err = nvgpu_tsg_bind_channel(tsg, ch);
+	if (err != 0) {
+		unit_err(m, "failed tsg channel bind\n");
+		goto ch_cleanup;
+	}
+
+	err = gr_test_intr_block_ptr_as_current_ctx(m, g, ch, tsgid);
+	if (err != 0) {
+		unit_err(m, "isr failed with block_ptr as current_ctx\n");
+		goto tsg_unbind;
+	}
+
+
+	err = gr_test_intr_cache_current_ctx(g, ch, tsgid);
+	if (err != 0) {
+		unit_err(m, "isr failed with cache current_ctx\n");
+		goto tsg_unbind;
+	}
+
+	/* Set pending interrupt for notify and semaphore */
+	nvgpu_posix_io_writel_reg_space(g, gr_intr_r(),
+				gr_intr_notify_pending_f() |
+				gr_intr_semaphore_pending_f());
+
+	err = g->ops.gr.intr.stall_isr(g);
+	if (err != 0) {
+		unit_err(m, "failed stall isr\n");
+	}
+
+tsg_unbind:
+	err = nvgpu_tsg_unbind_channel(tsg, ch);
+	if (err != 0) {
+		unit_err(m, "failed tsg channel unbind\n");
+	}
+ch_cleanup:
+	nvgpu_channel_close(ch);
+	return (err == 0) ? UNIT_SUCCESS: UNIT_FAIL;
+}
+
+static int test_gr_intr_setup_channel(struct unit_module *m,
+		struct gk20a *g, void *args)
+{
+	u32 tsgid = getpid();
+	int err;
+	struct nvgpu_fifo *f = &g->fifo;
+
+	nvgpu_posix_io_writel_reg_space(g, gr_fecs_current_ctx_r(),
+							tsgid);
+
+	g->ops.channel.count = stub_channel_count;
+	g->ops.runlist.update_for_channel = stub_runlist_update_for_channel;
+	if (f != NULL) {
+		f->g = g;
+	}
+
+	/* Test with channel and tsg */
+	err = gr_test_intr_allocate_ch_tsg(m, g);
+	if (err != 0) {
+		unit_return_fail(m, "isr test with channel and tsg failed\n");
+	}
+
+	/* Test with channel and without tsg */
+	err = gr_test_intr_allocate_ch(m, g);
+	if (err != 0) {
+		unit_return_fail(m, "isr test with channel and tsg failed\n");
+	}
+
+	return UNIT_SUCCESS;
+}
+
 static void gr_test_intr_log_mme_exception(struct gk20a *g)
 {
 	/* do nothing */
@@ -125,7 +338,6 @@ static int gr_test_nonstall_isr(struct unit_module *m,
 	return UNIT_SUCCESS;
 }
 
-#define GR_TEST_TRAPPED_ADDR_DATAHIGH 0x01000000
 static int test_gr_intr_without_channel(struct unit_module *m,
 		struct gk20a *g, void *args)
 {
@@ -133,6 +345,7 @@ static int test_gr_intr_without_channel(struct unit_module *m,
 
 	g->ops.gr.intr.log_mme_exception = gr_test_intr_log_mme_exception;
 	g->ops.gr.intr.handle_tex_exception = gr_test_intr_tex_exception;
+	g->ops.fifo.recover = gr_test_intr_fifo_recover;
 
 	/* Set trapped address datahigh bit */
 	nvgpu_posix_io_writel_reg_space(g, gr_trapped_addr_r(),
@@ -359,8 +572,6 @@ static void gr_test_set_gpc_exceptions(struct gk20a *g, bool full)
 					gpc_exception);
 }
 
-#define TPC_EXCEPTION_TEX	(0x1U << 0U)
-#define TPC_EXCEPTION_SM	(0x1U << 1U)
 static void gr_test_set_tpc_exceptions(struct gk20a *g)
 {
 	u32 tpc_exception = 0;
@@ -376,8 +587,6 @@ static void gr_test_set_tpc_exceptions(struct gk20a *g)
 					tpc_exception);
 }
 
-#define TPC_SM0_ESR_SEL	(0x1U << 0U)
-#define TPC_SM1_ESR_SEL	(0x1U << 1U)
 static void gr_test_set_tpc_esr_sm(struct gk20a *g)
 {
 	u32 global_esr_mask = 0U;
@@ -506,6 +715,7 @@ struct unit_module_test nvgpu_gr_intr_tests[] = {
 	UNIT_TEST(gr_intr_sw_method, test_gr_intr_sw_exceptions, NULL, 0),
 	UNIT_TEST(gr_intr_fecs_exceptions, test_gr_intr_fecs_exceptions, NULL, 0),
 	UNIT_TEST(gr_intr_gpc_exceptions, test_gr_intr_gpc_exceptions, NULL, 0),
+	UNIT_TEST(gr_intr_with_channel, test_gr_intr_setup_channel, NULL, 0),
 	UNIT_TEST(gr_intr_cleanup, test_gr_intr_cleanup, NULL, 0),
 };
 

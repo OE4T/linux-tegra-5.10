@@ -1664,6 +1664,11 @@
         "unit": "nvgpu_gr_intr"
     },
     {
+        "test": "gr_intr_with_channel",
+        "test_level": 0,
+        "unit": "nvgpu_gr_intr"
+    },
+    {
         "test": "gr_intr_cleanup",
         "test_level": 0,
         "unit": "nvgpu_gr_intr"
