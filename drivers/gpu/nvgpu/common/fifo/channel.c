@@ -2201,6 +2201,7 @@ int nvgpu_channel_setup_bind(struct nvgpu_channel *c,
 		struct nvgpu_setup_bind_args *args)
 {
 	struct gk20a *g = c->g;
+	struct nvgpu_tsg *tsg;
 	int err = 0;
 
 #ifdef CONFIG_NVGPU_VPR
@@ -2236,6 +2237,15 @@ int nvgpu_channel_setup_bind(struct nvgpu_channel *c,
 	if (!nvgpu_channel_as_bound(c)) {
 		nvgpu_err(g,
 			"not bound to an address space at time of setup_bind");
+		err = -EINVAL;
+		goto clean_up_idle;
+	}
+
+	/* The channel needs to be bound to a tsg at this point */
+	tsg = nvgpu_tsg_from_ch(c);
+	if (tsg == NULL) {
+		nvgpu_err(g,
+			"not bound to tsg at time of setup_bind");
 		err = -EINVAL;
 		goto clean_up_idle;
 	}

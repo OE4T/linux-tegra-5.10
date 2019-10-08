@@ -653,6 +653,9 @@ int test_channel_setup_bind(struct unit_module *m,
 			privileged, getpid(), getpid());
 	assert(ch != NULL);
 
+	err = nvgpu_tsg_bind_channel(tsg, ch);
+	assert(err == 0);
+
 	g->ops.gr.intr.flush_channel_tlb = stub_gr_intr_flush_channel_tlb;
 	g->ops.mm.cache.l2_flush = stub_mm_l2_flush;	/* bug 2621189 */
 
