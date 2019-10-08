@@ -45,6 +45,7 @@
  *   - @ref unit-acr
  *   - @ref unit-cg
  *   - @ref unit-pmu
+ *   - @ref unit-common-nvgpu
  *   - Etc, etc.
  *
  * NVGPU Software Unit Design Documentation

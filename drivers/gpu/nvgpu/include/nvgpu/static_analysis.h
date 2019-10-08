@@ -170,6 +170,22 @@
  */
 #include <nvgpu/bug.h>
 
+/**
+ * @addtogroup unit-common-nvgpu
+ * @{
+ */
+
+/**
+ * @brief Add two u32 values and check for overflow.
+ *
+ * @param ui_a [in]	Addend value for adding.
+ * @param ui_b [in]	Addend value for adding.
+ *
+ * Adds the two u32 values unless the result will overflow a u32. If the result
+ * would overflow a u32, calls BUG().
+ *
+ * @return If no overflow, sum of the two integers (\a ui_a + \a ui_b).
+ */
 static inline u32 nvgpu_safe_add_u32(u32 ui_a, u32 ui_b)
 {
 	if (UINT_MAX - ui_a < ui_b) {
@@ -179,6 +195,17 @@ static inline u32 nvgpu_safe_add_u32(u32 ui_a, u32 ui_b)
 	}
 }
 
+/**
+ * @brief Add two s32 values and check for overflow.
+ *
+ * @param si_a [in]	Addend value for adding.
+ * @param si_b [in]	Addend value for adding.
+ *
+ * Adds the two s32 values unless the result will overflow a s32. If the result
+ * would overflow a s32, calls BUG().
+ *
+ * @return If no overflow, sum of the two integers (\a si_a + \a si_b).
+ */
 static inline s32 nvgpu_safe_add_s32(s32 si_a, s32 si_b)
 {
 	if (((si_b > 0) && (si_a > (INT_MAX - si_b))) ||
@@ -189,6 +216,17 @@ static inline s32 nvgpu_safe_add_s32(s32 si_a, s32 si_b)
 	}
 }
 
+/**
+ * @brief Add two u64 values and check for overflow.
+ *
+ * @param ul_a [in]	Addend value for adding.
+ * @param ul_b [in]	Addend value for adding.
+ *
+ * Adds the two u64 values unless the result will overflow a u64. If the result
+ * would overflow a u64, calls BUG().
+ *
+ * @return If no overflow, sum of the two integers (\a ul_a + \a ul_b).
+ */
 static inline u64 nvgpu_safe_add_u64(u64 ul_a, u64 ul_b)
 {
 NVGPU_COV_WHITELIST(false_positive, NVGPU_CERT(INT30_C), "Bug 2643092")
@@ -199,6 +237,17 @@ NVGPU_COV_WHITELIST(false_positive, NVGPU_CERT(INT30_C), "Bug 2643092")
 	}
 }
 
+/**
+ * @brief Add two s64 values and check for overflow.
+ *
+ * @param sl_a [in]	Addend value for adding.
+ * @param sl_b [in]	Addend value for adding.
+ *
+ * Adds the two s64 values unless the result will overflow a s64. If the result
+ * would overflow a s64, calls BUG().
+ *
+ * @return If no overflow, sum of the two integers (\a sl_a + \a sl_b).
+ */
 static inline s64 nvgpu_safe_add_s64(s64 sl_a, s64 sl_b)
 {
 	if (((sl_b > 0) && (sl_a > (LONG_MAX - sl_b))) ||
@@ -209,6 +258,17 @@ static inline s64 nvgpu_safe_add_s64(s64 sl_a, s64 sl_b)
 	}
 }
 
+/**
+ * @brief Subtract two u8 values and check for underflow.
+ *
+ * @param uc_a [in]	Value of minuend.
+ * @param uc_b [in]	Value of subtrahend.
+ *
+ * Subtracts \a uc_b from \a uc_a unless the result will underflow a u8. If the
+ * result would underflow, calls BUG().
+ *
+ * @return If no overflow, difference of the two integers (\a uc_a - \a uc_b).
+ */
 static inline u8 nvgpu_safe_sub_u8(u8 uc_a, u8 uc_b)
 {
 	if (uc_a < uc_b) {
@@ -218,6 +278,17 @@ static inline u8 nvgpu_safe_sub_u8(u8 uc_a, u8 uc_b)
 	}
 }
 
+/**
+ * @brief Subtract two u32 values and check for underflow.
+ *
+ * @param ui_a [in]	Value of minuend.
+ * @param ui_b [in]	Value of subtrahend.
+ *
+ * Subtracts \a ui_b from \a ui_a unless the result will underflow a u32. If the
+ * result would underflow, calls BUG().
+ *
+ * @return If no overflow, difference of the two integers (\a ui_a - \a ui_b).
+ */
 static inline u32 nvgpu_safe_sub_u32(u32 ui_a, u32 ui_b)
 {
 	if (ui_a < ui_b) {
@@ -227,6 +298,17 @@ static inline u32 nvgpu_safe_sub_u32(u32 ui_a, u32 ui_b)
 	}
 }
 
+/**
+ * @brief Subtract two s32 values and check for underflow.
+ *
+ * @param si_a [in]	Value of minuend.
+ * @param si_b [in]	Value of subtrahend.
+ *
+ * Subtracts \a si_b from \a si_a unless the result will underflow a s32. If the
+ * result would underflow, calls BUG().
+ *
+ * @return If no overflow, difference of the two integers (\a si_a - \a si_b).
+ */
 static inline s32 nvgpu_safe_sub_s32(s32 si_a, s32 si_b)
 {
 	if ((si_b > 0 && si_a < INT_MIN + si_b) ||
@@ -237,6 +319,17 @@ static inline s32 nvgpu_safe_sub_s32(s32 si_a, s32 si_b)
 	}
 }
 
+/**
+ * @brief Subtract two u64 values and check for underflow.
+ *
+ * @param ul_a [in]	Value of minuend.
+ * @param ul_b [in]	Value of subtrahend.
+ *
+ * Subtracts \a ul_b from \a ul_a unless the result will underflow a u64. If the
+ * result would underflow, calls BUG().
+ *
+ * @return If no overflow, difference of the two integers (\a ul_a - \a ul_b).
+ */
 static inline u64 nvgpu_safe_sub_u64(u64 ul_a, u64 ul_b)
 {
 	if (ul_a < ul_b) {
@@ -246,6 +339,17 @@ static inline u64 nvgpu_safe_sub_u64(u64 ul_a, u64 ul_b)
 	}
 }
 
+/**
+ * @brief Subtract two s64 values and check for underflow.
+ *
+ * @param si_a [in]	Value of minuend.
+ * @param si_b [in]	Value of subtrahend.
+ *
+ * Subtracts \a si_b from \a si_a unless the result will underflow a s64. If the
+ * result would underflow, calls BUG().
+ *
+ * @return If no overflow, difference of the two integers (\a si_a - \a si_b).
+ */
 static inline s64 nvgpu_safe_sub_s64(s64 si_a, s64 si_b)
 {
 	if ((si_b > 0 && si_a < LONG_MIN + si_b) ||
@@ -256,6 +360,17 @@ static inline s64 nvgpu_safe_sub_s64(s64 si_a, s64 si_b)
 	}
 }
 
+/**
+ * @brief Multiply two u32 values and check for overflow.
+ *
+ * @param ui_a [in]	Value of multiplicand.
+ * @param ui_b [in]	Value of multiplier.
+ *
+ * Multiplies \a ui_a and \a ui_b unless the result will overflow a u32. If the
+ * result would underflow, calls BUG().
+ *
+ * @return If no overflow, product of the two integers (\a ui_a * \a ui_b).
+ */
 static inline u32 nvgpu_safe_mult_u32(u32 ui_a, u32 ui_b)
 {
 	if (ui_a == 0U || ui_b == 0U) {
@@ -267,6 +382,17 @@ static inline u32 nvgpu_safe_mult_u32(u32 ui_a, u32 ui_b)
 	}
 }
 
+/**
+ * @brief Multiply two u64 values and check for overflow.
+ *
+ * @param ul_a [in]	Value of multiplicand.
+ * @param ul_b [in]	Value of multiplier.
+ *
+ * Multiplies \a ul_a and \a ul_b unless the result will overflow a u64. If the
+ * result would underflow, calls BUG().
+ *
+ * @return If no overflow, product of the two integers (\a ul_a * \a ul_b).
+ */
 static inline u64 nvgpu_safe_mult_u64(u64 ul_a, u64 ul_b)
 {
 	if (ul_a == 0UL || ul_b == 0UL) {
@@ -278,6 +404,18 @@ static inline u64 nvgpu_safe_mult_u64(u64 ul_a, u64 ul_b)
 	}
 }
 
+/**
+ * @brief Multiply two s64 values and check for overflow/underflow.
+ *
+ * @param sl_a [in]	Value of multiplicand.
+ * @param sl_b [in]	Value of multiplier.
+ *
+ * Multiplies \a sl_a and \a sl_b unless the result will overflow or underflow a
+ * s64. If the result would overflow or underflow, calls BUG().
+ *
+ * @return If no overflow/underflow, product of the two integers (\a sl_a *
+ * \a sl_b).
+ */
 static inline s64 nvgpu_safe_mult_s64(s64 sl_a, s64 sl_b)
 {
 	if (sl_a > 0) {
@@ -305,6 +443,16 @@ static inline s64 nvgpu_safe_mult_s64(s64 sl_a, s64 sl_b)
 	return sl_a * sl_b;
 }
 
+/**
+ * @brief Cast u64 to u16 and check for overflow.
+ *
+ * @param ul_a [in]	Value to cast.
+ *
+ * Casts \a ul_a to a u16 unless the result will overflow a u16. If the result
+ * would overflow, calls BUG().
+ *
+ * @return If no overflow, u16 representation of the value in \a ul_a.
+ */
 static inline u16 nvgpu_safe_cast_u64_to_u16(u64 ul_a)
 {
 	if (ul_a > USHRT_MAX) {
@@ -314,6 +462,16 @@ static inline u16 nvgpu_safe_cast_u64_to_u16(u64 ul_a)
 	}
 }
 
+/**
+ * @brief Cast u64 to u32 and check for overflow.
+ *
+ * @param ul_a [in]	Value to cast.
+ *
+ * Casts \a ul_a to a u32 unless the result will overflow a u32. If the result
+ * would overflow, calls BUG().
+ *
+ * @return If no overflow, u32 representation of the value in \a ul_a.
+ */
 static inline u32 nvgpu_safe_cast_u64_to_u32(u64 ul_a)
 {
 	if (ul_a > UINT_MAX) {
@@ -323,6 +481,16 @@ static inline u32 nvgpu_safe_cast_u64_to_u32(u64 ul_a)
 	}
 }
 
+/**
+ * @brief Cast u64 to u8 and check for overflow.
+ *
+ * @param ul_a [in]	Value to cast.
+ *
+ * Casts \a ul_a to a u8 unless the result will overflow a u8. If the result
+ * would overflow, calls BUG().
+ *
+ * @return If no overflow, u8 representation of the value in \a ul_a.
+ */
 static inline u8 nvgpu_safe_cast_u64_to_u8(u64 ul_a)
 {
 	if (ul_a > UCHAR_MAX) {
@@ -332,6 +500,16 @@ static inline u8 nvgpu_safe_cast_u64_to_u8(u64 ul_a)
 	}
 }
 
+/**
+ * @brief Cast s64 to u32 and check for overflow or underflow.
+ *
+ * @param l_a [in]	Value to cast.
+ *
+ * Casts \a l_a to a u32 unless the result will overflow or underflow a u32.
+ * If the result would overflow/underflow, calls BUG().
+ *
+ * @return If no overflow/underflow, u32 representation of the value in \a l_a.
+ */
 static inline u32 nvgpu_safe_cast_s64_to_u32(s64 l_a)
 {
 	if ((l_a < 0) || (l_a > UINT_MAX)) {
@@ -341,6 +519,16 @@ static inline u32 nvgpu_safe_cast_s64_to_u32(s64 l_a)
 	}
 }
 
+/**
+ * @brief Cast s64 to u64 and check for underflow.
+ *
+ * @param l_a [in]	Value to cast.
+ *
+ * Casts \a l_a to a u64 unless the result will underflow a u64. If the result
+ * would underflow, calls BUG().
+ *
+ * @return If no underflow, u64 representation of the value in \a l_a.
+ */
 static inline u64 nvgpu_safe_cast_s64_to_u64(s64 l_a)
 {
 	if (l_a < 0) {
@@ -350,11 +538,28 @@ static inline u64 nvgpu_safe_cast_s64_to_u64(s64 l_a)
 	}
 }
 
+/**
+ * @brief Cast bool to u32.
+ *
+ * @param bl_a [in]	Value to cast.
+ *
+ * @return If \a bl_a is true, return 1; otherwise, return 0.
+ */
 static inline u32 nvgpu_safe_cast_bool_to_u32(bool bl_a)
 {
 	return bl_a == true ? 1U : 0U;
 }
 
+/**
+ * @brief Cast s8 to u8 and check for underflow.
+ *
+ * @param sc_a [in]	Value to cast.
+ *
+ * Casts \a sc_a to a u8 unless the result will underflow a u8. If the result
+ * would underflow, calls BUG().
+ *
+ * @return If no underflow, u8 representation of the value in \a sc_a.
+ */
 static inline u8 nvgpu_safe_cast_s8_to_u8(s8 sc_a)
 {
 NVGPU_COV_WHITELIST(false_positive, NVGPU_CERT(STR34_C), "Bug 2673832")
@@ -365,6 +570,16 @@ NVGPU_COV_WHITELIST(false_positive, NVGPU_CERT(STR34_C), "Bug 2673832")
 	}
 }
 
+/**
+ * @brief Cast s32 to u32 and check for underflow.
+ *
+ * @param si_a [in]	Value to cast.
+ *
+ * Casts \a si_a to a u32 unless the result will underflow a u32. If the result
+ * would underflow, calls BUG().
+ *
+ * @return If no underflow, u32 representation of the value in \a si_a.
+ */
 static inline u32 nvgpu_safe_cast_s32_to_u32(s32 si_a)
 {
 	if (si_a < 0) {
@@ -374,6 +589,16 @@ static inline u32 nvgpu_safe_cast_s32_to_u32(s32 si_a)
 	}
 }
 
+/**
+ * @brief Cast s32 to u64 and check for underflow.
+ *
+ * @param si_a [in]	Value to cast.
+ *
+ * Casts \a si_a to a u64 unless the result will underflow a u64. If the result
+ * would underflow, calls BUG().
+ *
+ * @return If no underflow, u64 representation of the value in \a si_a.
+ */
 static inline u64 nvgpu_safe_cast_s32_to_u64(s32 si_a)
 {
 	if (si_a < 0) {
@@ -383,6 +608,16 @@ static inline u64 nvgpu_safe_cast_s32_to_u64(s32 si_a)
 	}
 }
 
+/**
+ * @brief Cast u32 to u16 and check for overflow.
+ *
+ * @param ui_a [in]	Value to cast.
+ *
+ * Casts \a ui_a to a u16 unless the result will overflow a u16. If the result
+ * would overflow, calls BUG().
+ *
+ * @return If no overflow, u16 representation of the value in \a ui_a.
+ */
 static inline u16 nvgpu_safe_cast_u32_to_u16(u32 ui_a)
 {
 	if (ui_a > USHRT_MAX) {
@@ -392,6 +627,16 @@ static inline u16 nvgpu_safe_cast_u32_to_u16(u32 ui_a)
 	}
 }
 
+/**
+ * @brief Cast u32 to u8 and check for overflow.
+ *
+ * @param ui_a [in]	Value to cast.
+ *
+ * Casts \a ui_a to a u8 unless the result will overflow a u8. If the result
+ * would overflow, calls BUG().
+ *
+ * @return If no overflow, u8 representation of the value in \a ui_a.
+ */
 static inline u8 nvgpu_safe_cast_u32_to_u8(u32 ui_a)
 {
 	if (ui_a > UCHAR_MAX) {
@@ -401,6 +646,16 @@ static inline u8 nvgpu_safe_cast_u32_to_u8(u32 ui_a)
 	}
 }
 
+/**
+ * @brief Cast u32 to s8 and check for overflow.
+ *
+ * @param ui_a [in]	Value to cast.
+ *
+ * Casts \a ui_a to a s8 unless the result will overflow a s8. If the result
+ * would overflow, calls BUG().
+ *
+ * @return If no overflow, s8 representation of the value in \a ui_a.
+ */
 static inline s8 nvgpu_safe_cast_u32_to_s8(u32 ui_a)
 {
 	if (ui_a > SCHAR_MAX) {
@@ -410,6 +665,16 @@ static inline s8 nvgpu_safe_cast_u32_to_s8(u32 ui_a)
 	}
 }
 
+/**
+ * @brief Cast u32 to s32 and check for overflow.
+ *
+ * @param ui_a [in]	Value to cast.
+ *
+ * Casts \a ui_a to a s32 unless the result will overflow a s32. If the result
+ * would overflow, calls BUG().
+ *
+ * @return If no overflow, s32 representation of the value in \a ui_a.
+ */
 static inline s32 nvgpu_safe_cast_u32_to_s32(u32 ui_a)
 {
 	if (ui_a > INT_MAX) {
@@ -419,6 +684,16 @@ static inline s32 nvgpu_safe_cast_u32_to_s32(u32 ui_a)
 	}
 }
 
+/**
+ * @brief Cast u64 to s32 and check for overflow.
+ *
+ * @param ul_a [in]	Value to cast.
+ *
+ * Casts \a ul_a to a s32 unless the result will overflow a s32. If the result
+ * would overflow, calls BUG().
+ *
+ * @return If no overflow, s32 representation of the value in \a ul_a.
+ */
 static inline s32 nvgpu_safe_cast_u64_to_s32(u64 ul_a)
 {
 	if (ul_a > INT_MAX) {
@@ -428,6 +703,16 @@ static inline s32 nvgpu_safe_cast_u64_to_s32(u64 ul_a)
 	}
 }
 
+/**
+ * @brief Cast u64 to s64 and check for overflow.
+ *
+ * @param ul_a [in]	Value to cast.
+ *
+ * Casts \a ul_a to a s64 unless the result will overflow a s64. If the result
+ * would overflow, calls BUG().
+ *
+ * @return If no overflow, s64 representation of the value in \a ul_a.
+ */
 static inline s64 nvgpu_safe_cast_u64_to_s64(u64 ul_a)
 {
 NVGPU_COV_WHITELIST(false_positive, NVGPU_MISRA(Rule, 14_3), "Bug 2615925")
@@ -438,6 +723,16 @@ NVGPU_COV_WHITELIST(false_positive, NVGPU_MISRA(Rule, 14_3), "Bug 2615925")
 	}
 }
 
+/**
+ * @brief Cast s64 to s32 and check for overflow or underflow.
+ *
+ * @param sl_a [in]	Value to cast.
+ *
+ * Casts \a sl_a to a s32 unless the result will overflow or underflow a s32. If
+ * the result would overflow/underflow, calls BUG().
+ *
+ * @return If no overflow/underflow, s32 representation of the value in \a sl_a.
+ */
 static inline s32 nvgpu_safe_cast_s64_to_s32(s64 sl_a)
 {
 	if (sl_a > INT_MAX || sl_a < INT_MIN) {
@@ -472,12 +767,29 @@ static inline s32 nvgpu_safe_cast_s64_to_s32(s64 sl_a)
 
 #endif
 
+/**
+ * @brief Return precision in bits of a number.
+ *
+ * @param v [in]	Value to determine precision for.
+ *
+ * @return s32 representation of the precision in bits of the value passed in.
+ */
 #define NVGPU_PRECISION(v) _Generic(v, \
 		unsigned int : __builtin_popcount, \
 		unsigned long : __builtin_popcountl, \
 		unsigned long long : __builtin_popcountll, \
 		default : __builtin_popcount)(v)
 
+/**
+ * @brief Safety checks before executing driver.
+ *
+ * Validate precision of unsigned types. These validations are used to justify
+ * that no security issues exist in NvGPU driver due to CERT-C INT34-C and
+ * INT35-C violations.
+ *
+ * This function shall be called early in the driver probe to ensure that code
+ * violating CERT-C INT34-C and INT35-C rules is not run before these checks.
+ */
 static inline void nvgpu_safety_checks(void)
 {
 	/*
@@ -503,5 +815,9 @@ static inline void nvgpu_safety_checks(void)
 		BUG();
 	}
 }
+
+/**
+ * @}
+ */
 
 #endif /* NVGPU_STATIC_ANALYSIS_H */
