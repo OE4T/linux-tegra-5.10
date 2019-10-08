@@ -683,11 +683,11 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 	},
 #ifdef CONFIG_NVGPU_LS_PMU
 	.pmu = {
-		.pmu_early_init = nvgpu_pmu_early_init,
-		.pmu_rtos_init = nvgpu_pmu_rtos_init,
-		.pmu_pstate_sw_setup = nvgpu_pmu_pstate_sw_setup,
-		.pmu_pstate_pmu_setup = nvgpu_pmu_pstate_pmu_setup,
-		.pmu_destroy = nvgpu_pmu_destroy,
+		.pmu_early_init = NULL,
+		.pmu_rtos_init = NULL,
+		.pmu_pstate_sw_setup = NULL,
+		.pmu_pstate_pmu_setup = NULL,
+		.pmu_destroy = NULL,
 		.pmu_setup_elpg = NULL,
 		.pmu_get_queue_head = NULL,
 		.pmu_get_queue_head_size = NULL,
@@ -715,6 +715,7 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 		.dump_secure_fuses = NULL,
 		.reset_engine = NULL,
 		.is_engine_in_reset = NULL,
+		.is_pmu_supported = NULL,
 	},
 #endif
 	.clk_arb = {
