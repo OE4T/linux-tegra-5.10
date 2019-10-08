@@ -887,7 +887,7 @@ static int pmu_pg_task_init(struct gk20a *g, struct nvgpu_pmu_pg *pg)
 	err = nvgpu_thread_create(&pg->pg_init.state_task, g,
 			pmu_pg_task, thread_name);
 	if (err != 0) {
-		nvgpu_err(g, "failed to start nvgpu_pg_init thread");
+		nvgpu_err(g, "failed to start nvgpu_pg_init thread (%d)", err);
 	}
 
 	return err;
