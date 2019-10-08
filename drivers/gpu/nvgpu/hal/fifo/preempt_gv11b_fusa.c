@@ -86,13 +86,14 @@ static int gv11b_fifo_preempt_locked(struct gk20a *g, u32 id,
  */
 void gv11b_fifo_preempt_runlists_for_rc(struct gk20a *g, u32 runlists_mask)
 {
-	struct nvgpu_fifo *f = &g->fifo;
-	struct nvgpu_runlist_info *runlist;
 #ifdef CONFIG_NVGPU_LS_PMU
 	u32 token = PMU_INVALID_MUTEX_OWNER_ID;
 	int mutex_ret = 0;
 #endif
+#ifdef CONFIG_NVGPU_RECOVERY
+	struct nvgpu_fifo *f = &g->fifo;
 	u32 i;
+#endif
 
 	/* runlist_lock are locked by teardown and sched are disabled too */
 	nvgpu_log_fn(g, "preempt runlists_mask:0x%08x", runlists_mask);
@@ -103,12 +104,15 @@ void gv11b_fifo_preempt_runlists_for_rc(struct gk20a *g, u32 runlists_mask)
 	/* issue runlist preempt */
 	gv11b_fifo_issue_runlist_preempt(g, runlists_mask);
 
+#ifdef CONFIG_NVGPU_RECOVERY
 	/*
 	 * Preemption will never complete in RC due to some fatal condition.
 	 * Do not poll for preemption to complete. Reset engines served by
 	 * runlists.
 	 */
 	for (i = 0U; i < f->num_runlists; i++) {
+		struct nvgpu_runlist_info *runlist;
+
 		runlist = &f->active_runlist_info[i];
 
 		if ((fifo_runlist_preempt_runlist_m(runlist->runlist_id) &
@@ -116,6 +120,7 @@ void gv11b_fifo_preempt_runlists_for_rc(struct gk20a *g, u32 runlists_mask)
 			runlist->reset_eng_bitmask = runlist->eng_bitmask;
 		}
 	}
+#endif
 #ifdef CONFIG_NVGPU_LS_PMU
 	if (mutex_ret == 0) {
 		int err = nvgpu_pmu_lock_release(g, g->pmu, PMU_MUTEX_ID_FIFO,

@@ -276,7 +276,7 @@ void nvgpu_fifo_sw_quiesce(struct gk20a *g)
 			0U, ID_TYPE_UNKNOWN, 0U, 0U);
 	g->ops.runlist.write_state(g, runlist_mask, RUNLIST_DISABLED);
 
-	/* Preempt all runlists (runlist->reset_eng_bitmask will be ignored)*/
+	/* Preempt all runlists */
 	g->ops.fifo.preempt_runlists_for_rc(g, runlist_mask);
 
 	nvgpu_channel_sw_quiesce(g);

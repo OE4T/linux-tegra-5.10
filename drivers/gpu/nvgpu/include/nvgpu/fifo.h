@@ -47,7 +47,8 @@
  *
  * The FIFO unit TODO.
  *
- * See include/nvgpu/fifo.h for more details.
+ *   + include/nvgpu/fifo.h
+ *   + include/nvgpu/gops_fifo.h
  *
  * Runlist
  * -------
