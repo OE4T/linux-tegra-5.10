@@ -87,6 +87,7 @@
  * TODO
  *
  *   + include/nvgpu/channel.h
+ *   + include/nvgpu/gops_channel.h
  *
  * Tsg
  * -------
