@@ -43,6 +43,7 @@
  *   - @ref SWUTS-fifo-tsg-gv11b
  *   - @ref SWUTS-init
  *   - @ref SWUTS-interface-atomic
+ *   - @ref SWUTS-ltc
  *   - @ref SWUTS-mm-allocators-bitmap-allocator
  *   - @ref SWUTS-mm-allocators-buddy-allocator
  *   - @ref SWUTS-mm-as

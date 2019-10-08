@@ -1674,6 +1674,26 @@
         "unit": "nvgpu_gr_intr"
     },
     {
+       "test": "ltc_init_support",
+       "test_level": 0,
+       "unit": "nvgpu-ltc"
+    },
+    {
+      "test": "ltc_functionality_tests",
+      "test_level": 0,
+      "unit": "nvgpu-ltc"
+    },
+    {
+      "test": "ltc_negative_tests",
+      "test_level": 0,
+      "unit": "nvgpu-ltc"
+    },
+    {
+      "test": "ltc_remove_support",
+      "test_level": 0,
+      "unit": "nvgpu-ltc"
+    },
+    {
        "test": "acr_init",
        "test_level": 0,
        "unit": "nvgpu-acr"

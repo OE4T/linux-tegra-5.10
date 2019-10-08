@@ -77,6 +77,7 @@ UNITS :=				\
 	$(UNIT_SRC)/fifo/tsg		\
 	$(UNIT_SRC)/fifo/tsg/gv11b	\
 	$(UNIT_SRC)/list		\
+	$(UNIT_SRC)/ltc			\
 	$(UNIT_SRC)/enabled		\
 	$(UNIT_SRC)/falcon		\
 	$(UNIT_SRC)/falcon/falcon_tests		\
