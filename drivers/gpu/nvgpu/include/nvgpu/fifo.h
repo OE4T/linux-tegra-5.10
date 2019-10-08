@@ -96,6 +96,14 @@
  *
  *   + include/nvgpu/tsg.h
  *
+ * RAM
+ * -------
+ *
+ * TODO
+ *
+ *   + include/nvgpu/gops_ramin.h
+ *   + include/nvgpu/gops_ramfc.h
+ *
  * Data Structures
  * ===============
  *
