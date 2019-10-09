@@ -71,6 +71,7 @@
  *
  *   + include/nvgpu/engines.h
  *   + include/nvgpu/engine_status.h
+ *   + include/nvgpu/gops_engine.h
  *
  * Preempt
  * -------
