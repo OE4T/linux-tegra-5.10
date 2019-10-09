@@ -28,7 +28,7 @@
  *
  * Define indices for HW units and errors. Define structures used to carry error
  * information. Declare prototype for APIs that are used to report GPU HW errors
- * to 3LSS.
+ * to the 3LSS framework.
  */
 
 #include <nvgpu/types.h>
@@ -316,21 +316,37 @@ struct nvgpu_hw_err_inject_info_desc {
 };
 
 /**
- * @brief Report error in HOST unit to 3LSS.
+ * @brief Report HOST (PFIFO/PBDMA/PBUS) related errors to 3LSS.
  *
- * @param g[in]		- The GPU driver struct.
- * @param hw_unit[in]	- Index of HW unit (HOST).
- * @param inst[in]	- Instance ID.
- * @param err_id[in]	- Error index.
- * @param intr_info[in]	- Content of interrupt status register.
+ * @param g [in]		- The GPU driver struct.
+ * @param hw_unit [in]		- Index of HW unit (HOST).
+ *				  - NVGPU_ERR_MODULE_HOST
+ * @param inst [in]		- Instance ID.
+ *				  - In case of multiple instances of the same HW
+ *				    unit (e.g., there are multiple instances of
+ *				    PBDMA), it is used to identify the instance
+ *				    that encountered a fault.
+ * @param err_id [in]		- Error index.
+ *				  - Min: GPU_HOST_PFIFO_BIND_ERROR
+ *				  - Max: GPU_HOST_PFIFO_FB_FLUSH_TIMEOUT_ERROR
+ * @param intr_info [in]	- Content of interrupt status register.
  *
- * - In case of linux/posix implementation, it simply returns 0 since SDL is not
- *   supported for them.
- * - In case of nvgpu-qnx, it does the following:
- *   - Checks whether SDL is supported in the current GPU platform.
- *   - Validates the HW unit ID and error ID.
- *   - Forms error packet and checks whether it exceeds the max size.
- *   - Sends error packet to report error to 3LSS.
+ * - Checks whether SDL is supported in the current GPU platform. If SDL is not
+ *   supported, it simply returns.
+ * - Validates both hw_unit and err_id indices. In case of a failure, invokes
+ *   nvgpu_sdl_handle_report_failure() api.
+ * - Gets the current time of a clock. In case of a failure, invokes
+ *   nvgpu_sdl_handle_report_failure() api.
+ * - Gets error description from internal look-up table using hw_unit and
+ *   err_id indices.
+ * - Forms error packet using details such as time-stamp, hw_unit, err_id,
+ *   criticality of the error, instance ID, error description, intr_info and
+ *   size of the error packet.
+ * - Performs compile-time assert check to ensure that the size of the error
+ *   packet does not exceed the maximum allowable size specified in
+ *   MAX_ERR_MSG_SIZE.
+ * - Sends the error packet to report the error to the 3LSS framework. In case
+ *   of a failure, invokes nvgpu_sdl_handle_report_failure() api.
  *
  * @return None
  * @retval None
@@ -341,19 +357,35 @@ void nvgpu_report_host_err(struct gk20a *g, u32 hw_unit,
 /**
  * @brief Report error in CE unit to 3LSS.
  *
- * @param g[in]		- The GPU driver struct.
- * @param hw_unit[in]	- Index of HW unit (CE).
- * @param inst[in]	- Instance ID.
- * @param err_id[in]	- Error index.
- * @param intr_info[in]	- Content of interrupt status register.
+ * @param g [in]		- The GPU driver struct.
+ * @param hw_unit [in]		- Index of HW unit (CE).
+ *				  - NVGPU_ERR_MODULE_CE
+ * @param inst [in]		- Instance ID.
+ *				  - In case of multiple instances of the same HW
+ *				    unit (e.g., there are multiple instances of
+ *				    CE), it is used to identify the instance
+ *				    that encountered a fault.
+ * @param err_id [in]		- Error index.
+ *				  - Min: GPU_CE_LAUNCH_ERROR
+ *				  - Max: GPU_CE_METHOD_BUFFER_FAULT
+ * @param intr_info [in]	- Content of interrupt status register.
  *
- * - In case of linux/posix implementation, it simply returns 0 since SDL is not
- *   supported for them.
- * - In case of nvgpu-qnx, it does the following:
- *   - Checks whether SDL is supported in the current GPU platform.
- *   - Validates the HW unit ID and error ID.
- *   - Forms error packet and checks whether it exceeds the max size.
- *   - Sends error packet to report error to 3LSS.
+ * - Checks whether SDL is supported in the current GPU platform. If SDL is not
+ *   supported, it simply returns.
+ * - Validates both hw_unit and err_id indices. In case of a failure, invokes
+ *   nvgpu_sdl_handle_report_failure() api.
+ * - Gets the current time of a clock. In case of a failure, invokes
+ *   nvgpu_sdl_handle_report_failure() api.
+ * - Gets error description from internal look-up table using hw_unit and
+ *   err_id indices.
+ * - Forms error packet using details such as time-stamp, hw_unit, err_id,
+ *   criticality of the error, instance ID, error description, intr_info and
+ *   size of the error packet.
+ * - Performs compile-time assert check to ensure that the size of the error
+ *   packet does not exceed the maximum allowable size specified in
+ *   MAX_ERR_MSG_SIZE.
+ * - Sends the error packet to report the error to the 3LSS framework. In case
+ *   of a failure, invokes nvgpu_sdl_handle_report_failure() api.
  *
  * @return None
  * @retval None
@@ -362,23 +394,70 @@ void nvgpu_report_ce_err(struct gk20a *g, u32 hw_unit,
 	u32 inst, u32 err_id, u32 intr_info);
 
 /**
- * @brief Report ECC error to 3LSS.
+ * @brief Report ECC related errors to 3LSS.
  *
- * @param g[in]		- The GPU driver struct.
- * @param hw_unit[in]	- Index of HW unit.
- * @param inst[in]	- Instance ID.
- * @param err_id[in]	- Error index.
- * @param err_addr[in]	- Error address.
- * @param err_count[in]	- Error count.
+ * @param g [in]		- The GPU driver struct.
+ * @param hw_unit [in]		- Index of HW unit.
+ *				  - List of valid HW unit IDs
+ *				    - NVGPU_ERR_MODULE_SM
+ *				    - NVGPU_ERR_MODULE_FECS
+ *				    - NVGPU_ERR_MODULE_GPCCS
+ *				    - NVGPU_ERR_MODULE_MMU
+ *				    - NVGPU_ERR_MODULE_GCC
+ *				    - NVGPU_ERR_MODULE_PMU
+ *				    - NVGPU_ERR_MODULE_LTC
+ *				    - NVGPU_ERR_MODULE_HUBMMU
+ * @param inst [in]		- Instance ID.
+ *				  - In case of multiple instances of the same HW
+ *				    unit (e.g., there are multiple instances of
+ *				    SM), it is used to identify the instance
+ *				    that encountered a fault.
+ * @param err_id [in]		- Error index.
+ *				  - For SM:
+ *				    - Min: GPU_SM_L1_TAG_ECC_CORRECTED
+ *				    - Max: GPU_SM_ICACHE_L1_PREDECODE_ECC_UNCORRECTED
+ *				  - For FECS:
+ *				    - Min: GPU_FECS_FALCON_IMEM_ECC_CORRECTED
+ *				    - Max: GPU_FECS_INVALID_ERROR
+ *				  - For GPCCS:
+ *				    - Min: GPU_GPCCS_FALCON_IMEM_ECC_CORRECTED
+ *				    - Max: GPU_GPCCS_FALCON_DMEM_ECC_UNCORRECTED
+ *				  - For MMU:
+ *				    - Min: GPU_MMU_L1TLB_SA_DATA_ECC_CORRECTED
+ *				    - Max: GPU_MMU_L1TLB_FA_DATA_ECC_UNCORRECTED
+ *				  - For GCC:
+ *				    - Min: GPU_GCC_L15_ECC_CORRECTED
+ *				    - Max: GPU_GCC_L15_ECC_UNCORRECTED
+ *				  - For PMU:
+ *				    - Min: GPU_PMU_FALCON_IMEM_ECC_CORRECTED
+ *				    - Max: GPU_PMU_FALCON_DMEM_ECC_UNCORRECTED
+ *				  - For LTC:
+ *				    - Min: GPU_LTC_CACHE_DSTG_ECC_CORRECTED
+ *				    - Max: GPU_LTC_CACHE_DSTG_BE_ECC_UNCORRECTED
+ *				  - For HUBMMU:
+ *				    - Min: GPU_HUBMMU_L2TLB_SA_DATA_ECC_CORRECTED
+ *				    - Max: GPU_HUBMMU_PDE0_DATA_ECC_UNCORRECTED
+ * @param err_addr [in]		- Error address.
+ *				  - This is the location at which correctable or
+ *				    uncorrectable error has occurred.
+ * @param err_count [in]	- Error count.
  *
- * - In case of linux/posix implementation, it simply returns 0 since SDL is not
- *   supported for them.
- * - In case of nvgpu-qnx, it does the following:
- *   - Checks whether SDL is supported in the current GPU platform.
- *   - Validates the HW unit ID and error ID.
- *   - Validates slice ID and TPC ID for LTC and SM units, respectively.
- *   - Forms error packet and checks whether it exceeds the max size.
- *   - Sends error packet to report error to 3LSS.
+ * - Checks whether SDL is supported in the current GPU platform. If SDL is not
+ *   supported, it simply returns.
+ * - Validates both hw_unit and err_id indices. In case of a failure, invokes
+ *   nvgpu_sdl_handle_report_failure() api.
+ * - Gets the current time of a clock. In case of a failure, invokes
+ *   nvgpu_sdl_handle_report_failure() api.
+ * - Gets error description from internal look-up table using hw_unit and
+ *   err_id indices.
+ * - Forms error packet using details such as time-stamp, hw_unit, err_id,
+ *   criticality of the error, instance ID, err_addr, err_count, error
+ *   description, and size of the error packet.
+ * - Performs compile-time assert check to ensure that the size of the error
+ *   packet does not exceed the maximum allowable size specified in
+ *   MAX_ERR_MSG_SIZE.
+ * - Sends the error packet to report the error to the 3LSS framework. In case
+ *   of a failure, invokes nvgpu_sdl_handle_report_failure() api.
  *
  * @return None
  * @retval None
@@ -389,18 +468,31 @@ void nvgpu_report_ecc_err(struct gk20a *g, u32 hw_unit, u32 inst,
 /**
  * @brief Report CTXSW error to 3LSS.
  *
- * @param g[in]		- The GPU driver struct.
- * @param hw_unit[in]	- Index of HW unit (FECS).
- * @param err_id[in]	- Error index.
- * @param data[in]	- CTXSW error information.
+ * @param g [in]	- The GPU driver struct.
+ * @param hw_unit [in]	- Index of HW unit (FECS).
+ *			  - NVGPU_ERR_MODULE_FECS
+ * @param err_id [in]	- Error index.
+ *			  - Min: GPU_FECS_CTXSW_WATCHDOG_TIMEOUT
+ *			  - Max: GPU_FECS_CTXSW_INIT_ERROR
+ * @param data [in]	- CTXSW error information.
+ *			  - This can be type-casted to struct ctxsw_err_info.
  *
- * - In case of linux/posix implementation, it simply returns 0 since SDL is not
- *   supported for them.
- * - In case of nvgpu-qnx, it does the following:
- *   - Checks whether SDL is supported in the current GPU platform.
- *   - Validates the HW unit ID and error ID.
- *   - Forms error packet and checks whether it exceeds the max size.
- *   - Sends error packet to report error to 3LSS.
+ * - Checks whether SDL is supported in the current GPU platform. If SDL is not
+ *   supported, it simply returns.
+ * - Validates both hw_unit and err_id indices. In case of a failure, invokes
+ *   nvgpu_sdl_handle_report_failure() api.
+ * - Gets the current time of a clock. In case of a failure, invokes
+ *   nvgpu_sdl_handle_report_failure() api.
+ * - Gets error description from internal look-up table using hw_unit and
+ *   err_id indices.
+ * - Forms error packet using details such as time-stamp, hw_unit, err_id,
+ *   criticality of the error, CTXSW error information, error description, and
+ *   size of the error packet.
+ * - Performs compile-time assert check to ensure that the size of the error
+ *   packet does not exceed the maximum allowable size specified in
+ *   MAX_ERR_MSG_SIZE.
+ * - Sends the error packet to report the error to the 3LSS framework. In case
+ *   of a failure, invokes nvgpu_sdl_handle_report_failure() api.
  *
  * @return None
  * @retval None
@@ -409,22 +501,48 @@ void nvgpu_report_ctxsw_err(struct gk20a *g, u32 hw_unit, u32 err_id,
 		void *data);
 
 /**
- * @brief Report GR error to 3LSS.
+ * @brief Report SM and PGRAPH related errors to 3LSS.
  *
- * @param g[in]			- The GPU driver struct.
- * @param hw_unit[in]		- Index of HW unit.
- * @param inst[in]		- Instance ID.
- * @param err_id[in]		- Error index.
- * @param err_info[in]		- Error information.
- * @param sub_err_type[in]	- Sub error type.
+ * @param g [in]		- The GPU driver struct.
+ * @param hw_unit [in]		- Index of HW unit.
+ *				  - List of valid HW unit IDs
+ *				    - NVGPU_ERR_MODULE_SM
+ *				    - NVGPU_ERR_MODULE_PGRAPH
+ * @param inst [in]		- Instance ID.
+ *				  - In case of multiple instances of the same HW
+ *				    unit (e.g., there are multiple instances of
+ *				    SM), it is used to identify the instance
+ *				    that encountered a fault.
+ * @param err_id [in]		- Error index.
+ *				  - For SM:
+ *				    - GPU_SM_MACHINE_CHECK_ERROR
+ *				  - For PGRAPH:
+ *				    - Min: GPU_PGRAPH_FE_EXCEPTION
+ *				    - Max: GPU_PGRAPH_GPC_GFX_EXCEPTION
+ * @param err_info [in]		- Error information.
+ *				  - For SM: Machine Check Error Information.
+ *				  - For PGRAPH: Exception Information.
+ * @param sub_err_type [in]	- Sub error type.
+ *				  - This is a sub-error of the error that is
+ *				    begin reported.
  *
- * - In case of linux/posix implementation, it simply returns 0 since SDL is not
- *   supported for them.
- * - In case of nvgpu-qnx, it does the following:
- *   - Checks whether SDL is supported in the current GPU platform.
- *   - Validates the HW unit ID and error ID.
- *   - Forms error packet and checks whether it exceeds the max size.
- *   - Sends error packet to report error to 3LSS.
+ * - Checks whether SDL is supported in the current GPU platform. If SDL is not
+ *   supported, it simply returns.
+ * - Validates both hw_unit and err_id indices. In case of a failure, invokes
+ *   nvgpu_sdl_handle_report_failure() api.
+ * - Gets the current time of a clock. In case of a failure, invokes
+ *   nvgpu_sdl_handle_report_failure() api.
+ * - Gets error description from internal look-up table using hw_unit and
+ *   err_id indices.
+ * - Forms error packet using details such as time-stamp, hw_unit, err_id,
+ *   criticality of the error, status, sub_err_type, error description, and size
+ *   of the error packet. It also includes appropriate err_info depending on
+ *   hw_unit type (SM/PGRAPH).
+ * - Performs compile-time assert check to ensure that the size of the error
+ *   packet does not exceed the maximum allowable size specified in
+ *   MAX_ERR_MSG_SIZE.
+ * - Sends the error packet to report the error to the 3LSS framework. In case
+ *   of a failure, invokes nvgpu_sdl_handle_report_failure() api.
  *
  * @return None
  * @retval None
@@ -433,21 +551,34 @@ void nvgpu_report_gr_err(struct gk20a *g, u32 hw_unit, u32 inst,
 		u32 err_id, struct gr_err_info *err_info, u32 sub_err_type);
 
 /**
- * @brief Report PMU error to 3LSS.
+ * @brief Report PMU related errors to 3LSS.
  *
- * @param g[in]			- The GPU driver struct.
- * @param hw_unit[in]		- Index of HW unit (PMU).
- * @param err_id[in]		- Error index.
- * @param sub_err_type[in]	- Sub error type.
- * @param status[in]		- Error information.
+ * @param g [in]		- The GPU driver struct.
+ * @param hw_unit [in]		- Index of HW unit (PMU).
+ *				  - NVGPU_ERR_MODULE_PMU
+ * @param err_id [in]		- Error index.
+ *				  - GPU_PMU_BAR0_ERROR_TIMEOUT
+ * @param sub_err_type [in]	- Sub error type.
+ *				  - This is a sub-error of the error that is
+ *				    begin reported.
+ * @param status [in]		- Error information.
  *
- * - In case of linux/posix implementation, it simply returns 0 since SDL is not
- *   supported for them.
- * - In case of nvgpu-qnx, it does the following:
- *   - Checks whether SDL is supported in the current GPU platform.
- *   - Validates the HW unit ID and error ID.
- *   - Forms error packet and checks whether it exceeds the max size.
- *   - Sends error packet to report error to 3LSS.
+ * - Checks whether SDL is supported in the current GPU platform. If SDL is not
+ *   supported, it simply returns.
+ * - Validates both hw_unit and err_id indices. In case of a failure, invokes
+ *   nvgpu_sdl_handle_report_failure() api.
+ * - Gets the current time of a clock. In case of a failure, invokes
+ *   nvgpu_sdl_handle_report_failure() api.
+ * - Gets error description from internal look-up table using hw_unit and
+ *   err_id indices.
+ * - Forms error packet using details such as time-stamp, hw_unit, err_id,
+ *   criticality of the error, status, sub_err_type, error description, and size
+ *   of the error packet.
+ * - Performs compile-time assert check to ensure that the size of the error
+ *   packet does not exceed the maximum allowable size specified in
+ *   MAX_ERR_MSG_SIZE.
+ * - Sends the error packet to report the error to the 3LSS framework. In case
+ *   of a failure, invokes nvgpu_sdl_handle_report_failure() api.
  *
  * @return None
  * @retval None
@@ -456,21 +587,41 @@ void nvgpu_report_pmu_err(struct gk20a *g, u32 hw_unit, u32 err_id,
 	u32 sub_err_type, u32 status);
 
 /**
- * @brief Report PRI error to 3LSS.
+ * @brief Report PRI related errors to 3LSS.
  *
- * @param g[in]			- The GPU driver struct.
- * @param hw_unit[in]		- Index of HW unit (PMU).
- * @param err_id[in]		- Error index.
- * @param sub_err_type[in]	- Sub error type.
- * @param status[in]		- Error information.
+ * @param g [in]		- The GPU driver struct.
+ * @param hw_unit [in]		- Index of HW unit (PRI).
+ *				  - NVGPU_ERR_MODULE_PRI
+ * @param inst [in]		- Instance ID.
+ *				  - In case of multiple instances of the same HW
+ *				    unit, it is used to identify the instance
+ *				    that encountered a fault.
+ * @param err_id [in]		- Error index.
+ *				  - Min: GPU_PRI_TIMEOUT_ERROR
+ *				  - Max: GPU_PRI_ACCESS_VIOLATION
+ * @param err_addr [in]		- Error address.
+ *				  - This is the address of the first PRI access
+ *				    that resulted in an error.
+ * @param err_code [in]		- Error code.
+ *				  - This is an unique code associated with the
+ *				    error that is being reported.
  *
- * - In case of linux/posix implementation, it simply returns 0 since SDL is not
- *   supported for them.
- * - In case of nvgpu-qnx, it does the following:
- *   - Checks whether SDL is supported in the current GPU platform.
- *   - Validates the HW unit ID and error ID.
- *   - Forms error packet and checks whether it exceeds the max size.
- *   - Sends error packet to report error to 3LSS.
+ * - Checks whether SDL is supported in the current GPU platform. If SDL is not
+ *   supported, it simply returns.
+ * - Validates both hw_unit and err_id indices. In case of a failure, invokes
+ *   nvgpu_sdl_handle_report_failure() api.
+ * - Gets the current time of a clock. In case of a failure, invokes
+ *   nvgpu_sdl_handle_report_failure() api.
+ * - Gets error description from internal look-up table using hw_unit and
+ *   err_id indices.
+ * - Forms error packet using details such as time-stamp, hw_unit, err_id,
+ *   criticality of the error, instance ID, err_addr, error description,
+ *   err_code, and size of the error packet.
+ * - Performs compile-time assert check to ensure that the size of the error
+ *   packet does not exceed the maximum allowable size specified in
+ *   MAX_ERR_MSG_SIZE.
+ * - Sends the error packet to report the error to the 3LSS framework. In case
+ *   of a failure, invokes nvgpu_sdl_handle_report_failure() api.
  *
  * @return None
  * @retval None
@@ -481,19 +632,33 @@ void nvgpu_report_pri_err(struct gk20a *g, u32 hw_unit, u32 inst,
 /**
  * @brief Report MMU page fault error to 3LSS.
  *
- * @param g[in]			- The GPU driver struct.
- * @param hw_unit[in]		- Index of HW unit (PMU).
- * @param err_id[in]		- Error index.
- * @param fault_info[in]	- MMU page fault information.
- * @param sub_err_type[in]	- Sub error type.
+ * @param g [in]		- The GPU driver struct.
+ * @param hw_unit [in]		- Index of HW unit (HUBMMU).
+ *				  - NVGPU_ERR_MODULE_HUBMMU
+ * @param err_id [in]		- Error index.
+ *				  - GPU_HUBMMU_PAGE_FAULT_ERROR
+ * @param fault_info [in]	- MMU page fault information.
+ * @param status [in]		- Error information.
+ * @param sub_err_type [in]	- Sub error type.
+ *				  - This is a sub-error of the error that is
+ *				    begin reported.
  *
- * - In case of linux/posix implementation, it simply returns 0 since SDL is not
- *   supported for them.
- * - In case of nvgpu-qnx, it does the following:
- *   - Checks whether SDL is supported in the current GPU platform.
- *   - Validates the HW unit ID and error ID.
- *   - Forms error packet and checks whether it exceeds the max size.
- *   - Sends error packet to report error to 3LSS.
+ * - Checks whether SDL is supported in the current GPU platform. If SDL is not
+ *   supported, it simply returns.
+ * - Validates both hw_unit and err_id indices. In case of a failure, invokes
+ *   nvgpu_sdl_handle_report_failure() api.
+ * - Gets the current time of a clock. In case of a failure, invokes
+ *   nvgpu_sdl_handle_report_failure() api.
+ * - Gets error description from internal look-up table using hw_unit and
+ *   err_id indices.
+ * - Forms error packet using details such as time-stamp, hw_unit, err_id,
+ *   criticality of the error, sub_err_type, error description, and size of the
+ *   error packet. It also includes page fault information, if it is available.
+ * - Performs compile-time assert check to ensure that the size of the error
+ *   packet does not exceed the maximum allowable size specified in
+ *   MAX_ERR_MSG_SIZE.
+ * - Sends the error packet to report the error to the 3LSS framework. In case
+ *   of a failure, invokes nvgpu_sdl_handle_report_failure() api.
  *
  * @return None
  * @retval None
