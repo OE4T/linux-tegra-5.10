@@ -1113,9 +1113,9 @@ static void eqos_configure_rxq_priority(struct osi_core_priv_data *osi_core)
 	unsigned int mfix_var1, mfix_var2;
 
 	if (osi_core->dcs_en == OSI_ENABLE) {
-		osd_err(osi_core->osd,
-			"Invalid combination of DCS and RxQ-UP mapping, exiting %s()\n",
-			__func__);
+		OSI_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+			"Invalid combination of DCS and RxQ-UP mapping\n",
+			0ULL);
 		return;
 	}
 	/* make sure EQOS_MAC_RQC2R is reset before programming */
@@ -1131,9 +1131,9 @@ static void eqos_configure_rxq_priority(struct osi_core_priv_data *osi_core)
 			pmask |= osi_core->rxq_prio[mtlq];
 			temp = osi_core->rxq_prio[mtlq];
 		} else {
-			osd_err(osi_core->osd,
-				"Invalid rxq Priority for Q(%d)\n",
-				mtlq);
+			OSI_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+				"Invalid rxq Priority for Q\n",
+				(unsigned long long)mtlq);
 			continue;
 
 		}
@@ -1270,8 +1270,9 @@ static void eqos_configure_mac(struct osi_core_priv_data *osi_core)
 		osi_core->flow_ctrl = (OSI_FLOW_CTRL_TX | OSI_FLOW_CTRL_RX);
 		if (eqos_config_flow_control(osi_core->base,
 					     osi_core->flow_ctrl) != 0) {
-			osd_err(osi_core->osd, "Failed to set flow control"
-				" configuration\n");
+			OSI_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
+				"Failed to set flow control configuration\n",
+				0ULL);
 		}
 	}
 	/* USP (user Priority) to RxQ Mapping */
@@ -1638,21 +1639,25 @@ static int eqos_set_avb_algorithm(struct osi_core_priv_data *osi_core,
 	unsigned int qinx;
 
 	if (avb == OSI_NULL) {
-		osd_err(osi_core->osd, "avb structure is NULL\n");
+		OSI_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+			"avb structure is NULL\n",
+			0ULL);
 		return ret;
 	}
 
 	/* queue index in range */
 	if (avb->qindex >= EQOS_MAX_TC) {
-		osd_err(osi_core->osd, "Invalid Queue index (%d)\n"
-			, avb->qindex);
+		OSI_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+			"Invalid Queue index\n",
+			(unsigned long long)avb->qindex);
 		return ret;
 	}
 
 	/* can't set AVB mode for queue 0 */
 	if ((avb->qindex == 0U) && (avb->oper_mode == EQOS_MTL_QUEUE_AVB)) {
-		osd_err(osi_core->osd,
-			"Not allowed to set CBS for Q0\n", avb->qindex);
+		OSI_ERR(osi_core->osd, OSI_LOG_ARG_OPNOTSUPP,
+			"Not allowed to set CBS for Q0\n",
+			(unsigned long long)avb->qindex);
 		return ret;
 	}
 
@@ -1784,7 +1789,9 @@ static inline int eqos_update_mac_addr_helper(
 			*value = ((dma_chan << EQOS_MAC_ADDRH_DCS_SHIFT) &
 				  EQOS_MAC_ADDRH_DCS);
 		} else if (dma_chan > OSI_EQOS_MAX_NUM_CHANS - 0x1U) {
-			osd_err(osi_core->osd, "invalid dma channel\n");
+			OSI_ERR(osi_core->osd, OSI_LOG_ARG_OUTOFBOUND,
+				"invalid dma channel\n",
+				(unsigned long long)dma_chan);
 			ret = -1;
 			goto err_dma_chan;
 		} else {
@@ -1799,7 +1806,9 @@ static inline int eqos_update_mac_addr_helper(
 				  ((addr_mask << EQOS_MAC_ADDRH_MBC_SHIFT) &
 				   EQOS_MAC_ADDRH_MBC));
 		} else {
-			osd_err(osi_core->osd, "invalid address index for MBC\n");
+			OSI_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+				"invalid address index for MBC\n",
+				0ULL);
 			ret = -1;
 		}
 	}
@@ -1848,7 +1857,9 @@ static int eqos_update_mac_addr_low_high_reg(
 	int ret = 0;
 
 	if (idx > (EQOS_MAX_MAC_ADDRESS_FILTER -  0x1U)) {
-		osd_err(osi_core->osd, "invalid MAC filter index\n");
+		OSI_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+			"invalid MAC filter index\n",
+			0ULL);
 		return -1;
 	}
 
@@ -1917,13 +1928,16 @@ static int eqos_get_avb_algorithm(struct osi_core_priv_data *osi_core,
 	unsigned int qinx = 0U;
 
 	if (avb == OSI_NULL) {
-		osd_err(osi_core->osd, "avb structure is NULL\n");
+		OSI_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+			"avb structure is NULL\n",
+			0ULL);
 		return ret;
 	}
 
 	if (avb->qindex >= EQOS_MAX_TC) {
-		osd_err(osi_core->osd, "Invalid Queue index (%d)\n"
-			, avb->qindex);
+		OSI_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+			"Invalid Queue index\n",
+			(unsigned long long)avb->qindex);
 		return ret;
 	}
 
@@ -2117,13 +2131,16 @@ static int eqos_update_ip4_addr(struct osi_core_priv_data *osi_core,
 	unsigned int temp = 0U;
 
 	if (addr == OSI_NULL) {
-		osd_err(osi_core->osd, "%s() invalid address\n", __func__);
+		OSI_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+			"invalid address\n",
+			0ULL);
 		return -1;
 	}
 
 	if (filter_no > (EQOS_MAX_L3_L4_FILTER - 0x1U)) {
-		osd_err(osi_core->osd, "filter index %d > %d for L3/L4 filter\n"
-			, filter_no, EQOS_MAX_L3_L4_FILTER);
+		OSI_ERR(osi_core->osd, OSI_LOG_ARG_OUTOFBOUND,
+			"invalid filter index for L3/L4 filter\n",
+			(unsigned long long)filter_no);
 		return -1;
 	}
 
@@ -2170,13 +2187,16 @@ static int eqos_update_ip6_addr(struct osi_core_priv_data *osi_core,
 	unsigned int temp = 0U;
 
 	if (addr == OSI_NULL) {
-		osd_err(osi_core->osd, "%s() invalid address\n", __func__);
+		OSI_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+			"invalid address\n",
+			0ULL);
 		return -1;
 	}
 
 	if (filter_no > (EQOS_MAX_L3_L4_FILTER - 0x1U)) {
-		osd_err(osi_core->osd, "filter index %d > %d for L3/L4 filter\n"
-			, filter_no, EQOS_MAX_L3_L4_FILTER);
+		OSI_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+			"invalid filter index for L3/L4 filter\n",
+			(unsigned long long)filter_no);
 		return -1;
 	}
 
@@ -2238,8 +2258,9 @@ static int eqos_update_l4_port_no(struct osi_core_priv_data *osi_core,
 	unsigned int temp = 0U;
 
 	if (filter_no > (EQOS_MAX_L3_L4_FILTER - 0x1U)) {
-		osd_err(osi_core->osd, "filter index %d > %d for L3/L4 filter\n"
-			, filter_no, EQOS_MAX_L3_L4_FILTER);
+		OSI_ERR(osi_core->osd, OSI_LOG_ARG_OUTOFBOUND,
+			"invalid filter index for L3/L4 filter\n",
+			(unsigned long long)filter_no);
 		return -1;
 	}
 
@@ -2332,14 +2353,17 @@ static int eqos_config_l3_filters(struct osi_core_priv_data *osi_core,
 	void *base = osi_core->base;
 
 	if (filter_no > (EQOS_MAX_L3_L4_FILTER - 0x1U)) {
-		osd_err(osi_core->osd, "filter index %d > %d for L3/L4 filter\n"
-			, filter_no, EQOS_MAX_L3_L4_FILTER);
+		OSI_ERR(osi_core->osd, OSI_LOG_ARG_OUTOFBOUND,
+			"invalid filter index for L3/L4 filter\n",
+			(unsigned long long)filter_no);
 		return -1;
 	}
 
 	if ((dma_routing_enable == OSI_ENABLE) &&
 	    (dma_chan > OSI_EQOS_MAX_NUM_CHANS - 1U)) {
-		osd_err(osi_core->osd, "Wrong DMA channel %d\n", dma_chan);
+		OSI_ERR(osi_core->osd, OSI_LOG_ARG_OUTOFBOUND,
+			"Wrong DMA channel\n",
+			(unsigned long long)dma_chan);
 		return -1;
 	}
 
@@ -2499,14 +2523,17 @@ static int eqos_config_l4_filters(struct osi_core_priv_data *osi_core,
 	unsigned int value = 0U;
 
 	if (filter_no > (EQOS_MAX_L3_L4_FILTER - 0x1U)) {
-		osd_err(osi_core->osd, "filter index %d > %d for L3/L4 filter\n"
-			, filter_no, EQOS_MAX_L3_L4_FILTER);
+		OSI_ERR(osi_core->osd, OSI_LOG_ARG_OUTOFBOUND,
+			"invalid filter index for L3/L4 filter\n",
+			(unsigned long long)filter_no);
 		return -1;
 	}
 
 	if ((dma_routing_enable == OSI_ENABLE) &&
 	    (dma_chan > OSI_EQOS_MAX_NUM_CHANS - 1U)) {
-		osd_err(osi_core->osd, "Wrong DMA channel %d\n", dma_chan);
+		OSI_ERR(osi_core->osd, OSI_LOG_ARG_OUTOFBOUND,
+			"Wrong DMA channel\n",
+			(unsigned int)dma_chan);
 		return -1;
 	}
 
@@ -2609,7 +2636,9 @@ static int eqos_config_vlan_filtering(struct osi_core_priv_data *osi_core,
 	value |= ((perfect_inverse_match << EQOS_MAC_VLAN_TR_VTIM_SHIFT) &
 		  EQOS_MAC_VLAN_TR_VTIM);
 	if (perfect_hash_filtering == OSI_HASH_FILTER_MODE) {
-		osd_err(osi_core->osd, "VLAN hash filter is not supported not updating VTHM\n");
+		OSI_ERR(osi_core->osd, OSI_LOG_ARG_OPNOTSUPP,
+			"VLAN hash filter is not supported, no updat of VTHM\n",
+			0ULL);
 	}
 	osi_writel(value, (unsigned char *)base + EQOS_MAC_VLAN_TR);
 	return 0;

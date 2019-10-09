@@ -61,7 +61,10 @@ static inline int poll_for_mii_idle(struct osi_core_priv_data *osi_core)
 	count = 0;
 	while (cond == 1) {
 		if (count > retry) {
-			osd_err(osi_core->osd, "MII operation timed out\n");
+			OSI_ERR(osi_core->osd,
+				OSI_LOG_ARG_HW_FAIL,
+				"MII operation timed out\n",
+				0ULL);
 			return -1;
 		}
 
@@ -454,7 +457,10 @@ int osi_update_mac_addr_low_high_reg(struct osi_core_priv_data *osi_core,
 
 	if ((dma_routing_enable == OSI_ENABLE) &&
 	    (osi_core->dcs_en != OSI_ENABLE)) {
-		osd_err(osi_core->osd, "dma routing enabled but dcs disabled in DT\n");
+		OSI_ERR(osi_core->osd,
+			OSI_LOG_ARG_INVALID,
+			"dma routing enabled but dcs disabled in DT\n",
+			0ULL);
 		return ret;
 	}
 
@@ -502,7 +508,10 @@ int osi_config_l3_filters(struct osi_core_priv_data *osi_core,
 
 	if ((dma_routing_enable == OSI_ENABLE) &&
 	    (osi_core->dcs_en != OSI_ENABLE)) {
-		osd_err(osi_core->osd, "dma routing enabled but dcs disabled in DT\n");
+		OSI_ERR(osi_core->osd,
+			OSI_LOG_ARG_INVALID,
+			"dma routing enabled but dcs disabled in DT\n",
+			0ULL);
 		return ret;
 	}
 
@@ -563,7 +572,10 @@ int osi_config_l4_filters(struct osi_core_priv_data *osi_core,
 
 	if ((dma_routing_enable == OSI_ENABLE) &&
 	    (osi_core->dcs_en != OSI_ENABLE)) {
-		osd_err(osi_core->osd, "dma routing enabled but dcs disabled in DT\n");
+		OSI_ERR(osi_core->osd,
+			OSI_LOG_ARG_INVALID,
+			"dma routing enabled but dcs disabled in DT\n",
+			0ULL);
 		return ret;
 	}
 

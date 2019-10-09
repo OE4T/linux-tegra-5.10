@@ -53,8 +53,10 @@ static inline unsigned long update_mmc_val(struct osi_core_priv_data *osi_core,
 
 	temp = last_value + value;
 	if (temp < last_value) {
-		osd_err(osi_core->osd, "Value overflow for offset = 0x%x resetting  all counters\n",
-			offset);
+		OSI_ERR(osi_core->osd,
+			OSI_LOG_ARG_OUTOFBOUND,
+			"Value overflow resetting  all counters\n",
+			(unsigned long long)offset);
 		eqos_reset_mmc(osi_core);
 	} else {
 		return temp;
