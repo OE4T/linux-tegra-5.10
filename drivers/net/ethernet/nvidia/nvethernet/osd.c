@@ -55,29 +55,64 @@ void osd_msleep(unsigned int msec)
 }
 
 /**
- * @brief Prints log at INFO log level
- *
- * Algorithm: Invokes OSD function to prints the data in kernel log
+ * @brief osd_log - OSD logging function
  *
  * @param[in] priv: OSD private data
- * @param[in] fmt: log format
+ * @param[in] func: function name
+ * @param[in] line: line number
+ * @param[in] level: log level
+ * @param[in] type: error type
+ * @param[in] err:  error string
+ * @param[in] loga: error additional information
+ *
  */
-void osd_info(void *priv, const char *fmt, ...)
+void osd_log(void *priv,
+	     const char *func,
+	     unsigned int line,
+	     unsigned int level,
+	     unsigned int type,
+	     const char *err,
+	     unsigned long long loga)
 {
-	dev_info(((struct ether_priv_data *)priv)->dev, fmt);
-}
+	if (priv) {
+		switch (level) {
+		case OSI_LOG_INFO:
+			dev_info(((struct ether_priv_data *)priv)->dev,
+				 "[%s][%d][type:0x%x][loga-0x%llx] %s",
+				 func, line, type, loga, err);
+			break;
+		case OSI_LOG_WARN:
+			dev_warn(((struct ether_priv_data *)priv)->dev,
+				 "[%s][%d][type:0x%x][loga-0x%llx] %s",
+				 func, line, type, loga, err);
+			break;
+		case OSI_LOG_ERR:
+			dev_err(((struct ether_priv_data *)priv)->dev,
+				"[%s][%d][type:0x%x][loga-0x%llx] %s",
+				func, line, type, loga, err);
+			break;
+		default:
+			break;
+		}
 
-/**
- * @brief Prints log at ERR log level
- *
- * Algorithm: Invokes OSD function to prints the data in kernel log
- *
- * @param[in] priv: OSD private data
- * @param[in] fmt: log format
- */
-void osd_err(void *priv, const char *fmt, ...)
-{
-	dev_err(((struct ether_priv_data *)priv)->dev, fmt);
+	} else {
+		switch (level) {
+		case OSI_LOG_INFO:
+			pr_info("[%s][%d][type:0x%x][loga-0x%llx] %s",
+				func, line, type, loga, err);
+			break;
+		case OSI_LOG_WARN:
+			pr_warn("[%s][%d][type:0x%x][loga-0x%llx] %s",
+				func, line, type, loga, err);
+			break;
+		case OSI_LOG_ERR:
+			pr_err("[%s][%d][type:0x%x][loga-0x%llx] %s",
+			       func, line, type, loga, err);
+			break;
+		default:
+			break;
+		}
+	}
 }
 
 /**
