@@ -23,10 +23,31 @@
 #ifndef NVGPU_COMMON_H
 #define NVGPU_COMMON_H
 
+/**
+ * @file
+ *
+ * @addtogroup unit-common-nvgpu
+ * @{
+ */
+
+/**
+ * @brief Restart driver as implemented for OS.
+ *
+ * @param cmd [in]	Pointer to command to execute before restart, if
+ *			possible. Pass NULL for no command.
+ *
+ * This is a very OS-dependent interface.
+ * - On Linux, this will request the kernel to execute the command if not NULL,
+ *   then the kernel will reboot the OS.
+ * - On QNX, this simply calls BUG() which will restart the driver.
+ */
 void nvgpu_kernel_restart(void *cmd);
 
 #ifdef NVGPU_UNITTEST_FAULT_INJECTION_ENABLEMENT
 struct nvgpu_posix_fault_inj *nvgpu_nvgpu_get_fault_injection(void);
 #endif
 
+/**
+ * @}
+ */
 #endif

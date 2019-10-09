@@ -228,10 +228,19 @@ enum nvgpu_event_id_type {
 	NVGPU_EVENT_ID_MAX = 6,
 };
 
-/*
- * gpu_ops should only contain function pointers! Non-function pointer members
- * should go in struct gk20a or be implemented with the boolean flag API defined
- * in nvgpu/enabled.h
+/**
+ * @addtogroup unit-common-nvgpu
+ * @{
+ */
+
+/**
+ * @brief HAL methods
+ *
+ * gpu_ops contains function pointers for the unit HAL interfaces. gpu_ops
+ * should only contain function pointers! Non-function pointer members should go
+ * in struct gk20a or be implemented with the boolean flag API defined in
+ * nvgpu/enabled.h. Each unit should have its own sub-struct in the gpu_ops
+ * struct.
  */
 
 struct gpu_ops {
@@ -974,25 +983,48 @@ struct gpu_ops {
 	void (*semaphore_wakeup)(struct gk20a *g, bool post_events);
 };
 
+/**
+ * @brief HW version info read from the HW.
+ */
 struct nvgpu_gpu_params {
-	/* GPU architecture ID */
+	/** GPU architecture ID */
 	u32 gpu_arch;
-	/* GPU implementation ID */
+	/** GPU implementation ID */
 	u32 gpu_impl;
-	/* GPU revision ID */
+	/** GPU revision ID */
 	u32 gpu_rev;
-	/* sm version */
+	/** sm version */
 	u32 sm_arch_sm_version;
-	/* sm instruction set */
+	/** sm instruction set */
 	u32 sm_arch_spa_version;
 	u32 sm_arch_warp_count;
 };
 
+/**
+ * @brief The GPU superstructure.
+ *
+ * This structure describes the GPU. There is a unique \a gk20a struct for each
+ * GPU in the system. This structure includes many state variables used
+ * throughout the driver. It also contains the #gpu_ops HALs.
+ *
+ * Whenever possible, units should keep their data within their own sub-struct
+ * and not in the main gk20a struct.
+ */
 struct gk20a {
+	/**
+	 * @brief Free data in the struct allocated during its creation.
+	 *
+	 * @param g [in]	The GPU superstructure
+	 *
+	 * This does not free all of the memory in the structure as many of the
+	 * units allocate private data, and those units are responsible for
+	 * freeing that data. \a gfree should be called after all of the units
+	 * have had the opportunity to free their private data.
+	 */
 	void (*gfree)(struct gk20a *g);
 	struct nvgpu_nvhost_dev *nvhost_dev;
 
-	/*
+	/**
 	 * Used by <nvgpu/enabled.h>. Do not access directly!
 	 */
 	unsigned long *enabled_flags;
@@ -1001,12 +1033,18 @@ struct gk20a {
 
 	struct nvgpu_ref refcount;
 
+	/** Name of the gpu. */
 	const char *name;
 
+	/** Is the GPU ready to be used? */
 	u32 power_on_state;
 
+#ifdef CONFIG_NVGPU_DGPU
 	bool gpu_reset_done;
+#endif
+#ifdef CONFIG_PM
 	bool suspended;
+#endif
 	bool sw_ready;
 
 #ifndef CONFIG_NVGPU_RECOVERY
@@ -1016,6 +1054,7 @@ struct gk20a {
 	struct nvgpu_thread sw_quiesce_thread;
 #endif
 
+	/** Controls which messages are logged */
 	u64 log_mask;
 	u32 log_trace;
 
@@ -1023,7 +1062,7 @@ struct gk20a {
 
 	struct nvgpu_gpu_params params;
 
-	/*
+	/**
 	 * Guards access to hardware when usual gk20a_{busy,idle} are skipped
 	 * for submits and held for channel lifetime but dropped for an ongoing
 	 * gk20a_do_idle().
@@ -1069,7 +1108,7 @@ struct gk20a {
 
 	struct nvgpu_spinlock power_spinlock;
 
-	/* Channel priorities */
+	/** Channel priorities */
 	u32 tsg_timeslice_low_priority_us;
 	u32 tsg_timeslice_medium_priority_us;
 	u32 tsg_timeslice_high_priority_us;
@@ -1096,18 +1135,19 @@ struct gk20a {
 	unsigned int aggressive_sync_destroy_thresh;
 	bool aggressive_sync_destroy;
 
-	/* Debugfs knob for forcing syncpt support off in runtime. */
+	/** Debugfs knob for forcing syncpt support off in runtime. */
 	u32 disable_syncpoints;
 
 	bool support_ls_pmu;
 
+	/** Is this a virtual GPU? */
 	bool is_virtual;
 
 	bool has_cde;
 
 	u32 emc3d_ratio;
 
-	/*
+	/**
 	 * A group of semaphore pools. One for each channel.
 	 */
 	struct nvgpu_semaphore_sea *sema_sea;
@@ -1298,6 +1338,13 @@ struct gk20a {
 	struct nvgpu_mem pdb_cache_war_mem;
 };
 
+/**
+ * @brief Check if watchdog and context switch timeouts are enabled.
+ *
+ * @param g [in]	The GPU superstucture.
+ *
+ * @return true if these timeouts are enabled. false otherwise.
+ */
 static inline bool nvgpu_is_timeouts_enabled(struct gk20a *g)
 {
 #ifdef CONFIG_NVGPU_DEBUGGER
@@ -1307,23 +1354,35 @@ static inline bool nvgpu_is_timeouts_enabled(struct gk20a *g)
 #endif
 }
 
+/** Minimum poll delay value in us */
 #define POLL_DELAY_MIN_US	10U
+/** Maximum poll delay value in us */
 #define POLL_DELAY_MAX_US	200U
 
+/**
+ * @brief Get the global poll timeout value
+ *
+ * @param g [in]	The GPU superstucture.
+ *
+ * @return The value of the global poll timeout value in us.
+ */
 static inline u32 nvgpu_get_poll_timeout(struct gk20a *g)
 {
 	return nvgpu_is_timeouts_enabled(g) ?
 		g->poll_timeout_default : U32_MAX;
 }
 
-/* operations that will need to be executed on non stall workqueue */
+/** Operations that will need to be executed on non stall workqueue. */
 #define GK20A_NONSTALL_OPS_WAKEUP_SEMAPHORE	BIT32(0)
 #define GK20A_NONSTALL_OPS_POST_EVENTS		BIT32(1)
 
 bool is_nvgpu_gpu_state_valid(struct gk20a *g);
 
+/** IO Resource in the device tree for BAR0 */
 #define GK20A_BAR0_IORESOURCE_MEM	0U
+/** IO Resource in the device tree for BAR1 */
 #define GK20A_BAR1_IORESOURCE_MEM	1U
+/** IO Resource in the device tree for SIM mem */
 #define GK20A_SIM_IORESOURCE_MEM	2U
 
 #ifdef CONFIG_PM
@@ -1331,22 +1390,36 @@ int gk20a_do_idle_impl(struct gk20a *g, bool force_reset);
 int gk20a_do_unidle_impl(struct gk20a *g);
 #endif
 
+/** Bit offset of the Architecture field in the HW version register */
 #define NVGPU_GPU_ARCHITECTURE_SHIFT 4U
 
-/* constructs unique and compact GPUID from nvgpu_gpu_characteristics
- * arch/impl fields */
+/**
+ * Constructs unique and compact GPUID from nvgpu_gpu_characteristics
+ * arch/impl fields.
+ */
 #define GK20A_GPUID(arch, impl) ((u32) ((arch) | (impl)))
 
+/** gk20a HW version */
 #define GK20A_GPUID_GK20A   0x000000EAU
+/** gm20b HW version */
 #define GK20A_GPUID_GM20B   0x0000012BU
+/** gm20b.b HW version */
 #define GK20A_GPUID_GM20B_B 0x0000012EU
+/** gm10b HW version */
 #define NVGPU_GPUID_GP10B   0x0000013BU
+/** gv11b HW version */
 #define NVGPU_GPUID_GV11B   0x0000015BU
+/** gv100 HW version */
 #define NVGPU_GPUID_GV100   0x00000140U
+/** tu104 HW version */
 #define NVGPU_GPUID_TU104   0x00000164U
 
 void nvgpu_wait_for_deferred_interrupts(struct gk20a *g);
 
 bool nvgpu_has_syncpoints(struct gk20a *g);
+
+/**
+ * @}
+ */
 
 #endif /* GK20A_H */
