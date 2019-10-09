@@ -535,6 +535,15 @@ static int gm20b_gr_falcon_ctx_wait_ucode(struct gk20a *g, u32 mailbox_id,
 			*mailbox_ret = reg;
 		}
 
+		/*
+		 * Exit with success if opcode status is set to skip for both
+		 * success and failure.
+		 */
+		if (opc_success == GR_IS_UCODE_OP_SKIP &&
+				opc_fail == GR_IS_UCODE_OP_SKIP) {
+			check = WAIT_UCODE_OK;
+			break;
+		}
 		gm20b_gr_falcon_check_ctx_opcode_status(g, opc_success, false,
 						reg, mailbox_ok, &check);
 
