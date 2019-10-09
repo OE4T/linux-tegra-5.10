@@ -21,18 +21,83 @@
  */
 #ifndef NVGPU_FUSE_H
 #define NVGPU_FUSE_H
+/**
+ * @file
+ *
+ * Interface for fuse ops.
+ */
 
 struct gk20a;
 
 #include <nvgpu/types.h>
 
+#ifdef CONFIG_NVGPU_NON_FUSA
 int nvgpu_tegra_get_gpu_speedo_id(struct gk20a *g);
+#endif
 
+/**
+ * @brief -  Write Fuse bypass register which controls fuse bypass.
+ *
+ * @param g [in] - GPU super structure.
+ * @param val [in]- 0 : DISABLED, 1 : ENABLED
+ *
+ * - Write 0/1 to control the fuse bypass.
+ *
+ * @return none.
+ */
 void nvgpu_tegra_fuse_write_bypass(struct gk20a *g, u32 val);
-void nvgpu_tegra_fuse_write_access_sw(struct gk20a *g, u32 val);
-void nvgpu_tegra_fuse_write_opt_gpu_tpc0_disable(struct gk20a *g, u32 val);
-void nvgpu_tegra_fuse_write_opt_gpu_tpc1_disable(struct gk20a *g, u32 val);
-int nvgpu_tegra_fuse_read_gcplex_config_fuse(struct gk20a *g, u32 *val);
-int nvgpu_tegra_fuse_read_reserved_calib(struct gk20a *g, u32 *val);
 
+/**
+ * @brief - Enable software write access
+ *
+ * @param g [in] - GPU super structure.
+ * @param val [in] - 0 : READWRITE, 1 : READONLY
+ *
+ * - Bit 0 of the register is the write control register. When set to 1,
+ *   it disables writes to chip.
+ *
+ * @return none.
+ */
+void nvgpu_tegra_fuse_write_access_sw(struct gk20a *g, u32 val);
+
+/**
+ * @brief - Disable TPC0
+ *
+ * @param g [in] - GPU super structure.
+ * @param val [in] - 1 : DISABLED, 0 : ENABLED
+ *
+ * - Write 1/0 to fuse tpc disable register to disable/enable the TPC0.
+ *
+ * @return none.
+ */
+void nvgpu_tegra_fuse_write_opt_gpu_tpc0_disable(struct gk20a *g, u32 val);
+
+/**
+ * @brief - Disable TPC1
+ *
+ * @param g [in] - GPU super structure.
+ * @param val [in] - 1 : DISABLED, 0 : ENABLED
+ *
+ * - Write 1/0 to fuse tpc disable register to disable/enable the TPC1.
+ *
+ * @return none.
+ */
+void nvgpu_tegra_fuse_write_opt_gpu_tpc1_disable(struct gk20a *g, u32 val);
+
+/**
+ * @brief - Reads GCPLEX_CONFIG_FUSE configuration.
+ *
+ * @param g [in] - GPU super structure.
+ * @param val [out] - Populated with register GCPLEX_CONFIG_FUSE value.
+ *
+ * - Provide information about the GPU complex configuration.
+ *
+ * @return 0 on success.
+ *
+ */
+int nvgpu_tegra_fuse_read_gcplex_config_fuse(struct gk20a *g, u32 *val);
+
+#ifdef CONFIG_NVGPU_NON_FUSA
+int nvgpu_tegra_fuse_read_reserved_calib(struct gk20a *g, u32 *val);
+#endif
 #endif /* NVGPU_FUSE_H */

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -26,10 +26,12 @@
 #include <nvgpu/posix/io.h>
 #include <nvgpu/posix/soc_fuse.h>
 
+#ifdef CONFIG_NVGPU_NON_FUSA
 int nvgpu_tegra_get_gpu_speedo_id(struct gk20a *g)
 {
 	return 0;
 }
+#endif
 
 /*
  * Use tegra_fuse_control_read/write() APIs for fuse offsets upto 0x100
@@ -91,6 +93,7 @@ int nvgpu_tegra_fuse_read_gcplex_config_fuse(struct gk20a *g, u32 *val)
 	return p->callbacks->tegra_fuse_readl(FUSE_GCPLEX_CONFIG_FUSE_0, val);
 }
 
+#ifdef CONFIG_NVGPU_NON_FUSA
 int nvgpu_tegra_fuse_read_reserved_calib(struct gk20a *g, u32 *val)
 {
 	struct nvgpu_os_posix *p = nvgpu_os_posix_from_gk20a(g);
@@ -101,3 +104,4 @@ int nvgpu_tegra_fuse_read_reserved_calib(struct gk20a *g, u32 *val)
 
 	return p->callbacks->tegra_fuse_readl(FUSE_RESERVED_CALIB0_0, val);
 }
+#endif
