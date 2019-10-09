@@ -315,8 +315,8 @@ u32 intr_tu104_isr_nonstall(struct gk20a *g)
 					     NV_CPU_INTR_TOP_NONSTALL_SUBTREE)),
 				nonstall_intr_mask_hi);
 
-			ops |= (GK20A_NONSTALL_OPS_WAKEUP_SEMAPHORE |
-				GK20A_NONSTALL_OPS_POST_EVENTS);
+			ops |= (NVGPU_NONSTALL_OPS_WAKEUP_SEMAPHORE |
+				NVGPU_NONSTALL_OPS_POST_EVENTS);
 		}
 	}
 

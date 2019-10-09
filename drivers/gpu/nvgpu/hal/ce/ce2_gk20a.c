@@ -30,6 +30,7 @@
 #include <nvgpu/io.h>
 #include <nvgpu/utils.h>
 #include <nvgpu/gk20a.h>
+#include <nvgpu/mc.h>
 #include <nvgpu/channel.h>
 #include <nvgpu/engines.h>
 
@@ -69,8 +70,8 @@ u32 gk20a_ce2_nonstall_isr(struct gk20a *g, u32 inst_id, u32 pri_base)
 		nvgpu_log(g, gpu_dbg_intr, "ce2 non-blocking pipe interrupt");
 		nvgpu_writel(g, ce2_intr_status_r(),
 			ce2_intr_status_nonblockpipe_pending_f());
-		ops |= (GK20A_NONSTALL_OPS_WAKEUP_SEMAPHORE |
-			GK20A_NONSTALL_OPS_POST_EVENTS);
+		ops |= (NVGPU_NONSTALL_OPS_WAKEUP_SEMAPHORE |
+			NVGPU_NONSTALL_OPS_POST_EVENTS);
 	}
 	return ops;
 }

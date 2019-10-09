@@ -17,6 +17,7 @@
 #include <linux/irqreturn.h>
 
 #include <nvgpu/gk20a.h>
+#include <nvgpu/mc.h>
 #include <nvgpu/nvgpu_init.h>
 
 #include <nvgpu/atomic.h>
@@ -129,9 +130,9 @@ static void mc_gk20a_handle_intr_nonstall(struct gk20a *g, u32 ops)
 	bool semaphore_wakeup, post_events;
 
 	semaphore_wakeup =
-		(((ops & GK20A_NONSTALL_OPS_WAKEUP_SEMAPHORE) != 0U) ?
+		(((ops & NVGPU_NONSTALL_OPS_WAKEUP_SEMAPHORE) != 0U) ?
 					true : false);
-	post_events = (((ops & GK20A_NONSTALL_OPS_POST_EVENTS) != 0U) ?
+	post_events = (((ops & NVGPU_NONSTALL_OPS_POST_EVENTS) != 0U) ?
 					true: false);
 
 	if (semaphore_wakeup) {

@@ -21,6 +21,7 @@
  */
 
 #include <nvgpu/gk20a.h>
+#include <nvgpu/mc.h>
 #include <nvgpu/io.h>
 #include <nvgpu/class.h>
 #include <nvgpu/static_analysis.h>
@@ -415,8 +416,8 @@ u32 gm20b_gr_intr_nonstall_isr(struct gk20a *g)
 		/* Clear the interrupt */
 		nvgpu_writel(g, gr_intr_nonstall_r(),
 			gr_intr_nonstall_trap_pending_f());
-		ops |= (GK20A_NONSTALL_OPS_WAKEUP_SEMAPHORE |
-			GK20A_NONSTALL_OPS_POST_EVENTS);
+		ops |= (NVGPU_NONSTALL_OPS_WAKEUP_SEMAPHORE |
+			NVGPU_NONSTALL_OPS_POST_EVENTS);
 	}
 	return ops;
 }

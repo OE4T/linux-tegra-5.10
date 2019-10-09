@@ -168,7 +168,7 @@ struct gops_fifo {
 	 * - Read interrupt status.
 	 * - Clear channel interrupt if pending.
 	 *
-	 * @return: #GK20A_NONSTALL_OPS_WAKEUP_SEMAPHORE
+	 * @return: #NVGPU_NONSTALL_OPS_WAKEUP_SEMAPHORE
 	 */
 	u32  (*intr_1_isr)(struct gk20a *g);
 

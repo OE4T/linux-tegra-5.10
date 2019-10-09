@@ -56,6 +56,7 @@
 #include <nvgpu/pmu/pmu_pstate.h>
 #include <nvgpu/cyclestats_snapshot.h>
 #include <nvgpu/nvgpu_init.h>
+#include <nvgpu/mc.h>
 
 #include "platform_gk20a.h"
 #include "sysfs.h"

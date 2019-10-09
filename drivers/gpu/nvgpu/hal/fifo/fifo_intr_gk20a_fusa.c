@@ -21,6 +21,7 @@
  */
 
 #include <nvgpu/gk20a.h>
+#include <nvgpu/mc.h>
 #include <nvgpu/log.h>
 #include <nvgpu/io.h>
 #include <nvgpu/soc.h>
@@ -63,7 +64,7 @@ u32 gk20a_fifo_intr_1_isr(struct gk20a *g)
 
 	nvgpu_writel(g, fifo_intr_0_r(), clear_intr);
 
-	return GK20A_NONSTALL_OPS_WAKEUP_SEMAPHORE;
+	return NVGPU_NONSTALL_OPS_WAKEUP_SEMAPHORE;
 }
 
 void gk20a_fifo_intr_handle_chsw_error(struct gk20a *g)

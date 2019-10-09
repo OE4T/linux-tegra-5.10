@@ -1372,10 +1372,6 @@ static inline u32 nvgpu_get_poll_timeout(struct gk20a *g)
 		g->poll_timeout_default : U32_MAX;
 }
 
-/** Operations that will need to be executed on non stall workqueue. */
-#define GK20A_NONSTALL_OPS_WAKEUP_SEMAPHORE	BIT32(0)
-#define GK20A_NONSTALL_OPS_POST_EVENTS		BIT32(1)
-
 /** IO Resource in the device tree for BAR0 */
 #define GK20A_BAR0_IORESOURCE_MEM	0U
 /** IO Resource in the device tree for BAR1 */
@@ -1411,8 +1407,6 @@ int gk20a_do_unidle_impl(struct gk20a *g);
 #define NVGPU_GPUID_GV100   0x00000140U
 /** tu104 HW version */
 #define NVGPU_GPUID_TU104   0x00000164U
-
-void nvgpu_wait_for_deferred_interrupts(struct gk20a *g);
 
 bool nvgpu_has_syncpoints(struct gk20a *g);
 
