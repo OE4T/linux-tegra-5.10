@@ -536,12 +536,12 @@ static int eqos_poll_for_swr(void *addr)
 		}
 
 		count++;
-		osd_msleep(1U);
 
 		dma_bmr = osi_readl((unsigned char *)addr + EQOS_DMA_BMR);
-
 		if ((dma_bmr & EQOS_DMA_BMR_SWR) == 0U) {
 			cond = 0;
+		} else {
+			osd_msleep(1U);
 		}
 	}
 
