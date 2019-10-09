@@ -391,6 +391,7 @@ gr:
                  common/gr/gr_priv.h,
                  common/gr/gr_utils.c,
                  include/nvgpu/gr/gr_utils.h,
+                 include/nvgpu/gops_gr.h,
                  include/nvgpu/gr/gr.h ]
     global_ctx:
       safe: yes
