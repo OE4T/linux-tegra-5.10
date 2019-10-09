@@ -43,22 +43,6 @@ void osd_msleep(unsigned int msec);
  */
 void osd_udelay(unsigned long usec);
 /**
- * @brief osd_info - logging function
- *
- * @param[in] priv: OSD private data
- * @param[in] fmt: fragments
- */
-void osd_info(void *priv, const char *fmt, ...);
-
-/**
- * @brief osd_err - logging function
- *
- * @param[in] priv: OSD private data
- * @param[in] fmt: fragments
- */
-void osd_err(void *priv, const char *fmt, ...);
-
-/**
  * @brief osd_receive_packet - Handover received packet to network stack.
  *
  * Algorithm:
@@ -111,4 +95,23 @@ void osd_receive_packet(void *priv, void *rxring, unsigned int chan,
  */
 void osd_transmit_complete(void *priv, void *buffer, unsigned long dmaaddr,
 			   unsigned int len, void *txdone_pkt_cx);
+/**
+ * @brief osd_log - OSD logging function
+ *
+ * @param[in] priv: OSD private data
+ * @param[in] func: function name
+ * @param[in] line: line number
+ * @param[in] level: log level
+ * @param[in] type: error type
+ * @param[in] err:  error string
+ * @param[in] loga: error additional information
+ *
+ */
+void osd_log(void *priv,
+	     const char *func,
+	     unsigned int line,
+	     unsigned int level,
+	     unsigned int type,
+	     const char *err,
+	     unsigned long long loga);
 #endif

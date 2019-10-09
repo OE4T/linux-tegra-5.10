@@ -77,6 +77,53 @@
 #define OSI_ULLONG_MAX			(~0ULL)
 #define OSI_UCHAR_MAX			(0xFFU)
 
+/* Logging defines */
+/* log levels */
+#define OSI_LOG_INFO			1U
+#define OSI_LOG_WARN			2U
+#define OSI_LOG_ERR			3U
+/* Error types */
+#define OSI_LOG_ARG_OUTOFBOUND		1U
+#define OSI_LOG_ARG_INVALID		2U
+#define OSI_LOG_ARG_OPNOTSUPP		3U
+#define OSI_LOG_ARG_HW_FAIL		4U
+/**
+ * OSI error macro definition,
+ * @param[in] priv: OSD private data OR NULL
+ * @param[in] type: error type
+ * @param[in] err:  error string
+ * @param[in] loga: error additional information
+ */
+#define OSI_ERR(priv, type, err, loga)			\
+	{						\
+		osd_log(priv, __func__, __LINE__,	\
+			OSI_LOG_ERR, type, err, loga);	\
+	}
+/**
+ * OSI info macro definition
+ * @param[in] priv: OSD private data OR NULL
+ * @param[in] type: error type
+ * @param[in] err:  error string
+ * @param[in] loga: error additional information
+ */
+#define OSI_INFO(priv, type, err, loga)			\
+	{						\
+		osd_log(priv, __func__, __LINE__,	\
+			OSI_LOG_INFO, type, err, loga);	\
+	}
+/**
+ * OSI warning macro definition
+ * @param[in] priv: OSD private data OR NULL
+ * @param[in] type: error type
+ * @param[in] err:  error string
+ * @param[in] loga: error additional information
+ */
+#define OSI_WARN(priv, type, err, loga)			\
+	{						\
+		osd_log(priv, __func__, __LINE__,	\
+			OSI_LOG_WARN, type, err, loga);	\
+	}
+
 /* Default maximum Gaint Packet Size Limit */
 #define OSI_MAX_MTU_SIZE	9000U
 #define OSI_DFLT_MTU_SIZE	1500U
