@@ -134,7 +134,7 @@ int vi6_priv_early_probe(struct platform_device *pdev)
 	platform_set_drvdata(pdev, info);
 	info->private_data = vi6;
 
-	(void) dma_set_mask_and_coherent(&pdev->dev, DMA_BIT_MASK(40));
+	(void) dma_set_mask_and_coherent(&pdev->dev, DMA_BIT_MASK(39));
 
 	return 0;
 
