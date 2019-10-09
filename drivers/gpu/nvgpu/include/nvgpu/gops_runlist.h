@@ -24,15 +24,54 @@
 
 #include <nvgpu/types.h>
 
+/**
+ * @file
+ *
+ * Runlist HAL interface.
+ */
 struct gk20a;
 struct nvgpu_channel;
 
+/**
+ * Runlist HAL operations.
+ *
+ * @see gpu_ops
+ */
 struct gops_runlist {
+	/**
+	 * @brief Reload runlist.
+	 *
+	 * @param g [in]		The GPU driver struct.
+	 * @param runlist_id [in]	Runlist identifier.
+	 * @param add [in]		True to submit a runlist buffer with
+	 * 				all active channels. False to submit
+	 * 				an empty runlist buffer.
+	 * @param wait_for_finish [in]	True to wait for runlist update
+	 * 				completion.
+	 *
+	 * When \a add is true, all entries are updated for the runlist.
+	 * A runlist buffer is built with all active channels/TSGs for the
+	 * runlist and submitted to H/W.
+	 *
+	 * When \a add is false, an empty runlist buffer is submitted to H/W.
+	 * Submitting a NULL runlist results in Host expiring the current
+	 * timeslices and effectively disabling scheduling for that runlist
+	 * processor until the next runlist is submitted.
+	 *
+	 * @return 0 in case of success, < 0 in case of failure.
+	 * @retval -ETIMEDOUT if transition to the new runlist takes too long,
+	 *         and \a wait_for_finish was requested.
+	 * @retval -E2BIG in case there are not enough entries in the runlist
+	 *         buffer to accommodate all active channels/TSGs.
+	 */
+	int (*reload)(struct gk20a *g, u32 runlist_id,
+			bool add, bool wait_for_finish);
+
+	/** @cond DOXYGEN_SHOULD_SKIP_THIS */
+
 	int (*update_for_channel)(struct gk20a *g, u32 runlist_id,
 			struct nvgpu_channel *ch, bool add,
 			bool wait_for_finish);
-	int (*reload)(struct gk20a *g, u32 runlist_id,
-			bool add, bool wait_for_finish);
 	u32 (*count_max)(void);
 	u32 (*entry_size)(struct gk20a *g);
 	u32 (*length_max)(struct gk20a *g);
@@ -44,11 +83,11 @@ struct gops_runlist {
 	int (*wait_pending)(struct gk20a *g, u32 runlist_id);
 	void (*write_state)(struct gk20a *g, u32 runlists_mask,
 			u32 runlist_state);
-
-	/** NON FUSA */
 	int (*reschedule)(struct nvgpu_channel *ch, bool preempt_next);
 	int (*reschedule_preempt_next_locked)(struct nvgpu_channel *ch,
 			bool wait_preempt);
+
+	/** @endcond DOXYGEN_SHOULD_SKIP_THIS */
 };
 
 #endif
