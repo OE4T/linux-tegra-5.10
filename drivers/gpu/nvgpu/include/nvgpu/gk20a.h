@@ -1376,8 +1376,6 @@ static inline u32 nvgpu_get_poll_timeout(struct gk20a *g)
 #define GK20A_NONSTALL_OPS_WAKEUP_SEMAPHORE	BIT32(0)
 #define GK20A_NONSTALL_OPS_POST_EVENTS		BIT32(1)
 
-bool is_nvgpu_gpu_state_valid(struct gk20a *g);
-
 /** IO Resource in the device tree for BAR0 */
 #define GK20A_BAR0_IORESOURCE_MEM	0U
 /** IO Resource in the device tree for BAR1 */

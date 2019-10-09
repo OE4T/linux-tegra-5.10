@@ -313,4 +313,14 @@ int gk20a_busy(struct gk20a *g);
  */
 void gk20a_idle(struct gk20a *g);
 
+/**
+ * @brief Check if the GPU HW is in a valid state by making sure the boot_0
+ * register returns a valid value.
+ *
+ * @param g [in] The GPU
+ *
+ * @return True if the HW state is determined to be valid. False, otherwise.
+ */
+bool is_nvgpu_gpu_state_valid(struct gk20a *g);
+
 #endif /* NVGPU_INIT_H */
