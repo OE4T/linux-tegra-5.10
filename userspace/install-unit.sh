@@ -38,7 +38,7 @@ usage() {
 # It helps a lot of you set up an authorized key on the target! Otherwise
 # you may have a lot of typing to do...
 jcp() {
-    cmd="rsync -qru $1 $target:$2"
+    cmd="rsync -qr $1 $target:$2"
     echo "> $cmd"
     $cmd
 }
@@ -125,7 +125,7 @@ jcp $TOP/kernel/nvgpu/userspace/required_tests.json      \
 jcp $TOP/kernel/nvgpu/userspace/firmware/ nvgpu_unit/firmware/
 
 find $nvgpu_bins/userspace/units -name "*.so" -not -path "*unit.so" \
-    -not -path "*drv.so" -exec ls {} \; | while read unit_so ; do
+    -not -path "*drv.so" -exec du -b {} \; | sort -n | while read size unit_so ; do
         jcp $unit_so nvgpu_unit/units/
 done
 
