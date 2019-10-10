@@ -23,24 +23,108 @@
 #ifndef NVGPU_LTC_H
 #define NVGPU_LTC_H
 
+/**
+ * @file
+ *
+ * common.ltc unit interface
+ */
 #include <nvgpu/types.h>
 #include <nvgpu/lock.h>
 
 struct gk20a;
 
+/**
+ * LTC data structure.
+ *
+ * This structure stores data related to ltc unit.
+ */
 struct nvgpu_ltc {
+	/**
+	 * Spinlock to protect all ltc operations.
+	 */
 	struct nvgpu_spinlock ltc_enabled_lock;
+	/** Maximum ltc count value is read from h/w top config register. */
 	u32 max_ltc_count;
+	/** Enumerated ltc count value is read from h/w priv ring register. */
 	u32 ltc_count;
+	/** Slices per ltc value is read from h/w ltc cbc register. */
 	u32 slices_per_ltc;
+	/** Cache line size in bytes is read from h/w ltc cbc register. */
 	u32 cacheline_size;
 };
 
-void nvgpu_ltc_remove_support(struct gk20a *g);
+/**
+ * @brief Initialize #nvgpu_ltc structure.
+ *
+ * @param g [in]		Pointer to GPU driver struct.
+ *
+ * This function reads ltc unit info from GPU h/w and stores
+ * it in #nvgpu_ltc structure.
+ *
+ * @return 0 in case of success, < 0 in case of failure.
+ * @retval -ENOMEM if memory allocation for #nvgpu_ltc fails.
+ */
 int nvgpu_init_ltc_support(struct gk20a *g);
+/**
+ * @brief Remove support for LTC.
+ *
+ * @param g [in]		Pointer to GPU driver struct.
+ *
+ * This function will free memory allocated for #nvgpu_ltc structure.
+ * LTC unit data will be no longer accessible by s/w.
+ */
+void nvgpu_ltc_remove_support(struct gk20a *g);
+/**
+ * @brief Enable/Disable caching feature of L2.
+ *
+ * @param g [in]		Pointer to GPU driver struct.
+ *
+ * This function will enable/disable caching feature of L2 based on
+ * #mm.ltc_enable_target. With #mm.ltc_enable_target set to true,
+ * gpu l2 caching feature will be enabled. Gpu L2 cahching is enabled with h/w
+ * power-on and can only be changed after h/w reset, before the first
+ * transaction received by L2.
+ * With #mm.ltc_enable_target set to false, Gpu L2 caching will be disabled.
+ * With Gpu L2 cache disabled, all transactions will miss in L2 and data will
+ * be always write-through to main memory.
+ *
+ */
 void nvgpu_ltc_sync_enabled(struct gk20a *g);
+/**
+ * @brief Get enumerated ltcs count.
+ *
+ * @param g [in]		Pointer to GPU driver struct.
+ *
+ * This function returns enumerated number of ltcs after floorsweeping.
+ * After floorsweeping enumerated ltcs may be less than maximum ltcs available.
+ *
+ * @return Number of enumerated ltc count.
+ */
 u32 nvgpu_ltc_get_ltc_count(struct gk20a *g);
+/**
+ * @brief Get slices per ltc.
+ *
+ * @param g [in]		Pointer to GPU driver struct.
+ *
+ * This function returns slices per ltc.
+ * Each ltc unit is constituted by h/w configured multiple physical slices.
+ * Clients can use slice size info to make their cache requirement to
+ * a slice for better bandwidth and/or utilization.
+ *
+ * @return Number of slices per ltc.
+ */
 u32 nvgpu_ltc_get_slices_per_ltc(struct gk20a *g);
+/**
+ * @brief Get cacheline size.
+ *
+ * @param g[in]		Pointer to GPU driver struct.
+ *
+ * This function returns cacheline size in bytes.
+ * Cacheline is chunk of memory that can be handled in one go by cache.
+ * Cacheline size is configured as multiple of 512 bytes in h/w.
+ *
+ * @return Cacheline size in bytes.
+ */
 u32 nvgpu_ltc_get_cacheline_size(struct gk20a *g);
 
 #endif /* NVGPU_LTC_H */
