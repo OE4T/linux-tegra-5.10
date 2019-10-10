@@ -197,6 +197,7 @@ int osi_process_rx_completions(struct osi_dma_priv_data *osi,
 	struct osi_rx_pkt_cx *rx_pkt_cx = &rx_ring->rx_pkt_cx;
 	struct osi_rx_desc *rx_desc = OSI_NULL;
 	struct osi_rx_swcx *rx_swcx = OSI_NULL;
+	struct osi_rx_swcx *ptp_rx_swcx = OSI_NULL;
 	struct osi_rx_desc *context_desc = OSI_NULL;
 	int received = 0;
 	int ret = 0;
@@ -240,6 +241,15 @@ int osi_process_rx_completions(struct osi_dma_priv_data *osi,
 			/* Get rx time stamp */
 			ret = get_rx_hwstamp(rx_desc, context_desc, rx_pkt_cx);
 			if (ret == 0) {
+				ptp_rx_swcx = rx_ring->rx_swcx +
+					      rx_ring->cur_rx_idx;
+				/* Marking software context as PTP software
+				 * context so that OSD can skip DMA buffer
+				 * allocation and DMA mapping. DMA can use PTP
+				 * software context addresses directly since
+				 * those are valid.
+				 */
+				ptp_rx_swcx->ptp_swcx = 1;
 				/* Context descriptor was consumed. Its skb
 				 * and DMA mapping will be recycled
 				 */
@@ -753,6 +763,8 @@ static int rx_dma_desc_initialization(struct osi_dma_priv_data *osi,
 		if (osi->use_riwt == OSI_ENABLE) {
 			rx_desc->rdes3 &= ~RDES3_IOC;
 		}
+
+		rx_swcx->ptp_swcx = 0;
 	}
 
 	tailptr = rx_ring->rx_desc_phy_addr +
