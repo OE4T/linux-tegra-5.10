@@ -143,7 +143,28 @@ void nvgpu_start_gpu_idle(struct gk20a *g);
  *
  * @param g [in] The GPU
  *
- * Enable interrupt handlers.
+ * - Steps to enable interrupt handlers :
+ *   - Set flag nonstall_work to 0.
+ *   - Initialize sw_irq_stall condition variable. If return code is non zero
+ *     return error.
+ *   - Initialize sw_irq_nonstall condition variable. If return code is non
+ *     zero return error.
+ *   - Initialize nonstall_cond condition variable. If return code is non zero
+ *     return error.
+ *   - Create nvgpu_nonstall_worker thread. It keeps on waiting for channel
+ *     semaphore. If enable to create a thread return error.
+ *   - Create a nvgpu_intr_stall thread with the NVGPU_INTR_PRIORITY
+ *     priority. This is a blocking thread which keeps on waiting for stall
+ *     intrerrupts and process the work if any stall intrerrupt gets generate.
+ *     irqs. If return code is non zero return error.
+ *   - If disable_nonstall_intr is not set then create nonstall_irq_thread
+ *     with the NVGPU_INTR_PRIORITY priority. This is a blocking thread which
+ *     keeps on waiting for non_stall intrerrupts and process the work if any
+ *     non_stall intrerrupt gets generate.
+ *   - set r->irq_requested to true once all the irqs are enabled successfully.
+ *   - In case of failure start cleanup in the reverse order of init.
+ *
+ *  @return 0 in case of success or error code for the respective failure.
  */
 int nvgpu_enable_irqs(struct gk20a *g);
 
@@ -152,10 +173,19 @@ int nvgpu_enable_irqs(struct gk20a *g);
  *
  * @param g [in] The GPU
  *
- * Disable interrupt handlers.
+ * - Steps to disable irqs.
+ *   - Stop stall irq thread.
+ *   - If disable_nonstall_intr not enabled stop nonstall irq thread.
+ *   - Stop irq worker thread.
+ *   - Destroy condition sw_irq_stall_last_handled_cond and
+ *     sw_irq_nonstall_last_handled_cond variables.
+ *   - Set irq_requested to false.
+ *
+ * @return none.
  */
 void nvgpu_disable_irqs(struct gk20a *g);
 
+/** Signify current state of nvgpu driver */
 #define NVGPU_STATE_POWERED_OFF		0U
 #define NVGPU_STATE_POWERING_ON		1U
 #define NVGPU_STATE_POWERED_ON		2U
