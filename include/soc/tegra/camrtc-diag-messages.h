@@ -23,6 +23,10 @@
  */
 #define CAMRTC_DIAG_ISP5_SDL_SETUP_REQ		MK_U32(0x01)
 #define CAMRTC_DIAG_ISP5_SDL_SETUP_RESP		MK_U32(0x02)
+#define CAMRTC_DIAG_ISP5_SDL_RELEASE_REQ	MK_U32(0x03)
+#define CAMRTC_DIAG_ISP5_SDL_RELEASE_RESP	MK_U32(0x04)
+#define CAMRTC_DIAG_ISP5_SDL_STATUS_REQ		MK_U32(0x05)
+#define CAMRTC_DIAG_ISP5_SDL_STATUS_RESP	MK_U32(0x06)
 /**@}*/
 
 /**
@@ -55,7 +59,7 @@ struct camrtc_diag_isp5_sdl_setup_req {
 } CAMRTC_DIAG_IVC_ALIGN;
 
 /**
- * @brief camrtc_diag_isp5_sdl_setup_resp - ISP5 SDL periodic diagnostics setup response.
+ * @brief camrtc_diag_isp5_sdl_setup_resp - ISP5 PFSD setup response.
  *
  * Setup status is returned in the result field.
  */
@@ -63,7 +67,42 @@ struct camrtc_diag_isp5_sdl_setup_resp {
 	/** SDL setup status returned to caller. */
 	uint32_t result;
 	/** Reserved. */
-	uint32_t __pad32[1];
+	uint32_t _pad32[1];
+} CAMRTC_DIAG_IVC_ALIGN;
+
+/**
+ * @brief camrtc_diag_isp5_sdl_release_resp - ISP5 PFSD release response.
+ *
+ * Response status is returned in the result field.
+ */
+struct camrtc_diag_isp5_sdl_release_resp {
+	/** SDL release status returned to caller. */
+	uint32_t result;
+	/** Explicit padding. */
+	uint32_t _pad32[1];
+} CAMRTC_DIAG_IVC_ALIGN;
+
+/**
+ * @brief ISP5 PFSD status response.
+ *
+ * Response status is returned in the result field. The status of test
+ * scheduler and results from test runner are returned, too.
+ */
+struct camrtc_diag_isp5_sdl_status_resp {
+	/** Status returned to requester. */
+	uint32_t result;
+	/** Nonzero if PFSD tests are being scheduled. */
+	uint32_t running;
+	/** Number of tests that have been scheduled. */
+	uint64_t scheduled;
+	/** Number of tests that have been executed. */
+	uint64_t executed;
+	/** Number of tests that have been passed. */
+	uint64_t passed;
+	/** Number of CRC failures in tests. (Counter stops at UINT32_MAX.) */
+	uint32_t crc_failed;
+	/** Explicit padding */
+	uint32_t _pad32[1];
 } CAMRTC_DIAG_IVC_ALIGN;
 
 /**
@@ -75,10 +114,14 @@ struct camrtc_diag_msg {
 	/** ID associated w/ request. */
 	uint32_t transaction_id;
 	union {
-		/** SDL setup req structure. */
+		/** SDL setup request. */
 		struct camrtc_diag_isp5_sdl_setup_req isp5_sdl_setup_req;
-		/** SDL setup resp structure. */
+		/** Response to SDL setup request. */
 		struct camrtc_diag_isp5_sdl_setup_resp isp5_sdl_setup_resp;
+		/** Response to SDL release request. */
+		struct camrtc_diag_isp5_sdl_release_resp isp5_sdl_release_resp;
+		/** Response to SDL status query. */
+		struct camrtc_diag_isp5_sdl_status_resp isp5_sdl_status_resp;
 	};
 } CAMRTC_DIAG_IVC_ALIGN;
 
