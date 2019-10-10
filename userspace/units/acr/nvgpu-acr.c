@@ -32,6 +32,7 @@
 #include <nvgpu/posix/posix-fault-injection.h>
 #include <nvgpu/gr/gr.h>
 #include <nvgpu/lock.h>
+#include <nvgpu/firmware.h>
 
 #include <common/acr/acr_wpr.h>
 #include <common/acr/acr_priv.h>
@@ -40,6 +41,7 @@
 #include <nvgpu/hw/gv11b/hw_mc_gv11b.h>
 #include <nvgpu/hw/gv11b/hw_fb_gv11b.h>
 #include <nvgpu/hw/gv11b/hw_flush_gv11b.h>
+#include <nvgpu/hw/gv11b/hw_falcon_gv11b.h>
 
 #include "nvgpu-acr.h"
 #include "../falcon/falcon_utf.h"
@@ -198,6 +200,103 @@ static int init_acr_falcon_test_env(struct unit_module *m, struct gk20a *g)
 	return 0;
 }
 
+int test_acr_construct_execute(struct unit_module *m,
+				struct gk20a *g, void *args)
+{
+	int err;
+	struct nvgpu_reg_access access;
+
+	err = test_gr_setup_gv11b_reg_space(m, g);
+	if (err != 0) {
+		goto fail;
+	}
+
+	/*
+	 * initialize falcon
+	 *
+	 */
+	if (init_acr_falcon_test_env(m, g) != 0) {
+		unit_return_fail(m, "Module init failed\n");
+	}
+
+	nvgpu_set_enabled(g, NVGPU_SEC_SECUREGPCCS, true);
+
+	nvgpu_set_enabled(g, NVGPU_SEC_PRIVSECURITY, true);
+	err = nvgpu_gr_alloc(g);
+	if (err != 0) {
+		unit_err(m, " Gr allocation failed!\n");
+		return -ENOMEM;
+	}
+
+	/*
+	 * initialize PMU
+	 *
+	 */
+	err = g->ops.pmu.pmu_early_init(g);
+	if (err != 0) {
+		unit_return_fail(m, "nvgpu_pmu_early_init failed\n");
+	}
+
+	/*
+	 * initialize ACR
+	 *
+	 */
+	err = g->ops.acr.acr_init(g);
+	if (err != 0) {
+		unit_return_fail(m, "nvgpu_acr_init failed\n");
+	}
+
+	/*
+	 * Initialize the MM unit required in ucode blob
+	 * preparation
+	 */
+
+	err = g->ops.mm.init_mm_support(g);
+	if (err != 0) {
+		unit_return_fail(m, "failed to init gk20a mm");
+	}
+
+	nvgpu_mutex_acquire(&g->tpc_pg_lock);
+
+	/*
+	 * prepare portion of sw required
+	 * for enable hw
+	 *
+	 */
+	err = nvgpu_gr_prepare_sw(g);
+	if (err != 0) {
+		nvgpu_mutex_release(&g->tpc_pg_lock);
+		unit_return_fail(m, "failed to prepare sw");
+	}
+
+	err = nvgpu_gr_enable_hw(g);
+	if (err != 0) {
+		nvgpu_mutex_release(&g->tpc_pg_lock);
+		unit_return_fail(m, "failed to enable gr");
+	}
+
+	/*
+	 * Set the falcon_falcon_cpuctl_halt_intr_m bit
+	 * for the register falcon_falcon_cpuctl_r
+	 *
+	 */
+	access.addr = pmu_flcn->flcn->flcn_base + falcon_falcon_cpuctl_r();
+	access.value = falcon_falcon_cpuctl_halt_intr_m();
+	nvgpu_utf_falcon_writel_access_reg_fn(g, pmu_flcn, &access);
+
+	/* case 1: pass scenario */
+	err = g->ops.acr.acr_construct_execute(g);
+	if (err != 0) {
+		unit_return_fail(m, "Bootstrap HS ACR failed");
+	}
+
+	return UNIT_SUCCESS;
+
+fail:
+	return UNIT_FAIL;
+
+}
+
 int test_acr_is_lsf_lazy_bootstrap(struct unit_module *m,
 				struct gk20a *g, void *args)
 {
@@ -231,11 +330,20 @@ int test_acr_is_lsf_lazy_bootstrap(struct unit_module *m,
 	if (err != 0) {
 		unit_return_fail(m, "nvgpu_pmu_early_init failed\n");
 	}
+
+	/*
+	 * initialize ACR
+	 *
+	 */
 	err = g->ops.acr.acr_init(g);
 	if (err != 0) {
 		unit_return_fail(m, "nvgpu_acr_init failed\n");
 	}
 
+	/*
+	 * Initialize the MM unit required in ucode blob
+	 * preparation
+	 */
 	err = g->ops.mm.init_mm_support(g);
 	if (err != 0) {
 		unit_return_fail(m, "failed to init gk20a mm");
@@ -269,6 +377,21 @@ int test_acr_is_lsf_lazy_bootstrap(struct unit_module *m,
 		unit_return_fail(m, "failed to test lazy bootstrap\n");
 	}
 
+	/*
+	 * case 2: pass invalid falcon id
+	 * to fail the function
+	 */
+	ret = nvgpu_acr_is_lsf_lazy_bootstrap(g, g->acr,
+						FALCON_ID_INVALID);
+	if (ret != false) {
+		unit_return_fail(m, "lazy bootstrap failure didn't happen as \
+				expected\n");
+	}
+
+	/*
+	 * case 3: pass acr as NULL to fail
+	 * nvgpu_acr_is_lsf_lazy_bootstrap()
+	 */
 	g->acr = NULL;
 	ret = nvgpu_acr_is_lsf_lazy_bootstrap(g, g->acr,
 						FALCON_ID_FECS);
@@ -283,6 +406,7 @@ int test_acr_is_lsf_lazy_bootstrap(struct unit_module *m,
 
 fail:
 	return UNIT_FAIL;
+
 }
 
 int test_acr_prepare_ucode_blob(struct unit_module *m,
@@ -320,11 +444,19 @@ int test_acr_prepare_ucode_blob(struct unit_module *m,
 		unit_return_fail(m, "nvgpu_pmu_early_init failed\n");
 	}
 
+	/*
+	 * initialize ACR
+	 *
+	 */
 	err = g->ops.acr.acr_init(g);
 	if (err != 0) {
 		unit_return_fail(m, "nvgpu_acr_init failed\n");
 	}
 
+	/*
+	 * Initialize the MM unit required in ucode blob
+	 * preparation
+	 */
 	err = g->ops.mm.init_mm_support(g);
 	if (err != 0) {
 		unit_return_fail(m, "failed to init gk20a mm");
@@ -349,7 +481,7 @@ int test_acr_prepare_ucode_blob(struct unit_module *m,
 		unit_return_fail(m, "failed to enable gr");
 	}
 
-	/* case:pass
+	/* case:pass scenario
 	 *
 	 */
 	err = g->acr->prepare_ucode_blob(g);
@@ -363,6 +495,7 @@ int test_acr_prepare_ucode_blob(struct unit_module *m,
 
 fail:
 	return UNIT_FAIL;
+
 }
 
 int test_acr_init(struct unit_module *m,
@@ -377,11 +510,6 @@ int test_acr_init(struct unit_module *m,
 	 */
 	if (init_acr_falcon_test_env(m, g) != 0) {
 		unit_return_fail(m, "Module init failed\n");
-	}
-
-	err = test_gr_setup_gv11b_reg_space(m, g);
-	if (err != 0) {
-		goto fail;
 	}
 
 	/*
@@ -438,9 +566,6 @@ int test_acr_init(struct unit_module *m,
 	}
 
 	return UNIT_SUCCESS;
-
-fail:
-	return UNIT_FAIL;
 }
 
 int free_falcon_test_env(struct unit_module *m, struct gk20a *g,
@@ -463,6 +588,7 @@ int free_falcon_test_env(struct unit_module *m, struct gk20a *g,
 	 * Free the falcon test environment
 	 */
 	nvgpu_utf_falcon_free(g, pmu_flcn);
+	nvgpu_utf_falcon_free(g, gpccs_flcn);
 	return UNIT_SUCCESS;
 }
 
@@ -471,6 +597,9 @@ struct unit_module_test nvgpu_acr_tests[] = {
 	UNIT_TEST(acr_prepare_ucode_blob, test_acr_prepare_ucode_blob, NULL, 0),
 	UNIT_TEST(acr_is_lsf_lazy_bootstrap,
 				test_acr_is_lsf_lazy_bootstrap, NULL, 0),
+	UNIT_TEST(acr_construct_execute, test_acr_construct_execute,
+			NULL, 0),
+
 	UNIT_TEST(acr_free_falcon_test_env, free_falcon_test_env, NULL, 0),
 
 };

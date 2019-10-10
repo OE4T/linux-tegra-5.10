@@ -50,7 +50,13 @@ bool nvgpu_acr_is_lsf_lazy_bootstrap(struct gk20a *g, struct nvgpu_acr *acr,
 		return false;
 	}
 
-	return acr->lsf[falcon_id].is_lazy_bootstrap;
+	if (falcon_id == FALCON_ID_FECS || falcon_id == FALCON_ID_PMU ||
+		falcon_id == FALCON_ID_GPCCS) {
+		return acr->lsf[falcon_id].is_lazy_bootstrap;
+	} else {
+		nvgpu_err(g, "Invalid falcon id\n");
+		return false;
+	}
 }
 
 #ifdef CONFIG_NVGPU_DGPU

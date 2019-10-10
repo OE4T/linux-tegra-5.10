@@ -103,6 +103,9 @@ int test_acr_prepare_ucode_blob(struct unit_module *m, struct gk20a *g,
 
 int test_acr_is_lsf_lazy_bootstrap(struct unit_module *m, struct gk20a *g,
 					void *__args);
+
+int test_acr_construct_execute(struct unit_module *m,
+					struct gk20a *g, void *args);
 /**
  * Test specification for: free_falcon_test_env
  *

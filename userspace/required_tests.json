@@ -1708,6 +1708,11 @@
        "test_level": 0,
        "unit": "nvgpu-acr"
     },
+    {
+       "test": "acr_construct_execute",
+       "test_level": 0,
+       "unit": "nvgpu-acr"
+    },
 
     {
       "test": "acr_free_falcon_test_env",

@@ -71,8 +71,25 @@ void nvgpu_utf_falcon_writel_access_reg_fn(struct gk20a *g,
 			nvgpu_posix_io_writel_reg_space(g,
 				flcn_base + falcon_falcon_dmemc_r(0), ctrl_r);
 		}
-	}
+	} else if (access->addr == (flcn_base + falcon_falcon_cpuctl_r())) {
 
+		if (access->value == falcon_falcon_cpuctl_halt_intr_m()) {
+			access->value = nvgpu_posix_io_readl_reg_space(g,
+						access->addr);
+			access->value |= falcon_falcon_cpuctl_halt_intr_m();
+			nvgpu_posix_io_writel_reg_space(g, access->addr,
+							access->value);
+		} else if (access->value == falcon_falcon_cpuctl_startcpu_f(1)) {
+			access->value = nvgpu_posix_io_readl_reg_space(g,
+							access->addr);
+			access->value |= falcon_falcon_cpuctl_startcpu_f(1);
+			nvgpu_posix_io_writel_reg_space(g, access->addr,
+							access->value);
+			/* set falcon mailbox0 to value 0 */
+			nvgpu_posix_io_writel_reg_space(g, flcn_base +
+					falcon_falcon_mailbox0_r(), 0);
+		}
+	}
 	nvgpu_posix_io_writel_reg_space(g, access->addr, access->value);
 }
 
