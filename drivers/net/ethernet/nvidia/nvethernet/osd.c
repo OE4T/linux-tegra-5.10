@@ -100,6 +100,15 @@ static inline int ether_alloc_skb(struct ether_priv_data *pdata,
 	struct sk_buff *skb = NULL;
 	dma_addr_t dma_addr;
 
+	if (rx_swcx->ptp_swcx) {
+		rx_swcx->ptp_swcx = 0;
+		/* Skip buffer allocation and DMA mapping since
+		 * PTP software context will have valid buffer and
+		 * DMA addresses so use them as is.
+		 */
+		return 0;
+	}
+
 	skb = netdev_alloc_skb_ip_align(pdata->ndev, dma_rx_buf_len);
 	if (unlikely(skb == NULL)) {
 		dev_err(pdata->dev, "RX skb allocation failed\n");
