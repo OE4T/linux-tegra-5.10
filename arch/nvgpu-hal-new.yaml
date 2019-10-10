@@ -757,6 +757,7 @@ top_fusa:
   safe: yes
   owner: Tejal K
   sources: [ include/nvgpu/top.h,
+             include/nvgpu/gops_top.h,
              hal/top/top_gm20b_fusa.c,
              hal/top/top_gm20b.h,
              hal/top/top_gp10b_fusa.c,

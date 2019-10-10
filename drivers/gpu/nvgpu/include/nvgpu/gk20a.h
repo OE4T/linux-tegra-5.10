@@ -90,7 +90,6 @@ struct boardobjgrp_pmu_cmd;
 struct boardobjgrpmask;
 struct nvgpu_sgt;
 struct nvgpu_sgl;
-struct nvgpu_device_info;
 struct nvgpu_channel_hw_state;
 struct nvgpu_mem;
 struct gk20a_cs_snapshot_client;
@@ -132,6 +131,7 @@ enum nvgpu_unit;
 #include <nvgpu/semaphore.h>
 #include <nvgpu/fifo.h>
 
+#include <nvgpu/gops_top.h>
 #include <nvgpu/gops_gr.h>
 #include <nvgpu/gops_fifo.h>
 #include <nvgpu/gops_fuse.h>
@@ -894,38 +894,7 @@ struct gpu_ops {
 			void (*isr)(struct gk20a *g);
 		} intr;
 	} nvlink;
-	struct {
-		u32 (*get_nvhsclk_ctrl_e_clk_nvl)(struct gk20a *g);
-		void (*set_nvhsclk_ctrl_e_clk_nvl)(struct gk20a *g, u32 val);
-		u32 (*get_nvhsclk_ctrl_swap_clk_nvl)(struct gk20a *g);
-		void (*set_nvhsclk_ctrl_swap_clk_nvl)(struct gk20a *g, u32 val);
-		int (*device_info_parse_enum)(struct gk20a *g,
-						u32 table_entry,
-						u32 *engine_id, u32 *runlist_id,
-						u32 *intr_id, u32 *reset_id);
-		int (*device_info_parse_data)(struct gk20a *g,
-						u32 table_entry, u32 *inst_id,
-						u32 *pri_base, u32 *fault_id);
-		u32 (*get_num_engine_type_entries)(struct gk20a *g,
-						u32 engine_type);
-		int (*get_device_info)(struct gk20a *g,
-					struct nvgpu_device_info *dev_info,
-					u32 engine_type, u32 inst_id);
-		bool (*is_engine_gr)(struct gk20a *g, u32 engine_type);
-		bool (*is_engine_ce)(struct gk20a *g, u32 engine_type);
-		u32 (*get_ce_inst_id)(struct gk20a *g, u32 engine_type);
-		u32 (*get_max_gpc_count)(struct gk20a *g);
-		u32 (*get_max_tpc_per_gpc_count)(struct gk20a *g);
-		u32 (*get_max_fbps_count)(struct gk20a *g);
-		u32 (*get_max_fbpas_count)(struct gk20a *g);
-		u32 (*get_max_ltc_per_fbp)(struct gk20a *g);
-		u32 (*get_max_lts_per_ltc)(struct gk20a *g);
-		u32 (*get_num_ltcs)(struct gk20a *g);
-		u32 (*get_num_lce)(struct gk20a *g);
-		u32 (*read_top_scratch1_reg)(struct gk20a *g);
-		u32 (*top_scratch1_devinit_completed)(struct gk20a *g,
-						u32 value);
-	} top;
+	struct gops_top top;
 	struct {
 		int (*init_sec2_setup_sw)(struct gk20a *g);
 		int (*init_sec2_support)(struct gk20a *g);
