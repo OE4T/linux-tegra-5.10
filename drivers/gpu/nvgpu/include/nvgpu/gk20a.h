@@ -47,6 +47,7 @@
  *   - @ref unit-pmu
  *   - @ref unit-common-nvgpu
  *   - @ref unit-common-ltc
+ *   - @ref unit-common-utils
  *   - Etc, etc.
  *
  * NVGPU Software Unit Design Documentation

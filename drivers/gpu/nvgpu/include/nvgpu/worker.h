@@ -33,7 +33,9 @@
 struct gk20a;
 struct nvgpu_worker;
 
-/*
+/**
+ * @file
+ *
  * nvgpu_worker is a fifo based produce-consumer worker for the
  * nvgpu driver. Its meant to provide a generic implementation with hooks
  * to allow each application to implement specific use cases for producing
@@ -74,81 +76,182 @@ struct nvgpu_worker;
  * }
  */
 
+/**
+ * @defgroup worker
+ * @ingroup unit-common-utils
+ * @{
+ */
+
+/**
+ * Operations that can be done to a #nvgpu_worker
+ */
 struct nvgpu_worker_ops {
-	/*
-	 * This interface is used to pass any callback to be invoked the first
-	 * time the background thread is launched.
+	/**
+	 * @brief This interface is used to pass any callback to be invoked the
+	 * first time the background thread is launched.
+	 *
+	 * Can be set to NULL if not applicable for this worker.
+	 *
+	 * @param worker [in]	The worker
 	 */
 	void (*pre_process)(struct nvgpu_worker *worker);
 
-	/*
-	 * This interface is used to pass any callback for early terminating
-	 * the worker thread after the thread has been awakened.
+	/**
+	 * @brief This interface is used to pass any callback for early
+	 * terminating the worker thread after the thread has been awakened.
+	 *
+	 * @param worker [in]	The worker
+	 *
+	 * Can be set to NULL if not applicable for this worker.
+	 *
+	 * @return true if the thread should exit. false otherwise.
 	 */
 	bool (*wakeup_early_exit)(struct nvgpu_worker *worker);
 
-	/*
-	 * This interface is used to pass any post processing callback for
-	 * the worker thread after wakeup. The worker thread executes this
+	/**
+	 * @brief This interface is used to pass any post processing callback
+	 * for the worker thread after wakeup. The worker thread executes this
 	 * callback everytime before sleeping again.
+	 *
+	 * Can be set to NULL if not applicable for this worker.
+	 *
+	 * @param worker [in]	The worker
 	 */
 	void (*wakeup_post_process)(struct nvgpu_worker *worker);
 
-	/*
-	 * This interface is used to handle each of the individual work_item
-	 * just after the background thread has been awakened. This should
-	 * always point to a valid callback function.
+	/**
+	 * @brief This interface is used to handle each of the individual
+	 * work_item just after the background thread has been awakened. This
+	 * should always point to a valid callback function.
+	 *
+	 * @param worker [in]	The worker
 	 */
 	void (*wakeup_process_item)(struct nvgpu_list_node *work_item);
 
-	/*
-	 * Any additional condition that is 'OR'ed with worker_pending_items
+	/**
+	 * @brief Any additional condition that is 'OR'ed with
+	 * worker_pending_items.
+	 *
+	 * @param worker [in]	The worker
+	 *
+	 * Can be set to NULL if not applicable for this worker.
+	 *
+	 * @return true if the worker should wakeup. false otherwise.
 	 */
 	bool (*wakeup_condition)(struct nvgpu_worker *worker);
 
-	/*
-	 * Used to pass any timeout condition for wakeup
+	/**
+	 * @brief Used to pass any timeout condition for wakeup.
+	 *
+	 * Can be set to NULL if not applicable for this worker.
+	 *
+	 * @param worker [in]	The worker
+	 *
+	 * @return The timeout value for waking up the worker.
 	 */
 	u32 (*wakeup_timeout)(struct nvgpu_worker *worker);
 };
 
+/**
+ * Metadata object describing a worker.
+ */
 struct nvgpu_worker {
+	/**
+	 * The GPU struct
+	 */
 	struct gk20a *g;
+	/**
+	 * Name of the worker thread
+	 */
 	char thread_name[64];
+	/**
+	 * Track number of queue entries
+	 */
 	nvgpu_atomic_t put;
+	/**
+	 * Thread for worker
+	 */
 	struct nvgpu_thread poll_task;
+	/**
+	 * cond structure for waiting/waking worker threads
+	 */
 	struct nvgpu_cond wq;
+	/**
+	 * List of work items
+	 */
 	struct nvgpu_list_node items;
+	/**
+	 * Lock for access to the work \a items list
+	 */
 	struct nvgpu_spinlock items_lock;
+	/**
+	 * Mutex for controlled starting of the worker thread
+	 */
 	struct nvgpu_mutex start_lock;
+	/**
+	 * Worker ops functions
+	 */
 	const struct nvgpu_worker_ops *ops;
 };
 
+/**
+ * @brief Generic check if the worker should stop because the thread stopped
+ * running.
+ *
+ * @param worker [in]	The worker
+ *
+ * @return true if the worker should stop. false otherwise.
+ *
+ * Generic function to be used for #nvgpu_worker_ops.wakeup_early_exit if there
+ * are no special conditions required for the worker. This function returns
+ * true if the thread should stop because it is no longer running.
+ */
 bool nvgpu_worker_should_stop(struct nvgpu_worker *worker);
 
-/*
- * Append a work item to the worker's list.
+/**
+ * @brief Append a work item to the worker's list.
+ *
+ * @param worker [in]	The worker.
+ * @param worker [in]	The work item for the worker to work on.
  *
  * This adds work item to the end of the list and wakes the worker
  * up immediately. If the work item already existed in the list, it's not added,
  * because in that case it has been scheduled already but has not yet been
  * processed.
+ *
+ * @return 0 if successfully added, < 0 value on error.
  */
 int nvgpu_worker_enqueue(struct nvgpu_worker *worker,
 		struct nvgpu_list_node *work_item);
 
-/*
- * This API is used to initialize the worker with a name thats a conjunction of
- * the two parameters.{worker_name}_{gpu_name}
+/**
+ * @brief This API is used to initialize the worker with a name that's a
+ * conjunction of the two parameters: {worker_name}_{gpu_name}.
+ *
+ * @param worker [in]		The worker.
+ * @param worker_name [in]	The name of the worker.
+ * @param gpu_name [in]		The name of the GPU.
  */
 void nvgpu_worker_init_name(struct nvgpu_worker *worker,
 		const char* worker_name, const char *gpu_name);
 
-/*
- * Initialize the worker's metadata and start the background thread.
+/**
+ * @brief Initialize the worker's metadata and start the background thread.
+ *
+ * @param g [in]	The GPU superstructure.
+ * @param worker [in]	The worker.
+ * @param ops [in]	The worker ops specific for this worker.
+ *
+ * @return 0 for success, < 0 for error.
  */
 int nvgpu_worker_init(struct gk20a *g, struct nvgpu_worker *worker,
 		const struct nvgpu_worker_ops *ops);
+
+/**
+ * @brief Stop the background thread and cleanup the metadata in the worker.
+ *
+ * @param worker [in]	The worker.
+ */
 void nvgpu_worker_deinit(struct nvgpu_worker *worker);
 
 #endif /* NVGPU_WORKER_H */
