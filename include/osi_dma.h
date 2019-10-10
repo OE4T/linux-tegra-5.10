@@ -133,6 +133,8 @@ struct osi_rx_swcx {
 	void *buf_virt_addr;
 	/** Length of buffer */
 	unsigned int len;
+	/** PTP software context */
+	unsigned int ptp_swcx;
 };
 
 /**
