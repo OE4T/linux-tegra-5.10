@@ -196,10 +196,18 @@ int nvgpu_gr_intr_handle_sm_exception(struct gk20a *g, u32 gpc, u32 tpc, u32 sm,
  * @param g[in]			Pointer to GPU driver struct.
  *
  * This is the entry point to handle all GR engine stalling interrupts.
- *
- * This function will check for any pending exceptions/errors, and call
- * appropriate function to handle it. E.g. #nvgpu_gr_intr_handle_gpc_exception()
- * is called for any pending GPC exception.
+ * This includes:
+ * - Check for any pending exceptions/errors interrupts.
+ * - Disable fifo access.
+ * - Read information for trapped methods
+ *   If any trapped context, find the corresponding channel
+ *   and tsg for error reporting.
+ * - Handle any pending interrupts.
+ * - Handle any pending illegal interrupts.
+ * - Handle any pending error interrupts
+ * - Handle any pending GPC exception interrupts.
+ * - Clearing all pending interrupts once they are handled.
+ * - Enable back fifo access.
  *
  * This function will take care of clearing all pending interrupts
  * once they are handled.

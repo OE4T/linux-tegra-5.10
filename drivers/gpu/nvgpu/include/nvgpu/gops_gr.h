@@ -24,6 +24,11 @@
 
 #include <nvgpu/types.h>
 
+/**
+ * @file
+ *
+ * GR HAL interface.
+ */
 struct gk20a;
 struct vm_gk20a;
 struct nvgpu_mem;
@@ -66,434 +71,940 @@ enum ctxsw_addr_type;
 enum nvgpu_event_id_type;
 #endif
 
-struct gops_gr {
-	struct {
-		int (*ecc_init_support)(struct gk20a *g);
-		void (*ecc_remove_support)(struct gk20a *g);
-		void (*detect)(struct gk20a *g);
-		int (*init)(struct gk20a *g);
-		struct nvgpu_hw_err_inject_info_desc * (*get_mmu_err_desc)
-							(struct gk20a *g);
-		struct nvgpu_hw_err_inject_info_desc * (*get_gcc_err_desc)
-							(struct gk20a *g);
-		struct nvgpu_hw_err_inject_info_desc * (*get_sm_err_desc)
-							(struct gk20a *g);
-		struct nvgpu_hw_err_inject_info_desc * (*get_gpccs_err_desc)
-							(struct gk20a *g);
-		struct nvgpu_hw_err_inject_info_desc * (*get_fecs_err_desc)
-							(struct gk20a *g);
-	} ecc;
-	struct {
-		u32 (*get_gpc_mask)(struct gk20a *g,
-			struct nvgpu_gr_config *config);
-		u32 (*get_gpc_tpc_mask)(struct gk20a *g,
-			struct nvgpu_gr_config *config, u32 gpc_index);
-		u32 (*get_tpc_count_in_gpc)(struct gk20a *g,
-			struct nvgpu_gr_config *config, u32 gpc_index);
-		u32 (*get_pes_tpc_mask)(struct gk20a *g,
-			struct nvgpu_gr_config *config, u32 gpc_index,
-			u32 pes_index);
-		u32 (*get_pd_dist_skip_table_size)(void);
-		int (*init_sm_id_table)(struct gk20a *g,
-			struct nvgpu_gr_config *gr_config);
+/**
+ * GR engine ecc subunit hal operations.
+ *
+ * This structure stores the GR engine ecc subunit hal pointers.
+ *
+ * @see gops_gr
+ */
+struct gops_gr_ecc {
+	/**
+	 * @brief Initialize ECC support.
+	 *
+	 * @param g [in]		Pointer to GPU driver struct.
+	 *
+	 * This function allocates memory to track the ecc error counts
+	 * for all units (like GR/LTC/FB/PMU) and subunits of GR
+	 * (like falcon/sm/gpccs/etc). All these allocated memory
+	 * is tracked as a list.
+	 *
+	 * @return 0 in case of success, < 0 in case of failure.
+	 * @retval -ENOMEM if memory allocation fail for any unit.
+	 */
+	int (*ecc_init_support)(struct gk20a *g);
+
+	/**
+	 * @brief Remove ECC support.
+	 *
+	 * @param g [in]		Pointer to GPU driver struct.
+	 *
+	 * This function frees all the memory allocated for keeping
+	 * track of ecc error counts for each GR engine units.
+	 */
+	void (*ecc_remove_support)(struct gk20a *g);
+
+	/**
+	 * @brief Detect ECC enabled units in GR engine.
+	 *
+	 * @param g [in]		Pointer to GPU driver struct.
+	 *
+	 * This function check the feature override ecc registers
+	 * to figure out whether the feature is enabled or disabled.
+	 * This function enables the GR SM_ECC and LTC_ECC feature,
+	 * on checking the fuses override register and opt ecc enable
+	 * register.
+	 */
+	void (*detect)(struct gk20a *g);
+
+	/** @cond DOXYGEN_SHOULD_SKIP_THIS */
+	int (*init)(struct gk20a *g);
+	struct nvgpu_hw_err_inject_info_desc * (*get_mmu_err_desc)
+						(struct gk20a *g);
+	struct nvgpu_hw_err_inject_info_desc * (*get_gcc_err_desc)
+						(struct gk20a *g);
+	struct nvgpu_hw_err_inject_info_desc * (*get_sm_err_desc)
+						(struct gk20a *g);
+	struct nvgpu_hw_err_inject_info_desc * (*get_gpccs_err_desc)
+						(struct gk20a *g);
+	struct nvgpu_hw_err_inject_info_desc * (*get_fecs_err_desc)
+						(struct gk20a *g);
+	/** @endcond */
+};
+
+
+/**
+ * GR engine setup subunit hal operations.
+ *
+ * This structure stores the GR engine setup subunit hal pointers.
+ *
+ * @see gops_gr
+ */
+struct gops_gr_setup {
+	/**
+	 * @brief Allocate and setup object context s/w image
+	 *        for GPU channel.
+	 *
+	 * @param c [in]		Pointer to GPU channel.
+	 * @param class_num [in]	GPU class ID.
+	 * @param flags [in]		Flags for context allocation.
+	 *
+	 * This HAL allocates and sets up object context for
+	 * a GPU channel. This HAL always maps to
+	 * #nvgpu_gr_setup_alloc_obj_ctx.
+	 *
+	 * @return 0 in case of success, < 0 in case of failure.
+	 * @retval -ENOMEM if memory allocation fails for
+	 *          any context image.
+	 * @retval -EINVAL if invalid GPU class ID is provided.
+	 *
+	 * @see nvgpu_gr_setup_alloc_obj_ctx
+	 */
+	int (*alloc_obj_ctx)(struct nvgpu_channel  *c,
+			     u32 class_num, u32 flags);
+
+	/**
+	 * @brief Free GR engine context image.
+	 *
+	 * @param g [in]	Pointer to GPU driver struct.
+	 * @param vm [in]	Pointer to virtual memory.
+	 * @param gr_ctx [in]	Pointer to GR engine context image.
+	 *
+	 * This function will free memory allocated for patch
+	 * context image and GR engine context image in
+	 * #alloc_obj_ctx.
+	 * This HAL maps to #nvgpu_gr_setup_free_gr_ctx.
+	 *
+	 * @see nvgpu_gr_setup_free_gr_ctx
+	 */
+	void (*free_gr_ctx)(struct gk20a *g,
+			    struct vm_gk20a *vm,
+			    struct nvgpu_gr_ctx *gr_ctx);
+
+	/**
+	 * @brief Free GR engine subcontext.
+	 *
+	 * @param c [in]			Pointer to GPU channel.
+	 *
+	 * This function will free memory allocated for GR engine
+	 * subcontext image in #alloc_obj_ctx.
+	 * This HAL maps to #nvgpu_gr_setup_free_subctx.
+	 *
+	 * @see nvgpu_gr_setup_free_subctx
+	 */
+	void (*free_subctx)(struct nvgpu_channel *c);
+
+	/**
+	 * @brief Setup preemption mode in GR engine context image.
+	 *
+	 * @param ch [in]			Pointer to GPU channel.
+	 * @param graphics_preempt_mode [in]	Requested graphics
+	 *					preemption mode.
+	 * @param compute_preempt_mode [in]	Requested compute
+	 *					preemption mode.
+	 *
+	 * This function will program newly requested preemption modes
+	 * into GR engine context image.
+	 * This HAL maps to #nvgpu_gr_setup_set_preemption_mode.
+	 *
+	 * Note that if requested preemption modes are already set,
+	 * this function will return 0. The function supports
+	 * NVGPU_PREEMTION_MODE_GRAPHICS_WFI graphics preemption mode and
+	 * NVGPU_PREEMTION_MODE_COMPUTE_WFI, NVGPU_PREEMTION_MODE_COMPUTE_CTA
+	 * compute preemption modes.
+	 *
+	 * @return 0 in case of success, < 0 in case of failure.
+	 * @retval -EINVAL if invalid preemption modes are provided.
+	 * @retval -EINVAL if invalid GPU channel pointer is provided.
+	 *
+	 * @see nvgpu_gr_setup_set_preemption_mode
+	 */
+	int (*set_preemption_mode)(struct nvgpu_channel *ch,
+				   u32 graphics_preempt_mode,
+				   u32 compute_preempt_mode);
+
+	/** @cond DOXYGEN_SHOULD_SKIP_THIS */
 #ifdef CONFIG_NVGPU_GRAPHICS
-		u32 (*get_zcull_count_in_gpc)(struct gk20a *g,
-			struct nvgpu_gr_config *config, u32 gpc_index);
+	int (*bind_ctxsw_zcull)(struct gk20a *g,
+				struct nvgpu_channel *c,
+				u64 zcull_va,
+				u32 mode);
 #endif
-	} config;
-	struct {
-		int (*alloc_obj_ctx)(struct nvgpu_channel  *c,
-				     u32 class_num, u32 flags);
-		void (*free_gr_ctx)(struct gk20a *g,
-				    struct vm_gk20a *vm,
-				    struct nvgpu_gr_ctx *gr_ctx);
-		void (*free_subctx)(struct nvgpu_channel *c);
-		int (*set_preemption_mode)(struct nvgpu_channel *ch,
-					   u32 graphics_preempt_mode,
-					   u32 compute_preempt_mode);
-#ifdef CONFIG_NVGPU_GRAPHICS
-		int (*bind_ctxsw_zcull)(struct gk20a *g,
-					struct nvgpu_channel *c,
-					u64 zcull_va,
-					u32 mode);
+	/** @endcond */
+};
+
+/**
+ * GR engine falcon subunit hal operations.
+ *
+ * This structure stores the GR engine falcon subunit hal pointers.
+ *
+ * @see gops_gr
+ */
+struct gops_gr_falcon {
+	/**
+	 * @brief Read context switch mailbox.
+	 *
+	 * @param g [in]		Pointer to GPU driver struct.
+	 * @param reg_index [in]	Register Index value.
+	 *
+	 * This function reads the context switch mailbox for the
+	 * register index.
+	 *
+	 * @return context switch mailbox register value.
+	 */
+	u32 (*read_fecs_ctxsw_mailbox)(struct gk20a *g,
+				       u32 reg_index);
+
+	/**
+	 * @brief Dump context switch mailbox register values.
+	 *
+	 * @param g [in]		Pointer to GPU driver struct.
+	 *
+	 * This function reads and prints all context switch mailbox
+	 * register values. This is helpful for ucode debugging.
+	 */
+	void (*dump_stats)(struct gk20a *g);
+
+	/**
+	 * @brief Get context switch register Major revision Id.
+	 *
+	 * @param g [in]		Pointer to GPU driver struct.
+	 *
+	 * This function reads the Major revision id. This id is used
+	 * to check which version of the firmware ucode to use.
+	 *
+	 * @return context switch Major revision Id.
+	 */
+	u32 (*get_fecs_ctx_state_store_major_rev_id)(struct gk20a *g);
+
+	/**
+	 * @brief Control the context switch methods and data.
+	 *
+	 * @param g [in]		Pointer to GPU driver struct.
+	 * @param fecs_method [in]	Fecs Method.
+	 * @param fecs_data [in]	Fecs Data.
+	 * @param ret_val [in]		Pointer to mailbox return value.
+	 *
+	 * This function helps to pass the fecs methods and data from
+	 * user to the firmware submitting through mailbox registers.
+	 * The ucode status is checked to see whether the method
+	 * failed/timedout or passed.
+	 *
+	 * @return 0 in case of success, < 0 in case of failure.
+	 */
+	int (*ctrl_ctxsw)(struct gk20a *g, u32 fecs_method,
+			  u32 fecs_data, u32 *ret_val);
+
+	/** @cond DOXYGEN_SHOULD_SKIP_THIS */
+	void (*handle_fecs_ecc_error)(struct gk20a *g,
+		struct nvgpu_fecs_ecc_status *fecs_ecc_status);
+	void (*fecs_host_clear_intr)(struct gk20a *g,
+				     u32 fecs_intr);
+	u32 (*fecs_host_intr_status)(struct gk20a *g,
+		struct nvgpu_fecs_host_intr_status *fecs_host_intr);
+	u32 (*fecs_base_addr)(void);
+	u32 (*gpccs_base_addr)(void);
+	void (*set_current_ctx_invalid)(struct gk20a *g);
+	u32 (*fecs_ctxsw_mailbox_size)(void);
+	void (*start_gpccs)(struct gk20a *g);
+	void (*start_fecs)(struct gk20a *g);
+	u32 (*get_gpccs_start_reg_offset)(void);
+	void (*load_ctxsw_ucode_header)(struct gk20a *g,
+				u32 reg_offset, u32 boot_signature,
+				u32 addr_code32, u32 addr_data32,
+				u32 code_size, u32 data_size);
+	void (*load_ctxsw_ucode_boot)(struct gk20a *g,
+				u32 reg_offset, u32 boot_entry,
+				u32 addr_load32, u32 blocks, u32 dst);
+	int (*load_ctxsw_ucode)(struct gk20a *g,
+				struct nvgpu_gr_falcon *falcon);
+	int (*wait_mem_scrubbing)(struct gk20a *g);
+	int (*wait_ctxsw_ready)(struct gk20a *g);
+	u32 (*get_current_ctx)(struct gk20a *g);
+	u32 (*get_ctx_ptr)(u32 ctx);
+	u32 (*get_fecs_current_ctx_data)(struct gk20a *g,
+					 struct nvgpu_mem *inst_block);
+	int (*init_ctx_state)(struct gk20a *g,
+			struct nvgpu_gr_falcon_query_sizes *sizes);
+	void (*fecs_host_int_enable)(struct gk20a *g);
+	u32 (*read_fecs_ctxsw_status0)(struct gk20a *g);
+	u32 (*read_fecs_ctxsw_status1)(struct gk20a *g);
+	void (*bind_instblk)(struct gk20a *g,
+			     struct nvgpu_mem *mem, u64 inst_ptr);
+#ifdef CONFIG_NVGPU_GR_FALCON_NON_SECURE_BOOT
+	void (*load_gpccs_dmem)(struct gk20a *g,
+				const u32 *ucode_u32_data, u32 size);
+	void (*load_fecs_dmem)(struct gk20a *g,
+			       const u32 *ucode_u32_data, u32 size);
+	void (*load_gpccs_imem)(struct gk20a *g,
+				const u32 *ucode_u32_data, u32 size);
+	void (*load_fecs_imem)(struct gk20a *g,
+			       const u32 *ucode_u32_data, u32 size);
+	void (*start_ucode)(struct gk20a *g);
 #endif
-	} setup;
-	struct {
-		void (*handle_fecs_ecc_error)(struct gk20a *g,
-			struct nvgpu_fecs_ecc_status *fecs_ecc_status);
-		u32 (*read_fecs_ctxsw_mailbox)(struct gk20a *g,
-					       u32 reg_index);
-		void (*fecs_host_clear_intr)(struct gk20a *g,
-					     u32 fecs_intr);
-		u32 (*fecs_host_intr_status)(struct gk20a *g,
-			struct nvgpu_fecs_host_intr_status *fecs_host_intr);
-		u32 (*fecs_base_addr)(void);
-		u32 (*gpccs_base_addr)(void);
-		void (*set_current_ctx_invalid)(struct gk20a *g);
-		void (*dump_stats)(struct gk20a *g);
-		u32 (*fecs_ctxsw_mailbox_size)(void);
-		u32 (*get_fecs_ctx_state_store_major_rev_id)(struct gk20a *g);
-		void (*load_gpccs_dmem)(struct gk20a *g,
-					const u32 *ucode_u32_data, u32 size);
-		void (*load_fecs_dmem)(struct gk20a *g,
-				       const u32 *ucode_u32_data, u32 size);
-		void (*load_gpccs_imem)(struct gk20a *g,
-					const u32 *ucode_u32_data, u32 size);
-		void (*load_fecs_imem)(struct gk20a *g,
-				       const u32 *ucode_u32_data, u32 size);
-		void (*start_ucode)(struct gk20a *g);
-		void (*start_gpccs)(struct gk20a *g);
-		void (*start_fecs)(struct gk20a *g);
-		u32 (*get_gpccs_start_reg_offset)(void);
-		void (*bind_instblk)(struct gk20a *g,
-				     struct nvgpu_mem *mem, u64 inst_ptr);
-		void (*load_ctxsw_ucode_header)(struct gk20a *g,
-					u32 reg_offset, u32 boot_signature,
-					u32 addr_code32, u32 addr_data32,
-					u32 code_size, u32 data_size);
-		void (*load_ctxsw_ucode_boot)(struct gk20a *g,
-					u32 reg_offset, u32 boot_entry,
-					u32 addr_load32, u32 blocks, u32 dst);
-		int (*load_ctxsw_ucode)(struct gk20a *g,
-					struct nvgpu_gr_falcon *falcon);
-		int (*wait_mem_scrubbing)(struct gk20a *g);
-		int (*wait_ctxsw_ready)(struct gk20a *g);
-		int (*submit_fecs_method_op)(struct gk20a *g,
-					     struct nvgpu_fecs_method_op op,
-					     bool sleepduringwait);
-		int (*submit_fecs_sideband_method_op)(struct gk20a *g,
-					struct nvgpu_fecs_method_op op);
-		int (*ctrl_ctxsw)(struct gk20a *g, u32 fecs_method,
-				  u32 fecs_data, u32 *ret_val);
-		u32 (*get_current_ctx)(struct gk20a *g);
-		u32 (*get_ctx_ptr)(u32 ctx);
-		u32 (*get_fecs_current_ctx_data)(struct gk20a *g,
-						 struct nvgpu_mem *inst_block);
-		int (*init_ctx_state)(struct gk20a *g,
-				struct nvgpu_gr_falcon_query_sizes *sizes);
-		void (*fecs_host_int_enable)(struct gk20a *g);
-		u32 (*read_fecs_ctxsw_status0)(struct gk20a *g);
-		u32 (*read_fecs_ctxsw_status1)(struct gk20a *g);
 #ifdef CONFIG_NVGPU_SIM
-		void (*configure_fmodel)(struct gk20a *g);
+	void (*configure_fmodel)(struct gk20a *g);
 #endif
-	} falcon;
-	struct {
-		int (*handle_fecs_error)(struct gk20a *g,
-					 struct nvgpu_channel *ch,
-					 struct nvgpu_gr_isr_data *isr_data);
-		int (*handle_sw_method)(struct gk20a *g, u32 addr,
-					u32 class_num, u32 offset, u32 data);
-		void (*set_shader_exceptions)(struct gk20a *g,
-					      u32 data);
-		void (*handle_class_error)(struct gk20a *g, u32 chid,
-					   struct nvgpu_gr_isr_data *isr_data);
-		void (*clear_pending_interrupts)(struct gk20a *g,
-						 u32 gr_intr);
-		u32 (*read_pending_interrupts)(struct gk20a *g,
-					struct nvgpu_gr_intr_info *intr_info);
-		bool (*handle_exceptions)(struct gk20a *g,
-					  bool *is_gpc_exception);
-		u32 (*read_gpc_tpc_exception)(u32 gpc_exception);
-		u32 (*read_gpc_exception)(struct gk20a *g, u32 gpc);
-		u32 (*read_exception1)(struct gk20a *g);
-		void (*trapped_method_info)(struct gk20a *g,
-					struct nvgpu_gr_isr_data *isr_data);
-		void (*handle_semaphore_pending)(struct gk20a *g,
-					struct nvgpu_gr_isr_data *isr_data);
-		void (*handle_notify_pending)(struct gk20a *g,
-					struct nvgpu_gr_isr_data *isr_data);
-		void (*handle_gcc_exception)(struct gk20a *g, u32 gpc,
-				u32 gpc_exception,
-				u32 *corrected_err, u32 *uncorrected_err);
-		void (*handle_gpc_gpcmmu_exception)(struct gk20a *g,
-				u32 gpc, u32 gpc_exception,
-				u32 *corrected_err, u32 *uncorrected_err);
-		void (*handle_gpc_prop_exception)(struct gk20a *g,
-						  u32 gpc, u32 gpc_exception);
-		void (*handle_gpc_zcull_exception)(struct gk20a *g,
-						   u32 gpc, u32 gpc_exception);
-		void (*handle_gpc_setup_exception)(struct gk20a *g,
-						   u32 gpc, u32 gpc_exception);
-		void (*handle_gpc_pes_exception)(struct gk20a *g,
-						 u32 gpc, u32 gpc_exception);
-		void (*handle_gpc_gpccs_exception)(struct gk20a *g,
-				u32 gpc, u32 gpc_exception,
-				u32 *corrected_err, u32 *uncorrected_err);
-		u32 (*get_tpc_exception)(struct gk20a *g, u32 offset,
-				struct nvgpu_gr_tpc_exception *pending_tpc);
-		void (*handle_tpc_mpc_exception)(struct gk20a *g,
-						 u32 gpc, u32 tpc);
-		void (*handle_tpc_pe_exception)(struct gk20a *g,
-						u32 gpc, u32 tpc);
-		void (*handle_tex_exception)(struct gk20a *g,
-					     u32 gpc, u32 tpc);
-		void (*enable_hww_exceptions)(struct gk20a *g);
-		void (*enable_interrupts)(struct gk20a *g, bool enable);
-		void (*enable_exceptions)(struct gk20a *g,
-					  struct nvgpu_gr_config *gr_config,
-					  bool enable);
-		void (*enable_gpc_exceptions)(struct gk20a *g,
-					struct nvgpu_gr_config *gr_config);
-		u32 (*nonstall_isr)(struct gk20a *g);
-		void (*tpc_exception_sm_disable)(struct gk20a *g,
-						 u32 offset);
-		void (*tpc_exception_sm_enable)(struct gk20a *g);
-		int (*handle_sm_exception)(struct gk20a *g,
-					   u32 gpc, u32 tpc, u32 sm,
-					   bool *post_event,
-					   struct nvgpu_channel *fault_ch,
-					   u32 *hww_global_esr);
-		int (*stall_isr)(struct gk20a *g);
-		void (*flush_channel_tlb)(struct gk20a *g);
-		void (*set_hww_esr_report_mask)(struct gk20a *g);
-		void (*handle_tpc_sm_ecc_exception)(struct gk20a *g,
-						    u32 gpc, u32 tpc);
-		void (*get_esr_sm_sel)(struct gk20a *g, u32 gpc, u32 tpc,
-				       u32 *esr_sm_sel);
-		void (*clear_sm_hww)(struct gk20a *g, u32 gpc, u32 tpc,
-				     u32 sm, u32 global_esr);
-		void (*handle_ssync_hww)(struct gk20a *g, u32 *ssync_esr);
-		void (*log_mme_exception)(struct gk20a *g);
-		u32 (*record_sm_error_state)(struct gk20a *g, u32 gpc,
-					     u32 tpc, u32 sm,
-					     struct nvgpu_channel *fault_ch);
-		u32 (*get_sm_hww_warp_esr)(struct gk20a *g,
-					   u32 gpc, u32 tpc, u32 sm);
-		u32 (*get_sm_hww_global_esr)(struct gk20a *g,
-					     u32 gpc, u32 tpc, u32 sm);
-		u64 (*get_sm_hww_warp_esr_pc)(struct gk20a *g, u32 offset);
-		u32 (*get_sm_no_lock_down_hww_global_esr_mask)(
-							struct gk20a *g);
-		u32 (*get_ctxsw_checksum_mismatch_mailbox_val)(void);
+	/** @endcond */
+
+};
+
+/**
+ * GR engine interrupt subunit hal operations.
+ *
+ * This structure stores the GR engine interrupt subunit hal pointers.
+ *
+ * @see gops_gr
+ */
+struct gops_gr_intr {
+	/**
+	 * @brief ISR for GR engine non stalling interrupts.
+	 *
+	 * @param g [in]		Pointer to GPU driver struct.
+	 *
+	 * This is the entry point to handle GR engine
+	 * non stalling interrupts.
+	 * - Check for trap pending interrupts.
+	 * - Clear trap pending interrupts.
+	 * - Set the semaphore wakeup and post events bits
+	 *   if there is pending interrupt.
+	 *
+	 * @return 0 in case of no trap pending interrupts, > 1 in
+	 * case of pending interrupts.
+	 */
+	u32 (*nonstall_isr)(struct gk20a *g);
+
+	/**
+	 * @brief ISR for GR engine stalling interrupts.
+	 *
+	 * @param g [in]		Pointer to GPU driver struct.
+	 *
+	 * This is the entry point to handle all GR engine
+	 * stalling interrupts. This HAL maps to
+	 * #nvgpu_gr_intr_stall_isr.
+	 *
+	 * This function will check for any pending exceptions/errors,
+	 * and call appropriate function to handle it.
+	 *
+	 * @return 0 in case of success, < 0 in case of failure.
+	 *
+	 * @see nvgpu_gr_intr_stall_isr
+	 */
+	int (*stall_isr)(struct gk20a *g);
+
+	/**
+	 * @brief Flush channel lookup TLB.
+	 *
+	 * @param g [in]		Pointer to GPU driver struct.
+	 *
+	 * GR interrupt unit maintains a TLB to translate context
+	 * into GPU channel ID. The HAL maps to
+	 * #nvgpu_gr_intr_flush_channel_tlb.
+	 *
+	 * @see nvgpu_gr_intr_flush_channel_tlb
+	 */
+	void (*flush_channel_tlb)(struct gk20a *g);
+
+	/** @cond DOXYGEN_SHOULD_SKIP_THIS */
+	int (*handle_fecs_error)(struct gk20a *g,
+				 struct nvgpu_channel *ch,
+				 struct nvgpu_gr_isr_data *isr_data);
+	int (*handle_sw_method)(struct gk20a *g, u32 addr,
+				u32 class_num, u32 offset, u32 data);
+	void (*set_shader_exceptions)(struct gk20a *g,
+				      u32 data);
+	void (*handle_class_error)(struct gk20a *g, u32 chid,
+				   struct nvgpu_gr_isr_data *isr_data);
+	void (*clear_pending_interrupts)(struct gk20a *g,
+					 u32 gr_intr);
+	u32 (*read_pending_interrupts)(struct gk20a *g,
+				struct nvgpu_gr_intr_info *intr_info);
+	bool (*handle_exceptions)(struct gk20a *g,
+				  bool *is_gpc_exception);
+	u32 (*read_gpc_tpc_exception)(u32 gpc_exception);
+	u32 (*read_gpc_exception)(struct gk20a *g, u32 gpc);
+	u32 (*read_exception1)(struct gk20a *g);
+	void (*trapped_method_info)(struct gk20a *g,
+				struct nvgpu_gr_isr_data *isr_data);
+	void (*handle_semaphore_pending)(struct gk20a *g,
+				struct nvgpu_gr_isr_data *isr_data);
+	void (*handle_notify_pending)(struct gk20a *g,
+				struct nvgpu_gr_isr_data *isr_data);
+	void (*handle_gcc_exception)(struct gk20a *g, u32 gpc,
+			u32 gpc_exception,
+			u32 *corrected_err, u32 *uncorrected_err);
+	void (*handle_gpc_gpcmmu_exception)(struct gk20a *g,
+			u32 gpc, u32 gpc_exception,
+			u32 *corrected_err, u32 *uncorrected_err);
+	void (*handle_gpc_prop_exception)(struct gk20a *g,
+					  u32 gpc, u32 gpc_exception);
+	void (*handle_gpc_zcull_exception)(struct gk20a *g,
+					   u32 gpc, u32 gpc_exception);
+	void (*handle_gpc_setup_exception)(struct gk20a *g,
+					   u32 gpc, u32 gpc_exception);
+	void (*handle_gpc_pes_exception)(struct gk20a *g,
+					 u32 gpc, u32 gpc_exception);
+	void (*handle_gpc_gpccs_exception)(struct gk20a *g,
+			u32 gpc, u32 gpc_exception,
+			u32 *corrected_err, u32 *uncorrected_err);
+	u32 (*get_tpc_exception)(struct gk20a *g, u32 offset,
+			struct nvgpu_gr_tpc_exception *pending_tpc);
+	void (*handle_tpc_mpc_exception)(struct gk20a *g,
+					 u32 gpc, u32 tpc);
+	void (*handle_tpc_pe_exception)(struct gk20a *g,
+					u32 gpc, u32 tpc);
+	void (*handle_tex_exception)(struct gk20a *g,
+				     u32 gpc, u32 tpc);
+	void (*enable_hww_exceptions)(struct gk20a *g);
+	void (*enable_interrupts)(struct gk20a *g, bool enable);
+	void (*enable_exceptions)(struct gk20a *g,
+				  struct nvgpu_gr_config *gr_config,
+				  bool enable);
+	void (*enable_gpc_exceptions)(struct gk20a *g,
+				struct nvgpu_gr_config *gr_config);
+	void (*tpc_exception_sm_enable)(struct gk20a *g);
+	int (*handle_sm_exception)(struct gk20a *g,
+				   u32 gpc, u32 tpc, u32 sm,
+				   bool *post_event,
+				   struct nvgpu_channel *fault_ch,
+				   u32 *hww_global_esr);
+	void (*set_hww_esr_report_mask)(struct gk20a *g);
+	void (*handle_tpc_sm_ecc_exception)(struct gk20a *g,
+					    u32 gpc, u32 tpc);
+	void (*get_esr_sm_sel)(struct gk20a *g, u32 gpc, u32 tpc,
+			       u32 *esr_sm_sel);
+	void (*clear_sm_hww)(struct gk20a *g, u32 gpc, u32 tpc,
+			     u32 sm, u32 global_esr);
+	void (*handle_ssync_hww)(struct gk20a *g, u32 *ssync_esr);
+	void (*log_mme_exception)(struct gk20a *g);
+	u32 (*record_sm_error_state)(struct gk20a *g, u32 gpc,
+				     u32 tpc, u32 sm,
+				     struct nvgpu_channel *fault_ch);
+	u32 (*get_sm_hww_warp_esr)(struct gk20a *g,
+				   u32 gpc, u32 tpc, u32 sm);
+	u32 (*get_sm_hww_global_esr)(struct gk20a *g,
+				     u32 gpc, u32 tpc, u32 sm);
+	u64 (*get_sm_hww_warp_esr_pc)(struct gk20a *g, u32 offset);
+	u32 (*get_sm_no_lock_down_hww_global_esr_mask)(
+						struct gk20a *g);
+	u32 (*get_ctxsw_checksum_mismatch_mailbox_val)(void);
 #ifdef CONFIG_NVGPU_DEBUGGER
-		u64 (*tpc_enabled_exceptions)(struct gk20a *g);
+	void (*tpc_exception_sm_disable)(struct gk20a *g,
+					 u32 offset);
+	u64 (*tpc_enabled_exceptions)(struct gk20a *g);
 #endif
-	} intr;
-	struct {
-		u32 (*get_no_of_sm)(struct gk20a *g);
-		u32 (*get_nonpes_aware_tpc)(struct gk20a *g,
-					    u32 gpc, u32 tpc,
-					    struct nvgpu_gr_config *gr_config);
-		void (*wait_initialized)(struct gk20a *g);
-		void (*ecc_scrub_reg)(struct gk20a *g,
-				      struct nvgpu_gr_config *gr_config);
-		void (*lg_coalesce)(struct gk20a *g, u32 data);
-		void (*su_coalesce)(struct gk20a *g, u32 data);
-		void (*pes_vsc_stream)(struct gk20a *g);
-		void (*gpc_mmu)(struct gk20a *g);
-		void (*fifo_access)(struct gk20a *g, bool enable);
-		u32 (*get_sm_id_size)(void);
-		int (*sm_id_config)(struct gk20a *g, u32 *tpc_sm_id,
+	/** @endcond */
+};
+
+/**
+ * GR engine init subunit hal operations.
+ *
+ * This structure stores GR engine init subunit hal function pointers.
+ *
+ * @see gops_gr
+ */
+struct gops_gr_init {
+	/**
+	 * @brief Get number of SMs.
+	 *
+	 * @param g [in]	Pointer to GPU driver struct.
+	 *
+	 * This function returns number of SMs in GR engine.
+	 * This HAL maps to #nvgpu_gr_get_no_of_sm.
+	 *
+	 * @return number of SMs.
+	 *
+	 * @see nvgpu_gr_get_no_of_sm
+	 */
+	u32 (*get_no_of_sm)(struct gk20a *g);
+
+	/**
+	 * @brief Get the count of tpc not attached PES unit.
+	 *
+	 * @param g [in]		Pointer to GPU driver struct.
+	 * @param gpc [in]		Index of GPC.
+	 * @param tpc [in]		Index of TPC.
+	 * @param gr_config [in]	Pointer to GR
+	 *				configuration struct.
+	 *
+	 * Calling this function returns the tpc that is not attached
+	 * to PES unit.
+	 *
+	 * @return the tpc count not attached to PES unit.
+	 */
+	u32 (*get_nonpes_aware_tpc)(struct gk20a *g,
+				    u32 gpc, u32 tpc,
 				    struct nvgpu_gr_config *gr_config);
-		void (*sm_id_numbering)(struct gk20a *g, u32 gpc,
-					u32 tpc, u32 smid,
-					struct nvgpu_gr_config *gr_config);
-		void (*tpc_mask)(struct gk20a *g,
-				 u32 gpc_index, u32 pes_tpc_mask);
-		int (*fs_state)(struct gk20a *g);
-		void (*pd_tpc_per_gpc)(struct gk20a *g,
-			struct nvgpu_gr_config *gr_config);
-		void (*pd_skip_table_gpc)(struct gk20a *g,
-					  struct nvgpu_gr_config *gr_config);
-		void (*cwd_gpcs_tpcs_num)(struct gk20a *g,
-					  u32 gpc_count, u32 tpc_count);
-		int (*wait_empty)(struct gk20a *g);
-		int (*wait_idle)(struct gk20a *g);
-		int (*wait_fe_idle)(struct gk20a *g);
-		int (*fe_pwr_mode_force_on)(struct gk20a *g, bool force_on);
-		void (*override_context_reset)(struct gk20a *g);
-		int (*preemption_state)(struct gk20a *g);
-		void (*fe_go_idle_timeout)(struct gk20a *g, bool enable);
-		void (*load_method_init)(struct gk20a *g,
-				struct netlist_av_list *sw_method_init);
-		int (*load_sw_bundle_init)(struct gk20a *g,
-				struct netlist_av_list *sw_method_init);
-		int (*load_sw_veid_bundle)(struct gk20a *g,
-				struct netlist_av_list *sw_method_init);
-		int (*load_sw_bundle64)(struct gk20a *g,
-				struct netlist_av64_list *sw_bundle64_init);
-		void (*commit_global_timeslice)(struct gk20a *g);
-		u32 (*get_rtv_cb_size)(struct gk20a *g);
-		void (*commit_rtv_cb)(struct gk20a *g, u64 addr,
-				      struct nvgpu_gr_ctx *gr_ctx, bool patch);
-		u32 (*get_bundle_cb_default_size)(struct gk20a *g);
-		u32 (*get_min_gpm_fifo_depth)(struct gk20a *g);
-		u32 (*get_bundle_cb_token_limit)(struct gk20a *g);
-		u32 (*get_attrib_cb_default_size)(struct gk20a *g);
-		u32 (*get_alpha_cb_default_size)(struct gk20a *g);
-		u32 (*get_attrib_cb_size)(struct gk20a *g, u32 tpc_count);
-		u32 (*get_alpha_cb_size)(struct gk20a *g, u32 tpc_count);
-		u32 (*get_global_attr_cb_size)(struct gk20a *g,
-					       u32 tpc_count, u32 max_tpc);
-		u32 (*get_global_ctx_cb_buffer_size)(struct gk20a *g);
-		u32 (*get_global_ctx_pagepool_buffer_size)(struct gk20a *g);
-		void (*commit_global_bundle_cb)(struct gk20a *g,
-						struct nvgpu_gr_ctx *ch_ctx,
-						u64 addr, u32 size,
-						bool patch);
-		u32 (*pagepool_default_size)(struct gk20a *g);
-		void (*commit_global_pagepool)(struct gk20a *g,
-					       struct nvgpu_gr_ctx *ch_ctx,
-					       u64 addr, size_t size,
-					       bool patch, bool global_ctx);
-		void (*commit_global_attrib_cb)(struct gk20a *g,
-						struct nvgpu_gr_ctx *ch_ctx,
-						u32 tpc_count, u32 max_tpc,
-						u64 addr, bool patch);
-		void (*commit_global_cb_manager)(struct gk20a *g,
-					struct nvgpu_gr_config *config,
-					struct nvgpu_gr_ctx *gr_ctx,
+
+	/**
+	 * @brief Wait for GR engine to be initialized.
+	 *
+	 * @param g [in]	Pointer to GPU driver struct.
+	 *
+	 * Calling this function ensures that GR engine initialization
+	 * is complete. This HAL maps to #nvgpu_gr_wait_initialized.
+	 *
+	 * @see nvgpu_gr_wait_initialized
+	 */
+	void (*wait_initialized)(struct gk20a *g);
+
+	/**
+	 * @brief Control access to GR FIFO.
+	 *
+	 * @param g [in]	Pointer to GPU driver struct.
+	 * @param enable [in]	Boolean flag.
+	 *
+	 * This function sets/clear the register access to the
+	 * graphics method FIFO. ACCESS bit determines whether
+	 * Front Engine fetch methods out of the GR FIFO and
+	 * SEMAPHORE_ACCESS bit determins whether the Front Engine
+	 * makes semaphore memory requests.
+	 */
+	void (*fifo_access)(struct gk20a *g, bool enable);
+
+	/**
+	 * @brief Get maximum count of subcontexts.
+	 *
+	 * This function returns the maximum number of subcontexts
+	 * in GR engine.
+	 *
+	 * @return maximum number of subcontexts.
+	 */
+	u32 (*get_max_subctx_count)(void);
+
+	/**
+	 * @brief Detect SM properties.
+	 *
+	 * @param g [in]	Pointer to GPU driver struct.
+	 *
+	 * This functions reports the SM hardware properties.
+	 * Reports total number of warps and SM version.
+	 */
+	void (*detect_sm_arch)(struct gk20a *g);
+
+	/**
+	 * @brief Get supported preemption mode flags.
+	 *
+	 * @param graphics_preemption_mode_flags [out]
+	 *				Pointer to unsigned int.
+	 * @param graphics_preemption_mode_flags [out]
+	 *				Pointer to unsigned int.
+	 * This function returns the supported preemption
+	 * graphics and compute mode flags.
+	 */
+	void (*get_supported__preemption_modes)(
+				u32 *graphics_preemption_mode_flags,
+				u32 *compute_preepmtion_mode_flags);
+
+	/**
+	 * @brief Get default preemption modes.
+	 *
+	 * @param default_graphics_preempt_mode [out]
+	 *				Pointer to a variable.
+	 * @param default_compute_preempt_mode [out]
+	 *				Pointer to a variable.
+	 * This function returns the default preemption
+	 * graphics and compute modes set.
+	 */
+	void (*get_default_preemption_modes)(
+				u32 *default_graphics_preempt_mode,
+				u32 *default_compute_preempt_mode);
+
+	/** @cond DOXYGEN_SHOULD_SKIP_THIS */
+	void (*ecc_scrub_reg)(struct gk20a *g,
+			      struct nvgpu_gr_config *gr_config);
+	void (*lg_coalesce)(struct gk20a *g, u32 data);
+	void (*su_coalesce)(struct gk20a *g, u32 data);
+	void (*pes_vsc_stream)(struct gk20a *g);
+	void (*gpc_mmu)(struct gk20a *g);
+	u32 (*get_sm_id_size)(void);
+	int (*sm_id_config)(struct gk20a *g, u32 *tpc_sm_id,
+			    struct nvgpu_gr_config *gr_config);
+	void (*sm_id_numbering)(struct gk20a *g, u32 gpc,
+				u32 tpc, u32 smid,
+				struct nvgpu_gr_config *gr_config);
+	void (*tpc_mask)(struct gk20a *g,
+			 u32 gpc_index, u32 pes_tpc_mask);
+	int (*fs_state)(struct gk20a *g);
+	void (*pd_tpc_per_gpc)(struct gk20a *g,
+		struct nvgpu_gr_config *gr_config);
+	void (*pd_skip_table_gpc)(struct gk20a *g,
+				  struct nvgpu_gr_config *gr_config);
+	void (*cwd_gpcs_tpcs_num)(struct gk20a *g,
+				  u32 gpc_count, u32 tpc_count);
+	int (*wait_empty)(struct gk20a *g);
+	int (*wait_idle)(struct gk20a *g);
+	int (*wait_fe_idle)(struct gk20a *g);
+	int (*fe_pwr_mode_force_on)(struct gk20a *g, bool force_on);
+	void (*override_context_reset)(struct gk20a *g);
+	int (*preemption_state)(struct gk20a *g);
+	void (*fe_go_idle_timeout)(struct gk20a *g, bool enable);
+	void (*load_method_init)(struct gk20a *g,
+			struct netlist_av_list *sw_method_init);
+	int (*load_sw_bundle_init)(struct gk20a *g,
+			struct netlist_av_list *sw_method_init);
+	int (*load_sw_veid_bundle)(struct gk20a *g,
+			struct netlist_av_list *sw_method_init);
+	int (*load_sw_bundle64)(struct gk20a *g,
+			struct netlist_av64_list *sw_bundle64_init);
+	void (*commit_global_timeslice)(struct gk20a *g);
+	u32 (*get_rtv_cb_size)(struct gk20a *g);
+	void (*commit_rtv_cb)(struct gk20a *g, u64 addr,
+			      struct nvgpu_gr_ctx *gr_ctx, bool patch);
+	u32 (*get_bundle_cb_default_size)(struct gk20a *g);
+	u32 (*get_min_gpm_fifo_depth)(struct gk20a *g);
+	u32 (*get_bundle_cb_token_limit)(struct gk20a *g);
+	u32 (*get_attrib_cb_default_size)(struct gk20a *g);
+	u32 (*get_alpha_cb_default_size)(struct gk20a *g);
+	u32 (*get_attrib_cb_size)(struct gk20a *g, u32 tpc_count);
+	u32 (*get_alpha_cb_size)(struct gk20a *g, u32 tpc_count);
+	u32 (*get_global_attr_cb_size)(struct gk20a *g,
+				       u32 tpc_count, u32 max_tpc);
+	u32 (*get_global_ctx_cb_buffer_size)(struct gk20a *g);
+	u32 (*get_global_ctx_pagepool_buffer_size)(struct gk20a *g);
+	void (*commit_global_bundle_cb)(struct gk20a *g,
+					struct nvgpu_gr_ctx *ch_ctx,
+					u64 addr, u32 size,
 					bool patch);
-		void (*pipe_mode_override)(struct gk20a *g, bool enable);
-		u32 (*get_ctx_attrib_cb_size)(struct gk20a *g, u32 betacb_size,
-					      u32 tpc_count, u32 max_tpc);
-		void (*commit_ctxsw_spill)(struct gk20a *g,
-					   struct nvgpu_gr_ctx *gr_ctx,
-					   u64 addr, u32 size, bool patch);
-		void (*commit_cbes_reserve)(struct gk20a *g,
-					    struct nvgpu_gr_ctx *gr_ctx,
-					    bool patch);
-		u32 (*get_max_subctx_count)(void);
-		u32 (*get_patch_slots)(struct gk20a *g,
-				       struct nvgpu_gr_config *config);
-		void (*detect_sm_arch)(struct gk20a *g);
-		void (*get_supported__preemption_modes)(
-					u32 *graphics_preemption_mode_flags,
-					u32 *compute_preepmtion_mode_flags);
-		void (*get_default_preemption_modes)(
-					u32 *default_graphics_preempt_mode,
-					u32 *default_compute_preempt_mode);
+	u32 (*pagepool_default_size)(struct gk20a *g);
+	void (*commit_global_pagepool)(struct gk20a *g,
+				       struct nvgpu_gr_ctx *ch_ctx,
+				       u64 addr, size_t size,
+				       bool patch, bool global_ctx);
+	void (*commit_global_attrib_cb)(struct gk20a *g,
+					struct nvgpu_gr_ctx *ch_ctx,
+					u32 tpc_count, u32 max_tpc,
+					u64 addr, bool patch);
+	void (*commit_global_cb_manager)(struct gk20a *g,
+				struct nvgpu_gr_config *config,
+				struct nvgpu_gr_ctx *gr_ctx,
+				bool patch);
+	void (*pipe_mode_override)(struct gk20a *g, bool enable);
+	u32 (*get_ctx_attrib_cb_size)(struct gk20a *g, u32 betacb_size,
+				      u32 tpc_count, u32 max_tpc);
+	void (*commit_ctxsw_spill)(struct gk20a *g,
+				   struct nvgpu_gr_ctx *gr_ctx,
+				   u64 addr, u32 size, bool patch);
+	void (*commit_cbes_reserve)(struct gk20a *g,
+				    struct nvgpu_gr_ctx *gr_ctx,
+				    bool patch);
+	u32 (*get_patch_slots)(struct gk20a *g,
+			       struct nvgpu_gr_config *config);
+
 #ifdef CONFIG_NVGPU_GR_GOLDEN_CTX_VERIFICATION
-		void (*restore_stats_counter_bundle_data)(struct gk20a *g,
-				struct netlist_av_list *sw_bundle_init);
+	void (*restore_stats_counter_bundle_data)(struct gk20a *g,
+			struct netlist_av_list *sw_bundle_init);
 #endif
 #ifdef CONFIG_NVGPU_SET_FALCON_ACCESS_MAP
-		void (*get_access_map)(struct gk20a *g,
-				       u32 **whitelist, u32 *num_entries);
+	void (*get_access_map)(struct gk20a *g,
+			       u32 **whitelist, u32 *num_entries);
 #endif
 #ifdef CONFIG_NVGPU_GRAPHICS
-		void (*rop_mapping)(struct gk20a *g,
-			struct nvgpu_gr_config *gr_config);
-		void (*commit_gfxp_rtv_cb)(struct gk20a *g,
-					   struct nvgpu_gr_ctx *gr_ctx,
-					   bool patch);
-		u32 (*get_attrib_cb_gfxp_default_size)(struct gk20a *g);
-		u32 (*get_attrib_cb_gfxp_size)(struct gk20a *g);
-		u32 (*get_gfxp_rtv_cb_size)(struct gk20a *g);
-		void (*gfxp_wfi_timeout)(struct gk20a *g,
-					 struct nvgpu_gr_ctx *gr_ctx,
-					 bool patch);
-		u32 (*get_ctx_spill_size)(struct gk20a *g);
-		u32 (*get_ctx_pagepool_size)(struct gk20a *g);
-		u32 (*get_ctx_betacb_size)(struct gk20a *g);
+	void (*rop_mapping)(struct gk20a *g,
+		struct nvgpu_gr_config *gr_config);
+	void (*commit_gfxp_rtv_cb)(struct gk20a *g,
+				   struct nvgpu_gr_ctx *gr_ctx,
+				   bool patch);
+	u32 (*get_attrib_cb_gfxp_default_size)(struct gk20a *g);
+	u32 (*get_attrib_cb_gfxp_size)(struct gk20a *g);
+	u32 (*get_gfxp_rtv_cb_size)(struct gk20a *g);
+	void (*gfxp_wfi_timeout)(struct gk20a *g,
+				 struct nvgpu_gr_ctx *gr_ctx,
+				 bool patch);
+	u32 (*get_ctx_spill_size)(struct gk20a *g);
+	u32 (*get_ctx_pagepool_size)(struct gk20a *g);
+	u32 (*get_ctx_betacb_size)(struct gk20a *g);
 #endif /* CONFIG_NVGPU_GRAPHICS */
-	} init;
-	struct {
-		u32 (*hw_get_fecs_header_size)(void);
-		u32 (*get_patch_count)(struct gk20a *g,
-				       struct nvgpu_mem *ctx_mem);
-		void (*set_patch_count)(struct gk20a *g,
-					struct nvgpu_mem *ctx_mem, u32 count);
-		void (*set_patch_addr)(struct gk20a *g,
-				       struct nvgpu_mem *ctx_mem, u64 addr);
-		void (*set_compute_preemption_mode_cta)(struct gk20a *g,
-					struct nvgpu_mem *ctx_mem);
-		void (*set_context_buffer_ptr)(struct gk20a *g,
-					       struct nvgpu_mem *ctx_mem,
-					       u64 addr);
-		void (*set_type_per_veid_header)(struct gk20a *g,
-						 struct nvgpu_mem *ctx_mem);
-		void (*set_priv_access_map_config_mode)(struct gk20a *g,
-				struct nvgpu_mem *ctx_mem, bool allow_all);
-		void (*set_priv_access_map_addr)(struct gk20a *g,
-						 struct nvgpu_mem *ctx_mem,
-						 u64 addr);
-		void (*disable_verif_features)(struct gk20a *g,
-					       struct nvgpu_mem *ctx_mem);
-		void (*init_ctxsw_hdr_data)(struct gk20a *g,
-					    struct nvgpu_mem *ctx_mem);
+	/** @endcond */
+};
+
+/** @cond DOXYGEN_SHOULD_SKIP_THIS */
+struct gops_gr_config {
+	u32 (*get_gpc_tpc_mask)(struct gk20a *g,
+				struct nvgpu_gr_config *config,
+				u32 gpc_index);
+	u32 (*get_gpc_mask)(struct gk20a *g,
+			    struct nvgpu_gr_config *config);
+	u32 (*get_tpc_count_in_gpc)(struct gk20a *g,
+				    struct nvgpu_gr_config *config,
+				    u32 gpc_index);
+	u32 (*get_pes_tpc_mask)(struct gk20a *g,
+				struct nvgpu_gr_config *config,
+				u32 gpc_index, u32 pes_index);
+	u32 (*get_pd_dist_skip_table_size)(void);
+	int (*init_sm_id_table)(struct gk20a *g,
+				struct nvgpu_gr_config *gr_config);
 #ifdef CONFIG_NVGPU_GRAPHICS
-		void (*set_zcull_ptr)(struct gk20a *g,
-				      struct nvgpu_mem *ctx_mem, u64 addr);
-		void (*set_zcull)(struct gk20a *g,
-				  struct nvgpu_mem *ctx_mem, u32 mode);
-		void (*set_zcull_mode_no_ctxsw)(struct gk20a *g,
-						struct nvgpu_mem *ctx_mem);
-		bool (*is_zcull_mode_separate_buffer)(u32 mode);
-		void (*set_full_preemption_ptr)(struct gk20a *g,
-						struct nvgpu_mem *ctx_mem,
-						u64 addr);
-		void (*set_full_preemption_ptr_veid0)(struct gk20a *g,
-					struct nvgpu_mem *ctx_mem, u64 addr);
-		void (*set_graphics_preemption_mode_gfxp)(struct gk20a *g,
-						struct nvgpu_mem *ctx_mem);
+	u32 (*get_zcull_count_in_gpc)(struct gk20a *g,
+				      struct nvgpu_gr_config *config,
+				      u32 gpc_index);
+#endif
+};
+/** @endcond */
+
+/** @cond DOXYGEN_SHOULD_SKIP_THIS */
+struct gops_gr_ctxsw_prog {
+	u32 (*hw_get_fecs_header_size)(void);
+	u32 (*get_patch_count)(struct gk20a *g,
+			       struct nvgpu_mem *ctx_mem);
+	void (*set_patch_count)(struct gk20a *g,
+				struct nvgpu_mem *ctx_mem, u32 count);
+	void (*set_patch_addr)(struct gk20a *g,
+			       struct nvgpu_mem *ctx_mem, u64 addr);
+	void (*set_compute_preemption_mode_cta)(struct gk20a *g,
+				struct nvgpu_mem *ctx_mem);
+	void (*set_context_buffer_ptr)(struct gk20a *g,
+				       struct nvgpu_mem *ctx_mem,
+				       u64 addr);
+	void (*set_type_per_veid_header)(struct gk20a *g,
+					 struct nvgpu_mem *ctx_mem);
+	void (*set_priv_access_map_config_mode)(struct gk20a *g,
+			struct nvgpu_mem *ctx_mem, bool allow_all);
+	void (*set_priv_access_map_addr)(struct gk20a *g,
+					 struct nvgpu_mem *ctx_mem,
+					 u64 addr);
+	void (*disable_verif_features)(struct gk20a *g,
+				       struct nvgpu_mem *ctx_mem);
+	void (*init_ctxsw_hdr_data)(struct gk20a *g,
+				    struct nvgpu_mem *ctx_mem);
+#ifdef CONFIG_NVGPU_GRAPHICS
+	void (*set_zcull_ptr)(struct gk20a *g,
+			      struct nvgpu_mem *ctx_mem, u64 addr);
+	void (*set_zcull)(struct gk20a *g,
+			  struct nvgpu_mem *ctx_mem, u32 mode);
+	void (*set_zcull_mode_no_ctxsw)(struct gk20a *g,
+					struct nvgpu_mem *ctx_mem);
+	bool (*is_zcull_mode_separate_buffer)(u32 mode);
+	void (*set_full_preemption_ptr)(struct gk20a *g,
+					struct nvgpu_mem *ctx_mem,
+					u64 addr);
+	void (*set_full_preemption_ptr_veid0)(struct gk20a *g,
+				struct nvgpu_mem *ctx_mem, u64 addr);
+	void (*set_graphics_preemption_mode_gfxp)(struct gk20a *g,
+					struct nvgpu_mem *ctx_mem);
 #endif
 #ifdef CONFIG_NVGPU_CILP
-		void (*set_compute_preemption_mode_cilp)(struct gk20a *g,
-						struct nvgpu_mem *ctx_mem);
+	void (*set_compute_preemption_mode_cilp)(struct gk20a *g,
+					struct nvgpu_mem *ctx_mem);
 #endif
 #ifdef CONFIG_NVGPU_DEBUGGER
-		u32 (*hw_get_gpccs_header_size)(void);
-		u32 (*hw_get_extended_buffer_segments_size_in_bytes)(void);
-		u32 (*hw_extended_marker_size_in_bytes)(void);
-		u32 (*hw_get_perf_counter_control_register_stride)(void);
-		u32 (*hw_get_perf_counter_register_stride)(void);
-		u32 (*get_main_image_ctx_id)(struct gk20a *g,
-					     struct nvgpu_mem *ctx_mem);
-		void (*set_pm_ptr)(struct gk20a *g,
-				   struct nvgpu_mem *ctx_mem, u64 addr);
-		void (*set_pm_mode)(struct gk20a *g,
-				    struct nvgpu_mem *ctx_mem, u32 mode);
-		void (*set_pm_smpc_mode)(struct gk20a *g,
-					 struct nvgpu_mem *ctx_mem,
-					 bool enable);
-		u32 (*hw_get_pm_mode_no_ctxsw)(void);
-		u32 (*hw_get_pm_mode_ctxsw)(void);
-		u32 (*hw_get_pm_mode_stream_out_ctxsw)(void);
-		void (*set_cde_enabled)(struct gk20a *g,
-					struct nvgpu_mem *ctx_mem);
-		void (*set_pc_sampling)(struct gk20a *g,
+	u32 (*hw_get_gpccs_header_size)(void);
+	u32 (*hw_get_extended_buffer_segments_size_in_bytes)(void);
+	u32 (*hw_extended_marker_size_in_bytes)(void);
+	u32 (*hw_get_perf_counter_control_register_stride)(void);
+	u32 (*hw_get_perf_counter_register_stride)(void);
+	u32 (*get_main_image_ctx_id)(struct gk20a *g,
+				     struct nvgpu_mem *ctx_mem);
+	void (*set_pm_ptr)(struct gk20a *g,
+			   struct nvgpu_mem *ctx_mem, u64 addr);
+	void (*set_pm_mode)(struct gk20a *g,
+			    struct nvgpu_mem *ctx_mem, u32 mode);
+	void (*set_pm_smpc_mode)(struct gk20a *g,
+				 struct nvgpu_mem *ctx_mem,
+				 bool enable);
+	u32 (*hw_get_pm_mode_no_ctxsw)(void);
+	u32 (*hw_get_pm_mode_ctxsw)(void);
+	u32 (*hw_get_pm_mode_stream_out_ctxsw)(void);
+	void (*set_cde_enabled)(struct gk20a *g,
+				struct nvgpu_mem *ctx_mem);
+	void (*set_pc_sampling)(struct gk20a *g,
+				struct nvgpu_mem *ctx_mem,
+				bool enable);
+	bool (*check_main_image_header_magic)(u32 *context);
+	bool (*check_local_header_magic)(u32 *context);
+	u32 (*get_num_gpcs)(u32 *context);
+	u32 (*get_num_tpcs)(u32 *context);
+	void (*get_extended_buffer_size_offset)(u32 *context,
+						u32 *size,
+						u32 *offset);
+	void (*get_ppc_info)(u32 *context, u32 *num_ppcs,
+			     u32 *ppc_mask);
+	u32 (*get_local_priv_register_ctl_offset)(u32 *context);
+	void (*set_pmu_options_boost_clock_frequencies)(
+					struct gk20a *g,
 					struct nvgpu_mem *ctx_mem,
-					bool enable);
-		bool (*check_main_image_header_magic)(u32 *context);
-		bool (*check_local_header_magic)(u32 *context);
-		u32 (*get_num_gpcs)(u32 *context);
-		u32 (*get_num_tpcs)(u32 *context);
-		void (*get_extended_buffer_size_offset)(u32 *context,
-							u32 *size,
-							u32 *offset);
-		void (*get_ppc_info)(u32 *context, u32 *num_ppcs,
-				     u32 *ppc_mask);
-		u32 (*get_local_priv_register_ctl_offset)(u32 *context);
-		void (*set_pmu_options_boost_clock_frequencies)(
-						struct gk20a *g,
-						struct nvgpu_mem *ctx_mem,
-						u32 boosted_ctx);
+					u32 boosted_ctx);
 #endif
 #ifdef CONFIG_DEBUG_FS
-		void (*dump_ctxsw_stats)(struct gk20a *g,
-					 struct nvgpu_mem *ctx_mem);
+	void (*dump_ctxsw_stats)(struct gk20a *g,
+				 struct nvgpu_mem *ctx_mem);
 #endif
 #ifdef CONFIG_NVGPU_FECS_TRACE
-		u32 (*hw_get_ts_tag_invalid_timestamp)(void);
-		u32 (*hw_get_ts_tag)(u64 ts);
-		u64 (*hw_record_ts_timestamp)(u64 ts);
-		u32 (*hw_get_ts_record_size_in_bytes)(void);
-		bool (*is_ts_valid_record)(u32 magic_hi);
-		u32 (*get_ts_buffer_aperture_mask)(struct gk20a *g,
-						   struct nvgpu_mem *ctx_mem);
-		void (*set_ts_num_records)(struct gk20a *g,
-					   struct nvgpu_mem *ctx_mem, u32 num);
-		void (*set_ts_buffer_ptr)(struct gk20a *g,
-					  struct nvgpu_mem *ctx_mem, u64 addr,
-					  u32 aperture_mask);
+	u32 (*hw_get_ts_tag_invalid_timestamp)(void);
+	u32 (*hw_get_ts_tag)(u64 ts);
+	u64 (*hw_record_ts_timestamp)(u64 ts);
+	u32 (*hw_get_ts_record_size_in_bytes)(void);
+	bool (*is_ts_valid_record)(u32 magic_hi);
+	u32 (*get_ts_buffer_aperture_mask)(struct gk20a *g,
+					   struct nvgpu_mem *ctx_mem);
+	void (*set_ts_num_records)(struct gk20a *g,
+				   struct nvgpu_mem *ctx_mem, u32 num);
+	void (*set_ts_buffer_ptr)(struct gk20a *g,
+				  struct nvgpu_mem *ctx_mem, u64 addr,
+				  u32 aperture_mask);
 #endif
-	} ctxsw_prog;
+};
+/** @endcond */
+
+/** @cond DOXYGEN_SHOULD_SKIP_THIS */
+#ifdef CONFIG_NVGPU_FECS_TRACE
+struct gops_gr_fecs_trace {
+	int (*init)(struct gk20a *g);
+	int (*max_entries)(struct gk20a *,
+			struct nvgpu_gpu_ctxsw_trace_filter *filter);
+	int (*flush)(struct gk20a *g);
+	int (*poll)(struct gk20a *g);
+	int (*enable)(struct gk20a *g);
+	int (*disable)(struct gk20a *g);
+	bool (*is_enabled)(struct gk20a *g);
+	int (*reset)(struct gk20a *g);
+	int (*bind_channel)(struct gk20a *g,
+			    struct nvgpu_mem *inst_block,
+			    struct nvgpu_gr_subctx *subctx,
+			    struct nvgpu_gr_ctx *gr_ctx,
+			    pid_t pid, u32 vmid);
+	int (*unbind_channel)(struct gk20a *g,
+			      struct nvgpu_mem *inst_block);
+	int (*deinit)(struct gk20a *g);
+	int (*alloc_user_buffer)(struct gk20a *g,
+				 void **buf, size_t *size);
+	int (*free_user_buffer)(struct gk20a *g);
+	void (*get_mmap_user_buffer_info)(struct gk20a *g,
+					  void **addr, size_t *size);
+	int (*set_filter)(struct gk20a *g,
+			  struct nvgpu_gpu_ctxsw_trace_filter *filter);
+	u32 (*get_buffer_full_mailbox_val)(void);
+	int (*get_read_index)(struct gk20a *g);
+	int (*get_write_index)(struct gk20a *g);
+	int (*set_read_index)(struct gk20a *g, int index);
+	void (*vm_dev_write)(struct gk20a *g, u8 vmid,
+			u32 *vm_update_mask,
+			struct nvgpu_gpu_ctxsw_trace_entry *entry);
+	void (*vm_dev_update)(struct gk20a *g, u32 vm_update_mask);
+};
+#endif
+/** @endcond */
+
+/** @cond DOXYGEN_SHOULD_SKIP_THIS */
+#ifdef CONFIG_NVGPU_DEBUGGER
+	struct gops_gr_hwpm_map {
+		void (*align_regs_perf_pma)(u32 *offset);
+		u32 (*get_active_fbpa_mask)(struct gk20a *g);
+	};
+#endif
+/** @endcond */
+
+/** @cond DOXYGEN_SHOULD_SKIP_THIS */
+#ifdef CONFIG_NVGPU_GRAPHICS
+struct gops_gr_zbc {
+	int (*add_color)(struct gk20a *g,
+		struct nvgpu_gr_zbc_entry *color_val,
+		u32 index);
+	int (*add_depth)(struct gk20a *g,
+		struct nvgpu_gr_zbc_entry *depth_val,
+		u32 index);
+	int (*set_table)(struct gk20a *g,
+		struct nvgpu_gr_zbc *zbc,
+		struct nvgpu_gr_zbc_entry *zbc_val);
+	int (*query_table)(struct gk20a *g,
+		struct nvgpu_gr_zbc *zbc,
+		struct nvgpu_gr_zbc_query_params *query_params);
+	int (*add_stencil)(struct gk20a *g,
+		struct nvgpu_gr_zbc_entry *s_val, u32 index);
+	u32 (*get_gpcs_swdx_dss_zbc_c_format_reg)(struct gk20a *g);
+	u32 (*get_gpcs_swdx_dss_zbc_z_format_reg)(struct gk20a *g);
+};
+struct gops_gr_zcull {
+	int (*init_zcull_hw)(struct gk20a *g,
+			     struct nvgpu_gr_zcull *gr_zcull,
+			     struct nvgpu_gr_config *gr_config);
+	int (*get_zcull_info)(struct gk20a *g,
+			struct nvgpu_gr_config *gr_config,
+			struct nvgpu_gr_zcull *gr_zcull,
+			struct nvgpu_gr_zcull_info *zcull_params);
+	void (*program_zcull_mapping)(struct gk20a *g,
+				      u32 zcull_alloc_num,
+				      u32 *zcull_map_tiles);
+};
+#endif /* CONFIG_NVGPU_GRAPHICS */
+/** @endcond */
+
+/**
+ * GR engine HAL operations.
+ *
+ * This structure stores the GR engine HAL function pointers.
+ *
+ * @see gpu_ops
+ */
+struct gops_gr {
+	/**
+	 * @brief Prepare the s/w required to enable gr h/w.
+	 *
+	 * @param g [in]		Pointer to GPU driver struct.
+	 *
+	 * This HAL executes only a subset of s/w initialization sequence
+	 * that is required to enable GR engine h/w in #gr_enable_hw hal.
+	 * This HAL always maps to #nvgpu_gr_prepare_sw.
+	 *
+	 * @return 0 in case of success, < 0 in case of failure.
+	 * @retval -ENOMEM if memory allocation fails for any internal data
+	 *         structure.
+	 *
+	 * @see nvgpu_gr_prepare_sw
+	 */
 	int (*gr_prepare_sw)(struct gk20a *g);
+
+	/**
+	 * @brief Enable GR engine h/w.
+	 *
+	 * @param g [in]		Pointer to GPU driver struct.
+	 *
+	 * This HAL enables GR engine h/w.
+	 * This HAL always maps to #nvgpu_gr_enable_hw.
+	 *
+	 * @return 0 in case of success, < 0 in case of failure.
+	 * @retval -ETIMEDOUT if falcon mem scrubbing times out.
+	 * @retval -EAGAIN if GR engine idle wait times out.
+	 *
+	 * @see nvgpu_gr_enable_hw
+	 */
 	int (*gr_enable_hw)(struct gk20a *g);
+
+	/**
+	 * @brief Initialize GR engine support.
+	 *
+	 * @param g [in]		Pointer to GPU driver struct.
+	 *
+	 * This HAL initializes all the GR engine support and
+	 * functionality. This HAL always maps to #nvgpu_gr_init_support.
+	 *
+	 * @return 0 in case of success, < 0 in case of failure.
+	 * @retval -ENOENT if context switch ucode is not found.
+	 * @retval -ETIMEDOUT if context switch ucode times out.
+	 * @retval -ETIMEDOUT if reading golden context size times out.
+	 * @retval -ENOMEM if memory allocation fails for any internal data
+	 *         structure.
+	 *
+	 * @see nvgpu_gr_init_support
+	 */
 	int (*gr_init_support)(struct gk20a *g);
+
+	/**
+	 * @brief Suspend GR engine.
+	 *
+	 * @param g [in]		Pointer to GPU driver struct.
+	 *
+	 * This HAL is typically called while preparing for GPU power off.
+	 * This HAL always maps to #nvgpu_gr_suspend.
+	 *
+	 * @return 0 in case of success, < 0 in case of failure.
+	 * @retval -EAGAIN if GR engine idle wait times out.
+	 *
+	 * @see nvgpu_gr_suspend
+	 */
 	int (*gr_suspend)(struct gk20a *g);
+
+	/** @cond DOXYGEN_SHOULD_SKIP_THIS */
 #ifdef CONFIG_NVGPU_DEBUGGER
 	u32 (*get_gr_status)(struct gk20a *g);
 	void (*access_smpc_reg)(struct gk20a *g, u32 quad, u32 offset);
@@ -602,10 +1113,10 @@ struct gops_gr {
 				     u32 max_cnt, u32 base,
 				     u32 num_fbpas, u32 stride, u32 mask);
 	int (*decode_priv_addr)(struct gk20a *g, u32 addr,
-			        enum ctxsw_addr_type *addr_type,
-			        u32 *gpc_num, u32 *tpc_num,
-			        u32 *ppc_num, u32 *be_num,
-			        u32 *broadcast_flags);
+				enum ctxsw_addr_type *addr_type,
+				u32 *gpc_num, u32 *tpc_num,
+				u32 *ppc_num, u32 *be_num,
+				u32 *broadcast_flags);
 	int (*create_priv_addr_table)(struct gk20a *g,
 					   u32 addr,
 					   u32 *priv_addr_table,
@@ -628,82 +1139,33 @@ struct gops_gr {
 	int (*set_boosted_ctx)(struct nvgpu_channel *ch, bool boost);
 #endif
 #endif
+	/** @endcond */
+
+	/** This structure stores the GR ecc subunit hal pointers. */
+	struct gops_gr_ecc	ecc;
+	/** This structure stores the GR setup subunit hal pointers. */
+	struct gops_gr_setup	setup;
+	/** This structure stores the GR falcon subunit hal pointers. */
+	struct gops_gr_falcon	falcon;
+	/** This structure stores the GR interrupt subunit hal pointers. */
+	struct gops_gr_intr	intr;
+	/** This structure stores the GR init subunit hal pointers. */
+	struct gops_gr_init	init;
+
+	/** @cond DOXYGEN_SHOULD_SKIP_THIS */
+	struct gops_gr_config		config;
+	struct gops_gr_ctxsw_prog	ctxsw_prog;
 #ifdef CONFIG_NVGPU_FECS_TRACE
-	struct {
-		int (*init)(struct gk20a *g);
-		int (*max_entries)(struct gk20a *,
-				struct nvgpu_gpu_ctxsw_trace_filter *filter);
-		int (*flush)(struct gk20a *g);
-		int (*poll)(struct gk20a *g);
-		int (*enable)(struct gk20a *g);
-		int (*disable)(struct gk20a *g);
-		bool (*is_enabled)(struct gk20a *g);
-		int (*reset)(struct gk20a *g);
-		int (*bind_channel)(struct gk20a *g,
-				    struct nvgpu_mem *inst_block,
-				    struct nvgpu_gr_subctx *subctx,
-				    struct nvgpu_gr_ctx *gr_ctx,
-				    pid_t pid, u32 vmid);
-		int (*unbind_channel)(struct gk20a *g,
-				      struct nvgpu_mem *inst_block);
-		int (*deinit)(struct gk20a *g);
-		int (*alloc_user_buffer)(struct gk20a *g,
-					 void **buf, size_t *size);
-		int (*free_user_buffer)(struct gk20a *g);
-		void (*get_mmap_user_buffer_info)(struct gk20a *g,
-						  void **addr, size_t *size);
-		int (*set_filter)(struct gk20a *g,
-				  struct nvgpu_gpu_ctxsw_trace_filter *filter);
-		u32 (*get_buffer_full_mailbox_val)(void);
-		int (*get_read_index)(struct gk20a *g);
-		int (*get_write_index)(struct gk20a *g);
-		int (*set_read_index)(struct gk20a *g, int index);
-		void (*vm_dev_write)(struct gk20a *g, u8 vmid,
-				u32 *vm_update_mask,
-				struct nvgpu_gpu_ctxsw_trace_entry *entry);
-		void (*vm_dev_update)(struct gk20a *g, u32 vm_update_mask);
-	} fecs_trace;
+	struct gops_gr_fecs_trace	fecs_trace;
 #endif
 #ifdef CONFIG_NVGPU_DEBUGGER
-	struct {
-		void (*align_regs_perf_pma)(u32 *offset);
-		u32 (*get_active_fbpa_mask)(struct gk20a *g);
-	} hwpm_map;
+	struct gops_gr_hwpm_map		hwpm_map;
 #endif
 #ifdef CONFIG_NVGPU_GRAPHICS
-	struct {
-		int (*add_color)(struct gk20a *g,
-			struct nvgpu_gr_zbc_entry *color_val,
-			u32 index);
-		int (*add_depth)(struct gk20a *g,
-			struct nvgpu_gr_zbc_entry *depth_val,
-			u32 index);
-		int (*set_table)(struct gk20a *g,
-			struct nvgpu_gr_zbc *zbc,
-			struct nvgpu_gr_zbc_entry *zbc_val);
-		int (*query_table)(struct gk20a *g,
-			struct nvgpu_gr_zbc *zbc,
-			struct nvgpu_gr_zbc_query_params *query_params);
-		int (*add_stencil)(struct gk20a *g,
-			struct nvgpu_gr_zbc_entry *s_val, u32 index);
-		u32 (*get_gpcs_swdx_dss_zbc_c_format_reg)(
-			struct gk20a *g);
-		u32 (*get_gpcs_swdx_dss_zbc_z_format_reg)(
-			struct gk20a *g);
-	} zbc;
-	struct {
-		int (*init_zcull_hw)(struct gk20a *g,
-				struct nvgpu_gr_zcull *gr_zcull,
-				struct nvgpu_gr_config *gr_config);
-		int (*get_zcull_info)(struct gk20a *g,
-			struct nvgpu_gr_config *gr_config,
-			struct nvgpu_gr_zcull *gr_zcull,
-			struct nvgpu_gr_zcull_info *zcull_params);
-		void (*program_zcull_mapping)(struct gk20a *g,
-					u32 zcull_alloc_num,
-					u32 *zcull_map_tiles);
-	} zcull;
+	struct gops_gr_zbc		zbc;
+	struct gops_gr_zcull		zcull;
 #endif /* CONFIG_NVGPU_GRAPHICS */
+	/** @endcond */
 };
 
 #endif /* NVGPU_GOPS_GR_H */

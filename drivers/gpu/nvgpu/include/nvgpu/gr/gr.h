@@ -176,9 +176,15 @@ int nvgpu_gr_prepare_sw(struct gk20a *g);
  *
  * @param g[in]		Pointer to GPU driver struct.
  *
- * This function enables GR engine h/w. This includes resetting GR
- * engine in MC, loading PROD register values, enabling GR engine
- * interrupts, ensuring falcon memory is scrubbed, etc.
+ * This function enables GR engine h/w. This includes:
+ * - Resetting GR engine in MC.
+ * - Load PROD register values.
+ * - Disable elcg until GR engine gets enabled.
+ * - Enable fifo access.
+ * - Enabling GR engine interrupts.
+ * - Load non_context init
+ * - Ensure falcon memory is scrubbed.
+ * - Wait Still GR engine status busy bit gets cleared.
  *
  * @return 0 in case of success, < 0 in case of failure.
  * @retval -ETIMEDOUT if falcon mem scrubbing times out.
