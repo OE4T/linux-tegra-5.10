@@ -1253,7 +1253,6 @@ static int ether_open(struct net_device *dev)
 	/* As all registers reset as part of ether_close(), reset private
 	 * structure variable as well */
 	pdata->vlan_hash_filtering = OSI_PERFECT_FILTER_MODE;
-	pdata->l3_l4_filter = OSI_DISABLE;
 	pdata->l2_filtering_mode = OSI_PERFECT_FILTER_MODE;
 
 	/* Initialize PTP */
@@ -1768,53 +1767,69 @@ static int ether_start_xmit(struct sk_buff *skb, struct net_device *ndev)
  *
  * @note  MAC and PHY need to be initialized.
  *
- * @retval 0 if perfect filtering is seleted
- * @retval 1 if hash filtering is seleted.
+ * @retval 0 on success
+ * @retval "negative value" on failure.
  */
-static int ether_prepare_mc_list(struct net_device *dev)
+static int ether_prepare_mc_list(struct net_device *dev,
+				 struct osi_filter *filter)
 {
 	struct ether_priv_data *pdata = netdev_priv(dev);
 	struct osi_core_priv_data *osi_core = pdata->osi_core;
 	struct netdev_hw_addr *ha;
-	int ret = OSI_PERFECT_FILTER_MODE, i = 1;
-	int cnt;
+	unsigned int i = 1;
+	int ret = -1;
+
+	if (filter == NULL) {
+		dev_err(pdata->dev, "filter is NULL\n");
+		return ret;
+	}
+
+	memset(filter, 0x0, sizeof(struct osi_filter));
 
 	if (pdata->l2_filtering_mode == OSI_HASH_FILTER_MODE) {
 		dev_err(pdata->dev,
-			"select HASH FILTERING for mc addresses is not supported in SW\n");
-		/* only perfect filter is supported */
+			"HASH FILTERING for mc addresses not Supported in SW\n");
+		filter->oper_mode = (OSI_OPER_EN_PERFECT |
+				     OSI_OPER_DIS_PROMISC |
+				     OSI_OPER_DIS_ALLMULTI);
+
+		return osi_l2_filter(osi_core, filter);
+	/* address 0 is used for DUT DA so compare with
+	 *  pdata->num_mac_addr_regs - 1
+	 */
+	} else if (netdev_mc_count(dev) > (pdata->num_mac_addr_regs - 1)) {
+		/* switch to PROMISCUOUS mode */
+		filter->oper_mode = (OSI_OPER_DIS_PERFECT |
+				     OSI_OPER_EN_PROMISC |
+				     OSI_OPER_DIS_ALLMULTI);
+		dev_dbg(pdata->dev, "enabling Promiscuous mode\n");
+
+		return osi_l2_filter(osi_core, filter);
 	} else {
 		dev_dbg(pdata->dev,
 			"select PERFECT FILTERING for mc addresses, mc_count = %d, num_mac_addr_regs = %d\n",
-			netdev_mc_count(dev),
-				pdata->num_mac_addr_regs);
-		/* Clear previously set filters */
-		for (cnt = 1; cnt <= pdata->last_uc_filter_index; cnt++) {
-			if (osi_update_mac_addr_low_high_reg(osi_core,
-							     (unsigned int)cnt,
-							     NULL,
-							     OSI_DISABLE, 0x0,
-							     OSI_AMASK_DISABLE,
-							     OSI_DA_MATCH) !=
-			   0) {
-				dev_err(pdata->dev, "issue in cleaning mc list\n");
-			}
-		}
+			netdev_mc_count(dev), pdata->num_mac_addr_regs);
 
+		filter->oper_mode = (OSI_OPER_EN_PERFECT |
+				     OSI_OPER_ADDR_UPDATE |
+				     OSI_OPER_DIS_PROMISC |
+				     OSI_OPER_DIS_ALLMULTI);
 		netdev_for_each_mc_addr(ha, dev) {
 			dev_dbg(pdata->dev,
 				"mc addr[%d] = %#x:%#x:%#x:%#x:%#x:%#x\n",
-				i,
-				ha->addr[0], ha->addr[1], ha->addr[2],
+				i, ha->addr[0], ha->addr[1], ha->addr[2],
 				ha->addr[3], ha->addr[4], ha->addr[5]);
-			if (osi_update_mac_addr_low_high_reg(osi_core,
-							     (unsigned int)i,
-							     ha->addr,
-							     OSI_DISABLE, 0x0,
-							     OSI_AMASK_DISABLE,
-							     OSI_DA_MATCH) !=
-			    0) {
+			filter->index = i;
+			filter->mac_address = ha->addr;
+			filter->dma_routing = OSI_DISABLE;
+			filter->dma_chan = 0x0;
+			filter->addr_mask = OSI_AMASK_DISABLE;
+			filter->src_dest = OSI_DA_MATCH;
+			ret = osi_l2_filter(osi_core, filter);
+			if (ret < 0) {
 				dev_err(pdata->dev, "issue in creating mc list\n");
+				pdata->last_filter_index = i - 1;
+				return ret;
 			}
 
 			if (i == EQOS_MAX_MAC_ADDRESS_FILTER - 1) {
@@ -1823,8 +1838,8 @@ static int ether_prepare_mc_list(struct net_device *dev)
 			}
 			i++;
 		}
-		/* preserve last MC filter index to passon to UC */
-		pdata->last_mc_filter_index = i - 1;
+		/* preserve last filter index to pass on to UC */
+		pdata->last_filter_index = i - 1;
 	}
 
 	return ret;
@@ -1841,53 +1856,68 @@ static int ether_prepare_mc_list(struct net_device *dev)
  *
  * @note  MAC and PHY need to be initialized.
  *
- * @retval 0 if perfect filtering is seleted
- * @retval 1 if hash filtering is seleted.
+ * @retval 0 on success
+ * @retval "negative value" on failure.
  */
-static int ether_prepare_uc_list(struct net_device *dev)
+static int ether_prepare_uc_list(struct net_device *dev,
+				 struct osi_filter *filter)
 {
 	struct ether_priv_data *pdata = netdev_priv(dev);
 	struct osi_core_priv_data *osi_core = pdata->osi_core;
-	int i = pdata->last_mc_filter_index + 1;
-	int ret = OSI_PERFECT_FILTER_MODE;
+	/* last valid MC/MAC DA + 1 should be start of UC addresses */
+	unsigned int i = pdata->last_filter_index + 1;
 	struct netdev_hw_addr *ha;
-	int cnt;
+	int ret = -1;
+
+	if (filter == NULL) {
+		dev_err(pdata->dev, "filter is NULL\n");
+		return ret;
+	}
+
+	memset(filter, 0x0, sizeof(struct osi_filter));
 
 	if (pdata->l2_filtering_mode == OSI_HASH_FILTER_MODE) {
 		dev_err(pdata->dev,
-			"select HASH FILTERING for uc addresses not Supported in SW\n");
-		/* only perfect filter is supported */
+			"HASH FILTERING for uc addresses not Supported in SW\n");
+		/* Perfect filtering for multicast */
+		filter->oper_mode = (OSI_OPER_EN_PERFECT |
+				     OSI_OPER_DIS_PROMISC |
+				     OSI_OPER_DIS_ALLMULTI);
+
+		return osi_l2_filter(osi_core, filter);
+	} else if (netdev_uc_count(dev) > (pdata->num_mac_addr_regs - i)) {
+		/* switch to PROMISCUOUS mode */
+		filter->oper_mode = (OSI_OPER_DIS_PERFECT |
+				     OSI_OPER_EN_PROMISC |
+				     OSI_OPER_DIS_ALLMULTI);
+		dev_dbg(pdata->dev, "enabling Promiscuous mode\n");
+
+		return osi_l2_filter(osi_core, filter);
 	} else {
 		dev_dbg(pdata->dev,
-			"select PERFECT FILTERING for uc addresses: uc_count = %d\n",
+				"select PERFECT FILTERING for uc addresses: uc_count = %d\n",
 			netdev_uc_count(dev));
-		/* Clear previously set filters */
-		for (cnt = pdata->last_mc_filter_index + 1;
-		     cnt <= pdata->last_uc_filter_index; cnt++) {
-			if (osi_update_mac_addr_low_high_reg(osi_core,
-							     (unsigned int)cnt,
-							     NULL,
-							     OSI_DISABLE, 0x0,
-							     OSI_AMASK_DISABLE,
-							     OSI_DA_MATCH) !=
-			    0) {
-				dev_err(pdata->dev, "issue in cleaning uc list\n");
-			}
-		}
 
+		filter->oper_mode = (OSI_OPER_EN_PERFECT |
+				     OSI_OPER_ADDR_UPDATE |
+				     OSI_OPER_DIS_PROMISC |
+				     OSI_OPER_DIS_ALLMULTI);
 		netdev_for_each_uc_addr(ha, dev) {
 			dev_dbg(pdata->dev,
 				"uc addr[%d] = %#x:%#x:%#x:%#x:%#x:%#x\n",
 				i, ha->addr[0], ha->addr[1], ha->addr[2],
 				ha->addr[3], ha->addr[4], ha->addr[5]);
-			if (osi_update_mac_addr_low_high_reg(osi_core,
-							     (unsigned int)i,
-							     ha->addr,
-							     OSI_DISABLE, 0x0,
-							     OSI_AMASK_DISABLE,
-							     OSI_DA_MATCH) !=
-			    0) {
+			filter->index = i;
+			filter->mac_address = ha->addr;
+			filter->dma_routing = OSI_DISABLE;
+			filter->dma_chan = 0x0;
+			filter->addr_mask = OSI_AMASK_DISABLE;
+			filter->src_dest = OSI_DA_MATCH;
+			ret = osi_l2_filter(osi_core, filter);
+			if (ret < 0) {
 				dev_err(pdata->dev, "issue in creating uc list\n");
+				pdata->last_filter_index = i - 1;
+				return ret;
 			}
 
 			if (i == EQOS_MAX_MAC_ADDRESS_FILTER - 1) {
@@ -1896,7 +1926,7 @@ static int ether_prepare_uc_list(struct net_device *dev)
 			}
 			i++;
 		}
-		pdata->last_uc_filter_index  = i - 1;
+		pdata->last_filter_index  = i - 1;
 	}
 
 	return ret;
@@ -1916,57 +1946,67 @@ static void ether_set_rx_mode(struct net_device *dev)
 {
 	struct ether_priv_data *pdata = netdev_priv(dev);
 	struct osi_core_priv_data *osi_core = pdata->osi_core;
-	struct osi_filter filter = {0};
-	int mode, ret;
+	struct osi_filter filter;
+	/* store last call last_uc_filter_index in temporary variable */
+	int last_index = pdata->last_filter_index;
+	int ret = -1;
+	unsigned int i = 0;
 
+	memset(&filter, 0x0, sizeof(struct osi_filter));
 	if ((dev->flags & IFF_PROMISC) == IFF_PROMISC) {
+		filter.oper_mode = (OSI_OPER_DIS_PERFECT | OSI_OPER_EN_PROMISC |
+				    OSI_OPER_DIS_ALLMULTI);
 		dev_dbg(pdata->dev, "enabling Promiscuous mode\n");
-		filter.pr_mode = OSI_ENABLE;
+		ret = osi_l2_filter(osi_core, &filter);
+		if (ret < 0) {
+			dev_err(pdata->dev, "Setting Promiscuous mode failed\n");
+		}
+
+		return;
 	} else if ((dev->flags & IFF_ALLMULTI) == IFF_ALLMULTI) {
+		filter.oper_mode = (OSI_OPER_EN_ALLMULTI |
+				    OSI_OPER_DIS_PERFECT |
+				    OSI_OPER_DIS_PROMISC);
 		dev_dbg(pdata->dev, "pass all multicast pkt\n");
-		filter.pm_mode = OSI_ENABLE;
+		ret = osi_l2_filter(osi_core, &filter);
+		if (ret < 0) {
+			dev_err(pdata->dev, "Setting All Multicast allow mode failed\n");
+		}
+
+		return;
 	} else if (!netdev_mc_empty(dev)) {
-		dev_dbg(pdata->dev, "pass list of multicast pkt\n");
-		if (netdev_mc_count(dev) > (pdata->num_mac_addr_regs - 1)) {
-			/* switch to PROMISCUOUS mode */
-			filter.pr_mode = OSI_ENABLE;
-		} else {
-			mode = ether_prepare_mc_list(dev);
-			if (mode == OSI_HASH_FILTER_MODE) {
-				/* Hash filtering for multicast */
-				filter.hmc_mode = OSI_ENABLE;
-			} else {
-				/* Perfect filtering for multicast */
-				filter.hmc_mode = OSI_DISABLE;
-				filter.hpf_mode = OSI_ENABLE;
-			}
+		if (ether_prepare_mc_list(dev, &filter) != 0) {
+			dev_err(pdata->dev, "Setting MC address failed\n");
 		}
 	} else {
-		pdata->last_mc_filter_index = 0;
+		pdata->last_filter_index = 0;
 	}
 
-	/* Handle multiple unicast addresses */
-	if (netdev_uc_count(dev) > (pdata->num_mac_addr_regs - 1)) {
-		/* switch to PROMISCUOUS mode */
-		filter.pr_mode = OSI_ENABLE;
-	} else if (!netdev_uc_empty(dev)) {
-		mode = ether_prepare_uc_list(dev);
-		if (mode == OSI_HASH_FILTER_MODE) {
-			/* Hash filtering for unicast */
-			filter.huc_mode = OSI_ENABLE;
-		} else {
-			/* Perfect filtering for unicast */
-			filter.huc_mode = OSI_DISABLE;
-			filter.hpf_mode = OSI_ENABLE;
+	if (!netdev_uc_empty(dev)) {
+		if (ether_prepare_uc_list(dev, &filter) != 0) {
+			dev_err(pdata->dev, "Setting UC address failed\n");
 		}
-	} else {
-		pdata->last_uc_filter_index = pdata->last_mc_filter_index;
 	}
 
-	ret = osi_config_mac_pkt_filter_reg(osi_core, filter);
-	if (ret != 0) {
-		dev_err(pdata->dev, "osi_config_mac_pkt_filter_reg failed\n");
+	/* Reset the filter structure to avoid any old value */
+	memset(&filter, 0x0, sizeof(struct osi_filter));
+	/* invalidate remaining ealier address */
+	for (i = pdata->last_filter_index + 1; i <= last_index; i++) {
+		filter.oper_mode = OSI_OPER_ADDR_UPDATE;
+		filter.index = i;
+		filter.mac_address = NULL;
+		filter.dma_routing = OSI_DISABLE;
+		filter.dma_chan = OSI_CHAN_ANY;
+		filter.addr_mask = OSI_AMASK_DISABLE;
+		filter.src_dest = OSI_DA_MATCH;
+		ret = osi_l2_filter(osi_core, &filter);
+		if (ret < 0) {
+			dev_err(pdata->dev, "Invalidating expired L2 filter failed\n");
+			return;
+		}
 	}
+
+	return;
 }
 
 /**
@@ -3675,6 +3715,8 @@ static int ether_resume(struct ether_priv_data *pdata)
 	osi_start_mac(osi_core);
 	/* start phy */
 	phy_start(pdata->phydev);
+	/* call dev_set_rx_mode so it will be serialized and avoid race*/
+	dev_set_rx_mode(ndev);
 	/* start network queues */
 	netif_tx_start_all_queues(ndev);
 	/* re-start workqueue */
