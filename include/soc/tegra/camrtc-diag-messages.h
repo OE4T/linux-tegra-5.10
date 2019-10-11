@@ -11,6 +11,7 @@
 #ifndef INCLUDE_CAMRTC_DIAG_MESSAGES_H
 #define INCLUDE_CAMRTC_DIAG_MESSAGES_H
 
+#include <camrtc-common.h>
 #include <camrtc-capture.h>
 #include <camrtc-diag.h>
 
@@ -20,20 +21,20 @@
  * @defgroup MessageType Message types for RCE diagnostics channel
  * @{
  */
-#define CAMRTC_DIAG_ISP5_SDL_SETUP_REQ		U32_C(0x01)
-#define CAMRTC_DIAG_ISP5_SDL_SETUP_RESP		U32_C(0x02)
+#define CAMRTC_DIAG_ISP5_SDL_SETUP_REQ		MK_U32(0x01)
+#define CAMRTC_DIAG_ISP5_SDL_SETUP_RESP		MK_U32(0x02)
 /**@}*/
 
 /**
  * @defgroup ResultCodes Diagnostics channel Result codes
  * @{
  */
-#define CAMRTC_DIAG_SUCCESS			U32_C(0x00)
-#define CAMRTC_DIAG_ERROR_INVAL			U32_C(0x01)
-#define CAMRTC_DIAG_ERROR_NOTSUP		U32_C(0x02)
-#define CAMRTC_DIAG_ERROR_BUSY			U32_C(0x03)
-#define CAMRTC_DIAG_ERROR_TIMEOUT		U32_C(0x04)
-#define CAMRTC_DIAG_ERROR_UNKNOWN		U32_C(0xFF)
+#define CAMRTC_DIAG_SUCCESS			MK_U32(0x00)
+#define CAMRTC_DIAG_ERROR_INVAL			MK_U32(0x01)
+#define CAMRTC_DIAG_ERROR_NOTSUP		MK_U32(0x02)
+#define CAMRTC_DIAG_ERROR_BUSY			MK_U32(0x03)
+#define CAMRTC_DIAG_ERROR_TIMEOUT		MK_U32(0x04)
+#define CAMRTC_DIAG_ERROR_UNKNOWN		MK_U32(0xFF)
 /**@}*/
 
 /**

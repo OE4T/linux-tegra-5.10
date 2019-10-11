@@ -15,14 +15,17 @@
 
 #pragma GCC diagnostic error "-Wpadded"
 
-#define CAMRTC_DIAG_IVC_ALIGN	__aligned(8)
-#define CAMRTC_DIAG_DMA_ALIGN	__aligned(64)
+#define CAMRTC_DIAG_IVC_ALIGNOF	MK_ALIGN(8)
+#define CAMRTC_DIAG_DMA_ALIGNOF MK_ALIGN(64)
+
+#define CAMRTC_DIAG_IVC_ALIGN	__aligned(CAMRTC_DIAG_IVC_ALIGNOF)
+#define CAMRTC_DIAG_DMA_ALIGN	__aligned(CAMRTC_DIAG_DMA_ALIGNOF)
 
 /**
  * Camera SDL - ISP5 SDL test vectors binary
  */
 
-#define ISP5_SDL_PARAM_UNSPECIFIED	U32_C(0xFFFFFFFF)
+#define ISP5_SDL_PARAM_UNSPECIFIED	MK_U32(0xFFFFFFFF)
 
 /**
  * @brief isp5_sdl_header - ISP5 SDL binary header
