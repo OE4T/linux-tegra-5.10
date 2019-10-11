@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -26,6 +26,21 @@
 #include <nvgpu/types.h>
 
 struct gk20a;
+
+/**
+ * Enumeration of all units intended to be used by any HAL that requires
+ * unit as parameter.
+ *
+ * Units are added to the enumeration as needed, so it is not complete.
+ */
+enum nvgpu_unit {
+	NVGPU_UNIT_FIFO,
+	NVGPU_UNIT_PERFMON,
+	NVGPU_UNIT_GRAPH,
+	NVGPU_UNIT_BLG,
+	NVGPU_UNIT_PWR,
+	NVGPU_UNIT_NVDEC,
+};
 
 #define NVGPU_MC_INTR_STALLING		0U
 #define NVGPU_MC_INTR_NONSTALLING	1U

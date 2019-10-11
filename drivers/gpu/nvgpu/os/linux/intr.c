@@ -20,7 +20,6 @@
 #include <nvgpu/nvgpu_init.h>
 
 #include <nvgpu/atomic.h>
-#include <nvgpu/unit.h>
 #include "os_linux.h"
 
 irqreturn_t nvgpu_intr_stall(struct gk20a *g)

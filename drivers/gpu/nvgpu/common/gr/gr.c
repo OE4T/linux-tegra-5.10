@@ -23,7 +23,6 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/io.h>
 #include <nvgpu/bug.h>
-#include <nvgpu/unit.h>
 #include <nvgpu/errno.h>
 #include <nvgpu/static_analysis.h>
 #include <nvgpu/gr/gr.h>
@@ -42,6 +41,7 @@
 #include <nvgpu/gr/fecs_trace.h>
 #include <nvgpu/power_features/cg.h>
 #include <nvgpu/power_features/pg.h>
+#include <nvgpu/mc.h>
 
 #include "gr_priv.h"
 

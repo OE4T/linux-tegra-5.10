@@ -104,6 +104,7 @@ struct pmu_pg_stats_data;
 enum nvgpu_flush_op;
 enum gk20a_mem_rw_flag;
 enum nvgpu_nvlink_minion_dlcmd;
+enum nvgpu_unit;
 
 #include <nvgpu/lock.h>
 #include <nvgpu/thread.h>
@@ -129,7 +130,6 @@ enum nvgpu_nvlink_minion_dlcmd;
 #include <nvgpu/bios.h>
 #include <nvgpu/semaphore.h>
 #include <nvgpu/fifo.h>
-#include <nvgpu/unit.h>
 
 #include <nvgpu/gops_gr.h>
 #include <nvgpu/gops_fifo.h>

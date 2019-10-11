@@ -26,7 +26,6 @@
 #include <nvgpu/io.h>
 #include <nvgpu/mc.h>
 #include <nvgpu/gk20a.h>
-#include <nvgpu/unit.h>
 #include <nvgpu/bug.h>
 #include <nvgpu/engines.h>
 

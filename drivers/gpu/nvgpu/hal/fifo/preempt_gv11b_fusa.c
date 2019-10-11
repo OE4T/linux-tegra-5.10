@@ -31,7 +31,6 @@
 #include <nvgpu/runlist.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/channel.h>
-#include <nvgpu/unit.h>
 #include <nvgpu/nvgpu_err.h>
 #include <nvgpu/pbdma_status.h>
 #include <nvgpu/engine_status.h>

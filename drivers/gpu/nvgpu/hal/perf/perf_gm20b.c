@@ -23,8 +23,8 @@
 #include <nvgpu/io.h>
 #include <nvgpu/mm.h>
 #include <nvgpu/bug.h>
-#include <nvgpu/unit.h>
 #include <nvgpu/gk20a.h>
+#include <nvgpu/mc.h>
 
 #include "perf_gm20b.h"
 

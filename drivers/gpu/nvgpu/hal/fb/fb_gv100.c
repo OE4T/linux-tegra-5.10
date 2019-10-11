@@ -38,8 +38,8 @@
 #include <nvgpu/utils.h>
 #include <nvgpu/timers.h>
 #include <nvgpu/gk20a.h>
-#include <nvgpu/unit.h>
 #include <nvgpu/firmware.h>
+#include <nvgpu/mc.h>
 
 #include "fb_gv100.h"
 

@@ -24,7 +24,6 @@
 
 #include <nvgpu/timers.h>
 #include <nvgpu/atomic.h>
-#include <nvgpu/unit.h>
 #include <nvgpu/io.h>
 #include <nvgpu/mc.h>
 #include <nvgpu/ltc.h>

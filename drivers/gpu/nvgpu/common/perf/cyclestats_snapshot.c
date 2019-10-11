@@ -35,7 +35,6 @@
 #include <nvgpu/utils.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/channel.h>
-#include <nvgpu/unit.h>
 #include <nvgpu/cyclestats_snapshot.h>
 
 /* check client for pointed perfmon ownership */

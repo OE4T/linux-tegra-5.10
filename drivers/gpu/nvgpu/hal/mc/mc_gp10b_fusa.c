@@ -32,7 +32,6 @@
 #include "mc_gp10b.h"
 
 #include <nvgpu/atomic.h>
-#include <nvgpu/unit.h>
 
 #include <nvgpu/hw/gp10b/hw_mc_gp10b.h>
 

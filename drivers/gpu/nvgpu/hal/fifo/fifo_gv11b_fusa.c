@@ -27,9 +27,9 @@
 #include <nvgpu/io.h>
 #include <nvgpu/fifo.h>
 #include <nvgpu/gk20a.h>
-#include <nvgpu/unit.h>
 #include <nvgpu/power_features/cg.h>
 #include <nvgpu/static_analysis.h>
+#include <nvgpu/mc.h>
 
 #include <nvgpu/hw/gv11b/hw_fifo_gv11b.h>
 

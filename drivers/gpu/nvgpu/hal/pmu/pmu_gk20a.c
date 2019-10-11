@@ -24,12 +24,12 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/pmu.h>
 #include <nvgpu/falcon.h>
-#include <nvgpu/unit.h>
 #include <nvgpu/firmware.h>
 #include <nvgpu/pmu/mutex.h>
 #include <nvgpu/pmu/fw.h>
 #include <nvgpu/pmu/debug.h>
 #include <nvgpu/pmu/pmu_pg.h>
+#include <nvgpu/mc.h>
 
 #include <nvgpu/hw/gk20a/hw_pwr_gk20a.h>
 

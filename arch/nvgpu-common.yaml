@@ -194,11 +194,6 @@ sim:
              include/nvgpu/hw_sim_pci.h,
              include/nvgpu/sim.h ]
 
-unit:
-  safe: yes
-  owner: Terje B
-  sources: [ include/nvgpu/unit.h ]
-
 utils:
   safe: yes
   owner: Terje B
