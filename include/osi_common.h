@@ -136,13 +136,28 @@
 #define EQOS_DMA_CHX_IER(x)		((0x0080U * (x)) + 0x1134U)
 
 /* FIXME add logic based on HW version */
-#define EQOS_MAX_MAC_ADDRESS_FILTER		128U
-#define EQOS_MAX_L3_L4_FILTER			8U
-#define OSI_EQOS_MAX_NUM_CHANS	4U
-#define OSI_EQOS_MAX_NUM_QUEUES	4U
-/* HW supports 8 Hash table regs, but eqos_validate_core_regs only checks 4 */
-#define OSI_EQOS_MAX_HASH_REGS	4U
+#define EQOS_MAX_MAC_ADDRESS_FILTER	128U
+#define EQOS_MAX_L3_L4_FILTER		8U
+#define OSI_EQOS_MAX_NUM_CHANS		4U
+#define OSI_EQOS_MAX_NUM_QUEUES		4U
+#define OSI_L2_FILTER_INDEX_ANY		127U
+#define OSI_CHAN_ANY			0xFFU
 
+/* HW supports 8 Hash table regs, but eqos_validate_core_regs only checks 4 */
+#define OSI_EQOS_MAX_HASH_REGS		4U
+
+/* L2 filter operations supported by OSI layer. These operation modes shall be
+ * set by OSD driver as input to update registers accordingly.
+ */
+#define OSI_OPER_EN_PROMISC	OSI_BIT(0)
+#define OSI_OPER_DIS_PROMISC	OSI_BIT(1)
+#define OSI_OPER_EN_ALLMULTI	OSI_BIT(2)
+#define OSI_OPER_DIS_ALLMULTI	OSI_BIT(3)
+#define OSI_OPER_EN_L2_DA_INV	OSI_BIT(4)
+#define OSI_OPER_DIS_L2_DA_INV	OSI_BIT(5)
+#define OSI_OPER_EN_PERFECT	OSI_BIT(6)
+#define OSI_OPER_DIS_PERFECT	OSI_BIT(7)
+#define OSI_OPER_ADDR_UPDATE	OSI_BIT(8)
 
 #define MAC_VERSION		0x110
 #define MAC_VERSION_SNVER_MASK	0x7FU
@@ -152,6 +167,7 @@
 
 #define OSI_NULL                ((void *)0)
 #define OSI_ENABLE		1U
+#define OSI_NONE		0U
 #define OSI_DISABLE		0U
 #define OSI_AMASK_DISABLE	0U
 
@@ -159,10 +175,11 @@
 #define OSI_PERFECT_FILTER_MODE	0U
 #define OSI_IPV6_MATCH		1U
 #define OSI_SOURCE_MATCH	0U
+#define OSI_INV_MATCH		1U
+#define OSI_PFT_MATCH		0U
 
 #define OSI_SA_MATCH		1U
 #define OSI_DA_MATCH		0U
-
 
 #define OSI_L4_FILTER_TCP	0U
 #define OSI_L4_FILTER_UDP	1U

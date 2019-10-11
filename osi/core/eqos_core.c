@@ -1392,6 +1392,9 @@ static int eqos_core_init(struct osi_core_priv_data *osi_core,
 	/* configure EQOS DMA */
 	eqos_configure_dma(osi_core->base);
 
+	/* initialize L3L4 Filters variable */
+	osi_core->l3l4_filter_bitmask = OSI_NONE;
+
 	return ret;
 }
 
@@ -1710,6 +1713,37 @@ static int eqos_set_avb_algorithm(struct osi_core_priv_data *osi_core,
 }
 
 /**
+ * @brief eqos_config_l2_da_perfect_inverse_match - configure register for
+ *	inverse or perfect match.
+ *
+ * Algorithm: This sequence is used to select perfect/inverse matching
+ *	for L2 DA
+ *
+ * @param[in] base: Base address  from OSI core private data structure.
+ * @param[in] perfect_inverse_match: 1 - inverse mode 0- perfect mode
+ *
+ * @note MAC should be init and started. see osi_start_mac()
+ *
+ * @retval 0 always
+ */
+static inline int eqos_config_l2_da_perfect_inverse_match(void *base,
+							  unsigned int
+							  perfect_inverse_match)
+{
+	unsigned int value = 0U;
+
+	value = osi_readl((unsigned char *)base + EQOS_MAC_PFR);
+	value &= ~EQOS_MAC_PFR_DAIF;
+	if (perfect_inverse_match == OSI_INV_MATCH) {
+		value |= EQOS_MAC_PFR_DAIF;
+	}
+	eqos_core_safety_writel(value, (unsigned char *)base + EQOS_MAC_PFR,
+				EQOS_MAC_PFR_IDX);
+
+	return 0;
+}
+
+/**
  * @brief eqos_config_mac_pkt_filter_reg - configure mac filter register.
  *
  * Algorithm: This sequence is used to configure MAC in differnet pkt
@@ -1717,34 +1751,63 @@ static int eqos_set_avb_algorithm(struct osi_core_priv_data *osi_core,
  *	hash unicast/multicast.
  *
  * @param[in] osi_core: OSI core private data structure.
- * @param[in] pfilter: OSI filter structure.
+ * @param[in] filter: OSI filter structure.
  *
  * @note 1) MAC should be initialized and started. see osi_start_mac()
- *	 2) MAC addresses should be configured in HW registers. see
- *	 osi_update_mac_addr_low_high_reg().
+ *
+ * @retval 0 always
  */
-static void eqos_config_mac_pkt_filter_reg(struct osi_core_priv_data *osi_core,
-					   struct osi_filter pfilter)
+static int eqos_config_mac_pkt_filter_reg(struct osi_core_priv_data *osi_core,
+					  struct osi_filter *filter)
 {
 	unsigned int value = 0U;
+	int ret = 0;
 
 	value = osi_readl((unsigned char *)osi_core->base + EQOS_MAC_PFR);
 	/*Retain all other values */
 	value &= (EQOS_MAC_PFR_DAIF | EQOS_MAC_PFR_DBF | EQOS_MAC_PFR_SAIF |
 		  EQOS_MAC_PFR_SAF | EQOS_MAC_PFR_PCF | EQOS_MAC_PFR_VTFE |
 		  EQOS_MAC_PFR_IPFE | EQOS_MAC_PFR_DNTU | EQOS_MAC_PFR_RA);
-	value |= (pfilter.pr_mode & EQOS_MAC_PFR_PR) |
-		  ((pfilter.huc_mode << EQOS_MAC_PFR_HUC_SHIFT) &
-		   EQOS_MAC_PFR_HUC) |
-		  ((pfilter.hmc_mode << EQOS_MAC_PFR_HMC_SHIFT) &
-		   EQOS_MAC_PFR_HMC) |
-		  ((pfilter.pm_mode << EQOS_MAC_PFR_PM_SHIFT) &
-		   EQOS_MAC_PFR_PM) |
-		  ((pfilter.hpf_mode << EQOS_MAC_PFR_HPF_SHIFT) &
-		   EQOS_MAC_PFR_HPF);
+
+	if ((filter->oper_mode & OSI_OPER_EN_PROMISC) != OSI_DISABLE) {
+		value |= EQOS_MAC_PFR_PR;
+	}
+
+	if ((filter->oper_mode & OSI_OPER_DIS_PROMISC) != OSI_DISABLE) {
+		value &= ~EQOS_MAC_PFR_PR;
+	}
+
+	if ((filter->oper_mode & OSI_OPER_EN_ALLMULTI) != OSI_DISABLE) {
+		value |= EQOS_MAC_PFR_PM;
+	}
+
+	if ((filter->oper_mode & OSI_OPER_DIS_ALLMULTI) != OSI_DISABLE) {
+		value &= ~EQOS_MAC_PFR_PM;
+	}
+
+	if ((filter->oper_mode & OSI_OPER_EN_PERFECT) != OSI_DISABLE) {
+		value |= EQOS_MAC_PFR_HPF;
+	}
+
+	if ((filter->oper_mode & OSI_OPER_DIS_PERFECT) != OSI_DISABLE) {
+		value &= ~EQOS_MAC_PFR_HPF;
+	}
+
 
 	eqos_core_safety_writel(value, (unsigned char *)osi_core->base +
-				EQOS_MAC_PFR, EQOS_MAC_PFR_IDX);
+					EQOS_MAC_PFR, EQOS_MAC_PFR_IDX);
+
+	if ((filter->oper_mode & OSI_OPER_EN_L2_DA_INV) != 0x0U) {
+		ret = eqos_config_l2_da_perfect_inverse_match(osi_core->base,
+							      OSI_INV_MATCH);
+	}
+
+	if ((filter->oper_mode & OSI_OPER_DIS_L2_DA_INV) != 0x0U) {
+		ret = eqos_config_l2_da_perfect_inverse_match(osi_core->base,
+							      OSI_PFT_MATCH);
+	}
+
+	return ret;
 }
 
 /**
@@ -1760,11 +1823,11 @@ static void eqos_config_mac_pkt_filter_reg(struct osi_core_priv_data *osi_core,
  * @param[in] dma_routing_enable: dma channel routing enable(1)
  * @param[in] dma_chan: dma channel number
  * @param[in] addr_mask: filter will not consider byte in comparison
- *	      Bit 29: MAC_Address${i}_High[15:8]
- *	      Bit 28: MAC_Address${i}_High[7:0]
- *	      Bit 27: MAC_Address${i}_Low[31:24]
+ *	      Bit 5: MAC_Address${i}_High[15:8]
+ *	      Bit 4: MAC_Address${i}_High[7:0]
+ *	      Bit 3: MAC_Address${i}_Low[31:24]
  *	      ..
- *	      Bit 24: MAC_Address${i}_Low[7:0]
+ *	      Bit 0: MAC_Address${i}_Low[7:0]
  *
  * @note 1) MAC should be initialized and stated. see osi_start_mac()
  *	 2) osi_core->osd should be populated.
@@ -1827,17 +1890,7 @@ err_dma_chan:
  *	performed before updating DCS bits.
  *
  * @param[in] osi_core: OSI core private data structure.
- * @param[in] idx: filter index
- * @param[in] addr: MAC address to write
- * @param[in] dma_routing_enable: dma channel routing enable(1)
- * @param[in] dma_chan: dma channel number
- * @param[in] addr_mask: filter will not consider byte in comparison
- *	      Bit 29: MAC_Address${i}_High[15:8]
- *	      Bit 28: MAC_Address${i}_High[7:0]
- *	      Bit 27: MAC_Address${i}_Low[31:24]
- *	      ..
- *	      Bit 24: MAC_Address${i}_Low[7:0]
- * @param[in] src_dest: SA(1) or DA(0)
+ * @param[in] filter: OSI filter structure.
  *
  * @note 1) MAC should be initialized and stated. see osi_start_mac()
  *	 2) osi_core->osd should be populated.
@@ -1847,12 +1900,14 @@ err_dma_chan:
  */
 static int eqos_update_mac_addr_low_high_reg(
 				struct osi_core_priv_data *osi_core,
-				unsigned int idx,
-				const unsigned char addr[],
-				unsigned int dma_routing_enable,
-				unsigned int dma_chan,
-				unsigned int addr_mask, unsigned int src_dest)
+				struct osi_filter *filter)
 {
+	unsigned int idx = filter->index;
+	unsigned int dma_routing_enable = filter->dma_routing;
+	unsigned int dma_chan = filter->dma_chan;
+	unsigned int addr_mask = filter->addr_mask;
+	unsigned int src_dest = filter->src_dest;
+	const unsigned char *addr = filter->mac_address;
 	unsigned int value = 0x0U;
 	int ret = 0;
 
@@ -2074,36 +2129,6 @@ static int eqos_config_l3_l4_filter_enable(void *base,
 }
 
 /**
- * @brief eqos_config_l2_da_perfect_inverse_match - configure register for
- *	inverse or perfect match.
- *
- * Algorithm: This sequence is used to select perfect/inverse matching
- *	for L2 DA
- *
- * @param[in] base: Base address  from OSI core private data structure.
- * @param[in] perfect_inverse_match: 1 - inverse mode 0- normal mode
- *
- * @note MAC should be init and started. see osi_start_mac()
- *
- * @retval 0 on success
- * @retval -1 on failure.
- */
-static int eqos_config_l2_da_perfect_inverse_match(void *base, unsigned int
-						   perfect_inverse_match)
-{
-	unsigned int value = 0U;
-
-	value = osi_readl((unsigned char *)base + EQOS_MAC_PFR);
-	value &= ~EQOS_MAC_PFR_DAIF;
-	value |= ((perfect_inverse_match << EQOS_MAC_PFR_DAIF_SHIFT) &
-		  EQOS_MAC_PFR_DAIF);
-	eqos_core_safety_writel(value, (unsigned char *)base + EQOS_MAC_PFR,
-				EQOS_MAC_PFR_IDX);
-
-	return 0;
-}
-
-/**
  * @brief eqos_update_ip4_addr - configure register for IPV4 address filtering
  *
  * Algorithm:  This sequence is used to update IPv4 source/destination
@@ -2115,8 +2140,6 @@ static int eqos_config_l2_da_perfect_inverse_match(void *base, unsigned int
  * @param[in] src_dst_addr_match: 0 - source addr otherwise - dest addr
  *
  * @note 1) MAC should be init and started. see osi_start_mac()
- *	 2) L3/L4 filtering should be enabled in MAC PFR register. See
- *	 osi_config_l3_l4_filter_enable()
  *
  * @retval 0 on success
  * @retval -1 on failure.
@@ -2173,8 +2196,6 @@ static int eqos_update_ip4_addr(struct osi_core_priv_data *osi_core,
  * @param[in] addr: ipv6 adderss
  *
  * @note 1) MAC should be init and started. see osi_start_mac()
- *	 2) L3/L4 filtering should be enabled in MAC PFR register. See
- *	 osi_config_l3_l4_filter_enable()
  *
  * @retval 0 on success
  * @retval -1 on failure.
@@ -2240,10 +2261,8 @@ static int eqos_update_ip6_addr(struct osi_core_priv_data *osi_core,
  * @param[in] src_dst_port_match: 0 - source port, otherwise - dest port
  *
  * @note 1) MAC should be init and started. see osi_start_mac()
- *	 2) L3/L4 filtering should be enabled in MAC PFR register. See
- *	 osi_config_l3_l4_filter_enable()
- *	 3) osi_core->osd should be populated
- *	 4) DCS bits should be enabled in RXQ to DMA mapping register
+ *	 2) osi_core->osd should be populated
+ *	 3) DCS bits should be enabled in RXQ to DMA mapping register
  *
  * @retval 0 on success
  * @retval -1 on failure.
@@ -2292,7 +2311,8 @@ static int eqos_update_l4_port_no(struct osi_core_priv_data *osi_core,
  *
  * @note 1) MAC IP should be out of reset and need to be initialized
  *	 as the requirements.
- *	 2) DCS bits should be enabled in RXQ to DMA mapping register
+ *	 2) DCS bit of RxQ should be enabled for dynamic channel selection
+ *	    in filter support
  *
  *@return updated unsigned int value
  */
@@ -2314,6 +2334,37 @@ static inline unsigned int eqos_set_dcs(struct osi_core_priv_data *osi_core,
 
 	return value;
 }
+
+/**
+ * @brief eqos_helper_l3l4_bitmask - helper function to set L3L4
+ * bitmask.
+ *
+ * Algorithm: set bit corresponding to L3l4 filter index
+ *
+ * @param[in] bitmask: bit mask OSI core private data structure.
+ * @param[in] filter_no: filter index
+ * @param[in] value:  0 - disable  otherwise - l3/l4 filter enabled
+ *
+ * @note 1) MAC should be init and started. see osi_start_mac()
+ *
+ */
+static inline void eqos_helper_l3l4_bitmask(unsigned int *bitmask,
+					    unsigned int filter_no,
+					    unsigned int value)
+{
+	unsigned int temp;
+
+	/* Set bit mask for index */
+	temp = OSI_ENABLE;
+	temp = temp << filter_no;
+	/* check against all bit fields for L3L4 filter enable */
+	if ((value & EQOS_MAC_L3L4_CTRL_ALL) != OSI_DISABLE) {
+		*bitmask |= temp;
+	} else {
+		*bitmask &= ~temp;
+	}
+}
+
 /**
  * @brief eqos_config_l3_filters - config L3 filters.
  *
@@ -2332,10 +2383,9 @@ static inline unsigned int eqos_set_dcs(struct osi_core_priv_data *osi_core,
  * @param[in] dma_chan: dma channel for routing based on filter
  *
  * @note 1) MAC should be init and started. see osi_start_mac()
- *	 2) L3/L4 filtering should be enabled in MAC PFR register. See
- *	 osi_config_l3_l4_filter_enable()
- *	 3) osi_core->osd should be populated
- *	 4) DCS bits should be enabled in RXQ to DMA map register
+ *	 2) osi_core->osd should be populated
+ *	 3) DCS bit of RxQ should be enabled for dynamic channel selection
+ *	    in filter support
  *
  * @retval 0 on success
  * @retval -1 on failure.
@@ -2484,11 +2534,15 @@ static int eqos_config_l3_filters(struct osi_core_priv_data *osi_core,
 		}
 	}
 
+	/* Set bit corresponding to filter index if value is non-zero */
+	eqos_helper_l3l4_bitmask(&osi_core->l3l4_filter_bitmask,
+				 filter_no, value);
+
 	return 0;
 }
 
 /**
- * @brief osi_config_l4_filters - Config L4 filters.
+ * @brief eqos_config_l4_filters - Config L4 filters.
  *
  * Algorithm: This sequence is used to configure L4(TCP/UDP) filters for
  *	SA and DA Port Number matching
@@ -2503,9 +2557,7 @@ static int eqos_config_l3_filters(struct osi_core_priv_data *osi_core,
  * @param[in] dma_chan: dma channel for routing based on filter
  *
  * @note 1) MAC should be init and started. see osi_start_mac()
- *	 2) L3/L4 filtering should be enabled in MAC PFR register. See
- *	 osi_config_l3_l4_filter_enable()
- *	 3) osi_core->osd should be populated
+ *	 2) osi_core->osd should be populated
  *
  * @retval 0 on success
  * @retval -1 on failure.
@@ -2596,6 +2648,9 @@ static int eqos_config_l4_filters(struct osi_core_priv_data *osi_core,
 				   EQOS_MAC_L3L4_CTR(filter_no));
 		}
 	}
+	/* Set bit corresponding to filter index if value is non-zero */
+	eqos_helper_l3l4_bitmask(&osi_core->l3l4_filter_bitmask,
+				 filter_no, value);
 
 	return 0;
 }
@@ -3166,8 +3221,6 @@ static struct osi_core_ops eqos_core_ops = {
 	.config_mac_pkt_filter_reg = eqos_config_mac_pkt_filter_reg,
 	.update_mac_addr_low_high_reg = eqos_update_mac_addr_low_high_reg,
 	.config_l3_l4_filter_enable = eqos_config_l3_l4_filter_enable,
-	.config_l2_da_perfect_inverse_match =
-				eqos_config_l2_da_perfect_inverse_match,
 	.config_l3_filters = eqos_config_l3_filters,
 	.update_ip4_addr = eqos_update_ip4_addr,
 	.update_ip6_addr = eqos_update_ip6_addr,

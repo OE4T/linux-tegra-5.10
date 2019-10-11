@@ -32,18 +32,26 @@ struct osi_core_priv_data;
  * @brief OSI core structure for filters
  */
 struct osi_filter {
-	/** promiscuous mode enable(1) or disable(0) */
-	unsigned int pr_mode;
-	/** hash unicast enable(1) or disable(0) */
-	unsigned int huc_mode;
-	/** hash multicast enable(1) or disable(0) */
-	unsigned int hmc_mode;
-	/** pass all multicast enable(1) or disable(0) */
-	unsigned int pm_mode;
-	/** 0x0 (DISABLE): Hash or Perfect Filter is disabled
-	 *
-	 * 0x1 (ENABLE): Hash or Perfect Filter is enabled */
-	unsigned int hpf_mode;
+	/** indicates operation needs to perform. refer to OSI_OPER_* */
+	unsigned int oper_mode;
+	/** Indicates the index of the filter to be modified.
+	 * Filter index must be between 0 - 127 */
+	unsigned int index;
+	/** Ethernet MAC address to be added */
+	const unsigned char *mac_address;
+	/** Indicates dma channel routing enable(1) disable (0) */
+	unsigned int dma_routing;
+	/**  indicates dma channel number to program */
+	unsigned int dma_chan;
+	/** filter will not consider byte in comparison
+	 *	Bit 5: MAC_Address${i}_High[15:8]
+	 *	Bit 4: MAC_Address${i}_High[7:0]
+	 *	Bit 3: MAC_Address${i}_Low[31:24]
+	 *	..
+	 *	Bit 0: MAC_Address${i}_Low[7:0] */
+	unsigned int addr_mask;
+	/** src_dest: SA(1) or DA(0) */
+	unsigned int src_dest;
 };
 
 /**
@@ -176,22 +184,13 @@ struct osi_core_ops {
 	/** Called to configure Rx Checksum offload engine */
 	int (*config_rxcsum_offload)(void *addr, unsigned int enabled);
 	/** Called to config mac packet filter */
-	void (*config_mac_pkt_filter_reg)(struct osi_core_priv_data *osi_core,
-					  struct osi_filter filter);
+	int (*config_mac_pkt_filter_reg)(struct osi_core_priv_data *osi_core,
+					 struct osi_filter *filter);
 	/** Called to update MAC address 1-127 */
-	int (*update_mac_addr_low_high_reg)(
-					    struct osi_core_priv_data *osi_core,
-					    unsigned int index,
-					    const unsigned char value[],
-					    unsigned int dma_routing_enable,
-					    unsigned int dma_chan,
-					    unsigned int addr_mask,
-					    unsigned int src_dest);
+	int (*update_mac_addr_low_high_reg)(struct osi_core_priv_data *osi_core,
+					    struct osi_filter *filter);
 	/** Called to configure l3/L4 filter */
 	int (*config_l3_l4_filter_enable)(void *base, unsigned int enable);
-	/** Called to configure L2 DA filter */
-	int (*config_l2_da_perfect_inverse_match)(void *base, unsigned int
-						  perfect_inverse_match);
 	/** Called to configure L3 filter */
 	int (*config_l3_filters)(struct osi_core_priv_data *osi_core,
 				 unsigned int filter_no, unsigned int enb_dis,
@@ -342,6 +341,9 @@ struct osi_core_priv_data {
 	void *safety_config;
 	/** VLAN tag stripping enable(1) or disable(0) */
 	unsigned int strip_vlan_tag;
+	/** L3L4 filter bit bask, set index corresponding bit for
+	 * filter if filter enabled */
+	unsigned int l3l4_filter_bitmask;
 };
 
 /**
@@ -706,217 +708,23 @@ int osi_config_rxcsum_offload(struct osi_core_priv_data *osi_core,
 			      unsigned int enable);
 
 /**
- * @brief osi_config_mac_pkt_filter_reg - configure mac filter register.
+ * @brief osi_l2_filter - configure L2 mac filter.
  *
- * Algorithm: This sequence is used to configure MAC in differnet packet
+ * Algorithm: This sequence is used to configure MAC in different packet
  * processing modes like promiscuous, multicast, unicast,
- * hash unicast/multicast.
+ * hash unicast/multicast and perfect/inverse matching for L2 DA
  *
  * @param[in] osi_core: OSI core private data structure.
- * @param[in] pfilter: OSI filter structure.
+ * @param[in] filter: OSI filter structure.
  *
  * @note
  *	1) MAC should be initialized and started. see osi_start_mac()
- *	2) MAC addresses should be configured in HW registers. see
- *	osi_update_mac_addr_low_high_reg().
  *
  * @retval 0 on success
  * @retval -1 on failure.
  */
-int osi_config_mac_pkt_filter_reg(struct osi_core_priv_data *osi_core,
-				  struct osi_filter pfilter);
-
-/**
- * @brief osi_update_mac_addr_low_high_reg- invoke API to update L2 address
- *	in filter register
- *
- * Algorithm: This routine update MAC address to register for filtering
- * based on dma_routing_enable, addr_mask and src_dest. Validation of
- * dma_chan as well as DCS bit enabled in RXQ to DMA mapping register
- * performed before updating DCS bits.
- *
- * @param[in] osi_core: OSI core private data structure.
- * @param[in] index: filter index
- * @param[in] value: MAC address to write
- * @param[in] dma_routing_enable: dma channel routing enable(1)
- * @param[in] dma_chan: dma channel number
- * @param[in] addr_mask: filter will not consider byte in comparison
- *	Bit 29: MAC_Address${i}_High[15:8]
- *	Bit 28: MAC_Address${i}_High[7:0]
- *	Bit 27: MAC_Address${i}_Low[31:24]
- *	..
- *	Bit 24: MAC_Address${i}_Low[7:0]
- * @param[in] src_dest: SA(1) or DA(0)
- *
- * @note
- *	1) MAC should be initialized and stated. see osi_start_mac()
- *	2) osi_core->osd should be populated.
- *
- * @retval 0 on success
- * @retval -1 on failure.
- */
-int osi_update_mac_addr_low_high_reg(struct osi_core_priv_data *osi_core,
-				     unsigned int index,
-				     const unsigned char value[],
-				     unsigned int dma_routing_enable,
-				     unsigned int dma_chan,
-				     unsigned int addr_mask,
-				     unsigned int src_dest);
-
-/**
- * @brief osi_config_l3_l4_filter_enable -  invoke OSI call to enable L3/L4
- *	filters.
- *
- * Algorithm: This routine to enable/disable L4/l4 filter
- *
- * @param[in] osi_core: OSI core private data structure.
- * @param[in] enable: enable/disable
- *
- * @note MAC should be init and started. see osi_start_mac()
- *
- * @retval 0 on success
- * @retval -1 on failure.
- */
-int osi_config_l3_l4_filter_enable(struct osi_core_priv_data *osi_core,
-				   unsigned int enable);
-
-/**
- * @brief osi_config_l3_filters - invoke OSI call config_l3_filters.
- *
- * Algorithm: Check for DCS_enable as well as validate channel
- * number and if dcs_enable is set. After validation, code flow
- * is used to configure L3(IPv4/IPv6) filters resister
- * for address matching.
- *
- * @param[in] osi_core: OSI core private data structure.
- * @param[in] filter_no: filter index
- * @param[in] enb_dis:  1 - enable otherwise - disable L3 filter
- * @param[in] ipv4_ipv6_match: 1 - IPv6, otherwise - IPv4
- * @param[in] src_dst_addr_match: 0 - source, otherwise - destination
- * @param[in] perfect_inverse_match: normal match(0) or inverse map(1)
- * @param[in] dma_routing_enable: filter based dma routing enable(1)
- * @param[in] dma_chan: dma channel for routing based on filter
- *
- * @note
- *	1) MAC should be init and started. see osi_start_mac()
- *	2) L3/L4 filtering should be enabled in MAC PFR register. See
- *	osi_config_l3_l4_filter_enable()
- *	3) osi_core->osd should be populated
- *	4) DCS bits should be enabled in RXQ to DMA map register
- *
- * @retval 0 on success
- * @retval -1 on failure.
- */
-int osi_config_l3_filters(struct osi_core_priv_data *osi_core,
-			  unsigned int filter_no,
-			  unsigned int enb_dis,
-			  unsigned int ipv4_ipv6_match,
-			  unsigned int src_dst_addr_match,
-			  unsigned int perfect_inverse_match,
-			  unsigned int dma_routing_enable,
-			  unsigned int dma_chan);
-
-/**
- * @brief osi_update_ip4_addr -  invoke OSI call update_ip4_addr.
- *
- * Algorithm:  This sequence is used to update IPv4 source/destination
- * Address for L3 layer filtering
- *
- * @param[in] osi_core: OSI core private data structure.
- * @param[in] filter_no: filter index
- * @param[in] addr: ipv4 address
- * @param[in] src_dst_addr_match: 0- source(addr0) 1- dest (addr1)
- *
- * @note
- *	1) MAC should be init and started. see osi_start_mac()
- *	2) L3/L4 filtering should be enabled in MAC PFR register. See
- *	osi_config_l3_l4_filter_enable()
- *
- * @retval 0 on success
- * @retval -1 on failure.
- */
-int osi_update_ip4_addr(struct osi_core_priv_data *osi_core,
-			unsigned int filter_no,
-			unsigned char addr[],
-			unsigned int src_dst_addr_match);
-
-/**
- * @brief osi_update_ip6_addr -  invoke OSI call update_ip6_addr.
- *
- * Algorithm:  This sequence is used to update IPv6 source/destination
- * Address for L3 layer filtering
- *
- * @param[in] osi_core: OSI core private data structure.
- * @param[in] filter_no: filter index
- * @param[in] addr: ipv6 adderss
- *
- * @note
- *	1) MAC should be init and started. see osi_start_mac()
- *	2) L3/L4 filtering should be enabled in MAC PFR register. See
- *	osi_config_l3_l4_filter_enable()
- *
- * @retval 0 on success
- * @retval -1 on failure.
- */
-int osi_update_ip6_addr(struct osi_core_priv_data *osi_core,
-			unsigned int filter_no,
-			unsigned short addr[]);
-
-/**
- * @brief osi_config_l4_filters - invoke OSI call config_l4_filters.
- *
- * Algorithm: This sequence is used to configure L4(TCP/UDP) filters for
- * SA and DA Port Number matching
- *
- * @param[in] osi_core: OSI core private data structure.
- * @param[in] filter_no: filter index
- * @param[in] enb_dis: enable/disable L4 filter
- * @param[in] tcp_udp_match: 1 - udp, 0 - tcp
- * @param[in] src_dst_port_match: port matching enable/disable
- * @param[in] perfect_inverse_match: normal match(0) or inverse map(1)
- * @param[in] dma_routing_enable: filter based dma routing enable(1)
- * @param[in] dma_chan: dma channel for routing based on filter
- *
- * @note
- *	1) MAC should be init and started. see osi_start_mac()
- *	2) L3/L4 filtering should be enabled in MAC PFR register. See
- *	osi_config_l3_l4_filter_enable()
- *	3) osi_core->osd should be populated
- *
- * @retval 0 on success
- * @retval -1 on failure.
- */
-int osi_config_l4_filters(struct osi_core_priv_data *osi_core,
-			  unsigned int filter_no,
-			  unsigned int enb_dis,
-			  unsigned int tcp_udp_match,
-			  unsigned int src_dst_port_match,
-			  unsigned int perfect_inverse_match,
-			  unsigned int dma_routing_enable,
-			  unsigned int dma_chan);
-
-/**
- * @brief osi_update_l4_port_no - invoke OSI call for update_l4_port_no.
- * Algoriths sequence is used to update Source Port Number for
- * L4(TCP/UDP) layer filtering.
- *
- * @param[in] osi_core: OSI core private data structure.
- * @param[in] filter_no: filter index
- * @param[in] port_no: port number
- * @param[in] src_dst_port_match: source port - 0, dest port - 1
- *
- * @note
- *	1) MAC should be init and started. see osi_start_mac()
- *	2) L3/L4 filtering should be enabled in MAC PFR register. See
- *	osi_config_l3_l4_filter_enable()
- *	3) osi_core->osd should be populated
- *
- * @retval 0 on success
- * @retval -1 on failure.
- */
-int osi_update_l4_port_no(struct osi_core_priv_data *osi_core,
-			  unsigned int filter_no, unsigned short port_no,
-			  unsigned int src_dst_port_match);
+int osi_l2_filter(struct osi_core_priv_data *osi_core,
+		  struct osi_filter *filter);
 
 /**
  * @brief osi_config_vlan_filtering - OSI call for configuring VLAN filter
@@ -940,24 +748,6 @@ int osi_config_vlan_filtering(struct osi_core_priv_data *osi_core,
 			      unsigned int filter_enb_dis,
 			      unsigned int perfect_hash_filtering,
 			      unsigned int perfect_inverse_match);
-
-/**
- * @brief osi_config_l2_da_perfect_inverse_match -
- * trigger OSI call for config_l2_da_perfect_inverse_match.
- *
- * Algorithm: This sequence is used to select perfect/inverse matching
- *	  for L2 DA
- *
- * @param[in] osi_core: OSI core private data structure.
- * @param[in] perfect_inverse_match: 1 - inverse mode 0- normal mode
- *
- * @note MAC should be init and started. see osi_start_mac()
- *
- * @retval 0 on success
- * @retval -1 on failure.
- */
-int  osi_config_l2_da_perfect_inverse_match(struct osi_core_priv_data *osi_core,
-					    unsigned int perfect_inverse_match);
 
 /**
  * @brief osi_update_vlan_id - invoke osi call to update VLAN ID
@@ -1175,4 +965,39 @@ int osi_ptp_configuration(struct osi_core_priv_data *osi_core,
  */
 struct osi_core_ops *eqos_get_hw_core_ops(void);
 void *eqos_get_core_safety_config(void);
+
+/**
+ * @brief osi_l3l4_filter -  invoke OSI call to add L3/L4
+ * filters.
+ *
+ * Algorithm: This routine is to enable/disable L3/l4 filter.
+ * Check for DCS enable as well as validate channel
+ * number if dcs_enable is set. After validation, configure L3(IPv4/IPv6)
+ * filters register for given address. Based on input arguments update
+ * IPv4/IPv6 source/destination address for L3 layer filtering or source and
+ * destination Port Number for L4(TCP/UDP) layer
+ * filtering.
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in] l_filter: L3L4 filter data structure.
+ * @param[in] type: L3 filter (ipv4(0) or ipv6(1))
+ *	      or L4 filter (tcp(0) or udp(1))
+ * @param[in] dma_routing_enable: filter based dma routing enable(1)
+ * @param[in] dma_chan: dma channel for routing based on filter
+ * @param[in] is_l4_filter: API call for L3 filter(0) or L4 filter(1)
+ *
+ * @note
+ *	1) MAC should be init and started. see osi_start_mac()
+ *	2) Concurrent invocations to configure filters is not supported.
+ *	   OSD driver shall serialize calls.
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+int osi_l3l4_filter(struct osi_core_priv_data *osi_core,
+		    struct osi_l3_l4_filter l_filter,
+		    unsigned int type,
+		    unsigned int dma_routing_enable, unsigned int dma_chan,
+		    unsigned int is_l4_filter);
+
 #endif /* OSI_CORE_H */
