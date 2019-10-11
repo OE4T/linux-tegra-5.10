@@ -24,39 +24,37 @@
  * @defgroup HspVmMsgs Definitions for "nvidia,tegra-camrtc-hsp-vm" protocol
  * @{
  */
-#define CAMRTC_HSP_MSG(_id, _param) \
-	(((uint32_t)(_id) << 24U) | ((uint32_t)(_param) & 0xffffffU))
+#define CAMRTC_HSP_MSG(_id, _param) ( \
+	((uint32_t)(_id) << MK_U32(24)) | \
+	((uint32_t)(_param) & MK_U32(0xffffff)))
 #define CAMRTC_HSP_MSG_ID(_msg) \
-	(((_msg) >> 24U) & 0x7fU)
+	(((_msg) >> MK_U32(24)) & MK_U32(0x7f))
 #define CAMRTC_HSP_MSG_PARAM(_msg) \
-	((uint32_t)(_msg) & 0xffffffU)
+	((uint32_t)(_msg) & MK_U32(0xffffff))
 
-#define CAMRTC_HSP_IRQ		0x00U
+#define CAMRTC_HSP_IRQ			MK_U32(0x00)
 
-#define CAMRTC_HSP_HELLO	0x40U
-#define CAMRTC_HSP_BYE		0x41U
-#define CAMRTC_HSP_RESUME	0x42U
-#define CAMRTC_HSP_SUSPEND	0x43U
-#define CAMRTC_HSP_CH_SETUP	0x44U
-#define CAMRTC_HSP_PING		0x45U
-#define CAMRTC_HSP_FW_HASH	0x46U
-#define CAMRTC_HSP_PROTOCOL	0x47U
-
-/* bug 200395605 */
-#define CAMRTC_HSP_RESERVED	0x5EU
-
-#define CAMRTC_HSP_UNKNOWN	0x7FU
+#define CAMRTC_HSP_HELLO		MK_U32(0x40)
+#define CAMRTC_HSP_BYE			MK_U32(0x41)
+#define CAMRTC_HSP_RESUME		MK_U32(0x42)
+#define CAMRTC_HSP_SUSPEND		MK_U32(0x43)
+#define CAMRTC_HSP_CH_SETUP		MK_U32(0x44)
+#define CAMRTC_HSP_PING			MK_U32(0x45)
+#define CAMRTC_HSP_FW_HASH		MK_U32(0x46)
+#define CAMRTC_HSP_PROTOCOL		MK_U32(0x47)
+#define CAMRTC_HSP_RESERVED_5E		MK_U32(0x5E) /* bug 200395605 */
+#define CAMRTC_HSP_UNKNOWN		MK_U32(0x7F)
 
 /** Shared semaphore bits (FW->VM) */
-#define CAMRTC_HSP_SS_FW_MASK   0xFFFFU
-#define CAMRTC_HSP_SS_FW_SHIFT  0U
+#define CAMRTC_HSP_SS_FW_MASK		MK_U32(0xFFFF)
+#define CAMRTC_HSP_SS_FW_SHIFT		MK_U32(0)
 
 /** Shared semaphore bits (VM->FW) */
-#define CAMRTC_HSP_SS_VM_MASK   0x7FFF0000U
-#define CAMRTC_HSP_SS_VM_SHIFT  16U
+#define CAMRTC_HSP_SS_VM_MASK		MK_U32(0x7FFF0000)
+#define CAMRTC_HSP_SS_VM_SHIFT		MK_U32(16)
 
 /** Bits used by IVC channels */
-#define CAMRTC_HSP_SS_IVC_MASK  0xFFU
+#define CAMRTC_HSP_SS_IVC_MASK		MK_U32(0xFF)
 
 /** @} */
 
@@ -65,56 +63,56 @@
  * @{
  */
 #define RTCPU_COMMAND(id, value) \
-	(((uint32_t)RTCPU_CMD_ ## id << U32_C(24)) | ((uint32_t)value))
+	(((RTCPU_CMD_ ## id) << MK_U32(24)) | ((uint32_t)value))
 
 #define RTCPU_GET_COMMAND_ID(value) \
-	((((uint32_t)value) >> U32_C(24)) & U32_C(0x7f))
+	((((uint32_t)value) >> MK_U32(24)) & MK_U32(0x7f))
 
 #define RTCPU_GET_COMMAND_VALUE(value) \
-	(((uint32_t)value) & U32_C(0xffffff))
+	(((uint32_t)value) & MK_U32(0xffffff))
 
-#define RTCPU_CMD_INIT		U32_C(0)
-#define RTCPU_CMD_FW_VERSION	U32_C(1)
-#define RTCPU_CMD_IVC_READY	U32_C(2)
-#define RTCPU_CMD_PING		U32_C(3)
-#define RTCPU_CMD_PM_SUSPEND	U32_C(4)
-#define RTCPU_CMD_FW_HASH	U32_C(5)
-#define RTCPU_CMD_CH_SETUP	U32_C(6)
-#define RTCPU_CMD_PREFIX	U32_C(0x7d)
-#define RTCPU_CMD_DOORBELL	U32_C(0x7e)
-#define RTCPU_CMD_ERROR		U32_C(0x7f)
+#define RTCPU_CMD_INIT			MK_U32(0)
+#define RTCPU_CMD_FW_VERSION		MK_U32(1)
+#define RTCPU_CMD_IVC_READY		MK_U32(2)
+#define RTCPU_CMD_PING			MK_U32(3)
+#define RTCPU_CMD_PM_SUSPEND		MK_U32(4)
+#define RTCPU_CMD_FW_HASH		MK_U32(5)
+#define RTCPU_CMD_CH_SETUP		MK_U32(6)
+#define RTCPU_CMD_PREFIX		MK_U32(0x7d)
+#define RTCPU_CMD_DOORBELL		MK_U32(0x7e)
+#define RTCPU_CMD_ERROR			MK_U32(0x7f)
 
-#define RTCPU_FW_DB_VERSION 0U
-#define RTCPU_FW_VERSION 1U
-#define RTCPU_FW_SM2_VERSION 2U
-#define RTCPU_FW_SM3_VERSION 3U
+#define RTCPU_FW_DB_VERSION		MK_U32(0)
+#define RTCPU_FW_VERSION		MK_U32(1)
+#define RTCPU_FW_SM2_VERSION		MK_U32(2)
+#define RTCPU_FW_SM3_VERSION		MK_U32(3)
 /** SM4 firmware can restore itself after suspend */
-#define RTCPU_FW_SM4_VERSION 4U
+#define RTCPU_FW_SM4_VERSION		MK_U32(4)
 
 /** SM5 firmware supports IVC synchronization  */
-#define RTCPU_FW_SM5_VERSION 5U
+#define RTCPU_FW_SM5_VERSION		MK_U32(5)
 /** SM5 driver supports IVC synchronization  */
-#define RTCPU_DRIVER_SM5_VERSION 5U
+#define RTCPU_DRIVER_SM5_VERSION	MK_U32(5)
 
-/** SM6 firmware/driver supports camrtc-hsp-vm protocol  */
-#define RTCPU_FW_SM6_VERSION 6U
-#define RTCPU_DRIVER_SM6_VERSION 6U
+/** SM6 firmware/driver supports camrtc-hsp-vm protocol	 */
+#define RTCPU_FW_SM6_VERSION		MK_U32(6)
+#define RTCPU_DRIVER_SM6_VERSION	MK_U32(6)
 
-#define RTCPU_IVC_SANS_TRACE 1U
-#define RTCPU_IVC_WITH_TRACE 2U
+#define RTCPU_IVC_SANS_TRACE		MK_U32(1)
+#define RTCPU_IVC_WITH_TRACE		MK_U32(2)
 
-#define RTCPU_FW_HASH_SIZE 20U
+#define RTCPU_FW_HASH_SIZE		MK_U32(20)
 
-#define RTCPU_FW_HASH_ERROR (0xFFFFFFU)
+#define RTCPU_FW_HASH_ERROR		MK_U32(0xFFFFFF)
 
-#define RTCPU_PM_SUSPEND_SUCCESS (0x100U)
-#define RTCPU_PM_SUSPEND_FAILURE (0x001U)
+#define RTCPU_PM_SUSPEND_SUCCESS	MK_U32(0x100)
+#define RTCPU_PM_SUSPEND_FAILURE	MK_U32(0x001)
 
-#define RTCPU_FW_CURRENT_VERSION (RTCPU_FW_SM6_VERSION)
+#define RTCPU_FW_CURRENT_VERSION	RTCPU_FW_SM6_VERSION
 
-#define RTCPU_FW_INVALID_VERSION (0xFFFFFFU)
+#define RTCPU_FW_INVALID_VERSION	MK_U32(0xFFFFFF)
 
-#define RTCPU_RESUME_ERROR (0xFFFFFFU)
+#define RTCPU_RESUME_ERROR		MK_U32(0xFFFFFF)
 
 /** @} */
 
