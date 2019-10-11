@@ -25,7 +25,6 @@
 #include <nvgpu/gr/gr.h>
 #include <nvgpu/gr/gr_utils.h>
 #include <nvgpu/ltc.h>
-#include <nvgpu/nvgpu_err.h>
 #include <nvgpu/static_analysis.h>
 
 static void nvgpu_ecc_stat_add(struct gk20a *g, struct nvgpu_ecc_stat *stat)
