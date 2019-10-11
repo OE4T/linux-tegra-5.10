@@ -25,44 +25,78 @@
 
 #include <nvgpu/types.h>
 
+/**
+ * @defgroup rbtree
+ * @ingroup unit-common-utils
+ * @{
+ */
+
+/**
+ * A node in the rbtree
+ */
 struct nvgpu_rbtree_node {
+	/**
+	 * Start of range for the key used for searching/inserting in the tree
+	 */
 	u64 key_start;
+	/**
+	 * End of range for the key used for searching/inserting the tree
+	 */
 	u64 key_end;
 
-	bool is_red; /* !IsRed == IsBlack */
+	/**
+	 * Is this a red node? (!is_red ==> is_black)
+	 */
+	bool is_red;
 
+	/**
+	 * Parent of this node
+	 */
 	struct nvgpu_rbtree_node *parent;
+	/**
+	 * Left child of this node (key is less than this node's key)
+	 */
 	struct nvgpu_rbtree_node *left;
+	/**
+	 * Right child of this node. (key is greater than this node's key)
+	 */
 	struct nvgpu_rbtree_node *right;
 };
 
 /**
- * nvgpu_rbtree_insert - insert a new node into rbtree
+ * @brief Insert a new node into rbtree.
  *
- * @new_node	Pointer to new node.
- * @root	Pointer to root of tree
+ * @param new_node [in]	Pointer to new node.
+ * @param root [in]	Pointer to root of tree
  *
- * Nodes with duplicate key_start and overlapping ranges
- * are not allowed
+ * - Find the correct location in the tree for this node based on its key value
+ *   and insert it by updating the pointers.
+ * - Rebalance tree.
+ *
+ * NOTE: Nodes with duplicate key_start and overlapping ranges are not allowed.
  */
 void nvgpu_rbtree_insert(struct nvgpu_rbtree_node *new_node,
 		    struct nvgpu_rbtree_node **root);
 
 /**
- * nvgpu_rbtree_unlink - delete a node from rbtree
+ * @brief Delete a node from rbtree.
  *
- * @node	Pointer to node to be deleted
- * @root	Pointer to root of tree
+ * @param node [in]	Pointer to node to be deleted
+ * @param root [in]	Pointer to root of tree
+ *
+ * - Update tree pointers to remove this node from tree while keeping its
+ *   children.
+ * - Rebalance tree.
  */
 void nvgpu_rbtree_unlink(struct nvgpu_rbtree_node *node,
 		    struct nvgpu_rbtree_node **root);
 
 /**
- * nvgpu_rbtree_search - search a given key in rbtree
+ * @brief Search for a given key in rbtree
  *
- * @key_start	Key to be searched in rbtree
- * @node	Node pointer to be returned
- * @root	Pointer to root of tree
+ * @param key_start [in]	Key to be searched in rbtree
+ * @param node [out]		Node pointer to be returned
+ * @param root [in]		Pointer to root of tree
  *
  * This API will match given key against key_start of each node
  * In case of a hit, node points to a node with given key
@@ -72,11 +106,11 @@ void nvgpu_rbtree_search(u64 key_start, struct nvgpu_rbtree_node **node,
 			     struct nvgpu_rbtree_node *root);
 
 /**
- * nvgpu_rbtree_range_search - search a node with key falling in range
+ * @brief Search a node with key falling in range
  *
- * @key		Key to be searched in rbtree
- * @node	Node pointer to be returned
- * @root	Pointer to root of tree
+ * @param key [in]	Key to be searched in rbtree
+ * @param node [out]	Node pointer to be returned
+ * @param root [in]	Pointer to root of tree
  *
  * This API will match given key and find a node where key value
  * falls within range of {start, end} keys
@@ -88,11 +122,11 @@ void nvgpu_rbtree_range_search(u64 key,
 			       struct nvgpu_rbtree_node *root);
 
 /**
- * nvgpu_rbtree_less_than_search - search a node with key lesser than given key
+ * @brief Search a node with key lesser than given key
  *
- * @key_start	Key to be searched in rbtree
- * @node	Node pointer to be returned
- * @root	Pointer to root of tree
+ * @param key_start [in]	Key to be searched in rbtree
+ * @param node [out]		Node pointer to be returned
+ * @param root [in]		Pointer to root of tree
  *
  * This API will match given key and find a node with highest
  * key value lesser than given key
@@ -104,27 +138,35 @@ void nvgpu_rbtree_less_than_search(u64 key_start,
 			       struct nvgpu_rbtree_node *root);
 
 /**
- * nvgpu_rbtree_enum_start - enumerate tree starting at the node with specified value
+ * @brief Enumerate tree starting at the node with specified value.
  *
- * @key_start	Key value to begin enumeration from
- * @node	Pointer to first node in the tree
- * @root	Pointer to root of tree
+ * @param key_start [in]	Key value to begin enumeration from
+ * @param node [out]		Pointer to first node in the tree
+ * @param root [in]		Pointer to root of tree
  *
- * This API returns node pointer pointing to first node in the rbtree
+ * This API returns node pointer pointing to first node in the rbtree to begin
+ * enumerating the tree. Call this API once per enumeration. Call
+ * #nvgpu_rbtree_enum_next to get the next node.
  */
 void nvgpu_rbtree_enum_start(u64 key_start,
 			struct nvgpu_rbtree_node **node,
 			struct nvgpu_rbtree_node *root);
 
 /**
- * nvgpu_rbtree_enum_next - find next node in enumeration
+ * @brief Find next node in enumeration in order by key value.
  *
- * @node	Pointer to next node in the tree
- * @root	Pointer to root of tree
+ * @param node [in,out]	Pointer to current node is passed in.
+ *			Poiner to next node in the tree is passed out.
+ * @param root [in]	Pointer to root of tree
  *
- * This API returns node pointer pointing to next node in the rbtree
+ * To get the next node in the tree, pass in the current \a node. This API
+ * returns \a node pointer pointing to next node in the rbtree in order by key
+ * value.
  */
 void nvgpu_rbtree_enum_next(struct nvgpu_rbtree_node **node,
 		       struct nvgpu_rbtree_node *root);
 
+/**
+ * @}
+ */
 #endif /* NVGPU_RBTREE_H */
