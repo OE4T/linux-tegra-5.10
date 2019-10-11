@@ -181,21 +181,10 @@ static int ether_config_l3_l4_filtering(struct net_device *dev,
 					unsigned int filter_flags)
 {
 	struct ether_priv_data *pdata = netdev_priv(dev);
-	struct osi_core_priv_data *osi_core = pdata->osi_core;
-	int ret = 0;
 
-	if (filter_flags == pdata->l3_l4_filter) {
-		dev_err(pdata->dev, "L3/L4 filtering is already %d\n",
-			filter_flags);
-		return ret;
-	}
-
-	ret = osi_config_l3_l4_filter_enable(osi_core, filter_flags);
-	if (ret == 0) {
-		pdata->l3_l4_filter = filter_flags;
-	}
-
-	return ret;
+	dev_err(pdata->dev, "%s: This ioctl is deprecated, directly set the filter using ioctl command EQOS_IPV4/IPV6/TCP/UDP_FILTERING_CMD instead\n",
+		__func__);
+	return -1;
 }
 
 /**
@@ -225,6 +214,7 @@ static int ether_config_ip4_filters(struct net_device *dev,
 	struct osi_l3_l4_filter *u_l3_filter =
 		(struct osi_l3_l4_filter *)ifdata->ptr;
 	struct osi_l3_l4_filter l_l3_filter;
+	unsigned int is_l4_filter = OSI_DISABLE;
 	int ret = -EINVAL;
 
 	if (pdata->hw_feat.l3l4_filter_num == OSI_DISABLE) {
@@ -250,31 +240,8 @@ static int ether_config_ip4_filters(struct net_device *dev,
 		return ret;
 	}
 
-	/* enable IPFE bit in MAC_Packet_Filter for L3/L4 if already not */
-	if (pdata->l3_l4_filter == OSI_DISABLE) {
-		ret = osi_config_l3_l4_filter_enable(osi_core, OSI_ENABLE);
-		if (ret == 0) {
-			pdata->l3_l4_filter = OSI_ENABLE;
-		}
-	}
-
-	/* configure the L3 filters */
-	ret = osi_config_l3_filters(osi_core, l_l3_filter.filter_no,
-				    l_l3_filter.filter_enb_dis,
-				    OSI_IP4_FILTER,
-				    l_l3_filter.src_dst_addr_match,
-				    l_l3_filter.perfect_inverse_match,
-				    OSI_DISABLE, 0x0U);
-	if (ret != 0) {
-		dev_err(pdata->dev, "osi_config_l3_filters failed\n");
-		return ret;
-	}
-
-	ret = osi_update_ip4_addr(osi_core, l_l3_filter.filter_no,
-				  l_l3_filter.ip4_addr,
-				  l_l3_filter.src_dst_addr_match);
-
-	return ret;
+	return osi_l3l4_filter(osi_core, l_l3_filter, OSI_IP4_FILTER,
+			       OSI_DISABLE, OSI_CHAN_ANY, is_l4_filter);
 }
 
 /**
@@ -303,6 +270,7 @@ static int ether_config_ip6_filters(struct net_device *dev,
 	struct osi_l3_l4_filter *u_l3_filter =
 		(struct osi_l3_l4_filter *)ifdata->ptr;
 	struct osi_l3_l4_filter l_l3_filter;
+	unsigned int is_l4_filter = OSI_DISABLE;
 	int ret = -EINVAL;
 
 	if (pdata->hw_feat.l3l4_filter_num == OSI_DISABLE) {
@@ -328,28 +296,8 @@ static int ether_config_ip6_filters(struct net_device *dev,
 		return ret;
 	}
 
-	/* enable IPFE bit in MAC_Packet_Filter for L3/L4 if already not */
-	if (pdata->l3_l4_filter == OSI_DISABLE) {
-		ret = osi_config_l3_l4_filter_enable(osi_core, OSI_ENABLE);
-		if (ret == 0) {
-			pdata->l3_l4_filter = OSI_ENABLE;
-		}
-	}
-
-	/* configure the L3 filters */
-	ret = osi_config_l3_filters(osi_core, l_l3_filter.filter_no,
-				    l_l3_filter.filter_enb_dis,
-				    OSI_IP6_FILTER,
-				    l_l3_filter.src_dst_addr_match,
-				    l_l3_filter.perfect_inverse_match,
-				    OSI_DISABLE, 0x0U);
-	if (ret != 0) {
-		dev_err(pdata->dev, "osi_config_l3_filters failed\n");
-		return ret;
-	}
-
-	return osi_update_ip6_addr(osi_core, l_l3_filter.filter_no,
-				   l_l3_filter.ip6_addr);
+	return osi_l3l4_filter(osi_core, l_l3_filter, OSI_IP6_FILTER,
+			       OSI_DISABLE, OSI_CHAN_ANY, is_l4_filter);
 }
 
 /**
@@ -381,6 +329,7 @@ static int ether_config_tcp_udp_filters(struct net_device *dev,
 	struct osi_l3_l4_filter *u_l4_filter =
 		(struct osi_l3_l4_filter *)ifdata->ptr;
 	struct osi_l3_l4_filter l_l4_filter;
+	unsigned int is_l4_filter = OSI_ENABLE;
 	int ret = -EINVAL;
 
 	if (ifdata->ptr == NULL) {
@@ -407,31 +356,8 @@ static int ether_config_tcp_udp_filters(struct net_device *dev,
 		return ret;
 	}
 
-	/* enable IPFE bit in MAC_Packet_Filter for L3/L4 if already not */
-	if (pdata->l3_l4_filter == OSI_DISABLE) {
-		ret = osi_config_l3_l4_filter_enable(osi_core, OSI_ENABLE);
-		if (ret == 0) {
-			pdata->l3_l4_filter = OSI_ENABLE;
-		}
-	}
-
-	/* configure the L4 filters */
-	ret = osi_config_l4_filters(osi_core, l_l4_filter.filter_no,
-				    l_l4_filter.filter_enb_dis,
-				    tcp_udp,
-				    l_l4_filter.src_dst_addr_match,
-				    l_l4_filter.perfect_inverse_match,
-				    OSI_DISABLE, 0x0U);
-	if (ret != 0) {
-		dev_err(pdata->dev, "osi_config_l4_filters failed\n");
-		return ret;
-	}
-
-	ret = osi_update_l4_port_no(osi_core, l_l4_filter.filter_no,
-				    l_l4_filter.port_no,
-				    l_l4_filter.src_dst_addr_match);
-
-	return ret;
+	return osi_l3l4_filter(osi_core, l_l4_filter, tcp_udp,
+			       OSI_DISABLE, OSI_CHAN_ANY, is_l4_filter);
 }
 
 /**
@@ -477,8 +403,7 @@ static int ether_config_vlan_filter(struct net_device *dev,
 		dev_err(pdata->dev, "VLAN HASH filtering is not supported\n");
 		return ret;
 	}
-	/* configure the vlan filter FIXME: Current code supports VLAN
-	   filtering for last VLAN tag/id added or default tag/vid 1. */
+
 	ret = osi_config_vlan_filtering(osi_core, l_vlan_filter.filter_enb_dis,
 					l_vlan_filter.perfect_hash,
 					l_vlan_filter.perfect_inverse_match);
@@ -513,7 +438,10 @@ static int ether_config_l2_da_filter(struct net_device *dev,
 	struct osi_l2_da_filter *u_l2_da_filter =
 		(struct osi_l2_da_filter *)ifdata->ptr;
 	struct osi_l2_da_filter l_l2_da_filter;
+	struct osi_filter filter;
 	int ret = -EINVAL;
+
+	memset(&filter, 0x0, sizeof(struct osi_filter));
 
 	if (ifdata->ptr == NULL) {
 		dev_err(pdata->dev, "%s: Invalid data for priv ioctl %d\n",
@@ -525,6 +453,7 @@ static int ether_config_l2_da_filter(struct net_device *dev,
 			   sizeof(struct osi_l2_da_filter)) != 0U) {
 		return -EFAULT;
 	}
+
 	if (l_l2_da_filter.perfect_hash == OSI_HASH_FILTER_MODE) {
 		dev_err(pdata->dev,
 			"select HASH FILTERING for L2 DA is not Supported in SW\n");
@@ -537,8 +466,16 @@ static int ether_config_l2_da_filter(struct net_device *dev,
 	}
 
 	/* configure L2 DA perfect/inverse_matching */
-	ret = osi_config_l2_da_perfect_inverse_match(osi_core,
-				     l_l2_da_filter.perfect_inverse_match);
+	if (l_l2_da_filter.perfect_inverse_match == OSI_ENABLE) {
+		filter.oper_mode |= OSI_OPER_EN_L2_DA_INV;
+	} else {
+		filter.oper_mode |= OSI_OPER_DIS_L2_DA_INV;
+	}
+
+	ret = osi_l2_filter(osi_core, &filter);
+	if (ret != 0) {
+		dev_err(pdata->dev, "setting L2_DA_INV failed\n");
+	}
 
 	return ret;
 }

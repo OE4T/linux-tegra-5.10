@@ -278,15 +278,11 @@ struct ether_priv_data {
 	spinlock_t rlock;
 	/** max address register count, 2*mac_addr64_sel */
 	int num_mac_addr_regs;
-	/** Last Multicast address reg filter index, If 0,no MC address added */
-	int last_mc_filter_index;
-	/** Last Unicast address reg filter index, If 0,no MC address added */
-	int last_uc_filter_index;
-	/** L3_l4 filter enabled 1: enabled */
-	unsigned int l3_l4_filter;
+	/** Last address reg filter index added in last call*/
+	int last_filter_index;
 	/** vlan hash filter 1: hash, 0: perfect */
 	unsigned int vlan_hash_filtering;
-	/** PTP clock operations structure */
+	/** L2 filter mode */
 	unsigned int l2_filtering_mode;
 	/** PTP clock operations structure */
 	struct ptp_clock_info ptp_clock_ops;
