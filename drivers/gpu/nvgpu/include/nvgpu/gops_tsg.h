@@ -28,6 +28,8 @@ struct gk20a;
 struct nvgpu_channel;
 struct nvgpu_tsg;
 
+/** @cond DOXYGEN_SHOULD_SKIP_THIS */
+
 #ifdef CONFIG_NVGPU_CHANNEL_TSG_CONTROL
 enum nvgpu_event_id_type;
 #endif
@@ -72,5 +74,7 @@ struct gops_tsg {
 #endif
 
 };
+
+/** @endcond DOXYGEN_SHOULD_SKIP_THIS */
 
 #endif
