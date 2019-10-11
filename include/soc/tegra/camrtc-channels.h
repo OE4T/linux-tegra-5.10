@@ -79,16 +79,16 @@ struct camrtc_tlv_ivc_setup {
 };
 
 /**
- * @brief Channel setup error codes
+ * @defgroup CamRTCChannelErrors Channel setup error codes
+ * @{
  */
-enum {
-	/* 0 .. 127 indicate unknown commands */
-	RTCPU_CH_ERR_NO_SERVICE = U32_C(128),
-	RTCPU_CH_ERR_ALREADY = U32_C(129),
-	RTCPU_CH_ERR_UNKNOWN_TAG = U32_C(130),
-	RTCPU_CH_ERR_INVALID_IOVA = U32_C(131),
-	RTCPU_CH_ERR_INVALID_PARAM = U32_C(132),
-};
+#define	RTCPU_CH_SUCCESS		MK_U32(0)
+#define	RTCPU_CH_ERR_NO_SERVICE		MK_U32(128)
+#define	RTCPU_CH_ERR_ALREADY		MK_U32(129)
+#define	RTCPU_CH_ERR_UNKNOWN_TAG	MK_U32(130)
+#define	RTCPU_CH_ERR_INVALID_IOVA	MK_U32(131)
+#define	RTCPU_CH_ERR_INVALID_PARAM	MK_U32(132)
+/* @} */
 
 /**
  * @brief Code coverage memory header
