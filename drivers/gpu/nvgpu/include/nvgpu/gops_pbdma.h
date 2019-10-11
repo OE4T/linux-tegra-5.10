@@ -28,6 +28,8 @@ struct gk20a;
 struct nvgpu_gpfifo_entry;
 struct nvgpu_pbdma_status_info;
 
+/** @cond DOXYGEN_SHOULD_SKIP_THIS */
+
 /** NON FUSA */
 struct nvgpu_debug_context;
 
@@ -85,5 +87,7 @@ struct gops_pbdma {
 	void (*dump_status)(struct gk20a *g,
 			struct nvgpu_debug_context *o);
 };
+
+/** @endcond DOXYGEN_SHOULD_SKIP_THIS */
 
 #endif
