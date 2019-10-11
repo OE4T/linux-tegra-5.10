@@ -31,6 +31,11 @@ struct gk20a;
 struct ctxsw_buf_offset_map_entry;
 struct nvgpu_gr_config;
 
+struct ctxsw_buf_offset_map_entry {
+	u32 addr;	/* Register address */
+	u32 offset;	/* Offset in ctxt switch buffer */
+};
+
 struct nvgpu_gr_hwpm_map {
 	u32 pm_ctxsw_image_size;
 

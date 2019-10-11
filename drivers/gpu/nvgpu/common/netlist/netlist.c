@@ -56,11 +56,11 @@ struct netlist_av *nvgpu_netlist_alloc_av_list(struct gk20a *g,
 }
 
 struct netlist_av64 *nvgpu_netlist_alloc_av64_list(struct gk20a *g,
-						struct netlist_av64_list *avl)
+						struct netlist_av64_list *av64l)
 {
-	avl->l = nvgpu_kzalloc(g, nvgpu_safe_mult_u64(avl->count,
-						      sizeof(*avl->l)));
-	return avl->l;
+	av64l->l = nvgpu_kzalloc(g, nvgpu_safe_mult_u64(av64l->count,
+						      sizeof(*av64l->l)));
+	return av64l->l;
 }
 
 struct netlist_aiv *nvgpu_netlist_alloc_aiv_list(struct gk20a *g,
