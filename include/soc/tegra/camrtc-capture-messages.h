@@ -113,6 +113,7 @@ typedef uint32_t capture_result;
 #define CAPTURE_ERROR_OVERFLOW			U32_C(6)
 #define CAPTURE_ERROR_NO_RESOURCES		U32_C(7)
 #define CAPTURE_ERROR_TIMEOUT			U32_C(8)
+#define CAPTURE_ERROR_INVALID_STATE		U32_C(9)
 /** @} */
 
 /**
