@@ -428,182 +428,191 @@ int osi_config_arp_offload(struct osi_core_priv_data *osi_core,
 	return -1;
 }
 
-int osi_config_mac_pkt_filter_reg(struct osi_core_priv_data *osi_core,
-				  struct osi_filter pfilter)
+int osi_l2_filter(struct osi_core_priv_data *osi_core,
+		  struct osi_filter *filter)
 {
-	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
-	    (osi_core->ops->config_mac_pkt_filter_reg != OSI_NULL)) {
-		osi_core->ops->config_mac_pkt_filter_reg(osi_core,
-							 pfilter);
-		return 0;
+	struct osi_core_ops *op;
+	int ret = -1;
+
+	if (osi_core == OSI_NULL || osi_core->ops == OSI_NULL ||
+	    filter == OSI_NULL) {
+		return ret;
 	}
 
-	return -1;
+	op = osi_core->ops;
+
+	if ((op->config_mac_pkt_filter_reg != OSI_NULL)) {
+		ret = op->config_mac_pkt_filter_reg(osi_core, filter);
+	} else {
+		OSI_INFO(osi_core->osd, OSI_LOG_ARG_INVALID,
+			 "op->config_mac_pkt_filter_reg is null\n", 0ULL);
+		return ret;
+	}
+
+	if ((filter->oper_mode & OSI_OPER_ADDR_UPDATE) != OSI_NONE) {
+		ret = -1;
+
+		if ((filter->dma_routing == OSI_ENABLE) &&
+		    (osi_core->dcs_en != OSI_ENABLE)) {
+			OSI_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+				"DCS requested. Conflicts with DT config\n",
+				0ULL);
+			return ret;
+		}
+
+		if ((op->update_mac_addr_low_high_reg != OSI_NULL)) {
+			ret = op->update_mac_addr_low_high_reg(osi_core,
+								filter);
+		} else {
+			OSI_INFO(osi_core->osd, OSI_LOG_ARG_INVALID,
+				 "op->update_mac_addr_low_high_reg is null\n",
+				 0ULL);
+		}
+	}
+
+	return ret;
 }
 
-int osi_update_mac_addr_low_high_reg(struct osi_core_priv_data *osi_core,
-				     unsigned int index,
-				     const unsigned char value[],
-				     unsigned int dma_routing_enable,
-				     unsigned int dma_chan,
-				     unsigned int addr_mask,
-				     unsigned int src_dest)
+static inline int helper_l4_filter(struct osi_core_priv_data *osi_core,
+				   struct osi_l3_l4_filter l_filter,
+				   unsigned int type,
+				   unsigned int dma_routing_enable,
+				   unsigned int dma_chan)
+{
+	struct osi_core_ops *op = osi_core->ops;
+
+	if (op->config_l4_filters != OSI_NULL) {
+		if (op->config_l4_filters(osi_core,
+					  l_filter.filter_no,
+					  l_filter.filter_enb_dis,
+					  type,
+					  l_filter.src_dst_addr_match,
+					  l_filter.perfect_inverse_match,
+					  dma_routing_enable,
+					  dma_chan) < 0) {
+			return -1;
+		}
+	} else {
+		OSI_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+			"op->config_l4_filters is NULL\n", 0ULL);
+		return -1;
+	}
+
+	if (op->update_l4_port_no != OSI_NULL) {
+		return op->update_l4_port_no(osi_core,
+					     l_filter.filter_no,
+					     l_filter.port_no,
+					     l_filter.src_dst_addr_match);
+	} else {
+		OSI_INFO(osi_core->osd, OSI_LOG_ARG_INVALID,
+			 "op->update_l4_port_no is NULL\n", 0ULL);
+		return -1;
+	}
+
+}
+
+static inline int helper_l3_filter(struct osi_core_priv_data *osi_core,
+				   struct osi_l3_l4_filter l_filter,
+				   unsigned int type,
+				   unsigned int dma_routing_enable,
+				   unsigned int dma_chan)
+{
+	struct osi_core_ops *op = osi_core->ops;
+
+	if ((op->config_l3_filters != OSI_NULL)) {
+		if (op->config_l3_filters(osi_core,
+					  l_filter.filter_no,
+					  l_filter.filter_enb_dis,
+					  type,
+					  l_filter.src_dst_addr_match,
+					  l_filter.perfect_inverse_match,
+					  dma_routing_enable,
+					  dma_chan) < 0) {
+			return -1;
+		}
+	} else {
+		OSI_INFO(osi_core->osd, OSI_LOG_ARG_INVALID,
+			 "op->config_l3_filters is NULL\n", 0ULL);
+		return -1;
+	}
+
+	if (type == OSI_IP6_FILTER) {
+		if (op->update_ip6_addr != OSI_NULL) {
+			return op->update_ip6_addr(osi_core, l_filter.filter_no,
+					  l_filter.ip6_addr);
+		} else {
+			OSI_INFO(osi_core->osd, OSI_LOG_ARG_INVALID,
+				 "op->update_ip6_addr is NULL\n", 0ULL);
+			return -1;
+		}
+	} else if (type == OSI_IP4_FILTER) {
+		if (op->update_ip4_addr != OSI_NULL) {
+			return op->update_ip4_addr(osi_core,
+						   l_filter.filter_no,
+						   l_filter.ip4_addr,
+						   l_filter.src_dst_addr_match);
+		} else {
+			OSI_INFO(osi_core->osd, OSI_LOG_ARG_INVALID,
+				 "op->update_ip4_addr is NULL\n",
+				 0ULL);
+			return -1;
+		}
+	} else {
+		return -1;
+	}
+}
+
+int osi_l3l4_filter(struct osi_core_priv_data *osi_core,
+		    struct osi_l3_l4_filter l_filter, unsigned int type,
+		    unsigned int dma_routing_enable, unsigned int dma_chan,
+		    unsigned int is_l4_filter)
 {
 	int ret = -1;
 
-	if (osi_core == OSI_NULL) {
+	if ((osi_core == OSI_NULL) || (osi_core->ops == OSI_NULL)) {
 		return ret;
 	}
 
 	if ((dma_routing_enable == OSI_ENABLE) &&
 	    (osi_core->dcs_en != OSI_ENABLE)) {
-		OSI_ERR(osi_core->osd,
-			OSI_LOG_ARG_INVALID,
+		OSI_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 			"dma routing enabled but dcs disabled in DT\n",
 			0ULL);
 		return ret;
 	}
 
-	if ((osi_core->ops != OSI_NULL) &&
-	    (osi_core->ops->update_mac_addr_low_high_reg != OSI_NULL)) {
-		return osi_core->ops->update_mac_addr_low_high_reg(
-							    osi_core,
-							    index,
-							    value,
-							    dma_routing_enable,
-							    dma_chan,
-							    addr_mask,
-							    src_dest);
+	if (is_l4_filter == OSI_ENABLE) {
+		ret = helper_l4_filter(osi_core, l_filter, type,
+				       dma_routing_enable, dma_chan);
+	} else {
+		ret = helper_l3_filter(osi_core, l_filter, type,
+				       dma_routing_enable, dma_chan);
 	}
 
-	return -1;
-}
-
-int osi_config_l3_l4_filter_enable(struct osi_core_priv_data *osi_core,
-				   unsigned int enable)
-{
-	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
-	    (osi_core->ops->config_l3_l4_filter_enable != OSI_NULL)) {
-		return osi_core->ops->config_l3_l4_filter_enable(osi_core->base,
-								 enable);
-	}
-
-	return -1;
-}
-
-int osi_config_l3_filters(struct osi_core_priv_data *osi_core,
-			  unsigned int filter_no,
-			  unsigned int enb_dis,
-			  unsigned int ipv4_ipv6_match,
-			  unsigned int src_dst_addr_match,
-			  unsigned int perfect_inverse_match,
-			  unsigned int dma_routing_enable,
-			  unsigned int dma_chan)
-{
-	int ret = -1;
-
-	if (osi_core == OSI_NULL) {
+	if (ret < 0) {
+		OSI_INFO(osi_core->osd, OSI_LOG_ARG_INVALID,
+			 "L3/L4 helper function failed\n", 0ULL);
 		return ret;
 	}
 
-	if ((dma_routing_enable == OSI_ENABLE) &&
-	    (osi_core->dcs_en != OSI_ENABLE)) {
-		OSI_ERR(osi_core->osd,
-			OSI_LOG_ARG_INVALID,
-			"dma routing enabled but dcs disabled in DT\n",
-			0ULL);
-		return ret;
+	if (osi_core->ops->config_l3_l4_filter_enable != OSI_NULL) {
+		if (osi_core->l3l4_filter_bitmask != OSI_DISABLE) {
+			ret = osi_core->ops->config_l3_l4_filter_enable(
+								osi_core->base,
+								OSI_ENABLE);
+		} else {
+			ret = osi_core->ops->config_l3_l4_filter_enable(
+								osi_core->base,
+								OSI_DISABLE);
+		}
+
+	} else {
+		OSI_INFO(osi_core->osd, OSI_LOG_ARG_INVALID,
+			 "op->config_l3_l4_filter_enable is NULL\n", 0ULL);
+		ret = -1;
 	}
 
-	if ((osi_core->ops != OSI_NULL) &&
-	    (osi_core->ops->config_l3_filters != OSI_NULL)) {
-		return osi_core->ops->config_l3_filters(osi_core, filter_no,
-							enb_dis,
-							ipv4_ipv6_match,
-							src_dst_addr_match,
-							perfect_inverse_match,
-							dma_routing_enable,
-							dma_chan);
-	}
-
-	return -1;
-}
-
-int osi_update_ip4_addr(struct osi_core_priv_data *osi_core,
-			unsigned int filter_no,
-			unsigned char addr[],
-			unsigned int src_dst_addr_match)
-{
-	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
-	    (osi_core->ops->update_ip4_addr != OSI_NULL)) {
-		return osi_core->ops->update_ip4_addr(osi_core, filter_no,
-						      addr, src_dst_addr_match);
-	}
-
-	return -1;
-}
-
-int osi_update_ip6_addr(struct osi_core_priv_data *osi_core,
-			unsigned int filter_no,
-			unsigned short addr[])
-{
-	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
-	    (osi_core->ops->update_ip6_addr != OSI_NULL)) {
-		return osi_core->ops->update_ip6_addr(osi_core, filter_no,
-						      addr);
-	}
-	return -1;
-}
-
-int osi_config_l4_filters(struct osi_core_priv_data *osi_core,
-			  unsigned int filter_no,
-			  unsigned int enb_dis,
-			  unsigned int tcp_udp_match,
-			  unsigned int src_dst_port_match,
-			  unsigned int perfect_inverse_match,
-			  unsigned int dma_routing_enable,
-			  unsigned int dma_chan)
-{
-	int ret = -1;
-
-	if (osi_core == OSI_NULL) {
-		return ret;
-	}
-
-	if ((dma_routing_enable == OSI_ENABLE) &&
-	    (osi_core->dcs_en != OSI_ENABLE)) {
-		OSI_ERR(osi_core->osd,
-			OSI_LOG_ARG_INVALID,
-			"dma routing enabled but dcs disabled in DT\n",
-			0ULL);
-		return ret;
-	}
-
-	if ((osi_core->ops != OSI_NULL) &&
-	    (osi_core->ops->config_l4_filters != OSI_NULL)) {
-		return osi_core->ops->config_l4_filters(osi_core, filter_no,
-							enb_dis, tcp_udp_match,
-							src_dst_port_match,
-							perfect_inverse_match,
-							dma_routing_enable,
-							dma_chan);
-	}
-
-	return -1;
-}
-
-int osi_update_l4_port_no(struct osi_core_priv_data *osi_core,
-			  unsigned int filter_no, unsigned short port_no,
-			  unsigned int src_dst_port_match)
-{
-	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
-	    (osi_core->ops->update_l4_port_no != OSI_NULL)) {
-		return osi_core->ops->update_l4_port_no(osi_core, filter_no,
-							port_no,
-							src_dst_port_match);
-	}
-
-	return -1;
+	return ret;
 }
 
 int osi_config_vlan_filtering(struct osi_core_priv_data *osi_core,
@@ -617,19 +626,6 @@ int osi_config_vlan_filtering(struct osi_core_priv_data *osi_core,
 							osi_core,
 							filter_enb_dis,
 							perfect_hash_filtering,
-							perfect_inverse_match);
-	}
-
-	return -1;
-}
-
-int  osi_config_l2_da_perfect_inverse_match(struct osi_core_priv_data *osi_core,
-					    unsigned int perfect_inverse_match)
-{
-	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
-	    (osi_core->ops->config_l2_da_perfect_inverse_match != OSI_NULL)) {
-		return osi_core->ops->config_l2_da_perfect_inverse_match(
-							osi_core->base,
 							perfect_inverse_match);
 	}
 
