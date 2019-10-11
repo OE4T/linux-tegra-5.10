@@ -24,6 +24,8 @@
 
 #include <nvgpu/types.h>
 
+/** @cond DOXYGEN_SHOULD_SKIP_THIS */
+
 struct gk20a;
 struct nvgpu_channel;
 struct nvgpu_channel_dump_info;
@@ -39,5 +41,7 @@ struct gops_ramfc {
 	u32 (*get_syncpt)(struct nvgpu_channel *ch);
 	void (*set_syncpt)(struct nvgpu_channel *ch, u32 syncpt);
 };
+
+/** @endcond DOXYGEN_SHOULD_SKIP_THIS */
 
 #endif
