@@ -127,6 +127,8 @@ nvgpu_cg_slcg_ce2_load_enable
 nvgpu_cg_init_gr_load_gating_prod
 nvgpu_cg_elcg_enable_no_wait
 nvgpu_cg_elcg_disable_no_wait
+nvgpu_current_pid
+nvgpu_current_tid
 nvgpu_gr_alloc
 nvgpu_gr_free
 nvgpu_gr_init
@@ -343,6 +345,7 @@ nvgpu_posix_is_fault_injection_triggered
 nvgpu_posix_probe
 nvgpu_posix_register_io
 nvgpu_prepare_poweroff
+nvgpu_print_current_impl
 nvgpu_put
 nvgpu_raw_spinlock_acquire
 nvgpu_raw_spinlock_init
