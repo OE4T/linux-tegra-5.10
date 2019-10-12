@@ -228,6 +228,7 @@
 			     <0 170 4>,
 			     <0 170 4>;
 		stream-match-mask = <0x7F80>;
+		input-address-size = <39>; /* Used by K4.14 only */
 #else
 
 		reg = <0x0 0x12000000 0x0 0x01000000>, /* SMMU0 16MB */
