@@ -168,6 +168,7 @@
 			     <0 170 4>,
 			     <0 170 4>;
 		stream-match-mask = <0x7F80>;
+		input-address-size = <39>; /* Used by K4.14 only */
 		#iommu-cells = <1>;
 		iso-smmu-id = <2>;
 
