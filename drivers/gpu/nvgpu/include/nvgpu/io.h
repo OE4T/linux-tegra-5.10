@@ -24,6 +24,12 @@
 
 #include <nvgpu/types.h>
 
+/**
+ * @file
+ *
+ * Interface for mmio access.
+ */
+
 /* Legacy defines - should be removed once everybody uses nvgpu_* */
 #define gk20a_writel nvgpu_writel
 #define gk20a_readl nvgpu_readl
@@ -36,41 +42,133 @@
 struct gk20a;
 
 /**
- * @brief Write a value to an already mapped io-region.
+ * @brief Write a value to an already BAR0 mapped io-region.
  *
- * @param g[in]		GPU super structure.
- * @param r[in]		Register offset in io-region.
- * @param v[in]		Value to write at the offset.
+ * @param g [in]		GPU super structure.
+ * @param r [in]		Register offset in io-region.
+ * @param v [in]		Value to write at the offset.
+ *
+ * - Write a 32-bit value to register offset in BAR0 region with an ordering
+ *   constraint on memory operations.
  *
  * @return None.
  */
 void nvgpu_writel(struct gk20a *g, u32 r, u32 v);
+
+/**
+ * @brief Write a value to an already BAR0 mapped io-region.
+ *
+ * @param g [in]		GPU super structure.
+ * @param r [in]		Register offset in io-region.
+ * @param v [in]		Value to write at the offset.
+ *
+ * - Write a 32-bit value to register offset in BAR0 region without an ordering
+ *   constraint on memory operations.
+ *
+ * @return None.
+ */
 void nvgpu_writel_relaxed(struct gk20a *g, u32 r, u32 v);
 
 /**
- * @brief Read a value from an already mapped io-region.
+ * @brief Read a value from an already BAR0 mapped io-region.
  *
- * @param g[in]		GPU super structure.
- * @param r[in]		Register offset in io-region.
+ * @param g [in]		GPU super structure.
+ * @param r [in]		Register offset in io-region.
+ *
+ * - Read a 32-bit to register offset from a BAR0 region. If all the bits are
+ *   set in value v and gpu state is not valid, then it logs the event.
  *
  * @return Value at the given offset of the io-region.
  */
 u32 nvgpu_readl(struct gk20a *g, u32 r);
 
 /**
- * @brief Read a value from an already mapped io-region.
+ * @brief Read a value from an already mapped BAR0 io-region.
  *
- * @param g[in]		GPU super structure.
- * @param r[in]		Register offset in io-region.
+ * @param g [in]		GPU super structure.
+ * @param r [in]		Register offset in io-region.
+ *
+ * - Read a 32-bit to register offset from a BAR0 region. It is a wrapper of
+ *   nvgpu_readl.
  *
  * @return Value at the given offset of the io-region.
  */
 u32 nvgpu_readl_impl(struct gk20a *g, u32 r);
+
+/**
+ * @brief Write validate to an already mapped BAR0 io-region.
+ *
+ * @param g [in]		GPU super structure.
+ * @param r [in]		Register offset in io-region.
+ * @param v [in]		Value to write at the offset.
+ *
+ * - This is a blocking call. It keeps on writing a 32-bit value to a BAR0
+ *   register and reads it back until read/write values are not match.
+ *
+ * @return None.
+ */
 void nvgpu_writel_check(struct gk20a *g, u32 r, u32 v);
+
+/**
+ * @brief Ensure write to an already mapped BAR0 io-region.
+ *
+ * @param g [in]		GPU super structure.
+ * @param r [in]		Register offset in io-region.
+ * @param v [in]		Value to write at the offset.
+ *
+ * - Write a 32-bit value to register offset in BAR0 region and reads it back to
+ *   confirm value was written successfully.
+ *
+ * @return None.
+ */
 void nvgpu_writel_loop(struct gk20a *g, u32 r, u32 v);
+
+/**
+ * @brief Write a value to an already mapped bar1 io-region.
+ *
+ * @param g [in]		GPU super structure.
+ * @param r [in]		Register offset in io-region.
+ * @param v [in]		Value to write at the offset.
+ *
+ * - Write a 32-bit value to register offset of region bar1.
+ *
+ * @return None.
+ */
 void nvgpu_bar1_writel(struct gk20a *g, u32 b, u32 v);
+
+/**
+ * @brief Read a value from an already mapped bar1 io-region.
+ *
+ * @param g [in]		GPU super structure.
+ * @param b [in]		Register offset in io-region.
+ *
+ * - Read a 32-bit value from a region bar1.
+ *
+ * @return Value at the given offset of the io-region.
+ */
 u32 nvgpu_bar1_readl(struct gk20a *g, u32 b);
+
+/**
+ * @brief Check bar0 io-region is mapped or not
+ *
+ * @param g [in]		GPU super structure.
+ *
+ * - io mapping exists if bar0 address is assigned to regs.
+ *
+ * @return TRUE if bar0 is mapped or else FALSE.
+ */
 bool nvgpu_io_exists(struct gk20a *g);
+
+/**
+ * @brief Validate BAR0 io-mapped offset.
+ *
+ * @param g [in]		GPU super structure.
+ * @param r [in]		Register offset in io-region.
+ *
+ * - BAR0 Offset is valid if it falls into BAR0 range.
+ *
+ * @return TRUE if bar0 offset is valid or else FALSE.
+ */
 bool nvgpu_io_valid_reg(struct gk20a *g, u32 r);
 
 #endif /* NVGPU_IO_H */
