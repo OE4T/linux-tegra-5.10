@@ -380,13 +380,16 @@ nvgpu_channel_sync_syncpt_create(struct nvgpu_channel *c, bool user_managed)
 
 		sp->id = nvgpu_nvhost_get_syncpt_client_managed(sp->nvhost_dev,
 						syncpt_name);
-	} else {
+	}
+#ifdef CONFIG_NVGPU_KERNEL_MODE_SUBMIT
+	else {
 		snprintf(syncpt_name, sizeof(syncpt_name),
 			"%s_%d", c->g->name, c->chid);
 
 		sp->id = nvgpu_nvhost_get_syncpt_host_managed(sp->nvhost_dev,
 						c->chid, syncpt_name);
 	}
+#endif
 	if (sp->id == 0) {
 		nvgpu_kfree(c->g, sp);
 		nvgpu_err(c->g, "failed to get free syncpt");

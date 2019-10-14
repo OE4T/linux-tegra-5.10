@@ -35,32 +35,6 @@ void nvgpu_free_nvhost_dev(struct gk20a *g)
 	BUG();
 }
 
-int nvgpu_nvhost_module_busy_ext(
-	struct nvgpu_nvhost_dev *nvhost_dev)
-{
-	BUG();
-	return 0;
-}
-
-void nvgpu_nvhost_module_idle_ext(
-	struct nvgpu_nvhost_dev *nvhost_dev)
-{
-	BUG();
-}
-
-void nvgpu_nvhost_debug_dump_device(
-	struct nvgpu_nvhost_dev *nvhost_dev)
-{
-	BUG();
-}
-
-const char *nvgpu_nvhost_syncpt_get_name(
-	struct nvgpu_nvhost_dev *nvhost_dev, int id)
-{
-	BUG();
-	return NULL;
-}
-
 bool nvgpu_nvhost_syncpt_is_valid_pt_ext(
 	struct nvgpu_nvhost_dev *nvhost_dev, u32 id)
 {
@@ -68,27 +42,6 @@ bool nvgpu_nvhost_syncpt_is_valid_pt_ext(
 	return false;
 }
 
-bool nvgpu_nvhost_syncpt_is_expired_ext(
-	struct nvgpu_nvhost_dev *nvhost_dev, u32 id, u32 thresh)
-{
-	BUG();
-	return false;
-}
-
-u32 nvgpu_nvhost_syncpt_incr_max_ext(
-	struct nvgpu_nvhost_dev *nvhost_dev, u32 id, u32 incrs)
-{
-	BUG();
-	return 0U;
-}
-
-int nvgpu_nvhost_intr_register_notifier(
-	struct nvgpu_nvhost_dev *nvhost_dev, u32 id, u32 thresh,
-	void (*callback)(void *priv, int nr_completed), void *private_data)
-{
-	BUG();
-	return 0;
-}
 
 void nvgpu_nvhost_syncpt_set_min_eq_max_ext(
 	struct nvgpu_nvhost_dev *nvhost_dev, u32 id)
@@ -102,35 +55,12 @@ void nvgpu_nvhost_syncpt_put_ref_ext(
 	BUG();
 }
 
-u32 nvgpu_nvhost_get_syncpt_host_managed(
-	struct nvgpu_nvhost_dev *nvhost_dev,
-	u32 param, const char *syncpt_name)
-{
-	BUG();
-	return 0U;
-}
-
 u32 nvgpu_nvhost_get_syncpt_client_managed(
 	struct nvgpu_nvhost_dev *nvhost_dev,
 	const char *syncpt_name)
 {
 	BUG();
 	return 0U;
-}
-
-int nvgpu_nvhost_syncpt_wait_timeout_ext(
-	struct nvgpu_nvhost_dev *nvhost_dev, u32 id,
-	u32 thresh, u32 timeout)
-{
-	BUG();
-	return 0;
-}
-
-int nvgpu_nvhost_syncpt_read_ext_check(
-	struct nvgpu_nvhost_dev *nvhost_dev, u32 id, u32 *val)
-{
-	BUG();
-	return 0;
 }
 
 u32 nvgpu_nvhost_syncpt_read_maxval(
@@ -142,17 +72,6 @@ u32 nvgpu_nvhost_syncpt_read_maxval(
 
 void nvgpu_nvhost_syncpt_set_safe_state(
 	struct nvgpu_nvhost_dev *nvhost_dev, u32 id)
-{
-	BUG();
-}
-
-int nvgpu_nvhost_create_symlink(struct gk20a *g)
-{
-	BUG();
-	return 0;
-}
-
-void nvgpu_nvhost_remove_symlink(struct gk20a *g)
 {
 	BUG();
 }

@@ -36,10 +36,15 @@ struct timespec;
 int nvgpu_get_nvhost_dev(struct gk20a *g);
 void nvgpu_free_nvhost_dev(struct gk20a *g);
 
+#ifdef CONFIG_NVGPU_KERNEL_MODE_SUBMIT
 int nvgpu_nvhost_module_busy_ext(struct nvgpu_nvhost_dev *nvgpu_syncpt_dev);
 void nvgpu_nvhost_module_idle_ext(struct nvgpu_nvhost_dev *nvgpu_syncpt_dev);
 
 void nvgpu_nvhost_debug_dump_device(struct nvgpu_nvhost_dev *nvgpu_syncpt_dev);
+
+int nvgpu_nvhost_intr_register_notifier(struct nvgpu_nvhost_dev *nvgpu_syncpt_dev,
+	u32 id, u32 thresh, void (*callback)(void *priv, int nr_completed),
+	void *private_data);
 
 bool nvgpu_nvhost_syncpt_is_expired_ext(struct nvgpu_nvhost_dev *nvgpu_syncpt_dev,
 	u32 id, u32 thresh);
@@ -48,33 +53,36 @@ int nvgpu_nvhost_syncpt_wait_timeout_ext(struct nvgpu_nvhost_dev *nvgpu_syncpt_d
 
 u32 nvgpu_nvhost_syncpt_incr_max_ext(struct nvgpu_nvhost_dev *nvgpu_syncpt_dev,
 	u32 id, u32 incrs);
-void nvgpu_nvhost_syncpt_set_min_eq_max_ext(struct nvgpu_nvhost_dev *nvgpu_syncpt_dev,
-	u32 id);
+
 int nvgpu_nvhost_syncpt_read_ext_check(struct nvgpu_nvhost_dev *nvgpu_syncpt_dev,
 	u32 id, u32 *val);
+
+u32 nvgpu_nvhost_get_syncpt_host_managed(struct nvgpu_nvhost_dev *nvgpu_syncpt_dev,
+	u32 param,
+	const char *syncpt_name);
+
+int nvgpu_nvhost_create_symlink(struct gk20a *g);
+void nvgpu_nvhost_remove_symlink(struct gk20a *g);
+
+const char *nvgpu_nvhost_syncpt_get_name(struct nvgpu_nvhost_dev *nvgpu_syncpt_dev,
+	int id);
+
+#endif
+
+void nvgpu_nvhost_syncpt_set_min_eq_max_ext(struct nvgpu_nvhost_dev *nvgpu_syncpt_dev,
+	u32 id);
 u32 nvgpu_nvhost_syncpt_read_maxval(struct nvgpu_nvhost_dev *nvgpu_syncpt_dev,
 	u32 id);
 void nvgpu_nvhost_syncpt_set_safe_state(
 	struct nvgpu_nvhost_dev *nvgpu_syncpt_dev, u32 id);
 
-int nvgpu_nvhost_intr_register_notifier(struct nvgpu_nvhost_dev *nvgpu_syncpt_dev,
-	u32 id, u32 thresh, void (*callback)(void *priv, int nr_completed),
-	void *private_data);
-
-const char *nvgpu_nvhost_syncpt_get_name(struct nvgpu_nvhost_dev *nvgpu_syncpt_dev,
-	int id);
 bool nvgpu_nvhost_syncpt_is_valid_pt_ext(struct nvgpu_nvhost_dev *nvgpu_syncpt_dev,
 	u32 id);
 void nvgpu_nvhost_syncpt_put_ref_ext(struct nvgpu_nvhost_dev *nvgpu_syncpt_dev,
 	u32 id);
-u32 nvgpu_nvhost_get_syncpt_host_managed(struct nvgpu_nvhost_dev *nvgpu_syncpt_dev,
-	u32 param,
-	const char *syncpt_name);
+
 u32 nvgpu_nvhost_get_syncpt_client_managed(struct nvgpu_nvhost_dev *nvgpu_syncpt_dev,
 	const char *syncpt_name);
-
-int nvgpu_nvhost_create_symlink(struct gk20a *g);
-void nvgpu_nvhost_remove_symlink(struct gk20a *g);
 
 #ifdef CONFIG_SYNC
 u32 nvgpu_nvhost_sync_pt_id(struct sync_pt *pt);
