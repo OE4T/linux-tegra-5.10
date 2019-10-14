@@ -105,6 +105,11 @@
  *   + include/nvgpu/gops_ramin.h
  *   + include/nvgpu/gops_ramfc.h
  *
+ * Sync
+ * ----
+ *
+ *   + include/nvgpu/gops_sync.h
+ *
  * Data Structures
  * ===============
  *

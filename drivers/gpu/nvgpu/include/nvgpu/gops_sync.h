@@ -24,6 +24,12 @@
 
 #include <nvgpu/types.h>
 
+
+/**
+ * @file
+ *
+ * Sync HAL interface.
+ */
 struct gk20a;
 struct nvgpu_channel;
 struct nvgpu_mem;
@@ -31,10 +37,38 @@ struct vm_gk20a;
 struct priv_cmd_entry;
 struct nvgpu_semaphore;
 
+/**
+ * Sync HAL operations.
+ *
+ * @see gpu_ops
+ */
 struct gops_sync {
 
 #ifdef CONFIG_TEGRA_GK20A_NVHOST
 	struct {
+		/**
+		 * @brief Map syncpoint aperture as read-only.
+		 *
+		 * @param vm [in]		VM area for channel.
+		 * @param base_gpu [out]	Base GPU VA for mapped
+		 * 				syncpoint aperture.
+		 * @param sync_size [out]	Size of syncpoint aperture
+		 * 				in bytes.
+		 *
+		 * Map syncpoint aperture in GPU virtual memory as read-only:
+		 * - Acquire syncpoint read-only map lock.
+		 * - Map syncpoint aperture in sysmem to GPU virtual memory,
+		 *   if not already mapped. Map as read-only.
+		 * - Release syncpoint read-only map lock.
+		 *
+		 * @return 0 in case of success, < 0 in case of failure.
+		 * @retval -ENOMEM if syncpoint aperture could not be
+		 *         mapped to GPU virtual memory.
+		 */
+		int (*get_sync_ro_map)(struct vm_gk20a *vm,
+				u64 *base_gpuva, u32 *sync_size);
+
+/** @cond DOXYGEN_SHOULD_SKIP_THIS */
 		int (*alloc_buf)(struct nvgpu_channel *c,
 				u32 syncpt_id,
 				struct nvgpu_mem *syncpt_buf);
@@ -52,12 +86,13 @@ struct gops_sync {
 		u32 (*get_incr_cmd_size)(bool wfi_cmd);
 		u32 (*get_incr_per_release)(void);
 #endif
-		int (*get_sync_ro_map)(struct vm_gk20a *vm,
-				u64 *base_gpuva, u32 *sync_size);
+/** @endcond DOXYGEN_SHOULD_SKIP_THIS */
 	} syncpt;
+
 #endif /* CONFIG_TEGRA_GK20A_NVHOST */
 
 #ifdef CONFIG_NVGPU_KERNEL_MODE_SUBMIT
+/** @cond DOXYGEN_SHOULD_SKIP_THIS */
 	struct {
 		u32 (*get_wait_cmd_size)(void);
 		u32 (*get_incr_cmd_size)(void);
@@ -66,6 +101,7 @@ struct gops_sync {
 			struct priv_cmd_entry *cmd,
 			u32 off, bool acquire, bool wfi);
 	} sema;
+/** @endcond DOXYGEN_SHOULD_SKIP_THIS */
 #endif
 };
 
