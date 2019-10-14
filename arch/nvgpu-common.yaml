@@ -376,6 +376,10 @@ fifo:
                  include/nvgpu/gops_fifo.h,
                  include/nvgpu/fifo.h ]
 
+    usermode:
+      safe: yes
+      sources: [ include/nvgpu/gops_usermode.h ]
+
 gr:
   safe: yes
   owner: Deepak N

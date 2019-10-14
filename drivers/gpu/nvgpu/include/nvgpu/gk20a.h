@@ -144,6 +144,7 @@ enum nvgpu_unit;
 #include <nvgpu/gops_sync.h>
 #include <nvgpu/gops_channel.h>
 #include <nvgpu/gops_tsg.h>
+#include <nvgpu/gops_usermode.h>
 #include <nvgpu/gops_mm.h>
 #include <nvgpu/gops_therm.h>
 
@@ -446,13 +447,7 @@ struct gpu_ops {
 	struct gops_sync sync;
 	struct gops_channel channel;
 	struct gops_tsg tsg;
-	struct {
-		void (*setup_hw)(struct gk20a *g);
-		void (*ring_doorbell)(struct nvgpu_channel *ch);
-		u32 (*doorbell_token)(struct nvgpu_channel *ch);
-		u64 (*base)(struct gk20a *g);
-		u64 (*bus_base)(struct gk20a *g);
-	} usermode;
+	struct gops_usermode usermode;
 	struct gops_engine_status engine_status;
 	struct gops_pbdma_status pbdma_status;
 	struct {

@@ -110,6 +110,14 @@
  *
  *   + include/nvgpu/gops_sync.h
  *
+ * Usermode
+ * --------
+ *
+ * TODO
+ *
+ *   + include/nvgpu/gops_usermode.h
+ *
+ *
  * Data Structures
  * ===============
  *
