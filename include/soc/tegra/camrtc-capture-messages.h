@@ -38,65 +38,65 @@ struct CAPTURE_MSG_HEADER {
 		/** Transaction id. */
 		uint32_t transaction;
 	};
-} __CAPTURE_IVC_ALIGN;
+} CAPTURE_IVC_ALIGN;
 
 /**
  * @defgroup ViCapCtrlMsgType Message types for capture-control IVC channel messages.
  * @{
  */
-#define CAPTURE_CHANNEL_SETUP_REQ		U32_C(0x10)
-#define CAPTURE_CHANNEL_SETUP_RESP		U32_C(0x11)
-#define CAPTURE_CHANNEL_RESET_REQ		U32_C(0x12)
-#define CAPTURE_CHANNEL_RESET_RESP		U32_C(0x13)
-#define CAPTURE_CHANNEL_RELEASE_REQ		U32_C(0x14)
-#define CAPTURE_CHANNEL_RELEASE_RESP		U32_C(0x15)
-#define CAPTURE_COMPAND_CONFIG_REQ		U32_C(0x16)
-#define CAPTURE_COMPAND_CONFIG_RESP		U32_C(0x17)
-#define CAPTURE_PDAF_CONFIG_REQ			U32_C(0x18)
-#define CAPTURE_PDAF_CONFIG_RESP		U32_C(0x19)
-#define CAPTURE_SYNCGEN_ENABLE_REQ		U32_C(0x1A)
-#define CAPTURE_SYNCGEN_ENABLE_RESP		U32_C(0x1B)
-#define CAPTURE_SYNCGEN_DISABLE_REQ		U32_C(0x1C)
-#define CAPTURE_SYNCGEN_DISABLE_RESP		U32_C(0x1D)
+#define CAPTURE_CHANNEL_SETUP_REQ		MK_U32(0x10)
+#define CAPTURE_CHANNEL_SETUP_RESP		MK_U32(0x11)
+#define CAPTURE_CHANNEL_RESET_REQ		MK_U32(0x12)
+#define CAPTURE_CHANNEL_RESET_RESP		MK_U32(0x13)
+#define CAPTURE_CHANNEL_RELEASE_REQ		MK_U32(0x14)
+#define CAPTURE_CHANNEL_RELEASE_RESP		MK_U32(0x15)
+#define CAPTURE_COMPAND_CONFIG_REQ		MK_U32(0x16)
+#define CAPTURE_COMPAND_CONFIG_RESP		MK_U32(0x17)
+#define CAPTURE_PDAF_CONFIG_REQ			MK_U32(0x18)
+#define CAPTURE_PDAF_CONFIG_RESP		MK_U32(0x19)
+#define CAPTURE_SYNCGEN_ENABLE_REQ		MK_U32(0x1A)
+#define CAPTURE_SYNCGEN_ENABLE_RESP		MK_U32(0x1B)
+#define CAPTURE_SYNCGEN_DISABLE_REQ		MK_U32(0x1C)
+#define CAPTURE_SYNCGEN_DISABLE_RESP		MK_U32(0x1D)
 /** @} */
 
 /**
  * @defgroup IspCapCtrlMsgType Message types for ISP capture-control IVC channel messages.
  * @{
  */
-#define CAPTURE_CHANNEL_ISP_SETUP_REQ		U32_C(0x20)
-#define CAPTURE_CHANNEL_ISP_SETUP_RESP		U32_C(0x21)
-#define CAPTURE_CHANNEL_ISP_RESET_REQ		U32_C(0x22)
-#define CAPTURE_CHANNEL_ISP_RESET_RESP		U32_C(0x23)
-#define CAPTURE_CHANNEL_ISP_RELEASE_REQ		U32_C(0x24)
-#define CAPTURE_CHANNEL_ISP_RELEASE_RESP	U32_C(0x25)
+#define CAPTURE_CHANNEL_ISP_SETUP_REQ		MK_U32(0x20)
+#define CAPTURE_CHANNEL_ISP_SETUP_RESP		MK_U32(0x21)
+#define CAPTURE_CHANNEL_ISP_RESET_REQ		MK_U32(0x22)
+#define CAPTURE_CHANNEL_ISP_RESET_RESP		MK_U32(0x23)
+#define CAPTURE_CHANNEL_ISP_RELEASE_REQ		MK_U32(0x24)
+#define CAPTURE_CHANNEL_ISP_RELEASE_RESP	MK_U32(0x25)
 /** @} */
 
 /**
  * @defgroup ViCapMsgType Message types for capture channel IVC messages.
  * @{
  */
-#define	CAPTURE_REQUEST_REQ			U32_C(0x01)
-#define	CAPTURE_STATUS_IND			U32_C(0x02)
-#define	CAPTURE_RESET_BARRIER_IND		U32_C(0x03)
+#define	CAPTURE_REQUEST_REQ			MK_U32(0x01)
+#define	CAPTURE_STATUS_IND			MK_U32(0x02)
+#define	CAPTURE_RESET_BARRIER_IND		MK_U32(0x03)
 /** @} */
 
 /**
  * @defgroup IspCapMsgType Message types for ISP capture channel IVC messages.
  * @{
  */
-#define CAPTURE_ISP_REQUEST_REQ			U32_C(0x04)
-#define CAPTURE_ISP_STATUS_IND			U32_C(0x05)
-#define CAPTURE_ISP_PROGRAM_REQUEST_REQ		U32_C(0x06)
-#define CAPTURE_ISP_PROGRAM_STATUS_IND		U32_C(0x07)
-#define CAPTURE_ISP_RESET_BARRIER_IND		U32_C(0x08)
-#define CAPTURE_ISP_EX_STATUS_IND		U32_C(0x09)
+#define CAPTURE_ISP_REQUEST_REQ			MK_U32(0x04)
+#define CAPTURE_ISP_STATUS_IND			MK_U32(0x05)
+#define CAPTURE_ISP_PROGRAM_REQUEST_REQ		MK_U32(0x06)
+#define CAPTURE_ISP_PROGRAM_STATUS_IND		MK_U32(0x07)
+#define CAPTURE_ISP_RESET_BARRIER_IND		MK_U32(0x08)
+#define CAPTURE_ISP_EX_STATUS_IND		MK_U32(0x09)
 /** @} */
 
 /**
  * @brief Invalid message type. This can be used to respond to an invalid request.
  */
-#define CAPTURE_MSG_ID_INVALID			U32_C(0xFFFFFFFF)
+#define CAPTURE_MSG_ID_INVALID			MK_U32(0xFFFFFFFF)
 
 typedef uint32_t capture_result;
 
@@ -104,16 +104,16 @@ typedef uint32_t capture_result;
  * @defgroup CapErrorCodes Unsigned 32-bit return values for the capture-control IVC messages.
  * @{
  */
-#define CAPTURE_OK				U32_C(0)
-#define CAPTURE_ERROR_INVALID_PARAMETER		U32_C(1)
-#define CAPTURE_ERROR_NO_MEMORY			U32_C(2)
-#define CAPTURE_ERROR_BUSY			U32_C(3)
-#define CAPTURE_ERROR_NOT_SUPPORTED		U32_C(4)
-#define CAPTURE_ERROR_NOT_INITIALIZED		U32_C(5)
-#define CAPTURE_ERROR_OVERFLOW			U32_C(6)
-#define CAPTURE_ERROR_NO_RESOURCES		U32_C(7)
-#define CAPTURE_ERROR_TIMEOUT			U32_C(8)
-#define CAPTURE_ERROR_INVALID_STATE		U32_C(9)
+#define CAPTURE_OK				MK_U32(0)
+#define CAPTURE_ERROR_INVALID_PARAMETER		MK_U32(1)
+#define CAPTURE_ERROR_NO_MEMORY			MK_U32(2)
+#define CAPTURE_ERROR_BUSY			MK_U32(3)
+#define CAPTURE_ERROR_NOT_SUPPORTED		MK_U32(4)
+#define CAPTURE_ERROR_NOT_INITIALIZED		MK_U32(5)
+#define CAPTURE_ERROR_OVERFLOW			MK_U32(6)
+#define CAPTURE_ERROR_NO_RESOURCES		MK_U32(7)
+#define CAPTURE_ERROR_TIMEOUT			MK_U32(8)
+#define CAPTURE_ERROR_INVALID_STATE		MK_U32(9)
 /** @} */
 
 /**
@@ -127,7 +127,7 @@ typedef uint32_t capture_result;
 struct CAPTURE_CHANNEL_SETUP_REQ_MSG {
 	/** Capture channel configuration. */
 	struct capture_channel_config	channel_config;
-} __CAPTURE_IVC_ALIGN;
+} CAPTURE_IVC_ALIGN;
 
 /**
  * @brief VI Capture channel setup response message.
@@ -146,14 +146,14 @@ struct CAPTURE_CHANNEL_SETUP_RESP_MSG {
 	uint32_t channel_id;
 	/** Allocated VI channel(s). */
 	uint64_t vi_channel_mask;
-} __CAPTURE_IVC_ALIGN;
+} CAPTURE_IVC_ALIGN;
 
 /**
  * @defgroup CapResetFlags VI Capture channel reset flags
  * @{
  */
 /** Reset the channel without waiting for FE first. */
-#define CAPTURE_CHANNEL_RESET_FLAG_IMMEDIATE	U32_C(0x01)
+#define CAPTURE_CHANNEL_RESET_FLAG_IMMEDIATE	MK_U32(0x01)
 /** @} */
 
 /**
@@ -168,7 +168,7 @@ struct CAPTURE_CHANNEL_RESET_REQ_MSG {
 	uint32_t reset_flags;
 	/** Reserved */
 	uint32_t __pad;
-} __CAPTURE_IVC_ALIGN;
+} CAPTURE_IVC_ALIGN;
 
 /**
  * @brief VI capture channel reset response message.
@@ -182,7 +182,7 @@ struct CAPTURE_CHANNEL_RESET_RESP_MSG {
 	/** Reset status return value. See @ref CapErrorCodes "Return values" */
 	capture_result result;
 	uint32_t __pad;
-} __CAPTURE_IVC_ALIGN;
+} CAPTURE_IVC_ALIGN;
 
 /**
  * @brief Release a VI capture channel and all the associated resources.
@@ -193,7 +193,7 @@ struct CAPTURE_CHANNEL_RELEASE_REQ_MSG {
 	/** Reset flags. Currently not used in release request. */
 	uint32_t reset_flags;
 	uint32_t __pad;
-} __CAPTURE_IVC_ALIGN;
+} CAPTURE_IVC_ALIGN;
 
 /**
  * @brief Capture channel release response message.
@@ -205,7 +205,7 @@ struct CAPTURE_CHANNEL_RELEASE_RESP_MSG {
 	/** Release status return value. See @ref CapErrorCodes "Return values" */
 	capture_result result;
 	uint32_t __pad;
-} __CAPTURE_IVC_ALIGN;
+} CAPTURE_IVC_ALIGN;
 
 /**
  * @brief Configure the piece-wise linear function used by the VI companding module.
@@ -219,7 +219,7 @@ struct CAPTURE_CHANNEL_RELEASE_RESP_MSG {
 struct CAPTURE_COMPAND_CONFIG_REQ_MSG {
 	/** VI companding configuration */
 	struct vi_compand_config compand_config;
-} __CAPTURE_IVC_ALIGN;
+} CAPTURE_IVC_ALIGN;
 
 /**
  * @brief VI Companding unit configuration response message.
@@ -232,7 +232,7 @@ struct CAPTURE_COMPAND_CONFIG_RESP_MSG {
 	/** Companding config setup result. See @ref CapErrorCodes "Return values". */
 	capture_result result;
 	uint32_t __pad;
-} __CAPTURE_IVC_ALIGN;
+} CAPTURE_IVC_ALIGN;
 
 /**
  * @brief Configure the Phase Detection Auto Focus (PDAF) pattern.
@@ -240,7 +240,7 @@ struct CAPTURE_COMPAND_CONFIG_RESP_MSG {
 struct CAPTURE_PDAF_CONFIG_REQ_MSG {
 	/** PDAF configuration data */
 	struct vi_pdaf_config pdaf_config;
-} __CAPTURE_IVC_ALIGN;
+} CAPTURE_IVC_ALIGN;
 
 /**
  * @brief Configure PDAF unit response message
@@ -256,7 +256,7 @@ struct CAPTURE_PDAF_CONFIG_RESP_MSG {
 	capture_result result;
 	/** Reserved */
 	uint32_t __pad;
-} __CAPTURE_IVC_ALIGN;
+} CAPTURE_IVC_ALIGN;
 
 /*
  * @brief Enable SLVS-EC synchronization
@@ -271,7 +271,7 @@ struct CAPTURE_SYNCGEN_ENABLE_REQ_MSG {
 	uint32_t __pad;
 	/** VI SYNCGEN unit configuration */
 	struct vi_syncgen_config syncgen_config;
-} __CAPTURE_IVC_ALIGN;
+} CAPTURE_IVC_ALIGN;
 
 /**
  * @brief Enable SLVS-EC synchronization response message.
@@ -287,7 +287,7 @@ struct CAPTURE_SYNCGEN_ENABLE_RESP_MSG {
 	uint32_t unit;
 	/** Syncgen enable request result. See @ref CapErrorCodes "Return values". */
 	capture_result result;
-} __CAPTURE_IVC_ALIGN;
+} CAPTURE_IVC_ALIGN;
 
 /**
  * @brief Disable SLVS-EC synchronization
@@ -302,9 +302,9 @@ struct CAPTURE_SYNCGEN_DISABLE_REQ_MSG {
 	uint32_t syncgen_disable_flags;
 
 /** Disable SYNCGEN without waiting for frame end */
-#define CAPTURE_SYNCGEN_DISABLE_FLAG_IMMEDIATE	U32_C(0x01)
+#define CAPTURE_SYNCGEN_DISABLE_FLAG_IMMEDIATE	MK_U32(0x01)
 
-} __CAPTURE_IVC_ALIGN;
+} CAPTURE_IVC_ALIGN;
 
 /**
  * @brief Disable SLVS-EC synchronization response message.
@@ -320,7 +320,7 @@ struct CAPTURE_SYNCGEN_DISABLE_RESP_MSG {
 	uint32_t unit;
 	/** Syncgen disable request result .See @ref CapErrorCodes "Return values". */
 	capture_result result;
-} __CAPTURE_IVC_ALIGN;
+} CAPTURE_IVC_ALIGN;
 
 
 /**
@@ -335,7 +335,7 @@ struct CAPTURE_PHY_STREAM_OPEN_REQ_MSG {
 	uint32_t phy_type;
 	/** Reserved */
 	uint32_t __pad32;
-} __CAPTURE_IVC_ALIGN;
+} CAPTURE_IVC_ALIGN;
 
 /**
  * @brief NVCSI stream open response message
@@ -345,7 +345,7 @@ struct CAPTURE_PHY_STREAM_OPEN_RESP_MSG {
 	uint32_t result;
 	/** Reserved */
 	uint32_t __pad32;
-} __CAPTURE_IVC_ALIGN;
+} CAPTURE_IVC_ALIGN;
 
 /**
  * @brief NVCSI stream close request message
@@ -359,7 +359,7 @@ struct CAPTURE_PHY_STREAM_CLOSE_REQ_MSG {
 	uint32_t phy_type;
 	/** Reserved */
 	uint32_t __pad32;
-} __CAPTURE_IVC_ALIGN;
+} CAPTURE_IVC_ALIGN;
 
 /**
  * @brief NVCSI stream close response message
@@ -369,7 +369,7 @@ struct CAPTURE_PHY_STREAM_CLOSE_RESP_MSG {
 	uint32_t result;
 	/** Reserved */
 	uint32_t __pad32;
-} __CAPTURE_IVC_ALIGN;
+} CAPTURE_IVC_ALIGN;
 
 /**
  * @brief Physical stream reset message
@@ -383,7 +383,7 @@ struct CAPTURE_PHY_STREAM_RESET_REQ_MSG {
 	uint32_t phy_type;
 	/** Reserved */
 	uint32_t __pad32;
-} __CAPTURE_IVC_ALIGN;
+} CAPTURE_IVC_ALIGN;
 
 /**
  * @brief Physical stream reset response message
@@ -393,7 +393,7 @@ struct CAPTURE_PHY_STREAM_RESET_RESP_MSG {
 	uint32_t result;
 	/** Reserved */
 	uint32_t __pad32;
-} __CAPTURE_IVC_ALIGN;
+} CAPTURE_IVC_ALIGN;
 
 /**
  * @brief Physical stream dump registers request message. (Debug only)
@@ -403,7 +403,7 @@ struct CAPTURE_PHY_STREAM_DUMPREGS_REQ_MSG {
 	uint32_t stream_id;
 	/** NVCSI port */
 	uint32_t csi_port;
-} __CAPTURE_IVC_ALIGN;
+} CAPTURE_IVC_ALIGN;
 
 /**
  * @brief Physical stream dump registers response message. (Debug only)
@@ -412,7 +412,7 @@ struct CAPTURE_PHY_STREAM_DUMPREGS_RESP_MSG {
 	/** Stream dump registers request status. See @ref CapErrorCodes "Return values". */
 	uint32_t result;
 	uint32_t __pad32;
-} __CAPTURE_IVC_ALIGN;
+} CAPTURE_IVC_ALIGN;
 
 /**
  * @brief Set NVCSI stream configuration request message.
@@ -432,7 +432,7 @@ struct CAPTURE_CSI_STREAM_SET_CONFIG_REQ_MSG {
 	struct nvcsi_cil_config cil_config;
 	/** User-defined error configuration */
 	struct nvcsi_error_config error_config;
-} __CAPTURE_IVC_ALIGN;
+} CAPTURE_IVC_ALIGN;
 
 /**
  * @brief Set NVCSI stream configuration response message.
@@ -442,7 +442,7 @@ struct CAPTURE_CSI_STREAM_SET_CONFIG_RESP_MSG {
 	uint32_t result;
 	/** Reserved */
 	uint32_t __pad32;
-} __CAPTURE_IVC_ALIGN;
+} CAPTURE_IVC_ALIGN;
 
 /**
  * @brief Set NVCSI stream parameter request message.
@@ -464,7 +464,7 @@ struct CAPTURE_CSI_STREAM_SET_PARAM_REQ_MSG {
 		/** NVCSI watchdog timer config */
 		struct nvcsi_watchdog_config watchdog_config;
 	};
-} __CAPTURE_IVC_ALIGN;
+} CAPTURE_IVC_ALIGN;
 
 /**
  * @brief Set NVCSI stream parameter response message.
@@ -474,7 +474,7 @@ struct CAPTURE_CSI_STREAM_SET_PARAM_RESP_MSG {
 	uint32_t result;
 	/** Reserved */
 	uint32_t __pad32;
-} __CAPTURE_IVC_ALIGN;
+} CAPTURE_IVC_ALIGN;
 
 
 /**
@@ -483,7 +483,7 @@ struct CAPTURE_CSI_STREAM_SET_PARAM_RESP_MSG {
 struct CAPTURE_CSI_STREAM_TPG_SET_CONFIG_REQ_MSG {
 	/** TPG configuration */
 	union nvcsi_tpg_config tpg_config;
-} __CAPTURE_IVC_ALIGN;
+} CAPTURE_IVC_ALIGN;
 
 /**
  * @brief NVCSI TPG stream config response message.
@@ -493,7 +493,7 @@ struct CAPTURE_CSI_STREAM_TPG_SET_CONFIG_RESP_MSG {
 	uint32_t result;
 	/** Reserved */
 	uint32_t __pad32;
-} __CAPTURE_IVC_ALIGN;
+} CAPTURE_IVC_ALIGN;
 
 /**
  * @brief Start NVCSI TPG streaming request message.
@@ -505,7 +505,7 @@ struct CAPTURE_CSI_STREAM_TPG_START_REQ_MSG {
 	uint32_t virtual_channel_id;
 	/** TPG rate configuration */
 	struct nvcsi_tpg_rate_config tpg_rate_config;
-} __CAPTURE_IVC_ALIGN;
+} CAPTURE_IVC_ALIGN;
 
 /**
  * @brief Start NVCSI TPG streaming response message.
@@ -515,7 +515,7 @@ struct CAPTURE_CSI_STREAM_TPG_START_RESP_MSG {
 	uint32_t result;
 	/** Reserved */
 	uint32_t __pad32;
-} __CAPTURE_IVC_ALIGN;
+} CAPTURE_IVC_ALIGN;
 
 
 /**
@@ -533,7 +533,7 @@ struct CAPTURE_CSI_STREAM_TPG_START_RATE_REQ_MSG {
 	uint32_t frame_rate;
 	/** CSI clock rate */
 	uint32_t csi_clk_rate;
-} __CAPTURE_IVC_ALIGN;
+} CAPTURE_IVC_ALIGN;
 
 /**
  * @brief NVCSI TPG stream start at a specified frame rate response message.
@@ -543,7 +543,7 @@ struct CAPTURE_CSI_STREAM_TPG_START_RATE_RESP_MSG {
 	uint32_t result;
 	/** Reserved */
 	uint32_t __pad32;
-} __CAPTURE_IVC_ALIGN;
+} CAPTURE_IVC_ALIGN;
 
 /**
  * @brief Stop NVCSI TPG streaming request message.
@@ -553,7 +553,7 @@ struct CAPTURE_CSI_STREAM_TPG_STOP_REQ_MSG {
 	uint32_t stream_id;
 	/** NVCSI stream virtual channel id */
 	uint32_t virtual_channel_id;
-} __CAPTURE_IVC_ALIGN;
+} CAPTURE_IVC_ALIGN;
 
 /**
  * @brief Stop NVCSI TPG streaming response message.
@@ -562,7 +562,7 @@ struct CAPTURE_CSI_STREAM_TPG_STOP_RESP_MSG {
 	/** Stop TPG steaming request status. See @ref CapErrorCodes "Return values". */
 	uint32_t result;
 	uint32_t __pad32;
-} __CAPTURE_IVC_ALIGN;
+} CAPTURE_IVC_ALIGN;
 
 /**
  * @brief Max number of events
@@ -581,7 +581,7 @@ struct CAPTURE_CHANNEL_EI_REQ_MSG {
 	uint8_t num_events;
 	/** Reserved */
 	uint8_t __pad[7];
-} __CAPTURE_IVC_ALIGN;
+} CAPTURE_IVC_ALIGN;
 
 /**
  * @brief Acknowledge Event Injection request
@@ -591,7 +591,7 @@ struct CAPTURE_CHANNEL_EI_RESP_MSG {
 	capture_result result;
 	/** Reserved */
 	uint32_t __pad;
-} __CAPTURE_IVC_ALIGN;
+} CAPTURE_IVC_ALIGN;
 
 /**
  * @brief Event injection channel reset request.
@@ -599,7 +599,7 @@ struct CAPTURE_CHANNEL_EI_RESP_MSG {
 struct CAPTURE_CHANNEL_EI_RESET_REQ_MSG {
 	/** Reserved */
 	uint8_t __pad[8];
-} __CAPTURE_IVC_ALIGN;
+} CAPTURE_IVC_ALIGN;
 
 /**
  * @brief Acknowledge Event injection channel reset request.
@@ -609,56 +609,56 @@ struct CAPTURE_CHANNEL_EI_RESET_RESP_MSG {
 	capture_result result;
 	/** Reserved */
 	uint32_t __pad;
-} __CAPTURE_IVC_ALIGN;
+} CAPTURE_IVC_ALIGN;
 
 /**
  * @defgroup PhyStreamMsgType Message types for NvPhy
  * @{
  */
-#define CAPTURE_PHY_STREAM_OPEN_REQ		U32_C(0x36)
-#define CAPTURE_PHY_STREAM_OPEN_RESP		U32_C(0x37)
-#define CAPTURE_PHY_STREAM_CLOSE_REQ		U32_C(0x38)
-#define CAPTURE_PHY_STREAM_CLOSE_RESP		U32_C(0x39)
-#define CAPTURE_PHY_STREAM_RESET_REQ		U32_C(0x3A)
-#define CAPTURE_PHY_STREAM_RESET_RESP		U32_C(0x3B)
-#define CAPTURE_PHY_STREAM_DUMPREGS_REQ		U32_C(0x3C)
-#define CAPTURE_PHY_STREAM_DUMPREGS_RESP	U32_C(0x3D)
+#define CAPTURE_PHY_STREAM_OPEN_REQ		MK_U32(0x36)
+#define CAPTURE_PHY_STREAM_OPEN_RESP		MK_U32(0x37)
+#define CAPTURE_PHY_STREAM_CLOSE_REQ		MK_U32(0x38)
+#define CAPTURE_PHY_STREAM_CLOSE_RESP		MK_U32(0x39)
+#define CAPTURE_PHY_STREAM_RESET_REQ		MK_U32(0x3A)
+#define CAPTURE_PHY_STREAM_RESET_RESP		MK_U32(0x3B)
+#define CAPTURE_PHY_STREAM_DUMPREGS_REQ		MK_U32(0x3C)
+#define CAPTURE_PHY_STREAM_DUMPREGS_RESP	MK_U32(0x3D)
 /** @} */
 
 /**
  * @defgroup NvCsiMsgType Message types for NVCSI
  * @{
  */
-#define CAPTURE_CSI_STREAM_SET_CONFIG_REQ	U32_C(0x40)
-#define CAPTURE_CSI_STREAM_SET_CONFIG_RESP	U32_C(0x41)
-#define CAPTURE_CSI_STREAM_SET_PARAM_REQ	U32_C(0x42)
-#define CAPTURE_CSI_STREAM_SET_PARAM_RESP	U32_C(0x43)
-#define CAPTURE_CSI_STREAM_TPG_SET_CONFIG_REQ	U32_C(0x44)
-#define CAPTURE_CSI_STREAM_TPG_SET_CONFIG_RESP	U32_C(0x45)
-#define CAPTURE_CSI_STREAM_TPG_START_REQ	U32_C(0x46)
-#define CAPTURE_CSI_STREAM_TPG_START_RESP	U32_C(0x47)
-#define CAPTURE_CSI_STREAM_TPG_STOP_REQ		U32_C(0x48)
-#define CAPTURE_CSI_STREAM_TPG_STOP_RESP	U32_C(0x49)
-#define CAPTURE_CSI_STREAM_TPG_START_RATE_REQ	U32_C(0x4A)
-#define CAPTURE_CSI_STREAM_TPG_START_RATE_RESP	U32_C(0x4B)
+#define CAPTURE_CSI_STREAM_SET_CONFIG_REQ	MK_U32(0x40)
+#define CAPTURE_CSI_STREAM_SET_CONFIG_RESP	MK_U32(0x41)
+#define CAPTURE_CSI_STREAM_SET_PARAM_REQ	MK_U32(0x42)
+#define CAPTURE_CSI_STREAM_SET_PARAM_RESP	MK_U32(0x43)
+#define CAPTURE_CSI_STREAM_TPG_SET_CONFIG_REQ	MK_U32(0x44)
+#define CAPTURE_CSI_STREAM_TPG_SET_CONFIG_RESP	MK_U32(0x45)
+#define CAPTURE_CSI_STREAM_TPG_START_REQ	MK_U32(0x46)
+#define CAPTURE_CSI_STREAM_TPG_START_RESP	MK_U32(0x47)
+#define CAPTURE_CSI_STREAM_TPG_STOP_REQ		MK_U32(0x48)
+#define CAPTURE_CSI_STREAM_TPG_STOP_RESP	MK_U32(0x49)
+#define CAPTURE_CSI_STREAM_TPG_START_RATE_REQ	MK_U32(0x4A)
+#define CAPTURE_CSI_STREAM_TPG_START_RATE_RESP	MK_U32(0x4B)
 /** @} */
 
 /**
  * @defgroup NvCsiMsgType Message types for NVCSI
  * @{
  */
-#define CAPTURE_CHANNEL_EI_REQ		U32_C(0x50)
-#define CAPTURE_CHANNEL_EI_RESP		U32_C(0x51)
-#define CAPTURE_CHANNEL_EI_RESET_REQ	U32_C(0x52)
-#define CAPTURE_CHANNEL_EI_RESET_RESP	U32_C(0x53)
+#define CAPTURE_CHANNEL_EI_REQ			MK_U32(0x50)
+#define CAPTURE_CHANNEL_EI_RESP			MK_U32(0x51)
+#define CAPTURE_CHANNEL_EI_RESET_REQ		MK_U32(0x52)
+#define CAPTURE_CHANNEL_EI_RESET_RESP		MK_U32(0x53)
 /** @} */
 
 /**
  * @addtogroup ViCapCtrlMsgType
  * @{
  */
-#define CAPTURE_HSM_CHANSEL_ERROR_MASK_REQ	U32_C(0x54)
-#define CAPTURE_HSM_CHANSEL_ERROR_MASK_RESP	U32_C(0x55)
+#define CAPTURE_HSM_CHANSEL_ERROR_MASK_REQ	MK_U32(0x54)
+#define CAPTURE_HSM_CHANSEL_ERROR_MASK_RESP	MK_U32(0x55)
 /** @} */
 
 /**
@@ -671,7 +671,7 @@ struct CAPTURE_CHANNEL_EI_RESET_RESP_MSG {
 struct CAPTURE_HSM_CHANSEL_ERROR_MASK_REQ_MSG {
 	/** VI EC/HSM global CHANSEL error mask configuration */
 	struct vi_hsm_chansel_error_mask_config hsm_chansel_error_config;
-} __CAPTURE_IVC_ALIGN;
+} CAPTURE_IVC_ALIGN;
 
 /**
  * @brief Acknowledge CHANEL error mask request
@@ -681,7 +681,7 @@ struct CAPTURE_HSM_CHANSEL_ERROR_MASK_RESP_MSG {
 	capture_result result;
 	/** Reserved */
 	uint32_t __pad;
-} __CAPTURE_IVC_ALIGN;
+} CAPTURE_IVC_ALIGN;
 /** @} */
 
 /**
@@ -693,7 +693,7 @@ struct CAPTURE_HSM_CHANSEL_ERROR_MASK_RESP_MSG {
 struct CAPTURE_CHANNEL_ISP_SETUP_REQ_MSG {
 	/** ISP process channel configuration. */
 	struct capture_channel_isp_config	channel_config;
-} __CAPTURE_IVC_ALIGN;
+} CAPTURE_IVC_ALIGN;
 
 /**
  * @brief Acknowledge isp capture channel setup request.
@@ -710,7 +710,7 @@ struct CAPTURE_CHANNEL_ISP_SETUP_RESP_MSG {
 	capture_result result;
 	/** ISP process identifier */
 	uint32_t channel_id;
-} __CAPTURE_IVC_ALIGN;
+} CAPTURE_IVC_ALIGN;
 
 typedef struct CAPTURE_CHANNEL_RESET_REQ_MSG
 			CAPTURE_CHANNEL_ISP_RESET_REQ_MSG;
@@ -793,7 +793,7 @@ struct CAPTURE_CONTROL_MSG {
 		struct CAPTURE_HSM_CHANSEL_ERROR_MASK_REQ_MSG hsm_chansel_mask_req;
 		struct CAPTURE_HSM_CHANSEL_ERROR_MASK_RESP_MSG hsm_chansel_mask_resp;
 	};
-} __CAPTURE_IVC_ALIGN;
+} CAPTURE_IVC_ALIGN;
 
 /**
  * @brief Enqueue a new capture request on a capture channel.
@@ -834,7 +834,7 @@ struct CAPTURE_REQUEST_REQ_MSG {
 	uint32_t buffer_index;
 	/** Reserved */
 	uint32_t __pad;
-} __CAPTURE_IVC_ALIGN;
+} CAPTURE_IVC_ALIGN;
 
 /**
  * @brief Capture status indication.
@@ -847,7 +847,7 @@ struct CAPTURE_STATUS_IND_MSG {
 	uint32_t buffer_index;
 	/** Reserved */
 	uint32_t __pad;
-} __CAPTURE_IVC_ALIGN;
+} CAPTURE_IVC_ALIGN;
 
 
 /**
@@ -927,7 +927,7 @@ struct CAPTURE_ISP_EX_STATUS_IND_MSG {
 	uint32_t process_buffer_index;
 	/** Buffer index identifying ISP program descriptor. */
 	uint32_t program_buffer_index;
-} __CAPTURE_IVC_ALIGN;
+} CAPTURE_IVC_ALIGN;
 
 /**
  * @brief Send new isp_program request on a capture ivc channel.
@@ -1026,7 +1026,7 @@ struct CAPTURE_MSG {
 		CAPTURE_ISP_PROGRAM_STATUS_IND_MSG
 				capture_isp_program_status_ind;
 	};
-} __CAPTURE_IVC_ALIGN;
+} CAPTURE_IVC_ALIGN;
 
 #pragma GCC diagnostic ignored "-Wpadded"
 

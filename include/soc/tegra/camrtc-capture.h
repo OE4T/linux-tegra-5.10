@@ -20,13 +20,21 @@
 #include "camrtc-common.h"
 
 #pragma GCC diagnostic error "-Wpadded"
-#define __CAPTURE_IVC_ALIGN __aligned(8)
-#define __CAPTURE_DESCRIPTOR_ALIGN __aligned(64)
 
-typedef uint64_t iova_t __CAPTURE_IVC_ALIGN;
+#define CAPTURE_IVC_ALIGNOF		MK_ALIGN(8)
+#define CAPTURE_DESCRIPTOR_ALIGNOF	MK_ALIGN(64)
 
-#define SYNCPOINT_ID_INVALID	U32_C(0)
-#define GOS_INDEX_INVALID	U8_C(0xFF)
+#define CAPTURE_IVC_ALIGN		__aligned(CAPTURE_IVC_ALIGNOF)
+#define CAPTURE_DESCRIPTOR_ALIGN	__aligned(CAPTURE_DESCRIPTOR_ALIGNOF)
+
+/* Deprecated */
+#define __CAPTURE_IVC_ALIGN		CAPTURE_IVC_ALIGN
+#define __CAPTURE_DESCRIPTOR_ALIGN	CAPTURE_DESCRIPTOR_ALIGN
+
+typedef uint64_t iova_t CAPTURE_IVC_ALIGN;
+
+#define SYNCPOINT_ID_INVALID	MK_U32(0)
+#define GOS_INDEX_INVALID	MK_U8(0xFF)
 
 #pragma GCC diagnostic warning "-Wdeprecated-declarations"
 #define CAMRTC_DEPRECATED __attribute__((deprecated))
@@ -42,7 +50,7 @@ typedef struct syncpoint_info {
 	uint16_t gos_offset;
 	uint32_t pad_;
 	iova_t shim_addr;
-} syncpoint_info_t __CAPTURE_IVC_ALIGN;
+} syncpoint_info_t CAPTURE_IVC_ALIGN;
 
 /**
  * @defgroup StatsSize Statistics data size defines
@@ -70,50 +78,66 @@ typedef struct syncpoint_info {
  * @{
  */
 /** Statistics unit hardware header size in bytes */
-#define ISP5_STATS_HW_HEADER_SIZE    (32UL)
+#define ISP5_STATS_HW_HEADER_SIZE	MK_SIZE(32)
 /** Flicker band (FB) unit statistics data size in bytes */
-#define ISP5_STATS_FB_MAX_SIZE       (1056UL)
+#define ISP5_STATS_FB_MAX_SIZE		MK_SIZE(1056)
 /** Focus Metrics (FM) unit statistics data size in bytes */
-#define ISP5_STATS_FM_MAX_SIZE       (32800UL)
+#define ISP5_STATS_FM_MAX_SIZE		MK_SIZE(32800)
 /** Auto Focus Metrics (AFM) unit statistics data size in bytes */
-#define ISP5_STATS_AFM_ROI_MAX_SIZE  (40UL)
+#define ISP5_STATS_AFM_ROI_MAX_SIZE	MK_SIZE(40)
 /** Local Average Clipping (LAC) unit statistics data size in bytes */
-#define ISP5_STATS_LAC_ROI_MAX_SIZE  (32800UL)
+#define ISP5_STATS_LAC_ROI_MAX_SIZE	MK_SIZE(32800)
 /** Histogram unit statistics data size in bytes */
-#define ISP5_STATS_HIST_MAX_SIZE     (4144UL)
+#define ISP5_STATS_HIST_MAX_SIZE	MK_SIZE(4144)
 /** Pixel Replacement Unit (PRU) unit statistics data size in bytes */
-#define ISP5_STATS_OR_MAX_SIZE       (64UL)
+#define ISP5_STATS_OR_MAX_SIZE		MK_SIZE(64)
 /** Local Tone Mapping (LTM) unit statistics data size in bytes */
-#define ISP5_STATS_LTM_MAX_SIZE      (1056UL)
+#define ISP5_STATS_LTM_MAX_SIZE		MK_SIZE(1056)
 
 /* Stats buffer addresses muse be aligned to 64 byte (ATOM) boundaries */
-#define ISP5_ALIGN_STAT_OFFSET(_offset) (((uint32_t)(_offset) + 63UL) & ~(63UL))
+#define ISP5_ALIGN_STAT_OFFSET(_offset) \
+	(((uint32_t)(_offset) + MK_U32(63)) & ~(MK_U32(63)))
 
 /** Flicker band (FB) unit statistics data offset */
-#define ISP5_STATS_FB_OFFSET         (0)
+#define ISP5_STATS_FB_OFFSET		MK_SIZE(0)
 /** Focus Metrics (FM) unit statistics data offset */
-#define ISP5_STATS_FM_OFFSET         (ISP5_STATS_FB_OFFSET + ISP5_ALIGN_STAT_OFFSET(ISP5_STATS_FB_MAX_SIZE))
+#define ISP5_STATS_FM_OFFSET \
+	(ISP5_STATS_FB_OFFSET + ISP5_ALIGN_STAT_OFFSET(ISP5_STATS_FB_MAX_SIZE))
 /** Auto Focus Metrics (AFM) unit statistics data offset */
-#define ISP5_STATS_AFM_OFFSET        (ISP5_STATS_FM_OFFSET + ISP5_ALIGN_STAT_OFFSET(ISP5_STATS_FM_MAX_SIZE))
+#define ISP5_STATS_AFM_OFFSET \
+	(ISP5_STATS_FM_OFFSET + ISP5_ALIGN_STAT_OFFSET(ISP5_STATS_FM_MAX_SIZE))
 /** Local Average Clipping (LAC0) unit statistics data offset */
-#define ISP5_STATS_LAC0_OFFSET       (ISP5_STATS_AFM_OFFSET + ISP5_ALIGN_STAT_OFFSET(ISP5_STATS_AFM_ROI_MAX_SIZE) * 8)
+#define ISP5_STATS_LAC0_OFFSET \
+	(ISP5_STATS_AFM_OFFSET + \
+	(ISP5_ALIGN_STAT_OFFSET(ISP5_STATS_AFM_ROI_MAX_SIZE) * MK_SIZE(8)))
 /** Local Average Clipping (LAC1) unit statistics data offset */
-#define ISP5_STATS_LAC1_OFFSET       (ISP5_STATS_LAC0_OFFSET + ISP5_ALIGN_STAT_OFFSET(ISP5_STATS_LAC_ROI_MAX_SIZE) * 4)
+#define ISP5_STATS_LAC1_OFFSET \
+	(ISP5_STATS_LAC0_OFFSET + \
+	(ISP5_ALIGN_STAT_OFFSET(ISP5_STATS_LAC_ROI_MAX_SIZE) * MK_SIZE(4)))
 /** Histogram unit (H0) statistics data offset */
-#define ISP5_STATS_HIST0_OFFSET      (ISP5_STATS_LAC1_OFFSET + ISP5_ALIGN_STAT_OFFSET(ISP5_STATS_LAC_ROI_MAX_SIZE) * 4)
+#define ISP5_STATS_HIST0_OFFSET \
+	(ISP5_STATS_LAC1_OFFSET + \
+	(ISP5_ALIGN_STAT_OFFSET(ISP5_STATS_LAC_ROI_MAX_SIZE) * MK_SIZE(4)))
 /** Histogram unit (H1) statistics data offset */
-#define ISP5_STATS_HIST1_OFFSET      (ISP5_STATS_HIST0_OFFSET + ISP5_ALIGN_STAT_OFFSET(ISP5_STATS_HIST_MAX_SIZE))
+#define ISP5_STATS_HIST1_OFFSET \
+	(ISP5_STATS_HIST0_OFFSET + \
+	ISP5_ALIGN_STAT_OFFSET(ISP5_STATS_HIST_MAX_SIZE))
 /** Pixel Replacement Unit (PRU) unit statistics data offset */
-#define ISP5_STATS_OR_OFFSET         (ISP5_STATS_HIST1_OFFSET + ISP5_ALIGN_STAT_OFFSET(ISP5_STATS_HIST_MAX_SIZE))
+#define ISP5_STATS_OR_OFFSET \
+	(ISP5_STATS_HIST1_OFFSET + \
+	ISP5_ALIGN_STAT_OFFSET(ISP5_STATS_HIST_MAX_SIZE))
 /** Local Tone Mapping (LTM) unit statistics data offset */
-#define ISP5_STATS_LTM_OFFSET        (ISP5_STATS_OR_OFFSET + ISP5_ALIGN_STAT_OFFSET(ISP5_STATS_OR_MAX_SIZE))
+#define ISP5_STATS_LTM_OFFSET \
+	(ISP5_STATS_OR_OFFSET + \
+	ISP5_ALIGN_STAT_OFFSET(ISP5_STATS_OR_MAX_SIZE))
 /** Total statistics data size in bytes */
-#define ISP5_STATS_TOTAL_SIZE        (ISP5_STATS_LTM_OFFSET + ISP5_STATS_LTM_MAX_SIZE)
+#define ISP5_STATS_TOTAL_SIZE \
+	(ISP5_STATS_LTM_OFFSET + ISP5_STATS_LTM_MAX_SIZE)
 /**@}*/
 
-#define ISP_NUM_GOS_TABLES	8U
+#define ISP_NUM_GOS_TABLES	MK_U32(8)
 
-#define VI_NUM_GOS_TABLES	12U
+#define VI_NUM_GOS_TABLES	MK_U32(12)
 #define VI_NUM_ATOMP_SURFACES	4
 #define VI_NUM_STATUS_SURFACES	1
 #define VI_NUM_VI_PFSD_SURFACES	2
@@ -149,7 +173,7 @@ typedef struct syncpoint_info {
 /** @} */
 
 /* SLVS-EC */
-#define SLVSEC_STREAM_DISABLED	U8_C(0xFF)
+#define SLVSEC_STREAM_DISABLED	MK_U8(0xFF)
 
 /**
  * @defgroup VICaptureChannelFlags
@@ -157,37 +181,37 @@ typedef struct syncpoint_info {
  */
 /**@{*/
 /** Channel takes input from Video Interface (VI) */
-#define CAPTURE_CHANNEL_FLAG_VIDEO		U32_C(0x0001)
+#define CAPTURE_CHANNEL_FLAG_VIDEO		MK_U32(0x0001)
 /** Channel supports RAW Bayer output */
-#define CAPTURE_CHANNEL_FLAG_RAW		U32_C(0x0002)
+#define CAPTURE_CHANNEL_FLAG_RAW		MK_U32(0x0002)
 /** Channel supports planar YUV output */
-#define CAPTURE_CHANNEL_FLAG_PLANAR		U32_C(0x0004)
+#define CAPTURE_CHANNEL_FLAG_PLANAR		MK_U32(0x0004)
 /** Channel supports semi-planar YUV output */
-#define CAPTURE_CHANNEL_FLAG_SEMI_PLANAR	U32_C(0x0008)
+#define CAPTURE_CHANNEL_FLAG_SEMI_PLANAR	MK_U32(0x0008)
 /** Channel supports phase-detection auto-focus */
-#define CAPTURE_CHANNEL_FLAG_PDAF		U32_C(0x0010)
+#define CAPTURE_CHANNEL_FLAG_PDAF		MK_U32(0x0010)
 /** Channel outputs to Focus Metric Lite module (FML) */
-#define CAPTURE_CHANNEL_FLAG_FMLITE		U32_C(0x0020)
+#define CAPTURE_CHANNEL_FLAG_FMLITE		MK_U32(0x0020)
 /** Channel outputs sensor embedded data */
-#define CAPTURE_CHANNEL_FLAG_EMBDATA		U32_C(0x0040)
+#define CAPTURE_CHANNEL_FLAG_EMBDATA		MK_U32(0x0040)
 /** Channel outputs to ISPA */
-#define CAPTURE_CHANNEL_FLAG_ISPA		U32_C(0x0080)
+#define CAPTURE_CHANNEL_FLAG_ISPA		MK_U32(0x0080)
 /** Channel outputs to ISPB */
-#define CAPTURE_CHANNEL_FLAG_ISPB		U32_C(0x0100)
+#define CAPTURE_CHANNEL_FLAG_ISPB		MK_U32(0x0100)
 /** Channel outputs directly to selected ISP (ISO mode) */
-#define CAPTURE_CHANNEL_FLAG_ISP_DIRECT		U32_C(0x0200)
+#define CAPTURE_CHANNEL_FLAG_ISP_DIRECT		MK_U32(0x0200)
 /** Channel outputs to software ISP (reserved) */
-#define CAPTURE_CHANNEL_FLAG_ISPSW		U32_C(0x0400)
+#define CAPTURE_CHANNEL_FLAG_ISPSW		MK_U32(0x0400)
 /** Channel treats all errors as stop-on-error and requires reset for recovery.*/
-#define CAPTURE_CHANNEL_FLAG_RESET_ON_ERROR	U32_C(0x0800)
+#define CAPTURE_CHANNEL_FLAG_RESET_ON_ERROR	MK_U32(0x0800)
 /** Channel has line timer enabled */
-#define CAPTURE_CHANNEL_FLAG_LINETIMER		U32_C(0x1000)
+#define CAPTURE_CHANNEL_FLAG_LINETIMER		MK_U32(0x1000)
 /** Channel supports SLVSEC sensors */
-#define CAPTURE_CHANNEL_FLAG_SLVSEC		U32_C(0x2000)
+#define CAPTURE_CHANNEL_FLAG_SLVSEC		MK_U32(0x2000)
 /** Channel reports errors to HSM based on error_mask_correctable and error_mask_uncorrectable.*/
-#define CAPTURE_CHANNEL_FLAG_ENABLE_HSM_ERROR_MASKS	U32_C(0x4000)
+#define CAPTURE_CHANNEL_FLAG_ENABLE_HSM_ERROR_MASKS	MK_U32(0x4000)
 /** Capture with VI PFSD enabled */
-#define CAPTURE_CHANNEL_FLAG_ENABLE_VI_PFSD	U32_C(0x8000)
+#define CAPTURE_CHANNEL_FLAG_ENABLE_VI_PFSD	MK_U32(0x8000)
 /**@}*/
 
 /**
@@ -196,43 +220,43 @@ typedef struct syncpoint_info {
  */
 /**@{*/
 /** VI Frame start error timeout */
-#define CAPTURE_CHANNEL_ERROR_VI_FRAME_START_TIMEOUT	(U32_C(1) << 23)
+#define CAPTURE_CHANNEL_ERROR_VI_FRAME_START_TIMEOUT	MK_BIT32(23)
 /** VI Permanent Fault SW Diagnostics (PFSD) error */
-#define CAPTURE_CHANNEL_ERROR_VI_PFSD_FAULT		(U32_C(1) << 22)
+#define CAPTURE_CHANNEL_ERROR_VI_PFSD_FAULT		MK_BIT32(22)
 /** Embedded data incomplete */
-#define CAPTURE_CHANNEL_ERROR_ERROR_EMBED_INCOMPLETE	(U32_C(1) << 21)
+#define CAPTURE_CHANNEL_ERROR_ERROR_EMBED_INCOMPLETE	MK_BIT32(21)
 /** Pixel frame is incomplete */
-#define CAPTURE_CHANNEL_ERROR_INCOMPLETE		(U32_C(1) << 20)
+#define CAPTURE_CHANNEL_ERROR_INCOMPLETE		MK_BIT32(20)
 /** A Frame End appears from NVCSI before the normal number of pixels has appeared*/
-#define CAPTURE_CHANNEL_ERROR_STALE_FRAME		(U32_C(1) << 19)
+#define CAPTURE_CHANNEL_ERROR_STALE_FRAME		MK_BIT32(19)
 /** A start-of-frame matches a channel that is already in frame */
-#define CAPTURE_CHANNEL_ERROR_COLLISION			(U32_C(1) << 18)
+#define CAPTURE_CHANNEL_ERROR_COLLISION			MK_BIT32(18)
 /** Pixels stopped, an FE was forced due to a latent LOAD event */
-#define CAPTURE_CHANNEL_ERROR_FORCE_FE			(U32_C(1) << 17)
+#define CAPTURE_CHANNEL_ERROR_FORCE_FE			MK_BIT32(17)
 /** A LOAD command is received for a channel while that channel is currently in a frame.*/
-#define CAPTURE_CHANNEL_ERROR_LOAD_FRAMED		(U32_C(1) << 16)
+#define CAPTURE_CHANNEL_ERROR_LOAD_FRAMED		MK_BIT32(16)
 /** The pixel datatype changed in the middle of the line */
-#define CAPTURE_CHANNEL_ERROR_DTYPE_MISMATCH		(U32_C(1) << 15)
+#define CAPTURE_CHANNEL_ERROR_DTYPE_MISMATCH		MK_BIT32(15)
 /** Unexpected embedded data in frame */
-#define CAPTURE_CHANNEL_ERROR_EMBED_INFRINGE		(U32_C(1) << 14)
+#define CAPTURE_CHANNEL_ERROR_EMBED_INFRINGE		MK_BIT32(14)
 /** Extra embedded bytes on line */
-#define CAPTURE_CHANNEL_ERROR_EMBED_LONG_LINE		(U32_C(1) << 13)
+#define CAPTURE_CHANNEL_ERROR_EMBED_LONG_LINE		MK_BIT32(13)
 /** Embedded bytes found between line start and line end*/
-#define CAPTURE_CHANNEL_ERROR_EMBED_SPURIOUS		(U32_C(1) << 12)
+#define CAPTURE_CHANNEL_ERROR_EMBED_SPURIOUS		MK_BIT32(12)
 /** Too many embeded lines in frame */
-#define CAPTURE_CHANNEL_ERROR_EMBED_RUNAWAY		(U32_C(1) << 11)
+#define CAPTURE_CHANNEL_ERROR_EMBED_RUNAWAY		MK_BIT32(11)
 /** Two embedded line starts without a line end in between */
-#define CAPTURE_CHANNEL_ERROR_EMBED_MISSING_LE		(U32_C(1) << 10)
+#define CAPTURE_CHANNEL_ERROR_EMBED_MISSING_LE		MK_BIT32(10)
 /** A line has fewer pixels than expected width */
-#define CAPTURE_CHANNEL_ERROR_PIXEL_SHORT_LINE		(U32_C(1) << 9)
+#define CAPTURE_CHANNEL_ERROR_PIXEL_SHORT_LINE		MK_BIT32(9)
 /** A line has more pixels than expected width, pixels dropped */
-#define CAPTURE_CHANNEL_ERROR_PIXEL_LONG_LINE		(U32_C(1) << 8)
+#define CAPTURE_CHANNEL_ERROR_PIXEL_LONG_LINE		MK_BIT32(8)
 /** A pixel found between line end and line start markers, dropped */
-#define CAPTURE_CHANNEL_ERROR_PIXEL_SPURIOUS		(U32_C(1) << 7)
+#define CAPTURE_CHANNEL_ERROR_PIXEL_SPURIOUS		MK_BIT32(7)
 /** Too many pixel lines in frame, extra lines dropped */
-#define CAPTURE_CHANNEL_ERROR_PIXEL_RUNAWAY		(U32_C(1) << 6)
+#define CAPTURE_CHANNEL_ERROR_PIXEL_RUNAWAY		MK_BIT32(6)
 /** Two lines starts without a line end in between */
-#define CAPTURE_CHANNEL_ERROR_PIXEL_MISSING_LE		(U32_C(1) << 5)
+#define CAPTURE_CHANNEL_ERROR_PIXEL_MISSING_LE		MK_BIT32(5)
 /**@}*/
 
 /**
@@ -343,7 +367,7 @@ struct capture_channel_config {
 	 */
 	uint64_t stop_on_error_notify_bits;
 
-} __CAPTURE_IVC_ALIGN;
+} CAPTURE_IVC_ALIGN;
 
 /**
  * @brief VI Channel configuration
@@ -533,7 +557,7 @@ struct vi_channel_config {
 	/** Reserved */
 	uint16_t __pad[2];
 
-} __CAPTURE_IVC_ALIGN;
+} CAPTURE_IVC_ALIGN;
 
 /**
  * @brief Engine status buffer base address.
@@ -543,7 +567,7 @@ struct engine_status_surface {
 	uint32_t offset;
 	/** Upper 8-bits of the surface base address */
 	uint32_t offset_hi;
-} __CAPTURE_IVC_ALIGN;
+} CAPTURE_IVC_ALIGN;
 
 /**
  * @brief NVCSI error status
@@ -569,8 +593,8 @@ struct nvcsi_error_status {
  	 * @defgroup NvCsiStreamErrors NVCSI Stream error bits
 	 */
 	/** @{ */
-#define NVCSI_STREAM_ERR_STAT_PH_BOTH_CRC_ERR			(U32_C(1) << 1U)
-#define NVCSI_STREAM_ERR_STAT_PH_ECC_MULTI_BIT_ERR		(U32_C(1) << 0U)
+#define NVCSI_STREAM_ERR_STAT_PH_BOTH_CRC_ERR			MK_BIT32(1)
+#define NVCSI_STREAM_ERR_STAT_PH_ECC_MULTI_BIT_ERR		MK_BIT32(0)
 	/** @} */
 
 	/**
@@ -584,11 +608,11 @@ struct nvcsi_error_status {
  	 * @defgroup NvCsiVirtualChannelErrors NVCSI Virtual Channel error bits
 	 */
 	/** @{ */
-#define NVCSI_VC_ERR_INTR_STAT_PH_SINGLE_CRC_ERR_VC0		(U32_C(1) << 4U)
-#define NVCSI_VC_ERR_INTR_STAT_PD_WC_SHORT_ERR_VC0		(U32_C(1) << 3U)
-#define NVCSI_VC_ERR_INTR_STAT_PD_CRC_ERR_VC0			(U32_C(1) << 2U)
-#define NVCSI_VC_ERR_INTR_STAT_PH_ECC_SINGLE_BIT_ERR_VC0	(U32_C(1) << 1U)
-#define NVCSI_VC_ERR_INTR_STAT_PPFSM_TIMEOUT_VC0		(U32_C(1) << 0U)
+#define NVCSI_VC_ERR_INTR_STAT_PH_SINGLE_CRC_ERR_VC0		MK_BIT32(4)
+#define NVCSI_VC_ERR_INTR_STAT_PD_WC_SHORT_ERR_VC0		MK_BIT32(3)
+#define NVCSI_VC_ERR_INTR_STAT_PD_CRC_ERR_VC0			MK_BIT32(2)
+#define NVCSI_VC_ERR_INTR_STAT_PH_ECC_SINGLE_BIT_ERR_VC0	MK_BIT32(1)
+#define NVCSI_VC_ERR_INTR_STAT_PPFSM_TIMEOUT_VC0		MK_BIT32(0)
 	/** @} */
 
 	/**
@@ -604,23 +628,23 @@ struct nvcsi_error_status {
  	 * @defgroup NvCsiCilErrors NVCSI CIL error bits
 	 */
 	/** @{ */
-#define NVCSI_ERR_CIL_DATA_LANE_SOT_2LSB_ERR1		(U32_C(1) << 16U)
-#define NVCSI_ERR_CIL_DATA_LANE_SOT_2LSB_ERR0		(U32_C(1) << 15U)
-#define NVCSI_ERR_CIL_DATA_LANE_ESC_MODE_SYNC_ERR1	(U32_C(1) << 14U)
-#define NVCSI_ERR_CIL_DATA_LANE_ESC_MODE_SYNC_ERR0	(U32_C(1) << 13U)
-#define NVCSI_ERR_DPHY_CIL_LANE_ALIGN_ERR		(U32_C(1) << 12U)
-#define NVCSI_ERR_DPHY_CIL_DESKEW_CALIB_ERR_CTRL	(U32_C(1) << 11U)
-#define NVCSI_ERR_DPHY_CIL_DESKEW_CALIB_ERR_LANE1	(U32_C(1) << 10U)
-#define NVCSI_ERR_DPHY_CIL_DESKEW_CALIB_ERR_LANE0	(U32_C(1) << 9U)
-#define NVCSI_ERR_CIL_DATA_LANE_RXFIFO_FULL_ERR1	(U32_C(1) << 8U)
-#define NVCSI_ERR_CIL_DATA_LANE_CTRL_ERR1		(U32_C(1) << 7U)
-#define NVCSI_ERR_CIL_DATA_LANE_SOT_MB_ERR1             (U32_C(1) << 6U)
-#define NVCSI_ERR_CIL_DATA_LANE_SOT_SB_ERR1             (U32_C(1) << 5U)
-#define NVCSI_ERR_CIL_DATA_LANE_RXFIFO_FULL_ERR0        (U32_C(1) << 4U)
-#define NVCSI_ERR_CIL_DATA_LANE_CTRL_ERR0               (U32_C(1) << 3U)
-#define NVCSI_ERR_CIL_DATA_LANE_SOT_MB_ERR0             (U32_C(1) << 2U)
-#define NVCSI_ERR_CIL_DATA_LANE_SOT_SB_ERR0		(U32_C(1) << 1U)
-#define NVCSI_ERR_DPHY_CIL_CLK_LANE_CTRL_ERR		(U32_C(1) << 0U)
+#define NVCSI_ERR_CIL_DATA_LANE_SOT_2LSB_ERR1		MK_BIT32(16)
+#define NVCSI_ERR_CIL_DATA_LANE_SOT_2LSB_ERR0		MK_BIT32(15)
+#define NVCSI_ERR_CIL_DATA_LANE_ESC_MODE_SYNC_ERR1	MK_BIT32(14)
+#define NVCSI_ERR_CIL_DATA_LANE_ESC_MODE_SYNC_ERR0	MK_BIT32(13)
+#define NVCSI_ERR_DPHY_CIL_LANE_ALIGN_ERR		MK_BIT32(12)
+#define NVCSI_ERR_DPHY_CIL_DESKEW_CALIB_ERR_CTRL	MK_BIT32(11)
+#define NVCSI_ERR_DPHY_CIL_DESKEW_CALIB_ERR_LANE1	MK_BIT32(10)
+#define NVCSI_ERR_DPHY_CIL_DESKEW_CALIB_ERR_LANE0	MK_BIT32(9)
+#define NVCSI_ERR_CIL_DATA_LANE_RXFIFO_FULL_ERR1	MK_BIT32(8)
+#define NVCSI_ERR_CIL_DATA_LANE_CTRL_ERR1		MK_BIT32(7)
+#define NVCSI_ERR_CIL_DATA_LANE_SOT_MB_ERR1		MK_BIT32(6)
+#define NVCSI_ERR_CIL_DATA_LANE_SOT_SB_ERR1		MK_BIT32(5)
+#define NVCSI_ERR_CIL_DATA_LANE_RXFIFO_FULL_ERR0	MK_BIT32(4)
+#define NVCSI_ERR_CIL_DATA_LANE_CTRL_ERR0		MK_BIT32(3)
+#define NVCSI_ERR_CIL_DATA_LANE_SOT_MB_ERR0             MK_BIT32(2)
+#define NVCSI_ERR_CIL_DATA_LANE_SOT_SB_ERR0		MK_BIT32(1)
+#define NVCSI_ERR_DPHY_CIL_CLK_LANE_CTRL_ERR		MK_BIT32(0)
 	/** @} */
 };
 
@@ -644,37 +668,37 @@ struct capture_status {
  */
 /** @{ */
 /** Capture status unknown */
-#define CAPTURE_STATUS_UNKNOWN			U32_C(0)
+#define CAPTURE_STATUS_UNKNOWN			MK_U32(0)
 /** Capture status success */
-#define CAPTURE_STATUS_SUCCESS			U32_C(1)
+#define CAPTURE_STATUS_SUCCESS			MK_U32(1)
 /** Csimux frame error */
-#define CAPTURE_STATUS_CSIMUX_FRAME		U32_C(2)
+#define CAPTURE_STATUS_CSIMUX_FRAME		MK_U32(2)
 /** Csimux stream error */
-#define CAPTURE_STATUS_CSIMUX_STREAM		U32_C(3)
+#define CAPTURE_STATUS_CSIMUX_STREAM		MK_U32(3)
 /** Data-specific fault in a channel */
-#define CAPTURE_STATUS_CHANSEL_FAULT		U32_C(4)
+#define CAPTURE_STATUS_CHANSEL_FAULT		MK_U32(4)
 /** Data-specific fault in a channel. FE packet was force inserted.*/
-#define CAPTURE_STATUS_CHANSEL_FAULT_FE		U32_C(5)
+#define CAPTURE_STATUS_CHANSEL_FAULT_FE		MK_U32(5)
 /** SOF matches a channel that is already in a frame */
-#define CAPTURE_STATUS_CHANSEL_COLLISION	U32_C(6)
+#define CAPTURE_STATUS_CHANSEL_COLLISION	MK_U32(6)
 /** Frame End appears from NVCSI before the normal number of pixels has appeared */
-#define CAPTURE_STATUS_CHANSEL_SHORT_FRAME	U32_C(7)
+#define CAPTURE_STATUS_CHANSEL_SHORT_FRAME	MK_U32(7)
 /** Single surface packer has overflowed */
-#define CAPTURE_STATUS_ATOMP_PACKER_OVERFLOW	U32_C(8)
+#define CAPTURE_STATUS_ATOMP_PACKER_OVERFLOW	MK_U32(8)
 /** Frame interrupted mid-frame */
-#define CAPTURE_STATUS_ATOMP_FRAME_TRUNCATED	U32_C(9)
+#define CAPTURE_STATUS_ATOMP_FRAME_TRUNCATED	MK_U32(9)
 /** Frame interrupted without writing any data out */
-#define CAPTURE_STATUS_ATOMP_FRAME_TOSSED	U32_C(10)
+#define CAPTURE_STATUS_ATOMP_FRAME_TOSSED	MK_U32(10)
 /** ISP buffer FIFO overflowed */
-#define CAPTURE_STATUS_ISPBUF_FIFO_OVERFLOW	U32_C(11)
+#define CAPTURE_STATUS_ISPBUF_FIFO_OVERFLOW	MK_U32(11)
 /** Capture status out of sync */
-#define CAPTURE_STATUS_SYNC_FAILURE		U32_C(12)
+#define CAPTURE_STATUS_SYNC_FAILURE		MK_U32(12)
 /** VI notified backend down */
-#define CAPTURE_STATUS_NOTIFIER_BACKEND_DOWN	U32_C(13)
+#define CAPTURE_STATUS_NOTIFIER_BACKEND_DOWN	MK_U32(13)
 /** Falcon error */
-#define CAPTURE_STATUS_FALCON_ERROR		U32_C(14)
+#define CAPTURE_STATUS_FALCON_ERROR		MK_U32(14)
 /** Data does not match any active channel */
-#define CAPTURE_STATUS_CHANSEL_NOMATCH		U32_C(15)
+#define CAPTURE_STATUS_CHANSEL_NOMATCH		MK_U32(15)
 /** @} */
 	/** Start of Frame (SOF) timestamp */
 	uint64_t sof_timestamp;
@@ -684,7 +708,7 @@ struct capture_status {
 	uint32_t err_data;
 
 	/** Channel encountered unrecoverable error and must be reset */
-#define CAPTURE_STATUS_FLAG_CHANNEL_IN_ERROR			(U32_C(1) << 1U)
+#define CAPTURE_STATUS_FLAG_CHANNEL_IN_ERROR			MK_BIT32(1)
 	uint32_t flags;
 
 	/**
@@ -701,30 +725,30 @@ struct capture_status {
 	 */
 	/** @{ */
 	/** CSIMUX Frame (tag 0x2) notifications */
-	#define CAPTURE_STATUS_NOTIFY_BIT_CSIMUX_FRAME_RESEVED_0			(U64_C(1) << 1U)
-	#define CAPTURE_STATUS_NOTIFY_BIT_CSIMUX_FRAME_FS_FAULT				(U64_C(1) << 2U)
-	#define CAPTURE_STATUS_NOTIFY_BIT_CSIMUX_FRAME_FORCE_FE_FAULT			(U64_C(1) << 3U)
-	#define CAPTURE_STATUS_NOTIFY_BIT_CSIMUX_FRAME_FE_FRAME_ID_FAULT		(U64_C(1) << 4U)
-	#define CAPTURE_STATUS_NOTIFY_BIT_CSIMUX_FRAME_PXL_ENABLE_FAULT			(U64_C(1) << 5U)
+	#define CAPTURE_STATUS_NOTIFY_BIT_CSIMUX_FRAME_RESEVED_0			MK_BIT64(1)
+	#define CAPTURE_STATUS_NOTIFY_BIT_CSIMUX_FRAME_FS_FAULT				MK_BIT64(2)
+	#define CAPTURE_STATUS_NOTIFY_BIT_CSIMUX_FRAME_FORCE_FE_FAULT			MK_BIT64(3)
+	#define CAPTURE_STATUS_NOTIFY_BIT_CSIMUX_FRAME_FE_FRAME_ID_FAULT		MK_BIT64(4)
+	#define CAPTURE_STATUS_NOTIFY_BIT_CSIMUX_FRAME_PXL_ENABLE_FAULT			MK_BIT64(5)
 
 	/** Reserved for deinterleaved CSI streams on request from nvmedia team */
-	#define CAPTURE_STATUS_NOTIFY_BIT_CSIMUX_FRAME_RESERVED_1			(U64_C(1) << 6U)
-	#define CAPTURE_STATUS_NOTIFY_BIT_CSIMUX_FRAME_RESERVED_2			(U64_C(1) << 7U)
-	#define CAPTURE_STATUS_NOTIFY_BIT_CSIMUX_FRAME_RESERVED_3			(U64_C(1) << 8U)
-	#define CAPTURE_STATUS_NOTIFY_BIT_CSIMUX_FRAME_RESERVED_4			(U64_C(1) << 9U)
-	#define CAPTURE_STATUS_NOTIFY_BIT_CSIMUX_FRAME_RESERVED_5			(U64_C(1) << 10U)
-	#define CAPTURE_STATUS_NOTIFY_BIT_CSIMUX_FRAME_RESERVED_6			(U64_C(1) << 11U)
-	#define CAPTURE_STATUS_NOTIFY_BIT_CSIMUX_FRAME_RESERVED_7			(U64_C(1) << 12U)
-	#define CAPTURE_STATUS_NOTIFY_BIT_CSIMUX_FRAME_RESERVED_8			(U64_C(1) << 13U)
-	#define CAPTURE_STATUS_NOTIFY_BIT_CSIMUX_FRAME_RESERVED_9			(U64_C(1) << 14U)
+	#define CAPTURE_STATUS_NOTIFY_BIT_CSIMUX_FRAME_RESERVED_1			MK_BIT64(6)
+	#define CAPTURE_STATUS_NOTIFY_BIT_CSIMUX_FRAME_RESERVED_2			MK_BIT64(7)
+	#define CAPTURE_STATUS_NOTIFY_BIT_CSIMUX_FRAME_RESERVED_3			MK_BIT64(8)
+	#define CAPTURE_STATUS_NOTIFY_BIT_CSIMUX_FRAME_RESERVED_4			MK_BIT64(9)
+	#define CAPTURE_STATUS_NOTIFY_BIT_CSIMUX_FRAME_RESERVED_5			MK_BIT64(10)
+	#define CAPTURE_STATUS_NOTIFY_BIT_CSIMUX_FRAME_RESERVED_6			MK_BIT64(11)
+	#define CAPTURE_STATUS_NOTIFY_BIT_CSIMUX_FRAME_RESERVED_7			MK_BIT64(12)
+	#define CAPTURE_STATUS_NOTIFY_BIT_CSIMUX_FRAME_RESERVED_8			MK_BIT64(13)
+	#define CAPTURE_STATUS_NOTIFY_BIT_CSIMUX_FRAME_RESERVED_9			MK_BIT64(14)
 
 	/** CSI Faults. These errors report corresponding NVCSI errors */
-	#define CAPTURE_STATUS_NOTIFY_BIT_CSIMUX_FRAME_CSI_FAULT_PPFSM_TIMEOUT		(U64_C(1) << 15U)
-	#define CAPTURE_STATUS_NOTIFY_BIT_CSIMUX_FRAME_CSI_FAULT_PH_ECC_SINGLE_BIT_ERR	(U64_C(1) << 16U)
-	#define CAPTURE_STATUS_NOTIFY_BIT_CSIMUX_FRAME_CSI_FAULT_PD_CRC_ERR		(U64_C(1) << 17U)
-	#define CAPTURE_STATUS_NOTIFY_BIT_CSIMUX_FRAME_CSI_FAULT_PD_WC_SHORT_ERR	(U64_C(1) << 18U)
-	#define CAPTURE_STATUS_NOTIFY_BIT_CSIMUX_FRAME_CSI_FAULT_PH_SINGLE_CRC_ERR	(U64_C(1) << 19U)
-	#define CAPTURE_STATUS_NOTIFY_BIT_CSIMUX_FRAME_CSI_FAULT_EMBEDDED_LINE_CRC_ERR	(U64_C(1) << 20U)
+	#define CAPTURE_STATUS_NOTIFY_BIT_CSIMUX_FRAME_CSI_FAULT_PPFSM_TIMEOUT		MK_BIT64(15)
+	#define CAPTURE_STATUS_NOTIFY_BIT_CSIMUX_FRAME_CSI_FAULT_PH_ECC_SINGLE_BIT_ERR	MK_BIT64(16)
+	#define CAPTURE_STATUS_NOTIFY_BIT_CSIMUX_FRAME_CSI_FAULT_PD_CRC_ERR		MK_BIT64(17)
+	#define CAPTURE_STATUS_NOTIFY_BIT_CSIMUX_FRAME_CSI_FAULT_PD_WC_SHORT_ERR	MK_BIT64(18)
+	#define CAPTURE_STATUS_NOTIFY_BIT_CSIMUX_FRAME_CSI_FAULT_PH_SINGLE_CRC_ERR	MK_BIT64(19)
+	#define CAPTURE_STATUS_NOTIFY_BIT_CSIMUX_FRAME_CSI_FAULT_EMBEDDED_LINE_CRC_ERR	MK_BIT64(20)
 
 	/**
 	 * CSIMUX Stream (tag 0x3) notifications
@@ -734,64 +758,64 @@ struct capture_status {
 	 * Can be badly corrupted frame or some random bits.
 	 * This error doesn't have effect on captured frame
 	 */
-	#define CAPTURE_STATUS_NOTIFY_BIT_CSIMUX_STREAM_SPURIOUS_DATA			(U64_C(1) << 21U)
+	#define CAPTURE_STATUS_NOTIFY_BIT_CSIMUX_STREAM_SPURIOUS_DATA			MK_BIT64(21)
 
 	/** Uncorrectable FIFO errors */
-	#define CAPTURE_STATUS_NOTIFY_BIT_CSIMUX_STREAM_FIFO_OVERFLOW 			(U64_C(1) << 22U)
-	#define CAPTURE_STATUS_NOTIFY_BIT_CSIMUX_STREAM_FIFO_LOF			(U64_C(1) << 23U)
+	#define CAPTURE_STATUS_NOTIFY_BIT_CSIMUX_STREAM_FIFO_OVERFLOW			MK_BIT64(22)
+	#define CAPTURE_STATUS_NOTIFY_BIT_CSIMUX_STREAM_FIFO_LOF			MK_BIT64(23)
 
 	/**
 	 * Illegal data packet was encountered and dropped by CSIMUX.
 	 * This error may have no effect on capture result or trigger other error if
 	 * frame got corrupted.
 	 */
-	#define CAPTURE_STATUS_NOTIFY_BIT_CSIMUX_STREAM_FIFO_BADPKT			(U64_C(1) << 24U)
+	#define CAPTURE_STATUS_NOTIFY_BIT_CSIMUX_STREAM_FIFO_BADPKT			MK_BIT64(24)
 
 	/**
 	 * Timeout from frame descriptor activation to frame start.
 	 * See also frame_start_timeout in struct capture_descriptor
 	 */
-	#define CAPTURE_STATUS_NOTIFY_BIT_FRAME_START_TIMEOUT			(U64_C(1) << 25U)
+	#define CAPTURE_STATUS_NOTIFY_BIT_FRAME_START_TIMEOUT			MK_BIT64(25)
 
 	/**
 	 * Timeout from frame start to frame completion.
 	 * See also frame_completion_timeout in struct capture_descriptor
 	 */
-	#define CAPTURE_STATUS_NOTIFY_BIT_FRAME_COMPLETION_TIMEOUT		(U64_C(1) << 26U)
+	#define CAPTURE_STATUS_NOTIFY_BIT_FRAME_COMPLETION_TIMEOUT		MK_BIT64(26)
 
 	/**
 	 * CHANSEL FAULT (TAG 0x9) Notifications
 	 */
-	#define CAPTURE_STATUS_NOTIFY_BIT_CHANSEL_PIXEL_MISSING_LE		(U64_C(1) << 30U)
-	#define CAPTURE_STATUS_NOTIFY_BIT_CHANSEL_PIXEL_RUNAWAY			(U64_C(1) << 31U)
-	#define CAPTURE_STATUS_NOTIFY_BIT_CHANSEL_PIXEL_SPURIOUS		(U64_C(1) << 32U)
-	#define CAPTURE_STATUS_NOTIFY_BIT_CHANSEL_PIXEL_LONG_LINE		(U64_C(1) << 33U)
-	#define CAPTURE_STATUS_NOTIFY_BIT_CHANSEL_PIXEL_SHORT_LINE		(U64_C(1) << 34U)
-	#define CAPTURE_STATUS_NOTIFY_BIT_CHANSEL_EMBED_MISSING_LE		(U64_C(1) << 35U)
-	#define CAPTURE_STATUS_NOTIFY_BIT_CHANSEL_EMBED_RUNAWAY			(U64_C(1) << 36U)
-	#define CAPTURE_STATUS_NOTIFY_BIT_CHANSEL_EMBED_SPURIOUS		(U64_C(1) << 37U)
-	#define CAPTURE_STATUS_NOTIFY_BIT_CHANSEL_EMBED_LONG_LINE		(U64_C(1) << 38U)
-	#define CAPTURE_STATUS_NOTIFY_BIT_CHANSEL_EMBED_INFRINGE		(U64_C(1) << 39U)
-	#define CAPTURE_STATUS_NOTIFY_BIT_CHANSEL_DTYPE_MISMATCH		(U64_C(1) << 40U)
-	#define CAPTURE_STATUS_NOTIFY_BIT_CHANSEL_RESERVED_0			(U64_C(1) << 41U)
+	#define CAPTURE_STATUS_NOTIFY_BIT_CHANSEL_PIXEL_MISSING_LE		MK_BIT64(30)
+	#define CAPTURE_STATUS_NOTIFY_BIT_CHANSEL_PIXEL_RUNAWAY			MK_BIT64(31)
+	#define CAPTURE_STATUS_NOTIFY_BIT_CHANSEL_PIXEL_SPURIOUS		MK_BIT64(32)
+	#define CAPTURE_STATUS_NOTIFY_BIT_CHANSEL_PIXEL_LONG_LINE		MK_BIT64(33)
+	#define CAPTURE_STATUS_NOTIFY_BIT_CHANSEL_PIXEL_SHORT_LINE		MK_BIT64(34)
+	#define CAPTURE_STATUS_NOTIFY_BIT_CHANSEL_EMBED_MISSING_LE		MK_BIT64(35)
+	#define CAPTURE_STATUS_NOTIFY_BIT_CHANSEL_EMBED_RUNAWAY			MK_BIT64(36)
+	#define CAPTURE_STATUS_NOTIFY_BIT_CHANSEL_EMBED_SPURIOUS		MK_BIT64(37)
+	#define CAPTURE_STATUS_NOTIFY_BIT_CHANSEL_EMBED_LONG_LINE		MK_BIT64(38)
+	#define CAPTURE_STATUS_NOTIFY_BIT_CHANSEL_EMBED_INFRINGE		MK_BIT64(39)
+	#define CAPTURE_STATUS_NOTIFY_BIT_CHANSEL_DTYPE_MISMATCH		MK_BIT64(40)
+	#define CAPTURE_STATUS_NOTIFY_BIT_CHANSEL_RESERVED_0			MK_BIT64(41)
 
 	/**
 	 * CHANSEL PIX_SHORT (TAG 0xD) Notifications
 	 */
-	#define CAPTURE_STATUS_NOTIFY_BIT_CHANSEL_PIX_SHORT			(U64_C(1) << 42U)
+	#define CAPTURE_STATUS_NOTIFY_BIT_CHANSEL_PIX_SHORT			MK_BIT64(42)
 
 	/**
 	 * CHANSEL EMB_SHORT (TAG 0xD) Notification.
 	 */
-	#define CAPTURE_STATUS_NOTIFY_BIT_CHANSEL_EMB_SHORT			(U64_C(1) << 43U)
+	#define CAPTURE_STATUS_NOTIFY_BIT_CHANSEL_EMB_SHORT			MK_BIT64(43)
 
 	/** Permanent Fault Software Diagnostics (PFSD) */
-	#define CAPTURE_STATUS_NOTIFY_BIT_PFSD_FAULT				(U64_C(1) << 44U)
+	#define CAPTURE_STATUS_NOTIFY_BIT_PFSD_FAULT				MK_BIT64(44)
 
 	/**
 	 * CHANSEL FAULT_FE (TAG 0xA) Notification
 	 */
-	#define CAPTURE_STATUS_NOTIFY_BIT_CHANSEL_FAULT_FE			(U64_C(1) << 45U)
+	#define CAPTURE_STATUS_NOTIFY_BIT_CHANSEL_FAULT_FE			MK_BIT64(45)
 
 	/**
 	 * CHANSEL NOMATCH (TAG 0xB) Notification
@@ -799,29 +823,29 @@ struct capture_status {
 	 * This error is usually caused by missing capture descriptor.
 	 * This error doesn't have effect on next captured frame
 	 */
-	#define CAPTURE_STATUS_NOTIFY_BIT_CHANSEL_NO_MATCH			(U64_C(1) << 46U)
+	#define CAPTURE_STATUS_NOTIFY_BIT_CHANSEL_NO_MATCH			MK_BIT64(46)
 
 	/**
 	 * CHANSEL COLLISION (TAG 0xC) Notification
 	 */
-	#define CAPTURE_STATUS_NOTIFY_BIT_CHANSEL_COLLISION			(U64_C(1) << 47U)
+	#define CAPTURE_STATUS_NOTIFY_BIT_CHANSEL_COLLISION			MK_BIT64(47)
 
 	/**
 	 * CHANSEL LOAD_FRAMED (TAG 0xE) Notification
 	 */
-	#define CAPTURE_STATUS_NOTIFY_BIT_CHANSEL_LOAD_FRAMED			(U64_C(1) << 48U)
+	#define CAPTURE_STATUS_NOTIFY_BIT_CHANSEL_LOAD_FRAMED			MK_BIT64(48)
 
 	/** ATOMP_PACKER_OVERFLOW   (TAG 0xf) */
-	#define CAPTURE_STATUS_NOTIFY_BIT_ATOMP_PACKER_OVERFLOW			(U64_C(1) << 49U)
+	#define CAPTURE_STATUS_NOTIFY_BIT_ATOMP_PACKER_OVERFLOW			MK_BIT64(49)
 
 	/** ATOMP_FRAME_TRUNCATED   (TAG 0x15) Frame not finished */
-	#define CAPTURE_STATUS_NOTIFY_BIT_ATOMP_FRAME_TRUNCATED			(U64_C(1) << 50U)
+	#define CAPTURE_STATUS_NOTIFY_BIT_ATOMP_FRAME_TRUNCATED			MK_BIT64(50)
 
 	/** ATOMP_FRAME_TOSSED   (TAG 0x16) Frame data not written */
-	#define CAPTURE_STATUS_NOTIFY_BIT_ATOMP_FRAME_TOSSED			(U64_C(1) << 51U)
+	#define CAPTURE_STATUS_NOTIFY_BIT_ATOMP_FRAME_TOSSED			MK_BIT64(51)
 
 	/** Non-classified error */
-	#define CAPTURE_STATUS_NOTIFY_BIT_NON_CLASSIFIED_0			(U64_C(1) << 63U)
+	#define CAPTURE_STATUS_NOTIFY_BIT_NON_CLASSIFIED_0			MK_BIT64(63)
 	/** @} */
 
 	/**
@@ -843,13 +867,13 @@ struct capture_status {
 	 */
 	struct nvcsi_error_status nvcsi_err_status;
 
-} __CAPTURE_IVC_ALIGN;
+} CAPTURE_IVC_ALIGN;
 
 /**
  * @brief The compand configuration describes a piece-wise linear
  * tranformation function used by the VI companding module.
  */
-#define VI_NUM_COMPAND_KNEEPTS 10
+#define VI_NUM_COMPAND_KNEEPTS MK_SIZE(10)
 struct vi_compand_config {
 	/** Input position for this knee point */
 	uint32_t base[VI_NUM_COMPAND_KNEEPTS];
@@ -857,11 +881,11 @@ struct vi_compand_config {
 	uint32_t scale[VI_NUM_COMPAND_KNEEPTS];
 	/** Output offset for this knee point */
 	uint32_t offset[VI_NUM_COMPAND_KNEEPTS];
-} __CAPTURE_IVC_ALIGN;
+} CAPTURE_IVC_ALIGN;
 
 /** FM-Lite unit, PDAF, Syncgen units are currently not used in T194 */
-#define VI_AFM_NUM_ROI			8
-#define VI_AFM_NUM_TRANSFER_KNOTS	11
+#define VI_AFM_NUM_ROI			MK_SIZE(8)
+#define VI_AFM_NUM_TRANSFER_KNOTS	MK_SIZE(11)
 
 /**
  * @brief Focus Metrics lite (FMLite) unit configuration
@@ -937,7 +961,7 @@ struct vi_fmlite_config {
 	uint32_t coeff45;
 	/** FMLite error status */
 	uint32_t error;
-} __CAPTURE_IVC_ALIGN;
+} CAPTURE_IVC_ALIGN;
 
 /**
  * @brief Focus Metrics lite (FMLite) unit result
@@ -951,7 +975,7 @@ struct vi_fmlite_result {
 	uint32_t __pad;
 	/** 8 ROI region */
 	uint64_t roi[VI_AFM_NUM_ROI];
-} __CAPTURE_IVC_ALIGN;
+} CAPTURE_IVC_ALIGN;
 
 /*
  * @brief VI Phase Detection Auto Focus (PDAF) configuration
@@ -980,7 +1004,7 @@ struct vi_pdaf_config {
 	 * should be output to the PDAF surface
 	 */
 	uint32_t pattern_replace[VI_PDAF_PATTERN_SIZE];
-} __CAPTURE_IVC_ALIGN;
+} CAPTURE_IVC_ALIGN;
 
 /*
  * @brief VI SYNCGEN unit configuration.
@@ -1006,7 +1030,7 @@ struct vi_syncgen_config {
 	uint16_t __pad1;
 	/** Reserved */
 	uint32_t __pad2;
-} __CAPTURE_IVC_ALIGN;
+} CAPTURE_IVC_ALIGN;
 
 
 /**
@@ -1057,16 +1081,16 @@ struct vi_pfsd_config {
 		uint8_t value[4];
 	} expected[VI_NUM_VI_PFSD_SURFACES];
 
-} __CAPTURE_IVC_ALIGN;
+} CAPTURE_IVC_ALIGN;
 
 /**
  * @defgroup CaptureFrameFlags Captue frame specific flags
  */
 /** @{ */
 /** Enables capture status reporting for the channel */
-#define CAPTURE_FLAG_STATUS_REPORT_ENABLE	(U32_C(1) << 0)
+#define CAPTURE_FLAG_STATUS_REPORT_ENABLE	MK_BIT32(0)
 /** Enables error reporting for the channel */
-#define CAPTURE_FLAG_ERROR_REPORT_ENABLE	(U32_C(1) << 1)
+#define CAPTURE_FLAG_ERROR_REPORT_ENABLE	MK_BIT32(1)
 /** @} */
 
 /**
@@ -1108,7 +1132,7 @@ struct capture_descriptor {
 	/** Reserved */
 	uint32_t __pad32[12];
 
-} __CAPTURE_DESCRIPTOR_ALIGN;
+} CAPTURE_DESCRIPTOR_ALIGN;
 
 /**
  * @brief - Event data used for event injection
@@ -1124,7 +1148,7 @@ struct event_inject_msg {
 	uint32_t data_ext;
 };
 
-#define VI_HSM_CHANSEL_ERROR_MASK_BIT_NOMATCH U32_C(1)
+#define VI_HSM_CHANSEL_ERROR_MASK_BIT_NOMATCH MK_U32(1)
 /**
  * @brief VI EC/HSM global CHANSEL error masking
  */
@@ -1133,7 +1157,7 @@ struct vi_hsm_chansel_error_mask_config {
 	uint32_t chansel_correctable_mask;
 	/** "Uncorrected error" bit mask */
 	uint32_t chansel_uncorrectable_mask;
-} __CAPTURE_IVC_ALIGN;
+} CAPTURE_IVC_ALIGN;
 
 /**
  * NvPhy attributes
@@ -1142,8 +1166,8 @@ struct vi_hsm_chansel_error_mask_config {
  * @defgroup NvPhyType NvCSI Physical stream type
  * @{
  */
-#define NVPHY_TYPE_CSI		U32_C(0)
-#define NVPHY_TYPE_SLVSEC	U32_C(1)
+#define NVPHY_TYPE_CSI		MK_U32(0)
+#define NVPHY_TYPE_SLVSEC	MK_U32(1)
 /**@}*/
 
 /**
@@ -1153,49 +1177,49 @@ struct vi_hsm_chansel_error_mask_config {
  * @defgroup NvCsiPort NvCSI Port
  * @{
  */
-#define NVCSI_PORT_A		U32_C(0x0)
-#define NVCSI_PORT_B		U32_C(0x1)
-#define NVCSI_PORT_C		U32_C(0x2)
-#define NVCSI_PORT_D		U32_C(0x3)
-#define NVCSI_PORT_E		U32_C(0x4)
-#define NVCSI_PORT_F		U32_C(0x5)
-#define NVCSI_PORT_G		U32_C(0x6)
-#define NVCSI_PORT_H		U32_C(0x7)
-#define NVCSI_PORT_UNSPECIFIED	U32_C(0xFFFFFFFF)
+#define NVCSI_PORT_A		MK_U32(0x0)
+#define NVCSI_PORT_B		MK_U32(0x1)
+#define NVCSI_PORT_C		MK_U32(0x2)
+#define NVCSI_PORT_D		MK_U32(0x3)
+#define NVCSI_PORT_E		MK_U32(0x4)
+#define NVCSI_PORT_F		MK_U32(0x5)
+#define NVCSI_PORT_G		MK_U32(0x6)
+#define NVCSI_PORT_H		MK_U32(0x7)
+#define NVCSI_PORT_UNSPECIFIED	MK_U32(0xFFFFFFFF)
 /**@}*/
 
 /**
  * @defgroup NvCsiStream NVCSI stream id
  * @{
  */
-#define NVCSI_STREAM_0		U32_C(0x0)
-#define NVCSI_STREAM_1		U32_C(0x1)
-#define NVCSI_STREAM_2		U32_C(0x2)
-#define NVCSI_STREAM_3		U32_C(0x3)
-#define NVCSI_STREAM_4		U32_C(0x4)
-#define NVCSI_STREAM_5		U32_C(0x5)
+#define NVCSI_STREAM_0		MK_U32(0x0)
+#define NVCSI_STREAM_1		MK_U32(0x1)
+#define NVCSI_STREAM_2		MK_U32(0x2)
+#define NVCSI_STREAM_3		MK_U32(0x3)
+#define NVCSI_STREAM_4		MK_U32(0x4)
+#define NVCSI_STREAM_5		MK_U32(0x5)
 /**@}*/
 
 /**
  * @defgroup NvCsiVirtualChannel NVCSI virtual channels
  * @{
  */
-#define NVCSI_VIRTUAL_CHANNEL_0		U32_C(0x0)
-#define NVCSI_VIRTUAL_CHANNEL_1		U32_C(0x1)
-#define NVCSI_VIRTUAL_CHANNEL_2		U32_C(0x2)
-#define NVCSI_VIRTUAL_CHANNEL_3		U32_C(0x3)
-#define NVCSI_VIRTUAL_CHANNEL_4		U32_C(0x4)
-#define NVCSI_VIRTUAL_CHANNEL_5		U32_C(0x5)
-#define NVCSI_VIRTUAL_CHANNEL_6		U32_C(0x6)
-#define NVCSI_VIRTUAL_CHANNEL_7		U32_C(0x7)
-#define NVCSI_VIRTUAL_CHANNEL_8		U32_C(0x8)
-#define NVCSI_VIRTUAL_CHANNEL_9		U32_C(0x9)
-#define NVCSI_VIRTUAL_CHANNEL_10	U32_C(0xA)
-#define NVCSI_VIRTUAL_CHANNEL_11	U32_C(0xB)
-#define NVCSI_VIRTUAL_CHANNEL_12	U32_C(0xC)
-#define NVCSI_VIRTUAL_CHANNEL_13	U32_C(0xD)
-#define NVCSI_VIRTUAL_CHANNEL_14	U32_C(0xE)
-#define NVCSI_VIRTUAL_CHANNEL_15	U32_C(0xF)
+#define NVCSI_VIRTUAL_CHANNEL_0		MK_U32(0x0)
+#define NVCSI_VIRTUAL_CHANNEL_1		MK_U32(0x1)
+#define NVCSI_VIRTUAL_CHANNEL_2		MK_U32(0x2)
+#define NVCSI_VIRTUAL_CHANNEL_3		MK_U32(0x3)
+#define NVCSI_VIRTUAL_CHANNEL_4		MK_U32(0x4)
+#define NVCSI_VIRTUAL_CHANNEL_5		MK_U32(0x5)
+#define NVCSI_VIRTUAL_CHANNEL_6		MK_U32(0x6)
+#define NVCSI_VIRTUAL_CHANNEL_7		MK_U32(0x7)
+#define NVCSI_VIRTUAL_CHANNEL_8		MK_U32(0x8)
+#define NVCSI_VIRTUAL_CHANNEL_9		MK_U32(0x9)
+#define NVCSI_VIRTUAL_CHANNEL_10	MK_U32(0xA)
+#define NVCSI_VIRTUAL_CHANNEL_11	MK_U32(0xB)
+#define NVCSI_VIRTUAL_CHANNEL_12	MK_U32(0xC)
+#define NVCSI_VIRTUAL_CHANNEL_13	MK_U32(0xD)
+#define NVCSI_VIRTUAL_CHANNEL_14	MK_U32(0xE)
+#define NVCSI_VIRTUAL_CHANNEL_15	MK_U32(0xF)
 /**@}*/
 
 /**
@@ -1203,30 +1227,30 @@ struct vi_hsm_chansel_error_mask_config {
  * @{
  */
 /** NVCSI config flags */
-#define NVCSI_CONFIG_FLAG_BRICK		(U32_C(1) << 0)
+#define NVCSI_CONFIG_FLAG_BRICK		MK_BIT32(0)
 /** NVCSI config flags */
-#define NVCSI_CONFIG_FLAG_CIL		(U32_C(1) << 1)
+#define NVCSI_CONFIG_FLAG_CIL		MK_BIT32(1)
 /** Enable user-provided error handling configuration */
-#define NVCSI_CONFIG_FLAG_ERROR		(U32_C(1) << 2)
+#define NVCSI_CONFIG_FLAG_ERROR		MK_BIT32(2)
 /**@}*/
 
 /**
  * @brief Number of lanes/trios per brick
  */
-#define NVCSI_BRICK_NUM_LANES	U32_C(4)
+#define NVCSI_BRICK_NUM_LANES	MK_U32(4)
 /**
  * @brief Number of override exception data types
  */
-#define NVCSI_NUM_NOOVERRIDE_DT	U32_C(5)
+#define NVCSI_NUM_NOOVERRIDE_DT	MK_U32(5)
 
 /**
  * @defgroup NvCsiPhyType NVCSI physical types
  * @{
  */
 /** NVCSI D-PHY physical layer */
-#define NVCSI_PHY_TYPE_DPHY	U32_C(0)
+#define NVCSI_PHY_TYPE_DPHY	MK_U32(0)
 /** NVCSI D-PHY physical layer */
-#define NVCSI_PHY_TYPE_CPHY	U32_C(1)
+#define NVCSI_PHY_TYPE_CPHY	MK_U32(1)
 /** @} */
 
 /**
@@ -1234,61 +1258,61 @@ struct vi_hsm_chansel_error_mask_config {
  * @{
  */
 /** 00000 := A0 A1 B0 B1 -->  A0 A1 B0 B1 */
-#define NVCSI_LANE_SWIZZLE_A0A1B0B1	U32_C(0x00)
+#define NVCSI_LANE_SWIZZLE_A0A1B0B1	MK_U32(0x00)
 /** 00001 := A0 A1 B0 B1 -->  A0 A1 B1 B0 */
-#define NVCSI_LANE_SWIZZLE_A0A1B1B0	U32_C(0x01)
+#define NVCSI_LANE_SWIZZLE_A0A1B1B0	MK_U32(0x01)
 /** 00010 := A0 A1 B0 B1 -->  A0 B0 B1 A1 */
-#define NVCSI_LANE_SWIZZLE_A0B0B1A1	U32_C(0x02)
+#define NVCSI_LANE_SWIZZLE_A0B0B1A1	MK_U32(0x02)
 /** 00011 := A0 A1 B0 B1 -->  A0 B0 A1 B1 */
-#define NVCSI_LANE_SWIZZLE_A0B0A1B1	U32_C(0x03)
+#define NVCSI_LANE_SWIZZLE_A0B0A1B1	MK_U32(0x03)
 /** 00100 := A0 A1 B0 B1 -->  A0 B1 A1 B0 */
-#define NVCSI_LANE_SWIZZLE_A0B1A1B0	U32_C(0x04)
+#define NVCSI_LANE_SWIZZLE_A0B1A1B0	MK_U32(0x04)
 /** 00101 := A0 A1 B0 B1 -->  A0 B1 B0 A1 */
-#define NVCSI_LANE_SWIZZLE_A0B1B0A1	U32_C(0x05)
+#define NVCSI_LANE_SWIZZLE_A0B1B0A1	MK_U32(0x05)
 /** 00110 := A0 A1 B0 B1 -->  A1 A0 B0 B1 */
-#define NVCSI_LANE_SWIZZLE_A1A0B0B1	U32_C(0x06)
+#define NVCSI_LANE_SWIZZLE_A1A0B0B1	MK_U32(0x06)
 /** 00111 := A0 A1 B0 B1 -->  A1 A0 B1 B0 */
-#define NVCSI_LANE_SWIZZLE_A1A0B1B0	U32_C(0x07)
+#define NVCSI_LANE_SWIZZLE_A1A0B1B0	MK_U32(0x07)
 /** 01000 := A0 A1 B0 B1 -->  A1 B0 B1 A0 */
-#define NVCSI_LANE_SWIZZLE_A1B0B1A0	U32_C(0x08)
+#define NVCSI_LANE_SWIZZLE_A1B0B1A0	MK_U32(0x08)
 /** 01001 := A0 A1 B0 B1 -->  A1 B0 A0 B1 */
-#define NVCSI_LANE_SWIZZLE_A1B0A0B1	U32_C(0x09)
+#define NVCSI_LANE_SWIZZLE_A1B0A0B1	MK_U32(0x09)
 /** 01010 := A0 A1 B0 B1 -->  A1 B1 A0 B0 */
-#define NVCSI_LANE_SWIZZLE_A1B1A0B0	U32_C(0x0A)
+#define NVCSI_LANE_SWIZZLE_A1B1A0B0	MK_U32(0x0A)
 /** 01011 := A0 A1 B0 B1 -->  A1 B1 B0 A0 */
-#define NVCSI_LANE_SWIZZLE_A1B1B0A0	U32_C(0x0B)
+#define NVCSI_LANE_SWIZZLE_A1B1B0A0	MK_U32(0x0B)
 /** 01100 := A0 A1 B0 B1 -->  B0 A1 A0 B1 */
-#define NVCSI_LANE_SWIZZLE_B0A1A0B1	U32_C(0x0C)
+#define NVCSI_LANE_SWIZZLE_B0A1A0B1	MK_U32(0x0C)
 /** 01101 := A0 A1 B0 B1 -->  B0 A1 B1 A0 */
-#define NVCSI_LANE_SWIZZLE_B0A1B1A0	U32_C(0x0D)
+#define NVCSI_LANE_SWIZZLE_B0A1B1A0	MK_U32(0x0D)
 /** 01110 := A0 A1 B0 B1 -->  B0 A0 B1 A1 */
-#define NVCSI_LANE_SWIZZLE_B0A0B1A1	U32_C(0x0E)
+#define NVCSI_LANE_SWIZZLE_B0A0B1A1	MK_U32(0x0E)
 /** 01111 := A0 A1 B0 B1 -->  B0 A0 A1 B1 */
-#define NVCSI_LANE_SWIZZLE_B0A0A1B1	U32_C(0x0F)
+#define NVCSI_LANE_SWIZZLE_B0A0A1B1	MK_U32(0x0F)
 /** 10000 := A0 A1 B0 B1 -->  B0 B1 A1 A0 */
-#define NVCSI_LANE_SWIZZLE_B0B1A1A0	U32_C(0x10)
+#define NVCSI_LANE_SWIZZLE_B0B1A1A0	MK_U32(0x10)
 /** 10001 := A0 A1 B0 B1 -->  B0 B1 A0 A1 */
-#define NVCSI_LANE_SWIZZLE_B0B1A0A1	U32_C(0x11)
+#define NVCSI_LANE_SWIZZLE_B0B1A0A1	MK_U32(0x11)
 /** 10010 := A0 A1 B0 B1 -->  B1 A1 B0 A0 */
-#define NVCSI_LANE_SWIZZLE_B1A1B0A0	U32_C(0x12)
+#define NVCSI_LANE_SWIZZLE_B1A1B0A0	MK_U32(0x12)
 /** 10011 := A0 A1 B0 B1 -->  B1 A1 A0 B0 */
-#define NVCSI_LANE_SWIZZLE_B1A1A0B0	U32_C(0x13)
+#define NVCSI_LANE_SWIZZLE_B1A1A0B0	MK_U32(0x13)
 /** 10100 := A0 A1 B0 B1 -->  B1 B0 A0 A1 */
-#define NVCSI_LANE_SWIZZLE_B1B0A0A1	U32_C(0x14)
+#define NVCSI_LANE_SWIZZLE_B1B0A0A1	MK_U32(0x14)
 /** 10101 := A0 A1 B0 B1 -->  B1 B0 A1 A0 */
-#define NVCSI_LANE_SWIZZLE_B1B0A1A0	U32_C(0x15)
+#define NVCSI_LANE_SWIZZLE_B1B0A1A0	MK_U32(0x15)
 /** 10110 := A0 A1 B0 B1 -->  B1 A0 A1 B0 */
-#define NVCSI_LANE_SWIZZLE_B1A0A1B0	U32_C(0x16)
+#define NVCSI_LANE_SWIZZLE_B1A0A1B0	MK_U32(0x16)
 /** 10111 := A0 A1 B0 B1 -->  B1 A0 B0 A1 */
-#define NVCSI_LANE_SWIZZLE_B1A0B0A1	U32_C(0x17)
+#define NVCSI_LANE_SWIZZLE_B1A0B0A1	MK_U32(0x17)
 /** @} */
 
 /**
  * @defgroup NvCsiDPhyPolarity NVCSI D-phy polarity
  * @{
  */
-#define NVCSI_DPHY_POLARITY_NOSWAP	U32_C(0)
-#define NVCSI_DPHY_POLARITY_SWAP	U32_C(1)
+#define NVCSI_DPHY_POLARITY_NOSWAP	MK_U32(0)
+#define NVCSI_DPHY_POLARITY_SWAP	MK_U32(1)
 /** @} */
 
 /**
@@ -1296,17 +1320,17 @@ struct vi_hsm_chansel_error_mask_config {
  * @{
  */
 /* 000 := A B C --> A B C */
-#define NVCSI_CPHY_POLARITY_ABC	U32_C(0x00)
+#define NVCSI_CPHY_POLARITY_ABC	MK_U32(0x00)
 /* 001 := A B C --> A C B */
-#define NVCSI_CPHY_POLARITY_ACB	U32_C(0x01)
+#define NVCSI_CPHY_POLARITY_ACB	MK_U32(0x01)
 /* 010 := A B C --> B C A */
-#define NVCSI_CPHY_POLARITY_BCA	U32_C(0x02)
+#define NVCSI_CPHY_POLARITY_BCA	MK_U32(0x02)
 /* 011 := A B C --> B A C */
-#define NVCSI_CPHY_POLARITY_BAC	U32_C(0x03)
+#define NVCSI_CPHY_POLARITY_BAC	MK_U32(0x03)
 /* 100 := A B C --> C A B */
-#define NVCSI_CPHY_POLARITY_CAB	U32_C(0x04)
+#define NVCSI_CPHY_POLARITY_CAB	MK_U32(0x04)
 /* 101 := A B C --> C B A */
-#define NVCSI_CPHY_POLARITY_CBA	U32_C(0x05)
+#define NVCSI_CPHY_POLARITY_CBA	MK_U32(0x05)
 /** @} */
 
 /**
@@ -1324,7 +1348,7 @@ struct nvcsi_brick_config {
 	uint8_t lane_polarity[NVCSI_BRICK_NUM_LANES];
 	/** Reserved */
 	uint32_t __pad32;
-} __CAPTURE_IVC_ALIGN;
+} CAPTURE_IVC_ALIGN;
 
 /**
  * @brief NvCSI Control and Interface Logic Configuration
@@ -1344,20 +1368,20 @@ struct nvcsi_cil_config {
 	uint32_t mipi_clock_rate;
 	/** Reserved */
 	uint32_t __pad32;
-} __CAPTURE_IVC_ALIGN;
+} CAPTURE_IVC_ALIGN;
 
 /**
  * @defgroup HsmCsimuxErrors Bitmask for CSIMUX errors reported to HSM
  */
 /** @{ */
 /** Error bit indicating next packet after a frame end was not a frame start */
-#define VI_HSM_CSIMUX_ERROR_MASK_BIT_SPURIOUS_EVENT (U32_C(1) << 0)
+#define VI_HSM_CSIMUX_ERROR_MASK_BIT_SPURIOUS_EVENT MK_BIT32(0)
 /** Error bit indicating FIFO for the stream has over flowed */
-#define VI_HSM_CSIMUX_ERROR_MASK_BIT_OVERFLOW (U32_C(1) << 1)
+#define VI_HSM_CSIMUX_ERROR_MASK_BIT_OVERFLOW MK_BIT32(1)
 /** Error bit indicating frame start packet lost due to FIFO overflow */
-#define VI_HSM_CSIMUX_ERROR_MASK_BIT_LOF (U32_C(1) << 2)
+#define VI_HSM_CSIMUX_ERROR_MASK_BIT_LOF MK_BIT32(2)
 /** Error bit indicating that an illegal packet has been sent from NVCSI */
-#define VI_HSM_CSIMUX_ERROR_MASK_BIT_BADPKT (U32_C(1) << 3)
+#define VI_HSM_CSIMUX_ERROR_MASK_BIT_BADPKT MK_BIT32(3)
 /** @} */
 
 /**
@@ -1368,115 +1392,115 @@ struct vi_hsm_csimux_error_mask_config {
 	uint32_t error_mask_correctable;
 	/** Mask uncorrectable CSIMUX. See @ref HsmCsimuxErrors "CSIMUX error bitmask". */
 	uint32_t error_mask_uncorrectable;
-} __CAPTURE_IVC_ALIGN;
+} CAPTURE_IVC_ALIGN;
 
 /**
  * @defgroup NvCsiStreamErr NVCSI stream novc+vc error flags
  * @{
  */
 /** Multi bit error in the DPHY packet header */
-#define NVCSI_INTR_FLAG_STREAM_NOVC_ERR_PH_ECC_MULTI_BIT	(U32_C(1) << 0)
+#define NVCSI_INTR_FLAG_STREAM_NOVC_ERR_PH_ECC_MULTI_BIT	MK_BIT32(0)
 /** Error bit indicating both of the CPHY packet header CRC check fail */
-#define NVCSI_INTR_FLAG_STREAM_NOVC_ERR_PH_BOTH_CRC		(U32_C(1) << 1)
+#define NVCSI_INTR_FLAG_STREAM_NOVC_ERR_PH_BOTH_CRC		MK_BIT32(1)
 /** Error bit indicating VC Pixel Parser (PP) FSM timeout for a pixel line.*/
-#define NVCSI_INTR_FLAG_STREAM_VC_ERR_PPFSM_TIMEOUT		(U32_C(1) << 2)
+#define NVCSI_INTR_FLAG_STREAM_VC_ERR_PPFSM_TIMEOUT		MK_BIT32(2)
 /** Error bit indicating VC has packet with single bit ECC error in the packet header*/
-#define NVCSI_INTR_FLAG_STREAM_VC_ERR_PH_ECC_SINGLE_BIT		(U32_C(1) << 3)
+#define NVCSI_INTR_FLAG_STREAM_VC_ERR_PH_ECC_SINGLE_BIT		MK_BIT32(3)
 /** Error bit indicating VC has packet payload crc check fail */
-#define NVCSI_INTR_FLAG_STREAM_VC_ERR_PD_CRC			(U32_C(1) << 4)
+#define NVCSI_INTR_FLAG_STREAM_VC_ERR_PD_CRC			MK_BIT32(4)
 /** Error bit indicating VC has packet terminate before getting the expect word count data. */
-#define NVCSI_INTR_FLAG_STREAM_VC_ERR_PD_WC_SHORT		(U32_C(1) << 5)
+#define NVCSI_INTR_FLAG_STREAM_VC_ERR_PD_WC_SHORT		MK_BIT32(5)
 /** Error bit indicating VC has one of the CPHY packet header CRC check fail. */
-#define NVCSI_INTR_FLAG_STREAM_VC_ERR_PH_SINGLE_CRC		(U32_C(1) << 6)
+#define NVCSI_INTR_FLAG_STREAM_VC_ERR_PH_SINGLE_CRC		MK_BIT32(6)
 /** @} */
 
 /**
  * @defgroup NvCsiCilIntrErr NVCSI phy/cil interrupt error flags
  * @{
  */
-#define NVCSI_INTR_FLAG_CIL_INTR_DPHY_ERR_CLK_LANE_CTRL		(U32_C(1) << 0)
-#define NVCSI_INTR_FLAG_CIL_INTR_DATA_LANE_ERR0_SOT_SB		(U32_C(1) << 1)
-#define NVCSI_INTR_FLAG_CIL_INTR_DATA_LANE_ERR0_SOT_MB		(U32_C(1) << 2)
-#define NVCSI_INTR_FLAG_CIL_INTR_DATA_LANE_ERR0_CTRL		(U32_C(1) << 3)
-#define NVCSI_INTR_FLAG_CIL_INTR_DATA_LANE_ERR0_RXFIFO_FULL	(U32_C(1) << 4)
-#define NVCSI_INTR_FLAG_CIL_INTR_DATA_LANE_ERR1_SOT_SB		(U32_C(1) << 5)
-#define NVCSI_INTR_FLAG_CIL_INTR_DATA_LANE_ERR1_SOT_MB		(U32_C(1) << 6)
-#define NVCSI_INTR_FLAG_CIL_INTR_DATA_LANE_ERR1_CTRL		(U32_C(1) << 7)
-#define NVCSI_INTR_FLAG_CIL_INTR_DATA_LANE_ERR1_RXFIFO_FULL	(U32_C(1) << 8)
-#define NVCSI_INTR_FLAG_CIL_INTR_DPHY_DESKEW_CALIB_ERR_LANE0	(U32_C(1) << 9)
-#define NVCSI_INTR_FLAG_CIL_INTR_DPHY_DESKEW_CALIB_ERR_LANE1	(U32_C(1) << 10)
-#define NVCSI_INTR_FLAG_CIL_INTR_DPHY_DESKEW_CALIB_ERR_CTRL	(U32_C(1) << 11)
-#define NVCSI_INTR_FLAG_CIL_INTR_DPHY_LANE_ALIGN_ERR		(U32_C(1) << 12)
-#define NVCSI_INTR_FLAG_CIL_INTR_DATA_LANE_ERR0_ESC_MODE_SYNC	(U32_C(1) << 13)
-#define NVCSI_INTR_FLAG_CIL_INTR_DATA_LANE_ERR1_ESC_MODE_SYNC	(U32_C(1) << 14)
-#define NVCSI_INTR_FLAG_CIL_INTR_DATA_LANE_ERR0_SOT_2LSB_FULL	(U32_C(1) << 15)
-#define NVCSI_INTR_FLAG_CIL_INTR_DATA_LANE_ERR1_SOT_2LSB_FULL	(U32_C(1) << 16)
+#define NVCSI_INTR_FLAG_CIL_INTR_DPHY_ERR_CLK_LANE_CTRL		MK_BIT32(0)
+#define NVCSI_INTR_FLAG_CIL_INTR_DATA_LANE_ERR0_SOT_SB		MK_BIT32(1)
+#define NVCSI_INTR_FLAG_CIL_INTR_DATA_LANE_ERR0_SOT_MB		MK_BIT32(2)
+#define NVCSI_INTR_FLAG_CIL_INTR_DATA_LANE_ERR0_CTRL		MK_BIT32(3)
+#define NVCSI_INTR_FLAG_CIL_INTR_DATA_LANE_ERR0_RXFIFO_FULL	MK_BIT32(4)
+#define NVCSI_INTR_FLAG_CIL_INTR_DATA_LANE_ERR1_SOT_SB		MK_BIT32(5)
+#define NVCSI_INTR_FLAG_CIL_INTR_DATA_LANE_ERR1_SOT_MB		MK_BIT32(6)
+#define NVCSI_INTR_FLAG_CIL_INTR_DATA_LANE_ERR1_CTRL		MK_BIT32(7)
+#define NVCSI_INTR_FLAG_CIL_INTR_DATA_LANE_ERR1_RXFIFO_FULL	MK_BIT32(8)
+#define NVCSI_INTR_FLAG_CIL_INTR_DPHY_DESKEW_CALIB_ERR_LANE0	MK_BIT32(9)
+#define NVCSI_INTR_FLAG_CIL_INTR_DPHY_DESKEW_CALIB_ERR_LANE1	MK_BIT32(10)
+#define NVCSI_INTR_FLAG_CIL_INTR_DPHY_DESKEW_CALIB_ERR_CTRL	MK_BIT32(11)
+#define NVCSI_INTR_FLAG_CIL_INTR_DPHY_LANE_ALIGN_ERR		MK_BIT32(12)
+#define NVCSI_INTR_FLAG_CIL_INTR_DATA_LANE_ERR0_ESC_MODE_SYNC	MK_BIT32(13)
+#define NVCSI_INTR_FLAG_CIL_INTR_DATA_LANE_ERR1_ESC_MODE_SYNC	MK_BIT32(14)
+#define NVCSI_INTR_FLAG_CIL_INTR_DATA_LANE_ERR0_SOT_2LSB_FULL	MK_BIT32(15)
+#define NVCSI_INTR_FLAG_CIL_INTR_DATA_LANE_ERR1_SOT_2LSB_FULL	MK_BIT32(16)
 /** @} */
 
 /**
  * @defgroup NvCsiCilIntr0Err NVCSI phy/cil interrupt0 error flags
  * @{
  */
-#define NVCSI_INTR_FLAG_CIL_INTR0_DPHY_ERR_CLK_LANE_CTRL	(U32_C(1) << 0)
-#define NVCSI_INTR_FLAG_CIL_INTR0_DATA_LANE_ERR0_SOT_SB		(U32_C(1) << 1)
-#define NVCSI_INTR_FLAG_CIL_INTR0_DATA_LANE_ERR0_SOT_MB		(U32_C(1) << 2)
-#define NVCSI_INTR_FLAG_CIL_INTR0_DATA_LANE_ERR0_CTRL		(U32_C(1) << 3)
-#define NVCSI_INTR_FLAG_CIL_INTR0_DATA_LANE_ERR0_RXFIFO_FULL	(U32_C(1) << 4)
-#define NVCSI_INTR_FLAG_CIL_INTR0_DATA_LANE_ERR1_SOT_SB		(U32_C(1) << 5)
-#define NVCSI_INTR_FLAG_CIL_INTR0_DATA_LANE_ERR1_SOT_MB		(U32_C(1) << 6)
-#define NVCSI_INTR_FLAG_CIL_INTR0_DATA_LANE_ERR1_CTRL		(U32_C(1) << 7)
-#define NVCSI_INTR_FLAG_CIL_INTR0_DATA_LANE_ERR1_RXFIFO_FULL	(U32_C(1) << 8)
-#define NVCSI_INTR_FLAG_CIL_INTR0_DATA_LANE_ERR0_SOT_2LSB_FULL	(U32_C(1) << 9)
-#define NVCSI_INTR_FLAG_CIL_INTR0_DATA_LANE_ERR1_SOT_2LSB_FULL	(U32_C(1) << 10)
-#define NVCSI_INTR_FLAG_CIL_INTR0_DATA_LANE_ERR0_ESC_MODE_SYNC	(U32_C(1) << 19)
-#define NVCSI_INTR_FLAG_CIL_INTR0_DATA_LANE_ERR1_ESC_MODE_SYNC	(U32_C(1) << 20)
-#define NVCSI_INTR_FLAG_CIL_INTR0_DPHY_DESKEW_CALIB_DONE_LANE0	(U32_C(1) << 22)
-#define NVCSI_INTR_FLAG_CIL_INTR0_DPHY_DESKEW_CALIB_DONE_LANE1	(U32_C(1) << 23)
-#define NVCSI_INTR_FLAG_CIL_INTR0_DPHY_DESKEW_CALIB_DONE_CTRL	(U32_C(1) << 24)
-#define NVCSI_INTR_FLAG_CIL_INTR0_DPHY_DESKEW_CALIB_ERR_LANE0	(U32_C(1) << 25)
-#define NVCSI_INTR_FLAG_CIL_INTR0_DPHY_DESKEW_CALIB_ERR_LANE1	(U32_C(1) << 26)
-#define NVCSI_INTR_FLAG_CIL_INTR0_DPHY_DESKEW_CALIB_ERR_CTRL	(U32_C(1) << 27)
-#define NVCSI_INTR_FLAG_CIL_INTR0_DPHY_LANE_ALIGN_ERR		(U32_C(1) << 28)
-#define NVCSI_INTR_FLAG_CIL_INTR0_CPHY_CLK_CAL_DONE_TRIO0	(U32_C(1) << 29)
-#define NVCSI_INTR_FLAG_CIL_INTR0_CPHY_CLK_CAL_DONE_TRIO1	(U32_C(1) << 30)
+#define NVCSI_INTR_FLAG_CIL_INTR0_DPHY_ERR_CLK_LANE_CTRL	MK_BIT32(0)
+#define NVCSI_INTR_FLAG_CIL_INTR0_DATA_LANE_ERR0_SOT_SB		MK_BIT32(1)
+#define NVCSI_INTR_FLAG_CIL_INTR0_DATA_LANE_ERR0_SOT_MB		MK_BIT32(2)
+#define NVCSI_INTR_FLAG_CIL_INTR0_DATA_LANE_ERR0_CTRL		MK_BIT32(3)
+#define NVCSI_INTR_FLAG_CIL_INTR0_DATA_LANE_ERR0_RXFIFO_FULL	MK_BIT32(4)
+#define NVCSI_INTR_FLAG_CIL_INTR0_DATA_LANE_ERR1_SOT_SB		MK_BIT32(5)
+#define NVCSI_INTR_FLAG_CIL_INTR0_DATA_LANE_ERR1_SOT_MB		MK_BIT32(6)
+#define NVCSI_INTR_FLAG_CIL_INTR0_DATA_LANE_ERR1_CTRL		MK_BIT32(7)
+#define NVCSI_INTR_FLAG_CIL_INTR0_DATA_LANE_ERR1_RXFIFO_FULL	MK_BIT32(8)
+#define NVCSI_INTR_FLAG_CIL_INTR0_DATA_LANE_ERR0_SOT_2LSB_FULL	MK_BIT32(9)
+#define NVCSI_INTR_FLAG_CIL_INTR0_DATA_LANE_ERR1_SOT_2LSB_FULL	MK_BIT32(10)
+#define NVCSI_INTR_FLAG_CIL_INTR0_DATA_LANE_ERR0_ESC_MODE_SYNC	MK_BIT32(19)
+#define NVCSI_INTR_FLAG_CIL_INTR0_DATA_LANE_ERR1_ESC_MODE_SYNC	MK_BIT32(20)
+#define NVCSI_INTR_FLAG_CIL_INTR0_DPHY_DESKEW_CALIB_DONE_LANE0	MK_BIT32(22)
+#define NVCSI_INTR_FLAG_CIL_INTR0_DPHY_DESKEW_CALIB_DONE_LANE1	MK_BIT32(23)
+#define NVCSI_INTR_FLAG_CIL_INTR0_DPHY_DESKEW_CALIB_DONE_CTRL	MK_BIT32(24)
+#define NVCSI_INTR_FLAG_CIL_INTR0_DPHY_DESKEW_CALIB_ERR_LANE0	MK_BIT32(25)
+#define NVCSI_INTR_FLAG_CIL_INTR0_DPHY_DESKEW_CALIB_ERR_LANE1	MK_BIT32(26)
+#define NVCSI_INTR_FLAG_CIL_INTR0_DPHY_DESKEW_CALIB_ERR_CTRL	MK_BIT32(27)
+#define NVCSI_INTR_FLAG_CIL_INTR0_DPHY_LANE_ALIGN_ERR		MK_BIT32(28)
+#define NVCSI_INTR_FLAG_CIL_INTR0_CPHY_CLK_CAL_DONE_TRIO0	MK_BIT32(29)
+#define NVCSI_INTR_FLAG_CIL_INTR0_CPHY_CLK_CAL_DONE_TRIO1	MK_BIT32(30)
 /** @} */
 
 /**
  * @defgroup NvCsiCilIntr0Err NVCSI phy/cil interrupt1 error flags
  * @{
  */
-#define NVCSI_INTR_FLAG_CIL_INTR1_DATA_LANE_ESC_CMD_REC0	(U32_C(1) << 0)
-#define NVCSI_INTR_FLAG_CIL_INTR1_DATA_LANE_ESC_DATA_REC0	(U32_C(1) << 1)
-#define NVCSI_INTR_FLAG_CIL_INTR1_DATA_LANE_ESC_CMD_REC1	(U32_C(1) << 2)
-#define NVCSI_INTR_FLAG_CIL_INTR1_DATA_LANE_ESC_DATA_REC1	(U32_C(1) << 3)
-#define NVCSI_INTR_FLAG_CIL_INTR1_REMOTERST_TRIGGER_INT0	(U32_C(1) << 4)
-#define NVCSI_INTR_FLAG_CIL_INTR1_ULPS_TRIGGER_INT0		(U32_C(1) << 5)
-#define NVCSI_INTR_FLAG_CIL_INTR1_LPDT_INT0			(U32_C(1) << 6)
-#define NVCSI_INTR_FLAG_CIL_INTR1_REMOTERST_TRIGGER_INT1	(U32_C(1) << 7)
-#define NVCSI_INTR_FLAG_CIL_INTR1_ULPS_TRIGGER_INT1		(U32_C(1) << 8)
-#define NVCSI_INTR_FLAG_CIL_INTR1_LPDT_INT1			(U32_C(1) << 9)
-#define NVCSI_INTR_FLAG_CIL_INTR1_DPHY_CLK_LANE_ULPM_REQ	(U32_C(1) << 10)
+#define NVCSI_INTR_FLAG_CIL_INTR1_DATA_LANE_ESC_CMD_REC0	MK_BIT32(0)
+#define NVCSI_INTR_FLAG_CIL_INTR1_DATA_LANE_ESC_DATA_REC0	MK_BIT32(1)
+#define NVCSI_INTR_FLAG_CIL_INTR1_DATA_LANE_ESC_CMD_REC1	MK_BIT32(2)
+#define NVCSI_INTR_FLAG_CIL_INTR1_DATA_LANE_ESC_DATA_REC1	MK_BIT32(3)
+#define NVCSI_INTR_FLAG_CIL_INTR1_REMOTERST_TRIGGER_INT0	MK_BIT32(4)
+#define NVCSI_INTR_FLAG_CIL_INTR1_ULPS_TRIGGER_INT0		MK_BIT32(5)
+#define NVCSI_INTR_FLAG_CIL_INTR1_LPDT_INT0			MK_BIT32(6)
+#define NVCSI_INTR_FLAG_CIL_INTR1_REMOTERST_TRIGGER_INT1	MK_BIT32(7)
+#define NVCSI_INTR_FLAG_CIL_INTR1_ULPS_TRIGGER_INT1		MK_BIT32(8)
+#define NVCSI_INTR_FLAG_CIL_INTR1_LPDT_INT1			MK_BIT32(9)
+#define NVCSI_INTR_FLAG_CIL_INTR1_DPHY_CLK_LANE_ULPM_REQ	MK_BIT32(10)
 /** @} */
 
 /**
  * @defgroup NvCsiIntrCfg NVCSI interrupt config bit masks
  * @{
  */
-#define NVCSI_INTR_CONFIG_MASK_HOST1X		U32_C(0x1)
-#define NVCSI_INTR_CONFIG_MASK_STATUS2VI	U32_C(0xffff)
-#define NVCSI_INTR_CONFIG_MASK_STREAM_NOVC	U32_C(0x3)
-#define NVCSI_INTR_CONFIG_MASK_STREAM_VC	U32_C(0x7c)
-#define NVCSI_INTR_CONFIG_MASK_CIL_INTR		U32_C(0x1ffff)
-#define NVCSI_INTR_CONFIG_MASK_CIL_INTR0	U32_C(0x7fd807ff)
-#define NVCSI_INTR_CONFIG_MASK_CIL_INTR1	U32_C(0x7ff)
+#define NVCSI_INTR_CONFIG_MASK_HOST1X		MK_U32(0x1)
+#define NVCSI_INTR_CONFIG_MASK_STATUS2VI	MK_U32(0xffff)
+#define NVCSI_INTR_CONFIG_MASK_STREAM_NOVC	MK_U32(0x3)
+#define NVCSI_INTR_CONFIG_MASK_STREAM_VC	MK_U32(0x7c)
+#define NVCSI_INTR_CONFIG_MASK_CIL_INTR		MK_U32(0x1ffff)
+#define NVCSI_INTR_CONFIG_MASK_CIL_INTR0	MK_U32(0x7fd807ff)
+#define NVCSI_INTR_CONFIG_MASK_CIL_INTR1	MK_U32(0x7ff)
 /** @} */
 
 /**
  * @defgroup NvCsiIntrCfgShift NVCSI interrupt config bit shifts
  * @{
  */
-#define NVCSI_INTR_CONFIG_SHIFT_STREAM_NOVC	U32_C(0x0)
-#define NVCSI_INTR_CONFIG_SHIFT_STREAM_VC	U32_C(0x2)
+#define NVCSI_INTR_CONFIG_SHIFT_STREAM_NOVC	MK_U32(0x0)
+#define NVCSI_INTR_CONFIG_SHIFT_STREAM_VC	MK_U32(0x2)
 /** @} */
 
 /**
@@ -1508,102 +1532,102 @@ struct nvcsi_error_config {
 	uint32_t __pad32;
 	/** VI EC/HSM error masking configuration */
 	struct vi_hsm_csimux_error_mask_config csimux_config;
-} __CAPTURE_IVC_ALIGN;
+} CAPTURE_IVC_ALIGN;
 
 /**
  * @defgroup NvCsiDataType NVCSI datatypes
  * @{
  */
-#define NVCSI_DATATYPE_UNSPECIFIED	U32_C(0)
-#define NVCSI_DATATYPE_YUV420_8		U32_C(24)
-#define NVCSI_DATATYPE_YUV420_10	U32_C(25)
-#define NVCSI_DATATYPE_LEG_YUV420_8	U32_C(26)
-#define NVCSI_DATATYPE_YUV420CSPS_8	U32_C(28)
-#define NVCSI_DATATYPE_YUV420CSPS_10	U32_C(29)
-#define NVCSI_DATATYPE_YUV422_8		U32_C(30)
-#define NVCSI_DATATYPE_YUV422_10	U32_C(31)
-#define NVCSI_DATATYPE_RGB444		U32_C(32)
-#define NVCSI_DATATYPE_RGB555		U32_C(33)
-#define NVCSI_DATATYPE_RGB565		U32_C(34)
-#define NVCSI_DATATYPE_RGB666		U32_C(35)
-#define NVCSI_DATATYPE_RGB888		U32_C(36)
-#define NVCSI_DATATYPE_RAW6		U32_C(40)
-#define NVCSI_DATATYPE_RAW7		U32_C(41)
-#define NVCSI_DATATYPE_RAW8		U32_C(42)
-#define NVCSI_DATATYPE_RAW10		U32_C(43)
-#define NVCSI_DATATYPE_RAW12		U32_C(44)
-#define NVCSI_DATATYPE_RAW14		U32_C(45)
-#define NVCSI_DATATYPE_RAW16		U32_C(46)
-#define NVCSI_DATATYPE_RAW20		U32_C(47)
-#define NVCSI_DATATYPE_USER_1		U32_C(48)
-#define NVCSI_DATATYPE_USER_2		U32_C(49)
-#define NVCSI_DATATYPE_USER_3		U32_C(50)
-#define NVCSI_DATATYPE_USER_4		U32_C(51)
-#define NVCSI_DATATYPE_USER_5		U32_C(52)
-#define NVCSI_DATATYPE_USER_6		U32_C(53)
-#define NVCSI_DATATYPE_USER_7		U32_C(54)
-#define NVCSI_DATATYPE_USER_8		U32_C(55)
-#define NVCSI_DATATYPE_UNKNOWN		U32_C(64)
+#define NVCSI_DATATYPE_UNSPECIFIED	MK_U32(0)
+#define NVCSI_DATATYPE_YUV420_8		MK_U32(24)
+#define NVCSI_DATATYPE_YUV420_10	MK_U32(25)
+#define NVCSI_DATATYPE_LEG_YUV420_8	MK_U32(26)
+#define NVCSI_DATATYPE_YUV420CSPS_8	MK_U32(28)
+#define NVCSI_DATATYPE_YUV420CSPS_10	MK_U32(29)
+#define NVCSI_DATATYPE_YUV422_8		MK_U32(30)
+#define NVCSI_DATATYPE_YUV422_10	MK_U32(31)
+#define NVCSI_DATATYPE_RGB444		MK_U32(32)
+#define NVCSI_DATATYPE_RGB555		MK_U32(33)
+#define NVCSI_DATATYPE_RGB565		MK_U32(34)
+#define NVCSI_DATATYPE_RGB666		MK_U32(35)
+#define NVCSI_DATATYPE_RGB888		MK_U32(36)
+#define NVCSI_DATATYPE_RAW6		MK_U32(40)
+#define NVCSI_DATATYPE_RAW7		MK_U32(41)
+#define NVCSI_DATATYPE_RAW8		MK_U32(42)
+#define NVCSI_DATATYPE_RAW10		MK_U32(43)
+#define NVCSI_DATATYPE_RAW12		MK_U32(44)
+#define NVCSI_DATATYPE_RAW14		MK_U32(45)
+#define NVCSI_DATATYPE_RAW16		MK_U32(46)
+#define NVCSI_DATATYPE_RAW20		MK_U32(47)
+#define NVCSI_DATATYPE_USER_1		MK_U32(48)
+#define NVCSI_DATATYPE_USER_2		MK_U32(49)
+#define NVCSI_DATATYPE_USER_3		MK_U32(50)
+#define NVCSI_DATATYPE_USER_4		MK_U32(51)
+#define NVCSI_DATATYPE_USER_5		MK_U32(52)
+#define NVCSI_DATATYPE_USER_6		MK_U32(53)
+#define NVCSI_DATATYPE_USER_7		MK_U32(54)
+#define NVCSI_DATATYPE_USER_8		MK_U32(55)
+#define NVCSI_DATATYPE_UNKNOWN		MK_U32(64)
 /** @} */
 
 /* DEPRECATED - to be removed */
 /** T210 (also exists in T186) */
-#define NVCSI_PATTERN_GENERATOR_T210	U32_C(1)
+#define NVCSI_PATTERN_GENERATOR_T210	MK_U32(1)
 /** T186 only */
-#define NVCSI_PATTERN_GENERATOR_T186	U32_C(2)
+#define NVCSI_PATTERN_GENERATOR_T186	MK_U32(2)
 /** T194 only */
-#define NVCSI_PATTERN_GENERATOR_T194	U32_C(3)
+#define NVCSI_PATTERN_GENERATOR_T194	MK_U32(3)
 
 /* DEPRECATED - to be removed */
-#define NVCSI_DATA_TYPE_Unspecified		U32_C(0)
-#define NVCSI_DATA_TYPE_YUV420_8		U32_C(24)
-#define NVCSI_DATA_TYPE_YUV420_10		U32_C(25)
-#define NVCSI_DATA_TYPE_LEG_YUV420_8		U32_C(26)
-#define NVCSI_DATA_TYPE_YUV420CSPS_8		U32_C(28)
-#define NVCSI_DATA_TYPE_YUV420CSPS_10		U32_C(29)
-#define NVCSI_DATA_TYPE_YUV422_8		U32_C(30)
-#define NVCSI_DATA_TYPE_YUV422_10		U32_C(31)
-#define NVCSI_DATA_TYPE_RGB444			U32_C(32)
-#define NVCSI_DATA_TYPE_RGB555			U32_C(33)
-#define NVCSI_DATA_TYPE_RGB565			U32_C(34)
-#define NVCSI_DATA_TYPE_RGB666			U32_C(35)
-#define NVCSI_DATA_TYPE_RGB888			U32_C(36)
-#define NVCSI_DATA_TYPE_RAW6			U32_C(40)
-#define NVCSI_DATA_TYPE_RAW7			U32_C(41)
-#define NVCSI_DATA_TYPE_RAW8			U32_C(42)
-#define NVCSI_DATA_TYPE_RAW10			U32_C(43)
-#define NVCSI_DATA_TYPE_RAW12			U32_C(44)
-#define NVCSI_DATA_TYPE_RAW14			U32_C(45)
-#define NVCSI_DATA_TYPE_RAW16			U32_C(46)
-#define NVCSI_DATA_TYPE_RAW20			U32_C(47)
-#define NVCSI_DATA_TYPE_Unknown			U32_C(64)
+#define NVCSI_DATA_TYPE_Unspecified		MK_U32(0)
+#define NVCSI_DATA_TYPE_YUV420_8		MK_U32(24)
+#define NVCSI_DATA_TYPE_YUV420_10		MK_U32(25)
+#define NVCSI_DATA_TYPE_LEG_YUV420_8		MK_U32(26)
+#define NVCSI_DATA_TYPE_YUV420CSPS_8		MK_U32(28)
+#define NVCSI_DATA_TYPE_YUV420CSPS_10		MK_U32(29)
+#define NVCSI_DATA_TYPE_YUV422_8		MK_U32(30)
+#define NVCSI_DATA_TYPE_YUV422_10		MK_U32(31)
+#define NVCSI_DATA_TYPE_RGB444			MK_U32(32)
+#define NVCSI_DATA_TYPE_RGB555			MK_U32(33)
+#define NVCSI_DATA_TYPE_RGB565			MK_U32(34)
+#define NVCSI_DATA_TYPE_RGB666			MK_U32(35)
+#define NVCSI_DATA_TYPE_RGB888			MK_U32(36)
+#define NVCSI_DATA_TYPE_RAW6			MK_U32(40)
+#define NVCSI_DATA_TYPE_RAW7			MK_U32(41)
+#define NVCSI_DATA_TYPE_RAW8			MK_U32(42)
+#define NVCSI_DATA_TYPE_RAW10			MK_U32(43)
+#define NVCSI_DATA_TYPE_RAW12			MK_U32(44)
+#define NVCSI_DATA_TYPE_RAW14			MK_U32(45)
+#define NVCSI_DATA_TYPE_RAW16			MK_U32(46)
+#define NVCSI_DATA_TYPE_RAW20			MK_U32(47)
+#define NVCSI_DATA_TYPE_Unknown			MK_U32(64)
 
 /* NVCSI DPCM ratio */
-#define NVCSI_DPCM_RATIO_BYPASS		U32_C(0)
-#define NVCSI_DPCM_RATIO_10_8_10	U32_C(1)
-#define NVCSI_DPCM_RATIO_10_7_10	U32_C(2)
-#define NVCSI_DPCM_RATIO_10_6_10	U32_C(3)
-#define NVCSI_DPCM_RATIO_12_8_12	U32_C(4)
-#define NVCSI_DPCM_RATIO_12_7_12	U32_C(5)
-#define NVCSI_DPCM_RATIO_12_6_12	U32_C(6)
-#define NVCSI_DPCM_RATIO_14_10_14	U32_C(7)
-#define NVCSI_DPCM_RATIO_14_8_14	U32_C(8)
-#define NVCSI_DPCM_RATIO_12_10_12	U32_C(9)
+#define NVCSI_DPCM_RATIO_BYPASS		MK_U32(0)
+#define NVCSI_DPCM_RATIO_10_8_10	MK_U32(1)
+#define NVCSI_DPCM_RATIO_10_7_10	MK_U32(2)
+#define NVCSI_DPCM_RATIO_10_6_10	MK_U32(3)
+#define NVCSI_DPCM_RATIO_12_8_12	MK_U32(4)
+#define NVCSI_DPCM_RATIO_12_7_12	MK_U32(5)
+#define NVCSI_DPCM_RATIO_12_6_12	MK_U32(6)
+#define NVCSI_DPCM_RATIO_14_10_14	MK_U32(7)
+#define NVCSI_DPCM_RATIO_14_8_14	MK_U32(8)
+#define NVCSI_DPCM_RATIO_12_10_12	MK_U32(9)
 
 /**
  * @defgroup NvCsiParamType NvCSI Parameter Type
  * @{
  */
-#define NVCSI_PARAM_TYPE_UNSPECIFIED	U32_C(0)
-#define NVCSI_PARAM_TYPE_DPCM		U32_C(1)
-#define NVCSI_PARAM_TYPE_DT_OVERRIDE	U32_C(2)
-#define NVCSI_PARAM_TYPE_WATCHDOG	U32_C(3)
+#define NVCSI_PARAM_TYPE_UNSPECIFIED	MK_U32(0)
+#define NVCSI_PARAM_TYPE_DPCM		MK_U32(1)
+#define NVCSI_PARAM_TYPE_DT_OVERRIDE	MK_U32(2)
+#define NVCSI_PARAM_TYPE_WATCHDOG	MK_U32(3)
 /**@}*/
 
 struct nvcsi_dpcm_config {
 	uint32_t dpcm_ratio;
 	uint32_t __pad32;
-} __CAPTURE_IVC_ALIGN;
+} CAPTURE_IVC_ALIGN;
 
 /**
  * @brief NvCSI data type (DT) override configuration
@@ -1617,7 +1641,7 @@ struct nvcsi_dt_override_config {
 	uint32_t override_type;
 	/** RCE exception type */
 	uint32_t exception_type[NVCSI_NUM_NOOVERRIDE_DT];
-} __CAPTURE_IVC_ALIGN;
+} CAPTURE_IVC_ALIGN;
 
 /**
  * @brief NvCSI watchdog configuration
@@ -1629,7 +1653,7 @@ struct nvcsi_watchdog_config {
 	uint8_t __pad8[3];
 	/** The watchdog timer timeout period */
 	uint32_t period;
-} __CAPTURE_IVC_ALIGN;
+} CAPTURE_IVC_ALIGN;
 
 /**
  * NVCSI - TPG attributes
@@ -1637,7 +1661,7 @@ struct nvcsi_watchdog_config {
 /**
 @brief Number of vertical color bars in TPG (t186)
 */
-#define NVCSI_TPG_NUM_COLOR_BARS U32_C(8)
+#define NVCSI_TPG_NUM_COLOR_BARS MK_U32(8)
 
 /**
  * @brief NvCSI test pattern generator (TPG) configuration for T186
@@ -1667,15 +1691,15 @@ struct nvcsi_tpg_config_t186 {
 	uint16_t image_height;
 	/** Pixel value for each horizontal color bar (format according to DT) */
 	uint32_t pixel_values[NVCSI_TPG_NUM_COLOR_BARS];
-} __CAPTURE_IVC_ALIGN;
+} CAPTURE_IVC_ALIGN;
 
 /**
  * @brief NvCsiTpgFlag Test pattern generator (TPG) flags for t194
  * @{
  */
-#define NVCSI_TPG_FLAG_PATCH_MODE	U16_C(1)
-#define NVCSI_TPG_FLAG_PHASE_INCREMENT	U16_C(2)
-#define NVCSI_TPG_FLAG_AUTO_STOP	U16_C(4)
+#define NVCSI_TPG_FLAG_PATCH_MODE	MK_U16(1)
+#define NVCSI_TPG_FLAG_PHASE_INCREMENT	MK_U16(2)
+#define NVCSI_TPG_FLAG_AUTO_STOP	MK_U16(4)
 /** @} */
 
 /**
@@ -1730,7 +1754,7 @@ struct nvcsi_tpg_config_t194 {
 	uint32_t blue_horizontal_freq_rate;
 	/** Rate of change of the vertical frequency for blue channel */
 	uint32_t blue_vertical_freq_rate;
-} __CAPTURE_IVC_ALIGN;
+} CAPTURE_IVC_ALIGN;
 
 /**
  * @brief Commong NvCSI test pattern generator (TPG) configuration
@@ -1756,7 +1780,7 @@ struct nvcsi_tpg_rate_config {
 	uint32_t pixel_interval;
 	/** Reserved */
 	uint32_t reserved;
-} __CAPTURE_IVC_ALIGN;
+} CAPTURE_IVC_ALIGN;
 
 /**
  * ISP capture settings
@@ -1767,12 +1791,12 @@ struct nvcsi_tpg_rate_config {
  * @deprecated
  */
 /** @{ */
-#define CAPTURE_ISP_CHANNEL_ERROR_DMA_PBUF_ERR		(U32_C(1) << 0)
-#define CAPTURE_ISP_CHANNEL_ERROR_DMA_SBUF_ERR		(U32_C(1) << 1)
-#define CAPTURE_ISP_CHANNEL_ERROR_DMA_SEQ_ERR		(U32_C(1) << 2)
-#define CAPTURE_ISP_CHANNEL_ERROR_FRAMEID_ERR		(U32_C(1) << 3)
-#define CAPTURE_ISP_CHANNEL_ERROR_TIMEOUT		(U32_C(1) << 4)
-#define CAPTURE_ISP_CHANNEL_ERROR_ALL			U32_C(0x001F)
+#define CAPTURE_ISP_CHANNEL_ERROR_DMA_PBUF_ERR		MK_BIT32(0)
+#define CAPTURE_ISP_CHANNEL_ERROR_DMA_SBUF_ERR		MK_BIT32(1)
+#define CAPTURE_ISP_CHANNEL_ERROR_DMA_SEQ_ERR		MK_BIT32(2)
+#define CAPTURE_ISP_CHANNEL_ERROR_FRAMEID_ERR		MK_BIT32(3)
+#define CAPTURE_ISP_CHANNEL_ERROR_TIMEOUT		MK_BIT32(4)
+#define CAPTURE_ISP_CHANNEL_ERROR_ALL			MK_U32(0x001F)
 /** @} */
 
 /**
@@ -1780,7 +1804,7 @@ struct nvcsi_tpg_rate_config {
  */
 /**@{*/
 /** Channel reset on error */
-#define CAPTURE_ISP_CHANNEL_FLAG_RESET_ON_ERROR	U32_C(0x0001)
+#define CAPTURE_ISP_CHANNEL_FLAG_RESET_ON_ERROR	MK_U32(0x0001)
 /**@}*/
 
 /**
@@ -1836,18 +1860,18 @@ struct capture_channel_isp_config {
 	 * configuration.
 	 */
 	iova_t isp_gos_tables[ISP_NUM_GOS_TABLES];
-} __CAPTURE_IVC_ALIGN;
+} CAPTURE_IVC_ALIGN;
 
 /**
  * @defgroup IspProcesStatus ISP process status codes
  */
 /** @{ */
 /** ISP frame processing status unknown */
-#define CAPTURE_ISP_STATUS_UNKNOWN		U32_C(0)
+#define CAPTURE_ISP_STATUS_UNKNOWN		MK_U32(0)
 /** ISP frame processing succeeded */
-#define CAPTURE_ISP_STATUS_SUCCESS		U32_C(1)
+#define CAPTURE_ISP_STATUS_SUCCESS		MK_U32(1)
 /** ISP frame processing encountered an error */
-#define CAPTURE_ISP_STATUS_ERROR		U32_C(2)
+#define CAPTURE_ISP_STATUS_ERROR		MK_U32(2)
 /** @} */
 
 /**
@@ -1866,20 +1890,20 @@ struct capture_isp_status {
 	uint32_t error_mask;
 	/** Reserved */
 	uint32_t __pad2;
-} __CAPTURE_IVC_ALIGN;
+} CAPTURE_IVC_ALIGN;
 
 /**
  * @defgroup IspProgramStatus ISP program status codes
  */
 /** @{ */
 /** ISP program status unknown */
-#define CAPTURE_ISP_PROGRAM_STATUS_UNKNOWN	U32_C(0)
+#define CAPTURE_ISP_PROGRAM_STATUS_UNKNOWN	MK_U32(0)
 /** ISP program was used successfully for frame processing */
-#define CAPTURE_ISP_PROGRAM_STATUS_SUCCESS	U32_C(1)
+#define CAPTURE_ISP_PROGRAM_STATUS_SUCCESS	MK_U32(1)
 /** ISP program encountered an error */
-#define CAPTURE_ISP_PROGRAM_STATUS_ERROR	U32_C(2)
+#define CAPTURE_ISP_PROGRAM_STATUS_ERROR	MK_U32(2)
 /** ISP program has expired and is not being used by any active process requests */
-#define CAPTURE_ISP_PROGRAM_STATUS_STALE	U32_C(3)
+#define CAPTURE_ISP_PROGRAM_STATUS_STALE	MK_U32(3)
 /** @} */
 
 /**
@@ -1898,18 +1922,18 @@ struct capture_isp_program_status {
 	uint32_t error_mask;
 	/** Reserved */
 	uint32_t __pad2;
-} __CAPTURE_IVC_ALIGN;
+} CAPTURE_IVC_ALIGN;
 
 /**
  * @defgroup IspActivateFlag ISP program activation flag
  */
 /** @{ */
 /** Program request will when the frame sequence id reaches a certain threshold */
-#define CAPTURE_ACTIVATE_FLAG_ON_SEQUENCE_ID	U32_C(0x1)
+#define CAPTURE_ACTIVATE_FLAG_ON_SEQUENCE_ID	MK_U32(0x1)
 /** Program request will be activate when the frame settings id reaches a certain threshold */
-#define CAPTURE_ACTIVATE_FLAG_ON_SETTINGS_ID	U32_C(0x2)
+#define CAPTURE_ACTIVATE_FLAG_ON_SETTINGS_ID	MK_U32(0x2)
 /** Each Process request is coupled with a Program request */
-#define CAPTURE_ACTIVATE_FLAG_COUPLED		U32_C(0x4)
+#define CAPTURE_ACTIVATE_FLAG_COUPLED		MK_U32(0x4)
 /** @} */
 
 /**
@@ -1923,7 +1947,7 @@ struct isp_program_descriptor {
 	 * In case of mem_isp_mem set this to CAPTURE_NO_VI_ISP_BINDING
 	 */
 	uint8_t vi_channel_id;
-#define CAPTURE_NO_VI_ISP_BINDING U8_C(0xFF)
+#define CAPTURE_NO_VI_ISP_BINDING MK_U8(0xFF)
 	/** Reserved */
 	uint8_t __pad_sid[2];
 	/**
@@ -1956,7 +1980,7 @@ struct isp_program_descriptor {
 
 	/** Pad to aligned size */
 	uint32_t __pad[5];
-} __CAPTURE_DESCRIPTOR_ALIGN;
+} CAPTURE_DESCRIPTOR_ALIGN;
 
 /**
  * @brief ISP program size (ATOM aligned).
@@ -1979,7 +2003,7 @@ struct image_surface {
 	uint32_t surface_stride;
 	/** Reserved */
 	uint32_t __pad_surf;
-} __CAPTURE_IVC_ALIGN;
+} CAPTURE_IVC_ALIGN;
 
 /**
  * @brief Output image surface info
@@ -1989,18 +2013,18 @@ struct stats_surface {
 	uint32_t offset;
 	/** Upper 8-bit of the statistics buffer base address */
 	uint32_t offset_hi;
-} __CAPTURE_IVC_ALIGN;
+} CAPTURE_IVC_ALIGN;
 
 /**
  * @defgroup IspProcessFlag ISP process frame specific flags.
  */
 /** @{ */
 /** Enables process status reporting for the channel */
-#define CAPTURE_ISP_FLAG_STATUS_REPORT_ENABLE	(U32_C(1) << 0)
+#define CAPTURE_ISP_FLAG_STATUS_REPORT_ENABLE	MK_BIT32(0)
 /** Enables error reporting for the channel */
-#define CAPTURE_ISP_FLAG_ERROR_REPORT_ENABLE	(U32_C(1) << 1)
+#define CAPTURE_ISP_FLAG_ERROR_REPORT_ENABLE	MK_BIT32(1)
 /** Enables process and program request binding for the channel */
-#define CAPTURE_ISP_FLAG_ISP_PROGRAM_BINDING	(U32_C(1) << 2)
+#define CAPTURE_ISP_FLAG_ISP_PROGRAM_BINDING	MK_BIT32(2)
 /** @} */
 
 /**
@@ -2013,7 +2037,7 @@ struct isp_capture_descriptor {
 	uint32_t capture_flags;
 
 	/** 1 MR port, max 3 input surfaces */
-#define ISP_MAX_INPUT_SURFACES (3U)
+#define ISP_MAX_INPUT_SURFACES		MK_U32(3)
 
 	/** Input images surfaces */
 	struct image_surface input_mr_surfaces[ISP_MAX_INPUT_SURFACES];
@@ -2021,8 +2045,8 @@ struct isp_capture_descriptor {
 	/**
 	 * 3 MW ports, max 2 surfaces (multiplanar) per port.
 	 */
-#define ISP_MAX_OUTPUTS (3U)
-#define ISP_MAX_OUTPUT_SURFACES (2U)
+#define ISP_MAX_OUTPUTS			MK_U32(3)
+#define ISP_MAX_OUTPUT_SURFACES		MK_U32(2)
 
 	struct {
 		/** Memory write port output surfaces */
@@ -2125,7 +2149,7 @@ struct isp_capture_descriptor {
 	};
 
 	/* GID-STKHLDREQPLCL123-3812735 */
-#define ISP_MAX_PREFENCES	14U
+#define ISP_MAX_PREFENCES	MK_U32(14)
 
 	/**
 	 * Number of traditional prefences for given capture request.
@@ -2150,7 +2174,7 @@ struct isp_capture_descriptor {
 
 	/** Reserved */
 	uint32_t __pad[3];
-} __CAPTURE_DESCRIPTOR_ALIGN;
+} CAPTURE_DESCRIPTOR_ALIGN;
 
 /**
  * @brief PB2 size (ATOM aligned).
@@ -2159,19 +2183,18 @@ struct isp_capture_descriptor {
  * descriptor buffer for each request, so that KMD and RCE can co-locate
  * PB2 and it's corresponding capture descriptor in memory.
  */
-#define ISP_PB2_MAX_SIZE 512
+#define ISP_PB2_MAX_SIZE		MK_SIZE(512)
 
 /**
  * @brief Size allocated for the ISP program push buffer
  */
-#define NVISP5_ISP_PROGRAM_PB_SIZE 16384
+#define NVISP5_ISP_PROGRAM_PB_SIZE	MK_SIZE(16384)
 
 /**
 * @brief Size allocated for the push buffer containing output & stats
 * surface definitions. Final value TBD
 */
-#define NVISP5_SURFACE_PB_SIZE 512
-
+#define NVISP5_SURFACE_PB_SIZE		MK_SIZE(512)
 
 /**
  * @ brief Downscaler configuration information that is needed for building ISP config buffer.
@@ -2207,37 +2230,35 @@ struct isp5_downscaler_configbuf {
 };
 
 /**
- * @brief ISP sub-units enabled enumeration.
+ * @brief ISP sub-units enabled bits.
  */
-enum isp5_block_enabled {
-	ISP5BLOCK_ENABLED_PRU_OUTLIER_REJECTION = 1U,
-	ISP5BLOCK_ENABLED_PRU_STATS = 1U << 1,
-	ISP5BLOCK_ENABLED_PRU_HDR = 1U << 2,
-	ISP5BLOCK_ENABLED_AP_DEMOSAIC = 1U << 4,
-	ISP5BLOCK_ENABLED_AP_CAR = 1U << 5,
-	ISP5BLOCK_ENABLED_AP_LTM_MODIFY = 1U << 6,
-	ISP5BLOCK_ENABLED_AP_LTM_STATS = 1U << 7,
-	ISP5BLOCK_ENABLED_AP_FOCUS_METRIC = 1U << 8,
-	ISP5BLOCK_ENABLED_FLICKERBAND = 1U << 9,
-	ISP5BLOCK_ENABLED_HISTOGRAM0 = 1U << 10,
-	ISP5BLOCK_ENABLED_HISTOGRAM1 = 1U << 11,
-	ISP5BLOCK_ENABLED_DOWNSCALER0_HOR = 1U << 12,
-	ISP5BLOCK_ENABLED_DOWNSCALER0_VERT = 1U << 13,
-	ISP5BLOCK_ENABLED_DOWNSCALER1_HOR = 1U << 14,
-	ISP5BLOCK_ENABLED_DOWNSCALER1_VERT = 1U << 15,
-	ISP5BLOCK_ENABLED_DOWNSCALER2_HOR = 1U << 16,
-	ISP5BLOCK_ENABLED_DOWNSCALER2_VERT = 1U << 17,
-	ISP5BLOCK_ENABLED_SHARPEN0 = 1U << 18,
-	ISP5BLOCK_ENABLED_SHARPEN1 = 1U << 19,
-	ISP5BLOCK_ENABLED_LAC0_REGION0 = 1U << 20,
-	ISP5BLOCK_ENABLED_LAC0_REGION1 = 1U << 21,
-	ISP5BLOCK_ENABLED_LAC0_REGION2 = 1U << 22,
-	ISP5BLOCK_ENABLED_LAC0_REGION3 = 1U << 23,
-	ISP5BLOCK_ENABLED_LAC1_REGION0 = 1U << 24,
-	ISP5BLOCK_ENABLED_LAC1_REGION1 = 1U << 25,
-	ISP5BLOCK_ENABLED_LAC1_REGION2 = 1U << 26,
-	ISP5BLOCK_ENABLED_LAC1_REGION3 = 1U << 27
-};
+#define ISP5BLOCK_ENABLED_PRU_OUTLIER_REJECTION		MK_BIT32(0)
+#define	ISP5BLOCK_ENABLED_PRU_STATS			MK_BIT32(1)
+#define	ISP5BLOCK_ENABLED_PRU_HDR			MK_BIT32(2)
+#define	ISP5BLOCK_ENABLED_AP_DEMOSAIC			MK_BIT32(4)
+#define	ISP5BLOCK_ENABLED_AP_CAR			MK_BIT32(5)
+#define	ISP5BLOCK_ENABLED_AP_LTM_MODIFY			MK_BIT32(6)
+#define	ISP5BLOCK_ENABLED_AP_LTM_STATS			MK_BIT32(7)
+#define	ISP5BLOCK_ENABLED_AP_FOCUS_METRIC		MK_BIT32(8)
+#define	ISP5BLOCK_ENABLED_FLICKERBAND			MK_BIT32(9)
+#define	ISP5BLOCK_ENABLED_HISTOGRAM0			MK_BIT32(10)
+#define	ISP5BLOCK_ENABLED_HISTOGRAM1			MK_BIT32(11)
+#define	ISP5BLOCK_ENABLED_DOWNSCALER0_HOR		MK_BIT32(12)
+#define	ISP5BLOCK_ENABLED_DOWNSCALER0_VERT		MK_BIT32(13)
+#define	ISP5BLOCK_ENABLED_DOWNSCALER1_HOR		MK_BIT32(14)
+#define	ISP5BLOCK_ENABLED_DOWNSCALER1_VERT		MK_BIT32(15)
+#define	ISP5BLOCK_ENABLED_DOWNSCALER2_HOR		MK_BIT32(16)
+#define	ISP5BLOCK_ENABLED_DOWNSCALER2_VERT		MK_BIT32(17)
+#define	ISP5BLOCK_ENABLED_SHARPEN0			MK_BIT32(18)
+#define	ISP5BLOCK_ENABLED_SHARPEN1			MK_BIT32(19)
+#define	ISP5BLOCK_ENABLED_LAC0_REGION0			MK_BIT32(20)
+#define	ISP5BLOCK_ENABLED_LAC0_REGION1			MK_BIT32(21)
+#define	ISP5BLOCK_ENABLED_LAC0_REGION2			MK_BIT32(22)
+#define	ISP5BLOCK_ENABLED_LAC0_REGION3			MK_BIT32(23)
+#define	ISP5BLOCK_ENABLED_LAC1_REGION0			MK_BIT32(24)
+#define	ISP5BLOCK_ENABLED_LAC1_REGION1			MK_BIT32(25)
+#define	ISP5BLOCK_ENABLED_LAC1_REGION2			MK_BIT32(26)
+#define	ISP5BLOCK_ENABLED_LAC1_REGION3			MK_BIT32(27)
 
 /**
  * @brief ISP overfetch requirements.
@@ -2352,9 +2373,9 @@ struct isp5_program {
 	 * specified in the capture descriptor ISP payload.
 	 */
 	uint32_t pushbuffer[NVISP5_ISP_PROGRAM_PB_SIZE / sizeof(uint32_t)]
-			__CAPTURE_DESCRIPTOR_ALIGN;
+			CAPTURE_DESCRIPTOR_ALIGN;
 
-} __CAPTURE_DESCRIPTOR_ALIGN;
+} CAPTURE_DESCRIPTOR_ALIGN;
 
 /**
  * @brief ISP Program ringbuffer element
@@ -2367,7 +2388,7 @@ struct isp5_program_entry {
 	struct isp_program_descriptor prog_desc;
 	/** ISP program buffer */
 	struct isp5_program isp_prog;
-} __CAPTURE_DESCRIPTOR_ALIGN;
+} CAPTURE_DESCRIPTOR_ALIGN;
 
 #pragma GCC diagnostic ignored "-Wpadded"
 
