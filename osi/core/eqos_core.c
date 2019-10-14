@@ -1550,7 +1550,7 @@ static void eqos_handle_common_intr(struct osi_core_priv_data *osi_core)
 			/* mask off RI and TI */
 			dma_sr &= ~(OSI_BIT(6) | OSI_BIT(0));
 			if (dma_sr == 0U) {
-				return;
+				continue;
 			}
 
 			/* ack non ti/ri ints */
