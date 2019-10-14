@@ -307,7 +307,7 @@ struct nvgpu_mapped_buf *nvgpu_vm_find_mapped_buf_range(
 struct nvgpu_mapped_buf *nvgpu_vm_find_mapped_buf_less_than(
 	struct vm_gk20a *vm, u64 addr);
 
-int nvgpu_insert_mapped_buf(struct vm_gk20a *vm,
+void nvgpu_insert_mapped_buf(struct vm_gk20a *vm,
 			    struct nvgpu_mapped_buf *mapped_buffer);
 
 /*

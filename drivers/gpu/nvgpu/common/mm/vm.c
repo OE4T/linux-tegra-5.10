@@ -919,7 +919,7 @@ void nvgpu_vm_put(struct vm_gk20a *vm)
 	nvgpu_ref_put(&vm->ref, nvgpu_vm_remove_ref);
 }
 
-int nvgpu_insert_mapped_buf(struct vm_gk20a *vm,
+void nvgpu_insert_mapped_buf(struct vm_gk20a *vm,
 			    struct nvgpu_mapped_buf *mapped_buffer)
 {
 	mapped_buffer->node.key_start = mapped_buffer->addr;
@@ -929,8 +929,6 @@ int nvgpu_insert_mapped_buf(struct vm_gk20a *vm,
 	nvgpu_rbtree_insert(&mapped_buffer->node, &vm->mapped_buffers);
 	nvgpu_assert(vm->num_user_mapped_buffers < U32_MAX);
 	vm->num_user_mapped_buffers++;
-
-	return 0;
 }
 
 static void nvgpu_remove_mapped_buf(struct vm_gk20a *vm,
@@ -1427,11 +1425,7 @@ int nvgpu_vm_map(struct vm_gk20a *vm,
 	mapped_buffer->va_allocated = va_allocated;
 	mapped_buffer->vm_area      = vm_area;
 
-	err = nvgpu_insert_mapped_buf(vm, mapped_buffer);
-	if (err != 0) {
-		nvgpu_err(g, "failed to insert into mapped buffer tree");
-		goto clean_up;
-	}
+	nvgpu_insert_mapped_buf(vm, mapped_buffer);
 
 	if (vm_area != NULL) {
 		nvgpu_list_add_tail(&mapped_buffer->buffer_list,
@@ -1444,17 +1438,6 @@ int nvgpu_vm_map(struct vm_gk20a *vm,
 	return 0;
 
 clean_up:
-	if (mapped_buffer->addr != 0ULL) {
-		g->ops.mm.gmmu.unmap(vm,
-				     mapped_buffer->addr,
-				     mapped_buffer->size,
-				     mapped_buffer->pgsz_idx,
-				     mapped_buffer->va_allocated,
-				     gk20a_mem_flag_none,
-				     (mapped_buffer->vm_area != NULL) ?
-				     mapped_buffer->vm_area->sparse : false,
-				     NULL);
-	}
 	nvgpu_mutex_release(&vm->update_gmmu_lock);
 clean_up_nolock:
 	nvgpu_kfree(g, mapped_buffer);
