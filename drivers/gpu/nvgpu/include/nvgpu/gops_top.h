@@ -232,6 +232,9 @@ struct gops_top {
 	 */
 	u32 (*get_num_lce)(struct gk20a *g);
 
+
+	/** @cond DOXYGEN_SHOULD_SKIP_THIS */
+
 	/**
 	 * NON-FUSA HALs
 	 */
@@ -254,6 +257,9 @@ struct gops_top {
 	int (*device_info_parse_data)(struct gk20a *g,
 					u32 table_entry, u32 *inst_id,
 					u32 *pri_base, u32 *fault_id);
+
+	/** @endcond DOXYGEN_SHOULD_SKIP_THIS */
+
 };
 
 #endif /* NVGPU_GOPS_TOP_H */
