@@ -38,10 +38,18 @@ struct nvgpu_mapped_buf *nvgpu_vm_find_mapping(struct vm_gk20a *vm,
 					       u32 flags,
 					       s16 kind)
 {
-	/*
-	 * No map caching for now.
-	 */
-	return NULL;
+	struct nvgpu_mapped_buf *mapped_buffer = NULL;
+
+	mapped_buffer = nvgpu_vm_find_mapped_buf(vm, map_addr);
+	if (mapped_buffer == NULL) {
+		return NULL;
+	}
+
+	if (mapped_buffer->flags != flags) {
+		return NULL;
+	}
+
+	return mapped_buffer;
 }
 
 void nvgpu_vm_unmap_system(struct nvgpu_mapped_buf *mapped_buffer)
