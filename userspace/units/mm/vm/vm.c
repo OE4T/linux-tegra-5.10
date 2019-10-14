@@ -33,6 +33,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/nvgpu_sgt.h>
 #include <nvgpu/vm_area.h>
+#include <nvgpu/pd_cache.h>
 
 #include <hal/mm/cache/flush_gk20a.h>
 #include <hal/mm/cache/flush_gv11b.h>
@@ -43,6 +44,9 @@
 
 #include <nvgpu/hw/gv11b/hw_gmmu_gv11b.h>
 
+#include <nvgpu/bug.h>
+#include <nvgpu/posix/posix-fault-injection.h>
+
 /* Random CPU physical address for the buffers we'll map */
 #define BUF_CPU_PA		0xEFAD80000000ULL
 #define TEST_BATCH_NUM_BUFFERS	10
@@ -50,6 +54,12 @@
 #define PHYS_ADDR_BITS_LOW	0xFFFFFF00U
 /* Check if address is aligned at the requested boundary */
 #define IS_ALIGNED(addr, align)	((addr & (align - 1U)) == 0U)
+
+/* Define some special cases */
+#define NO_SPECIAL_CASE			0
+#define SPECIAL_CASE_DOUBLE_MAP		1
+#define SPECIAL_CASE_NO_FREE		2
+#define SPECIAL_CASE_NO_VM_AREA		3
 
 /*
  * Helper function used to create custom SGTs from a list of SGLs.
@@ -120,6 +130,29 @@ static u64 pte_get_phys_addr(struct unit_module *m, u32 *pte)
 	return (addr_bits << gmmu_new_pde_address_shift_v());
 }
 
+/* Dummy HAL for mm_init_inst_block */
+static void hal_mm_init_inst_block(struct nvgpu_mem *inst_block,
+	struct vm_gk20a *vm, u32 big_page_size)
+{
+}
+
+/* Dummy HAL for vm_as_free_share */
+static void hal_vm_as_free_share(struct vm_gk20a *vm)
+{
+}
+
+/* Dummy HAL for fb_tlb_invalidate that always fails */
+static int hal_fb_tlb_invalidate_error(struct gk20a *g, struct nvgpu_mem *pdb)
+{
+	return -1;
+}
+
+/* Dummy HAL for vm_as_alloc_share that always fails */
+static int hal_vm_as_alloc_share_error(struct gk20a *g, struct vm_gk20a *vm)
+{
+	return -1;
+}
+
 /* Initialize test environment */
 static int init_test_env(struct unit_module *m, struct gk20a *g)
 {
@@ -147,11 +180,303 @@ static int init_test_env(struct unit_module *m, struct gk20a *g)
 	g->ops.mm.gmmu.gpu_phys_addr = gv11b_gpu_phys_addr;
 	g->ops.mm.cache.l2_flush = gv11b_mm_l2_flush;
 	g->ops.mm.cache.fb_flush = gk20a_mm_fb_flush;
+	g->ops.mm.init_inst_block = hal_mm_init_inst_block;
+	g->ops.mm.vm_as_free_share = hal_vm_as_free_share;
+
+	if (nvgpu_pd_cache_init(g) != 0) {
+		unit_return_fail(m, "PD cache init failed.\n");
+	}
 
 	return UNIT_SUCCESS;
 }
 
 #define NV_KIND_INVALID -1
+
+static struct vm_gk20a *create_test_vm(struct unit_module *m, struct gk20a *g)
+{
+	struct vm_gk20a *vm;
+	u64 low_hole = SZ_1M * 64;
+	u64 kernel_reserved = 4 * SZ_1G - low_hole;
+	u64 aperture_size = 128 * SZ_1G;
+	u64 user_vma = aperture_size - low_hole - kernel_reserved;
+
+	unit_info(m, "Initializing VM:\n");
+	unit_info(m, "   - Low Hole Size = 0x%llx\n", low_hole);
+	unit_info(m, "   - User Aperture Size = 0x%llx\n", user_vma);
+	unit_info(m, "   - Kernel Reserved Size = 0x%llx\n", kernel_reserved);
+	unit_info(m, "   - Total Aperture Size = 0x%llx\n", aperture_size);
+	vm = nvgpu_vm_init(g,
+			   g->ops.mm.gmmu.get_default_big_page_size(),
+			   low_hole,
+			   kernel_reserved,
+			   aperture_size,
+			   true,
+			   false,
+			   true,
+			   __func__);
+	return vm;
+}
+
+int test_nvgpu_vm_alloc_va(struct unit_module *m, struct gk20a *g,
+	void *__args)
+{
+	struct vm_gk20a *vm = create_test_vm(m, g);
+	int ret = UNIT_FAIL;
+	struct nvgpu_posix_fault_inj *kmem_fi =
+		nvgpu_kmem_get_fault_injection();
+	u64 addr;
+
+	/* Error handling: VM cannot allocate VA */
+	vm->guest_managed = true;
+	addr = nvgpu_vm_alloc_va(vm, SZ_1K, 0);
+	vm->guest_managed = false;
+	if (addr != 0) {
+		unit_err(m, "nvgpu_vm_alloc_va did not fail as expected (1).\n");
+		ret = UNIT_FAIL;
+		goto exit;
+	}
+
+	/* Error handling: invalid page size */
+	addr = nvgpu_vm_alloc_va(vm, SZ_1K, GMMU_NR_PAGE_SIZES);
+	if (addr != 0) {
+		unit_err(m, "nvgpu_vm_alloc_va did not fail as expected (2).\n");
+		ret = UNIT_FAIL;
+		goto exit;
+	}
+
+	/* Error handling: unsupported page size */
+	vm->big_pages = false;
+	addr = nvgpu_vm_alloc_va(vm, SZ_1K, GMMU_PAGE_SIZE_BIG);
+	if (addr != 0) {
+		unit_err(m, "nvgpu_vm_alloc_va did not fail as expected (3).\n");
+		ret = UNIT_FAIL;
+		goto exit;
+	}
+
+	/* Make the PTE allocation fail */
+	nvgpu_posix_enable_fault_injection(kmem_fi, true, 0);
+	addr = nvgpu_vm_alloc_va(vm, SZ_1K, 0);
+	nvgpu_posix_enable_fault_injection(kmem_fi, false, 0);
+	if (addr != 0) {
+		unit_err(m, "nvgpu_vm_alloc_va did not fail as expected (4).\n");
+		ret = UNIT_FAIL;
+		goto exit;
+	}
+
+	/* Now make it succeed */
+	addr = nvgpu_vm_alloc_va(vm, SZ_1K, 0);
+	if (addr == 0) {
+		unit_err(m, "Failed to allocate a VA\n");
+		ret = UNIT_FAIL;
+		goto exit;
+	}
+
+	ret = UNIT_SUCCESS;
+exit:
+	if (vm != NULL) {
+		nvgpu_vm_put(vm);
+	}
+
+	return ret;
+}
+
+int test_map_buffer_error_cases(struct unit_module *m, struct gk20a *g,
+	void *__args)
+{
+	struct vm_gk20a *vm;
+	int ret = UNIT_FAIL;
+	struct nvgpu_os_buffer os_buf = {0};
+	struct nvgpu_mem_sgl sgl_list[1];
+	struct nvgpu_mem mem = {0};
+	struct nvgpu_sgt *sgt = NULL;
+	size_t buf_size = SZ_4K;
+	struct nvgpu_mapped_buf *mapped_buf = NULL;
+	struct nvgpu_posix_fault_inj *kmem_fi =
+		nvgpu_kmem_get_fault_injection();
+
+	vm = create_test_vm(m, g);
+
+	if (vm == NULL) {
+		unit_err(m, "vm is NULL\n");
+		ret = UNIT_FAIL;
+		goto exit;
+	}
+
+	/* Allocate a CPU buffer */
+	os_buf.buf = nvgpu_kzalloc(g, buf_size);
+	if (os_buf.buf == NULL) {
+		unit_err(m, "Failed to allocate a CPU buffer\n");
+		ret = UNIT_FAIL;
+		goto free_sgt_os_buf;
+	}
+	os_buf.size = buf_size;
+
+	memset(&sgl_list[0], 0, sizeof(sgl_list[0]));
+	sgl_list[0].phys = BUF_CPU_PA;
+	sgl_list[0].dma = 0;
+	sgl_list[0].length = buf_size;
+
+	mem.size = buf_size;
+	mem.cpu_va = os_buf.buf;
+
+	/* Create sgt */
+	sgt = custom_sgt_create(m, g, &mem, sgl_list, 1);
+	if (sgt == NULL) {
+		ret = UNIT_FAIL;
+		goto free_sgt_os_buf;
+	}
+
+	/* Non-fixed offset with userspace managed VM */
+	vm->userspace_managed = true;
+	ret = nvgpu_vm_map(vm,
+			   &os_buf,
+			   sgt,
+			   0,
+			   buf_size,
+			   0,
+			   gk20a_mem_flag_none,
+			   NVGPU_VM_MAP_CACHEABLE,
+			   NV_KIND_INVALID,
+			   0,
+			   NULL,
+			   APERTURE_SYSMEM,
+			   &mapped_buf);
+	vm->userspace_managed = false;
+	if (ret != -EINVAL) {
+		unit_err(m, "nvgpu_vm_map did not fail as expected (1)\n");
+		ret = UNIT_FAIL;
+		goto free_sgt_os_buf;
+	}
+
+	/* Invalid buffer size */
+	os_buf.size = 0;
+	ret = nvgpu_vm_map(vm,
+			   &os_buf,
+			   sgt,
+			   0,
+			   buf_size,
+			   0,
+			   gk20a_mem_flag_none,
+			   NVGPU_VM_MAP_CACHEABLE,
+			   NV_KIND_INVALID,
+			   0,
+			   NULL,
+			   APERTURE_SYSMEM,
+			   &mapped_buf);
+	os_buf.size = buf_size;
+	if (ret != -EINVAL) {
+		unit_err(m, "nvgpu_vm_map did not fail as expected (2)\n");
+		ret = UNIT_FAIL;
+		goto free_sgt_os_buf;
+	}
+
+	/* Make the mapped_buffer allocation fail */
+	nvgpu_posix_enable_fault_injection(kmem_fi, true, 0);
+	ret = nvgpu_vm_map(vm,
+			   &os_buf,
+			   sgt,
+			   0,
+			   buf_size,
+			   0,
+			   gk20a_mem_flag_none,
+			   NVGPU_VM_MAP_CACHEABLE,
+			   NV_KIND_INVALID,
+			   0,
+			   NULL,
+			   APERTURE_SYSMEM,
+			   &mapped_buf);
+	nvgpu_posix_enable_fault_injection(kmem_fi, false, 0);
+	if (ret != -ENOMEM) {
+		unit_err(m, "nvgpu_vm_map did not fail as expected (3)\n");
+		ret = UNIT_FAIL;
+		goto free_sgt_os_buf;
+	}
+
+	/* Invalid mapping size */
+	ret = nvgpu_vm_map(vm,
+			   &os_buf,
+			   sgt,
+			   0,
+			   SZ_1G,
+			   0,
+			   gk20a_mem_flag_none,
+			   NVGPU_VM_MAP_CACHEABLE,
+			   NV_KIND_INVALID,
+			   0,
+			   NULL,
+			   APERTURE_SYSMEM,
+			   &mapped_buf);
+	if (ret != -EINVAL) {
+		unit_err(m, "nvgpu_vm_map did not fail as expected (4)\n");
+		ret = UNIT_FAIL;
+		goto free_sgt_os_buf;
+	}
+
+#ifndef CONFIG_NVGPU_COMPRESSION
+	/* Enable comptag compression (not supported) */
+	ret = nvgpu_vm_map(vm,
+			   &os_buf,
+			   sgt,
+			   0,
+			   buf_size,
+			   0,
+			   gk20a_mem_flag_none,
+			   NVGPU_VM_MAP_CACHEABLE,
+			   NVGPU_KIND_INVALID,
+			   NVGPU_KIND_INVALID,
+			   NULL,
+			   APERTURE_SYSMEM,
+			   &mapped_buf);
+	if (ret != -ENOMEM) {
+		unit_err(m, "nvgpu_vm_map did not fail as expected (5)\n");
+		ret = UNIT_FAIL;
+		goto free_sgt_os_buf;
+	}
+#endif
+
+	/* Make g->ops.mm.gmmu.map fail */
+	nvgpu_posix_enable_fault_injection(kmem_fi, true, 40);
+	ret = nvgpu_vm_map(vm,
+			   &os_buf,
+			   sgt,
+			   0,
+			   buf_size,
+			   0,
+			   gk20a_mem_flag_none,
+			   NVGPU_VM_MAP_CACHEABLE,
+			   NV_KIND_INVALID,
+			   0,
+			   NULL,
+			   APERTURE_SYSMEM,
+			   &mapped_buf);
+	nvgpu_posix_enable_fault_injection(kmem_fi, false, 0);
+	if (ret != -ENOMEM) {
+		unit_err(m, "nvgpu_vm_map did not fail as expected (6)\n");
+		ret = UNIT_FAIL;
+		goto free_sgt_os_buf;
+	}
+
+	ret = UNIT_SUCCESS;
+
+free_sgt_os_buf:
+	if (sgt != NULL) {
+		nvgpu_sgt_free(g, sgt);
+	}
+	if (os_buf.buf != NULL) {
+		nvgpu_kfree(g, os_buf.buf);
+	}
+
+exit:
+	if (ret == UNIT_FAIL) {
+		unit_err(m, "Buffer mapping failed\n");
+	}
+
+	if (vm != NULL) {
+		nvgpu_vm_put(vm);
+	}
+
+	return ret;
+}
 
 /*
  * Try mapping a buffer into the GPU virtual address space:
@@ -163,14 +488,15 @@ static int init_test_env(struct unit_module *m, struct gk20a *g)
  *    - Unmap buffer
  */
 static int map_buffer(struct unit_module *m,
-	              struct gk20a *g,
-	              struct vm_gk20a *vm,
+		      struct gk20a *g,
+		      struct vm_gk20a *vm,
 		      struct vm_gk20a_mapping_batch *batch,
-	              u64 cpu_pa,
-	              u64 gpu_va,
-	              size_t buf_size,
-	              size_t page_size,
-	              size_t alignment)
+		      u64 cpu_pa,
+		      u64 gpu_va,
+		      size_t buf_size,
+		      size_t page_size,
+		      size_t alignment,
+		      int subcase)
 {
 	int ret = UNIT_SUCCESS;
 	u32 flags = NVGPU_VM_MAP_CACHEABLE;
@@ -183,6 +509,10 @@ static int map_buffer(struct unit_module *m,
 	bool fixed_gpu_va = (gpu_va != 0);
 	s16 compr_kind;
 	u32 pte[2];
+	struct nvgpu_mapped_buf **mapped_buffers = NULL;
+	u32 num_mapped_buffers = 0;
+	struct nvgpu_posix_fault_inj *kmem_fi =
+		nvgpu_kmem_get_fault_injection();
 
 	if (vm == NULL) {
 		unit_err(m, "vm is NULL\n");
@@ -214,7 +544,7 @@ static int map_buffer(struct unit_module *m,
 		goto free_sgt_os_buf;
 	}
 
-	if (fixed_gpu_va) {
+	if (fixed_gpu_va && (subcase != SPECIAL_CASE_NO_VM_AREA)) {
 		size_t num_pages = DIV_ROUND_UP(buf_size, page_size);
 		u64 gpu_va_copy = gpu_va;
 
@@ -264,6 +594,32 @@ static int map_buffer(struct unit_module *m,
 		goto free_vm_area;
 	}
 
+	/*
+	 * Make nvgpu_vm_find_mapping return non-NULL to prevent the actual
+	 * mapping, thus simulating the fact that the buffer is already mapped.
+	 */
+	if (subcase == SPECIAL_CASE_DOUBLE_MAP) {
+		ret = nvgpu_vm_map(vm,
+				&os_buf,
+				sgt,
+				gpu_va,
+				buf_size,
+				0,
+				gk20a_mem_flag_none,
+				flags,
+				compr_kind,
+				0,
+				batch,
+				APERTURE_SYSMEM,
+				&mapped_buf);
+		if (ret != 0) {
+			unit_err(m, "Failed to map buffer into the GPU virtual"
+				" address space (second mapping)\n");
+			ret = UNIT_FAIL;
+			goto free_mapped_buf;
+		}
+	}
+
 	/* Check if we can find the mapped buffer */
 	mapped_buf_check = nvgpu_vm_find_mapped_buf(vm, mapped_buf->addr);
 	if (mapped_buf_check == NULL) {
@@ -273,6 +629,35 @@ static int map_buffer(struct unit_module *m,
 	}
 	if (mapped_buf_check->addr != mapped_buf->addr) {
 		unit_err(m, "Invalid buffer GPU VA\n");
+		ret = UNIT_FAIL;
+		goto free_mapped_buf;
+	}
+
+	/* Check if we can find the mapped buffer via a range search */
+	mapped_buf_check = nvgpu_vm_find_mapped_buf_range(vm,
+		mapped_buf->addr + buf_size/2);
+	if (mapped_buf_check == NULL) {
+		unit_err(m, "Can't find mapped buffer via range search\n");
+		ret = UNIT_FAIL;
+		goto free_mapped_buf;
+	}
+
+	/* Check if we can find the mapped buffer via "less than" search */
+	mapped_buf_check = nvgpu_vm_find_mapped_buf_less_than(vm,
+		mapped_buf->addr + buf_size/2);
+	if (mapped_buf_check == NULL) {
+		unit_err(m, "Can't find mapped buffer via less-than search\n");
+		ret = UNIT_FAIL;
+		goto free_mapped_buf;
+	}
+
+	/*
+	 * For code coverage, ensure that an invalid address does not return
+	 * a buffer.
+	 */
+	mapped_buf_check = nvgpu_vm_find_mapped_buf_range(vm, 0);
+	if (mapped_buf_check != NULL) {
+		unit_err(m, "Found inexistant mapped buffer\n");
 		ret = UNIT_FAIL;
 		goto free_mapped_buf;
 	}
@@ -319,14 +704,56 @@ static int map_buffer(struct unit_module *m,
 		goto free_mapped_buf;
 	}
 
+
+	/*
+	 * Test the nvgpu_vm_get_buffers logic and ensure code coverage.
+	 * First use error injection to make it fail.
+	 */
+	nvgpu_posix_enable_fault_injection(kmem_fi, true, 0);
+	ret = nvgpu_vm_get_buffers(vm, &mapped_buffers, &num_mapped_buffers);
+	nvgpu_posix_enable_fault_injection(kmem_fi, false, 0);
+	if (ret != -ENOMEM) {
+		unit_err(m, "nvgpu_vm_get_buffers did not fail as expected.\n");
+		ret = UNIT_FAIL;
+		goto free_mapped_buf;
+	}
+
+	/* Second, make it succeed and check the result. */
+	nvgpu_vm_get_buffers(vm, &mapped_buffers, &num_mapped_buffers);
+	nvgpu_vm_put_buffers(vm, mapped_buffers, 0);
+	nvgpu_vm_put_buffers(vm, mapped_buffers, num_mapped_buffers);
+	if (num_mapped_buffers == 0) {
+		unit_err(m, "Invalid number of mapped buffers\n");
+		ret = UNIT_FAIL;
+		goto free_mapped_buf;
+	}
+
+	/*
+	 * If VM is userspace managed, there should not be any accessible
+	 * buffers.
+	 */
+	vm->userspace_managed = true;
+	nvgpu_vm_get_buffers(vm, &mapped_buffers, &num_mapped_buffers);
+	vm->userspace_managed = false;
+	if (num_mapped_buffers != 0) {
+		unit_err(m, "Found accessible buffers in userspace managed VM\n");
+		ret = UNIT_FAIL;
+		goto free_mapped_buf;
+	}
+
 	ret = UNIT_SUCCESS;
 
 free_mapped_buf:
-	if (mapped_buf != NULL) {
+	if ((mapped_buf != NULL) && (subcase != SPECIAL_CASE_NO_FREE)) {
+		nvgpu_vm_unmap(vm, mapped_buf->addr, batch);
+		/*
+		 * Unmapping an already unmapped buffer should not cause any
+		 * errors.
+		 */
 		nvgpu_vm_unmap(vm, mapped_buf->addr, batch);
 	}
 free_vm_area:
-	if (fixed_gpu_va) {
+	if (fixed_gpu_va && (subcase != SPECIAL_CASE_NO_FREE)) {
 		ret = nvgpu_vm_area_free(vm, gpu_va);
 		if (ret != 0) {
 			unit_err(m, "Failed to free vm area\n");
@@ -348,6 +775,275 @@ exit:
 	return ret;
 }
 
+int test_vm_bind(struct unit_module *m, struct gk20a *g, void *__args)
+{
+	int ret = UNIT_FAIL;
+	struct vm_gk20a *vm = NULL;
+
+	struct nvgpu_channel *channel = (struct nvgpu_channel *)
+		malloc(sizeof(struct nvgpu_channel));
+	channel->g = g;
+
+	vm = create_test_vm(m, g);
+
+	nvgpu_vm_bind_channel(vm, channel);
+
+	if (channel->vm != vm) {
+		ret = UNIT_FAIL;
+		unit_err(m, "nvgpu_vm_bind_channel failed to bind the vm.\n");
+		goto exit;
+	}
+
+	ret = UNIT_SUCCESS;
+exit:
+	free(channel);
+	nvgpu_vm_put(vm);
+	return ret;
+}
+
+int test_vm_aspace_id(struct unit_module *m, struct gk20a *g, void *__args)
+{
+	int ret = UNIT_FAIL;
+	struct vm_gk20a *vm = NULL;
+	struct gk20a_as_share as_share;
+
+	vm = create_test_vm(m, g);
+
+	if (vm_aspace_id(vm) != -1) {
+		ret = UNIT_FAIL;
+		unit_err(m, "create_test_vm did not return an expected value (1).\n");
+		goto exit;
+	}
+
+	as_share.id = 0;
+	vm->as_share = &as_share;
+
+	if (vm_aspace_id(vm) != 0) {
+		ret = UNIT_FAIL;
+		unit_err(m, "create_test_vm did not return an expected value (2).\n");
+		goto exit;
+	}
+
+	ret = UNIT_SUCCESS;
+exit:
+	nvgpu_vm_put(vm);
+	return ret;
+}
+
+int test_init_error_paths(struct unit_module *m, struct gk20a *g, void *__args)
+{
+	int ret = UNIT_SUCCESS;
+	struct vm_gk20a *vm = NULL;
+	u64 low_hole = 0;
+	u64 kernel_reserved = 0;
+	u64 aperture_size = 0;
+	bool big_pages = true;
+	struct nvgpu_posix_fault_inj *kmem_fi =
+		nvgpu_kmem_get_fault_injection();
+
+	/* Initialize test environment */
+	ret = init_test_env(m, g);
+	if (ret != UNIT_SUCCESS) {
+		goto exit;
+	}
+
+	/* Set VM parameters */
+	big_pages = true;
+	low_hole = SZ_1M * 64;
+	aperture_size = 128 * SZ_1G;
+	kernel_reserved = 4 * SZ_1G - low_hole;
+
+	/* Error injection to make the allocation for struct vm_gk20a to fail */
+	nvgpu_posix_enable_fault_injection(kmem_fi, true, 0);
+	vm = nvgpu_vm_init(g,
+			   g->ops.mm.gmmu.get_default_big_page_size(),
+			   low_hole,
+			   kernel_reserved,
+			   aperture_size,
+			   big_pages,
+			   false,
+			   true,
+			   __func__);
+	nvgpu_posix_enable_fault_injection(kmem_fi, false, 0);
+	if (vm != NULL) {
+		unit_err(m, "Init VM did not fail as expected. (1)\n");
+		ret = UNIT_FAIL;
+		goto exit;
+	}
+
+	/*
+	 * Cause the nvgpu_vm_do_init function to assert by setting an invalid
+	 * aperture size
+	 */
+	if (!EXPECT_BUG(
+		nvgpu_vm_init(g,
+			   g->ops.mm.gmmu.get_default_big_page_size(),
+			   low_hole,
+			   kernel_reserved,
+			   0, /* invalid aperture size */
+			   big_pages,
+			   false,
+			   true,
+			   __func__)
+	)) {
+		unit_err(m, "BUG() was not called but it was expected (2).\n");
+		ret = UNIT_FAIL;
+		goto exit;
+	}
+
+	/* Make nvgpu_vm_do_init fail with invalid parameters */
+	vm = nvgpu_kzalloc(g, sizeof(*vm));
+	vm->guest_managed = true;
+	if (!EXPECT_BUG(
+		nvgpu_vm_do_init(&g->mm, vm,
+				g->ops.mm.gmmu.get_default_big_page_size(),
+				low_hole, kernel_reserved, aperture_size,
+				big_pages, false, true, __func__)
+	)) {
+		unit_err(m, "BUG() was not called but it was expected (3).\n");
+		ret = UNIT_FAIL;
+		goto exit;
+	}
+	vm->guest_managed = false;
+
+	/* vGPU with userspace managed */
+	g->is_virtual = true;
+	ret = nvgpu_vm_do_init(&g->mm, vm,
+				g->ops.mm.gmmu.get_default_big_page_size(),
+				low_hole, kernel_reserved, aperture_size,
+				big_pages, true, true, __func__);
+	g->is_virtual = false;
+	if (ret != -ENOSYS) {
+		unit_err(m, "nvgpu_vm_do_init did not fail as expected (4).\n");
+		ret = UNIT_FAIL;
+		goto exit;
+	}
+
+	/* Define a mock HAL that will report a failure */
+	g->ops.mm.vm_as_alloc_share = hal_vm_as_alloc_share_error;
+	ret = nvgpu_vm_do_init(&g->mm, vm,
+				g->ops.mm.gmmu.get_default_big_page_size(),
+				low_hole, kernel_reserved, aperture_size,
+				big_pages, true, true, __func__);
+	g->ops.mm.vm_as_alloc_share = NULL;
+	if (ret != -1) {
+		unit_err(m, "nvgpu_vm_do_init did not fail as expected (5).\n");
+		ret = UNIT_FAIL;
+		goto exit;
+	}
+
+	/* Invalid VM configuration */
+	low_hole += nvgpu_gmmu_va_small_page_limit();
+	if (!EXPECT_BUG(
+		nvgpu_vm_do_init(&g->mm, vm,
+				g->ops.mm.gmmu.get_default_big_page_size(),
+				low_hole, kernel_reserved, aperture_size,
+				big_pages, false, false, __func__)
+	)) {
+		unit_err(m, "BUG() was not called but it was expected (6).\n");
+		ret = UNIT_FAIL;
+		goto exit;
+	}
+	low_hole = SZ_1M * 64;
+
+	/* Cause nvgpu_allocator_init(BUDDY) to fail for user VMA */
+	nvgpu_posix_enable_fault_injection(kmem_fi, true, 5);
+	ret = nvgpu_vm_do_init(&g->mm, vm,
+				g->ops.mm.gmmu.get_default_big_page_size(),
+				low_hole, kernel_reserved, aperture_size,
+				big_pages, false, true, __func__);
+	nvgpu_posix_enable_fault_injection(kmem_fi, false, 0);
+	if (ret != -ENOMEM) {
+		unit_err(m, "nvgpu_vm_do_init did not fail as expected (7).\n");
+		ret = UNIT_FAIL;
+		goto exit;
+	}
+
+	/* Cause nvgpu_allocator_init(BUDDY) to fail for kernel VMA */
+	nvgpu_posix_enable_fault_injection(kmem_fi, true, 10);
+	ret = nvgpu_vm_do_init(&g->mm, vm,
+				g->ops.mm.gmmu.get_default_big_page_size(),
+				low_hole, kernel_reserved, aperture_size,
+				big_pages, false, true, __func__);
+	nvgpu_posix_enable_fault_injection(kmem_fi, false, 0);
+	if (ret != -ENOMEM) {
+		unit_err(m, "nvgpu_vm_do_init did not fail as expected (8).\n");
+		ret = UNIT_FAIL;
+		goto exit;
+	}
+
+	/* Invalid low_hole and kernel_reserved to cause an invalid config */
+	vm->guest_managed = true;
+	ret = nvgpu_vm_do_init(&g->mm, vm,
+				g->ops.mm.gmmu.get_default_big_page_size(),
+				nvgpu_gmmu_va_small_page_limit(),
+				0, aperture_size, big_pages, false, false,
+				__func__);
+	vm->guest_managed = false;
+	if (ret != -EINVAL) {
+		unit_err(m, "nvgpu_vm_do_init did not fail as expected (9).\n");
+		ret = UNIT_FAIL;
+		goto exit;
+	}
+
+	/* Cause nvgpu_allocator_init(BUDDY) to fail for user VMA */
+	nvgpu_posix_enable_fault_injection(kmem_fi, true, 12);
+	ret = nvgpu_vm_do_init(&g->mm, vm,
+				g->ops.mm.gmmu.get_default_big_page_size(),
+				low_hole, kernel_reserved, aperture_size,
+				big_pages, false, false, __func__);
+	nvgpu_posix_enable_fault_injection(kmem_fi, false, 0);
+	if (ret != -ENOMEM) {
+		unit_err(m, "nvgpu_vm_do_init did not fail as expected (A).\n");
+		ret = UNIT_FAIL;
+		goto exit;
+	}
+
+	/* Success with big pages and not unified VA */
+	ret = nvgpu_vm_do_init(&g->mm, vm,
+				g->ops.mm.gmmu.get_default_big_page_size(),
+				low_hole, kernel_reserved, aperture_size,
+				big_pages, false, false, __func__);
+	if (ret != 0) {
+		unit_err(m, "nvgpu_vm_do_init did not succeed as expected (B).\n");
+		ret = UNIT_FAIL;
+		goto exit;
+	}
+
+	/* Success with big pages disabled */
+	ret = nvgpu_vm_do_init(&g->mm, vm,
+				g->ops.mm.gmmu.get_default_big_page_size(),
+				low_hole, kernel_reserved, aperture_size,
+				false, false, false, __func__);
+	if (ret != 0) {
+		unit_err(m, "nvgpu_vm_do_init did not succeed as expected (C).\n");
+		ret = UNIT_FAIL;
+		goto exit;
+	}
+
+	/* No user VMA, so use kernel allocators */
+	ret = nvgpu_vm_do_init(&g->mm, vm,
+				g->ops.mm.gmmu.get_default_big_page_size(),
+				nvgpu_gmmu_va_small_page_limit(),
+				kernel_reserved, aperture_size, big_pages,
+				false, false, __func__);
+	if (ret != 0) {
+		unit_err(m, "nvgpu_vm_do_init did not succeed as expected (D).\n");
+		ret = UNIT_FAIL;
+		goto exit;
+	}
+
+	ret = UNIT_SUCCESS;
+
+exit:
+	vm->guest_managed = false;
+	if (vm != NULL) {
+		nvgpu_vm_put(vm);
+	}
+
+	return ret;
+}
+
 int test_map_buf(struct unit_module *m, struct gk20a *g, void *__args)
 {
 	int ret = UNIT_SUCCESS;
@@ -360,6 +1056,9 @@ int test_map_buf(struct unit_module *m, struct gk20a *g, void *__args)
 	size_t buf_size = 0;
 	size_t page_size = 0;
 	size_t alignment = 0;
+	struct nvgpu_mapped_buf **mapped_buffers = NULL;
+	u32 num_mapped_buffers = 0;
+	struct nvgpu_os_posix *p = nvgpu_os_posix_from_gk20a(g);
 
 	if (m == NULL) {
 		ret = UNIT_FAIL;
@@ -403,6 +1102,39 @@ int test_map_buf(struct unit_module *m, struct gk20a *g, void *__args)
 		goto exit;
 	}
 
+	/*
+	 * There shouldn't be any mapped buffers at this point.
+	 */
+	nvgpu_vm_get_buffers(vm, &mapped_buffers, &num_mapped_buffers);
+	if (num_mapped_buffers != 0) {
+		unit_err(m, "Found mapped buffers in a new VM\n");
+		ret = UNIT_FAIL;
+		goto exit;
+	}
+
+	/* Big pages should be possible */
+	if (!nvgpu_big_pages_possible(vm, low_hole,
+		nvgpu_gmmu_va_small_page_limit())) {
+		unit_err(m, "Big pages unexpectedly not possible\n");
+		ret = UNIT_FAIL;
+		goto exit;
+	}
+
+	/*
+	 * Error handling: use invalid values to cover
+	 * nvgpu_big_pages_possible()
+	 */
+	if (nvgpu_big_pages_possible(vm, 0, 1)) {
+		unit_err(m, "Big pages unexpectedly possible (1)\n");
+		ret = UNIT_FAIL;
+		goto exit;
+	}
+	if (nvgpu_big_pages_possible(vm, 1, 0)) {
+		unit_err(m, "Big pages unexpectedly possible (2)\n");
+		ret = UNIT_FAIL;
+		goto exit;
+	}
+
 	/* Map 4KB buffer */
 	buf_size = SZ_4K;
 	page_size = SZ_4K;
@@ -420,7 +1152,8 @@ int test_map_buf(struct unit_module *m, struct gk20a *g, void *__args)
 			 0,
 			 buf_size,
 			 page_size,
-			 alignment);
+			 alignment,
+			 NO_SPECIAL_CASE);
 	if (ret != UNIT_SUCCESS) {
 		unit_err(m, "4KB buffer mapping failed\n");
 		goto exit;
@@ -443,9 +1176,105 @@ int test_map_buf(struct unit_module *m, struct gk20a *g, void *__args)
 			 0,
 			 buf_size,
 			 page_size,
-			 alignment);
+			 alignment,
+			 NO_SPECIAL_CASE);
 	if (ret != UNIT_SUCCESS) {
 		unit_err(m, "64KB buffer mapping failed\n");
+		goto exit;
+	}
+
+	/* Corner case: big pages explicitly disabled at gk20a level */
+	g->mm.disable_bigpage = true;
+	ret = map_buffer(m,
+			 g,
+			 vm,
+			 NULL,
+			 BUF_CPU_PA,
+			 0,
+			 buf_size,
+			 page_size,
+			 alignment,
+			 NO_SPECIAL_CASE);
+	g->mm.disable_bigpage = false;
+	if (ret != UNIT_SUCCESS) {
+		unit_err(m, "Mapping failed (big pages disabled gk20a)\n");
+		goto exit;
+	}
+
+	/* Corner case: big pages explicitly disabled at vm level */
+	vm->big_pages = false;
+	ret = map_buffer(m,
+			 g,
+			 vm,
+			 NULL,
+			 BUF_CPU_PA,
+			 0,
+			 buf_size,
+			 page_size,
+			 alignment,
+			 NO_SPECIAL_CASE);
+	vm->big_pages = true;
+	if (ret != UNIT_SUCCESS) {
+		unit_err(m, "Mapping failed (big pages disabled VM)\n");
+		ret = UNIT_FAIL;
+		goto exit;
+	}
+
+	/* Corner case: VA is not unified */
+	vm->unified_va = false;
+	ret = map_buffer(m,
+			 g,
+			 vm,
+			 NULL,
+			 BUF_CPU_PA,
+			 0,
+			 buf_size,
+			 page_size,
+			 alignment,
+			 NO_SPECIAL_CASE);
+	vm->unified_va = true;
+	if (ret != UNIT_SUCCESS) {
+		unit_err(m, "Mapping failed (non-unified VA)\n");
+		ret = UNIT_FAIL;
+		goto exit;
+	}
+
+	/* Corner case: disable IOMMU */
+	p->mm_is_iommuable = false;
+	ret = map_buffer(m,
+			 g,
+			 vm,
+			 NULL,
+			 BUF_CPU_PA,
+			 0,
+			 buf_size,
+			 page_size,
+			 alignment,
+			 NO_SPECIAL_CASE);
+	p->mm_is_iommuable = false;
+	if (ret != UNIT_SUCCESS) {
+		unit_err(m, "Non IOMMUable mapping failed\n");
+		goto exit;
+	}
+
+	/* Corner case: smaller than vm->gmmu_page_sizes[GMMU_PAGE_SIZE_BIG] */
+	buf_size = SZ_4K;
+	page_size = SZ_4K;
+	alignment = SZ_4K;
+	vm->unified_va = false;
+	ret = map_buffer(m,
+			 g,
+			 vm,
+			 NULL,
+			 BUF_CPU_PA,
+			 0,
+			 buf_size,
+			 page_size,
+			 alignment,
+			 NO_SPECIAL_CASE);
+	vm->unified_va = true;
+	if (ret != UNIT_SUCCESS) {
+		unit_err(m, "4KB buffer mapping failed\n");
 		goto exit;
 	}
 
@@ -542,9 +1371,29 @@ int test_map_buf_gpu_va(struct unit_module *m,
 			 gpu_va,
 			 buf_size,
 			 page_size,
-			 alignment);
+			 alignment,
+			 NO_SPECIAL_CASE);
 	if (ret != UNIT_SUCCESS) {
 		unit_err(m, "4KB buffer mapping failed\n");
+		goto exit;
+	}
+
+	/*
+	 * Corner case: if already mapped, map_buffer should still report
+	 * success.
+	 */
+	ret = map_buffer(m,
+			 g,
+			 vm,
+			 NULL,
+			 BUF_CPU_PA,
+			 gpu_va,
+			 buf_size,
+			 page_size,
+			 alignment,
+			 SPECIAL_CASE_DOUBLE_MAP);
+	if (ret != UNIT_SUCCESS) {
+		unit_err(m, "Mapping failed (already mapped case)\n");
 		goto exit;
 	}
 
@@ -571,9 +1420,95 @@ int test_map_buf_gpu_va(struct unit_module *m,
 			 gpu_va,
 			 buf_size,
 			 page_size,
-			 alignment);
+			 alignment,
+			 NO_SPECIAL_CASE);
 	if (ret != UNIT_SUCCESS) {
 		unit_err(m, "64KB buffer mapping failed\n");
+		goto exit;
+	}
+
+	/*
+	 * Corner case: VA is not unified, GPU_VA fixed above
+	 * nvgpu_gmmu_va_small_page_limit()
+	 */
+	vm->unified_va = false;
+	ret = map_buffer(m,
+			 g,
+			 vm,
+			 NULL,
+			 BUF_CPU_PA,
+			 gpu_va,
+			 buf_size,
+			 page_size,
+			 alignment,
+			 NO_SPECIAL_CASE);
+	vm->unified_va = true;
+	if (ret != UNIT_SUCCESS) {
+		unit_err(m, "Mapping failed (non-unified VA, fixed GPU VA)\n");
+		ret = UNIT_FAIL;
+		goto exit;
+	}
+
+	/*
+	 * Corner case: VA is not unified, GPU_VA fixed below
+	 * nvgpu_gmmu_va_small_page_limit()
+	 */
+	vm->unified_va = false;
+	gpu_va = nvgpu_gmmu_va_small_page_limit() - buf_size*10;
+	ret = map_buffer(m,
+			 g,
+			 vm,
+			 NULL,
+			 BUF_CPU_PA,
+			 gpu_va,
+			 buf_size,
+			 page_size,
+			 alignment,
+			 NO_SPECIAL_CASE);
+	vm->unified_va = true;
+	if (ret != UNIT_SUCCESS) {
+		unit_err(m, "Mapping failed (non-unified VA, fixed GPU VA)\n");
+		ret = UNIT_FAIL;
+		goto exit;
+	}
+
+	/*
+	 * Corner case: do not allocate a VM area which will force an allocation
+	 * with small pages.
+	 */
+	ret = map_buffer(m,
+			 g,
+			 vm,
+			 NULL,
+			 BUF_CPU_PA,
+			 gpu_va,
+			 buf_size,
+			 page_size,
+			 alignment,
+			 SPECIAL_CASE_NO_VM_AREA);
+	if (ret != UNIT_SUCCESS) {
+		unit_err(m, "Mapping failed (SPECIAL_CASE_NO_FREE)\n");
+		ret = UNIT_FAIL;
+		goto exit;
+	}
+
+	/*
+	 * Corner case: do not unmap the buffer so that nvgpu_vm_put can take
+	 * care of the cleanup of both the mapping and the VM area.
+	 */
+	ret = map_buffer(m,
+			 g,
+			 vm,
+			 NULL,
+			 BUF_CPU_PA,
+			 gpu_va,
+			 buf_size,
+			 page_size,
+			 alignment,
+			 SPECIAL_CASE_NO_FREE);
+	if (ret != UNIT_SUCCESS) {
+		unit_err(m, "Mapping failed (SPECIAL_CASE_NO_FREE)\n");
+		ret = UNIT_FAIL;
 		goto exit;
 	}
 
@@ -686,7 +1621,8 @@ int test_batch(struct unit_module *m, struct gk20a *g, void *__args)
 				 0,
 				 buf_size,
 				 page_size,
-				 alignment);
+				 alignment,
+				 NO_SPECIAL_CASE);
 		if (ret != UNIT_SUCCESS) {
 			unit_err(m, "Buffer mapping failed\n");
 			goto clean_up;
@@ -714,6 +1650,14 @@ clean_up:
 			unit_err(m, "Incorrect number of L2 flushes\n");
 			ret = UNIT_FAIL;
 		}
+
+		/*
+		* Cause an error in tlb_invalidate for code coverage of
+		* nvgpu_vm_mapping_batch_finish
+		*/
+		g->ops.fb.tlb_invalidate = hal_fb_tlb_invalidate_error;
+		nvgpu_vm_mapping_batch_finish(vm, &batch);
+		g->ops.fb.tlb_invalidate = gm20b_fb_tlb_invalidate;
 	}
 
 	nvgpu_vm_put(vm);
@@ -733,6 +1677,11 @@ struct unit_module_test vm_tests[] = {
 		      test_map_buf,
 		      NULL,
 		      0),
+	UNIT_TEST(init_error_paths, test_init_error_paths, NULL, 0),
+	UNIT_TEST(map_buffer_error_cases, test_map_buffer_error_cases, NULL, 0),
+	UNIT_TEST(nvgpu_vm_alloc_va, test_nvgpu_vm_alloc_va, NULL, 0),
+	UNIT_TEST(vm_bind, test_vm_bind, NULL, 0),
+	UNIT_TEST(vm_aspace_id, test_vm_aspace_id, NULL, 0),
 	UNIT_TEST_REQ("NVGPU-RQCD-45.C2",
 		      VM_REQ1_UID,
 		      "V5",
