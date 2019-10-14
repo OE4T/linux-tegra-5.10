@@ -210,10 +210,13 @@ struct gk20a;
 /* Fault recovery support */
 #define NVGPU_SUPPORT_FAULT_RECOVERY		80U
 
+/* SW Quiesce */
+#define NVGPU_DISABLE_SW_QUIESCE		81U
+
 /*
  * Must be greater than the largest bit offset in the above list.
  */
-#define NVGPU_MAX_ENABLED_BITS			81U
+#define NVGPU_MAX_ENABLED_BITS			82U
 
 /**
  * nvgpu_is_enabled - Check if the passed flag is enabled.

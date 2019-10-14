@@ -156,7 +156,8 @@ static void nvgpu_sw_quiesce_remove_support(struct gk20a *g)
 void nvgpu_sw_quiesce(struct gk20a *g)
 {
 #ifndef CONFIG_NVGPU_RECOVERY
-	if (g->is_virtual) {
+	if (g->is_virtual || g->enabled_flags == NULL ||
+		nvgpu_is_enabled(g, NVGPU_DISABLE_SW_QUIESCE)) {
 		goto fail;
 	}
 
