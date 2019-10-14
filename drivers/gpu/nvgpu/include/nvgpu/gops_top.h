@@ -24,25 +24,212 @@
 
 #include <nvgpu/types.h>
 
+/**
+ * @file
+ *
+ * TOP unit HAL interface
+ *
+ */
 struct gk20a;
 struct nvgpu_device_info;
 
+/**
+ * TOP unit HAL operations
+ *
+ * @see gpu_ops
+ */
 struct gops_top {
 	/**
 	 * FUSA HALs
 	 */
+
+	/**
+	 * @brief Get the number of entries of particular engine type in
+	 *        device_info table
+	 *
+	 * @param g [in]		GPU driver struct pointer
+	 * @param engine_type [in]	Engine enumeration value
+	 *
+	 * Some engine have multiple entries in device_info table corresponding
+	 * to each instance of the engine. All such entries corresponding to
+	 * same engine will have same \a engine_type, but a unique instance id.
+	 * We traverse through the device_info table and get the total number of
+	 * entries corresponding to input \a engine_type.
+	 * This HAL is valid for Pascal and chips beyond.
+	 * Prior to Pascal, each instance of the engine was denoted by a
+	 * different engine_type.
+	 * List of valid engine enumeration values:
+	 * NVGPU_ENGINE_GRAPHICS           0
+	 * NVGPU_ENGINE_COPY0              1
+	 * NVGPU_ENGINE_COPY1              2
+	 * NVGPU_ENGINE_COPY2              3
+	 * NVGPU_ENGINE_IOCTRL             18
+	 * NVGPU_ENGINE_LCE                19
+	 *
+	 * @return	Number of instances of \a engine_type in device_info
+	 * 		table
+	 */
 	u32 (*get_num_engine_type_entries)(struct gk20a *g, u32 engine_type);
+
+	/**
+	 * @brief Get all the engine related information from device_info table
+	 *
+	 * @param g [in]		GPU device struct pointer
+	 * @param dev_info [out]	Pointer to device information struct
+	 *				which gets populated with all the
+	 *				engine related information.
+	 * @param engine_type [in]	Engine enumeration value
+	 * @param inst_id [in]		Engine's instance identification number
+	 *
+	 * Device_info table contains the engine specific data like it's
+	 * interrupt enum, reset enum, pri_base etc. This HAL reads such engine
+	 * information from table after matching the \a engine_type and
+	 * \a inst_id and then populates the read information in \a dev_info
+	 * struct.
+	 * List of valid engine enumeration values:
+	 * NVGPU_ENGINE_GRAPHICS           0
+	 * NVGPU_ENGINE_COPY0              1
+	 * NVGPU_ENGINE_COPY1              2
+	 * NVGPU_ENGINE_COPY2              3
+	 * NVGPU_ENGINE_IOCTRL             18
+	 * NVGPU_ENGINE_LCE                19
+	 *
+	 * @return 0 in case of success and < 0 in case of failure
+	 */
 	int (*get_device_info)(struct gk20a *g,
 				struct nvgpu_device_info *dev_info,
 				u32 engine_type, u32 inst_id);
+
+	/**
+	 * @brief Checks if \a engine_type corresponds to graphics engine
+	 *
+	 * @param g [in]		GPU device struct pointer
+	 * @param engine_type [in]	Engine enumeration value
+	 *
+	 * This HAL checks if the input \a engine_type is the enumeration value
+	 * corresponding to graphics engine.
+	 * The enumeration value for graphics engine for device_info table is 0.
+	 *
+	 * @return true if \a engine_type is equal to 0, false otherwise
+	 */
 	bool (*is_engine_gr)(struct gk20a *g, u32 engine_type);
+
+	/**
+	 * @brief Checks if \a engine_type corresponds to copy engine
+	 *
+	 * @param g [in]		GPU device struct pointer
+	 * @param engine_type [in]	Engine enumeration value
+	 *
+	 * This HAL checks if the input \a engine_type is the enumeration value
+	 * corresponding to copy engine.
+	 * Prior to Pascal, each instance of copy engine was denoted by
+	 * different engine_type.
+	 * COPY_ENGINE_INSTANCE0 enum value --> 1
+	 * COPY_ENGINE_INSTANCE1 enum value --> 2
+	 * COPY_ENGINE_INSTANCE2 enum value --> 3
+	 * For Pascal and chips beyond, all instances of copy engine have same
+	 * engine_type.
+	 * COPY_ENGINE enum value  --> 19
+	 *
+	 * @return true if \a engine_type is equal to enum value specified above
+	 * 	or false otherwise
+	 */
 	bool (*is_engine_ce)(struct gk20a *g, u32 engine_type);
+
+	/**
+	 * @brief Get the instance ID for particular copy engine
+	 *
+	 * @param g [in]		GPU device struct pointer
+	 * @param engine_type [in]	Engine enumeration value
+	 *
+	 * This HAL is valid for chips prior to Pascal when each instance of
+	 * copy engine had unique engine_type. The three instances of copy
+	 * engine are allocated engine_type in ascending starting from 1.
+	 * COPY_ENGINE_INSTANCE0 engine_type --> 1
+	 * COPY_ENGINE_INSTANCE1 engine_type --> 2
+	 * COPY_ENGINE_INSTANCE2 engine_type --> 3
+	 * We calculate the instance id by subtracting COPY_ENGINE_INSTANCE0
+	 * enum value from \a engine_type.
+	 *
+	 * @return Calculated instance ID as explained above.
+	 */
 	u32 (*get_ce_inst_id)(struct gk20a *g, u32 engine_type);
+
+	/**
+	 * @brief Gets maximum number of GPCs in a GPU as programmed in HW
+	 *
+	 * @param g [in]		GPU device struct pointer
+	 *
+	 * This HAL reads the NV_PTOP_SCAL_NUM_GPCS HW register, extracts the
+	 * NV_PTOP_SCAL_NUM_GPCS_VALUE field and returns it.
+	 *
+	 * @return The number of GPCs as read from above mentioned HW register.
+	 */
 	u32 (*get_max_gpc_count)(struct gk20a *g);
+
+	/**
+	 * @brief Gets the maximum number of TPCs per GPC in a GPU as programmed
+	 * 	in HW.
+	 *
+	 * @param g [in]		GPU device struct pointer
+	 *
+	 * This HAL reads the NV_PTOP_SCAL_TPC_PER_GPC HW register, extracts the
+	 * NV_PTOP_SCAL_NUM_TPC_PER_GPC_VALUE field and returns it.
+	 *
+	 * @return The number of TPC per GPC as read from the above mentioned
+	 *	HW register.
+	 */
 	u32 (*get_max_tpc_per_gpc_count)(struct gk20a *g);
+
+	/**
+	 * @brief Gets the maximum number of FBPs in a GPU as programmed in HW
+	 *
+	 * @param g [in]		GPU device struct pointer
+	 *
+	 * This HAL reads the NV_PTOP_SCAL_NUM_FBPS HW register, extracts the
+	 * NV_PTOP_SCAL_NUM_FBPS_VALUE field and returns it.
+	 *
+	 * @return The number of FBPs as read from above mentioned HW register
+	 */
 	u32 (*get_max_fbps_count)(struct gk20a *g);
+
+	/**
+	 * @brief Gets the maximum number of LTCs per FBP in a GPU as programmed
+	 * 	in HW.
+	 *
+	 * @param g [in]		GPU device struct pointer
+	 *
+	 * This HAL reads the NV_PTOP_SCAL_LTC_PER_FBP HW register, extracts the
+	 * NV_PTOP_SCAL_NUM_LTC_PER_FBP_VALUE field and returns it.
+	 *
+	 * @return The number of LTC per FBP as read from the above mentioned
+	 *	HW register.
+	 */
 	u32 (*get_max_ltc_per_fbp)(struct gk20a *g);
+
+	/**
+	 * @brief Gets the number of LTCs in a GPU as programmed in HW
+	 *
+	 * @param g [in]		GPU device struct pointer
+	 *
+	 * This HAL reads the NV_PTOP_SCAL_NUM_LTCS HW register, extracts the
+	 * NV_PTOP_SCAL_NUM_LTCS_VALUE field and returns it.
+	 *
+	 * @return The number of LTCs as read from above mentioned HW register
+	 */
 	u32 (*get_num_ltcs)(struct gk20a *g);
+
+	/**
+	 * @brief Gets the number of copy engines as programmed in HW
+	 *
+	 * @param g [in]		GPU device struct pointer
+	 *
+	 * This HAL reads the NV_PTOP_SCAL_NUM_CES HW register, extracts the
+	 * NV_PTOP_SCAL_NUM_CES_VALUE field and returns it.
+	 *
+	 * @return The number of copy engines as read from above mentioned HW
+	 * 	register
+	 */
 	u32 (*get_num_lce)(struct gk20a *g);
 
 	/**
