@@ -18,6 +18,7 @@
 
 /* FIXME: remove all the tegra194-*** headers */
 #include <dt-bindings/version.h>
+#include <dt-bindings/clock/tegra194-clock.h>
 #include <dt-bindings/clock/tegra234-clock.h>
 #include <dt-bindings/reset/tegra194-reset.h>
 #include <dt-bindings/reset/tegra234-reset.h>
@@ -85,6 +86,7 @@
 		status = "disabled";
 	};
 
+#if TEGRA_BPMP_FW_DT_VERSION <= DT_VERSION_1
 	bpmp_clks: clock@0 {
 		compatible = "nvidia,tegra-bpmp-clks";
 		reg = <0x0 0x0 0x0 0x0>;
@@ -98,6 +100,7 @@
 		#reset-cells = <1>;
 		status = "disabled";
 	};
+#endif
 
 	tegra_rtc: rtc@c2a0000 {
 		compatible = "nvidia,tegra18-rtc";
