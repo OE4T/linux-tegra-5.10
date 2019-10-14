@@ -111,10 +111,20 @@ done:
 	nvgpu_log_info(g, "done");
 	return err;
 }
+#endif
 
 static int nvgpu_sw_quiesce_init_support(struct gk20a *g)
 {
+#ifdef CONFIG_NVGPU_RECOVERY
+	nvgpu_set_enabled(g, NVGPU_SUPPORT_FAULT_RECOVERY, true);
+#else
 	int err;
+
+	if (g->sw_quiesce_init_done) {
+		return 0;
+	}
+
+	nvgpu_set_enabled(g, NVGPU_SUPPORT_FAULT_RECOVERY, false);
 
 	nvgpu_cond_init(&g->sw_quiesce_cond);
 	g->sw_quiesce_pending = false;
@@ -122,18 +132,26 @@ static int nvgpu_sw_quiesce_init_support(struct gk20a *g)
 	err = nvgpu_thread_create(&g->sw_quiesce_thread, g,
 			nvgpu_sw_quiesce_thread, "sw-quiesce");
 	if (err != 0) {
+		nvgpu_cond_destroy(&g->sw_quiesce_cond);
 		return err;
 	}
+
+	g->sw_quiesce_init_done = true;
+#endif
 
 	return 0;
 }
 
 static void nvgpu_sw_quiesce_remove_support(struct gk20a *g)
 {
-	nvgpu_thread_stop(&g->sw_quiesce_thread);
-	nvgpu_cond_destroy(&g->sw_quiesce_cond);
-}
+#ifndef CONFIG_NVGPU_RECOVERY
+	if (g->sw_quiesce_init_done) {
+		nvgpu_thread_stop(&g->sw_quiesce_thread);
+		nvgpu_cond_destroy(&g->sw_quiesce_cond);
+		g->sw_quiesce_init_done = false;
+	}
 #endif
+}
 
 void nvgpu_sw_quiesce(struct gk20a *g)
 {
@@ -481,6 +499,7 @@ int nvgpu_finalize_poweron(struct gk20a *g)
 #endif
 		NVGPU_INIT_TABLE_ENTRY(g->ops.acr.acr_init,
 				       NVGPU_SEC_PRIVSECURITY),
+		NVGPU_INIT_TABLE_ENTRY(&nvgpu_sw_quiesce_init_support, NO_FLAG),
 #ifdef CONFIG_NVGPU_DGPU
 		NVGPU_INIT_TABLE_ENTRY(g->ops.bios.bios_sw_init, NO_FLAG),
 #endif
@@ -559,17 +578,6 @@ int nvgpu_finalize_poweron(struct gk20a *g)
 	size_t i;
 
 	nvgpu_log_fn(g, " ");
-
-#ifdef CONFIG_NVGPU_RECOVERY
-	nvgpu_set_enabled(g, NVGPU_SUPPORT_FAULT_RECOVERY, true);
-#else
-	nvgpu_set_enabled(g, NVGPU_SUPPORT_FAULT_RECOVERY, false);
-	err = nvgpu_sw_quiesce_init_support(g);
-	if (err != 0) {
-		nvgpu_err(g, "failed to init sw-quiesce support");
-		goto done;
-	}
-#endif
 
 #ifdef CONFIG_NVGPU_DGPU
 	/*
@@ -726,9 +734,7 @@ static void gk20a_free_cb(struct nvgpu_ref *refcount)
 		g->ops.ltc.ltc_remove_support(g);
 	}
 
-#ifndef CONFIG_NVGPU_RECOVERY
 	nvgpu_sw_quiesce_remove_support(g);
-#endif
 
 	if (g->gfree != NULL) {
 		g->gfree(g);

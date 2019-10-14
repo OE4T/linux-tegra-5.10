@@ -1009,6 +1009,7 @@ struct gk20a {
 	bool sw_ready;
 
 #ifndef CONFIG_NVGPU_RECOVERY
+	bool sw_quiesce_init_done;
 	bool sw_quiesce_pending;
 	struct nvgpu_cond sw_quiesce_cond;
 	struct nvgpu_thread sw_quiesce_thread;
