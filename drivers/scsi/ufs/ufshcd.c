@@ -7621,7 +7621,8 @@ int ufshcd_rescan(struct ufs_hba *hba)
 
 	if (hba->card_present) {
 		dev_info(hba->dev, "UFS card inserted\n");
-		pm_runtime_get_sync(hba->dev);
+		if (atomic_read(&hba->dev->power.usage_count) != 1)
+			pm_runtime_get_sync(hba->dev);
 
 		/* Make sure clocks are enabled before accessing controller */
 		ret = ufshcd_setup_clocks(hba, true);
@@ -7664,6 +7665,11 @@ int ufshcd_rescan(struct ufs_hba *hba)
 			goto disable_irqs_clks;
 		}
 		ufshcd_enable_intr(hba, UFSHCD_ENABLE_INTRS);
+
+		hba->rpm_lvl = ufs_get_desired_pm_lvl_for_dev_link_state(
+							UFS_SLEEP_PWR_MODE,
+							UIC_LINK_HIBERN8_STATE);
+		hba->spm_lvl = hba->rpm_lvl;
 	} else {
 		/* disable interrupts */
 		ufshcd_disable_intr(hba, hba->intr_mask);
@@ -7682,6 +7688,11 @@ int ufshcd_rescan(struct ufs_hba *hba)
 		ufshcd_disable_irq(hba);
 
 		ufshcd_setup_clocks(hba, false);
+
+		hba->rpm_lvl = ufs_get_desired_pm_lvl_for_dev_link_state(
+							UFS_POWERDOWN_PWR_MODE,
+							UIC_LINK_OFF_STATE);
+		hba->spm_lvl = hba->rpm_lvl;
 
 		pm_runtime_put_sync(hba->dev);
 
@@ -9363,6 +9374,16 @@ int ufshcd_init(struct ufs_hba *hba, void __iomem *mmio_base, unsigned int irq)
 		hba->is_irq_enabled = true;
 	}
 
+	/* If UFS device/card not present then skip ufs scan */
+	if (!hba->card_present) {
+		hba->rpm_lvl = ufs_get_desired_pm_lvl_for_dev_link_state(
+							UFS_POWERDOWN_PWR_MODE,
+							UIC_LINK_OFF_STATE);
+		hba->spm_lvl = hba->rpm_lvl;
+		pm_runtime_get_sync(dev);
+		return 0;
+	}
+
 	err = scsi_add_host(host, hba->dev);
 	if (err) {
 		dev_err(hba->dev, "scsi_add_host failed\n");
@@ -9403,10 +9424,6 @@ int ufshcd_init(struct ufs_hba *hba, void __iomem *mmio_base, unsigned int irq)
 		ufshcd_print_host_state(hba);
 		goto free_tmf_queue;
 	}
-
-	/* If UFS device/card not present then skip ufs scan */
-	if (!hba->card_present)
-		return 0;
 
 	/*
 	 * Set the default power management level for runtime and system PM.
