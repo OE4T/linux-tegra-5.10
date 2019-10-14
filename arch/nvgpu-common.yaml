@@ -572,6 +572,11 @@ mm:
       deps: [ ]
       tags: M4, unit-testable
 
+fuse:
+  safe: yes
+  owner: Seema K
+  sources: [ include/nvgpu/gops_fuse.h ]
+
 perf:
   safe: no
   owner: Deepak N

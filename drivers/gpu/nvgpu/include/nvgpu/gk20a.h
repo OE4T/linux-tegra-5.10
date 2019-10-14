@@ -133,6 +133,7 @@ enum nvgpu_unit;
 
 #include <nvgpu/gops_gr.h>
 #include <nvgpu/gops_fifo.h>
+#include <nvgpu/gops_fuse.h>
 #include <nvgpu/gops_ramfc.h>
 #include <nvgpu/gops_ramin.h>
 #include <nvgpu/gops_runlist.h>
@@ -424,6 +425,7 @@ struct gpu_ops {
 		void (*pg_gr_load_gating_prod)(struct gk20a *g, bool prod);
 	} cg;
 	struct gops_fifo fifo;
+	struct gops_fuse fuse;
 	struct gops_ramfc ramfc;
 	struct gops_ramin ramin;
 	struct gops_runlist runlist;
@@ -831,27 +833,6 @@ struct gpu_ops {
 		u32 (*get_gpc_count)(struct gk20a *g);
 		u32 (*get_fbp_count)(struct gk20a *g);
 	} priv_ring;
-	struct {
-		int (*check_priv_security)(struct gk20a *g);
-		bool (*is_opt_ecc_enable)(struct gk20a *g);
-		bool (*is_opt_feature_override_disable)(struct gk20a *g);
-		u32 (*fuse_status_opt_fbio)(struct gk20a *g);
-		u32 (*fuse_status_opt_fbp)(struct gk20a *g);
-		u32 (*fuse_status_opt_rop_l2_fbp)(struct gk20a *g, u32 fbp);
-		u32 (*fuse_status_opt_gpc)(struct gk20a *g);
-		u32 (*fuse_status_opt_tpc_gpc)(struct gk20a *g, u32 gpc);
-		void (*fuse_ctrl_opt_tpc_gpc)(struct gk20a *g, u32 gpc, u32 val);
-		u32 (*fuse_opt_sec_debug_en)(struct gk20a *g);
-		u32 (*fuse_opt_priv_sec_en)(struct gk20a *g);
-		u32 (*read_vin_cal_fuse_rev)(struct gk20a *g);
-		int (*read_vin_cal_slope_intercept_fuse)(struct gk20a *g,
-							     u32 vin_id, u32 *slope,
-							     u32 *intercept);
-		int (*read_vin_cal_gain_offset_fuse)(struct gk20a *g,
-							     u32 vin_id, s8 *gain,
-							     s8 *offset);
-		int (*read_gcplex_config_fuse)(struct gk20a *g, u32 *val);
-	} fuse;
 	struct {
 		u32 (*get_link_reset_mask)(struct gk20a *g);
 		int (*init)(struct gk20a *g);
