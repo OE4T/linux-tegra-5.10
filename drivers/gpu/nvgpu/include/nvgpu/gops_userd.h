@@ -22,6 +22,7 @@
 #ifndef NVGPU_GOPS_USERD_H
 #define NVGPU_GOPS_USERD_H
 
+/** @cond DOXYGEN_SHOULD_SKIP_THIS */
 #include <nvgpu/types.h>
 
 struct gk20a;
@@ -40,6 +41,6 @@ struct gops_userd {
 #endif
 
 };
-
+/** @endcond DOXYGEN_SHOULD_SKIP_THIS */
 
 #endif
