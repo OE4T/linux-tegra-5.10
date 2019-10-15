@@ -69,7 +69,7 @@ static inline u32 __mc_readl(int idx, u32 reg)
 {
 	if (is_tegra_safety_build()) {
 		WARN_ONCE(1, "VM isn't allowed to read MC register space in Safety Build");
-		return 0x0;
+		return 0xffff;
 	}
 	if (WARN(!mc, "Read before MC init'ed"))
 		return 0;
@@ -117,7 +117,7 @@ static inline u32 __mc_raw_readl(int idx, u32 reg)
 {
 	if (is_tegra_safety_build()) {
 		WARN_ONCE(1, "VM isn't allowed to read MC register space in Safety Build");
-		return 0x0;
+		return 0xffff;
 	}
 	if (WARN(!mc, "Read before MC init'ed"))
 		return 0;
