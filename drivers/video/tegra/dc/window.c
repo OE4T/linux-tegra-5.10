@@ -898,8 +898,6 @@ static int _tegra_dc_program_windows(struct tegra_dc *dc,
 		set_bit(V_BLANK_FLIP, &dc->vblank_ref_count);
 		tegra_dc_unmask_interrupt(dc,
 			FRAME_END_INT | V_BLANK_INT | ALL_UF_INT());
-		set_bit(V_PULSE2_FLIP, &dc->vpulse2_ref_count);
-		tegra_dc_unmask_interrupt(dc, V_PULSE2_INT);
 	}
 
 	if (dc->out->flags & TEGRA_DC_OUT_ONE_SHOT_MODE) {

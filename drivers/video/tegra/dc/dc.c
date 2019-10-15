@@ -4812,27 +4812,6 @@ static void tegra_dc_underflow_handler(struct tegra_dc *dc)
 	trace_underflow(dc);
 }
 
-static void tegra_dc_vpulse2(struct work_struct *work)
-{
-	struct tegra_dc *dc = container_of(work, struct tegra_dc, vpulse2_work);
-
-	mutex_lock(&dc->lock);
-
-	if (!dc->enabled) {
-		mutex_unlock(&dc->lock);
-		return;
-	}
-
-	tegra_dc_get(dc);
-
-	/* Clear the V_PULSE2_FLIP if no update */
-	if (!tegra_dc_windows_are_dirty(dc, WIN_ALL_ACT_REQ))
-		clear_bit(V_PULSE2_FLIP, &dc->vpulse2_ref_count);
-
-	tegra_dc_put(dc);
-	mutex_unlock(&dc->lock);
-}
-
 static void tegra_dc_process_vblank(struct tegra_dc *dc)
 {
 	/* pending user vblank, so wakeup */
@@ -4898,7 +4877,6 @@ static void tegra_dc_one_shot_irq(struct tegra_dc *dc, unsigned long status)
 	if (status & V_PULSE2_INT) {
 		if (test_bit(V_PULSE2_LATENCY_MSRMNT, &dc->vpulse2_ref_count))
 			tegra_dc_collect_latency_data(dc);
-		queue_work(system_freezable_wq, &dc->vpulse2_work);
 	}
 }
 
@@ -4960,7 +4938,6 @@ static void tegra_dc_continuous_irq(struct tegra_dc *dc, unsigned long status)
 	if (status & V_PULSE2_INT) {
 		if (test_bit(V_PULSE2_LATENCY_MSRMNT, &dc->vpulse2_ref_count))
 			tegra_dc_collect_latency_data(dc);
-		queue_work(system_freezable_wq, &dc->vpulse2_work);
 	}
 }
 
@@ -5476,31 +5453,6 @@ void tegra_dc_en_dis_dsc(struct tegra_dc *dc, bool enable)
 }
 
 /* Used only on T21x */
-static void tegra_dc_init_vpulse2_int(struct tegra_dc *dc)
-{
-	u32 start, end;
-	unsigned long val;
-
-	val = V_PULSE2_H_POSITION(0) | V_PULSE2_LAST(0x1);
-	tegra_dc_writel(dc, val, DC_DISP_V_PULSE2_CONTROL);
-
-	start = dc->mode.v_ref_to_sync + dc->mode.v_sync_width +
-		dc->mode.v_back_porch +	dc->mode.v_active;
-	end = start + 1;
-	val = V_PULSE2_START_A(start) + V_PULSE2_END_A(end);
-	tegra_dc_writel(dc, val, DC_DISP_V_PULSE2_POSITION_A);
-
-	val = tegra_dc_readl(dc, DC_CMD_INT_ENABLE);
-	val |= V_PULSE2_INT;
-	tegra_dc_writel(dc, val , DC_CMD_INT_ENABLE);
-
-	tegra_dc_mask_interrupt(dc, V_PULSE2_INT);
-	val = tegra_dc_readl(dc, DC_DISP_DISP_SIGNAL_OPTIONS0);
-	val |= V_PULSE_2_ENABLE;
-	tegra_dc_writel(dc, val, DC_DISP_DISP_SIGNAL_OPTIONS0);
-}
-
-/* Used only on T21x */
 static int tegra_dc_init(struct tegra_dc *dc)
 {
 	int i;
@@ -5527,7 +5479,6 @@ static int tegra_dc_init(struct tegra_dc *dc)
 
 	tegra_dc_writel(dc, int_enable, DC_CMD_INT_ENABLE);
 	tegra_dc_writel(dc, ALL_UF_INT(), DC_CMD_INT_MASK);
-	tegra_dc_init_vpulse2_int(dc);
 
 	tegra_dc_writel(dc, WRITE_MUX_ASSEMBLY | READ_MUX_ASSEMBLY,
 		DC_CMD_STATE_ACCESS);
@@ -6560,7 +6511,6 @@ static int tegra_dc_probe(struct platform_device *ndev)
 	INIT_WORK(&dc->vblank_work, tegra_dc_vblank);
 	dc->vblank_ref_count = 0;
 	INIT_WORK(&dc->frame_end_work, tegra_dc_frame_end);
-	INIT_WORK(&dc->vpulse2_work, tegra_dc_vpulse2);
 	dc->vpulse2_ref_count = 0;
 	INIT_DELAYED_WORK(&dc->underflow_work, tegra_dc_underflow_worker);
 	INIT_DELAYED_WORK(&dc->one_shot_work, tegra_dc_one_shot_worker);
