@@ -27,7 +27,7 @@
 #ifdef CONFIG_NVGPU_ACR_LEGACY
 #include "acr_blob_construct_v0.h"
 #endif
-#include "acr_blob_construct_v1.h"
+#include "acr_blob_construct.h"
 
 struct gk20a;
 struct nvgpu_acr;

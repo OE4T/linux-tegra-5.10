@@ -35,7 +35,7 @@ struct nvgpu_acr;
 #define NVGPU_FLCN_ACR_MAX_REGIONS                (2U)
 #define LSF_BOOTSTRAP_OWNER_RESERVED_DMEM_SIZE    (0x200U)
 
-struct flcn_acr_region_prop {
+struct flcn_acr_region_prop_v0 {
 	u32 start_addr;
 	u32 end_addr;
 	u32 region_id;
@@ -44,12 +44,12 @@ struct flcn_acr_region_prop {
 	u32 client_mask;
 };
 
-struct flcn_acr_regions {
+struct flcn_acr_regions_v0 {
 	u32 no_regions;
-	struct flcn_acr_region_prop region_props[NVGPU_FLCN_ACR_MAX_REGIONS];
+	struct flcn_acr_region_prop_v0 region_props[NVGPU_FLCN_ACR_MAX_REGIONS];
 };
 
-struct flcn_acr_desc {
+struct flcn_acr_desc_v0 {
 	union {
 		u32 reserved_dmem[(LSF_BOOTSTRAP_OWNER_RESERVED_DMEM_SIZE/4)];
 		u32 signatures[4];
@@ -58,7 +58,7 @@ struct flcn_acr_desc {
 	u32 wpr_region_id;
 	u32 wpr_offset;
 	u32 mmu_mem_range;
-	struct flcn_acr_regions regions;
+	struct flcn_acr_regions_v0 regions;
 	u32 nonwpr_ucode_blob_size;
 	u64 nonwpr_ucode_blob_start;
 };
@@ -71,7 +71,7 @@ struct flcn_acr_desc {
  * write_mask     - WriteMask
  * client_mask    - Bit map of all clients currently using this region
  */
-struct flcn_acr_region_prop_v1 {
+struct flcn_acr_region_prop {
 	u32 start_addr;
 	u32 end_addr;
 	u32 region_id;
@@ -85,9 +85,9 @@ struct flcn_acr_region_prop_v1 {
  * no_regions   - Number of regions used.
  * region_props - Region properties
  */
-struct flcn_acr_regions_v1 {
+struct flcn_acr_regions {
 	u32 no_regions;
-	struct flcn_acr_region_prop_v1 region_props[NVGPU_FLCN_ACR_MAX_REGIONS];
+	struct flcn_acr_region_prop region_props[NVGPU_FLCN_ACR_MAX_REGIONS];
 };
 
 /*
@@ -105,7 +105,7 @@ struct flcn_acr_regions_v1 {
  * nonwpr_ucode_blob_start -stores non-WPR start where kernel stores ucode blob
  * nonwpr_ucode_blob_end   -stores non-WPR end where kernel stores ucode blob
  */
-struct flcn_acr_desc_v1 {
+struct flcn_acr_desc {
 	union {
 		u32 reserved_dmem[(LSF_BOOTSTRAP_OWNER_RESERVED_DMEM_SIZE/4)];
 	} ucode_reserved_space;
@@ -114,7 +114,7 @@ struct flcn_acr_desc_v1 {
 	u32 wpr_region_id;
 	u32 wpr_offset;
 	u32 mmu_mem_range;
-	struct flcn_acr_regions_v1 regions;
+	struct flcn_acr_regions regions;
 	u32 nonwpr_ucode_blob_size;
 	u64 nonwpr_ucode_blob_start;
 	u32 dummy[4];  /* ACR_BSI_VPR_DESC */
@@ -166,8 +166,8 @@ struct hs_acr {
 	struct nvgpu_firmware *acr_fw;
 
 	union{
+		struct flcn_acr_desc_v0 *acr_dmem_desc_v0;
 		struct flcn_acr_desc *acr_dmem_desc;
-		struct flcn_acr_desc_v1 *acr_dmem_desc_v1;
 	};
 
 	/* Falcon used to execute ACR ucode */

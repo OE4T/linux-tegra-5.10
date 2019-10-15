@@ -31,7 +31,7 @@
 #include "acr_wpr.h"
 #include "acr_priv.h"
 #include "acr_blob_alloc.h"
-#include "acr_blob_construct_v1.h"
+#include "acr_blob_construct.h"
 #include "acr_bootstrap.h"
 #include "acr_sw_gv11b.h"
 
@@ -55,14 +55,14 @@ static void gv11b_acr_patch_wpr_info_to_ucode(struct gk20a *g,
 	struct nvgpu_firmware *acr_fw = acr_desc->acr_fw;
 	struct acr_fw_header *acr_fw_hdr = NULL;
 	struct bin_hdr *acr_fw_bin_hdr = NULL;
-	struct flcn_acr_desc_v1 *acr_dmem_desc;
+	struct flcn_acr_desc *acr_dmem_desc;
 	u32 *acr_ucode_header = NULL;
 	u32 *acr_ucode_data = NULL;
 
 	nvgpu_log_fn(g, " ");
 
 	if (is_recovery) {
-		acr_desc->acr_dmem_desc_v1->nonwpr_ucode_blob_size = 0U;
+		acr_desc->acr_dmem_desc->nonwpr_ucode_blob_size = 0U;
 	} else {
 		acr_fw_bin_hdr = (struct bin_hdr *)(void *)acr_fw->data;
 		acr_fw_hdr = (struct acr_fw_header *)(void *)
@@ -74,10 +74,10 @@ static void gv11b_acr_patch_wpr_info_to_ucode(struct gk20a *g,
 			acr_fw_hdr->hdr_offset);
 
 		/* Patch WPR info to ucode */
-		acr_dmem_desc = (struct flcn_acr_desc_v1 *)(void *)
+		acr_dmem_desc = (struct flcn_acr_desc *)(void *)
 			&(((u8 *)acr_ucode_data)[acr_ucode_header[2U]]);
 
-		acr_desc->acr_dmem_desc_v1 = acr_dmem_desc;
+		acr_desc->acr_dmem_desc = acr_dmem_desc;
 
 		acr_dmem_desc->nonwpr_ucode_blob_start =
 			nvgpu_mem_get_addr(g, &g->acr->ucode_blob);
@@ -104,7 +104,7 @@ static u32 gv11b_acr_lsf_pmu(struct gk20a *g,
 	lsf->falcon_dma_idx = GK20A_PMU_DMAIDX_UCODE;
 	lsf->is_lazy_bootstrap = false;
 	lsf->is_priv_load = false;
-	lsf->get_lsf_ucode_details = nvgpu_acr_lsf_pmu_ucode_details_v1;
+	lsf->get_lsf_ucode_details = nvgpu_acr_lsf_pmu_ucode_details;
 	lsf->get_cmd_line_args_offset = nvgpu_pmu_fw_get_cmd_line_args_offset;
 
 	return BIT32(lsf->falcon_id);
@@ -124,7 +124,7 @@ static u32 gv11b_acr_lsf_fecs(struct gk20a *g,
 	 */
 	lsf->is_lazy_bootstrap = g->support_ls_pmu ? true : false;
 	lsf->is_priv_load = false;
-	lsf->get_lsf_ucode_details = nvgpu_acr_lsf_fecs_ucode_details_v1;
+	lsf->get_lsf_ucode_details = nvgpu_acr_lsf_fecs_ucode_details;
 	lsf->get_cmd_line_args_offset = NULL;
 
 	return BIT32(lsf->falcon_id);
@@ -142,7 +142,7 @@ static u32 gv11b_acr_lsf_gpccs(struct gk20a *g,
 	 */
 	lsf->is_lazy_bootstrap = g->support_ls_pmu ? true : false;
 	lsf->is_priv_load = true;
-	lsf->get_lsf_ucode_details = nvgpu_acr_lsf_gpccs_ucode_details_v1;
+	lsf->get_lsf_ucode_details = nvgpu_acr_lsf_gpccs_ucode_details;
 	lsf->get_cmd_line_args_offset = NULL;
 
 	return BIT32(lsf->falcon_id);
@@ -188,7 +188,7 @@ void nvgpu_gv11b_acr_sw_init(struct gk20a *g, struct nvgpu_acr *acr)
 
 	gv11b_acr_default_sw_init(g, &acr->acr);
 
-	acr->prepare_ucode_blob = nvgpu_acr_prepare_ucode_blob_v1;
+	acr->prepare_ucode_blob = nvgpu_acr_prepare_ucode_blob;
 	acr->get_wpr_info = nvgpu_acr_wpr_info_sys;
 	acr->alloc_blob_space = nvgpu_acr_alloc_blob_space_sys;
 	acr->bootstrap_hs_acr = gv11b_bootstrap_hs_acr;

@@ -31,7 +31,7 @@
  * to be filled by NVGPU and copied into DMEM at offset provided in the
  * hsflcn_bl_desc.bl_desc_dmem_load_off.
  */
-struct flcn_bl_dmem_desc {
+struct flcn_bl_dmem_desc_v0 {
 	u32    reserved[4];        /*Should be the first element..*/
 	u32    signature[4];        /*Should be the first element..*/
 	u32    ctx_dma;
@@ -47,7 +47,7 @@ struct flcn_bl_dmem_desc {
 	u32    data_dma_base1;
 };
 
-struct flcn_bl_dmem_desc_v1 {
+struct flcn_bl_dmem_desc {
 	u32    reserved[4];        /*Should be the first element..*/
 	u32    signature[4];        /*Should be the first element..*/
 	u32    ctx_dma;

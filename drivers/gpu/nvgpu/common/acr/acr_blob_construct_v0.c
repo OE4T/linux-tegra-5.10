@@ -38,14 +38,14 @@
 #ifdef CONFIG_NVGPU_LS_PMU
 int nvgpu_acr_lsf_pmu_ucode_details_v0(struct gk20a *g, void *lsf_ucode_img)
 {
-	struct lsf_ucode_desc *lsf_desc;
+	struct lsf_ucode_desc_v0 *lsf_desc;
 	struct nvgpu_firmware *fw_sig;
 	struct nvgpu_firmware *fw_desc;
 	struct nvgpu_firmware *fw_image;
-	struct flcn_ucode_img *p_img = (struct flcn_ucode_img *)lsf_ucode_img;
+	struct flcn_ucode_img_v0 *p_img = (struct flcn_ucode_img_v0 *)lsf_ucode_img;
 	int err = 0;
 
-	lsf_desc = nvgpu_kzalloc(g, sizeof(struct lsf_ucode_desc));
+	lsf_desc = nvgpu_kzalloc(g, sizeof(struct lsf_ucode_desc_v0));
 	if (lsf_desc == NULL) {
 		err = -ENOMEM;
 		goto exit;
@@ -63,7 +63,7 @@ int nvgpu_acr_lsf_pmu_ucode_details_v0(struct gk20a *g, void *lsf_ucode_img)
 	p_img->desc = (struct pmu_ucode_desc *)(void *)fw_desc->data;
 	p_img->data = (u32 *)(void *)fw_image->data;
 	p_img->data_size = p_img->desc->image_size;
-	p_img->lsf_desc = (struct lsf_ucode_desc *)lsf_desc;
+	p_img->lsf_desc = (struct lsf_ucode_desc_v0 *)lsf_desc;
 
 exit:
 	return err;
@@ -72,9 +72,9 @@ exit:
 
 int nvgpu_acr_lsf_fecs_ucode_details_v0(struct gk20a *g, void *lsf_ucode_img)
 {
-	struct lsf_ucode_desc *lsf_desc;
+	struct lsf_ucode_desc_v0 *lsf_desc;
 	struct nvgpu_firmware *fecs_sig;
-	struct flcn_ucode_img *p_img = (struct flcn_ucode_img *)lsf_ucode_img;
+	struct flcn_ucode_img_v0 *p_img = (struct flcn_ucode_img_v0 *)lsf_ucode_img;
 	struct nvgpu_gr_falcon *gr_falcon = nvgpu_gr_get_falcon_ptr(g);
 	struct nvgpu_ctxsw_ucode_segments *fecs =
 			nvgpu_gr_falcon_get_fecs_ucode_segments(gr_falcon);
@@ -85,7 +85,7 @@ int nvgpu_acr_lsf_fecs_ucode_details_v0(struct gk20a *g, void *lsf_ucode_img)
 		nvgpu_err(g, "failed to load fecs sig");
 		return -ENOENT;
 	}
-	lsf_desc = nvgpu_kzalloc(g, sizeof(struct lsf_ucode_desc));
+	lsf_desc = nvgpu_kzalloc(g, sizeof(struct lsf_ucode_desc_v0));
 	if (lsf_desc == NULL) {
 		err = -ENOMEM;
 		goto rel_sig;
@@ -122,7 +122,7 @@ int nvgpu_acr_lsf_fecs_ucode_details_v0(struct gk20a *g, void *lsf_ucode_img)
 	p_img->data = nvgpu_gr_falcon_get_surface_desc_cpu_va(gr_falcon);
 	p_img->data_size = p_img->desc->image_size;
 
-	p_img->lsf_desc = (struct lsf_ucode_desc *)lsf_desc;
+	p_img->lsf_desc = (struct lsf_ucode_desc_v0 *)lsf_desc;
 	nvgpu_acr_dbg(g, "fecs fw loaded\n");
 	nvgpu_release_firmware(g, fecs_sig);
 	return 0;
@@ -135,9 +135,9 @@ rel_sig:
 
 int nvgpu_acr_lsf_gpccs_ucode_details_v0(struct gk20a *g, void *lsf_ucode_img)
 {
-	struct lsf_ucode_desc *lsf_desc;
+	struct lsf_ucode_desc_v0 *lsf_desc;
 	struct nvgpu_firmware *gpccs_sig;
-	struct flcn_ucode_img *p_img = (struct flcn_ucode_img *)lsf_ucode_img;
+	struct flcn_ucode_img_v0 *p_img = (struct flcn_ucode_img_v0 *)lsf_ucode_img;
 	struct nvgpu_gr_falcon *gr_falcon = nvgpu_gr_get_falcon_ptr(g);
 	struct nvgpu_ctxsw_ucode_segments *gpccs =
 			nvgpu_gr_falcon_get_gpccs_ucode_segments(gr_falcon);
@@ -152,7 +152,7 @@ int nvgpu_acr_lsf_gpccs_ucode_details_v0(struct gk20a *g, void *lsf_ucode_img)
 		nvgpu_err(g, "failed to load gpccs sig");
 		return -ENOENT;
 	}
-	lsf_desc = nvgpu_kzalloc(g, sizeof(struct lsf_ucode_desc));
+	lsf_desc = nvgpu_kzalloc(g, sizeof(struct lsf_ucode_desc_v0));
 	if (lsf_desc == NULL) {
 		err = -ENOMEM;
 		goto rel_sig;
@@ -191,7 +191,7 @@ int nvgpu_acr_lsf_gpccs_ucode_details_v0(struct gk20a *g, void *lsf_ucode_img)
 		((u8 *)nvgpu_gr_falcon_get_surface_desc_cpu_va(gr_falcon) +
 							gpccs->boot.offset);
 	p_img->data_size = ALIGN(p_img->desc->image_size, 256U);
-	p_img->lsf_desc = (struct lsf_ucode_desc *)lsf_desc;
+	p_img->lsf_desc = (struct lsf_ucode_desc_v0 *)lsf_desc;
 	nvgpu_acr_dbg(g, "gpccs fw loaded\n");
 	nvgpu_release_firmware(g, gpccs_sig);
 	return 0;
@@ -207,7 +207,7 @@ rel_sig:
  * Populate static LSB header information using the provided ucode image
  */
 static void lsfm_fill_static_lsb_hdr_info(struct gk20a *g,
-	u32 falcon_id, struct lsfm_managed_ucode_img *pnode)
+	u32 falcon_id, struct lsfm_managed_ucode_img_v0 *pnode)
 {
 	u32 full_app_size = 0;
 	u32 data = 0;
@@ -215,7 +215,7 @@ static void lsfm_fill_static_lsb_hdr_info(struct gk20a *g,
 	if (pnode->ucode_img.lsf_desc != NULL) {
 		nvgpu_memcpy((u8 *)&pnode->lsb_header.signature,
 			(u8 *)pnode->ucode_img.lsf_desc,
-			sizeof(struct lsf_ucode_desc));
+			sizeof(struct lsf_ucode_desc_v0));
 	}
 	pnode->lsb_header.ucode_size = pnode->ucode_img.data_size;
 
@@ -261,20 +261,20 @@ static void lsfm_fill_static_lsb_hdr_info(struct gk20a *g,
 }
 
 /* Adds a ucode image to the list of managed ucode images managed. */
-static int lsfm_add_ucode_img(struct gk20a *g, struct ls_flcn_mgr *plsfm,
-	struct flcn_ucode_img *ucode_image, u32 falcon_id)
+static int lsfm_add_ucode_img(struct gk20a *g, struct ls_flcn_mgr_v0 *plsfm,
+	struct flcn_ucode_img_v0 *ucode_image, u32 falcon_id)
 {
 
-	struct lsfm_managed_ucode_img *pnode;
+	struct lsfm_managed_ucode_img_v0 *pnode;
 
-	pnode = nvgpu_kzalloc(g, sizeof(struct lsfm_managed_ucode_img));
+	pnode = nvgpu_kzalloc(g, sizeof(struct lsfm_managed_ucode_img_v0));
 	if (pnode == NULL) {
 		return -ENOMEM;
 	}
 
 	/* Keep a copy of the ucode image info locally */
 	nvgpu_memcpy((u8 *)&pnode->ucode_img, (u8 *)ucode_image,
-		sizeof(struct flcn_ucode_img));
+		sizeof(struct flcn_ucode_img_v0));
 
 	/* Fill in static WPR header info*/
 	pnode->wpr_header.falcon_id = falcon_id;
@@ -293,9 +293,9 @@ static int lsfm_add_ucode_img(struct gk20a *g, struct ls_flcn_mgr *plsfm,
 
 /* Discover all managed falcon ucode images */
 static int lsfm_discover_ucode_images(struct gk20a *g,
-	struct ls_flcn_mgr *plsfm)
+	struct ls_flcn_mgr_v0 *plsfm)
 {
-	struct flcn_ucode_img ucode_img;
+	struct flcn_ucode_img_v0 ucode_img;
 	struct nvgpu_acr *acr = g->acr;
 	u32 falcon_id;
 	u32 i;
@@ -343,9 +343,9 @@ exit:
 }
 
 /* Generate WPR requirements for ACR allocation request */
-static int lsf_gen_wpr_requirements(struct gk20a *g, struct ls_flcn_mgr *plsfm)
+static int lsf_gen_wpr_requirements(struct gk20a *g, struct ls_flcn_mgr_v0 *plsfm)
 {
-	struct lsfm_managed_ucode_img *pnode = plsfm->ucode_img_list;
+	struct lsfm_managed_ucode_img_v0 *pnode = plsfm->ucode_img_list;
 	u32 wpr_offset;
 
 	/*
@@ -354,7 +354,7 @@ static int lsf_gen_wpr_requirements(struct gk20a *g, struct ls_flcn_mgr *plsfm)
 	 * read of this array and cache it internally so it's OK to pack these.
 	 * Also, we add 1 to the falcon count to indicate the end of the array.
 	 */
-	wpr_offset = U32(sizeof(struct lsf_wpr_header)) *
+	wpr_offset = U32(sizeof(struct lsf_wpr_header_v0)) *
 		(U32(plsfm->managed_flcn_cnt) + U32(1));
 
 	/*
@@ -365,7 +365,7 @@ static int lsf_gen_wpr_requirements(struct gk20a *g, struct ls_flcn_mgr *plsfm)
 		/* Align, save off, and include an LSB header size */
 		wpr_offset = ALIGN(wpr_offset, LSF_LSB_HEADER_ALIGNMENT);
 		pnode->wpr_header.lsb_offset = wpr_offset;
-		wpr_offset += (u32)sizeof(struct lsf_lsb_header);
+		wpr_offset += (u32)sizeof(struct lsf_lsb_header_v0);
 
 		/*
 		 * Align, save off, and include the original (static)
@@ -425,9 +425,9 @@ static int gm20b_pmu_populate_loader_cfg(struct gk20a *g,
 	void *lsfm, u32 *p_bl_gen_desc_size)
 {
 	struct wpr_carveout_info wpr_inf;
-	struct lsfm_managed_ucode_img *p_lsfm =
-			(struct lsfm_managed_ucode_img *)lsfm;
-	struct flcn_ucode_img *p_img = &(p_lsfm->ucode_img);
+	struct lsfm_managed_ucode_img_v0 *p_lsfm =
+			(struct lsfm_managed_ucode_img_v0 *)lsfm;
+	struct flcn_ucode_img_v0 *p_img = &(p_lsfm->ucode_img);
 	struct loader_config *ldr_cfg = &(p_lsfm->bl_gen_desc.loader_cfg);
 	u64 addr_base;
 	struct pmu_ucode_desc *desc;
@@ -497,10 +497,10 @@ static int gm20b_flcn_populate_bl_dmem_desc(struct gk20a *g,
 	void *lsfm, u32 *p_bl_gen_desc_size, u32 falconid)
 {
 	struct wpr_carveout_info wpr_inf;
-	struct lsfm_managed_ucode_img *p_lsfm =
-			(struct lsfm_managed_ucode_img *)lsfm;
-	struct flcn_ucode_img *p_img = &(p_lsfm->ucode_img);
-	struct flcn_bl_dmem_desc *ldr_cfg =
+	struct lsfm_managed_ucode_img_v0 *p_lsfm =
+			(struct lsfm_managed_ucode_img_v0 *)lsfm;
+	struct flcn_ucode_img_v0 *p_img = &(p_lsfm->ucode_img);
+	struct flcn_bl_dmem_desc_v0 *ldr_cfg =
 			&(p_lsfm->bl_gen_desc.bl_dmem_desc);
 	u64 addr_base;
 	struct pmu_ucode_desc *desc;
@@ -546,20 +546,20 @@ static int gm20b_flcn_populate_bl_dmem_desc(struct gk20a *g,
 		p_lsfm->wpr_header.falcon_id);
 
 	/* Populate the LOADER_CONFIG state */
-	(void) memset((void *) ldr_cfg, 0, sizeof(struct flcn_bl_dmem_desc));
+	(void) memset((void *) ldr_cfg, 0, sizeof(struct flcn_bl_dmem_desc_v0));
 	ldr_cfg->ctx_dma = g->acr->lsf[falconid].falcon_dma_idx;
 	ldr_cfg->code_dma_base = addr_code;
 	ldr_cfg->non_sec_code_size = desc->app_resident_code_size;
 	ldr_cfg->data_dma_base = addr_data;
 	ldr_cfg->data_size = desc->app_resident_data_size;
 	ldr_cfg->code_entry_point = desc->app_imem_entry;
-	*p_bl_gen_desc_size = (u32)sizeof(struct flcn_bl_dmem_desc);
+	*p_bl_gen_desc_size = (u32)sizeof(struct flcn_bl_dmem_desc_v0);
 	return 0;
 }
 
 /* Populate falcon boot loader generic desc.*/
 static int lsfm_fill_flcn_bl_gen_desc(struct gk20a *g,
-		struct lsfm_managed_ucode_img *pnode)
+		struct lsfm_managed_ucode_img_v0 *pnode)
 {
 	int err = -ENOENT;
 
@@ -590,17 +590,17 @@ static int lsfm_fill_flcn_bl_gen_desc(struct gk20a *g,
 	return err;
 }
 
-static int lsfm_init_wpr_contents(struct gk20a *g, struct ls_flcn_mgr *plsfm,
+static int lsfm_init_wpr_contents(struct gk20a *g, struct ls_flcn_mgr_v0 *plsfm,
 	struct nvgpu_mem *ucode)
 {
-	struct lsfm_managed_ucode_img *pnode = plsfm->ucode_img_list;
-	struct lsf_wpr_header last_wpr_hdr;
+	struct lsfm_managed_ucode_img_v0 *pnode = plsfm->ucode_img_list;
+	struct lsf_wpr_header_v0 last_wpr_hdr;
 	u32 i;
 	int err = 0;
 
 	/* The WPR array is at the base of the WPR */
 	pnode = plsfm->ucode_img_list;
-	(void) memset(&last_wpr_hdr, 0, sizeof(struct lsf_wpr_header));
+	(void) memset(&last_wpr_hdr, 0, sizeof(struct lsf_wpr_header_v0));
 	i = 0;
 
 	/*
@@ -681,15 +681,15 @@ static int lsfm_init_wpr_contents(struct gk20a *g, struct ls_flcn_mgr *plsfm,
 	last_wpr_hdr.falcon_id = FALCON_ID_INVALID;
 	nvgpu_mem_wr_n(g, ucode,
 			(u32)plsfm->managed_flcn_cnt *
-				(u32)sizeof(struct lsf_wpr_header),
+				(u32)sizeof(struct lsf_wpr_header_v0),
 			&last_wpr_hdr,
-			(u32)sizeof(struct lsf_wpr_header));
+			(u32)sizeof(struct lsf_wpr_header_v0));
 	return err;
 }
 
 /* Free any ucode image structure resources. */
 static void lsfm_free_ucode_img_res(struct gk20a *g,
-	struct flcn_ucode_img *p_img)
+	struct flcn_ucode_img_v0 *p_img)
 {
 	if (p_img->lsf_desc != NULL) {
 		nvgpu_kfree(g, p_img->lsf_desc);
@@ -699,7 +699,7 @@ static void lsfm_free_ucode_img_res(struct gk20a *g,
 
 /* Free any ucode image structure resources. */
 static void lsfm_free_nonpmu_ucode_img_res(struct gk20a *g,
-	struct flcn_ucode_img *p_img)
+	struct flcn_ucode_img_v0 *p_img)
 {
 	if (p_img->lsf_desc != NULL) {
 		nvgpu_kfree(g, p_img->lsf_desc);
@@ -711,10 +711,10 @@ static void lsfm_free_nonpmu_ucode_img_res(struct gk20a *g,
 	}
 }
 
-static void free_acr_resources(struct gk20a *g, struct ls_flcn_mgr *plsfm)
+static void free_acr_resources(struct gk20a *g, struct ls_flcn_mgr_v0 *plsfm)
 {
 	u32 cnt = plsfm->managed_flcn_cnt;
-	struct lsfm_managed_ucode_img *mg_ucode_img;
+	struct lsfm_managed_ucode_img_v0 *mg_ucode_img;
 	while (cnt != 0U) {
 		mg_ucode_img = plsfm->ucode_img_list;
 		if (mg_ucode_img->ucode_img.lsf_desc->falcon_id ==
@@ -733,7 +733,7 @@ static void free_acr_resources(struct gk20a *g, struct ls_flcn_mgr *plsfm)
 int nvgpu_acr_prepare_ucode_blob_v0(struct gk20a *g)
 {
 	int err = 0;
-	struct ls_flcn_mgr lsfm_l, *plsfm;
+	struct ls_flcn_mgr_v0 lsfm_l, *plsfm;
 	struct wpr_carveout_info wpr_inf;
 	struct nvgpu_gr_falcon *gr_falcon = nvgpu_gr_get_falcon_ptr(g);
 
@@ -742,7 +742,7 @@ int nvgpu_acr_prepare_ucode_blob_v0(struct gk20a *g)
 		return err;
 	}
 	plsfm = &lsfm_l;
-	(void) memset((void *)plsfm, 0, sizeof(struct ls_flcn_mgr));
+	(void) memset((void *)plsfm, 0, sizeof(struct ls_flcn_mgr_v0));
 	nvgpu_acr_dbg(g, "fetching GMMU regs\n");
 	err = g->ops.fb.vpr_info_fetch(g);
 	if (err != 0) {

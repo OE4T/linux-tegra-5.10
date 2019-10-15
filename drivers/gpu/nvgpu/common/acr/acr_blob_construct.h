@@ -20,8 +20,8 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef ACR_BLOB_CONSTRUCT_V1_H
-#define ACR_BLOB_CONSTRUCT_V1_H
+#ifndef ACR_BLOB_CONSTRUCT_H
+#define ACR_BLOB_CONSTRUCT_H
 
 #include <nvgpu/falcon.h>
 #include <nvgpu/flcnif_cmn.h>
@@ -46,10 +46,10 @@
  * Maximum WPR Header size
  */
 #define LSF_WPR_HEADERS_TOTAL_SIZE_MAX	\
-	(ALIGN_UP(((u32)sizeof(struct lsf_wpr_header_v1) * FALCON_ID_END), \
+	(ALIGN_UP(((u32)sizeof(struct lsf_wpr_header) * FALCON_ID_END), \
 		LSF_WPR_HEADER_ALIGNMENT))
 #define LSF_LSB_HEADER_TOTAL_SIZE_MAX	(\
-	ALIGN_UP(sizeof(struct lsf_lsb_header_v1), LSF_LSB_HEADER_ALIGNMENT))
+	ALIGN_UP(sizeof(struct lsf_lsb_header), LSF_LSB_HEADER_ALIGNMENT))
 
 #ifdef CONFIG_NVGPU_DGPU
 /* Maximum SUB WPR header size */
@@ -105,7 +105,7 @@ enum {
 #define LSF_IMAGE_STATUS_VALIDATION_SKIPPED             (5U)
 #define LSF_IMAGE_STATUS_BOOTSTRAP_READY                (6U)
 
-struct lsf_wpr_header_v1 {
+struct lsf_wpr_header {
 	u32 falcon_id;
 	u32 lsb_offset;
 	u32 bootstrap_owner;
@@ -114,7 +114,7 @@ struct lsf_wpr_header_v1 {
 	u32 status;
 };
 
-struct lsf_ucode_desc_v1 {
+struct lsf_ucode_desc {
 	u8  prd_keys[2][16];
 	u8  dbg_keys[2][16];
 	u32 b_prd_present;
@@ -127,8 +127,8 @@ struct lsf_ucode_desc_v1 {
 	u8  kdf[16];
 };
 
-struct lsf_lsb_header_v1 {
-	struct lsf_ucode_desc_v1 signature;
+struct lsf_lsb_header {
+	struct lsf_ucode_desc signature;
 	u32 ucode_off;
 	u32 ucode_size;
 	u32 data_size;
@@ -169,21 +169,21 @@ struct ls_falcon_ucode_desc {
 	u32 compressed;
 };
 
-struct flcn_ucode_img_v1 {
+struct flcn_ucode_img {
 	u32 *data;
 	struct ls_falcon_ucode_desc *desc;
 	u32 data_size;
-	struct lsf_ucode_desc_v1 *lsf_desc;
+	struct lsf_ucode_desc *lsf_desc;
 };
 
-struct lsfm_managed_ucode_img_v2 {
-	struct lsfm_managed_ucode_img_v2 *next;
-	struct lsf_wpr_header_v1 wpr_header;
-	struct lsf_lsb_header_v1 lsb_header;
-	struct flcn_bl_dmem_desc_v1 bl_gen_desc;
+struct lsfm_managed_ucode_img {
+	struct lsfm_managed_ucode_img *next;
+	struct lsf_wpr_header wpr_header;
+	struct lsf_lsb_header lsb_header;
+	struct flcn_bl_dmem_desc bl_gen_desc;
 	u32 bl_gen_desc_size;
 	u32 full_ucode_size;
-	struct flcn_ucode_img_v1 ucode_img;
+	struct flcn_ucode_img ucode_img;
 };
 
 #ifdef CONFIG_NVGPU_DGPU
@@ -211,24 +211,24 @@ struct lsfm_sub_wpr {
 };
 #endif
 
-struct ls_flcn_mgr_v1 {
+struct ls_flcn_mgr {
 	u16 managed_flcn_cnt;
 	u32 wpr_size;
-	struct lsfm_managed_ucode_img_v2 *ucode_img_list;
+	struct lsfm_managed_ucode_img *ucode_img_list;
 #ifdef CONFIG_NVGPU_DGPU
 	u16 managed_sub_wpr_count;
 	struct lsfm_sub_wpr *psub_wpr_list;
 #endif
 };
 
-int nvgpu_acr_prepare_ucode_blob_v1(struct gk20a *g);
+int nvgpu_acr_prepare_ucode_blob(struct gk20a *g);
 #ifdef CONFIG_NVGPU_LS_PMU
-int nvgpu_acr_lsf_pmu_ucode_details_v1(struct gk20a *g, void *lsf_ucode_img);
+int nvgpu_acr_lsf_pmu_ucode_details(struct gk20a *g, void *lsf_ucode_img);
 #endif
-int nvgpu_acr_lsf_fecs_ucode_details_v1(struct gk20a *g, void *lsf_ucode_img);
-int nvgpu_acr_lsf_gpccs_ucode_details_v1(struct gk20a *g, void *lsf_ucode_img);
+int nvgpu_acr_lsf_fecs_ucode_details(struct gk20a *g, void *lsf_ucode_img);
+int nvgpu_acr_lsf_gpccs_ucode_details(struct gk20a *g, void *lsf_ucode_img);
 #ifdef CONFIG_NVGPU_DGPU
-int nvgpu_acr_lsf_sec2_ucode_details_v1(struct gk20a *g, void *lsf_ucode_img);
+int nvgpu_acr_lsf_sec2_ucode_details(struct gk20a *g, void *lsf_ucode_img);
 #endif
 
-#endif /* ACR_BLOB_CONSTRUCT_V1_H */
+#endif /* ACR_BLOB_CONSTRUCT_H */

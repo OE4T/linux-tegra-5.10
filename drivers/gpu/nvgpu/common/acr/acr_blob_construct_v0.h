@@ -70,7 +70,7 @@
  * Light Secure WPR Header
  * Defines state allowing Light Secure Falcon bootstrapping.
  */
-struct lsf_wpr_header {
+struct lsf_wpr_header_v0 {
 	u32 falcon_id;
 	u32 lsb_offset;
 	u32 bootstrap_owner;
@@ -82,7 +82,7 @@ struct lsf_wpr_header {
  * Light Secure Falcon Ucode Description Defines
  * This structure is prelim and may change as the ucode signing flow evolves.
  */
-struct lsf_ucode_desc {
+struct lsf_ucode_desc_v0 {
 	u8  prd_keys[2][16];
 	u8  dbg_keys[2][16];
 	u32 b_prd_present;
@@ -94,8 +94,8 @@ struct lsf_ucode_desc {
  * Light Secure Bootstrap Header
  * Defines state allowing Light Secure Falcon bootstrapping.
  */
-struct lsf_lsb_header {
-	struct lsf_ucode_desc signature;
+struct lsf_lsb_header_v0 {
+	struct lsf_ucode_desc_v0 signature;
 	u32 ucode_off;
 	u32 ucode_size;
 	u32 data_size;
@@ -114,16 +114,16 @@ struct lsf_lsb_header {
  * Union of all supported structures used by bootloaders.
  */
 union flcn_bl_generic_desc {
-	struct flcn_bl_dmem_desc bl_dmem_desc;
+	struct flcn_bl_dmem_desc_v0 bl_dmem_desc;
 	struct loader_config loader_cfg;
 };
 
-struct flcn_ucode_img {
+struct flcn_ucode_img_v0 {
 	u32  *data;
 	struct pmu_ucode_desc *desc; /* only some falcons have descriptor */
 	u32  data_size;
 	/* NULL if not a light secure falcon. */
-	struct lsf_ucode_desc *lsf_desc;
+	struct lsf_ucode_desc_v0 *lsf_desc;
 	/* True if there a resources to freed by the client. */
 };
 
@@ -137,14 +137,14 @@ struct flcn_ucode_img {
  * full_ucode_size  : Surface size required for final ucode image
  * ucode_img        : Ucode image info
  */
-struct lsfm_managed_ucode_img {
-	struct lsfm_managed_ucode_img *next;
-	struct lsf_wpr_header wpr_header;
-	struct lsf_lsb_header lsb_header;
+struct lsfm_managed_ucode_img_v0 {
+	struct lsfm_managed_ucode_img_v0 *next;
+	struct lsf_wpr_header_v0 wpr_header;
+	struct lsf_lsb_header_v0 lsb_header;
 	union flcn_bl_generic_desc bl_gen_desc;
 	u32 bl_gen_desc_size;
 	u32 full_ucode_size;
-	struct flcn_ucode_img ucode_img;
+	struct flcn_ucode_img_v0 ucode_img;
 };
 
 /*
@@ -153,10 +153,10 @@ struct lsfm_managed_ucode_img {
  *
  * Contains the Light Secure Falcon Manager (LSFM) feature related data.
  */
-struct ls_flcn_mgr {
+struct ls_flcn_mgr_v0 {
 	u16 managed_flcn_cnt;
 	u32 wpr_size;
-	struct lsfm_managed_ucode_img *ucode_img_list;
+	struct lsfm_managed_ucode_img_v0 *ucode_img_list;
 };
 
 int nvgpu_acr_lsf_pmu_ucode_details_v0(struct gk20a *g, void *lsf_ucode_img);

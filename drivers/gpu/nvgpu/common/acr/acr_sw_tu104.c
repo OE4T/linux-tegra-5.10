@@ -29,7 +29,7 @@
 #include "acr_priv.h"
 #include "acr_blob_alloc.h"
 #include "acr_bootstrap.h"
-#include "acr_blob_construct_v1.h"
+#include "acr_blob_construct.h"
 #include "acr_sw_gv11b.h"
 #include "acr_sw_tu104.h"
 
@@ -62,7 +62,7 @@ static void tu104_acr_patch_wpr_info_to_ucode(struct gk20a *g,
 	struct nvgpu_firmware *acr_fw = acr_desc->acr_fw;
 	struct acr_fw_header *acr_fw_hdr = NULL;
 	struct bin_hdr *acr_fw_bin_hdr = NULL;
-	struct flcn_acr_desc_v1 *acr_dmem_desc;
+	struct flcn_acr_desc *acr_dmem_desc;
 	struct wpr_carveout_info wpr_inf;
 	u32 *acr_ucode_header = NULL;
 	u32 *acr_ucode_data = NULL;
@@ -79,7 +79,7 @@ static void tu104_acr_patch_wpr_info_to_ucode(struct gk20a *g,
 
 	acr->get_wpr_info(g, &wpr_inf);
 
-	acr_dmem_desc = (struct flcn_acr_desc_v1 *)
+	acr_dmem_desc = (struct flcn_acr_desc *)
 		&(((u8 *)acr_ucode_data)[acr_ucode_header[2U]]);
 
 	acr_dmem_desc->nonwpr_ucode_blob_start = wpr_inf.nonwpr_base;
@@ -114,7 +114,7 @@ static u32 tu104_acr_lsf_sec2(struct gk20a *g,
 	lsf->falcon_dma_idx = NV_SEC2_DMAIDX_UCODE;
 	lsf->is_lazy_bootstrap = false;
 	lsf->is_priv_load = false;
-	lsf->get_lsf_ucode_details = nvgpu_acr_lsf_sec2_ucode_details_v1;
+	lsf->get_lsf_ucode_details = nvgpu_acr_lsf_sec2_ucode_details;
 	lsf->get_cmd_line_args_offset = NULL;
 
 	return BIT32(lsf->falcon_id);
@@ -129,7 +129,7 @@ static u32 tu104_acr_lsf_pmu(struct gk20a *g,
 	lsf->is_lazy_bootstrap = false;
 	lsf->is_priv_load = false;
 #ifdef CONFIG_NVGPU_LS_PMU
-	lsf->get_lsf_ucode_details = nvgpu_acr_lsf_pmu_ucode_details_v1;
+	lsf->get_lsf_ucode_details = nvgpu_acr_lsf_pmu_ucode_details;
 	lsf->get_cmd_line_args_offset = nvgpu_pmu_fw_get_cmd_line_args_offset;
 #endif
 	return BIT32(lsf->falcon_id);
@@ -143,7 +143,7 @@ static u32 tu104_acr_lsf_fecs(struct gk20a *g,
 	lsf->falcon_dma_idx = GK20A_PMU_DMAIDX_UCODE;
 	lsf->is_lazy_bootstrap = true;
 	lsf->is_priv_load = true;
-	lsf->get_lsf_ucode_details = nvgpu_acr_lsf_fecs_ucode_details_v1;
+	lsf->get_lsf_ucode_details = nvgpu_acr_lsf_fecs_ucode_details;
 	lsf->get_cmd_line_args_offset = NULL;
 
 	return BIT32(lsf->falcon_id);
@@ -157,7 +157,7 @@ static u32 tu104_acr_lsf_gpccs(struct gk20a *g,
 	lsf->falcon_dma_idx = GK20A_PMU_DMAIDX_UCODE;
 	lsf->is_lazy_bootstrap = true;
 	lsf->is_priv_load = true;
-	lsf->get_lsf_ucode_details = nvgpu_acr_lsf_gpccs_ucode_details_v1;
+	lsf->get_lsf_ucode_details = nvgpu_acr_lsf_gpccs_ucode_details;
 	lsf->get_cmd_line_args_offset = NULL;
 
 	return BIT32(lsf->falcon_id);
@@ -182,7 +182,7 @@ static bool tu104_acr_is_fusa_enabled(struct gk20a *g)
 }
 
 /* ACR-AHESASC(ACR hub encryption setter and signature checker) init*/
-static void tu104_acr_ahesasc_non_fusa_ucode_select(struct gk20a *g,
+static void tu104_acr_ahesasc_v0_ucode_select(struct gk20a *g,
 		struct hs_acr *acr_ahesasc)
 {
 	acr_ahesasc->acr_type = ACR_AHESASC_NON_FUSA;
@@ -213,14 +213,14 @@ static void tu104_acr_ahesasc_sw_init(struct gk20a *g,
 	if (tu104_acr_is_fusa_enabled(g)) {
 		tu104_acr_ahesasc_fusa_ucode_select(g, acr_ahesasc);
 	} else {
-		tu104_acr_ahesasc_non_fusa_ucode_select(g, acr_ahesasc);
+		tu104_acr_ahesasc_v0_ucode_select(g, acr_ahesasc);
 	}
 
 	acr_ahesasc->acr_flcn = &g->sec2.flcn;
 }
 
 /* ACR-ASB(ACR SEC2 booter) init*/
-static void tu104_acr_asb_non_fusa_ucode_select(struct gk20a *g,
+static void tu104_acr_asb_v0_ucode_select(struct gk20a *g,
 	struct hs_acr *acr_asb)
 {
 	acr_asb->acr_type = ACR_ASB_NON_FUSA;
@@ -250,7 +250,7 @@ static void tu104_acr_asb_sw_init(struct gk20a *g,
 	if (tu104_acr_is_fusa_enabled(g)) {
 		tu104_acr_asb_fusa_ucode_select(g, acr_asb);
 	} else {
-		tu104_acr_asb_non_fusa_ucode_select(g, acr_asb);
+		tu104_acr_asb_v0_ucode_select(g, acr_asb);
 	}
 
 	acr_asb->acr_flcn = &g->gsp_flcn;
@@ -262,7 +262,7 @@ void nvgpu_tu104_acr_sw_init(struct gk20a *g, struct nvgpu_acr *acr)
 
 	acr->lsf_enable_mask = tu104_acr_lsf_conifg(g, acr);
 
-	acr->prepare_ucode_blob = nvgpu_acr_prepare_ucode_blob_v1;
+	acr->prepare_ucode_blob = nvgpu_acr_prepare_ucode_blob;
 	acr->get_wpr_info = nvgpu_acr_wpr_info_vid;
 	acr->alloc_blob_space = nvgpu_acr_alloc_blob_space_vid;
 	acr->bootstrap_owner = FALCON_ID_GSPLITE;

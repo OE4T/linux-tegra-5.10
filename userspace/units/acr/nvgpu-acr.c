@@ -33,7 +33,6 @@
 #include <nvgpu/gr/gr.h>
 #include <nvgpu/lock.h>
 
-#include <common/acr/acr_blob_construct_v1.h>
 #include <common/acr/acr_wpr.h>
 #include <common/acr/acr_priv.h>
 #include <nvgpu/hw/gv11b/hw_fuse_gv11b.h>

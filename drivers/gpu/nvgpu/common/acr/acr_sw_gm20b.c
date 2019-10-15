@@ -54,14 +54,14 @@ static void gm20b_acr_patch_wpr_info_to_ucode(struct gk20a *g,
 	struct nvgpu_firmware *acr_fw = acr_desc->acr_fw;
 	struct acr_fw_header *acr_fw_hdr = NULL;
 	struct bin_hdr *acr_fw_bin_hdr = NULL;
-	struct flcn_acr_desc *acr_dmem_desc;
+	struct flcn_acr_desc_v0 *acr_dmem_desc;
 	u32 *acr_ucode_header = NULL;
 	u32 *acr_ucode_data = NULL;
 
 	nvgpu_log_fn(g, " ");
 
 	if (is_recovery) {
-		acr_desc->acr_dmem_desc->nonwpr_ucode_blob_size = 0U;
+		acr_desc->acr_dmem_desc_v0->nonwpr_ucode_blob_size = 0U;
 	} else {
 		acr_fw_bin_hdr = (struct bin_hdr *)acr_fw->data;
 		acr_fw_hdr = (struct acr_fw_header *)
@@ -74,10 +74,10 @@ static void gm20b_acr_patch_wpr_info_to_ucode(struct gk20a *g,
 			acr_fw_hdr->hdr_offset);
 
 		/* Patch WPR info to ucode */
-		acr_dmem_desc = (struct flcn_acr_desc *)
+		acr_dmem_desc = (struct flcn_acr_desc_v0 *)
 			&(((u8 *)acr_ucode_data)[acr_ucode_header[2U]]);
 
-		acr_desc->acr_dmem_desc = acr_dmem_desc;
+		acr_desc->acr_dmem_desc_v0 = acr_dmem_desc;
 
 		acr_dmem_desc->nonwpr_ucode_blob_start =
 			nvgpu_mem_get_addr(g, &g->acr->ucode_blob);
