@@ -7670,7 +7670,17 @@ int ufshcd_rescan(struct ufs_hba *hba)
 							UFS_SLEEP_PWR_MODE,
 							UIC_LINK_HIBERN8_STATE);
 		hba->spm_lvl = hba->rpm_lvl;
+
+		/* Create sysfs nodes*/
+		if (ufshcd_is_clkscaling_supported(hba))
+			ufshcd_clkscaling_init_sysfs(hba);
+
+		ufs_sysfs_add_nodes(hba->dev);
 	} else {
+		ufs_sysfs_remove_nodes(hba->dev);
+		if (ufshcd_is_clkscaling_supported(hba))
+			device_remove_file(hba->dev,
+					   &hba->clk_scaling.enable_attr);
 		/* disable interrupts */
 		ufshcd_disable_intr(hba, hba->intr_mask);
 		ret = ufshcd_realloc_host(hba);
