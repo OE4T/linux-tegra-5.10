@@ -29,15 +29,15 @@
  *
  * Acronyms
  * ========
- * ACR     - Access Controlled Regions
- * ACR HS  - Access Controlled Regions Heavy-Secure ucode
- * FB      - Frame Buffer
- * non-WPR - non-Write Protected Region
- * WPR     - Write Protected Region
- * LS      - Light-Secure
- * HS      - Heavy-Secure
- * Falcon  - Fast Logic CONtroller
- * BLOB    - Binary Large OBject
+ * + ACR     - Access Controlled Regions
+ * + ACR HS  - Access Controlled Regions Heavy-Secure ucode
+ * + FB      - Frame Buffer
+ * + non-WPR - non-Write Protected Region
+ * + WPR     - Write Protected Region
+ * + LS      - Light-Secure
+ * + HS      - Heavy-Secure
+ * + Falcon  - Fast Logic CONtroller
+ * + BLOB    - Binary Large OBject
  *
  * Overview
  * ========
@@ -103,7 +103,7 @@
  *
  * ACR Teardown
  * ------------
- * The function nvgpu_acr_free() is called from nvgpu_remove() as part of
+ * The function nvgpu_acr_free() is called from #nvgpu_remove() as part of
  * poweroff sequence to clear and free the memory space allocated for ACR unit.
  *
  * External APIs
@@ -169,6 +169,41 @@ struct nvgpu_acr;
  * chip. Allocate memory for #nvgpu_acr data struct & sets the static properties
  * and ops for LS ucode blob construction as well as for ACR HS ucode bootstrap.
  *
+ * ACR init by following below steps,
+ * + Allocate memory for ACR unit private struct #nvgpu_acr, return -ENOMEM upon
+ *   failure else continue to next step.
+ * + Based on detected chip, init calls chip specific s/w init. For gv11b,
+ *   nvgpu_gv11b_acr_sw_init is called to set. Static properties like
+ *   bootstrap_owner, supported LS Falcons & ops update.
+ *   + Struct #nvgpu_acr member gets set as below for gv11b,
+ *     + FALCON_ID_PMU for bootstrap_owner as ACR HS ucode runs on PMU engine
+ *       Falcon.
+ *     + Supported LS Falcon's FECS & GPCCS details to struct #acr_lsf_config
+ *       & lsf_enable_mask member, lsf_enable_mask member used during blob
+ *       creation to add LS Falcon ucode details to blob.
+ *       + For FECS function #gv11b_acr_lsf_fecs is called.
+ *       + For GPCCS function #gv11b_acr_lsf_gpccs is called.
+ *     + Struct #hs_acr members get set as below for ACR HS ucode bootstrap by
+ *       calling function #nvgpu_gv11b_acr_sw_init.
+ *       + Set PMU engine Falcon for acr_flcn member.
+ *       + acr_ucode.bin file as ACR HS ucode to load & bootstrap.
+ *       + Set PMU Engine Falcon error handler to handle error caused during
+ *         ACR HS execution on PMU Engine Falcon
+ *         + Function #nvgpu_pmu_report_bar0_pri_err_status to report to 3LSS
+ *         + Function #gv11b_pmu_bar0_error_status to know PMU bus error
+ *         + Function #gv11b_pmu_validate_mem_integrity to know IMEM/DMEM error
+ *       + Set ops as below for gv11b,
+ *         + For blob creation set #prepare_ucode_blob to point to
+ *           #nvgpu_acr_prepare_ucode_blob function.
+ *         + For blob allocation in system memory set #alloc_blob_space to point
+ *           to #nvgpu_acr_alloc_blob_space_sys function.
+ *         + To patch ACR HS signature as part of ACR HS ucode set
+ *           #patch_wpr_info_to_ucode to point to
+ *			 #gv11b_acr_patch_wpr_info_to_ucode function.
+ *         + For bootstrap set #bootstrap_hs_acr to point to
+ *           #gv11b_bootstrap_hs_acr function.
+ * + Return 0 upon successful else error if any of above step fails.
+ *
  * @return 0 in case of success, < 0 in case of failure.
  */
 int nvgpu_acr_init(struct gk20a *g);
@@ -188,6 +223,111 @@ int nvgpu_acr_alloc_blob_prerequisite(struct gk20a *g, struct nvgpu_acr *acr,
  * system/FB memory based on type of GPU iGPU/dGPU currently in execution. Next,
  * ACR unit loads & bootstrap ACR HS ucode on specified engine Falcon.
  *
+ * This function is responsible for GPU secure boot. This function divides its
+ * task into two stages as below.
+ *
+ * + Blob construct:
+ *   ACR unit creates LS ucode blob in system/FB's non-WPR memory. LS ucodes
+ *   will be read from filesystem and added to blob as per ACR unit static
+ *   config data. ACR unit static config data is set based on current chip.
+ *   LS ucodes blob is required by the ACR HS ucode to authenticate & load LS
+ *   ucode on to respective engine's LS Falcon.
+ *
+ *   ACR blob construct task does below steps to construct LS blob using struct
+ *   #ls_flcn_mgr.
+ *   + Calls GR unit's #nvgpu_gr_falcon_init_ctxsw_ucode() to read ctxsw ucode
+ *     (FECS & GPCCS LS Falcon ucode) & copy to ctxsw ucode surface.
+ *     + Reads fecs.bin & gpccs.bin firmware file from the filesystem.
+ *       Upon failure returns error to the NvGPU ACR unit.
+ *     + Sanity check firmware image descriptor data like size, offsets of DMEM/
+ *       IMEM & boot vector. Upon Sanity check failure returns error to the
+ *       NvGPU ACR unit.
+ *   + Discover supported LS Falcon ucodes for the detected chip. Keep track of
+ *     supported LS Falcon ucodes using struct #lsfm_managed_ucode_img linked
+ *     list.
+ *     + Parse LS-Falcon static configuration data struct #acr_lsf_config to
+ *       know supported LS Falcon for the detected chip.struct #acr_lsf_config
+ *       is a member of struct #nvgpu_acr & set during ACR init stage.
+ *     + Supported LS Falcon ucodes details are filled to struct #flcn_ucode_img
+ *       members mentioned below, struct #flcn_ucode_img is a member of struct
+ *       #lsfm_managed_ucode_img
+ *       + struct #ls_falcon_ucode_desc to hold code details
+ *       + struct #lsf_ucode_desc to hold signature, version, other ucode
+ *         related data.
+ *     + FECS ucode read & ucode details update in struct #flcn_ucode_img by
+ *       calling #nvgpu_acr_lsf_fecs_ucode_details().
+ *       + Read file fecs_sig.bin file from file system & fill struct
+ *         #lsf_ucode_desc, if read fails return error to exit boot sequence.
+ *       + Fetch FECS ucode details from ctxsw ucode surface to fill struct
+ *         struct #ls_falcon_ucode_desc
+ *     + GPCCS ucode read & ucode details update in struct #flcn_ucode_img
+ *       by calling #nvgpu_acr_lsf_gpccs_ucode_details()
+ *       + Read file gpccs_sig.bin file from file system & fill struct
+ *         #lsf_ucode_desc, if read fails return error to exit boot sequence.
+ *       + Fetch GPCCS ucode details from ctxsw ucode surface to fill struct
+ *         #ls_falcon_ucode_desc.
+ *     + Supported LS Falcon ucodes details will be added to the linked list
+ *       struct #lsfm_managed_ucode_img & its members. Each LS Falcon ucode
+ *       details will be updated to the below struct.
+ *       + Light Secure WPR Header struct #lsf_wpr_header, defines state
+ *         allowing Light Secure Falcon bootstrapping
+ *       + Light Secure Bootstrap Header struct #lsf_lsb_header, defines state
+ *         allowing Light Secure Falcon bootstrapping
+ *   + Parse the supported LS Falcon details by going through struct
+ *     #lsfm_managed_ucode_img linked list & generate WPR requirements for
+ *     ACR memory allocation request.
+ *   + Allocate memory of size as calculated from previous step to hold ucode
+ *     blob contents by calling function #nvgpu_acr_alloc_blob_space_sys().
+ *     This allocated space called NON-WPR blob.
+ *   + Parse the supported LS Falcon details by going through struct
+ *     #lsfm_managed_ucode_img linked list & copy ucode to blob. Copy WPR
+ *     header, LSB header, bootloader args & ucode image to NON-WPR blob.
+ *     LS Falcon ucode details needs to be added in below format to NON-WPR
+ *     blob.
+ *     + Copy WPR header struct #lsf_wpr_header.
+ *     + Copy LSB header struct #lsf_lsb_header.
+ *     + Copy Boot loader struct #flcn_bl_dmem_desc.
+ *     + Copy ucode image.
+ *     + Tag the terminator WPR header with an invalid falcon ID
+ *    + Return 0 upon successful blob construction else error to exit boot
+ *      sequence if any of the above steps fails.
+ *
+ * + ACR HS ucode load & bootstrap:
+ *   ACR HS ucode is responsible for authenticating self(HS) & LS ucode.
+ *
+ *   ACR HS ucode is read from the filesystem based on the chip-id by the ACR
+ *   unit. Read ACR HS ucode is loaded onto PMU/SEC2/GSP engines Falcon to
+ *   bootstrap ACR HS ucode. ACR HS ucode does self-authentication using H/W
+ *   based HS authentication methodology. Once authenticated the ACR HS ucode
+ *   starts executing on the falcon.
+ *
+ *   On GV11B, ACR HS ucode load & execution happens on PMU Engine Falcon.
+ *
+ *   ACR bootstrap task does below steps,
+ *   + Reads ACR HS firmware from file system for the detected chip.
+ *   + Sanity check firmware image descriptor data like size, offsets of DMEM/
+ *     IMEM & boot vector. If error exit boot sequence.
+ *   + Patch ucode signature to the ACR HS ucode at patch_loc of struct
+ *     #acr_fw_header.
+ *   + Load ACR HS ucode on to respective Engine Falcon by calling
+ *     #nvgpu_falcon_hs_ucode_load_bootstrap() function, this function performs
+ *     below steps to load & bootstrap.
+ *     + Reset the falcon
+ *     + setup falcon apertures & boot-config.
+ *     + Copy non-secure/secure code to IMEM and data to DMEM
+ *     + Write non-zero value to mailbox register which is updated by HS bin to
+ *       denote its return status
+ *     + Bootstrap falcon
+ *   + NvGPU ACR waits for Falcon halt & check the mailbox-0 to know the ACR HS
+ *     ucode status
+ *     + Waits for Falcon halt by calling #nvgpu_falcon_wait_for_halt() function
+ *     + Upon Falcon halt or Falcon halt timeout, NvGPU ACR checks for bus error
+ *       & validate the integrity of falcon IMEM and DMEM.
+ *     + Reports to 3LSS & return error if any error seen from ACR HS ucode,
+ *       integrity of falcon IMEM/DMEM error or bus error.
+ *     + Return 0 upon Falcon halt with ACR_OK status.
+ *   + Return 0 upon ACR_OK status else error to exit the boot sequence.
+ *
  * @return 0 in case of success, < 0 in case of failure.
  */
 int nvgpu_acr_construct_execute(struct gk20a *g);
@@ -198,11 +338,38 @@ int nvgpu_acr_construct_execute(struct gk20a *g);
  * @param g   [in] The GPU driver struct.
  * @param acr [in] The ACR private data struct
  *
- * Load HS ucode on specified engine Falcon as per static config data & does
- * bootstrap to self-HS-authenticate(H/W based) followed by ACR HS execution.
- * ACR unit waits for ACR HS ucode to halt & check mailbox-0/1 to know the
- * status of ACR HS ucode, if there is an error then ACR unit returns an error
- * else success.
+ * + ACR HS ucode load & bootstrap:
+ *   ACR HS ucode is responsible for authenticating self(HS) & LS ucode.
+ *
+ *   ACR HS ucode is read from the filesystem based on the chip-id by the ACR
+ *   unit. Read ACR HS ucode is loaded onto PMU/SEC2/GSP engines Falcon to
+ *   bootstrap ACR HS ucode. ACR HS ucode does self-authentication using H/W
+ *   based HS authentication methodology. Once authenticated the ACR HS ucode
+ *   starts executing on the falcon.
+ *
+ *   ACR bootstrap task does below steps,
+ *   + Reads ACR HS firmware from file system for the detected chip.
+ *   + Sanity check firmware image descriptor data like size, offsets of DMEM/
+ *     IMEM & boot vector. Exits boot sequence upon sanity check error.
+ *   + Patch ucode signature to ACR HS ucode at struct #acr_fw_header patch_loc.
+ *   + Load ACR HS ucode on to respective Engine Falcon by calling
+ *     #nvgpu_falcon_hs_ucode_load_bootstrap() function, this function performs
+ *     below steps to load & bootstrap.
+ *     + Reset the falcon
+ *     + setup falcon apertures, boot-config
+ *     + Copy non-secure/secure code to IMEM and data to DMEM
+ *     + Write non-zero value to mailbox register which is updated by HS bin to
+ *       denote its return status
+ *     + Bootstrap falcon
+ *   + NvGPU ACR waits for Falcon halt & check the mailbox-0 to know the ACR HS
+ *     ucode status
+ *     + Waits for Falcon halt by calling #nvgpu_falcon_wait_for_halt() function
+ *     + Upon Falcon halt or Falcon halt timeout, NvGPU ACR checks for bus error
+ *       & validate the integrity of falcon IMEM and DMEM.
+ *     + Reports to 3LSS & return error if any error seen from ACR HS ucode,
+ *       integrity of falcon IMEM/DMEM error or bus error.
+ *     + Return 0 upon Falcon halt with ACR_OK status.
+ *   + Return 0 upon ACR_OK status else error to exit the boot sequence.
  *
  * @return 0 in case of success, < 0 in case of failure.
  */
