@@ -22,6 +22,11 @@
 #ifndef NVGPU_PTIMER_H
 #define NVGPU_PTIMER_H
 
+/**
+ * @file
+ *
+ * Declares structs, defines and APIs exposed by ptimer unit.
+ */
 #include <nvgpu/types.h>
 #include <nvgpu/static_analysis.h>
 
@@ -32,16 +37,54 @@ struct nvgpu_cpu_time_correlation_sample {
 	u64 gpu_timestamp;
 };
 
-/* PTIMER_REF_FREQ_HZ corresponds to a period of 32 nanoseconds.
-    32 ns is the resolution of ptimer. */
+/**
+ * PTIMER_REF_FREQ_HZ corresponds to a period of 32 nanoseconds.
+ * 32 ns is the resolution of ptimer.
+ */
 #define PTIMER_REF_FREQ_HZ                      31250000U
 
+/**
+ * @brief Computes the ptimer scaling factor
+ *
+ * @param ptimer_src_freq [in]		source frequency to ptimer
+ *
+ * The ptimer has a resolution of 32 ns and so requires a reference frequency of
+ * 1 / 32ns = 31.25 MHz. If the source frequency to ptimer is different than the
+ * above reference frequency, we need to get the scaling factor as
+ * Scale_factor = ptimer_ref_freq / ptimer_src_freq
+ * The scale_factor is multiplied by 10, so that we get an additional digit
+ * decimal precision.
+ *
+ * For example, on Maxwell, the ptimer source frequency is 19.2 MHz
+ * So the scaling_factor_10x = (31250000  * 10)/ 19200000 = 16
+ * On Volta, ptimer_source frequency = 31250000 Hz = ptimer_ref_frequency.
+ * So the scaling_factor_10x = 10
+ *
+ * @return Scale factor between ptimer reference and source frequency with
+ * 	one digit decimal precision.
+ */
 static inline u32 ptimer_scalingfactor10x(u32 ptimer_src_freq)
 {
 	return nvgpu_safe_cast_u64_to_u32((U64(PTIMER_REF_FREQ_HZ) * U64(10))
 						/ U64(ptimer_src_freq));
 }
 
+/**
+ * @brief Scales back the ptimer based timeout value as per the scale factor
+ *
+ * @param timeout [in]		Time value captured using ptimer reference clock
+ * @param scale10x [in]		The scale factor multiplied by 10 to be used for
+ * 				scaling the ptimer based timeout value.
+ *
+ * When the ptimer source frequency is not same as expected ptimer reference
+ * frequency, we need to scale the ptimer based time value. The scaled value is
+ * calculated as follows:
+ * Scaled valued = \a timeout / scale_factor.
+ * To retain 1 digit decimal precision, the above equation is calculated after
+ * multiplication by 10.
+ *
+ * @return Scaled \a timeout value as per \a scale10x
+ */
 static inline u32 scale_ptimer(u32 timeout , u32 scale10x)
 {
 	nvgpu_assert(scale10x != 0U);

@@ -131,6 +131,7 @@ enum nvgpu_unit;
 #include <nvgpu/semaphore.h>
 #include <nvgpu/fifo.h>
 
+#include <nvgpu/gops_ptimer.h>
 #include <nvgpu/gops_top.h>
 #include <nvgpu/gops_gr.h>
 #include <nvgpu/gops_fifo.h>
@@ -712,18 +713,7 @@ struct gpu_ops {
 		void (*configure_debug_bus)(struct gk20a *g);
 	} bus;
 
-	struct {
-		void (*isr)(struct gk20a *g);
-		int (*read_ptimer)(struct gk20a *g, u64 *value);
-#ifdef CONFIG_NVGPU_IOCTL_NON_FUSA
-		int (*get_timestamps_zipper)(struct gk20a *g,
-			u32 source_id, u32 count,
-			struct nvgpu_cpu_time_correlation_sample *samples);
-#endif
-#ifdef CONFIG_NVGPU_DEBUGGER
-		int (*config_gr_tick_freq)(struct gk20a *g);
-#endif
-	} ptimer;
+	struct gops_ptimer ptimer;
 
 	struct {
 		int (*bios_sw_init)(struct gk20a *g);

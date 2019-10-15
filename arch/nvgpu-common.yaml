@@ -162,7 +162,8 @@ ptimer:
   safe: yes
   owner: Terje B
   sources: [ common/ptimer/ptimer.c,
-             include/nvgpu/ptimer.h ]
+             include/nvgpu/ptimer.h,
+             include/nvgpu/gops_ptimer.h ]
   deps:
 
 semaphore:
