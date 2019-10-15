@@ -1011,8 +1011,10 @@ struct gk20a {
 	 */
 	unsigned long *enabled_flags;
 
+	/** Used by Linux module to keep track of driver usage */
 	nvgpu_atomic_t usage_count;
 
+	/** Used by common.init unit to track users of the driver */
 	struct nvgpu_ref refcount;
 
 	/** Name of the gpu. */
@@ -1042,6 +1044,7 @@ struct gk20a {
 
 	struct nvgpu_mutex tpc_pg_lock;
 
+	/** Stored HW version info */
 	struct nvgpu_gpu_params params;
 
 	/**
@@ -1079,7 +1082,9 @@ struct gk20a {
 #ifdef CONFIG_DEBUG_FS
 	struct railgate_stats pstats;
 #endif
+	/** Global default timeout for use throughout driver */
 	u32 poll_timeout_default;
+	/** User disabled timeouts */
 	bool timeouts_disabled_by_user;
 
 	unsigned int ch_wdt_init_limit_ms;
@@ -1112,7 +1117,9 @@ struct gk20a {
 
 	u32 ptimer_src_freq;
 
+	/** @cond DOXYGEN_SHOULD_SKIP_THIS */
 	int railgate_delay;
+	/** @endcond */
 	u8 ldiv_slowdown_factor;
 	unsigned int aggressive_sync_destroy_thresh;
 	bool aggressive_sync_destroy;
@@ -1120,6 +1127,7 @@ struct gk20a {
 	/** Debugfs knob for forcing syncpt support off in runtime. */
 	u32 disable_syncpoints;
 
+	/** Is LS PMU supported? */
 	bool support_ls_pmu;
 
 	/** Is this a virtual GPU? */
@@ -1127,7 +1135,9 @@ struct gk20a {
 
 	bool has_cde;
 
+	/** @cond DOXYGEN_SHOULD_SKIP_THIS */
 	u32 emc3d_ratio;
+	/** @endcond */
 
 	/**
 	 * A group of semaphore pools. One for each channel.
@@ -1171,7 +1181,10 @@ struct gk20a {
 	struct gk20a_cs_snapshot	*cs_data;
 #endif
 
+	/** @cond DOXYGEN_SHOULD_SKIP_THIS */
+	/* Called after all references to driver are gone. Unused in safety */
 	void (*remove_support)(struct gk20a *g);
+	/** @endcond */
 
 	u64 pg_ingating_time_us;
 	u64 pg_ungating_time_us;
@@ -1184,7 +1197,9 @@ struct gk20a {
 	struct nvgpu_mutex client_lock;
 	int client_refcount; /* open channels and ctrl nodes */
 
+	/** The HAL function pointers */
 	struct gpu_ops ops;
+
 	u32 mc_intr_mask_restore[4];
 	/*used for change of enum zbc update cmd id from ver 0 to ver1*/
 	u8 pmu_ver_cmd_id_zbc_table_update;
@@ -1225,9 +1240,11 @@ struct gk20a {
 #endif
 	} channel_worker;
 
+	/** @cond DOXYGEN_SHOULD_SKIP_THIS */
 	struct nvgpu_clk_arb_worker {
 		struct nvgpu_worker worker;
 	} clk_arb_worker;
+	/** @endcond */
 
 	struct {
 		void (*open)(struct nvgpu_channel *ch);
@@ -1247,14 +1264,18 @@ struct gk20a {
 		void (*free_usermode_buffers)(struct nvgpu_channel *c);
 	} os_channel;
 
+	/** @cond DOXYGEN_SHOULD_SKIP_THIS */
+	/* Used by Linux OS Layer */
 	struct gk20a_scale_profile *scale_profile;
 	unsigned long last_freq;
+	/** @endcond */
 
 	u32 tpc_fs_mask_user;
 
 	u32 tpc_pg_mask;
 	bool can_tpc_powergate;
 
+	/** @cond DOXYGEN_SHOULD_SKIP_THIS */
 	u32 valid_tpc_mask[MAX_TPC_PG_CONFIGS];
 
 	struct nvgpu_bios *bios;
@@ -1267,15 +1288,19 @@ struct gk20a {
 	nvgpu_atomic_t clk_arb_global_nr;
 
 	struct nvgpu_ce_app *ce_app;
+	/** @endcond */
 
 	bool ltc_intr_en_illegal_compstat;
 
+	/** Are we currently running on a FUSA device configuration? */
+	bool is_fusa_sku;
+
+	/** @cond DOXYGEN_SHOULD_SKIP_THIS */
 	/* PCI device identifier */
 	u16 pci_vendor_id, pci_device_id;
 	u16 pci_subsystem_vendor_id, pci_subsystem_device_id;
 	u16 pci_class;
 	u8 pci_revision;
-	bool is_fusa_sku;
 
 	/*
 	 * PCI power management: i2c device index, port and address for
@@ -1306,6 +1331,7 @@ struct gk20a {
 	u32 mem_config_idx;
 
 	u64 dma_memory_used;
+	/** @endcond */
 
 #if defined(CONFIG_TEGRA_GK20A_NVHOST)
 	u64		syncpt_unit_base;
@@ -1314,10 +1340,12 @@ struct gk20a {
 #endif
 	struct nvgpu_mem syncpt_mem;
 
+	/** @cond DOXYGEN_SHOULD_SKIP_THIS */
 	struct nvgpu_list_node boardobj_head;
 	struct nvgpu_list_node boardobjgrp_head;
 
 	struct nvgpu_mem pdb_cache_war_mem;
+	/** @endcond */
 };
 
 /**
@@ -1325,7 +1353,7 @@ struct gk20a {
  *
  * @param g [in]	The GPU superstucture.
  *
- * @return true if these timeouts are enabled. false otherwise.
+ * @return True if these timeouts are enabled, false otherwise.
  */
 static inline bool nvgpu_is_timeouts_enabled(struct gk20a *g)
 {
@@ -1381,7 +1409,7 @@ int gk20a_do_unidle_impl(struct gk20a *g);
 #define GK20A_GPUID_GM20B   0x0000012BU
 /** gm20b.b HW version */
 #define GK20A_GPUID_GM20B_B 0x0000012EU
-/** gm10b HW version */
+/** gp10b HW version */
 #define NVGPU_GPUID_GP10B   0x0000013BU
 /** gv11b HW version */
 #define NVGPU_GPUID_GV11B   0x0000015BU
