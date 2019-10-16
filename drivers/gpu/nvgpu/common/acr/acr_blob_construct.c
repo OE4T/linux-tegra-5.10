@@ -28,8 +28,8 @@
 #include <nvgpu/gr/gr_falcon.h>
 #include <nvgpu/gr/gr_utils.h>
 
+#include "nvgpu_acr_interface.h"
 #include "acr_blob_construct.h"
-#include "acr_falcon_bl.h"
 #include "acr_wpr.h"
 #include "acr_priv.h"
 

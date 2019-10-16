@@ -26,8 +26,6 @@
 #include <nvgpu/falcon.h>
 #include <nvgpu/flcnif_cmn.h>
 
-#include "acr_falcon_bl.h"
-
 /*
  * Light Secure WPR Content Alignments
  */
@@ -113,6 +111,47 @@ struct lsf_lsb_header_v0 {
 /*
  * Union of all supported structures used by bootloaders.
  */
+/* Falcon BL interfaces */
+/*
+ * Structure used by the boot-loader to load the rest of the code. This has
+ * to be filled by NVGPU and copied into DMEM at offset provided in the
+ * hsflcn_bl_desc.bl_desc_dmem_load_off.
+ */
+struct flcn_bl_dmem_desc_v0 {
+	u32    reserved[4];        /*Should be the first element..*/
+	u32    signature[4];        /*Should be the first element..*/
+	u32    ctx_dma;
+	u32    code_dma_base;
+	u32    non_sec_code_off;
+	u32    non_sec_code_size;
+	u32    sec_code_off;
+	u32    sec_code_size;
+	u32    code_entry_point;
+	u32    data_dma_base;
+	u32    data_size;
+	u32    code_dma_base1;
+	u32    data_dma_base1;
+};
+
+/*
+ * Legacy structure used by the current PMU bootloader.
+ */
+struct loader_config {
+	u32 dma_idx;
+	u32 code_dma_base;     /* upper 32-bits of 40-bit dma address */
+	u32 code_size_total;
+	u32 code_size_to_load;
+	u32 code_entry_point;
+	u32 data_dma_base;     /* upper 32-bits of 40-bit dma address */
+	u32 data_size;         /* initialized data of the application  */
+	u32 overlay_dma_base;  /* upper 32-bits of the 40-bit dma address */
+	u32 argc;
+	u32 argv;
+	u16 code_dma_base1;    /* upper 7 bits of 47-bit dma address */
+	u16 data_dma_base1;    /* upper 7 bits of 47-bit dma address */
+	u16 overlay_dma_base1; /* upper 7 bits of the 47-bit dma address */
+};
+
 union flcn_bl_generic_desc {
 	struct flcn_bl_dmem_desc_v0 bl_dmem_desc;
 	struct loader_config loader_cfg;

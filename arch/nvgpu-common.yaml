@@ -221,12 +221,12 @@ acr_fusa:
              common/acr/acr_blob_construct.h,
              common/acr/acr_bootstrap.c,
              common/acr/acr_bootstrap.h,
-             common/acr/acr_falcon_bl.h,
              common/acr/acr_priv.h,
              common/acr/acr_wpr.c,
              common/acr/acr_wpr.h,
              common/acr/acr_sw_gv11b.c,
              common/acr/acr_sw_gv11b.h,
+             common/acr/nvgpu_acr_interface.h,
              include/nvgpu/acr.h ]
 
 acr:

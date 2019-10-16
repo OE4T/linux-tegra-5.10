@@ -23,17 +23,10 @@
 #ifndef ACR_BOOTSTRAP_H
 #define ACR_BOOTSTRAP_H
 
-#include "acr_falcon_bl.h"
+#include "nvgpu_acr_interface.h"
 
 struct gk20a;
 struct nvgpu_acr;
-
-/*
- * Supporting maximum of 2 regions.
- * This is needed to pre-allocate space in DMEM
- */
-#define NVGPU_FLCN_ACR_MAX_REGIONS                (2U)
-#define LSF_BOOTSTRAP_OWNER_RESERVED_DMEM_SIZE    (0x200U)
 
 struct flcn_acr_region_prop_v0 {
 	u32 start_addr;
@@ -61,63 +54,6 @@ struct flcn_acr_desc_v0 {
 	struct flcn_acr_regions_v0 regions;
 	u32 nonwpr_ucode_blob_size;
 	u64 nonwpr_ucode_blob_start;
-};
-
-/*
- * start_addr     - Starting address of region
- * end_addr       - Ending address of region
- * region_id      - Region ID
- * read_mask      - Read Mask
- * write_mask     - WriteMask
- * client_mask    - Bit map of all clients currently using this region
- */
-struct flcn_acr_region_prop {
-	u32 start_addr;
-	u32 end_addr;
-	u32 region_id;
-	u32 read_mask;
-	u32 write_mask;
-	u32 client_mask;
-	u32 shadowmMem_startaddress;
-};
-
-/*
- * no_regions   - Number of regions used.
- * region_props - Region properties
- */
-struct flcn_acr_regions {
-	u32 no_regions;
-	struct flcn_acr_region_prop region_props[NVGPU_FLCN_ACR_MAX_REGIONS];
-};
-
-/*
- * reserved_dmem-When the bootstrap owner has done bootstrapping other falcons,
- *                and need to switch into LS mode, it needs to have its own
- *                actual DMEM image copied into DMEM as part of LS setup. If
- *                ACR desc is at location 0, it will definitely get overwritten
- *                causing data corruption. Hence we are reserving 0x200 bytes
- *                to give room for any loading data. NOTE: This has to be the
- *                first member always
- * signature     - Signature of ACR ucode.
- * wpr_region_id - Region ID holding the WPR header and its details
- * wpr_offset    - Offset from the WPR region holding the wpr header
- * regions       - Region descriptors
- * nonwpr_ucode_blob_start -stores non-WPR start where kernel stores ucode blob
- * nonwpr_ucode_blob_end   -stores non-WPR end where kernel stores ucode blob
- */
-struct flcn_acr_desc {
-	union {
-		u32 reserved_dmem[(LSF_BOOTSTRAP_OWNER_RESERVED_DMEM_SIZE/4)];
-	} ucode_reserved_space;
-	u32 signatures[4];
-	/*Always 1st*/
-	u32 wpr_region_id;
-	u32 wpr_offset;
-	u32 mmu_mem_range;
-	struct flcn_acr_regions regions;
-	u32 nonwpr_ucode_blob_size;
-	u64 nonwpr_ucode_blob_start;
-	u32 dummy[4];  /* ACR_BSI_VPR_DESC */
 };
 
 struct bin_hdr {

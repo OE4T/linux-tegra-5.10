@@ -31,7 +31,6 @@
 #include <nvgpu/gr/gr_utils.h>
 
 #include "acr_blob_construct_v0.h"
-#include "acr_falcon_bl.h"
 #include "acr_wpr.h"
 #include "acr_priv.h"
 
