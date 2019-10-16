@@ -161,6 +161,7 @@ struct nvhost_device_data t19_vi_thi_info = {
 	},
 	.num_channels		= 1,
 	.can_powergate		= true,
+	.bwmgr_client_id	= TEGRA_BWMGR_CLIENT_VI,
 };
 
 struct nvhost_device_data t19_vi5_info = {
@@ -176,7 +177,10 @@ struct nvhost_device_data t19_vi5_info = {
 		{"nvcsi", 400000000},
 		{"nvcsilp", 204000000},
 		{"mipi_cal", UINT_MAX},
-		{"uart_fs_mipi_cal", UINT_MAX}
+		{"uart_fs_mipi_cal", UINT_MAX},
+		{"emc", 0,
+		 NVHOST_MODULE_ID_EXTERNAL_MEMORY_CONTROLLER,
+		 0, TEGRA_BWMGR_SET_EMC_FLOOR, false, UINT_MAX}
 	},
 	.version		= NVHOST_ENCODE_FLCN_VER(5, 0),
 	.num_ppc		= 8,
@@ -184,6 +188,7 @@ struct nvhost_device_data t19_vi5_info = {
 	.can_powergate		= true,
 	.pre_virt_init		= vi5_priv_early_probe,
 	.post_virt_init		= vi5_priv_late_probe,
+	.bwmgr_client_id	= TEGRA_BWMGR_CLIENT_VI,
 };
 #endif
 
