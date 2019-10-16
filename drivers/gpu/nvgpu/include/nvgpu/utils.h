@@ -32,6 +32,20 @@
 #include <nvgpu/posix/utils.h>
 #endif
 
+/**
+ * @file
+ *
+ * SW utilities
+ *
+ * @defgroup unit-common-utils
+ */
+
+/**
+ * @defgroup bit-utils
+ * @ingroup unit-common-utils
+ * @{
+ */
+
 /** Stringification macro. */
 #define nvgpu_stringify(x)          #x
 
@@ -115,8 +129,15 @@ static inline u32 get_field(u32 reg, u32 mask)
 /*
  * MISRA Rule 11.6 compliant IP address generator.
  */
-/** Instruction pointer address generator. */
+/**
+ * Instruction pointer address generator. Used to get the virtual address
+ * of the current instruction.
+ */
 #define NVGPU_GET_IP		\
 	({ __label__ label_here; label_here: &&label_here; })
+
+/**
+ * @}
+ */
 
 #endif /* NVGPU_UTILS_H */
