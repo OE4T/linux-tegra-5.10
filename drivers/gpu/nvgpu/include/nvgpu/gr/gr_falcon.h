@@ -138,19 +138,19 @@ struct nvgpu_fecs_host_intr_status {
  * Book keeping for ECC errors originating from FECS.
  */
 struct nvgpu_fecs_ecc_status {
-	/* This flag is set if IMEM corrected error is hit. */
+	/** This flag is set if IMEM corrected error is hit. */
 	bool imem_corrected_err;
-	/* This flag is set if IMEM uncorrected error is hit. */
+	/** This flag is set if IMEM uncorrected error is hit. */
 	bool imem_uncorrected_err;
-	/* This flag is set if DMEM corrected error is hit. */
+	/** This flag is set if DMEM corrected error is hit. */
 	bool dmem_corrected_err;
-	/* This flag is set if DMEM uncorrected error is hit. */
+	/** This flag is set if DMEM uncorrected error is hit. */
 	bool dmem_uncorrected_err;
-	/* Address of memory where ECC error occurred. */
+	/** Address of memory where ECC error occurred. */
 	u32  ecc_addr;
-	/* Number of corrected ECC errors. */
+	/** Number of corrected ECC errors. */
 	u32  corrected_delta;
-	/* Number of uncorrected ECC errors. */
+	/** Number of uncorrected ECC errors. */
 	u32  uncorrected_delta;
 };
 

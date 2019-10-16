@@ -85,6 +85,35 @@ enum wait_ucode_status {
 /** Mailbox value in case of successful operation. */
 #define FALCON_UCODE_HANDSHAKE_INIT_COMPLETE	1U
 
+struct fecs_mthd_op_method {
+	/** Method address to send to FECS microcontroller. */
+	u32 addr;
+	/** Method data to send to FECS microcontroller. */
+	u32 data;
+};
+
+struct fecs_mthd_op_mailbox {
+	/** Mailbox ID to perform operation. */
+	u32 id;
+	/** Mailbox data to be written. */
+	u32 data;
+	/** Mailbox clear value. */
+	u32 clr;
+	/** Last read mailbox value. */
+	u32 *ret;
+	/** Mailbox value in case of operation success. */
+	u32 ok;
+	/** Mailbox value in case of operation failure. */
+	u32 fail;
+};
+
+struct fecs_mthd_op_cond {
+	/** Operation success condition. */
+	u32 ok;
+	/** Operation fail condition. */
+	u32 fail;
+};
+
 /**
  * FECS method operation structure.
  *
@@ -92,34 +121,12 @@ enum wait_ucode_status {
  * microcontroller.
  */
 struct nvgpu_fecs_method_op {
-	struct {
-		/** Method address to send to FECS microcontroller. */
-		u32 addr;
-		/** Method data to send to FECS microcontroller. */
-		u32 data;
-	} method;
-
-	struct {
-		/** Mailbox ID to perform operation. */
-		u32 id;
-		/** Mailbox data to be written. */
-		u32 data;
-		/** Mailbox clear value. */
-		u32 clr;
-		/** Last read mailbox value. */
-		u32 *ret;
-		/** Mailbox value in case of operation success. */
-		u32 ok;
-		/** Mailbox value in case of operation failure. */
-		u32 fail;
-	} mailbox;
-
-	struct {
-		/** Operation success condition. */
-		u32 ok;
-		/** Operation fail condition. */
-		u32 fail;
-	} cond;
+	/** Method struct */
+	struct fecs_mthd_op_method method;
+	/** Mailbox struct */
+	struct fecs_mthd_op_mailbox mailbox;
+	/** Condition struct */
+	struct fecs_mthd_op_cond cond;
 };
 
 /**
