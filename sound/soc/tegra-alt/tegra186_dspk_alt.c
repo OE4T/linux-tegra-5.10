@@ -229,6 +229,17 @@ static struct snd_soc_dai_ops tegra186_dspk_dai_ops = {
 
 static struct snd_soc_dai_driver tegra186_dspk_dais[] = {
 	{
+	    .name = "CIF",
+	    .playback = {
+		.stream_name = "CIF Receive",
+		.channels_min = 1,
+		.channels_max = 2,
+		.rates = SNDRV_PCM_RATE_8000_48000,
+		.formats = SNDRV_PCM_FMTBIT_S16_LE |
+			   SNDRV_PCM_FMTBIT_S32_LE,
+	    },
+	},
+	{
 	    .name = "DAP",
 	    .capture = {
 		.stream_name = "DAP Transmit",
@@ -241,10 +252,14 @@ static struct snd_soc_dai_driver tegra186_dspk_dais[] = {
 	    .ops = &tegra186_dspk_dai_ops,
 	    .symmetric_rates = 1,
 	},
+	/* The second DAI is used when the output of the DSPK is connected
+	 * to two mono codecs. When the output of the DSPK is connected to
+	 * a single stereo codec, then only the first DAI should be used.
+	 */
 	{
-	    .name = "CIF",
+	    .name = "CIF2",
 	    .playback = {
-		.stream_name = "CIF Receive",
+		.stream_name = "CIF2 Receive",
 		.channels_min = 1,
 		.channels_max = 2,
 		.rates = SNDRV_PCM_RATE_8000_48000,
@@ -252,10 +267,6 @@ static struct snd_soc_dai_driver tegra186_dspk_dais[] = {
 			   SNDRV_PCM_FMTBIT_S32_LE,
 	    },
 	},
-	/* The second DAI is used when the output of the DSPK is connected
-	 * to two mono codecs. When the output of the DSPK is connected to
-	 * a single stereo codec, then only the first DAI should be used.
-	 */
 	{
 	    .name = "DAP2",
 	    .capture = {
@@ -267,17 +278,6 @@ static struct snd_soc_dai_driver tegra186_dspk_dais[] = {
 			   SNDRV_PCM_FMTBIT_S32_LE,
 	    },
 	    .symmetric_rates = 1,
-	},
-	{
-	    .name = "CIF2",
-	    .playback = {
-		.stream_name = "CIF2 Receive",
-		.channels_min = 1,
-		.channels_max = 2,
-		.rates = SNDRV_PCM_RATE_8000_48000,
-		.formats = SNDRV_PCM_FMTBIT_S16_LE |
-			   SNDRV_PCM_FMTBIT_S32_LE,
-	    },
 	},
 	{
 	    .name = "DUMMY_SINK",
