@@ -287,6 +287,7 @@ falcon_fusa:
   sources: [ common/falcon/falcon.c,
              common/falcon/falcon_sw_gk20a.c,
              common/falcon/falcon_sw_gk20a.h,
+             include/nvgpu/gops_falcon.h,
              include/nvgpu/falcon.h,
              include/nvgpu/flcnif_cmn.h ]
   deps: [ ]
