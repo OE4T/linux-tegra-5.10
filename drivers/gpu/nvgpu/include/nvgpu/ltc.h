@@ -117,7 +117,7 @@ u32 nvgpu_ltc_get_slices_per_ltc(struct gk20a *g);
 /**
  * @brief Get cacheline size.
  *
- * @param g[in]		Pointer to GPU driver struct.
+ * @param g [in]	Pointer to GPU driver struct.
  *
  * This function returns cacheline size in bytes.
  * Cacheline is chunk of memory that can be handled in one go by cache.

@@ -34,8 +34,8 @@ struct nvgpu_gr_config;
 /**
  * @brief Initialize GR engine h/w state post-floorsweeping.
  *
- * @param g[in]			Pointer to GPU driver struct.
- * @param config[in]		Pointer to GR config struct.
+ * @param g [in]		Pointer to GPU driver struct.
+ * @param config [in]		Pointer to GR config struct.
  *
  * This function initializes GR engine h/w state after considering
  * floorsweeping.

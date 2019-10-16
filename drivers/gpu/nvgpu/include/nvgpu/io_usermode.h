@@ -31,7 +31,7 @@
 /**
  * @brief Write a value to an usermode mapped io-region.
  *
- * @param g[in]		GPU super structure.
+ * @param g [in]	GPU super structure.
  * @param r [in]	Register offset in io-region.
  * @param v [in]	Value to write at the offset.
  *

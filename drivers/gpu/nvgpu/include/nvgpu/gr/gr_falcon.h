@@ -157,7 +157,7 @@ struct nvgpu_fecs_ecc_status {
 /**
  * @brief Initialize GR falcon structure.
  *
- * @param g[in]			Pointer to GPU driver struct.
+ * @param g [in]		Pointer to GPU driver struct.
  *
  * This function allocates memory for #nvgpu_gr_falcon structure and
  * initializes all mutexes in this structure.
@@ -170,8 +170,8 @@ struct nvgpu_gr_falcon *nvgpu_gr_falcon_init_support(struct gk20a *g);
 /**
  * @brief Free GR falcon structure.
  *
- * @param g[in]			Pointer to GPU driver struct.
- * @param falcon[in]		Pointer to GR falcon struct.
+ * @param g [in]		Pointer to GPU driver struct.
+ * @param falcon [in]		Pointer to GR falcon struct.
  *
  * This function will free memory allocated for #nvgpu_gr_falcon
  * structure.
@@ -182,8 +182,8 @@ void nvgpu_gr_falcon_remove_support(struct gk20a *g,
 /**
  * @brief Load and boot CTXSW ucodes.
  *
- * @param g[in]			Pointer to GPU driver struct.
- * @param falcon[in]		Pointer to GR falcon struct.
+ * @param g [in]		Pointer to GPU driver struct.
+ * @param falcon [in]		Pointer to GR falcon struct.
  *
  * This function will load FECS and GPCCS ucodes and bootstrap them
  * on falcon microcontrollers. This function will also make sure that
@@ -200,8 +200,8 @@ int nvgpu_gr_falcon_init_ctxsw(struct gk20a *g, struct nvgpu_gr_falcon *falcon);
 /**
  * @brief Initialize context state.
  *
- * @param g[in]			Pointer to GPU driver struct.
- * @param falcon[in]		Pointer to GR falcon struct.
+ * @param g [in]		Pointer to GPU driver struct.
+ * @param falcon [in]		Pointer to GR falcon struct.
  *
  * This function will query golden context image size from FECS
  * microcontroller.
@@ -214,8 +214,8 @@ int nvgpu_gr_falcon_init_ctx_state(struct gk20a *g,
 /**
  * @brief Initialize CTXSW ucodes.
  *
- * @param g[in]			Pointer to GPU driver struct.
- * @param falcon[in]		Pointer to GR falcon struct.
+ * @param g [in]		Pointer to GPU driver struct.
+ * @param falcon [in]		Pointer to GR falcon struct.
  *
  * This function will read FECS and GPCCS ucodes from filesystem
  * and fill in details of boot, code, and data segments in
@@ -234,8 +234,8 @@ int nvgpu_gr_falcon_init_ctxsw_ucode(struct gk20a *g,
 /**
  * @brief Load and boot CTXSW ucodes in a secure method.
  *
- * @param g[in]			Pointer to GPU driver struct.
- * @param falcon[in]		Pointer to GR falcon struct.
+ * @param g [in]		Pointer to GPU driver struct.
+ * @param falcon [in]		Pointer to GR falcon struct.
  *
  * This function will load FECS and GPCCS ucodes and bootstrap them
  * on falcon microcontrollers in a secure method. This function will
@@ -250,7 +250,7 @@ int nvgpu_gr_falcon_load_secure_ctxsw_ucode(struct gk20a *g,
 /**
  * @brief Get FECS ucode segments pointer.
  *
- * @param falcon[in]		Pointer to GR falcon struct.
+ * @param falcon [in]		Pointer to GR falcon struct.
  *
  * This function will return FECS ucode segment data structure pointer.
  * All the details of boot/code/data segments are stored in
@@ -264,7 +264,7 @@ struct nvgpu_ctxsw_ucode_segments *nvgpu_gr_falcon_get_fecs_ucode_segments(
 /**
  * @brief Get GPCCS ucode segments pointer.
  *
- * @param falcon[in]		Pointer to GR falcon struct.
+ * @param falcon [in]		Pointer to GR falcon struct.
  *
  * This function will return GPCCS ucode segment data structure pointer.
  * All the details of boot/code/data segments are stored in
@@ -278,7 +278,7 @@ struct nvgpu_ctxsw_ucode_segments *nvgpu_gr_falcon_get_gpccs_ucode_segments(
 /**
  * @brief Get CPU virtual address of ucode surface.
  *
- * @param falcon[in]		Pointer to GR falcon struct.
+ * @param falcon [in]		Pointer to GR falcon struct.
  *
  * This function returns CPU virtual address of ucode surface memory
  * buffer. This buffer is created while reading FECS and GPCCS ucodes
@@ -292,7 +292,7 @@ void *nvgpu_gr_falcon_get_surface_desc_cpu_va(
 /**
  * @brief Get size of golden context image.
  *
- * @param falcon[in]		Pointer to GR falcon struct.
+ * @param falcon [in]		Pointer to GR falcon struct.
  *
  * This function returns size of golden context image read from FECS
  * microcontroller in #nvgpu_gr_falcon_init_ctx_state().

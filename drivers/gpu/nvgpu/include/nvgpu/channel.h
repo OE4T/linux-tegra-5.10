@@ -664,7 +664,7 @@ void nvgpu_channel_wdt_restart_all_channels(struct gk20a *g);
 /**
  * @brief Get channel pointer from its node in free channels list.
  *
- * @param node[in]	Pointer to node entry in the list of free channels.
+ * @param node [in]	Pointer to node entry in the list of free channels.
  *			Cannot be NULL, and must be valid.
  *
  * @return Channel pointer.
@@ -679,7 +679,7 @@ nvgpu_channel_from_free_chs(struct nvgpu_list_node *node)
 /**
  * @brief Get channel pointer from its node in TSG's channel list.
  *
- * @param node[in]	Pointer to node entry in TSG's channel list.
+ * @param node [in]	Pointer to node entry in TSG's channel list.
  *			Cannot be NULL, and must be valid.
  *
  * Computes channel pointer from #node pointer.
@@ -696,7 +696,7 @@ nvgpu_channel_from_ch_entry(struct nvgpu_list_node *node)
 /**
  * @brief Check if channel is bound to an address space.
  *
- * @param ch[in]	Channel pointer.
+ * @param ch [in]	Channel pointer.
  *
  * @return True if channel is bound to an address space, false otherwise.
  */
@@ -708,7 +708,7 @@ static inline bool nvgpu_channel_as_bound(struct nvgpu_channel *ch)
 /**
  * @brief Commit channel's address space.
  *
- * @param c[in]	Channel pointer.
+ * @param c [in]Channel pointer.
  *
  * Once a channel is bound to an address space, this function applies
  * related settings to channel instance block (e.g. PDB and page size).
@@ -718,8 +718,8 @@ void nvgpu_channel_commit_va(struct nvgpu_channel *c);
 /**
  * @brief Initializes channel context.
  *
- * @param g[in]		Pointer to GPU driver struct.
- * @param chid[in]	Channel H/W Identifier.
+ * @param g [in]	Pointer to GPU driver struct.
+ * @param chid [in]	Channel H/W Identifier.
  *
  * Initializes channel context to default values.
  * This includes mutexes and list nodes initialization.
@@ -731,7 +731,7 @@ int nvgpu_channel_init_support(struct gk20a *g, u32 chid);
 /**
  * @brief Initializes channel unit.
  *
- * @param g[in]		Pointer to GPU driver struct.
+ * @param g [in]	Pointer to GPU driver struct.
  *
  * Gets number of channels from hardware.
  * Allocates and initializes channel contexts.
@@ -745,7 +745,7 @@ int nvgpu_channel_setup_sw(struct gk20a *g);
 /**
  * @brief De-initializes channel unit.
  *
- * @param g[in]		Pointer to GPU driver struct.
+ * @param g [in]	Pointer to GPU driver struct.
  *
  * Forcibly closes all opened channels.
  * Frees all channel contexts.
@@ -757,7 +757,7 @@ void nvgpu_channel_cleanup_sw(struct gk20a *g);
 /**
  * @brief Emergency quiescing of channels
  *
- * @param g[in]		Pointer to GPU driver struct.
+ * @param g [in]	Pointer to GPU driver struct.
  *
  * Driver has encountered uncorrectable error, and is entering
  * SW Quiesce state. For each channel:
@@ -771,7 +771,7 @@ void nvgpu_channel_sw_quiesce(struct gk20a *g);
 /**
  * @brief Close channel
  *
- * @param ch[in]	Channel pointer.
+ * @param ch [in]	Channel pointer.
  *
  * Unbinds channel from TSG, waits until there is no more refs to the channel,
  * then frees channel resources.
@@ -788,7 +788,7 @@ void nvgpu_channel_close(struct nvgpu_channel *ch);
 /**
  * @brief Forcibly close a channel
  *
- * @param ch[in]	Channel pointer.
+ * @param ch [in]	Channel pointer.
  *
  * Forcibly close a channel. It is meant for terminating channels
  * when we know the driver is otherwise dying. Ref counts and the like
@@ -801,8 +801,8 @@ void nvgpu_channel_kill(struct nvgpu_channel *ch);
 /**
  * @brief Mark unrecoverable error for channel
  *
- * @param g[in]		Pointer to GPU driver struct.
- * @param ch[in]	Channel pointer.
+ * @param g [in]	Pointer to GPU driver struct.
+ * @param ch [in]	Channel pointer.
  *
  * An unrecoverable error occurred for the channel. Mark the channel
  * as unserviceable, and unblock pending waits on this channel (semaphore
@@ -815,8 +815,8 @@ bool nvgpu_channel_mark_error(struct gk20a *g, struct nvgpu_channel *ch);
 /**
  * @brief Abort channel's TSG
  *
- * @param ch[in]	Channel pointer.
- * @param preempt[in]	True if TSG should be pre-empted
+ * @param ch [in]	Channel pointer.
+ * @param preempt [in]	True if TSG should be pre-empted
  *
  * Disables and optionally preempts the channel's TSG.
  * Afterwards, all channels in the TSG are marked as unserviceable.
@@ -830,8 +830,8 @@ void nvgpu_channel_abort_clean_up(struct nvgpu_channel *ch);
 /**
  * @brief Wake up all threads waiting on semaphore wait
  *
- * @param g[in]			Pointer to GPU driver struct.
- * @param post_events[in]	When true, notify all threads waiting
+ * @param g [in]		Pointer to GPU driver struct.
+ * @param post_events [in]	When true, notify all threads waiting
  *				on TSG events.
  *
  * Goes through all channels, and wakes up semaphore wait queue.
@@ -842,8 +842,8 @@ void nvgpu_channel_semaphore_wakeup(struct gk20a *g, bool post_events);
 /**
  * @brief Enable all channels in channel's TSG
  *
- * @param g[in]		Pointer to GPU driver struct.
- * @param ch[in]	Channel pointer.
+ * @param g [in]	Pointer to GPU driver struct.
+ * @param ch [in]	Channel pointer.
  *
  * Enables all channels that are in the same TSG as #ch.
  *
@@ -855,8 +855,8 @@ int nvgpu_channel_enable_tsg(struct gk20a *g, struct nvgpu_channel *ch);
 /**
  * @brief Disables all channels in channel's TSG
  *
- * @param g[in]		Pointer to GPU driver struct.
- * @param ch[in]	Channel pointer.
+ * @param g [in]	Pointer to GPU driver struct.
+ * @param ch [in]	Channel pointer.
  *
  * Disables all channels that are in the same TSG as #ch.
  * A disable channel is never scheduled to run, even if it is
@@ -870,7 +870,7 @@ int nvgpu_channel_disable_tsg(struct gk20a *g, struct nvgpu_channel *ch);
 /**
  * @brief Suspend all serviceable channels
  *
- * @param g[in]		Pointer to GPU driver struct.
+ * @param g [in]	Pointer to GPU driver struct.
  *
  * This function is typically called when preparing power off.
  * It disables and preempts all active TSGs, then unbinds all channels contexts
@@ -884,7 +884,7 @@ int nvgpu_channel_suspend_all_serviceable_ch(struct gk20a *g);
 /**
  * @brief Resume all serviceable channels
  *
- * @param g[in]		Pointer to GPU driver struct.
+ * @param g [in]	Pointer to GPU driver struct.
  *
  * Bind all serviceable channels contexts back to hardware.
  *
@@ -895,7 +895,7 @@ int nvgpu_channel_resume_all_serviceable_ch(struct gk20a *g);
 /**
  * @brief Stop deterministic channel activity for do_idle().
  *
- * @param g[in]		Pointer to GPU driver struct.
+ * @param g [in]	Pointer to GPU driver struct.
  *
  * Stop deterministic channel activity for do_idle() when power needs to go off
  * momentarily but deterministic channels keep power refs for potentially a
@@ -910,7 +910,7 @@ void nvgpu_channel_deterministic_idle(struct gk20a *g);
 /**
  * @brief Allow deterministic channel activity again for do_unidle().
  *
- * @param g[in]		Pointer to GPU driver struct.
+ * @param g [in]	Pointer to GPU driver struct.
  *
  * Releases exclusive access to allow again new deterministic submits, then
  * walks through deterministic channels to take back power refs.
@@ -922,8 +922,8 @@ void nvgpu_channel_deterministic_unidle(struct gk20a *g);
 /**
  * @brief Get a reference to the channel.
  *
- * @param ch[in]	Channel pointer.
- * @param caller[in]	Caller function name (for reference tracking).
+ * @param ch [in]	Channel pointer.
+ * @param caller [in]	Caller function name (for reference tracking).
  *
  * Always when a nvgpu_channel pointer is seen and about to be used, a
  * reference must be held to it - either by you or the caller, which should be
@@ -943,8 +943,8 @@ struct nvgpu_channel *nvgpu_channel_get__func(
 /**
  * @brief Drop a reference to the channel.
  *
- * @param ch[in]	Channel pointer.
- * @param caller[in]	Caller function name (for reference tracking).
+ * @param ch [in]	Channel pointer.
+ * @param caller [in]	Caller function name (for reference tracking).
  *
  * Drop reference to a channel, when nvgpu_channel pointer is not used anymore.
  */
@@ -954,9 +954,9 @@ void nvgpu_channel_put__func(struct nvgpu_channel *ch, const char *caller);
 /**
  * @brief Get a reference to the channel by id.
  *
- * @param g[in]		Pointer to GPU driver struct.
- * @param chid[in]	Channel Identifier.
- * @param caller[in]	Caller function name (for reference tracking).
+ * @param g [in]	Pointer to GPU driver struct.
+ * @param chid [in]	Channel Identifier.
+ * @param caller [in]	Caller function name (for reference tracking).
  *
  * Same as #nvgpu_channel_get, except that the channel is first retrieved
  * by chid.
@@ -973,14 +973,14 @@ struct nvgpu_channel *nvgpu_channel_from_id__func(
 /**
  * @brief Open and initialize a new channel.
  *
- * @param g[in]			Pointer to GPU driver struct.
- * @param runlist_id[in]	Runlist Identifer.
+ * @param g [in]		Pointer to GPU driver struct.
+ * @param runlist_id [in]	Runlist Identifer.
  *				-1 is synonym for #NVGPU_ENGINE_GR.
- * @param is_privileged[in]	Privileged channel will be able to execute
+ * @param is_privileged [in]	Privileged channel will be able to execute
  *				privileged operations via Host methods on its
  *				pushbuffer.
- * @param pid[in]		pid of current thread (for tracking).
- * @param tid[in]		tid of current thread (for tracking).
+ * @param pid [in]		pid of current thread (for tracking).
+ * @param tid [in]		tid of current thread (for tracking).
  *
  * Allocates channel from the free list.
  * Allocates channel instance block.
@@ -1003,8 +1003,8 @@ struct nvgpu_channel *nvgpu_channel_open_new(struct gk20a *g,
 /**
  * @brief Setup and bind the channel
  *
- * @param ch[in]	Channel pointer.
- * @param args[in]	Setup bind arguments.
+ * @param ch [in]	Channel pointer.
+ * @param args [in]	Setup bind arguments.
  *
  * Configures gpfifo and userd for the channel.
  * Configures channel instance block and commits it to H/W.
@@ -1033,8 +1033,8 @@ int nvgpu_channel_setup_bind(struct nvgpu_channel *c,
 /**
  * @brief Add/remove channel to/from runlist.
  *
- * @param ch[in]	Channel pointer (must be non-NULL).
- * @param add[in]	True to add a channel, false to remove it.
+ * @param ch [in]	Channel pointer (must be non-NULL).
+ * @param add [in]	True to add a channel, false to remove it.
  *
  * When #add is true, adds #ch to runlist.
  * When #add is false, removes #ch from runlist.
@@ -1051,14 +1051,14 @@ int nvgpu_channel_update_runlist(struct nvgpu_channel *c, bool add);
 /**
  * @brief Wait until atomic counter is equal to N.
  *
- * @param ch[in]		Channel pointer (must be non-NULL).
- * @param counter[in]		The counter to check.
- * @param wait_value[in]	The target value for the counter.
- * @param c[in]			The condition variable to sleep on. This
+ * @param ch [in]		Channel pointer (must be non-NULL).
+ * @param counter [in]		The counter to check.
+ * @param wait_value [in]	The target value for the counter.
+ * @param c [in]		The condition variable to sleep on. This
  *				condition variable is typically signaled
  *				by the thread which updates the counter.
- * @param caller_name[in]	Function name of caller.
- * @param counter_name[in]	Counter name.
+ * @param caller_name [in]	Function name of caller.
+ * @param counter_name [in]	Counter name.
  *
  * Waits until an atomic counter is equal to N.
  * It is typically used to check the number of references on a channel.
@@ -1075,7 +1075,7 @@ void nvgpu_channel_wait_until_counter_is_N(
 /**
  * @brief Free channel's usermode buffers.
  *
- * @param ch[in]	Channel pointer (must be non-NULL).
+ * @param ch [in]	Channel pointer (must be non-NULL).
  *
  * Frees userspace-managed userd and gpfifo buffers.
  */
@@ -1099,7 +1099,7 @@ static inline void trace_write_pushbuffers(struct nvgpu_channel *c, u32 count)
 /**
  * @brief Mark channel as unserviceable.
  *
- * @param ch[in]	Channel pointer.
+ * @param ch [in]	Channel pointer.
  *
  * Once unserviceable, it is not possible to take extra references to
  * the channel.
@@ -1109,7 +1109,7 @@ void nvgpu_channel_set_unserviceable(struct nvgpu_channel *ch);
 /**
  * @brief Check if channel is unserviceable
  *
- * @param ch[in]	Channel pointer.
+ * @param ch [in]	Channel pointer.
  *
  * @return True if channel is unserviceable, false otherwise.
  */
@@ -1119,7 +1119,7 @@ bool nvgpu_channel_check_unserviceable(struct nvgpu_channel *ch);
 /**
  * @brief Channel userd physical address.
  *
- * @param ch[in]	Channel pointer.
+ * @param ch [in]	Channel pointer.
  *
  * @return Physical address of channel's userd region.
  */
@@ -1131,7 +1131,7 @@ static inline u64 nvgpu_channel_userd_addr(struct nvgpu_channel *ch)
 /**
  * @brief Channel userd GPU VA.
  *
- * @param c[in]		Channel pointer.
+ * @param c [in]	Channel pointer.
  *
  * @return GPU virtual address of channel's userd region, or
  *	   0ULL if not mapped.
@@ -1146,8 +1146,8 @@ static inline u64 nvgpu_channel_userd_gpu_va(struct nvgpu_channel *c)
 /**
  * @brief Allocate channel instance block.
  *
- * @param g[in]		Pointer to GPU driver struct.
- * @param ch[in]	Channel pointer.
+ * @param g [in]	Pointer to GPU driver struct.
+ * @param ch [in]	Channel pointer.
  *
  * Instance block is allocated in vidmem if supported by GPU,
  * sysmem otherwise.
@@ -1160,17 +1160,17 @@ int nvgpu_channel_alloc_inst(struct gk20a *g, struct nvgpu_channel *ch);
 /**
  * @brief Free channel instance block.
  *
- * @param g[in]		Pointer to GPU driver struct.
- * @param ch[in]	Channel pointer.
+ * @param g [in]	Pointer to GPU driver struct.
+ * @param ch [in]	Channel pointer.
  */
 void nvgpu_channel_free_inst(struct gk20a *g, struct nvgpu_channel *ch);
 
 /**
  * @brief Set error notifier.
  *
- * @param g[in]		Pointer to GPU driver struct.
- * @param ch[in]	Channel pointer.
- * @param error_notifier[in]	Error notifier code.
+ * @param g [in]	Pointer to GPU driver struct.
+ * @param ch [in]	Channel pointer.
+ * @param error_notifier [in]	Error notifier code.
  *
  * If an application has installed an error notifier buffer with
  * #NVGPU_IOCTL_CHANNEL_SET_ERROR_NOTIFIER, this function updates
@@ -1185,8 +1185,8 @@ void nvgpu_channel_set_error_notifier(struct gk20a *g, struct nvgpu_channel *ch,
 /**
  * @brief Get channel from instance block.
  *
- * @param g[in]		Pointer to GPU driver struct.
- * @param inst_ptr[in]	Instance block physical address.
+ * @param g [in]	Pointer to GPU driver struct.
+ * @param inst_ptr [in]	Instance block physical address.
  *
  * Search for the channel which instance block physical address is
  * equal to #inst_ptr. If channel is found, an extra reference is
@@ -1200,8 +1200,8 @@ struct nvgpu_channel *nvgpu_channel_refch_from_inst_ptr(struct gk20a *g,
 /**
  * @brief Dump debug information for all channels.
  *
- * @param g[in]		Pointer to GPU driver struct.
- * @param o[in]		Debug context (which provides methods to
+ * @param g [in]	Pointer to GPU driver struct.
+ * @param o [in]	Debug context (which provides methods to
  *			output data).
  *
  * Dump human-readeable information about active channels.

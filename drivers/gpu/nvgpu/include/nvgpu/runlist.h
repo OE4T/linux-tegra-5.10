@@ -98,10 +98,10 @@ struct nvgpu_runlist_info {
 /**
  * @brief Rebuild runlist
  *
- * @param f[in]			The FIFO context using this runlist.
- * @param runlist[in]		Runlist context.
- * @param buf_id[in]		Indicates which runlist buffer to use.
- * @param max_entries[in]	Max number of entries in runlist buffer.
+ * @param f [in]		The FIFO context using this runlist.
+ * @param runlist [in]		Runlist context.
+ * @param buf_id [in]		Indicates which runlist buffer to use.
+ * @param max_entries [in]	Max number of entries in runlist buffer.
  *
  * Walks through all active TSGs in #runlist, and constructs runlist
  * buffer #buf_id. This buffer can afterwards be submitted to H/W
@@ -120,11 +120,11 @@ u32 nvgpu_runlist_construct_locked(struct nvgpu_fifo *f,
 /**
  * @brief Add/remove channel to/from runlist (locked)
  *
- * @param g[in]			The GPU driver struct owning this runlist.
- * @param runlist_id[in]	Runlist identifier.
- * @param ch[in]		Channel to be added/removed or NULL.
- * @param add[in]		True to add a channel, false to remove it.
- * @param wait_for_finish[in]	True to wait for runlist update completion.
+ * @param g [in]		The GPU driver struct owning this runlist.
+ * @param runlist_id [in]	Runlist identifier.
+ * @param ch [in]		Channel to be added/removed or NULL.
+ * @param add [in]		True to add a channel, false to remove it.
+ * @param wait_for_finish [in]	True to wait for runlist update completion.
  *
  * When #ch is NULL, this function has same behavior as #nvgpu_runlist_reload.
  * When #ch is non NULL, this function has same behavior as
@@ -148,11 +148,11 @@ int nvgpu_runlist_reschedule(struct nvgpu_channel *ch, bool preempt_next,
 /**
  * @brief Add/remove channel to/from runlist
  *
- * @param g[in]			The GPU driver struct owning this runlist.
- * @param runlist_id[in]	Runlist identifier
- * @param ch[in]		Channel to be added/removed (must be non NULL)
- * @param add[in]		True to add channel to runlist
- * @param wait_for_finish[in]	True to wait for completion
+ * @param g [in]		The GPU driver struct owning this runlist.
+ * @param runlist_id [in]	Runlist identifier
+ * @param ch [in]		Channel to be added/removed (must be non NULL)
+ * @param add [in]		True to add channel to runlist
+ * @param wait_for_finish [in]	True to wait for completion
  *
  * When #add is true, adds #ch to active channels of runlist #runlist_id.
  * When #add is false, removes #ch from active channels of runlist #runlist_id.
@@ -177,12 +177,12 @@ int nvgpu_runlist_update_for_channel(struct gk20a *g, u32 runlist_id,
 /**
  * @brief Reload runlist
  *
- * @param g[in]			The GPU driver struct owning this runlist.
- * @param runlist_id[in]	Runlist identifier.
- * @param add[in]		True to submit a runlist buffer with all active
+ * @param g [in]		The GPU driver struct owning this runlist.
+ * @param runlist_id [in]	Runlist identifier.
+ * @param add [in]		True to submit a runlist buffer with all active
  *				channels. False to submit an empty runlist
  *				buffer.
- * @param wait_for_finish[in]	True to wait for runlist update completion.
+ * @param wait_for_finish [in]	True to wait for runlist update completion.
  *
  * When #add is true, all entries are updated for the runlist. A runlist buffer
  * is built with all active channels/TSGs for the runlist and submitted to H/W.
@@ -203,9 +203,9 @@ int nvgpu_runlist_reload(struct gk20a *g, u32 runlist_id,
 /**
  * @brief Reload a set of runlists
  *
- * @param g[in]			The GPU driver struct owning the runlists.
- * @param runlist_ids[in]	Bitmask of runlists, one bit per runlist_id.
- * @param add[in]		True to submit a runlist buffer with all active
+ * @param g [in]		The GPU driver struct owning the runlists.
+ * @param runlist_ids [in]	Bitmask of runlists, one bit per runlist_id.
+ * @param add [in]		True to submit a runlist buffer with all active
  *				channels. False to submit an empty runlist
  *				buffer.
  *
@@ -232,9 +232,9 @@ const char *nvgpu_runlist_interleave_level_name(u32 interleave_level);
 /**
  * @brief Enable/disable a set of runlists
  *
- * @param g[in]			The GPU driver struct owning the runlists.
- * @param runlist_mask[in]	Bitmask of runlist, one bit per runlist_id.
- * @param runlist_state[in]	#RUNLIST_ENABLE or #RUNLIST_DISABLE.
+ * @param g [in]		The GPU driver struct owning the runlists.
+ * @param runlist_mask [in]	Bitmask of runlist, one bit per runlist_id.
+ * @param runlist_state [in]	#RUNLIST_ENABLE or #RUNLIST_DISABLE.
  *
  * If scheduling of a runlist is disabled, no new channels will be scheduled
  * to run from that runlist. It does not stop the scheduler from finishing
@@ -251,7 +251,7 @@ void nvgpu_runlist_set_state(struct gk20a *g, u32 runlists_mask,
 /**
  * @brief Initialize runlist context
  *
- * @param g[in]			The GPU driver struct owning the runlists.
+ * @param g [in]		The GPU driver struct owning the runlists.
  *
  * Initializes runlist context for current GPU:
  * - Determine number of runlists and max entries per runlists.
@@ -271,7 +271,7 @@ int nvgpu_runlist_setup_sw(struct gk20a *g);
 /**
  * @brief De-initialize runlist context
  *
- * @param g[in]			The GPU driver struct owning the runlists.
+ * @param g [in]		The GPU driver struct owning the runlists.
  *
  * Cleans up runlist context for current GPU:
  * - Free runlist buffers.
@@ -283,7 +283,7 @@ void nvgpu_runlist_cleanup_sw(struct gk20a *g);
 /**
  * @brief Acquire lock for active runlists
  *
- * @param g[in]			The GPU driver struct owning the runlists.
+ * @param g [in]		The GPU driver struct owning the runlists.
  *
  * Walk through runlist ids, and acquire runlist lock for runlists that are
  * actually in use (i.e. mapped to one engine).
@@ -293,7 +293,7 @@ void nvgpu_runlist_lock_active_runlists(struct gk20a *g);
 /**
  * @brief Release lock for active runlists
  *
- * @param g[in]			The GPU driver struct owning the runlists.
+ * @param g [in]		The GPU driver struct owning the runlists.
  *
  * Walk through runlist ids, and release runlist lock for runlists that are
  * actually in use (i.e. mapped to one engine).
@@ -303,8 +303,8 @@ void nvgpu_runlist_unlock_active_runlists(struct gk20a *g);
 /**
  * @brief Release lock for a set of runlists
  *
- * @param g[in]			The GPU driver struct owning the runlists.
- * @param runlists_mask[in]	Set of runlists to release lock for. One bit
+ * @param g [in]		The GPU driver struct owning the runlists.
+ * @param runlists_mask [in]	Set of runlists to release lock for. One bit
  *				per runlist_id.
  *
  * Walk through runlist ids, and release runlist lock for runlists that are
@@ -315,13 +315,13 @@ void nvgpu_runlist_unlock_runlists(struct gk20a *g, u32 runlists_mask);
 /**
  * @brief Get list of runlists per engine/PBDMA/TSG
  *
- * @param g[in]			The GPU driver struct owning the runlists.
- * @param id[in]		TSG or Channel Identifier (see #id_type).
- * @param id_type[in]		Identifier Type (#ID_TYPE_CHANNEL, #ID_TYPE_TSG
+ * @param g [in]		The GPU driver struct owning the runlists.
+ * @param id [in]		TSG or Channel Identifier (see #id_type).
+ * @param id_type [in]		Identifier Type (#ID_TYPE_CHANNEL, #ID_TYPE_TSG
  *				or #ID_TYPE_UNKNOWN).
- * @param act_eng_bitmask[in]	Bitmask of active engines, one bit per
+ * @param act_eng_bitmask [in]	Bitmask of active engines, one bit per
  *				engine id.
- * @param pbdma_bitmask[in]	Bitmask of PBDMAs, one bit per PBDMA id.
+ * @param pbdma_bitmask [in]	Bitmask of PBDMAs, one bit per PBDMA id.
  *
  * If engines or PBDMAs are known (i.e. non-zero #act_eng_bitmask and/or
  * #pbdma_bitmask), the function looks up for all runlists servicing those

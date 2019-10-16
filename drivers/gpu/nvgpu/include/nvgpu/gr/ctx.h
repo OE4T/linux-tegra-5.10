@@ -131,7 +131,7 @@ struct zcull_ctx_desc;
 /**
  * @brief Initialize GR context descriptor structure.
  *
- * @param g[in]			Pointer to GPU driver struct.
+ * @param g [in]		Pointer to GPU driver struct.
  *
  * This function allocates memory for #nvgpu_gr_ctx_desc structure.
  *
@@ -143,8 +143,8 @@ struct nvgpu_gr_ctx_desc *nvgpu_gr_ctx_desc_alloc(struct gk20a *g);
 /**
  * @brief Free GR context descriptor structure.
  *
- * @param g[in]			Pointer to GPU driver struct.
- * @param desc[in]		Pointer to context descriptor struct.
+ * @param g [in]		Pointer to GPU driver struct.
+ * @param desc [in]		Pointer to context descriptor struct.
  *
  * This function will free memory allocated for #nvgpu_gr_ctx_desc structure.
  */
@@ -154,9 +154,9 @@ void nvgpu_gr_ctx_desc_free(struct gk20a *g,
 /**
  * @brief Set size of GR context buffer with given index.
  *
- * @param desc[in]		Pointer to context descriptor struct.
- * @param index[in]		Index of GR context buffer.
- * @param size[in]		Size of buffer to be set.
+ * @param desc [in]		Pointer to context descriptor struct.
+ * @param index [in]		Index of GR context buffer.
+ * @param size [in]		Size of buffer to be set.
  *
  * This function sets size of GR context buffer with given buffer
  * index.
@@ -167,10 +167,10 @@ void nvgpu_gr_ctx_set_size(struct nvgpu_gr_ctx_desc *gr_ctx_desc,
 /**
  * @brief Allocate graphics context buffer.
  *
- * @param g[in]			Pointer to GPU driver struct.
- * @param gr_ctx[in]		Pointer to graphics context struct.
- * @param gr_ctx_desc[in]	Pointer to context descriptor struct.
- * @param vm[in]		Pointer to virtual memory.
+ * @param g [in]		Pointer to GPU driver struct.
+ * @param gr_ctx [in]		Pointer to graphics context struct.
+ * @param gr_ctx_desc [in]	Pointer to context descriptor struct.
+ * @param vm [in]		Pointer to virtual memory.
  *
  * This function allocates memory for graphics context buffer and also
  * maps it to given virtual memory.
@@ -188,10 +188,10 @@ int nvgpu_gr_ctx_alloc(struct gk20a *g,
 /**
  * @brief Free graphics context buffer.
  *
- * @param g[in]			Pointer to GPU driver struct.
- * @param gr_ctx[in]		Pointer to graphics context struct.
- * @param global_ctx_buffer[in]	Pointer to global context descriptor struct.
- * @param vm[in]		Pointer to virtual memory.
+ * @param g [in]		Pointer to GPU driver struct.
+ * @param gr_ctx [in]		Pointer to graphics context struct.
+ * @param global_ctx_buffer [in]Pointer to global context descriptor struct.
+ * @param vm [in]		Pointer to virtual memory.
  *
  * This function will free memory allocated for graphics context buffer,
  * patch context buffer, and all the ctxsw buffers.
@@ -204,10 +204,10 @@ void nvgpu_gr_ctx_free(struct gk20a *g,
 /**
  * @brief Allocate patch context buffer.
  *
- * @param g[in]			Pointer to GPU driver struct.
- * @param gr_ctx[in]		Pointer to graphics context struct.
- * @param gr_ctx_desc[in]	Pointer to context descriptor struct.
- * @param vm[in]		Pointer to virtual memory.
+ * @param g [in]		Pointer to GPU driver struct.
+ * @param gr_ctx [in]		Pointer to graphics context struct.
+ * @param gr_ctx_desc [in]	Pointer to context descriptor struct.
+ * @param vm [in]		Pointer to virtual memory.
  *
  * This function allocates memory for patch context buffer and also
  * maps it to given virtual memory.
@@ -223,9 +223,9 @@ int nvgpu_gr_ctx_alloc_patch_ctx(struct gk20a *g,
 /**
  * @brief Free patch context buffer.
  *
- * @param g[in]			Pointer to GPU driver struct.
- * @param vm[in]		Pointer to virtual memory.
- * @param gr_ctx[in]		Pointer to graphics context struct.
+ * @param g [in]		Pointer to GPU driver struct.
+ * @param vm [in]		Pointer to virtual memory.
+ * @param gr_ctx [in]		Pointer to graphics context struct.
  *
  * This function will free memory allocated for patch context buffer.
  */
@@ -235,11 +235,11 @@ void nvgpu_gr_ctx_free_patch_ctx(struct gk20a *g, struct vm_gk20a *vm,
 /**
  * @brief Map global context buffers.
  *
- * @param g[in]			Pointer to GPU driver struct.
- * @param gr_ctx[in]		Pointer to graphics context struct.
- * @param global_ctx_buffer[in]	Pointer to global context descriptor struct.
- * @param vm[in]		Pointer to virtual memory.
- * @param vpr[in]		Boolean flag to use buffers in VPR.
+ * @param g [in]		Pointer to GPU driver struct.
+ * @param gr_ctx [in]		Pointer to graphics context struct.
+ * @param global_ctx_buffer [in]Pointer to global context descriptor struct.
+ * @param vm [in]		Pointer to virtual memory.
+ * @param vpr [in]		Boolean flag to use buffers in VPR.
  *
  * This function maps all global context buffers into given
  * virtual memory and stores each virtual address into given
@@ -256,8 +256,8 @@ int nvgpu_gr_ctx_map_global_ctx_buffers(struct gk20a *g,
 /**
  * @brief Get global context buffer virtual address.
  *
- * @param gr_ctx[in]		Pointer to graphics context struct.
- * @param index[in]		Index of global context buffer.
+ * @param gr_ctx [in]		Pointer to graphics context struct.
+ * @param index [in]		Index of global context buffer.
  *
  * This function returns virtual address of global context buffer
  * with given index stored in #nvgpu_gr_ctx struct.
@@ -270,7 +270,7 @@ u64 nvgpu_gr_ctx_get_global_ctx_va(struct nvgpu_gr_ctx *gr_ctx,
 /**
  * @brief Get pointer of patch context buffer memory struct.
  *
- * @param gr_ctx[in]		Pointer to graphics context struct.
+ * @param gr_ctx [in]		Pointer to graphics context struct.
  *
  * This function returns #nvgpu_mem pointer of patch context buffer stored
  * in #nvgpu_gr_ctx struct.
@@ -282,8 +282,8 @@ struct nvgpu_mem *nvgpu_gr_ctx_get_patch_ctx_mem(struct nvgpu_gr_ctx *gr_ctx);
 /**
  * @brief Set data count in patch context buffer.
  *
- * @param gr_ctx[in]		Pointer to graphics context struct.
- * @param data_count[in]	Value to be set.
+ * @param gr_ctx [in]		Pointer to graphics context struct.
+ * @param data_count [in]	Value to be set.
  *
  * This function sets data count of patch context buffer. Data count
  * indicates how many entries have been written into patch context.
@@ -294,7 +294,7 @@ void nvgpu_gr_ctx_set_patch_ctx_data_count(struct nvgpu_gr_ctx *gr_ctx,
 /**
  * @brief Get pointer of graphics context buffer memory struct.
  *
- * @param gr_ctx[in]		Pointer to graphics context struct.
+ * @param gr_ctx [in]		Pointer to graphics context struct.
  *
  * This function returns #nvgpu_mem pointer of graphics context buffer.
  *
@@ -305,10 +305,10 @@ struct nvgpu_mem *nvgpu_gr_ctx_get_ctx_mem(struct nvgpu_gr_ctx *gr_ctx);
 /**
  * @brief Load local golden image into given graphics context buffer.
  *
- * @param g[in]				Pointer to GPU driver struct.
- * @param gr_ctx[in]			Pointer to graphics context struct.
- * @param local_golden_image[in]	Pointer to local golden image struct.
- * @param cde[in]			Boolean flag to enable/disable CDE.
+ * @param g [in]			Pointer to GPU driver struct.
+ * @param gr_ctx [in]			Pointer to graphics context struct.
+ * @param local_golden_image [in]	Pointer to local golden image struct.
+ * @param cde [in]			Boolean flag to enable/disable CDE.
  *
  * This function loads local golden image copy into given new graphics
  * context buffer.
@@ -327,9 +327,9 @@ int nvgpu_gr_ctx_load_golden_ctx_image(struct gk20a *g,
 /**
  * @brief Prepare patch context buffer for writes.
  *
- * @param g[in]				Pointer to GPU driver struct.
- * @param gr_ctx[in]			Pointer to graphics context struct.
- * @param update_patch_count[in]	Boolean flag to update data count
+ * @param g [in]			Pointer to GPU driver struct.
+ * @param gr_ctx [in]			Pointer to graphics context struct.
+ * @param update_patch_count [in]	Boolean flag to update data count
  *                                      in patch context.
  *
  * This function will prepare patch context buffer for writes. This
@@ -343,9 +343,9 @@ void nvgpu_gr_ctx_patch_write_begin(struct gk20a *g,
 /**
  * @brief Finish patch context buffer writes.
  *
- * @param g[in]				Pointer to GPU driver struct.
- * @param gr_ctx[in]			Pointer to graphics context struct.
- * @param update_patch_count[in]	Boolean flag to update data count
+ * @param g [in]			Pointer to GPU driver struct.
+ * @param gr_ctx [in]			Pointer to graphics context struct.
+ * @param update_patch_count [in]	Boolean flag to update data count
  *                                      in patch context.
  *
  * This function will write final data count into patch context image
@@ -359,11 +359,11 @@ void nvgpu_gr_ctx_patch_write_end(struct gk20a *g,
 /**
  * @brief Edit the context state.
  *
- * @param g[in]			Pointer to GPU driver struct.
- * @param gr_ctx[in]		Pointer to graphics context struct.
- * @param addr[in]		Address entry to be added.
- * @param data[in]		Data entry to be added.
- * @param patch[in]		Boolean flag.
+ * @param g [in]		Pointer to GPU driver struct.
+ * @param gr_ctx [in]		Pointer to graphics context struct.
+ * @param addr [in]		Address entry to be added.
+ * @param data [in]		Data entry to be added.
+ * @param patch [in]		Boolean flag.
  *
  * This function will write given addr and data entries into patch
  * context buffer if boolean flag patch is set. In this case, the
@@ -383,8 +383,8 @@ void nvgpu_gr_ctx_patch_write(struct gk20a *g,
 /**
  * @brief Set given compute preemption mode in graphics context struct.
  *
- * @param gr_ctx[in]			Pointer to graphics context struct.
- * @param compute_preempt_mode[in]	Compute preemption mode to be set.
+ * @param gr_ctx [in]			Pointer to graphics context struct.
+ * @param compute_preempt_mode [in]	Compute preemption mode to be set.
  *
  * This function will set given compute preemption mode into #nvgpu_gr_ctx
  * structure.
@@ -395,7 +395,7 @@ void nvgpu_gr_ctx_init_compute_preemption_mode(struct nvgpu_gr_ctx *gr_ctx,
 /**
  * @brief Get compute preemption mode stored in graphics context struct.
  *
- * @param gr_ctx[in]		Pointer to graphics context struct.
+ * @param gr_ctx [in]		Pointer to graphics context struct.
  *
  * This function returns compute preemption mode stored in #nvgpu_gr_ctx
  * struct.
@@ -407,7 +407,7 @@ u32 nvgpu_gr_ctx_get_compute_preemption_mode(struct nvgpu_gr_ctx *gr_ctx);
 /**
  * @brief Check if given preemption modes are valid.
  *
- * @param gr_ctx[in]			Pointer to graphics context struct.
+ * @param gr_ctx [in]			Pointer to graphics context struct.
  * @param graphics_preempt_mode		Requested graphics preemption mode.
  * @param compute_preempt_mode		Requested compute preemption mode.
  *
@@ -431,8 +431,8 @@ bool nvgpu_gr_ctx_check_valid_preemption_mode(struct nvgpu_gr_ctx *gr_ctx,
 /**
  * @brief Write preemption modes in graphics context image.
  *
- * @param g[in]			Pointer to GPU driver struct.
- * @param gr_ctx[in]		Pointer to graphics context struct.
+ * @param g [in]		Pointer to GPU driver struct.
+ * @param gr_ctx [in]		Pointer to graphics context struct.
  *
  * This function writes graphics/compute preemption modes into graphics
  * context image. Preemption mode values are taken from #nvgpu_gr_ctx
@@ -444,7 +444,7 @@ void nvgpu_gr_ctx_set_preemption_modes(struct gk20a *g,
 /**
  * @brief Initialize GR context structure.
  *
- * @param g[in]			Pointer to GPU driver struct.
+ * @param g [in]		Pointer to GPU driver struct.
  *
  * This function allocates memory for #nvgpu_gr_ctx structure.
  *
@@ -456,8 +456,8 @@ struct nvgpu_gr_ctx *nvgpu_alloc_gr_ctx_struct(struct gk20a *g);
 /**
  * @brief Free GR context structure.
  *
- * @param g[in]			Pointer to GPU driver struct.
- * @param gr_ctx[in]		Pointer to graphics context struct.
+ * @param g [in]		Pointer to GPU driver struct.
+ * @param gr_ctx [in]		Pointer to graphics context struct.
  *
  * This function will free memory allocated for #nvgpu_gr_ctx structure.
  */
@@ -466,8 +466,8 @@ void nvgpu_free_gr_ctx_struct(struct gk20a *g, struct nvgpu_gr_ctx *gr_ctx);
 /**
  * @brief Set TSG id in graphics context structure.
  *
- * @param gr_ctx[in]		Pointer to graphics context struct.
- * @param tsgid[in]		TSG identifier.
+ * @param gr_ctx [in]		Pointer to graphics context struct.
+ * @param tsgid [in]		TSG identifier.
  *
  * This function will set given TSG identifier into #nvgpu_gr_ctx
  * structure.
@@ -477,7 +477,7 @@ void nvgpu_gr_ctx_set_tsgid(struct nvgpu_gr_ctx *gr_ctx, u32 tsgid);
 /**
  * @brief Get TSG id stored in graphics context structure.
  *
- * @param gr_ctx[in]		Pointer to graphics context struct.
+ * @param gr_ctx [in]		Pointer to graphics context struct.
  *
  * This function will return TSG identifier stored in #nvgpu_gr_ctx
  * structure.

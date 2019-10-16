@@ -37,7 +37,7 @@ struct gk20a;
 /**
  * @brief Initialize PBDMA software context
  *
- * @param g[in]			The GPU driver struct for which to initialize
+ * @param g [in]		The GPU driver struct for which to initialize
  *				PBDMA software context.
  *
  * Gets number of PBDMAs and builds a map of runlists that will be serviced
@@ -51,7 +51,7 @@ int nvgpu_pbdma_setup_sw(struct gk20a *g);
 /**
  * @brief Clean up PBDMA software context
  *
- * @param g[in]			The GPU driver struct using PBDMA software
+ * @param g [in]		The GPU driver struct using PBDMA software
  *				context.
  *
  * Cleans up PBDMA software context and related resources.
@@ -61,9 +61,9 @@ void nvgpu_pbdma_cleanup_sw(struct gk20a *g);
 /**
  * @brief Find PBDMA servicing the runlist
  *
- * @param g[in]			The GPU driver struct owning the runlist.
- * @param runlist_id[in]	Runlist identifier.
- * @param pbdma_id[out]		Pointer to PBDMA identifier.
+ * @param g [in]		The GPU driver struct owning the runlist.
+ * @param runlist_id [in]	Runlist identifier.
+ * @param pbdma_id [out]	Pointer to PBDMA identifier.
  *
  * Finds the PBDMA which is servicing #runlist_id.
  *

@@ -40,9 +40,9 @@ struct nvgpu_gr_intr;
 /**
  * @brief Handle all FECS error interrupts.
  *
- * @param g[in]			Pointer to GPU driver struct.
- * @param ch[in]		Pointer to GPU channel.
- * @param isr_data[in]		Pointer to GR ISR data.
+ * @param g [in]		Pointer to GPU driver struct.
+ * @param ch [in]		Pointer to GPU channel.
+ * @param isr_data [in]		Pointer to GR ISR data.
  *
  * This function handles all error interrupts coming from
  * FECS microcontroller. Errors include:
@@ -65,11 +65,11 @@ int nvgpu_gr_intr_handle_fecs_error(struct gk20a *g, struct nvgpu_channel *ch,
 /**
  * @brief Handle all GPC exception interrupts.
  *
- * @param g[in]			Pointer to GPU driver struct.
- * @param post_event[out]	Flag to post event, ignored for safety.
- * @param gr_config[in]		Pointer to GR configuration struct.
- * @param fault_ch[in]		Pointer to faulted GPU channel.
- * @param hww_global_esr[out]	Global Error Status Register value.
+ * @param g [in]		Pointer to GPU driver struct.
+ * @param post_event [out]	Flag to post event, ignored for safety.
+ * @param gr_config [in]	Pointer to GR configuration struct.
+ * @param fault_ch [in]		Pointer to faulted GPU channel.
+ * @param hww_global_esr [out]	Global Error Status Register value.
  *
  * This function handles all exception interrupts coming from
  * GPC (Graphics Processing Cluster). Interrupts include interrupts
@@ -91,8 +91,8 @@ int nvgpu_gr_intr_handle_gpc_exception(struct gk20a *g, bool *post_event,
 /**
  * @brief Handle notification interrupt.
  *
- * @param g[in]			Pointer to GPU driver struct.
- * @param isr_data[in]		Pointer to GR ISR data.
+ * @param g [in]		Pointer to GPU driver struct.
+ * @param isr_data [in]		Pointer to GR ISR data.
  *
  * This function handles notification interrupt and broadcasts the
  * notification to waiters.
@@ -103,8 +103,8 @@ void nvgpu_gr_intr_handle_notify_pending(struct gk20a *g,
 /**
  * @brief Handle semaphore interrupt.
  *
- * @param g[in]			Pointer to GPU driver struct.
- * @param isr_data[in]		Pointer to GR ISR data.
+ * @param g [in]		Pointer to GPU driver struct.
+ * @param isr_data [in]		Pointer to GR ISR data.
  *
  * This function handles semaphore release notification interrupt
  * and broadcasts the notification to waiters.
@@ -115,11 +115,11 @@ void nvgpu_gr_intr_handle_semaphore_pending(struct gk20a *g,
 /**
  * @brief Report GR exceptions to qnx.sdl unit.
  *
- * @param g[in]			Pointer to GPU driver struct.
- * @param inst[in]		Unit instance ID.
- * @param err_type[in]		Error type.
- * @param status[in]		Exception status value.
- * @param sub_err_type[in]	Sub error type.
+ * @param g [in]		Pointer to GPU driver struct.
+ * @param inst [in]		Unit instance ID.
+ * @param err_type [in]		Error type.
+ * @param status [in]		Exception status value.
+ * @param sub_err_type [in]	Sub error type.
  *
  * This function reports all GR exceptions to qnx.sdl unit.
  *
@@ -132,9 +132,9 @@ void nvgpu_gr_intr_report_exception(struct gk20a *g, u32 inst,
 /**
  * @brief Translate context to channel ID.
  *
- * @param g[in]			Pointer to GPU driver struct.
- * @param curr_ctx[in]		Context value.
- * @param curr_tsgid[out]	TSG ID.
+ * @param g [in]		Pointer to GPU driver struct.
+ * @param curr_ctx [in]		Context value.
+ * @param curr_tsgid [out]	TSG ID.
  *
  * This function translates given context into corresponding
  * #nvgpu_channel and TSG identifier.
@@ -151,9 +151,9 @@ struct nvgpu_channel *nvgpu_gr_intr_get_channel_from_ctx(struct gk20a *g,
 /**
  * @brief Set error notifier for GR errors/exceptions.
  *
- * @param g[in]			Pointer to GPU driver struct.
- * @param isr_data[in]		Pointer to GR ISR data.
- * @param error_notifier[in]	Error notifier value to be set.
+ * @param g [in]		Pointer to GPU driver struct.
+ * @param isr_data [in]		Pointer to GR ISR data.
+ * @param error_notifier [in]	Error notifier value to be set.
  *
  * This function will set #error_notifier error code into TSG's error
  * notifier (if configured by user application).
@@ -167,13 +167,13 @@ void nvgpu_gr_intr_set_error_notifier(struct gk20a *g,
 /**
  * @brief Handle all SM exception interrupts.
  *
- * @param g[in]			Pointer to GPU driver struct.
- * @param gpc[in]		Index of GPC on which exception is received.
- * @param tpc[in]		Index of TPC on which exception is received.
- * @param sm[in]		Index of SM on which exception is received.
- * @param post_event[out]	Flag to post event, ignored for safety.
- * @param fault_ch[in]		Pointer to faulted GPU channel.
- * @param hww_global_esr[out]	Global Error Status Register value.
+ * @param g [in]		Pointer to GPU driver struct.
+ * @param gpc [in]		Index of GPC on which exception is received.
+ * @param tpc [in]		Index of TPC on which exception is received.
+ * @param sm [in]		Index of SM on which exception is received.
+ * @param post_event [out]	Flag to post event, ignored for safety.
+ * @param fault_ch [in]		Pointer to faulted GPU channel.
+ * @param hww_global_esr [out]	Global Error Status Register value.
  *
  * This function handles all exception interrupts coming from
  * SM (Streaming Multiprocessor). This function will read global and
@@ -193,7 +193,7 @@ int nvgpu_gr_intr_handle_sm_exception(struct gk20a *g, u32 gpc, u32 tpc, u32 sm,
 /**
  * @brief ISR for GR engine stalling interrupts.
  *
- * @param g[in]			Pointer to GPU driver struct.
+ * @param g [in]		Pointer to GPU driver struct.
  *
  * This is the entry point to handle all GR engine stalling interrupts.
  * This includes:
@@ -222,7 +222,7 @@ int nvgpu_gr_intr_stall_isr(struct gk20a *g);
 /**
  * @brief Flush channel lookup TLB.
  *
- * @param g[in]			Pointer to GPU driver struct.
+ * @param g [in]		Pointer to GPU driver struct.
  *
  * common.gr.intr unit maintains a TLB to translate context into GPU
  * channel ID. See #nvgpu_gr_intr_get_channel_from_ctx() for reference.
@@ -235,7 +235,7 @@ void nvgpu_gr_intr_flush_channel_tlb(struct gk20a *g);
 /**
  * @brief Initialize GR interrupt data structure.
  *
- * @param g[in]			Pointer to GPU driver struct.
+ * @param g [in]		Pointer to GPU driver struct.
  *
  * This function allocates memory for #nvgpu_gr_intr structure, and
  * initializes various fields in the structure.
@@ -248,8 +248,8 @@ struct nvgpu_gr_intr *nvgpu_gr_intr_init_support(struct gk20a *g);
 /**
  * @brief Free GR interrupt data structure.
  *
- * @param g[in]			Pointer to GPU driver struct.
- * @param intr[in]		Pointer to GR interrupt data struct.
+ * @param g [in]		Pointer to GPU driver struct.
+ * @param intr [in]		Pointer to GR interrupt data struct.
  *
  * This function will free memory allocated for #nvgpu_gr_intr structure.
  */

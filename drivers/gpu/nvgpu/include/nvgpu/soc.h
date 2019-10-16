@@ -29,7 +29,7 @@ struct gk20a;
 /**
  * @brief Check whether running on silicon or not.
  *
- * @param g[in]		GPU super structure.
+ * @param g [in]	GPU super structure.
  *
  * - Extract out platform info by calling NvTegraSysGetPlatform().
  * - If info is NULL return false.
@@ -42,7 +42,7 @@ bool nvgpu_platform_is_silicon(struct gk20a *g);
 /**
  * @brief Check whether running simulation or not.
  *
- * @param g[in]		GPU super structure.
+ * @param g [in]	GPU super structure.
  *
  * - Read CPU type by calling NvTegraSysGetCpuType().
  * - Read platform info by calling NvTegraSysGetPlatform().
@@ -59,7 +59,7 @@ bool nvgpu_platform_is_simulation(struct gk20a *g);
 /**
  * @brief Check whether running fpga or not.
  *
- * @param g[in]		GPU super structure.
+ * @param g [in]	GPU super structure.
  *
  * - Get tegra Platform info using NvTegraSysGetPlatform().
  * - Return false if return info is NULL.
@@ -73,7 +73,7 @@ bool nvgpu_platform_is_fpga(struct gk20a *g);
 /**
  * @brief Check whether running in virtualized environment.
  *
- * @param g[in]		GPU super structure.
+ * @param g [in]	GPU super structure.
  *
  * - Return true if NvHvCheckOsNative() is successful.
  *
@@ -84,7 +84,7 @@ bool nvgpu_is_hypervisor_mode(struct gk20a *g);
 /**
  * @brief Check whether bpmp server is runing.
  *
- * @param g[in]		GPU super structure.
+ * @param g [in]	GPU super structure.
  *
  * @return Returns true if bpmp server is running else returns false.
  */
@@ -93,7 +93,7 @@ bool nvgpu_is_bpmp_running(struct gk20a *g);
 /**
  * @brief Check whether soc is t194 and revision a01.
  *
- * @param g[in]		GPU super structure.
+ * @param g [in]	GPU super structure.
  *
  * - Return true only if NvTegraSysGetChipId() is equal to TEGRA_CHIPID_TEGRA19
  *   and NvTegraSysGetChipRevision() is equal to TEGRA_REVISION_A01.
@@ -104,7 +104,7 @@ bool nvgpu_is_soc_t194_a01(struct gk20a *g);
 /**
  * @brief Do soc related init
  *
- * @param g[in]		GPU super structure.
+ * @param g [in]	GPU super structure.
  *
  * - Set VMID_UNINITIALIZED to r->gid.
  * - Check if nvgpu_is_hypervisor_mode is enabled if yes then
@@ -117,7 +117,7 @@ int nvgpu_init_soc_vars(struct gk20a *g);
 /**
  * @brief OS specific implementation to provide precise microsecond delay
  *
- * @param usecs[in]		Delay in microseconds.
+ * @param usecs [in]		Delay in microseconds.
  *
  * - Wait using nanospin_ns until usecs expires. Log error if API returns non
  *   zero value once wait time expires.

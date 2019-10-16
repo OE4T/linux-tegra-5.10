@@ -37,9 +37,9 @@ struct nvgpu_gr_ctx;
 /**
  * @brief Allocate and setup object context s/w image for GPU channel.
  *
- * @param c[in]			Pointer to GPU channel.
- * @param class_num[in]		GPU class ID.
- * @param flags[in]		Flags for context allocation.
+ * @param c [in]		Pointer to GPU channel.
+ * @param class_num [in]	GPU class ID.
+ * @param flags [in]		Flags for context allocation.
  *
  * This function allocates and sets up object context for a GPU channel.
  * The steps include:
@@ -65,9 +65,9 @@ int nvgpu_gr_setup_alloc_obj_ctx(struct nvgpu_channel *c, u32 class_num,
 /**
  * @brief Free GR engine context image.
  *
- * @param g[in]			Pointer to GPU driver struct.
- * @param vm[in]		Pointer to virtual memory.
- * @param gr_ctx[in]		Pointer to GR engine context image.
+ * @param g [in]		Pointer to GPU driver struct.
+ * @param vm [in]		Pointer to virtual memory.
+ * @param gr_ctx [in]		Pointer to GR engine context image.
  *
  * This function will free memory allocated for patch context image and
  * GR engine context image in #nvgpu_gr_setup_alloc_obj_ctx().
@@ -78,7 +78,7 @@ void nvgpu_gr_setup_free_gr_ctx(struct gk20a *g,
 /**
  * @brief Free GR engine subcontext.
  *
- * @param c[in]			Pointer to GPU channel.
+ * @param c [in]		Pointer to GPU channel.
  *
  * This function will free memory allocated for GR engine subcontext
  * image in #nvgpu_gr_setup_alloc_obj_ctx().
@@ -88,9 +88,9 @@ void nvgpu_gr_setup_free_subctx(struct nvgpu_channel *c);
 /**
  * @brief Setup preemption mode in GR engine context image.
  *
- * @param ch[in]			Pointer to GPU channel.
- * @param graphics_preempt_mode[in]	Requested graphics preemption mode.
- * @param compute_preempt_mode[in]	Requested compute preemption mode.
+ * @param ch [in]			Pointer to GPU channel.
+ * @param graphics_preempt_mode [in]	Requested graphics preemption mode.
+ * @param compute_preempt_mode [in]	Requested compute preemption mode.
  *
  * This function will program newly requested preemption modes into
  * GR engine context image. This function is typically needed if user

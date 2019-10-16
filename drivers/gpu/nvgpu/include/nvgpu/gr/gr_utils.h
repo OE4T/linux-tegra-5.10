@@ -52,8 +52,8 @@ struct nvgpu_gr_global_ctx_buffer_desc;
 /**
  * @brief Compute checksum.
  *
- * @param a[in]		First unsigned integer.
- * @param b[in]		Second unsigned integer.
+ * @param a [in]	First unsigned integer.
+ * @param b [in]	Second unsigned integer.
  *
  * This function will calculate checksum of two unsigned integers and
  * return the result. This function is typically needed to calculate
@@ -66,7 +66,7 @@ u32 nvgpu_gr_checksum_u32(u32 a, u32 b);
 /**
  * @brief Get GR falcon data struct pointer.
  *
- * @param g[in]			Pointer to GPU driver struct.
+ * @param g [in]		Pointer to GPU driver struct.
  *
  * This function returns pointer to #nvgpu_gr_falcon structure.
  *
@@ -77,7 +77,7 @@ struct nvgpu_gr_falcon *nvgpu_gr_get_falcon_ptr(struct gk20a *g);
 /**
  * @brief Get GR configuration struct pointer.
  *
- * @param g[in]			Pointer to GPU driver struct.
+ * @param g [in]		Pointer to GPU driver struct.
  *
  * This function returns pointer to #nvgpu_gr_config structure.
  *
@@ -88,7 +88,7 @@ struct nvgpu_gr_config *nvgpu_gr_get_config_ptr(struct gk20a *g);
 /**
  * @brief Get GR interrupt data struct pointer.
  *
- * @param g[in]			Pointer to GPU driver struct.
+ * @param g [in]		Pointer to GPU driver struct.
  *
  * This function returns pointer to #nvgpu_gr_intr structure.
  *

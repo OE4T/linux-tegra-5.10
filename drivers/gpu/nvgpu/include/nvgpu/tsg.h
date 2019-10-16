@@ -199,8 +199,8 @@ int nvgpu_tsg_open_common(struct gk20a *g, struct nvgpu_tsg *tsg, pid_t pid);
 /**
  * @brief Open and initialize unused TSG
  *
- * @param g[in]			The GPU driver struct.
- * @param pid[in]		The PID of the process.
+ * @param g [in]		The GPU driver struct.
+ * @param pid [in]		The PID of the process.
  *
  * - Acquire unused TSG.
  * - Set s/w context of the acquired TSG.
@@ -216,8 +216,8 @@ struct nvgpu_tsg *nvgpu_tsg_open(struct gk20a *g, pid_t pid);
 /**
  * @brief Clean up resources used by tsg. This is needed for releasing TSG.
  *
- * @param g[in]			The GPU driver struct.
- * @param tsg[in]		Pointer to TSG struct.
+ * @param g [in]		The GPU driver struct.
+ * @param tsg [in]		Pointer to TSG struct.
  *
  * - Call non-NULL HAL to release tsg. This HAL is non-NULL for vgpu only.
  * - Call nvgpu_free_gr_ctx_struct to free #nvgpu_tsg.gr_ctx.
@@ -232,7 +232,7 @@ void nvgpu_tsg_release_common(struct gk20a *g, struct nvgpu_tsg *tsg);
 /**
  * @brief Release TSG to the pool of free TSGs.
  *
- * @param ref[in]	Pointer to #nvgpu_tsg.refcount.
+ * @param ref [in]	Pointer to #nvgpu_tsg.refcount.
  *
  * - Get pointer to the #nvgpu_tsg using #ref.
  * - Call HAL to free #nvgpu_tsg.gr_ctx if this memory pointer is non-NULL
@@ -251,7 +251,7 @@ void nvgpu_tsg_release(struct nvgpu_ref *ref);
 /**
  * @brief Initialize s/w context for TSGs.
  *
- * @param g[in]			The GPU driver struct.
+ * @param g [in]		The GPU driver struct.
  *
  * Initialize s/w context for TSGs:
  * - Allocate zero initialized kernel memory area for #nvgpu_fifo.num_channels
@@ -269,7 +269,7 @@ int nvgpu_tsg_setup_sw(struct gk20a *g);
 /**
  * @brief De-initialize s/w context for TSGs.
  *
- * @param g[in]			The GPU driver struct.
+ * @param g [in]		The GPU driver struct.
  *
  * De-initialize s/w context for TSGs:
  * - Destroy s/w context for all tsgid starting from 0 to
@@ -282,7 +282,7 @@ void nvgpu_tsg_cleanup_sw(struct gk20a *g);
 /**
  * @brief Get pointer to #nvgpu_tsg for the tsgid of the given Channel.
  *
- * @param ch[in]		Pointer to Channel struct.
+ * @param ch [in]		Pointer to Channel struct.
  *
  * Validate tsgid of the given channel. If tsgid is not equal to
  * #NVGPU_INVALID_TSG_ID, get pointer to area of memory, reserved for s/w
@@ -297,7 +297,7 @@ struct nvgpu_tsg *nvgpu_tsg_from_ch(struct nvgpu_channel *ch);
 /**
  * @brief Disable all the channels bound to a TSG.
  *
- * @param tsg[in]		Pointer to TSG struct.
+ * @param tsg [in]		Pointer to TSG struct.
  *
  * Disable all the channels bound to a TSG so that h/w scheduler does not
  * schedule these channels.
@@ -307,8 +307,8 @@ void nvgpu_tsg_disable(struct nvgpu_tsg *tsg);
 /**
  * @brief Bind a channel to the TSG.
  *
- * @param tsg[in]		Pointer to TSG struct.
- * @param ch[in]		Pointer to Channel struct.
+ * @param tsg [in]		Pointer to TSG struct.
+ * @param ch [in]		Pointer to Channel struct.
  *
  * - Make sure channel is not already bound to a TSG.
  * - Make sure channel is not part of any runlists.
@@ -337,8 +337,8 @@ int nvgpu_tsg_bind_channel(struct nvgpu_tsg *tsg,
 /**
  * @brief Get pointer to #nvgpu_tsg for the tsgid.
  *
- * @param g[in]			The GPU driver struct.
- * @param tsgid[in]		Id of the TSG.
+ * @param g [in]		The GPU driver struct.
+ * @param tsgid [in]		Id of the TSG.
  *
  * Get pointer to area of memory, reserved for s/w context of TSG
  * and indexed by tsgid.
@@ -350,8 +350,8 @@ struct nvgpu_tsg *nvgpu_tsg_get_from_id(struct gk20a *g, u32 tsgid);
 /**
  * @brief Validate tsgid and get pointer to #nvgpu_tsg for this tsgid.
  *
- * @param g[in]			The GPU driver struct.
- * @param tsgid[in]		Id of the TSG.
+ * @param g [in]		The GPU driver struct.
+ * @param tsgid [in]		Id of the TSG.
  *
  * If tsgid is not equal to #NVGPU_INVALID_TSG_ID, get pointer to area of
  * memory, reserved for s/w context of TSG and indexed by tsgid.
@@ -364,8 +364,8 @@ struct nvgpu_tsg *nvgpu_tsg_check_and_get_from_id(struct gk20a *g, u32 tsgid);
 /**
  * @brief Unbind a channel from the TSG it is bound to.
  *
- * @param tsg[in]			Pointer to TSG struct.
- * @param ch[in]			Pointer to Channel struct.
+ * @param tsg [in]			Pointer to TSG struct.
+ * @param ch [in]			Pointer to Channel struct.
  *
  * Unbind channel from TSG:
  *  - Check if channel being unbound has become unserviceable.
@@ -400,8 +400,8 @@ int nvgpu_tsg_unbind_channel(struct nvgpu_tsg *tsg, struct nvgpu_channel *ch);
 /**
  * @brief Check h/w channel status before unbinding Channel.
  *
- * @param tsg[in]		Pointer to TSG struct.
- * @param ch[in]		Pointer to Channel struct.
+ * @param tsg [in]		Pointer to TSG struct.
+ * @param ch [in]		Pointer to Channel struct.
  *
  * - Call HAL to read chip specific h/w channel status register into hw_state
  *   local variable.
@@ -425,9 +425,9 @@ int nvgpu_tsg_unbind_channel_check_hw_state(struct nvgpu_tsg *tsg,
  * @brief Find another channel in the TSG and force ctx reload if
  *        h/w channel status of the channel is set to ctx_reload.
  *
- * @param tsg[in]		Pointer to TSG struct.
- * @param ch[in]		Pointer to Channel struct.
- * @param hw_state[in]		Pointer to nvgpu_channel_hw_state struct.
+ * @param tsg [in]		Pointer to TSG struct.
+ * @param ch [in]		Pointer to Channel struct.
+ * @param hw_state [in]		Pointer to nvgpu_channel_hw_state struct.
  *
  * Find another channel in the TSG and force ctx reload.
  *
@@ -447,8 +447,8 @@ void nvgpu_tsg_post_event_id(struct nvgpu_tsg *tsg,
 /**
  * @brief Set mmu fault error notifier for all the channels bound to a TSG.
  *
- * @param g[in]			The GPU driver struct.
- * @param tsg[in]		Pointer to TSG struct.
+ * @param g [in]		The GPU driver struct.
+ * @param tsg [in]		Pointer to TSG struct.
  *
  * Set mmu fault error notifier for all the channels bound to the TSG.
  */
@@ -458,8 +458,8 @@ void nvgpu_tsg_set_ctx_mmu_error(struct gk20a *g,
 /**
  * @brief Mark error for all the referenceable channels of tsg's channel list.
  *
- * @param g[in]			The GPU driver struct.
- * @param tsg[in]		Pointer to TSG struct.
+ * @param g [in]		The GPU driver struct.
+ * @param tsg [in]		Pointer to TSG struct.
  *
  * - Set verbose local variable to false.
  * - Acquire #nvgpu_tsg.ch_list_lock of the tsg.
@@ -490,7 +490,7 @@ int nvgpu_tsg_set_interleave(struct nvgpu_tsg *tsg, u32 level);
 /**
  * @brief Get default TSG timeslice in us as defined by nvgpu driver.
  *
- * @param g[in]			The GPU driver struct.
+ * @param g [in]		The GPU driver struct.
  *
  * Get TSG timeslice value in microseconds. This is the default timeslice
  * value in us as defined by s/w.
@@ -503,8 +503,8 @@ u32 nvgpu_tsg_default_timeslice_us(struct gk20a *g);
  * @brief Enable h/w runlist scheduler corresponding to the runlist_id
  *        of the TSG.
  *
- * @param g[in]			The GPU driver struct.
- * @param tsg[in]		Pointer to the TSG struct.
+ * @param g [in]		The GPU driver struct.
+ * @param tsg [in]		Pointer to the TSG struct.
  *
  * Enable h/w runlist scheduler for #nvgpu_tsg.runlist_id.
  */
@@ -514,8 +514,8 @@ void nvgpu_tsg_enable_sched(struct gk20a *g, struct nvgpu_tsg *tsg);
  * @brief Disable h/w runlist scheduler corresponding to the runlist_id
  *        of the TSG.
  *
- * @param g[in]			The GPU driver struct.
- * @param tsg[in]		Pointer to the TSG struct.
+ * @param g [in]		The GPU driver struct.
+ * @param tsg [in]		Pointer to the TSG struct.
  *
  * Disable h/w runlist scheduler for #nvgpu_tsg.runlist_id.
  */
@@ -524,9 +524,9 @@ void nvgpu_tsg_disable_sched(struct gk20a *g, struct nvgpu_tsg *tsg);
 /**
  * @brief Allocate zero initialized memory to store SM errors.
  *
- * @param g[in]			The GPU driver struct.
- * @param tsg[in]		Pointer to the TSG struct.
- * @param num_sm[in]		Total number of SMs supported by h/w.
+ * @param g [in]		The GPU driver struct.
+ * @param tsg [in]		Pointer to the TSG struct.
+ * @param num_sm [in]		Total number of SMs supported by h/w.
  *
  * Allocate zero initialized memory to store SM errors for all the SMs
  * supported by h/w.
@@ -571,9 +571,9 @@ gk20a_event_id_data_from_event_id_node(struct nvgpu_list_node *node)
 /**
  * @brief Set error notifier for all the channels bound to a TSG.
  *
- * @param g[in]			The GPU driver struct.
- * @param tsg[in]		Pointer to TSG struct.
- * @param error_notifier[in]	Error notifier defined by s/w.
+ * @param g [in]		The GPU driver struct.
+ * @param tsg [in]		Pointer to TSG struct.
+ * @param error_notifier [in]	Error notifier defined by s/w.
  *
  * Set error notifier for all the channels bound to the tsg.
  * See include/nvgpu/error_notifier.h.
@@ -589,9 +589,9 @@ void nvgpu_tsg_set_ctxsw_timeout_accumulated_ms(struct nvgpu_tsg *tsg, u32 ms);
 /**
  * @brief Abort all the channels bound to the TSG.
  *
- * @param g[in]			The GPU driver struct.
- * @param tsg[in]		Pointer to TSG struct.
- * @param preempt[in]		Flag to ask for preempting TSG.
+ * @param g [in]		The GPU driver struct.
+ * @param tsg [in]		Pointer to TSG struct.
+ * @param preempt [in]		Flag to ask for preempting TSG.
  *
  * - Disable all the channels bound to the #tsg so that h/w does not schedule
  *   them.
@@ -608,10 +608,10 @@ void nvgpu_tsg_abort(struct gk20a *g, struct nvgpu_tsg *tsg, bool preempt);
  * @brief Clear h/w bits PBDMA_FAULTED and ENG_FAULTED in CCSR channel h/w
  *        register for all the channels bound to the TSG.
  *
- * @param g[in]			The GPU driver struct.
- * @param tsg[in]		Pointer to TSG struct.
- * @param eng[in]		Flag to ask for clearing ENG_FAULTED h/w bit.
- * @param pbdma[in]		Flag to ask for clearing PBDMA_FAULTED h/w bit.
+ * @param g [in]		The GPU driver struct.
+ * @param tsg [in]		Pointer to TSG struct.
+ * @param eng [in]		Flag to ask for clearing ENG_FAULTED h/w bit.
+ * @param pbdma [in]		Flag to ask for clearing PBDMA_FAULTED h/w bit.
  *
  * If chip supports the h/w bits PBDMA_FAULTED and ENG_FAULTED and tsg
  * is non-NULL, clear PBDMA_FAULTED bit in CCSR channel h/w register if #pbdma

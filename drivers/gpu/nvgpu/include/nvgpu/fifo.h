@@ -401,7 +401,7 @@ struct nvgpu_fifo {
 /**
  * @brief Initialize FIFO software context.
  *
- * @param g[in]		The GPU driver struct.
+ * @param g [in]	The GPU driver struct.
  *
  * Calls function to do setup_sw. Refer #nvgpu_fifo_setup_sw.
  * If setup_sw was successful, call function to do setup_hw. This is to take
@@ -415,7 +415,7 @@ int nvgpu_fifo_init_support(struct gk20a *g);
 /**
  * @brief Initialize FIFO software context and mark it ready to be used.
  *
- * @param g[in]		The GPU driver struct.
+ * @param g [in]	The GPU driver struct.
  *
  * Return if #nvgpu_fifo.sw_ready is set to true i.e. s/w set up is already
  * done.
@@ -430,7 +430,7 @@ int nvgpu_fifo_setup_sw(struct gk20a *g);
 /**
  * @brief Initialize FIFO software context.
  *
- * @param g[in]		The GPU driver struct.
+ * @param g [in]	The GPU driver struct.
  *
  * Init mutexes needed by FIFO module. Refer #nvgpu_fifo struct.
  * Do #nvgpu_channel_setup_sw.
@@ -450,7 +450,7 @@ int nvgpu_fifo_setup_sw_common(struct gk20a *g);
 /**
  * @brief Clean up FIFO software context.
  *
- * @param g[in]		The GPU driver struct.
+ * @param g [in]	The GPU driver struct.
  *
  * Deinit Channel worker thread.
  * Calls #nvgpu_fifo_cleanup_sw_common.
@@ -460,7 +460,7 @@ void nvgpu_fifo_cleanup_sw(struct gk20a *g);
 /**
  * @brief Clean up FIFO software context and related resources.
  *
- * @param g[in]		The GPU driver struct.
+ * @param g [in]	The GPU driver struct.
  *
  * Do userd.cleanup_sw.
  * Do #nvgpu_channel_cleanup_sw.
@@ -475,7 +475,7 @@ void nvgpu_fifo_cleanup_sw_common(struct gk20a *g);
 /**
  * @brief Decode PBDMA channel status and Engine status read from h/w register.
  *
- * @param index[in]	Status value used to index into the constant array of
+ * @param index [in]	Status value used to index into the constant array of
  *			constant characters.
  *
  * Decode PBDMA channel status and Engine status value read from h/w
@@ -486,7 +486,7 @@ const char *nvgpu_fifo_decode_pbdma_ch_eng_status(u32 index);
 /**
  * @brief Suspend FIFO support while preparing GPU for poweroff.
  *
- * @param g[in]		The GPU driver struct.
+ * @param g [in]	The GPU driver struct.
  *
  * Suspending FIFO will disable BAR1 snooping (if supported by h/w) and also
  * FIFO interrupts.
@@ -497,7 +497,7 @@ int nvgpu_fifo_suspend(struct gk20a *g);
 /**
  * @brief Emergency quiescing of FIFO.
  *
- * @param g[in]		The GPU driver struct.
+ * @param g [in]	The GPU driver struct.
  *
  * Gracefully put FIFO into a non-functioning state to ensure that no corrupted
  * work is completed because of the fault. This is because the freedom

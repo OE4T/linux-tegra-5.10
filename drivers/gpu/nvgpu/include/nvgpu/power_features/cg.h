@@ -147,7 +147,7 @@ struct nvgpu_fifo;
 /**
  * @brief Load register configuration for ELCG and BLCG for GR related modules.
  *
- * @param g[in] The GPU driver struct.
+ * @param g [in] The GPU driver struct.
  *
  * Checks the platform software capabilities slcg_enabled and blcg_enabled and
  * programs registers for configuring production gating values for ELCG & BLCG.
@@ -159,7 +159,7 @@ void nvgpu_cg_init_gr_load_gating_prod(struct gk20a *g);
 /**
  * @brief Enable ELCG for engines without waiting for GR init to complete.
  *
- * @param g[in] The GPU driver struct.
+ * @param g [in] The GPU driver struct.
  *
  * Checks the platform software capability elcg_enabled and programs the
  * engine gate_ctrl registers with ELCG_AUTO mode configuration.
@@ -169,7 +169,7 @@ void nvgpu_cg_elcg_enable_no_wait(struct gk20a *g);
 /**
  * @brief Disable ELCG for engines without waiting for GR init to complete.
  *
- * @param g[in] The GPU driver struct.
+ * @param g [in] The GPU driver struct.
  *
  * Checks the platform software capability elcg_enabled and programs the
  * engine gate_ctrl registers with ELCG_RUN mode configuration.
@@ -179,7 +179,7 @@ void nvgpu_cg_elcg_disable_no_wait(struct gk20a *g);
 /**
  * @brief Load register configuration for BLCG for FB and LTC.
  *
- * @param g[in] The GPU driver struct.
+ * @param g [in] The GPU driver struct.
  *
  * Checks the platform software capability blcg_enabled and programs registers
  * for configuring production gating values for BLCG for FB and LTC.
@@ -189,7 +189,7 @@ void nvgpu_cg_blcg_fb_ltc_load_enable(struct gk20a *g);
 /**
  * @brief Load register configuration for BLCG for FIFO.
  *
- * @param g[in] The GPU driver struct.
+ * @param g [in] The GPU driver struct.
  *
  * Checks the platform software capability blcg_enabled and programs registers
  * for configuring production gating values for BLCG for FIFO.
@@ -199,7 +199,7 @@ void nvgpu_cg_blcg_fifo_load_enable(struct gk20a *g);
 /**
  * @brief Load register configuration for BLCG for PMU.
  *
- * @param g[in] The GPU driver struct.
+ * @param g [in] The GPU driver struct.
  *
  * Checks the platform software capability blcg_enabled and programs registers
  * for configuring production gating values for BLCG for PMU.
@@ -209,7 +209,7 @@ void nvgpu_cg_blcg_pmu_load_enable(struct gk20a *g);
 /**
  * @brief Load register configuration for BLCG for CE.
  *
- * @param g[in] The GPU driver struct.
+ * @param g [in] The GPU driver struct.
  *
  * Checks the platform software capability blcg_enabled and programs registers
  * for configuring production gating values for BLCG for CE.
@@ -219,7 +219,7 @@ void nvgpu_cg_blcg_ce_load_enable(struct gk20a *g);
 /**
  * @brief Load register configuration for BLCG for GR.
  *
- * @param g[in] The GPU driver struct.
+ * @param g [in] The GPU driver struct.
  *
  * Checks the platform software capability blcg_enabled and programs registers
  * for configuring production gating values for BLCG for GR.
@@ -229,7 +229,7 @@ void nvgpu_cg_blcg_gr_load_enable(struct gk20a *g);
 /**
  * @brief Load register configuration for SLCG for FB and LTC.
  *
- * @param g[in] The GPU driver struct.
+ * @param g [in] The GPU driver struct.
  *
  * Checks the platform software capability slcg_enabled and programs registers
  * for configuring production gating values for SLCG for FB and LTC.
@@ -239,7 +239,7 @@ void nvgpu_cg_slcg_fb_ltc_load_enable(struct gk20a *g);
 /**
  * @brief Load register configuration for SLCG for PRIV RING.
  *
- * @param g[in] The GPU driver struct.
+ * @param g [in] The GPU driver struct.
  *
  * Checks the platform software capability slcg_enabled and programs registers
  * for configuring production gating values for SLCG for PRIV RING.
@@ -249,7 +249,7 @@ void nvgpu_cg_slcg_priring_load_enable(struct gk20a *g);
 /**
  * @brief Load register configuration for SLCG for FIFO.
  *
- * @param g[in] The GPU driver struct.
+ * @param g [in] The GPU driver struct.
  *
  * Checks the platform software capability slcg_enabled and programs registers
  * for configuring production gating values for SLCG for FIFO.
@@ -259,7 +259,7 @@ void nvgpu_cg_slcg_fifo_load_enable(struct gk20a *g);
 /**
  * @brief Load register configuration for SLCG for PMU.
  *
- * @param g[in] The GPU driver struct.
+ * @param g [in] The GPU driver struct.
  *
  * Checks the platform software capability slcg_enabled and programs registers
  * for configuring production gating values for SLCG for PMU.
@@ -269,7 +269,7 @@ void nvgpu_cg_slcg_pmu_load_enable(struct gk20a *g);
 /**
  * @brief Load register configuration for SLCG for CE2.
  *
- * @param g[in] The GPU driver struct.
+ * @param g [in] The GPU driver struct.
  *
  * Checks the platform software capability slcg_enabled and programs registers
  * for configuring production gating values for SLCG for CE2.

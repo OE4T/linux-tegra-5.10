@@ -109,7 +109,7 @@ struct nvgpu_pbdma_status_info {
 /**
  * @brief Check if chsw_status is set to switch.
  *
- * @param pbdma_status[in]	Pointer to struct containing pbdma_status h/w
+ * @param pbdma_status [in]	Pointer to struct containing pbdma_status h/w
  * 				reg/field value.
  *
  * @return Interprets #pbdma_status and returns true if channel
@@ -120,7 +120,7 @@ bool nvgpu_pbdma_status_is_chsw_switch(struct nvgpu_pbdma_status_info
 /**
  * @brief Check if chsw_status is set to load.
  *
- * @param pbdma_status[in]	Pointer to struct containing pbdma_status h/w
+ * @param pbdma_status [in]	Pointer to struct containing pbdma_status h/w
  * 				reg/field value.
  *
  * @return Interprets #pbdma_status and returns true if channel
@@ -131,7 +131,7 @@ bool nvgpu_pbdma_status_is_chsw_load(struct nvgpu_pbdma_status_info
 /**
  * @brief Check if chsw_status is set to save.
  *
- * @param pbdma_status[in]	Pointer to struct containing pbdma_status h/w
+ * @param pbdma_status [in]	Pointer to struct containing pbdma_status h/w
  * 				reg/field value.
  *
  * @return Interprets #pbdma_status and returns true if channel
@@ -142,7 +142,7 @@ bool nvgpu_pbdma_status_is_chsw_save(struct nvgpu_pbdma_status_info
 /**
  * @brief Check if chsw_status is set to valid.
  *
- * @param pbdma_status[in]	Pointer to struct containing pbdma_status h/w
+ * @param pbdma_status [in]	Pointer to struct containing pbdma_status h/w
  * 				reg/field value.
  *
  * @return Interprets #pbdma_status and returns true if channel
@@ -153,7 +153,7 @@ bool nvgpu_pbdma_status_is_chsw_valid(struct nvgpu_pbdma_status_info
 /**
  * @brief Check if id_type is tsg.
  *
- * @param pbdma_status[in]	Pointer to struct containing pbdma_status h/w
+ * @param pbdma_status [in]	Pointer to struct containing pbdma_status h/w
  * 				reg/field value.
  *
  * @return Interprets #pbdma_status and returns true if id_type
@@ -164,7 +164,7 @@ bool nvgpu_pbdma_status_is_id_type_tsg(struct nvgpu_pbdma_status_info
 /**
  * @brief Check if next_id_type is tsg.
  *
- * @param pbdma_status[in]	Pointer to struct containing pbdma_status h/w
+ * @param pbdma_status [in]	Pointer to struct containing pbdma_status h/w
  * 				reg/field value.
  *
  * @return Interprets #pbdma_status and returns true if next_id_type

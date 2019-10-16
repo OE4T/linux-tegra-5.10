@@ -121,7 +121,7 @@ struct nvgpu_gr_config;
 /**
  * @brief Allocate memory for GR struct.
  *
- * @param g[in]		Pointer to GPU driver struct.
+ * @param g [in]	Pointer to GPU driver struct.
  *
  * This function allocates memory for GR struct (i.e. struct nvgpu_gr).
  *
@@ -133,7 +133,7 @@ int nvgpu_gr_alloc(struct gk20a *g);
 /**
  * @brief Free GR struct.
  *
- * @param g[in]		Pointer to GPU driver struct.
+ * @param g [in]	Pointer to GPU driver struct.
  *
  * This function ensures that memory allocated for GR struct is released
  * during deinitialization.
@@ -143,7 +143,7 @@ void nvgpu_gr_free(struct gk20a *g);
 /**
  * @brief Initialize GR struct fields
  *
- * @param g[in]		Pointer to GPU driver struct.
+ * @param g [in]	Pointer to GPU driver struct.
  *
  * Calling this function ensures that various GR struct fields are
  * initialized before they are referenced by other units or before
@@ -154,7 +154,7 @@ void nvgpu_gr_init(struct gk20a *g);
 /**
  * @brief Initialize the s/w required to enable h/w.
  *
- * @param g[in]		Pointer to GPU driver struct.
+ * @param g [in]	Pointer to GPU driver struct.
  *
  * This function executes only a subset of s/w initialization sequence
  * that is required to enable GR engine h/w in #nvgpu_gr_enable_hw().
@@ -174,7 +174,7 @@ int nvgpu_gr_prepare_sw(struct gk20a *g);
 /**
  * @brief Enable GR engine h/w.
  *
- * @param g[in]		Pointer to GPU driver struct.
+ * @param g [in]	Pointer to GPU driver struct.
  *
  * This function enables GR engine h/w. This includes:
  * - Resetting GR engine in MC.
@@ -195,7 +195,7 @@ int nvgpu_gr_enable_hw(struct gk20a *g);
 /**
  * @brief Initialize GR engine support.
  *
- * @param g[in]		Pointer to GPU driver struct.
+ * @param g [in]	Pointer to GPU driver struct.
  *
  * This function initializes all the GR engine support and
  * functionality. This includes:
@@ -224,7 +224,7 @@ int nvgpu_gr_init_support(struct gk20a *g);
 /**
  * @brief Wait for GR engine to be initialized
  *
- * @param g[in]		Pointer to GPU driver struct.
+ * @param g [in]	Pointer to GPU driver struct.
  *
  * Calling this function ensures that GR engine initialization i.e.
  * nvgpu_gr_init_support() function call is complete.
@@ -234,8 +234,8 @@ void nvgpu_gr_wait_initialized(struct gk20a *g);
 /**
  * @brief Set GR s/w ready status.
  *
- * @param g[in]		Pointer to GPU driver struct.
- * @param enable[in]	Boolean flag.
+ * @param g [in]	Pointer to GPU driver struct.
+ * @param enable [in]	Boolean flag.
  *
  * This function sets/unsets GR s/w ready status in struct nvgpu_gr.
  * Setting of flag is typically needed during initialization of GR s/w.
@@ -246,7 +246,7 @@ void nvgpu_gr_sw_ready(struct gk20a *g, bool enable);
 /**
  * @brief Get number of SMs in GR engine.
  *
- * @param g[in]		Pointer to GPU driver struct.
+ * @param g [in]	Pointer to GPU driver struct.
  *
  * This function returns number of SMs available in GR engine.
  * Note that this count is initialized only after GR engine is
@@ -259,7 +259,7 @@ u32 nvgpu_gr_get_no_of_sm(struct gk20a *g);
 /**
  * @brief Suspend GR engine.
  *
- * @param g[in]		Pointer to GPU driver struct.
+ * @param g [in]	Pointer to GPU driver struct.
  *
  * This function is typically called while preparing for GPU power off.
  * This function makes sure that GR engine is idle before power off.
@@ -273,7 +273,7 @@ int nvgpu_gr_suspend(struct gk20a *g);
 /**
  * @brief Remove GR engine s/w support.
  *
- * @param g[in]		Pointer to GPU driver struct.
+ * @param g [in]	Pointer to GPU driver struct.
  *
  * This is typically called while removing entire GPU driver.
  * This function will ensure that all memory and other system resources
@@ -284,8 +284,8 @@ void nvgpu_gr_remove_support(struct gk20a *g);
 /**
  * @brief Get base register offset of a given GPC.
  *
- * @param g[in]		Pointer to GPU driver struct.
- * @param gpc[in]	GPC index.
+ * @param g [in]	Pointer to GPU driver struct.
+ * @param gpc [in]	GPC index.
  *
  * This function calculates and returns base register offset of a given
  * GPC.
@@ -297,8 +297,8 @@ u32 nvgpu_gr_gpc_offset(struct gk20a *g, u32 gpc);
 /**
  * @brief Get base register offset of a given TPC in a GPC.
  *
- * @param g[in]		Pointer to GPU driver struct.
- * @param tpc[in]	TPC index.
+ * @param g [in]	Pointer to GPU driver struct.
+ * @param tpc [in]	TPC index.
  *
  * This function calculates and returns base register offset of a given
  * TPC within a GPC.
@@ -310,8 +310,8 @@ u32 nvgpu_gr_tpc_offset(struct gk20a *g, u32 tpc);
 /**
  * @brief Get base register offset of a given SM in a GPC/TPC.
  *
- * @param g[in]		Pointer to GPU driver struct.
- * @param sm[in]	SM index.
+ * @param g [in]	Pointer to GPU driver struct.
+ * @param sm [in]	SM index.
  *
  * This function calculates and returns base register offset of a given
  * SM within a GPC/TPC pair.
