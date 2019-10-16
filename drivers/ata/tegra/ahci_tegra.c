@@ -1802,14 +1802,6 @@ static int tegra_ahci_probe(struct platform_device *pdev)
 	tegra->badblk.head = NULL;
 	spin_lock_init(&tegra->badblk.badblk_lock);
 
-	/*
-	 * AHCI only supports 34-bit memory address on Tegra210 while 40-bit
-	 * memory address on Tegra186/Tegra194. Currently the ahci platform
-	 * code does not allow to specify dma_mask but only supports options
-	 * of 32-bit or 64-bit. So set dma_mask to 32-bit for now.
-	 */
-	hpriv->flags |= AHCI_HFLAG_32BIT_ONLY;
-
 	ret = ahci_platform_init_host(pdev, hpriv, &ahci_tegra_port_info,
 							&ahci_platform_sht);
 	if (ret)
