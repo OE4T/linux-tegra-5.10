@@ -145,6 +145,7 @@ enum nvgpu_unit;
 #include <nvgpu/gops_channel.h>
 #include <nvgpu/gops_tsg.h>
 #include <nvgpu/gops_mm.h>
+#include <nvgpu/gops_therm.h>
 
 #include "hal/clk/clk_gk20a.h"
 
@@ -474,26 +475,7 @@ struct gpu_ops {
 		u32 (*data032_r)(u32 i);
 	} pramin;
 #endif
-	struct {
-		int (*init_therm_support)(struct gk20a *g);
-		int (*init_therm_setup_hw)(struct gk20a *g);
-		void (*init_elcg_mode)(struct gk20a *g, u32 mode, u32 engine);
-		void (*init_blcg_mode)(struct gk20a *g, u32 mode, u32 engine);
-		int (*elcg_init_idle_filters)(struct gk20a *g);
-#ifdef CONFIG_DEBUG_FS
-		void (*therm_debugfs_init)(struct gk20a *g);
-#endif
-		int (*get_internal_sensor_curr_temp)(struct gk20a *g, u32 *temp_f24_8);
-		void (*get_internal_sensor_limits)(s32 *max_24_8,
-							s32 *min_24_8);
-#ifdef CONFIG_NVGPU_IOCTL_NON_FUSA
-		int (*configure_therm_alert)(struct gk20a *g, s32 curr_warn_temp);
-#endif
-		void (*throttle_enable)(struct gk20a *g, u32 val);
-		u32 (*throttle_disable)(struct gk20a *g);
-		void (*idle_slowdown_enable)(struct gk20a *g, u32 val);
-		u32 (*idle_slowdown_disable)(struct gk20a *g);
-	} therm;
+	struct gops_therm therm;
 	struct {
 		int (*pmu_early_init)(struct gk20a *g);
 		int (*pmu_rtos_init)(struct gk20a *g);

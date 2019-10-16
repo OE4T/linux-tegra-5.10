@@ -611,7 +611,8 @@ therm:
   safe: yes
   owner: Seshendra G
   sources: [ common/therm/therm.c,
-             include/nvgpu/therm.h ]
+             include/nvgpu/therm.h,
+             include/nvgpu/gops_therm.h ]
 
 pmu:
   children:
