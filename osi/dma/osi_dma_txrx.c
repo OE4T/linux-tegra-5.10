@@ -712,8 +712,8 @@ void osi_hw_transmit(struct osi_dma_priv_data *osi, unsigned int chan)
 		return;
 	}
 
-	ops->update_tx_tailptr(osi->base, chan, tailptr);
 	tx_ring->cur_tx_idx = entry;
+	ops->update_tx_tailptr(osi->base, chan, tailptr);
 }
 
 /**
