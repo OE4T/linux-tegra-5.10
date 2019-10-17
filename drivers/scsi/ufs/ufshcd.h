@@ -800,6 +800,7 @@ struct ufs_hba {
 	struct blk_keyslot_manager ksm;
 #endif
 	unsigned card_enumerated:1;
+	struct mutex hotplug_lock;
 };
 
 /* Returns true if clocks can be gated. Otherwise false */
