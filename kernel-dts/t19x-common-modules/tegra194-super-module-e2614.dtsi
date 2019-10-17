@@ -33,6 +33,7 @@
 					vbat-supply = <&battery_reg>;
 					avdd-supply = <&vdd_1v8_aud2>;
 					tas2552,pdm_edge_select = <0>;
+					#sound-dai-cells = <1>;
 				};
 				e2614_tas2552_l:tas2552.9-0041@41 {
                                         compatible = "ti,tas2552";
@@ -40,6 +41,7 @@
                                         vbat-supply = <&battery_reg>;
                                         avdd-supply = <&vdd_1v8_aud2>;
 					tas2552,pdm_edge_select = <1>;
+					#sound-dai-cells = <1>;
                                 };
 			};
 			i2c@1 {
@@ -133,6 +135,7 @@
 					/* refer include/sound/rt5659.h for the values to be used */
 					realtek,jd-src = <1>; /* RT5659_JD3 */
 					realtek,dmic1-data-pin = <2>; /* RT5659_DMIC1_DATA_GPIO5 */
+					#sound-dai-cells = <1>;
 				};
 			};
 		};
@@ -198,6 +201,7 @@
 			/* refer include/sound/rt5659.h for the values to be used */
 			realtek,jd-src = <1>; /* RT5659_JD3 */
 			realtek,dmic1-data-pin = <2>; /* RT5659_DMIC1_DATA_GPIO5 */
+			#sound-dai-cells = <1>;
 		};
 	};
 
@@ -277,9 +281,10 @@
 				target = <&hdr40_snd_link_i2s>;
 				_overlay_ {
 					link-name = "rt565x-codec-sysclk-bclk1";
-					codec-dai = <&e2614_rt5658>;
-					codec-dai-name = "rt5659-aif1";
-					name-prefix = "y";
+					codec {
+						sound-dai = <&e2614_rt5658 0>;
+						prefix = "y";
+					};
 				};
 			};
 			overrides@14 {
@@ -306,6 +311,23 @@
                                         status = "okay";
                                 };
                         };
+			overrides@18 {
+                                target = <&dspk2_to_codec>;
+                                _overlay_ {
+					link-name = "dspk-playback-r",
+						    "dspk-playback-l";
+
+					codec {
+						sound-dai = <&e2614_tas2552_r 0>;
+						prefix = "d1";
+					};
+
+					codec@1 {
+						sound-dai = <&e2614_tas2552_l 0>;
+						prefix = "d2";
+					};
+				};
+			};
 		};
 
 		fragment-e2614-a00@1 {
@@ -320,9 +342,10 @@
 				target = <&hdr40_snd_link_i2s>;
 				_overlay_ {
 					link-name = "rt565x-codec-sysclk-bclk1";
-					codec-dai = <&e2614_rt5658>;
-					codec-dai-name = "rt5659-aif1";
-					name-prefix = "y";
+					codec {
+						sound-dai = <&e2614_rt5658 0>;
+						prefix = "y";
+					};
 				};
 			};
 		};
@@ -340,9 +363,10 @@
 				target = <&hdr40_snd_link_i2s>;
 				_overlay_ {
 					link-name = "rt565x-codec-sysclk-bclk1";
-					codec-dai = <&e2614_rt5658_i2c3>;
-					codec-dai-name = "rt5659-aif1";
-					name-prefix = "y";
+					codec {
+						sound-dai = <&e2614_rt5658_i2c3 0>;
+						prefix = "y";
+					};
 				};
 			};
 		};
