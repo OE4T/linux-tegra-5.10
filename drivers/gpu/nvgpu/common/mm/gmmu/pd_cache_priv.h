@@ -73,13 +73,19 @@
  * allocated by nvgpu_pd_alloc().
  */
 
-/*
+/**
  * Minimum size of a cache. The number of different caches in the nvgpu_pd_cache
- * structure is of course depending on this. The MIN_SHIFT define is the right
- * number of bits to shift to determine which list to use in the array of lists.
+ * structure is of course depending on this.
  */
 #define NVGPU_PD_CACHE_MIN		256U
+/**
+ * MIN_SHIFT is the right number of bits to shift to determine
+ * which list to use in the array of lists.
+ */
 #define NVGPU_PD_CACHE_MIN_SHIFT	9U
+/**
+ * Maximum PD cache count. This value varies depending on PAGE_SIZE.
+ */
 #if PAGE_SIZE == 4096
 #define NVGPU_PD_CACHE_COUNT		4U
 #elif PAGE_SIZE == 65536
@@ -88,43 +94,63 @@
 #error "Unsupported page size."
 #endif
 
+/**
+ * This structure describes a slab within the slab allocator.
+ */
 struct nvgpu_pd_mem_entry {
+	/**
+	 * Structure for storing the PD memory information.
+	 */
 	struct nvgpu_mem		mem;
 
-	/*
-	 * Size of the page directories (not the mem). alloc_map is a bitmap
-	 * showing which PDs have been allocated. The size of mem will always
-	 * be one page. pd_size will always be a power of 2.
+	/**
+	 * Size of the page directories (not the mem).
 	 */
 	u32				pd_size;
+	/**
+	 * alloc_map is a bitmap showing which PDs have been allocated.
+	 * The size of mem will always
+	 * be one page. pd_size will always be a power of 2.
+	 */
 	DECLARE_BITMAP(alloc_map, PAGE_SIZE / NVGPU_PD_CACHE_MIN);
+	/**
+	 * Total number of allocations in this PD.
+	 */
 	u32				allocs;
 
+	/**
+	 * This is a list node within the list. The list node will be either from
+	 * a full or partial list in #nvgpu_pd_cache.
+	 */
 	struct nvgpu_list_node		list_entry;
+	/**
+	 * This is a tree node within the node.
+	 */
 	struct nvgpu_rbtree_node	tree_entry;
 };
 
-/*
- * A cache for allocating PD memory from. This enables smaller PDs to be packed
+/**
+ * A cache for allocating PD memory. This enables smaller PDs to be packed
  * into single pages.
- *
- * This is fairly complex so see the documentation in pd_cache.c for a full
- * description of how this is organized.
  */
 struct nvgpu_pd_cache {
-	/*
-	 * Array of lists of full nvgpu_pd_mem_entries and partially full (or
-	 * empty) nvgpu_pd_mem_entries.
+	/**
+	 * Array of lists of full nvgpu_pd_mem_entries and partially full
+	 * nvgpu_pd_mem_entries.
 	 */
 	struct nvgpu_list_node		 full[NVGPU_PD_CACHE_COUNT];
+	/**
+	 * Array of lists of empty nvgpu_pd_mem_entries and partially
+	 * empty nvgpu_pd_mem_entries.
+	 */
 	struct nvgpu_list_node		 partial[NVGPU_PD_CACHE_COUNT];
 
-	/*
+	/**
 	 * Tree of all allocated struct nvgpu_mem's for fast look up.
 	 */
 	struct nvgpu_rbtree_node	*mem_tree;
 
-	/*
+	/**
 	 * All access to the cache much be locked. This protects the lists and
 	 * the rb tree.
 	 */

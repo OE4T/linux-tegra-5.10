@@ -30,36 +30,156 @@ struct vm_gk20a;
 struct nvgpu_mem;
 struct gk20a_mmu_level;
 
-/*
+/**
  * GMMU page directory. This is the kernel's tracking of a list of PDEs or PTEs
- * in the GMMU.
+ * in the GMMU. PD size here must be at least 4096 bytes, but lower tier PDs
+ * can be sub-4K aligned. Although lower PDE tables can be aligned at 256B
+ * boundaries the PDB must be 4K aligned.
  */
 struct nvgpu_gmmu_pd {
-	/*
-	 * DMA memory describing the PTEs or PDEs. @mem_offs describes the
-	 * offset of the PDE table in @mem. @cached specifies if this PD is
-	 * using pd_cache memory.
+	/**
+	 * DMA memory describing the PTEs or PDEs.
 	 */
 	struct nvgpu_mem	*mem;
+	/**
+	 * Describes the offset of the PDE table in @mem.
+	 */
 	u32			 mem_offs;
+	/**
+	 * This PD is using pd_cache memory if this flag is set to true.
+	 */
 	bool			 cached;
-	u32			 pd_size; /* In bytes. */
+	/**
+	 * PD size here must be at least 4096 bytes, but lower tier PDs can be
+	 * sub-4K aligned.
+	 */
+	u32			 pd_size;
 
-	/*
+	/**
 	 * List of pointers to the next level of page tables. Does not
 	 * need to be populated when this PD is pointing to PTEs.
 	 */
 	struct nvgpu_gmmu_pd	*entries;
+	/**
+	 * Number of entries in a PD is easy to compute from the number of bits
+	 * used to index the page directory. That is simply 2 raised to the
+	 * number of bits.
+	 */
 	u32			 num_entries;
 };
 
+/**
+ * @brief Allocates the DMA memory for a page directory.
+ *
+ * @param vm	[in]	Pointer to virtual memory structure.
+ * @param pd	[in]	Pointer to pd_cache memory structure.
+ * @param bytes	[in]	PD size.
+ *
+ * Allocates a page directory:
+ * - Allocates the DMA memory for a page directory.
+ *   This handles the necessary PD cache logistics. Since Parker and
+ *   later GPUs, some of the page  directories are smaller than a page.
+ *   Hence, packing these PDs together saves a lot of memory.
+ * - If PD is bigger than a page just do a regular DMA alloc.
+ *   #nvgpu_pd_cache_alloc_direct() does the pd cache allocation.
+ *
+ *
+ * @return 0 in case of success.
+ * -ENOMEM (< 0) in case of failure.
+ */
 int  nvgpu_pd_alloc(struct vm_gk20a *vm, struct nvgpu_gmmu_pd *pd, u32 bytes);
+
+/**
+ * @brief Free the DMA memory allocated using nvgpu_pd_alloc().
+ *
+ * @param vm	[in]	Pointer to virtual memory structure.
+ * @param pd	[in]	Pointer to pd_cache memory structure.
+ *
+ * Free the Page Directory DMA memory:
+ * - Free the DMA memory allocated using nvgpu_pd_alloc.
+ *   #nvgpu_pd_cache_free_direct() frees the pd cache.
+ *
+ * @return None
+ */
 void nvgpu_pd_free(struct vm_gk20a *vm, struct nvgpu_gmmu_pd *pd);
+
+/**
+ * @brief Initializes the pd_cache tracking stuff.
+ *
+ * @param g	[in]	The GPU.
+ *
+ * Initialize the pd_cache:
+ * - Allocates the zero initialized memory area for #nvgpu_pd_cache.
+ * - Initializes the mutexes and list nodes for pd_cache tracking stuff.
+ *
+ * @return 0 in case of success.
+ * -ENOMEM (< 0) in case of failure.
+ */
 int  nvgpu_pd_cache_init(struct gk20a *g);
+
+/**
+ * @brief Free the pd_cache tracking stuff allocated by nvgpu_pd_cache_init().
+ *
+ * @param g	[in]	The GPU.
+ *
+ * Free the pd_cache:
+ * - Reset the list nodes used for pd_cache tracking stuff.
+ * - Free the #nvgpu_pd_cache internal structure allocated
+ *   by nvgpu_pd_cache_init().
+ *
+ * @return None
+ */
 void nvgpu_pd_cache_fini(struct gk20a *g);
+
+/**
+ * @brief Compute the pd offset for GMMU programming.
+ *
+ * @param l		[in]	Structure describes the GMMU level
+ *				entry format which is used for GMMU mapping
+ *				understandable by GMMU H/W.
+ * @param pd_idx	[in]	Index into the page size table.
+ *				- Min: GMMU_PAGE_SIZE_SMALL
+ *				- Max: GMMU_PAGE_SIZE_KERNEL
+ *
+ * Compute the pd offset:
+ * - ((@pd_idx * GMMU level entry size / 4).
+ *
+ * @return valid pd offset in case of valid @pd_idx.
+ * Invalid pd offset in case of invalid/random @pd_idx.
+ */
 u32  nvgpu_pd_offset_from_index(const struct gk20a_mmu_level *l, u32 pd_idx);
+
+/**
+ * @brief Write data content into pd mem.
+ *
+ * @param g	[in]	The GPU.
+ * @param pd	[in]	Pointer to GMMU page directory structure.
+ * @param w	[in]	Word offset from the start of the pd mem.
+ * @param data	[in]	Data to write into pd mem.
+ *
+ * Write data content into pd mem:
+ * - Offset = ((start address of the pd / 4 + @w).
+ * - Write data content into offset address.
+ *
+ * @return None
+ */
 void nvgpu_pd_write(struct gk20a *g, struct nvgpu_gmmu_pd *pd,
 		    size_t w, u32 data);
+
+/**
+ * @brief Return the _physical_ address of a page directory.
+ *
+ * @param g	[in]	The GPU.
+ * @param pd	[in]	Pointer to GMMU page directory structure.
+ *
+ * Write data content into pd mem:
+ * - Return the _physical_ address of a page directory for GMMU programming.
+ * - PD base in context inst block.
+ *   #nvgpu_mem_get_addr returns the _physical_ address of pd mem.
+ *
+ * @return valid pd physical address in case of valid pd mem.
+ * Invalid pd physical address in case of invalid/random pd mem.
+ */
 u64  nvgpu_pd_gpu_addr(struct gk20a *g, struct nvgpu_gmmu_pd *pd);
 
 #endif
