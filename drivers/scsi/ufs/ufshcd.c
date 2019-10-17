@@ -7620,6 +7620,9 @@ int ufshcd_rescan(struct ufs_hba *hba)
 	int ret = 0;
 
 	if (hba->card_present) {
+		if (hba->card_enumerated)
+			return 0;
+
 		dev_info(hba->dev, "UFS card inserted\n");
 		if (atomic_read(&hba->dev->power.usage_count) != 1)
 			pm_runtime_get_sync(hba->dev);
@@ -7676,7 +7679,11 @@ int ufshcd_rescan(struct ufs_hba *hba)
 			ufshcd_clkscaling_init_sysfs(hba);
 
 		ufs_sysfs_add_nodes(hba->dev);
+		hba->card_enumerated = 1;
 	} else {
+		if (!hba->card_enumerated)
+			return 0;
+
 		ufs_sysfs_remove_nodes(hba->dev);
 		if (ufshcd_is_clkscaling_supported(hba))
 			device_remove_file(hba->dev,
@@ -7705,7 +7712,7 @@ int ufshcd_rescan(struct ufs_hba *hba)
 		hba->spm_lvl = hba->rpm_lvl;
 
 		pm_runtime_put_sync(hba->dev);
-
+		hba->card_enumerated = 0;
 		dev_info(hba->dev, "UFS card removed\n");
 	}
 
@@ -9469,6 +9476,7 @@ int ufshcd_init(struct ufs_hba *hba, void __iomem *mmio_base, unsigned int irq)
 
 	async_schedule(ufshcd_async_scan, hba);
 	ufs_sysfs_add_nodes(hba->dev);
+	hba->card_enumerated = 1;
 
 	return 0;
 

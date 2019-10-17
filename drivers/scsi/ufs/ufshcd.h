@@ -799,6 +799,7 @@ struct ufs_hba {
 	u32 crypto_cfg_register;
 	struct blk_keyslot_manager ksm;
 #endif
+	unsigned card_enumerated:1;
 };
 
 /* Returns true if clocks can be gated. Otherwise false */
