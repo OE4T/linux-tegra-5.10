@@ -257,6 +257,11 @@ static void ether_get_ethtool_stats(struct net_device *dev,
 	int i, j = 0;
 	int ret;
 
+	if (!netif_running(dev)) {
+		netdev_err(pdata->ndev, "%s: iface not up\n", __func__);
+		return;
+	}
+
 	if (pdata->hw_feat.mmc_sel == 1U) {
 		ret = osi_read_mmc(osi_core);
 		if (ret == -1) {
