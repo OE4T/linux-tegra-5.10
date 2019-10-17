@@ -25,6 +25,7 @@
 #include <unit/unit.h>
 #include <unit/io.h>
 
+#include <nvgpu/firmware.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/hal_init.h>
 #include <nvgpu/posix/io.h>
@@ -33,6 +34,8 @@
 
 #include "../falcon_utf.h"
 #include "nvgpu-falcon.h"
+
+#include  "common/acr/acr_priv.h"
 
 struct utf_falcon *utf_falcons[FALCON_ID_END];
 
@@ -870,49 +873,155 @@ static bool falcon_check_reg_group(struct gk20a *g,
 }
 
 /*
- * Invalid: Calling these interfaces on uninitialized falcon should return
- *          -EINVAL.
- * Invalid: Invoke nvgpu_falcon_bl_bootstrap with invalid parameters filled in
- *          nvgpu_falcon_bl_info struct and verify that nvgpu_falcon_bootstrap
- *          fails.
+ * Invalid: Calling bootstrap interfaces on uninitialized falcon should return
+ *	    -EINVAL.
+ * Invalid: Invoke nvgpu_falcon_hs_ucode_load_bootstrap with invalid ucode data
+ *	    and verify that call fails.
  *
- * Valid: Invoke nvgpu_falcon_bootstrap with boot_vector value and verify the
- *        expected state of Falcon registers - falcon_falcon_dmactl_r,
- *        falcon_falcon_bootvec_r, falcon_falcon_cpuctl_r
- * Valid: Invoke nvgpu_falcon_bl_bootstrap with sample parameters filled in
- *        nvgpu_falcon_bl_info struct and verify IMEM, DMEM and registers
- *        related to nvgpu_falcon_bootstrap interface.
+ * Valid: Invoke nvgpu_falcon_bootstrap with initialized falcon and verify
+ *	  that call succeeds.
+ * Valid: Invoke nvgpu_falcon_hs_ucode_load_bootstrap with initialized
+ *	  falcon with ACR firmware, verify the expected state of falcon
+ *	  registers - falcon_falcon_dmactl_r, falcon_falcon_bootvec_r,
+ *	  falcon_falcon_cpuctl_r.
  */
 int test_falcon_bootstrap(struct unit_module *m, struct gk20a *g, void *__args)
 {
-#define BL_DESC_SIZE	64
-	struct nvgpu_falcon_bl_info bl_info;
-	u32 boot_vector = 0xF000;
 	/* Define a group of expected register writes */
 	struct nvgpu_reg_access bootstrap_group[] = {
 		{ .addr = 0x0010a10c,
 			.value = falcon_falcon_dmactl_require_ctx_f(0) },
 		{ .addr = 0x0010a104,
-			.value = falcon_falcon_bootvec_vec_f(boot_vector) },
+			.value = falcon_falcon_bootvec_vec_f(0) },
 		{ .addr = 0x0010a100,
 			.value = falcon_falcon_cpuctl_startcpu_f(1) },
 	};
-	u32 i;
+	struct acr_fw_header *fw_hdr = NULL;
+	struct bin_hdr *hs_bin_hdr = NULL;
+	struct nvgpu_firmware *acr_fw;
+	u32 *ucode_header = NULL;
+	u32 boot_vector = 0xF000;
+	u32 *ucode = NULL;
+	u32 valid_size;
 	int err;
 
+	/** Invalid falcon bootstrap. */
 	err = nvgpu_falcon_bootstrap(uninit_flcn, boot_vector);
 	if (err != -EINVAL) {
 		unit_return_fail(m, "Invalid falcon bootstrap should "
 				    "fail\n");
 	}
 
-	err = nvgpu_falcon_bl_bootstrap(uninit_flcn, &bl_info);
-	if (err != -EINVAL) {
-		unit_return_fail(m, "Invalid falcon bl_bootstrap "
-				    "should fail\n");
+	/** Valid falcon bootstrap. */
+	err = nvgpu_falcon_bootstrap(gpccs_flcn, boot_vector);
+	if (err) {
+		unit_return_fail(m, "PMU falcon bootstrap failed\n");
 	}
 
-	err = nvgpu_falcon_bootstrap(pmu_flcn, boot_vector);
+	acr_fw = nvgpu_request_firmware(g, HSBIN_ACR_UCODE_IMAGE, 0);
+	if (acr_fw == NULL) {
+		unit_return_fail(m, "%s ucode get fail for %s",
+				 HSBIN_ACR_UCODE_IMAGE, g->name);
+	}
+
+	hs_bin_hdr = (struct bin_hdr *)(void *)acr_fw->data;
+	fw_hdr = (struct acr_fw_header *)(void *)(acr_fw->data +
+			hs_bin_hdr->header_offset);
+	ucode_header = (u32 *)(void *)(acr_fw->data + fw_hdr->hdr_offset);
+	ucode = (u32 *)(void *)(acr_fw->data + hs_bin_hdr->data_offset);
+
+	/** Invalid falcon hs_ucode_load_bootstrap. */
+	err = nvgpu_falcon_hs_ucode_load_bootstrap(uninit_flcn,
+						   ucode, ucode_header);
+	if (err != -EINVAL) {
+		unit_return_fail(m, "Invalid falcon bootstrap should "
+				    "fail\n");
+	}
+
+	/** Valid falcon hs_ucode_load_bootstrap with falcon reset failure. */
+	flcn_mem_scrub_fail(gpccs_flcn);
+
+	err = nvgpu_falcon_hs_ucode_load_bootstrap(gpccs_flcn,
+						   ucode, ucode_header);
+	if (err == 0) {
+		unit_return_fail(m, "ACR bootstrap should have failed "
+				    "as falcon reset is failed.\n");
+	}
+
+	flcn_mem_scrub_pass(gpccs_flcn);
+
+	/**
+	 * Valid falcon hs_ucode_load_bootstrap with invalid non-secure
+	 * code size.
+	 */
+	valid_size = ucode_header[OS_CODE_SIZE];
+
+	err = nvgpu_falcon_get_mem_size(gpccs_flcn, MEM_IMEM,
+					&ucode_header[OS_CODE_SIZE]);
+	if (err) {
+		unit_return_fail(m, "PMU falcon IMEM get size failed\n");
+	}
+
+	ucode_header[OS_CODE_SIZE] += 4;
+
+	err = nvgpu_falcon_hs_ucode_load_bootstrap(gpccs_flcn,
+						   ucode, ucode_header);
+	if (err == 0) {
+		unit_return_fail(m, "ACR bootstrap should have failed "
+				    "as non-secure code size > IMEM size.\n");
+	}
+
+	ucode_header[OS_CODE_SIZE] = valid_size;
+
+	/**
+	 * Valid falcon hs_ucode_load_bootstrap with invalid secure
+	 * code size.
+	 */
+	valid_size = ucode_header[APP_0_CODE_SIZE];
+
+	err = nvgpu_falcon_get_mem_size(gpccs_flcn, MEM_IMEM,
+					&ucode_header[APP_0_CODE_SIZE]);
+	if (err) {
+		unit_return_fail(m, "PMU falcon IMEM get size failed\n");
+	}
+
+	ucode_header[APP_0_CODE_SIZE] += 4;
+
+	err = nvgpu_falcon_hs_ucode_load_bootstrap(gpccs_flcn,
+						   ucode, ucode_header);
+	if (err == 0) {
+		unit_return_fail(m, "ACR bootstrap should have failed "
+				    "as secure code size > IMEM size.\n");
+	}
+
+	ucode_header[APP_0_CODE_SIZE] = valid_size;
+
+	/**
+	 * Valid falcon hs_ucode_load_bootstrap with invalid dmem data
+	 * size.
+	 */
+	valid_size = ucode_header[OS_DATA_SIZE];
+
+	err = nvgpu_falcon_get_mem_size(gpccs_flcn, MEM_DMEM,
+					&ucode_header[OS_DATA_SIZE]);
+	if (err) {
+		unit_return_fail(m, "PMU falcon DMEM get size failed\n");
+	}
+
+	ucode_header[OS_DATA_SIZE] += 4;
+
+	err = nvgpu_falcon_hs_ucode_load_bootstrap(gpccs_flcn,
+						   ucode, ucode_header);
+	if (err == 0) {
+		unit_return_fail(m, "ACR bootstrap should have failed "
+				    "as dmem data size > DMEM size.\n");
+	}
+
+	ucode_header[OS_DATA_SIZE] = valid_size;
+
+	/** Valid falcon hs_ucode_load_bootstrap. */
+	err = nvgpu_falcon_hs_ucode_load_bootstrap(gpccs_flcn,
+						   ucode, ucode_header);
 	if (err) {
 		unit_return_fail(m, "PMU falcon bootstrap failed\n");
 	}
@@ -920,47 +1029,6 @@ int test_falcon_bootstrap(struct unit_module *m, struct gk20a *g, void *__args)
 	if (falcon_check_reg_group(g, bootstrap_group,
 				   ARRAY_SIZE(bootstrap_group)) == false) {
 		unit_return_fail(m, "Failed checking bootstrap sequence\n");
-	}
-
-	bl_info.bl_desc = (u8 *) malloc(BL_DESC_SIZE);
-	if (!bl_info.bl_desc) {
-		unit_return_fail(m, "Failed creating BL info\n");
-	}
-
-	for (i = 0; i < BL_DESC_SIZE; i++) {
-		bl_info.bl_desc[i] = (u8)(rand() & 0xff);
-	}
-
-	bl_info.bl_desc_size = BL_DESC_SIZE;
-	bl_info.bl_src = (void *)rand_test_data;
-	bl_info.bl_size = RAND_DATA_SIZE;
-	bl_info.bl_start_tag = 0x0;
-
-	err = nvgpu_falcon_bl_bootstrap(pmu_flcn, &bl_info);
-	if (err) {
-		unit_return_fail(m, "PMU falcon bl bootstrap failed\n");
-	}
-
-	if (falcon_check_reg_group(g, bootstrap_group,
-				   ARRAY_SIZE(bootstrap_group)) == false) {
-		unit_return_fail(m, "Failed checking bootstrap sequence\n");
-	}
-
-	/* Set the bootloader source size to greater than imem size */
-	bl_info.bl_size = UTF_FALCON_IMEM_DMEM_SIZE + 1;
-	err = nvgpu_falcon_bl_bootstrap(pmu_flcn, &bl_info);
-	if (!err) {
-		unit_return_fail(m, "PMU falcon bl bootstrap passed with "
-				    "invalid bl_info\n");
-	}
-
-	/* Set the bootloader desc size to greater than dmem size */
-	bl_info.bl_size = RAND_DATA_SIZE;
-	bl_info.bl_desc_size = UTF_FALCON_IMEM_DMEM_SIZE + 1;
-	err = nvgpu_falcon_bl_bootstrap(pmu_flcn, &bl_info);
-	if (!err) {
-		unit_return_fail(m, "PMU falcon bl bootstrap passed with "
-				    "invalid bl_info\n");
 	}
 
 	return UNIT_SUCCESS;

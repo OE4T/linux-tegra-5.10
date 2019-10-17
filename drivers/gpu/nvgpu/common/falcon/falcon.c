@@ -279,19 +279,6 @@ int nvgpu_falcon_bootstrap(struct nvgpu_falcon *flcn, u32 boot_vector)
 	return flcn->g->ops.falcon.bootstrap(flcn, boot_vector);
 }
 
-int nvgpu_falcon_setup_bootstrap_config(struct nvgpu_falcon *flcn)
-{
-	if (!is_falcon_valid(flcn)) {
-		return -EINVAL;
-	}
-
-	if (flcn->flcn_engine_dep_ops.setup_bootstrap_config != NULL) {
-		flcn->flcn_engine_dep_ops.setup_bootstrap_config(flcn->g);
-	}
-
-	return 0;
-}
-
 u32 nvgpu_falcon_mailbox_read(struct nvgpu_falcon *flcn, u32 mailbox_index)
 {
 	struct gk20a *g;
@@ -336,60 +323,6 @@ exit:
 	return;
 }
 
-int nvgpu_falcon_bl_bootstrap(struct nvgpu_falcon *flcn,
-	struct nvgpu_falcon_bl_info *bl_info)
-{
-	struct gk20a *g;
-	u32 virt_addr = 0;
-	u32 imem_size;
-	u32 dst = 0;
-	int err = 0;
-
-	if (!is_falcon_valid(flcn)) {
-		return -EINVAL;
-	}
-
-	g = flcn->g;
-
-	err = nvgpu_falcon_get_mem_size(flcn, MEM_IMEM, &imem_size);
-	if (err != 0) {
-		goto exit;
-	}
-
-	if (bl_info->bl_size > imem_size) {
-		nvgpu_err(g, "bootloader size greater than IMEM size");
-		err = -EINVAL;
-		goto exit;
-	}
-
-	/*copy bootloader interface structure to dmem*/
-	err = nvgpu_falcon_copy_to_dmem(flcn, 0, (u8 *)bl_info->bl_desc,
-		bl_info->bl_desc_size, (u8)0);
-	if (err != 0) {
-		goto exit;
-	}
-
-	/* copy bootloader to TOP of IMEM */
-	dst = imem_size - bl_info->bl_size;
-
-	err = nvgpu_falcon_copy_to_imem(flcn, dst, (u8 *)(bl_info->bl_src),
-		bl_info->bl_size, (u8)0, false, bl_info->bl_start_tag);
-	if (err != 0) {
-		goto exit;
-	}
-
-	virt_addr = bl_info->bl_start_tag << 8;
-
-	err = nvgpu_falcon_bootstrap(flcn, virt_addr);
-
-exit:
-	if (err != 0) {
-		nvgpu_err(g, "falcon id-0x%x bootstrap failed", flcn->flcn_id);
-	}
-
-	return err;
-}
-
 int nvgpu_falcon_hs_ucode_load_bootstrap(struct nvgpu_falcon *flcn, u32 *ucode,
 	u32 *ucode_header)
 {
@@ -411,9 +344,8 @@ int nvgpu_falcon_hs_ucode_load_bootstrap(struct nvgpu_falcon *flcn, u32 *ucode,
 	}
 
 	/* setup falcon apertures, boot-config */
-	err = nvgpu_falcon_setup_bootstrap_config(flcn);
-	if (err != 0) {
-		goto exit;
+	if (flcn->flcn_engine_dep_ops.setup_bootstrap_config != NULL) {
+		flcn->flcn_engine_dep_ops.setup_bootstrap_config(flcn->g);
 	}
 
 	/* Copy Non Secure IMEM code */

@@ -219,11 +219,12 @@ nvgpu_dma_unmap_free
 nvgpu_engine_get_fast_ce_runlist_id
 nvgpu_engine_get_gr_runlist_id
 nvgpu_get
-nvgpu_falcon_bl_bootstrap
+nvgpu_falcon_hs_ucode_load_bootstrap
 nvgpu_falcon_bootstrap
 nvgpu_falcon_copy_to_dmem
 nvgpu_falcon_copy_to_imem
 nvgpu_falcon_get_instance
+nvgpu_falcon_get_mem_size
 nvgpu_falcon_mailbox_read
 nvgpu_falcon_mailbox_write
 nvgpu_falcon_mem_scrub_wait
@@ -351,6 +352,7 @@ nvgpu_rbtree_search
 nvgpu_rbtree_unlink
 nvgpu_readl
 nvgpu_readl_impl
+nvgpu_request_firmware
 nvgpu_runlist_construct_locked
 nvgpu_rwsem_init
 nvgpu_timeout_init

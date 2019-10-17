@@ -282,7 +282,7 @@ int test_falcon_mailbox(struct unit_module *m, struct gk20a *g, void *__args);
 /**
  * Test specification for: test_falcon_bootstrap
  *
- * Description: The falcon unit shall configure the bootloader parameters into
+ * Description: The falcon unit shall configure the bootstrap parameters into
  * falcon memory and registers.
  *
  * Test Type: Feature based
@@ -290,18 +290,33 @@ int test_falcon_mailbox(struct unit_module *m, struct gk20a *g, void *__args);
  * Input: None.
  *
  * Steps:
- * - Invoke nvgpu_falcon_bootstrap and nvgpu_falcon_bl_bootstrap with
- *   uninitialized falcon struct.
- *   - Verify that calls fail with -EINVAL return value in both cases.
- * - Invoke nvgpu_falcon_bootstrap with sample boot_vector value and
- *   verify the expected state of Falcon registers - falcon_dmactl_r,
- *   falcon_falcon_bootvec_r, falcon_falcon_cpuctl_r.
- * - Invoke nvgpu_falcon_bl_bootstrap with invalid parameters filled in
- *   nvgpu_falcon_bl_info struct and verify that nvgpu_falcon_bootstrap
- *   fails.
- * - Invoke nvgpu_falcon_bl_bootstrap with sample parameters filled in
- *   nvgpu_falcon_bl_info struct and verify IMEM, DMEM and registers
- *   related to nvgpu_falcon_bootstrap interface.
+ * - Invoke nvgpu_falcon_bootstrap with uninitialized falcon struct.
+ *   - Verify that call fails with -EINVAL return value.
+ * - Invoke nvgpu_falcon_bootstrap with initialized falcon struct.
+ *   - Verify that call succeeds.
+ * - Invoke nvgpu_falcon_hs_ucode_load_bootstrap with uninitialized
+ *   falcon struct.
+ *   - Verify that call fails with -EINVAL return value.
+ * - Fetch the ACR firmware from filesystem.
+ * - Invoke nvgpu_falcon_hs_ucode_load_bootstrap with initialized falcon struct.
+ *   Fail the falcon reset by failing mem scrub wait.
+ *   - Verify that bootstrap fails.
+ * - Invoke nvgpu_falcon_hs_ucode_load_bootstrap with initialized falcon struct.
+ *   Fail the imem copy for non-secure code by setting invalid size in ucode
+ *   header.
+ *   - Verify that bootstrap fails.
+ * - Invoke nvgpu_falcon_hs_ucode_load_bootstrap with initialized falcon struct.
+ *   Fail the imem copy for secure code by setting invalid size in ucode header.
+ *   - Verify that bootstrap fails.
+ * - Invoke nvgpu_falcon_hs_ucode_load_bootstrap with initialized falcon struct.
+ *   Fail the imem copy for secure code by setting invalid size in ucode header.
+ *   - Verify that bootstrap fails.
+ * - Invoke nvgpu_falcon_hs_ucode_load_bootstrap with initialized falcon struct.
+ *   Fail the dmem copy setting invalid dmem size in ucode header.
+ *   - Verify that bootstrap fails.
+ * - Invoke nvgpu_falcon_hs_ucode_load_bootstrap with initialized falcon struct.
+ *   - Verify that bootstrap succeeds and verify the expected state of registers
+ *     falcon_dmactl_r, falcon_falcon_bootvec_r, falcon_falcon_cpuctl_r.
  *
  * Output: Returns PASS if the steps above were executed successfully. FAIL
  * otherwise.
