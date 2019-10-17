@@ -205,7 +205,9 @@ struct nvgpu_falcon_engine_dependency_ops {
 
 /**
  * This struct holds the software state of the underlying falcon engine.
- * Falcon interfaces rely on this state.
+ * Falcon interfaces rely on this state. This struct is updated/used
+ * through the interfaces provided, by the common.init, common.acr
+ * and the common.pmu units.
  */
 struct nvgpu_falcon {
 	/** The GPU driver struct */
@@ -235,11 +237,19 @@ struct nvgpu_falcon {
 /**
  * @brief Reset the falcon CPU or Engine.
  *
- * @param flcn [in] The falcon
+ * @param flcn [in] The falcon.
  *
- * Does the falcon #flcn reset through CPUCTL control register if not being
- * controlled by an engine, else does engine dependent reset and completes by
- * waiting for memory scrub completion.
+ * This function is invoked to reset the falcon CPU before loading ACR uCode
+ * on the PMU falcon.
+ *
+ * Steps:
+ * - Validate that the passed in falcon struct is not NULL and is for supported
+ *   falcon. If not valid, return -EINVAL.
+ * - Do the falcon \a flcn reset through cpuctl register if not being
+ *   controlled by an engine
+ * - Else do engine dependent reset.
+ * - Wait for ther memory scrub completion using function
+ *   #nvgpu_falcon_mem_scrub_wait and return the status.
  *
  * @return 0 in case of success, < 0 in case of failure.
  * @retval -ETIMEDOUT in case the timeout expired waiting for memory scrub.
@@ -249,10 +259,21 @@ int nvgpu_falcon_reset(struct nvgpu_falcon *flcn);
 /**
  * @brief Wait for the falcon CPU to be halted.
  *
- * @param flcn [in] The falcon
- * @param timeout [in] Duration to wait for halt
+ * @param flcn [in] The falcon.
+ * @param timeout [in] Duration to wait for halt.
  *
- * Return the falcon #flcn's halt status waiting for passed timeout duration.
+ * This function is invoked after bootstrapping PMU falcon with ACR uCode to
+ * ascertain the successful boot of the ACR uCode.
+ *
+ * Steps:
+ * - Validate that the passed in falcon struct is not NULL and is for supported
+ *   falcon. If not valid, return -EINVAL.
+ * - Initialize the timer using function #nvgpu_timeout_init with passed in
+ *   duration \a timeout. Verify the timeout initialization and return error
+ *   if failed.
+ * - While the timeout is not expired, check the falcon halt status from
+ *   cpuctl register every 10us.
+ * - Return value based on timeout expiry.
  *
  * @return 0 in case of success, < 0 in case of failure.
  * @retval -ETIMEDOUT in case the timeout expired waiting for halt.
@@ -262,9 +283,18 @@ int nvgpu_falcon_wait_for_halt(struct nvgpu_falcon *flcn, unsigned int timeout);
 /**
  * @brief Wait for the falcon to be idle.
  *
- * @param flcn [in] The falcon
+ * @param flcn [in] The falcon.
  *
- * Wait for falcon #flcn's HW units to go idle.
+ * This function is invoked during PMU engine reset flow after enabling PMU.
+ *
+ * Steps:
+ * - Validate that the passed in falcon struct is not NULL and is for supported
+ *   falcon. If not valid, return -EINVAL.
+ * - Initialize the timer using function #nvgpu_timeout_init with duration of
+ *   2ms. Verify the timeout initialization and return error if failed.
+ * - While the timeout is not expired, check the falcon units' idle status
+ *   from idlestate register every 100-200us.
+ * - Return value based on timeout expiry.
  *
  * @return 0 in case of success, < 0 in case of failure.
  * @retval -ETIMEDOUT in case the timeout expired waiting for idle.
@@ -274,9 +304,18 @@ int nvgpu_falcon_wait_idle(struct nvgpu_falcon *flcn);
 /**
  * @brief Wait for the falcon memory scrub.
  *
- * @param flcn [in] The falcon
+ * @param flcn [in] The falcon.
  *
- * Wait for falcon #flcn's IMEM and DMEM scrubbing to complete.
+ * This function is invoked after resetting the falcon or PMU engine.
+ *
+ * Steps:
+ * - Validate that the passed in falcon struct is not NULL and is for supported
+ *   falcon. If not valid, return -EINVAL.
+ * - Initialize the timer using function #nvgpu_timeout_init with duration of
+ *   1ms. Verify the timeout initialization and return error if failed.
+ * - While the timeout is not expired, check the falcon memory scrubbing status
+ *   from dmactrl register every 10us.
+ * - Return value based on timeout expiry.
  *
  * @return 0 in case of success, < 0 in case of failure.
  * @retval -ETIMEDOUT in case the timeout expired waiting for scrub completion.
@@ -286,15 +325,35 @@ int nvgpu_falcon_mem_scrub_wait(struct nvgpu_falcon *flcn);
 /**
  * @brief Copy data to falcon's DMEM.
  *
- * @param flcn [in] The falcon
- * @param dst  [in] Address in the DMEM (Block and offset)
- * @param src  [in] Source data to be copied to DMEM
- * @param size [in] Size in bytes of the source data
- * @param port [in] DMEM port to be used for copy
+ * @param flcn [in] The falcon.
+ * @param dst  [in] Address in the DMEM (Block and offset). Should be aligned
+ *		    at 4-bytes.
+ *		    - Min: 0
+ *		    - Max: size of DMEM from hwcfg register - 1
+ * @param src  [in] Source data to be copied to DMEM.
+ * @param size [in] Size in bytes of the source data.
+ *		    - Min: 1
+ *		    - Max: size of DMEM from hwcfg register
+ * @param port [in] DMEM port to be used for copy.
+ *		    - Min: 0
+ *		    - Max: maximum number of DMEM ports from hwcfg register - 1
  *
- * Validates the parameters for DMEM alignment and size restrictions.
- * Copy source data #src of #size though #port at offset #dst of dmem
- * of #flcn.
+ * This function is used to copy uCode data to falcon's DMEM while bootstrapping
+ * the uCode on the falcon.
+ *
+ * Steps:
+ * - Validate that the passed in falcon struct is not NULL and is for supported
+ *   falcon. If not valid, return -EINVAL.
+ * - Validate the parameters \a dst, \a size, \a port for DMEM alignment and
+ *   size restrictions. If not valid, return -EINVAL.
+ * - Acquire DMEM copy lock.
+ * - Copy data \a src of \a size though \a port at offset \a dst of DMEM.
+ *   - Set \a dst offset and AINCW (auto increment on write) bit in DMEMC
+ *     (control) register corresponding to the port \a port.
+ *   - Write the data words from \a src to DMEMD (data) register.
+ *   - Write the remaining bytes to DMEMD register zeroing non-data bytes.
+ *   - Read the DMEMC register and verify the count of bytes written.
+ * - Release DMEM copy lock.
  *
  * @return 0 in case of success, < 0 in case of failure.
  */
@@ -304,17 +363,39 @@ int nvgpu_falcon_copy_to_dmem(struct nvgpu_falcon *flcn,
 /**
  * @brief Copy data to falcon's IMEM.
  *
- * @param flcn [in] The falcon
- * @param dst  [in] Address in the IMEM (Block and offset)
- * @param src  [in] Source data to be copied to IMEM
- * @param size [in] Size in bytes of the source data
- * @param port [in] IMEM port to be used for copy
- * @param sec  [in] Indicates if blocks are to be marked as secure
- * @param tag  [in] Tag to be set for the blocks
+ * @param flcn [in] The falcon.
+ * @param dst  [in] Address in the IMEM (Block and offset). Should be aligned
+ *		    at 4-bytes.
+ *		    - Min: 0
+ *		    - Max: size of IMEM from hwcfg register - 1
+ * @param src  [in] Source data to be copied to IMEM.
+ * @param size [in] Size in bytes of the source data.
+ *		    - Min: 1
+ *		    - Max: size of IMEM from hwcfg register
+ * @param port [in] IMEM port to be used for copy.
+ *		    - Min: 0
+ *		    - Max: maximum number of IMEM ports from hwcfg register - 1
+ * @param sec  [in] Indicates if blocks are to be marked as secure.
+ * @param tag  [in] Tag to be set for the blocks.
  *
- * Validates the parameters for IMEM alignment and size restrictions.
- * Copy source data #src of #size though #port at offset #dst of imem
- * of #flcn. Optionally set the tag and mark blocks secure.
+ * This function is used to copy uCode instructions to falcon's IMEM while
+ * bootstrapping the uCode on the falcon.
+ *
+ * Steps:
+ * - Validate that the passed in falcon struct is not NULL and is for supported
+ *   falcon. If not valid, return -EINVAL.
+ * - Validate the parameters \a dst, \a size, \a port for IMEM alignment and
+ *   size restrictions. If not valid, return -EINVAL.
+ * - Acquire IMEM copy lock.
+ * - Copy data \a src of \a size though \a port at offset \a dst of IMEM.
+ *   - Set \a dst offset and AINCW (auto increment on write) bit in IMEMC
+ *     (control) register corresponding to the port \a port. Set the secure
+ *     bit based on \a sec.
+ *   - Write the data words from \a src to IMEMD (data) register.
+ *   - Write \a tag every 256B (64 words). Increment the tag.
+ *   - Zero the remaining bytes in the last 256B block (if total size is
+ *     not multiple of 256B block) by writing zero to IMEMD register.
+ * - Release IMEM copy lock.
  *
  * @return 0 in case of success, < 0 in case of failure.
  */
@@ -324,11 +405,17 @@ int nvgpu_falcon_copy_to_imem(struct nvgpu_falcon *flcn,
 /**
  * @brief Bootstrap the falcon.
  *
- * @param flcn [in] The falcon
- * @param boot_vector [in] Address to start the falcon execution
+ * @param flcn [in] The falcon.
+ * @param boot_vector [in] Address to start the falcon execution.
  *
- * Set the boot vector address, DMA control and start the falcon CPU
- * execution.
+ * This function is called after setting up IMEM and DMEM with uCode
+ * instructions and data to start the execution.
+ *
+ * Steps:
+ * - Validate that the passed in falcon struct is not NULL and is for supported
+ *   falcon. If not valid, return -EINVAL.
+ * - Set the boot vector address, DMA control and start the falcon CPU
+ *   execution.
  *
  * @return 0 in case of success, < 0 in case of failure.
  */
@@ -337,10 +424,20 @@ int nvgpu_falcon_bootstrap(struct nvgpu_falcon *flcn, u32 boot_vector);
 /**
  * @brief Read the falcon mailbox register.
  *
- * @param flcn [in] The falcon
- * @param mailbox_index [in] Index of the mailbox register
+ * @param flcn [in] The falcon.
+ * @param mailbox_index [in] Index of the mailbox register.
+ *			     - Min: 0
+ *			     - Max: #FALCON_MAILBOX_COUNT - 1
  *
- * Reads data from mailbox register of the falcon #flcn.
+ * This function is called to know the ACR bootstrap status.
+ *
+ * Steps:
+ * - Validate that the passed in falcon struct is not NULL and is for supported
+ *   falcon. If not valid, return 0.
+ * - Validate that the passed in \a mailbox_index < #FALCON_MAILBOX_COUNT.
+ *   If not, return 0.
+ * - Read and return data from mailbox register \a mailbox_index of the falcon
+ *   \a flcn.
  *
  * @return register data in case of success, 0 in case of failure.
  */
@@ -349,11 +446,21 @@ u32 nvgpu_falcon_mailbox_read(struct nvgpu_falcon *flcn, u32 mailbox_index);
 /**
  * @brief Write the falcon mailbox register.
  *
- * @param flcn [in] The falcon
- * @param mailbox_index [in] Index of the mailbox register
- * @param data [in] Data to be written to mailbox register
+ * @param flcn [in] The falcon.
+ * @param mailbox_index [in] Index of the mailbox register.
+ *			     - Min: 0
+ *			     - Max: #FALCON_MAILBOX_COUNT - 1
+ * @param data [in] Data to be written to mailbox register.
  *
- * Writes #data to mailbox register #mailbox_index of the falcon #flcn.
+ * This function is called to update the mailbox register that will get
+ * written with the ACR bootstrap status by ACR uCode.
+ *
+ * Steps:
+ * - Validate that the passed in falcon struct is not NULL and is for supported
+ *   falcon. If not valid, return.
+ * - Validate that the passed in \a mailbox_index < #FALCON_MAILBOX_COUNT.
+ *   If not, return.
+ * - Write \a data to mailbox register \a mailbox_index of the falcon \a flcn.
  */
 void nvgpu_falcon_mailbox_write(struct nvgpu_falcon *flcn, u32 mailbox_index,
 	u32 data);
@@ -361,13 +468,25 @@ void nvgpu_falcon_mailbox_write(struct nvgpu_falcon *flcn, u32 mailbox_index,
 /**
  * @brief Bootstrap the falcon with HS ucode.
  *
- * @param flcn  [in] The falcon
- * @param ucode [in] ucode to be copied
- * @param ucode_header [in] ucode header
+ * @param flcn  [in] The falcon.
+ * @param ucode [in] ucode to be copied.
+ * @param ucode_header [in] ucode header.
  *
- * Set the virtual and physical apertures, context interface attributes &
- * instance block address. Copies HS ucode source and descriptor to IMEM
- * and DMEM and then bootstraps the falcon.
+ * This function is called during nvgpu power on to bootstrap ACR uCode by
+ * setting up IMEM and DMEM with required uCode data.
+ *
+ * Steps:
+ * - Validate that the passed in falcon struct is not NULL and is for supported
+ *   falcon. If not valid, return.
+ * - Reset the falcon with #nvgpu_falcon_reset. If failed, return the error.
+ * - Setup the virtual and physical apertures, context interface attributes &
+ *   instance block address.
+ * - Copy non-secure OS code and HS ucode source to IMEM and descriptor to DMEM.
+ *   If any errors, return the errors.
+ * - Write non-zero value to falcon mailbox register 0. This register will be
+ *   read for polling the bootstrap completion status set in this register by
+ *   ucode.
+ * - Bootstrap the falcon. If failed, return the error.
  *
  * @return 0 in case of success, < 0 in case of failure.
  */
@@ -377,12 +496,19 @@ int nvgpu_falcon_hs_ucode_load_bootstrap(struct nvgpu_falcon *flcn, u32 *ucode,
 /**
  * @brief Get the size of falcon's memory.
  *
- * @param flcn [in] The falcon
- * @param type [in] Falcon memory type (IMEM, DMEM)
- * @param size [out] Size of the falcon memory type
+ * @param flcn [in] The falcon.
+ * @param type [in] Falcon memory type (IMEM, DMEM).
+ *		    - Supported types: MEM_DMEM (0), MEM_IMEM (1)
+ * @param size [out] Size of the falcon memory type.
  *
- * Retrieves the size of the falcon memory in bytes from the HW config
- * registers in output parameter #size.
+ * This function is called to get the size of falcon's memory for validation
+ * while copying to IMEM/DMEM.
+ *
+ * Steps:
+ * - Validate that the passed in falcon struct is not NULL and is for supported
+ *   falcon. If not valid, return -EINVAL.
+ * - Read the size of the falcon memory of \a type in bytes from the HW config
+ *   register in output parameter \a size.
  *
  * @return 0 in case of success, < 0 in case of failure.
  */
@@ -392,31 +518,62 @@ int nvgpu_falcon_get_mem_size(struct nvgpu_falcon *flcn,
 /**
  * @brief Get the falcon ID.
  *
- * @param flcn [in] The falcon
+ * @param flcn [in] The falcon.
  *
- * @return the falcon ID of #flcn, flcn->flcn_id.
+ * This function is called during ACR bootstrap to get the ID of the falcon
+ * for debug purpose.
+ *
+ * Steps:
+ * - Return the falcon ID of the falcon \a flcn.
+ *
+ * @return the falcon ID of \a flcn.
  */
 u32 nvgpu_falcon_get_id(struct nvgpu_falcon *flcn);
 
 /**
  * @brief Get the reference to falcon struct in GPU driver struct.
  *
- * @param g [in] The GPU driver struct
- * @param flcn_id [id] falcon ID
+ * @param g [in] The GPU driver struct.
+ * @param flcn_id [id] falcon ID.
+ *		       - Supported IDs are:
+ *		         - #FALCON_ID_PMU
+ *		         - #FALCON_ID_GSPLITE
+ *		         - #FALCON_ID_FECS
+ *		         - #FALCON_ID_GPCCS
+ *		         - #FALCON_ID_NVDEC
+ *		         - #FALCON_ID_SEC2
+ *		         - #FALCON_ID_MINION
  *
- * @return the falcon struct of #g corresponding to #flcn_id.
+ * This function is called to get the falcon struct for validation during
+ * init/free.
+ *
+ * Steps:
+ * - For valid falcon ID \a flcn_id, return the address of falcon struct in the
+ *   struct \a g.
+ * - For invalid falcon ID, return NULL.
+ *
+ * @return the falcon struct of \a g corresponding to \a flcn_id.
  */
 struct nvgpu_falcon *nvgpu_falcon_get_instance(struct gk20a *g, u32 flcn_id);
 
 /**
  * @brief Initialize the falcon software state.
  *
- * @param g [in] The GPU driver struct
- * @param flcn_id [id] falcon ID
+ * @param g [in] The GPU driver struct.
+ * @param flcn_id [id] falcon ID. See #nvgpu_falcon_get_instance for supported
+ *		       values.
  *
- * Initializes the nvgpu_falcon structure in device structure #g based on
- * #flcn_id. Sets falcon specific HAL values and methods by calling HAL
- * functions. Initializes lock for memory copy operations.
+ * This function is called during nvgpu power on to initialize various
+ * falcons.
+ *
+ * Steps:
+ * - Validate the passed in \a flcn_id and return -ENODEV if not valid.
+ *   If valid, get the reference to the falcon struct in \a g.
+ * - Initialize the falcon struct fields with \a flcn_id and \a g.
+ * - Set falcon specific state values such as falcon base, support status,
+ *   interrupt status and engine dependent ops.
+ * - Initializes locks for memory (IMEM, DMEM, EMEM) copy operations as
+ *   applicable.
  *
  * @return 0 in case of success, < 0 in case of failure.
  */
@@ -425,11 +582,18 @@ int nvgpu_falcon_sw_init(struct gk20a *g, u32 flcn_id);
 /**
  * @brief Free the falcon software state.
  *
- * @param g [in] The GPU driver struct
- * @param flcn_id [id] falcon ID
+ * @param g [in] The GPU driver struct.
+ * @param flcn_id [id] falcon ID. See #nvgpu_falcon_get_instance for supported
+ *		       values.
  *
- * Destroys the nvgpu_falcon structure state in device structure #g based on
- * #flcn_id.
+ * This function is called during nvgpu power off to deinitialize falcons
+ * initialized during power on.
+ *
+ * Steps:
+ * - Validate the passed in \a flcn_id and return if not valid.
+ *   If valid, get the reference to the falcon struct in \a g.
+ * - Mark the falcon as not supported.
+ * - Destroy the locks created for memory copy operations.
  */
 void nvgpu_falcon_sw_free(struct gk20a *g, u32 flcn_id);
 
