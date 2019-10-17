@@ -42,6 +42,9 @@
 #define CAMRTC_HSP_FW_HASH	0x46U
 #define CAMRTC_HSP_PROTOCOL	0x47U
 
+/* bug 200395605 */
+#define CAMRTC_HSP_RESERVED	0x5EU
+
 #define CAMRTC_HSP_UNKNOWN	0x7FU
 
 /** Shared semaphore bits (FW->VM) */
