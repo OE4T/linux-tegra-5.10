@@ -2781,21 +2781,11 @@ static int ether_configure_car(struct platform_device *pdev,
 		}
 	}
 
-	ret = osi_poll_for_swr(osi_core);
-	if (ret < 0) {
-		dev_err(&pdev->dev, "failed to poll MAC Software reset\n");
-		goto err_swr;
-	}
-
 	csr_clk_rate = clk_get_rate(pdata->axi_cbb_clk);
 	osi_set_mdc_clk_rate(pdata->osi_core, csr_clk_rate);
 
 	return ret;
 
-err_swr:
-	if (pdata->mac_rst) {
-		reset_control_assert(pdata->mac_rst);
-	}
 err_rst:
 	ether_disable_clks(pdata);
 err_enable_clks:
