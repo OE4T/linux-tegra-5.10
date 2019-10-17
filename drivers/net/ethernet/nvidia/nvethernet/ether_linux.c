@@ -1319,6 +1319,32 @@ err_mac_rst:
 }
 
 /**
+ * @brief Helper function to clear the sw stats structures.
+ *
+ * Algorithm: This routine clears the following sw stats structures.
+ * 1) struct osi_mmc_counters
+ * 2) struct osi_xtra_stat_counters
+ * 3) struct osi_xtra_dma_stat_counters
+ * 4) struct osi_pkt_err_stats
+ *
+ * @param[in] pdata: Pointer to OSD private data structure.
+ *
+ * @note  This routine is invoked when interface is going down, not for suspend.
+ */
+static inline void ether_reset_stats(struct ether_priv_data *pdata)
+{
+	struct osi_core_priv_data *osi_core = pdata->osi_core;
+	struct osi_dma_priv_data *osi_dma = pdata->osi_dma;
+
+	memset(&osi_core->mmc, 0U, sizeof(struct osi_mmc_counters));
+	memset(&osi_core->xstats, 0U,
+	       sizeof(struct osi_xtra_stat_counters));
+	memset(&osi_dma->dstats, 0U,
+	       sizeof(struct osi_xtra_dma_stat_counters));
+	memset(&osi_dma->pkt_err_stats, 0U, sizeof(struct osi_pkt_err_stats));
+}
+
+/**
  * @brief Call back to handle bring down of Ethernet interface
  *
  * Algorithm: This routine takes care of below
@@ -1385,6 +1411,9 @@ static int ether_close(struct net_device *dev)
 
 	/* Disable clock */
 	ether_disable_clks(pdata);
+
+	/* Reset stats since interface is going down */
+	ether_reset_stats(pdata);
 
 	return ret;
 }
@@ -3388,11 +3417,6 @@ static int ether_probe(struct platform_device *pdev)
 
 	osi_core->mtu = ndev->mtu;
 	osi_dma->mtu = ndev->mtu;
-
-	memset(&osi_core->xstats, 0,
-	       sizeof(struct osi_xtra_stat_counters));
-	memset(&osi_dma->dstats, 0,
-	       sizeof(struct osi_xtra_dma_stat_counters));
 
 	/* Initialize core and DMA ops based on MAC type */
 	if (osi_init_core_ops(osi_core) != 0) {
