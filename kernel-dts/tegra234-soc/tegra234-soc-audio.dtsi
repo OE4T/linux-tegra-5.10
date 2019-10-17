@@ -176,6 +176,7 @@
 			#address-cells = <2>;
 			#size-cells = <2>;
 			ranges;
+			#sound-dai-cells = <1>;
 
 			tegra_admaif: admaif@290f000 {
 				compatible = "nvidia,tegra186-admaif";
@@ -197,6 +198,7 @@
 					"rx13", "tx13",	"rx14", "tx14", "rx15", "tx15",
 					"rx16", "tx16",	"rx17", "tx17", "rx18", "tx18",
 					"rx19", "tx19",	"rx20", "tx20";
+				#sound-dai-cells = <1>;
 				status = "disabled";
 			};
 
@@ -204,6 +206,7 @@
 				compatible = "nvidia,tegra210-sfc";
 				reg = <0x0 0x2902000 0x0 0x200>;
 				nvidia,ahub-sfc-id = <0>;
+				#sound-dai-cells = <1>;
 				status = "disabled";
 			};
 
@@ -211,6 +214,7 @@
 				compatible = "nvidia,tegra210-sfc";
 				reg = <0x0 0x2902200 0x0 0x200>;
 				nvidia,ahub-sfc-id = <1>;
+				#sound-dai-cells = <1>;
 				status = "disabled";
 			};
 
@@ -218,6 +222,7 @@
 				compatible = "nvidia,tegra210-sfc";
 				reg = <0x0 0x2902400 0x0 0x200>;
 				nvidia,ahub-sfc-id = <2>;
+				#sound-dai-cells = <1>;
 				status = "disabled";
 			};
 
@@ -225,6 +230,7 @@
 				compatible = "nvidia,tegra210-sfc";
 				reg = <0x0 0x2902600 0x0 0x200>;
 				nvidia,ahub-sfc-id = <3>;
+				#sound-dai-cells = <1>;
 				status = "disabled";
 			};
 
@@ -232,6 +238,7 @@
 				compatible = "nvidia,tegra210-spkprot";
 				reg = <0x0 0x2908c00 0x0 0x400>;
 				nvidia,ahub-spkprot-id = <0>;
+				#sound-dai-cells = <1>;
 				status = "disabled";
 			};
 
@@ -239,6 +246,7 @@
 				compatible = "nvidia,tegra210-amixer";
 				reg = <0x0 0x290bb00 0x0 0x800>;
 				nvidia,ahub-amixer-id = <0>;
+				#sound-dai-cells = <1>;
 				status = "disabled";
 			};
 
@@ -260,6 +268,7 @@
 					<&bpmp_clks TEGRA234_CLK_PLLA_OUT0>;
 				assigned-clock-rates = <1536000>;
 				fsync-width = <31>;
+				#sound-dai-cells = <1>;
 				status = "disabled";
 			};
 
@@ -281,6 +290,7 @@
 					<&bpmp_clks TEGRA234_CLK_PLLA_OUT0>;
 				assigned-clock-rates = <1536000>;
 				fsync-width = <31>;
+				#sound-dai-cells = <1>;
 				status = "disabled";
 			};
 
@@ -302,6 +312,7 @@
 					<&bpmp_clks TEGRA234_CLK_PLLA_OUT0>;
 				assigned-clock-rates = <1536000>;
 				fsync-width = <31>;
+				#sound-dai-cells = <1>;
 				status = "disabled";
 			};
 
@@ -323,6 +334,7 @@
 					<&bpmp_clks TEGRA234_CLK_PLLA_OUT0>;
 				assigned-clock-rates = <1536000>;
 				fsync-width = <31>;
+				#sound-dai-cells = <1>;
 				status = "disabled";
 			};
 
@@ -344,6 +356,7 @@
 					<&bpmp_clks TEGRA234_CLK_PLLA_OUT0>;
 				assigned-clock-rates = <1536000>;
 				fsync-width = <31>;
+				#sound-dai-cells = <1>;
 				status = "disabled";
 			};
 
@@ -365,6 +378,7 @@
 					<&bpmp_clks TEGRA234_CLK_PLLA_OUT0>;
 				assigned-clock-rates = <1536000>;
 				fsync-width = <31>;
+				#sound-dai-cells = <1>;
 				status = "disabled";
 			};
 
@@ -372,6 +386,7 @@
 				compatible = "nvidia,tegra194-amx";
 				reg = <0x0 0x2903000 0x0 0x100>;
 				nvidia,ahub-amx-id = <0>;
+				#sound-dai-cells = <1>;
 				status = "disabled";
 			};
 
@@ -379,6 +394,7 @@
 				compatible = "nvidia,tegra194-amx";
 				reg = <0x0 0x2903100 0x0 0x100>;
 				nvidia,ahub-amx-id = <1>;
+				#sound-dai-cells = <1>;
 				status = "disabled";
 			};
 
@@ -386,6 +402,7 @@
 				compatible = "nvidia,tegra194-amx";
 				reg = <0x0 0x2903200 0x0 0x100>;
 				nvidia,ahub-amx-id = <2>;
+				#sound-dai-cells = <1>;
 				status = "disabled";
 			};
 
@@ -393,6 +410,7 @@
 				compatible = "nvidia,tegra194-amx";
 				reg = <0x0 0x2903300 0x0 0x100>;
 				nvidia,ahub-amx-id = <3>;
+				#sound-dai-cells = <1>;
 				status = "disabled";
 			};
 
@@ -400,6 +418,7 @@
 				compatible = "nvidia,tegra210-adx";
 				reg = <0x0 0x2903800 0x0 0x100>;
 				nvidia,ahub-adx-id = <0>;
+				#sound-dai-cells = <1>;
 				status = "disabled";
 			};
 
@@ -407,6 +426,7 @@
 				compatible = "nvidia,tegra210-adx";
 				reg = <0x0 0x2903900 0x0 0x100>;
 				nvidia,ahub-adx-id = <1>;
+				#sound-dai-cells = <1>;
 				status = "disabled";
 			};
 
@@ -414,6 +434,7 @@
 				compatible = "nvidia,tegra210-adx";
 				reg = <0x0 0x2903a00 0x0 0x100>;
 				nvidia,ahub-adx-id = <2>;
+				#sound-dai-cells = <1>;
 				status = "disabled";
 			};
 
@@ -421,6 +442,7 @@
 				compatible = "nvidia,tegra210-adx";
 				reg = <0x0 0x2903b00 0x0 0x100>;
 				nvidia,ahub-adx-id = <3>;
+				#sound-dai-cells = <1>;
 				status = "disabled";
 			};
 
@@ -436,6 +458,7 @@
 				assigned-clock-parents =
 					<&bpmp_clks TEGRA234_CLK_PLLA_OUT0>;
 				assigned-clock-rates = <3072000>;
+				#sound-dai-cells = <1>;
 				status = "disabled";
 			};
 
@@ -451,6 +474,7 @@
 				assigned-clock-parents =
 					<&bpmp_clks TEGRA234_CLK_PLLA_OUT0>;
 				assigned-clock-rates = <3072000>;
+				#sound-dai-cells = <1>;
 				status = "disabled";
 			};
 
@@ -467,6 +491,7 @@
 				assigned-clock-parents =
 					<&bpmp_clks TEGRA234_CLK_PLLA_OUT0>;
 				assigned-clock-rates = <3072000>;
+				#sound-dai-cells = <1>;
 				status = "disabled";
 			};
 
@@ -482,6 +507,7 @@
 				assigned-clock-parents =
 					<&bpmp_clks TEGRA234_CLK_PLLA_OUT0>;
 				assigned-clock-rates = <3072000>;
+				#sound-dai-cells = <1>;
 				status = "disabled";
 			};
 
@@ -489,6 +515,7 @@
 				compatible = "nvidia,tegra186-afc";
 				reg = <0x0 0x2907000 0x0 0x100>;
 				nvidia,ahub-afc-id = <0>;
+				#sound-dai-cells = <1>;
 				status = "disabled";
 			};
 
@@ -496,6 +523,7 @@
 				compatible = "nvidia,tegra186-afc";
 				reg = <0x0 0x2907100 0x0 0x100>;
 				nvidia,ahub-afc-id = <1>;
+				#sound-dai-cells = <1>;
 				status = "disabled";
 			};
 
@@ -503,6 +531,7 @@
 				compatible = "nvidia,tegra186-afc";
 				reg = <0x0 0x2907200 0x0 0x100>;
 				nvidia,ahub-afc-id = <2>;
+				#sound-dai-cells = <1>;
 				status = "disabled";
 			};
 
@@ -510,6 +539,7 @@
 				compatible = "nvidia,tegra186-afc";
 				reg = <0x0 0x2907300 0x0 0x100>;
 				nvidia,ahub-afc-id = <3>;
+				#sound-dai-cells = <1>;
 				status = "disabled";
 			};
 
@@ -517,6 +547,7 @@
 				compatible = "nvidia,tegra186-afc";
 				reg = <0x0 0x2907400 0x0 0x100>;
 				nvidia,ahub-afc-id = <4>;
+				#sound-dai-cells = <1>;
 				status = "disabled";
 			};
 
@@ -524,6 +555,7 @@
 				compatible = "nvidia,tegra186-afc";
 				reg = <0x0 0x2907500 0x0 0x100>;
 				nvidia,ahub-afc-id = <5>;
+				#sound-dai-cells = <1>;
 				status = "disabled";
 			};
 
@@ -531,6 +563,7 @@
 				compatible = "nvidia,tegra210-mvc";
 				reg = <0x0 0x290a000 0x0 0x200>;
 				nvidia,ahub-mvc-id = <0>;
+				#sound-dai-cells = <1>;
 				status = "disabled";
 			};
 
@@ -538,6 +571,7 @@
 				compatible = "nvidia,tegra210-mvc";
 				reg = <0x0 0x290a200 0x0 0x200>;
 				nvidia,ahub-mvc-id = <1>;
+				#sound-dai-cells = <1>;
 				status = "disabled";
 			};
 
@@ -547,6 +581,7 @@
 				nvidia,ahub-iqc-id = <0>;
 				clocks = <&bpmp_clks TEGRA234_CLK_IQC1>;
 				clock-names = "iqc";
+				#sound-dai-cells = <1>;
 				status = "disabled";
 			};
 
@@ -554,6 +589,7 @@
 				compatible = "nvidia,tegra186-asrc";
 				reg = <0x0 0x2910000 0x0 0x2000>;
 				nvidia,ahub-asrc-id = <0>;
+				#sound-dai-cells = <1>;
 				status = "disabled";
 			};
 
@@ -561,6 +597,7 @@
 				compatible = "nvidia,tegra186-arad";
 				reg = <0x0 0x290e400 0x0 0x400>;
 				nvidia,ahub-arad-id = <0>;
+				#sound-dai-cells = <1>;
 				status = "disabled";
 			};
 
@@ -569,6 +606,7 @@
 				reg = <0x0 0x290b900 0x0 0x200>;
 				interrupt-parent = <&tegra_agic>;
 				interrupts =  <GIC_SPI INT_AHUB_ERR IRQ_TYPE_LEVEL_HIGH ROUTE_TO_HOST_INTF0>;
+				#sound-dai-cells = <1>;
 				status = "disabled";
 			};
 
@@ -578,6 +616,7 @@
 				      <0x0 0x2908100 0x0 0x100>,
 				      <0x0 0x2908200 0x0 0x200>;
 				nvidia,ahub-ope-id = <0>;
+				#sound-dai-cells = <1>;
 				status = "disabled";
 			};
 
@@ -594,6 +633,7 @@
 				assigned-clock-parents =
 					<&bpmp_clks TEGRA234_CLK_PLLA_OUT0>;
 				assigned-clock-rates = <12288000>;
+				#sound-dai-cells = <1>;
 				status = "disabled";
 			};
 
@@ -611,6 +651,7 @@
 				assigned-clock-parents =
 					<&bpmp_clks TEGRA234_CLK_PLLA_OUT0>;
 				assigned-clock-rates = <12288000>;
+				#sound-dai-cells = <1>;
 				status = "disabled";
 			};
 		};
@@ -658,6 +699,7 @@
 					ROUTE_TO_ADSP>,
 				     <GIC_SPI INT_ADMA_EOT31 IRQ_TYPE_LEVEL_HIGH
 					ROUTE_TO_ADSP>;
+			#sound-dai-cells = <1>;
 			status = "disabled";
 		};
 	};
