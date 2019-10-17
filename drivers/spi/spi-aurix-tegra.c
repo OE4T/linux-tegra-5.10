@@ -1,7 +1,7 @@
 /*
  * SPI Protocol Driver for Aurix-Tegra communication.
  *
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -274,12 +274,6 @@ static int aurix_tegra_spi_probe(struct spi_device *spi)
 		goto error;
 	}
 	spi->max_speed_hz = value;
-
-	err = of_property_read_u32(np, "reg", &value);
-	if (err < 0) {
-		dev_err(&spi->dev, "no property for reg\n");
-		goto error;
-	}
 
 	/*
 	 * Slave can receive and transmit data in Mode 1
