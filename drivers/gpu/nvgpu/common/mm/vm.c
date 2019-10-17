@@ -1058,7 +1058,7 @@ void nvgpu_vm_put_buffers(struct vm_gk20a *vm,
 	nvgpu_big_free(vm->mm->g, mapped_buffers);
 }
 
-static int nvgpu_vm_map_compression_comptags(struct vm_gk20a *vm,
+static int nvgpu_vm_do_map(struct vm_gk20a *vm,
 		 struct nvgpu_os_buffer *os_buf,
 		 struct nvgpu_sgt *sgt,
 		 u64 *map_addr_ptr,
@@ -1406,7 +1406,7 @@ int nvgpu_vm_map(struct vm_gk20a *vm,
 		va_allocated = false;
 	}
 
-	err = nvgpu_vm_map_compression_comptags(vm, os_buf, sgt, &map_addr,
+	err = nvgpu_vm_do_map(vm, os_buf, sgt, &map_addr,
 				map_size, phys_offset, rw, flags, batch,
 				aperture, &binfo);
 	if (err != 0) {
