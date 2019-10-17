@@ -23,7 +23,7 @@
 #ifndef NVGPU_PMU_MSG_H
 #define NVGPU_PMU_MSG_H
 
-#include <nvgpu/pmu/pmuif/pmu.h>
+#include <nvgpu/pmu/pmuif/init.h>
 #include <nvgpu/pmu/pmuif/pg.h>
 #include <nvgpu/pmu/pmuif/perfmon.h>
 #include <nvgpu/pmu/pmuif/acr.h>

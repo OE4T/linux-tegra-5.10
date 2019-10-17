@@ -639,7 +639,7 @@ pmu:
                  include/nvgpu/pmu/pmuif/perfmon.h,
                  include/nvgpu/pmu/pmuif/pg.h,
                  include/nvgpu/pmu/pmuif/pg_rppg.h,
-                 include/nvgpu/pmu/pmuif/pmu.h,
+                 include/nvgpu/pmu/pmuif/init.h,
                  include/nvgpu/pmu/pmuif/bios.h,
                  include/nvgpu/pmu/pmuif/boardobj.h,
                  include/nvgpu/pmu/pmuif/clk.h,

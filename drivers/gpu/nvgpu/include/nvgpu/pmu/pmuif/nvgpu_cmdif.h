@@ -23,7 +23,7 @@
 #define NVGPU_PMUIF_NVGPU_CMDIF_H
 
 #include "cmn.h"
-#include "pmu.h"
+#include "init.h"
 #include "ap.h"
 #include "perfvfe.h"
 #include "thermsensor.h"
