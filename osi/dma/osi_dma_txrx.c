@@ -133,10 +133,9 @@ static int get_rx_hwstamp(struct osi_rx_desc *rx_desc,
 	int retry, ret = -1;
 
 	/* Check for RS1V/TSA/TD valid */
-	if (((rx_desc->rdes3 & RDES3_RS1V) == RDES3_RS1V) ||
-	    ((rx_desc->rdes1 & RDES1_TSA) == RDES1_TSA) ||
+	if (((rx_desc->rdes3 & RDES3_RS1V) == RDES3_RS1V) &&
+	    ((rx_desc->rdes1 & RDES1_TSA) == RDES1_TSA) &&
 	    ((rx_desc->rdes1 & RDES1_TD) == 0U)) {
-
 		for (retry = 0; retry < 10; retry++) {
 			ret = get_rx_tstamp_status(context_desc);
 			if (ret == 0) {
