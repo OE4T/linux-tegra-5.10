@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
 /*
- * Copyright (c) 2014-2015, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2020, NVIDIA CORPORATION.  All rights reserved.
  * Copyright (c) 2015, Google Inc.
  */
 
@@ -291,6 +291,7 @@ struct tegra_xusb_usb2_port {
 	struct regulator *supply;
 	enum usb_dr_mode mode;
 	bool internal;
+	int usb3_port_fake;
 };
 
 static inline struct tegra_xusb_usb2_port *
@@ -389,6 +390,7 @@ struct tegra_xusb_padctl_soc {
 
 	const char * const *supply_names;
 	unsigned int num_supplies;
+	bool need_fake_usb3_port;
 };
 
 struct tegra_xusb_padctl {
