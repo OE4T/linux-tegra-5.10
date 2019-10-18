@@ -395,20 +395,25 @@ mm:
                  hal/mm/mm_tu104.h]
 
 sync:
-  safe: no
+  safe: yes
   owner: Thomas F
   children:
     sema:
+      safe: no
       sources: [ hal/sync/sema_cmdbuf_gk20a.c,
                  hal/sync/sema_cmdbuf_gk20a.h,
                  hal/sync/sema_cmdbuf_gv11b.c,
                  hal/sync/sema_cmdbuf_gv11b.h ]
     syncpt:
+      safe: no
       sources: [ hal/sync/syncpt_cmdbuf_gk20a.c,
                  hal/sync/syncpt_cmdbuf_gk20a.h,
-                 hal/sync/syncpt_cmdbuf_gv11b.c,
-                 hal/sync/syncpt_cmdbuf_gv11b_fusa.c,
+                 hal/sync/syncpt_cmdbuf_gv11b.c]
+    syncpt_fusa:
+      safe: yes
+      sources: [ hal/sync/syncpt_cmdbuf_gv11b_fusa.c,
                  hal/sync/syncpt_cmdbuf_gv11b.h ]
+
 
 therm_fusa:
   safe: yes
