@@ -2043,6 +2043,18 @@ PREDEFINED             =
 # Enable documentation for coverity whitelisting macros
 PREDEFINED            += NV_IS_COVERITY
 
+# Enable safety-related flags
+PREDEFINED            += CONFIG_TEGRA_GK20A_NVHOST
+PREDEFINED            += CONFIG_TEGRA_T19X_GRHOST
+PREDEFINED            += CONFIG_NVGPU_SUPPORT_TURING
+PREDEFINED            += CONFIG_TEGRA_GK20A_PMU
+PREDEFINED            += CONFIG_TEGRA_ACR
+PREDEFINED            += CONFIG_TEGRA_GR_VIRTUALIZATION
+PREDEFINED            += CONFIG_PCI_MSI
+PREDEFINED            += CONFIG_NVGPU_LOGGING
+PREDEFINED            += CONFIG_NVGPU_GR_GOLDEN_CTX_VERIFICATION
+PREDEFINED            += NVGPU_IGPU_ISOLATION_SUPPORT
+
 # If the MACRO_EXPANSION and EXPAND_ONLY_PREDEF tags are set to YES then this
 # tag can be used to specify a list of macro names that should be expanded. The
 # macro definition that is found in the sources will be used. Use the PREDEFINED
