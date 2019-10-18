@@ -40,14 +40,15 @@
 
 #define NVGPU_PG189_0600_VBIOS		0x90047200U
 #define NVGPU_PG189_0601_VBIOS		0x90045a00U
-#define NVGPU_PG189_0610_VBIOS		0U
+#define NVGPU_PG189_0610_QS_VBIOS	0x90049100U
+#define NVGPU_PG189_0601_QS_VBIOS	0x90049300U
 
 struct nvgpu_vbios_board {
 	u16 board_id;
 	u32 vbios_version;
 };
 
-#define NVGPU_PG189_NUM_VBIOS_BOARDS	4U
+#define NVGPU_PG189_NUM_VBIOS_BOARDS	5U
 
 static struct nvgpu_vbios_board vbios_boards[NVGPU_PG189_NUM_VBIOS_BOARDS] = {
 	/* SKU 600 ES/CS, SKU 606*/
@@ -65,10 +66,15 @@ static struct nvgpu_vbios_board vbios_boards[NVGPU_PG189_NUM_VBIOS_BOARDS] = {
 		.board_id = 0x00E8,
 		.vbios_version = NVGPU_PG189_0601_VBIOS,
 	},
-	/* SKU 610 */
+	/* SKU 610 QS */
 	[3] = {
 		.board_id = 0x01a3,
-		.vbios_version = NVGPU_PG189_0610_VBIOS,
+		.vbios_version = NVGPU_PG189_0610_QS_VBIOS,
+	},
+	/* SKU 601 QS */
+	[4] = {
+		.board_id = 0x01cc,
+		.vbios_version = NVGPU_PG189_0601_QS_VBIOS,
 	},
 };
 
