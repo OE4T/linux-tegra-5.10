@@ -33,6 +33,7 @@
  * Welcome to the nvgpu unit design documentation. The following pages document
  * the major top level units within nvgpu-common:
  *
+ *   - @ref unit-ce
  *   - @ref unit-mm
  *   - @ref unit-fifo
  *   - @ref unit-gr

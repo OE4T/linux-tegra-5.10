@@ -22,8 +22,56 @@
 #ifndef NVGPU_CE_H
 #define NVGPU_CE_H
 
+/**
+ * @file
+ * @page unit-ce Unit CE
+ *
+ * Overview
+ * ========
+ *
+ * The CE unit is responsible for initializing the copy engines. The GPU has two
+ * types of copy engines, GRCE and LCE.
+ *
+ * Data Structures
+ * ===============
+ * NA
+ *
+ * Static Design
+ * =============
+ *
+ * CE Initialization
+ * -----------------
+ * The CE unit resets the copy engines at Master Control (MC) level and programs
+ * the production clock gating and configuration options for copy engines.
+ *
+ * External APIs
+ * -------------
+ *   + nvgpu_ce_init_support()
+ *
+ * Dynamic Design
+ * ==============
+ * NA
+ */
+
 struct gk20a;
 
+/**
+ * @brief Initialize the CE support.
+ *
+ * @param g [in] The GPU driver struct.
+ *
+ * This function is invoked during #nvgpu_finalize_poweron to initialize the
+ * copy engines.
+ *
+ * Steps:
+ * - Get the reset mask for all copy engines.
+ * - Reset the engines at master control level through mc_enable_r.
+ * - Load Second Level Clock Gating (SLCG) configuration for copy engine.
+ * - Load Block Level Clock Gating (BLCG) configuration for copy engine.
+ * - Initialize configuration options for LCEs. FORCE_BARRIERS_NPL is set.
+ *
+ * @return 0 in case of success, < 0 in case of failure.
+ */
 int nvgpu_ce_init_support(struct gk20a *g);
 
 #endif /*NVGPU_CE_H*/
