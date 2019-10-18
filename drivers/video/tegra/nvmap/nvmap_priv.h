@@ -296,6 +296,7 @@ struct nvmap_device {
 	struct nvmap_platform_data *plat;
 	struct rb_root	tags;
 	struct mutex	tags_lock;
+	struct mutex carveout_lock; /* needed to serialize carveout creation */
 	u32 dynamic_dma_map_mask;
 	u32 cpu_access_mask;
 };

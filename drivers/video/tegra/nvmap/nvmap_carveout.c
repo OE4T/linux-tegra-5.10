@@ -32,6 +32,7 @@ int nvmap_create_carveout(const struct nvmap_platform_carveout *co)
 	int i, err = 0;
 	struct nvmap_carveout_node *node;
 
+	mutex_lock(&nvmap_dev->carveout_lock);
 	if (!nvmap_dev->heaps) {
 		nvmap_dev->nr_carveouts = 0;
 		nvmap_dev->nr_heaps = nvmap_dev->plat->nr_carveouts + 1;
@@ -59,7 +60,8 @@ int nvmap_create_carveout(const struct nvmap_platform_carveout *co)
 		if ((co->usage_mask != NVMAP_HEAP_CARVEOUT_IVM) &&
 		    (nvmap_dev->heaps[i].heap_bit & co->usage_mask)) {
 			pr_err("carveout %s already exists\n", co->name);
-			return -EEXIST;
+			err = -EEXIST;
+			goto out;
 		}
 
 	node = &nvmap_dev->heaps[nvmap_dev->nr_carveouts];
@@ -112,6 +114,7 @@ int nvmap_create_carveout(const struct nvmap_platform_carveout *co)
 		}
 	}
 out:
+	mutex_unlock(&nvmap_dev->carveout_lock);
 	return err;
 }
 

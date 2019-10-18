@@ -1261,6 +1261,7 @@ int __init nvmap_probe(struct platform_device *pdev)
 	spin_lock_init(&dev->lru_lock);
 	dev->tags = RB_ROOT;
 	mutex_init(&dev->tags_lock);
+	mutex_init(&dev->carveout_lock);
 
 	e = misc_register(&dev->dev_user);
 	if (e) {
