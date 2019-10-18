@@ -42,7 +42,7 @@ ce_app:
   owner: Thomas F
   sources: [ common/ce/ce_app.c,
              common/ce/ce_priv.h,
-             include/nvgpu/ce.h ]
+             include/nvgpu/ce_app.h ]
   deps:
 
 debug:

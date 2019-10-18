@@ -28,7 +28,7 @@
 #include <nvgpu/dma.h>
 #include <nvgpu/utils.h>
 #include <nvgpu/fence.h>
-#include <nvgpu/ce.h>
+#include <nvgpu/ce_app.h>
 #include <nvgpu/power_features/cg.h>
 
 #include "common/ce/ce_priv.h"

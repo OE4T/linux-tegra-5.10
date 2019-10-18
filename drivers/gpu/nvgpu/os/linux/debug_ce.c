@@ -15,7 +15,7 @@
 #include "debug_ce.h"
 #include "os_linux.h"
 
-#include <nvgpu/ce.h>
+#include <nvgpu/ce_app.h>
 
 #include <common/ce/ce_priv.h>
 

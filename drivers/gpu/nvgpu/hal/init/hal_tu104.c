@@ -189,6 +189,7 @@
 #include <nvgpu/error_notifier.h>
 #include <nvgpu/acr.h>
 #include <nvgpu/ce.h>
+#include <nvgpu/ce_app.h>
 #include <nvgpu/pmu.h>
 #ifdef CONFIG_NVGPU_LS_PMU
 #include <nvgpu/pmu/pmu_pstate.h>

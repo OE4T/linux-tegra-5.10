@@ -21,7 +21,7 @@
  */
 
 #include <nvgpu/bug.h>
-#include <nvgpu/ce.h>
+#include <nvgpu/ce_app.h>
 #include <nvgpu/timers.h>
 #include <nvgpu/dma.h>
 #include <nvgpu/vidmem.h>

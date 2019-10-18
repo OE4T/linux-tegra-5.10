@@ -30,7 +30,7 @@
 #include <nvgpu/semaphore.h>
 #include <nvgpu/pramin.h>
 #include <nvgpu/enabled.h>
-#include <nvgpu/ce.h>
+#include <nvgpu/ce_app.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/engines.h>
 #include <nvgpu/static_analysis.h>

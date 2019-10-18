@@ -23,7 +23,6 @@
  */
 
 #include <nvgpu/kmem.h>
-#include <nvgpu/ce.h>
 #include <nvgpu/dma.h>
 #include <nvgpu/log.h>
 #include <nvgpu/enabled.h>
