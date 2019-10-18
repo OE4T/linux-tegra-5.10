@@ -92,6 +92,7 @@ ltc:
   safe: yes
   owner: Seshendra G
   sources: [ common/ltc/ltc.c,
+             include/nvgpu/gops_ltc.h,
              include/nvgpu/ltc.h ]
 
 cbc:

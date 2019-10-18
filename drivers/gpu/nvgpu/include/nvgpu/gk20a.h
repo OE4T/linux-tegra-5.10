@@ -46,6 +46,7 @@
  *   - @ref unit-cg
  *   - @ref unit-pmu
  *   - @ref unit-common-nvgpu
+ *   - @ref unit-common-ltc
  *   - Etc, etc.
  *
  * NVGPU Software Unit Design Documentation
@@ -136,6 +137,7 @@ enum nvgpu_unit;
 #include <nvgpu/gops_gr.h>
 #include <nvgpu/gops_fifo.h>
 #include <nvgpu/gops_fuse.h>
+#include <nvgpu/gops_ltc.h>
 #include <nvgpu/gops_ramfc.h>
 #include <nvgpu/gops_ramin.h>
 #include <nvgpu/gops_runlist.h>
@@ -251,44 +253,8 @@ struct gpu_ops {
 		int (*acr_init)(struct gk20a *g);
 		int (*acr_construct_execute)(struct gk20a *g);
 	} acr;
-	struct {
-		int (*init_ltc_support)(struct gk20a *g);
-		void (*ltc_remove_support)(struct gk20a *g);
-		u64 (*determine_L2_size_bytes)(struct gk20a *gk20a);
-		struct nvgpu_hw_err_inject_info_desc * (*get_ltc_err_desc)
-			(struct gk20a *g);
-		void (*set_enabled)(struct gk20a *g, bool enabled);
-		void (*init_fs_state)(struct gk20a *g);
-		void (*flush)(struct gk20a *g);
-#ifdef CONFIG_NVGPU_GRAPHICS
-		void (*set_zbc_color_entry)(struct gk20a *g,
-					    u32 *color_val_l2,
-					    u32 index);
-		void (*set_zbc_depth_entry)(struct gk20a *g,
-					    u32 depth_val,
-					    u32 index);
-		void (*set_zbc_s_entry)(struct gk20a *g,
-					    u32 s_val,
-					    u32 index);
-#endif
-#ifdef CONFIG_NVGPU_DEBUGGER
-		bool (*pri_is_ltc_addr)(struct gk20a *g, u32 addr);
-		bool (*is_ltcs_ltss_addr)(struct gk20a *g, u32 addr);
-		bool (*is_ltcn_ltss_addr)(struct gk20a *g, u32 addr);
-		void (*split_lts_broadcast_addr)(struct gk20a *g, u32 addr,
-							u32 *priv_addr_table,
-							u32 *priv_addr_table_index);
-		void (*split_ltc_broadcast_addr)(struct gk20a *g, u32 addr,
-							u32 *priv_addr_table,
-							u32 *priv_addr_table_index);
-#endif
-		struct {
-			void (*configure)(struct gk20a *g);
-			void (*isr)(struct gk20a *g, u32 ltc);
-			void (*en_illegal_compstat)(struct gk20a *g,
-								bool enable);
-		} intr;
-	} ltc;
+
+	struct gops_ltc ltc;
 #ifdef CONFIG_NVGPU_COMPRESSION
 	struct {
 		int (*cbc_init_support)(struct gk20a *g);
