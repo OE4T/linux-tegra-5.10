@@ -31,16 +31,48 @@
 
 struct gk20a;
 
-/** Engine enum type graphics as defined by h/w. */
+/**
+ * @defgroup NVGPU_TOP_DEVICE_INFO_DEFINES
+ *
+ * List of engine enumeration values supported for device_info parsing
+ */
+
+/**
+ * @ingroup NVGPU_TOP_DEVICE_INFO_DEFINES
+ * Engine type enum for graphics engine as defined by h/w.
+ */
 #define NVGPU_ENGINE_GRAPHICS		0U
-/** Obsolete from Pascal and beyond architecture. */
+
+/**
+ * @ingroup NVGPU_TOP_DEVICE_INFO_DEFINES
+ * Engine type enum for copy engine instance 0 as defined by h/w.
+ * Obsolete for Pascal and chips beyond it.
+ */
 #define NVGPU_ENGINE_COPY0		1U
-/** Obsolete from Pascal and beyond architecture. */
+
+/**
+ * @ingroup NVGPU_TOP_DEVICE_INFO_DEFINES
+ * Engine type enum for copy engine instance 1 as defined by h/w.
+ * Obsolete for Pascal and chips beyond it.
+ */
 #define NVGPU_ENGINE_COPY1		2U
-/** Obsolete from Pascal and beyond architecture. */
+
+/**
+ * @ingroup NVGPU_TOP_DEVICE_INFO_DEFINES
+ * Engine type enum for copy engine instance 2 as defined by h/w.
+ * Obsolete for Pascal and chips beyond it.
+ */
 #define NVGPU_ENGINE_COPY2		3U
+
 #define NVGPU_ENGINE_IOCTRL		18U
+
+/**
+ * @ingroup NVGPU_TOP_DEVICE_INFO_DEFINES
+ * Engine type enum for all copy engine as defined by h/w.
+ * This enum type is used for copy engines on Pascal and chips beyond it.
+ */
 /** Engine enum type lce as defined by h/w. */
+
 #define NVGPU_ENGINE_LCE		19U
 
 /**

@@ -81,11 +81,12 @@ struct gops_top {
 	 * @param engine_type [in]	Engine enumeration value
 	 * @param inst_id [in]		Engine's instance identification number
 	 *
-	 * Device_info table contains the engine specific data like it's
-	 * interrupt enum, reset enum, pri_base etc. This HAL reads such engine
-	 * information from table after matching the \a engine_type and
-	 * \a inst_id and then populates the read information in \a dev_info
-	 * struct.
+	 * Device_info table is an array of registers which contains the engine
+	 * specific data like interrupt enum, reset enum, pri_base etc.
+	 * This HAL reads such engine information from table after matching the
+	 * \a engine_type and \a inst_id and then populates the read information
+	 * in \a dev_info struct.
+	 *
 	 * List of valid engine enumeration values:
 	 * NVGPU_ENGINE_GRAPHICS           0
 	 * NVGPU_ENGINE_COPY0              1
@@ -93,6 +94,32 @@ struct gops_top {
 	 * NVGPU_ENGINE_COPY2              3
 	 * NVGPU_ENGINE_IOCTRL             18
 	 * NVGPU_ENGINE_LCE                19
+
+	 * In the device_info table, more than one register is required to
+	 * denote information for a specific engine. So they use multiple
+	 * consecutive registers in the array to represent a specific engine.
+	 * The MSB (called chain bit) in each register denotes if the next
+	 * register talks the same engine as present the one. All the registers
+	 * in the device info table can be classified in one of 4 types -
+	 * 1. Not_valid : We ignore these registers
+	 * 2. Data: This type of register contains pri_base, fault_id etc
+	 * 3. Enum: This type of register contains intr_enum, reset_enum
+	 * 4. Engine_type: This type of register contains the engine name which
+	 *                 is being described.
+	 *
+	 * So, in the parsing code,
+	 * 1. We loop through the array
+	 * 2. Ignore the invalid entries
+	 * 3. Store the “linked” register values in temporary variables until
+	 *    chain_bit is set. This helps us get all the data for particular
+	 *    engine type. [This is needed because the engine name may not be
+	 *    part of the first register representing the engine. So we can’t
+	 *    just read the first register and determine if the group represents
+	 *    the engine we are interested in]. Once the chain_bit is disabled,
+	 *    we know the next register read would represent a new engine.
+	 * 4. So we parse the stored variables to get engine_name,
+	 *    intr/reset_enums, pri base etc. Here we check if the engine type
+	 *    is the one we are interested in.
 	 *
 	 * @return 0 in case of success and < 0 in case of failure
 	 */
