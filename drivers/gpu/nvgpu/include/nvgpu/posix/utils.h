@@ -380,7 +380,7 @@
  * Formats the string and places it in the location referenced by input
  * parameter buf.
  *
- * @return Returns the number of characters printed in a succesful scenario,
+ * @return Returns the number of characters printed in a successful scenario,
  * Otherwise returns the error code.
  */
 static inline int scnprintf(char *buf, size_t size, const char *format, ...)
@@ -527,7 +527,8 @@ static inline unsigned int nvgpu_posix_hweight64(uint64_t x)
  * Better suited under a compiler.h type header file, but for now these can live
  * here.
  */
-/** Compiler extension directive to enure that a return value is checked. */
+
+/** Compiler extension directive to ensure that a return value is checked. */
 #define __must_check		__attribute__((warn_unused_result))
 
 #ifndef __user
