@@ -136,6 +136,7 @@ enum nvgpu_unit;
 #include <nvgpu/semaphore.h>
 #include <nvgpu/fifo.h>
 
+#include <nvgpu/gops_ce.h>
 #include <nvgpu/gops_ptimer.h>
 #include <nvgpu/gops_top.h>
 #include <nvgpu/gops_gr.h>
@@ -274,18 +275,7 @@ struct gpu_ops {
 		u32 (*fix_config)(struct gk20a *g, int base);
 	} cbc;
 #endif
-	struct {
-		int (*ce_init_support)(struct gk20a *g);
-		int (*ce_app_init_support)(struct gk20a *g);
-		void (*ce_app_suspend)(struct gk20a *g);
-		void (*ce_app_destroy)(struct gk20a *g);
-		void (*set_pce2lce_mapping)(struct gk20a *g);
-		void (*isr_stall)(struct gk20a *g, u32 inst_id, u32 pri_base);
-		u32 (*isr_nonstall)(struct gk20a *g, u32 inst_id, u32 pri_base);
-		u32 (*get_num_pce)(struct gk20a *g);
-		void (*mthd_buffer_fault_in_bar2_fault)(struct gk20a *g);
-		void (*init_prod_values)(struct gk20a *g);
-	} ce;
+	struct gops_ce ce;
 	struct gops_gr gr;
 	struct {
 		bool (*is_valid)(u32 class_num);

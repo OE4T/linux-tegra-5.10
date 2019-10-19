@@ -50,7 +50,15 @@
  *
  * Dynamic Design
  * ==============
- * NA
+ *
+ * At runtime, the CE stalling and non-stalling interrupts are handled through
+ * CE unit hal interfaces. TSG initialization calls CE unit hal interface to
+ * get the number of physical CEs.
+ *
+ * External APIs
+ * -------------
+ * Dynamic interfaces are HAL functions. They are documented here:
+ *   + include/nvgpu/gops_ce.h
  */
 
 struct gk20a;
