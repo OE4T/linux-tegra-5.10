@@ -45,6 +45,7 @@
  *   - @ref unit-acr
  *   - @ref unit-cg
  *   - @ref unit-pmu
+ *   - @ref unit-common-priv-ring
  *   - @ref unit-common-nvgpu
  *   - @ref unit-common-ltc
  *   - @ref unit-common-utils
@@ -150,6 +151,7 @@ enum nvgpu_unit;
 #include <nvgpu/gops_tsg.h>
 #include <nvgpu/gops_usermode.h>
 #include <nvgpu/gops_mm.h>
+#include <nvgpu/gops_priv_ring.h>
 #include <nvgpu/gops_therm.h>
 
 #include "hal/clk/clk_gk20a.h"
@@ -768,15 +770,7 @@ struct gpu_ops {
 	struct {
 		int (*fbp_init_support)(struct gk20a *g);
 	} fbp;
-	struct {
-		int (*enable_priv_ring)(struct gk20a *g);
-		void (*isr)(struct gk20a *g);
-		void (*decode_error_code)(struct gk20a *g, u32 error_code);
-		void (*set_ppriv_timeout_settings)(struct gk20a *g);
-		u32 (*enum_ltc)(struct gk20a *g);
-		u32 (*get_gpc_count)(struct gk20a *g);
-		u32 (*get_fbp_count)(struct gk20a *g);
-	} priv_ring;
+	struct gops_priv_ring priv_ring;
 	struct {
 		u32 (*get_link_reset_mask)(struct gk20a *g);
 		int (*init)(struct gk20a *g);

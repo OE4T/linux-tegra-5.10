@@ -78,7 +78,8 @@ init:
 priv_ring_fusa:
   safe: yes
   owner: Seema K
-  sources: [ hal/priv_ring/priv_ring_gm20b_fusa.c,
+  sources: [ include/nvgpu/gops_priv_ring.h,
+             hal/priv_ring/priv_ring_gm20b_fusa.c,
              hal/priv_ring/priv_ring_gm20b.h,
              hal/priv_ring/priv_ring_gp10b_fusa.c,
              hal/priv_ring/priv_ring_gp10b.h ]
