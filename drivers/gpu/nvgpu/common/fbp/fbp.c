@@ -100,11 +100,6 @@ void nvgpu_fbp_remove_support(struct gk20a *g)
 	g->fbp = NULL;
 }
 
-u32 nvgpu_fbp_get_num_fbps(struct nvgpu_fbp *fbp)
-{
-	return fbp->num_fbps;
-}
-
 u32 nvgpu_fbp_get_max_fbps_count(struct nvgpu_fbp *fbp)
 {
 	return fbp->max_fbps_count;
@@ -115,8 +110,15 @@ u32 nvgpu_fbp_get_fbp_en_mask(struct nvgpu_fbp *fbp)
 	return fbp->fbp_en_mask;
 }
 
+#ifdef CONFIG_NVGPU_NON_FUSA
+u32 nvgpu_fbp_get_num_fbps(struct nvgpu_fbp *fbp)
+{
+	return fbp->num_fbps;
+}
+
 u32 *nvgpu_fbp_get_rop_l2_en_mask(struct nvgpu_fbp *fbp)
 {
 	return fbp->fbp_rop_l2_en_mask;
 }
+#endif
 
