@@ -4,7 +4,7 @@
  *
  * Support for Tegra Virtual Security Engine hardware crypto algorithms.
  *
- * Copyright (c) 2016-2019, NVIDIA Corporation. All Rights Reserved.
+ * Copyright (c) 2016-2020, NVIDIA Corporation. All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -3762,14 +3762,13 @@ static int tegra_vse_kthread(void *unused)
 			continue;
 		}
 
-		if (!tegra_hv_ivc_can_read(pivck)) {
-			reinit_completion(&tegra_vse_complete);
-			continue;
-		}
-		while ((read_size = tegra_hv_ivc_read(pivck,
-			ivc_resp_msg,
-			sizeof(struct tegra_virtual_se_ivc_msg_t))) > 0) {
-			if (read_size < TEGRA_HV_VSE_IVC_FRAME_SIZE) {
+
+		while (tegra_hv_ivc_can_read(pivck)) {
+			read_size = tegra_hv_ivc_read(pivck,
+					ivc_resp_msg,
+					sizeof(struct tegra_virtual_se_ivc_msg_t));
+			if (read_size > 0 &&
+					read_size < sizeof(struct tegra_virtual_se_ivc_msg_t)) {
 				dev_err(se_dev->dev,
 					"Wrong read msg len %d\n", read_size);
 				continue;
@@ -3817,7 +3816,6 @@ static int tegra_vse_kthread(void *unused)
 				dev_err(se_dev->dev, "Unknown command\n");
 			}
 		}
-		reinit_completion(&tegra_vse_complete);
 	}
 	kfree(ivc_resp_msg);
 	return 0;
