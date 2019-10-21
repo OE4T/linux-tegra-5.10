@@ -40,6 +40,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/firmware.h>
 #include <nvgpu/mc.h>
+#include <nvgpu/gops_mc.h>
 
 #include "fb_gv100.h"
 

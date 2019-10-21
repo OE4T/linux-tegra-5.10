@@ -25,6 +25,7 @@
 #include <nvgpu/engines.h>
 #include <nvgpu/ce.h>
 #include <nvgpu/power_features/cg.h>
+#include <nvgpu/gops_mc.h>
 
 int nvgpu_ce_init_support(struct gk20a *g)
 {

@@ -31,6 +31,7 @@
 #include <nvgpu/bug.h>
 #include <nvgpu/engines.h>
 #include <nvgpu/power_features/pg.h>
+#include <nvgpu/gops_mc.h>
 
 #include "mc_gm20b.h"
 

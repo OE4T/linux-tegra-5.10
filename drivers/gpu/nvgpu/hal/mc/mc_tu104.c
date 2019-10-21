@@ -27,6 +27,7 @@
 #include <nvgpu/ltc.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/engines.h>
+#include <nvgpu/gops_mc.h>
 
 #include "hal/mc/mc_gp10b.h"
 

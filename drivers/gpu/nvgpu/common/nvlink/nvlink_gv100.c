@@ -34,6 +34,8 @@
 #include <nvgpu/top.h>
 #include <nvgpu/nvlink_minion.h>
 #include <nvgpu/nvlink_link_mode_transitions.h>
+#include <nvgpu/gops_mc.h>
+
 #include "nvlink_gv100.h"
 
 #include <nvgpu/hw/gv100/hw_nvlinkip_discovery_gv100.h>

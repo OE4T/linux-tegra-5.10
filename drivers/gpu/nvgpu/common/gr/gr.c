@@ -42,6 +42,7 @@
 #include <nvgpu/power_features/cg.h>
 #include <nvgpu/power_features/pg.h>
 #include <nvgpu/mc.h>
+#include <nvgpu/gops_mc.h>
 
 #include "gr_priv.h"
 

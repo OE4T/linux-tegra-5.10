@@ -28,6 +28,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/power_features/cg.h>
 #include <nvgpu/mc.h>
+#include <nvgpu/gops_mc.h>
 
 #include "hal/fifo/fifo_gk20a.h"
 

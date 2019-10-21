@@ -31,6 +31,7 @@
 #include <nvgpu/hw/gm20b/hw_mc_gm20b.h>
 #include <nvgpu/posix/posix-fault-injection.h>
 #include <nvgpu/dma.h>
+#include <nvgpu/gops_mc.h>
 
 #include "nvgpu-init.h"
 

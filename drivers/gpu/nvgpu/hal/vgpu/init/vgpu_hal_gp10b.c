@@ -753,7 +753,9 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 	.mc = {
 		.intr_mask = NULL,
 		.intr_enable = NULL,
+#ifdef CONFIG_NVGPU_LS_PMU
 		.intr_pmu_unit_config = NULL,
+#endif
 		.isr_stall = NULL,
 		.intr_stall = NULL,
 		.intr_stall_pause = NULL,

@@ -112,7 +112,8 @@ mc:
   safe: yes
   owner: Seema K
   sources: [ common/mc/mc.c,
-             include/nvgpu/mc.h ]
+             include/nvgpu/mc.h,
+             include/nvgpu/gops_mc.h ]
 class:
   safe: yes
   owner: Seshendra G

@@ -31,6 +31,7 @@
 #include <nvgpu/bug.h>
 #include <nvgpu/engines.h>
 #include <nvgpu/power_features/pg.h>
+#include <nvgpu/gops_mc.h>
 
 #include "mc_gm20b.h"
 
@@ -133,9 +134,11 @@ u32 gm20b_mc_reset_mask(struct gk20a *g, enum nvgpu_unit unit)
 	case NVGPU_UNIT_BLG:
 		mask = mc_enable_blg_enabled_f();
 		break;
+#ifdef CONFIG_NVGPU_HAL_NON_FUSA
 	case NVGPU_UNIT_PWR:
 		mask = mc_enable_pwr_enabled_f();
 		break;
+#endif
 	default:
 		WARN(true, "unknown reset unit %d", unit);
 		break;

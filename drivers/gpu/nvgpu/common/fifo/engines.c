@@ -42,6 +42,7 @@
 #include <nvgpu/gr/gr.h>
 #include <nvgpu/fifo.h>
 #include <nvgpu/static_analysis.h>
+#include <nvgpu/gops_mc.h>
 
 #define FECS_METHOD_WFI_RESTORE	0x80000U
 

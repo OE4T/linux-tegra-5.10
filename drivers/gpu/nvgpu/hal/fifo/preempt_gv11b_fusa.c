@@ -39,6 +39,7 @@
 #ifdef CONFIG_NVGPU_LS_PMU
 #include <nvgpu/pmu/mutex.h>
 #endif
+#include <nvgpu/gops_mc.h>
 
 #include "preempt_gv11b.h"
 

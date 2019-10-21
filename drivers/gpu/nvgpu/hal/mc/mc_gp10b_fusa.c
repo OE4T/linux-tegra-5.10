@@ -28,6 +28,7 @@
 #include <nvgpu/ltc.h>
 #include <nvgpu/engines.h>
 #include <nvgpu/power_features/pg.h>
+#include <nvgpu/gops_mc.h>
 
 #include "mc_gp10b.h"
 
@@ -44,29 +45,6 @@ void mc_gp10b_intr_mask(struct gk20a *g)
 				U32_MAX);
 }
 
-void mc_gp10b_intr_pmu_unit_config(struct gk20a *g, bool enable)
-{
-	u32 reg = 0U;
-
-	if (enable) {
-		reg = mc_intr_en_set_r(NVGPU_MC_INTR_STALLING);
-		g->mc_intr_mask_restore[NVGPU_MC_INTR_STALLING] |=
-			mc_intr_pmu_pending_f();
-		nvgpu_writel(g, reg, mc_intr_pmu_pending_f());
-
-	} else {
-		reg = mc_intr_en_clear_r(NVGPU_MC_INTR_STALLING);
-		g->mc_intr_mask_restore[NVGPU_MC_INTR_STALLING] &=
-			~mc_intr_pmu_pending_f();
-		nvgpu_writel(g, reg, mc_intr_pmu_pending_f());
-
-		reg = mc_intr_en_clear_r(NVGPU_MC_INTR_NONSTALLING);
-		g->mc_intr_mask_restore[NVGPU_MC_INTR_NONSTALLING] &=
-			~mc_intr_pmu_pending_f();
-		nvgpu_writel(g, reg, mc_intr_pmu_pending_f());
-	}
-}
-
 static void mc_gp10b_isr_stall_secondary_1(struct gk20a *g, u32 mc_intr_0)
 {
 	if ((mc_intr_0 & mc_intr_ltc_pending_f()) != 0U) {
@@ -75,6 +53,7 @@ static void mc_gp10b_isr_stall_secondary_1(struct gk20a *g, u32 mc_intr_0)
 	if ((mc_intr_0 & mc_intr_pbus_pending_f()) != 0U) {
 		g->ops.bus.isr(g);
 	}
+#ifdef CONFIG_NVGPU_DGPU
 	if ((g->ops.mc.is_intr_nvlink_pending != NULL) &&
 			g->ops.mc.is_intr_nvlink_pending(g, mc_intr_0)) {
 		g->ops.nvlink.intr.isr(g);
@@ -83,6 +62,7 @@ static void mc_gp10b_isr_stall_secondary_1(struct gk20a *g, u32 mc_intr_0)
 			(g->ops.mc.fbpa_isr != NULL)) {
 		g->ops.mc.fbpa_isr(g);
 	}
+#endif
 }
 
 

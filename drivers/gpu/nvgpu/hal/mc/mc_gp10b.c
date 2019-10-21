@@ -61,3 +61,26 @@ int mc_gp10b_intr_enable(struct gk20a *g)
 
 	return 0;
 }
+
+void mc_gp10b_intr_pmu_unit_config(struct gk20a *g, bool enable)
+{
+	u32 reg = 0U;
+
+	if (enable) {
+		reg = mc_intr_en_set_r(NVGPU_MC_INTR_STALLING);
+		g->mc_intr_mask_restore[NVGPU_MC_INTR_STALLING] |=
+			mc_intr_pmu_pending_f();
+		nvgpu_writel(g, reg, mc_intr_pmu_pending_f());
+
+	} else {
+		reg = mc_intr_en_clear_r(NVGPU_MC_INTR_STALLING);
+		g->mc_intr_mask_restore[NVGPU_MC_INTR_STALLING] &=
+			~mc_intr_pmu_pending_f();
+		nvgpu_writel(g, reg, mc_intr_pmu_pending_f());
+
+		reg = mc_intr_en_clear_r(NVGPU_MC_INTR_NONSTALLING);
+		g->mc_intr_mask_restore[NVGPU_MC_INTR_NONSTALLING] &=
+			~mc_intr_pmu_pending_f();
+		nvgpu_writel(g, reg, mc_intr_pmu_pending_f());
+	}
+}

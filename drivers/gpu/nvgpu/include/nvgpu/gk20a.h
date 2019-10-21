@@ -160,6 +160,7 @@ enum nvgpu_unit;
 #include <nvgpu/gops_priv_ring.h>
 #include <nvgpu/gops_therm.h>
 #include <nvgpu/gops_fb.h>
+#include <nvgpu/gops_mc.h>
 
 #include "hal/clk/clk_gk20a.h"
 
@@ -512,35 +513,8 @@ struct gpu_ops {
 		u64 (*get_qctl_whitelist_count)(void);
 	} regops;
 #endif
-	struct {
-		void (*intr_mask)(struct gk20a *g);
-		int (*intr_enable)(struct gk20a *g);
-		void (*intr_pmu_unit_config)(struct gk20a *g,
-				bool enable);
-		void (*isr_stall)(struct gk20a *g);
-		bool (*is_intr_hub_pending)(struct gk20a *g, u32 mc_intr);
-		bool (*is_intr_nvlink_pending)(struct gk20a *g, u32 mc_intr);
-		bool (*is_stall_and_eng_intr_pending)(struct gk20a *g,
-					u32 act_eng_id, u32 *eng_intr_pending);
-		u32 (*intr_stall)(struct gk20a *g);
-		void (*intr_stall_pause)(struct gk20a *g);
-		void (*intr_stall_resume)(struct gk20a *g);
-		u32 (*intr_nonstall)(struct gk20a *g);
-		void (*intr_nonstall_pause)(struct gk20a *g);
-		void (*intr_nonstall_resume)(struct gk20a *g);
-		u32 (*isr_nonstall)(struct gk20a *g);
-		void (*enable)(struct gk20a *g, u32 units);
-		void (*disable)(struct gk20a *g, u32 units);
-		void (*reset)(struct gk20a *g, u32 units);
-		bool (*is_enabled)(struct gk20a *g, enum nvgpu_unit unit);
-		bool (*is_intr1_pending)(struct gk20a *g, enum nvgpu_unit unit, u32 mc_intr_1);
-		void (*log_pending_intrs)(struct gk20a *g);
-		void (*fbpa_isr)(struct gk20a *g);
-		u32 (*reset_mask)(struct gk20a *g, enum nvgpu_unit unit);
-		void (*fb_reset)(struct gk20a *g);
-		void (*ltc_isr)(struct gk20a *g);
-		bool (*is_mmu_fault_pending)(struct gk20a *g);
-	} mc;
+	struct gops_mc mc;
+
 	struct {
 		void (*show_dump)(struct gk20a *g,
 				struct nvgpu_debug_context *o);

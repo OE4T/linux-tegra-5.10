@@ -35,6 +35,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/channel_sync.h>
 #include <nvgpu/nvgpu_init.h>
+#include <nvgpu/gops_mc.h>
 
 #ifdef CONFIG_NVGPU_TRACE
 #include <trace/events/gk20a.h>
