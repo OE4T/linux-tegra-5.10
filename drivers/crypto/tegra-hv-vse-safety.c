@@ -2171,7 +2171,6 @@ static int tegra_hv_vse_safety_cmac_setkey(struct crypto_ahash *tfm, const u8 *k
 	struct tegra_vse_priv_data *priv = NULL;
 	struct tegra_vse_tag *priv_data_ptr;
 	int err = 0;
-	u8 piv[TEGRA_VIRTUAL_SE_AES_IV_SIZE];
 	u32 *pbuf;
 	dma_addr_t pbuf_adr;
 	int time_left;
@@ -2263,14 +2262,6 @@ static int tegra_hv_vse_safety_cmac_setkey(struct crypto_ahash *tfm, const u8 *k
 	ctx->keylen = keylen;
 	err = tegra_hv_vse_safety_aes_set_keyiv(se_dev, (u8 *)key, keylen,
 			ctx->aes_keyslot, TEGRA_VIRTUAL_SE_AES_KEYTBL_TYPE_KEY);
-	if (err)
-		goto exit;
-
-	memset(piv, 0, TEGRA_VIRTUAL_SE_AES_IV_SIZE);
-	err = tegra_hv_vse_safety_aes_set_keyiv(se_dev, piv,
-				ctx->keylen,
-				ctx->aes_keyslot,
-				TEGRA_VIRTUAL_SE_AES_KEYTBL_TYPE_OIV);
 	if (err)
 		goto exit;
 
@@ -2759,6 +2750,7 @@ static irqreturn_t tegra_vse_irq_handler(int irq, void *data)
 	if (tegra_hv_ivc_can_read(g_ivck)) {
 		complete(&tegra_vse_complete);
 	}
+
 	return IRQ_HANDLED;
 }
 
@@ -2813,14 +2805,12 @@ static int tegra_vse_kthread(void *unused)
 			continue;
 		}
 
-		if (!tegra_hv_ivc_can_read(pivck)) {
-			reinit_completion(&tegra_vse_complete);
-			continue;
-		}
-		while ((read_size = tegra_hv_ivc_read(pivck,
-			ivc_msg,
-			sizeof(struct tegra_virtual_se_ivc_msg_t))) > 0) {
-			if (read_size < sizeof(struct tegra_virtual_se_ivc_msg_t)) {
+		while (tegra_hv_ivc_can_read(pivck)) {
+			read_size = tegra_hv_ivc_read(pivck,
+					ivc_msg,
+					sizeof(struct tegra_virtual_se_ivc_msg_t));
+			if (read_size > 0 &&
+					read_size < sizeof(struct tegra_virtual_se_ivc_msg_t)) {
 				pr_err("Wrong read msg len %d\n", read_size);
 				continue;
 			}
@@ -2866,8 +2856,8 @@ static int tegra_vse_kthread(void *unused)
 				dev_err(se_dev->dev, "Unknown command\n");
 			}
 		}
-		reinit_completion(&tegra_vse_complete);
 	}
+
 	kfree(ivc_msg);
 	return 0;
 }
