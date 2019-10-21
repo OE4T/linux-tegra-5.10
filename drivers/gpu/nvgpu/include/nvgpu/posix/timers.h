@@ -47,15 +47,15 @@
 #define nvgpu_timeout_expired_msg_cpu(timeout, caller, fmt, arg...)	\
 ({									\
 	struct nvgpu_timeout *t_ptr = (timeout);			\
-	int ret = 0;							\
+	int ret_cpu = 0;						\
 	if (nvgpu_current_time_ns() > t_ptr->time) {			\
 		if ((t_ptr->flags & NVGPU_TIMER_SILENT_TIMEOUT) == 0U) { \
 			nvgpu_err(t_ptr->g, "Timeout detected @ %p" fmt, \
 							caller, ##arg);	\
 		}							\
-		ret = -ETIMEDOUT;					\
+		ret_cpu = -ETIMEDOUT;					\
 	}								\
-	(int)ret;							\
+	(int)ret_cpu;							\
 })
 
 /**
@@ -76,17 +76,17 @@
 #define nvgpu_timeout_expired_msg_retry(timeout, caller, fmt, arg...)	\
 ({									\
 	struct nvgpu_timeout *t_ptr = (timeout);			\
-	int ret = 0;							\
+	int ret_retry = 0;						\
 	if (t_ptr->retries.attempted >= t_ptr->retries.max_attempts) {	\
 		if ((t_ptr->flags & NVGPU_TIMER_SILENT_TIMEOUT) == 0U) { \
 			nvgpu_err(t_ptr->g, "No more retries @ %p" fmt,	\
 							caller, ##arg);	\
 		}							\
-		ret = -ETIMEDOUT;					\
+		ret_retry = -ETIMEDOUT;					\
 	} else {							\
 		t_ptr->retries.attempted++;				\
 	}								\
-	(int)ret;							\
+	(int)ret_retry;							\
 })
 
 /**
@@ -105,15 +105,15 @@
  */
 #define nvgpu_timeout_expired_msg_impl(timeout, caller, fmt, arg...)	\
 ({									\
-	int ret = 0;							\
+	int ret_timeout = 0;						\
 	if (((timeout)->flags & NVGPU_TIMER_RETRY_TIMER) != 0U) {	\
-		ret = nvgpu_timeout_expired_msg_retry((timeout), caller,\
-							fmt, ##arg);	\
+		ret_timeout = nvgpu_timeout_expired_msg_retry((timeout),\
+						caller, fmt, ##arg);	\
 	} else {							\
-		ret = nvgpu_timeout_expired_msg_cpu((timeout), caller,	\
-							fmt, ##arg);	\
+		ret_timeout = nvgpu_timeout_expired_msg_cpu((timeout),	\
+						caller,	fmt, ##arg);	\
 	}								\
-	(int)ret;							\
+	(int)ret_timeout;						\
 })
 
 #endif
