@@ -21,6 +21,7 @@
  */
 
 #include "osi_dma_local.h"
+#include <osd.h>
 
 int osi_init_dma_ops(struct osi_dma_priv_data *osi_dma)
 {
@@ -269,6 +270,70 @@ int osi_set_rx_buf_len(struct osi_dma_priv_data *osi_dma)
 	}
 
 	return 0;
+}
+
+int osi_config_slot_function(struct osi_dma_priv_data *osi_dma,
+			     unsigned int set)
+{
+	int ret = -1;
+	unsigned int i = 0U, chan = 0U, interval = 0U;
+	struct osi_tx_ring *tx_ring = OSI_NULL;
+
+	/* return on invalid set argument */
+	if ((set != OSI_ENABLE) && (set != OSI_DISABLE)) {
+		OSI_ERR(osi_dma->osd,
+			OSI_LOG_ARG_INVALID,
+			"Invalid set argument\n",
+			set);
+		return -1;
+	}
+
+	/* Configure slot Checking for Tranmit */
+	if (osi_dma == OSI_NULL || osi_dma->ops == OSI_NULL ||
+	    osi_dma->ops->config_slot == OSI_NULL) {
+		OSI_ERR(OSI_NULL,
+			OSI_LOG_ARG_INVALID,
+			"Invalid set argument\n", 0ULL);
+		return -1;
+	}
+
+	for (i = 0; i < osi_dma->num_dma_chans; i++) {
+		/* Get DMA channel and validate */
+		chan = osi_dma->dma_chans[i];
+		if ((chan == 0x0U) ||
+		    (chan >= OSI_EQOS_MAX_NUM_CHANS)) {
+			/* Ignore 0 and invalid channels */
+			continue;
+		}
+		/* Check for slot enbale */
+		if (osi_dma->slot_enabled[chan] == OSI_ENABLE) {
+			/* Get DMA slot interval and validate */
+			interval = osi_dma->slot_interval[chan];
+			if (interval > OSI_SLOT_INTVL_MAX) {
+				OSI_ERR(osi_dma->osd,
+					OSI_LOG_ARG_INVALID,
+					"Invalid interval arguments\n",
+					interval);
+				return -1;
+			}
+
+			tx_ring = osi_dma->tx_ring[chan];
+			if (tx_ring == OSI_NULL) {
+				OSI_ERR(osi_dma->osd,
+					OSI_LOG_ARG_INVALID,
+					"tx_ring is null\n",
+					chan);
+				return -1;
+			}
+			tx_ring->slot_check = set;
+			osi_dma->ops->config_slot(osi_dma,
+						  chan,
+						  set,
+						  interval);
+		}
+	}
+
+	return ret;
 }
 
 int osi_validate_dma_regs(struct osi_dma_priv_data *osi_dma)

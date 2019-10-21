@@ -531,6 +531,53 @@ static void eqos_stop_dma(void *addr, unsigned int chan)
 }
 
 /**
+ * @brief eqos_config_slot - Configure slot Checking for DMA channel
+ *
+ * Algorithm: Set/Reset the slot function of DMA channel based on given inputs
+ *
+ * @param[in] osi_dma: OSI DMA private data structure.
+ * @param[in] chan: DMA channel number to enable slot function
+ * @param[in] set: flag for set/reset with value OSI_ENABLE/OSI_DISABLE
+ * @param[in] interval: slot interval from 0usec to 4095usec
+ *
+ * @note 1)MAC should be init and started. see osi_start_mac()
+ *	 2)OSD should be initialized
+ *
+ * @retval none
+ */
+static void eqos_config_slot(struct osi_dma_priv_data *osi_dma,
+			     unsigned int chan,
+			     unsigned int set,
+			     unsigned int interval)
+{
+	unsigned int value;
+
+	CHECK_CHAN_BOUND(chan);
+
+	if (set == OSI_ENABLE) {
+		/* Program SLOT CTRL register SIV and set ESC bit */
+		value = osi_readl((unsigned char *)osi_dma->base +
+				  EQOS_DMA_CHX_SLOT_CTRL(chan));
+		value &= ~EQOS_DMA_CHX_SLOT_SIV_MASK;
+		/* remove overflow bits of interval */
+		interval &= EQOS_DMA_CHX_SLOT_SIV_MASK;
+		value |= (interval << EQOS_DMA_CHX_SLOT_SIV_SHIFT);
+		/* Set ESC bit */
+		value |= EQOS_DMA_CHX_SLOT_ESC;
+		osi_writel(value, (unsigned char *)osi_dma->base +
+			   EQOS_DMA_CHX_SLOT_CTRL(chan));
+
+	} else {
+		/* Clear ESC bit of SLOT CTRL register */
+		value = osi_readl((unsigned char *)osi_dma->base +
+				  EQOS_DMA_CHX_SLOT_CTRL(chan));
+		value &= ~EQOS_DMA_CHX_SLOT_ESC;
+		osi_writel(value, (unsigned char *)osi_dma->base +
+			   EQOS_DMA_CHX_SLOT_CTRL(chan));
+	}
+}
+
+/**
  * @brief eqos_configure_dma_channel - Configure DMA channel
  *
  * Algorithm: This takes care of configuring the  below
@@ -701,6 +748,7 @@ static struct osi_dma_chan_ops eqos_dma_chan_ops = {
 	.init_dma_channel = eqos_init_dma_channel,
 	.set_rx_buf_len = eqos_set_rx_buf_len,
 	.validate_regs = eqos_validate_dma_regs,
+	.config_slot = eqos_config_slot,
 };
 
 /**
