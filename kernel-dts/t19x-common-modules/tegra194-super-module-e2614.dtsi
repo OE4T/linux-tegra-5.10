@@ -221,11 +221,6 @@
 		status = "disabled";
 	};
 
-	tegra_sound: sound {
-		i2s2_rt565x_playback: nvidia,dai-link-2 {
-		};
-	};
-
 	plugin-manager {
 		fragment-e2614-common@0 {
 			ids = "2614-0000-*";
@@ -279,7 +274,7 @@
 			};
 
 			overrides@11 {
-				target = <&i2s2_rt565x_playback>;
+				target = <&hdr40_snd_link_i2s>;
 				_overlay_ {
 					link-name = "rt565x-codec-sysclk-bclk1";
 					codec-dai = <&e2614_rt5658>;
@@ -322,7 +317,7 @@
 				};
 			};
 			overrides@1 {
-				target = <&i2s2_rt565x_playback>;
+				target = <&hdr40_snd_link_i2s>;
 				_overlay_ {
 					link-name = "rt565x-codec-sysclk-bclk1";
 					codec-dai = <&e2614_rt5658>;
@@ -342,7 +337,7 @@
 			};
 
 			overrides@1 {
-				target = <&i2s2_rt565x_playback>;
+				target = <&hdr40_snd_link_i2s>;
 				_overlay_ {
 					link-name = "rt565x-codec-sysclk-bclk1";
 					codec-dai = <&e2614_rt5658_i2c3>;
