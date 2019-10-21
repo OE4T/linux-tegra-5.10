@@ -42,82 +42,85 @@
 struct gk20a;
 
 /**
- * @brief Write a value to an already BAR0 mapped io-region.
+ * @brief Write a value to a GPU register with an ordering constraint.
  *
  * @param g [in]		GPU super structure.
- * @param r [in]		Register offset in io-region.
+ * @param r [in]		Register offset in GPU IO space.
  * @param v [in]		Value to write at the offset.
  *
- * - Write a 32-bit value to register offset in BAR0 region with an ordering
- *   constraint on memory operations.
+ * Write a 32-bit value to register offset in GPU IO space with an
+ * ordering constraint on memory operations.
  *
  * @return None.
  */
 void nvgpu_writel(struct gk20a *g, u32 r, u32 v);
 
 /**
- * @brief Write a value to an already BAR0 mapped io-region.
+ * @brief Write a value to GPU register without an ordering constraint.
  *
  * @param g [in]		GPU super structure.
- * @param r [in]		Register offset in io-region.
+ * @param r [in]		Register offset in GPU IO space.
  * @param v [in]		Value to write at the offset.
  *
- * - Write a 32-bit value to register offset in BAR0 region without an ordering
- *   constraint on memory operations.
+ * Write a 32-bit value to register offset in GPU IO space without
+ * an ordering constraint on memory operations. This function is
+ * implemented by the OS layer.
  *
  * @return None.
  */
 void nvgpu_writel_relaxed(struct gk20a *g, u32 r, u32 v);
 
 /**
- * @brief Read a value from an already BAR0 mapped io-region.
+ * @brief Read a value from a GPU register.
  *
  * @param g [in]		GPU super structure.
- * @param r [in]		Register offset in io-region.
+ * @param r [in]		Register offset in GPU IO space.
  *
- * - Read a 32-bit to register offset from a BAR0 region. If all the bits are
- *   set in value v and gpu state is not valid, then it logs the event.
+ * Read a 32-bit value from register offset in GPU IO space. If all
+ * the bits are set in the value read then check for gpu state validity.
+ * Refer #nvgpu_check_gpu_state() for gpu state validity check.
  *
- * @return Value at the given offset of the io-region.
+ * @return Value at the given register offset in GPU IO space.
  */
 u32 nvgpu_readl(struct gk20a *g, u32 r);
 
 /**
- * @brief Read a value from an already mapped BAR0 io-region.
+ * @brief Read a value from a GPU register.
  *
  * @param g [in]		GPU super structure.
- * @param r [in]		Register offset in io-region.
+ * @param r [in]		Register offset in GPU IO space.
  *
- * - Read a 32-bit to register offset from a BAR0 region. It is a wrapper of
- *   nvgpu_readl.
+ * Read a 32-bit to register offset from a GPU IO space. nvgpu_readl() is
+ * called from this function. This function is implemented by the OS layer.
  *
- * @return Value at the given offset of the io-region.
+ * @return Value at the given register offset in GPU IO space.
  */
 u32 nvgpu_readl_impl(struct gk20a *g, u32 r);
 
 /**
- * @brief Write validate to an already mapped BAR0 io-region.
+ * @brief Write validate to a GPU register.
  *
  * @param g [in]		GPU super structure.
- * @param r [in]		Register offset in io-region.
+ * @param r [in]		Register offset in GPU IO space.
  * @param v [in]		Value to write at the offset.
  *
- * - This is a blocking call. It keeps on writing a 32-bit value to a BAR0
- *   register and reads it back until read/write values are not match.
+ * Write a 32-bit value to register offset in GPU IO space and reads it
+ * back. Check whether the write/read values match and logs the event on
+ * a mismatch.
  *
  * @return None.
  */
 void nvgpu_writel_check(struct gk20a *g, u32 r, u32 v);
 
 /**
- * @brief Ensure write to an already mapped BAR0 io-region.
+ * @brief Ensure write to a GPU register.
  *
  * @param g [in]		GPU super structure.
- * @param r [in]		Register offset in io-region.
+ * @param r [in]		Register offset in GPU IO space.
  * @param v [in]		Value to write at the offset.
  *
- * - Write a 32-bit value to register offset in BAR0 region and reads it back to
- *   confirm value was written successfully.
+ * This is a blocking call. It keeps on writing a 32-bit value to a GPU
+ * register and reads it back until read/write values are not match.
  *
  * @return None.
  */
