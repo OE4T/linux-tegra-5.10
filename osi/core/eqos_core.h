@@ -41,18 +41,6 @@
 /** @} */
 
 /**
- * @addtogroup EQOS-MTLQ MTL queue operation mode
- *
- * @brief MTL queue operation mode options
- * @{
- */
-#define EQOS_MTL_QUEUE_DISABLED	0x0U
-#define EQOS_MTL_QUEUE_AVB	0x1U
-#define EQOS_MTL_QUEUE_DCB	0x2U
-#define EQOS_MTL_QUEUE_GENERIC	0x3U
-/** @} */
-
-/**
  * @addtogroup EQOS-MDC MDC Clock Selection defines
  *
  * @brief MDC Clock defines
@@ -246,7 +234,6 @@
 #define EQOS_MTL_RXQ_SIZE_SHIFT			20U
 #define EQOS_MAC_ENABLE_LM			OSI_BIT(12)
 #define EQOS_RX_CLK_SEL				OSI_BIT(8)
-#define EQOS_MAX_TC				8U
 #define EQOS_MTL_TXQ_ETS_CR_SLC_MASK		(OSI_BIT(6) | OSI_BIT(5) | \
 						 OSI_BIT(4))
 #define EQOS_MTL_TXQ_ETS_CR_CC			OSI_BIT(3)

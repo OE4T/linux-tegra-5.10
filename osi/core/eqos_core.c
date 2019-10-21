@@ -1649,17 +1649,25 @@ static int eqos_set_avb_algorithm(struct osi_core_priv_data *osi_core,
 	}
 
 	/* queue index in range */
-	if (avb->qindex >= EQOS_MAX_TC) {
+	if (avb->qindex >= OSI_EQOS_MAX_NUM_QUEUES) {
 		OSI_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 			"Invalid Queue index\n",
 			(unsigned long long)avb->qindex);
 		return ret;
 	}
 
+	/* queue oper_mode in range check*/
+	if (avb->oper_mode >= OSI_MTL_QUEUE_MODEMAX) {
+		OSI_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+			"Invalid Queue mode\n",
+			(unsigned long long)avb->qindex);
+		return ret;
+	}
+
 	/* can't set AVB mode for queue 0 */
-	if ((avb->qindex == 0U) && (avb->oper_mode == EQOS_MTL_QUEUE_AVB)) {
+	if ((avb->qindex == 0U) && (avb->oper_mode == OSI_MTL_QUEUE_AVB)) {
 		OSI_ERR(osi_core->osd, OSI_LOG_ARG_OPNOTSUPP,
-			"Not allowed to set CBS for Q0\n",
+			"Not allowed to set AVB for Q0\n",
 			(unsigned long long)avb->qindex);
 		return ret;
 	}
@@ -1676,38 +1684,42 @@ static int eqos_set_avb_algorithm(struct osi_core_priv_data *osi_core,
 				EQOS_MTL_CH0_TX_OP_MODE_IDX + qinx);
 
 	/* Set Algo and Credit control */
-	value = (avb->credit_control << EQOS_MTL_TXQ_ETS_CR_CC_SHIFT) &
-		 EQOS_MTL_TXQ_ETS_CR_CC;
+	if (avb->algo == OSI_MTL_TXQ_AVALG_CBS) {
+		value = (avb->credit_control << EQOS_MTL_TXQ_ETS_CR_CC_SHIFT) &
+			 EQOS_MTL_TXQ_ETS_CR_CC;
+	}
 	value |= (avb->algo << EQOS_MTL_TXQ_ETS_CR_AVALG_SHIFT) &
 		  EQOS_MTL_TXQ_ETS_CR_AVALG;
 	osi_writel(value, (unsigned char *)osi_core->base +
 		   EQOS_MTL_TXQ_ETS_CR(qinx));
 
-	/* Set Send slope credit */
-	value = avb->send_slope & EQOS_MTL_TXQ_ETS_SSCR_SSC_MASK;
-	osi_writel(value, (unsigned char *)osi_core->base +
-		   EQOS_MTL_TXQ_ETS_SSCR(qinx));
+	if (avb->algo == OSI_MTL_TXQ_AVALG_CBS) {
+		/* Set Send slope credit */
+		value = avb->send_slope & EQOS_MTL_TXQ_ETS_SSCR_SSC_MASK;
+		osi_writel(value, (unsigned char *)osi_core->base +
+			   EQOS_MTL_TXQ_ETS_SSCR(qinx));
 
-	/* Set Idle slope credit*/
-	value = osi_readl((unsigned char *)osi_core->base +
-			  EQOS_MTL_TXQ_QW(qinx));
-	value &= ~EQOS_MTL_TXQ_ETS_QW_ISCQW_MASK;
-	value |= avb->idle_slope & EQOS_MTL_TXQ_ETS_QW_ISCQW_MASK;
-	eqos_core_safety_writel(value, (unsigned char *)osi_core->base +
-				EQOS_MTL_TXQ_QW(qinx),
-				EQOS_MTL_TXQ0_QW_IDX + qinx);
+		/* Set Idle slope credit*/
+		value = osi_readl((unsigned char *)osi_core->base +
+				  EQOS_MTL_TXQ_QW(qinx));
+		value &= ~EQOS_MTL_TXQ_ETS_QW_ISCQW_MASK;
+		value |= avb->idle_slope & EQOS_MTL_TXQ_ETS_QW_ISCQW_MASK;
+		eqos_core_safety_writel(value, (unsigned char *)osi_core->base +
+					EQOS_MTL_TXQ_QW(qinx),
+					EQOS_MTL_TXQ0_QW_IDX + qinx);
 
-	/* Set Hi credit */
-	value = avb->hi_credit & EQOS_MTL_TXQ_ETS_HCR_HC_MASK;
-	osi_writel(value, (unsigned char *)osi_core->base +
-		   EQOS_MTL_TXQ_ETS_HCR(qinx));
+		/* Set Hi credit */
+		value = avb->hi_credit & EQOS_MTL_TXQ_ETS_HCR_HC_MASK;
+		osi_writel(value, (unsigned char *)osi_core->base +
+			   EQOS_MTL_TXQ_ETS_HCR(qinx));
 
-	/* low credit  is -ve number, osi_write need a unsigned int
-	 * take only 28:0 bits from avb->low_credit
-	 */
-	value = avb->low_credit & EQOS_MTL_TXQ_ETS_LCR_LC_MASK;
-	osi_writel(value, (unsigned char *)osi_core->base +
-		   EQOS_MTL_TXQ_ETS_LCR(qinx));
+		/* low credit  is -ve number, osi_write need a unsigned int
+		 * take only 28:0 bits from avb->low_credit
+		 */
+		value = avb->low_credit & EQOS_MTL_TXQ_ETS_LCR_LC_MASK;
+		osi_writel(value, (unsigned char *)osi_core->base +
+			   EQOS_MTL_TXQ_ETS_LCR(qinx));
+	}
 
 	return 0;
 }
@@ -1989,7 +2001,7 @@ static int eqos_get_avb_algorithm(struct osi_core_priv_data *osi_core,
 		return ret;
 	}
 
-	if (avb->qindex >= EQOS_MAX_TC) {
+	if (avb->qindex >= OSI_EQOS_MAX_NUM_QUEUES) {
 		OSI_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 			"Invalid Queue index\n",
 			(unsigned long long)avb->qindex);

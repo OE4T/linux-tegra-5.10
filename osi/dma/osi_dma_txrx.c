@@ -552,11 +552,13 @@ static inline int need_cntx_desc(struct osi_tx_pkt_cx *tx_pkt_cx,
  *	  etc. are flagged in transmit packet context. If so, set the fiels in
  *	  first desc corresponding to those features.
  *
+ * @param[in] tx_ring: DMA channel TX ring.
  * @param[in] tx_pkt_cx: Pointer to transmit packet context structure
  * @param[in] tx_desc: Pointer to tranmit descriptor to be filled.
  * @param[in] tx_swcx: Pointer to corresponding tx descriptor software context.
  */
-static inline void fill_first_desc(struct osi_tx_pkt_cx *tx_pkt_cx,
+static inline void fill_first_desc(struct osi_tx_ring *tx_ring,
+				   struct osi_tx_pkt_cx *tx_pkt_cx,
 				   struct osi_tx_desc *tx_desc,
 				   struct osi_tx_swcx *tx_swcx)
 {
@@ -610,6 +612,15 @@ static inline void fill_first_desc(struct osi_tx_pkt_cx *tx_pkt_cx,
 		tx_pkt_cx->payload_len &= TDES3_TPL_MASK;
 		/* Update TCP payload len in desc */
 		tx_desc->tdes3 |= tx_pkt_cx->payload_len;
+	} else {
+		if ((tx_ring->slot_check == OSI_ENABLE) &&
+		    (tx_ring->slot_number < OSI_SLOT_NUM_MAX)) {
+			/* Fill Slot number */
+			tx_desc->tdes3 |= (tx_ring->slot_number <<
+					   TDES3_THL_SHIFT);
+			tx_ring->slot_number = ((tx_ring->slot_number + 1U) %
+						OSI_SLOT_NUM_MAX);
+		}
 	}
 }
 
@@ -661,7 +672,7 @@ void osi_hw_transmit(struct osi_dma_priv_data *osi, unsigned int chan)
 	}
 
 	/* Fill first descriptor */
-	fill_first_desc(tx_pkt_cx, tx_desc, tx_swcx);
+	fill_first_desc(tx_ring, tx_pkt_cx, tx_desc, tx_swcx);
 
 	INCR_TX_DESC_INDEX(entry, 1U);
 
@@ -841,6 +852,10 @@ static void tx_dma_desc_init(struct osi_dma_priv_data *osi_dma)
 
 		tx_ring->cur_tx_idx = 0;
 		tx_ring->clean_idx = 0;
+
+		/* Slot function parameter initialization */
+		tx_ring->slot_number = 0U;
+		tx_ring->slot_check = OSI_DISABLE;
 
 		ops->set_tx_ring_len(osi_dma->base, chan,
 				(TX_DESC_CNT - 1U));

@@ -52,6 +52,17 @@
 /** @} */
 
 /**
+ * @addtogroup SLOT function context fields
+ *
+ * @brief These flags are used for DMA channel Slot context configuration
+ * @{
+ */
+#define OSI_SLOT_INTVL_DEFAULT		125U
+#define OSI_SLOT_INTVL_MAX		4095U
+#define OSI_SLOT_NUM_MAX		16U
+/** @} */
+
+/**
  * @addtogroup EQOS-TX Tx done packet context fields
  *
  * @brief These flags used to convey transmit done packet context information,
@@ -262,6 +273,10 @@ struct osi_tx_ring {
 	unsigned int cur_tx_idx;
 	/** Descriptor index for descriptor cleanup */
 	unsigned int clean_idx;
+	/** Slot function check */
+	unsigned int slot_check;
+	/** Slot number */
+	unsigned int slot_number;
 	/** Transmit packet context */
 	struct osi_tx_pkt_cx tx_pkt_cx;
 	/** Transmit complete packet context information */
@@ -311,6 +326,11 @@ struct osi_dma_chan_ops {
 	/** Called periodically to read and validate safety critical
 	 * registers against last written value */
 	int (*validate_regs)(struct osi_dma_priv_data *osi_dma);
+	/** Called to configure the DMA channel slot function */
+	void (*config_slot)(struct osi_dma_priv_data *osi_dma,
+			    unsigned int chan,
+			    unsigned int set,
+			    unsigned int interval);
 };
 
 /**
@@ -348,6 +368,10 @@ struct osi_dma_priv_data {
 	/** Functional safety config to do periodic read-verify of
 	 * certain safety critical dma registers */
 	void *safety_config;
+	/** Array of DMA channel slot snterval value from DT */
+	unsigned int slot_interval[OSI_EQOS_MAX_NUM_CHANS];
+	/** Array of DMA channel slot enabled status from DT*/
+	unsigned int slot_enabled[OSI_EQOS_MAX_NUM_CHANS];
 };
 
 /**
@@ -690,6 +714,22 @@ int osi_init_dma_ops(struct osi_dma_priv_data *osi_dma);
  * @retval -1 on failure.
  */
 int osi_clear_tx_pkt_err_stats(struct osi_dma_priv_data *osi_dma);
+
+/**
+ * @brief osi_config_slot_function - Configure slot function
+ *
+ * Algorithm: Set or reset the slot function based on set input
+ *
+ * @param[in] osi_dma: OSI DMA private data structure.
+ * @param[in] set: Flag to set with OSI_ENABLE and reset with OSI_DISABLE
+ *
+ * @note MAC should be init and started. see osi_start_mac()
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+int osi_config_slot_function(struct osi_dma_priv_data *osi_dma,
+			     unsigned int set);
 
 /**
  * @brief osi_clear_rx_pkt_err_stats - Clear rx packet error stats.

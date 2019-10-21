@@ -39,3 +39,4 @@ osi_hw_dma_init
 osi_hw_dma_deinit
 osi_init_dma_ops
 osi_validate_dma_regs
+osi_config_slot_function

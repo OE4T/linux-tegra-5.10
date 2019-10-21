@@ -34,6 +34,7 @@
 #define EQOS_DMA_CHX_RX_CTRL(x)		((0x0080U * (x)) + 0x1108U)
 #define EQOS_DMA_CHX_INTR_ENA(x)	((0x0080U * (x)) + 0x1134U)
 #define EQOS_DMA_CHX_RX_WDT(x)		((0x0080U * (x)) + 0x1138U)
+#define EQOS_DMA_CHX_SLOT_CTRL(x)	((0x0080U * (x)) + 0x113CU)
 
 #define EQOS_DMA_CHX_RDTP(x)		((0x0080U * (x)) + 0x1128U)
 #define EQOS_DMA_CHX_RDLH(x)		((0x0080U * (x)) + 0x1118U)
@@ -91,6 +92,9 @@
 #define EQOS_DMA_CHX_TDRL_MASK			0x3FFU
 #define EQOS_DMA_CHX_RDRL_MASK			0x3FFU
 #define EQOS_DMA_CHX_INTR_ENA_MASK		0xFFC7U
+#define EQOS_DMA_CHX_SLOT_SIV_MASK		0xFFFU
+#define EQOS_DMA_CHX_SLOT_SIV_SHIFT		4U
+#define EQOS_DMA_CHX_SLOT_ESC			0x1U
 
 /* To add new registers to validate,append at end of below macro list and
  * increment EQOS_MAX_DMA_SAFETY_REGS.

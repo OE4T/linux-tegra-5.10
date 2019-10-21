@@ -270,6 +270,28 @@
 /** @} */
 
 /**
+ * @addtogroup MTL queue operation mode
+ *
+ * @brief MTL queue operation mode options
+ * @{
+ */
+#define OSI_MTL_QUEUE_DISABLED	0x0U
+#define OSI_MTL_QUEUE_AVB	0x1U
+#define OSI_MTL_QUEUE_ENABLE	0x2U
+#define OSI_MTL_QUEUE_MODEMAX	0x3U
+/** @} */
+
+/**
+ * @addtogroup MTL queue AVB algorithm mode
+ *
+ * @brief MTL AVB queue algorithm type
+ * @{
+ */
+#define OSI_MTL_TXQ_AVALG_CBS	1U
+#define OSI_MTL_TXQ_AVALG_SP	0U
+/** @} */
+
+/**
  * @brief struct osi_hw_features - MAC HW supported features.
  */
 struct osi_hw_features {
