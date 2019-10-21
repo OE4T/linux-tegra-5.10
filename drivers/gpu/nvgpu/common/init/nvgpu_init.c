@@ -79,6 +79,9 @@ static int nvgpu_sw_quiesce_thread(void *data)
 	struct gk20a *g = data;
 	int err = 0;
 
+	g->sw_quiesce_init_done = true;
+	nvgpu_cond_signal(&g->sw_quiesce_cond);
+
 	/* wait until all SW quiesce is requested */
 	NVGPU_COND_WAIT(&g->sw_quiesce_cond,
 		g->sw_quiesce_pending ||
@@ -136,7 +139,8 @@ static int nvgpu_sw_quiesce_init_support(struct gk20a *g)
 		return err;
 	}
 
-	g->sw_quiesce_init_done = true;
+	/* wait until thread actually starts */
+	NVGPU_COND_WAIT(&g->sw_quiesce_cond, g->sw_quiesce_init_done, 0U);
 #endif
 
 	return 0;
