@@ -333,23 +333,20 @@ struct nvgpu_hw_err_inject_info_desc {
  *
  * - Checks whether SDL is supported in the current GPU platform. If SDL is not
  *   supported, it simply returns.
- * - Validates both hw_unit and err_id indices. In case of a failure, invokes
- *   nvgpu_sdl_handle_report_failure() api.
+ * - Validates both \a hw_unit and \a err_id indices. In case of a failure,
+ *   invokes #nvgpu_sdl_handle_report_failure() api.
  * - Gets the current time of a clock. In case of a failure, invokes
- *   nvgpu_sdl_handle_report_failure() api.
- * - Gets error description from internal look-up table using hw_unit and
- *   err_id indices.
- * - Forms error packet using details such as time-stamp, hw_unit, err_id,
- *   criticality of the error, instance ID, error description, intr_info and
+ *   #nvgpu_sdl_handle_report_failure() api.
+ * - Gets error description from internal look-up table using \a hw_unit and
+ *   \a err_id indices.
+ * - Forms error packet using details such as time-stamp, \a hw_unit, \a err_id,
+ *   criticality of the error, \a inst, error description, \a intr_info and
  *   size of the error packet.
  * - Performs compile-time assert check to ensure that the size of the error
  *   packet does not exceed the maximum allowable size specified in
- *   MAX_ERR_MSG_SIZE.
+ *   #MAX_ERR_MSG_SIZE.
  * - Sends the error packet to report the error to the 3LSS framework. In case
- *   of a failure, invokes nvgpu_sdl_handle_report_failure() api.
- *
- * @return None
- * @retval None
+ *   of a failure, invokes #nvgpu_sdl_handle_report_failure() api.
  */
 void nvgpu_report_host_err(struct gk20a *g, u32 hw_unit,
 	u32 inst, u32 err_id, u32 intr_info);
@@ -372,23 +369,20 @@ void nvgpu_report_host_err(struct gk20a *g, u32 hw_unit,
  *
  * - Checks whether SDL is supported in the current GPU platform. If SDL is not
  *   supported, it simply returns.
- * - Validates both hw_unit and err_id indices. In case of a failure, invokes
- *   nvgpu_sdl_handle_report_failure() api.
+ * - Validates both \a hw_unit and \a err_id indices. In case of a failure,
+ *   invokes #nvgpu_sdl_handle_report_failure() api.
  * - Gets the current time of a clock. In case of a failure, invokes
- *   nvgpu_sdl_handle_report_failure() api.
- * - Gets error description from internal look-up table using hw_unit and
- *   err_id indices.
- * - Forms error packet using details such as time-stamp, hw_unit, err_id,
- *   criticality of the error, instance ID, error description, intr_info and
+ *   #nvgpu_sdl_handle_report_failure() api.
+ * - Gets error description from internal look-up table using \a hw_unit and
+ *   \a err_id indices.
+ * - Forms error packet using details such as time-stamp, \a hw_unit, \a err_id,
+ *   criticality of the error, \a inst, error description, \a intr_info and
  *   size of the error packet.
  * - Performs compile-time assert check to ensure that the size of the error
  *   packet does not exceed the maximum allowable size specified in
- *   MAX_ERR_MSG_SIZE.
+ *   #MAX_ERR_MSG_SIZE.
  * - Sends the error packet to report the error to the 3LSS framework. In case
- *   of a failure, invokes nvgpu_sdl_handle_report_failure() api.
- *
- * @return None
- * @retval None
+ *   of a failure, invokes #nvgpu_sdl_handle_report_failure() api.
  */
 void nvgpu_report_ce_err(struct gk20a *g, u32 hw_unit,
 	u32 inst, u32 err_id, u32 intr_info);
@@ -444,23 +438,20 @@ void nvgpu_report_ce_err(struct gk20a *g, u32 hw_unit,
  *
  * - Checks whether SDL is supported in the current GPU platform. If SDL is not
  *   supported, it simply returns.
- * - Validates both hw_unit and err_id indices. In case of a failure, invokes
- *   nvgpu_sdl_handle_report_failure() api.
+ * - Validates both \a hw_unit and \a err_id indices. In case of a failure,
+ *   invokes #nvgpu_sdl_handle_report_failure() api.
  * - Gets the current time of a clock. In case of a failure, invokes
- *   nvgpu_sdl_handle_report_failure() api.
- * - Gets error description from internal look-up table using hw_unit and
- *   err_id indices.
- * - Forms error packet using details such as time-stamp, hw_unit, err_id,
- *   criticality of the error, instance ID, err_addr, err_count, error
+ *   #nvgpu_sdl_handle_report_failure() api.
+ * - Gets error description from internal look-up table using \a hw_unit and
+ *   \a err_id indices.
+ * - Forms error packet using details such as time-stamp, \a hw_unit, \a err_id,
+ *   criticality of the error, \a inst, \a err_addr, \a err_count, error
  *   description, and size of the error packet.
  * - Performs compile-time assert check to ensure that the size of the error
  *   packet does not exceed the maximum allowable size specified in
- *   MAX_ERR_MSG_SIZE.
+ *   #MAX_ERR_MSG_SIZE.
  * - Sends the error packet to report the error to the 3LSS framework. In case
- *   of a failure, invokes nvgpu_sdl_handle_report_failure() api.
- *
- * @return None
- * @retval None
+ *   of a failure, invokes #nvgpu_sdl_handle_report_failure() api.
  */
 void nvgpu_report_ecc_err(struct gk20a *g, u32 hw_unit, u32 inst,
 		u32 err_id, u64 err_addr, u64 err_count);
@@ -479,23 +470,20 @@ void nvgpu_report_ecc_err(struct gk20a *g, u32 hw_unit, u32 inst,
  *
  * - Checks whether SDL is supported in the current GPU platform. If SDL is not
  *   supported, it simply returns.
- * - Validates both hw_unit and err_id indices. In case of a failure, invokes
- *   nvgpu_sdl_handle_report_failure() api.
+ * - Validates both \a hw_unit and \a err_id indices. In case of a failure,
+ *   invokes #nvgpu_sdl_handle_report_failure() api.
  * - Gets the current time of a clock. In case of a failure, invokes
- *   nvgpu_sdl_handle_report_failure() api.
- * - Gets error description from internal look-up table using hw_unit and
- *   err_id indices.
- * - Forms error packet using details such as time-stamp, hw_unit, err_id,
+ *   #nvgpu_sdl_handle_report_failure() api.
+ * - Gets error description from internal look-up table using \a hw_unit and
+ *   \a err_id indices.
+ * - Forms error packet using details such as time-stamp, \a hw_unit, \a err_id,
  *   criticality of the error, CTXSW error information, error description, and
  *   size of the error packet.
  * - Performs compile-time assert check to ensure that the size of the error
  *   packet does not exceed the maximum allowable size specified in
- *   MAX_ERR_MSG_SIZE.
+ *   #MAX_ERR_MSG_SIZE.
  * - Sends the error packet to report the error to the 3LSS framework. In case
- *   of a failure, invokes nvgpu_sdl_handle_report_failure() api.
- *
- * @return None
- * @retval None
+ *   of a failure, invokes #nvgpu_sdl_handle_report_failure() api.
  */
 void nvgpu_report_ctxsw_err(struct gk20a *g, u32 hw_unit, u32 err_id,
 		void *data);
@@ -524,28 +512,25 @@ void nvgpu_report_ctxsw_err(struct gk20a *g, u32 hw_unit, u32 err_id,
  *				  - For PGRAPH: Exception Information.
  * @param sub_err_type [in]	- Sub error type.
  *				  - This is a sub-error of the error that is
- *				    begin reported.
+ *				    being reported.
  *
  * - Checks whether SDL is supported in the current GPU platform. If SDL is not
  *   supported, it simply returns.
- * - Validates both hw_unit and err_id indices. In case of a failure, invokes
- *   nvgpu_sdl_handle_report_failure() api.
+ * - Validates both \a hw_unit and \a err_id indices. In case of a failure,
+ *   invokes #nvgpu_sdl_handle_report_failure() api.
  * - Gets the current time of a clock. In case of a failure, invokes
- *   nvgpu_sdl_handle_report_failure() api.
- * - Gets error description from internal look-up table using hw_unit and
- *   err_id indices.
- * - Forms error packet using details such as time-stamp, hw_unit, err_id,
- *   criticality of the error, status, sub_err_type, error description, and size
- *   of the error packet. It also includes appropriate err_info depending on
- *   hw_unit type (SM/PGRAPH).
+ *   #nvgpu_sdl_handle_report_failure() api.
+ * - Gets error description from internal look-up table using \a hw_unit and
+ *   \a err_id indices.
+ * - Forms error packet using details such as time-stamp, \a hw_unit, \a err_id,
+ *   criticality of the error, status, \a sub_err_type, error description, and
+ *   size of the error packet. It also includes appropriate \a err_info
+ *   depending on \a hw_unit type (SM/PGRAPH).
  * - Performs compile-time assert check to ensure that the size of the error
  *   packet does not exceed the maximum allowable size specified in
- *   MAX_ERR_MSG_SIZE.
+ *   #MAX_ERR_MSG_SIZE.
  * - Sends the error packet to report the error to the 3LSS framework. In case
- *   of a failure, invokes nvgpu_sdl_handle_report_failure() api.
- *
- * @return None
- * @retval None
+ *   of a failure, invokes #nvgpu_sdl_handle_report_failure() api.
  */
 void nvgpu_report_gr_err(struct gk20a *g, u32 hw_unit, u32 inst,
 		u32 err_id, struct gr_err_info *err_info, u32 sub_err_type);
@@ -560,28 +545,25 @@ void nvgpu_report_gr_err(struct gk20a *g, u32 hw_unit, u32 inst,
  *				  - GPU_PMU_BAR0_ERROR_TIMEOUT
  * @param sub_err_type [in]	- Sub error type.
  *				  - This is a sub-error of the error that is
- *				    begin reported.
+ *				    being reported.
  * @param status [in]		- Error information.
  *
  * - Checks whether SDL is supported in the current GPU platform. If SDL is not
  *   supported, it simply returns.
- * - Validates both hw_unit and err_id indices. In case of a failure, invokes
- *   nvgpu_sdl_handle_report_failure() api.
+ * - Validates both \a hw_unit and \a err_id indices. In case of a failure,
+ *   invokes #nvgpu_sdl_handle_report_failure() api.
  * - Gets the current time of a clock. In case of a failure, invokes
- *   nvgpu_sdl_handle_report_failure() api.
- * - Gets error description from internal look-up table using hw_unit and
- *   err_id indices.
- * - Forms error packet using details such as time-stamp, hw_unit, err_id,
- *   criticality of the error, status, sub_err_type, error description, and size
- *   of the error packet.
+ *   #nvgpu_sdl_handle_report_failure() api.
+ * - Gets error description from internal look-up table using \a hw_unit and
+ *   \a err_id indices.
+ * - Forms error packet using details such as time-stamp, \a hw_unit, \a err_id,
+ *   criticality of the error, \a status, \a sub_err_type, error description,
+ *   and size of the error packet.
  * - Performs compile-time assert check to ensure that the size of the error
  *   packet does not exceed the maximum allowable size specified in
- *   MAX_ERR_MSG_SIZE.
+ *   #MAX_ERR_MSG_SIZE.
  * - Sends the error packet to report the error to the 3LSS framework. In case
- *   of a failure, invokes nvgpu_sdl_handle_report_failure() api.
- *
- * @return None
- * @retval None
+ *   of a failure, invokes #nvgpu_sdl_handle_report_failure() api.
  */
 void nvgpu_report_pmu_err(struct gk20a *g, u32 hw_unit, u32 err_id,
 	u32 sub_err_type, u32 status);
@@ -608,23 +590,20 @@ void nvgpu_report_pmu_err(struct gk20a *g, u32 hw_unit, u32 err_id,
  *
  * - Checks whether SDL is supported in the current GPU platform. If SDL is not
  *   supported, it simply returns.
- * - Validates both hw_unit and err_id indices. In case of a failure, invokes
- *   nvgpu_sdl_handle_report_failure() api.
+ * - Validates both \a hw_unit and \a err_id indices. In case of a failure,
+ *   invokes #nvgpu_sdl_handle_report_failure() api.
  * - Gets the current time of a clock. In case of a failure, invokes
- *   nvgpu_sdl_handle_report_failure() api.
- * - Gets error description from internal look-up table using hw_unit and
- *   err_id indices.
- * - Forms error packet using details such as time-stamp, hw_unit, err_id,
- *   criticality of the error, instance ID, err_addr, error description,
- *   err_code, and size of the error packet.
+ *   #nvgpu_sdl_handle_report_failure() api.
+ * - Gets error description from internal look-up table using \a hw_unit and
+ *   \a err_id indices.
+ * - Forms error packet using details such as time-stamp, \a hw_unit, \a err_id,
+ *   criticality of the error, \a inst, \a err_addr, error description,
+ *   \a err_code, and size of the error packet.
  * - Performs compile-time assert check to ensure that the size of the error
  *   packet does not exceed the maximum allowable size specified in
- *   MAX_ERR_MSG_SIZE.
+ *   #MAX_ERR_MSG_SIZE.
  * - Sends the error packet to report the error to the 3LSS framework. In case
- *   of a failure, invokes nvgpu_sdl_handle_report_failure() api.
- *
- * @return None
- * @retval None
+ *   of a failure, invokes #nvgpu_sdl_handle_report_failure() api.
  */
 void nvgpu_report_pri_err(struct gk20a *g, u32 hw_unit, u32 inst,
 		u32 err_id, u32 err_addr, u32 err_code);
@@ -641,27 +620,25 @@ void nvgpu_report_pri_err(struct gk20a *g, u32 hw_unit, u32 inst,
  * @param status [in]		- Error information.
  * @param sub_err_type [in]	- Sub error type.
  *				  - This is a sub-error of the error that is
- *				    begin reported.
+ *				    being reported.
  *
  * - Checks whether SDL is supported in the current GPU platform. If SDL is not
  *   supported, it simply returns.
- * - Validates both hw_unit and err_id indices. In case of a failure, invokes
- *   nvgpu_sdl_handle_report_failure() api.
+ * - Validates both \a hw_unit and \a err_id indices. In case of a failure,
+ *   invokes #nvgpu_sdl_handle_report_failure() api.
  * - Gets the current time of a clock. In case of a failure, invokes
- *   nvgpu_sdl_handle_report_failure() api.
- * - Gets error description from internal look-up table using hw_unit and
- *   err_id indices.
- * - Forms error packet using details such as time-stamp, hw_unit, err_id,
- *   criticality of the error, sub_err_type, error description, and size of the
- *   error packet. It also includes page fault information, if it is available.
+ *   #nvgpu_sdl_handle_report_failure() api.
+ * - Gets error description from internal look-up table using \a hw_unit and
+ *   \a err_id indices.
+ * - Forms error packet using details such as time-stamp, \a hw_unit, \a err_id,
+ *   criticality of the error, \a sub_err_type, error description, and size of
+ *   the error packet. It also includes page fault information, if it is
+ *   available.
  * - Performs compile-time assert check to ensure that the size of the error
  *   packet does not exceed the maximum allowable size specified in
- *   MAX_ERR_MSG_SIZE.
+ *   #MAX_ERR_MSG_SIZE.
  * - Sends the error packet to report the error to the 3LSS framework. In case
- *   of a failure, invokes nvgpu_sdl_handle_report_failure() api.
- *
- * @return None
- * @retval None
+ *   of a failure, invokes #nvgpu_sdl_handle_report_failure() api.
  */
 void nvgpu_report_mmu_err(struct gk20a *g, u32 hw_unit,
 		u32 err_id, struct mmu_fault_info *fault_info,
