@@ -36,15 +36,14 @@ static struct option core_opts[] = {
 	{ "no-color",		0, NULL, 'C' },
 	{ "nvtest",		0, NULL, 'n' },
 	{ "is-qnx",		0, NULL, 'Q' },
-
 	{ "unit-load-path",	1, NULL, 'L' },
 	{ "num-threads",	1, NULL, 'j' },
 	{ "test-level",		1, NULL, 't' },
-
+	{ "debug",		0, NULL, 'd' },
 	{ NULL,			0, NULL,  0  }
 };
 
-static const char *core_opts_str = "hvqCnQL:j:t:";
+static const char *core_opts_str = "hvqCnQL:j:t:d";
 
 void core_print_help(struct unit_fw *fw)
 {
@@ -73,6 +72,8 @@ void core_print_help(struct unit_fw *fw)
 "                         Number of threads to use while running all tests.\n",
 "  -t, --test-level <LEVEL>\n",
 "                         Test plan level. 0=L0, 1=L1. default: 1\n",
+"  -d, --debug            Disable signal handling to facilitate debug of",
+"                         crashes.\n",
 "\n",
 "Note: mandatory arguments to long arguments are mandatory for short\n",
 "arguments as well.\n",
@@ -161,6 +162,9 @@ int core_parse_args(struct unit_fw *fw, int argc, char **argv)
 				core_err(fw, "Invalid test plan level\n");
 				return -1;
 			}
+			break;
+		case 'd':
+			args->debug = true;
 			break;
 		case '?':
 			args->help = true;

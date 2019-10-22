@@ -191,10 +191,11 @@ int core_exec(struct unit_fw *fw)
 	sem_init(&unit_thread_semaphore, 0, fw->args->thread_count);
 
 	/*
-	 * If running single threaded, keep the default SIGSEGV handler to make
-	 * interactive debugging easier, otherwise install the custom one.
+	 * By default, use a custom signal hanlder to catch faults such as
+	 * SIGSEGV. This can be disabled with the -d argument to make it
+	 * easier to investigate with a debugger.
 	 */
-	if (fw->args->thread_count > 1) {
+	if (!fw->args->debug) {
 		err = install_thread_error_handler();
 		if (err != 0) {
 			core_msg_color(fw, C_RED,

@@ -47,6 +47,7 @@ struct unit_fw_args {
 	bool		 nvtest;
 	bool		 is_qnx;
 	unsigned int	 test_lvl;
+	bool		 debug;
 	const char	*binary_name;
 
 	const char	*unit_name;
