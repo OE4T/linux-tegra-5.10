@@ -58,6 +58,12 @@ struct pva_version_info {
 #define MIN_PVA_FREQUENCY	10000000
 
 /**
+ * Maximum number of IRQS to be serviced by the driver. Gen1 has a single IRQ,
+ * Gen2 has 9.
+ */
+#define MAX_PVA_IRQS	9
+
+/**
  * @brief		struct to hold the segment details
  *
  * addr:		virtual addr of the segment from PRIV2 address base
@@ -149,6 +155,16 @@ struct pva_func_table {
 };
 
 /**
+ * @brief		HW version specific configuration and functions
+ *
+ * irq_count		Number of IRQs associated with this PVA revision
+ *
+ */
+struct pva_version_config {
+	int irq_count;
+};
+
+/**
  * @brief		Driver private data, shared with all applications
  *
  * version      pva version; 1 or 2
@@ -175,11 +191,12 @@ struct pva_func_table {
  */
 struct pva {
 	int version;
+	struct pva_version_config *version_config;
 	struct platform_device *pdev;
 	struct nvhost_queue_pool *pool;
 	struct pva_fw fw_info;
 
-	int irq;
+	int irq[MAX_PVA_IRQS];
 
 	wait_queue_head_t mailbox_waitqueue;
 	struct pva_mailbox_status_regs mailbox_status_regs;
@@ -251,7 +268,7 @@ int pva_finalize_poweron(struct platform_device *pdev);
 int pva_prepare_poweroff(struct platform_device *pdev);
 
 /**
- * @brief	Register PVA ISR.
+ * @brief	Register PVA ISR
  *
  * This function called from driver to register the
  * PVA ISR with IRQ.

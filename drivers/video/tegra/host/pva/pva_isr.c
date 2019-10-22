@@ -25,7 +25,11 @@
 #include "dev.h"
 #include "pva.h"
 
-static irqreturn_t pva_isr(int irq, void *dev_id)
+#ifdef CONFIG_TEGRA_T23X_GRHOST
+#include "pva_isr_t23x.h"
+#endif
+
+static irqreturn_t pva_system_isr(int irq, void *dev_id)
 {
 	struct pva *pva = dev_id;
 	struct platform_device *pdev = pva->pdev;
@@ -69,6 +73,7 @@ static irqreturn_t pva_isr(int irq, void *dev_id)
 		pva_mailbox_isr(pva);
 	}
 
+
 	/* Check for watchdog timer interrupt */
 	if (lic_int_status & sec_lic_intr_enable_wdt_f(SEC_LIC_INTR_WDT)) {
 		nvhost_warn(&pdev->dev, "WatchDog Timer");
@@ -101,24 +106,37 @@ int pva_register_isr(struct platform_device *dev)
 	struct nvhost_device_data *pdata = platform_get_drvdata(dev);
 	struct pva *pva = pdata->private_data;
 	int err;
+	int i;
+	irq_handler_t irq_handler;
 
-	pva->irq = platform_get_irq(dev, 0);
-	if (pva->irq <= 0) {
-		dev_err(&dev->dev, "no irq\n");
-		err = -ENOENT;
-		goto isr_err;
+	for (i = 0; i < pva->version_config->irq_count; i++) {
+		pva->irq[i] = platform_get_irq(dev, i);
+		if (pva->irq[i] <= 0) {
+			dev_err(&dev->dev, "no irq %d\n", i);
+			err = -ENOENT;
+			break;
+		}
+		/* IRQ0 is for mailbox/h1x/watchdog */
+		if (i == 0) {
+			irq_handler = pva_system_isr;
+		} else {
+#ifdef CONFIG_TEGRA_T23X_GRHOST
+			irq_handler = pva_ccq_isr;
+#else
+			pr_err("%s: invalid number of IRQs for build type\n",
+			       __func__);
+			err = -EINVAL;
+			break;
+#endif
+		}
+		err = request_threaded_irq(pva->irq[i], NULL, irq_handler,
+					IRQF_ONESHOT, "pva-isr", pva);
+		if (err) {
+			pr_err("%s: request_irq(%d) failed(%d)\n", __func__,
+				pva->irq[i], err);
+			break;
+		}
+		disable_irq(pva->irq[i]);
 	}
-
-	err = request_threaded_irq(pva->irq, NULL, pva_isr,
-				   IRQF_ONESHOT, "pva-isr", pva);
-	if (err) {
-		pr_err("%s: request_irq(%d) failed(%d)\n", __func__,
-		pva->irq, err);
-		goto isr_err;
-	}
-
-	disable_irq(pva->irq);
-
-isr_err:
 	return err;
 }

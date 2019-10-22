@@ -70,6 +70,14 @@ static struct of_device_id tegra_pva_of_match[] = {
 	{ },
 };
 
+static struct pva_version_config pva_v1_config = {
+	.irq_count = 1,
+};
+
+static struct pva_version_config pva_v2_config = {
+	.irq_count = 9,
+};
+
 #define EVP_REG_NUM 8
 static u32 pva_get_evp_reg(u32 index)
 {
@@ -623,6 +631,7 @@ int pva_finalize_poweron(struct platform_device *pdev)
 	struct nvhost_device_data *pdata = platform_get_drvdata(pdev);
 	struct pva *pva = pdata->private_data;
 	int err = 0;
+	int i;
 
 	/* Enable LIC_INTERRUPT line for HSP1, H1X and WDT */
 	host1x_writel(pva->pdev, sec_lic_intr_enable_r(pva->version),
@@ -636,7 +645,8 @@ int pva_finalize_poweron(struct platform_device *pdev)
 		goto err_poweron;
 	}
 
-	enable_irq(pva->irq);
+	for (i = 0; i < pva->version_config->irq_count; i++)
+		enable_irq(pva->irq[i]);
 
 	err = pva_init_fw(pdev);
 	if (err < 0) {
@@ -654,7 +664,8 @@ int pva_finalize_poweron(struct platform_device *pdev)
 	return err;
 
 err_poweron:
-	disable_irq(pva->irq);
+	for (i = 0; i < pva->version_config->irq_count; i++)
+		disable_irq(pva->irq[i]);
 	return err;
 }
 
@@ -662,12 +673,14 @@ int pva_prepare_poweroff(struct platform_device *pdev)
 {
 	struct nvhost_device_data *pdata = platform_get_drvdata(pdev);
 	struct pva *pva = pdata->private_data;
+	int i;
 
 	/*
 	 * Disable IRQs. Interrupt handler won't be under execution after the
 	 * call returns.
 	 */
-	disable_irq(pva->irq);
+	for (i = 0; i < pva->version_config->irq_count; i++)
+		disable_irq(pva->irq[i]);
 
 	/* Put PVA to reset to ensure that the firmware doesn't get accessed */
 	reset_control_assert(pdata->reset_control);
@@ -722,9 +735,11 @@ static int pva_probe(struct platform_device *pdev)
 	/* Initialize PVA private data */
 	if (tegra_get_chipid() == TEGRA_CHIPID_TEGRA23) {
 		pva->version = 2;
+		pva->version_config = &pva_v2_config;
 		nvhost_dbg_info("PVA gen2 detected.");
 	} else {
 		pva->version = 1;
+		pva->version_config = &pva_v1_config;
 		nvhost_dbg_info("PVA gen1 detected.");
 	}
 	pva->pdev = pdev;
@@ -826,10 +841,12 @@ static int __exit pva_remove(struct platform_device *pdev)
 {
 	struct nvhost_device_data *pdata = platform_get_drvdata(pdev);
 	struct pva *pva = pdata->private_data;
+	int i;
 
 	nvhost_queue_deinit(pva->pool);
 	nvhost_client_device_release(pdev);
-	free_irq(pva->irq, pdata);
+	for (i = 0; i < pva->version_config->irq_count; i++)
+		free_irq(pva->irq[i], pdata);
 
 	return 0;
 }
