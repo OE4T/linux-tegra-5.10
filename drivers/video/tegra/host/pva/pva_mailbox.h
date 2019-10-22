@@ -1,7 +1,7 @@
 /*
  * PVA mailbox header
  *
- * Copyright (c) 2016-2018, NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -24,18 +24,19 @@
 #include "pva-interface.h"
 
 /* Total CCQ status registers */
-#define PVA_CCQ_STATUS_REGS	9
+#define PVA_CCQ_STATUS_REGS    9
 
-/* Symbolic definitions of the CCQ status registers */
-#define PVA_CCQ_STATUS0_INDEX	0
-#define PVA_CCQ_STATUS1_INDEX	1
-#define PVA_CCQ_STATUS2_INDEX	2
-#define PVA_CCQ_STATUS3_INDEX	3
-#define PVA_CCQ_STATUS4_INDEX	4
-#define PVA_CCQ_STATUS5_INDEX	5
-#define PVA_CCQ_STATUS6_INDEX	6
-#define PVA_CCQ_STATUS7_INDEX	7
-#define PVA_CCQ_STATUS8_INDEX	8
+// Symbolic definitions of the CCQ status registers
+#define PVA_CCQ_STATUS0_INDEX   0
+#define PVA_CCQ_STATUS1_INDEX   1
+#define PVA_CCQ_STATUS2_INDEX   2
+#define PVA_CCQ_STATUS3_INDEX   3
+#define PVA_CCQ_STATUS4_INDEX   4
+#define PVA_CCQ_STATUS5_INDEX   5
+#define PVA_CCQ_STATUS6_INDEX   6
+#define PVA_CCQ_STATUS7_INDEX   7
+#define PVA_CCQ_STATUS8_INDEX   8
+
 
 /* Number of valid MBOX registers used for sending commands */
 #define VALID_MB_INPUT_REGS 4
@@ -130,33 +131,5 @@ void pva_mailbox_isr(struct pva *pva);
  * the mailbox register set by the ucode.
  */
 int pva_mailbox_wait_event(struct pva *pva, int wait_time);
-
-/**
- * pva_read_mailbox() - read a mailbox register
- *
- * @pva:			Pointer to PVA structure
- * @mbox:		mailbox register to be written
- *
- * This function will read the indicated mailbox register and return its
- * contents.  it uses side channel B as host would.
- *
- * Return Value:
- *	contents of the indicated mailbox register
- */
-u32 pva_read_mailbox(struct platform_device *pdev, u32 mbox_id);
-
-/**
- * pva_write_mailbox() - write to a mailbox register
- *
- * @pva:			Pointer to PVA structure
- * @mbox:		mailbox register to be written
- * @value:		value to be written into the mailbox register
- *
- * This function will write a value into the indicated mailbox register.
- *
- * Return Value:
- *	none
- */
-void pva_write_mailbox(struct platform_device *pdev, u32 mbox_id, u32 value);
 
 #endif /*__PVA_MAINBOX_H__*/

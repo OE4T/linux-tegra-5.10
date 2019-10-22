@@ -11,6 +11,9 @@ nvhost-pva-objs  = \
 		pva.o \
 		pva_ioctl.o \
 		pva_mailbox.o \
+		pva_interface_regs_t19x.o \
+		pva_version_config_t19x.o \
+		pva_mailbox_t19x.o \
 		pva_isr.o \
 		pva_queue.o \
 		pva_debug.o \

@@ -160,14 +160,24 @@ struct pva_func_table {
  * irq_count		Number of IRQs associated with this PVA revision
  *
  */
+
+struct pva_status_interface_registers {
+	uint32_t registers[5];
+};
 struct pva_version_config {
+	u32 (*read_mailbox)(struct platform_device *pdev, u32 mbox_id);
+	void (*write_mailbox)(struct platform_device *pdev,
+					u32 mbox_id, u32 value);
+	void (*read_status_interface)(struct pva *pva,
+				uint32_t interface_id, u32 isr_status,
+				struct pva_mailbox_status_regs *status_output);
 	int irq_count;
 };
 
 /**
  * @brief		Driver private data, shared with all applications
  *
- * version      pva version; 1 or 2
+ * version		pva version; 1 or 2
  * pdev			Pointer to the PVA device
  * pool			Pointer to Queue table available for the PVA
  * fw_info		firmware information struct

@@ -149,7 +149,7 @@ int pva_run_ucode_selftest(struct platform_device *pdev)
 		goto err_selftest;
 	}
 
-	reg_status = pva_read_mailbox(pdev, PVA_MBOX_ISR);
+	reg_status = pva->version_config->read_mailbox(pdev, PVA_MBOX_ISR);
 
 	/* check test passed bit set and test status done*/
 	if ((ucode_mode & PVA_TESTS_PASSED) &&
