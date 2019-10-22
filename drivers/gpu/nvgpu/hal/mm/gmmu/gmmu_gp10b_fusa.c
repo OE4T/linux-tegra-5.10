@@ -415,3 +415,8 @@ const struct gk20a_mmu_level *gp10b_mm_get_mmu_levels(struct gk20a *g,
 {
 	return gp10b_mm_levels;
 }
+
+u32 gp10b_get_max_page_table_levels(struct gk20a *g)
+{
+	return 5U;
+}

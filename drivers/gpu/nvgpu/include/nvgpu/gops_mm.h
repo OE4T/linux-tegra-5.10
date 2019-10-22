@@ -371,6 +371,16 @@ struct gops_mm {
 			(*get_mmu_levels)(struct gk20a *g, u64 big_page_size);
 
 		/**
+		 * @brief HAL to get maximum page table levels supported by the
+		 * GMMU HW.
+		 *
+		 * @param g             [in]	The GPU.
+		 *
+		 * @return Page table levels supported by GPU.
+		 */
+		u32 (*get_max_page_table_levels)(struct gk20a *g);
+
+		/**
 		 * @brief HAL functions for GMMU Map.
 		 *
 		 * @param vm            [in]	Pointer to virtual memory

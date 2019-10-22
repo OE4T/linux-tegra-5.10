@@ -1139,6 +1139,8 @@ static const struct gpu_ops gv11b_ops = {
 		},
 		.gmmu = {
 			.get_mmu_levels = gp10b_mm_get_mmu_levels,
+			.get_max_page_table_levels =
+				gp10b_get_max_page_table_levels,
 			.map = nvgpu_gmmu_map_locked,
 			.unmap = nvgpu_gmmu_unmap_locked,
 			.get_big_page_sizes = gm20b_mm_get_big_page_sizes,

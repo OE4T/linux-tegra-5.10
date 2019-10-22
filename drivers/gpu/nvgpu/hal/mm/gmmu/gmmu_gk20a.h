@@ -32,6 +32,7 @@ struct gk20a;
 
 const struct gk20a_mmu_level *gk20a_mm_get_mmu_levels(struct gk20a *g,
 						      u64 big_page_size);
+u32 gk20a_get_max_page_table_levels(struct gk20a *g);
 u32 gk20a_mm_get_iommu_bit(struct gk20a *g);
 #endif
 

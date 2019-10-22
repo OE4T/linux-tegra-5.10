@@ -668,6 +668,8 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 			.gpu_phys_addr = gm20b_gpu_phys_addr,
 			.get_iommu_bit = gk20a_mm_get_iommu_bit,
 			.get_mmu_levels = gp10b_mm_get_mmu_levels,
+			.get_max_page_table_levels =
+				gp10b_get_max_page_table_levels,
 		},
 	},
 #ifdef CONFIG_NVGPU_DGPU
