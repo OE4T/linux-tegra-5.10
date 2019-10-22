@@ -23,6 +23,13 @@
 #ifndef NVGPU_PD_CACHE_H
 #define NVGPU_PD_CACHE_H
 
+/**
+ * @file
+ *
+ * Page directory cache interface.
+ */
+
+
 #include <nvgpu/types.h>
 
 struct gk20a;

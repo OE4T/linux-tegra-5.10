@@ -26,7 +26,17 @@
 /**
  * @file
  *
- * Abstract interface for interacting with general Process memory.
+ * Kmem cache support
+ * ------------------
+ *
+ * In Linux there is support for the notion of a kmem_cache. It gives better
+ * memory usage characteristics for lots of allocations of the same size. Think
+ * structs that get allocated over and over. Normal kmalloc() type routines
+ * typically round to the next power-of-2 since that's easy.
+ *
+ * But if we know the size ahead of time the packing for the allocations can be
+ * much better. This is the benefit of a slab allocator. This type hides the
+ * underlying kmem_cache (or absense thereof).
  */
 
 #include <nvgpu/types.h>
@@ -44,21 +54,6 @@ struct gk20a;
 #include <nvgpu/posix/kmem.h>
 #endif
 
-/**
- * @file
- *
- * Kmem cache support
- * ------------------
- *
- * In Linux there is support for the notion of a kmem_cache. It gives better
- * memory usage characteristics for lots of allocations of the same size. Think
- * structs that get allocated over and over. Normal kmalloc() type routines
- * typically round to the next power-of-2 since that's easy.
- *
- * But if we know the size ahead of time the packing for the allocations can be
- * much better. This is the benefit of a slab allocator. This type hides the
- * underlying kmem_cache (or absense thereof).
- */
 struct nvgpu_kmem_cache;
 
 #ifdef CONFIG_NVGPU_TRACK_MEM_USAGE

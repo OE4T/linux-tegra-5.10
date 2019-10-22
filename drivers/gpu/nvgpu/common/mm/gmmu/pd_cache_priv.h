@@ -23,18 +23,11 @@
 #ifndef NVGPU_GMMU_PD_CACHE_PRIV_H
 #define NVGPU_GMMU_PD_CACHE_PRIV_H
 
-#include <nvgpu/bug.h>
-#include <nvgpu/log.h>
-#include <nvgpu/gmmu.h>
-#include <nvgpu/nvgpu_mem.h>
-#include <nvgpu/list.h>
-#include <nvgpu/rbtree.h>
-#include <nvgpu/lock.h>
-
-#define pd_dbg(g, fmt, args...) nvgpu_log(g, gpu_dbg_pd_cache, fmt, ##args)
-
 /**
- * DOC: PD cache
+ * @file
+ *
+ * Page directory cache private interface
+ * --------------------------------------
  *
  * To save memory when using sub-page sized PD levels in Pascal and beyond a way
  * of packing PD tables together is necessary. If a PD table only requires 1024
@@ -72,6 +65,16 @@
  * from the PD cache or directly. Similarly nvgpu_pd_free() will free a PD
  * allocated by nvgpu_pd_alloc().
  */
+
+#include <nvgpu/bug.h>
+#include <nvgpu/log.h>
+#include <nvgpu/gmmu.h>
+#include <nvgpu/nvgpu_mem.h>
+#include <nvgpu/list.h>
+#include <nvgpu/rbtree.h>
+#include <nvgpu/lock.h>
+
+#define pd_dbg(g, fmt, args...) nvgpu_log(g, gpu_dbg_pd_cache, fmt, ##args)
 
 /**
  * Minimum size of a cache. The number of different caches in the nvgpu_pd_cache

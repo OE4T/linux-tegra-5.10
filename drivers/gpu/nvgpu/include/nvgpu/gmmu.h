@@ -23,6 +23,12 @@
 #ifndef NVGPU_GMMU_H
 #define NVGPU_GMMU_H
 
+/**
+ * @file
+ *
+ * GMMU interface.
+ */
+
 #include <nvgpu/types.h>
 #include <nvgpu/nvgpu_mem.h>
 #include <nvgpu/list.h>

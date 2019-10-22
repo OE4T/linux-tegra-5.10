@@ -23,18 +23,12 @@
 #ifndef PAGE_ALLOCATOR_PRIV_H
 #define PAGE_ALLOCATOR_PRIV_H
 
-#ifdef CONFIG_NVGPU_DGPU
-
-#include <nvgpu/allocator.h>
-#include <nvgpu/nvgpu_mem.h>
-#include <nvgpu/nvgpu_sgt.h>
-#include <nvgpu/kmem.h>
-#include <nvgpu/list.h>
-#include <nvgpu/rbtree.h>
-
-struct nvgpu_allocator;
-
 /**
+ * @file
+ *
+ * Page allocator interface
+ * ------------------------
+ *
  * This allocator implements the ability to do SLAB style allocation since the
  * GPU has two page sizes available - 4k and 64k/128k. When the default
  * granularity is the large page size (64k/128k) small allocations become very
@@ -53,6 +47,17 @@ struct nvgpu_allocator;
  * When an allocation comes in for less than the large page size (from now on
  * assumed to be 64k) the allocation is satisfied by one of the buckets.
  */
+
+#ifdef CONFIG_NVGPU_DGPU
+
+#include <nvgpu/allocator.h>
+#include <nvgpu/nvgpu_mem.h>
+#include <nvgpu/nvgpu_sgt.h>
+#include <nvgpu/kmem.h>
+#include <nvgpu/list.h>
+#include <nvgpu/rbtree.h>
+
+struct nvgpu_allocator;
 
 /**
  * Structure to identify slab allocations.
