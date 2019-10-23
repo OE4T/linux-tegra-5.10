@@ -316,6 +316,7 @@ int nvgpu_clk_set_req_fll_clk_ps35(struct gk20a *g,
 		return status;
 	}
 
+	gpcclk_voltuv += vmargin_uv;
 	status = nvgpu_volt_get_vmin_vmax_ps35(g, &vmin_uv, &vmax_uv);
 	if (status != 0) {
 		nvgpu_pmu_dbg(g, "Get vmin,vmax failed, proceeding with "
