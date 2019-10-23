@@ -456,6 +456,9 @@ static int nvgpu_set_pd_level(struct vm_gk20a *vm,
 		"        ",  /* L=4 */
 	};
 
+	/* This limits recursion */
+	nvgpu_assert(lvl < g->ops.mm.gmmu.get_max_page_table_levels(g));
+
 	pde_range = 1ULL << (u64)l->lo_bit[attrs->pgsz];
 
 	nvgpu_gmmu_dbg_v(g, attrs,

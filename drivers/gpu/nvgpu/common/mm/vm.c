@@ -185,7 +185,11 @@ static void nvgpu_vm_do_free_entries(struct vm_gk20a *vm,
 				     struct nvgpu_gmmu_pd *pd,
 				     u32 level)
 {
+	struct gk20a *g = gk20a_from_vm(vm);
 	u32 i;
+
+	/* This limits recursion */
+	nvgpu_assert(level < g->ops.mm.gmmu.get_max_page_table_levels(g));
 
 	if (pd->mem != NULL) {
 		nvgpu_pd_free(vm, pd);
