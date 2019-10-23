@@ -142,7 +142,7 @@ static int nvgpu_sw_quiesce_init_support(struct gk20a *g)
 	return 0;
 }
 
-static void nvgpu_sw_quiesce_remove_support(struct gk20a *g)
+void nvgpu_sw_quiesce_remove_support(struct gk20a *g)
 {
 #ifndef CONFIG_NVGPU_RECOVERY
 	if (g->sw_quiesce_init_done) {

@@ -129,6 +129,18 @@ int nvgpu_prepare_poweroff(struct gk20a *g);
 void nvgpu_sw_quiesce(struct gk20a *g);
 
 /**
+ * @brief Cleanup SW Quiesce state
+ *
+ * @param g [in] The GPU
+ *
+ * If SW Quiesce was previously initialized:
+ * - Stop the quiesce thread.
+ * - Destroy cond object.
+ * - Mark Quiesce as uninitialized.
+ */
+void nvgpu_sw_quiesce_remove_support(struct gk20a *g);
+
+/**
  * @brief Start GPU idle
  *
  * @param g [in] The GPU
