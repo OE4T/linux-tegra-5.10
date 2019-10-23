@@ -23,6 +23,12 @@
 #ifndef NVGPU_ALLOCATOR_H
 #define NVGPU_ALLOCATOR_H
 
+/**
+ * @file
+ *
+ * Allocator interface.
+ */
+
 #ifdef __KERNEL__
 /*
  * The Linux kernel has this notion of seq_files for printing info to userspace.
@@ -289,6 +295,12 @@ nvgpu_alloc_carveout_from_co_entry(struct nvgpu_list_node *node)
 	}
 
 /**
+ * Possible GPU allocation flags.
+ * @addtogroup GPU_ALLOC_FLAGS
+ * @{
+ */
+
+/**
  *     This flag makes sense for the buddy allocator only. It specifies that the
  *     allocator will be used for managing a GVA space. When managing GVA spaces
  *     special care has to be taken to ensure that allocations of similar PTE
@@ -341,6 +353,8 @@ nvgpu_alloc_carveout_from_co_entry(struct nvgpu_list_node *node)
  *     set as well).
  */
 #define GPU_ALLOC_NO_SCATTER_GATHER	BIT64(4)
+
+/** @}*/
 
 /** Enumerated type used to identify various allocator types */
 enum nvgpu_allocator_type {
