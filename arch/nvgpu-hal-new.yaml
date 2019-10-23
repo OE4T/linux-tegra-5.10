@@ -628,7 +628,8 @@ mc:
 fb_fusa:
   safe: yes
   owner: Seshendra G
-  sources: [ hal/fb/fb_gm20b_fusa.c,
+  sources: [ include/nvgpu/gops_fb.h,
+             hal/fb/fb_gm20b_fusa.c,
              hal/fb/fb_gm20b.h,
              hal/fb/fb_gv11b_fusa.c,
              hal/fb/fb_gv11b.h,

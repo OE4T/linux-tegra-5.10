@@ -36,6 +36,7 @@
  *   - @ref unit-mm
  *   - @ref unit-fifo
  *   - @ref unit-gr
+ *   - @ref unit-fb
  *   - @ref unit-devctl
  *   - @ref unit-sdl
  *   - @ref unit-init
@@ -153,6 +154,7 @@ enum nvgpu_unit;
 #include <nvgpu/gops_mm.h>
 #include <nvgpu/gops_priv_ring.h>
 #include <nvgpu/gops_therm.h>
+#include <nvgpu/gops_fb.h>
 
 #include "hal/clk/clk_gk20a.h"
 
@@ -290,91 +292,8 @@ struct gpu_ops {
 		bool (*is_valid_compute)(u32 class_num);
 	} gpu_class;
 
-	struct {
-		struct nvgpu_hw_err_inject_info_desc * (*get_hubmmu_err_desc)
-			(struct gk20a *g);
-		void (*init_hw)(struct gk20a *g);
-		void (*init_fs_state)(struct gk20a *g);
-		void (*init_uncompressed_kind_map)(struct gk20a *g);
-		void (*init_kind_attr)(struct gk20a *g);
-		void (*set_mmu_page_size)(struct gk20a *g);
-		u32 (*mmu_ctrl)(struct gk20a *g);
-		u32 (*mmu_debug_ctrl)(struct gk20a *g);
-		u32 (*mmu_debug_wr)(struct gk20a *g);
-		u32 (*mmu_debug_rd)(struct gk20a *g);
+	struct gops_fb fb;
 
-#ifdef CONFIG_NVGPU_COMPRESSION
-		void (*cbc_configure)(struct gk20a *g, struct nvgpu_cbc *cbc);
-		bool (*set_use_full_comp_tag_line)(struct gk20a *g);
-
-		/*
-		 * Compression tag line coverage. When mapping a compressible
-		 * buffer, ctagline is increased when the virtual address
-		 * crosses over the compression page boundary.
-		 */
-		u64 (*compression_page_size)(struct gk20a *g);
-
-		/*
-		 * Minimum page size that can be used for compressible kinds.
-		 */
-		unsigned int (*compressible_page_size)(struct gk20a *g);
-
-		/*
-		 * Compressible kind mappings: Mask for the virtual and physical
-		 * address bits that must match.
-		 */
-		u64 (*compression_align_mask)(struct gk20a *g);
-#endif
-
-		void (*dump_vpr_info)(struct gk20a *g);
-		void (*dump_wpr_info)(struct gk20a *g);
-		int (*vpr_info_fetch)(struct gk20a *g);
-		void (*read_wpr_info)(struct gk20a *g, u64 *wpr_base, u64 *wpr_size);
-#ifdef CONFIG_NVGPU_DEBUGGER
-		bool (*is_debug_mode_enabled)(struct gk20a *g);
-		void (*set_debug_mode)(struct gk20a *g, bool enable);
-		void (*set_mmu_debug_mode)(struct gk20a *g, bool enable);
-#endif
-		int (*tlb_invalidate)(struct gk20a *g, struct nvgpu_mem *pdb);
-		void (*handle_replayable_fault)(struct gk20a *g);
-		int (*mem_unlock)(struct gk20a *g);
-		int (*init_nvlink)(struct gk20a *g);
-		int (*enable_nvlink)(struct gk20a *g);
-		int (*init_fbpa)(struct gk20a *g);
-		void (*handle_fbpa_intr)(struct gk20a *g, u32 fbpa_id);
-		void (*write_mmu_fault_buffer_lo_hi)(struct gk20a *g, u32 index,
-			u32 addr_lo, u32 addr_hi);
-		void (*write_mmu_fault_buffer_get)(struct gk20a *g, u32 index,
-			u32 reg_val);
-		void (*write_mmu_fault_buffer_size)(struct gk20a *g, u32 index,
-			u32 reg_val);
-		void (*write_mmu_fault_status)(struct gk20a *g, u32 reg_val);
-		u32 (*read_mmu_fault_buffer_get)(struct gk20a *g, u32 index);
-		u32 (*read_mmu_fault_buffer_put)(struct gk20a *g, u32 index);
-		u32 (*read_mmu_fault_buffer_size)(struct gk20a *g, u32 index);
-		void (*read_mmu_fault_addr_lo_hi)(struct gk20a *g,
-			u32 *addr_lo, u32 *addr_hi);
-		void (*read_mmu_fault_inst_lo_hi)(struct gk20a *g,
-			u32 *inst_lo, u32 *inst_hi);
-		u32 (*read_mmu_fault_info)(struct gk20a *g);
-		u32 (*read_mmu_fault_status)(struct gk20a *g);
-		int (*mmu_invalidate_replay)(struct gk20a *g,
-			u32 invalidate_replay_val);
-		bool (*is_fault_buf_enabled)(struct gk20a *g, u32 index);
-		void (*fault_buf_set_state_hw)(struct gk20a *g,
-				 u32 index, u32 state);
-		void (*fault_buf_configure_hw)(struct gk20a *g, u32 index);
-#ifdef CONFIG_NVGPU_DGPU
-		size_t (*get_vidmem_size)(struct gk20a *g);
-#endif
-		int (*apply_pdb_cache_war)(struct gk20a *g);
-		struct {
-			void (*enable)(struct gk20a *g);
-			void (*disable)(struct gk20a *g);
-			void (*isr)(struct gk20a *g);
-			bool (*is_mmu_fault_pending)(struct gk20a *g);
-		} intr;
-	} fb;
 	struct {
 		u32 (*falcon_base_addr)(void);
 	} nvdec;
