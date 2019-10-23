@@ -29,8 +29,6 @@
 #include "bus_client_t194.h"
 #include "nvhost_syncpt_unit_interface.h"
 
-#define SYNCPT_SIZE		0x1000
-
 struct syncpt_unit_interface {
 	dma_addr_t start;
 	uint32_t syncpt_page_size;
@@ -390,7 +388,9 @@ EXPORT_SYMBOL(nvhost_syncpt_unit_interface_get_aperture);
  */
 u32 nvhost_syncpt_unit_interface_get_byte_offset(u32 syncpt_id)
 {
-	return syncpt_id * SYNCPT_SIZE;
+	struct nvhost_master *host = nvhost_get_prim_host();
+
+	return syncpt_id * host->info.syncpt_page_size;
 }
 EXPORT_SYMBOL(nvhost_syncpt_unit_interface_get_byte_offset);
 
