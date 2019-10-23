@@ -35,6 +35,7 @@
  *
  *   - @ref unit-ce
  *   - @ref unit-mm
+ *   - @ref unit-common-bus
  *   - @ref unit-fifo
  *   - @ref unit-gr
  *   - @ref unit-fb
@@ -139,6 +140,7 @@ enum nvgpu_unit;
 #include <nvgpu/gops_ce.h>
 #include <nvgpu/gops_ptimer.h>
 #include <nvgpu/gops_top.h>
+#include <nvgpu/gops_bus.h>
 #include <nvgpu/gops_gr.h>
 #include <nvgpu/gops_falcon.h>
 #include <nvgpu/gops_fifo.h>
@@ -578,20 +580,7 @@ struct gpu_ops {
 	u32 (*get_litter_value)(struct gk20a *g, int value);
 	int (*chip_init_gpu_characteristics)(struct gk20a *g);
 
-	struct {
-		int (*init_hw)(struct gk20a *g);
-		void (*isr)(struct gk20a *g);
-		int (*bar1_bind)(struct gk20a *g, struct nvgpu_mem *bar1_inst);
-		int (*bar2_bind)(struct gk20a *g, struct nvgpu_mem *bar1_inst);
-#ifdef CONFIG_NVGPU_DGPU
-		u32 (*set_bar0_window)(struct gk20a *g, struct nvgpu_mem *mem,
-			struct nvgpu_sgt *sgt, struct nvgpu_sgl *sgl,
-			u32 w);
-#endif
-		u32 (*read_sw_scratch)(struct gk20a *g, u32 index);
-		void (*write_sw_scratch)(struct gk20a *g, u32 index, u32 val);
-		void (*configure_debug_bus)(struct gk20a *g);
-	} bus;
+	struct gops_bus bus;
 
 	struct gops_ptimer ptimer;
 

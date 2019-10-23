@@ -6,7 +6,8 @@
 bus_fusa:
   safe: yes
   owner: Terje B
-  sources: [ hal/bus/bus_gk20a_fusa.c,
+  sources: [ include/nvgpu/gops_bus.h,
+             hal/bus/bus_gk20a_fusa.c,
              hal/bus/bus_gk20a.h,
              hal/bus/bus_gm20b_fusa.c, hal/bus/bus_gm20b.h,
              hal/bus/bus_gp10b_fusa.c, hal/bus/bus_gp10b.h,
