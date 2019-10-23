@@ -138,6 +138,21 @@ Required properties:
 				routed to the Tx queue specified in
 				nvidia,mtl-queues property at the same index
 				position.
+- nvidia,slot_num_check:	List of flags (0x0 to disable, 0x1 to enable)
+				to configure slot function per DMA channel.
+				Once this flag is enabled the corresponding TX
+				queue will be configured in AVB Strict priority
+				mode, not in CBS mode. So it will starve
+				TX queue 0 hence it is recommended to enable
+				CBS to set bandwidth limits as per use case.
+				The TX queue 0 can't be programmed for AVB mode,
+				so the corresponding DMA channel can't be
+				configured for slot function.
+- nvidia,slot_intvl_vals:	List of slot intervals (with a range from 1usec
+				to 4096usec) for fetching the data from
+				system memory per DMA channel give in
+				the dma-chans property. If this is not
+				specified 125usec default will be used.
 - nvidia,rx-queue-prio: 	Each byte in this property is a bit map of
 				individual vlan priorities 0 to 7. When a bit is
 				uniquely set in this property i.e. same bit map
@@ -222,6 +237,8 @@ Example:
 		nvidia,num-mtl-queues = <4>;
 		nvidia,mtl-queues = <0 1 2 3>;
 		nvidia,rx-queue-prio = <0x2 0x1 0x30 0x48>;
+		nvidia,slot_num_check = <0x0 0x1 0x1 0x1>;
+		nvidia,slot_intvl_vals = <0x0 0x7D 0x7D 0x7D>;
 		nvidia,dcs-enable = <0x0>;
 		nvidia,tx-queue-prio = <0x0 0x7 0x2 0x3>;
 		iommus = <&smmu TEGRA_SID_EQOS>;
