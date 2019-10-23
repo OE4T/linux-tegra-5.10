@@ -384,6 +384,7 @@ nvgpu_spinlock_acquire
 nvgpu_spinlock_init
 nvgpu_spinlock_release
 nvgpu_sw_quiesce
+nvgpu_sw_quiesce_remove_support
 nvgpu_thread_create
 nvgpu_thread_create_priority
 nvgpu_thread_is_running

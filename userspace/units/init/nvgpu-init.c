@@ -159,6 +159,9 @@ int test_free_env(struct unit_module *m,
 	nvgpu_posix_io_delete_reg_space(g, mc_boot_0_r());
 	nvgpu_posix_io_delete_reg_space(g, GP10B_FUSE_REG_BASE);
 
+	/* Clean up quiesce thread */
+	nvgpu_sw_quiesce_remove_support(g);
+
 	return UNIT_SUCCESS;
 }
 
