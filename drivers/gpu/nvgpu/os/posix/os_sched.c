@@ -42,7 +42,7 @@ int nvgpu_current_tid(struct gk20a *g)
 void nvgpu_print_current_impl(struct gk20a *g, const char *func_name, int line,
 		void *ctx, enum nvgpu_log_type type)
 {
-	char *log_message = "(unknown process)";
+	const char *log_message = "(unknown process)";
 
 #if defined(__NVGPU_POSIX__)
 #ifdef _GNU_SOURCE
@@ -53,8 +53,7 @@ void nvgpu_print_current_impl(struct gk20a *g, const char *func_name, int line,
 		log_message = current_tname;
 	}
 #else
-	nvgpu_err(g, "(unknown process)");
-	return;
+	type = NVGPU_ERROR;
 #endif
 #else
 	char current_tname[CURRENT_NAME_LEN];
