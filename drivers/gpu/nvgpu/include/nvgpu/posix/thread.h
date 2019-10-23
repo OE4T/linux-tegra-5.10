@@ -52,7 +52,7 @@
 /**
  * @brief Macro to pop the thread cancellation cleanup handler.
  */
-#define nvgpu_thread_cleanup_pop() pthread_cleanup_pop(1)
+#define nvgpu_thread_cleanup_pop() pthread_cleanup_pop((bool)true)
 
 /**
  * Returns the PID of the calling process.
