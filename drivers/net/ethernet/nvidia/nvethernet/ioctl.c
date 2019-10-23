@@ -35,6 +35,8 @@ static int ether_set_avb_algo(struct net_device *ndev,
 	struct ether_priv_data *pdata = netdev_priv(ndev);
 	struct osi_core_priv_data *osi_core = pdata->osi_core;
 	struct osi_core_avb_algorithm l_avb_struct;
+	struct osi_dma_priv_data *osi_dma = pdata->osi_dma;
+	struct osi_tx_ring *tx_ring = NULL;
 	int ret = -1;
 
 	if (ifdata->ptr == NULL) {
@@ -49,6 +51,16 @@ static int ether_set_avb_algo(struct net_device *ndev,
 		dev_err(pdata->dev,
 			"Failed to fetch AVB Struct info from user\n");
 		return ret;
+	}
+
+	/* Check AVB mode disable on slot function enable */
+	tx_ring = osi_dma->tx_ring[l_avb_struct.qindex];
+	if (tx_ring && tx_ring->slot_check == OSI_ENABLE &&
+	    l_avb_struct.oper_mode == OSI_MTL_QUEUE_ENABLE) {
+		dev_err(pdata->dev,
+			"Can't disable queue:%d AVB mode when slot is enabled",
+			l_avb_struct.qindex);
+		return -EINVAL;
 	}
 
 	return osi_set_avb(osi_core, &l_avb_struct);

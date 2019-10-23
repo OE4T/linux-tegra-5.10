@@ -3052,7 +3052,7 @@ static int ether_parse_dt(struct ether_priv_data *pdata)
 	unsigned int tmp_value[OSI_EQOS_MAX_NUM_QUEUES];
 	struct device_node *np = dev->of_node;
 	int ret = -EINVAL;
-	unsigned int i, mtlq;
+	unsigned int i, mtlq, chan;
 
 	/* read ptp clock */
 	ret = of_property_read_u32(np, "nvidia,ptp_ref_clock_speed",
@@ -3147,6 +3147,41 @@ static int ether_parse_dt(struct ether_priv_data *pdata)
 	ether_parse_queue_prio(pdata, "nvidia,tx-queue-prio", pdata->txq_prio,
 			       ETHER_QUEUE_PRIO_DEFAULT, ETHER_QUEUE_PRIO_MAX,
 			       osi_core->num_mtl_queues);
+
+	/* Read TX slot enable check array DT node */
+	ret = of_property_read_u32_array(np, "nvidia,slot_num_check",
+					 tmp_value,
+					 osi_dma->num_dma_chans);
+	if (ret < 0) {
+		dev_info(dev,
+			 "Failed to read slot_num_check, disabling slot\n");
+		for (i = 0; i < osi_dma->num_dma_chans; i++)
+			osi_dma->slot_enabled[i] = OSI_DISABLE;
+	} else {
+		/* Set slot enable flags */
+		for (i = 0; i < osi_dma->num_dma_chans; i++) {
+			chan = osi_dma->dma_chans[i];
+			osi_dma->slot_enabled[chan] = tmp_value[i];
+		}
+
+		/* Read TX slot intervals DT node */
+		ret = of_property_read_u32_array(np, "nvidia,slot_intvl_vals",
+						 tmp_value,
+						 osi_dma->num_dma_chans);
+		if (ret < 0) {
+			for (i = 0; i < osi_dma->num_dma_chans; i++) {
+				chan = osi_dma->dma_chans[i];
+				osi_dma->slot_interval[chan] =
+					OSI_SLOT_INTVL_DEFAULT;
+			}
+		} else {
+			/* Copy slot intervals */
+			for (i = 0; i < osi_dma->num_dma_chans; i++) {
+				chan = osi_dma->dma_chans[i];
+				osi_dma->slot_interval[chan] = tmp_value[i];
+			}
+		}
+	}
 
 	/* Read Rx Queue - User priority mapping for tagged packets */
 	ret = of_property_read_u32_array(np, "nvidia,rx-queue-prio",

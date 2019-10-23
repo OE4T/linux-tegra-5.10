@@ -241,6 +241,52 @@ void ether_ptp_remove(struct ether_priv_data *pdata)
 	}
 }
 
+/**
+ * @brief Configure Slot function
+ *
+ * Algorithm: This function will set/reset slot funciton
+ *
+ * @param[in] pdata: Pointer to private data structure.
+ * @param[in] set: Flag to set or reset the Slot function.
+ *
+ * @note PTP clock driver need to be successfully registered during
+ *	initialization and HW need to support PTP functionality.
+ *
+ * @retval none
+ */
+static void ether_config_slot_function(struct ether_priv_data *pdata, u32 set)
+{
+	struct osi_dma_priv_data *osi_dma = pdata->osi_dma;
+	struct osi_core_priv_data *osi_core = pdata->osi_core;
+	unsigned int ret, i, chan, qinx;
+	struct osi_core_avb_algorithm avb;
+
+	/* Configure TXQ AVB mode */
+	for (i = 0; i < osi_dma->num_dma_chans; i++) {
+		chan = osi_dma->dma_chans[i];
+		if (osi_dma->slot_enabled[chan] == OSI_ENABLE) {
+			/* Set TXQ AVB info */
+			memset(&avb, 0, sizeof(struct osi_core_avb_algorithm));
+			qinx = osi_core->mtl_queues[i];
+			avb.qindex = qinx;
+			avb.algo = OSI_MTL_TXQ_AVALG_SP;
+			avb.oper_mode = (set == OSI_ENABLE) ?
+					OSI_MTL_QUEUE_AVB :
+					OSI_MTL_QUEUE_ENABLE;
+			ret = osi_set_avb(osi_core, &avb);
+			if (ret != 0) {
+				dev_err(pdata->dev,
+					"Failed to set TXQ:%d AVB info\n",
+					qinx);
+				return;
+			}
+		}
+	}
+
+	/* Call OSI slot function to configure */
+	osi_config_slot_function(osi_dma, set);
+}
+
 int ether_handle_hwtstamp_ioctl(struct ether_priv_data *pdata,
 		struct ifreq *ifr)
 {
@@ -380,6 +426,7 @@ int ether_handle_hwtstamp_ioctl(struct ether_priv_data *pdata,
 	if (!pdata->hwts_tx_en && !hwts_rx_en) {
 		/* disable the PTP configuration */
 		osi_ptp_configuration(osi_core, OSI_DISABLE);
+		ether_config_slot_function(pdata, OSI_DISABLE);
 	} else {
 		/* Store SYS CLOCK */
 		osi_core->ptp_config.ptp_clock = OSI_ETHER_SYSCLOCK;
@@ -396,6 +443,7 @@ int ether_handle_hwtstamp_ioctl(struct ether_priv_data *pdata,
 		/* Register broadcasting MAC timestamp to clients */
 		tegra_register_hwtime_source(ether_get_ptptime, pdata);
 #endif
+		ether_config_slot_function(pdata, OSI_ENABLE);
 	}
 
 	return (copy_to_user(ifr->ifr_data, &config,
