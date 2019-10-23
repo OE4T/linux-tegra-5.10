@@ -28,6 +28,7 @@
 
 #include <nvgpu/posix/io.h>
 #include <nvgpu/gk20a.h>
+#include <nvgpu/hal_init.h>
 #include <nvgpu/gr/gr.h>
 #include <nvgpu/gr/gr_falcon.h>
 
@@ -38,6 +39,10 @@
 #include "nvgpu-gr.h"
 #include "nvgpu-gr-gv11b.h"
 
+#define NV_PMC_BOOT_0_ARCHITECTURE_GV110	(0x00000015 << \
+					NVGPU_GPU_ARCHITECTURE_SHIFT)
+#define NV_PMC_BOOT_0_IMPLEMENTATION_B		0xB
+
 int test_gr_init_setup(struct unit_module *m, struct gk20a *g, void *args)
 {
 	int err;
@@ -47,7 +52,20 @@ int test_gr_init_setup(struct unit_module *m, struct gk20a *g, void *args)
 		goto fail;
 	}
 
-	gv11b_init_hal(g);
+	/*
+	 * HAL init parameters for gv11b
+	 */
+	g->params.gpu_arch = NV_PMC_BOOT_0_ARCHITECTURE_GV110;
+	g->params.gpu_impl = NV_PMC_BOOT_0_IMPLEMENTATION_B;
+
+	/*
+	 * HAL init required for getting
+	 * the falcon ops initialized.
+	 */
+	err = nvgpu_init_hal(g);
+	if (err != 0) {
+		unit_return_fail(m, "nvgpu_init_hal failed\n");
+	}
 
 	/*
 	 * Allocate gr unit
