@@ -2036,6 +2036,12 @@ fail_pin:
 			dma_buf_put(data->win[i].handle[j]->buf);
 			kfree(data->win[i].handle[j]);
 		}
+#ifdef CONFIG_TEGRA_GRHOST_SYNC
+		if (data->win[i].pre_syncpt_fence) {
+			sync_fence_put(data->win[i].pre_syncpt_fence);
+		}
+#endif
+
 	}
 
 	/* Release the COMMON channel in case of failure. */
