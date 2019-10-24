@@ -330,8 +330,10 @@ gk20a_ctrl_ioctl_gpu_characteristics(
 	gpu.reg_ops_limit = NVGPU_IOCTL_DBG_REG_OPS_LIMIT;
 	gpu.map_buffer_batch_limit = nvgpu_is_enabled(g, NVGPU_SUPPORT_MAP_BUFFER_BATCH) ?
 		NVGPU_IOCTL_AS_MAP_BUFFER_BATCH_LIMIT : 0;
+#ifdef CONFIG_NVGPU_GRAPHICS
 	gpu.twod_class = g->ops.get_litter_value(g, GPU_LIT_TWOD_CLASS);
 	gpu.threed_class = g->ops.get_litter_value(g, GPU_LIT_THREED_CLASS);
+#endif
 	gpu.compute_class = g->ops.get_litter_value(g, GPU_LIT_COMPUTE_CLASS);
 	gpu.gpfifo_class = g->ops.get_litter_value(g, GPU_LIT_GPFIFO_CLASS);
 	gpu.inline_to_memory_class =

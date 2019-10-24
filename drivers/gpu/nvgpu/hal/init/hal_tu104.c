@@ -786,8 +786,10 @@ static const struct gpu_ops tu104_ops = {
 	},
 	.gpu_class = {
 		.is_valid = tu104_class_is_valid,
-		.is_valid_gfx = tu104_class_is_valid_gfx,
 		.is_valid_compute = tu104_class_is_valid_compute,
+#ifdef CONFIG_NVGPU_GRAPHICS
+		.is_valid_gfx = tu104_class_is_valid_gfx,
+#endif
 	},
 	.fb = {
 		.init_hw = gv11b_fb_init_hw,

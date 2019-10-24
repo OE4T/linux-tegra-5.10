@@ -44,6 +44,7 @@ int gp10b_gr_intr_handle_sw_method(struct gk20a *g, u32 addr,
 
 	nvgpu_log_fn(g, " ");
 
+#ifdef CONFIG_NVGPU_NON_FUSA
 	if (class_num == PASCAL_COMPUTE_A) {
 		switch (offset << 2) {
 		case NVC0C0_SET_SHADER_EXCEPTIONS:
@@ -57,6 +58,7 @@ int gp10b_gr_intr_handle_sw_method(struct gk20a *g, u32 addr,
 			break;
 		}
 	}
+#endif
 
 	if (ret != 0) {
 		goto fail;

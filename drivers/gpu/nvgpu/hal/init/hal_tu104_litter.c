@@ -125,24 +125,30 @@ u32 tu104_get_litter_value(struct gk20a *g, int value)
 	case GPU_LIT_SMPC_PRI_STRIDE:
 		ret = proj_smpc_stride_v();
 		break;
+#ifdef CONFIG_NVGPU_GRAPHICS
 	case GPU_LIT_TWOD_CLASS:
 		ret = FERMI_TWOD_A;
 		break;
 	case GPU_LIT_THREED_CLASS:
 		ret = TURING_A;
 		break;
+#endif
+#ifdef CONFIG_NVGPU_NON_FUSA
 	case GPU_LIT_COMPUTE_CLASS:
 		ret = TURING_COMPUTE_A;
 		break;
 	case GPU_LIT_GPFIFO_CLASS:
 		ret = TURING_CHANNEL_GPFIFO_A;
 		break;
+#endif
 	case GPU_LIT_I2M_CLASS:
 		ret = KEPLER_INLINE_TO_MEMORY_B;
 		break;
+#ifdef CONFIG_NVGPU_NON_FUSA
 	case GPU_LIT_DMA_COPY_CLASS:
 		ret = TURING_DMA_COPY_A;
 		break;
+#endif
 	case GPU_LIT_GPC_PRIV_STRIDE:
 		ret = proj_gpc_priv_stride_v();
 		break;

@@ -29,14 +29,24 @@ bool gm20b_class_is_valid(u32 class_num)
 	bool valid;
 
 	switch (class_num) {
-	case MAXWELL_COMPUTE_B:
-	case MAXWELL_B:
-	case FERMI_TWOD_A:
 	case KEPLER_DMA_COPY_A:
+	case KEPLER_INLINE_TO_MEMORY_B:
 	case MAXWELL_DMA_COPY_A:
+	case MAXWELL_CHANNEL_GPFIFO_A:
 		valid = true;
 		break;
 
+#ifdef CONFIG_NVGPU_NON_FUSA
+	case MAXWELL_COMPUTE_B:
+		valid = true;
+		break;
+#endif
+#ifdef CONFIG_NVGPU_GRAPHICS
+	case MAXWELL_B:
+	case FERMI_TWOD_A:
+		valid = true;
+		break;
+#endif
 	default:
 		valid = false;
 		break;

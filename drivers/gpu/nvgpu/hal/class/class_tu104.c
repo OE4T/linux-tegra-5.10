@@ -34,9 +34,11 @@ bool tu104_class_is_valid(u32 class_num)
 
 	switch (class_num) {
 	case TURING_CHANNEL_GPFIFO_A:
-	case TURING_A:
 	case TURING_COMPUTE_A:
 	case TURING_DMA_COPY_A:
+#ifdef CONFIG_NVGPU_GRAPHICS
+	case TURING_A:
+#endif
 		valid = true;
 		break;
 	default:
@@ -46,6 +48,7 @@ bool tu104_class_is_valid(u32 class_num)
 	return valid;
 };
 
+#ifdef CONFIG_NVGPU_GRAPHICS
 bool tu104_class_is_valid_gfx(u32 class_num)
 {
 	bool valid;
@@ -62,6 +65,7 @@ bool tu104_class_is_valid_gfx(u32 class_num)
 	}
 	return valid;
 }
+#endif
 
 bool tu104_class_is_valid_compute(u32 class_num)
 {

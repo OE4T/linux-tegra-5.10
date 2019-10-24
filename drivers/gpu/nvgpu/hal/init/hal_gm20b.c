@@ -556,8 +556,10 @@ static const struct gpu_ops gm20b_ops = {
 	},
 	.gpu_class = {
 		.is_valid = gm20b_class_is_valid,
-		.is_valid_gfx = gm20b_class_is_valid_gfx,
 		.is_valid_compute = gm20b_class_is_valid_compute,
+#ifdef CONFIG_NVGPU_GRAPHICS
+		.is_valid_gfx = gm20b_class_is_valid_gfx,
+#endif
 	},
 	.fb = {
 		.init_hw = gm20b_fb_init_hw,

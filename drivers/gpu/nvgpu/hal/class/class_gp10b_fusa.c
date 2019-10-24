@@ -32,11 +32,20 @@ bool gp10b_class_is_valid(u32 class_num)
 
 	nvgpu_speculation_barrier();
 	switch (class_num) {
-	case PASCAL_COMPUTE_A:
-	case PASCAL_A:
 	case PASCAL_DMA_COPY_A:
+	case PASCAL_CHANNEL_GPFIFO_A:
 		valid = true;
 		break;
+#ifdef CONFIG_NVGPU_GRAPHICS
+	case PASCAL_A:
+		valid = true;
+		break;
+#endif
+#ifdef CONFIG_NVGPU_NON_FUSA
+	case PASCAL_COMPUTE_A:
+		valid = true;
+		break;
+#endif
 	default:
 		valid = gm20b_class_is_valid(class_num);
 		break;
@@ -44,6 +53,7 @@ bool gp10b_class_is_valid(u32 class_num)
 	return valid;
 }
 
+#ifdef CONFIG_NVGPU_GRAPHICS
 bool gp10b_class_is_valid_gfx(u32 class_num)
 {
 	if (class_num == PASCAL_A ||  class_num == MAXWELL_B) {
@@ -52,7 +62,9 @@ bool gp10b_class_is_valid_gfx(u32 class_num)
 		return false;
 	}
 }
+#endif
 
+#ifdef CONFIG_NVGPU_NON_FUSA
 bool gp10b_class_is_valid_compute(u32 class_num)
 {
 	if (class_num == PASCAL_COMPUTE_A ||  class_num == MAXWELL_COMPUTE_B) {
@@ -61,3 +73,4 @@ bool gp10b_class_is_valid_compute(u32 class_num)
 		return false;
 	}
 }
+#endif

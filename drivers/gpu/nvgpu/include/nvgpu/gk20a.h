@@ -284,8 +284,10 @@ struct gpu_ops {
 	struct gops_gr gr;
 	struct {
 		bool (*is_valid)(u32 class_num);
-		bool (*is_valid_gfx)(u32 class_num);
 		bool (*is_valid_compute)(u32 class_num);
+#ifdef CONFIG_NVGPU_GRAPHICS
+		bool (*is_valid_gfx)(u32 class_num);
+#endif
 	} gpu_class;
 
 	struct gops_fb fb;

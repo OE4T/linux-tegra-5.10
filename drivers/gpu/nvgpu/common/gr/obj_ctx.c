@@ -184,8 +184,11 @@ static int nvgpu_gr_obj_ctx_set_compute_preemption_mode(struct gk20a *g,
 	struct nvgpu_gr_ctx *gr_ctx, u32 class_num, u32 compute_preempt_mode)
 {
 
-	if (g->ops.gpu_class.is_valid_compute(class_num) ||
-			g->ops.gpu_class.is_valid_gfx(class_num)) {
+	if (g->ops.gpu_class.is_valid_compute(class_num)
+#ifdef CONFIG_NVGPU_GRAPHICS
+		|| g->ops.gpu_class.is_valid_gfx(class_num)
+#endif
+		) {
 		switch (compute_preempt_mode) {
 		case NVGPU_PREEMPTION_MODE_COMPUTE_WFI:
 		case NVGPU_PREEMPTION_MODE_COMPUTE_CTA:

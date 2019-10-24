@@ -766,8 +766,10 @@ static const struct gpu_ops gv11b_ops = {
 	},
 	.gpu_class = {
 		.is_valid = gv11b_class_is_valid,
-		.is_valid_gfx = gv11b_class_is_valid_gfx,
 		.is_valid_compute = gv11b_class_is_valid_compute,
+#ifdef CONFIG_NVGPU_GRAPHICS
+		.is_valid_gfx = gv11b_class_is_valid_gfx,
+#endif
 	},
 	.fb = {
 #ifdef CONFIG_NVGPU_INJECT_HWERR

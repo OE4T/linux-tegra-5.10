@@ -126,12 +126,14 @@ u32 gv11b_get_litter_value(struct gk20a *g, int value)
 	case GPU_LIT_FBPA_SHARED_BASE:
 		ret = 0;
 		break;
+#ifdef CONFIG_NVGPU_GRAPHICS
 	case GPU_LIT_TWOD_CLASS:
 		ret = FERMI_TWOD_A;
 		break;
 	case GPU_LIT_THREED_CLASS:
 		ret = VOLTA_A;
 		break;
+#endif
 	case GPU_LIT_COMPUTE_CLASS:
 		ret = VOLTA_COMPUTE_A;
 		break;

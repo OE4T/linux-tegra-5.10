@@ -46,6 +46,7 @@ int gm20b_gr_intr_handle_sw_method(struct gk20a *g, u32 addr,
 
 	nvgpu_log_fn(g, " ");
 
+#ifdef CONFIG_NVGPU_NON_FUSA
 	if (class_num == MAXWELL_COMPUTE_B) {
 		switch (offset << 2) {
 		case NVB1C0_SET_SHADER_EXCEPTIONS:
@@ -59,6 +60,7 @@ int gm20b_gr_intr_handle_sw_method(struct gk20a *g, u32 addr,
 			break;
 		}
 	}
+#endif
 
 	if (ret != 0) {
 		goto fail;

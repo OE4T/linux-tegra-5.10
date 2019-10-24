@@ -111,15 +111,19 @@ u32 gm20b_get_litter_value(struct gk20a *g, int value)
 	case GPU_LIT_FBPA_SHARED_BASE:
 		ret = 0;
 		break;
+#ifdef CONFIG_NVGPU_GRAPHICS
 	case GPU_LIT_TWOD_CLASS:
 		ret = FERMI_TWOD_A;
 		break;
 	case GPU_LIT_THREED_CLASS:
 		ret = MAXWELL_B;
 		break;
+#endif
+#ifdef CONFIG_NVGPU_NON_FUSA
 	case GPU_LIT_COMPUTE_CLASS:
 		ret = MAXWELL_COMPUTE_B;
 		break;
+#endif
 	case GPU_LIT_GPFIFO_CLASS:
 		ret = MAXWELL_CHANNEL_GPFIFO_A;
 		break;
