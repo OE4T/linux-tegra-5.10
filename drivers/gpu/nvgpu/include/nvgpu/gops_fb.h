@@ -93,9 +93,6 @@ struct gops_fb {
 	/** @cond DOXYGEN_SHOULD_SKIP_THIS */
 	struct nvgpu_hw_err_inject_info_desc * (*get_hubmmu_err_desc)
 							(struct gk20a *g);
-	void (*init_uncompressed_kind_map)(struct gk20a *g);
-	void (*init_kind_attr)(struct gk20a *g);
-
 #ifdef CONFIG_NVGPU_COMPRESSION
 	void (*cbc_configure)(struct gk20a *g, struct nvgpu_cbc *cbc);
 	bool (*set_use_full_comp_tag_line)(struct gk20a *g);
