@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -23,7 +23,9 @@
 #ifndef NVGPU_SGT_OS_H
 #define NVGPU_SGT_OS_H
 
-/*
+/**
+ * @file
+ *
  * Abstract interface for exposing the OS interface for creating an nvgpu_sgt
  * from an nvgpu_mem. The reason this is handled by the OS is because the
  * nvgpu_mem - especially the part that defines the underlying SGT - is
@@ -37,8 +39,8 @@ struct nvgpu_mem;
 /**
  * nvgpu_sgt_os_create_from_mem - Create an nvgpu_sgt from an nvgpu_mem.
  *
- * @g   - The GPU.
- * @mem - The input nvgpu_mem object.
+ * @param g   [in]	The GPU.
+ * @param mem [in]	Pointer to nvgpu_mem object.
  *
  * Since a DMA allocation may well be discontiguous nvgpu requires that a
  * table describe the chunks of memory that make up the DMA allocation. This
@@ -54,7 +56,10 @@ struct nvgpu_mem;
  * The nvgpu_sgt object returned by this function must be freed by the
  * nvgpu_sgt_free() function.
  *
- * Returns %NULL on failure or an nvgpu_sgt object on success.
+ * @return nvgpu_sgt object on success.
+ * @return NULL when there's an error.
+ * Possible failure case:
+ * - Insufficient system memory.
  */
 struct nvgpu_sgt *nvgpu_sgt_os_create_from_mem(struct gk20a *g,
 					       struct nvgpu_mem *mem);
