@@ -209,6 +209,35 @@ struct vs_request {
 	};
 };
 
+/**
+ * @addtogroup MMC_RESP MMC Responses
+ *
+ * @brief Defines Command Responses of EMMC
+ */
+typedef enum {
+	/** @brief No Response */
+	RESP_TYPE_NO_RESP = 0U,
+	/** @brief Response Type 1 */
+	RESP_TYPE_R1 = 1U,
+	/** @brief Response Type 2 */
+	RESP_TYPE_R2 = 2U,
+	/** @brief Response Type 3 */
+	RESP_TYPE_R3 = 3U,
+	/** @brief Response Type 4 */
+	RESP_TYPE_R4 = 4U,
+	/** @brief Response Type 5 */
+	RESP_TYPE_R5 = 5U,
+	/** @brief Response Type 6 */
+	RESP_TYPE_R6 = 6U,
+	/** @brief Response Type 7 */
+	RESP_TYPE_R7 = 7U,
+	/** @brief Response Type 1B */
+	RESP_TYPE_R1B = 8U,
+	/** @brief Number of Response Type */
+	RESP_TYPE_NUM = 9U
+	/* @} */
+} sdmmc_resp_type;
+
 #define VBLK_MMC_MULTI_IOC_ID 0x1000
 struct combo_cmd_t {
 	uint32_t cmd;
@@ -217,6 +246,7 @@ struct combo_cmd_t {
 	uint32_t response[4];
 	uint32_t buf_offset;
 	uint32_t data_len;
+	sdmmc_resp_type flags;
 };
 
 struct combo_info_t {
