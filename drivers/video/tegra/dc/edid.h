@@ -4,7 +4,7 @@
  * Copyright (C) 2010 Google, Inc.
  * Author: Erik Gilling <konkers@android.com>
  *
- * Copyright (c) 2011-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -96,6 +96,7 @@ enum {
 
 #define ELD_MAX_MNL	16
 #define ELD_MAX_SAD	16
+#define ELD_SAD_LENGTH 3
 #define ELD_MAX_SAD_BYTES (ELD_MAX_SAD * 3)
 
 struct tegra_edid_pvt;
@@ -144,7 +145,11 @@ enum {
 #define TEGRA_EDID_QUIRK_HPD_BOUNCE (1 << 4)
 /* TVs supports only CEA modes */
 #define TEGRA_EDID_QUIRK_ONLY_CEA	(1 << 5)
+/* TVs supports EAC3 but not 192K, ignoring EAC3 */
+#define TEGRA_EDID_QUIRK_IGNORE_EAC3 (1 << 6)
 
+/* This number is defined in hda driver - enum cea_audio_coding_types */
+#define    AUDIO_CODING_TYPE_EAC3    10
 
 struct tegra_edid {
 	struct tegra_edid_pvt	*data;

@@ -469,6 +469,18 @@ static int tegra_edid_parse_ext_block(const u8 *raw, int idx,
 			/* Got an audio data block so enable audio */
 			if (basic_audio == true)
 				edid->eld.spk_alloc = 1;
+			if (edid->quirks & TEGRA_EDID_QUIRK_IGNORE_EAC3) {
+				for (i = 0; i < edid->eld.sad_count; i++) {
+					/* Bits 3-6 of Byte 0 will have the Audio Format */
+					unsigned int format = (edid->eld.sad[i*ELD_SAD_LENGTH]
+											& 0x78) >> 3;
+
+					if (format == AUDIO_CODING_TYPE_EAC3) {
+						pr_warn("%s: format is E_AC3 skip it", __func__);
+						edid->eld.sad[i*ELD_SAD_LENGTH] = 0;
+					}
+				}
+			}
 			break;
 		}
 		/* case 2 is commented out for now */
