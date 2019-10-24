@@ -71,7 +71,7 @@ void gp10b_priv_ring_decode_error_code(struct gk20a *g,
 {
 	u32 error_type_index;
 
-	(void) nvgpu_report_pri_err(g, NVGPU_ERR_MODULE_PRI, 0,
+	nvgpu_report_pri_err(g, NVGPU_ERR_MODULE_PRI, 0,
 		GPU_PRI_ACCESS_VIOLATION, 0, error_code);
 
 	error_type_index = (error_code & 0x00000f00U) >> 8U;

@@ -347,6 +347,8 @@ struct nvgpu_hw_err_inject_info_desc {
  *   #MAX_ERR_MSG_SIZE.
  * - Sends the error packet to report the error to the 3LSS framework. In case
  *   of a failure, invokes #nvgpu_sdl_handle_report_failure() api.
+ *
+ * @return	None
  */
 void nvgpu_report_host_err(struct gk20a *g, u32 hw_unit,
 	u32 inst, u32 err_id, u32 intr_info);
@@ -383,6 +385,8 @@ void nvgpu_report_host_err(struct gk20a *g, u32 hw_unit,
  *   #MAX_ERR_MSG_SIZE.
  * - Sends the error packet to report the error to the 3LSS framework. In case
  *   of a failure, invokes #nvgpu_sdl_handle_report_failure() api.
+ *
+ * @return	None
  */
 void nvgpu_report_ce_err(struct gk20a *g, u32 hw_unit,
 	u32 inst, u32 err_id, u32 intr_info);
@@ -452,6 +456,8 @@ void nvgpu_report_ce_err(struct gk20a *g, u32 hw_unit,
  *   #MAX_ERR_MSG_SIZE.
  * - Sends the error packet to report the error to the 3LSS framework. In case
  *   of a failure, invokes #nvgpu_sdl_handle_report_failure() api.
+ *
+ * @return	None
  */
 void nvgpu_report_ecc_err(struct gk20a *g, u32 hw_unit, u32 inst,
 		u32 err_id, u64 err_addr, u64 err_count);
@@ -484,6 +490,8 @@ void nvgpu_report_ecc_err(struct gk20a *g, u32 hw_unit, u32 inst,
  *   #MAX_ERR_MSG_SIZE.
  * - Sends the error packet to report the error to the 3LSS framework. In case
  *   of a failure, invokes #nvgpu_sdl_handle_report_failure() api.
+ *
+ * @return	None
  */
 void nvgpu_report_ctxsw_err(struct gk20a *g, u32 hw_unit, u32 err_id,
 		void *data);
@@ -531,6 +539,8 @@ void nvgpu_report_ctxsw_err(struct gk20a *g, u32 hw_unit, u32 err_id,
  *   #MAX_ERR_MSG_SIZE.
  * - Sends the error packet to report the error to the 3LSS framework. In case
  *   of a failure, invokes #nvgpu_sdl_handle_report_failure() api.
+ *
+ * @return	None
  */
 void nvgpu_report_gr_err(struct gk20a *g, u32 hw_unit, u32 inst,
 		u32 err_id, struct gr_err_info *err_info, u32 sub_err_type);
@@ -564,6 +574,8 @@ void nvgpu_report_gr_err(struct gk20a *g, u32 hw_unit, u32 inst,
  *   #MAX_ERR_MSG_SIZE.
  * - Sends the error packet to report the error to the 3LSS framework. In case
  *   of a failure, invokes #nvgpu_sdl_handle_report_failure() api.
+ *
+ * @return	None
  */
 void nvgpu_report_pmu_err(struct gk20a *g, u32 hw_unit, u32 err_id,
 	u32 sub_err_type, u32 status);
@@ -604,6 +616,8 @@ void nvgpu_report_pmu_err(struct gk20a *g, u32 hw_unit, u32 err_id,
  *   #MAX_ERR_MSG_SIZE.
  * - Sends the error packet to report the error to the 3LSS framework. In case
  *   of a failure, invokes #nvgpu_sdl_handle_report_failure() api.
+ *
+ * @return	None
  */
 void nvgpu_report_pri_err(struct gk20a *g, u32 hw_unit, u32 inst,
 		u32 err_id, u32 err_addr, u32 err_code);
@@ -639,6 +653,8 @@ void nvgpu_report_pri_err(struct gk20a *g, u32 hw_unit, u32 inst,
  *   #MAX_ERR_MSG_SIZE.
  * - Sends the error packet to report the error to the 3LSS framework. In case
  *   of a failure, invokes #nvgpu_sdl_handle_report_failure() api.
+ *
+ * @return	None
  */
 void nvgpu_report_mmu_err(struct gk20a *g, u32 hw_unit,
 		u32 err_id, struct mmu_fault_info *fault_info,

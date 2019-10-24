@@ -68,7 +68,7 @@ void gk20a_ptimer_isr(struct gk20a *g)
 		error_addr = 0U;
 	}
 
-	(void) nvgpu_report_pri_err(g, NVGPU_ERR_MODULE_PRI,
+	nvgpu_report_pri_err(g, NVGPU_ERR_MODULE_PRI,
 		inst, GPU_PRI_TIMEOUT_ERROR,
 		error_addr, fecs_errcode);
 }
