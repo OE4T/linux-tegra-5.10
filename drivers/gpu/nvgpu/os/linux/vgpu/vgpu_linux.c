@@ -385,7 +385,7 @@ int vgpu_probe(struct platform_device *pdev)
 
 	init_rwsem(&l->busy_lock);
 
-	nvgpu_spinlock_init(&gk20a->mc_enable_lock);
+	nvgpu_spinlock_init(&gk20a->mc.enable_lock);
 
 	gk20a->ch_wdt_init_limit_ms = platform->ch_wdt_init_limit_ms;
 

@@ -42,7 +42,7 @@ int mc_gv11b_intr_enable(struct gk20a *g)
 	nvgpu_writel(g, mc_intr_en_clear_r(NVGPU_MC_INTR_NONSTALLING),
 				U32_MAX);
 
-	g->mc_intr_mask_restore[NVGPU_MC_INTR_STALLING] =
+	g->mc.intr_mask_restore[NVGPU_MC_INTR_STALLING] =
 				mc_intr_pfifo_pending_f() |
 				mc_intr_hub_pending_f() |
 				mc_intr_priv_ring_pending_f() |
@@ -50,15 +50,15 @@ int mc_gv11b_intr_enable(struct gk20a *g)
 				mc_intr_ltc_pending_f() |
 				eng_intr_mask;
 
-	g->mc_intr_mask_restore[NVGPU_MC_INTR_NONSTALLING] =
+	g->mc.intr_mask_restore[NVGPU_MC_INTR_NONSTALLING] =
 				mc_intr_pfifo_pending_f()
 			     | eng_intr_mask;
 
 	nvgpu_writel(g, mc_intr_en_set_r(NVGPU_MC_INTR_STALLING),
-			g->mc_intr_mask_restore[NVGPU_MC_INTR_STALLING]);
+			g->mc.intr_mask_restore[NVGPU_MC_INTR_STALLING]);
 
 	nvgpu_writel(g, mc_intr_en_set_r(NVGPU_MC_INTR_NONSTALLING),
-			g->mc_intr_mask_restore[NVGPU_MC_INTR_NONSTALLING]);
+			g->mc.intr_mask_restore[NVGPU_MC_INTR_NONSTALLING]);
 
 	return 0;
 }

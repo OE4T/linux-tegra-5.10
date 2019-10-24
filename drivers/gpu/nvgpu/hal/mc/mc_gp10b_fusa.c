@@ -148,7 +148,7 @@ void mc_gp10b_intr_stall_pause(struct gk20a *g)
 void mc_gp10b_intr_stall_resume(struct gk20a *g)
 {
 	nvgpu_writel(g, mc_intr_en_set_r(NVGPU_MC_INTR_STALLING),
-			g->mc_intr_mask_restore[NVGPU_MC_INTR_STALLING]);
+			g->mc.intr_mask_restore[NVGPU_MC_INTR_STALLING]);
 }
 
 u32 mc_gp10b_intr_nonstall(struct gk20a *g)
@@ -165,7 +165,7 @@ void mc_gp10b_intr_nonstall_pause(struct gk20a *g)
 void mc_gp10b_intr_nonstall_resume(struct gk20a *g)
 {
 	nvgpu_writel(g, mc_intr_en_set_r(NVGPU_MC_INTR_NONSTALLING),
-			g->mc_intr_mask_restore[NVGPU_MC_INTR_NONSTALLING]);
+			g->mc.intr_mask_restore[NVGPU_MC_INTR_NONSTALLING]);
 }
 
 bool mc_gp10b_is_intr1_pending(struct gk20a *g,

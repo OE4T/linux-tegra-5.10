@@ -48,18 +48,19 @@ static int cyclic_delta(int a, int b)
  */
 void nvgpu_wait_for_deferred_interrupts(struct gk20a *g)
 {
-	int stall_irq_threshold = nvgpu_atomic_read(&g->hw_irq_stall_count);
-	int nonstall_irq_threshold = nvgpu_atomic_read(&g->hw_irq_nonstall_count);
+	int stall_irq_threshold = nvgpu_atomic_read(&g->mc.hw_irq_stall_count);
+	int nonstall_irq_threshold =
+				nvgpu_atomic_read(&g->mc.hw_irq_nonstall_count);
 
 	/* wait until all stalling irqs are handled */
-	NVGPU_COND_WAIT(&g->sw_irq_stall_last_handled_cond,
+	NVGPU_COND_WAIT(&g->mc.sw_irq_stall_last_handled_cond,
 		cyclic_delta(stall_irq_threshold,
-			nvgpu_atomic_read(&g->sw_irq_stall_last_handled))
+			nvgpu_atomic_read(&g->mc.sw_irq_stall_last_handled))
 		<= 0, 0U);
 
 	/* wait until all non-stalling irqs are handled */
-	NVGPU_COND_WAIT(&g->sw_irq_nonstall_last_handled_cond,
+	NVGPU_COND_WAIT(&g->mc.sw_irq_nonstall_last_handled_cond,
 		cyclic_delta(nonstall_irq_threshold,
-			nvgpu_atomic_read(&g->sw_irq_nonstall_last_handled))
+			nvgpu_atomic_read(&g->mc.sw_irq_nonstall_last_handled))
 		<= 0, 0U);
 }

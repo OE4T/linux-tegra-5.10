@@ -47,7 +47,7 @@ irqreturn_t nvgpu_intr_stall(struct gk20a *g)
 	}
 #endif
 
-	nvgpu_atomic_inc(&g->hw_irq_stall_count);
+	nvgpu_atomic_inc(&g->mc.hw_irq_stall_count);
 
 #ifdef CONFIG_NVGPU_TRACE
 	trace_mc_gk20a_intr_stall_done(g->name);
@@ -66,13 +66,13 @@ irqreturn_t nvgpu_intr_thread_stall(struct gk20a *g)
 	trace_mc_gk20a_intr_thread_stall(g->name);
 #endif
 
-	hw_irq_count = nvgpu_atomic_read(&g->hw_irq_stall_count);
+	hw_irq_count = nvgpu_atomic_read(&g->mc.hw_irq_stall_count);
 	g->ops.mc.isr_stall(g);
 	g->ops.mc.intr_stall_resume(g);
 	/* sync handled irq counter before re-enabling interrupts */
-	nvgpu_atomic_set(&g->sw_irq_stall_last_handled, hw_irq_count);
+	nvgpu_atomic_set(&g->mc.sw_irq_stall_last_handled, hw_irq_count);
 
-	nvgpu_cond_broadcast(&g->sw_irq_stall_last_handled_cond);
+	nvgpu_cond_broadcast(&g->mc.sw_irq_stall_last_handled_cond);
 
 #ifdef CONFIG_NVGPU_TRACE
 	trace_mc_gk20a_intr_thread_stall_done(g->name);
@@ -114,14 +114,14 @@ irqreturn_t nvgpu_intr_nonstall(struct gk20a *g)
 		queue_work(l->nonstall_work_queue, &l->nonstall_fn_work);
 	}
 
-	hw_irq_count = nvgpu_atomic_inc_return(&g->hw_irq_nonstall_count);
+	hw_irq_count = nvgpu_atomic_inc_return(&g->mc.hw_irq_nonstall_count);
 
 	/* sync handled irq counter before re-enabling interrupts */
-	nvgpu_atomic_set(&g->sw_irq_nonstall_last_handled, hw_irq_count);
+	nvgpu_atomic_set(&g->mc.sw_irq_nonstall_last_handled, hw_irq_count);
 
 	g->ops.mc.intr_nonstall_resume(g);
 
-	nvgpu_cond_broadcast(&g->sw_irq_nonstall_last_handled_cond);
+	nvgpu_cond_broadcast(&g->mc.sw_irq_nonstall_last_handled_cond);
 
 	return IRQ_HANDLED;
 }

@@ -543,11 +543,11 @@ static int gk20a_lockout_registers(struct gk20a *g)
 
 int nvgpu_enable_irqs(struct gk20a *g)
 {
-	if (!g->irqs_enabled) {
-		enable_irq(g->irq_stall);
-		if (g->irq_stall != g->irq_nonstall)
-			enable_irq(g->irq_nonstall);
-		g->irqs_enabled = true;
+	if (!g->mc.irqs_enabled) {
+		enable_irq(g->mc.irq_stall);
+		if (g->mc.irq_stall != g->mc.irq_nonstall)
+			enable_irq(g->mc.irq_nonstall);
+		g->mc.irqs_enabled = true;
 	}
 
 	return 0;
@@ -555,11 +555,11 @@ int nvgpu_enable_irqs(struct gk20a *g)
 
 void nvgpu_disable_irqs(struct gk20a *g)
 {
-	if (g->irqs_enabled) {
-		disable_irq(g->irq_stall);
-		if (g->irq_stall != g->irq_nonstall)
-			disable_irq(g->irq_nonstall);
-		g->irqs_enabled = false;
+	if (g->mc.irqs_enabled) {
+		disable_irq(g->mc.irq_stall);
+		if (g->mc.irq_stall != g->mc.irq_nonstall)
+			disable_irq(g->mc.irq_nonstall);
+		g->mc.irqs_enabled = false;
 	}
 }
 
@@ -642,7 +642,7 @@ static int gk20a_pm_prepare_poweroff(struct device *dev)
 		goto done;
 
 	/* disable IRQs and wait for completion */
-	irqs_enabled = g->irqs_enabled;
+	irqs_enabled = g->mc.irqs_enabled;
 	nvgpu_disable_irqs(g);
 
 	gk20a_scale_suspend(dev);
@@ -1156,9 +1156,9 @@ void nvgpu_free_irq(struct gk20a *g)
 {
 	struct device *dev = dev_from_gk20a(g);
 
-	devm_free_irq(dev, g->irq_stall, g);
-	if (g->irq_stall != g->irq_nonstall)
-		devm_free_irq(dev, g->irq_nonstall, g);
+	devm_free_irq(dev, g->mc.irq_stall, g);
+	if (g->mc.irq_stall != g->mc.irq_nonstall)
+		devm_free_irq(dev, g->mc.irq_nonstall, g);
 }
 
 /*
@@ -1572,37 +1572,37 @@ static int gk20a_probe(struct platform_device *dev)
 	if (nvgpu_platform_is_simulation(gk20a))
 		nvgpu_set_enabled(gk20a, NVGPU_IS_FMODEL, true);
 
-	gk20a->irq_stall = platform_get_irq(dev, 0);
-	gk20a->irq_nonstall = platform_get_irq(dev, 1);
-	if ((int)gk20a->irq_stall < 0 || (int)gk20a->irq_nonstall < 0) {
+	gk20a->mc.irq_stall = platform_get_irq(dev, 0);
+	gk20a->mc.irq_nonstall = platform_get_irq(dev, 1);
+	if ((int)gk20a->mc.irq_stall < 0 || (int)gk20a->mc.irq_nonstall < 0) {
 		err = -ENXIO;
 		goto return_err;
 	}
 
 	err = devm_request_threaded_irq(&dev->dev,
-			gk20a->irq_stall,
+			gk20a->mc.irq_stall,
 			gk20a_intr_isr_stall,
 			gk20a_intr_thread_stall,
 			0, "gk20a_stall", gk20a);
 	if (err) {
 		dev_err(&dev->dev,
 			"failed to request stall intr irq @ %d\n",
-				gk20a->irq_stall);
+				gk20a->mc.irq_stall);
 		goto return_err;
 	}
 	err = devm_request_irq(&dev->dev,
-			gk20a->irq_nonstall,
+			gk20a->mc.irq_nonstall,
 			gk20a_intr_isr_nonstall,
 			0, "gk20a_nonstall", gk20a);
 	if (err) {
 		dev_err(&dev->dev,
 			"failed to request non-stall intr irq @ %d\n",
-				gk20a->irq_nonstall);
+				gk20a->mc.irq_nonstall);
 		goto return_err;
 	}
-	disable_irq(gk20a->irq_stall);
-	if (gk20a->irq_stall != gk20a->irq_nonstall)
-		disable_irq(gk20a->irq_nonstall);
+	disable_irq(gk20a->mc.irq_stall);
+	if (gk20a->mc.irq_stall != gk20a->mc.irq_nonstall)
+		disable_irq(gk20a->mc.irq_nonstall);
 
 	err = gk20a_init_support(dev);
 	if (err)

@@ -942,8 +942,6 @@ struct gk20a {
 	u64 pg_ungating_time_us;
 	u32 pg_gating_cnt;
 
-	struct nvgpu_spinlock mc_enable_lock;
-
 	struct gk20a_as as;
 
 	struct nvgpu_mutex client_lock;
@@ -952,23 +950,10 @@ struct gk20a {
 	/** The HAL function pointers */
 	struct gpu_ops ops;
 
-	u32 mc_intr_mask_restore[4];
 	/*used for change of enum zbc update cmd id from ver 0 to ver1*/
 	u8 pmu_ver_cmd_id_zbc_table_update;
 
-	/* Needed to keep track of deferred interrupts */
-	nvgpu_atomic_t hw_irq_stall_count;
-	nvgpu_atomic_t hw_irq_nonstall_count;
-
-	struct nvgpu_cond sw_irq_stall_last_handled_cond;
-	nvgpu_atomic_t sw_irq_stall_last_handled;
-
-	struct nvgpu_cond sw_irq_nonstall_last_handled_cond;
-	nvgpu_atomic_t sw_irq_nonstall_last_handled;
-
-	bool irqs_enabled;
-	u32 irq_stall; /* can be same as irq_nonstall in case of PCI */
-	u32 irq_nonstall;
+	struct nvgpu_mc mc;
 
 	/*
 	 * The deductible memory size for max_comptag_mem (in MBytes)

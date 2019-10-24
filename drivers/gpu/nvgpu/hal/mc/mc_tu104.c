@@ -142,7 +142,7 @@ static void intr_tu104_stall_enable(struct gk20a *g)
 
 	nvgpu_writel(g, mc_intr_en_clear_r(NVGPU_MC_INTR_STALLING), U32_MAX);
 
-	g->mc_intr_mask_restore[NVGPU_MC_INTR_STALLING] =
+	g->mc.intr_mask_restore[NVGPU_MC_INTR_STALLING] =
 				mc_intr_pfifo_pending_f() |
 				mc_intr_priv_ring_pending_f() |
 				mc_intr_pbus_pending_f() |
@@ -152,7 +152,7 @@ static void intr_tu104_stall_enable(struct gk20a *g)
 				eng_intr_mask;
 
 	nvgpu_writel(g, mc_intr_en_set_r(NVGPU_MC_INTR_STALLING),
-			g->mc_intr_mask_restore[NVGPU_MC_INTR_STALLING]);
+			g->mc.intr_mask_restore[NVGPU_MC_INTR_STALLING]);
 }
 
 static void intr_tu104_nonstall_enable(struct gk20a *g)

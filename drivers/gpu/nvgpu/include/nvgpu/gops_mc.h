@@ -106,11 +106,11 @@ struct gops_mc {
 	 *   #intr_stall_pause, #intr_stall_resume,
 	 *   #intr_nonstall_pause and #intr_nonstall_resume.
 	 *   - Initialize the stalling interrupts bitmask
-	 *     #mc_intr_mask_restore[#NVGPU_MC_INTR_STALLING] with various
+	 *     #intr_mask_restore[#NVGPU_MC_INTR_STALLING] with various
 	 *     units (FIFO, HUB, PRIV_RING, PBUS, LTC) OR'ing with engine
 	 *     interrupts mask.
 	 *   - Initialize the non-stalling interrupts bitmask
-	 *     #mc_intr_mask_restore[#NVGPU_MC_INTR_NONSTALLING] with FIFO
+	 *     #intr_mask_restore[#NVGPU_MC_INTR_NONSTALLING] with FIFO
 	 *     unit OR'ing with engine interrupts mask.
 	 * - Write the bitmasks to the stalling and the non-stalling interrupts
 	 *   enable registers respectively (mc_intr_en_set_r()).
@@ -194,7 +194,7 @@ struct gops_mc {
 	 *
 	 * Steps:
 	 * - Enable the stalling interrupts as configured during #intr_enable.
-	 *   Write #mc_intr_mask_restore[#NVGPU_MC_INTR_STALLING] to the
+	 *   Write #intr_mask_restore[#NVGPU_MC_INTR_STALLING] to the
 	 *   stalling interrupts enable set register
 	 *   (mc_intr_en_set_r(#NVGPU_MC_INTR_STALLING)).
 	 */
@@ -267,7 +267,7 @@ struct gops_mc {
 	 * Steps:
 	 * - Enable the non-stalling interrupts as configured during
 	 *   #intr_enable.
-	 *   Write #mc_intr_mask_restore[#NVGPU_MC_INTR_NONSTALLING]
+	 *   Write #intr_mask_restore[#NVGPU_MC_INTR_NONSTALLING]
 	 *   to the non-stalling interrupts enable set register
 	 *   (mc_intr_en_set_r(#NVGPU_MC_INTR_NONSTALLING)).
 	 */
@@ -322,19 +322,19 @@ struct gops_mc {
 	 *
 	 * Steps:
 	 * - Disable the HW unit/engine.
-	 *   - Acquire g->mc_enable_lock spinlock.
+	 *   - Acquire g->mc.enable_lock spinlock.
 	 *   - Read mc_enable_r register and clear the bits in the read value
 	 *     corresponding to HW unit to be disabled.
 	 *   - Write mc_enable_r with the updated value.
-	 *   - Release g->mc_enable_lock spinlock.
+	 *   - Release g->mc.enable_lock spinlock.
 	 * - Sleep/wait for 500us if resetting CE engines else sleep for 20us.
 	 * - Enable the HW unit/engine.
-	 *   - Acquire g->mc_enable_lock spinlock.
+	 *   - Acquire g->mc.enable_lock spinlock.
 	 *   - Read mc_enable_r register and set the bits in the read value
 	 *     corresponding to HW unit to be disabled.
 	 *   - Write mc_enable_r with the updated value.
 	 *   - Read back mc_enable_r.
-	 *   - Release g->mc_enable_lock spinlock.
+	 *   - Release g->mc.enable_lock spinlock.
 	 *   - Sleep/wait for 20us.
 	 */
 	void (*reset)(struct gk20a *g, u32 units);

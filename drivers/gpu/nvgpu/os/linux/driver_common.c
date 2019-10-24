@@ -52,13 +52,13 @@ static void nvgpu_init_vars(struct gk20a *g)
 	struct device *dev = dev_from_gk20a(g);
 	struct gk20a_platform *platform = dev_get_drvdata(dev);
 
-	nvgpu_cond_init(&g->sw_irq_stall_last_handled_cond);
-	nvgpu_cond_init(&g->sw_irq_nonstall_last_handled_cond);
+	nvgpu_cond_init(&g->mc.sw_irq_stall_last_handled_cond);
+	nvgpu_cond_init(&g->mc.sw_irq_nonstall_last_handled_cond);
 
 	init_rwsem(&l->busy_lock);
 	nvgpu_rwsem_init(&g->deterministic_busy);
 
-	nvgpu_spinlock_init(&g->mc_enable_lock);
+	nvgpu_spinlock_init(&g->mc.enable_lock);
 
 	nvgpu_spinlock_init(&g->power_spinlock);
 

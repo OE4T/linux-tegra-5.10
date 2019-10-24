@@ -484,15 +484,15 @@ static int nvgpu_pci_probe(struct pci_dev *pdev,
 		g->msi_enabled = true;
 #endif
 
-	g->irq_stall = pdev->irq;
-	g->irq_nonstall = pdev->irq;
-	if ((int)g->irq_stall < 0) {
+	g->mc.irq_stall = pdev->irq;
+	g->mc.irq_nonstall = pdev->irq;
+	if ((int)g->mc.irq_stall < 0) {
 		err = -ENXIO;
 		goto err_disable_msi;
 	}
 
 	err = devm_request_threaded_irq(&pdev->dev,
-			g->irq_stall,
+			g->mc.irq_stall,
 			nvgpu_pci_isr,
 			nvgpu_pci_intr_thread,
 #if defined(CONFIG_PCI_MSI)
@@ -501,10 +501,10 @@ static int nvgpu_pci_probe(struct pci_dev *pdev,
 			IRQF_SHARED, "nvgpu", g);
 	if (err) {
 		nvgpu_err(g,
-			"failed to request irq @ %d", g->irq_stall);
+			"failed to request irq @ %d", g->mc.irq_stall);
 		goto err_disable_msi;
 	}
-	disable_irq(g->irq_stall);
+	disable_irq(g->mc.irq_stall);
 
 	err = nvgpu_pci_init_support(pdev);
 	if (err)
@@ -629,7 +629,7 @@ static void nvgpu_pci_remove(struct pci_dev *pdev)
 		/* IRQ does not need to be enabled in MSI as the line is not
 		 * shared
 		 */
-		enable_irq(g->irq_stall);
+		enable_irq(g->mc.irq_stall);
 	}
 #endif
 	nvgpu_pci_pm_deinit(&pdev->dev);

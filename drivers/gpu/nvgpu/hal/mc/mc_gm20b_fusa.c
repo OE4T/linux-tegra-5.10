@@ -107,11 +107,11 @@ void gm20b_mc_disable(struct gk20a *g, u32 units)
 
 	nvgpu_log(g, gpu_dbg_info, "pmc disable: %08x", units);
 
-	nvgpu_spinlock_acquire(&g->mc_enable_lock);
+	nvgpu_spinlock_acquire(&g->mc.enable_lock);
 	pmc = nvgpu_readl(g, mc_enable_r());
 	pmc &= ~units;
 	nvgpu_writel(g, mc_enable_r(), pmc);
-	nvgpu_spinlock_release(&g->mc_enable_lock);
+	nvgpu_spinlock_release(&g->mc.enable_lock);
 }
 
 void gm20b_mc_enable(struct gk20a *g, u32 units)
@@ -120,12 +120,12 @@ void gm20b_mc_enable(struct gk20a *g, u32 units)
 
 	nvgpu_log(g, gpu_dbg_info, "pmc enable: %08x", units);
 
-	nvgpu_spinlock_acquire(&g->mc_enable_lock);
+	nvgpu_spinlock_acquire(&g->mc.enable_lock);
 	pmc = nvgpu_readl(g, mc_enable_r());
 	pmc |= units;
 	nvgpu_writel(g, mc_enable_r(), pmc);
 	pmc = nvgpu_readl(g, mc_enable_r());
-	nvgpu_spinlock_release(&g->mc_enable_lock);
+	nvgpu_spinlock_release(&g->mc.enable_lock);
 
 	nvgpu_udelay(MC_ENABLE_DELAY_US);
 }
