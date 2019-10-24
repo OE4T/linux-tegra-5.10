@@ -365,10 +365,17 @@ enum tegra_dc_ext_avi_color_components_change {
 	TEGRA_DC_EXT_AVI_COLOR_COMPONENTS_YUV420,
 } __attribute__((__packed__));
 
+enum tegra_dc_ext_avi_color_quant_change {
+	TEGRA_DC_EXT_AVI_COLOR_QUANT_DEFAULT,
+	TEGRA_DC_EXT_AVI_COLOR_QUANT_LIMITED,
+	TEGRA_DC_EXT_AVI_COLOR_QUANT_FULL,
+} __attribute__((__packed__));
+
 struct tegra_dc_ext_avi {
 	__u8 avi_colorimetry;
 	__u8 avi_color_components;
-	__u8 reserved[24];
+	__u8 avi_color_quant;
+	__u8 reserved[23];
 };
 
 /*

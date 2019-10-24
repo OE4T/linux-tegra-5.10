@@ -438,6 +438,7 @@ struct tegra_hdmi {
 
 	u8 avi_colorimetry;
 	u8 avi_color_components;
+	u8 avi_color_quant;
 
 	struct tegra_edid *edid;
 	struct i2c_client *ddc_i2c_client;

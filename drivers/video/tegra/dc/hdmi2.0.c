@@ -2215,6 +2215,24 @@ static void tegra_hdmi_avi_infoframe_update(struct tegra_hdmi *hdmi)
 	avi->it_content_type = HDMI_AVI_IT_CONTENT_NONE;
 	avi->ycc_quant = tegra_hdmi_get_ycc_quant(hdmi);
 
+	switch (hdmi->avi_color_quant) {
+	case TEGRA_DC_EXT_AVI_COLOR_QUANT_LIMITED:
+		if (avi->rgb_ycc == HDMI_AVI_RGB)
+			avi->rgb_quant = HDMI_AVI_RGB_QUANT_LIMITED;
+		else
+			avi->ycc_quant = HDMI_AVI_YCC_QUANT_LIMITED;
+		break;
+	case TEGRA_DC_EXT_AVI_COLOR_QUANT_FULL:
+		if (avi->rgb_ycc == HDMI_AVI_RGB)
+			avi->rgb_quant = HDMI_AVI_RGB_QUANT_FULL;
+		else
+			avi->ycc_quant = HDMI_AVI_YCC_QUANT_FULL;
+		break;
+	default:
+		/* Let default value as it is.*/
+		break;
+	}
+
 	avi->top_bar_end_line_low_byte = 0;
 	avi->top_bar_end_line_high_byte = 0;
 
@@ -2261,10 +2279,15 @@ static int tegra_dc_hdmi_set_avi(struct tegra_dc *dc,
 {
 	struct tegra_hdmi *hdmi = tegra_dc_get_outdata(dc);
 
-	hdmi->avi_colorimetry = avi->avi_colorimetry;
-	hdmi->avi_color_components = avi->avi_color_components;
-	/* Setting AVI infoframe externally */
-	tegra_hdmi_avi_infoframe(hdmi);
+	if (hdmi->avi_colorimetry != avi->avi_colorimetry ||
+	    hdmi->avi_color_components != avi->avi_color_components ||
+	    hdmi->avi_color_quant != avi->avi_color_quant) {
+		hdmi->avi_colorimetry = avi->avi_colorimetry;
+		hdmi->avi_color_components = avi->avi_color_components;
+		hdmi->avi_color_quant = avi->avi_color_quant;
+		/* Setting AVI infoframe externally */
+		tegra_hdmi_avi_infoframe(hdmi);
+	}
 
 	return 0;
 }
