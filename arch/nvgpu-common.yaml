@@ -685,6 +685,7 @@ pmu:
       safe: yes
       owner: Mahantesh K
       sources: [ common/pmu/pmu.c,
+                 include/nvgpu/gops_pmu.h,
                  include/nvgpu/pmu.h ]
 
     pmu_rtos_init:
