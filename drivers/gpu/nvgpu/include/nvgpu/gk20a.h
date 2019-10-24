@@ -1146,9 +1146,6 @@ int gk20a_do_idle_impl(struct gk20a *g, bool force_reset);
 int gk20a_do_unidle_impl(struct gk20a *g);
 #endif
 
-/** Bit offset of the Architecture field in the HW version register */
-#define NVGPU_GPU_ARCHITECTURE_SHIFT 4U
-
 /**
  * Constructs unique and compact GPUID from nvgpu_gpu_characteristics
  * arch/impl fields.

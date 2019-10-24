@@ -22,35 +22,8 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#include <nvgpu/io.h>
 #include <nvgpu/mc.h>
 #include <nvgpu/gk20a.h>
-
-#include <nvgpu/hw/gm20b/hw_mc_gm20b.h>
-
-u32 nvgpu_mc_boot_0(struct gk20a *g, u32 *arch, u32 *impl, u32 *rev)
-{
-	u32 val = nvgpu_readl_impl(g, mc_boot_0_r());
-
-	if (val != U32_MAX) {
-
-		if (arch != NULL) {
-			*arch = mc_boot_0_architecture_v(val) <<
-				NVGPU_GPU_ARCHITECTURE_SHIFT;
-		}
-
-		if (impl != NULL) {
-			*impl = mc_boot_0_implementation_v(val);
-		}
-
-		if (rev != NULL) {
-			*rev = (mc_boot_0_major_revision_v(val) << 4) |
-				mc_boot_0_minor_revision_v(val);
-		}
-	}
-
-	return val;
-}
 
 /**
  * cyclic_delta - Returns delta of cyclic integers a and b.

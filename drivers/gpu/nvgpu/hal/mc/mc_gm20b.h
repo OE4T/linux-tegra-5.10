@@ -32,6 +32,8 @@
 struct gk20a;
 enum nvgpu_unit;
 
+u32 gm20b_get_chip_details(struct gk20a *g, u32 *arch, u32 *impl, u32 *rev);
+
 u32  gm20b_mc_isr_nonstall(struct gk20a *g);
 void gm20b_mc_enable(struct gk20a *g, u32 units);
 void gm20b_mc_disable(struct gk20a *g, u32 units);

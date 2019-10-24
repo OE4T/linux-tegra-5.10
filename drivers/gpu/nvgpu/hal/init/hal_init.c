@@ -36,6 +36,8 @@
 #include "hal_tu104.h"
 #endif
 
+#include "hal/mc/mc_gm20b.h"
+
 int nvgpu_init_hal(struct gk20a *g)
 {
 	int err = 0;
@@ -97,9 +99,10 @@ int nvgpu_detect_chip(struct gk20a *g)
 		return 0;
 	}
 
-	boot_0 = nvgpu_mc_boot_0(g, &p->gpu_arch, &p->gpu_impl, &p->gpu_rev);
+	boot_0 = gm20b_get_chip_details(g, &p->gpu_arch,
+					&p->gpu_impl, &p->gpu_rev);
 	if (boot_0 == U32_MAX) {
-		nvgpu_err(g, "nvgpu_mc_boot_0 failure!");
+		nvgpu_err(g, "get_chip_details failure!");
 		return -ENODEV;
 	}
 

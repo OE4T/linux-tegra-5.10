@@ -1274,6 +1274,7 @@ static const struct gpu_ops tu104_ops = {
 	},
 #endif
 	.mc = {
+		.get_chip_details = gm20b_get_chip_details,
 		.intr_enable = intr_tu104_enable,
 		.intr_mask = intr_tu104_mask,
 #ifdef CONFIG_NVGPU_LS_PMU

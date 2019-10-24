@@ -1054,6 +1054,7 @@ static const struct gpu_ops gp10b_ops = {
 	},
 #endif
 	.mc = {
+		.get_chip_details = gm20b_get_chip_details,
 		.intr_mask = mc_gp10b_intr_mask,
 		.intr_enable = mc_gp10b_intr_enable,
 #ifdef CONFIG_NVGPU_LS_PMU

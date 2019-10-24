@@ -39,6 +39,40 @@ struct gk20a;
  */
 struct gops_mc {
 	/**
+	 * @brief Get the GPU architecture, implementation and revision.
+	 *
+	 * @param g [in]	The GPU driver struct.
+	 * @param arch [out]	The GPU architecture level. Can be passed as
+	 *			NULL if not needed by the caller.
+	 * @param impl [out]	The implementation of the GPU architecture.
+	 *			Can be passed as NULL if not needed by the
+	 *			caller.
+	 * @param rev [out]	The revision of the chip. Can be passed as
+	 *			NULL if not needed by the caller.
+	 *
+	 * This function is invoked to get the GPU architecture, implementation
+	 * and revision level of the GPU chip before #nvgpu_finalize_poweron.
+	 * These values are used for chip specific SW/HW handling in the
+	 * driver.
+	 *
+	 * Steps:
+	 * - Read the register mc_boot_0_r().
+	 * - If value is not #U32_MAX
+	 *   - Set in \a arch, the value obtained by mc_boot_0_architecture_v()
+	 *     of the read value shifting left by #NVGPU_GPU_ARCHITECTURE_SHIFT.
+	 *   - Set in \a impl, the value obtained by
+	 *     mc_boot_0_implementation_v() of the read value.
+	 *   - Set in \a rev, value obtained by shifting left
+	 *     mc_boot_0_major_revision_v() of the read value by 4 OR'ing with
+	 *     mc_boot_0_minor_revision_v() of the value.
+	 * - return the value of the register mc_boot_0_r read.
+	 *
+	 * @return value read from mc_boot_0_r().
+	 */
+	u32 (*get_chip_details)(struct gk20a *g,
+				u32 *arch, u32 *impl, u32 *rev);
+
+	/**
 	 * @brief Clear the GPU device interrupts at master level.
 	 *
 	 * @param g [in]	The GPU driver struct.

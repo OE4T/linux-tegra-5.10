@@ -46,6 +46,9 @@ enum nvgpu_unit {
 #endif
 };
 
+/** Bit offset of the Architecture field in the HW version register */
+#define NVGPU_GPU_ARCHITECTURE_SHIFT 4U
+
 #define NVGPU_MC_INTR_STALLING		0U
 #define NVGPU_MC_INTR_NONSTALLING	1U
 
@@ -53,7 +56,6 @@ enum nvgpu_unit {
 #define NVGPU_NONSTALL_OPS_WAKEUP_SEMAPHORE	BIT32(0)
 #define NVGPU_NONSTALL_OPS_POST_EVENTS		BIT32(1)
 
-u32 nvgpu_mc_boot_0(struct gk20a *g, u32 *arch, u32 *impl, u32 *rev);
 void nvgpu_wait_for_deferred_interrupts(struct gk20a *g);
 
 #endif
