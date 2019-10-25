@@ -302,18 +302,28 @@ Thanks!
     for c in commits_info:
         # note: x['deletions'] is negative (or zero)
         files = c['currentPatchSet']['files']
-        width = max([
-            len(x['file']) for x in files if x['file'] != u'/COMMIT_MSG'])
-        file_template = "{name: <{width}} | {sum:<3} (+{adds: <3} -{dels: <3})"
-        files_changed_desc = [file_template.format(
+        file_widths = [
+            len(x['file']) for x in files if x['file'] != u'/COMMIT_MSG']
+
+        # For merge commits there are no files in the commit itself. So this
+        # causes the below max() operation to choke. Given that there are no
+        # files it makes little sense for us to try and fill in any file
+        # details!
+        if file_widths:
+            width = max(file_widths)
+            file_template = ("{name: <{width}} | " +
+                             "{sum:<3} (+{adds: <3} -{dels: <3})")
+            files_changed_desc = [file_template.format(
                 name=x['file'],
                 width=width,
                 sum=x['insertions'] - x['deletions'],
                 adds=x['insertions'],
                 dels=-x['deletions'])
-            for x in files
-            if x['file'] != u'/COMMIT_MSG'
-        ]
+                for x in files if x['file'] != u'/COMMIT_MSG'
+            ]
+        else:
+            files_changed_desc = ''
+
         cmt_verbose += cmt_template.format(url=c['url'],
                                            author=c['owner']['name'],
                                            cmtmsg=indent_lines(
