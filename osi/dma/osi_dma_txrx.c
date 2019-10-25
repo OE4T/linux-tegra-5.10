@@ -150,6 +150,7 @@ static int get_rx_hwstamp(struct osi_rx_desc *rx_desc,
 				/* Do nothing here */
 			}
 			/* TS not available yet, so retrying */
+			osd_udelay(1U);
 		}
 		if (ret != 0) {
 			/* Timed out waiting for Rx timestamp */
