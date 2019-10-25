@@ -517,8 +517,8 @@ static const struct sched_param param = {
 	.sched_priority = 1,
 };
 static struct task_struct *adspff_kthread;
-static DECLARE_COMPLETION(adspff_kthread_completion);
 static struct list_head adspff_kthread_msgq_head;
+static wait_queue_head_t  wait_queue;
 
 struct adspff_kthread_msg {
 	uint32_t msg_id;
@@ -533,13 +533,12 @@ static int adspff_kthread_fn(void *data)
 	unsigned long flags;
 
 	while (1) {
-		if (kthread_should_stop())
-			do_exit(ret);
 
-		/* Wait for 10 secs or until woken up (earlier) */
-		if (!wait_for_completion_timeout(&adspff_kthread_completion,
-						msecs_to_jiffies(10 * 1000)))
-			continue; /* Timeout */
+		ret = wait_event_interruptible(wait_queue, kthread_should_stop()
+				 || !list_empty(&adspff_kthread_msgq_head));
+
+		if (kthread_should_stop())
+			do_exit(0);
 
 		if (!list_empty(&adspff_kthread_msgq_head)) {
 			kmsg = list_first_entry(&adspff_kthread_msgq_head,
@@ -593,7 +592,7 @@ static int adspff_msg_handler(uint32_t msg, void *data)
 
 	kmsg->msg_id = msg;
 	list_add_tail(&kmsg->list, &adspff_kthread_msgq_head);
-	complete(&adspff_kthread_completion);
+	wake_up(&wait_queue);
 	spin_unlock_irqrestore(&adspff_lock, flags);
 
 	return 0;
@@ -676,6 +675,8 @@ int adspff_init(struct platform_device *pdev)
 	INIT_LIST_HEAD(&adspff_kthread_msgq_head);
 	INIT_LIST_HEAD(&file_list);
 
+	// kthread inIt
+	init_waitqueue_head(&wait_queue);
 	adspff_kthread = kthread_create(adspff_kthread_fn,
 		NULL, "adspp_kthread");
 	sched_setscheduler(adspff_kthread, SCHED_FIFO, &param);
