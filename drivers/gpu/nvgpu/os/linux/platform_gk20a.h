@@ -85,6 +85,9 @@ struct gk20a_platform {
 	/* Set if the platform can unify the small/large address spaces. */
 	bool unify_address_spaces;
 
+	/* P-state */
+	bool pstate;
+
 	/* Clock configuration is stored here. Platform probe is responsible
 	 * for filling this data. */
 	struct clk *clk[GK20A_CLKS_MAX];

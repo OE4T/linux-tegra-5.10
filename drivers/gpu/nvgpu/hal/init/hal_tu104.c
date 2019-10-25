@@ -1677,9 +1677,6 @@ int tu104_init_hal(struct gk20a *g)
 			nvgpu_gr_falcon_load_ctxsw_ucode;
 #endif
 
-		/* Disable pmu pstate, as there is no pmu support */
-		nvgpu_set_enabled(g, NVGPU_PMU_PSTATE, false);
-
 		nvgpu_set_enabled(g, NVGPU_GR_USE_DMA_FOR_FW_BOOTSTRAP,
 									false);
 		/* Disable fb mem_unlock */
@@ -1694,7 +1691,6 @@ int tu104_init_hal(struct gk20a *g)
 	} else
 #endif
 	{
-		nvgpu_set_enabled(g, NVGPU_PMU_PSTATE, true);
 		nvgpu_set_enabled(g, NVGPU_GR_USE_DMA_FOR_FW_BOOTSTRAP, true);
 	}
 

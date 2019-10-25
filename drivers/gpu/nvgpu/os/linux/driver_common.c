@@ -206,6 +206,14 @@ static void nvgpu_init_pm_vars(struct gk20a *g)
 	}
 
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_ASPM, !platform->disable_aspm);
+#ifdef CONFIG_NVGPU_SIM
+	if (nvgpu_is_enabled(g, NVGPU_IS_FMODEL)) {
+		nvgpu_set_enabled(g, NVGPU_PMU_PSTATE, false);
+	} else
+#endif
+	{
+		nvgpu_set_enabled(g, NVGPU_PMU_PSTATE, platform->pstate);
+	}
 }
 
 static void nvgpu_init_vbios_vars(struct gk20a *g)
