@@ -52,6 +52,7 @@
  *   - @ref unit-common-nvgpu
  *   - @ref unit-common-ltc
  *   - @ref unit-common-utils
+ *   - @ref unit-mc
  *   - Etc, etc.
  *
  * NVGPU Software Unit Design Documentation
