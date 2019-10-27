@@ -100,4 +100,15 @@
 		reset-names = "apb", "core";
 	};
 
+	serial@3100000 {
+		compatible = "nvidia,tegra194-hsuart";
+		reg = <0x03100000 0x40>;
+		interrupts = <GIC_SPI 112 IRQ_TYPE_LEVEL_HIGH>;
+		clocks = <&bpmp TEGRA194_CLK_UARTA>;
+		clock-names = "serial";
+		resets = <&bpmp TEGRA194_RESET_UARTA>;
+		reset-names = "serial";
+		/delete-property/ dma-names;
+		/delete-property/ dma-coherent;
+	};
 };
