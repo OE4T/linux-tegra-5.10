@@ -63,8 +63,11 @@
 
 #include "chip_support.h"
 
+#include "scale_emc.h"
+
 #include "streamid_regs.c"
 #include "cg_regs.c"
+#include "actmon_regs.c"
 
 static dma_addr_t nvhost_t194_get_reloc_phys_addr(dma_addr_t phys_addr,
 						  u32 reloc_type)
@@ -504,12 +507,23 @@ struct nvhost_device_data t19_vic_info = {
 	.transcfg_addr		= 0x2044,
 	.transcfg_val		= 0x20,
 	.bwmgr_client_id	= TEGRA_BWMGR_CLIENT_VIC,
+	.scaling_init		= nvhost_scale_emc_init,
+	.scaling_deinit		= nvhost_scale_emc_deinit,
+	.scaling_post_cb	= &nvhost_scale_emc_callback,
 	.get_reloc_phys_addr	= nvhost_t194_get_reloc_phys_addr,
 	.module_irq		= 1,
 	.engine_cg_regs		= t19x_vic_gating_registers,
 	.engine_can_cg		= true,
 	.can_powergate		= true,
 	.isolate_contexts	= true,
+	.actmon_regs		= HOST1X_THOST_ACTMON_VIC,
+	.actmon_enabled         = false,
+	.actmon_irq		= 3,
+	.actmon_weight_count	= 216,
+	.actmon_setting_regs	= t19x_vic_actmon_registers,
+	.devfreq_governor	= "wmark_active",
+	.freqs			= {100000000, 200000000, 300000000,
+					400000000, 500000000, 600000000},
 };
 #endif
 
