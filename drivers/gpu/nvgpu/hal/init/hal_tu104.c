@@ -814,7 +814,10 @@ static const struct gpu_ops tu104_ops = {
 		.set_mmu_debug_mode = gv100_fb_set_mmu_debug_mode,
 #endif
 		.tlb_invalidate = fb_tu104_tlb_invalidate,
+#ifdef CONFIG_NVGPU_REPLAYABLE_FAULT
 		.handle_replayable_fault = gv11b_fb_handle_replayable_mmu_fault,
+		.mmu_invalidate_replay = tu104_fb_mmu_invalidate_replay,
+#endif
 		.mem_unlock = gv100_fb_memory_unlock,
 		.init_nvlink = gv100_fb_init_nvlink,
 		.enable_nvlink = gv100_fb_enable_nvlink,
@@ -837,7 +840,6 @@ static const struct gpu_ops tu104_ops = {
 		.read_mmu_fault_inst_lo_hi = tu104_fb_read_mmu_fault_inst_lo_hi,
 		.read_mmu_fault_info = tu104_fb_read_mmu_fault_info,
 		.read_mmu_fault_status = tu104_fb_read_mmu_fault_status,
-		.mmu_invalidate_replay = tu104_fb_mmu_invalidate_replay,
 		.is_fault_buf_enabled = gv11b_fb_is_fault_buf_enabled,
 		.fault_buf_set_state_hw = gv11b_fb_fault_buf_set_state_hw,
 		.fault_buf_configure_hw = gv11b_fb_fault_buf_configure_hw,

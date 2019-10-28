@@ -85,8 +85,6 @@ struct gops_fb {
 	void (*read_mmu_fault_inst_lo_hi)(struct gk20a *g,
 				u32 *inst_lo, u32 *inst_hi);
 	void (*write_mmu_fault_status)(struct gk20a *g, u32 reg_val);
-	int (*mmu_invalidate_replay)(struct gk20a *g,
-						u32 invalidate_replay_val);
 
 	struct gops_fb_intr intr;
 
@@ -122,7 +120,11 @@ struct gops_fb {
 	void (*set_mmu_debug_mode)(struct gk20a *g, bool enable);
 #endif
 
+#ifdef CONFIG_NVGPU_REPLAYABLE_FAULT
 	void (*handle_replayable_fault)(struct gk20a *g);
+	int (*mmu_invalidate_replay)(struct gk20a *g,
+						u32 invalidate_replay_val);
+#endif
 	int (*mem_unlock)(struct gk20a *g);
 	int (*init_nvlink)(struct gk20a *g);
 	int (*enable_nvlink)(struct gk20a *g);

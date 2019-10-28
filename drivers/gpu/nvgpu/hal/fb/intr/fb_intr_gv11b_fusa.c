@@ -42,8 +42,10 @@ void gv11b_fb_intr_enable(struct gk20a *g)
 	mask = fb_niso_intr_en_set_mmu_other_fault_notify_m() |
 		fb_niso_intr_en_set_mmu_nonreplayable_fault_notify_m() |
 		fb_niso_intr_en_set_mmu_nonreplayable_fault_overflow_m() |
+#ifdef CONFIG_NVGPU_REPLAYABLE_FAULT
 		fb_niso_intr_en_set_mmu_replayable_fault_notify_m() |
 		fb_niso_intr_en_set_mmu_replayable_fault_overflow_m() |
+#endif
 		fb_niso_intr_en_set_mmu_ecc_uncorrected_error_notify_m();
 
 	nvgpu_writel(g, fb_niso_intr_en_set_r(0), mask);
@@ -56,8 +58,10 @@ void gv11b_fb_intr_disable(struct gk20a *g)
 	mask = fb_niso_intr_en_set_mmu_other_fault_notify_m() |
 		fb_niso_intr_en_set_mmu_nonreplayable_fault_notify_m() |
 		fb_niso_intr_en_set_mmu_nonreplayable_fault_overflow_m() |
+#ifdef CONFIG_NVGPU_REPLAYABLE_FAULT
 		fb_niso_intr_en_set_mmu_replayable_fault_notify_m() |
 		fb_niso_intr_en_set_mmu_replayable_fault_overflow_m() |
+#endif
 		fb_niso_intr_en_set_mmu_ecc_uncorrected_error_notify_m();
 
 	nvgpu_writel(g, fb_niso_intr_en_clr_r(0), mask);
@@ -86,8 +90,10 @@ void gv11b_fb_intr_isr(struct gk20a *g)
 	}
 	if ((niso_intr &
 		(fb_niso_intr_mmu_other_fault_notify_m() |
+#ifdef CONFIG_NVGPU_REPLAYABLE_FAULT
 		fb_niso_intr_mmu_replayable_fault_notify_m() |
 		fb_niso_intr_mmu_replayable_fault_overflow_m() |
+#endif
 		fb_niso_intr_mmu_nonreplayable_fault_notify_m() |
 		fb_niso_intr_mmu_nonreplayable_fault_overflow_m())) != 0U) {
 
@@ -103,8 +109,10 @@ bool gv11b_fb_intr_is_mmu_fault_pending(struct gk20a *g)
 	if ((gk20a_readl(g, fb_niso_intr_r()) &
 		(fb_niso_intr_mmu_other_fault_notify_m() |
 		 fb_niso_intr_mmu_ecc_uncorrected_error_notify_m() |
+#ifdef CONFIG_NVGPU_REPLAYABLE_FAULT
 		 fb_niso_intr_mmu_replayable_fault_notify_m() |
 		 fb_niso_intr_mmu_replayable_fault_overflow_m() |
+#endif
 		 fb_niso_intr_mmu_nonreplayable_fault_notify_m() |
 		 fb_niso_intr_mmu_nonreplayable_fault_overflow_m())) != 0U) {
 		return true;

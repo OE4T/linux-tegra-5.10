@@ -46,8 +46,10 @@ u32  tu104_fb_read_mmu_fault_info(struct gk20a *g);
 u32  tu104_fb_read_mmu_fault_status(struct gk20a *g);
 void tu104_fb_write_mmu_fault_status(struct gk20a *g, u32 reg_val);
 
+#ifdef CONFIG_NVGPU_REPLAYABLE_FAULT
 int  tu104_fb_mmu_invalidate_replay(struct gk20a *g,
 	u32 invalidate_replay_val);
+#endif
 
 #endif /* NVGPU_FB_MMU_FAULT_TU104_H */
 

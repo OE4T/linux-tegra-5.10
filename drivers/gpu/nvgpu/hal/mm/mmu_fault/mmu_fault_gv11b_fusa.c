@@ -50,6 +50,8 @@
 #ifdef CONFIG_NVGPU_REPLAYABLE_FAULT
 static int gv11b_fb_fix_page_fault(struct gk20a *g,
 		 struct mmu_fault_info *mmufault);
+static void gv11b_mm_mmu_fault_handle_replayable(struct gk20a *g,
+		struct mmu_fault_info *mmufault, u32 *invalidate_replay_val);
 #endif
 
 static const char mmufault_invalid_str[] = "invalid";
@@ -428,41 +430,6 @@ static bool gv11b_mm_mmu_fault_handle_non_replayable(struct gk20a *g,
 	return ret;
 }
 
-static void gv11b_mm_mmu_fault_handle_replayable(struct gk20a *g,
-		struct mmu_fault_info *mmufault, u32 *invalidate_replay_val)
-{
-	int err = 0;
-
-	if (mmufault->fault_type == gmmu_fault_type_pte_v()) {
-		nvgpu_log(g, gpu_dbg_intr, "invalid pte! try to fix");
-#ifdef CONFIG_NVGPU_REPLAYABLE_FAULT
-		err = gv11b_fb_fix_page_fault(g, mmufault);
-#else
-		err = -EINVAL;
-#endif
-		if (err != 0) {
-			*invalidate_replay_val |=
-				gv11b_fb_get_replay_cancel_global_val();
-		} else {
-#ifdef CONFIG_NVGPU_REPLAYABLE_FAULT
-			*invalidate_replay_val |=
-				gv11b_fb_get_replay_start_ack_all();
-#endif
-		}
-	} else {
-		/* cancel faults other than invalid pte */
-		*invalidate_replay_val |=
-			gv11b_fb_get_replay_cancel_global_val();
-	}
-	/*
-	 * refch in mmufault is assigned at the time of copying
-	 * fault info from snap reg or bar2 fault buf
-	 */
-	if (mmufault->refch != NULL) {
-		nvgpu_channel_put(mmufault->refch);
-		mmufault->refch = NULL;
-	}
-}
 
 void gv11b_mm_mmu_fault_handle_mmu_fault_common(struct gk20a *g,
 		 struct mmu_fault_info *mmufault, u32 *invalidate_replay_val)
@@ -503,9 +470,11 @@ void gv11b_mm_mmu_fault_handle_mmu_fault_common(struct gk20a *g,
 		if (ret) {
 			return;
 		}
+#ifdef CONFIG_NVGPU_REPLAYABLE_FAULT
 	} else {
 		gv11b_mm_mmu_fault_handle_replayable(g, mmufault,
 						invalidate_replay_val);
+#endif
 	}
 }
 
@@ -515,8 +484,10 @@ static void gv11b_mm_mmu_fault_handle_buf_valid_entry(struct gk20a *g,
 		u32 index, u32 get_indx, u32 offset, u32 entries)
 {
 	u32 sub_err_type =  0U;
+#ifdef CONFIG_NVGPU_REPLAYABLE_FAULT
 	u64 prev_fault_addr =  0ULL;
 	u64 next_fault_addr =  0ULL;
+#endif
 
 	while ((rd32_val & gmmu_fault_buf_entry_valid_m()) != 0U) {
 
@@ -524,11 +495,15 @@ static void gv11b_mm_mmu_fault_handle_buf_valid_entry(struct gk20a *g,
 
 		gv11b_fb_copy_from_hw_fault_buf(g, mem, offset, mmufault);
 
+#ifdef CONFIG_NVGPU_REPLAYABLE_FAULT
 		if (index == NVGPU_MMU_FAULT_REPLAY_REG_INDX) {
 			sub_err_type = GPU_HUBMMU_REPLAYABLE_FAULT_NOTIFY;
 		} else {
+#endif
 			sub_err_type = GPU_HUBMMU_NONREPLAYABLE_FAULT_NOTIFY;
+#ifdef CONFIG_NVGPU_REPLAYABLE_FAULT
 		}
+#endif
 
 		nvgpu_report_mmu_err(g, NVGPU_ERR_MODULE_HUBMMU,
 			GPU_HUBMMU_PAGE_FAULT_ERROR,
@@ -551,6 +526,7 @@ static void gv11b_mm_mmu_fault_handle_buf_valid_entry(struct gk20a *g,
 				nvgpu_safe_add_u32(offset,
 					gmmu_fault_buf_entry_valid_w()));
 
+#ifdef CONFIG_NVGPU_REPLAYABLE_FAULT
 		if (index == NVGPU_MMU_FAULT_REPLAY_REG_INDX &&
 		    mmufault->fault_addr != 0ULL) {
 			/*
@@ -572,6 +548,7 @@ static void gv11b_mm_mmu_fault_handle_buf_valid_entry(struct gk20a *g,
 				continue;
 			}
 		}
+#endif
 
 		gv11b_mm_mmu_fault_handle_mmu_fault_common(g, mmufault,
 				invalidate_replay_val_ptr);
@@ -586,7 +563,9 @@ void gv11b_mm_mmu_fault_handle_nonreplay_replay_fault(struct gk20a *g,
 	struct nvgpu_mem *mem;
 	struct mmu_fault_info *mmufault;
 	u32 invalidate_replay_val = 0U;
+#ifdef CONFIG_NVGPU_REPLAYABLE_FAULT
 	int err;
+#endif
 
 	if (gv11b_fb_is_fault_buffer_empty(g, index, &get_indx)) {
 		nvgpu_log(g, gpu_dbg_intr,
@@ -616,7 +595,7 @@ void gv11b_mm_mmu_fault_handle_nonreplay_replay_fault(struct gk20a *g,
 	gv11b_mm_mmu_fault_handle_buf_valid_entry(g, mem, mmufault,
 				&invalidate_replay_val, rd32_val, fault_status,
 				index, get_indx, offset, entries);
-
+#ifdef CONFIG_NVGPU_REPLAYABLE_FAULT
 	if (index == NVGPU_MMU_FAULT_REPLAY_REG_INDX &&
 	    invalidate_replay_val != 0U) {
 		err = gv11b_fb_replay_or_cancel_faults(g,
@@ -626,14 +605,17 @@ void gv11b_mm_mmu_fault_handle_nonreplay_replay_fault(struct gk20a *g,
 							" faults failed");
 		}
 	}
+#endif
 }
 
 void gv11b_mm_mmu_fault_handle_other_fault_notify(struct gk20a *g,
 			 u32 fault_status)
 {
 	struct mmu_fault_info *mmufault;
+#ifdef CONFIG_NVGPU_REPLAYABLE_FAULT
 	u32 invalidate_replay_val = 0U;
 	int err;
+#endif
 
 	mmufault = &g->mm.fault_info[NVGPU_MMU_FAULT_NONREPLAY_INDX];
 
@@ -649,6 +631,7 @@ void gv11b_mm_mmu_fault_handle_other_fault_notify(struct gk20a *g,
 		/* usually means VPR or out of bounds physical accesses */
 		nvgpu_err(g, "PHYSICAL MMU FAULT");
 
+#ifdef CONFIG_NVGPU_REPLAYABLE_FAULT
 	} else {
 		gv11b_mm_mmu_fault_handle_mmu_fault_common(g, mmufault,
 				 &invalidate_replay_val);
@@ -661,10 +644,168 @@ void gv11b_mm_mmu_fault_handle_other_fault_notify(struct gk20a *g,
 							" faults failed");
 			}
 		}
+#endif
 	}
 }
 
+
+void gv11b_mm_mmu_fault_disable_hw(struct gk20a *g)
+{
+	nvgpu_mutex_acquire(&g->mm.hub_isr_mutex);
+
+	if ((g->ops.fb.is_fault_buf_enabled(g,
+			NVGPU_MMU_FAULT_NONREPLAY_REG_INDX))) {
+		g->ops.fb.fault_buf_set_state_hw(g,
+				NVGPU_MMU_FAULT_NONREPLAY_REG_INDX,
+				NVGPU_MMU_FAULT_BUF_DISABLED);
+	}
+
 #ifdef CONFIG_NVGPU_REPLAYABLE_FAULT
+	if ((g->ops.fb.is_fault_buf_enabled(g,
+			NVGPU_MMU_FAULT_REPLAY_REG_INDX))) {
+		g->ops.fb.fault_buf_set_state_hw(g,
+				NVGPU_MMU_FAULT_REPLAY_REG_INDX,
+				NVGPU_MMU_FAULT_BUF_DISABLED);
+	}
+#endif
+
+	nvgpu_mutex_release(&g->mm.hub_isr_mutex);
+}
+
+void gv11b_mm_mmu_fault_info_mem_destroy(struct gk20a *g)
+{
+	struct vm_gk20a *vm = g->mm.bar2.vm;
+
+	nvgpu_log_fn(g, " ");
+
+	nvgpu_mutex_acquire(&g->mm.hub_isr_mutex);
+
+	if (nvgpu_mem_is_valid(
+		    &g->mm.hw_fault_buf[NVGPU_MMU_FAULT_NONREPLAY_INDX])) {
+		nvgpu_dma_unmap_free(vm,
+			 &g->mm.hw_fault_buf[NVGPU_MMU_FAULT_NONREPLAY_INDX]);
+	}
+#ifdef CONFIG_NVGPU_REPLAYABLE_FAULT
+	if (nvgpu_mem_is_valid(
+			&g->mm.hw_fault_buf[NVGPU_MMU_FAULT_REPLAY_INDX])) {
+		nvgpu_dma_unmap_free(vm,
+			 &g->mm.hw_fault_buf[NVGPU_MMU_FAULT_REPLAY_INDX]);
+	}
+#endif
+
+	nvgpu_mutex_release(&g->mm.hub_isr_mutex);
+	nvgpu_mutex_destroy(&g->mm.hub_isr_mutex);
+}
+
+static int gv11b_mm_mmu_fault_info_buf_init(struct gk20a *g)
+{
+	return 0;
+}
+
+static void gv11b_mm_mmu_hw_fault_buf_init(struct gk20a *g)
+{
+	struct vm_gk20a *vm = g->mm.bar2.vm;
+	int err = 0;
+	size_t fb_size;
+
+	/* Max entries take care of 1 entry used for full detection */
+	fb_size = nvgpu_safe_add_u64((size_t)g->ops.channel.count(g),
+				     (size_t)1);
+	fb_size = nvgpu_safe_mult_u64(fb_size,
+				      (size_t)gmmu_fault_buf_size_v());
+
+	if (!nvgpu_mem_is_valid(
+		&g->mm.hw_fault_buf[NVGPU_MMU_FAULT_NONREPLAY_INDX])) {
+
+		err = nvgpu_dma_alloc_map_sys(vm, fb_size,
+			&g->mm.hw_fault_buf[NVGPU_MMU_FAULT_NONREPLAY_INDX]);
+		if (err != 0) {
+			nvgpu_err(g,
+			"Error in hw mmu fault buf [0] alloc in bar2 vm ");
+			/* Fault will be snapped in pri reg but not in buffer */
+			return;
+		}
+	}
+
+#ifdef CONFIG_NVGPU_REPLAYABLE_FAULT
+	if (!nvgpu_mem_is_valid(
+		&g->mm.hw_fault_buf[NVGPU_MMU_FAULT_REPLAY_INDX])) {
+		err = nvgpu_dma_alloc_map_sys(vm, fb_size,
+				&g->mm.hw_fault_buf[NVGPU_MMU_FAULT_REPLAY_INDX]);
+		if (err != 0) {
+			nvgpu_err(g,
+			"Error in hw mmu fault buf [1] alloc in bar2 vm ");
+			/* Fault will be snapped in pri reg but not in buffer */
+			return;
+		}
+	}
+#endif
+}
+
+void gv11b_mm_mmu_fault_setup_hw(struct gk20a *g)
+{
+	if (nvgpu_mem_is_valid(
+			&g->mm.hw_fault_buf[NVGPU_MMU_FAULT_NONREPLAY_INDX])) {
+		g->ops.fb.fault_buf_configure_hw(g,
+				NVGPU_MMU_FAULT_NONREPLAY_REG_INDX);
+	}
+#ifdef CONFIG_NVGPU_REPLAYABLE_FAULT
+	if (nvgpu_mem_is_valid(
+			&g->mm.hw_fault_buf[NVGPU_MMU_FAULT_REPLAY_INDX])) {
+		g->ops.fb.fault_buf_configure_hw(g,
+				NVGPU_MMU_FAULT_REPLAY_REG_INDX);
+	}
+#endif
+}
+
+int gv11b_mm_mmu_fault_setup_sw(struct gk20a *g)
+{
+	int err = 0;
+
+	nvgpu_log_fn(g, " ");
+
+	nvgpu_mutex_init(&g->mm.hub_isr_mutex);
+
+	err = gv11b_mm_mmu_fault_info_buf_init(g);
+
+	if (err == 0) {
+		gv11b_mm_mmu_hw_fault_buf_init(g);
+	}
+
+	return err;
+}
+
+#ifdef CONFIG_NVGPU_REPLAYABLE_FAULT
+static void gv11b_mm_mmu_fault_handle_replayable(struct gk20a *g,
+		struct mmu_fault_info *mmufault, u32 *invalidate_replay_val)
+{
+	int err = 0;
+
+	if (mmufault->fault_type == gmmu_fault_type_pte_v()) {
+		nvgpu_log(g, gpu_dbg_intr, "invalid pte! try to fix");
+		err = gv11b_fb_fix_page_fault(g, mmufault);
+		if (err != 0) {
+			*invalidate_replay_val |=
+				gv11b_fb_get_replay_cancel_global_val();
+		} else {
+			*invalidate_replay_val |=
+				gv11b_fb_get_replay_start_ack_all();
+		}
+	} else {
+		/* cancel faults other than invalid pte */
+		*invalidate_replay_val |=
+			gv11b_fb_get_replay_cancel_global_val();
+	}
+	/*
+	 * refch in mmufault is assigned at the time of copying
+	 * fault info from snap reg or bar2 fault buf
+	 */
+	if (mmufault->refch != NULL) {
+		nvgpu_channel_put(mmufault->refch);
+		mmufault->refch = NULL;
+	}
+}
+
 static int gv11b_fb_fix_page_fault(struct gk20a *g,
 			 struct mmu_fault_info *mmufault)
 {
@@ -720,121 +861,3 @@ static int gv11b_fb_fix_page_fault(struct gk20a *g,
 	return err;
 }
 #endif
-
-void gv11b_mm_mmu_fault_disable_hw(struct gk20a *g)
-{
-	nvgpu_mutex_acquire(&g->mm.hub_isr_mutex);
-
-	if ((g->ops.fb.is_fault_buf_enabled(g,
-			NVGPU_MMU_FAULT_NONREPLAY_REG_INDX))) {
-		g->ops.fb.fault_buf_set_state_hw(g,
-				NVGPU_MMU_FAULT_NONREPLAY_REG_INDX,
-				NVGPU_MMU_FAULT_BUF_DISABLED);
-	}
-
-	if ((g->ops.fb.is_fault_buf_enabled(g,
-			NVGPU_MMU_FAULT_REPLAY_REG_INDX))) {
-		g->ops.fb.fault_buf_set_state_hw(g,
-				NVGPU_MMU_FAULT_REPLAY_REG_INDX,
-				NVGPU_MMU_FAULT_BUF_DISABLED);
-	}
-
-	nvgpu_mutex_release(&g->mm.hub_isr_mutex);
-}
-
-void gv11b_mm_mmu_fault_info_mem_destroy(struct gk20a *g)
-{
-	struct vm_gk20a *vm = g->mm.bar2.vm;
-
-	nvgpu_log_fn(g, " ");
-
-	nvgpu_mutex_acquire(&g->mm.hub_isr_mutex);
-
-	if (nvgpu_mem_is_valid(
-		    &g->mm.hw_fault_buf[NVGPU_MMU_FAULT_NONREPLAY_INDX])) {
-		nvgpu_dma_unmap_free(vm,
-			 &g->mm.hw_fault_buf[NVGPU_MMU_FAULT_NONREPLAY_INDX]);
-	}
-	if (nvgpu_mem_is_valid(
-			&g->mm.hw_fault_buf[NVGPU_MMU_FAULT_REPLAY_INDX])) {
-		nvgpu_dma_unmap_free(vm,
-			 &g->mm.hw_fault_buf[NVGPU_MMU_FAULT_REPLAY_INDX]);
-	}
-
-	nvgpu_mutex_release(&g->mm.hub_isr_mutex);
-	nvgpu_mutex_destroy(&g->mm.hub_isr_mutex);
-}
-
-static int gv11b_mm_mmu_fault_info_buf_init(struct gk20a *g)
-{
-	return 0;
-}
-
-static void gv11b_mm_mmu_hw_fault_buf_init(struct gk20a *g)
-{
-	struct vm_gk20a *vm = g->mm.bar2.vm;
-	int err = 0;
-	size_t fb_size;
-
-	/* Max entries take care of 1 entry used for full detection */
-	fb_size = nvgpu_safe_add_u64((size_t)g->ops.channel.count(g),
-				     (size_t)1);
-	fb_size = nvgpu_safe_mult_u64(fb_size,
-				      (size_t)gmmu_fault_buf_size_v());
-
-	if (!nvgpu_mem_is_valid(
-		&g->mm.hw_fault_buf[NVGPU_MMU_FAULT_NONREPLAY_INDX])) {
-
-		err = nvgpu_dma_alloc_map_sys(vm, fb_size,
-			&g->mm.hw_fault_buf[NVGPU_MMU_FAULT_NONREPLAY_INDX]);
-		if (err != 0) {
-			nvgpu_err(g,
-			"Error in hw mmu fault buf [0] alloc in bar2 vm ");
-			/* Fault will be snapped in pri reg but not in buffer */
-			return;
-		}
-	}
-
-	if (!nvgpu_mem_is_valid(
-		&g->mm.hw_fault_buf[NVGPU_MMU_FAULT_REPLAY_INDX])) {
-		err = nvgpu_dma_alloc_map_sys(vm, fb_size,
-				&g->mm.hw_fault_buf[NVGPU_MMU_FAULT_REPLAY_INDX]);
-		if (err != 0) {
-			nvgpu_err(g,
-			"Error in hw mmu fault buf [1] alloc in bar2 vm ");
-			/* Fault will be snapped in pri reg but not in buffer */
-			return;
-		}
-	}
-}
-
-void gv11b_mm_mmu_fault_setup_hw(struct gk20a *g)
-{
-	if (nvgpu_mem_is_valid(
-			&g->mm.hw_fault_buf[NVGPU_MMU_FAULT_NONREPLAY_INDX])) {
-		g->ops.fb.fault_buf_configure_hw(g,
-				NVGPU_MMU_FAULT_NONREPLAY_REG_INDX);
-	}
-	if (nvgpu_mem_is_valid(
-			&g->mm.hw_fault_buf[NVGPU_MMU_FAULT_REPLAY_INDX])) {
-		g->ops.fb.fault_buf_configure_hw(g,
-				NVGPU_MMU_FAULT_REPLAY_REG_INDX);
-	}
-}
-
-int gv11b_mm_mmu_fault_setup_sw(struct gk20a *g)
-{
-	int err = 0;
-
-	nvgpu_log_fn(g, " ");
-
-	nvgpu_mutex_init(&g->mm.hub_isr_mutex);
-
-	err = gv11b_mm_mmu_fault_info_buf_init(g);
-
-	if (err == 0) {
-		gv11b_mm_mmu_hw_fault_buf_init(g);
-	}
-
-	return err;
-}

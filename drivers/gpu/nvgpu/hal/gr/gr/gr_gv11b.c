@@ -1236,7 +1236,9 @@ int gv11b_gr_wait_for_sm_lock_down(struct gk20a *g,
 	bool locked_down;
 	bool no_error_pending;
 	u32 delay = POLL_DELAY_MIN_US;
+#ifdef CONFIG_NVGPU_REPLAYABLE_FAULT
 	bool mmu_debug_mode_enabled = g->ops.fb.is_debug_mode_enabled(g);
+#endif
 	u32 dbgr_status0 = 0;
 	u32 warp_esr, global_esr;
 	struct nvgpu_timeout timeout;
@@ -1297,11 +1299,12 @@ int gv11b_gr_wait_for_sm_lock_down(struct gk20a *g,
 				"GPC%d TPC%d: locked down SM%d", gpc, tpc, sm);
 			return 0;
 		}
-
+#ifdef CONFIG_NVGPU_REPLAYABLE_FAULT
 		if (mmu_debug_mode_enabled &&
 		    g->ops.fb.handle_replayable_fault != NULL) {
 			g->ops.fb.handle_replayable_fault(g);
 		} else {
+#endif
 			/* if an mmu fault is pending and mmu debug mode is not
 			 * enabled, the sm will never lock down.
 			 */
@@ -1312,7 +1315,9 @@ int gv11b_gr_wait_for_sm_lock_down(struct gk20a *g,
 					gpc, tpc, sm);
 				return -EFAULT;
 			}
+#ifdef CONFIG_NVGPU_REPLAYABLE_FAULT
 		}
+#endif
 
 		nvgpu_usleep_range(delay, delay * 2U);
 		delay = min_t(u32, delay << 1, POLL_DELAY_MAX_US);

@@ -798,7 +798,10 @@ static const struct gpu_ops gv11b_ops = {
 		.set_mmu_debug_mode = gm20b_fb_set_mmu_debug_mode,
 #endif
 		.tlb_invalidate = gm20b_fb_tlb_invalidate,
+#ifdef CONFIG_NVGPU_REPLAYABLE_FAULT
 		.handle_replayable_fault = gv11b_fb_handle_replayable_mmu_fault,
+		.mmu_invalidate_replay = gv11b_fb_mmu_invalidate_replay,
+#endif
 		.mem_unlock = NULL,
 		.write_mmu_fault_buffer_lo_hi =
 				gv11b_fb_write_mmu_fault_buffer_lo_hi,
@@ -817,7 +820,6 @@ static const struct gpu_ops gv11b_ops = {
 		.read_mmu_fault_inst_lo_hi = gv11b_fb_read_mmu_fault_inst_lo_hi,
 		.read_mmu_fault_info = gv11b_fb_read_mmu_fault_info,
 		.read_mmu_fault_status = gv11b_fb_read_mmu_fault_status,
-		.mmu_invalidate_replay = gv11b_fb_mmu_invalidate_replay,
 		.is_fault_buf_enabled = gv11b_fb_is_fault_buf_enabled,
 		.fault_buf_set_state_hw = gv11b_fb_fault_buf_set_state_hw,
 		.fault_buf_configure_hw = gv11b_fb_fault_buf_configure_hw,

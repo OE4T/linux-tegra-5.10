@@ -44,8 +44,10 @@ void tu104_fb_handle_mmu_fault(struct gk20a *g)
 	u32 info_fault = nvgpu_readl(g, fb_mmu_int_vector_info_fault_r());
 	u32 nonreplay_fault = nvgpu_readl(g,
 		fb_mmu_int_vector_fault_r(NVGPU_MMU_FAULT_NONREPLAY_REG_INDX));
+#ifdef CONFIG_NVGPU_REPLAYABLE_FAULT
 	u32 replay_fault = nvgpu_readl(g,
 		fb_mmu_int_vector_fault_r(NVGPU_MMU_FAULT_REPLAY_REG_INDX));
+#endif
 	u32 fault_status = g->ops.fb.read_mmu_fault_status(g);
 
 	nvgpu_log(g, gpu_dbg_intr, "mmu_fault_status = 0x%08x", fault_status);
@@ -89,6 +91,7 @@ void tu104_fb_handle_mmu_fault(struct gk20a *g)
 		}
 	}
 
+#ifdef CONFIG_NVGPU_REPLAYABLE_FAULT
 	if (gv11b_fb_is_fault_buf_enabled(g,
 			NVGPU_MMU_FAULT_REPLAY_REG_INDX)) {
 		if (intr_tu104_vector_intr_pending(g,
@@ -110,6 +113,7 @@ void tu104_fb_handle_mmu_fault(struct gk20a *g)
 				 fault_status);
 		}
 	}
+#endif
 
 	nvgpu_log(g, gpu_dbg_intr, "clear mmu fault status");
 	g->ops.fb.write_mmu_fault_status(g,
@@ -195,6 +199,7 @@ void tu104_fb_write_mmu_fault_status(struct gk20a *g, u32 reg_val)
 			   reg_val);
 }
 
+#ifdef CONFIG_NVGPU_REPLAYABLE_FAULT
 int tu104_fb_mmu_invalidate_replay(struct gk20a *g,
 			 u32 invalidate_replay_val)
 {
@@ -240,3 +245,4 @@ int tu104_fb_mmu_invalidate_replay(struct gk20a *g,
 	nvgpu_mutex_release(&g->mm.tlb_lock);
 	return err;
 }
+#endif

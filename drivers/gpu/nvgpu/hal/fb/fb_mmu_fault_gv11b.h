@@ -44,16 +44,9 @@ void gv11b_fb_handle_mmu_fault(struct gk20a *g, u32 niso_intr);
 void gv11b_fb_handle_dropped_mmu_fault(struct gk20a *g, u32 fault_status);
 void gv11b_fb_handle_nonreplay_fault_overflow(struct gk20a *g,
 		 u32 fault_status);
-void gv11b_fb_handle_replay_fault_overflow(struct gk20a *g,
-		 u32 fault_status);
-void gv11b_fb_handle_replayable_mmu_fault(struct gk20a *g);
 void gv11b_fb_handle_bar2_fault(struct gk20a *g,
 		struct mmu_fault_info *mmufault, u32 fault_status);
 
-int  gv11b_fb_mmu_invalidate_replay(struct gk20a *g,
-		u32 invalidate_replay_val);
-int  gv11b_fb_replay_or_cancel_faults(struct gk20a *g,
-		u32 invalidate_replay_val);
 void gv11b_fb_mmu_fault_info_dump(struct gk20a *g,
 		struct mmu_fault_info *mmufault);
 
@@ -74,7 +67,16 @@ u32  gv11b_fb_read_mmu_fault_info(struct gk20a *g);
 u32  gv11b_fb_read_mmu_fault_status(struct gk20a *g);
 void gv11b_fb_write_mmu_fault_status(struct gk20a *g, u32 reg_val);
 
+#ifdef CONFIG_NVGPU_REPLAYABLE_FAULT
+void gv11b_fb_handle_replay_fault_overflow(struct gk20a *g,
+		 u32 fault_status);
+void gv11b_fb_handle_replayable_mmu_fault(struct gk20a *g);
+int  gv11b_fb_mmu_invalidate_replay(struct gk20a *g,
+		u32 invalidate_replay_val);
+int  gv11b_fb_replay_or_cancel_faults(struct gk20a *g,
+		u32 invalidate_replay_val);
 u32 gv11b_fb_get_replay_cancel_global_val(void);
 u32 gv11b_fb_get_replay_start_ack_all(void);
+#endif
 
 #endif /* NVGPU_FB_MMU_FAULT_GV11B_H */

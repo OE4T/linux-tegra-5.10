@@ -287,32 +287,6 @@ void gv11b_fb_write_mmu_fault_status(struct gk20a *g, u32 reg_val)
 	nvgpu_writel(g, fb_mmu_fault_status_r(), reg_val);
 }
 
-int gv11b_fb_replay_or_cancel_faults(struct gk20a *g,
-			 u32 invalidate_replay_val)
-{
-	int err = 0;
-
-	nvgpu_log_fn(g, " ");
-
-	if ((invalidate_replay_val &
-	     fb_mmu_invalidate_replay_cancel_global_f()) != 0U) {
-		/*
-		 * cancel faults so that next time it faults as
-		 * replayable faults and channel recovery can be done
-		 */
-		err = g->ops.fb.mmu_invalidate_replay(g,
-			fb_mmu_invalidate_replay_cancel_global_f());
-	} else if ((invalidate_replay_val &
-		    fb_mmu_invalidate_replay_start_ack_all_f()) != 0U) {
-		/* pte valid is fixed. replay faulting request */
-		err = g->ops.fb.mmu_invalidate_replay(g,
-			fb_mmu_invalidate_replay_start_ack_all_f());
-	}
-
-	return err;
-}
-
-
 void gv11b_fb_mmu_fault_info_dump(struct gk20a *g,
 			 struct mmu_fault_info *mmufault)
 {
@@ -436,41 +410,6 @@ void gv11b_mm_copy_from_fault_snap_reg(struct gk20a *g,
 
 }
 
-void gv11b_fb_handle_replay_fault_overflow(struct gk20a *g,
-			 u32 fault_status)
-{
-	u32 reg_val;
-	u32 index = NVGPU_MMU_FAULT_REPLAY_REG_INDX;
-
-	reg_val = g->ops.fb.read_mmu_fault_buffer_get(g, index);
-
-	if ((fault_status &
-	     fb_mmu_fault_status_replayable_getptr_corrupted_m()) != 0U) {
-
-		nvgpu_err(g, "replayable getptr corrupted set");
-
-		gv11b_fb_fault_buf_configure_hw(g, index);
-
-		reg_val = set_field(reg_val,
-			fb_mmu_fault_buffer_get_getptr_corrupted_m(),
-			fb_mmu_fault_buffer_get_getptr_corrupted_clear_f());
-	}
-
-	if ((fault_status &
-	     fb_mmu_fault_status_replayable_overflow_m()) != 0U) {
-		bool buffer_full = gv11b_fb_is_fault_buffer_full(g, index);
-
-		nvgpu_err(g, "replayable overflow: buffer full:%s",
-				buffer_full?"true":"false");
-
-		reg_val = set_field(reg_val,
-			fb_mmu_fault_buffer_get_overflow_m(),
-			fb_mmu_fault_buffer_get_overflow_clear_f());
-	}
-
-	g->ops.fb.write_mmu_fault_buffer_get(g, index, reg_val);
-}
-
 void gv11b_fb_handle_nonreplay_fault_overflow(struct gk20a *g,
 			 u32 fault_status)
 {
@@ -519,6 +458,7 @@ void gv11b_fb_handle_bar2_fault(struct gk20a *g,
 		}
 	}
 
+#ifdef CONFIG_NVGPU_REPLAYABLE_FAULT
 	if ((fault_status & fb_mmu_fault_status_replayable_error_m()) != 0U) {
 		if (gv11b_fb_is_fault_buf_enabled(g,
 				NVGPU_MMU_FAULT_REPLAY_REG_INDX)) {
@@ -526,6 +466,7 @@ void gv11b_fb_handle_bar2_fault(struct gk20a *g,
 				NVGPU_MMU_FAULT_REPLAY_REG_INDX);
 		}
 	}
+#endif
 	g->ops.ce.mthd_buffer_fault_in_bar2_fault(g);
 
 	g->ops.bus.bar2_bind(g, &g->mm.bar2.inst_block);
@@ -553,22 +494,6 @@ void gv11b_fb_handle_dropped_mmu_fault(struct gk20a *g, u32 fault_status)
 		nvgpu_err(g, "dropped mmu fault (0x%08x)",
 				 fault_status & dropped_faults);
 		g->ops.fb.write_mmu_fault_status(g, dropped_faults);
-	}
-}
-
-void gv11b_fb_handle_replayable_mmu_fault(struct gk20a *g)
-{
-	u32 fault_status = nvgpu_readl(g, fb_mmu_fault_status_r());
-
-	if ((fault_status & fb_mmu_fault_status_replayable_m()) == 0U) {
-		return;
-	}
-
-	if (gv11b_fb_is_fault_buf_enabled(g,
-			NVGPU_MMU_FAULT_NONREPLAY_REG_INDX)) {
-		gv11b_mm_mmu_fault_handle_nonreplay_replay_fault(g,
-				fault_status,
-				NVGPU_MMU_FAULT_REPLAY_REG_INDX);
 	}
 }
 
@@ -622,6 +547,7 @@ void gv11b_fb_handle_mmu_fault(struct gk20a *g, u32 niso_intr)
 
 	}
 
+#ifdef CONFIG_NVGPU_SUPPORT_MMU_REPLAYABLE_FAULT
 	if (gv11b_fb_is_fault_buf_enabled(g, NVGPU_MMU_FAULT_REPLAY_REG_INDX)) {
 
 		if ((niso_intr &
@@ -645,10 +571,88 @@ void gv11b_fb_handle_mmu_fault(struct gk20a *g, u32 niso_intr)
 		}
 
 	}
+#endif
 
 	nvgpu_log(g, gpu_dbg_intr, "clear mmu fault status");
 	g->ops.fb.write_mmu_fault_status(g,
 			fb_mmu_fault_status_valid_clear_f());
+}
+
+#ifdef CONFIG_NVGPU_REPLAYABLE_FAULT
+void gv11b_fb_handle_replayable_mmu_fault(struct gk20a *g)
+{
+	u32 fault_status = nvgpu_readl(g, fb_mmu_fault_status_r());
+
+	if ((fault_status & fb_mmu_fault_status_replayable_m()) == 0U) {
+		return;
+	}
+
+	if (gv11b_fb_is_fault_buf_enabled(g,
+			NVGPU_MMU_FAULT_NONREPLAY_REG_INDX)) {
+		gv11b_mm_mmu_fault_handle_nonreplay_replay_fault(g,
+				fault_status,
+				NVGPU_MMU_FAULT_REPLAY_REG_INDX);
+	}
+}
+
+void gv11b_fb_handle_replay_fault_overflow(struct gk20a *g,
+			 u32 fault_status)
+{
+	u32 reg_val;
+	u32 index = NVGPU_MMU_FAULT_REPLAY_REG_INDX;
+
+	reg_val = g->ops.fb.read_mmu_fault_buffer_get(g, index);
+
+	if ((fault_status &
+	     fb_mmu_fault_status_replayable_getptr_corrupted_m()) != 0U) {
+
+		nvgpu_err(g, "replayable getptr corrupted set");
+
+		gv11b_fb_fault_buf_configure_hw(g, index);
+
+		reg_val = set_field(reg_val,
+			fb_mmu_fault_buffer_get_getptr_corrupted_m(),
+			fb_mmu_fault_buffer_get_getptr_corrupted_clear_f());
+	}
+
+	if ((fault_status &
+	     fb_mmu_fault_status_replayable_overflow_m()) != 0U) {
+		bool buffer_full = gv11b_fb_is_fault_buffer_full(g, index);
+
+		nvgpu_err(g, "replayable overflow: buffer full:%s",
+				buffer_full?"true":"false");
+
+		reg_val = set_field(reg_val,
+			fb_mmu_fault_buffer_get_overflow_m(),
+			fb_mmu_fault_buffer_get_overflow_clear_f());
+	}
+
+	g->ops.fb.write_mmu_fault_buffer_get(g, index, reg_val);
+}
+
+int gv11b_fb_replay_or_cancel_faults(struct gk20a *g,
+			 u32 invalidate_replay_val)
+{
+	int err = 0;
+
+	nvgpu_log_fn(g, " ");
+
+	if ((invalidate_replay_val &
+	     fb_mmu_invalidate_replay_cancel_global_f()) != 0U) {
+		/*
+		 * cancel faults so that next time it faults as
+		 * replayable faults and channel recovery can be done
+		 */
+		err = g->ops.fb.mmu_invalidate_replay(g,
+			fb_mmu_invalidate_replay_cancel_global_f());
+	} else if ((invalidate_replay_val &
+		    fb_mmu_invalidate_replay_start_ack_all_f()) != 0U) {
+		/* pte valid is fixed. replay faulting request */
+		err = g->ops.fb.mmu_invalidate_replay(g,
+			fb_mmu_invalidate_replay_start_ack_all_f());
+	}
+
+	return err;
 }
 
 u32 gv11b_fb_get_replay_cancel_global_val(void)
@@ -702,3 +706,4 @@ int gv11b_fb_mmu_invalidate_replay(struct gk20a *g,
 
 	return err;
 }
+#endif
