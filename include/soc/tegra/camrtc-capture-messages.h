@@ -459,8 +459,6 @@ struct CAPTURE_CSI_STREAM_SET_PARAM_REQ_MSG {
 	union {
 		/** Set DPCM config for an NVCSI stream */
 		struct nvcsi_dpcm_config dpcm_config;
-		/** NVCSI virtual channel data type override config */
-		struct nvcsi_dt_override_config dt_override_config;
 		/** NVCSI watchdog timer config */
 		struct nvcsi_watchdog_config watchdog_config;
 	};
@@ -475,7 +473,6 @@ struct CAPTURE_CSI_STREAM_SET_PARAM_RESP_MSG {
 	/** Reserved */
 	uint32_t __pad32;
 } CAPTURE_IVC_ALIGN;
-
 
 /**
  * @brief NVCSI test pattern generator (TPG) stream config request message.

@@ -1621,27 +1621,12 @@ struct nvcsi_error_config {
  */
 #define NVCSI_PARAM_TYPE_UNSPECIFIED	MK_U32(0)
 #define NVCSI_PARAM_TYPE_DPCM		MK_U32(1)
-#define NVCSI_PARAM_TYPE_DT_OVERRIDE	MK_U32(2)
-#define NVCSI_PARAM_TYPE_WATCHDOG	MK_U32(3)
+#define NVCSI_PARAM_TYPE_WATCHDOG	MK_U32(2)
 /**@}*/
 
 struct nvcsi_dpcm_config {
 	uint32_t dpcm_ratio;
 	uint32_t __pad32;
-} CAPTURE_IVC_ALIGN;
-
-/**
- * @brief NvCSI data type (DT) override configuration
- */
-struct nvcsi_dt_override_config {
-	/** Flag to enable DT override */
-	uint8_t enable_override;
-	/** Reserved */
-	uint8_t __pad8[7];
-	/** NvCSI data type */
-	uint32_t override_type;
-	/** RCE exception type */
-	uint32_t exception_type[NVCSI_NUM_NOOVERRIDE_DT];
 } CAPTURE_IVC_ALIGN;
 
 /**
@@ -1660,8 +1645,8 @@ struct nvcsi_watchdog_config {
  * NVCSI - TPG attributes
  */
 /**
-@brief Number of vertical color bars in TPG (t186)
-*/
+ * @brief Number of vertical color bars in TPG (t186)
+ */
 #define NVCSI_TPG_NUM_COLOR_BARS MK_U32(8)
 
 /**
