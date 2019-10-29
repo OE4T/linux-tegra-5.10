@@ -549,7 +549,7 @@ static int pva_get_characteristics(struct pva_private *priv,
 	memset(&pva_char, 0, out_size);
 	pva_char.num_vpu = 2;
 	pva_char.num_queues = MAX_PVA_QUEUE_COUNT;
-	pva_char.submit_mode = pva->submit_mode;
+	pva_char.submit_mode = pva->submit_task_mode;
 	pva_char.pva_r5_version = info.pva_r5_version;
 	pva_char.pva_compat_version = info.pva_compat_version;
 	pva_char.pva_revision = info.pva_revision;
@@ -840,7 +840,7 @@ static int pva_open(struct inode *inode, struct file *file)
 		goto err_add_client;
 
 	priv->queue = nvhost_queue_alloc(pva->pool, MAX_PVA_TASK_COUNT,
-		pva->submit_mode == PVA_SUBMIT_MODE_CHANNEL_CCQ);
+		pva->submit_task_mode == PVA_SUBMIT_MODE_CHANNEL_CCQ);
 	if (IS_ERR(priv->queue)) {
 		err = PTR_ERR(priv->queue);
 		goto err_alloc_queue;

@@ -132,7 +132,7 @@ int pva_run_ucode_selftest(struct platform_device *pdev)
 		goto err_selftest;
 	}
 
-	pva->mailbox_status = PVA_MBOX_STATUS_WFI;
+	pva->cmd_status[PVA_MAILBOX_INDEX] = PVA_CMD_STATUS_WFI;
 	host1x_writel(pdev, hsp_ss0_set_r(), PVA_TEST_RUN);
 
 	/* Wait till we get a AISR_ABORT interrupt */

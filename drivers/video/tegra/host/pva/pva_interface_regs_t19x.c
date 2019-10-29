@@ -42,7 +42,7 @@ static struct pva_status_interface_registers t19x_status_regs[NUM_INTERFACES_T19
 
 void read_status_interface_t19x(struct pva *pva,
 				uint32_t interface_id, u32 isr_status,
-				struct pva_mailbox_status_regs *status_output)
+				struct pva_cmd_status_regs *status_output)
 {
 	int i;
 	u32 valid_status = PVA_VALID_STATUS3;
@@ -53,9 +53,13 @@ void read_status_interface_t19x(struct pva *pva,
 	for (i = 0; i < NUM_STATUS_REGS; i++) {
 		valid_status = valid_status << 1;
 		if (isr_status & valid_status) {
-			status_output->status[i + PVA_CCQ_STATUS3_INDEX] =
-						    host1x_readl(pva->pdev,
+			status_output->status[i] = host1x_readl(pva->pdev,
 						    status_registers[i]);
+			if ((i == 0) && (isr_status & PVA_CMD_ERROR)) {
+				status_output->error =
+					PVA_GET_ERROR_CODE(
+						status_output->status[i]);
+			}
 		}
 	}
 	if (isr_status & PVA_CMD_ERROR) {

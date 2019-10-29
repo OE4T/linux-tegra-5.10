@@ -1,7 +1,7 @@
 /*
  * PVA Debug Information file
  *
- * Copyright (c) 2017-2018, NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2017-2019, NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -230,8 +230,8 @@ void pva_debugfs_init(struct platform_device *pdev)
 	if (!ret)
 		nvhost_dbg_info("Failed VPU1_crashdump file creation");
 
-	ret = debugfs_create_u32("submit_mode", S_IRUGO | S_IWUSR, de,
-				 &pva->submit_mode);
+	ret = debugfs_create_u32("submit_task_mode", S_IRUGO | S_IWUSR, de,
+				 &pva->submit_task_mode);
 	if (!ret)
 		nvhost_dbg_info("Failed to create submit mode selection file");
 

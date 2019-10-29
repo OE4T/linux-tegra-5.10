@@ -62,6 +62,17 @@ struct pva_version_info {
  * Gen2 has 9.
  */
 #define MAX_PVA_IRQS	9
+#define MAX_PVA_QUEUES	9
+#define PVA_MAILBOX_INDEX	0
+#define PVA_CCQ0_INDEX	1
+#define PVA_CCQ1_INDEX	2
+#define PVA_CCQ2_INDEX	3
+#define PVA_CCQ3_INDEX	4
+#define PVA_CCQ4_INDEX	5
+#define PVA_CCQ5_INDEX	6
+#define PVA_CCQ6_INDEX	7
+#define PVA_CCQ7_INDEX	8
+
 
 /**
  * @brief		struct to hold the segment details
@@ -154,24 +165,41 @@ struct pva_func_table {
 	uint32_t entries;
 };
 
+struct pva_status_interface_registers {
+	uint32_t registers[5];
+};
 /**
  * @brief		HW version specific configuration and functions
+ * read_mailbox		Function to read from mailbox based on PVA revision
+ * write_mailbox	Function to write to mailbox based on PVA revision
+ * ccq_send_task	Function to submit task to ccq based on PVA revision
+ * submit_cmd_sync_locked
+ *			Function to submit command to PVA based on PVA revision
+ *			Should be called only if appropriate locks have been
+ *			acquired
  *
+ * submit_cmd_sync	Function to submit command to PVA based on PVA revision
  * irq_count		Number of IRQs associated with this PVA revision
  *
  */
 
-struct pva_status_interface_registers {
-	uint32_t registers[5];
-};
 struct pva_version_config {
 	u32 (*read_mailbox)(struct platform_device *pdev, u32 mbox_id);
 	void (*write_mailbox)(struct platform_device *pdev,
 					u32 mbox_id, u32 value);
 	void (*read_status_interface)(struct pva *pva,
 				uint32_t interface_id, u32 isr_status,
-				struct pva_mailbox_status_regs *status_output);
+				struct pva_cmd_status_regs *status_output);
+	int (*ccq_send_task)(struct pva *pva, struct pva_cmd *cmd);
+	int (*submit_cmd_sync_locked)(struct pva *pva,
+			struct pva_cmd *cmd, u32 nregs,
+			struct pva_cmd_status_regs *status_regs);
+
+	int (*submit_cmd_sync)(struct pva *pva,
+		    struct pva_cmd *cmd, u32 nregs,
+		    struct pva_cmd_status_regs *status_regs);
 	int irq_count;
+
 };
 
 /**
@@ -182,10 +210,12 @@ struct pva_version_config {
  * pool			Pointer to Queue table available for the PVA
  * fw_info		firmware information struct
  * irq			IRQ number obtained on registering the module
+ * cmd_waitqueue	Command Waitqueue for response waiters
+ *			for syncronous commands
+ * cmd_status_regs	Response to commands is stored into this
+ *			structure temporarily
+ * cmd_status		Status of the command interface
  * mailbox_mutex	Mutex to avoid concurrent mailbox accesses
- * mailbox_waitq	Mailbox waitqueue for response waiters
- * mailbox_status_regs	Response is stored into this structure temporarily
- * mailbox_status	Status of the mailbox interface
  * debugfs_entry_r5	debugfs segment information for r5
  * debugfs_entry_vpu0	debugfs segment information for vpu0
  * debugfs_entry_vpu1	debugfs segment information for vpu1
@@ -208,9 +238,9 @@ struct pva {
 
 	int irq[MAX_PVA_IRQS];
 
-	wait_queue_head_t mailbox_waitqueue;
-	struct pva_mailbox_status_regs mailbox_status_regs;
-	enum pva_mailbox_status mailbox_status;
+	wait_queue_head_t cmd_waitqueue[MAX_PVA_QUEUES];
+	struct pva_cmd_status_regs cmd_status_regs[MAX_PVA_QUEUES];
+	enum pva_cmd_status cmd_status[MAX_PVA_QUEUES];
 	struct mutex mailbox_mutex;
 
 	struct mutex ccq_mutex;
@@ -223,7 +253,8 @@ struct pva {
 	struct pva_dma_alloc_info priv2_dma;
 
 	struct pva_trace_log pva_trace;
-	u32 submit_mode;
+	u32 submit_task_mode;
+	u32 submit_cmd_mode;
 
 	u32 dbg_vpu_app_id;
 	u32 r5_dbg_wait;
