@@ -1076,6 +1076,9 @@ int tegra_csi_mipi_calibrate(struct tegra_csi_device *csi,
 		if (chan->pg_mode)
 			continue;
 
+		if (chan->s_data == NULL)
+			continue;
+
 		ret = csi->fops->mipical(chan);
 		if (ret)
 			dev_err(csi->dev,

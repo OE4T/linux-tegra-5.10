@@ -1,7 +1,7 @@
 /*
  * tegracam_core - tegra camera framework initialization
  *
- * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -207,5 +207,9 @@ void tegracam_device_unregister(struct tegracam_device *tc_dev)
 	}
 	mutex_unlock(&tc_device_list_mutex);
 	devm_kfree(tc_dev->dev, entry);
+	devm_kfree(tc_dev->dev, tc_dev->s_data->tegracam_ctrl_hdl);
+	devm_kfree(tc_dev->dev, tc_dev->s_data->power);
+	devm_kfree(tc_dev->dev, tc_dev->s_data);
+	tc_dev->s_data = NULL;
 }
 EXPORT_SYMBOL_GPL(tegracam_device_unregister);
