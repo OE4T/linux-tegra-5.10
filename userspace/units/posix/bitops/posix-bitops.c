@@ -27,6 +27,8 @@
 
 #include <nvgpu/bitops.h>
 
+#include "posix-bitops.h"
+
 #define NUM_WORDS 4
 
 static unsigned long single_ulong_maps[] = {
@@ -45,7 +47,7 @@ static unsigned long single_ulong_maps[] = {
 /*
  * Can't fail - just some info prints.
  */
-static int test_bitmap_info(struct unit_module *m, struct gk20a *g, void *args)
+int test_bitmap_info(struct unit_module *m, struct gk20a *g, void *args)
 {
 	unit_info(m, "sizeof(unsigned long) = %zu\n", sizeof(unsigned long));
 	unit_info(m, "BITS_PER_LONG         = %lu\n", BITS_PER_LONG);
@@ -53,7 +55,7 @@ static int test_bitmap_info(struct unit_module *m, struct gk20a *g, void *args)
 	return UNIT_SUCCESS;
 }
 
-static int test_ffs(struct unit_module *m, struct gk20a *g, void *args)
+int test_ffs(struct unit_module *m, struct gk20a *g, void *args)
 {
 #define CHECK_FFS_WORD(w, answer)					\
 	do {								\
@@ -94,7 +96,7 @@ static int test_ffs(struct unit_module *m, struct gk20a *g, void *args)
 	return UNIT_SUCCESS;
 }
 
-static int test_fls(struct unit_module *m, struct gk20a *g, void *args)
+int test_fls(struct unit_module *m, struct gk20a *g, void *args)
 {
 #define CHECK_FLS_WORD(w, answer)					\
 	do {								\
@@ -131,7 +133,7 @@ static int test_fls(struct unit_module *m, struct gk20a *g, void *args)
 	return UNIT_SUCCESS;
 }
 
-static int test_ffz(struct unit_module *m, struct gk20a *g, void *args)
+int test_ffz(struct unit_module *m, struct gk20a *g, void *args)
 {
 	unsigned long i;
 
@@ -161,8 +163,7 @@ static struct test_find_bit_args first_zero_args = {
 	.find_zeros = true
 };
 
-static int test_find_first_bit(struct unit_module *m,
-			       struct gk20a *g, void *__args)
+int test_find_first_bit(struct unit_module *m, struct gk20a *g, void *__args)
 {
 	struct test_find_bit_args *args = __args;
 	unsigned long words[NUM_WORDS];
@@ -248,8 +249,7 @@ static int test_find_first_bit(struct unit_module *m,
  * with a 0 start.
  */
 
-static int test_find_next_bit(struct unit_module *m,
-			      struct gk20a *g, void *__args)
+int test_find_next_bit(struct unit_module *m, struct gk20a *g, void *__args)
 {
 	unsigned long words[NUM_WORDS];
 	unsigned long i, result;
@@ -317,8 +317,7 @@ static DECLARE_BITMAP(bmap_all_ones, TEST_BITMAP_SIZE) =
 	~0x0UL, ~0x0UL, ~0x0UL, ~0x0UL
 };
 
-static int test_find_zero_area(struct unit_module *m,
-			       struct gk20a *g, void *unused)
+int test_find_zero_area(struct unit_module *m, struct gk20a *g, void *unused)
 {
 #define FAIL_MSG "Fail: bmap-test='%s' (i=%lu)\n"
 #define FAIL_MSG_EX "Fail: bmap-test='%s' (i=%lu, j=%lu)\n"
@@ -499,8 +498,7 @@ static bool verify_set_buf(unsigned long *words, unsigned long size,
 	return true;
 }
 
-static int test_single_bitops(struct unit_module *m,
-			      struct gk20a *g, void *__args)
+int test_single_bitops(struct unit_module *m, struct gk20a *g, void *__args)
 {
 	unsigned long words[NUM_WORDS];
 	unsigned int i;
@@ -540,8 +538,7 @@ static int test_single_bitops(struct unit_module *m,
 	return UNIT_SUCCESS;
 }
 
-static int test_bit_setclear(struct unit_module *m,
-			     struct gk20a *g, void *__args)
+int test_bit_setclear(struct unit_module *m, struct gk20a *g, void *__args)
 {
 	struct test_setclear_args *args = __args;
 	void (*testfn)(unsigned int, volatile unsigned long *) =
@@ -565,8 +562,8 @@ static int test_bit_setclear(struct unit_module *m,
 	return UNIT_SUCCESS;
 }
 
-static int test_test_and_setclear_bit(struct unit_module *m,
-				      struct gk20a *g, void *__args)
+int test_test_and_setclear_bit(struct unit_module *m, struct gk20a *g,
+				void *__args)
 {
 	struct test_setclear_args *args = __args;
 	bool (*testfn)(unsigned int, volatile unsigned long *) =
@@ -614,8 +611,7 @@ static int test_test_and_setclear_bit(struct unit_module *m,
 	return UNIT_SUCCESS;
 }
 
-static int test_bitmap_setclear(struct unit_module *m,
-				struct gk20a *g, void *__args)
+int test_bitmap_setclear(struct unit_module *m, struct gk20a *g, void *__args)
 {
 	struct test_setclear_args *args = __args;
 	void (*testfn)(unsigned long *, unsigned int, unsigned int) =
