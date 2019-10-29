@@ -120,7 +120,7 @@ nvgpu_sgt:
   sources: [ include/nvgpu/nvgpu_sgt_os.h ]
 
 os_sched:
-  safe: no
+  safe: yes
   sources: [ include/nvgpu/os_sched.h ]
 
 nvhost:
