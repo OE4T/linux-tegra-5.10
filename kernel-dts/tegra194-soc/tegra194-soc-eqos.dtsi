@@ -64,6 +64,8 @@
 		reset-names = "mac_rst";
 		nvidia,num-dma-chans = <4>;
 		nvidia,dma-chans = <0 1 2 3>;
+		nvidia,slot_num_check = <0x0 0x0 0x0 0x0>;
+		nvidia,slot_intvl_vals = <0x0 0x7D 0x7D 0x7D>;
 		nvidia,num-mtl-queues = <4>;
 		nvidia,mtl-queues = <0 1 2 3>;
 		nvidia,rx-queue-prio = <0x2 0x1 0x30 0x48>;
