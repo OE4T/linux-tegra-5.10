@@ -17,8 +17,6 @@
 #include "tegra194-audio-p3668.dtsi"
 #include "tegra194-super-module-e2614-p3509.dtsi"
 #include "tegra194-p3668-p3509-pcie-plugin-manager.dtsi"
-#include <t19x-common-platforms/tegra194-pwm-fan.dtsi>
-#include <t19x-common-platforms/tegra194-thermal-fan-est.dtsi>
 
 / {
 	gpio-keys {
