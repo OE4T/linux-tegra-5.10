@@ -24,6 +24,15 @@
 #define EQOS_DMA_H_
 
 /**
+ * @addtogroup EQOS AXI Clock defines
+ *
+ * @brief AXI Clock defines
+ * @{
+ */
+#define EQOS_AXI_CLK_FREQ	125000000U
+/** @} */
+
+/**
  * @addtogroup EQOS1 DMA Channel Register offsets
  *
  * @brief EQOS DMA Channel register offsets
@@ -81,7 +90,9 @@
 #define EQOS_DMA_CHX_TX_CTRL_TXPBL_RECOMMENDED	0x200000U
 #define EQOS_DMA_CHX_RX_CTRL_RXPBL_RECOMMENDED	0xC0000U
 #define EQOS_DMA_CHX_RX_WDT_RWT_MASK		0xFFU
-#define EQOS_DMA_CHX_RX_WDT_RWTU		256U
+#define EQOS_DMA_CHX_RX_WDT_RWTU_MASK		0x30000U
+#define EQOS_DMA_CHX_RX_WDT_RWTU_512_CYCLE	0x10000U
+#define EQOS_DMA_CHX_RX_WDT_RWTU		512U
 
 /* Below macros are used for periodic reg validation for functional safety.
  * HW register mask - to mask out reserved and self-clearing bits
