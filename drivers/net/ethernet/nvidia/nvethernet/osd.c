@@ -233,6 +233,7 @@ void osd_receive_packet(void *priv, void *rxring, unsigned int chan,
 			void *rx_pkt_swcx)
 {
 	struct ether_priv_data *pdata = (struct ether_priv_data *)priv;
+	struct osi_core_priv_data *osi_core = pdata->osi_core;
 	struct ether_rx_napi *rx_napi = pdata->rx_napi[chan];
 	struct osi_rx_ring *rx_ring = (struct osi_rx_ring *)rxring;
 	struct osi_rx_swcx *rx_swcx = (struct osi_rx_swcx *)rx_pkt_swcx;
@@ -283,6 +284,8 @@ void osd_receive_packet(void *priv, void *rxring, unsigned int chan,
 		}
 	} else {
 		ndev->stats.rx_crc_errors = pkt_err_stat->rx_crc_error;
+		ndev->stats.rx_frame_errors = pkt_err_stat->rx_frame_error;
+		ndev->stats.rx_fifo_errors = osi_core->mmc.mmc_rx_fifo_overflow;
 		ndev->stats.rx_errors++;
 	}
 
