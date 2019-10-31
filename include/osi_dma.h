@@ -130,6 +130,8 @@ struct osi_pkt_err_stats {
 	unsigned long underflow_error;
 	/** Rx CRC Error */
 	unsigned long rx_crc_error;
+	/** Rx Frame Error */
+	unsigned long rx_frame_error;
 };
 
 /**
