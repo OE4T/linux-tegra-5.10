@@ -435,6 +435,7 @@ struct gpu_ops {
 		void (*mclk_deinit)(struct gk20a *g);
 		int (*mclk_change)(struct gk20a *g, u16 val);
 		void (*get_change_seq_time)(struct gk20a *g, s64 *change_time);
+		void (*change_host_clk_source)(struct gk20a *g);
 		bool split_rail_support;
 		bool support_clk_freq_controller;
 		bool support_pmgr_domain;
@@ -578,6 +579,7 @@ struct gpu_ops {
 		void (*enable_shadow_rom)(struct gk20a *g);
 		void (*disable_shadow_rom)(struct gk20a *g);
 		u32 (*get_link_control_status)(struct gk20a *g);
+		void (*devinit_deferred_settings)(struct gk20a *g);
 	} xve;
 #endif
 	struct gops_falcon falcon;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -19,23 +19,34 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef CLK_TU104_H
-#define CLK_TU104_H
 
-#include <nvgpu/lock.h>
+#include <nvgpu/bug.h>
+#include <nvgpu/xve.h>
+#include <nvgpu/io.h>
+#include <nvgpu/utils.h>
+#include <nvgpu/timers.h>
 #include <nvgpu/gk20a.h>
 
-u32 tu104_get_rate_cntr(struct gk20a *g, struct namemap_cfg *c);
-int tu104_init_clk_support(struct gk20a *g);
-u32 tu104_crystal_clk_hz(struct gk20a *g);
-unsigned long tu104_clk_measure_freq(struct gk20a *g, u32 api_domain);
-void tu104_suspend_clk_support(struct gk20a *g);
-int tu104_clk_domain_get_f_points(
-	struct gk20a *g,
-	u32 clkapidomain,
-	u32 *pfpointscount,
-	u16 *pfreqpointsinmhz);
-unsigned long tu104_clk_maxrate(struct gk20a *g, u32 api_domain);
-void tu104_get_change_seq_time(struct gk20a *g, s64 *change_time);
-void tu104_change_host_clk_source(struct gk20a *g);
-#endif /* CLK_TU104_H */
+#include "xve_tu104.h"
+#include "xve_gp106.h"
+
+#include <nvgpu/hw/tu104/hw_xve_tu104.h>
+#include <nvgpu/hw/tu104/hw_xp_tu104.h>
+
+#define DL_TIMER_LIMIT 0x58EU
+
+void tu104_devinit_deferred_settings(struct gk20a *g)
+{
+	u32 data;
+	g->ops.xve.xve_writel(g, xve_pcie_capability_r(),
+			xve_pcie_capability_gen2_capable_enable_f() |
+			xve_pcie_capability_gen3_capable_enable_f());
+	nvgpu_writel(g, xp_dl_mgr_timing_r(0), DL_TIMER_LIMIT);
+	data = xve_high_latency_snoop_latency_value_init_f() |
+			xve_high_latency_snoop_latency_scale_init_f() |
+			xve_high_latency_no_snoop_latency_value_init_f() |
+			xve_high_latency_no_snoop_latency_scale_init_f();
+	g->ops.xve.xve_writel(g, xve_high_latency_r(), data);
+	g->ops.xve.xve_writel(g, xve_ltr_msg_ctrl_r(),
+			xve_ltr_msg_ctrl_trigger_not_pending_f());
+}

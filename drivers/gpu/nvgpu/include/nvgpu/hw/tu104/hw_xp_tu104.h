@@ -82,4 +82,6 @@
 #define xp_pl_link_config_target_tx_width_x4_v()                   (0x00000005U)
 #define xp_pl_link_config_target_tx_width_x8_v()                   (0x00000004U)
 #define xp_pl_link_config_target_tx_width_x16_v()                  (0x00000000U)
+#define xp_dl_mgr_timing_r(i)\
+		(nvgpu_safe_add_u32(0x0008b400U, nvgpu_safe_mult_u32((i), 4U)))
 #endif

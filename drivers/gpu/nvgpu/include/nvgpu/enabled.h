@@ -237,10 +237,13 @@ struct gk20a;
 /** SW Quiesce */
 #define NVGPU_DISABLE_SW_QUIESCE		81U
 
-/**
+/** DGPU PCIe Script Update */
+#define NVGPU_SUPPORT_DGPU_PCIE_SCRIPT_EXECUTE	82U
+
+/*
  * Must be greater than the largest bit offset in the above list.
  */
-#define NVGPU_MAX_ENABLED_BITS			82U
+#define NVGPU_MAX_ENABLED_BITS			83U
 
 /**
  * @brief Check if the passed flag is enabled.

@@ -377,3 +377,9 @@ void tu104_get_change_seq_time(struct gk20a *g, s64 *change_time)
 
 	*change_time = diff;
 }
+
+void tu104_change_host_clk_source(struct gk20a *g)
+{
+	nvgpu_writel(g, trim_sys_ind_clk_sys_core_clksrc_r(),
+			trim_sys_ind_clk_sys_core_clksrc_hostclk_fll_f());
+}

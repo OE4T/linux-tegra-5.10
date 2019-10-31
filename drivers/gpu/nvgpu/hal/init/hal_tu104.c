@@ -164,6 +164,7 @@
 #include "hal/bios/bios_tu104.h"
 #include "hal/pramin/pramin_init.h"
 #include "hal/xve/xve_gp106.h"
+#include "hal/xve/xve_tu104.h"
 
 #include "common/nvlink/init/device_reginit_gv100.h"
 #include "common/nvlink/intr_and_err_handling_gv100.h"
@@ -1240,6 +1241,7 @@ static const struct gpu_ops tu104_ops = {
 		.clk_domain_get_f_points = tu104_clk_domain_get_f_points,
 		.get_maxrate = tu104_clk_maxrate,
 		.get_change_seq_time = tu104_get_change_seq_time,
+		.change_host_clk_source = tu104_change_host_clk_source,
 	},
 #ifdef CONFIG_NVGPU_CLK_ARB
 	.clk_arb = {
@@ -1382,6 +1384,7 @@ static const struct gpu_ops tu104_ops = {
 #endif
 		.enable_shadow_rom = NULL,
 		.disable_shadow_rom = NULL,
+		.devinit_deferred_settings = tu104_devinit_deferred_settings,
 	},
 	.falcon = {
 		.falcon_sw_init = nvgpu_falcon_sw_init,
@@ -1642,6 +1645,7 @@ int tu104_init_hal(struct gk20a *g)
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_PMU_SUPER_SURFACE, true);
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_SET_CTX_MMU_DEBUG_MODE, true);
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_DGPU_THERMAL_ALERT, true);
+	nvgpu_set_enabled(g, NVGPU_SUPPORT_DGPU_PCIE_SCRIPT_EXECUTE, true);
 
 	/* for now */
 	gops->clk.support_clk_freq_controller = false;

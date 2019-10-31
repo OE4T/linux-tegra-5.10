@@ -441,6 +441,12 @@ int gk20a_pm_finalize_poweron(struct device *dev)
 			g->sim->sim_init_late(g);
 	}
 
+	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_DGPU_PCIE_SCRIPT_EXECUTE) &&
+			nvgpu_platform_is_silicon(g)) {
+		g->ops.clk.change_host_clk_source(g);
+		g->ops.xve.devinit_deferred_settings(g);
+	}
+
 	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_DGPU_THERMAL_ALERT) &&
 		nvgpu_platform_is_silicon(g)) {
 		err = nvgpu_request_therm_irq(l);

@@ -795,7 +795,9 @@ xve:
   gpu: dgpu
   sources: [ include/nvgpu/xve.h,
              hal/xve/xve_gp106.c,
-             hal/xve/xve_gp106.h ]
+             hal/xve/xve_gp106.h,
+             hal/xve/xve_tu104.c,
+             hal/xve/xve_tu104.h ]
 
 tpc:
   safe: no

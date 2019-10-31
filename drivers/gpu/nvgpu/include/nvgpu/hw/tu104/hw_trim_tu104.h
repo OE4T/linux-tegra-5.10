@@ -137,4 +137,6 @@
 #define trim_sys_fr_clk_cntr_sysclk_cfg_source_sys_noeg_f()               (0x0U)
 #define trim_sys_fr_clk_cntr_sysclk_cntr0_r()                      (0x00137630U)
 #define trim_sys_fr_clk_cntr_sysclk_cntr1_r()                      (0x00137634U)
+#define trim_sys_ind_clk_sys_core_clksrc_r()                       (0x00137c00U)
+#define trim_sys_ind_clk_sys_core_clksrc_hostclk_fll_f()                (0x180U)
 #endif
