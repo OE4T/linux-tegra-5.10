@@ -77,6 +77,7 @@ struct gk20a_ctrl_priv {
 	struct {
 		struct vm_area_struct *vma;
 		unsigned long flags;
+		bool vma_mapped;
 	} usermode_vma;
 };
 
@@ -2018,6 +2019,7 @@ static void usermode_vma_close(struct vm_area_struct *vma)
 
 	nvgpu_mutex_acquire(&l->ctrl.privs_lock);
 	priv->usermode_vma.vma = NULL;
+	priv->usermode_vma.vma_mapped = false;
 	nvgpu_mutex_release(&l->ctrl.privs_lock);
 }
 
@@ -2065,6 +2067,7 @@ int gk20a_ctrl_dev_mmap(struct file *filp, struct vm_area_struct *vma)
 		priv->usermode_vma.vma = vma;
 		priv->usermode_vma.flags = vma->vm_flags;
 		vma->vm_private_data = priv;
+		priv->usermode_vma.vma_mapped = true;
 	}
 	nvgpu_mutex_release(&l->ctrl.privs_lock);
 
@@ -2079,6 +2082,7 @@ static void alter_usermode_mapping(struct gk20a *g,
 {
 	struct nvgpu_os_linux *l = nvgpu_os_linux_from_gk20a(g);
 	struct vm_area_struct *vma = priv->usermode_vma.vma;
+	bool vma_mapped = priv->usermode_vma.vma_mapped;
 	int err;
 
 	if (!vma) {
@@ -2088,15 +2092,21 @@ static void alter_usermode_mapping(struct gk20a *g,
 
 	down_write(&vma->vm_mm->mmap_sem);
 
-	if (poweroff) {
+	/*
+	 * This is a no-op for the below cases
+	 * a) poweroff and !vma_mapped - > do nothing as no map exists
+	 * b) !poweroff and vmap_mapped -> do nothing as already mapped
+	 */
+	if (poweroff && vma_mapped) {
 		err = zap_vma_ptes(vma, vma->vm_start,
 				   vma->vm_end - vma->vm_start);
 		if (err == 0) {
 			vma->vm_flags = VM_NONE;
+			priv->usermode_vma.vma_mapped = false;
 		} else {
 			nvgpu_err(g, "can't remove usermode mapping");
 		}
-	} else {
+	} else if (!poweroff && !vma_mapped) {
 		vma->vm_flags = priv->usermode_vma.flags;
 		err = io_remap_pfn_range(vma, vma->vm_start,
 				l->usermode_regs_bus_addr >> PAGE_SHIFT,
@@ -2104,6 +2114,8 @@ static void alter_usermode_mapping(struct gk20a *g,
 		if (err != 0) {
 			nvgpu_err(g, "can't restore usermode mapping");
 			vma->vm_flags = VM_NONE;
+		} else {
+			priv->usermode_vma.vma_mapped = true;
 		}
 	}
 
