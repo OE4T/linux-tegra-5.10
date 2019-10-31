@@ -34,7 +34,8 @@ all:
              os/posix/posix-vidmem.c,
              os/posix/fecs_trace_posix.c,
              os/posix/stubs.c,
-             os/posix/posix-vpr.c ]
+             os/posix/posix-vpr.c,
+             os/posix/queue.c ]
 
 headers:
   safe: no
@@ -51,7 +52,8 @@ headers:
              include/nvgpu/posix/probe.h,
              include/nvgpu/posix/soc_fuse.h,
              include/nvgpu/posix/vm.h,
-             include/nvgpu/posix/posix_vidmem.h ]
+             include/nvgpu/posix/posix_vidmem.h,
+             include/nvgpu/posix/queue.h ]
 
 sort:
   safe: yes

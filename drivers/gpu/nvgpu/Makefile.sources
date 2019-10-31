@@ -80,7 +80,8 @@ srcs += os/posix/bug.c \
 	os/posix/os_sched.c \
 	os/posix/bitmap.c \
 	os/posix/kmem.c \
-	os/posix/file_ops.c
+	os/posix/file_ops.c \
+	os/posix/queue.c
 
 srcs +=	common/utils/enabled.c \
 	common/utils/rbtree.c \
