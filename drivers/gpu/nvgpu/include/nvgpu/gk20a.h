@@ -162,6 +162,7 @@ enum nvgpu_unit;
 #include <nvgpu/gops_therm.h>
 #include <nvgpu/gops_fb.h>
 #include <nvgpu/gops_mc.h>
+#include <nvgpu/gops_cg.h>
 
 #include "hal/clk/clk_gk20a.h"
 
@@ -295,34 +296,7 @@ struct gpu_ops {
 	struct {
 		u32 (*falcon_base_addr)(void);
 	} nvdec;
-	struct {
-		void (*slcg_bus_load_gating_prod)(struct gk20a *g, bool prod);
-		void (*slcg_ce2_load_gating_prod)(struct gk20a *g, bool prod);
-		void (*slcg_chiplet_load_gating_prod)(struct gk20a *g, bool prod);
-		void (*slcg_ctxsw_firmware_load_gating_prod)(struct gk20a *g, bool prod);
-		void (*slcg_fb_load_gating_prod)(struct gk20a *g, bool prod);
-		void (*slcg_fifo_load_gating_prod)(struct gk20a *g, bool prod);
-		void (*slcg_gr_load_gating_prod)(struct gk20a *g, bool prod);
-		void (*slcg_ltc_load_gating_prod)(struct gk20a *g, bool prod);
-		void (*slcg_perf_load_gating_prod)(struct gk20a *g, bool prod);
-		void (*slcg_priring_load_gating_prod)(struct gk20a *g, bool prod);
-		void (*slcg_pmu_load_gating_prod)(struct gk20a *g, bool prod);
-		void (*slcg_therm_load_gating_prod)(struct gk20a *g, bool prod);
-		void (*slcg_xbar_load_gating_prod)(struct gk20a *g, bool prod);
-		void (*slcg_hshub_load_gating_prod)(struct gk20a *g, bool prod);
-		void (*blcg_bus_load_gating_prod)(struct gk20a *g, bool prod);
-		void (*blcg_ce_load_gating_prod)(struct gk20a *g, bool prod);
-		void (*blcg_ctxsw_firmware_load_gating_prod)(struct gk20a *g, bool prod);
-		void (*blcg_fb_load_gating_prod)(struct gk20a *g, bool prod);
-		void (*blcg_fifo_load_gating_prod)(struct gk20a *g, bool prod);
-		void (*blcg_gr_load_gating_prod)(struct gk20a *g, bool prod);
-		void (*blcg_ltc_load_gating_prod)(struct gk20a *g, bool prod);
-		void (*blcg_pwr_csb_load_gating_prod)(struct gk20a *g, bool prod);
-		void (*blcg_pmu_load_gating_prod)(struct gk20a *g, bool prod);
-		void (*blcg_xbar_load_gating_prod)(struct gk20a *g, bool prod);
-		void (*blcg_hshub_load_gating_prod)(struct gk20a *g, bool prod);
-		void (*pg_gr_load_gating_prod)(struct gk20a *g, bool prod);
-	} cg;
+	struct gops_cg cg;
 	struct gops_fifo fifo;
 	struct gops_fuse fuse;
 	struct gops_ramfc ramfc;

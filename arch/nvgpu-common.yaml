@@ -990,7 +990,8 @@ power_features:
     cg:
       safe: yes
       sources: [ common/power_features/cg/cg.c,
-                 include/nvgpu/power_features/cg.h ]
+                 include/nvgpu/power_features/cg.h,
+                 include/nvgpu/gops_cg.h ]
     pg:
       safe: no
       sources: [ common/power_features/pg/pg.c,
