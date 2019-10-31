@@ -150,21 +150,25 @@ static int __init hvc_sysfs_register(void)
 	if (info == NULL)
 		return -EFAULT;
 
-	hyp_shared_memory_attrs[HYP_SHM_ID_LOG].ipa = info->log_ipa;
-	hyp_shared_memory_attrs[HYP_SHM_ID_LOG].size = (size_t)info->log_size;
-	hyp_shared_memory_attrs[HYP_SHM_ID_LOG].node_name = "log";
+	if (info->log_size != 0) {
+		hyp_shared_memory_attrs[HYP_SHM_ID_LOG].ipa = info->log_ipa;
+		hyp_shared_memory_attrs[HYP_SHM_ID_LOG].size =
+			(size_t)info->log_size;
+		hyp_shared_memory_attrs[HYP_SHM_ID_LOG].node_name = "log";
 
-	ret = hvc_create_sysfs(kobj, &hyp_shared_memory_attrs[HYP_SHM_ID_LOG]);
-	if (ret == 0)
-		TEGRA_HV_INFO("log is available\n");
-	else
-		TEGRA_HV_INFO("log is unavailable\n");
-
-	if (hyp_trace_get_mask(&log_mask) == 0) {
-		ret = create_log_mask_node(kobj);
+		ret = hvc_create_sysfs(kobj,
+			&hyp_shared_memory_attrs[HYP_SHM_ID_LOG]);
 		if (ret == 0)
-			TEGRA_HV_INFO(
-				"access to trace event mask is available\n");
+			TEGRA_HV_INFO("log is available\n");
+		else
+			TEGRA_HV_INFO("log is unavailable\n");
+
+		if (ret == 0 && hyp_trace_get_mask(&log_mask) == 0) {
+			ret = create_log_mask_node(kobj);
+			if (ret == 0)
+				TEGRA_HV_INFO(
+					"access to trace event mask is available\n");
+		}
 	}
 
 	hyp_shared_memory_attrs[HYP_SHM_ID_PCT].ipa = info->pct_ipa;

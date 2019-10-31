@@ -149,31 +149,32 @@ struct trapped_access {
 struct hyp_server_page {
 	/* guest reset protocol */
 	uint32_t guest_reset_virq;
+
 	/* boot delay offsets per VM needed by monitor partition */
 	uint32_t boot_delay[NGUESTS_MAX];
-
-	uint32_t trap_virq;
-
-	/*
-	 * Bitmap of VCPU indices in vcpu_trapped_accesses containing active
-	 * trap information.
-	 */
-	uint32_t trapped_vcpus[HVC_MAX_VCPU / 32];
-	struct trapped_access vcpu_trapped_accesses[HVC_MAX_VCPU];
 
 	/* hypervisor trace log */
 	uint64_t log_ipa;
 	uint32_t log_size;
 
-	/* PCT location Shared with guests */
+	/* PCT data */
 	uint64_t pct_ipa;
-
-	/* PCT Size Shared with guests in bytes */
 	uint64_t pct_size;
 
 	/* check if the VM is a server or a guest */
 	uint32_t is_server_vm;
+
+	/* golden register data */
+	uint64_t gr_ipa;
+	uint32_t gr_size;
+
+	/* all vm mappings ipa */
+	uint64_t mappings_ipa;
 };
+
+// Please make sure ivclib/include/tegra-hvc-data.h is in
+// sync for struct hyp_server_page.
+_Static_assert(sizeof(struct hyp_server_page) == 136, "Invalid Server Page");
 
 /* For backwards compatibility, alias the old name for hyp_server_name. */
 #define hyp_info_page hyp_server_page
