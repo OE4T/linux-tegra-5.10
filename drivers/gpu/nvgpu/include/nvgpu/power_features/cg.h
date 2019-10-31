@@ -31,14 +31,14 @@
  * Overview
  * ========
  *
- * Clock Gating (CG) unit is responsible for programming the register
+ * The Clock Gating (CG) unit is responsible for programming the register
  * configuration for Second Level Clock Gating (SLCG), Block Level
  * Clock Gating (BLCG) and Engine Level Clock Gating (ELCG).
  *
  * Chip specific clock gating register configurations are available
  * in the files, hal/power_features/cg/<chip>_gating_reglist.c.
  *
- * Various domains/modules in the GPU have individual clock gating
+ * Various domains/units in the GPU have individual clock gating
  * configuration registers that are programmed at instances during
  * nvgpu power on as given below:
  *
@@ -145,14 +145,24 @@ struct gk20a;
 struct nvgpu_fifo;
 
 /**
- * @brief Load register configuration for ELCG and BLCG for GR related modules.
+ * @brief Load register configuration for ELCG and BLCG for GR related units.
  *
  * @param g [in] The GPU driver struct.
  *
- * Checks the platform software capabilities slcg_enabled and blcg_enabled and
- * programs registers for configuring production gating values for ELCG & BLCG.
- * Programs ELCG configuration for bus, chiplet, gr, ctxsw_firmware, perf,
- * xbar, hshub modules and BLCG for bus, gr, ctxsw_firmware, xbar and hshub.
+ * This function programs ELCG configuration for bus, chiplet, gr, perf,
+ * ctxsw_firmware, xbar, hshub units and BLCG for bus, gr, ctxsw_firmware,
+ * xbar and hshub. This is called in #nvgpu_gr_enable_hw after resetting GR
+ * engine.
+ *
+ * Steps:
+ * - Acquire the mutex #cg_pg_lock.
+ * - Check if #slcg_enabled is set, else skip SLCG programming.
+ * - Load SLCG prod settings for bus, chiplet, gr, ctxsw_firmware, perf,
+ *   xbar, hshub.
+ * - Check if #blcg_enabled is set, else skip BLCG programming.
+ * - Load BLCG prod settings for bus, gr, ctxsw_firmware, xbar, hshub.
+ * - Load GR pg prod settings.
+ * - Release the mutex #cg_pg_lock.
  */
 void nvgpu_cg_init_gr_load_gating_prod(struct gk20a *g);
 
@@ -162,7 +172,16 @@ void nvgpu_cg_init_gr_load_gating_prod(struct gk20a *g);
  * @param g [in] The GPU driver struct.
  *
  * Checks the platform software capability elcg_enabled and programs the
- * engine gate_ctrl registers with ELCG_AUTO mode configuration.
+ * engine gate_ctrl registers with ELCG_AUTO mode configuration. This is
+ * called in #nvgpu_gr_init_support.
+ *
+ * Steps:
+ * - Acquire the mutex #cg_pg_lock.
+ * - Check if #elcg_enabled is set, else skip ELCG programming.
+ * - For each engine in the FIFO get the active engine id.
+ *   - Set ELCG_MODE to ELCG_AUTO for active engine id calling
+ *     therm.init_elcg_mode from therm unit.
+ * - Release the mutex #cg_pg_lock.
  */
 void nvgpu_cg_elcg_enable_no_wait(struct gk20a *g);
 
@@ -172,7 +191,17 @@ void nvgpu_cg_elcg_enable_no_wait(struct gk20a *g);
  * @param g [in] The GPU driver struct.
  *
  * Checks the platform software capability elcg_enabled and programs the
- * engine gate_ctrl registers with ELCG_RUN mode configuration.
+ * engine gate_ctrl registers with ELCG_RUN mode configuration. This is
+ * called in #nvgpu_gr_enable_hw until it gets enabled in
+ * #nvgpu_gr_init_support.
+ *
+ * Steps:
+ * - Acquire the mutex #cg_pg_lock.
+ * - Check if #elcg_enabled is set, else skip ELCG programming.
+ * - For each engine in the FIFO get the active engine id.
+ *   - Set ELCG_MODE to ELCG_RUN for active engine id calling
+ *     therm.init_elcg_mode from therm unit.
+ * - Release the mutex #cg_pg_lock.
  */
 void nvgpu_cg_elcg_disable_no_wait(struct gk20a *g);
 
@@ -182,7 +211,14 @@ void nvgpu_cg_elcg_disable_no_wait(struct gk20a *g);
  * @param g [in] The GPU driver struct.
  *
  * Checks the platform software capability blcg_enabled and programs registers
- * for configuring production gating values for BLCG for FB and LTC.
+ * for configuring production gating values for BLCG for FB and LTC. This is
+ * called in #nvgpu_init_mm_support.
+ *
+ * Steps:
+ * - Acquire the mutex #cg_pg_lock.
+ * - Check if #blcg_enabled is set, else skip BLCG programming.
+ * - Load BLCG prod settings for fb and ltc.
+ * - Release the mutex #cg_pg_lock.
  */
 void nvgpu_cg_blcg_fb_ltc_load_enable(struct gk20a *g);
 
@@ -192,7 +228,14 @@ void nvgpu_cg_blcg_fb_ltc_load_enable(struct gk20a *g);
  * @param g [in] The GPU driver struct.
  *
  * Checks the platform software capability blcg_enabled and programs registers
- * for configuring production gating values for BLCG for FIFO.
+ * for configuring production gating values for BLCG for FIFO. This is called
+ * in fifo.reset_enable_hw from #nvgpu_finalize_poweron.
+ *
+ * Steps:
+ * - Acquire the mutex #cg_pg_lock.
+ * - Check if #blcg_enabled is set, else skip BLCG programming.
+ * - Load BLCG prod settings for fifo.
+ * - Release the mutex #cg_pg_lock.
  */
 void nvgpu_cg_blcg_fifo_load_enable(struct gk20a *g);
 
@@ -202,7 +245,14 @@ void nvgpu_cg_blcg_fifo_load_enable(struct gk20a *g);
  * @param g [in] The GPU driver struct.
  *
  * Checks the platform software capability blcg_enabled and programs registers
- * for configuring production gating values for BLCG for PMU.
+ * for configuring production gating values for BLCG for PMU. This is called
+ * in #nvgpu_pmu_reset after resetting PMU engine.
+ *
+ * Steps:
+ * - Acquire the mutex #cg_pg_lock.
+ * - Check if #blcg_enabled is set, else skip BLCG programming.
+ * - Load BLCG prod settings for PMU.
+ * - Release the mutex #cg_pg_lock.
  */
 void nvgpu_cg_blcg_pmu_load_enable(struct gk20a *g);
 
@@ -212,7 +262,14 @@ void nvgpu_cg_blcg_pmu_load_enable(struct gk20a *g);
  * @param g [in] The GPU driver struct.
  *
  * Checks the platform software capability blcg_enabled and programs registers
- * for configuring production gating values for BLCG for CE.
+ * for configuring production gating values for BLCG for CE. This is called
+ * in #nvgpu_ce_init_support.
+ *
+ * Steps:
+ * - Acquire the mutex #cg_pg_lock.
+ * - Check if #blcg_enabled is set, else skip BLCG programming.
+ * - Load BLCG prod settings for CE.
+ * - Release the mutex #cg_pg_lock.
  */
 void nvgpu_cg_blcg_ce_load_enable(struct gk20a *g);
 
@@ -222,7 +279,14 @@ void nvgpu_cg_blcg_ce_load_enable(struct gk20a *g);
  * @param g [in] The GPU driver struct.
  *
  * Checks the platform software capability blcg_enabled and programs registers
- * for configuring production gating values for BLCG for GR.
+ * for configuring production gating values for BLCG for GR. This is called
+ * in #nvgpu_gr_obj_ctx_alloc_golden_ctx_image.
+ *
+ * Steps:
+ * - Acquire the mutex #cg_pg_lock.
+ * - Check if #blcg_enabled is set, else skip BLCG programming.
+ * - Load BLCG prod settings for GR.
+ * - Release the mutex #cg_pg_lock.
  */
 void nvgpu_cg_blcg_gr_load_enable(struct gk20a *g);
 
@@ -232,7 +296,14 @@ void nvgpu_cg_blcg_gr_load_enable(struct gk20a *g);
  * @param g [in] The GPU driver struct.
  *
  * Checks the platform software capability slcg_enabled and programs registers
- * for configuring production gating values for SLCG for FB and LTC.
+ * for configuring production gating values for SLCG for FB and LTC. This is
+ * called in #nvgpu_init_mm_support.
+ *
+ * Steps:
+ * - Acquire the mutex #cg_pg_lock.
+ * - Check if #slcg_enabled is set, else skip SLCG programming.
+ * - Load SLCG prod settings for fb and ltc.
+ * - Release the mutex #cg_pg_lock.
  */
 void nvgpu_cg_slcg_fb_ltc_load_enable(struct gk20a *g);
 
@@ -242,7 +313,14 @@ void nvgpu_cg_slcg_fb_ltc_load_enable(struct gk20a *g);
  * @param g [in] The GPU driver struct.
  *
  * Checks the platform software capability slcg_enabled and programs registers
- * for configuring production gating values for SLCG for PRIV RING.
+ * for configuring production gating values for SLCG for PRIV RING. This is
+ * called while enabling PRIV RING in #nvgpu_finalize_poweron.
+ *
+ * Steps:
+ * - Acquire the mutex #cg_pg_lock.
+ * - Check if #slcg_enabled is set, else skip SLCG programming.
+ * - Load SLCG prod settings for PRIV RING.
+ * - Release the mutex #cg_pg_lock.
  */
 void nvgpu_cg_slcg_priring_load_enable(struct gk20a *g);
 
@@ -252,7 +330,14 @@ void nvgpu_cg_slcg_priring_load_enable(struct gk20a *g);
  * @param g [in] The GPU driver struct.
  *
  * Checks the platform software capability slcg_enabled and programs registers
- * for configuring production gating values for SLCG for FIFO.
+ * for configuring production gating values for SLCG for FIFO. This is called
+ * in fifo.reset_enable_hw from #nvgpu_finalize_poweron.
+ *
+ * Steps:
+ * - Acquire the mutex #cg_pg_lock.
+ * - Check if #slcg_enabled is set, else skip SLCG programming.
+ * - Load SLCG prod settings for fifo.
+ * - Release the mutex #cg_pg_lock.
  */
 void nvgpu_cg_slcg_fifo_load_enable(struct gk20a *g);
 
@@ -262,7 +347,14 @@ void nvgpu_cg_slcg_fifo_load_enable(struct gk20a *g);
  * @param g [in] The GPU driver struct.
  *
  * Checks the platform software capability slcg_enabled and programs registers
- * for configuring production gating values for SLCG for PMU.
+ * for configuring production gating values for SLCG for PMU. This is called
+ * in #nvgpu_pmu_reset after resetting PMU engine.
+ *
+ * Steps:
+ * - Acquire the mutex #cg_pg_lock.
+ * - Check if #slcg_enabled is set, else skip SLCG programming.
+ * - Load SLCG prod settings for PMU.
+ * - Release the mutex #cg_pg_lock.
  */
 void nvgpu_cg_slcg_pmu_load_enable(struct gk20a *g);
 
@@ -272,7 +364,14 @@ void nvgpu_cg_slcg_pmu_load_enable(struct gk20a *g);
  * @param g [in] The GPU driver struct.
  *
  * Checks the platform software capability slcg_enabled and programs registers
- * for configuring production gating values for SLCG for CE2.
+ * for configuring production gating values for SLCG for CE2. This is called
+ * in #nvgpu_ce_init_support.
+ *
+ * Steps:
+ * - Acquire the mutex #cg_pg_lock.
+ * - Check if #slcg_enabled is set, else skip SLCG programming.
+ * - Load SLCG prod settings for CE2.
+ * - Release the mutex #cg_pg_lock.
  */
 void nvgpu_cg_slcg_ce2_load_enable(struct gk20a *g);
 

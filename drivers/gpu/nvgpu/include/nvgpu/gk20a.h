@@ -832,9 +832,13 @@ struct gk20a {
 	u32 tsg_timeslice_max_us;
 	bool runlist_interleave;
 
+	/** Lock serializing CG an PG programming for various units */
 	struct nvgpu_mutex cg_pg_lock;
+	/** SLCG setting read from the platform data */
 	bool slcg_enabled;
+	/** BLCG setting read from the platform data */
 	bool blcg_enabled;
+	/** ELCG setting read from the platform data */
 	bool elcg_enabled;
 	bool elpg_enabled;
 	bool aelpg_enabled;
