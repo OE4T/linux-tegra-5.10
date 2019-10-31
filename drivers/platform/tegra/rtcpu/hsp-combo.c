@@ -410,10 +410,15 @@ static void camrtc_hsp_rx_full_notify(void *data, u32 msg)
 	struct camrtc_hsp *camhsp = data;
 	u32 status, group;
 
-	status = tegra_hsp_ss_status(camhsp->ss);
-	dev_dbg(&camhsp->dev, "notify sm=0x%08x ss=0x%04x\n", msg, status);
-	status &= CAMRTC_HSP_SS_FW_MASK;
-	tegra_hsp_ss_clr(camhsp->ss, status);
+	if (!IS_ERR_OR_NULL(camhsp->ss)) {
+		status = tegra_hsp_ss_status(camhsp->ss);
+		dev_dbg(&camhsp->dev, "notify sm=0x%08x ss=0x%04x\n", msg, status);
+		status &= CAMRTC_HSP_SS_FW_MASK;
+		tegra_hsp_ss_clr(camhsp->ss, status);
+	} else {
+		/* Notify all groups */
+		status = CAMRTC_HSP_SS_FW_MASK;
+	}
 
 	status >>= CAMRTC_HSP_SS_FW_SHIFT;
 	group = status & CAMRTC_HSP_SS_IVC_MASK;
@@ -527,11 +532,13 @@ static int camrtc_hsp_vm_send(struct camrtc_hsp *camhsp,
 static void camrtc_hsp_vm_group_ring(struct camrtc_hsp *camhsp,
 		u16 group)
 {
-	u32 status = (u32)(group & CAMRTC_HSP_SS_IVC_MASK);
+	if (!IS_ERR_OR_NULL(camhsp->ss)) {
+		u32 status = (u32)(group & CAMRTC_HSP_SS_IVC_MASK);
 
-	status <<= CAMRTC_HSP_SS_VM_SHIFT;
+		status <<= CAMRTC_HSP_SS_VM_SHIFT;
 
-	tegra_hsp_ss_set(camhsp->ss, status);
+		tegra_hsp_ss_set(camhsp->ss, status);
+	}
 
 	camrtc_hsp_vm_send_irqmsg(camhsp);
 }
@@ -685,7 +692,10 @@ static int camrtc_hsp_vm_probe(struct camrtc_hsp *camhsp)
 	camhsp->ss = of_tegra_hsp_ss_by_name(np, obtain = "vm-ss");
 	if (IS_ERR(camhsp->ss)) {
 		err = PTR_ERR(camhsp->ss);
-		goto fail;
+		if (err != -ENODATA && err != -EINVAL)
+			goto fail;
+		dev_info(&camhsp->dev,
+			 "operating without shared semaphores.\n");
 	}
 
 	camhsp->rx = of_tegra_hsp_sm_rx_by_name(np, obtain = "vm-rx",
