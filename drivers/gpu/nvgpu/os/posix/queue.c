@@ -26,6 +26,21 @@
 #include <nvgpu/barrier.h>
 #include <nvgpu/log2.h>
 #include <nvgpu/static_analysis.h>
+#ifdef NVGPU_UNITTEST_FAULT_INJECTION_ENABLEMENT
+#include <nvgpu/posix/posix-fault-injection.h>
+#endif
+
+#ifdef NVGPU_UNITTEST_FAULT_INJECTION_ENABLEMENT
+_Thread_local struct nvgpu_posix_fault_inj queue_out_fi = {
+	.enabled = false,
+	.counter = 0U,
+};
+
+struct nvgpu_posix_fault_inj *nvgpu_queue_out_get_fault_injection(void)
+{
+	return &queue_out_fi;
+}
+#endif
 
 unsigned int nvgpu_queue_available(struct nvgpu_queue *queue)
 {
@@ -190,5 +205,11 @@ int nvgpu_queue_out(struct nvgpu_queue *queue, void *buf,
 int nvgpu_queue_out_locked(struct nvgpu_queue *queue, void *buf,
 		unsigned int len, struct nvgpu_mutex *lock)
 {
+#ifdef NVGPU_UNITTEST_FAULT_INJECTION_ENABLEMENT
+	if (nvgpu_posix_fault_injection_handle_call(&queue_out_fi)) {
+		return -1;
+	}
+#endif
+
 	return nvgpu_queue_out_common(queue, buf, len, lock);
 }

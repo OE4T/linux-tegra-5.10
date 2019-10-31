@@ -24,6 +24,9 @@
 #define NVGPU_POSIX_QUEUE_H
 
 #include <nvgpu/lock.h>
+#ifdef NVGPU_UNITTEST_FAULT_INJECTION_ENABLEMENT
+struct nvgpu_posix_fault_inj;
+#endif
 
 struct nvgpu_queue {
 	unsigned int in;
@@ -44,4 +47,8 @@ int nvgpu_queue_out(struct nvgpu_queue *queue, void *buf,
 		unsigned int len);
 int nvgpu_queue_out_locked(struct nvgpu_queue *queue, void *buf,
 		unsigned int len, struct nvgpu_mutex *lock);
+#ifdef NVGPU_UNITTEST_FAULT_INJECTION_ENABLEMENT
+struct nvgpu_posix_fault_inj *nvgpu_queue_out_get_fault_injection(void);
+#endif
+
 #endif
