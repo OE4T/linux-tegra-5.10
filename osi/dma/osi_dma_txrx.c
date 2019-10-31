@@ -188,6 +188,14 @@ static inline void get_rx_err_stats(struct osi_rx_desc *rx_desc,
 					pkt_err_stats.rx_crc_error,
 					1UL);
 	}
+
+	/* increment rx frame error if we see RE bit set */
+	if ((rx_desc->rdes3 & RDES3_ERR_RE) == RDES3_ERR_RE) {
+		pkt_err_stats.rx_frame_error =
+			osi_update_stats_counter(
+					pkt_err_stats.rx_frame_error,
+					1UL);
+	}
 }
 
 int osi_process_rx_completions(struct osi_dma_priv_data *osi,
