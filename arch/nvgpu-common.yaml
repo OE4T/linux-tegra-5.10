@@ -965,17 +965,19 @@ sec2:
                  include/nvgpu/sec2/lsfm.h ]
 
 sync:
-  safe: no
-  owner: Konsta H
+  owner: Thomas F
   children:
     sync:
+      safe: yes
       sources: [ common/sync/channel_sync.c,
                  common/sync/channel_sync_priv.h,
                  include/nvgpu/channel_sync.h ]
     syncpt:
+      safe: yes
       sources: [ common/sync/channel_sync_syncpt.c,
                  include/nvgpu/channel_sync_syncpt.h ]
     syncsema:
+      safe: no
       sources: [ common/sync/channel_sync_semaphore.c,
                  include/nvgpu/channel_sync_semaphore.h ]
 power_features:
