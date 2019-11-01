@@ -574,6 +574,7 @@ int nvdla_send_gos_region(struct platform_device *pdev)
 	gos_region->grid_size = MAX_GRID_SIZE;
 	for (i = 0; i < num_grids; i++)
 		gos_region->address[i] = dla_grid[i];
+	speculation_barrier(); /* break_spec_p#5_1 */
 
 	/* set cmd info */
 	cmd_data.method_id = DLA_CMD_SET_REGIONS;

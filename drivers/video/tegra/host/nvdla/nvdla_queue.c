@@ -78,6 +78,7 @@ static void nvdla_queue_dump_op(struct nvdla_queue *queue, struct seq_file *s)
 
 
 	}
+	speculation_barrier(); /* break_spec_p#5_1 */
 	mutex_unlock(&queue->list_lock);
 }
 
@@ -246,6 +247,7 @@ static int nvdla_unmap_task_memory(struct nvdla_task *task)
 	}
 	nvdla_dbg_fn(pdev, "all out timestamps unmaped");
 
+	speculation_barrier(); /* break_spec_p#5_1 */
 
 	return 0;
 }
@@ -547,6 +549,7 @@ static int nvdla_map_task_memory(struct nvdla_task *task)
 		next = add_address(next,
 			dma_addr + task->memory_handles[jj].offset);
 	}
+	speculation_barrier(); /* break_spec_p#5_1 */
 
 fail_to_pin_mem:
 	return err;
@@ -1071,6 +1074,7 @@ static int nvdla_fill_postactions(struct nvdla_task *task)
 	postactionl->offset = postactionlist_of;
 	postactionl->size = next - start;
 
+	speculation_barrier(); /* break_spec_p#5_1 */
 fail:
 	return err;
 }
@@ -1179,6 +1183,7 @@ static int nvdla_fill_preactions(struct nvdla_task *task)
 	preactionl->offset = preactionlist_of;
 	preactionl->size = next - start;
 
+	speculation_barrier(); /* break_spec_p#5_1 */
 fail:
 	return err;
 }
@@ -1300,6 +1305,7 @@ static int nvdla_send_cmd_channel(struct platform_device *pdev,
 		syncpt_wait_thresh[i] =
 				task->prefences[i].syncpoint_value;
 	}
+	speculation_barrier(); /* break_spec_p#5_1 */
 
 	cmdbuf[0] = nvhost_opcode_incr(NV_DLA_THI_METHOD_ID >> 2, 2);
 	cmdbuf[1] = method_id;
@@ -1431,6 +1437,7 @@ int nvdla_emulator_submit(struct nvdla_queue *queue, struct nvdla_emu_task *task
 		}
 	}
 
+	speculation_barrier(); /* break_spec_p#5_1 */
 	return 0;
 }
 
@@ -1491,6 +1498,7 @@ int nvdla_get_signal_fences(struct nvdla_queue *queue, void *in_task)
 			counter = counter - 1;
 		}
 	}
+	speculation_barrier(); /* break_spec_p#5_1 */
 	return 0;
 }
 
