@@ -306,6 +306,48 @@ int test_vm_bind(struct unit_module *m, struct gk20a *g, void *__args);
  */
 int test_vm_aspace_id(struct unit_module *m, struct gk20a *g, void *__args);
 
-
+/**
+ * Test specification for: test_vm_area_error_cases
+ *
+ * Description: This test targets the nvgpu_vm_area_validate_buffer and
+ * nvgpu_vm_area_alloc APIs.
+ *
+ * Test Type: Feature based, Error injection
+ *
+ * Input: None
+ *
+ * Steps:
+ * - Initialize a VM with the following characteristics:
+ *   - 64KB large page support enabled
+ *   - Low hole size = 64MB
+ *   - Address space size = 128GB
+ *   - Kernel reserved space size = 4GB
+ * - Try to validate a buffer of size 0 and ensure nvgpu_vm_area_validate_buffer
+ *   returns -EINVAL.
+ * - Try to validate a buffer where the address to be mapped is not aligned to
+ *   the page size and ensure that it returns -EINVAL.
+ * - Try to validate a buffer with a fixed address when the VM has no VM area
+ *   and ensure that it returns -EINVAL.
+ * - Try to create a VM area with an invalid page size and ensure that
+ *   nvgpu_vm_area_alloc returns -EINVAL.
+ * - Try to create a VM area with big page size in a VM that explicitly does
+ *   not support big pages and ensure it returns -EINVAL.
+ * - Inject memory allocation errors to target various allocations within
+ *   the nvgpu_vm_area_alloc (or its subfunctions) and ensure that it returns
+ *   the -ENOMEM value.
+ * - Properly create a VM area and assign it to the test VM for the remainder
+ *   of this test.
+ * - Try to validate a buffer where the mapped size is bigger than the VA space
+ *   and ensure it returns -EINVAL.
+ * - Map a test buffer and ensure the mapping succeeded.
+ * - Try to validate the same, already mapped, test buffer and ensure that it
+ *   returns -EINVAL.
+ * - Uninitialize the VM and VM area.
+ *
+ * Output: Returns PASS if the steps above were executed successfully. FAIL
+ * otherwise.
+ */
+int test_vm_area_error_cases(struct unit_module *m, struct gk20a *g,
+	void *__args);
 /** }@ */
 #endif /* UNIT_VM_H */

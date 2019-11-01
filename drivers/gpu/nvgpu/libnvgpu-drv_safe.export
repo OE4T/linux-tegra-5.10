@@ -401,6 +401,7 @@ nvgpu_vfree_impl
 nvgpu_vm_alloc_va
 nvgpu_vm_area_alloc
 nvgpu_vm_area_free
+nvgpu_vm_area_validate_buffer
 nvgpu_vm_bind_channel
 nvgpu_vm_do_init
 nvgpu_vm_find_mapped_buf

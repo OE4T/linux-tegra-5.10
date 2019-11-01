@@ -55,11 +55,11 @@
 /* Check if address is aligned at the requested boundary */
 #define IS_ALIGNED(addr, align)	((addr & (align - 1U)) == 0U)
 
-/* Define some special cases */
+/* Define some special cases (bitfield) */
 #define NO_SPECIAL_CASE			0
 #define SPECIAL_CASE_DOUBLE_MAP		1
 #define SPECIAL_CASE_NO_FREE		2
-#define SPECIAL_CASE_NO_VM_AREA		3
+#define SPECIAL_CASE_NO_VM_AREA		4
 
 /*
  * Helper function used to create custom SGTs from a list of SGLs.
@@ -545,28 +545,30 @@ static int map_buffer(struct unit_module *m,
 		goto free_sgt_os_buf;
 	}
 
-	if (fixed_gpu_va && (subcase != SPECIAL_CASE_NO_VM_AREA)) {
-		size_t num_pages = DIV_ROUND_UP(buf_size, page_size);
-		u64 gpu_va_copy = gpu_va;
-
-		unit_info(m, "Allocating VM Area for fixed GPU VA mapping\n");
-		ret = nvgpu_vm_area_alloc(vm,
-					  num_pages,
-					  page_size,
-					  &gpu_va_copy,
-					  NVGPU_VM_AREA_ALLOC_FIXED_OFFSET);
-		if (ret != 0) {
-			unit_err(m, "Failed to allocate a VM area\n");
-			ret = UNIT_FAIL;
-			goto free_sgt_os_buf;
-		}
-		if (gpu_va_copy != gpu_va) {
-			unit_err(m, "VM area created at the wrong GPU VA\n");
-			ret = UNIT_FAIL;
-			goto free_vm_area;
-		}
-
+	if (fixed_gpu_va) {
 		flags |= NVGPU_VM_MAP_FIXED_OFFSET;
+
+		if (!(subcase & SPECIAL_CASE_NO_VM_AREA)) {
+			size_t num_pages = DIV_ROUND_UP(buf_size, page_size);
+			u64 gpu_va_copy = gpu_va;
+
+			unit_info(m, "Allocating VM Area for fixed GPU VA mapping\n");
+			ret = nvgpu_vm_area_alloc(vm,
+					num_pages,
+					page_size,
+					&gpu_va_copy,
+					NVGPU_VM_AREA_ALLOC_FIXED_OFFSET);
+			if (ret != 0) {
+				unit_err(m, "Failed to allocate a VM area\n");
+				ret = UNIT_FAIL;
+				goto free_sgt_os_buf;
+			}
+			if (gpu_va_copy != gpu_va) {
+				unit_err(m, "VM area created at the wrong GPU VA\n");
+				ret = UNIT_FAIL;
+				goto free_vm_area;
+			}
+		}
 	}
 
 #ifdef CONFIG_NVGPU_COMPRESSION
@@ -599,7 +601,7 @@ static int map_buffer(struct unit_module *m,
 	 * Make nvgpu_vm_find_mapping return non-NULL to prevent the actual
 	 * mapping, thus simulating the fact that the buffer is already mapped.
 	 */
-	if (subcase == SPECIAL_CASE_DOUBLE_MAP) {
+	if (subcase & SPECIAL_CASE_DOUBLE_MAP) {
 		ret = nvgpu_vm_map(vm,
 				&os_buf,
 				sgt,
@@ -745,7 +747,7 @@ static int map_buffer(struct unit_module *m,
 	ret = UNIT_SUCCESS;
 
 free_mapped_buf:
-	if ((mapped_buf != NULL) && (subcase != SPECIAL_CASE_NO_FREE)) {
+	if ((mapped_buf != NULL) && !(subcase & SPECIAL_CASE_NO_FREE)) {
 		nvgpu_vm_unmap(vm, mapped_buf->addr, batch);
 		/*
 		 * Unmapping an already unmapped buffer should not cause any
@@ -754,7 +756,7 @@ free_mapped_buf:
 		nvgpu_vm_unmap(vm, mapped_buf->addr, batch);
 	}
 free_vm_area:
-	if (fixed_gpu_va && (subcase != SPECIAL_CASE_NO_FREE)) {
+	if (fixed_gpu_va && !(subcase & SPECIAL_CASE_NO_FREE)) {
 		ret = nvgpu_vm_area_free(vm, gpu_va);
 		if (ret != 0) {
 			unit_err(m, "Failed to free vm area\n");
@@ -1667,6 +1669,177 @@ exit:
 	return ret;
 }
 
+int test_vm_area_error_cases(struct unit_module *m, struct gk20a *g,
+	void *__args)
+{
+	int ret;
+	struct vm_gk20a *vm = create_test_vm(m, g);
+	struct nvgpu_vm_area *pvm_area = NULL;
+	u64 map_addr = 0;
+	u64 map_size = 0;
+	u32 pgsz_idx = 0;
+	struct nvgpu_posix_fault_inj *kmem_fi =
+		nvgpu_kmem_get_fault_injection();
+	/* Arbitrary address in the range of the VM created by create_test_vm */
+	u64 gpu_va = 0x4100000;
+
+	/*
+	 * Failure: "fixed offset mapping with invalid map_size"
+	 * The mapped size is 0.
+	 */
+	ret = nvgpu_vm_area_validate_buffer(vm, map_addr, map_size, pgsz_idx,
+		&pvm_area);
+	if (ret != -EINVAL) {
+		unit_err(m, "area_validate_buffer did not fail as expected (1).\n");
+		ret = UNIT_FAIL;
+		goto exit;
+	}
+
+	/*
+	 * Failure: "map offset must be buffer page size aligned"
+	 * The mapped address is not aligned to the page size.
+	 */
+	map_addr = 0x121;
+	map_size = SZ_1M;
+	ret = nvgpu_vm_area_validate_buffer(vm, map_addr, map_size, pgsz_idx,
+		&pvm_area);
+	if (ret != -EINVAL) {
+		unit_err(m, "area_validate_buffer did not fail as expected (2).\n");
+		ret = UNIT_FAIL;
+		goto exit;
+	}
+
+	/*
+	 * Failure: "fixed offset mapping without space allocation"
+	 * The VM has no VM area.
+	 */
+	map_addr = gpu_va;
+	map_size = SZ_4K;
+	ret = nvgpu_vm_area_validate_buffer(vm, map_addr, map_size, pgsz_idx,
+		&pvm_area);
+	if (ret != -EINVAL) {
+		unit_err(m, "area_validate_buffer did not fail as expected (3).\n");
+		ret = UNIT_FAIL;
+		goto exit;
+	}
+
+	/*
+	 * To continue testing nvgpu_vm_area_validate_buffer, we now need
+	 * a VM area. First target error cases for nvgpu_vm_area_alloc and then
+	 * create a 10-page VM_AREA and assign it to the VM and enable sparse
+	 * support to cover extra corner cases.
+	 */
+	/* Failure: invalid page size (SZ_1G) */
+	ret = nvgpu_vm_area_alloc(vm, 10, SZ_1G, &gpu_va, 0);
+	if (ret != -EINVAL) {
+		unit_err(m, "nvgpu_vm_area_alloc did not fail as expected (4).\n");
+		goto exit;
+	}
+
+	/* Failure: big page size in a VM that does not support it */
+	vm->big_pages = false;
+	ret = nvgpu_vm_area_alloc(vm, 10, SZ_64K, &gpu_va, 0);
+	vm->big_pages = true;
+	if (ret != -EINVAL) {
+		unit_err(m, "nvgpu_vm_area_alloc did not fail as expected (4).\n");
+		goto exit;
+	}
+
+	/* Failure: Dynamic allocation of vm_area fails */
+	nvgpu_posix_enable_fault_injection(kmem_fi, true, 0);
+	ret = nvgpu_vm_area_alloc(vm, 10, SZ_4K, &gpu_va, 0);
+	nvgpu_posix_enable_fault_injection(kmem_fi, false, 0);
+	if (ret != -ENOMEM) {
+		unit_err(m, "nvgpu_vm_area_alloc did not fail as expected (5).\n");
+		goto exit;
+	}
+
+	/* Failure: Dynamic allocation in nvgpu_vm_area_alloc_memory fails */
+	nvgpu_posix_enable_fault_injection(kmem_fi, true, 1);
+	ret = nvgpu_vm_area_alloc(vm, 10, SZ_4K, &gpu_va, 0);
+	nvgpu_posix_enable_fault_injection(kmem_fi, false, 0);
+	if (ret != -ENOMEM) {
+		unit_err(m, "nvgpu_vm_area_alloc did not fail as expected (5).\n");
+		goto exit;
+	}
+
+	/* Failure: Dynamic allocation in nvgpu_vm_area_alloc_gmmu_map fails */
+	nvgpu_posix_enable_fault_injection(kmem_fi, true, 33);
+	ret = nvgpu_vm_area_alloc(vm, 10, SZ_4K, &gpu_va,
+		NVGPU_VM_AREA_ALLOC_SPARSE);
+	nvgpu_posix_enable_fault_injection(kmem_fi, false, 0);
+	if (ret != -ENOMEM) {
+		unit_err(m, "nvgpu_vm_area_alloc did not fail as expected (5).\n");
+		goto exit;
+	}
+
+	/*
+	 * Now make nvgpu_vm_area_alloc succeed to be able to continue testing
+	 * failures within nvgpu_vm_area_validate_buffer.
+	 */
+	ret = nvgpu_vm_area_alloc(vm, 10, SZ_4K, &gpu_va,
+		NVGPU_VM_AREA_ALLOC_SPARSE);
+	if (ret != 0) {
+		unit_err(m, "nvgpu_vm_area_alloc failed.\n");
+		goto exit;
+	}
+
+	/*
+	 * Failure: "fixed offset mapping size overflows va node"
+	 * Make the mapped size bigger than the VA space.
+	 */
+	map_addr = gpu_va;
+	map_size = SZ_4K + 128*SZ_1G;
+	ret = nvgpu_vm_area_validate_buffer(vm, map_addr, map_size, pgsz_idx,
+		&pvm_area);
+	if (ret != -EINVAL) {
+		unit_err(m, "area_validate_buffer did not fail as expected (5).\n");
+		ret = UNIT_FAIL;
+		goto exit;
+	}
+
+	/*
+	 * Failure: "overlapping buffer map requested"
+	 * Map the buffer, then try to validate the same buffer again.
+	 */
+	map_addr = gpu_va + SZ_4K;
+	map_size = SZ_4K;
+	ret = map_buffer(m,
+			 g,
+			 vm,
+			 NULL,
+			 map_addr,
+			 map_addr,
+			 map_size,
+			 SZ_4K,
+			 SZ_4K,
+			 SPECIAL_CASE_NO_VM_AREA | SPECIAL_CASE_NO_FREE);
+	if (ret != UNIT_SUCCESS) {
+		unit_err(m, "4KB buffer mapping failed\n");
+		goto exit;
+	}
+	ret = nvgpu_vm_area_validate_buffer(vm, map_addr, map_size, pgsz_idx,
+		&pvm_area);
+
+	if (ret != -EINVAL) {
+		unit_err(m, "area_validate_buffer did not fail as expected (5).\n");
+		ret = UNIT_FAIL;
+		goto exit;
+	}
+
+	ret = UNIT_SUCCESS;
+
+exit:
+	/*
+	 * The mapped buffer is not explicitly freed because it will be taken
+	 * care of by nvgpu_vm_area_free, thus increasing code coverage.
+	 */
+	nvgpu_vm_area_free(vm, gpu_va);
+	nvgpu_vm_put(vm);
+
+	return ret;
+}
+
 struct unit_module_test vm_tests[] = {
 	/*
 	 * Requirement verification tests
@@ -1683,6 +1856,7 @@ struct unit_module_test vm_tests[] = {
 	UNIT_TEST(nvgpu_vm_alloc_va, test_nvgpu_vm_alloc_va, NULL, 0),
 	UNIT_TEST(vm_bind, test_vm_bind, NULL, 0),
 	UNIT_TEST(vm_aspace_id, test_vm_aspace_id, NULL, 0),
+	UNIT_TEST(vm_area_error_cases, test_vm_area_error_cases, NULL, 0),
 	UNIT_TEST_REQ("NVGPU-RQCD-45.C2",
 		      VM_REQ1_UID,
 		      "V5",
