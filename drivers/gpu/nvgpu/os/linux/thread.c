@@ -23,8 +23,19 @@ int nvgpu_thread_proxy(void *threaddata)
 {
 	struct nvgpu_thread *thread = threaddata;
 	int ret = thread->fn(thread->data);
+	bool was_running;
 
-	thread->running = false;
+	was_running = nvgpu_atomic_xchg(&thread->running, false);
+
+	/* if the thread was not running, then nvgpu_thread_stop() was
+	 * called, so just wait until we get the notification that we should
+	 * stop.
+	 */
+	if (!was_running) {
+		while (!nvgpu_thread_should_stop(thread)) {
+			nvgpu_usleep_range(5000, 5100);
+		}
+	}
 	return ret;
 }
 
@@ -40,15 +51,21 @@ int nvgpu_thread_create(struct nvgpu_thread *thread,
 	thread->task = task;
 	thread->fn = threadfn;
 	thread->data = data;
-	thread->running = true;
+	nvgpu_atomic_set(&thread->running, true);
 	wake_up_process(task);
 	return 0;
 };
 
 void nvgpu_thread_stop(struct nvgpu_thread *thread)
 {
+	bool was_running;
+
 	if (thread->task) {
-		kthread_stop(thread->task);
+		was_running = nvgpu_atomic_xchg(&thread->running, false);
+
+		if (was_running) {
+			kthread_stop(thread->task);
+		}
 		thread->task = NULL;
 	}
 };
@@ -72,12 +89,12 @@ bool nvgpu_thread_should_stop(struct nvgpu_thread *thread)
 
 bool nvgpu_thread_is_running(struct nvgpu_thread *thread)
 {
-	return ACCESS_ONCE(thread->running);
+	return nvgpu_atomic_read(&thread->running);
 };
 
 void nvgpu_thread_join(struct nvgpu_thread *thread)
 {
-	while (ACCESS_ONCE(thread->running)) {
+	while (nvgpu_atomic_read(&thread->running)) {
 		nvgpu_msleep(10);
 	}
 };
