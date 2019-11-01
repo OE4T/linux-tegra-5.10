@@ -62,7 +62,7 @@ int nvgpu_channel_sync_wait_syncpt(struct nvgpu_channel_sync_syncpt *s,
  * Converts a valid struct nvgpu_channel_sync ptr to
  * struct nvgpu_channel_sync_syncpt ptr else return NULL.
  */
-struct nvgpu_channel_sync_syncpt * __must_check
+struct nvgpu_channel_sync_syncpt *
 nvgpu_channel_sync_to_syncpt(struct nvgpu_channel_sync *sync);
 
 /*
@@ -93,7 +93,7 @@ static inline int nvgpu_channel_sync_wait_syncpt(
 	return -EINVAL;
 }
 
-static inline struct nvgpu_channel_sync_syncpt * __must_check
+static inline struct nvgpu_channel_sync_syncpt *
 nvgpu_channel_sync_to_syncpt(struct nvgpu_channel_sync *sync)
 {
 	return NULL;
