@@ -181,6 +181,7 @@ u32 nvgpu_vm_pde_coverage_bit_count(struct vm_gk20a *vm)
 	return vm->mmu_levels[final_pde_level].lo_bit[0];
 }
 
+NVGPU_COV_WHITELIST_BLOCK_BEGIN(deviate, 1, NVGPU_MISRA(Rule, 17_2), "TID-278")
 static void nvgpu_vm_do_free_entries(struct vm_gk20a *vm,
 				     struct nvgpu_gmmu_pd *pd,
 				     u32 level)
@@ -206,6 +207,7 @@ static void nvgpu_vm_do_free_entries(struct vm_gk20a *vm,
 		pd->entries = NULL;
 	}
 }
+NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Rule, 17_2))
 
 static void nvgpu_vm_free_entries(struct vm_gk20a *vm,
 				  struct nvgpu_gmmu_pd *pdb)
