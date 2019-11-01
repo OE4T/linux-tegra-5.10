@@ -151,6 +151,43 @@ static struct gk20a_platform nvgpu_pci_device[] = {
 		.hardcode_sw_threshold = false,
 		.has_syncpoints = true,
 	},
+
+	/* 0x1eb0 (RTX 5000 : TU104 based) */
+	{
+		/* ptimer src frequency in hz */
+		.ptimer_src_freq	= 31250000,
+
+		.probe = nvgpu_pci_tegra_probe,
+		.remove = nvgpu_pci_tegra_remove,
+
+		/* power management configuration */
+		.railgate_delay_init	= 500,
+		.can_railgate_init	= false,
+		.can_pci_gc_off		= true,
+		.can_elpg_init = false,
+		.enable_elpg = false,
+		.enable_elcg = false,
+		.enable_slcg = true,
+		.enable_blcg = true,
+		.enable_mscg = false,
+		.can_slcg    = true,
+		.can_blcg    = true,
+		.can_elcg    = false,
+
+		.disable_aspm = true,
+
+		/* power management callbacks */
+		.is_railgated = nvgpu_pci_tegra_is_railgated,
+		.clk_round_rate = nvgpu_pci_clk_round_rate,
+
+		.ch_wdt_init_limit_ms = 7000,
+
+		.unify_address_spaces = true,
+		.honors_aperture = true,
+		.dma_mask = DMA_BIT_MASK(40),
+		.hardcode_sw_threshold = false,
+		.has_syncpoints = true,
+	},
 };
 
 #define PCI_DEVICE_INDEX(driver_data) ((driver_data) & 0x0000FFFFU)
@@ -171,6 +208,12 @@ static struct pci_device_id nvgpu_pci_table[] = {
 		.class = PCI_BASE_CLASS_DISPLAY << 16,
 		.class_mask = 0xff << 16,
 		.driver_data = 1,
+	},
+	{
+		PCI_DEVICE(PCI_VENDOR_ID_NVIDIA, 0x1eb0),
+		.class = PCI_BASE_CLASS_DISPLAY << 16,
+		.class_mask = 0xff << 16,
+		.driver_data = 2,
 	},
 	{
 		PCI_DEVICE(PCI_VENDOR_ID_NVIDIA, 0x1efa),
