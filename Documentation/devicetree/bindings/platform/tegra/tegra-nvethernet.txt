@@ -122,6 +122,12 @@ Required properties:
 				(<val> * 256) / 62.5. if rx_riwt is 0 then RIWT
 				is disabled and IOC will be enabled. Minimum
 				value is 3 and Maximum value is 1020.
+- nvidia,rx_frames:		Specifies the RX frame count for interrupt
+				coalescing. If rx_frames is 0 then RX frame
+				count based interrupt coalescing is disabled and
+				Rx interrupt will be triggered based on rx_riwt
+				value. Minimum value for rx_frames is 1 and
+				Maximum value is 256.
 - nvidia,num-dma-chans:		Number of DMA channels that need to be used.
 				Minimum value is 1 and Maximum value is 4.
 - nvidia,dma-chans:		The channel number of DMA channels to be used.

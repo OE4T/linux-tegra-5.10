@@ -3251,6 +3251,29 @@ static int ether_parse_dt(struct ether_priv_data *pdata)
 		}
 		osi_dma->use_riwt = OSI_ENABLE;
 	}
+	/* rx_frames value to be set */
+	ret = of_property_read_u32(np, "nvidia,rx_frames",
+				   &osi_dma->rx_frames);
+	if (ret < 0) {
+		osi_dma->use_rx_frames = OSI_DISABLE;
+	} else {
+		if (osi_dma->rx_frames > RX_DESC_CNT ||
+		    osi_dma->rx_frames < OSI_MIN_RX_COALESCE_FRAMES) {
+			dev_err(dev,
+				"invalid rx-frames, must be inrange %d to %d",
+				OSI_MIN_RX_COALESCE_FRAMES, RX_DESC_CNT);
+			return -EINVAL;
+		}
+		osi_dma->use_rx_frames = OSI_ENABLE;
+	}
+
+	if (osi_dma->use_riwt == OSI_DISABLE &&
+	    osi_dma->use_rx_frames == OSI_ENABLE) {
+		dev_err(dev, "invalid settings : rx-frames must be enabled"
+			   " along with use_riwt in DT\n");
+		return -EINVAL;
+	}
+
 	/* Enable VLAN strip by default */
 	osi_core->strip_vlan_tag = OSI_ENABLE;
 
