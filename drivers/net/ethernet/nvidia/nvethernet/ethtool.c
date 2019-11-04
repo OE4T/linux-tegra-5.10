@@ -580,9 +580,21 @@ static int ether_set_coalesce(struct net_device *dev,
 	    (ec->tx_max_coalesced_frames_irq)  ||
 	    (ec->stats_block_coalesce_usecs)   ||
 	    (ec->tx_max_coalesced_frames_high) || (ec->rate_sample_interval) ||
-	    (ec->tx_coalesce_usecs) || (ec->tx_max_coalesced_frames) ||
-	    (ec->rx_max_coalesced_frames)) {
+	    (ec->tx_coalesce_usecs) || (ec->tx_max_coalesced_frames)) {
 		return -EOPNOTSUPP;
+	}
+
+	if (ec->rx_max_coalesced_frames == OSI_DISABLE) {
+		osi_dma->use_rx_frames = OSI_DISABLE;
+	} else if ((ec->rx_max_coalesced_frames > RX_DESC_CNT) ||
+		(ec->rx_max_coalesced_frames < OSI_MIN_RX_COALESCE_FRAMES)) {
+		netdev_err(dev,
+			   "invalid rx-frames, must be in the range of"
+			   " %d to %d frames\n", OSI_MIN_RX_COALESCE_FRAMES,
+			   RX_DESC_CNT);
+		return -EINVAL;
+	} else {
+		osi_dma->use_rx_frames = OSI_ENABLE;
 	}
 
 	if (ec->rx_coalesce_usecs == OSI_DISABLE) {
@@ -598,11 +610,20 @@ static int ether_set_coalesce(struct net_device *dev,
 		osi_dma->use_riwt = OSI_ENABLE;
 	}
 
-	netdev_err(dev, "RX COALESCING is %s\n", osi_dma->use_riwt ? "ENABLED" :
-		   "DISABLED");
+	if (osi_dma->use_riwt == OSI_DISABLE &&
+	    osi_dma->use_rx_frames == OSI_ENABLE) {
+		netdev_err(dev, "invalid settings : rx-frames must be enabled"
+			   " along with rx-usecs\n");
+		return -EINVAL;
+	}
+	netdev_err(dev, "RX COALESCING USECS is %s\n", osi_dma->use_riwt ?
+		   "ENABLED" : "DISABLED");
+
+	netdev_err(dev, "RX COALESCING FRAMES is %s\n", osi_dma->use_rx_frames ?
+		   "ENABLED" : "DISABLED");
 
 	osi_dma->rx_riwt = ec->rx_coalesce_usecs;
-
+	osi_dma->rx_frames = ec->rx_max_coalesced_frames;
 	return 0;
 }
 
@@ -629,6 +650,7 @@ static int ether_get_coalesce(struct net_device *dev,
 
 	memset(ec, 0, sizeof(struct ethtool_coalesce));
 	ec->rx_coalesce_usecs = osi_dma->rx_riwt;
+	ec->rx_max_coalesced_frames = osi_dma->rx_frames;
 
 	return 0;
 }
