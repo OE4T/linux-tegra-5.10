@@ -336,6 +336,15 @@
 		pwm_polarity= <PWM_POLARITY_NORMAL>;
 		suspend_state = <0>;
 	};
+
+	efuse@3820000 {
+		efuse-burn {
+			nvidia,tz = <&pllx>;
+			nvidia,temp-range = <(-19000) 117000>;
+			thermal-zone = <5>;
+		};
+	};
+
 };
 
 &head0 {
