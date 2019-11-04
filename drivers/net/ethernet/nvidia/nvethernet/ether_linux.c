@@ -3715,8 +3715,6 @@ static int ether_resume(struct ether_priv_data *pdata)
 	osi_start_mac(osi_core);
 	/* start phy */
 	phy_start(pdata->phydev);
-	/* call dev_set_rx_mode so it will be serialized and avoid race*/
-	dev_set_rx_mode(ndev);
 	/* start network queues */
 	netif_tx_start_all_queues(ndev);
 	/* re-start workqueue */
