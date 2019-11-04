@@ -2,6 +2,7 @@
 /*
  * Universal Flash Storage Host controller Platform bus based glue driver
  * Copyright (C) 2011-2013 Samsung India Software Operations
+ * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Authors:
  *	Santosh Yaraganavi <santosh.sy@samsung.com>
@@ -33,6 +34,8 @@ static int ufshcd_parse_clock_info(struct ufs_hba *hba)
 
 	if (!np)
 		goto out;
+
+	INIT_LIST_HEAD(&hba->clk_list_head);
 
 	cnt = of_property_count_strings(np, "clock-names");
 	if (!cnt || (cnt == -EINVAL)) {

@@ -3,6 +3,7 @@
  * Universal Flash Storage Host controller driver Core
  * Copyright (C) 2011-2013 Samsung India Software Operations
  * Copyright (c) 2013-2016, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2015-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Authors:
  *	Santosh Yaraganavi <santosh.sy@samsung.com>
@@ -381,7 +382,7 @@ static void ufshcd_print_clk_freqs(struct ufs_hba *hba)
 	struct ufs_clk_info *clki;
 	struct list_head *head = &hba->clk_list_head;
 
-	if (list_empty(head))
+	if (!head || list_empty(head))
 		return;
 
 	list_for_each_entry(clki, head, list) {
@@ -905,7 +906,7 @@ static int ufshcd_set_clk_freq(struct ufs_hba *hba, bool scale_up)
 	struct ufs_clk_info *clki;
 	struct list_head *head = &hba->clk_list_head;
 
-	if (list_empty(head))
+	if (!head || list_empty(head))
 		goto out;
 
 	list_for_each_entry(clki, head, list) {
@@ -999,7 +1000,7 @@ static bool ufshcd_is_devfreq_scaling_required(struct ufs_hba *hba,
 	struct ufs_clk_info *clki;
 	struct list_head *head = &hba->clk_list_head;
 
-	if (list_empty(head))
+	if (!head || list_empty(head))
 		return false;
 
 	list_for_each_entry(clki, head, list) {
@@ -8158,7 +8159,7 @@ static int __ufshcd_setup_clocks(struct ufs_hba *hba, bool on,
 	ktime_t start = ktime_get();
 	bool clk_state_changed = false;
 
-	if (list_empty(head))
+	if (!head || list_empty(head))
 		goto out;
 
 	ret = ufshcd_vops_setup_clocks(hba, on, PRE_CHANGE);
@@ -8224,7 +8225,7 @@ static int ufshcd_init_clocks(struct ufs_hba *hba)
 	struct device *dev = hba->dev;
 	struct list_head *head = &hba->clk_list_head;
 
-	if (list_empty(head))
+	if (!head || list_empty(head))
 		goto out;
 
 	list_for_each_entry(clki, head, list) {
@@ -9171,8 +9172,6 @@ int ufshcd_alloc_host(struct device *dev, struct ufs_hba **hba_handle)
 	hba->dev = dev;
 	*hba_handle = hba;
 	hba->dev_ref_clk_freq = REF_CLK_FREQ_INVAL;
-
-	INIT_LIST_HEAD(&hba->clk_list_head);
 
 out_error:
 	return err;

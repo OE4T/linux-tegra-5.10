@@ -3,6 +3,7 @@
  * Synopsys G210 Test Chip driver
  *
  * Copyright (C) 2015-2016 Synopsys, Inc. (www.synopsys.com)
+ * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Authors: Joao Pinto <jpinto@synopsys.com>
  */
@@ -126,6 +127,8 @@ tc_dwc_g210_pci_probe(struct pci_dev *pdev, const struct pci_device_id *id)
 		dev_err(&pdev->dev, "Allocation failed\n");
 		return err;
 	}
+
+	INIT_LIST_HEAD(&hba->clk_list_head);
 
 	hba->vops = &tc_dwc_g210_pci_hba_vops;
 
