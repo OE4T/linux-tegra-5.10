@@ -365,6 +365,10 @@ struct osi_dma_priv_data {
 	unsigned int rx_riwt;
 	/** Flag which decides riwt is enabled(1) or disabled(0) */
 	unsigned int use_riwt;
+	/** Max no of pkts to be received before triggering Rx interrupt */
+	unsigned int rx_frames;
+	/** Flag which decides rx_frames is enabled(1) or disabled(0) */
+	unsigned int use_rx_frames;
 	/** Functional safety config to do periodic read-verify of
 	 * certain safety critical dma registers */
 	void *safety_config;
@@ -664,6 +668,8 @@ int osi_process_rx_completions(struct osi_dma_priv_data *osi,
  *	channels
  *	12) osi_dma->use_riwt  ==> OSI_DISABLE/OSI_ENABLE
  *	13) osi_dma->rx_riwt  ===> Actual value read from DT
+ *	14) osi_dma->use_rx_frames  ==> OSI_DISABLE/OSI_ENABLE
+ *	15) osi_dma->rx_frames ===> Actual value read from DT
  *
  * @retval 0 on success
  * @retval -1 on failure.
