@@ -364,7 +364,8 @@ static irqreturn_t ether_tx_chan_isr(int irq, void *data)
 
 	if (likely(napi_schedule_prep(&tx_napi->napi))) {
 		__napi_schedule_irqoff(&tx_napi->napi);
-	} else {
+	/* NAPI may get scheduled when tx_usecs is enabled */
+	} else if (osi_dma->use_tx_usecs == OSI_DISABLE) {
 		pr_err("Tx DMA-%d IRQ when NAPI already scheduled!\n", chan);
 		WARN_ON(true);
 	}
@@ -1363,7 +1364,11 @@ static inline void ether_reset_stats(struct ether_priv_data *pdata)
 static int ether_close(struct net_device *ndev)
 {
 	struct ether_priv_data *pdata = netdev_priv(ndev);
-	int ret = 0;
+	int ret = 0, i;
+
+	/* Cancel hrtimer */
+	for (i = 0; i < pdata->osi_dma->num_dma_chans; i++)
+		hrtimer_cancel(&pdata->tx_napi[i]->tx_usecs_timer);
 
 	/* Unregister broadcasting MAC timestamp to clients */
 	tegra_unregister_hwtime_source();
@@ -1766,6 +1771,15 @@ static int ether_start_xmit(struct sk_buff *skb, struct net_device *ndev)
 		netdev_dbg(ndev, "Tx ring[%d] insufficient desc.\n", chan);
 	}
 
+	if (osi_dma->use_tx_usecs == OSI_ENABLE &&
+	    atomic_read(&pdata->tx_napi[chan]->tx_usecs_timer_armed) ==
+			OSI_DISABLE) {
+		atomic_set(&pdata->tx_napi[chan]->tx_usecs_timer_armed,
+			   OSI_ENABLE);
+		hrtimer_start(&pdata->tx_napi[chan]->tx_usecs_timer,
+			      osi_dma->tx_usecs * NSEC_PER_USEC,
+			      HRTIMER_MODE_REL);
+	}
 	return NETDEV_TX_OK;
 }
 
@@ -2355,6 +2369,17 @@ static int ether_napi_poll_tx(struct napi_struct *napi, int budget)
 	int processed;
 
 	processed = osi_process_tx_completions(osi_dma, chan);
+
+	/* re-arm the timer if tx ring is not empty */
+	if (!osi_txring_empty(osi_dma, chan) &&
+	    osi_dma->use_tx_usecs == OSI_ENABLE &&
+	    atomic_read(&tx_napi->tx_usecs_timer_armed) == OSI_DISABLE) {
+		atomic_set(&tx_napi->tx_usecs_timer_armed, OSI_ENABLE);
+		hrtimer_start(&tx_napi->tx_usecs_timer,
+			      osi_dma->tx_usecs * NSEC_PER_USEC,
+			      HRTIMER_MODE_REL);
+	}
+
 	if (processed == 0) {
 		napi_complete(napi);
 		spin_lock_irqsave(&pdata->rlock, flags);
@@ -2364,6 +2389,26 @@ static int ether_napi_poll_tx(struct napi_struct *napi, int budget)
 	}
 
 	return budget;
+}
+
+static enum hrtimer_restart ether_tx_usecs_hrtimer(struct hrtimer *data)
+{
+	struct ether_tx_napi *tx_napi = container_of(data, struct ether_tx_napi,
+						     tx_usecs_timer);
+	struct ether_priv_data *pdata = tx_napi->pdata;
+	struct osi_core_priv_data *osi_core = pdata->osi_core;
+	unsigned long val;
+
+	val = osi_core->xstats.tx_usecs_swtimer_n[tx_napi->chan];
+	osi_core->xstats.tx_usecs_swtimer_n[tx_napi->chan] =
+		osi_update_stats_counter(val, 1U);
+
+	atomic_set(&pdata->tx_napi[tx_napi->chan]->tx_usecs_timer_armed,
+		   OSI_DISABLE);
+	if (likely(napi_schedule_prep(&tx_napi->napi)))
+		__napi_schedule_irqoff(&tx_napi->napi);
+
+	return HRTIMER_NORESTART;
 }
 
 /**
@@ -3236,6 +3281,44 @@ static int ether_parse_dt(struct ether_priv_data *pdata)
 		}
 	}
 
+	/* tx_usecs value to be set */
+	ret = of_property_read_u32(np, "nvidia,tx_usecs", &osi_dma->tx_usecs);
+	if (ret < 0) {
+		osi_dma->use_tx_usecs = OSI_DISABLE;
+	} else {
+		if (osi_dma->tx_usecs > OSI_MAX_TX_COALESCE_USEC ||
+		    osi_dma->tx_usecs < OSI_MIN_TX_COALESCE_USEC) {
+			dev_err(dev,
+				"invalid tx_riwt, must be inrange %d to %d\n",
+				OSI_MIN_TX_COALESCE_USEC,
+				OSI_MAX_TX_COALESCE_USEC);
+			return -EINVAL;
+		}
+		osi_dma->use_tx_usecs = OSI_ENABLE;
+	}
+	/* tx_frames value to be set */
+	ret = of_property_read_u32(np, "nvidia,tx_frames",
+				   &osi_dma->tx_frames);
+	if (ret < 0) {
+		osi_dma->use_tx_frames = OSI_DISABLE;
+	} else {
+		if (osi_dma->tx_frames > ETHER_TX_MAX_FRAME ||
+		    osi_dma->tx_frames < OSI_MIN_TX_COALESCE_FRAMES) {
+			dev_err(dev,
+				"invalid tx-frames, must be inrange %d to %ld",
+				OSI_MIN_TX_COALESCE_FRAMES, ETHER_TX_MAX_FRAME);
+			return -EINVAL;
+		}
+		osi_dma->use_tx_frames = OSI_ENABLE;
+	}
+
+	if (osi_dma->use_tx_usecs == OSI_DISABLE &&
+	    osi_dma->use_tx_frames == OSI_ENABLE) {
+		dev_err(dev, "invalid settings : tx_frames must be enabled"
+			   " along with tx_usecs in DT\n");
+		return -EINVAL;
+	}
+
 	/* RIWT value to be set */
 	ret = of_property_read_u32(np, "nvidia,rx_riwt", &osi_dma->rx_riwt);
 	if (ret < 0) {
@@ -3499,7 +3582,7 @@ static int ether_probe(struct platform_device *pdev)
 	struct osi_core_priv_data *osi_core;
 	struct osi_dma_priv_data *osi_dma;
 	struct net_device *ndev;
-	int ret = 0;
+	int ret = 0, i;
 
 	ether_get_num_dma_chan_mtl_q(pdev, &num_dma_chans,
 				     &mac, &num_mtl_queues);
@@ -3607,6 +3690,16 @@ static int ether_probe(struct platform_device *pdev)
 	if (ret < 0) {
 		dev_err(&pdev->dev, "failed to allocate NAPI\n");
 		goto err_napi;
+	}
+
+	/* Setup the tx_usecs timer */
+	for (i = 0; i < osi_dma->num_dma_chans; i++) {
+		atomic_set(&pdata->tx_napi[i]->tx_usecs_timer_armed,
+			   OSI_DISABLE);
+		hrtimer_init(&pdata->tx_napi[i]->tx_usecs_timer,
+			     CLOCK_MONOTONIC, HRTIMER_MODE_REL);
+		pdata->tx_napi[i]->tx_usecs_timer.function =
+			ether_tx_usecs_hrtimer;
 	}
 
 	/* Register sysfs entry */

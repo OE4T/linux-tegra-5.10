@@ -128,6 +128,17 @@ Required properties:
 				Rx interrupt will be triggered based on rx_riwt
 				value. Minimum value for rx_frames is 1 and
 				Maximum value is 256.
+- nvidia,tx_usecs:		Specifies the TX software timer interrupt
+				timeout in usec. if tx_usecs is 0 then TX
+				software timer is disabled and Tx interrupt
+				will be triggered for each packet. Minimum
+				value is 32 and Maximum value is 1020.
+- nvidia,tx_frames:		Specifies the TX frame count for interrupt
+				coalescing. If tx_frames is 0 then TX frame
+				count based interrupt coalescing is disabled and
+				Tx interrupt will be triggered based on tx_usecs
+				value. Minimum value for tx_frames is 1 and
+				Maximum value is 10.
 - nvidia,num-dma-chans:		Number of DMA channels that need to be used.
 				Minimum value is 1 and Maximum value is 4.
 - nvidia,dma-chans:		The channel number of DMA channels to be used.
