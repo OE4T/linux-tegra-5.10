@@ -39,6 +39,7 @@
 #include <linux/udp.h>
 #include <linux/of.h>
 #include <linux/ktime.h>
+#include <linux/hrtimer.h>
 
 #include <osi_core.h>
 #include <osi_dma.h>
@@ -137,6 +138,7 @@
  */
 #define ETHER_TX_DESC_THRESHOLD	(MAX_SKB_FRAGS + ETHER_TX_MAX_SPLIT + 2)
 
+#define ETHER_TX_MAX_FRAME	(TX_DESC_CNT / ETHER_TX_DESC_THRESHOLD)
 /**
  *@brief Returns count of available transmit descriptors
  *
@@ -178,6 +180,10 @@ struct ether_tx_napi {
 	struct ether_priv_data *pdata;
 	/** NAPI instance associated with transmit channel */
 	struct napi_struct napi;
+	/** SW timer associated with transmit channel */
+	struct hrtimer tx_usecs_timer;
+	/** SW timer flag associated with transmit channel */
+	atomic_t tx_usecs_timer_armed;
 };
 
 /**
