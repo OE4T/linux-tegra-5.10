@@ -40,31 +40,31 @@ struct nvgpu_device_info;
  */
 struct gops_top {
 	/**
-	 * FUSA HALs
-	 */
-
-	/**
 	 * @brief Get the number of entries of particular engine type in
-	 *        device_info table
+	 *        device_info table.
 	 *
-	 * @param g [in]		GPU driver struct pointer
-	 * @param engine_type [in]	Engine enumeration value
+	 * @param g [in]		GPU driver struct pointer.
+	 * @param engine_type [in]	Engine enumeration value.
 	 *
-	 * Some engine have multiple entries in device_info table corresponding
-	 * to each instance of the engine. All such entries corresponding to
-	 * same engine will have same \a engine_type, but a unique instance id.
-	 * We traverse through the device_info table and get the total number of
-	 * entries corresponding to input \a engine_type.
-	 * This HAL is valid for Pascal and chips beyond.
-	 * Prior to Pascal, each instance of the engine was denoted by a
-	 * different engine_type.
+	 * 1. Some engines have multiple entries in device_info table
+	 *    corresponding to each instance of the engine. All such entries
+         *    corresponding to same engine will have same \a engine_type, but
+	 *    a unique instance id.
+	 * 2. We traverse through the device_info table and get the total
+	 *    number of entries corresponding to input \a engine_type.
+	 * 3. This HAL is valid for Pascal and chips beyond.
+	 * 4. Prior to Pascal, each instance of the engine was denoted by a
+	 *    different engine_type.
+	 *
 	 * List of valid engine enumeration values:
-	 * NVGPU_ENGINE_GRAPHICS           0
-	 * NVGPU_ENGINE_COPY0              1
-	 * NVGPU_ENGINE_COPY1              2
-	 * NVGPU_ENGINE_COPY2              3
-	 * NVGPU_ENGINE_IOCTRL             18
-	 * NVGPU_ENGINE_LCE                19
+	 * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	 *  NVGPU_ENGINE_GRAPHICS    -        0
+	 *  NVGPU_ENGINE_COPY0       -        1
+	 *  NVGPU_ENGINE_COPY1       -        2
+	 *  NVGPU_ENGINE_COPY2       -        3
+	 *  NVGPU_ENGINE_IOCTRL      -        18
+	 *  NVGPU_ENGINE_LCE         -        19
+	 * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	 *
 	 * @return	Number of instances of \a engine_type in device_info
 	 * 		table
@@ -81,45 +81,47 @@ struct gops_top {
 	 * @param engine_type [in]	Engine enumeration value
 	 * @param inst_id [in]		Engine's instance identification number
 	 *
-	 * Device_info table is an array of registers which contains the engine
-	 * specific data like interrupt enum, reset enum, pri_base etc.
-	 * This HAL reads such engine information from table after matching the
-	 * \a engine_type and \a inst_id and then populates the read information
-	 * in \a dev_info struct.
+	 * 1. Device_info table is an array of registers which contains engine
+	 *    specific data like interrupt enum, reset enum, pri_base etc.
+	 * 2. This HAL reads such engine information from table after matching
+	 *    the \a engine_type and \a inst_id and then populates the read
+	 *    information in \a dev_info struct.
+	 * 3. In the device_info table, more than one register is required to
+	 *    denote information for a specific engine. So they use multiple
+	 *    consecutive registers in the array to represent a specific engine.
+	 * 4. The MSB (called chain bit) in each register denotes if the next
+	 *    register talks the same engine as present the one. All the
+	 *    registers in the device info table can be classified in one of 4
+	 *    types:
+	 *      - Not_valid: We ignore these registers
+	 *      - Data: This type of register contains pri_base, fault_id etc
+	 *      - Enum: This type of register contains intr_enum, reset_enum
+	 *      - Engine_type: This type of register contains the engine name
+	 *               which is being described.
+	 * 5. So, in the parsing code,
+	 * 	- We loop through the array
+	 * 	- Ignore the invalid entries
+	 * 	- Store the “linked” register values in temporary variables
+	 *	   until chain_bit is set. This helps us get all the data for
+	 *	   particular engine type. [This is needed because the engine
+	 *         name may not be part of the first register representing the
+	 *	   engine. So we can’t just read the first register and
+	 *	   determine if the group represents the engine we are
+	 *         interested in]. Once the chain_bit is disabled, we know the
+	 *         next register read would represent a new engine.
+	 * 	- So we parse the stored variables to get engine_name,
+	 *         intr/reset_enums, pri base etc. Here we check if the engine
+	 *    	   type is the one we are interested in.
 	 *
 	 * List of valid engine enumeration values:
-	 * NVGPU_ENGINE_GRAPHICS           0
-	 * NVGPU_ENGINE_COPY0              1
-	 * NVGPU_ENGINE_COPY1              2
-	 * NVGPU_ENGINE_COPY2              3
-	 * NVGPU_ENGINE_IOCTRL             18
-	 * NVGPU_ENGINE_LCE                19
-
-	 * In the device_info table, more than one register is required to
-	 * denote information for a specific engine. So they use multiple
-	 * consecutive registers in the array to represent a specific engine.
-	 * The MSB (called chain bit) in each register denotes if the next
-	 * register talks the same engine as present the one. All the registers
-	 * in the device info table can be classified in one of 4 types -
-	 * 1. Not_valid : We ignore these registers
-	 * 2. Data: This type of register contains pri_base, fault_id etc
-	 * 3. Enum: This type of register contains intr_enum, reset_enum
-	 * 4. Engine_type: This type of register contains the engine name which
-	 *                 is being described.
-	 *
-	 * So, in the parsing code,
-	 * 1. We loop through the array
-	 * 2. Ignore the invalid entries
-	 * 3. Store the “linked” register values in temporary variables until
-	 *    chain_bit is set. This helps us get all the data for particular
-	 *    engine type. [This is needed because the engine name may not be
-	 *    part of the first register representing the engine. So we can’t
-	 *    just read the first register and determine if the group represents
-	 *    the engine we are interested in]. Once the chain_bit is disabled,
-	 *    we know the next register read would represent a new engine.
-	 * 4. So we parse the stored variables to get engine_name,
-	 *    intr/reset_enums, pri base etc. Here we check if the engine type
-	 *    is the one we are interested in.
+	 * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	 *  NVGPU_ENGINE_GRAPHICS    -        0
+	 *  NVGPU_ENGINE_COPY0       -        1
+	 *  NVGPU_ENGINE_COPY1       -        2
+	 *  NVGPU_ENGINE_COPY2       -        3
+	 *  NVGPU_ENGINE_IOCTRL      -        18
+	 *  NVGPU_ENGINE_LCE         -        19
+	 * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	 *
 	 * @return 0 in case of success and < 0 in case of failure
 	 */
@@ -133,9 +135,10 @@ struct gops_top {
 	 * @param g [in]		GPU device struct pointer
 	 * @param engine_type [in]	Engine enumeration value
 	 *
-	 * This HAL checks if the input \a engine_type is the enumeration value
-	 * corresponding to graphics engine.
-	 * The enumeration value for graphics engine for device_info table is 0.
+	 * 1. This HAL checks if the input \a engine_type is the enumeration
+	 *    value corresponding to graphics engine.
+	 * 2. The enumeration value for graphics engine for device_info table
+	 *    is 0.
 	 *
 	 * @return true if \a engine_type is equal to 0, false otherwise
 	 */
@@ -147,16 +150,20 @@ struct gops_top {
 	 * @param g [in]		GPU device struct pointer
 	 * @param engine_type [in]	Engine enumeration value
 	 *
-	 * This HAL checks if the input \a engine_type is the enumeration value
-	 * corresponding to copy engine.
-	 * Prior to Pascal, each instance of copy engine was denoted by
-	 * different engine_type.
-	 * COPY_ENGINE_INSTANCE0 enum value --> 1
-	 * COPY_ENGINE_INSTANCE1 enum value --> 2
-	 * COPY_ENGINE_INSTANCE2 enum value --> 3
-	 * For Pascal and chips beyond, all instances of copy engine have same
-	 * engine_type.
-	 * COPY_ENGINE enum value  --> 19
+	 * 1. This HAL checks if the input \a engine_type is the enumeration value
+	 *    corresponding to copy engine.
+	 * 2. Prior to Pascal, each instance of copy engine was denoted by
+	 *    different engine_type as below:
+	 * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	 *  COPY_ENGINE_INSTANCE0 enum value -  1
+	 *  COPY_ENGINE_INSTANCE1 enum value -  2
+	 *  COPY_ENGINE_INSTANCE2 enum value -  3
+	 * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	 * 3. For Pascal and chips beyond, all instances of copy engine have same
+	 *    engine_type as below:
+	 * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	 *  COPY_ENGINE enum value -  19
+	 * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	 *
 	 * @return true if \a engine_type is equal to enum value specified above
 	 * 	or false otherwise
@@ -169,14 +176,16 @@ struct gops_top {
 	 * @param g [in]		GPU device struct pointer
 	 * @param engine_type [in]	Engine enumeration value
 	 *
-	 * This HAL is valid for chips prior to Pascal when each instance of
-	 * copy engine had unique engine_type. The three instances of copy
-	 * engine are allocated engine_type in ascending starting from 1.
-	 * COPY_ENGINE_INSTANCE0 engine_type --> 1
-	 * COPY_ENGINE_INSTANCE1 engine_type --> 2
-	 * COPY_ENGINE_INSTANCE2 engine_type --> 3
-	 * We calculate the instance id by subtracting COPY_ENGINE_INSTANCE0
-	 * enum value from \a engine_type.
+	 * 1. This HAL is valid for chips prior to Pascal when each instance of
+	 *    copy engine had unique engine_type. The three instances of copy
+	 *    engine are allocated engine_type in ascending starting from 1.
+	 * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	 *  COPY_ENGINE_INSTANCE0 engine_type -  1
+	 *  COPY_ENGINE_INSTANCE1 engine_type -  2
+	 *  COPY_ENGINE_INSTANCE2 engine_type -  3
+	 * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	 * 2. We calculate the instance id by subtracting COPY_ENGINE_INSTANCE0
+	 *    enum value from \a engine_type.
 	 *
 	 * @return Calculated instance ID as explained above.
 	 */
