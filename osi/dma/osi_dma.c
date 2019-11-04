@@ -356,3 +356,10 @@ int osi_validate_dma_regs(struct osi_dma_priv_data *osi_dma)
 
 	return ret;
 }
+
+int osi_txring_empty(struct osi_dma_priv_data *osi_dma, unsigned int chan)
+{
+	struct osi_tx_ring *tx_ring = osi_dma->tx_ring[chan];
+
+	return (tx_ring->clean_idx == tx_ring->cur_tx_idx) ? 1 : 0;
+}

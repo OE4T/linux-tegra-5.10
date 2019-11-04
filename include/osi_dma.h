@@ -281,6 +281,8 @@ struct osi_tx_ring {
 	struct osi_tx_pkt_cx tx_pkt_cx;
 	/** Transmit complete packet context information */
 	struct osi_txdone_pkt_cx txdone_pkt_cx;
+	/** Number of packets or frames transmitted */
+	unsigned int frame_cnt;
 };
 
 struct osi_dma_priv_data;
@@ -369,6 +371,14 @@ struct osi_dma_priv_data {
 	unsigned int rx_frames;
 	/** Flag which decides rx_frames is enabled(1) or disabled(0) */
 	unsigned int use_rx_frames;
+	/** Transmit Interrupt Software Timer Count Units */
+	unsigned int tx_usecs;
+	/** Flag which decides Tx timer is enabled(1) or disabled(0) */
+	unsigned int use_tx_usecs;
+	/** Max no of pkts to transfer before triggering Tx interrupt */
+	unsigned int tx_frames;
+	/** Flag which decides tx_frames is enabled(1) or disabled(0) */
+	unsigned int use_tx_frames;
 	/** Functional safety config to do periodic read-verify of
 	 * certain safety critical dma registers */
 	void *safety_config;
@@ -755,4 +765,21 @@ int osi_config_slot_function(struct osi_dma_priv_data *osi_dma,
  */
 int osi_clear_rx_pkt_err_stats(struct osi_dma_priv_data *osi_dma);
 
+/**
+ * @brief osi_txring_empty - Check if Txring is empty.
+ *
+ * Algorithm: This function will be invoked by OSD layer to check if the Tx ring
+ *	is empty or still has outstanding packets to be processed for Tx done.
+ *
+ * @param[in] osi_dma: OSI DMA private data structure.
+ * @param[in] chan: Channel number whose ring is to be checked.
+ *
+ * @note
+ *	1) MAC needs to be out of reset and proper clocks need to be configured.
+ *	2) DMA HW init need to be completed successfully, see osi_hw_dma_init
+ *
+ * @retval 1 if ring is empty.
+ * @retval 0 if ring has outstanding packets.
+ */
+int osi_txring_empty(struct osi_dma_priv_data *osi_dma, unsigned int chan);
 #endif /* OSI_DMA_H */

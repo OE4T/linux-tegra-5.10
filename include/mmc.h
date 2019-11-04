@@ -323,6 +323,8 @@ struct osi_xtra_stat_counters {
 	unsigned long re_alloc_rxbuf_failed[OSI_EQOS_MAX_NUM_QUEUES];
 	/** TX per channel interrupt count */
 	unsigned long tx_normal_irq_n[OSI_EQOS_MAX_NUM_QUEUES];
+	/** TX per channel SW timer callback count */
+	unsigned long tx_usecs_swtimer_n[OSI_EQOS_MAX_NUM_QUEUES];
 	/** RX per channel interrupt count */
 	unsigned long rx_normal_irq_n[OSI_EQOS_MAX_NUM_QUEUES];
 	/** link connect count */
