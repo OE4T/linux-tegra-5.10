@@ -40,43 +40,38 @@ struct nvgpu_cpu_time_correlation_sample;
  */
 struct gops_ptimer {
 	/**
-	 * FUSA HAL
-	 */
-
-	/**
 	 * @brief Handles specific type of PRI errors
 	 *
 	 * @param g [in]		GPU driver struct pointer
 	 *
-	 * ISR is called when one of the below PRI error occurs:
-	 *   PRI_SQUASH - error due to pri access while target block is in reset
-	 *   PRI_FECSERR - FECS detected an error while processing a PRI request
-	 *   PRI_TIMEOUT - non-existent host register / timeout waiting for FECS
-	 *
-	 * In the ISR, we read PRI_TIMEOUT_SAVE registers - that is, SAVE_0,
-	 * SAVE_1 and FECS_ERRCODE, which contain information about the first
-	 * PRI error since the previous error was cleared.
-	 *
-	 * We extract the address of the first PRI access that resulted in error
-	 * from PRI_TIMEOUT_SAVE_0 register. Note this address field has 4-byte
-	 * granularity and is multiplied by 4 to obtain the byte address.
-	 * Also we find out if the PRI access was a write or a read based on
-	 * whether PRI_TIMEOUT_SAVE_0_WRITE is true or false respectively.
-	 *
-	 * We read PRI_TIMEOUT_SAVE_1 which contains the PRI write data for the
-	 * failed request. Note data is set to
-	 * NV_PTIMER_PRI_TIMEOUT_SAVE_1_DATA_WAS_READ when the failed request
-	 * was a read.
-	 *
-	 * NV_PTIMER_PRI_TIMEOUT_SAVE_0_FECS_TGT field indicates if fecs was the
-	 * target of the PRI access. If FECS_TGT is TRUE, all other fields in
-	 * the PRI_TIMEOUT_SAVE_* registers are unreliable except the
-	 * PRI_TIMEOUT_SAVE_0_TO field and the PRI_TIMEOUT_FECS_ERRCODE
-	 * So if FECS_TGT is set, we read PRI_TIMEOUT_FECS_ERRCODE and call
-	 * priv ring HAL to decode the error.
-	 *
-	 * We clear SAVE_0 and SAVE_1 registers so that the next pri access
-	 * error can be recorded.
+	 * 1. ISR is called when one of the below PRI error occurs:
+	 *      - PRI_SQUASH: error due to pri access while target block is
+	 *		      in reset
+	 *      - PRI_FECSERR: FECS detected an error while processing a PRI
+	 * 		      request
+	 *      - PRI_TIMEOUT: non-existent host register / timeout waiting for
+	 *                    FECS
+	 * 2. In the ISR, we read PRI_TIMEOUT_SAVE registers - that is, SAVE_0,
+	 *    SAVE_1 and FECS_ERRCODE, which contain information about the first
+	 *    PRI error since the previous error was cleared.
+	 * 3. We extract the address of the first PRI access that resulted in
+	 *    error from PRI_TIMEOUT_SAVE_0 register. Note this address field
+	 *    has 4-byte granularity and is multiplied by 4 to obtain the byte
+	 *    address. Also we find out if the PRI access was a write or a read
+	 *    based on whether PRI_TIMEOUT_SAVE_0_WRITE is true or false
+	 *    respectively.
+	 * 4. We read PRI_TIMEOUT_SAVE_1 which contains the PRI write data for
+	 *    the failed request. Note data is set to
+	 *    NV_PTIMER_PRI_TIMEOUT_SAVE_1_DATA_WAS_READ when the failed request
+	 *    was a read.
+	 * 5. NV_PTIMER_PRI_TIMEOUT_SAVE_0_FECS_TGT field indicates if fecs was
+	 *    the target of the PRI access. If FECS_TGT is TRUE, all other
+	 *    fields in the PRI_TIMEOUT_SAVE_* registers are unreliable except
+	 *    the PRI_TIMEOUT_SAVE_0_TO field and the PRI_TIMEOUT_FECS_ERRCODE
+	 *    So if FECS_TGT is set, we read PRI_TIMEOUT_FECS_ERRCODE and call
+	 *    priv ring HAL to decode the error.
+	 * 6. We clear SAVE_0 and SAVE_1 registers so that the next pri access
+	 *    error can be recorded.
 	 */
 	void (*isr)(struct gk20a *g);
 

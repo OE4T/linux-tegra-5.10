@@ -48,17 +48,30 @@ struct nvgpu_cpu_time_correlation_sample {
  *
  * @param ptimer_src_freq [in]		source frequency to ptimer
  *
- * The ptimer has a resolution of 32 ns and so requires a reference frequency of
- * 1 / 32ns = 31.25 MHz. If the source frequency to ptimer is different than the
- * above reference frequency, we need to get the scaling factor as
+ * 1. The ptimer has a resolution of 32 ns and so requires a reference frequency
+ *    of:
+ * ~~~~~~~~~~~~~~~~~~~~~
+ * 1 / 32ns = 31.25 MHz
+ * ~~~~~~~~~~~~~~~~~~~~~
+ *
+ * 2. If the source frequency to ptimer is different than the above reference
+ *    frequency, we need to get the scaling factor as:
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  * Scale_factor = ptimer_ref_freq / ptimer_src_freq
- * The scale_factor is multiplied by 10, so that we get an additional digit
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ *
+ * 3. The scale_factor is multiplied by 10, so that we get an additional digit
  * decimal precision.
  *
- * For example, on Maxwell, the ptimer source frequency is 19.2 MHz
- * So the scaling_factor_10x = (31250000  * 10)/ 19200000 = 16
- * On Volta, ptimer_source frequency = 31250000 Hz = ptimer_ref_frequency.
- * So the scaling_factor_10x = 10
+ * 4. For example,
+ * - On Maxwell, the ptimer source frequency is 19.2 MHz.
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ *  scaling_factor_10x = (31250000  * 10)/ 19200000 = 16
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ * - On Volta, ptimer_source frequency = 31250000 Hz = ptimer_ref_frequency.
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ *  scaling_factor_10x = 10
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  *
  * @return Scale factor between ptimer reference and source frequency with
  * 	one digit decimal precision.
@@ -76,12 +89,15 @@ static inline u32 ptimer_scalingfactor10x(u32 ptimer_src_freq)
  * @param scale10x [in]		The scale factor multiplied by 10 to be used for
  * 				scaling the ptimer based timeout value.
  *
- * When the ptimer source frequency is not same as expected ptimer reference
- * frequency, we need to scale the ptimer based time value. The scaled value is
- * calculated as follows:
- * Scaled valued = \a timeout / scale_factor.
- * To retain 1 digit decimal precision, the above equation is calculated after
- * multiplication by 10.
+ * 1. When the ptimer source frequency is not same as expected ptimer reference
+ *    frequency, we need to scale the ptimer based time value. The scaled value
+ *    is calculated as follows:
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ * Scaled valued = timeout / scale_factor.
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ *
+ * 2. To retain 1 digit decimal precision, the above equation is calculated
+ *    after multiplication by 10.
  *
  * @return Scaled \a timeout value as per \a scale10x
  */
