@@ -708,6 +708,30 @@ void osi_hw_transmit(struct osi_dma_priv_data *osi, unsigned int chan)
 	/* set Interrupt on Completion*/
 	last_desc->tdes2 |= TDES2_IOC;
 
+	if (tx_ring->frame_cnt < UINT_MAX) {
+		tx_ring->frame_cnt++;
+	} else if (osi->use_tx_frames == OSI_ENABLE &&
+		   (tx_ring->frame_cnt % osi->tx_frames) < UINT_MAX) {
+		/* make sure count for tx_frame interrupt logic is retained */
+		tx_ring->frame_cnt = (tx_ring->frame_cnt % osi->tx_frames)
+					+ 1U;
+	} else {
+		tx_ring->frame_cnt = 1U;
+	}
+
+	/* clear IOC bit if tx SW timer based coalescing is enabled */
+	if (osi->use_tx_usecs == OSI_ENABLE) {
+		last_desc->tdes2 &= ~TDES2_IOC;
+
+		/* update IOC bit if tx_frames is enabled. Tx_frames
+		 * can be enabled only along with tx_usecs.
+		 */
+		if (osi->use_tx_frames == OSI_ENABLE) {
+			if ((tx_ring->frame_cnt % osi->tx_frames) == OSI_NONE) {
+				last_desc->tdes2 |= TDES2_IOC;
+			}
+		}
+	}
 	/* Set OWN bit for first and context descriptors
 	 * at the end to avoid race condition
 	 */
