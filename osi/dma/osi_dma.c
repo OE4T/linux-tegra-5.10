@@ -237,6 +237,15 @@ int osi_rx_dma_desc_init(struct osi_dma_priv_data *osi_dma,
 		/* reset IOC bit if RWIT is enabled */
 		if (osi_dma->use_riwt == OSI_ENABLE) {
 			rx_desc->rdes3 &= ~RDES3_IOC;
+			/* update IOC bit if rx_frames is enabled. Rx_frames
+			 * can be enabled only along with RWIT.
+			 */
+			if (osi_dma->use_rx_frames == OSI_ENABLE) {
+				if ((rx_ring->refill_idx %
+				    osi_dma->rx_frames) == OSI_NONE) {
+					rx_desc->rdes3 |= RDES3_IOC;
+				}
+			}
 		}
 
 		INCR_RX_DESC_INDEX(rx_ring->refill_idx, 1U);

@@ -773,6 +773,13 @@ static int rx_dma_desc_initialization(struct osi_dma_priv_data *osi,
 		/* reconfigure INTE bit if RX watchdog timer is enabled */
 		if (osi->use_riwt == OSI_ENABLE) {
 			rx_desc->rdes3 &= ~RDES3_IOC;
+			/* update IOC bit if rx_frames is enabled. Rx_frames
+			 * can be enabled only along with RWIT.
+			 */
+			if (osi->use_rx_frames == OSI_ENABLE) {
+				if ((i % osi->rx_frames) == OSI_NONE)
+					rx_desc->rdes3 |= RDES3_IOC;
+			}
 		}
 
 		rx_swcx->flags = 0;
