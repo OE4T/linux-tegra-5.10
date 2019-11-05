@@ -138,6 +138,7 @@ enum nvgpu_unit;
 #include <nvgpu/semaphore.h>
 #include <nvgpu/fifo.h>
 
+#include <nvgpu/gops_class.h>
 #include <nvgpu/gops_ce.h>
 #include <nvgpu/gops_ptimer.h>
 #include <nvgpu/gops_top.h>
@@ -283,14 +284,7 @@ struct gpu_ops {
 #endif
 	struct gops_ce ce;
 	struct gops_gr gr;
-	struct {
-		bool (*is_valid)(u32 class_num);
-		bool (*is_valid_compute)(u32 class_num);
-#ifdef CONFIG_NVGPU_GRAPHICS
-		bool (*is_valid_gfx)(u32 class_num);
-#endif
-	} gpu_class;
-
+	struct gops_class gpu_class;
 	struct gops_fb fb;
 
 	struct {

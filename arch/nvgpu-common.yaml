@@ -117,8 +117,8 @@ mc:
 class:
   safe: yes
   owner: Seshendra G
-  sources: [ include/nvgpu/class.h ]
-
+  sources: [ include/nvgpu/class.h,
+             include/nvgpu/gops_class.h ]
 
 netlist:
   safe: yes
