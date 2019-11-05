@@ -67,7 +67,7 @@
  */
 struct camrtc_pm_data {
 	uint32_t force_entry;
-} __packed;
+} CAMRTC_PACKED;
 
 /* This struct is used to send the loop count to perform the mods test
  * on the target.
@@ -76,7 +76,7 @@ struct camrtc_pm_data {
  */
 struct camrtc_mods_data {
 	uint32_t mods_loops;
-} __packed;
+} CAMRTC_PACKED;
 
 /* This struct is used to extract the firmware version of the RTCPU.
  * Fields:
@@ -86,15 +86,15 @@ struct camrtc_ping_data {
 	uint64_t ts_req;		/* requestor timestamp */
 	uint64_t ts_resp;		/* response timestamp */
 	uint8_t data[64];		/* data */
-} __packed;
+} CAMRTC_PACKED;
 
 struct camrtc_log_data {
 	uint32_t level;
-} __packed;
+} CAMRTC_PACKED;
 
 struct camrtc_rtos_state_data {
 	uint8_t rtos_state[CAMRTC_DBG_MAX_DATA];	/* string data */
-} __packed;
+} CAMRTC_PACKED;
 
 /* This structure is used to read 32 bit data from firmware address space.
  * Fields:
@@ -103,11 +103,11 @@ struct camrtc_rtos_state_data {
  */
 struct camrtc_dbg_read_memory_32bit {
 	uint32_t addr;
-} __packed;
+} CAMRTC_PACKED;
 
 struct camrtc_dbg_read_memory_32bit_result {
 	uint32_t data;
-} __packed;
+} CAMRTC_PACKED;
 
 #define CAMRTC_DBG_READ_MEMORY_COUNT_MAX	MK_U32(256)
 
@@ -120,11 +120,11 @@ struct camrtc_dbg_read_memory_32bit_result {
 struct camrtc_dbg_read_memory {
 	uint32_t addr;
 	uint32_t count;
-} __packed;
+} CAMRTC_PACKED;
 
 struct camrtc_dbg_read_memory_result {
 	uint8_t data[CAMRTC_DBG_READ_MEMORY_COUNT_MAX];
-} __packed;
+} CAMRTC_PACKED;
 
 #define CAMRTC_DBG_MAX_PERF_COUNTERS		MK_U32(31)
 
@@ -143,7 +143,7 @@ struct camrtc_dbg_set_perf_counters {
 	uint32_t do_reset;
 	uint32_t cycle_counter_div64;
 	uint32_t events[CAMRTC_DBG_MAX_PERF_COUNTERS];
-} __packed;
+} CAMRTC_PACKED;
 
 /* This structure is used to get performance counters.
  * Fields:
@@ -160,7 +160,7 @@ struct camrtc_dbg_get_perf_counters_result {
 		uint32_t event;
 		uint32_t value;
 	} counters[CAMRTC_DBG_MAX_PERF_COUNTERS];
-} __packed;
+} CAMRTC_PACKED;
 
 
 #define CAMRTC_DBG_MAX_TEST_DATA (CAMRTC_DBG_MAX_DATA - sizeof(uint64_t))
@@ -175,7 +175,7 @@ struct camrtc_dbg_get_perf_counters_result {
 struct camrtc_dbg_run_test_data {
 	uint64_t timeout;	/* Time in nanoseconds */
 	char data[CAMRTC_DBG_MAX_TEST_DATA];
-} __packed;
+} CAMRTC_PACKED;
 
 /* Number of memory areas */
 #define CAMRTC_DBG_NUM_MEM_TEST_MEM MK_U32(8)
@@ -215,7 +215,7 @@ struct camrtc_dbg_run_mem_test_data {
 	struct camrtc_dbg_test_mem mem[CAMRTC_DBG_NUM_MEM_TEST_MEM];
 	struct camrtc_dbg_streamids streamids;
 	char data[CAMRTC_DBG_MAX_MEM_TEST_DATA];
-} __packed;
+} CAMRTC_PACKED;
 
 /* This structure is used get information on system tasks.
  * Fields:
@@ -236,7 +236,7 @@ struct camrtc_dbg_task_stat {
 		uint32_t number;
 		uint32_t priority;
 	} task[CAMRTC_DBG_TASK_STAT_MAX];
-} __packed;
+} CAMRTC_PACKED;
 
 /* Limit for default CAMRTC_DBG_FRAME_SIZE */
 #define CAMRTC_DBG_NUM_IRQ_STAT			MK_U32(11)
@@ -267,7 +267,7 @@ struct camrtc_dbg_irq_stat {
 		uint32_t max_runtime;
 		uint32_t num_called;
 	} irqs[CAMRTC_DBG_NUM_IRQ_STAT];
-} __packed;
+} CAMRTC_PACKED;
 
 /* These structure is used to get VI message statistics.
  * Fields:
@@ -275,7 +275,7 @@ struct camrtc_dbg_irq_stat {
  */
 struct camrtc_dbg_enable_vi_stat {
 	uint32_t enable;
-} __packed;
+} CAMRTC_PACKED;
 
 /* These structure is used to get VI message statistics.
  * Fields:
@@ -285,7 +285,7 @@ struct camrtc_dbg_enable_vi_stat {
 struct camrtc_dbg_vi_stat {
 	uint32_t avg;
 	uint32_t max;
-} __packed;
+} CAMRTC_PACKED;
 
 /* These structure is used to get memory usage.
  * Fields:
@@ -303,7 +303,7 @@ struct camrtc_dbg_mem_usage {
 	uint32_t heap;
 	uint32_t stack;
 	uint32_t free_mem;
-} __packed;
+} CAMRTC_PACKED;
 
 #define CAMRTC_DBG_FALCON_ID_VI       MK_U32(0x00)
 #define CAMRTC_DBG_FALCON_ID_ISP      MK_U32(0x80)
@@ -325,7 +325,7 @@ struct camrtc_dbg_coverage_data {
 	uint8_t _pad;
 	uint32_t size;
 	uint64_t iova;
-} __packed;
+} CAMRTC_PACKED;
 
 /* This structure is used to reply code coverage status.
  * Fields:
@@ -340,7 +340,7 @@ struct camrtc_dbg_coverage_stat {
 	uint8_t full;
 	uint8_t _pad;
 	uint32_t bytes_written;
-} __packed;
+} CAMRTC_PACKED;
 
 /* This struct encapsulates the type of the request and the respective
  * data associated with that request.
@@ -365,7 +365,7 @@ struct camrtc_dbg_request {
 		struct camrtc_dbg_enable_vi_stat enable_vi_stat;
 		struct camrtc_dbg_coverage_data coverage_data;
 	} data;
-} __packed;
+} CAMRTC_PACKED;
 
 /* This struct encapsulates the type of the response and the respective
  * data associated with that response.
@@ -395,6 +395,6 @@ struct camrtc_dbg_response {
 		struct camrtc_dbg_irq_stat irq_stat;
 		struct camrtc_dbg_coverage_stat coverage_stat;
 	} data;
-} __packed;
+} CAMRTC_PACKED;
 
 #endif /* INCLUDE_CAMRTC_DBG_MESSAGES_H */

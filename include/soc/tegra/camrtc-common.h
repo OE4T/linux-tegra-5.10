@@ -20,14 +20,16 @@
 #if defined(__KERNEL__)
 #include <linux/types.h>
 #include <linux/compiler.h>
+#define CAMRTC_PACKED __packed
+#define CAMRTC_ALIGN __aligned
 #else
 #include <stdint.h>
 #include <stdbool.h>
-#ifndef __packed
-#define __packed __attribute__((packed))
+#ifndef CAMRTC_PACKED
+#define CAMRTC_PACKED __attribute__((packed))
 #endif
-#ifndef __aligned
-#define __aligned(_n) __attribute__((aligned(_n)))
+#ifndef CAMRTC_ALIGN
+#define CAMRTC_ALIGN(_n) __attribute__((aligned(_n)))
 #endif
 #ifndef U64_C
 #define U64_C(_x_) (uint64_t)(_x_##ULL)

@@ -77,7 +77,7 @@
 
 #define CAMRTC_TRACE_ALIGNOF		MK_ALIGN(64)
 
-#define CAMRTC_TRACE_ALIGN		__aligned(CAMRTC_TRACE_ALIGNOF)
+#define CAMRTC_TRACE_ALIGN		CAMRTC_ALIGN(CAMRTC_TRACE_ALIGNOF)
 
 struct camrtc_trace_memory_header {
 	/* layout: offset 0 */
@@ -184,7 +184,7 @@ struct camrtc_event_header {
 	uint32_t len;		/* Size in bytes including this field */
 	uint32_t id;		/* Event ID */
 	uint64_t tstamp;	/* Timestamp from TKE TSC */
-} __packed;
+} CAMRTC_PACKED;
 
 struct camrtc_event_struct {
 	struct camrtc_event_header header;
@@ -192,7 +192,7 @@ struct camrtc_event_struct {
 		uint8_t data8[CAMRTC_TRACE_EVENT_PAYLOAD_SIZE];
 		uint32_t data32[CAMRTC_TRACE_EVENT_PAYLOAD_SIZE / 4];
 	} data;
-} __packed;
+} CAMRTC_PACKED;
 
 // camrtc_event_type
 #define CAMRTC_EVENT_TYPE_ARRAY			MK_U32(0)
