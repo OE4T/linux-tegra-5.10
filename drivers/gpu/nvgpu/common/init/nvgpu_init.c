@@ -278,15 +278,15 @@ int nvgpu_prepare_poweroff(struct gk20a *g)
 	}
 #endif
 	tmp_ret = g->ops.gr.gr_suspend(g);
-	if ((tmp_ret != 0) && (ret == 0)) {
+	if (tmp_ret != 0) {
 		ret = tmp_ret;
 	}
 	tmp_ret = g->ops.mm.mm_suspend(g);
-	if ((tmp_ret != 0) && (ret == 0)) {
+	if (tmp_ret != 0) {
 		ret = tmp_ret;
 	}
 	tmp_ret = g->ops.fifo.fifo_suspend(g);
-	if ((tmp_ret != 0) && (ret == 0)) {
+	if (tmp_ret != 0) {
 		ret = tmp_ret;
 	}
 
