@@ -39,78 +39,6 @@ struct volt_rpc_pmucmdhandler_params {
 	u32 success;
 };
 
-static int volt_set_voltage_rpc(struct gk20a *g, u8 client_id,
-		struct ctrl_volt_volt_rail_list_v1 *prail_list)
-{
-	struct nvgpu_pmu *pmu = g->pmu;
-	struct nv_pmu_rpc_struct_volt_volt_set_voltage rpc;
-	int status = 0;
-
-	(void) memset(&rpc, 0,
-		sizeof(struct nv_pmu_rpc_struct_volt_volt_set_voltage));
-	rpc.client_id = 0x1;
-	rpc.rail_list = *prail_list;
-
-	PMU_RPC_EXECUTE_CPB(status, pmu, VOLT, VOLT_SET_VOLTAGE, &rpc, 0);
-	if (status != 0) {
-		nvgpu_err(g, "Failed to execute RPC status=0x%x",
-			status);
-	}
-
-	return status;
-}
-
-static int volt_rail_get_voltage(struct gk20a *g,
-	u8 volt_domain, u32 *pvoltage_uv)
-{
-	struct nvgpu_pmu *pmu = g->pmu;
-	struct nv_pmu_rpc_struct_volt_volt_rail_get_voltage rpc;
-	int status  = 0;
-	u8 rail_idx;
-
-	rail_idx = nvgpu_volt_rail_volt_domain_convert_to_idx(g, volt_domain);
-	if ((rail_idx == CTRL_VOLT_RAIL_INDEX_INVALID) ||
-		(!VOLT_RAIL_INDEX_IS_VALID(&g->perf_pmu->volt, rail_idx))) {
-		nvgpu_err(g,
-			"failed: volt_domain = %d, voltage rail table = %d.",
-			volt_domain, rail_idx);
-		return -EINVAL;
-	}
-
-	(void) memset(&rpc, 0,
-		sizeof(struct nv_pmu_rpc_struct_volt_volt_rail_get_voltage));
-	rpc.rail_idx = rail_idx;
-
-	PMU_RPC_EXECUTE_CPB(status, pmu, VOLT, VOLT_RAIL_GET_VOLTAGE, &rpc, 0);
-	if (status != 0) {
-		nvgpu_err(g, "Failed to execute RPC status=0x%x",
-			status);
-	}
-
-	*pvoltage_uv = rpc.voltage_uv;
-
-	return status;
-}
-
-static int volt_set_voltage(struct gk20a *g, u32 logic_voltage_uv,
-		u32 sram_voltage_uv)
-{
-	int status = 0;
-	struct ctrl_volt_volt_rail_list_v1 rail_list = { 0 };
-
-	rail_list.num_rails = RAIL_COUNT_GV;
-	rail_list.rails[0].rail_idx =
-			nvgpu_volt_rail_volt_domain_convert_to_idx(g,
-			CTRL_VOLT_DOMAIN_LOGIC);
-	rail_list.rails[0].voltage_uv = logic_voltage_uv;
-	rail_list.rails[0].voltage_min_noise_unaware_uv = logic_voltage_uv;
-
-	status = volt_set_voltage_rpc(g,
-		CTRL_VOLT_POLICY_CLIENT_PERF_CORE_VF_SEQ, &rail_list);
-
-	return status;
-}
-
 int nvgpu_volt_send_load_cmd_to_pmu(struct gk20a *g)
 {
 	struct nvgpu_pmu *pmu = g->pmu;
@@ -125,18 +53,6 @@ int nvgpu_volt_send_load_cmd_to_pmu(struct gk20a *g)
 	}
 
 	return status;
-}
-
-int nvgpu_volt_set_voltage(struct gk20a *g, u32 logic_voltage_uv, u32 sram_voltage_uv)
-{
-	return volt_set_voltage(g,
-		logic_voltage_uv, sram_voltage_uv);
-}
-
-int nvgpu_volt_get_voltage(struct gk20a *g, u32 volt_domain, u32 *voltage_uv)
-{
-	return volt_rail_get_voltage(g,
-		(u8)volt_domain, voltage_uv);
 }
 
 void nvgpu_pmu_volt_rpc_handler(struct gk20a *g, struct nv_pmu_rpc_header *rpc)

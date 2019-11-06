@@ -90,9 +90,6 @@ struct voltage_rail {
 	u32 current_volt_uv;
 };
 
-int nvgpu_volt_set_voltage(struct gk20a *g, u32 logic_voltage_uv,
-		u32 sram_voltage_uv);
-int nvgpu_volt_get_voltage(struct gk20a *g, u32 volt_domain, u32 *voltage_uv);
 int nvgpu_volt_send_load_cmd_to_pmu(struct gk20a *g);
 
 int nvgpu_volt_dev_sw_setup(struct gk20a *g);
