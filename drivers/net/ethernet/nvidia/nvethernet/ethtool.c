@@ -634,6 +634,101 @@ static int ether_get_coalesce(struct net_device *dev,
 }
 
 /**
+ * @brief This function is invoked by kernel when user request to set
+ * pmt parameters for remote wakeup or magic wakeup
+ *
+ * Algorithm: Enable or Disable Wake On Lan status based on wol param
+ *
+ * @param[in] ndev – pointer to net device structure.
+ * @param[in] wol – pointer to ethtool_wolinfo structure.
+ *
+ * @note MAC and PHY need to be initialized.
+ *
+ * @retval zero on success and -ve number on failure.
+ */
+static int ether_set_wol(struct net_device *ndev, struct ethtool_wolinfo *wol)
+{
+	struct ether_priv_data *pdata = netdev_priv(ndev);
+	int ret;
+
+	if (!wol)
+		return -EINVAL;
+
+	if (!pdata->phydev) {
+		netdev_err(pdata->ndev,
+			   "%s: phydev is null check iface up status\n",
+			   __func__);
+		return -ENOTSUPP;
+	}
+
+	if (!phy_interrupt_is_valid(pdata->phydev))
+		return -ENOTSUPP;
+
+	ret = phy_ethtool_set_wol(pdata->phydev, wol);
+	if (ret < 0)
+		return ret;
+
+	if (wol->wolopts) {
+		ret = enable_irq_wake(pdata->phydev->irq);
+		if (ret) {
+			dev_err(pdata->dev, "PHY enable irq wake failed, %d\n",
+				ret);
+			return ret;
+		}
+		/* enable device wake on WoL set */
+		device_init_wakeup(&ndev->dev, true);
+	} else {
+		ret = disable_irq_wake(pdata->phydev->irq);
+		if (ret) {
+			dev_info(pdata->dev,
+				 "PHY disable irq wake failed, %d\n",
+				 ret);
+		}
+		/* disable device wake on WoL reset */
+		device_init_wakeup(&ndev->dev, false);
+	}
+
+	return ret;
+}
+
+/**
+ * @brief This function is invoked by kernel when user request to get report
+ * whether wake-on-lan is enable or not.
+ *
+ * Algorithm: Return Wake On Lan status in wol param
+ *
+ * param[in] ndev – pointer to net device structure.
+ * param[in] wol – pointer to ethtool_wolinfo structure.
+ *
+ * @note MAC and PHY need to be initialized.
+ *
+ * @retval none
+ */
+
+static void ether_get_wol(struct net_device *ndev, struct ethtool_wolinfo *wol)
+{
+	struct ether_priv_data *pdata = netdev_priv(ndev);
+
+	wol->supported = 0;
+	wol->wolopts = 0;
+
+	if (!wol)
+		return;
+
+	if (!pdata->phydev) {
+		netdev_err(pdata->ndev,
+			   "%s: phydev is null check iface up status\n",
+			   __func__);
+		return;
+	}
+
+	if (!phy_interrupt_is_valid(pdata->phydev))
+		return;
+
+	phy_ethtool_get_wol(pdata->phydev, wol);
+}
+
+/**
  * @brief Set of ethtool operations
  */
 static const struct ethtool_ops ether_ethtool_ops = {
@@ -648,6 +743,8 @@ static const struct ethtool_ops ether_ethtool_ops = {
 	.get_sset_count = ether_get_sset_count,
 	.get_coalesce = ether_get_coalesce,
 	.set_coalesce = ether_set_coalesce,
+	.get_wol = ether_get_wol,
+	.set_wol = ether_set_wol,
 };
 
 void ether_set_ethtool_ops(struct net_device *ndev)

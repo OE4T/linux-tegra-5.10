@@ -1350,16 +1350,16 @@ static inline void ether_reset_stats(struct ether_priv_data *pdata)
  * 1) Stopping PHY
  * 2) Freeing tx/rx/common irqs
  *
- * @param[in] dev: Net device data structure.
+ * @param[in] ndev: Net device data structure.
  *
  * @note  MAC Interface need to be registered.
  *
  * @retval 0 on success
  * @retval "negative value" on failure.
  */
-static int ether_close(struct net_device *dev)
+static int ether_close(struct net_device *ndev)
 {
-	struct ether_priv_data *pdata = netdev_priv(dev);
+	struct ether_priv_data *pdata = netdev_priv(ndev);
 	int ret = 0;
 
 	/* Unregister broadcasting MAC timestamp to clients */
@@ -1370,6 +1370,15 @@ static int ether_close(struct net_device *dev)
 
 	/* Stop and disconnect the PHY */
 	if (pdata->phydev != NULL) {
+		/* Check and clear WoL status */
+		if (device_may_wakeup(&ndev->dev)) {
+			if (disable_irq_wake(pdata->phydev->irq)) {
+				dev_warn(pdata->dev,
+					 "PHY disable irq wake fail\n");
+			}
+			device_init_wakeup(&ndev->dev, false);
+		}
+
 		phy_stop(pdata->phydev);
 		phy_disconnect(pdata->phydev);
 
@@ -3613,6 +3622,18 @@ static int ether_remove(struct platform_device *pdev)
 }
 
 #ifdef CONFIG_PM
+/**
+ * @brief Ethernet platform driver suspend noirq callback.
+ *
+ * Alogorithm: Stops all data queues and PHY if the device
+ *	does not wake capable. Disable TX and NAPI.
+ *	Deinit OSI core, DMA and TX/RX interrupts.
+ *
+ * @param[in] dev: Platform device associated with platform driver.
+ *
+ * @retval 0 on success
+ * @retval "negative value" on failure.
+ */
 static int ether_suspend_noirq(struct device *dev)
 {
 	struct net_device *ndev = dev_get_drvdata(dev);
@@ -3627,7 +3648,7 @@ static int ether_suspend_noirq(struct device *dev)
 	/* Stop workqueue while DUT is going to suspend state */
 	ether_stats_work_queue_stop(pdata);
 
-	if (pdata->phydev) {
+	if (pdata->phydev && !(device_may_wakeup(&ndev->dev))) {
 		phy_stop(pdata->phydev);
 		if (gpio_is_valid(pdata->phy_reset))
 			gpio_set_value(pdata->phy_reset, 0);
@@ -3653,6 +3674,18 @@ static int ether_suspend_noirq(struct device *dev)
 	return 0;
 }
 
+/**
+ * @brief Ethernet platform driver resume call.
+ *
+ * Alogorithm: Init OSI core, DMA and TX/RX interrupts.
+ *	Enable PHY device if it does not wake capable,
+ *	all data queues and NAPI.
+ *
+ * @param[in] pdata: OS dependent private data structure.
+ *
+ * @retval 0 on success
+ * @retval "negative value" on failure.
+ */
 static int ether_resume(struct ether_priv_data *pdata)
 {
 	struct osi_core_priv_data *osi_core = pdata->osi_core;
@@ -3713,8 +3746,10 @@ static int ether_resume(struct ether_priv_data *pdata)
 	ether_napi_enable(pdata);
 	/* start the mac */
 	osi_start_mac(osi_core);
-	/* start phy */
-	phy_start(pdata->phydev);
+	if (pdata->phydev && !(device_may_wakeup(&ndev->dev))) {
+		/* start phy */
+		phy_start(pdata->phydev);
+	}
 	/* start network queues */
 	netif_tx_start_all_queues(ndev);
 	/* re-start workqueue */
@@ -3730,6 +3765,17 @@ err_core:
 	return ret;
 }
 
+/**
+ * @brief Ethernet platform driver resume noirq callback.
+ *
+ * Alogorithm: Enable clocks and call resume sequence,
+ *	refer ether_resume function for resume sequence.
+ *
+ * @param[in] dev: Platform device associated with platform driver.
+ *
+ * @retval 0 on success
+ * @retval "negative value" on failure.
+ */
 static int ether_resume_noirq(struct device *dev)
 {
 	struct net_device *ndev = dev_get_drvdata(dev);
@@ -3741,7 +3787,8 @@ static int ether_resume_noirq(struct device *dev)
 
 	ether_enable_clks(pdata);
 
-	if (gpio_is_valid(pdata->phy_reset) &&
+	if (!device_may_wakeup(&ndev->dev) &&
+	    gpio_is_valid(pdata->phy_reset) &&
 	    !gpio_get_value(pdata->phy_reset)) {
 		/* deassert phy reset */
 		gpio_set_value(pdata->phy_reset, 1);
