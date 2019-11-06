@@ -138,14 +138,6 @@ static int iommu_context_dev_probe(struct platform_device *pdev)
 		return -ENOSYS;
 	}
 
-	/* http://nvbugs/2737086/96: The  History buffer space need to be limited to 38bits for OFS
-	   and  39bits in Codec because of an issue.
-	   Due to the above HW issue limiting DMA_MASK to 38 bit IOVA to all of the context banks.
-	*/
-	if (dma_set_mask_and_coherent(&pdev->dev, DMA_BIT_MASK(38)))
-		dev_info(&pdev->dev, "Error: setting DMA_MASK: 0x%llx failed\n",
-			DMA_BIT_MASK(38));
-
 	ctx = devm_kzalloc(&pdev->dev, sizeof(*ctx), GFP_KERNEL);
 	if (!ctx) {
 		dev_err(&pdev->dev,
