@@ -33,12 +33,16 @@ bool gv11b_class_is_valid(u32 class_num)
 	nvgpu_speculation_barrier();
 
 	switch (class_num) {
-	case VOLTA_A:
 	case VOLTA_COMPUTE_A:
 	case VOLTA_DMA_COPY_A:
 	case VOLTA_CHANNEL_GPFIFO_A:
 		valid = true;
 		break;
+#ifdef CONFIG_NVGPU_GRAPHICS
+	case VOLTA_A:
+		valid = true;
+		break;
+#endif
 	default:
 		valid = gp10b_class_is_valid(class_num);
 		break;

@@ -72,16 +72,6 @@
 /**
  * @ingroup NVGPU_CLASS_VALID_NUM
  *
- * Class number for 3D graphics class methods on Volta chips.
- *
- * WAR: Lot of qnx safety tests are still using graphics 3d class. Until these
- *      tests get fixed, allowing 3d graphics class as valid class for
- *      safety build.
- */
-#define	VOLTA_A				0xC397U
-/**
- * @ingroup NVGPU_CLASS_VALID_NUM
- *
  * Class number for Channel_GPFIFO class methods on Volta chips.
  */
 #define	VOLTA_CHANNEL_GPFIFO_A		0xC36FU
@@ -102,6 +92,7 @@
 #define	FERMI_TWOD_A			0x902DU
 #define	MAXWELL_B			0xB197U
 #define	PASCAL_A			0xC097U
+#define	VOLTA_A				0xC397U
 #define	TURING_A			0xC597U
 #endif
 
