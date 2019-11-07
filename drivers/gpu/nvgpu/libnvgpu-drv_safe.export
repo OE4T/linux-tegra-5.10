@@ -13,8 +13,10 @@ find_next_bit
 gk20a_as_alloc_share
 gk20a_as_release_share
 gk20a_mm_fb_flush
+gk20a_ptimer_isr
 gk20a_ramin_alloc_size
 gk20a_ramin_base_shift
+gk20a_read_ptimer
 gk20a_vm_release_share
 gm20b_fb_tlb_invalidate
 gm20b_mm_get_big_page_sizes

@@ -52,6 +52,7 @@ UNITS :=				\
 	$(UNIT_SRC)/posix/cond		\
 	$(UNIT_SRC)/posix/timers	\
 	$(UNIT_SRC)/pramin		\
+	$(UNIT_SRC)/ptimer		\
 	$(UNIT_SRC)/init		\
 	$(UNIT_SRC)/interface/bsearch	\
 	$(UNIT_SRC)/interface/lock	\
