@@ -1400,7 +1400,7 @@ struct vi_hsm_csimux_error_mask_config {
  * @{
  */
 /** Error bit indicating Host1x client timeout error */
-#define NVCSI_INTR_FLAG_HOST1X_TIMEOUT_ERR			(U32_C(1) << 0)
+#define NVCSI_INTR_FLAG_HOST1X_TIMEOUT_ERR			MK_BIT32(0)
 /** @} */
 
 /**
