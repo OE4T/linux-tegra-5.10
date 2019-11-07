@@ -989,6 +989,8 @@ struct gk20a {
 
 	struct nvgpu_mem pdb_cache_war_mem;
 	/** @endcond */
+
+	u16 dgpu_max_clk;
 };
 
 /**

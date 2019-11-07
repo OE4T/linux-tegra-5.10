@@ -201,8 +201,11 @@ struct nvgpu_clk_arb {
 	u16 mclk_default_mhz;
 	u32 voltuv_actual;
 
-	u16 gpc2clk_min, gpc2clk_max;
-	u16 mclk_min, mclk_max;
+	u16 gpc2clk_min;
+	u16 gpc2clk_max;
+	u16 gpc_cap_clkmhz;
+	u16 mclk_min;
+	u16 mclk_max;
 
 	struct nvgpu_clk_arb_work_item update_vf_table_work_item;
 	struct nvgpu_clk_arb_work_item update_arb_work_item;

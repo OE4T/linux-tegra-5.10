@@ -429,6 +429,26 @@ static int nvgpu_pci_pm_deinit(struct device *dev)
 	return 0;
 }
 
+static int nvgpu_get_dt_clock_limit(struct gk20a *g, u16 *gpuclk_clkmhz)
+{
+	struct device_node *np;
+	u32 gpuclk_dt_cap = 0U;
+
+	np = of_find_node_by_name(NULL, "nvgpu");
+	if (!np) {
+		return -ENOENT;
+	}
+
+	if (of_property_read_u32(np, "dgpuclk-max-mhz", &gpuclk_dt_cap)) {
+		nvgpu_info(g, "dgpuclk-max-mhz not defined,"
+				"P-state will be used");
+	}
+
+	*gpuclk_clkmhz = (u16)gpuclk_dt_cap;
+
+	return 0;
+}
+
 static int nvgpu_pci_probe(struct pci_dev *pdev,
 			   const struct pci_device_id *pent)
 {
@@ -595,6 +615,11 @@ static int nvgpu_pci_probe(struct pci_dev *pdev,
 				goto err_free_irq;
 			}
 		}
+	}
+
+	err = nvgpu_get_dt_clock_limit(g, &g->dgpu_max_clk);
+	if (err != 0) {
+		nvgpu_info(g, "Missing nvgpu node");
 	}
 
 	err = nvgpu_pci_add_pci_power(pdev);

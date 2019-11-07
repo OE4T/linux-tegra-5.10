@@ -27,6 +27,7 @@
 #include <nvgpu/boardobjgrp_e255.h>
 #include <nvgpu/pmu/clk/clk_fll.h>
 #include <nvgpu/pmu/clk/clk_vf_point.h>
+#include <nvgpu/pmu/clk/clk_prog.h>
 
 #include "clk_arb_gv100.h"
 
@@ -61,6 +62,7 @@ int gv100_get_arbiter_clk_range(struct gk20a *g, u32 api_domain,
 	struct clk_set_info *p0_info;
 	struct nvgpu_avfsfllobjs *pfllobjs =  g->pmu->clk_pmu->avfs_fllobjs;
 	u16 limit_min_mhz;
+	u16 gpcclk_cap_mhz;
 	bool error_status = false;
 
 	switch (api_domain) {
@@ -88,15 +90,21 @@ int gv100_get_arbiter_clk_range(struct gk20a *g, u32 api_domain,
 	}
 
 	limit_min_mhz = p0_info->min_mhz;
+	gpcclk_cap_mhz = p0_info->max_mhz;
+
 	/* WAR for DVCO min */
 	if (api_domain == CTRL_CLK_DOMAIN_GPCCLK) {
 		if ((pfllobjs->max_min_freq_mhz != 0U) &&
 			(pfllobjs->max_min_freq_mhz >= limit_min_mhz)) {
 			limit_min_mhz = pfllobjs->max_min_freq_mhz + 1U;
 		}
+		if ((g->clk_arb->gpc_cap_clkmhz != 0U) &&
+			(p0_info->max_mhz > g->clk_arb->gpc_cap_clkmhz )) {
+			gpcclk_cap_mhz = g->clk_arb->gpc_cap_clkmhz;
+		}
 	}
 	*min_mhz = limit_min_mhz;
-	*max_mhz = p0_info->max_mhz;
+	*max_mhz = gpcclk_cap_mhz;
 
 	return 0;
 }
@@ -107,6 +115,7 @@ int gv100_get_arbiter_clk_default(struct gk20a *g, u32 api_domain,
 	u32 clkwhich;
 	struct clk_set_info *p0_info;
 	bool error_status = false;
+	u16 gpcclk_cap_mhz;
 
 	switch (api_domain) {
 	case CTRL_CLK_DOMAIN_MCLK:
@@ -132,7 +141,15 @@ int gv100_get_arbiter_clk_default(struct gk20a *g, u32 api_domain,
 		return -EINVAL;
 	}
 
-	*default_mhz = p0_info->max_mhz;
+	gpcclk_cap_mhz = p0_info->max_mhz;
+	if (api_domain == CTRL_CLK_DOMAIN_GPCCLK) {
+		if ((g->clk_arb->gpc_cap_clkmhz != 0U) &&
+			(p0_info->max_mhz > g->clk_arb->gpc_cap_clkmhz )) {
+			gpcclk_cap_mhz = g->clk_arb->gpc_cap_clkmhz;
+		}
+	}
+	*default_mhz = gpcclk_cap_mhz;
+
 	return 0;
 }
 
@@ -239,6 +256,11 @@ int gv100_init_clk_arbiter(struct gk20a *g)
 		goto init_fail;
 	}
 
+	if (g->dgpu_max_clk != 0U) {
+		g->dgpu_max_clk = (g->dgpu_max_clk /
+			FREQ_STEP_SIZE_MHZ) * FREQ_STEP_SIZE_MHZ;
+		arb->gpc_cap_clkmhz = g->dgpu_max_clk;
+	}
 #ifdef CONFIG_DEBUG_FS
 	arb->debug = &arb->debug_pool[0];
 
@@ -389,6 +411,11 @@ void gv100_clk_arb_run_arbiter_cb(struct nvgpu_clk_arb *arb)
 
 	if (mclk_target > arb->mclk_max) {
 		mclk_target = arb->mclk_max;
+	}
+
+	if ((arb->gpc_cap_clkmhz != 0U) &&
+			(gpc2clk_target > arb->gpc_cap_clkmhz)) {
+		gpc2clk_target = arb->gpc_cap_clkmhz;
 	}
 
 	vf_point.gpc_mhz = gpc2clk_target;

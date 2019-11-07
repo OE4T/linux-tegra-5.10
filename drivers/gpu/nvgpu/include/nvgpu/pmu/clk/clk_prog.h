@@ -27,6 +27,7 @@
 
 #include <nvgpu/types.h>
 
+#define FREQ_STEP_SIZE_MHZ      15U
 struct gk20a;
 struct boardobjgrp_e255;
 
