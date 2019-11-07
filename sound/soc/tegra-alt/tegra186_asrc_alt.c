@@ -192,11 +192,13 @@ static int tegra186_asrc_runtime_resume(struct device *dev)
 
 	regmap_write(asrc->regmap, TEGRA186_ASRC_GLOBAL_INT_CLEAR,
 		0x01);
-#if defined(CONFIG_TEGRA186_ASRC_INT_CLEAR_WAR)
-	/* Hw Bug:200208400 - asrc interrupt status gets cleared when
-		it is cleared twice */
-	regmap_write(asrc->regmap, TEGRA186_ASRC_GLOBAL_INT_CLEAR, 0x1);
-#endif
+	/**
+	 * Hw Bug:200208400 - asrc interrupt status gets cleared when
+	 * it is cleared twice. This WAR is only applicable for T186
+	 */
+	if (of_machine_is_compatible("nvidia,tegra186-asrc"))
+		regmap_write(asrc->regmap, TEGRA186_ASRC_GLOBAL_INT_CLEAR, 0x1);
+
 	for (lane_id = 0; lane_id < 6; lane_id++) {
 		if (asrc->lane[lane_id].ratio_source == RATIO_SW) {
 			regmap_write(asrc->regmap,
@@ -1059,11 +1061,14 @@ static void tegra186_asrc_ahc_cb(void *data)
 
 	regcache_cache_bypass(asrc->regmap, true);
 	regmap_write(asrc->regmap, TEGRA186_ASRC_GLOBAL_INT_CLEAR, 0x1);
-#if defined(CONFIG_TEGRA186_ASRC_INT_CLEAR_WAR)
-	/* Hw Bug:200208400 - asrc interrupt status gets cleared when
-		it is cleared twice */
-	regmap_write(asrc->regmap, TEGRA186_ASRC_GLOBAL_INT_CLEAR, 0x1);
-#endif
+
+	/**
+	 * Hw Bug:200208400 - asrc interrupt status gets cleared when
+	 * it is cleared twice. This WAR is only applicable for T186
+	 */
+	if (of_machine_is_compatible("nvidia,tegra186-asrc"))
+		regmap_write(asrc->regmap, TEGRA186_ASRC_GLOBAL_INT_CLEAR, 0x1);
+
 	regmap_write(asrc->regmap, TEGRA186_ASRC_GLOBAL_ENB, 0x0);
 	udelay(100);
 	regmap_write(asrc->regmap, TEGRA186_ASRC_GLOBAL_ENB, 0x1);
@@ -1073,6 +1078,7 @@ static void tegra186_asrc_ahc_cb(void *data)
 
 static const struct of_device_id tegra186_asrc_of_match[] = {
 	{ .compatible = "nvidia,tegra186-asrc" },
+	{ .compatible = "nvidia,tegra194-asrc" },
 	{},
 };
 static int tegra186_asrc_platform_probe(struct platform_device *pdev)
