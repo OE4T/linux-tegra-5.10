@@ -95,6 +95,7 @@ UNITS :=				\
 	$(UNIT_SRC)/fifo/pbdma/gm20b	\
 	$(UNIT_SRC)/fifo/pbdma/gp10b	\
 	$(UNIT_SRC)/fifo/pbdma/gv11b	\
+	$(UNIT_SRC)/fifo/preempt	\
 	$(UNIT_SRC)/fifo/runlist	\
 	$(UNIT_SRC)/fifo/runlist/gk20a	\
 	$(UNIT_SRC)/fifo/runlist/gv11b	\

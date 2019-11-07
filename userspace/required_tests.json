@@ -2357,6 +2357,36 @@
         "unit": "nvgpu_pbdma_gv11b",
         "test_level": 0
     },
+        {
+        "test": "test_preempt_get_timeout",
+        "case": "get_timeout",
+        "unit": "nvgpu_preempt",
+        "test_level": 0
+    },
+    {
+        "test": "test_fifo_init_support",
+        "case": "init_support",
+        "unit": "nvgpu_preempt",
+        "test_level": 0
+    },
+    {
+        "test": "test_preempt",
+        "case": "preempt",
+        "unit": "nvgpu_preempt",
+        "test_level": 0
+    },
+    {
+        "test": "test_preempt_poll_tsg_on_pbdma",
+        "case": "preempt_poll",
+        "unit": "nvgpu_preempt",
+        "test_level": 0
+    },
+    {
+        "test": "test_fifo_remove_support",
+        "case": "remove_support",
+        "unit": "nvgpu_preempt",
+        "test_level": 0
+    },
     {
         "test": "test_flat",
         "case": "flat",

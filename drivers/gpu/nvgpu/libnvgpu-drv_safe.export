@@ -534,6 +534,9 @@ nvgpu_posix_io_get_reg_space
 nvgpu_posix_is_fault_injection_triggered
 nvgpu_posix_probe
 nvgpu_posix_register_io
+nvgpu_preempt_channel
+nvgpu_preempt_get_timeout
+nvgpu_preempt_poll_tsg_on_pbdma
 nvgpu_prepare_poweroff
 nvgpu_print_current_impl
 nvgpu_put

@@ -24,6 +24,7 @@ INPUT += ../../../userspace/units/fifo/pbdma/nvgpu-pbdma.h
 INPUT += ../../../userspace/units/fifo/pbdma/gm20b/nvgpu-pbdma-gm20b.h
 INPUT += ../../../userspace/units/fifo/pbdma/gp10b/nvgpu-pbdma-gp10b.h
 INPUT += ../../../userspace/units/fifo/pbdma/gv11b/nvgpu-pbdma-gv11b.h
+INPUT += ../../../userspace/units/fifo/preempt/nvgpu-preempt.h
 INPUT += ../../../userspace/units/fifo/runlist/nvgpu-runlist.h
 INPUT += ../../../userspace/units/fifo/runlist/gk20a/nvgpu-runlist-gk20a.h
 INPUT += ../../../userspace/units/fifo/runlist/gv11b/nvgpu-runlist-gv11b.h
