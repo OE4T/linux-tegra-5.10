@@ -694,7 +694,8 @@ netlist_fusa:
   safe: yes
   owner: Seshendra G
   gpu: both
-  sources: [ hal/netlist/netlist_gv11b_fusa.c,
+  sources: [ include/nvgpu/gops_netlist.h,
+             hal/netlist/netlist_gv11b_fusa.c,
              hal/netlist/netlist_gv11b.h ]
 
 netlist:

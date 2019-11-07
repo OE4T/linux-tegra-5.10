@@ -52,6 +52,7 @@
  *   - @ref unit-common-nvgpu
  *   - @ref unit-common-ltc
  *   - @ref unit-common-utils
+ *   - @ref unit-common-netlist
  *   - @ref unit-mc
  *   - Etc, etc.
  *
@@ -159,6 +160,7 @@ enum nvgpu_unit;
 #include <nvgpu/gops_tsg.h>
 #include <nvgpu/gops_usermode.h>
 #include <nvgpu/gops_mm.h>
+#include <nvgpu/gops_netlist.h>
 #include <nvgpu/gops_priv_ring.h>
 #include <nvgpu/gops_therm.h>
 #include <nvgpu/gops_fb.h>
@@ -306,10 +308,7 @@ struct gpu_ops {
 	struct gops_usermode usermode;
 	struct gops_engine_status engine_status;
 	struct gops_pbdma_status pbdma_status;
-	struct {
-		int (*get_netlist_name)(struct gk20a *g, int index, char *name);
-		bool (*is_fw_defined)(void);
-	} netlist;
+	struct gops_netlist netlist;
 	struct gops_mm mm;
 	/*
 	 * This function is called to allocate secure memory (memory
