@@ -869,13 +869,13 @@ int osi_ptp_configuration(struct osi_core_priv_data *osi_core,
 
 		/* formula for calculating addend value is
 		 * addend = 2^32/freq_div_ratio;
-		 * where, freq_div_ratio = EQOS_SYSCLOCK/50MHz
-		 * hence, addend = ((2^32) * 50MHz)/EQOS_SYSCLOCK;
-		 * NOTE: EQOS_SYSCLOCK must be >= 50MHz to achive 20ns accuracy.
+		 * where, freq_div_ratio = ptp_ref_clk_rate/OSI_PTP_REQ_CLK_FREQ
 		 * 2^x * y == (y << x), hence
-		 * 2^32 * 6250000 ==> (6250000 << 32)
+		 * 2^32 * OSI_PTP_REQ_CLK_FREQ == (OSI_PTP_REQ_CLK_FREQ << 32)
+		 * so addend = (2^32 * OSI_PTP_REQ_CLK_FREQ)/ptp_ref_clk_rate;
+		 * which is (OSI_PTP_REQ_CLK_FREQ << 32)/ptp_ref_clk_rate;
 		 */
-		temp = ((unsigned long)OSI_ETHER_SYSCLOCK << 32);
+		temp = ((unsigned long)OSI_PTP_REQ_CLK_FREQ << 32);
 		temp1 = div_u64(temp,
 				(unsigned long)osi_core->ptp_config.ptp_ref_clk_rate);
 		if (temp1 < UINT_MAX) {
