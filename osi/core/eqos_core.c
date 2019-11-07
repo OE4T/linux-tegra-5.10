@@ -3151,7 +3151,7 @@ static void eqos_config_tscr(void *addr, unsigned int ptp_filter)
  *
  * @param[in] addr: Base address indicating the start of
  * 	      memory mapped IO region of the MAC.
- * @param[in] ptp_clock: PTP clock
+ * @param[in] ptp_clock: PTP required clock frequency
  *
  * @note MAC should be init and started. see osi_start_mac()
  */
@@ -3162,14 +3162,14 @@ static void eqos_config_ssir(void *addr, unsigned int ptp_clock)
 
 	mac_tcr = osi_readl((unsigned char *)addr + EQOS_MAC_TCR);
 
-	/* convert the PTP_CLOCK to nano second.
+	/* convert the PTP required clock frequency to nano second.
 	 * formula is : ((1/ptp_clock) * 1000000000)
-	 * where, ptp_clock = 50MHz if FINE correction
-	 * and ptp_clock = EQOS_SYSCLOCK if COARSE correction
+	 * where, ptp_clock = OSI_PTP_REQ_CLK_FREQ if FINE correction
+	 * and ptp_clock = PTP reference clock if COARSE correction
 	 */
 
 	if ((mac_tcr & EQOS_MAC_TCR_TSCFUPDT) == EQOS_MAC_TCR_TSCFUPDT) {
-		val = ((1U * OSI_NSEC_PER_SEC) / OSI_ETHER_SYSCLOCK);
+		val = ((1U * OSI_NSEC_PER_SEC) / OSI_PTP_REQ_CLK_FREQ);
 	} else {
 		val = ((1U * OSI_NSEC_PER_SEC) / ptp_clock);
 	}
