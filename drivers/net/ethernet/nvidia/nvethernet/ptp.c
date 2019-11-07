@@ -197,7 +197,7 @@ static int ether_set_time(struct ptp_clock_info *ptp,
 static struct ptp_clock_info ether_ptp_clock_ops = {
 	.owner = THIS_MODULE,
 	.name = "ether_ptp_clk",
-	.max_adj = OSI_ETHER_SYSCLOCK,
+	.max_adj = OSI_PTP_REQ_CLK_FREQ,
 	.n_alarm = 0,
 	.n_ext_ts = 0,
 	.n_per_out = 0,
@@ -428,8 +428,9 @@ int ether_handle_hwtstamp_ioctl(struct ether_priv_data *pdata,
 		osi_ptp_configuration(osi_core, OSI_DISABLE);
 		ether_config_slot_function(pdata, OSI_DISABLE);
 	} else {
-		/* Store SYS CLOCK */
-		osi_core->ptp_config.ptp_clock = OSI_ETHER_SYSCLOCK;
+		/* Store default PTP clock frequency, so that we
+		 * can make use of it for coarse correction */
+		osi_core->ptp_config.ptp_clock = pdata->ptp_ref_clock_speed;
 		/* initialize system time */
 		getnstimeofday(&now);
 		/* Store sec and nsec */
