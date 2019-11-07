@@ -545,19 +545,6 @@ struct nv_pmu_clk_cmd {
 	};
 };
 
-struct nv_pmu_clk_rpc {
-	u8 function;
-	bool b_supported;
-	bool b_success;
-	falcon_status flcn_status;
-	union {
-		struct nv_pmu_clk_vf_change_inject clk_vf_change_inject;
-		struct nv_pmu_clk_vf_change_inject_v1 clk_vf_change_inject_v1;
-		struct nv_pmu_clk_load clk_load;
-		struct nv_pmu_clk_freq_effective_avg clk_freq_effective_avg;
-	} params;
-};
-
 /* CLK MSG ID definitions */
 #define NV_PMU_CLK_MSG_ID_BOARDOBJ_GRP_SET                         (0x00000001U)
 #define NV_PMU_CLK_MSG_ID_RPC                                      (0x00000000U)

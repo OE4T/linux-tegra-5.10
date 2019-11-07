@@ -37,11 +37,6 @@ struct nvgpu_clk_freq_domain_grp;
 struct nvgpu_clk_slave_freq;
 struct ctrl_perf_change_seq_change_input;
 
-struct nvgpu_clkrpc_pmucmdhandler_params {
-	struct nv_pmu_clk_rpc *prpccall;
-	u32 success;
-};
-
 struct nvgpu_clockentry {
 	u8 vbios_clk_domain;
 	u8 clk_which;
@@ -103,14 +98,10 @@ struct nvgpu_clk_pmupstate {
 	int (*nvgpu_clk_vf_point_cache)(struct gk20a *g);
 };
 
-void nvgpu_clkrpc_pmucmdhandler(struct gk20a *g, struct pmu_msg *msg,
-		void *param, u32 status);
 int nvgpu_clk_init_pmupstate(struct gk20a *g);
 void nvgpu_clk_free_pmupstate(struct gk20a *g);
 int nvgpu_clk_set_boot_fll_clk_tu10x(struct gk20a *g);
 int nvgpu_clk_get_fll_clks(struct gk20a *g,
-		struct nvgpu_set_fll_clk *setfllclk);
-int nvgpu_clk_set_fll_clks(struct gk20a *g,
 		struct nvgpu_set_fll_clk *setfllclk);
 int nvgpu_clk_domain_freq_to_volt(struct gk20a *g, u8 clkdomain_idx,
 	u32 *pclkmhz, u32 *pvoltuv, u8 railidx);
