@@ -76,7 +76,7 @@ static inline void eqos_core_safety_writel(unsigned int val, void *addr,
  *
  * @param[in] osi_core: OSI core private data structure.
  */
-static void eqos_core_safety_init(struct osi_core_priv_data *osi_core)
+static void eqos_core_safety_init(struct osi_core_priv_data *const osi_core)
 {
 	struct core_func_safety *config = &eqos_core_safety_config;
 	unsigned char *base = (unsigned char *)osi_core->base;
@@ -188,7 +188,7 @@ static void eqos_core_safety_init(struct osi_core_priv_data *osi_core)
  *
  * @retval none
  */
-static void eqos_core_backup_init(struct osi_core_priv_data *osi_core)
+static void eqos_core_backup_init(struct osi_core_priv_data *const osi_core)
 {
 	struct core_backup *config = &eqos_core_backup_config;
 	unsigned char *base = (unsigned char *)osi_core->base;
@@ -312,7 +312,7 @@ static void eqos_core_backup_init(struct osi_core_priv_data *osi_core)
  * @retval 0 on success
  * @retval -1 on failure.
  */
-static int eqos_validate_core_regs(struct osi_core_priv_data *osi_core)
+static int eqos_validate_core_regs(struct osi_core_priv_data *const osi_core)
 {
 	struct core_func_safety *config =
 		(struct core_func_safety *)osi_core->safety_config;
@@ -369,7 +369,8 @@ static int eqos_validate_core_regs(struct osi_core_priv_data *osi_core)
  * @retval 0 on success
  * @retval -1 on failure.
  */
-static int eqos_config_flow_control(void *addr, unsigned int flw_ctrl)
+static int eqos_config_flow_control(void *addr,
+				    const unsigned int flw_ctrl)
 {
 	unsigned int val;
 
@@ -438,7 +439,8 @@ static int eqos_config_flow_control(void *addr, unsigned int flw_ctrl)
  * @retval 0 on success
  * @retval -1 on failure.
  */
-static int eqos_config_rx_crc_check(void *addr, unsigned int crc_chk)
+static int eqos_config_rx_crc_check(void *addr,
+				    const unsigned int crc_chk)
 {
 	unsigned int val;
 
@@ -485,8 +487,9 @@ static int eqos_config_rx_crc_check(void *addr, unsigned int crc_chk)
  * @retval 0 on success
  * @retval -1 on failure.
  */
-static int eqos_config_fw_err_pkts(void *addr, unsigned int qinx,
-				   unsigned int fw_err)
+static int eqos_config_fw_err_pkts(void *addr,
+				   const unsigned int qinx,
+				   const unsigned int fw_err)
 {
 	unsigned int val;
 
@@ -541,7 +544,8 @@ static int eqos_config_fw_err_pkts(void *addr, unsigned int qinx,
  * @retval 0 on success
  * @retval -1 on failure.
  */
-static int eqos_config_tx_status(void *addr, unsigned int tx_status)
+static int eqos_config_tx_status(void *addr,
+				 const unsigned int tx_status)
 {
 	unsigned int val;
 
@@ -587,7 +591,8 @@ static int eqos_config_tx_status(void *addr, unsigned int tx_status)
  * @retval 0 on success
  * @retval -1 on failure.
  */
-static int eqos_config_mac_loopback(void *addr, unsigned int lb_mode)
+static int eqos_config_mac_loopback(void *addr,
+				    const unsigned int lb_mode)
 {
 	unsigned int clk_ctrl_val;
 	unsigned int mcr_val;
@@ -682,8 +687,8 @@ static int eqos_poll_for_swr(void *addr)
  * @note OSD layer needs get the AXI CBB clock rate with OSD clock API
  *	 (ex - clk_get_rate())
  */
-static void eqos_set_mdc_clk_rate(struct osi_core_priv_data *osi_core,
-				  unsigned long csr_clk_rate)
+static void eqos_set_mdc_clk_rate(struct osi_core_priv_data *const osi_core,
+				  const unsigned long csr_clk_rate)
 {
 	unsigned long csr_clk_speed = csr_clk_rate / 1000000UL;
 
@@ -718,7 +723,7 @@ static void eqos_set_mdc_clk_rate(struct osi_core_priv_data *osi_core,
  *
  * @note MAC should be init and started. see osi_start_mac()
  */
-static void eqos_set_speed(void *base, int speed)
+static void eqos_set_speed(void *base, const int speed)
 {
 	unsigned int mcr_val;
 
@@ -757,7 +762,7 @@ static void eqos_set_speed(void *base, int speed)
  *
  * @note MAC should be init and started. see osi_start_mac()
  */
-static void eqos_set_mode(void *base, int mode)
+static void eqos_set_mode(void *base, const int mode)
 {
 	unsigned int mcr_val;
 
@@ -961,7 +966,8 @@ calibration_failed:
  * @retval 0 on success
  * @retval -1 on failure.
  */
-static int eqos_flush_mtl_tx_queue(void *addr, unsigned int qinx)
+static int eqos_flush_mtl_tx_queue(void *addr,
+				   const unsigned int qinx)
 {
 	unsigned int retry = 1000;
 	unsigned int count;
@@ -1118,7 +1124,7 @@ void update_ehfc_rfa_rfd(unsigned int rx_fifo, unsigned int *value)
  * @retval -1 on failure.
  */
 static int eqos_configure_mtl_queue(unsigned int qinx,
-				    struct osi_core_priv_data *osi_core,
+				    struct osi_core_priv_data *const osi_core,
 				    unsigned int tx_fifo,
 				    unsigned int rx_fifo)
 {
@@ -1189,7 +1195,8 @@ static int eqos_configure_mtl_queue(unsigned int qinx,
  * @retval 0 on success
  * @retval -1 on failure.
  */
-static int eqos_config_rxcsum_offload(void *addr, unsigned int enabled)
+static int eqos_config_rxcsum_offload(void *addr,
+				      const unsigned int enabled)
 {
 	unsigned int mac_mcr;
 
@@ -1226,7 +1233,8 @@ static int eqos_config_rxcsum_offload(void *addr, unsigned int enabled)
  *
  * @note MAC has to be out of reset.
  */
-static void eqos_configure_rxq_priority(struct osi_core_priv_data *osi_core)
+static void eqos_configure_rxq_priority(
+			struct osi_core_priv_data *const osi_core)
 {
 	unsigned int val;
 	unsigned int temp;
@@ -1292,7 +1300,7 @@ static void eqos_configure_rxq_priority(struct osi_core_priv_data *osi_core)
  *
  * @note MAC has to be out of reset.
  */
-static void eqos_configure_mac(struct osi_core_priv_data *osi_core)
+static void eqos_configure_mac(struct osi_core_priv_data *const osi_core)
 {
 	unsigned int value;
 
@@ -1456,9 +1464,9 @@ static void eqos_configure_dma(void *base)
  * @retval 0 on success
  * @retval -1 on failure.
  */
-static int eqos_core_init(struct osi_core_priv_data *osi_core,
-			  unsigned int tx_fifo_size,
-			  unsigned int rx_fifo_size)
+static int eqos_core_init(struct osi_core_priv_data *const osi_core,
+			  const unsigned int tx_fifo_size,
+			  const unsigned int rx_fifo_size)
 {
 	int ret = 0;
 	unsigned int qinx = 0;
@@ -1537,7 +1545,7 @@ static int eqos_core_init(struct osi_core_priv_data *osi_core,
  *
  * @note MAC interrupts need to be enabled
  */
-static void eqos_handle_mac_intrs(struct osi_core_priv_data *osi_core,
+static void eqos_handle_mac_intrs(struct osi_core_priv_data *const osi_core,
 				  unsigned int dma_isr)
 {
 	unsigned int mac_imr = 0;
@@ -1597,8 +1605,9 @@ static void eqos_handle_mac_intrs(struct osi_core_priv_data *osi_core,
  * @param[in] dma_sr: Dma status register read value
  * @param[in] qinx: Queue index
  */
-static inline void update_dma_sr_stats(struct osi_core_priv_data *osi_core,
-				       unsigned int dma_sr, unsigned int qinx)
+static inline void update_dma_sr_stats(
+			struct osi_core_priv_data *const osi_core,
+			unsigned int dma_sr, unsigned int qinx)
 {
 	unsigned long val;
 
@@ -1643,7 +1652,7 @@ static inline void update_dma_sr_stats(struct osi_core_priv_data *osi_core,
  *
  * @note MAC should be init and started. see osi_start_mac()
  */
-static void eqos_handle_common_intr(struct osi_core_priv_data *osi_core)
+static void eqos_handle_common_intr(struct osi_core_priv_data *const osi_core)
 {
 	void *base = osi_core->base;
 	unsigned int dma_isr = 0;
@@ -1762,8 +1771,9 @@ static void eqos_stop_mac(void *addr)
  * @retval 0 on success
  * @retval -1 on failure.
  */
-static int eqos_set_avb_algorithm(struct osi_core_priv_data *osi_core,
-				  struct osi_core_avb_algorithm *avb)
+static int eqos_set_avb_algorithm(
+				struct osi_core_priv_data *const osi_core,
+				const struct osi_core_avb_algorithm *const avb)
 {
 	unsigned int value;
 	int ret = -1;
@@ -1897,8 +1907,9 @@ static inline int eqos_config_l2_da_perfect_inverse_match(void *base,
  *
  * @retval 0 always
  */
-static int eqos_config_mac_pkt_filter_reg(struct osi_core_priv_data *osi_core,
-					  struct osi_filter *filter)
+static int eqos_config_mac_pkt_filter_reg(
+				struct osi_core_priv_data *const osi_core,
+				const struct osi_filter *filter)
 {
 	unsigned int value = 0U;
 	int ret = 0;
@@ -1976,11 +1987,12 @@ static int eqos_config_mac_pkt_filter_reg(struct osi_core_priv_data *osi_core,
  * @retval -1 on failure.
  */
 static inline int eqos_update_mac_addr_helper(
-				struct osi_core_priv_data *osi_core,
+				struct osi_core_priv_data *const osi_core,
 				unsigned int *value,
-				unsigned int idx,
-				unsigned int dma_routing_enable,
-				unsigned int dma_chan, unsigned int addr_mask)
+				const unsigned int idx,
+				const unsigned int dma_routing_enable,
+				const unsigned int dma_chan,
+				const unsigned int addr_mask)
 {
 	int ret = 0;
 	/* PDC bit of MAC_Ext_Configuration register is not set so binary
@@ -2039,8 +2051,8 @@ err_dma_chan:
  * @retval -1 on failure.
  */
 static int eqos_update_mac_addr_low_high_reg(
-				struct osi_core_priv_data *osi_core,
-				struct osi_filter *filter)
+				struct osi_core_priv_data *const osi_core,
+				const struct osi_filter *filter)
 {
 	unsigned int idx = filter->index;
 	unsigned int dma_routing_enable = filter->dma_routing;
@@ -2115,8 +2127,9 @@ static int eqos_update_mac_addr_low_high_reg(
  * @retval 0 on success
  * @retval -1 on failure.
  */
-static int eqos_get_avb_algorithm(struct osi_core_priv_data *osi_core,
-				  struct osi_core_avb_algorithm *avb)
+static int eqos_get_avb_algorithm(
+				  struct osi_core_priv_data *const osi_core,
+				  struct osi_core_avb_algorithm *const avb)
 {
 	unsigned int value;
 	int ret = -1;
@@ -2199,9 +2212,9 @@ static int eqos_get_avb_algorithm(struct osi_core_priv_data *osi_core,
  * @retval 0 on success
  * @retval -1 on failure.
  */
-static int eqos_config_arp_offload(unsigned int mac_ver, void *addr,
-				   unsigned int enable,
-				   unsigned char *ip_addr)
+static int eqos_config_arp_offload(const unsigned int mac_ver, void *addr,
+				   const unsigned int enable,
+				   const unsigned char *ip_addr)
 {
 	unsigned int mac_mcr;
 	unsigned int val;
@@ -2255,7 +2268,7 @@ static int eqos_config_arp_offload(unsigned int mac_ver, void *addr,
  * @retval -1 on failure.
  */
 static int eqos_config_l3_l4_filter_enable(void *base,
-					   unsigned int filter_enb_dis)
+					   const unsigned int filter_enb_dis)
 {
 	unsigned int value = 0U;
 
@@ -2284,10 +2297,11 @@ static int eqos_config_l3_l4_filter_enable(void *base,
  * @retval 0 on success
  * @retval -1 on failure.
  */
-static int eqos_update_ip4_addr(struct osi_core_priv_data *osi_core,
-				unsigned int filter_no,
-				unsigned char addr[],
-				unsigned int src_dst_addr_match)
+static int eqos_update_ip4_addr(
+				struct osi_core_priv_data *const osi_core,
+				const unsigned int filter_no,
+				const unsigned char addr[],
+				const unsigned int src_dst_addr_match)
 {
 	void *base = osi_core->base;
 	unsigned int value = 0U;
@@ -2340,8 +2354,10 @@ static int eqos_update_ip4_addr(struct osi_core_priv_data *osi_core,
  * @retval 0 on success
  * @retval -1 on failure.
  */
-static int eqos_update_ip6_addr(struct osi_core_priv_data *osi_core,
-				unsigned int filter_no, unsigned short addr[])
+static int eqos_update_ip6_addr(
+				struct osi_core_priv_data *const osi_core,
+				const unsigned int filter_no,
+				const unsigned short addr[])
 {
 	void *base = osi_core->base;
 	unsigned int value = 0U;
@@ -2407,10 +2423,11 @@ static int eqos_update_ip6_addr(struct osi_core_priv_data *osi_core,
  * @retval 0 on success
  * @retval -1 on failure.
  */
-static int eqos_update_l4_port_no(struct osi_core_priv_data *osi_core,
-				  unsigned int filter_no,
-				  unsigned short port_no,
-				  unsigned int src_dst_port_match)
+static int eqos_update_l4_port_no(
+				  struct osi_core_priv_data *const osi_core,
+				  const unsigned int filter_no,
+				  const unsigned short port_no,
+				  const unsigned int src_dst_port_match)
 {
 	void *base = osi_core->base;
 	unsigned int value = 0U;
@@ -2456,10 +2473,11 @@ static int eqos_update_l4_port_no(struct osi_core_priv_data *osi_core,
  *
  *@return updated unsigned int value
  */
-static inline unsigned int eqos_set_dcs(struct osi_core_priv_data *osi_core,
-					unsigned int value,
-					unsigned int dma_routing_enable,
-					unsigned int dma_chan)
+static inline unsigned int eqos_set_dcs(
+				struct osi_core_priv_data *const osi_core,
+				unsigned int value,
+				unsigned int dma_routing_enable,
+				unsigned int dma_chan)
 {
 	if ((dma_routing_enable == OSI_ENABLE) && (dma_chan <
 	    OSI_EQOS_MAX_NUM_CHANS) && (osi_core->dcs_en ==
@@ -2530,14 +2548,15 @@ static inline void eqos_helper_l3l4_bitmask(unsigned int *bitmask,
  * @retval 0 on success
  * @retval -1 on failure.
  */
-static int eqos_config_l3_filters(struct osi_core_priv_data *osi_core,
-				  unsigned int filter_no,
-				  unsigned int enb_dis,
-				  unsigned int ipv4_ipv6_match,
-				  unsigned int src_dst_addr_match,
-				  unsigned int perfect_inverse_match,
-				  unsigned int dma_routing_enable,
-				  unsigned int dma_chan)
+static int eqos_config_l3_filters(
+				  struct osi_core_priv_data *const osi_core,
+				  const unsigned int filter_no,
+				  const unsigned int enb_dis,
+				  const unsigned int ipv4_ipv6_match,
+				  const unsigned int src_dst_addr_match,
+				  const unsigned int perfect_inverse_match,
+				  const unsigned int dma_routing_enable,
+				  const unsigned int dma_chan)
 {
 	unsigned int value = 0U;
 	void *base = osi_core->base;
@@ -2702,14 +2721,15 @@ static int eqos_config_l3_filters(struct osi_core_priv_data *osi_core,
  * @retval 0 on success
  * @retval -1 on failure.
  */
-static int eqos_config_l4_filters(struct osi_core_priv_data *osi_core,
-				  unsigned int filter_no,
-				  unsigned int enb_dis,
-				  unsigned int tcp_udp_match,
-				  unsigned int src_dst_port_match,
-				  unsigned int perfect_inverse_match,
-				  unsigned int dma_routing_enable,
-				  unsigned int dma_chan)
+static int eqos_config_l4_filters(
+				  struct osi_core_priv_data *const osi_core,
+				  const unsigned int filter_no,
+				  const unsigned int enb_dis,
+				  const unsigned int tcp_udp_match,
+				  const unsigned int src_dst_port_match,
+				  const unsigned int perfect_inverse_match,
+				  const unsigned int dma_routing_enable,
+				  const unsigned int dma_chan)
 {
 	void *base = osi_core->base;
 	unsigned int value = 0U;
@@ -2812,10 +2832,11 @@ static int eqos_config_l4_filters(struct osi_core_priv_data *osi_core,
  * @retval 0 on success
  * @retval -1 on failure.
  */
-static int eqos_config_vlan_filtering(struct osi_core_priv_data *osi_core,
-				      unsigned int filter_enb_dis,
-				      unsigned int perfect_hash_filtering,
-				      unsigned int perfect_inverse_match)
+static int eqos_config_vlan_filtering(
+				struct osi_core_priv_data *const osi_core,
+				const unsigned int filter_enb_dis,
+				const unsigned int perfect_hash_filtering,
+				const unsigned int perfect_inverse_match)
 {
 	unsigned int value;
 	void *base = osi_core->base;
@@ -2914,8 +2935,8 @@ static inline int eqos_poll_for_tsinit_complete(void *addr,
  * @retval 0 on success
  * @retval -1 on failure.
  */
-static int eqos_set_systime_to_mac(void *addr, unsigned int sec,
-				   unsigned int nsec)
+static int eqos_set_systime_to_mac(void *addr, const unsigned int sec,
+				   const unsigned int nsec)
 {
 	unsigned int mac_tcr;
 	int ret;
@@ -3001,7 +3022,7 @@ static inline int eqos_poll_for_addend_complete(void *addr,
  * @retval 0 on success
  * @retval -1 on failure.
  */
-static int eqos_config_addend(void *addr, unsigned int addend)
+static int eqos_config_addend(void *addr, const unsigned int addend)
 {
 	unsigned int mac_tcr;
 	int ret;
@@ -3212,7 +3233,7 @@ static unsigned long long eqos_get_systime_from_mac(void *addr)
  *
  * @note MAC should be init and started. see osi_start_mac()
  */
-static void eqos_config_tscr(void *addr, unsigned int ptp_filter)
+static void eqos_config_tscr(void *addr, const unsigned int ptp_filter)
 {
 	unsigned int mac_tcr = 0;
 
@@ -3283,7 +3304,7 @@ static void eqos_config_tscr(void *addr, unsigned int ptp_filter)
  *
  * @note MAC should be init and started. see osi_start_mac()
  */
-static void eqos_config_ssir(void *addr, unsigned int ptp_clock)
+static void eqos_config_ssir(void *addr, const unsigned int ptp_clock)
 {
 	unsigned long long val;
 	unsigned int mac_tcr;
@@ -3327,7 +3348,7 @@ static void eqos_config_ssir(void *addr, unsigned int ptp_clock)
  *
  * @note Required clks and resets has to be enabled
  */
-static void eqos_core_deinit(struct osi_core_priv_data *osi_core)
+static void eqos_core_deinit(struct osi_core_priv_data *const osi_core)
 {
 	/* Stop the MAC by disabling both MAC Tx and Rx */
 	eqos_stop_mac(osi_core->base);
@@ -3374,9 +3395,10 @@ static inline void eqos_disable_tx_lpi(void *addr)
  *	Required clks and resets has to be enabled.
  *	MAC/PHY should be initialized
  */
-static void eqos_configure_eee(struct osi_core_priv_data *osi_core,
-			       unsigned int tx_lpi_enabled,
-			       unsigned int tx_lpi_timer)
+static void eqos_configure_eee(
+			       struct osi_core_priv_data *const osi_core,
+			       const unsigned int tx_lpi_enabled,
+			       const unsigned int tx_lpi_timer)
 {
 	unsigned int lpi_csr = 0;
 	unsigned int lpi_timer_ctrl = 0;
@@ -3433,7 +3455,8 @@ static void eqos_configure_eee(struct osi_core_priv_data *osi_core,
  *
  * @retval none
  */
-static inline void eqos_save_registers(struct osi_core_priv_data *osi_core)
+static inline void eqos_save_registers(
+				struct osi_core_priv_data *const osi_core)
 {
 	unsigned int i;
 	struct core_backup *config = osi_core->backup_config;
@@ -3455,7 +3478,8 @@ static inline void eqos_save_registers(struct osi_core_priv_data *osi_core)
  *
  * @retval none
  */
-static inline void eqos_restore_registers(struct osi_core_priv_data *osi_core)
+static inline void eqos_restore_registers(
+				struct osi_core_priv_data *const osi_core)
 {
 	unsigned int i;
 	struct core_backup *config = osi_core->backup_config;
@@ -3510,10 +3534,10 @@ static inline int poll_for_mii_idle(struct osi_core_priv_data *osi_core)
 	return 0;
 }
 
-static int eqos_write_phy_reg(struct osi_core_priv_data *osi_core,
-			      unsigned int phyaddr,
-			      unsigned int phyreg,
-			      unsigned short phydata)
+static int eqos_write_phy_reg(struct osi_core_priv_data *const osi_core,
+			      const unsigned int phyaddr,
+			      const unsigned int phyreg,
+			      const unsigned short phydata)
 {
 	unsigned int mac_gmiiar;
 	unsigned int mac_gmiidr;
@@ -3568,9 +3592,9 @@ static int eqos_write_phy_reg(struct osi_core_priv_data *osi_core,
 	return ret;
 }
 
-static int eqos_read_phy_reg(struct osi_core_priv_data *osi_core,
-			     unsigned int phyaddr,
-			     unsigned int phyreg)
+static int eqos_read_phy_reg(struct osi_core_priv_data *const osi_core,
+			     const unsigned int phyaddr,
+			     const unsigned int phyreg)
 {
 	unsigned int mac_gmiiar;
 	unsigned int mac_gmiidr;

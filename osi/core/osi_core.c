@@ -23,8 +23,9 @@
 #include <osi_core.h>
 #include <osd.h>
 
-int osi_write_phy_reg(struct osi_core_priv_data *osi_core, unsigned int phyaddr,
-		      unsigned int phyreg, unsigned short phydata)
+int osi_write_phy_reg(struct osi_core_priv_data *const osi_core,
+		      const unsigned int phyaddr, const unsigned int phyreg,
+		      const unsigned short phydata)
 {
 	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
 	    (osi_core->ops->write_phy_reg != OSI_NULL)) {
@@ -35,8 +36,8 @@ int osi_write_phy_reg(struct osi_core_priv_data *osi_core, unsigned int phyaddr,
 	return -1;
 }
 
-int osi_read_phy_reg(struct osi_core_priv_data *osi_core, unsigned int phyaddr,
-		     unsigned int phyreg)
+int osi_read_phy_reg(struct osi_core_priv_data *const osi_core,
+		     const unsigned int phyaddr, const unsigned int phyreg)
 {
 	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
 	    (osi_core->ops->read_phy_reg != OSI_NULL)) {
@@ -46,7 +47,7 @@ int osi_read_phy_reg(struct osi_core_priv_data *osi_core, unsigned int phyaddr,
 	return -1;
 }
 
-int osi_init_core_ops(struct osi_core_priv_data *osi_core)
+int osi_init_core_ops(struct osi_core_priv_data *const osi_core)
 {
 	if (osi_core->mac == OSI_MAC_HW_EQOS) {
 		/* Get EQOS HW ops */
@@ -63,7 +64,8 @@ int osi_init_core_ops(struct osi_core_priv_data *osi_core)
 	return -1;
 }
 
-int osi_poll_for_mac_reset_complete(struct osi_core_priv_data *osi_core)
+int osi_poll_for_mac_reset_complete(
+			struct osi_core_priv_data *const osi_core)
 {
 	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
 	    (osi_core->ops->poll_for_swr != OSI_NULL)) {
@@ -72,8 +74,8 @@ int osi_poll_for_mac_reset_complete(struct osi_core_priv_data *osi_core)
 	return -1;
 }
 
-int osi_set_mdc_clk_rate(struct osi_core_priv_data *osi_core,
-			 unsigned long csr_clk_rate)
+int osi_set_mdc_clk_rate(struct osi_core_priv_data *const osi_core,
+			 const unsigned long csr_clk_rate)
 {
 	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
 	    (osi_core->ops->set_mdc_clk_rate != OSI_NULL)) {
@@ -84,7 +86,7 @@ int osi_set_mdc_clk_rate(struct osi_core_priv_data *osi_core,
 	return -1;
 }
 
-int osi_hw_core_init(struct osi_core_priv_data *osi_core,
+int osi_hw_core_init(struct osi_core_priv_data *const osi_core,
 		     unsigned int tx_fifo_size,
 		     unsigned int rx_fifo_size)
 {
@@ -97,7 +99,7 @@ int osi_hw_core_init(struct osi_core_priv_data *osi_core,
 	return -1;
 }
 
-int osi_hw_core_deinit(struct osi_core_priv_data *osi_core)
+int osi_hw_core_deinit(struct osi_core_priv_data *const osi_core)
 {
 	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
 	    (osi_core->ops->core_deinit != OSI_NULL)) {
@@ -108,7 +110,7 @@ int osi_hw_core_deinit(struct osi_core_priv_data *osi_core)
 	return -1;
 }
 
-int osi_validate_core_regs(struct osi_core_priv_data *osi_core)
+int osi_validate_core_regs(struct osi_core_priv_data *const osi_core)
 {
 	int ret = -1;
 
@@ -121,7 +123,7 @@ int osi_validate_core_regs(struct osi_core_priv_data *osi_core)
 	return ret;
 }
 
-int osi_start_mac(struct osi_core_priv_data *osi_core)
+int osi_start_mac(struct osi_core_priv_data *const osi_core)
 {
 	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
 	    (osi_core->ops->start_mac != OSI_NULL)) {
@@ -132,7 +134,7 @@ int osi_start_mac(struct osi_core_priv_data *osi_core)
 	return -1;
 }
 
-int osi_stop_mac(struct osi_core_priv_data *osi_core)
+int osi_stop_mac(struct osi_core_priv_data *const osi_core)
 {
 	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
 	    (osi_core->ops->stop_mac != OSI_NULL)) {
@@ -143,7 +145,7 @@ int osi_stop_mac(struct osi_core_priv_data *osi_core)
 	return -1;
 }
 
-int osi_common_isr(struct osi_core_priv_data *osi_core)
+int osi_common_isr(struct osi_core_priv_data *const osi_core)
 {
 	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
 	    (osi_core->ops->handle_common_intr != OSI_NULL)) {
@@ -154,7 +156,7 @@ int osi_common_isr(struct osi_core_priv_data *osi_core)
 	return -1;
 }
 
-int osi_set_mode(struct osi_core_priv_data *osi_core, int mode)
+int osi_set_mode(struct osi_core_priv_data *const osi_core, const int mode)
 {
 	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
 	    (osi_core->ops->set_mode != OSI_NULL)) {
@@ -165,7 +167,8 @@ int osi_set_mode(struct osi_core_priv_data *osi_core, int mode)
 	return -1;
 }
 
-int osi_set_speed(struct osi_core_priv_data *osi_core, int speed)
+int osi_set_speed(struct osi_core_priv_data *const osi_core,
+		  const int speed)
 {
 	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
 	    (osi_core->ops->set_speed != OSI_NULL)) {
@@ -176,7 +179,7 @@ int osi_set_speed(struct osi_core_priv_data *osi_core, int speed)
 	return -1;
 }
 
-int osi_pad_calibrate(struct osi_core_priv_data *osi_core)
+int osi_pad_calibrate(struct osi_core_priv_data *const osi_core)
 {
 	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
 	    (osi_core->ops->pad_calibrate != OSI_NULL)) {
@@ -186,8 +189,8 @@ int osi_pad_calibrate(struct osi_core_priv_data *osi_core)
 	return -1;
 }
 
-int osi_flush_mtl_tx_queue(struct osi_core_priv_data *osi_core,
-			   unsigned int qinx)
+int osi_flush_mtl_tx_queue(struct osi_core_priv_data *const osi_core,
+			   const unsigned int qinx)
 {
         if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
             (osi_core->ops->flush_mtl_tx_queue != OSI_NULL)) {
@@ -197,8 +200,8 @@ int osi_flush_mtl_tx_queue(struct osi_core_priv_data *osi_core,
 	return -1;
 }
 
-int osi_config_mac_loopback(struct osi_core_priv_data *osi_core,
-			    unsigned int lb_mode)
+int osi_config_mac_loopback(struct osi_core_priv_data *const osi_core,
+			    const unsigned int lb_mode)
 {
 	/* Configure MAC LoopBack */
 	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
@@ -210,8 +213,8 @@ int osi_config_mac_loopback(struct osi_core_priv_data *osi_core,
 	return -1;
 }
 
-int osi_set_avb(struct osi_core_priv_data *osi_core,
-		struct osi_core_avb_algorithm *avb)
+int osi_set_avb(struct osi_core_priv_data *const osi_core,
+		const struct osi_core_avb_algorithm *avb)
 {
 	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
 	    (osi_core->ops->set_avb_algorithm != OSI_NULL)) {
@@ -221,7 +224,7 @@ int osi_set_avb(struct osi_core_priv_data *osi_core,
 	return -1;
 }
 
-int osi_get_avb(struct osi_core_priv_data *osi_core,
+int osi_get_avb(struct osi_core_priv_data *const osi_core,
 		struct osi_core_avb_algorithm *avb)
 {
 	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
@@ -232,8 +235,8 @@ int osi_get_avb(struct osi_core_priv_data *osi_core,
 	return -1;
 }
 
-int osi_configure_txstatus(struct osi_core_priv_data *osi_core,
-			   unsigned int tx_status)
+int osi_configure_txstatus(struct osi_core_priv_data *const osi_core,
+			   const unsigned int tx_status)
 {
 	/* Configure Drop Transmit Status */
 	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
@@ -245,8 +248,8 @@ int osi_configure_txstatus(struct osi_core_priv_data *osi_core,
 	return -1;
 }
 
-int osi_config_fw_err_pkts(struct osi_core_priv_data *osi_core,
-			   unsigned int qinx, unsigned int fw_err)
+int osi_config_fw_err_pkts(struct osi_core_priv_data *const osi_core,
+			   const unsigned int qinx, const unsigned int fw_err)
 {
 	/* Configure Forwarding of Error packets */
 	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
@@ -258,8 +261,8 @@ int osi_config_fw_err_pkts(struct osi_core_priv_data *osi_core,
 	return -1;
 }
 
-int osi_config_rx_crc_check(struct osi_core_priv_data *osi_core,
-			    unsigned int crc_chk)
+int osi_config_rx_crc_check(struct osi_core_priv_data *const osi_core,
+			    const unsigned int crc_chk)
 {
 	/* Configure CRC Checking for Received Packets */
 	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
@@ -271,8 +274,9 @@ int osi_config_rx_crc_check(struct osi_core_priv_data *osi_core,
 	return -1;
 }
 
-int osi_configure_flow_control(struct osi_core_priv_data *osi_core,
-			       unsigned int flw_ctrl)
+int osi_configure_flow_control(
+			       struct osi_core_priv_data *const osi_core,
+			       const unsigned int flw_ctrl)
 {
 	/* Configure Flow control settings */
 	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
@@ -284,9 +288,9 @@ int osi_configure_flow_control(struct osi_core_priv_data *osi_core,
 	return -1;
 }
 
-int osi_config_arp_offload(struct osi_core_priv_data *osi_core,
-			   unsigned int flags,
-			   unsigned char *ip_addr)
+int osi_config_arp_offload(struct osi_core_priv_data *const osi_core,
+			   const unsigned int flags,
+			   const unsigned char *ip_addr)
 {
 	if (osi_core != OSI_NULL && osi_core->ops != OSI_NULL &&
 	    osi_core->ops->config_arp_offload != OSI_NULL) {
@@ -298,8 +302,8 @@ int osi_config_arp_offload(struct osi_core_priv_data *osi_core,
 	return -1;
 }
 
-int osi_l2_filter(struct osi_core_priv_data *osi_core,
-		  struct osi_filter *filter)
+int osi_l2_filter(struct osi_core_priv_data *const osi_core,
+		  const struct osi_filter *filter)
 {
 	struct osi_core_ops *op;
 	int ret = -1;
@@ -357,7 +361,8 @@ int osi_l2_filter(struct osi_core_priv_data *osi_core,
  * @retval 0 on Success
  * @retval -1 on Failure
  */
-static inline int helper_l4_filter(struct osi_core_priv_data *osi_core,
+static inline int helper_l4_filter(
+				   struct osi_core_priv_data *const osi_core,
 				   struct osi_l3_l4_filter l_filter,
 				   unsigned int type,
 				   unsigned int dma_routing_enable,
@@ -409,7 +414,8 @@ static inline int helper_l4_filter(struct osi_core_priv_data *osi_core,
  * @retval 0 on Success
  * @retval -1 on Failure
  */
-static inline int helper_l3_filter(struct osi_core_priv_data *osi_core,
+static inline int helper_l3_filter(
+				   struct osi_core_priv_data *const osi_core,
 				   struct osi_l3_l4_filter l_filter,
 				   unsigned int type,
 				   unsigned int dma_routing_enable,
@@ -460,10 +466,10 @@ static inline int helper_l3_filter(struct osi_core_priv_data *osi_core,
 	}
 }
 
-int osi_l3l4_filter(struct osi_core_priv_data *osi_core,
-		    struct osi_l3_l4_filter l_filter, unsigned int type,
-		    unsigned int dma_routing_enable, unsigned int dma_chan,
-		    unsigned int is_l4_filter)
+int osi_l3l4_filter(struct osi_core_priv_data *const osi_core,
+	const struct osi_l3_l4_filter l_filter, const unsigned int type,
+	const unsigned int dma_routing_enable, const unsigned int dma_chan,
+	const unsigned int is_l4_filter)
 {
 	int ret = -1;
 
@@ -513,10 +519,11 @@ int osi_l3l4_filter(struct osi_core_priv_data *osi_core,
 	return ret;
 }
 
-int osi_config_vlan_filtering(struct osi_core_priv_data *osi_core,
-			      unsigned int filter_enb_dis,
-			      unsigned int perfect_hash_filtering,
-			      unsigned int perfect_inverse_match)
+int osi_config_vlan_filtering(
+			      struct osi_core_priv_data *const osi_core,
+			      const unsigned int filter_enb_dis,
+			      const unsigned int perfect_hash_filtering,
+			      const unsigned int perfect_inverse_match)
 {
 	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
 	    (osi_core->ops->config_vlan_filtering != OSI_NULL)) {
@@ -530,8 +537,9 @@ int osi_config_vlan_filtering(struct osi_core_priv_data *osi_core,
 	return -1;
 }
 
-int osi_config_rxcsum_offload(struct osi_core_priv_data *osi_core,
-			      unsigned int enable)
+int osi_config_rxcsum_offload(
+			      struct osi_core_priv_data *const osi_core,
+			      const unsigned int enable)
 {
 	if (osi_core != OSI_NULL && osi_core->ops != OSI_NULL &&
 	    osi_core->ops->config_rxcsum_offload != OSI_NULL) {
@@ -542,8 +550,8 @@ int osi_config_rxcsum_offload(struct osi_core_priv_data *osi_core,
 	return -1;
 }
 
-int  osi_update_vlan_id(struct osi_core_priv_data *osi_core,
-			unsigned int vid)
+int  osi_update_vlan_id(struct osi_core_priv_data *const osi_core,
+			const unsigned int vid)
 {
 	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
 	    (osi_core->ops->update_vlan_id != OSI_NULL)) {
@@ -554,8 +562,8 @@ int  osi_update_vlan_id(struct osi_core_priv_data *osi_core,
 	return -1;
 }
 
-int osi_set_systime_to_mac(struct osi_core_priv_data *osi_core,
-			   unsigned int sec, unsigned int nsec)
+int osi_set_systime_to_mac(struct osi_core_priv_data *const osi_core,
+			   const unsigned int sec, const unsigned int nsec)
 {
 	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
 	    (osi_core->ops->set_systime_to_mac != OSI_NULL)) {
@@ -616,7 +624,7 @@ static inline unsigned long div_u64(unsigned long dividend,
 	return div_u64_rem(dividend, divisor, &remain);
 }
 
-int osi_adjust_freq(struct osi_core_priv_data *osi_core, int ppb)
+int osi_adjust_freq(struct osi_core_priv_data *const osi_core, int ppb)
 {
 	unsigned long adj;
 	unsigned long temp;
@@ -672,7 +680,8 @@ int osi_adjust_freq(struct osi_core_priv_data *osi_core, int ppb)
 	return ret;
 }
 
-int osi_adjust_time(struct osi_core_priv_data *osi_core, long long nsec_delta)
+int osi_adjust_time(struct osi_core_priv_data *const osi_core,
+		    long long nsec_delta)
 {
 	unsigned int neg_adj = 0;
 	unsigned int sec = 0, nsec = 0;
@@ -708,7 +717,8 @@ int osi_adjust_time(struct osi_core_priv_data *osi_core, long long nsec_delta)
 	return ret;
 }
 
-int osi_get_systime_from_mac(struct osi_core_priv_data *osi_core,
+int osi_get_systime_from_mac(
+			     struct osi_core_priv_data *const osi_core,
 			     unsigned int *sec,
 			     unsigned int *nsec)
 {
@@ -738,8 +748,8 @@ int osi_get_systime_from_mac(struct osi_core_priv_data *osi_core,
 	return 0;
 }
 
-int osi_ptp_configuration(struct osi_core_priv_data *osi_core,
-			  unsigned int enable)
+int osi_ptp_configuration(struct osi_core_priv_data *const osi_core,
+			  const unsigned int enable)
 {
 	int ret = 0;
 	unsigned long temp = 0, temp1 = 0;
@@ -794,7 +804,7 @@ int osi_ptp_configuration(struct osi_core_priv_data *osi_core,
 	return ret;
 }
 
-int osi_read_mmc(struct osi_core_priv_data *osi_core)
+int osi_read_mmc(struct osi_core_priv_data *const osi_core)
 {
 	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
 	    (osi_core->ops->read_mmc != OSI_NULL)) {
@@ -805,7 +815,7 @@ int osi_read_mmc(struct osi_core_priv_data *osi_core)
 	return -1;
 }
 
-int osi_reset_mmc(struct osi_core_priv_data *osi_core)
+int osi_reset_mmc(struct osi_core_priv_data *const osi_core)
 {
 	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
 	    (osi_core->ops->reset_mmc != OSI_NULL)) {
@@ -816,8 +826,8 @@ int osi_reset_mmc(struct osi_core_priv_data *osi_core)
 	return -1;
 }
 
-int osi_configure_eee(struct osi_core_priv_data *osi_core,
-		      unsigned int tx_lpi_enabled, unsigned int tx_lpi_timer)
+int osi_configure_eee(struct osi_core_priv_data *const osi_core,
+		       unsigned int tx_lpi_enabled, unsigned int tx_lpi_timer)
 {
 	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
 	    (osi_core->ops->configure_eee != OSI_NULL) &&
@@ -832,7 +842,7 @@ int osi_configure_eee(struct osi_core_priv_data *osi_core,
 	return -1;
 }
 
-int osi_save_registers(struct osi_core_priv_data *osi_core)
+int osi_save_registers(struct osi_core_priv_data *const osi_core)
 {
 	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
 	    (osi_core->ops->save_registers != OSI_NULL)) {
@@ -843,7 +853,7 @@ int osi_save_registers(struct osi_core_priv_data *osi_core)
 	return -1;
 }
 
-int osi_restore_registers(struct osi_core_priv_data *osi_core)
+int osi_restore_registers(struct osi_core_priv_data *const osi_core)
 {
 	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
 	    (osi_core->ops->restore_registers != OSI_NULL)) {
