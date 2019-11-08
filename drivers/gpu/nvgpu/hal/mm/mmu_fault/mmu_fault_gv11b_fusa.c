@@ -294,8 +294,10 @@ static bool gv11b_mm_mmu_fault_handle_mmu_fault_ce(struct gk20a *g,
 		struct mmu_fault_info *mmufault, u32 *invalidate_replay_val,
 		u32 num_lce)
 {
-	int err = 0;
 	struct nvgpu_tsg *tsg = NULL;
+#ifdef CONFIG_NVGPU_REPLAYABLE_FAULT
+	int err;
+#endif
 
 	if (mmufault->mmu_engine_id <
 		nvgpu_safe_add_u32(gmmu_fault_mmu_eng_id_ce0_v(),
@@ -304,8 +306,6 @@ static bool gv11b_mm_mmu_fault_handle_mmu_fault_ce(struct gk20a *g,
 		nvgpu_log(g, gpu_dbg_intr, "CE Faulted");
 #ifdef CONFIG_NVGPU_REPLAYABLE_FAULT
 		err = gv11b_fb_fix_page_fault(g, mmufault);
-#else
-		err = -EINVAL;
 #endif
 
 		if (mmufault->refch != NULL) {
@@ -313,16 +313,18 @@ static bool gv11b_mm_mmu_fault_handle_mmu_fault_ce(struct gk20a *g,
 			nvgpu_tsg_reset_faulted_eng_pbdma(g, tsg,
 							true, true);
 		}
+#ifdef CONFIG_NVGPU_REPLAYABLE_FAULT
 		if (err == 0) {
-			nvgpu_log(g, gpu_dbg_intr,
-						"CE Page Fault Fixed");
 			*invalidate_replay_val = 0;
+			nvgpu_log(g, gpu_dbg_intr, "CE Page Fault Fixed");
+
 			if (mmufault->refch != NULL) {
 				nvgpu_channel_put(mmufault->refch);
 				mmufault->refch = NULL;
 			}
 			return true;
 		}
+#endif
 		/* Do recovery */
 		nvgpu_log(g, gpu_dbg_intr, "CE Page Fault Not Fixed");
 	}
@@ -630,9 +632,8 @@ void gv11b_mm_mmu_fault_handle_other_fault_notify(struct gk20a *g,
 			gmmu_fault_mmu_eng_id_physical_v()) {
 		/* usually means VPR or out of bounds physical accesses */
 		nvgpu_err(g, "PHYSICAL MMU FAULT");
-
-#ifdef CONFIG_NVGPU_REPLAYABLE_FAULT
 	} else {
+#ifdef CONFIG_NVGPU_REPLAYABLE_FAULT
 		gv11b_mm_mmu_fault_handle_mmu_fault_common(g, mmufault,
 				 &invalidate_replay_val);
 
