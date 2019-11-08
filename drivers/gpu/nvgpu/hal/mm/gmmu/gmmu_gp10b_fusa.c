@@ -253,13 +253,15 @@ static void pte_dbg_print(struct gk20a *g,
 {
 	char attrs_str[5];
 	char ctag_str[32] = "\0";
+	const char *aperture_str = nvgpu_aperture_str(attrs->aperture);
+	const char *perm_str = nvgpu_gmmu_perm_str(attrs->rw_flag);
 #ifdef CONFIG_NVGPU_COMPRESSION
 	u32 ctag = nvgpu_safe_cast_u64_to_u32(attrs->ctag /
 					g->ops.fb.compression_page_size(g));
 	(void)strcpy(ctag_str, "ctag=0x");
 	(void)nvgpu_strnadd_u32(ctag_str, ctag, (u32)strlen(ctag_str), 10U);
 #endif
-
+	(void)map_attrs_to_str(attrs_str, attrs);
 	pte_dbg(g, attrs,
 		"vm=%s "
 		"PTE: i=%-4u size=%-2u | "
@@ -271,10 +273,10 @@ static void pte_dbg_print(struct gk20a *g,
 		pd_idx, mmu_level_entry_size,
 		virt_addr, phys_addr,
 		page_size >> 10,
-		nvgpu_gmmu_perm_str(attrs->rw_flag),
+		perm_str,
 		attrs->kind_v,
-		nvgpu_aperture_str(attrs->aperture),
-		map_attrs_to_str(attrs_str, attrs),
+		aperture_str,
+		attrs_str,
 		ctag_str,
 		pte_w[1], pte_w[0]);
 }
