@@ -482,8 +482,14 @@ struct nvgpu_init_table_t {
 };
 #define NVGPU_INIT_TABLE_ENTRY(ops_ptr, enable_flag) \
 	{ (ops_ptr), #ops_ptr,  (enable_flag) }
-
 #define NO_FLAG 0U
+
+static bool needs_init(struct gk20a *g, nvgpu_init_func_t func, u32 enable_flag)
+{
+	return ((enable_flag == NO_FLAG) ||
+		nvgpu_is_enabled(g, enable_flag)) && (func != NULL);
+}
+
 int nvgpu_finalize_poweron(struct gk20a *g)
 {
 	int err = 0;
@@ -597,26 +603,25 @@ int nvgpu_finalize_poweron(struct gk20a *g)
 #endif
 
 	for (i = 0; i < ARRAY_SIZE(nvgpu_init_table); i++) {
-		if ((nvgpu_init_table[i].enable_flag != 0ULL) &&
-		    !nvgpu_is_enabled(g, nvgpu_init_table[i].enable_flag)) {
-			nvgpu_log_info(g, "Skipping initializing %s (not enabled)",
-				       nvgpu_init_table[i].name);
-		} else if (nvgpu_init_table[i].func == NULL) {
-			nvgpu_log_info(g, "Skipping initializing %s (NULL func)",
-				       nvgpu_init_table[i].name);
+		if (!needs_init(g, nvgpu_init_table[i].func,
+				nvgpu_init_table[i].enable_flag)) {
+			nvgpu_log_info(g, "Skipping initializing %s (enable_flag=%u func=%p)",
+				       nvgpu_init_table[i].name,
+				       nvgpu_init_table[i].enable_flag,
+				       nvgpu_init_table[i].func);
 		} else {
 			nvgpu_log_info(g, "Initializing %s",
 				       nvgpu_init_table[i].name);
 			err = nvgpu_init_table[i].func(g);
 			if (err != 0) {
 				nvgpu_err(g, "Failed initialization for: %s",
-					nvgpu_init_table[i].name);
+					  nvgpu_init_table[i].name);
 				goto done;
 			}
 		}
 	}
 
-	goto exit;
+	return err;
 
 done:
 	if (have_tpc_pg_lock) {
@@ -628,7 +633,6 @@ done:
 	}
 	nvgpu_falcons_sw_free(g);
 
-exit:
 	return err;
 }
 
