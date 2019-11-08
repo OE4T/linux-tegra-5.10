@@ -368,6 +368,7 @@ bool nvgpu_sgt_iommuable(struct gk20a *g, struct nvgpu_sgt *sgt);
 u64 nvgpu_sgt_alignment(struct gk20a *g, struct nvgpu_sgt *sgt);
 
 /** @cond DOXYGEN_SHOULD_SKIP_THIS */
+#if defined(__NVGPU_POSIX__)
 struct nvgpu_sgl *nvgpu_mem_sgl_next(void *sgl);
 u64 nvgpu_mem_sgl_phys(struct gk20a *g, void *sgl);
 u64 nvgpu_mem_sgl_ipa_to_pa(struct gk20a *g, struct nvgpu_sgl *sgl, u64 ipa,
@@ -378,6 +379,7 @@ u64 nvgpu_mem_sgl_gpu_addr(struct gk20a *g, void *sgl,
 				  struct nvgpu_gmmu_attrs *attrs);
 bool nvgpu_mem_sgt_iommuable(struct gk20a *g, struct nvgpu_sgt *sgt);
 void nvgpu_mem_sgt_free(struct gk20a *g, struct nvgpu_sgt *sgt);
+#endif
 /** @endcond DOXYGEN_SHOULD_SKIP_THIS */
 
 #endif /* NVGPU_SGT_H */
