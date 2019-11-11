@@ -440,14 +440,15 @@ int nvgpu_fifo_setup_sw(struct gk20a *g);
  *
  * @param g [in]	The GPU driver struct.
  *
- * Init mutexes needed by FIFO module. Refer #nvgpu_fifo struct.
- * Do #nvgpu_channel_setup_sw.
- * Do #nvgpu_tsg_setup_sw.
- * Do pbdma.setup_sw.
- * Do #nvgpu_engine_setup_sw.
- * Do #nvgpu_runlist_setup_sw.
- * Do userd.setup_sw.
- * Init #nvgpu_fifo.remove_support function pointer.
+ * Initialize FIFO software context:
+ * - Init mutexes needed by FIFO module. Refer #nvgpu_fifo struct.
+ * - Do #nvgpu_channel_setup_sw.
+ * - Do #nvgpu_tsg_setup_sw.
+ * - Do pbdma.setup_sw.
+ * - Do #nvgpu_engine_setup_sw.
+ * - Do #nvgpu_runlist_setup_sw.
+ * - Do userd.setup_sw.
+ * - Init #nvgpu_fifo.remove_support function pointer.
  *
  * @return 0 in case of success, < 0 in case of failure.
  * @note In case of failure, cleanup_sw for the blocks that are already
@@ -470,13 +471,14 @@ void nvgpu_fifo_cleanup_sw(struct gk20a *g);
  *
  * @param g [in]	The GPU driver struct.
  *
- * Do userd.cleanup_sw.
- * Do #nvgpu_channel_cleanup_sw.
- * Do #nvgpu_tsg_cleanup_sw.
- * Do #nvgpu_runlist_cleanup_sw.
- * Do #nvgpu_engine_cleanup_sw.
- * Do pbdma.setup_sw.
- * Destroy mutexes used by FIFO module. Refer #nvgpu_fifo struct.
+ * Clean up FIFO software context and related resources:
+ * - Do userd.cleanup_sw.
+ * - Do #nvgpu_channel_cleanup_sw.
+ * - Do #nvgpu_tsg_cleanup_sw.
+ * - Do #nvgpu_runlist_cleanup_sw.
+ * - Do #nvgpu_engine_cleanup_sw.
+ * - Do pbdma.setup_sw.
+ * - Destroy mutexes used by FIFO module. Refer #nvgpu_fifo struct.
  */
 void nvgpu_fifo_cleanup_sw_common(struct gk20a *g);
 
