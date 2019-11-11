@@ -87,27 +87,53 @@ void nvgpu_channel_sync_get_ref(struct nvgpu_channel_sync *s);
 bool nvgpu_channel_sync_put_ref_and_check(struct nvgpu_channel_sync *s);
 #endif /* CONFIG_NVGPU_KERNEL_MODE_SUBMIT */
 
-/*
- * Set the channel syncpoint/semaphore to safe state
+/**
+ * @brief Set the channel syncpoint/semaphore to safe state
+ *
+ * @param sync [in]	Pointer to syncpoint/semaphore.
+ *
  * This should be used to reset User managed syncpoint since we don't
  * track threshold values for those syncpoints
  */
 void nvgpu_channel_sync_set_safe_state(struct nvgpu_channel_sync *s);
 
-/*
+/**
+ * @brief Free channel syncpoint/semaphore
+ *
+ * @param sync [in]	Pointer to syncpoint/semaphore.
+ *
  * Free the resources allocated by nvgpu_channel_sync_create.
  */
 void nvgpu_channel_sync_destroy(struct nvgpu_channel_sync *sync,
 	bool set_safe_state);
 
-/*
+/**
+ * @brief Create channel syncpoint/semaphore
+ *
+ * @param c [in]		Pointer to Channel.
+ * @param user_managed [in]	True is syncpoint is user managed.
+ *
  * Construct a channel_sync backed by either a syncpoint or a semaphore.
  * A channel_sync is by default constructed as backed by a syncpoint
  * if CONFIG_TEGRA_GK20A_NVHOST is defined, otherwise the channel_sync
  * is constructed as backed by a semaphore.
+ *
+ * @return Pointer to nvgpu_channel_sync in case of success, or NULL
+ * in case of failure.
  */
 struct nvgpu_channel_sync *nvgpu_channel_sync_create(struct nvgpu_channel *c,
 	bool user_managed);
+
+/**
+ * @brief Check if OS fence framwework is needed
+ *
+ * @param g [in]		Pointer to GPU
+ *
+ * Sync framework requires deferred job cleanup, wrapping syncs in FDs,
+ * and other heavy stuff, which prevents deterministic submits.
+ *
+ * @return True is OS fence framework is needed.
+ */
 bool nvgpu_channel_sync_needs_os_fence_framework(struct gk20a *g);
 
 #endif /* NVGPU_CHANNEL_SYNC_H */

@@ -39,13 +39,24 @@ struct priv_cmd_entry;
 
 #ifdef CONFIG_TEGRA_GK20A_NVHOST
 
-/*
- * Returns the sync point id or negative number if no syncpt
+/**
+ * @brief Get syncpoint id
+ *
+ * @param s [in]	Syncpoint pointer.
+ *
+ * @return Syncpoint id of \a s.
  */
 u32 nvgpu_channel_sync_get_syncpt_id(struct nvgpu_channel_sync_syncpt *s);
 
-/*
- * Returns the sync point address of sync point or 0 if not supported
+/**
+ * @brief Get syncpoint address
+ *
+ * @param s [in]	Syncpoint pointer.
+ *
+ * Get syncpoint GPU VA. This address can be used in push buffer entries
+ * for acquire/release operations.
+ *
+ * @return Syncpoint address (GPU VA) of syncpoint or 0 if not supported
  */
 u64 nvgpu_channel_sync_get_syncpt_address(struct nvgpu_channel_sync_syncpt *s);
 
@@ -58,16 +69,29 @@ int nvgpu_channel_sync_wait_syncpt(struct nvgpu_channel_sync_syncpt *s,
 	u32 id, u32 thresh, struct priv_cmd_entry *entry);
 #endif
 
-/*
- * Converts a valid struct nvgpu_channel_sync ptr to
- * struct nvgpu_channel_sync_syncpt ptr else return NULL.
+/**
+ * @brief Get syncpoint from sync operations
+ *
+ * @param sync [in]	Pointer to sync operations.
+ *
+ * Converts a valid struct nvgpu_channel_sync pointer \a sync to
+ * struct nvgpu_channel_sync_syncpt pointer else return NULL
+ *
+ * @return Pointer to syncpoint, if sync is backed by a syncpoint.
+ * @retval NULL if sync is backed by a sempahore.
  */
 struct nvgpu_channel_sync_syncpt *
 nvgpu_channel_sync_to_syncpt(struct nvgpu_channel_sync *sync);
 
-/*
- * Constructs a struct nvgpu_channel_sync_syncpt and returns a
- * pointer to the struct nvgpu_channel_sync associated with it.
+/**
+ * @brief Create syncpoint.
+ *
+ * @param c [in]		Pointer to channel.
+ * @param user_managed [in]	True is syncpoint is managed by client.
+ *
+ * Constructs a struct nvgpu_channel_sync_syncpt.
+ *
+ * @return Pointer to nvgpu_channel_sync associated with created syncpoint.
  */
 struct nvgpu_channel_sync *
 nvgpu_channel_sync_syncpt_create(struct nvgpu_channel *c,
