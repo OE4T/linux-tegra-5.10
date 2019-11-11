@@ -19,6 +19,7 @@
 #include "tegra234-soc/tegra234-soc-minimal.dtsi"
 #include <dt-bindings/memory/tegra234-smmu-streamid.h>
 #include "tegra234-soc-cbb.dtsi"
+#include "tegra234-soc/tegra234-soc-memory.dtsi"
 
 / {
 	aliases {
@@ -219,4 +220,10 @@
 		compatible = "nvidia,tegra234-SCE-EN";
 		status = "disabled";
 	};
+
+        reserved-memory {
+                grid-of-semaphores {
+                        /delete-property/ cvdevs;
+                };
+        };
 };
