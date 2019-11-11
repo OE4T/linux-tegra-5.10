@@ -300,7 +300,7 @@ struct camrtc_dbg_mem_usage {
 	uint32_t data;
 	uint32_t heap;
 	uint32_t stack;
-	uint32_t free;
+	uint32_t free_mem;
 } __packed;
 
 #define CAMRTC_DBG_FALCON_ID_VI       MK_U32(0x00)
