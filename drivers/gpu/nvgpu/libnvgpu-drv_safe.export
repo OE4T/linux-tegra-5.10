@@ -465,7 +465,9 @@ nvgpu_sw_quiesce
 nvgpu_sw_quiesce_remove_support
 nvgpu_thread_create
 nvgpu_thread_create_priority
+nvgpu_thread_get_fault_injection
 nvgpu_thread_is_running
+nvgpu_thread_join
 nvgpu_thread_should_stop
 nvgpu_thread_stop
 nvgpu_thread_stop_graceful

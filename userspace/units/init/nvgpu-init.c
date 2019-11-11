@@ -689,6 +689,122 @@ int test_poweroff(struct unit_module *m, struct gk20a *g, void *args)
 	return UNIT_SUCCESS;
 }
 
+static bool intr_masked;
+static void mock_intr_mask(struct gk20a *g)
+{
+	intr_masked = true;
+}
+
+static void mock_runlist_write_state(struct gk20a *g, u32 runlist_mask,
+					u32 runlist_state)
+{
+}
+
+static void mock_fifo_preempt_runlists_for_rc(struct gk20a *g, u32 runlist_mask)
+{
+}
+
+int test_quiesce(struct unit_module *m, struct gk20a *g, void *args)
+{
+	int ret = UNIT_SUCCESS;
+	struct nvgpu_posix_fault_inj *thread_fi =
+				nvgpu_thread_get_fault_injection();
+	int err;
+	unsigned long *save_enabled_ptr;
+
+	/* assume quiesce has been initalized already */
+
+	/* make sure we're powered on */
+	nvgpu_set_power_state(g, NVGPU_STATE_POWERED_ON);
+
+	/* make sure we simulate interrupts enabled */
+	g->mc.irqs_enabled = true;
+	intr_masked = false;
+
+	/* setup HAL for masking interrupts */
+	g->ops.mc.intr_mask = mock_intr_mask;
+
+	/*
+	 * quiesce will request fifo to quiesce, so make sure we don't have
+	 * anything to do.
+	 */
+	g->fifo.num_runlists = 0;
+	g->fifo.num_channels = 0;
+
+	/* mock out fifo HALs called during quiesce */
+	g->ops.runlist.write_state = mock_runlist_write_state;
+	g->ops.fifo.preempt_runlists_for_rc = mock_fifo_preempt_runlists_for_rc;
+
+	nvgpu_sw_quiesce(g);
+	/* wait for quiesce thread to complete */
+	nvgpu_thread_join(&g->sw_quiesce_thread);
+
+
+
+	if (g->mc.irqs_enabled || !intr_masked) {
+		unit_err(m, "quiesce failed to disable interrupts\n");
+		ret = UNIT_FAIL;
+	}
+
+	/* setup quiesce again */
+	nvgpu_sw_quiesce_remove_support(g);
+	set_poweron_funcs_success(g);
+	err = nvgpu_finalize_poweron(g);
+	if (err != 0) {
+		unit_return_fail(m, "failed to re-enable quiesce\n");
+	}
+
+	/* coverage for thread_should_stop() being set using fault inj */
+	nvgpu_posix_enable_fault_injection(thread_fi, true, 0);
+	nvgpu_sw_quiesce(g);
+	/* wait for quiesce thread to complete */
+	nvgpu_thread_join(&g->sw_quiesce_thread);
+	nvgpu_posix_enable_fault_injection(thread_fi, false, 0);
+
+	/* setup quiesce again */
+	nvgpu_sw_quiesce_remove_support(g);
+	set_poweron_funcs_success(g);
+	err = nvgpu_finalize_poweron(g);
+	if (err != 0) {
+		unit_return_fail(m, "failed to re-enable quiesce\n");
+	}
+
+	/* branch coverage for error states when requesting quiesce */
+	g->is_virtual = true;
+	nvgpu_sw_quiesce(g);
+	/* don't wait for quiesce thread to complete since this is error */
+	g->is_virtual = false;
+	save_enabled_ptr = g->enabled_flags;
+	g->enabled_flags = NULL;
+	nvgpu_sw_quiesce(g);
+	/* don't wait for quiesce thread to complete since this is error */
+	g->enabled_flags = save_enabled_ptr;
+	nvgpu_set_enabled(g, NVGPU_DISABLE_SW_QUIESCE, true);
+	nvgpu_sw_quiesce(g);
+	/* don't wait for quiesce thread to complete since this is error */
+	nvgpu_set_enabled(g, NVGPU_DISABLE_SW_QUIESCE, false);
+	/* Note: quiesce should still be configured */
+
+	/* coverage for device powered off when quiesce requested */
+	nvgpu_set_power_state(g, NVGPU_STATE_POWERED_OFF);
+	nvgpu_sw_quiesce(g);
+	/* wait for quiesce thread to complete */
+	nvgpu_thread_join(&g->sw_quiesce_thread);
+	nvgpu_set_power_state(g, NVGPU_STATE_POWERED_ON);
+
+	/* coverage for thread creation failing when creating thread */
+	nvgpu_sw_quiesce_remove_support(g);
+	set_poweron_funcs_success(g);
+	nvgpu_posix_enable_fault_injection(thread_fi, true, 0);
+	err = nvgpu_finalize_poweron(g);
+	if (err == 0) {
+		unit_return_fail(m, "failed to detect thread creation error\n");
+	}
+	nvgpu_posix_enable_fault_injection(thread_fi, false, 0);
+
+	return ret;
+}
+
 struct unit_module_test init_tests[] = {
 	UNIT_TEST(init_setup_env,			test_setup_env,		NULL, 0),
 	UNIT_TEST(get_litter_value,			test_get_litter_value,	NULL, 0),
@@ -699,6 +815,7 @@ struct unit_module_test init_tests[] = {
 	UNIT_TEST(init_poweron,				test_poweron,		NULL, 0),
 	UNIT_TEST(init_poweron_branches,		test_poweron_branches,	NULL, 0),
 	UNIT_TEST(init_poweroff,			test_poweroff,		NULL, 0),
+	UNIT_TEST(init_quiesce,				test_quiesce,		NULL, 0),
 	UNIT_TEST(init_free_env,			test_free_env,		NULL, 0),
 };
 

@@ -768,6 +768,12 @@
         "test_level": 0
     },
     {
+        "test": "test_quiesce",
+        "case": "init_quiesce",
+        "unit": "init",
+        "test_level": 0
+    },
+    {
         "test": "test_setup_env",
         "case": "init_setup_env",
         "unit": "init",

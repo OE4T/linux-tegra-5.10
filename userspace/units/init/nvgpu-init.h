@@ -298,4 +298,25 @@ int test_poweron_branches(struct unit_module *m, struct gk20a *g, void *args);
  */
 int test_poweroff(struct unit_module *m, struct gk20a *g, void *args);
 
+/**
+ * Test specification for: test_quiesce
+ *
+ * Description: Test putting device in quiesce
+ *
+ * Test Type: Feature based
+ *
+ * Targets: nvgpu_sw_quiesce_init_support, nvgpu_sw_quiesce_remove_support,
+ *          nvgpu_sw_quiesce_thread, nvgpu_sw_quiesce
+ *
+ * Input:
+ * - test_setup_env() must be called before.
+ *
+ * Steps:
+ *
+ * Output:
+ * - UNIT_FAIL if nvgpu_finalize_poweron() ever returns the unexpected value.
+ * - UNIT_SUCCESS otherwise
+ */
+int test_quiesce(struct unit_module *m, struct gk20a *g, void *args);
+
 #endif /* UNIT_NVGPU_INIT_H */
