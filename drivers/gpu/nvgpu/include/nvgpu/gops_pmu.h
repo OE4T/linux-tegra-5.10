@@ -37,6 +37,8 @@ struct nvgpu_hw_err_inject_info_desc;
  * @see gpu_ops
  */
 struct gops_pmu {
+	/** @cond DOXYGEN_SHOULD_SKIP_THIS */
+
 	/**
 	 * @brief PMU early initialization to allocate memory for PMU unit,
 	 *        set PMU Engine h/w properties and set supporting data structs.
@@ -56,7 +58,6 @@ struct gops_pmu {
 	 */
 	int (*pmu_early_init)(struct gk20a *g);
 
-	/** @cond DOXYGEN_SHOULD_SKIP_THIS */
 #ifdef CONFIG_NVGPU_LS_PMU
 	int (*pmu_rtos_init)(struct gk20a *g);
 	int (*pmu_destroy)(struct gk20a *g, struct nvgpu_pmu *pmu);
@@ -66,7 +67,6 @@ struct gops_pmu {
 
 	struct nvgpu_hw_err_inject_info_desc * (*get_pmu_err_desc)
 		(struct gk20a *g);
-	/** @endcond */
 
 	/**
 	 * @brief To know PMU Engine complete support is required or not.
@@ -89,15 +89,6 @@ struct gops_pmu {
 	 *         False for PMU Engine Falcon support only.
 	 */
 	bool (*is_pmu_supported)(struct gk20a *g);
-
-	/**
-	 * @brief Fetch base address of PMU Engine Falcon.
-	 *
-	 * @param void
-	 *
-	 * @return address.
-	 */
-	u32 (*falcon_base_addr)(void);
 
 	/**
 	 * @brief Reset the PMU Engine.
@@ -158,6 +149,37 @@ struct gops_pmu {
 	void (*write_dmatrfbase)(struct gk20a *g, u32 addr);
 
 	/**
+	 * @brief Start PMU falcon CPU in secure mode.
+	 *
+	 * @param g   [in] The GPU driver struct.
+	 *
+	 * Start PMU falcon CPU in secure mode by writing true to
+	 * CPUCTL_ALIAS.
+	 */
+	void (*secured_pmu_start)(struct gk20a *g);
+
+	/**
+	 * @brief Clears the PMU BAR0 error status.
+	 *
+	 * @param g   [in] The GPU driver struct.
+	 *
+	 * Clears the PMU BAR0 error status by reading status
+	 * and writing back.
+	 */
+	void (*pmu_clear_bar0_host_err_status)(struct gk20a *g);
+
+	/** @endcond */
+
+	/**
+	 * @brief Fetch base address of PMU Engine Falcon.
+	 *
+	 * @param void
+	 *
+	 * @return address.
+	 */
+	u32 (*falcon_base_addr)(void);
+
+	/**
 	 * @brief Checks if PMU DEBUG fuse is blown or not
 	 *
 	 * @param g   [in] The GPU driver struct.
@@ -173,16 +195,6 @@ struct gops_pmu {
 	bool (*is_debug_mode_enabled)(struct gk20a *g);
 
 	/**
-	 * @brief Start PMU falcon CPU in secure mode.
-	 *
-	 * @param g   [in] The GPU driver struct.
-	 *
-	 * Start PMU falcon CPU in secure mode by writing true to
-	 * CPUCTL_ALIAS.
-	 */
-	void (*secured_pmu_start)(struct gk20a *g);
-
-	/**
 	 * @brief Setup required configuration for PMU Engine Falcon boot.
 	 *
 	 * @param g   [in] The GPU driver struct.
@@ -195,28 +207,6 @@ struct gops_pmu {
 	 *  + The instance block setup.
 	 */
 	void (*flcn_setup_boot_config)(struct gk20a *g);
-
-	/**
-	 * @brief Validate IMEM/DMEM memory integrity.
-	 *
-	 * @param g   [in] The GPU driver struct.
-	 *
-	 * Validate IMEM/DMEM memory integrity by checking ECC status
-	 * followed IMEM/DEME error correction status check.
-	 *
-	 *	return True if corrected else False.
-	 */
-	bool (*validate_mem_integrity)(struct gk20a *g);
-
-	/**
-	 * @brief Clears the PMU BAR0 error status.
-	 *
-	 * @param g   [in] The GPU driver struct.
-	 *
-	 * Clears the PMU BAR0 error status by reading status
-	 * and writing back.
-	 */
-	void (*pmu_clear_bar0_host_err_status)(struct gk20a *g);
 
 	/**
 	 * @brief Check for the PMU BAR0 error status.
@@ -263,6 +253,18 @@ struct gops_pmu {
 	 */
 	int (*bar0_error_status)(struct gk20a *g, u32 *bar0_status,
 		u32 *etype);
+
+	/**
+	 * @brief Validate IMEM/DMEM memory integrity.
+	 *
+	 * @param g   [in] The GPU driver struct.
+	 *
+	 * Validate IMEM/DMEM memory integrity by checking ECC status
+	 * followed IMEM/DEME error correction status check.
+	 *
+	 *	return True if corrected else False.
+	 */
+	bool (*validate_mem_integrity)(struct gk20a *g);
 
 	/** @cond DOXYGEN_SHOULD_SKIP_THIS */
 #ifdef CONFIG_NVGPU_LS_PMU
