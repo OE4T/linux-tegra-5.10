@@ -49,7 +49,10 @@ bool nvgpu_is_bpmp_running(struct gk20a *g)
 
 bool nvgpu_is_soc_t194_a01(struct gk20a *g)
 {
-	return ((tegra_get_chip_id() == TEGRA194 &&
+	struct device *dev = dev_from_gk20a(g);
+	struct gk20a_platform *platform = gk20a_get_platform(dev);
+
+	return ((platform->platform_chip_id == TEGRA_194 &&
 			tegra_chip_get_revision() == TEGRA194_REVISION_A01) ?
 		true : false);
 }

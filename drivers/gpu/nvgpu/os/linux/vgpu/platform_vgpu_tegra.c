@@ -86,6 +86,8 @@ struct gk20a_platform vgpu_tegra_platform = {
 	.clk_round_rate = vgpu_plat_clk_round_rate,
 	.get_clk_freqs = vgpu_plat_clk_get_freqs,
 
+	.platform_chip_id = TEGRA_124_VGPU,
+
 	/* frequency scaling configuration */
 	.devfreq_governor = "userspace",
 

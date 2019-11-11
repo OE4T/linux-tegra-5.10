@@ -54,6 +54,16 @@ struct nvgpu_pci_gpios {
 #define PCI_VBAR_PWR_OFF_DELAY_MS	2
 #define PCI_PWR_OFF_DELAY_MS		2
 
+enum tegra_chip_id {
+	TEGRA_124,
+	TEGRA_132,
+	TEGRA_210,
+	TEGRA_186,
+	TEGRA_194,
+	TEGRA_194_VGPU,
+	TEGRA_124_VGPU,
+};
+
 struct gk20a_platform {
 	/* Populated by the gk20a driver before probing the platform. */
 	struct gk20a *g;
@@ -263,6 +273,8 @@ struct gk20a_platform {
 #ifdef CONFIG_NVGPU_SUPPORT_CDE
 	bool has_cde;
 #endif
+
+	enum tegra_chip_id platform_chip_id;
 
 	/* soc name for finding firmware files */
 	const char *soc_name;

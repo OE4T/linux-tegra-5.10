@@ -489,6 +489,7 @@ struct gk20a_platform gp10b_tegra_platform = {
 
 	.force_reset_in_do_idle = false,
 
+	.platform_chip_id = TEGRA_186,
 	.soc_name = "tegra18x",
 
 	.unified_memory = true,

@@ -305,6 +305,7 @@ struct gk20a_platform gv11b_tegra_platform = {
 
 	.dump_platform_dependencies = gk20a_tegra_debug_dump,
 
+	.platform_chip_id = TEGRA_194,
 	.soc_name = "tegra19x",
 
 	.honors_aperture = true,

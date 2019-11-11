@@ -203,19 +203,19 @@ static void gk20a_tegra_prescale(struct device *dev)
  *
  */
 
-static void gk20a_tegra_calibrate_emc(struct device *dev,
+static void gk20a_tegra_calibrate_emc(struct gk20a_platform *platform,
 			       struct gk20a_emc_params *emc_params)
 {
-	enum tegra_chipid cid = tegra_get_chip_id();
+	enum tegra_chip_id cid = platform->platform_chip_id;
 	long gpu_bw, emc_bw;
 
 	/* store gpu bw based on soc */
 	switch (cid) {
-	case TEGRA210:
+	case TEGRA_210:
 		gpu_bw = TEGRA_GM20B_BW_PER_FREQ;
 		break;
-	case TEGRA124:
-	case TEGRA132:
+	case TEGRA_124:
+	case TEGRA_132:
 		gpu_bw = TEGRA_GK20A_BW_PER_FREQ;
 		break;
 	default:
@@ -552,7 +552,7 @@ static void gk20a_tegra_scale_init(struct device *dev)
 		return;
 
 	emc_params->freq_last_set = -1;
-	gk20a_tegra_calibrate_emc(dev, emc_params);
+	gk20a_tegra_calibrate_emc(platform, emc_params);
 
 #ifdef CONFIG_TEGRA_BWMGR
 	emc_params->bwmgr_cl = tegra_bwmgr_register(TEGRA_BWMGR_CLIENT_GPU);
@@ -810,7 +810,7 @@ static int gk20a_tegra_probe(struct device *dev)
 	}
 
 	platform->g->clk.gpc_pll.id = GK20A_GPC_PLL;
-	if (tegra_get_chip_id() == TEGRA210) {
+	if (platform->platform_chip_id == TEGRA_210) {
 		/* WAR for bug 1547668: Disable railgating and scaling
 		   irrespective of platform data if the rework was not made. */
 		np = of_find_node_by_path("/gpu-dvfs-rework");
@@ -823,7 +823,7 @@ static int gk20a_tegra_probe(struct device *dev)
 			platform->g->clk.gpc_pll.id = GM20B_GPC_PLL_C1;
 	}
 
-	if (tegra_get_chip_id() == TEGRA132)
+	if (platform->platform_chip_id == TEGRA_132)
 		platform->soc_name = "tegra13x";
 
 	gk20a_tegra_get_clocks(dev);
@@ -962,6 +962,7 @@ struct gk20a_platform gm20b_tegra_platform = {
 	.has_cde = true,
 #endif
 
+	.platform_chip_id = TEGRA_210,
 	.soc_name = "tegra21x",
 
 	.unified_memory = true,
