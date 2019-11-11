@@ -500,6 +500,53 @@ static void gm20b_gr_falcon_check_ctx_opcode_status(struct gk20a *g,
 	}
 }
 
+
+static int gm20b_gr_falcon_status_check_ctx_wait_ucode(struct gk20a *g,
+						u32 mailbox_id, u32 reg,
+						enum wait_ucode_status check)
+{
+	bool timeout = (check == WAIT_UCODE_TIMEOUT) ? true : false;
+	bool error = (check == WAIT_UCODE_ERROR) ? true : false;
+
+	if (timeout) {
+		nvgpu_err(g,
+			   "timeout waiting on mailbox=%d value=0x%08x",
+			   mailbox_id, reg);
+		g->ops.gr.falcon.dump_stats(g);
+		gk20a_gr_debug_dump(g);
+		goto check_error;
+	} else if (error) {
+		nvgpu_err(g,
+			   "ucode method failed on mailbox=%d value=0x%08x",
+			   mailbox_id, reg);
+		g->ops.gr.falcon.dump_stats(g);
+		goto check_error;
+	} else {
+		nvgpu_log_info(g, "fecs mailbox return success");
+	}
+
+	return 0;
+
+check_error:
+	return -1;
+}
+
+static u32 gm20b_gr_falcon_delay_ctx_wait_ucode(bool sleepduringwait,
+						u32 delay)
+{
+	u32 new_delay = delay;
+
+	if (sleepduringwait) {
+		nvgpu_usleep_range(delay,
+				nvgpu_safe_mult_u32(delay, 2U));
+		new_delay = min_t(u32, delay << 1, POLL_DELAY_MAX_US);
+	} else {
+		nvgpu_udelay(delay);
+	}
+
+	return new_delay;
+}
+
 static int gm20b_gr_falcon_ctx_wait_ucode(struct gk20a *g, u32 mailbox_id,
 			    u32 *mailbox_ret, u32 opc_success,
 			    u32 mailbox_ok, u32 opc_fail,
@@ -550,34 +597,17 @@ static int gm20b_gr_falcon_ctx_wait_ucode(struct gk20a *g, u32 mailbox_id,
 		gm20b_gr_falcon_check_ctx_opcode_status(g, opc_fail, true,
 						reg, mailbox_fail, &check);
 
-		if (sleepduringwait) {
-			nvgpu_usleep_range(delay,
-					nvgpu_safe_mult_u32(delay, 2U));
-			delay = min_t(u32, delay << 1, POLL_DELAY_MAX_US);
-		} else {
-			nvgpu_udelay(delay);
-		}
+		delay = gm20b_gr_falcon_delay_ctx_wait_ucode(sleepduringwait,
+							     delay);
 	}
 
-	if (check == WAIT_UCODE_TIMEOUT) {
-		nvgpu_err(g,
-			   "timeout waiting on mailbox=%d value=0x%08x",
-			   mailbox_id, reg);
-		g->ops.gr.falcon.dump_stats(g);
-		gk20a_gr_debug_dump(g);
-		return -1;
-	} else if (check == WAIT_UCODE_ERROR) {
-		nvgpu_err(g,
-			   "ucode method failed on mailbox=%d value=0x%08x",
-			   mailbox_id, reg);
-		g->ops.gr.falcon.dump_stats(g);
-		return -1;
-	} else {
-		nvgpu_log_info(g, "fecs mailbox return success");
+	err = gm20b_gr_falcon_status_check_ctx_wait_ucode(g, mailbox_id,
+							  reg, check);
+	if (err == 0) {
+		nvgpu_log_fn(g, "done");
 	}
 
-	nvgpu_log_fn(g, "done");
-	return 0;
+	return err;
 }
 
 int gm20b_gr_falcon_wait_ctxsw_ready(struct gk20a *g)
