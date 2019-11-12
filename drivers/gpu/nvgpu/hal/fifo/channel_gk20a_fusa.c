@@ -36,14 +36,14 @@
 
 void gk20a_channel_enable(struct nvgpu_channel *ch)
 {
-	gk20a_writel(ch->g, ccsr_channel_r(ch->chid),
+	nvgpu_writel(ch->g, ccsr_channel_r(ch->chid),
 		gk20a_readl(ch->g, ccsr_channel_r(ch->chid)) |
 		ccsr_channel_enable_set_true_f());
 }
 
 void gk20a_channel_disable(struct nvgpu_channel *ch)
 {
-	gk20a_writel(ch->g, ccsr_channel_r(ch->chid),
+	nvgpu_writel(ch->g, ccsr_channel_r(ch->chid),
 		gk20a_readl(ch->g,
 			ccsr_channel_r(ch->chid)) |
 			ccsr_channel_enable_clr_true_f());
@@ -72,7 +72,7 @@ static const char * const ccsr_chan_status_str[] = {
 void gk20a_channel_read_state(struct gk20a *g, struct nvgpu_channel *ch,
 		struct nvgpu_channel_hw_state *state)
 {
-	u32 reg = gk20a_readl(g, ccsr_channel_r(ch->chid));
+	u32 reg = nvgpu_readl(g, ccsr_channel_r(ch->chid));
 	u32 status_v = ccsr_channel_status_v(reg);
 
 	state->next = ccsr_channel_next_v(reg) == ccsr_channel_next_true_v();
