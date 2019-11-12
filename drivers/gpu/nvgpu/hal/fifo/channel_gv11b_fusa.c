@@ -39,11 +39,11 @@ void gv11b_channel_unbind(struct nvgpu_channel *ch)
 	nvgpu_log_fn(g, " ");
 
 	if (nvgpu_atomic_cmpxchg(&ch->bound, 1, 0) != 0) {
-		gk20a_writel(g, ccsr_channel_inst_r(ch->chid),
+		nvgpu_writel(g, ccsr_channel_inst_r(ch->chid),
 			ccsr_channel_inst_ptr_f(0U) |
 			ccsr_channel_inst_bind_false_f());
 
-		gk20a_writel(g, ccsr_channel_r(ch->chid),
+		nvgpu_writel(g, ccsr_channel_r(ch->chid),
 			ccsr_channel_enable_clr_true_f() |
 			ccsr_channel_pbdma_faulted_reset_f() |
 			ccsr_channel_eng_faulted_reset_f());
@@ -58,7 +58,7 @@ u32 gv11b_channel_count(struct gk20a *g)
 void gv11b_channel_read_state(struct gk20a *g, struct nvgpu_channel *ch,
 		struct nvgpu_channel_hw_state *state)
 {
-	u32 reg = gk20a_readl(g, ccsr_channel_r(ch->chid));
+	u32 reg = nvgpu_readl(g, ccsr_channel_r(ch->chid));
 
 	gk20a_channel_read_state(g, ch, state);
 
@@ -69,7 +69,7 @@ void gv11b_channel_read_state(struct gk20a *g, struct nvgpu_channel *ch,
 void gv11b_channel_reset_faulted(struct gk20a *g, struct nvgpu_channel *ch,
 		bool eng, bool pbdma)
 {
-	u32 reg = gk20a_readl(g, ccsr_channel_r(ch->chid));
+	u32 reg = nvgpu_readl(g, ccsr_channel_r(ch->chid));
 
 	if (eng) {
 		reg |= ccsr_channel_eng_faulted_reset_f();
@@ -78,7 +78,7 @@ void gv11b_channel_reset_faulted(struct gk20a *g, struct nvgpu_channel *ch,
 		reg |= ccsr_channel_pbdma_faulted_reset_f();
 	}
 
-	gk20a_writel(g, ccsr_channel_r(ch->chid), reg);
+	nvgpu_writel(g, ccsr_channel_r(ch->chid), reg);
 }
 
 void gv11b_channel_debug_dump(struct gk20a *g,

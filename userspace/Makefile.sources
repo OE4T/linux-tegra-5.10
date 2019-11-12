@@ -76,6 +76,7 @@ UNITS :=				\
 	$(UNIT_SRC)/fifo/channel	\
 	$(UNIT_SRC)/fifo/channel/gk20a	\
 	$(UNIT_SRC)/fifo/channel/gm20b	\
+	$(UNIT_SRC)/fifo/channel/gv11b	\
 	$(UNIT_SRC)/fifo/runlist	\
 	$(UNIT_SRC)/fifo/tsg		\
 	$(UNIT_SRC)/fifo/tsg/gv11b	\
