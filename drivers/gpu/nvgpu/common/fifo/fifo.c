@@ -51,7 +51,9 @@ void nvgpu_fifo_cleanup_sw_common(struct gk20a *g)
 	nvgpu_tsg_cleanup_sw(g);
 	nvgpu_runlist_cleanup_sw(g);
 	nvgpu_engine_cleanup_sw(g);
-	nvgpu_pbdma_cleanup_sw(g);
+	if (g->ops.pbdma.cleanup_sw != NULL) {
+		g->ops.pbdma.cleanup_sw(g);
+	}
 
 #ifdef CONFIG_NVGPU_DEBUGGER
 	f->deferred_reset_pending = false;
@@ -59,6 +61,8 @@ void nvgpu_fifo_cleanup_sw_common(struct gk20a *g)
 #endif
 	nvgpu_mutex_destroy(&f->engines_reset_mutex);
 	nvgpu_mutex_destroy(&f->intr.isr.mutex);
+
+	f->sw_ready = false;
 }
 
 void nvgpu_fifo_cleanup_sw(struct gk20a *g)
