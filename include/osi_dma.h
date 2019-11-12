@@ -615,6 +615,7 @@ void osi_hw_transmit(struct osi_dma_priv_data *osi, unsigned int chan);
  *
  * @param[in] osi: OSI private data structure.
  * @param[in] chan: Channel number on which Tx complete need to be done.
+ * @param[in] budget: Threshold for reading the packets at a time.
  *
  * @note
  *	1) MAC needs to be out of reset and proper clocks need to be configured.
@@ -624,7 +625,7 @@ void osi_hw_transmit(struct osi_dma_priv_data *osi, unsigned int chan);
  * @returns Number of decriptors (buffers) proccessed.
  */
 int osi_process_tx_completions(struct osi_dma_priv_data *osi,
-			       unsigned int chan);
+			       unsigned int chan, int budget);
 
 /**
  * @brief osi_process_rx_completions - Read data from rx channel descriptors

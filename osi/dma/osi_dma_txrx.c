@@ -278,6 +278,24 @@ int osi_process_rx_completions(struct osi_dma_priv_data *osi,
 }
 
 /**
+ * @brief inc_tx_pkt_stats - Increment Tx packet count Stats
+ *
+ * Algorithm: This routine will be invoked by OSI layer internally to increment
+ *	stats for successfully transmitted packets on certain DMA channel.
+ *
+ * @param[in] osi: Pointer to OSI DMA private data structure.
+ * @param[in] chan: DMA channel number for which stats should be incremented.
+ */
+static inline void inc_tx_pkt_stats(struct osi_dma_priv_data *osi,
+				    unsigned int chan)
+{
+	osi->dstats.q_tx_pkt_n[chan] =
+		osi_update_stats_counter(osi->dstats.q_tx_pkt_n[chan], 1UL);
+	osi->dstats.tx_pkt_n =
+		osi_update_stats_counter(osi->dstats.tx_pkt_n, 1UL);
+}
+
+/**
  * @brief get_tx_err_stats - Detect Errors from Tx Status
  *
  * Algorithm: This routine will be invoked by OSI layer itself which
@@ -407,7 +425,7 @@ int osi_clear_rx_pkt_err_stats(struct osi_dma_priv_data *osi_dma)
 }
 
 int osi_process_tx_completions(struct osi_dma_priv_data *osi,
-			       unsigned int chan)
+			       unsigned int chan, int budget)
 {
 	struct osi_tx_ring *tx_ring = osi->tx_ring[chan];
 	struct osi_txdone_pkt_cx *txdone_pkt_cx = &tx_ring->txdone_pkt_cx;
@@ -421,7 +439,8 @@ int osi_process_tx_completions(struct osi_dma_priv_data *osi,
 	osi->dstats.tx_clean_n[chan] =
 		osi_update_stats_counter(osi->dstats.tx_clean_n[chan], 1U);
 
-	while (entry != tx_ring->cur_tx_idx && entry < TX_DESC_CNT) {
+	while (entry != tx_ring->cur_tx_idx && entry < TX_DESC_CNT &&
+	       processed < budget) {
 		osi_memset(txdone_pkt_cx, 0U, sizeof(*txdone_pkt_cx));
 
 		tx_desc = tx_ring->tx_desc + entry;
@@ -437,6 +456,12 @@ int osi_process_tx_completions(struct osi_dma_priv_data *osi,
 				txdone_pkt_cx->flags |= OSI_TXDONE_CX_ERROR;
 				/* fill packet error stats */
 				get_tx_err_stats(tx_desc, osi->pkt_err_stats);
+			} else {
+				inc_tx_pkt_stats(osi, chan);
+			}
+
+			if (processed < INT_MAX) {
+				processed++;
 			}
 		}
 
@@ -482,9 +507,6 @@ int osi_process_tx_completions(struct osi_dma_priv_data *osi,
 		tx_swcx->buf_phy_addr = 0;
 		tx_swcx->is_paged_buf = 0;
 		INCR_TX_DESC_INDEX(entry, 1U);
-		if (processed < INT_MAX) {
-			processed++;
-		}
 
 		/* Don't wait to update tx_ring->clean-idx. It will
 		 * be used by OSD layer to determine the num. of available
@@ -492,11 +514,6 @@ int osi_process_tx_completions(struct osi_dma_priv_data *osi,
 		 * wake the corresponding transmit queue in OS layer.
 		 */
 		tx_ring->clean_idx = entry;
-		osi->dstats.q_tx_pkt_n[chan] =
-			osi_update_stats_counter(osi->dstats.q_tx_pkt_n[chan],
-						 1UL);
-		osi->dstats.tx_pkt_n =
-			osi_update_stats_counter(osi->dstats.tx_pkt_n, 1UL);
 	}
 
 	return processed;
