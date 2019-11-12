@@ -175,7 +175,9 @@ struct gops_pmu {
 	 *
 	 * @param void
 	 *
-	 * @return address.
+	 * @return Chip specific PMU Engine Falcon base address.
+	 *         For GV11B, GV11B PMU Engine Falcon base address will be
+	 *         returned.
 	 */
 	u32 (*falcon_base_addr)(void);
 
