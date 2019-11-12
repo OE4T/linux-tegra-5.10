@@ -242,6 +242,11 @@ static int init_test_env(struct unit_module *m, struct gk20a *g)
 	 * preparation
 	 */
 
+	err = g->ops.ecc.ecc_init_support(g);
+	if (err != 0) {
+		unit_return_fail(m, "ecc init failed\n");
+	}
+
 	err = g->ops.mm.init_mm_support(g);
 	if (err != 0) {
 		unit_return_fail(m, "failed to init gk20a mm");
@@ -384,6 +389,11 @@ int test_acr_construct_execute(struct unit_module *m,
 		unit_return_fail(m, "Bootstrap HS ACR failed");
 	}
 
+	err = g->ops.ecc.ecc_init_support(g);
+	if (err != 0) {
+		unit_return_fail(m, "ecc init failed\n");
+	}
+
 	/*
 	 * case 2: pass g->acr as NULL to create fail scenario
 	 */
@@ -469,7 +479,6 @@ int test_acr_prepare_ucode_blob(struct unit_module *m,
 	if (init_test_env(m, g) != 0) {
 		unit_return_fail(m, "Test env init failed\n");
 	}
-
 
 	nvgpu_mutex_acquire(&g->tpc_pg_lock);
 

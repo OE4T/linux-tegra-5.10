@@ -356,7 +356,7 @@ int test_get_put(struct unit_module *m,
 	/* to cover the cases where these are set */
 	g->remove_support = no_return;
 	g->gfree = no_return;
-	g->ops.gr.ecc.ecc_remove_support = no_return;
+	g->ops.ecc.ecc_remove_support = no_return;
 	g->ops.ltc.ltc_remove_support = no_return;
 
 	if (g != nvgpu_get(g)) {
@@ -494,6 +494,7 @@ static void set_poweron_funcs_success(struct gk20a *g)
 	unsigned int i = 0;
 
 	/* these are the simple case of just taking a g param */
+	setup_simple_init_func_success(&g->ops.ecc.ecc_init_support, i++);
 	setup_simple_init_func_success(&g->ops.mm.pd_cache_init, i++);
 	setup_simple_init_func_success(&g->ops.clk.init_clk_support, i++);
 	setup_simple_init_func_success(&g->ops.nvlink.init, i++);
@@ -508,7 +509,7 @@ static void set_poweron_funcs_success(struct gk20a *g)
 	setup_simple_init_func_success(&g->ops.gr.gr_enable_hw, i++);
 	setup_simple_init_func_success(&g->ops.fbp.fbp_init_support, i++);
 	setup_simple_init_func_success(&g->ops.gr.gr_init_support, i++);
-	setup_simple_init_func_success(&g->ops.gr.ecc.ecc_init_support, i++);
+	setup_simple_init_func_success(&g->ops.ecc.ecc_finalize_support, i++);
 	setup_simple_init_func_success(&g->ops.therm.init_therm_support, i++);
 	setup_simple_init_func_success(&g->ops.ce.ce_init_support, i++);
 	setup_simple_init_func_success(&g->ops.bus.init_hw, i++);
@@ -618,7 +619,7 @@ int test_poweron_branches(struct unit_module *m, struct gk20a *g, void *args)
 	g->ops.fb.mem_unlock = NULL;
 	g->ops.tpc.tpc_powergate = NULL;
 	g->ops.therm.elcg_init_idle_filters = NULL;
-	g->ops.gr.ecc.ecc_init_support = NULL;
+	g->ops.ecc.ecc_init_support = NULL;
 	g->ops.channel.resume_all_serviceable_ch = NULL;
 	nvgpu_set_power_state(g, NVGPU_STATE_POWERED_OFF);
 	err = nvgpu_finalize_poweron(g);

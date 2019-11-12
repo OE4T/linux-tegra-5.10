@@ -21,7 +21,7 @@
  */
 
 #include <nvgpu/io.h>
-#include <nvgpu/ecc.h>
+#include <nvgpu/gr/gr_ecc.h>
 #include <nvgpu/gk20a.h>
 
 #include <nvgpu/hw/gv11b/hw_gr_gv11b.h>
@@ -251,69 +251,7 @@ init_gpc_done:
 	return err;
 }
 
-static int gv11b_ecc_init_fb(struct gk20a *g)
-{
-	int err = 0;
-
-	err = NVGPU_ECC_COUNTER_INIT_FB(mmu_l2tlb_ecc_uncorrected_err_count);
-	if (err != 0) {
-		goto init_fb_done;
-	}
-	err = NVGPU_ECC_COUNTER_INIT_FB(mmu_l2tlb_ecc_corrected_err_count);
-	if (err != 0) {
-		goto init_fb_done;
-	}
-	err = NVGPU_ECC_COUNTER_INIT_FB(mmu_hubtlb_ecc_uncorrected_err_count);
-	if (err != 0) {
-		goto init_fb_done;
-	}
-	err = NVGPU_ECC_COUNTER_INIT_FB(mmu_hubtlb_ecc_corrected_err_count);
-	if (err != 0) {
-		goto init_fb_done;
-	}
-	err = NVGPU_ECC_COUNTER_INIT_FB(
-			mmu_fillunit_ecc_uncorrected_err_count);
-	if (err != 0) {
-		goto init_fb_done;
-	}
-	err = NVGPU_ECC_COUNTER_INIT_FB(
-			mmu_fillunit_ecc_corrected_err_count);
-
-init_fb_done:
-	return err;
-}
-
-static int gv11b_ecc_init_other_units(struct gk20a *g)
-{
-	int err = 0;
-
-	err = NVGPU_ECC_COUNTER_INIT_PER_LTS(ecc_sec_count);
-	if (err != 0) {
-		goto init_other_done;
-	}
-	err = NVGPU_ECC_COUNTER_INIT_PER_LTS(ecc_ded_count);
-	if (err != 0) {
-		goto init_other_done;
-	}
-	err = NVGPU_ECC_COUNTER_INIT_GR(fecs_ecc_uncorrected_err_count);
-	if (err != 0) {
-		goto init_other_done;
-	}
-	err = NVGPU_ECC_COUNTER_INIT_GR(fecs_ecc_corrected_err_count);
-	if (err != 0) {
-		goto init_other_done;
-	}
-	err = NVGPU_ECC_COUNTER_INIT_PMU(pmu_ecc_uncorrected_err_count);
-	if (err != 0) {
-		goto init_other_done;
-	}
-	err = NVGPU_ECC_COUNTER_INIT_PMU(pmu_ecc_corrected_err_count);
-
-init_other_done:
-	return err;
-}
-
-int gv11b_ecc_init(struct gk20a *g)
+int gv11b_gr_ecc_init(struct gk20a *g)
 {
 	int err;
 
@@ -327,12 +265,14 @@ int gv11b_ecc_init(struct gk20a *g)
 		goto done;
 	}
 
-	err = gv11b_ecc_init_fb(g);
+	err = NVGPU_ECC_COUNTER_INIT_GR(fecs_ecc_uncorrected_err_count);
 	if (err != 0) {
 		goto done;
 	}
-
-	err = gv11b_ecc_init_other_units(g);
+	err = NVGPU_ECC_COUNTER_INIT_GR(fecs_ecc_corrected_err_count);
+	if (err != 0) {
+		goto done;
+	}
 
 done:
 	if (err != 0) {

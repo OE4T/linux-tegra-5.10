@@ -64,6 +64,18 @@ struct gops_ltc_intr {
  */
 struct gops_ltc {
 	/**
+	 * @brief Initialize LTC unit ECC support.
+	 *
+	 * @param g [in]		Pointer to GPU driver struct.
+	 *
+	 * This function allocates memory to track the ecc error counts
+	 * for LTC unit.
+	 *
+	 * @return 0 in case of success, < 0 in case of failure.
+	 */
+	int (*ecc_init)(struct gk20a *g);
+
+	/**
 	 * @brief Initialize LTC support.
 	 *
 	 * @param g [in]		Pointer to GPU driver struct.

@@ -80,29 +80,16 @@ enum nvgpu_event_id_type;
  */
 struct gops_gr_ecc {
 	/**
-	 * @brief Initialize ECC support.
+	 * @brief Initialize GR unit ECC support.
 	 *
 	 * @param g [in]		Pointer to GPU driver struct.
 	 *
 	 * This function allocates memory to track the ecc error counts
-	 * for all units (like GR/LTC/FB/PMU) and subunits of GR
-	 * (like falcon/sm/gpccs/etc). All these allocated memory
-	 * is tracked as a list.
+	 * for GR unit and subunits of GR (like falcon/sm/gpccs/etc).
 	 *
 	 * @return 0 in case of success, < 0 in case of failure.
-	 * @retval -ENOMEM if memory allocation fail for any unit.
 	 */
-	int (*ecc_init_support)(struct gk20a *g);
-
-	/**
-	 * @brief Remove ECC support.
-	 *
-	 * @param g [in]		Pointer to GPU driver struct.
-	 *
-	 * This function frees all the memory allocated for keeping
-	 * track of ecc error counts for each GR engine units.
-	 */
-	void (*ecc_remove_support)(struct gk20a *g);
+	int (*init)(struct gk20a *g);
 
 	/**
 	 * @brief Detect ECC enabled units in GR engine.
@@ -118,7 +105,6 @@ struct gops_gr_ecc {
 	void (*detect)(struct gk20a *g);
 
 	/** @cond DOXYGEN_SHOULD_SKIP_THIS */
-	int (*init)(struct gk20a *g);
 	struct nvgpu_hw_err_inject_info_desc * (*get_mmu_err_desc)
 						(struct gk20a *g);
 	struct nvgpu_hw_err_inject_info_desc * (*get_gcc_err_desc)

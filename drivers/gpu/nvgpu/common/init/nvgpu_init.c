@@ -502,6 +502,13 @@ int nvgpu_finalize_poweron(struct gk20a *g)
 		 * Do this early so any early VMs that get made are capable of
 		 * mapping buffers.
 		 */
+		/**
+		 * ECC support initialization is split into generic init
+		 * followed by per unit initialization and ends with sysfs
+		 * support init. This is done to setup ECC data structures
+		 * prior to enabling interrupts for corresponding units.
+		 */
+		NVGPU_INIT_TABLE_ENTRY(g->ops.ecc.ecc_init_support, NO_FLAG),
 		NVGPU_INIT_TABLE_ENTRY(g->ops.mm.pd_cache_init, NO_FLAG),
 		NVGPU_INIT_TABLE_ENTRY(&nvgpu_falcons_sw_init, NO_FLAG),
 		NVGPU_INIT_TABLE_ENTRY(g->ops.pmu.pmu_early_init, NO_FLAG),
@@ -561,7 +568,12 @@ int nvgpu_finalize_poweron(struct gk20a *g)
 #endif
 		NVGPU_INIT_TABLE_ENTRY(g->ops.fbp.fbp_init_support, NO_FLAG),
 		NVGPU_INIT_TABLE_ENTRY(g->ops.gr.gr_init_support, NO_FLAG),
-		NVGPU_INIT_TABLE_ENTRY(g->ops.gr.ecc.ecc_init_support, NO_FLAG),
+		/**
+		 * All units requiring ECC stats must initialize ECC counters
+		 * before this call to finalize ECC support.
+		 */
+		NVGPU_INIT_TABLE_ENTRY(g->ops.ecc.ecc_finalize_support,
+				       NO_FLAG),
 		NVGPU_INIT_TABLE_ENTRY(&nvgpu_init_release_tpc_pg_lock,
 				       NO_FLAG),
 #ifdef CONFIG_NVGPU_LS_PMU
@@ -732,8 +744,8 @@ static void gk20a_free_cb(struct nvgpu_ref *refcount)
 	}
 #endif
 
-	if (g->ops.gr.ecc.ecc_remove_support != NULL) {
-		g->ops.gr.ecc.ecc_remove_support(g);
+	if (g->ops.ecc.ecc_remove_support != NULL) {
+		g->ops.ecc.ecc_remove_support(g);
 	}
 
 	if (g->remove_support != NULL) {

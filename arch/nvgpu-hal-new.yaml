@@ -474,9 +474,7 @@ gr:
       safe: no
       sources: [hal/gr/ecc/ecc_gv11b.c,
                 hal/gr/ecc/ecc_gp10b.c,
-                hal/gr/ecc/ecc_tu104.c,
-                hal/gr/ecc/ecc_gp10b.h,
-                hal/gr/ecc/ecc_tu104.h ]
+                hal/gr/ecc/ecc_gp10b.h ]
     ctxsw_prog_fusa:
       safe: yes
       sources: [ hal/gr/ctxsw_prog/ctxsw_prog_gm20b_fusa.c,

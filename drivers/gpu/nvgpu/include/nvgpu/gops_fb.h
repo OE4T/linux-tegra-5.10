@@ -93,6 +93,50 @@ struct gops_fb_intr {
  */
 struct gops_fb {
 	/**
+	 * @brief Initialize FB unit ECC support.
+	 *
+	 * @param g [in]		Pointer to GPU driver struct.
+	 *
+	 * This function allocates memory to track the ecc error counts
+	 * for FB unit.
+	 *
+	 * @return 0 in case of success, < 0 in case of failure.
+	 */
+	int (*fb_ecc_init)(struct gk20a *g);
+
+	/**
+	 * @brief Free FB unit ECC support.
+	 *
+	 * @param g [in]		Pointer to GPU driver struct.
+	 *
+	 * This function deallocates memory allocated for ecc error counts
+	 * for FB unit.
+	 */
+	void (*fb_ecc_free)(struct gk20a *g);
+
+	/**
+	 * @brief Initialize FBPA unit ECC support.
+	 *
+	 * @param g [in]		Pointer to GPU driver struct.
+	 *
+	 * This function allocates memory to track the ecc error counts
+	 * for FBPA unit.
+	 *
+	 * @return 0 in case of success, < 0 in case of failure.
+	 */
+	int (*fbpa_ecc_init)(struct gk20a *g);
+
+	/**
+	 * @brief Free FBPA unit ECC support.
+	 *
+	 * @param g [in]		Pointer to GPU driver struct.
+	 *
+	 * This function deallocates memory allocated for ecc error counts
+	 * for FBPA unit.
+	 */
+	void (*fbpa_ecc_free)(struct gk20a *g);
+
+	/**
 	 * @brief Initializes frame buffer h/w configuration.
 	 *
 	 * @param g [in]		Pointer to GPU driver struct.

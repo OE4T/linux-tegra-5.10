@@ -35,4 +35,16 @@ struct nvgpu_cbc;
 void gv11b_fb_cbc_configure(struct gk20a *g, struct nvgpu_cbc *cbc);
 #endif
 
+/*
+ * @brief Allocate and initialize counters for memories within FB.
+ *
+ * @param stat [in] Address of pointer to struct nvgpu_ecc_stat.
+ *
+ */
+#define NVGPU_ECC_COUNTER_INIT_FB(stat) \
+	nvgpu_ecc_counter_init(g, &g->ecc.fb.stat, #stat)
+
+int gv11b_fb_ecc_init(struct gk20a *g);
+void gv11b_fb_ecc_free(struct gk20a *g);
+
 #endif /* NVGPU_FB_GV11B_H */

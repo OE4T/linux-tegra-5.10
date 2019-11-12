@@ -22,6 +22,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
+#include <nvgpu/string.h>
 #include <nvgpu/types.h>
 #include <nvgpu/io.h>
 #include <nvgpu/gk20a.h>
@@ -52,11 +53,6 @@ static void tu104_fbpa_handle_ecc_intr(struct gk20a *g,
 
 	status = gk20a_readl(g, offset + fbpa_0_ecc_status_r(subp_id));
 
-	if (!g->ecc.initialized) {
-		nvgpu_info(g, "ecc support is not initialized");
-		goto out;
-	}
-
 	if ((status & fbpa_0_ecc_status_sec_counter_overflow_pending_f()) != 0U) {
 		nvgpu_err(g, "fbpa %u subp %u ecc sec counter overflow",
 				fbpa_id, subp_id);
@@ -81,7 +77,6 @@ static void tu104_fbpa_handle_ecc_intr(struct gk20a *g,
 		g->ecc.fbpa.fbpa_ecc_ded_err_count[cnt_idx].counter += ded_cnt;
 	}
 
-out:
 	gk20a_writel(g, offset + fbpa_0_ecc_status_r(subp_id), status);
 }
 
@@ -108,4 +103,72 @@ void tu104_fbpa_handle_intr(struct gk20a *g, u32 fbpa_id)
 	if ((status & ecc_subp1_mask) != 0U) {
 		tu104_fbpa_handle_ecc_intr(g, fbpa_id, 1u);
 	}
+}
+
+int nvgpu_ecc_counter_init_per_fbpa(struct gk20a *g,
+		struct nvgpu_ecc_stat **stat, const char *name)
+{
+	u32 i;
+	u32 num_fbpa = nvgpu_get_litter_value(g, GPU_LIT_NUM_FBPAS);
+	struct nvgpu_ecc_stat *stats;
+	char fbpa_str[10] = {0};
+
+	stats = nvgpu_kzalloc(g, nvgpu_safe_mult_u64(sizeof(*stats),
+						     (size_t)num_fbpa));
+	if (stats == NULL) {
+		return -ENOMEM;
+	}
+
+	for (i = 0; i < num_fbpa; i++) {
+		/**
+		 * Store stats name as below:
+		 * fbpa<fbpa_value>_<name_string>
+		 */
+		(void)strcpy(stats[i].name, "fbpa");
+		(void)nvgpu_strnadd_u32(fbpa_str, i, sizeof(fbpa_str), 10U);
+		(void)strncat(stats[i].name, fbpa_str,
+					NVGPU_ECC_STAT_NAME_MAX_SIZE -
+					strlen(stats[i].name));
+		(void)strncat(stats[i].name, "_",
+					NVGPU_ECC_STAT_NAME_MAX_SIZE -
+					strlen(stats[i].name));
+		(void)strncat(stats[i].name, name,
+					NVGPU_ECC_STAT_NAME_MAX_SIZE -
+					strlen(stats[i].name));
+
+		nvgpu_ecc_stat_add(g, &stats[i]);
+	}
+
+	*stat = stats;
+	return 0;
+}
+
+int tu104_fbpa_ecc_init(struct gk20a *g)
+{
+	int err;
+
+	err = NVGPU_ECC_COUNTER_INIT_PER_FBPA(fbpa_ecc_sec_err_count);
+	if (err != 0) {
+		goto done;
+	}
+	err = NVGPU_ECC_COUNTER_INIT_PER_FBPA(fbpa_ecc_ded_err_count);
+	if (err != 0) {
+		goto done;
+	}
+
+done:
+	if (err != 0) {
+		nvgpu_err(g, "ecc counter allocate failed, err=%d", err);
+		nvgpu_ecc_free(g);
+	}
+
+	return err;
+}
+
+void tu104_fbpa_ecc_free(struct gk20a *g)
+{
+	struct nvgpu_ecc *ecc = &g->ecc;
+
+	nvgpu_kfree(g, ecc->fbpa.fbpa_ecc_sec_err_count);
+	nvgpu_kfree(g, ecc->fbpa.fbpa_ecc_ded_err_count);
 }

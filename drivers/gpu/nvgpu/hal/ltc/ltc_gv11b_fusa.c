@@ -57,3 +57,26 @@ void gv11b_ltc_init_fs_state(struct gk20a *g)
 	g->ops.ltc.intr.configure(g);
 
 }
+
+int gv11b_lts_ecc_init(struct gk20a *g)
+{
+	int err = 0;
+
+	err = NVGPU_ECC_COUNTER_INIT_PER_LTS(ecc_sec_count);
+	if (err != 0) {
+		goto done;
+	}
+
+	err = NVGPU_ECC_COUNTER_INIT_PER_LTS(ecc_ded_count);
+	if (err != 0) {
+		goto done;
+	}
+
+done:
+	if (err != 0) {
+		nvgpu_err(g, "ecc counter allocate failed, err=%d", err);
+		nvgpu_ecc_free(g);
+	}
+
+	return err;
+}

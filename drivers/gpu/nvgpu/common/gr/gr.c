@@ -487,6 +487,13 @@ static int gr_init_setup_sw(struct gk20a *g)
 		goto clean_up;
 	}
 
+	if (g->ops.gr.ecc.init != NULL && !g->ecc.initialized) {
+		err = g->ops.gr.ecc.init(g);
+		if (err != 0) {
+			goto clean_up;
+		}
+	}
+
 	gr->remove_support = gr_remove_support;
 	gr->sw_ready = true;
 

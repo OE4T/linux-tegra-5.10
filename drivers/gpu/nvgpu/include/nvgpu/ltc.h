@@ -32,7 +32,7 @@
 #include <nvgpu/lock.h>
 
 struct gk20a;
-
+struct nvgpu_ecc_stat;
 /**
  * LTC data structure.
  *
@@ -52,6 +52,41 @@ struct nvgpu_ltc {
 	/** Cache line size in bytes is read from h/w ltc cbc register. */
 	u32 cacheline_size;
 };
+
+/**
+ * @brief Allocate and initialize a error counters for all ltc-lts instances.
+ *
+ * @param g [in] The GPU driver struct.
+ * @param stat [out] Pointer to array of tpc error counters.
+ * @param name [in] Unique name for error counter.
+ *
+ * Calculates the total number of ltc-lts instances, allocates memory for each
+ * instance of error counter, initializes the counter with 0 and the specified
+ * string identifier. Finally the counter is added to the stats_list of
+ * struct nvgpu_ecc.
+ *
+ * @return 0 in case of success, less than 0 for failure.
+ */
+int nvgpu_ecc_counter_init_per_lts(struct gk20a *g,
+		struct nvgpu_ecc_stat ***stat, const char *name);
+
+/*
+ * @brief Allocate and initialize counters for memories within ltc-lts
+ *
+ * @param stat [in] Address of pointer to struct nvgpu_ecc_stat.
+ *
+ */
+#define NVGPU_ECC_COUNTER_INIT_PER_LTS(stat) \
+	nvgpu_ecc_counter_init_per_lts(g, &g->ecc.ltc.stat, #stat)
+
+/**
+ * @brief Release all LTC ECC stats counters.
+ *
+ * @param g [in] The GPU driver struct.
+ *
+ * Frees all error counters associated with the LTC unit.
+ */
+void nvgpu_ltc_ecc_free(struct gk20a *g);
 
 /**
  * @brief Initialize #nvgpu_ltc structure.

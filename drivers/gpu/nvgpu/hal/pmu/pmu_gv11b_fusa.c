@@ -315,3 +315,34 @@ bool gv11b_is_pmu_supported(struct gk20a *g)
 	return false;
 #endif
 }
+
+int gv11b_pmu_ecc_init(struct gk20a *g)
+{
+	int err = 0;
+
+	err = NVGPU_ECC_COUNTER_INIT_PMU(pmu_ecc_uncorrected_err_count);
+	if (err != 0) {
+		goto done;
+	}
+
+	err = NVGPU_ECC_COUNTER_INIT_PMU(pmu_ecc_corrected_err_count);
+	if (err != 0) {
+		goto done;
+	}
+
+done:
+	if (err != 0) {
+		nvgpu_err(g, "ecc counter allocate failed, err=%d", err);
+		nvgpu_ecc_free(g);
+	}
+
+	return err;
+}
+
+void gv11b_pmu_ecc_free(struct gk20a *g)
+{
+	struct nvgpu_ecc *ecc = &g->ecc;
+
+	nvgpu_kfree(g, ecc->pmu.pmu_ecc_corrected_err_count);
+	nvgpu_kfree(g, ecc->pmu.pmu_ecc_uncorrected_err_count);
+}

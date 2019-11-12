@@ -37,13 +37,13 @@
  * Overview
  * ========
  * The memories within the GPU are protected using data integrity protection
- * mechanism like ecc or parity. This unit is responsible for allocating,
- * initializing and maintaining error counters for all memories which support
- * ecc/parity protection.
+ * mechanism like ecc or parity. This unit is responsible for maintaining
+ * error counters for all memories which support ecc/parity protection in
+ * a list.
  *
  * + Initialization:
- *   This unit allocates and initializes error counters (corrected and
- *   uncorrected) for each memory and concatenates them into a list.
+ *   This unit concatenates error counters (corrected and uncorrected) for
+ *   each memory into a list.
  *
  * Data Structures
  * ===============
@@ -250,66 +250,12 @@ struct nvgpu_ecc {
 	struct nvgpu_list_node stats_list;
 	/** Contains the number of error statistics. */
 	int stats_count;
-	/** Flag stores the initialization status of ECC unit. */
+	/**
+	 * Indicates if ECC initialization (counters allocation and sysfs
+	 * setup) is completed.
+	 */
 	bool initialized;
 };
-
-/**
- * @brief Allocate and initialize error counter specified by name for all
- * gpc-tpc instances.
- *
- * @param g [in] The GPU driver struct.
- * @param stat [out] Pointer to array of pointers of error counters.
- * @param name [in] Unique name for error counter.
- *
- * Calculates the total number of tpcs across all gpcs within the gr unit.
- * Then allocates, initializes memory to hold error counters associated with all
- * tpcs, which is then added to the stats_list in struct nvgpu_ecc.
- *
- * @return 0 in case of success, less than 0 for failure.
- */
-int nvgpu_ecc_counter_init_per_tpc(struct gk20a *g,
-		struct nvgpu_ecc_stat ***stat, const char *name);
-/*
- * @brief Allocate and initalize counter for memories common across a TPC.
- *
- * @param stat [in] Address of pointer to struct nvgpu_ecc_stat.
- *
- */
-#define NVGPU_ECC_COUNTER_INIT_PER_TPC(stat)		\
-	do {						\
-		int err = 0;				\
-		err = nvgpu_ecc_counter_init_per_tpc(g,	\
-				&g->ecc.gr.stat, #stat);\
-		if (err != 0) {				\
-			return err;			\
-		}					\
-	} while (false)
-
-/**
- * @brief Allocate and initialize error counter specified by name for all gpc
- * instances.
- *
- * @param g [in] The GPU driver struct.
- * @param stat [out] Pointer to array of tpc error counters.
- * @param name [in] Unique name for error counter.
- *
- * Calculates the total number of gpcs within the gr unit. Then allocates,
- * initializes memory to hold error counters associated with all gpcs, which is
- * then added to the stats_list in struct nvgpu_ecc.
- *
- * @return 0 in case of success, less than 0 for failure.
- */
-int nvgpu_ecc_counter_init_per_gpc(struct gk20a *g,
-		struct nvgpu_ecc_stat **stat, const char *name);
-/*
- * @brief Allocate and initalize counters for memories shared across a GPC.
- *
- * @param stat [in] Address of pointer to struct nvgpu_ecc_stat.
- *
- */
-#define NVGPU_ECC_COUNTER_INIT_PER_GPC(stat) \
-	nvgpu_ecc_counter_init_per_gpc(g, &g->ecc.gr.stat, #stat)
 
 /**
  * @brief Allocates, initializes an error counter with specified name.
@@ -326,74 +272,16 @@ int nvgpu_ecc_counter_init_per_gpc(struct gk20a *g,
  */
 int nvgpu_ecc_counter_init(struct gk20a *g,
 		struct nvgpu_ecc_stat **stat, const char *name);
-/*
- * @brief Allocate and initalize counters for memories shared within GR.
- *
- * @param stat [in] Address of pointer to struct nvgpu_ecc_stat.
- *
- */
-#define NVGPU_ECC_COUNTER_INIT_GR(stat) \
-	nvgpu_ecc_counter_init(g, &g->ecc.gr.stat, #stat)
-/*
- * @brief Allocate and initalize counters for memories within FB.
- *
- * @param stat [in] Address of pointer to struct nvgpu_ecc_stat.
- *
- */
-#define NVGPU_ECC_COUNTER_INIT_FB(stat) \
-	nvgpu_ecc_counter_init(g, &g->ecc.fb.stat, #stat)
-/*
- * @brief Allocate and initalize counter for memories within PMU.
- *
- * @param stat [in] Address of pointer to struct nvgpu_ecc_stat.
- *
- */
-#define NVGPU_ECC_COUNTER_INIT_PMU(stat) \
-	nvgpu_ecc_counter_init(g, &g->ecc.pmu.stat, #stat)
 
 /**
- * @brief Allocate and initialize a error counters for all ltc-lts instances.
+ * @brief Concatenates the error counter to status list.
  *
  * @param g [in] The GPU driver struct.
- * @param stat [out] Pointer to array of tpc error counters.
- * @param name [in] Unique name for error counter.
+ * @param stat [out] Pointer to error counter.
  *
- * Calculates the total number of ltc-lts instances, allocates memory for each
- * instance of error counter, initializes the counter with 0 and the specified
- * string identifier. Finally the counter is added to the stats_list of
- * struct nvgpu_ecc.
- *
- * @return 0 in case of success, less than 0 for failure.
+ * The counter is added to the status_list of struct nvgpu_ecc.
  */
-int nvgpu_ecc_counter_init_per_lts(struct gk20a *g,
-		struct nvgpu_ecc_stat ***stat, const char *name);
-/*
- * @brief Allocate and initalize counters for memories within ltc-lts
- *
- * @param stat [in] Address of pointer to struct nvgpu_ecc_stat.
- *
- */
-#define NVGPU_ECC_COUNTER_INIT_PER_LTS(stat) \
-	nvgpu_ecc_counter_init_per_lts(g, &g->ecc.ltc.stat, #stat)
-
-/**
- * @brief Allocate and initialize error counters for all fbpa instances.
- *
- * @param g [in] The GPU driver struct.
- * @param stat [out] Pointer to array of tpc error counters.
- * @param name [in] Unique name for error counter.
- *
- * Calculates the total number of fbpa instances, allocates memory for each
- * instance of error counter, initializes the counter with 0 and the specified
- * string identifier. Finally the counter is added to the stats_list of
- * struct nvgpu_ecc.
- *
- * @return 0 in case of success, less than 0 for failure.
- */
-int nvgpu_ecc_counter_init_per_fbpa(struct gk20a *g,
-		struct nvgpu_ecc_stat **stat, const char *name);
-#define NVGPU_ECC_COUNTER_INIT_PER_FBPA(stat) \
-	nvgpu_ecc_counter_init_per_fbpa(g, &g->ecc.fbpa.stat, #stat)
+void nvgpu_ecc_stat_add(struct gk20a *g, struct nvgpu_ecc_stat *stat);
 
 /**
  * @brief Release memory associated with all error counters.
@@ -406,8 +294,7 @@ int nvgpu_ecc_counter_init_per_fbpa(struct gk20a *g,
 void nvgpu_ecc_free(struct gk20a *g);
 
 /**
- * @brief Allocates and initializes error counters for memories within gpu
- * hardware units.
+ * @brief Initializes error counters list.
  *
  * @param g [in] The GPU driver struct.
  *
@@ -421,6 +308,13 @@ int nvgpu_ecc_init_support(struct gk20a *g);
  * @param g [in] The GPU driver struct.
  */
 void nvgpu_ecc_remove_support(struct gk20a *g);
+
+/**
+ * @brief Finish ECC support initialization.
+ *
+ * @param g [in] The GPU driver struct.
+ */
+int nvgpu_ecc_finalize_support(struct gk20a *g);
 
 #ifdef CONFIG_NVGPU_SYSFS
 int nvgpu_ecc_sysfs_init(struct gk20a *g);

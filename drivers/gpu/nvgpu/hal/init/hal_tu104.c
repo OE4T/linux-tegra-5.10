@@ -111,7 +111,7 @@
 #include "hal/fifo/engine_status_gv100.h"
 #include "hal/fifo/pbdma_status_gm20b.h"
 #include "hal/fifo/ctxsw_timeout_gv11b.h"
-#include "hal/gr/ecc/ecc_tu104.h"
+#include "hal/gr/ecc/ecc_gv11b.h"
 #include "hal/gr/fecs_trace/fecs_trace_gm20b.h"
 #include "hal/gr/fecs_trace/fecs_trace_gv11b.h"
 #include "hal/gr/falcon/gr_falcon_gm20b.h"
@@ -256,7 +256,13 @@ static const struct gpu_ops tu104_ops = {
 #endif /* CONFIG_NVGPU_DGPU */
 		.get_aon_secure_scratch_reg = tu104_get_aon_secure_scratch_reg,
 	},
+	.ecc = {
+		.ecc_init_support = nvgpu_ecc_init_support,
+		.ecc_finalize_support = nvgpu_ecc_finalize_support,
+		.ecc_remove_support = nvgpu_ecc_remove_support,
+	},
 	.ltc = {
+		.ecc_init = gv11b_lts_ecc_init,
 		.init_ltc_support = nvgpu_init_ltc_support,
 		.ltc_remove_support = nvgpu_ltc_remove_support,
 		.determine_L2_size_bytes = gp10b_determine_L2_size_bytes,
@@ -374,10 +380,8 @@ static const struct gpu_ops tu104_ops = {
 		.esr_bpt_pending_events = gv11b_gr_esr_bpt_pending_events,
 #endif /* CONFIG_NVGPU_DEBUGGER */
 		.ecc = {
-			.ecc_init_support = nvgpu_ecc_init_support,
-			.ecc_remove_support = nvgpu_ecc_remove_support,
 			.detect = NULL,
-			.init = tu104_ecc_init,
+			.init = gv11b_gr_ecc_init,
 		},
 		.ctxsw_prog = {
 			.hw_get_fecs_header_size =
@@ -792,6 +796,10 @@ static const struct gpu_ops tu104_ops = {
 #endif
 	},
 	.fb = {
+		.fb_ecc_init = gv11b_fb_ecc_init,
+		.fb_ecc_free = gv11b_fb_ecc_free,
+		.fbpa_ecc_init = tu104_fbpa_ecc_init,
+		.fbpa_ecc_free = tu104_fbpa_ecc_free,
 		.init_hw = gv11b_fb_init_hw,
 		.init_fs_state = gp106_fb_init_fs_state,
 		.set_mmu_page_size = NULL,
@@ -1186,6 +1194,9 @@ static const struct gpu_ops tu104_ops = {
 	},
 #ifdef CONFIG_NVGPU_LS_PMU
 	.pmu = {
+		.ecc_init = gv11b_pmu_ecc_init,
+		.ecc_free = gv11b_pmu_ecc_free,
+
 		/* Init */
 		.pmu_early_init = nvgpu_pmu_early_init,
 		.pmu_rtos_init = nvgpu_pmu_rtos_init,
@@ -1553,6 +1564,7 @@ int tu104_init_hal(struct gk20a *g)
 
 	gops->bios = tu104_ops.bios;
 	gops->acr = tu104_ops.acr;
+	gops->ecc = tu104_ops.ecc;
 	gops->fbp = tu104_ops.fbp;
 	gops->ltc = tu104_ops.ltc;
 #ifdef CONFIG_NVGPU_COMPRESSION

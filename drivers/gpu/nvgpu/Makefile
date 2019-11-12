@@ -109,6 +109,7 @@ nvgpu-y += \
 	common/gr/hwpm_map.o \
 	common/gr/obj_ctx.o \
 	common/gr/fs_state.o \
+	common/gr/gr_ecc.o \
 	common/netlist/netlist.o \
 	common/init/nvgpu_init.o \
 	common/pmu/pmu.o \
@@ -206,7 +207,6 @@ nvgpu-y += \
 	hal/clk/clk_tu104.o \
 	hal/gr/ecc/ecc_gp10b.o \
 	hal/gr/ecc/ecc_gv11b.o \
-	hal/gr/ecc/ecc_tu104.o \
 	hal/gr/zcull/zcull_gm20b.o \
 	hal/gr/zcull/zcull_gv11b.o \
 	hal/gr/ctxsw_prog/ctxsw_prog_gp10b.o \

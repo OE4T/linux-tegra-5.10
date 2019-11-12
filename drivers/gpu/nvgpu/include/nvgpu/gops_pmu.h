@@ -37,6 +37,28 @@ struct nvgpu_hw_err_inject_info_desc;
  * @see gpu_ops
  */
 struct gops_pmu {
+	/**
+	 * @brief Initialize PMU unit ECC support.
+	 *
+	 * @param g [in]		Pointer to GPU driver struct.
+	 *
+	 * This function allocates memory to track the ecc error counts
+	 * for PMU unit.
+	 *
+	 * @return 0 in case of success, < 0 in case of failure.
+	 */
+	int (*ecc_init)(struct gk20a *g);
+
+	/**
+	 * @brief Free PMU unit ECC support.
+	 *
+	 * @param g [in]		Pointer to GPU driver struct.
+	 *
+	 * This function deallocates memory allocated for ecc error counts
+	 * for PMU unit.
+	 */
+	void (*ecc_free)(struct gk20a *g);
+
 	/** @cond DOXYGEN_SHOULD_SKIP_THIS */
 
 	/**

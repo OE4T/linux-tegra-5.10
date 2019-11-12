@@ -66,7 +66,8 @@ ecc:
   safe: yes
   owner: Antony C
   sources: [ common/ecc.c,
-             include/nvgpu/ecc.h ]
+             include/nvgpu/ecc.h,
+             include/nvgpu/gops_ecc.h ]
   deps:
 
 log:
@@ -458,6 +459,10 @@ gr:
       safe: yes
       sources: [ common/gr/gr_setup.c,
                  include/nvgpu/gr/setup.h ]
+    ecc:
+      safe: yes
+      sources: [ common/gr/gr_ecc.c,
+                 include/nvgpu/gr/gr_ecc.h ]
 
 fbp:
   safe: yes

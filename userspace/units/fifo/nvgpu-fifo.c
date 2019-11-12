@@ -121,6 +121,7 @@ int test_fifo_init_support(struct unit_module *m, struct gk20a *g, void *args)
 	 */
 	g->ops.userd.setup_sw = stub_userd_setup_sw;
 #endif
+	g->ops.ecc.ecc_init_support(g);
 	g->ops.mm.init_mm_support(g);
 
 	err = nvgpu_fifo_init_support(g);

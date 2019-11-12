@@ -66,4 +66,7 @@ void gv11b_pmu_inject_ecc_error(struct gk20a *g,
 
 #endif /* CONFIG_NVGPU_INJECT_HWERR */
 
+int gv11b_pmu_ecc_init(struct gk20a *g);
+void gv11b_pmu_ecc_free(struct gk20a *g);
+
 #endif /* PMU_GV11B_H */

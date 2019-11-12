@@ -31,6 +31,8 @@ struct nvgpu_hw_err_inject_info;
 struct nvgpu_hw_err_inject_info_desc;
 
 void gv11b_ltc_init_fs_state(struct gk20a *g);
+int gv11b_lts_ecc_init(struct gk20a *g);
+
 #ifdef CONFIG_NVGPU_GRAPHICS
 void gv11b_ltc_set_zbc_stencil_entry(struct gk20a *g,
 					  u32 stencil_depth,

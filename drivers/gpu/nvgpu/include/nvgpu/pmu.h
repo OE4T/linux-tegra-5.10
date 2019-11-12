@@ -385,5 +385,14 @@ int nvgpu_pmu_early_init(struct gk20a *g);
  */
 void nvgpu_pmu_remove_support(struct gk20a *g, struct nvgpu_pmu *pmu);
 
+/*
+ * @brief Allocate and initialize counter for memories within PMU.
+ *
+ * @param stat [in] Address of pointer to struct nvgpu_ecc_stat.
+ *
+ */
+#define NVGPU_ECC_COUNTER_INIT_PMU(stat) \
+	nvgpu_ecc_counter_init(g, &g->ecc.pmu.stat, #stat)
+
 #endif /* NVGPU_PMU_H */
 

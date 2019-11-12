@@ -117,6 +117,7 @@ int test_gr_init_support(struct unit_module *m, struct gk20a *g, void *args)
 
 	nvgpu_gr_init(g);
 
+	g->ops.ecc.ecc_init_support(g);
 	g->ops.ltc.init_ltc_support(g);
 	g->ops.mm.init_mm_support(g);
 
@@ -129,14 +130,6 @@ int test_gr_init_support(struct unit_module *m, struct gk20a *g, void *args)
 	err = nvgpu_gr_init_support(g);
 	if (err != 0) {
 		unit_return_fail(m, "nvgpu_gr_init_support returned fail\n");
-	}
-
-	/* gr ecc init */
-	if (g->ops.gr.ecc.ecc_init_support != NULL) {
-		err = g->ops.gr.ecc.ecc_init_support(g);
-		if (err != 0) {
-			unit_return_fail(m, "gr_ecc_init failed\n");
-		}
 	}
 
 	return UNIT_SUCCESS;

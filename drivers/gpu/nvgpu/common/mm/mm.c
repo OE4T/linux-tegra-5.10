@@ -543,6 +543,20 @@ static int nvgpu_init_mm_setup_sw(struct gk20a *g)
 		}
 	}
 
+	if (g->ops.fb.fb_ecc_init != NULL && !g->ecc.initialized) {
+		err = g->ops.fb.fb_ecc_init(g);
+		if (err != 0) {
+			return err;
+		}
+	}
+
+	if (g->ops.fb.fbpa_ecc_init != NULL && !g->ecc.initialized) {
+		err = g->ops.fb.fbpa_ecc_init(g);
+		if (err != 0) {
+			return err;
+		}
+	}
+
 	mm->remove_support = nvgpu_remove_mm_support;
 #ifdef CONFIG_NVGPU_DGPU
 	mm->remove_ce_support = nvgpu_remove_mm_ce_support;

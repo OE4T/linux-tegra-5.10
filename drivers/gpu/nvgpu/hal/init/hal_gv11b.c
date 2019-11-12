@@ -217,7 +217,13 @@ static const struct gpu_ops gv11b_ops = {
 		.bios_sw_init = nvgpu_bios_sw_init,
 	},
 #endif /* CONFIG_NVGPU_DGPU */
+	.ecc = {
+		.ecc_init_support = nvgpu_ecc_init_support,
+		.ecc_finalize_support = nvgpu_ecc_finalize_support,
+		.ecc_remove_support = nvgpu_ecc_remove_support,
+	},
 	.ltc = {
+		.ecc_init = gv11b_lts_ecc_init,
 		.init_ltc_support = nvgpu_init_ltc_support,
 		.ltc_remove_support = nvgpu_ltc_remove_support,
 #ifdef CONFIG_NVGPU_INJECT_HWERR
@@ -337,10 +343,8 @@ static const struct gpu_ops gv11b_ops = {
 		.esr_bpt_pending_events = gv11b_gr_esr_bpt_pending_events,
 #endif /* CONFIG_NVGPU_DEBUGGER */
 		.ecc = {
-			.ecc_init_support = nvgpu_ecc_init_support,
-			.ecc_remove_support = nvgpu_ecc_remove_support,
 			.detect = gv11b_ecc_detect_enabled_units,
-			.init = gv11b_ecc_init,
+			.init = gv11b_gr_ecc_init,
 #ifdef CONFIG_NVGPU_INJECT_HWERR
 			.get_mmu_err_desc =
 				gv11b_gr_intr_get_mmu_err_desc,
@@ -772,6 +776,8 @@ static const struct gpu_ops gv11b_ops = {
 #endif
 	},
 	.fb = {
+		.fb_ecc_init = gv11b_fb_ecc_init,
+		.fb_ecc_free = gv11b_fb_ecc_free,
 #ifdef CONFIG_NVGPU_INJECT_HWERR
 		.get_hubmmu_err_desc =
 			gv11b_fb_intr_get_hubmmu_err_desc,
@@ -1160,6 +1166,8 @@ static const struct gpu_ops gv11b_ops = {
 		.elcg_init_idle_filters = gv11b_elcg_init_idle_filters,
 	},
 	.pmu = {
+		.ecc_init = gv11b_pmu_ecc_init,
+		.ecc_free = gv11b_pmu_ecc_free,
 #ifdef CONFIG_NVGPU_INJECT_HWERR
 		.get_pmu_err_desc =
 			gv11b_pmu_intr_get_err_desc,
@@ -1438,6 +1446,7 @@ int gv11b_init_hal(struct gk20a *g)
 
 	gops->acr = gv11b_ops.acr;
 	gops->bios = gv11b_ops.bios;
+	gops->ecc = gv11b_ops.ecc;
 	gops->fbp = gv11b_ops.fbp;
 	gops->ltc = gv11b_ops.ltc;
 #ifdef CONFIG_NVGPU_COMPRESSION

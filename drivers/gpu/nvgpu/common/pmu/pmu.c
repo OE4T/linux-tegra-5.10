@@ -181,6 +181,15 @@ int nvgpu_pmu_early_init(struct gk20a *g)
 		goto exit;
 	}
 
+	if (g->ops.pmu.ecc_init != NULL && !g->ecc.initialized) {
+		err = g->ops.pmu.ecc_init(g);
+		if (err != 0) {
+			nvgpu_kfree(g, pmu);
+			g->pmu = NULL;
+			goto exit;
+		}
+	}
+
 #ifdef CONFIG_NVGPU_LS_PMU
 	err = nvgpu_pmu_rtos_early_init(g, pmu);
 #endif

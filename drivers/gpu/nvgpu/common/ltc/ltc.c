@@ -24,6 +24,7 @@
 #include <nvgpu/dma.h>
 #include <nvgpu/nvgpu_mem.h>
 #include <nvgpu/gk20a.h>
+#include <nvgpu/string.h>
 
 void nvgpu_ltc_remove_support(struct gk20a *g)
 {
@@ -43,9 +44,9 @@ void nvgpu_ltc_remove_support(struct gk20a *g)
 int nvgpu_init_ltc_support(struct gk20a *g)
 {
 	struct nvgpu_ltc *ltc = g->ltc;
+	int err;
 
 	nvgpu_log_fn(g, " ");
-
 
 	g->mm.ltc_enabled_current = true;
 	g->mm.ltc_enabled_target = true;
@@ -61,6 +62,15 @@ int nvgpu_init_ltc_support(struct gk20a *g)
 
 	if (g->ops.ltc.init_fs_state != NULL) {
 		g->ops.ltc.init_fs_state(g);
+	}
+
+	if (g->ops.ltc.ecc_init != NULL && !g->ecc.initialized) {
+		err = g->ops.ltc.ecc_init(g);
+		if (err != 0) {
+			nvgpu_kfree(g, ltc);
+			g->ltc = NULL;
+			return err;
+		}
 	}
 
 	return 0;
@@ -93,4 +103,92 @@ u32 nvgpu_ltc_get_slices_per_ltc(struct gk20a *g)
 u32 nvgpu_ltc_get_cacheline_size(struct gk20a *g)
 {
 	return g->ltc->cacheline_size;
+}
+
+int nvgpu_ecc_counter_init_per_lts(struct gk20a *g,
+		struct nvgpu_ecc_stat ***stat, const char *name)
+{
+	struct nvgpu_ecc_stat **stats;
+	u32 ltc, lts;
+	char ltc_str[10] = {0}, lts_str[10] = {0};
+	int err = 0;
+	u32 ltc_count = nvgpu_ltc_get_ltc_count(g);
+	u32 slices_per_ltc = nvgpu_ltc_get_slices_per_ltc(g);
+
+	stats = nvgpu_kzalloc(g, nvgpu_safe_mult_u64(sizeof(*stats),
+						     ltc_count));
+	if (stats == NULL) {
+		return -ENOMEM;
+	}
+	for (ltc = 0; ltc < ltc_count; ltc++) {
+		stats[ltc] = nvgpu_kzalloc(g,
+			nvgpu_safe_mult_u64(sizeof(*stats[ltc]),
+					    slices_per_ltc));
+		if (stats[ltc] == NULL) {
+			err = -ENOMEM;
+			goto fail;
+		}
+	}
+
+	for (ltc = 0; ltc < ltc_count; ltc++) {
+		for (lts = 0; lts < slices_per_ltc; lts++) {
+			/**
+			 * Store stats name as below:
+			 * ltc<ltc_value>_lts<lts_value>_<name_string>
+			 */
+			(void)strcpy(stats[ltc][lts].name, "ltc");
+			(void)nvgpu_strnadd_u32(ltc_str, ltc,
+							sizeof(ltc_str), 10U);
+			(void)strncat(stats[ltc][lts].name, ltc_str,
+						NVGPU_ECC_STAT_NAME_MAX_SIZE -
+						strlen(stats[ltc][lts].name));
+			(void)strncat(stats[ltc][lts].name, "_lts",
+						NVGPU_ECC_STAT_NAME_MAX_SIZE -
+						strlen(stats[ltc][lts].name));
+			(void)nvgpu_strnadd_u32(lts_str, lts,
+							sizeof(lts_str), 10U);
+			(void)strncat(stats[ltc][lts].name, lts_str,
+						NVGPU_ECC_STAT_NAME_MAX_SIZE -
+						strlen(stats[ltc][lts].name));
+			(void)strncat(stats[ltc][lts].name, "_",
+						NVGPU_ECC_STAT_NAME_MAX_SIZE -
+						strlen(stats[ltc][lts].name));
+			(void)strncat(stats[ltc][lts].name, name,
+						NVGPU_ECC_STAT_NAME_MAX_SIZE -
+						strlen(stats[ltc][lts].name));
+
+			nvgpu_ecc_stat_add(g, &stats[ltc][lts]);
+		}
+	}
+
+	*stat = stats;
+
+fail:
+	if (err != 0) {
+		while (ltc-- > 0u) {
+			nvgpu_kfree(g, stats[ltc]);
+		}
+
+		nvgpu_kfree(g, stats);
+	}
+
+	return err;
+}
+
+void nvgpu_ltc_ecc_free(struct gk20a *g)
+{
+	struct nvgpu_ecc *ecc = &g->ecc;
+	u32 i;
+
+	for (i = 0; i < nvgpu_ltc_get_ltc_count(g); i++) {
+		if (ecc->ltc.ecc_sec_count != NULL) {
+			nvgpu_kfree(g, ecc->ltc.ecc_sec_count[i]);
+		}
+
+		if (ecc->ltc.ecc_ded_count != NULL) {
+			nvgpu_kfree(g, ecc->ltc.ecc_ded_count[i]);
+		}
+	}
+	nvgpu_kfree(g, ecc->ltc.ecc_sec_count);
+	nvgpu_kfree(g, ecc->ltc.ecc_ded_count);
 }

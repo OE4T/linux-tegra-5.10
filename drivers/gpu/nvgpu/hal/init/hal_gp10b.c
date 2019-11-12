@@ -179,7 +179,13 @@ static const struct gpu_ops gp10b_ops = {
 		.bios_sw_init = nvgpu_bios_sw_init,
 	},
 #endif /* CONFIG_NVGPU_DGPU */
+	.ecc = {
+		.ecc_init_support = nvgpu_ecc_init_support,
+		.ecc_finalize_support = nvgpu_ecc_finalize_support,
+		.ecc_remove_support = nvgpu_ecc_remove_support,
+	},
 	.ltc = {
+		.ecc_init = gp10b_lts_ecc_init,
 		.init_ltc_support = nvgpu_init_ltc_support,
 		.ltc_remove_support = nvgpu_ltc_remove_support,
 		.determine_L2_size_bytes = gp10b_determine_L2_size_bytes,
@@ -280,10 +286,8 @@ static const struct gpu_ops gp10b_ops = {
 		.esr_bpt_pending_events = gm20b_gr_esr_bpt_pending_events,
 #endif /* CONFIG_NVGPU_DEBUGGER */
 		.ecc = {
-			.ecc_init_support = nvgpu_ecc_init_support,
-			.ecc_remove_support = nvgpu_ecc_remove_support,
 			.detect = gp10b_ecc_detect_enabled_units,
-			.init = gp10b_ecc_init,
+			.init = gp10b_gr_ecc_init,
 		},
 		.ctxsw_prog = {
 			.hw_get_fecs_header_size =
@@ -1233,6 +1237,7 @@ int gp10b_init_hal(struct gk20a *g)
 
 	gops->acr = gp10b_ops.acr;
 	gops->bios = gp10b_ops.bios;
+	gops->ecc = gp10b_ops.ecc;
 	gops->fbp = gp10b_ops.fbp;
 	gops->ltc = gp10b_ops.ltc;
 #ifdef CONFIG_NVGPU_COMPRESSION

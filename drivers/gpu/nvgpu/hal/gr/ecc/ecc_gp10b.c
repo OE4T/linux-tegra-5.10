@@ -21,8 +21,8 @@
  */
 
 #include <nvgpu/io.h>
-#include <nvgpu/ecc.h>
 #include <nvgpu/gk20a.h>
+#include <nvgpu/gr/gr_ecc.h>
 
 #include <nvgpu/hw/gp10b/hw_gr_gp10b.h>
 
@@ -163,32 +163,11 @@ init_tpc_err:
 	return err;
 }
 
-static int gp10b_ecc_init_lts(struct gk20a *g)
-{
-	int err = 0;
-
-	err = NVGPU_ECC_COUNTER_INIT_PER_LTS(ecc_sec_count);
-	if (err != 0) {
-		goto init_lts_err;
-	}
-	err = NVGPU_ECC_COUNTER_INIT_PER_LTS(ecc_ded_count);
-
-init_lts_err:
-	return err;
-}
-
-int gp10b_ecc_init(struct gk20a *g)
+int gp10b_gr_ecc_init(struct gk20a *g)
 {
 	int err = 0;
 
 	err = gp10b_ecc_init_tpc(g);
-	if (err != 0) {
-		goto done;
-	}
-
-	err = gp10b_ecc_init_lts(g);
-
-done:
 	if (err != 0) {
 		nvgpu_err(g, "ecc counter allocate failed, err=%d", err);
 		nvgpu_ecc_free(g);

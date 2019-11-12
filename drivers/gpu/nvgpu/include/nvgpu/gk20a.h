@@ -168,6 +168,7 @@ enum nvgpu_unit;
 #include <nvgpu/gops_mc.h>
 #include <nvgpu/gops_cg.h>
 #include <nvgpu/gops_pmu.h>
+#include <nvgpu/gops_ecc.h>
 
 #include "hal/clk/clk_gk20a.h"
 
@@ -272,6 +273,7 @@ struct gpu_ops {
 		int (*acr_construct_execute)(struct gk20a *g);
 	} acr;
 
+	struct gops_ecc ecc;
 	struct gops_ltc ltc;
 #ifdef CONFIG_NVGPU_COMPRESSION
 	struct {

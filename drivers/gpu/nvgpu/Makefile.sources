@@ -119,6 +119,7 @@ srcs +=	common/utils/enabled.c \
 	common/gr/gr_setup.c \
 	common/gr/obj_ctx.c \
 	common/gr/fs_state.c \
+	common/gr/gr_ecc.c \
 	common/netlist/netlist.c \
 	common/pmu/pmu.c \
 	common/acr/acr.c \
@@ -593,7 +594,6 @@ srcs += common/sec2/sec2.c \
 	hal/ce/ce_tu104.c \
 	hal/class/class_tu104.c \
 	hal/clk/clk_tu104.c \
-	hal/gr/ecc/ecc_tu104.c \
 	hal/gr/init/gr_init_gv100.c \
 	hal/gr/init/gr_init_tu104.c \
 	hal/gr/intr/gr_intr_tu104.c \
