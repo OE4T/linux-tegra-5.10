@@ -40,7 +40,7 @@
 #include <nvgpu/hw/gp10b/hw_fifo_gp10b.h>
 #include <nvgpu/hw/gp10b/hw_top_gp10b.h>
 
-#include "../../nvgpu-fifo.h"
+#include "../../nvgpu-fifo-common.h"
 #include "nvgpu-engine-gp10b.h"
 
 #ifdef ENGINE_GP10B_UNIT_DEBUG

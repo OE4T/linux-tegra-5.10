@@ -41,7 +41,7 @@
 #include <nvgpu/hw/gp10b/hw_pbdma_gp10b.h>
 #include <nvgpu/hw/gp10b/hw_ram_gp10b.h>
 
-#include "../../nvgpu-fifo.h"
+#include "../../nvgpu-fifo-common.h"
 #include "../../nvgpu-fifo-gv11b.h"
 #include "nvgpu-pbdma-gp10b.h"
 

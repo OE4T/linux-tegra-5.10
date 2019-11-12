@@ -20,13 +20,13 @@
 
 .SUFFIXES:
 
-OBJS   = nvgpu-fifo-gv11b.o nvgpu-fifo-intr-gv11b.o
-MODULE = nvgpu-fifo-gv11b
+OBJS   = nvgpu-fifo.o
+MODULE = nvgpu-fifo
 
 LIB_PATHS += -lnvgpu-fifo-common
-include ../../../Makefile.units
+include ../../Makefile.units
 
 lib$(MODULE).so: fifo
 
 fifo:
-	$(MAKE) -C ../..
+	$(MAKE) -C ..

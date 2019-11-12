@@ -23,7 +23,7 @@
 OBJS   = nvgpu-channel-gm20b.o
 MODULE = nvgpu-channel-gm20b
 
-LIB_PATHS += -lnvgpu-fifo
+LIB_PATHS += -lnvgpu-fifo-common
 include ../../../Makefile.units
 
 lib$(MODULE).so: fifo

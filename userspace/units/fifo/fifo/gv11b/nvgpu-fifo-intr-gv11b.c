@@ -44,7 +44,7 @@
 
 #include <nvgpu/hw/gv11b/hw_fifo_gv11b.h>
 
-#include "../../nvgpu-fifo.h"
+#include "../../nvgpu-fifo-common.h"
 #include "nvgpu-fifo-intr-gv11b.h"
 
 #define FIFO_GV11B_INTR_UNIT_DEBUG

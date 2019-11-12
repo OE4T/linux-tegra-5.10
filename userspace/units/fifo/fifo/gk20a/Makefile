@@ -23,7 +23,7 @@
 OBJS   = nvgpu-fifo-gk20a.o nvgpu-fifo-intr-gk20a.o
 MODULE = nvgpu-fifo-gk20a
 
-LIB_PATHS += -lnvgpu-fifo
+LIB_PATHS += -lnvgpu-fifo-common
 include ../../../Makefile.units
 
 lib$(MODULE).so: fifo

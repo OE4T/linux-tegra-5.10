@@ -2352,6 +2352,30 @@
         "test_level": 0
     },
     {
+        "test": "test_fifo_suspend",
+        "case": "fifo_suspend",
+        "unit": "nvgpu_fifo",
+        "test_level": 0
+    },
+    {
+        "test": "test_fifo_sw_quiesce",
+        "case": "fifo_sw_quiesce",
+        "unit": "nvgpu_fifo",
+        "test_level": 0
+    },
+    {
+        "test": "test_init_support",
+        "case": "init",
+        "unit": "nvgpu_fifo",
+        "test_level": 0
+    },
+    {
+        "test": "test_decode_pbdma_ch_eng_status",
+        "case": "pbdma_ch_eng_status",
+        "unit": "nvgpu_fifo",
+        "test_level": 0
+    },
+    {
         "test": "test_gk20a_get_timeslices",
         "case": "get_timeslices",
         "unit": "nvgpu_fifo_gk20a",

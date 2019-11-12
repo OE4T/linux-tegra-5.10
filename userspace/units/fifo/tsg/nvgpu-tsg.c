@@ -45,7 +45,7 @@
 
 #include "hal/init/hal_gv11b.h"
 
-#include "../nvgpu-fifo.h"
+#include "../nvgpu-fifo-common.h"
 #include "nvgpu-tsg.h"
 
 #ifdef TSG_UNIT_DEBUG

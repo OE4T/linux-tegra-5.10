@@ -19,8 +19,8 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef UNIT_NVGPU_FIFO_H
-#define UNIT_NVGPU_FIFO_H
+#ifndef UNIT_NVGPU_FIFO_COMMON_H
+#define UNIT_NVGPU_FIFO_COMMON_H
 
 #include <nvgpu/types.h>
 
@@ -29,13 +29,13 @@
 #else
 #define unit_verbose(unit, msg, ...) \
 	do { \
-		if (0) \
-			{ unit_info(unit, msg, ##__VA_ARGS__); \
+		if (0) {\
+			unit_info(unit, msg, ##__VA_ARGS__); \
 		} \
 	} while (0)
 #endif
 
-/** @addtogroup SWUTS-fifo
+/** @addtogroup SWUTS-fifo-common
  *  @{
  *
  * Software Unit Test Specification for fifo
@@ -96,5 +96,5 @@ int test_fifo_remove_support(struct unit_module *m,
 
 bool test_fifo_subtest_pruned(u32 branches, u32 final_branches);
 char *test_fifo_flags_str(u32 flags, const char *labels[]);
-
-#endif /* UNIT_NVGPU_FIFO_H */
+u32 test_fifo_get_log2(u32 num);
+#endif /* UNIT_NVGPU_FIFO_COMMON_H */

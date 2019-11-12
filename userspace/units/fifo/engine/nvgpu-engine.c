@@ -40,7 +40,7 @@
 
 #include "nvgpu/hw/gv11b/hw_top_gv11b.h"
 
-#include "../nvgpu-fifo.h"
+#include "../nvgpu-fifo-common.h"
 #include "../nvgpu-fifo-gv11b.h"
 #include "nvgpu-engine.h"
 

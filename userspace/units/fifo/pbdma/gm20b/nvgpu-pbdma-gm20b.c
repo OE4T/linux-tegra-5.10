@@ -40,7 +40,7 @@
 
 #include <nvgpu/hw/gm20b/hw_pbdma_gm20b.h>
 
-#include "../../nvgpu-fifo.h"
+#include "../../nvgpu-fifo-common.h"
 #include "../../nvgpu-fifo-gv11b.h"
 #include "nvgpu-pbdma-gm20b.h"
 

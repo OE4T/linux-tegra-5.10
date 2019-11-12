@@ -39,7 +39,7 @@
 
 #include <nvgpu/posix/posix-fault-injection.h>
 
-#include "../nvgpu-fifo.h"
+#include "../nvgpu-fifo-common.h"
 #include "nvgpu-channel.h"
 
 #define MAX_STUB	2

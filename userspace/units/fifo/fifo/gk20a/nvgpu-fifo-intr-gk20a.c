@@ -41,7 +41,7 @@
 #include "hal/fifo/fifo_intr_gk20a.h"
 #include <nvgpu/hw/gk20a/hw_fifo_gk20a.h>
 
-#include "../../nvgpu-fifo.h"
+#include "../../nvgpu-fifo-common.h"
 #include "nvgpu-fifo-intr-gk20a.h"
 
 #ifdef FIFO_GK20A_INTR_UNIT_DEBUG

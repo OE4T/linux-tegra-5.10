@@ -44,7 +44,7 @@
 
 #include <nvgpu/hw/gv11b/hw_ccsr_gv11b.h>
 
-#include "../../nvgpu-fifo.h"
+#include "../../nvgpu-fifo-common.h"
 #include "nvgpu-channel-gv11b.h"
 
 #ifdef CHANNEL_GV11B_UNIT_DEBUG

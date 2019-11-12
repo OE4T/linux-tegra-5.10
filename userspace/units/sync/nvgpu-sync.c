@@ -34,7 +34,7 @@
 #include <nvgpu/channel_sync.h>
 #include <nvgpu/channel_sync_syncpt.h>
 
-#include "../fifo/nvgpu-fifo.h"
+#include "../fifo/nvgpu-fifo-common.h"
 #include "../fifo/nvgpu-fifo-gv11b.h"
 #include "nvgpu-sync.h"
 

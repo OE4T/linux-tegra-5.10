@@ -40,7 +40,7 @@
 
 #include <nvgpu/hw/gk20a/hw_ram_gk20a.h>
 
-#include "../../nvgpu-fifo.h"
+#include "../../nvgpu-fifo-common.h"
 #include "nvgpu-userd-gk20a.h"
 
 #ifdef USERD_GK20A_UNIT_DEBUG

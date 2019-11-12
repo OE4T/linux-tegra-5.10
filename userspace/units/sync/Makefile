@@ -23,7 +23,7 @@
 OBJS   = nvgpu-sync.o
 MODULE = nvgpu-sync
 
-LIB_PATHS += -lnvgpu-fifo
+LIB_PATHS += -lnvgpu-fifo-common
 
 include ../Makefile.units
 

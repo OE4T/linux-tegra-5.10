@@ -43,7 +43,7 @@
 #define RL_MAX_TIMESLICE_TIMEOUT ram_rl_entry_timeslice_timeout_v(U32_MAX)
 #define RL_MAX_TIMESLICE_SCALE ram_rl_entry_timeslice_scale_v(U32_MAX)
 
-#include "../nvgpu-fifo.h"
+#include "../nvgpu-fifo-common.h"
 
 #ifdef RUNLIST_UNIT_DEBUG
 #define unit_verbose	unit_info

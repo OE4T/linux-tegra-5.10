@@ -23,7 +23,7 @@
 OBJS   = nvgpu-preempt.o
 MODULE = nvgpu-preempt
 
-LIB_PATHS += -lnvgpu-fifo
+LIB_PATHS += -lnvgpu-fifo-common
 include ../../Makefile.units
 
 lib$(MODULE).so: fifo

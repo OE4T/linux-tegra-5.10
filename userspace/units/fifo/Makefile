@@ -20,9 +20,9 @@
 
 .SUFFIXES:
 
-OBJS   = nvgpu-fifo.o nvgpu-fifo-gv11b.o
+OBJS   = nvgpu-fifo-common.o nvgpu-fifo-gv11b.o
 
-MODULE = nvgpu-fifo
+MODULE = nvgpu-fifo-common
 LIB_PATHS += -lmock-iospace
 
 include ../Makefile.units

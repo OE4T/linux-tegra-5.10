@@ -47,6 +47,7 @@
  *   - @ref SWUTS-fifo-engine-gp10b
  *   - @ref SWUTS-fifo-engine-gv100
  *   - @ref SWUTS-fifo-engine-gv11b
+ *   - @ref SWUTS-fifo-fifo
  *   - @ref SWUTS-fifo-fifo-gk20a
  *   - @ref SWUTS-fifo-fifo-gv11b
  *   - @ref SWUTS-fifo-pbdma

@@ -23,7 +23,7 @@
 OBJS   = nvgpu-tsg.o
 MODULE = nvgpu-tsg
 
-LIB_PATHS += -lnvgpu-fifo
+LIB_PATHS += -lnvgpu-fifo-common
 include ../../Makefile.units
 
 lib$(MODULE).so: fifo

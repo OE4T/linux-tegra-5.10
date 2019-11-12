@@ -38,7 +38,7 @@
 
 #include <nvgpu/hw/gv100/hw_fifo_gv100.h>
 
-#include "../../nvgpu-fifo.h"
+#include "../../nvgpu-fifo-common.h"
 #include "nvgpu-engine-gv100.h"
 
 //#define ENGINE_GV100_UNIT_DEBUG

@@ -44,7 +44,7 @@
 #include <nvgpu/hw/gv11b/hw_ram_gv11b.h>
 
 
-#include "../../nvgpu-fifo.h"
+#include "../../nvgpu-fifo-common.h"
 #include "nvgpu-runlist-gv11b.h"
 
 #define RUNLIST_GV11B_UNIT_DEBUG

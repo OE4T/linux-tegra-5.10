@@ -368,7 +368,11 @@ nvgpu_fbp_init_support
 nvgpu_fbp_get_max_fbps_count
 nvgpu_fbp_get_fbp_en_mask
 nvgpu_fbp_remove_support
+nvgpu_fifo_cleanup_sw_common
+nvgpu_fifo_decode_pbdma_ch_eng_status
 nvgpu_fifo_init_support
+nvgpu_fifo_suspend
+nvgpu_fifo_sw_quiesce
 nvgpu_finalize_poweron
 nvgpu_free
 nvgpu_free_enabled_flags

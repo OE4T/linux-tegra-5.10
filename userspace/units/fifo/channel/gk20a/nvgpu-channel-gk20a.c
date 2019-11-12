@@ -39,7 +39,7 @@
 #include "hal/fifo/channel_gk20a.h"
 #include <nvgpu/hw/gk20a/hw_ccsr_gk20a.h>
 
-#include "../../nvgpu-fifo.h"
+#include "../../nvgpu-fifo-common.h"
 #include "nvgpu-channel-gk20a.h"
 
 #ifdef CHANNEL_GK20A_UNIT_DEBUG

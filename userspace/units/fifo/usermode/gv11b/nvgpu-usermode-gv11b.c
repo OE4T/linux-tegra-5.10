@@ -38,7 +38,7 @@
 
 #include <nvgpu/hw/gv11b/hw_usermode_gv11b.h>
 
-#include "../../nvgpu-fifo.h"
+#include "../../nvgpu-fifo-common.h"
 #include "nvgpu-usermode-gv11b.h"
 
 #ifdef USERMODE_GV11B_UNIT_DEBUG

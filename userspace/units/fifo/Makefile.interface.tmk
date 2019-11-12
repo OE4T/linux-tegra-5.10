@@ -16,7 +16,7 @@
 
 ifdef NV_INTERFACE_FLAG_SHARED_LIBRARY_SECTION
 
-NV_INTERFACE_NAME            := nvgpu-fifo
+NV_INTERFACE_NAME            := nvgpu-fifo-common
 NV_INTERFACE_EXPORTS         := lib$(NV_INTERFACE_NAME)
 NV_INTERFACE_SONAME          := lib$(NV_INTERFACE_NAME).so
 

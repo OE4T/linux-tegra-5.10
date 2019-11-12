@@ -37,7 +37,7 @@
 #include <nvgpu/hw/gv11b/hw_fifo_gv11b.h>
 #include <nvgpu/hw/gv11b/hw_gmmu_gv11b.h>
 
-#include "../../nvgpu-fifo.h"
+#include "../../nvgpu-fifo-common.h"
 #include "nvgpu-engine-gv11b.h"
 
 #ifdef ENGINE_GV11B_UNIT_DEBUG

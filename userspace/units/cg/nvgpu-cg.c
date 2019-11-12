@@ -34,7 +34,7 @@
 #include "hal/init/hal_gv11b.h"
 #include "hal/power_features/cg/gating_reglist.h"
 #include "hal/power_features/cg/gv11b_gating_reglist.h"
-#include "../fifo/nvgpu-fifo.h"
+#include "../fifo/nvgpu-fifo-common.h"
 
 #include "nvgpu-cg.h"
 

@@ -39,7 +39,7 @@
 
 #include "hal/init/hal_gv11b.h"
 
-#include "../nvgpu-fifo.h"
+#include "../nvgpu-fifo-common.h"
 #include "../nvgpu-fifo-gv11b.h"
 #include "nvgpu-pbdma.h"
 

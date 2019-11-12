@@ -102,6 +102,7 @@ UNITS :=				\
 	$(UNIT_SRC)/fifo/engine/gp10b	\
 	$(UNIT_SRC)/fifo/engine/gv100	\
 	$(UNIT_SRC)/fifo/engine/gv11b	\
+	$(UNIT_SRC)/fifo/fifo		\
 	$(UNIT_SRC)/fifo/pbdma		\
 	$(UNIT_SRC)/fifo/pbdma/gm20b	\
 	$(UNIT_SRC)/fifo/pbdma/gp10b	\

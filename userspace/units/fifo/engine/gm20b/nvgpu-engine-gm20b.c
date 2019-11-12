@@ -38,7 +38,7 @@
 #include <nvgpu/hw/gm20b/hw_fifo_gm20b.h>
 #include <nvgpu/hw/gm20b/hw_top_gm20b.h>
 
-#include "../../nvgpu-fifo.h"
+#include "../../nvgpu-fifo-common.h"
 #include "nvgpu-engine-gm20b.h"
 
 #ifdef ENGINE_GM20B_UNIT_DEBUG

@@ -39,7 +39,7 @@
 #include "hal/fifo/channel_gm20b.h"
 #include <nvgpu/hw/gm20b/hw_ccsr_gm20b.h>
 
-#include "../../nvgpu-fifo.h"
+#include "../../nvgpu-fifo-common.h"
 #include "nvgpu-channel-gm20b.h"
 
 #ifdef CHANNEL_GM20B_UNIT_DEBUG

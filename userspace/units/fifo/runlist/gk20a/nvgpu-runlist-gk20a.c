@@ -44,7 +44,7 @@
 #include <nvgpu/hw/gk20a/hw_fifo_gk20a.h>
 
 
-#include "../../nvgpu-fifo.h"
+#include "../../nvgpu-fifo-common.h"
 #include "nvgpu-runlist-gk20a.h"
 
 #ifdef RUNLIST_GK20A_UNIT_DEBUG

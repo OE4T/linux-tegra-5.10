@@ -34,11 +34,27 @@
 
 #include "hal/init/hal_gv11b.h"
 
-#include "nvgpu-fifo.h"
+#include "nvgpu-fifo-common.h"
 #include "nvgpu-fifo-gv11b.h"
 
 static struct unit_module *global_m;
 
+/*
+ * If taken, some branches are final, e.g. the function exits.
+ * There is no need to test subsequent branches combinations,
+ * if one final branch is taken.
+ *
+ * We want to skip the subtest if:
+ * - it has at least one final branch
+ * - it is supposed to test some branches after this final branch
+ *
+ * Parameters:
+ * branches		bitmask of branches to be taken for one subtest
+ * final_branches	bitmask of final branches
+ *
+ * Note: the assumption is that branches are numbered in their
+ * order of appearance in the function to be tested.
+ */
 bool test_fifo_subtest_pruned(u32 branches, u32 final_branches)
 {
 	u32 match = branches & final_branches;
@@ -80,6 +96,20 @@ char *test_fifo_flags_str(u32 flags, const char *labels[])
 	return buf;
 }
 
+u32 test_fifo_get_log2(u32 num)
+{
+	u32 res = 0;
+
+	if (num == 0) {
+		return 0;
+	}
+	while (num > 0) {
+		res++;
+		num >>= 1;
+	}
+	return res - 1U;
+}
+
 static u32 stub_gv11b_gr_init_get_no_of_sm(struct gk20a *g)
 {
 	return 8;
@@ -89,6 +119,7 @@ static u32 stub_gv11b_gr_init_get_no_of_sm(struct gk20a *g)
 static int stub_userd_setup_sw(struct gk20a *g)
 {
 	int err = nvgpu_userd_init_slabs(g);
+
 	if (err != 0) {
 		unit_err(global_m, "failed to init userd support");
 		return err;
