@@ -1899,20 +1899,25 @@ nvhost_client_request_firmware(struct platform_device *dev, const char *fw_name)
 	if (!fw_name)
 		return NULL;
 
-	if (op->soc_name && !pdata->firmware_not_in_subdir) {
-		path_len = strlen(fw_name) + strlen(op->soc_name);
-		path_len += 2; /* for the path separator and zero terminator*/
-
-		fw_path = kzalloc(sizeof(*fw_path) * path_len,
-				     GFP_KERNEL);
-		if (!fw_path)
-			return NULL;
-
-		snprintf(fw_path, sizeof(*fw_path) * path_len, "%s/%s", op->soc_name, fw_name);
-		fw_name = fw_path;
+	if (pdata->firmware_not_in_subdir) {
+		err = request_firmware(&fw, fw_name, &dev->dev);
+		if (err == 0) {
+			return fw;
+		}
+		dev_warn(&dev->dev, "looking for firmware in subdirectory\n");
 	}
 
-	err = request_firmware(&fw, fw_name, &dev->dev);
+	path_len = strlen(fw_name) + strlen(op->soc_name);
+	path_len += 2; /* for the path separator and zero terminator*/
+
+	fw_path = kzalloc(sizeof(*fw_path) * path_len, GFP_KERNEL);
+	if (!fw_path)
+		return NULL;
+
+	snprintf(fw_path, sizeof(*fw_path) * path_len, "%s/%s", op->soc_name,
+		 fw_name);
+
+	err = request_firmware(&fw, fw_path, &dev->dev);
 	kfree(fw_path);
 	if (err) {
 		dev_err(&dev->dev, "failed to get firmware\n");
