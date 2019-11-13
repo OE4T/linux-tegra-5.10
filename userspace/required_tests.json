@@ -1498,6 +1498,31 @@
         "unit": "posix_mockio"
     },
     {
+        "test": "ptimer_free_env",
+        "test_level": 0,
+        "unit": "ptimer"
+    },
+    {
+        "test": "ptimer_isr",
+        "test_level": 0,
+        "unit": "ptimer"
+    },
+    {
+        "test": "ptimer_read_ptimer",
+        "test_level": 0,
+        "unit": "ptimer"
+    },
+    {
+        "test": "ptimer_scaling",
+        "test_level": 0,
+        "unit": "ptimer"
+    },
+    {
+        "test": "ptimer_setup_env",
+        "test_level": 0,
+        "unit": "ptimer"
+    },
+    {
         "test": "batch",
         "test_level": 0,
         "unit": "vm"
