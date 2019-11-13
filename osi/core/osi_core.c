@@ -53,7 +53,8 @@
  */
 static inline int poll_for_mii_idle(struct osi_core_priv_data *osi_core)
 {
-	unsigned int retry = 1000;
+	/* half sec timeout */
+	unsigned int retry = 50000;
 	unsigned int mac_gmiiar;
 	unsigned int count;
 	int cond = 1;
@@ -69,13 +70,15 @@ static inline int poll_for_mii_idle(struct osi_core_priv_data *osi_core)
 		}
 
 		count++;
-		osd_msleep(1U);
 
 		mac_gmiiar = osi_readl((unsigned char *)osi_core->base +
 				       MAC_MDIO_ADDRESS);
 
 		if ((mac_gmiiar & MAC_GMII_BUSY) == 0U) {
 			cond = 0;
+		} else {
+			/* wait on GMII Busy set */
+			osd_udelay(10U);
 		}
 	}
 
@@ -121,8 +124,6 @@ int osi_write_phy_reg(struct osi_core_priv_data *osi_core, unsigned int phyaddr,
 
 	osi_writel(mac_gmiiar, (unsigned char *)osi_core->base + MAC_MDIO_ADDRESS);
 
-	osd_usleep_range(9, 11);
-
 	/* wait for MII write operation to complete */
 	ret = poll_for_mii_idle(osi_core);
 	if (ret < 0) {
@@ -162,8 +163,6 @@ int osi_read_phy_reg(struct osi_core_priv_data *osi_core, unsigned int phyaddr,
 		     ((phyreg) << MDIO_PHY_REG_SHIFT) |
 		     (osi_core->mdc_cr) << 8U | ((0x3U) << 2U) | MAC_GMII_BUSY;
 	osi_writel(mac_gmiiar, (unsigned char *)osi_core->base + MAC_MDIO_ADDRESS);
-
-	osd_usleep_range(9, 11);
 
 	/* wait for MII write operation to complete */
 	ret = poll_for_mii_idle(osi_core);
