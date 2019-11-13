@@ -357,6 +357,7 @@ nvgpu_posix_cleanup
 nvgpu_posix_enable_fault_injection
 nvgpu_posix_ffs
 nvgpu_posix_fls
+nvgpu_posix_init_fault_injection
 nvgpu_posix_io_add_reg_space
 nvgpu_posix_io_check_sequence
 nvgpu_posix_io_delete_reg_space

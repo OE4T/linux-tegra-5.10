@@ -28,12 +28,12 @@
 #endif
 
 #ifdef NVGPU_UNITTEST_FAULT_INJECTION_ENABLEMENT
-_Thread_local struct nvgpu_posix_fault_inj thread_fi = {
-					.enabled = false,.counter = 0U,};
-
 struct nvgpu_posix_fault_inj *nvgpu_thread_get_fault_injection(void)
 {
-	return &thread_fi;
+	struct nvgpu_posix_fault_inj_container *c =
+			nvgpu_posix_fault_injection_get_container();
+
+	return &c->thread_fi;
 }
 #endif
 
@@ -51,6 +51,11 @@ static void *nvgpu_posix_thread_wrapper(void *data)
 
 	struct nvgpu_posix_thread_data *nvgpu =
 				(struct nvgpu_posix_thread_data *)data;
+
+#ifdef NVGPU_UNITTEST_FAULT_INJECTION_ENABLEMENT
+	/* setup the fault injection container from the parent */
+	nvgpu_posix_init_fault_injection(nvgpu->fi_container);
+#endif
 
 	ret = nvgpu->fn(nvgpu->data);
 
@@ -75,7 +80,8 @@ int nvgpu_thread_create(struct nvgpu_thread *thread,
 	int ret;
 
 #ifdef NVGPU_UNITTEST_FAULT_INJECTION_ENABLEMENT
-	if (nvgpu_posix_fault_injection_handle_call(&thread_fi)) {
+	if (nvgpu_posix_fault_injection_handle_call(
+				nvgpu_thread_get_fault_injection())) {
 		return -EINVAL;
 	}
 #endif
@@ -93,6 +99,11 @@ int nvgpu_thread_create(struct nvgpu_thread *thread,
 
 	thread->nvgpu.data = data;
 	thread->nvgpu.fn = threadfn;
+#ifdef NVGPU_UNITTEST_FAULT_INJECTION_ENABLEMENT
+	/* pass the fault injection container to the child */
+	thread->nvgpu.fi_container =
+				nvgpu_posix_fault_injection_get_container();
+#endif
 
 	nvgpu_atomic_set(&thread->running, 1);
 	ret = pthread_attr_init(&attr);
@@ -143,6 +154,11 @@ int nvgpu_thread_create_priority(struct nvgpu_thread *thread,
 
 	thread->nvgpu.data = data;
 	thread->nvgpu.fn = threadfn;
+#ifdef NVGPU_UNITTEST_FAULT_INJECTION_ENABLEMENT
+	/* pass the fault injection container to the child */
+	thread->nvgpu.fi_container =
+				nvgpu_posix_fault_injection_get_container();
+#endif
 
 	nvgpu_atomic_set(&thread->running, 1);
 
@@ -216,7 +232,8 @@ void nvgpu_thread_stop_graceful(struct nvgpu_thread *thread,
 bool nvgpu_thread_should_stop(struct nvgpu_thread *thread)
 {
 #ifdef NVGPU_UNITTEST_FAULT_INJECTION_ENABLEMENT
-	if (nvgpu_posix_fault_injection_handle_call(&thread_fi)) {
+	if (nvgpu_posix_fault_injection_handle_call(
+				nvgpu_thread_get_fault_injection())) {
 		return true;
 	}
 #endif

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -24,10 +24,17 @@
 #include <stdbool.h>
 #include <nvgpu/posix/posix-fault-injection.h>
 
-void nvgpu_posix_init_fault_injection(struct nvgpu_posix_fault_inj *fi)
+_Thread_local struct nvgpu_posix_fault_inj_container *thread_fi;
+
+void nvgpu_posix_init_fault_injection(struct nvgpu_posix_fault_inj_container *c)
 {
-	fi->enabled = false;
-	fi->counter = 0U;
+	thread_fi = c;
+}
+
+struct nvgpu_posix_fault_inj_container
+	*nvgpu_posix_fault_injection_get_container(void)
+{
+	return thread_fi;
 }
 
 void nvgpu_posix_enable_fault_injection(struct nvgpu_posix_fault_inj *fi,

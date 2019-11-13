@@ -27,12 +27,12 @@
 #endif
 
 #ifdef NVGPU_UNITTEST_FAULT_INJECTION_ENABLEMENT
-_Thread_local struct nvgpu_posix_fault_inj cond_fi = {
-					.enabled = false,.counter = 0U,};
-
 struct nvgpu_posix_fault_inj *nvgpu_cond_get_fault_injection(void)
 {
-	return &cond_fi;
+	struct nvgpu_posix_fault_inj_container *c =
+			nvgpu_posix_fault_injection_get_container();
+
+	return &c->cond_fi;
 }
 #endif
 
@@ -41,7 +41,8 @@ int nvgpu_cond_init(struct nvgpu_cond *cond)
 	int ret;
 
 #ifdef NVGPU_UNITTEST_FAULT_INJECTION_ENABLEMENT
-	if (nvgpu_posix_fault_injection_handle_call(&cond_fi)) {
+	if (nvgpu_posix_fault_injection_handle_call(
+					nvgpu_cond_get_fault_injection())) {
 		return -EINVAL;
 	}
 #endif

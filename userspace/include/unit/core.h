@@ -28,6 +28,7 @@ struct unit_modules;
 struct unit_results;
 
 struct gk20a;
+struct nvgpu_posix_fault_inj_container;
 
 /*
  * The core unit testing framework data structure. Keeps track of global state
@@ -54,7 +55,12 @@ struct unit_fw {
 	struct {
 		struct gk20a	*(*nvgpu_posix_probe)(void);
 		void		 (*nvgpu_posix_cleanup)(struct gk20a *g);
+		void		 (*nvgpu_posix_init_fault_injection)
+				    (struct nvgpu_posix_fault_inj_container *c);
+		void		 (*nvgpu_posix_init_fault_injection_qnx)
+				    (struct nvgpu_posix_fault_inj_container *c);
 	} nvgpu;
+	void			 *nvgpu_qnx_ut;
 };
 
 int core_load_nvgpu(struct unit_fw *fw);

@@ -36,6 +36,7 @@
 #include <unit/results.h>
 
 #include <nvgpu/posix/probe.h>
+#include <nvgpu/posix/posix-fault-injection.h>
 
 /*
  * Sempaphore to limit the number of threads
@@ -58,8 +59,27 @@ static void *core_exec_module(void *module_param)
 	unsigned int i;
 	struct unit_module *module = (struct unit_module *) module_param;
 	struct gk20a *g;
+	struct nvgpu_posix_fault_inj_container *fi_container = NULL;
 	clock_t begin;
 	double time_spent;
+
+	/*
+	 * Setup fault injection first so that faults can be injected in
+	 * nvgpu_posix_probe().
+	 */
+	fi_container = (struct nvgpu_posix_fault_inj_container *)
+			malloc(sizeof(struct nvgpu_posix_fault_inj_container));
+	if (fi_container == NULL) {
+		core_msg_color(module->fw, C_RED,
+				"  failed to allocate fault inj: Module %s\n",
+				module->name);
+		goto thread_exit;
+	}
+	memset(fi_container, 0, sizeof(struct nvgpu_posix_fault_inj_container));
+	module->fw->nvgpu.nvgpu_posix_init_fault_injection(fi_container);
+	if (module->fw->nvgpu.nvgpu_posix_init_fault_injection_qnx != NULL) {
+		module->fw->nvgpu.nvgpu_posix_init_fault_injection_qnx(fi_container);
+	}
 
 	g = module->fw->nvgpu.nvgpu_posix_probe();
 
@@ -111,6 +131,9 @@ static void *core_exec_module(void *module_param)
 	core_vbs(module->fw, 1, "Module completed: %s (execution time: %f)\n",
 		 module->name, time_spent);
 thread_exit:
+	if (fi_container != NULL) {
+		free(fi_container);
+	}
 	sem_post(&unit_thread_semaphore);
 	return NULL;
 }

@@ -81,5 +81,34 @@ int core_load_nvgpu(struct unit_fw *fw)
 		return -1;
 	}
 
+	fw->nvgpu.nvgpu_posix_init_fault_injection = dlsym(fw->nvgpu_so,
+					    "nvgpu_posix_init_fault_injection");
+	if (fw->nvgpu.nvgpu_posix_init_fault_injection == NULL) {
+		msg = dlerror();
+		core_err(fw, "Failed to resolve nvgpu_posix_init_fault_injection: %s\n",
+			 msg);
+		return -1;
+	}
+
+	if (fw->args->is_qnx != 0) {
+		fw->nvgpu_qnx_ut = dlopen("libnvgpu_ut.so", flag);
+		if (fw->nvgpu_qnx_ut == NULL) {
+			msg = dlerror();
+			core_err(fw, "Failed to load nvgpu_ut: %s\n", msg);
+			return -1;
+		}
+		fw->nvgpu.nvgpu_posix_init_fault_injection_qnx =
+					dlsym(fw->nvgpu_qnx_ut,
+					      "nvgpu_posix_init_fault_injection");
+		if (fw->nvgpu.nvgpu_posix_init_fault_injection_qnx == NULL) {
+			msg = dlerror();
+			core_err(fw, "Failed to resolve nvgpu_posix_init_fault_injection: %s\n",
+				 msg);
+			return -1;
+		}
+	} else {
+		fw->nvgpu.nvgpu_posix_init_fault_injection_qnx = NULL;
+	}
+
 	return 0;
 }

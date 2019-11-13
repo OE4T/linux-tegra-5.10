@@ -37,14 +37,12 @@
 #include <nvgpu/posix/posix_vidmem.h>
 #include "os_posix.h"
 
-_Thread_local struct nvgpu_posix_fault_inj dma_fi = {
-						     .enabled = false,
-						     .counter = 0U,
-						    };
-
 struct nvgpu_posix_fault_inj *nvgpu_dma_alloc_get_fault_injection(void)
 {
-	return &dma_fi;
+	struct nvgpu_posix_fault_inj_container *c =
+			nvgpu_posix_fault_injection_get_container();
+
+	return &c->dma_fi;
 }
 
 /*
@@ -57,7 +55,8 @@ static int __nvgpu_do_dma_alloc(struct gk20a *g, unsigned long flags,
 {
 	void *memory;
 #ifdef NVGPU_UNITTEST_FAULT_INJECTION_ENABLEMENT
-	if (nvgpu_posix_fault_injection_handle_call(&dma_fi)) {
+	if (nvgpu_posix_fault_injection_handle_call(
+				nvgpu_dma_alloc_get_fault_injection())) {
 		return -ENOMEM;
 	}
 #endif
@@ -134,7 +133,8 @@ int nvgpu_dma_alloc_flags_vid_at(struct gk20a *g, unsigned long flags,
 	u64 addr;
 	int err;
 #ifdef NVGPU_UNITTEST_FAULT_INJECTION_ENABLEMENT
-	if (nvgpu_posix_fault_injection_handle_call(&dma_fi)) {
+	if (nvgpu_posix_fault_injection_handle_call(
+				nvgpu_dma_alloc_get_fault_injection())) {
 		return -ENOMEM;
 	}
 #endif

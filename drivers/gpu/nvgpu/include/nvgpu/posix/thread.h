@@ -76,6 +76,9 @@ struct nvgpu_posix_thread_data {
 	 * Data to be passed to the nvgpu thread function.
 	 */
 	void *data;
+#ifdef NVGPU_UNITTEST_FAULT_INJECTION_ENABLEMENT
+	struct nvgpu_posix_fault_inj_container *fi_container;
+#endif
 };
 
 struct nvgpu_thread {

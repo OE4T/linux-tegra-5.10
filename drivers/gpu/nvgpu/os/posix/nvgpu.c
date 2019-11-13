@@ -42,11 +42,12 @@
 #endif
 
 #ifdef NVGPU_UNITTEST_FAULT_INJECTION_ENABLEMENT
-_Thread_local struct nvgpu_posix_fault_inj nvgpu_fi;
-
 struct nvgpu_posix_fault_inj *nvgpu_nvgpu_get_fault_injection(void)
 {
-	return &nvgpu_fi;
+	struct nvgpu_posix_fault_inj_container *c =
+			nvgpu_posix_fault_injection_get_container();
+
+	return &c->nvgpu_fi;
 }
 #endif
 
@@ -142,7 +143,8 @@ void gk20a_idle_nosuspend(struct gk20a *g)
 int gk20a_busy(struct gk20a *g)
 {
 #ifdef NVGPU_UNITTEST_FAULT_INJECTION_ENABLEMENT
-	if (nvgpu_posix_fault_injection_handle_call(&nvgpu_fi)) {
+	if (nvgpu_posix_fault_injection_handle_call(
+					nvgpu_nvgpu_get_fault_injection())) {
 		return -ENODEV;
 	}
 #endif
@@ -171,7 +173,8 @@ struct gk20a *nvgpu_posix_probe(void)
 	struct nvgpu_os_posix *p;
 
 #ifdef NVGPU_UNITTEST_FAULT_INJECTION_ENABLEMENT
-	if (nvgpu_posix_fault_injection_handle_call(&nvgpu_fi)) {
+	if (nvgpu_posix_fault_injection_handle_call(
+					nvgpu_nvgpu_get_fault_injection())) {
 		return NULL;
 	}
 #endif

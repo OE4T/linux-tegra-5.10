@@ -47,11 +47,12 @@ static nvgpu_atomic_t kmem_cache_id;
 #endif
 
 #ifdef NVGPU_UNITTEST_FAULT_INJECTION_ENABLEMENT
-_Thread_local struct nvgpu_posix_fault_inj kmem_fi;
-
 struct nvgpu_posix_fault_inj *nvgpu_kmem_get_fault_injection(void)
 {
-	return &kmem_fi;
+	struct nvgpu_posix_fault_inj_container *c =
+			nvgpu_posix_fault_injection_get_container();
+
+	return &c->kmem_fi;
 }
 #endif
 
@@ -63,7 +64,8 @@ struct nvgpu_kmem_cache *nvgpu_kmem_cache_create(struct gk20a *g, size_t size)
 {
 	struct nvgpu_kmem_cache *cache;
 #ifdef NVGPU_UNITTEST_FAULT_INJECTION_ENABLEMENT
-	if (nvgpu_posix_fault_injection_handle_call(&kmem_fi)) {
+	if (nvgpu_posix_fault_injection_handle_call(
+					nvgpu_kmem_get_fault_injection())) {
 		return NULL;
 	}
 #endif
@@ -95,7 +97,8 @@ void *nvgpu_kmem_cache_alloc(struct nvgpu_kmem_cache *cache)
 	void *ptr;
 
 #ifdef NVGPU_UNITTEST_FAULT_INJECTION_ENABLEMENT
-	if (nvgpu_posix_fault_injection_handle_call(&kmem_fi)) {
+	if (nvgpu_posix_fault_injection_handle_call(
+					nvgpu_kmem_get_fault_injection())) {
 		return NULL;
 	}
 #endif
@@ -119,7 +122,8 @@ void *nvgpu_kmalloc_impl(struct gk20a *g, size_t size, void *ip)
 	void *ptr;
 
 #ifdef NVGPU_UNITTEST_FAULT_INJECTION_ENABLEMENT
-	if (nvgpu_posix_fault_injection_handle_call(&kmem_fi)) {
+	if (nvgpu_posix_fault_injection_handle_call(
+					nvgpu_kmem_get_fault_injection())) {
 		return NULL;
 	}
 #endif
@@ -145,7 +149,8 @@ void *nvgpu_kzalloc_impl(struct gk20a *g, size_t size, void *ip)
 	void *ptr;
 
 #ifdef NVGPU_UNITTEST_FAULT_INJECTION_ENABLEMENT
-	if (nvgpu_posix_fault_injection_handle_call(&kmem_fi)) {
+	if (nvgpu_posix_fault_injection_handle_call(
+					nvgpu_kmem_get_fault_injection())) {
 		return NULL;
 	}
 #endif
@@ -164,7 +169,8 @@ void *nvgpu_kcalloc_impl(struct gk20a *g, size_t n, size_t size, void *ip)
 	void *ptr;
 
 #ifdef NVGPU_UNITTEST_FAULT_INJECTION_ENABLEMENT
-	if (nvgpu_posix_fault_injection_handle_call(&kmem_fi)) {
+	if (nvgpu_posix_fault_injection_handle_call(
+					nvgpu_kmem_get_fault_injection())) {
 		return NULL;
 	}
 #endif
@@ -215,7 +221,8 @@ void nvgpu_big_free(struct gk20a *g, void *p)
 int nvgpu_kmem_init(struct gk20a *g)
 {
 #ifdef NVGPU_UNITTEST_FAULT_INJECTION_ENABLEMENT
-	if (nvgpu_posix_fault_injection_handle_call(&kmem_fi)) {
+	if (nvgpu_posix_fault_injection_handle_call(
+					nvgpu_kmem_get_fault_injection())) {
 		return -ENOMEM;
 	}
 #endif

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -23,19 +23,83 @@
 #ifndef NVGPU_POSIX_FAULT_INJECTION_H
 #define NVGPU_POSIX_FAULT_INJECTION_H
 
+/**
+ * State for fault injection instance.
+ */
 struct nvgpu_posix_fault_inj {
 	bool enabled;
 	unsigned int counter;
 };
 
 /**
- * nvgpu_posix_init_fault_injection - Initialize the fault injection object
- * to be used by a module that will report errors.
- *
- * @fi - pointer to the fault_inj object to initialize
+ * Container for all fault injection instances.
  */
-void nvgpu_posix_init_fault_injection(struct nvgpu_posix_fault_inj *fi);
+struct nvgpu_posix_fault_inj_container {
+	/* nvgpu-core */
+	struct nvgpu_posix_fault_inj thread_fi;
+	struct nvgpu_posix_fault_inj cond_fi;
+	struct nvgpu_posix_fault_inj fstat_op;
+	struct nvgpu_posix_fault_inj fread_op;
+	struct nvgpu_posix_fault_inj kmem_fi;
+	struct nvgpu_posix_fault_inj nvgpu_fi;
+	struct nvgpu_posix_fault_inj dma_fi;
+	struct nvgpu_posix_fault_inj queue_out_fi;
 
+	/* qnx */
+	struct nvgpu_posix_fault_inj nvgpu_nvrmread_fi;
+	struct nvgpu_posix_fault_inj sdl_nvguard_fi;
+	struct nvgpu_posix_fault_inj clock_gettime_fi;
+	struct nvgpu_posix_fault_inj chip_id;
+	struct nvgpu_posix_fault_inj nvdt_node_compatible;
+	struct nvgpu_posix_fault_inj nvdt_read_prop_array_by_name_fi;
+	struct nvgpu_posix_fault_inj nvdt_read_prop_array_by_index_var;
+	struct nvgpu_posix_fault_inj nvdt_node_get_prop_fi;
+	struct nvgpu_posix_fault_inj nvgpu_platform_fpga_var;
+	struct nvgpu_posix_fault_inj nvgpu_platform_simulation_var;
+	struct nvgpu_posix_fault_inj check_os_native_var;
+	struct nvgpu_posix_fault_inj get_chip_revision_var;
+	struct nvgpu_posix_fault_inj nvdt_reg_prop_fi;
+	struct nvgpu_posix_fault_inj nvdt_reg_prop_zero_fi;
+	struct nvgpu_posix_fault_inj nvdt_reg_prop_size_zero_fi;
+	struct nvgpu_posix_fault_inj nvmap_alloc_fi;
+	struct nvgpu_posix_fault_inj nvmap_physinfo_fi;
+	struct nvgpu_posix_fault_inj nvmap_mmap_fi;
+	struct nvgpu_posix_fault_inj nvmap_handleparams_fi;
+	struct nvgpu_posix_fault_inj nvmap_useddesc_fi;
+	struct nvgpu_posix_fault_inj nvmap_munmap_fi;
+	struct nvgpu_posix_fault_inj nvmap_importid_fi;
+	struct nvgpu_posix_fault_inj nvgpu_hv_ipa_pa_var;
+	struct nvgpu_posix_fault_inj nvgpu_io_map_var;
+	struct nvgpu_posix_fault_inj nvgpu_readl_fi;
+	struct nvgpu_posix_fault_inj nvgpu_readl_impl_fi;
+	struct nvgpu_posix_fault_inj report_error_fi;
+	struct nvgpu_posix_fault_inj nvhost1x_open_fi;
+	struct nvgpu_posix_fault_inj nvhost1x_syncpointallocate_fi;
+	struct nvgpu_posix_fault_inj nvhost1x_getid_fi;
+	struct nvgpu_posix_fault_inj nvhost1x_waiterallocate_fi;
+	struct nvgpu_posix_fault_inj nvhost1x_syncpointread_fi;
+};
+
+/**
+ * @brief Initialize fault injection container for this thread.
+ *
+ * c [in]	Pointer to fault injection container to use in this thread.
+ *
+ * The fault injection container stores the fault injection state for all
+ * the fault injection users. This container is in thread-local-storage and
+ * must be initialized for a unit test thread and any child threads that need
+ * to have the same fault injection state.
+ */
+void nvgpu_posix_init_fault_injection
+				(struct nvgpu_posix_fault_inj_container *c);
+
+/**
+ * @brief Get the fault injection container for this thread.
+ *
+ * @return A pointer to the fault injection container in use for this thread.
+ */
+struct nvgpu_posix_fault_inj_container
+	*nvgpu_posix_fault_injection_get_container(void);
 
 /**
  * nvgpu_posix_enable_fault_injection - Enable/Disable fault injection for the
