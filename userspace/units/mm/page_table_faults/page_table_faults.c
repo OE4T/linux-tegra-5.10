@@ -20,6 +20,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
+#include "page_table_faults.h"
 #include <unit/io.h>
 #include <unit/unit.h>
 
@@ -239,13 +240,7 @@ static int init_mm(struct unit_module *m, struct gk20a *g)
 	return UNIT_SUCCESS;
 }
 
-/*
- * Test: test_page_faults_init
- * This test must be run once and be the first one as it initializes the MM
- * subsystem.
- */
-static int test_page_faults_init(struct unit_module *m,
-					struct gk20a *g, void *args)
+int test_page_faults_init(struct unit_module *m, struct gk20a *g, void *args)
 {
 	u64 debug_level = (u64)args;
 
@@ -275,12 +270,7 @@ static void write_error(struct unit_module *m, struct gk20a *g, u32 error)
 	nvgpu_posix_io_writel_reg_space(g, fb_niso_intr_r(), error);
 }
 
-/*
- * Test: test_page_faults_pending
- * Check that no faults are already pending, then add one and check that it is
- * pending.
- */
-static int test_page_faults_pending(struct unit_module *m, struct gk20a *g,
+int test_page_faults_pending(struct unit_module *m, struct gk20a *g,
 					void *args)
 {
 	if (g->ops.mc.is_mmu_fault_pending(g)) {
@@ -297,11 +287,7 @@ static int test_page_faults_pending(struct unit_module *m, struct gk20a *g,
 	return UNIT_SUCCESS;
 }
 
-/*
- * Test: test_page_faults_disable_hw
- * Test the fault_disable_hw mechanism.
- */
-static int test_page_faults_disable_hw(struct unit_module *m, struct gk20a *g,
+int test_page_faults_disable_hw(struct unit_module *m, struct gk20a *g,
 					void *args)
 {
 	g->ops.mm.mmu_fault.disable_hw(g);
@@ -320,15 +306,7 @@ static int test_page_faults_disable_hw(struct unit_module *m, struct gk20a *g,
 	return UNIT_SUCCESS;
 }
 
-/*
- * Test: test_page_faults_inst_block.
- * This test supports 3 types of scenario to cover corner cases:
- * 0 (default): regular nvgpu_alloc_inst_block with default values
- * 1: nvgpu_alloc_inst_block with large page size
- * 2: nvgpu_alloc_inst_block with large page size and set_big_page_size set to
- *      NULL to test a corner case in gv11b_init_inst_block (branch coverage)
- */
-static int test_page_faults_inst_block(struct unit_module *m, struct gk20a *g,
+int test_page_faults_inst_block(struct unit_module *m, struct gk20a *g,
 					void *args)
 {
 	struct nvgpu_mem inst_blk_desc;
@@ -354,12 +332,7 @@ static int test_page_faults_inst_block(struct unit_module *m, struct gk20a *g,
 	return UNIT_SUCCESS;
 }
 
-/*
- * Test: test_page_faults_clean
- * This test should be the last one to run as it de-initializes components.
- */
-static int test_page_faults_clean(struct unit_module *m, struct gk20a *g,
-					void *args)
+int test_page_faults_clean(struct unit_module *m, struct gk20a *g, void *args)
 {
 	g->log_mask = 0;
 	g->ops.mm.mmu_fault.info_mem_destroy(g);

@@ -57,6 +57,7 @@
  *   - @ref SWUTS-mm-dma
  *   - @ref SWUTS-mm-nvgpu-mem
  *   - @ref SWUTS-mm-nvgpu-sgt
+ *   - @ref SWUTS-mm-page_table_faults
  *   - @ref SWUTS-mm-mm
  *   - @ref SWUTS-mm-vm
  *   - @ref SWUTS-fbp
