@@ -20,6 +20,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
+#include "dma.h"
 #include <unit/io.h>
 #include <unit/unit.h>
 
@@ -202,12 +203,7 @@ static int init_mm(struct unit_module *m, struct gk20a *g)
 	return UNIT_SUCCESS;
 }
 
-/*
- * Test: test_mm_dma_init
- * This test must be run once and be the first one as it initializes the MM
- * subsystem.
- */
-static int test_mm_dma_init(struct unit_module *m, struct gk20a *g, void *args)
+int test_mm_dma_init(struct unit_module *m, struct gk20a *g, void *args)
 {
 	u64 debug_level = (u64)args;
 
@@ -273,8 +269,7 @@ static struct nvgpu_mem *create_test_mem(void)
  * Test to target nvgpu_dma_alloc_flags_* functions, testing several possible
  * flags and SYSMEM/VIDMEM.
  */
-static int test_mm_dma_alloc_flags(struct unit_module *m, struct gk20a *g,
-					void *args)
+int test_mm_dma_alloc_flags(struct unit_module *m, struct gk20a *g, void *args)
 {
 	int err;
 	struct nvgpu_os_posix *p = nvgpu_os_posix_from_gk20a(g);
@@ -342,12 +337,8 @@ end:
 	return result;
 }
 
-/*
- * Test to target nvgpu_dma_alloc_* functions, testing automatic or forced
- * allocations in SYSMEM or VIDMEM.
- */
-static int test_mm_dma_alloc(struct unit_module *m, struct gk20a *g,
-					void *args)
+
+int test_mm_dma_alloc(struct unit_module *m, struct gk20a *g, void *args)
 {
 	int err;
 	struct nvgpu_os_posix *p = nvgpu_os_posix_from_gk20a(g);
@@ -430,8 +421,7 @@ end:
  * Test to target nvgpu_dma_alloc_map_* functions, testing allocations and GMMU
  * mappings in SYSMEM or VIDMEM.
  */
-static int test_mm_dma_alloc_map(struct unit_module *m, struct gk20a *g,
-					void *args)
+int test_mm_dma_alloc_map(struct unit_module *m, struct gk20a *g, void *args)
 {
 	int err;
 	struct nvgpu_os_posix *p = nvgpu_os_posix_from_gk20a(g);
@@ -513,10 +503,7 @@ end:
 	return result;
 }
 
-/*
- * Test error handling branches in nvgpu_dma_alloc_map
- */
-static int test_mm_dma_alloc_map_fault_injection(struct unit_module *m,
+int test_mm_dma_alloc_map_fault_injection(struct unit_module *m,
 						struct gk20a *g, void *args)
 {
 	int err;
