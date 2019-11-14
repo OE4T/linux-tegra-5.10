@@ -69,6 +69,7 @@ NV_REPOSITORY_COMPONENTS += userspace/units/netlist
 NV_REPOSITORY_COMPONENTS += userspace/units/fifo
 NV_REPOSITORY_COMPONENTS += userspace/units/fifo/channel
 NV_REPOSITORY_COMPONENTS += userspace/units/fifo/runlist
+NV_REPOSITORY_COMPONENTS += userspace/units/fifo/runlist/gv11b
 NV_REPOSITORY_COMPONENTS += userspace/units/fifo/tsg
 NV_REPOSITORY_COMPONENTS += userspace/units/fifo/tsg/gv11b
 NV_REPOSITORY_COMPONENTS += userspace/units/fuse

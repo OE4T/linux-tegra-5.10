@@ -39,6 +39,7 @@
  *   - @ref SWUTS-fifo
  *   - @ref SWUTS-fifo-channel
  *   - @ref SWUTS-fifo-runlist
+ *   - @ref SWUTS-fifo-runlist-gv11b
  *   - @ref SWUTS-fifo-tsg
  *   - @ref SWUTS-fifo-tsg-gv11b
  *   - @ref SWUTS-init
