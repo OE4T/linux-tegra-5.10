@@ -3,7 +3,7 @@
  *
  * Author: Mike Lavender, mike@steroidmicros.com
  * Copyright (c) 2005, Intec Automation Inc.
- * Copyright (c) 2013-2019, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2013-2020, NVIDIA CORPORATION. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -82,6 +82,7 @@
 #define STATUS_BLOCK_PROT			(0xF << 2)
 
 #define JEDEC_ID_S25FX512S	0x010220
+#define JEDEC_ID_S25FS256S	0x010219
 #define JEDEC_ID_MX25U51279G	0xC2953A
 #define JEDEC_ID_MX25U3235F	0xC22536
 
@@ -1896,7 +1897,8 @@ static int qspi_probe(struct spi_device *spi)
 
 	if (info->jedec_id == JEDEC_ID_MX25U51279G)
 		flash->cmd_info_table = macronix_cmd_info_table;
-	else if (info->jedec_id == JEDEC_ID_S25FX512S)
+	else if (info->jedec_id == JEDEC_ID_S25FX512S ||
+					info->jedec_id == JEDEC_ID_S25FS256S)
 		flash->cmd_info_table = spansion_cmd_info_table;
 	else if (info->jedec_id == JEDEC_ID_MX25U3235F)
 		flash->cmd_info_table = macronix_porg_cmd_info_table;
