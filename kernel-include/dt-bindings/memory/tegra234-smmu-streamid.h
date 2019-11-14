@@ -110,4 +110,10 @@
 #define TEGRA_SID_XUSB_VF2	0x4A
 #define TEGRA_SID_XUSB_VF3	0x4B
 
+/* EQOS virtual functions */
+#define TEGRA_SID_EQOS_VF1     0x4C
+#define TEGRA_SID_EQOS_VF2     0x4D
+#define TEGRA_SID_EQOS_VF3     0x4E
+#define TEGRA_SID_EQOS_VF4     0x4F
+
 #endif /* _DT_BINDINGS_MEMORY_TEGRA234_SMMU_STREAMID_H */
