@@ -575,10 +575,17 @@ struct tegra_pcie_dw {
 	struct regulator *slot_ctl_12v;
 	struct margin_cmd mcmd;
 	u32 dvfs_tbl[4][4]; /* for x1/x2/x3/x4 and Gen-1/2/3/4 */
+	struct tegra_pcie_of_data *of_data;
 };
 
 struct tegra_pcie_of_data {
 	enum dw_pcie_device_mode mode;
+	/* Bug 200378817 */
+	bool msix_doorbell_access_fixup;
+	/* Bug 200348006 */
+	bool sbr_reset_fixup;
+	/* Bug 200390637 */
+	bool l1ss_exit_fixup;
 };
 
 struct dma_tx {
@@ -736,24 +743,25 @@ static irqreturn_t tegra_pcie_rp_irq_handler(struct tegra_pcie_dw *pcie)
 	dev_dbg(pci->dev, "APPL_INTR_STATUS_L0 = 0x%08X\n", val);
 	if (val & APPL_INTR_STATUS_L0_LINK_STATE_INT) {
 		val = readl(pcie->appl_base + APPL_INTR_STATUS_L1_0_0);
+		writel(val, pcie->appl_base + APPL_INTR_STATUS_L1_0_0);
 		dev_dbg(pci->dev, "APPL_INTR_STATUS_L1_0_0 = 0x%08X\n", val);
-		if (val & APPL_INTR_STATUS_L1_0_0_LINK_REQ_RST_NOT_CHGED) {
-			writel(val, pcie->appl_base + APPL_INTR_STATUS_L1_0_0);
+		if (pcie->of_data->sbr_reset_fixup && (val &
+			APPL_INTR_STATUS_L1_0_0_LINK_REQ_RST_NOT_CHGED)) {
 
 			/* SBR & Surprise Link Down WAR */
-			val = readl(pcie->appl_base + APPL_CAR_RESET_OVRD);
-			val &= ~APPL_CAR_RESET_OVRD_CYA_OVERRIDE_CORE_RST_N;
-			writel(val, pcie->appl_base + APPL_CAR_RESET_OVRD);
+			tmp = readl(pcie->appl_base + APPL_CAR_RESET_OVRD);
+			tmp &= ~APPL_CAR_RESET_OVRD_CYA_OVERRIDE_CORE_RST_N;
+			writel(tmp, pcie->appl_base + APPL_CAR_RESET_OVRD);
 			udelay(1);
-			val = readl(pcie->appl_base + APPL_CAR_RESET_OVRD);
-			val |= APPL_CAR_RESET_OVRD_CYA_OVERRIDE_CORE_RST_N;
-			writel(val, pcie->appl_base + APPL_CAR_RESET_OVRD);
+			tmp = readl(pcie->appl_base + APPL_CAR_RESET_OVRD);
+			tmp |= APPL_CAR_RESET_OVRD_CYA_OVERRIDE_CORE_RST_N;
+			writel(tmp, pcie->appl_base + APPL_CAR_RESET_OVRD);
 
 			dw_pcie_read(pci->dbi_base + PORT_LOGIC_GEN2_CTRL, 4,
-				     &val);
-			val |= PORT_LOGIC_GEN2_CTRL_DIRECT_SPEED_CHANGE;
+				     &tmp);
+			tmp |= PORT_LOGIC_GEN2_CTRL_DIRECT_SPEED_CHANGE;
 			dw_pcie_write(pci->dbi_base + PORT_LOGIC_GEN2_CTRL, 4,
-				      val);
+				      tmp);
 		}
 	}
 	if (val & APPL_INTR_STATUS_L0_INT_INT) {
@@ -993,12 +1001,14 @@ static int tegra_pcie_dw_rd_own_conf(struct pcie_port *pp, int where, int size,
 				     u32 *val)
 {
 	struct dw_pcie *pci = to_dw_pcie_from_pp(pp);
+	struct tegra_pcie_dw *pcie = dw_pcie_to_tegra_pcie(pci);
 
 	/* This is EP specific register and system hangs when it is
-	 * accessed with link being in ASPM-L1 state.
+	 * accessed with link being in ASPM-L1 state for dw ver 1
 	 * So skip accessing it altogether
 	 */
-	if (where == PORT_LOGIC_MSIX_DOORBELL) {
+	if ((where == PORT_LOGIC_MSIX_DOORBELL) &&
+			pcie->of_data->msix_doorbell_access_fixup) {
 		*val = 0x00000000;
 		return PCIBIOS_SUCCESSFUL;
 	} else {
@@ -2398,12 +2408,13 @@ static int tegra_pcie_dw_wr_own_conf(struct pcie_port *pp, int where, int size,
 				     u32 val)
 {
 	struct dw_pcie *pci = to_dw_pcie_from_pp(pp);
-
+	struct tegra_pcie_dw *pcie = dw_pcie_to_tegra_pcie(pci);
 	/* This is EP specific register and system hangs when it is
 	 * accessed with link being in ASPM-L1 state.
 	 * So skip accessing it altogether
 	 */
-	if (where == PORT_LOGIC_MSIX_DOORBELL)
+	if ((where == PORT_LOGIC_MSIX_DOORBELL) &&
+			pcie->of_data->msix_doorbell_access_fixup)
 		return PCIBIOS_SUCCESSFUL;
 	else
 		return dw_pcie_write(pci->dbi_base + where, size, val);
@@ -2787,9 +2798,11 @@ static int tegra_pcie_dw_host_init(struct pcie_port *pp)
 			      val);
 	}
 
-	val = readl(pci->dbi_base + GEN3_RELATED_OFF);
-	val &= ~GEN3_RELATED_OFF_GEN3_ZRXDC_NONCOMPL;
-	writel(val, pci->dbi_base + GEN3_RELATED_OFF);
+	if (pcie->of_data->l1ss_exit_fixup) {
+		val = readl(pci->dbi_base + GEN3_RELATED_OFF);
+		val &= ~GEN3_RELATED_OFF_GEN3_ZRXDC_NONCOMPL;
+		writel(val, pci->dbi_base + GEN3_RELATED_OFF);
+	}
 
 	if (pcie->update_fc_fixup) {
 		dw_pcie_read(pci->dbi_base +
@@ -3674,9 +3687,11 @@ static void pex_ep_event_pex_rst_deassert(struct tegra_pcie_dw *pcie)
 	val |= EVENT_COUNTER_GROUP_5 << EVENT_COUNTER_GROUP_SEL_SHIFT;
 	writel(val, pci->dbi_base + pcie->event_cntr_ctrl);
 
-	val = readl(pci->dbi_base + GEN3_RELATED_OFF);
-	val &= ~GEN3_RELATED_OFF_GEN3_ZRXDC_NONCOMPL;
-	writel(val, pci->dbi_base + GEN3_RELATED_OFF);
+	if (pcie->of_data->l1ss_exit_fixup) {
+		val = readl(pci->dbi_base + GEN3_RELATED_OFF);
+		val &= ~GEN3_RELATED_OFF_GEN3_ZRXDC_NONCOMPL;
+		writel(val, pci->dbi_base + GEN3_RELATED_OFF);
+	}
 
 	writew(pcie->device_id, pci->dbi_base + PCI_DEVICE_ID);
 
@@ -4101,30 +4116,50 @@ static void disable_slot_regulators(struct tegra_pcie_dw *pcie)
 		regulator_disable(pcie->slot_ctl_3v3);
 }
 
-static const struct tegra_pcie_of_data tegra_pcie_rc_of_data = {
+static const struct tegra_pcie_of_data tegra_pcie_of_data_t194 = {
 	.mode = DW_PCIE_RC_TYPE,
+	.msix_doorbell_access_fixup = true,
+	.sbr_reset_fixup = true,
+	.l1ss_exit_fixup = true,
 };
 
-static const struct tegra_pcie_of_data tegra_pcie_ep_of_data = {
+static const struct tegra_pcie_of_data tegra_pcie_of_data_t194_ep = {
 	.mode = DW_PCIE_EP_TYPE,
+	.msix_doorbell_access_fixup = false,
+	.sbr_reset_fixup = false,
+	.l1ss_exit_fixup = true,
+};
+
+static const struct tegra_pcie_of_data tegra_pcie_of_data_t234 = {
+	.mode = DW_PCIE_RC_TYPE,
+	.msix_doorbell_access_fixup = false,
+	.sbr_reset_fixup = false,
+	.l1ss_exit_fixup = false,
+};
+
+static const struct tegra_pcie_of_data tegra_pcie_of_data_t234_ep = {
+	.mode = DW_PCIE_EP_TYPE,
+	.msix_doorbell_access_fixup = false,
+	.sbr_reset_fixup = false,
+	.l1ss_exit_fixup = false,
 };
 
 static const struct of_device_id tegra_pcie_dw_of_match[] = {
 	{
 		.compatible = "nvidia,tegra194-pcie",
-		.data = &tegra_pcie_rc_of_data,
+		.data = &tegra_pcie_of_data_t194,
 	},
 	{
 		.compatible = "nvidia,tegra194-pcie-ep",
-		.data = &tegra_pcie_ep_of_data,
+		.data = &tegra_pcie_of_data_t194_ep,
 	},
 	{
 		.compatible = "nvidia,tegra234-pcie",
-		.data = &tegra_pcie_rc_of_data,
+		.data = &tegra_pcie_of_data_t234,
 	},
 	{
 		.compatible = "nvidia,tegra234-pcie-ep",
-		.data = &tegra_pcie_ep_of_data,
+		.data = &tegra_pcie_of_data_t234_ep,
 	},
 	{},
 };
@@ -4143,7 +4178,6 @@ static int tegra_pcie_dw_probe(struct platform_device *pdev)
 	int ret, i = 0;
 	u32 val = 0;
 	const struct of_device_id *match;
-	const struct tegra_pcie_of_data *data;
 
 	pcie = devm_kzalloc(&pdev->dev, sizeof(*pcie), GFP_KERNEL);
 	if (!pcie)
@@ -4160,8 +4194,8 @@ static int tegra_pcie_dw_probe(struct platform_device *pdev)
 	if (!match)
 		return -EINVAL;
 
-	data = (struct tegra_pcie_of_data *)match->data;
-	pcie->mode = (enum dw_pcie_device_mode)data->mode;
+	pcie->of_data = (struct tegra_pcie_of_data *)match->data;
+	pcie->mode = (enum dw_pcie_device_mode)pcie->of_data->mode;
 
 	ret = tegra_pcie_dw_parse_dt(pcie);
 	if (ret < 0) {
@@ -4679,11 +4713,13 @@ static int tegra_pcie_dw_suspend_late(struct device *dev)
 		return 0;
 
 	/* Enable HW_HOT_RST mode */
-	val = readl(pcie->appl_base + APPL_CTRL);
-	val &= ~(APPL_CTRL_HW_HOT_RST_MODE_MASK <<
-		  APPL_CTRL_HW_HOT_RST_MODE_SHIFT);
-	val |= APPL_CTRL_HW_HOT_RST_EN;
-	writel(val, pcie->appl_base + APPL_CTRL);
+	if (pcie->of_data->sbr_reset_fixup) {
+		val = readl(pcie->appl_base + APPL_CTRL);
+		val &= ~(APPL_CTRL_HW_HOT_RST_MODE_MASK <<
+				APPL_CTRL_HW_HOT_RST_MODE_SHIFT);
+		val |= APPL_CTRL_HW_HOT_RST_EN;
+		writel(val, pcie->appl_base + APPL_CTRL);
+	}
 
 	return 0;
 }
@@ -4885,13 +4921,15 @@ static int tegra_pcie_dw_resume_early(struct device *dev)
 		return 0;
 
 	/* Disable HW_HOT_RST mode */
-	val = readl(pcie->appl_base + APPL_CTRL);
-	val &= ~(APPL_CTRL_HW_HOT_RST_MODE_MASK <<
-		  APPL_CTRL_HW_HOT_RST_MODE_SHIFT);
-	val |= APPL_CTRL_HW_HOT_RST_MODE_IMDT_RST <<
-		APPL_CTRL_HW_HOT_RST_MODE_SHIFT;
-	val &= ~APPL_CTRL_HW_HOT_RST_EN;
-	writel(val, pcie->appl_base + APPL_CTRL);
+	if (pcie->of_data->sbr_reset_fixup) {
+		val = readl(pcie->appl_base + APPL_CTRL);
+		val &= ~(APPL_CTRL_HW_HOT_RST_MODE_MASK <<
+				APPL_CTRL_HW_HOT_RST_MODE_SHIFT);
+		val |= APPL_CTRL_HW_HOT_RST_MODE_IMDT_RST <<
+			APPL_CTRL_HW_HOT_RST_MODE_SHIFT;
+		val &= ~APPL_CTRL_HW_HOT_RST_EN;
+		writel(val, pcie->appl_base + APPL_CTRL);
+	}
 
 	return 0;
 }
