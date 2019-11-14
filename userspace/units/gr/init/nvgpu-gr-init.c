@@ -43,7 +43,7 @@
 #define GR_TEST_FECS_FEATURE_OVERRIDE_ECC	0x00909999
 #define GR_TEST_FECS_FEATURE_OVERRIDE_ECC1	0x0000000F
 
-static int test_gr_init_ecc_features(struct unit_module *m,
+int test_gr_init_ecc_features(struct unit_module *m,
 		struct gk20a *g, void *args)
 {
 	nvgpu_posix_io_writel_reg_space(g,

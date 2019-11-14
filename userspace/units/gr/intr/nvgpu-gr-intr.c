@@ -43,6 +43,7 @@
 #include "common/gr/gr_priv.h"
 
 #include "../nvgpu-gr.h"
+#include "nvgpu-gr-intr.h"
 
 #define TPC_EXCEPTION_TEX	(0x1U << 0U)
 #define TPC_EXCEPTION_SM	(0x1U << 1U)
@@ -66,7 +67,7 @@ static void gr_test_intr_fifo_recover(struct gk20a *g, u32 bitmask, u32 id,
 }
 #endif
 
-static int test_gr_intr_setup(struct unit_module *m,
+int test_gr_intr_setup(struct unit_module *m,
 		struct gk20a *g, void *args)
 {
 	int err = 0;
@@ -90,7 +91,7 @@ static int test_gr_intr_setup(struct unit_module *m,
 	return UNIT_SUCCESS;
 }
 
-static int test_gr_intr_cleanup(struct unit_module *m,
+int test_gr_intr_cleanup(struct unit_module *m,
 		struct gk20a *g, void *args)
 {
 	int err = 0;
@@ -275,7 +276,7 @@ ch_cleanup:
 	return (err == 0) ? UNIT_SUCCESS: UNIT_FAIL;
 }
 
-static int test_gr_intr_setup_channel(struct unit_module *m,
+int test_gr_intr_setup_channel(struct unit_module *m,
 		struct gk20a *g, void *args)
 {
 	u32 tsgid = getpid();
@@ -340,7 +341,7 @@ static int gr_test_nonstall_isr(struct unit_module *m,
 	return UNIT_SUCCESS;
 }
 
-static int test_gr_intr_without_channel(struct unit_module *m,
+int test_gr_intr_without_channel(struct unit_module *m,
 		struct gk20a *g, void *args)
 {
 	int err;
@@ -398,7 +399,7 @@ struct test_gr_intr_sw_mthd_exceptions sw_excep[] = {
 	      }
 };
 
-static int test_gr_intr_sw_exceptions(struct unit_module *m,
+int test_gr_intr_sw_exceptions(struct unit_module *m,
 		struct gk20a *g, void *args)
 {
 	int err;
@@ -609,7 +610,7 @@ static void gr_test_set_tpc_esr_sm(struct gk20a *g)
 		gr_gpc0_tpc0_sm0_hww_global_esr_r(), global_esr_mask);
 }
 
-static int test_gr_intr_gpc_exceptions(struct unit_module *m,
+int test_gr_intr_gpc_exceptions(struct unit_module *m,
 		struct gk20a *g, void *args)
 {
 	int err;
@@ -676,7 +677,7 @@ static void gr_intr_fecs_ecc_err_regs(struct gk20a *g)
 		gr_fecs_falcon_ecc_status_r(), ecc_status);
 }
 
-static int test_gr_intr_fecs_exceptions(struct unit_module *m,
+int test_gr_intr_fecs_exceptions(struct unit_module *m,
 		struct gk20a *g, void *args)
 {
 	int err, i;

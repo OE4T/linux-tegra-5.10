@@ -34,120 +34,141 @@ struct unit_module;
  */
 
 /**
- * Test specification for: test_gr_init_setup
+ * Test specification for: test_gr_init_setup.
  *
  * Description: Setup common.gr unit.
  *
- * Test Type: Feature based
+ * Test Type: Feature based.
  *
  * Input: None
  *
  * Steps:
- *   Initialize the test environment for common.gr unit testing:
- *     Setup gv11b register spaces for hals to read emulated values.
- *     Register read/write IO callbacks.
- *     Setup init parameters to setup gv11b arch.
- *     Initialize hal to setup the hal functions.
- *   Call nvgpu_gr_alloc to allocate common.gr unit struct.
+ * -  Initialize the test environment for common.gr unit testing:
+ * -  Setup gv11b register spaces for hals to read emulated values.
+ * -  Register read/write IO callbacks.
+ * -  Setup init parameters to setup gv11b arch.
+ * -  Initialize hal to setup the hal functions.
+ * -  Call nvgpu_gr_alloc to allocate common.gr unit struct.
  *
  * Output: Returns PASS if the steps above were executed successfully. FAIL
- * otherwise.
+ *         otherwise.
  */
 int test_gr_init_setup(struct unit_module *m, struct gk20a *g, void *args);
 
 /**
- * Test specification for: test_gr_remove_setup
+ * Test specification for: test_gr_remove_setup.
  *
  * Description: Remove common.gr unit setup.
  *
- * Test Type: Feature based
+ * Test Type: Feature based.
  *
- * Input: None
+ * Input: test_gr_init_setup must have been executed successfully.
  *
  * Steps:
- *   Delete and remove the gv11b register spaces.
- *   Delete the memory for common.gr unit.
+ * -  Delete and remove the gv11b register spaces.
+ * -  Delete the memory for common.gr unit.
  *
- * Output: Returns PASS
+ * Output: Returns PASS.
  */
 int test_gr_remove_setup(struct unit_module *m, struct gk20a *g, void *args);
 
 /**
- * Test specification for: test_gr_init_prepare
+ * Test specification for: test_gr_init_prepare.
  *
  * Description: Prepare common.gr unit.
  *
- * Test Type: Feature based
+ * Test Type: Feature based.
  *
- * Input: None
+ * Input: test_gr_init_setup must have been executed successfully.
  *
  * Steps:
- *   Call nvgpu_gr_prepare_sw and nvgpu_gr_enable_hw which helps
- *   to initialize the s/w and enable h/w for GR engine.
+ * -  Call nvgpu_gr_prepare_sw and nvgpu_gr_enable_hw which helps
+ *    to initialize the s/w and enable h/w for GR engine.
  *
- * Output: Returns PASS
+ * Output: Returns PASS.
  */
 int test_gr_init_prepare(struct unit_module *m, struct gk20a *g, void *args);
 
 /**
- * Test specification for: test_gr_init_support
+ * Test specification for: test_gr_init_support.
  *
  * Description: Initialize common.gr unit.
  *
- * Test Type: Feature based
+ * Test Type: Feature based.
  *
- * Input: None
+ * Input: test_gr_init_setup and test_gr_init_prepare
+ *        must have been executed successfully.
  *
  * Steps:
- *   Call nvgpu_gr_init.
- *   Call g->ops.ltc.init_ltc_support & g->ops.mm.init_mm_support.
- *   Override g->ops.gr.falcon.load_ctxsw_ucode function.
- *   Call g->ops.chip_init_gpu_characteristics
- *   Call nvgpu_gr_init_support
- *   Call g->ops.gr.ecc.ecc_init_support
+ * -  Call nvgpu_gr_init.
+ * -  Call g->ops.ltc.init_ltc_support & g->ops.mm.init_mm_support.
+ * -  Override g->ops.gr.falcon.load_ctxsw_ucode function.
+ * -  Call g->ops.chip_init_gpu_characteristics.
+ * -  Call nvgpu_gr_init_support.
+ * -  Call g->ops.gr.ecc.ecc_init_support.
  *
  * Output: Returns PASS if the steps above were executed successfully. FAIL
- * otherwise.
+ *         otherwise.
  */
 int test_gr_init_support(struct unit_module *m, struct gk20a *g, void *args);
 
 /**
- * Support nvgpu_gr_suspend driver function
- */
-/**
- * Test specification for: test_gr_suspend
+ * Test specification for: test_gr_suspend.
  *
  * Description: Suspend common.gr unit.
  *
- * Test Type: Feature based
+ * Test Type: Feature based.
  *
- * Input: None
+ * Input: test_gr_init_setup, test_gr_init_prepare and test_gr_init_support
+ *        must have been executed successfully.
  *
  * Steps:
- *   Call nvgpu_gr_suspend.
+ * -  Call nvgpu_gr_suspend.
  *
- * Output: Returns PASS
+ * Output: Returns PASS.
  */
 int test_gr_suspend(struct unit_module *m, struct gk20a *g, void *args);
 
 /**
- * Support nvgpu_gr_remove_support driver function
- */
-/**
- * Test specification for: test_gr_remove_support
+ * Test specification for: test_gr_remove_support.
  *
  * Description: Remove common.gr unit support.
  *
- * Test Type: Feature based
+ * Test Type: Feature based.
  *
- * Input: None
+ * Input: test_gr_init_setup, test_gr_init_prepare and test_gr_init_support
+ *        must have been executed successfully.
  *
  * Steps:
- *   Call nvgpu_gr_remove_support.
+ * -  Call nvgpu_gr_remove_support.
  *
- * Output: Returns PASS
+ * Output: Returns PASS.
  */
 int test_gr_remove_support(struct unit_module *m, struct gk20a *g, void *args);
+
+/**
+ * Test specification for: test_gr_init_ecc_features.
+ *
+ * Description: Set the ECC feature based on fuse and fecs override registers.
+ *
+ * Test Type: Feature based.
+ *
+ * Input: test_gr_init_setup, test_gr_init_prepare and test_gr_init_support
+ *        must have been executed successfully.
+ *
+ * Steps:
+ * -  Set fuse register bit FUSES_OVERRIDE_DISABLE to TRUE.
+ * -  Call g->ops.gr.ecc.detect.
+ * -  Set fuse register bit FUSES_OVERRIDE_DISABLE to FALSE.
+ * -  Set fecs register for ecc override.
+ * -  Set fecs register for ecc1 override.
+ * -  Call g->ops.gr.ecc.detect.
+ *
+ * Output: Returns PASS.
+ */
+int test_gr_init_ecc_features(struct unit_module *m,
+			      struct gk20a *g, void *args);
+
 #endif /* UNIT_NVGPU_GR_H */
 
 /**
