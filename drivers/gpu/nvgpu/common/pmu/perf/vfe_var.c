@@ -1240,11 +1240,8 @@ static int devinit_get_vfe_var_table(struct gk20a *g,
 	}
 
 	nvgpu_memcpy((u8 *)&vfevars_tbl_header, vfevars_tbl_ptr,
-			VBIOS_VFE_3X_HEADER_SIZE_07);
-	if (vfevars_tbl_header.header_size == VBIOS_VFE_3X_HEADER_SIZE_07) {
-		hdrszfmt = VBIOS_VFE_3X_HEADER_SIZE_07;
-	} else if (vfevars_tbl_header.header_size ==
-						VBIOS_VFE_3X_HEADER_SIZE_09) {
+			VBIOS_VFE_3X_HEADER_SIZE_09);
+	if (vfevars_tbl_header.header_size == VBIOS_VFE_3X_HEADER_SIZE_09) {
 		hdrszfmt = VBIOS_VFE_3X_HEADER_SIZE_09;
 		nvgpu_memcpy((u8 *)&vfevars_tbl_header, vfevars_tbl_ptr, hdrszfmt);
 	} else {
@@ -1256,9 +1253,6 @@ static int devinit_get_vfe_var_table(struct gk20a *g,
 	if (vfevars_tbl_header.vfe_var_entry_size ==
 			VBIOS_VFE_3X_VAR_ENTRY_SIZE_19) {
 		szfmt = VBIOS_VFE_3X_VAR_ENTRY_SIZE_19;
-	} else if (vfevars_tbl_header.vfe_var_entry_size ==
-			VBIOS_VFE_3X_VAR_ENTRY_SIZE_11) {
-		szfmt = VBIOS_VFE_3X_VAR_ENTRY_SIZE_11;
 	} else {
 		nvgpu_err(g, "Invalid VFE VAR Entry size\n");
 		status = -EINVAL;

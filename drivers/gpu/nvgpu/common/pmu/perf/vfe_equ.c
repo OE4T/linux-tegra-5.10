@@ -365,11 +365,8 @@ static int devinit_get_vfe_equ_table(struct gk20a *g,
 	}
 
 	nvgpu_memcpy((u8 *)&vfeequs_tbl_header, vfeequs_tbl_ptr,
-			VBIOS_VFE_3X_HEADER_SIZE_07);
-	if (vfeequs_tbl_header.header_size == VBIOS_VFE_3X_HEADER_SIZE_07) {
-		hdrszfmt = VBIOS_VFE_3X_HEADER_SIZE_07;
-	} else if (vfeequs_tbl_header.header_size ==
-						VBIOS_VFE_3X_HEADER_SIZE_09) {
+			VBIOS_VFE_3X_HEADER_SIZE_09);
+	if (vfeequs_tbl_header.header_size == VBIOS_VFE_3X_HEADER_SIZE_09) {
 		hdrszfmt = VBIOS_VFE_3X_HEADER_SIZE_09;
 		nvgpu_memcpy((u8 *)&vfeequs_tbl_header, vfeequs_tbl_ptr, hdrszfmt);
 	} else {
@@ -379,12 +376,10 @@ static int devinit_get_vfe_equ_table(struct gk20a *g,
 	}
 
 	if (vfeequs_tbl_header.vfe_equ_entry_size ==
-			VBIOS_VFE_3X_EQU_ENTRY_SIZE_17) {
-		szfmt = VBIOS_VFE_3X_EQU_ENTRY_SIZE_17;
-	} else if (vfeequs_tbl_header.vfe_equ_entry_size ==
 			VBIOS_VFE_3X_EQU_ENTRY_SIZE_18) {
 		szfmt = VBIOS_VFE_3X_EQU_ENTRY_SIZE_18;
 	} else {
+		nvgpu_err(g, "Invalid VFE EQU entry size\n");
 		status = -EINVAL;
 		goto done;
 	}

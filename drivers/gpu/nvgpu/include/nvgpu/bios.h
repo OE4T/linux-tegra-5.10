@@ -351,10 +351,8 @@ struct vbios_vfe_3x_header_struct {
 	u8 vfe_equ_rppm_entry_count;
 } __attribute__((packed));
 
-#define VBIOS_VFE_3X_HEADER_SIZE_07                                     0x07U
 #define VBIOS_VFE_3X_HEADER_SIZE_09                                     0x09U
 
-#define VBIOS_VFE_3X_VAR_ENTRY_SIZE_11                                     0x11U
 #define VBIOS_VFE_3X_VAR_ENTRY_SIZE_19                                     0x19U
 struct vbios_vfe_3x_var_entry_struct {
 	u8 type;
@@ -433,7 +431,6 @@ struct vbios_vfe_3x_var_entry_struct {
 #define VBIOS_VFE_3X_VAR_ENTRY_PAR1_SSFUSE_HW_CORRECTION_OFFSET_MASK 0xFFFFFFFFU
 #define VBIOS_VFE_3X_VAR_ENTRY_PAR1_SSFUSE_HW_CORRECTION_OFFSET_SHIFT 0U
 
-#define VBIOS_VFE_3X_EQU_ENTRY_SIZE_17                                     0x17U
 #define VBIOS_VFE_3X_EQU_ENTRY_SIZE_18                                     0x18U
 
 struct vbios_vfe_3x_equ_entry_struct {

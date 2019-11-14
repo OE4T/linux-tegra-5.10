@@ -59,97 +59,21 @@ struct nv_pmu_rpc_struct_perf_load {
 	u32 scratch[1];
 };
 
-struct nv_pmu_perf_cmd_set_object {
-	u8 cmd_type;
-	u8 pad[2];
-	u8 object_type;
-	struct nv_pmu_allocation object;
-};
-
-#define NV_PMU_PERF_SET_OBJECT_ALLOC_OFFSET                            \
-	(offsetof(struct nv_pmu_perf_cmd_set_object, object))
-
-/* RPC IDs */
-#define NV_PMU_PERF_RPC_ID_VFE_LOAD                              (0x00000001U)
-
-/*
- * Command requesting execution of the perf RPC.
- */
-struct nv_pmu_perf_cmd_rpc {
-	u8 cmd_type;
-	u8 pad[3];
-	struct nv_pmu_allocation request;
-};
-
-#define NV_PMU_PERF_CMD_RPC_ALLOC_OFFSET       \
-	((u32)offsetof(struct nv_pmu_perf_cmd_rpc, request))
-
-/*
- * Simply a union of all specific PERF commands. Forms the general packet
- * exchanged between the Kernel and PMU when sending and receiving PERF commands
- * (respectively).
- */
-struct nv_pmu_perf_cmd {
-	union {
-		u8 cmd_type;
-		struct nv_pmu_perf_cmd_set_object set_object;
-		struct nv_pmu_boardobj_cmd_grp grp_set;
-		struct nv_pmu_boardobj_cmd_grp grp_get_status;
-	};
-};
-
-/*
- * Defines the data structure used to invoke PMU perf RPCs. Same structure is
- * used to return the result of the RPC execution.
- */
-struct nv_pmu_perf_rpc {
-	u8 function;
-	bool b_supported;
-	bool b_success;
-	falcon_status flcn_status;
-	union {
-		struct nv_pmu_perf_rpc_vfe_equ_eval vfe_equ_eval;
-		struct nv_pmu_perf_rpc_vfe_load vfe_load;
-	} params;
-};
-
-
 /* PERF Message-type Definitions */
 #define NV_PMU_PERF_MSG_ID_RPC                                   (0x00000003U)
 #define NV_PMU_PERF_MSG_ID_BOARDOBJ_GRP_SET                      (0x00000004U)
 #define NV_PMU_PERF_MSG_ID_BOARDOBJ_GRP_GET_STATUS               (0x00000006U)
-#define NV_PMU_PERF_MSG_ID_VFE_CALLBACK                          (0x00000005U)
-#define NV_PMU_PERF_MSG_ID_CHANGE_SEQ_COMPLETION                 (0x00000007U)
-#define NV_PMU_PERF_MSG_ID_PSTATES_INVALIDATE                    (0x00000008U)
 
+/* PERF RPC ID Definitions */
 #define NV_PMU_RPC_ID_PERF_VFE_CALLBACK                          0x01U
 #define NV_PMU_RPC_ID_PERF_SEQ_COMPLETION                        0x02U
 #define NV_PMU_RPC_ID_PERF_PSTATES_INVALIDATE                    0x03U
-
-/*
- * Message carrying the result of the perf RPC execution.
- */
-struct nv_pmu_perf_msg_rpc {
-	u8 msg_type;
-	u8 rsvd[3];
-	struct nv_pmu_allocation response;
-};
-
-#define NV_PMU_PERF_MSG_RPC_ALLOC_OFFSET       \
-	((u32)offsetof(struct nv_pmu_perf_msg_rpc, response))
 
 /*
  * Simply a union of all specific PERF messages. Forms the general packet
  * exchanged between the Kernel and PMU when sending and receiving PERF messages
  * (respectively).
  */
-struct nv_pmu_perf_msg {
-	union {
-		u8 msg_type;
-		struct nv_pmu_perf_msg_rpc rpc;
-		struct nv_pmu_boardobj_msg_grp grp_set;
-	};
-};
 
 struct pmu_nvgpu_rpc_perf_event {
 	struct pmu_hdr msg_hdr;

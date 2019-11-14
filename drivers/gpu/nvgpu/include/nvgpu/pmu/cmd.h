@@ -52,7 +52,6 @@ struct pmu_cmd {
 		struct pmu_zbc_cmd zbc;
 		struct pmu_acr_cmd acr;
 		struct nv_pmu_boardobj_cmd boardobj;
-		struct nv_pmu_perf_cmd perf;
 		struct nv_pmu_volt_cmd volt;
 		struct nv_pmu_clk_cmd clk;
 		struct nv_pmu_pmgr_cmd pmgr;

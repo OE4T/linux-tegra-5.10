@@ -734,8 +734,6 @@ pmu:
                  common/pmu/perf/vfe_equ.h,
                  common/pmu/perf/vfe_var.c,
                  common/pmu/perf/vfe_var.h,
-                 common/pmu/perf/perf_gv100.c,
-                 common/pmu/perf/perf_gv100.h,
                  common/pmu/perf/perf_ps35.c,
                  common/pmu/perf/perf_pstate.c,
                  common/pmu/perf/perf_pstate.h,
