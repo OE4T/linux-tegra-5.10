@@ -1503,6 +1503,99 @@ static int mgbe_config_rxcsum_offload(
 }
 
 /**
+ * @brief update_rfa_rfd - Update RFD and RSA values
+ *
+ * Algorithm: Calulates and stores the RSD (Threshold for Dectivating
+ *	  Flow control) and RSA (Threshold for Activating Flow Control) values
+ *	  based on the Rx FIFO size
+ *
+ * @param[in] rx_fifo: Rx FIFO size.
+ * @param[in] value: Stores RFD and RSA values
+ */
+void update_rfa_rfd(unsigned int rx_fifo, unsigned int *value)
+{
+	switch (rx_fifo) {
+		case MGBE_21K:
+			/* Update RFD */
+			*value &= ~MGBE_MTL_RXQ_OP_MODE_RFD_MASK;
+			*value |= (FULL_MINUS_4_K <<
+				   MGBE_MTL_RXQ_OP_MODE_RFD_SHIFT) &
+				   MGBE_MTL_RXQ_OP_MODE_RFD_MASK;
+			/* Update RFA */
+			*value &= ~MGBE_MTL_RXQ_OP_MODE_RFA_MASK;
+			*value |= (FULL_MINUS_18_K <<
+				   MGBE_MTL_RXQ_OP_MODE_RFA_SHIFT) &
+				   MGBE_MTL_RXQ_OP_MODE_RFA_MASK;
+			break;
+		case MGBE_24K:
+			/* Update RFD */
+			*value &= ~MGBE_MTL_RXQ_OP_MODE_RFD_MASK;
+			*value |= (FULL_MINUS_4_K <<
+				   MGBE_MTL_RXQ_OP_MODE_RFD_SHIFT) &
+				   MGBE_MTL_RXQ_OP_MODE_RFD_MASK;
+			/* Update RFA */
+			*value &= ~MGBE_MTL_RXQ_OP_MODE_RFA_MASK;
+			*value |= (FULL_MINUS_21_K <<
+				   MGBE_MTL_RXQ_OP_MODE_RFA_SHIFT) &
+				   MGBE_MTL_RXQ_OP_MODE_RFA_MASK;
+			break;
+		case MGBE_27K:
+			/* Update RFD */
+			*value &= ~MGBE_MTL_RXQ_OP_MODE_RFD_MASK;
+			*value |= (FULL_MINUS_4_K <<
+				   MGBE_MTL_RXQ_OP_MODE_RFD_SHIFT) &
+				   MGBE_MTL_RXQ_OP_MODE_RFD_MASK;
+			/* Update RFA */
+			*value &= ~MGBE_MTL_RXQ_OP_MODE_RFA_MASK;
+			*value |= (FULL_MINUS_24_K <<
+				   MGBE_MTL_RXQ_OP_MODE_RFA_SHIFT) &
+				   MGBE_MTL_RXQ_OP_MODE_RFA_MASK;
+			break;
+		case MGBE_32K:
+			/* Update RFD */
+			*value &= ~MGBE_MTL_RXQ_OP_MODE_RFD_MASK;
+			*value |= (FULL_MINUS_4_K <<
+				   MGBE_MTL_RXQ_OP_MODE_RFD_SHIFT) &
+				   MGBE_MTL_RXQ_OP_MODE_RFD_MASK;
+			/* Update RFA */
+			*value &= ~MGBE_MTL_RXQ_OP_MODE_RFA_MASK;
+			*value |= (FULL_MINUS_29_K <<
+				   MGBE_MTL_RXQ_OP_MODE_RFA_SHIFT) &
+				   MGBE_MTL_RXQ_OP_MODE_RFA_MASK;
+			break;
+		case MGBE_38K:
+		case MGBE_48K:
+		case MGBE_64K:
+		case MGBE_96K:
+		case MGBE_192K:
+			/* Update RFD */
+			*value &= ~MGBE_MTL_RXQ_OP_MODE_RFD_MASK;
+			*value |= (FULL_MINUS_4_K <<
+				   MGBE_MTL_RXQ_OP_MODE_RFD_SHIFT) &
+				   MGBE_MTL_RXQ_OP_MODE_RFD_MASK;
+			/* Update RFA */
+			*value &= ~MGBE_MTL_RXQ_OP_MODE_RFA_MASK;
+			*value |= (FULL_MINUS_32_K <<
+				   MGBE_MTL_RXQ_OP_MODE_RFA_SHIFT) &
+				   MGBE_MTL_RXQ_OP_MODE_RFA_MASK;
+			break;
+		case MGBE_19K:
+		default:
+			/* Update RFD */
+			*value &= ~MGBE_MTL_RXQ_OP_MODE_RFD_MASK;
+			*value |= (FULL_MINUS_4_K <<
+				   MGBE_MTL_RXQ_OP_MODE_RFD_SHIFT) &
+				   MGBE_MTL_RXQ_OP_MODE_RFD_MASK;
+			/* Update RFA */
+			*value &= ~MGBE_MTL_RXQ_OP_MODE_RFA_MASK;
+			*value |= (FULL_MINUS_16_K <<
+				   MGBE_MTL_RXQ_OP_MODE_RFA_SHIFT) &
+				   MGBE_MTL_RXQ_OP_MODE_RFA_MASK;
+			break;
+	}
+}
+
+/**
  * @brief mgbe_configure_mtl_queue - Configure MTL Queue
  *
  * Algorithm: This takes care of configuring the  below
@@ -1571,9 +1664,22 @@ static nve32_t mgbe_configure_mtl_queue(nveu32_t qinx,
 	value |= (rx_fifo << MGBE_MTL_RXQ_SIZE_SHIFT);
 	/* Enable Store and Forward mode */
 	value |= MGBE_MTL_RSF;
+	/* Enable HW flow control */
+	value |= MGBE_MTL_RXQ_OP_MODE_EHFC;
 
 	osi_writel(value, (nveu8_t *)osi_core->base +
 		   MGBE_MTL_CHX_RX_OP_MODE(qinx));
+
+	/* Update RFA and RFD
+	 * RFA: Threshold for Activating Flow Control
+	 * RFD: Threshold for Deactivating Flow Control
+	 */
+	value = osi_readl((unsigned char *)osi_core->base +
+			  MGBE_MTL_RXQ_FLOW_CTRL(qinx));
+	update_rfa_rfd(rx_fifo, &value);
+	osi_writel(value, (unsigned char *)osi_core->base +
+		   MGBE_MTL_RXQ_FLOW_CTRL(qinx));
+
 	/* Transmit Queue weight */
 	value = osi_readl((nveu8_t *)osi_core->base +
 			  MGBE_MTL_TCQ_QW(qinx));
@@ -1587,6 +1693,70 @@ static nve32_t mgbe_configure_mtl_queue(nveu32_t qinx,
 		  (MGBE_MAC_RXQC0_RXQEN_SHIFT(qinx)));
 	osi_writel(value, (nveu8_t *)osi_core->base +
 		   MGBE_MAC_RQC0R);
+	return 0;
+}
+
+/**
+ * @brief mgbe_config_flow_control - Configure MAC flow control settings
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in] flw_ctrl: flw_ctrl settings
+ *
+ * @note MAC should be init and started. see osi_start_mac()
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+static int mgbe_config_flow_control(struct osi_core_priv_data *const osi_core,
+				    const nveu32_t flw_ctrl)
+{
+	unsigned int val;
+	void *addr = osi_core->base;
+
+	/* return on invalid argument */
+	if (flw_ctrl > (OSI_FLOW_CTRL_RX | OSI_FLOW_CTRL_TX)) {
+		return -1;
+	}
+
+	/* Configure MAC Tx Flow control */
+	/* Read MAC Tx Flow control Register of Q0 */
+	val = osi_readl((unsigned char *)addr + MGBE_MAC_QX_TX_FLW_CTRL(0U));
+
+	/* flw_ctrl BIT0: 1 is for tx flow ctrl enable
+	 * flw_ctrl BIT0: 0 is for tx flow ctrl disable
+	 */
+	if ((flw_ctrl & OSI_FLOW_CTRL_TX) == OSI_FLOW_CTRL_TX) {
+		/* Enable Tx Flow Control */
+		val |= MGBE_MAC_QX_TX_FLW_CTRL_TFE;
+		/* Mask and set Pause Time */
+		val &= ~MGBE_MAC_PAUSE_TIME_MASK;
+		val |= MGBE_MAC_PAUSE_TIME & MGBE_MAC_PAUSE_TIME_MASK;
+	} else {
+		/* Disable Tx Flow Control */
+		val &= ~MGBE_MAC_QX_TX_FLW_CTRL_TFE;
+	}
+
+	/* Write to MAC Tx Flow control Register of Q0 */
+	osi_writel(val, (unsigned char *)addr + MGBE_MAC_QX_TX_FLW_CTRL(0U));
+
+	/* Configure MAC Rx Flow control*/
+	/* Read MAC Rx Flow control Register */
+	val = osi_readl((unsigned char *)addr + MGBE_MAC_RX_FLW_CTRL);
+
+	/* flw_ctrl BIT1: 1 is for rx flow ctrl enable
+	 * flw_ctrl BIT1: 0 is for rx flow ctrl disable
+	 */
+	if ((flw_ctrl & OSI_FLOW_CTRL_RX) == OSI_FLOW_CTRL_RX) {
+		/* Enable Rx Flow Control */
+		val |= MGBE_MAC_RX_FLW_CTRL_RFE;
+	} else {
+		/* Disable Rx Flow Control */
+		val &= ~MGBE_MAC_RX_FLW_CTRL_RFE;
+	}
+
+	/* Write to MAC Rx Flow control Register */
+	osi_writel(val, (unsigned char *)addr + MGBE_MAC_RX_FLW_CTRL);
+
 	return 0;
 }
 
@@ -1704,6 +1874,16 @@ static void mgbe_configure_mac(struct osi_core_priv_data *osi_core)
 	value &= ~MGBE_MAC_VLANTIRR_CSVL;
 	osi_writel(value, (unsigned char *)osi_core->base + MGBE_MAC_VLANTIR);
 
+	/* Configure default flow control settings */
+	if (osi_core->pause_frames == OSI_PAUSE_FRAMES_ENABLE) {
+		osi_core->flow_ctrl = (OSI_FLOW_CTRL_TX | OSI_FLOW_CTRL_RX);
+		if (mgbe_config_flow_control(osi_core->base,
+					     osi_core->flow_ctrl) != 0) {
+			OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
+				"Failed to set flow control configuration\n",
+				0ULL);
+		}
+	}
 	/* TODO: USP (user Priority) to RxQ Mapping */
 }
 
@@ -2753,7 +2933,7 @@ void mgbe_init_core_ops(struct core_ops *ops)
 	ops->config_fw_err_pkts = mgbe_config_fw_err_pkts;
 	ops->config_tx_status = OSI_NULL;
 	ops->config_rx_crc_check = OSI_NULL;
-	ops->config_flow_control = OSI_NULL;
+	ops->config_flow_control = mgbe_config_flow_control;
 	ops->config_arp_offload = mgbe_config_arp_offload;
 	ops->config_rxcsum_offload = mgbe_config_rxcsum_offload;
 	ops->config_mac_pkt_filter_reg = mgbe_config_mac_pkt_filter_reg;

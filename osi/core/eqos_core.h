@@ -23,23 +23,6 @@
 #ifndef INCLUDED_EQOS_CORE_H
 #define INCLUDED_EQOS_CORE_H
 
-/**
- * @addtogroup EQOS-FC Flow Control Threshold Macros
- *
- * @brief These bits control the threshold (fill-level of Rx queue) at which
- * the flow control is asserted or de-asserted
- * @{
- */
-#define FULL_MINUS_1_5K		(nveu32_t)1
-#define FULL_MINUS_2_K		(nveu32_t)2
-#define FULL_MINUS_2_5K		(nveu32_t)3
-#define FULL_MINUS_3_K		(nveu32_t)4
-#define FULL_MINUS_4_K		(nveu32_t)6
-#define FULL_MINUS_6_K		(nveu32_t)10
-#define FULL_MINUS_10_K		(nveu32_t)18
-#define FULL_MINUS_16_K		(nveu32_t)30
-/** @} */
-
 #ifndef OSI_STRIPPED_LIB
 /**
  * @addtogroup EQOS-MDC MDC Clock Selection defines

@@ -181,6 +181,7 @@
 #define MGBE_MTL_TCQ_ETS_HCR(x)		((0x0080U * (x)) + 0x1120U)
 #define MGBE_MTL_TCQ_ETS_LCR(x)		((0x0080U * (x)) + 0x1124U)
 #define MGBE_MTL_CHX_RX_OP_MODE(x)	((0x0080U * (x)) + 0x1140U)
+#define MGBE_MTL_RXQ_FLOW_CTRL(x)	((0x0080U * (x)) + 0x1150U)
 #define MGBE_MTL_TC_PRTY_MAP0		0x1040
 #define MGBE_MTL_TC_PRTY_MAP1		0x1044
 /** @} */
@@ -323,6 +324,37 @@
 #define MGBE_MTL_RXQ_SIZE_SHIFT			16U
 #define MGBE_MAC_RMCR_GPSL_MSK			0x3FFF0000U
 #define MGBE_MTL_RXQ_OP_MODE_FEP		OSI_BIT(4)
+#define MGBE_MAC_QX_TX_FLW_CTRL_TFE		OSI_BIT(1)
+#define MGBE_MAC_RX_FLW_CTRL_RFE		OSI_BIT(0)
+#define MGBE_MAC_PAUSE_TIME			0xFFFF0000U
+#define MGBE_MAC_PAUSE_TIME_MASK		0xFFFF0000U
+#define MGBE_MTL_RXQ_OP_MODE_EHFC		OSI_BIT(7)
+#define MGBE_MTL_RXQ_OP_MODE_RFA_SHIFT		1U
+#define MGBE_MTL_RXQ_OP_MODE_RFA_MASK		0x0000007EU
+#define MGBE_MTL_RXQ_OP_MODE_RFD_SHIFT		17U
+#define MGBE_MTL_RXQ_OP_MODE_RFD_MASK		0x007E0000U
+/** @} */
+
+/**
+ * @addtogroup MGBE-QUEUE QUEUE fifo size programmable values
+ *
+ * @brief Queue FIFO size programmable values
+ * @{
+ */
+/* Formula is "Programmed value = (x + 1 )*256"
+ * Total Rx buf size is 192KB so 192*1024 = (x + 1)*256
+ * which gives x as 0x2FF
+ */
+#define MGBE_19K	0x4BU  /* For Ten MTL queues */
+#define MGBE_21K	0x53U  /* For Nine MTL queues */
+#define MGBE_24K	0x5FU  /* For Eight MTL queues */
+#define MGBE_27K	0x6BU  /* For Seven MTL queues */
+#define MGBE_32K	0x7FU  /* For Six MTL queues */
+#define MGBE_38K	0x97U  /* For Five MTL queues */
+#define MGBE_48K	0xBFU  /* For Four MTL queues */
+#define MGBE_64K	0xFFU  /* For Three MTL queues */
+#define MGBE_96K	0x17FU /* For Two MTL queues */
+#define MGBE_192K	0x2FFU /* For One MTL queue */
 /** @} */
 
 /**

@@ -26,9 +26,32 @@
 #include "../osi/common/type.h"
 
 /**
- * @addtogroup Helper Helper MACROS
+ * @addtogroup FC Flow Control Threshold Macros
  *
- * @brief EQOS generic helper MACROS.
+ * @brief These bits control the threshold (fill-level of Rx queue) at which
+ * the flow control is asserted or de-asserted
+ * @{
+ */
+#define FULL_MINUS_1_5K		(unsigned int)1
+#define FULL_MINUS_2_K		(unsigned int)2
+#define FULL_MINUS_2_5K		(unsigned int)3
+#define FULL_MINUS_3_K		(unsigned int)4
+#define FULL_MINUS_4_K		(unsigned int)6
+#define FULL_MINUS_6_K		(unsigned int)10
+#define FULL_MINUS_10_K		(unsigned int)18
+#define FULL_MINUS_13_K		(unsigned int)24
+#define FULL_MINUS_14_K		(unsigned int)26
+#define FULL_MINUS_16_K		(unsigned int)30
+#define FULL_MINUS_18_K		(unsigned int)34
+#define FULL_MINUS_21_K		(unsigned int)40
+#define FULL_MINUS_24_K		(unsigned int)46
+#define FULL_MINUS_29_K		(unsigned int)56
+#define FULL_MINUS_31_K		(unsigned int)60
+#define FULL_MINUS_32_K		(unsigned int)62
+/** @} */
+
+/**
+ * @addtogroup OSI-Helper OSI Helper MACROS
  * @{
  */
 #define OSI_UNLOCKED		0x0U
