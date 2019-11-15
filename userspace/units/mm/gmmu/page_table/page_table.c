@@ -20,6 +20,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
+#include "page_table.h"
 #include <unit/io.h>
 #include <unit/core.h>
 #include <unit/unit.h>
@@ -434,15 +435,8 @@ static u64 pte_get_phys_addr(u32 *pte)
 	return (addr_bits << gmmu_new_pde_address_shift_v());
 }
 
-/*
- * Test: test_nvgpu_gmmu_map_unmap
- * This test does a simple map and unmap of a buffer. Several parameters can
- * be changed and provided in the args.
- * This test will also attempt to compare the data in PTEs to the parameters
- * provided.
- */
-static int test_nvgpu_gmmu_map_unmap(struct unit_module *m,
-					struct gk20a *g, void *args)
+int test_nvgpu_gmmu_map_unmap(struct unit_module *m, struct gk20a *g,
+	void *args)
 {
 	struct nvgpu_mem mem = { };
 	u32 pte[2];
@@ -549,13 +543,9 @@ static int test_nvgpu_gmmu_map_unmap(struct unit_module *m,
 	return UNIT_SUCCESS;
 }
 
-/*
- * Test: test_nvgpu_gmmu_map_unmap_map_fail
- * Test special corner cases causing map to fail. Mostly to cover error
- * handling and some branches.
- */
-static int test_nvgpu_gmmu_map_unmap_map_fail(struct unit_module *m,
-					struct gk20a *g, void *args)
+
+int test_nvgpu_gmmu_map_unmap_map_fail(struct unit_module *m, struct gk20a *g,
+					void *args)
 {
 	struct nvgpu_mem mem = { };
 	struct nvgpu_posix_fault_inj *kmem_fi =
@@ -803,13 +793,7 @@ static void gmmu_unmap_advanced(struct vm_gk20a *vm, struct nvgpu_mem *mem,
 	nvgpu_mutex_release(&vm->update_gmmu_lock);
 }
 
-/*
- * Test: test_nvgpu_gmmu_map_unmap_adv
- * Similar to test_nvgpu_gmmu_map_unmap but using the advanced helper functions
- * defined above. This test function is used to test advanced features defined
- * in the parameters.
- */
-static int test_nvgpu_gmmu_map_unmap_adv(struct unit_module *m,
+int test_nvgpu_gmmu_map_unmap_adv(struct unit_module *m,
 					struct gk20a *g, void *args)
 {
 	struct nvgpu_mem mem = { };
@@ -862,7 +846,7 @@ static int test_nvgpu_gmmu_map_unmap_adv(struct unit_module *m,
  * This tests uses the batch mode and maps 2 buffers. Then it checks that
  * the flags in the batch structure were set correctly.
  */
-static int test_nvgpu_gmmu_map_unmap_batched(struct unit_module *m,
+int test_nvgpu_gmmu_map_unmap_batched(struct unit_module *m,
 					struct gk20a *g, void *args)
 {
 	struct nvgpu_mem mem = { }, mem2 = { };
@@ -983,9 +967,8 @@ static struct vm_gk20a *init_test_req_vm(struct gk20a *g)
 			     aperture_size, big_pages, true, true, "testmem");
 }
 
-/* Test case to cover NVGPU-RQCD-45 C1 */
-static int test_nvgpu_page_table_c1_full(struct unit_module *m,
-					struct gk20a *g, void *args)
+int test_nvgpu_page_table_c1_full(struct unit_module *m, struct gk20a *g,
+	void *args)
 {
 	u32 mem_i, i;
 	struct nvgpu_mem mem[REQ_C1_NUM_MEMS] = {};
@@ -1119,9 +1102,8 @@ static int c2_fixed_allocation(struct unit_module *m, struct gk20a *g,
 	return UNIT_SUCCESS;
 }
 
-/* Test case to cover NVGPU-RQCD-45 C2 */
-static int test_nvgpu_page_table_c2_full(struct unit_module *m,
-					struct gk20a *g, void *args)
+int test_nvgpu_page_table_c2_full(struct unit_module *m, struct gk20a *g,
+	void *args)
 {
 	int ret;
 	struct nvgpu_mem mem_fixed = {};

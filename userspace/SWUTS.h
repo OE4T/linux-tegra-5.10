@@ -55,6 +55,7 @@
  *   - @ref SWUTS-mm-allocators-buddy-allocator
  *   - @ref SWUTS-mm-as
  *   - @ref SWUTS-mm-dma
+ *   - @ref SWUTS-mm-gmmu-page_table
  *   - @ref SWUTS-mm-nvgpu-mem
  *   - @ref SWUTS-mm-nvgpu-sgt
  *   - @ref SWUTS-mm-page_table_faults
