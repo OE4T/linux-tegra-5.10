@@ -1,0 +1,157 @@
+# SPDX-License-Identifier: (GPL-2.0)
+%YAML 1.2
+---
+$id: http://devicetree.org/schemas/sound/nvidia,tegra210-i2s.yaml#
+$schema: http://devicetree.org/meta-schemas/core.yaml#
+
+title: NVIDIA Tegra210 I2S (Inter-IC Sound) Controller DT Bindings
+
+description: |
+  The I2S controller implements full duplex point to point serial interfaces.
+  It can operate both as master and slave. It can transmit and receive word
+  lengths of 8, 16, 24 and 32. It can support following data transfer modes.
+    * I2S mode
+    * Left Justified Mode (LJM)
+    * Right Justified Mode (RJM)
+    * DSP mode, as defined in the Philips I2S bus specification
+    * PCM mode with short(one bit clock wide) and long-fsync (two bit clock
+      wide)
+
+maintainers:
+  - Jonathan Hunter <jonathanh@nvidia.com>
+  - Sameer Pujar <spujar@nvidia.com>
+  - Mohan Kumar D <mkumard@nvidia.com>
+
+properties:
+  compatible:
+    oneOf:
+      - items:
+          description: for Tegra210 based platforms
+          const: "nvidia,tegra210-i2s"
+      - items:
+          description: for Tegra186 based platforms
+          const: "nvidia,tegra186-i2s", "nvidia,tegra210-i2s"
+      - items:
+          description: for Tegra194 based platforms
+          const: "nvidia,tegra194-i2s", "nvidia,tegra210-i2s"
+
+  reg:
+    maxItems: 1
+    description: Must contain physical base address and length of device's
+      registers
+
+  clocks:
+    - items:
+        description: I2S bit clock
+    - items:
+        description: Parent for I2S bit clock
+    - items:
+        description: I2S sync input clock
+    - items:
+        description: I2S sync mux
+    - items:
+        description: I2S sync input clock
+
+  clock-names:
+    - items:
+        const: i2s
+    - items:
+        const: i2s_clk_parent
+    - items:
+        const: ext_audio_sync
+    - items:
+        const: audio_sync
+    - items:
+        const: clk_sync_input
+
+  assigned-clocks:
+    - items:
+        description: I2S bit clock
+
+  assigned-clock-parents:
+    - items:
+        description: Parent for I2S bit clock
+
+  assigned-clock-rates:
+    - items:
+        description: Assigned initial rate for I2S bit clock
+
+  "#sound-dai-cells":
+    description: The cell specifies number of DAIs.
+    const: 1
+
+  nvidia,ahub-i2s-id:
+    description: Must be specified with I2S instance number.
+
+  fsync-width:
+    description: Frame sync width in terms of bit clocks for I2S FSYNC mode.
+      If not specified default value of 31 is used.
+
+  bclk-ratio:
+    description: Bit clock multiplier for an I2S instance. If not specified
+      a default value of 1 is used.
+
+required:
+  - compatible
+  - reg
+  - clocks
+  - clock-names
+  - assigned-clocks
+  - assigned-clock-parents
+  - "#sound-dai-cells"
+  - nvidia,ahub-i2s-id
+
+examples:
+
+  - |
+    i2s@702d1000 {
+        compatible = "nvidia,tegra210-i2s";
+        reg = <0x702d1000 0x100>;
+        clocks = <&tegra_car TEGRA210_CLK_I2S0>,
+                 <&tegra_car TEGRA210_CLK_PLL_A_OUT0>,
+                 <&tegra_car TEGRA210_CLK_I2S0_SYNC>,
+                 <&tegra_car TEGRA210_CLK_AUDIO0_MUX>;
+        clock-names = "i2s", "i2s_clk_parent", "ext_audio_sync", "audio_sync";
+        assigned-clocks = <&tegra_car TEGRA210_CLK_I2S0>;
+        assigned-clock-parents = <&tegra_car TEGRA210_CLK_PLL_A_OUT0>;
+        assigned-clock-rates = <1536000>;
+        nvidia,ahub-i2s-id = <0>;
+        #sound-dai-cells = <1>;
+    };
+
+  - |
+    i2s@2901000 {
+        compatible = "nvidia,tegra186-i2s", "nvidia,tegra210-i2s";
+        reg = <0x0 0x2901000 0x0 0x100>;
+        clocks = <&tegra_car TEGRA186_CLK_I2S1>,
+                 <&tegra_car TEGRA186_CLK_PLL_A_OUT0>,
+                 <&tegra_car TEGRA186_CLK_I2S1_SYNC_INPUT>,
+                 <&tegra_car TEGRA186_CLK_SYNC_I2S1>,
+                 <&tegra_car TEGRA186_CLK_I2S1_SYNC_INPUT>;
+        clock-names = "i2s", "i2s_clk_parent", "ext_audio_sync", "audio_sync", "clk_sync_input";
+        assigned-clocks = <&tegra_car TEGRA186_CLK_I2S1>;
+        assigned-clock-parents = <&tegra_car TEGRA186_CLK_PLL_A_OUT0>;
+        assigned-clock-rates = <1536000>;
+        nvidia,ahub-i2s-id = <0>;
+        #sound-dai-cells = <1>;
+    };
+
+  - |
+    i2s@2901000 {
+        compatible = "nvidia,tegra194-i2s", "nvidia,tegra210-i2s";
+        reg = <0x0 0x2901000 0x0 0x100>;
+        clocks = <&bpmp_clks TEGRA194_CLK_I2S1>,
+                 <&bpmp_clks TEGRA194_CLK_PLLA_OUT0>,
+                 <&bpmp_clks TEGRA194_CLK_I2S1_SYNC_INPUT>,
+                 <&bpmp_clks TEGRA194_CLK_SYNC_I2S1>,
+                 <&bpmp_clks TEGRA194_CLK_I2S1_SYNC_INPUT>;
+        clock-names = "i2s", "i2s_clk_parent", "ext_audio_sync", "audio_sync", "clk_sync_input";
+        assigned-clocks = <&bpmp_clks TEGRA194_CLK_I2S1>;
+        assigned-clock-parents = <&bpmp_clks TEGRA194_CLK_PLLA_OUT0>;
+        assigned-clock-rates = <1536000>;
+        nvidia,ahub-i2s-id = <0>;
+        fsync-width = <31>;
+        #sound-dai-cells = <1>;
+    };
+
+...

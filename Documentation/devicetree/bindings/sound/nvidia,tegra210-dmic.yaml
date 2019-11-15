@@ -1,0 +1,116 @@
+# SPDX-License-Identifier: (GPL-2.0)
+%YAML 1.2
+---
+$id: http://devicetree.org/schemas/sound/nvidia,tegra210-dmic.yaml#
+$schema: http://devicetree.org/meta-schemas/core.yaml#
+
+title: NVIDIA Tegra210 DMIC Controller DT Bindings
+
+description: |
+  The Digital MIC (DMIC) Controller is used to interface with Pulse
+  Density Modulation (PDM) input devices. It converts PDM signals to
+  PCM (Pulse Coded Modulation) signals. DMIC can be viewed as a
+  PDM receiver.
+
+maintainers:
+  - Jonathan Hunter <jonathanh@nvidia.com>
+  - Sameer Pujar <spujar@nvidia.com>
+  - Mohan Kumar D <mkumard@nvidia.com>
+
+properties:
+  compatible:
+    oneOf:
+      - items:
+          description: for Tegra210 based platforms
+          const: "nvidia,tegra210-dmic"
+
+      - items:
+          description: for Tegra186 based platforms
+          const: "nvidia,tegra186-dmic", "nvidia,tegra210-dmic"
+
+      - items:
+          description: for Tegra194 based platforms
+          const: "nvidia,tegra194-dmic", "nvidia,tegra210-dmic"
+
+  reg:
+    maxItems: 1
+    description: Must contain physical base address and length of device's
+      registers
+
+  clocks:
+    items:
+      - description: Module clock
+
+  clock-names:
+    items:
+      - const: dmic
+
+  assigned-clocks:
+    items:
+      - description: Module clock
+
+  assigned-clock-parents:
+    items:
+      - description: Parent for module clock
+
+  assigned-clock-rates:
+    items:
+      - description: initial module clock rate
+
+  "#sound-dai-cells":
+    description: The cell specifies number of DAIs.
+    const: 1
+
+  nvidia,ahub-dmic-id:
+    description: Must be specified to uniquely identify DMIC instance
+
+required:
+  - compatible
+  - reg
+  - clocks
+  - clock-names
+  - assigned-clocks
+  - assigned-clock-parents
+  - "#sound-dai-cells"
+
+examples:
+  - |
+    dmic@702d4000 {
+        compatible = "nvidia,tegra210-dmic";
+        reg = <0x702d4000 0x100>;
+        clocks = <&tegra_car TEGRA210_CLK_DMIC1>;
+        clock-names = "dmic";
+        assigned-clocks = <&tegra_car TEGRA210_CLK_DMIC1>;
+        assigned-clock-parents = <&tegra_car TEGRA210_CLK_PLL_A_OUT0>;
+        assigned-clock-rates = <3072000>;
+        #sound-dai-cells = <1>;
+        nvidia,ahub-dmic-id = <0>;
+    };
+
+  - |
+    dmic@2904000 {
+        compatible = "nvidia,tegra186-dmic", "nvidia,tegra210-dmic";
+        reg = <0x0 0x2904000 0x0 0x100>;
+        clocks = <&tegra_car TEGRA186_CLK_DMIC1>, <&tegra_car TEGRA186_CLK_PLL_A_OUT0>;
+        clock-names = "dmic", "parent";
+        assigned-clocks = <&tegra_car TEGRA186_CLK_DMIC1>;
+        assigned-clock-parents = <&tegra_car TEGRA186_CLK_PLL_A_OUT0>;
+        assigned-clock-rates = <3072000>;
+        #sound-dai-cells = <1>;
+        nvidia,ahub-dmic-id = <0>;
+    };
+
+  - |
+    dmic@2904000 {
+        compatible = "nvidia,tegra194-dmic", "nvidia,tegra210-dmic";
+        reg = <0x0 0x2904000 0x0 0x100>;
+        clocks = <&bpmp_clks TEGRA194_CLK_DMIC1>, <&bpmp_clks TEGRA194_CLK_PLLA_OUT0>;
+        clock-names = "dmic", "parent";
+        assigned-clocks = <&bpmp_clks TEGRA194_CLK_DMIC1>;
+        assigned-clock-parents = <&bpmp_clks TEGRA194_CLK_PLLA_OUT0>;
+        assigned-clock-rates = <3072000>;
+        #sound-dai-cells = <1>;
+        nvidia,ahub-dmic-id = <0>;
+    };
+
+...

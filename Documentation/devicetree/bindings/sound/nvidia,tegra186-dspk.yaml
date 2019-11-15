@@ -1,0 +1,104 @@
+# SPDX-License-Identifier: (GPL-2.0)
+%YAML 1.2
+---
+$id: http://devicetree.org/schemas/sound/nvidia,tegra186-dspk.yaml#
+$schema: http://devicetree.org/meta-schemas/core.yaml#
+
+title: NVIDIA Tegra186 DSPK Controller DT Bindings
+
+description: |
+  The Digital Speaker Controller (DSPK) can be viewed as a Pulse
+  Density Modulation (PDM) transmitter that up-samples the input to
+  the desired sampling rate by interpolation and then converts the
+  oversampled PCM (Pulse Code Modulation) input to the desired 1-bit
+  output via Delta Sigma Modulation (DSM).
+
+maintainers:
+  - Jonathan Hunter <jonathanh@nvidia.com>
+  - Sameer Pujar <spujar@nvidia.com>
+  - Mohan Kumar D <mkumard@nvidia.com>
+
+properties:
+  compatible:
+    oneOf:
+      - items:
+          description: for Tegra186 based platforms
+          const: "nvidia,tegra186-dspk"
+      - items:
+          description: for Tegra194 based platforms
+          const: "nvidia,tegra194-dspk", "nvidia,tegra186-dspk"
+
+  reg:
+    maxItems: 1
+    description: must contain physical base address and length of device's
+      registers
+
+  clocks:
+    - items:
+        description: module clock
+
+  clock-names:
+    - items:
+        const: dspk
+
+  assigned-clocks:
+    - items:
+        description: module clock
+
+  assigned-clock-parents:
+    - items:
+        description: parent for module clock
+
+  assigned-clock-rates:
+    - items:
+        description: initial module clock rate
+
+  "#sound-dai-cells":
+    description: cell specifies number of DAIs.
+    const: 1
+
+  nvidia,ahub-dspk-id:
+    description: must be specified to uniquely indentify DSPK instance
+
+required:
+  - compatible
+  - reg
+  - clocks
+  - clock-names
+  - assigned-clocks
+  - assigned-clock-parents
+  - "#sound-dai-cells"
+
+examples:
+
+  - |
+    dspk@2905000 {
+        compatible = "nvidia,tegra186-dspk";
+        reg = <0x0 0x2905000 0x0 0x100>;
+        clocks = <&tegra_car TEGRA186_CLK_DSPK1>,
+		 <&tegra_car TEGRA186_CLK_PLL_A_OUT0>,
+		 <&tegra_car TEGRA186_CLK_SYNC_DSPK1>;
+        clock-names = "dspk", "pll_a_out0", "sync_dspk";
+        assigned-clocks = <&tegra_car TEGRA186_CLK_DSPK1>;
+        assigned-clock-parents = <&tegra_car TEGRA186_CLK_PLL_A_OUT0>;
+        assigned-clock-rates = <12288000>;
+        #sound-dai-cells = <1>;
+        nvidia,ahub-dspk-id = <0>;
+    };
+
+  - |
+    dspk@2905000 {
+        compatible = "nvidia,tegra194-dspk", "nvidia,tegra186-dspk";
+        reg = <0x0 0x2905000 0x0 0x100>;
+        clocks = <&bpmp_clks TEGRA194_CLK_DSPK1>,
+		 <&bpmp_clks TEGRA194_CLK_PLLA_OUT0>,
+		 <&bpmp_clks TEGRA194_CLK_SYNC_DSPK1>;
+        clock-names = "dspk", "pll_a_out0", "sync_dspk";
+        assigned-clocks = <&bpmp_clks TEGRA194_CLK_DSPK1>;
+        assigned-clock-parents = <&bpmp_clks TEGRA194_CLK_PLLA_OUT0>;
+        assigned-clock-rates = <12288000>;
+        #sound-dai-cells = <1>;
+        nvidia,ahub-dspk-id = <0>;
+    };
+
+...
