@@ -114,4 +114,28 @@
 			};
 		};
 	};
+
+	host1x {
+		reset-names = "host1x";
+		reg-names = "vm", "hypervisor";
+
+		nvdisplay@15200000 {
+			status = "okay";
+			resets = <&tegra_car TEGRA186_RESET_NVDISPLAY0_HEAD2 >;
+			reset-names = "dc";
+			nvidia,head = <0>;
+		};
+		nvdisplay@15210000 {
+			status = "disabled";
+			reset-names = "dc";
+			nvidia,head = <1>;
+		};
+		nvdisplay@15220000 {
+			status = "disabled";
+			reset-names = "dc";
+			nvidia,head = <2>;
+		};
+
+	};
+
 };
