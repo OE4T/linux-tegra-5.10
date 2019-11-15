@@ -200,6 +200,43 @@ static nve32_t mgbe_flush_mtl_tx_queue(struct osi_core_priv_data *const osi_core
 }
 
 /**
+ * @brief mgbe_config_mac_loopback - Configure MAC to support loopback
+ *
+ * @param[in] addr: Base address indicating the start of
+ *            memory mapped IO region of the MAC.
+ * @param[in] lb_mode: Enable or Disable MAC loopback mode
+ *
+ * @note MAC should be init and started. see osi_start_mac()
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+static int mgbe_config_mac_loopback(struct osi_core_priv_data *const osi_core,
+				    unsigned int lb_mode)
+{
+	unsigned int value;
+	void *addr = osi_core->base;
+
+	/* don't allow only if loopback mode is other than 0 or 1 */
+	if (lb_mode != OSI_ENABLE && lb_mode != OSI_DISABLE) {
+		return -1;
+	}
+
+	/* Read MAC Configuration Register */
+	value = osi_readl((unsigned char *)addr + MGBE_MAC_RMCR);
+	if (lb_mode == OSI_ENABLE) {
+		/* Enable Loopback Mode */
+		value |= MGBE_MAC_RMCR_LM;
+	} else {
+		value &= ~MGBE_MAC_RMCR_LM;
+	}
+
+	osi_writel(value, (unsigned char *)addr + MGBE_MAC_RMCR);
+
+	return 0;
+}
+
+/**
  * @brief mgbe_configure_mtl_queue - Configure MTL Queue
  *
  * Algorithm: This takes care of configuring the  below
@@ -925,7 +962,7 @@ void mgbe_init_core_ops(struct core_ops *ops)
 	ops->pad_calibrate = mgbe_pad_calibrate;
 	ops->set_mdc_clk_rate = OSI_NULL;
 	ops->flush_mtl_tx_queue = mgbe_flush_mtl_tx_queue;
-	ops->config_mac_loopback = OSI_NULL;
+	ops->config_mac_loopback = mgbe_config_mac_loopback;
 	ops->set_avb_algorithm = OSI_NULL;
 	ops->get_avb_algorithm = OSI_NULL;
 	ops->config_fw_err_pkts = OSI_NULL;
@@ -947,7 +984,6 @@ void mgbe_init_core_ops(struct core_ops *ops)
 	ops->set_systime_to_mac = OSI_NULL;
 	ops->config_addend = OSI_NULL;
 	ops->adjust_mactime = OSI_NULL,
-	//.get_systime_from_mac = OSI_NULL,
 	ops->config_tscr = OSI_NULL;
 	ops->config_ssir = OSI_NULL;
 	ops->read_mmc = OSI_NULL;
