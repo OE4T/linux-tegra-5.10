@@ -172,10 +172,6 @@ struct hyp_server_page {
 	uint64_t mappings_ipa;
 };
 
-// Please make sure ivclib/include/tegra-hvc-data.h is in
-// sync for struct hyp_server_page.
-_Static_assert(sizeof(struct hyp_server_page) == 136, "Invalid Server Page");
-
 /* For backwards compatibility, alias the old name for hyp_server_name. */
 #define hyp_info_page hyp_server_page
 
