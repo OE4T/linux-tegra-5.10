@@ -2744,8 +2744,10 @@ static int tegra_pcie_dw_host_init(struct pcie_port *pp)
 	val |= EVENT_COUNTER_GROUP_5 << EVENT_COUNTER_GROUP_SEL_SHIFT;
 	dw_pcie_write(pci->dbi_base + pcie->event_cntr_ctrl, 4, val);
 
-	init_gen3_gen4_eq_presets(pcie);
-	program_gen3_gen4_eq_presets(pcie);
+	if (!tegra_platform_is_fpga()) {
+		init_gen3_gen4_eq_presets(pcie);
+		program_gen3_gen4_eq_presets(pcie);
+	}
 
 	/* Program what ASPM states sould get advertised */
 	if (pcie->disabled_aspm_states & 0x1)
