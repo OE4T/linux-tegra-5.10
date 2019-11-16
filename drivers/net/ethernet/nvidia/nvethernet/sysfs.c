@@ -33,8 +33,9 @@ static ssize_t ether_mac_loopback_show(struct device *dev,
 	struct net_device *ndev = (struct net_device *)dev_get_drvdata(dev);
 	struct ether_priv_data *pdata = netdev_priv(ndev);
 
-	return sprintf(buf, "%s\n", (pdata->mac_loopback_mode == 1) ?
-		       "enabled" : "disabled");
+	return scnprintf(buf, PAGE_SIZE, "%s\n",
+			 (pdata->mac_loopback_mode == 1U) ?
+			 "enabled" : "disabled");
 }
 
 /**
