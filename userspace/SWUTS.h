@@ -66,6 +66,7 @@
  *   - @ref SWUTS-channel_os
  *   - @ref SWUTS-gr
  *   - @ref SWUTS-gr-intr
+ *   - @ref SWUTS-gr-config
  *
  */
 

@@ -33,10 +33,11 @@
 #include "common/gr/gr_config_priv.h"
 
 #include "../nvgpu-gr.h"
+#include "nvgpu-gr-config.h"
 
 static struct nvgpu_gr_config *unit_gr_config;
 
-static int test_gr_config_init(struct unit_module *m,
+int test_gr_config_init(struct unit_module *m,
 		struct gk20a *g, void *args)
 {
 	unit_gr_config = nvgpu_gr_config_init(g);
@@ -47,7 +48,7 @@ static int test_gr_config_init(struct unit_module *m,
 	return UNIT_SUCCESS;
 }
 
-static int test_gr_config_deinit(struct unit_module *m,
+int test_gr_config_deinit(struct unit_module *m,
 		struct gk20a *g, void *args)
 {
 	if (unit_gr_config != NULL) {
@@ -58,7 +59,7 @@ static int test_gr_config_deinit(struct unit_module *m,
 	return UNIT_FAIL;
 }
 
-static int test_gr_config_count(struct unit_module *m,
+int test_gr_config_count(struct unit_module *m,
 		struct gk20a *g, void *args)
 {
 	u32 val = 0U;
@@ -206,7 +207,7 @@ static int test_gr_config_count(struct unit_module *m,
 	return UNIT_SUCCESS;
 }
 
-static int test_gr_config_set_get(struct unit_module *m,
+int test_gr_config_set_get(struct unit_module *m,
 		struct gk20a *g, void *args)
 {
 	u32 gindex = 0U;
