@@ -20,6 +20,7 @@
 #include <linux/clk.h>
 #include <linux/device.h>
 #include <linux/io.h>
+#include <linux/iopoll.h>
 #include <linux/module.h>
 #include <linux/of.h>
 #include <linux/platform_device.h>
@@ -42,6 +43,7 @@
 
 #define DRV_NAME "tegra210-i2s"
 
+#define REG_IOVA(reg) (i2s->base_addr + (reg))
 
 static const struct reg_default tegra210_i2s_reg_defaults[] = {
 	{ TEGRA210_I2S_AXBAR_RX_INT_MASK, 0x00000003},
@@ -103,109 +105,92 @@ static int tegra210_i2s_set_clock_rate(struct device *dev, int clock_rate)
 	return 0;
 }
 
-static int tegra210_i2s_sw_reset(struct tegra210_i2s *i2s,
-				int direction, int timeout)
+static int tegra210_i2s_sw_reset(struct snd_soc_codec *codec, bool is_playback)
 {
-	unsigned int sw_reset_reg, sw_reset_mask, sw_reset_en, sw_reset_default;
-	unsigned int tx_cif_ctrl, rx_cif_ctrl, tx_ctrl, rx_ctrl, ctrl, val;
-	int wait = timeout;
+	struct device *dev = codec->dev;
+	struct tegra210_i2s *i2s = dev_get_drvdata(dev);
+	unsigned int reset_reg, cif_reg, stream_reg;
+	unsigned int cif_ctrl, stream_ctrl, i2s_ctrl, val;
+	unsigned int reset_mask, reset_en;
+	int ret;
 
-	regmap_read(i2s->regmap, TEGRA210_I2S_AXBAR_TX_CIF_CTRL, &tx_cif_ctrl);
-	regmap_read(i2s->regmap, TEGRA210_I2S_AXBAR_RX_CIF_CTRL, &rx_cif_ctrl);
-	regmap_read(i2s->regmap, TEGRA210_I2S_AXBAR_TX_CTRL, &tx_ctrl);
-	regmap_read(i2s->regmap, TEGRA210_I2S_AXBAR_RX_CTRL, &rx_ctrl);
-	regmap_read(i2s->regmap, TEGRA210_I2S_CTRL, &ctrl);
-
-	if (direction == SNDRV_PCM_STREAM_PLAYBACK) {
-		sw_reset_reg = TEGRA210_I2S_AXBAR_RX_SOFT_RESET;
-		sw_reset_mask = TEGRA210_I2S_AXBAR_RX_SOFT_RESET_MASK;
-		sw_reset_en = TEGRA210_I2S_AXBAR_RX_SOFT_RESET_EN;
-		sw_reset_default = TEGRA210_I2S_AXBAR_RX_SOFT_RESET_DEFAULT;
+	if (is_playback) {
+		reset_mask = TEGRA210_I2S_AXBAR_RX_SOFT_RESET_MASK;
+		reset_en = TEGRA210_I2S_AXBAR_RX_SOFT_RESET_EN;
+		reset_reg = TEGRA210_I2S_AXBAR_RX_SOFT_RESET;
+		cif_reg = TEGRA210_I2S_AXBAR_RX_CIF_CTRL;
+		stream_reg = TEGRA210_I2S_AXBAR_RX_CTRL;
 	} else {
-		sw_reset_reg = TEGRA210_I2S_AXBAR_TX_SOFT_RESET;
-		sw_reset_mask = TEGRA210_I2S_AXBAR_TX_SOFT_RESET_MASK;
-		sw_reset_en = TEGRA210_I2S_AXBAR_TX_SOFT_RESET_EN;
-		sw_reset_default = TEGRA210_I2S_AXBAR_TX_SOFT_RESET_DEFAULT;
+		reset_mask = TEGRA210_I2S_AXBAR_TX_SOFT_RESET_MASK;
+		reset_en = TEGRA210_I2S_AXBAR_TX_SOFT_RESET_EN;
+		reset_reg = TEGRA210_I2S_AXBAR_TX_SOFT_RESET;
+		cif_reg = TEGRA210_I2S_AXBAR_TX_CIF_CTRL;
+		stream_reg = TEGRA210_I2S_AXBAR_TX_CTRL;
 	}
 
-	regmap_update_bits(i2s->regmap, sw_reset_reg, sw_reset_mask, sw_reset_en);
+	/* store */
+	regmap_read(i2s->regmap, cif_reg, &cif_ctrl);
+	regmap_read(i2s->regmap, stream_reg, &stream_ctrl);
+	regmap_read(i2s->regmap, TEGRA210_I2S_CTRL, &i2s_ctrl);
 
-	do {
-		regmap_read(i2s->regmap, sw_reset_reg, &val);
-		wait--;
-		if (!wait)
-			return -EINVAL;
-	} while (val & sw_reset_mask);
+	/* SW reset */
+	regmap_update_bits(i2s->regmap, reset_reg, reset_mask, reset_en);
 
-	regmap_update_bits(i2s->regmap, sw_reset_reg, sw_reset_mask, sw_reset_default);
+	ret = readl_poll_timeout_atomic(REG_IOVA(reset_reg), val,
+					!(val & reset_mask & reset_en),
+					10, 10000);
+	if (ret < 0) {
+		dev_err(dev, "timeout: failed to reset I2S for %s\n",
+			is_playback ? "playback" : "capture");
+		return ret;
+	}
 
-	regmap_write(i2s->regmap, TEGRA210_I2S_AXBAR_TX_CIF_CTRL, tx_cif_ctrl);
-	regmap_write(i2s->regmap, TEGRA210_I2S_AXBAR_RX_CIF_CTRL, rx_cif_ctrl);
-	regmap_write(i2s->regmap, TEGRA210_I2S_AXBAR_TX_CTRL, tx_ctrl);
-	regmap_write(i2s->regmap, TEGRA210_I2S_AXBAR_RX_CTRL, rx_ctrl);
-	regmap_write(i2s->regmap, TEGRA210_I2S_CTRL, ctrl);
+	/* restore */
+	regmap_write(i2s->regmap, cif_reg, cif_ctrl);
+	regmap_write(i2s->regmap, stream_reg, stream_ctrl);
+	regmap_write(i2s->regmap, TEGRA210_I2S_CTRL, i2s_ctrl);
 
 	return 0;
 }
 
-static int tegra210_i2s_get_status(struct tegra210_i2s *i2s,
-				int direction)
-{
-	unsigned int status_reg, val;
-
-	status_reg = (direction == SNDRV_PCM_STREAM_PLAYBACK) ?
-		TEGRA210_I2S_AXBAR_RX_STATUS :
-		TEGRA210_I2S_AXBAR_TX_STATUS;
-
-	regmap_read(i2s->regmap, status_reg, &val);
-	val = val & 0x00000001;
-
-	return val;
-}
-
-static int tegra210_i2s_rx_stop(struct snd_soc_dapm_widget *w,
-				struct snd_kcontrol *kcontrol, int event)
+static int tegra210_i2s_init(struct snd_soc_dapm_widget *w,
+			     struct snd_kcontrol *kcontrol, int event)
 {
 	struct snd_soc_codec *codec = snd_soc_dapm_to_codec(w->dapm);
 	struct device *dev = codec->dev;
 	struct tegra210_i2s *i2s = dev_get_drvdata(dev);
-	int dcnt = 10, ret;
+	unsigned int val, status_reg;
+	bool is_playback;
+	int ret;
 
-	/* wait until I2S RX status is disabled;
-	ADMAIF is first disabled followed by I2S */
-	while (tegra210_i2s_get_status(i2s, SNDRV_PCM_STREAM_CAPTURE) &&
-			dcnt--)
-		udelay(100);
+	switch (w->reg) {
+	case TEGRA210_I2S_AXBAR_RX_ENABLE:
+		is_playback = true;
+		status_reg = TEGRA210_I2S_AXBAR_RX_STATUS;
+		break;
+	case TEGRA210_I2S_AXBAR_TX_ENABLE:
+		is_playback = false;
+		status_reg = TEGRA210_I2S_AXBAR_TX_STATUS;
+		break;
+	default:
+		return -EINVAL;
+	}
 
-	/* HW needs sw reset to make sure previous transaction be clean */
-	ret = tegra210_i2s_sw_reset(i2s, SNDRV_PCM_STREAM_CAPTURE, 0xffff);
-	if (ret) {
-		dev_err(dev, "Failed at I2S%d_RX sw reset\n", dev->id);
+	/* ensure I2S is in disabled state before new session */
+	ret = readl_poll_timeout_atomic(REG_IOVA(status_reg), val,
+			!(val & TEGRA210_I2S_EN_MASK & TEGRA210_I2S_EN),
+			10, 10000);
+	if (ret < 0) {
+		dev_err(dev, "timeout: previous I2S %s is still active\n",
+			is_playback ? "playback" : "capture");
 		return ret;
 	}
-	return 0;
-}
 
-static int tegra210_i2s_tx_stop(struct snd_soc_dapm_widget *w,
-				struct snd_kcontrol *kcontrol, int event)
-{
-	struct snd_soc_codec *codec = snd_soc_dapm_to_codec(w->dapm);
-	struct device *dev = codec->dev;
-	struct tegra210_i2s *i2s = dev_get_drvdata(dev);
-	int dcnt = 10, ret;
-
-	/* wait until  I2S TX status is disabled;
-	ADMAIF is first disabled followed by I2S */
-	while (tegra210_i2s_get_status(i2s, SNDRV_PCM_STREAM_PLAYBACK) &&
-			dcnt--)
-		udelay(100);
-
-	/* HW needs sw reset to make sure previous transaction be clean */
-	ret = tegra210_i2s_sw_reset(i2s, SNDRV_PCM_STREAM_PLAYBACK, 0xffff);
-	if (ret) {
-		dev_err(dev, "Failed at I2S%d_TX sw reset\n", dev->id);
+	/* SW reset */
+	ret = tegra210_i2s_sw_reset(codec, is_playback);
+	if (ret < 0)
 		return ret;
-	}
+
 	return 0;
 }
 
@@ -908,11 +893,11 @@ static const struct snd_soc_dapm_widget tegra210_i2s_widgets[] = {
 	SND_SOC_DAPM_AIF_OUT("CIF TX", NULL, 0, SND_SOC_NOPM,
 				0, 0),
 	SND_SOC_DAPM_AIF_IN_E("DAP RX", NULL, 0, TEGRA210_I2S_AXBAR_TX_ENABLE,
-				TEGRA210_I2S_AXBAR_TX_EN_SHIFT, 0,
-				tegra210_i2s_rx_stop, SND_SOC_DAPM_PRE_PMU),
+			      TEGRA210_I2S_AXBAR_TX_EN_SHIFT, 0,
+			      tegra210_i2s_init, SND_SOC_DAPM_PRE_PMU),
 	SND_SOC_DAPM_AIF_OUT_E("DAP TX", NULL, 0, TEGRA210_I2S_AXBAR_RX_ENABLE,
-				TEGRA210_I2S_AXBAR_RX_EN_SHIFT, 0,
-				tegra210_i2s_tx_stop, SND_SOC_DAPM_PRE_PMU),
+			       TEGRA210_I2S_AXBAR_RX_EN_SHIFT, 0,
+			       tegra210_i2s_init, SND_SOC_DAPM_PRE_PMU),
 	SND_SOC_DAPM_MIC("Dummy Input", NULL),
 	SND_SOC_DAPM_SPK("Dummy Output", NULL),
 };
@@ -1099,6 +1084,9 @@ static int tegra210_i2s_platform_probe(struct platform_device *pdev)
 	regs = devm_ioremap_resource(&pdev->dev, mem);
 	if (IS_ERR(regs))
 		return PTR_ERR(regs);
+
+	i2s->base_addr = regs;
+
 	i2s->regmap = devm_regmap_init_mmio(&pdev->dev, regs,
 					    &tegra210_i2s_regmap_config);
 	if (IS_ERR(i2s->regmap)) {
