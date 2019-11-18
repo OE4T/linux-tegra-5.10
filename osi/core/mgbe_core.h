@@ -41,6 +41,7 @@
 #define MGBE_MAC_ISR			0x00B0
 #define MGBE_MDIO_SCCD			0x0204
 #define MGBE_MDIO_SCCA			0x0200
+#define MGBE_MAC_ARPPA			0x0c10
 /** @} */
 
 /**
@@ -91,6 +92,7 @@
 #define MGBE_MAC_RXQC0_RXQEN_MASK		0x3U
 #define MGBE_MAC_RXQC0_RXQEN_SHIFT(x)		((x) * 2U)
 #define MGBE_MAC_RMCR_LM			OSI_BIT(10)
+#define MGBE_MAC_RMCR_ARPEN			OSI_BIT(31)
 #define MGBE_MDIO_SCCD_SBUSY			OSI_BIT(22)
 #define MGBE_MDIO_SCCA_DA_SHIFT			21U
 #define MGBE_MDIO_SCCA_DA_MASK			0x1FU
