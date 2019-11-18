@@ -1501,7 +1501,30 @@ static void mgbe_configure_mac(struct osi_core_priv_data *osi_core)
 	/* Enable CRC stripping for Type packets */
 	/* Enable Rx checksum offload engine by default */
 	value |= MGBE_MAC_RMCR_ACS | MGBE_MAC_RMCR_CST | MGBE_MAC_RMCR_IPC;
-	osi_writel(value, (nveu8_t *)osi_core->base + MGBE_MAC_RMCR);
+
+	/* Jumbo Packet Enable */
+	if (osi_core->mtu > OSI_DFLT_MTU_SIZE &&
+	    osi_core->mtu <= OSI_MTU_SIZE_9000) {
+		value |= MGBE_MAC_RMCR_JE;
+	} else if (osi_core->mtu > OSI_MTU_SIZE_9000){
+		/* if MTU greater 9K use GPSLCE */
+		value |= MGBE_MAC_RMCR_GPSLCE | MGBE_MAC_RMCR_WD;
+		value &= ~MGBE_MAC_RMCR_GPSL_MSK;
+		value |=  ((OSI_MAX_MTU_SIZE << 16) & MGBE_MAC_RMCR_GPSL_MSK);
+	} else {
+		value &= ~MGBE_MAC_RMCR_JE;
+		value &= ~MGBE_MAC_RMCR_GPSLCE;
+		value &= ~MGBE_MAC_RMCR_WD;
+	}
+
+	osi_writel(value, (unsigned char *)osi_core->base + MGBE_MAC_RMCR);
+
+	value = osi_readl((unsigned char *)osi_core->base + MGBE_MAC_TMCR);
+	/* Jabber Disable */
+	if (osi_core->mtu > OSI_DFLT_MTU_SIZE) {
+		value |= MGBE_MAC_TMCR_JD;
+	}
+	osi_writel(value, (unsigned char *)osi_core->base + MGBE_MAC_TMCR);
 
 	/* Enable Multicast and Broadcast Queue, default is Q1 */
 	value = osi_readl((unsigned char *)osi_core->base + MGBE_MAC_RQC1R);
