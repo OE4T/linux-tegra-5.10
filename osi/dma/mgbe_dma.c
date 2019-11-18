@@ -412,6 +412,8 @@ static void mgbe_configure_dma_channel(nveu32_t chan,
 	value = osi_readl((nveu8_t *)osi_dma->base +
 			  MGBE_DMA_CHX_RX_CTRL(chan));
 
+	/* clear previous Rx buffer size */
+	value &= ~MGBE_DMA_CHX_RBSZ_MASK;
 	value |= (osi_dma->rx_buf_len << MGBE_DMA_CHX_RBSZ_SHIFT);
 	/* RXPBL = 16 */
 	value |= MGBE_DMA_CHX_RX_CTRL_RXPBL_RECOMMENDED;
@@ -512,18 +514,9 @@ static void mgbe_set_rx_buf_len(struct osi_dma_priv_data *osi_dma)
 {
 	nveu32_t rx_buf_len;
 
-	if (osi_dma->mtu >= OSI_MTU_SIZE_8K) {
-		rx_buf_len = OSI_MTU_SIZE_16K;
-	} else if (osi_dma->mtu >= OSI_MTU_SIZE_4K) {
-		rx_buf_len = OSI_MTU_SIZE_8K;
-	} else if (osi_dma->mtu >= OSI_MTU_SIZE_2K) {
-		rx_buf_len = OSI_MTU_SIZE_4K;
-	} else if (osi_dma->mtu > MAX_ETH_FRAME_LEN_DEFAULT) {
-		rx_buf_len = OSI_MTU_SIZE_2K;
-	} else {
-		rx_buf_len = MAX_ETH_FRAME_LEN_DEFAULT;
-	}
-
+	/* Add Ethernet header + FCS + NET IP align size to MTU */
+	rx_buf_len = osi_dma->mtu + OSI_ETH_HLEN +
+		     NV_VLAN_HLEN + OSI_NET_IP_ALIGN;
 	/* Buffer alignment */
 	osi_dma->rx_buf_len = ((rx_buf_len + (MGBE_AXI_BUS_WIDTH - 1U)) &
 			       ~(MGBE_AXI_BUS_WIDTH - 1U));
