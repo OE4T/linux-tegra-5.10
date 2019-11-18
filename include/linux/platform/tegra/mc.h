@@ -67,10 +67,16 @@ static inline int mc_multi_channel(void)
  */
 static inline u32 __mc_readl(int idx, u32 reg)
 {
+	static bool warned = false;
 	if (is_tegra_safety_build()) {
-		WARN_ONCE(1, "VM isn't allowed to read MC register space in Safety Build");
+		if (!warned) {
+			pr_warn("WARNING: VM isn't allowed to read MC register space in "
+					"Safety Build");
+			warned = true;
+		}
 		return 0xffff;
 	}
+
 	if (WARN(!mc, "Read before MC init'ed"))
 		return 0;
 
@@ -96,10 +102,16 @@ static inline u32 __mc_readl(int idx, u32 reg)
  */
 static inline void __mc_writel(int idx, u32 val, u32 reg)
 {
+	static bool warned = false;
 	if (is_tegra_safety_build()) {
-		WARN_ONCE(1, "VM isn't allowed to write into MC register space in Safety Build");
+		if(!warned) {
+			pr_warn("WARNING: VM isn't allowed to write into MC register space "
+					"in Safety Build");
+			warned = true;
+		}
 		return;
 	}
+
 	if (WARN(!mc, "Write before MC init'ed"))
 		return;
 
@@ -115,10 +127,16 @@ static inline void __mc_writel(int idx, u32 val, u32 reg)
 
 static inline u32 __mc_raw_readl(int idx, u32 reg)
 {
+	static bool warned = false;
 	if (is_tegra_safety_build()) {
-		WARN_ONCE(1, "VM isn't allowed to read MC register space in Safety Build");
+		if(!warned) {
+			pr_warn("WARNING: VM isn't allowed to read MC register space in "
+					"Safety Build");
+			warned = true;
+		}
 		return 0xffff;
 	}
+
 	if (WARN(!mc, "Read before MC init'ed"))
 		return 0;
 
@@ -133,10 +151,16 @@ static inline u32 __mc_raw_readl(int idx, u32 reg)
 
 static inline void __mc_raw_writel(int idx, u32 val, u32 reg)
 {
+	static bool warned = false;
 	if (is_tegra_safety_build()) {
-		WARN_ONCE(1, "VM isn't allowed to write into MC register space in Safety Build");
+		if(!warned) {
+			pr_warn("WARNING: VM isn't allowed to write into MC register space "
+					"in Safety Build");
+			warned = true;
+		}
 		return;
 	}
+
 	if (WARN(!mc, "Write before MC init'ed"))
 		return;
 
