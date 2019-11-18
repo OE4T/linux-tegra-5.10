@@ -108,18 +108,18 @@ static void *core_exec_module(void *module_param)
 		if (t->test_lvl > module->fw->args->test_lvl) {
 			core_add_test_record(module->fw, module, t, SKIPPED);
 			core_vbs(module->fw, 1, "Skipping L%d test %s.%s\n",
-					t->test_lvl, module->name, t->name);
+					t->test_lvl, module->name, t->fn_name);
 			continue;
 		}
-		core_msg(module->fw, "Running %s.%s\n", module->name,
-			t->name);
+		core_msg(module->fw, "Running %s.%s(%s)\n", module->name,
+			t->fn_name, t->case_name);
 
 		test_status = t->fn(module, g, t->args);
 
 		if (test_status != UNIT_SUCCESS)
 			core_msg_color(module->fw, C_RED,
-				"  Unit error! Test %s.%s FAILED!\n",
-				module->name, t->name);
+				"  Unit error! Test %s.%s(%s) FAILED!\n",
+				module->name, t->fn_name, t->case_name);
 
 		core_add_test_record(module->fw, module, t,
 				test_status == UNIT_SUCCESS ? PASSED : FAILED);
@@ -149,8 +149,9 @@ thread_exit:
 static void thread_error_handler(int sig, siginfo_t *siginfo, void *context)
 {
 	core_msg_color(thread_local_module->fw, C_RED,
-			"  Signal %d in Test: %s.%s!\n", sig,
-			thread_local_module->name, thread_local_test->name);
+			"  Signal %d in Test: %s.%s(%s)!\n", sig,
+			thread_local_module->name, thread_local_test->fn_name,
+			thread_local_test->case_name);
 	core_add_test_record(thread_local_module->fw, thread_local_module,
 			thread_local_test, FAILED);
 	sem_post(&unit_thread_semaphore);

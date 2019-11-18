@@ -79,7 +79,7 @@ def build_results_dict(results):
 	#Iterate through the results and group them by unit name
 	for result in results:
 		unit = result['unit']
-		test = result['test']
+		test = result['case']
 		if unit not in test_dict:
 			test_dict[unit] = {}
 		if test in test_dict[unit]:
@@ -101,7 +101,7 @@ def regen():
 	test_count = 0
 	for unit, tests in sorted(test_dict.items(), key=lambda kv: kv[0], reverse=False):
 		for test in sorted(tests.items()):
-			entry = {"unit": unit, "test": test[0], 'test_level': test[1]['test_level']}
+			entry = {"unit": unit, "test": test[1]['test'], 'case': test[1]['case'], 'test_level': test[1]['test_level']}
 			if test[1]['uid'] != "":
 				entry['uid'] = test[1]['uid']
 				entry['vc'] = test[1]['vc']
@@ -155,7 +155,7 @@ def check(test_level, html = False):
 	#First make sure that all required tests were run and PASSED.
 	for reqd_test in reqd_tests:
 		unit = reqd_test['unit']
-		test = reqd_test['test']
+		test = reqd_test['case']
 		error = ""
 		status = False
 		skipped = False
@@ -186,7 +186,7 @@ def check(test_level, html = False):
 	#test to the required list.
 	for result in results:
 		unit = result['unit']
-		test = result['test']
+		test = result['case']
 		if unit not in req_dict:
 			log += ("WARNING: Tested unit %s is not in required tests. Use testlist.py --regen\n" % unit)
 		elif test not in req_dict[unit]:

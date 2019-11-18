@@ -35,15 +35,23 @@ typedef int (*module_test_fn)(struct unit_module *m,
 #define UNIT_FAIL		-1
 
 struct unit_module_test {
-	/*
-	 * Name of the test.
-	 */
-	const char *name;
 
 	/*
 	 * Function to call to execute the test.
 	 */
 	module_test_fn fn;
+
+	/*
+	 * Name of the test function. It will be used to match the test
+	 * results with its SWUTS.
+	 */
+	const char *fn_name;
+
+	/*
+	 * Name of the test. It can be used to describe a subcase when the
+	 * same test function is used several times.
+	 */
+	const char *case_name;
 
 	/*
 	 * Minimum test plan level (L0, L1) to execute the test.
@@ -148,7 +156,8 @@ struct unit_module {
 
 #define UNIT_TEST(__name, __fn, __args, __test_lvl)			\
 	{								\
-		.name = #__name,					\
+		.fn_name = #__fn,					\
+		.case_name = #__name,					\
 		.fn = __fn,						\
 		.args = __args,						\
 		.test_lvl = __test_lvl,					\
@@ -163,7 +172,8 @@ struct unit_module {
  */
 #define UNIT_TEST_REQ(__req, __uid, __vc, __name, __fn, __args, __test_lvl) \
 	{								\
-		.name = #__name,					\
+		.fn_name = #__fn,					\
+		.case_name = #__name,					\
 		.fn = __fn,						\
 		.args = __args,						\
 		.test_lvl = __test_lvl,					\

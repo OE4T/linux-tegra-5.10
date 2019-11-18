@@ -54,14 +54,14 @@ static int check_module(struct unit_fw *fw, struct unit_module *mod)
 	for (i = 0; i < mod->nr_tests; i++) {
 		struct unit_module_test *test = &mod->tests[i];
 
-		if (test->name == NULL) {
+		if (test->fn_name == NULL) {
 			core_err(fw, "%s: Unnamed test\n", mod->name);
 			return -1;
 		}
 
 		if (test->fn == NULL) {
-			core_err(fw, "%s: Test %s missing function \n",
-				 mod->name, test->name);
+			core_err(fw, "%s: Test %s missing function\n",
+				 mod->name, test->fn_name);
 			return -1;
 		}
 	}

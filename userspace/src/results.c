@@ -126,7 +126,8 @@ static void dump_test_record(FILE *logfile, struct unit_test_record *rec,
 {
 	first ? fprintf(logfile, "\t{") : fprintf(logfile, ",\n\t{");
 	fprintf(logfile, "\"unit\": \"%s\", ", rec->mod->name);
-	fprintf(logfile, "\"test\": \"%s\", ", rec->test->name);
+	fprintf(logfile, "\"test\": \"%s\", ", rec->test->fn_name);
+	fprintf(logfile, "\"case\": \"%s\", ", rec->test->case_name);
 	fprintf(logfile, "\"status\": %s, ", status ? "true":"false");
 	fprintf(logfile, "\"uid\": \"%s\", ", rec->test->jama.unique_id);
 	fprintf(logfile, "\"vc\": \"%s\", ",
@@ -179,9 +180,10 @@ void core_print_test_status(struct unit_fw *fw)
 	core_msg(fw, "Skipped tests:\n");
 	core_msg(fw, "\n");
 	for_record_in_test_list(skipped_tests, rec) {
-		core_msg(fw, "  %s.%s\n",
+		core_msg(fw, "  %s.%s(%s)\n",
 			 rec->mod->name,
-			 rec->test->name);
+			 rec->test->fn_name,
+			 rec->test->case_name);
 	}
 
 	core_msg(fw, "\n");
@@ -189,9 +191,10 @@ void core_print_test_status(struct unit_fw *fw)
 	core_msg(fw, "\n");
 
 	for_record_in_test_list(failing_tests, rec) {
-		core_msg(fw, "  %s.%s\n",
+		core_msg(fw, "  %s.%s(%s)\n",
 			 rec->mod->name,
-			 rec->test->name);
+			 rec->test->fn_name,
+			 rec->test->case_name);
 	}
 
 	dump_test_log(fw, &fw->results->passing, &fw->results->failing);
