@@ -586,7 +586,7 @@
 			};
 
 			tegra_asrc: asrc@2910000 {
-				compatible = "nvidia,tegra186-asrc";
+				compatible = "nvidia,tegra194-asrc";
 				reg = <0x0 0x2910000 0x0 0x2000>;
 				nvidia,ahub-asrc-id = <0>;
 				#sound-dai-cells = <1>;
