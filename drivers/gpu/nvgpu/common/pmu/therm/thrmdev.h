@@ -39,24 +39,6 @@ struct therm_device {
 	struct boardobj super;
 };
 
-struct therm_device_gpu_sci {
-	struct therm_device super;
-};
-
-struct therm_device_gpu_gpc_tsosc {
-	struct therm_device super;
-	u8 gpc_tsosc_idx;
-};
-
-struct therm_device_hbm2_site {
-	struct therm_device super;
-	u8 site_idx;
-};
-
-struct therm_device_hbm2_combined {
-	struct therm_device super;
-};
-
 int therm_device_sw_setup(struct gk20a *g);
 bool nvgpu_therm_dev_idx_is_valid(struct therm_pmupstate *therm_pmu, u8 idx);
 
