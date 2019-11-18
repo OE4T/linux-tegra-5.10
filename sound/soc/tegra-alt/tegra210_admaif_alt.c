@@ -19,6 +19,7 @@
 #include <linux/delay.h>
 #include <linux/device.h>
 #include <linux/io.h>
+#include <linux/iopoll.h>
 #include <linux/module.h>
 #include <linux/of_platform.h>
 #include <linux/platform_device.h>
@@ -34,21 +35,29 @@
 
 #define DRV_NAME "tegra210-ape-admaif"
 
-#define CH_REG(reg, id) (reg + (TEGRA_ADMAIF_CHANNEL_REG_STRIDE * (id-1)))
+#define CH_REG(offset, reg, id)						       \
+	((offset) + (reg) + (TEGRA_ADMAIF_CHANNEL_REG_STRIDE * (id)))
 
-#define REG_DEFAULTS(id, rx_ctrl, tx_ctrl, tx_base) \
-	{ CH_REG(TEGRA_ADMAIF_XBAR_RX_INT_MASK, id), 0x00000001}, \
-	{ CH_REG(TEGRA_ADMAIF_CHAN_ACIF_RX_CTRL, id), 0x00007700}, \
-	{ CH_REG(TEGRA_ADMAIF_XBAR_RX_FIFO_CTRL, id), rx_ctrl}, \
-	{ CH_REG((tx_base + TEGRA_ADMAIF_XBAR_TX_INT_MASK), id), 0x00000001}, \
-	{ CH_REG((tx_base + TEGRA_ADMAIF_CHAN_ACIF_TX_CTRL), id), 0x00007700}, \
-	{ CH_REG((tx_base + TEGRA_ADMAIF_XBAR_TX_FIFO_CTRL), id), tx_ctrl}
+#define CH_TX_REG(reg, id) CH_REG(admaif->soc_data->tx_base, reg, id)
 
-#define ADMAIF_REG_DEFAULTS(id, chip) \
-	REG_DEFAULTS(id, \
-		chip ## _ADMAIF_RX ## id ## _FIFO_CTRL_REG_DEFAULT, \
-		chip ## _ADMAIF_TX ## id ## _FIFO_CTRL_REG_DEFAULT, \
-		chip ## _ADMAIF_XBAR_TX_BASE)
+#define CH_RX_REG(reg, id) CH_REG(admaif->soc_data->rx_base, reg, id)
+
+#define REG_IOVA(reg) (admaif->base_addr + (reg))
+
+#define REG_DEFAULTS(id, rx_ctrl, tx_ctrl, tx_base, rx_base)		       \
+	{ CH_REG(rx_base, TEGRA_ADMAIF_XBAR_RX_INT_MASK, id), 0x00000001},     \
+	{ CH_REG(rx_base, TEGRA_ADMAIF_CHAN_ACIF_RX_CTRL, id), 0x00007700},    \
+	{ CH_REG(rx_base, TEGRA_ADMAIF_XBAR_RX_FIFO_CTRL, id), rx_ctrl},       \
+	{ CH_REG(tx_base, TEGRA_ADMAIF_XBAR_TX_INT_MASK, id), 0x00000001},     \
+	{ CH_REG(tx_base, TEGRA_ADMAIF_CHAN_ACIF_TX_CTRL, id), 0x00007700},    \
+	{ CH_REG(tx_base, TEGRA_ADMAIF_XBAR_TX_FIFO_CTRL, id), tx_ctrl}
+
+#define ADMAIF_REG_DEFAULTS(id, chip)					       \
+	REG_DEFAULTS((id - 1),						       \
+		chip ## _ADMAIF_RX ## id ## _FIFO_CTRL_REG_DEFAULT,	       \
+		chip ## _ADMAIF_TX ## id ## _FIFO_CTRL_REG_DEFAULT,	       \
+		chip ## _ADMAIF_XBAR_TX_BASE,				       \
+		chip ## _ADMAIF_XBAR_RX_BASE)
 
 static const struct reg_default tegra186_admaif_reg_defaults[] = {
 	{(TEGRA_ADMAIF_GLOBAL_CG_0+TEGRA186_ADMAIF_GLOBAL_BASE), 0x00000003},
@@ -227,54 +236,6 @@ static const struct regmap_config tegra186_admaif_regmap_config = {
 	.cache_type = REGCACHE_FLAT,
 };
 
-static int tegra_admaif_sw_reset(struct snd_soc_dai *dai,
-				int direction, int timeout)
-{
-	struct tegra_admaif *admaif = snd_soc_dai_get_drvdata(dai);
-	unsigned int sw_reset_reg, val;
-	int wait = timeout;
-
-	if (direction == SNDRV_PCM_STREAM_PLAYBACK) {
-		sw_reset_reg = admaif->soc_data->tx_base +
-			TEGRA_ADMAIF_XBAR_TX_SOFT_RESET +
-			(dai->id * TEGRA_ADMAIF_CHANNEL_REG_STRIDE);
-	} else {
-		sw_reset_reg = TEGRA_ADMAIF_XBAR_RX_SOFT_RESET +
-			(dai->id * TEGRA_ADMAIF_CHANNEL_REG_STRIDE);
-	}
-
-	regmap_update_bits(admaif->regmap, sw_reset_reg, 1, 1);
-
-	do {
-		regmap_read(admaif->regmap, sw_reset_reg, &val);
-		wait--;
-		if (!wait)
-			return -EINVAL;
-	} while (val & 0x00000001);
-
-	return 0;
-}
-
-static int tegra_admaif_get_status(struct snd_soc_dai *dai,
-				int direction)
-{
-	struct tegra_admaif *admaif = snd_soc_dai_get_drvdata(dai);
-	unsigned int status_reg, val;
-
-	if (direction == SNDRV_PCM_STREAM_PLAYBACK) {
-		status_reg = admaif->soc_data->tx_base +
-			TEGRA_ADMAIF_XBAR_TX_STATUS +
-			(dai->id * TEGRA_ADMAIF_CHANNEL_REG_STRIDE);
-	} else {
-		status_reg = TEGRA_ADMAIF_XBAR_RX_STATUS +
-			(dai->id * TEGRA_ADMAIF_CHANNEL_REG_STRIDE);
-	}
-	regmap_read(admaif->regmap, status_reg, &val);
-	val = (val & 0x00000001);
-
-	return val;
-}
-
 static int tegra_admaif_runtime_suspend(struct device *dev)
 {
 	struct tegra_admaif *admaif = dev_get_drvdata(dev);
@@ -393,9 +354,8 @@ static int tegra_admaif_hw_params(struct snd_pcm_substream *substream,
 	cif_conf.audio_channels = channels;
 
 	if (substream->stream == SNDRV_PCM_STREAM_PLAYBACK) {
-		reg = admaif->soc_data->tx_base +
-			TEGRA_ADMAIF_CHAN_ACIF_TX_CTRL +
-			(dai->id * TEGRA_ADMAIF_CHANNEL_REG_STRIDE);
+		reg = CH_TX_REG(TEGRA_ADMAIF_CHAN_ACIF_TX_CTRL, dai->id);
+
 		/* For playback path, if client channel is 1 and mono to
 		 * stereo control was non-zero, then audio channels will be
 		 * set to 2 for mono to stereo conversion.
@@ -407,8 +367,7 @@ static int tegra_admaif_hw_params(struct snd_pcm_substream *substream,
 			cif_conf.audio_channels = 2;
 		}
 	} else {
-		reg = TEGRA_ADMAIF_CHAN_ACIF_RX_CTRL +
-			(dai->id * TEGRA_ADMAIF_CHANNEL_REG_STRIDE);
+		reg = CH_RX_REG(TEGRA_ADMAIF_CHAN_ACIF_RX_CTRL, dai->id);
 
 		/* The override channels are needed only for capture path as
 		 * the audio and client channels can be different on RX path.
@@ -434,78 +393,85 @@ static int tegra_admaif_hw_params(struct snd_pcm_substream *substream,
 	return 0;
 }
 
-static void tegra_admaif_start_playback(struct snd_soc_dai *dai)
+static int tegra_admaif_start(struct snd_soc_dai *dai, int direction)
 {
 	struct tegra_admaif *admaif = snd_soc_dai_get_drvdata(dai);
-	unsigned int reg;
+	unsigned int reg, mask, val;
 
-	reg = admaif->soc_data->tx_base +
-		TEGRA_ADMAIF_XBAR_TX_ENABLE +
-		(dai->id * TEGRA_ADMAIF_CHANNEL_REG_STRIDE);
-	regmap_update_bits(admaif->regmap, reg,
-				TEGRA_ADMAIF_XBAR_TX_ENABLE_MASK,
-				TEGRA_ADMAIF_XBAR_TX_EN);
+	switch (direction) {
+	case SNDRV_PCM_STREAM_PLAYBACK:
+		mask = TEGRA_ADMAIF_XBAR_TX_ENABLE_MASK;
+		val = TEGRA_ADMAIF_XBAR_TX_EN;
+		reg = CH_TX_REG(TEGRA_ADMAIF_XBAR_TX_ENABLE, dai->id);
+		break;
+	case SNDRV_PCM_STREAM_CAPTURE:
+		mask = TEGRA_ADMAIF_XBAR_RX_ENABLE_MASK;
+		val = TEGRA_ADMAIF_XBAR_RX_EN;
+		reg = CH_RX_REG(TEGRA_ADMAIF_XBAR_RX_ENABLE, dai->id);
+		break;
+	default:
+		return -EINVAL;
+	}
+
+	regmap_update_bits(admaif->regmap, reg, mask, val);
+
+	return 0;
 }
 
-static void tegra_admaif_stop_playback(struct snd_soc_dai *dai)
-{
-	struct device *dev = dai->dev;
-	struct tegra_admaif *admaif = snd_soc_dai_get_drvdata(dai);
-	unsigned int reg;
-	int dcnt = 10, ret;
-
-	reg = admaif->soc_data->tx_base +
-		TEGRA_ADMAIF_XBAR_TX_ENABLE +
-		(dai->id * TEGRA_ADMAIF_CHANNEL_REG_STRIDE);
-	regmap_update_bits(admaif->regmap, reg,
-				TEGRA_ADMAIF_XBAR_TX_ENABLE_MASK,
-				0);
-
-	/* wait until ADMAIF TX status is disabled */
-	while (tegra_admaif_get_status(dai, SNDRV_PCM_STREAM_PLAYBACK) &&
-			dcnt--)
-		udelay(100);
-
-	/* HW needs sw reset to make sure previous transaction be clean */
-	ret = tegra_admaif_sw_reset(dai, SNDRV_PCM_STREAM_PLAYBACK, 0xffff);
-	if (ret)
-		dev_err(dev, "Failed at ADMAIF%d_TX sw reset\n", dai->id);
-}
-
-static void tegra_admaif_start_capture(struct snd_soc_dai *dai)
+static int tegra_admaif_stop(struct snd_soc_dai *dai, int direction)
 {
 	struct tegra_admaif *admaif = snd_soc_dai_get_drvdata(dai);
-	unsigned int reg;
+	unsigned int enable_reg, status_reg, reset_reg, mask, val, enable;
+	char *dir_name;
+	int ret;
 
-	reg = TEGRA_ADMAIF_XBAR_RX_ENABLE +
-		(dai->id * TEGRA_ADMAIF_CHANNEL_REG_STRIDE);
-	regmap_update_bits(admaif->regmap, reg,
-				TEGRA_ADMAIF_XBAR_RX_ENABLE_MASK,
-				TEGRA_ADMAIF_XBAR_RX_EN);
-}
+	switch (direction) {
+	case SNDRV_PCM_STREAM_PLAYBACK:
+		mask = TEGRA_ADMAIF_XBAR_TX_ENABLE_MASK;
+		enable = TEGRA_ADMAIF_XBAR_TX_EN;
+		dir_name = "TX";
+		enable_reg = CH_TX_REG(TEGRA_ADMAIF_XBAR_TX_ENABLE, dai->id);
+		status_reg = CH_TX_REG(TEGRA_ADMAIF_XBAR_TX_STATUS, dai->id);
+		reset_reg = CH_TX_REG(TEGRA_ADMAIF_XBAR_TX_SOFT_RESET, dai->id);
+		break;
+	case SNDRV_PCM_STREAM_CAPTURE:
+		mask = TEGRA_ADMAIF_XBAR_RX_ENABLE_MASK;
+		enable = TEGRA_ADMAIF_XBAR_RX_EN;
+		dir_name = "RX";
+		enable_reg = CH_RX_REG(TEGRA_ADMAIF_XBAR_RX_ENABLE, dai->id);
+		status_reg = CH_RX_REG(TEGRA_ADMAIF_XBAR_RX_STATUS, dai->id);
+		reset_reg = CH_RX_REG(TEGRA_ADMAIF_XBAR_RX_SOFT_RESET, dai->id);
+		break;
+	default:
+		return -EINVAL;
+	}
 
-static void tegra_admaif_stop_capture(struct snd_soc_dai *dai)
-{
-	struct device *dev = dai->dev;
-	struct tegra_admaif *admaif = snd_soc_dai_get_drvdata(dai);
-	unsigned int reg;
-	int dcnt = 10, ret;
+	/* disable TX/RX channel */
+	regmap_update_bits(admaif->regmap, enable_reg, mask, ~enable);
 
-	reg = TEGRA_ADMAIF_XBAR_RX_ENABLE +
-		(dai->id * TEGRA_ADMAIF_CHANNEL_REG_STRIDE);
-	regmap_update_bits(admaif->regmap, reg,
-				TEGRA_ADMAIF_XBAR_RX_ENABLE_MASK,
-				0);
+	/* wait until ADMAIF TX/RX status is disabled */
+	ret = readl_poll_timeout_atomic(REG_IOVA(status_reg), val,
+					!(val & enable), 10, 10000);
 
-	/* wait until ADMAIF RX status is disabled */
-	while (tegra_admaif_get_status(dai, SNDRV_PCM_STREAM_CAPTURE) &&
-			dcnt--)
-		udelay(100);
+	/* FIXME: root cause timeout and return error for below */
+	if (ret < 0)
+		dev_info(dai->dev, "timeout: failed to disable ADMAIF%d_%s\n",
+			 dai->id + 1, dir_name);
 
-	/* HW needs sw reset to make sure previous transaction be clean */
-	ret = tegra_admaif_sw_reset(dai, SNDRV_PCM_STREAM_CAPTURE, 0xffff);
-	if (ret)
-		dev_err(dev, "Failed at ADMAIF%d_RX sw reset\n", dai->id);
+	/* SW reset */
+	regmap_update_bits(admaif->regmap, reset_reg, SW_RESET_MASK, SW_RESET);
+
+	/* wait till SW reset is complete */
+	ret = readl_poll_timeout_atomic(REG_IOVA(reset_reg), val,
+					!(val & SW_RESET_MASK & SW_RESET),
+					10, 10000);
+	if (ret < 0) {
+		dev_err(dai->dev, "timeout: SW reset failed for ADMAIF%d_%s\n",
+			dai->id + 1, dir_name);
+		return ret;
+	}
+
+	return 0;
 }
 
 static int tegra_admaif_trigger(struct snd_pcm_substream *substream, int cmd,
@@ -515,24 +481,14 @@ static int tegra_admaif_trigger(struct snd_pcm_substream *substream, int cmd,
 	case SNDRV_PCM_TRIGGER_START:
 	case SNDRV_PCM_TRIGGER_PAUSE_RELEASE:
 	case SNDRV_PCM_TRIGGER_RESUME:
-		if (substream->stream == SNDRV_PCM_STREAM_PLAYBACK)
-			tegra_admaif_start_playback(dai);
-		else
-			tegra_admaif_start_capture(dai);
-		break;
+		return tegra_admaif_start(dai, substream->stream);
 	case SNDRV_PCM_TRIGGER_STOP:
 	case SNDRV_PCM_TRIGGER_PAUSE_PUSH:
 	case SNDRV_PCM_TRIGGER_SUSPEND:
-		if (substream->stream == SNDRV_PCM_STREAM_PLAYBACK)
-			tegra_admaif_stop_playback(dai);
-		else
-			tegra_admaif_stop_capture(dai);
-		break;
+		return tegra_admaif_stop(dai, substream->stream);
 	default:
 		return -EINVAL;
 	}
-
-	return 0;
 }
 
 static struct snd_soc_dai_ops tegra_admaif_dai_ops = {
@@ -1187,13 +1143,10 @@ static int tegra_admaif_probe(struct platform_device *pdev)
 
 	for (i = 0; i < admaif->soc_data->num_ch; i++) {
 		admaif->playback_dma_data[i].addr = res->start +
-				admaif->soc_data->tx_base +
-				TEGRA_ADMAIF_XBAR_TX_FIFO_WRITE +
-				(i * TEGRA_ADMAIF_CHANNEL_REG_STRIDE);
+			CH_TX_REG(TEGRA_ADMAIF_XBAR_TX_FIFO_WRITE, i);
 
 		admaif->capture_dma_data[i].addr = res->start +
-				TEGRA_ADMAIF_XBAR_RX_FIFO_READ +
-				(i * TEGRA_ADMAIF_CHANNEL_REG_STRIDE);
+			CH_RX_REG(TEGRA_ADMAIF_XBAR_RX_FIFO_READ, i);
 
 		admaif->playback_dma_data[i].width = 32;
 		admaif->playback_dma_data[i].req_sel = i + 1;

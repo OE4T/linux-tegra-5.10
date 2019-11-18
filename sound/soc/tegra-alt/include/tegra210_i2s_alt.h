@@ -219,6 +219,7 @@ struct tegra210_i2s {
 	unsigned int format;
 	bool enable_cya;
 	unsigned int rx_fifo_th; /* should be programmed interms of frames */
+	void __iomem *base_addr;
 };
 
 #endif
