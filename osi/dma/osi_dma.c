@@ -169,7 +169,6 @@ nve32_t osi_init_dma_ops(struct osi_dma_priv_data *osi_dma)
 		eqos_get_dma_safety_config, OSI_NULL
 	};
 
-
 	if (osi_dma == OSI_NULL) {
 		return -1;
 	}
@@ -191,6 +190,12 @@ nve32_t osi_init_dma_ops(struct osi_dma_priv_data *osi_dma)
 
 	if (s_init[osi_dma->mac] != OSI_NULL) {
 		osi_dma->safety_config = s_init[osi_dma->mac]();
+	}
+
+	if (init_desc_ops(osi_dma) < 0) {
+		OSI_DMA_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+			    "DMA desc ops init failed\n", 0ULL);
+		return -1;
 	}
 
 	if (validate_func_ptrs(osi_dma) < 0) {

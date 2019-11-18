@@ -28,6 +28,33 @@
 #include "eqos_dma.h"
 #include "mgbe_dma.h"
 
+/**
+ * @brief DMA descriptor operations
+ */
+struct desc_ops {
+	/** Called to get receive checksum */
+	void (*get_rx_csum)(struct osi_rx_desc *rx_desc,
+			    struct osi_rx_pkt_cx *rx_pkt_cx);
+};
+
+/**
+ * @brief eqos_get_desc_ops - EQOS get DMA descriptor operations
+ *
+ * Algorithm: Returns pointer DMA descriptor operations structure.
+ *
+ * @returns Pointer to DMA descriptor operations structure
+ */
+struct desc_ops *eqos_get_desc_ops(void);
+
+/**
+ * @brief mgbe_get_desc_ops - MGBE get DMA descriptor operations
+ *
+ * Algorithm: Returns pointer DMA descriptor operations structure.
+ *
+ * @returns Pointer to DMA descriptor operations structure
+ */
+struct desc_ops *mgbe_get_desc_ops(void);
+
 /* Function prototype needed for misra */
 
 /**
