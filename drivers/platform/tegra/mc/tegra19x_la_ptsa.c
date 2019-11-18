@@ -558,8 +558,16 @@ static enum tegra_dram_t t19x_emc_get_dram_type(void)
 	void __iomem *t19x_emc_base;
 
 	t19x_emc_base = ioremap(NV_ADDRESS_MAP_EMCB_BASE, 0x00010000);
-	dram = readl(t19x_emc_base + EMC_FBIO_CFG5_0) & DRAM_TYPE_MASK;
-	mem_type = readl(t19x_emc_base + EMC_PMACRO_PAD_CFG_CTRL_0);
+
+	if (is_tegra_safety_build()) {
+		dram = 0x1;
+		mem_type = 0x1;
+	}
+	else {
+		dram = readl(t19x_emc_base + EMC_FBIO_CFG5_0) & DRAM_TYPE_MASK;
+		mem_type = readl(t19x_emc_base + EMC_PMACRO_PAD_CFG_CTRL_0);
+	}
+
 	iounmap(t19x_emc_base);
 
 	ch = mc_readl(MC_EMEM_ADR_CFG_CHANNEL_ENABLE_0) & DRAM_CH_MASK;

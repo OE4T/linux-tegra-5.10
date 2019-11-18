@@ -679,7 +679,11 @@ struct bwmgr_ops *bwmgr_eff_init_t19x(void)
 
 	emc_base = ioremap(EMC_BASE, 0x00010000);
 
-	dram = readl(emc_base + EMC_FBIO_CFG5_0) & DRAM_MASK;
+	if (is_tegra_safety_build())
+		dram = 0x1;
+	else
+		dram = readl(emc_base + EMC_FBIO_CFG5_0) & DRAM_MASK;
+
 	ch = mc_readl(MC_EMEM_ADR_CFG_CHANNEL_ENABLE_0) & CH_MASK;
 	ecc = mc_readl(MC_ECC_CONTROL_0) & ECC_MASK;
 	dram_rank = mc_readl(MC_EMEM_ADR_CFG_0) & RANK_MASK;
