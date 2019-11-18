@@ -652,7 +652,6 @@ pmu:
                  include/nvgpu/pmu/pmuif/perfpstate.h,
                  include/nvgpu/pmu/pmuif/pmgr.h,
                  include/nvgpu/pmu/pmuif/seq.h,
-                 include/nvgpu/pmu/pmuif/therm.h,
                  include/nvgpu/pmu/pmuif/thermsensor.h,
                  include/nvgpu/pmu/pmuif/volt.h,
                  include/nvgpu/pmu/pmuif/rpc.h,

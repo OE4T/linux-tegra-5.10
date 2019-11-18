@@ -306,8 +306,8 @@ struct nvgpu_pmu {
 	void (*remove_support)(struct nvgpu_pmu *pmu);
 	void (*volt_rpc_handler)(struct gk20a *g,
 			struct nv_pmu_rpc_header *rpc);
-	void (*therm_event_handler)(struct gk20a *g, struct nvgpu_pmu *pmu,
-		struct pmu_msg *msg, struct nv_pmu_rpc_header *rpc);
+	void (*therm_rpc_handler)(struct gk20a *g, struct nvgpu_pmu *pmu,
+			struct nv_pmu_rpc_header *rpc);
 #endif
 };
 

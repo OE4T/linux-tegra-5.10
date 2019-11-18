@@ -27,37 +27,6 @@
 #include "thrm.h"
 #include "thrmpmu.h"
 
-void nvgpu_pmu_handle_therm_event(struct gk20a *g, struct nvgpu_pmu *pmu,
-	struct pmu_msg *msg, struct nv_pmu_rpc_header *rpc)
-{
-	struct nv_pmu_therm_msg *msg_therm = &msg->msg.therm;
-
-	nvgpu_log_fn(g, " ");
-
-	if (rpc != NULL) {
-		nvgpu_pmu_therm_rpc_handler(g, pmu, rpc);
-	} else {
-
-		switch (msg_therm->msg_type) {
-		case NV_PMU_THERM_MSG_ID_EVENT_HW_SLOWDOWN_NOTIFICATION:
-			if (msg_therm->hw_slct_msg.mask ==
-				BIT(NV_PMU_THERM_EVENT_THERMAL_1)) {
-					nvgpu_clk_arb_send_thermal_alarm(pmu->g);
-			} else {
-				nvgpu_pmu_dbg(g,
-					"Unwanted/Unregistered thermal event received %d",
-					msg_therm->hw_slct_msg.mask);
-			}
-			break;
-		default:
-			nvgpu_pmu_dbg(g, "unkown therm event received %d",
-					msg_therm->msg_type);
-			break;
-		}
-
-	}
-}
-
 int nvgpu_therm_domain_sw_setup(struct gk20a *g, struct nvgpu_pmu *pmu)
 {
 	int status;
@@ -78,7 +47,7 @@ int nvgpu_therm_domain_sw_setup(struct gk20a *g, struct nvgpu_pmu *pmu)
 		goto exit;
 	}
 
-	pmu->therm_event_handler = nvgpu_pmu_handle_therm_event;
+	pmu->therm_rpc_handler = nvgpu_pmu_therm_rpc_handler;
 
 exit:
 	return status;

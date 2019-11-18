@@ -33,7 +33,6 @@
 #include <nvgpu/pmu/pmuif/perf.h>
 #include <nvgpu/pmu/pmuif/pmgr.h>
 #include <nvgpu/pmu/pmuif/volt.h>
-#include <nvgpu/pmu/pmuif/therm.h>
 
 /* GPU ID */
 #define PMU_SHA1_GID_SIGNATURE		0xA7C66AD2U
@@ -74,7 +73,6 @@ struct pmu_msg {
 			struct nv_pmu_volt_msg volt;
 			struct nv_pmu_clk_msg clk;
 			struct nv_pmu_pmgr_msg pmgr;
-			struct nv_pmu_therm_msg therm;
 			struct nv_pmu_rpc_msg rpc;
 		} msg;
 		union {

@@ -31,7 +31,6 @@
 #include <nvgpu/pmu/pmuif/volt.h>
 #include <nvgpu/pmu/pmuif/clk.h>
 #include <nvgpu/pmu/pmuif/pmgr.h>
-#include <nvgpu/pmu/pmuif/therm.h>
 #include <nvgpu/pmu/pmuif/rpc.h>
 
 struct gk20a;
