@@ -86,6 +86,15 @@ struct dma_chan_ops {
 };
 
 /**
+ * @brief DMA descriptor operations
+ */
+struct desc_ops {
+	/** Called to get receive checksum */
+	void (*get_rx_csum)(struct osi_rx_desc *rx_desc,
+			    struct osi_rx_pkt_cx *rx_pkt_cx);
+};
+
+/**
  * @brief OSI DMA private data.
  */
 struct dma_local {
@@ -124,6 +133,18 @@ void eqos_init_dma_chan_ops(struct dma_chan_ops *ops);
  * - De-initialization: No
  */
 void mgbe_init_dma_chan_ops(struct dma_chan_ops *ops);
+
+/**
+ * @brief eqos_get_desc_ops - EQOS init DMA descriptor operations
+ */
+void eqos_init_desc_ops(struct desc_ops *d_ops);
+
+/**
+ * @brief mgbe_get_desc_ops - MGBE init DMA descriptor operations
+ */
+void mgbe_init_desc_ops(struct desc_ops *d_ops);
+
+nve32_t init_desc_ops(struct osi_dma_priv_data *osi_dma);
 
 /**
  * @brief osi_hw_transmit - Initialize Tx DMA descriptors for a channel

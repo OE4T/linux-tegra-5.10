@@ -237,6 +237,45 @@ static int mgbe_config_mac_loopback(struct osi_core_priv_data *const osi_core,
 }
 
 /**
+ * @brief mgbe_config_rxcsum_offload - Enable/Disale rx checksum offload in HW
+ *
+ * Algorithm:
+ *      1) Read the MAC configuration register.
+ *      2) Enable the IP checksum offload engine COE in MAC receiver.
+ *      3) Update the MAC configuration register.
+ *
+ * @param[in] addr: MGBE virtual base address.
+ * @param[in] enabled: Flag to indicate feature is to be enabled/disabled.
+ *
+ * @note MAC should be init and started. see osi_start_mac()
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+static int mgbe_config_rxcsum_offload(
+				struct osi_core_priv_data *const osi_core,
+				unsigned int enabled)
+{
+	void *addr = osi_core->base;
+	unsigned int mac_rmcr;
+
+	if (enabled != OSI_ENABLE && enabled != OSI_DISABLE) {
+		return -1;
+	}
+
+	mac_rmcr = osi_readl((unsigned char *)addr + MGBE_MAC_RMCR);
+	if (enabled == OSI_ENABLE) {
+		mac_rmcr |= MGBE_MAC_RMCR_IPC;
+	} else {
+		mac_rmcr &= ~MGBE_MAC_RMCR_IPC;
+	}
+
+	osi_writel(mac_rmcr, (unsigned char *)addr + MGBE_MAC_RMCR);
+
+	return 0;
+}
+
+/**
  * @brief mgbe_configure_mtl_queue - Configure MTL Queue
  *
  * Algorithm: This takes care of configuring the  below
@@ -970,7 +1009,7 @@ void mgbe_init_core_ops(struct core_ops *ops)
 	ops->config_rx_crc_check = OSI_NULL;
 	ops->config_flow_control = OSI_NULL;
 	ops->config_arp_offload = OSI_NULL;
-	ops->config_rxcsum_offload = OSI_NULL;
+	ops->config_rxcsum_offload = mgbe_config_rxcsum_offload,
 	ops->config_mac_pkt_filter_reg = OSI_NULL;
 	ops->update_mac_addr_low_high_reg = OSI_NULL;
 	ops->config_l3_l4_filter_enable = OSI_NULL;
