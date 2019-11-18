@@ -30,6 +30,7 @@
 #include <nvgpu/types.h>
 #include <nvgpu/bitops.h>
 #include <nvgpu/pbdma.h>
+#include <nvgpu/pbdma_status.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/fifo.h>
 #include <nvgpu/engines.h>
@@ -201,10 +202,54 @@ done:
 }
 
 
+int test_pbdma_status(struct unit_module *m,
+		struct gk20a *g, void *args)
+{
+	int ret = UNIT_FAIL;
+	struct nvgpu_pbdma_status_info pbdma_status;
+
+	memset(&pbdma_status, 0, sizeof(pbdma_status));
+	for (pbdma_status.chsw_status = NVGPU_PBDMA_CHSW_STATUS_INVALID;
+		pbdma_status.chsw_status <= NVGPU_PBDMA_CHSW_STATUS_SWITCH;
+		pbdma_status.chsw_status++)
+	{
+		assert(nvgpu_pbdma_status_is_chsw_switch(&pbdma_status) ==
+			(pbdma_status.chsw_status == NVGPU_PBDMA_CHSW_STATUS_SWITCH));
+		assert(nvgpu_pbdma_status_is_chsw_load(&pbdma_status) ==
+			(pbdma_status.chsw_status == NVGPU_PBDMA_CHSW_STATUS_LOAD));
+		assert(nvgpu_pbdma_status_is_chsw_save(&pbdma_status) ==
+			(pbdma_status.chsw_status == NVGPU_PBDMA_CHSW_STATUS_SAVE));
+		assert(nvgpu_pbdma_status_is_chsw_valid(&pbdma_status) ==
+			(pbdma_status.chsw_status == NVGPU_PBDMA_CHSW_STATUS_VALID));
+	}
+
+	pbdma_status.id_type = PBDMA_STATUS_ID_TYPE_CHID;
+	assert(nvgpu_pbdma_status_is_id_type_tsg(&pbdma_status) == false);
+	pbdma_status.id_type = PBDMA_STATUS_ID_TYPE_TSGID;
+	assert(nvgpu_pbdma_status_is_id_type_tsg(&pbdma_status) == true);
+	pbdma_status.id_type = PBDMA_STATUS_ID_TYPE_INVALID;
+	assert(nvgpu_pbdma_status_is_id_type_tsg(&pbdma_status) == false);
+
+	pbdma_status.next_id_type = PBDMA_STATUS_ID_TYPE_CHID;
+	assert(nvgpu_pbdma_status_is_next_id_type_tsg(&pbdma_status) == false);
+	pbdma_status.next_id_type = PBDMA_STATUS_ID_TYPE_TSGID;
+	assert(nvgpu_pbdma_status_is_next_id_type_tsg(&pbdma_status) == true);
+	pbdma_status.next_id_type = PBDMA_STATUS_ID_TYPE_INVALID;
+	assert(nvgpu_pbdma_status_is_next_id_type_tsg(&pbdma_status) == false);
+
+	ret = UNIT_SUCCESS;
+
+done:
+	return ret;
+}
+
+
+
 struct unit_module_test nvgpu_pbdma_tests[] = {
 	UNIT_TEST(setup_sw, test_pbdma_setup_sw, &unit_ctx, 0),
 	UNIT_TEST(init_support, test_fifo_init_support, &unit_ctx, 0),
 	UNIT_TEST(pbdma_find_for_runlist, test_pbdma_find_for_runlist, &unit_ctx, 0),
+	UNIT_TEST(pbdma_status, test_pbdma_status, &unit_ctx, 0),
 	UNIT_TEST(remove_support, test_fifo_remove_support, &unit_ctx, 0),
 };
 

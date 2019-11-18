@@ -82,6 +82,33 @@ int test_pbdma_find_for_runlist(struct unit_module *m,
 		struct gk20a *g, void *args);
 
 /**
+ * Test specification for: test_pbdma_status
+ *
+ * Description: Branch coverage for nvgpu_pbdma_status_* functions.
+ *
+ * Test Type: Feature based
+ *
+ * Input: test_fifo_init_support() run for this GPU.
+ *
+ * Steps:
+ * - Build fake struct nvgpu_pbdma_status_info.
+ * - Check that nvgpu_pbdma_status_is_chsw_switch is true when
+ *   chsw status is NVGPU_PBDMA_CHSW_STATUS_SWITCH, false otherwise.
+ * - Check that nvgpu_pbdma_status_is_chsw_load is true when
+ *   chsw status is NVGPU_PBDMA_CHSW_STATUS_LOAD, false otherwise.
+ * - Check that nvgpu_pbdma_status_is_chsw_save is true when
+ *   chsw status is NVGPU_PBDMA_CHSW_STATUS_SAVE, false otherwise.
+ * - Check that nvgpu_pbdma_status_is_chsw_valid is true when
+ *   id_type is PBDMA_STATUS_ID_TYPE_TSGID, false otherwise.
+ * - Check that nvgpu_pbdma_status_is_next_id_type_tsg is true when
+ *   next_id_type is PBDMA_STATUS_NEXT_ID_TYPE_TSGID, false otherwise.
+ *
+ * Output: Returns PASS if all branches gave expected results. FAIL otherwise.
+ */
+int test_pbdma_status(struct unit_module *m,
+		struct gk20a *g, void *args);
+
+/**
  * @}
  */
 
