@@ -205,14 +205,6 @@ nvgpu_mem_from_clear_list_entry(struct nvgpu_list_node *node)
 };
 #endif
 
-static const char *aperture_name[APERTURE_MAX_ENUM + 1] = {
-	[APERTURE_INVALID]	= "INVAL",
-	[APERTURE_SYSMEM]	= "SYSTEM",
-	[APERTURE_SYSMEM_COH]	= "SYSCOH",
-	[APERTURE_VIDMEM]	= "VIDMEM",
-	[APERTURE_MAX_ENUM]	= "UNKNOWN",
-};
-
 /**
  * @brief Convert aperture type to string.
  *
@@ -222,6 +214,14 @@ static const char *aperture_name[APERTURE_MAX_ENUM + 1] = {
  */
 static inline const char *nvgpu_aperture_str(enum nvgpu_aperture aperture)
 {
+	const char *aperture_name[APERTURE_MAX_ENUM + 1] = {
+		[APERTURE_INVALID]	= "INVAL",
+		[APERTURE_SYSMEM]	= "SYSTEM",
+		[APERTURE_SYSMEM_COH]	= "SYSCOH",
+		[APERTURE_VIDMEM]	= "VIDMEM",
+		[APERTURE_MAX_ENUM]	= "UNKNOWN",
+	};
+
 	if ((aperture < APERTURE_INVALID) || (aperture >= APERTURE_MAX_ENUM)) {
 		return aperture_name[APERTURE_MAX_ENUM];
 	}
