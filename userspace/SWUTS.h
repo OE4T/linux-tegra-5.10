@@ -38,6 +38,7 @@
  *   - @ref SWUTS-netlist
  *   - @ref SWUTS-fifo
  *   - @ref SWUTS-fifo-channel
+ *   - @ref SWUTS-fifo-pbdma
  *   - @ref SWUTS-fifo-runlist
  *   - @ref SWUTS-fifo-runlist-gk20a
  *   - @ref SWUTS-fifo-runlist-gv11b
