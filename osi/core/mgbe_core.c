@@ -237,6 +237,58 @@ static int mgbe_config_mac_loopback(struct osi_core_priv_data *const osi_core,
 }
 
 /**
+ * @brief mgbe_config_arp_offload - Enable/Disable ARP offload
+ *
+ * Algorithm:
+ *      1) Read the MAC configuration register
+ *      2) If ARP offload is to be enabled, program the IP address in
+ *      ARPPA register
+ *      3) Enable/disable the ARPEN bit in MCR and write back to the MCR.
+ *
+ * @param[in] addr: MGBE virtual base address.
+ * @param[in] enable: Flag variable to enable/disable ARP offload
+ * @param[in] ip_addr: IP address of device to be programmed in HW.
+ *            HW will use this IP address to respond to ARP requests.
+ *
+ * @note 1) MAC should be init and started. see osi_start_mac()
+ *       2) Valid 4 byte IP address as argument ip_addr
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+static int mgbe_config_arp_offload(struct osi_core_priv_data *const osi_core,
+				   const unsigned int enable,
+				   const unsigned char *ip_addr)
+{
+	unsigned int mac_rmcr;
+	unsigned int val;
+	void *addr = osi_core->base;
+
+	if (enable != OSI_ENABLE && enable != OSI_DISABLE) {
+		return -1;
+	}
+
+	mac_rmcr = osi_readl((unsigned char *)addr + MGBE_MAC_RMCR);
+
+	if (enable == OSI_ENABLE) {
+		val = (((unsigned int)ip_addr[0]) << 24) |
+		       (((unsigned int)ip_addr[1]) << 16) |
+		       (((unsigned int)ip_addr[2]) << 8) |
+		       (((unsigned int)ip_addr[3]));
+
+		osi_writel(val, (unsigned char *)addr + MGBE_MAC_ARPPA);
+
+		mac_rmcr |= MGBE_MAC_RMCR_ARPEN;
+	} else {
+		mac_rmcr &= ~MGBE_MAC_RMCR_ARPEN;
+	}
+
+	osi_writel(mac_rmcr, (unsigned char *)addr + MGBE_MAC_RMCR);
+
+	return 0;
+}
+
+/**
  * @brief mgbe_config_rxcsum_offload - Enable/Disale rx checksum offload in HW
  *
  * Algorithm:
@@ -1008,8 +1060,8 @@ void mgbe_init_core_ops(struct core_ops *ops)
 	ops->config_tx_status = OSI_NULL;
 	ops->config_rx_crc_check = OSI_NULL;
 	ops->config_flow_control = OSI_NULL;
-	ops->config_arp_offload = OSI_NULL;
-	ops->config_rxcsum_offload = mgbe_config_rxcsum_offload,
+	ops->config_arp_offload = mgbe_config_arp_offload;
+	ops->config_rxcsum_offload = mgbe_config_rxcsum_offload;
 	ops->config_mac_pkt_filter_reg = OSI_NULL;
 	ops->update_mac_addr_low_high_reg = OSI_NULL;
 	ops->config_l3_l4_filter_enable = OSI_NULL;
