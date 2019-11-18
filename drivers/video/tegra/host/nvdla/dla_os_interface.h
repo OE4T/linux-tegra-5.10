@@ -25,7 +25,7 @@
  * @brief Jobs to DLA are submitted in form of task and uses @ref dla_task_descriptor
  * @{
  */
-#define DLA_DESCRIPTOR_VERSION	1
+#define DLA_DESCRIPTOR_VERSION	1U
 /** @} */
 
 /**
@@ -34,7 +34,7 @@
  * @brief DLA engine ID used to verify version engine
  * @}
  */
-#define DLA_ENGINE_ID		0x44
+#define DLA_ENGINE_ID		0x44U
 /** @} */
 
 /**
@@ -44,7 +44,7 @@
  *        command IDs mentioned in @ref Command IDs
  * @{
  */
-#define DLA_METHOD_ID_CMD_MASK		0xff
+#define DLA_METHOD_ID_CMD_MASK		0xffU
 /** @} */
 
 /**
@@ -66,34 +66,34 @@
  *        specifies contents in mailbox register for a response
  * @{
  */
-#define DLA_RESPONSE_MSG_SHIFT		0
-#define DLA_RESPONSE_CMD_SHIFT		8
-#define DLA_RESPONSE_ERROR_SHIFT	16
+#define DLA_RESPONSE_MSG_SHIFT		0U
+#define DLA_RESPONSE_CMD_SHIFT		8U
+#define DLA_RESPONSE_ERROR_SHIFT	16U
 /** @} */
 
-#define DLA_INT_ON_COMPLETE_SHIFT	8
-#define DLA_INT_ON_ERROR_SHIFT		9
+#define DLA_INT_ON_COMPLETE_SHIFT	8U
+#define DLA_INT_ON_ERROR_SHIFT		9U
 
 /* control actions */
-#define ACTION_TERMINATE	0x0
+#define ACTION_TERMINATE	0x0U
 
 /* conditional actions */
-#define ACTION_SEM_EQ	0x90
-#define ACTION_SEM_GE	0x92
-#define ACTION_GOS_EQ	0xB0
-#define ACTION_GOS_GE	0xB2
-#define ACTION_TASK_STATUS_EQ	0xC0
+#define ACTION_SEM_EQ	0x90U
+#define ACTION_SEM_GE	0x92U
+#define ACTION_GOS_EQ	0xB0U
+#define ACTION_GOS_GE	0xB2U
+#define ACTION_TASK_STATUS_EQ	0xC0U
 
 /* write actions */
-#define ACTION_WRITE_SEM	0x80
-#define ACTION_WRITE_TS_SEM	0x83
-#define ACTION_WRITE_TIMESTAMP	0x87
-#define ACTION_WRITE_GOS	0xA0
-#define ACTION_WRITE_TASK_STATUS	0xC1
+#define ACTION_WRITE_SEM	0x80U
+#define ACTION_WRITE_TS_SEM	0x83U
+#define ACTION_WRITE_TIMESTAMP	0x87U
+#define ACTION_WRITE_GOS	0xA0U
+#define ACTION_WRITE_TASK_STATUS	0xC1U
 
-#define PING_DATA_SIZE		4
-#define BUFFER_MULTIPLIER	4
-#define MAX_NUM_GRIDS		6
+#define PING_DATA_SIZE		4U
+#define BUFFER_MULTIPLIER	4U
+#define MAX_NUM_GRIDS		6U
 
 #define ERR(code) (-DLA_ERR_##code)
 
@@ -323,7 +323,7 @@ struct dla_debug_config {
 	uint64_t reserved;
 } __attribute__ ((packed));
 
-#define MAX_MESSAGE_SIZE	512
+#define MAX_MESSAGE_SIZE	512U
 
 struct print_data {
 	char buffer[MAX_MESSAGE_SIZE];
