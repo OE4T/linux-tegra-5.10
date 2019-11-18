@@ -53,7 +53,7 @@ static void nvgpu_pbdma_init_intr_descs(struct gk20a *g)
 			g->ops.pbdma.device_fatal_0_intr_descs();
 	}
 
-	if (g->ops.pbdma.device_fatal_0_intr_descs != NULL) {
+	if (g->ops.pbdma.channel_fatal_0_intr_descs != NULL) {
 		f->intr.pbdma.channel_fatal_0 =
 			g->ops.pbdma.channel_fatal_0_intr_descs();
 	}
