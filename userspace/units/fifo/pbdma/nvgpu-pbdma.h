@@ -19,15 +19,15 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef UNIT_NVGPU_TSG_H
-#define UNIT_NVGPU_TSG_H
+#ifndef UNIT_NVGPU_PBDMA_H
+#define UNIT_NVGPU_PBDMA_H
 
 #include <nvgpu/types.h>
 
 struct unit_module;
 struct gk20a;
 
-/** @addtogroup SWUTS-fifo-tsg
+/** @addtogroup SWUTS-fifo-pdbma
  *  @{
  *
  * Software Unit Test Specification for fifo/pbdma
@@ -112,4 +112,4 @@ int test_pbdma_status(struct unit_module *m,
  * @}
  */
 
-#endif /* UNIT_NVGPU_TSG_H */
+#endif /* UNIT_NVGPU_PBDMA_H */

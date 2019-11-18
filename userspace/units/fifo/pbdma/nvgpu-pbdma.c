@@ -201,7 +201,6 @@ done:
 	return ret;
 }
 
-
 int test_pbdma_status(struct unit_module *m,
 		struct gk20a *g, void *args)
 {
@@ -242,8 +241,6 @@ int test_pbdma_status(struct unit_module *m,
 done:
 	return ret;
 }
-
-
 
 struct unit_module_test nvgpu_pbdma_tests[] = {
 	UNIT_TEST(setup_sw, test_pbdma_setup_sw, &unit_ctx, 0),
