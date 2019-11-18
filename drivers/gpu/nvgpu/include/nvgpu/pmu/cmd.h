@@ -55,7 +55,6 @@ struct pmu_cmd {
 		struct nv_pmu_volt_cmd volt;
 		struct nv_pmu_clk_cmd clk;
 		struct nv_pmu_pmgr_cmd pmgr;
-		struct nv_pmu_therm_cmd therm;
 		struct nv_pmu_rpc_cmd rpc;
 	} cmd;
 };

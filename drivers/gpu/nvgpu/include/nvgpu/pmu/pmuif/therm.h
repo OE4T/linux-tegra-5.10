@@ -27,56 +27,9 @@
 
 #define NV_PMU_THERM_CMD_ID_RPC                                      0x00000002U
 #define NV_PMU_THERM_MSG_ID_RPC                                      0x00000002U
-#define NV_PMU_THERM_RPC_ID_SLCT                                     0x00000000U
-#define NV_PMU_THERM_RPC_ID_SLCT_EVENT_TEMP_TH_SET                   0x00000006U
 #define NV_PMU_THERM_EVENT_THERMAL_1                                 0x00000004U
 #define NV_PMU_THERM_CMD_ID_HW_SLOWDOWN_NOTIFICATION                 0x00000001U
-#define NV_RM_PMU_THERM_HW_SLOWDOWN_NOTIFICATION_REQUEST_ENABLE      0x00000001U
 #define NV_PMU_THERM_MSG_ID_EVENT_HW_SLOWDOWN_NOTIFICATION           0x00000001U
-
-struct nv_pmu_therm_rpc_slct_event_temp_th_set {
-	s32 temp_threshold;
-	u8 event_id;
-	falcon_status flcn_stat;
-};
-
-struct nv_pmu_therm_rpc_slct {
-	u32 mask_enabled;
-	falcon_status flcn_stat;
-};
-
-struct nv_pmu_therm_rpc {
-	u8 function;
-	bool b_supported;
-	union {
-		struct nv_pmu_therm_rpc_slct slct;
-		struct nv_pmu_therm_rpc_slct_event_temp_th_set
-						slct_event_temp_th_set;
-	} params;
-};
-
-struct nv_pmu_therm_cmd_rpc {
-	u8 cmd_type;
-	u8 pad[3];
-	struct nv_pmu_allocation request;
-};
-
-struct nv_pmu_therm_cmd_hw_slowdown_notification {
-	u8 cmd_type;
-	u8 request;
-};
-
-#define NV_PMU_THERM_CMD_RPC_ALLOC_OFFSET       \
-	((u32)offsetof(struct nv_pmu_therm_cmd_rpc, request))
-
-struct nv_pmu_therm_cmd {
-	union {
-		u8 cmd_type;
-		struct nv_pmu_therm_cmd_rpc rpc;
-		struct nv_pmu_therm_cmd_hw_slowdown_notification
-							hw_slct_notification;
-	};
-};
 
 struct nv_pmu_therm_msg_rpc {
 	u8 msg_type;
