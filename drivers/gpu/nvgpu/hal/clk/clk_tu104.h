@@ -38,4 +38,8 @@ int tu104_clk_domain_get_f_points(
 unsigned long tu104_clk_maxrate(struct gk20a *g, u32 api_domain);
 void tu104_get_change_seq_time(struct gk20a *g, s64 *change_time);
 void tu104_change_host_clk_source(struct gk20a *g);
+bool nvgpu_clk_mon_check_master_fault_status(struct gk20a *g);
+int nvgpu_clk_mon_check_status(struct gk20a *g, struct
+		clk_domains_mon_status_params	*clk_mon_status);
+
 #endif /* CLK_TU104_H */

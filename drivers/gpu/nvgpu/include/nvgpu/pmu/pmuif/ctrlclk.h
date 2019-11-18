@@ -42,6 +42,9 @@
 #define CTRL_CLK_DOMAIN_PWRCLK                              (0x00080000U)
 #define CTRL_CLK_DOMAIN_NVDCLK                              (0x00100000U)
 #define CTRL_CLK_DOMAIN_PCIEGENCLK                          (0x00200000U)
+#define CTRL_CLK_DOMAIN_XCLK                                (0x04000000U)
+#define CTRL_CLK_DOMAIN_NVL_COMMON                          (0x08000000U)
+#define CTRL_CLK_DOMAIN_PEX_REFCLK                          (0x10000000U)
 
 #define CTRL_CLK_DOMAIN_GPCCLK                              (0x00000001U)
 #define CTRL_CLK_DOMAIN_XBARCLK                             (0x00000002U)
@@ -95,6 +98,8 @@
 #define CTRL_CLK_CLK_VF_POINT_TYPE_UNKNOWN                      255U
 
 #define CTRL_CLK_CLK_DOMAIN_CLIENT_MAX_DOMAINS  16
+#define CTRL_CLK_CLK_DOMAIN_ARCH_MAX_DOMAINS			12U
+#define CLK_CLOCK_MON_REG_TYPE_COUNT				4U
 
 struct ctrl_clk_domain_control_35_prog_clk_mon {
 	u32 flags;
@@ -276,6 +281,24 @@ struct ctrl_clk_domain_clk_mon_list {
 	u8 num_domain;
 	struct ctrl_clk_domain_clk_mon_item
 		clk_domain[CTRL_CLK_CLK_DOMAIN_CLIENT_MAX_DOMAINS];
+};
+
+struct clk_domain_mon_status {
+	u32 clk_api_domain;
+	u32 low_threshold;
+	u32 high_threshold;
+	u32 clk_domain_fault_status;
+};
+
+struct clk_mon_address_map {
+	u32 clk_api_domain;
+	u32 reg_add[CLK_CLOCK_MON_REG_TYPE_COUNT];
+};
+
+struct clk_domains_mon_status_params {
+	u32 clk_mon_list_size;
+	struct clk_domain_mon_status
+		clk_mon_list[CTRL_CLK_CLK_DOMAIN_ARCH_MAX_DOMAINS];
 };
 
 #define CTRL_CLK_VF_PAIR_FREQ_MHZ_GET(pvfpair)                          \

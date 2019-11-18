@@ -240,10 +240,13 @@ struct gk20a;
 /** DGPU PCIe Script Update */
 #define NVGPU_SUPPORT_DGPU_PCIE_SCRIPT_EXECUTE	82U
 
+/** FMON feature Enable */
+#define NVGPU_FMON_SUPPORT_ENABLE		83U
+
 /*
  * Must be greater than the largest bit offset in the above list.
  */
-#define NVGPU_MAX_ENABLED_BITS			83U
+#define NVGPU_MAX_ENABLED_BITS			84U
 
 /**
  * @brief Check if the passed flag is enabled.

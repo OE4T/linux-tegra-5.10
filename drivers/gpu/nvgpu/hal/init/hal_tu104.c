@@ -181,7 +181,6 @@
 #include "common/clk_arb/clk_arb_gv100.h"
 
 #include "hal/clk/clk_tu104.h"
-
 #include "hal/fbpa/fbpa_tu104.h"
 #include "hal_tu104.h"
 #include "hal_tu104_litter.h"
@@ -1242,6 +1241,9 @@ static const struct gpu_ops tu104_ops = {
 		.get_maxrate = tu104_clk_maxrate,
 		.get_change_seq_time = tu104_get_change_seq_time,
 		.change_host_clk_source = tu104_change_host_clk_source,
+		.clk_mon_check_master_fault_status =
+				nvgpu_clk_mon_check_master_fault_status,
+		.clk_mon_check_status = nvgpu_clk_mon_check_status,
 	},
 #ifdef CONFIG_NVGPU_CLK_ARB
 	.clk_arb = {
@@ -1646,6 +1648,7 @@ int tu104_init_hal(struct gk20a *g)
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_SET_CTX_MMU_DEBUG_MODE, true);
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_DGPU_THERMAL_ALERT, true);
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_DGPU_PCIE_SCRIPT_EXECUTE, true);
+	nvgpu_set_enabled(g, NVGPU_FMON_SUPPORT_ENABLE, true);
 
 	/* for now */
 	gops->clk.support_pmgr_domain = false;

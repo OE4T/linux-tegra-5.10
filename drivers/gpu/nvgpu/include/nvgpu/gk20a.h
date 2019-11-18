@@ -108,6 +108,7 @@ struct _resmgr_context;
 struct nvgpu_gpfifo_entry;
 struct vm_gk20a_mapping_batch;
 struct pmu_pg_stats_data;
+struct clk_domains_mon_status_params;
 
 enum nvgpu_flush_op;
 enum gk20a_mem_rw_flag;
@@ -367,6 +368,9 @@ struct gpu_ops {
 		bool support_clk_freq_domain;
 		bool support_vf_point;
 		u8 lut_num_entries;
+		bool (*clk_mon_check_master_fault_status)(struct gk20a *g);
+		int (*clk_mon_check_status)(struct gk20a *g,
+			struct clk_domains_mon_status_params *clk_mon_status);
 	} clk;
 #ifdef CONFIG_NVGPU_CLK_ARB
 	struct {
