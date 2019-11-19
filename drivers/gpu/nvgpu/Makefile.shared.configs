@@ -122,6 +122,10 @@ NVGPU_COMMON_CFLAGS             += -DCONFIG_NVGPU_GRAPHICS
 CONFIG_NVGPU_NVLINK             := 1
 NVGPU_COMMON_CFLAGS             += -DCONFIG_NVGPU_NVLINK
 
+# Enable mssnvlink0 reset control for normal build
+CONFIG_MSSNVLINK0_RST_CONTROL   := 1
+NVGPU_COMMON_CFLAGS             += -DCONFIG_MSSNVLINK0_RST_CONTROL
+
 # Enable dgpu support for normal build.
 CONFIG_NVGPU_DGPU               := 1
 NVGPU_COMMON_CFLAGS             += -DCONFIG_NVGPU_DGPU
