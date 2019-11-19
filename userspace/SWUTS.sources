@@ -17,6 +17,7 @@ INPUT += ../../../userspace/units/fifo/engine/gp10b/nvgpu-engine-gp10b.h
 INPUT += ../../../userspace/units/fifo/engine/gv100/nvgpu-engine-gv100.h
 INPUT += ../../../userspace/units/fifo/engine/gv11b/nvgpu-engine-gv11b.h
 INPUT += ../../../userspace/units/fifo/pbdma/nvgpu-pbdma.h
+INPUT += ../../../userspace/units/fifo/pbdma/gv11b/nvgpu-pbdma-gv11b.h
 INPUT += ../../../userspace/units/fifo/runlist/nvgpu-runlist.h
 INPUT += ../../../userspace/units/fifo/runlist/gk20a/nvgpu-runlist-gk20a.h
 INPUT += ../../../userspace/units/fifo/runlist/gv11b/nvgpu-runlist-gv11b.h

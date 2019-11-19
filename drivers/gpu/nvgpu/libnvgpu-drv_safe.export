@@ -85,6 +85,15 @@ gv11b_mm_l2_flush
 gv11b_mm_mmu_fault_disable_hw
 gv11b_mm_mmu_fault_info_mem_destroy
 gv11b_mc_is_mmu_fault_pending
+gv11b_pbdma_channel_fatal_0_intr_descs
+gv11b_pbdma_config_userd_writeback_enable
+gv11b_pbdma_get_fc_pb_header
+gv11b_pbdma_get_fc_target
+gv11b_pbdma_handle_intr_0
+gv11b_pbdma_handle_intr_1
+gv11b_pbdma_intr_enable
+gv11b_pbdma_set_channel_info_veid
+gv11b_pbdma_setup_hw
 gv11b_runlist_entry_size
 gv11b_runlist_get_tsg_entry
 gv11b_runlist_get_ch_entry
@@ -412,6 +421,7 @@ nvgpu_pd_free
 nvgpu_pd_gpu_addr
 nvgpu_pd_offset_from_index
 nvgpu_pd_write
+nvgpu_platform_is_silicon
 nvgpu_pmu_early_init
 nvgpu_pmu_remove_support
 nvgpu_pmu_reset

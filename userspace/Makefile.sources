@@ -82,12 +82,13 @@ UNITS :=				\
 	$(UNIT_SRC)/fifo/channel/gk20a	\
 	$(UNIT_SRC)/fifo/channel/gm20b	\
 	$(UNIT_SRC)/fifo/channel/gv11b	\
-	$(UNIT_SRC)/fifo/pbdma		\
 	$(UNIT_SRC)/fifo/engine		\
 	$(UNIT_SRC)/fifo/engine/gm20b	\
 	$(UNIT_SRC)/fifo/engine/gp10b	\
 	$(UNIT_SRC)/fifo/engine/gv100	\
 	$(UNIT_SRC)/fifo/engine/gv11b	\
+	$(UNIT_SRC)/fifo/pbdma		\
+	$(UNIT_SRC)/fifo/pbdma/gv11b	\
 	$(UNIT_SRC)/fifo/runlist	\
 	$(UNIT_SRC)/fifo/runlist/gk20a	\
 	$(UNIT_SRC)/fifo/runlist/gv11b	\
