@@ -2022,14 +2022,44 @@
         "test_level": 0
     },
     {
+        "test": "test_channel_abort_cleanup",
+        "case": "abort_cleanup",
+        "unit": "nvgpu_channel",
+        "test_level": 0
+    },
+    {
         "test": "test_channel_alloc_inst",
         "case": "alloc_inst",
         "unit": "nvgpu_channel",
         "test_level": 0
     },
     {
+        "test": "test_channel_abort",
+        "case": "ch_abort",
+        "unit": "nvgpu_channel",
+        "test_level": 0
+    },
+    {
+        "test": "test_channel_from_invalid_id",
+        "case": "channel_from_invalid_id",
+        "unit": "nvgpu_channel",
+        "test_level": 0
+    },
+    {
+        "test": "test_channel_put_warn",
+        "case": "channel_put_warn",
+        "unit": "nvgpu_channel",
+        "test_level": 0
+    },
+    {
         "test": "test_channel_close",
         "case": "close",
+        "unit": "nvgpu_channel",
+        "test_level": 0
+    },
+    {
+        "test": "test_channel_debug_dump",
+        "case": "debug_dump",
         "unit": "nvgpu_channel",
         "test_level": 0
     },
@@ -2046,8 +2076,20 @@
         "test_level": 0
     },
     {
+        "test": "test_channel_deterministic_idle_unidle",
+        "case": "idle_unidle",
+        "unit": "nvgpu_channel",
+        "test_level": 0
+    },
+    {
         "test": "test_fifo_init_support",
         "case": "init_support",
+        "unit": "nvgpu_channel",
+        "test_level": 0
+    },
+    {
+        "test": "test_channel_mark_error",
+        "case": "mark_error",
         "unit": "nvgpu_channel",
         "test_level": 0
     },
@@ -2058,8 +2100,20 @@
         "test_level": 0
     },
     {
+        "test": "test_ch_referenceable_cleanup",
+        "case": "referenceable_cleanup",
+        "unit": "nvgpu_channel",
+        "test_level": 0
+    },
+    {
         "test": "test_fifo_remove_support",
         "case": "remove_support",
+        "unit": "nvgpu_channel",
+        "test_level": 0
+    },
+    {
+        "test": "test_channel_semaphore_wakeup",
+        "case": "semaphore_wakeup",
         "unit": "nvgpu_channel",
         "test_level": 0
     },
@@ -2072,6 +2126,18 @@
     {
         "test": "test_channel_setup_sw",
         "case": "setup_sw",
+        "unit": "nvgpu_channel",
+        "test_level": 0
+    },
+    {
+        "test": "test_channel_suspend_resume_serviceable_chs",
+        "case": "suspend_resume",
+        "unit": "nvgpu_channel",
+        "test_level": 0
+    },
+    {
+        "test": "test_channel_sw_quiesce",
+        "case": "sw_quiesce",
         "unit": "nvgpu_channel",
         "test_level": 0
     },

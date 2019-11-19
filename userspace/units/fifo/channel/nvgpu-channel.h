@@ -42,6 +42,9 @@ struct gk20a;
  *
  * Test Type: Feature
  *
+ * Targets: nvgpu_channel_setup_sw, nvgpu_channel_init_support,
+ *          nvgpu_channel_destroy, nvgpu_channel_cleanup_sw
+ *
  * Input: None
  *
  * Steps:
@@ -54,7 +57,7 @@ struct gk20a;
  * Output: Returns PASS if all branches gave expected results. FAIL otherwise.
  */
 int test_channel_setup_sw(struct unit_module *m,
-		struct gk20a *g, void *args);
+		struct gk20a *g, void *vargs);
 
 /**
  * Test specification for: test_channel_open
@@ -62,6 +65,8 @@ int test_channel_setup_sw(struct unit_module *m,
  * Description: Branch coverage for nvgpu_channel_open_new.
  *
  * Test Type: Feature
+ *
+ * Targets: nvgpu_channel_open_new
  *
  * Input: test_fifo_init_support() run for this GPU
  *
@@ -92,7 +97,7 @@ int test_channel_setup_sw(struct unit_module *m,
  * Output: Returns PASS if all branches gave expected results. FAIL otherwise.
  */
 int test_channel_open(struct unit_module *m,
-		struct gk20a *g, void *args);
+		struct gk20a *g, void *vargs);
 
 /**
  * Test specification for: test_channel_close
@@ -100,6 +105,13 @@ int test_channel_open(struct unit_module *m,
  * Description: Branch coverage for nvgpu_channel_close/kill.
  *
  * Test Type: Feature
+ *
+ * Targets: nvgpu_channel_close, nvgpu_channel_kill, channel_free,
+ *          channel_free_invoke_unbind, channel_free_wait_for_refs,
+ *          channel_free_invoke_deferred_engine_reset,
+ *          channel_free_invoke_sync_destroy,
+ *          channel_free_put_deterministic_ref_from_init,
+ *          channel_free_unlink_debug_session
  *
  * Input: test_fifo_init_support() run for this GPU
  *
@@ -122,8 +134,7 @@ int test_channel_open(struct unit_module *m,
  *
  * Output: Returns PASS if all branches gave expected results. FAIL otherwise.
  */
-int test_channel_close(struct unit_module *m,
-		struct gk20a *g, void *args);
+int test_channel_close(struct unit_module *m, struct gk20a *g, void *vargs);
 
 /**
  * Test specification for: test_channel_setup_bind
@@ -131,6 +142,8 @@ int test_channel_close(struct unit_module *m,
  * Description: Branch coverage for nvgpu_channel_setup_bind.
  *
  * Test Type: Feature
+ *
+ * Targets: nvgpu_channel_setup_bind, nvgpu_channel_setup_usermode
  *
  * Input: test_fifo_init_support() run for this GPU
  *
@@ -160,7 +173,7 @@ int test_channel_close(struct unit_module *m,
  * Output: Returns PASS if all branches gave expected results. FAIL otherwise.
  */
 int test_channel_setup_bind(struct unit_module *m,
-		struct gk20a *g, void *args);
+						struct gk20a *g, void *vargs);
 
 /**
  * Test specification for: test_channel_alloc_inst
@@ -168,6 +181,8 @@ int test_channel_setup_bind(struct unit_module *m,
  * Description: Branch coverage for nvgpu_channel_alloc_inst.
  *
  * Test Type: Feature
+ *
+ * Targets: nvgpu_channel_alloc_inst, nvgpu_channel_free_inst
  *
  * Input: test_fifo_init_support() run for this GPU
  *
@@ -186,7 +201,7 @@ int test_channel_setup_bind(struct unit_module *m,
  * Output: Returns PASS if all branches gave expected results. FAIL otherwise.
  */
 int test_channel_alloc_inst(struct unit_module *m,
-		struct gk20a *g, void *args);
+						struct gk20a *g, void *vargs);
 
 /**
  * Test specification for: test_channel_from_inst
@@ -194,6 +209,8 @@ int test_channel_alloc_inst(struct unit_module *m,
  * Description: Branch coverage for nvgpu_channel_refch_from_inst_ptr.
  *
  * Test Type: Feature
+ *
+ * Targets: nvgpu_channel_refch_from_inst_ptr
  *
  * Input: test_fifo_init_support() run for this GPU
  *
@@ -209,7 +226,7 @@ int test_channel_alloc_inst(struct unit_module *m,
  * Output: Returns PASS if all branches gave expected results. FAIL otherwise.
  */
 int test_channel_from_inst(struct unit_module *m,
-		struct gk20a *g, void *args);
+						struct gk20a *g, void *vargs);
 
 /**
  * Test specification for: test_channel_enable_disable_tsg
@@ -217,6 +234,8 @@ int test_channel_from_inst(struct unit_module *m,
  * Description: Branch coverage for nvgpu_channel_enable/disable_tsg.
  *
  * Test Type: Feature
+ *
+ * Targets: nvgpu_channel_enable_tsg, nvgpu_channel_disable_tsg
  *
  * Input: test_fifo_init_support() run for this GPU
  *
@@ -232,7 +251,222 @@ int test_channel_from_inst(struct unit_module *m,
  * Output: Returns PASS if all branches gave expected results. FAIL otherwise.
  */
 int test_channel_enable_disable_tsg(struct unit_module *m,
-		struct gk20a *g, void *args);
+						struct gk20a *g, void *vargs);
+
+/**
+ * Test specification for: test_channel_abort
+ *
+ * Description: Test channel TSG abort
+ *
+ * Test Type: Feature based
+ *
+ * Targets: nvgpu_channel_abort
+ *
+ * Input: test_fifo_init_support() run for this GPU
+ *
+ * Steps:
+ * - Test that TSG abort is invoked for TSG bound channel.
+ *
+ * Output: Returns PASS if all branches gave expected results. FAIL otherwise.
+ */
+int test_channel_abort(struct unit_module *m, struct gk20a *g, void *vargs);
+
+/**
+ * Test specification for: test_channel_mark_error
+ *
+ * Description: Mark channel as unserviceable
+ *
+ * Test Type: Feature based
+ *
+ * Targets: nvgpu_channel_mark_error, nvgpu_channel_set_unserviceable,
+ *          nvgpu_channel_ctxsw_timeout_debug_dump_state,
+ *          nvgpu_channel_set_has_timedout_and_wakeup_wqs
+ *
+ * Input: test_fifo_init_support() run for this GPU
+ *
+ * Steps:
+ * - Test that the channel can be marked with error (unserviceable).
+ * - Test broadcast condition fail cases.
+ *
+ * Output: Returns PASS if all branches gave expected results. FAIL otherwise.
+ */
+int test_channel_mark_error(struct unit_module *m,
+						struct gk20a *g, void *vargs);
+
+/**
+ * Test specification for: test_channel_sw_quiesce
+ *
+ * Description: Test emergency quiescing of channels
+ *
+ * Test Type: Feature based
+ *
+ * Targets: nvgpu_channel_sw_quiesce, nvgpu_channel_set_error_notifier
+ *
+ * Input: test_fifo_init_support() run for this GPU
+ *
+ * Steps:
+ * - Check if channel can be placed in quiesce state.
+ *
+ * Output: Returns PASS if all branches gave expected results. FAIL otherwise.
+ */
+int test_channel_sw_quiesce(struct unit_module *m,
+						struct gk20a *g, void *vargs);
+
+/**
+ * Test specification for: test_channel_deterministic_idle_unidle
+ *
+ * Description: Stop and allow deterministic channel activity
+ *
+ * Test Type: Feature based
+ *
+ * Targets: nvgpu_channel_deterministic_idle, nvgpu_channel_deterministic_unidle
+ *
+ * Input: test_fifo_init_support() run for this GPU
+ *
+ * Steps:
+ * - Execute deterministic idle and unidle functions and check if gpu usage
+ *   usage count is updated corresponding to input conditions.
+ *
+ * Output: Returns PASS if all branches gave expected results. FAIL otherwise.
+ */
+int test_channel_deterministic_idle_unidle(struct unit_module *m,
+						struct gk20a *g, void *vargs);
+
+/**
+ * Test specification for: test_channel_suspend_resume_serviceable_chs
+ *
+ * Description: Test suspend resume of all servicable channels
+ *
+ * Test Type: Feature based
+ *
+ * Targets: nvgpu_channel_suspend_all_serviceable_ch,
+ *          nvgpu_channel_resume_all_serviceable_ch,
+ *          nvgpu_channel_check_unserviceable
+ *
+ * Input: test_fifo_init_support() run for this GPU
+ *
+ * Steps:
+ * - Check if channels can be suspended and resumed.
+ *
+ * Output: Returns PASS if all branches gave expected results. FAIL otherwise.
+ */
+int test_channel_suspend_resume_serviceable_chs(struct unit_module *m,
+						struct gk20a *g, void *vargs);
+
+/**
+ * Test specification for: test_channel_debug_dump
+ *
+ * Description: Dump channel debug information
+ *
+ * Test Type: Feature based
+ *
+ * Targets: nvgpu_channel_debug_dump_all
+ *
+ * Input: test_fifo_init_support() run for this GPU
+ *
+ * Steps:
+ * - Dump all debug information for channels.
+ *
+ * Output: Returns PASS if all branches gave expected results. FAIL otherwise.
+ */
+int test_channel_debug_dump(struct unit_module *m,
+						struct gk20a *g, void *vargs);
+
+/**
+ * Test specification for: test_channel_semaphore_wakeup
+ *
+ * Description: Wake up threads waiting for semaphore
+ *
+ * Test Type: Feature based
+ *
+ * Targets: nvgpu_channel_semaphore_wakeup
+ *
+ * Input: test_fifo_init_support() run for this GPU
+ *
+ * Steps:
+ * - Execute semaphore_wakeup for deterministic/non-deterministic channels.
+ *
+ * Output: Returns PASS if all branches gave expected results. FAIL otherwise.
+ */
+int test_channel_semaphore_wakeup(struct unit_module *m,
+						struct gk20a *g, void *vargs);
+
+/**
+ * Test specification for: test_channel_from_invalid_id
+ *
+ * Description: Test channel reference extracted using channel id
+ *
+ * Test Type: Feature based
+ *
+ * Targets: nvgpu_channel_from_id
+ *
+ * Input: test_fifo_init_support() run for this GPU
+ *
+ * Steps:
+ * - Test corner case to retrieve channel with invalid channel id.
+ *
+ * Output: Returns PASS if all branches gave expected results. FAIL otherwise.
+ */
+int test_channel_from_invalid_id(struct unit_module *m, struct gk20a *g,
+								void *vargs);
+
+/**
+ * Test specification for: test_channel_put_warn
+ *
+ * Description: Test channel dereference
+ *
+ * Test Type: Feature based
+ *
+ * Targets: nvgpu_channel_put__func
+ *
+ * Input: test_fifo_init_support() run for this GPU
+ *
+ * Steps:
+ * - Test corner cases using referenceable channel and condition broadcast fail
+ *   cases.
+ *
+ * Output: Returns PASS if all branches gave expected results. FAIL otherwise.
+ */
+int test_channel_put_warn(struct unit_module *m, struct gk20a *g, void *vargs);
+
+/**
+ * Test specification for: test_ch_referenceable_cleanup
+ *
+ * Description: Test channel cleanup corner case
+ *
+ * Test Type: Feature based
+ *
+ * Targets: nvgpu_channel_cleanup_sw
+ *
+ * Input: test_fifo_init_support() run for this GPU
+ *
+ * Steps:
+ * - Open a channel. Test how referenceable channel is cleaned-up/freed.
+ *
+ * Output: Returns PASS if all branches gave expected results. FAIL otherwise.
+ */
+int test_ch_referenceable_cleanup(struct unit_module *m,
+						struct gk20a *g, void *vargs);
+
+/**
+ * Test specification for: test_channel_abort_cleanup
+ *
+ * Description: Test channel abort cleanup with user_sync available
+ *
+ * Test Type: Feature based
+ *
+ * Targets: nvgpu_channel_abort_clean_up
+ *
+ * Input: test_fifo_init_support() run for this GPU
+ *
+ * Steps:
+ * - Bind channel to TSG and allocate channel user_sync. Test channel abort
+ *   cleanup while unbinding from TSG.
+ *
+ * Output: Returns PASS if all branches gave expected results. FAIL otherwise.
+ */
+int test_channel_abort_cleanup(struct unit_module *m, struct gk20a *g,
+								void *vargs);
 /**
  * @}
  */
