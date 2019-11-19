@@ -41,6 +41,7 @@
  *   - @ref SWUTS-fifo-channel-gk20a
  *   - @ref SWUTS-fifo-channel-gm20b
  *   - @ref SWUTS-fifo-channel-gv11b
+ *   - @ref SWUTS-fifo-engine
  *   - @ref SWUTS-fifo-pbdma
  *   - @ref SWUTS-fifo-runlist
  *   - @ref SWUTS-fifo-runlist-gk20a
