@@ -104,7 +104,7 @@ int gp10b_engine_init_ce_info(struct nvgpu_fifo *f)
 		info->pbdma_id = pbdma_id;
 		info->inst_id  = dev_info.inst_id;
 		info->pri_base = dev_info.pri_base;
-
+		info->engine_id = dev_info.engine_id;
 
 		/* engine_id starts from 0 to NV_HOST_NUM_ENGINES */
 		f->active_engines_list[f->num_engines] =
