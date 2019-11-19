@@ -168,8 +168,6 @@
 #define TEGRA210_I2S_CTRL_BIT_SIZE_32			(TEGRA210_I2S_BITS_32 << TEGRA210_I2S_CTRL_BIT_SIZE_SHIFT)
 
 /* Fields in TEGRA210_I2S_TIMING */
-#define TEGRA210_I2S_TIMING_NON_SYM_EN_SHIFT		12
-#define TEGRA210_I2S_TIMING_NON_SYM_EN			(1 << TEGRA210_I2S_TIMING_NON_SYM_EN_SHIFT)
 #define TEGRA210_I2S_TIMING_CHANNEL_BIT_CNT_MASK	0x3ff
 #define TEGRA210_I2S_TIMING_CHANNEL_BIT_CNT_SHIFT	0
 
@@ -218,7 +216,6 @@ struct tegra210_i2s {
 	unsigned int rx_mask;
 	bool loopback;
 	unsigned int format;
-	bool enable_cya;
 	unsigned int rx_fifo_th; /* should be programmed interms of frames */
 	void __iomem *base_addr;
 };
