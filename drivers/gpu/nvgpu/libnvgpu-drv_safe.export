@@ -58,6 +58,8 @@ gp10b_get_device_info
 gp10b_is_engine_ce
 gp10b_priv_ring_isr
 gp10b_priv_ring_decode_error_code
+gv100_dump_engine_status
+gv100_read_engine_status_info
 gv11b_channel_count
 gv11b_channel_debug_dump
 gv11b_channel_read_state
