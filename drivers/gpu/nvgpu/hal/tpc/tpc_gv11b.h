@@ -28,6 +28,7 @@
 struct gk20a;
 
 int gv11b_tpc_powergate(struct gk20a *g, u32 fuse_status);
+void gv11b_gr_pg_tpc(struct gk20a *g);
 
 #endif /* NVGPU_TPC_GV11B_H */
 

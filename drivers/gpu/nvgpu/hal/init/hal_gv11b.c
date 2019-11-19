@@ -291,7 +291,6 @@ static const struct gpu_ops gv11b_ops = {
 		.set_gpc_tpc_mask = gr_gv11b_set_gpc_tpc_mask,
 		.is_tpc_addr = gr_gm20b_is_tpc_addr,
 		.get_tpc_num = gr_gm20b_get_tpc_num,
-		.powergate_tpc = gr_gv11b_powergate_tpc,
 		.dump_gr_regs = gr_gv11b_dump_gr_status_regs,
 		.update_pc_sampling = gr_gm20b_update_pc_sampling,
 		.init_sm_dsm_reg_info = gv11b_gr_init_sm_dsm_reg_info,
@@ -1432,9 +1431,12 @@ static const struct gpu_ops gv11b_ops = {
 		.get_num_ltcs = gm20b_top_get_num_ltcs,
 		.get_num_lce = gv11b_top_get_num_lce,
 	},
+#ifdef CONFIG_NVGPU_TPC_POWERGATE
 	.tpc = {
-		.tpc_powergate = gv11b_tpc_powergate,
+		.init_tpc_powergate = gv11b_tpc_powergate,
+		.tpc_gr_pg = gv11b_gr_pg_tpc,
 	},
+#endif
 	.chip_init_gpu_characteristics = gv11b_init_gpu_characteristics,
 	.get_litter_value = gv11b_get_litter_value,
 };
@@ -1491,7 +1493,9 @@ int gv11b_init_hal(struct gk20a *g)
 	gops->falcon = gv11b_ops.falcon;
 	gops->priv_ring = gv11b_ops.priv_ring;
 	gops->fuse = gv11b_ops.fuse;
+#ifdef CONFIG_NVGPU_TPC_POWERGATE
 	gops->tpc = gv11b_ops.tpc;
+#endif
 #ifdef CONFIG_NVGPU_CLK_ARB
 	gops->clk_arb = gv11b_ops.clk_arb;
 #endif

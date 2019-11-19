@@ -62,23 +62,6 @@
 
 #define PRI_BROADCAST_FLAGS_SMPC  BIT32(17)
 
-void gr_gv11b_powergate_tpc(struct gk20a *g)
-{
-	u32 tpc_pg_status = g->ops.fuse.fuse_status_opt_tpc_gpc(g, 0);
-
-	if (tpc_pg_status == g->tpc_pg_mask) {
-		return;
-	}
-
-	g->ops.fuse.fuse_ctrl_opt_tpc_gpc(g, 0, g->tpc_pg_mask);
-
-	do {
-		tpc_pg_status = g->ops.fuse.fuse_status_opt_tpc_gpc(g, 0);
-	} while (tpc_pg_status != g->tpc_pg_mask);
-
-	return;
-}
-
 void gr_gv11b_set_alpha_circular_buffer_size(struct gk20a *g, u32 data)
 {
 	struct nvgpu_gr *gr = g->gr;

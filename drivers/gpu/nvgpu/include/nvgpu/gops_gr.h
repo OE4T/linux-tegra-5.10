@@ -1028,7 +1028,6 @@ struct gops_gr {
 				  u32 *gpc_num, u32 *tpc_num);
 	u32 (*get_tpc_num)(struct gk20a *g, u32 addr);
 	u32 (*get_egpc_base)(struct gk20a *g);
-	void (*powergate_tpc)(struct gk20a *g);
 	int (*update_smpc_ctxsw_mode)(struct gk20a *g,
 				      struct nvgpu_channel *c,
 				      bool enable);

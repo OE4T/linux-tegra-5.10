@@ -115,18 +115,6 @@ static int falcon_sw_init(struct gk20a *g, u32 falcon_id)
 	return 0;
 }
 
-/* generic for passing in a u32 */
-static int return_success_u32_param(struct gk20a *g, u32 dummy)
-{
-	return 0;
-}
-
-/* generic for passing in a u32 and returning int */
-static int return_failure_u32_param(struct gk20a *g, u32 dummy)
-{
-	return -1;
-}
-
 /* generic for passing in a u32 and returning u32 */
 static u32 return_u32_u32_param(struct gk20a *g, u32 dummy)
 {
@@ -524,7 +512,6 @@ static void set_poweron_funcs_success(struct gk20a *g)
 	g->ops.falcon.falcon_sw_init = falcon_sw_init;
 	falcon_fail_on_id = U32_MAX; /* don't fail */
 	g->ops.fuse.fuse_status_opt_tpc_gpc = return_u32_u32_param;
-	g->ops.tpc.tpc_powergate = return_success_u32_param;
 	g->ops.falcon.falcon_sw_free = no_return_u32_param;
 
 	/* used in support functions */
@@ -580,16 +567,6 @@ int test_poweron(struct unit_module *m, struct gk20a *g, void *args)
 			"nvgpu_finalize_poweron errantly returned success\n");
 	}
 	falcon_fail_on_id = U32_MAX; /* stop failing */
-
-	g->ops.tpc.tpc_powergate = return_failure_u32_param;
-	nvgpu_set_power_state(g, NVGPU_STATE_POWERED_OFF);
-	err = nvgpu_finalize_poweron(g);
-	if (err == 0) {
-		unit_return_fail(m,
-			"nvgpu_finalize_poweron errantly returned success\n");
-	}
-	g->ops.tpc.tpc_powergate = return_success_u32_param;
-
 	/* test the case of already being powered on */
 	nvgpu_set_power_state(g, NVGPU_STATE_POWERED_ON);
 	err = nvgpu_finalize_poweron(g);
@@ -616,7 +593,6 @@ int test_poweron_branches(struct unit_module *m, struct gk20a *g, void *args)
 	g->ops.clk.init_clk_support = NULL;
 	g->ops.fb.init_fbpa = NULL;
 	g->ops.fb.mem_unlock = NULL;
-	g->ops.tpc.tpc_powergate = NULL;
 	g->ops.therm.elcg_init_idle_filters = NULL;
 	g->ops.ecc.ecc_init_support = NULL;
 	g->ops.channel.resume_all_serviceable_ch = NULL;

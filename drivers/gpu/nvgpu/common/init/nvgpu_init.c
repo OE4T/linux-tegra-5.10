@@ -312,6 +312,7 @@ int nvgpu_prepare_poweroff(struct gk20a *g)
 	return ret;
 }
 
+#ifdef CONFIG_NVGPU_TPC_POWERGATE
 static bool have_tpc_pg_lock = false;
 
 static int nvgpu_init_acquire_tpc_pg_lock(struct gk20a *g)
@@ -327,6 +328,7 @@ static int nvgpu_init_release_tpc_pg_lock(struct gk20a *g)
 	have_tpc_pg_lock = false;
 	return 0;
 }
+#endif
 
 static int nvgpu_init_fb_mem_unlock(struct gk20a *g)
 {
@@ -344,6 +346,7 @@ static int nvgpu_init_fb_mem_unlock(struct gk20a *g)
 	return 0;
 }
 
+#ifdef CONFIG_NVGPU_TPC_POWERGATE
 static int nvgpu_init_power_gate(struct gk20a *g)
 {
 	int err;
@@ -357,8 +360,8 @@ static int nvgpu_init_power_gate(struct gk20a *g)
 	g->can_tpc_powergate = false;
 	fuse_status = g->ops.fuse.fuse_status_opt_tpc_gpc(g, 0);
 
-	if (g->ops.tpc.tpc_powergate != NULL) {
-		err = g->ops.tpc.tpc_powergate(g, fuse_status);
+	if (g->ops.tpc.init_tpc_powergate != NULL) {
+		err = g->ops.tpc.init_tpc_powergate(g, fuse_status);
 		if (err != 0) {
 			return err;
 		}
@@ -367,11 +370,10 @@ static int nvgpu_init_power_gate(struct gk20a *g)
 	return 0;
 }
 
-#ifdef CONFIG_NVGPU_DEBUGGER
 static int nvgpu_init_power_gate_gr(struct gk20a *g)
 {
-	if (g->can_tpc_powergate && (g->ops.gr.powergate_tpc != NULL)) {
-		g->ops.gr.powergate_tpc(g);
+	if (g->can_tpc_powergate && (g->ops.tpc.tpc_gr_pg != NULL)) {
+		g->ops.tpc.tpc_gr_pg(g);
 	}
 	return 0;
 }
@@ -560,9 +562,9 @@ int nvgpu_finalize_poweron(struct gk20a *g)
 		NVGPU_INIT_TABLE_ENTRY(g->ops.fifo.fifo_init_support, NO_FLAG),
 		NVGPU_INIT_TABLE_ENTRY(g->ops.therm.elcg_init_idle_filters,
 				       NO_FLAG),
+#ifdef CONFIG_NVGPU_TPC_POWERGATE
 		NVGPU_INIT_TABLE_ENTRY(&nvgpu_init_power_gate, NO_FLAG),
 		NVGPU_INIT_TABLE_ENTRY(&nvgpu_init_acquire_tpc_pg_lock, NO_FLAG),
-#ifdef CONFIG_NVGPU_DEBUGGER
 		NVGPU_INIT_TABLE_ENTRY(&nvgpu_init_power_gate_gr, NO_FLAG),
 #endif
 		/* prepare portion of sw required for enable hw */
@@ -585,8 +587,11 @@ int nvgpu_finalize_poweron(struct gk20a *g)
 		 */
 		NVGPU_INIT_TABLE_ENTRY(g->ops.ecc.ecc_finalize_support,
 				       NO_FLAG),
+#ifdef CONFIG_NVGPU_TPC_POWERGATE
 		NVGPU_INIT_TABLE_ENTRY(&nvgpu_init_release_tpc_pg_lock,
 				       NO_FLAG),
+#endif
+
 #ifdef CONFIG_NVGPU_LS_PMU
 		NVGPU_INIT_TABLE_ENTRY(g->ops.pmu.pmu_pstate_sw_setup,
 				       NVGPU_PMU_PSTATE),
@@ -647,6 +652,7 @@ int nvgpu_finalize_poweron(struct gk20a *g)
 	return err;
 
 done:
+#ifdef CONFIG_NVGPU_TPC_POWERGATE
 	if (have_tpc_pg_lock) {
 		int release_err = nvgpu_init_release_tpc_pg_lock(g);
 
@@ -654,6 +660,7 @@ done:
 			nvgpu_err(g, "failed to release tpc_gp_lock");
 		}
 	}
+#endif
 	nvgpu_falcons_sw_free(g);
 
 	return err;

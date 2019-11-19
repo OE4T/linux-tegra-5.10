@@ -615,9 +615,12 @@ struct gpu_ops {
 		void (*falcon_setup_boot_config)(struct gk20a *g);
 		int (*gsp_reset)(struct gk20a *g);
 	} gsp;
+#ifdef CONFIG_NVGPU_TPC_POWERGATE
 	struct {
-		int (*tpc_powergate)(struct gk20a *g, u32 fuse_status);
+		int (*init_tpc_powergate)(struct gk20a *g, u32 fuse_status);
+		void (*tpc_gr_pg)(struct gk20a *g);
 	} tpc;
+#endif
 	void (*semaphore_wakeup)(struct gk20a *g, bool post_events);
 };
 
