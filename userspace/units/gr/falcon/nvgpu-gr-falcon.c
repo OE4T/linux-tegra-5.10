@@ -59,19 +59,9 @@ static int test_gr_falcon_init(struct unit_module *m,
 	int err = 0;
 
 	/* Allocate and Initialize GR */
-	err = test_gr_init_setup(m, g, args);
+	err = test_gr_init_setup_ready(m, g, args);
 	if (err != 0) {
 		unit_return_fail(m, "gr init setup failed\n");
-	}
-
-	err = test_gr_init_prepare(m, g, args);
-	if (err != 0) {
-		unit_return_fail(m, "gr init prepare failed\n");
-	}
-
-	err = test_gr_init_support(m, g, args);
-	if (err != 0) {
-		unit_return_fail(m, "gr init support failed\n");
 	}
 
 	/* set up test specific HALs */
@@ -206,14 +196,9 @@ static int test_gr_falcon_deinit(struct unit_module *m,
 	}
 
 	/* Cleanup GR */
-	err = test_gr_remove_support(m, g, args);
+	err = test_gr_init_setup_cleanup(m, g, args);
 	if (err != 0) {
-		unit_return_fail(m, "gr remove support failed\n");
-	}
-
-	err = test_gr_remove_setup(m, g, args);
-	if (err != 0) {
-		unit_return_fail(m, "gr remove setup failed\n");
+		unit_return_fail(m, "gr setup cleanup failed\n");
 	}
 
 	return UNIT_SUCCESS;

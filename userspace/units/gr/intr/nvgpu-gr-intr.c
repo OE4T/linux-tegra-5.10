@@ -67,49 +67,6 @@ static void gr_test_intr_fifo_recover(struct gk20a *g, u32 bitmask, u32 id,
 }
 #endif
 
-int test_gr_intr_setup(struct unit_module *m,
-		struct gk20a *g, void *args)
-{
-	int err = 0;
-
-	/* Allocate and Initialize GR */
-	err = test_gr_init_setup(m, g, args);
-	if (err != 0) {
-		unit_return_fail(m, "gr init setup failed\n");
-	}
-
-	err = test_gr_init_prepare(m, g, args);
-	if (err != 0) {
-		unit_return_fail(m, "gr init prepare failed\n");
-	}
-
-	err = test_gr_init_support(m, g, args);
-	if (err != 0) {
-		unit_return_fail(m, "gr init support failed\n");
-	}
-
-	return UNIT_SUCCESS;
-}
-
-int test_gr_intr_cleanup(struct unit_module *m,
-		struct gk20a *g, void *args)
-{
-	int err = 0;
-
-	/* Cleanup GR */
-	err = test_gr_remove_support(m, g, args);
-	if (err != 0) {
-		unit_return_fail(m, "gr remove support failed\n");
-	}
-
-	err = test_gr_remove_setup(m, g, args);
-	if (err != 0) {
-		unit_return_fail(m, "gr remove setup failed\n");
-	}
-
-	return UNIT_SUCCESS;
-}
-
 static u32 stub_channel_count(struct gk20a *g)
 {
 	return 4;
@@ -715,13 +672,13 @@ int test_gr_intr_fecs_exceptions(struct unit_module *m,
 }
 
 struct unit_module_test nvgpu_gr_intr_tests[] = {
-	UNIT_TEST(gr_intr_setup, test_gr_intr_setup, NULL, 0),
+	UNIT_TEST(gr_intr_setup, test_gr_init_setup_ready, NULL, 0),
 	UNIT_TEST(gr_intr_channel_free, test_gr_intr_without_channel, NULL, 0),
 	UNIT_TEST(gr_intr_sw_method, test_gr_intr_sw_exceptions, NULL, 0),
 	UNIT_TEST(gr_intr_fecs_exceptions, test_gr_intr_fecs_exceptions, NULL, 0),
 	UNIT_TEST(gr_intr_gpc_exceptions, test_gr_intr_gpc_exceptions, NULL, 0),
 	UNIT_TEST(gr_intr_with_channel, test_gr_intr_setup_channel, NULL, 0),
-	UNIT_TEST(gr_intr_cleanup, test_gr_intr_cleanup, NULL, 0),
+	UNIT_TEST(gr_intr_cleanup, test_gr_init_setup_cleanup, NULL, 0),
 };
 
 UNIT_MODULE(nvgpu_gr_intr, nvgpu_gr_intr_tests, UNIT_PRIO_NVGPU_TEST);

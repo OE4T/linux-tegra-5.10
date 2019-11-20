@@ -169,6 +169,45 @@ int test_gr_remove_support(struct unit_module *m, struct gk20a *g, void *args);
 int test_gr_init_ecc_features(struct unit_module *m,
 			      struct gk20a *g, void *args);
 
+/**
+ * Test specification for: test_gr_init_setup_ready.
+ *
+ * Description: Setup for common.gr unit.
+ *
+ * Test Type: Feature based.
+ *
+ * Input: None
+ *
+ * Steps:
+ * -  Call #test_gr_init_setup.
+ *    -  Setup gv11b arch and allocate struct for common.gr.
+ * -  Call #test_gr_init_prepare.
+ *    -  To initialize the s/w and enable h/w for GR engine.
+ * -  Call #test_gr_init_support.
+ *
+ * Output: Returns PASS if the steps above were executed successfully. FAIL
+ * otherwise.
+ */
+int test_gr_init_setup_ready(struct unit_module *m, struct gk20a *g, void *args);
+
+/**
+ * Test specification for: test_gr_setup_cleanup.
+ *
+ * Description: Cleanup common.gr unit.
+ *
+ * Test Type: Feature based.
+ *
+ * Input: test_gr_setup_ready must have been executed successfully.
+ *
+ * Steps:
+ * -  Call #test_gr_remove_support.
+ * -  Call #test_gr_remove_setup.
+ *
+ * Output: Returns PASS if the steps above were executed successfully. FAIL
+ * otherwise.
+ */
+int test_gr_init_setup_cleanup(struct unit_module *m, struct gk20a *g, void *args);
+
 #endif /* UNIT_NVGPU_GR_H */
 
 /**

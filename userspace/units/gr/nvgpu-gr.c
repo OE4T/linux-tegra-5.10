@@ -151,6 +151,30 @@ int test_gr_suspend(struct unit_module *m, struct gk20a *g, void *args)
 	return UNIT_SUCCESS;
 }
 
+int test_gr_init_setup_ready(struct unit_module *m,
+		struct gk20a *g, void *args)
+{
+	int err = 0;
+
+	/* Allocate and Initialize GR */
+	err = test_gr_init_setup(m, g, args);
+	if (err != 0) {
+		unit_return_fail(m, "gr init setup failed\n");
+	}
+
+	err = test_gr_init_prepare(m, g, args);
+	if (err != 0) {
+		unit_return_fail(m, "gr init prepare failed\n");
+	}
+
+	err = test_gr_init_support(m, g, args);
+	if (err != 0) {
+		unit_return_fail(m, "gr init support failed\n");
+	}
+
+	return UNIT_SUCCESS;
+}
+
 int test_gr_remove_support(struct unit_module *m, struct gk20a *g, void *args)
 {
 	nvgpu_gr_remove_support(g);
@@ -163,6 +187,25 @@ int test_gr_remove_setup(struct unit_module *m,
 {
 	test_gr_cleanup_gv11b_reg_space(m, g);
 	nvgpu_gr_free(g);
+
+	return UNIT_SUCCESS;
+}
+
+int test_gr_init_setup_cleanup(struct unit_module *m,
+		struct gk20a *g, void *args)
+{
+	int err = 0;
+
+	/* Cleanup GR */
+	err = test_gr_remove_support(m, g, args);
+	if (err != 0) {
+		unit_return_fail(m, "gr remove support failed\n");
+	}
+
+	err = test_gr_remove_setup(m, g, args);
+	if (err != 0) {
+		unit_return_fail(m, "gr remove setup failed\n");
+	}
 
 	return UNIT_SUCCESS;
 }

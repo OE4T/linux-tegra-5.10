@@ -34,46 +34,6 @@ struct unit_module;
  */
 
 /**
- * Test specification for: test_gr_intr_setup.
- *
- * Description: Setup for common.gr.intr unit. Use the common.gr init calls
- *              to setup and initialize common.gr.intr unit.
- *
- * Test Type: Feature based.
- *
- * Input: None
- *
- * Steps:
- * -  Call #test_gr_init_setup.
- *    -  Setup gv11b arch and allocate struct for common.gr.
- * -  Call #test_gr_init_prepare.
- *    -  To initialize the s/w and enable h/w for GR engine.
- * -  Call #test_gr_init_support.
- *
- * Output: Returns PASS if the steps above were executed successfully. FAIL
- * otherwise.
- */
-int test_gr_intr_setup(struct unit_module *m, struct gk20a *g, void *args);
-
-/**
- * Test specification for: test_gr_intr_cleanup.
- *
- * Description: Cleanup common.gr.intr unit.
- *
- * Test Type: Feature based.
- *
- * Input: test_gr_intr_setup must have been executed successfully.
- *
- * Steps:
- * -  Call #test_gr_remove_support.
- * -  Call #test_gr_remove_setup.
- *
- * Output: Returns PASS if the steps above were executed successfully. FAIL
- * otherwise.
- */
-int test_gr_intr_cleanup(struct unit_module *m, struct gk20a *g, void *args);
-
-/**
  * Test specification for: test_gr_intr_without_channel.
  *
  * Description: This test helps to verify the stall interrupts for some
