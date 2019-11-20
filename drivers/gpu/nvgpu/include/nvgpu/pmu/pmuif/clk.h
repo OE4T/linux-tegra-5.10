@@ -483,13 +483,11 @@ struct nv_pmu_clk_clk_domain_list_v1 {
 struct nv_pmu_clk_vf_change_inject {
 	u8 flags;
 	struct nv_pmu_clk_clk_domain_list clk_list;
-	struct nv_pmu_volt_volt_rail_list volt_list;
 };
 
 struct nv_pmu_clk_vf_change_inject_v1 {
 	u8 flags;
 	struct nv_pmu_clk_clk_domain_list_v1 clk_list;
-	struct nv_pmu_volt_volt_rail_list_v1 volt_list;
 };
 
 #define NV_NV_PMU_CLK_LOAD_ACTION_MASK_VIN_HW_CAL_PROGRAM_YES      (0x00000001U)

@@ -231,65 +231,12 @@ NV_PMU_BOARDOBJ_GRP_GET_STATUS_MAKE_E32(volt, volt_policy);
 #define NV_PMU_VOLT_CMD_ID_RPC					(0x00000001U)
 #define NV_PMU_VOLT_CMD_ID_BOARDOBJ_GRP_GET_STATUS		(0x00000002U)
 
-struct nv_pmu_volt_cmd_rpc {
-	u8 cmd_type;
-	u8 pad[3];
-	struct nv_pmu_allocation request;
-};
-
-#define NV_PMU_VOLT_CMD_RPC_ALLOC_OFFSET	\
-	((u32)offsetof(struct nv_pmu_volt_cmd_rpc, request))
-
-struct nv_pmu_volt_cmd {
-	union {
-		u8 cmd_type;
-		struct nv_pmu_boardobj_cmd_grp grp_set;
-		struct nv_pmu_volt_cmd_rpc rpc;
-		struct nv_pmu_boardobj_cmd_grp grp_get_status;
-	};
-};
-
 /*
  * VOLT MSG ID definitions
  */
 #define NV_PMU_VOLT_MSG_ID_BOARDOBJ_GRP_SET			(0x00000000U)
 #define NV_PMU_VOLT_MSG_ID_RPC					(0x00000001U)
 #define NV_PMU_VOLT_MSG_ID_BOARDOBJ_GRP_GET_STATUS		(0x00000002U)
-
-/*
- * Message carrying the result of the VOLT RPC execution.
- */
-struct nv_pmu_volt_msg_rpc {
-	u8 msg_type;
-	u8 rsvd[3];
-	struct nv_pmu_allocation response;
-};
-
-#define NV_PMU_VOLT_MSG_RPC_ALLOC_OFFSET	\
-		((u32)offsetof(struct nv_pmu_volt_msg_rpc, response))
-
-struct nv_pmu_volt_msg {
-	union {
-		u8 msg_type;
-		struct nv_pmu_boardobj_msg_grp grp_set;
-		struct nv_pmu_volt_msg_rpc rpc;
-		struct nv_pmu_boardobj_msg_grp grp_get_status;
-	};
-};
-
-#define NV_PMU_VF_INJECT_MAX_VOLT_RAILS		(2U)
-
-struct nv_pmu_volt_volt_rail_list {
-	u8 num_rails;
-	struct ctrl_perf_volt_rail_list_item
-	rails[NV_PMU_VF_INJECT_MAX_VOLT_RAILS];
-};
-
-struct nv_pmu_volt_volt_rail_list_v1 {
-	u8 num_rails;
-	struct ctrl_volt_volt_rail_list_item_v1
-	rails[NV_PMU_VF_INJECT_MAX_VOLT_RAILS];
-};
 
 /* VOLT RPC */
 #define NV_PMU_RPC_ID_VOLT_BOARD_OBJ_GRP_CMD			0x00U
