@@ -34,11 +34,6 @@
 
 #include "volt_pmu.h"
 
-struct volt_rpc_pmucmdhandler_params {
-	struct nv_pmu_volt_rpc *prpc_call;
-	u32 success;
-};
-
 int nvgpu_volt_send_load_cmd_to_pmu(struct gk20a *g)
 {
 	struct nvgpu_pmu *pmu = g->pmu;
@@ -61,14 +56,6 @@ void nvgpu_pmu_volt_rpc_handler(struct gk20a *g, struct nv_pmu_rpc_header *rpc)
 	case NV_PMU_RPC_ID_VOLT_BOARD_OBJ_GRP_CMD:
 		nvgpu_pmu_dbg(g,
 			"reply NV_PMU_RPC_ID_VOLT_BOARD_OBJ_GRP_CMD");
-		break;
-	case NV_PMU_RPC_ID_VOLT_VOLT_SET_VOLTAGE:
-		nvgpu_pmu_dbg(g,
-			"reply NV_PMU_RPC_ID_VOLT_VOLT_SET_VOLTAGE");
-		break;
-	case NV_PMU_RPC_ID_VOLT_VOLT_RAIL_GET_VOLTAGE:
-		nvgpu_pmu_dbg(g,
-			"reply NV_PMU_RPC_ID_VOLT_VOLT_RAIL_GET_VOLTAGE");
 		break;
 	case NV_PMU_RPC_ID_VOLT_LOAD:
 		nvgpu_pmu_dbg(g,

@@ -227,34 +227,9 @@ union nv_pmu_volt_volt_policy_boardobj_get_status_union {
 
 NV_PMU_BOARDOBJ_GRP_GET_STATUS_MAKE_E32(volt, volt_policy);
 
-struct nv_pmu_volt_policy_voltage_data {
-	u8 policy_idx;
-	struct ctrl_perf_volt_rail_list
-	rail_list;
-};
-
-struct nv_pmu_volt_rail_get_voltage {
-	u8 rail_idx;
-	u32 voltage_uv;
-};
-
-struct nv_pmu_volt_volt_rail_set_noise_unaware_vmin {
-	u8 num_rails;
-	struct ctrl_volt_volt_rail_list
-	rail_list;
-};
-
 #define NV_PMU_VOLT_CMD_ID_BOARDOBJ_GRP_SET			(0x00000000U)
 #define NV_PMU_VOLT_CMD_ID_RPC					(0x00000001U)
 #define NV_PMU_VOLT_CMD_ID_BOARDOBJ_GRP_GET_STATUS		(0x00000002U)
-#define NV_PMU_VOLT_RPC_ID_VOLT_RAIL_SET_NOISE_UNAWARE_VMIN	(0x00000004U)
-
-/*
- * PMU VOLT RPC calls.
- */
-#define NV_PMU_VOLT_RPC_ID_LOAD					(0x00000000U)
-#define NV_PMU_VOLT_RPC_ID_VOLT_POLICY_SET_VOLTAGE		(0x00000002U)
-#define NV_PMU_VOLT_RPC_ID_VOLT_RAIL_GET_VOLTAGE		(0x00000003U)
 
 struct nv_pmu_volt_cmd_rpc {
 	u8 cmd_type;
@@ -272,19 +247,6 @@ struct nv_pmu_volt_cmd {
 		struct nv_pmu_volt_cmd_rpc rpc;
 		struct nv_pmu_boardobj_cmd_grp grp_get_status;
 	};
-};
-
-struct nv_pmu_volt_rpc {
-	u8 function;
-	bool b_supported;
-	bool b_success;
-	falcon_status flcn_status;
-	union {
-		struct nv_pmu_volt_policy_voltage_data volt_policy_voltage_data;
-		struct nv_pmu_volt_rail_get_voltage volt_rail_get_voltage;
-		struct nv_pmu_volt_volt_rail_set_noise_unaware_vmin
-			volt_rail_set_noise_unaware_vmin;
-	} params;
 };
 
 /*
@@ -345,37 +307,6 @@ struct nv_pmu_volt_volt_rail_list_v1 {
 struct nv_pmu_rpc_struct_volt_load {
 	/*[IN/OUT] Must be first field in RPC structure */
 	struct nv_pmu_rpc_header hdr;
-	u32  scratch[1];
-};
-
-/*
- * Defines the structure that holds data
- * used to execute VOLT_SET_VOLTAGE RPC.
- */
-struct nv_pmu_rpc_struct_volt_volt_set_voltage {
-	/*[IN/OUT] Must be first field in RPC structure */
-	struct nv_pmu_rpc_header hdr;
-	/*[IN] ID of the client that wants to set the voltage */
-	u8 client_id;
-	/*
-	 * [IN] The list containing target voltage and
-	 *  noise-unaware Vmin value for the VOLT_RAILs.
-	 */
-	struct ctrl_volt_volt_rail_list_v1 rail_list;
-	u32  scratch[1];
-};
-
-/*
- * Defines the structure that holds data
- * used to execute VOLT_RAIL_GET_VOLTAGE RPC.
- */
-struct nv_pmu_rpc_struct_volt_volt_rail_get_voltage {
-	/*[IN/OUT] Must be first field in RPC structure */
-	struct nv_pmu_rpc_header hdr;
-	/* [OUT] Current voltage in uv */
-	u32 voltage_uv;
-	/* [IN] Voltage Rail Table Index */
-	u8 rail_idx;
 	u32  scratch[1];
 };
 

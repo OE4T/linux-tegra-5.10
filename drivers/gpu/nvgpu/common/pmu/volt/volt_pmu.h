@@ -23,9 +23,6 @@
 #ifndef NVGPU_VOLT_PMU_H
 #define NVGPU_VOLT_PMU_H
 
-#define RAIL_COUNT_GP 2
-#define RAIL_COUNT_GV 1
-
 u32 volt_pmu_send_load_cmd_to_pmu(struct gk20a *g);
 
 #endif /* NVGPU_VOLT_PMU_H */
