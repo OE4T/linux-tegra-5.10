@@ -4116,6 +4116,14 @@ static const struct of_device_id tegra_pcie_dw_of_match[] = {
 		.compatible = "nvidia,tegra194-pcie-ep",
 		.data = &tegra_pcie_ep_of_data,
 	},
+	{
+		.compatible = "nvidia,tegra234-pcie",
+		.data = &tegra_pcie_rc_of_data,
+	},
+	{
+		.compatible = "nvidia,tegra234-pcie-ep",
+		.data = &tegra_pcie_ep_of_data,
+	},
 	{},
 };
 MODULE_DEVICE_TABLE(of, tegra_pcie_dw_of_match);
