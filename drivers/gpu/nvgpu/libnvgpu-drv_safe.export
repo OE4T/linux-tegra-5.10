@@ -66,6 +66,9 @@ gp10b_mm_get_iommu_bit
 gp10b_mm_get_mmu_levels
 gp10b_mm_init_bar2_vm
 gp10b_mm_remove_bar2_vm
+gp10b_pbdma_get_config_auth_level_privileged
+gp10b_pbdma_get_fc_runlist_timeslice
+gp10b_pbdma_get_signature
 gp10b_ramin_init_pdb
 gp10b_device_info_parse_data
 gp10b_engine_init_ce_info
