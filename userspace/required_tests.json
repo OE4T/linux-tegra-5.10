@@ -1559,6 +1559,81 @@
         "unit": "nvgpu-pmu"
     },
     {
+        "test": "top_setup",
+        "test_level": 0,
+        "unit": "top"
+    },
+    {
+        "test": "top_device_info_parse_enum",
+        "test_level": 0,
+        "unit": "top"
+    },
+    {
+        "test": "top_is_engine_gr",
+        "test_level": 0,
+        "unit": "top"
+    },
+    {
+        "test": "top_get_max_gpc_count",
+        "test_level": 0,
+        "unit": "top"
+    },
+    {
+        "test": "top_get_max_tpc_per_gpc_count",
+        "test_level": 0,
+        "unit": "top"
+    },
+    {
+        "test": "top_get_max_fbps_count",
+        "test_level": 0,
+        "unit": "top"
+    },
+    {
+        "test": "top_get_max_ltc_per_fbp",
+        "test_level": 0,
+        "unit": "top"
+    },
+    {
+        "test": "top_get_max_lts_per_ltc",
+        "test_level": 0,
+        "unit": "top"
+    },
+    {
+        "test": "top_get_num_ltcs",
+        "test_level": 0,
+        "unit": "top"
+    },
+    {
+        "test": "top_device_info_parse_data",
+        "test_level": 0,
+        "unit": "top"
+    },
+    {
+        "test": "top_get_num_engine_type_entries",
+        "test_level": 0,
+        "unit": "top"
+    },
+    {
+        "test": "top_get_device_info",
+        "test_level": 0,
+        "unit": "top"
+    },
+    {
+        "test": "top_is_engine_ce",
+        "test_level": 0,
+        "unit": "top"
+    },
+    {
+        "test": "top_get_num_lce",
+        "test_level": 0,
+        "unit": "top"
+    },
+    {
+        "test": "top_free_reg_space",
+        "test_level": 0,
+        "unit": "top"
+    },
+    {
         "test": "gr_falcon_init",
         "test_level": 0,
         "unit": "nvgpu_gr_falcon"
