@@ -230,7 +230,7 @@
 		#size-cells = <2>;
 		ranges;
 		p2u_0: p2u@03e10000 {
-			compatible = "nvidia,phy-p2u";
+			compatible = "nvidia,phy-p2u-t194";
 			reg = <0x0 0x03e10000 0x0 0x00010000>;
 			reg-names = "base";
 
@@ -242,7 +242,7 @@
 			#phy-cells = <0>;
 		};
 		p2u_1: p2u@03e20000 {
-			compatible = "nvidia,phy-p2u";
+			compatible = "nvidia,phy-p2u-t194";
 			reg = <0x0 0x03e20000 0x0 0x00010000>;
 			reg-names = "base";
 
@@ -254,7 +254,7 @@
 			#phy-cells = <0>;
 		};
 		p2u_2: p2u@03e30000 {
-			compatible = "nvidia,phy-p2u";
+			compatible = "nvidia,phy-p2u-t194";
 			reg = <0x0 0x03e30000 0x0 0x00010000>;
 			reg-names = "base";
 
@@ -266,7 +266,7 @@
 			#phy-cells = <0>;
 		};
 		p2u_3: p2u@03e40000 {
-			compatible = "nvidia,phy-p2u";
+			compatible = "nvidia,phy-p2u-t194";
 			reg = <0x0 0x03e40000 0x0 0x00010000>;
 			reg-names = "base";
 
@@ -278,7 +278,7 @@
 			#phy-cells = <0>;
 		};
 		p2u_4: p2u@03e50000 {
-			compatible = "nvidia,phy-p2u";
+			compatible = "nvidia,phy-p2u-t194";
 			reg = <0x0 0x03e50000 0x0 0x00010000>;
 			reg-names = "base";
 
@@ -290,7 +290,7 @@
 			#phy-cells = <0>;
 		};
 		p2u_5: p2u@03e60000 {
-			compatible = "nvidia,phy-p2u";
+			compatible = "nvidia,phy-p2u-t194";
 			reg = <0x0 0x03e60000 0x0 0x00010000>;
 			reg-names = "base";
 
@@ -302,7 +302,7 @@
 			#phy-cells = <0>;
 		};
 		p2u_6: p2u@03e70000 {
-			compatible = "nvidia,phy-p2u";
+			compatible = "nvidia,phy-p2u-t194";
 			reg = <0x0 0x03e70000 0x0 0x00010000>;
 			reg-names = "base";
 
@@ -314,7 +314,7 @@
 			#phy-cells = <0>;
 		};
 		p2u_7: p2u@03e80000 {
-			compatible = "nvidia,phy-p2u";
+			compatible = "nvidia,phy-p2u-t194";
 			reg = <0x0 0x03e80000 0x0 0x00010000>;
 			reg-names = "base";
 
@@ -326,7 +326,7 @@
 			#phy-cells = <0>;
 		};
 		p2u_8: p2u@03e90000 {
-			compatible = "nvidia,phy-p2u";
+			compatible = "nvidia,phy-p2u-t194";
 			reg = <0x0 0x03e90000 0x0 0x00010000>;
 			reg-names = "base";
 
@@ -338,7 +338,7 @@
 			#phy-cells = <0>;
 		};
 		p2u_9: p2u@03ea0000 {
-			compatible = "nvidia,phy-p2u";
+			compatible = "nvidia,phy-p2u-t194";
 			reg = <0x0 0x03ea0000 0x0 0x00010000>;
 			reg-names = "base";
 
@@ -350,7 +350,7 @@
 			#phy-cells = <0>;
 		};
 		p2u_10: p2u@03f30000 {
-			compatible = "nvidia,phy-p2u";
+			compatible = "nvidia,phy-p2u-t194";
 			reg = <0x0 0x03f30000 0x0 0x00010000>;
 			reg-names = "base";
 
@@ -362,7 +362,7 @@
 			#phy-cells = <0>;
 		};
 		p2u_11: p2u@03f40000 {
-			compatible = "nvidia,phy-p2u";
+			compatible = "nvidia,phy-p2u-t194";
 			reg = <0x0 0x03f40000 0x0 0x00010000>;
 			reg-names = "base";
 
@@ -381,7 +381,7 @@
 		#size-cells = <2>;
 		ranges;
 		p2u_12: p2u@03eb0000 {
-			compatible = "nvidia,phy-p2u";
+			compatible = "nvidia,phy-p2u-t194";
 			reg = <0x0 0x03eb0000 0x0 0x00010000>;
 			reg-names = "base";
 
@@ -393,7 +393,7 @@
 			#phy-cells = <0>;
 		};
 		p2u_13: p2u@03ec0000 {
-			compatible = "nvidia,phy-p2u";
+			compatible = "nvidia,phy-p2u-t194";
 			reg = <0x0 0x03ec0000 0x0 0x00010000>;
 			reg-names = "base";
 
@@ -405,7 +405,7 @@
 			#phy-cells = <0>;
 		};
 		p2u_14: p2u@03ed0000 {
-			compatible = "nvidia,phy-p2u";
+			compatible = "nvidia,phy-p2u-t194";
 			reg = <0x0 0x03ed0000 0x0 0x00010000>;
 			reg-names = "base";
 
@@ -417,7 +417,7 @@
 			#phy-cells = <0>;
 		};
 		p2u_15: p2u@03ee0000 {
-			compatible = "nvidia,phy-p2u";
+			compatible = "nvidia,phy-p2u-t194";
 			reg = <0x0 0x03ee0000 0x0 0x00010000>;
 			reg-names = "base";
 
@@ -429,7 +429,7 @@
 			#phy-cells = <0>;
 		};
 		p2u_16: p2u@03ef0000 {
-			compatible = "nvidia,phy-p2u";
+			compatible = "nvidia,phy-p2u-t194";
 			reg = <0x0 0x03ef0000 0x0 0x00010000>;
 			reg-names = "base";
 
@@ -441,7 +441,7 @@
 			#phy-cells = <0>;
 		};
 		p2u_17: p2u@03f00000 {
-			compatible = "nvidia,phy-p2u";
+			compatible = "nvidia,phy-p2u-t194";
 			reg = <0x0 0x03f00000 0x0 0x00010000>;
 			reg-names = "base";
 
@@ -453,7 +453,7 @@
 			#phy-cells = <0>;
 		};
 		p2u_18: p2u@03f10000 {
-			compatible = "nvidia,phy-p2u";
+			compatible = "nvidia,phy-p2u-t194";
 			reg = <0x0 0x03f10000 0x0 0x00010000>;
 			reg-names = "base";
 
@@ -465,7 +465,7 @@
 			#phy-cells = <0>;
 		};
 		p2u_19: p2u@03f20000 {
-			compatible = "nvidia,phy-p2u";
+			compatible = "nvidia,phy-p2u-t194";
 			reg = <0x0 0x03f20000 0x0 0x00010000>;
 			reg-names = "base";
 
