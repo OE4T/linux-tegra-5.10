@@ -77,6 +77,9 @@
 		dma-coherent;
 		/* usec value for Rx watchdog interrupt */
 		nvidia,rx_riwt = <512>;
+		nvidia,rx_frames = <64>;
+		nvidia,tx_usecs = <256>;
+		nvidia,tx_frames = <5>;
 		/* PTP_ref clock speed in Hz (312.5 MHz)*/
 		nvidia,ptp_ref_clock_speed = <312500000>;
 		nvidia,queue_prio = <0 1 2 3>;
