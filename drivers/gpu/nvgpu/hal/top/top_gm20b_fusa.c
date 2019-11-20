@@ -32,13 +32,6 @@ int gm20b_device_info_parse_enum(struct gk20a *g, u32 table_entry,
 				u32 *engine_id, u32 *runlist_id,
 				u32 *intr_id, u32 *reset_id)
 {
-	if (top_device_info_entry_v(table_entry) !=
-					top_device_info_entry_enum_v()) {
-		nvgpu_err(g, "Invalid device_info_enum %u",
-				top_device_info_entry_v(table_entry));
-		return -EINVAL;
-	}
-
 	nvgpu_log_info(g, "Entry_enum to be parsed 0x%x", table_entry);
 
 	if (top_device_info_engine_v(table_entry) ==

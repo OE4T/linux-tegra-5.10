@@ -31,13 +31,6 @@
 int gp10b_device_info_parse_data(struct gk20a *g, u32 table_entry, u32 *inst_id,
 						u32 *pri_base, u32 *fault_id)
 {
-	if (top_device_info_entry_v(table_entry) !=
-					top_device_info_entry_data_v()) {
-		nvgpu_err(g, "Invalid device_info_data %u",
-				top_device_info_entry_v(table_entry));
-		return -EINVAL;
-	}
-
 	if (top_device_info_data_type_v(table_entry) !=
 					top_device_info_data_type_enum2_v()) {
 		nvgpu_err(g, "Unknown device_info_data_type %u",
@@ -109,12 +102,6 @@ static int gp10b_check_device_match(struct gk20a *g,
 						&dev_info->runlist_id,
 						&dev_info->intr_id,
 						&dev_info->reset_id);
-			if (ret != 0) {
-				nvgpu_err(g,
-					"Error parsing Enum Entry 0x%x",
-					entry_enum);
-				return ret;
-			}
 		}
 		if (g->ops.top.device_info_parse_data != NULL) {
 			ret = g->ops.top.device_info_parse_data(g,
@@ -161,11 +148,8 @@ int gp10b_get_device_info(struct gk20a *g, struct nvgpu_device_info *dev_info,
 			entry_enum = table_entry;
 		} else if (entry == top_device_info_entry_data_v()) {
 			entry_data = table_entry;
-		} else if (entry == top_device_info_entry_engine_type_v()) {
+		} else { /* (entry == top_device_info_entry_engine_type_v()) */
 			entry_engine = table_entry;
-		} else {
-			nvgpu_err(g, "Invalid entry type in device_info table");
-			return -EINVAL;
 		}
 
 		if (top_device_info_chain_v(table_entry) ==
