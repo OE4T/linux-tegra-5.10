@@ -81,15 +81,17 @@ int test_gk20a_runlist_hw_submit(struct unit_module *m,
  * Steps:
  * - Check case where runlist is not pending (not wait).
  *   - Set register to indicate that runlist is NOT pending.
- *   - call gk20a_runlist_wait_pending.
+ *   - Call gk20a_runlist_wait_pending.
  * - Check case where some polling is needed until runlist is not pending:
- *   - Set register to indicate that runlist is pending.
- *   - Start a thread to clear this bit after some time.
- *     Time is chosed so that one ore more loops are required.
- *   - call gk20a_runlist_wait_pending.
+ *   - Install register IO callbacks in order to control
+ *     value read from fifo_eng_runlist_r register.
+ *   - Configure callback to clear pending bit after one nvgpu_readl.
+ *   - Call gk20a_runlist_wait_pending.
+ *   - Configure callback to clear pending bit after two nvgpu_readl.
+ *   - Call gk20a_runlist_wait_pending.
  * - Check case where polling times out:
  *   - Set register to indicate that runlist is pending.
- *   - call gk20a_runlist_wait_pending.
+ *   - Call gk20a_runlist_wait_pending.
  *
  * Output: Returns PASS if all branches gave expected results. FAIL otherwise.
  */
