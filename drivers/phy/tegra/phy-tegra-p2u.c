@@ -407,7 +407,10 @@ static int tegra_p2u_remove(struct platform_device *pdev)
 
 static const struct of_device_id tegra_p2u_id_table[] = {
 	{
-		.compatible = "nvidia,phy-p2u",
+		.compatible = "nvidia,phy-p2u-t194",
+	},
+	{
+		.compatible = "nvidia,phy-p2u-t234",
 	},
 	{}
 };
