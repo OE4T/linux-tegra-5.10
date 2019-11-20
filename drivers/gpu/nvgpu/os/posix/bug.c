@@ -94,9 +94,7 @@ void nvgpu_posix_bug(const char *fmt, ...)
 	 */
 	nvgpu_err(NULL, "BUG detected!");
 	dump_stack();
-#ifdef __NVGPU_UNIT_TEST__
 	(void) raise(SIGSEGV);
-#endif
 	pthread_exit(NULL);
 }
 
