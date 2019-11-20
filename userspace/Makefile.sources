@@ -85,6 +85,7 @@ UNITS :=				\
 	$(UNIT_SRC)/fifo/pbdma		\
 	$(UNIT_SRC)/fifo/engine		\
 	$(UNIT_SRC)/fifo/engine/gv100	\
+	$(UNIT_SRC)/fifo/engine/gv11b	\
 	$(UNIT_SRC)/fifo/runlist	\
 	$(UNIT_SRC)/fifo/runlist/gk20a	\
 	$(UNIT_SRC)/fifo/runlist/gv11b	\
