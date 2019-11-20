@@ -41,7 +41,6 @@
  * Macros for Voltage Domain HAL.
  */
 #define CTRL_VOLT_DOMAIN_HAL_GP10X_SINGLE_RAIL 0x00U
-#define CTRL_VOLT_DOMAIN_HAL_GP10X_SPLIT_RAIL  0x01U
 
 /*
  * Macros for Voltage Domains.

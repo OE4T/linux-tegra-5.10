@@ -469,50 +469,24 @@ int nvgpu_volt_rail_pmu_setup(struct gk20a *g)
 u8 nvgpu_volt_rail_vbios_volt_domain_convert_to_internal(struct gk20a *g,
 	u8 vbios_volt_domain)
 {
-	switch (g->perf_pmu->volt.volt_rail_metadata.volt_domain_hal) {
-	case CTRL_VOLT_DOMAIN_HAL_GP10X_SINGLE_RAIL:
-		if (vbios_volt_domain == 0U) {
-			return CTRL_VOLT_DOMAIN_LOGIC;
-		}
-		break;
-	case CTRL_VOLT_DOMAIN_HAL_GP10X_SPLIT_RAIL:
-		if (vbios_volt_domain == 0U) {
-			return CTRL_VOLT_DOMAIN_LOGIC;
-		} else if (vbios_volt_domain == 1U) {
-			return CTRL_VOLT_DOMAIN_SRAM;
-		} else {
-			nvgpu_info(g, "Split Rail has invalid entry");
-		}
-		break;
-	default:
-		nvgpu_info(g, "Volt domain is invalid");
-		break;
-	}
+	if (g->perf_pmu->volt.volt_rail_metadata.volt_domain_hal ==
+			CTRL_VOLT_DOMAIN_HAL_GP10X_SINGLE_RAIL) {
+		return CTRL_VOLT_DOMAIN_LOGIC;
+	} else {
+		nvgpu_err(g, "Unsupported volt domain hal");
 		return CTRL_VOLT_DOMAIN_INVALID;
+	}
 }
 
 u8 nvgpu_volt_rail_volt_domain_convert_to_idx(struct gk20a *g, u8 volt_domain)
 {
-	switch (g->perf_pmu->volt.volt_rail_metadata.volt_domain_hal) {
-	case CTRL_VOLT_DOMAIN_HAL_GP10X_SINGLE_RAIL:
-		if (volt_domain == CTRL_VOLT_DOMAIN_LOGIC) {
-			return 0U;
-		}
-		break;
-	case CTRL_VOLT_DOMAIN_HAL_GP10X_SPLIT_RAIL:
-		if (volt_domain == CTRL_VOLT_DOMAIN_LOGIC) {
-			return 0U;
-		} else if (volt_domain == CTRL_VOLT_DOMAIN_SRAM) {
-			return 1U;
-		} else {
-			nvgpu_info(g, "Split Rail has invalid entry");
-		}
-		break;
-	default:
-		nvgpu_info(g, "Boardobj IDX is invalid");
-		break;
-	}
+	if (g->perf_pmu->volt.volt_rail_metadata.volt_domain_hal ==
+			CTRL_VOLT_DOMAIN_HAL_GP10X_SINGLE_RAIL) {
+		return 0U;
+	} else {
+		nvgpu_err(g, "Unsupported volt domain hal");
 		return CTRL_BOARDOBJ_IDX_INVALID;
+	}
 }
 
 int nvgpu_volt_rail_volt_dev_register(struct gk20a *g, struct voltage_rail
