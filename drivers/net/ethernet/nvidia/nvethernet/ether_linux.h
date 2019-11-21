@@ -121,9 +121,33 @@
 #define ETHER_DEFAULT_PLATFORM_MTU		1500U
 
 /**
- * @brief Maximum buffer length per DMA descriptor (4KB).
+ * @brief Maximum buffer length per DMA descriptor (16KB).
  */
 #define ETHER_TX_MAX_BUFF_SIZE	0x3FFF
+
+/**
+ * @brief Maximum skb frame(GSO/TSO) size (64KB)
+ */
+#define ETHER_TX_MAX_FRAME_SIZE	GSO_MAX_SIZE
+
+/**
+ * @brief Check if Tx data buffer length is within bounds.
+ *
+ * Algorithm: Check the data length if it is valid.
+ *
+ * @param[in] length: Tx data buffer length to check
+ *
+ * @retval true if length is valid
+ * @retval false otherwise
+ */
+static inline bool valid_tx_len(unsigned int length)
+{
+	if (length > 0U && length <= ETHER_TX_MAX_FRAME_SIZE) {
+		return true;
+	} else {
+		return false;
+	}
+}
 
 /* Descriptors required for maximum contiguous TSO/GSO packet
  * one extra descriptor if there is linear buffer payload
