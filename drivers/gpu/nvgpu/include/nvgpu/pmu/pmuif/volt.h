@@ -177,56 +177,6 @@ union nv_pmu_volt_volt_rail_boardobj_get_status_union {
 
 NV_PMU_BOARDOBJ_GRP_GET_STATUS_MAKE_E32(volt, volt_rail);
 
-/* ---------- VOLT_POLICY's GRP_GET_STATUS defines and structures ---------- */
-struct nv_pmu_volt_volt_policy_boardobjgrp_get_status_header {
-	struct nv_pmu_boardobjgrp_e32 super;
-};
-
-struct nv_pmu_volt_volt_policy_boardobj_get_status {
-	struct nv_pmu_boardobj_query super;
-	u32 offset_volt_requ_v;
-	u32 offset_volt_curru_v;
-};
-
-struct nv_pmu_volt_volt_policy_sr_boardobj_get_status {
-	struct nv_pmu_volt_volt_policy_boardobj_get_status super;
-	u32 curr_voltu_v;
-};
-
-struct nv_pmu_volt_volt_policy_splt_r_boardobj_get_status {
-	struct nv_pmu_volt_volt_policy_boardobj_get_status super;
-	s32 delta_minu_v;
-	s32 delta_maxu_v;
-	s32 orig_delta_minu_v;
-	s32 orig_delta_maxu_v;
-	u32 curr_volt_masteru_v;
-	u32 curr_volt_slaveu_v;
-	bool b_violation;
-};
-
-/* srms -> split_rail_multi_step */
-struct nv_pmu_volt_volt_policy_srms_boardobj_get_status {
-	struct nv_pmu_volt_volt_policy_splt_r_boardobj_get_status super;
-};
-
-/* srss -> split_rail_single_step */
-struct nv_pmu_volt_volt_policy_srss_boardobj_get_status {
-	struct nv_pmu_volt_volt_policy_splt_r_boardobj_get_status super;
-};
-
-union nv_pmu_volt_volt_policy_boardobj_get_status_union {
-	struct nv_pmu_boardobj_query board_obj;
-	struct nv_pmu_volt_volt_policy_boardobj_get_status super;
-	struct nv_pmu_volt_volt_policy_sr_boardobj_get_status single_rail;
-	struct nv_pmu_volt_volt_policy_splt_r_boardobj_get_status split_rail;
-	struct nv_pmu_volt_volt_policy_srms_boardobj_get_status
-			split_rail_m_s;
-	struct nv_pmu_volt_volt_policy_srss_boardobj_get_status
-			split_rail_s_s;
-};
-
-NV_PMU_BOARDOBJ_GRP_GET_STATUS_MAKE_E32(volt, volt_policy);
-
 #define NV_PMU_VOLT_CMD_ID_BOARDOBJ_GRP_SET			(0x00000000U)
 #define NV_PMU_VOLT_CMD_ID_RPC					(0x00000001U)
 #define NV_PMU_VOLT_CMD_ID_BOARDOBJ_GRP_GET_STATUS		(0x00000002U)

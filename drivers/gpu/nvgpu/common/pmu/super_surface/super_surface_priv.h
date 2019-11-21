@@ -117,8 +117,6 @@ struct nv_pmu_super_surface {
 			struct nv_pmu_volt_volt_rail_boardobj_grp_set
 				volt_rail_grp_set;
 
-			struct nv_pmu_volt_volt_policy_boardobj_grp_get_status
-				volt_policy_grp_get_status;
 			struct nv_pmu_volt_volt_rail_boardobj_grp_get_status
 				volt_rail_grp_get_status;
 		} volt;
