@@ -421,7 +421,7 @@ int osi_process_tx_completions(struct osi_dma_priv_data *osi,
 	osi->dstats.tx_clean_n[chan] =
 		osi_update_stats_counter(osi->dstats.tx_clean_n[chan], 1U);
 
-	while (entry != tx_ring->cur_tx_idx) {
+	while (entry != tx_ring->cur_tx_idx && entry < TX_DESC_CNT) {
 		osi_memset(txdone_pkt_cx, 0U, sizeof(*txdone_pkt_cx));
 
 		tx_desc = tx_ring->tx_desc + entry;

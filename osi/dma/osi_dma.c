@@ -205,7 +205,8 @@ int osi_rx_dma_desc_init(struct osi_dma_priv_data *osi_dma,
 	}
 
 	/* Refill buffers */
-	while (rx_ring->refill_idx != rx_ring->cur_rx_idx) {
+	while (rx_ring->refill_idx != rx_ring->cur_rx_idx &&
+	       rx_ring->refill_idx < RX_DESC_CNT) {
 		rx_swcx = rx_ring->rx_swcx + rx_ring->refill_idx;
 		rx_desc = rx_ring->rx_desc + rx_ring->refill_idx;
 
