@@ -243,10 +243,13 @@ struct gk20a;
 /** FMON feature Enable */
 #define NVGPU_FMON_SUPPORT_ENABLE		83U
 
+/** Copy Engine diversity enable bit */
+#define NVGPU_SUPPORT_COPY_ENGINE_DIVERSITY	84U
+
 /*
  * Must be greater than the largest bit offset in the above list.
  */
-#define NVGPU_MAX_ENABLED_BITS			84U
+#define NVGPU_MAX_ENABLED_BITS			85U
 
 /**
  * @brief Check if the passed flag is enabled.

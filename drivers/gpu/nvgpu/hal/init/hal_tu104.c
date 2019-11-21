@@ -1650,6 +1650,22 @@ int tu104_init_hal(struct gk20a *g)
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_DGPU_PCIE_SCRIPT_EXECUTE, true);
 	nvgpu_set_enabled(g, NVGPU_FMON_SUPPORT_ENABLE, true);
 
+	/*
+	 * Tu104 has multiple async-LCE (3), GRCE (2) and PCE (4).
+	 * The allocation used for the HW structures is deterministic.
+	 * LCE/PCE is likely to follow the same resource allocation in primary
+	 * and redundant execution mode if we use the same LCE/PCE pairs for
+	 * both execution modes. All available LCEs and GRCEs should be mapped
+	 * to unique PCEs.
+	 *
+	 * The recommendation is to swap the GRCEs with each other during
+	 * redundant execution. The async-LCEs have their own PCEs,
+	 * so the suggestion is to use a different async-LCE during redundant
+	 * execution. This will allow us to claim very high coverage for
+	 * permanent fault.
+	 */
+	nvgpu_set_enabled(g, NVGPU_SUPPORT_COPY_ENGINE_DIVERSITY, true);
+
 	/* for now */
 	gops->clk.support_pmgr_domain = false;
 	gops->clk.support_lpwr_pg = false;
