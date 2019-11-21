@@ -58,6 +58,7 @@
  *   - @ref SWUTS-mm-nvgpu-sgt
  *   - @ref SWUTS-mm-mm
  *   - @ref SWUTS-mm-vm
+ *   - @ref SWUTS-fbp
  *   - @ref SWUTS-fuse
  *   - @ref SWUTS-posix-bitops
  *   - @ref SWUTS-posix-cond

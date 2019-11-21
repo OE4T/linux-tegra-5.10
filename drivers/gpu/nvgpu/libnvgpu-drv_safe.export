@@ -38,6 +38,7 @@ gm20b_top_get_max_fbps_count
 gm20b_top_get_max_ltc_per_fbp
 gm20b_top_get_max_lts_per_ltc
 gm20b_top_get_num_ltcs
+gm20b_fuse_status_opt_fbp
 gp10b_get_max_page_table_levels
 gp10b_mm_get_default_big_page_size
 gp10b_mm_get_iommu_bit
@@ -275,6 +276,10 @@ nvgpu_falcon_sw_free
 nvgpu_falcon_sw_init
 nvgpu_falcon_wait_for_halt
 nvgpu_falcon_wait_idle
+nvgpu_fbp_init_support
+nvgpu_fbp_get_max_fbps_count
+nvgpu_fbp_get_fbp_en_mask
+nvgpu_fbp_remove_support
 nvgpu_fifo_init_support
 nvgpu_finalize_poweron
 nvgpu_free

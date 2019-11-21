@@ -445,6 +445,26 @@
         "unit": "falcon"
     },
     {
+        "test": "fbp_setup",
+        "test_level": 0,
+        "unit": "fbp"
+    },
+    {
+        "test": "fbp_init_and_query",
+        "test_level": 0,
+        "unit": "fbp"
+    },
+    {
+        "test": "fbp_remove_support",
+        "test_level": 0,
+        "unit": "fbp"
+    },
+    {
+        "test": "fbp_free_reg_space",
+        "test_level": 0,
+        "unit": "fbp"
+    },
+    {
         "test": "cache_default",
         "test_level": 0,
         "unit": "fault_injection"
