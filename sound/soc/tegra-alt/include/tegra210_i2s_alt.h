@@ -206,10 +206,11 @@ struct tegra210_i2s {
 	struct notifier_block slgc_notifier;
 	int num_supplies;
 	int bclk_ratio;
-	int format_in;
+	int audio_fmt_override[I2S_PATHS];
 	int codec_bit_format;
 	int sample_rate_via_control;
-	int channels_via_control;
+	int audio_ch_override[I2S_PATHS];
+	int client_ch_override; /* common for both TX and RX */
 	int stereo_to_mono[I2S_PATHS];
 	int mono_to_stereo[I2S_PATHS];
 	unsigned int fsync_width;

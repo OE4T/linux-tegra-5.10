@@ -158,6 +158,11 @@ enum {
 	DATA_32BIT
 };
 
+enum {
+	ADMAIF_RX_PATH,
+	ADMAIF_TX_PATH,
+	ADMAIF_PATHS,
+};
 
 struct tegra_admaif_soc_data {
 	unsigned int num_ch;
@@ -177,9 +182,10 @@ struct tegra_admaif {
 	struct tegra_alt_pcm_dma_params *capture_dma_data;
 	struct tegra_alt_pcm_dma_params *playback_dma_data;
 	const struct tegra_admaif_soc_data *soc_data;
-	int *override_channels;
-	int *tx_mono_to_stereo;
-	int *rx_stereo_to_mono;
+	unsigned int *audio_ch_override[ADMAIF_PATHS];
+	unsigned int *client_ch_override[ADMAIF_PATHS];
+	unsigned int *mono_to_stereo[ADMAIF_PATHS];
+	unsigned int *stereo_to_mono[ADMAIF_PATHS];
 	int reg_dump_flag;
 	void __iomem *base_addr;
 };
