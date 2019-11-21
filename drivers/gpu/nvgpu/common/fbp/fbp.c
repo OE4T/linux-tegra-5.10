@@ -31,12 +31,14 @@
 int nvgpu_fbp_init_support(struct gk20a *g)
 {
 	struct nvgpu_fbp *fbp;
+	u32 fbp_en_mask;
+#ifdef CONFIG_NVGPU_NON_FUSA
 	u32 max_ltc_per_fbp;
 	u32 rop_l2_all_en;
-	u32 fbp_en_mask;
 	unsigned long i;
 	unsigned long fbp_en_mask_tmp;
 	u32 tmp;
+#endif
 
 	if (g->fbp != NULL) {
 		return 0;
@@ -47,10 +49,12 @@ int nvgpu_fbp_init_support(struct gk20a *g)
 		return -ENOMEM;
 	}
 
+#ifdef CONFIG_NVGPU_NON_FUSA
 	fbp->num_fbps = g->ops.priv_ring.get_fbp_count(g);
-	fbp->max_fbps_count = g->ops.top.get_max_fbps_count(g);
-
 	nvgpu_log_info(g, "fbps: %d", fbp->num_fbps);
+#endif
+
+	fbp->max_fbps_count = g->ops.top.get_max_fbps_count(g);
 	nvgpu_log_info(g, "max_fbps_count: %d", fbp->max_fbps_count);
 
 	/*
@@ -65,6 +69,7 @@ int nvgpu_fbp_init_support(struct gk20a *g)
 		nvgpu_safe_sub_u32(BIT32(fbp->max_fbps_count), 1U);
 	fbp->fbp_en_mask = fbp_en_mask;
 
+#ifdef CONFIG_NVGPU_NON_FUSA
 	fbp->fbp_rop_l2_en_mask =
 		nvgpu_kzalloc(g,
 			nvgpu_safe_mult_u64(fbp->max_fbps_count, sizeof(u32)));
@@ -82,6 +87,7 @@ int nvgpu_fbp_init_support(struct gk20a *g)
 		tmp = g->ops.fuse.fuse_status_opt_rop_l2_fbp(g, i);
 		fbp->fbp_rop_l2_en_mask[i] = rop_l2_all_en ^ tmp;
 	}
+#endif
 
 	g->fbp = fbp;
 
