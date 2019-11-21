@@ -38,7 +38,7 @@ static void populate_invalid_ctxsw_status_info(
 	status_info->ctx_id_type = ENGINE_STATUS_CTX_NEXT_ID_TYPE_INVALID;
 	status_info->ctx_next_id =
 		ENGINE_STATUS_CTX_NEXT_ID_INVALID;
-	status_info->ctx_next_id_type = ENGINE_STATUS_CTX_NEXT_ID_TYPE_TSGID;
+	status_info->ctx_next_id_type = ENGINE_STATUS_CTX_NEXT_ID_TYPE_INVALID;
 	status_info->ctxsw_status = NVGPU_CTX_STATUS_INVALID;
 }
 
