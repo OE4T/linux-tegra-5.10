@@ -139,8 +139,6 @@ struct nv_pmu_super_surface {
 				clk_fll_device_grp_get_status;
 			struct nv_pmu_clk_clk_vf_point_boardobj_grp_get_status
 				clk_vf_point_grp_get_status;
-			struct nv_pmu_clk_clk_freq_domain_boardobj_grp_set
-				clk_freq_domain_grp_set;
 		} clk;
 		struct {
 			struct nv_pmu_perf_vfe_equ_boardobj_grp_set_pack

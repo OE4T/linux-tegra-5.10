@@ -435,7 +435,6 @@ srcs += \
 	common/pmu/boardobj/boardobjgrp_e32.c \
 	common/pmu/clk/clk.c \
 	common/pmu/clk/clk_domain.c \
-	common/pmu/clk/clk_freq_domain.c \
 	common/pmu/clk/clk_fll.c \
 	common/pmu/clk/clk_prog.c \
 	common/pmu/clk/clk_vf_point.c \

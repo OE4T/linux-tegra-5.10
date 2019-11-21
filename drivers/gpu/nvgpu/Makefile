@@ -173,7 +173,6 @@ nvgpu-y += \
 	common/pmu/clk/clk_vin.o \
 	common/pmu/clk/clk_fll.o \
 	common/pmu/clk/clk_domain.o \
-	common/pmu/clk/clk_freq_domain.o \
 	common/pmu/clk/clk_prog.o \
 	common/pmu/clk/clk_vf_point.o \
 	common/pmu/clk/clk.o \

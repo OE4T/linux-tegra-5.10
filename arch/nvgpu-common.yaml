@@ -797,12 +797,6 @@ pmu:
           sources: [ common/pmu/clk/clk_vin.c,
                      common/pmu/clk/clk_vin.h,
                      include/nvgpu/pmu/clk/clk_vin.h ]
-
-        freq_domain:
-          safe: yes
-          gpu: dgpu
-          sources: [ common/pmu/clk/clk_freq_domain.c,
-                     include/nvgpu/pmu/clk/clk_freq_domain.h ]
     ipc:
       safe: yes
       owner: Sagar K

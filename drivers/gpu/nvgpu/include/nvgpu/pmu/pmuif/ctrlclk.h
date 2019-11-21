@@ -317,15 +317,4 @@ struct clk_domains_mon_status_params {
 #define CTRL_CLK_VF_PAIR_VOLTAGE_UV_SET(pvfpair, _voltageuv)	        \
 	(((pvfpair)->voltage_uv) = (_voltageuv))
 
-#define CTRL_CLK_FREQ_DOMAIN_SCHEMA_BIF                              0x01U
-#define CTRL_CLK_FREQ_DOMAIN_SCHEMA_OSM                              0x02U
-#define CTRL_CLK_FREQ_DOMAIN_SCHEMA_MCLK                             0x03U
-#define CTRL_CLK_FREQ_DOMAIN_SCHEMA_PLL_LDIV                         0x04U
-#define CTRL_CLK_FREQ_DOMAIN_SCHEMA_PLL_XCLK                         0x05U
-#define CTRL_CLK_FREQ_DOMAIN_SCHEMA_SINGLE_FLL                       0x06U
-#define CTRL_CLK_FREQ_DOMAIN_SCHEMA_MULTI_FLL                        0x07U
-#define CTRL_CLK_FREQ_DOMAIN_SCHEMA_SWDIV                            0x08U
-#define CTRL_CLK_FREQ_DOMAIN_SCHEMA_STUB                             0x09U
-
-
 #endif /* NVGPU_PMUIF_CTRLCLK_H */

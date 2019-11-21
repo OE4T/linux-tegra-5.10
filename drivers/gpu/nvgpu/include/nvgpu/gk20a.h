@@ -365,7 +365,6 @@ struct gpu_ops {
 		bool support_pmgr_domain;
 		bool support_lpwr_pg;
 		int (*perf_pmu_vfe_load)(struct gk20a *g);
-		bool support_clk_freq_domain;
 		bool support_vf_point;
 		u8 lut_num_entries;
 		bool (*clk_mon_check_master_fault_status)(struct gk20a *g);
