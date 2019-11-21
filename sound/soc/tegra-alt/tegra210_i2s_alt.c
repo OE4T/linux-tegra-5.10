@@ -370,32 +370,35 @@ static int tegra210_i2s_get_format(struct snd_kcontrol *kcontrol,
 {
 	struct snd_soc_codec *codec = snd_soc_kcontrol_codec(kcontrol);
 	struct tegra210_i2s *i2s = snd_soc_codec_get_drvdata(codec);
+	long *uctl_val = &ucontrol->value.integer.value[0];
 
 	/* get the format control flag */
-	if (strstr(kcontrol->id.name, "input"))
-		ucontrol->value.integer.value[0] = i2s->format_in;
+	if (strstr(kcontrol->id.name, "Playback Audio Bit Format"))
+		*uctl_val = i2s->audio_fmt_override[I2S_RX_PATH];
+	else if (strstr(kcontrol->id.name, "Capture Audio Bit Format"))
+		*uctl_val = i2s->audio_fmt_override[I2S_TX_PATH];
 	else if (strstr(kcontrol->id.name, "codec"))
-		ucontrol->value.integer.value[0] = i2s->codec_bit_format;
+		*uctl_val = i2s->codec_bit_format;
 	else if (strstr(kcontrol->id.name, "Sample Rate"))
-		ucontrol->value.integer.value[0] = i2s->sample_rate_via_control;
-	else if (strstr(kcontrol->id.name, "Channels"))
-		ucontrol->value.integer.value[0] = i2s->channels_via_control;
+		*uctl_val = i2s->sample_rate_via_control;
+	else if (strstr(kcontrol->id.name, "Playback Audio Channels"))
+		*uctl_val = i2s->audio_ch_override[I2S_RX_PATH];
+	else if (strstr(kcontrol->id.name, "Capture Audio Channels"))
+		*uctl_val = i2s->audio_ch_override[I2S_TX_PATH];
+	else if (strstr(kcontrol->id.name, "Client Channels"))
+		*uctl_val = i2s->client_ch_override;
 	else if (strstr(kcontrol->id.name, "Capture stereo to mono"))
-		ucontrol->value.integer.value[0] =
-					i2s->stereo_to_mono[I2S_TX_PATH];
+		*uctl_val = i2s->stereo_to_mono[I2S_TX_PATH];
 	else if (strstr(kcontrol->id.name, "Capture mono to stereo"))
-		ucontrol->value.integer.value[0] =
-					i2s->mono_to_stereo[I2S_TX_PATH];
+		*uctl_val = i2s->mono_to_stereo[I2S_TX_PATH];
 	else if (strstr(kcontrol->id.name, "Playback stereo to mono"))
-		ucontrol->value.integer.value[0] =
-					i2s->stereo_to_mono[I2S_RX_PATH];
+		*uctl_val = i2s->stereo_to_mono[I2S_RX_PATH];
 	else if (strstr(kcontrol->id.name, "Playback mono to stereo"))
-		ucontrol->value.integer.value[0] =
-					i2s->mono_to_stereo[I2S_RX_PATH];
+		*uctl_val = i2s->mono_to_stereo[I2S_RX_PATH];
 	else if (strstr(kcontrol->id.name, "Playback FIFO threshold"))
-		ucontrol->value.integer.value[0] = i2s->rx_fifo_th;
+		*uctl_val = i2s->rx_fifo_th;
 	else if (strstr(kcontrol->id.name, "BCLK Ratio"))
-		ucontrol->value.integer.value[0] = i2s->bclk_ratio;
+		*uctl_val = i2s->bclk_ratio;
 
 	return 0;
 }
@@ -408,14 +411,20 @@ static int tegra210_i2s_put_format(struct snd_kcontrol *kcontrol,
 	int value = ucontrol->value.integer.value[0];
 
 	/* set the format control flag */
-	if (strstr(kcontrol->id.name, "input"))
-		i2s->format_in = value;
+	if (strstr(kcontrol->id.name, "Playback Audio Bit Format"))
+		i2s->audio_fmt_override[I2S_RX_PATH] = value;
+	else if (strstr(kcontrol->id.name, "Capture Audio Bit Format"))
+		i2s->audio_fmt_override[I2S_TX_PATH] = value;
 	else if (strstr(kcontrol->id.name, "codec"))
 		i2s->codec_bit_format = value;
 	else if (strstr(kcontrol->id.name, "Sample Rate"))
 		i2s->sample_rate_via_control = value;
-	else if (strstr(kcontrol->id.name, "Channels"))
-		i2s->channels_via_control = value;
+	else if (strstr(kcontrol->id.name, "Playback Audio Channels"))
+		i2s->audio_ch_override[I2S_RX_PATH] = value;
+	else if (strstr(kcontrol->id.name, "Capture Audio Channels"))
+		i2s->audio_ch_override[I2S_TX_PATH] = value;
+	else if (strstr(kcontrol->id.name, "Client Channels"))
+		i2s->client_ch_override = value;
 	else if (strstr(kcontrol->id.name, "Capture stereo to mono"))
 		i2s->stereo_to_mono[I2S_TX_PATH] = value;
 	else if (strstr(kcontrol->id.name, "Capture mono to stereo"))
@@ -512,7 +521,7 @@ static int tegra210_i2s_hw_params(struct snd_pcm_substream *substream,
 	struct device *dev = dai->dev;
 	struct tegra210_i2s *i2s = snd_soc_dai_get_drvdata(dai);
 	unsigned int mask, val, reg, frame_format, rx_mask, tx_mask;
-	int ret, sample_size, channels, srate, i2sclock, bitcnt, max_th;
+	int ret, sample_size, channels, srate, i2sclock, bitcnt, max_th, path;
 	struct tegra210_xbar_cif_conf cif_conf;
 
 	memset(&cif_conf, 0, sizeof(struct tegra210_xbar_cif_conf));
@@ -522,6 +531,9 @@ static int tegra210_i2s_hw_params(struct snd_pcm_substream *substream,
 		dev_err(dev, "Doesn't support %d channels\n", channels);
 		return -EINVAL;
 	}
+
+	cif_conf.audio_channels = channels;
+	cif_conf.client_channels = channels;
 
 	mask = TEGRA210_I2S_CTRL_BIT_SIZE_MASK;
 	switch (params_format(params)) {
@@ -567,27 +579,37 @@ static int tegra210_i2s_hw_params(struct snd_pcm_substream *substream,
 	if (i2s->sample_rate_via_control)
 		srate = i2s->sample_rate_via_control;
 
-	if (i2s->channels_via_control) {
-		channels = i2s->channels_via_control;
-		rx_mask = tx_mask = (1 << channels) - 1;
+	/*
+	 * For playback I2S RX-CIF and for capture TX-CIF is used.
+	 * With reference to AHUB, for I2S, SNDRV_PCM_STREAM_CAPTURE stream is
+	 * actually for playback.
+	 */
+	path = (substream->stream == SNDRV_PCM_STREAM_CAPTURE) ?
+	       I2S_RX_PATH : I2S_TX_PATH;
+
+	if (i2s->audio_ch_override[path]) {
+		cif_conf.audio_channels = i2s->audio_ch_override[path];
+		rx_mask = tx_mask = (1 << cif_conf.audio_channels) - 1;
 	} else {
 		rx_mask = i2s->rx_mask;
 		tx_mask = i2s->tx_mask;
 	}
 
+	if (i2s->client_ch_override)
+		cif_conf.client_channels = i2s->client_ch_override;
+
+	if (i2s->audio_fmt_override[path])
+		cif_conf.audio_bits =
+			tegra210_i2s_fmt_values[i2s->audio_fmt_override[path]];
+
 	regmap_read(i2s->regmap, TEGRA210_I2S_CTRL, &val);
 
 	frame_format = val & TEGRA210_I2S_CTRL_FRAME_FORMAT_MASK;
 
-	if (frame_format == TEGRA210_I2S_CTRL_FRAME_FORMAT_FSYNC_MODE) {
-		tegra210_i2s_set_slot_ctrl(i2s->regmap, channels, tx_mask,
-					   rx_mask);
-		cif_conf.audio_channels = channels;
-		cif_conf.client_channels = channels;
-	} else {
-		cif_conf.audio_channels = channels;
-		cif_conf.client_channels = (channels == 1) ? 2 : channels;
-	}
+	if (frame_format == TEGRA210_I2S_CTRL_FRAME_FORMAT_FSYNC_MODE)
+		tegra210_i2s_set_slot_ctrl(i2s->regmap,
+					   cif_conf.client_channels,
+					   tx_mask, rx_mask);
 
 	i2sclock = srate * sample_size * cif_conf.client_channels;
 
@@ -620,44 +642,24 @@ static int tegra210_i2s_hw_params(struct snd_pcm_substream *substream,
 
 	/* As a COCEC DAI, CAPTURE is transmit */
 	if (substream->stream == SNDRV_PCM_STREAM_CAPTURE) {
+		unsigned int audio_ch = cif_conf.audio_channels;
+
 		reg = TEGRA210_I2S_AXBAR_RX_CIF_CTRL;
-		if (i2s->mono_to_stereo[I2S_RX_PATH] > 0) {
-			cif_conf.audio_channels = 1;
-			cif_conf.client_channels = 2;
-			cif_conf.mono_conv =
-					i2s->mono_to_stereo[I2S_RX_PATH] - 1;
-		} else if (i2s->stereo_to_mono[I2S_RX_PATH] > 0) {
-			cif_conf.audio_channels = 2;
-			cif_conf.client_channels = 1;
-			cif_conf.stereo_conv =
-					i2s->stereo_to_mono[I2S_RX_PATH] - 1;
-		}
 
 		/* RX FIFO threshold interms of frames */
-		max_th = (TEGRA210_I2S_RX_FIFO_DEPTH / channels) - 1;
-		if (i2s->rx_fifo_th > max_th) { /* error handling */
-			cif_conf.threshold = max_th;
-			i2s->rx_fifo_th = max_th;
-		} else
-			cif_conf.threshold = i2s->rx_fifo_th;
-	} else {
-		if (i2s->mono_to_stereo[I2S_TX_PATH] > 0) {
-			cif_conf.audio_channels = 2;
-			cif_conf.client_channels = 1;
-			cif_conf.mono_conv =
-					i2s->mono_to_stereo[I2S_TX_PATH] - 1;
-		} else if (i2s->stereo_to_mono[I2S_TX_PATH] > 0) {
-			cif_conf.audio_channels = 1;
-			cif_conf.client_channels = 2;
-			cif_conf.stereo_conv =
-					i2s->stereo_to_mono[I2S_TX_PATH] - 1;
-		}
+		max_th = (TEGRA210_I2S_RX_FIFO_DEPTH / audio_ch) - 1;
+		if (max_th < 0)
+			return -EINVAL;
 
-		if (i2s->format_in)
-			cif_conf.audio_bits =
-				tegra210_i2s_fmt_values[i2s->format_in];
+		if (i2s->rx_fifo_th > max_th) /* error handling */
+			i2s->rx_fifo_th = max_th;
+
+		cif_conf.threshold = i2s->rx_fifo_th;
+	} else
 		reg = TEGRA210_I2S_AXBAR_TX_CIF_CTRL;
-	}
+
+	cif_conf.stereo_conv = i2s->stereo_to_mono[path];
+	cif_conf.mono_conv = i2s->mono_to_stereo[path];
 
 	tegra210_xbar_set_cif(i2s->regmap, reg, &cif_conf);
 
@@ -829,11 +831,11 @@ static int tegra210_i2s_fsync_width_put(struct snd_kcontrol *kcontrol,
 }
 
 static const char * const tegra210_i2s_stereo_conv_text[] = {
-	"None", "CH0", "CH1", "AVG",
+	"CH0", "CH1", "AVG",
 };
 
 static const char * const tegra210_i2s_mono_conv_text[] = {
-	"None", "ZERO", "COPY",
+	"ZERO", "COPY",
 };
 
 static const struct soc_enum tegra210_i2s_mono_conv_enum =
@@ -856,15 +858,21 @@ static const struct soc_enum tegra210_i2s_stereo_conv_enum =
 static const struct snd_kcontrol_new tegra210_i2s_controls[] = {
 	SOC_SINGLE_EXT("Loopback", SND_SOC_NOPM, 0, 1, 0,
 		tegra210_i2s_loopback_get, tegra210_i2s_loopback_put),
-	SOC_ENUM_EXT("input bit format", tegra210_i2s_format_enum,
-		tegra210_i2s_get_format, tegra210_i2s_put_format),
+	SOC_ENUM_EXT("Playback Audio Bit Format", tegra210_i2s_format_enum,
+		     tegra210_i2s_get_format, tegra210_i2s_put_format),
+	SOC_ENUM_EXT("Capture Audio Bit Format", tegra210_i2s_format_enum,
+		     tegra210_i2s_get_format, tegra210_i2s_put_format),
 	SOC_ENUM_EXT("codec bit format", tegra210_i2s_format_enum,
 		tegra210_i2s_get_format, tegra210_i2s_put_format),
 	SOC_SINGLE_EXT("fsync width", SND_SOC_NOPM, 0, 255, 0,
 		tegra210_i2s_fsync_width_get, tegra210_i2s_fsync_width_put),
 	SOC_SINGLE_EXT("Sample Rate", 0, 0, 192000, 0,
 		tegra210_i2s_get_format, tegra210_i2s_put_format),
-	SOC_SINGLE_EXT("Channels", 0, 0, 16, 0,
+	SOC_SINGLE_EXT("Playback Audio Channels", 0, 0, 16, 0,
+		tegra210_i2s_get_format, tegra210_i2s_put_format),
+	SOC_SINGLE_EXT("Capture Audio Channels", 0, 0, 16, 0,
+		tegra210_i2s_get_format, tegra210_i2s_put_format),
+	SOC_SINGLE_EXT("Client Channels", 0, 0, 16, 0,
 		tegra210_i2s_get_format, tegra210_i2s_put_format),
 	SOC_SINGLE_EXT("BCLK Ratio", SND_SOC_NOPM, 0, INT_MAX, 0,
 		       tegra210_i2s_get_bclk_ratio,

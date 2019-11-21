@@ -318,7 +318,7 @@ static int tegra_admaif_hw_params(struct snd_pcm_substream *substream,
 	struct device *dev = dai->dev;
 	struct tegra_admaif *admaif = snd_soc_dai_get_drvdata(dai);
 	struct tegra210_xbar_cif_conf cif_conf;
-	unsigned int reg;
+	unsigned int reg, path;
 	int valid_bit, channels;
 
 	memset(&cif_conf, 0, sizeof(struct tegra210_xbar_cif_conf));
@@ -354,40 +354,26 @@ static int tegra_admaif_hw_params(struct snd_pcm_substream *substream,
 	cif_conf.audio_channels = channels;
 
 	if (substream->stream == SNDRV_PCM_STREAM_PLAYBACK) {
+		path = ADMAIF_TX_PATH;
 		reg = CH_TX_REG(TEGRA_ADMAIF_CHAN_ACIF_TX_CTRL, dai->id);
-
-		/* For playback path, if client channel is 1 and mono to
-		 * stereo control was non-zero, then audio channels will be
-		 * set to 2 for mono to stereo conversion.
-		 */
-		if ((admaif->tx_mono_to_stereo[dai->id] > 0) &&
-						(channels == 1)) {
-			cif_conf.mono_conv =
-				admaif->tx_mono_to_stereo[dai->id] - 1;
-			cif_conf.audio_channels = 2;
-		}
 	} else {
+		path = ADMAIF_RX_PATH;
 		reg = CH_RX_REG(TEGRA_ADMAIF_CHAN_ACIF_RX_CTRL, dai->id);
-
-		/* The override channels are needed only for capture path as
-		 * the audio and client channels can be different on RX path.
-		 */
-		if (admaif->override_channels[dai->id] > 0) {
-			cif_conf.audio_channels =
-					admaif->override_channels[dai->id];
-		}
-
-		/* For capture path, if client channel is 1 and audio channel
-		 * is 2, only then stereo to mono settings will take effect.
-		 */
-		if ((admaif->rx_stereo_to_mono[dai->id] > 0) &&
-			(cif_conf.audio_channels == 2) && (channels == 1)) {
-			cif_conf.stereo_conv =
-				admaif->rx_stereo_to_mono[dai->id] - 1;
-		}
 	}
 
+	if (admaif->audio_ch_override[path][dai->id])
+		cif_conf.audio_channels =
+			admaif->audio_ch_override[path][dai->id];
+
+	if (admaif->client_ch_override[path][dai->id])
+		cif_conf.client_channels =
+			admaif->client_ch_override[path][dai->id];
+
+	cif_conf.mono_conv = admaif->mono_to_stereo[path][dai->id];
+	cif_conf.stereo_conv = admaif->stereo_to_mono[path][dai->id];
+
 	tegra_admaif_set_pack_mode(admaif->regmap, reg, valid_bit);
+
 	tegra210_xbar_set_cif(admaif->regmap, reg, &cif_conf);
 
 	return 0;
@@ -504,29 +490,26 @@ static int tegra_admaif_get_format(struct snd_kcontrol *kcontrol,
 	struct snd_soc_codec *codec = snd_soc_kcontrol_codec(kcontrol);
 	struct soc_mixer_control *mc =
 		(struct soc_mixer_control *)kcontrol->private_value;
+	struct soc_enum *ec = (struct soc_enum *)kcontrol->private_value;
 	struct tegra_admaif *admaif = snd_soc_codec_get_drvdata(codec);
-	int i;
-	char buf[50];
+	long *uctl_val = &ucontrol->value.integer.value[0];
 
-	if (strstr(kcontrol->id.name, "Channels"))
-		ucontrol->value.integer.value[0] =
-				admaif->override_channels[mc->reg];
-	else {
-		for (i = 0 ; i < admaif->soc_data->num_ch; i++) {
-			snprintf(buf, 50, "ADMAIF%d Capture stereo to mono", i+1);
-			if (strstr(kcontrol->id.name, buf)) {
-				ucontrol->value.integer.value[0] =
-					admaif->rx_stereo_to_mono[i];
-				break;
-			}
-			snprintf(buf, 50, "ADMAIF%d Playback mono to stereo", i+1);
-			if (strstr(kcontrol->id.name, buf)) {
-				ucontrol->value.integer.value[0] =
-					admaif->tx_mono_to_stereo[i];
-				break;
-			}
-		}
-	}
+	if (strstr(kcontrol->id.name, "Playback Audio Channels"))
+		*uctl_val = admaif->audio_ch_override[ADMAIF_TX_PATH][mc->reg];
+	else if (strstr(kcontrol->id.name, "Capture Audio Channels"))
+		*uctl_val = admaif->audio_ch_override[ADMAIF_RX_PATH][mc->reg];
+	else if (strstr(kcontrol->id.name, "Playback Client Channels"))
+		*uctl_val = admaif->client_ch_override[ADMAIF_TX_PATH][mc->reg];
+	else if (strstr(kcontrol->id.name, "Capture Client Channels"))
+		*uctl_val = admaif->client_ch_override[ADMAIF_RX_PATH][mc->reg];
+	else if (strstr(kcontrol->id.name, "Playback mono to stereo"))
+		*uctl_val = admaif->mono_to_stereo[ADMAIF_TX_PATH][ec->reg];
+	else if (strstr(kcontrol->id.name, "Playback stereo to mono"))
+		*uctl_val = admaif->stereo_to_mono[ADMAIF_TX_PATH][ec->reg];
+	else if (strstr(kcontrol->id.name, "Capture mono to stereo"))
+		*uctl_val = admaif->mono_to_stereo[ADMAIF_RX_PATH][ec->reg];
+	else if (strstr(kcontrol->id.name, "Capture stereo to mono"))
+		*uctl_val = admaif->stereo_to_mono[ADMAIF_RX_PATH][ec->reg];
 
 	return 0;
 }
@@ -536,31 +519,27 @@ static int tegra_admaif_put_format(struct snd_kcontrol *kcontrol,
 {
 	struct soc_mixer_control *mc =
 		(struct soc_mixer_control *)kcontrol->private_value;
+	struct soc_enum *ec = (struct soc_enum *)kcontrol->private_value;
 	struct snd_soc_codec *codec = snd_soc_kcontrol_codec(kcontrol);
 	struct tegra_admaif *admaif = snd_soc_codec_get_drvdata(codec);
 	int value = ucontrol->value.integer.value[0];
-	int i;
-	char buf[50];
 
-	if (strstr(kcontrol->id.name, "Channels")) {
-		if (value >= 0 && value <= 16)
-			admaif->override_channels[mc->reg] = value;
-		else
-			return -EINVAL;
-	} else {
-		for (i = 0 ; i < admaif->soc_data->num_ch; i++) {
-			snprintf(buf, 50, "ADMAIF%d Capture stereo to mono", i+1);
-			if (strstr(kcontrol->id.name, buf)) {
-				admaif->rx_stereo_to_mono[i] = value;
-				break;
-			}
-			snprintf(buf, 50, "ADMAIF%d Playback mono to stereo", i+1);
-			if (strstr(kcontrol->id.name, buf)) {
-				admaif->tx_mono_to_stereo[i] = value;
-				break;
-			}
-		}
-	}
+	if (strstr(kcontrol->id.name, "Playback Audio Channels"))
+		admaif->audio_ch_override[ADMAIF_TX_PATH][mc->reg] = value;
+	else if (strstr(kcontrol->id.name, "Capture Audio Channels"))
+		admaif->audio_ch_override[ADMAIF_RX_PATH][mc->reg] = value;
+	else if (strstr(kcontrol->id.name, "Playback Client Channels"))
+		admaif->client_ch_override[ADMAIF_TX_PATH][mc->reg] = value;
+	else if (strstr(kcontrol->id.name, "Capture Client Channels"))
+		admaif->client_ch_override[ADMAIF_RX_PATH][mc->reg] = value;
+	else if (strstr(kcontrol->id.name, "Playback mono to stereo"))
+		admaif->mono_to_stereo[ADMAIF_TX_PATH][ec->reg] = value;
+	else if (strstr(kcontrol->id.name, "Playback stereo to mono"))
+		admaif->stereo_to_mono[ADMAIF_TX_PATH][ec->reg] = value;
+	else if (strstr(kcontrol->id.name, "Capture mono to stereo"))
+		admaif->mono_to_stereo[ADMAIF_RX_PATH][ec->reg] = value;
+	else if (strstr(kcontrol->id.name, "Capture stereo to mono"))
+		admaif->stereo_to_mono[ADMAIF_RX_PATH][ec->reg] = value;
 
 	return 0;
 }
@@ -886,11 +865,11 @@ static const struct snd_soc_dapm_route tegra_admaif_routes[] = {
 };
 
 static const char * const tegra_admaif_stereo_conv_text[] = {
-	"None", "CH0", "CH1", "AVG",
+	"CH0", "CH1", "AVG",
 };
 
 static const char * const tegra_admaif_mono_conv_text[] = {
-	"None", "ZERO", "COPY",
+	"ZERO", "COPY",
 };
 
 static const struct soc_enum tegra_admaif_mono_conv_enum =
@@ -903,19 +882,48 @@ static const struct soc_enum tegra_admaif_stereo_conv_enum =
 		ARRAY_SIZE(tegra_admaif_stereo_conv_text),
 		tegra_admaif_stereo_conv_text);
 
-#define TEGRA_ADMAIF_CHANNEL_CTRL(reg) \
-	SOC_SINGLE_EXT("ADMAIF" #reg " Channels", reg - 1, 0, 16, 0, \
-		tegra_admaif_get_format, tegra_admaif_put_format)
+#define TEGRA_ADMAIF_CHANNEL_CTRL(reg)					       \
+	SOC_SINGLE_EXT("ADMAIF" #reg " Playback Audio Channels", reg - 1,      \
+		       0, 16, 0, tegra_admaif_get_format,		       \
+		       tegra_admaif_put_format),			       \
+	SOC_SINGLE_EXT("ADMAIF" #reg " Capture Audio Channels", reg - 1,       \
+		       0, 16, 0, tegra_admaif_get_format,		       \
+		       tegra_admaif_put_format),			       \
+	SOC_SINGLE_EXT("ADMAIF" #reg " Playback Client Channels", reg - 1,     \
+		       0, 16, 0, tegra_admaif_get_format,		       \
+		       tegra_admaif_put_format),			       \
+	SOC_SINGLE_EXT("ADMAIF" #reg " Capture Client Channels", reg - 1,      \
+		       0, 16, 0, tegra_admaif_get_format,		       \
+		       tegra_admaif_put_format)
 
-#define TEGRA_ADMAIF_TX_CIF_CTRL(reg) \
-	SOC_ENUM_EXT("ADMAIF" #reg " Playback mono to stereo conv", \
-		 tegra_admaif_mono_conv_enum, tegra_admaif_get_format, \
-		 tegra_admaif_put_format)
+/*
+ * below macro is added to avoid looping over all ADMAIFx controls related
+ * to mono/stereo conversions in get()/put() callbacks.
+ */
+#define NV_SOC_ENUM_EXT(xname, xreg, xhandler_get, xhandler_put, xenum_text)   \
+{									       \
+	.iface = SNDRV_CTL_ELEM_IFACE_MIXER,				       \
+	.info = snd_soc_info_enum_double,				       \
+	.name = xname,							       \
+	.get = xhandler_get,						       \
+	.put = xhandler_put,						       \
+	.private_value = (unsigned long)&(struct soc_enum)		       \
+		SOC_ENUM_SINGLE(xreg, 0, ARRAY_SIZE(xenum_text), xenum_text)   \
+}
 
-#define TEGRA_ADMAIF_RX_CIF_CTRL(reg) \
-	SOC_ENUM_EXT("ADMAIF" #reg " Capture stereo to mono conv", \
-		 tegra_admaif_stereo_conv_enum, tegra_admaif_get_format, \
-		 tegra_admaif_put_format)
+#define TEGRA_ADMAIF_CIF_CTRL(reg)					       \
+	NV_SOC_ENUM_EXT("ADMAIF" #reg " Playback mono to stereo conv", reg - 1,\
+			tegra_admaif_get_format, tegra_admaif_put_format,      \
+			tegra_admaif_mono_conv_text),			       \
+	NV_SOC_ENUM_EXT("ADMAIF" #reg " Playback stereo to mono conv", reg - 1,\
+			tegra_admaif_get_format, tegra_admaif_put_format,      \
+			tegra_admaif_stereo_conv_text),			       \
+	NV_SOC_ENUM_EXT("ADMAIF" #reg " Capture mono to stereo conv", reg - 1, \
+			tegra_admaif_get_format, tegra_admaif_put_format,      \
+			tegra_admaif_mono_conv_text),			       \
+	NV_SOC_ENUM_EXT("ADMAIF" #reg " Capture stereo to mono conv", reg - 1, \
+			tegra_admaif_get_format, tegra_admaif_put_format,      \
+			tegra_admaif_stereo_conv_text)
 
 static struct snd_kcontrol_new tegra210_admaif_controls[] = {
 	TEGRA_ADMAIF_CHANNEL_CTRL(1),
@@ -928,26 +936,16 @@ static struct snd_kcontrol_new tegra210_admaif_controls[] = {
 	TEGRA_ADMAIF_CHANNEL_CTRL(8),
 	TEGRA_ADMAIF_CHANNEL_CTRL(9),
 	TEGRA_ADMAIF_CHANNEL_CTRL(10),
-	TEGRA_ADMAIF_RX_CIF_CTRL(1),
-	TEGRA_ADMAIF_RX_CIF_CTRL(2),
-	TEGRA_ADMAIF_RX_CIF_CTRL(3),
-	TEGRA_ADMAIF_RX_CIF_CTRL(4),
-	TEGRA_ADMAIF_RX_CIF_CTRL(5),
-	TEGRA_ADMAIF_RX_CIF_CTRL(6),
-	TEGRA_ADMAIF_RX_CIF_CTRL(7),
-	TEGRA_ADMAIF_RX_CIF_CTRL(8),
-	TEGRA_ADMAIF_RX_CIF_CTRL(9),
-	TEGRA_ADMAIF_RX_CIF_CTRL(10),
-	TEGRA_ADMAIF_TX_CIF_CTRL(1),
-	TEGRA_ADMAIF_TX_CIF_CTRL(2),
-	TEGRA_ADMAIF_TX_CIF_CTRL(3),
-	TEGRA_ADMAIF_TX_CIF_CTRL(4),
-	TEGRA_ADMAIF_TX_CIF_CTRL(5),
-	TEGRA_ADMAIF_TX_CIF_CTRL(6),
-	TEGRA_ADMAIF_TX_CIF_CTRL(7),
-	TEGRA_ADMAIF_TX_CIF_CTRL(8),
-	TEGRA_ADMAIF_TX_CIF_CTRL(9),
-	TEGRA_ADMAIF_TX_CIF_CTRL(10),
+	TEGRA_ADMAIF_CIF_CTRL(1),
+	TEGRA_ADMAIF_CIF_CTRL(2),
+	TEGRA_ADMAIF_CIF_CTRL(3),
+	TEGRA_ADMAIF_CIF_CTRL(4),
+	TEGRA_ADMAIF_CIF_CTRL(5),
+	TEGRA_ADMAIF_CIF_CTRL(6),
+	TEGRA_ADMAIF_CIF_CTRL(7),
+	TEGRA_ADMAIF_CIF_CTRL(8),
+	TEGRA_ADMAIF_CIF_CTRL(9),
+	TEGRA_ADMAIF_CIF_CTRL(10),
 	SOC_SINGLE_EXT("APE Reg Dump", SND_SOC_NOPM, 0, 1, 0,
 		tegra210_ape_dump_reg_get, tegra210_ape_dump_reg_put),
 };
@@ -973,46 +971,26 @@ static struct snd_kcontrol_new tegra186_admaif_controls[] = {
 	TEGRA_ADMAIF_CHANNEL_CTRL(18),
 	TEGRA_ADMAIF_CHANNEL_CTRL(19),
 	TEGRA_ADMAIF_CHANNEL_CTRL(20),
-	TEGRA_ADMAIF_RX_CIF_CTRL(1),
-	TEGRA_ADMAIF_RX_CIF_CTRL(2),
-	TEGRA_ADMAIF_RX_CIF_CTRL(3),
-	TEGRA_ADMAIF_RX_CIF_CTRL(4),
-	TEGRA_ADMAIF_RX_CIF_CTRL(5),
-	TEGRA_ADMAIF_RX_CIF_CTRL(6),
-	TEGRA_ADMAIF_RX_CIF_CTRL(7),
-	TEGRA_ADMAIF_RX_CIF_CTRL(8),
-	TEGRA_ADMAIF_RX_CIF_CTRL(9),
-	TEGRA_ADMAIF_RX_CIF_CTRL(10),
-	TEGRA_ADMAIF_RX_CIF_CTRL(11),
-	TEGRA_ADMAIF_RX_CIF_CTRL(12),
-	TEGRA_ADMAIF_RX_CIF_CTRL(13),
-	TEGRA_ADMAIF_RX_CIF_CTRL(14),
-	TEGRA_ADMAIF_RX_CIF_CTRL(15),
-	TEGRA_ADMAIF_RX_CIF_CTRL(16),
-	TEGRA_ADMAIF_RX_CIF_CTRL(17),
-	TEGRA_ADMAIF_RX_CIF_CTRL(18),
-	TEGRA_ADMAIF_RX_CIF_CTRL(19),
-	TEGRA_ADMAIF_RX_CIF_CTRL(20),
-	TEGRA_ADMAIF_TX_CIF_CTRL(1),
-	TEGRA_ADMAIF_TX_CIF_CTRL(2),
-	TEGRA_ADMAIF_TX_CIF_CTRL(3),
-	TEGRA_ADMAIF_TX_CIF_CTRL(4),
-	TEGRA_ADMAIF_TX_CIF_CTRL(5),
-	TEGRA_ADMAIF_TX_CIF_CTRL(6),
-	TEGRA_ADMAIF_TX_CIF_CTRL(7),
-	TEGRA_ADMAIF_TX_CIF_CTRL(8),
-	TEGRA_ADMAIF_TX_CIF_CTRL(9),
-	TEGRA_ADMAIF_TX_CIF_CTRL(10),
-	TEGRA_ADMAIF_TX_CIF_CTRL(11),
-	TEGRA_ADMAIF_TX_CIF_CTRL(12),
-	TEGRA_ADMAIF_TX_CIF_CTRL(13),
-	TEGRA_ADMAIF_TX_CIF_CTRL(14),
-	TEGRA_ADMAIF_TX_CIF_CTRL(15),
-	TEGRA_ADMAIF_TX_CIF_CTRL(16),
-	TEGRA_ADMAIF_TX_CIF_CTRL(17),
-	TEGRA_ADMAIF_TX_CIF_CTRL(18),
-	TEGRA_ADMAIF_TX_CIF_CTRL(19),
-	TEGRA_ADMAIF_TX_CIF_CTRL(20),
+	TEGRA_ADMAIF_CIF_CTRL(1),
+	TEGRA_ADMAIF_CIF_CTRL(2),
+	TEGRA_ADMAIF_CIF_CTRL(3),
+	TEGRA_ADMAIF_CIF_CTRL(4),
+	TEGRA_ADMAIF_CIF_CTRL(5),
+	TEGRA_ADMAIF_CIF_CTRL(6),
+	TEGRA_ADMAIF_CIF_CTRL(7),
+	TEGRA_ADMAIF_CIF_CTRL(8),
+	TEGRA_ADMAIF_CIF_CTRL(9),
+	TEGRA_ADMAIF_CIF_CTRL(10),
+	TEGRA_ADMAIF_CIF_CTRL(11),
+	TEGRA_ADMAIF_CIF_CTRL(12),
+	TEGRA_ADMAIF_CIF_CTRL(13),
+	TEGRA_ADMAIF_CIF_CTRL(14),
+	TEGRA_ADMAIF_CIF_CTRL(15),
+	TEGRA_ADMAIF_CIF_CTRL(16),
+	TEGRA_ADMAIF_CIF_CTRL(17),
+	TEGRA_ADMAIF_CIF_CTRL(18),
+	TEGRA_ADMAIF_CIF_CTRL(19),
+	TEGRA_ADMAIF_CIF_CTRL(20),
 	SOC_SINGLE_EXT("APE Reg Dump", SND_SOC_NOPM, 0, 1, 0,
 		tegra210_ape_dump_reg_get, tegra210_ape_dump_reg_put),
 };
@@ -1107,23 +1085,31 @@ static int tegra_admaif_probe(struct platform_device *pdev)
 	if (!admaif->playback_dma_data)
 		return -ENOMEM;
 
-	admaif->override_channels = devm_kzalloc(&pdev->dev,
-			sizeof(int) * admaif->soc_data->num_ch,
-			GFP_KERNEL);
-	if (!admaif->override_channels)
-		return -ENOMEM;
+	for (i = 0; i < ADMAIF_PATHS; i++) {
+		admaif->audio_ch_override[i] =
+			devm_kcalloc(&pdev->dev, admaif->soc_data->num_ch,
+				     sizeof(unsigned int), GFP_KERNEL);
+		if (!admaif->audio_ch_override[i])
+			return -ENOMEM;
 
-	admaif->tx_mono_to_stereo = devm_kzalloc(&pdev->dev,
-			sizeof(int) * admaif->soc_data->num_ch,
-			GFP_KERNEL);
-	if (!admaif->tx_mono_to_stereo)
-		return -ENOMEM;
+		admaif->client_ch_override[i] =
+			devm_kcalloc(&pdev->dev, admaif->soc_data->num_ch,
+				     sizeof(unsigned int), GFP_KERNEL);
+		if (!admaif->client_ch_override[i])
+			return -ENOMEM;
 
-	admaif->rx_stereo_to_mono = devm_kzalloc(&pdev->dev,
-			sizeof(int) * admaif->soc_data->num_ch,
-			GFP_KERNEL);
-	if (!admaif->rx_stereo_to_mono)
-		return -ENOMEM;
+		admaif->mono_to_stereo[i] =
+			devm_kcalloc(&pdev->dev, admaif->soc_data->num_ch,
+				     sizeof(unsigned int), GFP_KERNEL);
+		if (!admaif->mono_to_stereo[i])
+			return -ENOMEM;
+
+		admaif->stereo_to_mono[i] =
+			devm_kcalloc(&pdev->dev, admaif->soc_data->num_ch,
+				     sizeof(unsigned int), GFP_KERNEL);
+		if (!admaif->stereo_to_mono[i])
+			return -ENOMEM;
+	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	regs = devm_ioremap_resource(&pdev->dev, res);
