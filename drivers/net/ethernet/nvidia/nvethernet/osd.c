@@ -190,7 +190,8 @@ static void ether_realloc_rx_skb(struct ether_priv_data *pdata,
 	unsigned int local_refill_idx = rx_ring->refill_idx;
 	int ret = 0;
 
-	while (local_refill_idx != rx_ring->cur_rx_idx) {
+	while (local_refill_idx != rx_ring->cur_rx_idx &&
+	       local_refill_idx < RX_DESC_CNT) {
 		rx_swcx = rx_ring->rx_swcx + local_refill_idx;
 		rx_desc = rx_ring->rx_desc + local_refill_idx;
 

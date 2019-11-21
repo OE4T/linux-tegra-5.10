@@ -1653,7 +1653,7 @@ static int ether_tx_swcx_alloc(struct device *dev,
 	/* Map the linear buffers from the skb first.
 	 * For TSO only upto TCP header is filled in first desc.
 	 */
-	while (len) {
+	while (valid_tx_len(len)) {
 		tx_swcx = tx_ring->tx_swcx + cur_tx_idx;
 		if (unlikely(tx_swcx->len)) {
 			goto desc_not_free;
@@ -1685,7 +1685,7 @@ static int ether_tx_swcx_alloc(struct device *dev,
 	 */
 	if ((tx_pkt_cx->flags & OSI_PKT_CX_TSO) == OSI_PKT_CX_TSO) {
 		len = skb_headlen(skb) - tx_pkt_cx->total_hdrlen;
-		while (len) {
+		while (valid_tx_len(len)) {
 			tx_swcx = tx_ring->tx_swcx + cur_tx_idx;
 
 			if (unlikely(tx_swcx->len)) {
@@ -1719,7 +1719,7 @@ static int ether_tx_swcx_alloc(struct device *dev,
 		offset = 0;
 		frag = &skb_shinfo(skb)->frags[i];
 		len = skb_frag_size(frag);
-		while (len) {
+		while (valid_tx_len(len)) {
 			tx_swcx = tx_ring->tx_swcx + cur_tx_idx;
 			if (unlikely(tx_swcx->len)) {
 				goto desc_not_free;
@@ -1759,7 +1759,7 @@ desc_not_free:
 
 dma_map_failed:
 	/* Failed to fill current desc. Rollback previous desc's */
-	while (cnt) {
+	while (cnt > 0) {
 		DECR_TX_DESC_INDEX(cur_tx_idx, 1U);
 		tx_swcx = tx_ring->tx_swcx + cur_tx_idx;
 		if (tx_swcx->buf_phy_addr) {
