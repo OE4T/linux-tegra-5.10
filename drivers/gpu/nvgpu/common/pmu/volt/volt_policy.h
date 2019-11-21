@@ -35,29 +35,6 @@ struct voltage_policy {
 	struct boardobj super;
 };
 
-/*!
- * extends voltage_policy providing attributes
- * common to all voltage_policy_split_rail.
- */
-struct voltage_policy_split_rail {
-	struct voltage_policy super;
-	u8 rail_idx_master;
-	u8 rail_idx_slave;
-	u8 delta_min_vfe_equ_idx;
-	u8 delta_max_vfe_equ_idx;
-	s32 offset_delta_min_uv;
-	s32 offset_delta_max_uv;
-};
-
-struct voltage_policy_split_rail_single_step {
-	struct voltage_policy_split_rail super;
-};
-
-struct voltage_policy_split_rail_multi_step {
-	struct voltage_policy_split_rail super;
-	u16 inter_switch_delay_us;
-};
-
 struct voltage_policy_single_rail {
 	struct voltage_policy  super;
 	u8 rail_idx;

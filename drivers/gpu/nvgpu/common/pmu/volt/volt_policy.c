@@ -55,31 +55,6 @@ static int construct_volt_policy(struct gk20a *g,
 	return status;
 }
 
-static int construct_volt_policy_split_rail(struct gk20a *g,
-	struct boardobj **ppboardobj, size_t size, void *pArgs)
-{
-	struct voltage_policy_split_rail *ptmp_policy  =
-			(struct voltage_policy_split_rail *)pArgs;
-	struct voltage_policy_split_rail *pvolt_policy = NULL;
-	int status = 0;
-
-	status = construct_volt_policy(g, ppboardobj, size, pArgs);
-	if (status != 0) {
-		return status;
-	}
-
-	pvolt_policy = (struct voltage_policy_split_rail *)*ppboardobj;
-
-	pvolt_policy->rail_idx_master = ptmp_policy->rail_idx_master;
-	pvolt_policy->rail_idx_slave = ptmp_policy->rail_idx_slave;
-	pvolt_policy->delta_min_vfe_equ_idx =
-			ptmp_policy->delta_min_vfe_equ_idx;
-	pvolt_policy->delta_max_vfe_equ_idx =
-			ptmp_policy->delta_max_vfe_equ_idx;
-
-	return status;
-}
-
 static int construct_volt_policy_single_rail(struct gk20a *g,
 	struct boardobj **ppboardobj, size_t size, void *pArgs)
 {
@@ -192,67 +167,12 @@ static int volt_construct_volt_policy_single_rail_multi_step(struct gk20a *g,
 	return status;
 }
 
-static int volt_policy_pmu_data_init_split_rail(struct gk20a *g,
-	struct boardobj *pboardobj, struct nv_pmu_boardobj *ppmudata)
-{
-	int status = 0;
-	struct voltage_policy_split_rail *ppolicy;
-	struct nv_pmu_volt_volt_policy_splt_r_boardobj_set *pset;
-
-	status = volt_policy_pmu_data_init_super(g, pboardobj, ppmudata);
-	if (status != 0) {
-		goto done;
-	}
-
-	ppolicy = (struct voltage_policy_split_rail *)pboardobj;
-	pset = (struct nv_pmu_volt_volt_policy_splt_r_boardobj_set *)
-				ppmudata;
-
-	pset->rail_idx_master = ppolicy->rail_idx_master;
-	pset->rail_idx_slave = ppolicy->rail_idx_slave;
-	pset->delta_min_vfe_equ_idx = ppolicy->delta_min_vfe_equ_idx;
-	pset->delta_max_vfe_equ_idx = ppolicy->delta_max_vfe_equ_idx;
-	pset->offset_delta_min_uv = ppolicy->offset_delta_min_uv;
-	pset->offset_delta_max_uv = ppolicy->offset_delta_max_uv;
-
-done:
-	return status;
-}
-
-static int volt_construct_volt_policy_split_rail_single_step(struct gk20a *g,
-	struct boardobj **ppboardobj, size_t size, void *pargs)
-{
-	struct boardobj *pboardobj   = NULL;
-	int status = 0;
-
-	status = construct_volt_policy_split_rail(g, ppboardobj, size, pargs);
-	if (status != 0) {
-		return status;
-	}
-
-	pboardobj = (*ppboardobj);
-	pboardobj->pmudatainit = volt_policy_pmu_data_init_split_rail;
-
-	return status;
-}
-
 static struct voltage_policy *volt_volt_policy_construct(struct gk20a *g, void *pargs)
 {
 	struct boardobj *pboard_obj = NULL;
 	int status = 0;
 
 	switch (BOARDOBJ_GET_TYPE(pargs)) {
-	case CTRL_VOLT_POLICY_TYPE_SR_SINGLE_STEP:
-		status = volt_construct_volt_policy_split_rail_single_step(g,
-			&pboard_obj,
-			sizeof(struct voltage_policy_split_rail_single_step),
-			pargs);
-		if (status != 0) {
-			nvgpu_err(g,
-				"Could not allocate memory for voltage_policy");
-			pboard_obj = NULL;
-		}
-		break;
 	case CTRL_VOLT_POLICY_TYPE_SINGLE_RAIL_MULTI_STEP:
 		status = volt_construct_volt_policy_single_rail_multi_step(g,
 			&pboard_obj,
@@ -285,12 +205,6 @@ static u8 volt_policy_type_convert(u8 vbios_type)
 	switch (vbios_type) {
 	case NV_VBIOS_VOLTAGE_POLICY_1X_ENTRY_TYPE_SINGLE_RAIL:
 		return CTRL_VOLT_POLICY_TYPE_SINGLE_RAIL;
-
-	case NV_VBIOS_VOLTAGE_POLICY_1X_ENTRY_TYPE_SR_MULTI_STEP:
-		return CTRL_VOLT_POLICY_TYPE_SR_MULTI_STEP;
-
-	case NV_VBIOS_VOLTAGE_POLICY_1X_ENTRY_TYPE_SR_SINGLE_STEP:
-		return CTRL_VOLT_POLICY_TYPE_SR_SINGLE_STEP;
 	case NV_VBIOS_VOLTAGE_POLICY_1X_ENTRY_TYPE_SINGLE_RAIL_MULTI_STEP:
 		return CTRL_VOLT_POLICY_TYPE_SINGLE_RAIL_MULTI_STEP;
 	}
@@ -312,7 +226,6 @@ static int volt_get_volt_policy_table(struct gk20a *g,
 	union policy_type {
 		struct boardobj		board_obj;
 		struct voltage_policy	volt_policy;
-		struct voltage_policy_split_rail	split_rail;
 		struct voltage_policy_single_rail_multi_step single_rail_ms;
 		struct voltage_policy_single_rail single_rail;
 	} policy_type_data;
@@ -347,23 +260,6 @@ static int volt_get_volt_policy_table(struct gk20a *g,
 		policy_type = volt_policy_type_convert((u8)entry.type);
 
 		switch (policy_type) {
-		case  CTRL_VOLT_POLICY_TYPE_SR_SINGLE_STEP:
-			policy_type_data.split_rail.rail_idx_master =
-				BIOS_GET_FIELD(u8, entry.param0,
-				NV_VBIOS_VPT_ENTRY_PARAM0_SR_VD_MASTER);
-
-			policy_type_data.split_rail.rail_idx_slave =
-				BIOS_GET_FIELD(u8, entry.param0,
-				NV_VBIOS_VPT_ENTRY_PARAM0_SR_VD_SLAVE);
-
-			policy_type_data.split_rail.delta_min_vfe_equ_idx =
-				BIOS_GET_FIELD(u8, entry.param0,
-				NV_VBIOS_VPT_ENTRY_PARAM0_SR_DELTA_SM_MIN);
-
-			policy_type_data.split_rail.delta_max_vfe_equ_idx =
-				BIOS_GET_FIELD(u8, entry.param0,
-				NV_VBIOS_VPT_ENTRY_PARAM0_SR_DELTA_SM_MAX);
-			break;
 		case CTRL_VOLT_POLICY_TYPE_SINGLE_RAIL_MULTI_STEP:
 			policy_type_data.single_rail_ms.inter_switch_delay_us =
 				BIOS_GET_FIELD(u16, entry.param1,
