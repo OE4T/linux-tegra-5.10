@@ -42,7 +42,7 @@ struct unit_module;
  *
  * Test Type: Feature based, Error guessing.
  *
- * Input: test_gr_intr_setup must have been executed successfully.
+ * Input: #test_gr_init_setup_ready must have been executed successfully.
  *
  * Steps:
  * -  Set exception for FE, MEMFMT, PD, SCC, DS, SSYNC, MME, SKED
@@ -69,7 +69,7 @@ int test_gr_intr_without_channel(struct unit_module *m,
  *
  * Test Type: Feature based, Error guessing
  *
- * Input: test_gr_intr_setup must have been executed successfully.
+ * Input: #test_gr_init_setup_ready must have been executed successfully.
  *
  * Steps:
  * -  Setup channel and tsg and bing tsg & channel.
@@ -99,7 +99,7 @@ int test_gr_intr_setup_channel(struct unit_module *m,
  *
  * Test Type: Feature based, Error guessing.
  *
- * Input: test_gr_intr_setup must have been executed successfully.
+ * Input: #test_gr_init_setup_ready must have been executed successfully.
  *
  * Steps:
  * -  Setup illegal method pending interrupt bit.
@@ -124,7 +124,7 @@ int test_gr_intr_sw_exceptions(struct unit_module *m,
  *
  * Test Type: Feature based, Error guessing.
  *
- * Input: test_gr_intr_setup must have been executed successfully.
+ * Input: #test_gr_init_setup_ready must have been executed successfully.
  *
  * Steps:
  * -  Set fecs exception interrupt bits.
@@ -144,7 +144,7 @@ int test_gr_intr_fecs_exceptions(struct unit_module *m,
  *
  * Test Type: Feature based, Error guessing.
  *
- * Input: test_gr_intr_setup must have been executed successfully.
+ * Input: #test_gr_init_setup_ready must have been executed successfully.
  *
  * Steps:
  * -  Negative tests.

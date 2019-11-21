@@ -172,6 +172,8 @@ int test_gr_init_setup_ready(struct unit_module *m,
 		unit_return_fail(m, "gr init support failed\n");
 	}
 
+	nvgpu_ref_init(&g->refcount);
+
 	return UNIT_SUCCESS;
 }
 

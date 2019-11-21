@@ -94,9 +94,10 @@ UNITS :=				\
 	$(UNIT_SRC)/pmu			\
 	$(UNIT_SRC)/top			\
 	$(UNIT_SRC)/gr			\
-	$(UNIT_SRC)/gr/falcon			\
+	$(UNIT_SRC)/gr/falcon		\
 	$(UNIT_SRC)/gr/config		\
 	$(UNIT_SRC)/gr/init		\
 	$(UNIT_SRC)/gr/intr		\
+	$(UNIT_SRC)/gr/setup		\
 	$(UNIT_SRC)/acr			\
 	$(UNIT_SRC)/cg

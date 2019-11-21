@@ -111,6 +111,18 @@ struct gr_test_reg_info gr_reg_info[] = {
 		.base = 0x2a30,
 		.size = 0x4,
 	      },
+	[16] = { /* NV_PRI_GPCS_SWDX_DSS_DEBUG REGSPACE */
+		.base = 0x418000,
+		.size = 0xc,
+	      },
+	[17] = { /* NV_PRI_EGPCS_ETPCS_SM_DSM REGSPACE */
+		.base = 0x481a00,
+		.size = 0x5FF,
+	      },
+	[18] = { /* NV_PCCSR_CHANNEL REGSPACE */
+		.base = 0x800004,
+		.size = 0x1F,
+	      },
 };
 
 /*

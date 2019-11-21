@@ -1774,6 +1774,31 @@
         "unit": "nvgpu_gr_intr"
     },
     {
+        "test": "gr_setup_setup",
+        "test_level": 0,
+        "unit": "nvgpu_gr_setup"
+    },
+    {
+        "test": "gr_setup_alloc_obj_ctx",
+        "test_level": 0,
+        "unit": "nvgpu_gr_setup"
+    },
+    {
+        "test": "gr_setup_set_preemption_mode",
+        "test_level": 0,
+        "unit": "nvgpu_gr_setup"
+    },
+    {
+        "test": "gr_setup_free_obj_ctx",
+        "test_level": 0,
+        "unit": "nvgpu_gr_setup"
+    },
+    {
+        "test": "gr_setup_cleanup",
+        "test_level": 0,
+        "unit": "nvgpu_gr_setup"
+    },
+    {
        "test": "ltc_init_support",
        "test_level": 0,
        "unit": "nvgpu-ltc"

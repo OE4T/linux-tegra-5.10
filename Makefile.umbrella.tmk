@@ -85,6 +85,7 @@ NV_REPOSITORY_COMPONENTS += userspace/units/gr
 NV_REPOSITORY_COMPONENTS += userspace/units/gr/falcon
 NV_REPOSITORY_COMPONENTS += userspace/units/gr/config
 NV_REPOSITORY_COMPONENTS += userspace/units/gr/init
+NV_REPOSITORY_COMPONENTS += userspace/units/gr/setup
 NV_REPOSITORY_COMPONENTS += userspace/units/gr/intr
 NV_REPOSITORY_COMPONENTS += userspace/units/acr
 NV_REPOSITORY_COMPONENTS += userspace/units/cg
