@@ -301,7 +301,12 @@ static void tegra_edid_parse_dv_caps(struct tegra_edid_pvt *edid,
 	struct tegra_dc_ext_dv_caps_vsvdb_v2 *v2;
 
 	if (dv_ieee_id != IEEE_CEA861_DV_ID) {
-		/* This VSVDB is not for DV */
+		/* not dv capable sink */
+		return;
+	}
+
+	if (edid->dv_caps.vsvdb_ver != TEGRA_DC_DV_VSVDB_NONE) {
+		/* earlier parsed VSVDB marked it as DV capable */
 		return;
 	}
 
