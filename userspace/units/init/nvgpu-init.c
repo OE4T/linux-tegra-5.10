@@ -30,6 +30,7 @@
 #include <nvgpu/enabled.h>
 #include <nvgpu/hw/gm20b/hw_mc_gm20b.h>
 #include <nvgpu/posix/posix-fault-injection.h>
+#include <os/posix/os_posix.h>
 #include <nvgpu/dma.h>
 #include <nvgpu/gops_mc.h>
 
@@ -41,7 +42,7 @@
 #include "nvgpu-init.h"
 
 /* value for GV11B */
-#define MC_BOOT_0_GV11B ((0x15 << 24) | (0xB << 20))
+#define MC_BOOT_0_GV11B (NVGPU_GPUID_GV11B << 20)
 /* to set the security fuses */
 #define GP10B_FUSE_REG_BASE		0x00021000U
 #define GP10B_FUSE_OPT_PRIV_SEC_EN	(GP10B_FUSE_REG_BASE+0x434U)
@@ -407,11 +408,60 @@ int test_check_gpu_state(struct unit_module *m,
 int test_hal_init(struct unit_module *m,
 			 struct gk20a *g, void *args)
 {
+	const u32 invalid_mc_boot_0[] = {
+					  GK20A_GPUID_GK20A << 20,
+					  GK20A_GPUID_GM20B << 20,
+					  GK20A_GPUID_GM20B_B << 20,
+					  NVGPU_GPUID_GP10B << 20,
+					  NVGPU_GPUID_GV100 << 20,
+					  NVGPU_GPUID_TU104 << 20,
+					  U32_MAX,
+					};
+	u32 i;
+	struct nvgpu_os_posix *p = nvgpu_os_posix_from_gk20a(g);
+
 	nvgpu_posix_io_writel_reg_space(g, mc_boot_0_r(), MC_BOOT_0_GV11B);
 	nvgpu_posix_io_writel_reg_space(g, GP10B_FUSE_OPT_PRIV_SEC_EN, 0x0);
 	if (nvgpu_detect_chip(g) != 0) {
 		unit_err(m, "%s: failed to init HAL\n", __func__);
 		return UNIT_FAIL;
+	}
+
+	/* Branch test for check if already inited the hal */
+	if (nvgpu_detect_chip(g) != 0) {
+		unit_err(m, "%s: failed to init HAL\n", __func__);
+		return UNIT_FAIL;
+	}
+
+	/* Branch test for check GPU is version a01 */
+	p->is_soc_t194_a01 = true;
+	g->params.gpu_arch = 0;
+	if (nvgpu_detect_chip(g) != 0) {
+		unit_err(m, "%s: failed to init HAL\n", __func__);
+		return UNIT_FAIL;
+	}
+	p->is_soc_t194_a01 = false;
+
+	/* Negative testing for secure fuse */
+	g->params.gpu_arch = 0;
+	nvgpu_posix_io_writel_reg_space(g, GP10B_FUSE_OPT_PRIV_SEC_EN, 0x1);
+	if (nvgpu_detect_chip(g) == 0) {
+		unit_err(m, "%s: HAL init failed to detect incorrect security\n",
+			 __func__);
+		return UNIT_FAIL;
+	}
+
+	/* Negative testing for invalid GPU version */
+	nvgpu_posix_io_writel_reg_space(g, GP10B_FUSE_OPT_PRIV_SEC_EN, 0x0);
+	for (i = 0; i < ARRAY_SIZE(invalid_mc_boot_0); i++) {
+		nvgpu_posix_io_writel_reg_space(g, mc_boot_0_r(),
+						invalid_mc_boot_0[i]);
+		g->params.gpu_arch = 0;
+		if (nvgpu_detect_chip(g) == 0) {
+			unit_err(m, "%s: HAL init failed to detect invalid GPU %08x\n",
+				__func__, invalid_mc_boot_0[i]);
+			return UNIT_FAIL;
+		}
 	}
 
 	return UNIT_SUCCESS;

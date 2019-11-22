@@ -76,6 +76,8 @@ int test_free_env(struct unit_module *m,
  *
  * Test Type: Feature based
  *
+ * Targets: gv11b_get_litter_value
+ *
  * Input: None
  *
  * Steps:
@@ -97,6 +99,8 @@ int test_get_litter_value(struct unit_module *m,
  *
  * Test Type: Feature based
  *
+ * Targets: nvgpu_can_busy
+ *
  * Input: None
  *
  * Steps:
@@ -117,6 +121,8 @@ int test_can_busy(struct unit_module *m,
  * Description: Validate nvgpu_get() and nvgpu_put() and the refcount.
  *
  * Test Type: Feature based
+ *
+ * Targets: nvgpu_get, nvgpu_put
  *
  * Input:
  * - test_setup_env() must be called before.
@@ -151,6 +157,8 @@ int test_get_put(struct unit_module *m,
  * Input:
  * - test_setup_env() must be called before.
  *
+ * Targets: nvgpu_check_gpu_state
+ *
  * Steps:
  * - Test valid case.
  *   - Set the mc_boot_0 reg to a valid state.
@@ -176,13 +184,31 @@ int test_check_gpu_state(struct unit_module *m,
  *
  * Test Type: Feature based
  *
+ * Targets: nvgpu_detect_chip
+ *
  * Input:
  * - test_setup_env() must be called before.
  *
  * Steps:
- * - Setup the mc_boot_0 reg for GV11B.
- * - Initialize the fuse regs.
- * - Init the HAL and verify return.
+ * - Nominal test
+ *   - Setup the mc_boot_0 reg for GV11B.
+ *   - Initialize the fuse regs.
+ *   - Init the HAL and verify successful return.
+ * - Branch test (re-init HAL)
+ *   - Init the HAL again and verify successful return.
+ * - Branch test (GPU version a01 check)
+ *   - Clear HAL inited flag in gk20a.
+ *   - Set Posix flag to make device version a01.
+ *   - Init the HAL and verify successful return.
+ *   - Clear Posix a01 version flag.
+ * - Negative test (security fuse)
+ *   - Clear HAL inited flag in gk20a.
+ *   - Initialize the fuse regs for secure mode.
+ *   - Init the HAL and verify failure return.
+ *   - Reset the fuse regs for non-secure mode.
+ * - Negative test (invalid GPU versions)
+ *   - Loop setting invalid GPU versions.
+ *     - Init the HAL and verify failure return.
  *
  * Output:
  * - UNIT_FAIL if HAL initialization fails
@@ -197,6 +223,8 @@ int test_hal_init(struct unit_module *m,
  * Description: Test nvgpu_finalize_poweron
  *
  * Test Type: Feature based
+ *
+ * Targets: nvgpu_finalize_poweron
  *
  * Input:
  * - test_setup_env() must be called before.
@@ -224,6 +252,8 @@ int test_poweron(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Test Type: Feature based
  *
+ * Targets: nvgpu_finalize_poweron
+ *
  * Input:
  * - test_setup_env() must be called before.
  *
@@ -246,6 +276,8 @@ int test_poweron_branches(struct unit_module *m, struct gk20a *g, void *args);
  * Description: Test nvgpu_prepare_poweroff
  *
  * Test Type: Feature based
+ *
+ * Targets: nvgpu_prepare_poweroff
  *
  * Input:
  * - test_setup_env() must be called before.
