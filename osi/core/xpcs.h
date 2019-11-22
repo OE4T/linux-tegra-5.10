@@ -36,10 +36,13 @@
 #define XPCS_SR_XS_PCS_CTRL1			0xC0000
 #define XPCS_SR_XS_PCS_STS1			0xC0004
 #define XPCS_SR_XS_PCS_CTRL2			0xC001C
+#define XPCS_SR_XS_PCS_EEE_ABL			0xC0050
+#define XPCS_SR_XS_PCS_EEE_ABL2			0xC0054
 #define XPCS_VR_XS_PCS_DIG_CTRL1		0xE0000
 #define XPCS_SR_AN_CTRL				0x1C0000
 #define XPCS_SR_MII_CTRL			0x7C0000
 #define XPCS_VR_MII_AN_INTR_STS			0x7E0008
+#define XPCS_VR_XS_PCS_EEE_MCTRL0		0xE00018
 /** @} */
 
 
@@ -56,6 +59,8 @@
 #define XPCS_VR_XS_PCS_DIG_CTRL1_VR_RST		OSI_BIT(15)
 #define XPCS_VR_XS_PCS_DIG_CTRL1_USRA_RST	OSI_BIT(10)
 #define XPCS_VR_XS_PCS_DIG_CTRL1_CL37_BP	OSI_BIT(12)
+#define XPCS_VR_XS_PCS_EEE_MCTRL0_LTX_EN	OSI_BIT(0)
+#define XPCS_VR_XS_PCS_EEE_MCTRL0_LRX_EN	OSI_BIT(1)
 #define XPCS_SR_AN_CTRL_AN_EN			OSI_BIT(12)
 #define XPCS_SR_MII_CTRL_AN_ENABLE		OSI_BIT(12)
 #define XPCS_VR_MII_AN_INTR_STS_CL37_ANCMPLT_INTR OSI_BIT(0)
@@ -73,6 +78,7 @@
 
 int xpcs_init(struct osi_core_priv_data *osi_core);
 int xpcs_start(struct osi_core_priv_data *osi_core);
+int xpcs_eee(void *xpcs_base, unsigned int en_dis);
 
 /**
  * @brief xpcs_read - read from xpcs.

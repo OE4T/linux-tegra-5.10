@@ -24,6 +24,37 @@
 #define MGBE_CORE_H_
 
 /**
+ * @addtogroup - MGBE-LPI LPI configuration macros
+ *
+ * @brief LPI timers and config register field masks.
+ * @{
+ */
+/* LPI LS timer - minimum time (in milliseconds) for which the link status from
+ * PHY should be up before the LPI pattern can be transmitted to the PHY.
+ * Default 1sec.
+ */
+#define MGBE_DEFAULT_LPI_LS_TIMER	(unsigned int)1000
+#define MGBE_LPI_LS_TIMER_MASK		0x3FFU
+#define MGBE_LPI_LS_TIMER_SHIFT		16U
+/* LPI TW timer - minimum time (in microseconds) for which MAC wait after it
+ * stops transmitting LPI pattern before resuming normal tx.
+ * Default 21us
+ */
+#define MGBE_DEFAULT_LPI_TW_TIMER	0x15U
+#define MGBE_LPI_TW_TIMER_MASK		0xFFFFU
+/* LPI entry timer - Time in microseconds that MAC will wait to enter LPI mode
+ * after all tx is complete.
+ * Default 1sec.
+ */
+#define MGBE_LPI_ENTRY_TIMER_MASK	0xFFFF8U
+/* 1US TIC counter - This counter should be programmed with the number of clock
+ * cycles of CSR clock that constitutes a period of 1us.
+ * it should be APB clock in MHZ i.e 408-1 for silicon and 13MHZ-1 for uFPGA
+ */
+#define MGBE_1US_TIC_COUNTER		0xC
+/** @} */
+
+/**
  * @addtogroup MGBE-MAC MAC register offsets
  *
  * @brief MGBE MAC register offsets
@@ -46,6 +77,7 @@
 #define MGBE_MAC_LPI_CSR		0x00D0
 #define MGBE_MAC_LPI_TIMER_CTRL		0x00D4
 #define MGBE_MAC_LPI_EN_TIMER		0x00D8
+#define MGBE_MAC_1US_TIC_COUNT		0x00DC
 #define MGBE_MDIO_SCCD			0x0204
 #define MGBE_MDIO_SCCA			0x0200
 #define MGBE_MAC_MA0HR			0x0300
@@ -302,6 +334,10 @@
 #define MGBE_MAC_VLANTR_DOVLTC			OSI_BIT(20)
 #define MGBE_MAC_VLANTIR_VLTI			OSI_BIT(20)
 #define MGBE_MAC_VLANTIRR_CSVL			OSI_BIT(19)
+#define MGBE_MAC_LPI_CSR_LPITE			OSI_BIT(20)
+#define MGBE_MAC_LPI_CSR_LPITXA			OSI_BIT(19)
+#define MGBE_MAC_LPI_CSR_PLS			OSI_BIT(17)
+#define MGBE_MAC_LPI_CSR_LPIEN			OSI_BIT(16)
 
 /* DMA SBUS */
 #define MGBE_DMA_SBUS_BLEN8			OSI_BIT(2)

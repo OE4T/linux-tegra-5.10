@@ -358,6 +358,18 @@ void mgbe_read_mmc(struct osi_core_priv_data *osi_core)
 	mmc->mmc_rx_watchdog_error =
 		update_mmc_val(osi_core, mmc->mmc_rx_watchdog_error,
 			       MMC_RXWATCHDOGERROR);
+	mmc->mmc_tx_lpi_usec_cntr =
+		update_mmc_val(osi_core, mmc->mmc_tx_lpi_usec_cntr,
+			       MMC_TXLPIUSECCNTR);
+	mmc->mmc_tx_lpi_tran_cntr =
+		update_mmc_val(osi_core, mmc->mmc_tx_lpi_tran_cntr,
+			       MMC_TXLPITRANCNTR);
+	mmc->mmc_rx_lpi_usec_cntr =
+		update_mmc_val(osi_core, mmc->mmc_rx_lpi_usec_cntr,
+			       MMC_RXLPIUSECCNTR);
+	mmc->mmc_rx_lpi_tran_cntr =
+		update_mmc_val(osi_core, mmc->mmc_rx_lpi_tran_cntr,
+			       MMC_RXLPITRANCNTR);
 	mmc->mmc_rx_ipv4_gd =
 		update_mmc_val(osi_core, mmc->mmc_rx_ipv4_gd,
 			       MMC_RXIPV4_GD_PKTS_L);

@@ -1877,7 +1877,7 @@ static void mgbe_configure_mac(struct osi_core_priv_data *osi_core)
 	/* Configure default flow control settings */
 	if (osi_core->pause_frames == OSI_PAUSE_FRAMES_ENABLE) {
 		osi_core->flow_ctrl = (OSI_FLOW_CTRL_TX | OSI_FLOW_CTRL_RX);
-		if (mgbe_config_flow_control(osi_core->base,
+		if (mgbe_config_flow_control(osi_core,
 					     osi_core->flow_ctrl) != 0) {
 			OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
 				"Failed to set flow control configuration\n",
@@ -2908,6 +2908,127 @@ static int mgbe_read_phy_reg(struct osi_core_priv_data *osi_core,
 }
 
 /**
+ * @brief mgbe_disable_tx_lpi - Helper function to disable Tx LPI.
+ *
+ * Algorithm:
+ * Clear the bits to enable Tx LPI, Tx LPI automate, LPI Tx Timer and
+ * PHY Link status in the LPI control/status register
+ *
+ * @param[in] addr: base address of memory mapped register space of MAC.
+ *
+ * @note MAC has to be out of reset, and clocks supplied.
+ */
+static inline void mgbe_disable_tx_lpi(void *addr)
+{
+	unsigned int lpi_csr = 0;
+
+	/* Disable LPI control bits */
+	lpi_csr = osi_readl((unsigned char *)addr + MGBE_MAC_LPI_CSR);
+	lpi_csr &= ~(MGBE_MAC_LPI_CSR_LPITE | MGBE_MAC_LPI_CSR_LPITXA |
+		     MGBE_MAC_LPI_CSR_PLS | MGBE_MAC_LPI_CSR_LPIEN);
+	osi_writel(lpi_csr, (unsigned char *)addr + MGBE_MAC_LPI_CSR);
+}
+
+/**
+ * @brief mgbe_configure_eee - Configure the EEE LPI mode
+ *
+ * Algorithm: This routine configures EEE LPI mode in the MAC.
+ * 1) The time (in microsecond) to wait before resuming transmission after
+ * exiting from LPI
+ * 2) The time (in millisecond) to wait before LPI pattern can be transmitted
+ * after PHY link is up) are not configurable. Default values are used in this
+ * routine.
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in] tx_lpi_enable: enable (1)/disable (0) flag for Tx lpi
+ * @param[in] tx_lpi_timer: Tx LPI entry timer in usec. Valid upto
+ * OSI_MAX_TX_LPI_TIMER in steps of 8usec.
+ *
+ * @note Required clks and resets has to be enabled.
+ * MAC/PHY should be initialized
+ *
+ */
+static void mgbe_configure_eee(struct osi_core_priv_data *osi_core,
+			       unsigned int tx_lpi_enabled,
+			       unsigned int tx_lpi_timer)
+{
+	unsigned int lpi_csr = 0;
+	unsigned int lpi_timer_ctrl = 0;
+	unsigned int lpi_entry_timer = 0;
+	unsigned int tic_counter = 0;
+	void *addr =  osi_core->base;
+
+	if (xpcs_eee(osi_core->xpcs_base, tx_lpi_enabled) != 0) {
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+			     "xpcs_eee call failed\n", 0ULL);
+		return;
+	}
+
+	if (tx_lpi_enabled != OSI_DISABLE) {
+		/** 3. Program LST (bits[25:16]) and TWT (bits[15:0]) in
+		 *	MAC_LPI_Timers_Control Register
+		 * Configure the following timers.
+		 *  a. LPI LS timer - minimum time (in milliseconds) for
+		 *     which the link status from PHY should be up before
+		 *     the LPI pattern can be transmitted to the PHY. Default
+		 *     1sec
+		 * b. LPI TW timer - minimum time (in microseconds) for which
+		 *     MAC waits after it stops transmitting LPI pattern before
+		 *     resuming normal tx. Default 21us
+		 */
+
+		lpi_timer_ctrl |= ((MGBE_DEFAULT_LPI_LS_TIMER <<
+				   MGBE_LPI_LS_TIMER_SHIFT) &
+				   MGBE_LPI_LS_TIMER_MASK);
+		lpi_timer_ctrl |= (MGBE_DEFAULT_LPI_TW_TIMER &
+				   MGBE_LPI_TW_TIMER_MASK);
+		osi_writel(lpi_timer_ctrl, (unsigned char *)addr +
+			   MGBE_MAC_LPI_TIMER_CTRL);
+
+		/* 4. For GMII, read the link status of the PHY chip by
+		 * using the MDIO interface and update Bit 17 of
+		 * MAC_LPI_Control_Status register accordingly. This update
+		 * should be done whenever the link status in the PHY chip
+		 * changes. For XGMII, the update is automatic unless
+		 * PLSDIS bit is set." (skip) */
+		/* 5. Program the MAC_1US_Tic_Counter as per the frequency
+		 *	of the clock used for accessing the CSR slave port.
+		 */
+		/* Should be same as (ABP clock freq - 1) = 12 = 0xC, currently
+		 * from define but we should get it from pdata->clock  TODO */
+		tic_counter = MGBE_1US_TIC_COUNTER;
+		osi_writel(tic_counter, (unsigned char *)addr +
+			   MGBE_MAC_1US_TIC_COUNT);
+
+		/* 6. Program the MAC_LPI_Auto_Entry_Timer register (LPIET)
+		 *	 with the IDLE time for which the MAC should wait
+		 *	 before entering the LPI state on its own.
+		 * LPI entry timer - Time in microseconds that MAC will wait
+		 * to enter LPI mode after all tx is complete. Default 1sec
+		 */
+		lpi_entry_timer |= (tx_lpi_timer & MGBE_LPI_ENTRY_TIMER_MASK);
+		osi_writel(lpi_entry_timer, (unsigned char *)addr +
+			   MGBE_MAC_LPI_EN_TIMER);
+
+		/* 7. Set LPIATE and LPITXA (bit[20:19]) of
+		 *    MAC_LPI_Control_Status register to enable the auto-entry
+		 *    into LPI and auto-exit of MAC from LPI state.
+		 * 8. Set LPITXEN (bit[16]) of MAC_LPI_Control_Status register
+		 *    to make the MAC Transmitter enter the LPI state. The MAC
+		 *    enters the LPI mode after completing all scheduled
+		 *    packets and remain IDLE for the time indicated by LPIET.
+		 */
+		lpi_csr = osi_readl((unsigned char *)addr + MGBE_MAC_LPI_CSR);
+		lpi_csr |= (MGBE_MAC_LPI_CSR_LPITE | MGBE_MAC_LPI_CSR_LPITXA |
+			    MGBE_MAC_LPI_CSR_PLS | MGBE_MAC_LPI_CSR_LPIEN);
+		osi_writel(lpi_csr, (unsigned char *)addr + MGBE_MAC_LPI_CSR);
+	} else {
+		/* Disable LPI control bits */
+		mgbe_disable_tx_lpi(osi_core->base);
+	}
+}
+
+/**
  * @brief mgbe_init_core_ops - Initialize MGBE MAC core operations
  */
 void mgbe_init_core_ops(struct core_ops *ops)
@@ -2957,4 +3078,5 @@ void mgbe_init_core_ops(struct core_ops *ops)
 	ops->restore_registers = mgbe_restore_registers;
 	ops->read_mmc = mgbe_read_mmc;
 	ops->reset_mmc = mgbe_reset_mmc;
+	ops->configure_eee = mgbe_configure_eee;
 };
