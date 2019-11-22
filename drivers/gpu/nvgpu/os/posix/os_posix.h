@@ -54,6 +54,11 @@ struct nvgpu_os_posix {
 	 */
 	bool mm_is_iommuable;
 	bool mm_sgt_is_iommuable;
+
+	/*
+	 * Parameters to change SOC behavior
+	 */
+	bool is_soc_t194_a01;
 };
 
 static inline struct nvgpu_os_posix *nvgpu_os_posix_from_gk20a(struct gk20a *g)

@@ -22,6 +22,7 @@
 
 #include <nvgpu/timers.h>
 #include <nvgpu/soc.h>
+#include <os/posix/os_posix.h>
 
 bool nvgpu_platform_is_silicon(struct gk20a *g)
 {
@@ -50,7 +51,9 @@ bool nvgpu_is_bpmp_running(struct gk20a *g)
 
 bool nvgpu_is_soc_t194_a01(struct gk20a *g)
 {
-	return false;
+	struct nvgpu_os_posix *p = nvgpu_os_posix_from_gk20a(g);
+
+	return p->is_soc_t194_a01;
 }
 
 void nvgpu_delay_usecs(unsigned int usecs)
