@@ -2,7 +2,7 @@ NVIDIA generic carveout
 -----------------------
 
 This is child node of upstream /reserved-memory node.
-It's used for OS to explude the memory region for normal usage.
+It's used for OS to exclude the memory region for normal usage.
 
 The memory region,"generic_carveout" is a heap and used by nvmap
 clients to allocate physical memory from the heap
