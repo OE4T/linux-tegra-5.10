@@ -167,12 +167,6 @@ static u8 volt_dev_operation_type_convert(u8 vbios_type)
 	switch (vbios_type) {
 	case NV_VBIOS_VDT_1X_ENTRY_PARAM1_PSV_OPERATION_TYPE_DEFAULT:
 		return CTRL_VOLT_DEVICE_OPERATION_TYPE_DEFAULT;
-
-	case NV_VBIOS_VDT_1X_ENTRY_PARAM1_PSV_OPERATION_TYPE_LPWR_STEADY_STATE:
-		return CTRL_VOLT_DEVICE_OPERATION_TYPE_LPWR_STEADY_STATE;
-
-	case NV_VBIOS_VDT_1X_ENTRY_PARAM1_PSV_OPERATION_TYPE_LPWR_SLEEP_STATE:
-		return CTRL_VOLT_DEVICE_OPERATION_TYPE_LPWR_SLEEP_STATE;
 	case NV_VBIOS_VDT_1X_ENTRY_PARAM1_PSV_OPERATION_TYPE_IPC_VMIN:
 		return CTRL_VOLT_VOLT_DEVICE_OPERATION_TYPE_IPC_VMIN;
 	}
@@ -278,10 +272,6 @@ static int volt_get_voltage_device_table_1x_psv(struct gk20a *g,
 			ptmp_dev->source =
 				NV_PMU_PMGR_PWM_SOURCE_THERM_VID_PWM_0;
 		}
-		if (volt_domain == CTRL_VOLT_DOMAIN_SRAM) {
-			ptmp_dev->source =
-				NV_PMU_PMGR_PWM_SOURCE_THERM_VID_PWM_1;
-		}
 
 		if (ptmp_dev->super.operation_type ==
 			CTRL_VOLT_VOLT_DEVICE_OPERATION_TYPE_IPC_VMIN) {
@@ -290,23 +280,9 @@ static int volt_get_voltage_device_table_1x_psv(struct gk20a *g,
 				ptmp_dev->source =
 					NV_PMU_PMGR_PWM_SOURCE_THERM_IPC_VMIN_VID_PWM_0;
 			}
-
-			if (ptmp_dev->source ==
-				NV_PMU_PMGR_PWM_SOURCE_THERM_VID_PWM_1) {
-				ptmp_dev->source =
-					NV_PMU_PMGR_PWM_SOURCE_THERM_IPC_VMIN_VID_PWM_1;
-			}
 		}
 		ptmp_dev->raw_period =
 			g->ops.clk.get_crystal_clk_hz(g) / frequency_hz;
-	} else if (ptmp_dev->super.operation_type ==
-		CTRL_VOLT_DEVICE_OPERATION_TYPE_LPWR_STEADY_STATE) {
-		ptmp_dev->source = NV_PMU_PMGR_PWM_SOURCE_RSVD_0;
-		ptmp_dev->raw_period = 0;
-	} else if (ptmp_dev->super.operation_type ==
-		CTRL_VOLT_DEVICE_OPERATION_TYPE_LPWR_SLEEP_STATE) {
-		ptmp_dev->source = NV_PMU_PMGR_PWM_SOURCE_RSVD_1;
-		ptmp_dev->raw_period = 0;
 	}
 
 	/* Initialize data for parent class. */
