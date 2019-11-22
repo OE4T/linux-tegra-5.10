@@ -33,6 +33,11 @@
 #include <nvgpu/dma.h>
 #include <nvgpu/gops_mc.h>
 
+/* for get_litter testing */
+#include "hal/init/hal_gv11b_litter.h"
+#include <nvgpu/hw/gv11b/hw_proj_gv11b.h>
+#include <nvgpu/class.h>
+
 #include "nvgpu-init.h"
 
 /* value for GV11B */
@@ -41,6 +46,7 @@
 #define GP10B_FUSE_REG_BASE		0x00021000U
 #define GP10B_FUSE_OPT_PRIV_SEC_EN	(GP10B_FUSE_REG_BASE+0x434U)
 
+#define assert(cond) unit_assert(cond, goto fail)
 /*
  * Mock I/O
  */
@@ -164,6 +170,108 @@ int test_free_env(struct unit_module *m,
 	nvgpu_sw_quiesce_remove_support(g);
 
 	return UNIT_SUCCESS;
+}
+
+int test_get_litter_value(struct unit_module *m,
+			 struct gk20a *g, void *args)
+{
+	assert(gv11b_get_litter_value(g, GPU_LIT_NUM_GPCS) ==
+					proj_scal_litter_num_gpcs_v());
+	assert(gv11b_get_litter_value(g, GPU_LIT_NUM_PES_PER_GPC) ==
+					proj_scal_litter_num_pes_per_gpc_v());
+	assert(gv11b_get_litter_value(g, GPU_LIT_NUM_ZCULL_BANKS) ==
+					proj_scal_litter_num_zcull_banks_v());
+	assert(gv11b_get_litter_value(g, GPU_LIT_NUM_TPC_PER_GPC) ==
+					proj_scal_litter_num_tpc_per_gpc_v());
+	assert(gv11b_get_litter_value(g, GPU_LIT_NUM_SM_PER_TPC) ==
+					proj_scal_litter_num_sm_per_tpc_v());
+	assert(gv11b_get_litter_value(g, GPU_LIT_NUM_FBPS) ==
+					proj_scal_litter_num_fbps_v());
+	assert(gv11b_get_litter_value(g, GPU_LIT_GPC_BASE) ==
+					proj_gpc_base_v());
+	assert(gv11b_get_litter_value(g, GPU_LIT_GPC_STRIDE) ==
+					proj_gpc_stride_v());
+	assert(gv11b_get_litter_value(g, GPU_LIT_GPC_SHARED_BASE) ==
+					proj_gpc_shared_base_v());
+	assert(gv11b_get_litter_value(g, GPU_LIT_TPC_IN_GPC_BASE) ==
+					proj_tpc_in_gpc_base_v());
+	assert(gv11b_get_litter_value(g, GPU_LIT_TPC_IN_GPC_STRIDE) ==
+					proj_tpc_in_gpc_stride_v());
+	assert(gv11b_get_litter_value(g, GPU_LIT_TPC_IN_GPC_SHARED_BASE) ==
+					proj_tpc_in_gpc_shared_base_v());
+	assert(gv11b_get_litter_value(g, GPU_LIT_PPC_IN_GPC_BASE) ==
+					proj_ppc_in_gpc_base_v());
+	assert(gv11b_get_litter_value(g, GPU_LIT_PPC_IN_GPC_SHARED_BASE) ==
+					proj_ppc_in_gpc_shared_base_v());
+	assert(gv11b_get_litter_value(g, GPU_LIT_PPC_IN_GPC_STRIDE) ==
+					proj_ppc_in_gpc_stride_v());
+	assert(gv11b_get_litter_value(g, GPU_LIT_ROP_BASE) ==
+					proj_rop_base_v());
+	assert(gv11b_get_litter_value(g, GPU_LIT_ROP_STRIDE) ==
+					proj_rop_stride_v());
+	assert(gv11b_get_litter_value(g, GPU_LIT_ROP_SHARED_BASE) ==
+					proj_rop_shared_base_v());
+	assert(gv11b_get_litter_value(g, GPU_LIT_HOST_NUM_ENGINES) ==
+					proj_host_num_engines_v());
+	assert(gv11b_get_litter_value(g, GPU_LIT_HOST_NUM_PBDMA) ==
+					proj_host_num_pbdma_v());
+	assert(gv11b_get_litter_value(g, GPU_LIT_LTC_STRIDE) ==
+					proj_ltc_stride_v());
+	assert(gv11b_get_litter_value(g, GPU_LIT_LTS_STRIDE) ==
+					proj_lts_stride_v());
+	assert(gv11b_get_litter_value(g, GPU_LIT_SM_PRI_STRIDE) ==
+					proj_sm_stride_v());
+	assert(gv11b_get_litter_value(g, GPU_LIT_SMPC_PRI_BASE) ==
+					proj_smpc_base_v());
+	assert(gv11b_get_litter_value(g, GPU_LIT_SMPC_PRI_SHARED_BASE) ==
+					proj_smpc_shared_base_v());
+	assert(gv11b_get_litter_value(g, GPU_LIT_SMPC_PRI_UNIQUE_BASE) ==
+					proj_smpc_unique_base_v());
+	assert(gv11b_get_litter_value(g, GPU_LIT_SMPC_PRI_STRIDE) ==
+					proj_smpc_stride_v());
+	assert(gv11b_get_litter_value(g, GPU_LIT_NUM_FBPAS) ==
+					proj_scal_litter_num_fbpas_v());
+	assert(gv11b_get_litter_value(g, GPU_LIT_FBPA_STRIDE) ==
+					0);
+	assert(gv11b_get_litter_value(g, GPU_LIT_FBPA_BASE) ==
+					0);
+	assert(gv11b_get_litter_value(g, GPU_LIT_FBPA_SHARED_BASE) ==
+					0);
+	assert(gv11b_get_litter_value(g, GPU_LIT_COMPUTE_CLASS) ==
+					VOLTA_COMPUTE_A);
+	assert(gv11b_get_litter_value(g, GPU_LIT_GPFIFO_CLASS) ==
+					VOLTA_CHANNEL_GPFIFO_A);
+	assert(gv11b_get_litter_value(g, GPU_LIT_I2M_CLASS) ==
+					KEPLER_INLINE_TO_MEMORY_B);
+	assert(gv11b_get_litter_value(g, GPU_LIT_DMA_COPY_CLASS) ==
+					VOLTA_DMA_COPY_A);
+	assert(gv11b_get_litter_value(g, GPU_LIT_GPC_PRIV_STRIDE) ==
+					proj_gpc_priv_stride_v());
+	assert(gv11b_get_litter_value(g, GPU_LIT_PERFMON_PMMGPCTPCA_DOMAIN_START) ==
+					2);
+	assert(gv11b_get_litter_value(g, GPU_LIT_PERFMON_PMMGPCTPCB_DOMAIN_START) ==
+					6);
+	assert(gv11b_get_litter_value(g, GPU_LIT_PERFMON_PMMGPCTPC_DOMAIN_COUNT) ==
+					4);
+	assert(gv11b_get_litter_value(g, GPU_LIT_PERFMON_PMMFBP_LTC_DOMAIN_START) ==
+					1);
+	assert(gv11b_get_litter_value(g, GPU_LIT_PERFMON_PMMFBP_LTC_DOMAIN_COUNT) ==
+					2);
+	assert(gv11b_get_litter_value(g, GPU_LIT_PERFMON_PMMFBP_ROP_DOMAIN_START) ==
+					3);
+	assert(gv11b_get_litter_value(g, GPU_LIT_PERFMON_PMMFBP_ROP_DOMAIN_COUNT) ==
+					2);
+
+	if (!EXPECT_BUG(gv11b_get_litter_value(g, U32_MAX))) {
+		unit_err(m, "%s: failed to detect INVALID value\n",
+			 __func__);
+		goto fail;
+	}
+
+	return UNIT_SUCCESS;
+
+fail:
+	return UNIT_FAIL;
 }
 
 int test_can_busy(struct unit_module *m,
@@ -557,6 +665,7 @@ int test_poweroff(struct unit_module *m, struct gk20a *g, void *args)
 
 struct unit_module_test init_tests[] = {
 	UNIT_TEST(init_setup_env,			test_setup_env,		NULL, 0),
+	UNIT_TEST(get_litter_value,			test_get_litter_value,	NULL, 0),
 	UNIT_TEST(init_can_busy,			test_can_busy,		NULL, 0),
 	UNIT_TEST(init_get_put,				test_get_put,		NULL, 0),
 	UNIT_TEST(init_hal_init,			test_hal_init,		NULL, 0),

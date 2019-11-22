@@ -70,6 +70,27 @@ int test_free_env(struct unit_module *m,
 			 struct gk20a *g, void *args);
 
 /**
+ * Test specification for: test_get_litter_value
+ *
+ * Description: Validate gv11b_get_litter_value()
+ *
+ * Test Type: Feature based
+ *
+ * Input: None
+ *
+ * Steps:
+ *   - Call gv11b_get_litter_value() with all valid values and verify correct
+ *     return value.
+ *   - Call gv11b_get_litter_value() with invalid value and verify BUG().
+ *
+ * Output:
+ * - UNIT_FAIL if nvgpu_can_busy() returns the incorrect value.
+ * - UNIT_SUCCESS otherwise
+ */
+int test_get_litter_value(struct unit_module *m,
+			  struct gk20a *g, void *args);
+
+/**
  * Test specification for: test_can_busy
  *
  * Description: Validate nvgpu_can_busy()
