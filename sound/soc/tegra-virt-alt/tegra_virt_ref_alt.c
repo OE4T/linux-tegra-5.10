@@ -65,18 +65,12 @@ static void tegra_virt_set_dai_params(
 	dai_link[dai_id].params = user_params;
 }
 
-static struct tegra_virt_admaif_soc_data soc_data_tegra210 = {
-	.num_ch = TEGRA210_ADMAIF_CHANNEL_COUNT,
-};
-
 static struct tegra_virt_admaif_soc_data soc_data_tegra186 = {
 	.num_ch = TEGRA186_ADMAIF_CHANNEL_COUNT,
 };
 
 
 static const struct of_device_id tegra_virt_machine_of_match[] = {
-	{ .compatible = "nvidia,tegra210-virt-pcm",
-		.data = &soc_data_tegra210 },
 	{ .compatible = "nvidia,tegra186-virt-pcm",
 		.data = &soc_data_tegra186},
 	{},
