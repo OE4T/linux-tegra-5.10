@@ -248,9 +248,8 @@ u32 gm20b_pbdma_acquire_val(u64 timeout)
 		return val;
 	}
 
-	timeout *= 80UL;
-	do_div(timeout, 100U); /* set acquire timeout to 80% of channel wdt */
-	timeout *= 1000000UL; /* ms -> ns */
+	/* set acquire timeout to 80% of channel wdt, and convert to ns */
+	timeout = nvgpu_safe_mult_u64(timeout, (1000000UL * 80UL) / 100UL);
 	do_div(timeout, 1024U); /* in unit of 1024ns */
 	tmp = nvgpu_fls(timeout >> 32U);
 NVGPU_COV_WHITELIST_BLOCK_BEGIN(false_positive, 1, NVGPU_MISRA(Rule, 14_4), "Bug 2277532")
