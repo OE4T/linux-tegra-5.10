@@ -989,19 +989,6 @@ int test_init_error_paths(struct unit_module *m, struct gk20a *g, void *__args)
 		goto exit;
 	}
 
-	/* Cause nvgpu_allocator_init(BUDDY) to fail for user VMA */
-	nvgpu_posix_enable_fault_injection(kmem_fi, true, 12);
-	ret = nvgpu_vm_do_init(&g->mm, vm,
-				g->ops.mm.gmmu.get_default_big_page_size(),
-				low_hole, kernel_reserved, aperture_size,
-				big_pages, false, false, __func__);
-	nvgpu_posix_enable_fault_injection(kmem_fi, false, 0);
-	if (ret != -ENOMEM) {
-		unit_err(m, "nvgpu_vm_do_init did not fail as expected (A).\n");
-		ret = UNIT_FAIL;
-		goto exit;
-	}
-
 	/* Success with big pages and not unified VA */
 	ret = nvgpu_vm_do_init(&g->mm, vm,
 				g->ops.mm.gmmu.get_default_big_page_size(),
