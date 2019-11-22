@@ -1829,6 +1829,11 @@
         "unit": "top"
     },
     {
+        "test": "class_validate",
+        "test_level": 0,
+        "unit": "class"
+    },
+    {
         "test": "gr_falcon_init",
         "test_level": 0,
         "unit": "nvgpu_gr_falcon"

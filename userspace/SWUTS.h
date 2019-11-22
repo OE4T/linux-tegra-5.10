@@ -73,6 +73,7 @@
  *   - @ref SWUTS-init_test
  *   - @ref SWUTS-channel_os
  *   - @ref SWUTS-top
+ *   - @ref SWUTS-class
  *   - @ref SWUTS-gr
  *   - @ref SWUTS-gr-setup
  *   - @ref SWUTS-gr-intr

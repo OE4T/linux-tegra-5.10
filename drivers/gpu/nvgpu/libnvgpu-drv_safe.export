@@ -74,6 +74,8 @@ gv11b_mc_is_mmu_fault_pending
 gv11b_runlist_entry_size
 gv11b_runlist_get_tsg_entry
 gv11b_runlist_get_ch_entry
+gv11b_class_is_valid_compute
+gv11b_class_is_valid
 gv11b_slcg_bus_gating_prod_size
 gv11b_slcg_bus_get_gating_prod
 gv11b_slcg_ce2_gating_prod_size

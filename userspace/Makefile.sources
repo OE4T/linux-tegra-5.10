@@ -95,6 +95,7 @@ UNITS :=				\
 	$(UNIT_SRC)/fuse		\
 	$(UNIT_SRC)/pmu			\
 	$(UNIT_SRC)/top			\
+	$(UNIT_SRC)/class		\
 	$(UNIT_SRC)/gr			\
 	$(UNIT_SRC)/gr/falcon		\
 	$(UNIT_SRC)/gr/config		\

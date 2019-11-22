@@ -42,6 +42,7 @@ INPUT += ../../../userspace/units/posix/timers/posix-timers.h
 INPUT += ../../../userspace/units/ptimer/nvgpu-ptimer.h
 INPUT += ../../../userspace/units/acr/nvgpu-acr.h
 INPUT += ../../../userspace/units/top/nvgpu-top.h
+INPUT += ../../../userspace/units/class/nvgpu-class.h
 INPUT += ../../../userspace/units/gr/nvgpu-gr.h
 INPUT += ../../../userspace/units/gr/setup/nvgpu-gr-setup.h
 INPUT += ../../../userspace/units/gr/intr/nvgpu-gr-intr.h
