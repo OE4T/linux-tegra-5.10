@@ -270,9 +270,9 @@ u32 gv11b_pbdma_get_fc_target(void)
 			pbdma_target_ce_ctx_valid_true_f());
 }
 
-u32 gv11b_pbdma_set_channel_info_veid(u32 channel_id)
+u32 gv11b_pbdma_set_channel_info_veid(u32 subctx_id)
 {
-	return pbdma_set_channel_info_veid_f(channel_id);
+	return pbdma_set_channel_info_veid_f(subctx_id);
 }
 
 u32 gv11b_pbdma_config_userd_writeback_enable(void)
