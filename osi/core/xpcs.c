@@ -269,3 +269,57 @@ int xpcs_init(struct osi_core_priv_data *osi_core)
 
 	return 0;
 }
+
+/**
+ * @brief xpcs_eee - XPCS enable/disable EEE
+ *
+ * Algorithm: This routine update register related to EEE
+ * for XPCS.
+ *
+ * @param[in] xpcs_base: XPCS virtual base address
+ * @param[in] en_dis: enable - 1 or disable - 0
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+int xpcs_eee(void *xpcs_base, unsigned int en_dis)
+{
+	unsigned int val = 0x0U;
+
+	if (en_dis != OSI_ENABLE && en_dis != OSI_DISABLE) {
+		return  -1;
+	}
+
+	if (en_dis == OSI_DISABLE) {
+		val = xpcs_read(xpcs_base, XPCS_VR_XS_PCS_EEE_MCTRL0);
+		val &= ~XPCS_VR_XS_PCS_EEE_MCTRL0_LTX_EN;
+		val &= ~XPCS_VR_XS_PCS_EEE_MCTRL0_LRX_EN;
+		xpcs_write(xpcs_base, XPCS_VR_XS_PCS_EEE_MCTRL0, val);
+		return 0;
+	}
+
+	/* 1. Check if DWC_xpcs supports the EEE feature by
+	 * reading the SR_XS_PCS_EEE_ABL register
+	 * 1000BASEX-Only is different config then else so can (skip) */
+
+	/* 2. Program various timers used in the EEE mode depending on the
+	 * clk_eee_i clock frequency. default times are same as IEEE std
+	 * clk_eee_i() is 102MHz. MULT_FACT_100NS = 9 because 9.8ns*10 = 98
+	 * which is between 80 and 120  this leads to default setting match */
+
+	/* TODO for uFPGA */
+
+	val = xpcs_read(xpcs_base, XPCS_VR_XS_PCS_EEE_MCTRL0);
+	/* 3. If FEC is enabled in the KR mode (skip in FPGA)*/
+	/* 4. enable the EEE feature on the Tx path and Rx path */
+	//val &= ~XPCS_VR_XS_PCS_EEE_MCTRL0_EEE_SLR_BYP;
+	val &= ~XPCS_VR_XS_PCS_EEE_MCTRL0_LTX_EN;
+	val &= ~XPCS_VR_XS_PCS_EEE_MCTRL0_LRX_EN;
+
+	val |= (XPCS_VR_XS_PCS_EEE_MCTRL0_LTX_EN |
+	//	XPCS_VR_XS_PCS_EEE_MCTRL0_LTX_EN |
+		XPCS_VR_XS_PCS_EEE_MCTRL0_LRX_EN);
+	xpcs_write(xpcs_base, XPCS_VR_XS_PCS_EEE_MCTRL0, val);
+
+	return 0;
+}
