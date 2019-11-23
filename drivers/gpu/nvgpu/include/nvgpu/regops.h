@@ -47,7 +47,6 @@
 #define NVGPU_DBG_REG_OP_TYPE_GR_CTX_SM                      0x00000004U
 #define NVGPU_DBG_REG_OP_TYPE_GR_CTX_CROP                    0x00000008U
 #define NVGPU_DBG_REG_OP_TYPE_GR_CTX_ZROP                    0x00000010U
-/*#define NVGPU_DBG_REG_OP_TYPE_FB                           (0x00000020)*/
 #define NVGPU_DBG_REG_OP_TYPE_GR_CTX_QUAD                    0x00000040U
 
 /* valid status values */
