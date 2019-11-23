@@ -24,8 +24,9 @@
 #include <nvgpu/log.h>
 #include <nvgpu/io.h>
 #include <nvgpu/mm.h>
-#ifdef CONFIG_NVGPU_LS_PMU
+#ifdef CONFIG_NVGPU_POWER_PG
 #include <nvgpu/pmu/pmu_pg.h>
+#include <nvgpu/power_features/pg.h>
 #endif
 #include <nvgpu/gr/ctx.h>
 #include <nvgpu/gr/subctx.h>
@@ -792,13 +793,25 @@ int nvgpu_gr_obj_ctx_alloc(struct gk20a *g,
 	nvgpu_gr_obj_ctx_commit_inst(g, inst_block, gr_ctx, subctx,
 			nvgpu_gr_ctx_get_ctx_mem(gr_ctx)->gpu_va);
 
-	/* init golden image, ELPG enabled after this is done */
+	/* init golden image */
 	err = nvgpu_gr_obj_ctx_alloc_golden_ctx_image(g, golden_image,
 		global_ctx_buffer, config, gr_ctx, inst_block);
 	if (err != 0) {
 		nvgpu_err(g, "fail to init golden ctx image");
 		goto out;
 	}
+#ifdef CONFIG_NVGPU_POWER_PG
+	/* Re-enable ELPG now that golden image has been initialized.
+	 * The PMU PG init code may already have tried to enable elpg, but
+	 * would not have been able to complete this action since the golden
+	 * image hadn't been initialized yet, so do this now.
+	 */
+	err = nvgpu_pmu_reenable_elpg(g);
+	if (err != 0) {
+		nvgpu_err(g, "fail to re-enable elpg");
+		goto out;
+	}
+#endif
 
 	/* load golden image */
 	err = nvgpu_gr_ctx_load_golden_ctx_image(g, gr_ctx,

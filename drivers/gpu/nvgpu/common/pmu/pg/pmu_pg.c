@@ -468,6 +468,36 @@ exit_unlock:
 	return ret;
 }
 
+int nvgpu_pmu_reenable_elpg(struct gk20a *g)
+{
+	struct nvgpu_pmu *pmu = g->pmu;
+	int ret = 0;
+
+	nvgpu_log_fn(g, " ");
+
+	if (!is_pg_supported(g, pmu->pg)) {
+		return ret;
+	}
+
+	/* If pmu enabled, re-enable by first disabling, then
+	 * enabling.
+	 */
+	if (pmu->pg->elpg_refcnt != 0) {
+		ret = nvgpu_pmu_disable_elpg(g);
+		if (ret != 0) {
+			nvgpu_err(g, "failed disabling elpg");
+			goto exit;
+		}
+		ret = nvgpu_pmu_enable_elpg(g);
+		if (ret != 0) {
+			nvgpu_err(g, "failed enabling elpg");
+			goto exit;
+		}
+	}
+exit:
+	return ret;
+}
+
 /* PG init */
 static void pmu_handle_pg_stat_msg(struct gk20a *g, struct pmu_msg *msg,
 			void *param, u32 status)

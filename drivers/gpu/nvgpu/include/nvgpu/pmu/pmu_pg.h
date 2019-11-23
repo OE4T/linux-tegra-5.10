@@ -123,6 +123,7 @@ void nvgpu_pmu_pg_destroy(struct gk20a *g, struct nvgpu_pmu *pmu,
 	struct nvgpu_pmu_pg *pg);
 
 /* PG enable/disable */
+int nvgpu_pmu_reenable_elpg(struct gk20a *g);
 int nvgpu_pmu_enable_elpg(struct gk20a *g);
 int nvgpu_pmu_disable_elpg(struct gk20a *g);
 int nvgpu_pmu_pg_global_enable(struct gk20a *g, bool enable_pg);
