@@ -105,17 +105,12 @@ int nvgpu_gr_fs_state_init(struct gk20a *g, struct nvgpu_gr_config *config)
 
 	g->ops.gr.init.fs_state(g);
 
-	if (g->ops.gr.config.init_sm_id_table != NULL) {
-		err = g->ops.gr.config.init_sm_id_table(g, config);
-		if (err != 0) {
-			return err;
-		}
-
-		/* Is table empty ? */
-		if (g->ops.gr.init.get_no_of_sm(g) == 0U) {
-			return -EINVAL;
-		}
+	err = g->ops.gr.config.init_sm_id_table(g, config);
+	if (err != 0) {
+		return err;
 	}
+
+	nvgpu_assert(g->ops.gr.init.get_no_of_sm(g) > 0U);
 
 	for (sm_id = 0; sm_id < g->ops.gr.init.get_no_of_sm(g);
 	     sm_id++) {
