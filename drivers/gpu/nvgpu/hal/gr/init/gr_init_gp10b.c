@@ -137,7 +137,7 @@ int gp10b_gr_init_sm_id_config(struct gk20a *g, u32 *tpc_sm_id,
 	return 0;
 }
 
-int gp10b_gr_init_fs_state(struct gk20a *g)
+void gp10b_gr_init_fs_state(struct gk20a *g)
 {
 	u32 data;
 	u32 ecc_val = nvgpu_gr_get_override_ecc_val(g);
@@ -159,7 +159,7 @@ int gp10b_gr_init_fs_state(struct gk20a *g)
 		nvgpu_writel(g, gr_fecs_feature_override_ecc_r(), ecc_val);
 	}
 
-	return gm20b_gr_init_fs_state(g);
+	gm20b_gr_init_fs_state(g);
 }
 
 int gp10b_gr_init_preemption_state(struct gk20a *g)

@@ -79,7 +79,7 @@ u32 gm20b_gr_init_get_sm_id_size(void);
 int gm20b_gr_init_sm_id_config(struct gk20a *g, u32 *tpc_sm_id,
 			       struct nvgpu_gr_config *gr_config);
 void gm20b_gr_init_tpc_mask(struct gk20a *g, u32 gpc_index, u32 pes_tpc_mask);
-int gm20b_gr_init_fs_state(struct gk20a *g);
+void gm20b_gr_init_fs_state(struct gk20a *g);
 void gm20b_gr_init_commit_global_timeslice(struct gk20a *g);
 
 u32 gm20b_gr_init_get_bundle_cb_default_size(struct gk20a *g);

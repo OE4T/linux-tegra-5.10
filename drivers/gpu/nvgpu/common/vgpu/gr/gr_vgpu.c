@@ -451,7 +451,7 @@ static int vgpu_gr_init_gr_config(struct gk20a *g, struct nvgpu_gr *gr)
 		}
 	}
 
-	err = g->ops.gr.init.fs_state(g);
+	err = g->ops.gr.config.init_sm_id_table(g, g->gr->config);
 	if (err) {
 		goto cleanup;
 	}
@@ -1180,15 +1180,6 @@ int vgpu_gr_init_sm_id_table(struct gk20a *g, struct nvgpu_gr_config *gr_config)
 	vgpu_ivc_oob_put_ptr(handle);
 
 	return 0;
-}
-
-int vgpu_gr_init_fs_state(struct gk20a *g)
-{
-	if (!g->ops.gr.config.init_sm_id_table) {
-		return -EINVAL;
-	}
-
-	return g->ops.gr.config.init_sm_id_table(g, g->gr->config);
 }
 
 int vgpu_gr_update_pc_sampling(struct nvgpu_channel *ch, bool enable)

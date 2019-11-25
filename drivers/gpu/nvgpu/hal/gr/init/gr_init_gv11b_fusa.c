@@ -456,13 +456,12 @@ void gv11b_gr_init_tpc_mask(struct gk20a *g, u32 gpc_index, u32 pes_tpc_mask)
 	nvgpu_writel(g, gr_fe_tpc_fs_r(gpc_index), pes_tpc_mask);
 }
 
-int gv11b_gr_init_fs_state(struct gk20a *g)
+void gv11b_gr_init_fs_state(struct gk20a *g)
 {
 	u32 data;
 #ifdef CONFIG_NVGPU_NON_FUSA
 	u32 ecc_val;
 #endif
-	int err = 0;
 	u32 ver = g->params.gpu_arch + g->params.gpu_impl;
 
 	nvgpu_log_fn(g, " ");
@@ -525,8 +524,6 @@ int gv11b_gr_init_fs_state(struct gk20a *g)
 	nvgpu_writel(g, gr_bes_crop_settings_r(),
 		     gr_bes_crop_settings_num_active_ltcs_f(
 			nvgpu_ltc_get_ltc_count(g)));
-
-	return err;
 }
 
 int gv11b_gr_init_preemption_state(struct gk20a *g)

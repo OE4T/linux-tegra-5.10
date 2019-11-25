@@ -438,7 +438,6 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 			.get_no_of_sm = nvgpu_gr_get_no_of_sm,
 			.get_nonpes_aware_tpc =
 					gv11b_gr_init_get_nonpes_aware_tpc,
-			.fs_state = vgpu_gr_init_fs_state,
 			.get_bundle_cb_default_size =
 				gv11b_gr_init_get_bundle_cb_default_size,
 			.get_min_gpm_fifo_depth =

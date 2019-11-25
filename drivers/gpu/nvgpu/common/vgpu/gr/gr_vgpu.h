@@ -83,7 +83,6 @@ int vgpu_gr_resume_contexts(struct gk20a *g,
 		int *ctx_resident_ch_fd);
 int vgpu_gr_init_sm_id_table(struct gk20a *g,
 	 struct nvgpu_gr_config *gr_config);
-int vgpu_gr_init_fs_state(struct gk20a *g);
 int vgpu_gr_update_pc_sampling(struct nvgpu_channel *ch, bool enable);
 void vgpu_gr_init_cyclestats(struct gk20a *g);
 int vgpu_gr_set_preemption_mode(struct nvgpu_channel *ch,

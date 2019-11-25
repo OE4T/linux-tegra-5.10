@@ -103,10 +103,7 @@ int nvgpu_gr_fs_state_init(struct gk20a *g, struct nvgpu_gr_config *config)
 
 	nvgpu_log_fn(g, " ");
 
-	err = g->ops.gr.init.fs_state(g);
-	if (err != 0) {
-		return err;
-	}
+	g->ops.gr.init.fs_state(g);
 
 	if (g->ops.gr.config.init_sm_id_table != NULL) {
 		err = g->ops.gr.config.init_sm_id_table(g, config);

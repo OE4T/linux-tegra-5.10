@@ -382,10 +382,8 @@ void gm20b_gr_init_rop_mapping(struct gk20a *g,
 }
 #endif
 
-int gm20b_gr_init_fs_state(struct gk20a *g)
+void gm20b_gr_init_fs_state(struct gk20a *g)
 {
-	int err = 0;
-
 	nvgpu_log_fn(g, " ");
 
 	nvgpu_writel(g, gr_bes_zrop_settings_r(),
@@ -398,8 +396,6 @@ int gm20b_gr_init_fs_state(struct gk20a *g)
 	nvgpu_writel(g, gr_bes_crop_debug3_r(),
 		     gk20a_readl(g, gr_be0_crop_debug3_r()) |
 		     gr_bes_crop_debug3_comp_vdc_4to2_disable_m());
-
-	return err;
 }
 
 void gm20b_gr_init_commit_global_timeslice(struct gk20a *g)

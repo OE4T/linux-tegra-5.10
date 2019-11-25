@@ -611,7 +611,7 @@ struct gops_gr_init {
 				struct nvgpu_gr_config *gr_config);
 	void (*tpc_mask)(struct gk20a *g,
 			 u32 gpc_index, u32 pes_tpc_mask);
-	int (*fs_state)(struct gk20a *g);
+	void (*fs_state)(struct gk20a *g);
 	void (*pd_tpc_per_gpc)(struct gk20a *g,
 		struct nvgpu_gr_config *gr_config);
 	void (*pd_skip_table_gpc)(struct gk20a *g,
