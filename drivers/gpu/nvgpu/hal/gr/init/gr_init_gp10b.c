@@ -264,6 +264,7 @@ void gp10b_gr_init_commit_global_attrib_cb(struct gk20a *g,
 		gr_gpcs_tpcs_tex_rm_cb_1_valid_true_f(), patch);
 }
 
+#ifdef CONFIG_NVGPU_GRAPHICS
 void gp10b_gr_init_commit_cbes_reserve(struct gk20a *g,
 	struct nvgpu_gr_ctx *gr_ctx, bool patch)
 {
@@ -279,7 +280,6 @@ void gp10b_gr_init_commit_cbes_reserve(struct gk20a *g,
 		patch);
 }
 
-#ifdef CONFIG_NVGPU_GRAPHICS
 u32 gp10b_gr_init_get_attrib_cb_gfxp_default_size(struct gk20a *g)
 {
 	return nvgpu_safe_add_u32(

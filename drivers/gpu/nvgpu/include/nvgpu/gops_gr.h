@@ -662,14 +662,9 @@ struct gops_gr_init {
 				struct nvgpu_gr_ctx *gr_ctx,
 				bool patch);
 	void (*pipe_mode_override)(struct gk20a *g, bool enable);
-	u32 (*get_ctx_attrib_cb_size)(struct gk20a *g, u32 betacb_size,
-				      u32 tpc_count, u32 max_tpc);
 	void (*commit_ctxsw_spill)(struct gk20a *g,
 				   struct nvgpu_gr_ctx *gr_ctx,
 				   u64 addr, u32 size, bool patch);
-	void (*commit_cbes_reserve)(struct gk20a *g,
-				    struct nvgpu_gr_ctx *gr_ctx,
-				    bool patch);
 	u32 (*get_patch_slots)(struct gk20a *g,
 			       struct nvgpu_gr_config *config);
 #ifdef CONFIG_NVGPU_DGPU
@@ -687,6 +682,11 @@ struct gops_gr_init {
 			       u32 **whitelist, u32 *num_entries);
 #endif
 #ifdef CONFIG_NVGPU_GRAPHICS
+	u32 (*get_ctx_attrib_cb_size)(struct gk20a *g, u32 betacb_size,
+				      u32 tpc_count, u32 max_tpc);
+	void (*commit_cbes_reserve)(struct gk20a *g,
+				    struct nvgpu_gr_ctx *gr_ctx,
+				    bool patch);
 	void (*rop_mapping)(struct gk20a *g,
 		struct nvgpu_gr_config *gr_config);
 	void (*commit_gfxp_rtv_cb)(struct gk20a *g,

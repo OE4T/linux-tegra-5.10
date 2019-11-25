@@ -743,21 +743,6 @@ int gv11b_gr_init_load_sw_veid_bundle(struct gk20a *g,
 	return err;
 }
 
-void gv11b_gr_init_commit_cbes_reserve(struct gk20a *g,
-	struct nvgpu_gr_ctx *gr_ctx, bool patch)
-{
-	u32 cbes_reserve = gr_gpcs_swdx_beta_cb_ctrl_cbes_reserve_gfxp_v();
-
-	nvgpu_gr_ctx_patch_write(g, gr_ctx,
-		gr_gpcs_swdx_beta_cb_ctrl_r(),
-		gr_gpcs_swdx_beta_cb_ctrl_cbes_reserve_f(cbes_reserve),
-		patch);
-	nvgpu_gr_ctx_patch_write(g, gr_ctx,
-		gr_gpcs_ppcs_cbm_beta_cb_ctrl_r(),
-		gr_gpcs_ppcs_cbm_beta_cb_ctrl_cbes_reserve_f(cbes_reserve),
-		patch);
-}
-
 u32 gv11b_gr_init_get_max_subctx_count(void)
 {
 	return gr_pri_fe_chip_def_info_max_veid_count_init_v();
@@ -831,6 +816,23 @@ void gv11b_gr_init_detect_sm_arch(struct gk20a *g)
 	g->params.sm_arch_warp_count =
 		gr_gpc0_tpc0_sm_arch_warp_count_v(v);
 }
+
+#ifdef CONFIG_NVGPU_GRAPHICS
+void gv11b_gr_init_commit_cbes_reserve(struct gk20a *g,
+	struct nvgpu_gr_ctx *gr_ctx, bool patch)
+{
+	u32 cbes_reserve = gr_gpcs_swdx_beta_cb_ctrl_cbes_reserve_gfxp_v();
+
+	nvgpu_gr_ctx_patch_write(g, gr_ctx,
+		gr_gpcs_swdx_beta_cb_ctrl_r(),
+		gr_gpcs_swdx_beta_cb_ctrl_cbes_reserve_f(cbes_reserve),
+		patch);
+	nvgpu_gr_ctx_patch_write(g, gr_ctx,
+		gr_gpcs_ppcs_cbm_beta_cb_ctrl_r(),
+		gr_gpcs_ppcs_cbm_beta_cb_ctrl_cbes_reserve_f(cbes_reserve),
+		patch);
+}
+#endif
 
 #ifdef CONFIG_NVGPU_GR_GOLDEN_CTX_VERIFICATION
 int gv11b_gr_init_load_sw_bundle_init(struct gk20a *g,

@@ -105,7 +105,7 @@ static int nvgpu_gr_setup_validate_channel_and_class(struct gk20a *g,
 	int err = 0;
 
 	/* an address space needs to have been bound at this point.*/
-	if (!nvgpu_channel_as_bound(c) && (c->vm == NULL)) {
+	if (!nvgpu_channel_as_bound(c)) {
 		nvgpu_err(g,
 			   "not bound to address space at time"
 			   " of grctx allocation");

@@ -628,10 +628,6 @@ static const struct gpu_ops tu104_ops = {
 			.load_sw_veid_bundle =
 				gv11b_gr_init_load_sw_veid_bundle,
 			.load_sw_bundle64 = tu104_gr_init_load_sw_bundle64,
-			.get_ctx_attrib_cb_size =
-				gp10b_gr_init_get_ctx_attrib_cb_size,
-			.commit_cbes_reserve =
-				gv11b_gr_init_commit_cbes_reserve,
 			.get_max_subctx_count =
 				gv11b_gr_init_get_max_subctx_count,
 			.get_patch_slots = gv11b_gr_init_get_patch_slots,
@@ -641,6 +637,10 @@ static const struct gpu_ops tu104_ops = {
 			.get_default_preemption_modes =
 				gp10b_gr_init_get_default_preemption_modes,
 #ifdef CONFIG_NVGPU_GRAPHICS
+			.get_ctx_attrib_cb_size =
+				gp10b_gr_init_get_ctx_attrib_cb_size,
+			.commit_cbes_reserve =
+				gv11b_gr_init_commit_cbes_reserve,
 			.rop_mapping = gv11b_gr_init_rop_mapping,
 			.commit_gfxp_rtv_cb = tu104_gr_init_commit_gfxp_rtv_cb,
 			.get_gfxp_rtv_cb_size = tu104_gr_init_get_gfxp_rtv_cb_size,

@@ -499,10 +499,6 @@ static const struct gpu_ops gp10b_ops = {
 			.pipe_mode_override = gm20b_gr_init_pipe_mode_override,
 			.load_sw_bundle_init =
 				gm20b_gr_init_load_sw_bundle_init,
-			.get_ctx_attrib_cb_size =
-				gp10b_gr_init_get_ctx_attrib_cb_size,
-			.commit_cbes_reserve =
-				gp10b_gr_init_commit_cbes_reserve,
 			.get_patch_slots = gm20b_gr_init_get_patch_slots,
 			.detect_sm_arch = gm20b_gr_init_detect_sm_arch,
 			.get_supported__preemption_modes =
@@ -510,6 +506,10 @@ static const struct gpu_ops gp10b_ops = {
 			.get_default_preemption_modes =
 				gp10b_gr_init_get_default_preemption_modes,
 #ifdef CONFIG_NVGPU_GRAPHICS
+			.get_ctx_attrib_cb_size =
+				gp10b_gr_init_get_ctx_attrib_cb_size,
+			.commit_cbes_reserve =
+				gp10b_gr_init_commit_cbes_reserve,
 			.rop_mapping = gm20b_gr_init_rop_mapping,
 			.get_attrib_cb_gfxp_default_size =
 				gp10b_gr_init_get_attrib_cb_gfxp_default_size,

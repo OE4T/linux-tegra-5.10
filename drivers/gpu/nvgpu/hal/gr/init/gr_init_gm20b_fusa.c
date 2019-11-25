@@ -397,40 +397,6 @@ void gm20b_gr_init_load_method_init(struct gk20a *g,
 	}
 }
 
-int gm20b_gr_init_load_sw_bundle_init(struct gk20a *g,
-		struct netlist_av_list *sw_bundle_init)
-{
-	u32 i;
-	int err = 0;
-	u32 last_bundle_data = 0U;
-
-	for (i = 0U; i < sw_bundle_init->count; i++) {
-		if (i == 0U || last_bundle_data != sw_bundle_init->l[i].value) {
-			nvgpu_writel(g, gr_pipe_bundle_data_r(),
-				sw_bundle_init->l[i].value);
-			last_bundle_data = sw_bundle_init->l[i].value;
-		}
-
-		nvgpu_writel(g, gr_pipe_bundle_address_r(),
-			     sw_bundle_init->l[i].addr);
-
-		if (gr_pipe_bundle_address_value_v(sw_bundle_init->l[i].addr) ==
-		    GR_GO_IDLE_BUNDLE) {
-			err = g->ops.gr.init.wait_idle(g);
-			if (err != 0) {
-				return err;
-			}
-		}
-
-		err = g->ops.gr.init.wait_fe_idle(g);
-		if (err != 0) {
-			return err;
-		}
-	}
-
-	return err;
-}
-
 u32 gm20b_gr_init_get_global_ctx_cb_buffer_size(struct gk20a *g)
 {
 	return nvgpu_safe_mult_u32(
@@ -475,3 +441,39 @@ u32 gm20b_gr_init_get_patch_slots(struct gk20a *g,
 {
 	return PATCH_CTX_SLOTS_PER_PAGE;
 }
+
+#ifndef CONFIG_NVGPU_GR_GOLDEN_CTX_VERIFICATION
+int gm20b_gr_init_load_sw_bundle_init(struct gk20a *g,
+		struct netlist_av_list *sw_bundle_init)
+{
+	u32 i;
+	int err = 0;
+	u32 last_bundle_data = 0U;
+
+	for (i = 0U; i < sw_bundle_init->count; i++) {
+		if (i == 0U || last_bundle_data != sw_bundle_init->l[i].value) {
+			nvgpu_writel(g, gr_pipe_bundle_data_r(),
+				sw_bundle_init->l[i].value);
+			last_bundle_data = sw_bundle_init->l[i].value;
+		}
+
+		nvgpu_writel(g, gr_pipe_bundle_address_r(),
+			     sw_bundle_init->l[i].addr);
+
+		if (gr_pipe_bundle_address_value_v(sw_bundle_init->l[i].addr) ==
+		    GR_GO_IDLE_BUNDLE) {
+			err = g->ops.gr.init.wait_idle(g);
+			if (err != 0) {
+				return err;
+			}
+		}
+
+		err = g->ops.gr.init.wait_fe_idle(g);
+		if (err != 0) {
+			return err;
+		}
+	}
+
+	return err;
+}
+#endif
