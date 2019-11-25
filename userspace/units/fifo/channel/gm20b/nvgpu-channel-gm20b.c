@@ -64,8 +64,6 @@ int test_gm20b_channel_bind(struct unit_module *m,
 	struct nvgpu_channel *ch;
 	int ret = UNIT_FAIL;
 
-	assert(g->ops.channel.bind == gm20b_channel_bind);
-
 	ch = nvgpu_channel_open_new(g, runlist_id,
 		privileged, getpid(), getpid());
 	assert(ch);

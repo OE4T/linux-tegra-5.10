@@ -12,6 +12,9 @@ find_first_zero_bit
 find_next_bit
 gk20a_as_alloc_share
 gk20a_as_release_share
+gk20a_channel_disable
+gk20a_channel_enable
+gk20a_channel_read_state
 gk20a_mm_fb_flush
 gk20a_ptimer_isr
 gk20a_ramin_alloc_size
@@ -22,6 +25,7 @@ gk20a_runlist_hw_submit
 gk20a_runlist_wait_pending
 gk20a_runlist_write_state
 gk20a_vm_release_share
+gm20b_channel_bind
 gm20b_fb_tlb_invalidate
 gm20b_mm_get_big_page_sizes
 gm20b_gr_falcon_get_fecs_ctx_state_store_major_rev_id
@@ -46,6 +50,10 @@ gp10b_get_num_engine_type_entries
 gp10b_get_device_info
 gp10b_is_engine_ce
 gv11b_channel_count
+gv11b_channel_debug_dump
+gv11b_channel_read_state
+gv11b_channel_reset_faulted
+gv11b_channel_unbind
 gv11b_fb_intr_enable
 gv11b_fb_fault_buf_configure_hw
 gv11b_fb_fault_buf_set_state_hw
@@ -251,6 +259,7 @@ nvgpu_dma_free
 nvgpu_dma_unmap_free
 nvgpu_engine_get_fast_ce_runlist_id
 nvgpu_engine_get_gr_runlist_id
+nvgpu_engine_is_valid_runlist_id
 nvgpu_get
 nvgpu_falcon_hs_ucode_load_bootstrap
 nvgpu_falcon_bootstrap
@@ -345,6 +354,15 @@ nvgpu_netlist_get_fecs_data_list
 nvgpu_netlist_get_gpccs_inst_list
 nvgpu_netlist_get_gpccs_data_list
 nvgpu_nvgpu_get_fault_injection
+nvgpu_pbdma_cleanup_sw
+nvgpu_pbdma_find_for_runlist
+nvgpu_pbdma_status_is_chsw_load
+nvgpu_pbdma_status_is_chsw_save
+nvgpu_pbdma_status_is_chsw_switch
+nvgpu_pbdma_status_is_chsw_valid
+nvgpu_pbdma_status_is_id_type_tsg
+nvgpu_pbdma_status_is_next_id_type_tsg
+nvgpu_pbdma_setup_sw
 nvgpu_pd_alloc
 nvgpu_pd_cache_fini
 nvgpu_pd_cache_init

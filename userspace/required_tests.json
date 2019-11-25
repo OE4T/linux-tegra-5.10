@@ -760,6 +760,81 @@
         "unit": "nvgpu_channel"
     },
     {
+        "test": "disable",
+        "test_level": 0,
+        "unit": "nvgpu_channel_gk20a"
+    },
+    {
+        "test": "enable",
+        "test_level": 0,
+        "unit": "nvgpu_channel_gk20a"
+    },
+    {
+        "test": "init_support",
+        "test_level": 0,
+        "unit": "nvgpu_channel_gk20a"
+    },
+    {
+        "test": "read_state",
+        "test_level": 0,
+        "unit": "nvgpu_channel_gk20a"
+    },
+    {
+        "test": "remove_support",
+        "test_level": 0,
+        "unit": "nvgpu_channel_gk20a"
+    },
+    {
+        "test": "bind",
+        "test_level": 0,
+        "unit": "nvgpu_channel_gm20b"
+    },
+    {
+        "test": "init_support",
+        "test_level": 0,
+        "unit": "nvgpu_channel_gm20b"
+    },
+    {
+        "test": "remove_support",
+        "test_level": 0,
+        "unit": "nvgpu_channel_gm20b"
+    },
+    {
+        "test": "count",
+        "test_level": 0,
+        "unit": "nvgpu_channel_gv11b"
+    },
+    {
+        "test": "debug_dump",
+        "test_level": 0,
+        "unit": "nvgpu_channel_gv11b"
+    },
+    {
+        "test": "init_support",
+        "test_level": 0,
+        "unit": "nvgpu_channel_gv11b"
+    },
+    {
+        "test": "read_state",
+        "test_level": 0,
+        "unit": "nvgpu_channel_gv11b"
+    },
+    {
+        "test": "remove_support",
+        "test_level": 0,
+        "unit": "nvgpu_channel_gv11b"
+    },
+    {
+        "test": "reset_faulted",
+        "test_level": 0,
+        "unit": "nvgpu_channel_gv11b"
+    },
+    {
+        "test": "unbind",
+        "test_level": 0,
+        "unit": "nvgpu_channel_gv11b"
+    },
+    {
         "test": "mem_create_from_phys",
         "test_level": 0,
         "unit": "nvgpu_mem"
@@ -793,6 +868,31 @@
         "test": "test_free_nvgpu_mem",
         "test_level": 0,
         "unit": "nvgpu_mem"
+    },
+    {
+        "test": "init_support",
+        "test_level": 0,
+        "unit": "nvgpu_pbdma"
+    },
+    {
+        "test": "pbdma_find_for_runlist",
+        "test_level": 0,
+        "unit": "nvgpu_pbdma"
+    },
+    {
+        "test": "pbdma_status",
+        "test_level": 0,
+        "unit": "nvgpu_pbdma"
+    },
+    {
+        "test": "remove_support",
+        "test_level": 0,
+        "unit": "nvgpu_pbdma"
+    },
+    {
+        "test": "setup_sw",
+        "test_level": 0,
+        "unit": "nvgpu_pbdma"
     },
     {
         "test": "flat",
@@ -910,6 +1010,61 @@
         "unit": "nvgpu_runlist"
     },
     {
+        "test": "hw_submit",
+        "test_level": 0,
+        "unit": "nvgpu_runlist_gk20a"
+    },
+    {
+        "test": "init_support",
+        "test_level": 0,
+        "unit": "nvgpu_runlist_gk20a"
+    },
+    {
+        "test": "length_max",
+        "test_level": 0,
+        "unit": "nvgpu_runlist_gk20a"
+    },
+    {
+        "test": "remove_support",
+        "test_level": 0,
+        "unit": "nvgpu_runlist_gk20a"
+    },
+    {
+        "test": "wait_pending",
+        "test_level": 0,
+        "unit": "nvgpu_runlist_gk20a"
+    },
+    {
+        "test": "write_state",
+        "test_level": 0,
+        "unit": "nvgpu_runlist_gk20a"
+    },
+    {
+        "test": "entry_size",
+        "test_level": 0,
+        "unit": "nvgpu_runlist_gv11b"
+    },
+    {
+        "test": "get_ch_entry",
+        "test_level": 0,
+        "unit": "nvgpu_runlist_gv11b"
+    },
+    {
+        "test": "get_tsg_entry",
+        "test_level": 0,
+        "unit": "nvgpu_runlist_gv11b"
+    },
+    {
+        "test": "init_support",
+        "test_level": 0,
+        "unit": "nvgpu_runlist_gv11b"
+    },
+    {
+        "test": "remove_support",
+        "test_level": 0,
+        "unit": "nvgpu_runlist_gv11b"
+    },
+    {
         "test": "sgt_alignment_non_iommu",
         "test_level": 0,
         "unit": "nvgpu_sgt"
@@ -988,6 +1143,26 @@
         "test": "unbind_channel_check_hw_state",
         "test_level": 0,
         "unit": "nvgpu_tsg"
+    },
+    {
+        "test": "gv11b_tsg_init_eng_method_buffers",
+        "test_level": 0,
+        "unit": "nvgpu_tsg_gv11b"
+    },
+    {
+        "test": "gv11b_tsg_unbind_channel_check_eng_faulted",
+        "test_level": 0,
+        "unit": "nvgpu_tsg_gv11b"
+    },
+    {
+        "test": "init_support",
+        "test_level": 0,
+        "unit": "nvgpu_tsg_gv11b"
+    },
+    {
+        "test": "remove_support",
+        "test_level": 0,
+        "unit": "nvgpu_tsg_gv11b"
     },
     {
         "test": "gmmu_clean",

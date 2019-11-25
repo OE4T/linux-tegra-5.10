@@ -24,4 +24,5 @@ test_fifo_init_support
 test_fifo_remove_support
 test_fifo_subtest_pruned
 test_fifo_flags_str
+test_fifo_setup_gv11b_reg_space
 

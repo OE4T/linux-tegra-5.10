@@ -102,12 +102,12 @@ int test_pbdma_setup_sw(struct unit_module *m,
 	u32 prune = fail;
 	int err;
 
+	kmem_fi = nvgpu_kmem_get_fault_injection();
+
 	err = test_fifo_setup_gv11b_reg_space(m, g);
 	assert(err == 0);
 
 	gv11b_init_hal(g);
-
-	kmem_fi = nvgpu_kmem_get_fault_injection();
 
 	for (branches = 0U; branches < F_PBDMA_SETUP_SW_LAST; branches++) {
 
