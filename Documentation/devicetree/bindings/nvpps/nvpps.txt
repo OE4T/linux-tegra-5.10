@@ -1,0 +1,17 @@
+NVIDIA nvpps driver bindings
+
+Nvpps is a Linux Kernel mode driver to support the Xavier time domain
+correlation feature.
+
+Required properties:
+
+- compatibles: should be "nvpps,tegra194-nvpps"
+- gpios: GPIO number and active level for the PPS input signal
+
+Example:
+
+nvpps {
+	compatible = "nvidia,tegrat194-nvpps";
+	status = "okay";
+	gpios = <&tegra_aon_gpio TEGRA194_AON_GPIO(BB, 2) GPIO_ACTIVE_HIGH>;
+};
