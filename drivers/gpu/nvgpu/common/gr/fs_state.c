@@ -46,11 +46,15 @@ static int gr_load_sm_id_config(struct gk20a *g, struct nvgpu_gr_config *config)
 
 static void gr_load_tpc_mask(struct gk20a *g, struct nvgpu_gr_config *config)
 {
-	u32 pes_tpc_mask = 0, fuse_tpc_mask;
-	u32 gpc, pes, val;
+	u32 pes_tpc_mask = 0;
+	u32 gpc, pes;
 	u32 num_tpc_per_gpc = nvgpu_get_litter_value(g,
 						     GPU_LIT_NUM_TPC_PER_GPC);
+#ifdef CONFIG_NVGPU_NON_FUSA
 	u32 max_tpc_count = nvgpu_gr_config_get_max_tpc_count(config);
+	u32 fuse_tpc_mask;
+	u32 val;
+#endif
 
 	/* gv11b has 1 GPC and 4 TPC/GPC, so mask will not overflow u32 */
 	for (gpc = 0; gpc < nvgpu_gr_config_get_gpc_count(config); gpc++) {
@@ -65,6 +69,7 @@ static void gr_load_tpc_mask(struct gk20a *g, struct nvgpu_gr_config *config)
 
 	nvgpu_log_info(g, "pes_tpc_mask %u\n", pes_tpc_mask);
 
+#ifdef CONFIG_NVGPU_NON_FUSA
 	fuse_tpc_mask = g->ops.gr.config.get_gpc_tpc_mask(g, config, 0);
 	if ((g->tpc_fs_mask_user != 0U) &&
 				(g->tpc_fs_mask_user != fuse_tpc_mask)) {
@@ -80,6 +85,8 @@ static void gr_load_tpc_mask(struct gk20a *g, struct nvgpu_gr_config *config)
 			pes_tpc_mask = val;
 		}
 	}
+#endif
+
 	g->ops.gr.init.tpc_mask(g, 0, pes_tpc_mask);
 }
 
@@ -87,8 +94,11 @@ int nvgpu_gr_fs_state_init(struct gk20a *g, struct nvgpu_gr_config *config)
 {
 	u32 tpc_index, gpc_index;
 	u32 sm_id = 0;
+#ifdef CONFIG_NVGPU_NON_FUSA
 	u32 fuse_tpc_mask;
-	u32 gpc_cnt, tpc_cnt, max_tpc_cnt;
+	u32 max_tpc_cnt;
+#endif
+	u32 gpc_cnt, tpc_cnt;
 	int err = 0;
 
 	nvgpu_log_fn(g, " ");
@@ -130,9 +140,11 @@ int nvgpu_gr_fs_state_init(struct gk20a *g, struct nvgpu_gr_config *config)
 
 	g->ops.gr.init.pd_skip_table_gpc(g, config);
 
-	fuse_tpc_mask = g->ops.gr.config.get_gpc_tpc_mask(g, config, 0);
 	gpc_cnt = nvgpu_gr_config_get_gpc_count(config);
 	tpc_cnt = nvgpu_gr_config_get_tpc_count(config);
+
+#ifdef CONFIG_NVGPU_NON_FUSA
+	fuse_tpc_mask = g->ops.gr.config.get_gpc_tpc_mask(g, config, 0);
 	max_tpc_cnt = nvgpu_gr_config_get_max_tpc_count(config);
 
 	if ((g->tpc_fs_mask_user != 0U) &&
@@ -142,6 +154,8 @@ int nvgpu_gr_fs_state_init(struct gk20a *g, struct nvgpu_gr_config *config)
 		val &= nvgpu_safe_sub_u32(BIT32(max_tpc_cnt), U32(1));
 		tpc_cnt = (u32)hweight32(val);
 	}
+#endif
+
 	g->ops.gr.init.cwd_gpcs_tpcs_num(g, gpc_cnt, tpc_cnt);
 
 	gr_load_tpc_mask(g, config);

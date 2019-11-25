@@ -918,7 +918,9 @@ struct gk20a {
 	unsigned long last_freq;
 	/** @endcond */
 
+#ifdef CONFIG_NVGPU_NON_FUSA
 	u32 tpc_fs_mask_user;
+#endif
 
 	u32 tpc_pg_mask;
 	bool can_tpc_powergate;
