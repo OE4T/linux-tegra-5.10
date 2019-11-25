@@ -116,17 +116,19 @@ void nvgpu_gr_subctx_load_ctx_header(struct gk20a *g,
 	g->ops.gr.ctxsw_prog.set_type_per_veid_header(g, ctxheader);
 }
 
+struct nvgpu_mem *nvgpu_gr_subctx_get_ctx_header(struct nvgpu_gr_subctx *subctx)
+{
+	return &subctx->ctx_header;
+}
+
+#ifdef CONFIG_NVGPU_HAL_NON_FUSA
 void nvgpu_gr_subctx_set_patch_ctx(struct gk20a *g,
 	struct nvgpu_gr_subctx *subctx, struct nvgpu_gr_ctx *gr_ctx)
 {
 	g->ops.gr.ctxsw_prog.set_patch_addr(g, &subctx->ctx_header,
 		 nvgpu_gr_ctx_get_patch_ctx_mem(gr_ctx)->gpu_va);
 }
-
-struct nvgpu_mem *nvgpu_gr_subctx_get_ctx_header(struct nvgpu_gr_subctx *subctx)
-{
-	return &subctx->ctx_header;
-}
+#endif
 
 #ifdef CONFIG_NVGPU_GRAPHICS
 void nvgpu_gr_subctx_zcull_setup(struct gk20a *g, struct nvgpu_gr_subctx *subctx,

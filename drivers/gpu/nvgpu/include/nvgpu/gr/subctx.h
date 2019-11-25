@@ -87,6 +87,19 @@ void nvgpu_gr_subctx_load_ctx_header(struct gk20a *g,
 	struct nvgpu_gr_ctx *gr_ctx, u64 gpu_va);
 
 /**
+ * @brief Get pointer of subcontext header memory struct.
+ *
+ * @param subctx [in]		Pointer to graphics subcontext struct.
+ *
+ * This function returns #nvgpu_mem pointer of subcontext header stored
+ * in #nvgpu_gr_subctx.
+ *
+ * @return pointer to subcontext header memory struct.
+ */
+struct nvgpu_mem *nvgpu_gr_subctx_get_ctx_header(struct nvgpu_gr_subctx *subctx);
+
+#ifdef CONFIG_NVGPU_HAL_NON_FUSA
+/**
  * @brief Set patch context buffer address in subcontext header.
  *
  * @param g [in]		Pointer to GPU driver struct.
@@ -98,18 +111,7 @@ void nvgpu_gr_subctx_load_ctx_header(struct gk20a *g,
  */
 void nvgpu_gr_subctx_set_patch_ctx(struct gk20a *g,
 	struct nvgpu_gr_subctx *subctx, struct nvgpu_gr_ctx *gr_ctx);
-
-/**
- * @brief Get pointer of subcontext header memory struct.
- *
- * @param subctx [in]		Pointer to graphics subcontext struct.
- *
- * This function returns #nvgpu_mem pointer of subcontext header stored
- * in #nvgpu_gr_subctx.
- *
- * @return pointer to subcontext header memory struct.
- */
-struct nvgpu_mem *nvgpu_gr_subctx_get_ctx_header(struct nvgpu_gr_subctx *subctx);
+#endif
 
 #ifdef CONFIG_NVGPU_GRAPHICS
 void nvgpu_gr_subctx_zcull_setup(struct gk20a *g, struct nvgpu_gr_subctx *subctx,

@@ -365,6 +365,7 @@ int nvgpu_gr_obj_ctx_commit_global_ctx_buffers(struct gk20a *g,
 
 	g->ops.gr.init.commit_global_cb_manager(g, config, gr_ctx, patch);
 
+#ifdef CONFIG_NVGPU_DGPU
 	if (g->ops.gr.init.commit_rtv_cb != NULL) {
 		/* RTV circular buffer */
 		addr = nvgpu_gr_ctx_get_global_ctx_va(gr_ctx,
@@ -372,6 +373,7 @@ int nvgpu_gr_obj_ctx_commit_global_ctx_buffers(struct gk20a *g,
 
 		g->ops.gr.init.commit_rtv_cb(g, addr, gr_ctx, patch);
 	}
+#endif
 
 	if (patch) {
 		nvgpu_gr_ctx_patch_write_end(g, gr_ctx, false);
@@ -382,13 +384,15 @@ int nvgpu_gr_obj_ctx_commit_global_ctx_buffers(struct gk20a *g,
 
 static int nvgpu_gr_obj_ctx_alloc_sw_bundle(struct gk20a *g)
 {
+	int err = 0;
 	struct netlist_av_list *sw_bundle_init =
 			nvgpu_netlist_get_sw_bundle_init_av_list(g);
 	struct netlist_av_list *sw_veid_bundle_init =
 			nvgpu_netlist_get_sw_veid_bundle_init_av_list(g);
+#ifdef CONFIG_NVGPU_DGPU
 	struct netlist_av64_list *sw_bundle64_init =
 			nvgpu_netlist_get_sw_bundle64_init_av64_list(g);
-	int err = 0;
+#endif
 
 	/* enable pipe mode override */
 	g->ops.gr.init.pipe_mode_override(g, true);
@@ -407,12 +411,14 @@ static int nvgpu_gr_obj_ctx_alloc_sw_bundle(struct gk20a *g)
 		}
 	}
 
+#ifdef CONFIG_NVGPU_DGPU
 	if (g->ops.gr.init.load_sw_bundle64 != NULL) {
 		err = g->ops.gr.init.load_sw_bundle64(g, sw_bundle64_init);
 		if (err != 0) {
 			goto error;
 		}
 	}
+#endif
 
 	/* disable pipe mode override */
 	g->ops.gr.init.pipe_mode_override(g, false);
