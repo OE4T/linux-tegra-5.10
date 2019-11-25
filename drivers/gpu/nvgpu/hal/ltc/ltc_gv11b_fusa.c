@@ -50,7 +50,7 @@ void gv11b_ltc_init_fs_state(struct gk20a *g)
 	nvgpu_log_info(g, "%u ltcs out of %u", g->ltc->ltc_count,
 					g->ltc->max_ltc_count);
 
-	reg = gk20a_readl(g, ltc_ltcs_ltss_cbc_param_r());
+	reg = nvgpu_readl(g, ltc_ltcs_ltss_cbc_param_r());
 	g->ltc->slices_per_ltc = ltc_ltcs_ltss_cbc_param_slices_per_ltc_v(reg);;
 	g->ltc->cacheline_size =
 		line_size << ltc_ltcs_ltss_cbc_param_cache_line_size_v(reg);

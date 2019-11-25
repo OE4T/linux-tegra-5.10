@@ -1062,6 +1062,18 @@
         "test_level": 0
     },
     {
+        "test": "test_determine_L2_size_bytes",
+        "case": "ltc_determine_L2_size",
+        "unit": "nvgpu-ltc",
+        "test_level": 0
+    },
+    {
+        "test": "test_ltc_ecc_init_free",
+        "case": "ltc_ecc_init_free",
+        "unit": "nvgpu-ltc",
+        "test_level": 0
+    },
+    {
         "test": "test_ltc_functionality_tests",
         "case": "ltc_functionality_tests",
         "unit": "nvgpu-ltc",
@@ -1074,6 +1086,24 @@
         "test_level": 0
     },
     {
+        "test": "test_ltc_intr",
+        "case": "ltc_intr",
+        "unit": "nvgpu-ltc",
+        "test_level": 0
+    },
+    {
+        "test": "test_ltc_intr_configure",
+        "case": "ltc_intr_configure",
+        "unit": "nvgpu-ltc",
+        "test_level": 0
+    },
+    {
+        "test": "test_ltc_intr_en_illegal_compstat",
+        "case": "ltc_intr_en_illegal_compstat",
+        "unit": "nvgpu-ltc",
+        "test_level": 0
+    },
+    {
         "test": "test_ltc_negative_tests",
         "case": "ltc_negative_tests",
         "unit": "nvgpu-ltc",
@@ -1082,6 +1112,12 @@
     {
         "test": "test_ltc_remove_support",
         "case": "ltc_remove_support",
+        "unit": "nvgpu-ltc",
+        "test_level": 0
+    },
+    {
+        "test": "test_ltc_set_enabled",
+        "case": "ltc_set_enabled",
         "unit": "nvgpu-ltc",
         "test_level": 0
     },
