@@ -5,6 +5,8 @@ Required properties:
 			"nvidia,tegra-18x-mc"
 			 or
 			"nvidia,tegra-t19x-mc"
+			or
+			"nvidia,tegra-mc-none"
 	- reg : Should contain 2 register ranges(address and length); see the
 		example below. Note that the MC registers are interleaved with the
 		GART registers, and hence must be represented as multiple ranges.
