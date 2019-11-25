@@ -20,6 +20,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
+#include "pd_cache.h"
 #include <unit/io.h>
 #include <unit/core.h>
 #include <unit/unit.h>
@@ -166,22 +167,8 @@ static int init_pd_cache(struct unit_module *m,
 	return UNIT_SUCCESS;
 }
 
-/*
- * Generate a test based on the args in @args. The test is very simple. It
- * allocates nr allocs of the passed size either all at once or in an
- * interleaved pattern.
- *
- * If nr_allocs_before_free is set then this value will determine how many
- * allocs to do before trying frees. If unset it will be simply be nr.
- *
- * If nr_free_before_alloc is set this will determine the number of frees to
- * do before swapping back to allocs. This way you can control the interleaving
- * pattern to some degree. If not set it defaults to nr_allocs_before_free.
- *
- * Anything left over after the last free loop will be freed in one big loop.
- */
-static int test_pd_cache_alloc_gen(struct unit_module *m,
-				   struct gk20a *g, void *args)
+int test_pd_cache_alloc_gen(struct unit_module *m, struct gk20a *g,
+	void *args)
 {
 	u32 i, j;
 	int err;
@@ -297,12 +284,8 @@ cleanup_err:
 	return UNIT_FAIL;
 }
 
-/*
- * Test free on empty PD cache. But make it interesting by doing a valid alloc
- * and freeing that alloc twice. Also verify NULL doesn't cause issues.
- */
-static int test_pd_free_empty_pd(struct unit_module *m,
-				 struct gk20a *g, void *args)
+int test_pd_free_empty_pd(struct unit_module *m, struct gk20a *g,
+	void *args)
 {
 	int err;
 	struct vm_gk20a vm;
@@ -359,11 +342,8 @@ static int test_pd_free_empty_pd(struct unit_module *m,
 	return UNIT_SUCCESS;
 }
 
-/*
- * Test invalid nvgpu_pd_alloc() calls. Invalid bytes, invalid pd_cache, etc.
- */
-static int test_pd_alloc_invalid_input(struct unit_module *m,
-				       struct gk20a *g, void *args)
+int test_pd_alloc_invalid_input(struct unit_module *m, struct gk20a *g,
+	void *args)
 {
 	int err;
 	struct vm_gk20a vm;
@@ -398,8 +378,7 @@ static int test_pd_alloc_invalid_input(struct unit_module *m,
 	return UNIT_SUCCESS;
 }
 
-static int test_pd_alloc_direct_fi(struct unit_module *m,
-				   struct gk20a *g, void *args)
+int test_pd_alloc_direct_fi(struct unit_module *m, struct gk20a *g, void *args)
 {
 	int err;
 	struct vm_gk20a vm;
@@ -439,8 +418,7 @@ static int test_pd_alloc_direct_fi(struct unit_module *m,
 	return UNIT_SUCCESS;
 }
 
-static int test_pd_alloc_fi(struct unit_module *m,
-			    struct gk20a *g, void *args)
+int test_pd_alloc_fi(struct unit_module *m, struct gk20a *g, void *args)
 {
 	int err;
 	struct vm_gk20a vm;
@@ -478,16 +456,7 @@ static int test_pd_alloc_fi(struct unit_module *m,
 	return UNIT_SUCCESS;
 }
 
-/*
- * Test nvgpu_pd_cache_init() - make sure that:
- *
- *   1. Check that init with a memory failure returns -ENOMEM and that the
- *      pd_cache is not initialized.
- *   2. Initial init works.
- *   3. That re-init doesn't re-allocate any resources.
- */
-static int test_pd_cache_init(struct unit_module *m,
-			      struct gk20a *g, void *args)
+int test_pd_cache_init(struct unit_module *m, struct gk20a *g, void *args)
 {
 	int err, i;
 	struct nvgpu_pd_cache *cache;
@@ -543,16 +512,7 @@ static int test_pd_cache_init(struct unit_module *m,
 	return UNIT_SUCCESS;
 }
 
-/*
- * Test nvgpu_pd_cache_fini() - make sure that:
- *
- *   1. An actually allocated cache is cleaned up.
- *   2. If there is no cache this code doesn't crash.
- *
- * Note: this inherits the already inited pd_cache from test_pd_cache_init().
- */
-static int test_pd_cache_fini(struct unit_module *m,
-			      struct gk20a *g, void *args)
+int test_pd_cache_fini(struct unit_module *m, struct gk20a *g, void *args)
 {
 	if (g->mm.pd_cache == NULL) {
 		unit_return_fail(m, "Missing an init'ed pd_cache\n");
@@ -576,24 +536,8 @@ static int test_pd_cache_fini(struct unit_module *m,
 	return UNIT_SUCCESS;
 }
 
-/**
- * Requirement NVGPU-RQCD-68.C1
- *
- *   Valid/Invalid: The pd_cache does/does not allocate a suitable DMA'able
- *                  buffer of memory.
- *
- * Requirement NVGPU-RQCD-68.C2
- *
- *   Valid/Invalid: The allocated PD is/is not sufficiently aligned for use by
- *                  the GMMU.
- *
- * Requirement NVGPU-RQCD-124.C1
- *
- *   Valid/Invalid: After initialization of the pd_cache the pd_cache can/cannot
- *                  allocate valid PDs.
- */
-static int test_pd_cache_valid_alloc(struct unit_module *m,
-				     struct gk20a *g, void *args)
+int test_pd_cache_valid_alloc(struct unit_module *m, struct gk20a *g,
+	void *args)
 {
 	u32 bytes;
 	int err;
@@ -761,8 +705,7 @@ cleanup:
 	return err;
 }
 
-static int test_per_pd_size(struct unit_module *m,
-			    struct gk20a *g, void *args)
+int test_per_pd_size(struct unit_module *m, struct gk20a *g, void *args)
 {
 	int err;
 	u32 pd_size;
@@ -805,23 +748,7 @@ static bool readback_pd_write(struct gk20a *g, struct nvgpu_gmmu_pd *pd,
 	return nvgpu_mem_rd32(g, pd->mem, offset) == pattern;
 }
 
-/**
- * Requirement NVGPU-RQCD-122.C1
- *
- *   Valid/Invalid: The pd_cache writes/does not write a word of memory in a
- *                  passed PD.
- *
- * Requirement NVGPU-RQCD-126.C1,2
- *
- *   C1: Valid/Invalid: The pd_cache unit does/does not return a valid word
- *                      offset for a 2 word PDE/PTE.
- *   C2: Valid/Invalid: The pd_cache unit does/does not return a valid word
- *                      offset for a 4 word PDE/PTE.
- *
- * This test hits both the pd_write() and the pd_nvgpu_pd_offset_from_index()
- * functions since these are used to validate each other.
- */
-static int test_pd_write(struct unit_module *m, struct gk20a *g, void *args)
+int test_pd_write(struct unit_module *m, struct gk20a *g, void *args)
 {
 	int err = UNIT_SUCCESS;
 	struct vm_gk20a vm;
@@ -885,13 +812,7 @@ cleanup:
 	return err;
 }
 
-/**
- * Requirement NVGPU-RQCD-123.C1
- *
- *   C1: Valid/Invalid: The pd_cache does/does not provide a valid GPU physical
- *                      address for a given PD.
- */
-static int test_gpu_address(struct unit_module *m, struct gk20a *g, void *args)
+int test_gpu_address(struct unit_module *m, struct gk20a *g, void *args)
 {
 	int err;
 	struct vm_gk20a vm;
@@ -920,15 +841,7 @@ static int test_gpu_address(struct unit_module *m, struct gk20a *g, void *args)
 	return UNIT_SUCCESS;
 }
 
-/**
- * Requirement NVGPU-RQCD-126.C1,2
- *
- *   C1: Valid/Invalid: The pd_cache unit does/does not return a valid word
- *                      offset for a 2 word PDE/PTE.
- *   C2: Valid/Invalid: The pd_cache unit does/does not return a valid word
- *                      offset for a 4 word PDE/PTE.
- */
-static int test_offset_computation(struct unit_module *m, struct gk20a *g,
+int test_offset_computation(struct unit_module *m, struct gk20a *g,
 				   void *args)
 {
 	const struct gk20a_mmu_level *mm_levels =
@@ -960,24 +873,7 @@ static int test_offset_computation(struct unit_module *m, struct gk20a *g,
 	return fail ? UNIT_FAIL : UNIT_SUCCESS;
 }
 
-/**
- * Call this to cover a range of requirement tests:
- *
- * NVGPU-RQCD-124.C1
- *   C1: Valid/Invalid: After initialization of pd_cache pd_cache can/cannot
- *                      allocate valid PDs
- *
- * NVGPU-RQCD-155.C1
- *   C1: Valid/Invalid: Re-initialization does not/does cause subsequent kernel
- *                      or DMA allocations.
- *
- * NVGPU-RQCD-125.C1
- *   C1: Valid/Invalid: The pd_cache unit does/does not release all it's
-                        allocated memory (kerrnel and DMA).
- *
- * It's redundant, certainly, but that's fine as this test runs fast.
- */
-static int test_init_deinit(struct unit_module *m, struct gk20a *g, void *args)
+int test_init_deinit(struct unit_module *m, struct gk20a *g, void *args)
 {
 	int err, status = UNIT_SUCCESS;
 	struct vm_gk20a vm;
