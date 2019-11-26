@@ -118,6 +118,11 @@ int nvgpu_tsg_bind_channel(struct nvgpu_tsg *tsg, struct nvgpu_channel *ch)
 
 	if (g->ops.tsg.bind_channel != NULL) {
 		err = g->ops.tsg.bind_channel(tsg, ch);
+		if (err != 0) {
+			nvgpu_err(tsg->g, "fail to bind ch %u to tsg %u",
+				ch->chid, tsg->tsgid);
+			return err;
+		}
 	}
 
 	nvgpu_rwsem_down_write(&tsg->ch_list_lock);
