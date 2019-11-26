@@ -56,6 +56,7 @@ UNITS :=				\
 	$(UNIT_SRC)/posix/rwsem		\
 	$(UNIT_SRC)/pramin		\
 	$(UNIT_SRC)/ptimer		\
+	$(UNIT_SRC)/priv_ring		\
 	$(UNIT_SRC)/init		\
 	$(UNIT_SRC)/interface/bsearch	\
 	$(UNIT_SRC)/interface/lock	\

@@ -42,6 +42,7 @@ INPUT += ../../../userspace/units/posix/fault-injection/posix-fault-injection-dm
 INPUT += ../../../userspace/units/posix/sizes/posix-sizes.h
 INPUT += ../../../userspace/units/posix/thread/posix-thread.h
 INPUT += ../../../userspace/units/posix/timers/posix-timers.h
+INPUT += ../../../userspace/units/priv_ring/nvgpu-priv_ring.h
 INPUT += ../../../userspace/units/ptimer/nvgpu-ptimer.h
 INPUT += ../../../userspace/units/acr/nvgpu-acr.h
 INPUT += ../../../userspace/units/top/nvgpu-top.h

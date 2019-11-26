@@ -69,6 +69,7 @@
  *   - @ref SWUTS-posix-sizes
  *   - @ref SWUTS-posix-thread
  *   - @ref SWUTS-posix-timers
+ *   - @ref SWUTS-priv_ring
  *   - @ref SWUTS-ptimer
  *   - @ref SWUTS-sdl
  *   - @ref SWUTS-acr

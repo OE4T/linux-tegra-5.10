@@ -1104,6 +1104,60 @@
         "test_level": 0
     },
     {
+        "test": "test_setup",
+        "case": "priv_ring_setup",
+        "unit": "priv_ring",
+        "test_level": 0
+    },
+    {
+        "test": "test_enable_priv_ring",
+        "case": "priv_ring_enable_priv_ring",
+        "unit": "priv_ring",
+        "test_level": 0
+    },
+    {
+        "test": "test_set_ppriv_timeout_settings",
+        "case": "priv_ring_set_ppriv_timeout_settings",
+        "unit": "priv_ring",
+        "test_level": 0
+    },
+    {
+        "test": "test_enum_ltc",
+        "case": "priv_ring_enum_ltc",
+        "unit": "priv_ring",
+        "test_level": 0
+    },
+    {
+        "test": "test_get_gpc_count",
+        "case": "priv_ring_get_gpc_count",
+        "unit": "priv_ring",
+        "test_level": 0
+    },
+    {
+        "test": "test_get_fbp_count",
+        "case": "priv_ring_get_fbp_count",
+        "unit": "priv_ring",
+        "test_level": 0
+    },
+    {
+        "test": "test_decode_error_code",
+        "case": "priv_ring_decode_error_code",
+        "unit": "priv_ring",
+        "test_level": 0
+    },
+    {
+        "test": "test_isr",
+        "case": "priv_ring_isr",
+        "unit": "priv_ring",
+        "test_level": 0
+    },
+    {
+        "test": "test_free_reg_space",
+        "case": "priv_ring_free_reg_space",
+        "unit": "priv_ring",
+        "test_level": 0
+    },
+    {
         "test": "free_falcon_test_env",
         "case": "falcon_free_test_env",
         "unit": "nvgpu-pmu",
