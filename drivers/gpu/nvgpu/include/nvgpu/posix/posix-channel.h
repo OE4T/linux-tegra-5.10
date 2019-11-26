@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -19,39 +19,17 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
+#ifndef NVGPU_POSIX_CHANNEL_H
+#define NVGPU_POSIX_CHANNEL_H
 
-#include <nvgpu/error_notifier.h>
-#include <nvgpu/channel.h>
+#include <nvgpu/types.h>
+#include <nvgpu/gk20a.h>
 
-#include <nvgpu/posix/posix-channel.h>
+struct nvgpu_posix_channel {
+	struct {
+		u32 error;
+		u32 status;
+	} err_notifier;
+};
 
-void nvgpu_set_err_notifier_locked(struct nvgpu_channel *ch, u32 error)
-{
-	struct nvgpu_posix_channel *cp = ch->os_priv;
-	if (cp != NULL) {
-		cp->err_notifier.error = error;
-		cp->err_notifier.status = 0xffff;
-	}
-}
-
-void nvgpu_set_err_notifier(struct nvgpu_channel *ch, u32 error)
-{
-	nvgpu_set_err_notifier_locked(ch, error);
-}
-
-void nvgpu_set_err_notifier_if_empty(struct nvgpu_channel *ch, u32 error)
-{
-	struct nvgpu_posix_channel *cp = ch->os_priv;
-	if (cp != NULL && cp->err_notifier.status == 0) {
-		nvgpu_set_err_notifier_locked(ch, error);
-	}
-}
-
-bool nvgpu_is_err_notifier_set(struct nvgpu_channel *ch, u32 error_notifier)
-{
-	struct nvgpu_posix_channel *cp = ch->os_priv;
-	if ((cp != NULL) && (cp->err_notifier.status != 0)) {
-		return cp->err_notifier.error == error_notifier;
-	}
-	return false;
-}
+#endif
