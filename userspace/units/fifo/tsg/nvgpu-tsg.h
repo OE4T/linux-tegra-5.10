@@ -36,9 +36,11 @@ struct gk20a;
 /**
  * Test specification for: test_tsg_open
  *
- * Description: Branch coverage for nvgpu_tsg_open.
+ * Description: Create TSG
  *
  * Test Type: Feature based
+ *
+ * Targets: nvgpu_tsg_open
  *
  * Input: test_fifo_init_support() run for this GPU
  *
@@ -65,9 +67,11 @@ int test_tsg_open(struct unit_module *m,
 /**
  * Test specification for: test_tsg_bind_channel
  *
- * Description: Branch coverage for nvgpu_tsg_bind_channel.
+ * Description: Bind channel to TSG.
  *
  * Test Type: Feature based
+ *
+ * Targets: nvgpu_tsg_bind_channel
  *
  * Input: test_fifo_init_support() run for this GPU
  *
@@ -100,9 +104,11 @@ int test_tsg_bind_channel(struct unit_module *m,
 /**
  * Test specification for: test_tsg_unbind_channel
  *
- * Description: Branch coverage for nvgpu_tsg_unbind_channel.
+ * Description: Unbind channel from TSG.
  *
  * Test Type: Feature based
+ *
+ * Targets: nvgpu_tsg_unbind_channel
  *
  * Input: test_fifo_init_support() run for this GPU
  *
@@ -143,9 +149,11 @@ int test_tsg_unbind_channel(struct unit_module *m,
 /**
  * Test specification for: test_tsg_release
  *
- * Description: Branch coverage for nvgpu_tsg_release.
+ * Description: Release TSG.
  *
  * Test Type: Feature based
+ *
+ * Targets: nvgpu_tsg_release
  *
  * Input: test_fifo_init_support() run for this GPU
  *
@@ -176,9 +184,11 @@ int test_tsg_release(struct unit_module *m,
 /**
  * Test specification for: test_tsg_unbind_channel_check_hw_state
  *
- * Description: Branch coverage for nvgpu_tsg_unbind_channel_check_hw_state.
+ * Description: Check HW state during TSG unbind channel.
  *
  * Test Type: Feature based
+ *
+ * Targets: nvgpu_tsg_unbind_channel_check_hw_state
  *
  * Input: test_fifo_init_support() run for this GPU
  *
@@ -200,9 +210,11 @@ int test_tsg_unbind_channel_check_hw_state(struct unit_module *m,
 /**
  * Test specification for: test_tsg_unbind_channel_check_ctx_reload
  *
- * Description: Branch coverage for nvgpu_tsg_unbind_channel_check_ctx_reload.
+ * Description: Check if channel reload is needed during TSG unbind
  *
  * Test Type: Feature based
+ *
+ * Targets: nvgpu_tsg_unbind_channel_check_ctx_reload
  *
  * Input: test_fifo_init_support() run for this GPU
  *
@@ -225,9 +237,11 @@ int test_tsg_unbind_channel_check_ctx_reload(struct unit_module *m,
 /**
  * Test specification for: test_tsg_enable
  *
- * Description: Branch coverage for nvgpu_tsg_enable/disable.
+ * Description: Enable/disable TSG
  *
  * Test Type: Feature based
+ *
+ * Targets: nvgpu_tsg_enable, nvgpu_tsg_disable
  *
  * Input: test_fifo_init_support() run for this GPU
  *
@@ -250,9 +264,11 @@ int test_tsg_enable(struct unit_module *m,
 /**
  * Test specification for: test_tsg_check_and_get_from_id
  *
- * Description: Branch coverage for test_tsg_check_and_get_from_id.
+ * Description: Get TSG context from id
  *
  * Test Type: Feature based
+ *
+ * Targets: tsg_check_and_get_from_id
  *
  * Input: test_fifo_init_support() run for this GPU
  *
@@ -270,9 +286,11 @@ int test_tsg_check_and_get_from_id(struct unit_module *m,
 /**
  * Test specification for: test_tsg_abort
  *
- * Description: Branch coverage for nvgpu_tsg_abort.
+ * Description: Abort TSG
  *
  * Test Type: Feature based
+ *
+ * Targets: nvgpu_tsg_abort
  *
  * Input: test_fifo_init_support() run for this GPU
  *
@@ -296,9 +314,11 @@ int test_tsg_abort(struct unit_module *m,
 /**
  * Test specification for: test_tsg_setup_sw
  *
- * Description: Branch coverage for nvgpu_tsg_setup_sw.
+ * Description: SW Initialization for TSGs
  *
  * Test Type: Feature based
+ *
+ * Targets: nvgpu_tsg_setup_sw
  *
  * Input: None
  *
@@ -313,6 +333,80 @@ int test_tsg_abort(struct unit_module *m,
 int test_tsg_setup_sw(struct unit_module *m,
 		struct gk20a *g, void *args);
 
+/**
+ * Test specification for: test_tsg_mark_error
+ *
+ * Description: Mark all channels unserviceable in a TSG
+ *
+ * Test Type: Feature based
+ *
+ * Targets: nvgpu_tsg_mark_error
+ *
+ * Input: None
+ *
+ * Steps:
+ * - Check marginal cases:
+ *   - Mark error for TSG with no bound channel.
+ *   - Mark error for TSG with one non serviceable channel.
+ * - Check likely cases:
+ *   - Use one TSG with one bound channel.
+ *   - Set error notifier to NVGPU_ERR_NOTIFIER_FIFO_ERROR_IDLE_TIMEOUT.
+ *   - Check that nvgpu_tsg_mark_error returns true (i.e. verbose), when
+ *     ch->ctxsw_timeout_debug_dump is true.
+ *   - Check that nvgpu_tsg_mark_error returns false otherwise.
+ *
+ * Output: Returns PASS if all branches gave expected results. FAIL otherwise.
+ */
+int test_tsg_mark_error(struct unit_module *m,
+		struct gk20a *g, void *args);
+
+/**
+ * Test specification for: test_tsg_set_ctx_mmu_error
+ *
+ * Description: Set MMU fault error notifier for TSG
+ *
+ * Test Type: Feature based
+ *
+ * Targets: nvgpu_tsg_set_ctx_mmu_error
+ *
+ * Input: None
+ *
+ * Steps:
+ * - Setup a TSG with one bound channel.
+ * - Initialize error notifier for channel.
+ * - Call nvgpu_tsg_set_ctx_mmu_erro for TSG.
+ * - Check that channel's error notifier has been set to
+ *   NVGPU_ERR_NOTIFIER_FIFO_ERROR_MMU_ERR_FLT.
+ *
+ * Output: Returns PASS if all branches gave expected results. FAIL otherwise.
+ */
+int test_tsg_set_ctx_mmu_error(struct unit_module *m,
+		struct gk20a *g, void *args);
+
+/**
+ * Test specification for: test_tsg_reset_faulted_eng_pbdma
+ *
+ * Description: Reset faulted engine and/or PBDMAs for a TSG
+ *
+ * Test Type: Feature based
+ *
+ * Targets: nvgpu_tsg_reset_faulted_eng_pbdma
+ *
+ * Input: None
+ *
+ * Steps:
+ * - Check valid case:
+ *   - Setup a TSG with one bound channel.
+ *   - Call nvgpu_tsg_reset_faulted_eng_pbdma.
+ *   - Check that g->ops.channel.reset_faulted was called for channel.
+ * - Check invalid cases:
+ *   - Case where TSG pointer is NULL.
+ *   - Case where  g->ops.channel.reset_faulted is NULL.
+ *
+ * Output: Returns PASS if all branches gave expected results. FAIL otherwise.
+ */
+int test_tsg_reset_faulted_eng_pbdma(struct unit_module *m,
+		struct gk20a *g, void *args);
 /**
  * @}
  */

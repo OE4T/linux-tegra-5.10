@@ -339,6 +339,7 @@ nvgpu_channel_open_new
 nvgpu_channel_put__func
 nvgpu_channel_setup_bind
 nvgpu_channel_refch_from_inst_ptr
+nvgpu_channel_set_unserviceable
 nvgpu_channel_setup_sw
 nvgpu_channel_sync_create
 nvgpu_channel_sync_destroy
@@ -545,8 +546,12 @@ nvgpu_tsg_bind_channel
 nvgpu_tsg_check_and_get_from_id
 nvgpu_tsg_cleanup_sw
 nvgpu_tsg_default_timeslice_us
+nvgpu_tsg_mark_error
 nvgpu_tsg_open
 nvgpu_tsg_release
+nvgpu_tsg_reset_faulted_eng_pbdma
+nvgpu_tsg_set_ctx_mmu_error
+nvgpu_tsg_set_error_notifier
 nvgpu_tsg_setup_sw
 nvgpu_tsg_unbind_channel
 nvgpu_tsg_unbind_channel_check_hw_state
