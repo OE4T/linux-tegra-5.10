@@ -402,6 +402,7 @@ int nvgpu_gr_ctx_map_global_ctx_buffers(struct gk20a *g,
 	}
 #endif
 
+#ifdef CONFIG_NVGPU_DGPU
 	/* RTV circular buffer */
 	err  = nvgpu_gr_ctx_map_ctx_buffer(g,
 			NVGPU_GR_GLOBAL_CTX_RTV_CIRCULAR_BUFFER,
@@ -411,6 +412,7 @@ int nvgpu_gr_ctx_map_global_ctx_buffers(struct gk20a *g,
 		nvgpu_err(g, "cannot map ctx rtv circular buffer");
 		goto fail;
 	}
+#endif
 
 	gr_ctx->global_ctx_buffer_mapped = true;
 

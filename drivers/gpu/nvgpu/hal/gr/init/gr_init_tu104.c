@@ -32,6 +32,7 @@
 
 #include <nvgpu/hw/tu104/hw_gr_tu104.h>
 
+#ifdef CONFIG_NVGPU_DGPU
 u32 tu104_gr_init_get_rtv_cb_size(struct gk20a *g)
 {
 	return nvgpu_safe_mult_u32(
@@ -68,6 +69,7 @@ void tu104_gr_init_commit_rtv_cb(struct gk20a *g, u64 addr,
 	nvgpu_assert(u64_hi32(addr) == 0U);
 	tu104_gr_init_patch_rtv_cb(g, gr_ctx, (u32)addr, size, 0, patch);
 }
+#endif
 
 u32 tu104_gr_init_get_bundle_cb_default_size(struct gk20a *g)
 {

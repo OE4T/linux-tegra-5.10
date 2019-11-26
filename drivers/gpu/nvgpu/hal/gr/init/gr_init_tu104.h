@@ -29,9 +29,11 @@ struct gk20a;
 struct nvgpu_gr_ctx;
 struct netlist_av64_list;
 
+#ifdef CONFIG_NVGPU_DGPU
 u32 tu104_gr_init_get_rtv_cb_size(struct gk20a *g);
 void tu104_gr_init_commit_rtv_cb(struct gk20a *g, u64 addr,
 	struct nvgpu_gr_ctx *gr_ctx, bool patch);
+#endif
 
 u32 tu104_gr_init_get_bundle_cb_default_size(struct gk20a *g);
 u32 tu104_gr_init_get_min_gpm_fifo_depth(struct gk20a *g);

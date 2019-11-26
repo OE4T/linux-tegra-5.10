@@ -236,6 +236,7 @@ int nvgpu_gr_global_ctx_buffer_alloc(struct gk20a *g,
 	}
 #endif
 
+#ifdef CONFIG_NVGPU_DGPU
 	if (desc[NVGPU_GR_GLOBAL_CTX_RTV_CIRCULAR_BUFFER].size != 0U) {
 		err = nvgpu_gr_global_ctx_buffer_alloc_sys(g, desc,
 			NVGPU_GR_GLOBAL_CTX_RTV_CIRCULAR_BUFFER);
@@ -243,6 +244,7 @@ int nvgpu_gr_global_ctx_buffer_alloc(struct gk20a *g,
 			goto clean_up;
 		}
 	}
+#endif
 
 #ifdef CONFIG_NVGPU_VPR
 	if (nvgpu_gr_global_ctx_buffer_vpr_alloc(g, desc) != 0) {

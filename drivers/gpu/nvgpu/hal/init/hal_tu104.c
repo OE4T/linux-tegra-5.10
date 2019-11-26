@@ -586,8 +586,10 @@ static const struct gpu_ops tu104_ops = {
 			.load_method_init = gm20b_gr_init_load_method_init,
 			.commit_global_timeslice =
 				gv11b_gr_init_commit_global_timeslice,
+#ifdef CONFIG_NVGPU_DGPU
 			.get_rtv_cb_size = tu104_gr_init_get_rtv_cb_size,
 			.commit_rtv_cb = tu104_gr_init_commit_rtv_cb,
+#endif
 			.get_bundle_cb_default_size =
 				tu104_gr_init_get_bundle_cb_default_size,
 			.get_min_gpm_fifo_depth =

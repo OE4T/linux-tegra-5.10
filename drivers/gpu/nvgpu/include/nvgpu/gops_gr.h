@@ -632,7 +632,6 @@ struct gops_gr_init {
 	int (*load_sw_veid_bundle)(struct gk20a *g,
 			struct netlist_av_list *sw_method_init);
 	void (*commit_global_timeslice)(struct gk20a *g);
-	u32 (*get_rtv_cb_size)(struct gk20a *g);
 	u32 (*get_bundle_cb_default_size)(struct gk20a *g);
 	u32 (*get_min_gpm_fifo_depth)(struct gk20a *g);
 	u32 (*get_bundle_cb_token_limit)(struct gk20a *g);
@@ -670,6 +669,7 @@ struct gops_gr_init {
 #ifdef CONFIG_NVGPU_DGPU
 	int (*load_sw_bundle64)(struct gk20a *g,
 			struct netlist_av64_list *sw_bundle64_init);
+	u32 (*get_rtv_cb_size)(struct gk20a *g);
 	void (*commit_rtv_cb)(struct gk20a *g, u64 addr,
 			      struct nvgpu_gr_ctx *gr_ctx, bool patch);
 #endif
