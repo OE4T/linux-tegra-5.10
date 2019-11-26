@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -28,6 +28,10 @@
  * Declare device info specific struct and defines.
  */
 #include <nvgpu/types.h>
+
+#if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+#include "include/nvgpu/nvgpu_next_top.h"
+#endif
 
 struct gk20a;
 
@@ -105,6 +109,13 @@ struct nvgpu_device_info {
 	u32 intr_id;
 	/** Reset id read from device info h/w register. */
 	u32 reset_id;
+
+	/** @cond DOXYGEN_SHOULD_SKIP_THIS */
+#if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+	/* nvgpu next device info additions */
+	struct nvgpu_next_device_info nvgpu_next;
+#endif
+	/** @endcond DOXYGEN_SHOULD_SKIP_THIS */
 };
 
 #endif /* NVGPU_TOP_H */

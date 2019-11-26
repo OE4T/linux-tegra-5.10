@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -294,6 +294,9 @@ struct gops_top {
 					u32 table_entry, u32 *inst_id,
 					u32 *pri_base, u32 *fault_id);
 
+#if defined(CONFIG_NVGPU_HAL_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+#include "include/nvgpu/nvgpu_next_gops_top.h"
+#endif
 	/** @endcond DOXYGEN_SHOULD_SKIP_THIS */
 
 };
