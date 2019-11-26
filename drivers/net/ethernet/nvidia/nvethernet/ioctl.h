@@ -22,7 +22,14 @@
  * @{
  */
 #define NUM_BYTES_IN_IPADDR	4
-#define MAX_IP_ADDR_BYTE	0xFF
+#define MAX_IP_ADDR_BYTE	0xFFU
+
+/* class E IP4 addr start range, reserved */
+#define CLASS_E_IP4_ADDR_RANGE_START	240U
+/* class D multicast addr range */
+#define MIN_MC_ADDR_RANGE	224U
+#define MAX_MC_ADDR_RANGE	239U
+
 /* Remote wakeup filter */
 #define EQOS_RWK_FILTER_LENGTH		8
 #define ETHER_PRV_TS_IOCTL		(SIOCDEVPRIVATE + 1)

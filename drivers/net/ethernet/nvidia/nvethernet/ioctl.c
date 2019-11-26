@@ -17,6 +17,94 @@
 #include "ether_linux.h"
 
 /**
+ * @brief Function to check valid ip4 address
+ *
+ * Algorithm:
+ * 1) Check if IP4 address provided is valid.
+ *
+ * @param[in] ip_addr: Pointer to ip4 addr buffer.
+ *
+ * @retval true If valid ip4 address
+ * @retval false Otherwise
+ */
+static bool ether_is_ip4_addr(unsigned char *ip_addr)
+{
+	unsigned char addr;
+	bool is_ip4_addr = false;
+
+	if (ip_addr == NULL) {
+		return is_ip4_addr;
+	}
+	addr = (ip_addr[0] & MAX_IP_ADDR_BYTE);
+	/* class E ip address reserved for future use
+	 */
+	if (addr >= CLASS_E_IP4_ADDR_RANGE_START) {
+		is_ip4_addr = false;
+	} else {
+		is_ip4_addr = true;
+	}
+	return is_ip4_addr;
+}
+
+/**
+ * @brief Function to check valid multicast address
+ *
+ * Algorithm:
+ * 1) Check if multicast address provided is valid.
+ *
+ * @param[in] ip_addr: Pointer to multicast addr buffer.
+ *
+ * @retval true If valid multicast address
+ * @retval false Otherwise
+ */
+static bool ether_is_mc_addr(unsigned char *mc_addr)
+{
+	unsigned char addr;
+	bool is_mc_addr = false;
+
+	if (mc_addr == NULL) {
+		return is_mc_addr;
+	}
+	addr = (mc_addr[0] & MAX_IP_ADDR_BYTE);
+	/* class D ip address reserved for multicast address
+	 */
+	if (addr >= MIN_MC_ADDR_RANGE &&  addr <= MAX_MC_ADDR_RANGE) {
+		is_mc_addr = true;
+	} else {
+		is_mc_addr = false;
+	}
+	return is_mc_addr;
+}
+
+/**
+ * @brief Function to check valid broadcast address
+ *
+ * Algorithm:
+ * 1) Check if broadcast address provided is valid.
+ *
+ * @param[in] bc_addr: Pointer to broadcast addr buffer.
+ *
+ * @retval true If valid broadcast address
+ * @retval false Otherwise
+ */
+static bool ether_is_bc_addr(unsigned char *bc_addr)
+{
+	bool is_bc_addr = true;
+	int i;
+
+	if (bc_addr == NULL) {
+		return false;
+	}
+	for (i = 0; i < NUM_BYTES_IN_IPADDR; i++) {
+		if (bc_addr[i] != MAX_IP_ADDR_BYTE) {
+			is_bc_addr = false;
+			break;
+		}
+	}
+	return is_bc_addr;
+}
+
+/**
  * @brief Function to handle private ioctl - EQOS_AVB_ALGORITHM
  *
  * Algorithm: Call osi_set_avb with user passed data
@@ -138,7 +226,7 @@ static int ether_get_avb_algo(struct net_device *ndev,
 static int ether_config_arp_offload(struct ether_priv_data *pdata,
 				    struct ether_ifr_data *ifrd_p)
 {
-	int i, ret = -EINVAL;
+	int ret = -EINVAL;
 	struct arp_offload_param param;
 	/* TODO: Need Spin lock to prevent multiple apps from
 	 * requesting same ioctls to the same MAC instance
@@ -154,20 +242,17 @@ static int ether_config_arp_offload(struct ether_priv_data *pdata,
 		dev_err(pdata->dev, "%s: copy_from_user failed\n", __func__);
 		return ret;
 	}
-
-	for (i = 0; i < NUM_BYTES_IN_IPADDR; i++) {
-		if (param.ip_addr[i] > MAX_IP_ADDR_BYTE) {
-			dev_err(pdata->dev, "%s: Invalid IP addr\n", __func__);
-			return ret;
-		}
+	if (!ether_is_ip4_addr(param.ip_addr) ||
+	   ether_is_mc_addr(param.ip_addr) ||
+	   ether_is_bc_addr(param.ip_addr)) {
+		dev_err(pdata->dev, "%s: Invalid IP addr\n", __func__);
+		return ret;
 	}
-
 	ret = osi_config_arp_offload(pdata->osi_core, ifrd_p->if_flags,
 				     param.ip_addr);
 	dev_err(pdata->dev, "ARP offload: %s : %s\n",
 		ifrd_p->if_flags ? "Enable" : "Disable",
 		ret ? "Failed" : "Success");
-
 	return ret;
 }
 
