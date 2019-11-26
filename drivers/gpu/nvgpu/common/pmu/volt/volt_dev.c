@@ -21,7 +21,6 @@
  */
 
 #include <nvgpu/types.h>
-#include <nvgpu/sort.h>
 #include <nvgpu/pmu/pmuif/nvgpu_cmdif.h>
 #include <nvgpu/bios.h>
 #include <nvgpu/kmem.h>
@@ -429,27 +428,12 @@ static int _volt_device_devgrp_pmudata_instget(struct gk20a *g,
 	return 0;
 }
 
-static int volt_device_volt_cmp(const void *a, const void *b)
-{
-	const struct voltage_device_entry *a_entry;
-	const struct voltage_device_entry *b_entry;
-
-	a_entry = *(const struct voltage_device_entry * const *)a;
-	b_entry = *(const struct voltage_device_entry * const *)b;
-
-	return (int)a_entry->voltage_uv - (int)b_entry->voltage_uv;
-}
-
 static int volt_device_state_init(struct gk20a *g,
 			struct voltage_device *pvolt_dev)
 {
 	int status = 0;
 	struct voltage_rail *pRail = NULL;
 	u8 rail_idx = 0;
-
-	sort(pvolt_dev->pentry, pvolt_dev->num_entries,
-	     sizeof(*pvolt_dev->pentry), volt_device_volt_cmp,
-	     NULL);
 
 	/* Initialize VOLT_DEVICE step size. */
 	if (pvolt_dev->num_entries <= VOLTAGE_TABLE_MAX_ENTRIES_ONE) {
