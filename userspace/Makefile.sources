@@ -71,6 +71,7 @@ UNITS :=				\
 	$(UNIT_SRC)/mm/dma		\
 	$(UNIT_SRC)/mm/gmmu/pd_cache	\
 	$(UNIT_SRC)/mm/gmmu/page_table	\
+	$(UNIT_SRC)/mm/hal/cache/flush_gk20a_fusa	\
 	$(UNIT_SRC)/mm/mm		\
 	$(UNIT_SRC)/mm/page_table_faults \
 	$(UNIT_SRC)/mm/nvgpu_mem	\
@@ -104,7 +105,7 @@ UNITS :=				\
 	$(UNIT_SRC)/ltc			\
 	$(UNIT_SRC)/enabled		\
 	$(UNIT_SRC)/falcon		\
-	$(UNIT_SRC)/falcon/falcon_tests		\
+	$(UNIT_SRC)/falcon/falcon_tests	\
 	$(UNIT_SRC)/fuse		\
 	$(UNIT_SRC)/pmu			\
 	$(UNIT_SRC)/top			\
