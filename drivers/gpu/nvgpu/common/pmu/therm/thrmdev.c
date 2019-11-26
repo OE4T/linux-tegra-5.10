@@ -164,6 +164,12 @@ static int devinit_get_therm_device_table(struct gk20a *g,
 			break;
 		case NV_VBIOS_THERM_DEVICE_1X_ENTRY_CLASS_GPU:
 			break;
+		case NV_VBIOS_THERM_DEVICE_1X_ENTRY_CLASS_GPU_GPC_SCI:
+			continue;
+			break;
+		case NV_VBIOS_THERM_DEVICE_1X_ENTRY_CLASS_GPU_GPC_TSOSC:
+			continue;
+			break;
 		default:
 			nvgpu_err(g,
 				"Unknown thermal device class i - %x, class - %x",
