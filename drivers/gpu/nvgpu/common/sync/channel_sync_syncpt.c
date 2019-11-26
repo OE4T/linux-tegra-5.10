@@ -365,6 +365,7 @@ nvgpu_channel_sync_syncpt_create(struct nvgpu_channel *c, bool user_managed)
 {
 	struct nvgpu_channel_sync_syncpt *sp;
 	char syncpt_name[32];
+	int err;
 
 	sp = nvgpu_kzalloc(c->g, sizeof(*sp));
 	if (sp == NULL) {
@@ -396,8 +397,15 @@ nvgpu_channel_sync_syncpt_create(struct nvgpu_channel *c, bool user_managed)
 		return NULL;
 	}
 
-	sp->c->g->ops.sync.syncpt.alloc_buf(sp->c, sp->id,
+	err = sp->c->g->ops.sync.syncpt.alloc_buf(sp->c, sp->id,
 				&sp->syncpt_buf);
+
+	if (err != 0) {
+		nvgpu_nvhost_syncpt_put_ref_ext(sp->nvhost_dev, sp->id);
+		nvgpu_kfree(c->g, sp);
+		nvgpu_err(c->g, "failed to allocate syncpoint buffer");
+		return NULL;
+	}
 
 	nvgpu_nvhost_syncpt_set_min_eq_max_ext(sp->nvhost_dev, sp->id);
 
