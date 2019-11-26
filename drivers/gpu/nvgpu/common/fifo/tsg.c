@@ -233,29 +233,46 @@ int nvgpu_tsg_unbind_channel(struct nvgpu_tsg *tsg, struct nvgpu_channel *ch)
 
 	err = nvgpu_tsg_unbind_channel_common(tsg, ch);
 	if (err != 0) {
-		nvgpu_err(g, "Channel %d unbind failed, tearing down TSG %d",
-			ch->chid, tsg->tsgid);
-
-		nvgpu_tsg_abort(g, tsg, true);
-		/* If channel unbind fails, channel is still part of runlist */
-		if (nvgpu_channel_update_runlist(ch, false) != 0) {
-			nvgpu_err(g,
-				"remove ch %u from runlist failed", ch->chid);
-		}
-
-		nvgpu_rwsem_down_write(&tsg->ch_list_lock);
-		nvgpu_list_del(&ch->ch_entry);
-		ch->tsgid = NVGPU_INVALID_TSG_ID;
-		nvgpu_rwsem_up_write(&tsg->ch_list_lock);
+		nvgpu_err(g, "unbind common failed, err=%d", err);
+		goto fail;
 	}
 
 	if (g->ops.tsg.unbind_channel != NULL) {
 		err = g->ops.tsg.unbind_channel(tsg, ch);
+		if (err != 0) {
+			/*
+			 * ch already removed from TSG's list.
+			 * mark error explicitly.
+			 */
+			(void) nvgpu_channel_mark_error(g, ch);
+			nvgpu_err(g, "unbind hal failed, err=%d", err);
+			goto fail;
+		}
 	}
 
 	nvgpu_ref_put(&tsg->refcount, nvgpu_tsg_release);
 
 	return 0;
+
+fail:
+	nvgpu_err(g, "Channel %d unbind failed, tearing down TSG %d",
+		ch->chid, tsg->tsgid);
+
+	nvgpu_tsg_abort(g, tsg, true);
+	/* If channel unbind fails, channel is still part of runlist */
+	if (nvgpu_channel_update_runlist(ch, false) != 0) {
+		nvgpu_err(g, "remove ch %u from runlist failed", ch->chid);
+	}
+
+	nvgpu_rwsem_down_write(&tsg->ch_list_lock);
+	nvgpu_list_del(&ch->ch_entry);
+	ch->tsgid = NVGPU_INVALID_TSG_ID;
+	nvgpu_rwsem_up_write(&tsg->ch_list_lock);
+
+	nvgpu_ref_put(&tsg->refcount, nvgpu_tsg_release);
+
+	return err;
+
 }
 
 int nvgpu_tsg_unbind_channel_check_hw_state(struct nvgpu_tsg *tsg,

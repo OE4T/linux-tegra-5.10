@@ -602,12 +602,12 @@ int test_gr_setup_free_obj_ctx(struct unit_module *m,
 {
 	int err = 0;
 
+	/* Restore valid ops for negative tests */
+	gr_setup_restore_valid_ops(g);
+
 	err = gr_test_setup_unbind_tsg(m, g);
 
 	gr_test_setup_cleanup_ch_tsg(m, g);
-
-	/* Restore valid ops for negative tests */
-	gr_setup_restore_valid_ops(g);
 
 	return (err == 0) ? UNIT_SUCCESS: UNIT_FAIL;
 }
