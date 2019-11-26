@@ -1992,6 +1992,30 @@
         "test_level": 0
     },
     {
+        "test": "test_gr_init_setup",
+        "case": "gr_global_ctx_setup",
+        "unit": "nvgpu_gr_global_ctx",
+        "test_level": 0
+    },
+    {
+        "test": "test_gr_global_ctx_alloc_error_injection",
+        "case": "gr_global_ctx_alloc_errors",
+        "unit": "nvgpu_gr_global_ctx",
+        "test_level": 0
+    },
+    {
+        "test": "test_gr_global_ctx_local_ctx_error_injection",
+        "case": "gr_global_ctx_local_ctx_errors",
+        "unit": "nvgpu_gr_global_ctx",
+        "test_level": 0
+    },
+    {
+        "test": "test_gr_remove_setup",
+        "case": "gr_global_ctx_cleanup",
+        "unit": "nvgpu_gr_global_ctx",
+        "test_level": 0
+    },
+    {
         "test": "test_nvgpu_mem_create_from_phys",
         "case": "mem_create_from_phys",
         "unit": "nvgpu_mem",
