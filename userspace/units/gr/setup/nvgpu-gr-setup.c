@@ -39,11 +39,13 @@
 
 #include <nvgpu/gr/gr.h>
 #include <nvgpu/gr/ctx.h>
+#include <nvgpu/gr/obj_ctx.h>
 
 #include <nvgpu/hw/gv11b/hw_gr_gv11b.h>
 
 #include "common/gr/gr_priv.h"
 #include "common/gr/obj_ctx_priv.h"
+#include "common/gr/ctx_priv.h"
 
 #include "../nvgpu-gr.h"
 #include "nvgpu-gr-setup.h"
@@ -82,6 +84,11 @@ static int stub_gr_falcon_ctrl_ctxsw(struct gk20a *g, u32 fecs_method,
 				     u32 data, u32 *ret_val)
 {
 	return 0;
+}
+
+static int stub_gr_fifo_preempt_tsg(struct gk20a *g, struct nvgpu_tsg *tsg)
+{
+	return -1;
 }
 
 static int gr_test_setup_unbind_tsg(struct unit_module *m, struct gk20a *g)
@@ -180,17 +187,112 @@ ch_alloc_end:
 	return (err == 0) ? UNIT_SUCCESS: UNIT_FAIL;
 }
 
+struct test_gr_setup_preemption_mode {
+	u32 compute_mode;
+	u32 graphics_mode;
+	int result;
+};
+
+struct test_gr_setup_preemption_mode preemp_mode_types[] = {
+	[0] = {
+		.compute_mode = NVGPU_PREEMPTION_MODE_COMPUTE_CTA,
+		.graphics_mode = 0,
+		.result = 0,
+	      },
+	[1] = {
+		.compute_mode = BIT(2),
+		.graphics_mode = 0,
+		.result = -EINVAL,
+	      },
+	[2] = {
+		.compute_mode = NVGPU_PREEMPTION_MODE_COMPUTE_WFI,
+		.graphics_mode = 0,
+		.result = -EINVAL,
+	      },
+	[3] = {
+		.compute_mode = 0,
+		.graphics_mode = 0,
+		.result = 0,
+	      },
+	[4] = {
+		.compute_mode = 0,
+		.graphics_mode = BIT(1),
+		.result = -EINVAL,
+	      },
+};
+
+int test_gr_setup_preemption_mode_errors(struct unit_module *m,
+				      struct gk20a *g, void *args)
+{
+	int err, i;
+	u32 class_num, tsgid;
+	int arry_cnt = sizeof(preemp_mode_types)/
+			sizeof(struct test_gr_setup_preemption_mode);
+
+	if (gr_setup_ch == NULL) {
+		unit_return_fail(m, "Failed setup for valid channel\n");
+	}
+
+	/* Various compute and grahics mode for error injection */
+	for (i = 0; i < arry_cnt; i++) {
+		err = g->ops.gr.setup.set_preemption_mode(gr_setup_ch,
+				preemp_mode_types[i].graphics_mode,
+				preemp_mode_types[i].compute_mode);
+		if (err != preemp_mode_types[i].result) {
+			unit_return_fail(m, "Fail Preemp_mode Error Test-1\n");
+		}
+	}
+
+	/* disable preempt_tsg for failure */
+	gr_setup_tsg->gr_ctx->compute_preempt_mode =
+			NVGPU_PREEMPTION_MODE_COMPUTE_WFI;
+	g->ops.fifo.preempt_tsg = stub_gr_fifo_preempt_tsg;
+	err = g->ops.gr.setup.set_preemption_mode(gr_setup_ch, 0,
+				NVGPU_PREEMPTION_MODE_COMPUTE_CTA);
+	if (err == 0) {
+		unit_return_fail(m, "Fail Preemp_mode Error Test-2\n");
+	}
+
+	class_num = gr_setup_ch->obj_class;
+	tsgid = gr_setup_ch->tsgid;
+	/* Unset the tsgid */
+	gr_setup_ch->tsgid = NVGPU_INVALID_TSG_ID;
+	err = g->ops.gr.setup.set_preemption_mode(gr_setup_ch, 0, 0);
+	if (err == 0) {
+		unit_return_fail(m, "Fail Preemp_mode Error Test-2\n");
+	}
+
+	gr_setup_ch->tsgid = tsgid;
+	/* Unset the valid Class*/
+	gr_setup_ch->obj_class = 0;
+	err = g->ops.gr.setup.set_preemption_mode(gr_setup_ch, 0, 0);
+	if (err == 0) {
+		unit_return_fail(m, "Fail Preemp_mode Error Test-2\n");
+	}
+
+	gr_setup_ch->obj_class = class_num;
+	return UNIT_SUCCESS;
+}
+
 int test_gr_setup_set_preemption_mode(struct unit_module *m,
 				      struct gk20a *g, void *args)
 {
 	int err;
+	u32 compute_mode;
+	u32 graphic_mode = 0;
 
 	if (gr_setup_ch == NULL) {
 		unit_return_fail(m, "failed setup with valid channel\n");
 	}
 
+	g->ops.gr.init.get_default_preemption_modes(&graphic_mode,
+						&compute_mode);
+
+	g->ops.gr.init.get_supported__preemption_modes(&graphic_mode,
+						&compute_mode);
+
 	err = g->ops.gr.setup.set_preemption_mode(gr_setup_ch, 0,
-		NVGPU_PREEMPTION_MODE_COMPUTE_CTA);
+		(compute_mode & NVGPU_PREEMPTION_MODE_COMPUTE_CTA));
 	if (err != 0) {
 		unit_return_fail(m, "setup preemption_mode failed\n");
 	}
@@ -215,6 +317,8 @@ int test_gr_setup_alloc_obj_ctx(struct unit_module *m,
 {
 	u32 tsgid = getpid();
 	int err;
+	bool golden_image_status;
+	u32 curr_tsgid = 0;
 	struct nvgpu_fifo *f = &g->fifo;
 
 	nvgpu_posix_io_writel_reg_space(g, gr_fecs_current_ctx_r(),
@@ -247,6 +351,17 @@ int test_gr_setup_alloc_obj_ctx(struct unit_module *m,
 		unit_return_fail(m, "setup alloc ob as current_ctx\n");
 	}
 
+	golden_image_status =
+		nvgpu_gr_obj_ctx_is_golden_image_ready(g->gr->golden_image);
+	if (!golden_image_status) {
+		unit_return_fail(m, "No valid golden image created\n");
+	}
+
+	curr_tsgid = nvgpu_gr_ctx_get_tsgid(gr_setup_tsg->gr_ctx);
+	if (curr_tsgid != gr_setup_ch->tsgid) {
+		unit_return_fail(m, "Invalid tsg id\n");
+	}
+
 	return UNIT_SUCCESS;
 }
 
@@ -254,6 +369,7 @@ struct unit_module_test nvgpu_gr_setup_tests[] = {
 	UNIT_TEST(gr_setup_setup, test_gr_init_setup_ready, NULL, 0),
 	UNIT_TEST(gr_setup_alloc_obj_ctx, test_gr_setup_alloc_obj_ctx, NULL, 0),
 	UNIT_TEST(gr_setup_set_preemption_mode, test_gr_setup_set_preemption_mode, NULL, 0),
+	UNIT_TEST(gr_setup_preemption_mode_errors, test_gr_setup_preemption_mode_errors, NULL, 0),
 	UNIT_TEST(gr_setup_free_obj_ctx, test_gr_setup_free_obj_ctx, NULL, 0),
 	UNIT_TEST(gr_setup_cleanup, test_gr_init_setup_cleanup, NULL, 0),
 };

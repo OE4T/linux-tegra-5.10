@@ -40,6 +40,11 @@ struct unit_module;
  *
  * Test Type: Feature based.
  *
+ * Targets: #nvgpu_gr_setup_alloc_obj_ctx,
+ *          #nvgpu_gr_obj_ctx_alloc,
+ *          #nvgpu_gr_ctx_set_tsgid,
+ *          #nvgpu_gr_ctx_get_tsgid.
+ *
  * Input: #test_gr_init_setup_ready must have been executed successfully.
  *
  * Steps:
@@ -56,7 +61,6 @@ struct unit_module;
  * Output: Returns PASS if the steps above were executed successfully. FAIL
  * otherwise.
  */
-
 int test_gr_setup_alloc_obj_ctx(struct unit_module *m,
 				 struct gk20a *g, void *args);
 
@@ -67,6 +71,14 @@ int test_gr_setup_alloc_obj_ctx(struct unit_module *m,
  *
  * Test Type: Feature based.
  *
+ * Targets: #nvgpu_gr_setup_set_preemption_mode,
+ *          #nvgpu_gr_obj_ctx_set_ctxsw_preemption_mode,
+ *          #nvgpu_gr_obj_ctx_update_ctxsw_preemption_mode,
+ *          #nvgpu_gr_ctx_patch_write_begin,
+ *          #nvgpu_gr_ctx_patch_write_end,
+ *          gp10b_gr_init_commit_global_cb_manager,
+ *          #nvgpu_gr_ctx_patch_write.
+ *
  * Input: #test_gr_init_setup_ready and #test_gr_setup_alloc_obj_ctx
  *        must have been executed successfully.
  *
@@ -76,7 +88,6 @@ int test_gr_setup_alloc_obj_ctx(struct unit_module *m,
  * Output: Returns PASS if the steps above were executed successfully. FAIL
  * otherwise.
  */
-
 int test_gr_setup_set_preemption_mode(struct unit_module *m,
 			       struct gk20a *g, void *args);
 
@@ -86,6 +97,9 @@ int test_gr_setup_set_preemption_mode(struct unit_module *m,
  * Description: Helps to verify common.gr object context cleanup.
  *
  * Test Type: Feature based.
+ *
+ * Targets: #nvgpu_gr_setup_free_subctx,
+ *          #nvgpu_gr_setup_free_gr_ctx,
  *
  * Input: #test_gr_init_setup_ready and #test_gr_setup_alloc_obj_ctx
  *        must have been executed successfully.
@@ -98,10 +112,34 @@ int test_gr_setup_set_preemption_mode(struct unit_module *m,
  * Output: Returns PASS if the steps above were executed successfully. FAIL
  * otherwise.
  */
-
 int test_gr_setup_free_obj_ctx(struct unit_module *m,
 			       struct gk20a *g, void *args);
 
+/**
+ * Test specification for: test_gr_setup_preemption_mode_errors.
+ *
+ * Description: Helps to verify error paths in
+ *              g->ops.gr.setup.set_preemption_mode call.
+ *
+ * Test Type: Error injection.
+ *
+ * Targets: #nvgpu_gr_setup_set_preemption_mode,
+ *          #nvgpu_gr_obj_ctx_set_ctxsw_preemption_mode.
+ *
+ * Input: #test_gr_init_setup_ready and #test_gr_setup_alloc_obj_ctx
+ *        must have been executed successfully.
+ *
+ * Steps:
+ * - Verify various combinations of compute and graphics modes.
+ * - Verify the error path by failing #nvgpu_preempt_channel.
+ * - Verify the error path for NVGPU_INVALID_TSG_ID as ch->tsgid.
+ * - Verify the error path for invalid ch->obj_class.
+ *
+ * Output: Returns PASS if the steps above were executed successfully. FAIL
+ * otherwise.
+ */
+int test_gr_setup_preemption_mode_errors(struct unit_module *m,
+				      struct gk20a *g, void *args);
 #endif /* UNIT_NVGPU_GR_SETUP_H */
 
 /**

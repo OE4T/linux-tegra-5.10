@@ -166,6 +166,7 @@ int test_gr_init_setup_ready(struct unit_module *m,
 	}
 
 	nvgpu_ref_init(&g->refcount);
+	nvgpu_gr_sw_ready(g, true);
 
 	return UNIT_SUCCESS;
 }
