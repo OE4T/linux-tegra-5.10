@@ -153,11 +153,12 @@ int test_engine_enum_from_type(struct unit_module *m,
 /**
  * Test specification for: test_engine_interrupt_mask
  *
- * Description: Branch coverage for nvgpu_engine_interrupt_mask,
- *              nvgpu_engine_act_interrupt_mask and
- *              nvgpu_engine_get_all_ce_reset_mask
+ * Description: Engine interrupt masks
  *
  * Test Type: Feature based
+ *
+ * Targets: nvgpu_gr_engine_interrupt_mask, nvgpu_ce_engine_interrupt_mask,
+ * nvgpu_engine_act_interrupt_mask, nvgpu_engine_get_all_ce_reset_mask
  *
  * Input: test_engine_ids must have run.
  *

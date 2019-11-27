@@ -362,7 +362,9 @@ int test_engine_interrupt_mask(struct unit_module *m,
 		struct gk20a *g, void *args)
 {
 	int ret = UNIT_FAIL;
-	u32 intr_mask = nvgpu_engine_interrupt_mask(g);
+	u32 intr_mask =
+		nvgpu_gr_engine_interrupt_mask(g) |
+		nvgpu_ce_engine_interrupt_mask(g);
 	u32 all_mask = 0U;
 	u32 ce_reset_mask;
 	u32 mask;
