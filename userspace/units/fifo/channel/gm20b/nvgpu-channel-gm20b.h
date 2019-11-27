@@ -36,16 +36,18 @@ struct gk20a;
 /**
  * Test specification for: test_gm20b_channel_bind
  *
- * Description: Branch coverage for gm20b_channel_bind
+ * Description: Bind channel to HW
  *
  * Test Type: Feature based
+ *
+ * Targets: gm20b_channel_bind
  *
  * Input: test_fifo_init_support() run for this GPU
  *
  * Steps:
  * - Create channel.
  * - Write 0 to ccsr_channel_inst_r and ccsr_channel_r.
- * - Call g->ops.channel.bind.
+ * - Call gm20b_channel_bind and.
  * - Check that ccsr_channel_inst_r and ccsr_channel_r have
  *   been programmed.
  * - Check that ch->bound is set.
@@ -54,6 +56,31 @@ struct gk20a;
  */
 int test_gm20b_channel_bind(struct unit_module *m,
 		struct gk20a *g, void *args);
+
+
+
+/**
+ * Test specification for: test_gm20b_channel_force_ctx_reload
+ *
+ * Description: Force reload of channel context
+ *
+ * Test Type: Feature based
+ *
+ * Targets: gm20b_channel_force_ctx_reload
+ *
+ * Input: test_fifo_init_support() run for this GPU
+ *
+ * Steps:
+ * - Create channel.
+ * - Write 0 to ccsr_channel_r.
+ * - Call gm20b_channel_force_ctx_reload
+ * - Check that ccsr_channel_force_ctx_reload_true_f is set in ccsr_channel_r.
+ *
+ * Output: Returns PASS if all branches gave expected results. FAIL otherwise.
+ */
+int test_gm20b_channel_force_ctx_reload(struct unit_module *m,
+		struct gk20a *g, void *args);
+
 
 /**
  * @}

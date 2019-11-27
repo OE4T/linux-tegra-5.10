@@ -89,10 +89,36 @@ done:
 	return ret;
 }
 
+int test_gm20b_channel_force_ctx_reload(struct unit_module *m,
+		struct gk20a *g, void *args)
+{
+	bool privileged = false;
+	u32 runlist_id = NVGPU_INVALID_RUNLIST_ID;
+	struct nvgpu_channel *ch;
+	int ret = UNIT_FAIL;
+
+	ch = nvgpu_channel_open_new(g, runlist_id,
+		privileged, getpid(), getpid());
+	assert(ch);
+
+	nvgpu_writel(g, ccsr_channel_r(ch->chid), 0);
+	gm20b_channel_force_ctx_reload(ch);
+	assert((nvgpu_readl(g, ccsr_channel_r(ch->chid)) &
+		ccsr_channel_force_ctx_reload_true_f()) != 0);
+
+	ret = UNIT_SUCCESS;
+done:
+	if (ch) {
+		nvgpu_channel_close(ch);
+	}
+
+	return ret;
+}
 
 struct unit_module_test nvgpu_channel_gm20b_tests[] = {
 	UNIT_TEST(init_support, test_fifo_init_support, NULL, 0),
 	UNIT_TEST(bind, test_gm20b_channel_bind, NULL, 0),
+	UNIT_TEST(force_ctx_reload, test_gm20b_channel_force_ctx_reload, NULL, 0),
 	UNIT_TEST(remove_support, test_fifo_remove_support, NULL, 0),
 };
 

@@ -61,8 +61,8 @@ void gm20b_channel_bind(struct nvgpu_channel *c)
 void gm20b_channel_force_ctx_reload(struct nvgpu_channel *ch)
 {
 	struct gk20a *g = ch->g;
-	u32 reg = gk20a_readl(g, ccsr_channel_r(ch->chid));
+	u32 reg = nvgpu_readl(g, ccsr_channel_r(ch->chid));
 
-	gk20a_writel(g, ccsr_channel_r(ch->chid),
+	nvgpu_writel(g, ccsr_channel_r(ch->chid),
 		reg | ccsr_channel_force_ctx_reload_true_f());
 }

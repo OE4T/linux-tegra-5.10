@@ -26,6 +26,7 @@ gk20a_runlist_wait_pending
 gk20a_runlist_write_state
 gk20a_vm_release_share
 gm20b_channel_bind
+gm20b_channel_force_ctx_reload
 gm20b_fb_tlb_invalidate
 gm20b_mm_get_big_page_sizes
 gm20b_gr_falcon_get_fecs_ctx_state_store_major_rev_id
