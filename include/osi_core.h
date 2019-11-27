@@ -112,6 +112,8 @@ typedef my_lint_64		nvel64_t;
 #define OSI_IP4_FILTER			0U
 #define OSI_IP6_FILTER			1U
 #define OSI_IPV6_MATCH			1U
+#define OSI_IPV4_MATCH			0U
+
 
 #define OSI_LOG_INFO			1U
 #define OSI_LOG_ARG_HW_FAIL		4U
