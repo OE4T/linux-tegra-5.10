@@ -822,6 +822,54 @@
         "test_level": 0
     },
     {
+        "test": "test_env_clean",
+        "case": "env_clean",
+        "unit": "flush_gv11b_fusa",
+        "test_level": 0
+    },
+    {
+        "test": "test_env_init",
+        "case": "env_init",
+        "unit": "flush_gv11b_fusa",
+        "test_level": 0
+    },
+    {
+        "test": "test_gv11b_mm_l2_flush",
+        "case": "mm_l2_flush_s0",
+        "unit": "flush_gv11b_fusa",
+        "test_level": 0
+    },
+    {
+        "test": "test_gv11b_mm_l2_flush",
+        "case": "mm_l2_flush_s1",
+        "unit": "flush_gv11b_fusa",
+        "test_level": 0
+    },
+    {
+        "test": "test_gv11b_mm_l2_flush",
+        "case": "mm_l2_flush_s2",
+        "unit": "flush_gv11b_fusa",
+        "test_level": 0
+    },
+    {
+        "test": "test_gv11b_mm_l2_flush",
+        "case": "mm_l2_flush_s3",
+        "unit": "flush_gv11b_fusa",
+        "test_level": 0
+    },
+    {
+        "test": "test_gv11b_mm_l2_flush",
+        "case": "mm_l2_flush_s4",
+        "unit": "flush_gv11b_fusa",
+        "test_level": 0
+    },
+    {
+        "test": "test_gv11b_mm_l2_flush",
+        "case": "mm_l2_flush_s5",
+        "unit": "flush_gv11b_fusa",
+        "test_level": 0
+    },
+    {
         "test": "test_fuse_gm20b_basic_fuses",
         "case": "fuse_gm20b_basic_fuses",
         "unit": "fuse",
