@@ -111,4 +111,17 @@
 		/delete-property/ dma-names;
 		/delete-property/ dma-coherent;
 	};
+
+	host1x {
+		reset-names = "host1x";
+		reg-names = "vm", "hypervisor";
+
+		/delete-node/ nvdisplay@15200000;
+		/delete-node/ nvdisplay@15210000;
+		/delete-node/ nvdisplay@15220000;
+		/delete-node/ sor;
+		/delete-node/ sor0;
+		/delete-node/ sor1;
+		/delete-node/ sor2;
+	};
 };
