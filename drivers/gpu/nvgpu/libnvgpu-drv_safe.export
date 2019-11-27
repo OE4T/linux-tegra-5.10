@@ -498,4 +498,5 @@ nvgpu_test_bit
 nvgpu_test_and_clear_bit
 nvgpu_test_and_set_bit
 vm_aspace_id
-
+nvgpu_get_nvhost_dev
+nvgpu_free_nvhost_dev

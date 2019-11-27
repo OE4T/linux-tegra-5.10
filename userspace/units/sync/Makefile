@@ -1,4 +1,3 @@
-#
 # Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
@@ -18,11 +17,17 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
-#
 
-test_fifo_init_support
-test_fifo_remove_support
-test_fifo_subtest_pruned
-test_fifo_flags_str
-test_fifo_setup_gv11b_reg_space
-test_fifo_cleanup_gv11b_reg_space
+.SUFFIXES:
+
+OBJS   = nvgpu-sync.o
+MODULE = nvgpu-sync
+
+LIB_PATHS += -lnvgpu-fifo
+
+include ../Makefile.units
+
+lib$(MODULE).so: nvgpu-fifo
+
+nvgpu-fifo:
+	$(MAKE) -C ../fifo

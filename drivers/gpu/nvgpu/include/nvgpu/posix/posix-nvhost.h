@@ -1,0 +1,57 @@
+/*
+ * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
+ * THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ * DEALINGS IN THE SOFTWARE.
+ */
+
+#ifndef NVGPU_POSIX_NVHOST_H
+#define NVGPU_POSIX_NVHOST_H
+
+#include <nvgpu/types.h>
+
+struct gk20a;
+struct nvgpu_nvhost_dev {
+	u32 host1x_sp_base;
+	u32 host1x_sp_size;
+	u32 nb_hw_pts;
+};
+
+void nvgpu_free_nvhost_dev(struct gk20a *g);
+
+int nvgpu_get_nvhost_dev(struct gk20a *g);
+
+int nvgpu_nvhost_syncpt_unit_interface_get_aperture(
+		struct nvgpu_nvhost_dev *nvgpu_syncpt_dev,
+		u64 *base, size_t *size);
+
+u32 nvgpu_nvhost_syncpt_unit_interface_get_byte_offset(u32 syncpt_id);
+
+void nvgpu_nvhost_syncpt_set_min_eq_max_ext(
+	struct nvgpu_nvhost_dev *nvhost_dev, u32 id);
+void nvgpu_nvhost_syncpt_put_ref_ext(
+	struct nvgpu_nvhost_dev *nvhost_dev, u32 id);
+
+u32 nvgpu_nvhost_get_syncpt_client_managed(
+	struct nvgpu_nvhost_dev *nvhost_dev,
+	const char *syncpt_name);
+
+void nvgpu_nvhost_syncpt_set_safe_state(
+	struct nvgpu_nvhost_dev *nvhost_dev, u32 id);
+
+#endif

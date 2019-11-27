@@ -22,26 +22,71 @@
 
 #include <nvgpu/gk20a.h>
 #include <nvgpu/bug.h>
-#include <nvgpu/nvhost.h>
+#include <nvgpu/posix/posix-nvhost.h>
+
+static inline u32 nvgpu_nvhost_syncpt_nb_hw_pts(
+		struct nvgpu_nvhost_dev *nvgpu_syncpt_dev)
+{
+	return nvgpu_syncpt_dev->nb_hw_pts;
+}
+
+void nvgpu_free_nvhost_dev(struct gk20a *g) {
+
+	if (g->nvhost_dev != NULL) {
+		nvgpu_kfree(g, g->nvhost_dev);
+		g->nvhost_dev = NULL;
+	}
+}
 
 int nvgpu_get_nvhost_dev(struct gk20a *g)
 {
-	BUG();
+	int ret = 0;
+
+	g->nvhost_dev = nvgpu_kzalloc(g, sizeof(struct nvgpu_nvhost_dev));
+	if (g->nvhost_dev == NULL) {
+		return -ENOMEM;
+	}
+
+	g->nvhost_dev->host1x_sp_base = 0x60000000;
+	g->nvhost_dev->host1x_sp_size = 0x400000;
+	g->nvhost_dev->nb_hw_pts = 704U;
+	ret = nvgpu_nvhost_syncpt_unit_interface_get_aperture(
+				g->nvhost_dev, &g->syncpt_unit_base,
+				&g->syncpt_unit_size);
+	if (ret != 0) {
+		nvgpu_err(g, "Failed to get syncpt interface");
+		goto fail_nvgpu_get_nvhost_dev;
+	}
+	g->syncpt_size =
+		nvgpu_nvhost_syncpt_unit_interface_get_byte_offset(1);
+
 	return 0;
+
+fail_nvgpu_get_nvhost_dev:
+	nvgpu_free_nvhost_dev(g);
+
+	return ret;
 }
 
-void nvgpu_free_nvhost_dev(struct gk20a *g)
+int nvgpu_nvhost_syncpt_unit_interface_get_aperture(
+		struct nvgpu_nvhost_dev *nvgpu_syncpt_dev,
+		u64 *base, size_t *size)
 {
-	BUG();
+	if (nvgpu_syncpt_dev == NULL || base == NULL || size == NULL) {
+		return -ENOSYS;
+	}
+
+	*base = (u64)nvgpu_syncpt_dev->host1x_sp_base;
+	*size = nvgpu_syncpt_dev->host1x_sp_size;
+
+	return 0;
+
 }
 
-bool nvgpu_nvhost_syncpt_is_valid_pt_ext(
-	struct nvgpu_nvhost_dev *nvhost_dev, u32 id)
+u32 nvgpu_nvhost_syncpt_unit_interface_get_byte_offset(u32 syncpt_id)
 {
-	BUG();
-	return false;
+	return nvgpu_safe_mult_u32(syncpt_id, 0x1000U);
 }
-
 
 void nvgpu_nvhost_syncpt_set_min_eq_max_ext(
 	struct nvgpu_nvhost_dev *nvhost_dev, u32 id)
@@ -59,14 +104,6 @@ u32 nvgpu_nvhost_get_syncpt_client_managed(
 	struct nvgpu_nvhost_dev *nvhost_dev,
 	const char *syncpt_name)
 {
-	BUG();
-	return 0U;
-}
-
-u32 nvgpu_nvhost_syncpt_read_maxval(
-	struct nvgpu_nvhost_dev *nvhost_dev, u32 id)
-{
-	BUG();
 	return 0U;
 }
 
@@ -75,58 +112,3 @@ void nvgpu_nvhost_syncpt_set_safe_state(
 {
 	BUG();
 }
-
-#ifdef CONFIG_SYNC
-u32 nvgpu_nvhost_sync_pt_id(struct sync_pt *pt)
-{
-	BUG();
-	return 0U;
-}
-
-u32 nvgpu_nvhost_sync_pt_thresh(struct sync_pt *pt)
-{
-	BUG();
-	return 0U;
-}
-
-struct sync_fence *nvgpu_nvhost_sync_fdget(int fd)
-{
-	BUG();
-	return NULL;
-}
-
-int nvgpu_nvhost_sync_num_pts(struct sync_fence *fence)
-{
-	BUG();
-	return 0;
-}
-
-struct sync_fence *nvgpu_nvhost_sync_create_fence(
-	struct nvgpu_nvhost_dev *nvhost_dev,
-	u32 id, u32 thresh, const char *name)
-{
-	BUG();
-	return NULL;
-}
-#endif /* CONFIG_SYNC */
-
-#ifdef CONFIG_TEGRA_T19X_GRHOST
-int nvgpu_nvhost_syncpt_unit_interface_get_aperture(
-		struct nvgpu_nvhost_dev *nvhost_dev,
-		u64 *base, size_t *size)
-{
-	BUG();
-	return 0;
-}
-
-u32 nvgpu_nvhost_syncpt_unit_interface_get_byte_offset(u32 syncpt_id)
-{
-	BUG();
-	return 0U;
-}
-
-int nvgpu_nvhost_syncpt_init(struct gk20a *g)
-{
-	return -ENOSYS;
-}
-#endif

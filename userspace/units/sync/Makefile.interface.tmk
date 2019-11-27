@@ -1,3 +1,4 @@
+################################### tell Emacs this is a -*- makefile-gmake -*-
 #
 # Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
 #
@@ -19,10 +20,16 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 #
+# tmake for SW Mobile component makefile
+#
+###############################################################################
 
-test_fifo_init_support
-test_fifo_remove_support
-test_fifo_subtest_pruned
-test_fifo_flags_str
-test_fifo_setup_gv11b_reg_space
-test_fifo_cleanup_gv11b_reg_space
+NVGPU_UNIT_NAME=nvgpu-sync
+
+include $(NV_COMPONENT_DIR)/../Makefile.units.common.interface.tmk
+
+# Local Variables:
+# indent-tabs-mode: t
+# tab-width: 8
+# End:
+# vi: set tabstop=8 noexpandtab:

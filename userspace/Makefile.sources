@@ -105,4 +105,5 @@ UNITS :=				\
 	$(UNIT_SRC)/gr/intr		\
 	$(UNIT_SRC)/gr/setup		\
 	$(UNIT_SRC)/acr			\
-	$(UNIT_SRC)/cg
+	$(UNIT_SRC)/cg                  \
+	$(UNIT_SRC)/sync
