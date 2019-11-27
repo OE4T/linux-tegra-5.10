@@ -341,7 +341,9 @@ bool nvgpu_gr_global_ctx_compare_golden_images(struct gk20a *g,
 	bool is_identical = true;
 	u32 *data1 = local_golden_image1->context;
 	u32 *data2 = local_golden_image2->context;
+#ifdef CONFIG_NVGPU_DGPU
 	u32 i;
+#endif
 
 	/*
 	 * In case of sysmem, direct mem compare can be used.
@@ -352,7 +354,9 @@ bool nvgpu_gr_global_ctx_compare_golden_images(struct gk20a *g,
 		if (nvgpu_memcmp((u8 *)data1, (u8 *)data2, size) != 0) {
 			is_identical = false;
 		}
-	} else {
+	}
+	else {
+#ifdef CONFIG_NVGPU_DGPU
 		for( i = 0U; i < nvgpu_safe_cast_u64_to_u32(size/sizeof(u32));
 					i = nvgpu_safe_add_u32(i, 1U)) {
 			if (*(data1 + i) != *(data2 + i)) {
@@ -363,7 +367,11 @@ bool nvgpu_gr_global_ctx_compare_golden_images(struct gk20a *g,
 				break;
 			}
 		}
+#else
+		is_identical = false;
+#endif
 	}
+
 	nvgpu_log_info(g, "%s result %u", __func__, is_identical);
 	return is_identical;
 }
