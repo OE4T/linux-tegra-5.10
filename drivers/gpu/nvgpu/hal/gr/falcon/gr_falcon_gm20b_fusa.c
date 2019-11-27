@@ -786,36 +786,6 @@ int gm20b_gr_falcon_submit_fecs_method_op(struct gk20a *g,
 	return ret;
 }
 
-/* Sideband mailbox writes are done a bit differently */
-int gm20b_gr_falcon_submit_fecs_sideband_method_op(struct gk20a *g,
-		struct nvgpu_fecs_method_op op)
-{
-	int ret;
-	struct nvgpu_gr_falcon *gr_falcon = nvgpu_gr_get_falcon_ptr(g);
-
-	nvgpu_mutex_acquire(&gr_falcon->fecs_mutex);
-
-	nvgpu_writel(g, gr_fecs_ctxsw_mailbox_clear_r(op.mailbox.id),
-		gr_fecs_ctxsw_mailbox_clear_value_f(op.mailbox.clr));
-
-	nvgpu_writel(g, gr_fecs_method_data_r(), op.method.data);
-	nvgpu_writel(g, gr_fecs_method_push_r(),
-		gr_fecs_method_push_adr_f(op.method.addr));
-
-	ret = gm20b_gr_falcon_ctx_wait_ucode(g, op.mailbox.id, op.mailbox.ret,
-				      op.cond.ok, op.mailbox.ok,
-				      op.cond.fail, op.mailbox.fail,
-				      false);
-	if (ret != 0) {
-		nvgpu_err(g, "fecs method: data=0x%08x push adr=0x%08x",
-			op.method.data, op.method.addr);
-	}
-
-	nvgpu_mutex_release(&gr_falcon->fecs_mutex);
-
-	return ret;
-}
-
 int gm20b_gr_falcon_ctrl_ctxsw(struct gk20a *g, u32 fecs_method,
 			u32 data, u32 *ret_val)
 {
@@ -1022,3 +992,35 @@ u32 gm20b_gr_falcon_read_fecs_ctxsw_status1(struct gk20a *g)
 {
 	return nvgpu_readl(g, gr_fecs_ctxsw_status_1_r());
 }
+
+#ifdef CONFIG_NVGPU_GRAPHICS
+/* Sideband mailbox writes are done a bit differently */
+int gm20b_gr_falcon_submit_fecs_sideband_method_op(struct gk20a *g,
+		struct nvgpu_fecs_method_op op)
+{
+	int ret;
+	struct nvgpu_gr_falcon *gr_falcon = nvgpu_gr_get_falcon_ptr(g);
+
+	nvgpu_mutex_acquire(&gr_falcon->fecs_mutex);
+
+	nvgpu_writel(g, gr_fecs_ctxsw_mailbox_clear_r(op.mailbox.id),
+		gr_fecs_ctxsw_mailbox_clear_value_f(op.mailbox.clr));
+
+	nvgpu_writel(g, gr_fecs_method_data_r(), op.method.data);
+	nvgpu_writel(g, gr_fecs_method_push_r(),
+		gr_fecs_method_push_adr_f(op.method.addr));
+
+	ret = gm20b_gr_falcon_ctx_wait_ucode(g, op.mailbox.id, op.mailbox.ret,
+				      op.cond.ok, op.mailbox.ok,
+				      op.cond.fail, op.mailbox.fail,
+				      false);
+	if (ret != 0) {
+		nvgpu_err(g, "fecs method: data=0x%08x push adr=0x%08x",
+			op.method.data, op.method.addr);
+	}
+
+	nvgpu_mutex_release(&gr_falcon->fecs_mutex);
+
+	return ret;
+}
+#endif
