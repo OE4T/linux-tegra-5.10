@@ -174,6 +174,8 @@ struct nvgpu_gpu_zbc_query_table_args {
 #define NVGPU_GPU_FLAGS_SUPPORT_FAULT_RECOVERY		(1ULL << 33)
 /* Copy Engine diversity is available */
 #define NVGPU_GPU_FLAGS_SUPPORT_COPY_ENGINE_DIVERSITY	(1ULL << 34)
+/** SM diversity is available. */
+#define NVGPU_GPU_FLAGS_SUPPORT_SM_DIVERSITY		(1ULL << 35)
 /* SM LRF ECC is enabled */
 #define NVGPU_GPU_FLAGS_ECC_ENABLED_SM_LRF	(1ULL << 60)
 /* SM SHM ECC is enabled */
@@ -292,7 +294,8 @@ struct nvgpu_gpu_characteristics {
 	__u8 reserved2[6];
 
 	__u32 max_ctxsw_ring_buffer_size;
-	__u32 reserved3;
+	/* Max CTA diversity configuration count. */
+	__u32 max_sm_diversity_config_count;
 
 	/* Notes:
 	   - This struct can be safely appended with new fields. However, always
@@ -457,6 +460,8 @@ struct nvgpu_gpu_vsms_mapping_entry {
 };
 
 struct nvgpu_gpu_vsms_mapping {
+	__u32 sm_diversity_config;
+	__u32 reserved;
 	__u64 vsms_map_buf_addr;
 };
 
@@ -1519,6 +1524,8 @@ struct nvgpu_set_nvmap_fd_args {
 struct nvgpu_alloc_obj_ctx_args {
 	__u32 class_num; /* kepler3d, 2d, compute, etc       */
 	__u32 flags;     /* input, output */
+	__u32 sm_diversity_config; /* input */
+	__u32 reserved;
 	__u64 obj_id;    /* output, used to free later       */
 };
 

@@ -1332,6 +1332,9 @@ int gp10b_init_hal(struct gk20a *g)
 	nvgpu_set_enabled(g, NVGPU_PMU_FECS_BOOTSTRAP_DONE, false);
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_SET_CTX_MMU_DEBUG_MODE, false);
 
+	g->max_sm_diversity_config_count =
+		NVGPU_DEFAULT_SM_DIVERSITY_CONFIG_COUNT;
+
 	g->name = "gp10b";
 
 	return 0;

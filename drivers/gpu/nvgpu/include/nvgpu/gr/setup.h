@@ -34,6 +34,15 @@ struct nvgpu_channel;
 struct vm_gk20a;
 struct nvgpu_gr_ctx;
 
+/** Supports only mission (default) context. */
+#define NVGPU_DEFAULT_SM_DIVERSITY_CONFIG_COUNT 1U
+
+/** Max SM diversity configuration count.
+ * Offset 0 for mission (default) context.
+ * Offset 1 for redundant context.
+ */
+#define NVGPU_MAX_SM_DIVERSITY_CONFIG_COUNT 2U
+
 /**
  * @brief Allocate and setup object context s/w image for GPU channel.
  *

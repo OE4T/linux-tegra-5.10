@@ -690,7 +690,7 @@ int nvgpu_can_busy(struct gk20a *g)
 
 int nvgpu_init_gpu_characteristics(struct gk20a *g)
 {
-#ifdef NV_BUILD_CONFIGURATION_IS_SAFETY
+#ifdef CONFIG_NVGPU_BUILD_CONFIGURATION_IS_SAFETY
 	nvgpu_set_enabled(g, NVGPU_DRIVER_REDUCED_PROFILE, true);
 #endif
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_MAP_DIRECT_KIND_CTRL, true);

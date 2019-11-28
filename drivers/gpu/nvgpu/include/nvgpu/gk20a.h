@@ -998,6 +998,10 @@ struct gk20a {
 	/** @endcond */
 
 	u16 dgpu_max_clk;
+
+	/** Max SM diversity configuration count. */
+	u32 max_sm_diversity_config_count;
+
 };
 
 /**

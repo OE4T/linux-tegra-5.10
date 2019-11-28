@@ -1049,6 +1049,37 @@ int vgpu_gv11b_init_hal(struct gk20a *g)
 		gops->clk_arb.get_arbiter_clk_domains = NULL;
 	}
 
+	/*
+	 * To achieve permanent fault coverage, the CTAs launched by each kernel
+	 * in the mission and redundant contexts must execute on different
+	 * hardware resources. This feature proposes modifications in the
+	 * software to modify the virtual SM id to TPC mapping across the
+	 * mission and redundant contexts.
+	 *
+	 * The virtual SM identifier to TPC mapping is done by the nvgpu
+	 * when setting up the golden context. Once the table with this mapping
+	 * is initialized, it is used by all subsequent contexts created.
+	 * The proposal is for setting up the virtual SM identifier to TPC
+	 * mapping on a per-context basis and initializing this virtual SM
+	 * identifier to TPC mapping differently for the mission and
+	 * redundant contexts.
+	 *
+	 * The recommendation for the redundant setting is to offset the
+	 * assignment by 1 (TPC). This will ensure both GPC and TPC diversity.
+	 * The SM and Quadrant diversity will happen naturally.
+	 *
+	 * For kernels with few CTAs, the diversity is guaranteed to be 100%.
+	 * In case of completely random CTA allocation, e.g. large number of
+	 * CTAs in the waiting queue, the diversity is 1 - 1/#SM,
+	 * or 87.5% for GV11B.
+	 */
+	if (priv->constants.max_sm_diversity_config_count > 1U) {
+		nvgpu_set_enabled(g, NVGPU_SUPPORT_SM_DIVERSITY, true);
+	}
+
+	g->max_sm_diversity_config_count =
+		priv->constants.max_sm_diversity_config_count;
+
 	g->name = "gv11b";
 
 	return 0;

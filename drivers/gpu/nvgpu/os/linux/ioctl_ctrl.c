@@ -250,7 +250,9 @@ static struct nvgpu_flags_mapping flags_mapping[] = {
 	{NVGPU_GPU_FLAGS_SUPPORT_FAULT_RECOVERY,
 		NVGPU_SUPPORT_FAULT_RECOVERY},
 	{NVGPU_GPU_FLAGS_SUPPORT_COPY_ENGINE_DIVERSITY,
-		NVGPU_SUPPORT_COPY_ENGINE_DIVERSITY}
+		NVGPU_SUPPORT_COPY_ENGINE_DIVERSITY},
+	{NVGPU_GPU_FLAGS_SUPPORT_SM_DIVERSITY,
+		NVGPU_SUPPORT_SM_DIVERSITY}
 };
 
 static u64 nvgpu_ctrl_ioctl_gpu_characteristics_flags(struct gk20a *g)
@@ -320,6 +322,8 @@ gk20a_ctrl_ioctl_gpu_characteristics(
 	gpu.gpc_mask = nvgpu_gr_config_get_gpc_mask(gr_config);
 
 	gpu.num_tpc_per_gpc = nvgpu_gr_config_get_max_tpc_per_gpc_count(gr_config);
+
+	gpu.max_sm_diversity_config_count = g->max_sm_diversity_config_count;
 
 	gpu.bus_type = NVGPU_GPU_BUS_TYPE_AXI; /* always AXI for now */
 
@@ -848,6 +852,15 @@ static int gk20a_ctrl_vsm_mapping(struct gk20a *g,
 	struct nvgpu_gpu_vsms_mapping_entry *vsms_buf;
 	struct nvgpu_gr_config *gr_config = nvgpu_gr_get_config_ptr(g);
 	u32 i;
+
+	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_SM_DIVERSITY)) {
+		if (args->sm_diversity_config >=
+			g->max_sm_diversity_config_count) {
+			return -EINVAL;
+		}
+	} else {
+	    args->sm_diversity_config = 0U;
+	}
 
 	vsms_buf = nvgpu_kzalloc(g, write_size);
 	if (vsms_buf == NULL)

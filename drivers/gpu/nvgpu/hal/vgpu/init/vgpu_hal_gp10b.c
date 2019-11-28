@@ -932,6 +932,9 @@ int vgpu_gp10b_init_hal(struct gk20a *g)
 		gops->clk_arb.get_arbiter_clk_domains = NULL;
 	}
 
+	g->max_sm_diversity_config_count =
+		priv->constants.max_sm_diversity_config_count;
+
 	g->name = "gp10b";
 
 	return 0;
