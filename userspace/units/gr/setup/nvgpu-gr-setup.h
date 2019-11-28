@@ -99,7 +99,7 @@ int test_gr_setup_set_preemption_mode(struct unit_module *m,
  * Test Type: Feature based.
  *
  * Targets: #nvgpu_gr_setup_free_subctx,
- *          #nvgpu_gr_setup_free_gr_ctx,
+ *          #nvgpu_gr_setup_free_gr_ctx.
  *
  * Input: #test_gr_init_setup_ready and #test_gr_setup_alloc_obj_ctx
  *        must have been executed successfully.
@@ -140,6 +140,40 @@ int test_gr_setup_free_obj_ctx(struct unit_module *m,
  */
 int test_gr_setup_preemption_mode_errors(struct unit_module *m,
 				      struct gk20a *g, void *args);
+
+/**
+ * Test specification for: test_gr_setup_alloc_obj_ctx_error_injections.
+ *
+ * Description: Helps to verify error paths in
+ *              g->ops.gr.setup.alloc_obj_ctx call.
+ *
+ * Test Type: Error injection.
+ *
+ * Targets: #nvgpu_gr_setup_alloc_obj_ctx,
+ *          #nvgpu_gr_subctx_alloc, #nvgpu_gr_obj_ctx_alloc,
+ *          #nvgpu_gr_obj_ctx_alloc_golden_ctx_image,
+ *          #nvgpu_gr_setup_free_subctx,
+ *          #nvgpu_gr_setup_free_gr_ctx.
+ *
+ * Input: #test_gr_init_setup_ready must have been executed successfully.
+ *
+ * Steps:
+ * - Negative Tests for Setup alloc failures
+ *   - Test-1 using invalid tsg, classobj and classnum.
+ *   - Test-2 error injection in subctx allocation call.
+ *   - Test-3 fail nvgpu_gr_obj_ctx_alloc by setting zero image size.
+ *   - Test-4 fail nvgpu_gr_obj_ctx_alloc_golden_ctx_image by failing ctrl_ctsw.
+ *   - Test-5 Fail L2 flush for branch coverage
+ *   - Test-6 Fake setup_free call for NULL checking
+ *
+ * - Positive Tests
+ *   - Test-7 nvgpu_gr_setup_alloc_obj_ctx pass without TST subcontexts
+ *
+ * Output: Returns PASS if the steps above were executed successfully. FAIL
+ * otherwise.
+ */
+int test_gr_setup_alloc_obj_ctx_error_injections(struct unit_module *m,
+						 struct gk20a *g, void *args);
 #endif /* UNIT_NVGPU_GR_SETUP_H */
 
 /**

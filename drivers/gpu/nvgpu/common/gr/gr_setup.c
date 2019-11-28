@@ -208,6 +208,7 @@ int nvgpu_gr_setup_alloc_obj_ctx(struct nvgpu_channel *c, u32 class_num,
 out:
 	if (c->subctx != NULL) {
 		nvgpu_gr_subctx_free(g, c->subctx, c->vm);
+		c->subctx = NULL;
 	}
 
 	/* 1. gr_ctx, patch_ctx and global ctx buffer mapping
@@ -247,6 +248,7 @@ void nvgpu_gr_setup_free_subctx(struct nvgpu_channel *c)
 
 	if (c->subctx != NULL) {
 		nvgpu_gr_subctx_free(c->g, c->subctx, c->vm);
+		c->subctx = NULL;
 	}
 }
 

@@ -20,17 +20,13 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-
-#include <stdlib.h>
 #include <unistd.h>
 
 #include <unit/unit.h>
 #include <unit/io.h>
 
-#include <nvgpu/posix/io.h>
 #include <nvgpu/types.h>
 #include <nvgpu/gk20a.h>
-
 #include <nvgpu/channel.h>
 #include <nvgpu/runlist.h>
 #include <nvgpu/tsg.h>
@@ -43,6 +39,11 @@
 
 #include <nvgpu/hw/gv11b/hw_gr_gv11b.h>
 
+#include <nvgpu/posix/io.h>
+#include <nvgpu/posix/kmem.h>
+#include <nvgpu/posix/dma.h>
+#include <nvgpu/posix/posix-fault-injection.h>
+
 #include "common/gr/gr_priv.h"
 #include "common/gr/obj_ctx_priv.h"
 #include "common/gr/ctx_priv.h"
@@ -50,8 +51,19 @@
 #include "../nvgpu-gr.h"
 #include "nvgpu-gr-setup.h"
 
+struct gr_gops_org {
+	int (*l2_flush)(struct gk20a *g, bool invalidate);
+	int (*fe_pwr_mode)(struct gk20a *g, bool force_on);
+	int (*wait_idle)(struct gk20a *g);
+	int (*ctrl_ctxsw)(struct gk20a *g, u32 fecs_method,
+			u32 data, u32 *ret_val);
+	int (*fifo_preempt_tsg)(struct gk20a *g,
+				struct nvgpu_tsg *tsg);
+};
+
 static struct nvgpu_channel *gr_setup_ch;
 static struct nvgpu_tsg *gr_setup_tsg;
+static struct gr_gops_org gr_setup_gops;
 
 static u32 stub_channel_count(struct gk20a *g)
 {
@@ -187,6 +199,42 @@ ch_alloc_end:
 	return (err == 0) ? UNIT_SUCCESS: UNIT_FAIL;
 }
 
+static void gr_setup_restore_valid_ops(struct gk20a *g)
+{
+	g->ops.mm.cache.l2_flush =
+		gr_setup_gops.l2_flush;
+	g->ops.gr.init.fe_pwr_mode_force_on =
+		gr_setup_gops.fe_pwr_mode;
+	g->ops.gr.init.wait_idle =
+		gr_setup_gops.wait_idle;
+	g->ops.gr.falcon.ctrl_ctxsw =
+		gr_setup_gops.ctrl_ctxsw;
+	g->ops.fifo.preempt_tsg =
+		gr_setup_gops.fifo_preempt_tsg;
+}
+
+static void gr_setup_save_valid_ops(struct gk20a *g)
+{
+	gr_setup_gops.l2_flush =
+		g->ops.mm.cache.l2_flush;
+	gr_setup_gops.fe_pwr_mode =
+		g->ops.gr.init.fe_pwr_mode_force_on;
+	gr_setup_gops.wait_idle =
+		g->ops.gr.init.wait_idle;
+	gr_setup_gops.ctrl_ctxsw =
+		g->ops.gr.falcon.ctrl_ctxsw;
+	gr_setup_gops.fifo_preempt_tsg =
+		g->ops.fifo.preempt_tsg;
+}
+
+static void gr_setup_stub_valid_ops(struct gk20a *g)
+{
+	g->ops.mm.cache.l2_flush = stub_mm_l2_flush;
+	g->ops.gr.init.fe_pwr_mode_force_on = stub_gr_init_fe_pwr_mode;
+	g->ops.gr.init.wait_idle = stub_gr_init_wait_idle;
+	g->ops.gr.falcon.ctrl_ctxsw = stub_gr_falcon_ctrl_ctxsw;
+}
+
 struct test_gr_setup_preemption_mode {
 	u32 compute_mode;
 	u32 graphics_mode;
@@ -271,6 +319,216 @@ int test_gr_setup_preemption_mode_errors(struct unit_module *m,
 	}
 
 	gr_setup_ch->obj_class = class_num;
+
+	return UNIT_SUCCESS;
+}
+
+static int gr_setup_fail_subctx_alloc(struct gk20a *g)
+{
+	int err;
+	struct nvgpu_posix_fault_inj *kmem_fi =
+		nvgpu_kmem_get_fault_injection();
+	struct nvgpu_posix_fault_inj *dma_fi =
+		nvgpu_dma_alloc_get_fault_injection();
+
+	/* Alloc Failure in nvgpu_gr_subctx_alloc */
+	/* Fail 1 - dma alloc */
+	nvgpu_posix_enable_fault_injection(dma_fi, true, 0);
+	err = g->ops.gr.setup.alloc_obj_ctx(gr_setup_ch, VOLTA_COMPUTE_A, 0);
+	if (err == 0) {
+		goto sub_ctx_fail_end;
+	}
+	nvgpu_posix_enable_fault_injection(dma_fi, false, 0);
+
+	/* Fail 2 - kmem alloc */
+	nvgpu_posix_enable_fault_injection(kmem_fi, true, 0);
+	err = g->ops.gr.setup.alloc_obj_ctx(gr_setup_ch, VOLTA_COMPUTE_A, 0);
+	if (err == 0) {
+		goto sub_ctx_fail_end;
+	}
+	nvgpu_posix_enable_fault_injection(kmem_fi, false, 0);
+
+	/* Fail 3 - gmmap */
+	nvgpu_posix_enable_fault_injection(kmem_fi, true, 1);
+	err = g->ops.gr.setup.alloc_obj_ctx(gr_setup_ch, VOLTA_COMPUTE_A, 0);
+
+sub_ctx_fail_end:
+	nvgpu_posix_enable_fault_injection(kmem_fi, false, 0);
+	nvgpu_posix_enable_fault_injection(dma_fi, false, 0);
+	return (err != 0) ? UNIT_SUCCESS: UNIT_FAIL;
+}
+
+static int gr_setup_fail_alloc(struct unit_module *m, struct gk20a *g)
+{
+	int err;
+	u32 tsgid;
+	struct vm_gk20a *vm;
+
+	tsgid = gr_setup_ch->tsgid;
+	vm = gr_setup_ch->vm;
+
+	/* SUBTEST-1 for invalid tsgid*/
+	gr_setup_ch->tsgid = NVGPU_INVALID_TSG_ID;
+	err = g->ops.gr.setup.alloc_obj_ctx(gr_setup_ch, VOLTA_COMPUTE_A, 0);
+	gr_setup_ch->tsgid = tsgid;
+	if (err == 0) {
+		unit_err(m, "setup alloc SUBTEST-1 failed\n");
+		goto obj_ctx_fail_end;
+	}
+
+	/* SUBTEST-2 for invalid class num*/
+	err = g->ops.gr.setup.alloc_obj_ctx(gr_setup_ch, 0, 0);
+	if (err == 0) {
+		unit_err(m, "setup alloc SUBTEST-2 failed\n");
+		goto obj_ctx_fail_end;
+	}
+
+	/* SUBTEST-3 for invalid channel vm*/
+	gr_setup_ch->vm = NULL;
+	err = g->ops.gr.setup.alloc_obj_ctx(gr_setup_ch, 0, 0);
+	gr_setup_ch->vm = vm;
+	if (err == 0) {
+		unit_err(m, "setup alloc SUBTEST-3 failed\n");
+		goto obj_ctx_fail_end;
+	}
+
+obj_ctx_fail_end:
+	return (err != 0) ? UNIT_SUCCESS: UNIT_FAIL;
+}
+
+static int gr_setup_alloc_fail_golden_size(struct unit_module *m, struct gk20a *g)
+{
+	int err;
+
+	/* Reset golden image size*/
+	g->gr->golden_image->size = 0;
+
+	err = g->ops.gr.setup.alloc_obj_ctx(gr_setup_ch, VOLTA_COMPUTE_A, 0);
+	if (err == 0) {
+		unit_err(m, "setup alloc reset golden size failed\n");
+	}
+
+	return (err != 0) ? UNIT_SUCCESS: UNIT_FAIL;
+}
+
+static int gr_setup_alloc_fail_fe_pwr_mode(struct unit_module *m, struct gk20a *g)
+{
+	int err;
+
+	g->ops.mm.cache.l2_flush = stub_mm_l2_flush;
+
+	/* Reset golden image ready bit */
+	g->gr->golden_image->ready = false;
+
+	err = g->ops.gr.setup.alloc_obj_ctx(gr_setup_ch, VOLTA_COMPUTE_A, 0);
+	if (err == 0) {
+		unit_err(m, "setup alloc fe_pwr_mode failed\n");
+	}
+
+	return (err != 0) ? UNIT_SUCCESS: UNIT_FAIL;
+}
+
+static int gr_setup_alloc_fail_l2_flush(struct unit_module *m, struct gk20a *g)
+{
+	int err;
+
+	g->allow_all = true;
+	g->ops.mm.cache.l2_flush =
+		gr_setup_gops.l2_flush;
+	err = g->ops.gr.setup.alloc_obj_ctx(gr_setup_ch, VOLTA_COMPUTE_A, 0);
+	if (err != 0) {
+		unit_return_fail(m, "setup alloc l2 flush failed\n");
+	}
+
+	g->ops.mm.cache.l2_flush = stub_mm_l2_flush;
+
+	return (err == 0) ? UNIT_SUCCESS: UNIT_FAIL;
+}
+
+static int gr_setup_alloc_no_tsg_subcontext(struct unit_module *m, struct gk20a *g)
+{
+	int err;
+
+	nvgpu_set_enabled(g, NVGPU_SUPPORT_TSG_SUBCONTEXTS, false);
+	err = g->ops.gr.setup.alloc_obj_ctx(gr_setup_ch, VOLTA_COMPUTE_A, 0);
+	nvgpu_set_enabled(g, NVGPU_SUPPORT_TSG_SUBCONTEXTS, true);
+	if (err != 0) {
+		unit_return_fail(m, "setup alloc disable subcontext failed\n");
+	}
+
+	return (err == 0) ? UNIT_SUCCESS: UNIT_FAIL;
+}
+
+static void gr_setup_fake_free_obj_ctx(struct unit_module *m, struct gk20a *g)
+{
+	struct nvgpu_gr_subctx *gr_subctx = gr_setup_ch->subctx;
+
+	/* pass NULL variable*/
+	gr_setup_ch->subctx = NULL;
+	g->ops.gr.setup.free_subctx(gr_setup_ch);
+
+	nvgpu_set_enabled(g, NVGPU_SUPPORT_TSG_SUBCONTEXTS, false);
+	g->ops.gr.setup.free_subctx(gr_setup_ch);
+	nvgpu_set_enabled(g, NVGPU_SUPPORT_TSG_SUBCONTEXTS, true);
+
+	g->ops.gr.setup.free_gr_ctx(g, 0, 0);
+	gr_setup_ch->subctx = gr_subctx;
+}
+
+int test_gr_setup_alloc_obj_ctx_error_injections(struct unit_module *m,
+						 struct gk20a *g, void *args)
+{
+	int err;
+
+	err = gr_test_setup_allocate_ch_tsg(m, g);
+	if (err != 0) {
+		unit_return_fail(m, "alloc setup channel failed\n");
+	}
+
+	err = gr_setup_fail_alloc(m, g);
+	if (err != 0) {
+		unit_return_fail(m, "setup alloc TEST-1 failed\n");
+	}
+
+	/* TEST-2 fail subctx alloc */
+	err = gr_setup_fail_subctx_alloc(g);
+	if (err != 0) {
+		unit_return_fail(m, "setup alloc TEST-2 failed\n");
+	}
+
+	/* TEST-3 reset goldenimage size */
+	err = gr_setup_alloc_fail_golden_size(m, g);
+	if (err != 0) {
+		unit_return_fail(m, "setup alloc TEST-3 failed\n");
+	}
+
+	/* TEST-4 fail fe_pwr_mode_on */
+	err = gr_setup_alloc_fail_fe_pwr_mode(m, g);
+	if (err != 0) {
+		unit_return_fail(m, "setup alloc TEST-4 failed\n");
+	}
+
+	g->gr->golden_image->size = 0x800;
+	gr_setup_stub_valid_ops(g);
+
+	/* TEST-5 fail l2 flush */
+	err = gr_setup_alloc_fail_l2_flush(m, g);
+	if (err != 0) {
+		unit_return_fail(m, "setup alloc TEST-5 failed\n");
+	}
+
+	/* TEST-6 Fake ctx free */
+	gr_setup_fake_free_obj_ctx(m, g);
+
+	/* TEST-7 Disable tsg sub-contexts */
+	err = gr_setup_alloc_no_tsg_subcontext(m, g);
+	if (err != 0) {
+		unit_return_fail(m, "setup alloc TEST-7 failed\n");
+	}
+
+	test_gr_setup_free_obj_ctx(m, g, args);
+	g->allow_all = false;
+
 	return UNIT_SUCCESS;
 }
 
@@ -309,6 +567,9 @@ int test_gr_setup_free_obj_ctx(struct unit_module *m,
 
 	gr_test_setup_cleanup_ch_tsg(m, g);
 
+	/* Restore valid ops for negative tests */
+	gr_setup_restore_valid_ops(g);
+
 	return (err == 0) ? UNIT_SUCCESS: UNIT_FAIL;
 }
 
@@ -327,11 +588,11 @@ int test_gr_setup_alloc_obj_ctx(struct unit_module *m,
 	g->ops.channel.count = stub_channel_count;
 	g->ops.runlist.update_for_channel = stub_runlist_update_for_channel;
 
+	/* Save valid gops */
+	gr_setup_save_valid_ops(g);
+
 	/* Disable those function which need register update in timeout loop */
-	g->ops.mm.cache.l2_flush = stub_mm_l2_flush;
-	g->ops.gr.init.fe_pwr_mode_force_on = stub_gr_init_fe_pwr_mode;
-	g->ops.gr.init.wait_idle = stub_gr_init_wait_idle;
-	g->ops.gr.falcon.ctrl_ctxsw = stub_gr_falcon_ctrl_ctxsw;
+	gr_setup_stub_valid_ops(g);
 
 	if (f != NULL) {
 		f->g = g;
@@ -348,7 +609,7 @@ int test_gr_setup_alloc_obj_ctx(struct unit_module *m,
 
 	err = g->ops.gr.setup.alloc_obj_ctx(gr_setup_ch, VOLTA_COMPUTE_A, 0);
 	if (err != 0) {
-		unit_return_fail(m, "setup alloc ob as current_ctx\n");
+		unit_return_fail(m, "setup alloc obj_ctx failed\n");
 	}
 
 	golden_image_status =
@@ -368,9 +629,13 @@ int test_gr_setup_alloc_obj_ctx(struct unit_module *m,
 struct unit_module_test nvgpu_gr_setup_tests[] = {
 	UNIT_TEST(gr_setup_setup, test_gr_init_setup_ready, NULL, 0),
 	UNIT_TEST(gr_setup_alloc_obj_ctx, test_gr_setup_alloc_obj_ctx, NULL, 0),
-	UNIT_TEST(gr_setup_set_preemption_mode, test_gr_setup_set_preemption_mode, NULL, 0),
-	UNIT_TEST(gr_setup_preemption_mode_errors, test_gr_setup_preemption_mode_errors, NULL, 0),
+	UNIT_TEST(gr_setup_set_preemption_mode,
+			test_gr_setup_set_preemption_mode, NULL, 0),
+	UNIT_TEST(gr_setup_preemption_mode_errors,
+			test_gr_setup_preemption_mode_errors, NULL, 0),
 	UNIT_TEST(gr_setup_free_obj_ctx, test_gr_setup_free_obj_ctx, NULL, 0),
+	UNIT_TEST(gr_setup_alloc_obj_ctx_error_injections,
+			test_gr_setup_alloc_obj_ctx_error_injections, NULL, 0),
 	UNIT_TEST(gr_setup_cleanup, test_gr_init_setup_cleanup, NULL, 0),
 };
 
