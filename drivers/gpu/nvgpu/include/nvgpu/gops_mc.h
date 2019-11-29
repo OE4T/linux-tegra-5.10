@@ -111,6 +111,9 @@ struct gops_mc {
 	 *   - Invoke g->ops.fifo.intr_0_isr if FIFO interrupt is pending. The
 	 *     FIFO interrupt bit in mc_intr_r(#NVGPU_MC_INTR_STALLING) is
 	 *     mc_intr_pfifo_pending_f.
+	 *   - Invoke g->ops.pmu.pmu_isr if PMU interrupt is pending.
+	 *     The PMU interrupt bit in mc_intr_r(#NVGPU_MC_INTR_STALLING)
+	 *     is mc_intr_pmu_pending_f.
 	 *   - Invoke g->ops.priv_ring.isr if PRIV_RING interrupt is pending.
 	 *     The PRIV_RING interrupt bit in mc_intr_r(#NVGPU_MC_INTR_STALLING)
 	 *     is mc_intr_priv_ring_pending_f.

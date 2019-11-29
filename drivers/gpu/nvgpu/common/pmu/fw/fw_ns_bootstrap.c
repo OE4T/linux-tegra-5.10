@@ -83,15 +83,15 @@ int nvgpu_pmu_ns_fw_bootstrap(struct gk20a *g, struct nvgpu_pmu *pmu)
 	}
 
 	/* Do non-secure PMU boot */
-	nvgpu_mutex_acquire(&pmu->isr_mutex);
 	err = nvgpu_falcon_reset(pmu->flcn);
 	if (err != 0) {
 		nvgpu_err(g, "falcon reset failed");
 		/* free the ns ucode blob */
 		pmu_free_ns_ucode_blob(g);
-		nvgpu_mutex_release(&pmu->isr_mutex);
 		return err;
 	}
+
+	nvgpu_mutex_acquire(&pmu->isr_mutex);
 	pmu->isr_enabled = true;
 	nvgpu_mutex_release(&pmu->isr_mutex);
 

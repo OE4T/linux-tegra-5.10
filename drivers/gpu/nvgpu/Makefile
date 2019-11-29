@@ -647,6 +647,7 @@ nvgpu-y += \
 	hal/mc/mc_gp10b_fusa.o \
 	hal/mc/mc_gv11b_fusa.o \
 	hal/netlist/netlist_gv11b_fusa.o \
+	hal/pmu/pmu_gk20a_fusa.o \
 	hal/pmu/pmu_gv11b_fusa.o \
 	hal/priv_ring/priv_ring_gm20b_fusa.o \
 	hal/priv_ring/priv_ring_gp10b_fusa.o \

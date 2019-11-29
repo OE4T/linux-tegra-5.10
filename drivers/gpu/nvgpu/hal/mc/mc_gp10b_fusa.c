@@ -113,11 +113,9 @@ static void mc_gp10b_isr_stall_secondary_0(struct gk20a *g, u32 mc_intr_0)
 	if ((mc_intr_0 & mc_intr_pfifo_pending_f()) != 0U) {
 		g->ops.fifo.intr_0_isr(g);
 	}
-#ifdef CONFIG_NVGPU_LS_PMU
 	if ((mc_intr_0 & mc_intr_pmu_pending_f()) != 0U) {
 		g->ops.pmu.pmu_isr(g);
 	}
-#endif
 	if ((mc_intr_0 & mc_intr_priv_ring_pending_f()) != 0U) {
 		g->ops.priv_ring.isr(g);
 	}

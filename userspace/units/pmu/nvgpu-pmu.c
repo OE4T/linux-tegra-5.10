@@ -227,6 +227,11 @@ static int test_pmu_reset(struct unit_module *m,
 		unit_return_fail(m, "Module init failed\n");
 	}
 
+	err = g->ops.ecc.ecc_init_support(g);
+	if (err != 0) {
+		unit_return_fail(m, "ecc init failed\n");
+	}
+
 	/* initialize PMU */
 	err =  nvgpu_pmu_early_init(g);
 	if (err != 0) {

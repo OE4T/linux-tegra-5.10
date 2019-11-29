@@ -361,6 +361,18 @@ void gk20a_falcon_mailbox_write(struct nvgpu_falcon *flcn,
 					falcon_falcon_mailbox0_r(), data);
 }
 
+void gk20a_falcon_set_irq(struct nvgpu_falcon *flcn, bool enable,
+	u32 intr_mask, u32 intr_dest)
+{
+	if (enable) {
+		gk20a_falcon_writel(flcn, falcon_falcon_irqmset_r(), intr_mask);
+		gk20a_falcon_writel(flcn, falcon_falcon_irqdest_r(), intr_dest);
+	} else {
+		gk20a_falcon_writel(flcn, falcon_falcon_irqmclr_r(),
+				    0xffffffffU);
+	}
+}
+
 #ifdef CONFIG_NVGPU_FALCON_DEBUG
 static void gk20a_falcon_dump_imblk(struct nvgpu_falcon *flcn)
 {

@@ -347,6 +347,22 @@ void nvgpu_pmu_report_bar0_pri_err_status(struct gk20a *g, u32 bar0_status,
 	u32 error_type);
 
 /**
+ * @brief Enable/Disable PMU ECC interrupt.
+ *
+ * @param g		[in] The GPU driver struct.
+ * @param enable	[in] boolean parameter to enable/disable.
+ *
+ * Enable/Disable PMU ECC interrupt.
+ *  + Check that g->pmu and g->ops.pmu.pmu_enable_irq are not null.
+ *  + Acquire the mutex g->pmu->isr_mutex.
+ *  + Disable the PMU interrupts at MC and PMU level.
+ *  + If enabling, enable ECC interrupt in PMU interrupt configuration
+ *    registers and enable PMU interrupts at MC level.
+ *  + Release the mutex g->pmu->isr_mutex.
+ */
+void nvgpu_pmu_enable_irq(struct gk20a *g, bool enable);
+
+/**
  * @brief Reset the PMU Engine.
  *
  * @param g   [in] The GPU driver struct.
@@ -371,7 +387,7 @@ int nvgpu_pmu_reset(struct gk20a *g);
  * Allocate memory for #nvgpu_pmu data struct & set PMU Engine h/w properties,
  * PMU RTOS supporting data structs & ops of the PMU unit by populating data
  * based on the detected chip. Allocates memory for ECC counters for PMU
- * unit.
+ * unit. Initializes the isr_mutex.
  *
  * @return 0 in case of success, < 0 in case of failure.
  */

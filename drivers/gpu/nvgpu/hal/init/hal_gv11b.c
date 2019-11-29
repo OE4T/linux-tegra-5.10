@@ -140,8 +140,8 @@
 #include "hal/gr/gr/gr_gp10b.h"
 #include "hal/gr/gr/gr_gv100.h"
 #include "hal/gr/gr/gr_gv11b.h"
-#ifdef CONFIG_NVGPU_LS_PMU
 #include "hal/pmu/pmu_gk20a.h"
+#ifdef CONFIG_NVGPU_LS_PMU
 #include "hal/pmu/pmu_gm20b.h"
 #endif
 #include "hal/pmu/pmu_gv11b.h"
@@ -1187,6 +1187,10 @@ static const struct gpu_ops gv11b_ops = {
 			gv11b_clear_pmu_bar0_host_err_status,
 		.bar0_error_status = gv11b_pmu_bar0_error_status,
 		.validate_mem_integrity = gv11b_pmu_validate_mem_integrity,
+		.pmu_enable_irq = gv11b_pmu_enable_irq,
+		.get_irqdest = gv11b_pmu_get_irqdest,
+		.pmu_isr = gk20a_pmu_isr,
+		.handle_ext_irq = gv11b_pmu_handle_ext_irq,
 #ifdef CONFIG_NVGPU_LS_PMU
 		/* Init */
 		.pmu_rtos_init = nvgpu_pmu_rtos_init,
@@ -1194,11 +1198,7 @@ static const struct gpu_ops gv11b_ops = {
 		.pmu_pstate_pmu_setup = nvgpu_pmu_pstate_pmu_setup,
 		.pmu_destroy = nvgpu_pmu_destroy,
 		/* ISR */
-		.pmu_enable_irq = gk20a_pmu_enable_irq,
-		.get_irqdest = gv11b_pmu_get_irqdest,
-		.handle_ext_irq = gv11b_pmu_handle_ext_irq,
 		.pmu_is_interrupted = gk20a_pmu_is_interrupted,
-		.pmu_isr = gk20a_pmu_isr,
 		/* queue */
 		.pmu_get_queue_head = gv11b_pmu_queue_head_r,
 		.pmu_get_queue_head_size = gv11b_pmu_queue_head__size_1_v,
@@ -1371,13 +1371,13 @@ static const struct gpu_ops gv11b_ops = {
 		.bootstrap = gk20a_falcon_bootstrap,
 		.mailbox_read = gk20a_falcon_mailbox_read,
 		.mailbox_write = gk20a_falcon_mailbox_write,
+		.set_irq = gk20a_falcon_set_irq,
 #ifdef CONFIG_NVGPU_FALCON_DEBUG
 		.dump_falcon_stats = gk20a_falcon_dump_stats,
 #endif
 #ifdef CONFIG_NVGPU_FALCON_NON_FUSA
 		.clear_halt_interrupt_status =
 			gk20a_falcon_clear_halt_interrupt_status,
-		.set_irq = gk20a_falcon_set_irq,
 		.copy_from_dmem = gk20a_falcon_copy_from_dmem,
 		.copy_from_imem = gk20a_falcon_copy_from_imem,
 		.get_falcon_ctls = gk20a_falcon_get_ctls,

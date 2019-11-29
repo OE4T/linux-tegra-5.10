@@ -72,6 +72,16 @@ static int pmu_enable_hw(struct nvgpu_pmu *pmu, bool enable)
 	return err;
 }
 
+void nvgpu_pmu_enable_irq(struct gk20a *g, bool enable)
+{
+	if (g->pmu != NULL && g->ops.pmu.pmu_enable_irq != NULL) {
+		nvgpu_mutex_acquire(&g->pmu->isr_mutex);
+		g->ops.pmu.pmu_enable_irq(g->pmu, enable);
+		g->pmu->isr_enabled = enable;
+		nvgpu_mutex_release(&g->pmu->isr_mutex);
+	}
+}
+
 static int pmu_enable(struct nvgpu_pmu *pmu, bool enable)
 {
 	struct gk20a *g = pmu->g;
@@ -81,9 +91,7 @@ static int pmu_enable(struct nvgpu_pmu *pmu, bool enable)
 
 	if (!enable) {
 		if (!g->ops.pmu.is_engine_in_reset(g)) {
-#ifdef CONFIG_NVGPU_LS_PMU
-			g->ops.pmu.pmu_enable_irq(pmu, false);
-#endif
+			nvgpu_pmu_enable_irq(g, false);
 			err = pmu_enable_hw(pmu, false);
 			if (err != 0) {
 				goto exit;
@@ -99,6 +107,11 @@ static int pmu_enable(struct nvgpu_pmu *pmu, bool enable)
 		if (err != 0) {
 			goto exit;
 		}
+
+#ifndef CONFIG_NVGPU_LS_PMU
+		/* Enable PMU ECC interrupts for safety. */
+		nvgpu_pmu_enable_irq(g, true);
+#endif
 	}
 
 exit:
@@ -137,6 +150,7 @@ void nvgpu_pmu_remove_support(struct gk20a *g, struct nvgpu_pmu *pmu)
 			pmu->remove_support(g->pmu);
 		}
 #endif
+		nvgpu_mutex_destroy(&pmu->isr_mutex);
 		nvgpu_kfree(g, g->pmu);
 		g->pmu = NULL;
 	}
@@ -166,6 +180,17 @@ int nvgpu_pmu_early_init(struct gk20a *g)
 	pmu->g = g;
 	pmu->flcn = &g->pmu_flcn;
 
+	if (g->ops.pmu.ecc_init != NULL && !g->ecc.initialized) {
+		err = g->ops.pmu.ecc_init(g);
+		if (err != 0) {
+			nvgpu_kfree(g, pmu);
+			g->pmu = NULL;
+			goto exit;
+		}
+	}
+
+	nvgpu_mutex_init(&pmu->isr_mutex);
+
 	if (!g->support_ls_pmu) {
 		goto exit;
 	}
@@ -181,17 +206,17 @@ int nvgpu_pmu_early_init(struct gk20a *g)
 		goto exit;
 	}
 
-	if (g->ops.pmu.ecc_init != NULL && !g->ecc.initialized) {
-		err = g->ops.pmu.ecc_init(g);
-		if (err != 0) {
-			nvgpu_kfree(g, pmu);
-			g->pmu = NULL;
-			goto exit;
-		}
-	}
-
 #ifdef CONFIG_NVGPU_LS_PMU
 	err = nvgpu_pmu_rtos_early_init(g, pmu);
+	if (err != 0) {
+		nvgpu_mutex_destroy(&pmu->isr_mutex);
+		if (g->ops.pmu.ecc_free != NULL) {
+			g->ops.pmu.ecc_free(g);
+		}
+		nvgpu_kfree(g, pmu);
+		g->pmu = NULL;
+		goto exit;
+	}
 #endif
 
 exit:

@@ -88,18 +88,9 @@ int nvgpu_pmu_destroy(struct gk20a *g, struct nvgpu_pmu *pmu)
 {
 	nvgpu_log_fn(g, " ");
 
-	if (!g->support_ls_pmu) {
-		return 0;
-	}
-
 	if (g->can_elpg) {
 		nvgpu_pmu_pg_destroy(g, pmu, pmu->pg);
 	}
-
-	nvgpu_mutex_acquire(&pmu->isr_mutex);
-	g->ops.pmu.pmu_enable_irq(pmu, false);
-	pmu->isr_enabled = false;
-	nvgpu_mutex_release(&pmu->isr_mutex);
 
 	nvgpu_pmu_queues_free(g, &pmu->queues);
 
@@ -158,7 +149,6 @@ static void remove_pmu_support(struct nvgpu_pmu *pmu)
 	nvgpu_pmu_mutexe_deinit(g, pmu, pmu->mutexes);
 	nvgpu_pmu_fw_deinit(g, pmu, pmu->fw);
 	nvgpu_pmu_deinitialize_perfmon(g, pmu);
-	nvgpu_mutex_destroy(&pmu->isr_mutex);
 }
 
 static int pmu_sw_setup(struct gk20a *g, struct nvgpu_pmu *pmu )
@@ -258,12 +248,7 @@ int nvgpu_pmu_rtos_init(struct gk20a *g)
 			goto exit;
 		}
 
-		if (g->ops.pmu.pmu_enable_irq != NULL) {
-			nvgpu_mutex_acquire(&g->pmu->isr_mutex);
-			g->ops.pmu.pmu_enable_irq(g->pmu, true);
-			g->pmu->isr_enabled = true;
-			nvgpu_mutex_release(&g->pmu->isr_mutex);
-		}
+		nvgpu_pmu_enable_irq(g, true);
 
 		/*Once in LS mode, cpuctl_alias is only accessible*/
 		if (g->ops.pmu.secured_pmu_start != NULL) {
@@ -288,8 +273,6 @@ int nvgpu_pmu_rtos_early_init(struct gk20a *g, struct nvgpu_pmu *pmu)
 	int err = 0;
 
 	nvgpu_log_fn(g, " ");
-
-	nvgpu_mutex_init(&pmu->isr_mutex);
 
 	/* Allocate memory for pmu_perfmon */
 	err = nvgpu_pmu_initialize_perfmon(g, pmu, &pmu->pmu_perfmon);

@@ -40,13 +40,12 @@ u32 gv11b_pmu_falcon_base_addr(void);
 void gv11b_secured_pmu_start(struct gk20a *g);
 bool gv11b_is_pmu_supported(struct gk20a *g);
 int gv11b_pmu_correct_ecc(struct gk20a *g, u32 ecc_status, u32 ecc_addr);
+void gv11b_pmu_handle_ext_irq(struct gk20a *g, u32 intr0);
 
 #ifdef CONFIG_NVGPU_LS_PMU
 int gv11b_pmu_bootstrap(struct gk20a *g, struct nvgpu_pmu *pmu,
 	u32 args_offset);
 void gv11b_pmu_setup_elpg(struct gk20a *g);
-u32 gv11b_pmu_get_irqdest(struct gk20a *g);
-void gv11b_pmu_handle_ext_irq(struct gk20a *g, u32 intr0);
 u32 gv11b_pmu_queue_head_r(u32 i);
 u32 gv11b_pmu_queue_head__size_1_v(void);
 u32 gv11b_pmu_queue_tail_r(u32 i);
@@ -68,5 +67,7 @@ void gv11b_pmu_inject_ecc_error(struct gk20a *g,
 
 int gv11b_pmu_ecc_init(struct gk20a *g);
 void gv11b_pmu_ecc_free(struct gk20a *g);
+u32 gv11b_pmu_get_irqdest(struct gk20a *g);
+void gv11b_pmu_enable_irq(struct nvgpu_pmu *pmu, bool enable);
 
 #endif /* PMU_GV11B_H */

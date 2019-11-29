@@ -486,7 +486,7 @@ bool gk20a_pmu_is_interrupted(struct nvgpu_pmu *pmu)
 	return false;
 }
 
-static void gk20a_pmu_handle_interrupts(struct gk20a *g, u32 intr)
+void gk20a_pmu_handle_interrupts(struct gk20a *g, u32 intr)
 {
 	struct nvgpu_pmu *pmu = g->pmu;
 	bool recheck = false;
@@ -495,7 +495,7 @@ static void gk20a_pmu_handle_interrupts(struct gk20a *g, u32 intr)
 	if ((intr & pwr_falcon_irqstat_halt_true_f()) != 0U) {
 		nvgpu_err(g, "pmu halt intr not implemented");
 		nvgpu_pmu_dump_falcon_stats(pmu);
-		if (gk20a_readl(g, pwr_pmu_mailbox_r
+		if (nvgpu_readl(g, pwr_pmu_mailbox_r
 				(PMU_MODE_MISMATCH_STATUS_MAILBOX_R)) ==
 				PMU_MODE_MISMATCH_STATUS_VAL) {
 			if (g->ops.pmu.dump_secure_fuses != NULL) {
@@ -508,13 +508,9 @@ static void gk20a_pmu_handle_interrupts(struct gk20a *g, u32 intr)
 			"pmu exterr intr not implemented. Clearing interrupt.");
 		nvgpu_pmu_dump_falcon_stats(pmu);
 
-		gk20a_writel(g, pwr_falcon_exterrstat_r(),
-			gk20a_readl(g, pwr_falcon_exterrstat_r()) &
+		nvgpu_writel(g, pwr_falcon_exterrstat_r(),
+			nvgpu_readl(g, pwr_falcon_exterrstat_r()) &
 				~pwr_falcon_exterrstat_valid_m());
-	}
-
-	if (g->ops.pmu.handle_ext_irq != NULL) {
-		g->ops.pmu.handle_ext_irq(g, intr);
 	}
 
 	if ((intr & pwr_falcon_irqstat_swgen0_true_f()) != 0U) {
@@ -526,48 +522,13 @@ static void gk20a_pmu_handle_interrupts(struct gk20a *g, u32 intr)
 		recheck = true;
 	}
 
-	gk20a_writel(g, pwr_falcon_irqsclr_r(), intr);
-
 	if (recheck) {
 		if (!nvgpu_pmu_queue_is_empty(&pmu->queues,
 					      PMU_MESSAGE_QUEUE)) {
-			gk20a_writel(g, pwr_falcon_irqsset_r(),
+			nvgpu_writel(g, pwr_falcon_irqsset_r(),
 				pwr_falcon_irqsset_swgen0_set_f());
 		}
 	}
-}
-
-void gk20a_pmu_isr(struct gk20a *g)
-{
-	struct nvgpu_pmu *pmu = g->pmu;
-	u32 intr, mask;
-
-	nvgpu_log_fn(g, " ");
-
-	nvgpu_mutex_acquire(&pmu->isr_mutex);
-	if (!pmu->isr_enabled) {
-		nvgpu_mutex_release(&pmu->isr_mutex);
-		return;
-	}
-
-	mask = gk20a_readl(g, pwr_falcon_irqmask_r()) &
-		gk20a_readl(g, pwr_falcon_irqdest_r());
-
-	intr = gk20a_readl(g, pwr_falcon_irqstat_r());
-
-	nvgpu_pmu_dbg(g, "received falcon interrupt: 0x%08x", intr);
-
-	intr = gk20a_readl(g, pwr_falcon_irqstat_r()) & mask;
-	if ((intr == 0U) || (nvgpu_pmu_get_fw_state(g, pmu)
-		== PMU_FW_STATE_OFF)) {
-		gk20a_writel(g, pwr_falcon_irqsclr_r(), intr);
-		nvgpu_mutex_release(&pmu->isr_mutex);
-		return;
-	}
-
-	gk20a_pmu_handle_interrupts(g, intr);
-
-	nvgpu_mutex_release(&pmu->isr_mutex);
 }
 
 static u32 pmu_bar0_host_tout_etype(u32 val)

@@ -49,23 +49,6 @@ bool gk20a_falcon_clear_halt_interrupt_status(struct nvgpu_falcon *flcn)
 	return status;
 }
 
-void gk20a_falcon_set_irq(struct nvgpu_falcon *flcn, bool enable,
-	u32 intr_mask, u32 intr_dest)
-{
-	struct gk20a *g = flcn->g;
-	u32 base_addr = flcn->flcn_base;
-
-	if (enable) {
-		gk20a_writel(g, base_addr + falcon_falcon_irqmset_r(),
-			intr_mask);
-		gk20a_writel(g, base_addr + falcon_falcon_irqdest_r(),
-			intr_dest);
-	} else {
-		gk20a_writel(g, base_addr + falcon_falcon_irqmclr_r(),
-			0xffffffffU);
-	}
-}
-
 int gk20a_falcon_copy_from_dmem(struct nvgpu_falcon *flcn,
 		u32 src, u8 *dst, u32 size, u8 port)
 {

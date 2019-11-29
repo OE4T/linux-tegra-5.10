@@ -1216,7 +1216,7 @@ static const struct gpu_ops tu104_ops = {
 		.pmu_clear_idle_intr_status = NULL,
 		.pmu_dump_elpg_stats = gk20a_pmu_dump_elpg_stats,
 		.pmu_dump_falcon_stats = gk20a_pmu_dump_falcon_stats,
-		.pmu_enable_irq = gk20a_pmu_enable_irq,
+		.pmu_enable_irq = gv11b_pmu_enable_irq,
 		.is_pmu_supported = tu104_is_pmu_supported,
 		.pmu_mutex_owner = gk20a_pmu_mutex_owner,
 		.pmu_mutex_acquire = gk20a_pmu_mutex_acquire,
@@ -1413,13 +1413,13 @@ static const struct gpu_ops tu104_ops = {
 		.bootstrap = gk20a_falcon_bootstrap,
 		.mailbox_read = gk20a_falcon_mailbox_read,
 		.mailbox_write = gk20a_falcon_mailbox_write,
+		.set_irq = gk20a_falcon_set_irq,
 #ifdef CONFIG_NVGPU_FALCON_DEBUG
 		.dump_falcon_stats = gk20a_falcon_dump_stats,
 #endif
 #ifdef CONFIG_NVGPU_FALCON_NON_FUSA
 		.clear_halt_interrupt_status =
 			gk20a_falcon_clear_halt_interrupt_status,
-		.set_irq = gk20a_falcon_set_irq,
 		.copy_from_dmem = gk20a_falcon_copy_from_dmem,
 		.copy_from_imem = gk20a_falcon_copy_from_imem,
 		.get_falcon_ctls = gk20a_falcon_get_ctls,

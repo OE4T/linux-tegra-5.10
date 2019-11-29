@@ -61,6 +61,7 @@ struct mc_unit {
 };
 static struct mc_unit mc_units[] = {
 	{ MC_INTR_UNIT_BUS, mc_intr_pbus_pending_f() },
+	{ MC_INTR_UNIT_PMU, mc_intr_pmu_pending_f() },
 	{ MC_INTR_UNIT_PRIV_RING, mc_intr_priv_ring_pending_f() },
 	{ MC_INTR_UNIT_FIFO, mc_intr_pfifo_pending_f() },
 	{ MC_INTR_UNIT_LTC, mc_intr_ltc_pending_f() },
@@ -114,6 +115,7 @@ struct unit_ctx {
 	bool fifo_isr;
 	bool gr_isr;
 	bool ltc_isr;
+	bool pmu_isr;
 	bool priv_ring_isr;
 
 	u32 ce_isr_return;
@@ -132,6 +134,7 @@ static void reset_ctx(void)
 	u.gr_isr = false;
 	u.gr_isr_return = 0;
 	u.ltc_isr = false;
+	u.pmu_isr = false;
 	u.priv_ring_isr = false;
 }
 
@@ -219,6 +222,11 @@ static void mock_ltc_isr(struct gk20a *g, u32 ltc)
 	u.ltc_isr = true;
 }
 
+static void mock_pmu_isr(struct gk20a *g)
+{
+	u.pmu_isr = true;
+}
+
 static void mock_priv_ring_isr(struct gk20a *g)
 {
 	u.priv_ring_isr = true;
@@ -265,6 +273,7 @@ int test_setup_env(struct unit_module *m,
 	g->ops.gr.intr.stall_isr = mock_gr_stall_isr;
 	g->ops.gr.intr.nonstall_isr = mock_gr_nonstall_isr;
 	g->ops.ltc.intr.isr = mock_ltc_isr;
+	g->ops.pmu.pmu_isr = mock_pmu_isr;
 	g->ops.priv_ring.isr = mock_priv_ring_isr;
 
 	/* setup engines for getting interrupt info */
@@ -513,7 +522,7 @@ int test_isr_stall(struct unit_module *m, struct gk20a *g, void *args)
 	reset_ctx();
 	g->ops.mc.isr_stall(g);
 	if (u.bus_isr || u.ce_isr || u.fb_isr || u.fifo_isr || u.gr_isr ||
-	    u.priv_ring_isr) {
+	    u.pmu_isr || u.priv_ring_isr) {
 		unit_return_fail(m, "unexpected ISR called\n");
 	}
 
@@ -526,7 +535,7 @@ int test_isr_stall(struct unit_module *m, struct gk20a *g, void *args)
 	reset_ctx();
 	g->ops.mc.isr_stall(g);
 	if (!u.bus_isr || !u.ce_isr || !u.fb_isr || !u.fifo_isr || !u.gr_isr ||
-	    !u.priv_ring_isr) {
+	    !u.pmu_isr || !u.priv_ring_isr) {
 		unit_return_fail(m, "not all ISRs called\n");
 	}
 

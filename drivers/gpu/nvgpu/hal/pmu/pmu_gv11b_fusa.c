@@ -346,3 +346,169 @@ void gv11b_pmu_ecc_free(struct gk20a *g)
 	nvgpu_kfree(g, ecc->pmu.pmu_ecc_corrected_err_count);
 	nvgpu_kfree(g, ecc->pmu.pmu_ecc_uncorrected_err_count);
 }
+
+static void gv11b_pmu_handle_ecc_irq(struct gk20a *g)
+{
+	u32 intr1;
+	u32 ecc_status, ecc_addr, corrected_cnt, uncorrected_cnt;
+	u32 corrected_delta, uncorrected_delta;
+	u32 corrected_overflow, uncorrected_overflow;
+
+	intr1 = nvgpu_readl(g, pwr_pmu_ecc_intr_status_r());
+	if ((intr1 &
+		(pwr_pmu_ecc_intr_status_corrected_m() |
+		 pwr_pmu_ecc_intr_status_uncorrected_m())) == 0U) {
+		return;
+	}
+
+	ecc_status = nvgpu_readl(g,
+		pwr_pmu_falcon_ecc_status_r());
+	ecc_addr = nvgpu_readl(g,
+		pwr_pmu_falcon_ecc_address_r());
+	corrected_cnt = nvgpu_readl(g,
+		pwr_pmu_falcon_ecc_corrected_err_count_r());
+	uncorrected_cnt = nvgpu_readl(g,
+		pwr_pmu_falcon_ecc_uncorrected_err_count_r());
+
+	corrected_delta =
+	  pwr_pmu_falcon_ecc_corrected_err_count_total_v(corrected_cnt);
+	uncorrected_delta =
+	  pwr_pmu_falcon_ecc_uncorrected_err_count_total_v(uncorrected_cnt);
+	corrected_overflow = ecc_status &
+	  pwr_pmu_falcon_ecc_status_corrected_err_total_counter_overflow_m();
+
+	uncorrected_overflow = ecc_status &
+	  pwr_pmu_falcon_ecc_status_uncorrected_err_total_counter_overflow_m();
+	corrected_overflow = ecc_status &
+	  pwr_pmu_falcon_ecc_status_corrected_err_total_counter_overflow_m();
+
+	/* clear the interrupt */
+	if (((intr1 & pwr_pmu_ecc_intr_status_corrected_m()) != 0U) ||
+					(corrected_overflow != 0U)) {
+		nvgpu_writel(g, pwr_pmu_falcon_ecc_corrected_err_count_r(), 0);
+	}
+	if (((intr1 & pwr_pmu_ecc_intr_status_uncorrected_m()) != 0U) ||
+					(uncorrected_overflow != 0U)) {
+		nvgpu_writel(g,
+			pwr_pmu_falcon_ecc_uncorrected_err_count_r(), 0);
+	}
+
+	nvgpu_writel(g, pwr_pmu_falcon_ecc_status_r(),
+		pwr_pmu_falcon_ecc_status_reset_task_f());
+
+	/* update counters per slice */
+	if (corrected_overflow != 0U) {
+		corrected_delta +=
+			BIT32(pwr_pmu_falcon_ecc_corrected_err_count_total_s());
+	}
+	if (uncorrected_overflow != 0U) {
+		uncorrected_delta +=
+		  BIT32(pwr_pmu_falcon_ecc_uncorrected_err_count_total_s());
+	}
+
+	g->ecc.pmu.pmu_ecc_corrected_err_count[0].counter =
+		nvgpu_safe_add_u32(
+			g->ecc.pmu.pmu_ecc_corrected_err_count[0].counter,
+			corrected_delta);
+	g->ecc.pmu.pmu_ecc_uncorrected_err_count[0].counter =
+		nvgpu_safe_add_u32(
+			g->ecc.pmu.pmu_ecc_uncorrected_err_count[0].counter,
+			uncorrected_delta);
+
+	nvgpu_log(g, gpu_dbg_intr,
+		"pmu ecc interrupt intr1: 0x%x", intr1);
+
+	(void)gv11b_pmu_correct_ecc(g, ecc_status, ecc_addr);
+
+	if ((corrected_overflow != 0U) || (uncorrected_overflow != 0U)) {
+		nvgpu_info(g, "ecc counter overflow!");
+	}
+
+	nvgpu_log(g, gpu_dbg_intr,
+		"ecc error row address: 0x%x",
+		pwr_pmu_falcon_ecc_address_row_address_v(ecc_addr));
+
+	nvgpu_log(g, gpu_dbg_intr,
+		"ecc error count corrected: %d, uncorrected %d",
+		g->ecc.pmu.pmu_ecc_corrected_err_count[0].counter,
+		g->ecc.pmu.pmu_ecc_uncorrected_err_count[0].counter);
+}
+
+void gv11b_pmu_handle_ext_irq(struct gk20a *g, u32 intr0)
+{
+	/*
+	 * handle the ECC interrupt
+	 */
+	if ((intr0 & pwr_falcon_irqstat_ext_ecc_parity_true_f()) != 0U) {
+		gv11b_pmu_handle_ecc_irq(g);
+	}
+}
+
+void gv11b_pmu_enable_irq(struct nvgpu_pmu *pmu, bool enable)
+{
+	struct gk20a *g = pmu->g;
+	u32 intr_mask;
+	u32 intr_dest;
+
+	nvgpu_log_fn(g, " ");
+
+	nvgpu_mc_intr_stall_unit_config(g, MC_INTR_UNIT_PMU, MC_INTR_DISABLE);
+
+	nvgpu_falcon_set_irq(pmu->flcn, false, 0x0, 0x0);
+
+	if (enable) {
+		intr_dest = g->ops.pmu.get_irqdest(g);
+#ifdef CONFIG_NVGPU_LS_PMU
+		/* 0=disable, 1=enable */
+		intr_mask = pwr_falcon_irqmset_gptmr_f(1)  |
+			pwr_falcon_irqmset_wdtmr_f(1)  |
+			pwr_falcon_irqmset_mthd_f(0)   |
+			pwr_falcon_irqmset_ctxsw_f(0)  |
+			pwr_falcon_irqmset_halt_f(1)   |
+			pwr_falcon_irqmset_exterr_f(1) |
+			pwr_falcon_irqmset_swgen0_f(1) |
+			pwr_falcon_irqmset_swgen1_f(1) |
+			pwr_falcon_irqmset_ext_ecc_parity_f(1);
+#else
+		intr_mask = pwr_falcon_irqmset_ext_ecc_parity_f(1);
+#endif
+		nvgpu_mc_intr_stall_unit_config(g, MC_INTR_UNIT_PMU,
+						 MC_INTR_ENABLE);
+
+		nvgpu_falcon_set_irq(pmu->flcn, true, intr_mask, intr_dest);
+	}
+
+	nvgpu_log_fn(g, "done");
+}
+
+u32 gv11b_pmu_get_irqdest(struct gk20a *g)
+{
+	u32 intr_dest;
+
+#ifdef CONFIG_NVGPU_LS_PMU
+	/* dest 0=falcon, 1=host; level 0=irq0, 1=irq1 */
+	intr_dest = pwr_falcon_irqdest_host_gptmr_f(0)      |
+		pwr_falcon_irqdest_host_wdtmr_f(1)          |
+		pwr_falcon_irqdest_host_mthd_f(0)           |
+		pwr_falcon_irqdest_host_ctxsw_f(0)          |
+		pwr_falcon_irqdest_host_halt_f(1)           |
+		pwr_falcon_irqdest_host_exterr_f(0)         |
+		pwr_falcon_irqdest_host_swgen0_f(1)         |
+		pwr_falcon_irqdest_host_swgen1_f(0)         |
+		pwr_falcon_irqdest_host_ext_ecc_parity_f(1) |
+		pwr_falcon_irqdest_target_gptmr_f(1)        |
+		pwr_falcon_irqdest_target_wdtmr_f(0)        |
+		pwr_falcon_irqdest_target_mthd_f(0)         |
+		pwr_falcon_irqdest_target_ctxsw_f(0)        |
+		pwr_falcon_irqdest_target_halt_f(0)         |
+		pwr_falcon_irqdest_target_exterr_f(0)       |
+		pwr_falcon_irqdest_target_swgen0_f(0)       |
+		pwr_falcon_irqdest_target_swgen1_f(0)       |
+		pwr_falcon_irqdest_target_ext_ecc_parity_f(0);
+#else
+	intr_dest = pwr_falcon_irqdest_host_ext_ecc_parity_f(1) |
+		pwr_falcon_irqdest_target_ext_ecc_parity_f(0);
+#endif
+
+	return intr_dest;
+}

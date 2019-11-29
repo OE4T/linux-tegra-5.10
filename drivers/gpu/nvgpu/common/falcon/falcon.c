@@ -538,6 +538,26 @@ void nvgpu_falcon_sw_free(struct gk20a *g, u32 flcn_id)
 	nvgpu_mutex_destroy(&flcn->imem_lock);
 }
 
+void nvgpu_falcon_set_irq(struct nvgpu_falcon *flcn, bool enable,
+	u32 intr_mask, u32 intr_dest)
+{
+	struct gk20a *g;
+
+	if (!is_falcon_valid(flcn)) {
+		return;
+	}
+
+	g = flcn->g;
+
+	if (!flcn->is_interrupt_enabled) {
+		nvgpu_warn(g, "Interrupt not supported on flcn 0x%x ",
+			flcn->flcn_id);
+		return;
+	}
+
+	g->ops.falcon.set_irq(flcn, enable, intr_mask, intr_dest);
+}
+
 #ifdef CONFIG_NVGPU_DGPU
 int nvgpu_falcon_copy_from_emem(struct nvgpu_falcon *flcn,
 	u32 src, u8 *dst, u32 size, u8 port)
@@ -639,27 +659,6 @@ int nvgpu_falcon_clear_halt_intr_status(struct nvgpu_falcon *flcn,
 	}
 
 	return status;
-}
-
-void nvgpu_falcon_set_irq(struct nvgpu_falcon *flcn, bool enable,
-	u32 intr_mask, u32 intr_dest)
-{
-	struct gk20a *g;
-
-	if (!is_falcon_valid(flcn)) {
-		return;
-	}
-
-	g = flcn->g;
-
-	if (!flcn->is_interrupt_enabled) {
-		nvgpu_warn(g, "Interrupt not supported on flcn 0x%x ",
-			flcn->flcn_id);
-		/* Keep interrupt disabled */
-		enable = false;
-	}
-
-	g->ops.falcon.set_irq(flcn, enable, intr_mask, intr_dest);
 }
 
 int nvgpu_falcon_copy_from_dmem(struct nvgpu_falcon *flcn,

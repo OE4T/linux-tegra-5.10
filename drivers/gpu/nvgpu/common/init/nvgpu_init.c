@@ -272,6 +272,8 @@ int nvgpu_prepare_poweroff(struct gk20a *g)
 	}
 #endif
 
+	nvgpu_pmu_enable_irq(g, false);
+
 #ifdef CONFIG_NVGPU_DGPU
 	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_SEC2_RTOS)) {
 		tmp_ret = g->ops.sec2.sec2_destroy(g);

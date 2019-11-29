@@ -111,6 +111,7 @@
  *   + nvgpu_falcon_hs_ucode_load_bootstrap()
  *   + nvgpu_falcon_get_mem_size()
  *   + nvgpu_falcon_get_id()
+ *   + nvgpu_falcon_set_irq()
  */
 
 #include <nvgpu/types.h>
@@ -583,7 +584,7 @@ int nvgpu_falcon_sw_init(struct gk20a *g, u32 flcn_id);
  * @brief Free the falcon software state.
  *
  * @param g [in] The GPU driver struct.
- * @param flcn_id [id] falcon ID. See #nvgpu_falcon_get_instance for supported
+ * @param flcn_id [in] falcon ID. See #nvgpu_falcon_get_instance for supported
  *		       values.
  *
  * This function is called during nvgpu power off to deinitialize falcons
@@ -596,6 +597,35 @@ int nvgpu_falcon_sw_init(struct gk20a *g, u32 flcn_id);
  * - Destroy the locks created for memory copy operations.
  */
 void nvgpu_falcon_sw_free(struct gk20a *g, u32 flcn_id);
+
+/**
+ * @brief Set the falcon interrupt mask and routing registers.
+ *
+ * @param flcn [in] The falcon.
+ * @param enable [in] Indicates if interrupt mask is to be set or cleared and
+ *		      if interrupt routing register is to be set.
+ * @param intr_mask [in] Interrupt mask to be set when interrupts are to be
+ *			 enabled. Not applicable when interrupts are to be
+ *			 disabled.
+ * @param intr_dest [in] Interrupt routing to be set when interrupts are to
+ *			 be enabled. Not applicable when interrupts are to be
+ *			 disabled.
+ *
+ * This function is called during nvgpu power on to enable the falcon ECC
+ * interrupt and called during nvgpu power off to disable the falcon interrupts.
+ *
+ * Steps:
+ * - Validate the passed in \a flcn and return if not valid.
+ * - Check if interrupts are supported on the falcon and return if not
+ *   supported.
+ * - If enabling the interrupts:
+ *   - Set falcon_falcon_irqmset_r() register with the value \a intr_mask.
+ *   - Set falcon_falcon_irqdest_r() register with the value \a intr_dest.
+ * - Else if disabling the interrupts:
+ *   - Set falcon_falcon_irqmclr_r() register with the value 0xffffffffU;
+ */
+void nvgpu_falcon_set_irq(struct nvgpu_falcon *flcn, bool enable,
+	u32 intr_mask, u32 intr_dest);
 
 #ifdef CONFIG_NVGPU_DGPU
 int nvgpu_falcon_copy_from_emem(struct nvgpu_falcon *flcn,
@@ -611,8 +641,6 @@ void nvgpu_falcon_dump_stats(struct nvgpu_falcon *flcn);
 #ifdef CONFIG_NVGPU_FALCON_NON_FUSA
 int nvgpu_falcon_clear_halt_intr_status(struct nvgpu_falcon *flcn,
 		unsigned int timeout);
-void nvgpu_falcon_set_irq(struct nvgpu_falcon *flcn, bool enable,
-	u32 intr_mask, u32 intr_dest);
 int nvgpu_falcon_copy_from_dmem(struct nvgpu_falcon *flcn,
 	u32 src, u8 *dst, u32 size, u8 port);
 int nvgpu_falcon_copy_from_imem(struct nvgpu_falcon *flcn,

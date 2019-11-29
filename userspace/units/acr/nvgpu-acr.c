@@ -602,6 +602,11 @@ int test_acr_init(struct unit_module *m,
 		unit_return_fail(m, "Module init failed\n");
 	}
 
+	err = g->ops.ecc.ecc_init_support(g);
+	if (err != 0) {
+		unit_return_fail(m, "ecc init failed\n");
+	}
+
 	/*
 	 * initialize PMU
 	 */

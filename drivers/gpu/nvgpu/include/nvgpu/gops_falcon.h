@@ -56,13 +56,13 @@ struct gops_falcon {
 			    u32 mailbox_index);
 	void (*mailbox_write)(struct nvgpu_falcon *flcn,
 			      u32 mailbox_index, u32 data);
+	void (*set_irq)(struct nvgpu_falcon *flcn, bool enable,
+			u32 intr_mask, u32 intr_dest);
 #ifdef CONFIG_NVGPU_FALCON_DEBUG
 	void (*dump_falcon_stats)(struct nvgpu_falcon *flcn);
 #endif
 #ifdef CONFIG_NVGPU_FALCON_NON_FUSA
 	bool (*clear_halt_interrupt_status)(struct nvgpu_falcon *flcn);
-	void (*set_irq)(struct nvgpu_falcon *flcn, bool enable,
-			u32 intr_mask, u32 intr_dest);
 	int (*copy_from_dmem)(struct nvgpu_falcon *flcn,
 			      u32 src, u8 *dst, u32 size, u8 port);
 	int (*copy_from_imem)(struct nvgpu_falcon *flcn,

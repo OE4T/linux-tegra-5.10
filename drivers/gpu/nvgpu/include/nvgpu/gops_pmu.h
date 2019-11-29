@@ -59,6 +59,27 @@ struct gops_pmu {
 	 */
 	void (*ecc_free)(struct gk20a *g);
 
+	/**
+	 * @brief Interrupt handler for PMU interrupts.
+	 *
+	 * @param g   [in] The GPU driver struct.
+	 *
+	 * Steps:
+	 *  + Acquire mutex g->pmu->isr_mutex.
+	 *  + If PMU interrupts are not enabled release isr_mutex and return.
+	 *  + Prepare mask by AND'ing registers pwr_falcon_irqmask_r and
+	 *    pwr_falcon_irqdest_r.
+	 *  + Read interrupts status register pwr_falcon_irqstat_r.
+	 *  + Determine interrupts to be handled by AND'ing value read in
+	 *    the previous step with the mask computed earlier.
+	 *  + If no interrupts are to be handled release isr_mutex and return.
+	 *  + Handle ECC interrupt if it is pending.
+	 *  + Clear the pending interrupts to be handled by writing the
+	 *    pending interrupt mask to the register pwr_falcon_irqsclr_r.
+	 *  + Release mutex g->pmu->isr_mutex.
+	 */
+	void (*pmu_isr)(struct gk20a *g);
+
 	/** @cond DOXYGEN_SHOULD_SKIP_THIS */
 
 	/**
@@ -291,14 +312,15 @@ struct gops_pmu {
 	bool (*validate_mem_integrity)(struct gk20a *g);
 
 	/** @cond DOXYGEN_SHOULD_SKIP_THIS */
+	void (*handle_ext_irq)(struct gk20a *g, u32 intr);
+
+	void (*pmu_enable_irq)(struct nvgpu_pmu *pmu, bool enable);
+	u32 (*get_irqdest)(struct gk20a *g);
+
 #ifdef CONFIG_NVGPU_LS_PMU
 	/* ISR */
-	void (*pmu_enable_irq)(struct nvgpu_pmu *pmu, bool enable);
 	bool (*pmu_is_interrupted)(struct nvgpu_pmu *pmu);
-	void (*pmu_isr)(struct gk20a *g);
 	void (*set_irqmask)(struct gk20a *g);
-	u32 (*get_irqdest)(struct gk20a *g);
-	void (*handle_ext_irq)(struct gk20a *g, u32 intr);
 	/* non-secure */
 	int (*pmu_ns_bootstrap)(struct gk20a *g, struct nvgpu_pmu *pmu,
 		u32 args_offset);

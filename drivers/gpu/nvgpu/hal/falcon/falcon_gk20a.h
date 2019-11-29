@@ -79,6 +79,8 @@ u32 gk20a_falcon_mailbox_read(struct nvgpu_falcon *flcn,
 		u32 mailbox_index);
 void gk20a_falcon_mailbox_write(struct nvgpu_falcon *flcn,
 		u32 mailbox_index, u32 data);
+void gk20a_falcon_set_irq(struct nvgpu_falcon *flcn, bool enable,
+				 u32 intr_mask, u32 intr_dest);
 
 #ifdef CONFIG_NVGPU_FALCON_DEBUG
 void gk20a_falcon_dump_stats(struct nvgpu_falcon *flcn);
@@ -86,8 +88,6 @@ void gk20a_falcon_dump_stats(struct nvgpu_falcon *flcn);
 
 #ifdef CONFIG_NVGPU_FALCON_NON_FUSA
 bool gk20a_falcon_clear_halt_interrupt_status(struct nvgpu_falcon *flcn);
-void gk20a_falcon_set_irq(struct nvgpu_falcon *flcn, bool enable,
-				 u32 intr_mask, u32 intr_dest);
 int gk20a_falcon_copy_from_dmem(struct nvgpu_falcon *flcn,
 		u32 src, u8 *dst, u32 size, u8 port);
 int gk20a_falcon_copy_from_imem(struct nvgpu_falcon *flcn, u32 src,
