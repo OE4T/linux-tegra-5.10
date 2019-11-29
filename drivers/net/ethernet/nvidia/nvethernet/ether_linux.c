@@ -3728,6 +3728,38 @@ static int ether_parse_phy_dt(struct ether_priv_data *pdata,
 }
 
 /**
+ * @brief ether_parse_residual_queue - Parse RQ DT entry.
+ *
+ * Algorithm: Reads residual queue form DT. Updates
+ * data either by DT values or by default value.
+ *
+ * @param[in] pdata: OS dependent private data structure.
+ * @param[in] pdt_prop: name of property
+ * @param[in] pval: structure pointer where value will be filed
+ *
+ * @retval 0 on success
+ * @retval "negative value" on failure.
+ */
+static int ether_parse_residual_queue(struct ether_priv_data *pdata,
+				      const char *pdt_prop, unsigned int *pval)
+{
+	struct osi_core_priv_data *osi_core = pdata->osi_core;
+	struct device_node *pnode = pdata->dev->of_node;
+	int ret = 0;
+
+	ret = of_property_read_u32(pnode, pdt_prop, pval);
+	if ((ret < 0) ||
+	    (*pval >= osi_core->num_mtl_queues) ||
+	    (*pval == 0U)) {
+		dev_err(pdata->dev, "No/incorrect residual queue defined\n");
+		/* TODO we should return -EINVAL */
+		*pval = 0x2U;
+	}
+
+	return 0;
+}
+
+/**
  * @brief Parse queue priority DT.
  *
  * Algorithm: Reads queue priority form DT. Updates
@@ -3860,6 +3892,24 @@ static int ether_parse_dt(struct ether_priv_data *pdata)
 			goto exit;
 		}
 	}
+
+	ret = of_property_read_u32_array(np, "nvidia,tc-mapping",
+					 osi_core->tc,
+					 osi_core->num_mtl_queues);
+	for (i = 0; i < osi_core->num_mtl_queues; i++) {
+		if (ret < 0) {
+			dev_err(dev, "set default TXQ to TC mapping\n");
+			osi_core->tc[osi_core->mtl_queues[i]] =
+				(osi_core->mtl_queues[i] %
+				 OSI_MAX_TC_NUM);
+		} else if ((osi_core->tc[osi_core->mtl_queues[i]] >=
+		    OSI_MAX_TC_NUM)) {
+			dev_err(dev, "Wrong TC %din DT, setting to TC 0\n",
+				osi_core->tc[osi_core->mtl_queues[i]]);
+			osi_core->tc[osi_core->mtl_queues[i]] = 0U;
+		}
+	}
+
 	/* Read PTP Rx queue index */
 	ret = of_property_read_u32(np, "nvidia,ptp-rx-queue",
 				   &osi_core->ptp_config.ptp_rx_queue);
@@ -4321,11 +4371,11 @@ static void ether_init_rss(struct ether_priv_data *pdata,
  * 1) Get the number of channels from DT.
  * 2) Allocate the network device for those many channels.
  * 3) Parse MAC and PHY DT.
- * 4) Update callback function for rx buffer reallocation
- * 5) Get all required clks/reset/IRQ's.
- * 6) Register MDIO bus and network device.
- * 7) Initialize spinlock.
- * 8) Update filter value based on HW feature.
+ * 4) Get all required clks/reset/IRQ's.
+ * 5) Register MDIO bus and network device.
+ * 6) Initialize spinlock.
+ * 7) Update filter value based on HW feature.
+ * 8) Update osi_core->hw_feature with pdata->hw_feat pointer
  * 9) Initialize Workqueue to read MMC counters periodically.
  *
  * @param[in] pdev: platform device associated with platform driver.
@@ -4429,6 +4479,15 @@ static int ether_probe(struct platform_device *pdev)
 		goto err_dma_mask;
 	}
 
+	if (pdata->hw_feat.fpe_sel) {
+		ret = ether_parse_residual_queue(pdata, "nvidia,residual-queue",
+						 &osi_core->residual_queue);
+		if (ret < 0) {
+			dev_err(&pdev->dev, "failed to read RQ\n");
+			goto err_dma_mask;
+		}
+	}
+
 	/* Set netdev features based on hw features */
 	ether_set_ndev_features(ndev, pdata);
 
@@ -4496,6 +4555,8 @@ static int ether_probe(struct platform_device *pdev)
 	}
 	/* Initialization of delayed workqueue */
 	INIT_DELAYED_WORK(&pdata->ether_stats_work, ether_stats_work_func);
+
+	osi_core->hw_feature = &pdata->hw_feat;
 
 	return 0;
 

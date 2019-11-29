@@ -358,6 +358,68 @@ static const struct ether_stats ether_mmc[] = {
 	ETHER_MMC_STAT(mmc_rx_tcp_err_octets_h),
 	ETHER_MMC_STAT(mmc_rx_icmp_gd_octets_h),
 	ETHER_MMC_STAT(mmc_rx_icmp_err_octets_h),
+	/* FPE */
+	ETHER_MMC_STAT(mmc_tx_fpe_frag_cnt),
+	ETHER_MMC_STAT(mmc_tx_fpe_hold_req_cnt),
+	ETHER_MMC_STAT(mmc_rx_packet_reass_err_cnt),
+	ETHER_MMC_STAT(mmc_rx_packet_smd_err_cnt),
+	ETHER_MMC_STAT(mmc_rx_packet_asm_ok_cnt),
+	ETHER_MMC_STAT(mmc_rx_fpe_fragment_cnt),
+};
+
+/**
+ * @brief Ethernet extra TSN statistics array length
+ */
+#define ETHER_EXTRA_TSN_STAT_LEN OSI_ARRAY_SIZE(ether_tstrings_stats)
+
+/**
+ * @brief Name of extra Ethernet stats, with length of name not more than
+ * ETH_GSTRING_LEN MAC
+ */
+#if KERNEL_VERSION(5, 5, 0) > LINUX_VERSION_CODE
+#define ETHER_MMC_STAT(c) \
+{ #c, FIELD_SIZEOF(struct osi_mmc_counters, c), \
+        offsetof(struct osi_core_priv_data, mmc.c)}
+#else
+#define ETHER_MMC_STAT(c) \
+{ #c, sizeof_field(struct osi_mmc_counters, c), \
+        offsetof(struct osi_core_priv_data, mmc.c)}
+#endif
+
+#if KERNEL_VERSION(5, 5, 0) > LINUX_VERSION_CODE
+#define ETHER_TEXTRA_STAT(r) \
+{ (#r), FIELD_SIZEOF(struct osi_tsn_stats, r), \
+	offsetof(struct osi_core_priv_data, tsn_stats.r)}
+#else
+#define ETHER_TEXTRA_STAT(r) \
+{ (#r), sizeof_field(struct osi_tsn_stats, r), \
+        offsetof(struct osi_core_priv_data, tsn_stats.r)}
+#endif
+/**
+ * @brief Ethernet extra statistics
+ */
+static const struct ether_stats ether_tstrings_stats[] = {
+	ETHER_TEXTRA_STAT(const_gate_ctr_err),
+	ETHER_TEXTRA_STAT(head_of_line_blk_sch),
+	ETHER_TEXTRA_STAT(hlbs_q[0]),
+	ETHER_TEXTRA_STAT(hlbs_q[1]),
+	ETHER_TEXTRA_STAT(hlbs_q[2]),
+	ETHER_TEXTRA_STAT(hlbs_q[3]),
+	ETHER_TEXTRA_STAT(hlbs_q[4]),
+	ETHER_TEXTRA_STAT(hlbs_q[5]),
+	ETHER_TEXTRA_STAT(hlbs_q[6]),
+	ETHER_TEXTRA_STAT(hlbs_q[7]),
+	ETHER_TEXTRA_STAT(head_of_line_blk_frm),
+	ETHER_TEXTRA_STAT(hlbf_q[0]),
+	ETHER_TEXTRA_STAT(hlbf_q[1]),
+	ETHER_TEXTRA_STAT(hlbf_q[2]),
+	ETHER_TEXTRA_STAT(hlbf_q[3]),
+	ETHER_TEXTRA_STAT(hlbf_q[4]),
+	ETHER_TEXTRA_STAT(hlbf_q[5]),
+	ETHER_TEXTRA_STAT(hlbf_q[6]),
+	ETHER_TEXTRA_STAT(hlbf_q[7]),
+	ETHER_TEXTRA_STAT(base_time_reg_err),
+	ETHER_TEXTRA_STAT(sw_own_list_complete),
 };
 
 /**
@@ -425,6 +487,15 @@ static void ether_get_ethtool_stats(struct net_device *dev,
 			data[j++] = (ether_cstrings_stats[i].sizeof_stat ==
 				     sizeof(u64)) ? (*(u64 *)p) : (*(u32 *)p);
 		}
+
+		for (i = 0; ((i < ETHER_EXTRA_TSN_STAT_LEN) &&
+			     (pdata->hw_feat.est_sel == OSI_ENABLE)); i++) {
+			char *p = (char *)osi_core +
+				  ether_tstrings_stats[i].stat_offset;
+
+			data[j++] = (ether_tstrings_stats[i].sizeof_stat ==
+				     sizeof(u64)) ? (*(u64 *)p) : (*(u32 *)p);
+		}
 	}
 }
 
@@ -467,6 +538,13 @@ static int ether_get_sset_count(struct net_device *dev, int sset)
 			/* do nothing */
 		} else {
 			len += ETHER_PKT_ERR_STAT_LEN;
+		}
+		if (INT_MAX - ETHER_EXTRA_TSN_STAT_LEN < len) {
+			/* do nothing */
+		} else {
+			if (pdata->hw_feat.est_sel == OSI_ENABLE) {
+				len += ETHER_EXTRA_TSN_STAT_LEN;
+			}
 		}
 	} else if (sset == ETH_SS_TEST) {
 		len = ether_selftest_get_count(pdata);
@@ -525,6 +603,16 @@ static void ether_get_strings(struct net_device *dev, u32 stringset, u8 *data)
 			}
 			for (i = 0; i < ETHER_PKT_ERR_STAT_LEN; i++) {
 				str = (u8 *)ether_cstrings_stats[i].stat_string;
+				if (memcpy(p, str, ETH_GSTRING_LEN) ==
+				    OSI_NULL) {
+					return;
+				}
+				p += ETH_GSTRING_LEN;
+			}
+			for (i = 0; ((i < ETHER_EXTRA_TSN_STAT_LEN) &&
+				     (pdata->hw_feat.est_sel == OSI_ENABLE));
+			     i++) {
+				str = (u8 *)ether_tstrings_stats[i].stat_string;
 				if (memcpy(p, str, ETH_GSTRING_LEN) ==
 				    OSI_NULL) {
 					return;

@@ -716,6 +716,98 @@ static int ether_config_ptp_rxq(struct net_device *ndev,
 }
 
 /**
+ * @brief This function is invoked by ioctl function when user issues an ioctl
+ * command to configure EST GCL.
+ *
+ * Algorithm: If HW support EST, call interface function with
+ * configuration passed
+ *
+ * @param[in] dev: Pointer to net device structure.
+ * @param[in] ifdata: Pointer to IOCTL specific structure.
+ *
+ * @note MAC and PHY need to be initialized.
+ *
+ * @retval 0 on Success
+ * @retval "negative value" on Failure
+ */
+static int ether_config_est(struct net_device *dev,
+			    struct ether_ifr_data *ifdata)
+{
+	struct ether_priv_data *pdata = netdev_priv(dev);
+	struct osi_core_priv_data *osi_core = pdata->osi_core;
+	struct osi_est_config  *u_est_cfg =
+				(struct osi_est_config *)ifdata->ptr;
+	struct osi_est_config l_est_cfg;
+	int ret = -EINVAL;
+
+	if (ifdata->ptr == NULL) {
+		dev_err(pdata->dev, "%s: Invalid data for priv ioctl %d\n",
+			__func__, ifdata->ifcmd);
+		return ret;
+	}
+
+	if (copy_from_user(&l_est_cfg, u_est_cfg,
+			   sizeof(struct osi_est_config)) != 0U) {
+		return -EFAULT;
+	}
+
+	if (pdata->hw_feat.est_sel == OSI_DISABLE) {
+		dev_err(pdata->dev,
+			"HW doesn't support EST\n");
+	} else {
+		ret = osi_hw_config_est(osi_core, &l_est_cfg);
+	}
+
+	return ret;
+}
+
+/**
+ * @brief This function is invoked by ioctl function when user issues an ioctl
+ * command to configure FPE.
+ *
+ * Algorithm: If HW support Frame preemption, call interface function with
+ * configuration passed
+ *
+ * @param[in] dev: Pointer to net device structure.
+ * @param[in] ifdata: Pointer to IOCTL specific structure.
+ *
+ * @note MAC and PHY need to be initialized.
+ *
+ * @retval 0 on Success
+ * @retval "negative value" on Failure
+ */
+static int ether_config_fpe(struct net_device *dev,
+			    struct ether_ifr_data *ifdata)
+{
+	struct ether_priv_data *pdata = netdev_priv(dev);
+	struct osi_core_priv_data *osi_core = pdata->osi_core;
+	struct osi_fpe_config  *u_fpe_cfg =
+				(struct osi_fpe_config *)ifdata->ptr;
+	struct osi_fpe_config l_fpe_cfg;
+	int ret = -EINVAL;
+
+	if (ifdata->ptr == NULL) {
+		dev_err(pdata->dev, "%s: Invalid data for priv ioctl %d\n",
+			__func__, ifdata->ifcmd);
+		return ret;
+	}
+
+	if (copy_from_user(&l_fpe_cfg, u_fpe_cfg,
+			   sizeof(struct osi_fpe_config)) != 0U) {
+		return -EFAULT;
+	}
+
+	if (pdata->hw_feat.fpe_sel == OSI_DISABLE) {
+		dev_err(pdata->dev,
+			"HW doesn't support FPE\n");
+	} else {
+		ret = osi_hw_config_fpe(osi_core, &l_fpe_cfg);
+	}
+
+	return ret;
+}
+
+/**
  * @brief ether_priv_ioctl - Handle private IOCTLs
  *
  * Algorithm:
@@ -843,6 +935,12 @@ int ether_handle_priv_ioctl(struct net_device *ndev,
 		break;
 	case ETHER_SAVE_RESTORE:
 		ret = ether_reg_save_restore(ndev, ifdata.if_flags);
+		break;
+	case ETHER_CONFIG_EST:
+		ret = ether_config_est(ndev, &ifdata);
+		break;
+	case ETHER_CONFIG_FPE:
+		ret = ether_config_fpe(ndev, &ifdata);
 		break;
 	default:
 		break;

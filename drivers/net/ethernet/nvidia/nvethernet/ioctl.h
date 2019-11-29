@@ -56,6 +56,8 @@
 #define ETHER_GET_AVB_ALGORITHM		46
 #define ETHER_SAVE_RESTORE		47
 #define ETHER_PTP_RXQUEUE		48
+#define ETHER_CONFIG_EST		49
+#define ETHER_CONFIG_FPE		50
 /** @} */
 
 /**
