@@ -91,6 +91,7 @@ int nvgpu_gr_ctx_alloc(struct gk20a *g,
 					gk20a_mem_flag_none, true,
 					gr_ctx->mem.aperture);
 	if (gr_ctx->mem.gpu_va == 0ULL) {
+		err = -ENOMEM;
 		goto err_free_mem;
 	}
 
@@ -160,13 +161,13 @@ void nvgpu_gr_ctx_free_patch_ctx(struct gk20a *g, struct vm_gk20a *vm,
 {
 	struct patch_desc *patch_ctx = &gr_ctx->patch_ctx;
 
-	if (patch_ctx->mem.gpu_va != 0ULL) {
+	if (nvgpu_mem_is_valid(&patch_ctx->mem)) {
 		nvgpu_gmmu_unmap(vm, &patch_ctx->mem,
 				 patch_ctx->mem.gpu_va);
-	}
 
-	nvgpu_dma_free(g, &patch_ctx->mem);
-	patch_ctx->data_count = 0;
+		nvgpu_dma_free(g, &patch_ctx->mem);
+		patch_ctx->data_count = 0;
+	}
 }
 
 static void nvgpu_gr_ctx_unmap_global_ctx_buffers(struct gk20a *g,
@@ -328,16 +329,14 @@ static int nvgpu_gr_ctx_map_ctx_buffer(struct gk20a *g,
 	g_bfr_va = &gr_ctx->global_ctx_buffer_va[0];
 	g_bfr_index = &gr_ctx->global_ctx_buffer_index[0];
 
-	if (nvgpu_gr_global_ctx_buffer_ready(global_ctx_buffer, buffer_type)) {
-		gpu_va = nvgpu_gr_global_ctx_buffer_map(global_ctx_buffer,
-				buffer_type, vm, 0, true);
-		if (gpu_va == 0ULL) {
-			goto clean_up;
-		}
-		g_bfr_index[va_type] = buffer_type;
-		g_bfr_va[va_type] = gpu_va;
-
+	gpu_va = nvgpu_gr_global_ctx_buffer_map(global_ctx_buffer,
+			buffer_type, vm, 0, true);
+	if (gpu_va == 0ULL) {
+		goto clean_up;
 	}
+
+	g_bfr_index[va_type] = buffer_type;
+	g_bfr_va[va_type] = gpu_va;
 
 	return 0;
 
@@ -404,13 +403,16 @@ int nvgpu_gr_ctx_map_global_ctx_buffers(struct gk20a *g,
 
 #ifdef CONFIG_NVGPU_DGPU
 	/* RTV circular buffer */
-	err  = nvgpu_gr_ctx_map_ctx_buffer(g,
-			NVGPU_GR_GLOBAL_CTX_RTV_CIRCULAR_BUFFER,
-			NVGPU_GR_CTX_RTV_CIRCULAR_BUFFER_VA,
-			gr_ctx, global_ctx_buffer, vm);
-	if (err != 0) {
-		nvgpu_err(g, "cannot map ctx rtv circular buffer");
-		goto fail;
+	if (nvgpu_gr_global_ctx_buffer_ready(global_ctx_buffer,
+			NVGPU_GR_GLOBAL_CTX_RTV_CIRCULAR_BUFFER)) {
+		err  = nvgpu_gr_ctx_map_ctx_buffer(g,
+				NVGPU_GR_GLOBAL_CTX_RTV_CIRCULAR_BUFFER,
+				NVGPU_GR_CTX_RTV_CIRCULAR_BUFFER_VA,
+				gr_ctx, global_ctx_buffer, vm);
+		if (err != 0) {
+			nvgpu_err(g, "cannot map ctx rtv circular buffer");
+			goto fail;
+		}
 	}
 #endif
 
@@ -463,9 +465,7 @@ int nvgpu_gr_ctx_load_golden_ctx_image(struct gk20a *g,
 	nvgpu_gr_global_ctx_load_local_golden_image(g,
 		local_golden_image, mem);
 
-	if (g->ops.gr.ctxsw_prog.init_ctxsw_hdr_data != NULL) {
-		g->ops.gr.ctxsw_prog.init_ctxsw_hdr_data(g, mem);
-	}
+	g->ops.gr.ctxsw_prog.init_ctxsw_hdr_data(g, mem);
 
 #ifdef CONFIG_NVGPU_DEBUGGER
 	if ((g->ops.gr.ctxsw_prog.set_cde_enabled != NULL) && cde) {
