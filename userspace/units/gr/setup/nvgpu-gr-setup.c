@@ -428,6 +428,33 @@ static int gr_setup_alloc_fail_fe_pwr_mode(struct unit_module *m, struct gk20a *
 	return (err != 0) ? UNIT_SUCCESS: UNIT_FAIL;
 }
 
+static int gr_setup_alloc_fail_ctrl_ctxsw(struct unit_module *m,
+					  struct gk20a *g, void *args)
+{
+	int err;
+
+	err = gr_test_setup_allocate_ch_tsg(m, g);
+	if (err != 0) {
+		unit_return_fail(m, "alloc setup channel failed\n");
+	}
+
+	g->ops.mm.cache.l2_flush = stub_mm_l2_flush;
+	g->ops.gr.init.fe_pwr_mode_force_on = stub_gr_init_fe_pwr_mode;
+
+	/* Reset golden image ready bit */
+	g->gr->golden_image->ready = false;
+	g->gr->golden_image->size = 0x800;
+
+	err = g->ops.gr.setup.alloc_obj_ctx(gr_setup_ch, VOLTA_COMPUTE_A, 0);
+	if (err == 0) {
+		unit_err(m, "setup alloc ctrl_ctxsw failed\n");
+	}
+
+	test_gr_setup_free_obj_ctx(m, g, args);
+
+	return (err != 0) ? UNIT_SUCCESS: UNIT_FAIL;
+}
+
 static int gr_setup_alloc_fail_l2_flush(struct unit_module *m, struct gk20a *g)
 {
 	int err;
@@ -435,6 +462,12 @@ static int gr_setup_alloc_fail_l2_flush(struct unit_module *m, struct gk20a *g)
 	g->allow_all = true;
 	g->ops.mm.cache.l2_flush =
 		gr_setup_gops.l2_flush;
+	err = g->ops.gr.setup.alloc_obj_ctx(gr_setup_ch, VOLTA_COMPUTE_A, 0);
+	if (err != 0) {
+		unit_return_fail(m, "setup alloc l2 flush failed\n");
+	}
+
+	/* Subctx already created - redo for branch coverage */
 	err = g->ops.gr.setup.alloc_obj_ctx(gr_setup_ch, VOLTA_COMPUTE_A, 0);
 	if (err != 0) {
 		unit_return_fail(m, "setup alloc l2 flush failed\n");
@@ -528,6 +561,12 @@ int test_gr_setup_alloc_obj_ctx_error_injections(struct unit_module *m,
 
 	test_gr_setup_free_obj_ctx(m, g, args);
 	g->allow_all = false;
+
+	/* TEST-8 fail ctrl_ctxsw */
+	err = gr_setup_alloc_fail_ctrl_ctxsw(m, g, args);
+	if (err != 0) {
+		unit_return_fail(m, "setup alloc TEST-8 failed\n");
+	}
 
 	return UNIT_SUCCESS;
 }

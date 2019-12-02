@@ -1380,20 +1380,8 @@
         "test_level": 0
     },
     {
-        "test": "test_gr_falcon_deinit",
-        "case": "gr_falcon_deinit",
-        "unit": "nvgpu_gr_falcon",
-        "test_level": 0
-    },
-    {
         "test": "test_gr_falcon_init",
         "case": "gr_falcon_init",
-        "unit": "nvgpu_gr_falcon",
-        "test_level": 0
-    },
-    {
-        "test": "test_gr_falcon_init_ctx_state",
-        "case": "gr_falcon_init_ctx_state",
         "unit": "nvgpu_gr_falcon",
         "test_level": 0
     },
@@ -1404,26 +1392,20 @@
         "test_level": 0
     },
     {
-        "test": "test_gr_falcon_nonsecure_gpccs_init_ctxsw",
-        "case": "gr_falcon_nonsecure_gpccs_init_ctxsw",
-        "unit": "nvgpu_gr_falcon",
-        "test_level": 0
-    },
-    {
-        "test": "test_gr_falcon_nonsecure_gpccs_recovery_ctxsw",
-        "case": "gr_falcon_nonsecure_gpccs_recovery_ctxsw",
-        "unit": "nvgpu_gr_falcon",
-        "test_level": 0
-    },
-    {
         "test": "test_gr_falcon_query_test",
         "case": "gr_falcon_query_test",
         "unit": "nvgpu_gr_falcon",
         "test_level": 0
     },
     {
-        "test": "test_gr_falcon_recovery_ctxsw",
-        "case": "gr_falcon_recovery_ctxsw",
+        "test": "test_gr_falcon_init_ctx_state",
+        "case": "gr_falcon_init_ctx_state",
+        "unit": "nvgpu_gr_falcon",
+        "test_level": 0
+    },
+    {
+        "test": "test_gr_falcon_deinit",
+        "case": "gr_falcon_deinit",
         "unit": "nvgpu_gr_falcon",
         "test_level": 0
     },

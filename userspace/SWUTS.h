@@ -81,6 +81,7 @@
  *   - @ref SWUTS-gr
  *   - @ref SWUTS-gr-setup
  *   - @ref SWUTS-gr-intr
+ *   - @ref SWUTS-gr-falcon
  *   - @ref SWUTS-gr-config
  *
  */

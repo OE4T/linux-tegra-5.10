@@ -27,6 +27,10 @@
 #include <unit/io.h>
 
 #include <nvgpu/posix/io.h>
+#include <nvgpu/posix/kmem.h>
+#include <nvgpu/posix/dma.h>
+#include <nvgpu/posix/posix-fault-injection.h>
+
 #include <nvgpu/gk20a.h>
 #include <nvgpu/gr/gr.h>
 #include <nvgpu/gr/gr_falcon.h>
@@ -36,8 +40,20 @@
 #include "hal/gr/falcon/gr_falcon_gm20b.h"
 
 #include "../nvgpu-gr.h"
+#include "nvgpu-gr-falcon.h"
 
-struct nvgpu_gr_falcon *unit_gr_falcon;
+struct gr_gops_falcon_orgs {
+	void (*bind_instblk)(struct gk20a *g,
+			     struct nvgpu_mem *mem, u64 inst_ptr);
+	void (*load_ctxsw_ucode_header)(struct gk20a *g,
+		u32 reg_offset, u32 boot_signature, u32 addr_code32,
+		u32 addr_data32, u32 code_size, u32 data_size);
+	int (*load_ctxsw_ucode)(struct gk20a *g,
+				struct nvgpu_gr_falcon *falcon);
+};
+
+static struct nvgpu_gr_falcon *unit_gr_falcon;
+static struct gr_gops_falcon_orgs gr_falcon_gops;
 
 static void test_gr_falcon_bind_instblk(struct gk20a *g,
 				struct nvgpu_mem *mem, u64 inst_ptr)
@@ -53,10 +69,30 @@ static void test_gr_falcon_load_ctxsw_ucode_header(struct gk20a *g,
 
 }
 
-static int test_gr_falcon_init(struct unit_module *m,
-				struct gk20a *g, void *args)
+static void gr_falcon_save_gops(struct gk20a *g)
+{
+	gr_falcon_gops.load_ctxsw_ucode =
+				g->ops.gr.falcon.load_ctxsw_ucode;
+	gr_falcon_gops.load_ctxsw_ucode_header =
+			g->ops.gr.falcon.load_ctxsw_ucode_header;
+	gr_falcon_gops.bind_instblk = g->ops.gr.falcon.bind_instblk;
+}
+
+static void gr_falcon_stub_gops(struct gk20a *g)
+{
+	g->ops.gr.falcon.load_ctxsw_ucode =
+				nvgpu_gr_falcon_load_secure_ctxsw_ucode;
+	g->ops.gr.falcon.load_ctxsw_ucode_header =
+			test_gr_falcon_load_ctxsw_ucode_header;
+	g->ops.gr.falcon.bind_instblk = test_gr_falcon_bind_instblk;
+}
+
+int test_gr_falcon_init(struct unit_module *m,
+			struct gk20a *g, void *args)
 {
 	int err = 0;
+	struct nvgpu_posix_fault_inj *kmem_fi =
+		nvgpu_kmem_get_fault_injection();
 
 	/* Allocate and Initialize GR */
 	err = test_gr_init_setup_ready(m, g, args);
@@ -65,11 +101,16 @@ static int test_gr_falcon_init(struct unit_module *m,
 	}
 
 	/* set up test specific HALs */
-	g->ops.gr.falcon.load_ctxsw_ucode =
-				nvgpu_gr_falcon_load_secure_ctxsw_ucode;
-	g->ops.gr.falcon.load_ctxsw_ucode_header =
-			test_gr_falcon_load_ctxsw_ucode_header;
-	g->ops.gr.falcon.bind_instblk = test_gr_falcon_bind_instblk;
+	gr_falcon_save_gops(g);
+	gr_falcon_stub_gops(g);
+
+	/* Fail - kmem alloc */
+	nvgpu_posix_enable_fault_injection(kmem_fi, true, 0);
+	unit_gr_falcon = nvgpu_gr_falcon_init_support(g);
+	if (unit_gr_falcon != 0) {
+		unit_return_fail(m, "nvgpu_gr_falcon_init_support failed\n");
+	}
+	nvgpu_posix_enable_fault_injection(kmem_fi, false, 0);
 
 	unit_gr_falcon = nvgpu_gr_falcon_init_support(g);
 	if (unit_gr_falcon == NULL) {
@@ -79,39 +120,27 @@ static int test_gr_falcon_init(struct unit_module *m,
 	return UNIT_SUCCESS;
 }
 
-static int test_gr_falcon_init_ctxsw(struct unit_module *m,
+int test_gr_falcon_init_ctxsw(struct unit_module *m,
 				struct gk20a *g, void *args)
 {
 	int err = 0;
 
+	/* Test secure gpccs */
 	err = nvgpu_gr_falcon_init_ctxsw(g, unit_gr_falcon);
 	if (err) {
 		unit_return_fail(m, "nvgpu_gr_falcon_init_ctxsw failed\n");
 	}
 
-	return UNIT_SUCCESS;
-}
-
-static int test_gr_falcon_nonsecure_gpccs_init_ctxsw(struct unit_module *m,
-				struct gk20a *g, void *args)
-{
-	int err = 0;
-
+	/* Test nonsecure gpccs */
 	nvgpu_set_enabled(g, NVGPU_SEC_SECUREGPCCS, false);
+	nvgpu_set_enabled(g, NVGPU_PMU_FECS_BOOTSTRAP_DONE, false);
 	err = nvgpu_gr_falcon_init_ctxsw(g, unit_gr_falcon);
 	if (err) {
 		unit_return_fail(m, "nvgpu_gr_falcon_init_ctxsw failed\n");
 	}
 	nvgpu_set_enabled(g, NVGPU_SEC_SECUREGPCCS, true);
 
-	return UNIT_SUCCESS;
-}
-
-static int test_gr_falcon_recovery_ctxsw(struct unit_module *m,
-				struct gk20a *g, void *args)
-{
-	int err = 0;
-
+	/* Test for recovery to fail */
 	err = nvgpu_gr_falcon_init_ctxsw(g, unit_gr_falcon);
 	/* Recovey expected to fail */
 	if (err == 0) {
@@ -119,16 +148,8 @@ static int test_gr_falcon_recovery_ctxsw(struct unit_module *m,
 			"test_gr_falcon_init_recovery_ctxsw failed\n");
 	}
 
-	return UNIT_SUCCESS;
-}
-
-static int test_gr_falcon_nonsecure_gpccs_recovery_ctxsw(struct unit_module *m,
-				struct gk20a *g, void *args)
-{
-	int err = 0;
-
+	/* Test for nonsecure gpccs recovery */
 	nvgpu_set_enabled(g, NVGPU_SEC_SECUREGPCCS, false);
-
 	err = nvgpu_gr_falcon_init_ctxsw(g, unit_gr_falcon);
 	if (err) {
 		unit_return_fail(m, "nvgpu_gr_falcon_init_ctxsw failed\n");
@@ -138,7 +159,7 @@ static int test_gr_falcon_nonsecure_gpccs_recovery_ctxsw(struct unit_module *m,
 	return UNIT_SUCCESS;
 }
 
-static int test_gr_falcon_query_test(struct unit_module *m,
+int test_gr_falcon_query_test(struct unit_module *m,
 				struct gk20a *g, void *args)
 {
 #ifdef CONFIG_NVGPU_ENGINE_RESET
@@ -173,7 +194,7 @@ static int test_gr_falcon_query_test(struct unit_module *m,
 
 }
 
-static int test_gr_falcon_init_ctx_state(struct unit_module *m,
+int test_gr_falcon_init_ctx_state(struct unit_module *m,
 				struct gk20a *g, void *args)
 {
 	int err = 0;
@@ -186,14 +207,18 @@ static int test_gr_falcon_init_ctx_state(struct unit_module *m,
 	return UNIT_SUCCESS;
 }
 
-static int test_gr_falcon_deinit(struct unit_module *m,
+int test_gr_falcon_deinit(struct unit_module *m,
 				struct gk20a *g, void *args)
 {
 	int err = 0;
 
 	if (unit_gr_falcon != NULL) {
 		nvgpu_gr_falcon_remove_support(g, unit_gr_falcon);
+		unit_gr_falcon = NULL;
 	}
+
+	/* Call with NULL pointer */
+	nvgpu_gr_falcon_remove_support(g, unit_gr_falcon);
 
 	/* Cleanup GR */
 	err = test_gr_init_setup_cleanup(m, g, args);
@@ -207,12 +232,6 @@ static int test_gr_falcon_deinit(struct unit_module *m,
 struct unit_module_test nvgpu_gr_falcon_tests[] = {
 	UNIT_TEST(gr_falcon_init, test_gr_falcon_init, NULL, 0),
 	UNIT_TEST(gr_falcon_init_ctxsw, test_gr_falcon_init_ctxsw, NULL, 0),
-	UNIT_TEST(gr_falcon_nonsecure_gpccs_init_ctxsw,
-		test_gr_falcon_nonsecure_gpccs_init_ctxsw, NULL, 0),
-	UNIT_TEST(gr_falcon_recovery_ctxsw,
-				test_gr_falcon_recovery_ctxsw, NULL, 0),
-	UNIT_TEST(gr_falcon_nonsecure_gpccs_recovery_ctxsw,
-			test_gr_falcon_nonsecure_gpccs_recovery_ctxsw, NULL, 0),
 	UNIT_TEST(gr_falcon_query_test,
 			test_gr_falcon_query_test, NULL, 0),
 	UNIT_TEST(gr_falcon_init_ctx_state,

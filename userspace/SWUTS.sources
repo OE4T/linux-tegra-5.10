@@ -50,4 +50,5 @@ INPUT += ../../../userspace/units/class/nvgpu-class.h
 INPUT += ../../../userspace/units/gr/nvgpu-gr.h
 INPUT += ../../../userspace/units/gr/setup/nvgpu-gr-setup.h
 INPUT += ../../../userspace/units/gr/intr/nvgpu-gr-intr.h
+INPUT += ../../../userspace/units/gr/intr/nvgpu-gr-falcon.h
 INPUT += ../../../userspace/units/gr/config/nvgpu-gr-config.h

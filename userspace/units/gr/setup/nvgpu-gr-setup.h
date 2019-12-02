@@ -27,7 +27,7 @@
 struct gk20a;
 struct unit_module;
 
-/** @addtogroup SWUTS-common-gr-setup
+/** @addtogroup SWUTS-gr-setup
  *  @{
  *
  * Software Unit Test Specification for common.gr.setup
@@ -162,12 +162,13 @@ int test_gr_setup_preemption_mode_errors(struct unit_module *m,
  *   - Test-1 using invalid tsg, classobj and classnum.
  *   - Test-2 error injection in subctx allocation call.
  *   - Test-3 fail nvgpu_gr_obj_ctx_alloc by setting zero image size.
- *   - Test-4 fail nvgpu_gr_obj_ctx_alloc_golden_ctx_image by failing ctrl_ctsw.
- *   - Test-5 Fail L2 flush for branch coverage
- *   - Test-6 Fake setup_free call for NULL checking
+ *   - Test-4  and Test-8 fail nvgpu_gr_obj_ctx_alloc_golden_ctx_image
+ *     by failing ctrl_ctsw.
+ *   - Test-5 Fail L2 flush for branch coverage.
+ *   - Test-6 Fake setup_free call for NULL checking.
  *
  * - Positive Tests
- *   - Test-7 nvgpu_gr_setup_alloc_obj_ctx pass without TST subcontexts
+ *   - Test-7 nvgpu_gr_setup_alloc_obj_ctx pass without TSG subcontexts.
  *
  * Output: Returns PASS if the steps above were executed successfully. FAIL
  * otherwise.
