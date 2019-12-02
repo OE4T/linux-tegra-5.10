@@ -140,6 +140,13 @@ int nvgpu_thread_create_priority(struct nvgpu_thread *thread,
 	struct sched_param param;
 	int ret;
 
+#ifdef NVGPU_UNITTEST_FAULT_INJECTION_ENABLEMENT
+	if (nvgpu_posix_fault_injection_handle_call(
+				nvgpu_thread_get_fault_injection())) {
+		return -EINVAL;
+	}
+#endif
+
 	(void) memset(thread, 0, sizeof(*thread));
 	(void) memset(&param, 0, sizeof(struct sched_param));
 
