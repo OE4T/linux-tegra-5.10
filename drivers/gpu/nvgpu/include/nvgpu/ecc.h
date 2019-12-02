@@ -277,7 +277,7 @@ int nvgpu_ecc_counter_init(struct gk20a *g,
  * @brief Concatenates the error counter to status list.
  *
  * @param g [in] The GPU driver struct.
- * @param stat [out] Pointer to error counter.
+ * @param stat [in] Pointer to error counter.
  *
  * The counter is added to the status_list of struct nvgpu_ecc.
  */
@@ -298,6 +298,8 @@ void nvgpu_ecc_free(struct gk20a *g);
  *
  * @param g [in] The GPU driver struct.
  *
+ * Initializes the error counters list g->ecc.stats_list.
+ *
  * @return 0 in case of success, less than 0 for failure.
  */
 int nvgpu_ecc_init_support(struct gk20a *g);
@@ -306,6 +308,8 @@ int nvgpu_ecc_init_support(struct gk20a *g);
  * @brief Destroys, frees up memory allocated to ecc/parity error counters.
  *
  * @param g [in] The GPU driver struct.
+ *
+ * Frees up memory allocated to ecc error counters for all units.
  */
 void nvgpu_ecc_remove_support(struct gk20a *g);
 
@@ -313,6 +317,8 @@ void nvgpu_ecc_remove_support(struct gk20a *g);
  * @brief Finish ECC support initialization.
  *
  * @param g [in] The GPU driver struct.
+ *
+ * Sets ecc.initialized to true.
  */
 int nvgpu_ecc_finalize_support(struct gk20a *g);
 

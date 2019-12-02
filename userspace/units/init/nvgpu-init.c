@@ -656,7 +656,6 @@ int test_poweroff(struct unit_module *m, struct gk20a *g, void *args)
 	simple_init_func_ptrs_count = i;
 
 	g->ops.clk.suspend_clk_support = no_return;
-	g->ops.mc.log_pending_intrs = no_return;
 	g->ops.mc.intr_mask = no_return;
 	g->ops.falcon.falcon_sw_free = no_return_u32_param;
 
@@ -678,7 +677,6 @@ int test_poweroff(struct unit_module *m, struct gk20a *g, void *args)
 
 	/* Cover branches for NULL ptr checks */
 	g->ops.mc.intr_mask = NULL;
-	g->ops.mc.log_pending_intrs = NULL;
 	g->ops.channel.suspend_all_serviceable_ch = NULL;
 	g->ops.clk.suspend_clk_support = NULL;
 	err = nvgpu_prepare_poweroff(g);

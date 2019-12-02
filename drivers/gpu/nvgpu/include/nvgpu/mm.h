@@ -528,6 +528,7 @@ void nvgpu_init_mm_ce_context(struct gk20a *g);
  *   - Allocates and initializes the PMU instance block.
  *   - Initializes the GMMU virtual memory region for CE.
  *   - Allocates the GMMU debug write and read buffer (4K size).
+ *   - Allocates ECC counters for fb and fbpa units.
  * - MM H/W setup:
  *  - Configures the GMMU debug buffer location in fbhubmmu register.
  *  - Enables the fbhubmmu mc interrupt.
@@ -613,7 +614,7 @@ void nvgpu_free_inst_block(struct gk20a *g, struct nvgpu_mem *inst_block);
  * - Flushes the FB and L2. Then, waits for completion (by polling)
  *   upto polling timeout.
  * - Invalidate L2.
- * - Disable the fbhubmmu mc interrupt.
+ * - Disable the fbhubmmu mc stalling interrupt and unit interrupts.
  * - Disable the mmu fault buffer h/w setup.
  *
  * @return 0 in case of success, < 0 in case of failure.

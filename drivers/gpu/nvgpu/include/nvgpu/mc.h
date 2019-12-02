@@ -295,9 +295,10 @@ void nvgpu_wait_for_deferred_interrupts(struct gk20a *g);
  */
 void nvgpu_mc_intr_mask(struct gk20a *g);
 
+#ifdef CONFIG_NVGPU_NON_FUSA
 void nvgpu_mc_log_pending_intrs(struct gk20a *g);
-
 void nvgpu_mc_intr_enable(struct gk20a *g);
+#endif
 
 /**
  * @brief Enable the stalling interrupts for GPU unit at the master
@@ -325,8 +326,8 @@ void nvgpu_mc_intr_enable(struct gk20a *g);
  * enabling that unit's interrupts.
  *
  * Steps:
- * - Get the interrupt bitmask for \a unit.
  * - Acquire the spinlock g->mc.intr_lock.
+ * - Get the interrupt bitmask for \a unit.
  * - If interrupt is to be enabled
  *   - Set interrupt bitmask in
  *     #intr_mask_restore[#NVGPU_MC_INTR_STALLING].
@@ -367,8 +368,8 @@ void nvgpu_mc_intr_stall_unit_config(struct gk20a *g, u32 unit, bool enable);
  * enabling that unit's interrupts.
  *
  * Steps:
- * - Get the interrupt bitmask for \a unit.
  * - Acquire the spinlock g->mc.intr_lock.
+ * - Get the interrupt bitmask for \a unit.
  * - If interrupt is to be enabled
  *   - Set interrupt bitmask in
  *     #intr_mask_restore[#NVGPU_MC_INTR_NONSTALLING].
@@ -409,10 +410,9 @@ void nvgpu_mc_intr_stall_pause(struct gk20a *g);
  *
  * Steps:
  * - Acquire the spinlock g->mc.intr_lock.
- * - Enable the stalling interrupts as configured during #intr_enable.
- *   Write #intr_mask_restore[#NVGPU_MC_INTR_STALLING] to the
- *   stalling interrupts enable set register
- *   (mc_intr_en_set_r(#NVGPU_MC_INTR_STALLING)).
+ * - Enable the stalling interrupts as configured during #intr_stall_unit_config
+ *   Write #intr_mask_restore[#NVGPU_MC_INTR_STALLING] to the stalling
+ *   interrupts enable set register (mc_intr_en_set_r(#NVGPU_MC_INTR_STALLING)).
  * - Release the spinlock g->mc.intr_lock.
  */
 void nvgpu_mc_intr_stall_resume(struct gk20a *g);
@@ -443,8 +443,8 @@ void nvgpu_mc_intr_nonstall_pause(struct gk20a *g);
  *
  * Steps:
  * - Acquire the spinlock g->mc.intr_lock.
- * - Enable the non-stalling interrupts as configured during
- *   #intr_enable.
+ * - Enable the stalling interrupts as configured during
+ *   #intr_nonstall_unit_config.
  *   Write #intr_mask_restore[#NVGPU_MC_INTR_NONSTALLING]
  *   to the non-stalling interrupts enable set register
  *   (mc_intr_en_set_r(#NVGPU_MC_INTR_NONSTALLING)).

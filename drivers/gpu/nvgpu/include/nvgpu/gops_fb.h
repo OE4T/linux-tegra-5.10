@@ -44,6 +44,7 @@ struct gops_fb_intr {
 	 *
 	 * @param g [in]		Pointer to GPU driver struct.
 	 *
+	 * This function enable the stalling interrupt for fb unit at MC level.
 	 * This function enables following fb hub interrupts.
 	 * MMU_ECC_UNCORRECTED_ERROR_NOTIFY: Uncorrected ECC errors.
 	 * MMU_NONREPLAYABLE_FAULT_NOTIFY: non-replayable fault happened.
@@ -59,6 +60,8 @@ struct gops_fb_intr {
 	 * @param g [in]		Pointer to GPU driver struct.
 	 *
 	 * This function disables fb hub interrupts enabled in enable.
+	 * This function disables the stalling interrupt for fb unit at
+	 * MC level.
 	 */
 	void (*disable)(struct gk20a *g);
 
@@ -145,6 +148,7 @@ struct gops_fb {
 	 *  - configures address that is used for issuing flush reads to
 	      system memory.
 	 *  - initializes mmu debugger buffer.
+	 *  - enables fb unit stalling interrupt at MC level.
 	 *  - enables fb interrupts related to mmu faults.
 	 */
 	void (*init_hw)(struct gk20a *g);

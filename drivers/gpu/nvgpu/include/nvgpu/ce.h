@@ -77,6 +77,7 @@ struct gk20a;
  * - Load Second Level Clock Gating (SLCG) configuration for copy engine.
  * - Load Block Level Clock Gating (BLCG) configuration for copy engine.
  * - Initialize configuration options for LCEs. FORCE_BARRIERS_NPL is set.
+ * - Enable CE engines stalling and non-stalling interrupts at MC level.
  *
  * @return 0 in case of success, < 0 in case of failure.
  */

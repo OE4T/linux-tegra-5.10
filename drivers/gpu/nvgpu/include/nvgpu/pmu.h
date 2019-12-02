@@ -370,7 +370,8 @@ int nvgpu_pmu_reset(struct gk20a *g);
  * Initializes PMU unit data struct in the GPU driver based on detected chip.
  * Allocate memory for #nvgpu_pmu data struct & set PMU Engine h/w properties,
  * PMU RTOS supporting data structs & ops of the PMU unit by populating data
- * based on the detected chip.
+ * based on the detected chip. Allocates memory for ECC counters for PMU
+ * unit.
  *
  * @return 0 in case of success, < 0 in case of failure.
  */

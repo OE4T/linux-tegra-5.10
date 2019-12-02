@@ -501,7 +501,7 @@ const char *nvgpu_fifo_decode_pbdma_ch_eng_status(u32 index);
  * @param g [in]	The GPU driver struct.
  *
  * Suspending FIFO will disable BAR1 snooping (if supported by h/w) and also
- * FIFO interrupts.
+ * FIFO stalling and non-stalling interrupts at FIFO unit and MC level.
  */
 int nvgpu_fifo_suspend(struct gk20a *g);
 

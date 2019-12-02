@@ -1268,7 +1268,9 @@ static const struct gpu_ops gv11b_ops = {
 	.mc = {
 		.get_chip_details = gm20b_get_chip_details,
 		.intr_mask = mc_gp10b_intr_mask,
+#ifdef CONFIG_NVGPU_HAL_NON_FUSA
 		.intr_enable = NULL,
+#endif
 		.intr_stall_unit_config = mc_gp10b_intr_stall_unit_config,
 		.intr_nonstall_unit_config = mc_gp10b_intr_nonstall_unit_config,
 		.isr_stall = mc_gp10b_isr_stall,
@@ -1283,7 +1285,9 @@ static const struct gpu_ops gv11b_ops = {
 		.disable = gm20b_mc_disable,
 		.reset = gm20b_mc_reset,
 		.is_intr1_pending = mc_gp10b_is_intr1_pending,
+#ifdef CONFIG_NVGPU_NON_FUSA
 		.log_pending_intrs = mc_gp10b_log_pending_intrs,
+#endif
 		.is_intr_hub_pending = gv11b_mc_is_intr_hub_pending,
 		.is_stall_and_eng_intr_pending =
 					gv11b_mc_is_stall_and_eng_intr_pending,

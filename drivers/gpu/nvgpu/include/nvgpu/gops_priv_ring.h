@@ -48,7 +48,8 @@ struct gops_priv_ring {
 	 * This function loads slcg priv ring prod values through
 	 * #nvgpu_cg_slcg_priring_load_enable, then initiate priv ring
 	 * enumeration and wait for priv ring enumeration complete to
-	 * accept s/w register.
+	 * accept s/w register. This function then enables the PRIV_RING
+	 * unit stalling interrupt at MC level.
 	 *
 	 * @return 0 in case of success, < 0 in case of failure.
 	 */

@@ -123,7 +123,8 @@ struct gops_fifo {
 	 *   - Set BLCG settings for FIFO.
 	 * - Set FB timeout for FIFO initiated requests.
 	 * - Setup PBDMA timeouts.
-	 * - Enable stalling and non-stalling interrupts.
+	 * - Enable FIFO unit stalling and non-stalling interrupts at MC level.
+	 * - Enable FIFO stalling and non-stalling interrupts.
 	 *
 	 * @return 0 in case of success, < 0 in case of failure.
 	 */

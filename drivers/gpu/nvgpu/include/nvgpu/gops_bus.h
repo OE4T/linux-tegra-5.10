@@ -43,6 +43,7 @@ struct gops_bus {
 	 *
 	 * @param g [in]		Pointer to GPU driver struct.
 	 *
+	 * This function enables bus unit stalling interrupt at MC level.
 	 * This function enables interrupts for following errors:
 	 * NV_PBUS_INTR_EN_0_PRI_SQUASH - Error due to request sent to
 	 *				  while h/w block is in reset.

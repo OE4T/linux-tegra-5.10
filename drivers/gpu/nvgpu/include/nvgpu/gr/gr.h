@@ -201,9 +201,12 @@ int nvgpu_gr_enable_hw(struct gk20a *g);
  * functionality. This includes:
  * - Initializing context switch ucode.
  * - Reading Golden context image size from FECS micro controller.
- * - Allocating memory for all internal data structures.
+ * - Allocating memory for all internal data structures such as GR ctx desc
+ *   and ECC.
  * - Allocating global context buffers.
  * - Initializing GR engine h/w registers to known good values.
+ * - Enabling GR engine stalling and non-stalling interrupts and exceptions
+ *   at GR unit and MC level.
  * - Reading GR engine configuration (like number of GPC/TPC/SM etc)
  *   after considering floorsweeping.
  *
@@ -263,7 +266,9 @@ u32 nvgpu_gr_get_no_of_sm(struct gk20a *g);
  *
  * This function is typically called while preparing for GPU power off.
  * This function makes sure that GR engine is idle before power off.
- * It will also disable all GR engine interrupts and exceptions.
+ * It will also disable all GR engine stalling and non-stalling
+ * interrupts and exceptions at GR unit level and GR engine
+ * stalling and non-stalling interrupts at MC level.
  *
  * @return 0 in case of success, < 0 in case of failure.
  * @retval -EAGAIN if GR engine idle wait times out.

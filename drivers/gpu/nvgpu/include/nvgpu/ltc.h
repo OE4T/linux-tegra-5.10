@@ -94,7 +94,9 @@ void nvgpu_ltc_ecc_free(struct gk20a *g);
  * @param g [in]		Pointer to GPU driver struct.
  *
  * This function reads ltc unit info from GPU h/w and stores
- * it in #nvgpu_ltc structure.
+ * it in #nvgpu_ltc structure. This function allocates memory
+ * to track the ecc error counts for the LTC unit and enables
+ * LTC unit interrupts and stalling interrupt at MC level.
  *
  * @return 0 in case of success, < 0 in case of failure.
  * @retval -ENOMEM if memory allocation for #nvgpu_ltc fails.

@@ -76,6 +76,7 @@ void nvgpu_mc_intr_mask(struct gk20a *g)
 	}
 }
 
+#ifdef CONFIG_NVGPU_NON_FUSA
 void nvgpu_mc_log_pending_intrs(struct gk20a *g)
 {
 	if (g->ops.mc.log_pending_intrs != NULL) {
@@ -93,6 +94,7 @@ void nvgpu_mc_intr_enable(struct gk20a *g)
 		nvgpu_spinunlock_irqrestore(&g->mc.intr_lock, flags);
 	}
 }
+#endif
 
 void nvgpu_mc_intr_stall_unit_config(struct gk20a *g, u32 unit, bool enable)
 {

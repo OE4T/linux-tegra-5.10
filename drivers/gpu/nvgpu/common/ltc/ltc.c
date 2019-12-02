@@ -40,7 +40,6 @@ void nvgpu_ltc_remove_support(struct gk20a *g)
 	g->ltc = NULL;
 }
 
-
 int nvgpu_init_ltc_support(struct gk20a *g)
 {
 	struct nvgpu_ltc *ltc = g->ltc;
