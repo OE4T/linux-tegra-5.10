@@ -1392,6 +1392,120 @@
         "test_level": 0
     },
     {
+        "test": "test_engine_enum_from_type",
+        "case": "enum_from_type",
+        "unit": "nvgpu_engine",
+        "test_level": 0
+    },
+    {
+        "test": "test_engine_get_active_eng_info",
+        "case": "get_active_eng_info",
+        "unit": "nvgpu_engine",
+        "test_level": 0
+    },
+    {
+        "test": "test_engine_ids",
+        "case": "ids",
+        "unit": "nvgpu_engine",
+        "test_level": 0
+    },
+    {
+        "test": "test_engine_init_info",
+        "case": "init_info",
+        "unit": "nvgpu_engine",
+        "test_level": 0
+    },
+    {
+        "test": "test_fifo_init_support",
+        "case": "init_support",
+        "unit": "nvgpu_engine",
+        "test_level": 0
+    },
+    {
+        "test": "test_engine_interrupt_mask",
+        "case": "interrupt_mask",
+        "unit": "nvgpu_engine",
+        "test_level": 0
+    },
+    {
+        "test": "test_fifo_remove_support",
+        "case": "remove_support",
+        "unit": "nvgpu_engine",
+        "test_level": 0
+    },
+    {
+        "test": "test_engine_setup_sw",
+        "case": "setup_sw",
+        "unit": "nvgpu_engine",
+        "test_level": 0
+    },
+    {
+        "test": "test_fifo_init_support",
+        "case": "init_support",
+        "unit": "nvgpu_engine_gm20b",
+        "test_level": 0
+    },
+    {
+        "test": "test_gm20b_read_engine_status_info",
+        "case": "read_engine_status_info",
+        "unit": "nvgpu_engine_gm20b",
+        "test_level": 0
+    },
+    {
+        "test": "test_fifo_remove_support",
+        "case": "remove_support",
+        "unit": "nvgpu_engine_gm20b",
+        "test_level": 0
+    },
+    {
+        "test": "test_gp10b_engine_init_ce_info",
+        "case": "engine_init_ce_info",
+        "unit": "nvgpu_engine_gp10b",
+        "test_level": 0
+    },
+    {
+        "test": "test_fifo_init_support",
+        "case": "init_support",
+        "unit": "nvgpu_engine_gp10b",
+        "test_level": 0
+    },
+    {
+        "test": "test_fifo_remove_support",
+        "case": "remove_support",
+        "unit": "nvgpu_engine_gp10b",
+        "test_level": 0
+    },
+    {
+        "test": "test_gv100_dump_engine_status",
+        "case": "dump_engine_status_info",
+        "unit": "nvgpu_engine_gv100",
+        "test_level": 0
+    },
+    {
+        "test": "test_fifo_init_support",
+        "case": "init_support",
+        "unit": "nvgpu_engine_gv100",
+        "test_level": 0
+    },
+    {
+        "test": "test_gv100_read_engine_status_info",
+        "case": "read_engine_status_info",
+        "unit": "nvgpu_engine_gv100",
+        "test_level": 0
+    },
+    {
+        "test": "test_fifo_remove_support",
+        "case": "remove_support",
+        "unit": "nvgpu_engine_gv100",
+        "test_level": 0
+    },
+    {
+        "test": "test_gv11b_is_fault_engine_subid_gpc",
+        "case": "is_fault_engine_subid_gpc",
+        "unit": "nvgpu_engine_gv11b",
+        "test_level": 0
+    },
+    {
         "test": "test_gr_config_count",
         "case": "config_check_init",
         "unit": "nvgpu_gr_config",

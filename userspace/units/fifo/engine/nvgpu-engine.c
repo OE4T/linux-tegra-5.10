@@ -95,8 +95,8 @@ int test_engine_setup_sw(struct unit_module *m,
 {
 	struct gpu_ops gops = g->ops;
 	struct nvgpu_fifo *f = &g->fifo;
-	struct nvgpu_posix_fault_inj *kmem_fi;
-	u32 branches;
+	struct nvgpu_posix_fault_inj *kmem_fi = NULL;
+	u32 branches = 0;
 	int ret = UNIT_FAIL;
 	int err;
 	u32 fail = F_ENGINE_SETUP_SW_ENGINE_INFO_ENOMEM |
@@ -312,7 +312,7 @@ int test_engine_get_active_eng_info(struct unit_module *m,
 	int ret = UNIT_FAIL;
 	u32 engine_id;
 	struct nvgpu_engine_info *info;
-	u32 eng_mask;
+	u32 eng_mask = 0;
 	struct nvgpu_fifo *f = &g->fifo;
 
 	for (engine_id = 0; engine_id < f->max_engines; engine_id++) {
