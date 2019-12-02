@@ -452,9 +452,9 @@ static int lsfm_discover_ucode_images(struct gk20a *g,
 			acr->lsf[i].get_lsf_ucode_details != NULL) {
 
 			(void) memset(&ucode_img, 0, sizeof(ucode_img));
-
-			if (acr->lsf[i].get_lsf_ucode_details(g,
-				(void *)&ucode_img) != 0) {
+			err = acr->lsf[i].get_lsf_ucode_details(g,
+				(void *)&ucode_img);
+			if (err != 0) {
 				nvgpu_err(g, "LS falcon-%d ucode get failed", i);
 				goto exit;
 			}

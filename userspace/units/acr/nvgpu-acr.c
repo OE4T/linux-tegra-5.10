@@ -324,7 +324,7 @@ int test_acr_bootstrap_hs_acr(struct unit_module *m,
 
 	/*
 	 * case 1: Calling nvgpu_acr_bootstrap_hs_acr()
-	 * twice to coverrecovery branch
+	 * twice to cover recovery branch
 	 */
 	err = nvgpu_acr_bootstrap_hs_acr(g, g->acr);
 	err = nvgpu_acr_bootstrap_hs_acr(g, g->acr);
@@ -471,6 +471,8 @@ int test_acr_prepare_ucode_blob(struct unit_module *m,
 				struct gk20a *g, void *args)
 {
 	int err;
+	struct nvgpu_posix_fault_inj *kmem_fi =
+		nvgpu_kmem_get_fault_injection();
 
 	/*
 	 * Initialise the test env and register space
@@ -488,10 +490,51 @@ int test_acr_prepare_ucode_blob(struct unit_module *m,
 	if (prepare_gr_hw_sw(m, g) != 0) {
 		unit_return_fail(m, "Test env init failed\n");
 	}
+	/*
+	 * Case 1: fail scenario
+	 * g->acr->prepare_ucode_blob(g) fails due to memory
+	 * allocation failure
+	 *
+	 * HAL init parameters for gv11b: Correct chip id
+	 */
+	g->params.gpu_arch = NV_PMC_BOOT_0_ARCHITECTURE_GV110;
+	g->params.gpu_impl = NV_PMC_BOOT_0_IMPLEMENTATION_B;
+
+	nvgpu_posix_enable_fault_injection(kmem_fi, true, 0);
+
+	err = g->acr->prepare_ucode_blob(g);
+	if (err == -ENOENT) {
+		unit_info(m, "test failed as expected\n");
+	} else {
+		unit_return_fail(m, "test did not fail as expected\n");
+	}
+
+	nvgpu_posix_enable_fault_injection(kmem_fi, false, 0);
+
+	/*
+	 * Case 2: Fail scenario
+	 * giving incorrect chip version number
+	 */
+
+	/*
+	 * giving incorrect chip id
+	 */
+	g->params.gpu_arch = NV_PMC_BOOT_0_ARCHITECTURE_INVALID;
+	g->params.gpu_impl = NV_PMC_BOOT_0_IMPLEMENTATION_INVALID;
+
+	err = g->acr->prepare_ucode_blob(g);
+	if (err == -ENOENT) {
+		unit_info(m, "test failed as expected\n");
+	} else {
+		unit_return_fail(m, "test did not fail as expected\n");
+	}
 
 	/*
 	 * case:pass scenario
 	 */
+	g->params.gpu_arch = NV_PMC_BOOT_0_ARCHITECTURE_GV110;
+	g->params.gpu_impl = NV_PMC_BOOT_0_IMPLEMENTATION_B;
+
 	err = g->acr->prepare_ucode_blob(g);
 	if (err != 0) {
 		unit_return_fail(m, "test failed\n");
