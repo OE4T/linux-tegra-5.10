@@ -27,7 +27,7 @@
 struct gk20a;
 struct unit_module;
 
-/** @addtogroup SWUTS-common-gr
+/** @addtogroup SWUTS-gr
  *  @{
  *
  * Software Unit Test Specification for common.gr
@@ -101,11 +101,12 @@ int test_gr_init_prepare(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Steps:
  * -  Call nvgpu_gr_init.
+ * -  Call g->ops.gr.ecc.ecc_init_support.
  * -  Call g->ops.ltc.init_ltc_support & g->ops.mm.init_mm_support.
  * -  Override g->ops.gr.falcon.load_ctxsw_ucode function.
  * -  Call g->ops.chip_init_gpu_characteristics.
  * -  Call nvgpu_gr_init_support.
- * -  Call g->ops.gr.ecc.ecc_init_support.
+ * -  Call g->ops.gr.ecc.ecc_finalize_support.
  *
  * Output: Returns PASS if the steps above were executed successfully. FAIL
  *         otherwise.
@@ -140,6 +141,7 @@ int test_gr_suspend(struct unit_module *m, struct gk20a *g, void *args);
  *        must have been executed successfully.
  *
  * Steps:
+ * -  Call g->ops.gr.ecc.ecc_remove_support.
  * -  Call nvgpu_gr_remove_support.
  *
  * Output: Returns PASS.

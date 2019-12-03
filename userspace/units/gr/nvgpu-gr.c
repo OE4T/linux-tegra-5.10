@@ -132,6 +132,8 @@ int test_gr_init_support(struct unit_module *m, struct gk20a *g, void *args)
 		unit_return_fail(m, "nvgpu_gr_init_support returned fail\n");
 	}
 
+	g->ops.ecc.ecc_finalize_support(g);
+
 	return UNIT_SUCCESS;
 }
 
@@ -173,6 +175,10 @@ int test_gr_init_setup_ready(struct unit_module *m,
 
 int test_gr_remove_support(struct unit_module *m, struct gk20a *g, void *args)
 {
+	if (g->ops.ecc.ecc_remove_support != NULL) {
+		g->ops.ecc.ecc_remove_support(g);
+	}
+
 	nvgpu_gr_remove_support(g);
 
 	return UNIT_SUCCESS;
