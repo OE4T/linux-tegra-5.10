@@ -1578,6 +1578,24 @@
         "test_level": 0
     },
     {
+        "test": "test_gr_init_setup_ready",
+        "case": "gr_fs_state_setup",
+        "unit": "nvgpu_gr_fs_state",
+        "test_level": 0
+    },
+    {
+        "test": "test_gr_fs_state_error_injection",
+        "case": "gr_fs_state_error_injection",
+        "unit": "nvgpu_gr_fs_state",
+        "test_level": 0
+    },
+    {
+        "test": "test_gr_init_setup_cleanup",
+        "case": "gr_fs_state_cleanup",
+        "unit": "nvgpu_gr_fs_state",
+        "test_level": 0
+    },
+    {
         "test": "test_nvgpu_mem_create_from_phys",
         "case": "mem_create_from_phys",
         "unit": "nvgpu_mem",
