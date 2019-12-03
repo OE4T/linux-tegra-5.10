@@ -543,7 +543,7 @@ static nve32_t eqos_poll_for_swr(struct osi_core_priv_data *const osi_core)
  *
  * @pre MAC should be initialized and started. see osi_start_mac()
  */
-static void eqos_set_speed(struct osi_core_priv_data *const osi_core,
+static int eqos_set_speed(struct osi_core_priv_data *const osi_core,
 			   const nve32_t speed)
 {
 	nveu32_t  mcr_val;
@@ -570,8 +570,9 @@ static void eqos_set_speed(struct osi_core_priv_data *const osi_core,
 	}
 
 	eqos_core_safety_writel(osi_core, mcr_val,
-				(nveu8_t *)base + EQOS_MAC_MCR,
+				(unsigned char *)osi_core->base + EQOS_MAC_MCR,
 				EQOS_MAC_MCR_IDX);
+	return 0;
 }
 
 /**

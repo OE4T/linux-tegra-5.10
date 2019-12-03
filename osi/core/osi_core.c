@@ -260,9 +260,7 @@ nve32_t osi_set_speed(struct osi_core_priv_data *const osi_core,
 		return -1;
 	}
 
-	ops_p->set_speed(osi_core, speed);
-
-	return 0;
+	return ops_p->set_speed(osi_core, speed);
 }
 
 nve32_t osi_pad_calibrate(struct osi_core_priv_data *const osi_core)

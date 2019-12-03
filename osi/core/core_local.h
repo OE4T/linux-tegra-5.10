@@ -46,9 +46,9 @@ struct core_ops {
 	/** Called to set the mode at MAC (full/duplex) */
 	nve32_t (*set_mode)(struct osi_core_priv_data *const osi_core,
 			    const nve32_t mode);
-	/** Called to set the speed (10/100/1000) at MAC */
-	void (*set_speed)(struct osi_core_priv_data *const osi_core,
-			  const nve32_t speed);
+	/** Called to set the speed at MAC */
+	nve32_t (*set_speed)(struct osi_core_priv_data *const osi_core,
+			     const nve32_t speed);
 	/** Called to do pad caliberation */
 	nve32_t (*pad_calibrate)(struct osi_core_priv_data *const osi_core);
 	/** Called to configure MTL RxQ to forward the err pkt */

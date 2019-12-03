@@ -26,6 +26,7 @@
 #include <osi_core.h>
 #include "mgbe_core.h"
 #include "core_local.h"
+#include "xpcs.h"
 
 /**
  * @brief mgbe_poll_for_swr - Poll for software reset (SWR bit in DMA Mode)
@@ -463,7 +464,8 @@ static nve32_t mgbe_core_init(struct osi_core_priv_data *osi_core,
 	/* configure MGBE DMA */
 	mgbe_configure_dma(osi_core->base);
 
-	return ret;
+	/* XPCS initialization */
+	return xpcs_init(osi_core);
 }
 
 /**
@@ -683,17 +685,16 @@ static void mgbe_core_deinit(struct osi_core_priv_data *osi_core)
  * Algorithm: Based on the speed (2.5G/5G/10G) MAC will be configured
  *        accordingly.
  *
- * @param[in] base: MGBE virtual base address.
+ * @param[in] osi_core:	OSI core private data.
  * @param[in] speed:    Operating speed.
  *
  * @note MAC should be init and started. see osi_start_mac()
  */
-static void mgbe_set_speed(struct osi_core_priv_data *const osi_core, int speed)
+static int mgbe_set_speed(struct osi_core_priv_data *const osi_core, const int speed)
 {
 	unsigned int value = 0;
-	void *base = osi_core->base;
 
-	value = osi_readl((unsigned char *)base + MGBE_MAC_TMCR);
+	value = osi_readl((unsigned char *)osi_core->base + MGBE_MAC_TMCR);
 
 	switch (speed) {
 	case OSI_SPEED_2500:
@@ -711,7 +712,9 @@ static void mgbe_set_speed(struct osi_core_priv_data *const osi_core, int speed)
 		break;
 	}
 
-	osi_writel(value, (unsigned char *)base + MGBE_MAC_TMCR);
+	osi_writel(value, (unsigned char *)osi_core->base + MGBE_MAC_TMCR);
+
+	return xpcs_start(osi_core);
 }
 
 /**
