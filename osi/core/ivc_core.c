@@ -113,7 +113,7 @@ static nve32_t ivc_poll_for_swr(struct osi_core_priv_data *const osi_core)
  *
  * @pre MAC should be initialized and started. see osi_start_mac()
  */
-static void ivc_set_speed(struct osi_core_priv_data *const osi_core,
+static int ivc_set_speed(struct osi_core_priv_data *const osi_core,
 			  const nve32_t speed)
 {
 	ivc_msg_common msg_common;
@@ -125,8 +125,8 @@ static void ivc_set_speed(struct osi_core_priv_data *const osi_core,
 	msg_common.data.args.arguments[index++] = speed;
 	msg_common.data.args.count = index;
 
-	osi_core->osd_ops.ivc_send(osi_core, &msg_common,
-				   sizeof(msg_common));
+	return osi_core->osd_ops.ivc_send(osi_core, &msg_common,
+					  sizeof(msg_common));
 }
 
 /**

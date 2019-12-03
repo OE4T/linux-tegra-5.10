@@ -665,6 +665,10 @@ struct osd_core_ops {
 struct osi_core_priv_data {
 	/** Memory mapped base address of MAC IP */
 	void *base;
+	/** Memory mapped base address of DMA window of MAC IP */
+	void *dma_base;
+	/** Memory mapped base address of XPCS IP */
+	void *xpcs_base;
 	/** Pointer to OSD private data structure */
 	void *osd;
 	/** OSD callback ops structure */
