@@ -1332,6 +1332,12 @@
         "test_level": 0
     },
     {
+        "test": "test_gm20b_channel_force_ctx_reload",
+        "case": "force_ctx_reload",
+        "unit": "nvgpu_channel_gm20b",
+        "test_level": 0
+    },
+    {
         "test": "test_fifo_init_support",
         "case": "init_support",
         "unit": "nvgpu_channel_gm20b",
