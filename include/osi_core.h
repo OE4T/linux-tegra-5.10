@@ -138,6 +138,9 @@ typedef my_lint_64		nvel64_t;
 #define OSI_SPEED_10		10
 #define OSI_SPEED_100		100
 #define OSI_SPEED_1000		1000
+#define OSI_SPEED_2500		2500
+#define OSI_SPEED_5000		5000
+#define OSI_SPEED_10000		10000
 
 #define TEN_POWER_9		0x3B9ACA00U
 #define TWO_POWER_32		0x100000000ULL

@@ -678,6 +678,43 @@ static void mgbe_core_deinit(struct osi_core_priv_data *osi_core)
 }
 
 /**
+ * @brief mgbe_set_speed - Set operating speed
+ *
+ * Algorithm: Based on the speed (2.5G/5G/10G) MAC will be configured
+ *        accordingly.
+ *
+ * @param[in] base: MGBE virtual base address.
+ * @param[in] speed:    Operating speed.
+ *
+ * @note MAC should be init and started. see osi_start_mac()
+ */
+static void mgbe_set_speed(struct osi_core_priv_data *const osi_core, int speed)
+{
+	unsigned int value = 0;
+	void *base = osi_core->base;
+
+	value = osi_readl((unsigned char *)base + MGBE_MAC_TMCR);
+
+	switch (speed) {
+	case OSI_SPEED_2500:
+		value |= MGBE_MAC_TMCR_SS_2_5G;
+		break;
+	case OSI_SPEED_5000:
+		value |= MGBE_MAC_TMCR_SS_5G;
+		break;
+	case OSI_SPEED_10000:
+		value &= ~MGBE_MAC_TMCR_SS_10G;
+		break;
+	default:
+		/* setting default to 10G */
+		value &= ~MGBE_MAC_TMCR_SS_10G;
+		break;
+	}
+
+	osi_writel(value, (unsigned char *)base + MGBE_MAC_TMCR);
+}
+
+/**
  * @brief mgbe_init_core_ops - Initialize MGBE MAC core operations
  */
 void mgbe_init_core_ops(struct core_ops *ops)
@@ -692,7 +729,7 @@ void mgbe_init_core_ops(struct core_ops *ops)
 	/* only MGBE supports full duplex */
 	ops->set_mode = OSI_NULL;
 	/* by default speed is 10G */
-	ops->set_speed = OSI_NULL;
+	ops->set_speed = mgbe_set_speed;
 	ops->pad_calibrate = mgbe_pad_calibrate;
 	ops->set_mdc_clk_rate = OSI_NULL;
 	ops->flush_mtl_tx_queue = mgbe_flush_mtl_tx_queue;
