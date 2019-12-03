@@ -717,6 +717,195 @@ static int mgbe_set_speed(struct osi_core_priv_data *const osi_core, const int s
 	return xpcs_start(osi_core);
 }
 
+static int mgbe_mdio_busy_wait(struct osi_core_priv_data *const osi_core)
+{
+	/* half second timeout */
+	unsigned int retry = 50000;
+	unsigned int mac_gmiiar;
+	unsigned int count;
+	int cond = 1;
+
+	count = 0;
+	while (cond == 1) {
+		if (count > retry) {
+			return -1;
+		}
+
+		count++;
+
+		mac_gmiiar = osi_readl((unsigned char *)osi_core->base +
+				       MGBE_MDIO_SCCD);
+		if ((mac_gmiiar & MGBE_MDIO_SCCD_SBUSY) == 0U) {
+			cond = 0;
+		} else {
+			osi_core->osd_ops.udelay(10U);
+		}
+	}
+
+	return 0;
+}
+
+/**
+ * @brief mgbe_write_phy_reg - Write to a PHY register over MDIO bus.
+ *
+ * Algorithm: Write into a PHY register through MGBE MDIO bus.
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in] phyaddr: PHY address (PHY ID) associated with PHY
+ * @param[in] phyreg: Register which needs to be write to PHY.
+ * @param[in] phydata: Data to write to a PHY register.
+ *
+ * @note MAC should be init and started. see osi_start_mac()
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+static int mgbe_write_phy_reg(struct osi_core_priv_data *osi_core,
+			      unsigned int phyaddr,
+			      unsigned int phyreg,
+			      unsigned short phydata)
+{
+	int ret = 0;
+	unsigned int reg;
+
+	if (osi_core == OSI_NULL) {
+		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID, "osi_core is NULL\n",
+			0ULL);
+		return -1;
+	}
+
+	/* Wait for any previous MII read/write operation to complete */
+	ret = mgbe_mdio_busy_wait(osi_core);
+	if (ret < 0) {
+		OSI_CORE_ERR(osi_core->osd,
+			OSI_LOG_ARG_HW_FAIL,
+			"MII operation timed out\n",
+			0ULL);
+		return ret;
+	}
+
+	/* set MDIO address register */
+	/* set device address */
+	reg = ((phyreg >> MGBE_MDIO_C45_DA_SHIFT) & MGBE_MDIO_SCCA_DA_MASK) <<
+	       MGBE_MDIO_SCCA_DA_SHIFT;
+	/* set port address and register address */
+	reg |= (phyaddr << MGBE_MDIO_SCCA_PA_SHIFT) |
+		(phyreg & MGBE_MDIO_SCCA_RA_MASK);
+	osi_writel(reg, (unsigned char *)osi_core->base + MGBE_MDIO_SCCA);
+
+	/* Program Data register */
+	reg = phydata |
+	      (MGBE_MDIO_SCCD_CMD_WR << MGBE_MDIO_SCCD_CMD_SHIFT) |
+	      MGBE_MDIO_SCCD_SBUSY;
+
+	/**
+	 * On FPGA AXI/APB clock is 13MHz. To achive maximum MDC clock
+	 * of 2.5MHz need to enable CRS and CR to be set to 1.
+	 * On Silicon AXI/APB clock is 408MHz. To achive maximum MDC clock
+	 * of 2.5MHz only CR need to be set to 5.
+	 */
+	if (osi_core->pre_si) {
+		reg |= (MGBE_MDIO_SCCD_CRS |
+			((0x1U & MGBE_MDIO_SCCD_CR_MASK) <<
+			MGBE_MDIO_SCCD_CR_SHIFT));
+	} else {
+		reg &= ~MGBE_MDIO_SCCD_CRS;
+		reg |= ((0x5U & MGBE_MDIO_SCCD_CR_MASK) <<
+			MGBE_MDIO_SCCD_CR_SHIFT);
+	}
+
+	osi_writel(reg, (unsigned char *)osi_core->base + MGBE_MDIO_SCCD);
+
+	/* wait for MII write operation to complete */
+	ret = mgbe_mdio_busy_wait(osi_core);
+	if (ret < 0) {
+		OSI_CORE_ERR(osi_core->osd,
+			OSI_LOG_ARG_HW_FAIL,
+			"MII operation timed out\n",
+			0ULL);
+		return ret;
+	}
+
+	return 0;
+}
+
+/**
+ * @brief mgbe_read_phy_reg - Read from a PHY register over MDIO bus.
+ *
+ * Algorithm: Write into a PHY register through MGBE MDIO bus.
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in] phyaddr: PHY address (PHY ID) associated with PHY
+ * @param[in] phyreg: Register which needs to be read from PHY.
+ *
+ * @note MAC should be init and started. see osi_start_mac()
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+static int mgbe_read_phy_reg(struct osi_core_priv_data *osi_core,
+			     unsigned int phyaddr,
+			     unsigned int phyreg)
+{
+	unsigned int reg;
+	unsigned int data;
+	int ret = 0;
+
+	ret = mgbe_mdio_busy_wait(osi_core);
+	if (ret < 0) {
+		OSI_CORE_ERR(osi_core->osd,
+			OSI_LOG_ARG_HW_FAIL,
+			"MII operation timed out\n",
+			0ULL);
+		return ret;
+	}
+
+	/* set MDIO address register */
+	/* set device address */
+	reg = ((phyreg >> MGBE_MDIO_C45_DA_SHIFT) & MGBE_MDIO_SCCA_DA_MASK) <<
+	       MGBE_MDIO_SCCA_DA_SHIFT;
+	/* set port address and register address */
+	reg |= (phyaddr << MGBE_MDIO_SCCA_PA_SHIFT) |
+		(phyreg & MGBE_MDIO_SCCA_RA_MASK);
+	osi_writel(reg, (unsigned char *)osi_core->base + MGBE_MDIO_SCCA);
+
+	/* Program Data register */
+	reg = (MGBE_MDIO_SCCD_CMD_RD << MGBE_MDIO_SCCD_CMD_SHIFT) |
+	       MGBE_MDIO_SCCD_SBUSY;
+
+	 /**
+         * On FPGA AXI/APB clock is 13MHz. To achive maximum MDC clock
+         * of 2.5MHz need to enable CRS and CR to be set to 1.
+         * On Silicon AXI/APB clock is 408MHz. To achive maximum MDC clock
+         * of 2.5MHz only CR need to be set to 5.
+         */
+        if (osi_core->pre_si) {
+                reg |= (MGBE_MDIO_SCCD_CRS |
+                        ((0x1U & MGBE_MDIO_SCCD_CR_MASK) <<
+                        MGBE_MDIO_SCCD_CR_SHIFT));
+        } else {
+                reg &= ~MGBE_MDIO_SCCD_CRS;
+                reg |= ((0x5U & MGBE_MDIO_SCCD_CR_MASK) <<
+                        MGBE_MDIO_SCCD_CR_SHIFT);
+        }
+
+	osi_writel(reg, (unsigned char *)osi_core->base + MGBE_MDIO_SCCD);
+
+	ret = mgbe_mdio_busy_wait(osi_core);
+	if (ret < 0) {
+		OSI_CORE_ERR(osi_core->osd,
+			OSI_LOG_ARG_HW_FAIL,
+			"MII operation timed out\n",
+			0ULL);
+		return ret;
+	}
+
+	reg = osi_readl((unsigned char *)osi_core->base + MGBE_MDIO_SCCD);
+
+	data = (reg & MGBE_MDIO_SCCD_SDATA_MASK);
+        return (int)data;
+}
+
 /**
  * @brief mgbe_init_core_ops - Initialize MGBE MAC core operations
  */
@@ -763,4 +952,6 @@ void mgbe_init_core_ops(struct core_ops *ops)
 	ops->config_ssir = OSI_NULL;
 	ops->read_mmc = OSI_NULL;
 	ops->reset_mmc = OSI_NULL;
-}
+	ops->write_phy_reg = mgbe_write_phy_reg;
+	ops->read_phy_reg = mgbe_read_phy_reg;
+};
