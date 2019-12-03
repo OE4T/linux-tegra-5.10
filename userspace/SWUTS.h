@@ -53,6 +53,7 @@
  *   - @ref SWUTS-fifo-tsg
  *   - @ref SWUTS-fifo-tsg-gv11b
  *   - @ref SWUTS-fifo-userd-gk20a
+ *   - @ref SWUTS-fifo-usermode-gv11b
  *   - @ref SWUTS-init
  *   - @ref SWUTS-interface-atomic
  *   - @ref SWUTS-ltc

@@ -94,6 +94,7 @@ UNITS :=				\
 	$(UNIT_SRC)/fifo/tsg		\
 	$(UNIT_SRC)/fifo/tsg/gv11b	\
 	$(UNIT_SRC)/fifo/userd/gk20a	\
+	$(UNIT_SRC)/fifo/usermode/gv11b	\
 	$(UNIT_SRC)/list		\
 	$(UNIT_SRC)/ltc			\
 	$(UNIT_SRC)/enabled		\
