@@ -33,15 +33,6 @@
 
 #include <nvgpu/hw/gv11b/hw_fifo_gv11b.h>
 
-static const char *ctxsw_status_invalid_str = "invalid";
-
-static const char *const ctxsw_timeout_status_desc[] = {
-	"awaiting ack",
-	"eng was reset",
-	"ack received",
-	"dropped timeout"
-};
-
 void gv11b_fifo_ctxsw_timeout_enable(struct gk20a *g, bool enable)
 {
 	u32 timeout;
@@ -70,7 +61,6 @@ void gv11b_fifo_ctxsw_timeout_enable(struct gk20a *g, bool enable)
 			nvgpu_log_info(g,
 				"new fifo_eng_ctxsw_timeout reg val = 0x%08x",
 				 timeout);
-			nvgpu_writel(g, fifo_eng_ctxsw_timeout_r(), timeout);
 		}
 
 	} else {
@@ -186,7 +176,6 @@ bool gv11b_fifo_handle_ctxsw_timeout(struct gk20a *g)
 	u32 engine_id, active_eng_id;
 	u32 timeout_val, ctxsw_timeout_engines;
 	u32 info_status;
-	const char *info_status_str;
 	struct nvgpu_tsg *tsg = NULL;
 
 	/* get ctxsw timedout engines */
@@ -208,8 +197,15 @@ bool gv11b_fifo_handle_ctxsw_timeout(struct gk20a *g)
 			fifo_intr_ctxsw_timeout_engine_pending_f(
 				active_eng_id)) != 0U) {
 			u32 ms = 0;
+#ifdef CONFIG_NVGPU_KERNEL_MODE_SUBMIT
 			bool debug_dump = false;
-
+			const char *const ctxsw_timeout_status_desc[] = {
+				"awaiting ack",
+				"eng was reset",
+				"ack received",
+				"dropped timeout"
+			};
+#endif
 			tsgid = gv11b_fifo_ctxsw_timeout_info(g, active_eng_id,
 						&info_status);
 			tsg = nvgpu_tsg_check_and_get_from_id(g, tsgid);
@@ -224,9 +220,8 @@ bool gv11b_fifo_handle_ctxsw_timeout(struct gk20a *g)
 #ifdef CONFIG_NVGPU_KERNEL_MODE_SUBMIT
 			recover = g->ops.tsg.check_ctxsw_timeout(tsg,
 					&debug_dump, &ms);
-#endif
 			if (recover) {
-				info_status_str = ctxsw_status_invalid_str;
+				const char *info_status_str = "invalid";
 				if (info_status <
 					ARRAY_SIZE(ctxsw_timeout_status_desc)) {
 					info_status_str =
@@ -240,11 +235,12 @@ bool gv11b_fifo_handle_ctxsw_timeout(struct gk20a *g)
 
 				nvgpu_rc_ctxsw_timeout(g, BIT32(active_eng_id),
 					tsg, debug_dump);
-			} else {
-				nvgpu_log_info(g,
-					"fifo is waiting for ctxsw switch: "
-					"for %d ms, %s=%d", ms, "tsg", tsgid);
+				continue;
 			}
+#endif
+			nvgpu_log_info(g,
+				"fifo is waiting for ctxsw switch: "
+				"for %d ms, %s=%d", ms, "tsg", tsgid);
 		}
 	}
 	/* clear interrupt */

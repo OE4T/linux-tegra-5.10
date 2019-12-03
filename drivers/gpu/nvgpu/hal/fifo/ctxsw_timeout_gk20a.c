@@ -118,21 +118,21 @@ bool gk20a_fifo_handle_ctxsw_timeout(struct gk20a *g)
 #ifdef CONFIG_NVGPU_KERNEL_MODE_SUBMIT
 	if (tsg != NULL) {
 		recover = g->ops.tsg.check_ctxsw_timeout(tsg, &debug_dump, &ms);
+		if (recover) {
+			nvgpu_err(g,
+				"fifo ctxsw timeout error: "
+				"engine=%u, %s=%d, ms=%u",
+				engine_id, is_tsg ? "tsg" : "ch", id, ms);
+
+			nvgpu_rc_ctxsw_timeout(g, BIT32(engine_id), tsg, debug_dump);
+			return recover;
+		}
 	}
 #endif
 
-	if (recover) {
-		nvgpu_err(g,
-			"fifo ctxsw timeout error: "
-			"engine=%u, %s=%d, ms=%u",
-			engine_id, is_tsg ? "tsg" : "ch", id, ms);
-
-		nvgpu_rc_ctxsw_timeout(g, BIT32(engine_id), tsg, debug_dump);
-	} else {
-		nvgpu_log_info(g,
-			"fifo is waiting for ctxsw switch for %d ms, "
+	nvgpu_log_info(g,
+		"fifo is waiting for ctxsw switch for %d ms, "
 			"%s=%d", ms, is_tsg ? "tsg" : "ch", id);
-	}
 
 	return recover;
 }
