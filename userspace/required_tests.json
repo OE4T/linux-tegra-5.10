@@ -516,6 +516,12 @@
         "test_level": 0
     },
     {
+        "test": "test_falcon_mem_rw_unaligned_cpu_buffer",
+        "case": "falcon_mem_rw_unaligned_cpu_buffer",
+        "unit": "falcon",
+        "test_level": 0
+    },
+    {
         "test": "test_falcon_mem_rw_zero",
         "case": "falcon_mem_rw_zero",
         "unit": "falcon",

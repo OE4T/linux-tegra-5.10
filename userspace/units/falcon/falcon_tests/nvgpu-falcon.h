@@ -322,3 +322,26 @@ int test_falcon_mailbox(struct unit_module *m, struct gk20a *g, void *__args);
  * otherwise.
  */
 int test_falcon_bootstrap(struct unit_module *m, struct gk20a *g, void *__args);
+
+/**
+ * Test specification for: test_falcon_mem_rw_unaligned_cpu_buffer
+ *
+ * Description: The falcon unit shall be able to read/write from/to falcon's
+ * IMEM and DMEM from memory buffer that is unaligned.
+ *
+ * Test Type: Feature based
+ *
+ * Input: None.
+ *
+ * Steps:
+ * - Initialize unaligned random data memory buffer and set size.
+ * - Invoke nvgpu_falcon_copy_to_imem and nvgpu_falcon_copy_to_dmem with
+ *   initialized falcon struct with above initialized sample random data
+ *   and valid range.
+ *   - Verify that writes succeed with 0 return value in both cases.
+ *
+ * Output: Returns PASS if the steps above were executed successfully. FAIL
+ * otherwise.
+ */
+int test_falcon_mem_rw_unaligned_cpu_buffer(struct unit_module *m,
+					    struct gk20a *g, void *__args);

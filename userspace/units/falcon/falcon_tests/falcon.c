@@ -42,6 +42,7 @@ struct utf_falcon *utf_falcons[FALCON_ID_END];
 static struct nvgpu_falcon *pmu_flcn;
 static struct nvgpu_falcon *gpccs_flcn;
 static struct nvgpu_falcon *uninit_flcn;
+static u8 *rand_test_data_unaligned;
 static u32 *rand_test_data;
 
 #define NV_PMC_BOOT_0_ARCHITECTURE_GV110	(0x00000015 << \
@@ -205,9 +206,9 @@ static int free_falcon_test_env(struct unit_module *m, struct gk20a *g,
  */
 static int falcon_read_compare(struct unit_module *m, struct gk20a *g,
 			       enum falcon_mem_type type,
-			       u32 src, u32 size)
+			       u32 src, u32 size, bool aligned_rand_data)
 {
-	u8 *dest = NULL, *destp;
+	u8 *dest = NULL, *destp, *cmp_test_data = NULL;
 	u32 total_block_read = 0;
 	u32 byte_read_count = 0;
 	u32 byte_cnt = size;
@@ -251,7 +252,13 @@ static int falcon_read_compare(struct unit_module *m, struct gk20a *g,
 		byte_cnt -= byte_read_count;
 	} while (total_block_read--);
 
-	if (memcmp((void *) dest, (void *) rand_test_data, size) != 0) {
+	if (aligned_rand_data) {
+		cmp_test_data = (u8 *) rand_test_data;
+	} else {
+		cmp_test_data = rand_test_data_unaligned;
+	}
+
+	if (memcmp((void *) dest, (void *) cmp_test_data, size) != 0) {
 		unit_err(m, "Mismatch comparing copied data\n");
 		err = -EINVAL;
 	}
@@ -661,6 +668,63 @@ int test_falcon_mem_rw_init(struct unit_module *m, struct gk20a *g,
 }
 
 /*
+ * Reading and writing data from/to unaligned data should succeed.
+ */
+int test_falcon_mem_rw_unaligned_cpu_buffer(struct unit_module *m,
+					    struct gk20a *g,
+					    void *__args)
+{
+	rand_test_data_unaligned = (u8 *)&rand_test_data[0] + 1;
+	u32 byte_cnt = RAND_DATA_SIZE - 8;
+	u32 dst = 0;
+	int err = UNIT_FAIL;
+
+	if (pmu_flcn == NULL || !pmu_flcn->is_falcon_supported) {
+		unit_return_fail(m, "test environment not initialized.");
+	}
+
+	/* write data to valid range in imem from unaligned data */
+	unit_info(m, "Writing %d bytes to imem\n", byte_cnt);
+	err = nvgpu_falcon_copy_to_imem(pmu_flcn, dst,
+					(u8 *) rand_test_data_unaligned,
+					byte_cnt, 0, false, 0);
+	if (err) {
+		unit_return_fail(m, "Failed to copy to IMEM\n");
+	}
+
+#ifdef CONFIG_NVGPU_FALCON_NON_FUSA
+	/* verify data written to imem matches */
+	unit_info(m, "Reading %d bytes from imem\n", byte_cnt);
+	err = falcon_read_compare(m, g, MEM_IMEM, dst, byte_cnt, false);
+	if (err) {
+		unit_err(m, "IMEM read data does not match %d\n", err);
+		return UNIT_FAIL;
+	}
+#endif
+
+	/* write data to valid range in dmem from unaligned data */
+	unit_info(m, "Writing %d bytes to dmem\n", byte_cnt);
+	err = nvgpu_falcon_copy_to_dmem(pmu_flcn, dst,
+					(u8 *) rand_test_data_unaligned,
+					byte_cnt, 0);
+	if (err) {
+		unit_return_fail(m, "Failed to copy to DMEM\n");
+	}
+
+#ifdef CONFIG_NVGPU_FALCON_NON_FUSA
+	/* verify data written to dmem matches */
+	unit_info(m, "Reading %d bytes from dmem\n", byte_cnt);
+	err = falcon_read_compare(m, g, MEM_DMEM, dst, byte_cnt, false);
+	if (err) {
+		unit_err(m, "DMEM read data does not match %d\n", err);
+		return UNIT_FAIL;
+	}
+#endif
+
+	return UNIT_SUCCESS;
+}
+
+/*
  * Valid/Invalid: Reading and writing data in accessible range should work
  *		  and fail otherwise.
  * Valid: Data read from or written to Falcon memory in bounds is valid
@@ -690,7 +754,7 @@ int test_falcon_mem_rw_range(struct unit_module *m, struct gk20a *g,
 #ifdef CONFIG_NVGPU_FALCON_NON_FUSA
 	/* verify data written to imem matches */
 	unit_info(m, "Reading %d bytes from imem\n", byte_cnt);
-	err = falcon_read_compare(m, g, MEM_IMEM, dst, byte_cnt);
+	err = falcon_read_compare(m, g, MEM_IMEM, dst, byte_cnt, true);
 	if (err) {
 		unit_err(m, "IMEM read data does not match %d\n", err);
 		return UNIT_FAIL;
@@ -708,7 +772,7 @@ int test_falcon_mem_rw_range(struct unit_module *m, struct gk20a *g,
 #ifdef CONFIG_NVGPU_FALCON_NON_FUSA
 	/* verify data written to dmem matches */
 	unit_info(m, "Reading %d bytes from dmem\n", byte_cnt);
-	err = falcon_read_compare(m, g, MEM_DMEM, dst, byte_cnt);
+	err = falcon_read_compare(m, g, MEM_DMEM, dst, byte_cnt, true);
 	if (err) {
 		unit_err(m, "DMEM read data does not match %d\n", err);
 		return UNIT_FAIL;
@@ -1046,6 +1110,8 @@ struct unit_module_test falcon_tests[] = {
 	UNIT_TEST(falcon_mem_rw_zero, test_falcon_mem_rw_zero, NULL, 0),
 	UNIT_TEST(falcon_mailbox, test_falcon_mailbox, NULL, 0),
 	UNIT_TEST(falcon_bootstrap, test_falcon_bootstrap, NULL, 0),
+	UNIT_TEST(falcon_mem_rw_unaligned_cpu_buffer,
+		  test_falcon_mem_rw_unaligned_cpu_buffer, NULL, 0),
 
 	/* Cleanup */
 	UNIT_TEST(falcon_free_test_env, free_falcon_test_env, NULL, 0),
