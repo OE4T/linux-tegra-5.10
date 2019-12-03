@@ -24,6 +24,7 @@ gk20a_runlist_length_max
 gk20a_runlist_hw_submit
 gk20a_runlist_wait_pending
 gk20a_runlist_write_state
+gk20a_userd_entry_size
 gk20a_vm_release_share
 gm20b_channel_bind
 gm20b_channel_force_ctx_reload

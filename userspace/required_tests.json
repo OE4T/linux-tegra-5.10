@@ -2106,6 +2106,12 @@
         "test_level": 0
     },
     {
+        "test": "test_gk20a_userd_entry_size",
+        "case": "entry_size",
+        "unit": "nvgpu_userd_gk20a",
+        "test_level": 0
+    },
+    {
         "test": "test_nvgpu_gmmu_clean",
         "case": "gmmu_clean",
         "unit": "page_table",
