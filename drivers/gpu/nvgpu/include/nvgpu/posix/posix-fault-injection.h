@@ -83,6 +83,9 @@ struct nvgpu_posix_fault_inj_container {
 	struct nvgpu_posix_fault_inj iofunc_devctl_verify;
 	struct nvgpu_posix_fault_inj iofunc_attr_lock;
 	struct nvgpu_posix_fault_inj iofunc_attr_unlock;
+	struct nvgpu_posix_fault_inj resmgr_msgread_fi;
+	struct nvgpu_posix_fault_inj resmgr_msgwrite_fi;
+	struct nvgpu_posix_fault_inj resmgr_msgreply_fi;
 };
 
 /**
