@@ -1566,6 +1566,60 @@
         "test_level": 0
     },
     {
+        "test": "test_gk20a_get_timeslices",
+        "case": "get_timeslices",
+        "unit": "nvgpu_fifo_gk20a",
+        "test_level": 0
+    },
+    {
+        "test": "test_gk20a_init_pbdma_map",
+        "case": "init_pbdma_map",
+        "unit": "nvgpu_fifo_gk20a",
+        "test_level": 0
+    },
+    {
+        "test": "test_fifo_init_support",
+        "case": "init_support",
+        "unit": "nvgpu_fifo_gk20a",
+        "test_level": 0
+    },
+    {
+        "test": "test_gk20a_fifo_intr_1_enable",
+        "case": "intr_1_enable",
+        "unit": "nvgpu_fifo_gk20a",
+        "test_level": 0
+    },
+    {
+        "test": "test_gk20a_fifo_intr_1_isr",
+        "case": "intr_1_isr",
+        "unit": "nvgpu_fifo_gk20a",
+        "test_level": 0
+    },
+    {
+        "test": "test_gk20a_fifo_intr_handle_chsw_error",
+        "case": "intr_handle_chsw_error",
+        "unit": "nvgpu_fifo_gk20a",
+        "test_level": 0
+    },
+    {
+        "test": "test_gk20a_fifo_intr_handle_runlist_event",
+        "case": "intr_handle_runlist_event",
+        "unit": "nvgpu_fifo_gk20a",
+        "test_level": 0
+    },
+    {
+        "test": "test_gk20a_fifo_pbdma_isr",
+        "case": "pbdma_isr",
+        "unit": "nvgpu_fifo_gk20a",
+        "test_level": 0
+    },
+    {
+        "test": "test_fifo_remove_support",
+        "case": "remove_support",
+        "unit": "nvgpu_fifo_gk20a",
+        "test_level": 0
+    },
+    {
         "test": "test_gr_config_count",
         "case": "config_check_init",
         "unit": "nvgpu_gr_config",

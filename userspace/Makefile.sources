@@ -78,6 +78,7 @@ UNITS :=				\
 	$(UNIT_SRC)/netlist		\
 	$(UNIT_SRC)/fbp		\
 	$(UNIT_SRC)/fifo		\
+	$(UNIT_SRC)/fifo/fifo/gk20a	\
 	$(UNIT_SRC)/fifo/channel	\
 	$(UNIT_SRC)/fifo/channel/gk20a	\
 	$(UNIT_SRC)/fifo/channel/gm20b	\

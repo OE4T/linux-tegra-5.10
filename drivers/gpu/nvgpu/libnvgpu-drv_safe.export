@@ -15,6 +15,14 @@ gk20a_as_release_share
 gk20a_channel_disable
 gk20a_channel_enable
 gk20a_channel_read_state
+gk20a_fifo_get_pb_timeslice
+gk20a_fifo_get_runlist_timeslice
+gk20a_fifo_init_pbdma_map
+gk20a_fifo_intr_1_enable
+gk20a_fifo_intr_1_isr
+gk20a_fifo_intr_handle_chsw_error
+gk20a_fifo_intr_handle_runlist_event
+gk20a_fifo_pbdma_isr
 gk20a_mm_fb_flush
 gk20a_ptimer_isr
 gk20a_ramin_alloc_size
