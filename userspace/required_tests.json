@@ -1788,6 +1788,162 @@
         "test_level": 0
     },
     {
+        "test": "test_fifo_init_support",
+        "case": "init_support",
+        "unit": "nvgpu_pbdma_gm20b",
+        "test_level": 0
+    },
+    {
+        "test": "test_gm20b_pbdma_acquire_val",
+        "case": "pbdma_acquire_val",
+        "unit": "nvgpu_pbdma_gm20b",
+        "test_level": 0
+    },
+    {
+        "test": "test_gm20b_pbdma_format_gpfifo_entry",
+        "case": "pbdma_format_gpfifo_entry",
+        "unit": "nvgpu_pbdma_gm20b",
+        "test_level": 0
+    },
+    {
+        "test": "test_gm20b_pbdma_get_fc_subdevice",
+        "case": "pbdma_get_fc_subdevice",
+        "unit": "nvgpu_pbdma_gm20b",
+        "test_level": 0
+    },
+    {
+        "test": "test_gm20b_pbdma_get_gp_base",
+        "case": "pbdma_get_gp_base",
+        "unit": "nvgpu_pbdma_gm20b",
+        "test_level": 0
+    },
+    {
+        "test": "test_gm20b_pbdma_get_userd",
+        "case": "pbdma_get_userd",
+        "unit": "nvgpu_pbdma_gm20b",
+        "test_level": 0
+    },
+    {
+        "test": "test_gm20b_pbdma_handle_intr",
+        "case": "pbdma_handle_intr",
+        "unit": "nvgpu_pbdma_gm20b",
+        "test_level": 0
+    },
+    {
+        "test": "test_gm20b_pbdma_handle_intr_0",
+        "case": "pbdma_handle_intr_0",
+        "unit": "nvgpu_pbdma_gm20b",
+        "test_level": 0
+    },
+    {
+        "test": "test_gm20b_pbdma_intr_descs",
+        "case": "pbdma_intr_descs",
+        "unit": "nvgpu_pbdma_gm20b",
+        "test_level": 0
+    },
+    {
+        "test": "test_gm20b_pbdma_read_data",
+        "case": "pbdma_read_data",
+        "unit": "nvgpu_pbdma_gm20b",
+        "test_level": 0
+    },
+    {
+        "test": "test_fifo_remove_support",
+        "case": "remove_support",
+        "unit": "nvgpu_pbdma_gm20b",
+        "test_level": 0
+    },
+    {
+        "test": "test_gp10b_pbdma_get_config_auth_level_privileged",
+        "case": "get_config_auth_level_privileged",
+        "unit": "nvgpu_pbdma_gp10b",
+        "test_level": 0
+    },
+    {
+        "test": "test_gp10b_pbdma_get_fc_runlist_timeslice",
+        "case": "get_fc_runlist_timeslice",
+        "unit": "nvgpu_pbdma_gp10b",
+        "test_level": 0
+    },
+    {
+        "test": "test_gp10b_pbdma_get_signature",
+        "case": "get_signature",
+        "unit": "nvgpu_pbdma_gp10b",
+        "test_level": 0
+    },
+    {
+        "test": "test_fifo_init_support",
+        "case": "init_support",
+        "unit": "nvgpu_pbdma_gp10b",
+        "test_level": 0
+    },
+    {
+        "test": "test_fifo_remove_support",
+        "case": "remove_support",
+        "unit": "nvgpu_pbdma_gp10b",
+        "test_level": 0
+    },
+    {
+        "test": "test_gv11b_pbdma_config_userd_writeback_enable",
+        "case": "config_userd_writeback_enable",
+        "unit": "nvgpu_pbdma_gv11b",
+        "test_level": 0
+    },
+    {
+        "test": "test_gv11b_pbdma_get_fc",
+        "case": "get_fc",
+        "unit": "nvgpu_pbdma_gv11b",
+        "test_level": 0
+    },
+    {
+        "test": "test_gv11b_pbdma_handle_intr_0",
+        "case": "handle_intr_0",
+        "unit": "nvgpu_pbdma_gv11b",
+        "test_level": 0
+    },
+    {
+        "test": "test_gv11b_pbdma_handle_intr_1",
+        "case": "handle_intr_1",
+        "unit": "nvgpu_pbdma_gv11b",
+        "test_level": 0
+    },
+    {
+        "test": "test_fifo_init_support",
+        "case": "init_support",
+        "unit": "nvgpu_pbdma_gv11b",
+        "test_level": 0
+    },
+    {
+        "test": "test_gv11b_pbdma_intr_descs",
+        "case": "intr_descs",
+        "unit": "nvgpu_pbdma_gv11b",
+        "test_level": 0
+    },
+    {
+        "test": "test_gv11b_pbdma_intr_enable",
+        "case": "intr_enable",
+        "unit": "nvgpu_pbdma_gv11b",
+        "test_level": 0
+    },
+    {
+        "test": "test_fifo_remove_support",
+        "case": "remove_support",
+        "unit": "nvgpu_pbdma_gv11b",
+        "test_level": 0
+    },
+    {
+        "test": "test_gv11b_pbdma_set_channel_info_veid",
+        "case": "set_channel_info_veid",
+        "unit": "nvgpu_pbdma_gv11b",
+        "test_level": 0
+    },
+    {
+        "test": "test_gv11b_pbdma_setup_hw",
+        "case": "setup_hw",
+        "unit": "nvgpu_pbdma_gv11b",
+        "test_level": 0
+    },
+    {
         "test": "test_flat",
         "case": "flat",
         "unit": "nvgpu_runlist",
