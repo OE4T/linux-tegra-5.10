@@ -825,7 +825,7 @@ int gm20b_gr_falcon_ctrl_ctxsw(struct gk20a *g, u32 fecs_method,
 		sleepduringwait = true;
 	break;
 #endif
-
+#ifdef CONFIG_NVGPU_ENGINE_RESET
 	case NVGPU_GR_FALCON_METHOD_HALT_PIPELINE:
 		op.method.addr = gr_fecs_method_push_adr_halt_pipeline_v();
 		op.method.data = ~U32(0U);
@@ -835,6 +835,7 @@ int gm20b_gr_falcon_ctrl_ctxsw(struct gk20a *g, u32 fecs_method,
 		op.cond.ok = GR_IS_UCODE_OP_EQUAL;
 		op.cond.fail = GR_IS_UCODE_OP_EQUAL;
 	break;
+#endif
 	case NVGPU_GR_FALCON_METHOD_CTXSW_DISCOVER_IMAGE_SIZE:
 		op.method.addr =
 			gr_fecs_method_push_adr_discover_image_size_v();
