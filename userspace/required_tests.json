@@ -1620,6 +1620,54 @@
         "test_level": 0
     },
     {
+        "test": "test_gv11b_fifo_handle_sched_error",
+        "case": "handle_sched_error",
+        "unit": "nvgpu_fifo_gv11b",
+        "test_level": 0
+    },
+    {
+        "test": "test_gv11b_fifo_init_hw",
+        "case": "init_hw",
+        "unit": "nvgpu_fifo_gv11b",
+        "test_level": 0
+    },
+    {
+        "test": "test_fifo_init_support",
+        "case": "init_support",
+        "unit": "nvgpu_fifo_gv11b",
+        "test_level": 0
+    },
+    {
+        "test": "test_gv11b_fifo_intr_0_enable",
+        "case": "intr_0_enable",
+        "unit": "nvgpu_fifo_gv11b",
+        "test_level": 0
+    },
+    {
+        "test": "test_gv11b_fifo_intr_0_isr",
+        "case": "intr_0_isr",
+        "unit": "nvgpu_fifo_gv11b",
+        "test_level": 0
+    },
+    {
+        "test": "test_gv11b_fifo_intr_recover_mask",
+        "case": "intr_recover_mask",
+        "unit": "nvgpu_fifo_gv11b",
+        "test_level": 0
+    },
+    {
+        "test": "test_gv11b_fifo_mmu_fault_id_to_pbdma_id",
+        "case": "mmu_fault_id_to_pbdma_id",
+        "unit": "nvgpu_fifo_gv11b",
+        "test_level": 0
+    },
+    {
+        "test": "test_fifo_remove_support",
+        "case": "remove_support",
+        "unit": "nvgpu_fifo_gv11b",
+        "test_level": 0
+    },
+    {
         "test": "test_gr_config_count",
         "case": "config_check_init",
         "unit": "nvgpu_gr_config",
