@@ -34,6 +34,18 @@
 #define NSEC_PER_MSEC   1000000
 #define NSEC_PER_SEC    1000000000
 
+#ifdef NVGPU_UNITTEST_FAULT_INJECTION_ENABLEMENT
+#include <nvgpu/posix/posix-fault-injection.h>
+
+struct nvgpu_posix_fault_inj *nvgpu_timers_get_fault_injection(void)
+{
+	struct nvgpu_posix_fault_inj_container *c =
+			nvgpu_posix_fault_injection_get_container();
+
+	return &c->timers_fi;
+}
+#endif /* NVGPU_UNITTEST_FAULT_INJECTION_ENABLEMENT */
+
 s64 nvgpu_current_time_us(void)
 {
 	struct timeval now;
@@ -76,6 +88,13 @@ int nvgpu_timeout_init(struct gk20a *g, struct nvgpu_timeout *timeout,
 		       u32 duration, unsigned long flags)
 {
 	s64 duration_ns;
+
+#ifdef NVGPU_UNITTEST_FAULT_INJECTION_ENABLEMENT
+	if (nvgpu_posix_fault_injection_handle_call(
+					nvgpu_timers_get_fault_injection())) {
+		return -ETIMEDOUT;
+	}
+#endif
 
 	if ((flags & ~NVGPU_TIMER_FLAG_MASK) != 0U) {
 		return -EINVAL;

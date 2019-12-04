@@ -116,4 +116,8 @@
 	(int)ret_timeout;						\
 })
 
+#ifdef NVGPU_UNITTEST_FAULT_INJECTION_ENABLEMENT
+struct nvgpu_posix_fault_inj *nvgpu_timers_get_fault_injection(void);
+#endif /* NVGPU_UNITTEST_FAULT_INJECTION_ENABLEMENT */
+
 #endif

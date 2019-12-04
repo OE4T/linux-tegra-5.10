@@ -44,6 +44,7 @@ struct nvgpu_posix_fault_inj_container {
 	struct nvgpu_posix_fault_inj nvgpu_fi;
 	struct nvgpu_posix_fault_inj dma_fi;
 	struct nvgpu_posix_fault_inj queue_out_fi;
+	struct nvgpu_posix_fault_inj timers_fi;
 
 	/* qnx */
 	struct nvgpu_posix_fault_inj nvgpu_nvrmread_fi;
