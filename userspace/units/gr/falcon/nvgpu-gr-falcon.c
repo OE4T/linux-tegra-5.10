@@ -46,9 +46,6 @@
 struct gr_gops_falcon_orgs {
 	void (*bind_instblk)(struct gk20a *g,
 			     struct nvgpu_mem *mem, u64 inst_ptr);
-	void (*load_ctxsw_ucode_header)(struct gk20a *g,
-		u32 reg_offset, u32 boot_signature, u32 addr_code32,
-		u32 addr_data32, u32 code_size, u32 data_size);
 	int (*load_ctxsw_ucode)(struct gk20a *g,
 				struct nvgpu_gr_falcon *falcon);
 	int (*init_ctx_state)(struct gk20a *g,
@@ -62,14 +59,6 @@ static void test_gr_falcon_bind_instblk(struct gk20a *g,
 				struct nvgpu_mem *mem, u64 inst_ptr)
 {
 	/* Do nothing */
-}
-
-static void test_gr_falcon_load_ctxsw_ucode_header(struct gk20a *g,
-	u32 reg_offset, u32 boot_signature, u32 addr_code32,
-	u32 addr_data32, u32 code_size, u32 data_size)
-{
-	/* Do nothing */
-
 }
 
 static int gr_falcon_stub_init_ctx_state(struct gk20a *g,
@@ -88,8 +77,6 @@ static void gr_falcon_save_gops(struct gk20a *g)
 {
 	gr_falcon_gops.load_ctxsw_ucode =
 				g->ops.gr.falcon.load_ctxsw_ucode;
-	gr_falcon_gops.load_ctxsw_ucode_header =
-			g->ops.gr.falcon.load_ctxsw_ucode_header;
 	gr_falcon_gops.bind_instblk = g->ops.gr.falcon.bind_instblk;
 	gr_falcon_gops.init_ctx_state = g->ops.gr.falcon.init_ctx_state;
 }
@@ -98,8 +85,6 @@ static void gr_falcon_stub_gops(struct gk20a *g)
 {
 	g->ops.gr.falcon.load_ctxsw_ucode =
 				nvgpu_gr_falcon_load_secure_ctxsw_ucode;
-	g->ops.gr.falcon.load_ctxsw_ucode_header =
-			test_gr_falcon_load_ctxsw_ucode_header;
 	g->ops.gr.falcon.bind_instblk = test_gr_falcon_bind_instblk;
 }
 
@@ -149,14 +134,6 @@ int test_gr_falcon_init_ctxsw(struct unit_module *m,
 	if (err) {
 		unit_return_fail(m, "nvgpu_gr_falcon_init_ctxsw failed\n");
 	}
-
-	/* Test nonsecure gpccs */
-	nvgpu_set_enabled(g, NVGPU_SEC_SECUREGPCCS, false);
-	nvgpu_set_enabled(g, NVGPU_PMU_FECS_BOOTSTRAP_DONE, false);
-	err = nvgpu_gr_falcon_init_ctxsw(g, unit_gr_falcon);
-	if (err) {
-		unit_return_fail(m, "nvgpu_gr_falcon_init_ctxsw failed\n");
-	}
 	nvgpu_set_enabled(g, NVGPU_SEC_SECUREGPCCS, true);
 
 	/* Test for recovery to fail */
@@ -175,25 +152,6 @@ int test_gr_falcon_init_ctxsw(struct unit_module *m,
 		unit_return_fail(m,
 			"falcon_init_ctxsw secure recovery failed\n");
 	}
-
-	/* Test for nonsecure gpccs recovery */
-	nvgpu_set_enabled(g, NVGPU_SEC_SECUREGPCCS, false);
-	err = nvgpu_gr_falcon_init_ctxsw(g, unit_gr_falcon);
-	if (err != 0) {
-		unit_return_fail(m,
-			"falcon_init_ctxsw nonsecure recovery failed\n");
-	}
-
-	g->ops.gr.falcon.load_ctxsw_ucode_header =
-				gr_falcon_gops.load_ctxsw_ucode_header;
-	err = nvgpu_gr_falcon_init_ctxsw(g, unit_gr_falcon);
-	if (err != 0) {
-		unit_return_fail(m,
-			"falcon_init_ctxsw nonsecure recovery failed\n");
-	}
-	g->ops.gr.falcon.load_ctxsw_ucode_header =
-			test_gr_falcon_load_ctxsw_ucode_header;
-	nvgpu_set_enabled(g, NVGPU_SEC_SECUREGPCCS, true);
 
 	return UNIT_SUCCESS;
 }
@@ -276,7 +234,7 @@ int test_gr_falcon_deinit(struct unit_module *m,
 	return UNIT_SUCCESS;
 }
 
-static int test_gr_falcon_fail_ctxsw_ucode(struct unit_module *m,
+int test_gr_falcon_fail_ctxsw_ucode(struct unit_module *m,
 			struct gk20a *g, void *args)
 {
 	int err = 0;

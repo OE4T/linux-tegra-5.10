@@ -64,7 +64,7 @@ int test_gr_falcon_init(struct unit_module *m,
  *
  * Description: Helps to verify common.gr.falcon subunit deinitialization.
  *
- * Test Type: Feature based, Error injection..
+ * Test Type: Feature based, Error injection.
  *
  * Targets: #nvgpu_gr_falcon_remove_support.
  *
@@ -95,13 +95,8 @@ int test_gr_falcon_deinit(struct unit_module *m,
  * Steps:
  * -  By default code use secure gpccs path.
  * -  Call #nvgpu_gr_falcon_init_ctxsw.
- * -  Enable nonsecure gpccs path.
- * -  Call #nvgpu_gr_falcon_init_ctxsw.
- * -  Enable secure gpccs path.
  * -  Call #nvgpu_gr_falcon_init_ctxsw to test recovery path failure.
- * -  Enable nonsecure gpccs path.
  * -  Call #nvgpu_gr_falcon_init_ctxsw to test recovery path success.
- * -  Enable secure gpccs path.
  *
  * Output: Returns PASS if the steps above were executed successfully. FAIL
  * otherwise.
@@ -144,14 +139,36 @@ int test_gr_falcon_init_ctx_state(struct unit_module *m,
  * Input: #test_gr_falcon_init must have been executed successfully.
  *
  * Steps:
- * - Call #nvgpu_gr_falcon_get_fecs_ucode_segments.
- * - Call #nvgpu_gr_falcon_get_gpccs_ucode_segments.
- * - Call #nvgpu_gr_falcon_get_surface_desc_cpu_va.
+ * -  Call #nvgpu_gr_falcon_get_fecs_ucode_segments.
+ * -  Call #nvgpu_gr_falcon_get_gpccs_ucode_segments.
+ * -  Call #nvgpu_gr_falcon_get_surface_desc_cpu_va.
  *
  * Output: Returns PASS if the steps above were executed successfully. FAIL
  * otherwise.
  */
 int test_gr_falcon_query_test(struct unit_module *m,
+				      struct gk20a *g, void *args);
+
+/**
+ * Test specification for: test_gr_falcon_fail_ctxsw_ucode.
+ *
+ * Description: Helps to verify the allocation failures for
+ *              nvgpu_gr_falcon_init_ctxsw_ucode function is handled properly.
+ *
+ * Test Type: Error injection.
+ *
+ * Targets: #nvgpu_gr_falcon_init_ctxsw_ucode.
+ *
+ * Input: #test_gr_falcon_init must have been executed successfully.
+ *
+ * Steps:
+ * -  Request Kmemory and dma allocation failures at various locations.
+ * -  Call #nvgpu_gr_falcon_init_ctxsw_ucode.
+ *
+ * Output: Returns PASS if the steps above were executed successfully. FAIL
+ * otherwise.
+ */
+int test_gr_falcon_fail_ctxsw_ucode(struct unit_module *m,
 				      struct gk20a *g, void *args);
 #endif /* UNIT_NVGPU_GR_FALCON_H */
 
