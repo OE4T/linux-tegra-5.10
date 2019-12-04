@@ -259,7 +259,7 @@ static void nvgpu_gr_falcon_init_ctxsw_ucode_segments(
 							offset, data_size);
 }
 
-static int nvgpu_gr_falcon_copy_ctxsw_ucode_segments(
+static void nvgpu_gr_falcon_copy_ctxsw_ucode_segments(
 	struct gk20a *g,
 	struct nvgpu_mem *dst,
 	struct nvgpu_ctxsw_ucode_segments *segments,
@@ -281,15 +281,11 @@ static int nvgpu_gr_falcon_copy_ctxsw_ucode_segments(
 		segments->boot_signature = nvgpu_gr_checksum_u32(
 				segments->boot_signature, bootimage[i]);
 	}
-
-	return 0;
 }
 
 int nvgpu_gr_falcon_init_ctxsw_ucode(struct gk20a *g,
 					struct nvgpu_gr_falcon *falcon)
 {
-	struct mm_gk20a *mm = &g->mm;
-	struct vm_gk20a *vm = mm->pmu.vm;
 	struct nvgpu_ctxsw_bootloader_desc *fecs_boot_desc;
 	struct nvgpu_ctxsw_bootloader_desc *gpccs_boot_desc;
 	struct nvgpu_firmware *fecs_fw;
@@ -340,28 +336,22 @@ int nvgpu_gr_falcon_init_ctxsw_ucode(struct gk20a *g,
 		goto clean_up;
 	}
 
-	err = nvgpu_gr_falcon_copy_ctxsw_ucode_segments(g,
+	nvgpu_gr_falcon_copy_ctxsw_ucode_segments(g,
 		&ucode_info->surface_desc,
 		&ucode_info->fecs,
 		fecs_boot_image,
 		nvgpu_netlist_get_fecs_inst_list(g),
 		nvgpu_netlist_get_fecs_data_list(g));
-	if (err != 0) {
-		goto clean_up;
-	}
 
 	nvgpu_release_firmware(g, fecs_fw);
 	fecs_fw = NULL;
 
-	err = nvgpu_gr_falcon_copy_ctxsw_ucode_segments(g,
+	nvgpu_gr_falcon_copy_ctxsw_ucode_segments(g,
 		&ucode_info->surface_desc,
 		&ucode_info->gpccs,
 		gpccs_boot_image,
 		nvgpu_netlist_get_gpccs_inst_list(g),
 		nvgpu_netlist_get_gpccs_data_list(g));
-	if (err != 0) {
-		goto clean_up;
-	}
 
 	nvgpu_release_firmware(g, gpccs_fw);
 	gpccs_fw = NULL;
@@ -374,10 +364,6 @@ int nvgpu_gr_falcon_init_ctxsw_ucode(struct gk20a *g,
 	return 0;
 
 clean_up:
-	if (ucode_info->surface_desc.gpu_va != 0ULL) {
-		nvgpu_gmmu_unmap(vm, &ucode_info->surface_desc,
-				 ucode_info->surface_desc.gpu_va);
-	}
 	nvgpu_dma_free(g, &ucode_info->surface_desc);
 
 	if (gpccs_fw != NULL) {
@@ -555,6 +541,7 @@ static void nvgpu_gr_falcon_load_gpccs_with_bootloader(struct gk20a *g,
 		g->ops.gr.falcon.get_gpccs_start_reg_offset());
 }
 
+#if defined(CONFIG_NVGPU_DGPU) || defined(CONFIG_NVGPU_LS_PMU)
 static int gr_falcon_sec2_or_ls_pmu_bootstrap(struct gk20a *g,
 				 bool *bootstrap, u32 falcon_id_mask)
 {
@@ -585,12 +572,61 @@ static int gr_falcon_sec2_or_ls_pmu_bootstrap(struct gk20a *g,
 	return err;
 }
 
-static int gr_falcon_recovery_bootstrap(struct gk20a *g,
-					struct nvgpu_gr_falcon *falcon)
+static int gr_falcon_sec2_or_ls_pmu_recovery_bootstrap(struct gk20a *g)
 {
 	int err = 0;
 	bool bootstrap = false;
 	u32 falcon_idmask = BIT32(FALCON_ID_FECS) | BIT32(FALCON_ID_GPCCS);
+
+	err = gr_falcon_sec2_or_ls_pmu_bootstrap(g,
+				&bootstrap,
+				falcon_idmask);
+	if ((err == 0) && (!bootstrap)) {
+		err = nvgpu_acr_bootstrap_hs_acr(g, g->acr);
+		if (err != 0) {
+			nvgpu_err(g,
+				"ACR GR LSF bootstrap failed");
+		}
+	}
+
+	return err;
+}
+
+static int gr_falcon_sec2_or_ls_pmu_coldboot_bootstrap(struct gk20a *g)
+{
+	int err = 0;
+	u8 falcon_id_mask = 0;
+	bool bootstrap = false;
+
+	if (!nvgpu_is_enabled(g, NVGPU_SEC_SECUREGPCCS)) {
+		return err;
+	}
+
+	if (nvgpu_acr_is_lsf_lazy_bootstrap(g, g->acr,
+					FALCON_ID_FECS)) {
+		falcon_id_mask |= BIT8(FALCON_ID_FECS);
+	}
+	if (nvgpu_acr_is_lsf_lazy_bootstrap(g, g->acr,
+					FALCON_ID_GPCCS)) {
+		falcon_id_mask |= BIT8(FALCON_ID_GPCCS);
+	}
+
+	err = gr_falcon_sec2_or_ls_pmu_bootstrap(g,
+				&bootstrap,
+				(u32)falcon_id_mask);
+	if ((err == 0) && (!bootstrap)) {
+		/* GR falcons bootstrapped by ACR */
+		err = 0;
+	}
+
+	return err;
+}
+#endif
+
+static int gr_falcon_recovery_bootstrap(struct gk20a *g,
+					struct nvgpu_gr_falcon *falcon)
+{
+	int err = 0;
 
 	if (!nvgpu_is_enabled(g, NVGPU_SEC_SECUREGPCCS)) {
 		nvgpu_gr_falcon_load_gpccs_with_bootloader(g, falcon);
@@ -601,52 +637,29 @@ static int gr_falcon_recovery_bootstrap(struct gk20a *g,
 	} else {
 		/* bind WPR VA inst block */
 		nvgpu_gr_falcon_bind_instblk(g, falcon);
-		err = gr_falcon_sec2_or_ls_pmu_bootstrap(g,
-					&bootstrap,
-					falcon_idmask);
-		if ((err == 0) && (!bootstrap)) {
-			err = nvgpu_acr_bootstrap_hs_acr(g, g->acr);
-			if (err != 0) {
-				nvgpu_err(g,
-					"ACR GR LSF bootstrap failed");
-			}
+#if defined(CONFIG_NVGPU_DGPU) || defined(CONFIG_NVGPU_LS_PMU)
+		err = gr_falcon_sec2_or_ls_pmu_recovery_bootstrap(g);
+#else
+		err = nvgpu_acr_bootstrap_hs_acr(g, g->acr);
+		if (err != 0) {
+			nvgpu_err(g,
+				"ACR GR LSF bootstrap failed");
 		}
+#endif
 	}
 
 	return err;
 }
 
-static int gr_falcon_coldboot_bootstrap(struct gk20a *g,
+static void gr_falcon_coldboot_bootstrap(struct gk20a *g,
 					struct nvgpu_gr_falcon *falcon)
 {
-	int err = 0;
-	u8 falcon_id_mask = 0;
-	bool bootstrap = false;
-
 	if (!nvgpu_is_enabled(g, NVGPU_SEC_SECUREGPCCS)) {
 		nvgpu_gr_falcon_load_gpccs_with_bootloader(g, falcon);
 	} else {
 		/* bind WPR VA inst block */
 		nvgpu_gr_falcon_bind_instblk(g, falcon);
-		if (nvgpu_acr_is_lsf_lazy_bootstrap(g, g->acr,
-						FALCON_ID_FECS)) {
-			falcon_id_mask |= BIT8(FALCON_ID_FECS);
-		}
-		if (nvgpu_acr_is_lsf_lazy_bootstrap(g, g->acr,
-						FALCON_ID_GPCCS)) {
-			falcon_id_mask |= BIT8(FALCON_ID_GPCCS);
-		}
-
-		err = gr_falcon_sec2_or_ls_pmu_bootstrap(g,
-					&bootstrap,
-					(u32)falcon_id_mask);
-		if ((err == 0) && (!bootstrap)) {
-			/* GR falcons bootstrapped by ACR */
-			err = 0;
-		}
 	}
-
-	return err;
 }
 
 int nvgpu_gr_falcon_load_secure_ctxsw_ucode(struct gk20a *g,
@@ -673,11 +686,14 @@ int nvgpu_gr_falcon_load_secure_ctxsw_ucode(struct gk20a *g,
 	} else {
 		/* cold boot or rg exit */
 		nvgpu_set_enabled(g, NVGPU_PMU_FECS_BOOTSTRAP_DONE, true);
-		err = gr_falcon_coldboot_bootstrap(g, falcon);
+		gr_falcon_coldboot_bootstrap(g, falcon);
+#if defined(CONFIG_NVGPU_DGPU) || defined(CONFIG_NVGPU_LS_PMU)
+		err = gr_falcon_sec2_or_ls_pmu_coldboot_bootstrap(g);
 		if (err != 0) {
 			nvgpu_err(g, "Unable to boot GPCCS");
 			return err;
 		}
+#endif
 	}
 
 	g->ops.gr.falcon.start_gpccs(g);
@@ -688,13 +704,6 @@ int nvgpu_gr_falcon_load_secure_ctxsw_ucode(struct gk20a *g,
 	return 0;
 }
 
-#ifdef CONFIG_NVGPU_ENGINE_RESET
-struct nvgpu_mutex *nvgpu_gr_falcon_get_fecs_mutex(
-					struct nvgpu_gr_falcon *falcon)
-{
-	return &falcon->fecs_mutex;
-}
-#endif
 struct nvgpu_ctxsw_ucode_segments *nvgpu_gr_falcon_get_fecs_ucode_segments(
 					struct nvgpu_gr_falcon *falcon)
 {
@@ -709,3 +718,10 @@ void *nvgpu_gr_falcon_get_surface_desc_cpu_va(struct nvgpu_gr_falcon *falcon)
 {
 	return falcon->ctxsw_ucode_info.surface_desc.cpu_va;
 }
+#ifdef CONFIG_NVGPU_ENGINE_RESET
+struct nvgpu_mutex *nvgpu_gr_falcon_get_fecs_mutex(
+					struct nvgpu_gr_falcon *falcon)
+{
+	return &falcon->fecs_mutex;
+}
+#endif
