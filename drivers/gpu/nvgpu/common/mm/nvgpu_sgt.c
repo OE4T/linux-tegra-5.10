@@ -25,6 +25,7 @@
 #include <nvgpu/nvgpu_mem.h>
 #include <nvgpu/nvgpu_sgt.h>
 #include <nvgpu/nvgpu_sgt_os.h>
+#include <nvgpu/log.h>
 
 struct nvgpu_sgl *nvgpu_sgt_get_next(struct nvgpu_sgt *sgt,
 				     struct nvgpu_sgl *sgl)

@@ -75,10 +75,15 @@ int gv11b_syncpt_alloc_buf(struct nvgpu_channel *c,
 	}
 
 	nr_pages = DIV_ROUND_UP(g->syncpt_size, PAGE_SIZE);
-	nvgpu_mem_create_from_phys(g, syncpt_buf,
+	err = nvgpu_mem_create_from_phys(g, syncpt_buf,
 		(g->syncpt_unit_base +
 		nvgpu_nvhost_syncpt_unit_interface_get_byte_offset(syncpt_id)),
 		nr_pages);
+	if (err < 0) {
+		nvgpu_err(g, "failed to create mem from physical addr");
+		return err;
+	}
+
 	syncpt_buf->gpu_va = nvgpu_gmmu_map(c->vm, syncpt_buf,
 			g->syncpt_size, 0, gk20a_mem_flag_none,
 			false, APERTURE_SYSMEM);

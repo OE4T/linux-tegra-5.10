@@ -27,8 +27,136 @@
 struct gk20a;
 struct unit_module;
 
+/** @addtogroup SWUTS-nvgpu-sync
+ *  @{
+ *
+ * Software Unit Test Specification for nvgpu-sync
+ */
+
+/**
+ * Test specification for: test_sync_init
+ *
+ * Description: Environment initialization for tests
+ *
+ * Test Type: Feature based
+ *
+ * Input: None
+ *
+ * Steps:
+ * - init FIFO register space.
+ * - init HAL parameters for gv11b.
+ * - init required for getting the sync ops initialized.
+ * - init g->nvhost_dev containing sync metadata.
+ * - alloc memory for g->syncpt_mem.
+ * - alloc memory for channel.
+ * - alloc and init a VM for the channel.
+ *
+ * Output: Returns PASS if all the above steps are successful. FAIL otherwise.
+ */
 int test_sync_init(struct unit_module *m, struct gk20a *g, void *args);
+
+/**
+ * Test specification for: test_sync_deinit
+ *
+ * Description: Environment de-initialization for tests
+ *
+ * Test Type: Feature based
+ *
+ * Input: test_sync_init run for this GPU
+ *
+ * Steps:
+ * - put reference to VM put.
+ * - free channel memory.
+ * - free memory for g->syncpt_mem.
+ * - free g->nvhost_dev.
+ * - clear FIFO register space.
+ *
+ * Output: Returns PASS if all the above steps are successful. FAIL otherwise.
+ */
 int test_sync_deinit(struct unit_module *m, struct gk20a *g, void *args);
-int test_sync_create_sync(struct unit_module *m, struct gk20a *g, void *args);
+
+/**
+ * Test specification for: test_sync_create_destroy_sync
+ *
+ * Description: Branch coverage for nvgpu_channel_sync_{create/destroy} success
+ *
+ * Test Type: Feature based
+ *
+ * Targets: nvgpu_channel_sync_create, nvgpu_has_syncpoints,
+ *	    nvgpu_channel_sync_syncpt_create,
+ *	    nvgpu_nvhost_get_syncpt_client_managed,
+ *	    gv11b_syncpt_alloc_buf,
+ *	    set_syncpt_ro_map_gpu_va_locked,
+ *	    nvgpu_channel_sync_destroy,
+ *	    channel_sync_syncpt_destroy,
+ *	    gv11b_syncpt_free_buf
+ *
+ * Input: test_sync_init run for this GPU
+ *
+ * Steps:
+ * - Check valid cases for nvgpu_channel_sync_create:
+ *    - Pass a valid channel to the API and pass usermanaged = true.
+ *    	- vm->syncpt_ro_map_gpu_va is not already allocated.
+ *      - vm->syncpt_ro_map_gpu_va is already allocated.
+ * - Check valid cases for nvgpu_channel_sync_destroy:
+ *    - Set set_safe_state = true.
+ *    - Set set_safe_state = false.
+ *
+ * Output: Returns PASS if a valid syncpoint is created. FAIL otherwise.
+ */
+int test_sync_create_destroy_sync(struct unit_module *m, struct gk20a *g, void *args);
+
+/**
+ * Test specification for: test_sync_set_safe_state
+ *
+ * Description: Branch coverage for nvgpu_channel_sync_set_safe_state
+ *
+ * Test Type: Feature based
+ *
+ * Targets: nvgpu_channel_sync_set_safe_state
+ *
+ * Input: test_sync_init run for this GPU
+ *
+ * Steps:
+ * - Check if the syncpoint_value is incremented by a predefined fixed amount
+ *
+ * Output: Returns PASS if the above increment occurs correctly. FAIL otherwise.
+ */
+int test_sync_set_safe_state(struct unit_module *m, struct gk20a *g, void *args);
+
+/**
+ * Test specification for: test_sync_create_fail
+ *
+ * Description: Branch coverage for nvgpu_channel_sync_create failure
+ *
+ * Test Type: Feature based
+ *
+ * Targets: nvgpu_channel_sync_create, nvgpu_has_syncpoints,
+ *	    nvgpu_channel_sync_syncpt_create,
+ *	    nvgpu_nvhost_get_syncpt_client_managed,
+ *	    gv11b_syncpt_alloc_buf,
+ *	    set_syncpt_ro_map_gpu_va_locked,
+ *	    nvgpu_channel_sync_destroy,
+ *	    channel_sync_syncpt_destroy,
+ *	    gv11b_syncpt_free_buf
+ *
+ * Input: test_sync_init run for this GPU
+ *
+ * Steps:
+ * - Check failure cases for nvgpu_channel_sync_create:
+ *    - pass user_managed = FALSE.
+ *    - allocation of memory for struct nvgpu_channel_sync_syncpt fails.
+ *    - nvgpu_nvhost_get_syncpt_client_managed() returns invalid syncpoint i.e.
+ *	syncpt_id returned = 0.
+ *    - failure of alloc_buf() HAL
+ *	- syncpt read-only map failure.
+ *      - failure of allocation of memory for syncpt_buf.
+ *      - failure to map the memory allocated for syncpt_buf.
+ *
+ * Output: Returns PASS if NULL is returned. FAIL otherwise.
+ */
+int test_sync_create_fail(struct unit_module *m, struct gk20a *g, void *args);
+
+/** @} */
 
 #endif /* UNIT_NVGPU_SYNC_H */

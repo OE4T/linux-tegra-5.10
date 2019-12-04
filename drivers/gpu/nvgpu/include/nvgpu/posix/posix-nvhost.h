@@ -25,11 +25,16 @@
 
 #include <nvgpu/types.h>
 
+#define NUM_HW_PTS 		704U
+#define SYNCPT_SAFE_STATE_INCR  256U
+
 struct gk20a;
 struct nvgpu_nvhost_dev {
 	u32 host1x_sp_base;
 	u32 host1x_sp_size;
 	u32 nb_hw_pts;
+	u32 syncpt_id;
+	u32 syncpt_value;
 };
 
 void nvgpu_free_nvhost_dev(struct gk20a *g);

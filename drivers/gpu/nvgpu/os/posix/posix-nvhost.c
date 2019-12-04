@@ -38,17 +38,31 @@ void nvgpu_free_nvhost_dev(struct gk20a *g) {
 	}
 }
 
+static void allocate_new_syncpt(struct nvgpu_nvhost_dev *nvgpu_syncpt_dev)
+{
+	u32 syncpt_id, syncpt_val;
+
+	srand(time(NULL));
+
+	/* Limit the range between {1, NUM_HW_PTS} */
+	syncpt_id = (rand() % NUM_HW_PTS) + 1;
+	/* Limit the range between {1, UINT_MAX - SYNCPT_SAFE_STATE_INCR - 1} */
+	syncpt_val = (rand() % (UINT_MAX - SYNCPT_SAFE_STATE_INCR - 1));
+
+	nvgpu_syncpt_dev->syncpt_id = syncpt_id;
+	nvgpu_syncpt_dev->syncpt_value = syncpt_val;
+}
+
 int nvgpu_get_nvhost_dev(struct gk20a *g)
 {
 	int ret = 0;
-
 	g->nvhost_dev = nvgpu_kzalloc(g, sizeof(struct nvgpu_nvhost_dev));
 	if (g->nvhost_dev == NULL) {
 		return -ENOMEM;
 	}
 
 	g->nvhost_dev->host1x_sp_base = 0x60000000;
-	g->nvhost_dev->host1x_sp_size = 0x400000;
+	g->nvhost_dev->host1x_sp_size = 0x4000;
 	g->nvhost_dev->nb_hw_pts = 704U;
 	ret = nvgpu_nvhost_syncpt_unit_interface_get_aperture(
 				g->nvhost_dev, &g->syncpt_unit_base,
@@ -91,24 +105,38 @@ u32 nvgpu_nvhost_syncpt_unit_interface_get_byte_offset(u32 syncpt_id)
 void nvgpu_nvhost_syncpt_set_min_eq_max_ext(
 	struct nvgpu_nvhost_dev *nvhost_dev, u32 id)
 {
-	BUG();
 }
 
 void nvgpu_nvhost_syncpt_put_ref_ext(
 	struct nvgpu_nvhost_dev *nvhost_dev, u32 id)
 {
-	BUG();
+	nvhost_dev->syncpt_id = 0U;
+	nvhost_dev->syncpt_value = 0U;
 }
 
 u32 nvgpu_nvhost_get_syncpt_client_managed(
 	struct nvgpu_nvhost_dev *nvhost_dev,
 	const char *syncpt_name)
 {
-	return 0U;
+	/* Only allocate new syncpt if nothing exists already */
+	if (nvhost_dev->syncpt_id == 0U) {
+		allocate_new_syncpt(nvhost_dev);
+	} else {
+		nvhost_dev->syncpt_id = 0U;
+	}
+
+	return nvhost_dev->syncpt_id;
 }
 
 void nvgpu_nvhost_syncpt_set_safe_state(
 	struct nvgpu_nvhost_dev *nvhost_dev, u32 id)
 {
-	BUG();
+	u32 syncpt_value_cur;
+
+	if (nvhost_dev->syncpt_id == id) {
+		syncpt_value_cur = nvhost_dev->syncpt_value;
+		nvhost_dev->syncpt_value =
+			nvgpu_safe_add_u32(syncpt_value_cur,
+				SYNCPT_SAFE_STATE_INCR);
+	}
 }
