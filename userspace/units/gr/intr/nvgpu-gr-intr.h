@@ -27,7 +27,7 @@
 struct gk20a;
 struct unit_module;
 
-/** @addtogroup SWUTS-common-gr-intr
+/** @addtogroup SWUTS-gr-intr
  *  @{
  *
  * Software Unit Test Specification for common.gr.intr

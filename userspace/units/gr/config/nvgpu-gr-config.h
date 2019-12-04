@@ -27,7 +27,7 @@
 struct gk20a;
 struct unit_module;
 
-/** @addtogroup SWUTS-common-gr-config
+/** @addtogroup SWUTS-gr-config
  *  @{
  *
  * Software Unit Test Specification for common.gr.config
