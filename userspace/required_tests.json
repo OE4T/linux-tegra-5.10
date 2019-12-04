@@ -1056,6 +1056,78 @@
         "test_level": 0
     },
     {
+        "test": "test_enable_disable_reset",
+        "case": "enable_disable_reset",
+        "unit": "mc",
+        "test_level": 0
+    },
+    {
+        "test": "test_is_stall_and_eng_intr_pending",
+        "case": "intr_is_stall_and_eng_intr_pending",
+        "unit": "mc",
+        "test_level": 0
+    },
+    {
+        "test": "test_intr_stall",
+        "case": "intr_stall",
+        "unit": "mc",
+        "test_level": 0
+    },
+    {
+        "test": "test_is_intr1_pending",
+        "case": "is_intr1_pending",
+        "unit": "mc",
+        "test_level": 0
+    },
+    {
+        "test": "test_isr_nonstall",
+        "case": "isr_nonstall",
+        "unit": "mc",
+        "test_level": 0
+    },
+    {
+        "test": "test_isr_stall",
+        "case": "isr_stall",
+        "unit": "mc",
+        "test_level": 0
+    },
+    {
+        "test": "test_free_env",
+        "case": "mc_free_env",
+        "unit": "mc",
+        "test_level": 0
+    },
+    {
+        "test": "test_setup_env",
+        "case": "mc_setup_env",
+        "unit": "mc",
+        "test_level": 0
+    },
+    {
+        "test": "test_pause_resume_mask",
+        "case": "pause_resume_mask",
+        "unit": "mc",
+        "test_level": 0
+    },
+    {
+        "test": "test_reset_mask",
+        "case": "reset_mask",
+        "unit": "mc",
+        "test_level": 0
+    },
+    {
+        "test": "test_unit_config",
+        "case": "unit_config",
+        "unit": "mc",
+        "test_level": 0
+    },
+    {
+        "test": "test_wait_for_deferred_interrupts",
+        "case": "wait_for_deferred_interrupts",
+        "unit": "mc",
+        "test_level": 0
+    },
+    {
         "test": "test_as_alloc_share",
         "case": "as_alloc_share_0k_um",
         "unit": "mm.as",

@@ -436,6 +436,13 @@ nvgpu_kmem_get_fault_injection
 nvgpu_kzalloc_impl
 nvgpu_vmalloc_impl
 nvgpu_log_msg_impl
+nvgpu_mc_intr_mask
+nvgpu_mc_intr_nonstall_pause
+nvgpu_mc_intr_nonstall_resume
+nvgpu_mc_intr_nonstall_unit_config
+nvgpu_mc_intr_stall_pause
+nvgpu_mc_intr_stall_resume
+nvgpu_mc_intr_stall_unit_config
 nvgpu_memset
 nvgpu_mem_create_from_phys
 nvgpu_mem_iommu_translate
@@ -613,6 +620,7 @@ nvgpu_vm_put
 nvgpu_vm_put_buffers
 nvgpu_vm_unmap
 nvgpu_vzalloc_impl
+nvgpu_wait_for_deferred_interrupts
 nvgpu_writel
 nvgpu_writel_check
 nvgpu_clear_bit

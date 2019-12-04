@@ -62,6 +62,7 @@ UNITS :=				\
 	$(UNIT_SRC)/interface/lock	\
 	$(UNIT_SRC)/interface/atomic	\
 	$(UNIT_SRC)/interface/rbtree	\
+	$(UNIT_SRC)/mc			\
 	$(UNIT_SRC)/mm/nvgpu_sgt	\
 	$(UNIT_SRC)/mm/allocators/buddy_allocator	\
 	$(UNIT_SRC)/mm/allocators/nvgpu_allocator	\
