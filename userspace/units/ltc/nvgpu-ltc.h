@@ -337,4 +337,33 @@ int test_determine_L2_size_bytes(struct unit_module *m,
  */
 int test_ltc_set_enabled(struct unit_module *m,	struct gk20a *g, void *args);
 
+/**
+ * Test specification for: test_flush_ltc
+ *
+ * Description: Validate the ltc API to flush the cache.
+ *
+ * Test Type: Feature based
+ *
+ * Targets: gm20b_flush_ltc
+ *
+ * Input: None
+ *
+ * Steps:
+ * - Configure the registers to reflect the clean and invalidate has completed
+ *   for each ltc.
+ * - Call the flush API.
+ * - Configure the registers to reflect the clean and invalidate are pending
+ *   for each ltc.
+ * - Call the flush API to get branch coverage of the timeout handling.
+ * - Enable the timer fault injection.
+ * - Call the flush API to get branch coverage of the handling of the error.
+ *
+ * Output: Returns PASS if register is configured correctly. FAIL otherwise.
+ */
+int test_flush_ltc(struct unit_module *m, struct gk20a *g, void *args);
+
+/**
+ * @}
+ */
+
 #endif /* UNIT_NVGPU_LTC_H */

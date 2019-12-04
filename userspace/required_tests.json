@@ -1128,6 +1128,12 @@
         "test_level": 0
     },
     {
+        "test": "test_flush_ltc",
+        "case": "ltc_flush",
+        "unit": "nvgpu-ltc",
+        "test_level": 0
+    },
+    {
         "test": "test_netlist_init_support",
         "case": "netlist_init_support",
         "unit": "nvgpu-netlist",

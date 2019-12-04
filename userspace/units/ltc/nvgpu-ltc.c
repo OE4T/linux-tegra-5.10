@@ -623,6 +623,49 @@ int test_ltc_set_enabled(struct unit_module *m,	struct gk20a *g, void *args)
 	return UNIT_SUCCESS;
 }
 
+int test_flush_ltc(struct unit_module *m, struct gk20a *g, void *args)
+{
+	int ret = UNIT_SUCCESS;
+	int i;
+	u32 stride =  nvgpu_get_litter_value(g, GPU_LIT_LTC_STRIDE);
+	struct nvgpu_posix_fault_inj *timer_fi =
+			nvgpu_timers_get_fault_injection();
+
+	/* make it appear the clean & invalidate completed */
+	for (i = 0; i < NUM_LTC; i++) {
+		nvgpu_posix_io_writel_reg_space(g,
+				ltc_ltc0_ltss_tstg_cmgmt1_r() + (i * stride),
+				0x0);
+		nvgpu_posix_io_writel_reg_space(g,
+				ltc_ltc0_ltss_tstg_cmgmt0_r() + (i * stride),
+				0x0);
+	}
+
+	g->ops.ltc.flush(g);
+
+	/*
+	 * make it appear the clean & invalidate are pending to validate
+	 * timeouts
+	 */
+	for (i = 0; i < NUM_LTC; i++) {
+		nvgpu_posix_io_writel_reg_space(g,
+			ltc_ltc0_ltss_tstg_cmgmt1_r() + (i * stride),
+			ltc_ltc0_ltss_tstg_cmgmt1_clean_pending_f());
+		nvgpu_posix_io_writel_reg_space(g,
+			ltc_ltc0_ltss_tstg_cmgmt0_r() + (i * stride),
+			ltc_ltc0_ltss_tstg_cmgmt0_invalidate_pending_f());
+	}
+
+	g->ops.ltc.flush(g);
+
+	/* enable fault injection for the timer init call for branch coverage */
+	nvgpu_posix_enable_fault_injection(timer_fi, true, 0);
+	g->ops.ltc.flush(g);
+	nvgpu_posix_enable_fault_injection(timer_fi, false, 0);
+
+	return ret;
+}
+
 struct unit_module_test nvgpu_ltc_tests[] = {
 	UNIT_TEST(ltc_init_support, test_ltc_init_support, NULL, 0),
 	UNIT_TEST(ltc_ecc_init_free, test_ltc_ecc_init_free, NULL, 0),
@@ -634,6 +677,7 @@ struct unit_module_test nvgpu_ltc_tests[] = {
 	UNIT_TEST(ltc_intr_configure, test_ltc_intr_configure, NULL, 0),
 	UNIT_TEST(ltc_determine_L2_size, test_determine_L2_size_bytes, NULL, 0),
 	UNIT_TEST(ltc_set_enabled, test_ltc_set_enabled, NULL, 0),
+	UNIT_TEST(ltc_flush, test_flush_ltc, NULL, 0),
 	UNIT_TEST(ltc_negative_tests, test_ltc_negative_tests, NULL, 0),
 	UNIT_TEST(ltc_remove_support, test_ltc_remove_support, NULL, 0),
 };
