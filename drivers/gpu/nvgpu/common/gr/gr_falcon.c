@@ -378,6 +378,20 @@ clean_up:
 	return err;
 }
 
+static void nvgpu_gr_falcon_bind_instblk(struct gk20a *g,
+					struct nvgpu_gr_falcon *falcon)
+{
+	struct nvgpu_ctxsw_ucode_info *ucode_info =
+					&falcon->ctxsw_ucode_info;
+	u64 inst_ptr;
+
+	inst_ptr = nvgpu_inst_block_addr(g, &ucode_info->inst_blk_desc);
+
+	g->ops.gr.falcon.bind_instblk(g, &ucode_info->inst_blk_desc,
+					inst_ptr);
+
+}
+
 #ifdef CONFIG_NVGPU_GR_FALCON_NON_SECURE_BOOT
 static void nvgpu_gr_falcon_load_dmem(struct gk20a *g)
 {
@@ -414,21 +428,6 @@ static void nvgpu_gr_falcon_load_imem(struct gk20a *g)
 	g->ops.gr.falcon.load_fecs_imem(g, ucode_u32_data, ucode_u32_size);
 
 	nvgpu_log_fn(g, "done");
-}
-#endif
-
-static void nvgpu_gr_falcon_bind_instblk(struct gk20a *g,
-					struct nvgpu_gr_falcon *falcon)
-{
-	struct nvgpu_ctxsw_ucode_info *ucode_info =
-					&falcon->ctxsw_ucode_info;
-	u64 inst_ptr;
-
-	inst_ptr = nvgpu_inst_block_addr(g, &ucode_info->inst_blk_desc);
-
-	g->ops.gr.falcon.bind_instblk(g, &ucode_info->inst_blk_desc,
-					inst_ptr);
-
 }
 
 static void nvgpu_gr_falcon_load_ctxsw_ucode_header(struct gk20a *g,
@@ -472,8 +471,6 @@ static void nvgpu_gr_falcon_load_ctxsw_ucode_segments(
 					addr_base, segments, reg_offset);
 }
 
-
-#ifdef CONFIG_NVGPU_GR_FALCON_NON_SECURE_BOOT
 static void nvgpu_gr_falcon_load_with_bootloader(struct gk20a *g,
 					struct nvgpu_gr_falcon *falcon)
 {
@@ -525,7 +522,6 @@ int nvgpu_gr_falcon_load_ctxsw_ucode(struct gk20a *g,
 	nvgpu_log_fn(g, "done");
 	return 0;
 }
-#endif
 
 static void nvgpu_gr_falcon_load_gpccs_with_bootloader(struct gk20a *g,
 					struct nvgpu_gr_falcon *falcon)
@@ -540,6 +536,7 @@ static void nvgpu_gr_falcon_load_gpccs_with_bootloader(struct gk20a *g,
 		&falcon->ctxsw_ucode_info.gpccs,
 		g->ops.gr.falcon.get_gpccs_start_reg_offset());
 }
+#endif
 
 #if defined(CONFIG_NVGPU_DGPU) || defined(CONFIG_NVGPU_LS_PMU)
 static int gr_falcon_sec2_or_ls_pmu_bootstrap(struct gk20a *g,
@@ -628,13 +625,16 @@ static int gr_falcon_recovery_bootstrap(struct gk20a *g,
 {
 	int err = 0;
 
+#ifdef CONFIG_NVGPU_GR_FALCON_NON_SECURE_BOOT
 	if (!nvgpu_is_enabled(g, NVGPU_SEC_SECUREGPCCS)) {
 		nvgpu_gr_falcon_load_gpccs_with_bootloader(g, falcon);
 #ifdef CONFIG_NVGPU_LS_PMU
 		err = nvgpu_pmu_lsfm_bootstrap_ls_falcon(g, g->pmu,
 				g->pmu->lsfm, BIT32(FALCON_ID_FECS));
 #endif
-	} else {
+	} else
+#endif
+	{
 		/* bind WPR VA inst block */
 		nvgpu_gr_falcon_bind_instblk(g, falcon);
 #if defined(CONFIG_NVGPU_DGPU) || defined(CONFIG_NVGPU_LS_PMU)
@@ -654,9 +654,12 @@ static int gr_falcon_recovery_bootstrap(struct gk20a *g,
 static void gr_falcon_coldboot_bootstrap(struct gk20a *g,
 					struct nvgpu_gr_falcon *falcon)
 {
+#ifdef CONFIG_NVGPU_GR_FALCON_NON_SECURE_BOOT
 	if (!nvgpu_is_enabled(g, NVGPU_SEC_SECUREGPCCS)) {
 		nvgpu_gr_falcon_load_gpccs_with_bootloader(g, falcon);
-	} else {
+	} else
+#endif
+	{
 		/* bind WPR VA inst block */
 		nvgpu_gr_falcon_bind_instblk(g, falcon);
 	}

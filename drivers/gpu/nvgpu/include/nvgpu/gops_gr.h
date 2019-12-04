@@ -295,13 +295,6 @@ struct gops_gr_falcon {
 	void (*start_gpccs)(struct gk20a *g);
 	void (*start_fecs)(struct gk20a *g);
 	u32 (*get_gpccs_start_reg_offset)(void);
-	void (*load_ctxsw_ucode_header)(struct gk20a *g,
-				u32 reg_offset, u32 boot_signature,
-				u32 addr_code32, u32 addr_data32,
-				u32 code_size, u32 data_size);
-	void (*load_ctxsw_ucode_boot)(struct gk20a *g,
-				u32 reg_offset, u32 boot_entry,
-				u32 addr_load32, u32 blocks, u32 dst);
 	int (*load_ctxsw_ucode)(struct gk20a *g,
 				struct nvgpu_gr_falcon *falcon);
 	int (*wait_mem_scrubbing)(struct gk20a *g);
@@ -318,6 +311,13 @@ struct gops_gr_falcon {
 	void (*bind_instblk)(struct gk20a *g,
 			     struct nvgpu_mem *mem, u64 inst_ptr);
 #ifdef CONFIG_NVGPU_GR_FALCON_NON_SECURE_BOOT
+	void (*load_ctxsw_ucode_header)(struct gk20a *g,
+				u32 reg_offset, u32 boot_signature,
+				u32 addr_code32, u32 addr_data32,
+				u32 code_size, u32 data_size);
+	void (*load_ctxsw_ucode_boot)(struct gk20a *g,
+				u32 reg_offset, u32 boot_entry,
+				u32 addr_load32, u32 blocks, u32 dst);
 	void (*load_gpccs_dmem)(struct gk20a *g,
 				const u32 *ucode_u32_data, u32 size);
 	void (*load_fecs_dmem)(struct gk20a *g,

@@ -37,10 +37,12 @@ int gp10b_gr_falcon_init_ctx_state(struct gk20a *g,
 	nvgpu_log_fn(g, " ");
 
 	err = gm20b_gr_falcon_init_ctx_state(g, sizes);
+
+#ifdef CONFIG_NVGPU_GRAPHICS
 	if (err != 0) {
 		return err;
 	}
-#ifdef CONFIG_NVGPU_GRAPHICS
+
 	err = g->ops.gr.falcon.ctrl_ctxsw(g,
 		NVGPU_GR_FALCON_METHOD_PREEMPT_IMAGE_SIZE, 0U,
 		&sizes->preempt_image_size);

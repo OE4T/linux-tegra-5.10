@@ -750,25 +750,11 @@ static const struct gpu_ops tu104_ops = {
 				gm20b_gr_falcon_get_fecs_ctxsw_mailbox_size,
 			.get_fecs_ctx_state_store_major_rev_id =
 				gm20b_gr_falcon_get_fecs_ctx_state_store_major_rev_id,
-#ifdef CONFIG_NVGPU_GR_FALCON_NON_SECURE_BOOT
-			.load_gpccs_dmem = gm20b_gr_falcon_load_gpccs_dmem,
-			.load_fecs_dmem = gm20b_gr_falcon_load_fecs_dmem,
-			.load_gpccs_imem = gm20b_gr_falcon_load_gpccs_imem,
-			.load_fecs_imem = gm20b_gr_falcon_load_fecs_imem,
-			.start_ucode = gm20b_gr_falcon_start_ucode,
-#endif
-#ifdef CONFIG_NVGPU_SIM
-			.configure_fmodel = gm20b_gr_falcon_configure_fmodel,
-#endif
 			.start_gpccs = gm20b_gr_falcon_start_gpccs,
 			.start_fecs = gm20b_gr_falcon_start_fecs,
 			.get_gpccs_start_reg_offset =
 				gm20b_gr_falcon_get_gpccs_start_reg_offset,
 			.bind_instblk = gm20b_gr_falcon_bind_instblk,
-			.load_ctxsw_ucode_header =
-				gm20b_gr_falcon_load_ctxsw_ucode_header,
-			.load_ctxsw_ucode_boot =
-				gm20b_gr_falcon_load_ctxsw_ucode_boot,
 			.load_ctxsw_ucode =
 				nvgpu_gr_falcon_load_secure_ctxsw_ucode,
 			.wait_mem_scrubbing =
@@ -786,6 +772,20 @@ static const struct gpu_ops tu104_ops = {
 				gm20b_gr_falcon_read_fecs_ctxsw_status0,
 			.read_fecs_ctxsw_status1 =
 				gm20b_gr_falcon_read_fecs_ctxsw_status1,
+#ifdef CONFIG_NVGPU_GR_FALCON_NON_SECURE_BOOT
+			.load_ctxsw_ucode_header =
+				gm20b_gr_falcon_load_ctxsw_ucode_header,
+			.load_ctxsw_ucode_boot =
+				gm20b_gr_falcon_load_ctxsw_ucode_boot,
+			.load_gpccs_dmem = gm20b_gr_falcon_load_gpccs_dmem,
+			.load_fecs_dmem = gm20b_gr_falcon_load_fecs_dmem,
+			.load_gpccs_imem = gm20b_gr_falcon_load_gpccs_imem,
+			.load_fecs_imem = gm20b_gr_falcon_load_fecs_imem,
+			.start_ucode = gm20b_gr_falcon_start_ucode,
+#endif
+#ifdef CONFIG_NVGPU_SIM
+			.configure_fmodel = gm20b_gr_falcon_configure_fmodel,
+#endif
 		},
 	},
 	.gpu_class = {

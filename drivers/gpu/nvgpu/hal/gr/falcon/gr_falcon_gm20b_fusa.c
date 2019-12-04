@@ -174,138 +174,6 @@ NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Rule, 15_6))
 
 }
 
-static void gm20b_gr_falcon_program_fecs_dmem_data(struct gk20a *g,
-			u32 reg_offset, u32 addr_code32, u32 addr_data32,
-			u32 code_size, u32 data_size)
-{
-	u32 offset = nvgpu_safe_add_u32(reg_offset, gr_fecs_dmemd_r(0));
-
-	nvgpu_writel(g, offset, 0);
-	nvgpu_writel(g, offset, 0);
-	nvgpu_writel(g, offset, 0);
-	nvgpu_writel(g, offset, 0);
-	nvgpu_writel(g, offset, 4);
-	nvgpu_writel(g, offset, addr_code32);
-	nvgpu_writel(g, offset, 0);
-	nvgpu_writel(g, offset, code_size);
-	nvgpu_writel(g, offset, 0);
-	nvgpu_writel(g, offset, 0);
-	nvgpu_writel(g, offset, 0);
-	nvgpu_writel(g, offset, addr_data32);
-	nvgpu_writel(g, offset, data_size);
-}
-
-void gm20b_gr_falcon_load_ctxsw_ucode_header(struct gk20a *g,
-	u32 reg_offset, u32 boot_signature, u32 addr_code32,
-	u32 addr_data32, u32 code_size, u32 data_size)
-{
-	u32 offset = nvgpu_safe_add_u32(reg_offset, gr_fecs_dmemd_r(0));
-
-	nvgpu_writel(g, nvgpu_safe_add_u32(reg_offset, gr_fecs_dmactl_r()),
-			gr_fecs_dmactl_require_ctx_f(0));
-
-	/*
-	 * Copy falcon bootloader header into dmem at offset 0.
-	 * Configure dmem port 0 for auto-incrementing writes starting at dmem
-	 * offset 0.
-	 */
-	nvgpu_writel(g, nvgpu_safe_add_u32(reg_offset, gr_fecs_dmemc_r(0)),
-			gr_fecs_dmemc_offs_f(0) |
-			gr_fecs_dmemc_blk_f(0) |
-			gr_fecs_dmemc_aincw_f(1));
-
-	/* Write out the actual data */
-	switch (boot_signature) {
-	case FALCON_UCODE_SIG_T18X_GPCCS_WITH_RESERVED:
-	case FALCON_UCODE_SIG_T21X_FECS_WITH_DMEM_SIZE:
-	case FALCON_UCODE_SIG_T21X_FECS_WITH_RESERVED:
-	case FALCON_UCODE_SIG_T21X_GPCCS_WITH_RESERVED:
-	case FALCON_UCODE_SIG_T12X_FECS_WITH_RESERVED:
-	case FALCON_UCODE_SIG_T12X_GPCCS_WITH_RESERVED:
-		nvgpu_writel(g, offset, 0);
-		nvgpu_writel(g, offset, 0);
-		nvgpu_writel(g, offset, 0);
-		nvgpu_writel(g, offset, 0);
-		gm20b_gr_falcon_program_fecs_dmem_data(g, reg_offset,
-			addr_code32, addr_data32, code_size, data_size);
-		break;
-	case FALCON_UCODE_SIG_T12X_FECS_WITHOUT_RESERVED:
-	case FALCON_UCODE_SIG_T12X_GPCCS_WITHOUT_RESERVED:
-	case FALCON_UCODE_SIG_T21X_FECS_WITHOUT_RESERVED:
-	case FALCON_UCODE_SIG_T21X_FECS_WITHOUT_RESERVED2:
-	case FALCON_UCODE_SIG_T21X_GPCCS_WITHOUT_RESERVED:
-		gm20b_gr_falcon_program_fecs_dmem_data(g, reg_offset,
-			addr_code32, addr_data32, code_size, data_size);
-		break;
-	case FALCON_UCODE_SIG_T12X_FECS_OLDER:
-	case FALCON_UCODE_SIG_T12X_GPCCS_OLDER:
-		nvgpu_writel(g, offset, 0);
-		nvgpu_writel(g, offset, addr_code32);
-		nvgpu_writel(g, offset, 0);
-		nvgpu_writel(g, offset, code_size);
-		nvgpu_writel(g, offset, 0);
-		nvgpu_writel(g, offset, addr_data32);
-		nvgpu_writel(g, offset, data_size);
-		nvgpu_writel(g, offset, addr_code32);
-		nvgpu_writel(g, offset, 0);
-		nvgpu_writel(g, offset, 0);
-		break;
-	default:
-		nvgpu_err(g,
-				"unknown falcon ucode boot signature 0x%08x"
-				" with reg_offset 0x%08x",
-				boot_signature, reg_offset);
-		BUG();
-		break;
-	}
-}
-
-void gm20b_gr_falcon_load_ctxsw_ucode_boot(struct gk20a *g, u32 reg_offset,
-			u32 boot_entry, u32 addr_load32, u32 blocks, u32 dst)
-{
-	u32 b;
-
-	/*
-	 * Set the base FB address for the DMA transfer. Subtract off the 256
-	 * byte IMEM block offset such that the relative FB and IMEM offsets
-	 * match, allowing the IMEM tags to be properly created.
-	 */
-
-	nvgpu_writel(g, nvgpu_safe_add_u32(reg_offset,
-				gr_fecs_dmatrfbase_r()),
-			nvgpu_safe_sub_u32(addr_load32, (dst >> 8)));
-
-	for (b = 0; b < blocks; b++) {
-		/* Setup destination IMEM offset */
-		nvgpu_writel(g, nvgpu_safe_add_u32(reg_offset,
-					gr_fecs_dmatrfmoffs_r()),
-				nvgpu_safe_add_u32(dst, (b << 8)));
-
-		/* Setup source offset (relative to BASE) */
-		nvgpu_writel(g, nvgpu_safe_add_u32(reg_offset,
-					gr_fecs_dmatrffboffs_r()),
-				nvgpu_safe_add_u32(dst, (b << 8)));
-
-		nvgpu_writel(g, nvgpu_safe_add_u32(reg_offset,
-						gr_fecs_dmatrfcmd_r()),
-				gr_fecs_dmatrfcmd_imem_f(0x01) |
-				gr_fecs_dmatrfcmd_write_f(0x00) |
-				gr_fecs_dmatrfcmd_size_f(0x06) |
-				gr_fecs_dmatrfcmd_ctxdma_f(0));
-	}
-
-	/* Specify the falcon boot vector */
-	nvgpu_writel(g, nvgpu_safe_add_u32(reg_offset, gr_fecs_bootvec_r()),
-			gr_fecs_bootvec_vec_f(boot_entry));
-
-	/* start the falcon immediately if PRIV security is disabled*/
-	if (!nvgpu_is_enabled(g, NVGPU_SEC_PRIVSECURITY)) {
-		nvgpu_writel(g, nvgpu_safe_add_u32(reg_offset,
-						gr_fecs_cpuctl_r()),
-				gr_fecs_cpuctl_startcpu_f(0x01));
-	}
-}
-
 int gm20b_gr_falcon_wait_mem_scrubbing(struct gk20a *g)
 {
 	struct nvgpu_timeout timeout;
@@ -993,6 +861,140 @@ u32 gm20b_gr_falcon_read_fecs_ctxsw_status1(struct gk20a *g)
 {
 	return nvgpu_readl(g, gr_fecs_ctxsw_status_1_r());
 }
+
+#ifdef CONFIG_NVGPU_GR_FALCON_NON_SECURE_BOOT
+static void gm20b_gr_falcon_program_fecs_dmem_data(struct gk20a *g,
+			u32 reg_offset, u32 addr_code32, u32 addr_data32,
+			u32 code_size, u32 data_size)
+{
+	u32 offset = nvgpu_safe_add_u32(reg_offset, gr_fecs_dmemd_r(0));
+
+	nvgpu_writel(g, offset, 0);
+	nvgpu_writel(g, offset, 0);
+	nvgpu_writel(g, offset, 0);
+	nvgpu_writel(g, offset, 0);
+	nvgpu_writel(g, offset, 4);
+	nvgpu_writel(g, offset, addr_code32);
+	nvgpu_writel(g, offset, 0);
+	nvgpu_writel(g, offset, code_size);
+	nvgpu_writel(g, offset, 0);
+	nvgpu_writel(g, offset, 0);
+	nvgpu_writel(g, offset, 0);
+	nvgpu_writel(g, offset, addr_data32);
+	nvgpu_writel(g, offset, data_size);
+}
+
+void gm20b_gr_falcon_load_ctxsw_ucode_header(struct gk20a *g,
+	u32 reg_offset, u32 boot_signature, u32 addr_code32,
+	u32 addr_data32, u32 code_size, u32 data_size)
+{
+	u32 offset = nvgpu_safe_add_u32(reg_offset, gr_fecs_dmemd_r(0));
+
+	nvgpu_writel(g, nvgpu_safe_add_u32(reg_offset, gr_fecs_dmactl_r()),
+			gr_fecs_dmactl_require_ctx_f(0));
+
+	/*
+	 * Copy falcon bootloader header into dmem at offset 0.
+	 * Configure dmem port 0 for auto-incrementing writes starting at dmem
+	 * offset 0.
+	 */
+	nvgpu_writel(g, nvgpu_safe_add_u32(reg_offset, gr_fecs_dmemc_r(0)),
+			gr_fecs_dmemc_offs_f(0) |
+			gr_fecs_dmemc_blk_f(0) |
+			gr_fecs_dmemc_aincw_f(1));
+
+	/* Write out the actual data */
+	switch (boot_signature) {
+	case FALCON_UCODE_SIG_T18X_GPCCS_WITH_RESERVED:
+	case FALCON_UCODE_SIG_T21X_FECS_WITH_DMEM_SIZE:
+	case FALCON_UCODE_SIG_T21X_FECS_WITH_RESERVED:
+	case FALCON_UCODE_SIG_T21X_GPCCS_WITH_RESERVED:
+	case FALCON_UCODE_SIG_T12X_FECS_WITH_RESERVED:
+	case FALCON_UCODE_SIG_T12X_GPCCS_WITH_RESERVED:
+		nvgpu_writel(g, offset, 0);
+		nvgpu_writel(g, offset, 0);
+		nvgpu_writel(g, offset, 0);
+		nvgpu_writel(g, offset, 0);
+		gm20b_gr_falcon_program_fecs_dmem_data(g, reg_offset,
+			addr_code32, addr_data32, code_size, data_size);
+		break;
+	case FALCON_UCODE_SIG_T12X_FECS_WITHOUT_RESERVED:
+	case FALCON_UCODE_SIG_T12X_GPCCS_WITHOUT_RESERVED:
+	case FALCON_UCODE_SIG_T21X_FECS_WITHOUT_RESERVED:
+	case FALCON_UCODE_SIG_T21X_FECS_WITHOUT_RESERVED2:
+	case FALCON_UCODE_SIG_T21X_GPCCS_WITHOUT_RESERVED:
+		gm20b_gr_falcon_program_fecs_dmem_data(g, reg_offset,
+			addr_code32, addr_data32, code_size, data_size);
+		break;
+	case FALCON_UCODE_SIG_T12X_FECS_OLDER:
+	case FALCON_UCODE_SIG_T12X_GPCCS_OLDER:
+		nvgpu_writel(g, offset, 0);
+		nvgpu_writel(g, offset, addr_code32);
+		nvgpu_writel(g, offset, 0);
+		nvgpu_writel(g, offset, code_size);
+		nvgpu_writel(g, offset, 0);
+		nvgpu_writel(g, offset, addr_data32);
+		nvgpu_writel(g, offset, data_size);
+		nvgpu_writel(g, offset, addr_code32);
+		nvgpu_writel(g, offset, 0);
+		nvgpu_writel(g, offset, 0);
+		break;
+	default:
+		nvgpu_err(g,
+				"unknown falcon ucode boot signature 0x%08x"
+				" with reg_offset 0x%08x",
+				boot_signature, reg_offset);
+		BUG();
+		break;
+	}
+}
+
+void gm20b_gr_falcon_load_ctxsw_ucode_boot(struct gk20a *g, u32 reg_offset,
+			u32 boot_entry, u32 addr_load32, u32 blocks, u32 dst)
+{
+	u32 b;
+
+	/*
+	 * Set the base FB address for the DMA transfer. Subtract off the 256
+	 * byte IMEM block offset such that the relative FB and IMEM offsets
+	 * match, allowing the IMEM tags to be properly created.
+	 */
+
+	nvgpu_writel(g, nvgpu_safe_add_u32(reg_offset,
+				gr_fecs_dmatrfbase_r()),
+			nvgpu_safe_sub_u32(addr_load32, (dst >> 8)));
+
+	for (b = 0; b < blocks; b++) {
+		/* Setup destination IMEM offset */
+		nvgpu_writel(g, nvgpu_safe_add_u32(reg_offset,
+					gr_fecs_dmatrfmoffs_r()),
+				nvgpu_safe_add_u32(dst, (b << 8)));
+
+		/* Setup source offset (relative to BASE) */
+		nvgpu_writel(g, nvgpu_safe_add_u32(reg_offset,
+					gr_fecs_dmatrffboffs_r()),
+				nvgpu_safe_add_u32(dst, (b << 8)));
+
+		nvgpu_writel(g, nvgpu_safe_add_u32(reg_offset,
+						gr_fecs_dmatrfcmd_r()),
+				gr_fecs_dmatrfcmd_imem_f(0x01) |
+				gr_fecs_dmatrfcmd_write_f(0x00) |
+				gr_fecs_dmatrfcmd_size_f(0x06) |
+				gr_fecs_dmatrfcmd_ctxdma_f(0));
+	}
+
+	/* Specify the falcon boot vector */
+	nvgpu_writel(g, nvgpu_safe_add_u32(reg_offset, gr_fecs_bootvec_r()),
+			gr_fecs_bootvec_vec_f(boot_entry));
+
+	/* start the falcon immediately if PRIV security is disabled*/
+	if (!nvgpu_is_enabled(g, NVGPU_SEC_PRIVSECURITY)) {
+		nvgpu_writel(g, nvgpu_safe_add_u32(reg_offset,
+						gr_fecs_cpuctl_r()),
+				gr_fecs_cpuctl_startcpu_f(0x01));
+	}
+}
+#endif
 
 #ifdef CONFIG_NVGPU_GRAPHICS
 /* Sideband mailbox writes are done a bit differently */
