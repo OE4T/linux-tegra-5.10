@@ -318,6 +318,13 @@ int test_gr_setup_preemption_mode_errors(struct unit_module *m,
 		unit_return_fail(m, "Fail Preemp_mode Error Test-2\n");
 	}
 
+	/* Set invalid Class*/
+	gr_setup_ch->obj_class = 0x1234;
+	err = g->ops.gr.setup.set_preemption_mode(gr_setup_ch, 0, 0);
+	if (err == 0) {
+		unit_return_fail(m, "Fail Preemp_mode Error Test-2\n");
+	}
+
 	gr_setup_ch->obj_class = class_num;
 
 	return UNIT_SUCCESS;

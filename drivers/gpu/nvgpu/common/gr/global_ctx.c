@@ -35,6 +35,26 @@
 
 #include "global_ctx_priv.h"
 
+#ifdef NVGPU_UNITTEST_FAULT_INJECTION_ENABLEMENT
+#include <nvgpu/posix/posix-fault-injection.h>
+
+struct nvgpu_posix_fault_inj *nvgpu_golden_ctx_verif_get_fault_injection(void)
+{
+	struct nvgpu_posix_fault_inj_container *c =
+		nvgpu_posix_fault_injection_get_container();
+
+	return &c->golden_ctx_verif_fi;
+}
+
+struct nvgpu_posix_fault_inj *nvgpu_local_golden_image_get_fault_injection(void)
+{
+	struct nvgpu_posix_fault_inj_container *c =
+		nvgpu_posix_fault_injection_get_container();
+
+	return &c->local_golden_image_fi;
+}
+#endif
+
 struct nvgpu_gr_global_ctx_buffer_desc *
 nvgpu_gr_global_ctx_desc_alloc(struct gk20a *g)
 {
@@ -311,6 +331,13 @@ nvgpu_gr_global_ctx_init_local_golden_image(struct gk20a *g,
 {
 	struct nvgpu_gr_global_ctx_local_golden_image *local_golden_image;
 
+#ifdef NVGPU_UNITTEST_FAULT_INJECTION_ENABLEMENT
+	if (nvgpu_posix_fault_injection_handle_call(
+			nvgpu_local_golden_image_get_fault_injection())) {
+		return NULL;
+	}
+#endif
+
 	local_golden_image = nvgpu_kzalloc(g, sizeof(*local_golden_image));
 	if (local_golden_image == NULL) {
 		return NULL;
@@ -343,6 +370,13 @@ bool nvgpu_gr_global_ctx_compare_golden_images(struct gk20a *g,
 	u32 *data2 = local_golden_image2->context;
 #ifdef CONFIG_NVGPU_DGPU
 	u32 i;
+#endif
+
+#ifdef NVGPU_UNITTEST_FAULT_INJECTION_ENABLEMENT
+	if (nvgpu_posix_fault_injection_handle_call(
+			nvgpu_golden_ctx_verif_get_fault_injection())) {
+		return false;
+	}
 #endif
 
 	/*

@@ -108,6 +108,7 @@
  *   - @ref SWUTS-gr-fs-state
  *   - @ref SWUTS-gr-global-ctx
  *   - @ref SWUTS-gr-ctx
+ *   - @ref SWUTS-gr-obj-ctx
  *   - @ref SWUTS-gr-config
  *
  */

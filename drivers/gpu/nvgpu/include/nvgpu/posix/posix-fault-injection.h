@@ -42,6 +42,8 @@ struct nvgpu_posix_fault_inj_container {
 	struct nvgpu_posix_fault_inj fread_op;
 	struct nvgpu_posix_fault_inj kmem_fi;
 	struct nvgpu_posix_fault_inj nvgpu_fi;
+	struct nvgpu_posix_fault_inj golden_ctx_verif_fi;
+	struct nvgpu_posix_fault_inj local_golden_image_fi;
 	struct nvgpu_posix_fault_inj dma_fi;
 	struct nvgpu_posix_fault_inj queue_out_fi;
 	struct nvgpu_posix_fault_inj timers_fi;

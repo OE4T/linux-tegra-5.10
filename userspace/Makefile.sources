@@ -129,6 +129,7 @@ UNITS :=				\
 	$(UNIT_SRC)/gr/fs_state		\
 	$(UNIT_SRC)/gr/global_ctx	\
 	$(UNIT_SRC)/gr/ctx		\
+	$(UNIT_SRC)/gr/obj_ctx		\
 	$(UNIT_SRC)/gr/intr		\
 	$(UNIT_SRC)/gr/setup		\
 	$(UNIT_SRC)/acr			\

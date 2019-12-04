@@ -79,4 +79,5 @@ INPUT += ../../../userspace/units/gr/intr/nvgpu-gr-falcon.h
 INPUT += ../../../userspace/units/gr/intr/nvgpu-gr-fs-state.h
 INPUT += ../../../userspace/units/gr/intr/nvgpu-gr-global-ctx.h
 INPUT += ../../../userspace/units/gr/intr/nvgpu-gr-ctx.h
+INPUT += ../../../userspace/units/gr/intr/nvgpu-gr-obj-ctx.h
 INPUT += ../../../userspace/units/gr/config/nvgpu-gr-config.h

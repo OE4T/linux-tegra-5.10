@@ -314,6 +314,11 @@ bool nvgpu_gr_global_ctx_compare_golden_images(struct gk20a *g,
 	size_t size);
 #endif
 
+#ifdef NVGPU_UNITTEST_FAULT_INJECTION_ENABLEMENT
+struct nvgpu_posix_fault_inj *nvgpu_golden_ctx_verif_get_fault_injection(void);
+struct nvgpu_posix_fault_inj *nvgpu_local_golden_image_get_fault_injection(void);
+#endif
+
 #ifdef CONFIG_NVGPU_DEBUGGER
 u32 *nvgpu_gr_global_ctx_get_local_golden_image_ptr(
 	struct nvgpu_gr_global_ctx_local_golden_image *local_golden_image);

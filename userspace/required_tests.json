@@ -2634,6 +2634,24 @@
         "test_level": 0
     },
     {
+        "test": "test_gr_init_setup_ready",
+        "case": "gr_obj_ctx_setup",
+        "unit": "nvgpu_gr_obj_ctx",
+        "test_level": 0
+    },
+    {
+        "test": "test_gr_obj_ctx_error_injection",
+        "case": "gr_obj_ctx_alloc_errors",
+        "unit": "nvgpu_gr_obj_ctx",
+        "test_level": 0
+    },
+    {
+        "test": "test_gr_init_setup_cleanup",
+        "case": "gr_obj_ctx_cleanup",
+        "unit": "nvgpu_gr_obj_ctx",
+        "test_level": 0
+    },
+    {
         "test": "test_nvgpu_mem_create_from_phys",
         "case": "mem_create_from_phys",
         "unit": "nvgpu_mem",
