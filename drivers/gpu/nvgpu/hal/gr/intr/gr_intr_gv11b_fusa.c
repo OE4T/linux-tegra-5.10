@@ -155,9 +155,11 @@ int gv11b_gr_intr_handle_sw_method(struct gk20a *g, u32 addr,
 
 	if (class_num == VOLTA_COMPUTE_A) {
 		switch (offset << 2) {
+#ifdef CONFIG_NVGPU_HAL_NON_FUSA
 		case NVC0C0_SET_SHADER_EXCEPTIONS:
 			g->ops.gr.intr.set_shader_exceptions(g, data);
 			break;
+#endif
 		case NVC3C0_SET_SKEDCHECK:
 			gv11b_gr_intr_set_skedcheck(g, data);
 			break;
@@ -216,20 +218,6 @@ int gv11b_gr_intr_handle_sw_method(struct gk20a *g, u32 addr,
 
 fail:
 	return ret;
-}
-
-void gv11b_gr_intr_set_shader_exceptions(struct gk20a *g, u32 data)
-{
-	nvgpu_log_fn(g, " ");
-
-	if (data == NVA297_SET_SHADER_EXCEPTIONS_ENABLE_FALSE) {
-		nvgpu_writel(g, gr_gpcs_tpcs_sms_hww_warp_esr_report_mask_r(),
-				 0);
-		nvgpu_writel(g, gr_gpcs_tpcs_sms_hww_global_esr_report_mask_r(),
-				 0);
-	} else {
-		g->ops.gr.intr.set_hww_esr_report_mask(g);
-	}
 }
 
 void gv11b_gr_intr_handle_gcc_exception(struct gk20a *g, u32 gpc,
@@ -1746,6 +1734,22 @@ u32 gv11b_gr_intr_ctxsw_checksum_mismatch_mailbox_val(void)
 {
 	return gr_fecs_ctxsw_mailbox_value_ctxsw_checksum_mismatch_v();
 }
+
+#ifdef CONFIG_NVGPU_HAL_NON_FUSA
+void gv11b_gr_intr_set_shader_exceptions(struct gk20a *g, u32 data)
+{
+	nvgpu_log_fn(g, " ");
+
+	if (data == NVA297_SET_SHADER_EXCEPTIONS_ENABLE_FALSE) {
+		nvgpu_writel(g, gr_gpcs_tpcs_sms_hww_warp_esr_report_mask_r(),
+				 0);
+		nvgpu_writel(g, gr_gpcs_tpcs_sms_hww_global_esr_report_mask_r(),
+				 0);
+	} else {
+		g->ops.gr.intr.set_hww_esr_report_mask(g);
+	}
+}
+#endif
 
 #if defined(CONFIG_NVGPU_DEBUGGER) && defined(CONFIG_NVGPU_GRAPHICS)
 void gv11b_gr_intr_set_tex_in_dbg(struct gk20a *g, u32 data)
