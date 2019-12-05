@@ -226,6 +226,11 @@ u32 nvgpu_ce_engine_interrupt_mask(struct gk20a *g)
 	u32 active_engine_id = 0;
 	enum nvgpu_fifo_engine engine_enum;
 
+	if ((g->ops.ce.isr_stall == NULL) ||
+	    (g->ops.ce.isr_nonstall == NULL)) {
+		return 0U;
+	}
+
 	for (i = 0; i < g->fifo.num_engines; i++) {
 		u32 intr_mask;
 
@@ -233,14 +238,10 @@ u32 nvgpu_ce_engine_interrupt_mask(struct gk20a *g)
 		intr_mask = g->fifo.engine_info[active_engine_id].intr_mask;
 		engine_enum = g->fifo.engine_info[active_engine_id].engine_enum;
 
-		if (((engine_enum == NVGPU_ENGINE_GRCE) ||
-		     (engine_enum == NVGPU_ENGINE_ASYNC_CE)) &&
-		    ((g->ops.ce.isr_stall == NULL) ||
-		     (g->ops.ce.isr_nonstall == NULL))) {
-				continue;
+		if ((engine_enum == NVGPU_ENGINE_GRCE) ||
+		    (engine_enum == NVGPU_ENGINE_ASYNC_CE)) {
+			eng_intr_mask |= intr_mask;
 		}
-
-		eng_intr_mask |= intr_mask;
 	}
 
 	return eng_intr_mask;
