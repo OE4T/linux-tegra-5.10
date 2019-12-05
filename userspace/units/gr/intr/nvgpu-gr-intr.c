@@ -615,9 +615,9 @@ int test_gr_intr_gpc_exceptions(struct unit_module *m,
 	return UNIT_SUCCESS;
 }
 
-static void gr_intr_fecs_ecc_err_regs(struct gk20a *g)
+static void gr_intr_fecs_ecc_err_regs(struct gk20a *g, int index)
 {
-	u32 cnt = 20U;
+	u32 corr_cnt = 20U, uncorr_cnt = 20U;
 	u32 ecc_status =
 	 gr_fecs_falcon_ecc_status_corrected_err_imem_m() |
 	 gr_fecs_falcon_ecc_status_corrected_err_dmem_m() |
@@ -626,10 +626,24 @@ static void gr_intr_fecs_ecc_err_regs(struct gk20a *g)
 	 gr_fecs_falcon_ecc_status_corrected_err_total_counter_overflow_m() |
 	 gr_fecs_falcon_ecc_status_uncorrected_err_total_counter_overflow_m();
 
+	if (index == 0) {
+		ecc_status = 0U;
+		corr_cnt = 0U;
+		uncorr_cnt = 0U;
+	} else if (index == 2) {
+		corr_cnt = 0U;
+		ecc_status =
+		gr_fecs_falcon_ecc_status_corrected_err_total_counter_overflow_m();
+	} else if (index == 3) {
+		uncorr_cnt = 0U;
+		ecc_status =
+		gr_fecs_falcon_ecc_status_uncorrected_err_total_counter_overflow_m();
+	}
+
 	nvgpu_posix_io_writel_reg_space(g,
-		gr_fecs_falcon_ecc_corrected_err_count_r(), cnt);
+		gr_fecs_falcon_ecc_corrected_err_count_r(), corr_cnt);
 	nvgpu_posix_io_writel_reg_space(g,
-		gr_fecs_falcon_ecc_uncorrected_err_count_r(), cnt);
+		gr_fecs_falcon_ecc_uncorrected_err_count_r(), uncorr_cnt);
 	nvgpu_posix_io_writel_reg_space(g,
 		gr_fecs_falcon_ecc_status_r(), ecc_status);
 }
@@ -637,8 +651,11 @@ static void gr_intr_fecs_ecc_err_regs(struct gk20a *g)
 int test_gr_intr_fecs_exceptions(struct unit_module *m,
 		struct gk20a *g, void *args)
 {
-	int err, i;
-	u32 fecs_status[6] = {
+	int err, i, j = 0;
+	int arry_cnt = 10;
+
+	u32 fecs_status[10] = {
+		0,
 		gr_fecs_host_int_enable_ctxsw_intr0_enable_f() |
 		gr_fecs_host_int_enable_ctxsw_intr1_enable_f(),
 		gr_fecs_host_int_enable_fault_during_ctxsw_enable_f(),
@@ -647,9 +664,12 @@ int test_gr_intr_fecs_exceptions(struct unit_module *m,
 		gr_fecs_host_int_enable_watchdog_enable_f(),
 		gr_fecs_host_int_enable_ecc_corrected_enable_f() |
 		gr_fecs_host_int_enable_ecc_uncorrected_enable_f(),
+		gr_fecs_host_int_enable_ecc_corrected_enable_f(),
+		gr_fecs_host_int_enable_ecc_corrected_enable_f(),
+		gr_fecs_host_int_enable_ecc_uncorrected_enable_f(),
 	};
 
-	for (i = 0; i < 6; i++) {
+	for (i = 0; i < arry_cnt; i++) {
 		/* Set fecs error pending */
 		nvgpu_posix_io_writel_reg_space(g, gr_intr_r(),
 					gr_intr_fecs_error_pending_f());
@@ -659,8 +679,9 @@ int test_gr_intr_fecs_exceptions(struct unit_module *m,
 					fecs_status[i]);
 
 		/* Set fecs ecc registers */
-		if (i == 5) {
-			gr_intr_fecs_ecc_err_regs(g);
+		if (i >= 6) {
+			gr_intr_fecs_ecc_err_regs(g, j);
+			j += 1;
 		}
 
 		err = g->ops.gr.intr.stall_isr(g);
