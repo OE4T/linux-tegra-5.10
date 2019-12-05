@@ -3913,6 +3913,8 @@ static int ether_resume(struct ether_priv_data *pdata)
 	/* start the mac */
 	osi_start_mac(osi_core);
 	if (pdata->phydev && !(device_may_wakeup(&ndev->dev))) {
+		/* configure phy init */
+		phy_init_hw(pdata->phydev);
 		/* start phy */
 		phy_start(pdata->phydev);
 	}
