@@ -267,6 +267,7 @@ bool mc_gp10b_is_intr1_pending(struct gk20a *g,
 	return is_pending;
 }
 
+#ifdef CONFIG_NVGPU_NON_FUSA
 void mc_gp10b_log_pending_intrs(struct gk20a *g)
 {
 	u32 i, intr;
@@ -280,6 +281,7 @@ void mc_gp10b_log_pending_intrs(struct gk20a *g)
 	}
 
 }
+#endif
 
 void mc_gp10b_ltc_isr(struct gk20a *g)
 {
