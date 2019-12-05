@@ -1642,6 +1642,18 @@ put_padctl:
 	return err;
 }
 
+static void tegra_xusb_power_down(struct tegra_xusb *tegra)
+{
+	if (!of_property_read_bool(tegra->dev->of_node, "power-domains")) {
+		tegra_powergate_power_off(TEGRA_POWERGATE_XUSBC);
+		tegra_powergate_power_off(TEGRA_POWERGATE_XUSBA);
+	} else {
+		tegra_xusb_powerdomain_remove(tegra->dev, tegra);
+	}
+
+	tegra_xusb_phy_disable(tegra);
+}
+
 static void tegra_xusb_shutdown(struct platform_device *pdev)
 {
 	struct tegra_xusb *tegra = platform_get_drvdata(pdev);
@@ -1649,8 +1661,21 @@ static void tegra_xusb_shutdown(struct platform_device *pdev)
 	if (!tegra)
 		return;
 
-	if (tegra->hcd)
+	pm_runtime_get_sync(tegra->dev);
+	disable_irq(tegra->xhci_irq);
+
+	if (tegra->hcd) {
+		struct xhci_hcd *xhci = hcd_to_xhci(tegra->hcd);
+
+		clear_bit(HCD_FLAG_POLL_RH, &tegra->hcd->flags);
+		del_timer_sync(&tegra->hcd->rh_timer);
+		clear_bit(HCD_FLAG_POLL_RH, &xhci->shared_hcd->flags);
+		del_timer_sync(&xhci->shared_hcd->rh_timer);
+
 		xhci_shutdown(tegra->hcd);
+	}
+
+	tegra_xusb_power_down(tegra);
 }
 
 static int tegra_xusb_remove(struct platform_device *pdev)
@@ -1672,15 +1697,7 @@ static int tegra_xusb_remove(struct platform_device *pdev)
 	pm_runtime_put_sync(&pdev->dev);
 	pm_runtime_disable(&pdev->dev);
 
-	if (!of_property_read_bool(pdev->dev.of_node, "power-domains")) {
-		tegra_powergate_power_off(TEGRA_POWERGATE_XUSBC);
-		tegra_powergate_power_off(TEGRA_POWERGATE_XUSBA);
-	} else {
-		tegra_xusb_powerdomain_remove(&pdev->dev, tegra);
-	}
-
-	tegra_xusb_phy_disable(tegra);
-
+	tegra_xusb_power_down(tegra);
 	tegra_xusb_padctl_put(tegra->padctl);
 
 	return 0;
