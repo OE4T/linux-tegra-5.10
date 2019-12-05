@@ -459,13 +459,21 @@ struct mm_gk20a {
  * Utility to get the GPU device structure from
  * memory management structure.
  */
-#define gk20a_from_mm(mm) ((mm)->g)
+static inline struct gk20a *
+gk20a_from_mm(struct mm_gk20a *mm)
+{
+	return mm->g;
+}
 
 /**
  * Utility to get the GPU device structure from
  * virtual memory structure.
  */
-#define gk20a_from_vm(vm) ((vm)->mm->g)
+static inline struct gk20a *
+gk20a_from_vm(struct vm_gk20a *vm)
+{
+	return vm->mm->g;
+}
 
 /**
  * @brief Get the maximum BAR1 aperture size in MB.
