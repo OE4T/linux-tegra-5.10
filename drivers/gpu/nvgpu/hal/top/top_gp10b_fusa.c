@@ -154,7 +154,7 @@ int gp10b_get_device_info(struct gk20a *g, struct nvgpu_device_info *dev_info,
 			entry_enum = table_entry;
 		} else if (entry == top_device_info_entry_data_v()) {
 			entry_data = table_entry;
-		} else { /* (entry == top_device_info_entry_engine_type_v()) */
+		} else {
 			entry_engine = table_entry;
 		}
 
