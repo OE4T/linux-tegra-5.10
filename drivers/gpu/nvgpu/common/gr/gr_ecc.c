@@ -91,10 +91,11 @@ int nvgpu_ecc_counter_init_per_tpc(struct gk20a *g,
 
 fail:
 	if (err != 0) {
+#ifdef CONFIG_NVGPU_NON_FUSA
 		while (gpc-- != 0u) {
 			nvgpu_kfree(g, stats[gpc]);
 		}
-
+#endif
 		nvgpu_kfree(g, stats);
 	}
 

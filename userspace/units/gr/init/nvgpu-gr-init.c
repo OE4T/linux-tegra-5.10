@@ -27,8 +27,12 @@
 #include <unit/io.h>
 
 #include <nvgpu/posix/io.h>
+#include <nvgpu/posix/kmem.h>
+#include <nvgpu/posix/posix-fault-injection.h>
+
 #include <nvgpu/gk20a.h>
 #include <nvgpu/gr/gr.h>
+#include <nvgpu/gr/config.h>
 
 #include <nvgpu/hw/gv11b/hw_fuse_gv11b.h>
 #include <nvgpu/hw/gv11b/hw_gr_gv11b.h>
@@ -40,32 +44,124 @@
 #define GR_TEST_FUSES_OVERRIDE_DISABLE_TRUE	0x1U
 #define GR_TEST_FUSES_OVERRIDE_DISABLE_FALSE	0x0U
 
-#define GR_TEST_FECS_FEATURE_OVERRIDE_ECC	0x00909999
-#define GR_TEST_FECS_FEATURE_OVERRIDE_ECC1	0x0000000F
+#define GR_TEST_FECS_FEATURE_OVERRIDE_ECC		0x00909999
+#define GR_TEST_FECS_FEATURE_OVERRIDE_ECC_ONLY		0x00808888
+#define GR_TEST_FECS_FEATURE_OVERRIDE_ECC1		0x0000000F
+#define GR_TEST_FECS_FEATURE_OVERRIDE_ECC1_ONLY		0x0000000A
+#define GR_TEST_FECS_FEATURE_OVERRIDE_ECC1_FAIL1	0x00000002
+#define GR_TEST_FECS_FEATURE_OVERRIDE_ECC1_FAIL2	0x0000000B
+
+static int gr_init_ecc_fail_alloc(struct gk20a *g)
+{
+	int err, i, loop = 28;
+	struct nvgpu_posix_fault_inj *kmem_fi =
+		nvgpu_kmem_get_fault_injection();
+	struct nvgpu_gr_config *save_gr_config = g->gr->config;
+
+	for (i = 0; i < loop; i++) {
+		nvgpu_posix_enable_fault_injection(kmem_fi, true, i);
+		err = g->ops.gr.ecc.init(g);
+		if (err == 0) {
+			return UNIT_FAIL;
+		}
+		nvgpu_posix_enable_fault_injection(kmem_fi, false, 0);
+		g->ops.ecc.ecc_init_support(g);
+	}
+
+	/* Set gr->config to NULL for branch covergae */
+	g->gr->config = NULL;
+	g->ecc.initialized = true;
+	g->ops.ecc.ecc_remove_support(g);
+	g->ecc.initialized = false;
+	g->gr->config = save_gr_config;
+
+	return UNIT_SUCCESS;
+}
+
+struct gr_init_ecc_stats {
+	u32 fuse_override;
+	u32 opt_enable;
+	u32 fecs_override0;
+	u32 fecs_override1;
+};
 
 int test_gr_init_ecc_features(struct unit_module *m,
 		struct gk20a *g, void *args)
 {
-	nvgpu_posix_io_writel_reg_space(g,
-		fuse_opt_feature_fuses_override_disable_r(),
-		GR_TEST_FUSES_OVERRIDE_DISABLE_TRUE);
+struct gr_init_ecc_stats ecc_stats[] = {
+	[0] = {
+		.fuse_override = GR_TEST_FUSES_OVERRIDE_DISABLE_TRUE,
+		.opt_enable = 0x1,
+		.fecs_override0 = 0x0,
+		.fecs_override1 = 0x0,
+	      },
+	[1] = {
+		.fuse_override = GR_TEST_FUSES_OVERRIDE_DISABLE_TRUE,
+		.opt_enable = 0x0,
+		.fecs_override0 = 0x0,
+		.fecs_override1 = 0x0,
+	      },
+	[2] = {
+		.fuse_override = GR_TEST_FUSES_OVERRIDE_DISABLE_FALSE,
+		.opt_enable = 0x0,
+		.fecs_override0 = 0x0,
+		.fecs_override1 = 0x0,
+	      },
+	[3] = {
+		.fuse_override = GR_TEST_FUSES_OVERRIDE_DISABLE_FALSE,
+		.opt_enable = 0x1,
+		.fecs_override0 = 0,
+		.fecs_override1 = GR_TEST_FECS_FEATURE_OVERRIDE_ECC1_FAIL1,
+	      },
+	[4] = {
+		.fuse_override = GR_TEST_FUSES_OVERRIDE_DISABLE_FALSE,
+		.opt_enable = 0x1,
+		.fecs_override0 = 0,
+		.fecs_override1 = GR_TEST_FECS_FEATURE_OVERRIDE_ECC1_FAIL2,
+	      },
+	[5] = {
+		.fuse_override = GR_TEST_FUSES_OVERRIDE_DISABLE_FALSE,
+		.opt_enable = 0x1,
+		.fecs_override0 = GR_TEST_FECS_FEATURE_OVERRIDE_ECC_ONLY,
+		.fecs_override1 = GR_TEST_FECS_FEATURE_OVERRIDE_ECC1_ONLY,
+	      },
+	[6] = {
+		.fuse_override = GR_TEST_FUSES_OVERRIDE_DISABLE_FALSE,
+		.opt_enable = 0x1,
+		.fecs_override0 = GR_TEST_FECS_FEATURE_OVERRIDE_ECC,
+		.fecs_override1 = GR_TEST_FECS_FEATURE_OVERRIDE_ECC1,
+	      },
+};
+	int err, i;
+	int arry_cnt = sizeof(ecc_stats)/
+			sizeof(struct gr_init_ecc_stats);
 
-	g->ops.gr.ecc.detect(g);
+	for (i = 0; i < arry_cnt; i++) {
+		nvgpu_posix_io_writel_reg_space(g,
+			fuse_opt_feature_fuses_override_disable_r(),
+			ecc_stats[i].fuse_override);
 
-	nvgpu_posix_io_writel_reg_space(g,
-		fuse_opt_feature_fuses_override_disable_r(),
-		GR_TEST_FUSES_OVERRIDE_DISABLE_FALSE);
+		nvgpu_posix_io_writel_reg_space(g,
+			fuse_opt_ecc_en_r(),
+			ecc_stats[i].opt_enable);
 
-	/* set fecs ecc override */
-	nvgpu_posix_io_writel_reg_space(g,
-		gr_fecs_feature_override_ecc_r(),
-		GR_TEST_FECS_FEATURE_OVERRIDE_ECC);
+		/* set fecs ecc override */
+		nvgpu_posix_io_writel_reg_space(g,
+			gr_fecs_feature_override_ecc_r(),
+			ecc_stats[i].fecs_override0);
 
-	nvgpu_posix_io_writel_reg_space(g,
-		gr_fecs_feature_override_ecc_1_r(),
-		GR_TEST_FECS_FEATURE_OVERRIDE_ECC1);
+		nvgpu_posix_io_writel_reg_space(g,
+			gr_fecs_feature_override_ecc_1_r(),
+			ecc_stats[i].fecs_override1);
 
-	g->ops.gr.ecc.detect(g);
+		g->ops.gr.ecc.detect(g);
+
+	}
+
+	err = gr_init_ecc_fail_alloc(g);
+	if (err != 0) {
+		unit_return_fail(m, "stall isr failed\n");
+	}
 
 	return UNIT_SUCCESS;
 }

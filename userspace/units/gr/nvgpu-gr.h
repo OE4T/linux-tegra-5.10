@@ -40,7 +40,9 @@ struct unit_module;
  *
  * Test Type: Feature based.
  *
- * Input: None
+ * Input: None.
+ *
+ * Targets: #nvgpu_gr_alloc.
  *
  * Steps:
  * -  Initialize the test environment for common.gr unit testing:
@@ -62,6 +64,8 @@ int test_gr_init_setup(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Test Type: Feature based.
  *
+ * Targets: #nvgpu_gr_free.
+ *
  * Input: test_gr_init_setup must have been executed successfully.
  *
  * Steps:
@@ -79,6 +83,8 @@ int test_gr_remove_setup(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Test Type: Feature based.
  *
+ * Targets: #nvgpu_gr_prepare_sw, #nvgpu_gr_prepare_hw.
+ *
  * Input: test_gr_init_setup must have been executed successfully.
  *
  * Steps:
@@ -95,6 +101,8 @@ int test_gr_init_prepare(struct unit_module *m, struct gk20a *g, void *args);
  * Description: Initialize common.gr unit.
  *
  * Test Type: Feature based.
+ *
+ * Targets: #nvgpu_gr_init_support.
  *
  * Input: test_gr_init_setup and test_gr_init_prepare
  *        must have been executed successfully.
@@ -120,7 +128,9 @@ int test_gr_init_support(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Test Type: Feature based.
  *
- * Input: test_gr_init_setup, test_gr_init_prepare and test_gr_init_support
+ * Targets: #nvgpu_gr_suspend.
+ *
+ * Input: #test_gr_init_setup, #test_gr_init_prepare and #test_gr_init_support
  *        must have been executed successfully.
  *
  * Steps:
@@ -137,11 +147,13 @@ int test_gr_suspend(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Test Type: Feature based.
  *
- * Input: test_gr_init_setup, test_gr_init_prepare and test_gr_init_support
+ * Targets: #nvgpu_gr_remove_support.
+ *
+ * Input: #test_gr_init_setup, #test_gr_init_prepare and #test_gr_init_support
  *        must have been executed successfully.
  *
  * Steps:
- * -  Call g->ops.gr.ecc.ecc_remove_support.
+ * -  Call g->ops.ecc.ecc_remove_support.
  * -  Call nvgpu_gr_remove_support.
  *
  * Output: Returns PASS.
@@ -153,18 +165,20 @@ int test_gr_remove_support(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Description: Set the ECC feature based on fuse and fecs override registers.
  *
- * Test Type: Feature based.
+ * Test Type: Feature based, Error Injection.
  *
- * Input: test_gr_init_setup, test_gr_init_prepare and test_gr_init_support
+ * Input: #test_gr_init_setup, #test_gr_init_prepare and #test_gr_init_support
  *        must have been executed successfully.
  *
+ * Targets: gv11b_gr_ecc_init, gv11b_ecc_detect_enabled_units.
+ *
  * Steps:
- * -  Set fuse register bit FUSES_OVERRIDE_DISABLE to TRUE.
+ * -  Array with various combinations setting register bits for
+ *    FUSES_OVERRIDE_DISABLE, OPT_ECC_ENABLE, fecs register for ecc
+ *    and ecc1 overrides.
  * -  Call g->ops.gr.ecc.detect.
- * -  Set fuse register bit FUSES_OVERRIDE_DISABLE to FALSE.
- * -  Set fecs register for ecc override.
- * -  Set fecs register for ecc1 override.
- * -  Call g->ops.gr.ecc.detect.
+ * -  Error injection for allocation and other conditional checking
+ *    in g->ops.gr.ecc.init call.
  *
  * Output: Returns PASS.
  */
@@ -179,6 +193,9 @@ int test_gr_init_ecc_features(struct unit_module *m,
  * Test Type: Feature based.
  *
  * Input: None
+ *
+ * Targets: #nvgpu_gr_prepare_sw, #nvgpu_gr_prepare_hw,
+ *          and #nvgpu_gr_init_support.
  *
  * Steps:
  * -  Call #test_gr_init_setup.
@@ -199,7 +216,9 @@ int test_gr_init_setup_ready(struct unit_module *m, struct gk20a *g, void *args)
  *
  * Test Type: Feature based.
  *
- * Input: test_gr_setup_ready must have been executed successfully.
+ * Input: #test_gr_setup_ready must have been executed successfully.
+ *
+ * Targets: #nvgpu_gr_free, #nvgpu_gr_remove_support.
  *
  * Steps:
  * -  Call #test_gr_remove_support.
