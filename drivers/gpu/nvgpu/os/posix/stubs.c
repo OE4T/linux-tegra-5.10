@@ -38,6 +38,7 @@ void nvgpu_dbg_session_post_event(struct dbg_session_gk20a *dbg_s)
 }
 #endif
 
+#ifdef CONFIG_NVGPU_SYSFS
 int nvgpu_ecc_sysfs_init(struct gk20a *g)
 {
 	return 0;
@@ -46,6 +47,7 @@ int nvgpu_ecc_sysfs_init(struct gk20a *g)
 void nvgpu_ecc_sysfs_remove(struct gk20a *g)
 {
 }
+#endif
 
 void nvgpu_report_host_err(struct gk20a *g, u32 hw_unit,
 	u32 inst, u32 err_id, u32 intr_info)
