@@ -661,8 +661,6 @@ static const struct gpu_ops tu104_ops = {
 		.intr = {
 			.handle_fecs_error = gv11b_gr_intr_handle_fecs_error,
 			.handle_sw_method = tu104_gr_intr_handle_sw_method,
-			.set_shader_exceptions =
-					gv11b_gr_intr_set_shader_exceptions,
 			.handle_class_error =
 					gm20b_gr_intr_handle_class_error,
 			.clear_pending_interrupts =
@@ -722,6 +720,8 @@ static const struct gpu_ops tu104_ops = {
 			.get_sm_no_lock_down_hww_global_esr_mask =
 				gv11b_gr_intr_get_sm_no_lock_down_hww_global_esr_mask,
 #ifdef CONFIG_NVGPU_HAL_NON_FUSA
+			.set_shader_exceptions =
+					gv11b_gr_intr_set_shader_exceptions,
 			.tpc_exception_sm_enable =
 				gm20b_gr_intr_tpc_exception_sm_enable,
 #endif

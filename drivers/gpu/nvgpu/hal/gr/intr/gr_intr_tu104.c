@@ -69,9 +69,11 @@ int tu104_gr_intr_handle_sw_method(struct gk20a *g, u32 addr,
 
 	if (class_num == TURING_COMPUTE_A) {
 		switch (offset << 2) {
+#ifdef CONFIG_NVGPU_HAL_NON_FUSA
 		case NVC5C0_SET_SHADER_EXCEPTIONS:
 			g->ops.gr.intr.set_shader_exceptions(g, data);
 			break;
+#endif
 		case NVC5C0_SET_SKEDCHECK:
 			gv11b_gr_intr_set_skedcheck(g, data);
 			break;
