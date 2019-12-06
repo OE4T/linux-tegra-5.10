@@ -297,6 +297,16 @@ static int marvell_set_page(struct phy_device *phydev, int page)
 	return phy_write(phydev, MII_MARVELL_PHY_PAGE, page);
 }
 
+static int marvell_soft_reset(struct phy_device *phydev)
+{
+	/* This is a dummy soft reset call to avoid
+	 * the generic soft reset function call,
+	 * as it adds 50 milliseconds delay during
+	 * PHY hardware initialization.
+	 */
+	return 0;
+}
+
 static int marvell_ack_interrupt(struct phy_device *phydev)
 {
 	int err;
@@ -2863,6 +2873,7 @@ static struct phy_driver marvell_drivers[] = {
 		.cable_test_start = marvell_vct7_cable_test_start,
 		.cable_test_tdr_start = marvell_vct5_cable_test_tdr_start,
 		.cable_test_get_status = marvell_vct7_cable_test_get_status,
+		.soft_reset = marvell_soft_reset,
 	},
 	{
 		.phy_id = MARVELL_PHY_ID_88E1540,
