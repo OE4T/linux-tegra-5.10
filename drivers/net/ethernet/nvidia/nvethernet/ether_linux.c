@@ -2468,7 +2468,7 @@ static int ether_napi_poll_tx(struct napi_struct *napi, int budget)
 	unsigned long flags;
 	int processed;
 
-	processed = osi_process_tx_completions(osi_dma, chan);
+	processed = osi_process_tx_completions(osi_dma, chan, budget);
 
 	/* re-arm the timer if tx ring is not empty */
 	if (!osi_txring_empty(osi_dma, chan) &&
@@ -2480,15 +2480,14 @@ static int ether_napi_poll_tx(struct napi_struct *napi, int budget)
 			      HRTIMER_MODE_REL);
 	}
 
-	if (processed == 0) {
+	if (processed < budget) {
 		napi_complete(napi);
 		spin_lock_irqsave(&pdata->rlock, flags);
 		osi_enable_chan_tx_intr(osi_dma, chan);
 		spin_unlock_irqrestore(&pdata->rlock, flags);
-		return 0;
 	}
 
-	return budget;
+	return processed;
 }
 
 static enum hrtimer_restart ether_tx_usecs_hrtimer(struct hrtimer *data)
@@ -2545,8 +2544,8 @@ static int ether_alloc_napi(struct ether_priv_data *pdata)
 
 		pdata->tx_napi[chan]->pdata = pdata;
 		pdata->tx_napi[chan]->chan = chan;
-		netif_tx_napi_add(ndev, &pdata->tx_napi[chan]->napi,
-				  ether_napi_poll_tx, 64);
+		netif_napi_add(ndev, &pdata->tx_napi[chan]->napi,
+			       ether_napi_poll_tx, 64);
 
 		pdata->rx_napi[chan] = devm_kzalloc(dev,
 						sizeof(struct ether_rx_napi),
