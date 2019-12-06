@@ -331,7 +331,6 @@ void osd_transmit_complete(void *priv, void *buffer, unsigned long dmaaddr,
 	struct netdev_queue *txq;
 	unsigned int chan, qinx;
 
-	ndev->stats.tx_packets++;
 	ndev->stats.tx_bytes += len;
 
 	if ((txdone_pkt_cx->flags & OSI_TXDONE_CX_TS) == OSI_TXDONE_CX_TS) {
@@ -368,6 +367,7 @@ void osd_transmit_complete(void *priv, void *buffer, unsigned long dmaaddr,
 			netdev_dbg(ndev, "Tx ring[%d] - waking Txq\n", chan);
 		}
 
+		ndev->stats.tx_packets++;
 		dev_consume_skb_any(skb);
 	}
 }
