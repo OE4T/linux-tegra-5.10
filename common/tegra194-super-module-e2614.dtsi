@@ -21,7 +21,13 @@
 			overrides@10 {
 				target = <&tegra_sound>;
 				_overlay_ {
-					nvidia,audio-routing =
+					nvidia-audio-card,widgets =
+						"Headphone",	"y Headphone",
+						"Microphone",	"y Mic",
+						"Headphone",	"d1 Headphone",
+						"Headphone",	"d2 Headphone";
+
+					nvidia-audio-card,routing =
 						"y Headphone",          "y HPO L Playback",
 						"y Headphone",          "y HPO R Playback",
 						"y IN1P",               "y Mic",
