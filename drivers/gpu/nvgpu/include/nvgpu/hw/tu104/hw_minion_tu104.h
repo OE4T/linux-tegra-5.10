@@ -280,4 +280,7 @@
 #define minion_nvlink_link_intr_state_f(v)              ((U32(v) & 0x1U) << 31U)
 #define minion_nvlink_link_intr_state_m()                     (U32(0x1U) << 31U)
 #define minion_nvlink_link_intr_state_v(r)                 (((r) >> 31U) & 0x1U)
+#define minion_scp_ctl_stat_r()                                    (0x00000608U)
+#define minion_scp_ctl_stat_debug_mode_f(v)             ((U32(v) & 0x1U) << 20U)
+#define minion_scp_ctl_stat_debug_mode_v(r)                (((r) >> 20U) & 0x1U)
 #endif
