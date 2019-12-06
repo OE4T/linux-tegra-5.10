@@ -29,6 +29,10 @@
 #include "falcon_sw_tu104.h"
 #endif
 
+#if defined(CONFIG_NVGPU_NEXT) && defined(CONFIG_NVGPU_NON_FUSA)
+#include "nvgpu_next_gpuid.h"
+#endif
+
 /* Delay depends on memory size and pwr_clk
  * delay = (MAX {IMEM_SIZE, DMEM_SIZE} * 64 + 1) / pwr_clk
  * Timeout set is 1msec & status check at interval 10usec
@@ -432,6 +436,11 @@ static int falcon_sw_chip_init(struct gk20a *g, struct nvgpu_falcon *flcn)
 	case NVGPU_GPUID_GP10B:
 		gk20a_falcon_sw_init(flcn);
 		break;
+#if defined(CONFIG_NVGPU_NEXT)
+	case NVGPU_NEXT_GPUID:
+		gk20a_falcon_sw_init(flcn);
+		break;
+#endif
 #endif
 	case NVGPU_GPUID_GV11B:
 		gk20a_falcon_sw_init(flcn);
