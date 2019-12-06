@@ -177,14 +177,16 @@ static void nvgpu_sim_esc_readl(struct gk20a *g,
 	*pci_sim_msg_param(g, 0) = index;
 	*pci_sim_msg_param(g, 4) = sizeof(u32);
 	data_offset = round_up(pathlen + 1, sizeof(u32));
-	*pci_sim_msg_param(g, 8) = data_offset + 0xc;
-	strcpy((char *)pci_sim_msg_param(g, 0xc), path);
+	*pci_sim_msg_param(g, 8) = data_offset;
+	strcpy((char *)pci_sim_msg_param(g, sim_escape_read_hdr_size()), path);
 
 	err = pci_issue_rpc_and_wait(g);
 
 	if (err == 0) {
 		nvgpu_memcpy((u8 *)data,
-			(u8 *)pci_sim_msg_param(g, data_offset + 0xc),
+			(u8 *)pci_sim_msg_param(g,
+				nvgpu_safe_add_u32(data_offset,
+					sim_escape_read_hdr_size())),
 			sizeof(u32));
 	} else {
 		*data = 0xffffffff;
