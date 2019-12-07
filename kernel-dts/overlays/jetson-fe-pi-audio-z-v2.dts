@@ -50,6 +50,10 @@
 	fragment@2 {
 		target = <&tegra_sound>;
 		__overlay__ {
+			nvidia-audio-card,widgets =
+				"Headphone",	"x Headphone",
+				"Microphone",	"x Mic";
+
 			nvidia-audio-card,routing =
 				"x Headphone",		"x HP_OUT",
 				"x MIC_IN",		"x Mic",
