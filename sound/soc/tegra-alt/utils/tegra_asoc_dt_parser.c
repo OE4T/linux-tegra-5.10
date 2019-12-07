@@ -424,6 +424,14 @@ int parse_card_info(struct snd_soc_card *card, struct snd_soc_ops *pcm_ops,
 	if (ret < 0)
 		return ret;
 
+	/* parse machine DAPM widgets */
+	if (of_property_read_bool(node, PREFIX "widgets")) {
+		ret = snd_soc_of_parse_audio_simple_widgets(card,
+			PREFIX "widgets");
+		if (ret < 0)
+			return ret;
+	}
+
 	/*
 	 * Below property of routing map is required only when there
 	 * are DAPM input/output widgets available for external codec,
