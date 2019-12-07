@@ -1274,6 +1274,36 @@
     {
         "test": "test_env_clean",
         "case": "env_clean",
+        "unit": "mm_gp10b_fusa",
+        "test_level": 0
+    },
+    {
+        "test": "test_env_init",
+        "case": "env_init",
+        "unit": "mm_gp10b_fusa",
+        "test_level": 0
+    },
+    {
+        "test": "test_gp10b_mm_init_bar2_vm",
+        "case": "mm_init_bar2_vm_s0",
+        "unit": "mm_gp10b_fusa",
+        "test_level": 0
+    },
+    {
+        "test": "test_gp10b_mm_init_bar2_vm",
+        "case": "mm_init_bar2_vm_s1",
+        "unit": "mm_gp10b_fusa",
+        "test_level": 0
+    },
+    {
+        "test": "test_gp10b_mm_init_bar2_vm",
+        "case": "mm_init_bar2_vm_s2",
+        "unit": "mm_gp10b_fusa",
+        "test_level": 0
+    },
+    {
+        "test": "test_env_clean",
+        "case": "env_clean",
         "unit": "mm_gv11b_fusa",
         "test_level": 0
     },

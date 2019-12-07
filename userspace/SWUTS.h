@@ -69,6 +69,7 @@
  *   - @ref SWUTS-mm-dma
  *   - @ref SWUTS-mm-gmmu-page_table
  *   - @ref SWUTS-mm-hal-cache-flush-gk20a-fusa
+ *   - @ref SWUTS-mm-hal-gp10b_fusa
  *   - @ref SWUTS-mm-hal-gv11b-fusa
  *   - @ref SWUTS-mm-nvgpu-mem
  *   - @ref SWUTS-mm-nvgpu-sgt
