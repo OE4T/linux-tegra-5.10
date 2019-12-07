@@ -81,23 +81,6 @@ static const int tegra_machine_srate_values[] = {
 	192000,
 };
 
-static const struct snd_soc_dapm_widget tegra_machine_dapm_widgets[] = {
-	SND_SOC_DAPM_SPK("x Int Spk", NULL),
-	SND_SOC_DAPM_HP("x Headphone Jack", NULL),
-	SND_SOC_DAPM_MIC("x Int Mic", NULL),
-	SND_SOC_DAPM_MIC("x Mic Jack", NULL),
-
-	SND_SOC_DAPM_SPK("d1 Headphone", NULL),
-	SND_SOC_DAPM_SPK("d2 Headphone", NULL),
-	SND_SOC_DAPM_SPK("d3 Headphone", NULL),
-
-	SND_SOC_DAPM_HP("x Headphone", NULL),
-	SND_SOC_DAPM_HP("y Headphone", NULL),
-	SND_SOC_DAPM_MIC("Int Mic", NULL),
-	SND_SOC_DAPM_MIC("x Mic", NULL),
-	SND_SOC_DAPM_MIC("y Mic", NULL),
-};
-
 static int tegra_machine_codec_get_rate(struct snd_kcontrol *kcontrol,
 					struct snd_ctl_elem_value *ucontrol)
 {
@@ -497,8 +480,6 @@ static struct snd_soc_card snd_soc_tegra_card = {
 	.owner = THIS_MODULE,
 	.controls = tegra_machine_controls,
 	.num_controls = ARRAY_SIZE(tegra_machine_controls),
-	.dapm_widgets = tegra_machine_dapm_widgets,
-	.num_dapm_widgets = ARRAY_SIZE(tegra_machine_dapm_widgets),
 	.suspend_pre = tegra_machine_suspend_pre,
 	.fully_routed = true,
 };
