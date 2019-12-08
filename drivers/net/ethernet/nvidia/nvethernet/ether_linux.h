@@ -42,6 +42,7 @@
 #include <linux/ktime.h>
 #include <linux/hrtimer.h>
 #include <linux/version.h>
+#include <linux/list.h>
 #include <linux/tegra-ivc.h>
 #if (KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE)
 #include <soc/tegra/chip-id.h>
@@ -278,6 +279,22 @@ struct ether_ivc_ctxt {
 };
 
 /**
+ * @brief local L2 filter table structure
+ */
+struct ether_mac_addr_list {
+	/** Link list node head */
+	struct list_head list_head;
+	/** L2 address */
+	unsigned char addr[ETH_ALEN];
+	/** Flag represent is address valid(1) or not (0) */
+	char is_valid_addr;
+	/** DMA channel to route packets */
+	unsigned int dma_chan;
+	/** index number at the time of add */
+	unsigned int index;
+};
+
+/**
  * @brief Ethernet driver private data
  */
 struct ether_priv_data {
@@ -417,6 +434,8 @@ struct ether_priv_data {
 	/** MACsec priv data */
 	struct macsec_priv_data *macsec_pdata;
 #endif /* MACSEC_SUPPORT */
+	/** local L2 filter address list head pointer */
+	struct list_head mac_addr_list_head;
 };
 
 /**
