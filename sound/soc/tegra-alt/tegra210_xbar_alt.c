@@ -1110,140 +1110,6 @@ static const struct snd_soc_dapm_route tegra186_xbar_routes[] = {
 	IN_OUT_ROUTES("ARAD1")
 };
 
-static struct of_dev_auxdata tegra210_xbar_auxdata[] = {
-	OF_DEV_AUXDATA("nvidia,tegra210-admaif", T210_ADMAIF_BASE_ADDR,
-		"tegra210-admaif", NULL),
-	OF_DEV_AUXDATA("nvidia,tegra210-i2s", T210_I2S1_BASE_ADDR,
-		"tegra210-i2s.0", NULL),
-	OF_DEV_AUXDATA("nvidia,tegra210-i2s", T210_I2S2_BASE_ADDR,
-		"tegra210-i2s.1", NULL),
-	OF_DEV_AUXDATA("nvidia,tegra210-i2s", T210_I2S3_BASE_ADDR,
-		"tegra210-i2s.2", NULL),
-	OF_DEV_AUXDATA("nvidia,tegra210-i2s", T210_I2S4_BASE_ADDR,
-		"tegra210-i2s.3", NULL),
-	OF_DEV_AUXDATA("nvidia,tegra210-i2s", T210_I2S5_BASE_ADDR,
-		"tegra210-i2s.4", NULL),
-	OF_DEV_AUXDATA("nvidia,tegra210-adx", T210_ADX1_BASE_ADDR,
-		"tegra210-adx.0", NULL),
-	OF_DEV_AUXDATA("nvidia,tegra210-adx", T210_ADX2_BASE_ADDR,
-		"tegra210-adx.1", NULL),
-	OF_DEV_AUXDATA("nvidia,tegra210-afc", T210_AFC1_BASE_ADDR,
-		"tegra210-afc.0", NULL),
-	OF_DEV_AUXDATA("nvidia,tegra210-afc", T210_AFC2_BASE_ADDR,
-		"tegra210-afc.1", NULL),
-	OF_DEV_AUXDATA("nvidia,tegra210-afc", T210_AFC3_BASE_ADDR,
-		"tegra210-afc.2", NULL),
-	OF_DEV_AUXDATA("nvidia,tegra210-afc", T210_AFC4_BASE_ADDR,
-		"tegra210-afc.3", NULL),
-	OF_DEV_AUXDATA("nvidia,tegra210-afc", T210_AFC5_BASE_ADDR,
-		"tegra210-afc.4", NULL),
-	OF_DEV_AUXDATA("nvidia,tegra210-afc", T210_AFC6_BASE_ADDR,
-		"tegra210-afc.5", NULL),
-	OF_DEV_AUXDATA("nvidia,tegra210-sfc", T210_SFC1_BASE_ADDR,
-		"tegra210-sfc.0", NULL),
-	OF_DEV_AUXDATA("nvidia,tegra210-sfc", T210_SFC2_BASE_ADDR,
-		"tegra210-sfc.1", NULL),
-	OF_DEV_AUXDATA("nvidia,tegra210-sfc", T210_SFC3_BASE_ADDR,
-		"tegra210-sfc.2", NULL),
-	OF_DEV_AUXDATA("nvidia,tegra210-sfc", T210_SFC4_BASE_ADDR,
-		"tegra210-sfc.3", NULL),
-	OF_DEV_AUXDATA("nvidia,tegra210-mvc", T210_MVC1_BASE_ADDR,
-		"tegra210-mvc.0", NULL),
-	OF_DEV_AUXDATA("nvidia,tegra210-mvc", T210_MVC2_BASE_ADDR,
-		"tegra210-mvc.1", NULL),
-	OF_DEV_AUXDATA("nvidia,tegra210-iqc", T210_IQC1_BASE_ADDR,
-		"tegra210-iqc.0", NULL),
-	OF_DEV_AUXDATA("nvidia,tegra210-iqc", T210_IQC2_BASE_ADDR,
-		"tegra210-iqc.1", NULL),
-	OF_DEV_AUXDATA("nvidia,tegra210-dmic", T210_DMIC1_BASE_ADDR,
-		"tegra210-dmic.0", NULL),
-	OF_DEV_AUXDATA("nvidia,tegra210-dmic", T210_DMIC2_BASE_ADDR,
-		"tegra210-dmic.1", NULL),
-	OF_DEV_AUXDATA("nvidia,tegra210-dmic", T210_DMIC3_BASE_ADDR,
-		"tegra210-dmic.2", NULL),
-	OF_DEV_AUXDATA("nvidia,tegra210-ope", T210_OPE1_BASE_ADDR,
-		"tegra210-ope.0", NULL),
-	OF_DEV_AUXDATA("nvidia,tegra210-ope", T210_OPE2_BASE_ADDR,
-		"tegra210-ope.1", NULL),
-	OF_DEV_AUXDATA("nvidia,tegra210-amixer", T210_AMIXER1_BASE_ADDR,
-		"tegra210-mixer", NULL),
-	{}
-};
-
-static struct of_dev_auxdata tegra186_xbar_auxdata[] = {
-	OF_DEV_AUXDATA("nvidia,tegra186-admaif", T186_ADMAIF_BASE_ADDR,
-		"tegra186-admaif", NULL),
-	OF_DEV_AUXDATA("nvidia,tegra210-i2s", T186_I2S1_BASE_ADDR,
-		"tegra210-i2s.0", NULL),
-	OF_DEV_AUXDATA("nvidia,tegra210-i2s", T186_I2S2_BASE_ADDR,
-		"tegra210-i2s.1", NULL),
-	OF_DEV_AUXDATA("nvidia,tegra210-i2s", T186_I2S3_BASE_ADDR,
-		"tegra210-i2s.2", NULL),
-	OF_DEV_AUXDATA("nvidia,tegra210-i2s", T186_I2S4_BASE_ADDR,
-		"tegra210-i2s.3", NULL),
-	OF_DEV_AUXDATA("nvidia,tegra210-i2s", T186_I2S5_BASE_ADDR,
-		"tegra210-i2s.4", NULL),
-	OF_DEV_AUXDATA("nvidia,tegra210-i2s", T186_I2S6_BASE_ADDR,
-		"tegra210-i2s.5", NULL),
-	OF_DEV_AUXDATA("nvidia,tegra210-adx", T186_ADX1_BASE_ADDR,
-		"tegra210-adx.0", NULL),
-	OF_DEV_AUXDATA("nvidia,tegra210-adx", T186_ADX2_BASE_ADDR,
-		"tegra210-adx.1", NULL),
-	OF_DEV_AUXDATA("nvidia,tegra210-adx", T186_ADX3_BASE_ADDR,
-		"tegra210-adx.2", NULL),
-	OF_DEV_AUXDATA("nvidia,tegra210-adx", T186_ADX4_BASE_ADDR,
-		"tegra210-adx.3", NULL),
-	OF_DEV_AUXDATA("nvidia,tegra186-afc", T186_AFC1_BASE_ADDR,
-		"tegra186-afc.0", NULL),
-	OF_DEV_AUXDATA("nvidia,tegra186-afc", T186_AFC2_BASE_ADDR,
-		"tegra186-afc.1", NULL),
-	OF_DEV_AUXDATA("nvidia,tegra186-afc", T186_AFC3_BASE_ADDR,
-		"tegra186-afc.2", NULL),
-	OF_DEV_AUXDATA("nvidia,tegra186-afc", T186_AFC4_BASE_ADDR,
-		"tegra186-afc.3", NULL),
-	OF_DEV_AUXDATA("nvidia,tegra186-afc", T186_AFC5_BASE_ADDR,
-		"tegra186-afc.4", NULL),
-	OF_DEV_AUXDATA("nvidia,tegra186-afc", T186_AFC6_BASE_ADDR,
-		"tegra186-afc.5", NULL),
-	OF_DEV_AUXDATA("nvidia,tegra210-sfc", T186_SFC1_BASE_ADDR,
-		"tegra210-sfc.0", NULL),
-	OF_DEV_AUXDATA("nvidia,tegra210-sfc", T186_SFC2_BASE_ADDR,
-		"tegra210-sfc.1", NULL),
-	OF_DEV_AUXDATA("nvidia,tegra210-sfc", T186_SFC3_BASE_ADDR,
-		"tegra210-sfc.2", NULL),
-	OF_DEV_AUXDATA("nvidia,tegra210-sfc", T186_SFC4_BASE_ADDR,
-		"tegra210-sfc.3", NULL),
-	OF_DEV_AUXDATA("nvidia,tegra210-mvc", T186_MVC1_BASE_ADDR,
-		"tegra210-mvc.0", NULL),
-	OF_DEV_AUXDATA("nvidia,tegra210-mvc", T186_MVC2_BASE_ADDR,
-		"tegra210-mvc.1", NULL),
-	OF_DEV_AUXDATA("nvidia,tegra210-iqc", T186_IQC1_BASE_ADDR,
-		"tegra210-iqc.0", NULL),
-	OF_DEV_AUXDATA("nvidia,tegra210-iqc", T186_IQC2_BASE_ADDR,
-		"tegra210-iqc.1", NULL),
-	OF_DEV_AUXDATA("nvidia,tegra210-dmic", T186_DMIC1_BASE_ADDR,
-		"tegra210-dmic.0", NULL),
-	OF_DEV_AUXDATA("nvidia,tegra210-dmic", T186_DMIC2_BASE_ADDR,
-		"tegra210-dmic.1", NULL),
-	OF_DEV_AUXDATA("nvidia,tegra210-dmic", T186_DMIC3_BASE_ADDR,
-		"tegra210-dmic.2", NULL),
-	OF_DEV_AUXDATA("nvidia,tegra210-dmic", T186_DMIC4_BASE_ADDR,
-		"tegra210-dmic.3", NULL),
-	OF_DEV_AUXDATA("nvidia,tegra210-ope", T186_OPE1_BASE_ADDR,
-		"tegra210-ope.0", NULL),
-	OF_DEV_AUXDATA("nvidia,tegra210-amixer", T186_AMIXER1_BASE_ADDR,
-		"tegra210-mixer", NULL),
-	OF_DEV_AUXDATA("nvidia,tegra186-asrc", T186_ASRC1_BASE_ADDR,
-		"tegra186-asrc", NULL),
-	OF_DEV_AUXDATA("nvidia,tegra186-arad", T186_ARAD1_BASE_ADDR,
-		"tegra186-arad", NULL),
-	OF_DEV_AUXDATA("nvidia,tegra186-dspk", T186_DSPK1_BASE_ADDR,
-		"tegra186-dspk.0", NULL),
-	OF_DEV_AUXDATA("nvidia,tegra186-dspk", T186_DSPK2_BASE_ADDR,
-		"tegra186-dspk.1", NULL),
-	{}
-};
-
 static struct snd_soc_codec_driver tegra210_xbar_codec = {
 	.idle_bias_off = 1,
 	.component_driver = {
@@ -1306,10 +1172,7 @@ static int tegra210_xbar_registration(struct platform_device *pdev)
 		return -EBUSY;
 	}
 
-	of_platform_populate(pdev->dev.of_node, NULL, tegra210_xbar_auxdata,
-			     &pdev->dev);
-
-	return 0;
+	return of_platform_populate(pdev->dev.of_node, NULL, NULL, &pdev->dev);
 }
 
 static int tegra186_xbar_registration(struct platform_device *pdev)
@@ -1336,10 +1199,7 @@ static int tegra186_xbar_registration(struct platform_device *pdev)
 		return -EBUSY;
 	}
 
-	of_platform_populate(pdev->dev.of_node, NULL, tegra186_xbar_auxdata,
-			     &pdev->dev);
-
-	return 0;
+	return of_platform_populate(pdev->dev.of_node, NULL, NULL, &pdev->dev);
 }
 
 static const struct tegra_xbar_soc_data soc_data_tegra210 = {
@@ -1374,12 +1234,6 @@ static int tegra_dev_xbar_probe(struct platform_device *pdev)
 {
 	const struct of_device_id *match;
 	struct tegra_xbar_soc_data *soc_data;
-
-	/* required to register the xbar codec with generic name */
-	if (dev_set_name(&pdev->dev, "%s", DRV_NAME) < 0) {
-		dev_err(&pdev->dev, "error in setting xbar device name\n");
-		return -ENODEV;
-	}
 
 	match = of_match_device(tegra_xbar_of_match, &pdev->dev);
 	if (!match) {
