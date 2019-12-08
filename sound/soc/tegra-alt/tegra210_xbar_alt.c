@@ -28,9 +28,110 @@
 #include <sound/soc.h>
 #include <linux/clk/tegra.h>
 #include "tegra210_xbar_alt.h"
-#include "tegra210_xbar_utils_alt.h"
 
 #define DRV_NAME "tegra210-axbar"
+
+static int tegra_xbar_get_value_enum(struct snd_kcontrol *kcontrol,
+				     struct snd_ctl_elem_value *ucontrol)
+{
+	struct snd_soc_codec *codec = snd_soc_dapm_kcontrol_codec(kcontrol);
+	struct tegra_xbar *xbar = snd_soc_codec_get_drvdata(codec);
+	struct soc_enum *e = (struct soc_enum *)kcontrol->private_value;
+	unsigned int reg_count, reg_val, val, bit_pos = 0, i;
+	unsigned int reg[TEGRA_XBAR_UPDATE_MAX_REG];
+
+	reg_count = xbar->soc_data->reg_count;
+
+	if (reg_count > TEGRA_XBAR_UPDATE_MAX_REG)
+		return -EINVAL;
+
+	for (i = 0; i < reg_count; i++) {
+		reg[i] = e->reg + TEGRA210_XBAR_PART1_RX * i;
+		reg_val = snd_soc_read(codec, reg[i]);
+		val = reg_val & xbar->soc_data->mask[i];
+		if (val != 0) {
+			bit_pos = ffs(val) +
+					(8*codec->component.val_bytes * i);
+			break;
+		}
+	}
+
+	for (i = 0; i < e->items; i++) {
+		if (bit_pos == e->values[i]) {
+			ucontrol->value.enumerated.item[0] = i;
+			break;
+		}
+	}
+
+	return 0;
+}
+
+static int tegra_xbar_put_value_enum(struct snd_kcontrol *kcontrol,
+			      struct snd_ctl_elem_value *ucontrol)
+{
+	struct snd_soc_codec *codec = snd_soc_dapm_kcontrol_codec(kcontrol);
+	struct tegra_xbar *xbar = snd_soc_codec_get_drvdata(codec);
+	struct snd_soc_dapm_context *dapm =
+				snd_soc_dapm_kcontrol_dapm(kcontrol);
+	struct soc_enum *e = (struct soc_enum *)kcontrol->private_value;
+	unsigned int *item = ucontrol->value.enumerated.item;
+	unsigned int change = 0, reg_idx = 0, value, *mask, bit_pos = 0;
+	unsigned int i, reg_count, reg_val = 0, update_idx = 0;
+	unsigned int reg[TEGRA_XBAR_UPDATE_MAX_REG];
+	struct snd_soc_dapm_update update[TEGRA_XBAR_UPDATE_MAX_REG] = {
+				{ NULL } };
+
+	/* initialize the reg_count and mask from soc_data */
+	reg_count = xbar->soc_data->reg_count;
+	mask = (unsigned int *)xbar->soc_data->mask;
+
+	if (item[0] >= e->items || reg_count > TEGRA_XBAR_UPDATE_MAX_REG)
+		return -EINVAL;
+
+	value = e->values[item[0]];
+
+	if (value) {
+		/* get the register index and value to set */
+		reg_idx = (value - 1) / (8 * codec->component.val_bytes);
+		bit_pos = (value - 1) % (8 * codec->component.val_bytes);
+		reg_val = BIT(bit_pos);
+	}
+
+	for (i = 0; i < reg_count; i++) {
+		reg[i] = e->reg + TEGRA210_XBAR_PART1_RX * i;
+		if (i == reg_idx) {
+			change |= snd_soc_test_bits(codec, reg[i],
+							mask[i], reg_val);
+			/* set the selected register */
+			update[reg_count - 1].reg = reg[reg_idx];
+			update[reg_count - 1].mask = mask[reg_idx];
+			update[reg_count - 1].val = reg_val;
+		} else {
+			/*
+			 * accumulate the change to update the DAPM path
+			 * when none is selected
+			 */
+			change |= snd_soc_test_bits(codec, reg[i],
+							mask[i], 0);
+
+			/* clear the register when not selected */
+			update[update_idx].reg = reg[i];
+			update[update_idx].mask = mask[i];
+			update[update_idx++].val = 0;
+		}
+	}
+
+	/* power the widgets */
+	if (change) {
+		for (i = 0; i < reg_count; i++) {
+			update[i].kcontrol = kcontrol;
+			snd_soc_dapm_mux_update_power(dapm,
+				kcontrol, item[0], e, &update[i]);
+		}
+	}
+
+	return change;
+}
 
 static struct snd_soc_dai_driver tegra210_xbar_dais[] = {
 	DAI(ADMAIF1),
@@ -1135,7 +1236,6 @@ static const struct regmap_config tegra210_xbar_regmap_config = {
 	.val_bits = 32,
 	.reg_stride = 4,
 	.max_register = TEGRA210_MAX_REGISTER_ADDR,
-	.volatile_reg = tegra_xbar_volatile_reg,
 	.cache_type = REGCACHE_FLAT,
 };
 
@@ -1144,63 +1244,8 @@ static const struct regmap_config tegra186_xbar_regmap_config = {
 	.val_bits = 32,
 	.reg_stride = 4,
 	.max_register = TEGRA186_MAX_REGISTER_ADDR,
-	.volatile_reg = tegra_xbar_volatile_reg,
 	.cache_type = REGCACHE_FLAT,
 };
-
-static int tegra210_xbar_registration(struct platform_device *pdev)
-{
-	int ret;
-	int num_dapm_widgets, num_dapm_routes;
-
-	num_dapm_widgets = (TEGRA210_NUM_MUX_WIDGETS * 3) +
-		(TEGRA210_NUM_DAIS - TEGRA210_NUM_MUX_WIDGETS) * 2;
-	num_dapm_routes =
-		(TEGRA210_NUM_DAIS - TEGRA210_NUM_MUX_WIDGETS) * 2 +
-		(TEGRA210_NUM_MUX_WIDGETS * TEGRA210_NUM_MUX_INPUT);
-
-	tegra210_xbar_codec.component_driver.num_dapm_widgets =
-			num_dapm_widgets;
-	tegra210_xbar_codec.component_driver.num_dapm_routes =
-			num_dapm_routes;
-
-	ret = snd_soc_register_codec(&pdev->dev, &tegra210_xbar_codec,
-				tegra210_xbar_dais, TEGRA210_NUM_DAIS);
-
-	if (ret != 0) {
-		dev_err(&pdev->dev, "Could not register CODEC: %d\n", ret);
-		return -EBUSY;
-	}
-
-	return of_platform_populate(pdev->dev.of_node, NULL, NULL, &pdev->dev);
-}
-
-static int tegra186_xbar_registration(struct platform_device *pdev)
-{
-	int ret;
-	int num_dapm_widgets, num_dapm_routes;
-
-	num_dapm_widgets = (TEGRA186_NUM_MUX_WIDGETS * 3) +
-		(TEGRA186_NUM_DAIS - TEGRA186_NUM_MUX_WIDGETS) * 2;
-	num_dapm_routes =
-		(TEGRA186_NUM_DAIS - TEGRA186_NUM_MUX_WIDGETS) * 2 +
-		(TEGRA186_NUM_MUX_WIDGETS * TEGRA186_NUM_MUX_INPUT);
-
-	tegra186_xbar_codec.component_driver.num_dapm_widgets =
-			num_dapm_widgets;
-	tegra186_xbar_codec.component_driver.num_dapm_routes =
-			num_dapm_routes;
-
-	ret = snd_soc_register_codec(&pdev->dev, &tegra186_xbar_codec,
-				tegra186_xbar_dais, TEGRA186_NUM_DAIS);
-
-	if (ret != 0) {
-		dev_err(&pdev->dev, "Could not register CODEC: %d\n", ret);
-		return -EBUSY;
-	}
-
-	return of_platform_populate(pdev->dev.of_node, NULL, NULL, &pdev->dev);
-}
 
 static const struct tegra_xbar_soc_data soc_data_tegra210 = {
 	.regmap_config = &tegra210_xbar_regmap_config,
@@ -1209,8 +1254,9 @@ static const struct tegra_xbar_soc_data soc_data_tegra210 = {
 	.mask[2] = TEGRA210_XBAR_REG_MASK_2,
 	.mask[3] = TEGRA210_XBAR_REG_MASK_3,
 	.reg_count = TEGRA210_XBAR_UPDATE_MAX_REG,
-	.reg_offset = TEGRA210_XBAR_PART1_RX,
-	.xbar_registration = tegra210_xbar_registration,
+	.codec_drv = &tegra210_xbar_codec,
+	.dai_drv = tegra210_xbar_dais,
+	.num_dais = ARRAY_SIZE(tegra210_xbar_dais),
 };
 
 static const struct tegra_xbar_soc_data soc_data_tegra186 = {
@@ -1220,8 +1266,9 @@ static const struct tegra_xbar_soc_data soc_data_tegra186 = {
 	.mask[2] = TEGRA186_XBAR_REG_MASK_2,
 	.mask[3] = TEGRA186_XBAR_REG_MASK_3,
 	.reg_count = TEGRA186_XBAR_UPDATE_MAX_REG,
-	.reg_offset = TEGRA210_XBAR_PART1_RX,
-	.xbar_registration = tegra186_xbar_registration,
+	.codec_drv = &tegra186_xbar_codec,
+	.dai_drv = tegra186_xbar_dais,
+	.num_dais = ARRAY_SIZE(tegra186_xbar_dais),
 };
 
 static const struct of_device_id tegra_xbar_of_match[] = {
@@ -1230,19 +1277,122 @@ static const struct of_device_id tegra_xbar_of_match[] = {
 	{},
 };
 
-static int tegra_dev_xbar_probe(struct platform_device *pdev)
+static int tegra_xbar_runtime_suspend(struct device *dev)
+{
+	struct tegra_xbar *xbar = dev_get_drvdata(dev);
+
+#ifdef CONFIG_TEGRA186_AHC
+	tegra186_free_ahc_interrupts();
+#endif
+	regcache_cache_only(xbar->regmap, true);
+	regcache_mark_dirty(xbar->regmap);
+
+	if (!(tegra_platform_is_unit_fpga() || tegra_platform_is_fpga()))
+		clk_disable_unprepare(xbar->clk);
+
+	return 0;
+}
+
+static int tegra_xbar_runtime_resume(struct device *dev)
+{
+	struct tegra_xbar *xbar = dev_get_drvdata(dev);
+	int ret;
+
+	if (!(tegra_platform_is_unit_fpga() || tegra_platform_is_fpga())) {
+		ret = clk_prepare_enable(xbar->clk);
+		if (ret) {
+			dev_err(dev, "clk_prepare_enable failed: %d\n", ret);
+			return ret;
+		}
+	}
+#ifdef CONFIG_TEGRA186_AHC
+	tegra186_setup_ahc_interrupts();
+#endif
+	regcache_cache_only(xbar->regmap, false);
+	regcache_sync(xbar->regmap);
+
+	return 0;
+}
+
+static int tegra_xbar_probe(struct platform_device *pdev)
 {
 	const struct of_device_id *match;
-	struct tegra_xbar_soc_data *soc_data;
+	struct tegra_xbar *xbar;
+	struct resource *res;
+	void __iomem *regs;
+	int ret;
+
+	xbar = devm_kzalloc(&pdev->dev, sizeof(*xbar), GFP_KERNEL);
+	if (!xbar)
+		return -ENOMEM;
 
 	match = of_match_device(tegra_xbar_of_match, &pdev->dev);
 	if (!match) {
 		dev_err(&pdev->dev, "Error: No device match found\n");
 		return -ENODEV;
 	}
-	soc_data = (struct tegra_xbar_soc_data *)match->data;
 
-	return tegra_xbar_probe(pdev, soc_data);
+	xbar->soc_data = (struct tegra_xbar_soc_data *)match->data;
+
+	dev_set_drvdata(&pdev->dev, xbar);
+
+	if (!(tegra_platform_is_unit_fpga() || tegra_platform_is_fpga())) {
+		xbar->clk = devm_clk_get(&pdev->dev, "ahub");
+		if (IS_ERR(xbar->clk)) {
+			dev_err(&pdev->dev, "Can't retrieve ahub clock\n");
+			return PTR_ERR(xbar->clk);
+		}
+
+		xbar->clk_parent = devm_clk_get(&pdev->dev, "parent");
+		if (IS_ERR(xbar->clk_parent)) {
+			dev_err(&pdev->dev, "Can't retrieve parent clock\n");
+			return PTR_ERR(xbar->clk_parent);
+		}
+	}
+
+	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+
+	regs = devm_ioremap_resource(&pdev->dev, res);
+	if (IS_ERR(regs))
+		return PTR_ERR(regs);
+
+	xbar->regmap = devm_regmap_init_mmio(&pdev->dev, regs,
+					     xbar->soc_data->regmap_config);
+	if (IS_ERR(xbar->regmap)) {
+		dev_err(&pdev->dev, "regmap init failed\n");
+		return PTR_ERR(xbar->regmap);
+	}
+
+	regcache_cache_only(xbar->regmap, true);
+
+	ret = snd_soc_register_codec(&pdev->dev,
+				     xbar->soc_data->codec_drv,
+				     xbar->soc_data->dai_drv,
+				     xbar->soc_data->num_dais);
+
+	if (ret < 0)
+		return ret;
+
+	ret = of_platform_populate(pdev->dev.of_node, NULL, NULL, &pdev->dev);
+	if (ret < 0) {
+		snd_soc_unregister_codec(&pdev->dev);
+		return ret;
+	}
+
+	pm_runtime_enable(&pdev->dev);
+
+	return 0;
+}
+
+static int tegra_xbar_remove(struct platform_device *pdev)
+{
+	snd_soc_unregister_codec(&pdev->dev);
+
+	pm_runtime_disable(&pdev->dev);
+	if (!pm_runtime_status_suspended(&pdev->dev))
+		tegra_xbar_runtime_suspend(&pdev->dev);
+
+	return 0;
 }
 
 static const struct dev_pm_ops tegra_xbar_pm_ops = {
@@ -1253,7 +1403,7 @@ static const struct dev_pm_ops tegra_xbar_pm_ops = {
 };
 
 static struct platform_driver tegra_xbar_driver = {
-	.probe = tegra_dev_xbar_probe,
+	.probe = tegra_xbar_probe,
 	.remove = tegra_xbar_remove,
 	.driver = {
 		.name = DRV_NAME,
