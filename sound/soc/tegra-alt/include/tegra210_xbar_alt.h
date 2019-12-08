@@ -56,18 +56,6 @@
 #define TEGRA210_AHUBRAMCTL_CTRL_SEQ_ACCESS_EN		(1 << 12)
 #define TEGRA210_AHUBRAMCTL_CTRL_RAM_ADDR_MASK		0x1ff
 
-#define TEGRA210_NUM_DAIS				67
-#define TEGRA210_NUM_MUX_WIDGETS			50
-
-/* size of TEGRA210_ROUTES */
-#define TEGRA210_NUM_MUX_INPUT				54
-
-#define TEGRA186_NUM_DAIS				108
-#define TEGRA186_NUM_MUX_WIDGETS			79
-
-/* size of TEGRA_ROUTES + TEGRA186_ROUTES */
-#define TEGRA186_NUM_MUX_INPUT				82
-
 #define TEGRA210_MAX_REGISTER_ADDR (TEGRA210_XBAR_PART2_RX +		\
 	(TEGRA210_XBAR_RX_STRIDE * (TEGRA210_XBAR_AUDIO_RX_COUNT - 1)))
 
@@ -91,6 +79,76 @@
 
 #define TEGRA_XBAR_UPDATE_MAX_REG		(TEGRA186_XBAR_UPDATE_MAX_REG)
 
+#define MUX_ENUM_CTRL_DECL(ename, id)				\
+	SOC_VALUE_ENUM_WIDE_DECL(ename##_enum, MUX_REG(id), 0,	\
+				 tegra210_xbar_mux_texts,	\
+				 tegra210_xbar_mux_values);	\
+	static const struct snd_kcontrol_new ename##_control =	\
+		SOC_DAPM_ENUM_EXT("Route", ename##_enum,	\
+				  tegra_xbar_get_value_enum,	\
+				  tegra_xbar_put_value_enum)
+
+#define MUX_ENUM_CTRL_DECL_186(ename, id)			\
+	SOC_VALUE_ENUM_WIDE_DECL(ename##_enum, MUX_REG(id), 0,	\
+				 tegra186_xbar_mux_texts,	\
+				 tegra186_xbar_mux_values);	\
+	static const struct snd_kcontrol_new ename##_control =	\
+		SOC_DAPM_ENUM_EXT("Route", ename##_enum,	\
+				  tegra_xbar_get_value_enum,	\
+				  tegra_xbar_put_value_enum)
+
+#define DAI(sname)						\
+	{							\
+		.name = #sname,					\
+		.playback = {					\
+			.stream_name = #sname " Receive",	\
+			.channels_min = 1,			\
+			.channels_max = 16,			\
+			.rates = SNDRV_PCM_RATE_8000_192000,	\
+			.formats = SNDRV_PCM_FMTBIT_S8 |	\
+				SNDRV_PCM_FMTBIT_S16_LE |	\
+				SNDRV_PCM_FMTBIT_S24_LE |	\
+				SNDRV_PCM_FMTBIT_S32_LE,	\
+		},						\
+		.capture = {					\
+			.stream_name = #sname " Transmit",	\
+			.channels_min = 1,			\
+			.channels_max = 16,			\
+			.rates = SNDRV_PCM_RATE_8000_192000,	\
+			.formats = SNDRV_PCM_FMTBIT_S8 |	\
+				SNDRV_PCM_FMTBIT_S16_LE |	\
+				SNDRV_PCM_FMTBIT_S24_LE |	\
+				SNDRV_PCM_FMTBIT_S32_LE,	\
+		},						\
+	}
+
+#define MUX_REG(id) (TEGRA210_XBAR_RX_STRIDE * (id))
+
+#define SOC_VALUE_ENUM_WIDE(xreg, shift, xmax, xtexts, xvalues) \
+{	.reg = xreg, .shift_l = shift, .shift_r = shift,	\
+	.items = xmax, .texts = xtexts, .values = xvalues,	\
+	.mask = xmax ? roundup_pow_of_two(xmax) - 1 : 0}
+
+#define SOC_VALUE_ENUM_WIDE_DECL(name, xreg, shift, xtexts, xvalues)	\
+	static struct soc_enum name = SOC_VALUE_ENUM_WIDE(xreg, shift,	\
+		ARRAY_SIZE(xtexts), xtexts, xvalues)
+
+#define WIDGETS(sname, ename)						\
+	SND_SOC_DAPM_AIF_IN(sname " RX", NULL, 0, SND_SOC_NOPM, 0, 0),	\
+	SND_SOC_DAPM_AIF_OUT(sname " TX", NULL, 0, SND_SOC_NOPM, 0, 0), \
+	SND_SOC_DAPM_MUX(sname " Mux", SND_SOC_NOPM, 0, 0,		\
+			 &ename##_control)
+
+#define TX_WIDGETS(sname)						\
+	SND_SOC_DAPM_AIF_IN(sname " RX", NULL, 0, SND_SOC_NOPM, 0, 0),	\
+	SND_SOC_DAPM_AIF_OUT(sname " TX", NULL, 0, SND_SOC_NOPM, 0, 0)
+
+#define MUX_VALUE(npart, nbit) (1 + nbit + npart * 32)
+
+#define IN_OUT_ROUTES(name)					\
+	{ name " RX",       NULL,	name " Receive" },	\
+	{ name " Transmit", NULL,       name " TX" },
+
 struct tegra210_xbar_cif_conf {
 	unsigned int threshold;
 	unsigned int audio_channels;
@@ -111,8 +169,9 @@ struct tegra_xbar_soc_data {
 	const struct regmap_config *regmap_config;
 	unsigned int mask[4];
 	unsigned int reg_count;
-	unsigned int reg_offset;
-	int (*xbar_registration)(struct platform_device *pdev);
+	unsigned int num_dais;
+	struct snd_soc_codec_driver *codec_drv;
+	struct snd_soc_dai_driver *dai_drv;
 };
 
 struct tegra_xbar {
