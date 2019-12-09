@@ -894,6 +894,22 @@ int test_falcon_mem_rw_range(struct unit_module *m, struct gk20a *g,
 		return UNIT_FAIL;
 	}
 
+	dst = UTF_FALCON_IMEM_DMEM_SIZE;
+
+	/* write/read data to/from invalid offset in imem */
+	err = falcon_check_read_write(g, m, pmu_flcn, MEM_IMEM, dst,
+				      byte_cnt, -EINVAL);
+	if (err) {
+		return UNIT_FAIL;
+	}
+
+	/* write/read data to/from invalid offset in dmem */
+	err = falcon_check_read_write(g, m, pmu_flcn, MEM_DMEM, dst,
+				      byte_cnt, -EINVAL);
+	if (err) {
+		return UNIT_FAIL;
+	}
+
 	return UNIT_SUCCESS;
 }
 

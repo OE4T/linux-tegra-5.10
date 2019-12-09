@@ -199,7 +199,8 @@ int test_falcon_mem_rw_init(struct unit_module *m, struct gk20a *g,
  *   initialized falcon struct with sample random data and valid range.
  *   - Verify that writes succeed with 0 return value in both cases.
  * - Invoke nvgpu_falcon_copy_to_imem and nvgpu_falcon_copy_to_dmem with
- *   initialized falcon struct with sample random data and invalid range.
+ *   initialized falcon struct with sample random data and invalid range
+ *   with valid and invalid offset.
  *   - Verify that writes fail with -EINVAL return value in both cases.
  *
  * Output: Returns PASS if the steps above were executed successfully. FAIL
