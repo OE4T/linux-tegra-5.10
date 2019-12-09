@@ -20,7 +20,9 @@
 
 .SUFFIXES:
 
-OBJS   = nvgpu-gr-falcon.o
+OBJS   = nvgpu-gr-falcon.o \
+	 nvgpu-gr-falcon-gk20a.o
+
 MODULE = nvgpu-gr-falcon
 
 LIB_PATHS += -lnvgpu-gr

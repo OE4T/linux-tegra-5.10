@@ -652,11 +652,11 @@ int test_gr_intr_fecs_exceptions(struct unit_module *m,
 		struct gk20a *g, void *args)
 {
 	int err, i, j = 0;
-	int arry_cnt = 10;
+	int arry_cnt = 11;
 
-	u32 fecs_status[10] = {
+	u32 fecs_status[11] = {
 		0,
-		gr_fecs_host_int_enable_ctxsw_intr0_enable_f() |
+		gr_fecs_host_int_enable_ctxsw_intr0_enable_f(),
 		gr_fecs_host_int_enable_ctxsw_intr1_enable_f(),
 		gr_fecs_host_int_enable_fault_during_ctxsw_enable_f(),
 		gr_fecs_host_int_enable_umimp_firmware_method_enable_f(),

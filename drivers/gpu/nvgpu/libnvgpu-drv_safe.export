@@ -70,6 +70,7 @@ gm20b_priv_set_timeout_settings
 gm20b_priv_ring_enum_ltc
 gm20b_priv_ring_get_gpc_count
 gm20b_priv_ring_get_fbp_count
+gm20b_gr_falcon_submit_fecs_method_op
 gp10b_ce_nonstall_isr
 gp10b_get_max_page_table_levels
 gp10b_mm_get_default_big_page_size
@@ -396,6 +397,7 @@ nvgpu_init_enabled_flags
 nvgpu_init_hal
 nvgpu_init_mm_support
 nvgpu_inst_block_addr
+nvgpu_free_inst_block
 nvgpu_inst_block_ptr
 nvgpu_is_enabled
 nvgpu_big_alloc_impl

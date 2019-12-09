@@ -25,7 +25,8 @@
 ###############################################################################
 
 NVGPU_UNIT_NAME = nvgpu-gr-falcon
-NVGPU_UNIT_SRCS = nvgpu-gr-falcon.c
+NVGPU_UNIT_SRCS = nvgpu-gr-falcon.c \
+		  nvgpu-gr-falcon-gk20a.c
 
 NVGPU_UNIT_INTERFACE_DIRS := \
 	$(NV_COMPONENT_DIR)/.. \

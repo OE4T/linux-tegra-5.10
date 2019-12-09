@@ -1848,6 +1848,18 @@
         "test_level": 0
     },
     {
+        "test": "test_gr_falcon_fail_ctxsw_ucode",
+        "case": "gr_falcon_fail_ctxsw_ucode",
+        "unit": "nvgpu_gr_falcon",
+        "test_level": 0
+    },
+    {
+        "test": "test_gr_falcon_gk20a_ctrl_ctxsw",
+        "case": "gr_falcon_gk20a_ctrl_ctxsw",
+        "unit": "nvgpu_gr_falcon",
+        "test_level": 0
+    },
+    {
         "test": "test_gr_falcon_deinit",
         "case": "gr_falcon_deinit",
         "unit": "nvgpu_gr_falcon",
