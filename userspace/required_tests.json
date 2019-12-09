@@ -354,6 +354,36 @@
         "test_level": 0
     },
     {
+        "test": "test_setup",
+        "case": "bus_setup",
+        "unit": "bus",
+        "test_level": 0
+    },
+    {
+        "test": "test_init_hw",
+        "case": "bus_init_hw",
+        "unit": "bus",
+        "test_level": 0
+    },
+    {
+        "test": "test_bar_bind",
+        "case": "bus_bar_bind",
+        "unit": "bus",
+        "test_level": 0
+    },
+    {
+        "test": "test_isr",
+        "case": "bus_isr",
+        "unit": "bus",
+        "test_level": 0
+    },
+    {
+        "test": "test_free_reg_space",
+        "case": "bus_free_reg_space",
+        "unit": "bus",
+        "test_level": 0
+    },
+    {
         "test": "test_free_env",
         "case": "ce_free_env",
         "unit": "ce",

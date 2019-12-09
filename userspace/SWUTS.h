@@ -34,6 +34,7 @@
  *   - @ref SWUTS-interface-bsearch
  *   - @ref SWUTS-interface-lock
  *   - @ref SWUTS-interface-rbtree
+ *   - @ref SWUTS-bus
  *   - @ref SWUTS-falcon
  *   - @ref SWUTS-netlist
  *   - @ref SWUTS-fifo

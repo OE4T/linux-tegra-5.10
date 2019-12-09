@@ -35,6 +35,8 @@ gk20a_runlist_wait_pending
 gk20a_runlist_write_state
 gk20a_userd_entry_size
 gk20a_vm_release_share
+gk20a_bus_init_hw
+gk20a_bus_isr
 gm20b_channel_bind
 gm20b_channel_force_ctx_reload
 gm20b_device_info_parse_enum
@@ -78,6 +80,7 @@ gm20b_priv_ring_enum_ltc
 gm20b_priv_ring_get_gpc_count
 gm20b_priv_ring_get_fbp_count
 gm20b_gr_falcon_submit_fecs_method_op
+gm20b_bus_bar1_bind
 gp10b_ce_nonstall_isr
 gp10b_get_max_page_table_levels
 gp10b_mm_get_default_big_page_size
@@ -96,6 +99,7 @@ gp10b_get_device_info
 gp10b_is_engine_ce
 gp10b_priv_ring_isr
 gp10b_priv_ring_decode_error_code
+gp10b_bus_bar2_bind
 gv100_dump_engine_status
 gv100_read_engine_status_info
 gv11b_ce_get_num_pce
@@ -221,6 +225,7 @@ gv11b_blcg_hshub_gating_prod_size
 gv11b_blcg_hshub_get_gating_prod
 gv11b_netlist_is_firmware_defined
 gv11b_top_get_num_lce
+gv11b_bus_configure_debug_bus
 mc_gp10b_intr_stall_unit_config
 mc_gp10b_intr_nonstall_unit_config
 nvgpu_acr_bootstrap_hs_acr
