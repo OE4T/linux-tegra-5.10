@@ -65,16 +65,15 @@ void nvgpu_gr_obj_ctx_commit_inst(struct gk20a *g, struct nvgpu_mem *inst_block,
 	}
 }
 
+#if defined(CONFIG_NVGPU_GRAPHICS) || defined(CONFIG_NVGPU_CILP)
 static int nvgpu_gr_obj_ctx_init_ctxsw_preemption_mode(struct gk20a *g,
 	struct nvgpu_gr_config *config, struct nvgpu_gr_ctx_desc *gr_ctx_desc,
 	struct nvgpu_gr_ctx *gr_ctx, struct vm_gk20a *vm,
 	u32 class_num, u32 flags)
 {
-#if defined(CONFIG_NVGPU_GRAPHICS) || defined(CONFIG_NVGPU_CILP)
 	int err;
 	u32 graphics_preempt_mode = 0U;
 	u32 compute_preempt_mode = 0U;
-#endif
 
 	nvgpu_log_fn(g, " ");
 
@@ -98,7 +97,6 @@ static int nvgpu_gr_obj_ctx_init_ctxsw_preemption_mode(struct gk20a *g,
 	}
 #endif
 
-#if defined(CONFIG_NVGPU_GRAPHICS) || defined(CONFIG_NVGPU_CILP)
 	if ((graphics_preempt_mode != 0U) || (compute_preempt_mode != 0U)) {
 		err = nvgpu_gr_obj_ctx_set_ctxsw_preemption_mode(g, config,
 			gr_ctx_desc, gr_ctx, vm, class_num, graphics_preempt_mode,
@@ -108,12 +106,12 @@ static int nvgpu_gr_obj_ctx_init_ctxsw_preemption_mode(struct gk20a *g,
 			return err;
 		}
 	}
-#endif
 
 	nvgpu_log_fn(g, "done");
 
 	return 0;
 }
+#endif
 
 #ifdef CONFIG_NVGPU_GRAPHICS
 static int nvgpu_gr_obj_ctx_set_graphics_preemption_mode(struct gk20a *g,
@@ -190,23 +188,13 @@ static int nvgpu_gr_obj_ctx_set_compute_preemption_mode(struct gk20a *g,
 		|| g->ops.gpu_class.is_valid_gfx(class_num)
 #endif
 		) {
-		switch (compute_preempt_mode) {
-		case NVGPU_PREEMPTION_MODE_COMPUTE_WFI:
-		case NVGPU_PREEMPTION_MODE_COMPUTE_CTA:
-#ifdef CONFIG_NVGPU_CILP
-		case NVGPU_PREEMPTION_MODE_COMPUTE_CILP:
-#endif
-			nvgpu_gr_ctx_init_compute_preemption_mode(gr_ctx,
-				compute_preempt_mode);
-			break;
-		default:
-			nvgpu_log_info(g, "compute_preempt_mode=%u",
-				compute_preempt_mode);
-			break;
-		}
+		nvgpu_gr_ctx_init_compute_preemption_mode(gr_ctx,
+			compute_preempt_mode);
+		return 0;
+	} else {
+		return -EINVAL;
 	}
 
-	return 0;
 }
 
 int nvgpu_gr_obj_ctx_set_ctxsw_preemption_mode(struct gk20a *g,
@@ -327,7 +315,7 @@ void nvgpu_gr_obj_ctx_update_ctxsw_preemption_mode(struct gk20a *g,
 	nvgpu_log_fn(g, "done");
 }
 
-int nvgpu_gr_obj_ctx_commit_global_ctx_buffers(struct gk20a *g,
+void nvgpu_gr_obj_ctx_commit_global_ctx_buffers(struct gk20a *g,
 	struct nvgpu_gr_global_ctx_buffer_desc *global_ctx_buffer,
 	struct nvgpu_gr_config *config,	struct nvgpu_gr_ctx *gr_ctx, bool patch)
 {
@@ -378,8 +366,6 @@ int nvgpu_gr_obj_ctx_commit_global_ctx_buffers(struct gk20a *g,
 	if (patch) {
 		nvgpu_gr_ctx_patch_write_end(g, gr_ctx, false);
 	}
-
-	return 0;
 }
 
 static int nvgpu_gr_obj_ctx_alloc_sw_bundle(struct gk20a *g)
@@ -470,12 +456,15 @@ static int nvgpu_gr_obj_ctx_init_hw_state(struct gk20a *g,
 			     sw_ctx_load->l[i].value);
 	}
 
+#ifdef CONFIG_NVGPU_GRAPHICS
 	if (g->ops.gr.init.preemption_state != NULL) {
 		err = g->ops.gr.init.preemption_state(g);
 		if (err != 0) {
 			goto clean_up;
 		}
 	}
+#endif
+
 	nvgpu_cg_blcg_gr_load_enable(g);
 
 	err = g->ops.gr.init.wait_idle(g);
@@ -499,11 +488,8 @@ static int nvgpu_gr_obj_ctx_commit_hw_state(struct gk20a *g,
 	/* disable fe_go_idle */
 	g->ops.gr.init.fe_go_idle_timeout(g, false);
 
-	err = nvgpu_gr_obj_ctx_commit_global_ctx_buffers(g, global_ctx_buffer,
+	nvgpu_gr_obj_ctx_commit_global_ctx_buffers(g, global_ctx_buffer,
 		config, gr_ctx, false);
-	if (err != 0) {
-		goto clean_up;
-	}
 
 	/* override a few ctx state registers */
 	g->ops.gr.init.commit_global_timeslice(g);
@@ -511,7 +497,7 @@ static int nvgpu_gr_obj_ctx_commit_hw_state(struct gk20a *g,
 	/* floorsweep anything left */
 	err = nvgpu_gr_fs_state_init(g, config);
 	if (err != 0) {
-		goto clean_up;
+		goto restore_fe_go_idle;
 	}
 
 	err = g->ops.gr.init.wait_idle(g);
@@ -521,16 +507,11 @@ static int nvgpu_gr_obj_ctx_commit_hw_state(struct gk20a *g,
 
 	err = nvgpu_gr_obj_ctx_alloc_sw_bundle(g);
 	if (err != 0) {
-		goto clean_up;
+		goto restore_fe_go_idle;
 	}
 
-restore_fe_go_idle:
 	/* restore fe_go_idle */
 	g->ops.gr.init.fe_go_idle_timeout(g, true);
-
-	if ((err != 0) || (g->ops.gr.init.wait_idle(g) != 0)) {
-		goto clean_up;
-	}
 
 	/* load method init */
 	g->ops.gr.init.load_method_init(g, sw_method_init);
@@ -544,6 +525,15 @@ restore_fe_go_idle:
 #endif
 
 	err = g->ops.gr.init.wait_idle(g);
+	if (err != 0) {
+		goto clean_up;
+	}
+
+	return 0;
+
+restore_fe_go_idle:
+	/* restore fe_go_idle */
+	g->ops.gr.init.fe_go_idle_timeout(g, true);
 
 clean_up:
 	return err;
@@ -773,12 +763,14 @@ int nvgpu_gr_obj_ctx_alloc(struct gk20a *g,
 		}
 	}
 
+#if defined(CONFIG_NVGPU_GRAPHICS) || defined(CONFIG_NVGPU_CILP)
 	err = nvgpu_gr_obj_ctx_init_ctxsw_preemption_mode(g, config,
 		gr_ctx_desc, gr_ctx, vm, class_num, flags);
 	if (err != 0) {
 		nvgpu_err(g, "fail to init preemption mode");
 		goto out;
 	}
+#endif
 
 	/* map global buffer to channel gpu_va and commit */
 	err = nvgpu_gr_ctx_map_global_ctx_buffers(g, gr_ctx,
@@ -788,12 +780,8 @@ int nvgpu_gr_obj_ctx_alloc(struct gk20a *g,
 		goto out;
 	}
 
-	err = nvgpu_gr_obj_ctx_commit_global_ctx_buffers(g, global_ctx_buffer,
+	nvgpu_gr_obj_ctx_commit_global_ctx_buffers(g, global_ctx_buffer,
 			config, gr_ctx, true);
-	if (err != 0) {
-		nvgpu_err(g, "fail to commit global ctx buffer");
-		goto out;
-	}
 
 	/* commit gr ctx buffer */
 	nvgpu_gr_obj_ctx_commit_inst(g, inst_block, gr_ctx, subctx,
@@ -820,12 +808,8 @@ int nvgpu_gr_obj_ctx_alloc(struct gk20a *g,
 #endif
 
 	/* load golden image */
-	err = nvgpu_gr_ctx_load_golden_ctx_image(g, gr_ctx,
+	nvgpu_gr_ctx_load_golden_ctx_image(g, gr_ctx,
 		golden_image->local_golden_image, cde);
-	if (err != 0) {
-		nvgpu_err(g, "fail to load golden ctx image");
-		goto out;
-	}
 
 	nvgpu_gr_obj_ctx_update_ctxsw_preemption_mode(g, config, gr_ctx,
 		subctx);

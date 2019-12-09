@@ -526,21 +526,6 @@ void gv11b_gr_init_fs_state(struct gk20a *g)
 			nvgpu_ltc_get_ltc_count(g)));
 }
 
-int gv11b_gr_init_preemption_state(struct gk20a *g)
-{
-	u32 debug_2;
-
-	nvgpu_log_fn(g, " ");
-
-	debug_2 = nvgpu_readl(g, gr_debug_2_r());
-	debug_2 = set_field(debug_2,
-		gr_debug_2_gfxp_wfi_timeout_unit_m(),
-		gr_debug_2_gfxp_wfi_timeout_unit_usec_f());
-	nvgpu_writel(g, gr_debug_2_r(), debug_2);
-
-	return 0;
-}
-
 void gv11b_gr_init_commit_global_timeslice(struct gk20a *g)
 {
 	u32 pd_ab_dist_cfg0;

@@ -145,10 +145,8 @@ void nvgpu_gr_obj_ctx_update_ctxsw_preemption_mode(struct gk20a *g,
  *
  * If flag #patch is set, patch context image is used to update the
  * graphics context, otherwise updates are done with register writes.
- *
- * @return 0 in case of success, < 0 in case of failure.
  */
-int nvgpu_gr_obj_ctx_commit_global_ctx_buffers(struct gk20a *g,
+void nvgpu_gr_obj_ctx_commit_global_ctx_buffers(struct gk20a *g,
 	struct nvgpu_gr_global_ctx_buffer_desc *global_ctx_buffer,
 	struct nvgpu_gr_config *config,	struct nvgpu_gr_ctx *gr_ctx, bool patch);
 

@@ -316,10 +316,8 @@ struct nvgpu_mem *nvgpu_gr_ctx_get_ctx_mem(struct nvgpu_gr_ctx *gr_ctx);
  * Local golden image copy is saved while creating first graphics context
  * buffer. Subsequent graphics contexts can be initialized by loading
  * golden image into new context with this function.
- *
- * @return 0 in case of success, < 0 in case of failure.
  */
-int nvgpu_gr_ctx_load_golden_ctx_image(struct gk20a *g,
+void nvgpu_gr_ctx_load_golden_ctx_image(struct gk20a *g,
 	struct nvgpu_gr_ctx *gr_ctx,
 	struct nvgpu_gr_global_ctx_local_golden_image *local_golden_image,
 	bool cde);

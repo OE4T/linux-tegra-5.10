@@ -553,7 +553,9 @@ static const struct gpu_ops gv11b_ops = {
 				gm20b_gr_init_fe_pwr_mode_force_on,
 			.override_context_reset =
 				gm20b_gr_init_override_context_reset,
+#ifdef CONFIG_NVGPU_GRAPHICS
 			.preemption_state = gv11b_gr_init_preemption_state,
+#endif
 			.fe_go_idle_timeout = gm20b_gr_init_fe_go_idle_timeout,
 			.load_method_init = gm20b_gr_init_load_method_init,
 			.commit_global_timeslice =

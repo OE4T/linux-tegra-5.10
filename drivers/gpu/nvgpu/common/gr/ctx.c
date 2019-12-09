@@ -448,7 +448,7 @@ struct nvgpu_mem *nvgpu_gr_ctx_get_ctx_mem(struct nvgpu_gr_ctx *gr_ctx)
 }
 
 /* load saved fresh copy of gloden image into channel gr_ctx */
-int nvgpu_gr_ctx_load_golden_ctx_image(struct gk20a *g,
+void nvgpu_gr_ctx_load_golden_ctx_image(struct gk20a *g,
 	struct nvgpu_gr_ctx *gr_ctx,
 	struct nvgpu_gr_global_ctx_local_golden_image *local_golden_image,
 	bool cde)
@@ -507,8 +507,6 @@ int nvgpu_gr_ctx_load_golden_ctx_image(struct gk20a *g,
 	g->ops.gr.ctxsw_prog.set_pm_mode(g, mem, gr_ctx->pm_ctx.pm_mode);
 	g->ops.gr.ctxsw_prog.set_pm_ptr(g, mem, virt_addr);
 #endif
-
-	return 0;
 }
 
 /*
@@ -601,7 +599,11 @@ bool nvgpu_gr_ctx_check_valid_preemption_mode(struct nvgpu_gr_ctx *gr_ctx,
 	}
 #endif
 
-#ifndef CONFIG_NVGPU_CILP
+#ifdef CONFIG_NVGPU_CILP
+	if (compute_preempt_mode > NVGPU_PREEMPTION_MODE_COMPUTE_CILP) {
+		return false;
+	}
+#else
 	if (compute_preempt_mode > NVGPU_PREEMPTION_MODE_COMPUTE_CTA) {
 		return false;
 	}

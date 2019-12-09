@@ -296,6 +296,11 @@ int nvgpu_gr_setup_set_preemption_mode(struct nvgpu_channel *ch,
 		return -EINVAL;
 	}
 
+	if (!g->ops.gpu_class.is_valid(class_num)) {
+		nvgpu_err(g, "invalid obj class 0x%x", class_num);
+		return -EINVAL;
+	}
+
 	tsg = nvgpu_tsg_from_ch(ch);
 	if (tsg == NULL) {
 		return -EINVAL;

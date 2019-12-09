@@ -189,6 +189,21 @@ void gv11b_gr_init_commit_gfxp_wfi_timeout(struct gk20a *g,
 	nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_fe_gfxp_wfi_timeout_r(),
 		GFXP_WFI_TIMEOUT_COUNT_IN_USEC_DEFAULT, patch);
 }
+
+int gv11b_gr_init_preemption_state(struct gk20a *g)
+{
+	u32 debug_2;
+
+	nvgpu_log_fn(g, " ");
+
+	debug_2 = nvgpu_readl(g, gr_debug_2_r());
+	debug_2 = set_field(debug_2,
+		gr_debug_2_gfxp_wfi_timeout_unit_m(),
+		gr_debug_2_gfxp_wfi_timeout_unit_usec_f());
+	nvgpu_writel(g, gr_debug_2_r(), debug_2);
+
+	return 0;
+}
 #endif /* CONFIG_NVGPU_GRAPHICS */
 
 #ifdef CONFIG_NVGPU_SET_FALCON_ACCESS_MAP
