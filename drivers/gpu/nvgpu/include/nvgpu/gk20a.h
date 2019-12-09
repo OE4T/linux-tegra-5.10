@@ -566,6 +566,7 @@ struct gpu_ops {
 								bool enable);
 			void (*falcon_isr)(struct gk20a *g);
 			void (*isr)(struct gk20a *g);
+			bool (*is_debug_mode)(struct gk20a *g);
 		} minion;
 		struct {
 			void (*common_intr_enable)(struct gk20a *g,

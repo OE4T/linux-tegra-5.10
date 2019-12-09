@@ -59,8 +59,17 @@ int nvgpu_nvlink_minion_load(struct gk20a *g)
 		return 0;
 	}
 
-	/* get mem unlock ucode binary */
-	nvgpu_minion_fw = nvgpu_request_firmware(g, "minion.bin", 0);
+	/* Get minion ucode binary */
+	if (g->ops.nvlink.minion.is_debug_mode != NULL) {
+		if (g->ops.nvlink.minion.is_debug_mode(g)) {
+			nvgpu_minion_fw = nvgpu_request_firmware(g,
+							"dgpu_minion_debug.bin", 0);
+		} else {
+			nvgpu_minion_fw = nvgpu_request_firmware(g,
+							"dgpu_minion_prod.bin", 0);
+		}
+	}
+
 	if (nvgpu_minion_fw == NULL) {
 		nvgpu_err(g, "minion ucode get fail");
 		err = -ENOENT;

@@ -30,4 +30,5 @@ struct gk20a;
 
 u32 tu104_nvlink_minion_get_dlcmd_ordinal(struct gk20a *g,
 					enum nvgpu_nvlink_minion_dlcmd dlcmd);
+bool tu104_nvlink_minion_is_debug_mode(struct gk20a *g);
 #endif /* MINION_TU104_H */

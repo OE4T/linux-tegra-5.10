@@ -1496,6 +1496,7 @@ static const struct gpu_ops tu104_ops = {
 			.enable_link_intr = gv100_nvlink_minion_enable_link_intr,
 			.falcon_isr = gv100_nvlink_minion_falcon_isr,
 			.isr = gv100_nvlink_minion_isr,
+			.is_debug_mode = tu104_nvlink_minion_is_debug_mode,
 		},
 		.intr = {
 			.common_intr_enable = gv100_nvlink_common_intr_enable,

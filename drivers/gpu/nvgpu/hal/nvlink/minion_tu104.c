@@ -23,6 +23,7 @@
 #ifdef CONFIG_NVGPU_NVLINK
 
 #include <nvgpu/nvlink_minion.h>
+#include <nvgpu/io.h>
 
 #include "minion_gv100.h"
 #include "minion_tu104.h"
@@ -58,6 +59,14 @@ u32 tu104_nvlink_minion_get_dlcmd_ordinal(struct gk20a *g,
 	}
 
 	return dlcmd_ordinal;
+}
+
+bool tu104_nvlink_minion_is_debug_mode(struct gk20a *g)
+{
+	u32 reg_val;
+
+	reg_val = nvgpu_readl(g, minion_scp_ctl_stat_r());
+	return (minion_scp_ctl_stat_debug_mode_v(reg_val) != 0U);
 }
 
 #endif /* CONFIG_NVGPU_NVLINK */
