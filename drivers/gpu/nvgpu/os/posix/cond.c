@@ -160,6 +160,13 @@ int nvgpu_cond_timedwait(struct nvgpu_cond *c, unsigned int *ms)
 	s64 t_start_ns, t_ns;
 	struct timespec ts;
 
+#ifdef NVGPU_UNITTEST_FAULT_INJECTION_ENABLEMENT
+	if (nvgpu_posix_fault_injection_handle_call(
+					nvgpu_cond_get_fault_injection())) {
+		return -ETIMEDOUT;
+	}
+#endif
+
 	if (*ms == NVGPU_COND_WAIT_TIMEOUT_MAX_MS) {
 		return pthread_cond_wait(&c->cond, &c->mutex.lock.mutex);
 	}

@@ -234,6 +234,7 @@ nvgpu_cg_slcg_ce2_load_enable
 nvgpu_cg_init_gr_load_gating_prod
 nvgpu_cg_elcg_enable_no_wait
 nvgpu_cg_elcg_disable_no_wait
+nvgpu_cond_get_fault_injection
 nvgpu_current_pid
 nvgpu_current_tid
 nvgpu_engine_cleanup_sw
