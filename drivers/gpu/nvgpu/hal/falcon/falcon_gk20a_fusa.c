@@ -328,7 +328,7 @@ int gk20a_falcon_copy_to_imem(struct nvgpu_falcon *flcn, u32 dst,
 	return 0;
 }
 
-int gk20a_falcon_bootstrap(struct nvgpu_falcon *flcn,
+void gk20a_falcon_bootstrap(struct nvgpu_falcon *flcn,
 	u32 boot_vector)
 {
 	nvgpu_log_info(flcn->g, "boot vec 0x%x", boot_vector);
@@ -341,8 +341,6 @@ int gk20a_falcon_bootstrap(struct nvgpu_falcon *flcn,
 
 	gk20a_falcon_writel(flcn, falcon_falcon_cpuctl_r(),
 		falcon_falcon_cpuctl_startcpu_f(1));
-
-	return 0;
 }
 
 u32 gk20a_falcon_mailbox_read(struct nvgpu_falcon *flcn,

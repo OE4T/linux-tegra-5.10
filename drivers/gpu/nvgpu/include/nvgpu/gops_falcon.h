@@ -50,7 +50,7 @@ struct gops_falcon {
 	int (*copy_to_imem)(struct nvgpu_falcon *flcn,
 			    u32 dst, u8 *src, u32 size, u8 port,
 			    bool sec, u32 tag);
-	int (*bootstrap)(struct nvgpu_falcon *flcn,
+	void (*bootstrap)(struct nvgpu_falcon *flcn,
 			 u32 boot_vector);
 	u32 (*mailbox_read)(struct nvgpu_falcon *flcn,
 			    u32 mailbox_index);

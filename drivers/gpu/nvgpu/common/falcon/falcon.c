@@ -199,10 +199,7 @@ static int falcon_memcpy_params_check(struct nvgpu_falcon *flcn,
 		goto exit;
 	}
 
-	ret = nvgpu_falcon_get_mem_size(flcn, mem_type, &mem_size);
-	if (ret != 0) {
-		goto exit;
-	}
+	mem_size = g->ops.falcon.get_mem_size(flcn, mem_type);
 
 	if (!(offset <= mem_size && (offset + size) <= mem_size)) {
 		nvgpu_err(g, "flcn-id 0x%x, copy overflow ",
@@ -268,15 +265,6 @@ int nvgpu_falcon_copy_to_imem(struct nvgpu_falcon *flcn,
 
 exit:
 	return status;
-}
-
-int nvgpu_falcon_bootstrap(struct nvgpu_falcon *flcn, u32 boot_vector)
-{
-	if (!is_falcon_valid(flcn)) {
-		return -EINVAL;
-	}
-
-	return flcn->g->ops.falcon.bootstrap(flcn, boot_vector);
 }
 
 u32 nvgpu_falcon_mailbox_read(struct nvgpu_falcon *flcn, u32 mailbox_index)
@@ -386,27 +374,10 @@ int nvgpu_falcon_hs_ucode_load_bootstrap(struct nvgpu_falcon *flcn, u32 *ucode,
 	nvgpu_falcon_mailbox_write(flcn, FALCON_MAILBOX_0, 0xdeadbeefU);
 
 	/* set BOOTVEC to start of non-secure code */
-	err = nvgpu_falcon_bootstrap(flcn, 0U);
-	if (err != 0) {
-		nvgpu_err(g, "HS ucode bootstrap failed err-%d on falcon-%d", err,
-			nvgpu_falcon_get_id(flcn));
-		goto exit;
-	}
+	g->ops.falcon.bootstrap(flcn, 0U);
 
 exit:
 	return err;
-}
-
-int nvgpu_falcon_get_mem_size(struct nvgpu_falcon *flcn,
-			      enum falcon_mem_type type, u32 *size)
-{
-	if (!is_falcon_valid(flcn)) {
-		return -EINVAL;
-	}
-
-	*size = flcn->g->ops.falcon.get_mem_size(flcn, type);
-
-	return 0;
 }
 
 u32 nvgpu_falcon_get_id(struct nvgpu_falcon *flcn)
@@ -628,6 +599,29 @@ void nvgpu_falcon_dump_stats(struct nvgpu_falcon *flcn)
 #endif
 
 #ifdef CONFIG_NVGPU_FALCON_NON_FUSA
+int nvgpu_falcon_bootstrap(struct nvgpu_falcon *flcn, u32 boot_vector)
+{
+	if (!is_falcon_valid(flcn)) {
+		return -EINVAL;
+	}
+
+	flcn->g->ops.falcon.bootstrap(flcn, boot_vector);
+
+	return 0;
+}
+
+int nvgpu_falcon_get_mem_size(struct nvgpu_falcon *flcn,
+			      enum falcon_mem_type type, u32 *size)
+{
+	if (!is_falcon_valid(flcn)) {
+		return -EINVAL;
+	}
+
+	*size = flcn->g->ops.falcon.get_mem_size(flcn, type);
+
+	return 0;
+}
+
 int nvgpu_falcon_clear_halt_intr_status(struct nvgpu_falcon *flcn,
 	unsigned int timeout)
 {

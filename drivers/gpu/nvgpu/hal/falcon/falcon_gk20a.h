@@ -73,7 +73,7 @@ int gk20a_falcon_copy_to_dmem(struct nvgpu_falcon *flcn,
 		u32 dst, u8 *src, u32 size, u8 port);
 int gk20a_falcon_copy_to_imem(struct nvgpu_falcon *flcn, u32 dst,
 		u8 *src, u32 size, u8 port, bool sec, u32 tag);
-int gk20a_falcon_bootstrap(struct nvgpu_falcon *flcn,
+void gk20a_falcon_bootstrap(struct nvgpu_falcon *flcn,
 	u32 boot_vector);
 u32 gk20a_falcon_mailbox_read(struct nvgpu_falcon *flcn,
 		u32 mailbox_index);

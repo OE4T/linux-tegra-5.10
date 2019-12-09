@@ -105,11 +105,9 @@
  *   + nvgpu_falcon_mem_scrub_wait()
  *   + nvgpu_falcon_copy_to_dmem()
  *   + nvgpu_falcon_copy_to_imem()
- *   + nvgpu_falcon_bootstrap()
  *   + nvgpu_falcon_mailbox_read()
  *   + nvgpu_falcon_mailbox_write()
  *   + nvgpu_falcon_hs_ucode_load_bootstrap()
- *   + nvgpu_falcon_get_mem_size()
  *   + nvgpu_falcon_get_id()
  *   + nvgpu_falcon_set_irq()
  */
@@ -404,25 +402,6 @@ int nvgpu_falcon_copy_to_imem(struct nvgpu_falcon *flcn,
 	u32 dst, u8 *src, u32 size, u8 port, bool sec, u32 tag);
 
 /**
- * @brief Bootstrap the falcon.
- *
- * @param flcn [in] The falcon.
- * @param boot_vector [in] Address to start the falcon execution.
- *
- * This function is called after setting up IMEM and DMEM with uCode
- * instructions and data to start the execution.
- *
- * Steps:
- * - Validate that the passed in falcon struct is not NULL and is for supported
- *   falcon. If not valid, return -EINVAL.
- * - Set the boot vector address, DMA control and start the falcon CPU
- *   execution.
- *
- * @return 0 in case of success, < 0 in case of failure.
- */
-int nvgpu_falcon_bootstrap(struct nvgpu_falcon *flcn, u32 boot_vector);
-
-/**
  * @brief Read the falcon mailbox register.
  *
  * @param flcn [in] The falcon.
@@ -493,28 +472,6 @@ void nvgpu_falcon_mailbox_write(struct nvgpu_falcon *flcn, u32 mailbox_index,
  */
 int nvgpu_falcon_hs_ucode_load_bootstrap(struct nvgpu_falcon *flcn, u32 *ucode,
 	u32 *ucode_header);
-
-/**
- * @brief Get the size of falcon's memory.
- *
- * @param flcn [in] The falcon.
- * @param type [in] Falcon memory type (IMEM, DMEM).
- *		    - Supported types: MEM_DMEM (0), MEM_IMEM (1)
- * @param size [out] Size of the falcon memory type.
- *
- * This function is called to get the size of falcon's memory for validation
- * while copying to IMEM/DMEM.
- *
- * Steps:
- * - Validate that the passed in falcon struct is not NULL and is for supported
- *   falcon. If not valid, return -EINVAL.
- * - Read the size of the falcon memory of \a type in bytes from the HW config
- *   register in output parameter \a size.
- *
- * @return 0 in case of success, < 0 in case of failure.
- */
-int nvgpu_falcon_get_mem_size(struct nvgpu_falcon *flcn,
-			      enum falcon_mem_type type, u32 *size);
 
 /**
  * @brief Get the falcon ID.
@@ -639,6 +596,47 @@ void nvgpu_falcon_dump_stats(struct nvgpu_falcon *flcn);
 #endif
 
 #ifdef CONFIG_NVGPU_FALCON_NON_FUSA
+/**
+ * @brief Bootstrap the falcon.
+ *
+ * @param flcn [in] The falcon.
+ * @param boot_vector [in] Address to start the falcon execution.
+ *
+ * This function is called after setting up IMEM and DMEM with uCode
+ * instructions and data to start the execution.
+ *
+ * Steps:
+ * - Validate that the passed in falcon struct is not NULL and is for supported
+ *   falcon. If not valid, return -EINVAL.
+ * - Set the boot vector address, DMA control and start the falcon CPU
+ *   execution.
+ *
+ * @return 0 in case of success, < 0 in case of failure.
+ */
+int nvgpu_falcon_bootstrap(struct nvgpu_falcon *flcn, u32 boot_vector);
+
+/**
+ * @brief Get the size of falcon's memory.
+ *
+ * @param flcn [in] The falcon.
+ * @param type [in] Falcon memory type (IMEM, DMEM).
+ *		    - Supported types: MEM_DMEM (0), MEM_IMEM (1)
+ * @param size [out] Size of the falcon memory type.
+ *
+ * This function is called to get the size of falcon's memory for validation
+ * while copying to IMEM/DMEM.
+ *
+ * Steps:
+ * - Validate that the passed in falcon struct is not NULL and is for supported
+ *   falcon. If not valid, return -EINVAL.
+ * - Read the size of the falcon memory of \a type in bytes from the HW config
+ *   register in output parameter \a size.
+ *
+ * @return 0 in case of success, < 0 in case of failure.
+ */
+int nvgpu_falcon_get_mem_size(struct nvgpu_falcon *flcn,
+			      enum falcon_mem_type type, u32 *size);
+
 int nvgpu_falcon_clear_halt_intr_status(struct nvgpu_falcon *flcn,
 		unsigned int timeout);
 int nvgpu_falcon_copy_from_dmem(struct nvgpu_falcon *flcn,

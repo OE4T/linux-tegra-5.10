@@ -25,6 +25,8 @@
 #include <unit/unit.h>
 #include <unit/io.h>
 
+#include <nvgpu/posix/posix-fault-injection.h>
+
 #include <nvgpu/firmware.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/hal_init.h>
@@ -338,6 +340,22 @@ out:
 	return ret;
 }
 
+static int verify_valid_falcon_sw_init(struct unit_module *m, struct gk20a *g,
+					u32 flcn_id)
+{
+	int err;
+
+	err = nvgpu_falcon_sw_init(g, flcn_id);
+	if (err != 0) {
+		unit_err(m, "falcon init with valid ID %d failed\n", flcn_id);
+		return err;
+	}
+
+	nvgpu_falcon_sw_free(g, flcn_id);
+
+	return 0;
+}
+
 /*
  * Valid/Invalid: Passing valid ID should succeed the call to function
  * nvgpu_falcon_sw_init|free. Otherwise it should fail with error.
@@ -367,19 +385,31 @@ int test_falcon_sw_init_free(struct unit_module *m, struct gk20a *g,
 
 	nvgpu_falcon_sw_free(g, FALCON_ID_INVALID);
 
-	err = nvgpu_falcon_sw_init(g, FALCON_ID_FECS);
+	err = verify_valid_falcon_sw_init(m, g, FALCON_ID_FECS);
 	if (err != 0) {
-		unit_return_fail(m, "falcon init with valid ID failed\n");
+		unit_return_fail(m, "FECS falcon sw not initialized\n");
 	}
 
-	nvgpu_falcon_sw_free(g, FALCON_ID_FECS);
-
-	err = nvgpu_falcon_sw_init(g, FALCON_ID_SEC2);
+	err = verify_valid_falcon_sw_init(m, g, FALCON_ID_GSPLITE);
 	if (err != 0) {
-		unit_return_fail(m, "falcon init with valid ID failed\n");
+		unit_return_fail(m, "GSPLITE falcon sw not initialized\n");
 	}
 
-	nvgpu_falcon_sw_free(g, FALCON_ID_SEC2);
+	err = verify_valid_falcon_sw_init(m, g, FALCON_ID_NVDEC);
+	if (err != 0) {
+		unit_return_fail(m, "NVDEC falcon sw not initialized\n");
+	}
+
+	err = verify_valid_falcon_sw_init(m, g, FALCON_ID_SEC2);
+	if (err != 0) {
+		unit_return_fail(m, "SEC2 falcon sw not initialized\n");
+	}
+
+	err = verify_valid_falcon_sw_init(m, g, FALCON_ID_MINION);
+	if (err != 0) {
+		unit_return_fail(m, "MINION falcon sw not initialized\n");
+	}
+
 
 	return UNIT_SUCCESS;
 }
@@ -479,6 +509,8 @@ int test_falcon_reset(struct unit_module *m, struct gk20a *g, void *__args)
  */
 int test_falcon_mem_scrub(struct unit_module *m, struct gk20a *g, void *__args)
 {
+	struct nvgpu_posix_fault_inj *timer_fi =
+			nvgpu_timers_get_fault_injection();
 	struct {
 		struct nvgpu_falcon *flcn;
 		void (*pre_scrub)(void *);
@@ -500,6 +532,16 @@ int test_falcon_mem_scrub(struct unit_module *m, struct gk20a *g, void *__args)
 					    "expected err: %d\n",
 					 err, test_data[i].exp_err);
 		}
+	}
+
+	/* enable fault injection for the timer init call for branch coverage */
+	nvgpu_posix_enable_fault_injection(timer_fi, true, 0);
+	err = nvgpu_falcon_mem_scrub_wait(gpccs_flcn);
+	nvgpu_posix_enable_fault_injection(timer_fi, false, 0);
+
+	if (err != -ETIMEDOUT) {
+		unit_return_fail(m, "falcon mem scrub err: %d "
+				    "expected err: -ETIMEDOUT\n", err);
 	}
 
 	return UNIT_SUCCESS;
@@ -546,6 +588,8 @@ static void flcn_idle_fail(void *data)
  */
 int test_falcon_idle(struct unit_module *m, struct gk20a *g, void *__args)
 {
+	struct nvgpu_posix_fault_inj *timer_fi =
+			nvgpu_timers_get_fault_injection();
 	struct {
 		struct nvgpu_falcon *flcn;
 		void (*pre_idle)(void *);
@@ -567,6 +611,16 @@ int test_falcon_idle(struct unit_module *m, struct gk20a *g, void *__args)
 					    "expected err: %d\n",
 					 err, test_data[i].exp_err);
 		}
+	}
+
+	/* enable fault injection for the timer init call for branch coverage */
+	nvgpu_posix_enable_fault_injection(timer_fi, true, 0);
+	err = nvgpu_falcon_wait_idle(gpccs_flcn);
+	nvgpu_posix_enable_fault_injection(timer_fi, false, 0);
+
+	if (err != -ETIMEDOUT) {
+		unit_return_fail(m, "falcon wait for idle err: %d "
+				    "expected err: -ETIMEDOUT\n", err);
 	}
 
 	return UNIT_SUCCESS;
@@ -607,6 +661,8 @@ static void flcn_halt_fail(void *data)
 int test_falcon_halt(struct unit_module *m, struct gk20a *g, void *__args)
 {
 #define FALCON_WAIT_HALT 200
+	struct nvgpu_posix_fault_inj *timer_fi =
+			nvgpu_timers_get_fault_injection();
 	struct {
 		struct nvgpu_falcon *flcn;
 		void (*pre_halt)(void *);
@@ -625,10 +681,21 @@ int test_falcon_halt(struct unit_module *m, struct gk20a *g, void *__args)
 		err = nvgpu_falcon_wait_for_halt(test_data[i].flcn,
 						 FALCON_WAIT_HALT);
 		if (err != test_data[i].exp_err) {
-			unit_return_fail(m, "falcon wait for idle err: %d "
+			unit_return_fail(m, "falcon wait for halt err: %d "
 					    "expected err: %d\n",
 					 err, test_data[i].exp_err);
 		}
+	}
+
+	/* enable fault injection for the timer init call for branch coverage */
+	nvgpu_posix_enable_fault_injection(timer_fi, true, 0);
+	err = nvgpu_falcon_wait_for_halt(gpccs_flcn,
+					 FALCON_WAIT_HALT);
+	nvgpu_posix_enable_fault_injection(timer_fi, false, 0);
+
+	if (err != -ETIMEDOUT) {
+		unit_return_fail(m, "falcon wait for halt err: %d "
+				    "expected err: -ETIMEDOUT\n", err);
 	}
 
 	return UNIT_SUCCESS;
@@ -663,6 +730,38 @@ int test_falcon_mem_rw_init(struct unit_module *m, struct gk20a *g,
 			return UNIT_FAIL;
 		}
 	}
+
+	return UNIT_SUCCESS;
+}
+
+/*
+ * Invalid: Read and write for invalid Falcon port should fail
+ *	    with error -EINVAL.
+ */
+int test_falcon_mem_rw_inval_port(struct unit_module *m, struct gk20a *g,
+				  void *__args)
+{
+	int err = 0, size = RAND_DATA_SIZE, port = 2;
+
+	if (pmu_flcn == NULL || !pmu_flcn->is_falcon_supported) {
+		unit_return_fail(m, "test environment not initialized.");
+	}
+
+	/* write to invalid port */
+	unit_info(m, "Writing %d bytes to imem port %d\n", size, port);
+	err = nvgpu_falcon_copy_to_imem(pmu_flcn, 0, (u8 *) rand_test_data,
+					size, port, false, 0);
+	if (err != -EINVAL) {
+		unit_return_fail(m, "Copy to IMEM invalid port should fail\n");
+	}
+
+#ifdef CONFIG_NVGPU_FALCON_NON_FUSA
+	err = nvgpu_falcon_copy_from_imem(pmu_flcn, 0,
+					  NULL, size, port);
+	if (err != -EINVAL) {
+		unit_err(m, "Copy from IMEM invalid port should fail\n");
+	}
+#endif
 
 	return UNIT_SUCCESS;
 }
@@ -942,8 +1041,6 @@ static bool falcon_check_reg_group(struct gk20a *g,
  * Invalid: Invoke nvgpu_falcon_hs_ucode_load_bootstrap with invalid ucode data
  *	    and verify that call fails.
  *
- * Valid: Invoke nvgpu_falcon_bootstrap with initialized falcon and verify
- *	  that call succeeds.
  * Valid: Invoke nvgpu_falcon_hs_ucode_load_bootstrap with initialized
  *	  falcon with ACR firmware, verify the expected state of falcon
  *	  registers - falcon_falcon_dmactl_r, falcon_falcon_bootvec_r,
@@ -964,11 +1061,14 @@ int test_falcon_bootstrap(struct unit_module *m, struct gk20a *g, void *__args)
 	struct bin_hdr *hs_bin_hdr = NULL;
 	struct nvgpu_firmware *acr_fw;
 	u32 *ucode_header = NULL;
+#ifdef CONFIG_NVGPU_FALCON_NON_FUSA
 	u32 boot_vector = 0xF000;
+#endif
 	u32 *ucode = NULL;
 	u32 valid_size;
 	int err;
 
+#ifdef CONFIG_NVGPU_FALCON_NON_FUSA
 	/** Invalid falcon bootstrap. */
 	err = nvgpu_falcon_bootstrap(uninit_flcn, boot_vector);
 	if (err != -EINVAL) {
@@ -981,6 +1081,7 @@ int test_falcon_bootstrap(struct unit_module *m, struct gk20a *g, void *__args)
 	if (err) {
 		unit_return_fail(m, "PMU falcon bootstrap failed\n");
 	}
+#endif
 
 	acr_fw = nvgpu_request_firmware(g, HSBIN_ACR_UCODE_IMAGE, 0);
 	if (acr_fw == NULL) {
@@ -1020,11 +1121,8 @@ int test_falcon_bootstrap(struct unit_module *m, struct gk20a *g, void *__args)
 	 */
 	valid_size = ucode_header[OS_CODE_SIZE];
 
-	err = nvgpu_falcon_get_mem_size(gpccs_flcn, MEM_IMEM,
-					&ucode_header[OS_CODE_SIZE]);
-	if (err) {
-		unit_return_fail(m, "PMU falcon IMEM get size failed\n");
-	}
+	ucode_header[OS_CODE_SIZE] = g->ops.falcon.get_mem_size(gpccs_flcn,
+								MEM_IMEM);
 
 	ucode_header[OS_CODE_SIZE] += 4;
 
@@ -1043,12 +1141,8 @@ int test_falcon_bootstrap(struct unit_module *m, struct gk20a *g, void *__args)
 	 */
 	valid_size = ucode_header[APP_0_CODE_SIZE];
 
-	err = nvgpu_falcon_get_mem_size(gpccs_flcn, MEM_IMEM,
-					&ucode_header[APP_0_CODE_SIZE]);
-	if (err) {
-		unit_return_fail(m, "PMU falcon IMEM get size failed\n");
-	}
-
+	ucode_header[APP_0_CODE_SIZE] = g->ops.falcon.get_mem_size(gpccs_flcn,
+								   MEM_IMEM);
 	ucode_header[APP_0_CODE_SIZE] += 4;
 
 	err = nvgpu_falcon_hs_ucode_load_bootstrap(gpccs_flcn,
@@ -1066,12 +1160,8 @@ int test_falcon_bootstrap(struct unit_module *m, struct gk20a *g, void *__args)
 	 */
 	valid_size = ucode_header[OS_DATA_SIZE];
 
-	err = nvgpu_falcon_get_mem_size(gpccs_flcn, MEM_DMEM,
-					&ucode_header[OS_DATA_SIZE]);
-	if (err) {
-		unit_return_fail(m, "PMU falcon DMEM get size failed\n");
-	}
-
+	ucode_header[OS_DATA_SIZE] = g->ops.falcon.get_mem_size(gpccs_flcn,
+								MEM_DMEM);
 	ucode_header[OS_DATA_SIZE] += 4;
 
 	err = nvgpu_falcon_hs_ucode_load_bootstrap(gpccs_flcn,
@@ -1098,6 +1188,91 @@ int test_falcon_bootstrap(struct unit_module *m, struct gk20a *g, void *__args)
 	return UNIT_SUCCESS;
 }
 
+static void flcn_irq_not_supported(struct nvgpu_falcon *flcn)
+{
+	flcn->is_interrupt_enabled = false;
+}
+
+static void flcn_irq_supported(struct nvgpu_falcon *flcn)
+{
+	flcn->is_interrupt_enabled = true;
+}
+
+static bool check_flcn_irq_status(struct nvgpu_falcon *flcn, bool enable,
+				  u32 irq_mask, u32 irq_dest)
+{
+	u32 tmp_mask, tmp_dest;
+
+	if (enable) {
+		tmp_mask = nvgpu_posix_io_readl_reg_space(flcn->g,
+				flcn->flcn_base + falcon_falcon_irqmset_r());
+		tmp_dest = nvgpu_posix_io_readl_reg_space(flcn->g,
+				flcn->flcn_base + falcon_falcon_irqdest_r());
+
+		if (tmp_mask != irq_mask || tmp_dest != irq_dest) {
+			return false;
+		} else {
+			return true;
+		}
+	} else {
+		tmp_mask = nvgpu_posix_io_readl_reg_space(flcn->g,
+				flcn->flcn_base + falcon_falcon_irqmclr_r());
+
+		if (tmp_mask != 0xffffffff) {
+			return false;
+		} else {
+			return true;
+		}
+	}
+}
+
+int test_falcon_irq(struct unit_module *m, struct gk20a *g, void *__args)
+{
+	struct {
+		struct nvgpu_falcon *flcn;
+		bool enable;
+		u32 intr_mask;
+		u32 intr_dest;
+		void (*pre_irq)(struct nvgpu_falcon *);
+		bool (*post_irq)(struct nvgpu_falcon *, bool, u32, u32);
+	} test_data[] = {{uninit_flcn, true, 0, 0, NULL, NULL},
+			 {gpccs_flcn, true, 0, 0, flcn_irq_not_supported, NULL},
+			 {gpccs_flcn, true, 0xdeadbeee, 0xbeeedead,
+			  flcn_irq_supported, check_flcn_irq_status},
+			 {gpccs_flcn, false, 0xdeadbeee, 0xbeeedead,
+			  flcn_irq_supported, check_flcn_irq_status} };
+	int size = ARRAY_SIZE(test_data);
+	bool intr_enabled;
+	bool err;
+	int i;
+
+	intr_enabled = gpccs_flcn->is_interrupt_enabled;
+
+	for (i = 0; i < size; i++) {
+		if (test_data[i].pre_irq) {
+			test_data[i].pre_irq(test_data[i].flcn);
+		}
+
+		nvgpu_falcon_set_irq(test_data[i].flcn, test_data[i].enable,
+				     test_data[i].intr_mask,
+				     test_data[i].intr_dest);
+
+		if (test_data[i].post_irq) {
+			err = test_data[i].post_irq(test_data[i].flcn,
+						    test_data[i].enable,
+						    test_data[i].intr_mask,
+						    test_data[i].intr_dest);
+			if (!err) {
+				unit_return_fail(m, "falcon set_irq err");
+			}
+		}
+	}
+
+	gpccs_flcn->is_interrupt_enabled = intr_enabled;
+
+	return UNIT_SUCCESS;
+}
+
 struct unit_module_test falcon_tests[] = {
 	UNIT_TEST(falcon_sw_init_free, test_falcon_sw_init_free, NULL, 0),
 	UNIT_TEST(falcon_reset, test_falcon_reset, NULL, 0),
@@ -1105,13 +1280,16 @@ struct unit_module_test falcon_tests[] = {
 	UNIT_TEST(falcon_idle, test_falcon_idle, NULL, 0),
 	UNIT_TEST(falcon_halt, test_falcon_halt, NULL, 0),
 	UNIT_TEST(falcon_mem_rw_init, test_falcon_mem_rw_init, NULL, 0),
+	UNIT_TEST(falcon_mem_rw_inval_port,
+		  test_falcon_mem_rw_inval_port, NULL, 0),
+	UNIT_TEST(falcon_mem_rw_unaligned_cpu_buffer,
+		  test_falcon_mem_rw_unaligned_cpu_buffer, NULL, 0),
 	UNIT_TEST(falcon_mem_rw_range, test_falcon_mem_rw_range, NULL, 0),
 	UNIT_TEST(falcon_mem_rw_aligned, test_falcon_mem_rw_aligned, NULL, 0),
 	UNIT_TEST(falcon_mem_rw_zero, test_falcon_mem_rw_zero, NULL, 0),
 	UNIT_TEST(falcon_mailbox, test_falcon_mailbox, NULL, 0),
 	UNIT_TEST(falcon_bootstrap, test_falcon_bootstrap, NULL, 0),
-	UNIT_TEST(falcon_mem_rw_unaligned_cpu_buffer,
-		  test_falcon_mem_rw_unaligned_cpu_buffer, NULL, 0),
+	UNIT_TEST(falcon_irq, test_falcon_irq, NULL, 0),
 
 	/* Cleanup */
 	UNIT_TEST(falcon_free_test_env, free_falcon_test_env, NULL, 0),

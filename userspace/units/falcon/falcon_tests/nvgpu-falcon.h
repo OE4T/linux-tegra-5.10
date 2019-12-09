@@ -290,10 +290,6 @@ int test_falcon_mailbox(struct unit_module *m, struct gk20a *g, void *__args);
  * Input: None.
  *
  * Steps:
- * - Invoke nvgpu_falcon_bootstrap with uninitialized falcon struct.
- *   - Verify that call fails with -EINVAL return value.
- * - Invoke nvgpu_falcon_bootstrap with initialized falcon struct.
- *   - Verify that call succeeds.
  * - Invoke nvgpu_falcon_hs_ucode_load_bootstrap with uninitialized
  *   falcon struct.
  *   - Verify that call fails with -EINVAL return value.
@@ -345,3 +341,54 @@ int test_falcon_bootstrap(struct unit_module *m, struct gk20a *g, void *__args);
  */
 int test_falcon_mem_rw_unaligned_cpu_buffer(struct unit_module *m,
 					    struct gk20a *g, void *__args);
+
+/**
+ * Test specification for: test_falcon_mem_rw_inval_port
+ *
+ * Description: The falcon unit shall not be able to read/write from/to falcon's
+ * memory from invalid port.
+ *
+ * Test Type: Error guessing based
+ *
+ * Input: None.
+ *
+ * Steps:
+ * - Invoke nvgpu_falcon_copy_to_imem and nvgpu_falcon_copy_from_imem with
+ *   initialized falcon struct with initialized sample random data, valid
+ *   range but invalid port.
+ *   - Verify that return value is -EINVAL.
+ *
+ * Output: Returns PASS if the steps above were executed successfully. FAIL
+ * otherwise.
+ */
+int test_falcon_mem_rw_inval_port(struct unit_module *m, struct gk20a *g,
+				  void *__args);
+/**
+ * Test specification for: test_falcon_irq
+ *
+ * Description: The falcon unit shall be able to set or clear the falcon irq
+ * mask and destination registers for supported falcons.
+ *
+ * Test Type: Feature based
+ *
+ * Input: None.
+ *
+ * Steps:
+ * - Invoke nvgpu_falcon_set_irq with uninitialized falcon struct.
+ * - Invoke nvgpu_falcon_set_irq with initialized falcon struct where
+ *   underlying falcon has interrupt support disabled.
+ * - Invoke nvgpu_falcon_set_irq to enable the interrupts with
+ *   initialized falcon struct and sample interrupt mask and
+ *   destination values and the underlying falcon has
+ *   interrupt support enabled.
+ *   - Verify that falcon_irqmset_r and falcon_irqdest_r are set as
+ *     expected.
+ * - Invoke nvgpu_falcon_set_irq to disable the interrupts with
+ *   initialized falcon struct and the underlying falcon has
+ *   interrupt support enabled.
+ *   - Verify that falcon_irqmclr_r is set to 0xffffffff.
+ *
+ * Output: Returns PASS if the steps above were executed successfully. FAIL
+ * otherwise.
+ */
+int test_falcon_irq(struct unit_module *m, struct gk20a *g, void *__args);
