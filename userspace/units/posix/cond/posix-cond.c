@@ -28,6 +28,8 @@
 #include <unit/unit.h>
 
 #include <nvgpu/cond.h>
+#include <nvgpu/thread.h>
+
 #include "posix-cond.h"
 
 #define MISMATCH_ERROR 1000
@@ -162,7 +164,7 @@ int bcst_read_status = 0;
 
 char test_code[4];
 
-static void *test_cond_write_thread(void *args)
+static int test_cond_write_thread(void *args)
 {
 	int i;
 	struct unit_test_cond_data *data;
@@ -213,10 +215,10 @@ static void *test_cond_write_thread(void *args)
 		}
 	}
 
-	return NULL;
+	return 0;
 }
 
-static void *test_cond_read_thread(void *args)
+static int test_cond_read_thread(void *args)
 {
 	int ret;
 	int i;
@@ -257,7 +259,7 @@ static void *test_cond_read_thread(void *args)
 		if (ret != 0) {
 			read_status = ret;
 			nvgpu_cond_unlock(&test_cond);
-			return NULL;
+			return -1;
 		}
 
 		nvgpu_cond_unlock(&test_cond);
@@ -265,15 +267,15 @@ static void *test_cond_read_thread(void *args)
 		for (i = 0; i < 4; i++) {
 			if (test_code[i] != 0x55) {
 				read_status = MISMATCH_ERROR;
-				return NULL;
+				return -1;
 			}
 		}
 	}
 
-	return NULL;
+	return 0;
 }
 
-static void *test_cond_bcst_read_thread(void *args)
+static int test_cond_bcst_read_thread(void *args)
 {
 	int ret;
 	int i;
@@ -296,7 +298,7 @@ static void *test_cond_bcst_read_thread(void *args)
 	if (ret != 0) {
 		bcst_read_status = ret;
 		nvgpu_cond_unlock(&test_cond);
-		return NULL;
+		return -1;
 	}
 
 	nvgpu_cond_unlock(&test_cond);
@@ -304,11 +306,11 @@ static void *test_cond_bcst_read_thread(void *args)
 	for (i = 0; i < 4; i++) {
 		if (test_code[i] != 0x55) {
 			bcst_read_status = MISMATCH_ERROR;
-			return NULL;
+			return -1;
 		}
 	}
 
-	return NULL;
+	return 0;
 }
 
 int test_cond_init_destroy(struct unit_module *m,
@@ -340,7 +342,7 @@ int test_cond_signal(struct unit_module *m,
 			struct gk20a *g, void *args)
 {
 	int ret;
-	pthread_t thread_write, thread_read, thread_bcst_read;
+	struct nvgpu_thread thread_write, thread_read, thread_bcst_read;
 	struct test_cond_args *test_args = (struct test_cond_args *)args;
 
 	memset(&test_cond, 0, sizeof(struct nvgpu_cond));
@@ -363,42 +365,42 @@ int test_cond_signal(struct unit_module *m,
 	read_status = 0;
 	bcst_read_status = 0;
 
-	ret = pthread_create(&thread_read, NULL,
-				&test_cond_read_thread, &test_data);
+	ret = nvgpu_thread_create(&thread_read, (void *)&test_data,
+				  &test_cond_read_thread, "");
 	if (ret != 0) {
 		nvgpu_cond_destroy(&test_cond);
 		unit_return_fail(m, "Cond read thread fail\n");
 	}
 
 	if (test_args->use_broadcast) {
-		ret = pthread_create(&thread_bcst_read, NULL,
-				&test_cond_bcst_read_thread, &test_data);
+		ret = nvgpu_thread_create(&thread_bcst_read, &test_data,
+				&test_cond_bcst_read_thread, "");
 		if (ret != 0) {
 			nvgpu_cond_destroy(&test_cond);
-			pthread_cancel(thread_read);
-			pthread_join(thread_read, NULL);
+			nvgpu_thread_stop(&thread_read);
+			nvgpu_thread_join(&thread_read);
 			unit_return_fail(m, "Cond bcst read thread fail\n");
 		}
 	}
 
-	ret = pthread_create(&thread_write, NULL,
-				&test_cond_write_thread, &test_data);
+	ret = nvgpu_thread_create(&thread_write, &test_data,
+					&test_cond_write_thread, "");
 	if (ret != 0) {
 		nvgpu_cond_destroy(&test_cond);
-		pthread_cancel(thread_read);
-		pthread_join(thread_read, NULL);
+		nvgpu_thread_stop(&thread_read);
+		nvgpu_thread_join(&thread_read);
 		if (test_args->use_broadcast) {
-			pthread_cancel(thread_bcst_read);
-			pthread_join(thread_bcst_read, NULL);
+			nvgpu_thread_stop(&thread_bcst_read);
+			nvgpu_thread_stop(&thread_bcst_read);
 		}
 		unit_return_fail(m, "Cond write thread fail\n");
 	}
 
-	pthread_join(thread_write, NULL);
-	pthread_join(thread_read, NULL);
+	nvgpu_thread_join(&thread_write);
+	nvgpu_thread_join(&thread_read);
 
 	if (test_args->use_broadcast) {
-		pthread_join(thread_bcst_read, NULL);
+		nvgpu_thread_join(&thread_bcst_read);
 	}
 
 	if (read_status != 0) {
