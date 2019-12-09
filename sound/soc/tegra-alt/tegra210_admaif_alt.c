@@ -453,9 +453,9 @@ static int tegra_admaif_stop(struct snd_soc_dai *dai, int direction)
 	ret = readl_poll_timeout_atomic(REG_IOVA(status_reg), val,
 					!(val & enable), 10, 10000);
 
-	/* FIXME: root cause timeout and return error for below */
+	/* Timeout may be hit if sink gets closed/blocked ahead of source */
 	if (ret < 0)
-		dev_info(dai->dev, "timeout: failed to disable ADMAIF%d_%s\n",
+		dev_warn(dai->dev, "timeout: failed to disable ADMAIF%d_%s\n",
 			 dai->id + 1, dir_name);
 
 	/* SW reset */
