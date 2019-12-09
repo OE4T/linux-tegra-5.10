@@ -86,6 +86,7 @@ struct nvgpu_posix_fault_inj_container {
 	struct nvgpu_posix_fault_inj resmgr_msgread_fi;
 	struct nvgpu_posix_fault_inj resmgr_msgwrite_fi;
 	struct nvgpu_posix_fault_inj resmgr_msgreply_fi;
+	struct nvgpu_posix_fault_inj resmgr_attach_fi;
 };
 
 /**
