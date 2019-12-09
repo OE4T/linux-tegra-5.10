@@ -81,6 +81,7 @@ UNITS :=				\
 	$(UNIT_SRC)/mm/hal/gmmu/gmmu_gv11b_fusa		\
 	$(UNIT_SRC)/mm/hal/gp10b_fusa	\
 	$(UNIT_SRC)/mm/hal/gv11b_fusa	\
+	$(UNIT_SRC)/mm/hal/mmu_fault/gv11b_fusa		\
 	$(UNIT_SRC)/mm/mm		\
 	$(UNIT_SRC)/mm/page_table_faults \
 	$(UNIT_SRC)/mm/nvgpu_mem	\

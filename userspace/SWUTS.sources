@@ -53,6 +53,7 @@ INPUT += ../../../userspace/units/mm/hal/gmmu/gmmu_gp10b_fusa/gmmu-gp10b-fusa.h
 INPUT += ../../../userspace/units/mm/hal/gmmu/gmmu_gv11b_fusa/gmmu-gv11b-fusa.h
 INPUT += ../../../userspace/units/mm/hal/gp10b_fusa/mm-gp10b-fusa.h
 INPUT += ../../../userspace/units/mm/hal/gv11b_fusa/mm-gv11b-fusa.h
+INPUT += ../../../userspace/units/mm/hal/mmu_fault/gv11b_fusa/mmu-fault-gv11b-fusa.h
 INPUT += ../../../userspace/units/mm/nvgpu_mem/nvgpu_mem.h
 INPUT += ../../../userspace/units/mm/nvgpu_sgt/nvgpu_sgt.h
 INPUT += ../../../userspace/units/mm/page_table_faults/page_table_faults.h

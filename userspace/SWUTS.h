@@ -77,6 +77,7 @@
  *   - @ref SWUTS-mm-hal-gmmu-gmmu_gv11b_fusa
  *   - @ref SWUTS-mm-hal-gp10b_fusa
  *   - @ref SWUTS-mm-hal-gv11b-fusa
+ *   - @ref SWUTS-mm-hal-mmu_fault-gv11b_fusa
  *   - @ref SWUTS-mm-nvgpu-mem
  *   - @ref SWUTS-mm-nvgpu-sgt
  *   - @ref SWUTS-mm-page_table_faults

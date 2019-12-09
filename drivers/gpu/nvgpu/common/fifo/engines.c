@@ -1031,10 +1031,9 @@ u32 nvgpu_engine_mmu_fault_id_to_eng_id_and_veid(struct gk20a *g,
 			 u32 mmu_fault_id, u32 *veid)
 {
 	u32 engine_id;
-	u32 act_eng_id;
+	u32 act_eng_id = INVAL_ID;
 	struct nvgpu_engine_info *engine_info;
 	struct nvgpu_fifo *f = &g->fifo;
-
 
 	for (engine_id = 0U; engine_id < f->num_engines; engine_id++) {
 		act_eng_id = f->active_engines_list[engine_id];
@@ -1051,7 +1050,6 @@ u32 nvgpu_engine_mmu_fault_id_to_eng_id_and_veid(struct gk20a *g,
 				break;
 			}
 		}
-
 		act_eng_id = INVAL_ID;
 	}
 	return act_eng_id;

@@ -1584,6 +1584,198 @@
         "test_level": 0
     },
     {
+        "test": "test_gv11b_mm_mmu_fault_disable_hw",
+        "case": "disable_hw_s0",
+        "unit": "mmu_fault_gv11b_fusa",
+        "test_level": 0
+    },
+    {
+        "test": "test_gv11b_mm_mmu_fault_disable_hw",
+        "case": "disable_hw_s1",
+        "unit": "mmu_fault_gv11b_fusa",
+        "test_level": 0
+    },
+    {
+        "test": "test_env_clean",
+        "case": "env_clean",
+        "unit": "mmu_fault_gv11b_fusa",
+        "test_level": 0
+    },
+    {
+        "test": "test_env_init",
+        "case": "env_init",
+        "unit": "mmu_fault_gv11b_fusa",
+        "test_level": 0
+    },
+    {
+        "test": "test_gv11b_mm_mmu_fault_handle_other_fault_notify",
+        "case": "fault_notify_s0",
+        "unit": "mmu_fault_gv11b_fusa",
+        "test_level": 0
+    },
+    {
+        "test": "test_gv11b_mm_mmu_fault_handle_other_fault_notify",
+        "case": "fault_notify_s1",
+        "unit": "mmu_fault_gv11b_fusa",
+        "test_level": 0
+    },
+    {
+        "test": "test_gv11b_mm_mmu_fault_handle_other_fault_notify",
+        "case": "fault_notify_s2",
+        "unit": "mmu_fault_gv11b_fusa",
+        "test_level": 0
+    },
+    {
+        "test": "test_handle_mmu_fault_common",
+        "case": "handle_mmu_common_s0",
+        "unit": "mmu_fault_gv11b_fusa",
+        "test_level": 0
+    },
+    {
+        "test": "test_handle_mmu_fault_common",
+        "case": "handle_mmu_common_s1",
+        "unit": "mmu_fault_gv11b_fusa",
+        "test_level": 0
+    },
+    {
+        "test": "test_handle_mmu_fault_common",
+        "case": "handle_mmu_common_s2",
+        "unit": "mmu_fault_gv11b_fusa",
+        "test_level": 0
+    },
+    {
+        "test": "test_handle_mmu_fault_common",
+        "case": "handle_mmu_common_s3",
+        "unit": "mmu_fault_gv11b_fusa",
+        "test_level": 0
+    },
+    {
+        "test": "test_handle_mmu_fault_common",
+        "case": "handle_mmu_common_s4",
+        "unit": "mmu_fault_gv11b_fusa",
+        "test_level": 0
+    },
+    {
+        "test": "test_handle_mmu_fault_common",
+        "case": "handle_mmu_common_s5",
+        "unit": "mmu_fault_gv11b_fusa",
+        "test_level": 0
+    },
+    {
+        "test": "test_handle_mmu_fault_common",
+        "case": "handle_mmu_common_s6",
+        "unit": "mmu_fault_gv11b_fusa",
+        "test_level": 0
+    },
+    {
+        "test": "test_handle_mmu_fault_common",
+        "case": "handle_mmu_common_s7",
+        "unit": "mmu_fault_gv11b_fusa",
+        "test_level": 0
+    },
+    {
+        "test": "test_handle_mmu_fault_common",
+        "case": "handle_mmu_common_s8",
+        "unit": "mmu_fault_gv11b_fusa",
+        "test_level": 0
+    },
+    {
+        "test": "test_handle_mmu_fault_common",
+        "case": "handle_mmu_common_s9",
+        "unit": "mmu_fault_gv11b_fusa",
+        "test_level": 0
+    },
+    {
+        "test": "test_handle_nonreplay_replay_fault",
+        "case": "handle_nonreplay_s0",
+        "unit": "mmu_fault_gv11b_fusa",
+        "test_level": 0
+    },
+    {
+        "test": "test_handle_nonreplay_replay_fault",
+        "case": "handle_nonreplay_s1",
+        "unit": "mmu_fault_gv11b_fusa",
+        "test_level": 0
+    },
+    {
+        "test": "test_handle_nonreplay_replay_fault",
+        "case": "handle_nonreplay_s2",
+        "unit": "mmu_fault_gv11b_fusa",
+        "test_level": 0
+    },
+    {
+        "test": "test_handle_nonreplay_replay_fault",
+        "case": "handle_nonreplay_s3",
+        "unit": "mmu_fault_gv11b_fusa",
+        "test_level": 0
+    },
+    {
+        "test": "test_gv11b_mm_mmu_fault_parse_mmu_fault_info",
+        "case": "parse_info_s0",
+        "unit": "mmu_fault_gv11b_fusa",
+        "test_level": 0
+    },
+    {
+        "test": "test_gv11b_mm_mmu_fault_parse_mmu_fault_info",
+        "case": "parse_info_s1",
+        "unit": "mmu_fault_gv11b_fusa",
+        "test_level": 0
+    },
+    {
+        "test": "test_gv11b_mm_mmu_fault_parse_mmu_fault_info",
+        "case": "parse_info_s2",
+        "unit": "mmu_fault_gv11b_fusa",
+        "test_level": 0
+    },
+    {
+        "test": "test_gv11b_mm_mmu_fault_parse_mmu_fault_info",
+        "case": "parse_info_s3",
+        "unit": "mmu_fault_gv11b_fusa",
+        "test_level": 0
+    },
+    {
+        "test": "test_gv11b_mm_mmu_fault_parse_mmu_fault_info",
+        "case": "parse_info_s4",
+        "unit": "mmu_fault_gv11b_fusa",
+        "test_level": 0
+    },
+    {
+        "test": "test_gv11b_mm_mmu_fault_parse_mmu_fault_info",
+        "case": "parse_info_s5",
+        "unit": "mmu_fault_gv11b_fusa",
+        "test_level": 0
+    },
+    {
+        "test": "test_gv11b_mm_mmu_fault_parse_mmu_fault_info",
+        "case": "parse_info_s6",
+        "unit": "mmu_fault_gv11b_fusa",
+        "test_level": 0
+    },
+    {
+        "test": "test_gv11b_mm_mmu_fault_setup_hw",
+        "case": "setup_hw",
+        "unit": "mmu_fault_gv11b_fusa",
+        "test_level": 0
+    },
+    {
+        "test": "test_gv11b_mm_mmu_fault_setup_sw",
+        "case": "setup_sw_s0",
+        "unit": "mmu_fault_gv11b_fusa",
+        "test_level": 0
+    },
+    {
+        "test": "test_gv11b_mm_mmu_fault_setup_sw",
+        "case": "setup_sw_s1",
+        "unit": "mmu_fault_gv11b_fusa",
+        "test_level": 0
+    },
+    {
+        "test": "test_gv11b_mm_mmu_fault_setup_sw",
+        "case": "setup_sw_s2",
+        "unit": "mmu_fault_gv11b_fusa",
+        "test_level": 0
+    },
+    {
         "test": "test_acr_bootstrap_hs_acr",
         "case": "acr_bootstrap_hs_acr",
         "unit": "nvgpu-acr",
