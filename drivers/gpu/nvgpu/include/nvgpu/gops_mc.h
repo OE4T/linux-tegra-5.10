@@ -284,7 +284,9 @@ struct gops_mc {
 
 	void (*disable)(struct gk20a *g, u32 units);
 
+#ifdef CONFIG_NVGPU_LS_PMU
 	bool (*is_enabled)(struct gk20a *g, enum nvgpu_unit unit);
+#endif
 
 	bool (*is_intr1_pending)(struct gk20a *g, enum nvgpu_unit unit,
 				 u32 mc_intr_1);

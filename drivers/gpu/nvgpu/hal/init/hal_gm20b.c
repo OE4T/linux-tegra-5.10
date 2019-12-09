@@ -979,7 +979,9 @@ static const struct gpu_ops gm20b_ops = {
 		.is_intr1_pending = gm20b_mc_is_intr1_pending,
 		.log_pending_intrs = gm20b_mc_log_pending_intrs,
 		.reset_mask = gm20b_mc_reset_mask,
+#ifdef CONFIG_NVGPU_LS_PMU
 		.is_enabled = gm20b_mc_is_enabled,
+#endif
 		.fb_reset = gm20b_mc_fb_reset,
 		.ltc_isr = gm20b_mc_ltc_isr,
 		.is_mmu_fault_pending = gm20b_mc_is_mmu_fault_pending,

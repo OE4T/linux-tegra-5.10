@@ -1317,7 +1317,9 @@ static const struct gpu_ops tu104_ops = {
 					gv100_mc_is_stall_and_eng_intr_pending,
 		.fbpa_isr = mc_tu104_fbpa_isr,
 		.reset_mask = gv100_mc_reset_mask,
+#ifdef CONFIG_NVGPU_LS_PMU
 		.is_enabled = gm20b_mc_is_enabled,
+#endif
 		.fb_reset = NULL,
 		.ltc_isr = mc_tu104_ltc_isr,
 		.is_mmu_fault_pending = gv11b_mc_is_mmu_fault_pending,
