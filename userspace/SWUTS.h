@@ -70,6 +70,10 @@
  *   - @ref SWUTS-mm-gmmu-page_table
  *   - @ref SWUTS-mm-hal-cache-flush-gk20a-fusa
  *   - @ref SWUTS-mm-hal-cache-flush-gv11b-fusa
+ *   - @ref SWUTS-mm-hal-gmmu-gmmu_gk20a_fusa
+ *   - @ref SWUTS-mm-hal-gmmu-gmmu_gm20b_fusa
+ *   - @ref SWUTS-mm-hal-gmmu-gmmu_gp10b_fusa
+ *   - @ref SWUTS-mm-hal-gmmu-gmmu_gv11b_fusa
  *   - @ref SWUTS-mm-hal-gp10b_fusa
  *   - @ref SWUTS-mm-hal-gv11b-fusa
  *   - @ref SWUTS-mm-nvgpu-mem

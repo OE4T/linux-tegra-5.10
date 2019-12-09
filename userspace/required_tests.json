@@ -936,6 +936,168 @@
         "test_level": 0
     },
     {
+        "test": "test_gk20a_get_pde_pgsz",
+        "case": "pde_pgsz",
+        "unit": "gmmu_gk20a_fusa",
+        "test_level": 0
+    },
+    {
+        "test": "test_gk20a_get_pte_pgsz",
+        "case": "pte_pgsz",
+        "unit": "gmmu_gk20a_fusa",
+        "test_level": 0
+    },
+    {
+        "test": "test_gm20b_mm_get_big_page_sizes",
+        "case": "get_big_pgsz",
+        "unit": "gmmu_gm20b_fusa",
+        "test_level": 0
+    },
+    {
+        "test": "test_gp10b_mm_get_default_big_page_size",
+        "case": "big_pgsz",
+        "unit": "gmmu_gp10b_fusa",
+        "test_level": 0
+    },
+    {
+        "test": "test_gp10b_get_pde0_pgsz",
+        "case": "gp10b_get_pde0_pgsz_s0",
+        "unit": "gmmu_gp10b_fusa",
+        "test_level": 0
+    },
+    {
+        "test": "test_gp10b_get_pde0_pgsz",
+        "case": "gp10b_get_pde0_pgsz_s1",
+        "unit": "gmmu_gp10b_fusa",
+        "test_level": 0
+    },
+    {
+        "test": "test_gp10b_get_pde0_pgsz",
+        "case": "gp10b_get_pde0_pgsz_s2",
+        "unit": "gmmu_gp10b_fusa",
+        "test_level": 0
+    },
+    {
+        "test": "test_gp10b_get_pde0_pgsz",
+        "case": "gp10b_get_pde0_pgsz_s3",
+        "unit": "gmmu_gp10b_fusa",
+        "test_level": 0
+    },
+    {
+        "test": "test_gp10b_get_pde0_pgsz",
+        "case": "gp10b_get_pde0_pgsz_s4",
+        "unit": "gmmu_gp10b_fusa",
+        "test_level": 0
+    },
+    {
+        "test": "test_gp10b_get_pde0_pgsz",
+        "case": "gp10b_get_pde0_pgsz_s5",
+        "unit": "gmmu_gp10b_fusa",
+        "test_level": 0
+    },
+    {
+        "test": "test_gp10b_mm_get_iommu_bit",
+        "case": "iommu_bit",
+        "unit": "gmmu_gp10b_fusa",
+        "test_level": 0
+    },
+    {
+        "test": "test_gp10b_get_max_page_table_levels",
+        "case": "max_page_table_levels",
+        "unit": "gmmu_gp10b_fusa",
+        "test_level": 0
+    },
+    {
+        "test": "test_gp10b_mm_get_mmu_levels",
+        "case": "mmu_levels",
+        "unit": "gmmu_gp10b_fusa",
+        "test_level": 0
+    },
+    {
+        "test": "test_update_gmmu_pde0_locked",
+        "case": "update_gmmu_pde0_locked_s0",
+        "unit": "gmmu_gp10b_fusa",
+        "test_level": 0
+    },
+    {
+        "test": "test_update_gmmu_pde0_locked",
+        "case": "update_gmmu_pde0_locked_s1",
+        "unit": "gmmu_gp10b_fusa",
+        "test_level": 0
+    },
+    {
+        "test": "test_update_gmmu_pde3_locked",
+        "case": "update_gmmu_pde3_locked",
+        "unit": "gmmu_gp10b_fusa",
+        "test_level": 0
+    },
+    {
+        "test": "test_update_gmmu_pte_locked",
+        "case": "update_gmmu_pte_locked_s0",
+        "unit": "gmmu_gp10b_fusa",
+        "test_level": 0
+    },
+    {
+        "test": "test_update_gmmu_pte_locked",
+        "case": "update_gmmu_pte_locked_s1",
+        "unit": "gmmu_gp10b_fusa",
+        "test_level": 0
+    },
+    {
+        "test": "test_update_gmmu_pte_locked",
+        "case": "update_gmmu_pte_locked_s2",
+        "unit": "gmmu_gp10b_fusa",
+        "test_level": 0
+    },
+    {
+        "test": "test_update_gmmu_pte_locked",
+        "case": "update_gmmu_pte_locked_s3",
+        "unit": "gmmu_gp10b_fusa",
+        "test_level": 0
+    },
+    {
+        "test": "test_update_gmmu_pte_locked",
+        "case": "update_gmmu_pte_locked_s4",
+        "unit": "gmmu_gp10b_fusa",
+        "test_level": 0
+    },
+    {
+        "test": "test_update_gmmu_pte_locked",
+        "case": "update_gmmu_pte_locked_s5",
+        "unit": "gmmu_gp10b_fusa",
+        "test_level": 0
+    },
+    {
+        "test": "test_update_gmmu_pte_locked",
+        "case": "update_gmmu_pte_locked_s6",
+        "unit": "gmmu_gp10b_fusa",
+        "test_level": 0
+    },
+    {
+        "test": "test_update_gmmu_pte_locked",
+        "case": "update_gmmu_pte_locked_s7",
+        "unit": "gmmu_gp10b_fusa",
+        "test_level": 0
+    },
+    {
+        "test": "test_gv11b_gpu_phys_addr",
+        "case": "gpu_phys_addr_s0",
+        "unit": "gmmu_gv11b_fusa",
+        "test_level": 0
+    },
+    {
+        "test": "test_gv11b_gpu_phys_addr",
+        "case": "gpu_phys_addr_s1",
+        "unit": "gmmu_gv11b_fusa",
+        "test_level": 0
+    },
+    {
+        "test": "test_gv11b_gpu_phys_addr",
+        "case": "gpu_phys_addr_s2",
+        "unit": "gmmu_gv11b_fusa",
+        "test_level": 0
+    },
+    {
         "test": "test_get_litter_value",
         "case": "get_litter_value",
         "unit": "init",

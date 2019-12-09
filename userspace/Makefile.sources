@@ -74,6 +74,10 @@ UNITS :=				\
 	$(UNIT_SRC)/mm/gmmu/page_table	\
 	$(UNIT_SRC)/mm/hal/cache/flush_gk20a_fusa	\
 	$(UNIT_SRC)/mm/hal/cache/flush_gv11b_fusa	\
+	$(UNIT_SRC)/mm/hal/gmmu/gmmu_gk20a_fusa		\
+	$(UNIT_SRC)/mm/hal/gmmu/gmmu_gm20b_fusa		\
+	$(UNIT_SRC)/mm/hal/gmmu/gmmu_gp10b_fusa		\
+	$(UNIT_SRC)/mm/hal/gmmu/gmmu_gv11b_fusa		\
 	$(UNIT_SRC)/mm/hal/gp10b_fusa	\
 	$(UNIT_SRC)/mm/hal/gv11b_fusa	\
 	$(UNIT_SRC)/mm/mm		\

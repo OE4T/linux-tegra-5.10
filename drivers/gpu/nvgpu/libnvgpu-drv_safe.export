@@ -20,6 +20,8 @@ gk20a_fifo_intr_1_isr
 gk20a_fifo_intr_handle_chsw_error
 gk20a_fifo_intr_handle_runlist_event
 gk20a_fifo_pbdma_isr
+gk20a_get_pde_pgsz
+gk20a_get_pte_pgsz
 gk20a_mm_fb_flush
 gk20a_mm_l2_flush
 gk20a_mm_l2_invalidate
