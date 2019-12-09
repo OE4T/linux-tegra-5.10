@@ -27,7 +27,7 @@
 #else
 #include <nvgpu/posix/bug.h>
 #endif
-#include <nvgpu/static_analysis.h>
+#include <nvgpu/cov_whitelist.h>
 
 /*
  * Define an assert macro that code within nvgpu can use.
