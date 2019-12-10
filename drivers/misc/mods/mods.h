@@ -2,7 +2,7 @@
 /*
  * mods.h - This file is part of NVIDIA MODS kernel driver.
  *
- * Copyright (c) 2008-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2008-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * NVIDIA MODS kernel driver is free software: you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -643,6 +643,22 @@ struct MODS_DT_INFO {
 	__u32	index;
 };
 
+#define MAX_GPIO_NAME_SIZE 256
+struct MODS_GPIO_INFO {
+	/* OUTPUT */
+	/* Irq number to be mapped to gpio and returned to user */
+	__u32 irq;
+	/* IN */
+	/* Name of Gpio to be mapped */
+	char name[MAX_GPIO_NAME_SIZE];
+	/* IN */
+	/* DT Name of device that gpio belongs to */
+	char dt_name[MAX_DT_SIZE];
+	/* IN */
+	/* Name of device that gpio belongs to */
+	char full_name[MAX_DT_SIZE];
+};
+
 #define MODS_MASK_TYPE_IRQ_DISABLE      0
 #define MODS_MASK_TYPE_IRQ_DISABLE64    1
 
@@ -1150,6 +1166,7 @@ struct MODS_SYSFS_NODE {
 };
 
 #define MODS_IRQ_TYPE_FROM_FLAGS(flags) ((flags)&0xf)
+#define MODS_IRQ_FLAG_FROM_FLAGS(flags) (((flags)&0xfff0)>>4)
 
 /* MODS_ESC_SET_NUM_VF */
 struct MODS_SET_NUM_VF {
@@ -1470,5 +1487,8 @@ struct MODS_MSR {
 		   _IOWR(MODS_IOC_MAGIC, 126, struct MODS_DEVICE_NUMA_INFO_3)
 #define MODS_ESC_PCI_BUS_RESCAN \
 		    _IOW(MODS_IOC_MAGIC, 127, struct MODS_PCI_BUS_RESCAN)
+#define MODS_ESC_MAP_GPIO                  \
+		   _IOWR(MODS_IOC_MAGIC, 128,            \
+		   struct MODS_GPIO_INFO)
 
 #endif /* _MODS_H_  */

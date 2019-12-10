@@ -2,7 +2,7 @@
 /*
  * mods_irq.c - This file is part of NVIDIA MODS kernel driver.
  *
- * Copyright (c) 2008-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2008-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * NVIDIA MODS kernel driver is free software: you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -24,12 +24,14 @@
 #include <linux/poll.h>
 #include <linux/interrupt.h>
 #include <linux/pci_regs.h>
-#if defined(MODS_TEGRA) && defined(CONFIG_OF_IRQ) && defined(CONFIG_OF)
+#if defined(MODS_TEGRA) && defined(CONFIG_OF) && defined(CONFIG_OF_IRQ)
 #include <linux/of.h>
 #include <linux/of_irq.h>
 #include <linux/io.h>
 #include <linux/platform_device.h>
 #include <linux/of_device.h>
+#include <linux/gpio.h>
+#include <linux/of_gpio.h>
 #endif
 
 #define PCI_VENDOR_ID_NVIDIA 0x10de
@@ -271,9 +273,9 @@ static int rec_irq_done(struct dev_irq_map *t,
 	} else
 #endif
 		mods_debug_printk(DEBUG_ISR_DETAILED,
-			"CPU IRQ 0x%x, time=%uus\n",
-			t->apic_irq,
-			irq_time);
+				  "CPU IRQ 0x%x, time=%uus\n",
+				  t->apic_irq,
+				  irq_time);
 
 	return true;
 }
@@ -332,6 +334,9 @@ static int mods_lookup_cpu_irq(u8 client_id, unsigned int irq)
 		struct dev_irq_map *t    = NULL;
 		struct dev_irq_map *next = NULL;
 
+		if (!test_bit(client_idx - 1, &mp.client_flags))
+			continue;
+
 		list_for_each_entry_safe(t,
 					 next,
 					 &client_from_id(client_idx)->irq_list,
@@ -346,7 +351,7 @@ static int mods_lookup_cpu_irq(u8 client_id, unsigned int irq)
 				}
 
 				/* Break out of the outer loop */
-				client_idx = MODS_MAX_CLIENTS - 1;
+				client_idx = MODS_MAX_CLIENTS;
 				break;
 			}
 		}
@@ -411,10 +416,36 @@ static int add_irq_map(struct mods_client         *client,
 		       u32                         irq,
 		       u32                         entry)
 {
-	u32                 irq_type = MODS_IRQ_TYPE_FROM_FLAGS(p->irq_flags);
-	struct dev_irq_map *newmap   = NULL;
+	u32                 irq_type   = MODS_IRQ_TYPE_FROM_FLAGS(p->irq_flags);
+	struct dev_irq_map *newmap     = NULL;
+	u64                 irq_flags  = MODS_IRQ_FLAG_FROM_FLAGS(p->irq_flags);
+	u64                 valid_mask = IRQF_TRIGGER_NONE;
 
 	LOG_ENT();
+
+	/* Get the flags based on the interrupt type*/
+	switch (irq_type) {
+	case MODS_IRQ_TYPE_INT:
+		irq_flags = IRQF_SHARED;
+		break;
+
+	case MODS_IRQ_TYPE_CPU:
+		valid_mask = IRQF_TRIGGER_RISING |
+			     IRQF_TRIGGER_FALLING |
+			     IRQF_SHARED;
+
+		/* Either use a valid flag bit or no flags */
+		if (irq_flags & ~valid_mask) {
+			mods_error_printk("invalid Device Interrupt flag %llx\n",
+					  (long long) irq_flags);
+			return -EINVAL;
+		}
+		break;
+
+	default:
+		irq_flags = IRQF_TRIGGER_NONE;
+		break;
+	}
 
 	/* Allocate memory for the new entry */
 	newmap = kzalloc(sizeof(*newmap), GFP_KERNEL | __GFP_NORETRY);
@@ -437,10 +468,12 @@ static int add_irq_map(struct mods_client         *client,
 	if (request_irq(
 			irq,
 			&mods_irq_handle,
-			(irq_type == MODS_IRQ_TYPE_INT) ? IRQF_SHARED : 0,
+			irq_flags,
 			"nvidia mods",
 			newmap)) {
-		mods_error_printk("unable to enable IRQ 0x%x\n", irq);
+		mods_error_printk("unable to enable IRQ 0x%x with flags %llx\n",
+				  irq,
+				  (long long) irq_flags);
 		kfree(newmap);
 		atomic_dec(&client->num_allocs);
 		LOG_EXT();
@@ -475,7 +508,9 @@ static int add_irq_map(struct mods_client         *client,
 
 	/* Print out successful registration string */
 	if (irq_type == MODS_IRQ_TYPE_CPU)
-		mods_debug_printk(DEBUG_ISR, "registered CPU IRQ 0x%x\n", irq);
+		mods_debug_printk(DEBUG_ISR, "registered CPU IRQ 0x%x with flags %llx\n",
+				  irq,
+				  (long long) irq_flags);
 #ifdef CONFIG_PCI
 	else if ((irq_type == MODS_IRQ_TYPE_INT) ||
 		 (irq_type == MODS_IRQ_TYPE_MSI) ||
@@ -1292,7 +1327,7 @@ int esc_mods_query_irq_3(struct mods_client      *client,
 			p->irq_list[i].dev.function = PCI_FUNC(dev->devfn);
 		} else {
 			p->irq_list[i].dev.domain = 0;
-			p->irq_list[i].dev.bus = 0;
+			p->irq_list[i].dev.bus = q->data[index].irq;
 			p->irq_list[i].dev.device = 0xFFU;
 			p->irq_list[i].dev.function = 0xFFU;
 		}
@@ -1428,7 +1463,7 @@ int esc_mods_irq_handled(struct mods_client       *client,
 int esc_mods_map_irq(struct mods_client  *client,
 		     struct MODS_DT_INFO *p)
 {
-	int err;
+	int err = 0;
 	/* the physical irq */
 	int hwirq;
 	/* platform device handle */
@@ -1438,18 +1473,31 @@ int esc_mods_map_irq(struct mods_client  *client,
 	/* Search for the node by device tree name */
 	struct device_node *np = of_find_node_by_name(NULL, p->dt_name);
 
+	if (!np) {
+		mods_error_printk("node %s is not valid\n", p->full_name);
+		err = -EINVAL;
+		goto error;
+	}
+
 	/* Can be multiple nodes that share the same dt name, */
 	/* make sure you get the correct node matched by the device's full */
 	/* name in device tree (i.e. watchdog@30c0000 as opposed */
 	/* to watchdog) */
-	while (of_node_cmp(np->full_name, p->full_name) != 0)
+	while (of_node_cmp(np->full_name, p->full_name)) {
 		np = of_find_node_by_name(np, p->dt_name);
+		if (!np) {
+			mods_error_printk("node %s is not valid\n",
+					  p->full_name);
+			err = -EINVAL;
+			goto error;
+		}
+	}
 
 	p->irq = irq_of_parse_and_map(np, p->index);
 	err = of_irq_parse_one(np, p->index, &oirq);
 	if (err) {
-		mods_error_printk("Could not parse IRQ\n");
-		return err;
+		mods_error_printk("could not parse IRQ\n");
+		goto error;
 	}
 
 	hwirq = oirq.args[1];
@@ -1470,7 +1518,61 @@ int esc_mods_map_irq(struct mods_client  *client,
 		TOP_TKE_TKEIE(hwirq));
 	}
 
+error:
+	of_node_put(np);
 	/* enable the interrupt */
-	return OK;
+	return err;
+}
+
+int esc_mods_map_irq_to_gpio(struct mods_client  *client,
+				struct MODS_GPIO_INFO *p)
+{
+	//TODO: Make sure you are allocating gpio properly
+	int gpio_handle;
+	int irq;
+	int err = 0;
+
+	struct device_node *np = of_find_node_by_name(NULL, p->dt_name);
+
+	if (!np) {
+		mods_error_printk("node %s is not valid\n", p->full_name);
+		err = -EINVAL;
+		goto error;
+	}
+
+	while (of_node_cmp(np->full_name, p->full_name)) {
+		np = of_find_node_by_name(np, p->dt_name);
+		if (!np) {
+			mods_error_printk("node %s is not valid\n",
+					  p->full_name);
+			err = -EINVAL;
+			goto error;
+		}
+	}
+
+	gpio_handle = of_get_named_gpio(np, p->name, 0);
+	if (!gpio_is_valid(gpio_handle)) {
+		mods_error_printk("gpio %s is missing\n", p->name);
+		err = gpio_handle;
+		goto error;
+	}
+
+	err = gpio_direction_input(gpio_handle);
+	if (err < 0) {
+		mods_error_printk("pex_rst_gpio input direction change failed\n");
+		goto error;
+	}
+
+	irq = gpio_to_irq(gpio_handle);
+	if (irq < 0) {
+		mods_error_printk("Unable to get irq for pex_rst_gpio\n");
+		err = -EINVAL;
+		goto error;
+	}
+	p->irq = irq;
+
+error:
+	of_node_put(np);
+	return err;
 }
 #endif

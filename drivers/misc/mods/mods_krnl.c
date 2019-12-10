@@ -2,7 +2,7 @@
 /*
  * mods_krnl.c - This file is part of NVIDIA MODS kernel driver.
  *
- * Copyright (c) 2008-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2008-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * NVIDIA MODS kernel driver is free software: you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -1829,12 +1829,17 @@ static long mods_krnl_ioctl(struct file  *fp,
 		err = -EINVAL;
 		break;
 
+#if defined(MODS_TEGRA) && defined(CONFIG_OF) && defined(CONFIG_OF_IRQ)
 	case MODS_ESC_MAP_INTERRUPT:
-#if defined(MODS_TEGRA) && defined(CONFIG_OF_IRQ) && defined(CONFIG_OF)
 		MODS_IOCTL(MODS_ESC_MAP_INTERRUPT,
 				esc_mods_map_irq, MODS_DT_INFO);
-#endif
 		break;
+
+	case MODS_ESC_MAP_GPIO:
+		MODS_IOCTL(MODS_ESC_MAP_GPIO,
+		esc_mods_map_irq_to_gpio, MODS_GPIO_INFO);
+		break;
+#endif
 
 	case MODS_ESC_REGISTER_IRQ:
 		MODS_IOCTL_NORETVAL(MODS_ESC_REGISTER_IRQ,

@@ -2,7 +2,7 @@
 /*
  * mods_internal.h - This file is part of NVIDIA MODS kernel driver.
  *
- * Copyright (c) 2008-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2008-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * NVIDIA MODS kernel driver is free software: you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -505,8 +505,10 @@ int esc_mods_pci_set_dma_mask(struct mods_client      *client,
 			     struct MODS_PCI_DMA_MASK *dma_mask);
 #endif
 /* irq */
-#if defined(MODS_TEGRA) && defined(CONFIG_OF_IRQ) && defined(CONFIG_OF)
+#if defined(MODS_TEGRA) && defined(CONFIG_OF) && defined(CONFIG_OF_IRQ)
 int esc_mods_map_irq(struct mods_client *client, struct MODS_DT_INFO *p);
+int esc_mods_map_irq_to_gpio(struct mods_client *client,
+						struct MODS_GPIO_INFO *p);
 #endif
 int esc_mods_register_irq(struct mods_client       *client,
 			  struct MODS_REGISTER_IRQ *p);
