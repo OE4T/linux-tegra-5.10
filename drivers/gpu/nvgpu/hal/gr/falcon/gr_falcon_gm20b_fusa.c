@@ -59,14 +59,17 @@ void gm20b_gr_falcon_start_gpccs(struct gk20a *g)
 	u32 reg_offset = gr_gpcs_gpccs_falcon_hwcfg_r() -
 					gr_fecs_falcon_hwcfg_r();
 
-	if (nvgpu_is_enabled(g, NVGPU_SEC_SECUREGPCCS)) {
-		nvgpu_writel(g, reg_offset +
-			gr_fecs_cpuctl_alias_r(),
-			gr_gpccs_cpuctl_startcpu_f(1U));
-	} else {
+#ifdef CONFIG_NVGPU_GR_FALCON_NON_SECURE_BOOT
+	if (!nvgpu_is_enabled(g, NVGPU_SEC_SECUREGPCCS)) {
 		nvgpu_writel(g, gr_gpccs_dmactl_r(),
 			gr_gpccs_dmactl_require_ctx_f(0U));
 		nvgpu_writel(g, gr_gpccs_cpuctl_r(),
+			gr_gpccs_cpuctl_startcpu_f(1U));
+	} else
+#endif
+	{
+		nvgpu_writel(g, reg_offset +
+			gr_fecs_cpuctl_alias_r(),
 			gr_gpccs_cpuctl_startcpu_f(1U));
 	}
 }
@@ -315,23 +318,16 @@ static bool gm20b_gr_falcon_gr_opcode_less(u32 opc_status, bool is_fail,
 	return match;
 }
 
-static bool gm20b_gr_falcon_gr_opcode_less_equal(u32 opc_status, bool is_fail,
+static void gm20b_gr_falcon_gr_opcode_less_equal(u32 opc_status, bool is_fail,
 		u32 mailbox_status, u32 reg, enum wait_ucode_status *check)
 {
-	bool match = false;
-
-	if (opc_status == GR_IS_UCODE_OP_LESSER_EQUAL) {
-		match = true;
-		if (reg <= mailbox_status) {
-			if (is_fail) {
-				*check = WAIT_UCODE_ERROR;
-			} else {
-				*check = WAIT_UCODE_OK;
-			}
+	if (reg <= mailbox_status) {
+		if (is_fail) {
+			*check = WAIT_UCODE_ERROR;
+		} else {
+			*check = WAIT_UCODE_OK;
 		}
 	}
-
-	return match;
 }
 
 static void gm20b_gr_falcon_check_ctx_opcode_status(struct gk20a *g,
@@ -362,10 +358,8 @@ static void gm20b_gr_falcon_check_ctx_opcode_status(struct gk20a *g,
 		return;
 	}
 
-	if (gm20b_gr_falcon_gr_opcode_less_equal(opc_status, is_fail,
-				mailbox_status, reg, check)) {
-		return;
-	}
+	gm20b_gr_falcon_gr_opcode_less_equal(opc_status, is_fail,
+				mailbox_status, reg, check);
 }
 
 
@@ -482,7 +476,9 @@ int gm20b_gr_falcon_wait_ctxsw_ready(struct gk20a *g)
 {
 	int ret;
 	uint32_t wdt_val = CTXSW_WDT_DEFAULT_VALUE;
+#ifdef CONFIG_NVGPU_HAL_NON_FUSA
 	unsigned long sysclk_freq_mhz = 0UL;
+#endif
 
 	nvgpu_log_fn(g, " ");
 
@@ -501,6 +497,7 @@ int gm20b_gr_falcon_wait_ctxsw_ready(struct gk20a *g)
 			gr_fecs_current_ctx_valid_false_f());
 	}
 
+#ifdef CONFIG_NVGPU_HAL_NON_FUSA
 	if (nvgpu_platform_is_silicon(g)) {
 		if (g->ops.clk.get_rate != NULL) {
 			sysclk_freq_mhz = g->ops.clk.get_rate(g,
@@ -517,6 +514,7 @@ int gm20b_gr_falcon_wait_ctxsw_ready(struct gk20a *g)
 			}
 		}
 	}
+#endif
 
 	nvgpu_log_info(g, "configuring ctxsw_ucode wdt = 0x%x", wdt_val);
 	nvgpu_writel(g, gr_fecs_ctxsw_mailbox_clear_r(0), U32_MAX);
