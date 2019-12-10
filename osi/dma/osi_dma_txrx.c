@@ -782,6 +782,12 @@ static int rx_dma_desc_initialization(struct osi_dma_priv_data *osi,
 		rx_swcx = rx_ring->rx_swcx + i;
 		rx_desc = rx_ring->rx_desc + i;
 
+		/* Zero initialize the descriptors first */
+		rx_desc->rdes0 = 0;
+		rx_desc->rdes1 = 0;
+		rx_desc->rdes2 = 0;
+		rx_desc->rdes3 = 0;
+
 		tmp = L32(rx_swcx->buf_phy_addr);
 		if (tmp < UINT_MAX) {
 			rx_desc->rdes0 = (unsigned int)tmp;
@@ -867,19 +873,20 @@ static void tx_dma_desc_init(struct osi_dma_priv_data *osi_dma)
 	struct osi_tx_desc *tx_desc = OSI_NULL;
 	struct osi_dma_chan_ops *ops = osi_dma->ops;
 	unsigned int chan = 0;
-	unsigned int i;
+	unsigned int i, j;
 
 	for (i = 0; i < osi_dma->num_dma_chans; i++) {
 		chan = osi_dma->dma_chans[i];
-
 		tx_ring = osi_dma->tx_ring[chan];
-		tx_desc = tx_ring->tx_desc;
 
-		/* FIXME: does it require */
-		tx_desc->tdes0 = 0;
-		tx_desc->tdes1 = 0;
-		tx_desc->tdes2 = 0;
-		tx_desc->tdes3 = 0;
+		for (j = 0; j < TX_DESC_CNT; j++) {
+			tx_desc = tx_ring->tx_desc + j;
+
+			tx_desc->tdes0 = 0;
+			tx_desc->tdes1 = 0;
+			tx_desc->tdes2 = 0;
+			tx_desc->tdes3 = 0;
+		}
 
 		tx_ring->cur_tx_idx = 0;
 		tx_ring->clean_idx = 0;
