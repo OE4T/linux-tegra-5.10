@@ -656,7 +656,11 @@ static int nvgpu_gpu_ioctl_l2_fb_ops(struct gk20a *g,
 	}
 
 	if (args->fb_flush) {
-		g->ops.mm.cache.fb_flush(g);
+		err = g->ops.mm.cache.fb_flush(g);
+		if (err != 0) {
+			nvgpu_err(g, "mm.cache.fb_flush() failed err=%d", err);
+			return err;
+		}
 	}
 
 	return err;

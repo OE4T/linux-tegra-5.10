@@ -516,7 +516,11 @@ int nvgpu_gr_fecs_trace_poll(struct gk20a *g)
 		read, g->ops.gr.fecs_trace.get_read_index(g), write, cnt);
 
 	/* Ensure all FECS writes have made it to SYSMEM */
-	g->ops.mm.cache.fb_flush(g);
+	err = g->ops.mm.cache.fb_flush(g);
+	if (err != 0) {
+		nvgpu_err(g, "mm.cache.fb_flush() failed err=%d", err);
+		goto done;
+	}
 
 	if (nvgpu_is_enabled(g, NVGPU_FECS_TRACE_FEATURE_CONTROL)) {
 		/* Bits 30:0 of MAILBOX1 represents actual read pointer value */
