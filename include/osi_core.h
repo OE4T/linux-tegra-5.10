@@ -148,6 +148,17 @@ typedef my_lint_64		nvel64_t;
 /** @} */
 
 /**
+ * @addtogroup PTP-offload PTP offload defines
+ * @{
+ */
+#define OSI_PTP_SNAP_ORDINARY	0U
+#define OSI_PTP_SNAP_TRANSPORT	1U
+#define OSI_PTP_SNAP_P2P	3U
+#define OSI_PTP_MAX_PORTID	0xFFFFU
+#define OSI_PTP_MAX_DOMAIN	0xFFU
+/** @} */
+
+/**
  * @brief OSI error macro definition,
  * @param[in] priv: OSD private data OR NULL
  * @param[in] type: error type
@@ -726,6 +737,27 @@ struct  osi_core_avb_algorithm {
 #endif /* !OSI_STRIPPED_LIB */
 
 /**
+ * @brief struct ptp_offload_param - Parameter to support PTP offload.
+ */
+struct osi_pto_config {
+	/** enable(0) / disable(1) */
+	unsigned int en_dis;
+	/** Flag for Master mode.
+	 * OSI_ENABLE for master OSI_DISABLE for slave */
+	unsigned int master;
+	/** Flag to Select PTP packets for Taking Snapshots */
+	unsigned int snap_type;
+	/** ptp domain */
+	unsigned int domain_num;
+	/**  The PTP Offload function qualifies received PTP
+	 *  packet with unicast Destination  address
+	 *  0 - only multicast, 1 - unicast and multicast */
+	unsigned int mc_uc;
+	/** Port identification */
+	unsigned int portid;
+};
+
+/**
  * @brief OSI Core EST structure
  */
 struct osi_est_config {
@@ -780,7 +812,6 @@ struct osi_tsn_stats {
 	/** Switch to Software Owned List Complete */
 	unsigned long sw_own_list_complete;
 };
-
 
 /**
  * @brief PTP configuration structure
@@ -1553,6 +1584,24 @@ nve32_t osi_read_phy_reg(struct osi_core_priv_data *const osi_core,
  *
  */
 nve32_t osi_init_core_ops(struct osi_core_priv_data *const osi_core);
+
+/**
+ * @brief osi_config_ptp_offload - Enable/Disable PTP offload
+ *
+ * Algorithm: Based on input argument, update TSCR and PTO registers.
+ * Update ptp_filter for TSCR register and call PTP configurtion API.
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in] pto_config: The PTP Offload configuration from function
+ *	      driver.
+ *
+ * @note 1) MAC should be init and started. see osi_start_mac()
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+int osi_config_ptp_offload(struct osi_core_priv_data *const osi_core,
+			   struct osi_pto_config *const pto_config);
 
 /**
  * @brief osi_set_systime_to_mac - Handles setting of system time.

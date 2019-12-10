@@ -37,6 +37,7 @@ osi_set_speed
 osi_pad_calibrate
 osi_get_mac_version
 osi_get_hw_features
+osi_config_ptp_offload
 osi_config_rxcsum_offload
 osi_l2_filter
 osi_l3l4_filter

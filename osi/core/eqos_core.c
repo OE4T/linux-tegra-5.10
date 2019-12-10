@@ -2373,6 +2373,109 @@ static nve32_t eqos_update_mac_addr_low_high_reg(
 }
 
 /**
+ * @brief eqos_config_ptp_offload - Enable/Disable PTP offload
+ *
+ * Algorithm: Based on input argument, update PTO and TSCR registers.
+ * Update ptp_filter for TSCR register.
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in] pto_config: The PTP Offload configuration from function
+ *	      driver.
+ *
+ * @note 1) MAC should be init and started. see osi_start_mac()
+ *	 2) configure_ptp() should be called after this API
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+static int eqos_config_ptp_offload(struct osi_core_priv_data *osi_core,
+				   struct osi_pto_config *const pto_config)
+{
+	unsigned char *addr = (unsigned char *)osi_core->base;
+	int ret = 0;
+	unsigned int value = 0x0U;
+	unsigned int ptc_value = 0x0U;
+	unsigned int port_id = 0x0U;
+
+	/* Read MAC TCR */
+	value = osi_readl(addr + EQOS_MAC_TCR);
+	/* clear old configuration */
+	value &= ~(EQOS_MAC_TCR_TSENMACADDR | OSI_MAC_TCR_SNAPTYPSEL_3 |
+		   OSI_MAC_TCR_TSMASTERENA | OSI_MAC_TCR_TSEVENTENA |
+		   OSI_MAC_TCR_TSENA | OSI_MAC_TCR_TSCFUPDT |
+		   OSI_MAC_TCR_TSCTRLSSR | OSI_MAC_TCR_TSVER2ENA |
+		   OSI_MAC_TCR_TSIPENA);
+
+	/** Handle PTO disable */
+	if (pto_config->en_dis == OSI_DISABLE) {
+		osi_core->ptp_config.ptp_filter = value;
+		osi_writel(ptc_value, addr + EQOS_MAC_PTO_CR);
+		eqos_core_safety_writel(osi_core, value, addr +
+					EQOS_MAC_TCR, EQOS_MAC_TCR_IDX);
+		osi_writel(OSI_NONE, addr + EQOS_MAC_PIDR0);
+		osi_writel(OSI_NONE, addr + EQOS_MAC_PIDR1);
+		osi_writel(OSI_NONE, addr + EQOS_MAC_PIDR2);
+		return 0;
+	}
+
+	/** Handle PTO enable */
+	/* Set PTOEN bit */
+	ptc_value |= EQOS_MAC_PTO_CR_PTOEN;
+	ptc_value |= ((pto_config->domain_num << EQOS_MAC_PTO_CR_DN_SHIFT)
+		      & EQOS_MAC_PTO_CR_DN);
+	/* Set TSCR register flag */
+	value |= (OSI_MAC_TCR_TSENA | OSI_MAC_TCR_TSCFUPDT |
+		  OSI_MAC_TCR_TSCTRLSSR | OSI_MAC_TCR_TSVER2ENA |
+		  OSI_MAC_TCR_TSIPENA);
+
+	if (pto_config->snap_type > 0U) {
+		/* Set APDREQEN bit if snap_type > 0 */
+		ptc_value |= EQOS_MAC_PTO_CR_APDREQEN;
+	}
+
+	/* Set SNAPTYPSEL for Taking Snapshots mode */
+	value |= ((pto_config->snap_type << EQOS_MAC_TCR_SNAPTYPSEL_SHIFT) &
+		  OSI_MAC_TCR_SNAPTYPSEL_3);
+
+	/* Set/Reset TSMSTRENA bit for Master/Slave */
+	if (pto_config->master == OSI_ENABLE) {
+		/* Set TSMSTRENA bit for master */
+		value |= OSI_MAC_TCR_TSMASTERENA;
+		if (pto_config->snap_type != OSI_PTP_SNAP_P2P) {
+			/* Set ASYNCEN bit on PTO Control Register */
+			ptc_value |= EQOS_MAC_PTO_CR_ASYNCEN;
+		}
+	} else {
+		/* Reset TSMSTRENA bit for slave */
+		value &= ~OSI_MAC_TCR_TSMASTERENA;
+	}
+
+	/* Set/Reset TSENMACADDR bit for UC/MC MAC */
+	if (pto_config->mc_uc == OSI_ENABLE) {
+		/* Set TSENMACADDR bit for MC/UC MAC PTP filter */
+		value |= EQOS_MAC_TCR_TSENMACADDR;
+	} else {
+		/* Reset TSENMACADDR bit */
+		value &= ~EQOS_MAC_TCR_TSENMACADDR;
+	}
+
+	/* Set TSEVENTENA bit for PTP events */
+	value |= OSI_MAC_TCR_TSEVENTENA;
+	osi_core->ptp_config.ptp_filter = value;
+	/** Write PTO_CR and TCR registers */
+	osi_writel(ptc_value, addr + EQOS_MAC_PTO_CR);
+	eqos_core_safety_writel(osi_core, value, addr + EQOS_MAC_TCR,
+				EQOS_MAC_TCR_IDX);
+	/* Port ID for PTP offload packet created */
+	port_id = pto_config->portid & EQOS_MAC_PIDR_PID_MASK;
+	osi_writel(port_id, addr + EQOS_MAC_PIDR0);
+	osi_writel(OSI_NONE, addr + EQOS_MAC_PIDR1);
+	osi_writel(OSI_NONE, addr + EQOS_MAC_PIDR2);
+
+	return ret;
+}
+
+/**
  * @brief eqos_config_l3_l4_filter_enable - register write to enable L3/L4
  *  filters.
  *
@@ -5141,6 +5244,7 @@ void eqos_init_core_ops(struct core_ops *ops)
 	ops->config_rx_crc_check = eqos_config_rx_crc_check;
 	ops->config_flow_control = eqos_config_flow_control;
 	ops->config_arp_offload = eqos_config_arp_offload;
+	ops->config_ptp_offload = eqos_config_ptp_offload;
 	ops->validate_regs = eqos_validate_core_regs;
 	ops->flush_mtl_tx_queue = eqos_flush_mtl_tx_queue;
 	ops->set_avb_algorithm = eqos_set_avb_algorithm;

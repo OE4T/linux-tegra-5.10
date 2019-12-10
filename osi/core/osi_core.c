@@ -309,6 +309,89 @@ nve32_t osi_config_fw_err_pkts(struct osi_core_priv_data *const osi_core,
 	return ops_p->config_fw_err_pkts(osi_core, qinx, fw_err);
 }
 
+int osi_config_ptp_offload(struct osi_core_priv_data *const osi_core,
+			   struct osi_pto_config *const pto_config)
+{
+	int ret = -1;
+
+	if (validate_args(osi_core) < 0) {
+		return -1;
+	}
+
+	/* Validate input arguments */
+	if (pto_config == OSI_NULL) {
+		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+			"pto_config is NULL\n", 0ULL);
+		return ret;
+	}
+
+	if (pto_config->mc_uc != OSI_ENABLE &&
+	    pto_config->mc_uc != OSI_DISABLE) {
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+			"invalid mc_uc flag value\n",
+			pto_config->mc_uc);
+		return ret;
+	}
+
+	if (pto_config->en_dis != OSI_ENABLE &&
+	    pto_config->en_dis != OSI_DISABLE) {
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+			"invalid enable flag value\n",
+			pto_config->en_dis);
+		return ret;
+	}
+
+	if (pto_config->snap_type != OSI_PTP_SNAP_ORDINARY &&
+	    pto_config->snap_type != OSI_PTP_SNAP_TRANSPORT &&
+	    pto_config->snap_type != OSI_PTP_SNAP_P2P) {
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+			"invalid SNAP type value\n",
+			pto_config->snap_type);
+		return ret;
+	}
+
+	if (pto_config->master != OSI_ENABLE &&
+	    pto_config->master != OSI_DISABLE) {
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+			"invalid master flag value\n",
+			pto_config->master);
+		return ret;
+	}
+
+	if (pto_config->domain_num >= OSI_PTP_MAX_DOMAIN) {
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+			"invalid ptp domain\n",
+			pto_config->domain_num);
+		return ret;
+	}
+
+	if (pto_config->portid >= OSI_PTP_MAX_PORTID) {
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+			"invalid ptp port ID\n",
+			pto_config->portid);
+		return ret;
+	}
+
+	ret = ops_p->config_ptp_offload(osi_core, pto_config);
+	if (ret < 0) {
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+			"Fail to configure PTO\n",
+			pto_config->en_dis);
+		return ret;
+	}
+
+	/* Configure PTP */
+	ret = osi_ptp_configuration(osi_core, pto_config->en_dis);
+	if (ret < 0) {
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+			"Fail to configure PTP\n",
+			pto_config->en_dis);
+		return ret;
+	}
+
+	return ret;
+}
+
 nve32_t osi_l2_filter(struct osi_core_priv_data *const osi_core,
 		      const struct osi_filter *filter)
 {
