@@ -25,7 +25,8 @@
 ###############################################################################
 
 NVGPU_UNIT_NAME = nvgpu-gr-init
-NVGPU_UNIT_SRCS = nvgpu-gr-init.c
+NVGPU_UNIT_SRCS = nvgpu-gr-init.c \
+		  nvgpu-gr-init-hal-gv11b.c
 
 NVGPU_UNIT_INTERFACE_DIRS := \
 	$(NV_COMPONENT_DIR)/.. \

@@ -20,7 +20,9 @@
 
 .SUFFIXES:
 
-OBJS   = nvgpu-gr-init.o
+OBJS   = nvgpu-gr-init.o \
+	 nvgpu-gr-init-hal-gv11b.o
+
 MODULE = nvgpu-gr-init
 
 LIB_PATHS += -lnvgpu-gr

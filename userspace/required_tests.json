@@ -2490,6 +2490,18 @@
         "test_level": 0
     },
     {
+        "test": "test_gr_init_hal_error_injection",
+        "case": "gr_init_hal_error_injection",
+        "unit": "nvgpu_gr_init",
+        "test_level": 0
+    },
+    {
+        "test": "test_gr_init_hal_wait_empty",
+        "case": "gr_init_hal_wait_empty",
+        "unit": "nvgpu_gr_init",
+        "test_level": 0
+    },
+    {
         "test": "test_gr_remove_setup",
         "case": "gr_remove_setup",
         "unit": "nvgpu_gr_init",

@@ -104,6 +104,7 @@
  *   - @ref SWUTS-gr
  *   - @ref SWUTS-gr-setup
  *   - @ref SWUTS-gr-intr
+ *   - @ref SWUTS-gr-init-hal-gv11b
  *   - @ref SWUTS-gr-falcon
  *   - @ref SWUTS-gr-fs-state
  *   - @ref SWUTS-gr-global-ctx

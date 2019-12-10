@@ -40,6 +40,7 @@
 #include "common/gr/gr_priv.h"
 
 #include "../nvgpu-gr.h"
+#include "nvgpu-gr-init-hal-gv11b.h"
 
 #define GR_TEST_FUSES_OVERRIDE_DISABLE_TRUE	0x1U
 #define GR_TEST_FUSES_OVERRIDE_DISABLE_FALSE	0x0U
@@ -182,6 +183,8 @@ struct unit_module_test nvgpu_gr_init_tests[] = {
 	UNIT_TEST(gr_init_setup, test_gr_init_setup, NULL, 0),
 	UNIT_TEST(gr_init_prepare, test_gr_init_prepare, NULL, 0),
 	UNIT_TEST(gr_init_support, test_gr_init_support, NULL, 0),
+	UNIT_TEST(gr_init_hal_error_injection, test_gr_init_hal_error_injection, NULL, 0),
+	UNIT_TEST(gr_init_hal_wait_empty, test_gr_init_hal_wait_empty, NULL, 0),
 	UNIT_TEST(gr_suspend, test_gr_suspend, NULL, 0),
 	UNIT_TEST(gr_ecc_features, test_gr_init_ecc_features, NULL, 0),
 	UNIT_TEST(gr_remove_support, test_gr_remove_support, NULL, 0),
