@@ -176,6 +176,9 @@ gv11b_pbdma_handle_intr_1
 gv11b_pbdma_intr_enable
 gv11b_pbdma_set_channel_info_veid
 gv11b_pbdma_setup_hw
+gv11b_ramin_init_subctx_pdb
+gv11b_ramin_set_eng_method_buffer
+gv11b_ramin_set_gr_ptr
 gv11b_runlist_entry_size
 gv11b_runlist_get_tsg_entry
 gv11b_runlist_get_ch_entry
@@ -510,6 +513,7 @@ nvgpu_mc_intr_stall_resume
 nvgpu_mc_intr_stall_unit_config
 nvgpu_memset
 nvgpu_mem_create_from_phys
+nvgpu_mem_get_addr
 nvgpu_mem_iommu_translate
 nvgpu_mem_is_sysmem
 nvgpu_mem_posix_create_from_list

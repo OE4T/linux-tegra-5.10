@@ -4263,6 +4263,48 @@
         "test_level": 0
     },
     {
+        "test": "test_gk20a_ramin_alloc_size",
+        "case": "alloc_size",
+        "unit": "ramin_gk20a_fusa",
+        "test_level": 0
+    },
+    {
+        "test": "test_gk20a_ramin_base_shift",
+        "case": "base_shift",
+        "unit": "ramin_gk20a_fusa",
+        "test_level": 0
+    },
+    {
+        "test": "test_gm20b_ramin_set_big_page_size",
+        "case": "set_big_page_size",
+        "unit": "ramin_gm20b_fusa",
+        "test_level": 0
+    },
+    {
+        "test": "test_gp10b_ramin_init_pdb",
+        "case": "init_pdb",
+        "unit": "ramin_gp10b_fusa",
+        "test_level": 0
+    },
+    {
+        "test": "test_gv11b_ramin_init_subctx_pdb",
+        "case": "init_subctx_pdb",
+        "unit": "ramin_gv11b_fusa",
+        "test_level": 0
+    },
+    {
+        "test": "test_gv11b_ramin_set_eng_method_buffer",
+        "case": "set_eng_method_buf",
+        "unit": "ramin_gv11b_fusa",
+        "test_level": 0
+    },
+    {
+        "test": "test_gv11b_ramin_set_gr_ptr",
+        "case": "set_gr_ptr",
+        "unit": "ramin_gv11b_fusa",
+        "test_level": 0
+    },
+    {
         "test": "test_device_info_parse_data",
         "case": "top_device_info_parse_data",
         "unit": "top",
