@@ -220,6 +220,9 @@ struct core_ops {
 	/** Called to update FRP NVE and  */
 	int (*update_frp_nve)(struct osi_core_priv_data *const osi_core,
 			      const unsigned int nve);
+	/** Called to configure HW PTP offload feature */
+	int (*config_ptp_offload)(struct osi_core_priv_data *const osi_core,
+				  struct osi_pto_config *const pto_config);
 };
 
 

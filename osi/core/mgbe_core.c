@@ -2387,7 +2387,6 @@ static int mgbe_configure_mac(struct osi_core_priv_data *osi_core)
 	value = osi_readl((unsigned char *)osi_core->base + MGBE_MAC_VLAN_TR);
 	/* Enable VLAN Tag in RX Status
 	 * Disable double VLAN Tag processing on TX and RX
-	 * TODO: Need to check EQOS comments here
 	 */
 	if (osi_core->strip_vlan_tag == OSI_ENABLE) {
 		/* Enable VLAN Tag stripping always */
@@ -3222,6 +3221,111 @@ static void mgbe_handle_mtl_intrs(struct osi_core_priv_data *osi_core)
 	}
 	/* clear EST status register as interrupt is handled */
 	osi_writel(val, osi_core->base + MGBE_MTL_EST_STATUS);
+}
+
+/**
+ * @brief mgbe_config_ptp_offload - Enable/Disable PTP offload
+ *
+ * Algorithm: Based on input argument, update PTO and TSCR registers.
+ * Update ptp_filter for TSCR register.
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ *
+ * @note 1) MAC should be init and started. see osi_start_mac()
+ *	 2) configure_ptp() should be called after this API
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+
+static int mgbe_config_ptp_offload(struct osi_core_priv_data *const osi_core,
+				   struct osi_pto_config *const pto_config)
+{
+	unsigned char *addr = (unsigned char *)osi_core->base;
+	int ret = 0;
+	unsigned int value = 0x0U;
+	unsigned int ptc_value = 0x0U;
+	unsigned int port_id = 0x0U;
+
+	/* Read MAC TCR */
+	value = osi_readl((unsigned char *)addr + MGBE_MAC_TCR);
+	/* clear old configuration */
+
+	value &= ~(MGBE_MAC_TCR_TSENMACADDR | OSI_MAC_TCR_SNAPTYPSEL_3 |
+		   OSI_MAC_TCR_TSMASTERENA | OSI_MAC_TCR_TSEVENTENA |
+		   OSI_MAC_TCR_TSENA | OSI_MAC_TCR_TSCFUPDT |
+		   OSI_MAC_TCR_TSCTRLSSR | OSI_MAC_TCR_TSVER2ENA |
+		   OSI_MAC_TCR_TSIPENA);
+
+	/** Handle PTO disable */
+	if (pto_config->en_dis == OSI_DISABLE) {
+		/* update global setting in ptp_filter */
+		osi_core->ptp_config.ptp_filter = value;
+		osi_writel(ptc_value, addr + MGBE_MAC_PTO_CR);
+		osi_writel(value, addr + MGBE_MAC_TCR);
+		/* Setting PORT ID as 0 */
+		osi_writel(OSI_NONE, addr + MGBE_MAC_PIDR0);
+		osi_writel(OSI_NONE, addr + MGBE_MAC_PIDR1);
+		osi_writel(OSI_NONE, addr + MGBE_MAC_PIDR2);
+		return 0;
+	}
+
+	/** Handle PTO enable */
+	/* Set PTOEN bit */
+	ptc_value |= MGBE_MAC_PTO_CR_PTOEN;
+	ptc_value |= ((pto_config->domain_num << MGBE_MAC_PTO_CR_DN_SHIFT)
+		      & MGBE_MAC_PTO_CR_DN);
+
+	/* Set TSCR register flag */
+	value |= (OSI_MAC_TCR_TSENA | OSI_MAC_TCR_TSCFUPDT |
+		  OSI_MAC_TCR_TSCTRLSSR | OSI_MAC_TCR_TSVER2ENA |
+		  OSI_MAC_TCR_TSIPENA);
+
+	if (pto_config->snap_type > 0U) {
+		/* Set APDREQEN bit if snap_type > 0 */
+		ptc_value |= MGBE_MAC_PTO_CR_APDREQEN;
+	}
+
+	/* Set SNAPTYPSEL for Taking Snapshots mode */
+	value |= ((pto_config->snap_type << MGBE_MAC_TCR_SNAPTYPSEL_SHIFT) &
+			OSI_MAC_TCR_SNAPTYPSEL_3);
+	/* Set/Reset TSMSTRENA bit for Master/Slave */
+	if (pto_config->master == OSI_ENABLE) {
+		/* Set TSMSTRENA bit for master */
+		value |= OSI_MAC_TCR_TSMASTERENA;
+		if (pto_config->snap_type != OSI_PTP_SNAP_P2P) {
+			/* Set ASYNCEN bit on PTO Control Register */
+			ptc_value |= MGBE_MAC_PTO_CR_ASYNCEN;
+		}
+	} else {
+		/* Reset TSMSTRENA bit for slave */
+		value &= ~OSI_MAC_TCR_TSMASTERENA;
+	}
+
+	/* Set/Reset TSENMACADDR bit for UC/MC MAC */
+	if (pto_config->mc_uc == OSI_ENABLE) {
+		/* Set TSENMACADDR bit for MC/UC MAC PTP filter */
+		value |= MGBE_MAC_TCR_TSENMACADDR;
+	} else {
+		/* Reset TSENMACADDR bit */
+		value &= ~MGBE_MAC_TCR_TSENMACADDR;
+	}
+
+	/* Set TSEVNTENA bit for PTP events */
+	value |= OSI_MAC_TCR_TSEVENTENA;
+
+	/* update global setting in ptp_filter */
+	osi_core->ptp_config.ptp_filter = value;
+	/** Write PTO_CR and TCR registers */
+	osi_writel(ptc_value, addr + MGBE_MAC_PTO_CR);
+	osi_writel(value, addr + MGBE_MAC_TCR);
+	/* Port ID for PTP offload packet created */
+	port_id = pto_config->portid & MGBE_MAC_PIDR_PID_MASK;
+	osi_writel(port_id, addr + MGBE_MAC_PIDR0);
+	osi_writel(OSI_NONE, addr + MGBE_MAC_PIDR1);
+	osi_writel(OSI_NONE, addr + MGBE_MAC_PIDR2);
+
+	return ret;
 }
 
 /**
@@ -4829,6 +4933,7 @@ void mgbe_init_core_ops(struct core_ops *ops)
 	ops->config_rx_crc_check = OSI_NULL;
 	ops->config_flow_control = mgbe_config_flow_control;
 	ops->config_arp_offload = mgbe_config_arp_offload;
+	ops->config_ptp_offload = mgbe_config_ptp_offload;
 	ops->config_rxcsum_offload = mgbe_config_rxcsum_offload;
 	ops->config_mac_pkt_filter_reg = mgbe_config_mac_pkt_filter_reg;
 	ops->update_mac_addr_low_high_reg = mgbe_update_mac_addr_low_high_reg;

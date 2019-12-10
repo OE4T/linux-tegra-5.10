@@ -279,7 +279,6 @@
 /**
  * @brief osi_update_stats_counter - update value by increment passed
  *	as parameter
- *
  * @note
  * Algorithm:
  *  - Check for boundary and return sum
