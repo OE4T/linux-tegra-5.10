@@ -117,10 +117,6 @@ int nvgpu_pmu_wait_fw_ack_status(struct gk20a *g, struct nvgpu_pmu *pmu,
 	do {
 		nvgpu_rmb();
 
-		if (*(volatile u8 *)var == val) {
-			return 0;
-		}
-
 		if (nvgpu_can_busy(g) == 0) {
 			return 0;
 		}
@@ -131,6 +127,11 @@ int nvgpu_pmu_wait_fw_ack_status(struct gk20a *g, struct nvgpu_pmu *pmu,
 
 		nvgpu_usleep_range(delay, delay * 2U);
 		delay = min_t(u32, delay << 1, POLL_DELAY_MAX_US);
+
+		/* Confirm ACK from PMU before timeout check */
+		if (*(volatile u8 *)var == val) {
+			return 0;
+		}
 	} while (nvgpu_timeout_expired(&timeout) == 0);
 
 	return -ETIMEDOUT;
