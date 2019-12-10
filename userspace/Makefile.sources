@@ -78,7 +78,8 @@ UNITS :=				\
 	$(UNIT_SRC)/mm/nvgpu_mem	\
 	$(UNIT_SRC)/mm/vm		\
 	$(UNIT_SRC)/netlist		\
-	$(UNIT_SRC)/fbp		\
+        $(UNIT_SRC)/fb 	        	\
+	$(UNIT_SRC)/fbp			\
 	$(UNIT_SRC)/fifo		\
 	$(UNIT_SRC)/fifo/fifo/gk20a	\
 	$(UNIT_SRC)/fifo/fifo/gv11b	\

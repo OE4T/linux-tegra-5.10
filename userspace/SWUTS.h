@@ -74,6 +74,7 @@
  *   - @ref SWUTS-mm-page_table_faults
  *   - @ref SWUTS-mm-mm
  *   - @ref SWUTS-mm-vm
+ *   - @ref SWUTS-fb
  *   - @ref SWUTS-fbp
  *   - @ref SWUTS-fuse
  *   - @ref SWUTS-posix-bitops
