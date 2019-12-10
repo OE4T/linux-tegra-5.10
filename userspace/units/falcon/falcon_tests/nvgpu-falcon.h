@@ -127,6 +127,9 @@ int test_falcon_mem_scrub(struct unit_module *m, struct gk20a *g, void *__args);
  *   underlying falcon is idle.
  *   - Verify that wait succeeds with 0 return value.
  * - Invoke nvgpu_falcon_wait_idle with initialized falcon struct where
+ *   underlying falcon's ext units are busy but falcon CPU is idle.
+ *   - Verify that wait fails with -ETIMEDOUT return value.
+ * - Invoke nvgpu_falcon_wait_idle with initialized falcon struct where
  *   underlying falcon is not idle.
  *   - Verify that wait fails with -ETIMEDOUT return value.
  *
@@ -176,6 +179,10 @@ int test_falcon_halt(struct unit_module *m, struct gk20a *g, void *__args);
  *   - Verify that writes fail with -EINVAL return value in both cases.
  * - Invoke nvgpu_falcon_copy_to_imem and nvgpu_falcon_copy_to_dmem with
  *   initialized falcon struct with sample random data.
+ *   - Verify that writes succeed with 0 return value in both cases.
+ * - Invoke nvgpu_falcon_copy_to_imem and nvgpu_falcon_copy_to_dmem with
+ *   initialized falcon struct with sample random data of size that is
+ *   not multiple of words.
  *   - Verify that writes succeed with 0 return value in both cases.
  *
  * Output: Returns PASS if the steps above were executed successfully. FAIL
@@ -336,6 +343,9 @@ int test_falcon_bootstrap(struct unit_module *m, struct gk20a *g, void *__args);
  *   initialized falcon struct with above initialized sample random data
  *   and valid range.
  *   - Verify that writes succeed with 0 return value in both cases.
+ * - Write data of size 1K to valid range in imem/dmem from unaligned data
+ *   to verify the buffering logic and cover branches in
+ *   falcon_copy_to_dmem|imem_unaligned_src.
  *
  * Output: Returns PASS if the steps above were executed successfully. FAIL
  * otherwise.

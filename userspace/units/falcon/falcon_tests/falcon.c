@@ -566,6 +566,22 @@ static void flcn_idle_pass(void *data)
 	nvgpu_posix_io_writel_reg_space(g, idlestate_addr, unit_status);
 }
 
+/*
+ * This is to cover the falcon CPU idle & ext units busy branch in if condition
+ * in gk20a_is_falcon_idle.
+ */
+static void flcn_idle_fail_ext_busy(void *data)
+{
+	struct nvgpu_falcon *flcn = (struct nvgpu_falcon *) data;
+	u32 idlestate_addr = flcn->flcn_base + falcon_falcon_idlestate_r();
+	struct gk20a *g = flcn->g;
+	u32 unit_status;
+
+	unit_status = nvgpu_posix_io_readl_reg_space(g, idlestate_addr);
+	unit_status |= falcon_falcon_idlestate_ext_busy_m();
+	nvgpu_posix_io_writel_reg_space(g, idlestate_addr, unit_status);
+}
+
 static void flcn_idle_fail(void *data)
 {
 	struct nvgpu_falcon *flcn = (struct nvgpu_falcon *) data;
@@ -596,6 +612,7 @@ int test_falcon_idle(struct unit_module *m, struct gk20a *g, void *__args)
 		int exp_err;
 	} test_data[] = {{uninit_flcn, NULL, -EINVAL},
 			 {gpccs_flcn, flcn_idle_pass, 0},
+			 {gpccs_flcn, flcn_idle_fail_ext_busy, -ETIMEDOUT},
 			 {gpccs_flcn, flcn_idle_fail, -ETIMEDOUT} };
 	int size = ARRAY_SIZE(test_data);
 	int err, i;
@@ -703,7 +720,8 @@ int test_falcon_halt(struct unit_module *m, struct gk20a *g, void *__args)
 
 /*
  * Valid/Invalid: Status of read and write from Falcon
- * Valid: Read and write from initialized Falcon succeeds.
+ * Valid: Read and write of word-multiple and non-word-multiple data from
+ *        initialized Falcon succeeds.
  * Invalid: Read and write for uninitialized Falcon fails
  *	    with error -EINVAL.
  */
@@ -726,6 +744,15 @@ int test_falcon_mem_rw_init(struct unit_module *m, struct gk20a *g,
 	for (i = 0; i < MAX_MEM_TYPE; i++) {
 		err = falcon_check_read_write(g, m, pmu_flcn, i, dst,
 					      RAND_DATA_SIZE, 0);
+		if (err) {
+			return UNIT_FAIL;
+		}
+	}
+
+	/* write/read to/from initialized falcon with non-word-multiple data */
+	for (i = 0; i < MAX_MEM_TYPE; i++) {
+		err = falcon_check_read_write(g, m, pmu_flcn, i, dst,
+					      RAND_DATA_SIZE - 1, 0);
 		if (err) {
 			return UNIT_FAIL;
 		}
@@ -819,6 +846,30 @@ int test_falcon_mem_rw_unaligned_cpu_buffer(struct unit_module *m,
 		return UNIT_FAIL;
 	}
 #endif
+
+	/*
+	 * write data of size 1K to valid range in imem from unaligned data
+	 * to verify the buffering logic in falcon_copy_to_dmem_unaligned_src.
+	 */
+	unit_info(m, "Writing %d bytes to imem\n", (u32) SZ_1K);
+	err = nvgpu_falcon_copy_to_imem(pmu_flcn, dst,
+					(u8 *) rand_test_data_unaligned,
+					SZ_1K, 0, false, 0);
+	if (err) {
+		unit_return_fail(m, "Failed to copy to IMEM\n");
+	}
+
+	/*
+	 * write data of size 1K to valid range in dmem from unaligned data
+	 * to verify the buffering logic in falcon_copy_to_imem_unaligned_src.
+	 */
+	unit_info(m, "Writing %d bytes to dmem\n", (u32) SZ_1K);
+	err = nvgpu_falcon_copy_to_dmem(pmu_flcn, dst,
+					(u8 *) rand_test_data_unaligned,
+					SZ_1K, 0);
+	if (err) {
+		unit_return_fail(m, "Failed to copy to DMEM\n");
+	}
 
 	return UNIT_SUCCESS;
 }

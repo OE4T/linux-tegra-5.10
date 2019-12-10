@@ -140,7 +140,7 @@ static void falcon_copy_to_dmem_unaligned_src(struct nvgpu_falcon *flcn,
 	u32 elems = 0U;
 	u32 i = 0U;
 
-	while ((offset + sizeof(src_tmp)) < size) {
+	while ((offset + sizeof(src_tmp)) <= size) {
 		nvgpu_memcpy((u8 *)&src_tmp[0], &src[offset],
 			     sizeof(src_tmp));
 		for (i = 0; i < ARRAY_SIZE(src_tmp); i++) {
@@ -228,7 +228,7 @@ static void falcon_copy_to_imem_unaligned_src(struct nvgpu_falcon *flcn,
 	u32 i = 0U;
 	u32 j = 0U;
 
-	while ((offset + sizeof(src_tmp)) < size) {
+	while ((offset + sizeof(src_tmp)) <= size) {
 		nvgpu_memcpy((u8 *)&src_tmp[0], &src[offset],
 			     sizeof(src_tmp));
 		for (i = 0; i < ARRAY_SIZE(src_tmp); i++) {
