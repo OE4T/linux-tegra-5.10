@@ -1028,8 +1028,8 @@
 		status = "disabled";
 	};
 
-	gv11b {
-		compatible = "nvidia,gv11b";
+	ga10b {
+		compatible = "nvidia,ga10b";
 		reg = <0x0 0x17000000 0x0 0x1000000
 		       0x0 0x18000000 0x0 0x1000000
 		       0x0 0x03b41000 0x0 0x00001000>;
@@ -1042,7 +1042,7 @@
 		clocks = <&bpmp_clks TEGRA234_CLK_GPCCLK>,
 			<&bpmp_clks TEGRA234_CLK_GPU_PWR>;
 		clock-names = "gpu", "gpu_sys";
-		resets = <&bpmp_resets TEGRA194_RESET_GPU>;
+		resets = <&bpmp_resets TEGRA234_RESET_GPU>;
 		dma-coherent;
 		status = "disabled";
 	};

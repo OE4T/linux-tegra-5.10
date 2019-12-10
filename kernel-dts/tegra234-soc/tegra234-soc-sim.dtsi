@@ -104,7 +104,11 @@
 		};
 	};
 
-	gv11b {
+	kfuse@3830000 {
+		status = "okay";
+	};
+
+	ga10b {
 		status = "okay";
 	};
 
