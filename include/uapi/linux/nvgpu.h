@@ -294,8 +294,7 @@ struct nvgpu_gpu_characteristics {
 	__u8 reserved2[6];
 
 	__u32 max_ctxsw_ring_buffer_size;
-	/* Max CTA diversity configuration count. */
-	__u32 max_sm_diversity_config_count;
+	__u32 reserved3;
 
 	/* Notes:
 	   - This struct can be safely appended with new fields. However, always
@@ -460,8 +459,6 @@ struct nvgpu_gpu_vsms_mapping_entry {
 };
 
 struct nvgpu_gpu_vsms_mapping {
-	__u32 sm_diversity_config;
-	__u32 reserved;
 	__u64 vsms_map_buf_addr;
 };
 
@@ -1524,8 +1521,6 @@ struct nvgpu_set_nvmap_fd_args {
 struct nvgpu_alloc_obj_ctx_args {
 	__u32 class_num; /* kepler3d, 2d, compute, etc       */
 	__u32 flags;     /* input, output */
-	__u32 sm_diversity_config; /* input */
-	__u32 reserved;
 	__u64 obj_id;    /* output, used to free later       */
 };
 

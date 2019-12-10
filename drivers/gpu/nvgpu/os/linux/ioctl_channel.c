@@ -1133,16 +1133,6 @@ long gk20a_channel_ioctl(struct file *filp,
 		struct nvgpu_alloc_obj_ctx_args *args =
 				(struct nvgpu_alloc_obj_ctx_args *)buf;
 
-		if (nvgpu_is_enabled(ch->g, NVGPU_SUPPORT_SM_DIVERSITY)) {
-			if (args->sm_diversity_config >=
-				ch->g->max_sm_diversity_config_count) {
-				err = -EINVAL;
-				break;
-			}
-		} else {
-			args->sm_diversity_config = 0U;
-		}
-
 		err = gk20a_busy(ch->g);
 		if (err) {
 			dev_err(dev,
