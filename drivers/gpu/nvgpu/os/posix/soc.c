@@ -33,7 +33,9 @@ bool nvgpu_platform_is_silicon(struct gk20a *g)
 
 bool nvgpu_platform_is_simulation(struct gk20a *g)
 {
-	return false;
+	struct nvgpu_os_posix *p = nvgpu_os_posix_from_gk20a(g);
+
+	return p->is_simulation;
 }
 
 bool nvgpu_platform_is_fpga(struct gk20a *g)
