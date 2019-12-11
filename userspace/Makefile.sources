@@ -108,6 +108,8 @@ UNITS :=				\
 	$(UNIT_SRC)/fifo/pbdma/gp10b	\
 	$(UNIT_SRC)/fifo/pbdma/gv11b	\
 	$(UNIT_SRC)/fifo/preempt	\
+	$(UNIT_SRC)/fifo/ramfc/gp10b	\
+	$(UNIT_SRC)/fifo/ramfc/gv11b	\
 	$(UNIT_SRC)/fifo/ramin/gk20a	\
 	$(UNIT_SRC)/fifo/ramin/gm20b	\
 	$(UNIT_SRC)/fifo/ramin/gp10b	\

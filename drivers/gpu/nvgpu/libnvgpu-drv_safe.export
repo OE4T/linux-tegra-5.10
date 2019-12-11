@@ -82,6 +82,7 @@ gm20b_priv_ring_get_gpc_count
 gm20b_priv_ring_get_fbp_count
 gm20b_gr_falcon_submit_fecs_method_op
 gm20b_bus_bar1_bind
+gp10b_bus_bar2_bind
 gp10b_ce_nonstall_isr
 gp10b_get_max_page_table_levels
 gp10b_mm_get_default_big_page_size
@@ -99,7 +100,7 @@ gp10b_get_device_info
 gp10b_is_engine_ce
 gp10b_priv_ring_isr
 gp10b_priv_ring_decode_error_code
-gp10b_bus_bar2_bind
+gp10b_ramfc_commit_userd
 gv100_dump_engine_status
 gv100_read_engine_status_info
 gv11b_ce_get_num_pce
@@ -176,6 +177,8 @@ gv11b_pbdma_handle_intr_1
 gv11b_pbdma_intr_enable
 gv11b_pbdma_set_channel_info_veid
 gv11b_pbdma_setup_hw
+gv11b_ramfc_capture_ram_dump
+gv11b_ramfc_setup
 gv11b_ramin_init_subctx_pdb
 gv11b_ramin_set_eng_method_buffer
 gv11b_ramin_set_gr_ptr

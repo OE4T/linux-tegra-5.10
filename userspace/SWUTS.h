@@ -55,6 +55,8 @@
  *   - @ref SWUTS-fifo-pbdma-gp10b
  *   - @ref SWUTS-fifo-pbdma-gv11b
  *   - @ref SWUTS-fifo-preempt
+ *   - @ref SWUTS-fifo-ramfc-gp10b
+ *   - @ref SWUTS-fifo-ramfc-gv11b
  *   - @ref SWUTS-fifo-ramin-gk20a
  *   - @ref SWUTS-fifo-ramin-gm20b
  *   - @ref SWUTS-fifo-ramin-gp10b
