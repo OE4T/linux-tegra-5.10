@@ -43,6 +43,7 @@ struct cg_test_data {
 	void (*load_enable)(struct gk20a *g);
 	u32 domain_count;
 	const struct gating_desc *domain_descs[16];
+	void (*gating_funcs[16])(struct gk20a *g, bool prod);
 	u32 domain_desc_sizes[16];
 };
 
@@ -109,128 +110,172 @@ struct cg_test_data slcg_ce2 = {
 struct cg_test_data slcg_gr_load_gating_prod = {
 	.cg_type = NVGPU_GPU_CAN_SLCG,
 	.load_enable = nvgpu_cg_init_gr_load_gating_prod,
-	.domain_count = 6,
+	.domain_count = 7,
 };
 
 struct cg_test_data blcg_gr_load_gating_prod = {
 	.cg_type = NVGPU_GPU_CAN_BLCG,
 	.load_enable = nvgpu_cg_init_gr_load_gating_prod,
-	.domain_count = 4,
+	.domain_count = 6,
 };
 
 #define INIT_BLCG_DOMAIN_TEST_DATA(param)	({\
 	struct cg_test_data *tmp = &blcg_##param; \
 	tmp->domain_descs[0] = gv11b_blcg_##param##_get_gating_prod(); \
+	tmp->gating_funcs[0] = g->ops.cg.blcg_##param##_load_gating_prod; \
 	tmp->domain_desc_sizes[0] = gv11b_blcg_##param##_gating_prod_size(); \
 	})
 
-static void init_blcg_fb_ltc_data(void)
+static void init_blcg_fb_ltc_data(struct gk20a *g)
 {
 	blcg_fb_ltc.domain_descs[0] = gv11b_blcg_fb_get_gating_prod();
+	blcg_fb_ltc.gating_funcs[0] = g->ops.cg.blcg_fb_load_gating_prod;
 	blcg_fb_ltc.domain_desc_sizes[0] = gv11b_blcg_fb_gating_prod_size();
 	blcg_fb_ltc.domain_descs[1] = gv11b_blcg_ltc_get_gating_prod();
+	blcg_fb_ltc.gating_funcs[1] = g->ops.cg.blcg_ltc_load_gating_prod;
 	blcg_fb_ltc.domain_desc_sizes[1] = gv11b_blcg_ltc_gating_prod_size();
 }
 
-static void init_blcg_fifo_data(void)
+static void init_blcg_fifo_data(struct gk20a *g)
 {
 	INIT_BLCG_DOMAIN_TEST_DATA(fifo);
 }
 
-static void init_blcg_pmu_data(void)
+static void init_blcg_pmu_data(struct gk20a *g)
 {
 	INIT_BLCG_DOMAIN_TEST_DATA(pmu);
 }
 
-static void init_blcg_ce_data(void)
+static void init_blcg_ce_data(struct gk20a *g)
 {
 	INIT_BLCG_DOMAIN_TEST_DATA(ce);
 }
 
-static void init_blcg_gr_data(void)
+static void init_blcg_gr_data(struct gk20a *g)
 {
 	INIT_BLCG_DOMAIN_TEST_DATA(gr);
 }
 
-static void init_blcg_gr_load_gating_data(void)
+static void init_blcg_gr_load_gating_data(struct gk20a *g)
 {
 	blcg_gr_load_gating_prod.domain_descs[0] =
 					gv11b_blcg_bus_get_gating_prod();
+	blcg_gr_load_gating_prod.gating_funcs[0] =
+					g->ops.cg.blcg_bus_load_gating_prod;
 	blcg_gr_load_gating_prod.domain_desc_sizes[0] =
 					gv11b_blcg_bus_gating_prod_size();
 	blcg_gr_load_gating_prod.domain_descs[1] =
 					gv11b_blcg_gr_get_gating_prod();
+	blcg_gr_load_gating_prod.gating_funcs[1] =
+					g->ops.cg.blcg_gr_load_gating_prod;
 	blcg_gr_load_gating_prod.domain_desc_sizes[1] =
 					gv11b_blcg_gr_gating_prod_size();
 	blcg_gr_load_gating_prod.domain_descs[2] =
 					gv11b_blcg_xbar_get_gating_prod();
+	blcg_gr_load_gating_prod.gating_funcs[2] =
+					g->ops.cg.blcg_xbar_load_gating_prod;
 	blcg_gr_load_gating_prod.domain_desc_sizes[2] =
 					gv11b_blcg_xbar_gating_prod_size();
 	blcg_gr_load_gating_prod.domain_descs[3] =
-					gv11b_blcg_hshub_get_gating_prod();
+				gv11b_blcg_ctxsw_firmware_get_gating_prod();
+	blcg_gr_load_gating_prod.gating_funcs[3] =
+				g->ops.cg.blcg_ctxsw_firmware_load_gating_prod;
 	blcg_gr_load_gating_prod.domain_desc_sizes[3] =
+				gv11b_blcg_ctxsw_firmware_gating_prod_size();
+	blcg_gr_load_gating_prod.domain_descs[4] =
+					gv11b_blcg_hshub_get_gating_prod();
+	blcg_gr_load_gating_prod.gating_funcs[4] =
+					g->ops.cg.blcg_hshub_load_gating_prod;
+	blcg_gr_load_gating_prod.domain_desc_sizes[4] =
 					gv11b_blcg_hshub_gating_prod_size();
+	blcg_gr_load_gating_prod.domain_descs[5] =
+					gr_gv11b_pg_gr_get_gating_prod();
+	blcg_gr_load_gating_prod.gating_funcs[5] =
+					g->ops.cg.pg_gr_load_gating_prod;
+	blcg_gr_load_gating_prod.domain_desc_sizes[5] =
+					gr_gv11b_pg_gr_gating_prod_size();
 }
 
 #define INIT_SLCG_DOMAIN_TEST_DATA(param)	({\
 	struct cg_test_data *tmp = &slcg_##param; \
 	tmp->domain_descs[0] = gv11b_slcg_##param##_get_gating_prod(); \
+	tmp->gating_funcs[0] = g->ops.cg.slcg_##param##_load_gating_prod; \
 	tmp->domain_desc_sizes[0] = gv11b_slcg_##param##_gating_prod_size(); \
 	})
 
-static void init_slcg_fb_ltc_data(void)
+static void init_slcg_fb_ltc_data(struct gk20a *g)
 {
 	slcg_fb_ltc.domain_descs[0] = gv11b_slcg_fb_get_gating_prod();
+	slcg_fb_ltc.gating_funcs[0] = g->ops.cg.slcg_fb_load_gating_prod;
 	slcg_fb_ltc.domain_desc_sizes[0] = gv11b_slcg_fb_gating_prod_size();
 	slcg_fb_ltc.domain_descs[1] = gv11b_slcg_ltc_get_gating_prod();
+	slcg_fb_ltc.gating_funcs[1] = g->ops.cg.slcg_ltc_load_gating_prod;
 	slcg_fb_ltc.domain_desc_sizes[1] = gv11b_slcg_ltc_gating_prod_size();
 }
 
-static void init_slcg_priring_data(void)
+static void init_slcg_priring_data(struct gk20a *g)
 {
 	INIT_SLCG_DOMAIN_TEST_DATA(priring);
 }
 
-static void init_slcg_fifo_data(void)
+static void init_slcg_fifo_data(struct gk20a *g)
 {
 	INIT_SLCG_DOMAIN_TEST_DATA(fifo);
 }
 
-static void init_slcg_pmu_data(void)
+static void init_slcg_pmu_data(struct gk20a *g)
 {
 	INIT_SLCG_DOMAIN_TEST_DATA(pmu);
 }
 
-static void init_slcg_ce2_data(void)
+static void init_slcg_ce2_data(struct gk20a *g)
 {
 	INIT_SLCG_DOMAIN_TEST_DATA(ce2);
 }
 
-static void init_slcg_gr_load_gating_data(void)
+static void init_slcg_gr_load_gating_data(struct gk20a *g)
 {
 	slcg_gr_load_gating_prod.domain_descs[0] =
 					gv11b_slcg_bus_get_gating_prod();
+	slcg_gr_load_gating_prod.gating_funcs[0] =
+					g->ops.cg.slcg_bus_load_gating_prod;
 	slcg_gr_load_gating_prod.domain_desc_sizes[0] =
 					gv11b_slcg_bus_gating_prod_size();
 	slcg_gr_load_gating_prod.domain_descs[1] =
 					gv11b_slcg_chiplet_get_gating_prod();
+	slcg_gr_load_gating_prod.gating_funcs[1] =
+					g->ops.cg.slcg_chiplet_load_gating_prod;
 	slcg_gr_load_gating_prod.domain_desc_sizes[1] =
 					gv11b_slcg_chiplet_gating_prod_size();
 	slcg_gr_load_gating_prod.domain_descs[2] =
 					gv11b_slcg_gr_get_gating_prod();
+	slcg_gr_load_gating_prod.gating_funcs[2] =
+					g->ops.cg.slcg_gr_load_gating_prod;
 	slcg_gr_load_gating_prod.domain_desc_sizes[2] =
 					gv11b_slcg_gr_gating_prod_size();
 	slcg_gr_load_gating_prod.domain_descs[3] =
-					gv11b_slcg_perf_get_gating_prod();
+				gv11b_slcg_ctxsw_firmware_get_gating_prod();
+	slcg_gr_load_gating_prod.gating_funcs[3] =
+				g->ops.cg.slcg_ctxsw_firmware_load_gating_prod;
 	slcg_gr_load_gating_prod.domain_desc_sizes[3] =
-					gv11b_slcg_perf_gating_prod_size();
+				gv11b_slcg_ctxsw_firmware_gating_prod_size();
 	slcg_gr_load_gating_prod.domain_descs[4] =
-					gv11b_slcg_xbar_get_gating_prod();
+					gv11b_slcg_perf_get_gating_prod();
+	slcg_gr_load_gating_prod.gating_funcs[4] =
+					g->ops.cg.slcg_perf_load_gating_prod;
 	slcg_gr_load_gating_prod.domain_desc_sizes[4] =
-					gv11b_slcg_xbar_gating_prod_size();
+					gv11b_slcg_perf_gating_prod_size();
 	slcg_gr_load_gating_prod.domain_descs[5] =
-					gv11b_slcg_hshub_get_gating_prod();
+					gv11b_slcg_xbar_get_gating_prod();
+	slcg_gr_load_gating_prod.gating_funcs[5] =
+					g->ops.cg.slcg_xbar_load_gating_prod;
 	slcg_gr_load_gating_prod.domain_desc_sizes[5] =
+					gv11b_slcg_xbar_gating_prod_size();
+	slcg_gr_load_gating_prod.domain_descs[6] =
+					gv11b_slcg_hshub_get_gating_prod();
+	slcg_gr_load_gating_prod.gating_funcs[6] =
+					g->ops.cg.slcg_hshub_load_gating_prod;
+	slcg_gr_load_gating_prod.domain_desc_sizes[6] =
 					gv11b_slcg_hshub_gating_prod_size();
 }
 
@@ -278,19 +323,19 @@ static int init_test_env(struct unit_module *m, struct gk20a *g, void *args)
 
 	gv11b_init_hal(g);
 
-	init_blcg_fb_ltc_data();
-	init_blcg_fifo_data();
-	init_blcg_pmu_data();
-	init_blcg_ce_data();
-	init_blcg_gr_data();
-	init_blcg_gr_load_gating_data();
+	init_blcg_fb_ltc_data(g);
+	init_blcg_fifo_data(g);
+	init_blcg_pmu_data(g);
+	init_blcg_ce_data(g);
+	init_blcg_gr_data(g);
+	init_blcg_gr_load_gating_data(g);
 
-	init_slcg_fb_ltc_data();
-	init_slcg_priring_data();
-	init_slcg_fifo_data();
-	init_slcg_pmu_data();
-	init_slcg_ce2_data();
-	init_slcg_gr_load_gating_data();
+	init_slcg_fb_ltc_data(g);
+	init_slcg_priring_data(g);
+	init_slcg_fifo_data(g);
+	init_slcg_pmu_data(g);
+	init_slcg_ce2_data(g);
+	init_slcg_gr_load_gating_data(g);
 
 	return UNIT_SUCCESS;
 }
@@ -342,7 +387,8 @@ static void invalid_load_enabled(struct gk20a *g,
 	}
 }
 
-static int verify_load_enabled(struct gk20a *g, struct cg_test_data *test_data)
+static int verify_load_enabled(struct gk20a *g, struct cg_test_data *test_data,
+			       bool prod)
 {
 	u32 i, j, value;
 	int mismatch = 0;
@@ -351,7 +397,12 @@ static int verify_load_enabled(struct gk20a *g, struct cg_test_data *test_data)
 		for (j = 0; j < test_data->domain_desc_sizes[i]; j++) {
 			value =
 			    nvgpu_readl(g, test_data->domain_descs[i][j].addr);
-			if (value != test_data->domain_descs[i][j].prod) {
+			if (prod == true &&
+			    value != test_data->domain_descs[i][j].prod) {
+				mismatch = 1;
+				goto out;
+			} else if (prod == false &&
+			value != test_data->domain_descs[i][j].disable) {
 				mismatch = 1;
 				goto out;
 			}
@@ -362,9 +413,20 @@ out:
 	return mismatch;
 }
 
+static void load_test_data_non_prod(struct gk20a *g,
+				    struct cg_test_data *test_data)
+{
+	u32 i;
+
+	for (i = 0; i < test_data->domain_count; i++) {
+		test_data->gating_funcs[i](g, false);
+	}
+}
+
 int test_cg(struct unit_module *m, struct gk20a *g, void *args)
 {
 	struct cg_test_data *test_data = (struct cg_test_data *) args;
+	struct gpu_ops gops_temp;
 	u32 i;
 	int err;
 
@@ -378,33 +440,73 @@ int test_cg(struct unit_module *m, struct gk20a *g, void *args)
 
 	invalid_load_enabled(g, test_data);
 
+	/**
+	 * Test scenario where enabled flag and platform capability are
+	 * not set.
+	 */
 	test_data->load_enable(g);
-	err = verify_load_enabled(g, test_data);
+	err = verify_load_enabled(g, test_data, true);
 	if (err == 0) {
-		unit_err(m, "enabled flag not yet set\n");
+		unit_err(m, "enabled flag and platform capability "
+			    "not yet set\n");
 		return UNIT_FAIL;
 	}
 
+	/** Tests if platform capability is checked setting enabled flag. */
 	nvgpu_set_enabled(g, test_data->cg_type, true);
 	test_data->load_enable(g);
-	err = verify_load_enabled(g, test_data);
+	err = verify_load_enabled(g, test_data, true);
 	if (err == 0) {
 		unit_err(m, "platform capability not yet set\n");
 		return UNIT_FAIL;
 	}
 
+	/** Tests if enabled flag is checked setting platform capability. */
+	nvgpu_set_enabled(g, test_data->cg_type, false);
 	if (test_data->cg_type == NVGPU_GPU_CAN_BLCG) {
 		g->blcg_enabled = true;
 	} else if (test_data->cg_type == NVGPU_GPU_CAN_SLCG) {
 		g->slcg_enabled = true;
 	}
 	test_data->load_enable(g);
-	err = verify_load_enabled(g, test_data);
-	if (err != 0) {
-		unit_err(m, "gating registers mismatch\n");
+	err = verify_load_enabled(g, test_data, true);
+	if (err == 0) {
+		unit_err(m, "enabled flag not yet set\n");
 		return UNIT_FAIL;
 	}
 
+	/** Tests if gating registers are setup as expected. */
+	nvgpu_set_enabled(g, test_data->cg_type, true);
+	test_data->load_enable(g);
+	err = verify_load_enabled(g, test_data, true);
+	if (err != 0) {
+		unit_err(m, "gating registers prod mismatch\n");
+		return UNIT_FAIL;
+	}
+
+	load_test_data_non_prod(g, test_data);
+	err = verify_load_enabled(g, test_data, false);
+	if (err != 0) {
+		unit_err(m, "gating registers disable mismatch\n");
+		return UNIT_FAIL;
+	}
+
+	/* Tests if CG hals are checked for NULL before invoking. */
+	memcpy((u8 *)&gops_temp, (u8 *)&g->ops, sizeof(struct gpu_ops));
+	memset(&g->ops, 0, sizeof(struct gpu_ops));
+
+	invalid_load_enabled(g, test_data);
+
+	test_data->load_enable(g);
+	err = verify_load_enabled(g, test_data, true);
+	if (err == 0) {
+		unit_err(m, "CG hals not initialized\n");
+		return UNIT_FAIL;
+	}
+
+	memcpy((u8 *)&g->ops, (u8 *)&gops_temp, sizeof(struct gpu_ops));
+
+	/** Cleanup */
 	for (i = 0; i < test_data->domain_count; i++) {
 		delete_domain_gating_regs(g, test_data->domain_descs[i],
 					  test_data->domain_desc_sizes[i]);

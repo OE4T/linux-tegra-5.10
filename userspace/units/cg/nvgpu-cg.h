@@ -54,9 +54,19 @@ struct unit_module;
  * - Enable BLCG/SLCG enabled flag.
  * - Invoke the nvgpu function to load the clock gating values.
  *   - Verify that load is not enabled as platform capability isn't set.
+ * - Disable BLCG/SLCG enabled flag.
  * - Set the platform capability.
  * - Invoke the nvgpu function to load the clock gating values.
+ *   - Verify that load is not enabled as enabled flag isn't set.
+ * - Enable BLCG/SLCG enabled flag.
+ * - Invoke the nvgpu function to load the clock gating values.
  *   - Verify that load is enabled.
+ * - Invoke the nvgpu functions to load the non-prod clock gating values.
+ *   - Verify that load is not enabled.
+ * - Set all CG gpu_ops to NULL.
+ * - Invoke the nvgpu function to load the clock gating values.
+ *   - Verify that load is not enabled as HALs are not set.
+ * - Restore the CG gpu_ops.
  * - Any invalid accesses by nvgpu will be caught through ABORTs and
  *   test fails if ABORTs are encountered.
  * - Delete domain gating registers from the registere space.
