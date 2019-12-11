@@ -153,10 +153,11 @@ static u32 gr_gm20b_intr_check_gr_mme_exception(struct gk20a *g,
 				mme, 0);
 		nvgpu_err(g, "mme exception: esr 0x%08x info:0x%08x",
 				mme, info);
+#ifdef CONFIG_NVGPU_DGPU
 		if (g->ops.gr.intr.log_mme_exception != NULL) {
 			g->ops.gr.intr.log_mme_exception(g);
 		}
-
+#endif
 		nvgpu_writel(g, gr_mme_hww_esr_r(),
 			gr_mme_hww_esr_reset_active_f());
 		return 1U;

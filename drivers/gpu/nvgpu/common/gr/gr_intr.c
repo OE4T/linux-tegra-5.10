@@ -125,9 +125,11 @@ static int gr_intr_handle_tpc_exception(struct gk20a *g, u32 gpc, u32 tpc,
 	if (pending_tpc.tex_exception) {
 		nvgpu_log(g, gpu_dbg_intr | gpu_dbg_gpu_dbg,
 			  "GPC%d TPC%d: TEX exception pending", gpc, tpc);
+#ifdef CONFIG_NVGPU_HAL_NON_FUSA
 		if (g->ops.gr.intr.handle_tex_exception != NULL) {
 			g->ops.gr.intr.handle_tex_exception(g, gpc, tpc);
 		}
+#endif
 	}
 
 	/* check if a mpc exception is pending */
@@ -183,7 +185,7 @@ static int gr_intr_handle_illegal_method(struct gk20a *g,
 	return ret;
 }
 
-static int gr_intr_handle_class_error(struct gk20a *g,
+static void gr_intr_handle_class_error(struct gk20a *g,
 				       struct nvgpu_gr_isr_data *isr_data)
 {
 	u32 chid = isr_data->ch != NULL ?
@@ -195,8 +197,6 @@ static int gr_intr_handle_class_error(struct gk20a *g,
 
 	nvgpu_gr_intr_set_error_notifier(g, isr_data,
 			 NVGPU_ERR_NOTIFIER_GR_ERROR_SW_NOTIFY);
-
-	return -EINVAL;
 }
 
 static void gr_intr_report_sm_exception(struct gk20a *g, u32 gpc, u32 tpc,
@@ -312,9 +312,7 @@ struct nvgpu_channel *nvgpu_gr_intr_get_channel_from_ctx(struct gk20a *g,
 
 unlock:
 	nvgpu_spinlock_release(&intr->ch_tlb_lock);
-	if (curr_tsgid != NULL) {
-		*curr_tsgid = tsgid;
-	}
+	*curr_tsgid = tsgid;
 	return ret_ch;
 }
 
@@ -864,9 +862,8 @@ static u32 gr_intr_handle_error_interrupts(struct gk20a *g,
 		nvgpu_gr_intr_report_exception(g, 0U,
 				GPU_PGRAPH_ILLEGAL_ERROR, gr_intr,
 				GPU_PGRAPH_CLASS_ERROR);
-		if (gr_intr_handle_class_error(g, isr_data) != 0) {
-			do_reset = 1U;
-		}
+		gr_intr_handle_class_error(g, isr_data);
+		do_reset = 1U;
 		*clear_intr &= ~intr_info->class_error;
 	}
 

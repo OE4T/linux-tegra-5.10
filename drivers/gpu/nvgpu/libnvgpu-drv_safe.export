@@ -248,6 +248,9 @@ nvgpu_gr_free
 nvgpu_gr_init
 nvgpu_gr_init_support
 nvgpu_gr_remove_support
+nvgpu_gr_intr_init_support
+nvgpu_gr_intr_remove_support
+nvgpu_gr_intr_handle_fecs_error
 nvgpu_gr_prepare_sw
 nvgpu_gr_enable_hw
 nvgpu_gr_suspend

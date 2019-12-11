@@ -692,7 +692,6 @@ static const struct gpu_ops tu104_ops = {
 			.get_tpc_exception = gm20b_gr_intr_get_tpc_exception,
 			.handle_tpc_mpc_exception =
 					gv11b_gr_intr_handle_tpc_mpc_exception,
-			.handle_tex_exception = NULL,
 			.enable_hww_exceptions =
 					gv11b_gr_intr_enable_hww_exceptions,
 			.enable_interrupts = gm20b_gr_intr_enable_interrupts,
@@ -722,6 +721,7 @@ static const struct gpu_ops tu104_ops = {
 			.get_sm_no_lock_down_hww_global_esr_mask =
 				gv11b_gr_intr_get_sm_no_lock_down_hww_global_esr_mask,
 #ifdef CONFIG_NVGPU_HAL_NON_FUSA
+			.handle_tex_exception = NULL,
 			.set_shader_exceptions =
 					gv11b_gr_intr_set_shader_exceptions,
 			.tpc_exception_sm_enable =

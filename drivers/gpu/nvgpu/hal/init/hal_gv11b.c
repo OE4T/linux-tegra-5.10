@@ -667,7 +667,6 @@ static const struct gpu_ops gv11b_ops = {
 					gv11b_gr_intr_handle_tpc_mpc_exception,
 			.handle_tpc_pe_exception =
 					gv11b_gr_intr_handle_tpc_pe_exception,
-			.handle_tex_exception = NULL,
 			.enable_hww_exceptions =
 					gv11b_gr_intr_enable_hww_exceptions,
 			.enable_interrupts = gm20b_gr_intr_enable_interrupts,
@@ -699,6 +698,7 @@ static const struct gpu_ops gv11b_ops = {
 			.get_ctxsw_checksum_mismatch_mailbox_val =
 				gv11b_gr_intr_ctxsw_checksum_mismatch_mailbox_val,
 #ifdef CONFIG_NVGPU_HAL_NON_FUSA
+			.handle_tex_exception = NULL,
 			.set_shader_exceptions =
 					gv11b_gr_intr_set_shader_exceptions,
 			.tpc_exception_sm_enable =

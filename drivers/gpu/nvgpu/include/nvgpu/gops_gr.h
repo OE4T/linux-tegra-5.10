@@ -439,8 +439,6 @@ struct gops_gr_intr {
 					 u32 gpc, u32 tpc);
 	void (*handle_tpc_pe_exception)(struct gk20a *g,
 					u32 gpc, u32 tpc);
-	void (*handle_tex_exception)(struct gk20a *g,
-				     u32 gpc, u32 tpc);
 	void (*enable_hww_exceptions)(struct gk20a *g);
 	void (*enable_interrupts)(struct gk20a *g, bool enable);
 	void (*enable_exceptions)(struct gk20a *g,
@@ -462,7 +460,6 @@ struct gops_gr_intr {
 	void (*clear_sm_hww)(struct gk20a *g, u32 gpc, u32 tpc,
 			     u32 sm, u32 global_esr);
 	void (*handle_ssync_hww)(struct gk20a *g, u32 *ssync_esr);
-	void (*log_mme_exception)(struct gk20a *g);
 	u32 (*record_sm_error_state)(struct gk20a *g, u32 gpc,
 				     u32 tpc, u32 sm,
 				     struct nvgpu_channel *fault_ch);
@@ -474,6 +471,13 @@ struct gops_gr_intr {
 	u32 (*get_sm_no_lock_down_hww_global_esr_mask)(
 						struct gk20a *g);
 	u32 (*get_ctxsw_checksum_mismatch_mailbox_val)(void);
+#ifdef CONFIG_NVGPU_HAL_NON_FUSA
+	void (*handle_tex_exception)(struct gk20a *g,
+				     u32 gpc, u32 tpc);
+#endif
+#ifdef CONFIG_NVGPU_DGPU
+	void (*log_mme_exception)(struct gk20a *g);
+#endif
 #ifdef CONFIG_NVGPU_DEBUGGER
 	void (*tpc_exception_sm_disable)(struct gk20a *g,
 					 u32 offset);
