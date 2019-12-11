@@ -23,6 +23,12 @@
  */
 #define NUM_BYTES_IN_IPADDR	4
 #define MAX_IP_ADDR_BYTE	0xFFU
+/* PTP offload mode defines */
+#define ETHER_PTP_ORDINARY_SLAVE		1
+#define ETHER_PTP_ORDINARY_MASTER		2
+#define ETHER_PTP_TRASPARENT_SLAVE		3
+#define ETHER_PTP_TRASPARENT_MASTER		4
+#define ETHER_PTP_PEER_TO_PEER_TRANSPARENT	5
 
 /* class E IP4 addr start range, reserved */
 #define CLASS_E_IP4_ADDR_RANGE_START	240U
@@ -53,6 +59,7 @@
 #define EQOS_L2_DA_FILTERING_CMD	35
 #define ETHER_CONFIG_ARP_OFFLOAD	36
 #define ETHER_CONFIG_LOOPBACK_MODE	40
+#define ETHER_CONFIG_PTP_OFFLOAD	42
 #define ETHER_GET_AVB_ALGORITHM		46
 #define ETHER_SAVE_RESTORE		47
 #define ETHER_PTP_RXQUEUE		48
@@ -99,6 +106,16 @@ struct arp_offload_param {
 	 * ip_addr[0] = '192' ip_addr[1] = '168' ip_addr[2] = '1' 
 	 * ip_addr[3] = '3' */
 	unsigned char ip_addr[NUM_BYTES_IN_IPADDR];
+};
+
+/**
+ * @brief struct ptp_offload_param - Parameter to support PTP offload.
+ */
+struct ptp_offload_param {
+	int en_dis;
+	int mode;
+	int domain_num;
+	int mc_uc;
 };
 
 /**

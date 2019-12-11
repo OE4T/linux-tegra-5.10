@@ -207,6 +207,101 @@ static int ether_get_avb_algo(struct net_device *ndev,
 }
 
 /**
+ * @brief Handle ioctl to enable/disable PTP offload
+ *
+ * @param[in] pdata: OS dependent private data structure.
+ * @param[in] ifrd_p: Interface request private data pointer.
+ *
+ * @note Interface should be running (enforced by caller).
+ *
+ * @retval 0 on Success
+ * @retval "negative value" on Failure
+ */
+static int ether_config_ptp_offload(struct ether_priv_data *pdata,
+				    struct ether_ifr_data *ifrd_p)
+{
+	int ret = -EINVAL;
+	struct ptp_offload_param param;
+	unsigned int snap_type = 0x0;
+	unsigned int master = 0x0;
+	struct osi_pto_config pto_config;
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 10, 0)
+	struct timespec64 now;
+#else
+	struct timespec now;
+#endif
+
+	if (!ifrd_p->ptr) {
+		dev_err(pdata->dev, "%s: Invalid data for priv ioctl %d\n",
+			__func__, ifrd_p->ifcmd);
+		return ret;
+	}
+
+	if (copy_from_user(&param, (struct ptp_offload_param *)ifrd_p->ptr,
+			   sizeof(struct ptp_offload_param))) {
+		dev_err(pdata->dev, "%s: copy_from_user failed\n", __func__);
+		return ret;
+	}
+
+	pdata->osi_core->ptp_config.ptp_clock = pdata->ptp_ref_clock_speed;
+	/* initialize system time */
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 10, 0)
+	ktime_get_ts64(&now);
+#else
+	getnstimeofday(&now);
+#endif
+	/* Store sec and nsec */
+	pdata->osi_core->ptp_config.sec = now.tv_sec;
+	pdata->osi_core->ptp_config.nsec = now.tv_nsec;
+	/* one nsec accuracy */
+	pdata->osi_core->ptp_config.one_nsec_accuracy = OSI_ENABLE;
+
+	switch (param.mode) {
+	case ETHER_PTP_ORDINARY_MASTER:
+		master = OSI_ENABLE;
+		snap_type = OSI_PTP_SNAP_ORDINARY;
+		break;
+	case ETHER_PTP_ORDINARY_SLAVE:
+		master = OSI_ENABLE;
+		snap_type = OSI_PTP_SNAP_ORDINARY;
+		break;
+	case ETHER_PTP_TRASPARENT_MASTER:
+		master = OSI_ENABLE;
+		snap_type = OSI_PTP_SNAP_TRANSPORT;
+		break;
+	case ETHER_PTP_TRASPARENT_SLAVE:
+		master = OSI_ENABLE;
+		snap_type = OSI_PTP_SNAP_TRANSPORT;
+		break;
+	case ETHER_PTP_PEER_TO_PEER_TRANSPARENT:
+		snap_type = OSI_PTP_SNAP_P2P;
+		master = OSI_ENABLE;
+		break;
+	default:
+		dev_err(pdata->dev, "%s: Invalid mode value, set default\n",
+			__func__);
+		snap_type = OSI_PTP_SNAP_ORDINARY;
+		master = OSI_DISABLE;
+	}
+
+	pto_config.en_dis = param.en_dis;
+	pto_config.snap_type = snap_type;
+	pto_config.master = master;
+	pto_config.domain_num = param.domain_num;
+	pto_config.mc_uc = param.mc_uc;
+	/* PTP port ID hard code to port 1 for POC */
+	pto_config.portid = 0x1U;
+
+	ret = osi_config_ptp_offload(pdata->osi_core,
+				     &pto_config);
+	if (ret < 0) {
+		dev_err(pdata->dev, "%s: OSI function failed\n", __func__);
+	}
+
+	return ret;
+}
+
+/**
  * @brief Handle ioctl to enable/disable ARP offload
  *
  * Algorithm:
@@ -980,6 +1075,14 @@ int ether_handle_priv_ioctl(struct net_device *ndev,
 		break;
 	case ETHER_PTP_RXQUEUE:
 		ret = ether_config_ptp_rxq(ndev, ifdata.if_flags);
+		break;
+	case ETHER_CONFIG_PTP_OFFLOAD:
+		if (pdata->hw_feat.tsstssel) {
+			ret = ether_config_ptp_offload(pdata, &ifdata);
+		} else {
+			dev_err(pdata->dev, "No HW support for PTP\n");
+			ret = -EOPNOTSUPP;
+		}
 		break;
 	case EQOS_L3_L4_FILTER_CMD:
 		/* flags should be 0x0 or 0x1, discard any other */
