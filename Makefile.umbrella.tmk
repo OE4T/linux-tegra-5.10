@@ -112,6 +112,7 @@ NV_REPOSITORY_COMPONENTS += userspace/units/enabled
 NV_REPOSITORY_COMPONENTS += userspace/units/falcon
 NV_REPOSITORY_COMPONENTS += userspace/units/falcon/falcon_tests
 NV_REPOSITORY_COMPONENTS += userspace/units/pmu
+NV_REPOSITORY_COMPONENTS += userspace/units/therm
 NV_REPOSITORY_COMPONENTS += userspace/units/top
 NV_REPOSITORY_COMPONENTS += userspace/units/class
 NV_REPOSITORY_COMPONENTS += userspace/units/gr

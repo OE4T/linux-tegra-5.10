@@ -120,6 +120,7 @@ UNITS :=				\
 	$(UNIT_SRC)/falcon/falcon_tests	\
 	$(UNIT_SRC)/fuse		\
 	$(UNIT_SRC)/pmu			\
+	$(UNIT_SRC)/therm		\
 	$(UNIT_SRC)/top			\
 	$(UNIT_SRC)/class		\
 	$(UNIT_SRC)/gr			\

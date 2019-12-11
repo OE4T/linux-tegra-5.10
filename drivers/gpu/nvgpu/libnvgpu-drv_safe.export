@@ -111,6 +111,7 @@ gv11b_channel_debug_dump
 gv11b_channel_read_state
 gv11b_channel_reset_faulted
 gv11b_channel_unbind
+gv11b_elcg_init_idle_filters
 gv11b_fb_ecc_free
 gv11b_fb_ecc_init
 gv11b_fb_fault_buf_configure_hw
@@ -150,6 +151,7 @@ gv11b_gpu_phys_addr
 gv11b_init_fifo_reset_enable_hw
 gv11b_init_fifo_setup_hw
 gv11b_init_hal
+gv11b_init_therm_setup_hw
 gv11b_is_fault_engine_subid_gpc
 gv11b_mc_is_mmu_fault_pending
 gv11b_mm_copy_from_fault_snap_reg
@@ -176,6 +178,7 @@ gv11b_pbdma_setup_hw
 gv11b_runlist_entry_size
 gv11b_runlist_get_tsg_entry
 gv11b_runlist_get_ch_entry
+gv11b_therm_init_elcg_mode
 gv11b_usermode_base
 gv11b_usermode_bus_base
 gv11b_usermode_doorbell_token
@@ -466,6 +469,7 @@ nvgpu_gmmu_unmap_locked
 nvgpu_init_enabled_flags
 nvgpu_init_hal
 nvgpu_init_mm_support
+nvgpu_init_therm_support
 nvgpu_inst_block_addr
 nvgpu_free_inst_block
 nvgpu_inst_block_ptr

@@ -4083,6 +4083,36 @@
         "test_level": 0
     },
     {
+        "test": "test_gv11b_elcg_init_idle_filters",
+        "case": "gv11b_elcg_init_idle_filters",
+        "unit": "therm",
+        "test_level": 0
+    },
+    {
+        "test": "test_gv11b_therm_init_elcg_mode",
+        "case": "gv11b_therm_init_elcg_mode",
+        "unit": "therm",
+        "test_level": 0
+    },
+    {
+        "test": "test_free_env",
+        "case": "therm_free_env",
+        "unit": "therm",
+        "test_level": 0
+    },
+    {
+        "test": "test_therm_init_support",
+        "case": "therm_init_support",
+        "unit": "therm",
+        "test_level": 0
+    },
+    {
+        "test": "test_setup_env",
+        "case": "therm_setup_env",
+        "unit": "therm",
+        "test_level": 0
+    },
+    {
         "test": "test_device_info_parse_data",
         "case": "top_device_info_parse_data",
         "unit": "top",
