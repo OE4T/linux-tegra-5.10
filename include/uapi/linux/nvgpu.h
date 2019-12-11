@@ -172,10 +172,6 @@ struct nvgpu_gpu_zbc_query_table_args {
 #define NVGPU_GPU_FLAGS_SUPPORT_SET_CTX_MMU_DEBUG_MODE	(1ULL << 32)
 /* Fault recovery is enabled */
 #define NVGPU_GPU_FLAGS_SUPPORT_FAULT_RECOVERY		(1ULL << 33)
-/* Copy Engine diversity is available */
-#define NVGPU_GPU_FLAGS_SUPPORT_COPY_ENGINE_DIVERSITY	(1ULL << 34)
-/** SM diversity is available. */
-#define NVGPU_GPU_FLAGS_SUPPORT_SM_DIVERSITY		(1ULL << 35)
 /* SM LRF ECC is enabled */
 #define NVGPU_GPU_FLAGS_ECC_ENABLED_SM_LRF	(1ULL << 60)
 /* SM SHM ECC is enabled */
