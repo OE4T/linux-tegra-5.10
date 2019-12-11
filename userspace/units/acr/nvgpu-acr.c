@@ -280,12 +280,15 @@ static int prepare_gr_hw_sw(struct unit_module *m, struct gk20a *g)
 
 	return 0;
 }
+
 int test_acr_bootstrap_hs_acr(struct unit_module *m,
 				struct gk20a *g, void *args)
 
 {
 	int err;
 	struct nvgpu_reg_access access;
+	struct nvgpu_posix_fault_inj *kmem_fi =
+		nvgpu_kmem_get_fault_injection();
 
 	/*
 	 * Initialise the test env
@@ -306,6 +309,22 @@ int test_acr_bootstrap_hs_acr(struct unit_module *m,
 	}
 
 	/*
+	 * Case 1: fail scaenario
+	 * call prepare_ucode_blob without setting halt bit
+	 * so that timeout error occurs in acr bootstrap
+	 */
+	err = g->acr->prepare_ucode_blob(g);
+	if (err != 0) {
+		unit_return_fail(m, "test failed\n");
+	}
+
+	err = nvgpu_acr_bootstrap_hs_acr(g, g->acr);
+	if (err == 0) {
+		unit_return_fail(m, "test_acr_bootstrap_hs_acr() did not\
+				fail as expected");
+	}
+
+	/*
 	 * Set the falcon_falcon_cpuctl_halt_intr_m bit
 	 * for the register falcon_falcon_cpuctl_r
 	 */
@@ -323,7 +342,19 @@ int test_acr_bootstrap_hs_acr(struct unit_module *m,
 	}
 
 	/*
-	 * case 1: Calling nvgpu_acr_bootstrap_hs_acr()
+	 * Case 2: Fail scenario
+	 * Memory allocation failure
+	 */
+	nvgpu_posix_enable_fault_injection(kmem_fi, true, 1);
+	err = nvgpu_acr_bootstrap_hs_acr(g, g->acr);
+	nvgpu_posix_enable_fault_injection(kmem_fi, false, 0);
+	if (err != -ENOENT) {
+		unit_return_fail(m, "test_acr_bootstrap_hs_acr() didn't fail \
+					as expected\n");
+	}
+
+	/*
+	 * Case 3: Calling nvgpu_acr_bootstrap_hs_acr()
 	 * twice to cover recovery branch
 	 */
 	err = nvgpu_acr_bootstrap_hs_acr(g, g->acr);
@@ -333,7 +364,7 @@ int test_acr_bootstrap_hs_acr(struct unit_module *m,
 	}
 
 	/*
-	 * case 2: Fail scenario of nvgpu_acr_bootstrap_hs_acr()
+	 * Case 4: Fail scenario of nvgpu_acr_bootstrap_hs_acr()
 	 * by passing g->acr = NULL
 	 */
 	g->acr = NULL;
@@ -511,6 +542,18 @@ int test_acr_prepare_ucode_blob(struct unit_module *m,
 
 	nvgpu_posix_enable_fault_injection(kmem_fi, false, 0);
 
+	nvgpu_posix_enable_fault_injection(kmem_fi, true, 17);
+
+	err = g->acr->prepare_ucode_blob(g);
+
+	if (err == -ENOENT) {
+		unit_info(m, "second mem test failed as expected\n");
+	} else {
+		unit_return_fail(m, "second mem test did not fail as expected\n");
+	}
+
+	nvgpu_posix_enable_fault_injection(kmem_fi, false, 0);
+
 	/*
 	 * Case 2: Fail scenario
 	 * giving incorrect chip version number
@@ -537,7 +580,7 @@ int test_acr_prepare_ucode_blob(struct unit_module *m,
 
 	err = g->acr->prepare_ucode_blob(g);
 	if (err != 0) {
-		unit_return_fail(m, "test failed\n");
+		unit_return_fail(m, "prepare_ucode_blob test failed\n");
 	}
 
 	nvgpu_mutex_release(&g->tpc_pg_lock);
@@ -644,6 +687,7 @@ struct unit_module_test nvgpu_acr_tests[] = {
 				test_acr_is_lsf_lazy_bootstrap, NULL, 0),
 	UNIT_TEST(acr_construct_execute, test_acr_construct_execute,
 			NULL, 0),
+
 	UNIT_TEST(acr_bootstrap_hs_acr, test_acr_bootstrap_hs_acr,
 			NULL, 0),
 	UNIT_TEST(acr_free_falcon_test_env, free_falcon_test_env, NULL, 0),
