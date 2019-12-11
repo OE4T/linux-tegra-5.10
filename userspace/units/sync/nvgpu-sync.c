@@ -32,6 +32,7 @@
 #include <nvgpu/posix/posix-nvhost.h>
 #include <nvgpu/channel.h>
 #include <nvgpu/channel_sync.h>
+#include <nvgpu/channel_sync_syncpt.h>
 
 #include "../fifo/nvgpu-fifo.h"
 #include "../fifo/nvgpu-fifo-gv11b.h"
@@ -282,6 +283,48 @@ done:
 	return ret;
 }
 
+int test_sync_usermanaged_syncpt_apis(struct unit_module *m, struct gk20a *g, void *args)
+{
+	struct nvgpu_channel_sync *user_sync = NULL;
+	struct nvgpu_channel_sync_syncpt *user_sync_syncpt = NULL;
+
+	u32 syncpt_id = 0U;
+	u64 syncpt_buf_addr = 0ULL;
+
+	int ret = UNIT_FAIL;
+
+	user_sync = nvgpu_channel_sync_create(ch, true);
+	if (user_sync == NULL) {
+		unit_return_fail(m, "unexpected failure in creating user sync points");
+	}
+
+	user_sync_syncpt = nvgpu_channel_sync_to_syncpt(user_sync);
+	if (user_sync_syncpt == NULL) {
+		unit_return_fail(m, "unexpected failure in creating user_sync_syncpt");
+	}
+
+	syncpt_id = nvgpu_channel_sync_get_syncpt_id(user_sync_syncpt);
+	assert((syncpt_id > 0U) && (syncpt_id <= NUM_HW_PTS));
+
+	syncpt_buf_addr = nvgpu_channel_sync_get_syncpt_address(user_sync_syncpt);
+	assert(syncpt_buf_addr > 0ULL);
+
+	unit_info(m, "Syncpt ID: %u, Syncpt Shim GPU VA: %llu\n",
+		syncpt_id, syncpt_buf_addr);
+
+	nvgpu_channel_sync_destroy(user_sync, false);
+
+	user_sync = NULL;
+
+	ret = UNIT_SUCCESS;
+
+done:
+	if (user_sync != NULL)
+		nvgpu_channel_sync_destroy(user_sync, false);
+
+	return ret;
+}
+
 #define F_SYNC_SYNCPT_ALLOC_FAILED		0
 #define F_SYNC_USER_MANAGED			1
 #define F_SYNC_NVHOST_CLIENT_MANAGED_FAIL	2
@@ -341,6 +384,12 @@ int test_sync_create_fail(struct unit_module *m, struct gk20a *g, void *args)
 	for (branches = 0U; branches < F_SYNC_FAIL_LAST; branches++) {
 
 		u32 syncpt_id, syncpt_value;
+
+		/*
+		 * This is normally not cleared when a syncpt's last ref
+		 * is removed. Hence, explicitely zero it after every failure
+		 */
+		g->nvhost_dev->syncpt_id = 0U;
 
 		if (branches == F_SYNC_SYNCPT_ALLOC_FAILED) {
 			/* fail first kzalloc call */
@@ -428,6 +477,7 @@ struct unit_module_test nvgpu_sync_tests[] = {
 	UNIT_TEST(sync_init, test_sync_init, NULL, 0),
 	UNIT_TEST(sync_create_destroy, test_sync_create_destroy_sync, NULL, 0),
 	UNIT_TEST(sync_set_safe_state, test_sync_set_safe_state, NULL, 0),
+	UNIT_TEST(sync_user_managed_apis, test_sync_usermanaged_syncpt_apis, NULL, 0),
 	UNIT_TEST(sync_fail, test_sync_create_fail, NULL, 0),
 	UNIT_TEST(sync_deinit, test_sync_deinit, NULL, 0),
 };

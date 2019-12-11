@@ -125,6 +125,28 @@ int test_sync_create_destroy_sync(struct unit_module *m, struct gk20a *g, void *
 int test_sync_set_safe_state(struct unit_module *m, struct gk20a *g, void *args);
 
 /**
+ * Test specification for: test_sync_usermanaged_syncpt_apis
+ *
+ * Description: Branch coverage for nvgpu_channel_sync_syncpt_* APIs
+ *
+ * Test Type: Feature based
+ *
+ * Targets: nvgpu_channel_sync_to_syncpt, nvgpu_channel_sync_get_syncpt_id
+ *		nvgpu_channel_sync_get_syncpt_address
+ *
+ * Input: test_sync_init run for this GPU
+ *
+ * Steps:
+ * - Check if nvgpu_channel_sync_to_syncpt returns non-null.
+ * - Call nvgpu_channel_sync_get_syncpt_id
+ * - Call nvgpu_channel_sync_get_syncpt_address
+ * - Assert the correct values for the syncpt ID and the syncpt buffer GPUVA.
+ *
+ * Output: Returns PASS if the above steps are successful, FAIL otherwise.
+ */
+int test_sync_usermanaged_syncpt_apis(struct unit_module *m, struct gk20a *g, void *args);
+
+/**
  * Test specification for: test_sync_create_fail
  *
  * Description: Branch coverage for nvgpu_channel_sync_create failure
