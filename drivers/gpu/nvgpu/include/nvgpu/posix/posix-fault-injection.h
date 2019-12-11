@@ -92,6 +92,12 @@ struct nvgpu_posix_fault_inj_container {
 	struct nvgpu_posix_fault_inj thread_pool_create_fi;
 	struct nvgpu_posix_fault_inj thread_pool_start_fi;
 	struct nvgpu_posix_fault_inj resmgr_detach_fi;
+	struct nvgpu_posix_fault_inj nvclock_device_clock_control_fi;
+	struct nvgpu_posix_fault_inj nvclock_set_clock_freq_fi;
+	struct nvgpu_posix_fault_inj nvclock_get_clock_freq_fi;
+	struct nvgpu_posix_fault_inj nvclock_get_max_clock_freq_fi;
+	struct nvgpu_posix_fault_inj nvdt_node_get_prop_clock_rates_fi;
+
 };
 
 /**
