@@ -1156,7 +1156,9 @@ static const struct gpu_ops gv11b_ops = {
 		.init_therm_support = nvgpu_init_therm_support,
 		.init_therm_setup_hw = gv11b_init_therm_setup_hw,
 		.init_elcg_mode = gv11b_therm_init_elcg_mode,
+#ifdef CONFIG_NVGPU_NON_FUSA
 		.init_blcg_mode = gm20b_therm_init_blcg_mode,
+#endif
 		.elcg_init_idle_filters = gv11b_elcg_init_idle_filters,
 	},
 	.pmu = {

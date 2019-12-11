@@ -237,7 +237,6 @@ srcs += hal/mm/mm_gv11b_fusa.c \
 	hal/priv_ring/priv_ring_gp10b_fusa.c \
 	hal/ptimer/ptimer_gk20a_fusa.c \
 	hal/sync/syncpt_cmdbuf_gv11b_fusa.c \
-	hal/therm/therm_gm20b_fusa.c \
 	hal/therm/therm_gv11b_fusa.c \
 	hal/top/top_gm20b_fusa.c \
 	hal/top/top_gp10b_fusa.c \
