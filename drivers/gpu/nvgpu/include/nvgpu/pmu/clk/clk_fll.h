@@ -73,5 +73,6 @@ int nvgpu_clk_fll_init_pmupstate(struct gk20a *g);
 void nvgpu_clk_fll_free_pmupstate(struct gk20a *g);
 int nvgpu_clk_fll_sw_setup(struct gk20a *g);
 int nvgpu_clk_fll_pmu_setup(struct gk20a *g);
+u8 nvgpu_clk_fll_get_fmargin_idx(struct gk20a *g);
 
 #endif /* NVGPU_PMU_CLK_FLL_H */

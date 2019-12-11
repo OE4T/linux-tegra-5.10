@@ -23,7 +23,6 @@
 #define NVGPU_PMUIF_PERF_H
 
 #include "volt.h"
-#include "perfvfe.h"
 #include "perfpstate.h"
 
 #define NV_PMU_PERF_CMD_ID_RPC                                   (0x00000002U)
@@ -140,13 +139,6 @@ struct perf_change_seq_pmu_script {
 	/* below should be an aligned structure */
 	union ctrl_perf_change_seq_pmu_script_step_data_aligned
 		steps[CTRL_PERF_CHANGE_SEQ_SCRIPT_VF_SWITCH_MAX_STEPS];
-};
-
-struct nv_pmu_rpc_struct_perf_vfe_eval {
-	/*[IN/OUT] Must be first field in RPC structure */
-	struct nv_pmu_rpc_header hdr;
-	struct nv_pmu_perf_rpc_vfe_equ_eval data;
-	u32  scratch[1];
 };
 
 #endif /* NVGPU_PMUIF_PERF_H */

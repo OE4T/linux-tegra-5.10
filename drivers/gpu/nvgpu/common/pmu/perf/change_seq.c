@@ -35,7 +35,6 @@
 #include <nvgpu/pmu/pmu_pstate.h>
 #include <nvgpu/pmu/perf_pstate.h>
 
-#include "pmu_perf.h"
 #include "change_seq.h"
 
 #define SEQ_SCRIPT_CURR  0x0U

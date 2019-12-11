@@ -29,8 +29,6 @@
 #include <nvgpu/pmu/perf.h>
 #include <nvgpu/pmu/cmd.h>
 
-#include "pmu_perf.h"
-
 static int pmu_set_boot_clk_runcb_fn(void *arg)
 {
 	struct gk20a *g = (struct gk20a *)arg;

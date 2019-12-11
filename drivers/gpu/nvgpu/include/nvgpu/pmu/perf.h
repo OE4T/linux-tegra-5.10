@@ -25,12 +25,12 @@
 #include <nvgpu/types.h>
 #include <nvgpu/cond.h>
 #include <nvgpu/thread.h>
-#include <nvgpu/pmu/perf_pstate.h>
 #include <nvgpu/pmu/volt.h>
 #include <nvgpu/pmu/lpwr.h>
 #include <nvgpu/boardobjgrp_e32.h>
 #include <nvgpu/boardobjgrp_e255.h>
 #include <nvgpu/boardobjgrpmask.h>
+#include <nvgpu/pmu/perf_pstate.h>
 #include <nvgpu/pmu/pmuif/perf.h>
 
 struct gk20a;
@@ -102,7 +102,7 @@ int nvgpu_vfe_equ_pmu_setup(struct gk20a *g);
 
 int nvgpu_vfe_var_sw_setup(struct gk20a *g);
 int nvgpu_vfe_var_pmu_setup(struct gk20a *g);
-int nvgpu_vfe_var_boardobj_grp_get_status(struct gk20a *g);
+int nvgpu_vfe_var_get_s_param(struct gk20a *g, u64 *s_param);
 
 int nvgpu_vfe_get_volt_margin_limit(struct gk20a *g, u32 *vmargin_uv);
 int nvgpu_vfe_get_freq_margin_limit(struct gk20a *g, u32 *fmargin_mhz);

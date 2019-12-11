@@ -25,7 +25,6 @@
 #include "cmn.h"
 #include "init.h"
 #include "ap.h"
-#include "perfvfe.h"
 #include "thermsensor.h"
 #include "seq.h"
 

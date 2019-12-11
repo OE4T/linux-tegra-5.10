@@ -23,18 +23,6 @@
 #ifndef NVGPU_PERF_VFE_VAR_H
 #define NVGPU_PERF_VFE_VAR_H
 
-#include <nvgpu/boardobjgrp.h>
-#include <nvgpu/boardobjgrp_e32.h>
-#include <nvgpu/boardobjgrp_e255.h>
-#include <nvgpu/pmu/pmuif/nvgpu_cmdif.h>
-
-#define VFE_VAR_GET(_pperf, _idx)                                              \
-	((struct vfe_var)BOARDOBJGRP_OBJ_GET_BY_IDX(                           \
-	&((_pperf)->vfe.vars.super.super), (_idx)))
-
-#define VFE_VAR_IDX_IS_VALID(_pperf, _idx)                                     \
-	boardobjgrp_idxisvalid(&((_pperf)->vfe.vars.super.super), (_idx))
-
 struct vfe_var {
 	struct boardobj super;
 	u32 out_range_min;

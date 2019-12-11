@@ -24,24 +24,6 @@
 #ifndef NVGPU_PERF_VFE_EQU_H
 #define NVGPU_PERF_VFE_EQU_H
 
-#include <nvgpu/boardobjgrp.h>
-#include "vfe_var.h"
-#include <nvgpu/pmu/pmuif/nvgpu_cmdif.h>
-
-#define VFE_EQU_GET(_pperf, _idx)                                              \
-	((struct vfe_equ *)BOARDOBJGRP_OBJ_GET_BY_IDX(                         \
-		&((_pperf)->vfe.equs.super.super), (_idx)))
-
-#define VFE_EQU_IDX_IS_VALID(_pperf, _idx)                                     \
-	boardobjgrp_idxisvalid(&((_pperf)->vfe.equs.super.super), (_idx))
-
-#define VFE_EQU_OUTPUT_TYPE_IS_VALID(_pperf, _idx, _outputtype)                \
-	(VFE_EQU_IDX_IS_VALID((_pperf), (_idx)) &&                             \
-	((_outputtype) != CTRL_PERF_VFE_EQU_OUTPUT_TYPE_UNITLESS) &&           \
-	((VFE_EQU_GET((_pperf), (_idx))->outputtype == (_outputtype)) ||       \
-	(VFE_EQU_GET((_pperf), (_idx))->outputtype ==                          \
-	CTRL_PERF_VFE_EQU_OUTPUT_TYPE_UNITLESS)))
-
 struct vfe_equ {
 	struct boardobj super;
 	u8 var_idx;

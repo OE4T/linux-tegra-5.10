@@ -596,6 +596,18 @@ static int get_regime_id(struct gk20a *g, u32 domain, u8 *regimeid)
 	return -EINVAL;
 }
 
+u8 nvgpu_clk_fll_get_fmargin_idx(struct gk20a *g)
+{
+	struct nvgpu_avfsfllobjs *pfllobjs =  g->pmu->clk_pmu->avfs_fllobjs;
+	u8 fmargin_idx;
+
+	fmargin_idx = pfllobjs->freq_margin_vfe_idx;
+	if (fmargin_idx == 255U) {
+		return 0;
+	}
+	return fmargin_idx;
+}
+
 int nvgpu_clk_fll_init_pmupstate(struct gk20a *g)
 {
 	/* If already allocated, do not re-allocate */

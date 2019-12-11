@@ -32,6 +32,7 @@
 
 #include "volt_rail.h"
 
+#define NV_PMU_PERF_RPC_VFE_EQU_MONITOR_COUNT_MAX                            16U
 
 static int volt_rail_state_init(struct gk20a *g,
 		struct voltage_rail *pvolt_rail)

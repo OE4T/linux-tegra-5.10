@@ -22,13 +22,49 @@
 #ifndef NVGPU_PMUIF_PERFVFE_H
 #define NVGPU_PMUIF_PERFVFE_H
 
-#include "bios.h"
-#include "boardobj.h"
-#include "ctrlperf.h"
+#define NV_PMU_PERF_RPC_VFE_EQU_EVAL_VAR_COUNT_MAX                   2U
+#define NV_PMU_VFE_VAR_SINGLE_SENSED_FUSE_SEGMENTS_MAX               1U
+
+#define CTRL_PERF_VFE_VAR_TYPE_INVALID                               0x00U
+#define CTRL_PERF_VFE_VAR_TYPE_DERIVED                               0x01U
+#define CTRL_PERF_VFE_VAR_TYPE_DERIVED_PRODUCT                       0x02U
+#define CTRL_PERF_VFE_VAR_TYPE_DERIVED_SUM                           0x03U
+#define CTRL_PERF_VFE_VAR_TYPE_SINGLE                                0x04U
+#define CTRL_PERF_VFE_VAR_TYPE_SINGLE_FREQUENCY                      0x05U
+#define CTRL_PERF_VFE_VAR_TYPE_SINGLE_SENSED                         0x06U
+#define CTRL_PERF_VFE_VAR_TYPE_SINGLE_SENSED_FUSE                    0x07U
+#define CTRL_PERF_VFE_VAR_TYPE_SINGLE_SENSED_TEMP                    0x08U
+#define CTRL_PERF_VFE_VAR_TYPE_SINGLE_VOLTAGE                        0x09U
+#define CTRL_PERF_VFE_VAR_TYPE_SINGLE_CALLER_SPECIFIED               0x0AU
+
+#define CTRL_PERF_VFE_VAR_SINGLE_OVERRIDE_TYPE_NONE                  0x00U
+#define CTRL_PERF_VFE_VAR_SINGLE_OVERRIDE_TYPE_VALUE                 0x01U
+#define CTRL_PERF_VFE_VAR_SINGLE_OVERRIDE_TYPE_OFFSET                0x02U
+#define CTRL_PERF_VFE_VAR_SINGLE_OVERRIDE_TYPE_SCALE                 0x03U
+
+#define CTRL_PERF_VFE_EQU_TYPE_INVALID                               0x00U
+#define CTRL_PERF_VFE_EQU_TYPE_COMPARE                               0x01U
+#define CTRL_PERF_VFE_EQU_TYPE_MINMAX                                0x02U
+#define CTRL_PERF_VFE_EQU_TYPE_QUADRATIC                             0x03U
+#define CTRL_PERF_VFE_EQU_TYPE_SCALAR                                0x04U
+
+#define CTRL_PERF_VFE_EQU_OUTPUT_TYPE_UNITLESS                       0x00U
+#define CTRL_PERF_VFE_EQU_OUTPUT_TYPE_FREQ_MHZ                       0x01U
+#define CTRL_PERF_VFE_EQU_OUTPUT_TYPE_VOLT_UV                        0x02U
+#define CTRL_PERF_VFE_EQU_OUTPUT_TYPE_VF_GAIN                        0x03U
+#define CTRL_PERF_VFE_EQU_OUTPUT_TYPE_VOLT_DELTA_UV                  0x04U
+#define CTRL_PERF_VFE_EQU_OUTPUT_TYPE_WORK_TYPE                      0x06U
+#define CTRL_PERF_VFE_EQU_OUTPUT_TYPE_UTIL_RATIO                     0x07U
+#define CTRL_PERF_VFE_EQU_OUTPUT_TYPE_WORK_FB_NORM                   0x08U
+#define CTRL_PERF_VFE_EQU_OUTPUT_TYPE_POWER_MW                       0x09U
+#define CTRL_PERF_VFE_EQU_OUTPUT_TYPE_PWR_OVER_UTIL_SLOPE            0x0AU
+#define CTRL_PERF_VFE_EQU_OUTPUT_TYPE_VIN_CODE                       0x0BU
 
 #define CTRL_PERF_VFE_EQU_QUADRATIC_COEFF_COUNT                      0x03U
-#define NV_PMU_PERF_RPC_VFE_EQU_EVAL_VAR_COUNT_MAX                            2U
-#define NV_PMU_PERF_RPC_VFE_EQU_MONITOR_COUNT_MAX                            16U
+
+#define CTRL_PERF_VFE_EQU_COMPARE_FUNCTION_EQUAL                     0x00U
+#define CTRL_PERF_VFE_EQU_COMPARE_FUNCTION_GREATER_EQ                0x01U
+#define CTRL_PERF_VFE_EQU_COMPARE_FUNCTION_GREATER                   0x02U
 
 union nv_pmu_perf_vfe_var_type_data {
 	u8 uid;
@@ -64,6 +100,13 @@ struct nv_pmu_perf_rpc_vfe_equ_eval {
 	union nv_pmu_perf_vfe_equ_result result;
 };
 
+struct nv_pmu_rpc_struct_perf_vfe_eval {
+	/*[IN/OUT] Must be first field in RPC structure */
+	struct nv_pmu_rpc_header hdr;
+	struct nv_pmu_perf_rpc_vfe_equ_eval data;
+	u32  scratch[1];
+};
+
 struct nv_pmu_perf_rpc_vfe_load {
 	bool b_load;
 };
@@ -74,6 +117,16 @@ struct nv_pmu_perf_vfe_var_boardobjgrp_get_status_header {
 
 struct nv_pmu_perf_vfe_var_get_status_super {
 	struct nv_pmu_boardobj_query board_obj;
+};
+
+union ctrl_perf_vfe_var_single_sensed_fuse_value_data {
+	int signed_value;
+	u32 unsigned_value;
+};
+
+struct ctrl_perf_vfe_var_single_sensed_fuse_value {
+	bool b_signed;
+	union ctrl_perf_vfe_var_single_sensed_fuse_value_data data;
 };
 
 struct nv_pmu_perf_vfe_var_single_sensed_fuse_get_status {
@@ -139,6 +192,61 @@ struct nv_pmu_vfe_var_single_caller_specified {
 
 struct nv_pmu_vfe_var_single_sensed {
 	struct nv_pmu_vfe_var_single super;
+};
+
+struct ctrl_bios_vfield_register_segment_super {
+	u8 low_bit;
+	u8 high_bit;
+};
+
+struct ctrl_bios_vfield_register_segment_reg {
+	struct ctrl_bios_vfield_register_segment_super super;
+	u32 addr;
+};
+
+struct ctrl_bios_vfield_register_segment_index_reg {
+	struct ctrl_bios_vfield_register_segment_super super;
+	u32 addr;
+	u32 reg_index;
+	u32 index;
+};
+
+union ctrl_bios_vfield_register_segment_data {
+	struct ctrl_bios_vfield_register_segment_reg reg;
+	struct ctrl_bios_vfield_register_segment_index_reg index_reg;
+};
+
+struct ctrl_bios_vfield_register_segment {
+	u8 type;
+	union ctrl_bios_vfield_register_segment_data data;
+};
+
+struct ctrl_perf_vfe_var_single_sensed_fuse_info {
+	u8 segment_count;
+	struct ctrl_bios_vfield_register_segment
+		segments[NV_PMU_VFE_VAR_SINGLE_SENSED_FUSE_SEGMENTS_MAX];
+};
+
+struct ctrl_perf_vfe_var_single_sensed_fuse_override_info {
+	u32 fuse_val_override;
+	u8 b_fuse_regkey_override;
+};
+
+struct ctrl_perf_vfe_var_single_sensed_fuse_vfield_info {
+	struct ctrl_perf_vfe_var_single_sensed_fuse_info fuse;
+	u32 fuse_val_default;
+	u32 hw_correction_scale;
+	int hw_correction_offset;
+	u8 v_field_id;
+};
+
+struct ctrl_perf_vfe_var_single_sensed_fuse_ver_vfield_info {
+	struct ctrl_perf_vfe_var_single_sensed_fuse_info fuse;
+	u8 ver_expected;
+	bool b_ver_check;
+	bool b_ver_check_ignore;
+	bool b_use_default_on_ver_check_fail;
+	u8 v_field_id_ver;
 };
 
 struct nv_pmu_vfe_var_single_sensed_fuse {

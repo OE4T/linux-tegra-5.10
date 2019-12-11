@@ -26,8 +26,6 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/pmu/perf.h>
 
-#include "pmu_perf.h"
-
 int nvgpu_perf_pmu_init_pmupstate(struct gk20a *g)
 {
 	/* If already allocated, do not re-allocate */
