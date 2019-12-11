@@ -1,6 +1,9 @@
 INPUT += ../../../userspace/SWUTS.h
+<<<<<<< d9538d12c25f23f90bfb5978be79cdc4ff69f114
 INPUT += ../../../userspace/units/ce/nvgpu-ce.h
 INPUT += ../../../userspace/units/cg/nvgpu-cg.h
+=======
+>>>>>>> gpu: nvgpu: unit: improve coverage for engines
 INPUT += ../../../userspace/units/enabled/nvgpu-enabled.h
 INPUT += ../../../userspace/units/interface/bsearch/bsearch.h
 INPUT += ../../../userspace/units/interface/lock/lock.h
@@ -21,6 +24,7 @@ INPUT += ../../../userspace/units/fifo/channel/gm20b/nvgpu-channel-gm20b.h
 INPUT += ../../../userspace/units/fifo/channel/gv11b/nvgpu-channel-gv11b.h
 INPUT += ../../../userspace/units/fifo/ctxsw_timeout/gv11b/nvgpu-ctxsw-timeout-gv11b.h
 INPUT += ../../../userspace/units/fifo/engine/nvgpu-engine.h
+INPUT += ../../../userspace/units/fifo/engine/nvgpu-engine-status.h
 INPUT += ../../../userspace/units/fifo/engine/gm20b/nvgpu-engine-gm20b.h
 INPUT += ../../../userspace/units/fifo/engine/gp10b/nvgpu-engine-gp10b.h
 INPUT += ../../../userspace/units/fifo/engine/gv100/nvgpu-engine-gv100.h

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -139,7 +139,6 @@ int test_fifo_init_support(struct unit_module *m, struct gk20a *g, void *args)
 	}
 
 	gv11b_init_hal(g);
-	g->ops.fifo.init_fifo_setup_hw = NULL;
 	g->ops.gr.init.get_no_of_sm = stub_gv11b_gr_init_get_no_of_sm;
 
 	global_m = m;

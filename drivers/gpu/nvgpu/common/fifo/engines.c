@@ -881,20 +881,17 @@ u32 nvgpu_engine_find_busy_doing_ctxsw(struct gk20a *g,
 	struct nvgpu_engine_status_info engine_status;
 
 	for (i = 0U; i < g->fifo.num_engines; i++) {
-		bool failing_engine;
 
 		engine_id = g->fifo.active_engines_list[i];
 		g->ops.engine_status.read_engine_status_info(g, engine_id,
 			&engine_status);
 
-		/* we are interested in busy engines */
-		failing_engine = engine_status.is_busy;
-
-		/* ..that are doing context switch */
-		failing_engine = failing_engine &&
-			nvgpu_engine_status_is_ctxsw(&engine_status);
-
-		if (!failing_engine) {
+		/*
+		 * we are interested in busy engines that
+		 * are doing context switch
+		 */
+		if (!engine_status.is_busy ||
+		    !nvgpu_engine_status_is_ctxsw(&engine_status)) {
 			engine_id = NVGPU_INVALID_ENG_ID;
 			continue;
 		}
@@ -1020,7 +1017,6 @@ u32 nvgpu_engine_mmu_fault_id_to_eng_id_and_veid(struct gk20a *g,
 	u32 engine_id = INVAL_ID;
 	struct nvgpu_engine_info *engine_info;
 	struct nvgpu_fifo *f = &g->fifo;
-
 
 	for (i = 0U; i < f->num_engines; i++) {
 		engine_id = f->active_engines_list[i];

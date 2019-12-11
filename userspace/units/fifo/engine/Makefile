@@ -20,7 +20,7 @@
 
 .SUFFIXES:
 
-OBJS   = nvgpu-engine.o
+OBJS   = nvgpu-engine.o nvgpu-engine-status.o
 MODULE = nvgpu-engine
 
 LIB_PATHS += -lnvgpu-fifo-common

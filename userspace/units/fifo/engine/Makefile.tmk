@@ -25,7 +25,7 @@
 ###############################################################################
 
 NVGPU_UNIT_NAME = nvgpu-engine
-NVGPU_UNIT_SRCS = nvgpu-engine.c
+NVGPU_UNIT_SRCS = nvgpu-engine.c nvgpu-engine-status.c
 
 NVGPU_UNIT_INTERFACE_DIRS := \
 	$(NV_COMPONENT_DIR)/.. \

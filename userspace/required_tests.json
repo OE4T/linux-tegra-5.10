@@ -2274,8 +2274,38 @@
         "test_level": 0
     },
     {
+        "test": "test_engine_find_busy_doing_ctxsw",
+        "case": "find_busy_doing_ctxsw",
+        "unit": "nvgpu_engine",
+        "test_level": 0
+    },
+    {
         "test": "test_engine_get_active_eng_info",
         "case": "get_active_eng_info",
+        "unit": "nvgpu_engine",
+        "test_level": 0
+    },
+    {
+        "test": "test_engine_get_fast_ce_runlist_id",
+        "case": "get_fast_ce_runlist_id",
+        "unit": "nvgpu_engine",
+        "test_level": 0
+    },
+    {
+        "test": "test_engine_get_gr_runlist_id",
+        "case": "get_gr_runlist_id",
+        "unit": "nvgpu_engine",
+        "test_level": 0
+    },
+    {
+        "test": "test_engine_get_mask_on_id",
+        "case": "get_mask_on_id",
+        "unit": "nvgpu_engine",
+        "test_level": 0
+    },
+    {
+        "test": "test_engine_get_runlist_busy_engines",
+        "case": "get_runlist_busy_engines",
         "unit": "nvgpu_engine",
         "test_level": 0
     },
@@ -2304,6 +2334,24 @@
         "test_level": 0
     },
     {
+        "test": "test_engine_is_valid_runlist_id",
+        "case": "is_valid_runlist_id",
+        "unit": "nvgpu_engine",
+        "test_level": 0
+    },
+    {
+        "test": "test_engine_mmu_fault_id",
+        "case": "mmu_fault_id",
+        "unit": "nvgpu_engine",
+        "test_level": 0
+    },
+    {
+        "test": "test_engine_mmu_fault_id_veid",
+        "case": "mmu_fault_id_veid",
+        "unit": "nvgpu_engine",
+        "test_level": 0
+    },
+    {
         "test": "test_fifo_remove_support",
         "case": "remove_support",
         "unit": "nvgpu_engine",
@@ -2312,6 +2360,12 @@
     {
         "test": "test_engine_setup_sw",
         "case": "setup_sw",
+        "unit": "nvgpu_engine",
+        "test_level": 0
+    },
+    {
+        "test": "test_engine_status",
+        "case": "status",
         "unit": "nvgpu_engine",
         "test_level": 0
     },

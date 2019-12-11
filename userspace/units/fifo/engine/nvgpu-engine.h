@@ -113,6 +113,70 @@ int test_engine_ids(struct unit_module *m,
 		struct gk20a *g, void *args);
 
 /**
+ * Test specification for: test_engine_get_fast_ce_runlist_id
+ *
+ * Description: Get Asynchronous CE runlist id
+ *
+ * Test Type: Feature based
+ *
+ * Targets: nvgpu_engine_get_fast_ce_runlist_id
+ *
+ * Input: test_fifo_init_support must have run.
+ *
+ * Steps:
+ * - Check that nvgpu_engine_get_fast_ce_runlist_id returns valid id.
+ * - Check that NVGPU_INVALID_ENG_ID is returned when g is NULL.
+ *
+ * Output: Returns PASS if all branches gave expected results. FAIL otherwise.
+ */
+int test_engine_get_fast_ce_runlist_id(struct unit_module *m,
+		struct gk20a *g, void *args);
+
+/**
+ * Test specification for: test_nvgpu_engine_get_gr_runlist_id
+ *
+ * Description: Get GR runlist id
+ *
+ * Test Type: Feature based
+ *
+ * Targets: nvgpu_engine_get_gr_runlist_id
+ *
+ * Input: test_fifo_init_support must have run.
+ *
+ * Steps:
+ * - Check that nvgpu_engine_get_gr_runlist_id returns valid id.
+ * - Check case where NVGPU_ENGINE_GR is not found.
+ * - Check case where an entry is found for NVGPU_ENGINE_GR, but
+ *   the HW engine_id is invalid.
+ *
+ * Output: Returns PASS if all branches gave expected results. FAIL otherwise.
+ */
+int test_engine_get_gr_runlist_id(struct unit_module *m,
+		struct gk20a *g, void *args);
+
+/**
+ * Test specification for: test_engine_is_valid_runlist_id
+ *
+ * Description: Check is runlist Id is valid
+ *
+ * Test Type: Feature based
+ *
+ * Targets: nvgpu_engine_is_valid_runlist_id
+ *
+ * Input: test_fifo_init_support must have run.
+ *
+ * Steps:
+ * - Check that nvgpu_engine_is_valid_runlist_id returns true for
+ *   active engines's runlist_id.
+ * - Check that false is returned when g is NULL.
+ * - Check that false is returned for NVGPU_INVALID_RUNLIST_ID.
+ *
+ * Output: Returns PASS if all branches gave expected results. FAIL otherwise.
+ */
+int test_engine_is_valid_runlist_id(struct unit_module *m,
+		struct gk20a *g, void *args);
+
+/**
  * Test specification for: test_engine_get_active_eng_info
  *
  * Description: Branch coverage for nvgpu_engine_get_active_eng_info
@@ -160,7 +224,6 @@ int test_engine_get_active_eng_info(struct unit_module *m,
 int test_engine_enum_from_type(struct unit_module *m,
 		struct gk20a *g, void *args);
 
-
 /**
  * Test specification for: test_engine_interrupt_mask
  *
@@ -189,6 +252,169 @@ int test_engine_enum_from_type(struct unit_module *m,
 int test_engine_interrupt_mask(struct unit_module *m,
 		struct gk20a *g, void *args);
 
+/**
+ * Test specification for: test_engine_mmu_fault_id
+ *
+ * Description: Engine ID to MMU fault ID conversions
+ *
+ * Test Type: Feature based
+ *
+ * Targets: nvgpu_engine_id_to_mmu_fault_id,
+ * 	nvgpu_engine_mmu_fault_id_to_engine_id
+ *
+ * Input: test_fifo_init_support must have run.
+ *
+ * Steps:
+ * - For each engine_id (including invalid one)
+ *   - Get engine_info using nvgpu_engine_get_active_eng_info.
+ *   - Get fault_id using nvgpu_engine_id_to_mmu_fault_id.
+ *   - For valid engine ids, check that fault_id matches the one
+ *     from engine_info, else check that returned fault_id is invalid.
+ *   - Get engine_id using nvgpu_engine_mmu_fault_id_to_engine_id.
+ *   - For valid engine ids, check that engine_id matches the one
+ *     from engine_info, else check that returned engine_id is invalid.
+ *
+ * Output: Returns PASS if all branches gave expected results. FAIL otherwise.
+ */
+int test_engine_mmu_fault_id(struct unit_module *m,
+		struct gk20a *g, void *args);
+
+/**
+ * Test specification for: test_engine_mmu_fault_id_veid
+ *
+ * Description: Engine ID to MMU fault ID conversions
+ *
+ * Test Type: Feature based
+ *
+ * Targets: nvgpu_engine_mmu_fault_id_to_veid,
+ * 	nvgpu_engine_mmu_fault_id_to_eng_id_and_veid,
+ * 	nvgpu_engine_mmu_fault_id_to_eng_ve_pbdma_id,
+ *	nvgpu_engine_runqueue_sel
+ *
+ * Input: test_fifo_init_support must have run.
+ *
+ * Steps:
+ * - For each engine_id (including invalid one)
+ *   - Get engine_info using nvgpu_engine_get_active_eng_info.
+ *   - Get fault_id using nvgpu_engine_id_to_mmu_fault_id.
+ *   - Get engine_id using nvgpu_engine_mmu_fault_id_to_engine_id and
+ *     nvgpu_engine_mmu_fault_id_to_eng_id_and_veid.
+ *   - For valid engine ids, check that engine_id matches the one
+ *     from engine_info, else check that returned engine_id is invalid.
+ *
+ * - Cover the following cases for nvgpu_engine_mmu_fault_id_to_veid:
+ *   - gr_eng_fault_id <= mmu_fault_id < (gr_eng_fault_id + num_subctx),
+ *     returned veid should be in [0..num_subctx-1] range.
+ *   - mmu_fault_id out of above range, in which case returned veid
+ *     must be INVAL_ID.
+ *
+ * - Call nvgpu_engine_mmu_fault_id_to_eng_id_and_veid for all
+ *   possible GR MMU fault ids, and check that function returns
+ *   GR's active engine id, and sets veid properly.
+ *   MMU fault id, and check that function returns CE's active
+ *   engine id, but veid is not set.
+ * - Call nvgpu_engine_mmu_fault_id_to_eng_id_and_veid for a CE
+ *   MMU fault id, and check that function returns CE's active
+ *   engine id, but veid is not set.
+ *
+ * - Check that nvgpu_engine_mmu_fault_id_to_eng_ve_pbdma_id looks
+ *   up pbdma_id when active engine id was found. Check that it
+ *   returns invalid PBDMA id otherwise.
+ *
+ * Output: Returns PASS if all branches gave expected results. FAIL otherwise.
+ */
+int test_engine_mmu_fault_id_veid(struct unit_module *m,
+		struct gk20a *g, void *args);
+
+/**
+ * Test specification for: test_engine_get_mask_on_id
+ *
+ * Description: Get mask of engines TSG/ch is loaded on
+ *
+ * Test Type: Feature based
+ *
+ * Targets: nvgpu_engine_get_mask_on_id, nvgpu_engine_get_id_and_type
+ *
+ * Input: test_engine_ids must have run.
+ *
+ * Steps:
+ * - Call nvgpu_engine_get_mask_on_id with a combination of type
+ *   (TSG or channel), and incrementing the id.
+ * - Using a stub for g->ops.engine_status.read_engine_status_info,
+ *   cover the following cases:
+ *   - Engine is busy or idle.
+ *   - Context switch is loading a context, or not (which determines
+ *     whether to check against ctx_next_id or ctx_id).
+ *   - Context on engine has the same type (TSG/ch) or not.
+ *   - Context on engine has the same id, or not.
+ * - Check that nvgpu_engine_get_id_and_type returns expected id and type.
+ * - Check that the mask is only set when engine is busy, and
+ *   context has same id and type.
+ *
+ * Output: Returns PASS if all branches gave expected results. FAIL otherwise.
+ */
+int test_engine_get_mask_on_id(struct unit_module *m,
+		struct gk20a *g, void *args);
+
+/**
+ * Test specification for: test_engine_find_busy_doing_ctxsw
+ *
+ * Description: Find busy engine doing context switch
+ *
+ * Test Type: Feature based
+ *
+ * Targets: nvgpu_engine_find_busy_doing_ctxsw
+ *
+ * Input: test_fifo_init_support must have run.
+ *
+ * Steps:
+ * - Use stub for g->ops.engine_status.read_engine_status_info, to
+ *   emulate engine status:
+ *   - Busy/idle state.
+ *   - Context switch status (VALID, LOAD or SAVE).
+ *   - Set ctx_id and ctx_id_type as per context switch status.
+ *   - Set ctx_next_id and ctx_next_id_type as per context switch status.
+ * - Use stub for g->ops.gr.falcon_read_fecs_ctxsw_mailbox, to
+ *   emulate current FECS method.
+ * - Call nvgpu_engine_find_busy_doing_ctxsw, and check that:
+ *   - When engine is idle, or not doing a context switch,
+ *     NVGPU_INVALID_ENG_ID is returned, and other parameters
+ *     are not modified.
+ *   - When engine is busy and doing a context switch, engine_id
+ *     is returned, is_tsg is true and id matches expected TSG id.
+ *
+ * Output: Returns PASS if all branches gave expected results. FAIL otherwise.
+ */
+int test_engine_find_busy_doing_ctxsw(struct unit_module *m,
+		struct gk20a *g, void *args);
+
+/**
+ * Test specification for: test_engine_get_runlist_busy_engines
+ *
+ * Description: Get busy engines serviced by a given runlist
+ *
+ * Test Type: Feature based
+ *
+ * Targets: nvgpu_engine_get_runlist_busy_engines
+ *
+ * Input: test_fifo_init_support must have run.
+ *
+ * Steps:
+ * - Use stub for g->ops.engine_status.read_engine_status_info, to
+ *   emulate busy/idle state for engine.
+ * - Build f->engine_info and f->active_engines_list, to cover the
+ *   following cases for nvgpu_engine_get_runlist_busy_engines:
+ *  - Engine has same runlist_id, and is busy.
+ *  - Engine has same runlist_id, but is idle.
+ *  - No engine with matching runlist_id was found.
+ *  - No engine at all (f->num_engines = 0).
+ * - Check that returned mask is non-zero only for the first case
+ *   (busy and matching runlist_id).
+ *
+ * Output: Returns PASS if all branches gave expected results. FAIL otherwise.
+ */
+int test_engine_get_runlist_busy_engines(struct unit_module *m,
+		struct gk20a *g, void *args);
 /**
  * @}
  */
