@@ -62,6 +62,7 @@
 		clock-names = "pllrefe_vcoout", "eqos_axi", "eqos_rx", "eqos_ptp_ref", "eqos_tx", "axi_cbb";
 		resets = <&bpmp_resets TEGRA194_RESET_EQOS>;
 		reset-names = "mac_rst";
+		nvidia,promisc_mode = <1>;
 		nvidia,num-dma-chans = <4>;
 		nvidia,dma-chans = <0 1 2 3>;
 		nvidia,slot_num_check = <0x0 0x0 0x0 0x0>;
