@@ -308,12 +308,6 @@ struct mods_priv {
 #define MODS_PGPROT_UC pgprot_noncached
 #define MODS_PGPROT_WC pgprot_writecombine
 
-/* VMA */
-#define MODS_VMA_PGOFF(vma)	((vma)->vm_pgoff)
-#define MODS_VMA_SIZE(vma)	((vma)->vm_end - (vma)->vm_start)
-#define MODS_VMA_OFFSET(vma)	(((u64)(vma)->vm_pgoff) << PAGE_SHIFT)
-#define MODS_VMA_FILE(vma)	((vma)->vm_file)
-
 /* Xen adds a translation layer between the physical address
  * and real system memory address space.
  *
@@ -487,6 +481,8 @@ int esc_mods_pci_read_2(struct mods_client *client, struct MODS_PCI_READ_2 *p);
 int esc_mods_pci_write(struct mods_client *client, struct MODS_PCI_WRITE *p);
 int esc_mods_pci_write_2(struct mods_client      *client,
 			 struct MODS_PCI_WRITE_2 *p);
+int esc_mods_pci_bus_rescan(struct mods_client         *client,
+			    struct MODS_PCI_BUS_RESCAN *p);
 int esc_mods_pci_bus_add_dev(struct mods_client              *client,
 			     struct MODS_PCI_BUS_ADD_DEVICES *p);
 int esc_mods_pci_bus_remove_dev(struct mods_client        *client,
@@ -499,6 +495,8 @@ int esc_mods_device_numa_info(struct mods_client           *client,
 			      struct MODS_DEVICE_NUMA_INFO *p);
 int esc_mods_device_numa_info_2(struct mods_client             *client,
 				struct MODS_DEVICE_NUMA_INFO_2 *p);
+int esc_mods_device_numa_info_3(struct mods_client             *client,
+				struct MODS_DEVICE_NUMA_INFO_3 *p);
 int esc_mods_get_iommu_state(struct mods_client          *client,
 			     struct MODS_GET_IOMMU_STATE *state);
 int esc_mods_get_iommu_state_2(struct mods_client          *client,

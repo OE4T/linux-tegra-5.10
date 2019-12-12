@@ -25,7 +25,7 @@
 
 /* Driver version */
 #define MODS_DRIVER_VERSION_MAJOR 3
-#define MODS_DRIVER_VERSION_MINOR 94
+#define MODS_DRIVER_VERSION_MINOR 96
 #define MODS_DRIVER_VERSION ((MODS_DRIVER_VERSION_MAJOR << 8) | \
 			     ((MODS_DRIVER_VERSION_MINOR/10) << 4) | \
 			     (MODS_DRIVER_VERSION_MINOR%10))
@@ -389,6 +389,12 @@ struct MODS_SET_PPC_TCE_BYPASS {
 struct MODS_PCI_BUS_ADD_DEVICES {
 	/* IN */
 	__u32	 bus;
+};
+
+/* MODS_ESC_PCI_BUS_RESCAN */
+struct MODS_PCI_BUS_RESCAN {
+	__u16 domain;
+	__u16 bus;
 };
 
 /* MODS_ESC_PCI_MAP_RESOURCE */
@@ -794,11 +800,27 @@ struct MODS_CLOCK_ENABLED {
 	__u32 enable_count;
 };
 
+#define MAX_CPU_MASKS_3 128 /* CPU indices can be at most 4096 apart */
+
+/* MODS_ESC_DEVICE_NUMA_INFO_3 */
+struct MODS_DEVICE_NUMA_INFO_3 {
+	/* IN */
+	struct mods_pci_dev_2 pci_device;
+
+	/* OUT */
+	__s32  node;
+	__u32  node_count;
+	__u32  cpu_count;
+	__u32  first_cpu_mask_offset;
+	__u32  node_cpu_mask[MAX_CPU_MASKS_3];
+};
+
 #if defined(CONFIG_PPC64) || defined(PPC64LE)
 #define MAX_CPU_MASKS 64  /* 32 masks of 32bits = 2048 CPUs max */
 #else
 #define MAX_CPU_MASKS 32  /* 32 masks of 32bits = 1024 CPUs max */
 #endif
+
 /* MODS_ESC_DEVICE_NUMA_INFO_2 */
 struct MODS_DEVICE_NUMA_INFO_2 {
 	/* IN */
@@ -1208,6 +1230,7 @@ struct MODS_MSR {
 		   _IOWR(MODS_IOC_MAGIC, 21, struct MODS_IRQ)
 #define MODS_ESC_SET_MEMORY_TYPE		\
 		    _IOW(MODS_IOC_MAGIC, 22, struct MODS_MEMORY_TYPE)
+/* Deprecated */
 #define MODS_ESC_PCI_BUS_ADD_DEVICES		\
 		    _IOW(MODS_IOC_MAGIC, 23, struct MODS_PCI_BUS_ADD_DEVICES)
 #define MODS_ESC_REGISTER_IRQ			\
@@ -1443,5 +1466,9 @@ struct MODS_MSR {
 		   _IOWR(MODS_IOC_MAGIC, 124, struct MODS_ALLOC_PAGES_2)
 #define MODS_ESC_MERGE_PAGES \
 		   _IOWR(MODS_IOC_MAGIC, 125, struct MODS_MERGE_PAGES)
+#define MODS_ESC_DEVICE_NUMA_INFO_3		\
+		   _IOWR(MODS_IOC_MAGIC, 126, struct MODS_DEVICE_NUMA_INFO_3)
+#define MODS_ESC_PCI_BUS_RESCAN \
+		    _IOW(MODS_IOC_MAGIC, 127, struct MODS_PCI_BUS_RESCAN)
 
 #endif /* _MODS_H_  */

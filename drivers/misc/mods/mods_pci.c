@@ -498,32 +498,45 @@ int esc_mods_pci_write(struct mods_client    *client,
 int esc_mods_pci_bus_add_dev(struct mods_client              *client,
 			     struct MODS_PCI_BUS_ADD_DEVICES *scan)
 {
+	struct MODS_PCI_BUS_RESCAN rescan = { 0, scan->bus };
+
+	return esc_mods_pci_bus_rescan(client, &rescan);
+}
+
+int esc_mods_pci_bus_rescan(struct mods_client         *client,
+			    struct MODS_PCI_BUS_RESCAN *rescan)
+{
+#ifndef MODS_HASNT_PCI_RESCAN_BUS
 	struct pci_bus *bus;
-	int err = OK;
+	int    err = OK;
 
 	LOG_ENT();
 
-	mods_info_printk("scanning pci bus %02x\n", scan->bus);
+	mods_info_printk("scanning pci bus %04x:%02x\n",
+			 rescan->domain, rescan->bus);
 
-	bus = pci_find_bus(0, scan->bus);
+	bus = pci_find_bus(rescan->domain, rescan->bus);
 
 	if (likely(bus)) {
-
-		/* initiate a PCI bus scan to find hotplugged PCI devices
-		 * in domain 0
-		 */
-		pci_scan_child_bus(bus);
-
-		/* add newly found devices */
-		pci_bus_add_devices(bus);
+#ifndef MODS_HASNT_PCI_LOCK_RESCAN_REMOVE
+		pci_lock_rescan_remove();
+#endif
+		pci_rescan_bus(bus);
+#ifndef MODS_HASNT_PCI_LOCK_RESCAN_REMOVE
+		pci_unlock_rescan_remove();
+#endif
 	} else {
-		mods_error_printk("bus %02x not found\n", scan->bus);
+		mods_error_printk("bus %04x:%02x not found\n",
+				  rescan->domain, rescan->bus);
 		err = -EINVAL;
 	}
 
 	LOG_EXT();
 
 	return err;
+#else
+	return -EINVAL;
+#endif
 }
 
 int esc_mods_pci_hot_reset(struct mods_client        *client,
@@ -660,8 +673,8 @@ int esc_mods_pio_write(struct mods_client *client, struct MODS_PIO_WRITE  *p)
 	return OK;
 }
 
-int esc_mods_device_numa_info_2(struct mods_client             *client,
-				struct MODS_DEVICE_NUMA_INFO_2 *p)
+int esc_mods_device_numa_info_3(struct mods_client             *client,
+				struct MODS_DEVICE_NUMA_INFO_3 *p)
 {
 	struct pci_dev *dev;
 	int err;
@@ -682,55 +695,135 @@ int esc_mods_device_numa_info_2(struct mods_client             *client,
 
 	p->node = dev_to_node(&dev->dev);
 	if (p->node != -1) {
-		const unsigned long *maskp
-			= cpumask_bits(cpumask_of_node(p->node));
-		unsigned int i, word, bit, maskidx;
+		u32                  first_offset = ~0U;
+		unsigned int         i;
+		const unsigned long *maskp;
 
-		if (((nr_cpumask_bits + 31) / 32) > MAX_CPU_MASKS) {
-			mods_error_printk("too many CPUs (%d) for mask bits\n",
-					  nr_cpumask_bits);
-			pci_dev_put(dev);
-			LOG_EXT();
-			return -EINVAL;
+		maskp = cpumask_bits(cpumask_of_node(p->node));
+
+		memset(&p->node_cpu_mask, 0, sizeof(p->node_cpu_mask));
+
+		for (i = 0; i < nr_cpumask_bits; i += 32) {
+
+			const u32 word     = i / BITS_PER_LONG;
+			const u32 bit      = i % BITS_PER_LONG;
+			const u32 cur_mask = (u32)(maskp[word] >> bit);
+			u32       mask_idx;
+
+			if (first_offset == ~0U) {
+				if (cur_mask) {
+					first_offset             = i / 32;
+					p->first_cpu_mask_offset = first_offset;
+				} else
+					continue;
+			}
+
+			mask_idx = (i / 32) - first_offset;
+
+			if (cur_mask && mask_idx >= MAX_CPU_MASKS_3) {
+
+				mods_error_printk("too many CPUs (%d) for mask bits\n",
+						  nr_cpumask_bits);
+				pci_dev_put(dev);
+				LOG_EXT();
+				return -EINVAL;
+			}
+
+			if (mask_idx < MAX_CPU_MASKS_3)
+				p->node_cpu_mask[mask_idx] = cur_mask;
 		}
 
-		for (i = 0, maskidx = 0;
-		     i < nr_cpumask_bits;
-		     i += 32, maskidx++) {
-			word = i / BITS_PER_LONG;
-			bit = i % BITS_PER_LONG;
-			p->node_cpu_mask[maskidx]
-				= (maskp[word] >> bit) & 0xFFFFFFFFUL;
-		}
+		if (first_offset == ~0U)
+			p->first_cpu_mask_offset = 0;
 	}
 	p->node_count = num_possible_nodes();
-	p->cpu_count = num_possible_cpus();
+	p->cpu_count  = num_possible_cpus();
 
 	pci_dev_put(dev);
 	LOG_EXT();
 	return OK;
 }
 
+int esc_mods_device_numa_info_2(struct mods_client             *client,
+				struct MODS_DEVICE_NUMA_INFO_2 *p)
+{
+	int err;
+	struct MODS_DEVICE_NUMA_INFO_3 numa_info = { {0} };
+
+	numa_info.pci_device = p->pci_device;
+
+	err = esc_mods_device_numa_info_3(client, &numa_info);
+
+	if (likely(!err)) {
+		int i;
+
+		p->node	      = numa_info.node;
+		p->node_count = numa_info.node_count;
+		p->cpu_count  = numa_info.cpu_count;
+
+		memset(&p->node_cpu_mask, 0, sizeof(p->node_cpu_mask));
+
+		for (i = 0; i < MAX_CPU_MASKS_3; i++) {
+
+			const u32 cur_mask = numa_info.node_cpu_mask[i];
+			const u32 dst      = i +
+					     numa_info.first_cpu_mask_offset;
+
+			if (cur_mask && dst >= MAX_CPU_MASKS) {
+				mods_error_printk("too many CPUs (%d) for mask bits\n",
+						  nr_cpumask_bits);
+				err = -EINVAL;
+				break;
+			}
+
+			if (dst < MAX_CPU_MASKS)
+				p->node_cpu_mask[dst]
+					= numa_info.node_cpu_mask[i];
+		}
+	}
+
+	return err;
+}
+
 int esc_mods_device_numa_info(struct mods_client           *client,
 			      struct MODS_DEVICE_NUMA_INFO *p)
 {
 	int err;
-	int i;
-	struct MODS_DEVICE_NUMA_INFO_2 numa_info = { {0} };
+	struct MODS_DEVICE_NUMA_INFO_3 numa_info = { {0} };
 
 	numa_info.pci_device.domain    = 0;
 	numa_info.pci_device.bus       = p->pci_device.bus;
 	numa_info.pci_device.device    = p->pci_device.device;
 	numa_info.pci_device.function  = p->pci_device.function;
 
-	err = esc_mods_device_numa_info_2(client, &numa_info);
+	err = esc_mods_device_numa_info_3(client, &numa_info);
 
 	if (likely(!err)) {
+		int i;
+
 		p->node	      = numa_info.node;
 		p->node_count = numa_info.node_count;
 		p->cpu_count  = numa_info.cpu_count;
-		for (i = 0; i < MAX_CPU_MASKS; i++)
-			p->node_cpu_mask[i] = numa_info.node_cpu_mask[i];
+
+		memset(&p->node_cpu_mask, 0, sizeof(p->node_cpu_mask));
+
+		for (i = 0; i < MAX_CPU_MASKS_3; i++) {
+
+			const u32 cur_mask = numa_info.node_cpu_mask[i];
+			const u32 dst      = i +
+					     numa_info.first_cpu_mask_offset;
+
+			if (cur_mask && dst >= MAX_CPU_MASKS) {
+				mods_error_printk("too many CPUs (%d) for mask bits\n",
+						  nr_cpumask_bits);
+				err = -EINVAL;
+				break;
+			}
+
+			if (dst < MAX_CPU_MASKS)
+				p->node_cpu_mask[dst]
+					= numa_info.node_cpu_mask[i];
+		}
 	}
 
 	return err;
