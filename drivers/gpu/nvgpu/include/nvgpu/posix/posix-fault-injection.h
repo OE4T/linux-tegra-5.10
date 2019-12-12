@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -37,6 +37,7 @@ struct nvgpu_posix_fault_inj {
 struct nvgpu_posix_fault_inj_container {
 	/* nvgpu-core */
 	struct nvgpu_posix_fault_inj thread_fi;
+	struct nvgpu_posix_fault_inj thread_running_true_fi;
 	struct nvgpu_posix_fault_inj cond_fi;
 	struct nvgpu_posix_fault_inj fstat_op;
 	struct nvgpu_posix_fault_inj fread_op;

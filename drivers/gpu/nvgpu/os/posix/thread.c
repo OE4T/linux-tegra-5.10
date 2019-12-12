@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -34,6 +34,14 @@ struct nvgpu_posix_fault_inj *nvgpu_thread_get_fault_injection(void)
 			nvgpu_posix_fault_injection_get_container();
 
 	return &c->thread_fi;
+}
+struct nvgpu_posix_fault_inj
+			*nvgpu_thread_running_true_get_fault_injection(void)
+{
+	struct nvgpu_posix_fault_inj_container *c =
+			nvgpu_posix_fault_injection_get_container();
+
+	return &c->thread_running_true_fi;
 }
 #endif
 
@@ -250,6 +258,12 @@ bool nvgpu_thread_should_stop(struct nvgpu_thread *thread)
 
 bool nvgpu_thread_is_running(struct nvgpu_thread *thread)
 {
+#ifdef NVGPU_UNITTEST_FAULT_INJECTION_ENABLEMENT
+	if (nvgpu_posix_fault_injection_handle_call(
+			nvgpu_thread_running_true_get_fault_injection())) {
+		return true;
+	}
+#endif
 	return (nvgpu_atomic_read(&thread->running) == 1);
 }
 

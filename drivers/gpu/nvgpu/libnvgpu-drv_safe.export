@@ -686,6 +686,7 @@ nvgpu_thread_create_priority
 nvgpu_thread_get_fault_injection
 nvgpu_thread_is_running
 nvgpu_thread_join
+nvgpu_thread_running_true_get_fault_injection
 nvgpu_thread_should_stop
 nvgpu_thread_stop
 nvgpu_thread_stop_graceful
@@ -713,6 +714,11 @@ nvgpu_vm_unmap
 nvgpu_vmalloc_impl
 nvgpu_vzalloc_impl
 nvgpu_wait_for_deferred_interrupts
+nvgpu_worker_deinit
+nvgpu_worker_enqueue
+nvgpu_worker_init
+nvgpu_worker_init_name
+nvgpu_worker_should_stop
 nvgpu_writel
 nvgpu_writel_check
 nvgpu_clear_bit

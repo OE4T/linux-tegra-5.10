@@ -1,6 +1,6 @@
 # -*- mode: makefile -*-
 #
-# Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+# Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -63,6 +63,7 @@ UNITS :=				\
 	$(UNIT_SRC)/interface/lock	\
 	$(UNIT_SRC)/interface/atomic	\
 	$(UNIT_SRC)/interface/rbtree	\
+	$(UNIT_SRC)/interface/worker	\
 	$(UNIT_SRC)/mc			\
 	$(UNIT_SRC)/mm/nvgpu_sgt	\
 	$(UNIT_SRC)/mm/allocators/buddy_allocator	\

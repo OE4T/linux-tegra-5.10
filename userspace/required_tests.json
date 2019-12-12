@@ -4501,5 +4501,29 @@
         "case": "ecc_free",
         "unit": "ecc",
         "test_level": 0
+    },
+    {
+        "test": "test_branches",
+        "case": "branches",
+        "unit": "worker",
+        "test_level": 0
+    },
+    {
+        "test": "test_deinit",
+        "case": "deinit",
+        "unit": "worker",
+        "test_level": 0
+    },
+    {
+        "test": "test_enqueue",
+        "case": "enqueue",
+        "unit": "worker",
+        "test_level": 0
+    },
+    {
+        "test": "test_init",
+        "case": "init",
+        "unit": "worker",
+        "test_level": 0
     }
 ]

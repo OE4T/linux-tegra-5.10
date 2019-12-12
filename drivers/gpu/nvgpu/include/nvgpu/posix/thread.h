@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -106,6 +106,8 @@ struct nvgpu_thread {
 
 #ifdef NVGPU_UNITTEST_FAULT_INJECTION_ENABLEMENT
 struct nvgpu_posix_fault_inj *nvgpu_thread_get_fault_injection(void);
+struct nvgpu_posix_fault_inj
+			*nvgpu_thread_running_true_get_fault_injection(void);
 #endif
 
 /**
