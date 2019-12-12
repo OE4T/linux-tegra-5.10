@@ -1093,8 +1093,8 @@ static bool falcon_check_reg_group(struct gk20a *g,
 	u32 i;
 
 	for (i = 0; i < size; i++) {
-		if (nvgpu_posix_io_readl_reg_space(g, sequence->addr) !=
-		    sequence->value) {
+		if (nvgpu_posix_io_readl_reg_space(g, sequence[i].addr) !=
+		    sequence[i].value) {
 			break;
 		}
 	}
@@ -1117,12 +1117,13 @@ int test_falcon_bootstrap(struct unit_module *m, struct gk20a *g, void *__args)
 {
 	/* Define a group of expected register writes */
 	struct nvgpu_reg_access bootstrap_group[] = {
-		{ .addr = 0x0010a10c,
+		{ .addr = 0x0041a10c,
 			.value = falcon_falcon_dmactl_require_ctx_f(0) },
-		{ .addr = 0x0010a104,
+		{ .addr = 0x0041a104,
 			.value = falcon_falcon_bootvec_vec_f(0) },
-		{ .addr = 0x0010a100,
-			.value = falcon_falcon_cpuctl_startcpu_f(1) },
+		{ .addr = 0x0041a100,
+			.value = falcon_falcon_cpuctl_startcpu_f(1) |
+				 falcon_falcon_cpuctl_hreset_f(1) },
 	};
 	struct acr_fw_header *fw_hdr = NULL;
 	struct bin_hdr *hs_bin_hdr = NULL;
@@ -1146,7 +1147,7 @@ int test_falcon_bootstrap(struct unit_module *m, struct gk20a *g, void *__args)
 	/** Valid falcon bootstrap. */
 	err = nvgpu_falcon_bootstrap(gpccs_flcn, boot_vector);
 	if (err) {
-		unit_return_fail(m, "PMU falcon bootstrap failed\n");
+		unit_return_fail(m, "GPCCS falcon bootstrap failed\n");
 	}
 #endif
 
@@ -1244,7 +1245,7 @@ int test_falcon_bootstrap(struct unit_module *m, struct gk20a *g, void *__args)
 	err = nvgpu_falcon_hs_ucode_load_bootstrap(gpccs_flcn,
 						   ucode, ucode_header);
 	if (err) {
-		unit_return_fail(m, "PMU falcon bootstrap failed\n");
+		unit_return_fail(m, "GPCCS falcon bootstrap failed\n");
 	}
 
 	if (falcon_check_reg_group(g, bootstrap_group,
