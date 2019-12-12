@@ -31,6 +31,7 @@
  */
 #define MGBE_DMA_CHX_TX_CTRL(x)		((0x0080U * (x)) + 0x3104U)
 #define MGBE_DMA_CHX_RX_CTRL(x)		((0x0080U * (x)) + 0x3108U)
+#define MGBE_DMA_CHX_SLOT_CTRL(x)	((0x0080U * (x)) + 0x310CU)
 #define MGBE_DMA_CHX_INTR_ENA(x)	((0x0080U * (x)) + 0x3138U)
 #define MGBE_DMA_CHX_CTRL(x)		((0x0080U * (x)) + 0x3100U)
 #define MGBE_DMA_CHX_RX_WDT(x)          ((0x0080U * (x)) + 0x313CU)
@@ -84,6 +85,7 @@
 #define MGBE_DMA_CHX_STATUS_TI			OSI_BIT(0)
 #define MGBE_DMA_CHX_STATUS_RI			OSI_BIT(6)
 #define MGBE_DMA_CHX_STATUS_NIS			OSI_BIT(15)
+#define MGBE_DMA_CHX_SLOT_ESC			OSI_BIT(0)
 #define MGBE_DMA_CHX_STATUS_CLEAR_TX		(MGBE_DMA_CHX_STATUS_TI | \
 						 MGBE_DMA_CHX_STATUS_NIS)
 #define	MGBE_DMA_CHX_STATUS_CLEAR_RX		(MGBE_DMA_CHX_STATUS_RI | \
