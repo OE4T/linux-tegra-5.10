@@ -42,14 +42,23 @@ struct unit_module;
  *
  * Test Type: Feature based, Error guessing.
  *
+ * Targets: #nvgpu_gr_intr_stall_isr,
+ *          #nvgpu_gr_intr_init_support,
+ *          #nvgpu_gr_intr_handle_fecs_error,
+ *          nvgpu_gr_intr_remove_support.
+ *
  * Input: #test_gr_init_setup_ready must have been executed successfully.
  *
  * Steps:
  * -  Set exception for FE, MEMFMT, PD, SCC, DS, SSYNC, MME, SKED
  *    in gr interrupt register.
+ * -  Set Error injection for allocation, fecs and exception interrupts
+ *    without properly setting the valid needed sub interrupts.
  * -  Call g->ops.gr.intr.stall_isr.
  * -  Call g->ops.gr.intr.nonstall_isr without nonstall pending interrupt set.
  * -  Set nonstall trap pending interrupt bit.
+ * -  Call g->ops.gr.intr.nonstall_isr.
+ * -  g->ops.gr.intr.handle_ssync_hww to NULL.
  * -  Call g->ops.gr.intr.nonstall_isr.
  *
  * Output: Returns PASS if the steps above were executed successfully. FAIL
@@ -69,6 +78,8 @@ int test_gr_intr_without_channel(struct unit_module *m,
  *
  * Test Type: Feature based, Error guessing
  *
+ * Targets: #nvgpu_gr_intr_stall_isr.
+ *
  * Input: #test_gr_init_setup_ready must have been executed successfully.
  *
  * Steps:
@@ -77,6 +88,8 @@ int test_gr_intr_without_channel(struct unit_module *m,
  *    -  nvgpu_tsg_open_new & nvgpu_tsg_channel_open_new.
  *    -  nvgpu_tsg_bind_channel.
  * -  Negative test - without setting the current context.
+ *    -  Call g->ops.gr.intr.stall_isr.
+ *    -  Set Notify and Semaphore wait_queue uninitialized.
  *    -  Call g->ops.gr.intr.stall_isr.
  * -  Positive test.
  *    -  Set tsgid as the current context.
@@ -99,11 +112,14 @@ int test_gr_intr_setup_channel(struct unit_module *m,
  *
  * Test Type: Feature based, Error guessing.
  *
+ * Targets: #nvgpu_gr_intr_stall_isr.
+ *
  * Input: #test_gr_init_setup_ready must have been executed successfully.
  *
  * Steps:
  * -  Setup illegal method pending interrupt bit.
  * -  Set the illegal method trapped addresses and datas.
+ * -  Set invalid class and data.
  * -  Call g->ops.gr.intr.stall_isr.
  *
  * Output: Returns PASS if the steps above were executed successfully. FAIL
@@ -124,11 +140,14 @@ int test_gr_intr_sw_exceptions(struct unit_module *m,
  *
  * Test Type: Feature based, Error guessing.
  *
+ * Targets: #nvgpu_gr_intr_stall_isr.
+ *
  * Input: #test_gr_init_setup_ready must have been executed successfully.
  *
  * Steps:
  * -  Set fecs exception interrupt bits.
  * -  Set fecs pending interrupt bit.
+ * -  Set various ecc error register combinations.
  * -  Call g->ops.gr.intr.stall_isr.
  *
  * Output: Returns PASS if the steps above were executed successfully. FAIL
@@ -144,18 +163,31 @@ int test_gr_intr_fecs_exceptions(struct unit_module *m,
  *
  * Test Type: Feature based, Error guessing.
  *
+ * Targets: #nvgpu_gr_intr_stall_isr,
+ *          #nvgpu_gr_intr_handle_gpc_exception.
+ *
  * Input: #test_gr_init_setup_ready must have been executed successfully.
  *
  * Steps:
+ * -  Making use of functions for following tests
+ *    -  g->ops.gr.intr.handle_tpc_sm_ecc_exception.
+ *    -  g->ops.gr.intr.handle_gpc_gpcmmu_exception.
+ *    -  g->ops.gr.intr.handle_gpc_gpccs_exception.
+ *    -  g->ops.gr.intr.handle_gcc_exception.
+ *    -  g->ops.gr.intr.stall_isr.
  * -  Negative tests.
  *    -  Verify gpc exceptions with setting any gpc exception bits but
  *       enable the pending gpc exception interrupt bit.
  *    -  Verify gpc exceptions by setting gpc exception bits and
  *       enable the pending gpc exception interrupt bit.Without setting
  *       ecc status registers.
+ *    -  Verify tpc_exception interrupt with NULL gpc and tpc hals
+ *       and enabling gpc_tpc_exceptions.
  *    -  Verify gpc exceptions by setting gpc exception bits,
  *       ecc status registers and the pending gpc exception interrupt bit.
  *       Without setting SM ESR registers.
+ *    -  Verify gpc and tpc_exceptions with various ecc registers value
+ *       combinations for overflow and corrected and uncorrected errors.
  * -  Positive test.
  *    -  Verify gpc exceptions by setting gpc exception bits,
  *       tpc exception bits, ecc status registers, setting SM ESR registers

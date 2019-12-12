@@ -28,11 +28,16 @@
 #include <unit/io.h>
 
 #include <nvgpu/posix/io.h>
+#include <nvgpu/posix/kmem.h>
+#include <nvgpu/posix/posix-fault-injection.h>
+
 #include <nvgpu/types.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/channel.h>
 #include <nvgpu/runlist.h>
 #include <nvgpu/tsg.h>
+#include <nvgpu/class.h>
+#include <nvgpu/gr/gr_intr.h>
 
 #include <nvgpu/hw/gv11b/hw_gr_gv11b.h>
 
@@ -50,13 +55,84 @@
 #define TPC_SM0_ESR_SEL		(0x1U << 0U)
 #define TPC_SM1_ESR_SEL		(0x1U << 1U)
 
-#define GR_TEST_TRAPPED_ADDR_DATAHIGH	0x01000000
+#define GR_TEST_TRAPPED_ADDR_DATAHIGH	0x0F000000
 #define GR_TEST_CHANNEL_MAP_TLB_SIZE	0x2
 
 struct test_gr_intr_sw_mthd_exceptions {
 	int trapped_addr;
 	int data[2];
 };
+
+struct gr_gops_intr_orgs {
+	void (*handle_tpc_sm_ecc_exception)(struct gk20a *g,
+			     u32 gpc, u32 tpc);
+	void (*handle_tpc_mpc_exception)(struct gk20a *g,
+			     u32 gpc, u32 tpc);
+	void (*handle_tpc_pe_exception)(struct gk20a *g,
+			     u32 gpc, u32 tpc);
+	u32 (*get_ctxsw_checksum_mismatch_mailbox_val)(void);
+	void (*handle_ssync_hww)(struct gk20a *g,
+				u32 *ssync_esr);
+	void (*handle_gcc_exception)(struct gk20a *g, u32 gpc,
+		u32 gpc_exception, u32 *corrected_err, u32 *uncorrected_err);
+	void (*handle_gpc_gpcmmu_exception)(struct gk20a *g, u32 gpc,
+		u32 gpc_exception, u32 *corrected_err, u32 *uncorrected_err);
+	void (*handle_gpc_prop_exception)(struct gk20a *g, u32 gpc,
+		u32 gpc_exception);
+	void (*handle_gpc_zcull_exception)(struct gk20a *g, u32 gpc,
+		u32 gpc_exception);
+	void (*handle_gpc_setup_exception)(struct gk20a *g, u32 gpc,
+		u32 gpc_exception);
+	void (*handle_gpc_pes_exception)(struct gk20a *g, u32 gpc,
+		u32 gpc_exception);
+	void (*handle_gpc_gpccs_exception)(struct gk20a *g, u32 gpc,
+		u32 gpc_exception, u32 *corrected_err, u32 *uncorrected_err);
+	u64 (*get_sm_hww_warp_esr_pc)(struct gk20a *g, u32 offset);
+	bool (*handle_exceptions)(struct gk20a *g,
+		bool *is_gpc_exception);
+#ifdef CONFIG_NVGPU_RECOVERY
+	void (*recover)(struct gk20a *g, u32 bitmask, u32 id,
+		unsigned int id_type, unsigned int rc_type,
+		struct mmu_fault_info *mmufault);
+#endif
+};
+
+struct gr_gops_intr_orgs gr_test_intr_gops;
+
+static void gr_test_save_intr_gops(struct gk20a *g)
+{
+	gr_test_intr_gops.handle_tpc_sm_ecc_exception =
+		g->ops.gr.intr.handle_tpc_sm_ecc_exception;
+	gr_test_intr_gops.handle_tpc_mpc_exception =
+		g->ops.gr.intr.handle_tpc_mpc_exception;
+	gr_test_intr_gops.handle_tpc_pe_exception =
+		g->ops.gr.intr.handle_tpc_pe_exception;
+	gr_test_intr_gops.get_ctxsw_checksum_mismatch_mailbox_val =
+		g->ops.gr.intr.get_ctxsw_checksum_mismatch_mailbox_val;
+	gr_test_intr_gops.handle_ssync_hww =
+		g->ops.gr.intr.handle_ssync_hww;
+	gr_test_intr_gops.handle_gcc_exception =
+		g->ops.gr.intr.handle_gcc_exception;
+	gr_test_intr_gops.handle_gpc_gpcmmu_exception =
+		g->ops.gr.intr.handle_gpc_gpcmmu_exception;
+	gr_test_intr_gops.handle_gpc_prop_exception =
+		g->ops.gr.intr.handle_gpc_prop_exception;
+	gr_test_intr_gops.handle_gpc_zcull_exception =
+		g->ops.gr.intr.handle_gpc_zcull_exception;
+	gr_test_intr_gops.handle_gpc_setup_exception =
+		g->ops.gr.intr.handle_gpc_setup_exception;
+	gr_test_intr_gops.handle_gpc_pes_exception =
+		g->ops.gr.intr.handle_gpc_pes_exception;
+	gr_test_intr_gops.handle_gpc_gpccs_exception =
+		g->ops.gr.intr.handle_gpc_gpccs_exception;
+	gr_test_intr_gops.get_sm_hww_warp_esr_pc =
+		g->ops.gr.intr.get_sm_hww_warp_esr_pc;
+	gr_test_intr_gops.handle_exceptions =
+		g->ops.gr.intr.handle_exceptions;
+#ifdef CONFIG_NVGPU_RECOVERY
+	gr_test_intr_gops.recover = g->ops.fifo.recover;
+#endif
+}
 
 #ifdef CONFIG_NVGPU_RECOVERY
 static void gr_test_intr_fifo_recover(struct gk20a *g, u32 bitmask, u32 id,
@@ -76,6 +152,13 @@ static int stub_runlist_update_for_channel(struct gk20a *g, u32 runlist_id,
 		struct nvgpu_channel *ch, bool add, bool wait_for_finish)
 {
 	return 0;
+}
+
+static bool gr_test_intr_handle_exceptions(struct gk20a *g,
+					   bool *is_gpc_exception)
+{
+	*is_gpc_exception = true;
+	return true;
 }
 
 static int gr_test_intr_allocate_ch(struct unit_module *m,
@@ -100,7 +183,10 @@ static int gr_test_intr_allocate_ch(struct unit_module *m,
 	nvgpu_posix_io_writel_reg_space(g, gr_intr_r(),
 				gr_intr_notify_pending_f() |
 				gr_intr_semaphore_pending_f()|
-				gr_intr_illegal_notify_pending_f());
+				gr_intr_illegal_notify_pending_f()|
+				gr_intr_fecs_error_pending_f() |
+				gr_intr_class_error_pending_f() |
+				(0x1 << 31));
 
 	err = g->ops.gr.intr.stall_isr(g);
 	if (err != 0) {
@@ -170,6 +256,7 @@ static int gr_test_intr_allocate_ch_tsg(struct unit_module *m,
 	u32 tsgid = getpid();
 	struct nvgpu_channel *ch = NULL;
 	struct nvgpu_tsg *tsg = NULL;
+	bool sema_init, notify_init;
 	int err;
 
 	err = nvgpu_channel_setup_sw(g);
@@ -216,12 +303,25 @@ static int gr_test_intr_allocate_ch_tsg(struct unit_module *m,
 	/* Set pending interrupt for notify and semaphore */
 	nvgpu_posix_io_writel_reg_space(g, gr_intr_r(),
 				gr_intr_notify_pending_f() |
-				gr_intr_semaphore_pending_f());
+				gr_intr_semaphore_pending_f()|
+				gr_intr_firmware_method_pending_f());
 
 	err = g->ops.gr.intr.stall_isr(g);
 	if (err != 0) {
 		unit_err(m, "failed stall isr\n");
 	}
+
+	/* Set the semaphore and notify wait queue uninitialized*/
+	sema_init = ch->semaphore_wq.initialized;
+	notify_init = ch->notifier_wq.initialized;
+	ch->semaphore_wq.initialized = false;
+	ch->notifier_wq.initialized = false;
+	err = g->ops.gr.intr.stall_isr(g);
+	if (err != 0) {
+		unit_err(m, "failed stall isr for wait_queue\n");
+	}
+	ch->semaphore_wq.initialized = sema_init;
+	ch->notifier_wq.initialized = notify_init;
 
 tsg_unbind:
 	err = nvgpu_tsg_unbind_channel(tsg, ch);
@@ -264,16 +364,6 @@ int test_gr_intr_setup_channel(struct unit_module *m,
 	return UNIT_SUCCESS;
 }
 
-static void gr_test_intr_log_mme_exception(struct gk20a *g)
-{
-	/* do nothing */
-}
-
-static void gr_test_intr_tex_exception(struct gk20a *g, u32 gpc, u32 tpc)
-{
-	/* do nothing */
-}
-
 static int gr_test_nonstall_isr(struct unit_module *m,
 				struct gk20a *g)
 {
@@ -298,16 +388,77 @@ static int gr_test_nonstall_isr(struct unit_module *m,
 	return UNIT_SUCCESS;
 }
 
+static int test_gr_intr_error_injections(struct unit_module *m,
+				struct gk20a *g, void *args)
+{
+	int err = 0;
+	struct nvgpu_posix_fault_inj *kmem_fi =
+		nvgpu_kmem_get_fault_injection();
+	struct nvgpu_gr_intr *test_gr_intr;
+	struct nvgpu_gr_isr_data isr_data;
+	u32 gr_intr;
+
+	/* Fail gr_intr struct allocation */
+	nvgpu_posix_enable_fault_injection(kmem_fi, true, 0);
+	test_gr_intr = nvgpu_gr_intr_init_support(g);
+	if (test_gr_intr != NULL) {
+		unit_return_fail(m, "nvgpu_gr_intr_init_support failed\n");
+	}
+	nvgpu_posix_enable_fault_injection(kmem_fi, false, 0);
+
+	/* Free NULL gr_intr struct */
+	nvgpu_gr_intr_remove_support(g, NULL);
+
+	/* call isr without any interrupt */
+	gr_intr = nvgpu_posix_io_readl_reg_space(g, gr_intr_r());
+	nvgpu_posix_io_writel_reg_space(g, gr_intr_r(), 0);
+	err = g->ops.gr.intr.stall_isr(g);
+	if (err != 0) {
+		unit_return_fail(m, "isr failed without interrupts\n");
+	}
+	nvgpu_posix_io_writel_reg_space(g, gr_intr_r(), gr_intr);
+
+	/* Call fecs_interrupt handler with fecs error set */
+	isr_data.ch = NULL;
+	nvgpu_posix_io_writel_reg_space(g, gr_fecs_host_int_status_r(), 0);
+	err = nvgpu_gr_intr_handle_fecs_error(g, NULL, &isr_data);
+	if (err != 0) {
+		unit_return_fail(m,
+			"nvgpu_gr_intr_handle_fecs_error failed\n");
+	}
+
+	/* Fault injection - gpc exception with reset */
+	g->ops.gr.intr.handle_exceptions =
+			gr_test_intr_handle_exceptions;
+	nvgpu_posix_io_writel_reg_space(g, gr_intr_r(),
+			gr_intr_exception_pending_f());
+	err = g->ops.gr.intr.stall_isr(g);
+	if (err != 0) {
+		unit_return_fail(m, "sw_method failed for invalid data\n");
+	}
+	g->ops.gr.intr.handle_exceptions =
+			gr_test_intr_gops.handle_exceptions;
+
+	nvgpu_posix_io_writel_reg_space(g, gr_intr_r(), gr_intr);
+
+	return UNIT_SUCCESS;
+}
+
 int test_gr_intr_without_channel(struct unit_module *m,
 		struct gk20a *g, void *args)
 {
 	int err;
 
-	g->ops.gr.intr.log_mme_exception = gr_test_intr_log_mme_exception;
-	g->ops.gr.intr.handle_tex_exception = gr_test_intr_tex_exception;
+	gr_test_save_intr_gops(g);
+
 #ifdef CONFIG_NVGPU_RECOVERY
 	g->ops.fifo.recover = gr_test_intr_fifo_recover;
 #endif
+
+	err = test_gr_intr_error_injections(m, g, args);
+	if (err != 0) {
+		unit_return_fail(m, "gr_test_intr_error_injections failed\n");
+	}
 
 	/* Set trapped address datahigh bit */
 	nvgpu_posix_io_writel_reg_space(g, gr_trapped_addr_r(),
@@ -329,6 +480,19 @@ int test_gr_intr_without_channel(struct unit_module *m,
 	if (err != 0) {
 		unit_return_fail(m, "nonstall_isr failed\n");
 	}
+
+	/* Set handle ssync_hww to NULL */
+	g->ops.gr.intr.handle_ssync_hww = NULL;
+	nvgpu_posix_io_writel_reg_space(g, gr_exception_r(),
+					gr_exception_ssync_m());
+
+	err = g->ops.gr.intr.stall_isr(g);
+	if (err != 0) {
+		unit_return_fail(m, "stall_isr handle_ssync_hww failed\n");
+	}
+
+	g->ops.gr.intr.handle_ssync_hww =
+			gr_test_intr_gops.handle_ssync_hww;
 
 	return UNIT_SUCCESS;
 }
@@ -364,9 +528,10 @@ int test_gr_intr_sw_exceptions(struct unit_module *m,
 	int arry_cnt = sizeof(sw_excep)/
 			sizeof(struct test_gr_intr_sw_mthd_exceptions);
 
-	/* Set illegal method pending */
+	/* Set illegal method and class error pending */
 	nvgpu_posix_io_writel_reg_space(g, gr_intr_r(),
-				gr_intr_illegal_method_pending_f());
+				gr_intr_illegal_method_pending_f() |
+				gr_intr_class_error_pending_f());
 
 	for (i = 0; i < arry_cnt; i++) {
 		/* method & sub channel */
@@ -384,6 +549,19 @@ int test_gr_intr_sw_exceptions(struct unit_module *m,
 				unit_return_fail(m, "stall isr failed\n");
 			}
 		}
+	}
+
+	/* Fault injection - sw_method with invalid class */
+	err = g->ops.gr.intr.handle_sw_method(g, 0, 0, 0, 0);
+	if (err != 0) {
+		unit_return_fail(m, "sw_method failed for invalid class\n");
+	}
+
+	/* Fault injection - sw_method with null data */
+	err = g->ops.gr.intr.handle_sw_method(g, 0, VOLTA_COMPUTE_A,
+				(NVC3C0_SET_SKEDCHECK >> 2), 0);
+	if (err != 0) {
+		unit_return_fail(m, "sw_method failed for invalid data\n");
 	}
 
 	return UNIT_SUCCESS;
@@ -416,7 +594,7 @@ struct test_gr_intr_gpc_ecc_status {
 
 struct test_gr_intr_gpc_ecc_status gpc_ecc_reg[] = {
 	[0] = { /* L1 tag ecc regs */
-		.status_val = 0xFFF,
+		.status_val = 0x5FF, //0xFFF,
 		.status_reg = gr_pri_gpc0_tpc0_sm_l1_tag_ecc_status_r(),
 		.corr_reg = gr_pri_gpc0_tpc0_sm_l1_tag_ecc_corrected_err_count_r(),
 		.uncorr_reg = gr_pri_gpc0_tpc0_sm_l1_tag_ecc_uncorrected_err_count_r(),
@@ -464,6 +642,128 @@ struct test_gr_intr_gpc_ecc_status gpc_ecc_reg[] = {
 		.uncorr_reg = gr_pri_gpc0_gcc_l15_ecc_uncorrected_err_count_r(),
 	      },
 };
+
+static void gr_intr_gpc_ecc_err_injections(struct gk20a *g)
+{
+	u32 corr_cnt = 20U, uncorr_cnt = 20U;
+	int i, j;
+	u32 status_val, ecc_status;
+	u32 corr_overflow, uncorr_overflow;
+	u32 corr_err, uncorr_err;
+	u32 status_reg, corr_reg, uncorr_reg;
+	u32 gpc_exception;
+	int arry_cnt = sizeof(gpc_ecc_reg)/
+			sizeof(struct test_gr_intr_gpc_ecc_status);
+
+	for (i = 0; i < arry_cnt; i++) {
+
+		status_val = gpc_ecc_reg[i].status_val;
+		status_reg = gpc_ecc_reg[i].status_reg;
+		corr_reg   = gpc_ecc_reg[i].corr_reg;
+		uncorr_reg = gpc_ecc_reg[i].uncorr_reg;
+		corr_cnt = 20U;
+		uncorr_cnt = 20U;
+
+		switch (i) {
+		case 0: /* L1 tag ecc regs */
+			corr_overflow = 0x100;
+			uncorr_overflow = 0x400;
+			corr_err = 0x33;
+			uncorr_err = 0xCC;
+			break;
+		case 1: /* LRF ecc regs */
+			corr_overflow = 0x1 << 24;
+			uncorr_overflow = 0x1 << 26;
+			corr_err = 0xFF;
+			uncorr_err = 0xFF00;
+			break;
+		case 2: /* CBU ecc regs */
+			corr_overflow = 0x1 << 16;
+			uncorr_overflow = 0x1 << 18;
+			corr_err = 0xF;
+			uncorr_err = 0xF0;
+			break;
+		case 3: /* L1 data ecc regs */
+			corr_overflow = 0x1 << 8;
+			uncorr_overflow = 0x1 << 10;
+			corr_err = 0x3;
+			uncorr_err = 0xC;
+			break;
+		case 4: /* Icache ecc regs */
+			corr_overflow = 0x1 << 16;
+			uncorr_overflow = 0x1 << 18;
+			corr_err = 0xF;
+			uncorr_err = 0xF0;
+			break;
+		case 5: /* MMU_L1TLB ecc regs */
+			corr_overflow = 0x1 << 16;
+			uncorr_overflow = 0x1 << 18;
+			corr_err = 0x5;
+			uncorr_err = 0xA;
+			break;
+		case 6: /* GPCCS_FALCON ecc regs */
+			corr_overflow = 0x1 << 8;
+			uncorr_overflow = 0x1 << 11;
+			corr_err = 0x3;
+			uncorr_err = 0x30;
+			break;
+		case 7: /* GCC_L15 ecc regs */
+			corr_overflow = 0x1 << 8;
+			uncorr_overflow = 0x1 << 10;
+			corr_err = 0x3;
+			uncorr_err = 0x30;
+			break;
+
+		}
+
+		for (j = 0; j < 5; j++) {
+			if (j == 0) {
+				ecc_status = status_val &
+					~(corr_overflow | uncorr_overflow);
+				corr_cnt = 20U;
+				uncorr_cnt = 20U;
+			} else if (j == 1) {
+				corr_cnt = 0U;
+				uncorr_cnt = 20U;
+				ecc_status = status_val & (corr_overflow | uncorr_err);
+			} else if (j == 2) {
+				corr_cnt = 20U;
+				uncorr_cnt = 0U;
+				ecc_status = status_val & (uncorr_overflow | corr_err);
+			} else if (j == 3){
+				ecc_status = (corr_overflow | uncorr_overflow);
+				corr_cnt = 0U;
+				uncorr_cnt = 0U;
+			} else {
+				ecc_status = status_val &
+					~(corr_overflow | uncorr_overflow);
+				corr_cnt = 0U;
+				uncorr_cnt = 0U;
+			}
+
+			nvgpu_posix_io_writel_reg_space(g, corr_reg, corr_cnt);
+			nvgpu_posix_io_writel_reg_space(g, uncorr_reg, uncorr_cnt);
+			nvgpu_posix_io_writel_reg_space(g, status_reg, ecc_status);
+			if (i <= 4) {
+				g->ops.gr.intr.handle_tpc_sm_ecc_exception(g, 0 , 0);
+			} else if (i == 5) {
+				gpc_exception =
+					gr_gpc0_gpccs_gpc_exception_gpcmmu_m();
+				g->ops.gr.intr.handle_gpc_gpcmmu_exception(g,
+					0, gpc_exception, &corr_cnt, &uncorr_cnt);
+			} else if (i == 6) {
+				gpc_exception =
+					gr_gpc0_gpccs_gpc_exception_gpccs_m();
+				g->ops.gr.intr.handle_gpc_gpccs_exception(g,
+					0, gpc_exception, &corr_cnt, &uncorr_cnt);
+			} else if (i == 7) {
+				gpc_exception = 0x1 << 2;
+				g->ops.gr.intr.handle_gcc_exception(g,
+					0, gpc_exception, &corr_cnt, &uncorr_cnt);
+			}
+		}
+	}
+}
 
 static void gr_intr_gpc_ecc_err_regs(struct gk20a *g)
 {
@@ -534,6 +834,28 @@ static void gr_test_set_gpc_exceptions(struct gk20a *g, bool full)
 					gpc_exception);
 }
 
+
+static int gr_test_set_gpc_tpc_exceptions(struct gk20a *g)
+{
+	int err;
+	u32 gpc_exception =
+			gr_gpcs_gpccs_gpc_exception_en_tpc_f(1U);
+
+	/* Set trapped addr with sub_chan > 4 */
+	nvgpu_posix_io_writel_reg_space(g, gr_trapped_addr_r(), (0x5 << 16U));
+
+	nvgpu_posix_io_writel_reg_space(g, gr_gpc0_gpccs_gpc_exception_r(),
+					gpc_exception);
+	nvgpu_posix_io_writel_reg_space(g,
+					gr_gpc0_tpc0_tpccs_tpc_exception_r(),
+					0);
+
+	err = gr_test_gpc_exception_intr(g);
+
+	nvgpu_posix_io_writel_reg_space(g, gr_trapped_addr_r(), 0);
+	return err;
+}
+
 static void gr_test_set_tpc_exceptions(struct gk20a *g)
 {
 	u32 tpc_exception = 0;
@@ -547,6 +869,16 @@ static void gr_test_set_tpc_exceptions(struct gk20a *g)
 
 	nvgpu_posix_io_writel_reg_space(g, gr_gpc0_tpc0_tpccs_tpc_exception_r(),
 					tpc_exception);
+}
+
+static void gr_test_set_gpc_pes_exception(struct gk20a *g)
+{
+	/* Handle either pes0 or pes1 exception */
+	u32 gpc_exception = gr_gpc0_gpccs_gpc_exception_pes0_m();
+	g->ops.gr.intr.handle_gpc_pes_exception(g, 0, gpc_exception);
+
+	gpc_exception = gr_gpc0_gpccs_gpc_exception_pes1_m();
+	g->ops.gr.intr.handle_gpc_pes_exception(g, 0, gpc_exception);
 }
 
 static void gr_test_set_tpc_esr_sm(struct gk20a *g)
@@ -567,6 +899,107 @@ static void gr_test_set_tpc_esr_sm(struct gk20a *g)
 		gr_gpc0_tpc0_sm0_hww_global_esr_r(), global_esr_mask);
 }
 
+static int gr_test_set_gpc_exceptions_without_handle(struct gk20a *g)
+{
+	int err;
+
+	g->ops.gr.intr.handle_gcc_exception = NULL;
+	g->ops.gr.intr.handle_gpc_gpcmmu_exception = NULL;
+	g->ops.gr.intr.handle_gpc_prop_exception = NULL;
+	g->ops.gr.intr.handle_gpc_zcull_exception = NULL;
+	g->ops.gr.intr.handle_gpc_setup_exception = NULL;
+	g->ops.gr.intr.handle_gpc_pes_exception = NULL;
+	g->ops.gr.intr.handle_gpc_gpccs_exception = NULL;
+
+	err = gr_test_gpc_exception_intr(g);
+	if (err)
+		return err;
+
+	g->ops.gr.intr.handle_gcc_exception =
+		gr_test_intr_gops.handle_gcc_exception;
+	g->ops.gr.intr.handle_gpc_gpcmmu_exception =
+		gr_test_intr_gops.handle_gpc_gpcmmu_exception;
+	g->ops.gr.intr.handle_gpc_prop_exception =
+		gr_test_intr_gops.handle_gpc_prop_exception;
+	g->ops.gr.intr.handle_gpc_zcull_exception =
+		gr_test_intr_gops.handle_gpc_zcull_exception;
+	g->ops.gr.intr.handle_gpc_setup_exception =
+		gr_test_intr_gops.handle_gpc_setup_exception;
+	g->ops.gr.intr.handle_gpc_pes_exception =
+		gr_test_intr_gops.handle_gpc_pes_exception;
+	g->ops.gr.intr.handle_gpc_gpccs_exception =
+		gr_test_intr_gops.handle_gpc_gpccs_exception;
+
+	/* Set exception pending */
+	nvgpu_posix_io_writel_reg_space(g, gr_intr_r(),
+				gr_intr_exception_pending_f());
+
+	/* Set gpc exception */
+	nvgpu_posix_io_writel_reg_space(g, gr_exception_r(),
+						gr_exception_gpc_m());
+
+	/* Set gpc exception1 */
+	nvgpu_posix_io_writel_reg_space(g, gr_exception1_r(), 0);
+
+	err = g->ops.gr.intr.stall_isr(g);
+
+	return err;
+}
+
+static int gr_test_set_tpc_exceptions_without_handle(struct gk20a *g)
+{
+	u32 tpc_exception = 0;
+	int err;
+	u32 gpc_exception =
+			gr_gpcs_gpccs_gpc_exception_en_tpc_f(1U);
+
+	g->ops.gr.intr.handle_tpc_sm_ecc_exception = NULL;
+	g->ops.gr.intr.handle_tpc_mpc_exception = NULL;
+	g->ops.gr.intr.handle_tpc_pe_exception = NULL;
+	g->ops.gr.intr.get_sm_hww_warp_esr_pc = NULL;
+
+	nvgpu_posix_io_writel_reg_space(g, gr_gpc0_gpccs_gpc_exception_r(),
+					gpc_exception);
+	/* Tpc exceptions for mpc/pe */
+	tpc_exception = gr_gpc0_tpc0_tpccs_tpc_exception_mpc_m() |
+			gr_gpc0_tpc0_tpccs_tpc_exception_pe_m();
+
+	/* Tpc exceptions for tex/sm */
+	tpc_exception |= TPC_EXCEPTION_SM;
+
+	nvgpu_posix_io_writel_reg_space(g, gr_gpc0_tpc0_tpccs_tpc_exception_r(),
+					tpc_exception);
+
+	err = gr_test_gpc_exception_intr(g);
+	if (err != 0) {
+		return err;
+	}
+
+	g->ops.gr.intr.handle_tpc_sm_ecc_exception =
+		gr_test_intr_gops.handle_tpc_sm_ecc_exception;
+	g->ops.gr.intr.handle_tpc_mpc_exception =
+		gr_test_intr_gops.handle_tpc_mpc_exception;
+	g->ops.gr.intr.handle_tpc_pe_exception =
+		gr_test_intr_gops.handle_tpc_pe_exception;
+
+	gpc_exception = gr_gpcs_gpccs_gpc_exception_en_tpc_f(3U);
+	nvgpu_posix_io_writel_reg_space(g, gr_gpc0_gpccs_gpc_exception_r(),
+					gpc_exception);
+
+	/* Tpc exceptions for sm and multiple tpc*/
+	tpc_exception = TPC_EXCEPTION_SM;
+	nvgpu_posix_io_writel_reg_space(g, gr_gpc0_tpc0_tpccs_tpc_exception_r(),
+					tpc_exception);
+
+	gr_test_set_tpc_esr_sm(g);
+	err = gr_test_gpc_exception_intr(g);
+
+	g->ops.gr.intr.get_sm_hww_warp_esr_pc =
+		gr_test_intr_gops.get_sm_hww_warp_esr_pc;
+
+	return err;
+}
+
 int test_gr_intr_gpc_exceptions(struct unit_module *m,
 		struct gk20a *g, void *args)
 {
@@ -582,9 +1015,18 @@ int test_gr_intr_gpc_exceptions(struct unit_module *m,
 	}
 
 	/**
+	 * Negative test to verify gpc_tpc_exception interrupt with
+	 * enabling gpc_tpc_exception and with enabling any tpc_exception.
+	 */
+	err = gr_test_set_gpc_tpc_exceptions(g);
+	if (err != 0) {
+		unit_return_fail(m, "gr_test_set_gpc_tpc_exceptions failed\n");
+	}
+
+	/**
 	 * Negative test to verify gpc_exception interrupt with
 	 * enabling all gpc_exceptions, but without setting the ecc status
-	 * registers
+	 * registers.
 	 */
 	gr_test_set_gpc_exceptions(g, true);
 	gr_test_set_tpc_exceptions(g);
@@ -595,9 +1037,25 @@ int test_gr_intr_gpc_exceptions(struct unit_module *m,
 	}
 
 	/**
+	 * Negative test to verify tpc_exception interrupt with NULL handle
+	 * and enabling gpc_tpc_exceptions.
+	 */
+	err = gr_test_set_tpc_exceptions_without_handle(g);
+	if (err != 0) {
+		unit_return_fail(m,
+		 "gr_test_set_tpc_exceptions_without_handle failed\n");
+	}
+
+	err = gr_test_set_gpc_exceptions_without_handle(g);
+	if (err != 0) {
+		unit_return_fail(m,
+		 "gr_test_set_gpc_exceptions_without_handle failed\n");
+	}
+
+	/**
 	 * Negative test to verify gpc_exception interrupt with
 	 * enabling all gpc_exceptions and by setting the ecc status
-	 * registers
+	 * registers.
 	 */
 	gr_test_set_gpc_exceptions(g, false);
 	gr_test_set_tpc_exceptions(g);
@@ -611,6 +1069,17 @@ int test_gr_intr_gpc_exceptions(struct unit_module *m,
 	if (err != 0) {
 		unit_return_fail(m, "stall isr failed\n");
 	}
+
+	/**
+	 * Negative tests for gpc_exceptions ecc registers values
+	 * for overflow and corrected and uncorrected errors.
+	 */
+	gr_intr_gpc_ecc_err_injections(g);
+	if (err != 0) {
+		unit_return_fail(m, "gr_intr_gpc_ecc_err_injections failed\n");
+	}
+
+	gr_test_set_gpc_pes_exception(g);
 
 	return UNIT_SUCCESS;
 }
@@ -652,9 +1121,11 @@ int test_gr_intr_fecs_exceptions(struct unit_module *m,
 		struct gk20a *g, void *args)
 {
 	int err, i, j = 0;
-	int arry_cnt = 11;
+	int arry_cnt = 13;
+	u32 mismatch_value =
+		gr_fecs_ctxsw_mailbox_value_ctxsw_checksum_mismatch_v();
 
-	u32 fecs_status[11] = {
+	u32 fecs_status[13] = {
 		0,
 		gr_fecs_host_int_enable_ctxsw_intr0_enable_f(),
 		gr_fecs_host_int_enable_ctxsw_intr1_enable_f(),
@@ -662,6 +1133,8 @@ int test_gr_intr_fecs_exceptions(struct unit_module *m,
 		gr_fecs_host_int_enable_umimp_firmware_method_enable_f(),
 		gr_fecs_host_int_enable_umimp_illegal_method_enable_f(),
 		gr_fecs_host_int_enable_watchdog_enable_f(),
+		gr_fecs_host_int_enable_ctxsw_intr0_enable_f(),
+		gr_fecs_host_int_enable_ctxsw_intr0_enable_f(),
 		gr_fecs_host_int_enable_ecc_corrected_enable_f() |
 		gr_fecs_host_int_enable_ecc_uncorrected_enable_f(),
 		gr_fecs_host_int_enable_ecc_corrected_enable_f(),
@@ -678,8 +1151,22 @@ int test_gr_intr_fecs_exceptions(struct unit_module *m,
 		nvgpu_posix_io_writel_reg_space(g, gr_fecs_host_int_status_r(),
 					fecs_status[i]);
 
+		if ((i > 6) && (fecs_status[i] ==
+			gr_fecs_host_int_enable_ctxsw_intr0_enable_f())) {
+			/* Set valid mailbox values */
+			nvgpu_posix_io_writel_reg_space(g,
+				gr_fecs_ctxsw_mailbox_r(6U),
+				mismatch_value);
+		 g->ops.gr.intr.get_ctxsw_checksum_mismatch_mailbox_val =
+		   gr_test_intr_gops.get_ctxsw_checksum_mismatch_mailbox_val;
+		}
+
+		if (i == 7) {
+		 g->ops.gr.intr.get_ctxsw_checksum_mismatch_mailbox_val = NULL;
+		}
+
 		/* Set fecs ecc registers */
-		if (i >= 6) {
+		if (i >= 9) {
 			gr_intr_fecs_ecc_err_regs(g, j);
 			j += 1;
 		}
