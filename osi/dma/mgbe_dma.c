@@ -582,6 +582,48 @@ static void mgbe_clear_vm_rx_intr(void *addr, nveu32_t chan)
 		   (nveu8_t *)addr + MGBE_VIRT_INTR_CHX_STATUS(chan));
 }
 
+/**
+ * @brief mgbe_config_slot - Configure slot Checking for DMA channel
+ *
+ * Algorithm: Set/Reset the slot function of DMA channel based on given inputs
+ *
+ * @param[in] osi_dma: OSI DMA private data structure.
+ * @param[in] chan: DMA channel number to enable slot function
+ * @param[in] set: flag for set/reset with value OSI_ENABLE/OSI_DISABLE
+ * @param[in] interval: slot interval fixed for MGBE - its 125usec
+ *
+ * @note 1) MAC should be init and started. see osi_start_mac()
+ *	 2) OSD should be initialized
+ *
+ */
+static void mgbe_config_slot(struct osi_dma_priv_data *osi_dma,
+			     unsigned int chan,
+			     unsigned int set,
+			     unsigned int interval)
+{
+	unsigned int value;
+
+	MGBE_CHECK_CHAN_BOUND(chan);
+
+	if (set == OSI_ENABLE) {
+		/* Program SLOT CTRL register SIV and set ESC bit */
+		value = osi_readl((unsigned char *)osi_dma->base +
+				  MGBE_DMA_CHX_SLOT_CTRL(chan));
+		/* Set ESC bit */
+		value |= MGBE_DMA_CHX_SLOT_ESC;
+		osi_writel(value, (unsigned char *)osi_dma->base +
+			   MGBE_DMA_CHX_SLOT_CTRL(chan));
+
+	} else {
+		/* Clear ESC bit of SLOT CTRL register */
+		value = osi_readl((unsigned char *)osi_dma->base +
+				  MGBE_DMA_CHX_SLOT_CTRL(chan));
+		value &= ~MGBE_DMA_CHX_SLOT_ESC;
+		osi_writel(value, (unsigned char *)osi_dma->base +
+			   MGBE_DMA_CHX_SLOT_CTRL(chan));
+	}
+}
+
 void mgbe_init_dma_chan_ops(struct dma_chan_ops *ops)
 {
 	ops->set_tx_ring_len = mgbe_set_tx_ring_len;
@@ -602,4 +644,5 @@ void mgbe_init_dma_chan_ops(struct dma_chan_ops *ops)
 	ops->get_global_dma_status = mgbe_get_global_dma_status;
 	ops->clear_vm_tx_intr = mgbe_clear_vm_tx_intr;
 	ops->clear_vm_rx_intr = mgbe_clear_vm_rx_intr;
+	ops->config_slot = mgbe_config_slot;
 };
