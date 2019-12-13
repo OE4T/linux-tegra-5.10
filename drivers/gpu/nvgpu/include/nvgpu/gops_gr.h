@@ -85,11 +85,23 @@ struct gops_gr_ecc {
 	 * @param g [in]		Pointer to GPU driver struct.
 	 *
 	 * This function allocates memory to track the ecc error counts
-	 * for GR unit and subunits of GR (like falcon/sm/gpccs/etc).
+	 * for GR unit and subunits of GR (like GPCs, TPCs etc).
 	 *
 	 * @return 0 in case of success, < 0 in case of failure.
 	 */
-	int (*init)(struct gk20a *g);
+	int (*gpc_tpc_ecc_init)(struct gk20a *g);
+
+	/**
+	 * @brief Initialize GR unit ECC support.
+	 *
+	 * @param g [in]		Pointer to GPU driver struct.
+	 *
+	 * This function allocates memory to track the ecc error counts
+	 * for FECS in GR.
+	 *
+	 * @return 0 in case of success, < 0 in case of failure.
+	 */
+	int (*fecs_ecc_init)(struct gk20a *g);
 
 	/**
 	 * @brief Detect ECC enabled units in GR engine.

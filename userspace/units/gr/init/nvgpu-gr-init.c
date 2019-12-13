@@ -53,14 +53,26 @@
 
 static int gr_init_ecc_fail_alloc(struct gk20a *g)
 {
-	int err, i, loop = 28;
+	int err, i, loop = 26;
 	struct nvgpu_posix_fault_inj *kmem_fi =
 		nvgpu_kmem_get_fault_injection();
 	struct nvgpu_gr_config *save_gr_config = g->gr->config;
 
 	for (i = 0; i < loop; i++) {
 		nvgpu_posix_enable_fault_injection(kmem_fi, true, i);
-		err = g->ops.gr.ecc.init(g);
+		err = g->ops.gr.ecc.gpc_tpc_ecc_init(g);
+		if (err == 0) {
+			return UNIT_FAIL;
+		}
+		nvgpu_posix_enable_fault_injection(kmem_fi, false, 0);
+		g->ops.ecc.ecc_init_support(g);
+	}
+
+	loop = 2;
+
+	for (i = 0; i < loop; i++) {
+		nvgpu_posix_enable_fault_injection(kmem_fi, true, i);
+		err = g->ops.gr.ecc.fecs_ecc_init(g);
 		if (err == 0) {
 			return UNIT_FAIL;
 		}

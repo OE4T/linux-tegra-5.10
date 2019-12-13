@@ -503,15 +503,10 @@ static int gr_init_setup_sw(struct gk20a *g)
 		goto clean_up;
 	}
 
-	gr->intr = nvgpu_gr_intr_init_support(g);
-	if (gr->intr == NULL) {
-		err = -ENOMEM;
-		goto clean_up;
-	}
-
-	if (g->ops.gr.ecc.init != NULL && !g->ecc.initialized) {
-		err = g->ops.gr.ecc.init(g);
+	if (g->ops.gr.ecc.gpc_tpc_ecc_init != NULL && !g->ecc.initialized) {
+		err = g->ops.gr.ecc.gpc_tpc_ecc_init(g);
 		if (err != 0) {
+			nvgpu_err(g, "failed to init gr gpc/tpc ecc");
 			goto clean_up;
 		}
 	}
@@ -583,8 +578,36 @@ int nvgpu_gr_prepare_sw(struct gk20a *g)
 		if (gr->falcon == NULL) {
 			nvgpu_err(g, "failed to init gr falcon");
 			err = -ENOMEM;
+			goto exit;
 		}
 	}
+
+	if (gr->intr == NULL) {
+		gr->intr = nvgpu_gr_intr_init_support(g);
+		if (gr->intr == NULL) {
+			nvgpu_err(g, "failed to init gr intr support");
+			err = -ENOMEM;
+			goto exit;
+		}
+	}
+
+	/*
+	 * Initialize FECS ECC counters here before acr_construct_execute as the
+	 * FECS ECC errors during FECS load need to be handled and reported
+	 * using the ECC counters.
+	 */
+	if (g->ops.gr.ecc.fecs_ecc_init != NULL && !g->ecc.initialized) {
+		err = g->ops.gr.ecc.fecs_ecc_init(g);
+		if (err != 0) {
+			nvgpu_err(g, "failed to init gr fecs ecc");
+
+			nvgpu_gr_intr_remove_support(g, gr->intr);
+			gr->intr = NULL;
+			goto exit;
+		}
+	}
+
+exit:
 	return err;
 }
 

@@ -32,7 +32,9 @@ struct nvgpu_hw_err_inject_info_desc;
 
 void gv11b_ecc_detect_enabled_units(struct gk20a *g);
 
-int gv11b_gr_ecc_init(struct gk20a *g);
+int gv11b_gr_gpc_tpc_ecc_init(struct gk20a *g);
+int gv11b_gr_fecs_ecc_init(struct gk20a *g);
+
 
 #ifdef CONFIG_NVGPU_INJECT_HWERR
 void gv11b_gr_intr_inject_fecs_ecc_error(struct gk20a *g,

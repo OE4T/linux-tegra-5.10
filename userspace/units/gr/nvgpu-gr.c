@@ -98,6 +98,11 @@ int test_gr_init_prepare(struct unit_module *m, struct gk20a *g, void *args)
 {
 	int err;
 
+	err = g->ops.ecc.ecc_init_support(g);
+	if (err != 0) {
+		unit_return_fail(m, "ecc init failed\n");
+	}
+
 	err = nvgpu_gr_prepare_sw(g);
 	if (err != 0) {
 		unit_return_fail(m, "nvgpu_gr_prepare_sw returned fail\n");

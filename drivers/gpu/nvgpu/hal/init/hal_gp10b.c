@@ -287,7 +287,7 @@ static const struct gpu_ops gp10b_ops = {
 #endif /* CONFIG_NVGPU_DEBUGGER */
 		.ecc = {
 			.detect = gp10b_ecc_detect_enabled_units,
-			.init = gp10b_gr_ecc_init,
+			.gpc_tpc_ecc_init = gp10b_gr_ecc_init,
 		},
 		.ctxsw_prog = {
 			.hw_get_fecs_header_size =

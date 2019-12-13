@@ -343,7 +343,8 @@ static const struct gpu_ops gv11b_ops = {
 #endif /* CONFIG_NVGPU_DEBUGGER */
 		.ecc = {
 			.detect = gv11b_ecc_detect_enabled_units,
-			.init = gv11b_gr_ecc_init,
+			.gpc_tpc_ecc_init = gv11b_gr_gpc_tpc_ecc_init,
+			.fecs_ecc_init = gv11b_gr_fecs_ecc_init,
 #ifdef CONFIG_NVGPU_INJECT_HWERR
 			.get_mmu_err_desc =
 				gv11b_gr_intr_get_mmu_err_desc,

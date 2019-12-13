@@ -170,7 +170,8 @@ int test_gr_remove_support(struct unit_module *m, struct gk20a *g, void *args);
  * Input: #test_gr_init_setup, #test_gr_init_prepare and #test_gr_init_support
  *        must have been executed successfully.
  *
- * Targets: gv11b_gr_ecc_init, gv11b_ecc_detect_enabled_units.
+ * Targets: gv11b_gr_gpc_tpc_ecc_init, gv11b_gr_fecs_ecc_init and
+ *	    gv11b_ecc_detect_enabled_units.
  *
  * Steps:
  * -  Array with various combinations setting register bits for

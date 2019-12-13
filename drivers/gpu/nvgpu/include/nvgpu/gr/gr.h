@@ -160,7 +160,9 @@ void nvgpu_gr_init(struct gk20a *g);
  * that is required to enable GR engine h/w in #nvgpu_gr_enable_hw().
  *
  * This initialization includes reading netlist ucode and allocating
- * memory for internal data structures required to enable h/w.
+ * memory for internal data structures required to enable h/w. This
+ * function allocates memory for FECS ECC error counters and GR
+ * interrupt structure.
  *
  * Note that all rest of the s/w initialization is completed in
  * #nvgpu_gr_init_support() function.

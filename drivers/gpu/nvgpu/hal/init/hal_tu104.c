@@ -381,7 +381,8 @@ static const struct gpu_ops tu104_ops = {
 #endif /* CONFIG_NVGPU_DEBUGGER */
 		.ecc = {
 			.detect = NULL,
-			.init = gv11b_gr_ecc_init,
+			.gpc_tpc_ecc_init = gv11b_gr_gpc_tpc_ecc_init,
+			.fecs_ecc_init = gv11b_gr_fecs_ecc_init,
 		},
 		.ctxsw_prog = {
 			.hw_get_fecs_header_size =

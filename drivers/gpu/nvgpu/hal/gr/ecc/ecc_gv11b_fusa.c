@@ -251,7 +251,7 @@ init_gpc_done:
 	return err;
 }
 
-int gv11b_gr_ecc_init(struct gk20a *g)
+int gv11b_gr_gpc_tpc_ecc_init(struct gk20a *g)
 {
 	int err;
 
@@ -264,6 +264,18 @@ int gv11b_gr_ecc_init(struct gk20a *g)
 	if (err != 0) {
 		goto done;
 	}
+
+done:
+	if (err != 0) {
+		nvgpu_err(g, "ecc counter allocate failed, err=%d", err);
+		nvgpu_ecc_free(g);
+	}
+
+	return err;
+}
+int gv11b_gr_fecs_ecc_init(struct gk20a *g)
+{
+	int err;
 
 	err = NVGPU_ECC_COUNTER_INIT_GR(fecs_ecc_uncorrected_err_count);
 	if (err != 0) {
