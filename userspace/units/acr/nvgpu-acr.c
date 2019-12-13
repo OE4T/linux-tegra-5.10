@@ -45,7 +45,6 @@
 
 #include "nvgpu-acr.h"
 #include "../falcon/falcon_utf.h"
-#include "../gr/nvgpu-gr-gv11b-regs.h"
 #include "../gr/nvgpu-gr-gv11b.h"
 
 struct utf_falcon *pmu_flcn, *gpccs_flcn;

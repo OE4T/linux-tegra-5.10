@@ -23,5 +23,12 @@
 OBJS   = nvgpu-fifo.o nvgpu-fifo-gv11b.o
 
 MODULE = nvgpu-fifo
+LIB_PATHS += -lmock-iospace
 
 include ../Makefile.units
+
+lib$(MODULE).so: mock-iospace
+
+mock-iospace:
+	$(MAKE) -C ../mock-iospace/
+

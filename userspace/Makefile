@@ -49,7 +49,8 @@ INCLUDES= 				\
 	-I$(NVGPU_SRC)/include		\
 	-I$(TWD)/../include		\
 	-I$(TWD)/../include/uapi	\
-	-I$(TWD)/include
+	-I$(TWD)/include		\
+	-I$(UNIT_SRC)/mock-iospace/include
 
 # This is safety build by default.
 NV_BUILD_CONFIGURATION_IS_SAFETY=1

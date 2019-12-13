@@ -17,6 +17,9 @@
 NVGPU_UNIT_NAME = nvgpu-gr
 NVGPU_UNIT_SRCS = nvgpu-gr.c nvgpu-gr-gv11b.c
 
+NVGPU_UNIT_INTERFACE_DIRS := \
+			$(NV_SOURCE)/kernel/nvgpu/userspace/units/mock-iospace
+
 include $(NV_COMPONENT_DIR)/../Makefile.units.common.tmk
 
 # Local Variables:

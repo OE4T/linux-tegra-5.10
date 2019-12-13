@@ -43,7 +43,8 @@ endif
 
 ifdef NVGPU_UNIT_INCLUDES
 NV_COMPONENT_INCLUDES 		:= \
-				$(NVGPU_UNIT_INCLUDES)
+				$(NVGPU_UNIT_INCLUDES) \
+				$(NV_SOURCE)/kernel/nvgpu/userspace/units/mock-iospace/include
 endif
 
 ifdef NVGPU_CFLAGS
@@ -69,7 +70,8 @@ endif
 
 ifdef NVGPU_UNIT_INTERFACE_DIRS
 NV_COMPONENT_NEEDED_INTERFACE_DIRS += \
-				$(NVGPU_UNIT_INTERFACE_DIRS)
+				$(NVGPU_UNIT_INTERFACE_DIRS) \
+				$(NV_SOURCE)/kernel/nvgpu/drivers/gpu/nvgpu
 else
 NV_COMPONENT_NEEDED_INTERFACE_DIRS += \
                                 $(NV_SOURCE)/kernel/nvgpu/drivers/gpu/nvgpu

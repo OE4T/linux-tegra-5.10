@@ -17,6 +17,9 @@
 NVGPU_UNIT_NAME = nvgpu-fifo
 NVGPU_UNIT_SRCS = nvgpu-fifo.c nvgpu-fifo-gv11b.c
 
+NVGPU_UNIT_INTERFACE_DIRS := \
+			$(NV_SOURCE)/kernel/nvgpu/userspace/units/mock-iospace
+
 include $(NV_COMPONENT_DIR)/../Makefile.units.common.tmk
 
 # Local Variables:
