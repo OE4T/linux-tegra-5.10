@@ -65,19 +65,19 @@ bool nvgpu_log_mask_enabled(struct gk20a *g, u64 log_mask);
  * @fmt      - A format string (printf style).
  * @arg...   - Arguments for the format string.
  *
- * Uncondtionally print an error message.
+ * Unconditionally print an error message.
  */
 #define nvgpu_err(g, fmt, arg...)					\
 	nvgpu_err_impl(g, fmt, ##arg)
 
 /**
- * nvgpu_err - Print a warning
+ * nvgpu_warn - Print a warning
  *
  * @g        - The GPU.
  * @fmt      - A format string (printf style).
  * @arg...   - Arguments for the format string.
  *
- * Uncondtionally print a warming message.
+ * Unconditionally print a warning message.
  */
 #define nvgpu_warn(g, fmt, arg...)					\
 	nvgpu_warn_impl(g, fmt, ##arg)
