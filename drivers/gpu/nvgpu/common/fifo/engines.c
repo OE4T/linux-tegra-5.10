@@ -1040,6 +1040,7 @@ u32 nvgpu_engine_mmu_fault_id_to_eng_id_and_veid(struct gk20a *g,
 			}
 		} else {
 			if (engine_info->fault_id == mmu_fault_id) {
+				*veid = INVAL_ID;
 				break;
 			}
 		}
