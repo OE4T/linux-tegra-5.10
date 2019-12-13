@@ -35,6 +35,7 @@
 #include <nvgpu/channel_sync.h>
 #include <nvgpu/channel_sync_syncpt.h>
 #include <nvgpu/fence.h>
+#include <nvgpu/string.h>
 
 #include "channel_sync_priv.h"
 
@@ -376,8 +377,17 @@ nvgpu_channel_sync_syncpt_create(struct nvgpu_channel *c, bool user_managed)
 	sp->nvhost_dev = c->g->nvhost_dev;
 
 	if (user_managed) {
-		snprintf(syncpt_name, sizeof(syncpt_name),
-			"%s_%d_user", c->g->name, c->chid);
+		(void)strncpy(syncpt_name, c->g->name, sizeof(syncpt_name));
+		syncpt_name[nvgpu_safe_sub_u64(sizeof(syncpt_name), 1UL)] = '\0';
+		(void)strcat(syncpt_name, "_");
+		err = nvgpu_strnadd_u32(syncpt_name, c->chid,
+					nvgpu_safe_sub_u64(sizeof(syncpt_name), strlen(syncpt_name)), 10);
+		if (err == 0) {
+			nvgpu_err(c->g, "strnadd failed!");
+			nvgpu_kfree(c->g, sp);
+			return NULL;
+		}
+		(void)strcat(syncpt_name, "_user");
 
 		sp->id = nvgpu_nvhost_get_syncpt_client_managed(sp->nvhost_dev,
 						syncpt_name);
