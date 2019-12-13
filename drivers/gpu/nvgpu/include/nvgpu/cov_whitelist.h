@@ -86,13 +86,13 @@
  * Example 1: Whitelist a MISRA rule 14.2 violation due to a deviation
  * documented in the JIRA TID-123 RFD:\n
  * NVGPU_COV_WHITELIST(deviate, NVGPU_MISRA(Rule, 14_2), "JIRA TID-123")\n
- * // Next line of code with a rule 14.2 violation
+ * next_line_of_code_with_a_rule_14.2_violation();
  *
  * Example 2: Whitelist violations for CERT C rules INT30-C and STR30-C caused
  * by coverity bugs:\n
  * NVGPU_COV_WHITELIST(false_positive, NVGPU_CERT(INT30_C), "Bug 123456")\n
  * NVGPU_COV_WHITELIST(false_positive, NVGPU_CERT(STR30_C), "Bug 123457")\n
- * // Next line of code with INT30-C and STR30-C violations
+ * next_line_of_code_with_INT30-C_and_STR30-C_violations();
  */
 #define NVGPU_COV_WHITELIST(type, checker, comment_str) \
 	_Pragma(NVGPU_COV_STRING(coverity compliance type checker comment_str))
