@@ -139,6 +139,9 @@ Required properties:
 				Tx interrupt will be triggered based on tx_usecs
 				value. Minimum value for tx_frames is 1 and
 				Maximum value is 10.
+- nvidia,promisc_mode:		Specifies if promiscuous mode should be allowed
+				or not. Set to 1 to allow or 0 to disallow
+				promiscuous mode. Default is 1 (allowed).
 - nvidia,num-dma-chans:		Number of DMA channels that need to be used.
 				Minimum value is 1 and Maximum value is 4.
 - nvidia,dma-chans:		The channel number of DMA channels to be used.

@@ -2067,12 +2067,19 @@ static void ether_set_rx_mode(struct net_device *dev)
 
 	memset(&filter, 0x0, sizeof(struct osi_filter));
 	if ((dev->flags & IFF_PROMISC) == IFF_PROMISC) {
-		filter.oper_mode = (OSI_OPER_DIS_PERFECT | OSI_OPER_EN_PROMISC |
-				    OSI_OPER_DIS_ALLMULTI);
-		dev_dbg(pdata->dev, "enabling Promiscuous mode\n");
-		ret = osi_l2_filter(osi_core, &filter);
-		if (ret < 0) {
-			dev_err(pdata->dev, "Setting Promiscuous mode failed\n");
+		if (pdata->promisc_mode == OSI_ENABLE) {
+			filter.oper_mode = (OSI_OPER_DIS_PERFECT |
+					    OSI_OPER_EN_PROMISC |
+					    OSI_OPER_DIS_ALLMULTI);
+			dev_dbg(pdata->dev, "enabling Promiscuous mode\n");
+			ret = osi_l2_filter(osi_core, &filter);
+			if (ret < 0) {
+				dev_err(pdata->dev,
+					"Setting Promiscuous mode failed\n");
+			}
+		} else {
+			dev_warn(pdata->dev,
+				 "Promiscuous mode not supported\n");
 		}
 
 		return;
@@ -3207,6 +3214,19 @@ static int ether_parse_dt(struct ether_priv_data *pdata)
 	if (ret != 0) {
 		dev_err(dev, "setting default PTP clk rate as 312.5MHz\n");
 		pdata->ptp_ref_clock_speed = ETHER_DFLT_PTP_CLK;
+	}
+	/* read promiscuous mode supported or not */
+	ret = of_property_read_u32(np, "nvidia,promisc_mode",
+				   &pdata->promisc_mode);
+	if (ret != 0) {
+		dev_info(dev, "setting default promiscuous mode supported\n");
+		pdata->promisc_mode = OSI_ENABLE;
+	}
+	/* any other invalid promiscuous mode DT value */
+	if (pdata->promisc_mode != OSI_DISABLE &&
+	    pdata->promisc_mode != OSI_ENABLE){
+		dev_info(dev, "Invalid promiscuous mode - setting supported\n");
+		pdata->promisc_mode = OSI_ENABLE;
 	}
 	/* Read Pause frame feature support */
 	ret = of_property_read_u32(np, "nvidia,pause_frames",

@@ -306,6 +306,8 @@ struct ether_priv_data {
 	raw_spinlock_t ptp_lock;
 	/** Clocks enable check */
 	bool clks_enable;
+	/** Promiscuous mode support, configuration in DT */
+	unsigned int promisc_mode;
 	/** Delayed work queue to read RMON counters periodically */
 	struct delayed_work ether_stats_work;
 	/** Flag to check if EEE LPI is enabled for the MAC */
