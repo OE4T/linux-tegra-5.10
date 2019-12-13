@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,25 +20,15 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
+#include <nvgpu/top.h>
+#include <nvgpu/types.h>
 #include <nvgpu/io.h>
 #include <nvgpu/gk20a.h>
+#include "top_gp10b.h"
 
-#include "top_gv11b.h"
+#include <nvgpu/hw/gp10b/hw_top_gp10b.h>
 
-#include <nvgpu/hw/gv11b/hw_top_gv11b.h>
-
-u32 gv11b_top_get_num_lce(struct gk20a *g)
-{
-	u32 reg_val, num_lce;
-
-	reg_val = nvgpu_readl(g, top_num_ces_r());
-	num_lce = top_num_ces_value_v(reg_val);
-	nvgpu_log_info(g, "num LCE: %d", num_lce);
-
-	return num_lce;
-}
-
-int gv11b_device_info_parse_data(struct gk20a *g, u32 table_entry, u32 *inst_id,
+int gp10b_device_info_parse_data(struct gk20a *g, u32 table_entry, u32 *inst_id,
 						u32 *pri_base, u32 *fault_id)
 {
 	if (top_device_info_data_type_v(table_entry) !=

@@ -304,6 +304,7 @@ nvgpu-y += \
 	hal/pramin/pramin_tu104.o \
 	hal/bios/bios_tu104.o \
 	hal/top/top_gp106.o \
+	hal/top/top_gp10b.o \
 	hal/top/top_gv100.o \
 	hal/tpc/tpc_gv11b.o \
 	hal/xve/xve_gp106.o \

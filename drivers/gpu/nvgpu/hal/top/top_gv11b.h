@@ -28,5 +28,8 @@
 struct gk20a;
 
 u32 gv11b_top_get_num_lce(struct gk20a *g);
+int gv11b_device_info_parse_data(struct gk20a *g, u32 table_entry, u32 *inst_id,
+		u32 *pri_base, u32 *fault_id);
+
 
 #endif /* NVGPU_TOP_GV11B_H */

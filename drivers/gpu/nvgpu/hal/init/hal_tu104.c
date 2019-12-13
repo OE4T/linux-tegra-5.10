@@ -1538,7 +1538,7 @@ static const struct gpu_ops tu104_ops = {
 	},
 	.top = {
 		.device_info_parse_enum = gm20b_device_info_parse_enum,
-		.device_info_parse_data = gp10b_device_info_parse_data,
+		.device_info_parse_data = gv11b_device_info_parse_data,
 		.get_num_engine_type_entries =
 					gp10b_get_num_engine_type_entries,
 		.get_device_info = gp10b_get_device_info,

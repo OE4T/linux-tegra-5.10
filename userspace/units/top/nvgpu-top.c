@@ -75,7 +75,7 @@ int test_top_setup(struct unit_module *m, struct gk20a *g, void *args)
 
 	/* Init HAL */
 	g->ops.top.device_info_parse_enum = gm20b_device_info_parse_enum;
-	g->ops.top.device_info_parse_data = gp10b_device_info_parse_data;
+	g->ops.top.device_info_parse_data = gv11b_device_info_parse_data;
 	g->ops.top.get_num_engine_type_entries =
 				gp10b_get_num_engine_type_entries;
 	g->ops.top.get_device_info = gp10b_get_device_info;

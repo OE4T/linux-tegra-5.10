@@ -93,7 +93,6 @@ gp10b_pbdma_get_config_auth_level_privileged
 gp10b_pbdma_get_fc_runlist_timeslice
 gp10b_pbdma_get_signature
 gp10b_ramin_init_pdb
-gp10b_device_info_parse_data
 gp10b_engine_init_ce_info
 gp10b_get_num_engine_type_entries
 gp10b_get_device_info
@@ -112,6 +111,7 @@ gv11b_channel_debug_dump
 gv11b_channel_read_state
 gv11b_channel_reset_faulted
 gv11b_channel_unbind
+gv11b_device_info_parse_data
 gv11b_elcg_init_idle_filters
 gv11b_fb_ecc_free
 gv11b_fb_ecc_init

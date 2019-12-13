@@ -310,6 +310,7 @@ srcs += hal/init/hal_gp10b.c \
 	hal/pmu/pmu_gv11b.c \
 	hal/top/top_gm20b.c \
 	hal/top/top_gp106.c \
+	hal/top/top_gp10b.c \
 	hal/gr/ctxsw_prog/ctxsw_prog_gm20b.c \
 	hal/gr/ctxsw_prog/ctxsw_prog_gp10b.c \
 	hal/gr/ctxsw_prog/ctxsw_prog_gv11b.c
