@@ -235,7 +235,9 @@ int nvgpu_nvhost_syncpt_unit_interface_get_aperture(
  * @return			Sync point offset.
  */
 u32 nvgpu_nvhost_syncpt_unit_interface_get_byte_offset(u32 syncpt_id);
+#ifdef __KERNEL__
 int nvgpu_nvhost_syncpt_init(struct gk20a *g);
+#endif
 #else
 static inline int nvgpu_nvhost_syncpt_unit_interface_get_aperture(
 		struct nvgpu_nvhost_dev *nvgpu_syncpt_dev,
