@@ -43,6 +43,11 @@
  * @{
  */
 
+static inline u32 nvgpu_safe_cast_s32_to_u32(s32 si_a);
+static inline u64 nvgpu_safe_cast_s32_to_u64(s32 si_a);
+static inline u64 nvgpu_safe_cast_s64_to_u64(s64 l_a);
+static inline s64 nvgpu_safe_cast_u64_to_s64(u64 ul_a);
+
 /**
  * @brief Add two u32 values and check for overflow.
  *
@@ -361,7 +366,7 @@ static inline u32 nvgpu_safe_cast_u64_to_u32(u64 ul_a)
  */
 static inline u8 nvgpu_safe_cast_u64_to_u8(u64 ul_a)
 {
-	if (ul_a > UCHAR_MAX) {
+	if (ul_a > nvgpu_safe_cast_s32_to_u64(UCHAR_MAX)) {
 		BUG();
 	} else {
 		return (u8)ul_a;
@@ -380,7 +385,7 @@ static inline u8 nvgpu_safe_cast_u64_to_u8(u64 ul_a)
  */
 static inline u32 nvgpu_safe_cast_s64_to_u32(s64 l_a)
 {
-	if ((l_a < 0) || (l_a > UINT_MAX)) {
+	if ((l_a < 0) || (l_a > nvgpu_safe_cast_u64_to_s64(U64(UINT_MAX)))) {
 		BUG();
 	} else {
 		return (u32)l_a;
@@ -507,7 +512,7 @@ static inline u16 nvgpu_safe_cast_u32_to_u16(u32 ui_a)
  */
 static inline u8 nvgpu_safe_cast_u32_to_u8(u32 ui_a)
 {
-	if (ui_a > UCHAR_MAX) {
+	if (ui_a > nvgpu_safe_cast_s32_to_u32(UCHAR_MAX)) {
 		BUG();
 	} else {
 		return (u8)ui_a;
@@ -526,7 +531,7 @@ static inline u8 nvgpu_safe_cast_u32_to_u8(u32 ui_a)
  */
 static inline s8 nvgpu_safe_cast_u32_to_s8(u32 ui_a)
 {
-	if (ui_a > SCHAR_MAX) {
+	if (ui_a > nvgpu_safe_cast_s32_to_u32(SCHAR_MAX)) {
 		BUG();
 	} else {
 		return (s8)ui_a;
@@ -545,7 +550,7 @@ static inline s8 nvgpu_safe_cast_u32_to_s8(u32 ui_a)
  */
 static inline s32 nvgpu_safe_cast_u32_to_s32(u32 ui_a)
 {
-	if (ui_a > INT_MAX) {
+	if (ui_a > nvgpu_safe_cast_s32_to_u32(INT_MAX)) {
 		BUG();
 	} else {
 		return (s32)ui_a;
@@ -564,7 +569,7 @@ static inline s32 nvgpu_safe_cast_u32_to_s32(u32 ui_a)
  */
 static inline s32 nvgpu_safe_cast_u64_to_s32(u64 ul_a)
 {
-	if (ul_a > INT_MAX) {
+	if (ul_a > nvgpu_safe_cast_s32_to_u64(INT_MAX)) {
 		BUG();
 	} else {
 		return (s32)ul_a;
@@ -584,7 +589,7 @@ static inline s32 nvgpu_safe_cast_u64_to_s32(u64 ul_a)
 static inline s64 nvgpu_safe_cast_u64_to_s64(u64 ul_a)
 {
 NVGPU_COV_WHITELIST(false_positive, NVGPU_MISRA(Rule, 14_3), "Bug 2615925")
-	if (ul_a > LONG_MAX) {
+	if (ul_a > nvgpu_safe_cast_s64_to_u64(LONG_MAX)) {
 		BUG();
 	} else {
 		return (s64)ul_a;
