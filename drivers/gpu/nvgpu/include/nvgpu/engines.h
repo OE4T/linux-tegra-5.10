@@ -226,16 +226,16 @@ u32 nvgpu_ce_engine_interrupt_mask(struct gk20a *g);
  * @brief Get intr mask for the h/w engine id.
  *
  * @param g [in]		The GPU driver struct.
- * @param act_eng_id [in]	H/w Engine id.
+ * @param engine_id [in]	H/w Engine id.
  *
- * Get pointer to #nvgpu_engine_info for the #act_eng_id. Use this to
- * get intr mask for the #act_eng_id.
+ * Get pointer to #nvgpu_engine_info for the #engine_id. Use this to
+ * get intr mask for the #engine_id.
  *
- * @return Intr mask for the #act_eng_id.
+ * @return Intr mask for the #engine_id.
  * @retval 0 if pointer to #nvgpu_engine_info is NULL for the
- *         #act_eng_id.
+ *         #engine_id.
  */
-u32 nvgpu_engine_act_interrupt_mask(struct gk20a *g, u32 act_eng_id);
+u32 nvgpu_engine_act_interrupt_mask(struct gk20a *g, u32 engine_id);
 /**
  * @brief Get engine reset mask for CE engines.
  *
@@ -489,7 +489,7 @@ u32 nvgpu_engine_mmu_fault_id_to_eng_id_and_veid(struct gk20a *g,
  *
  * @param g [in]		The GPU driver struct.
  * @param mmu_fault_id [in]	Mmu fault id.
- * @param act_eng_id [in,out]	Pointer to store active engine id.
+ * @param engine_id [in,out]	Pointer to store active engine id.
  * @param veid [in,out]		Pointer to store veid.
  * @param pbdma_id [in,out]	Pointer to store pbdma id.
  *
@@ -497,8 +497,8 @@ u32 nvgpu_engine_mmu_fault_id_to_eng_id_and_veid(struct gk20a *g,
  * If h/w (active) engine id is not #INVAL_ID, call function to get pbdma id for
  * the engine having fault id as #mmu_fault_id.
  *
- * @return Updated #act_eng_id, #veid and #pbdma_id pointers
+ * @return Updated #engine_id, #veid and #pbdma_id pointers
  */
 void nvgpu_engine_mmu_fault_id_to_eng_ve_pbdma_id(struct gk20a *g,
-	u32 mmu_fault_id, u32 *act_eng_id, u32 *veid, u32 *pbdma_id);
+	u32 mmu_fault_id, u32 *engine_id, u32 *veid, u32 *pbdma_id);
 #endif /*NVGPU_ENGINE_H*/

@@ -38,13 +38,13 @@ bool gv11b_mc_is_intr_hub_pending(struct gk20a *g, u32 mc_intr_0)
 	return ((mc_intr_0 & mc_intr_hub_pending_f()) != 0U);
 }
 
-bool gv11b_mc_is_stall_and_eng_intr_pending(struct gk20a *g, u32 act_eng_id,
+bool gv11b_mc_is_stall_and_eng_intr_pending(struct gk20a *g, u32 engine_id,
 			u32 *eng_intr_pending)
 {
 	u32 mc_intr_0 = nvgpu_readl(g, mc_intr_r(0));
 	u32 stall_intr, eng_intr_mask;
 
-	eng_intr_mask = nvgpu_engine_act_interrupt_mask(g, act_eng_id);
+	eng_intr_mask = nvgpu_engine_act_interrupt_mask(g, engine_id);
 	*eng_intr_pending = mc_intr_0 & eng_intr_mask;
 
 	stall_intr = mc_intr_pfifo_pending_f() |

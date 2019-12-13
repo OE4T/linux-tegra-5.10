@@ -172,7 +172,7 @@ struct gops_mc {
 	 * @brief Check if stalling or engine interrupts are pending.
 	 *
 	 * @param g [in]			The GPU driver struct.
-	 * @param act_eng_id [in]		Active engine id.
+	 * @param engine_id [in]		Active engine id.
 	 * @param eng_intr_pending [out]	Indicates if engine interrupt
 	 *					is pending.
 	 *
@@ -181,7 +181,7 @@ struct gops_mc {
 	 * Steps:
 	 * - Read mc_intr_r(#NVGPU_MC_INTR_STALLING) register to get
 	 *   the interrupts reported.
-	 * - Get the engine interrupt mask corresponding to \a act_eng_id.
+	 * - Get the engine interrupt mask corresponding to \a engine_id.
 	 * - Check if the bits for engine interrupt mask are set in the
 	 *   mc_intr_r(#NVGPU_MC_INTR_STALLING) register by AND'ing values
 	 *   read in above two steps. Store the result in \a eng_intr_pending.
@@ -194,7 +194,7 @@ struct gops_mc {
 	 * @return true if stalling or engine interrupt is pending, else false.
 	 */
 	bool (*is_stall_and_eng_intr_pending)(struct gk20a *g,
-				u32 act_eng_id, u32 *eng_intr_pending);
+				u32 engine_id, u32 *eng_intr_pending);
 
 	/**
 	 * @brief Reset the HW unit/engine.

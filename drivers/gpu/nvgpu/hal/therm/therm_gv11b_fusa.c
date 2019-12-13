@@ -142,7 +142,7 @@ int gv11b_elcg_init_idle_filters(struct gk20a *g)
 {
 	u32 gate_ctrl, idle_filter;
 	u32 i;
-	u32 active_engine_id = 0;
+	u32 engine_id = 0;
 	struct nvgpu_fifo *f = &g->fifo;
 
 	if (nvgpu_platform_is_simulation(g)) {
@@ -152,9 +152,9 @@ int gv11b_elcg_init_idle_filters(struct gk20a *g)
 	nvgpu_log_info(g, "init clock/power gate reg");
 
 	for (i = 0; i < f->num_engines; i++) {
-		active_engine_id = f->active_engines_list[i];
+		engine_id = f->active_engines_list[i];
 
-		gate_ctrl = nvgpu_readl(g, therm_gate_ctrl_r(active_engine_id));
+		gate_ctrl = nvgpu_readl(g, therm_gate_ctrl_r(engine_id));
 		gate_ctrl = set_field(gate_ctrl,
 			therm_gate_ctrl_eng_idle_filt_exp_m(),
 			therm_gate_ctrl_eng_idle_filt_exp__prod_f());
@@ -167,7 +167,7 @@ int gv11b_elcg_init_idle_filters(struct gk20a *g)
 		gate_ctrl = set_field(gate_ctrl,
 				therm_gate_ctrl_eng_delay_after_m(),
 				therm_gate_ctrl_eng_delay_after__prod_f());
-		nvgpu_writel(g, therm_gate_ctrl_r(active_engine_id), gate_ctrl);
+		nvgpu_writel(g, therm_gate_ctrl_r(engine_id), gate_ctrl);
 	}
 
 	idle_filter = nvgpu_readl(g, therm_fecs_idle_filter_r());

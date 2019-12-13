@@ -122,7 +122,7 @@ static void mc_gp10b_isr_stall_secondary_0(struct gk20a *g, u32 mc_intr_0)
 }
 
 static void mc_gp10b_isr_stall_engine(struct gk20a *g,
-			enum nvgpu_fifo_engine engine_enum, u32 act_eng_id)
+			enum nvgpu_fifo_engine engine_enum, u32 engine_id)
 {
 	/* GR Engine */
 	if (engine_enum == NVGPU_ENGINE_GR) {
@@ -138,8 +138,8 @@ static void mc_gp10b_isr_stall_engine(struct gk20a *g,
 			(engine_enum == NVGPU_ENGINE_ASYNC_CE)) &&
 			(g->ops.ce.isr_stall != NULL)) {
 		g->ops.ce.isr_stall(g,
-			g->fifo.engine_info[act_eng_id].inst_id,
-			g->fifo.engine_info[act_eng_id].pri_base);
+			g->fifo.engine_info[engine_id].inst_id,
+			g->fifo.engine_info[engine_id].pri_base);
 	}
 }
 
@@ -183,7 +183,7 @@ void mc_gp10b_isr_stall(struct gk20a *g)
 {
 	u32 mc_intr_0;
 	u32 i;
-	u32 act_eng_id = 0U;
+	u32 engine_id = 0U;
 	enum nvgpu_fifo_engine engine_enum;
 
 	mc_intr_0 = nvgpu_readl(g, mc_intr_r(0));
@@ -191,14 +191,14 @@ void mc_gp10b_isr_stall(struct gk20a *g)
 	nvgpu_log(g, gpu_dbg_intr, "stall intr 0x%08x", mc_intr_0);
 
 	for (i = 0U; i < g->fifo.num_engines; i++) {
-		act_eng_id = g->fifo.active_engines_list[i];
+		engine_id = g->fifo.active_engines_list[i];
 
 		if ((mc_intr_0 &
-			g->fifo.engine_info[act_eng_id].intr_mask) == 0U) {
+			g->fifo.engine_info[engine_id].intr_mask) == 0U) {
 			continue;
 		}
-		engine_enum = g->fifo.engine_info[act_eng_id].engine_enum;
-		mc_gp10b_isr_stall_engine(g, engine_enum, act_eng_id);
+		engine_enum = g->fifo.engine_info[engine_id].engine_enum;
+		mc_gp10b_isr_stall_engine(g, engine_enum, engine_id);
 	}
 
 	mc_gp10b_isr_stall_secondary_0(g, mc_intr_0);

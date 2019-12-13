@@ -231,7 +231,7 @@ int gv11b_fifo_preempt_poll_pbdma(struct gk20a *g, u32 tsgid,
 
 static int fifo_check_eng_intr_pending(struct gk20a *g, u32 id,
 			 u32 eng_stat, u32 ctx_stat, u32 eng_intr_pending,
-			 u32 act_eng_id, u32 *reset_eng_bitmask)
+			 u32 engine_id, u32 *reset_eng_bitmask)
 {
 	int ret = -EBUSY;
 
@@ -239,7 +239,7 @@ static int fifo_check_eng_intr_pending(struct gk20a *g, u32 id,
 		/* Eng save hasn't started yet. Continue polling */
 		if (eng_intr_pending != 0U) {
 			/* if eng intr, stop polling */
-			*reset_eng_bitmask |= BIT32(act_eng_id);
+			*reset_eng_bitmask |= BIT32(engine_id);
 			ret = 0;
 		}
 
@@ -250,7 +250,7 @@ static int fifo_check_eng_intr_pending(struct gk20a *g, u32 id,
 		if (id == fifo_engine_status_id_v(eng_stat)) {
 			if (eng_intr_pending != 0U) {
 				/* preemption will not finish */
-				*reset_eng_bitmask |= BIT32(act_eng_id);
+				*reset_eng_bitmask |= BIT32(engine_id);
 				ret = 0;
 			}
 		} else {
@@ -263,7 +263,7 @@ static int fifo_check_eng_intr_pending(struct gk20a *g, u32 id,
 		if (id == fifo_engine_status_next_id_v(eng_stat)) {
 			if (eng_intr_pending != 0U) {
 				/* preemption will not finish */
-				*reset_eng_bitmask |= BIT32(act_eng_id);
+				*reset_eng_bitmask |= BIT32(engine_id);
 				ret = 0;
 			}
 		} else {
@@ -280,7 +280,7 @@ static int fifo_check_eng_intr_pending(struct gk20a *g, u32 id,
 }
 
 static int gv11b_fifo_preempt_poll_eng(struct gk20a *g, u32 id,
-			 u32 act_eng_id, u32 *reset_eng_bitmask)
+			 u32 engine_id, u32 *reset_eng_bitmask)
 {
 	struct nvgpu_timeout timeout;
 	u32 delay = POLL_DELAY_MIN_US;
@@ -303,7 +303,7 @@ static int gv11b_fifo_preempt_poll_eng(struct gk20a *g, u32 id,
 	ret = -EBUSY;
 
 	nvgpu_log(g, gpu_dbg_info, "wait preempt act engine id: %u",
-			act_eng_id);
+			engine_id);
 	/* Check if ch/tsg has saved off the engine or if ctxsw is hung */
 	do {
 		if (!nvgpu_platform_is_silicon(g)) {
@@ -314,10 +314,10 @@ static int gv11b_fifo_preempt_poll_eng(struct gk20a *g, u32 id,
 			}
 			loop_count++;
 		}
-		eng_stat = nvgpu_readl(g, fifo_engine_status_r(act_eng_id));
+		eng_stat = nvgpu_readl(g, fifo_engine_status_r(engine_id));
 		ctx_stat  = fifo_engine_status_ctx_status_v(eng_stat);
 
-		if (g->ops.mc.is_stall_and_eng_intr_pending(g, act_eng_id,
+		if (g->ops.mc.is_stall_and_eng_intr_pending(g, engine_id,
 					&eng_intr_pending)) {
 		/*
 		 * From h/w team
@@ -353,7 +353,7 @@ static int gv11b_fifo_preempt_poll_eng(struct gk20a *g, u32 id,
 					"preemption might not finish");
 		}
 		ret = fifo_check_eng_intr_pending(g, id, eng_stat, ctx_stat,
-				eng_intr_pending, act_eng_id,
+				eng_intr_pending, engine_id,
 				reset_eng_bitmask);
 		if (ret == 0) {
 			break;
@@ -372,8 +372,8 @@ static int gv11b_fifo_preempt_poll_eng(struct gk20a *g, u32 id,
 		 * 3.The engine hangs during CTXSW.
 		 */
 		nvgpu_err(g, "preempt timeout eng: %u ctx_stat: %u tsgid: %u",
-			act_eng_id, ctx_stat, id);
-		*reset_eng_bitmask |= BIT32(act_eng_id);
+			engine_id, ctx_stat, id);
+		*reset_eng_bitmask |= BIT32(engine_id);
 	}
 
 	return ret;
@@ -387,7 +387,7 @@ int gv11b_fifo_is_preempt_pending(struct gk20a *g, u32 id,
 	unsigned long runlist_served_engines;
 	unsigned long bit;
 	u32 pbdma_id;
-	u32 act_eng_id;
+	u32 engine_id;
 	u32 runlist_id;
 	int err, ret = 0;
 	u32 tsgid;
@@ -417,9 +417,9 @@ int gv11b_fifo_is_preempt_pending(struct gk20a *g, u32 id,
 	f->runlist_info[runlist_id]->reset_eng_bitmask = 0U;
 
 	for_each_set_bit(bit, &runlist_served_engines, f->max_engines) {
-		act_eng_id = U32(bit);
+		engine_id = U32(bit);
 		err = gv11b_fifo_preempt_poll_eng(g,
-			tsgid, act_eng_id,
+			tsgid, engine_id,
 			&f->runlist_info[runlist_id]->reset_eng_bitmask);
 		if (err != 0 && ret == 0) {
 			ret = err;

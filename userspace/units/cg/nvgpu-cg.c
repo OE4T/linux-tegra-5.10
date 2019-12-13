@@ -522,14 +522,14 @@ int test_cg(struct unit_module *m, struct gk20a *g, void *args)
 static int elcg_add_engine_therm_regs(struct gk20a *g)
 {
 	u32 i;
-	u32 active_engine_id = 0;
+	u32 engine_id = 0;
 	struct nvgpu_fifo *f = &g->fifo;
 
 	for (i = 0U; i < f->num_engines; i++) {
-		active_engine_id = f->active_engines_list[i];
+		engine_id = f->active_engines_list[i];
 
 		if (nvgpu_posix_io_add_reg_space(g,
-			therm_gate_ctrl_r(active_engine_id), 0x4) != 0) {
+			therm_gate_ctrl_r(engine_id), 0x4) != 0) {
 			return UNIT_FAIL;
 		}
 	}
@@ -540,28 +540,28 @@ static int elcg_add_engine_therm_regs(struct gk20a *g)
 static void elcg_delete_engine_therm_regs(struct gk20a *g)
 {
 	u32 i;
-	u32 active_engine_id = 0;
+	u32 engine_id = 0;
 	struct nvgpu_fifo *f = &g->fifo;
 
 	for (i = 0U; i < f->num_engines; i++) {
-		active_engine_id = f->active_engines_list[i];
+		engine_id = f->active_engines_list[i];
 
 		nvgpu_posix_io_delete_reg_space(g,
-			therm_gate_ctrl_r(active_engine_id));
+			therm_gate_ctrl_r(engine_id));
 	}
 }
 
 static int verify_elcg_status(struct gk20a *g, u32 cg_mode)
 {
 	u32 i;
-	u32 active_engine_id = 0;
+	u32 engine_id = 0;
 	struct nvgpu_fifo *f = &g->fifo;
 	int err = UNIT_SUCCESS;
 	u32 gate_r;
 
 	for (i = 0; i < f->num_engines; i++) {
-		active_engine_id = f->active_engines_list[i];
-		gate_r = nvgpu_readl(g, therm_gate_ctrl_r(active_engine_id));
+		engine_id = f->active_engines_list[i];
+		gate_r = nvgpu_readl(g, therm_gate_ctrl_r(engine_id));
 
 		if (cg_mode == ELCG_RUN) {
 			if (get_field(gate_r,

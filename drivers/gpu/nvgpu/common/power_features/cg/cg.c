@@ -27,8 +27,8 @@
 
 static void nvgpu_cg_set_mode(struct gk20a *g, u32 cgmode, u32 mode_config)
 {
-	u32 engine_idx;
-	u32 active_engine_id = 0;
+	u32 n;
+	u32 engine_id = 0;
 #ifdef CONFIG_NVGPU_NON_FUSA
 	struct nvgpu_engine_info *engine_info = NULL;
 #endif
@@ -36,27 +36,27 @@ static void nvgpu_cg_set_mode(struct gk20a *g, u32 cgmode, u32 mode_config)
 
 	nvgpu_log_fn(g, " ");
 
-	for (engine_idx = 0; engine_idx < f->num_engines; ++engine_idx) {
-		active_engine_id = f->active_engines_list[engine_idx];
+	for (n = 0; n < f->num_engines; n++) {
+		engine_id = f->active_engines_list[n];
 
 #ifdef CONFIG_NVGPU_NON_FUSA
-		engine_info = &f->engine_info[active_engine_id];
+		engine_info = &f->engine_info[engine_id];
 
 		/* gr_engine supports both BLCG and ELCG */
 		if ((cgmode == BLCG_MODE) && (engine_info->engine_enum ==
 						NVGPU_ENGINE_GR)) {
 			g->ops.therm.init_blcg_mode(g, (u32)mode_config,
-						active_engine_id);
+						engine_id);
 			break;
 		} else
 #endif
 		if (cgmode == ELCG_MODE) {
 			g->ops.therm.init_elcg_mode(g, (u32)mode_config,
-						active_engine_id);
+						engine_id);
 		} else {
 			nvgpu_err(g, "invalid cg mode %d, config %d for "
-							"act_eng_id %d",
-					cgmode, mode_config, active_engine_id);
+							"engine_id %d",
+					cgmode, mode_config, engine_id);
 		}
 	}
 }
