@@ -131,6 +131,7 @@ static int gm20b_ltc_wait_for_invalidate(struct gk20a *g)
  */
 void gm20b_flush_ltc(struct gk20a *g)
 {
+	int err;
 
 	/* Clean... */
 	nvgpu_writel_check(g, ltc_ltcs_ltss_tstg_cmgmt1_r(),
@@ -142,7 +143,8 @@ void gm20b_flush_ltc(struct gk20a *g)
 		ltc_ltcs_ltss_tstg_cmgmt1_clean_evict_first_class_true_f());
 
 	/* Wait on each LTC individually. */
-	if (gm20b_ltc_wait_for_clean(g) != 0) {
+	err = gm20b_ltc_wait_for_clean(g);
+	if (err != 0) {
 		nvgpu_err(g, "gm20b_ltc_wait_for_clean failed");
 	}
 
@@ -155,7 +157,8 @@ void gm20b_flush_ltc(struct gk20a *g)
 	     ltc_ltcs_ltss_tstg_cmgmt0_invalidate_evict_first_class_true_f());
 
 	/* Wait on each LTC individually. */
-	if (gm20b_ltc_wait_for_invalidate(g) != 0) {
+	err = gm20b_ltc_wait_for_invalidate(g);
+	if (err != 0) {
 		nvgpu_err(g, "gm20b_ltc_wait_for_invalidate failed");
 	}
 }

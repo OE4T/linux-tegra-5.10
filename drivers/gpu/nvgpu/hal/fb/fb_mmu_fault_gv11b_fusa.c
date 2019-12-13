@@ -454,6 +454,8 @@ void gv11b_fb_handle_nonreplay_fault_overflow(struct gk20a *g,
 void gv11b_fb_handle_bar2_fault(struct gk20a *g,
 			struct mmu_fault_info *mmufault, u32 fault_status)
 {
+	int err;
+
 	if ((fault_status &
 	     fb_mmu_fault_status_non_replayable_error_m()) != 0U) {
 		if (gv11b_fb_is_fault_buf_enabled(g,
@@ -474,7 +476,10 @@ void gv11b_fb_handle_bar2_fault(struct gk20a *g,
 #endif
 	g->ops.ce.mthd_buffer_fault_in_bar2_fault(g);
 
-	g->ops.bus.bar2_bind(g, &g->mm.bar2.inst_block);
+	err = g->ops.bus.bar2_bind(g, &g->mm.bar2.inst_block);
+	if (err != 0) {
+		nvgpu_err(g, "bar2_bind failed!");
+	}
 
 	if (mmufault->refch != NULL) {
 		nvgpu_channel_put(mmufault->refch);

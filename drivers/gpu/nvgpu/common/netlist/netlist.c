@@ -577,6 +577,8 @@ done:
 
 int nvgpu_netlist_init_ctx_vars(struct gk20a *g)
 {
+	int err;
+
 	if (g->netlist_valid == true) {
 		return 0;
 	}
@@ -588,11 +590,19 @@ int nvgpu_netlist_init_ctx_vars(struct gk20a *g)
 
 #ifdef CONFIG_NVGPU_SIM
 	if (nvgpu_is_enabled(g, NVGPU_IS_FMODEL)) {
-		return nvgpu_init_sim_netlist_ctx_vars(g);
+		err = nvgpu_init_sim_netlist_ctx_vars(g);
+		if (err != 0) {
+			nvgpu_err(g, "nvgpu_init_sim_netlist_ctx_vars failed!");
+		}
+		return err;
 	} else
 #endif
 	{
-		return nvgpu_netlist_init_ctx_vars_fw(g);
+		err = nvgpu_netlist_init_ctx_vars_fw(g);
+		if (err != 0) {
+			nvgpu_err(g, "nvgpu_netlist_init_ctx_vars_fw failed!");
+		}
+		return err;
 	}
 }
 

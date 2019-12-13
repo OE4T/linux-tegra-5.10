@@ -211,12 +211,14 @@ bool nvgpu_worker_should_stop(struct nvgpu_worker *worker)
 int nvgpu_worker_enqueue(struct nvgpu_worker *worker,
 		struct nvgpu_list_node *work_item)
 {
+	int err;
 	struct gk20a *g = worker->g;
 
 	/*
 	 * Warn if worker thread cannot run
 	 */
-	if (nvgpu_worker_start(worker) != 0) {
+	err = nvgpu_worker_start(worker);
+	if (err != 0) {
 		nvgpu_do_assert_print(g, "nvgpu_worker %s cannot run!",
 			worker->thread_name);
 		return -1;

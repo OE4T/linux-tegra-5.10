@@ -255,14 +255,21 @@ static int gm20b_fb_vpr_info_fetch_wait(struct gk20a *g,
 
 int gm20b_fb_vpr_info_fetch(struct gk20a *g)
 {
-	if (gm20b_fb_vpr_info_fetch_wait(g, VPR_INFO_FETCH_WAIT) != 0) {
-		return -ETIMEDOUT;
+	int err;
+
+	err = gm20b_fb_vpr_info_fetch_wait(g, VPR_INFO_FETCH_WAIT);
+	if (err != 0) {
+		return err;
 	}
 
 	gk20a_writel(g, fb_mmu_vpr_info_r(),
 			fb_mmu_vpr_info_fetch_true_v());
 
-	return gm20b_fb_vpr_info_fetch_wait(g, VPR_INFO_FETCH_WAIT);
+	err = gm20b_fb_vpr_info_fetch_wait(g, VPR_INFO_FETCH_WAIT);
+	if (err != 0) {
+		nvgpu_err(g, "gm20b_fb_vpr_info_fetch_wait failed!");
+	}
+	return err;
 }
 
 void gm20b_fb_read_wpr_info(struct gk20a *g, u64 *wpr_base, u64 *wpr_size)
