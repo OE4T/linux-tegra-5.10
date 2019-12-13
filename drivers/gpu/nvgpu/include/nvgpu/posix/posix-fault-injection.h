@@ -49,7 +49,6 @@ struct nvgpu_posix_fault_inj_container {
 	struct nvgpu_posix_fault_inj timers_fi;
 
 	/* qnx */
-	struct nvgpu_posix_fault_inj nvgpu_nvrmread_fi;
 	struct nvgpu_posix_fault_inj sdl_nvguard_fi;
 	struct nvgpu_posix_fault_inj clock_gettime_fi;
 	struct nvgpu_posix_fault_inj chip_id;
