@@ -60,8 +60,7 @@
  */
 static inline u32 u64_hi32(u64 n)
 {
-	return nvgpu_safe_cast_u64_to_u32(nvgpu_safe_cast_u64_to_u32(n >> 32)
-					  & ~(u32)0);
+	return nvgpu_safe_cast_u64_to_u32(n >> 32);
 }
 
 /**

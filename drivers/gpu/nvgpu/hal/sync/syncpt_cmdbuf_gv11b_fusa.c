@@ -38,7 +38,7 @@ static int set_syncpt_ro_map_gpu_va_locked(struct vm_gk20a *vm)
 {
 	struct gk20a *g = gk20a_from_vm(vm);
 
-	if (vm->syncpt_ro_map_gpu_va) {
+	if (vm->syncpt_ro_map_gpu_va != 0ULL) {
 		return 0;
 	}
 
@@ -47,7 +47,7 @@ static int set_syncpt_ro_map_gpu_va_locked(struct vm_gk20a *vm)
 			0, gk20a_mem_flag_read_only,
 			false, APERTURE_SYSMEM);
 
-	if (!vm->syncpt_ro_map_gpu_va) {
+	if (vm->syncpt_ro_map_gpu_va == 0ULL) {
 		nvgpu_err(g, "failed to ro map syncpt buffer");
 		return -ENOMEM;
 	}
@@ -88,7 +88,7 @@ int gv11b_syncpt_alloc_buf(struct nvgpu_channel *c,
 			g->syncpt_size, 0, gk20a_mem_flag_none,
 			false, APERTURE_SYSMEM);
 
-	if (!syncpt_buf->gpu_va) {
+	if (syncpt_buf->gpu_va == 0ULL) {
 		nvgpu_err(g, "failed to map syncpt buffer");
 		nvgpu_dma_free(g, syncpt_buf);
 		err = -ENOMEM;

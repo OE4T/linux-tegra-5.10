@@ -35,18 +35,21 @@
 
 u64 gp10b_determine_L2_size_bytes(struct gk20a *g)
 {
-	u32 tmp;
+	u32 reg_val;
+	u32 slice_size;
+	u32 slices_per_l2;
 	u64 ret;
 
 	nvgpu_log_fn(g, " ");
 
-	tmp = gk20a_readl(g, ltc_ltc0_lts0_tstg_info_1_r());
+	reg_val = gk20a_readl(g, ltc_ltc0_lts0_tstg_info_1_r());
+	slice_size = ltc_ltc0_lts0_tstg_info_1_slice_size_in_kb_v(reg_val);
+	slices_per_l2 = ltc_ltc0_lts0_tstg_info_1_slices_per_l2_v(reg_val);
 
 	ret = nvgpu_safe_mult_u64(g->ltc->ltc_count,
-		nvgpu_safe_mult_u64(
 			nvgpu_safe_mult_u64(
-			ltc_ltc0_lts0_tstg_info_1_slice_size_in_kb_v(tmp), 1024U),
-			ltc_ltc0_lts0_tstg_info_1_slices_per_l2_v(tmp)));
+				nvgpu_safe_mult_u64(U64(slice_size), 1024ULL),
+				U64(slices_per_l2)));
 
 	nvgpu_log(g, gpu_dbg_info, "L2 size: %llu\n", ret);
 

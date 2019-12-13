@@ -401,7 +401,7 @@ nvgpu_channel_sync_syncpt_create(struct nvgpu_channel *c, bool user_managed)
 						c->chid, syncpt_name);
 	}
 #endif
-	if (sp->id == 0) {
+	if (sp->id == 0U) {
 		nvgpu_kfree(c->g, sp);
 		nvgpu_err(c->g, "failed to get free syncpt");
 		return NULL;
