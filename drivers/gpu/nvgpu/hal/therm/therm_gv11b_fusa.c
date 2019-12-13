@@ -141,7 +141,7 @@ void gv11b_therm_init_elcg_mode(struct gk20a *g, u32 mode, u32 engine)
 int gv11b_elcg_init_idle_filters(struct gk20a *g)
 {
 	u32 gate_ctrl, idle_filter;
-	u32 engine_id;
+	u32 i;
 	u32 active_engine_id = 0;
 	struct nvgpu_fifo *f = &g->fifo;
 
@@ -151,8 +151,8 @@ int gv11b_elcg_init_idle_filters(struct gk20a *g)
 
 	nvgpu_log_info(g, "init clock/power gate reg");
 
-	for (engine_id = 0; engine_id < f->num_engines; engine_id++) {
-		active_engine_id = f->active_engines_list[engine_id];
+	for (i = 0; i < f->num_engines; i++) {
+		active_engine_id = f->active_engines_list[i];
 
 		gate_ctrl = nvgpu_readl(g, therm_gate_ctrl_r(active_engine_id));
 		gate_ctrl = set_field(gate_ctrl,

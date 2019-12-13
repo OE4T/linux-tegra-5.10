@@ -521,12 +521,12 @@ int test_cg(struct unit_module *m, struct gk20a *g, void *args)
 
 static int elcg_add_engine_therm_regs(struct gk20a *g)
 {
-	u32 engine_idx;
+	u32 i;
 	u32 active_engine_id = 0;
 	struct nvgpu_fifo *f = &g->fifo;
 
-	for (engine_idx = 0; engine_idx < f->num_engines; ++engine_idx) {
-		active_engine_id = f->active_engines_list[engine_idx];
+	for (i = 0U; i < f->num_engines; i++) {
+		active_engine_id = f->active_engines_list[i];
 
 		if (nvgpu_posix_io_add_reg_space(g,
 			therm_gate_ctrl_r(active_engine_id), 0x4) != 0) {
@@ -539,12 +539,12 @@ static int elcg_add_engine_therm_regs(struct gk20a *g)
 
 static void elcg_delete_engine_therm_regs(struct gk20a *g)
 {
-	u32 engine_idx;
+	u32 i;
 	u32 active_engine_id = 0;
 	struct nvgpu_fifo *f = &g->fifo;
 
-	for (engine_idx = 0; engine_idx < f->num_engines; ++engine_idx) {
-		active_engine_id = f->active_engines_list[engine_idx];
+	for (i = 0U; i < f->num_engines; i++) {
+		active_engine_id = f->active_engines_list[i];
 
 		nvgpu_posix_io_delete_reg_space(g,
 			therm_gate_ctrl_r(active_engine_id));
@@ -553,14 +553,14 @@ static void elcg_delete_engine_therm_regs(struct gk20a *g)
 
 static int verify_elcg_status(struct gk20a *g, u32 cg_mode)
 {
-	u32 engine_idx;
+	u32 i;
 	u32 active_engine_id = 0;
 	struct nvgpu_fifo *f = &g->fifo;
 	int err = UNIT_SUCCESS;
 	u32 gate_r;
 
-	for (engine_idx = 0; engine_idx < f->num_engines; ++engine_idx) {
-		active_engine_id = f->active_engines_list[engine_idx];
+	for (i = 0; i < f->num_engines; i++) {
+		active_engine_id = f->active_engines_list[i];
 		gate_r = nvgpu_readl(g, therm_gate_ctrl_r(active_engine_id));
 
 		if (cg_mode == ELCG_RUN) {

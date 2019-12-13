@@ -65,7 +65,7 @@ u32 gm20b_mc_isr_nonstall(struct gk20a *g)
 {
 	u32 ops = 0U;
 	u32 mc_intr_1;
-	u32 eng_id;
+	u32 i;
 	u32 act_eng_id = 0U;
 	enum nvgpu_fifo_engine engine_enum;
 
@@ -75,10 +75,10 @@ u32 gm20b_mc_isr_nonstall(struct gk20a *g)
 		ops |= g->ops.fifo.intr_1_isr(g);
 	}
 
-	for (eng_id = 0U; eng_id < g->fifo.num_engines; eng_id++) {
+	for (i = 0U; i < g->fifo.num_engines; i++) {
 		struct nvgpu_engine_info *engine_info;
 
-		act_eng_id = g->fifo.active_engines_list[eng_id];
+		act_eng_id = g->fifo.active_engines_list[i];
 		engine_info = &g->fifo.engine_info[act_eng_id];
 
 		if ((mc_intr_1 & engine_info->intr_mask) != 0U) {
