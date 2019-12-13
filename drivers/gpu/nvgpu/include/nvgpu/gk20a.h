@@ -789,7 +789,7 @@ struct gk20a {
 	bool aggressive_sync_destroy;
 
 	/** Debugfs knob for forcing syncpt support off in runtime. */
-	u32 disable_syncpoints;
+	bool disable_syncpoints;
 
 	/** Is LS PMU supported? */
 	bool support_ls_pmu;
