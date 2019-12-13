@@ -46,7 +46,7 @@ struct unit_module;
  * - init FIFO register space.
  * - init HAL parameters for gv11b.
  * - init required for getting the sync ops initialized.
- * - init g->nvhost_dev containing sync metadata.
+ * - init g->nvhost containing sync metadata.
  * - alloc memory for g->syncpt_mem.
  * - alloc memory for channel.
  * - alloc and init a VM for the channel.
@@ -68,7 +68,7 @@ int test_sync_init(struct unit_module *m, struct gk20a *g, void *args);
  * - put reference to VM put.
  * - free channel memory.
  * - free memory for g->syncpt_mem.
- * - free g->nvhost_dev.
+ * - free g->nvhost.
  * - clear FIFO register space.
  *
  * Output: Returns PASS if all the above steps are successful. FAIL otherwise.

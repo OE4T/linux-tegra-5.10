@@ -32,9 +32,9 @@ static inline u32 nvgpu_nvhost_syncpt_nb_hw_pts(
 
 void nvgpu_free_nvhost_dev(struct gk20a *g) {
 
-	if (g->nvhost_dev != NULL) {
-		nvgpu_kfree(g, g->nvhost_dev);
-		g->nvhost_dev = NULL;
+	if (g->nvhost != NULL) {
+		nvgpu_kfree(g, g->nvhost);
+		g->nvhost = NULL;
 	}
 }
 
@@ -56,16 +56,16 @@ static void allocate_new_syncpt(struct nvgpu_nvhost_dev *nvgpu_syncpt_dev)
 int nvgpu_get_nvhost_dev(struct gk20a *g)
 {
 	int ret = 0;
-	g->nvhost_dev = nvgpu_kzalloc(g, sizeof(struct nvgpu_nvhost_dev));
-	if (g->nvhost_dev == NULL) {
+	g->nvhost = nvgpu_kzalloc(g, sizeof(struct nvgpu_nvhost_dev));
+	if (g->nvhost == NULL) {
 		return -ENOMEM;
 	}
 
-	g->nvhost_dev->host1x_sp_base = 0x60000000;
-	g->nvhost_dev->host1x_sp_size = 0x4000;
-	g->nvhost_dev->nb_hw_pts = 704U;
+	g->nvhost->host1x_sp_base = 0x60000000;
+	g->nvhost->host1x_sp_size = 0x4000;
+	g->nvhost->nb_hw_pts = 704U;
 	ret = nvgpu_nvhost_syncpt_unit_interface_get_aperture(
-				g->nvhost_dev, &g->syncpt_unit_base,
+				g->nvhost, &g->syncpt_unit_base,
 				&g->syncpt_unit_size);
 	if (ret != 0) {
 		nvgpu_err(g, "Failed to get syncpt interface");

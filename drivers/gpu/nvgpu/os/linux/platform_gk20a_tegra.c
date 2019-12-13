@@ -588,8 +588,8 @@ void gk20a_tegra_debug_dump(struct device *dev)
 	struct gk20a_platform *platform = gk20a_get_platform(dev);
 	struct gk20a *g = platform->g;
 
-	if (g->nvhost_dev)
-		nvgpu_nvhost_debug_dump_device(g->nvhost_dev);
+	if (g->nvhost)
+		nvgpu_nvhost_debug_dump_device(g->nvhost);
 #endif
 }
 
@@ -599,8 +599,8 @@ int gk20a_tegra_busy(struct device *dev)
 	struct gk20a_platform *platform = gk20a_get_platform(dev);
 	struct gk20a *g = platform->g;
 
-	if (g->nvhost_dev)
-		return nvgpu_nvhost_module_busy_ext(g->nvhost_dev);
+	if (g->nvhost)
+		return nvgpu_nvhost_module_busy_ext(g->nvhost);
 #endif
 	return 0;
 }
@@ -611,8 +611,8 @@ void gk20a_tegra_idle(struct device *dev)
 	struct gk20a_platform *platform = gk20a_get_platform(dev);
 	struct gk20a *g = platform->g;
 
-	if (g->nvhost_dev)
-		nvgpu_nvhost_module_idle_ext(g->nvhost_dev);
+	if (g->nvhost)
+		nvgpu_nvhost_module_idle_ext(g->nvhost);
 #endif
 }
 

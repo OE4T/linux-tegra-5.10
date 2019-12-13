@@ -664,7 +664,7 @@ struct gk20a {
 	 * have had the opportunity to free their private data.
 	 */
 	void (*gfree)(struct gk20a *g);
-	struct nvgpu_nvhost_dev *nvhost_dev;
+	struct nvgpu_nvhost_dev *nvhost;
 
 	/**
 	 * Used by <nvgpu/enabled.h>. Do not access directly!

@@ -135,7 +135,7 @@ int test_sync_init(struct unit_module *m, struct gk20a *g, void *args)
 	}
 
 	/*
-	 * Init g->nvhost_dev containing sync metadata
+	 * Init g->nvhost containing sync metadata
 	 */
 	ret = nvgpu_get_nvhost_dev(g);
 	if (ret != 0) {
@@ -201,13 +201,13 @@ int test_sync_create_destroy_sync(struct unit_module *m, struct gk20a *g, void *
 			unit_return_fail(m, "unexpected failure in creating sync points");
 		}
 
-		syncpt_value = g->nvhost_dev->syncpt_value;
+		syncpt_value = g->nvhost->syncpt_value;
 
 		unit_info(m, "Syncpt ID: %u, Syncpt Value: %u\n",
-			g->nvhost_dev->syncpt_id, syncpt_value);
+			g->nvhost->syncpt_id, syncpt_value);
 
-		assert((g->nvhost_dev->syncpt_id > 0U) &&
-			(g->nvhost_dev->syncpt_id <= NUM_HW_PTS));
+		assert((g->nvhost->syncpt_id > 0U) &&
+			(g->nvhost->syncpt_id <= NUM_HW_PTS));
 
 		assert(syncpt_value < (UINT_MAX - SYNCPT_SAFE_STATE_INCR));
 
@@ -252,8 +252,8 @@ int test_sync_set_safe_state(struct unit_module *m, struct gk20a *g, void *args)
 		unit_return_fail(m, "unexpected failure in creating sync points");
 	}
 
-	syncpt_id = g->nvhost_dev->syncpt_id;
-	syncpt_value = g->nvhost_dev->syncpt_value;
+	syncpt_id = g->nvhost->syncpt_id;
+	syncpt_value = g->nvhost->syncpt_value;
 
 	unit_info(m, "Syncpt ID: %u, Syncpt Value: %u\n",
 		syncpt_id, syncpt_value);
@@ -264,7 +264,7 @@ int test_sync_set_safe_state(struct unit_module *m, struct gk20a *g, void *args)
 
 	nvgpu_channel_sync_set_safe_state(sync);
 
-	syncpt_safe_state_val = g->nvhost_dev->syncpt_value;
+	syncpt_safe_state_val = g->nvhost->syncpt_value;
 
 	if ((syncpt_safe_state_val - syncpt_value) != SYNCPT_SAFE_STATE_INCR) {
 		unit_return_fail(m, "unexpected increment value for safe state");
@@ -366,7 +366,7 @@ static void clear_test_params(struct gk20a *g, bool *user_managed,
 	}
 
 	if (branch == F_SYNC_NVHOST_CLIENT_MANAGED_FAIL) {
-		g->nvhost_dev->syncpt_id = 1U;
+		g->nvhost->syncpt_id = 1U;
 	}
 
 	if (ch->vm->syncpt_ro_map_gpu_va) {
@@ -395,7 +395,7 @@ int test_sync_create_fail(struct unit_module *m, struct gk20a *g, void *args)
 		 * This is normally not cleared when a syncpt's last ref
 		 * is removed. Hence, explicitely zero it after every failure
 		 */
-		g->nvhost_dev->syncpt_id = 0U;
+		g->nvhost->syncpt_id = 0U;
 
 		if (branches == F_SYNC_GLOBAL_DISABLE_SYNCPT) {
 			g->disable_syncpoints = true;
@@ -406,7 +406,7 @@ int test_sync_create_fail(struct unit_module *m, struct gk20a *g, void *args)
 		} else if (branches == F_SYNC_USER_MANAGED) {
 			user_managed = false;
 		} else if (branches == F_SYNC_NVHOST_CLIENT_MANAGED_FAIL) {
-			g->nvhost_dev->syncpt_id = 20U; /* arbitary id */
+			g->nvhost->syncpt_id = 20U; /* arbitary id */
 		} else if (branches == F_SYNC_RO_MAP_GPU_VA_MAP_FAIL) {
 			/* fail Read-Only nvgpu_gmmu_map of g->syncpt_mem */
 			ch->vm->guest_managed = true;
@@ -439,8 +439,8 @@ int test_sync_create_fail(struct unit_module *m, struct gk20a *g, void *args)
 			unit_return_fail(m, "expected failure in creating sync points");
 		}
 
-		syncpt_id = g->nvhost_dev->syncpt_id;
-		syncpt_value = g->nvhost_dev->syncpt_value;
+		syncpt_id = g->nvhost->syncpt_id;
+		syncpt_value = g->nvhost->syncpt_value;
 
 		assert(syncpt_id == 0U);
 		assert(syncpt_value == 0U);
@@ -470,7 +470,7 @@ int test_sync_deinit(struct unit_module *m, struct gk20a *g, void *args)
 
 	de_init_syncpt_mem(m, g);
 
-	if (g->nvhost_dev == NULL) {
+	if (g->nvhost == NULL) {
 		unit_return_fail(m ,"no valid nvhost device exists\n");
 	}
 

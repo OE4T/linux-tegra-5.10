@@ -58,7 +58,7 @@ static int gv11b_vgpu_probe(struct device *dev)
 		return ret;
 	}
 
-	ret = nvgpu_nvhost_syncpt_unit_interface_get_aperture(g->nvhost_dev,
+	ret = nvgpu_nvhost_syncpt_unit_interface_get_aperture(g->nvhost,
 							&g->syncpt_unit_base,
 							&g->syncpt_unit_size);
 	if (ret) {

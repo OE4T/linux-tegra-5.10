@@ -53,18 +53,18 @@ int nvgpu_get_nvhost_dev(struct gk20a *g)
 		return 0;
 	}
 
-	g->nvhost_dev = nvgpu_kzalloc(g, sizeof(struct nvgpu_nvhost_dev));
-	if (!g->nvhost_dev)
+	g->nvhost = nvgpu_kzalloc(g, sizeof(struct nvgpu_nvhost_dev));
+	if (!g->nvhost)
 		return -ENOMEM;
 
-	g->nvhost_dev->host1x_pdev = host1x_pdev;
+	g->nvhost->host1x_pdev = host1x_pdev;
 
 	return 0;
 }
 
 void nvgpu_free_nvhost_dev(struct gk20a *g)
 {
-	nvgpu_kfree(g, g->nvhost_dev);
+	nvgpu_kfree(g, g->nvhost);
 }
 
 int nvgpu_nvhost_module_busy_ext(
@@ -191,9 +191,9 @@ int nvgpu_nvhost_create_symlink(struct gk20a *g)
 	struct device *dev = dev_from_gk20a(g);
 	int err = 0;
 
-	if (g->nvhost_dev &&
-			(dev->parent != &g->nvhost_dev->host1x_pdev->dev)) {
-		err = sysfs_create_link(&g->nvhost_dev->host1x_pdev->dev.kobj,
+	if (g->nvhost &&
+			(dev->parent != &g->nvhost->host1x_pdev->dev)) {
+		err = sysfs_create_link(&g->nvhost->host1x_pdev->dev.kobj,
 				&dev->kobj,
 				dev_name(dev));
 	}
@@ -205,9 +205,9 @@ void nvgpu_nvhost_remove_symlink(struct gk20a *g)
 {
 	struct device *dev = dev_from_gk20a(g);
 
-	if (g->nvhost_dev &&
-			(dev->parent != &g->nvhost_dev->host1x_pdev->dev)) {
-		sysfs_remove_link(&g->nvhost_dev->host1x_pdev->dev.kobj,
+	if (g->nvhost &&
+			(dev->parent != &g->nvhost->host1x_pdev->dev)) {
+		sysfs_remove_link(&g->nvhost->host1x_pdev->dev.kobj,
 				  dev_name(dev));
 	}
 }
@@ -275,7 +275,7 @@ int nvgpu_nvhost_syncpt_init(struct gk20a *g)
 	}
 
 	err = nvgpu_nvhost_syncpt_unit_interface_get_aperture(
-			g->nvhost_dev,
+			g->nvhost,
 			&g->syncpt_unit_base,
 			&g->syncpt_unit_size);
 	if (err) {

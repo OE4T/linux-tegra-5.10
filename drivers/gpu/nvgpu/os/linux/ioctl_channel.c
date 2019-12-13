@@ -1070,7 +1070,7 @@ static int nvgpu_ioctl_channel_get_user_syncpoint(struct nvgpu_channel *ch,
 	}
 
 	args->syncpoint_id = nvgpu_channel_sync_get_syncpt_id(user_sync_syncpt);
-	args->syncpoint_max = nvgpu_nvhost_syncpt_read_maxval(g->nvhost_dev,
+	args->syncpoint_max = nvgpu_nvhost_syncpt_read_maxval(g->nvhost,
 						args->syncpoint_id);
 	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_SYNCPOINT_ADDRESS)) {
 		args->gpu_va =
