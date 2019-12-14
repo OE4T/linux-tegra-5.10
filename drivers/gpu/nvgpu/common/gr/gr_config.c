@@ -146,9 +146,12 @@ static void gr_config_log_info(struct gk20a *g,
 static void gr_config_set_gpc_mask(struct gk20a *g,
 					struct nvgpu_gr_config *config)
 {
+#ifdef CONFIG_NVGPU_DGPU
 	if (g->ops.gr.config.get_gpc_mask != NULL) {
 		config->gpc_mask = g->ops.gr.config.get_gpc_mask(g, config);
-	} else {
+	} else
+#endif
+	{
 		config->gpc_mask = nvgpu_safe_sub_u32(BIT32(config->gpc_count),
 								1U);
 	}
@@ -203,14 +206,10 @@ static bool gr_config_alloc_struct_mem(struct gk20a *g,
 	/* allocate for max tpc per gpc */
 	sm_info_size = nvgpu_safe_mult_u64((size_t)total_gpc_cnt, sm_size);
 
+	config->sm_to_cluster = nvgpu_kzalloc(g, sm_info_size);
 	if (config->sm_to_cluster == NULL) {
-		config->sm_to_cluster = nvgpu_kzalloc(g, sm_info_size);
-		if (config->sm_to_cluster == NULL) {
-			nvgpu_err(g, "sm_to_cluster == NULL");
-			goto alloc_err;
-		}
-	} else {
-		(void) memset(config->sm_to_cluster, 0, sm_info_size);
+		nvgpu_err(g, "sm_to_cluster == NULL");
+		goto alloc_err;
 	}
 	config->no_of_sm = 0;
 
@@ -248,6 +247,9 @@ static bool gr_config_alloc_struct_mem(struct gk20a *g,
 	return true;
 
 clean_alloc_mem:
+	nvgpu_kfree(g, config->sm_to_cluster);
+	config->sm_to_cluster = NULL;
+
 	gr_config_free_mem(g, config);
 
 alloc_err:
@@ -293,7 +295,7 @@ struct nvgpu_gr_config *nvgpu_gr_config_init(struct gk20a *g)
 	}
 
 	if (gr_config_alloc_struct_mem(g, config) == false) {
-		goto clean_up_alloc;
+		goto clean_up_init;
 	}
 
 	for (gpc_index = 0; gpc_index < config->max_gpc_count; gpc_index++) {
@@ -332,8 +334,6 @@ struct nvgpu_gr_config *nvgpu_gr_config_init(struct gk20a *g)
 	gr_config_log_info(g, config);
 	return config;
 
-clean_up_alloc:
-	gr_config_free_mem(g, config);
 clean_up_init:
 	nvgpu_kfree(g, config);
 	return NULL;
