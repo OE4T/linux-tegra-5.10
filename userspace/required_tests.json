@@ -1860,6 +1860,18 @@
         "test_level": 0
     },
     {
+        "test": "test_gr_init_setup",
+        "case": "gr_init_setup",
+        "unit": "nvgpu_gr_config",
+        "test_level": 0
+    },
+    {
+        "test": "test_gr_config_init",
+        "case": "config_init",
+        "unit": "nvgpu_gr_config",
+        "test_level": 0
+    },
+    {
         "test": "test_gr_config_count",
         "case": "config_check_init",
         "unit": "nvgpu_gr_config",
@@ -1872,20 +1884,14 @@
         "test_level": 0
     },
     {
+        "test": "test_gr_config_error_injection",
+        "case": "config_error_injection",
+        "unit": "nvgpu_gr_config",
+        "test_level": 0
+    },
+    {
         "test": "test_gr_config_deinit",
         "case": "config_deinit",
-        "unit": "nvgpu_gr_config",
-        "test_level": 0
-    },
-    {
-        "test": "test_gr_config_init",
-        "case": "config_init",
-        "unit": "nvgpu_gr_config",
-        "test_level": 0
-    },
-    {
-        "test": "test_gr_init_setup",
-        "case": "gr_init_setup",
         "unit": "nvgpu_gr_config",
         "test_level": 0
     },
@@ -2022,26 +2028,14 @@
         "test_level": 0
     },
     {
+        "test": "test_gr_init_setup_ready",
+        "case": "gr_setup_setup",
+        "unit": "nvgpu_gr_setup",
+        "test_level": 0
+    },
+    {
         "test": "test_gr_setup_alloc_obj_ctx",
         "case": "gr_setup_alloc_obj_ctx",
-        "unit": "nvgpu_gr_setup",
-        "test_level": 0
-    },
-    {
-        "test": "test_gr_init_setup_cleanup",
-        "case": "gr_setup_cleanup",
-        "unit": "nvgpu_gr_setup",
-        "test_level": 0
-    },
-    {
-        "test": "test_gr_setup_free_obj_ctx",
-        "case": "gr_setup_free_obj_ctx",
-        "unit": "nvgpu_gr_setup",
-        "test_level": 0
-    },
-    {
-        "test": "test_gr_setup_preemption_mode_errors",
-        "case": "gr_setup_preemption_mode_errors",
         "unit": "nvgpu_gr_setup",
         "test_level": 0
     },
@@ -2052,8 +2046,26 @@
         "test_level": 0
     },
     {
-        "test": "test_gr_init_setup_ready",
-        "case": "gr_setup_setup",
+        "test": "test_gr_setup_preemption_mode_errors",
+        "case": "gr_setup_preemption_mode_errors",
+        "unit": "nvgpu_gr_setup",
+        "test_level": 0
+    },
+    {
+        "test": "test_gr_setup_free_obj_ctx",
+        "case": "gr_setup_free_obj_ctx",
+        "unit": "nvgpu_gr_setup",
+        "test_level": 0
+    },
+    {
+        "test": "test_gr_setup_alloc_obj_ctx_error_injections",
+        "case": "gr_setup_alloc_obj_ctx_error_injections",
+        "unit": "nvgpu_gr_setup",
+        "test_level": 0
+    },
+    {
+        "test": "test_gr_init_setup_cleanup",
+        "case": "gr_setup_cleanup",
         "unit": "nvgpu_gr_setup",
         "test_level": 0
     },
