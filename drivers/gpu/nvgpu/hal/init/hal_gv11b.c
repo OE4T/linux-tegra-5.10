@@ -63,8 +63,10 @@
 #include "hal/priv_ring/priv_ring_gp10b.h"
 #include "hal/gr/config/gr_config_gv100.h"
 #include "hal/power_features/cg/gv11b_gating_reglist.h"
+#ifdef CONFIG_NVGPU_COMPRESSION
 #include "hal/cbc/cbc_gp10b.h"
 #include "hal/cbc/cbc_gv11b.h"
+#endif
 #include "hal/ce/ce_gp10b.h"
 #include "hal/therm/therm_gm20b.h"
 #include "hal/therm/therm_gv11b.h"
@@ -82,7 +84,9 @@
 #include "hal/fuse/fuse_gp10b.h"
 #include "hal/ptimer/ptimer_gk20a.h"
 #include "hal/ptimer/ptimer_gp10b.h"
+#ifdef CONFIG_NVGPU_DEBUGGER
 #include "hal/regops/regops_gv11b.h"
+#endif
 #ifdef CONFIG_NVGPU_RECOVERY
 #include "hal/rc/rc_gv11b.h"
 #endif
@@ -114,8 +118,10 @@
 #include "hal/fifo/fifo_intr_gv11b.h"
 #include "hal/fifo/ctxsw_timeout_gv11b.h"
 #include "hal/gr/ecc/ecc_gv11b.h"
+#ifdef CONFIG_NVGPU_FECS_TRACE
 #include "hal/gr/fecs_trace/fecs_trace_gm20b.h"
 #include "hal/gr/fecs_trace/fecs_trace_gv11b.h"
+#endif
 #include "hal/gr/falcon/gr_falcon_gm20b.h"
 #include "hal/gr/falcon/gr_falcon_gp10b.h"
 #include "hal/gr/falcon/gr_falcon_gv11b.h"
@@ -131,15 +137,19 @@
 #include "hal/gr/init/gr_init_gv11b.h"
 #include "hal/gr/intr/gr_intr_gm20b.h"
 #include "hal/gr/intr/gr_intr_gv11b.h"
+#ifdef CONFIG_NVGPU_DEBUGGER
 #include "hal/gr/hwpm_map/hwpm_map_gv100.h"
+#endif
 #include "hal/gr/ctxsw_prog/ctxsw_prog_gm20b.h"
 #include "hal/gr/ctxsw_prog/ctxsw_prog_gp10b.h"
 #include "hal/gr/ctxsw_prog/ctxsw_prog_gv11b.h"
+#ifdef CONFIG_NVGPU_DEBUGGER
 #include "hal/gr/gr/gr_gk20a.h"
 #include "hal/gr/gr/gr_gm20b.h"
 #include "hal/gr/gr/gr_gp10b.h"
 #include "hal/gr/gr/gr_gv100.h"
 #include "hal/gr/gr/gr_gv11b.h"
+#endif
 #include "hal/pmu/pmu_gk20a.h"
 #ifdef CONFIG_NVGPU_LS_PMU
 #include "hal/pmu/pmu_gm20b.h"
@@ -148,7 +158,9 @@
 #include "hal/sync/syncpt_cmdbuf_gv11b.h"
 #include "hal/sync/sema_cmdbuf_gv11b.h"
 #include "hal/falcon/falcon_gk20a.h"
+#ifdef CONFIG_NVGPU_DEBUGGER
 #include "hal/perf/perf_gv11b.h"
+#endif
 #include "hal/netlist/netlist_gv11b.h"
 #include "hal/top/top_gm20b.h"
 #include "hal/top/top_gp10b.h"
@@ -159,12 +171,18 @@
 #include "common/pmu/pg/pg_sw_gp106.h"
 #include "common/pmu/pg/pg_sw_gv11b.h"
 #endif
+
+#ifdef CONFIG_NVGPU_CLK_ARB
 #include "common/clk_arb/clk_arb_gp10b.h"
+#endif
 
 #include "hal/fifo/channel_gk20a.h"
 #include "hal/fifo/channel_gm20b.h"
 #include "hal/fifo/channel_gv11b.h"
+
+#ifdef CONFIG_NVGPU_TPC_POWERGATE
 #include "hal/tpc/tpc_gv11b.h"
+#endif
 
 #include "hal_gv11b.h"
 #include "hal_gv11b_litter.h"

@@ -147,7 +147,10 @@
 #endif
 #include "hal/fifo/channel_gk20a.h"
 #include "hal/fifo/channel_gm20b.h"
+
+#ifdef CONFIG_NVGPU_CLK_ARB
 #include "common/clk_arb/clk_arb_gp10b.h"
+#endif
 
 #include "hal_gp10b.h"
 #include "hal_gp10b_litter.h"

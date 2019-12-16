@@ -41,8 +41,6 @@
 #include <nvgpu/hw/gk20a/hw_pram_gk20a.h>
 #include <nvgpu/hw/gk20a/hw_bus_gk20a.h>
 
-#include <os/linux/driver_common.h>
-
 #ifdef CONFIG_NVGPU_DGPU
 
 static u32 *rand_test_data;
