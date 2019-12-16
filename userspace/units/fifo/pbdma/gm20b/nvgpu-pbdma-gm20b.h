@@ -233,6 +233,26 @@ int test_gm20b_pbdma_get_fc_subdevice(struct unit_module *m,
 		struct gk20a *g, void *args);
 
 /**
+ * Test specification for: test_gm20b_pbdma_get_ctrl_hce_priv_mode_yes
+ *
+ * Description: Check RAMFC wrappers for instance block init
+ *
+ * Test Type: Feature based
+ *
+ * Targets:  gm20b_pbdma_get_ctrl_hce_priv_mode_yes
+ *
+ * Input: test_fifo_init_support() run for this GPU
+ *
+ * Steps:
+ * - Check that value returned by gm20b_pbdma_get_ctrl_hce_priv_mode_yes
+ *   is consistent with H/W manuals.
+ *
+ * Output: Returns PASS if all branches gave expected results. FAIL otherwise.
+ */
+int test_gm20b_pbdma_get_ctrl_hce_priv_mode_yes(struct unit_module *m,
+		struct gk20a *g, void *args);
+
+/**
  * Test specification for: test_gm20b_pbdma_get_userd_addr
  *
  * Description: Check USERD HALs for instance block init

@@ -55,6 +55,7 @@ gm20b_mm_get_big_page_sizes
 gm20b_pbdma_acquire_val
 gm20b_pbdma_device_fatal_0_intr_descs
 gm20b_pbdma_format_gpfifo_entry
+gm20b_pbdma_get_ctrl_hce_priv_mode_yes
 gm20b_pbdma_get_fc_subdevice
 gm20b_pbdma_get_gp_base
 gm20b_pbdma_get_gp_base_hi

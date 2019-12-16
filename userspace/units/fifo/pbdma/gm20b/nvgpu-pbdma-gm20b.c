@@ -481,6 +481,20 @@ done:
 	return ret;
 }
 
+int test_gm20b_pbdma_get_ctrl_hce_priv_mode_yes(struct unit_module *m,
+		struct gk20a *g, void *args)
+{
+	int ret = UNIT_FAIL;
+
+	assert(gm20b_pbdma_get_ctrl_hce_priv_mode_yes() ==
+		pbdma_hce_ctrl_hce_priv_mode_yes_f());
+
+	ret = UNIT_SUCCESS;
+done:
+	return ret;
+}
+
+
 int test_gm20b_pbdma_get_userd(struct unit_module *m,
 		struct gk20a *g, void *args)
 {
@@ -531,6 +545,7 @@ struct unit_module_test nvgpu_pbdma_gm20b_tests[] = {
 	UNIT_TEST(pbdma_format_gpfifo_entry, test_gm20b_pbdma_format_gpfifo_entry, NULL, 0),
 	UNIT_TEST(pbdma_get_gp_base, test_gm20b_pbdma_get_gp_base, NULL, 0),
 	UNIT_TEST(pbdma_get_fc_subdevice, test_gm20b_pbdma_get_fc_subdevice, NULL, 0),
+	UNIT_TEST(pbdma_get_ctrl_hce_priv_mode_yes, test_gm20b_pbdma_get_ctrl_hce_priv_mode_yes, NULL, 0),
 	UNIT_TEST(pbdma_get_userd, test_gm20b_pbdma_get_userd, NULL, 0),
 	UNIT_TEST(remove_support, test_fifo_remove_support, NULL, 0),
 };
