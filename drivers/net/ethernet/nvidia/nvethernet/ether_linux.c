@@ -1701,6 +1701,8 @@ static int ether_open(struct net_device *dev)
 	 * structure variable as well */
 	pdata->vlan_hash_filtering = OSI_PERFECT_FILTER_MODE;
 	pdata->l2_filtering_mode = OSI_PERFECT_FILTER_MODE;
+	/* Set default PTP mode as Two step */
+	pdata->osi_dma->ptp_flag = OSI_PTP_SYNC_TWOSTEP;
 
 	/* Initialize PTP */
 	ret = ether_ptp_init(pdata);
@@ -1955,13 +1957,14 @@ static int ether_handle_tso(struct osi_tx_pkt_cx *tx_pkt_cx,
  * @retval "number of descriptors" on success
  * @retval "negative value"  on failure.
  */
-static int ether_tx_swcx_alloc(struct device *dev,
+static int ether_tx_swcx_alloc(struct ether_priv_data *pdata,
 			       struct osi_tx_ring *tx_ring,
 			       struct sk_buff *skb)
 {
 	struct osi_tx_pkt_cx *tx_pkt_cx = &tx_ring->tx_pkt_cx;
 	unsigned int cur_tx_idx = tx_ring->cur_tx_idx;
 	struct osi_tx_swcx *tx_swcx = NULL;
+	struct device *dev = pdata->dev;
 	unsigned int len = 0, offset = 0, size = 0;
 	int cnt = 0, ret = 0, i, num_frags;
 #if (KERNEL_VERSION(5, 4, 0) <= LINUX_VERSION_CODE)
@@ -2003,7 +2006,12 @@ static int ether_tx_swcx_alloc(struct device *dev,
 	}
 
 	if (((tx_pkt_cx->flags & OSI_PKT_CX_VLAN) == OSI_PKT_CX_VLAN) ||
-	    ((tx_pkt_cx->flags & OSI_PKT_CX_TSO) == OSI_PKT_CX_TSO)) {
+	    ((tx_pkt_cx->flags & OSI_PKT_CX_TSO) == OSI_PKT_CX_TSO) ||
+	    (((tx_pkt_cx->flags & OSI_PKT_CX_PTP) == OSI_PKT_CX_PTP) &&
+	      /* Check only MGBE as we need ctx fro both sync mode */
+	      ((pdata->osi_core->mac == OSI_MAC_HW_MGBE) ||
+	       ((pdata->osi_dma->ptp_flag & OSI_PTP_SYNC_ONESTEP) ==
+		OSI_PTP_SYNC_ONESTEP)))) {
 		tx_swcx = tx_ring->tx_swcx + cur_tx_idx;
 		if (tx_swcx->len) {
 			return 0;
@@ -2042,7 +2050,7 @@ static int ether_tx_swcx_alloc(struct device *dev,
 			ret = -ENOMEM;
 			goto dma_map_failed;
 		}
-		tx_swcx->is_paged_buf = 0;
+		tx_swcx->flags &= ~OSI_PKT_CX_PAGED_BUF;
 
 		tx_swcx->len = size;
 		len -= size;
@@ -2075,7 +2083,7 @@ static int ether_tx_swcx_alloc(struct device *dev,
 				goto dma_map_failed;
 			}
 
-			tx_swcx->is_paged_buf = 0;
+			tx_swcx->flags &= ~OSI_PKT_CX_PAGED_BUF;
 			tx_swcx->len = size;
 			len -= size;
 			offset += size;
@@ -2118,7 +2126,7 @@ static int ether_tx_swcx_alloc(struct device *dev,
 				ret = -ENOMEM;
 				goto dma_map_failed;
 			}
-			tx_swcx->is_paged_buf = 1;
+			tx_swcx->flags |= OSI_PKT_CX_PAGED_BUF;
 
 			tx_swcx->len = size;
 			len -= size;
@@ -2142,7 +2150,8 @@ dma_map_failed:
 		DECR_TX_DESC_INDEX(cur_tx_idx, 1U);
 		tx_swcx = tx_ring->tx_swcx + cur_tx_idx;
 		if (tx_swcx->buf_phy_addr) {
-			if (tx_swcx->is_paged_buf) {
+			if ((tx_swcx->flags & OSI_PKT_CX_PAGED_BUF) ==
+			    OSI_PKT_CX_PAGED_BUF) {
 				dma_unmap_page(dev, tx_swcx->buf_phy_addr,
 					       tx_swcx->len, DMA_TO_DEVICE);
 			} else {
@@ -2153,7 +2162,7 @@ dma_map_failed:
 		}
 		tx_swcx->len = 0;
 
-		tx_swcx->is_paged_buf = 0;
+		tx_swcx->flags &= ~OSI_PKT_CX_PAGED_BUF;
 		cnt--;
 	}
 	return ret;
@@ -2229,7 +2238,7 @@ static int ether_start_xmit(struct sk_buff *skb, struct net_device *ndev)
 	struct osi_tx_ring *tx_ring = osi_dma->tx_ring[chan];
 	int count = 0;
 
-	count = ether_tx_swcx_alloc(pdata->dev, tx_ring, skb);
+	count = ether_tx_swcx_alloc(pdata, tx_ring, skb);
 	if (count <= 0) {
 		if (count == 0) {
 			netif_stop_subqueue(ndev, qinx);

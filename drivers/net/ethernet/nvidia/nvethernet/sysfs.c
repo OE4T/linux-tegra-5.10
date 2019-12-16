@@ -37,7 +37,6 @@ static ssize_t ether_mac_loopback_show(struct device *dev,
 {
 	struct net_device *ndev = (struct net_device *)dev_get_drvdata(dev);
 	struct ether_priv_data *pdata = netdev_priv(ndev);
-
 	return scnprintf(buf, PAGE_SIZE, "%s\n",
 			 (pdata->mac_loopback_mode == 1U) ?
 			 "enabled" : "disabled");
@@ -123,10 +122,159 @@ static DEVICE_ATTR(mac_loopback, (S_IRUGO | S_IWUSR),
 		   ether_mac_loopback_store);
 
 /**
+ * @brief Shows the current setting of PTP mode
+ *
+ * Algorithm: Display the current PTP mode setting.
+ *
+ * @param[in] dev: Device data.
+ * @param[in] attr: Device attribute
+ * @param[in] buf: Buffer to store the current PTP mode
+ *
+ * @note MAC and PHY need to be initialized.
+ */
+static ssize_t ether_ptp_mode_show(struct device *dev,
+				   struct device_attribute *attr, char *buf)
+{
+	struct net_device *ndev = (struct net_device *)dev_get_drvdata(dev);
+	struct ether_priv_data *pdata = netdev_priv(ndev);
+
+	return scnprintf(buf, PAGE_SIZE, "%s\n",
+			 ((pdata->osi_dma->ptp_flag & OSI_PTP_SYNC_MASTER) ==
+			  OSI_PTP_SYNC_MASTER) ? "master" :
+			   ((pdata->osi_dma->ptp_flag & OSI_PTP_SYNC_SLAVE) ==
+			    OSI_PTP_SYNC_SLAVE) ? "slave" : " ");
+}
+
+/**
+ * @brief Set the user setting of PTP mode
+ *
+ * Algorithm: This is used to set the user mode settings of PTP mode
+ * @param[in] dev: Device data.
+ * @param[in] attr: Device attribute
+ * @param[in] buf: Buffer which contains the user settings of PTP mode
+ * @param[in] size: size of buffer
+ *
+ * @note MAC and PHY need to be initialized.
+ *
+ * @return size of buffer.
+ */
+static ssize_t ether_ptp_mode_store(struct device *dev,
+				    struct device_attribute *attr,
+				    const char *buf, size_t size)
+{
+	struct net_device *ndev = (struct net_device *)dev_get_drvdata(dev);
+	struct ether_priv_data *pdata = netdev_priv(ndev);
+
+	if (!netif_running(ndev)) {
+		dev_err(pdata->dev, "Not Allowed. Ether interface is not up\n");
+		return size;
+	}
+
+	if (strncmp(buf, "master", 6) == 0U) {
+		pdata->osi_dma->ptp_flag &= ~(OSI_PTP_SYNC_MASTER |
+					      OSI_PTP_SYNC_SLAVE);
+		pdata->osi_dma->ptp_flag |= OSI_PTP_SYNC_MASTER;
+	} else if (strncmp(buf, "slave", 5) == 0U) {
+		pdata->osi_dma->ptp_flag &= ~(OSI_PTP_SYNC_MASTER |
+					      OSI_PTP_SYNC_SLAVE);
+		pdata->osi_dma->ptp_flag |= OSI_PTP_SYNC_SLAVE;
+	} else {
+		dev_err(pdata->dev,
+			"Invalid entry. Valid Entries are master or slave\n");
+	}
+
+	return size;
+}
+
+/**
+ * @brief Sysfs attribute for PTP MODE
+ *
+ */
+static DEVICE_ATTR(ptp_mode, (S_IRUGO | S_IWUSR),
+		   ether_ptp_mode_show,
+		   ether_ptp_mode_store);
+
+/**
+ * @brief Shows the current setting of PTP sync method
+ *
+ * Algorithm: Display the current PTP sync method.
+ *
+ * @param[in] dev: Device data.
+ * @param[in] attr: Device attribute
+ * @param[in] buf: Buffer to store the current ptp sync method
+ *
+ * @note MAC and PHY need to be initialized.
+ */
+static ssize_t ether_ptp_sync_show(struct device *dev,
+				   struct device_attribute *attr, char *buf)
+{
+	struct net_device *ndev = (struct net_device *)dev_get_drvdata(dev);
+	struct ether_priv_data *pdata = netdev_priv(ndev);
+
+	return scnprintf(buf, PAGE_SIZE, "%s\n",
+			 ((pdata->osi_dma->ptp_flag & OSI_PTP_SYNC_TWOSTEP) ==
+			  OSI_PTP_SYNC_TWOSTEP) ? "twostep" :
+			   ((pdata->osi_dma->ptp_flag & OSI_PTP_SYNC_ONESTEP) ==
+			    OSI_PTP_SYNC_ONESTEP) ? "onestep" : " ");
+}
+
+/**
+ * @brief Set the user setting of PTP sync method
+ *
+ * Algorithm: This is used to set the user mode settings of PTP sync method
+ * @param[in] dev: Device data.
+ * @param[in] attr: Device attribute
+ * @param[in] buf: Buffer which contains the user settings of PTP sync method
+ * @param[in] size: size of buffer
+ *
+ * @note MAC and PHY need to be initialized.
+ *
+ * @return size of buffer.
+ */
+static ssize_t ether_ptp_sync_store(struct device *dev,
+				    struct device_attribute *attr,
+				    const char *buf, size_t size)
+{
+	struct net_device *ndev = (struct net_device *)dev_get_drvdata(dev);
+	struct ether_priv_data *pdata = netdev_priv(ndev);
+
+	if (!netif_running(ndev)) {
+		dev_err(pdata->dev, "Not Allowed. Ether interface is not up\n");
+		return size;
+	}
+
+	if (strncmp(buf, "onestep", 7) == 0U) {
+		pdata->osi_dma->ptp_flag &= ~(OSI_PTP_SYNC_ONESTEP |
+					      OSI_PTP_SYNC_TWOSTEP);
+		pdata->osi_dma->ptp_flag |= OSI_PTP_SYNC_ONESTEP;
+
+	} else if (strncmp(buf, "twostep", 7) == 0U) {
+		pdata->osi_dma->ptp_flag &= ~(OSI_PTP_SYNC_ONESTEP |
+					      OSI_PTP_SYNC_TWOSTEP);
+		pdata->osi_dma->ptp_flag |= OSI_PTP_SYNC_TWOSTEP;
+	} else {
+		dev_err(pdata->dev,
+			"Invalid entry. Valid Entries are onestep or twostep\n");
+	}
+
+	return size;
+}
+
+/**
+ * @brief Sysfs attribute for PTP sync method
+ *
+ */
+static DEVICE_ATTR(ptp_sync, (S_IRUGO | S_IWUSR),
+		   ether_ptp_sync_show,
+		   ether_ptp_sync_store);
+
+/**
  * @brief Attributes for nvethernet sysfs
  */
 static struct attribute *ether_sysfs_attrs[] = {
 	&dev_attr_mac_loopback.attr,
+	&dev_attr_ptp_mode.attr,
+	&dev_attr_ptp_sync.attr,
 	NULL
 };
 
