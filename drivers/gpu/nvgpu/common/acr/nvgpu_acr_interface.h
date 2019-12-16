@@ -24,6 +24,8 @@
 #define NVGPU_ACR_INTERFACE_H
 
 /**
+ * @defgroup NVGPURM_BLOB_CONSTRUCT blob construct
+ *
  * Blob construct interfaces:
  * NVGPU creates LS ucode blob in system/FB's non-WPR memory. LS ucodes
  * will be read from filesystem and added to blob for the detected chip.
@@ -43,6 +45,11 @@
  *   | LSF WPR HDR  | LSF LSB HDR | BL desc | ucode |
  *    ---------------------------------------------
  */
+
+/**
+ * @ingroup NVGPURM_BLOB_CONSTRUCT
+ */
+/** @{*/
 
 /**
  * Light Secure WPR Content Alignments
@@ -67,6 +74,8 @@
 		LSF_WPR_HEADER_ALIGNMENT))
 #define LSF_LSB_HEADER_TOTAL_SIZE_MAX	(\
 	ALIGN_UP(sizeof(struct lsf_lsb_header), LSF_LSB_HEADER_ALIGNMENT))
+
+/** @} */
 
 #ifdef CONFIG_NVGPU_DGPU
 /* Maximum SUB WPR header size */
@@ -102,6 +111,11 @@ enum {
 /* 4K */
 #define LSF_SHARED_DATA_SUB_WPR_PLAYREADY_SHARED_DATA_SIZE_IN_4K	(0x1U)
 #endif
+
+/**
+ * @ingroup NVGPURM_BLOB_CONSTRUCT
+ */
+/** @{*/
 
 /**
  * Image status updated by ACR HS ucode to know the LS
@@ -335,7 +349,11 @@ struct flcn_bl_dmem_desc {
 	u32 argv;
 };
 
+/** @} */
+
 /**
+ * @defgroup NVGPURM_ACR_HS_LOAD_BOOTSTRAP ACR HS ucode load & bootstrap
+ *
  * ACR HS ucode load & bootstrap interfaces:
  * ACR HS ucode is read from the filesystem based on the chip-id by the ACR
  * unit. Read ACR HS ucode will be update with below structs by patching at
@@ -345,6 +363,11 @@ struct flcn_bl_dmem_desc {
  * HS authentication methodology. Once authenticated the ACR HS ucode
  * starts executing on the falcon.
  */
+
+/**
+ * @ingroup NVGPURM_ACR_HS_LOAD_BOOTSTRAP
+ */
+/** @{*/
 
 /**
  * Supporting maximum of 2 regions.
@@ -439,5 +462,7 @@ struct flcn_acr_desc {
 	/** dummy space, not used by iGPU */
 	u32 dummy[4];
 };
+
+/** @} */
 
 #endif /* NVGPU_ACR_INTERFACE_H */
