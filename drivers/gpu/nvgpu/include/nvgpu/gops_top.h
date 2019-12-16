@@ -50,7 +50,7 @@ struct gops_top {
 	 *    corresponding to each instance of the engine. All such entries
          *    corresponding to same engine will have same \a engine_type, but
 	 *    a unique instance id.
-	 * 2. We traverse through the device_info table and get the total
+	 * 2. Traverse through the device_info table and get the total
 	 *    number of entries corresponding to input \a engine_type.
 	 * 3. This HAL is valid for Pascal and chips beyond.
 	 * 4. Prior to Pascal, each instance of the engine was denoted by a
@@ -93,25 +93,25 @@ struct gops_top {
 	 *    register talks the same engine as present the one. All the
 	 *    registers in the device info table can be classified in one of 4
 	 *    types:
-	 *      - Not_valid: We ignore these registers
+	 *      - Not_valid: Ignore these registers
 	 *      - Data: This type of register contains pri_base, fault_id etc
 	 *      - Enum: This type of register contains intr_enum, reset_enum
 	 *      - Engine_type: This type of register contains the engine name
 	 *               which is being described.
 	 * 5. So, in the parsing code,
-	 * 	- We loop through the array
+	 * 	- Loop through the array
 	 * 	- Ignore the invalid entries
 	 * 	- Store the “linked” register values in temporary variables
 	 *	   until chain_bit is set. This helps us get all the data for
 	 *	   particular engine type. [This is needed because the engine
 	 *         name may not be part of the first register representing the
-	 *	   engine. So we can’t just read the first register and
-	 *	   determine if the group represents the engine we are
-	 *         interested in]. Once the chain_bit is disabled, we know the
-	 *         next register read would represent a new engine.
-	 * 	- So we parse the stored variables to get engine_name,
-	 *         intr/reset_enums, pri base etc. Here we check if the engine
-	 *    	   type is the one we are interested in.
+	 *	   engine. So, reading the first register is not sufficient to
+	 *	   determine if the group represents the \a engine_type.
+	 *         Chain_bit being disabled implies the next register read
+         *         would represent a new engine.
+	 * 	- Parse the stored variables to get engine_name,
+	 *         intr/reset_enums, pri base etc. Check if the engine
+	 *    	   type read from the table equals \a engine_type.
 	 *
 	 * List of valid engine enumeration values:
 	 * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -184,7 +184,7 @@ struct gops_top {
 	 *  COPY_ENGINE_INSTANCE1 engine_type -  2
 	 *  COPY_ENGINE_INSTANCE2 engine_type -  3
 	 * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-	 * 2. We calculate the instance id by subtracting COPY_ENGINE_INSTANCE0
+	 * 2. Calculate the instance id by subtracting COPY_ENGINE_INSTANCE0
 	 *    enum value from \a engine_type.
 	 *
 	 * @return Calculated instance ID as explained above.
