@@ -215,8 +215,16 @@ int test_gv11b_pbdma_handle_intr_0(struct unit_module *m,
 		if (pbdma_intr_0 & pbdma_intr_0_eng_reset_pending_f()) {
 			assert(recover);
 		}
-
 	}
+
+	recover = gv11b_pbdma_handle_intr_0(g, pbdma_id,
+		pbdma_intr_0_memack_extra_pending_f(), &err_notifier);
+	recover = gv11b_pbdma_handle_intr_0(g, pbdma_id,
+		pbdma_intr_0_gpfifo_pending_f(), &err_notifier);
+	recover = gv11b_pbdma_handle_intr_0(g, pbdma_id,
+		pbdma_intr_0_clear_faulted_error_pending_f(), &err_notifier);
+	recover = gv11b_pbdma_handle_intr_0(g, pbdma_id,
+		pbdma_intr_0_signature_pending_f(), &err_notifier);
 
 	ret = UNIT_SUCCESS;
 done:
@@ -230,7 +238,8 @@ done:
 
 #define F_PBDMA_INTR_1_CTXNOTVALID_IN		BIT(0)
 #define F_PBDMA_INTR_1_CTXNOTVALID_READ		BIT(1)
-#define F_PBDMA_INTR_1_LAST			BIT(2)
+#define F_PBDMA_INTR_1_HCE			BIT(2)
+#define F_PBDMA_INTR_1_LAST			BIT(3)
 
 int test_gv11b_pbdma_handle_intr_1(struct unit_module *m,
 		struct gk20a *g, void *args)
@@ -240,6 +249,7 @@ int test_gv11b_pbdma_handle_intr_1(struct unit_module *m,
 	const char *labels[] = {
 		"ctxnotvalid_in",
 		"ctxnotvalid_readl",
+		"hce"
 	};
 	u32 pbdma_id = 0;
 	u32 pbdma_intr_1;
@@ -264,6 +274,10 @@ int test_gv11b_pbdma_handle_intr_1(struct unit_module *m,
 			nvgpu_writel(g, pbdma_intr_1_r(pbdma_id), 0);
 		}
 
+		if (branches & F_PBDMA_INTR_1_HCE) {
+			pbdma_intr_1 |= BIT(0); /* HCE_RE_ILLEGAL_OP */
+		}
+
 		err_notifier = INVALID_ERR_NOTIFIER;
 
 		recover = gv11b_pbdma_handle_intr_1(g, pbdma_id, pbdma_intr_1, &err_notifier);
@@ -272,8 +286,9 @@ int test_gv11b_pbdma_handle_intr_1(struct unit_module *m,
 			assert(!recover);
 		}
 
-		if ((branches & F_PBDMA_INTR_1_CTXNOTVALID_IN) &&
-			(branches & F_PBDMA_INTR_1_CTXNOTVALID_READ)) {
+		if (((branches & F_PBDMA_INTR_1_CTXNOTVALID_IN) &&
+			(branches & F_PBDMA_INTR_1_CTXNOTVALID_READ)) ||
+			(branches & F_PBDMA_INTR_1_HCE)) {
 			assert(recover);
 		} else {
 			assert(!recover);

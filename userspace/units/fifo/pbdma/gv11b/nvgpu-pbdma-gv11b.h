@@ -106,6 +106,8 @@ int test_gv11b_pbdma_intr_enable(struct unit_module *m,
  *     been reset.
  *   - eng_reset: Check that recover is true.
  * - Other interrupts are tested explicitly for gm20b_pbdma_handle_intr_0.
+ * - Call gv11b_pbdma_handle_intr_0 with additional error codes to exercise
+ *   all branches in report_pbdma_error.
  *
  * Output: Returns PASS if all branches gave expected results. FAIL otherwise.
  */
