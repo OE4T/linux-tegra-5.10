@@ -238,8 +238,6 @@ void gm20b_pbdma_reset_method(struct gk20a *g, u32 pbdma_id,
 u32 gm20b_pbdma_acquire_val(u64 timeout)
 {
 	u32 val, exponent, mantissa;
-	unsigned int val_len;
-	u64 tmp;
 
 	val = pbdma_acquire_retry_man_2_f() |
 		pbdma_acquire_retry_exp_2_f();
@@ -251,35 +249,19 @@ u32 gm20b_pbdma_acquire_val(u64 timeout)
 	/* set acquire timeout to 80% of channel wdt, and convert to ns */
 	timeout = nvgpu_safe_mult_u64(timeout, (1000000UL * 80UL) / 100UL);
 	do_div(timeout, 1024U); /* in unit of 1024ns */
-	tmp = nvgpu_fls(timeout >> 32U);
-NVGPU_COV_WHITELIST_BLOCK_BEGIN(false_positive, 1, NVGPU_MISRA(Rule, 14_4), "Bug 2277532")
-NVGPU_COV_WHITELIST_BLOCK_BEGIN(false_positive, 1, NVGPU_MISRA(Rule, 15_6), "Bug 2277532")
-	BUG_ON(tmp > U64(U32_MAX));
-NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Rule, 14_4))
-NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Rule, 15_6))
-	val_len = (u32)tmp + 32U;
-	if (val_len == 32U) {
-		val_len = nvgpu_safe_cast_u64_to_u32(nvgpu_fls(timeout));
+
+	exponent = 0;
+	while (timeout > pbdma_acquire_timeout_man_max_v() &&
+		(exponent <= pbdma_acquire_timeout_exp_max_v())) {
+		timeout >>= 1;
+		exponent++;
 	}
-	if (val_len > 16U + pbdma_acquire_timeout_exp_max_v()) { /* man: 16bits */
+
+	if (exponent > pbdma_acquire_timeout_exp_max_v()) {
 		exponent = pbdma_acquire_timeout_exp_max_v();
 		mantissa = pbdma_acquire_timeout_man_max_v();
-	} else if (val_len > 16U) {
-		exponent = val_len - 16U;
-NVGPU_COV_WHITELIST_BLOCK_BEGIN(false_positive, 1, NVGPU_MISRA(Rule, 14_4), "Bug 2277532")
-NVGPU_COV_WHITELIST_BLOCK_BEGIN(false_positive, 1, NVGPU_MISRA(Rule, 15_6), "Bug 2277532")
-		BUG_ON((timeout >> exponent) > U64(U32_MAX));
-NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Rule, 14_4))
-NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Rule, 15_6))
-		mantissa = (u32)(timeout >> exponent);
 	} else {
-		exponent = 0;
-NVGPU_COV_WHITELIST_BLOCK_BEGIN(false_positive, 1, NVGPU_MISRA(Rule, 14_4), "Bug 2277532")
-NVGPU_COV_WHITELIST_BLOCK_BEGIN(false_positive, 1, NVGPU_MISRA(Rule, 15_6), "Bug 2277532")
-		BUG_ON(timeout > U64(U32_MAX));
-NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Rule, 14_4))
-NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Rule, 15_6))
-		mantissa = (u32)timeout;
+		mantissa = nvgpu_safe_cast_u64_to_u32(timeout);
 	}
 
 	val |= pbdma_acquire_timeout_exp_f(exponent) |
