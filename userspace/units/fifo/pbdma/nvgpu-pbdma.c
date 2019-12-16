@@ -173,6 +173,7 @@ int test_pbdma_find_for_runlist(struct unit_module *m,
 		struct gk20a *g, void *args)
 {
 	struct nvgpu_fifo *f = &g->fifo;
+	struct nvgpu_fifo fifo = g->fifo;
 	u32 runlist_id;
 	bool active;
 	bool found;
@@ -195,9 +196,15 @@ int test_pbdma_find_for_runlist(struct unit_module *m,
 			assert(pbdma_id == U32_MAX);
 		}
 	}
+
+	f->num_pbdma = 0;
+	assert(!nvgpu_pbdma_find_for_runlist(g, 0, &pbdma_id));
+
 	ret = UNIT_SUCCESS;
 
 done:
+	g->fifo = fifo;
+
 	return ret;
 }
 
