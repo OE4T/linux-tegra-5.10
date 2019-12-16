@@ -59,8 +59,9 @@ struct nvgpu_channel_sync {
 			 bool wfi,
 			 bool need_sync_fence,
 			 bool register_irq);
-#endif
+
 	void (*set_min_eq_max)(struct nvgpu_channel_sync *s);
+#endif
 
 	void (*set_safe_state)(struct nvgpu_channel_sync *s);
 

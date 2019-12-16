@@ -299,14 +299,14 @@ int nvgpu_channel_sync_wait_syncpt(struct nvgpu_channel_sync_syncpt *s,
 	return channel_sync_syncpt_wait_raw(s, id, thresh, entry);
 }
 
-#endif /* CONFIG_NVGPU_KERNEL_MODE_SUBMIT */
-
 static void channel_sync_syncpt_set_min_eq_max(struct nvgpu_channel_sync *s)
 {
 	struct nvgpu_channel_sync_syncpt *sp =
 		nvgpu_channel_sync_syncpt_from_ops(s);
 	nvgpu_nvhost_syncpt_set_min_eq_max_ext(sp->nvhost_dev, sp->id);
 }
+
+#endif /* CONFIG_NVGPU_KERNEL_MODE_SUBMIT */
 
 static void channel_sync_syncpt_set_safe_state(struct nvgpu_channel_sync *s)
 {
@@ -353,7 +353,7 @@ nvgpu_channel_sync_to_syncpt(struct nvgpu_channel_sync *sync)
 {
 	struct nvgpu_channel_sync_syncpt *syncpt = NULL;
 
-	if (sync->set_min_eq_max == channel_sync_syncpt_set_min_eq_max) {
+	if (sync->set_safe_state == channel_sync_syncpt_set_safe_state) {
 		syncpt = nvgpu_channel_sync_syncpt_from_ops(sync);
 	}
 
@@ -414,8 +414,8 @@ nvgpu_channel_sync_syncpt_create(struct nvgpu_channel *c, bool user_managed)
 	sp->ops.wait_fence_fd		= channel_sync_syncpt_wait_fd;
 	sp->ops.incr			= channel_sync_syncpt_incr;
 	sp->ops.incr_user		= channel_sync_syncpt_incr_user;
-#endif
 	sp->ops.set_min_eq_max		= channel_sync_syncpt_set_min_eq_max;
+#endif
 	sp->ops.set_safe_state		= channel_sync_syncpt_set_safe_state;
 	sp->ops.destroy			= channel_sync_syncpt_destroy;
 

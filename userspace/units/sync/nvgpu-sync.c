@@ -211,7 +211,7 @@ int test_sync_create_destroy_sync(struct unit_module *m, struct gk20a *g, void *
 
 		assert(syncpt_value < (UINT_MAX - SYNCPT_SAFE_STATE_INCR));
 
-		if (branches == F_SYNC_DESTROY_SET_SAFE) {
+		if (branches == F_SYNC_DESTROY_LAST) {
 			set_safe_state = false;
 		}
 
@@ -325,15 +325,17 @@ done:
 	return ret;
 }
 
-#define F_SYNC_SYNCPT_ALLOC_FAILED		0
-#define F_SYNC_USER_MANAGED			1
-#define F_SYNC_NVHOST_CLIENT_MANAGED_FAIL	2
-#define F_SYNC_RO_MAP_GPU_VA_MAP_FAIL		3
-#define F_SYNC_MEM_CREATE_PHYS_FAIL		4
-#define F_SYNC_BUF_MAP_FAIL			5
-#define F_SYNC_FAIL_LAST			6
+#define F_SYNC_GLOBAL_DISABLE_SYNCPT		0
+#define F_SYNC_SYNCPT_ALLOC_FAILED		1
+#define F_SYNC_USER_MANAGED			2
+#define F_SYNC_NVHOST_CLIENT_MANAGED_FAIL	3
+#define F_SYNC_RO_MAP_GPU_VA_MAP_FAIL		4
+#define F_SYNC_MEM_CREATE_PHYS_FAIL		5
+#define F_SYNC_BUF_MAP_FAIL			6
+#define F_SYNC_FAIL_LAST			7
 
 static const char *f_syncpt_open[] = {
+	"global_disable_syncpt",
 	"syncpt_alloc_failed",
 	"syncpt_user_managed_false",
 	"syncpt_get_client_managed_fail",
@@ -346,6 +348,10 @@ static void clear_test_params(struct gk20a *g, bool *user_managed,
 		bool *fault_injection_enabled, u32 branch,
 		struct nvgpu_posix_fault_inj *kmem_fi)
 {
+	if (g->disable_syncpoints) {
+		g->disable_syncpoints = false;
+	}
+
 	if (!(*user_managed)) {
 		*user_managed = true;
 	}
@@ -391,7 +397,9 @@ int test_sync_create_fail(struct unit_module *m, struct gk20a *g, void *args)
 		 */
 		g->nvhost_dev->syncpt_id = 0U;
 
-		if (branches == F_SYNC_SYNCPT_ALLOC_FAILED) {
+		if (branches == F_SYNC_GLOBAL_DISABLE_SYNCPT) {
+			g->disable_syncpoints = true;
+		} else if (branches == F_SYNC_SYNCPT_ALLOC_FAILED) {
 			/* fail first kzalloc call */
 			nvgpu_posix_enable_fault_injection(kmem_fi, true, 0);
 			fault_injection_enabled = true;
