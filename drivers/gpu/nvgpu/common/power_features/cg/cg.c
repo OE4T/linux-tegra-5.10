@@ -266,10 +266,6 @@ static void cg_init_gr_slcg_load_gating_prod(struct gk20a *g)
 	if (g->ops.cg.slcg_gr_load_gating_prod != NULL) {
 		g->ops.cg.slcg_gr_load_gating_prod(g, true);
 	}
-	if (g->ops.cg.slcg_ctxsw_firmware_load_gating_prod != NULL) {
-		g->ops.cg.slcg_ctxsw_firmware_load_gating_prod(g,
-				true);
-	}
 	if (g->ops.cg.slcg_perf_load_gating_prod != NULL) {
 		g->ops.cg.slcg_perf_load_gating_prod(g, true);
 	}
@@ -288,10 +284,6 @@ static void cg_init_gr_blcg_load_gating_prod(struct gk20a *g)
 	}
 	if (g->ops.cg.blcg_gr_load_gating_prod != NULL) {
 		g->ops.cg.blcg_gr_load_gating_prod(g, true);
-	}
-	if (g->ops.cg.blcg_ctxsw_firmware_load_gating_prod != NULL) {
-		g->ops.cg.blcg_ctxsw_firmware_load_gating_prod(g,
-				true);
 	}
 	if (g->ops.cg.blcg_xbar_load_gating_prod != NULL) {
 		g->ops.cg.blcg_xbar_load_gating_prod(g, true);
@@ -315,16 +307,12 @@ void nvgpu_cg_init_gr_load_gating_prod(struct gk20a *g)
 
 check_can_blcg:
 	if (!g->blcg_enabled) {
-		goto pg_gr_load;
+		goto exit;
 	}
 
 	cg_init_gr_blcg_load_gating_prod(g);
 
-pg_gr_load:
-	if (g->ops.cg.pg_gr_load_gating_prod != NULL) {
-		g->ops.cg.pg_gr_load_gating_prod(g, true);
-	}
-
+exit:
 	nvgpu_mutex_release(&g->cg_pg_lock);
 }
 
@@ -482,10 +470,6 @@ void nvgpu_cg_blcg_set_blcg_enabled(struct gk20a *g, bool enable)
 	if (g->ops.cg.blcg_ce_load_gating_prod != NULL) {
 		g->ops.cg.blcg_ce_load_gating_prod(g, enable);
 	}
-	if (g->ops.cg.blcg_ctxsw_firmware_load_gating_prod != NULL) {
-		g->ops.cg.blcg_ctxsw_firmware_load_gating_prod(g,
-				enable);
-	}
 	if (g->ops.cg.blcg_fb_load_gating_prod != NULL) {
 		g->ops.cg.blcg_fb_load_gating_prod(g, enable);
 	}
@@ -544,11 +528,6 @@ void nvgpu_cg_slcg_set_slcg_enabled(struct gk20a *g, bool enable)
 	}
 	if (g->ops.cg.slcg_chiplet_load_gating_prod != NULL) {
 		g->ops.cg.slcg_chiplet_load_gating_prod(g, enable);
-	}
-	if (g->ops.cg.slcg_ctxsw_firmware_load_gating_prod !=
-								NULL) {
-		g->ops.cg.slcg_ctxsw_firmware_load_gating_prod(g,
-				enable);
 	}
 	if (g->ops.cg.slcg_fb_load_gating_prod != NULL) {
 		g->ops.cg.slcg_fb_load_gating_prod(g, enable);

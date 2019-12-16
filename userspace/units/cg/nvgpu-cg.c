@@ -116,13 +116,13 @@ struct cg_test_data slcg_ce2 = {
 struct cg_test_data slcg_gr_load_gating_prod = {
 	.cg_type = NVGPU_GPU_CAN_SLCG,
 	.load_enable = nvgpu_cg_init_gr_load_gating_prod,
-	.domain_count = 7,
+	.domain_count = 6,
 };
 
 struct cg_test_data blcg_gr_load_gating_prod = {
 	.cg_type = NVGPU_GPU_CAN_BLCG,
 	.load_enable = nvgpu_cg_init_gr_load_gating_prod,
-	.domain_count = 6,
+	.domain_count = 4,
 };
 
 #define INIT_BLCG_DOMAIN_TEST_DATA(param)	({\
@@ -183,23 +183,11 @@ static void init_blcg_gr_load_gating_data(struct gk20a *g)
 	blcg_gr_load_gating_prod.domain_desc_sizes[2] =
 					gv11b_blcg_xbar_gating_prod_size();
 	blcg_gr_load_gating_prod.domain_descs[3] =
-				gv11b_blcg_ctxsw_firmware_get_gating_prod();
-	blcg_gr_load_gating_prod.gating_funcs[3] =
-				g->ops.cg.blcg_ctxsw_firmware_load_gating_prod;
-	blcg_gr_load_gating_prod.domain_desc_sizes[3] =
-				gv11b_blcg_ctxsw_firmware_gating_prod_size();
-	blcg_gr_load_gating_prod.domain_descs[4] =
 					gv11b_blcg_hshub_get_gating_prod();
-	blcg_gr_load_gating_prod.gating_funcs[4] =
+	blcg_gr_load_gating_prod.gating_funcs[3] =
 					g->ops.cg.blcg_hshub_load_gating_prod;
-	blcg_gr_load_gating_prod.domain_desc_sizes[4] =
+	blcg_gr_load_gating_prod.domain_desc_sizes[3] =
 					gv11b_blcg_hshub_gating_prod_size();
-	blcg_gr_load_gating_prod.domain_descs[5] =
-					gr_gv11b_pg_gr_get_gating_prod();
-	blcg_gr_load_gating_prod.gating_funcs[5] =
-					g->ops.cg.pg_gr_load_gating_prod;
-	blcg_gr_load_gating_prod.domain_desc_sizes[5] =
-					gr_gv11b_pg_gr_gating_prod_size();
 }
 
 #define INIT_SLCG_DOMAIN_TEST_DATA(param)	({\
@@ -265,28 +253,22 @@ static void init_slcg_gr_load_gating_data(struct gk20a *g)
 	slcg_gr_load_gating_prod.domain_desc_sizes[2] =
 					gv11b_slcg_gr_gating_prod_size();
 	slcg_gr_load_gating_prod.domain_descs[3] =
-				gv11b_slcg_ctxsw_firmware_get_gating_prod();
-	slcg_gr_load_gating_prod.gating_funcs[3] =
-				g->ops.cg.slcg_ctxsw_firmware_load_gating_prod;
-	slcg_gr_load_gating_prod.domain_desc_sizes[3] =
-				gv11b_slcg_ctxsw_firmware_gating_prod_size();
-	slcg_gr_load_gating_prod.domain_descs[4] =
 					gv11b_slcg_perf_get_gating_prod();
-	slcg_gr_load_gating_prod.gating_funcs[4] =
+	slcg_gr_load_gating_prod.gating_funcs[3] =
 					g->ops.cg.slcg_perf_load_gating_prod;
-	slcg_gr_load_gating_prod.domain_desc_sizes[4] =
+	slcg_gr_load_gating_prod.domain_desc_sizes[3] =
 					gv11b_slcg_perf_gating_prod_size();
-	slcg_gr_load_gating_prod.domain_descs[5] =
+	slcg_gr_load_gating_prod.domain_descs[4] =
 					gv11b_slcg_xbar_get_gating_prod();
-	slcg_gr_load_gating_prod.gating_funcs[5] =
+	slcg_gr_load_gating_prod.gating_funcs[4] =
 					g->ops.cg.slcg_xbar_load_gating_prod;
-	slcg_gr_load_gating_prod.domain_desc_sizes[5] =
+	slcg_gr_load_gating_prod.domain_desc_sizes[4] =
 					gv11b_slcg_xbar_gating_prod_size();
-	slcg_gr_load_gating_prod.domain_descs[6] =
+	slcg_gr_load_gating_prod.domain_descs[5] =
 					gv11b_slcg_hshub_get_gating_prod();
-	slcg_gr_load_gating_prod.gating_funcs[6] =
+	slcg_gr_load_gating_prod.gating_funcs[5] =
 					g->ops.cg.slcg_hshub_load_gating_prod;
-	slcg_gr_load_gating_prod.domain_desc_sizes[6] =
+	slcg_gr_load_gating_prod.domain_desc_sizes[5] =
 					gv11b_slcg_hshub_gating_prod_size();
 }
 

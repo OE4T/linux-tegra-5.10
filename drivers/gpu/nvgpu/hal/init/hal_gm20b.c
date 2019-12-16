@@ -595,16 +595,14 @@ static const struct gpu_ops gm20b_ops = {
 			gm20b_slcg_ce2_load_gating_prod,
 		.slcg_chiplet_load_gating_prod =
 			gm20b_slcg_chiplet_load_gating_prod,
-		.slcg_ctxsw_firmware_load_gating_prod =
-			gm20b_slcg_ctxsw_firmware_load_gating_prod,
 		.slcg_fb_load_gating_prod =
 			gm20b_slcg_fb_load_gating_prod,
 		.slcg_fifo_load_gating_prod =
 			gm20b_slcg_fifo_load_gating_prod,
 		.slcg_gr_load_gating_prod =
-			gr_gm20b_slcg_gr_load_gating_prod,
+			gm20b_slcg_gr_load_gating_prod,
 		.slcg_ltc_load_gating_prod =
-			ltc_gm20b_slcg_ltc_load_gating_prod,
+			gm20b_slcg_ltc_load_gating_prod,
 		.slcg_perf_load_gating_prod =
 			gm20b_slcg_perf_load_gating_prod,
 		.slcg_priring_load_gating_prod =
@@ -617,8 +615,6 @@ static const struct gpu_ops gm20b_ops = {
 			gm20b_slcg_xbar_load_gating_prod,
 		.blcg_bus_load_gating_prod =
 			gm20b_blcg_bus_load_gating_prod,
-		.blcg_ctxsw_firmware_load_gating_prod =
-			gm20b_blcg_ctxsw_firmware_load_gating_prod,
 		.blcg_fb_load_gating_prod =
 			gm20b_blcg_fb_load_gating_prod,
 		.blcg_fifo_load_gating_prod =
@@ -627,14 +623,10 @@ static const struct gpu_ops gm20b_ops = {
 			gm20b_blcg_gr_load_gating_prod,
 		.blcg_ltc_load_gating_prod =
 			gm20b_blcg_ltc_load_gating_prod,
-		.blcg_pwr_csb_load_gating_prod =
-			gm20b_blcg_pwr_csb_load_gating_prod,
 		.blcg_xbar_load_gating_prod =
 			gm20b_blcg_xbar_load_gating_prod,
 		.blcg_pmu_load_gating_prod =
 			gm20b_blcg_pmu_load_gating_prod,
-		.pg_gr_load_gating_prod =
-			gr_gm20b_pg_gr_load_gating_prod,
 	},
 	.fifo = {
 		.fifo_init_support = nvgpu_fifo_init_support,

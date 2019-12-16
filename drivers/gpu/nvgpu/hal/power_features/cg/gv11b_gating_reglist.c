@@ -129,14 +129,6 @@ static const struct gating_desc gv11b_slcg_priring[] = {
 	{.addr = 0x001200a8U, .prod = 0x00000000U, .disable = 0x00000001U},
 };
 
-/* slcg pwr_csb */
-static const struct gating_desc gv11b_slcg_pwr_csb[] = {
-	{.addr = 0x00000134U, .prod = 0x00020008U, .disable = 0x0003fffeU},
-	{.addr = 0x00000e74U, .prod = 0x00000000U, .disable = 0x0000000fU},
-	{.addr = 0x00000a74U, .prod = 0x00004040U, .disable = 0x00007ffeU},
-	{.addr = 0x000206b8U, .prod = 0x00000008U, .disable = 0x0000000fU},
-};
-
 /* slcg pmu */
 static const struct gating_desc gv11b_slcg_pmu[] = {
 	{.addr = 0x0010a134U, .prod = 0x00020008U, .disable = 0x0003fffeU},
@@ -172,10 +164,6 @@ static const struct gating_desc gv11b_blcg_bus[] = {
 /* blcg ce */
 static const struct gating_desc gv11b_blcg_ce[] = {
 	{.addr = 0x00104200U, .prod = 0x0000c242U, .disable = 0x00000000U},
-};
-
-/* blcg ctxsw prog */
-static const struct gating_desc gv11b_blcg_ctxsw_firmware[] = {
 };
 
 /* blcg fb */
@@ -254,11 +242,6 @@ static const struct gating_desc gv11b_blcg_ltc[] = {
 	{.addr = 0x0017e3c8U, .prod = 0x00000044U, .disable = 0x00000000U},
 };
 
-/* blcg pwr_csb  */
-static const struct gating_desc gv11b_blcg_pwr_csb[] = {
-	{.addr = 0x00000a70U, .prod = 0x00000045U, .disable = 0x00000000U},
-};
-
 /* blcg pmu */
 static const struct gating_desc gv11b_blcg_pmu[] = {
 	{.addr = 0x0010aa70U, .prod = 0x00000045U, .disable = 0x00000000U},
@@ -277,10 +260,6 @@ static const struct gating_desc gv11b_blcg_hshub[] = {
 	{.addr = 0x001fb3f0U, .prod = 0x0000c242U, .disable = 0x00000000U},
 	{.addr = 0x001fb7f0U, .prod = 0x0000c242U, .disable = 0x00000000U},
 	{.addr = 0x001fbbf0U, .prod = 0x0000c242U, .disable = 0x00000000U},
-};
-
-/* pg gr */
-static const struct gating_desc gv11b_pg_gr[] = {
 };
 
 /* inline functions */
@@ -363,23 +342,6 @@ u32 gv11b_slcg_chiplet_gating_prod_size(void)
 const struct gating_desc *gv11b_slcg_chiplet_get_gating_prod(void)
 {
 	return gv11b_slcg_chiplet;
-}
-
-void gv11b_slcg_ctxsw_firmware_load_gating_prod(struct gk20a *g,
-	bool prod)
-{
-	if (nvgpu_is_enabled(g, NVGPU_GPU_CAN_SLCG)) {
-	}
-}
-
-u32 gv11b_slcg_ctxsw_firmware_gating_prod_size(void)
-{
-	return 0;
-}
-
-const struct gating_desc *gv11b_slcg_ctxsw_firmware_get_gating_prod(void)
-{
-	return NULL;
 }
 
 void gv11b_slcg_fb_load_gating_prod(struct gk20a *g,
@@ -544,33 +506,6 @@ const struct gating_desc *gv11b_slcg_priring_get_gating_prod(void)
 	return gv11b_slcg_priring;
 }
 
-void gv11b_slcg_pwr_csb_load_gating_prod(struct gk20a *g,
-	bool prod)
-{
-	u32 i;
-	u32 size = nvgpu_safe_cast_u64_to_u32(sizeof(gv11b_slcg_pwr_csb)
-							/ GATING_DESC_SIZE);
-
-	if (nvgpu_is_enabled(g, NVGPU_GPU_CAN_SLCG)) {
-		for (i = 0; i < size; i++) {
-			u32 reg = gv11b_slcg_pwr_csb[i].addr;
-			u32 val = prod ? gv11b_slcg_pwr_csb[i].prod :
-					 gv11b_slcg_pwr_csb[i].disable;
-			nvgpu_writel(g, reg, val);
-		}
-	}
-}
-
-u32 gv11b_slcg_pwr_csb_gating_prod_size(void)
-{
-	return nvgpu_safe_cast_u64_to_u32(ARRAY_SIZE(gv11b_slcg_pwr_csb));
-}
-
-const struct gating_desc *gv11b_slcg_pwr_csb_get_gating_prod(void)
-{
-	return gv11b_slcg_pwr_csb;
-}
-
 void gv11b_slcg_pmu_load_gating_prod(struct gk20a *g,
 	bool prod)
 {
@@ -733,33 +668,6 @@ const struct gating_desc *gv11b_blcg_ce_get_gating_prod(void)
 	return gv11b_blcg_ce;
 }
 
-void gv11b_blcg_ctxsw_firmware_load_gating_prod(struct gk20a *g,
-	bool prod)
-{
-	u32 i;
-	u32 size = nvgpu_safe_cast_u64_to_u32(sizeof(gv11b_blcg_ctxsw_firmware)
-							/ GATING_DESC_SIZE);
-
-	if (nvgpu_is_enabled(g, NVGPU_GPU_CAN_BLCG)) {
-		for (i = 0; i < size; i++) {
-			u32 reg = gv11b_blcg_ctxsw_firmware[i].addr;
-			u32 val = prod ? gv11b_blcg_ctxsw_firmware[i].prod :
-					 gv11b_blcg_ctxsw_firmware[i].disable;
-			nvgpu_writel(g, reg, val);
-		}
-	}
-}
-
-u32 gv11b_blcg_ctxsw_firmware_gating_prod_size(void)
-{
-	return nvgpu_safe_cast_u64_to_u32(ARRAY_SIZE(gv11b_blcg_ctxsw_firmware));
-}
-
-const struct gating_desc *gv11b_blcg_ctxsw_firmware_get_gating_prod(void)
-{
-	return gv11b_blcg_ctxsw_firmware;
-}
-
 void gv11b_blcg_fb_load_gating_prod(struct gk20a *g,
 	bool prod)
 {
@@ -868,33 +776,6 @@ const struct gating_desc *gv11b_blcg_ltc_get_gating_prod(void)
 	return gv11b_blcg_ltc;
 }
 
-void gv11b_blcg_pwr_csb_load_gating_prod(struct gk20a *g,
-	bool prod)
-{
-	u32 i;
-	u32 size = nvgpu_safe_cast_u64_to_u32(sizeof(gv11b_blcg_pwr_csb)
-							/ GATING_DESC_SIZE);
-
-	if (nvgpu_is_enabled(g, NVGPU_GPU_CAN_BLCG)) {
-		for (i = 0; i < size; i++) {
-			u32 reg = gv11b_blcg_pwr_csb[i].addr;
-			u32 val = prod ? gv11b_blcg_pwr_csb[i].prod :
-					 gv11b_blcg_pwr_csb[i].disable;
-			nvgpu_writel(g, reg, val);
-		}
-	}
-}
-
-u32 gv11b_blcg_pwr_csb_gating_prod_size(void)
-{
-	return nvgpu_safe_cast_u64_to_u32(ARRAY_SIZE(gv11b_blcg_pwr_csb));
-}
-
-const struct gating_desc *gv11b_blcg_pwr_csb_get_gating_prod(void)
-{
-	return gv11b_blcg_pwr_csb;
-}
-
 void gv11b_blcg_pmu_load_gating_prod(struct gk20a *g,
 	bool prod)
 {
@@ -976,29 +857,3 @@ const struct gating_desc *gv11b_blcg_hshub_get_gating_prod(void)
 	return gv11b_blcg_hshub;
 }
 
-void gr_gv11b_pg_gr_load_gating_prod(struct gk20a *g,
-	bool prod)
-{
-	u32 i;
-	u32 size = nvgpu_safe_cast_u64_to_u32(sizeof(gv11b_pg_gr)
-							/ GATING_DESC_SIZE);
-
-	if (nvgpu_is_enabled(g, NVGPU_GPU_CAN_BLCG)) {
-		for (i = 0; i < size; i++) {
-			u32 reg = gv11b_pg_gr[i].addr;
-			u32 val = prod ? gv11b_pg_gr[i].prod :
-					 gv11b_pg_gr[i].disable;
-			nvgpu_writel(g, reg, val);
-		}
-	}
-}
-
-u32 gr_gv11b_pg_gr_gating_prod_size(void)
-{
-	return nvgpu_safe_cast_u64_to_u32(ARRAY_SIZE(gv11b_pg_gr));
-}
-
-const struct gating_desc *gr_gv11b_pg_gr_get_gating_prod(void)
-{
-	return gv11b_pg_gr;
-}

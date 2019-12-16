@@ -45,11 +45,6 @@ void gv11b_slcg_chiplet_load_gating_prod(struct gk20a *g,
 u32 gv11b_slcg_chiplet_gating_prod_size(void);
 const struct gating_desc *gv11b_slcg_chiplet_get_gating_prod(void);
 
-void gv11b_slcg_ctxsw_firmware_load_gating_prod(struct gk20a *g,
-	bool prod);
-u32 gv11b_slcg_ctxsw_firmware_gating_prod_size(void);
-const struct gating_desc *gv11b_slcg_ctxsw_firmware_get_gating_prod(void);
-
 void gv11b_slcg_fb_load_gating_prod(struct gk20a *g,
 	bool prod);
 u32 gv11b_slcg_fb_gating_prod_size(void);
@@ -79,11 +74,6 @@ void gv11b_slcg_priring_load_gating_prod(struct gk20a *g,
 	bool prod);
 u32 gv11b_slcg_priring_gating_prod_size(void);
 const struct gating_desc *gv11b_slcg_priring_get_gating_prod(void);
-
-void gv11b_slcg_pwr_csb_load_gating_prod(struct gk20a *g,
-	bool prod);
-u32 gv11b_slcg_pwr_csb_gating_prod_size(void);
-const struct gating_desc *gv11b_slcg_pwr_csb_get_gating_prod(void);
 
 void gv11b_slcg_pmu_load_gating_prod(struct gk20a *g,
 	bool prod);
@@ -115,11 +105,6 @@ void gv11b_blcg_ce_load_gating_prod(struct gk20a *g,
 u32 gv11b_blcg_ce_gating_prod_size(void);
 const struct gating_desc *gv11b_blcg_ce_get_gating_prod(void);
 
-void gv11b_blcg_ctxsw_firmware_load_gating_prod(struct gk20a *g,
-	bool prod);
-u32 gv11b_blcg_ctxsw_firmware_gating_prod_size(void);
-const struct gating_desc *gv11b_blcg_ctxsw_firmware_get_gating_prod(void);
-
 void gv11b_blcg_fb_load_gating_prod(struct gk20a *g,
 	bool prod);
 u32 gv11b_blcg_fb_gating_prod_size(void);
@@ -140,11 +125,6 @@ void gv11b_blcg_ltc_load_gating_prod(struct gk20a *g,
 u32 gv11b_blcg_ltc_gating_prod_size(void);
 const struct gating_desc *gv11b_blcg_ltc_get_gating_prod(void);
 
-void gv11b_blcg_pwr_csb_load_gating_prod(struct gk20a *g,
-	bool prod);
-u32 gv11b_blcg_pwr_csb_gating_prod_size(void);
-const struct gating_desc *gv11b_blcg_pwr_csb_get_gating_prod(void);
-
 void gv11b_blcg_pmu_load_gating_prod(struct gk20a *g,
 	bool prod);
 u32 gv11b_blcg_pmu_gating_prod_size(void);
@@ -159,10 +139,5 @@ void gv11b_blcg_hshub_load_gating_prod(struct gk20a *g,
 	bool prod);
 u32 gv11b_blcg_hshub_gating_prod_size(void);
 const struct gating_desc *gv11b_blcg_hshub_get_gating_prod(void);
-
-void gr_gv11b_pg_gr_load_gating_prod(struct gk20a *g,
-	bool prod);
-u32 gr_gv11b_pg_gr_gating_prod_size(void);
-const struct gating_desc *gr_gv11b_pg_gr_get_gating_prod(void);
 
 #endif /* GV11B_GATING_REGLIST_H */

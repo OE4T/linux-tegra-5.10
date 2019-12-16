@@ -879,16 +879,14 @@ static const struct gpu_ops tu104_ops = {
 			tu104_slcg_ce2_load_gating_prod,
 		.slcg_chiplet_load_gating_prod =
 			tu104_slcg_chiplet_load_gating_prod,
-		.slcg_ctxsw_firmware_load_gating_prod =
-			tu104_slcg_ctxsw_firmware_load_gating_prod,
 		.slcg_fb_load_gating_prod =
 			tu104_slcg_fb_load_gating_prod,
 		.slcg_fifo_load_gating_prod =
 			tu104_slcg_fifo_load_gating_prod,
 		.slcg_gr_load_gating_prod =
-			gr_tu104_slcg_gr_load_gating_prod,
+			tu104_slcg_gr_load_gating_prod,
 		.slcg_ltc_load_gating_prod =
-			ltc_tu104_slcg_ltc_load_gating_prod,
+			tu104_slcg_ltc_load_gating_prod,
 		.slcg_perf_load_gating_prod =
 			tu104_slcg_perf_load_gating_prod,
 		.slcg_priring_load_gating_prod =
@@ -905,8 +903,6 @@ static const struct gpu_ops tu104_ops = {
 			tu104_blcg_bus_load_gating_prod,
 		.blcg_ce_load_gating_prod =
 			tu104_blcg_ce_load_gating_prod,
-		.blcg_ctxsw_firmware_load_gating_prod =
-			tu104_blcg_ctxsw_firmware_load_gating_prod,
 		.blcg_fb_load_gating_prod =
 			tu104_blcg_fb_load_gating_prod,
 		.blcg_fifo_load_gating_prod =
@@ -915,8 +911,6 @@ static const struct gpu_ops tu104_ops = {
 			tu104_blcg_gr_load_gating_prod,
 		.blcg_ltc_load_gating_prod =
 			tu104_blcg_ltc_load_gating_prod,
-		.blcg_pwr_csb_load_gating_prod =
-			tu104_blcg_pwr_csb_load_gating_prod,
 		.blcg_pmu_load_gating_prod =
 			tu104_blcg_pmu_load_gating_prod,
 		.blcg_xbar_load_gating_prod =
