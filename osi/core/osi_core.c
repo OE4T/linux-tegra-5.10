@@ -982,6 +982,15 @@ nve32_t osi_set_mdc_clk_rate(struct osi_core_priv_data *const osi_core,
 	return 0;
 }
 
+int osi_config_rss(struct osi_core_priv_data *const osi_core)
+{
+	if (validate_args(osi_core) < 0) {
+		return -1;
+	}
+
+	return ops_p->config_rss(osi_core);
+}
+
 nve32_t osi_config_mac_loopback(struct osi_core_priv_data *const osi_core,
 				const nveu32_t lb_mode)
 {

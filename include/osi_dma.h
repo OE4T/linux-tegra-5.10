@@ -94,13 +94,14 @@
 #define OSI_PKT_CX_TSO			OSI_BIT(2)
 /** PTP packet */
 #define OSI_PKT_CX_PTP			OSI_BIT(3)
+/** Rx packet has RSS hash */
+#define OSI_PKT_CX_RSS			OSI_BIT(4)
 /** Valid packet */
 #define OSI_PKT_CX_VALID		OSI_BIT(10)
 /** Update Packet Length in Tx Desc3 */
 #define OSI_PKT_CX_LEN			OSI_BIT(11)
 /** IP CSUM packet */
 #define OSI_PKT_CX_IP_CSUM		OSI_BIT(12)
-
 /** @} */
 
 /**
@@ -180,6 +181,19 @@
 /** Packet is processed by driver */
 #define OSI_RX_SWCX_PROCESSED	OSI_BIT(3)
 
+/** @} */
+
+
+/**
+ * @addtogroup RSS-HASH type
+ *
+ * @brief Macros to represent to type of packet for hash stored in receive packet
+ * context.
+ * @{
+ */
+#define OSI_RX_PKT_HASH_TYPE_L2	0x1U
+#define OSI_RX_PKT_HASH_TYPE_L3	0x2U
+#define OSI_RX_PKT_HASH_TYPE_L4	0x3U
 /** @} */
 
 /**
@@ -270,6 +284,10 @@ struct osi_rx_pkt_cx {
 	nveu32_t vlan_tag;
 	/** Length of received packet */
 	nveu32_t pkt_len;
+	/** Stores received packet hash */
+	nveu32_t rx_hash;
+	/** Store type of packet for which hash carries at rx_hash */
+	nveu32_t rx_hash_type;
 	/** TS in nsec for the received packet */
 	nveul64_t ns;
 };

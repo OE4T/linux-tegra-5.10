@@ -96,9 +96,46 @@ static void mgbe_get_rx_csum(struct osi_rx_desc *rx_desc,
 	}
 }
 
+/**
+ * @brief mgbe_get_rx_hash - Get Rx packet hash from descriptor if valid
+ *
+ * Algorithm: This routine will be invoked by OSI layer itself to get received
+ * packet Hash from descriptor if RSS hash is valid and it also sets the type
+ * of RSS hash.
+ *
+ * @param[in] rx_desc: Rx Descriptor.
+ * @param[in] rx_pkt_cx: Per-Rx packet context structure
+ */
+static void mgbe_get_rx_hash(struct osi_rx_desc *rx_desc,
+			     struct osi_rx_pkt_cx *rx_pkt_cx)
+{
+	unsigned int pkt_type = rx_desc->rdes3 & RDES3_L34T;
+
+	if ((rx_desc->rdes3 & RDES3_RSV) != RDES3_RSV) {
+		return;
+	}
+
+	switch (pkt_type) {
+	case RDES3_L34T_IPV4_TCP:
+	case RDES3_L34T_IPV4_UDP:
+	case RDES3_L34T_IPV6_TCP:
+	case RDES3_L34T_IPV6_UDP:
+		rx_pkt_cx->rx_hash_type = OSI_RX_PKT_HASH_TYPE_L4;
+		break;
+	default:
+		rx_pkt_cx->rx_hash_type = OSI_RX_PKT_HASH_TYPE_L3;
+		break;
+	}
+
+	/* Get Rx hash from RDES1 RSSH */
+	rx_pkt_cx->rx_hash = rx_desc->rdes1;
+	rx_pkt_cx->flags |= OSI_PKT_CX_RSS;
+}
+
 void mgbe_init_desc_ops(struct desc_ops *d_ops)
 {
         d_ops->get_rx_csum = mgbe_get_rx_csum;
 	d_ops->update_rx_err_stats = mgbe_update_rx_err_stats;
 	d_ops->get_rx_vlan = mgbe_get_rx_vlan;
+	d_ops->get_rx_hash = mgbe_get_rx_hash;
 }

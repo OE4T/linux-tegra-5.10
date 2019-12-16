@@ -201,6 +201,8 @@ struct core_ops {
 	/** Called to get HW features */
 	nve32_t (*get_hw_features)(struct osi_core_priv_data *const osi_core,
 				   struct osi_hw_features *hw_feat);
+	/** Called to configure RSS for MAC */
+	nve32_t (*config_rss)(struct osi_core_priv_data *osi_core);
 };
 
 

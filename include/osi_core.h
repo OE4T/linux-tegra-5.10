@@ -181,6 +181,16 @@ typedef my_lint_64		nvel64_t;
 #define OSI_VLAN_ACTION_ADD	OSI_BIT(31)
 #define OSI_VLAN_ACTION_DEL	0x0U
 
+/**
+ * @addtogroup RSS related information
+ *
+ * @brief RSS hash key and table size.
+ * @{
+ */
+#define OSI_RSS_HASH_KEY_SIZE	40U
+#define OSI_RSS_MAX_TABLE_SIZE	128U
+/** @} */
+
 struct osi_core_priv_data;
 
 /**
@@ -651,6 +661,19 @@ struct osi_ptp_config {
 };
 
 /**
+ * @brief osi_core_rss - Struture used to store RSS Hash key and table
+ * information.
+ */
+struct osi_core_rss {
+	/** Flag to represent to enable RSS or not */
+	unsigned int enable;
+	/** Array for storing RSS Hash key */
+	unsigned char key[OSI_RSS_HASH_KEY_SIZE];
+	/** Array for storing RSS Hash table */
+	unsigned int table[OSI_RSS_MAX_TABLE_SIZE];
+};
+
+/**
  * @brief Max num of MAC core registers to backup. It should be max of or >=
  * (EQOS_MAX_BAK_IDX=380, coreX,...etc) backup registers.
  */
@@ -753,6 +776,8 @@ struct osi_core_priv_data {
 	unsigned short vid[VLAN_NUM_VID];
 	/** Count of number of VLAN filters in vid array */
 	unsigned short vlan_filter_cnt;
+	/** RSS core structure */
+	struct osi_core_rss rss;
 };
 
 /**
@@ -2191,4 +2216,17 @@ nve32_t osi_set_mdc_clk_rate(struct osi_core_priv_data *const osi_core,
 nve32_t osi_config_mac_loopback(struct osi_core_priv_data *const osi_core,
 				const nveu32_t lb_mode);
 #endif /* !OSI_STRIPPED_LIB */
+
+/**
+ * @brief osi_config_rss - Configuration of RSS.
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ *
+ * @note
+ *	1) MAC and PHY should be init and started. see osi_start_mac()
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+nve32_t osi_config_rss(struct osi_core_priv_data *const osi_core);
 #endif /* INCLUDED_OSI_CORE_H */

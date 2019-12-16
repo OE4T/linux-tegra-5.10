@@ -1780,6 +1780,126 @@ static nve32_t mgbe_configure_mtl_queue(nveu32_t qinx,
 }
 
 /**
+ * @brief mgbe_rss_write_reg - Write into RSS registers
+ *
+ * Algorithm: Programes RSS hash table or RSS hash key.
+ *
+ * @param[in] addr: MAC base address
+ * @param[in] idx: Hash table or key index
+ * @param[in] value: Value to be programmed in RSS data register.
+ * @param[in] is_key: To represent passed value key or table data.
+ *
+ * @note MAC has to be out of reset.
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+static int mgbe_rss_write_reg(struct osi_core_priv_data *osi_core,
+			      unsigned int idx,
+			      unsigned int value,
+			      unsigned int is_key)
+{
+	unsigned char *addr = (unsigned char *)osi_core->base;
+	unsigned int retry = 100;
+	unsigned int ctrl = 0;
+	unsigned int count = 0;
+	int cond = 1;
+
+	/* data into RSS Lookup Table or RSS Hash Key */
+	osi_writel(value, addr + MGBE_MAC_RSS_DATA);
+
+	if (is_key == OSI_ENABLE) {
+		ctrl |= MGBE_MAC_RSS_ADDR_ADDRT;
+	}
+
+	ctrl |= idx << MGBE_MAC_RSS_ADDR_RSSIA_SHIFT;
+	ctrl |= MGBE_MAC_RSS_ADDR_OB;
+	ctrl &= ~MGBE_MAC_RSS_ADDR_CT;
+	osi_writel(ctrl, addr + MGBE_MAC_RSS_ADDR);
+
+	/* poll for write operation to complete */
+	while (cond == 1) {
+		if (count > retry) {
+			OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_HW_FAIL,
+				     "Failed to update RSS Hash key or table\n",
+				     0ULL);
+			return -1;
+		}
+
+		count++;
+
+		value = osi_readl(addr + MGBE_MAC_RSS_ADDR);
+		if ((value & MGBE_MAC_RSS_ADDR_OB) == OSI_NONE) {
+			cond = 0;
+		} else {
+			osi_core->osd_ops.udelay(100);
+		}
+	}
+
+	return 0;
+}
+
+/**
+ * @brief mgbe_config_rss - Configure RSS
+ *
+ * Algorithm: Programes RSS hash table or RSS hash key.
+ *
+ * @param[in] osi_core: OSI core private data.
+ *
+ * @note MAC has to be out of reset.
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+static int mgbe_config_rss(struct osi_core_priv_data *osi_core)
+{
+	unsigned char *addr = (unsigned char *)osi_core->base;
+	unsigned int value = 0;
+	unsigned int i = 0, j = 0;
+	int ret = 0;
+
+	if (osi_core->rss.enable == OSI_DISABLE) {
+		/* RSS not supported */
+		return 0;
+	}
+
+	/* No need to enable RSS for single Queue */
+	if (osi_core->num_mtl_queues == 1U) {
+		return 0;
+	}
+
+	/* Program the hash key */
+	for (i = 0; i < OSI_RSS_HASH_KEY_SIZE; i += 4U) {
+		value = ((unsigned int)osi_core->rss.key[i] |
+			 (unsigned int)osi_core->rss.key[i + 1U] << 8U |
+			 (unsigned int)osi_core->rss.key[i + 2U] << 16U |
+			 (unsigned int)osi_core->rss.key[i + 3U] << 24U);
+		ret = mgbe_rss_write_reg(osi_core, j, value, OSI_ENABLE);
+		if (ret < 0) {
+			return ret;
+		}
+		j++;
+	}
+
+	/* Program Hash table */
+	for (i = 0; i < OSI_RSS_MAX_TABLE_SIZE; i++) {
+		ret = mgbe_rss_write_reg(osi_core, i, osi_core->rss.table[i],
+					 OSI_NONE);
+		if (ret < 0) {
+			return ret;
+		}
+	}
+
+	/* Enable RSS */
+	value = osi_readl(addr + MGBE_MAC_RSS_CTRL);
+	value |= MGBE_MAC_RSS_CTRL_UDP4TE | MGBE_MAC_RSS_CTRL_TCP4TE |
+		 MGBE_MAC_RSS_CTRL_IP2TE | MGBE_MAC_RSS_CTRL_RSSE;
+	osi_writel(value, addr + MGBE_MAC_RSS_CTRL);
+
+	return 0;
+}
+
+/**
  * @brief mgbe_config_flow_control - Configure MAC flow control settings
  *
  * @param[in] osi_core: OSI core private data structure.
@@ -1857,8 +1977,11 @@ static int mgbe_config_flow_control(struct osi_core_priv_data *const osi_core,
  * @param[in] osi_core: OSI core private data structure.
  *
  * @note MAC has to be out of reset.
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
  */
-static void mgbe_configure_mac(struct osi_core_priv_data *osi_core)
+static int mgbe_configure_mac(struct osi_core_priv_data *osi_core)
 {
 	nveu32_t value;
 
@@ -1968,6 +2091,9 @@ static void mgbe_configure_mac(struct osi_core_priv_data *osi_core)
 		}
 	}
 	/* TODO: USP (user Priority) to RxQ Mapping */
+
+	/* RSS cofiguration */
+	return mgbe_config_rss(osi_core);
 }
 
 /**
@@ -2125,19 +2251,22 @@ static nve32_t mgbe_core_init(struct osi_core_priv_data *osi_core,
 	value = osi_readl((nveu8_t *)osi_core->base +
 			  MGBE_MTL_RXQ_DMA_MAP0);
 	value |= MGBE_RXQ_TO_DMA_CHAN_MAP0;
-	osi_writel(value, (nveu8_t *)osi_core->base +
+	value |= MGBE_RXQ_TO_DMA_MAP_DDMACH;
+	osi_writel(value, (unsigned char *)osi_core->base +
 		   MGBE_MTL_RXQ_DMA_MAP0);
 
 	value = osi_readl((nveu8_t *)osi_core->base +
 			  MGBE_MTL_RXQ_DMA_MAP1);
 	value |= MGBE_RXQ_TO_DMA_CHAN_MAP1;
-	osi_writel(value, (nveu8_t *)osi_core->base +
+	value |= MGBE_RXQ_TO_DMA_MAP_DDMACH;
+	osi_writel(value, (unsigned char *)osi_core->base +
 		   MGBE_MTL_RXQ_DMA_MAP1);
 
 	value = osi_readl((nveu8_t *)osi_core->base +
 			  MGBE_MTL_RXQ_DMA_MAP2);
 	value |= MGBE_RXQ_TO_DMA_CHAN_MAP2;
-	osi_writel(value, (nveu8_t *)osi_core->base +
+	value |= MGBE_RXQ_TO_DMA_MAP_DDMACH;
+	osi_writel(value, (unsigned char *)osi_core->base +
 		   MGBE_MTL_RXQ_DMA_MAP2);
 
 	/* TODO: DCS enable */
@@ -2161,7 +2290,10 @@ static nve32_t mgbe_core_init(struct osi_core_priv_data *osi_core,
 	}
 
 	/* configure MGBE MAC HW */
-	mgbe_configure_mac(osi_core);
+	ret = mgbe_configure_mac(osi_core);
+	if (ret < 0) {
+		return ret;
+	}
 
 	/* configure MGBE DMA */
 	mgbe_configure_dma(osi_core->base);
@@ -3303,4 +3435,5 @@ void mgbe_init_core_ops(struct core_ops *ops)
 	ops->reset_mmc = mgbe_reset_mmc;
 	ops->configure_eee = mgbe_configure_eee;
 	ops->get_hw_features = mgbe_get_hw_features;
+	ops->config_rss = mgbe_config_rss;
 };
