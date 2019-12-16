@@ -59,6 +59,25 @@ struct utf_falcon *pmu_flcn, *gpccs_flcn;
 
 #define NV_PBB_FBHUB_REGSPACE 0x100B00
 
+static int stub_gv11b_bar0_error_status(struct gk20a *g, u32 *bar0_status,
+	u32 *etype)
+{
+	/* return error */
+	return -EIO;
+}
+
+static bool stub_gv11b_validate_mem_integrity(struct gk20a *g)
+{
+	/* return error */
+	return false;
+}
+
+static bool stub_gv11b_is_debug_mode_en(struct gk20a *g)
+{
+	/* DEBUG mode enabbled */
+	return true;
+}
+
 static struct utf_falcon *get_flcn_from_addr(struct gk20a *g, u32 addr)
 {
 	struct utf_falcon *flcn = NULL;
@@ -363,7 +382,69 @@ int test_acr_bootstrap_hs_acr(struct unit_module *m,
 	}
 
 	/*
-	 * Case 4: Fail scenario of nvgpu_acr_bootstrap_hs_acr()
+	 * Case 4:
+	 * Covering branch for fail scenario
+	 * when "is_falcon_supported" is set to false
+	 */
+
+	pmu_flcn->flcn->is_falcon_supported = false;
+	err = nvgpu_acr_bootstrap_hs_acr(g, g->acr);
+	if (err != -EINVAL) {
+		unit_return_fail(m, "test_acr_bootstrap_hs_acr() failed");
+	}
+
+	/*
+	 * Case 5: branch coverage
+	 */
+	pmu_flcn->flcn->is_falcon_supported = true;
+	g->acr->acr.acr_engine_bus_err_status = NULL;
+	err = nvgpu_acr_bootstrap_hs_acr(g, g->acr);
+
+	/*
+	 * Case 6:
+	 * Covering branch when "acr_engine_bus_err_status" ops fails
+	 */
+	pmu_flcn->flcn->is_falcon_supported = true;
+	g->acr->acr.acr_engine_bus_err_status = stub_gv11b_bar0_error_status;
+	err = nvgpu_acr_bootstrap_hs_acr(g, g->acr);
+	if (err != -EIO) {
+		unit_return_fail(m, "test_acr_bootstrap_hs_acr() failed");
+	}
+
+	/*
+	 * Case 7: branch coverage
+	 */
+	pmu_flcn->flcn->is_falcon_supported = true;
+	g->acr->acr.acr_engine_bus_err_status = g->ops.pmu.bar0_error_status;
+	g->acr->acr.acr_validate_mem_integrity = NULL;
+	err = nvgpu_acr_bootstrap_hs_acr(g, g->acr);
+
+	/*
+	 * Case 8:
+	 * Covering branch when "acr_validate_mem_integrity" ops fails
+	 */
+	pmu_flcn->flcn->is_falcon_supported = true;
+	g->acr->acr.acr_validate_mem_integrity = stub_gv11b_validate_mem_integrity;
+	err = nvgpu_acr_bootstrap_hs_acr(g, g->acr);
+	if (err != -EAGAIN) {
+		unit_return_fail(m, "test_acr_bootstrap_hs_acr() failed");
+	}
+
+	/*
+	 * Case 9: branch coverage for debug mode
+	 */
+	g->acr->acr.acr_validate_mem_integrity = g->ops.pmu.validate_mem_integrity;
+	g->ops.pmu.is_debug_mode_enabled = stub_gv11b_is_debug_mode_en;
+	err = nvgpu_acr_bootstrap_hs_acr(g, g->acr);
+
+	/*
+	 * Case 10: branch coverage
+	 */
+	g->acr->acr.report_acr_engine_bus_err_status = NULL;
+	err = nvgpu_acr_bootstrap_hs_acr(g, g->acr);
+
+	/*
+	 * Case 11: Fail scenario of nvgpu_acr_bootstrap_hs_acr()
 	 * by passing g->acr = NULL
 	 */
 	g->acr = NULL;
