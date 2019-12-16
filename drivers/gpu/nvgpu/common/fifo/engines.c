@@ -544,6 +544,7 @@ void nvgpu_engine_cleanup_sw(struct gk20a *g)
 {
 	struct nvgpu_fifo *f = &g->fifo;
 
+	f->num_engines = 0;
 	nvgpu_kfree(g, f->engine_info);
 	f->engine_info = NULL;
 	nvgpu_kfree(g, f->active_engines_list);
@@ -699,9 +700,8 @@ bool nvgpu_engine_is_valid_runlist_id(struct gk20a *g, u32 runlist_id)
 
 	for (i = 0U; i < f->num_engines; i++) {
 		engine_id = f->active_engines_list[i];
-		engine_info = nvgpu_engine_get_active_eng_info(g, engine_id);
-		if ((engine_info != NULL) &&
-		    (engine_info->runlist_id == runlist_id)) {
+		engine_info = &f->engine_info[engine_id];
+		if (engine_info->runlist_id == runlist_id) {
 			return true;
 		}
 	}
