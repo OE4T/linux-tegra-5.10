@@ -334,6 +334,9 @@ nve32_t osi_process_rx_completions(struct osi_dma_priv_data *osi_dma,
 			/* Get Rx VLAN from descriptor */
 			d_ops.get_rx_vlan(rx_desc, rx_pkt_cx);
 
+			/* get_rx_hash for RSS */
+			d_ops.get_rx_hash(rx_desc, rx_pkt_cx);
+
 			context_desc = rx_ring->rx_desc + rx_ring->cur_rx_idx;
 			/* Get rx time stamp */
 			ret = get_rx_hwstamp(osi_dma, rx_desc, context_desc,
