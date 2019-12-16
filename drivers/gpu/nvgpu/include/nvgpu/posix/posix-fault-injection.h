@@ -97,7 +97,8 @@ struct nvgpu_posix_fault_inj_container {
 	struct nvgpu_posix_fault_inj nvclock_get_clock_freq_fi;
 	struct nvgpu_posix_fault_inj nvclock_get_max_clock_freq_fi;
 	struct nvgpu_posix_fault_inj nvdt_node_get_prop_clock_rates_fi;
-
+	struct nvgpu_posix_fault_inj qnx_intattach_event_fi;
+	struct nvgpu_posix_fault_inj qnx_int_wait_fi;
 };
 
 /**
