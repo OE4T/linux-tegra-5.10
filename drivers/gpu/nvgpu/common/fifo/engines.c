@@ -661,6 +661,7 @@ u32 nvgpu_engine_get_fast_ce_runlist_id(struct gk20a *g)
 
 u32 nvgpu_engine_get_gr_runlist_id(struct gk20a *g)
 {
+	struct nvgpu_fifo *f = &g->fifo;
 	u32 gr_engine_cnt = 0;
 	u32 gr_engine_id = NVGPU_INVALID_ENG_ID;
 	struct nvgpu_engine_info *engine_info;
@@ -676,15 +677,8 @@ u32 nvgpu_engine_get_gr_runlist_id(struct gk20a *g)
 		goto end;
 	}
 
-	engine_info = nvgpu_engine_get_active_eng_info(g, gr_engine_id);
-
-	if (engine_info != NULL) {
-		gr_runlist_id = engine_info->runlist_id;
-	} else {
-		nvgpu_err(g,
-			"gr_engine_id: %d is not in active list/invalid",
-			gr_engine_id);
-	}
+	engine_info = &f->engine_info[gr_engine_id];
+	gr_runlist_id = engine_info->runlist_id;
 
 end:
 	return gr_runlist_id;
