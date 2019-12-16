@@ -302,6 +302,7 @@ int ether_handle_hwtstamp_ioctl(struct ether_priv_data *pdata,
 		struct ifreq *ifr)
 {
 	struct osi_core_priv_data *osi_core = pdata->osi_core;
+	struct osi_dma_priv_data *osi_dma = pdata->osi_dma;
 	struct hwtstamp_config config;
 	unsigned int hwts_rx_en = 1;
 #if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
@@ -335,6 +336,7 @@ int ether_handle_hwtstamp_ioctl(struct ether_priv_data *pdata,
 		break;
 
 	case HWTSTAMP_TX_ON:
+	case HWTSTAMP_TX_ONESTEP_SYNC:
 		pdata->hwts_tx_en = OSI_ENABLE;
 		break;
 
@@ -400,11 +402,25 @@ int ether_handle_hwtstamp_ioctl(struct ether_priv_data *pdata,
 
 		/* PTP v2/802.AS1, any layer, any kind of event packet */
 	case HWTSTAMP_FILTER_PTP_V2_EVENT:
-		osi_core->ptp_config.ptp_filter = OSI_MAC_TCR_SNAPTYPSEL_1 |
-						  OSI_MAC_TCR_TSIPV4ENA    |
+		osi_core->ptp_config.ptp_filter = OSI_MAC_TCR_TSIPV4ENA    |
 						  OSI_MAC_TCR_TSIPV6ENA    |
 						  OSI_MAC_TCR_TSVER2ENA    |
 						  OSI_MAC_TCR_TSIPENA;
+
+		if ((osi_dma->ptp_flag & OSI_PTP_SYNC_ONESTEP) ==
+		    OSI_PTP_SYNC_ONESTEP) {
+			osi_core->ptp_config.ptp_filter |=
+						  (OSI_MAC_TCR_TSEVENTENA |
+						   OSI_MAC_TCR_CSC);
+			if ((osi_dma->ptp_flag & OSI_PTP_SYNC_MASTER) ==
+			    OSI_PTP_SYNC_MASTER) {
+				osi_core->ptp_config.ptp_filter |=
+						  OSI_MAC_TCR_TSMASTERENA;
+			}
+		} else {
+			osi_core->ptp_config.ptp_filter |=
+						  OSI_MAC_TCR_SNAPTYPSEL_1;
+		}
 		break;
 
 		/* PTP v2/802.AS1, any layer, Sync packet */
