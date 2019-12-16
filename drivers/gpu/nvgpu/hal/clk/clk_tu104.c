@@ -590,6 +590,7 @@ u32 tu104_get_rate_cntr(struct gk20a *g, struct namemap_cfg *c) {
 	return -EBUSY;
 }
 
+#ifdef CONFIG_NVGPU_CLK_ARB
 int tu104_clk_domain_get_f_points(
 	struct gk20a *g,
 	u32 clkapidomain,
@@ -619,11 +620,13 @@ int tu104_clk_domain_get_f_points(
 	}
 	return status;
 }
+#endif
+
 void tu104_suspend_clk_support(struct gk20a *g)
 {
 	nvgpu_mutex_destroy(&g->clk.clk_mutex);
 }
-
+#ifdef CONFIG_NVGPU_CLK_ARB
 unsigned long tu104_clk_maxrate(struct gk20a *g, u32 api_domain)
 {
 	u16 min_mhz = 0, max_mhz = 0;
@@ -652,7 +655,7 @@ void tu104_get_change_seq_time(struct gk20a *g, s64 *change_time)
 
 	*change_time = diff;
 }
-
+#endif
 void tu104_change_host_clk_source(struct gk20a *g)
 {
 	nvgpu_writel(g, trim_sys_ind_clk_sys_core_clksrc_r(),

@@ -61,6 +61,7 @@ int nvgpu_clk_domain_freq_to_volt(struct gk20a *g, u8 clkdomain_idx,
 	return status;
 }
 
+#ifdef CONFIG_NVGPU_CLK_ARB
 int nvgpu_clk_get_fll_clks(struct gk20a *g,
 		struct nvgpu_set_fll_clk *setfllclk)
 {
@@ -71,6 +72,7 @@ int nvgpu_clk_set_boot_fll_clk_tu10x(struct gk20a *g)
 {
 	return g->pmu->clk_pmu->set_boot_fll(g);
 }
+#endif
 
 int nvgpu_clk_init_pmupstate(struct gk20a *g)
 {
@@ -93,6 +95,7 @@ void nvgpu_clk_free_pmupstate(struct gk20a *g)
 	g->pmu->clk_pmu = NULL;
 }
 
+#ifdef CONFIG_NVGPU_CLK_ARB
 int nvgpu_clk_set_req_fll_clk_ps35(struct gk20a *g,
 		struct nvgpu_clk_slave_freq *vf_point)
 {
@@ -177,4 +180,4 @@ int nvgpu_clk_set_req_fll_clk_ps35(struct gk20a *g,
 	change_seq_pmu->stop_time = nvgpu_current_time_us();
 	return status;
 }
-
+#endif

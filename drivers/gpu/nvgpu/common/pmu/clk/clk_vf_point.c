@@ -390,6 +390,7 @@ static int _clk_vf_point_pmudatainit_super(struct gk20a *g,
 	return status;
 }
 
+#ifdef CONFIG_NVGPU_CLK_ARB
 int nvgpu_clk_arb_find_slave_points(struct nvgpu_clk_arb *arb,
 		struct nvgpu_clk_slave_freq *vf_point)
 {
@@ -480,6 +481,7 @@ int nvgpu_clk_vf_point_cache(struct gk20a *g)
 	}
 	return status;
 }
+#endif
 
 int nvgpu_clk_vf_point_init_pmupstate(struct gk20a *g)
 {

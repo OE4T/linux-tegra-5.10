@@ -1251,9 +1251,11 @@ static const struct gpu_ops tu104_ops = {
 		.measure_freq = tu104_clk_measure_freq,
 		.suspend_clk_support = tu104_suspend_clk_support,
 		.perf_pmu_vfe_load = nvgpu_perf_pmu_vfe_load_ps35,
+#ifdef CONFIG_NVGPU_CLK_ARB
 		.clk_domain_get_f_points = tu104_clk_domain_get_f_points,
 		.get_maxrate = tu104_clk_maxrate,
 		.get_change_seq_time = tu104_get_change_seq_time,
+#endif
 		.change_host_clk_source = tu104_change_host_clk_source,
 		.clk_mon_check_master_fault_status =
 				nvgpu_clk_mon_check_master_fault_status,

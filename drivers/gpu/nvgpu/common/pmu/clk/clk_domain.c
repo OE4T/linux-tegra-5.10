@@ -1402,6 +1402,7 @@ int nvgpu_clk_pmu_clk_domains_load(struct gk20a *g)
 	return status;
 }
 
+#ifdef CONFIG_NVGPU_CLK_ARB
 static int clk_get_fll_clks_per_clk_domain(struct gk20a *g,
 		struct nvgpu_set_fll_clk *setfllclk)
 {
@@ -1710,6 +1711,7 @@ static void clk_set_p0_clk_per_domain(struct gk20a *g, u8 *gpcclk_domain,
 		}
 	}
 }
+#endif
 
 int nvgpu_clk_domain_init_pmupstate(struct gk20a *g)
 {
@@ -1724,12 +1726,14 @@ int nvgpu_clk_domain_init_pmupstate(struct gk20a *g)
 		return -ENOMEM;
 	}
 
+#ifdef CONFIG_NVGPU_CLK_ARB
 	g->pmu->clk_pmu->get_fll =
 			clk_get_fll_clks_per_clk_domain;
 	g->pmu->clk_pmu->set_boot_fll =
 			clk_set_boot_fll_clks_per_clk_domain;
 	g->pmu->clk_pmu->set_p0_clks =
 			clk_set_p0_clk_per_domain;
+#endif
 	g->pmu->clk_pmu->clk_get_clk_domain =
 			clk_get_clk_domain_from_index;
 	g->pmu->clk_pmu->clk_domain_clk_prog_link =
