@@ -516,6 +516,12 @@
         "test_level": 0
     },
     {
+        "test": "test_cg",
+        "case": "slcg_therm",
+        "unit": "cg",
+        "test_level": 0
+    },
+    {
         "test": "class_validate_setup",
         "case": "class_validate",
         "unit": "class",

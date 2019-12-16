@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -24,6 +24,7 @@
 #include <nvgpu/log.h>
 #include <nvgpu/therm.h>
 #include <nvgpu/gk20a.h>
+#include <nvgpu/power_features/cg.h>
 
 int nvgpu_init_therm_support(struct gk20a *g)
 {
@@ -37,6 +38,8 @@ int nvgpu_init_therm_support(struct gk20a *g)
 	if (err != 0) {
 		return err;
 	}
+
+	nvgpu_cg_slcg_therm_load_enable(g);
 
 #ifdef CONFIG_DEBUG_FS
 	if (g->ops.therm.therm_debugfs_init)

@@ -225,6 +225,21 @@ done:
 	nvgpu_mutex_release(&g->cg_pg_lock);
 }
 
+void nvgpu_cg_slcg_therm_load_enable(struct gk20a *g)
+{
+	nvgpu_log_fn(g, " ");
+
+	nvgpu_mutex_acquire(&g->cg_pg_lock);
+	if (!g->slcg_enabled) {
+		goto done;
+	}
+	if (g->ops.cg.slcg_therm_load_gating_prod != NULL) {
+		g->ops.cg.slcg_therm_load_gating_prod(g, true);
+	}
+done:
+	nvgpu_mutex_release(&g->cg_pg_lock);
+}
+
 void nvgpu_cg_slcg_ce2_load_enable(struct gk20a *g)
 {
 	nvgpu_log_fn(g, " ");

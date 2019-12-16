@@ -359,6 +359,23 @@ void nvgpu_cg_slcg_fifo_load_enable(struct gk20a *g);
 void nvgpu_cg_slcg_pmu_load_enable(struct gk20a *g);
 
 /**
+ * @brief Load register configuration for SLCG for therm.
+ *
+ * @param g [in] The GPU driver struct.
+ *
+ * Checks the platform software capability slcg_enabled and programs registers
+ * for configuring production gating values for SLCG for therm. This is called
+ * in nvgpu_init_therm_support.
+ *
+ * Steps:
+ * - Acquire the mutex #cg_pg_lock.
+ * - Check if #slcg_enabled is set, else skip SLCG programming.
+ * - Load SLCG prod settings for therm.
+ * - Release the mutex #cg_pg_lock.
+ */
+void nvgpu_cg_slcg_therm_load_enable(struct gk20a *g);
+
+/**
  * @brief Load register configuration for SLCG for CE2.
  *
  * @param g [in] The GPU driver struct.

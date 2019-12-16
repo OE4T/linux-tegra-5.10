@@ -101,6 +101,12 @@ struct cg_test_data slcg_pmu = {
 	.domain_count = 1,
 };
 
+struct cg_test_data slcg_therm = {
+	.cg_type = NVGPU_GPU_CAN_SLCG,
+	.load_enable = nvgpu_cg_slcg_therm_load_enable,
+	.domain_count = 1,
+};
+
 struct cg_test_data slcg_ce2 = {
 	.cg_type = NVGPU_GPU_CAN_SLCG,
 	.load_enable = nvgpu_cg_slcg_ce2_load_enable,
@@ -228,6 +234,11 @@ static void init_slcg_pmu_data(struct gk20a *g)
 	INIT_SLCG_DOMAIN_TEST_DATA(pmu);
 }
 
+static void init_slcg_therm_data(struct gk20a *g)
+{
+	INIT_SLCG_DOMAIN_TEST_DATA(therm);
+}
+
 static void init_slcg_ce2_data(struct gk20a *g)
 {
 	INIT_SLCG_DOMAIN_TEST_DATA(ce2);
@@ -334,6 +345,7 @@ static int init_test_env(struct unit_module *m, struct gk20a *g, void *args)
 	init_slcg_priring_data(g);
 	init_slcg_fifo_data(g);
 	init_slcg_pmu_data(g);
+	init_slcg_therm_data(g);
 	init_slcg_ce2_data(g);
 	init_slcg_gr_load_gating_data(g);
 
@@ -677,6 +689,7 @@ struct unit_module_test cg_tests[] = {
 	UNIT_TEST(slcg_priring, test_cg, &slcg_priring, 0),
 	UNIT_TEST(slcg_fifo,    test_cg, &slcg_fifo, 0),
 	UNIT_TEST(slcg_pmu,     test_cg, &slcg_pmu, 0),
+	UNIT_TEST(slcg_therm,   test_cg, &slcg_therm, 0),
 	UNIT_TEST(slcg_ce2,     test_cg, &slcg_ce2, 0),
 
 	UNIT_TEST(slcg_gr_load_gating_prod, test_cg,
