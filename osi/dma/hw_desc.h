@@ -73,6 +73,7 @@
 
 /** MGBE error summary bits for Received packet */
 #define RDES3_ES_MGBE		0x8000U
+#define RDES3_ERR_MGBE_CRC	(OSI_BIT(16) | OSI_BIT(17))
 /**
  * @addtogroup EQOS_TxDesc Transmit Descriptors bit fields
  *
