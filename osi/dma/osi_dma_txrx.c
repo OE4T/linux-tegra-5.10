@@ -359,8 +359,8 @@ nve32_t osi_process_rx_completions(struct osi_dma_priv_data *osi_dma,
 				 * are set
 				 */
 				rx_pkt_cx->flags &= ~OSI_PKT_CX_VALID;
-				get_rx_err_stats(rx_desc,
-						 &osi_dma->pkt_err_stats);
+				d_ops.update_rx_err_stats(rx_desc,
+						osi_dma->pkt_err_stats);
 			}
 
 			/* Check if COE Rx checksum is valid */

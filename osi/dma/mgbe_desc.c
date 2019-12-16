@@ -24,6 +24,28 @@
 #include "hw_desc.h"
 
 /**
+ * @brief mgbe_get_rx_err_stats - Detect Errors from Rx Descriptor
+ *
+ * Algorithm: This routine will be invoked by OSI layer itself which
+ *	checks for the Last Descriptor and updates the receive status errors
+ *	accordingly.
+ *
+ * @param[in] rx_desc: Rx Descriptor.
+ * @param[in] pkt_err_stats: Packet error stats which stores the errors reported
+ */
+static inline void mgbe_update_rx_err_stats(struct osi_rx_desc *rx_desc,
+					    struct osi_pkt_err_stats
+					    pkt_err_stats)
+{
+	/* increment rx crc if we see CE bit set */
+	if ((rx_desc->rdes3 & RDES3_ERR_MGBE_CRC) == RDES3_ERR_MGBE_CRC) {
+		pkt_err_stats.rx_crc_error =
+			osi_update_stats_counter(pkt_err_stats.rx_crc_error,
+						 1UL);
+	}
+}
+
+/**
  * @brief mgbe_get_rx_csum - Get the Rx checksum from descriptor if valid
  *
  * Algorithm:
@@ -54,4 +76,5 @@ static void mgbe_get_rx_csum(struct osi_rx_desc *rx_desc,
 void mgbe_init_desc_ops(struct desc_ops *d_ops)
 {
         d_ops->get_rx_csum = mgbe_get_rx_csum;
+	d_ops->update_rx_err_stats = mgbe_update_rx_err_stats;
 }
