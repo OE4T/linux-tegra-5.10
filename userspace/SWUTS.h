@@ -42,6 +42,7 @@
  *   - @ref SWUTS-fifo-channel-gk20a
  *   - @ref SWUTS-fifo-channel-gm20b
  *   - @ref SWUTS-fifo-channel-gv11b
+ *   - @ref SWUTS-fifo-ctxsw_timeout-gv11b
  *   - @ref SWUTS-fifo-engine
  *   - @ref SWUTS-fifo-engine-gm20b
  *   - @ref SWUTS-fifo-engine-gp10b

@@ -61,6 +61,7 @@ void gv11b_fifo_ctxsw_timeout_enable(struct gk20a *g, bool enable)
 			nvgpu_log_info(g,
 				"new fifo_eng_ctxsw_timeout reg val = 0x%08x",
 				 timeout);
+			nvgpu_writel(g, fifo_eng_ctxsw_timeout_r(), timeout);
 		}
 
 	} else {

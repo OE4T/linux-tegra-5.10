@@ -86,6 +86,7 @@ NV_REPOSITORY_COMPONENTS += userspace/units/fifo/channel
 NV_REPOSITORY_COMPONENTS += userspace/units/fifo/channel/gk20a
 NV_REPOSITORY_COMPONENTS += userspace/units/fifo/channel/gm20b
 NV_REPOSITORY_COMPONENTS += userspace/units/fifo/channel/gv11b
+NV_REPOSITORY_COMPONENTS += userspace/units/fifo/ctxsw_timeout/gv11b
 NV_REPOSITORY_COMPONENTS += userspace/units/fifo/engine
 NV_REPOSITORY_COMPONENTS += userspace/units/fifo/engine/gm20b
 NV_REPOSITORY_COMPONENTS += userspace/units/fifo/engine/gp10b

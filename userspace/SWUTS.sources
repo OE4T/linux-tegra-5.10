@@ -14,6 +14,7 @@ INPUT += ../../../userspace/units/fifo/channel/nvgpu-channel.h
 INPUT += ../../../userspace/units/fifo/channel/gk20a/nvgpu-channel-gk20a.h
 INPUT += ../../../userspace/units/fifo/channel/gm20b/nvgpu-channel-gm20b.h
 INPUT += ../../../userspace/units/fifo/channel/gv11b/nvgpu-channel-gv11b.h
+INPUT += ../../../userspace/units/fifo/ctxsw_timeout/gv11b/nvgpu-ctxsw-timeout-gv11b.h
 INPUT += ../../../userspace/units/fifo/engine/nvgpu-engine.h
 INPUT += ../../../userspace/units/fifo/engine/gm20b/nvgpu-engine-gm20b.h
 INPUT += ../../../userspace/units/fifo/engine/gp10b/nvgpu-engine-gp10b.h
