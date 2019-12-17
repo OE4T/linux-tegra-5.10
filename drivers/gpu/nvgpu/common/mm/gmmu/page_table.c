@@ -201,7 +201,6 @@ int nvgpu_gmmu_init_page_table(struct vm_gk20a *vm)
 
 	err = nvgpu_pd_alloc(vm, &vm->pdb, pdb_size);
 	if (err != 0) {
-		nvgpu_do_assert();
 		return err;
 	}
 
@@ -211,7 +210,7 @@ int nvgpu_gmmu_init_page_table(struct vm_gk20a *vm)
 	 */
 	vm->pdb.mem->skip_wmb = true;
 
-	return 0;
+	return err;
 }
 
 /*
@@ -271,9 +270,6 @@ static int pd_allocate(struct vm_gk20a *vm,
 		if (pd->pd_size >= pd_get_size(l, attrs)) {
 			return 0;
 		}
-	}
-
-	if (pd->mem != NULL) {
 		nvgpu_pd_free(vm, pd);
 		pd->mem = NULL;
 	}
@@ -449,6 +445,7 @@ static int nvgpu_set_pd_level(struct vm_gk20a *vm,
 	 * offsets into the page table debugging code which makes it easier to
 	 * see what level prints are from.
 	 */
+#ifdef CONFIG_NVGPU_TRACE
 	static const char *lvl_debug[] = {
 		"",          /* L=0 */
 		"  ",        /* L=1 */
@@ -457,11 +454,6 @@ static int nvgpu_set_pd_level(struct vm_gk20a *vm,
 		"        ",  /* L=4 */
 	};
 
-	/* This limits recursion */
-	nvgpu_assert(lvl < g->ops.mm.gmmu.get_max_page_table_levels(g));
-
-	pde_range = 1ULL << (u64)l->lo_bit[attrs->pgsz];
-
 	nvgpu_gmmu_dbg_v(g, attrs,
 			 "L=%d   %sGPU virt %#-12llx +%#-9llx -> phys %#-12llx",
 			 lvl,
@@ -469,6 +461,12 @@ static int nvgpu_set_pd_level(struct vm_gk20a *vm,
 			 virt_addr,
 			 length,
 			 phys_addr);
+#endif /* CONFIG_NVGPU_TRACE */
+
+	/* This limits recursion */
+	nvgpu_assert(lvl < g->ops.mm.gmmu.get_max_page_table_levels(g));
+
+	pde_range = 1ULL << (u64)l->lo_bit[attrs->pgsz];
 
 	/*
 	 * Iterate across the mapping in chunks the size of this level's PDE.
@@ -539,8 +537,10 @@ static int nvgpu_set_pd_level(struct vm_gk20a *vm,
 		length -= chunk_size;
 	}
 
+#ifdef CONFIG_NVGPU_TRACE
 	nvgpu_gmmu_dbg_v(g, attrs, "L=%d   %s%s", lvl, lvl_debug[lvl],
 			 "ret!");
+#endif /* CONFIG_NVGPU_TRACE */
 
 	return 0;
 }
@@ -795,6 +795,7 @@ static void nvgpu_gmmu_update_page_table_dbg_print(struct gk20a *g,
 		struct nvgpu_sgt *sgt, u64 space_to_skip,
 		u64 virt_addr, u64 length, u32 page_size)
 {
+#ifdef CONFIG_NVGPU_TRACE
 	nvgpu_gmmu_dbg(g, attrs,
 		"vm=%s "
 		"%-5s GPU virt %#-12llx +%#-9llx    phys %#-12llx "
@@ -816,6 +817,7 @@ static void nvgpu_gmmu_update_page_table_dbg_print(struct gk20a *g,
 		attrs->priv      ? 'P' : '-',
 		attrs->valid     ? 'V' : '-',
 		attrs->platform_atomic ? 'A' : '-');
+#endif /* CONFIG_NVGPU_TRACE */
 }
 
 static int nvgpu_gmmu_update_page_table(struct vm_gk20a *vm,
@@ -862,8 +864,10 @@ static int nvgpu_gmmu_update_page_table(struct vm_gk20a *vm,
 
 	nvgpu_mb();
 
+#ifdef CONFIG_NVGPU_TRACE
 	nvgpu_gmmu_dbg(g, attrs, "%-5s Done!",
 				(sgt != NULL) ? "MAP" : "UNMAP");
+#endif /* CONFIG_NVGPU_TRACE */
 
 	return err;
 }
@@ -1173,7 +1177,9 @@ int nvgpu_set_pte(struct gk20a *g, struct vm_gk20a *vm, u64 vaddr, u32 *pte)
 	struct nvgpu_gmmu_attrs attrs = {
 		.pgsz = 0,
 	};
+#ifdef CONFIG_NVGPU_TRACE
 	struct nvgpu_gmmu_attrs *attrs_ptr = &attrs;
+#endif /* CONFIG_NVGPU_TRACE */
 
 	err = nvgpu_locate_pte(g, vm, &vm->pdb,
 			       vaddr, 0U, &attrs,
@@ -1186,8 +1192,11 @@ int nvgpu_set_pte(struct gk20a *g, struct vm_gk20a *vm, u64 vaddr, u32 *pte)
 
 	for (i = 0; i < pte_size; i++) {
 		nvgpu_pd_write(g, pd, (size_t)pd_offs + (size_t)i, pte[i]);
+
+#ifdef CONFIG_NVGPU_TRACE
 		pte_dbg(g, attrs_ptr,
 			"PTE: idx=%-4u (%d) 0x%08x", pd_idx, i, pte[i]);
+#endif /* CONFIG_NVGPU_TRACE */
 	}
 
 	/*
