@@ -274,6 +274,7 @@ int fb_mmu_fault_gv11b_handle_bar2_fault(struct unit_module *m, struct gk20a *g,
 	struct mmu_fault_info mmufault;
 	struct nvgpu_channel refch;
 	u32 fault_status = 0;
+	static const char *const error_str = "test error";
 
 	(void) memset(&mmufault, 0, sizeof(mmufault));
 	(void) memset(&refch, 0, sizeof(refch));
@@ -288,6 +289,10 @@ int fb_mmu_fault_gv11b_handle_bar2_fault(struct unit_module *m, struct gk20a *g,
 	/* Now set it up properly */
 	mmufault.valid = true;
 	mmufault.refch = &refch;
+	mmufault.fault_type_desc = error_str;
+	mmufault.client_type_desc = error_str;
+	mmufault.client_id_desc = error_str;
+
 	gv11b_fb_mmu_fault_info_dump(g, &mmufault);
 	fault_status = fb_mmu_fault_status_non_replayable_error_m();
 	g->ops.fb.fault_buf_set_state_hw(g, 0, NVGPU_MMU_FAULT_BUF_ENABLED);
