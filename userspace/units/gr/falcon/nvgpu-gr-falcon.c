@@ -30,8 +30,10 @@
 #include <nvgpu/posix/kmem.h>
 #include <nvgpu/posix/dma.h>
 #include <nvgpu/posix/posix-fault-injection.h>
+#include <os/posix/os_posix.h>
 
 #include <nvgpu/gk20a.h>
+#include <nvgpu/nvgpu_mem.h>
 #include <nvgpu/gr/gr.h>
 #include <nvgpu/gr/gr_falcon.h>
 
@@ -153,12 +155,23 @@ static int gr_falcon_bind_instblk(struct unit_module *m, struct gk20a *g)
 	int err;
 	struct nvgpu_ctxsw_ucode_info *ucode_info =
 					&unit_gr_falcon->ctxsw_ucode_info;
+	struct nvgpu_mem *mem;
+
+	g->ops.gr.falcon.bind_instblk = gr_falcon_gops.bind_instblk;
+
+	/* Generate expected bug with hi32 instr value */
+	mem = &ucode_info->inst_blk_desc;
+	mem->cpu_va = (void *)0xFFFFFFFFFFFFFFFF;
+	if (!EXPECT_BUG(nvgpu_gr_falcon_init_ctxsw(g, unit_gr_falcon))) {
+		unit_return_fail(m,
+			"falcon_init_ctxsw secure recovery failed\n");
+	}
+	mem->cpu_va = NULL;
 
 	err = nvgpu_alloc_inst_block(g, &ucode_info->inst_blk_desc);
 	if (err != 0)
 		return UNIT_FAIL;
 
-	g->ops.gr.falcon.bind_instblk = gr_falcon_gops.bind_instblk;
 	err = nvgpu_gr_falcon_init_ctxsw(g, unit_gr_falcon);
 	if (err != 0) {
 		unit_return_fail(m,

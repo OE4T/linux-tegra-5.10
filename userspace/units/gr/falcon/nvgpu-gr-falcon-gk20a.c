@@ -231,8 +231,14 @@ static int gr_falcon_timer_init_error(struct unit_module *m,
 		unit_return_fail(m,
 			"gr_falcon_wait_ctxsw_ready failed\n");
 	}
-	nvgpu_set_enabled(g, NVGPU_SEC_SECUREGPCCS, true);
 
+	nvgpu_set_enabled(g, NVGPU_GR_USE_DMA_FOR_FW_BOOTSTRAP, true);
+	err = g->ops.gr.falcon.wait_ctxsw_ready(g);
+	if (err != 0) {
+		unit_return_fail(m,
+			"gr_falcon_wait_ctxsw_ready failed\n");
+	}
+	nvgpu_set_enabled(g, NVGPU_SEC_SECUREGPCCS, true);
 	return UNIT_SUCCESS;
 }
 
