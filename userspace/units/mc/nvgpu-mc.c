@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -769,27 +769,19 @@ int test_wait_for_deferred_interrupts(struct unit_module *m, struct gk20a *g,
 	nvgpu_cond_init(&g->mc.sw_irq_nonstall_last_handled_cond);
 
 	/* immediate completion */
-	nvgpu_atomic_set(&g->mc.hw_irq_stall_count, 0);
-	nvgpu_atomic_set(&g->mc.sw_irq_stall_last_handled, 0);
-	nvgpu_atomic_set(&g->mc.hw_irq_nonstall_count, 0);
-	nvgpu_atomic_set(&g->mc.sw_irq_nonstall_last_handled, 0);
+	nvgpu_atomic_set(&g->mc.sw_irq_stall_pending, 0);
+	nvgpu_atomic_set(&g->mc.sw_irq_nonstall_pending, 0);
 	nvgpu_wait_for_deferred_interrupts(g);
 
 	/* cause timeout */
 	nvgpu_posix_enable_fault_injection(cond_fi, true, 0);
 
 	/* wait on stall until timeout for branch coverage */
-	nvgpu_atomic_set(&g->mc.hw_irq_stall_count, 1);
-	nvgpu_atomic_set(&g->mc.sw_irq_stall_last_handled, 0);
-	nvgpu_atomic_set(&g->mc.hw_irq_nonstall_count, 0);
-	nvgpu_atomic_set(&g->mc.sw_irq_nonstall_last_handled, 0);
+	nvgpu_atomic_set(&g->mc.sw_irq_stall_pending, 1);
 	nvgpu_wait_for_deferred_interrupts(g);
 
 	/* wait on nonstall until timeout for branch coverage */
-	nvgpu_atomic_set(&g->mc.hw_irq_stall_count, 0);
-	nvgpu_atomic_set(&g->mc.sw_irq_stall_last_handled, 0);
-	nvgpu_atomic_set(&g->mc.hw_irq_nonstall_count, 1);
-	nvgpu_atomic_set(&g->mc.sw_irq_nonstall_last_handled, 0);
+	nvgpu_atomic_set(&g->mc.sw_irq_nonstall_pending, 1);
 	nvgpu_wait_for_deferred_interrupts(g);
 
 	return UNIT_SUCCESS;

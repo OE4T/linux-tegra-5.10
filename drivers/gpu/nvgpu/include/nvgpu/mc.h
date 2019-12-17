@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -203,20 +203,6 @@ struct nvgpu_mc {
 	 */
 
 	/**
-	 * Stalling interrupt counter - incremented on receipt of the stalling
-	 * interrupt in #isr_stall and read in the function
-	 * #nvgpu_wait_for_deferred_interrupts.
-	 */
-	nvgpu_atomic_t hw_irq_stall_count;
-
-	/**
-	 * Non-stalling interrupt counter - incremented on receipt of the
-	 * non-stalling interrupt in #isr_nonstall and read in the function
-	 * #nvgpu_wait_for_deferred_interrupts.
-	 */
-	nvgpu_atomic_t hw_irq_nonstall_count;
-
-	/**
 	 * The condition variable that is signalled upon handling of the
 	 * stalling interrupt. It is wait upon by the function
 	 * #nvgpu_wait_for_deferred_interrupts.
@@ -227,7 +213,7 @@ struct nvgpu_mc {
 	 * Stalling interrupt status counter - updated on handling of the
 	 * stalling interrupt.
 	 */
-	nvgpu_atomic_t sw_irq_stall_last_handled;
+	nvgpu_atomic_t sw_irq_stall_pending;
 
 	/**
 	 * The condition variable that is signalled upon handling of the
@@ -240,7 +226,7 @@ struct nvgpu_mc {
 	 * Non-stalling interrupt status counter - updated on handling of the
 	 * non-stalling interrupt.
 	 */
-	nvgpu_atomic_t sw_irq_nonstall_last_handled;
+	nvgpu_atomic_t sw_irq_nonstall_pending;
 
 	/** nvgpu interrupts enabled status from host OS perspective */
 	bool irqs_enabled;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -47,7 +47,7 @@ irqreturn_t nvgpu_intr_stall(struct gk20a *g)
 	}
 #endif
 
-	nvgpu_atomic_inc(&g->mc.hw_irq_stall_count);
+	nvgpu_atomic_set(&g->mc.sw_irq_stall_pending, 1);
 
 #ifdef CONFIG_NVGPU_TRACE
 	trace_mc_gk20a_intr_stall_done(g->name);
@@ -58,19 +58,16 @@ irqreturn_t nvgpu_intr_stall(struct gk20a *g)
 
 irqreturn_t nvgpu_intr_thread_stall(struct gk20a *g)
 {
-	int hw_irq_count;
-
 	nvgpu_log(g, gpu_dbg_intr, "interrupt thread launched");
 
 #ifdef CONFIG_NVGPU_TRACE
 	trace_mc_gk20a_intr_thread_stall(g->name);
 #endif
 
-	hw_irq_count = nvgpu_atomic_read(&g->mc.hw_irq_stall_count);
 	g->ops.mc.isr_stall(g);
-	nvgpu_mc_intr_stall_resume(g);
 	/* sync handled irq counter before re-enabling interrupts */
-	nvgpu_atomic_set(&g->mc.sw_irq_stall_last_handled, hw_irq_count);
+	nvgpu_atomic_set(&g->mc.sw_irq_stall_pending, 0);
+	nvgpu_mc_intr_stall_resume(g);
 
 	nvgpu_cond_broadcast(&g->mc.sw_irq_stall_last_handled_cond);
 
@@ -84,7 +81,6 @@ irqreturn_t nvgpu_intr_thread_stall(struct gk20a *g)
 irqreturn_t nvgpu_intr_nonstall(struct gk20a *g)
 {
 	u32 non_stall_intr_val;
-	u32 hw_irq_count;
 	int ops_old, ops_new, ops = 0;
 	struct nvgpu_os_linux *l = nvgpu_os_linux_from_gk20a(g);
 
@@ -103,6 +99,7 @@ irqreturn_t nvgpu_intr_nonstall(struct gk20a *g)
 	}
 #endif
 
+	nvgpu_atomic_set(&g->mc.sw_irq_nonstall_pending, 1);
 	ops = g->ops.mc.isr_nonstall(g);
 	if (ops) {
 		do {
@@ -114,10 +111,8 @@ irqreturn_t nvgpu_intr_nonstall(struct gk20a *g)
 		queue_work(l->nonstall_work_queue, &l->nonstall_fn_work);
 	}
 
-	hw_irq_count = nvgpu_atomic_inc_return(&g->mc.hw_irq_nonstall_count);
-
 	/* sync handled irq counter before re-enabling interrupts */
-	nvgpu_atomic_set(&g->mc.sw_irq_nonstall_last_handled, hw_irq_count);
+	nvgpu_atomic_set(&g->mc.sw_irq_nonstall_pending, 0);
 
 	nvgpu_mc_intr_nonstall_resume(g);
 

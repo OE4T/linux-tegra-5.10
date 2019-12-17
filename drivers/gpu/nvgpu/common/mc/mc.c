@@ -1,7 +1,7 @@
 /*
  * GK20A Master Control
  *
- * Copyright (c) 2014-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -26,19 +26,6 @@
 #include <nvgpu/gk20a.h>
 
 /**
- * cyclic_delta - Returns delta of cyclic integers a and b.
- *
- * @a - First integer
- * @b - Second integer
- *
- * Note: if a is ahead of b, delta is positive.
- */
-static int cyclic_delta(int a, int b)
-{
-	return nvgpu_safe_sub_s32(a, b);
-}
-
-/**
  * nvgpu_wait_for_deferred_interrupts - Wait for interrupts to complete
  *
  * @g - The GPU to wait on.
@@ -48,21 +35,15 @@ static int cyclic_delta(int a, int b)
  */
 void nvgpu_wait_for_deferred_interrupts(struct gk20a *g)
 {
-	int stall_irq_threshold = nvgpu_atomic_read(&g->mc.hw_irq_stall_count);
-	int nonstall_irq_threshold =
-				nvgpu_atomic_read(&g->mc.hw_irq_nonstall_count);
-
 	/* wait until all stalling irqs are handled */
 	NVGPU_COND_WAIT(&g->mc.sw_irq_stall_last_handled_cond,
-		cyclic_delta(stall_irq_threshold,
-			nvgpu_atomic_read(&g->mc.sw_irq_stall_last_handled))
-		<= 0, 0U);
+			nvgpu_atomic_read(&g->mc.sw_irq_stall_pending) == 0,
+			0U);
 
 	/* wait until all non-stalling irqs are handled */
 	NVGPU_COND_WAIT(&g->mc.sw_irq_nonstall_last_handled_cond,
-		cyclic_delta(nonstall_irq_threshold,
-			nvgpu_atomic_read(&g->mc.sw_irq_nonstall_last_handled))
-		<= 0, 0U);
+			nvgpu_atomic_read(&g->mc.sw_irq_nonstall_pending) == 0,
+			0U);
 }
 
 void nvgpu_mc_intr_mask(struct gk20a *g)
