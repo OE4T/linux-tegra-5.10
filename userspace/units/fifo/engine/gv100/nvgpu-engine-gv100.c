@@ -69,6 +69,7 @@ struct unit_ctx unit_ctx;
 int test_gv100_read_engine_status_info(struct unit_module *m,
 		struct gk20a *g, void *args)
 {
+	struct gpu_ops gops = g->ops;
 	u32 engine_id = nvgpu_engine_get_gr_id(g);
 	struct nvgpu_engine_status_info status;
 	int ret = UNIT_FAIL;
@@ -85,6 +86,7 @@ int test_gv100_read_engine_status_info(struct unit_module *m,
 
 	ret = UNIT_SUCCESS;
 done:
+	g->ops = gops;
 	return ret;
 }
 
@@ -102,6 +104,11 @@ static u32 stub_get_litter_value(struct gk20a *g, int value)
 	 * Each engine_id will cover one combination of branches.
 	 */
 	return F_ENGINE_DUMP_LAST;
+}
+
+static u32 stub_get_litter_value_0(struct gk20a *g, int value)
+{
+	return 0;
 }
 
 static void stub_read_engine_status_info(struct gk20a *g, u32 engine_id,
@@ -150,6 +157,11 @@ int test_gv100_dump_engine_status(struct unit_module *m,
 	unit_ctx.engine_id = 0;
 	gv100_dump_engine_status(g, &o);
 	assert(unit_ctx.engine_id == (num_engines - 1));
+
+	unit_ctx.engine_id = (u32)~0;
+	g->ops.get_litter_value = stub_get_litter_value_0;
+	gv100_dump_engine_status(g, &o);
+	assert(unit_ctx.engine_id == (u32)~0);
 
 	ret = UNIT_SUCCESS;
 done:
