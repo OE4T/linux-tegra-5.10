@@ -390,7 +390,8 @@ done:
 #define F_TSG_UNBIND_CHANNEL_RUNLIST_UPDATE_FAIL	BIT(5)
 #define F_TSG_UNBIND_CHANNEL_UNBIND_HAL			BIT(6)
 #define F_TSG_UNBIND_CHANNEL_UNBIND_HAL_FAIL		BIT(7)
-#define F_TSG_UNBIND_CHANNEL_LAST			BIT(8)
+#define F_TSG_UNBIND_CHANNEL_ABORT_CLEAN_UP_NULL	BIT(8)
+#define F_TSG_UNBIND_CHANNEL_LAST			BIT(9)
 
 static int stub_fifo_preempt_tsg_EINVAL(
 		struct gk20a *g, struct nvgpu_tsg *tsg)
@@ -468,6 +469,7 @@ int test_tsg_unbind_channel(struct unit_module *m,
 		"runlist_update_fail",
 		"unbind_hal",
 		"unbind_hal_fail",
+		"abort_cleanup_null"
 	};
 	u32 fail =
 		F_TSG_UNBIND_CHANNEL_PREEMPT_TSG_FAIL |
@@ -540,6 +542,10 @@ int test_tsg_unbind_channel(struct unit_module *m,
 			g->ops.tsg.unbind_channel = NULL;
 		}
 
+		g->ops.channel.abort_clean_up =
+			branches & F_TSG_UNBIND_CHANNEL_ABORT_CLEAN_UP_NULL ?
+			NULL : gops.channel.abort_clean_up;
+
 		err = nvgpu_tsg_unbind_channel(tsg, chA);
 
 		if (branches & fail) {
@@ -549,6 +555,11 @@ int test_tsg_unbind_channel(struct unit_module *m,
 			assert(chB->unserviceable);
 			assert(chA->tsgid == NVGPU_INVALID_TSG_ID);
 		} else {
+
+			if (branches & F_TSG_UNBIND_CHANNEL_ABORT_CLEAN_UP_NULL) {
+				gops.channel.abort_clean_up(chA);
+			}
+
 			assert(chA->tsgid == NVGPU_INVALID_TSG_ID);
 			assert(nvgpu_list_empty(&chA->ch_entry));
 			/* check that TSG has not been torn down */
@@ -1059,19 +1070,19 @@ done:
 	return ret;
 }
 
-#define F_TSG_ABORT_STUB			BIT(0)
+#define F_TSG_ABORT_CH_ABORT_CLEANUP_NULL	BIT(0)
 #define F_TSG_ABORT_PREEMPT			BIT(1)
 #define F_TSG_ABORT_CH				BIT(2)
-#define F_TSG_ABORT_CH_ABORT_CLEANUP_NULL	BIT(3)
-#define F_TSG_ABORT_NON_ABORTABLE		BIT(4)
+#define F_TSG_ABORT_NON_ABORTABLE		BIT(3)
+#define F_TSG_ABORT_CH_NON_REFERENCABLE		BIT(4)
 #define F_TSG_ABORT_LAST			BIT(5)
 
 static const char *f_tsg_abort[] = {
-	"stub",
 	"preempt",
 	"ch",
 	"ch_abort_cleanup_null",
 	"non_abortable",
+	"non_referenceable"
 };
 
 static int stub_fifo_preempt_tsg(struct gk20a *g, struct nvgpu_tsg *tsg)
@@ -1107,9 +1118,6 @@ int test_tsg_abort(struct unit_module *m, struct gk20a *g, void *args)
 	chA = nvgpu_channel_open_new(g, ~0U, false, getpid(), getpid());
 	assert(chA != NULL);
 
-	err = nvgpu_tsg_bind_channel(tsgA, chA);
-	assert(err == 0);
-
 	for (branches = 0U; branches < F_TSG_ABORT_LAST; branches++) {
 
 		if (pruned(branches, prune)) {
@@ -1122,14 +1130,10 @@ int test_tsg_abort(struct unit_module *m, struct gk20a *g, void *args)
 			branches_str(branches, f_tsg_abort));
 
 		g->ops.channel.abort_clean_up =
-			branches & F_TSG_ABORT_STUB ?
-			stub_channel_abort_clean_up :
-			gops.channel.abort_clean_up;
+			branches & F_TSG_ABORT_CH_ABORT_CLEANUP_NULL ?
+			NULL : stub_channel_abort_clean_up;
 
-		g->ops.fifo.preempt_tsg =
-			branches & F_TSG_ABORT_STUB ?
-			stub_fifo_preempt_tsg :
-			gops.fifo.preempt_tsg;
+		g->ops.fifo.preempt_tsg = stub_fifo_preempt_tsg;
 
 		tsg = branches & F_TSG_ABORT_CH ? tsgA : tsgB;
 
@@ -1142,31 +1146,32 @@ int test_tsg_abort(struct unit_module *m, struct gk20a *g, void *args)
 			g->ops.channel.abort_clean_up = NULL;
 		}
 
+		if (branches & F_TSG_ABORT_CH_NON_REFERENCABLE) {
+			chA->referenceable = false;
+		}
+
+		if (chA->tsgid == NVGPU_INVALID_TSG_ID) {
+			err = nvgpu_tsg_bind_channel(tsgA, chA);
+			assert(err == 0);
+		}
+
 		nvgpu_tsg_abort(g, tsg, preempt);
 
-		if (branches & F_TSG_ABORT_STUB) {
-			if (preempt) {
-				assert(stub[0].tsgid == tsg->tsgid);
-			}
+		assert(preempt == (stub[0].tsgid == tsg->tsgid));
 
-			if (!(branches & F_TSG_ABORT_CH_ABORT_CLEANUP_NULL)) {
-				if (tsg == tsgA) {
-					assert(stub[1].chid == chA->chid);
-				}
+		assert(chA->unserviceable ==
+			((tsg == tsgA) && (chA->referenceable)));
 
-				if (tsg == tsgB) {
-					assert(stub[1].chid ==
-						NVGPU_INVALID_CHANNEL_ID);
-				}
-			}
-
-		}
-		if (tsg == tsgA) {
-			assert(chA->unserviceable);
+		if (!((branches & F_TSG_ABORT_CH_ABORT_CLEANUP_NULL) ||
+		      (branches & F_TSG_ABORT_CH_NON_REFERENCABLE))) {
+			assert((stub[1].chid == chA->chid) == (tsg == tsgA) );
+			assert((stub[1].chid == NVGPU_INVALID_CHANNEL_ID) ==
+				(tsg == tsgB));
 		}
 
 		tsg->abortable = true;
 		chA->unserviceable = false;
+		chA->referenceable = true;
 	}
 
 	ret = UNIT_SUCCESS;
@@ -1246,7 +1251,7 @@ done:
 }
 
 #define F_TSG_MARK_ERROR_NO_CHANNEL		BIT(0)
-#define F_TSG_MARK_ERROR_UNSERVICEABLE		BIT(1)
+#define F_TSG_MARK_ERROR_NON_REFERENCABLE	BIT(1)
 #define F_TSG_MARK_ERROR_VERBOSE		BIT(2)
 #define F_TSG_MARK_ERROR_LAST			BIT(3)
 
@@ -1262,12 +1267,12 @@ int test_tsg_mark_error(struct unit_module *m,
 	u32 branches;
 	static const char *labels[] = {
 		"no_channel",
-		"unserviceable",
+		"non_referencable",
 		"verbose",
 	};
 	u32 prune =
 		F_TSG_MARK_ERROR_NO_CHANNEL |
-		F_TSG_MARK_ERROR_UNSERVICEABLE;
+		F_TSG_MARK_ERROR_NON_REFERENCABLE;
 	struct nvgpu_posix_channel ch_priv;
 
 	for (branches = 0U; branches < F_TSG_MARK_ERROR_LAST; branches++) {
@@ -1296,8 +1301,8 @@ int test_tsg_mark_error(struct unit_module *m,
 			assert(err == 0);
 		}
 
-		if (branches & F_TSG_MARK_ERROR_UNSERVICEABLE) {
-			nvgpu_channel_set_unserviceable(ch);
+		if (branches & F_TSG_MARK_ERROR_NON_REFERENCABLE) {
+			ch->referenceable = false;
 		}
 
 		ch->ctxsw_timeout_debug_dump =
@@ -1309,7 +1314,7 @@ int test_tsg_mark_error(struct unit_module *m,
 		verbose = nvgpu_tsg_mark_error(g, tsg);
 
 		if ((branches & F_TSG_MARK_ERROR_NO_CHANNEL) ||
-		    (branches & F_TSG_MARK_ERROR_UNSERVICEABLE)) {
+		    (branches & F_TSG_MARK_ERROR_NON_REFERENCABLE)) {
 			assert(!verbose);
 		}
 

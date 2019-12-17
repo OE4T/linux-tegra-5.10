@@ -3162,6 +3162,12 @@
         "test_level": 0
     },
     {
+        "test": "test_tsg_mark_error",
+        "case": "mark_error",
+        "unit": "nvgpu_tsg",
+        "test_level": 0
+    },
+    {
         "test": "test_tsg_open",
         "case": "open",
         "unit": "nvgpu_tsg",
@@ -3176,6 +3182,18 @@
     {
         "test": "test_fifo_remove_support",
         "case": "remove_support",
+        "unit": "nvgpu_tsg",
+        "test_level": 0
+    },
+    {
+        "test": "test_tsg_reset_faulted_eng_pbdma",
+        "case": "reset_faulted_eng_pbdma",
+        "unit": "nvgpu_tsg",
+        "test_level": 0
+    },
+    {
+        "test": "test_tsg_set_ctx_mmu_error",
+        "case": "set_ctx_mmu_error",
         "unit": "nvgpu_tsg",
         "test_level": 0
     },
