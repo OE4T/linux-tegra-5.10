@@ -66,6 +66,7 @@
 #define SPECIAL_MAP_FAIL_VM_ALLOC		1
 #define SPECIAL_MAP_FAIL_PD_ALLOCATE		2
 #define SPECIAL_MAP_FAIL_PD_ALLOCATE_CHILD	3
+#define SPECIAL_MAP_FAIL_TLB_INVALIDATE		4
 
 /* Consts for requirements C1/C2 testing */
 #define REQ_C1_NUM_MEMS		3
@@ -91,6 +92,7 @@ struct test_parameters {
 	bool special_null_phys;
 	bool special_map_fixed;
 	bool special_sgl_skip;
+	bool special_unmap_tbl_invalidate_fail;
 };
 
 static struct test_parameters test_iommu_sysmem = {
@@ -213,6 +215,15 @@ static struct test_parameters test_iommu_sysmem_adv_small_sparse = {
 	.special_null_phys = true,
 };
 
+static struct test_parameters test_unmap_invalidate_fail = {
+	.aperture = APERTURE_SYSMEM,
+	.is_iommuable = true,
+	.rw_flag = gk20a_mem_flag_none,
+	.flags = NVGPU_VM_MAP_CACHEABLE,
+	.priv = true,
+	.special_unmap_tbl_invalidate_fail = true,
+};
+
 #ifdef CONFIG_NVGPU_DGPU
 static struct test_parameters test_no_iommu_vidmem = {
 	.aperture = APERTURE_VIDMEM,
@@ -274,6 +285,11 @@ static const struct nvgpu_sgt_ops nvgpu_sgt_posix_ops = {
 	.sgt_free	= nvgpu_mem_sgt_free,
 };
 
+/* Helper HAL function to make the g->ops.fb.tlb_invalidate op fail */
+static int hal_fb_tlb_invalidate_fail(struct gk20a *g, struct nvgpu_mem *pdb)
+{
+	return -ETIMEDOUT;
+}
 
 static void init_platform(struct unit_module *m, struct gk20a *g, bool is_iGPU)
 {
@@ -585,9 +601,18 @@ int test_nvgpu_gmmu_map_unmap_map_fail(struct unit_module *m, struct gk20a *g,
 		g->mm.pmu.vm->guest_managed = true;
 	}
 
+	if (scenario == SPECIAL_MAP_FAIL_TLB_INVALIDATE) {
+		g->ops.fb.tlb_invalidate = hal_fb_tlb_invalidate_fail;
+	}
+
 	mem.gpu_va = nvgpu_gmmu_map(g->mm.pmu.vm, &mem, mem.size,
 				NVGPU_VM_MAP_CACHEABLE, gk20a_mem_flag_none,
 				true, APERTURE_SYSMEM);
+
+	if (scenario == SPECIAL_MAP_FAIL_TLB_INVALIDATE) {
+		/* Restore previous op */
+		g->ops.fb.tlb_invalidate = gm20b_fb_tlb_invalidate;
+	}
 
 	nvgpu_posix_enable_fault_injection(kmem_fi, false, 0);
 	g->mm.pmu.vm->guest_managed = false;
@@ -607,25 +632,19 @@ int test_nvgpu_gmmu_map_unmap_map_fail(struct unit_module *m, struct gk20a *g,
 static int test_nvgpu_gmmu_init_page_table_fail(struct unit_module *m,
 					struct gk20a *g, void *args)
 {
-	bool success;
+	int err;
 	struct nvgpu_posix_fault_inj *kmem_fi =
 		nvgpu_kmem_get_fault_injection();
 
 	nvgpu_posix_enable_fault_injection(kmem_fi, true, 0);
-
-	if (!EXPECT_BUG((void) nvgpu_gmmu_init_page_table(g->mm.pmu.vm))) {
-		unit_err(m, "BUG() was not called as expected\n");
-		success = false;
-	} else {
-		unit_info(m, "Caught expected call to BUG()\n");
-		success = true;
-	}
-
+	err = nvgpu_gmmu_init_page_table(g->mm.pmu.vm);
 	nvgpu_posix_enable_fault_injection(kmem_fi, false, 0);
 
-	if (!success) {
-		unit_return_fail(m, "init_pt did not fail as expected\n");
+	if (err == 0) {
+		unit_return_fail(m,
+			"nvgpu_gmmu_init_page_table didn't fail as expected\n");
 	}
+
 	return UNIT_SUCCESS;
 }
 
@@ -836,7 +855,16 @@ int test_nvgpu_gmmu_map_unmap_adv(struct unit_module *m,
 		unit_return_fail(m, "Mapped VA is not 4KB-aligned\n");
 	}
 
+	if (params->special_unmap_tbl_invalidate_fail) {
+		g->ops.fb.tlb_invalidate = hal_fb_tlb_invalidate_fail;
+	}
+
 	nvgpu_gmmu_unmap(g->mm.pmu.vm, &mem, vaddr);
+
+	if (params->special_unmap_tbl_invalidate_fail) {
+		/* Restore previous op */
+		g->ops.fb.tlb_invalidate = gm20b_fb_tlb_invalidate;
+	}
 
 	return UNIT_SUCCESS;
 }
@@ -1226,6 +1254,10 @@ struct unit_module_test nvgpu_gmmu_tests[] = {
 		test_nvgpu_gmmu_map_unmap_adv,
 		(void *) &test_iommu_sysmem_sgl_skip,
 		0),
+	UNIT_TEST(gmmu_map_unmap_tlb_invalidate_fail,
+		test_nvgpu_gmmu_map_unmap_adv,
+		(void *) &test_unmap_invalidate_fail,
+		0),
 	UNIT_TEST(map_fail_fi_null_sgt,
 		test_nvgpu_gmmu_map_unmap_map_fail,
 		(void *) SPECIAL_MAP_FAIL_FI_NULL_SGT,
@@ -1233,6 +1265,10 @@ struct unit_module_test nvgpu_gmmu_tests[] = {
 	UNIT_TEST(map_fail_fi_vm_alloc,
 		test_nvgpu_gmmu_map_unmap_map_fail,
 		(void *) SPECIAL_MAP_FAIL_VM_ALLOC,
+		0),
+	UNIT_TEST(map_fail_tlb_invalidate,
+		test_nvgpu_gmmu_map_unmap_map_fail,
+		(void *) SPECIAL_MAP_FAIL_TLB_INVALIDATE,
 		0),
 	UNIT_TEST(init_page_table_fail,
 		test_nvgpu_gmmu_init_page_table_fail,
