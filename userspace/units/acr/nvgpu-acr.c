@@ -327,7 +327,7 @@ int test_acr_bootstrap_hs_acr(struct unit_module *m,
 	}
 
 	/*
-	 * Case 1: fail scaenario
+	 * Case 1: fail scenario
 	 * call prepare_ucode_blob without setting halt bit
 	 * so that timeout error occurs in acr bootstrap
 	 */
@@ -465,6 +465,8 @@ int test_acr_construct_execute(struct unit_module *m,
 {
 	int err;
 	struct nvgpu_reg_access access;
+	struct nvgpu_posix_fault_inj *kmem_fi =
+		nvgpu_kmem_get_fault_injection();
 
 	/*
 	 * Initialise the test env
@@ -493,8 +495,43 @@ int test_acr_construct_execute(struct unit_module *m,
 	nvgpu_utf_falcon_writel_access_reg_fn(g, pmu_flcn, &access);
 
 	/*
-	 * case 1: pass scenario
+	 * Case 1: fail scenario
+	 * g->acr->prepare_ucode_blob(g) fails due to memory
+	 * allocation failure
+	 * Thus, acr_construct_execute() fails
+	 *
+	 * HAL init parameters for gv11b: Correct chip id
 	 */
+	g->params.gpu_arch = NV_PMC_BOOT_0_ARCHITECTURE_GV110;
+	g->params.gpu_impl = NV_PMC_BOOT_0_IMPLEMENTATION_B;
+
+	nvgpu_posix_enable_fault_injection(kmem_fi, true, 0);
+
+	err = g->ops.acr.acr_construct_execute(g);
+	if (err == -ENOENT) {
+		unit_info(m, "test failed as expected\n");
+	} else {
+		unit_return_fail(m, "test did not fail as expected\n");
+	}
+
+	nvgpu_posix_enable_fault_injection(kmem_fi, false, 0);
+
+	/*
+	 * Case 2: fail scenario
+	 * Covering fail scenario when "is_falcon_supported"
+	 * is set to false this fails nvgpu_acr_bootstrap_hs_acr()
+	 */
+
+	pmu_flcn->flcn->is_falcon_supported = false;
+	err = g->ops.acr.acr_construct_execute(g);
+	if (err != -EINVAL) {
+		unit_return_fail(m, "acr_construct_execute(g) failed");
+	}
+
+	/*
+	 * case 3: pass scenario
+	 */
+	pmu_flcn->flcn->is_falcon_supported = true;
 	err = g->ops.acr.acr_construct_execute(g);
 	if (err != 0) {
 		unit_return_fail(m, "Bootstrap HS ACR failed");
@@ -504,9 +541,8 @@ int test_acr_construct_execute(struct unit_module *m,
 	if (err != 0) {
 		unit_return_fail(m, "ecc init failed\n");
 	}
-
 	/*
-	 * case 2: pass g->acr as NULL to create fail scenario
+	 * case 4: pass g->acr as NULL to create fail scenario
 	 */
 	g->acr = NULL;
 	err = g->ops.acr.acr_construct_execute(g);
@@ -547,6 +583,16 @@ int test_acr_is_lsf_lazy_bootstrap(struct unit_module *m,
 	 */
 	ret = nvgpu_acr_is_lsf_lazy_bootstrap(g, g->acr,
 					FALCON_ID_FECS);
+	if (ret) {
+		unit_return_fail(m, "failed to test lazy bootstrap\n");
+	}
+	ret = nvgpu_acr_is_lsf_lazy_bootstrap(g, g->acr,
+					FALCON_ID_PMU);
+	if (ret) {
+		unit_return_fail(m, "failed to test lazy bootstrap\n");
+	}
+	ret = nvgpu_acr_is_lsf_lazy_bootstrap(g, g->acr,
+					FALCON_ID_GPCCS);
 	if (ret) {
 		unit_return_fail(m, "failed to test lazy bootstrap\n");
 	}
