@@ -504,11 +504,13 @@ static void nvgpu_vm_init_check_big_pages(struct vm_gk20a *vm,
 		if (unified_va) {
 			vm->big_pages = nvgpu_big_pages_possible(vm,
 					user_vma_start,
-					user_vma_limit - user_vma_start);
+					nvgpu_safe_sub_u64(user_vma_limit,
+							user_vma_start));
 		} else {
 			vm->big_pages = nvgpu_big_pages_possible(vm,
 					user_lp_vma_start,
-					user_lp_vma_limit - user_lp_vma_start);
+					nvgpu_safe_sub_u64(user_lp_vma_limit,
+							user_lp_vma_start));
 		}
 	}
 }
@@ -555,7 +557,7 @@ static int nvgpu_vm_init_vma(struct gk20a *g, struct vm_gk20a *vm,
 	u64 kernel_vma_flags;
 
 	/* Setup vma limits. */
-	if (kernel_reserved + low_hole < aperture_size) {
+	if (nvgpu_safe_add_u64(kernel_reserved, low_hole) < aperture_size) {
 		/*
 		 * If big_pages are disabled for this VM then it only makes
 		 * sense to make one VM, same as if the unified address flag
@@ -563,14 +565,16 @@ static int nvgpu_vm_init_vma(struct gk20a *g, struct vm_gk20a *vm,
 		 */
 		if (!big_pages || unified_va) {
 			user_vma_start = low_hole;
-			user_vma_limit = vm->va_limit - kernel_reserved;
+			user_vma_limit = nvgpu_safe_sub_u64(vm->va_limit,
+							kernel_reserved);
 			user_lp_vma_start = user_vma_limit;
 			user_lp_vma_limit = user_vma_limit;
 		} else {
 			user_vma_start = low_hole;
 			user_vma_limit = nvgpu_gmmu_va_small_page_limit();
 			user_lp_vma_start = nvgpu_gmmu_va_small_page_limit();
-			user_lp_vma_limit = vm->va_limit - kernel_reserved;
+			user_lp_vma_limit = nvgpu_safe_sub_u64(vm->va_limit,
+							kernel_reserved);
 		}
 	} else {
 		user_vma_start = 0;
@@ -578,7 +582,7 @@ static int nvgpu_vm_init_vma(struct gk20a *g, struct vm_gk20a *vm,
 		user_lp_vma_start = 0;
 		user_lp_vma_limit = 0;
 	}
-	kernel_vma_start = vm->va_limit - kernel_reserved;
+	kernel_vma_start = nvgpu_safe_sub_u64(vm->va_limit, kernel_reserved);
 	kernel_vma_limit = vm->va_limit;
 
 	nvgpu_log_info(g, "user_vma     [0x%llx,0x%llx)",
@@ -598,8 +602,9 @@ static int nvgpu_vm_init_vma(struct gk20a *g, struct vm_gk20a *vm,
 		goto clean_up_page_tables;
 	}
 
-	kernel_vma_flags = (kernel_reserved + low_hole) == aperture_size ?
-			0ULL : GPU_ALLOC_GVA_SPACE;
+	kernel_vma_flags = nvgpu_safe_add_u64(kernel_reserved, low_hole) ==
+					aperture_size ?
+					0ULL : GPU_ALLOC_GVA_SPACE;
 
 	nvgpu_vm_init_check_big_pages(vm, user_vma_start, user_vma_limit,
 				user_lp_vma_start, user_lp_vma_limit,
