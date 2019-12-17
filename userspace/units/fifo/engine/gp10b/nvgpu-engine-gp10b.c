@@ -81,7 +81,8 @@ static inline void subtest_setup(struct unit_module *m, u32 branches)
 #define F_ENGINE_INIT_CE_INFO_GRCE			BIT(5)
 #define F_ENGINE_INIT_CE_INFO_FAULT_ID_0		BIT(6)
 #define F_ENGINE_INIT_CE_INFO_GET_INST_NULL		BIT(7)
-#define F_ENGINE_INIT_CE_INFO_LAST			BIT(8)
+#define F_ENGINE_INIT_CE_INFO_INVAL_ENUM		BIT(8)
+#define F_ENGINE_INIT_CE_INFO_LAST			BIT(9)
 
 static u32 wrap_top_get_num_engine_type_entries(struct gk20a *g,
 		u32 engine_type)
@@ -137,6 +138,13 @@ static int wrap_top_get_device_info(struct gk20a *g,
 		return 0;
 	}
 
+	if (branches & F_ENGINE_INIT_CE_INFO_INVAL_ENUM) {
+		dev_info->runlist_id = 1;
+		dev_info->engine_id = 1;
+		dev_info->engine_type = 5;
+		return 0;
+	}
+
 done:
 	return u.gops.top.get_device_info(g, dev_info, engine_type, inst_id);
 
@@ -178,11 +186,13 @@ int test_gp10b_engine_init_ce_info(struct unit_module *m,
 		"grce",
 		"fault_id_0",
 		"get_inst_null",
+		"inval_enum"
 	};
 	u32 prune =
 		F_ENGINE_INIT_CE_INFO_GET_NUM_ENGINES_NULL |
-		F_ENGINE_INIT_CE_INFO_NO_LCE | fail;
-	u32 branches;
+		F_ENGINE_INIT_CE_INFO_NO_LCE |
+		F_ENGINE_INIT_CE_INFO_INVAL_ENUM | fail;
+	u32 branches = 0;
 	u32 num_lce;
 
 	u.m = m;
@@ -219,7 +229,8 @@ int test_gp10b_engine_init_ce_info(struct unit_module *m,
 		err = gp10b_engine_init_ce_info(f);
 
 		if ((branches & F_ENGINE_INIT_CE_INFO_GET_NUM_ENGINES_NULL) ||
-		    (branches & F_ENGINE_INIT_CE_INFO_NO_LCE)) {
+		    (branches & F_ENGINE_INIT_CE_INFO_NO_LCE) ||
+		    (branches & F_ENGINE_INIT_CE_INFO_INVAL_ENUM)) {
 			num_lce = 0;
 		} else {
 			num_lce = g->ops.top.get_num_engine_type_entries(g, NVGPU_ENGINE_LCE);
@@ -236,6 +247,11 @@ int test_gp10b_engine_init_ce_info(struct unit_module *m,
 
 	ret = UNIT_SUCCESS;
 done:
+	if (ret != UNIT_SUCCESS) {
+		unit_err(m, "%s branches=%s\n", __func__,
+			branches_str(branches, labels));
+	}
+
 	g->ops = u.gops;
 	return ret;
 }
