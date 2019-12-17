@@ -16,3 +16,4 @@
 #include "common/tegra194-p2888-0001-p2822-0000-common.dtsi"
 #include "common/tegra194-p2822-0000-camera-imx185_v1-a00.dtsi"
 #include "common/tegra194-p2822-0000-camera-vivid.dtsi"
+#include "common/tegra194-audio-p2822-0000.dtsi"

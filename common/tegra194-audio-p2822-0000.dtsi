@@ -97,12 +97,6 @@
 			"x DMIC R2",            "x Int Mic";
 
 		nvidia-audio-card,mclk-fs = <256>;
-
-		/*
-		 * TODO: use phandle reference(&i2s2_to_codec) instead of
-		 * actual DAI link node for 40-pin header.
-		 */
-		hdr40_snd_link_i2s: nvidia-audio-card,dai-link@77 { };
 	};
 };
 
@@ -122,6 +116,8 @@
 		prefix = "x";
 	};
 };
+
+hdr40_snd_link_i2s: &i2s2_to_codec { };
 
 /* Override with BT SCO entries */
 &i2s4_to_codec {
