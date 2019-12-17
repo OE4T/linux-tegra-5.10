@@ -283,6 +283,11 @@ void osd_receive_packet(void *priv, void *rxring, unsigned int chan,
 			skb->ip_summed = CHECKSUM_NONE;
 		}
 
+		if ((rx_pkt_cx->flags & OSI_PKT_CX_RSS) == OSI_PKT_CX_RSS) {
+			skb_set_hash(skb, rx_pkt_cx->rx_hash,
+				     rx_pkt_cx->rx_hash_type);
+		}
+
 		if ((rx_pkt_cx->flags & OSI_PKT_CX_VLAN) == OSI_PKT_CX_VLAN) {
 			val = pdata->osi_dma->dstats.rx_vlan_pkt_n;
 			pdata->osi_dma->dstats.rx_vlan_pkt_n =
@@ -299,6 +304,7 @@ void osd_receive_packet(void *priv, void *rxring, unsigned int chan,
 			shhwtstamp->hwtstamp = ns_to_ktime(rx_pkt_cx->ns);
 		}
 
+		skb_record_rx_queue(skb, chan);
 		skb->dev = ndev;
 		skb->protocol = eth_type_trans(skb, ndev);
 		ndev->stats.rx_bytes += skb->len;

@@ -4212,6 +4212,11 @@ static void ether_set_ndev_features(struct net_device *ndev,
 	features |= NETIF_F_HW_VLAN_CTAG_RX;
 	features |= NETIF_F_HW_VLAN_CTAG_FILTER;
 
+	/* Receive Hashing offload */
+	if (pdata->hw_feat.rss_en) {
+		features |= NETIF_F_RXHASH;
+	}
+
 	/* Features available in HW */
 	ndev->hw_features = features;
 	/* Features that can be changed by user */
@@ -4268,6 +4273,36 @@ static inline void tegra_pre_si_platform(struct osi_core_priv_data *osi_core,
 #endif
 	osi_core->pre_si = 0;
 	osi_dma->pre_si = 0;
+}
+
+/**
+ * @brief ether_init_rss - Init OSI RSS structure
+ *
+ * Algorithm: Populates RSS hash key and table in OSI core structure.
+ *
+ * @param[in] pdata: Ethernet private data
+ * @param[in] features: Netdev features
+ */
+static void ether_init_rss(struct ether_priv_data *pdata,
+			   netdev_features_t features)
+{
+	struct osi_core_priv_data *osi_core = pdata->osi_core;
+	unsigned int num_q = osi_core->num_mtl_queues;
+	unsigned int i = 0;
+
+	if ((features & NETIF_F_RXHASH) == NETIF_F_RXHASH) {
+		osi_core->rss.enable = 1;
+	} else {
+		osi_core->rss.enable = 0;
+		return;
+	}
+
+	/* generate random key */
+	netdev_rss_key_fill(osi_core->rss.key, sizeof(osi_core->rss.key));
+
+	/* initialize hash table */
+	for (i = 0; i < OSI_RSS_MAX_TABLE_SIZE; i++)
+		osi_core->rss.table[i] = ethtool_rxfh_indir_default(i, num_q);
 }
 
 /**
@@ -4387,6 +4422,9 @@ static int ether_probe(struct platform_device *pdev)
 
 	/* Set netdev features based on hw features */
 	ether_set_ndev_features(ndev, pdata);
+
+	/* RSS init */
+	ether_init_rss(pdata, ndev->features);
 
 	ret = ether_get_irqs(pdev, pdata, num_dma_chans);
 	if (ret < 0) {
