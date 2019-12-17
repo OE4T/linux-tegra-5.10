@@ -497,6 +497,20 @@ static int nvgpu_init_interrupt_setup(struct gk20a *g)
 	return 0;
 }
 
+static int nvgpu_init_fbpa_ecc(struct gk20a *g)
+{
+	int err;
+
+	if (g->ops.fb.fbpa_ecc_init != NULL && !g->ecc.initialized) {
+		err = g->ops.fb.fbpa_ecc_init(g);
+		if (err != 0) {
+			return err;
+		}
+	}
+
+	return 0;
+}
+
 typedef int (*nvgpu_init_func_t)(struct gk20a *g);
 struct nvgpu_init_table_t {
 	nvgpu_init_func_t func;
@@ -560,6 +574,7 @@ int nvgpu_finalize_poweron(struct gk20a *g)
 		NVGPU_INIT_TABLE_ENTRY(g->ops.clk.init_clk_support, NO_FLAG),
 		NVGPU_INIT_TABLE_ENTRY(g->ops.nvlink.init,
 				       NVGPU_SUPPORT_NVLINK),
+		NVGPU_INIT_TABLE_ENTRY(nvgpu_init_fbpa_ecc, NO_FLAG),
 		NVGPU_INIT_TABLE_ENTRY(g->ops.fb.init_fbpa, NO_FLAG),
 #ifdef CONFIG_NVGPU_DEBUGGER
 		NVGPU_INIT_TABLE_ENTRY(g->ops.ptimer.config_gr_tick_freq,
