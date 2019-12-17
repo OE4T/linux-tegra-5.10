@@ -1452,10 +1452,7 @@ static int ether_close(struct net_device *ndev)
 {
 	struct ether_priv_data *pdata = netdev_priv(ndev);
 	int ret = 0, i;
-
-	/* Cancel hrtimer */
-	for (i = 0; i < pdata->osi_dma->num_dma_chans; i++)
-		hrtimer_cancel(&pdata->tx_napi[i]->tx_usecs_timer);
+	unsigned int chan = 0x0;
 
 	/* Unregister broadcasting MAC timestamp to clients */
 	tegra_unregister_hwtime_source();
@@ -1488,6 +1485,15 @@ static int ether_close(struct net_device *ndev)
 
 	/* Free tx rx and common irqs */
 	ether_free_irqs(pdata);
+
+	/* Cancel hrtimer */
+	for (i = 0; i < pdata->osi_dma->num_dma_chans; i++) {
+		chan = pdata->osi_dma->dma_chans[i];
+		if (atomic_read(&pdata->tx_napi[chan]->tx_usecs_timer_armed)
+		    == OSI_ENABLE) {
+			hrtimer_cancel(&pdata->tx_napi[chan]->tx_usecs_timer);
+		}
+	}
 
 	/* DMA De init */
 	osi_hw_dma_deinit(pdata->osi_dma);
@@ -3685,7 +3691,7 @@ static void init_filter_values(struct ether_priv_data *pdata)
 static int ether_probe(struct platform_device *pdev)
 {
 	struct ether_priv_data *pdata;
-	unsigned int num_dma_chans, mac, num_mtl_queues;
+	unsigned int num_dma_chans, mac, num_mtl_queues, chan;
 	struct osi_core_priv_data *osi_core;
 	struct osi_dma_priv_data *osi_dma;
 	struct net_device *ndev;
@@ -3801,11 +3807,12 @@ static int ether_probe(struct platform_device *pdev)
 
 	/* Setup the tx_usecs timer */
 	for (i = 0; i < osi_dma->num_dma_chans; i++) {
-		atomic_set(&pdata->tx_napi[i]->tx_usecs_timer_armed,
+		chan = osi_dma->dma_chans[i];
+		atomic_set(&pdata->tx_napi[chan]->tx_usecs_timer_armed,
 			   OSI_DISABLE);
-		hrtimer_init(&pdata->tx_napi[i]->tx_usecs_timer,
+		hrtimer_init(&pdata->tx_napi[chan]->tx_usecs_timer,
 			     CLOCK_MONOTONIC, HRTIMER_MODE_REL);
-		pdata->tx_napi[i]->tx_usecs_timer.function =
+		pdata->tx_napi[chan]->tx_usecs_timer.function =
 			ether_tx_usecs_hrtimer;
 	}
 
