@@ -1157,6 +1157,141 @@ static void ether_get_wol(struct net_device *ndev, struct ethtool_wolinfo *wol)
 }
 
 /**
+ * @brief Get RX flow classification rules
+ *
+ * Algorithm: Returns RX flow classification rules.
+ *
+ * param[in] ndev: Pointer to net device structure.
+ * param[in] rxnfc: Pointer to rxflow data
+ * param[in] rule_locs: TBD
+ *
+ * @note MAC and PHY need to be initialized.
+ *
+ * @retval 0 on success
+ * @retval negative on failure
+ */
+static int ether_get_rxnfc(struct net_device *ndev,
+			   struct ethtool_rxnfc *rxnfc,
+			   u32 *rule_locs)
+{
+	struct ether_priv_data *pdata = netdev_priv(ndev);
+	struct osi_core_priv_data *osi_core = pdata->osi_core;
+
+	switch (rxnfc->cmd) {
+	case ETHTOOL_GRXRINGS:
+		rxnfc->data = osi_core->num_mtl_queues;
+		break;
+	default:
+		return -EOPNOTSUPP;
+	}
+
+	return 0;
+}
+
+/**
+ * @brief Get the size of the RX flow hash key
+ *
+ * Algorithm: Returns size of RSS hash key
+ *
+ * param[in] ndev: Pointer to net device structure.
+ *
+ * @retval size of RSS Hash key
+ */
+static u32 ether_get_rxfh_key_size(struct net_device *ndev)
+{
+	struct ether_priv_data *pdata = netdev_priv(ndev);
+	struct osi_core_priv_data *osi_core = pdata->osi_core;
+
+	return sizeof(osi_core->rss.key);
+}
+
+/**
+ * @brief Get the size of the RX flow hash indirection table
+ *
+ * Algorithm: Returns size of the RX flow hash indirection table
+ *
+ * param[in] ndev: Pointer to net device structure.
+ *
+ * @retval size of RSS Hash table
+ */
+static u32 ether_get_rxfh_indir_size(struct net_device *ndev)
+{
+	struct ether_priv_data *pdata = netdev_priv(ndev);
+	struct osi_core_priv_data *osi_core = pdata->osi_core;
+
+	return ARRAY_SIZE(osi_core->rss.table);
+}
+
+/**
+ * @brief Get the contents of the RX flow hash indirection table, hash key
+ * and/or hash function
+ *
+ * param[in] ndev: Pointer to net device structure.
+ * param[out] indir: Pointer to indirection table
+ * param[out] key: Pointer to Hash key
+ * param[out] hfunc: Pointer to Hash function
+ *
+ * @retval 0 on success
+ */
+static int ether_get_rxfh(struct net_device *ndev, u32 *indir, u8 *key,
+			  u8 *hfunc)
+{
+	struct ether_priv_data *pdata = netdev_priv(ndev);
+	struct osi_core_priv_data *osi_core = pdata->osi_core;
+	int i;
+
+	if (indir) {
+		for (i = 0; i < ARRAY_SIZE(osi_core->rss.table); i++)
+			indir[i] = osi_core->rss.table[i];
+	}
+
+	if (key)
+		memcpy(key, osi_core->rss.key, sizeof(osi_core->rss.key));
+	if (hfunc)
+		*hfunc = ETH_RSS_HASH_TOP;
+
+	return 0;
+}
+
+/**
+ * @brief Set the contents of the RX flow hash indirection table, hash key
+ * and/or hash function
+ *
+ * param[in] ndev: Pointer to net device structure.
+ * param[in] indir: Pointer to indirection table
+ * param[in] key: Pointer to Hash key
+ * param[hfunc] hfunc: Hash function
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+static int ether_set_rxfh(struct net_device *ndev, const u32 *indir,
+			  const u8 *key, const u8 hfunc)
+{
+	struct ether_priv_data *pdata = netdev_priv(ndev);
+	struct osi_core_priv_data *osi_core = pdata->osi_core;
+	int i;
+
+	if (!netif_running(ndev)) {
+		netdev_err(pdata->ndev, "interface must be up\n");
+		return -ENODEV;
+	}
+
+	if ((hfunc != ETH_RSS_HASH_NO_CHANGE) && (hfunc != ETH_RSS_HASH_TOP))
+		return -EOPNOTSUPP;
+
+	if (indir) {
+		for (i = 0; i < ARRAY_SIZE(osi_core->rss.table); i++)
+			osi_core->rss.table[i] = indir[i];
+	}
+
+	if (key)
+		memcpy(osi_core->rss.key, key, sizeof(osi_core->rss.key));
+
+	return osi_config_rss(osi_core);
+}
+
+/**
  * @brief Set of ethtool operations
  */
 static const struct ethtool_ops ether_ethtool_ops = {
@@ -1180,6 +1315,11 @@ static const struct ethtool_ops ether_ethtool_ops = {
 	.get_eee = ether_get_eee,
 	.set_eee = ether_set_eee,
 	.self_test = ether_selftest_run,
+	.get_rxnfc = ether_get_rxnfc,
+	.get_rxfh_key_size = ether_get_rxfh_key_size,
+	.get_rxfh_indir_size = ether_get_rxfh_indir_size,
+	.get_rxfh = ether_get_rxfh,
+	.set_rxfh = ether_set_rxfh,
 };
 
 void ether_set_ethtool_ops(struct net_device *ndev)
