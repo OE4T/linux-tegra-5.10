@@ -113,7 +113,7 @@ static int gr_gv11b_ecc_scrub_is_done(struct gk20a *g,
 	return 0;
 }
 
-static void gr_gv11b_ecc_scrub_sm_lrf(struct gk20a *g,
+static int gr_gv11b_ecc_scrub_sm_lrf(struct gk20a *g,
 				     struct nvgpu_gr_config *gr_config)
 {
 	u32 scrub_mask, scrub_done;
@@ -121,7 +121,7 @@ static void gr_gv11b_ecc_scrub_sm_lrf(struct gk20a *g,
 
 	if (!nvgpu_is_enabled(g, NVGPU_ECC_ENABLED_SM_LRF)) {
 		nvgpu_log_info(g, "ECC SM LRF is disabled");
-		return;
+		return 0;
 	}
 
 	nvgpu_log_info(g, "gr_gv11b_ecc_scrub_sm_lrf");
@@ -154,9 +154,11 @@ static void gr_gv11b_ecc_scrub_sm_lrf(struct gk20a *g,
 	if (err != 0) {
 		nvgpu_warn(g, "ECC SCRUB SM LRF Failed");
 	}
+
+	return err;
 }
 
-static void gr_gv11b_ecc_scrub_sm_l1_data(struct gk20a *g,
+static int gr_gv11b_ecc_scrub_sm_l1_data(struct gk20a *g,
 					 struct nvgpu_gr_config *gr_config)
 {
 	u32 scrub_mask, scrub_done;
@@ -164,7 +166,7 @@ static void gr_gv11b_ecc_scrub_sm_l1_data(struct gk20a *g,
 
 	if (!nvgpu_is_enabled(g, NVGPU_ECC_ENABLED_SM_L1_DATA)) {
 		nvgpu_log_info(g, "ECC L1DATA is disabled");
-		return;
+		return 0;
 	}
 	nvgpu_log_info(g, "gr_gv11b_ecc_scrub_sm_l1_data");
 	scrub_mask =
@@ -184,9 +186,11 @@ static void gr_gv11b_ecc_scrub_sm_l1_data(struct gk20a *g,
 	if (err != 0) {
 		nvgpu_warn(g, "ECC SCRUB SM L1 DATA Failed");
 	}
+
+	return err;
 }
 
-static void gr_gv11b_ecc_scrub_sm_l1_tag(struct gk20a *g,
+static int gr_gv11b_ecc_scrub_sm_l1_tag(struct gk20a *g,
 					struct nvgpu_gr_config *gr_config)
 {
 	u32 scrub_mask, scrub_done;
@@ -194,7 +198,7 @@ static void gr_gv11b_ecc_scrub_sm_l1_tag(struct gk20a *g,
 
 	if (!nvgpu_is_enabled(g, NVGPU_ECC_ENABLED_SM_L1_TAG)) {
 		nvgpu_log_info(g, "ECC L1TAG is disabled");
-		return;
+		return 0;
 	}
 	nvgpu_log_info(g, "gr_gv11b_ecc_scrub_sm_l1_tag");
 	scrub_mask =
@@ -217,9 +221,11 @@ static void gr_gv11b_ecc_scrub_sm_l1_tag(struct gk20a *g,
 	if (err != 0) {
 		nvgpu_warn(g, "ECC SCRUB SM L1 TAG Failed");
 	}
+
+	return err;
 }
 
-static void gr_gv11b_ecc_scrub_sm_cbu(struct gk20a *g,
+static int gr_gv11b_ecc_scrub_sm_cbu(struct gk20a *g,
 				     struct nvgpu_gr_config *gr_config)
 {
 	u32 scrub_mask, scrub_done;
@@ -227,7 +233,7 @@ static void gr_gv11b_ecc_scrub_sm_cbu(struct gk20a *g,
 
 	if (!nvgpu_is_enabled(g, NVGPU_ECC_ENABLED_SM_CBU)) {
 		nvgpu_log_info(g, "ECC CBU is disabled");
-		return;
+		return 0;
 	}
 	nvgpu_log_info(g, "gr_gv11b_ecc_scrub_sm_cbu");
 	scrub_mask =
@@ -249,9 +255,11 @@ static void gr_gv11b_ecc_scrub_sm_cbu(struct gk20a *g,
 	if (err != 0) {
 		nvgpu_warn(g, "ECC SCRUB SM CBU Failed");
 	}
+
+	return err;
 }
 
-static void gr_gv11b_ecc_scrub_sm_icahe(struct gk20a *g,
+static int gr_gv11b_ecc_scrub_sm_icahe(struct gk20a *g,
 				       struct nvgpu_gr_config *gr_config)
 {
 	u32 scrub_mask, scrub_done;
@@ -259,7 +267,7 @@ static void gr_gv11b_ecc_scrub_sm_icahe(struct gk20a *g,
 
 	if (!nvgpu_is_enabled(g, NVGPU_ECC_ENABLED_SM_ICACHE)) {
 		nvgpu_log_info(g, "ECC ICAHE is disabled");
-		return;
+		return 0;
 	}
 	nvgpu_log_info(g, "gr_gv11b_ecc_scrub_sm_icahe");
 	scrub_mask =
@@ -282,22 +290,43 @@ static void gr_gv11b_ecc_scrub_sm_icahe(struct gk20a *g,
 	if (err != 0) {
 		nvgpu_warn(g, "ECC SCRUB SM ICACHE Failed");
 	}
+
+	return err;
 }
 
-void gv11b_gr_init_ecc_scrub_reg(struct gk20a *g,
+int gv11b_gr_init_ecc_scrub_reg(struct gk20a *g,
 				 struct nvgpu_gr_config *gr_config)
 {
+	int err;
+
 	nvgpu_log_fn(g, "ecc srub start");
 
-	gr_gv11b_ecc_scrub_sm_lrf(g, gr_config);
+	err = gr_gv11b_ecc_scrub_sm_lrf(g, gr_config);
+	if (err != 0) {
+		return err;
+	}
 
-	gr_gv11b_ecc_scrub_sm_l1_data(g, gr_config);
+	err = gr_gv11b_ecc_scrub_sm_l1_data(g, gr_config);
+	if (err != 0) {
+		return err;
+	}
 
-	gr_gv11b_ecc_scrub_sm_l1_tag(g, gr_config);
+	err = gr_gv11b_ecc_scrub_sm_l1_tag(g, gr_config);
+	if (err != 0) {
+		return err;
+	}
 
-	gr_gv11b_ecc_scrub_sm_cbu(g, gr_config);
+	err = gr_gv11b_ecc_scrub_sm_cbu(g, gr_config);
+	if (err != 0) {
+		return err;
+	}
 
-	gr_gv11b_ecc_scrub_sm_icahe(g, gr_config);
+	err = gr_gv11b_ecc_scrub_sm_icahe(g, gr_config);
+	if (err != 0) {
+		return err;
+	}
+
+	return err;
 }
 
 u32 gv11b_gr_init_get_nonpes_aware_tpc(struct gk20a *g, u32 gpc, u32 tpc,

@@ -32,7 +32,7 @@ struct netlist_av_list;
 
 u32 gv11b_gr_init_get_nonpes_aware_tpc(struct gk20a *g, u32 gpc, u32 tpc,
 				       struct nvgpu_gr_config *gr_config);
-void gv11b_gr_init_ecc_scrub_reg(struct gk20a *g,
+int gv11b_gr_init_ecc_scrub_reg(struct gk20a *g,
 				 struct nvgpu_gr_config *gr_config);
 void gv11b_gr_init_gpc_mmu(struct gk20a *g);
 #ifdef CONFIG_NVGPU_SET_FALCON_ACCESS_MAP

@@ -613,7 +613,7 @@ struct gops_gr_init {
 				u32 *default_compute_preempt_mode);
 
 	/** @cond DOXYGEN_SHOULD_SKIP_THIS */
-	void (*ecc_scrub_reg)(struct gk20a *g,
+	int (*ecc_scrub_reg)(struct gk20a *g,
 			      struct nvgpu_gr_config *gr_config);
 	void (*lg_coalesce)(struct gk20a *g, u32 data);
 	void (*su_coalesce)(struct gk20a *g, u32 data);

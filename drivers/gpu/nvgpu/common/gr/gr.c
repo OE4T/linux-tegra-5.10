@@ -245,7 +245,10 @@ static int gr_init_setup_hw(struct gk20a *g)
 
 	/* enable ECC for L1/SM */
 	if (g->ops.gr.init.ecc_scrub_reg != NULL) {
-		g->ops.gr.init.ecc_scrub_reg(g, gr->config);
+		err = g->ops.gr.init.ecc_scrub_reg(g, gr->config);
+		if (err != 0) {
+			goto out;
+		}
 	}
 
 	/** Reset and enable exceptions */

@@ -33,6 +33,8 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/gr/gr.h>
 #include <nvgpu/gr/ctx.h>
+#include <nvgpu/gr/config.h>
+#include <nvgpu/gr/gr_utils.h>
 #include "common/gr/gr_priv.h"
 
 #include "../nvgpu-gr.h"
@@ -45,6 +47,125 @@
 static int dummy_l2_flush(struct gk20a *g, bool invalidate)
 {
 	return 0;
+}
+
+struct gr_ecc_scrub_reg_rec {
+	u32 addr;
+	u32 scrub_done;
+};
+
+struct gr_ecc_scrub_reg_rec ecc_scrub_data[] = {
+	{
+		.addr = gr_pri_gpc0_tpc0_sm_lrf_ecc_control_r(),
+		.scrub_done =
+			(gr_pri_gpc0_tpc0_sm_lrf_ecc_control_scrub_qrfdp0_init_f() |
+			gr_pri_gpc0_tpc0_sm_lrf_ecc_control_scrub_qrfdp1_init_f() |
+			gr_pri_gpc0_tpc0_sm_lrf_ecc_control_scrub_qrfdp2_init_f() |
+			gr_pri_gpc0_tpc0_sm_lrf_ecc_control_scrub_qrfdp3_init_f() |
+			gr_pri_gpc0_tpc0_sm_lrf_ecc_control_scrub_qrfdp4_init_f() |
+			gr_pri_gpc0_tpc0_sm_lrf_ecc_control_scrub_qrfdp5_init_f() |
+			gr_pri_gpc0_tpc0_sm_lrf_ecc_control_scrub_qrfdp6_init_f() |
+			gr_pri_gpc0_tpc0_sm_lrf_ecc_control_scrub_qrfdp7_init_f()),
+	},
+	{
+		.addr = gr_pri_gpc0_tpc0_sm_l1_data_ecc_control_r(),
+		.scrub_done =
+			(gr_pri_gpc0_tpc0_sm_l1_data_ecc_control_scrub_el1_0_init_f() |
+			gr_pri_gpc0_tpc0_sm_l1_data_ecc_control_scrub_el1_1_init_f()),
+	},
+	{
+		.addr = gr_pri_gpc0_tpc0_sm_l1_tag_ecc_control_r(),
+		.scrub_done =
+			 (gr_pri_gpc0_tpc0_sm_l1_tag_ecc_control_scrub_el1_0_init_f() |
+			  gr_pri_gpc0_tpc0_sm_l1_tag_ecc_control_scrub_el1_1_init_f() |
+			  gr_pri_gpc0_tpc0_sm_l1_tag_ecc_control_scrub_pixprf_init_f() |
+			  gr_pri_gpc0_tpc0_sm_l1_tag_ecc_control_scrub_miss_fifo_init_f()),
+	},
+	{
+		.addr = gr_pri_gpc0_tpc0_sm_cbu_ecc_control_r(),
+		.scrub_done =
+			 (gr_pri_gpc0_tpc0_sm_cbu_ecc_control_scrub_warp_sm0_init_f() |
+			  gr_pri_gpc0_tpc0_sm_cbu_ecc_control_scrub_warp_sm1_init_f() |
+			  gr_pri_gpc0_tpc0_sm_cbu_ecc_control_scrub_barrier_sm0_init_f() |
+			  gr_pri_gpc0_tpc0_sm_cbu_ecc_control_scrub_barrier_sm1_init_f()),
+	},
+	{
+		.addr = gr_pri_gpc0_tpc0_sm_icache_ecc_control_r(),
+		.scrub_done =
+			 (gr_pri_gpc0_tpc0_sm_icache_ecc_control_scrub_l0_data_init_f() |
+			  gr_pri_gpc0_tpc0_sm_icache_ecc_control_scrub_l0_predecode_init_f() |
+			  gr_pri_gpc0_tpc0_sm_icache_ecc_control_scrub_l1_data_init_f() |
+			  gr_pri_gpc0_tpc0_sm_icache_ecc_control_scrub_l1_predecode_init_f()),
+	},
+};
+
+int test_gr_init_hal_ecc_scrub_reg(struct unit_module *m,
+		struct gk20a *g, void *args)
+{
+	u32 i;
+	int err;
+	struct nvgpu_gr_config *config = nvgpu_gr_get_config_ptr(g);
+	struct nvgpu_posix_fault_inj *timer_fi =
+		nvgpu_timers_get_fault_injection();
+
+	/* Code coverage */
+	nvgpu_set_enabled(g, NVGPU_ECC_ENABLED_SM_ICACHE, false);
+	nvgpu_set_enabled(g, NVGPU_ECC_ENABLED_SM_CBU, false);
+	nvgpu_set_enabled(g, NVGPU_ECC_ENABLED_SM_L1_TAG, false);
+	nvgpu_set_enabled(g, NVGPU_ECC_ENABLED_SM_L1_DATA, false);
+	nvgpu_set_enabled(g, NVGPU_ECC_ENABLED_SM_LRF, false);
+
+	err = g->ops.gr.init.ecc_scrub_reg(g, config);
+	if (err != 0) {
+		unit_return_fail(m, "ECC scrub failed");
+	}
+
+	/* Re-enable the features */
+	nvgpu_set_enabled(g, NVGPU_ECC_ENABLED_SM_ICACHE, true);
+	nvgpu_set_enabled(g, NVGPU_ECC_ENABLED_SM_CBU, true);
+	nvgpu_set_enabled(g, NVGPU_ECC_ENABLED_SM_L1_TAG, true);
+	nvgpu_set_enabled(g, NVGPU_ECC_ENABLED_SM_L1_DATA, true);
+	nvgpu_set_enabled(g, NVGPU_ECC_ENABLED_SM_LRF, true);
+
+	/* Trigger timeout initialization failure */
+	for (i = 0;
+	     i < (sizeof(ecc_scrub_data) / sizeof(struct gr_ecc_scrub_reg_rec));
+	     i++) {
+		nvgpu_posix_enable_fault_injection(timer_fi, true, i);
+		err = g->ops.gr.init.ecc_scrub_reg(g, config);
+		if (err == 0) {
+			unit_return_fail(m, "Timeout was expected");
+		}
+	}
+
+	nvgpu_posix_enable_fault_injection(timer_fi, false, 0);
+
+	for (i = 0;
+	     i < (sizeof(ecc_scrub_data) / sizeof(struct gr_ecc_scrub_reg_rec));
+	     i++) {
+		/* Set incorrect values of scrub_done so that scrub wait times out */
+		nvgpu_writel(g,
+			ecc_scrub_data[i].addr,
+			~(ecc_scrub_data[i].scrub_done));
+
+		err = g->ops.gr.init.ecc_scrub_reg(g, config);
+		if (err == 0) {
+			unit_return_fail(m, "Timeout was expected");
+		}
+
+		/* Set correct values of scrub_done so that scrub wait is successful */
+		nvgpu_writel(g,
+			ecc_scrub_data[i].addr,
+			ecc_scrub_data[i].scrub_done);
+	}
+
+	/* No error injection, should be successful */
+	err = g->ops.gr.init.ecc_scrub_reg(g, config);
+	if (err != 0) {
+		unit_return_fail(m, "ECC scrub failed");
+	}
+
+	return UNIT_SUCCESS;
 }
 
 int test_gr_init_hal_wait_empty(struct unit_module *m,

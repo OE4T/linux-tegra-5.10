@@ -59,6 +59,36 @@ int test_gr_init_hal_wait_empty(struct unit_module *m,
 		struct gk20a *g, void *args);
 
 /**
+ * Test specification for: test_gr_init_hal_ecc_scrub_reg.
+ *
+ * Description: Verify error handling in gops.gr.init.ecc_scrub_reg function.
+ *
+ * Test Type: Feature, Error guessing.
+ *
+ * Targets: g->ops.gr.init.ecc_scrub_reg.
+ *
+ * Input: gr_init_setup, gr_init_prepare, gr_init_support must have
+ *        been executed successfully.
+ *
+ * Steps:
+ * - Disable feature flags for common.gr ECC handling for code coverage
+ *   and call g->ops.gr.init.ecc_scrub_reg.
+ * - Re-enable all the feature flags.
+ * - Inject timeout initialization failures and call
+ *   g->ops.gr.init.ecc_scrub_reg.
+ * - Set incorrect values of scrub_done for each error type so that scrub
+ *   wait times out.
+ * - Ensure that g->ops.gr.init.ecc_scrub_reg returns error.
+ * - Set correct values of scrub_done for each error so that scrub wait
+ *   is successful again.
+ *
+ * Output: Returns PASS if the steps above were executed successfully. FAIL
+ * otherwise.
+ */
+int test_gr_init_hal_ecc_scrub_reg(struct unit_module *m,
+		struct gk20a *g, void *args);
+
+/**
  * Test specification for: test_gr_init_hal_error_injection.
  *
  * Description: Code coverage test for g->ops.gr.init.commit_global_pagepool.
