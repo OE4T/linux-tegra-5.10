@@ -376,6 +376,7 @@ static bool gv11b_mm_mmu_fault_handle_mmu_fault_refch(struct gk20a *g,
 		nvgpu_err(g, "chid: %d is referenceable but "
 				"not bound to tsg",
 				mmufault->refch->chid);
+		*id_ptr = mmufault->refch->chid;
 		*id_type_ptr = ID_TYPE_CHANNEL;
 		*rc_type_ptr = RC_TYPE_NO_RC;
 	}
