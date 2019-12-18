@@ -291,43 +291,39 @@ static void gv11b_fb_copy_from_hw_fault_buf(struct gk20a *g,
 }
 
 static bool gv11b_mm_mmu_fault_handle_mmu_fault_ce(struct gk20a *g,
-		struct mmu_fault_info *mmufault, u32 *invalidate_replay_val,
-		u32 num_lce)
+		struct mmu_fault_info *mmufault, u32 *invalidate_replay_val)
 {
 	struct nvgpu_tsg *tsg = NULL;
 #ifdef CONFIG_NVGPU_REPLAYABLE_FAULT
 	int err;
 #endif
 
-	if (mmufault->mmu_engine_id <
-		nvgpu_safe_add_u32(gmmu_fault_mmu_eng_id_ce0_v(),
-				   num_lce)) {
-		/* CE page faults are not reported as replayable */
-		nvgpu_log(g, gpu_dbg_intr, "CE Faulted");
+	/* CE page faults are not reported as replayable */
+	nvgpu_log(g, gpu_dbg_intr, "CE Faulted");
 #ifdef CONFIG_NVGPU_REPLAYABLE_FAULT
-		err = gv11b_fb_fix_page_fault(g, mmufault);
+	err = gv11b_fb_fix_page_fault(g, mmufault);
 #endif
+
+	if (mmufault->refch != NULL) {
+		tsg = nvgpu_tsg_from_ch(mmufault->refch);
+		nvgpu_tsg_reset_faulted_eng_pbdma(g, tsg, true, true);
+	}
+
+#ifdef CONFIG_NVGPU_REPLAYABLE_FAULT
+	if (err == 0) {
+		*invalidate_replay_val = 0;
+		nvgpu_log(g, gpu_dbg_intr, "CE Page Fault Fixed");
 
 		if (mmufault->refch != NULL) {
-			tsg = nvgpu_tsg_from_ch(mmufault->refch);
-			nvgpu_tsg_reset_faulted_eng_pbdma(g, tsg,
-							true, true);
+			nvgpu_channel_put(mmufault->refch);
+			mmufault->refch = NULL;
 		}
-#ifdef CONFIG_NVGPU_REPLAYABLE_FAULT
-		if (err == 0) {
-			*invalidate_replay_val = 0;
-			nvgpu_log(g, gpu_dbg_intr, "CE Page Fault Fixed");
-
-			if (mmufault->refch != NULL) {
-				nvgpu_channel_put(mmufault->refch);
-				mmufault->refch = NULL;
-			}
-			return true;
-		}
-#endif
-		/* Do recovery */
-		nvgpu_log(g, gpu_dbg_intr, "CE Page Fault Not Fixed");
+		return true;
 	}
+#endif
+	/* Do recovery */
+	nvgpu_log(g, gpu_dbg_intr, "CE Page Fault Not Fixed");
+
 	return false;
 }
 
@@ -459,10 +455,11 @@ void gv11b_mm_mmu_fault_handle_mmu_fault_common(struct gk20a *g,
 	}
 
 	num_lce = g->ops.top.get_num_lce(g);
-	if (mmufault->mmu_engine_id >=
-			gmmu_fault_mmu_eng_id_ce0_v()) {
+	if ((mmufault->mmu_engine_id >= gmmu_fault_mmu_eng_id_ce0_v()) &&
+	    (mmufault->mmu_engine_id <
+		nvgpu_safe_add_u32(gmmu_fault_mmu_eng_id_ce0_v(), num_lce))) {
 		ret = gv11b_mm_mmu_fault_handle_mmu_fault_ce(g, mmufault,
-			invalidate_replay_val, num_lce);
+			invalidate_replay_val);
 		if (ret) {
 			return;
 		}
