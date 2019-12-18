@@ -350,6 +350,9 @@ int test_pd_alloc_invalid_input(struct unit_module *m, struct gk20a *g,
 	struct nvgpu_gmmu_pd pd;
 	u32 i, garbage[] = { 0U, 128U, 255U, 4095U, 3000U, 128U, 2049U };
 
+	g->mm.g = g;
+	vm.mm = &g->mm;
+
 	if (g->mm.pd_cache != NULL) {
 		unit_return_fail(m, "pd_cache already inited\n");
 	}
