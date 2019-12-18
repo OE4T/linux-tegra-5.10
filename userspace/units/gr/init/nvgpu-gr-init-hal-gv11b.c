@@ -28,6 +28,7 @@
 
 #include <nvgpu/posix/io.h>
 #include <nvgpu/posix/posix-fault-injection.h>
+#include <os/posix/os_posix.h>
 
 #include <nvgpu/io.h>
 #include <nvgpu/gk20a.h>
@@ -36,6 +37,7 @@
 #include <nvgpu/gr/config.h>
 #include <nvgpu/gr/gr_utils.h>
 #include "common/gr/gr_priv.h"
+#include "common/gr/gr_config_priv.h"
 
 #include "../nvgpu-gr.h"
 #include "nvgpu-gr-init-hal-gv11b.h"
@@ -252,6 +254,155 @@ int test_gr_init_hal_wait_empty(struct unit_module *m,
 	}
 
 	return UNIT_SUCCESS;
+}
+
+static u32 gr_get_max_u32(struct gk20a *g)
+{
+	return 0xFFFFFFFF;
+}
+
+static int test_gr_init_hal_get_nonpes_aware_tpc(struct gk20a *g)
+{
+	u32 val_bk;
+	struct nvgpu_gr_config *config = nvgpu_gr_get_config_ptr(g);
+
+	/* Set gpc_ppc_count to 0 for code coverage */
+	val_bk = config->gpc_ppc_count[0];
+	config->gpc_ppc_count[0] = 0;
+
+	/*
+	 * gpc_ppc_count can never be 0 so we are not interested
+	 * in checking return value.
+	 */
+	g->ops.gr.init.get_nonpes_aware_tpc(g, 0, 0, config);
+	config->gpc_ppc_count[0] = val_bk;
+
+	return UNIT_SUCCESS;
+}
+
+static int test_gr_init_hal_sm_id_config(struct gk20a *g)
+{
+	int err;
+	u32 val_bk;
+	u32 *tpc_sm_id;
+	struct nvgpu_gr_config *config = nvgpu_gr_get_config_ptr(g);
+
+	/* Set tpc_count = 2 and sm_count to 4 for code coverage */
+        tpc_sm_id = nvgpu_kcalloc(g, g->ops.gr.init.get_sm_id_size(), sizeof(u32));
+        if (tpc_sm_id == NULL) {
+                return UNIT_FAIL;
+        }
+
+	val_bk = config->tpc_count;
+	config->tpc_count = 2;
+	config->no_of_sm = 4;
+
+	err = g->ops.gr.init.sm_id_config(g, tpc_sm_id, config);
+	if (err != 0) {
+                return UNIT_FAIL;
+	}
+
+	/* Restore tpc_count and sm_count */
+	config->tpc_count = val_bk;
+	config->no_of_sm = val_bk * 2;
+	nvgpu_kfree(g, tpc_sm_id);
+
+	return UNIT_SUCCESS;
+}
+
+static int test_gr_init_hal_fs_state(struct gk20a *g)
+{
+	u32 val_bk;
+	u32 reg_val;
+	struct nvgpu_os_posix *p = nvgpu_os_posix_from_gk20a(g);
+
+	/*
+	 * Trigger g->ops.gr.init.fs_state with combinations of
+	 * is_soc_t194_a01 and gpu_arch.
+	 */
+	val_bk = g->params.gpu_arch;
+
+	p->is_soc_t194_a01 = true;
+	g->params.gpu_arch = 0;
+	g->ops.gr.init.fs_state(g);
+
+	/* Backup gr_scc_debug_r() value */
+	reg_val = nvgpu_readl(g, gr_scc_debug_r());
+
+	p->is_soc_t194_a01 = true;
+	g->params.gpu_arch = val_bk;
+	g->ops.gr.init.fs_state(g);
+
+	/*
+	 * gr_scc_debug_r() should be updated when SOC is A01 and
+	 * GPU is GV11B.
+	 */
+	if (reg_val == nvgpu_readl(g, gr_scc_debug_r())) {
+		return UNIT_FAIL;
+	}
+
+	p->is_soc_t194_a01 = false;
+	g->params.gpu_arch = 0;
+	g->ops.gr.init.fs_state(g);
+
+	p->is_soc_t194_a01 = false;
+	g->params.gpu_arch = val_bk;
+	g->ops.gr.init.fs_state(g);
+
+	return UNIT_SUCCESS;
+}
+
+static int test_gr_init_hal_get_cb_size(struct gk20a *g)
+{
+	u32 val;
+	struct nvgpu_gr_config *config = nvgpu_gr_get_config_ptr(g);
+
+	/* g->ops.gr.init.get_attrib_cb_size should return alternate value */
+	g->ops.gr.init.get_attrib_cb_default_size = gr_get_max_u32;
+	val = g->ops.gr.init.get_attrib_cb_size(g, config->tpc_count);
+	if (val != (gr_gpc0_ppc0_cbm_beta_cb_size_v_f(~0) / config->tpc_count)) {
+		return UNIT_FAIL;
+	}
+
+	/* g->ops.gr.init.get_alpha_cb_size should return alternate value */
+	g->ops.gr.init.get_alpha_cb_default_size = gr_get_max_u32;
+	val = g->ops.gr.init.get_alpha_cb_size(g, config->tpc_count);
+	if (val != (gr_gpc0_ppc0_cbm_alpha_cb_size_v_f(~0) / config->tpc_count)) {
+		return UNIT_FAIL;
+	}
+
+	return UNIT_SUCCESS;
+}
+
+int test_gr_init_hal_config_error_injection(struct unit_module *m,
+		struct gk20a *g, void *args)
+{
+	struct gpu_ops gops = g->ops;
+	int ret = UNIT_SUCCESS;
+
+	ret = test_gr_init_hal_get_nonpes_aware_tpc(g);
+	if (ret != UNIT_SUCCESS) {
+		goto fail;
+	}
+
+	ret = test_gr_init_hal_sm_id_config(g);
+	if (ret != UNIT_SUCCESS) {
+		goto fail;
+	}
+
+	ret = test_gr_init_hal_fs_state(g);
+	if (ret != UNIT_SUCCESS) {
+		goto fail;
+	}
+
+	ret = test_gr_init_hal_get_cb_size(g);
+	if (ret != UNIT_SUCCESS) {
+		goto fail;
+	}
+
+fail:
+	g->ops = gops;
+	return ret;
 }
 
 int test_gr_init_hal_error_injection(struct unit_module *m,

@@ -89,6 +89,41 @@ int test_gr_init_hal_ecc_scrub_reg(struct unit_module *m,
 		struct gk20a *g, void *args);
 
 /**
+ * Test specification for: test_gr_init_hal_config_error_injection.
+ *
+ * Description: Verify error handling in gr.init HAL functions that
+ *              require tweaks to gr engine configuration.
+ *
+ * Test Type: Feature, Error guessing.
+ *
+ * Targets: g->ops.gr.init.get_nonpes_aware_tpc,
+ *          g->ops.gr.init.sm_id_config,
+ *          g->ops.gr.init.fs_state,
+ *          g->ops.gr.init.get_attrib_cb_size,
+ *          g->ops.gr.init.get_alpha_cb_size.
+ *
+ * Input: gr_init_setup, gr_init_prepare, gr_init_support must have
+ *        been executed successfully.
+ *
+ * Steps:
+ * - Set gpc_ppc_count to 0 and call g->ops.gr.init.get_nonpes_aware_tpc
+ *   for code coverage of the for loop.
+ * - Set num_tpc to 2 and num_sm to 4 and call g->ops.gr.init.sm_id_config
+ *   to trigger certain error conditions on sm count.
+ * - Use combinations of A01 SOC version and GPU chip id and call
+ *   g->ops.gr.init.fs_state to cover soc and chip specific code.
+ * - Define local function that returns max value and set it to get default
+ *   size of alpha_cb and attrib_cb. Then call g->ops.gr.init.get_attrib_cb_size
+ *   and g->ops.gr.init.get_alpha_cb_size and verify if expected size is
+ *   returned in response.
+ *
+ * Output: Returns PASS if the steps above were executed successfully. FAIL
+ * otherwise.
+ */
+int test_gr_init_hal_config_error_injection(struct unit_module *m,
+		struct gk20a *g, void *args);
+
+/**
  * Test specification for: test_gr_init_hal_error_injection.
  *
  * Description: Code coverage test for g->ops.gr.init.commit_global_pagepool.
