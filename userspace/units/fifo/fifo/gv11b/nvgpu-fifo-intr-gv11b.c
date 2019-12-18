@@ -156,6 +156,10 @@ static void readl_access_reg_fn(struct gk20a *g,
 	access->value = nvgpu_posix_io_readl_reg_space(g, access->addr);
 }
 
+static void stub_gr_falcon_dump_stats(struct gk20a *g)
+{
+}
+
 #define FIFO_INTR_0_ERR_MASK \
 		(fifo_intr_0_bind_error_pending_f() |	\
 		fifo_intr_0_sched_error_pending_f() |	\
@@ -168,6 +172,7 @@ int test_gv11b_fifo_intr_0_isr(struct unit_module *m,
 {
 	int ret = UNIT_FAIL;
 	struct nvgpu_fifo *f = &g->fifo;
+	struct gpu_ops gops = g->ops;
 	u32 branches = 0;
 	u32 fifo_intrs[FIFO_NUM_INTRS_0] = {
 		2,	/* not handled */
@@ -210,6 +215,9 @@ int test_gv11b_fifo_intr_0_isr(struct unit_module *m,
 	nvgpu_posix_io_writel_reg_space(g, fifo_intr_sched_error_r(),
 			SCHED_ERROR_CODE_RL_REQ_TIMEOUT);
 
+	g->ops.gr.falcon.dump_stats =
+		stub_gr_falcon_dump_stats;
+
 	assert(f->sw_ready);
 	for (branches = 0; branches < BIT(FIFO_NUM_INTRS_0); branches++) {
 
@@ -240,6 +248,7 @@ int test_gv11b_fifo_intr_0_isr(struct unit_module *m,
 	ret = UNIT_SUCCESS;
 done:
 	(void) nvgpu_posix_register_io(g, old_io);
+	g->ops = gops;
 	return ret;
 }
 
