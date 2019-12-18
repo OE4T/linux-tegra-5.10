@@ -168,7 +168,11 @@ void nvgpu_rc_preempt_timeout(struct gk20a *g, struct nvgpu_tsg *tsg)
 	nvgpu_tsg_set_error_notifier(g, tsg,
 		NVGPU_ERR_NOTIFIER_FIFO_ERROR_IDLE_TIMEOUT);
 
+#ifdef CONFIG_NVGPU_RECOVERY
 	nvgpu_rc_tsg_and_related_engines(g, tsg, true, RC_TYPE_PREEMPT_TIMEOUT);
+#else
+	BUG_ON(!g->sw_quiesce_pending);
+#endif
 }
 
 void nvgpu_rc_gr_fault(struct gk20a *g, struct nvgpu_tsg *tsg,
