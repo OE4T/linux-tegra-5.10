@@ -123,4 +123,17 @@ void nvgpu_posix_io_record_access(struct gk20a *g,
 bool nvgpu_posix_io_check_sequence(struct gk20a *g,
 	struct nvgpu_reg_access *sequence, u32 size, bool strict);
 
+#ifdef NVGPU_UNITTEST_FAULT_INJECTION_ENABLEMENT
+/**
+ * @brief Get fault injection structure.
+ *
+ * @param void.
+ *
+ * Returns the reference to nvgpu_readl fault injection structure.
+ *
+ * @return Pointer to nvgpu_readl fault injection structure.
+ */
+struct nvgpu_posix_fault_inj *nvgpu_readl_get_fault_injection(void);
+#endif
+
 #endif

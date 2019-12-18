@@ -25,9 +25,20 @@
 #include <nvgpu/bug.h>
 
 #include <nvgpu/posix/io.h>
+#include <nvgpu/posix/posix-fault-injection.h>
 
 #include "os_posix.h"
 
+
+#ifdef NVGPU_UNITTEST_FAULT_INJECTION_ENABLEMENT
+struct nvgpu_posix_fault_inj *nvgpu_readl_get_fault_injection(void)
+{
+	struct nvgpu_posix_fault_inj_container *c =
+			nvgpu_posix_fault_injection_get_container();
+
+	return &c->nvgpu_readl_fi;
+}
+#endif
 
 /*
  * This function sets the IO callbacks to the passed set of callbacks. It
@@ -79,6 +90,13 @@ u32 nvgpu_readl(struct gk20a *g, u32 r)
 		.addr = r,
 		.value = 0L
 	};
+
+#ifdef NVGPU_UNITTEST_FAULT_INJECTION_ENABLEMENT
+	if (nvgpu_posix_fault_injection_handle_call(
+			nvgpu_readl_get_fault_injection()) == true) {
+		return 0;
+	}
+#endif
 
 	if (callbacks == NULL || callbacks->readl == NULL) {
 		BUG();
