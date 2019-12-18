@@ -198,10 +198,10 @@ static int gr_gr100_find_perf_reduction_rate_gpc(struct gk20a *g,
 		 * ratio represents relative throughput of the GPC
 		 */
 		tpc_cnt = nvgpu_gr_config_get_gpc_tpc_count(gr_config, gpc_id);
-		if (tpc_cnt > 0U) {
-			scg_gpc_pix_perf = nvgpu_safe_mult_u32(scale_factor,
+		nvgpu_assert(tpc_cnt != 0U);
+
+		scg_gpc_pix_perf = nvgpu_safe_mult_u32(scale_factor,
 						num_tpc_gpc[gpc_id]) / tpc_cnt;
-		}
 
 		if (*min_scg_gpc_pix_perf > scg_gpc_pix_perf) {
 			*min_scg_gpc_pix_perf = scg_gpc_pix_perf;
