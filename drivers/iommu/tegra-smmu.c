@@ -37,6 +37,7 @@ struct tegra_smmu {
 
 	unsigned long *asids;
 	struct mutex lock;
+	spinlock_t as_lock;
 
 	struct list_head list;
 
@@ -664,17 +665,23 @@ static int tegra_smmu_map(struct iommu_domain *domain, unsigned long iova,
 			  phys_addr_t paddr, size_t size, int prot, gfp_t gfp)
 {
 	struct tegra_smmu_as *as = to_smmu_as(domain);
+	struct tegra_smmu *smmu = as->smmu;
+	unsigned long flags;
 	dma_addr_t pte_dma;
 	u32 pte_attrs;
 	u32 *pte;
 
+	spin_lock_irqsave(&smmu->as_lock, flags);
 	pte = as_get_pte(as, iova, &pte_dma);
-	if (!pte)
+	if (!pte) {
+		spin_unlock_irqrestore(&smmu->as_lock, flags);
 		return -ENOMEM;
+	}
 
 	/* If we aren't overwriting a pre-existing entry, increment use */
 	if (*pte == 0)
 		tegra_smmu_pte_get_use(as, iova);
+	spin_unlock_irqrestore(&smmu->as_lock, flags);
 
 	pte_attrs = SMMU_PTE_NONSECURE;
 
@@ -694,6 +701,8 @@ static size_t tegra_smmu_unmap(struct iommu_domain *domain, unsigned long iova,
 			       size_t size, struct iommu_iotlb_gather *gather)
 {
 	struct tegra_smmu_as *as = to_smmu_as(domain);
+	struct tegra_smmu *smmu = as->smmu;
+	unsigned long flags;
 	dma_addr_t pte_dma;
 	u32 *pte;
 
@@ -702,7 +711,10 @@ static size_t tegra_smmu_unmap(struct iommu_domain *domain, unsigned long iova,
 		return 0;
 
 	tegra_smmu_set_pte(as, iova, pte, pte_dma, 0);
+
+	spin_lock_irqsave(&smmu->as_lock, flags);
 	tegra_smmu_pte_put_use(as, iova);
+	spin_unlock_irqrestore(&smmu->as_lock, flags);
 
 	return size;
 }
@@ -1018,6 +1030,7 @@ struct tegra_smmu *tegra_smmu_probe(struct device *dev,
 
 	INIT_LIST_HEAD(&smmu->groups);
 	mutex_init(&smmu->lock);
+	spin_lock_init(&smmu->as_lock);
 
 	smmu->regs = mc->regs;
 	smmu->soc = soc;
