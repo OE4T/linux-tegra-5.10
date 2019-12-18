@@ -1,7 +1,7 @@
 /*
  * tegra210_admaif_alt.c - Tegra ADMAIF driver
  *
- * Copyright (c) 2014-2019 NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2020 NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -334,11 +334,6 @@ static int tegra_admaif_hw_params(struct snd_pcm_substream *substream,
 		cif_conf.client_bits = TEGRA210_AUDIOCIF_BITS_16;
 		valid_bit = DATA_16BIT;
 		break;
-	case SNDRV_PCM_FORMAT_S24_LE:
-		cif_conf.audio_bits = TEGRA210_AUDIOCIF_BITS_24;
-		cif_conf.client_bits = TEGRA210_AUDIOCIF_BITS_24;
-		valid_bit = DATA_32BIT;
-		break;
 	case SNDRV_PCM_FORMAT_S32_LE:
 		cif_conf.audio_bits = TEGRA210_AUDIOCIF_BITS_32;
 		cif_conf.client_bits = TEGRA210_AUDIOCIF_BITS_32;
@@ -637,7 +632,6 @@ static int tegra_admaif_dai_probe(struct snd_soc_dai *dai)
 			.rates = SNDRV_PCM_RATE_8000_192000,	\
 			.formats = SNDRV_PCM_FMTBIT_S8 |	\
 				SNDRV_PCM_FMTBIT_S16_LE |	\
-				SNDRV_PCM_FMTBIT_S24_LE |	\
 				SNDRV_PCM_FMTBIT_S32_LE,	\
 		},						\
 		.capture = {					\
@@ -647,7 +641,6 @@ static int tegra_admaif_dai_probe(struct snd_soc_dai *dai)
 			.rates = SNDRV_PCM_RATE_8000_192000,		\
 			.formats = SNDRV_PCM_FMTBIT_S8 |		\
 				SNDRV_PCM_FMTBIT_S16_LE |		\
-				SNDRV_PCM_FMTBIT_S24_LE |		\
 				SNDRV_PCM_FMTBIT_S32_LE,		\
 		},						\
 		.ops = &tegra_admaif_dai_ops,			\
@@ -663,7 +656,6 @@ static int tegra_admaif_dai_probe(struct snd_soc_dai *dai)
 			.rates = SNDRV_PCM_RATE_8000_192000,		\
 			.formats = SNDRV_PCM_FMTBIT_S8 |		\
 				SNDRV_PCM_FMTBIT_S16_LE |		\
-				SNDRV_PCM_FMTBIT_S24_LE |		\
 				SNDRV_PCM_FMTBIT_S32_LE,		\
 		},							\
 		.capture = {						\
@@ -673,7 +665,6 @@ static int tegra_admaif_dai_probe(struct snd_soc_dai *dai)
 			.rates = SNDRV_PCM_RATE_8000_192000,		\
 			.formats = SNDRV_PCM_FMTBIT_S8 |		\
 				SNDRV_PCM_FMTBIT_S16_LE |		\
-				SNDRV_PCM_FMTBIT_S24_LE |		\
 				SNDRV_PCM_FMTBIT_S32_LE,		\
 		},							\
 		.ops = &tegra_admaif_dai_ops,			\
@@ -689,7 +680,6 @@ static int tegra_admaif_dai_probe(struct snd_soc_dai *dai)
 			.rates = SNDRV_PCM_RATE_8000_192000,		\
 			.formats = SNDRV_PCM_FMTBIT_S8 |		\
 				SNDRV_PCM_FMTBIT_S16_LE |		\
-				SNDRV_PCM_FMTBIT_S24_LE |		\
 				SNDRV_PCM_FMTBIT_S32_LE,		\
 		},							\
 		.capture = {						\
@@ -699,7 +689,6 @@ static int tegra_admaif_dai_probe(struct snd_soc_dai *dai)
 			.rates = SNDRV_PCM_RATE_8000_192000,		\
 			.formats = SNDRV_PCM_FMTBIT_S8 |		\
 				SNDRV_PCM_FMTBIT_S16_LE |		\
-				SNDRV_PCM_FMTBIT_S24_LE |		\
 				SNDRV_PCM_FMTBIT_S32_LE,		\
 		},							\
 	}
