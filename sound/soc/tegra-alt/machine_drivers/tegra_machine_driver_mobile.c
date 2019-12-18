@@ -1,7 +1,7 @@
 /*
  * tegra_machine_driver_mobile.c - Tegra ASoC Machine driver for mobile
  *
- * Copyright (c) 2017-2019 NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2020 NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -202,9 +202,6 @@ static int tegra_machine_dai_init(struct snd_soc_pcm_runtime *runtime,
 			break;
 		case SNDRV_PCM_FMTBIT_S16_LE:
 			bclk_rate = srate * channels * 16;
-			break;
-		case SNDRV_PCM_FMTBIT_S24_LE:
-			bclk_rate = srate * channels * 24;
 			break;
 		case SNDRV_PCM_FMTBIT_S32_LE:
 			bclk_rate = srate * channels * 32;
