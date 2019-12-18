@@ -146,6 +146,19 @@ void nvgpu_rc_runlist_update(struct gk20a *g, u32 runlist_id)
 				RC_TYPE_RUNLIST_UPDATE_TIMEOUT);
 	}
 #else
+	/*
+	 * Runlist update occurs in non-mission mode, when
+	 * adding/removing channel/TSGs. The pending bit
+	 * is a debug only feature. As a result logging a
+	 * warning is sufficient.
+	 * We expect other HW safety mechanisms such as
+	 * PBDMA timeout to detect issues that caused pending
+	 * to not clear. It's possible bad base address could
+	 * cause some MMU faults too.
+	 * Worst case we rely on the application level task
+	 * monitor to detect the GPU tasks are not completing
+	 * on time.
+	 */
 	WARN_ON(!g->sw_quiesce_pending);
 #endif
 }
