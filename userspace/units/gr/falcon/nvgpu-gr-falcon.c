@@ -56,7 +56,9 @@ struct gr_gops_falcon_orgs {
 				struct nvgpu_gr_falcon *falcon);
 	int (*init_ctx_state)(struct gk20a *g,
 				struct nvgpu_gr_falcon_query_sizes *sizes);
+	void (*dump_stats)(struct gk20a *g);
 };
+
 
 static struct nvgpu_gr_falcon *unit_gr_falcon;
 static struct gr_gops_falcon_orgs gr_falcon_gops;
@@ -79,12 +81,18 @@ static int gr_falcon_stub_hs_acr(struct gk20a *g, struct nvgpu_acr *acr)
 	return 0;
 }
 
+static void gr_test_falcon_dump_stats(struct gk20a *g)
+{
+	/* Do nothing */
+}
+
 static void gr_falcon_save_gops(struct gk20a *g)
 {
 	gr_falcon_gops.load_ctxsw_ucode =
 				g->ops.gr.falcon.load_ctxsw_ucode;
 	gr_falcon_gops.bind_instblk = g->ops.gr.falcon.bind_instblk;
 	gr_falcon_gops.init_ctx_state = g->ops.gr.falcon.init_ctx_state;
+	gr_falcon_gops.dump_stats = g->ops.gr.falcon.dump_stats;
 }
 
 static void gr_falcon_stub_gops(struct gk20a *g)
@@ -92,6 +100,7 @@ static void gr_falcon_stub_gops(struct gk20a *g)
 	g->ops.gr.falcon.load_ctxsw_ucode =
 				nvgpu_gr_falcon_load_secure_ctxsw_ucode;
 	g->ops.gr.falcon.bind_instblk = test_gr_falcon_bind_instblk;
+	g->ops.gr.falcon.dump_stats = gr_test_falcon_dump_stats;
 }
 
 int test_gr_falcon_init(struct unit_module *m,
@@ -156,6 +165,8 @@ static int gr_falcon_bind_instblk(struct unit_module *m, struct gk20a *g)
 	struct nvgpu_ctxsw_ucode_info *ucode_info =
 					&unit_gr_falcon->ctxsw_ucode_info;
 	struct nvgpu_mem *mem;
+	struct nvgpu_posix_fault_inj *nvgpu_readl_fi =
+				nvgpu_readl_get_fault_injection();
 
 	g->ops.gr.falcon.bind_instblk = gr_falcon_gops.bind_instblk;
 
@@ -164,7 +175,7 @@ static int gr_falcon_bind_instblk(struct unit_module *m, struct gk20a *g)
 	mem->cpu_va = (void *)0xFFFFFFFFFFFFFFFF;
 	if (!EXPECT_BUG(nvgpu_gr_falcon_init_ctxsw(g, unit_gr_falcon))) {
 		unit_return_fail(m,
-			"falcon_init_ctxsw secure recovery failed\n");
+			"falcon_init_ctxsw test1 failed\n");
 	}
 	mem->cpu_va = NULL;
 
@@ -175,8 +186,17 @@ static int gr_falcon_bind_instblk(struct unit_module *m, struct gk20a *g)
 	err = nvgpu_gr_falcon_init_ctxsw(g, unit_gr_falcon);
 	if (err != 0) {
 		unit_return_fail(m,
-			"falcon_init_ctxsw secure recovery failed\n");
+			"falcon_init_ctxsw test2 failed\n");
 	}
+
+	/* Fail fecs_arb_ctx_cmd_r() readl for branch coverage */
+	nvgpu_posix_enable_fault_injection(nvgpu_readl_fi, true, 1);
+	err = nvgpu_gr_falcon_init_ctxsw(g, unit_gr_falcon);
+	if (err == 0) {
+		unit_return_fail(m,
+			"falcon_init_ctxsw test3 failed\n");
+	}
+	nvgpu_posix_enable_fault_injection(nvgpu_readl_fi, false, 0);
 
 	/* Set ctxsw_status_busy for branch coverage */
 	nvgpu_posix_io_writel_reg_space(g, gr_fecs_ctxsw_status_1_r(),
@@ -184,8 +204,9 @@ static int gr_falcon_bind_instblk(struct unit_module *m, struct gk20a *g)
 	err = nvgpu_gr_falcon_init_ctxsw(g, unit_gr_falcon);
 	if (err != 0) {
 		unit_return_fail(m,
-			"falcon_init_ctxsw secure recovery failed\n");
+			"falcon_init_ctxsw test4 failed\n");
 	}
+	nvgpu_posix_io_writel_reg_space(g, gr_fecs_ctxsw_status_1_r(), 0);
 
 	nvgpu_free_inst_block(g, &ucode_info->inst_blk_desc);
 	return err;
