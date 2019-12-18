@@ -138,3 +138,4 @@ UNITS :=				\
 	$(UNIT_SRC)/ce			\
 	$(UNIT_SRC)/cg                  \
 	$(UNIT_SRC)/sync
+	$(UNIT_SRC)/ecc

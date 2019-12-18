@@ -4261,5 +4261,29 @@
         "case": "vm_bind",
         "unit": "vm",
         "test_level": 0
+    },
+    {
+        "test": "test_ecc_init_support",
+        "case": "ecc_init_support",
+        "unit": "ecc",
+        "test_level": 0
+    },
+    {
+        "test": "test_ecc_finalize_support",
+        "case": "ecc_finalize_support",
+        "unit": "ecc",
+        "test_level": 0
+    },
+    {
+        "test": "test_ecc_counter_init",
+        "case": "ecc_counter_init",
+        "unit": "ecc",
+        "test_level": 0
+    },
+    {
+        "test": "test_ecc_free",
+        "case": "ecc_free",
+        "unit": "ecc",
+        "test_level": 0
     }
 ]
