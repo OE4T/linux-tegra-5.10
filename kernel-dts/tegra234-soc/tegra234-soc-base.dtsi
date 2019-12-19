@@ -353,17 +353,6 @@
 			dma-coherent;
 		};
 
-		tsecb@15100000 {
-			compatible = "nvidia,tegra194-tsec";
-			reg = <0x0 0x15100000 0x0 0x00040000>;
-			resets = <&bpmp_resets TEGRA234_RESET_TSECB>;
-			clocks = <&bpmp_clks TEGRA234_CLK_TSECB>;
-			clock-names = "tsecb";
-
-			iommus = <&smmu TEGRA_SID_TSECB>;
-			dma-coherent;
-		};
-
 		nvdec@15480000 {
 			compatible = "nvidia,tegra194-nvdec";
 			power-domains = <&bpmp TEGRA234_POWER_DOMAIN_NVDECA>;
@@ -378,20 +367,6 @@
 			dma-coherent;
 		};
 
-		nvdec1@15140000 {
-			compatible = "nvidia,tegra194-nvdec";
-			power-domains = <&bpmp TEGRA234_POWER_DOMAIN_NVDECB>;
-			reg = <0x0 0x15140000 0x0 0x00040000>;
-			resets = <&bpmp_resets TEGRA234_RESET_NVDEC1>;
-			clocks = <&bpmp_clks TEGRA234_CLK_NVDEC1>,
-				 <&bpmp_clks TEGRA234_CLK_KFUSE>,
-				 <&bpmp_clks TEGRA234_CLK_FUSE>;
-			clock-names = "nvdec", "kfuse", "efuse";
-
-			iommus = <&smmu TEGRA_SID_NVDEC1>;
-			dma-coherent;
-		};
-
 		nvenc@154c0000 {
 			compatible = "nvidia,tegra194-nvenc";
 			power-domains = <&bpmp TEGRA234_POWER_DOMAIN_NVENCA>;
@@ -401,18 +376,6 @@
 			clock-names = "nvenc";
 
 			iommus = <&smmu TEGRA_SID_NVENC>;
-			dma-coherent;
-		};
-
-		nvenc1@15a80000 {
-			compatible = "nvidia,tegra194-nvenc";
-			power-domains = <&bpmp TEGRA234_POWER_DOMAIN_NVENCB>;
-			reg = <0x0 0x15a80000 0x0 0x00040000>;
-			resets = <&bpmp_resets TEGRA234_RESET_NVENC1>;
-			clocks = <&bpmp_clks TEGRA234_CLK_NVENC1>;
-			clock-names = "nvenc";
-
-			iommus = <&smmu TEGRA_SID_NVENC1>;
 			dma-coherent;
 		};
 
@@ -555,29 +518,6 @@
 			clock-names = "axi", "vps0", "vps1";
 
 			iommus = <&smmu TEGRA_SID_PVA0>;
-			dma-coherent;
-		};
-
-		pva1: pva1 {
-			compatible = "nvidia,tegra234-pva";
-			power-domains = <&bpmp TEGRA234_POWER_DOMAIN_PVAB>;
-			reg = <0x0 0x16800000 0x0 0x800000>;
-			interrupts = <0 235 0x04>,
-				     <0 440 0x04>,
-				     <0 441 0x04>,
-				     <0 442 0x04>,
-				     <0 443 0x04>,
-				     <0 444 0x04>,
-				     <0 445 0x04>,
-				     <0 446 0x04>,
-				     <0 447 0x04>;
-			resets = <&bpmp_resets TEGRA234_RESET_PVA1_ALL>;
-			clocks = <&bpmp_clks TEGRA234_CLK_PVA1_AXI>,
-				 <&bpmp_clks TEGRA234_CLK_PVA1_VPS0>,
-				 <&bpmp_clks TEGRA234_CLK_PVA1_VPS1>;
-			clock-names = "axi", "vps0", "vps1";
-
-			iommus = <&smmu TEGRA_SID_PVA1>;
 			dma-coherent;
 		};
 

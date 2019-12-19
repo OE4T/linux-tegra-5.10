@@ -34,7 +34,7 @@
 			alignment = <0 0x1000>;
 			no-map;
 			status = "disabled";
-			cvdevs = <&nvdla0 &nvdla1 &pva0 &pva1 &vi_thi &isp_thi>;
+			cvdevs = <&nvdla0 &nvdla1 &pva0 &vi_thi &isp_thi>;
 		};
 
 		ramoops_reserved: ramoops_carveout {
@@ -406,10 +406,6 @@
 			pva0_domain {
 				address-space = <&pva_as>;
 				sid-list = <TEGRA_SID_PVA0>;
-			};
-			pva1_domain {
-				address-space = <&pva_as>;
-				sid-list = <TEGRA_SID_PVA1>;
 			};
 			sce_domain {
 				address-space = <&common_as>;
