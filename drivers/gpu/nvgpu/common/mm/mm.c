@@ -170,12 +170,12 @@ static void nvgpu_remove_mm_support(struct mm_gk20a *mm)
 #endif
 #ifdef CONFIG_NVGPU_DGPU
 	nvgpu_vidmem_destroy(g);
-#endif
-	nvgpu_pd_cache_fini(g);
 
 	if (g->ops.ramin.deinit_pdb_cache_war != NULL) {
 		g->ops.ramin.deinit_pdb_cache_war(g);
 	}
+#endif
+	nvgpu_pd_cache_fini(g);
 }
 
 /* pmu vm, share channel_vm interfaces */
@@ -560,6 +560,7 @@ static int nvgpu_init_mm_setup_sw(struct gk20a *g)
 	return 0;
 }
 
+#ifdef CONFIG_NVGPU_DGPU
 static int nvgpu_init_mm_pdb_cache_war(struct gk20a *g)
 {
 	int err;
@@ -580,6 +581,7 @@ static int nvgpu_init_mm_pdb_cache_war(struct gk20a *g)
 
 	return 0;
 }
+#endif
 
 /*
  * Called through the HAL to handle vGPU: the vGPU doesn't have HW to initialize
@@ -638,10 +640,12 @@ int nvgpu_init_mm_support(struct gk20a *g)
 
 	nvgpu_init_mm_reset_enable_hw(g);
 
+#ifdef CONFIG_NVGPU_DGPU
 	err = nvgpu_init_mm_pdb_cache_war(g);
 	if (err != 0) {
 		return err;
 	}
+#endif
 
 	err = nvgpu_init_mm_setup_sw(g);
 	if (err != 0) {

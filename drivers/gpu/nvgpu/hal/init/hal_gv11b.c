@@ -813,7 +813,9 @@ static const struct gpu_ops gv11b_ops = {
 		.handle_replayable_fault = gv11b_fb_handle_replayable_mmu_fault,
 		.mmu_invalidate_replay = gv11b_fb_mmu_invalidate_replay,
 #endif
+#ifdef CONFIG_NVGPU_DGPU
 		.mem_unlock = NULL,
+#endif
 		.write_mmu_fault_buffer_lo_hi =
 				gv11b_fb_write_mmu_fault_buffer_lo_hi,
 		.write_mmu_fault_buffer_get =

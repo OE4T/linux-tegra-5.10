@@ -62,9 +62,11 @@ void nvgpu_ecc_free(struct gk20a *g)
 		g->ops.fb.fb_ecc_free(g);
 	}
 
+#ifdef CONFIG_NVGPU_DGPU
 	if (g->ops.fb.fbpa_ecc_free != NULL) {
 		g->ops.fb.fbpa_ecc_free(g);
 	}
+#endif
 
 	if (g->ops.pmu.ecc_free != NULL) {
 		g->ops.pmu.ecc_free(g);

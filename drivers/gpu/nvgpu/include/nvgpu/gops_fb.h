@@ -118,28 +118,6 @@ struct gops_fb {
 	void (*fb_ecc_free)(struct gk20a *g);
 
 	/**
-	 * @brief Initialize FBPA unit ECC support.
-	 *
-	 * @param g [in]		Pointer to GPU driver struct.
-	 *
-	 * This function allocates memory to track the ecc error counts
-	 * for FBPA unit.
-	 *
-	 * @return 0 in case of success, < 0 in case of failure.
-	 */
-	int (*fbpa_ecc_init)(struct gk20a *g);
-
-	/**
-	 * @brief Free FBPA unit ECC support.
-	 *
-	 * @param g [in]		Pointer to GPU driver struct.
-	 *
-	 * This function deallocates memory allocated for ecc error counts
-	 * for FBPA unit.
-	 */
-	void (*fbpa_ecc_free)(struct gk20a *g);
-
-	/**
 	 * @brief Initializes frame buffer h/w configuration.
 	 *
 	 * @param g [in]		Pointer to GPU driver struct.
@@ -385,16 +363,36 @@ struct gops_fb {
 	int (*mmu_invalidate_replay)(struct gk20a *g,
 						u32 invalidate_replay_val);
 #endif
+#ifdef CONFIG_NVGPU_DGPU
+	/**
+	 * @brief Initialize FBPA unit ECC support.
+	 *
+	 * @param g [in]		Pointer to GPU driver struct.
+	 *
+	 * This function allocates memory to track the ecc error counts
+	 * for FBPA unit.
+	 *
+	 * @return 0 in case of success, < 0 in case of failure.
+	 */
+	int (*fbpa_ecc_init)(struct gk20a *g);
+
+	/**
+	 * @brief Free FBPA unit ECC support.
+	 *
+	 * @param g [in]		Pointer to GPU driver struct.
+	 *
+	 * This function deallocates memory allocated for ecc error counts
+	 * for FBPA unit.
+	 */
+	void (*fbpa_ecc_free)(struct gk20a *g);
 	int (*mem_unlock)(struct gk20a *g);
 	int (*init_nvlink)(struct gk20a *g);
 	int (*enable_nvlink)(struct gk20a *g);
-
-#ifdef CONFIG_NVGPU_DGPU
 	size_t (*get_vidmem_size)(struct gk20a *g);
-#endif
 	int (*apply_pdb_cache_war)(struct gk20a *g);
 	int (*init_fbpa)(struct gk20a *g);
 	void (*handle_fbpa_intr)(struct gk20a *g, u32 fbpa_id);
+#endif
 	/** @endcond DOXYGEN_SHOULD_SKIP_THIS */
 };
 

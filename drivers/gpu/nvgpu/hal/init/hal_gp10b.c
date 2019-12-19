@@ -668,7 +668,9 @@ static const struct gpu_ops gp10b_ops = {
 		.set_mmu_debug_mode = gm20b_fb_set_mmu_debug_mode,
 #endif
 		.tlb_invalidate = gm20b_fb_tlb_invalidate,
+#ifdef CONFIG_NVGPU_DGPU
 		.mem_unlock = NULL,
+#endif
 	},
 	.cg = {
 		.slcg_bus_load_gating_prod =

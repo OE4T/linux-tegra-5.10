@@ -119,28 +119,6 @@ struct gops_ramin {
 			bool replayable);
 
 	/**
-	 * @brief Init WAR for PDB cache.
-	 *
-	 * @param g [in]		Pointer to GPU driver struct.
-	 *
-	 * This HAL allows implementing chip specific initialization
-	 * related to PDB cache.
-	 *
-	 * @return 0 in case of success, < 0 in case of failure.
-	 */
-	int (*init_pdb_cache_war)(struct gk20a *g);
-
-	/**
-	 * @brief Deinit WAR for PDB cache.
-	 *
-	 * @param g [in]		Pointer to GPU driver struct.
-	 *
-	 * This HAL allows implementing chip specific de-initialization
-	 * related to PDB cache.
-	 */
-	void (*deinit_pdb_cache_war)(struct gk20a *g);
-
-	/**
 	 * @brief Instance Block shift.
 	 *
 	 * Returns Instance Block shift in bits, as defined in hardware manuals.
@@ -162,6 +140,30 @@ struct gops_ramin {
 	u32 (*alloc_size)(void);
 
 	/** @cond DOXYGEN_SHOULD_SKIP_THIS */
+
+#ifdef CONFIG_NVGPU_DGPU
+	/**
+	 * @brief Init WAR for PDB cache.
+	 *
+	 * @param g [in]		Pointer to GPU driver struct.
+	 *
+	 * This HAL allows implementing chip specific initialization
+	 * related to PDB cache.
+	 *
+	 * @return 0 in case of success, < 0 in case of failure.
+	 */
+	int (*init_pdb_cache_war)(struct gk20a *g);
+
+	/**
+	 * @brief Deinit WAR for PDB cache.
+	 *
+	 * @param g [in]		Pointer to GPU driver struct.
+	 *
+	 * This HAL allows implementing chip specific de-initialization
+	 * related to PDB cache.
+	 */
+	void (*deinit_pdb_cache_war)(struct gk20a *g);
+#endif
 
 	void (*set_adr_limit)(struct gk20a *g,
 			struct nvgpu_mem *inst_block, u64 va_limit);

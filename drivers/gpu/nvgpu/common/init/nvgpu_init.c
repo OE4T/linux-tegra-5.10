@@ -340,6 +340,7 @@ static int nvgpu_init_release_tpc_pg_lock(struct gk20a *g)
 }
 #endif
 
+#ifdef CONFIG_NVGPU_DGPU
 static int nvgpu_init_fb_mem_unlock(struct gk20a *g)
 {
 	int err;
@@ -355,6 +356,21 @@ static int nvgpu_init_fb_mem_unlock(struct gk20a *g)
 
 	return 0;
 }
+
+static int nvgpu_init_fbpa_ecc(struct gk20a *g)
+{
+	int err;
+
+	if (g->ops.fb.fbpa_ecc_init != NULL && !g->ecc.initialized) {
+		err = g->ops.fb.fbpa_ecc_init(g);
+		if (err != 0) {
+			return err;
+		}
+	}
+
+	return 0;
+}
+#endif
 
 #ifdef CONFIG_NVGPU_TPC_POWERGATE
 static int nvgpu_init_power_gate(struct gk20a *g)
@@ -499,20 +515,6 @@ static int nvgpu_init_interrupt_setup(struct gk20a *g)
 	return 0;
 }
 
-static int nvgpu_init_fbpa_ecc(struct gk20a *g)
-{
-	int err;
-
-	if (g->ops.fb.fbpa_ecc_init != NULL && !g->ecc.initialized) {
-		err = g->ops.fb.fbpa_ecc_init(g);
-		if (err != 0) {
-			return err;
-		}
-	}
-
-	return 0;
-}
-
 typedef int (*nvgpu_init_func_t)(struct gk20a *g);
 struct nvgpu_init_table_t {
 	nvgpu_init_func_t func;
@@ -576,13 +578,18 @@ int nvgpu_finalize_poweron(struct gk20a *g)
 		NVGPU_INIT_TABLE_ENTRY(g->ops.clk.init_clk_support, NO_FLAG),
 		NVGPU_INIT_TABLE_ENTRY(g->ops.nvlink.init,
 				       NVGPU_SUPPORT_NVLINK),
+#ifdef CONFIG_NVGPU_DGPU
 		NVGPU_INIT_TABLE_ENTRY(nvgpu_init_fbpa_ecc, NO_FLAG),
 		NVGPU_INIT_TABLE_ENTRY(g->ops.fb.init_fbpa, NO_FLAG),
+#endif
+
 #ifdef CONFIG_NVGPU_DEBUGGER
 		NVGPU_INIT_TABLE_ENTRY(g->ops.ptimer.config_gr_tick_freq,
 				       NO_FLAG),
 #endif
+#ifdef CONFIG_NVGPU_DGPU
 		NVGPU_INIT_TABLE_ENTRY(&nvgpu_init_fb_mem_unlock, NO_FLAG),
+#endif
 		NVGPU_INIT_TABLE_ENTRY(g->ops.fifo.reset_enable_hw, NO_FLAG),
 		NVGPU_INIT_TABLE_ENTRY(g->ops.ltc.init_ltc_support, NO_FLAG),
 		NVGPU_INIT_TABLE_ENTRY(g->ops.mm.init_mm_support, NO_FLAG),

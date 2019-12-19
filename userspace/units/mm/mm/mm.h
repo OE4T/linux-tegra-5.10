@@ -139,8 +139,8 @@ int test_mm_suspend(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Description: The mm.remove_support operation (nvgpu_remove_mm_support
  * function) shall de-allocate all resources related to mm. In particular, it
- * is expected that nvgpu_remove_mm_support will call the
- * ramin.deinit_pdb_cache_war HAL as its last step.
+ * is expected that nvgpu_remove_mm_support will call the nvgpu_pd_cache_fini
+ * as its last step.
  *
  * Test Type: Feature based
  *
@@ -148,11 +148,9 @@ int test_mm_suspend(struct unit_module *m, struct gk20a *g, void *args);
  * have been executed successfully
  *
  * Steps:
- * - Setup the ramin.deinit_pdb_cache_war HAL to use a test HAL that will set
- *   a flag when called.
+ * - Allocate pd_cache by calling nvgpu_pd_cache_init.
  * - Call mm.remove_support.
- * - Disable the ramin.deinit_pdb_cache_war HAL. (set it to NULL)
- * - Ensure that the test flag was set.
+ * - Verify that g->mm.pd_cache is NULL.
  * - Setup additional HALs for line/branch coverage: mmu_fault.info_mem_destroy
  *   and mm.remove_bar2_vm.
  * - Call mm.remove_support again.

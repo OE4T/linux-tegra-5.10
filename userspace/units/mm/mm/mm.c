@@ -211,90 +211,71 @@ int test_nvgpu_init_mm(struct unit_module *m, struct gk20a *g, void *args)
 
 	int_empty_hal_return_error_after = -1;
 
-	/* Making g->ops.ramin.init_pdb_cache_war fail */
-	errors += nvgpu_init_mm_support_inject_error(m, g, ERROR_TYPE_HAL, 1,
-						     ARBITRARY_ERROR, 1);
-
-	/* Making g->ops.fb.apply_pdb_cache_war fail */
-	errors += nvgpu_init_mm_support_inject_error(m, g, ERROR_TYPE_HAL, 2,
-						     ARBITRARY_ERROR, 2);
-
 	/* Making nvgpu_alloc_sysmem_flush fail */
 	errors += nvgpu_init_mm_support_inject_error(m, g, ERROR_TYPE_DMA, 0,
-						     -ENOMEM, 3);
-
-	/*
-	 * Making nvgpu_alloc_sysmem_flush fail again with NULL HALs to test
-	 * branches in nvgpu_init_mm_pdb_cache_war
-	 */
-	g->ops.ramin.init_pdb_cache_war = NULL;
-	g->ops.fb.apply_pdb_cache_war = NULL;
-	errors += nvgpu_init_mm_support_inject_error(m, g, ERROR_TYPE_DMA, 0,
-						     -ENOMEM, 3);
-	g->ops.ramin.init_pdb_cache_war = int_empty_hal;
-	g->ops.fb.apply_pdb_cache_war = int_empty_hal;
+						     -ENOMEM, 1);
 
 	/* Making nvgpu_init_bar1_vm fail on VM init */
 	errors += nvgpu_init_mm_support_inject_error(m, g, ERROR_TYPE_KMEM, 0,
-						     -ENOMEM, 4);
+						     -ENOMEM, 2);
 
 	/* Making nvgpu_init_bar1_vm fail on alloc_inst_block */
 	errors += nvgpu_init_mm_support_inject_error(m, g, ERROR_TYPE_DMA, 2,
-						     -ENOMEM, 5);
+						     -ENOMEM, 3);
 
 	/* Making nvgpu_init_bar2_vm fail */
 	errors += nvgpu_init_mm_support_inject_error(m, g, ERROR_TYPE_DMA, 4,
-						     -ENOMEM, 6);
+						     -ENOMEM, 4);
 
 	/* Making nvgpu_init_system_vm fail on the PMU VM init */
 	errors += nvgpu_init_mm_support_inject_error(m, g, ERROR_TYPE_KMEM, 29,
-						     -ENOMEM, 7);
+						     -ENOMEM, 5);
 
 	/* Making nvgpu_init_system_vm fail again with extra branch coverage */
 	g->ops.mm.init_bar2_vm = NULL;
 	errors += nvgpu_init_mm_support_inject_error(m, g, ERROR_TYPE_KMEM, 20,
-						     -ENOMEM, 8);
+						     -ENOMEM, 6);
 	g->ops.mm.init_bar2_vm = gp10b_mm_init_bar2_vm;
 
 	/* Making nvgpu_init_system_vm fail on alloc_inst_block */
 	errors += nvgpu_init_mm_support_inject_error(m, g, ERROR_TYPE_DMA, 6,
-						     -ENOMEM, 9);
+						     -ENOMEM, 7);
 
 	/* Making nvgpu_init_hwpm fail */
 	errors += nvgpu_init_mm_support_inject_error(m, g, ERROR_TYPE_DMA, 7,
-						     -ENOMEM, 10);
+						     -ENOMEM, 8);
 
 	/* Making nvgpu_init_engine_ucode_vm(sec2) fail on VM init */
 	errors += nvgpu_init_mm_support_inject_error(m, g, ERROR_TYPE_KMEM, 46,
-						     -ENOMEM, 11);
+						     -ENOMEM, 9);
 
 	/* Making nvgpu_init_engine_ucode_vm(sec2) fail on alloc_inst_block */
 	errors += nvgpu_init_mm_support_inject_error(m, g, ERROR_TYPE_DMA, 9,
-						     -ENOMEM, 12);
+						     -ENOMEM, 10);
 
 	/* Making nvgpu_init_engine_ucode_vm(gsp) fail */
 	errors += nvgpu_init_mm_support_inject_error(m, g, ERROR_TYPE_DMA, 11,
-						     -ENOMEM, 13);
+						     -ENOMEM, 11);
 
 	/* Making nvgpu_init_cde_vm fail */
 	errors += nvgpu_init_mm_support_inject_error(m, g, ERROR_TYPE_KMEM, 80,
-						     -ENOMEM, 14);
+						     -ENOMEM, 12);
 
 	/* Making nvgpu_init_ce_vm fail */
 	errors += nvgpu_init_mm_support_inject_error(m, g, ERROR_TYPE_KMEM, 98,
-						     -ENOMEM, 15);
+						     -ENOMEM, 13);
 
 	/* Making nvgpu_init_mmu_debug fail on wr_mem DMA alloc */
 	errors += nvgpu_init_mm_support_inject_error(m, g, ERROR_TYPE_DMA, 14,
-						     -ENOMEM, 16);
+						     -ENOMEM, 14);
 
 	/* Making nvgpu_init_mmu_debug fail on rd_mem DMA alloc */
 	errors += nvgpu_init_mm_support_inject_error(m, g, ERROR_TYPE_DMA, 15,
-						     -ENOMEM, 17);
+						     -ENOMEM, 15);
 
 	/* Making g->ops.mm.mmu_fault.setup_sw fail */
-	errors += nvgpu_init_mm_support_inject_error(m, g, ERROR_TYPE_HAL, 3,
-						     ARBITRARY_ERROR, 18);
+	errors += nvgpu_init_mm_support_inject_error(m, g, ERROR_TYPE_HAL, 1,
+						     ARBITRARY_ERROR, 16);
 
 	/*
 	 * Extra cases for branch coverage: change support flags to test
@@ -305,8 +286,8 @@ int test_nvgpu_init_mm(struct unit_module *m, struct gk20a *g, void *args)
 	nvgpu_set_enabled(g, NVGPU_MM_FORCE_128K_PMU_VM, false);
 	g->has_cde = false;
 
-	errors += nvgpu_init_mm_support_inject_error(m, g, ERROR_TYPE_HAL, 3,
-						     ARBITRARY_ERROR, 19);
+	errors += nvgpu_init_mm_support_inject_error(m, g, ERROR_TYPE_HAL, 1,
+						     ARBITRARY_ERROR, 17);
 
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_SEC2_VM, true);
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_GSP_VM, true);
@@ -320,8 +301,8 @@ int test_nvgpu_init_mm(struct unit_module *m, struct gk20a *g, void *args)
 	g->ops.mc.fb_reset = NULL;
 	g->ops.fb.init_fs_state = NULL;
 
-	errors += nvgpu_init_mm_support_inject_error(m, g, ERROR_TYPE_HAL, 3,
-						     ARBITRARY_ERROR, 20);
+	errors += nvgpu_init_mm_support_inject_error(m, g, ERROR_TYPE_HAL, 1,
+						     ARBITRARY_ERROR, 18);
 
 	g->ops.mc.fb_reset = void_empty_hal;
 	g->ops.fb.init_fs_state = void_empty_hal;
@@ -501,14 +482,12 @@ int test_mm_init_hal(struct unit_module *m, struct gk20a *g, void *args)
 	 * For extra coverage. Note: the goal of this unit test is to validate
 	 * the mm.mm unit, not the underlying HALs.
 	 */
-	g->ops.fb.apply_pdb_cache_war = int_empty_hal;
 	g->ops.fb.init_fs_state = void_empty_hal;
 	g->ops.fb.set_mmu_page_size = void_empty_hal;
 	g->ops.mc.fb_reset = void_empty_hal;
 	g->ops.mm.mmu_fault.setup_hw = void_empty_hal;
 	g->ops.mm.mmu_fault.setup_sw = int_empty_hal;
 	g->ops.mm.setup_hw = int_empty_hal;
-	g->ops.ramin.init_pdb_cache_war = int_empty_hal;
 
 	nvgpu_posix_register_io(g, &mmu_faults_callbacks);
 	nvgpu_posix_io_init_reg_space(g);
@@ -563,29 +542,25 @@ int test_mm_suspend(struct unit_module *m, struct gk20a *g, void *args)
 	return UNIT_SUCCESS;
 }
 
-/*
- * Simple helper to toggle a flag when called.
- */
-static void helper_deinit_pdb_cache_war(struct gk20a *g)
-{
-	test_flag = true;
-}
-
 int test_mm_remove_mm_support(struct unit_module *m, struct gk20a *g,
 				void *args)
 {
+	int err;
+
 	/*
-	 * Since the last step of the removal is to call
-	 * g->ops.ramin.deinit_pdb_cache_war, it is a good indication that
-	 * the removal completed successfully.
+	 * Since the last step of the removal is to call nvgpu_pd_cache_fini,
+	 * g->mm.pd_cache = NULL indicates that the removal completed
+	 * successfully.
 	 */
-	g->ops.ramin.deinit_pdb_cache_war = helper_deinit_pdb_cache_war;
-	test_flag = false;
+
+	err = nvgpu_pd_cache_init(g);
+	if (err != 0) {
+		unit_return_fail(m, "nvgpu_pd_cache_init failed ??\n");
+	}
 
 	g->mm.remove_support(&g->mm);
 
-	g->ops.ramin.deinit_pdb_cache_war = NULL;
-	if (!test_flag) {
+	if (g->mm.pd_cache != NULL) {
 		unit_return_fail(m, "mm removal did not complete\n");
 	}
 

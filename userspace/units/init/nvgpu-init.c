@@ -486,8 +486,6 @@ static void set_poweron_funcs_success(struct gk20a *g)
 	setup_simple_init_func_success(&g->ops.mm.pd_cache_init, i++);
 	setup_simple_init_func_success(&g->ops.clk.init_clk_support, i++);
 	setup_simple_init_func_success(&g->ops.nvlink.init, i++);
-	setup_simple_init_func_success(&g->ops.fb.init_fbpa, i++);
-	setup_simple_init_func_success(&g->ops.fb.mem_unlock, i++);
 	setup_simple_init_func_success(&g->ops.fifo.reset_enable_hw, i++);
 	setup_simple_init_func_success(&g->ops.ltc.init_ltc_support, i++);
 	setup_simple_init_func_success(&g->ops.mm.init_mm_support, i++);
@@ -591,8 +589,6 @@ int test_poweron_branches(struct unit_module *m, struct gk20a *g, void *args)
 
 	/* hit all the NULL pointer checks */
 	g->ops.clk.init_clk_support = NULL;
-	g->ops.fb.init_fbpa = NULL;
-	g->ops.fb.mem_unlock = NULL;
 	g->ops.therm.elcg_init_idle_filters = NULL;
 	g->ops.ecc.ecc_init_support = NULL;
 	g->ops.channel.resume_all_serviceable_ch = NULL;
