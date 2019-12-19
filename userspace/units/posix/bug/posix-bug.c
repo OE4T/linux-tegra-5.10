@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -22,6 +22,7 @@
 
 #include <stdlib.h>
 #include <stdint.h>
+#include <setjmp.h>
 
 #include <unit/io.h>
 #include <unit/unit.h>
@@ -73,8 +74,72 @@ static int test_expect_bug(struct unit_module *m,
 	return UNIT_SUCCESS;
 }
 
+static bool cb_called = false;
+
+static void bug_cb(void *arg)
+{
+	jmp_buf *jmp_handler = arg;
+
+	cb_called = true;
+	longjmp(*jmp_handler, 1);
+}
+
+static bool other_cb_called = false;
+
+static void other_bug_cb(void *arg)
+{
+	other_cb_called = true;
+}
+
+static int test_bug_cb(struct unit_module *m,
+		struct gk20a *g, void *args)
+{
+	struct nvgpu_bug_cb callback;
+	struct nvgpu_bug_cb other_callback;
+	jmp_buf handler;
+
+
+	/* two callbacks */
+
+	callback.cb = bug_cb;
+	callback.arg = &handler;
+
+	other_callback.cb = other_bug_cb;
+	other_callback.arg = NULL;
+
+	nvgpu_bug_register_cb(&other_callback);
+	nvgpu_bug_register_cb(&callback);
+	if (setjmp(handler) == 0) {
+		BUG();
+	}
+
+	if (!other_cb_called || !cb_called) {
+		unit_err(m, "BUG() callback was not called.\n");
+		return UNIT_FAIL;
+	}
+
+	/* one callback */
+	other_cb_called = false;
+	nvgpu_bug_register_cb(&other_callback);
+	nvgpu_bug_register_cb(&callback);
+	nvgpu_bug_unregister_cb(&other_callback);
+
+	if (setjmp(handler) == 0) {
+		BUG();
+	}
+
+	if (other_cb_called) {
+		unit_err(m, "callback unregistration failed.\n");
+		return UNIT_FAIL;
+	}
+
+	return UNIT_SUCCESS;
+}
+
+
 struct unit_module_test posix_bug_tests[] = {
 	UNIT_TEST(expect_bug, test_expect_bug, NULL, 0),
+	UNIT_TEST(bug_cb, test_bug_cb, NULL, 0),
 };
 
 UNIT_MODULE(posix_bug, posix_bug_tests, UNIT_PRIO_POSIX_TEST);

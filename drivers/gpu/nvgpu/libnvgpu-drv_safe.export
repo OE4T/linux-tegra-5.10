@@ -272,6 +272,8 @@ nvgpu_big_pages_possible
 nvgpu_bitmap_clear
 nvgpu_bitmap_set
 nvgpu_bsearch
+nvgpu_bug_register_cb
+nvgpu_bug_unregister_cb
 nvgpu_can_busy
 nvgpu_ce_engine_interrupt_mask
 nvgpu_ce_init_support

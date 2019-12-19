@@ -3933,6 +3933,12 @@
         "test_level": 0
     },
     {
+        "test": "test_bug_cb",
+        "case": "bug_cb",
+        "unit": "posix_bug",
+        "test_level": 0
+    },
+    {
         "test": "test_expect_bug",
         "case": "expect_bug",
         "unit": "posix_bug",
