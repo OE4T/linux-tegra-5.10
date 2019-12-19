@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * GK20A Graphics
  *
@@ -698,6 +698,7 @@ struct gk20a {
 	struct nvgpu_cond sw_quiesce_cond;
 	struct nvgpu_thread sw_quiesce_thread;
 #endif
+	struct nvgpu_list_node bug_node;
 
 	/** Controls which messages are logged */
 	u64 log_mask;

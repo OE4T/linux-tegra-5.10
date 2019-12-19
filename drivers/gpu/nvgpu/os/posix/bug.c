@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -21,6 +21,8 @@
  */
 
 #include <nvgpu/log.h>
+#include <nvgpu/lock.h>
+#include <nvgpu/list.h>
 #include <nvgpu/posix/bug.h>
 #include <pthread.h>
 #include <stdbool.h>
@@ -75,11 +77,48 @@ void dump_stack(void)
 	nvgpu_posix_dump_stack(2);
 }
 
+struct nvgpu_bug_desc {
+	bool in_use;
+	pthread_once_t once;
+	struct nvgpu_spinlock lock;
+	struct nvgpu_list_node head;
+};
+
+struct nvgpu_bug_desc bug = {
+	.once = PTHREAD_ONCE_INIT
+};
+
+static void nvgpu_bug_init(void)
+{
+	nvgpu_err(NULL, "doing init for bug cb");
+	nvgpu_spinlock_init(&bug.lock);
+	nvgpu_init_list_node(&bug.head);
+	bug.in_use = true;
+}
+
+void nvgpu_bug_register_cb(struct nvgpu_bug_cb *cb)
+{
+	(void) pthread_once(&bug.once, nvgpu_bug_init);
+	nvgpu_spinlock_acquire(&bug.lock);
+	nvgpu_list_add_tail(&cb->node, &bug.head);
+	nvgpu_spinlock_release(&bug.lock);
+}
+
+void nvgpu_bug_unregister_cb(struct nvgpu_bug_cb *cb)
+{
+	(void) pthread_once(&bug.once, nvgpu_bug_init);
+	nvgpu_spinlock_acquire(&bug.lock);
+	nvgpu_list_del(&cb->node);
+	nvgpu_spinlock_release(&bug.lock);
+}
+
 /*
  * Ahhh! A bug!
  */
 void nvgpu_posix_bug(const char *fmt, ...)
 {
+	struct nvgpu_bug_cb *cb;
+
 #ifdef __NVGPU_UNIT_TEST__
 	if (expect_bug) {
 		nvgpu_info(NULL, "Expected BUG detected!");
@@ -94,6 +133,35 @@ void nvgpu_posix_bug(const char *fmt, ...)
 	 */
 	nvgpu_err(NULL, "BUG detected!");
 	dump_stack();
+
+	if (!bug.in_use) {
+		goto done;
+	}
+
+	nvgpu_spinlock_acquire(&bug.lock);
+	while (!nvgpu_list_empty(&bug.head)) {
+		/*
+		 * Always process first entry, in -unlikely- where a
+		 * callback would unregister another one.
+		 */
+		cb = nvgpu_list_first_entry(&bug.head,
+			nvgpu_bug_cb, node);
+		/* Remove callback from list */
+		nvgpu_list_del(&cb->node);
+		/*
+		 * Release spinlock before invoking callback.
+		 * This allows callback to register/unregister other
+		 * callbacks (unlikely).
+		 * This allows using a longjmp in a callback
+		 * for unit testing.
+		 */
+		nvgpu_spinlock_release(&bug.lock);
+		cb->cb(cb->arg);
+		nvgpu_spinlock_acquire(&bug.lock);
+	}
+	nvgpu_spinlock_release(&bug.lock);
+
+done:
 	(void) raise(SIGSEGV);
 	pthread_exit(NULL);
 }

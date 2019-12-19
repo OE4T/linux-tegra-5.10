@@ -28,6 +28,7 @@
 #include <nvgpu/posix/bug.h>
 #endif
 #include <nvgpu/cov_whitelist.h>
+#include <nvgpu/list.h>
 
 /*
  * Define an assert macro that code within nvgpu can use.
@@ -91,5 +92,26 @@ struct gk20a;
 		nvgpu_err(g, fmt, ##arg);				\
 		nvgpu_do_assert();					\
 	} while (false)
+
+
+struct nvgpu_bug_cb
+{
+	void (*cb)(void *arg);
+	void *arg;
+	struct nvgpu_list_node node;
+};
+
+static inline struct nvgpu_bug_cb *
+nvgpu_bug_cb_from_node(struct nvgpu_list_node *node)
+{
+	return (struct nvgpu_bug_cb *)
+		((uintptr_t)node - offsetof(struct nvgpu_bug_cb, node));
+};
+
+#ifdef __KERNEL__
+static inline void nvgpu_bug_exit(void) { }
+static inline void nvgpu_bug_register_cb(struct nvgpu_bug_cb *cb) { }
+static inline void nvgpu_bug_unregister_cb(struct nvgpu_bug_cb *cb) { }
+#endif
 
 #endif /* NVGPU_BUG_H */

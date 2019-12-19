@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -134,4 +134,33 @@ void bug_handler_cancel(void);
 		bug_result;				\
 	})
 #endif
+
+struct nvgpu_bug_cb;
+
+/**
+ * @brief Register callback to be invoked on BUG()
+ *
+ * @param cb [in]	Pointer to callback structure
+ *
+ * Register a callback to be invoked on BUG().
+ * The nvgpu_bug_cb structure contains a function pointer
+ * and an argument to be passed to this function.
+ * This mechanism can be used to perform some emergency
+ * operations on a GPU before exiting the process.
+ *
+ * Note: callback is automatically unregistered before
+ * being invoked.
+ */
+void nvgpu_bug_register_cb(struct nvgpu_bug_cb *cb);
+
+/**
+ * @brief Unregister a callback for BUG()
+ *
+ * @param cb [in]	Pointer to callback structure
+ *
+ * Remove a callback from the list of callbacks to be
+ * invoked on BUG().
+ */
+void nvgpu_bug_unregister_cb(struct nvgpu_bug_cb *cb);
+
 #endif /* NVGPU_POSIX_BUG_H */
