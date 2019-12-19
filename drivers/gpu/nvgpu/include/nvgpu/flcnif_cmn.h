@@ -99,8 +99,6 @@ struct pmu_allocation_v3 {
 struct falcon_payload_alloc {
 	u16 dmem_size;
 	u32 dmem_offset;
-	u32 fb_size;
-	struct nvgpu_mem *fb_surface;
 };
 
 #define nv_pmu_allocation pmu_allocation_v3

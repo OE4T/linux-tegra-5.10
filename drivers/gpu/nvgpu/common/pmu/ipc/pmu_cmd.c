@@ -188,11 +188,6 @@ static void pmu_payload_deallocate(struct gk20a *g,
 {
 	struct nvgpu_pmu *pmu = g->pmu;
 
-	if (alloc->fb_surface != NULL) {
-		nvgpu_pmu_surface_free(g, alloc->fb_surface);
-		nvgpu_kfree(g, alloc->fb_surface);
-	}
-
 	if (alloc->dmem_offset != 0U) {
 		nvgpu_free(&pmu->dmem, alloc->dmem_offset);
 	}
@@ -205,26 +200,6 @@ static int pmu_payload_allocate(struct gk20a *g, struct pmu_sequence *seq,
 	u16 buffer_size;
 	int err = 0;
 	u64 tmp;
-
-	if (alloc->fb_surface == NULL &&
-		alloc->fb_size != 0x0U) {
-		alloc->fb_surface = nvgpu_kzalloc(g, sizeof(struct nvgpu_mem));
-		if (alloc->fb_surface == NULL) {
-			err = -ENOMEM;
-			goto clean_up;
-		}
-
-#ifdef CONFIG_NVGPU_DGPU
-		err = nvgpu_pmu_vidmem_surface_alloc(g, alloc->fb_surface,
-						     alloc->fb_size);
-		if (err != 0) {
-			goto clean_up;
-		}
-#else
-		err = -ENOMEM;
-		goto clean_up;
-#endif
-	}
 
 	if (nvgpu_pmu_fb_queue_enabled(&pmu->queues)) {
 		buffer_size = nvgpu_pmu_seq_get_buffer_size(seq);
@@ -343,10 +318,6 @@ static int pmu_cmd_in_payload_setup(struct gk20a *g, struct pmu_cmd *cmd,
 
 		alloc.dmem_size = fw_ops->allocation_get_dmem_size(pmu, in);
 
-		if (payload->in.fb_size != 0x0U) {
-			alloc.fb_size = payload->in.fb_size;
-		}
-
 		err = pmu_payload_allocate(g, seq, &alloc);
 		if (err != 0) {
 			return err;
@@ -355,51 +326,34 @@ static int pmu_cmd_in_payload_setup(struct gk20a *g, struct pmu_cmd *cmd,
 		*(fw_ops->allocation_get_dmem_offset_addr(pmu, in)) =
 			alloc.dmem_offset;
 
-		if (payload->in.fb_size != 0x0U) {
-			nvgpu_pmu_seq_set_in_mem(seq, alloc.fb_surface);
-			nvgpu_pmu_surface_describe(g, alloc.fb_surface,
-				(struct flcn_mem_desc_v0 *)
-				fw_ops->allocation_get_fb_addr(pmu, in));
+		if (nvgpu_pmu_fb_queue_enabled(&pmu->queues)) {
+			/* copy payload to FBQ work buffer */
+			nvgpu_memcpy((u8 *)
+				nvgpu_engine_fb_queue_get_work_buffer(
+						fb_queue) +
+				alloc.dmem_offset,
+				(u8 *)payload->in.buf,
+				payload->in.size);
 
-			nvgpu_mem_wr_n(g, alloc.fb_surface, 0,
-				payload->in.buf, payload->in.fb_size);
+			alloc.dmem_offset +=
+				nvgpu_pmu_seq_get_fbq_heap_offset(seq);
+			*(fw_ops->allocation_get_dmem_offset_addr(pmu,
+				in)) = alloc.dmem_offset;
 
-			if (nvgpu_pmu_fb_queue_enabled(&pmu->queues)) {
-				alloc.dmem_offset +=
-					nvgpu_pmu_seq_get_fbq_heap_offset(seq);
-				*(fw_ops->allocation_get_dmem_offset_addr(pmu,
-					in)) = alloc.dmem_offset;
-			}
+			nvgpu_pmu_seq_set_in_payload_fb_queue(seq, true);
 		} else {
-			if (nvgpu_pmu_fb_queue_enabled(&pmu->queues)) {
-				/* copy payload to FBQ work buffer */
-				nvgpu_memcpy((u8 *)
-					nvgpu_engine_fb_queue_get_work_buffer(
-							fb_queue) +
-					alloc.dmem_offset,
-					(u8 *)payload->in.buf,
-					payload->in.size);
-
-				alloc.dmem_offset +=
-					nvgpu_pmu_seq_get_fbq_heap_offset(seq);
-				*(fw_ops->allocation_get_dmem_offset_addr(pmu,
-					in)) = alloc.dmem_offset;
-
-				nvgpu_pmu_seq_set_in_payload_fb_queue(seq,
-								      true);
-			} else {
-				offset =
-					fw_ops->allocation_get_dmem_offset(pmu,
-						in);
-				err = nvgpu_falcon_copy_to_dmem(pmu->flcn,
-						offset, payload->in.buf,
-						payload->in.size, 0);
-				if (err != 0) {
-					pmu_payload_deallocate(g, &alloc);
-					return err;
-				}
+			offset =
+				fw_ops->allocation_get_dmem_offset(pmu,
+					in);
+			err = nvgpu_falcon_copy_to_dmem(pmu->flcn,
+					offset, payload->in.buf,
+					payload->in.size, 0);
+			if (err != 0) {
+				pmu_payload_deallocate(g, &alloc);
+				return err;
 			}
 		}
+
 		fw_ops->allocation_set_dmem_size(pmu,
 			fw_ops->get_seq_in_alloc_ptr(seq),
 			fw_ops->allocation_get_dmem_size(pmu, in));
@@ -432,10 +386,6 @@ static int pmu_cmd_out_payload_setup(struct gk20a *g, struct pmu_cmd *cmd,
 			alloc.dmem_size =
 				fw_ops->allocation_get_dmem_size(pmu, out);
 
-			if (payload->out.fb_size != 0x0U) {
-				alloc.fb_size = payload->out.fb_size;
-			}
-
 			err = pmu_payload_allocate(g, seq, &alloc);
 			if (err != 0) {
 				return err;
@@ -443,25 +393,15 @@ static int pmu_cmd_out_payload_setup(struct gk20a *g, struct pmu_cmd *cmd,
 
 			*(fw_ops->allocation_get_dmem_offset_addr(pmu,
 				out)) = alloc.dmem_offset;
-			nvgpu_pmu_seq_set_out_mem(seq, alloc.fb_surface);
 		} else {
 			WARN_ON(payload->in.offset == 0U);
 
 			fw_ops->set_allocation_ptr(pmu, &in,
 				((u8 *)&cmd->cmd + payload->in.offset));
-			nvgpu_pmu_seq_set_out_mem(seq,
-						nvgpu_pmu_seq_get_in_mem(seq));
+
 			fw_ops->allocation_set_dmem_offset(pmu, out,
 				fw_ops->allocation_get_dmem_offset(pmu,
 					in));
-		}
-
-		if (payload->out.fb_size != 0x0U) {
-			nvgpu_pmu_surface_describe(g,
-				nvgpu_pmu_seq_get_out_mem(seq),
-				(struct flcn_mem_desc_v0 *)
-				fw_ops->allocation_get_fb_addr(pmu,
-				out));
 		}
 
 		if (nvgpu_pmu_fb_queue_enabled(&pmu->queues)) {
@@ -556,23 +496,8 @@ static int pmu_fbq_cmd_setup(struct gk20a *g, struct pmu_cmd *cmd,
 					(u32)payload->rpc.size_scratch;
 		}
 	} else {
-		if (payload != NULL) {
-			if (payload->in.offset != 0U) {
-				if (payload->in.buf != payload->out.buf) {
-					fbq_size_needed = payload->in.size;
-				} else {
-					fbq_size_needed = max(payload->in.size,
-						payload->out.size);
-				}
-			}
-
-			if (payload->out.offset != 0U) {
-				if (payload->out.buf != payload->in.buf) {
-					fbq_size_needed +=
-						(u16)payload->out.size;
-				}
-			}
-		}
+		err = -EINVAL;
+		goto exit;
 	}
 
 	tmp = fbq_size_needed +

@@ -124,12 +124,6 @@ void nvgpu_pmu_seq_set_in_payload_fb_queue(struct pmu_sequence *seq,
 bool nvgpu_pmu_seq_get_out_payload_fb_queue(struct pmu_sequence *seq);
 void nvgpu_pmu_seq_set_out_payload_fb_queue(struct pmu_sequence *seq,
 					    bool state);
-struct nvgpu_mem *nvgpu_pmu_seq_get_in_mem(struct pmu_sequence *seq);
-void nvgpu_pmu_seq_set_in_mem(struct pmu_sequence *seq,
-			      struct nvgpu_mem *mem);
-struct nvgpu_mem *nvgpu_pmu_seq_get_out_mem(struct pmu_sequence *seq);
-void nvgpu_pmu_seq_set_out_mem(struct pmu_sequence *seq,
-			       struct nvgpu_mem *mem);
 u32 nvgpu_pmu_seq_get_fbq_element_index(struct pmu_sequence *seq);
 void nvgpu_pmu_seq_set_fbq_element_index(struct pmu_sequence *seq, u32 index);
 u8 nvgpu_pmu_seq_get_id(struct pmu_sequence *seq);

@@ -83,8 +83,6 @@ static void pmu_payload_free(struct nvgpu_pmu *pmu, struct pmu_sequence *seq)
 				nvgpu_pmu_seq_get_cmd_queue(seq);
 	struct gk20a *g = pmu->g;
 	struct pmu_fw_ver_ops *fw_ops = &g->pmu->fw->ops;
-	struct nvgpu_mem *in_mem = nvgpu_pmu_seq_get_in_mem(seq);
-	struct nvgpu_mem *out_mem = nvgpu_pmu_seq_get_out_mem(seq);
 	void *seq_in_ptr = fw_ops->get_seq_in_alloc_ptr(seq);
 	void *seq_out_ptr = fw_ops->get_seq_out_alloc_ptr(seq);
 	int err;
@@ -125,28 +123,6 @@ static void pmu_payload_free(struct nvgpu_pmu *pmu, struct pmu_sequence *seq)
 			fw_ops->allocation_set_dmem_size(pmu,
 				seq_out_ptr, 0);
 		}
-	}
-
-	if (out_mem != NULL) {
-		(void) memset(fw_ops->allocation_get_fb_addr(pmu,
-				seq_out_ptr), 0x0,
-				fw_ops->allocation_get_fb_size(pmu,
-					seq_out_ptr));
-
-		nvgpu_pmu_surface_free(g, out_mem);
-		if (out_mem != in_mem) {
-			nvgpu_kfree(g, out_mem);
-		}
-	}
-
-	if (in_mem != NULL) {
-		(void) memset(fw_ops->allocation_get_fb_addr(pmu,
-				seq_in_ptr), 0x0,
-				fw_ops->allocation_get_fb_size(pmu,
-					seq_in_ptr));
-
-		nvgpu_pmu_surface_free(g, in_mem);
-		nvgpu_kfree(g, in_mem);
 	}
 
 	nvgpu_pmu_seq_payload_free(g, seq);
