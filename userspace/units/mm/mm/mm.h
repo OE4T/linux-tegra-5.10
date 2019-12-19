@@ -66,7 +66,7 @@ int test_mm_init_hal(struct unit_module *m, struct gk20a *g, void *args);
  * necessary components on the mm unit. It must also properly handle error
  * cases.
  *
- * Test Type: Feature based, Error guessing
+ * Test Type: Feature, Error guessing
  *
  * Input: test_mm_init_hal must have been executed successfully.
  *
@@ -91,7 +91,7 @@ int test_nvgpu_init_mm(struct unit_module *m, struct gk20a *g, void *args);
  * Description: The nvgpu_mm_setup_hw function must initialize all HW related
  * components on the mm unit. It must also properly handle error cases.
  *
- * Test Type: Feature based, Error guessing
+ * Test Type: Feature, Error guessing
  *
  * Input: test_mm_init_hal and test_nvgpu_init_mm must have been executed
  * successfully.
@@ -115,7 +115,7 @@ int test_nvgpu_mm_setup_hw(struct unit_module *m, struct gk20a *g, void *args);
  * components by calling the relevant HALs to flush L2, disable FB interrupts
  * and disable MMU fault handling.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Input: test_mm_init_hal, test_nvgpu_init_mm and test_nvgpu_mm_setup_hw must
  * have been executed successfully.
@@ -142,7 +142,7 @@ int test_mm_suspend(struct unit_module *m, struct gk20a *g, void *args);
  * is expected that nvgpu_remove_mm_support will call the nvgpu_pd_cache_fini
  * as its last step.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Input: test_mm_init_hal, test_nvgpu_init_mm and test_nvgpu_mm_setup_hw must
  * have been executed successfully
@@ -167,7 +167,7 @@ int test_mm_remove_mm_support(struct unit_module *m, struct gk20a *g,
  * Description: The mm page size related operations shall provide information
  * about big page sizes available.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Input: test_mm_init_hal, test_nvgpu_init_mm and test_nvgpu_mm_setup_hw must
  * have been executed successfully.
@@ -195,7 +195,7 @@ int test_mm_page_sizes(struct unit_module *m, struct gk20a *g, void *args);
  * Description: The nvgpu_inst_block_ptr shall return the base address of the
  * provided memory block, taking into account necessary RAMIN offset.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Input: test_mm_init_hal, test_nvgpu_init_mm and test_nvgpu_mm_setup_hw must
  * have been executed successfully.
@@ -221,7 +221,7 @@ int test_mm_inst_block(struct unit_module *m, struct gk20a *g, void *args);
  * Description: The nvgpu_alloc_inst_block shall allocate DMA resources for a
  * given block.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Input: test_mm_init_hal, test_nvgpu_init_mm and test_nvgpu_mm_setup_hw must
  * have been executed successfully.

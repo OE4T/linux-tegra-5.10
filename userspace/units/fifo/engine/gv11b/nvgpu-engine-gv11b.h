@@ -38,7 +38,7 @@ struct gk20a;
  *
  * Description: Branch coverage for gv11b_is_fault_engine_subid_gpc
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Input: test_fifo_init_support() run for this GPU
  *

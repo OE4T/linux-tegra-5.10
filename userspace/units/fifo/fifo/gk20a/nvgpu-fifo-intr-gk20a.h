@@ -38,7 +38,7 @@ struct gk20a;
  *
  * Description: Enable/disable non-stalling interrupts
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: gk20a_fifo_intr_1_enable
  *
@@ -61,7 +61,7 @@ int test_gk20a_fifo_intr_1_enable(struct unit_module *m,
  *
  * Description: Non-stalling interrupt service routine
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: gk20a_fifo_intr_1_isr
  *
@@ -83,7 +83,7 @@ int test_gk20a_fifo_intr_1_isr(struct unit_module *m,
  *
  * Description: Non-stalling interrupt service routine
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: gk20a_fifo_intr_handle_chsw_error
  *
@@ -108,7 +108,7 @@ int test_gk20a_fifo_intr_handle_chsw_error(struct unit_module *m,
  *
  * Description: Non-stalling interrupt service routine
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: gk20a_fifo_intr_handle_runlist_event
  *
@@ -131,7 +131,7 @@ int test_gk20a_fifo_intr_handle_runlist_event(struct unit_module *m,
  *
  * Description: PBDMA interrupt service routine
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: gk20a_fifo_pbdma_isr
  *

@@ -40,7 +40,7 @@ struct unit_module;
  * Targets: nvgpu_ecc_init_support, gv11b_fb_init_hw, gv11b_fb_init_fs_state,
  * gv11b_fb_ecc_init, gv11b_fb_ecc_free
  *
- * Test Type: Feature based, Init, Error injection
+ * Test Type: Feature, Other (setup), Error injection
  *
  * Input: None
  *
@@ -68,7 +68,7 @@ int fb_gv11b_init_test(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Targets: gm20b_fb_tlb_invalidate
  *
- * Test Type: Feature based, Error injection
+ * Test Type: Feature, Error injection
  *
  * Input: None
  *
@@ -107,7 +107,7 @@ int fb_gm20b_tlb_invalidate_test(struct unit_module *m, struct gk20a *g,
  * gm20b_fb_mmu_debug_rd, gm20b_fb_vpr_info_fetch, gm20b_fb_dump_vpr_info,
  * gm20b_fb_dump_wpr_info, gm20b_fb_read_wpr_info
  *
- * Test Type: Feature based, Error injection
+ * Test Type: Feature, Error injection
  *
  * Input: None
  *
@@ -164,7 +164,7 @@ int fb_mmu_fault_gv11b_init_test(struct unit_module *m, struct gk20a *g,
  * gv11b_fb_write_mmu_fault_buffer_size, gv11b_fb_fault_buf_set_state_hw,
  * gv11b_fb_read_mmu_fault_status, gv11b_fb_fault_buf_configure_hw
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Input: fb_mmu_fault_gv11b_init_test
  *
@@ -205,7 +205,7 @@ int fb_mmu_fault_gv11b_buffer_test(struct unit_module *m, struct gk20a *g,
  *
  * Targets: gv11b_mm_copy_from_fault_snap_reg
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Input: fb_mmu_fault_gv11b_init_test
  *
@@ -231,7 +231,7 @@ int fb_mmu_fault_gv11b_snap_reg(struct unit_module *m, struct gk20a *g,
  *
  * Targets: gv11b_fb_handle_mmu_fault, gv11b_fb_fault_buf_set_state_hw
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Input: fb_mmu_fault_gv11b_init_test
  *
@@ -262,7 +262,7 @@ int fb_mmu_fault_gv11b_handle_fault(struct unit_module *m, struct gk20a *g,
  * Targets: gv11b_fb_handle_bar2_fault, gv11b_fb_mmu_fault_info_dump,
  * gv11b_fb_fault_buf_set_state_hw
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Input: fb_mmu_fault_gv11b_init_test
  *
@@ -309,7 +309,7 @@ int fb_intr_gv11b_init_test(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Targets: gv11b_fb_intr_enable, gv11b_fb_intr_disable, gv11b_fb_intr_isr
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Input: fb_intr_gv11b_init_test
  *
@@ -343,7 +343,7 @@ int fb_intr_gv11b_isr_test(struct unit_module *m, struct gk20a *g, void *args);
  * Targets: gv11b_fb_ecc_init, gv11b_fb_intr_isr, gv11b_fb_intr_handle_ecc,
  * gv11b_fb_ecc_free
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Input: fb_intr_gv11b_init_test, args as a subcase with one of these values:
  * - TEST_ECC_L2TLB

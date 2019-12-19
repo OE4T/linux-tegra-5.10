@@ -38,7 +38,7 @@ struct gk20a;
  *
  * Description: Usermode gv11b HALs
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: gv11b_usermode_base, gv11b_usermode_bus_base,
  *          gv11b_usermode_doorbell_token, gv11b_usermode_ring_doorbell

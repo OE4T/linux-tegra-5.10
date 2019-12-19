@@ -37,7 +37,7 @@ struct unit_module;
  *
  * Description: Test big page size
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: gp10b_mm_get_default_big_page_size
  *
@@ -57,7 +57,7 @@ int test_gp10b_mm_get_default_big_page_size(struct unit_module *m,
  *
  * Description: Test IOMMU bit number
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: gp10b_mm_get_iommu_bit
  *
@@ -77,7 +77,7 @@ int test_gp10b_mm_get_iommu_bit(struct unit_module *m, struct gk20a *g,
  *
  * Description: Test max page table levels
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: gp10b_get_max_page_table_levels
  *
@@ -97,7 +97,7 @@ int test_gp10b_get_max_page_table_levels(struct unit_module *m,
  *
  * Description: Test mmu_levels structure
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: gp10b_mm_get_mmu_levels
  *
@@ -117,7 +117,7 @@ int test_gp10b_mm_get_mmu_levels(struct unit_module *m,
  *
  * Description: Test mmu_levels update entry function
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: update_gmmu_pde3_locked, pte_dbg_print
  *
@@ -138,7 +138,7 @@ int test_update_gmmu_pde3_locked(struct unit_module *m,
  *
  * Description: Test mmu_level 3 update entry function
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: update_gmmu_pde0_locked, pte_dbg_print
  *
@@ -160,7 +160,7 @@ int test_update_gmmu_pde0_locked(struct unit_module *m,
  *
  * Description: Test mmu_level 4 update entry function
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: update_gmmu_pte_locked, update_pte, update_pte_sparse,
  *          gmmu_aperture_mask
@@ -186,7 +186,7 @@ int test_update_gmmu_pte_locked(struct unit_module *m,
  *
  * Description: Test GMMU level 3 page size function
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: gp10b_get_pde0_pgsz
  *

@@ -40,7 +40,7 @@ struct unit_module;
  *              common.gr subunits without any channel allocation.
  *              Also helps to verify the nonstall interrupts.
  *
- * Test Type: Feature based, Error guessing.
+ * Test Type: Feature, Error guessing
  *
  * Targets: #nvgpu_gr_intr_stall_isr,
  *          #nvgpu_gr_intr_init_support,
@@ -76,7 +76,7 @@ int test_gr_intr_without_channel(struct unit_module *m,
  *              Helps to figure out the current context on interrupt
  *              pending with subunit error.
  *
- * Test Type: Feature based, Error guessing
+ * Test Type: Feature, Error guessing
  *
  * Targets: #nvgpu_gr_intr_stall_isr.
  *
@@ -110,7 +110,7 @@ int test_gr_intr_setup_channel(struct unit_module *m,
  *              Helps to verify exceptions for SET_SHADER_EXCEPTIONS,
  *              SET_SKEDCHECK and SET_SHADER_CUT_COLLECTOR.
  *
- * Test Type: Feature based, Error guessing.
+ * Test Type: Feature, Error guessing
  *
  * Targets: #nvgpu_gr_intr_stall_isr.
  *
@@ -138,7 +138,7 @@ int test_gr_intr_sw_exceptions(struct unit_module *m,
  *              unimpl_illegal_method, watchdog, ecc_corrected and
  *              ecc_uncorrected interrupts.
  *
- * Test Type: Feature based, Error guessing.
+ * Test Type: Feature, Error guessing
  *
  * Targets: #nvgpu_gr_intr_stall_isr.
  *
@@ -161,7 +161,7 @@ int test_gr_intr_fecs_exceptions(struct unit_module *m,
  *
  * Description: Helps to verify pending interrupts for gpc_exceptions.
  *
- * Test Type: Feature based, Error guessing.
+ * Test Type: Feature, Error guessing
  *
  * Targets: #nvgpu_gr_intr_stall_isr,
  *          #nvgpu_gr_intr_handle_gpc_exception.

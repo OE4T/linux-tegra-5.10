@@ -37,7 +37,7 @@ struct unit_module;
  *
  * Description: Initialize environment for MM tests
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: None
  *
@@ -56,7 +56,7 @@ int test_env_init(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Description: Test mmu fault setup sw function
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: gv11b_mm_mmu_fault_setup_sw, gv11b_mm_mmu_fault_info_mem_destroy
  *
@@ -77,7 +77,7 @@ int test_gv11b_mm_mmu_fault_setup_sw(struct unit_module *m, struct gk20a *g, voi
  *
  * Description: Test mmu fault setup hw function
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: gv11b_mm_mmu_fault_setup_hw
  *
@@ -98,7 +98,7 @@ int test_gv11b_mm_mmu_fault_setup_hw(struct unit_module *m, struct gk20a *g,
  *
  * Description: Test mmu fault disable hw function
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: gv11b_mm_mmu_fault_disable_hw
  *
@@ -119,7 +119,7 @@ int test_gv11b_mm_mmu_fault_disable_hw(struct unit_module *m, struct gk20a *g,
  *
  * Description: Test other fault notify
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: gv11b_mm_mmu_fault_handle_other_fault_notify
  *
@@ -139,7 +139,7 @@ int test_gv11b_mm_mmu_fault_handle_other_fault_notify(struct unit_module *m,
  *
  * Description: Test mmu fault parse function
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: gv11b_mm_mmu_fault_parse_mmu_fault_info
  *
@@ -159,7 +159,7 @@ int test_gv11b_mm_mmu_fault_parse_mmu_fault_info(struct unit_module *m,
  *
  * Description: Test mmu fault handler
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: gv11b_mm_mmu_fault_handle_mmu_fault_common,
  *          gv11b_mm_mmu_fault_handle_mmu_fault_ce,
@@ -182,7 +182,7 @@ int test_handle_mmu_fault_common(struct unit_module *m,
  *
  * Description: Test non-replayable replayable fault handler
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: gv11b_mm_mmu_fault_handle_nonreplay_replay_fault,
  *          gv11b_mm_mmu_fault_handle_buf_valid_entry,
@@ -204,7 +204,7 @@ int test_handle_nonreplay_replay_fault(struct unit_module *m, struct gk20a *g,
  *
  * Description: Cleanup test environment
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: None
  *

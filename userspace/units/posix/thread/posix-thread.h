@@ -86,7 +86,7 @@ struct unit_test_thread_data test_data;
  * test_thread_cycle function tests all the above mentioned functionalities
  * based on the input arguments.
  *
- * Test Type: Feature based.
+ * Test Type: Feature
  *
  * Inputs:
  * 1) Pointer to test_thread_args as function parameter

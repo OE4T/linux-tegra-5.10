@@ -37,7 +37,7 @@ struct unit_module;
  *
  * Description: Test atomic set and read operations.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Input: struct atomic_test_args passed via the __args parameter.
  *
@@ -57,7 +57,7 @@ int test_atomic_set_and_read(struct unit_module *m,
  * Description: Test arithemtic atomic operations inc, dec, add, sub and friends
  *              (except add_unless) single threaded for proper functionality.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Input: struct atomic_test_args passed via the __args parameter.
  *        For *_and_test ops, the args should make sure the loop traverses
@@ -80,7 +80,7 @@ int test_atomic_arithmetic(struct unit_module *m,
  * Description: Test atomic operations inc, dec, add, sub, cmpxchg, in threads
  *              to verify atomicity.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Input: struct atomic_test_args passed via the __args parameter.
  *
@@ -103,7 +103,7 @@ int test_atomic_arithmetic_threaded(struct unit_module *m,
  * Description: Test arithmetic *_and_test functions in threads to verify
  *              atomicity.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Input: struct atomic_test_args passed via the __args parameter.
  *
@@ -127,7 +127,7 @@ int test_atomic_arithmetic_and_test_threaded(struct unit_module *m,
  *
  * Description: Test xchg op single threaded for proper functionality.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Input: struct atomic_test_args passed via the __args parameter.
  *
@@ -146,7 +146,7 @@ int test_atomic_xchg(struct unit_module *m,
  *
  * Description: Test atomic exchange operation with threads to test atomicity.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Input: struct atomic_test_args passed via the __args parameter.
  *
@@ -168,7 +168,7 @@ int test_atomic_xchg_threaded(struct unit_module *m,
  *
  * Description: Test cmpxchg single threaded for proper functionality.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Input: struct atomic_test_args passed via the __args parameter.
  *
@@ -187,7 +187,7 @@ int test_atomic_cmpxchg(struct unit_module *m,
  *
  * Description: Test add_unless op single threaded for proper functionality.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Input: struct atomic_test_args passed via the __args parameter.
  *

@@ -38,7 +38,7 @@ struct gk20a;
  *
  * Description: Branch coverage for gv11b_tsg_init_eng_method_buffers
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Input: test_fifo_init_support() run for this GPU
  *
@@ -71,7 +71,7 @@ int test_gv11b_tsg_init_eng_method_buffers(struct unit_module *m,
  *
  * Description: Branch coverage for gv11b_tsg_bind_channel_eng_method_buffers
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Input: test_fifo_init_support() run for this GPU
  *
@@ -98,7 +98,7 @@ int test_gv11b_tsg_bind_channel_eng_method_buffers(struct unit_module *m,
  *
  * Description: Branch coverage for gv11b_tsg_unbind_channel_check_eng_faulted
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Input: test_fifo_init_support() run for this GPU
  *

@@ -37,7 +37,7 @@ struct unit_module;
  *
  * Description: Initialize buddy allocator.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Input: None
  *
@@ -72,7 +72,7 @@ int test_nvgpu_buddy_allocator_init(struct unit_module *m,
  *
  * Description: Test allocation of carveouts.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Input: test_nvgpu_buddy_allocator_init
  *
@@ -98,7 +98,7 @@ int test_nvgpu_buddy_allocator_carveout(struct unit_module *m,
  *
  * Description: Test buddy allocator attribute and allocation functions.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Input: test_nvgpu_buddy_allocator_init
  *
@@ -146,7 +146,7 @@ int test_nvgpu_buddy_allocator_destroy(struct unit_module *m,
  *
  * Description: Test cleanup branch of memory allocations.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Input: None
  *
@@ -178,7 +178,7 @@ int test_nvgpu_buddy_allocator_alloc(struct unit_module *m,
  *
  * Description: Test buddy allocator functions with big pages disabled.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Input: None
  *
@@ -218,7 +218,7 @@ int test_buddy_allocator_with_small_pages(struct unit_module *m,
  *
  * Description: Test buddy allocator functions with big pages enabled.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Input: None
  *

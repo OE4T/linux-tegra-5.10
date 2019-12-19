@@ -35,7 +35,7 @@ struct unit_module;
  * Description: The cg unit shall be able to setup the clock gating register
  * values as specified in the hal reglist structures for BLCG/SLCG.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Input: The struct specifying type of clock gating, target nvgpu routine
  * that handles the setup, clock gating domain descriptors.
@@ -82,7 +82,7 @@ int test_cg(struct unit_module *m, struct gk20a *g, void *args);
  * Description: The cg unit shall be able to setup the engine therm register
  * values to enable/disable ELCG.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Input: None
  *

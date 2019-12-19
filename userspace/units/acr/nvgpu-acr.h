@@ -35,7 +35,7 @@ struct unit_module;
  * Description: The test_acr_init shall test the initialisation of
  * the ACR unit
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Input: None
  *
@@ -58,7 +58,7 @@ int test_acr_init(struct unit_module *m, struct gk20a *g, void *args);
  * Description: The test_acr_prepare_ucode_blob shall test the blob creation of
  * the ACR unit
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Input: None
  * Steps:
@@ -83,7 +83,7 @@ int test_acr_prepare_ucode_blob(struct unit_module *m, struct gk20a *g,
  * Description: The test_acr_is_lsf_lazy_bootstrap shall test the
  * lazy bootstrap of the ACR unit
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Input: None
  *
@@ -111,7 +111,7 @@ int test_acr_is_lsf_lazy_bootstrap(struct unit_module *m, struct gk20a *g,
  * 1. Blob construct of LS ucode in non-wpr memory
  * 2. ACR HS ucode load & bootstrap
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Input: None
  *
@@ -139,7 +139,7 @@ int test_acr_construct_execute(struct unit_module *m,
  * Description: The test_acr_bootstrap_hs_acr shall test the ACR HS ucode load
  * & bootstrap functionality of the ACR unit
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Input: None
  *
@@ -171,7 +171,7 @@ int test_acr_bootstrap_hs_acr(struct unit_module *m,
  * Description: The free_falcon_test_env shall free up the falcon
  * test environment.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Input: None
  *

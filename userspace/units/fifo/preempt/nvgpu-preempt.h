@@ -37,7 +37,7 @@ struct gk20a;
  *
  * Description: Test TSG preempt.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: nvgpu_preempt_channel
  *
@@ -57,7 +57,7 @@ int test_preempt(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Description: Poll and preempt all TSGs serving PBDMA.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: nvgpu_preempt_poll_tsg_on_pbdma
  *
@@ -76,7 +76,7 @@ int test_preempt_poll_tsg_on_pbdma(struct unit_module *m, struct gk20a *g,
  *
  * Description: Check GPU timeout value
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: nvgpu_preempt_get_timeout
  *

@@ -38,7 +38,7 @@ struct unit_module;
  * Description: Test special corner cases causing map to fail. Mostly to cover
  * error handling and some branches.
  *
- * Test Type: Feature based, Error injection
+ * Test Type: Feature, Error injection
  *
  * Targets: nvgpu_gmmu_map
  *
@@ -67,7 +67,7 @@ int test_nvgpu_gmmu_map_unmap_map_fail(struct unit_module *m, struct gk20a *g,
  * parameters can be changed and provided in the args. This test will also
  * attempt to compare the data in PTEs to the parameters provided.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: nvgpu_gmmu_map_fixed, nvgpu_gmmu_map, nvgpu_get_pte,
  * nvgpu_gmmu_unmap
@@ -101,7 +101,7 @@ int test_nvgpu_gmmu_map_unmap(struct unit_module *m, struct gk20a *g,
  * Description: Similar to test_nvgpu_gmmu_map_unmap but supports more advanced
  * parameters and creates a test SGT.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: nvgpu_gmmu_map_locked, nvgpu_gmmu_unmap
  *
@@ -126,7 +126,7 @@ int test_nvgpu_gmmu_map_unmap_adv(struct unit_module *m, struct gk20a *g,
  * Description: This tests uses the batch mode and maps 2 buffers. Then it
  * checks that the flags in the batch structure were set correctly.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: nvgpu_gmmu_map_locked, nvgpu_gmmu_unmap
  *
@@ -155,7 +155,7 @@ int test_nvgpu_gmmu_map_unmap_batched(struct unit_module *m, struct gk20a *g,
  *
  * Description: Test case to cover NVGPU-RQCD-45 C1.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: nvgpu_vm_init, nvgpu_gmmu_map, nvgpu_gmmu_map_locked,
  * nvgpu_gmmu_unmap, nvgpu_vm_put
@@ -187,7 +187,7 @@ int test_nvgpu_page_table_c1_full(struct unit_module *m, struct gk20a *g,
  *
  * Description: Test case to cover NVGPU-RQCD-45 C2.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: nvgpu_vm_init, nvgpu_gmmu_map_fixed, nvgpu_gmmu_unmap,
  * nvgpu_vm_put

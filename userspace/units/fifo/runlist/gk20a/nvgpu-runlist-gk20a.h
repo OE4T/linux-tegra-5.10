@@ -38,7 +38,7 @@ struct gk20a;
  *
  * Description: Branch coverage for gk20a_runlist_length_max
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Input: test_fifo_init_support() run for this GPU
  *
@@ -55,7 +55,7 @@ int test_gk20a_runlist_length_max(struct unit_module *m,
  *
  * Description: Branch coverage for gk20a_runlist_hw_submit
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Input: test_fifo_init_support() run for this GPU
  *
@@ -74,7 +74,7 @@ int test_gk20a_runlist_hw_submit(struct unit_module *m,
  *
  * Description: Branch coverage for gk20a_runlist_wait_pending
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Input: test_fifo_init_support() run for this GPU
  *
@@ -103,7 +103,7 @@ int test_gk20a_runlist_wait_pending(struct unit_module *m,
  *
  * Description: Branch coverage for gk20a_runlist_write_state
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Input: test_fifo_init_support() run for this GPU
  *

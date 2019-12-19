@@ -38,7 +38,7 @@ struct unit_module;
  *
  * Description: Verify error handling in object context creation path.
  *
- * Test Type: Feature based, Error guessing.
+ * Test Type: Feature, Error guessing
  *
  * Targets: #nvgpu_gr_obj_ctx_init,
  *          #nvgpu_gr_obj_ctx_alloc,

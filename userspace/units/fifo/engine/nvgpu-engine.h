@@ -40,7 +40,7 @@ struct gk20a;
  *
  * Description: Branch coverage for nvgpu_channel_setup/cleanup_sw.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Input: None
  *
@@ -61,7 +61,7 @@ int test_engine_setup_sw(struct unit_module *m,
  *
  * Description: Branch coverage for nvgpu_engine_init_info
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Input: test_fifo_init_support must have run.
  *
@@ -86,7 +86,7 @@ int test_engine_init_info(struct unit_module *m,
  *              nvgpu_engine_check_valid_id and
  *              nvgpu_engine_get_gr_id
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Input: test_fifo_init_support must have run.
  *
@@ -110,7 +110,7 @@ int test_engine_ids(struct unit_module *m,
  *
  * Description: Branch coverage for nvgpu_engine_get_active_eng_info
   *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Input: test_engine_ids must have run.
  *
@@ -132,7 +132,7 @@ int test_engine_get_active_eng_info(struct unit_module *m,
  *
  * Description: Branch coverage for nvgpu_engine_enum_from_type
   *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Input: test_engine_ids must have run.
  *
@@ -155,7 +155,7 @@ int test_engine_enum_from_type(struct unit_module *m,
  *
  * Description: Engine interrupt masks
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: nvgpu_gr_engine_interrupt_mask, nvgpu_ce_engine_interrupt_mask,
  * nvgpu_engine_act_interrupt_mask, nvgpu_engine_get_all_ce_reset_mask

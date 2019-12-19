@@ -38,7 +38,7 @@ struct unit_module;
  *
  * Description: Verify error handling in #nvgpu_gr_fs_state_init()
  *
- * Test Type: Feature based, Error guessing.
+ * Test Type: Feature, Error guessing
  *
  * Targets: #nvgpu_gr_fs_state_init.
  *

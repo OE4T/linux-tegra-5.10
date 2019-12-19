@@ -35,7 +35,7 @@
  *
  * Description: The ltc unit gets initialized
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: nvgpu_init_ltc_support
  *
@@ -66,7 +66,7 @@ int test_ltc_init_support(struct unit_module *m,
  *
  * Description: Validate ltc unit initialization of ecc counters.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: nvgpu_ecc_counter_init_per_lts, gv11b_lts_ecc_init,
  *          nvgpu_ltc_ecc_free
@@ -106,7 +106,7 @@ int test_ltc_ecc_init_free(struct unit_module *m, struct gk20a *g, void *args);
  * related to different ltc data.
  * Checks whether valid data is returned or not.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: nvgpu_ltc_sync_enabled, nvgpu_ltc_get_ltc_count,
  *          nvgpu_ltc_get_slices_per_ltc, nvgpu_ltc_get_cacheline_size
@@ -131,7 +131,7 @@ int test_ltc_functionality_tests(struct unit_module *m,
  *
  * Description: This test covers negative paths in ltc unit.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: nvgpu_ltc_sync_enabled, nvgpu_ltc_remove_support,
  *          nvgpu_init_ltc_support
@@ -153,7 +153,7 @@ int test_ltc_negative_tests(struct unit_module *m,
  *
  * Description: The ltc unit removes all populated ltc info.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: nvgpu_ltc_remove_support
  *
@@ -173,7 +173,7 @@ int test_ltc_remove_support(struct unit_module *m,
  * Description: Validate ltc interrupt handler (isr). The ltc isr is responsible
  *              for reporting errors determind from the ltc status registers.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: gv11b_ltc_intr_isr
  *
@@ -251,7 +251,7 @@ int test_ltc_intr(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Description: Validate the inter_en_illegal_compstat API.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: gv11b_ltc_intr_en_illegal_compstat
  *
@@ -274,7 +274,7 @@ int test_ltc_intr_en_illegal_compstat(struct unit_module *m,
  *
  * Description: Validate the ltc interrupt configure API.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: gv11b_ltc_intr_configure
  *
@@ -298,7 +298,7 @@ int test_ltc_intr_configure(struct unit_module *m,
  *
  * Description: Validate the ltc API to determine L2 size.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: gp10b_determine_L2_size_bytes
  *
@@ -319,7 +319,7 @@ int test_determine_L2_size_bytes(struct unit_module *m,
  *
  * Description: Validate the ltc API to enable level 2 cache.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: gp10b_ltc_set_enabled
  *
@@ -342,7 +342,7 @@ int test_ltc_set_enabled(struct unit_module *m,	struct gk20a *g, void *args);
  *
  * Description: Validate the ltc API to flush the cache.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: gm20b_flush_ltc
  *

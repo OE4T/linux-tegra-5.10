@@ -37,7 +37,7 @@ struct unit_module;
  *
  * Description: Test big page size
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: gm20b_mm_get_big_page_sizes
  *

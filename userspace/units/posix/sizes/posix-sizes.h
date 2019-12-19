@@ -42,7 +42,7 @@
  *
  * Description: Test the values of various size defines.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Inputs:
  * None

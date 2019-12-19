@@ -38,7 +38,7 @@ struct gk20a;
  *
  * Description: Branch coverage for gv11b_channel_unbind
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Input: test_fifo_init_support() run for this GPU
  *
@@ -61,7 +61,7 @@ int test_gv11b_channel_unbind(struct unit_module *m,
  *
  * Description: Branch coverage for gv11b_channel_count
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Input: test_fifo_init_support() run for this GPU
  *
@@ -78,7 +78,7 @@ int test_gv11b_channel_count(struct unit_module *m,
  *
  * Description: Branch coverage for gv11b_channel_read_state
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Input: test_fifo_init_support() run for this GPU
  *
@@ -100,7 +100,7 @@ int test_gv11b_channel_read_state(struct unit_module *m,
  *
  * Description: Branch coverage for gv11b_channel_reset_faulted
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Input: test_fifo_init_support() run for this GPU
  *
@@ -121,7 +121,7 @@ int test_gv11b_channel_reset_faulted(struct unit_module *m,
  *
  * Description: Branch coverage for gv11b_channel_debug_dump
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Input: test_fifo_init_support() run for this GPU
  *

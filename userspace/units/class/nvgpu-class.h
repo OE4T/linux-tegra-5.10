@@ -37,7 +37,7 @@ struct unit_module;
  *
  * Description: Validate common.class unit API.
  *
- * Test Type: Feature based.
+ * Test Type: Feature
  *
  * Targets: #gv11b_class_is_valid_compute,
  *          #gv11b_class_is_valid.

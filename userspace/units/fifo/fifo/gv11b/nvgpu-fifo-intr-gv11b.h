@@ -38,7 +38,7 @@ struct gk20a;
  *
  * Description: Enable stalling interrupts
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: gv11b_fifo_intr_0_enable
  *
@@ -67,7 +67,7 @@ int test_gv11b_fifo_intr_0_enable(struct unit_module *m,
  *
  * Description: Handle scheduling error
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: gv11b_fifo_handle_sched_error
  *
@@ -90,7 +90,7 @@ int test_gv11b_fifo_handle_sched_error(struct unit_module *m,
  *
  * Description: Stalling interrupt handler
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: gv11b_fifo_intr_0_isr
  *
@@ -116,7 +116,7 @@ int test_gv11b_fifo_intr_0_isr(struct unit_module *m,
  *
  * Description: Set/unset recovery mask
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: gv11b_fifo_intr_set_recover_mask, gv11b_fifo_intr_unset_recover_mask
  *

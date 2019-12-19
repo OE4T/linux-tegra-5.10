@@ -38,7 +38,7 @@ struct gk20a;
  *
  * Description: Branch coverage for gv100_read_engine_status_info
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Input: test_fifo_init_support() run for this GPU
  *
@@ -57,7 +57,7 @@ int test_gv100_read_engine_status_info(struct unit_module *m,
  *
  * Description: Branch coverage for gv100_dump_engine_status
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Input: test_fifo_init_support() run for this GPU
  *

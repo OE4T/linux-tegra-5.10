@@ -37,7 +37,7 @@ struct unit_module;
  *
  * Description: Initialize environment for MM tests
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: None
  *
@@ -56,7 +56,7 @@ int test_env_init(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Description: Initialize bar2 VM
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: gp10b_mm_init_bar2_vm, gp10b_mm_remove_bar2_vm
  *
@@ -78,7 +78,7 @@ int test_gp10b_mm_init_bar2_vm(struct unit_module *m, struct gk20a *g,
  *
  * Description: Cleanup test environment
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: None
  *

@@ -74,7 +74,7 @@ int test_free_env(struct unit_module *m,
  *
  * Description: Validate gv11b_get_litter_value()
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: gv11b_get_litter_value
  *
@@ -97,7 +97,7 @@ int test_get_litter_value(struct unit_module *m,
  *
  * Description: Validate nvgpu_can_busy()
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: nvgpu_can_busy
  *
@@ -120,7 +120,7 @@ int test_can_busy(struct unit_module *m,
  *
  * Description: Validate nvgpu_get() and nvgpu_put() and the refcount.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: nvgpu_get, nvgpu_put
  *
@@ -152,7 +152,7 @@ int test_get_put(struct unit_module *m,
  *
  * Description: Validate the nvgpu_check_gpu_state() API which will restart
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Input:
  * - test_setup_env() must be called before.
@@ -182,7 +182,7 @@ int test_check_gpu_state(struct unit_module *m,
  *
  * Description: Test HAL initialization for GV11B
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: nvgpu_detect_chip
  *
@@ -222,7 +222,7 @@ int test_hal_init(struct unit_module *m,
  *
  * Description: Test nvgpu_finalize_poweron
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: nvgpu_finalize_poweron
  *
@@ -250,7 +250,7 @@ int test_poweron(struct unit_module *m, struct gk20a *g, void *args);
  * Description: Test branches in nvgpu_finalize_poweron not covered by the
  * basic path already covered in test_poweron.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: nvgpu_finalize_poweron
  *
@@ -275,7 +275,7 @@ int test_poweron_branches(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Description: Test nvgpu_prepare_poweroff
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: nvgpu_prepare_poweroff
  *
@@ -303,7 +303,7 @@ int test_poweroff(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Description: Test putting device in quiesce
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: nvgpu_sw_quiesce_init_support, nvgpu_sw_quiesce_remove_support,
  *          nvgpu_sw_quiesce_thread, nvgpu_sw_quiesce

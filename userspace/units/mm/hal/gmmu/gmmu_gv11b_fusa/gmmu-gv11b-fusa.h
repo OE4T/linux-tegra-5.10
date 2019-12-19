@@ -37,7 +37,7 @@ struct unit_module;
  *
  * Description: Test PTE page size
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: gk20a_get_pte_pgsz
  *

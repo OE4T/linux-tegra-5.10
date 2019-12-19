@@ -73,7 +73,7 @@ int test_free_env(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Description: Validate function of nvgpu_ce_init_support.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: nvgpu_ce_init_support
  *
@@ -95,7 +95,7 @@ int test_ce_init_support(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Description: Validate function of gv11b_ce_stall_isr.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: gv11b_ce_stall_isr
  *
@@ -120,7 +120,7 @@ int test_ce_stall_isr(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Description: Validate function of gp10b_ce_nonstall_isr.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: gp10b_ce_nonstall_isr
  *
@@ -146,7 +146,7 @@ int test_ce_nonstall_isr(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Description: Validate function of gv11b_ce_mthd_buffer_fault_in_bar2_fault.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: gv11b_ce_mthd_buffer_fault_in_bar2_fault
  *
@@ -172,7 +172,7 @@ int test_mthd_buffer_fault_in_bar2_fault(struct unit_module *m, struct gk20a *g,
  *
  * Description: Validate function of gv11b_ce_get_num_pce.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: gv11b_ce_get_num_pce
  *
@@ -193,7 +193,7 @@ int test_get_num_pce(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Description: Validate function of gv11b_ce_init_prod_values.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: gv11b_ce_init_prod_values
  *

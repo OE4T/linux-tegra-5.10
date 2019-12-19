@@ -37,7 +37,7 @@
  *
  * Description: Test the PID of the current process.
  *
- * Test Type: Feature based.
+ * Test Type: Feature
  *
  * Inputs:
  *
@@ -59,7 +59,7 @@ int test_current_pid(struct unit_module *m,
  *
  * Description: Test the TID of the current thread.
  *
- * Test Type: Feature based.
+ * Test Type: Feature
  *
  * Inputs:
  *
@@ -81,7 +81,7 @@ int test_current_tid(struct unit_module *m,
  *
  * Description: Print the current thread name.
  *
- * Test Type: Feature based.
+ * Test Type: Feature
  *
  * Inputs:
  *

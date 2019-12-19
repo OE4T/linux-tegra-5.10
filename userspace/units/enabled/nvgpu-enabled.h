@@ -37,7 +37,7 @@ struct unit_module;
  *
  * Description: Initialize GPU enabled_flags
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Input: None
  *
@@ -59,7 +59,7 @@ int test_nvgpu_init_enabled_flags(struct unit_module *m, struct gk20a *g,
  *
  * Description: Check if enabled_flags are set to false.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Input: test_nvgpu_init_enabled_flags
  *
@@ -79,7 +79,7 @@ int test_nvgpu_enabled_flags_false_check(struct unit_module *m,
  *
  * Description: Set and reset enabled_flags
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Input: test_nvgpu_init_enabled_flags
  *

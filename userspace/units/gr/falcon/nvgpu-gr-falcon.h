@@ -38,7 +38,7 @@ struct unit_module;
  *
  * Description: Helps to verify common.gr.falcon subunit initialization.
  *
- * Test Type: Feature based, Error injection.
+ * Test Type: Feature, Error injection
  *
  * Targets: #nvgpu_gr_falcon_init_support.
  *
@@ -64,7 +64,7 @@ int test_gr_falcon_init(struct unit_module *m,
  *
  * Description: Helps to verify common.gr.falcon subunit deinitialization.
  *
- * Test Type: Feature based, Error injection.
+ * Test Type: Feature, Error injection
  *
  * Targets: #nvgpu_gr_falcon_remove_support.
  *
@@ -86,7 +86,7 @@ int test_gr_falcon_deinit(struct unit_module *m,
  *
  * Description: This test helps to verify load and boot FECS and GPCCS ucodes.
  *
- * Test Type: Feature based.
+ * Test Type: Feature
  *
  * Targets: #nvgpu_gr_falcon_init_ctxsw.
  *
@@ -109,7 +109,7 @@ int test_gr_falcon_init_ctxsw(struct unit_module *m,
  *
  * Description: Helps to verify context state initialization
  *
- * Test Type: Feature based.
+ * Test Type: Feature
  *
  * Targets: #nvgpu_gr_falcon_init_ctx_state.
  *
@@ -130,7 +130,7 @@ int test_gr_falcon_init_ctx_state(struct unit_module *m,
  * Description: Helps to verify the common.gr.falcon query
  *              functions return valid values.
  *
- * Test Type: Feature based.
+ * Test Type: Feature
  *
  * Targets: #nvgpu_gr_falcon_get_fecs_ucode_segments,
  *          #nvgpu_gr_falcon_get_gpccs_ucode_segments,
@@ -155,7 +155,7 @@ int test_gr_falcon_query_test(struct unit_module *m,
  * Description: Helps to verify the allocation failures for
  *              nvgpu_gr_falcon_init_ctxsw_ucode function is handled properly.
  *
- * Test Type: Error injection.
+ * Test Type: Error injection
  *
  * Targets: #nvgpu_gr_falcon_init_ctxsw_ucode.
  *

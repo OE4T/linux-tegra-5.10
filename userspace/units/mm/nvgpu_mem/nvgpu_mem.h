@@ -37,7 +37,7 @@ struct unit_module;
  *
  * Description: Initialize nvgpu_mem for given size and base address.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Input: None
  *
@@ -58,7 +58,7 @@ int test_nvgpu_mem_create_from_phys(struct unit_module *m,
  *
  * Description: Check all nvgpu_sgt_ops functions
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Input: test_nvgpu_mem_create_from_phys
  *
@@ -76,7 +76,7 @@ int test_nvgpu_mem_phys_ops(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Description: Store pre-defined pattern at allocated nvgpu_mem address
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Input: test_nvgpu_mem_create_from_phys
  *
@@ -98,7 +98,7 @@ int test_nvgpu_memset_sysmem(struct unit_module *m,
  *
  * Description: Test read and write functions for sysmem
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Input: test_nvgpu_mem_create_from_phys
  *
@@ -123,7 +123,7 @@ int test_nvgpu_mem_wr_rd(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Description: Test if given address is iommuable
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Input: test_nvgpu_mem_create_from_phys
  *
@@ -142,7 +142,7 @@ int test_nvgpu_mem_iommu_translate(struct unit_module *m,
  *
  * Description: Check if nvgpu_mem aperture is correct
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Input: test_nvgpu_mem_create_from_phys
  *
@@ -161,7 +161,7 @@ int test_nvgpu_aperture_mask(struct unit_module *m,
  *
  * Description: Test read and write memory functions for vidmem
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Input: test_nvgpu_mem_create_from_phys
  *

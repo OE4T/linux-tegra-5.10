@@ -37,7 +37,7 @@ struct gk20a;
  *
  * Description: Test runlist context initialization.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: nvgpu_runlist_setup_sw, nvgpu_init_active_runlist_mapping,
  *          nvgpu_init_runlist_enginfo, nvgpu_runlist_cleanup_sw
@@ -57,7 +57,7 @@ int test_runlist_setup_sw(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Description: Check lists of runlists servicing engine/PBDMA/TSG.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: nvgpu_runlist_get_runlists_mask
  *
@@ -76,7 +76,7 @@ int test_runlist_get_mask(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Description: Acquire and release runlist lock.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: nvgpu_runlist_lock_active_runlists,
  *          nvgpu_runlist_unlock_active_runlists, nvgpu_runlist_unlock_runlists
@@ -98,7 +98,7 @@ int test_runlist_lock_unlock_active_runlists(struct unit_module *m,
  *
  * Description: Test enable/disable of runlists.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: nvgpu_runlist_set_state
  *
@@ -116,7 +116,7 @@ int test_runlist_set_state(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Description: Get runlist interleave level name as string.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: nvgpu_runlist_interleave_level_name
  *
@@ -135,7 +135,7 @@ int test_runlist_interleave_level_name(struct unit_module *m,
  *
  * Description: Test format of TSG runlist entry
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: nvgpu_runlist_construct_locked, nvgpu_runlist_append_flat,
  *          nvgpu_runlist_append_prio, nvgpu_runlist_append_tsg
@@ -173,7 +173,7 @@ int test_tsg_format_gen(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Description: Build runlist without interleaving (aka "flat")
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: nvgpu_runlist_construct_locked, nvgpu_runlist_append_flat,
  *          nvgpu_runlist_append_prio, nvgpu_runlist_append_tsg
@@ -205,7 +205,7 @@ int test_flat_gen(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Description: Build runlist with interleaving, single level only
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: nvgpu_runlist_construct_locked, nvgpu_runlist_append_low,
  *          nvgpu_runlist_append_med, nvgpu_runlist_append_hi,
@@ -240,7 +240,7 @@ int test_interleave_single(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Description: Build runlist with interleaving, two different levels
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: nvgpu_runlist_construct_locked, nvgpu_runlist_append_low,
  *          nvgpu_runlist_append_med, nvgpu_runlist_append_hi,
@@ -276,7 +276,7 @@ int test_interleave_dual(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Description: Build runlist with interleaving, all levels
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: nvgpu_runlist_construct_locked, nvgpu_runlist_append_low,
  *          nvgpu_runlist_append_med, nvgpu_runlist_append_hi,
@@ -319,7 +319,7 @@ int test_interleaving_levels(struct unit_module *m, struct gk20a *g,
  *
  * Description: Reload given runlists.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: nvgpu_runlist_reload_ids
  *
@@ -342,7 +342,7 @@ int test_runlist_reload_ids(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Description: Add/remove channel from runlist.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: nvgpu_runlist_update_locked, gk20a_runlist_modify_active_locked,
  *          gk20a_runlist_reconstruct_locked

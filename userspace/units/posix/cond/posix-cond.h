@@ -35,7 +35,7 @@
  *
  * Description: Test cond init and cleanup routine.
  *
- * Test Type: Feature based.
+ * Test Type: Feature
  *
  * Inputs:
  * 1) Global instance of struct nvgpu_cond.
@@ -73,7 +73,7 @@ int test_cond_init_destroy(struct unit_module *m,
  *   and broadcast protected by explicit acquire/release of the locks.
  * - Waiting and signaling using a condition check.
  *
- * Test Type: Feature based.
+ * Test Type: Feature
  *
  * Inputs:
  * 1) Global instance of struct nvgpu_cond.

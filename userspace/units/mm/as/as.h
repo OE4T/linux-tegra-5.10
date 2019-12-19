@@ -109,7 +109,7 @@ int test_init_mm(struct unit_module *m, struct gk20a *g, void *args);
  * Description: The AS unit shall be able to allocate address spaces based on
  * required flags, or report appropriate error codes in case of failures.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Input:
  * - The test_init_mm must have been executed

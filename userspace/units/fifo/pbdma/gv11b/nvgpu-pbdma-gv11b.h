@@ -38,7 +38,7 @@ struct gk20a;
  *
  * Description: PBDMA H/W initialization.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: gv11b_pbdma_setup_hw
  *
@@ -59,7 +59,7 @@ int test_gv11b_pbdma_setup_hw(struct unit_module *m,
  *
  * Description: PBDMA interrupt enabling/disabling.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: test_gv11b_pbdma_intr_enable
  *
@@ -94,7 +94,7 @@ int test_gv11b_pbdma_intr_enable(struct unit_module *m,
  *
  * Description: Interrupt handling for pbdma_intr_0
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: gv11b_pbdma_handle_intr_0
  *
@@ -119,7 +119,7 @@ int test_gv11b_pbdma_handle_intr_0(struct unit_module *m,
  *
  * Description: Interrupt handling for pbdma_intr_1
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: gv11b_pbdma_handle_intr_1
  *
@@ -143,7 +143,7 @@ int test_gv11b_pbdma_handle_intr_1(struct unit_module *m,
  *
  * Description: Fatal channel interrupt mask
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: gv11b_pbdma_channel_fatal_0_intr_descs.
  *
@@ -163,7 +163,7 @@ int test_gv11b_pbdma_intr_descs(struct unit_module *m,
  *
  * Description: Get settings to program RAMFC.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: gv11b_pbdma_get_fc_pb_header, gv11b_pbdma_get_fc_target
  *
@@ -185,7 +185,7 @@ int test_gv11b_pbdma_get_fc(struct unit_module *m,
  *
  * Description: PBDMA sub-context id (aka veid)
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: gv11b_pbdma_set_channel_info_veid
  *
@@ -205,7 +205,7 @@ int test_gv11b_pbdma_set_channel_info_veid(struct unit_module *m,
  *
  * Description: USERD writeback enable
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: gv11b_pbdma_config_userd_writeback_enable
  *

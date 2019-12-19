@@ -38,7 +38,7 @@ struct unit_module;
  *
  * Description: Environment initialization for tests
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Input: None
  *
@@ -60,7 +60,7 @@ int test_sync_init(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Description: Environment de-initialization for tests
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Input: test_sync_init run for this GPU
  *
@@ -80,7 +80,7 @@ int test_sync_deinit(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Description: Branch coverage for nvgpu_channel_sync_{create/destroy} success
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: nvgpu_channel_sync_create, nvgpu_has_syncpoints,
  *	    nvgpu_channel_sync_syncpt_create,
@@ -111,7 +111,7 @@ int test_sync_create_destroy_sync(struct unit_module *m, struct gk20a *g, void *
  *
  * Description: Branch coverage for nvgpu_channel_sync_set_safe_state
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: nvgpu_channel_sync_set_safe_state
  *
@@ -129,7 +129,7 @@ int test_sync_set_safe_state(struct unit_module *m, struct gk20a *g, void *args)
  *
  * Description: Branch coverage for nvgpu_channel_sync_syncpt_* APIs
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: nvgpu_channel_sync_to_syncpt, nvgpu_channel_sync_get_syncpt_id
  *		nvgpu_channel_sync_get_syncpt_address
@@ -151,7 +151,7 @@ int test_sync_usermanaged_syncpt_apis(struct unit_module *m, struct gk20a *g, vo
  *
  * Description: Branch coverage for nvgpu_channel_sync_create failure
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: nvgpu_channel_sync_create, nvgpu_has_syncpoints,
  *	    nvgpu_channel_sync_syncpt_create,

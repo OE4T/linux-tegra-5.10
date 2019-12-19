@@ -38,7 +38,7 @@ struct gk20a;
  *
  * Description: Branch coverage for nvgpu_pbdma_setup/cleanup_sw
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Input: none.
  *
@@ -64,7 +64,7 @@ int test_pbdma_setup_sw(struct unit_module *m,
  *
  * Description: Branch coverage for nvgpu_pbdma_find_for_runlist
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Input: test_fifo_init_support() run for this GPU.
  *
@@ -86,7 +86,7 @@ int test_pbdma_find_for_runlist(struct unit_module *m,
  *
  * Description: Branch coverage for nvgpu_pbdma_status_* functions.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Input: test_fifo_init_support() run for this GPU.
  *

@@ -35,7 +35,7 @@
  *
  * Description: Test the creation of kmem cache.
  *
- * Test Type: Feature based.
+ * Test Type: Feature
  *
  * Inputs:
  * 1) GPU driver struct g.
@@ -66,7 +66,7 @@ int test_kmem_cache_create(struct unit_module *m,
  *
  * Description: Test the allocation of memory from kmem cache.
  *
- * Test Type: Feature based.
+ * Test Type: Feature
  *
  * Inputs:
  * 1) GPU driver struct g.
@@ -99,7 +99,7 @@ int test_kmem_cache_alloc(struct unit_module *m,
  *
  * Description: Test the allocation of memory using kmalloc.
  *
- * Test Type: Feature based.
+ * Test Type: Feature
  *
  * Inputs:
  * 1) GPU driver struct g.
@@ -124,7 +124,7 @@ int test_kmem_kmalloc(struct unit_module *m,
  *
  * Description: Test the allocation of memory using kzalloc.
  *
- * Test Type: Feature based.
+ * Test Type: Feature
  *
  * Inputs:
  * 1) GPU driver struct g.
@@ -151,7 +151,7 @@ int test_kmem_kzalloc(struct unit_module *m,
  *
  * Description: Test the allocation of memory using kcalloc.
  *
- * Test Type: Feature based.
+ * Test Type: Feature
  *
  * Inputs:
  * 1) GPU driver struct g.
@@ -179,7 +179,7 @@ int test_kmem_kcalloc(struct unit_module *m,
  *
  * Description: Test the allocation of memory using virtual alloc APIs.
  *
- * Test Type: Feature based.
+ * Test Type: Feature
  *
  * Inputs:
  * 1) GPU driver struct g.
@@ -213,7 +213,7 @@ int test_kmem_virtual_alloc(struct unit_module *m,
  *
  * Description: Test the allocation of memory using big alloc APIs.
  *
- * Test Type: Feature based.
+ * Test Type: Feature
  *
  * Inputs:
  * 1) GPU driver struct g.

@@ -38,7 +38,7 @@ struct unit_module;
  *
  * Description: Setup common.gr unit.
  *
- * Test Type: Feature based.
+ * Test Type: Feature
  *
  * Input: None.
  *
@@ -62,7 +62,7 @@ int test_gr_init_setup(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Description: Remove common.gr unit setup.
  *
- * Test Type: Feature based.
+ * Test Type: Feature
  *
  * Targets: #nvgpu_gr_free.
  *
@@ -81,7 +81,7 @@ int test_gr_remove_setup(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Description: Prepare common.gr unit.
  *
- * Test Type: Feature based.
+ * Test Type: Feature
  *
  * Targets: #nvgpu_gr_prepare_sw, #nvgpu_gr_prepare_hw.
  *
@@ -100,7 +100,7 @@ int test_gr_init_prepare(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Description: Initialize common.gr unit.
  *
- * Test Type: Feature based.
+ * Test Type: Feature
  *
  * Targets: #nvgpu_gr_init_support.
  *
@@ -126,7 +126,7 @@ int test_gr_init_support(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Description: Suspend common.gr unit.
  *
- * Test Type: Feature based.
+ * Test Type: Feature
  *
  * Targets: #nvgpu_gr_suspend.
  *
@@ -145,7 +145,7 @@ int test_gr_suspend(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Description: Remove common.gr unit support.
  *
- * Test Type: Feature based.
+ * Test Type: Feature
  *
  * Targets: #nvgpu_gr_remove_support.
  *
@@ -165,7 +165,7 @@ int test_gr_remove_support(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Description: Set the ECC feature based on fuse and fecs override registers.
  *
- * Test Type: Feature based, Error Injection.
+ * Test Type: Feature, Error Injection
  *
  * Input: #test_gr_init_setup, #test_gr_init_prepare and #test_gr_init_support
  *        must have been executed successfully.
@@ -191,7 +191,7 @@ int test_gr_init_ecc_features(struct unit_module *m,
  *
  * Description: Setup for common.gr unit.
  *
- * Test Type: Feature based.
+ * Test Type: Feature
  *
  * Input: None
  *
@@ -215,7 +215,7 @@ int test_gr_init_setup_ready(struct unit_module *m, struct gk20a *g, void *args)
  *
  * Description: Cleanup common.gr unit.
  *
- * Test Type: Feature based.
+ * Test Type: Feature
  *
  * Input: #test_gr_setup_ready must have been executed successfully.
  *

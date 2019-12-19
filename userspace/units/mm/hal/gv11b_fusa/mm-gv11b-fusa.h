@@ -37,7 +37,7 @@ struct unit_module;
  *
  * Description: Initialize environment for MM tests
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: None
  *
@@ -56,7 +56,7 @@ int test_env_init(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Description: Initialize instance block
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: gv11b_mm_init_inst_block
  *
@@ -79,7 +79,7 @@ int test_gv11b_mm_init_inst_block(struct unit_module *m, struct gk20a *g,
  *
  * Description: Test if bar1_is_supported
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: gv11b_mm_is_bar1_supported
  *
@@ -98,7 +98,7 @@ int test_gv11b_mm_is_bar1_supported(struct unit_module *m, struct gk20a *g,
  *
  * Description: Cleanup test environment
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: None
  *

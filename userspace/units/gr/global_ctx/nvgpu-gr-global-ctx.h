@@ -38,7 +38,7 @@ struct unit_module;
  *
  * Description: Verify error handling in global context allocation path.
  *
- * Test Type: Feature based, Error guessing.
+ * Test Type: Feature, Error guessing
  *
  * Targets: #nvgpu_gr_global_ctx_buffer_alloc,
  *          #nvgpu_gr_global_ctx_buffer_free,
@@ -79,7 +79,7 @@ int test_gr_global_ctx_alloc_error_injection(struct unit_module *m,
  * Description: Verify error handling in local golden context image
  *              creation and comparison.
  *
- * Test Type: Feature based, Error guessing.
+ * Test Type: Feature, Error guessing
  *
  * Targets: #nvgpu_gr_global_ctx_init_local_golden_image,
  *          #nvgpu_gr_global_ctx_load_local_golden_image,

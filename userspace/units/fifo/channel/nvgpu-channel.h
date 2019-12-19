@@ -40,7 +40,7 @@ struct gk20a;
  *
  * Description: Branch coverage for nvgpu_channel_setup/cleanup_sw.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Input: None
  *
@@ -61,7 +61,7 @@ int test_channel_setup_sw(struct unit_module *m,
  *
  * Description: Branch coverage for nvgpu_channel_open_new.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Input: test_fifo_init_support() run for this GPU
  *
@@ -99,7 +99,7 @@ int test_channel_open(struct unit_module *m,
  *
  * Description: Branch coverage for nvgpu_channel_close/kill.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Input: test_fifo_init_support() run for this GPU
  *
@@ -130,7 +130,7 @@ int test_channel_close(struct unit_module *m,
  *
  * Description: Branch coverage for nvgpu_channel_setup_bind.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Input: test_fifo_init_support() run for this GPU
  *
@@ -167,7 +167,7 @@ int test_channel_setup_bind(struct unit_module *m,
  *
  * Description: Branch coverage for nvgpu_channel_alloc_inst.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Input: test_fifo_init_support() run for this GPU
  *
@@ -193,7 +193,7 @@ int test_channel_alloc_inst(struct unit_module *m,
  *
  * Description: Branch coverage for nvgpu_channel_refch_from_inst_ptr.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Input: test_fifo_init_support() run for this GPU
  *
@@ -216,7 +216,7 @@ int test_channel_from_inst(struct unit_module *m,
  *
  * Description: Branch coverage for nvgpu_channel_enable/disable_tsg.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Input: test_fifo_init_support() run for this GPU
  *

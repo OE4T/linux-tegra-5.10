@@ -40,7 +40,7 @@ struct unit_module;
  * to read the GR engine configuration and stores the configuration
  * values in the #nvgpu_gr_config struct.
  *
- * Test Type: Feature based.
+ * Test Type: Feature
  *
  * Input: None
  *
@@ -59,7 +59,7 @@ int test_gr_config_init(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Description: Cleanup common.gr.config unit.
  *
- * Test Type: Feature based.
+ * Test Type: Feature
  *
  * Targets: #nvgpu_gr_config_deinit.
  *
@@ -81,7 +81,7 @@ int test_gr_config_deinit(struct unit_module *m, struct gk20a *g, void *args);
  *              read from the h/w matches with locally stored informations
  *              for a particular chip.
  *
- * Test Type: Feature based, Error guessing.
+ * Test Type: Feature, Error guessing
  *
  * Input: #test_gr_init_setup and #test_gr_config_init
  *        must have been executed successfully.
@@ -120,7 +120,7 @@ int test_gr_config_count(struct unit_module *m, struct gk20a *g, void *args);
  *              reflect the same value. This test helps to verify the
  *              configuration values can be changed as part of floorsweeping.
  *
- * Test Type: Feature based, Error guessing
+ * Test Type: Feature, Error guessing
  *
  * Targets: #nvgpu_gr_config_set_no_of_sm,
  *          #nvgpu_gr_config_get_sm_info,
@@ -149,7 +149,7 @@ int test_gr_config_set_get(struct unit_module *m, struct gk20a *g, void *args);
  *              possible error conditions for memory allocation failure. Also
  *		provide different configurations in common.gr unit.
  *
- * Test Type: Feature based, Error guessing
+ * Test Type: Feature, Error guessing
  *
  * Input: #test_gr_init_setup must have been executed successfully.
  *

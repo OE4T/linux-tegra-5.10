@@ -38,7 +38,7 @@ struct unit_module;
  * Description: The VM unit shall be able to map a buffer of memory such that
  * the GPU may access that memory.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Input: None
  *
@@ -80,7 +80,7 @@ int test_map_buf(struct unit_module *m, struct gk20a *g, void *__args);
  * function the resulting GPU virtual address of the map does/does not match
  * the requested GPU virtual address.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Input: None
  *
@@ -121,7 +121,7 @@ int test_map_buf_gpu_va(struct unit_module *m, struct gk20a *g, void *__args);
  * Description: This test exercises the VM unit's batch mode. Batch mode is used
  * to optimize cache flushes.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Input: None
  *
@@ -146,7 +146,7 @@ int test_batch(struct unit_module *m, struct gk20a *g, void *__args);
  * Description: This test exercises the VM unit initialization code and covers
  * a number of error paths.
  *
- * Test Type: Feature based, error injection
+ * Test Type: Feature, Error injection
  *
  * Input: None
  *
@@ -224,7 +224,7 @@ int test_map_buffer_error_cases(struct unit_module *m, struct gk20a *g,
  *
  * Description: This test targets the nvgpu_vm_alloc_va API.
  *
- * Test Type: Feature based, Error injection
+ * Test Type: Feature, Error injection
  *
  * Input: None
  *
@@ -258,7 +258,7 @@ int test_nvgpu_vm_alloc_va(struct unit_module *m, struct gk20a *g,
  *
  * Description: This test targets the nvgpu_vm_bind_channel API.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Input: None
  *
@@ -284,7 +284,7 @@ int test_vm_bind(struct unit_module *m, struct gk20a *g, void *__args);
  *
  * Description: This test targets the vm_aspace_id API.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Input: None
  *
@@ -312,7 +312,7 @@ int test_vm_aspace_id(struct unit_module *m, struct gk20a *g, void *__args);
  * Description: This test targets the nvgpu_vm_area_validate_buffer and
  * nvgpu_vm_area_alloc APIs.
  *
- * Test Type: Feature based, Error injection
+ * Test Type: Feature, Error injection
  *
  * Input: None
  *

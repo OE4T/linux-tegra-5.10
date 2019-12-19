@@ -38,7 +38,7 @@ struct gk20a;
  *
  * Description: Branch coverage for gp10b_engine_init_ce_info
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Input: test_fifo_init_support has run..
  *

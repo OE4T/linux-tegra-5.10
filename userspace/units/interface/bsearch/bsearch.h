@@ -51,7 +51,7 @@ struct unit_module;
  * Description: Simple test for bsearch. The goal here is code coverage, the
  * underlying implementation of bsearch is provided by the stdlib.
  *
- * Test Type: Feature, Coverage
+ * Test Type: Feature
  *
  * Input: None
  *

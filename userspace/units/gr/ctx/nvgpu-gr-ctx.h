@@ -38,7 +38,7 @@ struct unit_module;
  *
  * Description: Verify error handling in context allocation and mapping path.
  *
- * Test Type: Feature based, Error guessing.
+ * Test Type: Feature, Error guessing
  *
  * Targets: #nvgpu_gr_ctx_alloc,
  *          #nvgpu_gr_ctx_free,

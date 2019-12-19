@@ -38,7 +38,7 @@ struct unit_module;
  * Description: This test must be run once and be the first one as it
  * initializes the MM subsystem.
  *
- * Test Type: Feature based, Init
+ * Test Type: Feature, Other (setup)
  *
  * Targets: nvgpu_vm_init
  *
@@ -66,7 +66,7 @@ int test_mm_dma_init(struct unit_module *m, struct gk20a *g, void *__args);
  * Description: Test to target nvgpu_dma_alloc_* functions, testing automatic or
  * forced allocations in SYSMEM or VIDMEM.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: nvgpu_dma_alloc_flags_sys, nvgpu_dma_free, nvgpu_dma_alloc_flags_vid
  *
@@ -93,7 +93,7 @@ int test_mm_dma_alloc(struct unit_module *m, struct gk20a *g, void *args);
  * Description: Test to target nvgpu_dma_alloc_flags_* functions, testing
  * several possible flags and SYSMEM/VIDMEM.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: nvgpu_dma_alloc_flags_sys, nvgpu_dma_free, nvgpu_dma_alloc_flags_vid
  *
@@ -121,7 +121,7 @@ int test_mm_dma_alloc_flags(struct unit_module *m, struct gk20a *g, void *args);
  * Description: Test to target nvgpu_dma_alloc_map_* functions, testing
  * allocations and GMMU mappings in SYSMEM or VIDMEM.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: nvgpu_dma_alloc_map, nvgpu_dma_unmap_free, nvgpu_dma_alloc_map_sys,
  * nvgpu_dma_alloc_map_vid
@@ -149,7 +149,7 @@ int test_mm_dma_alloc_map(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Description: Test error handling branches in nvgpu_dma_alloc_map
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: nvgpu_dma_alloc_map, nvgpu_dma_unmap_free
  *

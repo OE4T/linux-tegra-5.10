@@ -37,7 +37,7 @@ struct unit_module;
  *
  * Description: Initialize bitmap allocator.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Input: None
  *
@@ -59,7 +59,7 @@ int test_nvgpu_bitmap_allocator_init(struct unit_module *m,
  *
  * Description: Check bitmap_allocator attribute values using allocator ops.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Input: test_nvgpu_bitmap_allocator_init
  *
@@ -80,7 +80,7 @@ int test_nvgpu_bitmap_allocator_ops(struct unit_module *m,
  *
  * Description: Allocate various sizes of memory to test different scenarios.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Input: test_nvgpu_bitmap_allocator_init
  *
@@ -126,7 +126,7 @@ int test_nvgpu_bitmap_allocator_destroy(struct unit_module *m,
  * Description: Test allocator functions for bitmap allocator in latency
  * critical path.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Input: None
  *

@@ -37,7 +37,7 @@ struct unit_module;
  *
  * Description: Test to cover the initialization routines of pd_cache.
  *
- * Test Type: Feature based, Error Injection
+ * Test Type: Feature, Error Injection
  *
  * Targets: nvgpu_pd_cache_init
  *
@@ -61,7 +61,7 @@ int test_pd_cache_init(struct unit_module *m, struct gk20a *g, void *__args);
  *
  * Description: Test to cover the de-initialization routines of pd_cache.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: nvgpu_pd_cache_fini
  *
@@ -83,7 +83,7 @@ int test_pd_cache_fini(struct unit_module *m, struct gk20a *g, void *__args);
  * memory, that it is sufficiently aligned for use by the GMMU and it can
  * allocate valid PDs.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: nvgpu_pd_alloc, nvgpu_pd_write, nvgpu_pd_free, nvgpu_pd_cache_fini
  *
@@ -110,7 +110,7 @@ int test_pd_cache_valid_alloc(struct unit_module *m, struct gk20a *g,
  * Description: Checks that pd_cache allocations are successful in a number of
  * supported sizes.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: nvgpu_pd_cache_init, nvgpu_pd_alloc, nvgpu_pd_free,
  * nvgpu_pd_cache_fini
@@ -139,7 +139,7 @@ int test_per_pd_size(struct unit_module *m, struct gk20a *g, void *__args);
  * Description: Ensure that the pd_cache writes a word of memory in a
  * passed PD with 2 word or 4 word PDE/PTE.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: gp10b_mm_get_mmu_levels, nvgpu_pd_cache_init, nvgpu_pd_alloc,
  * nvgpu_pd_offset_from_index, nvgpu_pd_write, nvgpu_pd_free,
@@ -169,7 +169,7 @@ int test_pd_write(struct unit_module *m, struct gk20a *g, void *__args);
  * Description: Ensure the pd_cache does provide a valid GPU physical address
  * for a given PD.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: nvgpu_pd_cache_init, nvgpu_pd_alloc, nvgpu_pd_gpu_addr,
  * nvgpu_pd_free, nvgpu_pd_cache_fini
@@ -194,7 +194,7 @@ int test_gpu_address(struct unit_module *m, struct gk20a *g, void *__args);
  * Description: Ensure that the pd_cache unit returns a valid word offset for
  * 2 and 4 word PDE/PTE.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: gp10b_mm_get_mmu_levels, nvgpu_pd_offset_from_index
  *
@@ -220,7 +220,7 @@ int test_offset_computation(struct unit_module *m, struct gk20a *g,
  * Description: Ensure that the initialization routines of pd_cache handle all
  * corner cases appropriately.
  *
- * Test Type: Feature based, Error injection
+ * Test Type: Feature, Error injection
  *
  * Targets: nvgpu_pd_cache_init, nvgpu_pd_alloc, nvgpu_pd_cache_fini,
  * nvgpu_pd_free
@@ -256,7 +256,7 @@ int test_init_deinit(struct unit_module *m, struct gk20a *g, void *__args);
  * pattern to some degree. If not set it defaults to nr_allocs_before_free.
  * Anything left over after the last free loop will be freed in one big loop.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: nvgpu_pd_cache_init, nvgpu_pd_alloc, nvgpu_pd_cache_fini,
  * nvgpu_pd_free
@@ -289,7 +289,7 @@ int test_pd_cache_alloc_gen(struct unit_module *m, struct gk20a *g,
  *
  * Description: Test free on empty PD cache and extra corner cases.
  *
- * Test Type: Feature based, Error injection
+ * Test Type: Feature, Error injection
  *
  * Targets: nvgpu_pd_cache_init, nvgpu_pd_alloc, nvgpu_pd_cache_fini,
  * nvgpu_pd_free

@@ -38,7 +38,7 @@ struct gk20a;
  *
  * Description: Branch coverage for PBDMA acquire timeout.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: gm20b_pbdma_acquire_val
  *
@@ -66,7 +66,7 @@ int test_gm20b_pbdma_acquire_val(struct unit_module *m,
  *
  * Targets: gm20b_pbdma_handle_intr
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Input: test_fifo_init_support() run for this GPU
  *
@@ -94,7 +94,7 @@ int test_gm20b_pbdma_handle_intr(struct unit_module *m,
  *
  * Description: Branch coverage for PBDMA stalling interrupt handler
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: gm20b_pbdma_handle_intr_0, gm20b_pbdma_reset_header
  *
@@ -127,7 +127,7 @@ int test_gm20b_pbdma_handle_intr_0(struct unit_module *m,
  *
  * Description: Branch coverage for reading PBDMA header shadow.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: gm20b_pbdma_read_data
  *
@@ -148,7 +148,7 @@ int test_gm20b_pbdma_read_data(struct unit_module *m,
  *
  * Description: Branch coverage for interrupt descriptors.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: gm20b_pbdma_device_fatal_0_intr_descs,
  *          gm20b_pbdma_restartable_0_intr_descs.
@@ -171,7 +171,7 @@ int test_gm20b_pbdma_intr_descs(struct unit_module *m,
  *
  * Description: Format a GPFIFO entry.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: gm20b_pbdma_format_gpfifo_entry
  *
@@ -193,7 +193,7 @@ int test_gm20b_pbdma_format_gpfifo_entry(struct unit_module *m,
  *
  * Description: Branch coverage for GPFIFO base.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: gm20b_pbdma_get_gp_base, test_gm20b_pbdma_get_gp_base_hi
  *
@@ -217,7 +217,7 @@ int test_gm20b_pbdma_get_gp_base(struct unit_module *m,
  *
  * Description: Check RAMFC wrappers for instance block init
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: gm20b_pbdma_get_fc_subdevice
  *
@@ -257,7 +257,7 @@ int test_gm20b_pbdma_get_ctrl_hce_priv_mode_yes(struct unit_module *m,
  *
  * Description: Check USERD HALs for instance block init
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: gm20b_pbdma_get_userd_addr, gm20b_pbdma_get_userd_hi_addr,
  * gm20b_pbdma_get_userd_aperture_mask

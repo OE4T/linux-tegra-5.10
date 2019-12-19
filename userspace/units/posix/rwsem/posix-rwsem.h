@@ -36,7 +36,7 @@
  *
  * Description: Initialisation of rwsem.
  *
- * Test Type: Feature based.
+ * Test Type: Feature
  *
  * Inputs:
  * 1) Global nvgpu_rwsem instance.
@@ -58,7 +58,7 @@ int test_rwsem_init(struct unit_module *m,
  *
  * Description: Testing the locking of a rwlock by multiple read threads.
  *
- * Test Type: Feature based.
+ * Test Type: Feature
  *
  * Inputs:
  * 1) Global nvgpu_rwsem instance.
@@ -109,7 +109,7 @@ int test_rwsem_read(struct unit_module *m,
  *
  * Description: Testing the locking of a rwlock by multiple write threads.
  *
- * Test Type: Feature based.
+ * Test Type: Feature
  *
  * Inputs:
  * 1) Global nvgpu_rwsem instance.
@@ -169,7 +169,7 @@ int test_rwsem_write(struct unit_module *m,
  *
  * Description: Testing the locking of a rwlock by write and read threads.
  *
- * Test Type: Feature based.
+ * Test Type: Feature
  *
  * Inputs:
  * 1) Global nvgpu_rwsem instance.

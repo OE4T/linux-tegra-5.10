@@ -38,7 +38,7 @@ struct gk20a;
  *
  * Description: Branch coverage for gv11b_runlist_entry_size
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Input: test_fifo_init_support() run for this GPU
  *
@@ -55,7 +55,7 @@ int test_gv11b_runlist_entry_size(struct unit_module *m,
  *
  * Description: Branch coverage for gv11b_runlist_get_tsg_entry
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Input: test_fifo_init_support() run for this GPU
  *
@@ -77,7 +77,7 @@ int test_gv11b_runlist_get_tsg_entry(struct unit_module *m,
  *
  * Description: Branch coverage for gv11b_runlist_get_ch_entry
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Input: test_fifo_init_support() run for this GPU
  *

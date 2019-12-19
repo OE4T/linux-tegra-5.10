@@ -37,7 +37,7 @@ struct unit_module;
  *
  * Description: Initialize environment for MM tests
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: None
  *
@@ -56,7 +56,7 @@ int test_env_init(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Description: Test FB flush
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: gk20a_mm_fb_flush
  *
@@ -82,7 +82,7 @@ int test_gk20a_mm_fb_flush(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Description: Test L2 flush
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: gk20a_mm_l2_flush, gk20a_mm_l2_invalidate_locked
  *
@@ -107,7 +107,7 @@ int test_gk20a_mm_l2_flush(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Description: Test L2 invalidate
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: gk20a_mm_l2_invalidate, gk20a_mm_l2_invalidate_locked
  *
@@ -132,7 +132,7 @@ int test_gk20a_mm_l2_invalidate(struct unit_module *m, struct gk20a *g,
  *
  * Description: Cleanup test environment
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: None
  *

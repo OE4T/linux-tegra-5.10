@@ -36,7 +36,7 @@
  * Description: The netlist unit shall query and populate
  * all ctxsw region info from ctxsw firmware.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Input: None
  *
@@ -62,7 +62,7 @@ int test_netlist_init_support(struct unit_module *m,
  * ctxsw bundels and fecs/gpccs related info.
  * Checks whether valid data is retured or not.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Input: None
  *
@@ -94,7 +94,7 @@ int test_netlist_query_tests(struct unit_module *m,
  *
  * Description: This test covers negative paths in netlist init.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Input: None
  *
@@ -117,7 +117,7 @@ int test_netlist_negative_tests(struct unit_module *m,
  * Description: The netlist unit removes all populated netlist
  * region info.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Input: None
  *

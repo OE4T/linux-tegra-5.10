@@ -38,7 +38,7 @@ struct unit_module;
  *
  * Description: This test helps to verify common.gr object context creation.
  *
- * Test Type: Feature based.
+ * Test Type: Feature
  *
  * Targets: #nvgpu_gr_setup_alloc_obj_ctx,
  *          #nvgpu_gr_obj_ctx_alloc,
@@ -69,7 +69,7 @@ int test_gr_setup_alloc_obj_ctx(struct unit_module *m,
  *
  * Description: This test helps to verify set_preemption_mode.
  *
- * Test Type: Feature based.
+ * Test Type: Feature
  *
  * Targets: #nvgpu_gr_setup_set_preemption_mode,
  *          #nvgpu_gr_obj_ctx_set_ctxsw_preemption_mode,
@@ -96,7 +96,7 @@ int test_gr_setup_set_preemption_mode(struct unit_module *m,
  *
  * Description: Helps to verify common.gr object context cleanup.
  *
- * Test Type: Feature based.
+ * Test Type: Feature
  *
  * Targets: #nvgpu_gr_setup_free_subctx,
  *          #nvgpu_gr_setup_free_gr_ctx.
@@ -121,7 +121,7 @@ int test_gr_setup_free_obj_ctx(struct unit_module *m,
  * Description: Helps to verify error paths in
  *              g->ops.gr.setup.set_preemption_mode call.
  *
- * Test Type: Error injection.
+ * Test Type: Error injection
  *
  * Targets: #nvgpu_gr_setup_set_preemption_mode,
  *          #nvgpu_gr_obj_ctx_set_ctxsw_preemption_mode.
@@ -147,7 +147,7 @@ int test_gr_setup_preemption_mode_errors(struct unit_module *m,
  * Description: Helps to verify error paths in
  *              g->ops.gr.setup.alloc_obj_ctx call.
  *
- * Test Type: Error injection.
+ * Test Type: Error injection
  *
  * Targets: #nvgpu_gr_setup_alloc_obj_ctx,
  *          #nvgpu_gr_subctx_alloc, #nvgpu_gr_obj_ctx_alloc,

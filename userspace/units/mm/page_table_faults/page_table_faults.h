@@ -38,7 +38,7 @@ struct unit_module;
  * Description: This test must be run once and be the first one as it
  * initializes the MM subsystem.
  *
- * Test Type: Feature based, Init
+ * Test Type: Feature, Other (setup)
  *
  * Targets: nvgpu_vm_init
  *
@@ -66,7 +66,7 @@ int test_page_faults_init(struct unit_module *m, struct gk20a *g, void *__args);
  * Description: Check that no faults are already pending, then add one and check
  * that it is pending.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: gv11b_mc_is_mmu_fault_pending
  *
@@ -90,7 +90,7 @@ int test_page_faults_pending(struct unit_module *m, struct gk20a *g,
  *
  * Description: Test the fault_disable_hw mechanism.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: gv11b_mm_mmu_fault_disable_hw, gv11b_fb_is_fault_buf_enabled
  *
@@ -117,7 +117,7 @@ int test_page_faults_disable_hw(struct unit_module *m, struct gk20a *g,
  * - 2: nvgpu_alloc_inst_block with large page size and set_big_page_size set to
  *      NULL to test a corner case in gv11b_init_inst_block (branch coverage)
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: gp10b_mm_get_default_big_page_size, nvgpu_alloc_inst_block,
  * gv11b_mm_init_inst_block

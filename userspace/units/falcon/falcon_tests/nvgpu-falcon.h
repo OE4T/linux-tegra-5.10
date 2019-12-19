@@ -35,7 +35,7 @@ struct unit_module;
  * Description: The falcon unit shall be able to initialize the falcon's
  * base register address, required software setup for valid falcon ID.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Input: None.
  *
@@ -67,7 +67,7 @@ int test_falcon_sw_init_free(struct unit_module *m, struct gk20a *g,
  * Description: The falcon unit shall be able to reset the falcon CPU or trigger
  * engine specific reset for valid falcon ID.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Input: None.
  *
@@ -91,7 +91,7 @@ int test_falcon_reset(struct unit_module *m, struct gk20a *g, void *__args);
  * Description: The falcon unit shall be able to check and return the falcon
  * memory scrub status.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Input: None.
  *
@@ -116,7 +116,7 @@ int test_falcon_mem_scrub(struct unit_module *m, struct gk20a *g, void *__args);
  * Description: The falcon unit shall be able to check and return the falcon
  * idle status.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Input: None.
  *
@@ -144,7 +144,7 @@ int test_falcon_idle(struct unit_module *m, struct gk20a *g, void *__args);
  * Description: The falcon unit shall be able to check and return the falcon
  * halt status.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Input: None.
  *
@@ -169,7 +169,7 @@ int test_falcon_halt(struct unit_module *m, struct gk20a *g, void *__args);
  * Description: The falcon unit shall be able to write to falcon's IMEM and
  * DMEM.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Input: None.
  *
@@ -197,7 +197,7 @@ int test_falcon_mem_rw_init(struct unit_module *m, struct gk20a *g,
  * Description: The falcon unit shall be able to write to falcon's IMEM and
  * DMEM in accessible range.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Input: None.
  *
@@ -222,7 +222,7 @@ int test_falcon_mem_rw_range(struct unit_module *m, struct gk20a *g,
  * Description: The falcon unit shall be able to write to falcon's IMEM and
  * DMEM only at aligned offsets.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Input: None.
  *
@@ -248,7 +248,7 @@ int test_falcon_mem_rw_aligned(struct unit_module *m, struct gk20a *g,
  * Description: The falcon unit shall fail the API call to write zero
  * bytes to falcon memory.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Input: None.
  *
@@ -269,7 +269,7 @@ int test_falcon_mem_rw_zero(struct unit_module *m, struct gk20a *g,
  * Description: The falcon unit shall read and write value of falcon's mailbox
  * registers.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Input: None.
  *
@@ -293,7 +293,7 @@ int test_falcon_mailbox(struct unit_module *m, struct gk20a *g, void *__args);
  * Description: The falcon unit shall configure the bootstrap parameters into
  * falcon memory and registers.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Input: None.
  *
@@ -333,7 +333,7 @@ int test_falcon_bootstrap(struct unit_module *m, struct gk20a *g, void *__args);
  * Description: The falcon unit shall be able to read/write from/to falcon's
  * IMEM and DMEM from memory buffer that is unaligned.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Input: None.
  *

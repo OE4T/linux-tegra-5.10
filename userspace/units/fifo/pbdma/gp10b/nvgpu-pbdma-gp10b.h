@@ -38,7 +38,7 @@ struct gk20a;
  *
  * Description: Get RAMFC setting for PBDMA signature
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: gp10b_pbdma_get_signature
  *
@@ -58,7 +58,7 @@ int test_gp10b_pbdma_get_signature(struct unit_module *m,
  *
  * Description: Get RAMFC setting for runlist timeslice
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: gp10b_pbdma_get_fc_runlist_timeslice
  *
@@ -79,7 +79,7 @@ int test_gp10b_pbdma_get_fc_runlist_timeslice(struct unit_module *m,
  *
  * Description: Get RAMFC setting for privileged channel
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: gp10b_pbdma_get_config_auth_level_privileged
  *

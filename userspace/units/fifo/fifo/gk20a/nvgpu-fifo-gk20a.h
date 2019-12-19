@@ -38,7 +38,7 @@ struct gk20a;
  *
  * Description: Init PBDMA to runlists map
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: gk20a_fifo_init_pbdma_map
  *
@@ -60,7 +60,7 @@ int test_gk20a_init_pbdma_map(struct unit_module *m,
  *
  * Description: Init PBDMA to runlists map
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: gk20a_fifo_get_runlist_timeslice, gk20a_fifo_get_pb_timeslice
  *

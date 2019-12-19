@@ -38,7 +38,7 @@ struct gk20a;
  *
  * Description: Branch coverage for gk20a_channel_enable
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Input: test_fifo_init_support() run for this GPU
  *
@@ -57,7 +57,7 @@ int test_gk20a_channel_enable(struct unit_module *m,
  *
  * Description: Branch coverage for gk20a_channel_disable
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Input: test_fifo_init_support() run for this GPU
  *
@@ -76,7 +76,7 @@ int test_gk20a_channel_disable(struct unit_module *m,
  *
  * Description: Branch coverage for gk20a_channel_read_state
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Input: test_fifo_init_support() run for this GPU
  *

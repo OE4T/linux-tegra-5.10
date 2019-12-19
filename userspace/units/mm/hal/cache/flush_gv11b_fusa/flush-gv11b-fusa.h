@@ -37,7 +37,7 @@ struct unit_module;
  *
  * Description: Initialize environment for MM tests
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: None
  *
@@ -56,7 +56,7 @@ int test_env_init(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Description: Test L2 flush
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: gv11b_mm_l2_flush
  *
@@ -84,7 +84,7 @@ int test_gv11b_mm_l2_flush(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Description: Cleanup test environment
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: None
  *

@@ -38,7 +38,7 @@ struct gk20a;
  *
  * Description: Bind channel to HW
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: gm20b_channel_bind
  *
@@ -64,7 +64,7 @@ int test_gm20b_channel_bind(struct unit_module *m,
  *
  * Description: Force reload of channel context
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: gm20b_channel_force_ctx_reload
  *

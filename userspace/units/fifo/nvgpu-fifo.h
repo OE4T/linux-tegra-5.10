@@ -46,7 +46,7 @@
  *
  * Description: The FIFO unit shall initialize all sub-units.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Input: None
  *
@@ -77,7 +77,7 @@ int test_fifo_init_support(struct unit_module *m,
  *
  * Description: The FIFO unit shall de-initialize all sub-units.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Input: test_fifo_init_support() called for this GPU.
  *

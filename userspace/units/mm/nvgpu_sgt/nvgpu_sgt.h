@@ -37,7 +37,7 @@ struct unit_module;
  *
  * Description: Tests for the simple APIs provided by nvgpu_sgt unit.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Input: None
  *
@@ -79,7 +79,7 @@ int test_nvgpu_sgt_basic_apis(struct unit_module *m, struct gk20a *g,
  * Description: Tests test_nvgpu_sgt_get_next API by building sgl's and
  *              verifying correct pointers returned by calling the API.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Input: None
  *
@@ -100,7 +100,7 @@ int test_nvgpu_sgt_get_next(struct unit_module *m, struct gk20a *g,
  *
  * Description: Test the alignment API for the case where there is no IOMMU.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Input: Static sgt_align_test_array table of alignment combinations.
  *
@@ -126,7 +126,7 @@ int test_nvgpu_sgt_alignment_non_iommu(struct unit_module *m,
  *
  * Description: Test the alignment API for the case where there is an IOMMU.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Input: None
  *

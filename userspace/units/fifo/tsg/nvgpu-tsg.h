@@ -38,7 +38,7 @@ struct gk20a;
  *
  * Description: Create TSG
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: nvgpu_tsg_open
  *
@@ -69,7 +69,7 @@ int test_tsg_open(struct unit_module *m,
  *
  * Description: Bind channel to TSG.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: nvgpu_tsg_bind_channel
  *
@@ -106,7 +106,7 @@ int test_tsg_bind_channel(struct unit_module *m,
  *
  * Description: Unbind channel from TSG.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: nvgpu_tsg_unbind_channel
  *
@@ -151,7 +151,7 @@ int test_tsg_unbind_channel(struct unit_module *m,
  *
  * Description: Release TSG.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: nvgpu_tsg_release
  *
@@ -186,7 +186,7 @@ int test_tsg_release(struct unit_module *m,
  *
  * Description: Check HW state during TSG unbind channel.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: nvgpu_tsg_unbind_channel_check_hw_state
  *
@@ -212,7 +212,7 @@ int test_tsg_unbind_channel_check_hw_state(struct unit_module *m,
  *
  * Description: Check if channel reload is needed during TSG unbind
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: nvgpu_tsg_unbind_channel_check_ctx_reload
  *
@@ -239,7 +239,7 @@ int test_tsg_unbind_channel_check_ctx_reload(struct unit_module *m,
  *
  * Description: Enable/disable TSG
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: nvgpu_tsg_enable, nvgpu_tsg_disable
  *
@@ -266,7 +266,7 @@ int test_tsg_enable(struct unit_module *m,
  *
  * Description: Get TSG context from id
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: tsg_check_and_get_from_id
  *
@@ -288,7 +288,7 @@ int test_tsg_check_and_get_from_id(struct unit_module *m,
  *
  * Description: Abort TSG
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: nvgpu_tsg_abort
  *
@@ -316,7 +316,7 @@ int test_tsg_abort(struct unit_module *m,
  *
  * Description: SW Initialization for TSGs
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: nvgpu_tsg_setup_sw
  *
@@ -338,7 +338,7 @@ int test_tsg_setup_sw(struct unit_module *m,
  *
  * Description: Mark all channels unserviceable in a TSG
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: nvgpu_tsg_mark_error
  *
@@ -365,7 +365,7 @@ int test_tsg_mark_error(struct unit_module *m,
  *
  * Description: Set MMU fault error notifier for TSG
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: nvgpu_tsg_set_ctx_mmu_error
  *
@@ -388,7 +388,7 @@ int test_tsg_set_ctx_mmu_error(struct unit_module *m,
  *
  * Description: Reset faulted engine and/or PBDMAs for a TSG
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: nvgpu_tsg_reset_faulted_eng_pbdma
  *

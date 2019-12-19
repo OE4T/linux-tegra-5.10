@@ -38,7 +38,7 @@ struct gk20a;
  *
  * Description: Branch coverage for gm20b_read_engine_status_info
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Input: test_fifo_init_support has run.
  *

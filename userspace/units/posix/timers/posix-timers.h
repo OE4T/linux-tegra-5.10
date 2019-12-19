@@ -34,7 +34,7 @@
  *
  * Description: Test the timer initialization routine.
  *
- * Test Type: Feature based.
+ * Test Type: Feature
  *
  * Inputs:
  * 1) The type of timer to be tested is passed as an argument to the test.
@@ -65,7 +65,7 @@ int test_timer_init(struct unit_module *m,
  *
  * Description: Test the timer initialisation routine error path.
  *
- * Test Type: Boundary Value analysis.
+ * Test Type: Boundary values
  *
  * Inputs:
  * 1) Global nvgpu_timeout structure instance.
@@ -92,7 +92,7 @@ int test_timer_init_err(struct unit_module *m,
  *
  * Description: Test the counter based timer functionality.
  *
- * Test Type: Feature based.
+ * Test Type: Feature
  *
  * Input:
  * 1) Global nvgpu_timeout structure instance.
@@ -122,7 +122,7 @@ int test_timer_counter(struct unit_module *m,
  *
  * Description: Test the duration based timer functionality.
  *
- * Test Type: Feature based.
+ * Test Type: Feature
  *
  * Input:
  * 1) Global nvgpu_timeout structure instance.
@@ -151,7 +151,7 @@ int test_timer_duration(struct unit_module *m,
  *
  * Description: Test the delay functionality.
  *
- * Test Type: Feature based.
+ * Test Type: Feature
  *
  * Input: None.
  *
@@ -183,7 +183,7 @@ int test_timer_delay(struct unit_module *m,
  *
  * Description: Test the sleep functionality.
  *
- * Test Type: Feature based.
+ * Test Type: Feature
  *
  * Input: None.
  *
@@ -208,7 +208,7 @@ int test_timer_msleep(struct unit_module *m,
  *
  * Description: Test the high resolution counter based functionalities.
  *
- * Test Type: Feature based.
+ * Test Type: Feature
  *
  * Input: None.
  *
@@ -237,7 +237,7 @@ int test_timer_hrtimestamp(struct unit_module *m,
  *
  * Description: Compare the timers in various resoutions.
  *
- * Test Type: Feature based.
+ * Test Type: Feature
  *
  * Input: None.
  *

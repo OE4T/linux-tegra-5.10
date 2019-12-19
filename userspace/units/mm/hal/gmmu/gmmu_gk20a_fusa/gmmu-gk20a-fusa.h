@@ -37,7 +37,7 @@ struct unit_module;
  *
  * Description: Test PDE page size
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: gk20a_get_pde_pgsz
  *
@@ -56,7 +56,7 @@ int test_gk20a_get_pde_pgsz(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Description: Test PTE page size
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: gk20a_get_pte_pgsz
  *

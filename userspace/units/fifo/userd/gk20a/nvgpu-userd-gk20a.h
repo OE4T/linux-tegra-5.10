@@ -38,7 +38,7 @@ struct gk20a;
  *
  * Description: USERD entry size
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: gk20a_userd_entry_size
  *

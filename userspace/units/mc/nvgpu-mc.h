@@ -77,7 +77,7 @@ int test_free_env(struct unit_module *m, struct gk20a *g, void *args);
  * Description: Validate function of nvgpu_mc_intr_stall_unit_config and
  *              nvgpu_mc_intr_nonstall_unit_config.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: nvgpu_mc_intr_stall_unit_config, nvgpu_mc_intr_nonstall_unit_config
  *
@@ -115,7 +115,7 @@ int test_unit_config(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Description: Validate function for pausing, resuming, and masking interrupts.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: nvgpu_mc_intr_stall_pause, nvgpu_mc_intr_stall_resume,
  *          nvgpu_mc_intr_nonstall_pause, nvgpu_mc_intr_nonstall_resume,
@@ -151,7 +151,7 @@ int test_pause_resume_mask(struct unit_module *m, struct gk20a *g, void *args);
  * Description: Validate function mc_gp10b_intr_stall which returns the pending
  *              interrupts.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: mc_gp10b_intr_stall
  *
@@ -171,7 +171,7 @@ int test_intr_stall(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Description: Validate function of HAL gv11b_mc_is_stall_and_eng_intr_pending.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: gv11b_mc_is_stall_and_eng_intr_pending
  *
@@ -194,7 +194,7 @@ int test_is_stall_and_eng_intr_pending(struct unit_module *m, struct gk20a *g,
  * Description: Validate handling of the stall interrupts by the stall interrupt
  *              service routine.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: mc_gp10b_isr_stall
  *
@@ -232,7 +232,7 @@ int test_isr_stall(struct unit_module *m, struct gk20a *g, void *args);
  * Description: Validate handling of the stall interrupts by the non-stall
  * 		interrupt service routine.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: gm20b_mc_isr_nonstall
  *
@@ -259,7 +259,7 @@ int test_isr_nonstall(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Description: Validate functionality of mc_gp10b_is_intr1_pending.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: mc_gp10b_is_intr1_pending
  *
@@ -284,7 +284,7 @@ int test_is_intr1_pending(struct unit_module *m, struct gk20a *g, void *args);
  * Description: Validate functionality of functions for enabling, disabling,
  *              and reseting units.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: gm20b_mc_enable, gm20b_mc_disable, gm20b_mc_reset
  *
@@ -307,7 +307,7 @@ int test_enable_disable_reset(struct unit_module *m, struct gk20a *g, void *args
  *
  * Description: Validate functionality of HAL to get reset mask for a unit.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: gm20b_mc_reset_mask
  *
@@ -328,7 +328,7 @@ int test_reset_mask(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Description: Validate functionality of HAL to get reset mask for a unit.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: nvgpu_wait_for_deferred_interrupts
  *

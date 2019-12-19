@@ -38,7 +38,7 @@ struct gk20a;
  *
  * Description: Reset and enable HW
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: gv11b_init_fifo_reset_enable_hw, gv11b_init_fifo_setup_hw
  *
@@ -61,7 +61,7 @@ int test_gv11b_fifo_init_hw(struct unit_module *m,
  *
  * Description: Get PBDMA id from MMU fault
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: gv11b_fifo_mmu_fault_id_to_pbdma_id
  *
