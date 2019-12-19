@@ -89,6 +89,7 @@ UNITS :=				\
 	$(UNIT_SRC)/netlist		\
         $(UNIT_SRC)/fb 	        	\
 	$(UNIT_SRC)/fbp			\
+	$(UNIT_SRC)/mock-iospace	\
 	$(UNIT_SRC)/fifo		\
 	$(UNIT_SRC)/fifo/fifo/gk20a	\
 	$(UNIT_SRC)/fifo/fifo/gv11b	\
@@ -136,5 +137,4 @@ UNITS :=				\
 	$(UNIT_SRC)/acr			\
 	$(UNIT_SRC)/ce			\
 	$(UNIT_SRC)/cg                  \
-	$(UNIT_SRC)/sync		\
-	$(UNIT_SRC)/mock-iospace
+	$(UNIT_SRC)/sync
