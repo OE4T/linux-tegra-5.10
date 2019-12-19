@@ -1,7 +1,7 @@
 /*
  * FIFO common definitions.
  *
- * Copyright (c) 2011-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -511,15 +511,12 @@ int nvgpu_fifo_suspend(struct gk20a *g);
  *
  * @param g [in]	The GPU driver struct.
  *
- * Gracefully put FIFO into a non-functioning state to ensure that no corrupted
+ * Put FIFO into a non-functioning state to ensure that no corrupted
  * work is completed because of the fault. This is because the freedom
  * from interference may not always be shown between the faulted and
  * the non-faulted TSG contexts.
  * - Disable all runlists
  * - Preempt all runlists
- * - Quiesce all channels
- *
- * @see nvgpu_channel_sw_quiesce
  */
 void nvgpu_fifo_sw_quiesce(struct gk20a *g);
 #endif

@@ -109,7 +109,7 @@ nvgpu_bug_cb_from_node(struct nvgpu_list_node *node)
 };
 
 #ifdef __KERNEL__
-static inline void nvgpu_bug_exit(void) { }
+static inline void nvgpu_bug_exit(int status) { }
 static inline void nvgpu_bug_register_cb(struct nvgpu_bug_cb *cb) { }
 static inline void nvgpu_bug_unregister_cb(struct nvgpu_bug_cb *cb) { }
 #endif

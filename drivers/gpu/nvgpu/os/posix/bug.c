@@ -89,6 +89,13 @@ static void nvgpu_bug_init(void)
 	bug.in_use = true;
 }
 
+void nvgpu_bug_exit(int status)
+{
+#ifndef __NVGPU_UNIT_TEST__
+	exit(status);
+#endif
+}
+
 void nvgpu_bug_register_cb(struct nvgpu_bug_cb *cb)
 {
 	(void) pthread_once(&bug.once, nvgpu_bug_init);

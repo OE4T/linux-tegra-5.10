@@ -1,7 +1,7 @@
 /*
  * FIFO
  *
- * Copyright (c) 2011-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -282,20 +282,11 @@ int nvgpu_fifo_suspend(struct gk20a *g)
 #ifndef CONFIG_NVGPU_RECOVERY
 void nvgpu_fifo_sw_quiesce(struct gk20a *g)
 {
-	u32 runlist_mask;
+	u32 runlist_mask = U32_MAX;
 
-	nvgpu_runlist_lock_active_runlists(g);
-
-	/* Disable all runlists */
-	runlist_mask = nvgpu_runlist_get_runlists_mask(g,
-			0U, ID_TYPE_UNKNOWN, 0U, 0U);
 	g->ops.runlist.write_state(g, runlist_mask, RUNLIST_DISABLED);
 
 	/* Preempt all runlists */
 	g->ops.fifo.preempt_runlists_for_rc(g, runlist_mask);
-
-	nvgpu_channel_sw_quiesce(g);
-
-	nvgpu_runlist_unlock_active_runlists(g);
 }
 #endif

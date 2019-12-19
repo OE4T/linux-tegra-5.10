@@ -719,7 +719,6 @@ int test_quiesce(struct unit_module *m, struct gk20a *g, void *args)
 	nvgpu_set_power_state(g, NVGPU_STATE_POWERED_ON);
 
 	/* make sure we simulate interrupts enabled */
-	g->mc.irqs_enabled = true;
 	intr_masked = false;
 
 	/* setup HAL for masking interrupts */
@@ -740,10 +739,8 @@ int test_quiesce(struct unit_module *m, struct gk20a *g, void *args)
 	/* wait for quiesce thread to complete */
 	nvgpu_thread_join(&g->sw_quiesce_thread);
 
-
-
-	if (g->mc.irqs_enabled || !intr_masked) {
-		unit_err(m, "quiesce failed to disable interrupts\n");
+	if (!intr_masked) {
+		unit_err(m, "quiesce failed to mask interrupts\n");
 		ret = UNIT_FAIL;
 	}
 

@@ -125,6 +125,16 @@ void nvgpu_bug_cb_longjmp(void *arg);
 struct nvgpu_bug_cb;
 
 /**
+ * @brief Exit current process
+ *
+ * @param status [in]	Status to return
+ *
+ * This function is used during BUG() handling to exit
+ * current process.
+ */
+void nvgpu_bug_exit(int status);
+
+/**
  * @brief Register callback to be invoked on BUG()
  *
  * @param cb [in]	Pointer to callback structure

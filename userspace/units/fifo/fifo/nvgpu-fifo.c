@@ -28,6 +28,7 @@
 #include <nvgpu/posix/posix-fault-injection.h>
 #include <nvgpu/posix/dma.h>
 #include <nvgpu/io.h>
+#include <nvgpu/runlist.h>
 
 #include "hal/init/hal_gv11b.h"
 #include "nvgpu/hw/gk20a/hw_fifo_gk20a.h"
@@ -166,6 +167,7 @@ int test_fifo_sw_quiesce(struct unit_module *m, struct gk20a *g, void *args)
 	u32 reg_val;
 	int ret = UNIT_FAIL;
 	int err;
+	u32 runlist_mask;
 
 	err = test_fifo_setup_gv11b_reg_space(m, g);
 	unit_assert(err == 0, goto done);
@@ -176,9 +178,12 @@ int test_fifo_sw_quiesce(struct unit_module *m, struct gk20a *g, void *args)
 	unit_assert(err == 0, goto done);
 
 #ifndef CONFIG_NVGPU_RECOVERY
-		nvgpu_fifo_sw_quiesce(g);
-		reg_val = nvgpu_readl(g, fifo_sched_disable_r());
-		unit_assert(reg_val == 3U, goto done);
+	runlist_mask = nvgpu_runlist_get_runlists_mask(g, 0U,
+		ID_TYPE_UNKNOWN, 0U, 0U);
+	unit_assert(runlist_mask != 0U, goto done);
+	nvgpu_fifo_sw_quiesce(g);
+	reg_val = nvgpu_readl(g, fifo_sched_disable_r());
+	unit_assert((reg_val & runlist_mask) == runlist_mask, goto done);
 #endif
 	ret = UNIT_SUCCESS;
 
