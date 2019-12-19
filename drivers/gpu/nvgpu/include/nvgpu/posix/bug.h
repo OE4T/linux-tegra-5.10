@@ -94,25 +94,7 @@ void nvgpu_posix_bug(const char *fmt, ...) __attribute__ ((noreturn));
 bool nvgpu_posix_warn(bool cond, const char *fmt, ...);
 
 #ifdef __NVGPU_UNIT_TEST__
-/* Provide a simple API for BUG() handling */
-
-/**
- * @brief Bug handler register.
- *
- * @param handler [in]	Bug handler
- *
- * Registers a handler for handling bug.  Used in unit testing.
- */
-void bug_handler_register(jmp_buf *handler);
-
-/**
- * @brief Cancels the bug handler.
- *
- * @param void.
- *
- * Cancels the handler for handling bug.  Used in unit testing.
- */
-void bug_handler_cancel(void);
+void nvgpu_bug_cb_longjmp(void *arg);
 
 /**
  * Macro to indicate that a BUG() call is expected when executing
@@ -120,18 +102,23 @@ void bug_handler_cancel(void);
  * and the setjmp API to set a long jump point that gets called by the BUG()
  * function if enabled. This allows the macro to simply expand as true if
  * BUG() was called, and false otherwise.
+ * Note: it is safe to call nvgpu_bug_unregister_cb for a callback
+ * that was already invoked/unregistered.
  */
-#define EXPECT_BUG(code_to_run)				\
-	({						\
-		jmp_buf handler;			\
-		volatile bool bug_result = true;	\
-		if (setjmp(handler) == 0) {		\
-			bug_handler_register(&handler);	\
-			code_to_run;			\
-			bug_handler_cancel();		\
-			bug_result = false;		\
-		}					\
-		bug_result;				\
+#define EXPECT_BUG(code_to_run)					\
+	({							\
+		jmp_buf handler;				\
+		volatile bool bug_result = true;		\
+		struct nvgpu_bug_cb callback;			\
+		callback.cb = nvgpu_bug_cb_longjmp;		\
+		callback.arg = &handler;			\
+		nvgpu_bug_register_cb(&callback);		\
+		if (setjmp(handler) == 0) {			\
+			code_to_run;				\
+			bug_result = false;			\
+		}						\
+		nvgpu_bug_unregister_cb(&callback);		\
+		bug_result;					\
 	})
 #endif
 

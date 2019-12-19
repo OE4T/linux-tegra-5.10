@@ -37,20 +37,24 @@
 
 #define BACKTRACE_MAXSIZE 1024
 
+struct nvgpu_bug_desc {
+	bool in_use;
+	pthread_once_t once;
+	struct nvgpu_spinlock lock;
+	struct nvgpu_list_node head;
+};
+
+struct nvgpu_bug_desc bug = {
+	.once = PTHREAD_ONCE_INIT
+};
+
 #ifdef __NVGPU_UNIT_TEST__
-static _Thread_local bool expect_bug;
-static _Thread_local jmp_buf *jmp_handler;
-
-void bug_handler_register(jmp_buf *handler)
+void nvgpu_bug_cb_longjmp(void *arg)
 {
-	expect_bug = true;
-	jmp_handler = handler;
-}
+	nvgpu_info(NULL, "Expected BUG detected!");
 
-void bug_handler_cancel(void)
-{
-	expect_bug = false;
-	jmp_handler = NULL;
+	jmp_buf *jmp_handler = arg;
+	longjmp(*jmp_handler, 1);
 }
 #endif
 
@@ -76,17 +80,6 @@ void dump_stack(void)
 	/* Skip this function and nvgpu_posix_dump_stack() */
 	nvgpu_posix_dump_stack(2);
 }
-
-struct nvgpu_bug_desc {
-	bool in_use;
-	pthread_once_t once;
-	struct nvgpu_spinlock lock;
-	struct nvgpu_list_node head;
-};
-
-struct nvgpu_bug_desc bug = {
-	.once = PTHREAD_ONCE_INIT
-};
 
 static void nvgpu_bug_init(void)
 {
@@ -119,14 +112,6 @@ void nvgpu_posix_bug(const char *fmt, ...)
 {
 	struct nvgpu_bug_cb *cb;
 
-#ifdef __NVGPU_UNIT_TEST__
-	if (expect_bug) {
-		nvgpu_info(NULL, "Expected BUG detected!");
-		expect_bug = false;
-		/* Perform a long jump to where "setjmp()" was called. */
-		longjmp(*jmp_handler, 1);
-	}
-#endif
 	/*
 	 * If BUG was unexpected, raise a SIGSEGV signal, dump the stack and
 	 * kill the thread.

@@ -1,8 +1,6 @@
 # Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
 
 bitmap_find_next_zero_area_off
-bug_handler_cancel
-bug_handler_register
 fb_gv11b_write_mmu_fault_buffer_get
 find_first_bit
 find_first_zero_bit
@@ -272,6 +270,7 @@ nvgpu_big_pages_possible
 nvgpu_bitmap_clear
 nvgpu_bitmap_set
 nvgpu_bsearch
+nvgpu_bug_cb_longjmp
 nvgpu_bug_register_cb
 nvgpu_bug_unregister_cb
 nvgpu_can_busy
