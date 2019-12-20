@@ -60,6 +60,7 @@ struct nvgpu_os_posix {
 	 */
 	bool is_soc_t194_a01;
 	bool is_silicon;
+	bool is_fpga;
 	bool is_simulation;
 };
 

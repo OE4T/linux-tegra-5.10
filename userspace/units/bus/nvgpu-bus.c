@@ -180,6 +180,7 @@ int test_init_hw(struct unit_module *m, struct gk20a *g, void *args)
 	nvgpu_writel(g, bus_debug_sel_2_r(), 0xFU);
 	nvgpu_writel(g, bus_debug_sel_3_r(), 0xFU);
 
+	p->is_fpga = false;
 	p->is_silicon = false;
 	g->ops.bus.configure_debug_bus = NULL;
 	ret = g->ops.bus.init_hw(g);
@@ -198,6 +199,10 @@ int test_init_hw(struct unit_module *m, struct gk20a *g, void *args)
 	assert(nvgpu_readl(g, bus_debug_sel_2_r()) == 0x0U);
 	assert(nvgpu_readl(g, bus_debug_sel_3_r()) == 0x0U);
 
+	p->is_fpga = true;
+	p->is_silicon = false;
+	ret = g->ops.bus.init_hw(g);
+	assert(nvgpu_readl(g, bus_intr_en_0_r()) == 0xEU);
 	ret = UNIT_SUCCESS;
 done:
 	return ret;
@@ -238,9 +243,22 @@ int test_bar_bind(struct unit_module *m, struct gk20a *g, void *args)
 	assert(nvgpu_readl(g, bus_bar1_block_r()) == 0x800CE418U);
 
 	/* Call bus.bar1_bind HAL again and except ret != 0 as the bind status
-	 * will remain pending and outstanding during this call.
+	 * will remain outstanding during this call.
 	 */
 	nvgpu_posix_io_writel_reg_space(g, bus_bind_status_r(), 0x5U);
+	ret = g->ops.bus.bar1_bind(g, &bar_inst);
+	/* The HAL should return error this time as timeout is expected to
+	 * expire.
+	 */
+	if (ret != -EINVAL) {
+		unit_err(m, "bus.bar1_bind did not fail as expected.\n");
+		ret = UNIT_FAIL;
+	}
+
+	/* Call bus.bar1_bind HAL again and except ret != 0 as the bind status
+	 * will remain pending during this call.
+	 */
+	nvgpu_posix_io_writel_reg_space(g, bus_bind_status_r(), 0xAU);
 	ret = g->ops.bus.bar1_bind(g, &bar_inst);
 	/* The HAL should return error this time as timeout is expected to
 	 * expire.
@@ -269,7 +287,17 @@ int test_bar_bind(struct unit_module *m, struct gk20a *g, void *args)
 	assert(nvgpu_readl(g, bus_bar2_block_r()) == 0x8002670CU);
 
 	/* Call bus.bar2_bind HAL again and except ret != 0 as the bind status
-	 * will remain pending and outstanding during this call.
+	 * will remain outstanding during this call.
+	 */
+	nvgpu_posix_io_writel_reg_space(g, bus_bind_status_r(), 0x5U);
+	ret = g->ops.bus.bar2_bind(g, &bar_inst);
+	if (ret != -EINVAL) {
+		unit_err(m, "bus.bar2_bind did not fail as expected.\n");
+		ret = UNIT_FAIL;
+	}
+
+	/* Call bus.bar2_bind HAL again and except ret != 0 as the bind status
+	 * will remain pending during this call.
 	 */
 	nvgpu_posix_io_writel_reg_space(g, bus_bind_status_r(), 0xAU);
 	ret = g->ops.bus.bar2_bind(g, &bar_inst);

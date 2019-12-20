@@ -82,11 +82,24 @@ int test_bus_free_reg_space(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Steps:
  * - Initialize the Debug bus related registers to non-zero value.
- * - Set is_silicon flag to true to get branch coverage.
+ * - Set is_silicon and is_fpga flag to false to get branch coverage.
+ * - Set configure_debug_bus HAL to NULL for branch coverage.
  * - Call init_hw() HAL.
+ * - Read back the interrupt enable register and check if it is equal to 0.
+ * - Read back the debug bus registers to make sure they are NOT zeroed out.
+ *
+ * - For more branch coverage, set is_silicon flag to true.
+ * - Initialize the configure_debug_bus HAL to gv11b_bus_configure_debug_bus.
+ * - Call init_hw() HAL.
+ * - Read back the interrupt enable register and check if it is equal to 0xEU.
+ * 	- PRI_SQUASH = Bit 1:1
+ *	- PRI_FECSERR = Bit 2:2
+ * 	- PRI_TIMEOUT = Bit 3:3
  * - Read back the debug bus registers to make sure they are zeroed out.
- *      pri_ringmaster_command_r = 0x4
- *      pri_ringstation_sys_decode_config_r = 0x2
+ *
+ * - For better branch coverage, set is_silicon to false and is_fpga to true
+ * - Call init_hw() HAL.
+ * - Read back the interrupt enable register and check if it is equal to 0xEU.
  *
  * Output:
  * - UNIT_FAIL if above HAL fails to enable interrupts.
@@ -117,8 +130,14 @@ int test_init_hw(struct unit_module *m, struct gk20a *g, void *args);
  *     - Bit 29:28- Target = (11)b
  *     - Bit 30   - Debug CYA = (0)b
  *     - Bit 31   - Mode = virtual = (1)b
+ * - Set bus_bind_status_r to 0x5U that is both bar1 and bar2 status
+ *   is set as outstanding.
  * - Call bus.bar1_bind HAL again and except ret != 0 as the bind status
- *   will remain pending and outstanding during this call.
+ *   will remain outstanding during this call.
+ * - Set bus_bind_status_r to 0xAU that is both bar1 and bar2 status
+ *   is set as pending.
+ * - Call bus.bar1_bind HAL again and except ret != 0 as the bind status
+ *   will remain pending during this call.
  * - The HAL should return error this time as timeout is expected to expire.
  * - Enable fault injection for the timer init call for branch coverage.
  * - Repeat the above steps for BAR2 but with different cpu_va = 0x2670C000U.
