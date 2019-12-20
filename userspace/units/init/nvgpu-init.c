@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -412,6 +412,11 @@ int test_hal_init(struct unit_module *m,
 	nvgpu_posix_io_writel_reg_space(g, GP10B_FUSE_OPT_PRIV_SEC_EN, 0x0);
 	if (nvgpu_detect_chip(g) != 0) {
 		unit_err(m, "%s: failed to init HAL\n", __func__);
+		return UNIT_FAIL;
+	}
+
+	if (strcmp(g->name, "gv11b") != 0) {
+		unit_err(m, "%s: initialized wrong HAL!\n", __func__);
 		return UNIT_FAIL;
 	}
 
