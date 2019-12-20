@@ -21,6 +21,8 @@
  */
 
 #include <stdlib.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 #include <unit/io.h>
 #include <unit/unit.h>
@@ -758,7 +760,6 @@ static const char *f_runlist_interleave_level_name[] = {
 int test_runlist_interleave_level_name(struct unit_module *m,
 				struct gk20a *g, void *args)
 {
-	int err = 0;
 	u32 branches = 0U;
 	int ret = UNIT_FAIL;
 	u32 fail = F_RUNLIST_INTERLEAVE_LEVEL_MEDIUM |
@@ -766,9 +767,6 @@ int test_runlist_interleave_level_name(struct unit_module *m,
 		F_RUNLIST_INTERLEAVE_LEVEL_DEFAULT;
 	u32 prune = fail;
 	const char *interleave_level_name = NULL;
-
-	err = nvgpu_runlist_setup_sw(g);
-	assert(err == 0);
 
 	for (branches = 0U; branches < F_RUNLIST_INTERLEAVE_LEVEL_LAST;
 		branches++) {
@@ -795,8 +793,13 @@ done:
 		unit_err(m, "%s failed\n", __func__);
 	}
 
-	nvgpu_runlist_cleanup_sw(g);
 	return ret;
+}
+
+static void stub_runlist_write_state(struct gk20a *g, u32 runlists_mask,
+					u32 runlist_state)
+{
+	stub[0].count = runlists_mask;
 }
 
 #define F_RUNLIST_SET_STATE_DISABLED		BIT(0)
@@ -810,18 +813,13 @@ static const char *f_runlist_set_state[] = {
 
 int test_runlist_set_state(struct unit_module *m, struct gk20a *g, void *args)
 {
-	u32 reg_val, reg_expected;
-	u32 runlist_mask = BIT(0U);
-	int err = 0;
+	struct gpu_ops gops = g->ops;
 	u32 branches = 0U;
 	int ret = UNIT_FAIL;
 	u32 fail = F_RUNLIST_SET_STATE_ENABLED | F_RUNLIST_SET_STATE_DISABLED;
 	u32 prune = fail;
 
-	err = nvgpu_runlist_setup_sw(g);
-	assert(err == 0);
-
-	reg_expected = nvgpu_readl(g, fifo_sched_disable_r());
+	g->ops.runlist.write_state = stub_runlist_write_state;
 
 	for (branches = 1U; branches < F_RUNLIST_SET_STATE_LAST; branches++) {
 
@@ -834,17 +832,11 @@ int test_runlist_set_state(struct unit_module *m, struct gk20a *g, void *args)
 		subtest_setup(branches);
 
 		if (branches & F_RUNLIST_SET_STATE_DISABLED) {
-			nvgpu_runlist_set_state(g, runlist_mask,
-							RUNLIST_DISABLED);
-			reg_val = nvgpu_readl(g, fifo_sched_disable_r());
-			reg_expected = reg_expected | runlist_mask;
-			assert(reg_val == reg_expected);
+			nvgpu_runlist_set_state(g, 0U, RUNLIST_DISABLED);
+			assert(stub[0].count == 0U);
 		} else {
-			nvgpu_runlist_set_state(g, runlist_mask,
-							RUNLIST_ENABLED);
-			reg_val = nvgpu_readl(g, fifo_sched_disable_r());
-			reg_expected = reg_expected & ~runlist_mask;
-			assert(reg_val == reg_expected);
+			nvgpu_runlist_set_state(g, 1U, RUNLIST_ENABLED);
+			assert(stub[0].count == 1U);
 		}
 	}
 
@@ -856,7 +848,7 @@ done:
 			branches_str(branches, f_runlist_set_state));
 	}
 
-	nvgpu_runlist_cleanup_sw(g);
+	g->ops = gops;
 	return ret;
 }
 
@@ -1065,18 +1057,23 @@ done:
 	return ret;
 }
 
-static int gk20a_runlist_wait_pending_timedout(struct gk20a *g, u32 runlist_id)
+static int stub_runlist_wait_pending_timedout(struct gk20a *g, u32 runlist_id)
 {
 	return -ETIMEDOUT;
 }
 
-static int gk20a_runlist_wait_pending_interrupted(struct gk20a *g,
+static int stub_runlist_wait_pending_interrupted(struct gk20a *g,
 								u32 runlist_id)
 {
 	return -EINTR;
 }
 
-static void gk20a_runlist_hw_submit_stub(struct gk20a *g, u32 runlist_id,
+static int stub_runlist_wait_pending_success(struct gk20a *g, u32 runlist_id)
+{
+	return 0;
+}
+
+static void stub_runlist_hw_submit(struct gk20a *g, u32 runlist_id,
 			u32 count, u32 buffer_index)
 {
 	return;
@@ -1102,21 +1099,11 @@ static const char *f_runlist_reload_ids[] = {
 int test_runlist_reload_ids(struct unit_module *m, struct gk20a *g, void *args)
 {
 	struct gpu_ops gops = g->ops;
-	struct nvgpu_runlist_info runlist;
-	struct nvgpu_runlist_info *runlists = &runlist;
-	unsigned long active_tsgs_map = 0;
-	unsigned long active_chs_map = 0;
-	struct nvgpu_tsg tsgs[1] = { {0} };
-	struct nvgpu_channel chs[5] = { {0} };
-	/* header + at most five channels */
-	const u32 entries_in_list_max = 1 + 5;
-	u32 rl_data[2 * entries_in_list_max];
-	u32 rl_data_1[2 * entries_in_list_max];
-	u32 runlist_ids;
-	bool add;
-	u32 branches;
+	bool add = false;
+	u32 runlist_ids = 0U;
+	u32 branches = 0U;
 	int ret = UNIT_FAIL;
-	int err;
+	int err = 0;
 	u32 fail = F_RUNLIST_RELOAD_IDS_GPU_NULL |
 			F_RUNLIST_RELOAD_IDS_WAIT_TIMEOUT |
 			F_RUNLIST_RELOAD_IDS_WAIT_INTERRUPT;
@@ -1125,15 +1112,9 @@ int test_runlist_reload_ids(struct unit_module *m, struct gk20a *g, void *args)
 			F_RUNLIST_RELOAD_IDS_RESTORE_CHANNELS |
 			fail;
 
-	setup_fifo(g, &active_tsgs_map, &active_chs_map, tsgs, chs, 1, 5,
-			&runlists, rl_data, false);
-
-	setup_tsg_multich(&tsgs[0], chs, 0, 2, 5, 3);
-
-	runlist.mem[1].aperture = APERTURE_SYSMEM;
-	runlist.mem[1].cpu_va = rl_data_1;
-
-	g->ops.runlist.hw_submit = gk20a_runlist_hw_submit_stub;
+	g->ops.runlist.hw_submit = stub_runlist_hw_submit;
+	err = nvgpu_runlist_setup_sw(g);
+	assert(err == 0);
 
 	for (branches = 1U; branches < F_RUNLIST_RELOAD_IDS_LAST;
 		branches++) {
@@ -1153,12 +1134,13 @@ int test_runlist_reload_ids(struct unit_module *m, struct gk20a *g, void *args)
 
 		if (branches & F_RUNLIST_RELOAD_IDS_WAIT_TIMEOUT) {
 			g->ops.runlist.wait_pending =
-					gk20a_runlist_wait_pending_timedout;
+					stub_runlist_wait_pending_timedout;
 		} else if (branches & F_RUNLIST_RELOAD_IDS_WAIT_INTERRUPT) {
 			g->ops.runlist.wait_pending =
-					gk20a_runlist_wait_pending_interrupted;
+					stub_runlist_wait_pending_interrupted;
 		} else {
-			g->ops.runlist.wait_pending = gops.runlist.wait_pending;
+			g->ops.runlist.wait_pending =
+					stub_runlist_wait_pending_success;
 		}
 
 		if (branches & F_RUNLIST_RELOAD_IDS_GPU_NULL) {
@@ -1186,14 +1168,17 @@ done:
 	return ret;
 }
 
-#define F_RUNLIST_UPDATE_ADD1				BIT(0)
-#define F_RUNLIST_UPDATE_ADD2				BIT(1)
-#define F_RUNLIST_UPDATE_CH_NULL			BIT(2)
-#define F_RUNLIST_UPDATE_CH_NO_UPDATE			BIT(3)
-#define F_RUNLIST_UPDATE_WAIT_FOR_FINISH		BIT(4)
-#define F_RUNLIST_UPDATE_RECONSTRUCT_FAIL		BIT(5)
-#define F_RUNLIST_UPDATE_REMOVE_ALL_CHANNELS		BIT(6)
-#define F_RUNLIST_UPDATE_LAST				BIT(7)
+static void stub_runlist_get_ch_entry(struct nvgpu_channel *ch, u32 *runlist)
+{
+}
+
+#define F_RUNLIST_UPDATE_ADD				BIT(0)
+#define F_RUNLIST_UPDATE_CH_NULL			BIT(1)
+#define F_RUNLIST_UPDATE_CH_TSGID_INVALID		BIT(2)
+#define F_RUNLIST_UPDATE_ADD_AGAIN			BIT(3)
+#define F_RUNLIST_UPDATE_RECONSTRUCT_FAIL		BIT(4)
+#define F_RUNLIST_UPDATE_REMOVE_ALL_CHANNELS		BIT(5)
+#define F_RUNLIST_UPDATE_LAST				BIT(6)
 
 static const char *f_runlist_update[] = {
 	"add_ch",
@@ -1209,38 +1194,38 @@ int test_runlist_update_locked(struct unit_module *m, struct gk20a *g,
 			void *args)
 {
 	struct gpu_ops gops = g->ops;
-	struct nvgpu_runlist_info runlist;
-	struct nvgpu_runlist_info *runlists = &runlist;
-	unsigned long active_tsgs_map = 0;
-	unsigned long active_chs_map = 0;
-	struct nvgpu_tsg tsgs[1] = { {0} };
-	struct nvgpu_channel chs[3] = { {0} };
-	/* header + at most three channels */
-	const u32 entries_in_list_max = 1 + 3;
-	u32 rl_data[2 * entries_in_list_max];
-	u32 rl_data_1[2 * entries_in_list_max];
-	bool add, wait_for_finish;
 	struct nvgpu_channel *ch = NULL;
-
+	struct nvgpu_tsg *tsg = NULL;
+	u32 num_runlist_entries_orig = 0U;
+	u32 ch_tsgid_orig = 0U;
+	bool add = false;
 	u32 branches = 0U;
 	int ret = UNIT_FAIL;
-	int err;
+	int err = 0;
 	u32 fail = F_RUNLIST_UPDATE_RECONSTRUCT_FAIL;
-	u32 prune = F_RUNLIST_UPDATE_CH_NO_UPDATE |
+	u32 prune = F_RUNLIST_UPDATE_CH_TSGID_INVALID |
+			F_RUNLIST_UPDATE_ADD_AGAIN |
 			F_RUNLIST_UPDATE_REMOVE_ALL_CHANNELS | fail;
 
-	setup_fifo(g, &active_tsgs_map, &active_chs_map, tsgs, chs, 1, 3,
-			&runlists, rl_data, false);
+	g->ops.runlist.hw_submit = stub_runlist_hw_submit;
+	g->ops.runlist.get_ch_entry = stub_runlist_get_ch_entry;
+	num_runlist_entries_orig = g->fifo.num_runlist_entries;
+	g->ptimer_src_freq = 31250000;
 
-	setup_tsg_multich(&tsgs[0], chs, 0, 0, 3, 3);
-	g->ops.runlist.hw_submit = gk20a_runlist_hw_submit_stub;
+	err = nvgpu_runlist_setup_sw(g);
+	unit_assert(err == 0, goto done);
 
-	runlist.mem[1].aperture = APERTURE_SYSMEM;
-	runlist.mem[1].cpu_va = rl_data_1;
+	tsg = nvgpu_tsg_open(g, getpid());
+	unit_assert(tsg != NULL, goto done);
 
-	chs[2].g = g;
-	chs[1].g = g;
-	chs[0].g = g;
+	ch = nvgpu_channel_open_new(g, NVGPU_INVALID_RUNLIST_ID, false,
+			getpid(), getpid());
+	unit_assert(ch != NULL, goto done);
+
+	err = nvgpu_tsg_bind_channel(tsg, ch);
+	unit_assert(err == 0, goto done);
+
+	ch_tsgid_orig = ch->tsgid;
 
 	for (branches = 0U; branches < F_RUNLIST_UPDATE_LAST;
 		branches++) {
@@ -1253,48 +1238,71 @@ int test_runlist_update_locked(struct unit_module *m, struct gk20a *g,
 		unit_verbose(m, "%s branches=%u\n", __func__, branches);
 		subtest_setup(branches);
 
-		chs[0].tsgid = (branches & F_RUNLIST_UPDATE_CH_NO_UPDATE) ?
-				NVGPU_INVALID_TSG_ID : 0;
+		ch->tsgid = (branches & F_RUNLIST_UPDATE_CH_TSGID_INVALID) ?
+				NVGPU_INVALID_TSG_ID : ch_tsgid_orig;
 
-		add = (branches &
-			(F_RUNLIST_UPDATE_ADD1 | F_RUNLIST_UPDATE_ADD2)) ?
-			true : false;
-		wait_for_finish =
-			(branches & F_RUNLIST_UPDATE_WAIT_FOR_FINISH) ?
-			true : false;
+		add = branches & F_RUNLIST_UPDATE_ADD ? true : false;
 
-		if (branches & F_RUNLIST_UPDATE_CH_NULL) {
-			ch = NULL;
-		} else {
-			ch = &chs[0];
+		if (branches & F_RUNLIST_UPDATE_ADD_AGAIN) {
+			err = nvgpu_runlist_update_locked(g,
+							0U, ch, true, false);
+			assert(err == 0);
+
+			add = true;
 		}
 
 		if (branches & F_RUNLIST_UPDATE_RECONSTRUCT_FAIL) {
 			g->fifo.num_runlist_entries = 0U;
 			/* force null ch and add = true to execute fail path */
-			ch = NULL;
+			branches |= F_RUNLIST_UPDATE_CH_NULL;
 			add = true;
 		} else {
-			g->fifo.num_runlist_entries = 65536U;
+			g->fifo.num_runlist_entries = num_runlist_entries_orig;
 		}
 
 		if (branches & F_RUNLIST_UPDATE_REMOVE_ALL_CHANNELS) {
-			err = nvgpu_runlist_update_locked(g, 0U, &chs[1], false,
-							false);
-			err = nvgpu_runlist_update_locked(g, 0U, &chs[2], false,
-							false);
+			/* Add additional channel to cover more branches */
+			struct nvgpu_channel *chA = NULL;
+
+			chA = nvgpu_channel_open_new(g,
+						NVGPU_INVALID_RUNLIST_ID, false,
+						getpid(), getpid());
+			unit_assert(chA != NULL, goto done);
+
+			err = nvgpu_tsg_bind_channel(tsg, chA);
+			unit_assert(err == 0, goto done);
+
+			err = nvgpu_runlist_update_locked(g,
+							0U, chA, true, false);
+			assert(err == 0);
+
+			err = nvgpu_runlist_update_locked(g,
+							0U, chA, false, false);
+			assert(err == 0);
+
+			err = nvgpu_tsg_unbind_channel(tsg, chA);
+			if (err != 0) {
+				unit_err(m, "Cannot unbind channel A\n");
+			}
+			if (chA != NULL) {
+				nvgpu_channel_close(chA);
+			}
 		}
 
-		err = nvgpu_runlist_update_locked(g, 0U, ch, add,
-							wait_for_finish);
-
-
+		if (branches & F_RUNLIST_UPDATE_CH_NULL) {
+			err = nvgpu_runlist_update_locked(g,
+							0U, NULL, add, false);
+		} else {
+			err = nvgpu_runlist_update_locked(g,
+							0U, ch, add, false);
+		}
 
 		if (branches & fail) {
 			assert(err != 0);
 		} else {
 			assert(err == 0);
 		}
+		ch->tsgid = ch_tsgid_orig;
 	}
 
 	ret = UNIT_SUCCESS;
@@ -1305,6 +1313,18 @@ done:
 		branches_str(branches, f_runlist_update));
 	}
 
+	err = nvgpu_tsg_unbind_channel(tsg, ch);
+	if (err != 0) {
+		unit_err(m, "Cannot unbind channel\n");
+	}
+	if (ch != NULL) {
+		nvgpu_channel_close(ch);
+	}
+	if (tsg != NULL) {
+		nvgpu_ref_put(&tsg->refcount, nvgpu_tsg_release);
+	}
+	nvgpu_runlist_cleanup_sw(g);
+	g->ptimer_src_freq = 0;
 	g->ops = gops;
 	return ret;
 }
@@ -1317,14 +1337,14 @@ struct unit_module_test nvgpu_runlist_tests[] = {
 	UNIT_TEST(lock_unlock_active_runlists, test_runlist_lock_unlock_active_runlists, NULL, 0),
 	UNIT_TEST(set_state, test_runlist_set_state, NULL, 0),
 	UNIT_TEST(interleave_level_name, test_runlist_interleave_level_name, NULL, 0),
+	UNIT_TEST(reload_ids, test_runlist_reload_ids, NULL, 0),
+	UNIT_TEST(runlist_update, test_runlist_update_locked, NULL, 0),
 	UNIT_TEST(remove_support, test_fifo_remove_support, &unit_ctx, 0),
 	UNIT_TEST(tsg_format_flat, test_tsg_format_gen, NULL, 0),
 	UNIT_TEST(flat, test_flat_gen, NULL, 0),
 	UNIT_TEST(interleave_single, test_interleave_single, NULL, 0),
 	UNIT_TEST(interleave_dual, test_interleave_dual, NULL, 0),
 	UNIT_TEST(interleave_level, test_interleaving_levels, NULL, 0),
-	UNIT_TEST(reload_ids, test_runlist_reload_ids, NULL, 0),
-	UNIT_TEST(runlist_update, test_runlist_update_locked, NULL, 0),
 };
 
 UNIT_MODULE(nvgpu_runlist, nvgpu_runlist_tests, UNIT_PRIO_NVGPU_TEST);

@@ -336,6 +336,7 @@ int test_gv11b_mm_mmu_fault_disable_hw(struct unit_module *m, struct gk20a *g,
 {
 	int ret = UNIT_FAIL;
 	u64 branch = (u64)args;
+	struct gpu_ops gops = g->ops;
 
 	global_count = 0U;
 
@@ -354,6 +355,7 @@ done:
 		unit_err(m, "%s: %s failed\n", __func__,
 						f_mmu_fault_disable[branch]);
 	}
+	g->ops = gops;
 	return ret;
 }
 
@@ -387,6 +389,7 @@ int test_gv11b_mm_mmu_fault_handle_other_fault_notify(struct unit_module *m,
 	int ret = UNIT_FAIL;
 	u64 branch = (u64)args;
 	int err;
+	struct gpu_ops gops = g->ops;
 	u32 reg_val;
 
 	g->ops.fb.read_mmu_fault_inst_lo_hi =
@@ -435,6 +438,7 @@ done:
 						f_mmu_fault_notify[branch]);
 	}
 	gv11b_mm_mmu_fault_info_mem_destroy(g);
+	g->ops = gops;
 	return ret;
 }
 
@@ -585,6 +589,7 @@ int test_handle_mmu_fault_common(struct unit_module *m,
 	u64 branch = (u64)args;
 	int err;
 	u32 invalidate_replay_val;
+	struct gpu_ops gops = g->ops;
 	struct nvgpu_channel chA = {0};
 	struct nvgpu_channel *chB = NULL;
 	struct nvgpu_tsg *tsg = NULL;
@@ -679,6 +684,7 @@ done:
 	if (tsg != NULL) {
 		nvgpu_ref_put(&tsg->refcount, nvgpu_tsg_release);
 	}
+	g->ops = gops;
 	return ret;
 }
 
@@ -728,6 +734,7 @@ int test_handle_nonreplay_replay_fault(struct unit_module *m, struct gk20a *g,
 	u64 branch = (u64)args;
 	u32 *data;
 	struct nvgpu_channel ch = {0};
+	struct gpu_ops gops = g->ops;
 
 	g->ops.fb.read_mmu_fault_buffer_get =
 					stub_fb_read_mmu_fault_buffer_get;
@@ -737,6 +744,8 @@ int test_handle_nonreplay_replay_fault(struct unit_module *m, struct gk20a *g,
 					stub_fb_read_mmu_fault_buffer_size;
 	g->ops.fb.write_mmu_fault_buffer_get =
 					stub_fb_write_mmu_fault_buffer_get;
+	g->ops.fifo.mmu_fault_id_to_pbdma_id =
+					stub_fifo_mmu_fault_id_to_pbdma_id;
 
 	err = gv11b_mm_mmu_fault_setup_sw(g);
 	unit_assert(err == 0, goto done);
@@ -748,6 +757,7 @@ int test_handle_nonreplay_replay_fault(struct unit_module *m, struct gk20a *g,
 
 	data[gmmu_fault_buf_entry_valid_w()] = branch & F_VALID_ENTRY ?
 				gmmu_fault_buf_entry_valid_m() : 0U;
+
 	if (branch & F_VALID_CH) {
 		g->fifo.channel = &ch;
 		g->fifo.num_channels = 1;
@@ -763,6 +773,8 @@ done:
 		unit_err(m, "%s: %s failed\n", __func__,
 						f_mmu_fault_nonreplay[branch]);
 	}
+
+	g->ops = gops;
 	return ret;
 }
 

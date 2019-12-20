@@ -131,6 +131,51 @@ int test_runlist_interleave_level_name(struct unit_module *m,
 						struct gk20a *g, void *args);
 
 /**
+ * Test specification for: test_runlist_reload_ids
+ *
+ * Description: Reload given runlists.
+ *
+ * Test Type: Feature
+ *
+ * Targets: nvgpu_runlist_reload_ids, nvgpu_runlist_reload, nvgpu_runlist_update
+ *
+ * Input: test_fifo_init_support
+ *
+ * Steps:
+ * - Reload runlist with different conditions:
+ *   - Null GPU pointer
+ *   - No runlist selected. Function returns without reloading any runlist.
+ *   - Pending wait times out.
+ *   - Runlist update pending wait is interrupted.
+ *   - Remove/Restore all channels.
+ *
+ * Output: Returns PASS if all branches gave expected results. FAIL otherwise.
+ */
+int test_runlist_reload_ids(struct unit_module *m, struct gk20a *g, void *args);
+
+/**
+ * Test specification for: test_runlist_update_locked
+ *
+ * Description: Add/remove channel from runlist.
+ *
+ * Test Type: Feature
+ *
+ * Targets: nvgpu_runlist_update_locked, gk20a_runlist_modify_active_locked,
+ *          gk20a_runlist_reconstruct_locked
+ *
+ * Input: test_fifo_init_support
+ *
+ * Steps:
+ * - Check that channels can be added to runlist.
+ * - Check that channels can be removed from runlist.
+ * - Check that runlist update fails for invalid tsg id and zero runlist entries
+ *
+ * Output: Returns PASS if all branches gave expected results. FAIL otherwise.
+ */
+int test_runlist_update_locked(struct unit_module *m, struct gk20a *g,
+								void *args);
+
+/**
  * Test specification for: test_tsg_format_gen
  *
  * Description: Test format of TSG runlist entry
@@ -312,51 +357,6 @@ int test_interleave_dual(struct unit_module *m, struct gk20a *g, void *args);
  * Output: Returns PASS if all branches gave expected results. FAIL otherwise.
  */
 int test_interleaving_levels(struct unit_module *m, struct gk20a *g,
-								void *args);
-
-/**
- * Test specification for: test_runlist_reload_ids
- *
- * Description: Reload given runlists.
- *
- * Test Type: Feature
- *
- * Targets: nvgpu_runlist_reload_ids
- *
- * Input: None
- *
- * Steps:
- * - Reload runlist with different conditions:
- *   - Null GPU pointer
- *   - No runlist selected. Function returns without reloading any runlist.
- *   - Pending wait times out.
- *   - Runlist update pending wait is interrupted.
- *   - Remove/Restore all channels.
- *
- * Output: Returns PASS if all branches gave expected results. FAIL otherwise.
- */
-int test_runlist_reload_ids(struct unit_module *m, struct gk20a *g, void *args);
-
-/**
- * Test specification for: test_runlist_update_locked
- *
- * Description: Add/remove channel from runlist.
- *
- * Test Type: Feature
- *
- * Targets: nvgpu_runlist_update_locked, gk20a_runlist_modify_active_locked,
- *          gk20a_runlist_reconstruct_locked
- *
- * Input: None
- *
- * Steps:
- * - Check that channels can be added to runlist.
- * - Check that channels can be removed from runlist.
- * - Check that runlist update fails for invalid tsg id and zero runlist entries
- *
- * Output: Returns PASS if all branches gave expected results. FAIL otherwise.
- */
-int test_runlist_update_locked(struct unit_module *m, struct gk20a *g,
 								void *args);
 
 #endif /* UNIT_NVGPU_RUNLIST_H */
