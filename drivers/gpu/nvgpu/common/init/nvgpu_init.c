@@ -99,6 +99,13 @@ done:
 	nvgpu_log_info(g, "done");
 	return 0;
 }
+
+static void nvgpu_sw_quiesce_bug_cb(void *arg)
+{
+	struct gk20a *g = arg;
+
+	nvgpu_sw_quiesce(g);
+}
 #endif
 
 static int nvgpu_sw_quiesce_init_support(struct gk20a *g)
@@ -130,6 +137,11 @@ static int nvgpu_sw_quiesce_init_support(struct gk20a *g)
 	}
 
 	g->sw_quiesce_init_done = true;
+
+	/* register callback to SW quiesce GPU in case of BUG() */
+	g->sw_quiesce_bug_cb.cb = nvgpu_sw_quiesce_bug_cb;
+	g->sw_quiesce_bug_cb.arg = g;
+	nvgpu_bug_register_cb(&g->sw_quiesce_bug_cb);
 #endif
 
 	return 0;
@@ -139,6 +151,7 @@ void nvgpu_sw_quiesce_remove_support(struct gk20a *g)
 {
 #ifndef CONFIG_NVGPU_RECOVERY
 	if (g->sw_quiesce_init_done) {
+		nvgpu_bug_unregister_cb(&g->sw_quiesce_bug_cb);
 		nvgpu_thread_stop(&g->sw_quiesce_thread);
 		nvgpu_cond_destroy(&g->sw_quiesce_cond);
 		g->sw_quiesce_init_done = false;

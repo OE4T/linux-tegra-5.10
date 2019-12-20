@@ -697,6 +697,7 @@ struct gk20a {
 	bool sw_quiesce_pending;
 	struct nvgpu_cond sw_quiesce_cond;
 	struct nvgpu_thread sw_quiesce_thread;
+	struct nvgpu_bug_cb sw_quiesce_bug_cb;
 #endif
 	struct nvgpu_list_node bug_node;
 
