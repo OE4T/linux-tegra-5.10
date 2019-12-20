@@ -103,8 +103,6 @@ int nvgpu_clk_get_fll_clks(struct gk20a *g,
 		struct nvgpu_set_fll_clk *setfllclk);
 int nvgpu_clk_domain_freq_to_volt(struct gk20a *g, u8 clkdomain_idx,
 	u32 *pclkmhz, u32 *pvoltuv, u8 railidx);
-int nvgpu_clk_set_req_fll_clk_ps35(struct gk20a *g,
-	struct nvgpu_clk_slave_freq *vf_point);
 int nvgpu_clk_domain_get_from_index(struct gk20a *g, u32 *domain, u32 index);
 
 #endif /* NVGPU_PMU_CLK_H */

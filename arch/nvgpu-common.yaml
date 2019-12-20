@@ -639,7 +639,6 @@ pmu:
       sources: [ include/nvgpu/pmu/pmuif/ctrlboardobj.h,
                  include/nvgpu/pmu/pmuif/ctrlclk.h,
                  include/nvgpu/pmu/pmuif/ctrlclkavfs.h,
-                 include/nvgpu/pmu/pmuif/ctrlperf.h,
                  include/nvgpu/pmu/pmuif/ctrlpmgr.h,
                  include/nvgpu/pmu/pmuif/ctrltherm.h,
                  include/nvgpu/pmu/pmuif/ctrlvolt.h,
@@ -731,6 +730,7 @@ pmu:
       owner: Abdul S
       sources: [ common/pmu/perf/change_seq.c,
                  common/pmu/perf/change_seq.h,
+                 common/pmu/perf/ucode_perf_change_seq_inf.h,
                  common/pmu/perf/pmu_perf.c,
                  common/pmu/perf/vfe_equ.c,
                  common/pmu/perf/vfe_equ.h,

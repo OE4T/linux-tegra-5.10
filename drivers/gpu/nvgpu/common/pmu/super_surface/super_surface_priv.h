@@ -147,11 +147,6 @@ struct nv_pmu_super_surface {
 				therm_channel_grp_get_status;
 		} therm;
 		struct {
-			struct perf_change_seq_pmu_script script_curr;
-			struct perf_change_seq_pmu_script script_last;
-			struct perf_change_seq_pmu_script script_query;
-		} change_seq;
-		struct {
 			struct nv_pmu_clk_clk_vf_point_boardobj_grp_set
 				clk_vf_point_grp_set;
 			struct nv_pmu_clk_clk_vf_point_boardobj_grp_get_status

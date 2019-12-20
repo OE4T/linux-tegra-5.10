@@ -32,6 +32,11 @@
 #include <nvgpu/boardobjgrpmask.h>
 #include <nvgpu/pmu/pmuif/perf.h>
 
+/* Dependency of this include will be removed in further CL */
+#include "../../../common/pmu/perf/ucode_perf_change_seq_inf.h"
+
+struct nvgpu_clk_slave_freq;
+
 #define CTRL_PERF_PSTATE_P0		0U
 #define CTRL_PERF_PSTATE_P5		5U
 #define CTRL_PERF_PSTATE_P8		8U
@@ -123,6 +128,8 @@ int nvgpu_vfe_get_freq_margin_limit(struct gk20a *g, u32 *fmargin_mhz);
 
 int nvgpu_perf_change_seq_sw_setup(struct gk20a *g);
 int nvgpu_perf_change_seq_pmu_setup(struct gk20a *g);
+int nvgpu_clk_set_req_fll_clk_ps35(struct gk20a *g,
+	struct nvgpu_clk_slave_freq *vf_point);
 
 int nvgpu_perf_pstate_get_lpwr_index(struct gk20a *g, u32 num, u8 *lpwr_idx);
 int nvgpu_get_pstate_entry_idx(struct gk20a *g, u32 num);

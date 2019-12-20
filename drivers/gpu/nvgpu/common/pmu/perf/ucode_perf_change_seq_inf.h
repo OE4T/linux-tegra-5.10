@@ -24,55 +24,20 @@
 #ifndef NVGPU_PMUIF_CTRLPERF_H
 #define NVGPU_PMUIF_CTRLPERF_H
 
-#include "ctrlvolt.h"
-#include "ctrlclk.h"
-
-struct ctrl_perf_volt_rail_list_item {
-	u8 volt_domain;
-	u32 voltage_uv;
-	u32 voltage_min_noise_unaware_uv;
-};
-
-struct ctrl_perf_volt_rail_list {
-	u8    num_rails;
-	struct ctrl_perf_volt_rail_list_item
-		rails[CTRL_VOLT_VOLT_RAIL_MAX_RAILS];
-};
-
-/*-----------------------------  CHANGES_SEQ --------------------------------*/
-
-/*!
- * Enumeration of the PERF CHANGE_SEQ feature version.
- *
- * _2X  - Legacy implementation of CHANGE_SEQ used in pstates 3.0 and earlier.
- * _PMU - Represents PMU based perf change sequence class and its sub-classes.
- * _31  - CHANGE_SEQ implementation used with pstates 3.1 and later.
- * _35  - CHANGE_SEQ implementation used with pstates 3.5 and later.
- */
-#define CTRL_PERF_CHANGE_SEQ_VERSION_UNKNOWN	0xFF
-#define CTRL_PERF_CHANGE_SEQ_VERSION_2X			0x01
-#define CTRL_PERF_CHANGE_SEQ_VERSION_PMU		0x02
-#define CTRL_PERF_CHANGE_SEQ_VERSION_31			0x03
-#define CTRL_PERF_CHANGE_SEQ_VERSION_35			0x04
+#define CTRL_PERF_CHANGE_SEQ_VERSION_35				0x04U
 
 /*!
  * Flags to provide information about the input perf change request.
  * This flags will be used to understand the type of perf change req.
  */
-#define CTRL_PERF_CHANGE_SEQ_CHANGE_NONE				0x00
-#define CTRL_PERF_CHANGE_SEQ_CHANGE_FORCE				BIT(0)
+#define CTRL_PERF_CHANGE_SEQ_CHANGE_NONE			0x00U
+#define CTRL_PERF_CHANGE_SEQ_CHANGE_FORCE			BIT(0)
 #define CTRL_PERF_CHANGE_SEQ_CHANGE_FORCE_CLOCKS		BIT(1)
-#define CTRL_PERF_CHANGE_SEQ_CHANGE_ASYNC				BIT(2)
-#define CTRL_PERF_CHANGE_SEQ_CHANGE_SKIP_VBLANK_WAIT	BIT(3)
-
-#define CTRL_PERF_CHANGE_SEQ_SYNC_CHANGE_QUEUE_SIZE 0x04
-#define CTRL_PERF_CHANGE_SEQ_SCRIPT_MAX_PROFILING_THREADS 8
-
-enum ctrl_perf_change_seq_sync_change_client {
-	CTRL_PERF_CHANGE_SEQ_SYNC_CHANGE_CLIENT_INVALID = 0,
-	CTRL_PERF_CHANGE_SEQ_SYNC_CHANGE_CLIENT_RM_NVGPU = 1,
-	CTRL_PERF_CHANGE_SEQ_SYNC_CHANGE_CLIENT_PMU = 2,
-};
+#define CTRL_PERF_CHANGE_SEQ_CHANGE_ASYNC			BIT(2)
+#define CTRL_PERF_CHANGE_SEQ_CHANGE_SKIP_VBLANK_WAIT		BIT(3)
+#define CTRL_PERF_CHANGE_SEQ_SYNC_CHANGE_QUEUE_SIZE		0x04U
+#define CTRL_PERF_CHANGE_SEQ_SCRIPT_MAX_PROFILING_THREADS	8
+#define CTRL_PERF_CHANGE_SEQ_SCRIPT_VF_SWITCH_MAX_STEPS		13U
 
 struct ctrl_perf_chage_seq_change_pmu {
 	u32 seq_id;
@@ -154,8 +119,6 @@ enum ctrl_perf_change_seq_pmu_step_id {
 	CTRL_PERF_CHANGE_SEQ_PMU_STEP_ID_MAX_STEPS = 26,
 };
 
-#define CTRL_PERF_CHANGE_SEQ_SCRIPT_VF_SWITCH_MAX_STEPS		13U
-
 struct ctrl_perf_change_seq_step_profiling {
 	/*all aligned to 32 */
 	u64 total_timens;
@@ -216,6 +179,68 @@ union ctrl_perf_change_seq_pmu_script_step_data {
 	struct ctrl_perf_change_seq_pmu_script_step_clks clk;
 	struct ctrl_perf_change_seq_pmu_script_step_volt volt;
 	struct ctrl_perf_change_seq_pmu_script_step_clk_mon clk_mon;
+};
+
+struct nv_pmu_rpc_perf_change_seq_queue_change {
+	/*[IN/OUT] Must be first field in RPC structure */
+	struct nv_pmu_rpc_header hdr;
+	struct ctrl_perf_change_seq_change_input change;
+	u32 seq_id;
+	u32 scratch[1];
+};
+
+struct nv_pmu_perf_change_seq_super_info_get {
+	u8 version;
+};
+
+struct nv_pmu_perf_change_seq_pmu_info_get {
+	struct nv_pmu_perf_change_seq_super_info_get  super;
+	u32 cpu_advertised_step_id_mask;
+};
+
+struct nv_pmu_perf_change_seq_super_info_set {
+	u8 version;
+	struct ctrl_boardobjgrp_mask_e32 clk_domains_exclusion_mask;
+	struct ctrl_boardobjgrp_mask_e32 clk_domains_inclusion_mask;
+	u32 strp_id_exclusive_mask;
+};
+
+struct nv_pmu_perf_change_seq_pmu_info_set {
+	struct nv_pmu_perf_change_seq_super_info_set super;
+	bool b_lock;
+	bool b_vf_point_check_ignore;
+	u32 cpu_step_id_mask;
+};
+
+struct nv_pmu_rpc_perf_change_seq_info_get {
+	/*[IN/OUT] Must be first field in RPC structure */
+	struct nv_pmu_rpc_header hdr;
+	struct nv_pmu_perf_change_seq_pmu_info_get info_get;
+	u32 scratch[1];
+};
+
+struct nv_pmu_rpc_perf_change_seq_info_set {
+	/*[IN/OUT] Must be first field in RPC structure */
+	struct nv_pmu_rpc_header hdr;
+	struct nv_pmu_perf_change_seq_pmu_info_set info_set;
+	u32 scratch[1];
+};
+
+NV_PMU_MAKE_ALIGNED_STRUCT(ctrl_perf_change_seq_change,
+		sizeof(struct ctrl_perf_change_seq_change));
+
+NV_PMU_MAKE_ALIGNED_STRUCT(ctrl_perf_change_seq_pmu_script_header,
+		sizeof(struct ctrl_perf_change_seq_pmu_script_header));
+
+NV_PMU_MAKE_ALIGNED_UNION(ctrl_perf_change_seq_pmu_script_step_data,
+		sizeof(union ctrl_perf_change_seq_pmu_script_step_data));
+
+struct perf_change_seq_pmu_script {
+	union ctrl_perf_change_seq_pmu_script_header_aligned hdr;
+	union ctrl_perf_change_seq_change_aligned change;
+	/* below should be an aligned structure */
+	union ctrl_perf_change_seq_pmu_script_step_data_aligned
+		steps[CTRL_PERF_CHANGE_SEQ_SCRIPT_VF_SWITCH_MAX_STEPS];
 };
 
 #endif /* NVGPU_PMUIF_CTRLPERF_H */

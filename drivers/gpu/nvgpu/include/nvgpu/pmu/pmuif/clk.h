@@ -27,7 +27,6 @@
 
 #include "ctrlboardobj.h"
 #include "ctrlvolt.h"
-#include "ctrlperf.h"
 #include "ctrlclk.h"
 #include "boardobj.h"
 #include "volt.h"

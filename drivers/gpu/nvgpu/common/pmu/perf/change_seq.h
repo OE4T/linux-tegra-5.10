@@ -25,4 +25,8 @@
 #ifndef NVGPU_CHANGE_SEQ_H
 #define NVGPU_CHANGE_SEQ_H
 
+#define SEQ_SCRIPT_CURR		0x0U
+#define SEQ_SCRIPT_LAST		0x1U
+#define SEQ_SCRIPT_QUERY	0x2U
+
 #endif /* NVGPU_CHANGE_SEQ_H */

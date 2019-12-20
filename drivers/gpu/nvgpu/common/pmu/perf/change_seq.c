@@ -37,10 +37,6 @@
 
 #include "change_seq.h"
 
-#define SEQ_SCRIPT_CURR  0x0U
-#define SEQ_SCRIPT_LAST  0x1U
-#define SEQ_SCRIPT_QUERY 0x2U
-
 static int perf_change_seq_sw_setup_super(struct gk20a *g,
 		struct change_seq *p_change_seq)
 {
@@ -257,5 +253,90 @@ int nvgpu_perf_change_seq_pmu_setup(struct gk20a *g)
 	}
 
 perf_change_seq_pmu_setup_exit:
+	return status;
+}
+
+int nvgpu_clk_set_req_fll_clk_ps35(struct gk20a *g,
+		struct nvgpu_clk_slave_freq *vf_point)
+{
+	struct nvgpu_pmu *pmu = g->pmu;
+	struct nv_pmu_rpc_perf_change_seq_queue_change rpc;
+	struct ctrl_perf_change_seq_change_input change_input;
+	struct change_seq_pmu *change_seq_pmu = &g->perf_pmu->changeseq_pmu;
+	int status = 0;
+	u8 gpcclk_domain = 0U;
+	u32 gpcclk_voltuv = 0U, gpcclk_clkmhz = 0U;
+	u32 vmin_uv = 0U, vmax_uv = 0U;
+	u32 vmargin_uv = 0U, fmargin_mhz = 0U;
+
+	(void) memset(&change_input, 0,
+		sizeof(struct ctrl_perf_change_seq_change_input));
+
+	g->pmu->clk_pmu->set_p0_clks(g, &gpcclk_domain, &gpcclk_clkmhz,
+			vf_point, &change_input);
+
+	change_input.pstate_index =
+			nvgpu_get_pstate_entry_idx(g, CTRL_PERF_PSTATE_P0);
+	change_input.flags = (u32)CTRL_PERF_CHANGE_SEQ_CHANGE_FORCE;
+	change_input.vf_points_cache_counter = 0xFFFFFFFFU;
+
+	status = nvgpu_vfe_get_freq_margin_limit(g, &fmargin_mhz);
+	if (status != 0) {
+		nvgpu_err(g, "Failed to fetch Fmargin status=0x%x", status);
+		return status;
+	}
+
+	gpcclk_clkmhz += fmargin_mhz;
+	status = nvgpu_clk_domain_freq_to_volt(g, gpcclk_domain,
+	&gpcclk_clkmhz, &gpcclk_voltuv, CTRL_VOLT_DOMAIN_LOGIC);
+
+	status = nvgpu_vfe_get_volt_margin_limit(g, &vmargin_uv);
+	if (status != 0) {
+		nvgpu_err(g, "Failed to fetch Vmargin status=0x%x", status);
+		return status;
+	}
+
+	gpcclk_voltuv += vmargin_uv;
+	status = nvgpu_volt_get_vmin_vmax_ps35(g, &vmin_uv, &vmax_uv);
+	if (status != 0) {
+		nvgpu_pmu_dbg(g, "Get vmin,vmax failed, proceeding with "
+			"freq_to_volt value");
+	}
+	if ((status == 0) && (vmin_uv > gpcclk_voltuv)) {
+		gpcclk_voltuv = vmin_uv;
+		nvgpu_log_fn(g, "Vmin is higher than evaluated Volt");
+	}
+
+	if (gpcclk_voltuv > vmax_uv) {
+		nvgpu_err(g, "Error: Requested voltage is more than chip max");
+		return -EINVAL;
+	}
+
+	change_input.volt[0].voltage_uv = gpcclk_voltuv;
+	change_input.volt[0].voltage_min_noise_unaware_uv = gpcclk_voltuv;
+	change_input.volt_rails_mask.super.data[0] = 1U;
+
+	/* RPC to PMU to queue to execute change sequence request*/
+	(void) memset(&rpc, 0,
+			sizeof(struct nv_pmu_rpc_perf_change_seq_queue_change));
+	rpc.change = change_input;
+	rpc.change.pstate_index =
+			nvgpu_get_pstate_entry_idx(g, CTRL_PERF_PSTATE_P0);
+	change_seq_pmu->change_state = 0U;
+	change_seq_pmu->start_time = nvgpu_current_time_us();
+	PMU_RPC_EXECUTE_CPB(status, pmu, PERF,
+			CHANGE_SEQ_QUEUE_CHANGE, &rpc, 0);
+	if (status != 0) {
+		nvgpu_err(g, "Failed to execute Change Seq RPC status=0x%x",
+			status);
+	}
+
+	/* Wait for sync change to complete. */
+	if ((rpc.change.flags & CTRL_PERF_CHANGE_SEQ_CHANGE_ASYNC) == 0U) {
+		pmu_wait_message_cond(g->pmu,
+			nvgpu_get_poll_timeout(g),
+			&change_seq_pmu->change_state, 1U);
+	}
+	change_seq_pmu->stop_time = nvgpu_current_time_us();
 	return status;
 }

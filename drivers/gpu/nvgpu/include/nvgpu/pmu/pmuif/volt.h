@@ -26,7 +26,6 @@
 
 #include "boardobj.h"
 #include "ctrlvolt.h"
-#include "ctrlperf.h"
 
 #define NV_PMU_VOLT_VALUE_0V_IN_UV	(0U)
 
