@@ -146,7 +146,7 @@ struct nvgpu_gr_ctx {
 	bool boosted_ctx;
 #endif
 
-#ifdef CONFIG_TEGRA_GR_VIRTUALIZATION
+#ifdef CONFIG_NVGPU_GR_VIRTUALIZATION
 	u64 virt_ctx;
 #endif
 

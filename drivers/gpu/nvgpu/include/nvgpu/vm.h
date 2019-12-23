@@ -296,7 +296,7 @@ struct vm_gk20a {
 	 */
 	struct nvgpu_list_node vm_area_list;
 
-#ifdef CONFIG_TEGRA_GR_VIRTUALIZATION
+#ifdef CONFIG_NVGPU_GR_VIRTUALIZATION
 	u64 handle;
 #endif
 	/** Supported page sizes. */

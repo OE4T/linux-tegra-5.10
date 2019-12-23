@@ -699,11 +699,11 @@ static struct of_device_id tegra_gk20a_of_match[] = {
 		.data = &gp10b_tegra_platform },
 	{ .compatible = "nvidia,gv11b",
 		.data = &gv11b_tegra_platform },
-#ifdef CONFIG_TEGRA_GR_VIRTUALIZATION
+#ifdef CONFIG_NVGPU_GR_VIRTUALIZATION
 	{ .compatible = "nvidia,gv11b-vgpu",
 		.data = &gv11b_vgpu_tegra_platform},
 #endif
-#ifdef CONFIG_TEGRA_GR_VIRTUALIZATION
+#ifdef CONFIG_NVGPU_GR_VIRTUALIZATION
 	{ .compatible = "nvidia,tegra124-gk20a-vgpu",
 		.data = &vgpu_tegra_platform },
 #endif

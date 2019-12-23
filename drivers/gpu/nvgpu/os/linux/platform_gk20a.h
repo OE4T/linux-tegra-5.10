@@ -264,7 +264,7 @@ struct gk20a_platform {
 	struct dvfs_rail *gpu_rail;
 
 	bool virtual_dev;
-#ifdef CONFIG_TEGRA_GR_VIRTUALIZATION
+#ifdef CONFIG_NVGPU_GR_VIRTUALIZATION
 	void *vgpu_priv;
 #endif
 	/* source frequency for ptimer in hz */
@@ -322,7 +322,7 @@ static inline struct gk20a_platform *gk20a_get_platform(
 extern struct gk20a_platform gm20b_tegra_platform;
 extern struct gk20a_platform gp10b_tegra_platform;
 extern struct gk20a_platform gv11b_tegra_platform;
-#ifdef CONFIG_TEGRA_GR_VIRTUALIZATION
+#ifdef CONFIG_NVGPU_GR_VIRTUALIZATION
 extern struct gk20a_platform vgpu_tegra_platform;
 extern struct gk20a_platform gv11b_vgpu_tegra_platform;
 #endif

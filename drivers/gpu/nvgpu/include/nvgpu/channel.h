@@ -489,7 +489,7 @@ struct nvgpu_channel {
 	/** Syncpoint for usermode submit case. */
 	struct nvgpu_channel_sync *user_sync;
 
-#ifdef CONFIG_TEGRA_GR_VIRTUALIZATION
+#ifdef CONFIG_NVGPU_GR_VIRTUALIZATION
 	/** Channel handle for vgpu case. */
 	u64 virt_ctx;
 #endif

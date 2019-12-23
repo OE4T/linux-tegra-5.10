@@ -194,3 +194,17 @@ config NVGPU_RECOVERY
 	default y
 	help
 	  Support recovery on failure (which may involve engine reset)
+
+config NVGPU_NVLINK
+	bool "Nvlink support"
+	depends on TEGRA_NVLINK
+	default y
+	help
+	  Support Nvlink
+
+config NVGPU_GR_VIRTUALIZATION
+	bool "NVGPU Virtualization Support"
+	depends on TEGRA_GR_VIRTUALIZATION
+	default y
+	help
+	  Support NVGPU Virtualization

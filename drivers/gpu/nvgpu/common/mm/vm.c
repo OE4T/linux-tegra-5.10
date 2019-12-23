@@ -682,7 +682,7 @@ static int nvgpu_vm_init_attributes(struct mm_gk20a *mm,
 	vm->mmu_levels        =
 		g->ops.mm.gmmu.get_mmu_levels(g, vm->big_page_size);
 
-#ifdef CONFIG_TEGRA_GR_VIRTUALIZATION
+#ifdef CONFIG_NVGPU_GR_VIRTUALIZATION
 	if (g->is_virtual && userspace_managed) {
 		nvgpu_err(g, "vGPU: no userspace managed addr space support");
 		return -ENOSYS;

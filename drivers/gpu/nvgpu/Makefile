@@ -22,10 +22,6 @@ ccflags-y += -DCONFIG_NVGPU_DEBUGGER
 ccflags-y += -DCONFIG_NVGPU_ENGINE_RESET
 endif
 
-ifeq ($(CONFIG_TEGRA_NVLINK),y)
-ccflags-y += -DCONFIG_NVGPU_NVLINK
-endif
-
 ccflags-y += -DCONFIG_NVGPU_TPC_POWERGATE
 ccflags-y += -DCONFIG_NVGPU_ACR_LEGACY
 ccflags-y += -DCONFIG_NVGPU_ENGINE_QUEUE
@@ -424,7 +420,7 @@ nvgpu-$(CONFIG_TEGRA_GK20A_NVHOST) += \
 	hal/sync/syncpt_cmdbuf_gk20a.o \
 	hal/sync/syncpt_cmdbuf_gv11b.o
 
-nvgpu-$(CONFIG_TEGRA_GR_VIRTUALIZATION) += \
+nvgpu-$(CONFIG_NVGPU_GR_VIRTUALIZATION) += \
 	os/linux/vgpu/platform_vgpu_tegra.o \
 	os/linux/vgpu/sysfs_vgpu.o \
 	os/linux/vgpu/vgpu_ivc.o \
@@ -433,7 +429,7 @@ nvgpu-$(CONFIG_TEGRA_GR_VIRTUALIZATION) += \
 	os/linux/vgpu/gv11b/platform_gv11b_vgpu_tegra.o
 
 ifeq ($(CONFIG_NVGPU_FECS_TRACE),y)
-nvgpu-$(CONFIG_TEGRA_GR_VIRTUALIZATION) += \
+nvgpu-$(CONFIG_NVGPU_GR_VIRTUALIZATION) += \
 	os/linux/vgpu/fecs_trace_vgpu_linux.o
 endif
 
@@ -516,7 +512,7 @@ nvgpu-y += \
 	common/ce/ce_app.o \
 	common/debugger.o
 
-nvgpu-$(CONFIG_TEGRA_GR_VIRTUALIZATION) += \
+nvgpu-$(CONFIG_NVGPU_GR_VIRTUALIZATION) += \
 	common/vgpu/ltc/ltc_vgpu.o \
 	common/vgpu/fbp/fbp_vgpu.o \
 	common/vgpu/fb/fb_vgpu.o \
@@ -551,7 +547,7 @@ nvgpu-$(CONFIG_NVGPU_CYCLESTATS) += \
 	common/perf/cyclestats_snapshot.o \
 	common/cyclestats/cyclestats.o
 
-ifeq ($(CONFIG_TEGRA_GR_VIRTUALIZATION),y)
+ifeq ($(CONFIG_NVGPU_GR_VIRTUALIZATION),y)
 nvgpu-$(CONFIG_NVGPU_CYCLESTATS) += \
 	common/vgpu/perf/cyclestats_snapshot_vgpu.o
 nvgpu-$(CONFIG_NVGPU_COMPRESSION) += \
@@ -705,7 +701,7 @@ nvgpu-$(CONFIG_NVGPU_HAL_NON_FUSA) += \
 	hal/therm/therm_gm20b.o \
 	hal/top/top_gm20b.o
 
-ifeq ($(CONFIG_TEGRA_GR_VIRTUALIZATION),y)
+ifeq ($(CONFIG_NVGPU_GR_VIRTUALIZATION),y)
 nvgpu-$(CONFIG_NVGPU_HAL_NON_FUSA) += \
 	hal/vgpu/init/vgpu_hal_gp10b.o \
 	hal/vgpu/init/vgpu_hal_gv11b.o
