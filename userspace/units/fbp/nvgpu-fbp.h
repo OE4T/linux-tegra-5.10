@@ -33,7 +33,7 @@ struct unit_module;
  */
 
 /**
- * Test specification for: test_setup
+ * Test specification for: test_fbp_setup
  *
  * Description: Setup prerequisites for tests.
  *
@@ -50,16 +50,16 @@ struct unit_module;
  * - UNIT_FAIL if encounters an error creating register space;
  * - UNIT_SUCCESS otherwise
  */
-int test_setup(struct unit_module *m, struct gk20a *g, void *args);
+int test_fbp_setup(struct unit_module *m, struct gk20a *g, void *args);
 
 /**
- * Test specification for: test_free_reg_space
+ * Test specification for: test_fbp_free_reg_space
  *
  * Description: Free resources from test_setup()
  *
- * Test Type: Other (setup)
+ * Test Type: Other (cleanup)
  *
- * Input: test_setup() has been executed.
+ * Input: test_fbp_setup() has been executed.
  *
  * Steps:
  * - Free up NV_TOP and NV_FUSE register space.
@@ -67,18 +67,18 @@ int test_setup(struct unit_module *m, struct gk20a *g, void *args);
  * Output:
  * - UNIT_SUCCESS
  */
-int test_free_reg_space(struct unit_module *m, struct gk20a *g, void *args);
+int test_fbp_free_reg_space(struct unit_module *m, struct gk20a *g, void *args);
 
 /**
  * Test specification for: test_fbp_init_and_query
  *
  * Description: Verify the FBP init and config query APIs exposed by common.fbp.
  *
- * Test Type: Feature Based
+ * Test Type: Feature
  *
  * Targets: nvgpu_fbp_init_support, nvgpu_fbp_get_max_fbps_count, nvgpu_fbp_get_fbp_en_mask
  *
- * Input: test_setup() has been executed.
+ * Input: test_fbp_setup() has been executed.
  *
  * Steps:
  * - Initialize the FBP floorsweeping status in fuse to 0xE1 by writing to fuse
@@ -107,7 +107,7 @@ int test_fbp_init_and_query(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Description: Verify the nvgpu_fbp_remove_support exposed by common.fbp.
  *
- * Test Type: Feature Based
+ * Test Type: Feature
  *
  * Targets: nvgpu_fbp_remove_support
  *

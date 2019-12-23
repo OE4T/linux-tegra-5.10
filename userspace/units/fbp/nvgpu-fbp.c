@@ -66,7 +66,7 @@ static struct nvgpu_posix_io_callbacks test_reg_callbacks = {
 	.bar1_readl      = readl_access_reg_fn,
 };
 
-int test_setup(struct unit_module *m, struct gk20a *g, void *args)
+int test_fbp_setup(struct unit_module *m, struct gk20a *g, void *args)
 {
 	/* Init HAL */
 	g->ops.top.get_max_fbps_count = gm20b_top_get_max_fbps_count;
@@ -93,7 +93,7 @@ int test_setup(struct unit_module *m, struct gk20a *g, void *args)
 	return UNIT_SUCCESS;
 }
 
-int test_free_reg_space(struct unit_module *m, struct gk20a *g, void *args)
+int test_fbp_free_reg_space(struct unit_module *m, struct gk20a *g, void *args)
 {
 	/* Free register space */
 	nvgpu_posix_io_delete_reg_space(g, fuse_status_opt_fbp_r());
@@ -209,10 +209,10 @@ int test_fbp_remove_support(struct unit_module *m, struct gk20a *g, void *args)
 	return ret;
 }
 struct unit_module_test fbp_tests[] = {
-	UNIT_TEST(fbp_setup,	          test_setup,                NULL, 0),
+	UNIT_TEST(fbp_setup,	          test_fbp_setup,            NULL, 0),
 	UNIT_TEST(fbp_init_and_query,	  test_fbp_init_and_query,   NULL, 0),
 	UNIT_TEST(fbp_remove_support,	  test_fbp_remove_support,   NULL, 0),
-	UNIT_TEST(fbp_free_reg_space,	  test_free_reg_space,	     NULL, 0),
+	UNIT_TEST(fbp_free_reg_space,	  test_fbp_free_reg_space,   NULL, 0),
 };
 
 UNIT_MODULE(fbp, fbp_tests, UNIT_PRIO_NVGPU_TEST);

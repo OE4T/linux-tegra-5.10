@@ -726,7 +726,7 @@
         "test_level": 0
     },
     {
-        "test": "test_free_reg_space",
+        "test": "test_fbp_free_reg_space",
         "case": "fbp_free_reg_space",
         "unit": "fbp",
         "test_level": 0
@@ -744,7 +744,7 @@
         "test_level": 0
     },
     {
-        "test": "test_setup",
+        "test": "test_fbp_setup",
         "case": "fbp_setup",
         "unit": "fbp",
         "test_level": 0
