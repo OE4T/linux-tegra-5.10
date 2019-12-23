@@ -57,6 +57,7 @@ static ssize_t ether_mac_loopback_store(struct device *dev,
 					const char *buf, size_t size)
 {
 	struct net_device *ndev = (struct net_device *)dev_get_drvdata(dev);
+	struct phy_device *phydev = ndev->phydev;
 	struct ether_priv_data *pdata = netdev_priv(ndev);
 	int ret = -1;
 
@@ -67,7 +68,14 @@ static ssize_t ether_mac_loopback_store(struct device *dev,
 	}
 
 	if (strncmp(buf, "enable", 6) == 0U) {
-		netif_carrier_on(ndev);
+		if (!phydev->link) {
+			/* If no phy link, then turn on carrier explicitly so
+			 * that nw stack can send packets. If PHY link is
+			 * present, PHY framework would have already taken care
+			 * of netif_carrier_* status.
+			 */
+			netif_carrier_on(ndev);
+		}
 		/* Enabling the MAC Loopback Mode */
 		ret = osi_config_mac_loopback(pdata->osi_core, OSI_ENABLE);
 		if (ret < 0) {
@@ -77,7 +85,14 @@ static ssize_t ether_mac_loopback_store(struct device *dev,
 			dev_info(pdata->dev, "Enabling MAC Loopback\n");
 		}
 	} else if (strncmp(buf, "disable", 7) == 0U) {
-		netif_carrier_off(ndev);
+		if (!phydev->link) {
+			/* If no phy link, then turn off carrier explicitly so
+			 * that nw stack doesn't send packets. If PHY link is
+			 * present, PHY framework would have already taken care
+			 * of netif_carrier_* status.
+			 */
+			netif_carrier_off(ndev);
+		}
 		/* Disabling the MAC Loopback Mode */
 		ret = osi_config_mac_loopback(pdata->osi_core, OSI_DISABLE);
 		if (ret < 0) {
