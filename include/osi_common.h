@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -180,6 +180,7 @@
 /* FIXME add logic based on HW version */
 #define EQOS_MAX_MAC_ADDRESS_FILTER	128U
 #define EQOS_MAX_L3_L4_FILTER		8U
+#define EQOS_MAX_HTR_REGS		8U
 #define OSI_EQOS_MAX_NUM_CHANS		4U
 #define OSI_EQOS_MAX_NUM_QUEUES		4U
 #define OSI_L2_FILTER_INDEX_ANY		127U

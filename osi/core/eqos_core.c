@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -30,6 +30,11 @@
  * @brief eqos_core_safety_config - EQOS MAC core safety configuration
  */
 static struct core_func_safety eqos_core_safety_config;
+
+/**
+ * @brief eqos_core_backup_config - EQOS MAC core registers backup config
+ */
+static struct core_backup eqos_core_backup_config;
 
 /**
  * @brief eqos_core_safety_writel - Write to safety critical register.
@@ -170,6 +175,123 @@ static void eqos_core_safety_init(struct osi_core_priv_data *osi_core)
 	}
 
 	osi_lock_init(&config->core_safety_lock);
+}
+
+
+/**
+ * @brief Initialize the eqos_core_backup_config.
+ *
+ * Algorithm: Populate the list of core registers to be saved during suspend.
+ *	Fill the address of each register in structure.
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ *
+ * @retval none
+ */
+static void eqos_core_backup_init(struct osi_core_priv_data *osi_core)
+{
+	struct core_backup *config = &eqos_core_backup_config;
+	unsigned char *base = (unsigned char *)osi_core->base;
+	unsigned int i;
+
+	/* MAC registers backup */
+	config->reg_addr[EQOS_MAC_MCR_BAK_IDX] = base + EQOS_MAC_MCR;
+	config->reg_addr[EQOS_MAC_EXTR_BAK_IDX] = base + EQOS_MAC_EXTR;
+	config->reg_addr[EQOS_MAC_PFR_BAK_IDX] = base + EQOS_MAC_PFR;
+	config->reg_addr[EQOS_MAC_VLAN_TAG_BAK_IDX] = base +
+						EQOS_MAC_VLAN_TAG;
+	config->reg_addr[EQOS_MAC_VLANTIR_BAK_IDX] = base + EQOS_MAC_VLANTIR;
+	config->reg_addr[EQOS_MAC_RX_FLW_CTRL_BAK_IDX] = base +
+						EQOS_MAC_RX_FLW_CTRL;
+	config->reg_addr[EQOS_MAC_RQC0R_BAK_IDX] = base + EQOS_MAC_RQC0R;
+	config->reg_addr[EQOS_MAC_RQC1R_BAK_IDX] = base + EQOS_MAC_RQC1R;
+	config->reg_addr[EQOS_MAC_RQC2R_BAK_IDX] = base + EQOS_MAC_RQC2R;
+	config->reg_addr[EQOS_MAC_ISR_BAK_IDX] = base + EQOS_MAC_ISR;
+	config->reg_addr[EQOS_MAC_IMR_BAK_IDX] = base + EQOS_MAC_IMR;
+	config->reg_addr[EQOS_MAC_PMTCSR_BAK_IDX] = base + EQOS_MAC_PMTCSR;
+	config->reg_addr[EQOS_MAC_LPI_CSR_BAK_IDX] = base + EQOS_MAC_LPI_CSR;
+	config->reg_addr[EQOS_MAC_LPI_TIMER_CTRL_BAK_IDX] = base +
+						EQOS_MAC_LPI_TIMER_CTRL;
+	config->reg_addr[EQOS_MAC_LPI_EN_TIMER_BAK_IDX] = base +
+						EQOS_MAC_LPI_EN_TIMER;
+	config->reg_addr[EQOS_MAC_ANS_BAK_IDX] = base + EQOS_MAC_ANS;
+	config->reg_addr[EQOS_MAC_PCS_BAK_IDX] = base + EQOS_MAC_PCS;
+	if (osi_core->mac_ver == OSI_EQOS_MAC_5_00) {
+		config->reg_addr[EQOS_5_00_MAC_ARPPA_BAK_IDX] = base +
+							EQOS_5_00_MAC_ARPPA;
+	}
+	config->reg_addr[EQOS_MMC_CNTRL_BAK_IDX] = base + EQOS_MMC_CNTRL;
+	if (osi_core->mac_ver == OSI_EQOS_MAC_4_10) {
+		config->reg_addr[EQOS_4_10_MAC_ARPPA_BAK_IDX] = base +
+							EQOS_4_10_MAC_ARPPA;
+	}
+	config->reg_addr[EQOS_MAC_TCR_BAK_IDX] = base + EQOS_MAC_TCR;
+	config->reg_addr[EQOS_MAC_SSIR_BAK_IDX] = base + EQOS_MAC_SSIR;
+	config->reg_addr[EQOS_MAC_STSR_BAK_IDX] = base + EQOS_MAC_STSR;
+	config->reg_addr[EQOS_MAC_STNSR_BAK_IDX] = base + EQOS_MAC_STNSR;
+	config->reg_addr[EQOS_MAC_STSUR_BAK_IDX] = base + EQOS_MAC_STSUR;
+	config->reg_addr[EQOS_MAC_STNSUR_BAK_IDX] = base + EQOS_MAC_STNSUR;
+	config->reg_addr[EQOS_MAC_TAR_BAK_IDX] = base + EQOS_MAC_TAR;
+	config->reg_addr[EQOS_DMA_BMR_BAK_IDX] = base + EQOS_DMA_BMR;
+	config->reg_addr[EQOS_DMA_SBUS_BAK_IDX] = base + EQOS_DMA_SBUS;
+	config->reg_addr[EQOS_DMA_ISR_BAK_IDX] = base + EQOS_DMA_ISR;
+	config->reg_addr[EQOS_MTL_OP_MODE_BAK_IDX] = base + EQOS_MTL_OP_MODE;
+	config->reg_addr[EQOS_MTL_RXQ_DMA_MAP0_BAK_IDX] = base +
+						EQOS_MTL_RXQ_DMA_MAP0;
+
+	for (i = 0; i < EQOS_MAX_HTR_REGS; i++) {
+		config->reg_addr[EQOS_MAC_HTR_REG_BAK_IDX(i)] = base +
+						EQOS_MAC_HTR_REG(i);
+	}
+	for (i = 0; i < OSI_EQOS_MAX_NUM_QUEUES; i++) {
+		config->reg_addr[EQOS_MAC_QX_TX_FLW_CTRL_BAK_IDX(i)] = base +
+						EQOS_MAC_QX_TX_FLW_CTRL(i);
+	}
+	for (i = 0; i < EQOS_MAX_MAC_ADDRESS_FILTER; i++) {
+		config->reg_addr[EQOS_MAC_ADDRH_BAK_IDX(i)] = base +
+						EQOS_MAC_ADDRH(i);
+		config->reg_addr[EQOS_MAC_ADDRL_BAK_IDX(i)] = base +
+						EQOS_MAC_ADDRL(i);
+	}
+	for (i = 0; i < EQOS_MAX_L3_L4_FILTER; i++) {
+		config->reg_addr[EQOS_MAC_L3L4_CTR_BAK_IDX(i)] = base +
+						EQOS_MAC_L3L4_CTR(i);
+		config->reg_addr[EQOS_MAC_L4_ADR_BAK_IDX(i)] = base +
+						EQOS_MAC_L4_ADR(i);
+		config->reg_addr[EQOS_MAC_L3_AD0R_BAK_IDX(i)] = base +
+						EQOS_MAC_L3_AD0R(i);
+		config->reg_addr[EQOS_MAC_L3_AD1R_BAK_IDX(i)] = base +
+						EQOS_MAC_L3_AD1R(i);
+		config->reg_addr[EQOS_MAC_L3_AD2R_BAK_IDX(i)] = base +
+						EQOS_MAC_L3_AD2R(i);
+		config->reg_addr[EQOS_MAC_L3_AD3R_BAK_IDX(i)] = base +
+						EQOS_MAC_L3_AD3R(i);
+	}
+	for (i = 0; i < OSI_EQOS_MAX_NUM_QUEUES; i++) {
+		config->reg_addr[EQOS_MTL_CHX_TX_OP_MODE_BAK_IDX(i)] = base +
+						EQOS_MTL_CHX_TX_OP_MODE(i);
+		config->reg_addr[EQOS_MTL_TXQ_ETS_CR_BAK_IDX(i)] = base +
+						EQOS_MTL_TXQ_ETS_CR(i);
+		config->reg_addr[EQOS_MTL_TXQ_QW_BAK_IDX(i)] = base +
+						EQOS_MTL_TXQ_QW(i);
+		config->reg_addr[EQOS_MTL_TXQ_ETS_SSCR_BAK_IDX(i)] = base +
+						EQOS_MTL_TXQ_ETS_SSCR(i);
+		config->reg_addr[EQOS_MTL_TXQ_ETS_HCR_BAK_IDX(i)] = base +
+						EQOS_MTL_TXQ_ETS_HCR(i);
+		config->reg_addr[EQOS_MTL_TXQ_ETS_LCR_BAK_IDX(i)] = base +
+						EQOS_MTL_TXQ_ETS_LCR(i);
+		config->reg_addr[EQOS_MTL_CHX_RX_OP_MODE_BAK_IDX(i)] = base +
+						EQOS_MTL_CHX_RX_OP_MODE(i);
+	}
+
+	/* Wrapper register backup */
+	config->reg_addr[EQOS_CLOCK_CTRL_0_BAK_IDX] = base +
+						EQOS_CLOCK_CTRL_0;
+	config->reg_addr[EQOS_AXI_ASID_CTRL_BAK_IDX] = base +
+						EQOS_AXI_ASID_CTRL;
+	config->reg_addr[EQOS_PAD_CRTL_BAK_IDX] = base + EQOS_PAD_CRTL;
+	config->reg_addr[EQOS_PAD_AUTO_CAL_CFG_BAK_IDX] = base +
+						EQOS_PAD_AUTO_CAL_CFG;
 }
 
 /**
@@ -1345,6 +1467,7 @@ static int eqos_core_init(struct osi_core_priv_data *osi_core,
 	unsigned int rx_fifo = 0;
 
 	eqos_core_safety_init(osi_core);
+	eqos_core_backup_init(osi_core);
 
 	/* PAD calibration */
 	ret = eqos_pad_calibrate(osi_core->base);
@@ -3300,6 +3423,50 @@ static void eqos_configure_eee(struct osi_core_priv_data *osi_core,
 	}
 }
 
+/*
+ * @brief Function to store a backup of MAC register space during SOC suspend.
+ *
+ * Algorithm: Read registers to be backed up as per struct core_backup and
+ * store the register values in memory.
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ *
+ * @retval none
+ */
+static inline void eqos_save_registers(struct osi_core_priv_data *osi_core)
+{
+	unsigned int i;
+	struct core_backup *config = osi_core->backup_config;
+
+	for (i = 0; i < EQOS_MAX_BAK_IDX; i++) {
+		if (config->reg_addr[i] != OSI_NULL) {
+			config->reg_val[i] = osi_readl(config->reg_addr[i]);
+		}
+	}
+}
+
+/**
+ * @brief Function to restore the backup of MAC registers during SOC resume.
+ *
+ * Algorithm: Restore the register values from the in memory backup taken using
+ * eqos_save_registers().
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ *
+ * @retval none
+ */
+static inline void eqos_restore_registers(struct osi_core_priv_data *osi_core)
+{
+	unsigned int i;
+	struct core_backup *config = osi_core->backup_config;
+
+	for (i = 0; i < EQOS_MAX_BAK_IDX; i++) {
+		if (config->reg_addr[i] != OSI_NULL) {
+			osi_writel(config->reg_val[i], config->reg_addr[i]);
+		}
+	}
+}
+
 /**
  * @brief eqos_core_ops - EQOS MAC core operations
  */
@@ -3344,7 +3511,17 @@ static struct osi_core_ops eqos_core_ops = {
 	.read_mmc = eqos_read_mmc,
 	.reset_mmc = eqos_reset_mmc,
 	.configure_eee = eqos_configure_eee,
+	.save_registers = eqos_save_registers,
+	.restore_registers = eqos_restore_registers,
 };
+
+/**
+ * @brief eqos_get_core_backup_config - EQOS MAC backup configuration
+ */
+void *eqos_get_core_backup_config(void)
+{
+	return &eqos_core_backup_config;
+}
 
 /**
  * @brief eqos_get_core_safety_config - EQOS MAC safety configuration

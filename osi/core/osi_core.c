@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -186,6 +186,7 @@ int osi_init_core_ops(struct osi_core_priv_data *osi_core)
 		 * like periodic read-verify.
 		 */
 		osi_core->safety_config = (void *)eqos_get_core_safety_config();
+		osi_core->backup_config = (void *)eqos_get_core_backup_config();
 		return 0;
 	}
 
@@ -927,6 +928,28 @@ int osi_configure_eee(struct osi_core_priv_data *osi_core,
 	    (tx_lpi_timer % OSI_MIN_TX_LPI_TIMER == OSI_NONE)) {
 		osi_core->ops->configure_eee(osi_core, tx_lpi_enabled,
 					     tx_lpi_timer);
+		return 0;
+	}
+
+	return -1;
+}
+
+int osi_save_registers(struct osi_core_priv_data *osi_core)
+{
+	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
+	    (osi_core->ops->save_registers != OSI_NULL)) {
+		osi_core->ops->save_registers(osi_core);
+		return 0;
+	}
+
+	return -1;
+}
+
+int osi_restore_registers(struct osi_core_priv_data *osi_core)
+{
+	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
+	    (osi_core->ops->restore_registers != OSI_NULL)) {
+		osi_core->ops->restore_registers(osi_core);
 		return 0;
 	}
 
