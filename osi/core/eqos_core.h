@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -90,49 +90,41 @@
  * @brief EQOS HW register offsets
  * @{
  */
-#define EQOS_5_00_MAC_ARPPA	0x0210
-#define EQOS_4_10_MAC_ARPPA	0x0AE0
-#define EQOS_DMA_SBUS		0x1004
-#define EQOS_DMA_BMR		0x1000
-#define EQOS_MMC_CNTRL		0x0700
-#define EQOS_MAC_MA0HR		0x0300
-#define EQOS_MAC_MA0LR		0x0304
-#define EQOS_MAC_MCR		0x0000
-#define EQOS_MAC_VLAN_TAG	0x0050
-#define EQOS_MAC_VLANTIR	0x0060
-#define EQOS_MAC_IMR		0x00B4
-#define EQOS_DMA_ISR		0x1008
-#define EQOS_MAC_ISR		0x00B0
-#define EQOS_MAC_LPI_CSR	0x00D0
-#define EQOS_MAC_LPI_TIMER_CTRL	0x00D4
-#define EQOS_MAC_LPI_EN_TIMER	0x00D8
-#define EQOS_MAC_RQC1R		0x00A4
-#define EQOS_MAC_RQC2R		0x00A8
-#define EQOS_MMC_TX_INTR_MASK	0x0710
-#define EQOS_MMC_RX_INTR_MASK	0x070C
-#define EQOS_MMC_IPC_RX_INTR_MASK	0x0800
-#define EQOS_MAC_RQC0R		0x00A0
-#define EQOS_MAC_PMTCSR		0x00C0
-#define EQOS_MAC_PCS		0x00F8
-#define EQOS_MAC_ANS		0x00E4
-/* Enable for DA-based or L2/L4 based  DMA Channel selection*/
-#define EQOS_RXQ_TO_DMA_CHAN_MAP	0x03020100U
-#define EQOS_RXQ_TO_DMA_CHAN_MAP_DCS_EN	0x13121110U
-#define EQOS_MAC_EXTR		0x0004
-#define EQOS_MAC_RX_FLW_CTRL	0x0090
-#define EQOS_MAC_QX_TX_FLW_CTRL(x)	((0x0004U * (x)) + 0x0070U)
-/*MAC Filtering*/
+#define EQOS_MAC_MCR			0x0000
+#define EQOS_MAC_EXTR			0x0004
+#define EQOS_MAC_PFR			0x0008U
 #define EQOS_MAC_HTR_REG(x)		((0x0004U * (x)) + 0x0010U)
-/* x will be index from 0 to 127 to write*/
+#define EQOS_MAC_VLAN_TAG		0x0050
+#define EQOS_MAC_VLANTIR		0x0060
+#define EQOS_MAC_QX_TX_FLW_CTRL(x)	((0x0004U * (x)) + 0x0070U)
+#define EQOS_MAC_RX_FLW_CTRL		0x0090
+#define EQOS_MAC_RQC0R			0x00A0
+#define EQOS_MAC_RQC1R			0x00A4
+#define EQOS_MAC_RQC2R			0x00A8
+#define EQOS_MAC_ISR			0x00B0
+#define EQOS_MAC_IMR			0x00B4
+#define EQOS_MAC_PMTCSR			0x00C0
+#define EQOS_MAC_LPI_CSR		0x00D0
+#define EQOS_MAC_LPI_TIMER_CTRL		0x00D4
+#define EQOS_MAC_LPI_EN_TIMER		0x00D8
+#define EQOS_MAC_ANS			0x00E4
+#define EQOS_MAC_PCS			0x00F8
+#define EQOS_5_00_MAC_ARPPA		0x0210
+#define EQOS_MAC_MA0HR			0x0300
 #define EQOS_MAC_ADDRH(x)		((0x0008U * (x)) + 0x0300U)
+#define EQOS_MAC_MA0LR			0x0304
 #define EQOS_MAC_ADDRL(x)		((0x0008U * (x)) + 0x0304U)
+#define EQOS_MMC_CNTRL			0x0700
+#define EQOS_MMC_TX_INTR_MASK		0x0710
+#define EQOS_MMC_RX_INTR_MASK		0x070C
+#define EQOS_MMC_IPC_RX_INTR_MASK	0x0800
 #define EQOS_MAC_L3L4_CTR(x)		((0x0030U * (x)) + 0x0900U)
 #define EQOS_MAC_L4_ADR(x)		((0x0030U * (x)) + 0x0904U)
 #define EQOS_MAC_L3_AD0R(x)		((0x0030U * (x)) + 0x0910U)
 #define EQOS_MAC_L3_AD1R(x)		((0x0030U * (x)) + 0x0914U)
 #define EQOS_MAC_L3_AD2R(x)		((0x0030U * (x)) + 0x0918U)
 #define EQOS_MAC_L3_AD3R(x)		((0x0030U * (x)) + 0x091CU)
-#define EQOS_MAC_PFR			0x0008U
+#define EQOS_4_10_MAC_ARPPA		0x0AE0
 #define EQOS_MAC_TCR			0x0B00
 #define EQOS_MAC_SSIR			0x0B04
 #define EQOS_MAC_STSR			0x0B08
@@ -140,6 +132,9 @@
 #define EQOS_MAC_STSUR			0x0B10
 #define EQOS_MAC_STNSUR			0x0B14
 #define EQOS_MAC_TAR			0x0B18
+#define EQOS_DMA_BMR			0x1000
+#define EQOS_DMA_SBUS			0x1004
+#define EQOS_DMA_ISR			0x1008
 /** @} */
 
 /**
@@ -148,15 +143,15 @@
  * @brief EQOS MTL HW Register offsets
  * @{
  */
+#define EQOS_MTL_OP_MODE		0x0C00
+#define EQOS_MTL_RXQ_DMA_MAP0		0x0C30
 #define EQOS_MTL_CHX_TX_OP_MODE(x)	((0x0040U * (x)) + 0x0D00U)
-#define EQOS_MTL_TXQ_QW(x)		((0x0040U * (x)) + 0x0D18U)
-#define EQOS_MTL_CHX_RX_OP_MODE(x)	((0x0040U * (x)) + 0x0D30U)
 #define EQOS_MTL_TXQ_ETS_CR(x)		((0x0040U * (x)) + 0x0D10U)
+#define EQOS_MTL_TXQ_QW(x)		((0x0040U * (x)) + 0x0D18U)
 #define EQOS_MTL_TXQ_ETS_SSCR(x)	((0x0040U * (x)) + 0x0D1CU)
 #define EQOS_MTL_TXQ_ETS_HCR(x)		((0x0040U * (x)) + 0x0D20U)
 #define EQOS_MTL_TXQ_ETS_LCR(x)		((0x0040U * (x)) + 0x0D24U)
-#define EQOS_MTL_RXQ_DMA_MAP0		0x0C30
-#define EQOS_MTL_OP_MODE		0x0C00
+#define EQOS_MTL_CHX_RX_OP_MODE(x)	((0x0040U * (x)) + 0x0D30U)
 /** @} */
 
 /**
@@ -165,11 +160,11 @@
  * @brief EQOS Wrapper register offsets
  * @{
  */
-#define EQOS_PAD_AUTO_CAL_CFG		0x8804U
-#define EQOS_PAD_AUTO_CAL_STAT		0x880CU
-#define EQOS_PAD_CRTL			0x8800U
 #define EQOS_CLOCK_CTRL_0		0x8000U
 #define EQOS_AXI_ASID_CTRL		0x8400U
+#define EQOS_PAD_CRTL			0x8800U
+#define EQOS_PAD_AUTO_CAL_CFG		0x8804U
+#define EQOS_PAD_AUTO_CAL_STAT		0x880CU
 /** @} */
 
 /**
@@ -178,6 +173,9 @@
  * @brief consists of corresponding EQOS MAC, MTL register bit values
  * @{
  */
+/* Enable for DA-based or L2/L4 based  DMA Channel selection*/
+#define EQOS_RXQ_TO_DMA_CHAN_MAP		0x03020100U
+#define EQOS_RXQ_TO_DMA_CHAN_MAP_DCS_EN		0x13121110U
 #define EQOS_PAD_AUTO_CAL_CFG_ENABLE		OSI_BIT(29)
 #define EQOS_PAD_AUTO_CAL_CFG_START		OSI_BIT(31)
 #define EQOS_PAD_AUTO_CAL_STAT_ACTIVE		OSI_BIT(31)
@@ -486,4 +484,128 @@ struct core_func_safety {
 	 * validation is in-progress */
 	unsigned int core_safety_lock;
 };
+
+/**
+ * @addtogroup EQOS-HW-BACKUP
+ *
+ * @brief Definitions related to taking backup of EQOS core registers.
+ * @{
+ */
+
+/* Hardware Register offsets to be backed up during suspend.
+ *
+ * Do not change the order of these macros. To add new registers to be
+ * backed up, append to end of list before EQOS_MAX_MAC_BAK_IDX, and
+ * update EQOS_MAX_MAC_BAK_IDX based on new macro.
+ */
+#define EQOS_MAC_MCR_BAK_IDX		0U
+#define EQOS_MAC_EXTR_BAK_IDX		((EQOS_MAC_MCR_BAK_IDX + 1U))
+#define EQOS_MAC_PFR_BAK_IDX		((EQOS_MAC_EXTR_BAK_IDX + 1U))
+#define EQOS_MAC_VLAN_TAG_BAK_IDX	((EQOS_MAC_PFR_BAK_IDX + 1U))
+#define EQOS_MAC_VLANTIR_BAK_IDX	((EQOS_MAC_VLAN_TAG_BAK_IDX + 1U))
+#define EQOS_MAC_RX_FLW_CTRL_BAK_IDX	((EQOS_MAC_VLANTIR_BAK_IDX + 1U))
+#define EQOS_MAC_RQC0R_BAK_IDX		((EQOS_MAC_RX_FLW_CTRL_BAK_IDX + 1U))
+#define EQOS_MAC_RQC1R_BAK_IDX		((EQOS_MAC_RQC0R_BAK_IDX + 1U))
+#define EQOS_MAC_RQC2R_BAK_IDX		((EQOS_MAC_RQC1R_BAK_IDX + 1U))
+#define EQOS_MAC_ISR_BAK_IDX		((EQOS_MAC_RQC2R_BAK_IDX + 1U))
+#define EQOS_MAC_IMR_BAK_IDX		((EQOS_MAC_ISR_BAK_IDX + 1U))
+#define EQOS_MAC_PMTCSR_BAK_IDX		((EQOS_MAC_IMR_BAK_IDX + 1U))
+#define EQOS_MAC_LPI_CSR_BAK_IDX	((EQOS_MAC_PMTCSR_BAK_IDX + 1U))
+#define EQOS_MAC_LPI_TIMER_CTRL_BAK_IDX	((EQOS_MAC_LPI_CSR_BAK_IDX + 1U))
+#define EQOS_MAC_LPI_EN_TIMER_BAK_IDX	((EQOS_MAC_LPI_TIMER_CTRL_BAK_IDX + 1U))
+#define EQOS_MAC_ANS_BAK_IDX		((EQOS_MAC_LPI_EN_TIMER_BAK_IDX + 1U))
+#define EQOS_MAC_PCS_BAK_IDX		((EQOS_MAC_ANS_BAK_IDX + 1U))
+#define EQOS_5_00_MAC_ARPPA_BAK_IDX	((EQOS_MAC_PCS_BAK_IDX + 1U))
+#define EQOS_MMC_CNTRL_BAK_IDX		((EQOS_5_00_MAC_ARPPA_BAK_IDX + 1U))
+#define EQOS_4_10_MAC_ARPPA_BAK_IDX	((EQOS_MMC_CNTRL_BAK_IDX + 1U))
+#define EQOS_MAC_TCR_BAK_IDX		((EQOS_4_10_MAC_ARPPA_BAK_IDX + 1U))
+#define EQOS_MAC_SSIR_BAK_IDX		((EQOS_MAC_TCR_BAK_IDX + 1U))
+#define EQOS_MAC_STSR_BAK_IDX		((EQOS_MAC_SSIR_BAK_IDX + 1U))
+#define EQOS_MAC_STNSR_BAK_IDX		((EQOS_MAC_STSR_BAK_IDX + 1U))
+#define EQOS_MAC_STSUR_BAK_IDX		((EQOS_MAC_STNSR_BAK_IDX + 1U))
+#define EQOS_MAC_STNSUR_BAK_IDX		((EQOS_MAC_STSUR_BAK_IDX + 1U))
+#define EQOS_MAC_TAR_BAK_IDX		((EQOS_MAC_STNSUR_BAK_IDX + 1U))
+#define EQOS_DMA_BMR_BAK_IDX		((EQOS_MAC_TAR_BAK_IDX + 1U))
+#define EQOS_DMA_SBUS_BAK_IDX		((EQOS_DMA_BMR_BAK_IDX + 1U))
+#define EQOS_DMA_ISR_BAK_IDX		((EQOS_DMA_SBUS_BAK_IDX + 1U))
+#define EQOS_MTL_OP_MODE_BAK_IDX	((EQOS_DMA_ISR_BAK_IDX + 1U))
+#define EQOS_MTL_RXQ_DMA_MAP0_BAK_IDX	((EQOS_MTL_OP_MODE_BAK_IDX + 1U))
+/* x varies from 0-7, 8 HTR registers total */
+#define EQOS_MAC_HTR_REG_BAK_IDX(x)	((EQOS_MTL_RXQ_DMA_MAP0_BAK_IDX + 1U + \
+					(x)))
+/* x varies from 0-7, 8 queues total */
+#define EQOS_MAC_QX_TX_FLW_CTRL_BAK_IDX(x)	((EQOS_MAC_HTR_REG_BAK_IDX(0U) \
+						+ EQOS_MAX_HTR_REGS + (x)))
+/* x varies from 0-127, 128 L2 DA/SA filters total */
+#define EQOS_MAC_ADDRH_BAK_IDX(x)	((EQOS_MAC_QX_TX_FLW_CTRL_BAK_IDX(0U) \
+					+ OSI_EQOS_MAX_NUM_QUEUES + (x)))
+#define EQOS_MAC_ADDRL_BAK_IDX(x)	((EQOS_MAC_ADDRH_BAK_IDX(0U) + \
+					EQOS_MAX_MAC_ADDRESS_FILTER + (x)))
+/* x varies from 0-7, 8 L3/L4 filters total */
+#define EQOS_MAC_L3L4_CTR_BAK_IDX(x)	((EQOS_MAC_ADDRL_BAK_IDX(0U) + \
+					EQOS_MAX_MAC_ADDRESS_FILTER + (x)))
+#define EQOS_MAC_L4_ADR_BAK_IDX(x)	((EQOS_MAC_L3L4_CTR_BAK_IDX(0U) + \
+					EQOS_MAX_L3_L4_FILTER + (x)))
+#define EQOS_MAC_L3_AD0R_BAK_IDX(x)	((EQOS_MAC_L4_ADR_BAK_IDX(0U) + \
+					EQOS_MAX_L3_L4_FILTER + (x)))
+#define EQOS_MAC_L3_AD1R_BAK_IDX(x)	((EQOS_MAC_L3_AD0R_BAK_IDX(0U) + \
+					EQOS_MAX_L3_L4_FILTER + (x)))
+#define EQOS_MAC_L3_AD2R_BAK_IDX(x)	((EQOS_MAC_L3_AD1R_BAK_IDX(0U) + \
+					EQOS_MAX_L3_L4_FILTER + (x)))
+#define EQOS_MAC_L3_AD3R_BAK_IDX(x)	((EQOS_MAC_L3_AD2R_BAK_IDX(0U) + \
+					EQOS_MAX_L3_L4_FILTER + (x)))
+
+/* MTL HW Register offsets
+ *
+ * Do not change the order of these macros. To add new registers to be
+ * backed up, append to end of list before EQOS_MAX_MTL_BAK_IDX, and
+ * update EQOS_MAX_MTL_BAK_IDX based on new macro.
+ */
+/* x varies from 0-7, 8 queues total */
+#define EQOS_MTL_CHX_TX_OP_MODE_BAK_IDX(x)	((EQOS_MAC_L3_AD3R_BAK_IDX(0U) \
+						+ EQOS_MAX_L3_L4_FILTER + (x)))
+#define EQOS_MTL_TXQ_ETS_CR_BAK_IDX(x)	((EQOS_MTL_CHX_TX_OP_MODE_BAK_IDX(0U) \
+					+ OSI_EQOS_MAX_NUM_QUEUES + (x)))
+#define EQOS_MTL_TXQ_QW_BAK_IDX(x)	((EQOS_MTL_TXQ_ETS_CR_BAK_IDX(0U) + \
+					OSI_EQOS_MAX_NUM_QUEUES + (x)))
+#define EQOS_MTL_TXQ_ETS_SSCR_BAK_IDX(x)	((EQOS_MTL_TXQ_QW_BAK_IDX(0U) \
+						+ OSI_EQOS_MAX_NUM_QUEUES + \
+						(x)))
+#define EQOS_MTL_TXQ_ETS_HCR_BAK_IDX(x)	((EQOS_MTL_TXQ_ETS_SSCR_BAK_IDX(0U) + \
+					OSI_EQOS_MAX_NUM_QUEUES + (x)))
+#define EQOS_MTL_TXQ_ETS_LCR_BAK_IDX(x)	((EQOS_MTL_TXQ_ETS_HCR_BAK_IDX(0U) + \
+					OSI_EQOS_MAX_NUM_QUEUES + (x)))
+#define EQOS_MTL_CHX_RX_OP_MODE_BAK_IDX(x)	\
+					((EQOS_MTL_TXQ_ETS_LCR_BAK_IDX(0U) + \
+					OSI_EQOS_MAX_NUM_QUEUES + (x)))
+
+/* EQOS Wrapper register offsets to be saved during suspend
+ *
+ * Do not change the order of these macros. To add new registers to be
+ * backed up, append to end of list before EQOS_MAX_WRAPPER_BAK_IDX,
+ * and update EQOS_MAX_WRAPPER_BAK_IDX based on new macro.
+ */
+#define EQOS_CLOCK_CTRL_0_BAK_IDX	((EQOS_MTL_CHX_RX_OP_MODE_BAK_IDX(0U) \
+					+ OSI_EQOS_MAX_NUM_QUEUES))
+#define EQOS_AXI_ASID_CTRL_BAK_IDX	((EQOS_CLOCK_CTRL_0_BAK_IDX + 1U))
+#define EQOS_PAD_CRTL_BAK_IDX		((EQOS_AXI_ASID_CTRL_BAK_IDX + 1U))
+#define EQOS_PAD_AUTO_CAL_CFG_BAK_IDX	((EQOS_PAD_CRTL_BAK_IDX + 1U))
+/* EQOS_PAD_AUTO_CAL_STAT is Read-only. Skip backup/restore */
+
+/* To add new registers to backup during suspend, and restore during resume
+ * add it before this line, and increment EQOS_MAC_BAK_IDX accordingly.
+ */
+#define EQOS_MAX_BAK_IDX		((EQOS_PAD_AUTO_CAL_CFG_BAK_IDX + 1U))
+
+/**
+ * @brief core_backup - Struct used to store backup of core HW registers.
+ */
+struct core_backup {
+	/** Array of reg MMIO addresses (base of EQoS + offset of reg) */
+	void *reg_addr[EQOS_MAX_BAK_IDX];
+	/** Array of value stored in each corresponding register */
+	unsigned int reg_val[EQOS_MAX_BAK_IDX];
+};
+
+/** @} */
 #endif

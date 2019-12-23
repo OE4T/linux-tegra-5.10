@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -245,9 +245,14 @@ struct osi_core_ops {
 	void (*read_mmc)(struct osi_core_priv_data *osi_core);
 	/** Called to reset MMC HW counter structure */
 	void (*reset_mmc)(struct osi_core_priv_data *osi_core);
+	/** Called to configure EEE Tx LPI */
 	void (*configure_eee)(struct osi_core_priv_data *osi_core,
 			      unsigned int tx_lpi_enabled,
 			      unsigned int tx_lpi_timer);
+	/** Called to save MAC register space during SOC suspend */
+	void (*save_registers)(struct osi_core_priv_data *osi_core);
+	/** Called to restore MAC control registers during SOC resume */
+	void (*restore_registers)(struct osi_core_priv_data *osi_core);
 };
 
 /**
@@ -342,6 +347,8 @@ struct osi_core_priv_data {
 	/** Functional safety config to do periodic read-verify of
 	 * certain safety critical registers */
 	void *safety_config;
+	/** Backup config to save/restore registers during suspend/resume */
+	void *backup_config;
 	/** VLAN tag stripping enable(1) or disable(0) */
 	unsigned int strip_vlan_tag;
 	/** L3L4 filter bit bask, set index corresponding bit for
@@ -969,6 +976,7 @@ int osi_ptp_configuration(struct osi_core_priv_data *osi_core,
  */
 struct osi_core_ops *eqos_get_hw_core_ops(void);
 void *eqos_get_core_safety_config(void);
+void *eqos_get_core_backup_config(void);
 
 /**
  * @brief osi_l3l4_filter -  invoke OSI call to add L3/L4
@@ -1023,4 +1031,32 @@ int osi_l3l4_filter(struct osi_core_priv_data *osi_core,
 int osi_configure_eee(struct osi_core_priv_data *osi_core,
 		      unsigned int tx_lpi_enabled,
 		      unsigned int tx_lpi_timer);
+
+/**
+ * @brief osi_save_registers - Take backup of MAC MMIO address space
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ *
+ * @note
+ *	1) MAC and PHY should be init and started. see osi_start_mac()
+ *	2) No further configuration change in MAC shall be done after invoking
+ *	this API
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+int osi_save_registers(struct osi_core_priv_data *osi_core);
+
+/**
+ * @brief osi_restore_registers - Restore backup of MAC MMIO address space
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ *
+ * @note
+ *	1) MAC and PHY should be init and started. see osi_start_mac()
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+int osi_restore_registers(struct osi_core_priv_data *osi_core);
 #endif /* OSI_CORE_H */
