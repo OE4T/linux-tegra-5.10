@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -3924,6 +3924,17 @@ static int ether_suspend_noirq(struct device *dev)
 	if (!netif_running(ndev))
 		return 0;
 
+	/* Since MAC is placed in reset during suspend, take a backup of
+	 * current configuration so that SW view of HW is maintained across
+	 * suspend/resume.
+	 */
+	if (osi_core->backup_config) {
+		if (osi_save_registers(osi_core)) {
+			dev_err(dev, "Failed to backup MAC core registers\n");
+			return -EBUSY;
+		}
+	}
+
 	/* Stop workqueue while DUT is going to suspend state */
 	ether_stats_work_queue_stop(pdata);
 
@@ -4061,6 +4072,7 @@ static int ether_resume_noirq(struct device *dev)
 {
 	struct net_device *ndev = dev_get_drvdata(dev);
 	struct ether_priv_data *pdata = netdev_priv(ndev);
+	struct osi_core_priv_data *osi_core = pdata->osi_core;
 	int ret = 0;
 
 	if (!netif_running(ndev))
@@ -4079,6 +4091,18 @@ static int ether_resume_noirq(struct device *dev)
 	if (ret < 0) {
 		dev_err(dev, "failed to resume the MAC\n");
 		return ret;
+	}
+
+	/* Since MAC is brought of reset, all the SW configuration done before
+	 * suspend/resume will be overwritten by power-on-default values.
+	 * Restore the backup of the MAC configuration to maintain consistency
+	 * between SW/HW state.
+	 */
+	if (osi_core->backup_config) {
+		if (osi_restore_registers(osi_core)) {
+			//TODO: Ideally, undo MAC init/resume & return.
+			dev_err(dev, "Failed to restore MAC core registers\n");
+		}
 	}
 
 	return 0;
