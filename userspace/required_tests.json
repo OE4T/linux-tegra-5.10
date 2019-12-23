@@ -4782,6 +4782,48 @@
         "test": "test_cast",
         "case": "cast",
         "unit": "static_analysis",
+	"test_level": 0
+    },
+    {
+        "test": "test_sync_init",
+        "case": "sync_init",
+        "unit": "nvgpu-sync",
+        "test_level": 0
+    },
+    {
+        "test": "test_sync_deinit",
+        "case": "sync_deinit",
+        "unit": "nvgpu-sync",
+        "test_level": 0
+    },
+    {
+        "test": "test_sync_create_destroy_sync",
+        "case": "sync_create_destroy",
+        "unit": "nvgpu-sync",
+        "test_level": 0
+    },
+    {
+        "test": "test_sync_set_safe_state",
+        "case": "sync_set_safe_state",
+        "unit": "nvgpu-sync",
+        "test_level": 0
+    },
+    {
+        "test": "test_sync_usermanaged_syncpoint_apis",
+        "case": "sync_user_managed_apis",
+        "unit": "nvgpu-sync",
+        "test_level": 0
+    },
+    {
+        "test": "test_sync_get_ro_map",
+        "case": "sync_get_ro_map",
+        "unit": "nvgpu-sync",
+        "test_level": 0
+    },
+    {
+        "test": "test_sync_create_fail",
+        "case": "sync_fail",
+        "unit": "nvgpu-sync",
         "test_level": 0
     }
 ]

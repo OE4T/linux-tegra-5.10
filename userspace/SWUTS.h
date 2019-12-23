@@ -76,6 +76,7 @@
  *   - @ref SWUTS-fifo-tsg-gv11b
  *   - @ref SWUTS-fifo-userd-gk20a
  *   - @ref SWUTS-fifo-usermode-gv11b
+ *   - @ref SWUTS-nvgpu-sync
  *   - @ref SWUTS-init
  *   - @ref SWUTS-intr
  *   - @ref SWUTS-interface-atomic

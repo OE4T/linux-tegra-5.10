@@ -147,6 +147,29 @@ int test_sync_set_safe_state(struct unit_module *m, struct gk20a *g, void *args)
 int test_sync_usermanaged_syncpt_apis(struct unit_module *m, struct gk20a *g, void *args);
 
 /**
+ * Test specification for: get_sync_ro_map
+ *
+ * Description: Branch coverage for get_sync_ro_map HAL
+ *
+ * Test Type: Feature
+ *
+ * Targets: gv11b_syncpt_get_sync_ro_map
+ *
+ * Input: test_sync_init run for this GPU
+ *
+ * Steps:
+ * - Check if a call to get_sync_ro_map HAL succeeds
+ *   - Check when vm->syncpt_ro_map_gpu_va is preallocated
+ *   - Check when vm->syncpt_ro_map_gpu_va is not preallocated
+ * - Check if a call to get_sync_ro_map HAL fails
+ *    - Check when vm->syncpt_ro_map_gpu_va is not preallocated and
+ *      call to MAP fails
+ *
+ * Output: Returns PASS if NULL is returned. FAIL otherwise.
+ */
+int test_sync_get_ro_map(struct unit_module *m, struct gk20a *g, void *args);
+
+/**
  * Test specification for: test_sync_create_fail
  *
  * Description: Branch coverage for nvgpu_channel_sync_create failure
