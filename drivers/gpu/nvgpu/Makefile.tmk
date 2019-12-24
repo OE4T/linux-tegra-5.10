@@ -1,6 +1,6 @@
 ################################### tell Emacs this is a -*- makefile-gmake -*-
 #
-# Copyright (c) 2018 NVIDIA CORPORATION.  All Rights Reserved.
+# Copyright (c) 2018-2020 NVIDIA CORPORATION.  All Rights Reserved.
 #
 # NVIDIA CORPORATION and its licensors retain all intellectual property
 # and proprietary rights in and to this software, related documentation
@@ -37,7 +37,8 @@ NVGPU_NEXT_SOURCE := \
 
 NVGPU_POSIX			:= 1
 NVGPU_ARCH			:= $(NV_COMPONENT_DIR)/../../../arch
-NVGPU_ARCH_YAML                 := $(NVGPU_ARCH)/*.yaml
+NVGPU_NEXT_ARCH			:= $(NVGPU_NEXT_SOUCRE)/../../../arch
+NVGPU_ARCH_YAML                 := $(NVGPU_ARCH)/*.yaml $(NVGPU_NEXT_ARCH)/*.yaml
 
 NV_COMPONENT_NAME		:= nvgpu-drv
 NV_COMPONENT_OWN_INTERFACE_DIR	:= .

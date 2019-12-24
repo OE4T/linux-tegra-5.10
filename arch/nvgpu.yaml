@@ -1,4 +1,4 @@
-# Copyright (c) 2019, NVIDIA CORPORATION.  All Rights Reserved.
+# Copyright (c) 2019-2020, NVIDIA CORPORATION.  All Rights Reserved.
 #
 # Top level NVGPU architecure description in YAML.
 #
@@ -66,3 +66,9 @@ nvgpu:
       safe: no
       children:
         !include nvgpu-gpu_hw.yaml
+
+    # nvgpu-next code
+    nvgpu-next:
+      safe: no
+      children:
+        !include nvgpu-next.yaml
