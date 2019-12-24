@@ -2198,12 +2198,59 @@ clean_up:
 	return err;
 }
 
-int nvgpu_channel_setup_bind(struct nvgpu_channel *c,
+static int channel_setup_bind_prechecks(struct nvgpu_channel *c,
 		struct nvgpu_setup_bind_args *args)
 {
 	struct gk20a *g = c->g;
 	struct nvgpu_tsg *tsg;
 	int err = 0;
+
+	/* an address space needs to have been bound at this point. */
+	if (!nvgpu_channel_as_bound(c)) {
+		nvgpu_err(g,
+			"not bound to an address space at time of setup_bind");
+		err = -EINVAL;
+		goto fail;
+	}
+
+	/* The channel needs to be bound to a tsg at this point */
+	tsg = nvgpu_tsg_from_ch(c);
+	if (tsg == NULL) {
+		nvgpu_err(g,
+			"not bound to tsg at time of setup_bind");
+		err = -EINVAL;
+		goto fail;
+	}
+
+	if (c->usermode_submit_enabled) {
+		nvgpu_err(g, "channel %d : "
+			    "usermode buffers allocated", c->chid);
+		err = -EEXIST;
+		goto fail;
+	}
+
+#ifdef CONFIG_NVGPU_KERNEL_MODE_SUBMIT
+	if (nvgpu_mem_is_valid(&c->gpfifo.mem)) {
+		nvgpu_err(g, "channel %d :"
+			   "gpfifo already allocated", c->chid);
+		err = -EEXIST;
+		goto fail;
+	}
+#endif
+fail:
+	return err;
+}
+
+int nvgpu_channel_setup_bind(struct nvgpu_channel *c,
+		struct nvgpu_setup_bind_args *args)
+{
+	struct gk20a *g = c->g;
+	int err = 0;
+
+	err = channel_setup_bind_prechecks(c, args);
+	if (err != 0) {
+		goto fail;
+	}
 
 #ifdef CONFIG_NVGPU_VPR
 	if ((args->flags & NVGPU_SETUP_BIND_FLAGS_SUPPORT_VPR) != 0U) {
@@ -2234,39 +2281,6 @@ int nvgpu_channel_setup_bind(struct nvgpu_channel *c,
 		nvgpu_rwsem_up_read(&g->deterministic_busy);
 	}
 
-	/* an address space needs to have been bound at this point. */
-	if (!nvgpu_channel_as_bound(c)) {
-		nvgpu_err(g,
-			"not bound to an address space at time of setup_bind");
-		err = -EINVAL;
-		goto clean_up_idle;
-	}
-
-	/* The channel needs to be bound to a tsg at this point */
-	tsg = nvgpu_tsg_from_ch(c);
-	if (tsg == NULL) {
-		nvgpu_err(g,
-			"not bound to tsg at time of setup_bind");
-		err = -EINVAL;
-		goto clean_up_idle;
-	}
-
-	if (c->usermode_submit_enabled) {
-		nvgpu_err(g, "channel %d : "
-			    "usermode buffers allocated", c->chid);
-		err = -EEXIST;
-		goto clean_up_idle;
-	}
-
-#ifdef CONFIG_NVGPU_KERNEL_MODE_SUBMIT
-	if (nvgpu_mem_is_valid(&c->gpfifo.mem)) {
-		nvgpu_err(g, "channel %d :"
-			   "gpfifo already allocated", c->chid);
-		err = -EEXIST;
-		goto clean_up_idle;
-	}
-#endif
-
 	if ((args->flags & NVGPU_SETUP_BIND_FLAGS_USERMODE_SUPPORT) != 0U) {
 		err = nvgpu_channel_setup_usermode(c, args);
 	} else {
@@ -2296,6 +2310,7 @@ clean_up_idle:
 		c->deterministic = false;
 		nvgpu_rwsem_up_read(&g->deterministic_busy);
 	}
+fail:
 	nvgpu_err(g, "fail");
 	return err;
 }
