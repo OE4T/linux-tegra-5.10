@@ -445,6 +445,21 @@ clean_up:
 	return err;
 }
 
+static int gr_init_ecc_init(struct gk20a *g)
+{
+	int err = 0;
+
+	if (g->ops.gr.ecc.gpc_tpc_ecc_init != NULL && !g->ecc.initialized) {
+		err = g->ops.gr.ecc.gpc_tpc_ecc_init(g);
+		if (err != 0) {
+			nvgpu_err(g, "failed to init gr gpc/tpc ecc");
+			return err;
+		}
+	}
+
+	return err;
+}
+
 static int gr_init_setup_sw(struct gk20a *g)
 {
 	struct nvgpu_gr *gr = g->gr;
@@ -503,12 +518,9 @@ static int gr_init_setup_sw(struct gk20a *g)
 		goto clean_up;
 	}
 
-	if (g->ops.gr.ecc.gpc_tpc_ecc_init != NULL && !g->ecc.initialized) {
-		err = g->ops.gr.ecc.gpc_tpc_ecc_init(g);
-		if (err != 0) {
-			nvgpu_err(g, "failed to init gr gpc/tpc ecc");
-			goto clean_up;
-		}
+	err = gr_init_ecc_init(g);
+	if (err != 0) {
+		goto clean_up;
 	}
 
 	gr->remove_support = gr_remove_support;
