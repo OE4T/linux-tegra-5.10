@@ -1,7 +1,7 @@
 /*
  * GK20A Graphics channel
  *
- * Copyright (c) 2011-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -1140,6 +1140,24 @@ long gk20a_channel_ioctl(struct file *filp,
 				__func__, cmd);
 			break;
 		}
+
+#ifdef CONFIG_NVGPU_SM_DIVERSITY
+	{
+		struct nvgpu_tsg *tsg = nvgpu_tsg_from_ch(ch);
+
+		if (tsg == NULL) {
+			err = -EINVAL;
+			break;
+		}
+
+		if (nvgpu_gr_ctx_get_sm_diversity_config(tsg->gr_ctx) ==
+			NVGPU_INVALID_SM_CONFIG_ID) {
+			nvgpu_gr_ctx_set_sm_diversity_config(tsg->gr_ctx,
+				NVGPU_DEFAULT_SM_DIVERSITY_CONFIG);
+		}
+	}
+#endif
+
 		err = nvgpu_ioctl_channel_alloc_obj_ctx(ch, args->class_num, args->flags);
 		gk20a_idle(ch->g);
 		break;

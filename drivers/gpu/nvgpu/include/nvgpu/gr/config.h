@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -339,6 +339,28 @@ void nvgpu_gr_config_set_no_of_sm(struct nvgpu_gr_config *config, u32 no_of_sm);
  */
 struct nvgpu_sm_info *nvgpu_gr_config_get_sm_info(struct nvgpu_gr_config *config,
 	u32 sm_id);
+
+#ifdef CONFIG_NVGPU_SM_DIVERSITY
+/**
+ * @brief Get information of given SM.
+ *
+ * @param config [in]		Pointer to GR configuration struct.
+ * @param sm_id [in]		SM index.
+ *
+ * common.gr unit stores redundant execution config information of each SM
+ * into an array of struct #nvgpu_sm_info. This information includes GPC/TPC
+ * indexes for particular SM, and index of SM within TPC.
+ *
+ * This config is valid only if NVGPU_SUPPORT_SM_DIVERSITY support is true.
+ *
+ * This function will return pointer to #nvgpu_sm_info struct for SM with
+ * requested index.
+ *
+ * @return pointer to struct #nvgpu_sm_info
+ */
+struct nvgpu_sm_info *nvgpu_gr_config_get_redex_sm_info(
+	struct nvgpu_gr_config *config, u32 sm_id);
+#endif
 
 /**
  * @brief Get GPC index of SM.

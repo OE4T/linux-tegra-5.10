@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -150,6 +150,13 @@ struct nvgpu_gr_config {
 	 * Pointer to SM information struct.
 	 */
 	struct nvgpu_sm_info *sm_to_cluster;
+#ifdef CONFIG_NVGPU_SM_DIVERSITY
+	/**
+	 * Pointer to redundant execution config SM information struct.
+	 * It is valid only if NVGPU_SUPPORT_SM_DIVERSITY support is true.
+	 */
+	struct nvgpu_sm_info *sm_to_cluster_redex_config;
+#endif
 
 #ifdef CONFIG_NVGPU_GRAPHICS
 	u32 max_zcull_per_gpc_count;

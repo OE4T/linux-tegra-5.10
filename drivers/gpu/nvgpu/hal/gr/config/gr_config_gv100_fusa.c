@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -318,6 +318,45 @@ exit_perf_err:
 	return err;
 }
 
+#ifdef CONFIG_NVGPU_SM_DIVERSITY
+static void gv100_gr_config_set_redex_sminfo(struct gk20a *g,
+		struct nvgpu_gr_config *gr_config, u32 num_sm,
+		u32 sm_per_tpc, u32 *gpc_table, u32 *tpc_table)
+{
+	u32 sm;
+	u32 tpc = nvgpu_gr_config_get_tpc_count(gr_config);
+	u32 sm_id = 0;
+	u32 glboal_index = 0;
+
+	for (sm_id = 0; sm_id < num_sm; sm_id += sm_per_tpc) {
+		tpc = nvgpu_safe_sub_u32(tpc, 1U);
+		for (sm = 0; sm < sm_per_tpc; sm++) {
+			u32 index = nvgpu_safe_add_u32(sm_id, sm);
+			struct nvgpu_sm_info *sm_info =
+				nvgpu_gr_config_get_redex_sm_info(
+					gr_config, index);
+			nvgpu_gr_config_set_sm_info_gpc_index(sm_info,
+							gpc_table[tpc]);
+			nvgpu_gr_config_set_sm_info_tpc_index(sm_info,
+							tpc_table[tpc]);
+			nvgpu_gr_config_set_sm_info_sm_index(sm_info, sm);
+			nvgpu_gr_config_set_sm_info_global_tpc_index(
+				sm_info, glboal_index);
+
+			nvgpu_log_info(g,
+				"gpc : %d tpc %d sm_index %d global_index: %d",
+				nvgpu_gr_config_get_sm_info_gpc_index(sm_info),
+				nvgpu_gr_config_get_sm_info_tpc_index(sm_info),
+				nvgpu_gr_config_get_sm_info_sm_index(sm_info),
+				nvgpu_gr_config_get_sm_info_global_tpc_index(
+					sm_info));
+
+		}
+		glboal_index = nvgpu_safe_add_u32(glboal_index, 1U);
+	}
+}
+#endif
+
 static void gv100_gr_config_set_sminfo(struct gk20a *g,
 		struct nvgpu_gr_config *gr_config, u32 num_sm,
 		u32 sm_per_tpc, u32 *gpc_table, u32 *tpc_table)
@@ -348,6 +387,13 @@ static void gv100_gr_config_set_sminfo(struct gk20a *g,
 		}
 		tpc = nvgpu_safe_add_u32(tpc, 1U);
 	}
+
+#ifdef CONFIG_NVGPU_SM_DIVERSITY
+	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_SM_DIVERSITY)) {
+		gv100_gr_config_set_redex_sminfo(g, gr_config, num_sm,
+			sm_per_tpc, gpc_table, tpc_table);
+	}
+#endif
 }
 
 int gv100_gr_config_init_sm_id_table(struct gk20a *g,

@@ -1,7 +1,7 @@
 /*
  * TU104 Tegra HAL interface
  *
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -621,6 +621,10 @@ static const struct gpu_ops tu104_ops = {
 				gv11b_gr_init_commit_global_attrib_cb,
 			.commit_global_cb_manager =
 				gp10b_gr_init_commit_global_cb_manager,
+#ifdef CONFIG_NVGPU_SM_DIVERSITY
+			.commit_sm_id_programming =
+				gv11b_gr_init_commit_sm_id_programming,
+#endif
 			.pipe_mode_override = gm20b_gr_init_pipe_mode_override,
 			.load_sw_bundle_init =
 #ifdef CONFIG_NVGPU_GR_GOLDEN_CTX_VERIFICATION
@@ -1679,6 +1683,7 @@ int tu104_init_hal(struct gk20a *g)
 	 */
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_COPY_ENGINE_DIVERSITY, true);
 
+#ifdef CONFIG_NVGPU_SM_DIVERSITY
 	/*
 	 * To achieve permanent fault coverage, the CTAs launched by each kernel
 	 * in the mission and redundant contexts must execute on different
@@ -1706,7 +1711,10 @@ int tu104_init_hal(struct gk20a *g)
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_SM_DIVERSITY, true);
 	g->max_sm_diversity_config_count =
 		NVGPU_MAX_SM_DIVERSITY_CONFIG_COUNT;
-
+#else
+	g->max_sm_diversity_config_count =
+		NVGPU_DEFAULT_SM_DIVERSITY_CONFIG_COUNT;
+#endif
 	/* for now */
 	gops->clk.support_pmgr_domain = false;
 	gops->clk.support_lpwr_pg = false;

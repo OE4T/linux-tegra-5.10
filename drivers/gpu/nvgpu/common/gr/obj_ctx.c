@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -360,6 +360,22 @@ void nvgpu_gr_obj_ctx_commit_global_ctx_buffers(struct gk20a *g,
 			NVGPU_GR_CTX_RTV_CIRCULAR_BUFFER_VA);
 
 		g->ops.gr.init.commit_rtv_cb(g, addr, gr_ctx, patch);
+	}
+#endif
+
+#ifdef CONFIG_NVGPU_SM_DIVERSITY
+	if ((nvgpu_is_enabled(g, NVGPU_SUPPORT_SM_DIVERSITY)) &&
+			(nvgpu_gr_ctx_get_sm_diversity_config(gr_ctx) !=
+			NVGPU_DEFAULT_SM_DIVERSITY_CONFIG) &&
+			(g->ops.gr.init.commit_sm_id_programming != NULL)) {
+		int err;
+
+		err = g->ops.gr.init.commit_sm_id_programming(
+			g, config, gr_ctx, patch);
+		if (err != 0) {
+			nvgpu_err(g,
+				"commit_sm_id_programming failed err=%d", err);
+		}
 	}
 #endif
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -125,7 +125,9 @@ void gm20b_gr_init_get_access_map(struct gk20a *g,
 #endif
 
 void gm20b_gr_init_sm_id_numbering(struct gk20a *g, u32 gpc, u32 tpc, u32 smid,
-				   struct nvgpu_gr_config *gr_config)
+				struct nvgpu_gr_config *gr_config,
+				struct nvgpu_gr_ctx *gr_ctx,
+				bool patch)
 {
 	u32 gpc_stride = nvgpu_get_litter_value(g, GPU_LIT_GPC_STRIDE);
 	u32 tpc_in_gpc_stride = nvgpu_get_litter_value(g,
@@ -153,7 +155,9 @@ u32 gm20b_gr_init_get_sm_id_size(void)
 }
 
 int gm20b_gr_init_sm_id_config(struct gk20a *g, u32 *tpc_sm_id,
-			       struct nvgpu_gr_config *gr_config)
+				struct nvgpu_gr_config *gr_config,
+				struct nvgpu_gr_ctx *gr_ctx,
+				bool patch)
 {
 	u32 i, j;
 	u32 tpc_index, gpc_index;

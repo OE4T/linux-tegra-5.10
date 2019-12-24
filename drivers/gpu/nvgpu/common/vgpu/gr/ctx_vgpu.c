@@ -1,7 +1,7 @@
 /*
  * Virtualized GPU Graphics
  *
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -74,6 +74,11 @@ int vgpu_gr_alloc_gr_ctx(struct gk20a *g,
 	p->as_handle = vm->handle;
 	p->gr_ctx_va = gr_ctx->mem.gpu_va;
 	p->tsg_id = gr_ctx->tsgid;
+#ifdef CONFIG_NVGPU_SM_DIVERSITY
+	p->sm_diversity_config = gr_ctx->sm_diversity_config;
+#else
+	p->sm_diversity_config = NVGPU_DEFAULT_SM_DIVERSITY_CONFIG;
+#endif
 	err = vgpu_comm_sendrecv(&msg, sizeof(msg), sizeof(msg));
 	err = err ? err : msg.ret;
 
@@ -132,7 +137,7 @@ int vgpu_gr_alloc_patch_ctx(struct gk20a *g, struct nvgpu_gr_ctx *gr_ctx,
 	nvgpu_log_fn(g, " ");
 
 	patch_ctx = &gr_ctx->patch_ctx;
-	patch_ctx->mem.size = 128 * sizeof(u32);
+	patch_ctx->mem.size = 1024 * sizeof(u32);
 	patch_ctx->mem.gpu_va = nvgpu_vm_alloc_va(ch_vm,
 						  patch_ctx->mem.size,
 						  GMMU_PAGE_SIZE_KERNEL);

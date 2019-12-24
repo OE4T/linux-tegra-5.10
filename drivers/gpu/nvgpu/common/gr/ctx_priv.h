@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -172,6 +172,16 @@ struct nvgpu_gr_ctx {
 	 * TSG identifier corresponding to the graphics context.
 	 */
 	u32 tsgid;
+
+#ifdef CONFIG_NVGPU_SM_DIVERSITY
+	/** SM diversity configuration offset.
+	 * It is valid only if NVGPU_SUPPORT_SM_DIVERSITY support is true.
+	 * else input param is just ignored.
+	 * A valid offset starts from 0 to
+	 * (#gk20a.max_sm_diversity_config_count - 1).
+	 */
+	u32 sm_diversity_config;
+#endif
 };
 
 #endif /* NVGPU_GR_CTX_PRIV_H */

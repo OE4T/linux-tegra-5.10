@@ -1,7 +1,7 @@
 /*
  * Tegra GPU Virtualization Interfaces to Server
  *
- * Copyright (c) 2014-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -405,6 +405,7 @@ struct tegra_vgpu_gr_ctx_params {
 	u64 gr_ctx_va;
 	u32 class_num;
 	u32 tsg_id;
+	u32 sm_diversity_config;
 };
 
 struct tegra_vgpu_tsg_bind_unbind_channel_params {

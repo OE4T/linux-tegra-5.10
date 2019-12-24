@@ -509,7 +509,7 @@ static int test_gr_init_hal_sm_id_config(struct gk20a *g)
 	config->tpc_count = 2;
 	config->no_of_sm = 4;
 
-	err = g->ops.gr.init.sm_id_config(g, tpc_sm_id, config);
+	err = g->ops.gr.init.sm_id_config(g, tpc_sm_id, config, NULL, false);
 	if (err != 0) {
                 return UNIT_FAIL;
 	}

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -26,6 +26,11 @@
 #include <nvgpu/types.h>
 #include <nvgpu/nvgpu_mem.h>
 #include <nvgpu/gr/global_ctx.h>
+
+#define NVGPU_INVALID_SM_CONFIG_ID (U32_MAX)
+
+/** Supports only mission (default) context. */
+#define NVGPU_DEFAULT_SM_DIVERSITY_CONFIG 0U
 
 /**
  * @file
@@ -292,15 +297,37 @@ void nvgpu_gr_ctx_set_patch_ctx_data_count(struct nvgpu_gr_ctx *gr_ctx,
 	u32 data_count);
 
 /**
+ * @brief Get sm diversity config of the given graphics context.
+ *
+ * @param gr_ctx [in]		Pointer to graphics context struct.
+ *
+ * This function returns #sm_diversity_config of graphics context struct.
+ *
+ * @return sm diversity config of the given graphics context.
+ */
+struct nvgpu_mem *nvgpu_gr_ctx_get_ctx_mem(struct nvgpu_gr_ctx *gr_ctx);
+
+#ifdef CONFIG_NVGPU_SM_DIVERSITY
+/**
+ * @brief Set sm diversity config in the given graphics context struct.
+ *
+ * @param gr_ctx [in]		Pointer to graphics context struct.
+ * @param sm_diversity_config [in]	Value to be set.
+ *
+ * This function sets sm diversity config of the given graphics context struct.
+ */
+void nvgpu_gr_ctx_set_sm_diversity_config(struct nvgpu_gr_ctx *gr_ctx,
+	u32 sm_diversity_config);
+
+/**
  * @brief Get pointer of graphics context buffer memory struct.
  *
  * @param gr_ctx [in]		Pointer to graphics context struct.
  *
- * This function returns #nvgpu_mem pointer of graphics context buffer.
- *
- * @return pointer to graphics context buffer memory struct.
+ * @return sm diversity config of the given graphics context struct.
  */
-struct nvgpu_mem *nvgpu_gr_ctx_get_ctx_mem(struct nvgpu_gr_ctx *gr_ctx);
+u32 nvgpu_gr_ctx_get_sm_diversity_config(struct nvgpu_gr_ctx *gr_ctx);
+#endif
 
 /**
  * @brief Load local golden image into given graphics context buffer.

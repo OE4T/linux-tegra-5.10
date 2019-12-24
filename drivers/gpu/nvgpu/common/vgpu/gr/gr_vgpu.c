@@ -1,7 +1,7 @@
 /*
  * Virtualized GPU Graphics
  *
- * Copyright (c) 2014-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -386,6 +386,20 @@ static int vgpu_gr_init_gr_config(struct gk20a *g, struct nvgpu_gr *gr)
 		goto cleanup;
 	}
 
+#ifdef CONFIG_NVGPU_SM_DIVERSITY
+	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_SM_DIVERSITY)) {
+		config->sm_to_cluster_redex_config =
+			nvgpu_kzalloc(g, config->gpc_count *
+					  config->max_tpc_per_gpc_count *
+					  sm_per_tpc *
+					  sizeof(struct nvgpu_sm_info));
+		if (config->sm_to_cluster_redex_config == NULL) {
+			nvgpu_err(g, "sm_to_cluster_redex_config == NULL");
+			goto cleanup;
+		}
+	}
+#endif
+
 	config->tpc_count = 0;
 	for (gpc_index = 0; gpc_index < config->gpc_count; gpc_index++) {
 		config->gpc_tpc_count[gpc_index] =
@@ -474,6 +488,18 @@ cleanup:
 
 	nvgpu_kfree(g, config->gpc_tpc_mask);
 	config->gpc_tpc_mask = NULL;
+
+	if (config->sm_to_cluster != NULL) {
+		nvgpu_kfree(g, config->sm_to_cluster);
+		config->sm_to_cluster = NULL;
+	}
+
+#ifdef CONFIG_NVGPU_SM_DIVERSITY
+	if (config->sm_to_cluster_redex_config != NULL) {
+		nvgpu_kfree(g, config->sm_to_cluster_redex_config);
+		config->sm_to_cluster_redex_config = NULL;
+	}
+#endif
 
 	return err;
 }
@@ -668,6 +694,13 @@ static void vgpu_remove_gr_support(struct gk20a *g)
 
 	nvgpu_kfree(gr->g, gr->config->sm_to_cluster);
 	gr->config->sm_to_cluster = NULL;
+
+#ifdef CONFIG_NVGPU_SM_DIVERSITY
+	if (gr->config->sm_to_cluster_redex_config != NULL) {
+		nvgpu_kfree(g, gr->config->sm_to_cluster_redex_config);
+		gr->config->sm_to_cluster_redex_config = NULL;
+	}
+#endif
 
 	nvgpu_gr_config_deinit(gr->g, gr->config);
 
@@ -1140,6 +1173,7 @@ int vgpu_gr_init_sm_id_table(struct gk20a *g, struct nvgpu_gr_config *gr_config)
 	void *handle = NULL;
 	u32 sm_id;
 	u32 max_sm;
+	u32 sm_config;
 
 	msg.cmd = TEGRA_VGPU_CMD_GET_VSMS_MAPPING;
 	msg.handle = vgpu_get_handle(g);
@@ -1165,17 +1199,30 @@ int vgpu_gr_init_sm_id_table(struct gk20a *g, struct nvgpu_gr_config *gr_config)
 		return -EINVAL;
 	}
 
-	if ((p->num_sm * sizeof(*entry)) > oob_size) {
+	if ((p->num_sm * sizeof(*entry) *
+		priv->constants.max_sm_diversity_config_count) > oob_size) {
 		return -EINVAL;
 	}
 
 	gr_config->no_of_sm = p->num_sm;
-	for (sm_id = 0; sm_id < p->num_sm; sm_id++, entry++) {
-		sm_info = nvgpu_gr_config_get_sm_info(gr_config, sm_id);
-		sm_info->tpc_index = entry->tpc_index;
-		sm_info->gpc_index = entry->gpc_index;
-		sm_info->sm_index = entry->sm_index;
-		sm_info->global_tpc_index = entry->global_tpc_index;
+	for (sm_config = NVGPU_DEFAULT_SM_DIVERSITY_CONFIG;
+		sm_config < priv->constants.max_sm_diversity_config_count;
+		sm_config++) {
+		for (sm_id = 0; sm_id < p->num_sm; sm_id++, entry++) {
+#ifdef CONFIG_NVGPU_SM_DIVERSITY
+			sm_info =
+			((sm_config == NVGPU_DEFAULT_SM_DIVERSITY_CONFIG) ?
+				nvgpu_gr_config_get_sm_info(gr_config, sm_id) :
+				nvgpu_gr_config_get_redex_sm_info(
+					gr_config, sm_id));
+#else
+			sm_info = nvgpu_gr_config_get_sm_info(gr_config, sm_id);
+#endif
+			sm_info->tpc_index = entry->tpc_index;
+			sm_info->gpc_index = entry->gpc_index;
+			sm_info->sm_index = entry->sm_index;
+			sm_info->global_tpc_index = entry->global_tpc_index;
+		}
 	}
 	vgpu_ivc_oob_put_ptr(handle);
 

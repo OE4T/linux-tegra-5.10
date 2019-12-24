@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -621,10 +621,14 @@ struct gops_gr_init {
 	void (*gpc_mmu)(struct gk20a *g);
 	u32 (*get_sm_id_size)(void);
 	int (*sm_id_config)(struct gk20a *g, u32 *tpc_sm_id,
-			    struct nvgpu_gr_config *gr_config);
+			    struct nvgpu_gr_config *gr_config,
+				struct nvgpu_gr_ctx *gr_ctx,
+				bool patch);
 	void (*sm_id_numbering)(struct gk20a *g, u32 gpc,
 				u32 tpc, u32 smid,
-				struct nvgpu_gr_config *gr_config);
+				struct nvgpu_gr_config *gr_config,
+				struct nvgpu_gr_ctx *gr_ctx,
+				bool patch);
 	void (*tpc_mask)(struct gk20a *g,
 			 u32 gpc_index, u32 pes_tpc_mask);
 	void (*fs_state)(struct gk20a *g);
@@ -696,6 +700,12 @@ struct gops_gr_init {
 #ifdef CONFIG_NVGPU_SET_FALCON_ACCESS_MAP
 	void (*get_access_map)(struct gk20a *g,
 			       u32 **whitelist, u32 *num_entries);
+#endif
+#ifdef CONFIG_NVGPU_SM_DIVERSITY
+	int (*commit_sm_id_programming)(struct gk20a *g,
+				struct nvgpu_gr_config *config,
+				struct nvgpu_gr_ctx *gr_ctx,
+				bool patch);
 #endif
 #ifdef CONFIG_NVGPU_GRAPHICS
 	u32 (*get_ctx_attrib_cb_size)(struct gk20a *g, u32 betacb_size,

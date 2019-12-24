@@ -1,7 +1,7 @@
 /*
  * GV11b GPU GR
  *
- * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -849,6 +849,14 @@ int gv11b_gr_set_sm_debug_mode(struct gk20a *g,
 	unsigned int i = 0, sm_id;
 	u32 no_of_sm = g->ops.gr.init.get_no_of_sm(g);
 	int err;
+#ifdef CONFIG_NVGPU_SM_DIVERSITY
+	struct nvgpu_tsg *tsg = nvgpu_tsg_from_ch(ch);
+
+	if (tsg == NULL) {
+		nvgpu_err(g, "gv11b_gr_set_sm_debug_mode failed=>tsg NULL");
+		return -EINVAL;
+	}
+#endif
 
 	ops = nvgpu_kcalloc(g, no_of_sm, sizeof(*ops));
 	if (ops == NULL) {
@@ -863,7 +871,20 @@ int gv11b_gr_set_sm_debug_mode(struct gk20a *g,
 			continue;
 		}
 
+#ifdef CONFIG_NVGPU_SM_DIVERSITY
+		if (nvgpu_gr_ctx_get_sm_diversity_config(tsg->gr_ctx) ==
+				NVGPU_DEFAULT_SM_DIVERSITY_CONFIG) {
+			sm_info =
+				nvgpu_gr_config_get_sm_info(
+					g->gr->config, sm_id);
+		} else {
+			sm_info =
+				nvgpu_gr_config_get_redex_sm_info(
+					g->gr->config, sm_id);
+		}
+#else
 		sm_info = nvgpu_gr_config_get_sm_info(g->gr->config, sm_id);
+#endif
 		gpc = nvgpu_gr_config_get_sm_info_gpc_index(sm_info);
 		if (g->ops.gr.init.get_nonpes_aware_tpc != NULL) {
 			tpc = g->ops.gr.init.get_nonpes_aware_tpc(g,
@@ -2110,8 +2131,21 @@ int gv11b_gr_clear_sm_error_state(struct gk20a *g,
 	}
 
 	if (gk20a_is_channel_ctx_resident(ch)) {
-		struct nvgpu_sm_info *sm_info =
-			nvgpu_gr_config_get_sm_info(g->gr->config, sm_id);
+		struct nvgpu_sm_info *sm_info;
+#ifdef CONFIG_NVGPU_SM_DIVERSITY
+		if (nvgpu_gr_ctx_get_sm_diversity_config(tsg->gr_ctx) ==
+				NVGPU_DEFAULT_SM_DIVERSITY_CONFIG) {
+			sm_info =
+				nvgpu_gr_config_get_sm_info(
+					g->gr->config, sm_id);
+		} else {
+			sm_info =
+				nvgpu_gr_config_get_redex_sm_info(
+					g->gr->config, sm_id);
+		}
+#else
+		sm_info = nvgpu_gr_config_get_sm_info(g->gr->config, sm_id);
+#endif
 
 		gpc = nvgpu_gr_config_get_sm_info_gpc_index(sm_info);
 		if (g->ops.gr.init.get_nonpes_aware_tpc != NULL) {

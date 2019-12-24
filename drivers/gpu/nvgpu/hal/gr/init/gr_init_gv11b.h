@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -40,9 +40,13 @@ void gv11b_gr_init_get_access_map(struct gk20a *g,
 				   u32 **whitelist, u32 *num_entries);
 #endif
 void gv11b_gr_init_sm_id_numbering(struct gk20a *g, u32 gpc, u32 tpc, u32 smid,
-				   struct nvgpu_gr_config *gr_config);
+				struct nvgpu_gr_config *gr_config,
+				struct nvgpu_gr_ctx *gr_ctx,
+				bool patch);
 int gv11b_gr_init_sm_id_config(struct gk20a *g, u32 *tpc_sm_id,
-			       struct nvgpu_gr_config *gr_config);
+				struct nvgpu_gr_config *gr_config,
+				struct nvgpu_gr_ctx *gr_ctx,
+				bool patch);
 void gv11b_gr_init_tpc_mask(struct gk20a *g, u32 gpc_index, u32 pes_tpc_mask);
 void gv11b_gr_init_fs_state(struct gk20a *g);
 int gv11b_gr_init_preemption_state(struct gk20a *g);
@@ -61,6 +65,13 @@ u32 gv11b_gr_init_get_global_attr_cb_size(struct gk20a *g, u32 tpc_count,
 void gv11b_gr_init_commit_global_attrib_cb(struct gk20a *g,
 	struct nvgpu_gr_ctx *gr_ctx, u32 tpc_count, u32 max_tpc, u64 addr,
 	bool patch);
+
+#ifdef CONFIG_NVGPU_SM_DIVERSITY
+int gv11b_gr_init_commit_sm_id_programming(struct gk20a *g,
+				struct nvgpu_gr_config *config,
+				struct nvgpu_gr_ctx *gr_ctx,
+				bool patch);
+#endif
 
 int gv11b_gr_init_load_sw_veid_bundle(struct gk20a *g,
 	struct netlist_av_list *sw_veid_bundle_init);

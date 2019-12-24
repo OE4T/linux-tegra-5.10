@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -139,6 +139,7 @@
 #ifdef CONFIG_NVGPU_GRAPHICS
 #include <nvgpu/gr/zbc.h>
 #endif
+#include <nvgpu/gr/setup.h>
 
 #include <nvgpu/hw/gv11b/hw_pwr_gv11b.h>
 
@@ -1045,6 +1046,7 @@ int vgpu_gv11b_init_hal(struct gk20a *g)
 		gops->clk_arb.get_arbiter_clk_domains = NULL;
 	}
 
+#ifdef CONFIG_NVGPU_SM_DIVERSITY
 	/*
 	 * To achieve permanent fault coverage, the CTAs launched by each kernel
 	 * in the mission and redundant contexts must execute on different
@@ -1072,7 +1074,10 @@ int vgpu_gv11b_init_hal(struct gk20a *g)
 	if (priv->constants.max_sm_diversity_config_count > 1U) {
 		nvgpu_set_enabled(g, NVGPU_SUPPORT_SM_DIVERSITY, true);
 	}
-
+#else
+	priv->constants.max_sm_diversity_config_count =
+		NVGPU_DEFAULT_SM_DIVERSITY_CONFIG_COUNT;
+#endif
 	g->max_sm_diversity_config_count =
 		priv->constants.max_sm_diversity_config_count;
 

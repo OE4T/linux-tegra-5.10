@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -698,6 +698,11 @@ int nvgpu_tsg_open_common(struct gk20a *g, struct nvgpu_tsg *tsg, pid_t pid)
 		err = -ENOMEM;
 		goto clean_up;
 	}
+
+#ifdef CONFIG_NVGPU_SM_DIVERSITY
+	nvgpu_gr_ctx_set_sm_diversity_config(tsg->gr_ctx,
+		NVGPU_INVALID_SM_CONFIG_ID);
+#endif
 
 	if (g->ops.tsg.init_eng_method_buffers != NULL) {
 		err = g->ops.tsg.init_eng_method_buffers(g, tsg);

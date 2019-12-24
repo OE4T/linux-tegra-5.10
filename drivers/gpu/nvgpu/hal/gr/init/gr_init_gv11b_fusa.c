@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -387,7 +387,9 @@ void gv11b_gr_init_gpc_mmu(struct gk20a *g)
 }
 
 void gv11b_gr_init_sm_id_numbering(struct gk20a *g, u32 gpc, u32 tpc, u32 smid,
-				   struct nvgpu_gr_config *gr_config)
+				struct nvgpu_gr_config *gr_config,
+				struct nvgpu_gr_ctx *gr_ctx,
+				bool patch)
 {
 	u32 gpc_stride = nvgpu_get_litter_value(g, GPU_LIT_GPC_STRIDE);
 	u32 tpc_in_gpc_stride = nvgpu_get_litter_value(g,
@@ -396,9 +398,17 @@ void gv11b_gr_init_sm_id_numbering(struct gk20a *g, u32 gpc, u32 tpc, u32 smid,
 	u32 global_tpc_index;
 	u32 tpc_offset;
 	u32 offset_sum = 0U;
-	struct nvgpu_sm_info *sm_info =
-		nvgpu_gr_config_get_sm_info(gr_config, smid);
+	struct nvgpu_sm_info *sm_info;
 
+#ifdef CONFIG_NVGPU_SM_DIVERSITY
+	sm_info = (((gr_ctx == NULL) ||
+		(nvgpu_gr_ctx_get_sm_diversity_config(gr_ctx) ==
+		NVGPU_DEFAULT_SM_DIVERSITY_CONFIG)) ?
+			nvgpu_gr_config_get_sm_info(gr_config, smid) :
+			nvgpu_gr_config_get_redex_sm_info(gr_config, smid));
+#else
+		sm_info = nvgpu_gr_config_get_sm_info(gr_config, smid);
+#endif
 	global_tpc_index =
 		nvgpu_gr_config_get_sm_info_global_tpc_index(sm_info);
 
@@ -406,21 +416,27 @@ void gv11b_gr_init_sm_id_numbering(struct gk20a *g, u32 gpc, u32 tpc, u32 smid,
 	tpc_offset = nvgpu_safe_mult_u32(tpc_in_gpc_stride, tpc);
 
 	offset_sum = nvgpu_safe_add_u32(gpc_offset, tpc_offset);
-	nvgpu_writel(g,
-		     nvgpu_safe_add_u32(gr_gpc0_tpc0_sm_cfg_r(), offset_sum),
-		     gr_gpc0_tpc0_sm_cfg_tpc_id_f(global_tpc_index));
-	nvgpu_writel(g,
-		     nvgpu_safe_add_u32(
+
+	nvgpu_gr_ctx_patch_write(g, gr_ctx,
+			nvgpu_safe_add_u32(gr_gpc0_tpc0_sm_cfg_r(), offset_sum),
+			gr_gpc0_tpc0_sm_cfg_tpc_id_f(global_tpc_index),
+			patch);
+	nvgpu_gr_ctx_patch_write(g, gr_ctx,
+			nvgpu_safe_add_u32(
 				gr_gpc0_gpm_pd_sm_id_r(tpc), gpc_offset),
-		     gr_gpc0_gpm_pd_sm_id_id_f(global_tpc_index));
-	nvgpu_writel(g,
+			gr_gpc0_gpm_pd_sm_id_id_f(global_tpc_index),
+			patch);
+	nvgpu_gr_ctx_patch_write(g, gr_ctx,
 			nvgpu_safe_add_u32(
 				gr_gpc0_tpc0_pe_cfg_smid_r(), offset_sum),
-			gr_gpc0_tpc0_pe_cfg_smid_value_f(global_tpc_index));
+			gr_gpc0_tpc0_pe_cfg_smid_value_f(global_tpc_index),
+			patch);
 }
 
 int gv11b_gr_init_sm_id_config(struct gk20a *g, u32 *tpc_sm_id,
-			       struct nvgpu_gr_config *gr_config)
+				struct nvgpu_gr_config *gr_config,
+				struct nvgpu_gr_ctx *gr_ctx,
+				bool patch)
 {
 	u32 i, j;
 	u32 tpc_index, gpc_index, tpc_id;
@@ -451,8 +467,22 @@ int gv11b_gr_init_sm_id_config(struct gk20a *g, u32 *tpc_sm_id,
 			if (sm_id >= no_of_sm) {
 				break;
 			}
+#ifdef CONFIG_NVGPU_SM_DIVERSITY
+			if ((gr_ctx == NULL) ||
+				nvgpu_gr_ctx_get_sm_diversity_config(gr_ctx) ==
+				NVGPU_DEFAULT_SM_DIVERSITY_CONFIG) {
+				sm_info =
+					nvgpu_gr_config_get_sm_info(
+						gr_config, sm_id);
+			} else {
+				sm_info =
+					nvgpu_gr_config_get_redex_sm_info(
+						gr_config, sm_id);
+			}
+#else
 			sm_info =
 				nvgpu_gr_config_get_sm_info(gr_config, sm_id);
+#endif
 			gpc_index =
 				nvgpu_gr_config_get_sm_info_gpc_index(sm_info);
 			tpc_index =
@@ -470,11 +500,17 @@ int gv11b_gr_init_sm_id_config(struct gk20a *g, u32 *tpc_sm_id,
 							tpc_index,
 							bit_stride));
 		}
-		nvgpu_writel(g, gr_cwd_gpc_tpc_id_r(i), reg);
+		nvgpu_gr_ctx_patch_write(g, gr_ctx,
+				gr_cwd_gpc_tpc_id_r(i),
+				reg,
+				patch);
 	}
 
 	for (i = 0U; i < gr_cwd_sm_id__size_1_v(); i++) {
-		nvgpu_writel(g, gr_cwd_sm_id_r(i), tpc_sm_id[i]);
+		nvgpu_gr_ctx_patch_write(g, gr_ctx,
+				gr_cwd_sm_id_r(i),
+				tpc_sm_id[i],
+				patch);
 	}
 
 	return 0;
@@ -693,6 +729,55 @@ void gv11b_gr_init_commit_global_attrib_cb(struct gk20a *g,
 		gr_gpcs_tpcs_tex_rm_cb_1_size_div_128b_f(attrBufferSize) |
 		gr_gpcs_tpcs_tex_rm_cb_1_valid_true_f(), patch);
 }
+
+#ifdef CONFIG_NVGPU_SM_DIVERSITY
+int gv11b_gr_init_commit_sm_id_programming(struct gk20a *g,
+				struct nvgpu_gr_config *config,
+				struct nvgpu_gr_ctx *gr_ctx,
+				bool patch)
+{
+	u32 sm_id = 0;
+	u32 tpc_index, gpc_index;
+	int err = 0;
+	u32 *tpc_sm_id;
+	u32 sm_id_size = g->ops.gr.init.get_sm_id_size();
+
+	for (sm_id = 0; sm_id < g->ops.gr.init.get_no_of_sm(g);
+			sm_id++) {
+		struct nvgpu_sm_info *sm_info =
+			((gr_ctx == NULL) ||
+			(nvgpu_gr_ctx_get_sm_diversity_config(gr_ctx) ==
+			NVGPU_DEFAULT_SM_DIVERSITY_CONFIG)) ?
+				nvgpu_gr_config_get_sm_info(
+					config, sm_id) :
+				nvgpu_gr_config_get_redex_sm_info(
+					config, sm_id);
+		tpc_index = nvgpu_gr_config_get_sm_info_tpc_index(sm_info);
+		gpc_index = nvgpu_gr_config_get_sm_info_gpc_index(sm_info);
+
+		g->ops.gr.init.sm_id_numbering(g, gpc_index, tpc_index, sm_id,
+					       config, gr_ctx, patch);
+	}
+
+	tpc_sm_id = nvgpu_kcalloc(g, sm_id_size, sizeof(u32));
+	if (tpc_sm_id == NULL) {
+		nvgpu_err(g,
+			"gv11b_gr_init_commit_sm_id_programming failed");
+		return -ENOMEM;
+	}
+
+	err = g->ops.gr.init.sm_id_config(g, tpc_sm_id, config, gr_ctx, patch);
+	if (err != 0) {
+		nvgpu_err(g,
+			"gv11b_gr_init_commit_sm_id_programming failed err=%d",
+			err);
+	}
+
+	nvgpu_kfree(g, tpc_sm_id);
+
+	return err;
+}
+#endif
 
 static int gv11b_gr_init_write_bundle_veid_state(struct gk20a *g, u32 index,
 	struct netlist_av_list *sw_veid_bundle_init)

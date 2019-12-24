@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -447,6 +447,19 @@ struct nvgpu_mem *nvgpu_gr_ctx_get_ctx_mem(struct nvgpu_gr_ctx *gr_ctx)
 	return &gr_ctx->mem;
 }
 
+#ifdef CONFIG_NVGPU_SM_DIVERSITY
+void nvgpu_gr_ctx_set_sm_diversity_config(struct nvgpu_gr_ctx *gr_ctx,
+	u32 sm_diversity_config)
+{
+	gr_ctx->sm_diversity_config = sm_diversity_config;
+}
+
+u32 nvgpu_gr_ctx_get_sm_diversity_config(struct nvgpu_gr_ctx *gr_ctx)
+{
+	return gr_ctx->sm_diversity_config;
+}
+#endif
+
 /* load saved fresh copy of gloden image into channel gr_ctx */
 void nvgpu_gr_ctx_load_golden_ctx_image(struct gk20a *g,
 	struct nvgpu_gr_ctx *gr_ctx,
@@ -547,13 +560,23 @@ void nvgpu_gr_ctx_patch_write(struct gk20a *g,
 	u32 addr, u32 data, bool patch)
 {
 	if (patch) {
-		u32 patch_slot =
+		u32 patch_slot;
+		u64 patch_slot_max;
+
+		if (gr_ctx == NULL) {
+			nvgpu_err(g,
+				"failed to access gr_ctx[NULL] but patch true");
+			return;
+		}
+
+		patch_slot =
 			nvgpu_safe_mult_u32(gr_ctx->patch_ctx.data_count,
 					PATCH_CTX_SLOTS_REQUIRED_PER_ENTRY);
-		u64 patch_slot_max =
+		patch_slot_max =
 			nvgpu_safe_sub_u64(
-				PATCH_CTX_ENTRIES_FROM_SIZE(gr_ctx->patch_ctx.mem.size),
-				PATCH_CTX_SLOTS_REQUIRED_PER_ENTRY);
+				PATCH_CTX_ENTRIES_FROM_SIZE(
+					gr_ctx->patch_ctx.mem.size),
+					PATCH_CTX_SLOTS_REQUIRED_PER_ENTRY);
 
 		if (patch_slot > patch_slot_max) {
 			nvgpu_err(g, "failed to access patch_slot %d",

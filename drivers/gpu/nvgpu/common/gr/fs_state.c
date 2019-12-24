@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -37,7 +37,7 @@ static int gr_load_sm_id_config(struct gk20a *g, struct nvgpu_gr_config *config)
 		return -ENOMEM;
 	}
 
-	err = g->ops.gr.init.sm_id_config(g, tpc_sm_id, config);
+	err = g->ops.gr.init.sm_id_config(g, tpc_sm_id, config, NULL, false);
 
 	nvgpu_kfree(g, tpc_sm_id);
 
@@ -120,7 +120,7 @@ int nvgpu_gr_fs_state_init(struct gk20a *g, struct nvgpu_gr_config *config)
 		gpc_index = nvgpu_gr_config_get_sm_info_gpc_index(sm_info);
 
 		g->ops.gr.init.sm_id_numbering(g, gpc_index, tpc_index, sm_id,
-					       config);
+					       config, NULL, false);
 	}
 
 	g->ops.gr.init.pd_tpc_per_gpc(g, config);

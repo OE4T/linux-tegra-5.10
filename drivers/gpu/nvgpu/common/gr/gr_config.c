@@ -211,6 +211,17 @@ static bool gr_config_alloc_struct_mem(struct gk20a *g,
 		nvgpu_err(g, "sm_to_cluster == NULL");
 		goto alloc_err;
 	}
+
+#ifdef CONFIG_NVGPU_SM_DIVERSITY
+	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_SM_DIVERSITY)) {
+		config->sm_to_cluster_redex_config =
+			nvgpu_kzalloc(g, sm_info_size);
+		if (config->sm_to_cluster_redex_config == NULL) {
+			nvgpu_err(g, "sm_to_cluster_redex_config == NULL");
+			goto clean_alloc_mem;
+		}
+	}
+#endif
 	config->no_of_sm = 0;
 
 	gpc_size = nvgpu_safe_mult_u64((size_t)config->gpc_count, sizeof(u32));
@@ -249,7 +260,12 @@ static bool gr_config_alloc_struct_mem(struct gk20a *g,
 clean_alloc_mem:
 	nvgpu_kfree(g, config->sm_to_cluster);
 	config->sm_to_cluster = NULL;
-
+#ifdef CONFIG_NVGPU_SM_DIVERSITY
+	if (config->sm_to_cluster_redex_config != NULL) {
+		nvgpu_kfree(g, config->sm_to_cluster_redex_config);
+		config->sm_to_cluster_redex_config = NULL;
+	}
+#endif
 	gr_config_free_mem(g, config);
 
 alloc_err:
@@ -583,6 +599,12 @@ void nvgpu_gr_config_deinit(struct gk20a *g, struct nvgpu_gr_config *config)
 	nvgpu_kfree(g, config->map_tiles);
 #endif
 	nvgpu_kfree(g, config->sm_to_cluster);
+#ifdef CONFIG_NVGPU_SM_DIVERSITY
+	if (config->sm_to_cluster_redex_config != NULL) {
+		nvgpu_kfree(g, config->sm_to_cluster_redex_config);
+		config->sm_to_cluster_redex_config = NULL;
+	}
+#endif
 }
 
 u32 nvgpu_gr_config_get_max_gpc_count(struct nvgpu_gr_config *config)
@@ -700,6 +722,14 @@ struct nvgpu_sm_info *nvgpu_gr_config_get_sm_info(struct nvgpu_gr_config *config
 {
 	return &config->sm_to_cluster[sm_id];
 }
+
+#ifdef CONFIG_NVGPU_SM_DIVERSITY
+struct nvgpu_sm_info *nvgpu_gr_config_get_redex_sm_info(
+	struct nvgpu_gr_config *config, u32 sm_id)
+{
+	return &config->sm_to_cluster_redex_config[sm_id];
+}
+#endif
 
 u32 nvgpu_gr_config_get_sm_info_gpc_index(struct nvgpu_sm_info *sm_info)
 {

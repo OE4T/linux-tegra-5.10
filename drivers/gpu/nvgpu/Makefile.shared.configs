@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+# Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -220,6 +220,10 @@ NVGPU_COMMON_CFLAGS                  += -DCONFIG_NVGPU_CHANNEL_TSG_CONTROL
 
 # Enable Virtualization server for normal build
 NVGPU_COMMON_CFLAGS             += -DCONFIG_TEGRA_GR_VIRTUALIZATION_SERVER
+
+# Enable SM diversity support for normal build
+CONFIG_NVGPU_SM_DIVERSITY            := 1
+NVGPU_COMMON_CFLAGS                  += -DCONFIG_NVGPU_SM_DIVERSITY
 
 endif
 endif

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -83,7 +83,9 @@ void gp10b_gr_init_get_access_map(struct gk20a *g,
 #endif
 
 int gp10b_gr_init_sm_id_config(struct gk20a *g, u32 *tpc_sm_id,
-			       struct nvgpu_gr_config *gr_config)
+				struct nvgpu_gr_config *gr_config,
+				struct nvgpu_gr_ctx *gr_ctx,
+				bool patch)
 {
 	u32 i, j;
 	u32 tpc_index, gpc_index;
