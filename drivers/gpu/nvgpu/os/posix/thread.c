@@ -35,6 +35,7 @@ struct nvgpu_posix_fault_inj *nvgpu_thread_get_fault_injection(void)
 
 	return &c->thread_fi;
 }
+
 struct nvgpu_posix_fault_inj
 			*nvgpu_thread_running_true_get_fault_injection(void)
 {
@@ -42,6 +43,14 @@ struct nvgpu_posix_fault_inj
 			nvgpu_posix_fault_injection_get_container();
 
 	return &c->thread_running_true_fi;
+}
+
+struct nvgpu_posix_fault_inj *nvgpu_thread_serial_get_fault_injection(void)
+{
+	struct nvgpu_posix_fault_inj_container *c =
+			nvgpu_posix_fault_injection_get_container();
+
+	return &c->thread_serial_fi;
 }
 #endif
 
@@ -137,6 +146,23 @@ int nvgpu_thread_create(struct nvgpu_thread *thread,
 		return ret;
 	}
 
+#ifdef NVGPU_UNITTEST_FAULT_INJECTION_ENABLEMENT
+	/*
+	 * For some code that is tested using public APIs it's not safe for the
+	 * parent thread to continue while the child thread is running. Fault
+	 * injection per thread pointer points to the same container for both
+	 * parent thread as well as the created one. So, there is chance of a
+	 * race in fault injection functionality. Serialize the run so that race
+	 * can be mitigated. Caller of nvgpu_thread_create() API should ensure
+	 * that the created thread is stopped using some fault injection or
+	 * otherwise.
+	 */
+	if (nvgpu_posix_fault_injection_handle_call(
+				nvgpu_thread_serial_get_fault_injection())) {
+		(void) pthread_join(thread->thread, NULL);
+	}
+#endif
+
 	return 0;
 }
 
@@ -217,6 +243,23 @@ int nvgpu_thread_create_priority(struct nvgpu_thread *thread,
 		(void) pthread_cancel(thread->thread);
 		return ret;
 	}
+
+#ifdef NVGPU_UNITTEST_FAULT_INJECTION_ENABLEMENT
+	/*
+	 * For some code that is tested using public APIs it's not safe for the
+	 * parent thread to continue while the child thread is running. Fault
+	 * injection per thread pointer points to the same container for both
+	 * parent thread as well as the created one. So, there is chance of a
+	 * race in fault injection functionality. Serialize the run so that race
+	 * can be mitigated. Caller of nvgpu_thread_create() API should ensure
+	 * that the created thread is stopped using some fault injection or
+	 * otherwise.
+	 */
+	if (nvgpu_posix_fault_injection_handle_call(
+				nvgpu_thread_serial_get_fault_injection())) {
+		(void) pthread_join(thread->thread, NULL);
+	}
+#endif
 
 	return 0;
 }

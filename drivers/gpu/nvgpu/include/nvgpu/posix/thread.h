@@ -108,6 +108,7 @@ struct nvgpu_thread {
 struct nvgpu_posix_fault_inj *nvgpu_thread_get_fault_injection(void);
 struct nvgpu_posix_fault_inj
 			*nvgpu_thread_running_true_get_fault_injection(void);
+struct nvgpu_posix_fault_inj *nvgpu_thread_serial_get_fault_injection(void);
 #endif
 
 /**
