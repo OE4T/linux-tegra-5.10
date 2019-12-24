@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -59,6 +59,21 @@ bool nvgpu_posix_is_fault_injection_cntr_set(struct nvgpu_posix_fault_inj *fi)
 	return (fi->counter > 0U);
 }
 
+void nvgpu_posix_set_fault_injection_bitmask(struct nvgpu_posix_fault_inj *fi,
+	unsigned long *bitmask, unsigned int number)
+{
+/* TODO check for input validity */
+
+	fi->bitmask = *bitmask;
+	fi->counter = number;
+}
+
+void nvgpu_posix_reset_fault_injection_bitmask(struct nvgpu_posix_fault_inj *fi)
+{
+	fi->bitmask = 0UL;
+	fi->counter = 0U;
+}
+
 /*
  * Return status of fault injection.
  * Decrement fault injection count for each call.
@@ -66,6 +81,16 @@ bool nvgpu_posix_is_fault_injection_cntr_set(struct nvgpu_posix_fault_inj *fi)
 bool nvgpu_posix_fault_injection_handle_call(struct nvgpu_posix_fault_inj *fi)
 {
 	bool current_state = fi->enabled;
+
+	if (fi->bitmask != 0UL && fi->counter > 0U &&
+		fi->counter <= sizeof(fi->bitmask) * 8) {
+		fi->counter--;
+		if ((1UL << fi->counter) & fi->bitmask) {
+			return true;
+		} else {
+			return false;
+		}
+	}
 
 	if (fi->counter > 0U) {
 		fi->counter--;

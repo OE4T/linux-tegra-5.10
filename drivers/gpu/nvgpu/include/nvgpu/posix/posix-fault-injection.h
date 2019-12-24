@@ -29,6 +29,7 @@
 struct nvgpu_posix_fault_inj {
 	bool enabled;
 	unsigned int counter;
+	unsigned long bitmask;
 };
 
 /**
@@ -179,5 +180,31 @@ bool nvgpu_posix_is_fault_injection_cntr_set(struct nvgpu_posix_fault_inj *fi);
  * Returns true if the module should return an error.
  */
 bool nvgpu_posix_fault_injection_handle_call(struct nvgpu_posix_fault_inj *fi);
+
+/**
+ * nvgpu_posix_set_fault_injection - Set fault injection bitmask for the given
+ *				     object @fi with @bitmask and @number of
+ * 				     times fi is needed. For example a bitmask
+ * 				     0x12 and number as 6 will inject fault at
+ * 				     2nd and 5th iteration. Currently it only
+ * 				     supports upto 64 counter with bitmask. In
+ *                                   future an array of bitmask can be passed
+ *                                   and only implementation of this function
+ *                                   need to be changed.
+ *
+ * @fi - pointer to the fault_inj object.
+ * @bitmask - Call Interation to be faulted in bitmask format.
+ * @number - Fault injection supported upto <number> count.
+ */
+void nvgpu_posix_set_fault_injection_bitmask(struct nvgpu_posix_fault_inj *fi,
+	unsigned long *bitmask, unsigned int number);
+
+/**
+ * nvgpu_posix_fault_injection_handle_call - Reset the bitmask fi.
+ *
+ * @fi - pointer to the fault_inj object
+ *
+ */
+void nvgpu_posix_reset_fault_injection_bitmask(struct nvgpu_posix_fault_inj *fi);
 
 #endif /* NVGPU_POSIX_FAULT_INJECTION_H */
