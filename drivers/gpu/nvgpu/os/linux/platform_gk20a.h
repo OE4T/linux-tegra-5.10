@@ -1,7 +1,7 @@
 /*
  * GK20A Platform (SoC) Interface
  *
- * Copyright (c) 2014-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -62,6 +62,7 @@ enum tegra_chip_id {
 	TEGRA_194,
 	TEGRA_194_VGPU,
 	TEGRA_124_VGPU,
+	TEGRA_234,
 };
 
 struct gk20a_platform {

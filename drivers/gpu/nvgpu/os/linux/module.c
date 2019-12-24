@@ -1,7 +1,7 @@
 /*
  * GK20A Graphics
  *
- * Copyright (c) 2011-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -79,6 +79,10 @@
 
 #ifdef CONFIG_NVGPU_SUPPORT_CDE
 #include "cde.h"
+#endif
+
+#if defined(CONFIG_NVGPU_NEXT) && defined(CONFIG_NVGPU_NON_FUSA)
+#include "nvgpu_next_gpuid.h"
 #endif
 
 #define CLASS_NAME "nvidia-gpu"
@@ -707,8 +711,11 @@ static struct of_device_id tegra_gk20a_of_match[] = {
 	{ .compatible = "nvidia,tegra124-gk20a-vgpu",
 		.data = &vgpu_tegra_platform },
 #endif
+#if defined(CONFIG_NVGPU_NEXT) && defined(CONFIG_NVGPU_NON_FUSA)
+	{ .compatible = NVGPU_NEXT_COMPATIBLE,
+		.data = &NVGPU_NEXT_PLATFORM},
 #endif
-
+#endif
 	{ },
 };
 MODULE_DEVICE_TABLE(of, tegra_gk20a_of_match);
