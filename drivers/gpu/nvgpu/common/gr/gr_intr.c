@@ -386,6 +386,41 @@ static void gr_intr_report_warp_error(struct gk20a *g, u32 gpc, u32 tpc,
 	}
 }
 
+#ifdef CONFIG_NVGPU_DEBUGGER
+static int gr_intr_sm_exception_warp_sync(struct gk20a *g,
+		u32 gpc, u32 tpc, u32 sm,
+		u32 global_esr, u32 warp_esr, u32 global_mask,
+		bool ignore_debugger, bool *post_event)
+{
+	int ret = 0;
+	bool do_warp_sync = false;
+
+	if (!ignore_debugger && ((warp_esr != 0U) ||
+			(is_global_esr_error(global_esr, global_mask)))) {
+		nvgpu_log(g, gpu_dbg_intr, "warp sync needed");
+		do_warp_sync = true;
+	}
+
+	if (do_warp_sync) {
+		ret = g->ops.gr.lock_down_sm(g, gpc, tpc, sm,
+				 global_mask, true);
+		if (ret != 0) {
+			nvgpu_err(g, "sm did not lock down!");
+			return ret;
+		}
+	}
+
+	if (ignore_debugger) {
+		nvgpu_log(g, gpu_dbg_intr | gpu_dbg_gpu_dbg,
+			"ignore_debugger set, skipping event posting");
+	} else {
+		*post_event = true;
+	}
+
+	return ret;
+}
+#endif
+
 int nvgpu_gr_intr_handle_sm_exception(struct gk20a *g, u32 gpc, u32 tpc, u32 sm,
 		bool *post_event, struct nvgpu_channel *fault_ch,
 		u32 *hww_global_esr)
@@ -396,7 +431,7 @@ int nvgpu_gr_intr_handle_sm_exception(struct gk20a *g, u32 gpc, u32 tpc, u32 sm,
 	u32 global_esr, warp_esr, global_mask;
 #ifdef CONFIG_NVGPU_DEBUGGER
 	bool sm_debugger_attached;
-	bool do_warp_sync = false, early_exit = false, ignore_debugger = false;
+	bool early_exit = false, ignore_debugger = false;
 	bool disable_sm_exceptions = true;
 #endif
 
@@ -467,28 +502,9 @@ int nvgpu_gr_intr_handle_sm_exception(struct gk20a *g, u32 gpc, u32 tpc, u32 sm,
 	}
 
 	/* if debugger is present and an error has occurred, do a warp sync */
-	if (!ignore_debugger && ((warp_esr != 0U) ||
-			(is_global_esr_error(global_esr, global_mask)))) {
-		nvgpu_log(g, gpu_dbg_intr, "warp sync needed");
-		do_warp_sync = true;
-	}
-
-	if (do_warp_sync) {
-		ret = g->ops.gr.lock_down_sm(g, gpc, tpc, sm,
-				 global_mask, true);
-		if (ret != 0) {
-			nvgpu_err(g, "sm did not lock down!");
-			return ret;
-		}
-	}
-
-	if (ignore_debugger) {
-		nvgpu_log(g, gpu_dbg_intr | gpu_dbg_gpu_dbg,
-			"ignore_debugger set, skipping event posting");
-	} else {
-		*post_event = true;
-	}
-
+	ret = gr_intr_sm_exception_warp_sync(g, gpc, tpc, sm,
+					global_esr, warp_esr, global_mask,
+					ignore_debugger, post_event);
 #else
 	/* Return error so that recovery is triggered */
 	ret = -EFAULT;
@@ -744,6 +760,18 @@ void nvgpu_gr_intr_handle_semaphore_pending(struct gk20a *g,
 	}
 }
 
+#ifdef CONFIG_NVGPU_DEBUGGER
+static void gr_intr_signal_exception_event(struct gk20a *g,
+				bool post_event,
+				struct nvgpu_channel *fault_ch)
+{
+	if (g->ops.gr.sm_debugger_attached(g) &&
+		post_event && (fault_ch != NULL)) {
+		g->ops.debugger.post_events(fault_ch);
+	}
+}
+#endif
+
 static u32 gr_intr_handle_exception_interrupts(struct gk20a *g,
 		u32 *clear_intr,
 		struct nvgpu_tsg *tsg, u32 *global_esr,
@@ -780,10 +808,8 @@ static u32 gr_intr_handle_exception_interrupts(struct gk20a *g,
 
 #ifdef CONFIG_NVGPU_DEBUGGER
 			/* signal clients waiting on an event */
-			if (g->ops.gr.sm_debugger_attached(g) &&
-				post_event && (fault_ch != NULL)) {
-				g->ops.debugger.post_events(fault_ch);
-			}
+			gr_intr_signal_exception_event(g,
+						post_event, fault_ch);
 #endif
 		}
 		*clear_intr &= ~intr_info->exception;
@@ -940,6 +966,26 @@ static struct nvgpu_tsg *gr_intr_get_channel_from_ctx(struct gk20a *g,
 	return tsg_info;
 }
 
+static void gr_clear_intr_status(struct gk20a *g,
+			    struct nvgpu_gr_isr_data *isr_data,
+			    u32 clear_intr, u32 gr_intr, u32 chid)
+{
+	if (clear_intr != 0U) {
+		if (isr_data->ch == NULL) {
+			/*
+			 * This is probably an interrupt during
+			 * gk20a_free_channel()
+			 */
+			nvgpu_err(g, "unhandled gr intr 0x%08x for "
+				"unreferenceable channel, clearing",
+				gr_intr);
+		} else {
+			nvgpu_err(g, "unhandled gr intr 0x%08x for chid %u",
+				gr_intr, chid);
+		}
+	}
+}
+
 int nvgpu_gr_intr_stall_isr(struct gk20a *g)
 {
 	struct nvgpu_gr_isr_data isr_data;
@@ -986,20 +1032,7 @@ int nvgpu_gr_intr_stall_isr(struct gk20a *g)
 		nvgpu_rc_gr_fault(g, tsg, isr_data.ch);
 	}
 
-	if (clear_intr != 0U) {
-		if (isr_data.ch == NULL) {
-			/*
-			 * This is probably an interrupt during
-			 * gk20a_free_channel()
-			 */
-			nvgpu_err(g, "unhandled gr intr 0x%08x for "
-				"unreferenceable channel, clearing",
-				gr_intr);
-		} else {
-			nvgpu_err(g, "unhandled gr intr 0x%08x for chid: %d",
-				gr_intr, chid);
-		}
-	}
+	gr_clear_intr_status(g, &isr_data, clear_intr, gr_intr, chid);
 
 	/* clear handled and unhandled interrupts */
 	g->ops.gr.intr.clear_pending_interrupts(g, gr_intr);
