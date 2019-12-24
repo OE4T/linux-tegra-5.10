@@ -34,11 +34,11 @@
  *
  * @return Returns the minimum value from \a a and \a b.
  */
-#define min_t(type, a, b)		\
-	({				\
-		type __a = (a);		\
-		type __b = (b);		\
-		__a < __b ? __a : __b;	\
+#define min_t(type, a, b)			\
+	({					\
+		type __a = (a);			\
+		type __b = (b);			\
+		(__a < __b) ? __a : __b;	\
 	})
 
 #if defined(min)
@@ -56,9 +56,9 @@
  *
  * @return Returns the minimum value from \a a and \a b.
  */
-#define min(a, b)			\
-	({				\
-		(a) < (b) ? (a) : (b);	\
+#define min(a, b)				\
+	({					\
+		((a) < (b)) ? (a) : (b);	\
 	})
 
 /**
@@ -69,9 +69,9 @@
  *
  * @return Returns the maximum value from \a a and \a b.
  */
-#define max(a, b)			\
-	({				\
-		(a) > (b) ? (a) : (b);	\
+#define max(a, b)				\
+	({					\
+		((a) > (b)) ? (a) : (b);	\
 	})
 
 /**
