@@ -272,7 +272,7 @@ u64 vgpu_locked_gmmu_map(struct vm_gk20a *vm,
 	void *handle = NULL;
 	size_t oob_size;
 	u8 prot;
-	struct nvgpu_sgl *sgl;
+	void *sgl;
 
 	nvgpu_log_fn(g, " ");
 

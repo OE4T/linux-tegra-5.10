@@ -45,11 +45,11 @@ u64 nvgpu_mem_get_phys_addr(struct gk20a *g, struct nvgpu_mem *mem)
 	return (u64)(uintptr_t)mem->cpu_va;
 }
 
-struct nvgpu_sgl *nvgpu_mem_sgl_next(void *sgl)
+void *nvgpu_mem_sgl_next(void *sgl)
 {
 	struct nvgpu_mem_sgl *mem = (struct nvgpu_mem_sgl *)sgl;
 
-	return (struct nvgpu_sgl *) mem->next;
+	return (void *) mem->next;
 }
 
 u64 nvgpu_mem_sgl_phys(struct gk20a *g, void *sgl)
@@ -59,8 +59,7 @@ u64 nvgpu_mem_sgl_phys(struct gk20a *g, void *sgl)
 	return (u64)(uintptr_t)mem->phys;
 }
 
-u64 nvgpu_mem_sgl_ipa_to_pa(struct gk20a *g, struct nvgpu_sgl *sgl,
-		u64 ipa, u64 *pa_len)
+u64 nvgpu_mem_sgl_ipa_to_pa(struct gk20a *g, void *sgl, u64 ipa, u64 *pa_len)
 {
 	return nvgpu_mem_sgl_phys(g, sgl);
 }
@@ -188,7 +187,7 @@ struct nvgpu_sgt *nvgpu_mem_sgt_posix_create_from_list(struct gk20a *g,
 		nvgpu_kfree(g, sgt);
 		return NULL;
 	}
-	sgt->sgl = (struct nvgpu_sgl *)sgl;
+	sgt->sgl = (void *)sgl;
 	sgt->ops = &nvgpu_sgt_posix_ops;
 
 	return sgt;
@@ -243,7 +242,7 @@ struct nvgpu_sgt *nvgpu_sgt_os_create_from_mem(struct gk20a *g,
 
 	sgl->length = mem->size;
 	sgl->phys   = (u64) mem->cpu_va;
-	sgt->sgl    = (struct nvgpu_sgl *) sgl;
+	sgt->sgl    = (void *) sgl;
 
 	return sgt;
 }

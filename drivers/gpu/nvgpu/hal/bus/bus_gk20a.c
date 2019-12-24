@@ -35,7 +35,7 @@
 
 #ifdef CONFIG_NVGPU_DGPU
 u32 gk20a_bus_set_bar0_window(struct gk20a *g, struct nvgpu_mem *mem,
-		       struct nvgpu_sgt *sgt, struct nvgpu_sgl *sgl, u32 w)
+		       struct nvgpu_sgt *sgt, void *sgl, u32 w)
 {
 	u64 bufbase = nvgpu_sgt_get_phys(g, sgt, sgl);
 	u64 addr = bufbase + w * sizeof(u32);

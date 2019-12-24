@@ -198,7 +198,7 @@ int nvgpu_dma_alloc_flags_vid_at(struct gk20a *g, unsigned long flags,
 	mem->priv.sgt->ops = &nvgpu_sgt_posix_ops;
 
 	/* Allocate memory for sgl */
-	mem->priv.sgt->sgl = (struct nvgpu_sgl *)
+	mem->priv.sgt->sgl = (struct nvgpu_mem_sgl *)
 		nvgpu_kzalloc(g, sizeof(struct nvgpu_mem_sgl));
 	if (mem->priv.sgt->sgl == NULL) {
 		nvgpu_err(g, "sgl allocation failed\n");

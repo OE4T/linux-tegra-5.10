@@ -38,13 +38,6 @@ struct nvgpu_gmmu_attrs;
 struct nvgpu_sgt;
 
 /**
- * Forward declared opaque placeholder type that does not really exist, but
- * helps the compiler help us about getting types right. In reality,
- * implementors of nvgpu_sgt_ops will have some concrete type in place of this.
- */
-struct nvgpu_sgl;
-
-/**
  * This structure holds the necessary operations required for
  * interacting with the underlying scatter gather list entries.
  */
@@ -53,7 +46,7 @@ struct nvgpu_sgt_ops {
 	 * Used to get the next scatter gather list entry in the
 	 * scatter gather list entries.
 	 */
-	struct nvgpu_sgl *(*sgl_next)(void *sgl);
+	void *(*sgl_next)(void *sgl);
 	/**
 	 * Used to get the physical address associated with the
 	 * scatter gather list entry.
@@ -68,8 +61,8 @@ struct nvgpu_sgt_ops {
 	 * Used to get the physical address from the intermediate
 	 * physical address.
 	 */
-	u64   (*sgl_ipa_to_pa)(struct gk20a *g, struct nvgpu_sgl *sgl,
-			      u64 ipa, u64 *pa_len);
+	u64   (*sgl_ipa_to_pa)(struct gk20a *g, void *sgl,
+				u64 ipa, u64 *pa_len);
 	/**
 	 * Used to get the iommuable virtual address associated with the
 	 * scatter gather list entry.
@@ -112,7 +105,7 @@ struct nvgpu_sgt {
 	/**
 	 * The first node in the scatter gather list.
 	 */
-	struct nvgpu_sgl *sgl;
+	void *sgl;
 };
 
 /**
@@ -194,8 +187,7 @@ struct nvgpu_sgt *nvgpu_sgt_create_from_mem(struct gk20a *g,
  * @return Pointer to a scatter gather list.
  * @return NULL if there is no next scatter gather list is found.
  */
-struct nvgpu_sgl *nvgpu_sgt_get_next(struct nvgpu_sgt *sgt,
-					  struct nvgpu_sgl *sgl);
+void *nvgpu_sgt_get_next(struct nvgpu_sgt *sgt, void *sgl);
 
 /**
  * @brief Get the intermediate physical address from given scatter
@@ -216,8 +208,7 @@ struct nvgpu_sgl *nvgpu_sgt_get_next(struct nvgpu_sgt *sgt,
  * @return Intermediate physical address associated with the
  *         given scatter gather list.
  */
-u64 nvgpu_sgt_get_ipa(struct gk20a *g, struct nvgpu_sgt *sgt,
-				struct nvgpu_sgl *sgl);
+u64 nvgpu_sgt_get_ipa(struct gk20a *g, struct nvgpu_sgt *sgt, void *sgl);
 
 /**
  * @brief Get the physical address from the intermediate physical address
@@ -239,7 +230,7 @@ u64 nvgpu_sgt_get_ipa(struct gk20a *g, struct nvgpu_sgt *sgt,
  *         address.
  */
 u64 nvgpu_sgt_ipa_to_pa(struct gk20a *g, struct nvgpu_sgt *sgt,
-				struct nvgpu_sgl *sgl, u64 ipa, u64 *pa_len);
+				void *sgl, u64 ipa, u64 *pa_len);
 
 /**
  * @brief Get the physical address associated with the scatter gather list.
@@ -258,8 +249,7 @@ u64 nvgpu_sgt_ipa_to_pa(struct gk20a *g, struct nvgpu_sgt *sgt,
  *
  * @return Physical address associated with the input sgl.
  */
-u64 nvgpu_sgt_get_phys(struct gk20a *g, struct nvgpu_sgt *sgt,
-		       struct nvgpu_sgl *sgl);
+u64 nvgpu_sgt_get_phys(struct gk20a *g, struct nvgpu_sgt *sgt, void *sgl);
 
 /**
  * @brief Get the io virtual address associated with the scatter
@@ -275,7 +265,7 @@ u64 nvgpu_sgt_get_phys(struct gk20a *g, struct nvgpu_sgt *sgt,
  *
  * @return Intermediate physical address.
  */
-u64 nvgpu_sgt_get_dma(struct nvgpu_sgt *sgt, struct nvgpu_sgl *sgl);
+u64 nvgpu_sgt_get_dma(struct nvgpu_sgt *sgt, void *sgl);
 
 /**
  * @brief Get the length associated with given scatter gather list.
@@ -290,7 +280,7 @@ u64 nvgpu_sgt_get_dma(struct nvgpu_sgt *sgt, struct nvgpu_sgl *sgl);
  *
  * @return Length associated with the input sgl.
  */
-u64 nvgpu_sgt_get_length(struct nvgpu_sgt *sgt, struct nvgpu_sgl *sgl);
+u64 nvgpu_sgt_get_length(struct nvgpu_sgt *sgt, void *sgl);
 
 /**
  * @brief Get the physical address/intermediate physical address
@@ -313,8 +303,7 @@ u64 nvgpu_sgt_get_length(struct nvgpu_sgt *sgt, struct nvgpu_sgl *sgl);
  * @return Address associated with the given sgl.
  */
 u64 nvgpu_sgt_get_gpu_addr(struct gk20a *g, struct nvgpu_sgt *sgt,
-			   struct nvgpu_sgl *sgl,
-			   struct nvgpu_gmmu_attrs *attrs);
+			void*sgl, struct nvgpu_gmmu_attrs *attrs);
 
 /**
  * @brief Free the scatter gather table object.
@@ -369,9 +358,9 @@ u64 nvgpu_sgt_alignment(struct gk20a *g, struct nvgpu_sgt *sgt);
 
 /** @cond DOXYGEN_SHOULD_SKIP_THIS */
 #if defined(__NVGPU_POSIX__)
-struct nvgpu_sgl *nvgpu_mem_sgl_next(void *sgl);
+void *nvgpu_mem_sgl_next(void *sgl);
 u64 nvgpu_mem_sgl_phys(struct gk20a *g, void *sgl);
-u64 nvgpu_mem_sgl_ipa_to_pa(struct gk20a *g, struct nvgpu_sgl *sgl, u64 ipa,
+u64 nvgpu_mem_sgl_ipa_to_pa(struct gk20a *g, void *sgl, u64 ipa,
 				u64 *pa_len);
 u64 nvgpu_mem_sgl_dma(void *sgl);
 u64 nvgpu_mem_sgl_length(void *sgl);

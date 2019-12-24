@@ -45,7 +45,7 @@ static void nvgpu_pramin_access_batched(struct gk20a *g, struct nvgpu_mem *mem,
 {
 	struct nvgpu_page_alloc *alloc = NULL;
 	struct nvgpu_sgt *sgt;
-	struct nvgpu_sgl *sgl;
+	void *sgl;
 	u64 byteoff, start_reg, until_end, n;
 
 	/*

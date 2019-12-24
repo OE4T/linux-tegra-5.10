@@ -537,9 +537,9 @@ int test_nvgpu_mem_phys_ops(struct unit_module *m,
 	u64 ret;
 	struct nvgpu_gmmu_attrs *attrs = NULL;
 	struct nvgpu_sgt *test_sgt = test_mem->phys_sgt;
-	struct nvgpu_sgl *test_sgl = test_sgt->sgl;
+	void *test_sgl = test_sgt->sgl;
 
-	struct nvgpu_sgl *temp_sgl = test_sgt->ops->sgl_next(test_sgl);
+	void *temp_sgl = test_sgt->ops->sgl_next(test_sgl);
 
 	if (temp_sgl != NULL) {
 		unit_return_fail(m,

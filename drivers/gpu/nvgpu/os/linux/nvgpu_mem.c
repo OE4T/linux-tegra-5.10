@@ -37,12 +37,12 @@
 
 #include "platform_gk20a.h"
 
-static u64 __nvgpu_sgl_ipa(struct gk20a *g, struct nvgpu_sgl *sgl)
+static u64 __nvgpu_sgl_ipa(struct gk20a *g, void *sgl)
 {
 	return sg_phys((struct scatterlist *)sgl);
 }
 
-static u64 __nvgpu_sgl_phys(struct gk20a *g, struct nvgpu_sgl *sgl)
+static u64 __nvgpu_sgl_phys(struct gk20a *g, void *sgl)
 {
 	struct device *dev = dev_from_gk20a(g);
 	struct gk20a_platform *platform = gk20a_get_platform(dev);
@@ -64,11 +64,11 @@ u64 nvgpu_mem_get_addr_sgl(struct gk20a *g, struct scatterlist *sgl)
 	if (nvgpu_is_enabled(g, NVGPU_MM_USE_PHYSICAL_SG) ||
 	    !nvgpu_iommuable(g))
 		return g->ops.mm.gmmu.gpu_phys_addr(g, NULL,
-			__nvgpu_sgl_phys(g, (struct nvgpu_sgl *)sgl));
+			__nvgpu_sgl_phys(g, (void *)sgl));
 
 	if (sg_dma_address(sgl) == 0)
 		return g->ops.mm.gmmu.gpu_phys_addr(g, NULL,
-			__nvgpu_sgl_phys(g, (struct nvgpu_sgl *)sgl));
+			__nvgpu_sgl_phys(g, (void *)sgl));
 
 	if (sg_dma_address(sgl) == DMA_ERROR_CODE)
 		return 0;
@@ -134,7 +134,7 @@ u64 nvgpu_mem_get_phys_addr(struct gk20a *g, struct nvgpu_mem *mem)
 		return nvgpu_mem_get_addr(g, mem);
 #endif
 
-	return __nvgpu_sgl_phys(g, (struct nvgpu_sgl *)mem->priv.sgt->sgl);
+	return __nvgpu_sgl_phys(g, (void *)mem->priv.sgt->sgl);
 }
 
 /*
@@ -189,9 +189,9 @@ int nvgpu_mem_create_from_mem(struct gk20a *g,
 	return ret;
 }
 
-static struct nvgpu_sgl *nvgpu_mem_linux_sgl_next(void *sgl)
+static void *nvgpu_mem_linux_sgl_next(void *sgl)
 {
-	return (struct nvgpu_sgl *)sg_next((struct scatterlist *)sgl);
+	return (void *)sg_next((struct scatterlist *)sgl);
 }
 
 static u64 nvgpu_mem_linux_sgl_ipa(struct gk20a *g, void *sgl)
@@ -200,7 +200,7 @@ static u64 nvgpu_mem_linux_sgl_ipa(struct gk20a *g, void *sgl)
 }
 
 static u64 nvgpu_mem_linux_sgl_ipa_to_pa(struct gk20a *g,
-		struct nvgpu_sgl *sgl, u64 ipa, u64 *pa_len)
+		void *sgl, u64 ipa, u64 *pa_len)
 {
 	struct device *dev = dev_from_gk20a(g);
 	struct gk20a_platform *platform = gk20a_get_platform(dev);
@@ -297,7 +297,7 @@ struct nvgpu_sgt *nvgpu_linux_sgt_create(struct gk20a *g, struct sg_table *sgt)
 
 	nvgpu_log(g, gpu_dbg_sgl, "Making Linux SGL!");
 
-	nvgpu_sgt->sgl = (struct nvgpu_sgl *)linux_sgl;
+	nvgpu_sgt->sgl = (void *)linux_sgl;
 	nvgpu_sgt->ops = &nvgpu_linux_sgt_ops;
 
 	return nvgpu_sgt;

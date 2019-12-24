@@ -547,7 +547,7 @@ static int nvgpu_set_pd_level(struct vm_gk20a *vm,
 NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Rule, 17_2))
 
 static int nvgpu_gmmu_do_update_page_table_sgl(struct vm_gk20a *vm,
-				struct nvgpu_sgt *sgt, struct nvgpu_sgl *sgl,
+				struct nvgpu_sgt *sgt, void *sgl,
 				u64 *space_to_skip_ptr,
 				u64 *virt_addr_ptr, u64 *length_ptr,
 				u64 phys_addr_val, u64 ipa_addr_val,
@@ -647,7 +647,7 @@ static int nvgpu_gmmu_do_update_page_table_no_iommu(struct vm_gk20a *vm,
 				struct nvgpu_gmmu_attrs *attrs)
 {
 	struct gk20a *g = gk20a_from_vm(vm);
-	struct nvgpu_sgl *sgl;
+	void *sgl;
 	u64 space_to_skip = space_to_skip_val;
 	u64 virt_addr = virt_addr_val;
 	u64 length = length_val;

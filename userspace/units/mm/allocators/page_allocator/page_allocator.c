@@ -390,7 +390,7 @@ static int test_page_allocator_sgt_ops(struct unit_module *m,
 					struct gk20a *g, void *args)
 {
 	u64 addr;
-	struct nvgpu_sgl *sgl = NULL;
+	void *sgl = NULL;
 	struct nvgpu_page_alloc *alloc = NULL;
 
 	addr = na->ops->alloc(na, SZ_32K);

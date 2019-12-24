@@ -44,7 +44,7 @@ static u64 ops_sgl_ipa(struct gk20a *g, void *sgl)
 	return EXPECTED_U64;
 }
 
-static u64 ops_sgl_ipa_to_pa(struct gk20a *g, struct nvgpu_sgl *sgl,
+static u64 ops_sgl_ipa_to_pa(struct gk20a *g, void *sgl,
 			     u64 ipa, u64 *pa_len)
 {
 	return EXPECTED_U64;
@@ -157,7 +157,7 @@ int test_nvgpu_sgt_get_next(struct unit_module *m, struct gk20a *g,
 {
 	int ret = UNIT_SUCCESS;
 	struct nvgpu_sgt *sgt;
-	struct nvgpu_sgl *api_ptr;
+	void *api_ptr;
 	struct nvgpu_mem_sgl *sgl_ptr;
 	int i;
 #define SGL_LEN 100

@@ -97,7 +97,6 @@ struct boardobjgrp;
 struct boardobjgrp_pmu_cmd;
 struct boardobjgrpmask;
 struct nvgpu_sgt;
-struct nvgpu_sgl;
 struct nvgpu_channel_hw_state;
 struct nvgpu_mem;
 struct gk20a_cs_snapshot_client;

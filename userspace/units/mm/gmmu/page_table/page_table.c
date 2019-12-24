@@ -265,7 +265,7 @@ static struct test_parameters test_sgt_iommu_sysmem = {
  * This is used to test a corner case in __nvgpu_gmmu_do_update_page_table()
  */
 static u64 nvgpu_mem_sgl_ipa_to_pa_by_half(struct gk20a *g,
-		struct nvgpu_sgl *sgl, u64 ipa, u64 *pa_len)
+		void *sgl, u64 ipa, u64 *pa_len)
 {
 	*pa_len = test_iommu_sysmem_sgl_skip.offset_pages * SZ_4K / 2;
 

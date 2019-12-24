@@ -311,11 +311,11 @@ NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Rule, 15_6))
 	}
 }
 
-static struct nvgpu_sgl *nvgpu_mem_phys_sgl_next(void *sgl)
+static void *nvgpu_mem_phys_sgl_next(void *sgl)
 {
 	struct nvgpu_mem_sgl *sgl_impl = (struct nvgpu_mem_sgl *)sgl;
 
-	return (struct nvgpu_sgl *)(void *)sgl_impl->next;
+	return (void *)(void *)sgl_impl->next;
 }
 
 /*
@@ -337,7 +337,7 @@ static u64 nvgpu_mem_phys_sgl_phys(struct gk20a *g, void *sgl)
 }
 
 static u64 nvgpu_mem_phys_sgl_ipa_to_pa(struct gk20a *g,
-		struct nvgpu_sgl *sgl, u64 ipa, u64 *pa_len)
+		void *sgl, u64 ipa, u64 *pa_len)
 {
 	return ipa;
 }
@@ -409,7 +409,7 @@ int nvgpu_mem_create_from_phys(struct gk20a *g, struct nvgpu_mem *dest,
 	sgl->next   = NULL;
 	sgl->phys   = src_phys;
 	sgl->length = dest->size;
-	sgt->sgl    = (struct nvgpu_sgl *)(void *)sgl;
+	sgt->sgl    = (void *)sgl;
 	sgt->ops    = &nvgpu_mem_phys_ops;
 
 	return ret;

@@ -27,43 +27,39 @@
 #include <nvgpu/nvgpu_sgt_os.h>
 #include <nvgpu/log.h>
 
-struct nvgpu_sgl *nvgpu_sgt_get_next(struct nvgpu_sgt *sgt,
-				     struct nvgpu_sgl *sgl)
+void *nvgpu_sgt_get_next(struct nvgpu_sgt *sgt, void *sgl)
 {
 	return sgt->ops->sgl_next(sgl);
 }
 
-u64 nvgpu_sgt_get_phys(struct gk20a *g, struct nvgpu_sgt *sgt,
-		       struct nvgpu_sgl *sgl)
+u64 nvgpu_sgt_get_phys(struct gk20a *g, struct nvgpu_sgt *sgt, void *sgl)
 {
 	return sgt->ops->sgl_phys(g, sgl);
 }
 
-u64 nvgpu_sgt_get_ipa(struct gk20a *g, struct nvgpu_sgt *sgt,
-		       struct nvgpu_sgl *sgl)
+u64 nvgpu_sgt_get_ipa(struct gk20a *g, struct nvgpu_sgt *sgt, void *sgl)
 {
 	return sgt->ops->sgl_ipa(g, sgl);
 }
 
 u64 nvgpu_sgt_ipa_to_pa(struct gk20a *g, struct nvgpu_sgt *sgt,
-		       struct nvgpu_sgl *sgl, u64 ipa, u64 *pa_len)
+				void *sgl, u64 ipa, u64 *pa_len)
 {
 	return sgt->ops->sgl_ipa_to_pa(g, sgl, ipa, pa_len);
 }
 
-u64 nvgpu_sgt_get_dma(struct nvgpu_sgt *sgt, struct nvgpu_sgl *sgl)
+u64 nvgpu_sgt_get_dma(struct nvgpu_sgt *sgt, void *sgl)
 {
 	return sgt->ops->sgl_dma(sgl);
 }
 
-u64 nvgpu_sgt_get_length(struct nvgpu_sgt *sgt, struct nvgpu_sgl *sgl)
+u64 nvgpu_sgt_get_length(struct nvgpu_sgt *sgt, void *sgl)
 {
 	return sgt->ops->sgl_length(sgl);
 }
 
-u64 nvgpu_sgt_get_gpu_addr(struct gk20a *g, struct nvgpu_sgt *sgt,
-			   struct nvgpu_sgl *sgl,
-			   struct nvgpu_gmmu_attrs *attrs)
+u64 nvgpu_sgt_get_gpu_addr(struct gk20a *g, struct nvgpu_sgt *sgt, void *sgl,
+				struct nvgpu_gmmu_attrs *attrs)
 {
 	return sgt->ops->sgl_gpu_addr(g, sgl, attrs);
 }
@@ -93,7 +89,7 @@ void nvgpu_sgt_free(struct gk20a *g, struct nvgpu_sgt *sgt)
 u64 nvgpu_sgt_alignment(struct gk20a *g, struct nvgpu_sgt *sgt)
 {
 	u64 align = 0, chunk_align = 0;
-	struct nvgpu_sgl *sgl;
+	void *sgl;
 
 	/*
 	 * If this SGT is iommuable and we want to use the IOMMU address then

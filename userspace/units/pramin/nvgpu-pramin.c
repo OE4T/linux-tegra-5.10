@@ -240,7 +240,7 @@ static int create_alloc_and_sgt(struct unit_module *m, struct gk20a *g,
 		return -ENOMEM;
 	}
 	mem->vidmem_alloc->sgt.ops = sgt->ops;
-	mem->vidmem_alloc->sgt.sgl = (struct nvgpu_sgl *) mem;
+	mem->vidmem_alloc->sgt.sgl = (void *) mem;
 	free(sgt);
 
 	/* All PRAMIN accessed must have a VIDMEM aperture */
@@ -306,7 +306,7 @@ static int test_pramin_rd_n_single(struct unit_module *m, struct gk20a *g,
 		goto free_vidmem;
 	}
 
-	mem.vidmem_alloc->sgt.sgl = (struct nvgpu_sgl *)sgl;
+	mem.vidmem_alloc->sgt.sgl = (void *)sgl;
 
 	nvgpu_pramin_rd_n(g, &mem, 0, byte_cnt, (void *) dest);
 
@@ -394,7 +394,7 @@ static int test_pramin_wr_n_multi(struct unit_module *m, struct gk20a *g,
 	sgl2->next = sgl3;
 	sgl3->next = NULL;
 
-	mem.vidmem_alloc->sgt.sgl = (struct nvgpu_sgl *) sgl1;
+	mem.vidmem_alloc->sgt.sgl = (void *) sgl1;
 
 	nvgpu_pramin_wr_n(g, &mem, byte_offset, byte_cnt, (void *) src);
 
@@ -449,7 +449,7 @@ static int test_pramin_memset(struct unit_module *m, struct gk20a *g,
 		goto free_vidmem;
 	}
 
-	mem.vidmem_alloc->sgt.sgl = (struct nvgpu_sgl *)sgl;
+	mem.vidmem_alloc->sgt.sgl = (void *)sgl;
 
 	nvgpu_pramin_memset(g, &mem, 0, byte_cnt, MEMSET_PATTERN);
 

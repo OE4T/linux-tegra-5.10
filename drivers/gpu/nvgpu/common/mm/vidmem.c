@@ -453,7 +453,7 @@ int nvgpu_vidmem_clear(struct gk20a *g, struct nvgpu_mem *mem)
 	struct nvgpu_fence_type *fence_out = NULL;
 	struct nvgpu_fence_type *last_fence = NULL;
 	struct nvgpu_page_alloc *alloc = NULL;
-	struct nvgpu_sgl *sgl = NULL;
+	void *sgl = NULL;
 	int err = 0;
 
 	if (g->mm.vidmem.ce_ctx_id == NVGPU_CE_INVAL_CTX_ID) {
