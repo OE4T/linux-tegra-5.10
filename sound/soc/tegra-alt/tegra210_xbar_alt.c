@@ -1,7 +1,7 @@
 /*
  * tegra210_xbar_alt.c - Tegra210 XBAR driver
  *
- * Copyright (c) 2014-2019 NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2020 NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -37,25 +37,26 @@ static int tegra_xbar_get_value_enum(struct snd_kcontrol *kcontrol,
 	struct snd_soc_codec *codec = snd_soc_dapm_kcontrol_codec(kcontrol);
 	struct tegra_xbar *xbar = snd_soc_codec_get_drvdata(codec);
 	struct soc_enum *e = (struct soc_enum *)kcontrol->private_value;
-	unsigned int reg_count, reg_val, val, bit_pos = 0, i;
-	unsigned int reg[TEGRA_XBAR_UPDATE_MAX_REG];
+	unsigned int reg, i, bit_pos = 0;
 
-	reg_count = xbar->soc_data->reg_count;
+	/*
+	 * Find the bit position of current MUX input.
+	 * If nothing is set, position would be 0 and it corresponds to 'None'.
+	 */
+	for (i = 0; i < xbar->soc_data->reg_count; i++) {
+		unsigned int reg_val;
 
-	if (reg_count > TEGRA_XBAR_UPDATE_MAX_REG)
-		return -EINVAL;
+		reg = e->reg + (TEGRA210_XBAR_PART1_RX * i);
+		reg_val = snd_soc_read(codec, reg) & xbar->soc_data->mask[i];
 
-	for (i = 0; i < reg_count; i++) {
-		reg[i] = e->reg + TEGRA210_XBAR_PART1_RX * i;
-		reg_val = snd_soc_read(codec, reg[i]);
-		val = reg_val & xbar->soc_data->mask[i];
-		if (val != 0) {
-			bit_pos = ffs(val) +
-					(8*codec->component.val_bytes * i);
+		if (reg_val) {
+			bit_pos = ffs(reg_val) +
+				  (8 * codec->component.val_bytes * i);
 			break;
 		}
 	}
 
+	/* Find index related to the item in array *_xbar_mux_texts[] */
 	for (i = 0; i < e->items; i++) {
 		if (bit_pos == e->values[i]) {
 			ucontrol->value.enumerated.item[0] = i;
@@ -66,29 +67,20 @@ static int tegra_xbar_get_value_enum(struct snd_kcontrol *kcontrol,
 	return 0;
 }
 
-static int tegra_xbar_put_value_enum(struct snd_kcontrol *kcontrol,
-			      struct snd_ctl_elem_value *ucontrol)
+static int tegra_xbar_put_value_enum(struct snd_kcontrol *kctl,
+				     struct snd_ctl_elem_value *uctl)
 {
-	struct snd_soc_codec *codec = snd_soc_dapm_kcontrol_codec(kcontrol);
+	struct snd_soc_codec *codec = snd_soc_dapm_kcontrol_codec(kctl);
 	struct tegra_xbar *xbar = snd_soc_codec_get_drvdata(codec);
-	struct snd_soc_dapm_context *dapm =
-				snd_soc_dapm_kcontrol_dapm(kcontrol);
-	struct soc_enum *e = (struct soc_enum *)kcontrol->private_value;
-	unsigned int *item = ucontrol->value.enumerated.item;
-	unsigned int change = 0, reg_idx = 0, value, *mask, bit_pos = 0;
-	unsigned int i, reg_count, reg_val = 0, update_idx = 0;
-	unsigned int reg[TEGRA_XBAR_UPDATE_MAX_REG];
-	struct snd_soc_dapm_update update[TEGRA_XBAR_UPDATE_MAX_REG] = {
-				{ NULL } };
+	struct snd_soc_dapm_context *dapm = snd_soc_dapm_kcontrol_dapm(kctl);
+	struct soc_enum *e = (struct soc_enum *)kctl->private_value;
+	struct snd_soc_dapm_update update[TEGRA_XBAR_UPDATE_MAX_REG] = { };
+	unsigned int *item = uctl->value.enumerated.item;
+	unsigned int value = e->values[item[0]];
+	unsigned int i, bit_pos, reg_idx = 0, reg_val = 0;
 
-	/* initialize the reg_count and mask from soc_data */
-	reg_count = xbar->soc_data->reg_count;
-	mask = (unsigned int *)xbar->soc_data->mask;
-
-	if (item[0] >= e->items || reg_count > TEGRA_XBAR_UPDATE_MAX_REG)
+	if (item[0] >= e->items)
 		return -EINVAL;
-
-	value = e->values[item[0]];
 
 	if (value) {
 		/* get the register index and value to set */
@@ -97,40 +89,25 @@ static int tegra_xbar_put_value_enum(struct snd_kcontrol *kcontrol,
 		reg_val = BIT(bit_pos);
 	}
 
-	for (i = 0; i < reg_count; i++) {
-		reg[i] = e->reg + TEGRA210_XBAR_PART1_RX * i;
-		if (i == reg_idx) {
-			change |= snd_soc_test_bits(codec, reg[i],
-							mask[i], reg_val);
-			/* set the selected register */
-			update[reg_count - 1].reg = reg[reg_idx];
-			update[reg_count - 1].mask = mask[reg_idx];
-			update[reg_count - 1].val = reg_val;
-		} else {
-			/*
-			 * accumulate the change to update the DAPM path
-			 * when none is selected
-			 */
-			change |= snd_soc_test_bits(codec, reg[i],
-							mask[i], 0);
+	/*
+	 * Run through all parts of a MUX register to find the state changes.
+	 * There will be an additional update if new MUX input value is from
+	 * different part of the MUX register.
+	 */
+	for (i = 0; i < xbar->soc_data->reg_count; i++) {
+		update[i].reg = e->reg + (TEGRA210_XBAR_PART1_RX * i);
+		update[i].val = (i == reg_idx) ? reg_val : 0;
+		update[i].mask = xbar->soc_data->mask[i];
+		update[i].kcontrol = kctl;
 
-			/* clear the register when not selected */
-			update[update_idx].reg = reg[i];
-			update[update_idx].mask = mask[i];
-			update[update_idx++].val = 0;
-		}
+		/* update widget power if state has changed */
+		if (snd_soc_test_bits(codec, update[i].reg, update[i].mask,
+				      update[i].val))
+			snd_soc_dapm_mux_update_power(dapm, kctl, item[0], e,
+						      &update[i]);
 	}
 
-	/* power the widgets */
-	if (change) {
-		for (i = 0; i < reg_count; i++) {
-			update[i].kcontrol = kcontrol;
-			snd_soc_dapm_mux_update_power(dapm,
-				kcontrol, item[0], e, &update[i]);
-		}
-	}
-
-	return change;
+	return 0;
 }
 
 static struct snd_soc_dai_driver tegra210_xbar_dais[] = {
