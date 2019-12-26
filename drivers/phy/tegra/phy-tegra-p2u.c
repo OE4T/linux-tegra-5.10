@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -78,6 +78,11 @@
 #define RX_MARGIN_STOP		(2)
 #define RX_MARGIN_GET_MARGIN	(3)
 
+struct tegra_p2u_of_data {
+	/* Bug 200366472 */
+	bool twos_comp_fixup;
+};
+
 struct tegra_p2u {
 	void __iomem		*base;
 	struct device		*dev;
@@ -86,6 +91,7 @@ struct tegra_p2u {
 	u32			next_state;
 	spinlock_t		next_state_lock; /* lock for next_state */
 	bool			disable_uphy_rx_idle;
+	struct tegra_p2u_of_data *of_data;
 };
 
 struct margin_ctrl {
@@ -163,12 +169,13 @@ static const struct phy_ops ops = {
 	.owner		= THIS_MODULE,
 };
 
-static int set_margin_control(u32 id, u32 ctrl_data)
+static int set_margin_control(struct tegra_p2u *phy, u32 ctrl_data)
 {
 	struct mrq_uphy_request req;
 	struct mrq_uphy_response resp;
 	struct margin_ctrl ctrl;
 	u32 ctrl_x;
+	u32 id = phy->id;
 
 	memcpy(&ctrl, &ctrl_data, sizeof(ctrl_data));
 
@@ -190,7 +197,10 @@ static int set_margin_control(u32 id, u32 ctrl_data)
 	req.cmd = CMD_UPHY_PCIE_LANE_MARGIN_CONTROL;
 	req.uphy_set_margin_control.en = ctrl.en;
 	req.uphy_set_margin_control.clr = ctrl.clr;
-	req.uphy_set_margin_control.x = ctrl_x;
+	if (phy->of_data->twos_comp_fixup)
+		req.uphy_set_margin_control.x = ctrl_x;
+	else
+		req.uphy_set_margin_control.x = ctrl.x;
 	req.uphy_set_margin_control.y = ctrl.y;
 	req.uphy_set_margin_control.nblks = ctrl.n_blks;
 
@@ -230,7 +240,7 @@ void rx_margin_work_fn(struct work_struct *work)
 		case RX_MARGIN_START_CHANGE:
 		case RX_MARGIN_STOP:
 			val = readl(phy->base + P2U_RX_MARGIN_CTRL);
-			ret = set_margin_control(phy->id, val);
+			ret = set_margin_control(phy, val);
 			if (ret) {
 				dev_err(phy->dev,
 					"MARGIN_SET BPMP-FW SEND ERR\n");
@@ -353,6 +363,11 @@ static int tegra_p2u_probe(struct platform_device *pdev)
 
 	phy->dev = dev;
 
+	phy->of_data =
+		(struct tegra_p2u_of_data *)of_device_get_match_data(dev);
+	if (!(phy->of_data))
+		return -EINVAL;
+
 	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "base");
 	phy->base = devm_ioremap_resource(dev, res);
 	if (IS_ERR(phy->base))
@@ -405,12 +420,22 @@ static int tegra_p2u_remove(struct platform_device *pdev)
 	return 0;
 }
 
+static const struct tegra_p2u_of_data tegra_p2u_of_data_t194 = {
+	.twos_comp_fixup = true,
+};
+
+static const struct tegra_p2u_of_data tegra_p2u_of_data_t234 = {
+	.twos_comp_fixup = false,
+};
+
 static const struct of_device_id tegra_p2u_id_table[] = {
 	{
 		.compatible = "nvidia,phy-p2u-t194",
+		.data = &tegra_p2u_of_data_t194,
 	},
 	{
 		.compatible = "nvidia,phy-p2u-t234",
+		.data = &tegra_p2u_of_data_t234,
 	},
 	{}
 };
