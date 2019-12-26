@@ -73,6 +73,8 @@ struct wpr_carveout_info;
 
 #define HSBIN_ACR_BL_UCODE_IMAGE "pmu_bl.bin"
 #define HSBIN_ACR_UCODE_IMAGE "acr_ucode.bin"
+#define HSBIN_ACR_PROD_UCODE "acr_ucode_prod.bin"
+#define HSBIN_ACR_DBG_UCODE "acr_ucode_dbg.bin"
 #define HSBIN_ACR_AHESASC_NON_FUSA_PROD_UCODE "acr_ahesasc_prod_ucode.bin"
 #define HSBIN_ACR_ASB_NON_FUSA_PROD_UCODE "acr_asb_prod_ucode.bin"
 #define HSBIN_ACR_AHESASC_NON_FUSA_DBG_UCODE "acr_ahesasc_dbg_ucode.bin"

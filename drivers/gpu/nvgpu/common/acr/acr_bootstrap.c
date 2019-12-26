@@ -79,13 +79,6 @@ static int acr_wait_for_completion(struct gk20a *g, struct hs_acr *acr_desc,
 		goto exit;
 	}
 
-#ifdef CONFIG_NVGPU_FALCON_NON_FUSA
-	nvgpu_falcon_get_ctls(acr_desc->acr_flcn, &sctl, &cpuctl);
-
-	nvgpu_acr_dbg(g, "flcn-%d: sctl reg %x cpuctl reg %x",
-			flcn_id, sctl, cpuctl);
-#endif
-
 	/*
 	 * When engine-falcon is used for ACR bootstrap, validate the integrity
 	 * of falcon IMEM and DMEM.
@@ -99,6 +92,14 @@ static int acr_wait_for_completion(struct gk20a *g, struct hs_acr *acr_desc,
 	}
 
 exit:
+
+#ifdef CONFIG_NVGPU_FALCON_NON_FUSA
+	nvgpu_falcon_get_ctls(acr_desc->acr_flcn, &sctl, &cpuctl);
+
+	nvgpu_info(g, "flcn-%d: sctl reg %x cpuctl reg %x",
+			flcn_id, sctl, cpuctl);
+#endif
+
 	if (completion != 0) {
 #ifdef CONFIG_NVGPU_FALCON_DEBUG
 		nvgpu_falcon_dump_stats(acr_desc->acr_flcn);
@@ -128,7 +129,7 @@ static int acr_ucode_patch_sig(struct gk20a *g,
 		nvgpu_acr_dbg(g, "PRODUCTION MODE\n");
 	} else {
 		p_sig = p_dbg_sig;
-		nvgpu_acr_dbg(g, "DEBUG MODE\n");
+		nvgpu_info(g, "DEBUG MODE\n");
 	}
 
 	/* Patching logic:*/

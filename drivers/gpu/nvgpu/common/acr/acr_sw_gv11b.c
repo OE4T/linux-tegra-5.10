@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -166,7 +166,12 @@ static void gv11b_acr_default_sw_init(struct gk20a *g, struct hs_acr *acr_desc)
 	nvgpu_log_fn(g, " ");
 
 	acr_desc->acr_type = ACR_DEFAULT;
-	acr_desc->acr_fw_name = HSBIN_ACR_UCODE_IMAGE;
+
+	if (!g->ops.pmu.is_debug_mode_enabled(g)) {
+		acr_desc->acr_fw_name = HSBIN_ACR_PROD_UCODE;
+	} else {
+		acr_desc->acr_fw_name = HSBIN_ACR_DBG_UCODE;
+	}
 
 	acr_desc->acr_flcn = g->pmu->flcn;
 	acr_desc->report_acr_engine_bus_err_status =
