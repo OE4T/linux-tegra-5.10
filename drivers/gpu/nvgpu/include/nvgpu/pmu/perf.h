@@ -30,10 +30,12 @@
 #include <nvgpu/boardobjgrp_e32.h>
 #include <nvgpu/boardobjgrp_e255.h>
 #include <nvgpu/boardobjgrpmask.h>
-#include <nvgpu/pmu/perf_pstate.h>
 #include <nvgpu/pmu/pmuif/perf.h>
 
-struct gk20a;
+#define CTRL_PERF_PSTATE_P0		0U
+#define CTRL_PERF_PSTATE_P5		5U
+#define CTRL_PERF_PSTATE_P8		8U
+#define CLK_SET_INFO_MAX_SIZE		(32U)
 
 struct nvgpu_vfe_invalidate {
 	bool state_change;
@@ -53,6 +55,18 @@ struct vfe_equs {
 struct change_seq_pmu_script {
 	struct perf_change_seq_pmu_script buf;
 	u32 super_surface_offset;
+};
+
+struct clk_set_info {
+	u32 clkwhich;
+	u32 nominal_mhz;
+	u16 min_mhz;
+	u16 max_mhz;
+};
+
+struct pstates {
+	struct boardobjgrp_e32 super;
+	u8 num_clk_domains;
 };
 
 struct change_seq {
@@ -109,5 +123,13 @@ int nvgpu_vfe_get_freq_margin_limit(struct gk20a *g, u32 *fmargin_mhz);
 
 int nvgpu_perf_change_seq_sw_setup(struct gk20a *g);
 int nvgpu_perf_change_seq_pmu_setup(struct gk20a *g);
+
+int nvgpu_perf_pstate_get_lpwr_index(struct gk20a *g, u32 num, u8 *lpwr_idx);
+int nvgpu_get_pstate_entry_idx(struct gk20a *g, u32 num);
+struct clk_set_info *nvgpu_pmu_perf_pstate_get_clk_set_info(struct gk20a *g,
+			u32 pstate_num,
+			u32 clkwhich);
+int nvgpu_pmu_perf_pstate_sw_setup(struct gk20a *g);
+int nvgpu_pmu_perf_pstate_pmu_setup(struct gk20a *g);
 
 #endif /* NVGPU_PMU_PERF_H */

@@ -328,16 +328,17 @@ bool nvgpu_lpwr_is_mscg_supported(struct gk20a *g, u32 pstate_num)
 			&g->perf_pmu->lpwr.lwpr_bios_data.ms;
 	struct nvgpu_lpwr_bios_idx_data *pidx_data =
 			&g->perf_pmu->lpwr.lwpr_bios_data.idx;
-	struct pstate *pstate = nvgpu_pmu_perf_pstate_find(g, pstate_num);
 	u32 ms_idx;
+	u8 lpwr_idx = 0;
+	int status;
 
 	nvgpu_log_fn(g, " ");
-
-	if (pstate == NULL) {
+	status = nvgpu_perf_pstate_get_lpwr_index(g, pstate_num, &lpwr_idx);
+	if (status != 0) {
 		return false;
 	}
 
-	ms_idx = pidx_data->entry[pstate->lpwr_entry_idx].ms_idx;
+	ms_idx = pidx_data->entry[lpwr_idx].ms_idx;
 	if (pms_data->entry[ms_idx].ms_enabled) {
 		return true;
 	} else {
@@ -351,16 +352,17 @@ bool nvgpu_lpwr_is_rppg_supported(struct gk20a *g, u32 pstate_num)
 			&g->perf_pmu->lpwr.lwpr_bios_data.gr;
 	struct nvgpu_lpwr_bios_idx_data *pidx_data =
 			&g->perf_pmu->lpwr.lwpr_bios_data.idx;
-	struct pstate *pstate = nvgpu_pmu_perf_pstate_find(g, pstate_num);
 	u32 idx;
+	u8 lpwr_idx = 0;
+	int status;
 
 	nvgpu_log_fn(g, " ");
-
-	if (pstate == NULL) {
+	status = nvgpu_perf_pstate_get_lpwr_index(g, pstate_num, &lpwr_idx);
+	if (status != 0) {
 		return false;
 	}
 
-	idx = pidx_data->entry[pstate->lpwr_entry_idx].gr_idx;
+	idx = pidx_data->entry[lpwr_idx].gr_idx;
 	if (pgr_data->entry[idx].gr_enabled) {
 		return true;
 	} else {

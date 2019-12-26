@@ -33,7 +33,7 @@
 #include <nvgpu/pmu/cmd.h>
 #include <nvgpu/pmu/super_surface.h>
 #include <nvgpu/pmu/pmu_pstate.h>
-#include <nvgpu/pmu/perf_pstate.h>
+#include <nvgpu/pmu/perf.h>
 
 #include "change_seq.h"
 

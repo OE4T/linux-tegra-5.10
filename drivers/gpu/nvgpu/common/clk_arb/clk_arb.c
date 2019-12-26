@@ -35,7 +35,7 @@
 #include <nvgpu/worker.h>
 #include <nvgpu/gk20a.h>
 #ifdef CONFIG_NVGPU_LS_PMU
-#include <nvgpu/pmu/perf_pstate.h>
+#include <nvgpu/pmu/perf.h>
 #include <nvgpu/pmu/volt.h>
 #include <nvgpu/pmu/clk/clk.h>
 #endif

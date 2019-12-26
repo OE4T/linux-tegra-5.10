@@ -22,14 +22,7 @@
 #ifndef NVGPU_PMUIF_PERFPSTATE_H_
 #define NVGPU_PMUIF_PERFPSTATE_H_
 
-#include <nvgpu/types.h>
-#include "boardobj.h"
-
 #define PMU_PERF_CLK_DOMAINS_IDX_MAX	(16U)
-
-struct nv_pmu_boardobjgrp_e32;
-struct nv_pmu_boardobj;
-struct ctrl_perf_pstate_clk_entry;
 
 struct nv_pmu_perf_pstate_boardobjgrp_set_header {
 	struct nv_pmu_boardobjgrp_e32 super;
@@ -90,41 +83,5 @@ union nv_pmu_perf_pstate_boardobj_set_union {
 };
 
 NV_PMU_BOARDOBJ_GRP_SET_MAKE_E32(perf, pstate);
-
-struct nv_pmu_perf_pstate_boardobjgrp_get_status_header {
-	struct nv_pmu_boardobjgrp_e32 super;
-};
-
-struct nv_pmu_perf_pstate_get_status_super {
-	struct nv_pmu_boardobj boardObj;
-};
-
-struct nv_pmu_perf_pstate_35_get_status {
-	struct nv_pmu_perf_pstate_get_status_super super;
-	struct ctrl_perf_pstate_clk_entry_35
-	clkEntries[PMU_PERF_CLK_DOMAINS_IDX_MAX];
-};
-
-union nv_pmu_perf_pstate_boardobj_get_status_union {
-	struct nv_pmu_boardobj board_obj;
-	struct nv_pmu_perf_pstate_get_status_super super;
-	struct nv_pmu_perf_pstate_35_get_status v35;
-};
-
-NV_PMU_BOARDOBJ_GRP_GET_STATUS_MAKE_E32(perf, pstate);
-
-struct nv_pmu_perf_pstate_clk_domain_status {
-	u32 clkFreqKHz;
-	u32 clkFlags;
-	u8 currentRegimeId;
-};
-
-struct nv_pmu_perf_pstate_status {
-	u8 pstateCurrIdx;
-	struct nv_pmu_perf_pstate_clk_domain_status
-	clkDomains[PMU_PERF_CLK_DOMAINS_IDX_MAX];
-};
-
-int nvgpu_get_pstate_entry_idx(struct gk20a *g, u32 num);
 
 #endif /* NVGPU_PMUIF_PERFPSTATE_H_ */

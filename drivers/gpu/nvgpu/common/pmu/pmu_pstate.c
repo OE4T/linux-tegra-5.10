@@ -39,7 +39,6 @@
 #include <nvgpu/pmu/therm.h>
 #include <nvgpu/pmu/perf.h>
 #include <nvgpu/pmu/volt.h>
-#include <nvgpu/pmu/perf_pstate.h>
 #include <nvgpu/pmu/pmu_pstate.h>
 
 void nvgpu_pmu_pstate_deinit(struct gk20a *g)

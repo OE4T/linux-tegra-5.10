@@ -33,7 +33,7 @@
 #include <nvgpu/pmu/cmd.h>
 #include <nvgpu/timers.h>
 #include <nvgpu/pmu/pmu_pstate.h>
-#include <nvgpu/pmu/perf_pstate.h>
+#include <nvgpu/pmu/perf.h>
 #include <nvgpu/pmu/clk/clk_vf_point.h>
 
 int nvgpu_clk_domain_freq_to_volt(struct gk20a *g, u8 clkdomain_idx,

@@ -38,7 +38,6 @@ struct gk20a;
 #include <nvgpu/boardobj.h>
 #include <nvgpu/boardobjgrp_e32.h>
 #include <nvgpu/pmu/pmuif/ctrlclk.h>
-#include <nvgpu/pmu/perf_pstate.h>
 #include <nvgpu/pmu/volt.h>
 
 #define MAX_F_POINTS 256

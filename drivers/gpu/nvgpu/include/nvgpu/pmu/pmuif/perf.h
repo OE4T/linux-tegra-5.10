@@ -23,7 +23,6 @@
 #define NVGPU_PMUIF_PERF_H
 
 #include "volt.h"
-#include "perfpstate.h"
 
 #define NV_PMU_PERF_CMD_ID_RPC                                   (0x00000002U)
 #define NV_PMU_PERF_CMD_ID_BOARDOBJ_GRP_SET                      (0x00000003U)

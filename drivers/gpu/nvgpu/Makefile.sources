@@ -457,7 +457,7 @@ srcs += \
 	common/pmu/perf/vfe_equ.c \
 	common/pmu/perf/vfe_var.c \
 	common/pmu/perf/perf_ps35.c \
-	common/pmu/perf/perf_pstate.c \
+	common/pmu/perf/pstate.c \
 	common/pmu/perf/change_seq.c \
 	common/pmu/perfmon/pmu_perfmon.c \
 	common/pmu/perfmon/pmu_perfmon_sw_gm20b.c \

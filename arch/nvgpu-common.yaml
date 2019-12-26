@@ -654,7 +654,6 @@ pmu:
                  include/nvgpu/pmu/pmuif/boardobj.h,
                  include/nvgpu/pmu/pmuif/clk.h,
                  include/nvgpu/pmu/pmuif/perf.h,
-                 include/nvgpu/pmu/pmuif/perfpstate.h,
                  include/nvgpu/pmu/pmuif/pmgr.h,
                  include/nvgpu/pmu/pmuif/seq.h,
                  include/nvgpu/pmu/pmuif/thermsensor.h,
@@ -739,10 +738,10 @@ pmu:
                  common/pmu/perf/vfe_var.h,
                  common/pmu/perf/ucode_perf_vfe_inf.h,
                  common/pmu/perf/perf_ps35.c,
-                 common/pmu/perf/perf_pstate.c,
-                 common/pmu/perf/perf_pstate.h,
-                 include/nvgpu/pmu/perf.h,
-                 include/nvgpu/pmu/perf_pstate.h ]
+                 common/pmu/perf/pstate.c,
+                 common/pmu/perf/pstate.h,
+                 common/pmu/perf/ucode_perf_pstate_inf.h,
+                 include/nvgpu/pmu/perf.h ]
 
     super_surface:
       safe: yes

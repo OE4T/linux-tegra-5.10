@@ -31,12 +31,10 @@
 #include <nvgpu/boardobjgrp_e255.h>
 #include <nvgpu/pmu/boardobjgrp_classes.h>
 #include <nvgpu/pmu/perf.h>
-#include <nvgpu/pmu/perf_pstate.h>
 #include <nvgpu/pmu/clk/clk.h>
-#include <nvgpu/pmu/clk/clk_domain.h>
-#include <nvgpu/pmu/pmuif/perfpstate.h>
 
-#include "perf_pstate.h"
+#include "ucode_perf_pstate_inf.h"
+#include "pstate.h"
 
 int nvgpu_get_pstate_entry_idx(struct gk20a *g, u32 num)
 {
@@ -48,8 +46,6 @@ int nvgpu_get_pstate_entry_idx(struct gk20a *g, u32 num)
 
 	BOARDOBJGRP_FOR_EACH(&pstates->super.super,
 			struct pstate *, pstate, i) {
-		nvgpu_log_info(g, "pstate=%p num=%u (looking for num=%u)",
-				pstate, pstate->num, num);
 		if (pstate->num == num) {
 			return i;
 		}
@@ -195,7 +191,8 @@ static int parse_pstate_entry_6x(struct gk20a *g,
 		struct pstate *pstate)
 {
 	u8 *p = (u8 *)entry;
-	u32 clkidx;
+	u32 clkidx, domain;
+	int status;
 
 	p += hdr->base_entry_size;
 	(void) memset(pstate, 0, sizeof(struct pstate));
@@ -210,16 +207,18 @@ static int parse_pstate_entry_6x(struct gk20a *g,
 	for (clkidx = 0; clkidx < hdr->clock_entry_count; clkidx++) {
 		struct clk_set_info *pclksetinfo;
 		struct vbios_pstate_entry_clock_6x *clk_entry;
-		struct nvgpu_clk_domain *clk_domain;
-
-		clk_domain = (struct nvgpu_clk_domain *)
-			BOARDOBJGRP_OBJ_GET_BY_IDX(
-			&g->pmu->clk_pmu->clk_domainobjs->super.super, clkidx);
+		domain = 0;
 
 		pclksetinfo = &pstate->clklist.clksetinfo[clkidx];
 		clk_entry = (struct vbios_pstate_entry_clock_6x *)p;
 
-		pclksetinfo->clkwhich = clk_domain->domain;
+		status = nvgpu_clk_domain_get_from_index(g, &domain, clkidx);
+		if (status != 0) {
+			nvgpu_err(g, "Invalid clk_domain index");
+			return -EINVAL;
+		}
+
+		pclksetinfo->clkwhich = domain;
 		pclksetinfo->nominal_mhz =
 			BIOS_GET_FIELD(u32, clk_entry->param0,
 				VBIOS_PSTATE_6X_CLOCK_PROG_PARAM0_NOM_FREQ_MHZ);
@@ -229,11 +228,6 @@ static int parse_pstate_entry_6x(struct gk20a *g,
 		pclksetinfo->max_mhz =
 			BIOS_GET_FIELD(u16, clk_entry->param1,
 				VBIOS_PSTATE_6X_CLOCK_PROG_PARAM1_MAX_FREQ_MHZ);
-
-		nvgpu_log_info(g,
-			"clk_domain=%u nominal_mhz=%u min_mhz=%u max_mhz=%u",
-			pclksetinfo->clkwhich, pclksetinfo->nominal_mhz,
-			pclksetinfo->min_mhz, pclksetinfo->max_mhz);
 
 		p += hdr->clock_entry_size;
 	}
@@ -365,25 +359,6 @@ static int perf_pstate_pmudata_instget(struct gk20a *g,
 	return 0;
 }
 
-static int perf_pstate_pmustatus_instget(struct gk20a *g,
-		void *pboardobjgrppmu,
-		struct nv_pmu_boardobj_query **ppboardobjpmustatus, u8 idx)
-{
-	struct nv_pmu_perf_pstate_boardobj_grp_get_status *pgrp_get_status =
-		(struct nv_pmu_perf_pstate_boardobj_grp_get_status *)(void *)
-		pboardobjgrppmu;
-
-	/*Check for valid pmuboardobjgrp index*/
-	if ((BIT32(idx) &
-		pgrp_get_status->hdr.data.super.obj_mask.super.data[0]) == 0U) {
-		return -EINVAL;
-	}
-
-	*ppboardobjpmustatus = (struct nv_pmu_boardobj_query *)
-			&pgrp_get_status->objects[idx].data.board_obj;
-	return 0;
-}
-
 int nvgpu_pmu_perf_pstate_sw_setup(struct gk20a *g)
 {
 	int status;
@@ -414,18 +389,8 @@ int nvgpu_pmu_perf_pstate_sw_setup(struct gk20a *g)
 	g->perf_pmu->pstatesobjs.num_clk_domains =
 			VBIOS_PSTATE_CLOCK_ENTRY_6X_COUNT;
 
-	status = BOARDOBJGRP_PMU_CMD_GRP_GET_STATUS_CONSTRUCT(g, pboardobjgrp,
-			perf, PERF, pstate, PSTATE);
-	if (status != 0) {
-		nvgpu_err(g,
-			"error constructing PSTATE_GET_STATUS interface - 0x%x",
-			status);
-		goto done;
-	}
-
 	pboardobjgrp->pmudatainit = perf_pstate_pmudatainit;
 	pboardobjgrp->pmudatainstget  = perf_pstate_pmudata_instget;
-	pboardobjgrp->pmustatusinstget  = perf_pstate_pmustatus_instget;
 
 	status = devinit_get_pstate_table(g);
 	if (status != 0) {
@@ -453,7 +418,7 @@ int nvgpu_pmu_perf_pstate_pmu_setup(struct gk20a *g)
 }
 
 
-struct pstate *nvgpu_pmu_perf_pstate_find(struct gk20a *g, u32 num)
+static struct pstate *perf_pstate_find(struct gk20a *g, u32 num)
 {
 	struct pstates *pstates = &(g->perf_pmu->pstatesobjs);
 	struct pstate *pstate;
@@ -461,8 +426,6 @@ struct pstate *nvgpu_pmu_perf_pstate_find(struct gk20a *g, u32 num)
 
 	BOARDOBJGRP_FOR_EACH(&pstates->super.super,
 			struct pstate *, pstate, i) {
-		nvgpu_log_info(g, "pstate=%p num=%u (looking for num=%u)",
-				pstate, pstate->num, num);
 		if (pstate->num == num) {
 			return pstate;
 		}
@@ -473,7 +436,7 @@ struct pstate *nvgpu_pmu_perf_pstate_find(struct gk20a *g, u32 num)
 struct clk_set_info *nvgpu_pmu_perf_pstate_get_clk_set_info(struct gk20a *g,
 		u32 pstate_num, u32 clkwhich)
 {
-	struct pstate *pstate = nvgpu_pmu_perf_pstate_find(g, pstate_num);
+	struct pstate *pstate = perf_pstate_find(g, pstate_num);
 	struct clk_set_info *info;
 	u32 clkidx;
 
@@ -489,4 +452,17 @@ struct clk_set_info *nvgpu_pmu_perf_pstate_get_clk_set_info(struct gk20a *g,
 	}
 	return NULL;
 }
+
+int nvgpu_perf_pstate_get_lpwr_index(struct gk20a *g, u32 num, u8 *lpwr_idx)
+{
+	struct pstate *pstate = perf_pstate_find(g, num);
+
+	if (pstate == NULL) {
+		return -EINVAL;
+	}
+
+	*lpwr_idx = pstate->lpwr_entry_idx;
+	return 0;
+}
+
 

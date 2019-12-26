@@ -150,7 +150,7 @@ nvgpu-y += \
 	common/pmu/perf/pmu_perf.o \
 	common/pmu/perf/perf_ps35.o \
 	common/pmu/perf/change_seq.o \
-	common/pmu/perf/perf_pstate.o \
+	common/pmu/perf/pstate.o \
 	common/pmu/pmgr/pwrdev.o \
 	common/pmu/pmgr/pmgr.o \
 	common/pmu/pmgr/pmgrpmu.o \

@@ -139,12 +139,6 @@ struct nv_pmu_super_surface {
 				clk_vf_point_grp_get_status;
 		} clk;
 		struct {
-			struct nv_pmu_perf_pstate_boardobj_grp_set
-				pstate_grp_set;
-			struct nv_pmu_perf_pstate_boardobj_grp_get_status
-				pstate_grp_get_status;
-		} perf;
-		struct {
 			struct nv_pmu_therm_therm_channel_boardobj_grp_set
 				therm_channel_grp_set;
 			struct nv_pmu_therm_therm_device_boardobj_grp_set
