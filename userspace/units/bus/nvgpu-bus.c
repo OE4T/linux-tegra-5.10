@@ -117,7 +117,7 @@ static struct nvgpu_posix_io_callbacks test_reg_callbacks = {
 #define NV_PTIMER_START 0x00009000U
 #define NV_PTIMER_SIZE  0x00000FFFU
 
-int test_setup(struct unit_module *m, struct gk20a *g, void *args)
+int test_bus_setup(struct unit_module *m, struct gk20a *g, void *args)
 {
 	/* Init HAL */
 	g->ops.bus.init_hw = gk20a_bus_init_hw;
@@ -160,7 +160,7 @@ int test_setup(struct unit_module *m, struct gk20a *g, void *args)
 	return UNIT_SUCCESS;
 }
 
-int test_free_reg_space(struct unit_module *m, struct gk20a *g, void *args)
+int test_bus_free_reg_space(struct unit_module *m, struct gk20a *g, void *args)
 {
 	/* Free register space */
 	nvgpu_posix_io_delete_reg_space(g, NV_PBUS_START);
@@ -312,11 +312,11 @@ int test_isr(struct unit_module *m, struct gk20a *g, void *args)
 }
 
 struct unit_module_test bus_tests[] = {
-	UNIT_TEST(bus_setup,	       test_setup,             NULL, 0),
-	UNIT_TEST(bus_init_hw,         test_init_hw,           NULL, 0),
-	UNIT_TEST(bus_bar_bind,        test_bar_bind,          NULL, 0),
-	UNIT_TEST(bus_isr,             test_isr,               NULL, 0),
-	UNIT_TEST(bus_free_reg_space,  test_free_reg_space,    NULL, 0),
+	UNIT_TEST(bus_setup,	       test_bus_setup,             NULL, 0),
+	UNIT_TEST(bus_init_hw,         test_init_hw,               NULL, 0),
+	UNIT_TEST(bus_bar_bind,        test_bar_bind,              NULL, 0),
+	UNIT_TEST(bus_isr,             test_isr,                   NULL, 0),
+	UNIT_TEST(bus_free_reg_space,  test_bus_free_reg_space,    NULL, 0),
 };
 
 UNIT_MODULE(bus, bus_tests, UNIT_PRIO_NVGPU_TEST);

@@ -33,7 +33,7 @@ struct unit_module;
  */
 
 /**
- * Test specification for: test_setup
+ * Test specification for: test_bus_setup
  *
  * Description: Setup prerequisites for tests.
  *
@@ -50,16 +50,16 @@ struct unit_module;
  * - UNIT_FAIL if encounters an error creating reg space
  * - UNIT_SUCCESS otherwise
  */
-int test_setup(struct unit_module *m, struct gk20a *g, void *args);
+int test_bus_setup(struct unit_module *m, struct gk20a *g, void *args);
 
 /**
- * Test specification for: test_free_reg_space
+ * Test specification for: test_bus_free_reg_space
  *
- * Description: Free resources from test_setup()
+ * Description: Free resources from test_bus_setup()
  *
- * Test Type: Other (setup)
+ * Test Type: Other (cleanup)
  *
- * Input: test_setup() has been executed.
+ * Input: test_bus_setup() has been executed.
  *
  * Steps:
  * - Free up NV_PBUS, NV_PMC and NV_PTIMER register space.
@@ -67,18 +67,18 @@ int test_setup(struct unit_module *m, struct gk20a *g, void *args);
  * Output:
  * - UNIT_SUCCESS
  */
-int test_free_reg_space(struct unit_module *m, struct gk20a *g, void *args);
+int test_bus_free_reg_space(struct unit_module *m, struct gk20a *g, void *args);
 
 /**
  * Test specification for: test_init_hw
  *
  * Description: Verify the bus.init_hw and bus.configure_debug_bus HAL.
  *
- * Test Type: Feature Based
+ * Test Type: Feature
  *
  * Targets: gk20a_bus_init_hw, gv11b_bus_configure_debug_bus.
  *
- * Input: test_setup() has been executed.
+ * Input: test_bus_setup() has been executed.
  *
  * Steps:
  * - Initialize the Debug bus related registers to non-zero value.
@@ -99,11 +99,11 @@ int test_init_hw(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Description: Verify the bus.bar1_bind and bus.bar2_bind HAL.
  *
- * Test Type: Feature Based
+ * Test Type: Feature, Error injection
  *
  * Targets: gm20b_bus_bar1_bind, gp10b_bus_bar2_bind.
  *
- * Input: test_setup() has been executed.
+ * Input: test_bus_setup() has been executed.
  *
  * Steps:
  * - Initialize cpu_va to a known value (say 0xCE418000U).
@@ -134,11 +134,11 @@ int test_bar_bind(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Description: Verify the bus.isr HAL.
  *
- * Test Type: Feature Based
+ * Test Type: Feature, Error injection
  *
  * Targets: gk20a_bus_isr
  *
- * Input: test_setup() has been executed.
+ * Input: test_bus_setup() has been executed.
  *
  * Steps:
  * - Initialize interrupt register bus_intr_0_r() to 0x2(pri_squash)

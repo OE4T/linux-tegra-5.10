@@ -354,7 +354,7 @@
         "test_level": 0
     },
     {
-        "test": "test_setup",
+        "test": "test_bus_setup",
         "case": "bus_setup",
         "unit": "bus",
         "test_level": 0
@@ -378,7 +378,7 @@
         "test_level": 0
     },
     {
-        "test": "test_free_reg_space",
+        "test": "test_bus_free_reg_space",
         "case": "bus_free_reg_space",
         "unit": "bus",
         "test_level": 0
