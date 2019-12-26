@@ -1920,7 +1920,7 @@
         "test_level": 0
     },
     {
-        "test": "test_setup",
+        "test": "test_priv_ring_setup",
         "case": "priv_ring_setup",
         "unit": "priv_ring",
         "test_level": 0
@@ -1968,7 +1968,7 @@
         "test_level": 0
     },
     {
-        "test": "test_free_reg_space",
+        "test": "test_priv_ring_free_reg_space",
         "case": "priv_ring_free_reg_space",
         "unit": "priv_ring",
         "test_level": 0

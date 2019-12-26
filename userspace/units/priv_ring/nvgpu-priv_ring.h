@@ -33,7 +33,7 @@ struct unit_module;
  */
 
 /**
- * Test specification for: test_setup
+ * Test specification for: test_priv_ring_setup
  *
  * Description: Setup prerequisites for tests.
  *
@@ -51,16 +51,16 @@ struct unit_module;
  * - UNIT_FAIL if encounters an error creating reg space
  * - UNIT_SUCCESS otherwise
  */
-int test_setup(struct unit_module *m, struct gk20a *g, void *args);
+int test_priv_ring_setup(struct unit_module *m, struct gk20a *g, void *args);
 
 /**
- * Test specification for: test_free_reg_space
+ * Test specification for: test_priv_ring_free_reg_space
  *
- * Description: Free resources from test_setup()
+ * Description: Free resources from test_priv_ring_setup()
  *
- * Test Type: Other (setup)
+ * Test Type: Other (cleanup)
  *
- * Input: test_setup() has been executed.
+ * Input: test_priv_ring_setup() has been executed.
  *
  * Steps:
  * - Free up NV_PRIV_MASTER, NV_PRIV_SYS, NV_PRIV_GPC and NV_PMC register space.
@@ -68,18 +68,18 @@ int test_setup(struct unit_module *m, struct gk20a *g, void *args);
  * Output:
  * - UNIT_SUCCESS
  */
-int test_free_reg_space(struct unit_module *m, struct gk20a *g, void *args);
+int test_priv_ring_free_reg_space(struct unit_module *m, struct gk20a *g, void *args);
 
 /**
  * Test specification for: test_enable_priv_ring
  *
  * Description: Verify the priv_ring.enable_priv_ring HAL.
  *
- * Test Type: Feature Based
+ * Test Type: Feature
  *
  * Targets: gm20b_enable_priv_ring
  *
- * Input: test_setup() has been executed.
+ * Input: test_priv_ring_setup() has been executed.
  *
  * Steps:
  * - Call enable_priv_ring() HAL.
@@ -98,11 +98,11 @@ int test_enable_priv_ring(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Description: Verify the priv_ring.set_ppriv_timeout_settings HAL.
  *
- * Test Type: Feature Based
+ * Test Type: Feature
  *
  * Targets: gm20b_priv_set_timeout_settings
  *
- * Input: test_setup() has been executed.
+ * Input: test_priv_ring_setup() has been executed.
  *
  * Steps:
  * - Call set_ppriv_timeout_settings HAL to set the timeout values to 0x800.
@@ -120,11 +120,11 @@ int test_set_ppriv_timeout_settings(struct unit_module *m, struct gk20a *g,
  *
  * Description: Verify the priv_ring.enum_ltc HAL.
  *
- * Test Type: Feature Based
+ * Test Type: Feature
  *
  * Targets: gm20b_priv_ring_enum_ltc.
  *
- * Input: test_setup() has been executed.
+ * Input: test_priv_ring_setup() has been executed.
  *
  * Steps:
  * - Initialize bits corresponding to count (Bits 4:0) in
@@ -143,11 +143,11 @@ int test_enum_ltc(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Description: Verify the priv_ring.get_gpc_count HAL.
  *
- * Test Type: Feature Based
+ * Test Type: Feature
  *
  * Targets: gm20b_priv_ring_get_gpc_count
  *
- * Input: test_setup() has been executed.
+ * Input: test_priv_ring_setup() has been executed.
  *
  * Steps:
  * - Initialize bits corresponding to count (Bits 4:0) in
@@ -166,11 +166,11 @@ int test_get_gpc_count(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Description: Verify the priv_ring.get_fbp_count HAL.
  *
- * Test Type: Feature Based
+ * Test Type: Feature
  *
  * Targets: gm20b_priv_ring_get_fbp_count
  *
- * Input: test_setup() has been executed.
+ * Input: test_priv_ring_setup() has been executed.
  *
  * Steps:
  * - Initialize bits corresponding to count (Bits 4:0) in
@@ -189,11 +189,11 @@ int test_get_fbp_count(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Description: Verify the priv_ring.isr HAL.
  *
- * Test Type: Feature Based
+ * Test Type: Feature, Error injection
  *
  * Targets: gp10b_priv_ring_isr
  *
- * Input: test_setup() has been executed.
+ * Input: test_priv_ring_setup() has been executed.
  *
  * Steps:
  * - Set status0 such that:
@@ -223,11 +223,11 @@ int test_isr(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Description: Verify the priv_ring.decode_error_code HAL.
  *
- * Test Type: Feature Based
+ * Test Type: Feature, Error injection
  *
  * Targets: gp10b_decode_error_code
  *
- * Input: test_setup() has been executed.
+ * Input: test_priv_ring_setup() has been executed.
  *
  * Steps:
  * - Call decode_error_code HAL with different error_codes covering all the

@@ -107,7 +107,7 @@ static struct nvgpu_posix_io_callbacks test_reg_callbacks = {
 #define NV_PMC_START 0x00000000U
 #define NV_PMC_SIZE  0x00000FFFU
 
-int test_setup(struct unit_module *m, struct gk20a *g, void *args)
+int test_priv_ring_setup(struct unit_module *m, struct gk20a *g, void *args)
 {
 	/* Init HAL */
 	g->ops.priv_ring.enable_priv_ring = gm20b_priv_ring_enable;
@@ -161,7 +161,8 @@ int test_setup(struct unit_module *m, struct gk20a *g, void *args)
 	return UNIT_SUCCESS;
 }
 
-int test_free_reg_space(struct unit_module *m, struct gk20a *g, void *args)
+int test_priv_ring_free_reg_space(struct unit_module *m, struct gk20a *g,
+								void *args)
 {
 	/* Free register space */
 	nvgpu_posix_io_delete_reg_space(g, NV_PRIV_MASTER_START);
@@ -349,7 +350,7 @@ int test_decode_error_code(struct unit_module *m, struct gk20a *g, void *args)
 }
 
 struct unit_module_test priv_ring_tests[] = {
-	UNIT_TEST(priv_ring_setup,	       test_setup,             NULL, 0),
+	UNIT_TEST(priv_ring_setup,	       test_priv_ring_setup,   NULL, 0),
 	UNIT_TEST(priv_ring_enable_priv_ring,  test_enable_priv_ring,  NULL, 0),
 	UNIT_TEST(priv_ring_set_ppriv_timeout_settings,
 				    test_set_ppriv_timeout_settings,   NULL, 0),
@@ -358,7 +359,8 @@ struct unit_module_test priv_ring_tests[] = {
 	UNIT_TEST(priv_ring_get_fbp_count,     test_get_fbp_count,     NULL, 0),
 	UNIT_TEST(priv_ring_decode_error_code, test_decode_error_code, NULL, 0),
 	UNIT_TEST(priv_ring_isr,               test_isr,               NULL, 0),
-	UNIT_TEST(priv_ring_free_reg_space,    test_free_reg_space,    NULL, 0),
+	UNIT_TEST(priv_ring_free_reg_space,
+				    test_priv_ring_free_reg_space,     NULL, 0),
 };
 
 UNIT_MODULE(priv_ring, priv_ring_tests, UNIT_PRIO_NVGPU_TEST);
