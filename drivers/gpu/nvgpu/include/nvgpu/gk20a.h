@@ -998,7 +998,9 @@ struct gk20a {
 	struct nvgpu_mem pdb_cache_war_mem;
 	/** @endcond */
 
+#ifdef CONFIG_NVGPU_DGPU
 	u16 dgpu_max_clk;
+#endif
 
 	/** Max SM diversity configuration count. */
 	u32 max_sm_diversity_config_count;
