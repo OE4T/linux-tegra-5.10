@@ -33,7 +33,7 @@ struct unit_module;
  */
 
 /**
- * Test specification for: test_setup
+ * Test specification for: test_top_setup
  *
  * Description: Setup prerequisites for tests.
  *
@@ -51,16 +51,16 @@ struct unit_module;
  * - UNIT_FAIL if encounters an error creating reg space
  * - UNIT_SUCCESS otherwise
  */
-int test_setup(struct unit_module *m, struct gk20a *g, void *args);
+int test_top_setup(struct unit_module *m, struct gk20a *g, void *args);
 
 /**
- * Test specification for: test_free_reg_space
+ * Test specification for: test_top_free_reg_space
  *
- * Description: Free resources from test_setup()
+ * Description: Free resources from test_top_setup()
  *
- * Test Type: Other (setup)
+ * Test Type: Other (cleanup)
  *
- * Input: test_setup() has been executed.
+ * Input: test_top_setup() has been executed.
  *
  * Steps:
  * - Free up NV_TOP register space.
@@ -68,16 +68,16 @@ int test_setup(struct unit_module *m, struct gk20a *g, void *args);
  * Output:
  * - UNIT_SUCCESS
  */
-int test_free_reg_space(struct unit_module *m, struct gk20a *g, void *args);
+int test_top_free_reg_space(struct unit_module *m, struct gk20a *g, void *args);
 
 /**
  * Test specification for: test_device_info_parse_enum
  *
  * Description: Verify the top.device_info_parse_enum HAL.
  *
- * Test Type: Feature Based
+ * Test Type: Feature, Error injection
  *
- * Input: None
+ * Input: test_top_setup() has been executed.
  *
  * Steps:
  * - Case 1: table entry to be parsed does not hit any error case
@@ -115,9 +115,9 @@ int test_device_info_parse_enum(struct unit_module *m, struct gk20a *g,
  *
  * Description: Verify the top.get_max_gpc_count HAL.
  *
- * Test Type: Feature Based
+ * Test Type: Feature
  *
- * Input: None
+ * Input: test_top_setup() has been executed.
  *
  * Steps:
  * - Initialize bits corresponding to max_gpc_count (Bits 4:0) in
@@ -139,9 +139,9 @@ int test_get_max_gpc_count(struct unit_module *m, struct gk20a *g,
  *
  * Description: Verify the top.is_engine_gr HAL.
  *
- * Test Type: Feature Based
+ * Test Type: Feature
  *
- * Input: None
+ * Input: test_top_setup() has been executed.
  *
  * Steps:
  * - Call HAL with input equal to graphics enum = 0.
@@ -161,9 +161,9 @@ int test_is_engine_gr(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Description: Verify the top.get_max_tpc_per_gpc_count HAL.
  *
- * Test Type: Feature Based
+ * Test Type: Feature
  *
- * Input: None
+ * Input: test_top_setup() has been executed.
  *
  * Steps:
  * - Initialize bits corresponding to max_tpc_per_gpc_count (Bits 4:0) in
@@ -185,9 +185,9 @@ int test_get_max_tpc_per_gpc_count(struct unit_module *m, struct gk20a *g,
  *
  * Description: Verify the top.get_max_fbps_count HAL.
  *
- * Test Type: Feature Based
+ * Test Type: Feature
  *
- * Input: None
+ * Input: test_top_setup() has been executed.
  *
  * Steps:
  * - Initialize bits corresponding to max_fbps_count (Bits 4:0) in
@@ -209,9 +209,9 @@ int test_get_max_fbps_count(struct unit_module *m, struct gk20a *g,
  *
  * Description: Verify the top.get_max_ltc_per_fbp HAL.
  *
- * Test Type: Feature Based
+ * Test Type: Feature
  *
- * Input: None
+ * Input: test_top_setup() has been executed.
  *
  * Steps:
  * - Initialize bits corresponding to max_ltc_per_fbp (Bits 4:0) in
@@ -233,9 +233,9 @@ int test_get_max_ltc_per_fbp(struct unit_module *m, struct gk20a *g,
  *
  * Description: Verify the top.get_max_lts_per_ltc HAL.
  *
- * Test Type: Feature Based
+ * Test Type: Feature
  *
- * Input: None
+ * Input: test_top_setup() has been executed.
  *
  * Steps:
  * - Initialize bits corresponding to max_lts_per_ltc (Bits 4:0) in
@@ -257,9 +257,9 @@ int test_get_max_lts_per_ltc(struct unit_module *m, struct gk20a *g,
  *
  * Description: Verify the top.get_num_ltcs HAL.
  *
- * Test Type: Feature Based
+ * Test Type: Feature
  *
- * Input: None
+ * Input: test_top_setup() has been executed.
  *
  * Steps:
  * - Initialize bits corresponding to num_ltcs (Bits 4:0) in
@@ -280,9 +280,9 @@ int test_get_num_ltcs(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Description: Verify the top.device_info_parse_data HAL.
  *
- * Test Type: Feature Based
+ * Test Type: Feature, Error injection
  *
- * Input: None
+ * Input: test_top_setup() has been executed.
  *
  * Steps:
  * - Case 1: table entry to be parsed does not hit any error case
@@ -323,12 +323,12 @@ int test_device_info_parse_data(struct unit_module *m, struct gk20a *g,
  *
  * Description: Verify top.get_num_engine_type_entries HAL.
  *
- * Test Type: Feature Based
+ * Test Type: Feature
  *
- * Input: test_setup() has been executed.
+ * Input: test_top_setup() has been executed.
  *
  * Steps:
- * - The device_info table is setup during test_setup().
+ * - The device_info table is setup during test_top_setup().
  * - The device_info table is initialized to have 2 copy engine entries.
  * - Call get_num_engine_type_entries HAL to parse number of copy engine
  *   related entries in the device_info table.
@@ -346,12 +346,12 @@ int test_get_num_engine_type_entries(struct unit_module *m, struct gk20a *g,
  *
  * Description: Verify top.get_device_info HAL.
  *
- * Test Type: Feature Based
+ * Test Type: Feature
  *
- * Input: test_setup() has been executed.
+ * Input: test_top_setup() has been executed.
  *
  * Steps:
- * - The device_info table is setup during test_setup().
+ * - The device_info table is setup during test_top_setup().
  * - The device_info table is initialized to have one copy engine entry.
  * - Call get_device_info HAL to parse copy engine related data.
  * - Here, we just make sure the call returns success; we do not check the
@@ -373,9 +373,9 @@ int test_get_device_info(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Description: Verify the top.is_engine_ce HAL.
  *
- * Test Type: Feature Based
+ * Test Type: Feature
  *
- * Input: None
+ * Input: test_top_setup() has been executed.
  *
  * Steps:
  * - Call HAL with input equal to copy engine enum = 0.
@@ -395,9 +395,9 @@ int test_is_engine_ce(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Description: Verify the top.get_num_lce HAL.
  *
- * Test Type: Feature Based
+ * Test Type: Feature
  *
- * Input: None
+ * Input: test_top_setup() has been executed.
  *
  * Steps:
  * - Initialize bits corresponding to num_lce (Bits 4:0) in

@@ -68,7 +68,7 @@ static struct nvgpu_posix_io_callbacks test_reg_callbacks = {
 #define NV_TOP_START 0x00022400U
 #define NV_TOP_SIZE  0x000003FFU
 
-int test_setup(struct unit_module *m, struct gk20a *g, void *args)
+int test_top_setup(struct unit_module *m, struct gk20a *g, void *args)
 {
 	u32 i;
 	u32 entry_count = 0U;
@@ -119,7 +119,7 @@ int test_setup(struct unit_module *m, struct gk20a *g, void *args)
 	return UNIT_SUCCESS;
 }
 
-int test_free_reg_space(struct unit_module *m, struct gk20a *g, void *args)
+int test_top_free_reg_space(struct unit_module *m, struct gk20a *g, void *args)
 {
 	/* Free register space */
 	nvgpu_posix_io_delete_reg_space(g, NV_TOP_START);
@@ -593,7 +593,7 @@ int test_get_num_lce(struct unit_module *m, struct gk20a *g, void *args)
 }
 
 struct unit_module_test top_tests[] = {
-	UNIT_TEST(top_setup,	              test_setup,              NULL, 0),
+	UNIT_TEST(top_setup,	              test_top_setup,          NULL, 0),
 	UNIT_TEST(top_device_info_parse_enum,
 				test_device_info_parse_enum,           NULL, 0),
 	UNIT_TEST(top_is_engine_gr,	      test_is_engine_gr,       NULL, 0),
@@ -613,7 +613,7 @@ struct unit_module_test top_tests[] = {
 	UNIT_TEST(top_get_device_info,        test_get_device_info,    NULL, 0),
 	UNIT_TEST(top_is_engine_ce,	      test_is_engine_ce,       NULL, 0),
 	UNIT_TEST(top_get_num_lce,            test_get_num_lce,        NULL, 0),
-	UNIT_TEST(top_free_reg_space,         test_free_reg_space,     NULL, 0),
+	UNIT_TEST(top_free_reg_space,         test_top_free_reg_space, NULL, 0),
 };
 
 UNIT_MODULE(top, top_tests, UNIT_PRIO_NVGPU_TEST);

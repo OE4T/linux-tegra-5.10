@@ -4125,7 +4125,7 @@
         "test_level": 0
     },
     {
-        "test": "test_free_reg_space",
+        "test": "test_top_free_reg_space",
         "case": "top_free_reg_space",
         "unit": "top",
         "test_level": 0
@@ -4197,7 +4197,7 @@
         "test_level": 0
     },
     {
-        "test": "test_setup",
+        "test": "test_top_setup",
         "case": "top_setup",
         "unit": "top",
         "test_level": 0
