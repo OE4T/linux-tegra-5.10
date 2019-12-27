@@ -286,7 +286,7 @@ struct gops_top {
 	/**
 	 * HALs used within "Top" unit. Private HALs.
 	 */
-	int (*device_info_parse_enum)(struct gk20a *g,
+	void (*device_info_parse_enum)(struct gk20a *g,
 					u32 table_entry,
 					u32 *engine_id, u32 *runlist_id,
 					u32 *intr_id, u32 *reset_id);

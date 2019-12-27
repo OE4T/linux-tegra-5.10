@@ -28,7 +28,7 @@
 
 #include <nvgpu/hw/gm20b/hw_top_gm20b.h>
 
-int gm20b_device_info_parse_enum(struct gk20a *g, u32 table_entry,
+void gm20b_device_info_parse_enum(struct gk20a *g, u32 table_entry,
 				u32 *engine_id, u32 *runlist_id,
 				u32 *intr_id, u32 *reset_id)
 {
@@ -66,7 +66,6 @@ int gm20b_device_info_parse_enum(struct gk20a *g, u32 table_entry,
 	}
 	nvgpu_log_info(g, "Reset_id: %u", *reset_id);
 
-	return 0;
 }
 
 bool gm20b_is_engine_gr(struct gk20a *g, u32 engine_type)

@@ -353,6 +353,10 @@ int test_get_num_engine_type_entries(struct unit_module *m, struct gk20a *g,
  * Steps:
  * - The device_info table is setup during test_top_setup().
  * - The device_info table is initialized to have one copy engine entry.
+ * - Set device_info_parse_enum() and device_info_parse_data() HAL to NULL.
+ *   Call get_device_info HAL and check if it returns -EINVAL when the data
+ *   parsing function pointers are not initialized.
+ * - Initialize the device_info_parse_enum and device_info_parse_data HAL.
  * - Call get_device_info HAL to parse copy engine related data.
  * - Here, we just make sure the call returns success; we do not check the
  *   parsed values as we have separate tests for verifying enum and data

@@ -30,7 +30,7 @@
 struct gk20a;
 struct nvgpu_device_info;
 
-int gm20b_device_info_parse_enum(struct gk20a *g, u32 table_entry,
+void gm20b_device_info_parse_enum(struct gk20a *g, u32 table_entry,
 					u32 *engine_id, u32 *runlist_id,
 					u32 *intr_id, u32 *reset_id);
 #ifdef CONFIG_NVGPU_HAL_NON_FUSA

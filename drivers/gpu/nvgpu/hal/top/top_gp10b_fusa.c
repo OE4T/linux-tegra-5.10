@@ -65,32 +65,21 @@ static int gp10b_check_device_match(struct gk20a *g,
 		&& (top_device_info_data_inst_id_v(entry_data) ==
 							inst_id)) {
 		dev_info->engine_type = engine_type;
-		if (g->ops.top.device_info_parse_enum != NULL) {
-			ret = g->ops.top.device_info_parse_enum(g,
+		g->ops.top.device_info_parse_enum(g,
 						entry_enum,
 						&dev_info->engine_id,
 						&dev_info->runlist_id,
 						&dev_info->intr_id,
 						&dev_info->reset_id);
-			if (ret != 0) {
-				nvgpu_err(g,
-					"Error parsing Enum Entry 0x%x",
-					entry_data);
-				return ret;
-			}
-		}
-		if (g->ops.top.device_info_parse_data != NULL) {
-			ret = g->ops.top.device_info_parse_data(g,
+		ret = g->ops.top.device_info_parse_data(g,
 						entry_data,
 						&dev_info->inst_id,
 						&dev_info->pri_base,
 						&dev_info->fault_id);
-			if (ret != 0) {
-				nvgpu_err(g,
-					"Error parsing Data Entry 0x%x",
-					entry_data);
-				return ret;
-			}
+		if (ret != 0) {
+			nvgpu_err(g, "Error parsing Data Entry 0x%x",
+								entry_data);
+			return ret;
 		}
 	}
 
@@ -111,6 +100,12 @@ int gp10b_get_device_info(struct gk20a *g, struct nvgpu_device_info *dev_info,
 
 	if (dev_info == NULL) {
 		nvgpu_err(g, "Null device_info pointer passed.");
+		return -EINVAL;
+	}
+
+	if ((g->ops.top.device_info_parse_enum == NULL) ||
+				(g->ops.top.device_info_parse_data == NULL)) {
+		nvgpu_err(g, "Dev_info parsing functions ptrs not set.");
 		return -EINVAL;
 	}
 

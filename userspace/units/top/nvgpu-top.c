@@ -131,7 +131,6 @@ int test_device_info_parse_enum(struct unit_module *m, struct gk20a *g,
 								void *args)
 {
 	int ret = UNIT_SUCCESS;
-	int val = 0;
 	u32 engine_id = 0U;
 	u32 runlist_id = 0U;
 	u32 intr_id = 0U;
@@ -149,14 +148,9 @@ int test_device_info_parse_enum(struct unit_module *m, struct gk20a *g,
 	table_entry = 0x10228C3E;
 
 	/* Call top.device_info_parse_enum to parse the above table entry */
-	val = g->ops.top.device_info_parse_enum(g, table_entry, &engine_id,
+	g->ops.top.device_info_parse_enum(g, table_entry, &engine_id,
 						&runlist_id, &intr_id,
 						&reset_id);
-
-	if (val != 0) {
-		unit_err(m, "Call to top.device_info_parse_enum() failed.\n");
-		ret = UNIT_FAIL;
-	}
 
 	/* Verify if the parsed data is as expected */
 	if (engine_id != 4U) {
@@ -190,14 +184,9 @@ int test_device_info_parse_enum(struct unit_module *m, struct gk20a *g,
 	table_entry = 0x10228C02;
 
 	/* Call top.device_info_parse_enum to parse the above table entry */
-	val = g->ops.top.device_info_parse_enum(g, table_entry, &engine_id,
+	g->ops.top.device_info_parse_enum(g, table_entry, &engine_id,
 						&runlist_id, &intr_id,
 						&reset_id);
-
-	if (val != 0) {
-		unit_err(m, "Call to top.device_info_parse_enum() failed.\n");
-		ret = UNIT_FAIL;
-	}
 
 	/* Verify if the parsed data is as expected */
 	if (engine_id != U32_MAX) {
@@ -540,6 +529,16 @@ int test_get_device_info(struct unit_module *m, struct gk20a *g, void *args)
 	if (val != -EINVAL) {
 		unit_err(m,
 			"get_device_info() failed to handle NULL pointer.\n");
+		ret = UNIT_FAIL;
+	}
+
+	/* Call top.get_device_info with NULL function pointers */
+	g->ops.top.device_info_parse_enum = NULL;
+	g->ops.top.device_info_parse_data = NULL;
+	val = g->ops.top.get_device_info(g, &dev_info_1, engine_type, inst_id);
+	if (val != -EINVAL) {
+		unit_err(m,
+		"get_device_info() failed to handle NULL function pointers.\n");
 		ret = UNIT_FAIL;
 	}
 

@@ -110,18 +110,12 @@ int gm20b_get_device_info(struct gk20a *g, struct nvgpu_device_info *dev_info,
 		if (top_device_info_type_enum_v(entry_engine) == engine_type) {
 			dev_info->engine_type = engine_type;
 			if (g->ops.top.device_info_parse_enum != NULL) {
-				ret = g->ops.top.device_info_parse_enum(g,
+				g->ops.top.device_info_parse_enum(g,
 							entry_enum,
 							&dev_info->engine_id,
 							&dev_info->runlist_id,
 							&dev_info->intr_id,
 							&dev_info->reset_id);
-				if (ret != 0) {
-					nvgpu_err(g,
-						"Error parsing Enum Entry 0x%x",
-						entry_enum);
-					return ret;
-				}
 			}
 			if (g->ops.top.device_info_parse_data != NULL) {
 				ret = g->ops.top.device_info_parse_data(g,
