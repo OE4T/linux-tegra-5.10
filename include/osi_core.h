@@ -134,7 +134,7 @@ struct  osi_core_avb_algorithm {
  */
 struct osi_core_ops {
 	/** Called to poll for software reset bit */
-	int (*poll_for_swr)(void *ioaddr);
+	int (*poll_for_swr)(void *ioaddr, unsigned int pre_si);
 	/** Called to initialize MAC and MTL registers */
 	int (*core_init)(struct osi_core_priv_data *const osi_core,
 			 const unsigned int tx_fifo_size,
@@ -393,6 +393,8 @@ struct osi_core_priv_data {
 	 * Value stored in MHz
 	 */
 	unsigned int csr_clk_speed;
+	/** Tegra Pre-si platform info */
+	unsigned int pre_si;
 };
 
 /**
