@@ -36,8 +36,10 @@
 #include <nvgpu/gr/ctx.h>
 #include <nvgpu/gr/config.h>
 #include <nvgpu/gr/gr_utils.h>
+#include <nvgpu/netlist.h>
 #include "common/gr/gr_priv.h"
 #include "common/gr/gr_config_priv.h"
+#include "common/netlist/netlist_priv.h"
 
 #include "../nvgpu-gr.h"
 #include "nvgpu-gr-init-hal-gv11b.h"
@@ -374,6 +376,146 @@ static int test_gr_init_hal_get_cb_size(struct gk20a *g)
 	return UNIT_SUCCESS;
 }
 
+static int test_gr_init_hal_pd_skip_table_gpc(struct gk20a *g)
+{
+	u32 i;
+	struct nvgpu_gr_config *config = nvgpu_gr_get_config_ptr(g);
+
+	/*
+	 * Set gpc_skip_mask and make sure register
+	 * value is reflected in each loop
+	 */
+	for (i = 0; i < gr_pd_dist_skip_table__size_1_v(); i++) {
+		config->gpc_skip_mask[i] = 0x1;
+
+		g->ops.gr.init.pd_skip_table_gpc(g, config);
+		if (nvgpu_readl(g, gr_pd_dist_skip_table_r(i / 4)) == 0x0) {
+			return UNIT_FAIL;
+		}
+
+		config->gpc_skip_mask[i] = 0x0;
+	}
+
+	/* All skip_masks are unset in above loop already */
+	g->ops.gr.init.pd_skip_table_gpc(g, config);
+
+	/* This register should be 0 if all skip_masks are zero */
+	if (nvgpu_readl(g, gr_pd_dist_skip_table_r(0)) != 0x0) {
+		return UNIT_FAIL;
+	}
+
+	return UNIT_SUCCESS;
+}
+
+static int test_gr_init_wait_idle_fail(struct gk20a *g)
+{
+	return -1;
+}
+
+static int test_gr_init_wait_idle_success(struct gk20a *g)
+{
+	return 0;
+}
+
+static int test_gr_init_hal_load_sw_veid_bundle(struct gk20a *g)
+{
+	int err;
+	g->ops.gr.init.wait_idle = test_gr_init_wait_idle_fail;
+
+	/* Should fail */
+	err = g->ops.gr.init.load_sw_veid_bundle(g,
+			&g->netlist_vars->sw_veid_bundle_init);
+	if (err == 0) {
+		return UNIT_FAIL;
+	}
+
+	g->ops.gr.init.wait_idle = test_gr_init_wait_idle_success;
+
+	/* Should pass */
+	err = g->ops.gr.init.load_sw_veid_bundle(g,
+			&g->netlist_vars->sw_veid_bundle_init);
+	if (err != 0) {
+		return UNIT_FAIL;
+	}
+
+	return UNIT_SUCCESS;
+}
+
+static int test_gr_init_hal_load_sw_bundle_init(struct gk20a *g)
+{
+	int err;
+	g->ops.gr.init.wait_idle = test_gr_init_wait_idle_fail;
+
+	/* Should fail */
+	err = g->ops.gr.init.load_sw_bundle_init(g,
+			&g->netlist_vars->sw_bundle_init);
+	if (err == 0) {
+		return UNIT_FAIL;
+	}
+
+	g->ops.gr.init.wait_idle = test_gr_init_wait_idle_success;
+
+	/* Should pass */
+	err = g->ops.gr.init.load_sw_bundle_init(g,
+			&g->netlist_vars->sw_bundle_init);
+	if (err != 0) {
+		return UNIT_FAIL;
+	}
+
+	g->ops.gr.init.wait_fe_idle = test_gr_init_wait_idle_fail;
+
+	/* Should fail */
+	err = g->ops.gr.init.load_sw_bundle_init(g,
+			&g->netlist_vars->sw_bundle_init);
+	if (err == 0) {
+		return UNIT_FAIL;
+	}
+
+	g->ops.gr.init.wait_fe_idle = test_gr_init_wait_idle_success;
+
+	/* Should pass */
+	err = g->ops.gr.init.load_sw_bundle_init(g,
+			&g->netlist_vars->sw_bundle_init);
+	if (err != 0) {
+		return UNIT_FAIL;
+	}
+
+	return UNIT_SUCCESS;
+}
+
+static int test_gr_init_hal_load_method_init(struct gk20a *g)
+{
+	u32 val;
+
+	/* Set dummy value into the register */
+	nvgpu_writel(g, gr_pri_mme_shadow_ram_data_r(), 0xDEADBEEF);
+
+	/* Set count = 0, so that no write is performed */
+	val = g->netlist_vars->sw_method_init.count;
+	g->netlist_vars->sw_method_init.count = 0;
+
+	g->ops.gr.init.load_method_init(g,
+		&g->netlist_vars->sw_method_init);
+
+	/* Ensure register was not written */
+	if (nvgpu_readl(g, gr_pri_mme_shadow_ram_data_r()) != 0xDEADBEEF) {
+		return UNIT_FAIL;
+	}
+
+	/* Restore the count */
+	g->netlist_vars->sw_method_init.count = val;
+
+	g->ops.gr.init.load_method_init(g,
+		&g->netlist_vars->sw_method_init);
+
+	/* Make sure register was written */
+	if (nvgpu_readl(g, gr_pri_mme_shadow_ram_data_r()) == 0xDEADBEEF) {
+		return UNIT_FAIL;
+	}
+
+	return UNIT_SUCCESS;
+}
+
 int test_gr_init_hal_config_error_injection(struct unit_module *m,
 		struct gk20a *g, void *args)
 {
@@ -396,6 +538,26 @@ int test_gr_init_hal_config_error_injection(struct unit_module *m,
 	}
 
 	ret = test_gr_init_hal_get_cb_size(g);
+	if (ret != UNIT_SUCCESS) {
+		goto fail;
+	}
+
+	ret = test_gr_init_hal_pd_skip_table_gpc(g);
+	if (ret != UNIT_SUCCESS) {
+		goto fail;
+	}
+
+	ret = test_gr_init_hal_load_sw_veid_bundle(g);
+	if (ret != UNIT_SUCCESS) {
+		goto fail;
+	}
+
+	ret = test_gr_init_hal_load_sw_bundle_init(g);
+	if (ret != UNIT_SUCCESS) {
+		goto fail;
+	}
+
+	ret = test_gr_init_hal_load_method_init(g);
 	if (ret != UNIT_SUCCESS) {
 		goto fail;
 	}

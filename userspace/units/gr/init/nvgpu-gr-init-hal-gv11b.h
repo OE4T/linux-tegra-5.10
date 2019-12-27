@@ -100,7 +100,11 @@ int test_gr_init_hal_ecc_scrub_reg(struct unit_module *m,
  *          g->ops.gr.init.sm_id_config,
  *          g->ops.gr.init.fs_state,
  *          g->ops.gr.init.get_attrib_cb_size,
- *          g->ops.gr.init.get_alpha_cb_size.
+ *          g->ops.gr.init.get_alpha_cb_size,
+ *          g->ops.gr.init.pd_skip_table_gpc,
+ *          g->ops.gr.init.load_sw_veid_bundle,
+ *          g->ops.gr.init.load_sw_bundle_init,
+ *          g->ops.gr.init.load_method_init.
  *
  * Input: gr_init_setup, gr_init_prepare, gr_init_support must have
  *        been executed successfully.
@@ -116,6 +120,18 @@ int test_gr_init_hal_ecc_scrub_reg(struct unit_module *m,
  *   size of alpha_cb and attrib_cb. Then call g->ops.gr.init.get_attrib_cb_size
  *   and g->ops.gr.init.get_alpha_cb_size and verify if expected size is
  *   returned in response.
+ * - Set gpc_skip_masks for all the GPCs and call g->ops.gr.init.pd_skip_table_gpc.
+ *   Ensure that skip mask is reflected in h/w register.
+ *   Unset all the gpc_skip_masks and ensure skip mask is unset in h/w register.
+ *   Skip mask should be zero in h/w register only if all the skip masks are zero.
+ * - Update g->ops.gr.init.wait_idle to return error, and call
+ *   g->ops.gr.init.load_sw_veid_bundle. Make sure it returns error.
+ * - Update g->ops.gr.init.wait_idle and g->ops.gr.init.wait_fe_idle to return
+ *   error, and call g->ops.gr.init.load_sw_bundle_init. Make sure it returns
+ *   error.
+ * - Set load_method_init bundle count to zero, and ensure no register write
+ *   was performed. Restore the count, and then ensure register update was
+ *   performed.
  *
  * Output: Returns PASS if the steps above were executed successfully. FAIL
  * otherwise.
