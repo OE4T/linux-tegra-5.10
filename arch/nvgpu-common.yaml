@@ -905,7 +905,8 @@ pmu:
       safe: yes
       gpu: dgpu
       owner: Mahantesh K
-      sources: [ common/pmu/volt/volt_dev.c,
+      sources: [ common/pmu/volt/volt.c,
+                 common/pmu/volt/volt_dev.c,
                  common/pmu/volt/volt_pmu.c,
                  common/pmu/volt/volt_policy.c,
                  common/pmu/volt/volt_rail.c,

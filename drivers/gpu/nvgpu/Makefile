@@ -156,6 +156,7 @@ nvgpu-y += \
 	common/pmu/pmgr/pmgrpmu.o \
 	common/pmu/pmgr/pwrmonitor.o \
 	common/pmu/pmgr/pwrpolicy.o \
+	common/pmu/volt/volt.o \
 	common/pmu/volt/volt_rail.o \
 	common/pmu/volt/volt_dev.o \
 	common/pmu/volt/volt_policy.o \

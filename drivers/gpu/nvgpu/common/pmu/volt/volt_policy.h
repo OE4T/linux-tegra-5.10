@@ -47,4 +47,7 @@ struct voltage_policy_single_rail_multi_step {
 	u32 ramp_down_step_size_uv;
 };
 
+int nvgpu_volt_policy_sw_setup(struct gk20a *g);
+int nvgpu_volt_policy_pmu_setup(struct gk20a *g);
+
 #endif /* NVGPU_VOLT_POLICY_H */

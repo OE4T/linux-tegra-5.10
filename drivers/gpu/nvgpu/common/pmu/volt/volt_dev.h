@@ -70,4 +70,7 @@ struct voltage_device_pwm_entry {
 };
 /* PWM end */
 
+int nvgpu_volt_dev_sw_setup(struct gk20a *g);
+int nvgpu_volt_dev_pmu_setup(struct gk20a *g);
+
 #endif /* NVGPU_VOLT_DEV_H */

@@ -28,6 +28,7 @@
 #include <nvgpu/string.h>
 #include <nvgpu/pmu/pmuif/ctrlvolt.h>
 #include <nvgpu/pmu/perf.h>
+#include <nvgpu/pmu/volt.h>
 
 #include "volt_policy.h"
 
@@ -332,7 +333,7 @@ static int _volt_policy_grp_pmudatainit_super(struct gk20a *g,
 	struct nv_pmu_volt_volt_policy_boardobjgrp_set_header *pset =
 		(struct nv_pmu_volt_volt_policy_boardobjgrp_set_header *)
 		pboardobjgrppmu;
-	struct obj_volt *volt  = (struct obj_volt *)pboardobjgrp;
+	struct nvgpu_pmu_volt *volt  = (struct nvgpu_pmu_volt *)pboardobjgrp;
 	int status = 0;
 
 	status = boardobjgrp_pmudatainit_e32(g, pboardobjgrp, pboardobjgrppmu);
@@ -357,7 +358,7 @@ int nvgpu_volt_policy_pmu_setup(struct gk20a *g)
 	nvgpu_log_info(g, " ");
 
 	pboardobjgrp =
-		&g->perf_pmu->volt.volt_policy_metadata.volt_policies.super;
+		&g->pmu->volt->volt_policy_metadata.volt_policies.super;
 
 	if (!pboardobjgrp->bconstructed) {
 		return -EINVAL;
@@ -377,7 +378,7 @@ int nvgpu_volt_policy_sw_setup(struct gk20a *g)
 	nvgpu_log_info(g, " ");
 
 	status = nvgpu_boardobjgrp_construct_e32(g,
-			&g->perf_pmu->volt.volt_policy_metadata.volt_policies);
+			&g->pmu->volt->volt_policy_metadata.volt_policies);
 	if (status != 0) {
 		nvgpu_err(g,
 			"error creating boardobjgrp for volt rail, "
@@ -386,13 +387,13 @@ int nvgpu_volt_policy_sw_setup(struct gk20a *g)
 	}
 
 	pboardobjgrp =
-		&g->perf_pmu->volt.volt_policy_metadata.volt_policies.super;
+		&g->pmu->volt->volt_policy_metadata.volt_policies.super;
 
 	pboardobjgrp->pmudatainstget  = _volt_policy_devgrp_pmudata_instget;
 	pboardobjgrp->pmudatainit = _volt_policy_grp_pmudatainit_super;
 
 	/* Obtain Voltage Rail Table from VBIOS */
-	status = volt_get_volt_policy_table(g, &g->perf_pmu->volt.
+	status = volt_get_volt_policy_table(g, &g->pmu->volt->
 			volt_policy_metadata);
 	if (status != 0) {
 		goto done;

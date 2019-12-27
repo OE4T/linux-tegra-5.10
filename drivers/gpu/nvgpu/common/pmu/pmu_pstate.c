@@ -51,6 +51,10 @@ void nvgpu_pmu_pstate_deinit(struct gk20a *g)
 		nvgpu_perf_pmu_free_pmupstate(g);
 	}
 
+	if (g->pmu->volt != NULL) {
+		nvgpu_pmu_volt_deinit(g);
+	}
+
 	if (g->pmu->clk_pmu != NULL) {
 		nvgpu_clk_domain_free_pmupstate(g);
 		nvgpu_clk_prog_free_pmupstate(g);
@@ -131,32 +135,14 @@ static int pmu_pstate_init(struct gk20a *g)
 		return err;
 	}
 
+	err = nvgpu_pmu_volt_init(g);
+	if (err != 0) {
+		return err;
+	}
+
 	err = pmgr_pmu_init_pmupstate(g);
 	if (err != 0) {
 		pmgr_pmu_free_pmupstate(g);
-		return err;
-	}
-
-	return 0;
-}
-
-static int pmu_pstate_volt_sw_setup(struct gk20a *g)
-{
-	int err;
-	nvgpu_log_fn(g, " ");
-
-	err = nvgpu_volt_rail_sw_setup(g);
-	if (err != 0) {
-		return err;
-	}
-
-	err = nvgpu_volt_dev_sw_setup(g);
-	if (err != 0) {
-		return err;
-	}
-
-	err = nvgpu_volt_policy_sw_setup(g);
-	if (err != 0) {
 		return err;
 	}
 
@@ -254,7 +240,7 @@ int nvgpu_pmu_pstate_sw_setup(struct gk20a *g)
 		return err;
 	}
 
-	err = pmu_pstate_volt_sw_setup(g);
+	err = nvgpu_pmu_volt_sw_setup(g);
 	if (err != 0) {
 		nvgpu_err(g, "Volt sw setup failed");
 		return err;
@@ -301,37 +287,6 @@ err_perf_pmu_init_pmupstate:
 	nvgpu_perf_pmu_free_pmupstate(g);
 
 	return err;
-}
-
-static int pmu_pstate_volt_pmu_setup(struct gk20a *g)
-{
-	int err;
-	nvgpu_log_fn(g, " ");
-
-	err = nvgpu_volt_rail_pmu_setup(g);
-	if (err != 0) {
-		return err;
-	}
-
-	err = nvgpu_volt_dev_pmu_setup(g);
-	if (err != 0) {
-		return err;
-	}
-
-	err = nvgpu_volt_policy_pmu_setup(g);
-	if (err != 0) {
-		return err;
-	}
-
-	err = nvgpu_volt_send_load_cmd_to_pmu(g);
-	if (err != 0) {
-		nvgpu_err(g,
-			"Failed to send VOLT LOAD CMD to PMU: status = 0x%08x.",
-			err);
-		return err;
-	}
-
-	return 0;
 }
 
 static int pmu_pstate_clk_pmu_setup(struct gk20a *g)
@@ -426,7 +381,7 @@ int nvgpu_pmu_pstate_pmu_setup(struct gk20a *g)
 		}
 	}
 
-	err = pmu_pstate_volt_pmu_setup(g);
+	err = nvgpu_pmu_volt_pmu_setup(g);
 	if (err != 0) {
 		nvgpu_err(g, "Failed to send VOLT pmu setup");
 		return err;
