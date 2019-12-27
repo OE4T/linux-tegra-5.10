@@ -258,6 +258,83 @@ int test_gr_init_hal_wait_empty(struct unit_module *m,
 	return UNIT_SUCCESS;
 }
 
+int test_gr_init_hal_wait_fe_idle(struct unit_module *m,
+		struct gk20a *g, void *args)
+{
+	int err;
+	struct nvgpu_posix_fault_inj *timer_fi =
+		nvgpu_timers_get_fault_injection();
+
+	/* Fail timeout initialization */
+	nvgpu_posix_enable_fault_injection(timer_fi, true, 0);
+	err = g->ops.gr.init.wait_fe_idle(g);
+	if (err != -ETIMEDOUT) {
+		return UNIT_FAIL;
+	}
+
+	nvgpu_posix_enable_fault_injection(timer_fi, false, 0);
+
+	/* Set FE status active */
+	nvgpu_writel(g, gr_status_r(), BIT32(2U));
+
+	/* Should fail */
+	err = g->ops.gr.init.wait_fe_idle(g);
+	if (err != -EAGAIN) {
+		return UNIT_FAIL;
+	}
+
+	/* Success */
+	nvgpu_writel(g, gr_status_r(), 0);
+	err = g->ops.gr.init.wait_fe_idle(g);
+	if (err != 0) {
+		return UNIT_FAIL;
+	}
+
+	return UNIT_SUCCESS;
+}
+
+int test_gr_init_hal_fe_pwr_mode(struct unit_module *m,
+		struct gk20a *g, void *args)
+{
+	int err;
+	struct nvgpu_posix_fault_inj *timer_fi =
+		nvgpu_timers_get_fault_injection();
+	struct nvgpu_posix_fault_inj *readl_fi =
+		nvgpu_readl_get_fault_injection();
+
+	/* Fail timeout initialization */
+	nvgpu_posix_enable_fault_injection(timer_fi, true, 0);
+	err = g->ops.gr.init.fe_pwr_mode_force_on(g, true);
+	if (err != -ETIMEDOUT) {
+		return UNIT_FAIL;
+	}
+
+	nvgpu_posix_enable_fault_injection(timer_fi, false, 0);
+
+	/* Trigger timeout by default */
+	err = g->ops.gr.init.fe_pwr_mode_force_on(g, true);
+	if (err != -ETIMEDOUT) {
+		return UNIT_FAIL;
+	}
+
+	/* Inject readl error so that timeout is not hit */
+	nvgpu_posix_enable_fault_injection(readl_fi, true, 0);
+	err = g->ops.gr.init.fe_pwr_mode_force_on(g, true);
+	if (err != 0) {
+		return UNIT_FAIL;
+	}
+
+	/* Call with flag set to false, should pass */
+	err = g->ops.gr.init.fe_pwr_mode_force_on(g, false);
+	if (err != 0) {
+		return UNIT_FAIL;
+	}
+
+	nvgpu_posix_enable_fault_injection(readl_fi, false, 0);
+
+	return UNIT_SUCCESS;
+}
+
 static u32 gr_get_max_u32(struct gk20a *g)
 {
 	return 0xFFFFFFFF;

@@ -38,7 +38,7 @@ struct unit_module;
  *
  * Description: Verify error handling in g->ops.gr.init.wait_empty.
  *
- * Test Type: Feature, Error guessing.
+ * Test Type: Feature, Error guessing
  *
  * Targets: g->ops.gr.init.wait_empty.
  *
@@ -59,11 +59,67 @@ int test_gr_init_hal_wait_empty(struct unit_module *m,
 		struct gk20a *g, void *args);
 
 /**
+ * Test specification for: test_gr_init_hal_wait_fe_idle.
+ *
+ * Description: Verify error handling in g->ops.gr.init.wait_fe_idle.
+ *
+ * Test Type: Feature, Error guessing
+ *
+ * Targets: g->ops.gr.init.wait_fe_idle.
+ *
+ * Input: gr_init_setup, gr_init_prepare, gr_init_support must have
+ *        been executed successfully.
+ *
+ * Steps:
+ * - Inject timeout error and call g->ops.gr.init.wait_fe_idle.
+ *   Should fail since timeout initialization fails.
+ * - Set FE active status in register gr_status_r(), and call
+ *   g->ops.gr.init.wait_fe_idle. Should fail since FE fails to idle.
+ * - Set FE idle status in register gr_status_r(), and call
+ *   g->ops.gr.init.wait_fe_idle. Should pass this time.
+ *
+ * Output: Returns PASS if the steps above were executed successfully. FAIL
+ * otherwise.
+ */
+int test_gr_init_hal_wait_fe_idle(struct unit_module *m,
+		struct gk20a *g, void *args);
+
+/**
+ * Test specification for: test_gr_init_hal_fe_pwr_mode.
+ *
+ * Description: Verify error handling in g->ops.gr.init.fe_pwr_mode_force_on.
+ *
+ * Test Type: Feature, Error guessing
+ *
+ * Targets: g->ops.gr.init.fe_pwr_mode_force_on.
+ *
+ * Input: gr_init_setup, gr_init_prepare, gr_init_support must have
+ *        been executed successfully.
+ *
+ * Steps:
+ * - Inject timeout error and call g->ops.gr.init.fe_pwr_mode_force_on.
+ *   should fail since timeout initialization fails.
+ * - Disable timeout error injection.
+ * - Call g->ops.gr.init.fe_pwr_mode_force_on. By default this should
+ *   timeout and return error.
+ * - Enable readl function error injection and call
+ *   g->ops.gr.init.fe_pwr_mode_force_on. Now this should return success.
+ * - Also call g->ops.gr.init.fe_pwr_mode_force_on with force flag set to
+ *   false. Should return success.
+ * - Disable readl function error injection.
+ *
+ * Output: Returns pass if the steps above were executed successfully. fail
+ * otherwise.
+ */
+int test_gr_init_hal_fe_pwr_mode(struct unit_module *m,
+		struct gk20a *g, void *args);
+
+/**
  * Test specification for: test_gr_init_hal_ecc_scrub_reg.
  *
  * Description: Verify error handling in gops.gr.init.ecc_scrub_reg function.
  *
- * Test Type: Feature, Error guessing.
+ * Test Type: Feature, Error guessing
  *
  * Targets: g->ops.gr.init.ecc_scrub_reg.
  *
@@ -94,7 +150,7 @@ int test_gr_init_hal_ecc_scrub_reg(struct unit_module *m,
  * Description: Verify error handling in gr.init HAL functions that
  *              require tweaks to gr engine configuration.
  *
- * Test Type: Feature, Error guessing.
+ * Test Type: Feature, Error guessing
  *
  * Targets: g->ops.gr.init.get_nonpes_aware_tpc,
  *          g->ops.gr.init.sm_id_config,
@@ -144,7 +200,7 @@ int test_gr_init_hal_config_error_injection(struct unit_module *m,
  *
  * Description: Code coverage test for g->ops.gr.init.commit_global_pagepool.
  *
- * Test Type: Feature, Error guessing.
+ * Test Type: Feature, Error guessing
  *
  * Targets: g->ops.gr.init.commit_global_pagepool.
  *
