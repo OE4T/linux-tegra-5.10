@@ -634,19 +634,23 @@ static int eqos_config_mac_loopback(void *addr,
  *	  Waits for SWR reset to be cleared in DMA Mode register.
  *
  * @param[in] addr: EQOS virtual base address.
+ * @param[in] pre_si: Sets whether platform is Pre-silicon or not.
  *
  * @note MAC needs to be out of reset and proper clock configured.
  *
  * @retval 0 on success
  * @retval -1 on failure.
  */
-static int eqos_poll_for_swr(void *addr)
+static int eqos_poll_for_swr(void *addr, unsigned int pre_si)
 {
 	unsigned int retry = 1000;
 	unsigned int count;
 	unsigned int dma_bmr = 0;
 	int cond = 1;
 
+	if (pre_si == OSI_ENABLE) {
+		osi_writel(0x1U, (unsigned char *)addr + EQOS_DMA_BMR);
+	}
 	/* add delay of 10 usec */
 	osd_usleep_range(9, 11);
 

@@ -68,7 +68,8 @@ int osi_poll_for_mac_reset_complete(
 {
 	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
 	    (osi_core->ops->poll_for_swr != OSI_NULL)) {
-		return osi_core->ops->poll_for_swr(osi_core->base);
+		return osi_core->ops->poll_for_swr(osi_core->base,
+						   osi_core->pre_si);
 	}
 	return -1;
 }
