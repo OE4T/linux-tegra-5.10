@@ -106,6 +106,7 @@
 #define nvgpu_timeout_expired_msg_impl(timeout, caller, fmt, arg...)	\
 ({									\
 	int ret_timeout = 0;						\
+	if (is_fault_injection_set != 0) {				\
 	if (((timeout)->flags & NVGPU_TIMER_RETRY_TIMER) != 0U) {	\
 		ret_timeout = nvgpu_timeout_expired_msg_retry((timeout),\
 						caller, fmt, ##arg);	\
@@ -113,11 +114,16 @@
 		ret_timeout = nvgpu_timeout_expired_msg_cpu((timeout),	\
 						caller,	fmt, ##arg);	\
 	}								\
+	}								\
 	(int)ret_timeout;						\
 })
 
 #ifdef NVGPU_UNITTEST_FAULT_INJECTION_ENABLEMENT
 struct nvgpu_posix_fault_inj *nvgpu_timers_get_fault_injection(void);
+int nvgpu_timeout_expired_fault_injection(void);
+#define is_fault_injection_set nvgpu_timeout_expired_fault_injection()
+#else
+#define is_fault_injection_set -1
 #endif /* NVGPU_UNITTEST_FAULT_INJECTION_ENABLEMENT */
 
 #endif

@@ -580,6 +580,7 @@ nvgpu_posix_io_start_recorder
 nvgpu_posix_io_unregister_reg_space
 nvgpu_posix_io_writel_reg_space
 nvgpu_posix_io_get_reg_space
+nvgpu_posix_is_fault_injection_cntr_set
 nvgpu_posix_is_fault_injection_triggered
 nvgpu_posix_probe
 nvgpu_posix_register_io
@@ -619,6 +620,7 @@ nvgpu_rwsem_down_read
 nvgpu_rwsem_down_write
 nvgpu_rwsem_up_read
 nvgpu_rwsem_up_write
+nvgpu_timeout_expired_fault_injection
 nvgpu_timeout_init
 nvgpu_timeout_peek_expired
 nvgpu_timers_get_fault_injection

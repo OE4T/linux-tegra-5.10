@@ -44,6 +44,18 @@ struct nvgpu_posix_fault_inj *nvgpu_timers_get_fault_injection(void)
 
 	return &c->timers_fi;
 }
+
+int nvgpu_timeout_expired_fault_injection(void)
+{
+	if (nvgpu_posix_fault_injection_handle_call(
+				nvgpu_timers_get_fault_injection()) ||
+		nvgpu_posix_is_fault_injection_cntr_set(
+				nvgpu_timers_get_fault_injection())) {
+		return 0;
+	}
+
+	return -1;
+}
 #endif /* NVGPU_UNITTEST_FAULT_INJECTION_ENABLEMENT */
 
 s64 nvgpu_current_time_us(void)

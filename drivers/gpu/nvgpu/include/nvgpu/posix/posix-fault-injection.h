@@ -154,6 +154,17 @@ void nvgpu_posix_enable_fault_injection(struct nvgpu_posix_fault_inj *fi,
 bool nvgpu_posix_is_fault_injection_triggered(struct nvgpu_posix_fault_inj *fi);
 
 /**
+ * nvgpu_posix_is_fault_injection_cntr_set - Query if fault injection is
+ *                                           set to trigger in future for the
+ *                                           @fi object.
+ *
+ * @fi - pointer to the fault_inj object
+ *
+ * Returns true if fault injection counter is non-zero.
+ */
+bool nvgpu_posix_is_fault_injection_cntr_set(struct nvgpu_posix_fault_inj *fi);
+
+/**
  * nvgpu_posix_fault_injection_handle_call - Called by module functions to
  *                                           track enabling or disabling fault
  *                                           injections. Returns true if the

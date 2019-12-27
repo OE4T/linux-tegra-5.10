@@ -54,6 +54,11 @@ bool nvgpu_posix_is_fault_injection_triggered(struct nvgpu_posix_fault_inj *fi)
 	return fi->enabled;
 }
 
+bool nvgpu_posix_is_fault_injection_cntr_set(struct nvgpu_posix_fault_inj *fi)
+{
+	return (fi->counter > 0U);
+}
+
 /*
  * Return status of fault injection.
  * Decrement fault injection count for each call.
