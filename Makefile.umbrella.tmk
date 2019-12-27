@@ -103,6 +103,7 @@ NV_REPOSITORY_COMPONENTS += userspace/units/fifo/pbdma/gv11b
 NV_REPOSITORY_COMPONENTS += userspace/units/fifo/pbdma/gm20b
 NV_REPOSITORY_COMPONENTS += userspace/units/fifo/pbdma/gp10b
 NV_REPOSITORY_COMPONENTS += userspace/units/fifo/preempt
+NV_REPOSITORY_COMPONENTS += userspace/units/fifo/preempt/gv11b
 NV_REPOSITORY_COMPONENTS += userspace/units/fifo/ramfc/gp10b
 NV_REPOSITORY_COMPONENTS += userspace/units/fifo/ramfc/gv11b
 NV_REPOSITORY_COMPONENTS += userspace/units/fifo/ramin/gk20a

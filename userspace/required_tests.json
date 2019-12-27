@@ -3108,6 +3108,54 @@
         "test_level": 0
     },
     {
+        "test": "test_fifo_init_support",
+        "case": "init_support",
+        "unit": "nvgpu_preempt_gv11b",
+        "test_level": 0
+    },
+    {
+        "test": "test_gv11b_fifo_is_preempt_pending",
+        "case": "is_preempt_pending",
+        "unit": "nvgpu_preempt_gv11b",
+        "test_level": 0
+    },
+    {
+        "test": "test_gv11b_fifo_preempt_channel",
+        "case": "preempt_channel",
+        "unit": "nvgpu_preempt_gv11b",
+        "test_level": 0
+    },
+    {
+        "test": "test_gv11b_fifo_preempt_poll_pbdma",
+        "case": "preempt_poll_pbdma",
+        "unit": "nvgpu_preempt_gv11b",
+        "test_level": 0
+    },
+    {
+        "test": "test_gv11b_fifo_preempt_runlists_for_rc",
+        "case": "preempt_runlists_for_rc",
+        "unit": "nvgpu_preempt_gv11b",
+        "test_level": 0
+    },
+    {
+        "test": "test_gv11b_fifo_preempt_trigger",
+        "case": "preempt_trigger",
+        "unit": "nvgpu_preempt_gv11b",
+        "test_level": 0
+    },
+    {
+        "test": "test_gv11b_fifo_preempt_tsg",
+        "case": "preempt_tsg",
+        "unit": "nvgpu_preempt_gv11b",
+        "test_level": 0
+    },
+    {
+        "test": "test_fifo_remove_support",
+        "case": "remove_support",
+        "unit": "nvgpu_preempt_gv11b",
+        "test_level": 0
+    },
+    {
         "test": "test_flat_gen",
         "case": "flat",
         "unit": "nvgpu_runlist",
