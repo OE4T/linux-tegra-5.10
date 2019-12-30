@@ -68,6 +68,7 @@ gm20b_pbdma_read_data
 gm20b_pbdma_restartable_0_intr_descs
 gm20b_ramin_set_big_page_size
 gm20b_read_engine_status_info
+gm20b_read_pbdma_status_info
 gm20b_top_get_max_gpc_count
 gm20b_top_get_max_tpc_per_gpc_count
 gm20b_top_get_max_fbps_count

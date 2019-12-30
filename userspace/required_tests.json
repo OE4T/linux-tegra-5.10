@@ -2970,6 +2970,12 @@
         "test_level": 0
     },
     {
+        "test": "test_gm20b_read_pbdma_status_info",
+        "case": "read_pbdma_status_info",
+        "unit": "nvgpu_pbdma_gm20b",
+        "test_level": 0
+    },
+    {
         "test": "test_fifo_remove_support",
         "case": "remove_support",
         "unit": "nvgpu_pbdma_gm20b",

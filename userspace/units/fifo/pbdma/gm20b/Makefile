@@ -1,4 +1,4 @@
-# Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+# Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -20,7 +20,7 @@
 
 .SUFFIXES:
 
-OBJS   = nvgpu-pbdma-gm20b.o
+OBJS   = nvgpu-pbdma-gm20b.o nvgpu-pbdma-status-gm20b.o
 MODULE = nvgpu-pbdma-gm20b
 
 LIB_PATHS += -lnvgpu-fifo-common

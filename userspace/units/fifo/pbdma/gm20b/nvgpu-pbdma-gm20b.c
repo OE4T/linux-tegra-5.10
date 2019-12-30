@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -43,6 +43,7 @@
 #include "../../nvgpu-fifo-common.h"
 #include "../../nvgpu-fifo-gv11b.h"
 #include "nvgpu-pbdma-gm20b.h"
+#include "nvgpu-pbdma-status-gm20b.h"
 
 #ifdef PBDMA_GM20B_UNIT_DEBUG
 #undef unit_verbose
@@ -547,6 +548,9 @@ struct unit_module_test nvgpu_pbdma_gm20b_tests[] = {
 	UNIT_TEST(pbdma_get_fc_subdevice, test_gm20b_pbdma_get_fc_subdevice, NULL, 0),
 	UNIT_TEST(pbdma_get_ctrl_hce_priv_mode_yes, test_gm20b_pbdma_get_ctrl_hce_priv_mode_yes, NULL, 0),
 	UNIT_TEST(pbdma_get_userd, test_gm20b_pbdma_get_userd, NULL, 0),
+
+	/* pbdma status */
+	UNIT_TEST(read_pbdma_status_info, test_gm20b_read_pbdma_status_info, NULL, 0),
 	UNIT_TEST(remove_support, test_fifo_remove_support, NULL, 0),
 };
 
