@@ -1183,10 +1183,18 @@ int test_falcon_bootstrap(struct unit_module *m, struct gk20a *g, void *__args)
 	}
 #endif
 
-	acr_fw = nvgpu_request_firmware(g, HSBIN_ACR_UCODE_IMAGE, 0);
-	if (acr_fw == NULL) {
-		unit_return_fail(m, "%s ucode get fail for %s",
-				 HSBIN_ACR_UCODE_IMAGE, g->name);
+	if (!g->ops.pmu.is_debug_mode_enabled(g)) {
+		acr_fw = nvgpu_request_firmware(g, HSBIN_ACR_PROD_UCODE, 0);
+		if (acr_fw == NULL) {
+			unit_return_fail(m, "%s ucode get fail for %s",
+				 HSBIN_ACR_PROD_UCODE, g->name);
+		}
+	} else {
+		acr_fw = nvgpu_request_firmware(g, HSBIN_ACR_DBG_UCODE, 0);
+		if (acr_fw == NULL) {
+			unit_return_fail(m, "%s ucode get fail for %s",
+				 HSBIN_ACR_DBG_UCODE, g->name);
+		}
 	}
 
 	hs_bin_hdr = (struct bin_hdr *)(void *)acr_fw->data;

@@ -1,6 +1,6 @@
 ################################### tell Emacs this is a -*- makefile-gmake -*-
 #
-# Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+# Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -67,7 +67,8 @@ NV_FECS_IMG=fecs.bin
 NV_FECS_SIG_IMG=fecs_sig.bin
 NV_GPCCS_IMG=gpccs.bin
 NV_GPCCS_SIG_IMG=gpccs_sig.bin
-NV_ACR_UCODE_IMG=acr_ucode.bin
+NV_ACR_UCODE_PROD_IMG=acr_ucode_prod.bin
+NV_ACR_UCODE_DBG_IMG=acr_ucode_dbg.bin
 NV_PMU_BL_IMG=pmu_bl.bin
 NV_COMPONENT_SYSTEMIMAGE_DIR    := $(NV_SYSTEMIMAGE_TEST_EXECUTABLE_DIR)/nvgpu_unit
 NV_UNIT_REQ_FIRMWARE_DIR        := $(NV_COMPONENT_SYSTEMIMAGE_DIR)/firmware
@@ -80,7 +81,8 @@ systemimage:: $(NV_COMPONENT_SYSTEMIMAGE_DIR) $(NV_COMPONENT_SYSTEMIMAGE_DIR)/$(
 	$(NV_UNIT_REQ_FIRMWARE_DIR)/$(NV_FECS_SIG_IMG) \
 	$(NV_UNIT_REQ_FIRMWARE_DIR)/$(NV_GPCCS_IMG) \
 	$(NV_UNIT_REQ_FIRMWARE_DIR)/$(NV_GPCCS_SIG_IMG) \
-	$(NV_UNIT_REQ_FIRMWARE_DIR)/$(NV_ACR_UCODE_IMG) \
+	$(NV_UNIT_REQ_FIRMWARE_DIR)/$(NV_ACR_UCODE_PROD_IMG) \
+	$(NV_UNIT_REQ_FIRMWARE_DIR)/$(NV_ACR_UCODE_DBG_IMG) \
 	$(NV_UNIT_REQ_FIRMWARE_DIR)/$(NV_PMU_BL_IMG)
 
 #make the output directory
@@ -109,7 +111,9 @@ $(NV_UNIT_REQ_FIRMWARE_DIR)/$(NV_GPCCS_IMG) : $(NV_COMPONENT_DIR)/firmware/$(NV_
 	$(CP) $< $@
 $(NV_UNIT_REQ_FIRMWARE_DIR)/$(NV_GPCCS_SIG_IMG) : $(NV_COMPONENT_DIR)/firmware/$(NV_GPCCS_SIG_IMG) $(NV_UNIT_REQ_FIRMWARE_DIR)
 	$(CP) $< $@
-$(NV_UNIT_REQ_FIRMWARE_DIR)/$(NV_ACR_UCODE_IMG) : $(NV_COMPONENT_DIR)/firmware/$(NV_ACR_UCODE_IMG) $(NV_UNIT_REQ_FIRMWARE_DIR)
+$(NV_UNIT_REQ_FIRMWARE_DIR)/$(NV_ACR_UCODE_PROD_IMG) : $(NV_COMPONENT_DIR)/firmware/$(NV_ACR_UCODE_PROD_IMG) $(NV_UNIT_REQ_FIRMWARE_DIR)
+	$(CP) $< $@
+$(NV_UNIT_REQ_FIRMWARE_DIR)/$(NV_ACR_UCODE_DBG_IMG) : $(NV_COMPONENT_DIR)/firmware/$(NV_ACR_UCODE_DBG_IMG) $(NV_UNIT_REQ_FIRMWARE_DIR)
 	$(CP) $< $@
 $(NV_UNIT_REQ_FIRMWARE_DIR)/$(NV_PMU_BL_IMG) : $(NV_COMPONENT_DIR)/firmware/$(NV_PMU_BL_IMG) $(NV_UNIT_REQ_FIRMWARE_DIR)
 	$(CP) $< $@
