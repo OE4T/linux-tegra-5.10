@@ -36,9 +36,9 @@
  */
 #define min_t(type, a, b)			\
 	({					\
-		type __a = (a);			\
-		type __b = (b);			\
-		(__a < __b) ? __a : __b;	\
+		type t_a = (a);			\
+		type t_b = (b);			\
+		(t_a < t_b) ? t_a : t_b;	\
 	})
 
 #if defined(min)
