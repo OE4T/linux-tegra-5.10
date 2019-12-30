@@ -3609,7 +3609,7 @@ static int ether_init_plat_resources(struct platform_device *pdev,
 	int ret = 0;
 
 	/* get base address and remap */
-	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "mac-base");
 	osi_core->base = devm_ioremap_resource(&pdev->dev, res);
 	if (IS_ERR(osi_core->base)) {
 		dev_err(&pdev->dev, "failed to ioremap MAC base address\n");
@@ -3628,6 +3628,17 @@ static int ether_init_plat_resources(struct platform_device *pdev,
 	} else {
 		/* Update core base to dma/common base */
 		osi_dma->base = osi_core->base;
+	}
+
+	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "xpcs-base");
+	if (res) {
+		osi_core->xpcs_base = devm_ioremap_resource(&pdev->dev, res);
+		if (IS_ERR(osi_core->xpcs_base)) {
+			dev_err(&pdev->dev, "failed to ioremap XPCS address\n");
+			return PTR_ERR(osi_core->xpcs_base);
+		}
+	} else {
+		osi_core->xpcs_base = NULL;
 	}
 
 	ret = ether_configure_car(pdev, pdata);
