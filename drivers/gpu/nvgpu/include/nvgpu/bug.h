@@ -75,11 +75,11 @@ NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Rule, 15_6))
 /*
  * Define compile-time assert check.
  */
-#define ASSERT_CONCAT_(a, b) a##b
-#define ASSERT_CONCAT(a, b) ASSERT_CONCAT_(a, b)
+#define ASSERT_CONCAT(a, b) a##b
+#define ASSERT_ADD_INFO(a, b) ASSERT_CONCAT(a, b)
 #define nvgpu_static_assert(e)						\
 	enum {								\
-		ASSERT_CONCAT(assert_line_, __LINE__) = 1 / (!!(e))	\
+		ASSERT_ADD_INFO(assert_line_, __LINE__) = 1 / (!!(e))	\
 	}
 
 struct gk20a;
