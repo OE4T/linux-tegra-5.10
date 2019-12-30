@@ -2191,7 +2191,7 @@ static int ether_ioctl(struct net_device *dev, struct ifreq *rq, int cmd)
 		break;
 
 	default:
-		netdev_err(dev, "%s: Unsupported ioctl %d\n",
+		netdev_dbg(dev, "%s: Unsupported ioctl %d\n",
 			   __func__, cmd);
 		break;
 	}
