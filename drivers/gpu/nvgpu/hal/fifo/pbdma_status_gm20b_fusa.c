@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -44,8 +44,7 @@ static void populate_valid_chsw_status_info(
 	bool id_type_tsg;
 	u32 engine_status = status_info->pbdma_reg_status;
 
-	status_info->id =
-		fifo_pbdma_status_id_v(status_info->pbdma_reg_status);
+	status_info->id = fifo_pbdma_status_id_v(engine_status);
 	id_type_tsg = fifo_pbdma_status_id_type_v(engine_status) ==
 			fifo_pbdma_status_id_type_tsgid_v();
 	status_info->id_type =
@@ -64,9 +63,7 @@ static void populate_load_chsw_status_info(
 
 	status_info->id = PBDMA_STATUS_ID_INVALID;
 	status_info->id_type = PBDMA_STATUS_ID_TYPE_INVALID;
-	status_info->next_id =
-		fifo_pbdma_status_next_id_type_v(
-			status_info->pbdma_reg_status);
+	status_info->next_id = fifo_pbdma_status_next_id_v(engine_status);
 	next_id_type_tsg = fifo_pbdma_status_next_id_type_v(engine_status) ==
 			fifo_pbdma_status_next_id_type_tsgid_v();
 	status_info->next_id_type =
@@ -81,8 +78,7 @@ static void populate_save_chsw_status_info(
 	bool id_type_tsg;
 	u32 engine_status = status_info->pbdma_reg_status;
 
-	status_info->id =
-		fifo_pbdma_status_id_v(status_info->pbdma_reg_status);
+	status_info->id = fifo_pbdma_status_id_v(engine_status);
 	id_type_tsg = fifo_pbdma_status_id_type_v(engine_status) ==
 			fifo_pbdma_status_id_type_tsgid_v();
 	status_info->id_type =
@@ -100,16 +96,13 @@ static void populate_switch_chsw_status_info(
 	bool next_id_type_tsg;
 	u32 engine_status = status_info->pbdma_reg_status;
 
-	status_info->id =
-		fifo_pbdma_status_id_v(status_info->pbdma_reg_status);
+	status_info->id = fifo_pbdma_status_id_v(engine_status);
 	id_type_tsg = fifo_pbdma_status_id_type_v(engine_status) ==
 			fifo_pbdma_status_id_type_tsgid_v();
 	status_info->id_type =
 		id_type_tsg ? PBDMA_STATUS_ID_TYPE_TSGID :
 			PBDMA_STATUS_ID_TYPE_CHID;
-	status_info->next_id =
-		fifo_pbdma_status_next_id_type_v(
-			status_info->pbdma_reg_status);
+	status_info->next_id = fifo_pbdma_status_next_id_v(engine_status);
 	next_id_type_tsg = fifo_pbdma_status_next_id_type_v(engine_status) ==
 			fifo_pbdma_status_next_id_type_tsgid_v();
 	status_info->next_id_type =
