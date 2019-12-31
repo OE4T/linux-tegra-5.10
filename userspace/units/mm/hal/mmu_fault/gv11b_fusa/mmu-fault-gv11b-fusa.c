@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -199,7 +199,8 @@ static int init_mm(struct unit_module *m, struct gk20a *g)
 	return UNIT_SUCCESS;
 }
 
-int test_env_init(struct unit_module *m, struct gk20a *g, void *args)
+int test_env_init_mm_mmu_fault_gv11b_fusa(struct unit_module *m,
+						struct gk20a *g, void *args)
 {
 	g->log_mask = 0;
 
@@ -778,7 +779,8 @@ done:
 	return ret;
 }
 
-int test_env_clean(struct unit_module *m, struct gk20a *g, void *args)
+int test_env_clean_mm_mmu_fault_gv11b_fusa(struct unit_module *m,
+						struct gk20a *g, void *args)
 {
 	g->log_mask = 0;
 
@@ -789,7 +791,7 @@ int test_env_clean(struct unit_module *m, struct gk20a *g, void *args)
 }
 
 struct unit_module_test mm_mmu_fault_gv11b_fusa_tests[] = {
-	UNIT_TEST(env_init, test_env_init, (void *)0, 0),
+	UNIT_TEST(env_init, test_env_init_mm_mmu_fault_gv11b_fusa, NULL, 0),
 	UNIT_TEST(setup_sw_s0, test_gv11b_mm_mmu_fault_setup_sw, (void *)F_MMU_FAULT_SETUP_SW_FAULT_BUF_ALLOC_FAIL, 0),
 	UNIT_TEST(setup_sw_s1, test_gv11b_mm_mmu_fault_setup_sw, (void *)F_MMU_FAULT_SETUP_SW_DEFAULT, 0),
 	UNIT_TEST(setup_sw_s2, test_gv11b_mm_mmu_fault_setup_sw, (void *)F_MMU_FAULT_SETUP_SW_2, 0),
@@ -821,7 +823,7 @@ struct unit_module_test mm_mmu_fault_gv11b_fusa_tests[] = {
 	UNIT_TEST(handle_nonreplay_s1, test_handle_nonreplay_replay_fault, (void *)F_HANDLE_NON_RPLYBLE_INVALID_BUF_ENTRY, 0),
 	UNIT_TEST(handle_nonreplay_s2, test_handle_nonreplay_replay_fault, (void *)F_HANDLE_NON_RPLYBLE_VALID_BUF_ENTRY, 0),
 	UNIT_TEST(handle_nonreplay_s3, test_handle_nonreplay_replay_fault, (void *)F_HANDLE_NON_RPLYBLE_VALID_BUF_CH, 0),
-	UNIT_TEST(env_clean, test_env_clean, NULL, 0),
+	UNIT_TEST(env_clean, test_env_clean_mm_mmu_fault_gv11b_fusa, NULL, 0),
 };
 
 UNIT_MODULE(mmu_fault_gv11b_fusa, mm_mmu_fault_gv11b_fusa_tests, UNIT_PRIO_NVGPU_TEST);

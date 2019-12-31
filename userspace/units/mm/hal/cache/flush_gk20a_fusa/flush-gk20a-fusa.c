@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -179,7 +179,8 @@ static int init_mm(struct unit_module *m, struct gk20a *g)
 	return UNIT_SUCCESS;
 }
 
-int test_env_init(struct unit_module *m, struct gk20a *g, void *args)
+int test_env_init_flush_gk20a_fusa(struct unit_module *m, struct gk20a *g,
+								void *args)
 {
 	g->log_mask = 0;
 
@@ -422,7 +423,8 @@ done:
 	return ret;
 }
 
-int test_env_clean(struct unit_module *m, struct gk20a *g, void *args)
+int test_env_clean_flush_gk20a_fusa(struct unit_module *m, struct gk20a *g,
+								void *args)
 {
 	g->log_mask = 0;
 
@@ -432,7 +434,7 @@ int test_env_clean(struct unit_module *m, struct gk20a *g, void *args)
 }
 
 struct unit_module_test mm_flush_gk20a_fusa_tests[] = {
-	UNIT_TEST(env_init, test_env_init, NULL, 0),
+	UNIT_TEST(env_init, test_env_init_flush_gk20a_fusa, NULL, 0),
 	UNIT_TEST(mm_fb_flush_s0, test_gk20a_mm_fb_flush, (void *)F_GK20A_FB_FLUSH_DEFAULT_INPUT, 0),
 	UNIT_TEST(mm_fb_flush_s1, test_gk20a_mm_fb_flush, (void *)F_GK20A_FB_FLUSH_GET_RETRIES, 0),
 	UNIT_TEST(mm_fb_flush_s2, test_gk20a_mm_fb_flush, (void *)F_GK20A_FB_FLUSH_PENDING_TRUE, 0),
@@ -451,7 +453,7 @@ struct unit_module_test mm_flush_gk20a_fusa_tests[] = {
 	UNIT_TEST(mm_l2_invalidate_s2, test_gk20a_mm_l2_invalidate, (void *)F_GK20A_L2_INVALIDATE_OUTSTANDING_TRUE, 0),
 	UNIT_TEST(mm_l2_invalidate_s3, test_gk20a_mm_l2_invalidate, (void *)F_GK20A_L2_INVALIDATE_GET_RETRIES_NULL, 0),
 	UNIT_TEST(mm_l2_invalidate_s4, test_gk20a_mm_l2_invalidate, (void *)F_GK20A_L2_INVALIDATE_NVGPU_POWERED_OFF, 0),
-	UNIT_TEST(env_clean, test_env_clean, NULL, 0),
+	UNIT_TEST(env_clean, test_env_clean_flush_gk20a_fusa, NULL, 0),
 };
 
 UNIT_MODULE(flush_gk20a_fusa, mm_flush_gk20a_fusa_tests, UNIT_PRIO_NVGPU_TEST);

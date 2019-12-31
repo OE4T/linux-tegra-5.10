@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -33,7 +33,7 @@ struct unit_module;
  */
 
 /**
- * Test specification for: test_env_init
+ * Test specification for: test_env_init_mm_gp10b_fusa
  *
  * Description: Initialize environment for MM tests
  *
@@ -49,14 +49,15 @@ struct unit_module;
  * Output: Returns SUCCESS if the steps above were executed successfully. FAIL
  * otherwise.
  */
-int test_env_init(struct unit_module *m, struct gk20a *g, void *args);
+int test_env_init_mm_gp10b_fusa(struct unit_module *m, struct gk20a *g,
+								void *args);
 
 /**
  * Test specification for: test_gp10b_mm_init_bar2_vm
  *
  * Description: Initialize bar2 VM
  *
- * Test Type: Feature
+ * Test Type: Feature, Error injection
  *
  * Targets: gops_mm.init_bar2_vm, gp10b_mm_init_bar2_vm, gops_mm.remove_bar2_vm,
  * gp10b_mm_remove_bar2_vm
@@ -75,7 +76,7 @@ int test_gp10b_mm_init_bar2_vm(struct unit_module *m, struct gk20a *g,
 								void *args);
 
 /**
- * Test specification for: test_env_clean
+ * Test specification for: test_env_clean_mm_gp10b_fusa
  *
  * Description: Cleanup test environment
  *
@@ -91,7 +92,8 @@ int test_gp10b_mm_init_bar2_vm(struct unit_module *m, struct gk20a *g,
  * Output: Returns SUCCESS if the steps above were executed successfully. FAIL
  * otherwise.
  */
-int test_env_clean(struct unit_module *m, struct gk20a *g, void *args);
+int test_env_clean_mm_gp10b_fusa(struct unit_module *m, struct gk20a *g,
+								void *args);
 
 /** @} */
 #endif /* UNIT_MM_HAL_GP10B_FUSA_H */

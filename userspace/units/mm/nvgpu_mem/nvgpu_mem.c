@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -129,9 +129,6 @@ static void free_vidmem_env(struct unit_module *m, struct gk20a *g)
 	nvgpu_posix_io_delete_reg_space(g, bus_bar0_window_r());
 }
 
-/*
- * Test APERTURE_VIDMEM branch of nvgpu_mem read and write functions
- */
 int test_nvgpu_mem_vidmem(struct unit_module *m,
 					struct gk20a *g, void *args)
 {
@@ -277,9 +274,31 @@ int test_nvgpu_aperture_mask(struct unit_module *m,
 	return UNIT_SUCCESS;
 }
 
-/*
- * Test for iommu translate
- */
+static const char *aperture_name_str[APERTURE_MAX_ENUM + 1] = {
+		[APERTURE_INVALID]	= "INVAL",
+		[APERTURE_SYSMEM]	= "SYSTEM",
+		[APERTURE_SYSMEM_COH]	= "SYSCOH",
+		[APERTURE_VIDMEM]	= "VIDMEM",
+		[APERTURE_MAX_ENUM]	= "UNKNOWN",
+};
+
+int test_nvgpu_aperture_str(struct unit_module *m, struct gk20a *g, void *args)
+{
+	enum nvgpu_aperture ap = 0;
+	const char *name_str;
+
+	while (ap <= APERTURE_MAX_ENUM) {
+		name_str = nvgpu_aperture_str(ap);
+		if (strcmp((name_str), aperture_name_str[ap]) != 0) {
+			unit_return_fail(m,
+				"Incorrect aperture str for aperture %d\n", ap);
+		}
+		ap += 1;
+	}
+
+	return UNIT_SUCCESS;
+}
+
 int test_nvgpu_mem_iommu_translate(struct unit_module *m,
 					struct gk20a *g, void *args)
 {
@@ -329,12 +348,6 @@ int test_nvgpu_mem_iommu_translate(struct unit_module *m,
 	return UNIT_SUCCESS;
 }
 
-/*
- * Test nvgpu_memset()
- *
- * Testing function in APERTURE_SYSMEM and APERTURE_INVALID case.
- *
- */
 int test_nvgpu_memset_sysmem(struct unit_module *m,
 					struct gk20a *g, void *args)
 {
@@ -373,9 +386,6 @@ int test_nvgpu_memset_sysmem(struct unit_module *m,
 	return UNIT_SUCCESS;
 }
 
-/*
- * Test all memory write and read calls.
- */
 int test_nvgpu_mem_wr_rd(struct unit_module *m,
 					struct gk20a *g, void *args)
 {
@@ -652,8 +662,25 @@ int test_nvgpu_mem_create_from_phys(struct unit_module *m,
 	return UNIT_SUCCESS;
 }
 
-int test_free_nvgpu_mem(struct unit_module *m,
-					struct gk20a *g, void *args)
+int test_nvgpu_mem_create_from_mem(struct unit_module *m, struct gk20a *g,
+			void *args)
+{
+	struct nvgpu_mem dest_mem;
+
+	nvgpu_mem_create_from_mem(g, &dest_mem, test_mem, 0, 2);
+
+	unit_assert(dest_mem.cpu_va == test_mem->cpu_va, goto done);
+	unit_assert(dest_mem.size == (2 * PAGE_SIZE), goto done);
+	unit_assert((dest_mem.mem_flags & NVGPU_MEM_FLAG_SHADOW_COPY) == true,
+			goto done);
+	unit_assert(dest_mem.aperture == APERTURE_SYSMEM, goto done);
+
+	return UNIT_SUCCESS;
+done:
+	unit_return_fail(m, "%s: failed!\n", __func__);
+}
+
+int test_free_nvgpu_mem(struct unit_module *m, struct gk20a *g, void *args)
 {
 	test_mem->aperture = APERTURE_SYSMEM;
 	nvgpu_dma_free(g, test_mem);
@@ -680,6 +707,8 @@ struct unit_module_test nvgpu_mem_tests[] = {
 	 * Tests covering VIDMEM branches
 	 */
 	UNIT_TEST(nvgpu_aperture_mask,	test_nvgpu_aperture_mask,	NULL, 0),
+	UNIT_TEST(nvgpu_aperture_name,	test_nvgpu_aperture_str,	NULL, 0),
+	UNIT_TEST(create_mem_from_mem,	test_nvgpu_mem_create_from_mem,	NULL, 0),
 #ifdef CONFIG_NVGPU_DGPU
 	UNIT_TEST(nvgpu_mem_vidmem,	test_nvgpu_mem_vidmem,		NULL, 0),
 #endif

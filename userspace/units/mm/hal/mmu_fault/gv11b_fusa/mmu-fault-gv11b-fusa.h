@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -33,7 +33,7 @@ struct unit_module;
  */
 
 /**
- * Test specification for: test_env_init
+ * Test specification for: test_env_init_mm_mmu_fault_gv11b_fusa
  *
  * Description: Initialize environment for MM tests
  *
@@ -49,14 +49,15 @@ struct unit_module;
  * Output: Returns SUCCESS if the steps above were executed successfully. FAIL
  * otherwise.
  */
-int test_env_init(struct unit_module *m, struct gk20a *g, void *args);
+int test_env_init_mm_mmu_fault_gv11b_fusa(struct unit_module *m,
+					struct gk20a *g, void *args);
 
 /**
  * Test specification for: test_gv11b_mm_mmu_fault_setup_sw
  *
  * Description: Test mmu fault setup sw function
  *
- * Test Type: Feature
+ * Test Type: Feature, Error injection
  *
  * Targets: gops_mm.gops_mm_mmu_fault.setup_sw, gv11b_mm_mmu_fault_setup_sw,
  * gops_mm.gops_mm_mmu_fault.info_mem_destroy,
@@ -72,7 +73,8 @@ int test_env_init(struct unit_module *m, struct gk20a *g, void *args);
  * Output: Returns SUCCESS if the steps above were executed successfully. FAIL
  * otherwise.
  */
-int test_gv11b_mm_mmu_fault_setup_sw(struct unit_module *m, struct gk20a *g, void *args);
+int test_gv11b_mm_mmu_fault_setup_sw(struct unit_module *m, struct gk20a *g,
+					void *args);
 
 /**
  * Test specification for:
@@ -93,7 +95,7 @@ int test_gv11b_mm_mmu_fault_setup_sw(struct unit_module *m, struct gk20a *g, voi
  * otherwise.
  */
 int test_gv11b_mm_mmu_fault_setup_hw(struct unit_module *m, struct gk20a *g,
-								void *args);
+					void *args);
 
 /**
  * Test specification for: test_gv11b_mm_mmu_fault_disable_hw
@@ -114,7 +116,7 @@ int test_gv11b_mm_mmu_fault_setup_hw(struct unit_module *m, struct gk20a *g,
  * otherwise.
  */
 int test_gv11b_mm_mmu_fault_disable_hw(struct unit_module *m, struct gk20a *g,
-								void *args);
+					void *args);
 
 /**
  * Test specification for: test_gv11b_mm_mmu_fault_handle_other_fault_notify
@@ -199,10 +201,10 @@ int test_handle_mmu_fault_common(struct unit_module *m,
  * otherwise.
  */
 int test_handle_nonreplay_replay_fault(struct unit_module *m, struct gk20a *g,
-								void *args);
+					void *args);
 
 /**
- * Test specification for: test_env_clean
+ * Test specification for: test_env_clean_mm_mmu_fault_gv11b_fusa
  *
  * Description: Cleanup test environment
  *
@@ -218,7 +220,8 @@ int test_handle_nonreplay_replay_fault(struct unit_module *m, struct gk20a *g,
  * Output: Returns SUCCESS if the steps above were executed successfully. FAIL
  * otherwise.
  */
-int test_env_clean(struct unit_module *m, struct gk20a *g, void *args);
+int test_env_clean_mm_mmu_fault_gv11b_fusa(struct unit_module *m,
+					struct gk20a *g, void *args);
 
 /** @} */
 #endif /* UNIT_MM_HAL_MMU_FAULT_GV11B_FUSA_H */

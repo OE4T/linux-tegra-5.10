@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -32,6 +32,7 @@
 #include <nvgpu/posix/posix-fault-injection.h>
 
 #include <nvgpu/page_allocator.h>
+#include "page_allocator.h"
 
 #ifdef CONFIG_NVGPU_DGPU
 
@@ -229,12 +230,7 @@ static struct test_parameters alloc_more_than_available = {
 	.error_msg = "Allocated more than available memory",
 };
 
-
-/*
- * This function is a wrapper for page_allocator alloc() function.
- * test_page_alloc() - Allocates page allocator memory
- */
-static int test_page_alloc(struct unit_module *m, struct gk20a *g, void *args)
+int test_page_alloc(struct unit_module *m, struct gk20a *g, void *args)
 {
 	struct test_parameters *param = (struct test_parameters *) args;
 	struct nvgpu_page_allocator *pa = page_allocator(na);
@@ -259,11 +255,7 @@ static int test_page_alloc(struct unit_module *m, struct gk20a *g, void *args)
 	}
 }
 
-/*
- * This function is a wrapper for page_allocator free() function.
- * test_page_free() - Frees page allocator memory
- */
-static int test_page_free(struct unit_module *m, struct gk20a *g, void *args)
+int test_page_free(struct unit_module *m, struct gk20a *g, void *args)
 {
 	struct test_parameters *param = (struct test_parameters *) args;
 	struct nvgpu_page_allocator *pa = page_allocator(na);
@@ -275,13 +267,7 @@ static int test_page_free(struct unit_module *m, struct gk20a *g, void *args)
 	return UNIT_SUCCESS;
 }
 
-/*
- * This function is a wrapper for page_allocator alloc_fixed() function.
- * test_page_alloc_fixed() - Allocates page allocator memory starting at
- *				fixed address location
- */
-static int test_page_alloc_fixed(struct unit_module *m, struct gk20a *g,
-								void *args)
+int test_page_alloc_fixed(struct unit_module *m, struct gk20a *g, void *args)
 {
 	struct test_parameters *param = (struct test_parameters *) args;
 	struct nvgpu_page_allocator *pa = page_allocator(na);
@@ -308,12 +294,7 @@ static int test_page_alloc_fixed(struct unit_module *m, struct gk20a *g,
 	}
 }
 
-/*
- * This function is a wrapper for page_allocator free_fixed() function.
- * test_page_free_fixed() - Frees fixed page allocator memory
- */
-static int test_page_free_fixed(struct unit_module *m, struct gk20a *g,
-								void *args)
+int test_page_free_fixed(struct unit_module *m, struct gk20a *g, void *args)
 {
 	struct test_parameters *param = (struct test_parameters *) args;
 	struct nvgpu_page_allocator *pa = page_allocator(na);
@@ -325,11 +306,7 @@ static int test_page_free_fixed(struct unit_module *m, struct gk20a *g,
 	return UNIT_SUCCESS;
 }
 
-/*
- * Tests nvgpu_page_allocator_init()
- * This test considers multiple conditions to initialize page allocator
- */
-static int test_page_allocator_init_slabs(struct unit_module *m,
+int test_page_allocator_init_slabs(struct unit_module *m,
 					struct gk20a *g, void *args)
 {
 	u64 base = SZ_64K;
@@ -383,10 +360,7 @@ static int test_page_allocator_init_slabs(struct unit_module *m,
 	return UNIT_SUCCESS;
 }
 
-/*
- * Tests page_allocator sgt ops
- */
-static int test_page_allocator_sgt_ops(struct unit_module *m,
+int test_page_allocator_sgt_ops(struct unit_module *m,
 					struct gk20a *g, void *args)
 {
 	u64 addr;
@@ -437,11 +411,7 @@ static int test_page_allocator_sgt_ops(struct unit_module *m,
 	return UNIT_SUCCESS;
 }
 
-/*
- * Tests page_allocator basic ops
- * Page allocator attributes are set corresponding to default init values
- */
-static int test_nvgpu_page_allocator_ops(struct unit_module *m,
+int test_nvgpu_page_allocator_ops(struct unit_module *m,
 					struct gk20a *g, void *args)
 {
 	u64 addr;
@@ -497,23 +467,19 @@ static int test_nvgpu_page_allocator_ops(struct unit_module *m,
 	return UNIT_SUCCESS;
 }
 
-/*
- * De-initialize page allocator
- */
-static int test_nvgpu_page_allocator_destroy(struct unit_module *m,
+int test_nvgpu_page_allocator_destroy(struct unit_module *m,
 					struct gk20a *g, void *args)
 {
 	na->ops->fini(na);
+	if (na->priv != NULL) {
+		unit_return_fail(m, "page allocator destroy failed\n");
+	}
 	nvgpu_kfree(g, na);
 
 	return UNIT_SUCCESS;
 }
 
-/*
- * Tests nvgpu_page_allocator_init()
- * This test considers multiple conditions to initialize page allocator
- */
-static int test_nvgpu_page_allocator_init(struct unit_module *m,
+int test_nvgpu_page_allocator_init(struct unit_module *m,
 					struct gk20a *g, void *args)
 {
 	u64 base = BA_DEFAULT_BASE;
@@ -602,8 +568,8 @@ struct unit_module_test page_allocator_tests[] = {
 
 	/* Below tests examine page allocation */
 	/*
-	 * NOTE: The test order should not be changed. A test contructs
-	 * required memory structure for later tests.
+	 * NOTE: The test order should not be changed. Previous test develop
+	 * memory allocation arrangement required for later tests.
 	 */
 
 	/* These tests check execution with fault injection at various locations */

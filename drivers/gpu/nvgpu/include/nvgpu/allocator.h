@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -680,26 +680,6 @@ void nvgpu_fini_alloc_debug(struct nvgpu_allocator *a);
 int  nvgpu_alloc_common_init(struct nvgpu_allocator *a, struct gk20a *g,
 			     const char *name, void *priv, bool dbg,
 			     const struct nvgpu_allocator_ops *ops);
-
-/**
- * @brief Enable allocator debug.
- *
- * @param[in] a		Pointer to nvgpu allocator.
- */
-static inline void nvgpu_alloc_enable_dbg(struct nvgpu_allocator *a)
-{
-	a->debug = true;
-}
-
-/**
- * @brief Disable allocator debug.
- *
- * @param[in] a		Pointer to nvgpu allocator.
- */
-static inline void nvgpu_alloc_disable_dbg(struct nvgpu_allocator *a)
-{
-	a->debug = false;
-}
 
 /*
  * Debug stuff.

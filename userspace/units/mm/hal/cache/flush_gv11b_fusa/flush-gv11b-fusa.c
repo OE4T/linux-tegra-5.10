@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -178,7 +178,8 @@ static int init_mm(struct unit_module *m, struct gk20a *g)
 	return UNIT_SUCCESS;
 }
 
-int test_env_init(struct unit_module *m, struct gk20a *g, void *args)
+int test_env_init_flush_gv11b_fusa(struct unit_module *m, struct gk20a *g,
+								void *args)
 {
 	g->log_mask = 0;
 
@@ -284,7 +285,8 @@ done:
 	return ret;
 }
 
-int test_env_clean(struct unit_module *m, struct gk20a *g, void *args)
+int test_env_clean_flush_gv11b_fusa(struct unit_module *m, struct gk20a *g,
+								void *args)
 {
 	g->log_mask = 0;
 
@@ -295,14 +297,14 @@ int test_env_clean(struct unit_module *m, struct gk20a *g, void *args)
 }
 
 struct unit_module_test mm_flush_gv11b_fusa_tests[] = {
-	UNIT_TEST(env_init, test_env_init, (void *)0, 0),
+	UNIT_TEST(env_init, test_env_init_flush_gv11b_fusa, NULL, 0),
 	UNIT_TEST(mm_l2_flush_s0, test_gv11b_mm_l2_flush, (void *)F_GV11B_L2_FLUSH_PASS_BAR1_BIND_NOT_NULL, 0),
 	UNIT_TEST(mm_l2_flush_s1, test_gv11b_mm_l2_flush, (void *)F_GV11B_L2_FLUSH_PASS_BAR1_BIND_NULL, 0),
 	UNIT_TEST(mm_l2_flush_s2, test_gv11b_mm_l2_flush, (void *)F_GV11B_L2_FLUSH_FB_FLUSH_FAIL, 0),
 	UNIT_TEST(mm_l2_flush_s3, test_gv11b_mm_l2_flush, (void *)F_GV11B_L2_FLUSH_L2_FLUSH_FAIL, 0),
 	UNIT_TEST(mm_l2_flush_s4, test_gv11b_mm_l2_flush, (void *)F_GV11B_L2_FLUSH_TLB_INVALIDATE_FAIL, 0),
 	UNIT_TEST(mm_l2_flush_s5, test_gv11b_mm_l2_flush, (void *)F_GV11B_L2_FLUSH_FB_FLUSH2_FAIL, 0),
-	UNIT_TEST(env_clean, test_env_clean, NULL, 0),
+	UNIT_TEST(env_clean, test_env_clean_flush_gv11b_fusa, NULL, 0),
 };
 
 UNIT_MODULE(flush_gv11b_fusa, mm_flush_gv11b_fusa_tests, UNIT_PRIO_NVGPU_TEST);

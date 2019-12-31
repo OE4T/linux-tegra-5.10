@@ -756,13 +756,13 @@
         "test_level": 0
     },
     {
-        "test": "test_env_clean",
+        "test": "test_env_clean_flush_gk20a_fusa",
         "case": "env_clean",
         "unit": "flush_gk20a_fusa",
         "test_level": 0
     },
     {
-        "test": "test_env_init",
+        "test": "test_env_init_flush_gk20a_fusa",
         "case": "env_init",
         "unit": "flush_gk20a_fusa",
         "test_level": 0
@@ -876,13 +876,13 @@
         "test_level": 0
     },
     {
-        "test": "test_env_clean",
+        "test": "test_env_clean_flush_gv11b_fusa",
         "case": "env_clean",
         "unit": "flush_gv11b_fusa",
         "test_level": 0
     },
     {
-        "test": "test_env_init",
+        "test": "test_env_init_flush_gv11b_fusa",
         "case": "env_init",
         "unit": "flush_gv11b_fusa",
         "test_level": 0
@@ -1536,13 +1536,13 @@
         "test_level": 0
     },
     {
-        "test": "test_env_clean",
+        "test": "test_env_clean_mm_gp10b_fusa",
         "case": "env_clean",
         "unit": "mm_gp10b_fusa",
         "test_level": 0
     },
     {
-        "test": "test_env_init",
+        "test": "test_env_init_mm_gp10b_fusa",
         "case": "env_init",
         "unit": "mm_gp10b_fusa",
         "test_level": 0
@@ -1566,13 +1566,13 @@
         "test_level": 0
     },
     {
-        "test": "test_env_clean",
+        "test": "test_env_clean_mm_gv11b_fusa",
         "case": "env_clean",
         "unit": "mm_gv11b_fusa",
         "test_level": 0
     },
     {
-        "test": "test_env_init",
+        "test": "test_env_init_mm_gv11b_fusa",
         "case": "env_init",
         "unit": "mm_gv11b_fusa",
         "test_level": 0
@@ -1620,13 +1620,13 @@
         "test_level": 0
     },
     {
-        "test": "test_env_clean",
+        "test": "test_env_clean_mm_mmu_fault_gv11b_fusa",
         "case": "env_clean",
         "unit": "mmu_fault_gv11b_fusa",
         "test_level": 0
     },
     {
-        "test": "test_env_init",
+        "test": "test_env_init_mm_mmu_fault_gv11b_fusa",
         "case": "env_init",
         "unit": "mmu_fault_gv11b_fusa",
         "test_level": 0
@@ -2018,6 +2018,12 @@
     {
         "test": "test_nvgpu_alloc_ops_present",
         "case": "alloc_ops",
+        "unit": "nvgpu_allocator",
+        "test_level": 0
+    },
+    {
+        "test": "test_nvgpu_allocator_init",
+        "case": "allocator_init",
         "unit": "nvgpu_allocator",
         "test_level": 0
     },
@@ -2898,6 +2904,12 @@
         "test_level": 0
     },
     {
+        "test": "test_nvgpu_mem_create_from_mem",
+        "case": "create_mem_from_mem",
+        "unit": "nvgpu_mem",
+        "test_level": 0
+    },
+    {
         "test": "test_nvgpu_mem_create_from_phys",
         "case": "mem_create_from_phys",
         "unit": "nvgpu_mem",
@@ -2912,6 +2924,12 @@
     {
         "test": "test_nvgpu_aperture_mask",
         "case": "nvgpu_aperture_mask",
+        "unit": "nvgpu_mem",
+        "test_level": 0
+    },
+    {
+        "test": "test_nvgpu_aperture_str",
+        "case": "nvgpu_aperture_name",
         "unit": "nvgpu_mem",
         "test_level": 0
     },
@@ -3648,6 +3666,12 @@
         "test_level": 0
     },
     {
+        "test": "test_nvgpu_gmmu_map_unmap_adv",
+        "case": "gmmu_map_unmap_tlb_invalidate_fail",
+        "unit": "page_table",
+        "test_level": 0
+    },
+    {
         "test": "test_nvgpu_gmmu_map_unmap",
         "case": "gmmu_map_unmap_unmapped",
         "unit": "page_table",
@@ -3686,6 +3710,12 @@
     {
         "test": "test_nvgpu_gmmu_map_unmap_map_fail",
         "case": "map_fail_pd_allocate_child",
+        "unit": "page_table",
+        "test_level": 0
+    },
+    {
+        "test": "test_nvgpu_gmmu_map_unmap_map_fail",
+        "case": "map_fail_tlb_invalidate",
         "unit": "page_table",
         "test_level": 0
     },

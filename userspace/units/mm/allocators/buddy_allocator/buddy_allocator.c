@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -39,6 +39,7 @@
 #include "buddy_allocator.h"
 
 #define SZ_8K			(SZ_4K << 1)
+#define SZ_16K			(SZ_4K << 2)
 #define BA_DEFAULT_BASE		SZ_4K
 #define BA_DEFAULT_SIZE		SZ_1M
 #define BA_DEFAULT_BLK_SIZE	SZ_4K
@@ -150,10 +151,21 @@ int test_buddy_allocator_with_big_pages(struct unit_module *m,
 	}
 
 	/*
-	 * Initialize buddy allocator, base = 0 and blk_size not pde aligned
+	 * Initialize buddy allocator, base = 0
 	 * Expect to fail
 	 */
 	if (nvgpu_allocator_init(g, na, vm_big_pages, "test", 0ULL, size,
+			blk_size, max_order, flags, BUDDY_ALLOCATOR) == 0) {
+		free_vm_env(m, g, vm_big_pages);
+		unit_return_fail(m, "ba_big_pages inited "
+			"despite base=0, blk_size not pde aligned\n");
+	}
+
+	/*
+	 * Initialize buddy allocator, base = 256M
+	 * Expect to fail
+	 */
+	if (nvgpu_allocator_init(g, na, vm_big_pages, "test", SZ_256M, SZ_64K,
 			blk_size, max_order, flags, BUDDY_ALLOCATOR) == 0) {
 		free_vm_env(m, g, vm_big_pages);
 		unit_return_fail(m, "ba_big_pages inited "
@@ -279,6 +291,7 @@ int test_buddy_allocator_with_small_pages(struct unit_module *m,
 	u64 max_order = 10;
 	u64 flags = GPU_ALLOC_GVA_SPACE;
 	u64 addr;
+	struct nvgpu_buddy_allocator *ba;
 	struct nvgpu_posix_fault_inj *kmem_fi =
 		nvgpu_kmem_get_fault_injection();
 
@@ -411,6 +424,22 @@ int test_buddy_allocator_with_small_pages(struct unit_module *m,
 	}
 
 	na->ops->fini(na);
+
+	/* Request align_order > ba->max_order */
+	if (nvgpu_allocator_init(g, na, vm_small_pages, "test", base, size,
+			blk_size, 5, flags, BUDDY_ALLOCATOR) != 0) {
+		free_vm_env(m, g, vm_small_pages);
+		unit_return_fail(m, "ba small pages init failed\n");
+	}
+
+	ba = na->priv;
+	addr = na->ops->alloc_fixed(na, ba->start, SZ_1M, SZ_4K);
+	if (addr != 0) {
+		unit_err(m, "%d: Allocated with align_order > ba->max_order\n",
+			__LINE__);
+		goto fail;
+	}
+
 	return UNIT_SUCCESS;
 
 fail:
@@ -431,7 +460,6 @@ int test_nvgpu_buddy_allocator_alloc(struct unit_module *m,
 	u64 max_order = 0;
 	u64 flags = 0ULL;
 	u64 addr;
-	u64 len_orig, split_orig, alloced_orig;
 	struct nvgpu_buddy_allocator *ba;
 	struct nvgpu_posix_fault_inj *kmem_fi =
 		nvgpu_kmem_get_fault_injection();
@@ -553,8 +581,7 @@ int test_nvgpu_buddy_allocator_alloc(struct unit_module *m,
 	/*
 	 * Test nvgpu_buddy_allocator_destroy()
 	 */
-	len_orig = ba->buddy_list_len[max_order/2];
-	ba->buddy_list_len[max_order/2] = 100;
+	ba->buddy_list_len[0] = 100;
 	if (!EXPECT_BUG(na->ops->fini(na))) {
 		unit_err(m, "%d: Excess buddies didn't trigger BUG()\n",
 			__LINE__);
@@ -565,29 +592,28 @@ int test_nvgpu_buddy_allocator_alloc(struct unit_module *m,
 	 * by BUG()
 	 */
 	alloc_unlock(na);
+	ba->buddy_list_len[0] = 0;
 
-	ba->buddy_list_len[max_order/2] = len_orig;
-
-	split_orig = ba->buddy_list_split[max_order/3];
-	ba->buddy_list_split[max_order/3] = 100;
+	ba->buddy_list_split[0] = 100;
 	if (!EXPECT_BUG(na->ops->fini(na))) {
 		unit_err(m, "%d: Excess split nodes didn't trigger BUG()\n",
 			__LINE__);
 		goto cleanup;
 	}
-	/* Release mutex again */
+	/*
+	 * Release the mutex that was left locked when fini() was interrupted
+	 * by BUG()
+	 */
 	alloc_unlock(na);
+	ba->buddy_list_split[0] = 0;
 
-	ba->buddy_list_split[max_order/3] = split_orig;
-
-	alloced_orig = ba->buddy_list_alloced[max_order/4];
-	ba->buddy_list_alloced[max_order/4] = 100;
+	ba->buddy_list_alloced[0] = 100;
 	if (!EXPECT_BUG(na->ops->fini(na))) {
 		unit_err(m, "%d: Excess alloced nodes didn't trigger BUG()\n",
 			__LINE__);
 		goto cleanup;
 	}
-	ba->buddy_list_alloced[max_order/4] = alloced_orig;
+	ba->buddy_list_alloced[0] = 0;
 
 	result = UNIT_SUCCESS;
 
@@ -611,6 +637,8 @@ int test_nvgpu_buddy_allocator_carveout(struct unit_module *m,
 				NVGPU_CARVEOUT("test_co", 0ULL, 0ULL);
 	struct nvgpu_alloc_carveout test_co1 =
 				NVGPU_CARVEOUT("test_co1", 0ULL, 0ULL);
+	struct nvgpu_alloc_carveout test_co2 =
+				NVGPU_CARVEOUT("test_co2", 0ULL, 0ULL);
 
 	/*
 	 * test_co base  < buddy_allocator start
@@ -625,7 +653,7 @@ int test_nvgpu_buddy_allocator_carveout(struct unit_module *m,
 	 * test_co base + test_co length > buddy allocator end
 	 * Expect to fail
 	 */
-	test_co.base = BA_DEFAULT_BASE >> 1;
+	test_co.base = BA_DEFAULT_BASE;
 	test_co.length = BA_DEFAULT_SIZE << 1;
 
 	err = na->ops->reserve_carveout(na, &test_co);
@@ -646,18 +674,18 @@ int test_nvgpu_buddy_allocator_carveout(struct unit_module *m,
 		unit_return_fail(m, "carveout reserved with unaligned base\n");
 	}
 
-	test_co.base =  BA_DEFAULT_BASE;
-	test_co.length = SZ_4K;
-	err = na->ops->reserve_carveout(na, &test_co);
+	test_co1.base =  BA_DEFAULT_BASE;
+	test_co1.length = SZ_4K;
+	err = na->ops->reserve_carveout(na, &test_co1);
 	if (err < 0) {
 		unit_return_fail(m, "couldn't reserve 4K carveout\n");
 	}
 
-	na->ops->release_carveout(na, &test_co);
+	na->ops->release_carveout(na, &test_co1);
 
-	test_co.base =  SZ_4K;
-	test_co.length = SZ_4K;
-	err = na->ops->reserve_carveout(na, &test_co);
+	test_co1.base =  SZ_4K;
+	test_co1.length = SZ_4K;
+	err = na->ops->reserve_carveout(na, &test_co1);
 	if (err < 0) {
 		unit_return_fail(m,
 			"couldn't reserve 4K carveout after release\n");
@@ -667,19 +695,55 @@ int test_nvgpu_buddy_allocator_carveout(struct unit_module *m,
 	 * Allocate 64K carveout at already allocated address
 	 * Expect to fail
 	 */
-	test_co1.base =  0x1800;
-	test_co1.length = SZ_64K;
-	err = na->ops->reserve_carveout(na, &test_co1);
+	test_co.base =  0x1800;
+	test_co.length = SZ_64K;
+	err = na->ops->reserve_carveout(na, &test_co);
 	if (err == 0) {
 		unit_return_fail(m,
 			"64K carveout reserved at already allocated address\n");
 	}
 
-	test_co1.base =  SZ_4K << 2;
-	test_co1.length = SZ_64K;
-	err = na->ops->reserve_carveout(na, &test_co1);
+	test_co2.base =  SZ_16K;
+	test_co2.length = SZ_64K;
+	err = na->ops->reserve_carveout(na, &test_co2);
 	if (err < 0) {
 		unit_return_fail(m, "couldn't reserve 64K carveout\n");
+	}
+
+	/*
+	 * Allocate 8K carveout at already allocated address
+	 * Expect to fail
+	 */
+	test_co.base =  0x1800 + SZ_4K;
+	test_co.length = SZ_8K;
+	err = na->ops->reserve_carveout(na, &test_co);
+	if (err == 0) {
+		unit_return_fail(m,
+			"8K carveout reserved at already allocated address\n");
+	}
+
+	/*
+	 * Allocate 4K carveout at already allocated address
+	 * Expect to fail
+	 */
+	test_co.base = SZ_16K;
+	test_co.length = SZ_4K;
+	err = na->ops->reserve_carveout(na, &test_co);
+	if (err == 0) {
+		unit_return_fail(m,
+			"8K carveout reserved at already allocated address\n");
+	}
+
+	/*
+	 * Allocate 8K carveout at already allocated address
+	 * Expect to fail
+	 */
+	test_co.base =  0x1800;
+	test_co.length = SZ_4K;
+	err = na->ops->reserve_carveout(na, &test_co);
+	if (err == 0) {
+		unit_return_fail(m,
+			"8K carveout reserved at already allocated address\n");
 	}
 
 	addr = na->ops->alloc(na, (SZ_64K >> 1));

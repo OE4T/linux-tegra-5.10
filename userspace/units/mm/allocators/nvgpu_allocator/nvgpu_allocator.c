@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -24,7 +24,10 @@
 #include <unit/unit.h>
 
 #include <nvgpu/types.h>
+#include <nvgpu/sizes.h>
 #include <nvgpu/allocator.h>
+
+#include "nvgpu_allocator.h"
 
 #define OP_ALLOC		0
 #define OP_FREE			1
@@ -149,18 +152,7 @@ static struct nvgpu_allocator_ops dummy_ops = {
 	.fini             = dummy_fini
 };
 
-/*
- * Make sure the op functions are called and that's it. Verifying that the ops
- * actually do what they are supposed to do is the responsibility of the unit
- * tests for the actual allocator implementations.
- *
- * In this unit test the meaning of these ops can't really be assumed. But we
- * can test that the logic for only calling present ops is tested.
- *
- * Also note: we don't test the fini op here; instead we test it separately as
- * part of the init/destroy functionality.
- */
-static int test_nvgpu_alloc_ops_present(struct unit_module *m,
+int test_nvgpu_alloc_ops_present(struct unit_module *m,
 					struct gk20a *g, void *args)
 {
 	u32 i;
@@ -243,13 +235,7 @@ static int test_nvgpu_alloc_ops_present(struct unit_module *m,
 	return UNIT_SUCCESS;
 }
 
-/*
- * Test the common_init() function used by all allocator implementations. The
- * test here is to simply catch that the various invalid input checks are
- * exercised and that the parameters passed into the common_init() make their
- * way into the allocator struct.
- */
-static int test_nvgpu_alloc_common_init(struct unit_module *m,
+int test_nvgpu_alloc_common_init(struct unit_module *m,
 					struct gk20a *g, void *args)
 {
 	struct nvgpu_allocator a;
@@ -294,11 +280,7 @@ static int test_nvgpu_alloc_common_init(struct unit_module *m,
 	return UNIT_SUCCESS;
 }
 
-/*
- * Test that the destroy function works. This just calls the fini() op and
- * expects the allocator to have been completely zeroed.
- */
-static int test_nvgpu_alloc_destroy(struct unit_module *m,
+int test_nvgpu_alloc_destroy(struct unit_module *m,
 					struct gk20a *g, void *args)
 {
 	struct nvgpu_allocator a;
@@ -322,10 +304,53 @@ static int test_nvgpu_alloc_destroy(struct unit_module *m,
 	return UNIT_SUCCESS;
 }
 
+int test_nvgpu_allocator_init(struct unit_module *m,
+						struct gk20a *g, void *args)
+{
+	struct nvgpu_allocator a;
+	u64 base = SZ_4K;
+	u64 size = SZ_64K;
+	u64 blk_size = SZ_4K;
+	u64 max_order = 0;
+	u64 flags = 0ULL;
+
+	if (nvgpu_allocator_init(g, &a, NULL, "buddy", base, size, blk_size,
+				max_order, flags, BUDDY_ALLOCATOR) != 0) {
+		unit_return_fail(m, "failed to init buddy_allocator\n");
+	} else {
+		a.ops->fini(&a);
+	}
+
+#ifdef CONFIG_NVGPU_DGPU
+	if (nvgpu_allocator_init(g, &a, NULL, "page", base, size, blk_size,
+				max_order, flags, PAGE_ALLOCATOR) != 0) {
+		unit_return_fail(m, "failed to init page_allocator\n");
+	} else {
+		a.ops->fini(&a);
+	}
+#endif
+
+	if (nvgpu_allocator_init(g, &a, NULL, "bitmap", base, size, blk_size,
+				max_order, flags, BITMAP_ALLOCATOR) != 0) {
+		unit_return_fail(m, "failed to init bitmap_allocator\n");
+	} else {
+		a.ops->fini(&a);
+	}
+
+	/* Initialize invalid allocator */
+	if (nvgpu_allocator_init(g, &a, NULL, "invalid", base, size, blk_size,
+				max_order, flags, -1) != -EINVAL) {
+		unit_return_fail(m, "initialized invalid allocator\n");
+	}
+
+	return UNIT_SUCCESS;
+}
+
 struct unit_module_test nvgpu_allocator_tests[] = {
 	UNIT_TEST(common_init,      test_nvgpu_alloc_common_init,  NULL, 0),
 	UNIT_TEST(alloc_destroy,    test_nvgpu_alloc_destroy,      NULL, 0),
 	UNIT_TEST(alloc_ops,        test_nvgpu_alloc_ops_present,  NULL, 0),
+	UNIT_TEST(allocator_init,   test_nvgpu_allocator_init,     NULL, 0),
 };
 
 UNIT_MODULE(nvgpu_allocator, nvgpu_allocator_tests, UNIT_PRIO_NVGPU_TEST);

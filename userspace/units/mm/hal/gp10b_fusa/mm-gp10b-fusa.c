@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -163,7 +163,8 @@ static int init_mm(struct unit_module *m, struct gk20a *g)
 	return UNIT_SUCCESS;
 }
 
-int test_env_init(struct unit_module *m, struct gk20a *g, void *args)
+int test_env_init_mm_gp10b_fusa(struct unit_module *m, struct gk20a *g,
+								void *args)
 {
 	g->log_mask = 0;
 
@@ -227,7 +228,8 @@ done:
 	return ret;
 }
 
-int test_env_clean(struct unit_module *m, struct gk20a *g, void *args)
+int test_env_clean_mm_gp10b_fusa(struct unit_module *m, struct gk20a *g,
+								void *args)
 {
 	g->log_mask = 0;
 	g->ops.mm.mmu_fault.info_mem_destroy(g);
@@ -237,11 +239,11 @@ int test_env_clean(struct unit_module *m, struct gk20a *g, void *args)
 }
 
 struct unit_module_test mm_gp10b_fusa_tests[] = {
-	UNIT_TEST(env_init, test_env_init, (void *)0, 0),
+	UNIT_TEST(env_init, test_env_init_mm_gp10b_fusa, (void *)0, 0),
 	UNIT_TEST(mm_init_bar2_vm_s0, test_gp10b_mm_init_bar2_vm, (void *)F_INIT_BAR2_VM_DEFAULT, 0),
 	UNIT_TEST(mm_init_bar2_vm_s1, test_gp10b_mm_init_bar2_vm, (void *)F_INIT_BAR2_VM_INIT_VM_FAIL, 0),
 	UNIT_TEST(mm_init_bar2_vm_s2, test_gp10b_mm_init_bar2_vm, (void *)F_INIT_BAR2_VM_ALLOC_INST_BLOCK_FAIL, 0),
-	UNIT_TEST(env_clean, test_env_clean, NULL, 0),
+	UNIT_TEST(env_clean, test_env_clean_mm_gp10b_fusa, NULL, 0),
 };
 
 UNIT_MODULE(mm_gp10b_fusa, mm_gp10b_fusa_tests, UNIT_PRIO_NVGPU_TEST);

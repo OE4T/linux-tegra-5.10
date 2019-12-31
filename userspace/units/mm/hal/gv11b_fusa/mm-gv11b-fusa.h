@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -33,7 +33,7 @@ struct unit_module;
  */
 
 /**
- * Test specification for: test_env_init
+ * Test specification for: test_env_init_mm_gv11b_fusa
  *
  * Description: Initialize environment for MM tests
  *
@@ -49,7 +49,8 @@ struct unit_module;
  * Output: Returns SUCCESS if the steps above were executed successfully. FAIL
  * otherwise.
  */
-int test_env_init(struct unit_module *m, struct gk20a *g, void *args);
+int test_env_init_mm_gv11b_fusa(struct unit_module *m, struct gk20a *g,
+					void *args);
 
 /**
  * Test specification for: test_gv11b_mm_init_inst_block
@@ -94,7 +95,7 @@ int test_gv11b_mm_init_inst_block(struct unit_module *m, struct gk20a *g,
 int test_gv11b_mm_is_bar1_supported(struct unit_module *m, struct gk20a *g,
 					void *args);
 /**
- * Test specification for: test_env_clean
+ * Test specification for: test_env_clean_mm_gv11b_fusa
  *
  * Description: Cleanup test environment
  *
@@ -110,7 +111,8 @@ int test_gv11b_mm_is_bar1_supported(struct unit_module *m, struct gk20a *g,
  * Output: Returns SUCCESS if the steps above were executed successfully. FAIL
  * otherwise.
  */
-int test_env_clean(struct unit_module *m, struct gk20a *g, void *args);
+int test_env_clean_mm_gv11b_fusa(struct unit_module *m, struct gk20a *g,
+					void *args);
 
 /** @} */
 #endif /* UNIT_MM_HAL_GV11B_FUSA_H */

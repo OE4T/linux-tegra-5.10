@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -276,6 +276,12 @@ int test_nvgpu_init_mm(struct unit_module *m, struct gk20a *g, void *args)
 	/* Making g->ops.mm.mmu_fault.setup_sw fail */
 	errors += nvgpu_init_mm_support_inject_error(m, g, ERROR_TYPE_HAL, 1,
 						     ARBITRARY_ERROR, 16);
+
+	/* Making g->ops.fb.fb_ecc_init fail */
+	g->ops.fb.fb_ecc_init = int_empty_hal;
+	errors += nvgpu_init_mm_support_inject_error(m, g, ERROR_TYPE_HAL, 2,
+						     ARBITRARY_ERROR, 17);
+	g->ops.fb.fb_ecc_init = NULL;
 
 	/*
 	 * Extra cases for branch coverage: change support flags to test

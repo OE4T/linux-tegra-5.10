@@ -548,6 +548,7 @@ nvgpu_mc_intr_stall_unit_config
 nvgpu_memcmp
 nvgpu_memcpy
 nvgpu_memset
+nvgpu_mem_create_from_mem
 nvgpu_mem_create_from_phys
 nvgpu_mem_get_addr
 nvgpu_mem_iommu_translate

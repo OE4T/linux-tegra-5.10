@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -37,7 +37,10 @@ struct unit_module;
  *
  * Description: Initialize bitmap allocator.
  *
- * Test Type: Feature
+ * Test Type: Feature, Error injection
+ *
+ * Targets: nvgpu_bitmap_allocator_init, nvgpu_bitmap_check_argument_limits,
+ *          nvgpu_allocator.ops.fini, nvgpu_alloc_to_gpu
  *
  * Input: None
  *
@@ -61,6 +64,9 @@ int test_nvgpu_bitmap_allocator_init(struct unit_module *m,
  *
  * Test Type: Feature
  *
+ * Targets: nvgpu_allocator.ops.base, nvgpu_allocator.ops.length,
+ *          nvgpu_allocator.ops.end, nvgpu_allocator.ops.inited
+ *
  * Input: test_nvgpu_bitmap_allocator_init
  *
  * Steps:
@@ -80,7 +86,12 @@ int test_nvgpu_bitmap_allocator_ops(struct unit_module *m,
  *
  * Description: Allocate various sizes of memory to test different scenarios.
  *
- * Test Type: Feature
+ * Test Type: Feature, Error injection
+ *
+ * Targets: nvgpu_allocator.ops.alloc, nvgpu_allocator.ops.free_alloc,
+ *          nvgpu_allocator.ops.alloc_fixed, nvgpu_allocator.ops.free_fixed,
+ *          nvgpu_bitmap_alloc_from_rbtree_node, bitmap_allocator,
+ *          alloc_loc, alloc_unlock
  *
  * Input: test_nvgpu_bitmap_allocator_init
  *
@@ -109,6 +120,8 @@ int test_nvgpu_bitmap_allocator_alloc(struct unit_module *m,
  *
  * Test Type: Other (clean up)
  *
+ * Targets: nvgpu_allocator.ops.fini
+ *
  * Input: test_nvgpu_bitmap_allocator_init
  *
  * Steps:
@@ -127,6 +140,11 @@ int test_nvgpu_bitmap_allocator_destroy(struct unit_module *m,
  * critical path.
  *
  * Test Type: Feature
+ *
+ * Targets: nvgpu_allocator_init, nvgpu_bitmap_allocator_init,
+ *          nvgpu_bitmap_check_argument_limits, nvgpu_allocator.ops.alloc
+ *          nvgpu_allocator.ops.free_alloc, nvgpu_allocator.ops.alloc_fixed,
+ *          nvgpu_allocator.ops.free_fixed, nvgpu_allocator.ops.fini
  *
  * Input: None
  *

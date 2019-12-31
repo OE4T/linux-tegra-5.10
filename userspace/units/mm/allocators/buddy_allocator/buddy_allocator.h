@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -37,7 +37,13 @@ struct unit_module;
  *
  * Description: Initialize buddy allocator.
  *
- * Test Type: Feature
+ * Test Type: Feature, Error injection
+ *
+ * Targets: nvgpu_allocator_init, nvgpu_buddy_allocator_init,
+ *          nvgpu_buddy_check_argument_limits, nvgpu_buddy_set_attributes,
+ *          balloc_allocator_align, balloc_compute_max_order, balloc_init_lists,
+ *          balloc_max_order_in, balloc_get_order, balloc_get_order_list,
+ *          nvgpu_allocator.ops.fini
  *
  * Input: None
  *
@@ -74,6 +80,10 @@ int test_nvgpu_buddy_allocator_init(struct unit_module *m,
  *
  * Test Type: Feature
  *
+ * Targets: nvgpu_allocator.ops.alloc, nvgpu_allocator.ops.reserve_carveout,
+ *          nvgpu_allocator.ops.release_carveout,
+ *          nvgpu_alloc_carveout_from_co_entry
+ *
  * Input: test_nvgpu_buddy_allocator_init
  *
  * Steps:
@@ -99,6 +109,16 @@ int test_nvgpu_buddy_allocator_carveout(struct unit_module *m,
  * Description: Test buddy allocator attribute and allocation functions.
  *
  * Test Type: Feature
+ *
+ * Targets: nvgpu_allocator.ops.base, nvgpu_allocator.ops.length,
+ *          nvgpu_allocator.ops.end, nvgpu_allocator.ops.inited,
+ *          nvgpu_allocator.ops.space, nvgpu_allocator.ops.alloc,
+ *          nvgpu_allocator.ops.alloc_pte, nvgpu_allocator.ops.free_alloc,
+ *          nvgpu_allocator.ops.alloc_fixed, nvgpu_buddy_allocator_flag_ops,
+ *          nvgpu_buddy_from_buddy_entry, balloc_base_shift, buddy_allocator,
+ *          balloc_base_unshift, balloc_owner, balloc_order_to_len, alloc_lock,
+ *          alloc_unlock, nvgpu_alloc_to_gpu, nvgpu_buddy_from_rbtree_node,
+ *          nvgpu_fixed_alloc_from_rbtree_node
  *
  * Input: test_nvgpu_buddy_allocator_init
  *
@@ -129,6 +149,8 @@ int test_nvgpu_buddy_allocator_basic_ops(struct unit_module *m,
  *
  * Test Type: Other (cleanup)
  *
+ * Targets: nvgpu_allocator.ops.fini
+ *
  * Input: test_nvgpu_buddy_allocator_init
  *
  * Steps:
@@ -146,7 +168,11 @@ int test_nvgpu_buddy_allocator_destroy(struct unit_module *m,
  *
  * Description: Test cleanup branch of memory allocations.
  *
- * Test Type: Feature
+ * Test Type: Feature, Error injection
+ *
+ * Targets: nvgpu_allocator_init, nvgpu_allocator.ops.alloc,
+ *          nvgpu_allocator.ops.alloc_fixed, nvgpu_buddy_allocator_flag_ops,
+ *          nvgpu_allocator.ops.fini
  *
  * Input: None
  *
@@ -178,7 +204,12 @@ int test_nvgpu_buddy_allocator_alloc(struct unit_module *m,
  *
  * Description: Test buddy allocator functions with big pages disabled.
  *
- * Test Type: Feature
+ * Test Type: Feature, Error injection
+ *
+ * Targets: nvgpu_allocator_init, nvgpu_buddy_allocator_init,
+ *          nvgpu_buddy_check_argument_limits, nvgpu_allocator.ops.inited
+ *          nvgpu_buddy_set_attributes, nvgpu_allocator.ops.alloc_pte,
+ *          nvgpu_allocator.ops.alloc_fixed, nvgpu_allocator.ops.fini
  *
  * Input: None
  *
@@ -219,6 +250,12 @@ int test_buddy_allocator_with_small_pages(struct unit_module *m,
  * Description: Test buddy allocator functions with big pages enabled.
  *
  * Test Type: Feature
+ *
+ * Targets: nvgpu_allocator_init, nvgpu_buddy_allocator_init,
+ *          nvgpu_buddy_check_argument_limits, nvgpu_buddy_set_attributes,
+ *          nvgpu_allocator.ops.alloc_pte, nvgpu_allocator.ops.alloc_fixed
+ *          nvgpu_allocator.ops.alloc, nvgpu_allocator.ops.free_alloc,
+ *          nvgpu_allocator.ops.fini
  *
  * Input: None
  *

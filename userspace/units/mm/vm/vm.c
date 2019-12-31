@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -60,6 +60,7 @@
 #define SPECIAL_CASE_DOUBLE_MAP		1
 #define SPECIAL_CASE_NO_FREE		2
 #define SPECIAL_CASE_NO_VM_AREA		4
+#define SPECIAL_CASE_TIMEOUT_INIT_FAIL	8
 
 /*
  * Helper function used to create custom SGTs from a list of SGLs.
@@ -512,6 +513,8 @@ static int map_buffer(struct unit_module *m,
 	u32 pte[2];
 	struct nvgpu_mapped_buf **mapped_buffers = NULL;
 	u32 num_mapped_buffers = 0;
+	struct nvgpu_posix_fault_inj *timers_fi =
+		nvgpu_timers_get_fault_injection();
 	struct nvgpu_posix_fault_inj *kmem_fi =
 		nvgpu_kmem_get_fault_injection();
 
@@ -748,7 +751,13 @@ static int map_buffer(struct unit_module *m,
 
 free_mapped_buf:
 	if ((mapped_buf != NULL) && !(subcase & SPECIAL_CASE_NO_FREE)) {
-		nvgpu_vm_unmap(vm, mapped_buf->addr, batch);
+		if (subcase & SPECIAL_CASE_TIMEOUT_INIT_FAIL) {
+			nvgpu_posix_enable_fault_injection(timers_fi, true, 0);
+			nvgpu_vm_unmap(vm, mapped_buf->addr, batch);
+			nvgpu_posix_enable_fault_injection(timers_fi, false, 0);
+		} else {
+			nvgpu_vm_unmap(vm, mapped_buf->addr, batch);
+		}
 		/*
 		 * Unmapping an already unmapped buffer should not cause any
 		 * errors.
@@ -949,8 +958,8 @@ int test_init_error_paths(struct unit_module *m, struct gk20a *g, void *__args)
 	}
 	low_hole = SZ_1M * 64;
 
-	/* Cause nvgpu_allocator_init(BUDDY) to fail for user VMA */
-	nvgpu_posix_enable_fault_injection(kmem_fi, true, 5);
+	/* Cause nvgpu_gmmu_init_page_table to fail */
+	nvgpu_posix_enable_fault_injection(kmem_fi, true, 0);
 	ret = nvgpu_vm_do_init(&g->mm, vm,
 				g->ops.mm.gmmu.get_default_big_page_size(),
 				low_hole, kernel_reserved, aperture_size,
@@ -962,8 +971,8 @@ int test_init_error_paths(struct unit_module *m, struct gk20a *g, void *__args)
 		goto exit;
 	}
 
-	/* Cause nvgpu_allocator_init(BUDDY) to fail for kernel VMA */
-	nvgpu_posix_enable_fault_injection(kmem_fi, true, 10);
+	/* Cause nvgpu_allocator_init(BUDDY) to fail for user VMA */
+	nvgpu_posix_enable_fault_injection(kmem_fi, true, 5);
 	ret = nvgpu_vm_do_init(&g->mm, vm,
 				g->ops.mm.gmmu.get_default_big_page_size(),
 				low_hole, kernel_reserved, aperture_size,
@@ -971,6 +980,32 @@ int test_init_error_paths(struct unit_module *m, struct gk20a *g, void *__args)
 	nvgpu_posix_enable_fault_injection(kmem_fi, false, 0);
 	if (ret != -ENOMEM) {
 		unit_err(m, "nvgpu_vm_do_init did not fail as expected (8).\n");
+		ret = UNIT_FAIL;
+		goto exit;
+	}
+
+	/* Cause nvgpu_allocator_init(BUDDY) to fail for user_lp VMA */
+	nvgpu_posix_enable_fault_injection(kmem_fi, true, 12);
+	ret = nvgpu_vm_do_init(&g->mm, vm,
+				g->ops.mm.gmmu.get_default_big_page_size(),
+				low_hole, kernel_reserved, aperture_size,
+				big_pages, false, false, __func__);
+	nvgpu_posix_enable_fault_injection(kmem_fi, false, 0);
+	if (ret != -ENOMEM) {
+		unit_err(m, "nvgpu_vm_do_init didn't fail as expected (9).\n");
+		ret = UNIT_FAIL;
+		goto exit;
+	}
+
+	/* Cause nvgpu_allocator_init(BUDDY) to fail for kernel VMA */
+	nvgpu_posix_enable_fault_injection(kmem_fi, true, 17);
+	ret = nvgpu_vm_do_init(&g->mm, vm,
+				g->ops.mm.gmmu.get_default_big_page_size(),
+				low_hole, kernel_reserved, aperture_size,
+				big_pages, false, false, __func__);
+	nvgpu_posix_enable_fault_injection(kmem_fi, false, 0);
+	if (ret != -ENOMEM) {
+		unit_err(m, "nvgpu_vm_do_init didn't fail as expected (10).\n");
 		ret = UNIT_FAIL;
 		goto exit;
 	}
@@ -984,7 +1019,19 @@ int test_init_error_paths(struct unit_module *m, struct gk20a *g, void *__args)
 				__func__);
 	vm->guest_managed = false;
 	if (ret != -EINVAL) {
-		unit_err(m, "nvgpu_vm_do_init did not fail as expected (9).\n");
+		unit_err(m, "nvgpu_vm_do_init didn't fail as expected (11).\n");
+		ret = UNIT_FAIL;
+		goto exit;
+	}
+
+	/* Cause nvgpu_vm_init_vma_allocators to fail for long vm name */
+	ret = nvgpu_vm_do_init(&g->mm, vm,
+				g->ops.mm.gmmu.get_default_big_page_size(),
+				low_hole, kernel_reserved, aperture_size,
+				big_pages, false, false,
+				"very_long_vm_name_to_fail_vm_init");
+	if (ret != -EINVAL) {
+		unit_err(m, "nvgpu_vm_do_init didn't fail as expected (12).\n");
 		ret = UNIT_FAIL;
 		goto exit;
 	}
@@ -1382,6 +1429,24 @@ int test_map_buf_gpu_va(struct unit_module *m,
 			 page_size,
 			 alignment,
 			 SPECIAL_CASE_DOUBLE_MAP);
+	if (ret != UNIT_SUCCESS) {
+		unit_err(m, "Mapping failed (already mapped case)\n");
+		goto exit;
+	}
+
+	/*
+	 * Corner case: Timeout init fails in nvgpu_vm_unmap
+	 */
+	ret = map_buffer(m,
+			 g,
+			 vm,
+			 NULL,
+			 BUF_CPU_PA,
+			 gpu_va,
+			 buf_size,
+			 page_size,
+			 alignment,
+			 SPECIAL_CASE_TIMEOUT_INIT_FAIL);
 	if (ret != UNIT_SUCCESS) {
 		unit_err(m, "Mapping failed (already mapped case)\n");
 		goto exit;

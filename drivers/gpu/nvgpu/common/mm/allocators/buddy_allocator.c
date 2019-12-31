@@ -294,7 +294,7 @@ static void nvgpu_buddy_allocator_destroy(struct nvgpu_allocator *na)
 	struct nvgpu_rbtree_node *node = NULL;
 	struct nvgpu_buddy *bud;
 	struct nvgpu_fixed_alloc *falloc;
-	struct nvgpu_buddy_allocator *a = na->priv;
+	struct nvgpu_buddy_allocator *a = buddy_allocator(na);
 
 	alloc_lock(na);
 
@@ -909,7 +909,7 @@ static u64 nvgpu_buddy_balloc_pte(struct nvgpu_allocator *na, u64 len,
 {
 	u64 order, addr;
 	u32 pte_size;
-	struct nvgpu_buddy_allocator *a = na->priv;
+	struct nvgpu_buddy_allocator *a = buddy_allocator(na);
 
 	if (len == 0ULL) {
 		alloc_dbg(balloc_owner(a), "Alloc fail");
@@ -968,7 +968,7 @@ static u64 nvgpu_balloc_fixed_buddy_locked(struct nvgpu_allocator *na,
 	u64 ret, real_bytes = 0;
 	struct nvgpu_buddy *bud;
 	struct nvgpu_fixed_alloc *falloc = NULL;
-	struct nvgpu_buddy_allocator *a = na->priv;
+	struct nvgpu_buddy_allocator *a = buddy_allocator(na);
 
 	/* If base isn't aligned to an order 0 block, fail. */
 	nvgpu_assert(a->blk_size > 0ULL);
@@ -1050,7 +1050,7 @@ static u64 nvgpu_balloc_fixed_buddy(struct nvgpu_allocator *na,
 				    u64 base, u64 len, u32 page_size)
 {
 	u64 alloc;
-	struct nvgpu_buddy_allocator *a = na->priv;
+	struct nvgpu_buddy_allocator *a = buddy_allocator(na);
 
 	alloc_lock(na);
 	alloc = nvgpu_balloc_fixed_buddy_locked(na, base, len, page_size);
@@ -1071,7 +1071,7 @@ static void nvgpu_buddy_bfree_locked(struct nvgpu_allocator *na, u64 addr)
 {
 	struct nvgpu_buddy *bud;
 	struct nvgpu_fixed_alloc *falloc;
-	struct nvgpu_buddy_allocator *a = na->priv;
+	struct nvgpu_buddy_allocator *a = buddy_allocator(na);
 
 	/*
 	 * First see if this is a fixed alloc. If not fall back to a regular
@@ -1148,7 +1148,7 @@ static bool nvgpu_buddy_reserve_is_possible(struct nvgpu_buddy_allocator *a,
 static int nvgpu_buddy_reserve_co(struct nvgpu_allocator *na,
 				  struct nvgpu_alloc_carveout *co)
 {
-	struct nvgpu_buddy_allocator *a = na->priv;
+	struct nvgpu_buddy_allocator *a = buddy_allocator(na);
 	u64 addr;
 	int err = 0;
 
@@ -1203,21 +1203,21 @@ static void nvgpu_buddy_release_co(struct nvgpu_allocator *na,
 
 static u64 nvgpu_buddy_alloc_length(struct nvgpu_allocator *a)
 {
-	struct nvgpu_buddy_allocator *ba = a->priv;
+	struct nvgpu_buddy_allocator *ba = buddy_allocator(a);
 
 	return ba->length;
 }
 
 static u64 nvgpu_buddy_alloc_base(struct nvgpu_allocator *a)
 {
-	struct nvgpu_buddy_allocator *ba = a->priv;
+	struct nvgpu_buddy_allocator *ba = buddy_allocator(a);
 
 	return ba->start;
 }
 
 static bool nvgpu_buddy_alloc_inited(struct nvgpu_allocator *a)
 {
-	struct nvgpu_buddy_allocator *ba = a->priv;
+	struct nvgpu_buddy_allocator *ba = buddy_allocator(a);
 	bool inited = ba->initialized;
 
 	nvgpu_smp_rmb();
@@ -1226,14 +1226,14 @@ static bool nvgpu_buddy_alloc_inited(struct nvgpu_allocator *a)
 
 static u64 nvgpu_buddy_alloc_end(struct nvgpu_allocator *a)
 {
-	struct nvgpu_buddy_allocator *ba = a->priv;
+	struct nvgpu_buddy_allocator *ba = buddy_allocator(a);
 
 	return ba->end;
 }
 
 static u64 nvgpu_buddy_alloc_space(struct nvgpu_allocator *a)
 {
-	struct nvgpu_buddy_allocator *ba = a->priv;
+	struct nvgpu_buddy_allocator *ba = buddy_allocator(a);
 	u64 space;
 
 	alloc_lock(a);
@@ -1259,7 +1259,7 @@ static void nvgpu_buddy_print_stats(struct nvgpu_allocator *na,
 	struct nvgpu_rbtree_node *node = NULL;
 	struct nvgpu_fixed_alloc *falloc;
 	struct nvgpu_alloc_carveout *tmp;
-	struct nvgpu_buddy_allocator *a = na->priv;
+	struct nvgpu_buddy_allocator *a = buddy_allocator(na);
 
 	alloc_pstat(s, na, "base = %llu, limit = %llu, blk_size = %llu",
 		      a->base, a->length, a->blk_size);

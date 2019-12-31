@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -37,7 +37,9 @@ struct unit_module;
  *
  * Description: Initialize nvgpu_mem for given size and base address.
  *
- * Test Type: Feature
+ * Test Type: Feature, Error injection
+ *
+ * Targets: nvgpu_mem_create_from_phys
  *
  * Input: None
  *
@@ -60,6 +62,15 @@ int test_nvgpu_mem_create_from_phys(struct unit_module *m,
  *
  * Test Type: Feature
  *
+ * Targets: nvgpu_mem.nvgpu_sgt.nvgpu_sgt_ops.sgl_next,
+ *          nvgpu_mem.nvgpu_sgt.nvgpu_sgt_ops.sgl_dma,
+ *          nvgpu_mem.nvgpu_sgt.nvgpu_sgt_ops.sgl_phys,
+ *          nvgpu_mem.nvgpu_sgt.nvgpu_sgt_ops.sgl_ipa,
+ *          nvgpu_mem.nvgpu_sgt.nvgpu_sgt_ops.sgl_ipa_to_pa,
+ *          nvgpu_mem.nvgpu_sgt.nvgpu_sgt_ops.sgl_length,
+ *          nvgpu_mem.nvgpu_sgt.nvgpu_sgt_ops.sgl_gpu_addr,
+ *          nvgpu_mem.nvgpu_sgt.nvgpu_sgt_ops.sgt_free
+ *
  * Input: test_nvgpu_mem_create_from_phys
  *
  * Steps:
@@ -77,6 +88,8 @@ int test_nvgpu_mem_phys_ops(struct unit_module *m, struct gk20a *g, void *args);
  * Description: Store pre-defined pattern at allocated nvgpu_mem address
  *
  * Test Type: Feature
+ *
+ * Targets: nvgpu_memset
  *
  * Input: test_nvgpu_mem_create_from_phys
  *
@@ -99,6 +112,10 @@ int test_nvgpu_memset_sysmem(struct unit_module *m,
  * Description: Test read and write functions for sysmem
  *
  * Test Type: Feature
+ *
+ * Targets: nvgpu_mem_is_sysmem, nvgpu_mem_is_valid, nvgpu_mem_wr, nvgpu_mem_rd,
+ *          nvgpu_mem_wr_n, nvgpu_mem_rd_n, nvgpu_mem_rd32_pair, nvgpu_mem_rd32,
+ *          nvgpu_mem_wr32
  *
  * Input: test_nvgpu_mem_create_from_phys
  *
@@ -125,6 +142,8 @@ int test_nvgpu_mem_wr_rd(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Test Type: Feature
  *
+ * Targets: nvgpu_mem_iommu_translate
+ *
  * Input: test_nvgpu_mem_create_from_phys
  *
  * Steps:
@@ -144,6 +163,8 @@ int test_nvgpu_mem_iommu_translate(struct unit_module *m,
  *
  * Test Type: Feature
  *
+ * Targets: nvgpu_aperture_mask, nvgpu_aperture_mask_raw
+ *
  * Input: test_nvgpu_mem_create_from_phys
  *
  * Steps:
@@ -157,11 +178,57 @@ int test_nvgpu_aperture_mask(struct unit_module *m,
 						struct gk20a *g, void *args);
 
 /**
+ * Test specification for: test_nvgpu_aperture_str
+ *
+ * Description: Check nvgpu_mem aperture name string
+ *
+ * Test Type: Feature
+ *
+ * Targets: nvgpu_aperture_str
+ *
+ * Input: test_nvgpu_mem_create_from_phys
+ *
+ * Steps:
+ * - Run nvgpu_aperture_str function for all aperture values.
+ * - Confirm that returned aperture name is correct as per input aperture.
+ *
+ * Output: Returns SUCCESS if the steps above were executed successfully. FAIL
+ * otherwise.
+ */
+int test_nvgpu_aperture_str(struct unit_module *m, struct gk20a *g, void *args);
+
+/**
+ * Test specification for: test_nvgpu_mem_create_from_mem
+ *
+ * Description: Create nvgpu_mem from another nvgpu_mem struct
+ *
+ * Test Type: Feature
+ *
+ * Targets: nvgpu_mem_create_from_mem
+ *
+ * Input: test_nvgpu_mem_create_from_phys
+ *
+ * Steps:
+ * - Create a nvgpu_mem structure with 2 pages from global nvgpu_mem struct.
+ * - Confirm that returned destination nvgpu_mem address and size corresponds to
+ * - 2 pages of global nvgpu_mem structure with SYSMEM aperture.
+ *
+ * Output: Returns SUCCESS if the steps above were executed successfully. FAIL
+ * otherwise.
+ */
+int test_nvgpu_mem_create_from_mem(struct unit_module *m, struct gk20a *g,
+			void *args);
+
+/**
  * Test specification for: test_nvgpu_mem_vidmem
  *
  * Description: Test read and write memory functions for vidmem
  *
  * Test Type: Feature
+ *
+ * Targets: nvgpu_mem_is_sysmem, nvgpu_mem_is_valid, nvgpu_mem_wr, nvgpu_mem_rd,
+ *          nvgpu_mem_wr_n, nvgpu_mem_rd_n, nvgpu_mem_rd32_pair, nvgpu_mem_rd32,
+ *          nvgpu_mem_wr32
  *
  * Input: test_nvgpu_mem_create_from_phys
  *
@@ -180,6 +247,8 @@ int test_nvgpu_mem_vidmem(struct unit_module *m, struct gk20a *g, void *args);
  * Description: Cleanup allocated memory for nvgpu_mem structure
  *
  * Test Type: Other (cleanup)
+ *
+ * Targets: None
  *
  * Input: test_nvgpu_mem_create_from_phys
  *
