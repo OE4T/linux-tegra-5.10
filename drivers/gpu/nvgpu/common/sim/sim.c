@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -229,7 +229,7 @@ static void nvgpu_sim_esc_readl(struct gk20a *g,
 		      sim_escape_read_hdr_size());
 	*sim_msg_param(g, 0) = index;
 	*sim_msg_param(g, 4) = sizeof(u32);
-	data_offset = roundup(0xc +  pathlen + 1, sizeof(u32));
+	data_offset = round_up(0xc +  pathlen + 1, sizeof(u32));
 	*sim_msg_param(g, 8) = data_offset;
 	strcpy((char *)sim_msg_param(g, 0xc), path);
 

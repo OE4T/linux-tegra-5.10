@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -119,7 +119,7 @@ int gv11b_tsg_init_eng_method_buffers(struct gk20a *g, struct nvgpu_tsg *tsg)
 	buffer_size =  nvgpu_safe_add_u32(nvgpu_safe_mult_u32((9U + 1U + 3U),
 				g->ops.ce.get_num_pce(g)), 2U);
 	buffer_size = nvgpu_safe_mult_u32((27U * 5U), buffer_size);
-	buffer_size = roundup(buffer_size, page_size);
+	buffer_size = round_up(buffer_size, page_size);
 	nvgpu_log_info(g, "method buffer size in bytes %d", buffer_size);
 
 	tsg->eng_method_buffers = nvgpu_kzalloc(g,

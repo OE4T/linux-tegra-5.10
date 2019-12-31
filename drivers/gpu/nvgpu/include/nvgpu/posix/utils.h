@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -190,21 +190,11 @@
  * @brief Round up the value of its argument \a x.
  *
  * @param x	Value to be rounded.
- * @param y	Value to be used to round up x.
+ * @param y	Value to be used to round up x.  Must be power-of-two.
  *
  * @return Rounded up value of \a x.
  */
 #define round_up(x, y)		((((x) - 1U) | round_mask(x, y)) + 1U)
-
-/**
- * @brief Wrapper define for #round_up.
- *
- * @param x	Value to be rounded.
- * @param y	Value to be used to round up x.
- *
- * @return Rounded up value of \a x.
- */
-#define roundup(x, y)		round_up(x, y)
 
 /**
  * @brief Round down the value of its argument \a x.

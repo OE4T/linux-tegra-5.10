@@ -1,7 +1,7 @@
 /*
  * Color decompression engine support
  *
- * Copyright (c) 2014-2019, NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2014-2020, NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -1549,10 +1549,10 @@ static int gk20a_buffer_convert_gpu_to_cde_v1(
 	/* Compute per launch parameters */
 	const int xtiles = (width + 7) >> 3;
 	const int ytiles = (height + 7) >> 3;
-	const int gridw_h = roundup(xtiles, xalign) / xalign;
-	const int gridh_h = roundup(ytiles, yalign) / yalign;
-	const int gridw_v = roundup(ytiles, xalign) / xalign;
-	const int gridh_v = roundup(xtiles, yalign) / yalign;
+	const int gridw_h = round_up(xtiles, xalign) / xalign;
+	const int gridh_h = round_up(ytiles, yalign) / yalign;
+	const int gridw_v = round_up(ytiles, xalign) / xalign;
+	const int gridh_v = round_up(xtiles, yalign) / yalign;
 	const int xblocks = (xtiles + 1) >> 1;
 	const int voffset = compbits_voffset - compbits_hoffset;
 

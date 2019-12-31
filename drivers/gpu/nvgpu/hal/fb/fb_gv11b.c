@@ -1,7 +1,7 @@
 /*
  * GV11B FB
  *
- * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -65,7 +65,7 @@ void gv11b_fb_cbc_configure(struct gk20a *g, struct nvgpu_cbc *cbc)
 						&cbc->compbit_store.mem);
 	}
 	/* must be aligned to 64 KB */
-	compbit_store_iova = roundup(compbit_store_iova, (u64)SZ_64K);
+	compbit_store_iova = round_up(compbit_store_iova, (u64)SZ_64K);
 
 	compbit_base_post_divide64 = compbit_store_iova >>
 		fb_mmu_cbc_base_address_alignment_shift_v();

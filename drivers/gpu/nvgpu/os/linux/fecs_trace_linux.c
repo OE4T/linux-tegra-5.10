@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -201,7 +201,7 @@ int nvgpu_gr_fecs_trace_ring_alloc(struct gk20a *g,
 {
 	struct nvgpu_ctxsw_ring_header *hdr;
 
-	*size = roundup(*size, PAGE_SIZE);
+	*size = round_up(*size, PAGE_SIZE);
 	hdr = vmalloc_user(*size);
 	if (!hdr)
 		return -ENOMEM;

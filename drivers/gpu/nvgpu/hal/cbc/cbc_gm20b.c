@@ -1,7 +1,7 @@
 /*
  * GM20B CBC
  *
- * Copyright (c) 2019 NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020 NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -85,7 +85,7 @@ int gm20b_cbc_alloc_comptags(struct gk20a *g, struct nvgpu_cbc *cbc)
 			ltc_ltcs_ltss_cbc_base_alignment_shift_v();
 
 	/* must be a multiple of 64KB */
-	compbit_backing_size = roundup(compbit_backing_size,
+	compbit_backing_size = round_up(compbit_backing_size,
 					U32(64) * U32(1024));
 
 	max_comptag_lines =

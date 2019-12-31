@@ -1,7 +1,7 @@
 /*
  * TU104 CBC
  *
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -88,7 +88,7 @@ int tu104_cbc_alloc_comptags(struct gk20a *g, struct nvgpu_cbc *cbc)
 	ctags_per_cacheline = nvgpu_ltc_get_cacheline_size(g) / ctags_size;
 
 	compbit_backing_size =
-		roundup(max_comptag_lines * ctags_size,
+		round_up(max_comptag_lines * ctags_size,
 				nvgpu_ltc_get_cacheline_size(g));
 	compbit_backing_size =
 		compbit_backing_size * nvgpu_ltc_get_slices_per_ltc(g) *
@@ -99,7 +99,7 @@ int tu104_cbc_alloc_comptags(struct gk20a *g, struct nvgpu_cbc *cbc)
 	compbit_backing_size += amap_swizzle_rounding;
 
 	/* must be a multiple of 64KB */
-	compbit_backing_size = roundup(compbit_backing_size,
+	compbit_backing_size = round_up(compbit_backing_size,
 					U32(64) * U32(1024));
 
 	err = nvgpu_cbc_alloc(g, compbit_backing_size, true);

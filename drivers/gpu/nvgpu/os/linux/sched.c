@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -604,7 +604,7 @@ int gk20a_sched_ctrl_init(struct gk20a *g)
 		return 0;
 
 	sched->g = g;
-	sched->bitmap_size = roundup(f->num_channels, 64) / 8;
+	sched->bitmap_size = round_up(f->num_channels, 64) / 8;
 	sched->status = 0;
 
 	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_sched, "g=%p sched=%p size=%zu",
