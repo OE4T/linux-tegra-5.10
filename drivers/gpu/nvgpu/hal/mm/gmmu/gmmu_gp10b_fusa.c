@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -326,15 +326,16 @@ static u32 gp10b_get_pde0_pgsz(struct gk20a *g, const struct gk20a_mmu_level *l,
 	u32 pde_offset = nvgpu_safe_add_u32(pde_base,
 					nvgpu_pd_offset_from_index(l, pd_idx));
 	u32 pde_v[GP10B_PDE0_ENTRY_SIZE >> 2];
-	u32 i;
+	u32 idx;
 	u32 pgsz = GMMU_NR_PAGE_SIZES;
 
 	if (pd->mem == NULL) {
 		return pgsz;
 	}
 
-	for (i = 0; i < GP10B_PDE0_ENTRY_SIZE >> 2; i++) {
-		pde_v[i] = nvgpu_mem_rd32(g, pd->mem, (u64)pde_offset + (u64)i);
+	for (idx = 0; idx < GP10B_PDE0_ENTRY_SIZE >> 2; idx++) {
+		pde_v[idx] =
+			nvgpu_mem_rd32(g, pd->mem, (u64)pde_offset + (u64)idx);
 	}
 
 	/*

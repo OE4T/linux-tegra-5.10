@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -1062,7 +1062,7 @@ static int nvgpu_locate_pte_last_level(struct gk20a *g,
 {
 	u32 pte_base;
 	u32 pte_size;
-	u32 i;
+	u32 idx;
 
 	if (pd->mem == NULL) {
 		return -EINVAL;
@@ -1079,10 +1079,10 @@ static int nvgpu_locate_pte_last_level(struct gk20a *g,
 	pte_size = l->entry_size / (u32)sizeof(u32);
 
 	if (data != NULL) {
-		for (i = 0; i < pte_size; i++) {
-			u32 tmp_word = nvgpu_safe_add_u32(i,
+		for (idx = 0; idx < pte_size; idx++) {
+			u32 tmp_word = nvgpu_safe_add_u32(idx,
 						pte_base);
-			data[i] = nvgpu_mem_rd32(g, pd->mem,
+			data[idx] = nvgpu_mem_rd32(g, pd->mem,
 					tmp_word);
 		}
 	}
