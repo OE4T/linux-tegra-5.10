@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -70,7 +70,9 @@ NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Rule, 15_6))
  * (presumably done in a previous if statement).
  * The exact behavior will be OS dependent. See above.
  */
-#define nvgpu_do_assert()	nvgpu_assert(false)
+#define nvgpu_do_assert()						\
+NVGPU_COV_WHITELIST(false_positive, NVGPU_MISRA(Rule, 10_3), "Bug 2623654") \
+	nvgpu_assert(false)
 
 /*
  * Define compile-time assert check.
