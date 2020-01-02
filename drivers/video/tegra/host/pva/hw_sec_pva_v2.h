@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -54,14 +54,12 @@
 
 static inline u32 v2_sec_lic_intr_enable_r(void)
 {
-	//return SEC_BASE+ 0x8064U; in near future, this will be the right
-	return SEC_BASE + 0x804CU;
+	return SEC_BASE + 0x8064U;
 }
 
 static inline u32 v2_sec_lic_intr_status_r(void)
 {
-	//return SEC_BASE + 0x806CU; in near future, this will be the right
-	return SEC_BASE + 0x8054U;
+	return SEC_BASE + 0x806CU;
 }
 
 #endif
