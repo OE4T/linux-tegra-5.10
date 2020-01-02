@@ -1,7 +1,7 @@
 /*
  * PVA Task Management
  *
- * Copyright (c) 2016-2019, NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2016-2020, NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -818,23 +818,6 @@ static void pva_task_write_postactions(struct pva_submit_task *task,
 		}
 	}
 
-	task->fence_num += 1;
-
-	/* Make a syncpoint increment */
-	if (syncpt_gos_addr) {
-		thresh = nvhost_syncpt_read_maxval(
-			host1x_pdev,
-			task->queue->syncpt_id) + task->fence_num;
-		ptr += pva_task_write_ptr_op(
-			&hw_postactions[ptr],
-			TASK_ACT_PTR_WRITE_VAL,
-			syncpt_gos_addr, thresh);
-	}
-
-	ptr += pva_task_write_ptr_op(&hw_postactions[ptr],
-		TASK_ACT_PTR_WRITE_VAL, syncpt_addr, 1);
-
-
 	output_status_addr = task->dma_addr +
 			     offsetof(struct pva_hw_task, statistics);
 	ptr += pva_task_write_struct_ptr_op(
@@ -850,6 +833,22 @@ static void pva_task_write_postactions(struct pva_submit_task *task,
 					vpu_perf_counters),
 				1);
 	}
+
+	task->fence_num += 1;
+
+	/* Make a syncpoint increment */
+	if (syncpt_gos_addr) {
+		thresh = nvhost_syncpt_read_maxval(
+			host1x_pdev,
+			task->queue->syncpt_id) + task->fence_num;
+		ptr += pva_task_write_ptr_op(
+			&hw_postactions[ptr],
+			TASK_ACT_PTR_WRITE_VAL,
+			syncpt_gos_addr, thresh);
+	}
+
+	ptr += pva_task_write_ptr_op(&hw_postactions[ptr],
+		TASK_ACT_PTR_WRITE_VAL, syncpt_addr, 1);
 
 	ptr += pva_task_write_atomic_op(&hw_postactions[ptr],
 		TASK_ACT_TERMINATE);
