@@ -648,6 +648,8 @@ int nvhost_module_init(struct platform_device *dev)
 	pdata->num_clks = 0;
 	INIT_LIST_HEAD(&pdata->client_list);
 
+	init_rwsem(&pdata->busy_lock);
+
 	if (nvhost_dev_is_virtual(dev)) {
 		pm_runtime_enable(&dev->dev);
 
@@ -756,7 +758,6 @@ int nvhost_module_init(struct platform_device *dev)
 
 	/* initialize no_poweroff_req_mutex */
 	mutex_init(&pdata->no_poweroff_req_mutex);
-	init_rwsem(&pdata->busy_lock);
 
 	/* turn on pm runtime */
 	pm_runtime_enable(&dev->dev);
