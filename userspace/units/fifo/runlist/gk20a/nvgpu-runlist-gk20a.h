@@ -92,6 +92,7 @@ int test_gk20a_runlist_hw_submit(struct unit_module *m,
  * - Check case where polling times out:
  *   - Set register to indicate that runlist is pending.
  *   - Call gk20a_runlist_wait_pending.
+ * - Check case where nvgpu_timeout_init fails, using fault injection.
  *
  * Output: Returns PASS if all branches gave expected results. FAIL otherwise.
  */
