@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -285,7 +285,6 @@ int osi_set_rx_buf_len(struct osi_dma_priv_data *osi_dma)
 int osi_config_slot_function(struct osi_dma_priv_data *osi_dma,
 			     unsigned int set)
 {
-	int ret = -1;
 	unsigned int i = 0U, chan = 0U, interval = 0U;
 	struct osi_tx_ring *tx_ring = OSI_NULL;
 
@@ -343,7 +342,7 @@ int osi_config_slot_function(struct osi_dma_priv_data *osi_dma,
 		}
 	}
 
-	return ret;
+	return 0;
 }
 
 int osi_validate_dma_regs(struct osi_dma_priv_data *osi_dma)
