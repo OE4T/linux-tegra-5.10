@@ -188,6 +188,7 @@ int gk20a_falcon_copy_to_dmem(struct nvgpu_falcon *flcn,
 			    dst | falcon_falcon_dmemc_aincw_f(1));
 
 	if (likely(nvgpu_mem_is_word_aligned(flcn->g, src))) {
+NVGPU_COV_WHITELIST(deviate, NVGPU_MISRA(Rule, 11_3), "TID-415")
 		src_u32 = (u32 *)src;
 
 		for (i = 0; i < words; i++) {
@@ -300,6 +301,7 @@ int gk20a_falcon_copy_to_imem(struct nvgpu_falcon *flcn, u32 dst,
 			falcon_falcon_imemc_secure_f(sec ? 1U : 0U));
 
 	if (likely(nvgpu_mem_is_word_aligned(flcn->g, src))) {
+NVGPU_COV_WHITELIST(deviate, NVGPU_MISRA(Rule, 11_3), "TID-415")
 		src_u32 = (u32 *)src;
 
 		for (i = 0U; i < words; i++) {
