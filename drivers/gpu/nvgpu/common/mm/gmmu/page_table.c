@@ -385,6 +385,8 @@ static int nvgpu_set_pd_level_is_next_level_pde(struct vm_gk20a *vm,
 	struct nvgpu_gmmu_pd *next_pd = *next_pd_ptr;
 
 	if (next_l->update_entry != NULL) {
+		int err = 0;
+
 		if (pd_allocate_children(vm, l, pd, attrs) != 0) {
 			return -ENOMEM;
 		}
@@ -400,8 +402,9 @@ static int nvgpu_set_pd_level_is_next_level_pde(struct vm_gk20a *vm,
 		/*
 		 * Allocate the backing memory for next_pd.
 		 */
-		if (pd_allocate(vm, next_pd, next_l, attrs) != 0) {
-			return -ENOMEM;
+		err = pd_allocate(vm, next_pd, next_l, attrs);
+		if (err != 0) {
+			return err;
 		}
 	}
 	*next_pd_ptr = next_pd;
@@ -728,6 +731,9 @@ static int nvgpu_gmmu_do_update_page_table(struct vm_gk20a *vm,
 					 0,
 					 virt_addr, length,
 					 attrs);
+		if (err != 0) {
+			nvgpu_err(g, "Failed!");
+		}
 		return err;
 	}
 
@@ -772,6 +778,9 @@ static int nvgpu_gmmu_do_update_page_table(struct vm_gk20a *vm,
 	err = nvgpu_gmmu_do_update_page_table_no_iommu(vm, sgt, space_to_skip,
 						virt_addr, length, attrs);
 
+	if (err < 0) {
+		nvgpu_err(g, "Failed!");
+	}
 	return err;
 }
 
@@ -1158,13 +1167,18 @@ static int nvgpu_locate_pte(struct gk20a *g, struct vm_gk20a *vm,
 
 int nvgpu_get_pte(struct gk20a *g, struct vm_gk20a *vm, u64 vaddr, u32 *pte)
 {
+	int err = 0;
 	struct nvgpu_gmmu_attrs attrs = {
 		.pgsz = 0,
 	};
 
-	return nvgpu_locate_pte(g, vm, &vm->pdb,
+	err = nvgpu_locate_pte(g, vm, &vm->pdb,
 				vaddr, 0U, &attrs,
 				pte, NULL, NULL, NULL);
+	if (err < 0) {
+		nvgpu_err(g, "Failed!");
+	}
+	return err;
 }
 
 int nvgpu_set_pte(struct gk20a *g, struct vm_gk20a *vm, u64 vaddr, u32 *pte)

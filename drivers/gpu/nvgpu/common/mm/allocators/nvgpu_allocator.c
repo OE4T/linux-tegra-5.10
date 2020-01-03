@@ -1,7 +1,7 @@
 /*
  * gk20a allocator
  *
- * Copyright (c) 2011-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -203,6 +203,10 @@ int nvgpu_allocator_init(struct gk20a *g, struct nvgpu_allocator *na,
 	default:
 		nvgpu_err(g, "Incorrect allocator type, couldn't initialize");
 		break;
+	}
+
+	if (err < 0) {
+		nvgpu_err(g, "Failed!");
 	}
 	return err;
 }
