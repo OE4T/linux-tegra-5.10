@@ -117,6 +117,7 @@ int test_fbp_init_and_query(struct unit_module *m, struct gk20a *g, void *args);
  * - Confirm if g->fbp != NULL before calling fbp_remov_support API.
  * - Call fbp_remove_support to cleanup the saved FBP data.
  * - Confirm if g->fbp == NULL after cleanup.
+ * - Call fbp_remove_support with fbp pointer set to NULL for branch coverage.
  *
  * Output:
  * - UNIT_FAIL if above API fails to cleanup g->fbp;

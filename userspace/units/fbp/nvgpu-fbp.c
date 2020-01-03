@@ -206,8 +206,15 @@ int test_fbp_remove_support(struct unit_module *m, struct gk20a *g, void *args)
 		return UNIT_FAIL;
 	}
 
+	/*
+	 * Call fbp_remove_support with fbp pointer set to NULL for branch
+	 * coverage.
+	 */
+	nvgpu_fbp_remove_support(g);
+
 	return ret;
 }
+
 struct unit_module_test fbp_tests[] = {
 	UNIT_TEST(fbp_setup,	          test_fbp_setup,            NULL, 0),
 	UNIT_TEST(fbp_init_and_query,	  test_fbp_init_and_query,   NULL, 0),
