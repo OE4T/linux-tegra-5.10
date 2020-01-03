@@ -324,7 +324,9 @@ void nvgpu_tsg_unbind_channel_check_ctx_reload(struct nvgpu_tsg *tsg,
 
 static void nvgpu_tsg_destroy(struct nvgpu_tsg *tsg)
 {
+#ifdef CONFIG_NVGPU_CHANNEL_TSG_CONTROL
 	nvgpu_mutex_destroy(&tsg->event_id_list_lock);
+#endif
 }
 
 #ifdef CONFIG_NVGPU_CHANNEL_TSG_CONTROL
@@ -377,9 +379,10 @@ static void nvgpu_tsg_init_support(struct gk20a *g, u32 tsgid)
 	nvgpu_init_list_node(&tsg->ch_list);
 	nvgpu_rwsem_init(&tsg->ch_list_lock);
 
+#ifdef CONFIG_NVGPU_CHANNEL_TSG_CONTROL
 	nvgpu_init_list_node(&tsg->event_id_list);
-
 	nvgpu_mutex_init(&tsg->event_id_list_lock);
+#endif
 }
 
 int nvgpu_tsg_setup_sw(struct gk20a *g)
@@ -789,12 +792,14 @@ void nvgpu_tsg_release(struct nvgpu_ref *ref)
 		g->ops.gr.setup.free_gr_ctx(g, tsg->vm, tsg->gr_ctx);
 	}
 
+#ifdef CONFIG_NVGPU_CHANNEL_TSG_CONTROL
 	/* unhook all events created on this TSG */
 	nvgpu_mutex_acquire(&tsg->event_id_list_lock);
 	while (nvgpu_list_empty(&tsg->event_id_list) == false) {
 		nvgpu_list_del(tsg->event_id_list.next);
 	}
 	nvgpu_mutex_release(&tsg->event_id_list_lock);
+#endif
 
 	nvgpu_tsg_release_common(g, tsg);
 	nvgpu_tsg_release_used_tsg(&g->fifo, tsg);

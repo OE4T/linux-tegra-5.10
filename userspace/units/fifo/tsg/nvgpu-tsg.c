@@ -600,10 +600,9 @@ done:
 #define F_TSG_RELEASE_GR_CTX		BIT(1)
 #define F_TSG_RELEASE_MEM		BIT(2)
 #define F_TSG_RELEASE_VM		BIT(3)
-#define F_TSG_RELEASE_UNHOOK_EVENTS	BIT(4)
-#define F_TSG_RELEASE_ENG_BUFS		BIT(5)
-#define F_TSG_RELEASE_SM_ERR_STATES	BIT(6)
-#define F_TSG_RELEASE_LAST		BIT(7)
+#define F_TSG_RELEASE_ENG_BUFS		BIT(4)
+#define F_TSG_RELEASE_SM_ERR_STATES	BIT(5)
+#define F_TSG_RELEASE_LAST		BIT(6)
 
 
 static void stub_tsg_release(struct nvgpu_tsg *tsg)
@@ -631,7 +630,6 @@ int test_tsg_release(struct unit_module *m,
 	struct nvgpu_fifo *f = &g->fifo;
 	struct gpu_ops gops = g->ops;
 	struct nvgpu_tsg *tsg = NULL;
-	struct nvgpu_list_node ev1, ev2;
 	struct vm_gk20a vm;
 	u32 branches = 0U;
 	int ret = UNIT_FAIL;
@@ -643,7 +641,6 @@ int test_tsg_release(struct unit_module *m,
 		"gr_ctx",
 		"mem",
 		"vm",
-		"unhook_events",
 		"eng_bufs",
 		"sm_err_states"
 	};
@@ -693,11 +690,6 @@ int test_tsg_release(struct unit_module *m,
 				stub_gr_setup_free_gr_ctx;
 		}
 
-		if (branches & F_TSG_RELEASE_UNHOOK_EVENTS) {
-			nvgpu_list_add(&ev1, &tsg->event_id_list);
-			nvgpu_list_add(&ev2, &tsg->event_id_list);
-		}
-
 		g->ops.tsg.deinit_eng_method_buffers =
 			branches & F_TSG_RELEASE_ENG_BUFS ?
 			stub_tsg_deinit_eng_method_buffers : NULL;
@@ -726,10 +718,6 @@ int test_tsg_release(struct unit_module *m,
 				tsg->gr_ctx = NULL;
 			}
 			assert(stub[1].count == 0);
-		}
-
-		if (branches & F_TSG_RELEASE_UNHOOK_EVENTS) {
-			assert(nvgpu_list_empty(&tsg->event_id_list));
 		}
 
 		if (branches & F_TSG_RELEASE_ENG_BUFS) {

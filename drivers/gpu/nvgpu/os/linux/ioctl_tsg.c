@@ -154,6 +154,7 @@ out:
 	return err;
 }
 
+#ifdef CONFIG_NVGPU_CHANNEL_TSG_CONTROL
 static int gk20a_tsg_get_event_data_from_id(struct nvgpu_tsg *tsg,
 				unsigned int event_id,
 				struct gk20a_event_id_data **event_id_data)
@@ -390,6 +391,7 @@ static int gk20a_tsg_event_id_ctrl(struct gk20a *g, struct nvgpu_tsg *tsg,
 
 	return err;
 }
+#endif /* CONFIG_NVGPU_CHANNEL_TSG_CONTROL */
 
 int nvgpu_ioctl_tsg_open(struct gk20a *g, struct file *filp)
 {
@@ -717,12 +719,14 @@ long nvgpu_ioctl_tsg_dev_ioctl(struct file *filp, unsigned int cmd,
 		break;
 		}
 
+#ifdef CONFIG_NVGPU_CHANNEL_TSG_CONTROL
 	case NVGPU_IOCTL_TSG_EVENT_ID_CTRL:
 		{
 		err = gk20a_tsg_event_id_ctrl(g, tsg,
 			(struct nvgpu_event_id_ctrl_args *)buf);
 		break;
 		}
+#endif
 
 	case NVGPU_IOCTL_TSG_SET_RUNLIST_INTERLEAVE:
 		err = gk20a_tsg_ioctl_set_runlist_interleave(g, tsg,

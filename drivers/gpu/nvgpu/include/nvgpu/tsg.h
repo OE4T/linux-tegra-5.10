@@ -99,22 +99,22 @@ struct nvgpu_tsg {
 
 	/** List of channels bound to a tsgid */
 	struct nvgpu_list_node ch_list;
+#ifdef CONFIG_NVGPU_CHANNEL_TSG_CONTROL
 	/**
 	 * Ioctls using this field are not supported in the safety build.
-	 * Refer NVGPU_FEATURE_CHANNEL_TSG_CONTROL config.
 	 */
 	struct nvgpu_list_node event_id_list;
+	/**
+	 * Mutex used to access/modify #event_id_list.
+	 * Ioctls using this field are not supported in the safety build.
+	 */
+	struct nvgpu_mutex event_id_list_lock;
+#endif
 	/**
 	 * Read write type of semaphore lock used for accessing/modifying
 	 * #ch_list.
 	 */
 	struct nvgpu_rwsem ch_list_lock;
-	/**
-	 * Mutex used to access/modify #event_id_list.
-	 * Ioctls using this field are not supported in the safety build.
-	 * Refer NVGPU_FEATURE_CHANNEL_TSG_CONTROL config.
-	 */
-	struct nvgpu_mutex event_id_list_lock;
 	/**
 	 * Total number of channels that are bound to a TSG. This can change
 	 * during run time whenever channels are bound to a TSG or unbound
