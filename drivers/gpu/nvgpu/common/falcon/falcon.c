@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -164,7 +164,7 @@ int nvgpu_falcon_mem_scrub_wait(struct nvgpu_falcon *flcn)
 
 	do {
 		if (g->ops.falcon.is_falcon_scrubbing_done(flcn)) {
-			goto exit;
+			break;
 		}
 		nvgpu_udelay(MEM_SCRUBBING_TIMEOUT_DEFAULT);
 	} while (nvgpu_timeout_expired(&timeout) == 0);
@@ -173,7 +173,6 @@ int nvgpu_falcon_mem_scrub_wait(struct nvgpu_falcon *flcn)
 		status = -ETIMEDOUT;
 	}
 
-exit:
 	return status;
 }
 

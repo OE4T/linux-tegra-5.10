@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+# Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -25,3 +25,4 @@ nvgpu_utf_falcon_init
 nvgpu_utf_falcon_readl_access_reg_fn
 nvgpu_utf_falcon_set_dmactl
 nvgpu_utf_falcon_writel_access_reg_fn
+nvgpu_utf_falcon_memcpy_get_fault_injection

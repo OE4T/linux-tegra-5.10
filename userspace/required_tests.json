@@ -594,6 +594,12 @@
         "test_level": 0
     },
     {
+        "test": "test_falcon_mem_rw_fault",
+        "case": "falcon_mem_rw_fault",
+        "unit": "falcon",
+        "test_level": 0
+    },
+    {
         "test": "test_falcon_mem_rw_init",
         "case": "falcon_mem_rw_init",
         "unit": "falcon",

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -965,6 +965,38 @@ int test_falcon_mem_rw_range(struct unit_module *m, struct gk20a *g,
 }
 
 /*
+ * Writing data to falcon's DMEM should not succeed when DMEMC
+ * read returns invalid value due to HW fault.
+ */
+int test_falcon_mem_rw_fault(struct unit_module *m, struct gk20a *g,
+			     void *__args)
+{
+	struct nvgpu_posix_fault_inj *falcon_memcpy_fi =
+				nvgpu_utf_falcon_memcpy_get_fault_injection();
+	u32 byte_cnt = RAND_DATA_SIZE;
+	u32 dst = 0;
+	int err = UNIT_FAIL;
+
+	if (pmu_flcn == NULL || !pmu_flcn->is_falcon_supported) {
+		unit_return_fail(m, "test environment not initialized.");
+	}
+
+	/* cause write failure */
+	nvgpu_posix_enable_fault_injection(falcon_memcpy_fi, true, 0);
+	unit_info(m, "Writing %d bytes to dmem with hw fault injected.\n",
+		  byte_cnt);
+	err = nvgpu_falcon_copy_to_dmem(pmu_flcn, dst, (u8 *) rand_test_data,
+					byte_cnt, 0);
+	nvgpu_posix_enable_fault_injection(falcon_memcpy_fi, false, 0);
+
+	if (err == 0) {
+		unit_return_fail(m, "Copy to DMEM succeeded with faulty hw.\n");
+	}
+
+	return UNIT_SUCCESS;
+}
+
+/*
  * Valid/Invalid: Reading and writing data at offset that is word (4-byte)
  *		  aligned data should work and fail otherwise.
  * Valid: Data read/written from/to Falcon memory from word (4-byte) aligned
@@ -1353,6 +1385,7 @@ struct unit_module_test falcon_tests[] = {
 	UNIT_TEST(falcon_mem_rw_unaligned_cpu_buffer,
 		  test_falcon_mem_rw_unaligned_cpu_buffer, NULL, 0),
 	UNIT_TEST(falcon_mem_rw_range, test_falcon_mem_rw_range, NULL, 0),
+	UNIT_TEST(falcon_mem_rw_fault, test_falcon_mem_rw_fault, NULL, 0),
 	UNIT_TEST(falcon_mem_rw_aligned, test_falcon_mem_rw_aligned, NULL, 0),
 	UNIT_TEST(falcon_mem_rw_zero, test_falcon_mem_rw_zero, NULL, 0),
 	UNIT_TEST(falcon_mailbox, test_falcon_mailbox, NULL, 0),

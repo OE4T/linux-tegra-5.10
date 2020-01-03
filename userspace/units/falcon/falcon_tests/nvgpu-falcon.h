@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -214,6 +214,29 @@ int test_falcon_mem_rw_init(struct unit_module *m, struct gk20a *g,
  * otherwise.
  */
 int test_falcon_mem_rw_range(struct unit_module *m, struct gk20a *g,
+			     void *__args);
+
+/**
+ * Test specification for: test_falcon_mem_rw_fault
+ *
+ * Description: The falcon unit shall fail the call to copy to DMEM when
+ *		DMEMC reads return invalid value due to HW fault.
+ *
+ * Test Type: Error injection
+ *
+ * Input: None.
+ *
+ * Steps:
+ * - Enable the falcon DMEMC read fault.
+ * - Invoke nvgpu_falcon_copy_to_dmem with initialized falcon struct with
+ *   sample random data and valid range.
+ * - Disable the falcon DMEMC read fault.
+ * - Verify that writes failed.
+ *
+ * Output: Returns PASS if the steps above were executed successfully. FAIL
+ * otherwise.
+ */
+int test_falcon_mem_rw_fault(struct unit_module *m, struct gk20a *g,
 			     void *__args);
 
 /**

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -28,6 +28,16 @@
 #include <nvgpu/hw/gm20b/hw_falcon_gm20b.h>
 
 #include "falcon_utf.h"
+
+#include <nvgpu/posix/posix-fault-injection.h>
+
+struct nvgpu_posix_fault_inj *nvgpu_utf_falcon_memcpy_get_fault_injection(void)
+{
+	struct nvgpu_posix_fault_inj_container *c =
+		nvgpu_posix_fault_injection_get_container();
+
+	return &c->falcon_memcpy_fi;
+}
 
 void nvgpu_utf_falcon_writel_access_reg_fn(struct gk20a *g,
 					   struct utf_falcon *flcn,
@@ -138,6 +148,12 @@ void nvgpu_utf_falcon_readl_access_reg_fn(struct gk20a *g,
 	} else if (access->addr == (flcn_base + falcon_falcon_dmemc_r(0))) {
 		ctrl_r = nvgpu_posix_io_readl_reg_space(g,
 				flcn_base + falcon_falcon_dmemc_r(0));
+
+		if (nvgpu_posix_fault_injection_handle_call(
+			nvgpu_utf_falcon_memcpy_get_fault_injection())) {
+			access->value = 0;
+			return;
+		}
 
 		access->value = ctrl_r & addr_mask;
 	} else {

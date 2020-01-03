@@ -1,4 +1,4 @@
-# Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+# Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
 
 bitmap_find_next_zero_area_off
 bug_handler_cancel
@@ -587,6 +587,8 @@ nvgpu_pmu_reset
 nvgpu_posix_bug
 nvgpu_posix_cleanup
 nvgpu_posix_enable_fault_injection
+nvgpu_posix_fault_injection_get_container
+nvgpu_posix_fault_injection_handle_call
 nvgpu_posix_ffs
 nvgpu_posix_fls
 nvgpu_posix_init_fault_injection

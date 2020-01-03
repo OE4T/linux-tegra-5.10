@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -37,6 +37,8 @@ struct utf_falcon {
 	u32 *imem;
 	u32 *dmem;
 };
+
+struct nvgpu_posix_fault_inj *nvgpu_utf_falcon_memcpy_get_fault_injection(void);
 
 void nvgpu_utf_falcon_writel_access_reg_fn(struct gk20a *g,
 					   struct utf_falcon *flcn,
