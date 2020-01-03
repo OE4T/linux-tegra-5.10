@@ -61,7 +61,7 @@ struct voltage_policy_metadata {
 	struct boardobjgrp_e32 volt_policies;
 };
 
-struct nvgpu_pmu_volt {
+struct obj_volt {
 	struct voltage_rail_metadata volt_rail_metadata;
 	struct voltage_device_metadata volt_dev_metadata;
 	struct voltage_policy_metadata volt_policy_metadata;
@@ -90,6 +90,16 @@ struct voltage_rail {
 	u32 current_volt_uv;
 };
 
+int nvgpu_volt_send_load_cmd_to_pmu(struct gk20a *g);
+
+int nvgpu_volt_dev_sw_setup(struct gk20a *g);
+int nvgpu_volt_dev_pmu_setup(struct gk20a *g);
+
+int nvgpu_volt_policy_sw_setup(struct gk20a *g);
+int nvgpu_volt_policy_pmu_setup(struct gk20a *g);
+
+int nvgpu_volt_rail_sw_setup(struct gk20a *g);
+int nvgpu_volt_rail_pmu_setup(struct gk20a *g);
 u8 nvgpu_volt_rail_volt_domain_convert_to_idx(struct gk20a *g, u8 volt_domain);
 int nvgpu_volt_get_vmin_vmax_ps35(struct gk20a *g, u32 *vmin_uv, u32 *vmax_uv);
 u8 nvgpu_volt_get_vmargin_ps35(struct gk20a *g);
@@ -99,9 +109,5 @@ u8 nvgpu_volt_rail_vbios_volt_domain_convert_to_internal
 	(struct gk20a *g, u8 vbios_volt_domain);
 void nvgpu_pmu_volt_rpc_handler(struct gk20a *g, struct nv_pmu_rpc_header *rpc);
 int nvgpu_volt_get_curr_volt_ps35(struct gk20a *g, u32 *vcurr_uv);
-int nvgpu_pmu_volt_sw_setup(struct gk20a *g);
-void nvgpu_pmu_volt_deinit(struct gk20a *g);
-int nvgpu_pmu_volt_init(struct gk20a *g);
-int nvgpu_pmu_volt_pmu_setup(struct gk20a *g);
 
 #endif /* NVGPU_PMU_VOLT_H */

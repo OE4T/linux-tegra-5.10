@@ -26,6 +26,7 @@
 #include <nvgpu/cond.h>
 #include <nvgpu/thread.h>
 #include <nvgpu/pmu/perf_pstate.h>
+#include <nvgpu/pmu/volt.h>
 #include <nvgpu/pmu/lpwr.h>
 #include <nvgpu/boardobjgrp_e32.h>
 #include <nvgpu/boardobjgrp_e255.h>
@@ -86,6 +87,7 @@ struct perf_pmupstate {
 	struct vfe_vars vfe_varobjs;
 	struct vfe_equs vfe_equobjs;
 	struct pstates pstatesobjs;
+	struct obj_volt volt;
 	struct obj_lwpr lpwr;
 	struct nvgpu_vfe_invalidate vfe_init;
 	struct change_seq_pmu changeseq_pmu;

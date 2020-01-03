@@ -23,6 +23,6 @@
 #ifndef NVGPU_VOLT_PMU_H
 #define NVGPU_VOLT_PMU_H
 
-int nvgpu_volt_send_load_cmd_to_pmu(struct gk20a *g);
+u32 volt_pmu_send_load_cmd_to_pmu(struct gk20a *g);
 
 #endif /* NVGPU_VOLT_PMU_H */

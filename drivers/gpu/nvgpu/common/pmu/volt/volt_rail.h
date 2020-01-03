@@ -29,7 +29,5 @@
 
 #define CTRL_PMGR_PWR_EQUATION_INDEX_INVALID	0xFFU
 
-int nvgpu_volt_rail_sw_setup(struct gk20a *g);
-int nvgpu_volt_rail_pmu_setup(struct gk20a *g);
 
 #endif /* NVGPU_VOLT_RAIL_H */
