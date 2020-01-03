@@ -2485,7 +2485,9 @@ static void nvgpu_channel_destroy(struct nvgpu_channel *c)
 	nvgpu_mutex_destroy(&c->cyclestate.cyclestate_buffer_mutex);
 	nvgpu_mutex_destroy(&c->cs_client_mutex);
 #endif
+#if defined(CONFIG_NVGPU_DEBUGGER)
 	nvgpu_mutex_destroy(&c->dbg_s_lock);
+#endif
 }
 
 void nvgpu_channel_cleanup_sw(struct gk20a *g)
@@ -2549,14 +2551,16 @@ int nvgpu_channel_init_support(struct gk20a *g, u32 chid)
 	nvgpu_mutex_init(&c->joblist.pre_alloc.read_lock);
 
 #endif /* CONFIG_NVGPU_KERNEL_MODE_SUBMIT */
-	nvgpu_init_list_node(&c->dbg_s_list);
 	nvgpu_mutex_init(&c->ioctl_lock);
 	nvgpu_mutex_init(&c->sync_lock);
 #if defined(CONFIG_NVGPU_CYCLESTATS)
 	nvgpu_mutex_init(&c->cyclestate.cyclestate_buffer_mutex);
 	nvgpu_mutex_init(&c->cs_client_mutex);
 #endif
+#if defined(CONFIG_NVGPU_DEBUGGER)
+	nvgpu_init_list_node(&c->dbg_s_list);
 	nvgpu_mutex_init(&c->dbg_s_lock);
+#endif
 	nvgpu_init_list_node(&c->ch_entry);
 	nvgpu_list_add(&c->free_chs, &g->fifo.free_chs);
 

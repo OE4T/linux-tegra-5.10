@@ -479,10 +479,12 @@ struct nvgpu_channel {
 	struct nvgpu_mutex cs_client_mutex;
 	struct gk20a_cs_snapshot_client *cs_client;
 #endif
+#ifdef CONFIG_NVGPU_DEBUGGER
 	/** Channel's debugger session lock. */
 	struct nvgpu_mutex dbg_s_lock;
 	/** Channel entry in debugger session's list. */
 	struct nvgpu_list_node dbg_s_list;
+#endif
 
 	/** Syncpoint lock to allocate fences. */
 	struct nvgpu_mutex sync_lock;
