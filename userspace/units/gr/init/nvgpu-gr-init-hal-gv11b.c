@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -37,6 +37,8 @@
 #include <nvgpu/gr/config.h>
 #include <nvgpu/gr/gr_utils.h>
 #include <nvgpu/netlist.h>
+#include <nvgpu/engines.h>
+#include <nvgpu/pbdma.h>
 #include "common/gr/gr_priv.h"
 #include "common/gr/gr_config_priv.h"
 #include "common/netlist/netlist_priv.h"
@@ -45,6 +47,8 @@
 #include "nvgpu-gr-init-hal-gv11b.h"
 
 #include <nvgpu/hw/gv11b/hw_gr_gv11b.h>
+#include <nvgpu/hw/gv11b/hw_fifo_gv11b.h>
+#include <nvgpu/hw/gv11b/hw_top_gv11b.h>
 
 #define DUMMY_SIZE	0xF0U
 
@@ -254,6 +258,135 @@ int test_gr_init_hal_wait_empty(struct unit_module *m,
 	if (err != 0) {
 		return UNIT_FAIL;
 	}
+
+	return UNIT_SUCCESS;
+}
+
+int test_gr_init_hal_wait_idle(struct unit_module *m,
+		struct gk20a *g, void *args)
+{
+	u32 i;
+	u32 val;
+	int err;
+	bool expected_pass;
+	u32 entry_count;
+	struct nvgpu_fifo *f = &g->fifo;
+	struct nvgpu_posix_fault_inj *timer_fi =
+		nvgpu_timers_get_fault_injection();
+
+	/* Configure GR engine in DEVICE_INFO registers */
+	entry_count = top_device_info__size_1_v();
+	for (i = 0; i < entry_count ; i++) {
+		nvgpu_writel(g, top_device_info_r(i), 0);
+	}
+
+	nvgpu_writel(g, top_device_info_r(1), 0x8006183E);
+	nvgpu_writel(g, top_device_info_r(2), 0x80000105);
+	nvgpu_writel(g, top_device_info_r(3), 0x00000003);
+
+	/* Fifo is uninitialized, so need to set this */
+	f->g = g;
+
+	/*
+	 * PBDMA and ENGINE data should be initialized to detect
+	 * GR engine ID in g->ops.gr.init.wait_idle.
+	 */
+	err = nvgpu_pbdma_setup_sw(g);
+	if (err != 0) {
+		return UNIT_FAIL;
+	}
+
+	err = nvgpu_engine_setup_sw(g);
+	if (err != 0) {
+		return UNIT_FAIL;
+	}
+
+	/* Fail timeout initialization */
+	nvgpu_posix_enable_fault_injection(timer_fi, true, 0);
+	err = g->ops.gr.init.wait_idle(g);
+	if (err != -ETIMEDOUT) {
+		return UNIT_FAIL;
+	}
+
+	nvgpu_posix_enable_fault_injection(timer_fi, false, 0);
+
+	/*
+	 * Set combinations of gr/fifo status registers.
+	 * g->ops.gr.init.wait_idle will timeout only when context is valid
+	 * and either on GR engine or during ctxsw operation.
+	 * That means timeout is triggered only three times as below -
+	 * - Ctx status is valid, GR engine is busy, ctxsw not in progress.
+	 * - Ctx status is valid, GR engine is not busy, ctxsw in progress.
+	 * - Ctx status is valid, GR engine is busy, ctxsw in progress.
+	 * - In all other cases wait will pass.
+	 */
+	for (i = 1; i < 8; i++) {
+		if ((i & 0x1)) {
+			/* GR status reports busy. */
+			nvgpu_writel(g, gr_engine_status_r(), 0x1);
+		} else {
+			/* GR status reports idle. */
+			nvgpu_writel(g, gr_engine_status_r(), 0x0);
+		}
+
+		nvgpu_writel(g, fifo_engine_status_r(0), 0x0);
+
+		if ((i & 0x2)) {
+			/* Set ctx status to invalid. */
+		} else {
+			/* Set ctx status to valid. */
+			val = nvgpu_readl(g, fifo_engine_status_r(0));
+			val |= BIT32(13U);
+			nvgpu_writel(g, fifo_engine_status_r(0), val);
+		}
+
+		if ((i & 0x4)) {
+			/* Set ctxsw status to in progress. */
+			val = nvgpu_readl(g, fifo_engine_status_r(0));
+			val |= BIT32(15U);
+			nvgpu_writel(g, fifo_engine_status_r(0), val);
+		} else {
+			/* Set ctxsw status to not in progress. */
+		}
+
+		/*
+		 * This condition statement mimicks the timeout check
+		 * statement in gm20b_gr_init_wait_idle().
+		 */
+		if ((i & 0x2) || (!(i & 0x1) && !(i & 0x4))) {
+			expected_pass = true;
+		} else {
+			expected_pass = false;
+		}
+
+		err = g->ops.gr.init.wait_idle(g);
+		if (err == -EAGAIN && expected_pass) {
+			return UNIT_FAIL;
+		}
+		if (err == 0 && !expected_pass) {
+			return UNIT_FAIL;
+		}
+	}
+
+	/* Set all status registers to idle/inactive */
+	nvgpu_writel(g, gr_engine_status_r(), 0x0);
+	nvgpu_writel(g, fifo_engine_status_r(0), 0x0);
+
+	/* Success */
+	err = g->ops.gr.init.wait_idle(g);
+	if (err != 0) {
+		return UNIT_FAIL;
+	}
+
+	/* Cleanup */
+	nvgpu_pbdma_cleanup_sw(g);
+	nvgpu_engine_cleanup_sw(g);
+
+	/*
+	 * Need to set explicitly to avoid looping through
+	 * engine enums in suspend test.
+	 */
+	f->num_engines = 0;
 
 	return UNIT_SUCCESS;
 }

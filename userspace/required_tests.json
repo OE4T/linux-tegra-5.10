@@ -2634,6 +2634,12 @@
         "test_level": 0
     },
     {
+        "test": "test_gr_init_hal_wait_idle",
+        "case": "gr_init_hal_wait_idle",
+        "unit": "nvgpu_gr_init",
+        "test_level": 0
+    },
+    {
         "test": "test_gr_init_hal_ecc_scrub_reg",
         "case": "gr_init_hal_ecc_scrub_reg",
         "unit": "nvgpu_gr_init",

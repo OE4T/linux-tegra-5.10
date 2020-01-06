@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -56,6 +56,48 @@ struct unit_module;
  * otherwise.
  */
 int test_gr_init_hal_wait_empty(struct unit_module *m,
+		struct gk20a *g, void *args);
+
+/**
+ * Test specification for: test_gr_init_hal_wait_idle.
+ *
+ * Description: Verify error handling in g->ops.gr.init.wait_idle.
+ *
+ * Test Type: Feature, Error guessing
+ *
+ * Targets: g->ops.gr.init.wait_idle.
+ *
+ * Input: gr_init_setup, gr_init_prepare, gr_init_support must have
+ *        been executed successfully.
+ *
+ * Steps:
+ * - Configure DEVICE_INFO registers (i.e. top_device_info_r(i)) so that
+ *   GR engine information is enumerated.
+ * - Initialize required pieces of fifo (struct gk20a * pointer in struct
+ *   nvgpu_fifo, engine and pbdma s/w setup).
+ * - Inject timeout error and call g->ops.gr.init.wait_idle.
+ *   Should fail since timeout initialization fails.
+ * - Disable timeout error injection.
+ * - Set combinations of gr/fifo status registers.
+ *   Write register gr_engine_status_r() to update GR engine status.
+ *   Write register fifo_engine_status_r() to update context and ctxsw status.
+ *   g->ops.gr.init.wait_idle will timeout only when context is valid
+ *   on engine or during ctxsw operation.
+ *   That means timeout is triggered only three times as below -
+ *   - Context status is valid, GR engine is busy, ctxsw not in progress.
+ *   - Context status is valid, GR engine is not busy, ctxsw in progress.
+ *   - Context status is valid, GR engine is busy, ctxsw in progress.
+ *   - In all other cases wait will pass.
+ * - Set all status registers to 0 and verify that
+ *   g->ops.gr.init.wait_idle does not time out.
+ * - Clean up all the fifo setup (engine and pbdma s/w setup).
+ * - Unset number of engines in struct nvgpu_fifo to avoid incorrect engine
+ *   enumeration in other tests.
+ *
+ * Output: Returns PASS if the steps above were executed successfully. FAIL
+ * otherwise.
+ */
+int test_gr_init_hal_wait_idle(struct unit_module *m,
 		struct gk20a *g, void *args);
 
 /**

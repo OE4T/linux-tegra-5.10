@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -185,6 +185,7 @@ struct unit_module_test nvgpu_gr_init_tests[] = {
 	UNIT_TEST(gr_init_support, test_gr_init_support, NULL, 0),
 	UNIT_TEST(gr_init_hal_error_injection, test_gr_init_hal_error_injection, NULL, 0),
 	UNIT_TEST(gr_init_hal_wait_empty, test_gr_init_hal_wait_empty, NULL, 0),
+	UNIT_TEST(gr_init_hal_wait_idle, test_gr_init_hal_wait_idle, NULL, 0),
 	UNIT_TEST(gr_init_hal_wait_fe_idle, test_gr_init_hal_wait_fe_idle, NULL, 0),
 	UNIT_TEST(gr_init_hal_fe_pwr_mode, test_gr_init_hal_fe_pwr_mode, NULL, 0),
 	UNIT_TEST(gr_init_hal_ecc_scrub_reg, test_gr_init_hal_ecc_scrub_reg, NULL, 0),
