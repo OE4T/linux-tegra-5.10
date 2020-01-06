@@ -253,6 +253,13 @@ u32 gv11b_pmu_mutex__size_1_v(void)
 {
 	return pwr_pmu_mutex__size_1_v();
 }
+
+void gv11b_secured_pmu_start(struct gk20a *g)
+{
+	nvgpu_writel(g, pwr_falcon_cpuctl_alias_r(),
+		pwr_falcon_cpuctl_startcpu_f(1));
+}
+
 #endif
 
 #ifdef CONFIG_NVGPU_INJECT_HWERR

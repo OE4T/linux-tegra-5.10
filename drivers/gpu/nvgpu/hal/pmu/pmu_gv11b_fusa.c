@@ -300,12 +300,6 @@ u32 gv11b_pmu_falcon_base_addr(void)
 	return pwr_falcon_irqsset_r();
 }
 
-void gv11b_secured_pmu_start(struct gk20a *g)
-{
-	nvgpu_writel(g, pwr_falcon_cpuctl_alias_r(),
-		pwr_falcon_cpuctl_startcpu_f(1));
-}
-
 bool gv11b_is_pmu_supported(struct gk20a *g)
 {
 #ifdef CONFIG_NVGPU_LS_PMU

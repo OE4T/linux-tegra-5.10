@@ -1208,7 +1208,6 @@ static const struct gpu_ops gv11b_ops = {
 		.is_engine_in_reset = gv11b_pmu_is_engine_in_reset,
 		.is_debug_mode_enabled = gv11b_pmu_is_debug_mode_en,
 		.setup_apertures = gv11b_setup_apertures,
-		.secured_pmu_start = gv11b_secured_pmu_start,
 		.write_dmatrfbase = gv11b_write_dmatrfbase,
 		.flcn_setup_boot_config = gv11b_pmu_flcn_setup_boot_config,
 		.pmu_clear_bar0_host_err_status =
@@ -1255,6 +1254,8 @@ static const struct gpu_ops gv11b_ops = {
 		.pmu_dump_falcon_stats = gk20a_pmu_dump_falcon_stats,
 		/* PMU ucode */
 		.pmu_ns_bootstrap = gv11b_pmu_bootstrap,
+		/* secured pmu start */
+		.secured_pmu_start = gv11b_secured_pmu_start,
 #endif
 	},
 #ifdef CONFIG_NVGPU_CLK_ARB
