@@ -53,7 +53,7 @@
  *    struct nvgpu_cond
  *
  * Output:
- * The test returns PASS if cond variable initiaisation and cleanup functions
+ * The test returns PASS if cond variable initialization and cleanup functions
  * returns expected success values and internal variables in cond variable
  * structure is initialised with proper values.
  * The test returns FAIL if either initialisation or cleanup routine fails.
@@ -62,6 +62,37 @@
  *
  */
 int test_cond_init_destroy(struct unit_module *m,
+			struct gk20a *g, void *args);
+
+/**
+ * Test specification for test_cond_bug
+ *
+ * Description: Test NULL and uninitialized cond vars.
+ *
+ * Test Type: Feature, Error injection
+ *
+ * Inputs:
+ * 1) Global instance of struct nvgpu_cond.
+ *
+ * Steps:
+ * 1) Call the condition variable functions with NULL as input parameter.
+ * 2) Make sure that all the called functions either invoke BUG or return
+ *    an error value for NULL value as input parameter.
+ * 3) Call the condition variable function with uninitialized condition
+ *    variable as input parameter.
+ * 4) Make sure that all the called functions either invokes BUG or returns
+ *    an error value for uninitialized condition variable passed as input
+ *    parameter.
+ *
+ * Output:
+ * The test returns PASS if all the NULL and uninitialized input parameters
+ * are handled by the condition variable functions by either calling BUG or by
+ * returning an error value.
+ * The test returns FAIL if any of the NULL or uninitialized condition variable
+ * passed as input parameter is not handled as expected.
+ *
+ */
+int test_cond_bug(struct unit_module *m,
 			struct gk20a *g, void *args);
 
 /**
@@ -106,16 +137,16 @@ int test_cond_init_destroy(struct unit_module *m,
  *    - Main Thread:
  *      1) Main thread resets the global variables test_code, test_cond
  *         and test_data.
- *      2) Initialise the condition variabe by calling nvgpu_cond_init.
+ *      2) Initialise the condition variable by calling nvgpu_cond_init.
  *      3) Return failure if the init function returns error.
- *      4) Copy the test args into global structure instance of unit_test_cond_data.
+ *      4) Copy the test args into global instance of unit_test_cond_data.
  *      5) Reset global variables read_status and bcst_read_status to 0.
  *      6) Create the read thread.
- *      7) Cleanup the initialised cond variable and return failure if read thread
- *         creation fails.
+ *      7) Cleanup the initialised cond variable and return failure if read
+ *         thread creation fails.
  *      8) Create the write thread.
- *      9) Cleanup the initialised cond variable, cancel the read thread and return
- *         failure if write thread creation fails.
+ *      9) Cleanup the initialised cond variable, cancel the read thread and
+ *         return failure if write thread creation fails.
  *     10) Wait for both read and write thread to exit using pthread_join.
  *     11) Check for global variable read_status and return FAIL if the value
  *         indicates an error.
@@ -131,7 +162,8 @@ int test_cond_init_destroy(struct unit_module *m,
  *      5) Return from the thread handler.
  *
  *    - Write Thread:
- *      1) Wait on global variable read_wait to be true before proceeding further.
+ *      1) Wait on global variable read_wait to be true before proceeding
+ *         further.
  *      2) Update the global array test_code with a defined value.
  *      3) Reset read_wait to 0.
  *      4) Signal the condition variable.
@@ -157,7 +189,7 @@ int test_cond_init_destroy(struct unit_module *m,
  *
  * e) Wait and Broadcast
  *    In broadcast test cases an extra read thread is created by the main
- *    thread.  Both the read threads will get blocked on the codition variable.
+ *    thread.  Both the read threads will get blocked on the condition variable.
  *    The write thread has to broadcast the signal, which should bring both
  *    the read threads out of blocked state. The main thread needs to wait for
  *    the extra read thread also to exit in this case.
@@ -185,10 +217,43 @@ int test_cond_init_destroy(struct unit_module *m,
  * Output:
  * All the tests return PASS if the condition variable is properly signalled
  * by the write thread and further verification of shared data shows a
- * succesful update from write thread with a predefined value.
+ * successful update from write thread with a predefined value.
  * The tests return FAIL, if any of the above conditions are not met.
  *
  */
 int test_cond_signal(struct unit_module *m,
+			struct gk20a *g, void *args);
+
+/**
+ * Test specification for test_cond_timeout
+ *
+ * Description: Test time out for a condition variable wait.
+ *
+ * Test Type: Feature, Error injection
+ *
+ * Inputs:
+ * 1) Global instance of struct nvgpu_cond.
+ *
+ * Steps:
+ * 1) Initialize the condition variable.
+ * 2) Call the function nvgpu_cond_timedwait with a timeout value.
+ * 3) Check the return value from the function nvgpu_cond_timedwait. If the
+ *    return value is not ETIMEDOUT, unlock the mutex associated with the
+ *    condition variable then destroy the condition variable and return fail.
+ * 4) If the return value is ETIMEDOUT, check the actual duration of timed
+ *    wait. If it is less than the requested timeout value, unlock the mutex
+ *    associated with the condition variable then destroy the condition
+ *    variable and return FAIL.
+ * 5) Unlock the mutex associated with the condition variable then destroy the
+ *    condition variable and return pass.
+ *
+ * Output:
+ * The test returns PASS if the nvgpu_cond_timedwait function returns
+ * ETIMEDOUT error.
+ * The test returns FAIL if the return value from nvgpu_cond_timedwait function
+ * is not ETIMEDOUT.
+ *
+ */
+int test_cond_timeout(struct unit_module *m,
 			struct gk20a *g, void *args);
 #endif /* __UNIT_POSIX_COND_H__ */

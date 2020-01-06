@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -29,6 +29,7 @@
 
 #include <nvgpu/cond.h>
 #include <nvgpu/thread.h>
+#include <nvgpu/timers.h>
 
 #include "posix-cond.h"
 
@@ -338,6 +339,72 @@ int test_cond_init_destroy(struct unit_module *m,
 	return UNIT_SUCCESS;
 }
 
+int test_cond_bug(struct unit_module *m,
+			struct gk20a *g, void *args)
+{
+	int ret;
+
+	memset(&test_cond, 0, sizeof(struct nvgpu_cond));
+
+	if(!EXPECT_BUG(nvgpu_cond_signal(NULL))) {
+		unit_return_fail(m, "BUG not called for NULL cond var\n");
+	}
+
+	if(!EXPECT_BUG(nvgpu_cond_signal(&test_cond))) {
+		unit_return_fail(m,
+			"BUG not called for uninitialized cond var\n");
+	}
+
+	if(!EXPECT_BUG(nvgpu_cond_signal_interruptible(NULL))) {
+		unit_return_fail(m, "BUG not called for NULL cond var\n");
+	}
+
+	if(!EXPECT_BUG(nvgpu_cond_signal_interruptible(&test_cond))) {
+		unit_return_fail(m,
+			"BUG not called for uninitialized cond var\n");
+	}
+
+	if(!EXPECT_BUG(nvgpu_cond_destroy(NULL))) {
+		unit_return_fail(m, "BUG not called for NULL cond var\n");
+	}
+
+	if(!EXPECT_BUG(nvgpu_cond_signal_locked(NULL))) {
+		unit_return_fail(m, "BUG not called for NULL cond var\n");
+	}
+
+	if(!EXPECT_BUG(nvgpu_cond_signal_locked(&test_cond))) {
+		unit_return_fail(m,
+			"BUG not called for uninitialized cond var\n");
+	}
+
+	ret = nvgpu_cond_broadcast(NULL);
+	if (ret != -EINVAL) {
+		unit_return_fail(m, "NULL cond var not handled\n");
+	}
+
+	ret = nvgpu_cond_broadcast(&test_cond);
+	if (ret != -EINVAL) {
+		unit_return_fail(m, "Uninitialized cond var not handled\n");
+	}
+
+	ret = nvgpu_cond_broadcast_interruptible(NULL);
+	if (ret != -EINVAL) {
+		unit_return_fail(m, "NULL cond var not handled\n");
+	}
+
+	ret = nvgpu_cond_broadcast_interruptible(&test_cond);
+	if (ret != -EINVAL) {
+		unit_return_fail(m, "Uninitialized cond var not handled\n");
+	}
+
+	ret = nvgpu_cond_broadcast_locked(&test_cond);
+	if (ret != -EINVAL) {
+		unit_return_fail(m, "Uninitialized cond var not handled\n");
+	}
+
+	return UNIT_SUCCESS;
+}
+
 int test_cond_signal(struct unit_module *m,
 			struct gk20a *g, void *args)
 {
@@ -423,8 +490,51 @@ int test_cond_signal(struct unit_module *m,
 	return UNIT_SUCCESS;
 }
 
+int test_cond_timeout(struct unit_module *m,
+			struct gk20a *g, void *args)
+{
+	int ret;
+	unsigned int timeout;
+	signed long ts_before, ts_after, delay;
+
+	memset(&test_cond, 0, sizeof(struct nvgpu_cond));
+	timeout = 10;
+
+	ret = nvgpu_cond_init(&test_cond);
+	if (ret != 0) {
+		unit_return_fail(m, "Cond init failed\n");
+	}
+
+	ts_before = nvgpu_current_time_us();
+	nvgpu_cond_lock(&test_cond);
+
+	ret = nvgpu_cond_timedwait(&test_cond, &timeout);
+	if (ret != ETIMEDOUT) {
+		nvgpu_cond_unlock(&test_cond);
+		nvgpu_cond_destroy(&test_cond);
+		unit_return_fail(m, "Cond timed wait return error %d\n", ret);
+	}
+
+	ts_after = nvgpu_current_time_us();
+	delay = ts_after - ts_before;
+	delay /= 1000;
+
+	if (delay < 10) {
+		nvgpu_cond_unlock(&test_cond);
+		nvgpu_cond_destroy(&test_cond);
+		unit_return_fail(m,
+			"Timed wait Duration incorrect\n");
+	}
+
+	nvgpu_cond_unlock(&test_cond);
+	nvgpu_cond_destroy(&test_cond);
+
+	return UNIT_SUCCESS;
+}
+
 struct unit_module_test posix_cond_tests[] = {
 	UNIT_TEST(init,                  test_cond_init_destroy, NULL, 0),
+	UNIT_TEST(bug_cond,              test_cond_bug, NULL, 0),
 	UNIT_TEST(wait_signal,           test_cond_signal, &signal_normal, 0),
 	UNIT_TEST(wait_signal_int,       test_cond_signal, &signal_int, 0),
 	UNIT_TEST(wait_signal_locked,    test_cond_signal, &signal_locked, 0),
@@ -435,6 +545,7 @@ struct unit_module_test posix_cond_tests[] = {
 	UNIT_TEST(wait_condition,        test_cond_signal, &condition_wait, 0),
 	UNIT_TEST(wait_condition_int,    test_cond_signal, &condition_wait_int, 0),
 	UNIT_TEST(wait_condition_locked, test_cond_signal, &condition_wait_locked, 0),
+	UNIT_TEST(wait_timeout,          test_cond_timeout, NULL, 0),
 };
 
 UNIT_MODULE(posix_cond, posix_cond_tests, UNIT_PRIO_POSIX_TEST);
