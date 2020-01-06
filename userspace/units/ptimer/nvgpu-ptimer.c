@@ -284,6 +284,12 @@ int test_ptimer_scaling(struct unit_module *m,
 		ret = UNIT_FAIL;
 	}
 
+	val = scale_ptimer(10, 6);
+	if (val != 17) {
+		unit_err(m, "ptimer scale calculation incorrect\n");
+		ret = UNIT_FAIL;
+	}
+
 	val = ptimer_scalingfactor10x(100);
 	if (val != (PTIMER_REF_FREQ_HZ*10/100)) {
 		unit_err(m, "ptimer scale calculation incorrect\n");
