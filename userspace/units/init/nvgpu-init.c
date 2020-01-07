@@ -708,6 +708,8 @@ int test_quiesce(struct unit_module *m, struct gk20a *g, void *args)
 	int ret = UNIT_SUCCESS;
 	struct nvgpu_posix_fault_inj *thread_fi =
 				nvgpu_thread_get_fault_injection();
+	struct nvgpu_posix_fault_inj *cond_fi =
+				nvgpu_cond_get_fault_injection();
 	int err;
 	unsigned long *save_enabled_ptr;
 
@@ -791,9 +793,18 @@ int test_quiesce(struct unit_module *m, struct gk20a *g, void *args)
 	nvgpu_thread_join(&g->sw_quiesce_thread);
 	nvgpu_set_power_state(g, NVGPU_STATE_POWERED_ON);
 
-	/* coverage for thread creation failing when creating thread */
+	/* coverage for cond init failing */
 	nvgpu_sw_quiesce_remove_support(g);
 	set_poweron_funcs_success(g);
+	nvgpu_posix_enable_fault_injection(cond_fi, true, 0);
+	err = nvgpu_finalize_poweron(g);
+	if (err == 0) {
+		unit_return_fail(m, "failed to detect cond init error\n");
+	}
+	nvgpu_posix_enable_fault_injection(cond_fi, false, 0);
+
+	/* coverage for thread creation failing when creating thread */
+	/* Note: quiesce is disabled from cond test above */
 	nvgpu_posix_enable_fault_injection(thread_fi, true, 0);
 	err = nvgpu_finalize_poweron(g);
 	if (err == 0) {
