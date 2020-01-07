@@ -45,7 +45,7 @@ struct nvgpu_semaphore;
 struct gops_sync {
 
 #ifdef CONFIG_TEGRA_GK20A_NVHOST
-	struct {
+	struct gops_sync_syncpt {
 		/**
 		 * @brief Map syncpoint aperture as read-only.
 		 *
@@ -93,7 +93,7 @@ struct gops_sync {
 
 #ifdef CONFIG_NVGPU_KERNEL_MODE_SUBMIT
 /** @cond DOXYGEN_SHOULD_SKIP_THIS */
-	struct {
+	struct gops_sync_sema {
 		u32 (*get_wait_cmd_size)(void);
 		u32 (*get_incr_cmd_size)(void);
 		void (*add_cmd)(struct gk20a *g,

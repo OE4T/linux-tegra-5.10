@@ -230,7 +230,7 @@ struct gops_mm {
 	 * This structure describes the HAL functions related to
 	 * GMMU fault handling.
 	 */
-	struct {
+	struct gops_mm_mmu_fault {
 		/**
 		 * @brief HAL to initialize the software setup of
 		 *        GMMU fault buffer.
@@ -288,7 +288,7 @@ struct gops_mm {
 	 * This structure describes the HAL functions related to
 	 * fb and L2 hardware operations.
 	 */
-	struct {
+	struct gops_mm_cache {
 		/**
 		 * @brief HAL to flush the frame buffer memory.
 		 *
@@ -358,7 +358,7 @@ struct gops_mm {
 	 * This structure describes the HAL functions related to
 	 * GMMU operations.
 	 */
-	struct {
+	struct gops_mm_gmmu {
 		/**
 		 * @brief HAL to get the GMMU level mapping info structure.
 		 *
