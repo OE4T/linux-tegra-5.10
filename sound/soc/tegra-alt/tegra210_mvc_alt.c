@@ -28,7 +28,6 @@
 #include <sound/pcm_params.h>
 #include <sound/soc.h>
 #include <linux/of_device.h>
-#include <linux/delay.h>
 
 #include "tegra210_xbar_alt.h"
 #include "tegra210_mvc_alt.h"
@@ -75,51 +74,27 @@ static int tegra210_mvc_runtime_resume(struct device *dev)
 	return 0;
 }
 
-static int tegra210_mvc_soft_reset(struct tegra210_mvc *mvc)
-{
-	int value;
-	int dcnt = 10;
-	/* issue soft reset */
-	regmap_write(mvc->regmap, TEGRA210_MVC_SOFT_RESET, 1);
-	/* wait for soft reset bit to clear */
-	do {
-		udelay(10);
-		regmap_read(mvc->regmap, TEGRA210_MVC_SOFT_RESET, &value);
-		dcnt--;
-		if (dcnt < 0)
-			return -EINVAL;
-	} while (value);
-
-	return 0;
-}
-
 static int tegra210_mvc_write_ram(struct tegra210_mvc *mvc,
-				unsigned int addr,
-				unsigned int val)
+				  unsigned int addr, unsigned int coef)
 {
-	unsigned int reg, value, wait = 0xffff;
+	unsigned int reg, val;
+	int ret;
 
-	/* check if busy */
-	do {
-		regmap_read(mvc->regmap,
-			TEGRA210_MVC_AHUBRAMCTL_CONFIG_RAM_CTRL,
-			&value);
-		wait--;
-		if (!wait)
-			return -EINVAL;
-	} while (value & 0x80000000);
-	value = 0;
+	ret = regmap_read_poll_timeout(mvc->regmap,
+				       TEGRA210_MVC_AHUBRAMCTL_CONFIG_RAM_CTRL,
+				       val, !(val & 0x80000000), 10, 10000);
+	if (ret < 0)
+		return ret;
 
 	reg = (addr << TEGRA210_MVC_AHUBRAMCTL_CONFIG_RAM_CTRL_RAM_ADDR_SHIFT) &
-			TEGRA210_MVC_AHUBRAMCTL_CONFIG_RAM_CTRL_RAM_ADDR_MASK;
+	      TEGRA210_MVC_AHUBRAMCTL_CONFIG_RAM_CTRL_RAM_ADDR_MASK;
 	reg |= TEGRA210_MVC_AHUBRAMCTL_CONFIG_RAM_CTRL_ADDR_INIT_EN;
 	reg |= TEGRA210_MVC_AHUBRAMCTL_CONFIG_RAM_CTRL_RW_WRITE;
 	reg |= TEGRA210_MVC_AHUBRAMCTL_CONFIG_RAM_CTRL_SEQ_ACCESS_EN;
 
-	regmap_write(mvc->regmap,
-		TEGRA210_MVC_AHUBRAMCTL_CONFIG_RAM_CTRL, reg);
-	regmap_write(mvc->regmap,
-		TEGRA210_MVC_AHUBRAMCTL_CONFIG_RAM_DATA, val);
+	regmap_write(mvc->regmap, TEGRA210_MVC_AHUBRAMCTL_CONFIG_RAM_CTRL, reg);
+	regmap_write(mvc->regmap, TEGRA210_MVC_AHUBRAMCTL_CONFIG_RAM_DATA,
+		     coef);
 
 	return 0;
 }
@@ -161,21 +136,18 @@ static int tegra210_mvc_put_vol(struct snd_kcontrol *kcontrol,
 	struct snd_soc_codec *codec = snd_soc_kcontrol_codec(kcontrol);
 	struct tegra210_mvc *mvc = snd_soc_codec_get_drvdata(codec);
 	unsigned int reg = mc->reg;
-	unsigned int value, wait = 0xffff;
+	unsigned int value;
 	int ret = 0;
 	s32 val;
 
 	pm_runtime_get_sync(codec->dev);
-	/* check if VOLUME_SWITCH is triggered*/
-	do {
-		regmap_read(mvc->regmap,
-				TEGRA210_MVC_SWITCH, &value);
-		wait--;
-		if (!wait) {
-			ret = -EINVAL;
-			goto end;
-		}
-	} while (value & TEGRA210_MVC_VOLUME_SWITCH_MASK);
+
+	/* check if VOLUME_SWITCH is triggered */
+	ret = regmap_read_poll_timeout(mvc->regmap, TEGRA210_MVC_SWITCH,
+			value, !(value & TEGRA210_MVC_VOLUME_SWITCH_MASK),
+			10, 10000);
+	if (ret < 0)
+		goto end;
 
 	if (reg == TEGRA210_MVC_TARGET_VOL) {
 		/* Volume control read from mixer ctl is with  */
@@ -357,11 +329,15 @@ static int tegra210_mvc_hw_params(struct snd_pcm_substream *substream,
 {
 	struct device *dev = dai->dev;
 	struct tegra210_mvc *mvc = snd_soc_dai_get_drvdata(dai);
-	int i, ret;
+	int i, ret, val;
 
-	ret = tegra210_mvc_soft_reset(mvc);
+	/* SW reset */
+	regmap_write(mvc->regmap, TEGRA210_MVC_SOFT_RESET, 1);
+
+	ret = regmap_read_poll_timeout(mvc->regmap, TEGRA210_MVC_SOFT_RESET,
+				       val, !val, 10, 10000);
 	if (ret < 0) {
-		dev_err(dev, "SOFT_RESET error: %d\n", ret);
+		dev_err(dev, "SW reset failed, err = %d\n", ret);
 		return ret;
 	}
 
@@ -396,8 +372,14 @@ static int tegra210_mvc_hw_params(struct snd_pcm_substream *substream,
 	regmap_write(mvc->regmap, TEGRA210_MVC_TARGET_VOL, mvc->volume);
 
 	/* program the poly coefficients */
-	for (i = 0; i < 9; i++)
-		tegra210_mvc_write_ram(mvc, i, mvc->poly_coeff[i]);
+	for (i = 0; i < 9; i++) {
+		ret = tegra210_mvc_write_ram(mvc, i, mvc->poly_coeff[i]);
+		if (ret < 0) {
+			dev_err(dai->dev, "failed to write coefs, err = %d\n",
+				ret);
+			return ret;
+		}
+	}
 
 	/* program poly_n1, poly_n2, duration */
 	regmap_write(mvc->regmap, TEGRA210_MVC_POLY_N1, mvc->poly_n1);

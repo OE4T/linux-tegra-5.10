@@ -16,11 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <linux/delay.h>
 #include <linux/clk.h>
 #include <linux/device.h>
 #include <linux/io.h>
-#include <linux/iopoll.h>
 #include <linux/module.h>
 #include <linux/of.h>
 #include <linux/platform_device.h>
@@ -33,7 +31,6 @@
 #include <linux/pinctrl/pinconf-tegra.h>
 #include <linux/regulator/consumer.h>
 #include <linux/of_device.h>
-#include <linux/delay.h>
 #include <linux/tegra-powergate.h>
 #include <soc/tegra/chip-id.h>
 #include <linux/pm_domain.h>
@@ -42,8 +39,6 @@
 #include "tegra210_i2s_alt.h"
 
 #define DRV_NAME "tegra210-i2s"
-
-#define REG_IOVA(reg) (i2s->base_addr + (reg))
 
 static const struct reg_default tegra210_i2s_reg_defaults[] = {
 	{ TEGRA210_I2S_AXBAR_RX_INT_MASK, 0x00000003},
@@ -144,9 +139,9 @@ static int tegra210_i2s_sw_reset(struct snd_soc_codec *codec, bool is_playback)
 	/* SW reset */
 	regmap_update_bits(i2s->regmap, reset_reg, reset_mask, reset_en);
 
-	ret = readl_poll_timeout_atomic(REG_IOVA(reset_reg), val,
-					!(val & reset_mask & reset_en),
-					10, 10000);
+	ret = regmap_read_poll_timeout(i2s->regmap, reset_reg, val,
+				       !(val & reset_mask & reset_en),
+				       10, 10000);
 	if (ret < 0) {
 		dev_err(dev, "timeout: failed to reset I2S for %s\n",
 			is_playback ? "playback" : "capture");
@@ -185,7 +180,7 @@ static int tegra210_i2s_init(struct snd_soc_dapm_widget *w,
 	}
 
 	/* ensure I2S is in disabled state before new session */
-	ret = readl_poll_timeout_atomic(REG_IOVA(status_reg), val,
+	ret = regmap_read_poll_timeout(i2s->regmap, status_reg, val,
 			!(val & TEGRA210_I2S_EN_MASK & TEGRA210_I2S_EN),
 			10, 10000);
 	if (ret < 0) {
@@ -1099,8 +1094,6 @@ static int tegra210_i2s_platform_probe(struct platform_device *pdev)
 	regs = devm_ioremap_resource(&pdev->dev, mem);
 	if (IS_ERR(regs))
 		return PTR_ERR(regs);
-
-	i2s->base_addr = regs;
 
 	i2s->regmap = devm_regmap_init_mmio(&pdev->dev, regs,
 					    &tegra210_i2s_regmap_config);
