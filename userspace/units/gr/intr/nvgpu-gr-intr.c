@@ -499,21 +499,16 @@ int test_gr_intr_without_channel(struct unit_module *m,
 
 struct test_gr_intr_sw_mthd_exceptions sw_excep[] = {
 	[0] = {
-		.trapped_addr = NVC0C0_SET_SHADER_EXCEPTIONS,
-		.data[0] = NVA297_SET_SHADER_EXCEPTIONS_ENABLE_FALSE,
-		.data[1] = NVA297_SET_SHADER_EXCEPTIONS_ENABLE_TRUE,
-	      },
-	[1] = {
 		.trapped_addr = NVC3C0_SET_SKEDCHECK,
 		.data[0] = NVC397_SET_SKEDCHECK_18_ENABLE,
 		.data[1] = NVC397_SET_SKEDCHECK_18_DISABLE,
 	      },
-	[2] = {
+	[1] = {
 		.trapped_addr = NVC3C0_SET_SHADER_CUT_COLLECTOR,
 		.data[0] = NVC397_SET_SHADER_CUT_COLLECTOR_STATE_ENABLE,
 		.data[1] = NVC397_SET_SHADER_CUT_COLLECTOR_STATE_DISABLE,
 	      },
-	[3] = {
+	[2] = {
 		.trapped_addr = 0,
 		.data[0] = 0,
 		.data[1] = 0,
@@ -532,6 +527,10 @@ int test_gr_intr_sw_exceptions(struct unit_module *m,
 	nvgpu_posix_io_writel_reg_space(g, gr_intr_r(),
 				gr_intr_illegal_method_pending_f() |
 				gr_intr_class_error_pending_f());
+
+	/* valid class num */
+	nvgpu_posix_io_writel_reg_space(g,
+		gr_fe_object_table_r(0), VOLTA_COMPUTE_A);
 
 	for (i = 0; i < arry_cnt; i++) {
 		/* method & sub channel */
