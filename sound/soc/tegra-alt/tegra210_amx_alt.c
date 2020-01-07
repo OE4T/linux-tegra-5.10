@@ -16,7 +16,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <linux/delay.h>
 #include <linux/clk.h>
 #include <linux/device.h>
 #include <linux/io.h>
@@ -179,60 +178,40 @@ static void tegra210_amx_update_map_ram(struct tegra210_amx *amx)
 		tegra210_amx_write_map_ram(amx, i, amx->map[i]);
 }
 
-static int tegra210_amx_sw_reset(struct tegra210_amx *amx,
-				int timeout)
-{
-	unsigned int val;
-	int wait = timeout;
-
-	regmap_update_bits(amx->regmap, TEGRA210_AMX_SOFT_RESET,
-		TEGRA210_AMX_SOFT_RESET_SOFT_RESET_MASK,
-		TEGRA210_AMX_SOFT_RESET_SOFT_EN);
-
-	do {
-		regmap_read(amx->regmap, TEGRA210_AMX_SOFT_RESET, &val);
-		wait--;
-		if (!wait)
-			return -EINVAL;
-	} while (val & 0x00000001);
-
-	regmap_update_bits(amx->regmap, TEGRA210_AMX_SOFT_RESET,
-			TEGRA210_AMX_SOFT_RESET_SOFT_RESET_MASK,
-			TEGRA210_AMX_SOFT_RESET_SOFT_DEFAULT);
-
-	return 0;
-}
-
-static int tegra210_amx_get_status(struct tegra210_amx *amx)
-{
-	unsigned int val;
-
-	regmap_read(amx->regmap, TEGRA210_AMX_STATUS, &val);
-	val = (val & 0x00000001);
-
-	return val;
-}
-
 static int tegra210_amx_stop(struct snd_soc_dapm_widget *w,
-				struct snd_kcontrol *kcontrol, int event)
+			     struct snd_kcontrol *kcontrol, int event)
 {
 	struct snd_soc_codec *codec = snd_soc_dapm_to_codec(w->dapm);
 	struct device *dev = codec->dev;
 	struct tegra210_amx *amx = dev_get_drvdata(dev);
-	int dcnt = 10, ret = 0;
+	unsigned int val;
+	int ret;
 
-	/* wait until AMX status is disabled */
-	while (tegra210_amx_get_status(amx) && dcnt--)
-		udelay(100);
-
-	/* HW needs sw reset to make sure previous transaction be clean */
-	ret = tegra210_amx_sw_reset(amx, 0xffff);
-	if (ret) {
-		dev_err(dev, "Failed at AMX%d sw reset\n", dev->id);
+	/* Ensure if AMX is disabled */
+	ret = regmap_read_poll_timeout(amx->regmap, TEGRA210_AMX_STATUS, val,
+				       !(val & 0x1), 10, 10000);
+	if (ret < 0) {
+		dev_err(dev, "failed to stop AMX, err = %d\n", ret);
 		return ret;
 	}
 
-	return (dcnt < 0) ? -ETIMEDOUT : 0;
+	/* SW reset */
+	regmap_update_bits(amx->regmap, TEGRA210_AMX_SOFT_RESET,
+			   TEGRA210_AMX_SOFT_RESET_SOFT_RESET_MASK,
+			   TEGRA210_AMX_SOFT_RESET_SOFT_EN);
+
+	ret = regmap_read_poll_timeout(amx->regmap, TEGRA210_AMX_SOFT_RESET,
+				       val, !(val & 0x1), 10, 10000);
+	if (ret < 0) {
+		dev_err(dev, "failed to reset AMX, err = %d\n", ret);
+		return ret;
+	}
+
+	regmap_update_bits(amx->regmap, TEGRA210_AMX_SOFT_RESET,
+			   TEGRA210_AMX_SOFT_RESET_SOFT_RESET_MASK,
+			   TEGRA210_AMX_SOFT_RESET_SOFT_DEFAULT);
+
+	return 0;
 }
 
 static int tegra210_amx_runtime_suspend(struct device *dev)
@@ -245,12 +224,11 @@ static int tegra210_amx_runtime_suspend(struct device *dev)
 	return 0;
 }
 
-static unsigned int __maybe_unused tegra210_amx_read_map_ram(
-						struct tegra210_amx *amx,
-						unsigned int addr)
+static unsigned int __maybe_unused
+	tegra210_amx_read_map_ram(struct tegra210_amx *amx, unsigned int addr)
 {
-	unsigned int val, wait;
-	wait = 0xffff;
+	unsigned int val;
+	int ret;
 
 	regmap_write(amx->regmap, TEGRA210_AMX_AHUBRAMCTL_AMX_CTRL,
 		(addr << TEGRA210_AMX_AHUBRAMCTL_AMX_CTRL_RAM_ADDR_SHIFT));
@@ -262,13 +240,11 @@ static unsigned int __maybe_unused tegra210_amx_read_map_ram(
 	val &= ~(TEGRA210_AMX_AHUBRAMCTL_AMX_CTRL_RW_WRITE);
 	regmap_write(amx->regmap, TEGRA210_AMX_AHUBRAMCTL_AMX_CTRL, val);
 
-	do {
-		regmap_read(amx->regmap,
-				TEGRA210_AMX_AHUBRAMCTL_AMX_CTRL, &val);
-		wait--;
-		if (!wait)
-			return -EINVAL;
-	} while (val & 0x80000000);
+	ret = regmap_read_poll_timeout(amx->regmap,
+				       TEGRA210_AMX_AHUBRAMCTL_AMX_CTRL,
+				       val, !(val & 0x80000000), 10, 10000);
+	if (ret < 0)
+		return ret;
 
 	regmap_read(amx->regmap, TEGRA210_AMX_AHUBRAMCTL_AMX_DATA, &val);
 
