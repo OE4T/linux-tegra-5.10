@@ -25,118 +25,9 @@
 #include "../osi/common/type.h"
 #include "hw_desc.h"
 #include "../osi/common/common.h"
+#include "mgbe_dma.h"
 
 static struct desc_ops d_ops;
-
-/**
- * @brief get_rx_tstamp_status - Get Tx Time stamp status
- *
- * @note
- * Algorithm:
- *  - Check if the received descriptor is a context descriptor.
- *  - If yes, check whether the time stamp is valid or not.
- *
- * @param[in] context_desc: Rx context descriptor
- *
- * @note
- * API Group:
- * - Initialization: No
- * - Run time: Yes
- * - De-initialization: No
- *
- * @retval -1 if TimeStamp is not valid
- * @retval 0 if TimeStamp is valid.
- */
-static inline nve32_t get_rx_tstamp_status(struct osi_rx_desc *context_desc)
-{
-	if (((context_desc->rdes3 & RDES3_OWN) != RDES3_OWN) &&
-			((context_desc->rdes3 & RDES3_CTXT) == RDES3_CTXT)) {
-		if (((context_desc->rdes0 == OSI_INVALID_VALUE) &&
-		    (context_desc->rdes1 == OSI_INVALID_VALUE))) {
-			/* Invalid time stamp */
-			return -1;
-		}
-		/* tstamp can be read */
-		return 0;
-	}
-	/* Busy */
-	return -2;
-}
-
-/**
- * @brief get_rx_hwstamp - Get Rx HW Time stamp
- *
- * @note
- * Algorithm:
- *  - Check for TS availability.
- *  - call get_tx_tstamp_status if TS is valid or not.
- *  - If yes, set a bit and update nano seconds in rx_pkt_cx so that OSD
- *    layer can extract the time by checking this bit.
- *
- * @param[in] osi_dma: OSI private data structure.
- * @param[in] rx_desc: Rx descriptor
- * @param[in] context_desc: Rx context descriptor
- * @param[in, out] rx_pkt_cx: Rx packet context
- *
- * @note
- * API Group:
- * - Initialization: No
- * - Run time: Yes
- * - De-initialization: No
- *
- * @retval -1 if TimeStamp is not available
- * @retval 0 if TimeStamp is available.
- */
-static nve32_t get_rx_hwstamp(struct osi_dma_priv_data *osi_dma,
-			      struct osi_rx_desc *rx_desc,
-			      struct osi_rx_desc *context_desc,
-			      struct osi_rx_pkt_cx *rx_pkt_cx)
-{
-	nve32_t retry, ret = -1;
-
-	/* Check for RS1V/TSA/TD valid */
-	if (((rx_desc->rdes3 & RDES3_RS1V) == RDES3_RS1V) &&
-	    ((rx_desc->rdes1 & RDES1_TSA) == RDES1_TSA) &&
-	    ((rx_desc->rdes1 & RDES1_TD) != RDES1_TD)) {
-		for (retry = 0; retry < 10; retry++) {
-			ret = get_rx_tstamp_status(context_desc);
-			if (ret == 0) {
-				/* Update rx pkt context flags to indicate PTP */
-				rx_pkt_cx->flags |= OSI_PKT_CX_PTP;
-				/* Time Stamp can be read */
-				break;
-			} else if (ret != -2) {
-				/* Failed to get Rx timestamp */
-				return ret;
-			} else {
-				/* Do nothing here */
-			}
-			/* TS not available yet, so retrying */
-			osi_dma->osd_ops.udelay(1U);
-		}
-		if (ret != 0) {
-			/* Timed out waiting for Rx timestamp */
-			return ret;
-		}
-
-		if (OSI_NSEC_PER_SEC > (OSI_ULLONG_MAX / context_desc->rdes1)) {
-			/* Will not hit this case */
-		} else if ((OSI_ULLONG_MAX -
-			    (context_desc->rdes1 * OSI_NSEC_PER_SEC)) <
-			   context_desc->rdes0) {
-			/* Will not hit this case */
-		} else {
-			rx_pkt_cx->ns = context_desc->rdes0 +
-				(OSI_NSEC_PER_SEC * context_desc->rdes1);
-		}
-
-		if (rx_pkt_cx->ns < context_desc->rdes0) {
-			/* Will not hit this case */
-			return -1;
-		}
-	}
-	return ret;
-}
 
 /**
  * @brief get_rx_err_stats - Detect Errors from Rx Descriptor
@@ -339,8 +230,8 @@ nve32_t osi_process_rx_completions(struct osi_dma_priv_data *osi_dma,
 
 			context_desc = rx_ring->rx_desc + rx_ring->cur_rx_idx;
 			/* Get rx time stamp */
-			ret = get_rx_hwstamp(osi_dma, rx_desc, context_desc,
-					     rx_pkt_cx);
+			ret =d_ops.get_rx_hwstamp(osi_dma, rx_desc,
+						  context_desc, rx_pkt_cx);
 			if (ret == 0) {
 				ptp_rx_swcx = rx_ring->rx_swcx +
 					      rx_ring->cur_rx_idx;
@@ -616,8 +507,121 @@ static inline nve32_t validate_tx_completions_arg(
 	return 0;
 }
 
-nve32_t osi_process_tx_completions(struct osi_dma_priv_data *osi_dma,
-				   nveu32_t chan, nve32_t budget)
+/**
+ * @brief poll_for_ts_update - Poll for TXTSC bit set for timestamp capture
+ *
+ * Algorithm: This routine will be invoked by get_mac_tx_timestamp to poll
+ *      on TXTSC bit to get set or timedout.
+ *
+ * @param[in] addr: Base address
+ * @param[in] chan: Current counter value
+ *
+ * @retval -1 on failure
+ * @retval 0 on success
+ */
+static inline int poll_for_ts_update(struct osi_dma_priv_data *osi_dma,
+				     unsigned int *count)
+{
+	unsigned int retry = OSI_POLL_COUNT;
+	unsigned int val = 0U;
+
+	while (*count < retry) {
+		/* Read and Check TXTSC in MAC_Timestamp_Control register */
+		val = osi_readl((unsigned char *)osi_dma->base +
+				MGBE_MAC_TSS);
+		if ((val & MGBE_MAC_TSS_TXTSC) == MGBE_MAC_TSS_TXTSC) {
+			return 0;
+		}
+		(*count)++;
+		osi_dma->osd_ops.udelay(OSI_DELAY_1US);
+	}
+
+	return -1;
+}
+
+/**
+ * @brief get_mac_tx_timestamp - get TX timestamp from timestamp capture
+ * registers
+ *
+ * Algorithm: This routine will be invoked on TX_DONE interrupt and if hw
+ * timestamp capture enabled for that descriptor. SW will check for Packet
+ * id maching with dma channel number as for same DMA all tx are FIFO. If match
+ * update hwtimestamp into local variables.
+ *
+ * @param[in] osi:	OSI private data structure.
+ * @param[in] tx_desc:	Pointer to tranmit descriptor.
+ * @param[out] txdone_pkt_cx:	Pointer to txdone packet descriptor to be filled
+ * @param[in] chan:	Rx channel number.
+ *
+ */
+static void get_mac_tx_timestamp(struct osi_dma_priv_data *osi_dma,
+			  struct osi_tx_desc *tx_desc,
+			  struct osi_txdone_pkt_cx *txdone_pkt_cx,
+			  unsigned int chan)
+{
+	unsigned char *addr = (unsigned char *)osi_dma->base;
+	int ret = -1;
+	int found = 1;
+	unsigned int count = 0;
+	unsigned long long var = 0;
+
+	ret = poll_for_ts_update(osi_dma, &count);
+	if (ret < 0) {
+		OSI_DMA_ERR(OSI_NULL, OSI_LOG_ARG_HW_FAIL,
+			    "timestamp done failed\n", 0ULL);
+		found = 0;
+	}
+
+	/* check if pkt id is also correct for pkt. current implemtation
+	 * use dma channel index as pktid, we will use pktid from index 0 to
+	 * max DMA channels -1 */
+	while (found == 1) {
+		if (((osi_readl(addr + MGBE_MAC_TS_PID) &
+		    MGBE_MAC_TS_PID_MASK) == chan)) {
+			txdone_pkt_cx->flags |= OSI_TXDONE_CX_TS;
+			txdone_pkt_cx->ns = osi_readl(addr + MGBE_MAC_TS_NSEC);
+			txdone_pkt_cx->ns &= MGBE_MAC_TS_NSEC_MASK;
+			var = osi_readl(addr + MGBE_MAC_TS_SEC);
+			if (OSI_NSEC_PER_SEC > (OSI_ULLONG_MAX / var)) {
+				/* Will not hit this case */
+			} else if ((OSI_ULLONG_MAX - (var * OSI_NSEC_PER_SEC)) <
+				   txdone_pkt_cx->ns) {
+				/* Will not hit this case */
+			} else {
+				txdone_pkt_cx->ns += var * OSI_NSEC_PER_SEC;
+			}
+
+			found = 0;
+		} else {
+			OSI_DMA_INFO(OSI_NULL, OSI_LOG_ARG_HW_FAIL,
+				     "packet ID mismatch \n", 0ULL);
+			ret = poll_for_ts_update(osi_dma, &count);
+			if (ret < 0) {
+				found = 0;
+			}
+		}
+	}
+}
+
+/**
+ * @brief is_ptp_twostep_or_slave_mode - check for dut in ptp 2step or slave
+ * mode
+ *
+ * @param[in] ptp_flag: osi statructure variable to identify current ptp
+ *			configuration
+ *
+ * @retval 1 if condition is true
+ * @retval 0 if condition is false.
+ */
+static inline unsigned int is_ptp_twostep_or_slave_mode(unsigned int ptp_flag)
+{
+	return (((ptp_flag & OSI_PTP_SYNC_SLAVE) == OSI_PTP_SYNC_SLAVE) ||
+		((ptp_flag & OSI_PTP_SYNC_TWOSTEP) == OSI_PTP_SYNC_TWOSTEP)) ?
+	       OSI_ENABLE : OSI_DISABLE;
+}
+
+int osi_process_tx_completions(struct osi_dma_priv_data *osi_dma,
+			       unsigned int chan, int budget)
 {
 	struct osi_tx_ring *tx_ring = OSI_NULL;
 	struct osi_txdone_pkt_cx *txdone_pkt_cx = OSI_NULL;
@@ -690,9 +694,19 @@ nve32_t osi_process_tx_completions(struct osi_dma_priv_data *osi_dma,
 			} else {
 				/* Do nothing here */
 			}
+		} else if (((tx_swcx->flags & OSI_PKT_CX_PTP) ==
+			   OSI_PKT_CX_PTP) &&
+			   // if not master in onestep mode
+			   (is_ptp_twostep_or_slave_mode(osi_dma->ptp_flag) ==
+			    OSI_ENABLE) &&
+			   ((tx_desc->tdes3 & TDES3_CTXT) == 0U)) {
+			get_mac_tx_timestamp(osi_dma, tx_desc, txdone_pkt_cx, chan);
+		} else {
+			/* Do nothing here */
 		}
 
-		if (tx_swcx->is_paged_buf == 1U) {
+		if ((tx_swcx->flags & OSI_PKT_CX_PAGED_BUF) ==
+		    OSI_PKT_CX_PAGED_BUF) {
 			txdone_pkt_cx->flags |= OSI_TXDONE_CX_PAGED_BUF;
 		}
 
@@ -718,7 +732,7 @@ nve32_t osi_process_tx_completions(struct osi_dma_priv_data *osi_dma,
 
 		tx_swcx->buf_virt_addr = OSI_NULL;
 		tx_swcx->buf_phy_addr = 0;
-		tx_swcx->is_paged_buf = 0;
+		tx_swcx->flags = 0;
 		INCR_TX_DESC_INDEX(entry, 1U);
 
 		/* Don't wait to update tx_ring->clean-idx. It will
@@ -743,6 +757,8 @@ nve32_t osi_process_tx_completions(struct osi_dma_priv_data *osi_dma,
  *
  * @param[in, out] tx_pkt_cx: Pointer to transmit packet context structure
  * @param[in, out] tx_desc: Pointer to transmit descriptor to be filled.
+ * @param[in] sync_mode: PTP sync mode to indetify.
+ * @param[in] mac: HW MAC ver
  *
  * @note
  * API Group:
@@ -753,38 +769,83 @@ nve32_t osi_process_tx_completions(struct osi_dma_priv_data *osi_dma,
  * @retval 0 - cntx desc not used
  * @retval 1 - cntx desc used.
  */
+
 static inline nve32_t need_cntx_desc(struct osi_tx_pkt_cx *tx_pkt_cx,
-				     struct osi_tx_desc *tx_desc)
+				 struct osi_tx_desc *tx_desc,
+				 unsigned int ptp_sync_flag,
+				 unsigned int mac)
 {
 	nve32_t ret = 0;
 
 	if (((tx_pkt_cx->flags & OSI_PKT_CX_VLAN) == OSI_PKT_CX_VLAN) ||
-	    ((tx_pkt_cx->flags & OSI_PKT_CX_TSO) == OSI_PKT_CX_TSO)) {
-		/* Set context type */
-		tx_desc->tdes3 |= TDES3_CTXT;
+	    ((tx_pkt_cx->flags & OSI_PKT_CX_TSO) == OSI_PKT_CX_TSO) ||
+	    ((tx_pkt_cx->flags & OSI_PKT_CX_PTP) == OSI_PKT_CX_PTP)) {
 
 		if ((tx_pkt_cx->flags & OSI_PKT_CX_VLAN) == OSI_PKT_CX_VLAN) {
+			/* Set context type */
+			tx_desc->tdes3 |= TDES3_CTXT;
 			/* Remove any overflow bits. VT field is 16bit field */
 			tx_pkt_cx->vtag_id &= TDES3_VT_MASK;
 			/* Fill VLAN Tag ID */
 			tx_desc->tdes3 |= tx_pkt_cx->vtag_id;
 			/* Set VLAN TAG Valid */
 			tx_desc->tdes3 |= TDES3_VLTV;
+			ret = 1;
 		}
 
 		if ((tx_pkt_cx->flags & OSI_PKT_CX_TSO) == OSI_PKT_CX_TSO) {
+			/* Set context type */
+			tx_desc->tdes3 |= TDES3_CTXT;
 			/* Remove any overflow bits. MSS is 13bit field */
 			tx_pkt_cx->mss &= TDES2_MSS_MASK;
 			/* Fill MSS */
 			tx_desc->tdes2 |= tx_pkt_cx->mss;
 			/* Set MSS valid */
 			tx_desc->tdes3 |= TDES3_TCMSSV;
+			ret = 1;
 		}
 
-		ret = 1;
+		/* This part of code must be at the end of function */
+		if ((tx_pkt_cx->flags & OSI_PKT_CX_PTP) == OSI_PKT_CX_PTP) {
+			if ((mac == OSI_MAC_HW_EQOS) &&
+			    ((ptp_sync_flag & OSI_PTP_SYNC_TWOSTEP) ==
+			     OSI_PTP_SYNC_TWOSTEP)){
+				/* return the current ret value */
+				return ret;
+			}
+
+			/* Set context type */
+			tx_desc->tdes3 |= TDES3_CTXT;
+			/* in case of One-step sync */
+			if ((ptp_sync_flag & OSI_PTP_SYNC_ONESTEP) ==
+			    OSI_PTP_SYNC_ONESTEP) {
+				/* Set TDES3_OSTC */
+				tx_desc->tdes3 |= TDES3_OSTC;
+				tx_desc->tdes3 &= ~TDES3_TCMSSV;
+			}
+
+			ret = 1;
+		}
 	}
 
 	return ret;
+}
+
+/**
+ * @brief is_ptp_onestep_and_master_mode - check for dut is in master and
+ * onestep mode
+ *
+ * @param[in] ptp_flag: osi statructure variable to identify current ptp
+ *			configuration
+ *
+ * @retval 1 if condition is true
+ * @retval 0 if condition is false.
+ */
+static inline unsigned int is_ptp_onestep_and_master_mode(unsigned int ptp_flag)
+{
+	return (((ptp_flag & OSI_PTP_SYNC_MASTER) == OSI_PTP_SYNC_MASTER) &&
+		((ptp_flag & OSI_PTP_SYNC_ONESTEP) == OSI_PTP_SYNC_ONESTEP)) ?
+	       OSI_ENABLE : OSI_DISABLE;
 }
 
 /**
@@ -812,7 +873,8 @@ static inline nve32_t need_cntx_desc(struct osi_tx_pkt_cx *tx_pkt_cx,
 static inline void fill_first_desc(struct osi_tx_ring *tx_ring,
 				   struct osi_tx_pkt_cx *tx_pkt_cx,
 				   struct osi_tx_desc *tx_desc,
-				   struct osi_tx_swcx *tx_swcx)
+				   struct osi_tx_swcx *tx_swcx,
+				   unsigned int ptp_flag)
 {
 	nveu64_t tmp;
 
@@ -850,6 +912,12 @@ static inline void fill_first_desc(struct osi_tx_ring *tx_ring,
 	/* if TS is set enable timestamping */
 	if ((tx_pkt_cx->flags & OSI_PKT_CX_PTP) == OSI_PKT_CX_PTP) {
 		tx_desc->tdes2 |= TDES2_TTSE;
+		tx_swcx->flags |= OSI_PKT_CX_PTP;
+		//ptp master mode in one step sync
+		if (is_ptp_onestep_and_master_mode(ptp_flag) ==
+		    OSI_ENABLE) {
+			tx_desc->tdes2 &= ~TDES2_TTSE;
+		}
 	}
 
 	/* if LEN bit is set, update packet payload len */
@@ -954,19 +1022,28 @@ nve32_t hw_transmit(struct osi_dma_priv_data *osi_dma,
 						 1UL);
 	}
 
-	cntx_desc_consumed = need_cntx_desc(tx_pkt_cx, tx_desc);
+	cntx_desc_consumed = need_cntx_desc(tx_pkt_cx, tx_desc, osi_dma->ptp_flag,
+					    osi_dma->mac);
 	if (cntx_desc_consumed == 1) {
+		if (((tx_pkt_cx->flags & OSI_PKT_CX_PTP) == OSI_PKT_CX_PTP) &&
+		    (osi_dma->mac == OSI_MAC_HW_MGBE)) {
+			/* mark packet id valid */
+			tx_desc->tdes3 |= TDES3_PIDV;
+			/* Packet id */
+			tx_desc->tdes0 =  chan;
+		}
 		INCR_TX_DESC_INDEX(entry, 1U);
 
 		/* Storing context descriptor to set DMA_OWN at last */
 		cx_desc = tx_desc;
 		tx_desc = tx_ring->tx_desc + entry;
 		tx_swcx = tx_ring->tx_swcx + entry;
+
 		desc_cnt--;
 	}
 
 	/* Fill first descriptor */
-	fill_first_desc(tx_ring, tx_pkt_cx, tx_desc, tx_swcx);
+	fill_first_desc(tx_ring, tx_pkt_cx, tx_desc, tx_swcx, osi_dma->ptp_flag);
 
 	INCR_TX_DESC_INDEX(entry, 1U);
 
@@ -1262,7 +1339,7 @@ static nve32_t tx_dma_desc_init(struct osi_dma_priv_data *osi_dma,
 			tx_swcx->len = 0;
 			tx_swcx->buf_virt_addr = OSI_NULL;
 			tx_swcx->buf_phy_addr = 0;
-			tx_swcx->is_paged_buf = 0;
+			tx_swcx->flags = 0;
 		}
 
 		tx_ring->cur_tx_idx = 0;

@@ -24,6 +24,17 @@
 #define INCLUDED_MGBE_DMA_H
 
 /**
+ * @@addtogroup Timestamp Capture Register
+ * @brief MGBE MAC Timestamp Register offset
+ * @{
+ */
+#define MGBE_MAC_TSS			0X0D20
+#define MGBE_MAC_TS_NSEC		0x0D30
+#define MGBE_MAC_TS_SEC			0x0D34
+#define MGBE_MAC_TS_PID			0x0D38
+/** @} */
+
+/**
  * @addtogroup MGBE_DMA DMA Channel Register offsets
  *
  * @brief MGBE DMA Channel register offsets
@@ -95,4 +106,24 @@
 #define MGBE_VIRT_INTR_CHX_CNTRL_TX		OSI_BIT(0)
 #define MGBE_VIRT_INTR_CHX_CNTRL_RX		OSI_BIT(1)
 /** @} */
-#endif /* INCLUDED_MGBE_DMA_H */
+
+/**
+ * @addtogroup MGBE MAC timestamp registers bit field.
+ *
+ * @brief Values defined for the MGBE timestamp registers
+ * @{
+ */
+#define MGBE_MAC_TSS_TXTSC			OSI_BIT(15)
+#define MGBE_MAC_TS_PID_MASK			0x3FFU
+#define MGBE_MAC_TS_NSEC_MASK			0x7FFFFFFFU
+/** @} */
+
+/**
+ * @brief mgbe_get_dma_chan_ops - MGBE get DMA channel operations
+ *
+ * Algorithm: Returns pointer DMA channel operations structure.
+ *
+ * @returns Pointer to DMA channel operations structure
+ */
+struct osi_dma_chan_ops *mgbe_get_dma_chan_ops(void);
+#endif

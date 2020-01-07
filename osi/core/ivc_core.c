@@ -815,9 +815,9 @@ static void ivc_config_tscr(struct osi_core_priv_data *const osi_core,
  *
  * @note MAC should be init and started. see osi_start_mac()
  */
-static void ivc_config_ssir(struct osi_core_priv_data *const osi_core)
+static void ivc_config_ssir(struct osi_core_priv_data *const osi_core,
+			    const unsigned int ptp_clock)
 {
-	nveu32_t ptp_clock = osi_core->ptp_config.ptp_clock;
 	ivc_msg_common msg_common;
 	nve32_t index = 0;
 

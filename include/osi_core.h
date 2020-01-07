@@ -76,6 +76,7 @@ typedef my_lint_64		nvel64_t;
 #define OSI_MAC_TCR_TSMASTERENA		OSI_BIT(15)
 #define OSI_MAC_TCR_SNAPTYPSEL_1	OSI_BIT(16)
 #define OSI_MAC_TCR_SNAPTYPSEL_2	OSI_BIT(17)
+#define OSI_MAC_TCR_CSC			OSI_BIT(19)
 #define OSI_MAC_TCR_AV8021ASMEN		OSI_BIT(28)
 #ifndef OSI_STRIPPED_LIB
 #define OSI_MAC_TCR_SNAPTYPSEL_3	(OSI_BIT(16) | OSI_BIT(17))
@@ -114,11 +115,6 @@ typedef my_lint_64		nvel64_t;
 #define OSI_IP6_FILTER			1U
 #define OSI_IPV6_MATCH			1U
 #define OSI_IPV4_MATCH			0U
-
-
-#define OSI_LOG_INFO			1U
-#define OSI_LOG_ARG_HW_FAIL		4U
-#define OSI_LOG_ARG_OUTOFBOUND		1U
 
 /* L2 filter operations supported by OSI layer. These operation modes shall be
  * set by OSD driver as input to update registers accordingly.
@@ -180,6 +176,8 @@ typedef my_lint_64		nvel64_t;
 #define VLAN_NUM_VID		4096U
 #define OSI_VLAN_ACTION_ADD	OSI_BIT(31)
 #define OSI_VLAN_ACTION_DEL	0x0U
+#define OSI_RXQ_ROUTE_PTP	0U
+#define OSI_DELAY_1000US	1000U
 
 /**
  * @addtogroup RSS related information

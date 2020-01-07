@@ -32,6 +32,8 @@ void common_get_systime_from_mac(void *addr, nveu32_t mac, nveu32_t *sec,
 
 	if (mac == OSI_MAC_HW_EQOS) {
 		ns = eqos_get_systime_from_mac(addr);
+	} else if (mac == OSI_MAC_HW_MGBE) {
+		ns = eqos_get_systime_from_mac(addr);
 	} else {
 		/* Non EQOS HW is supported yet */
 		return;

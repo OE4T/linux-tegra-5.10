@@ -2740,11 +2740,12 @@ static inline nve32_t eqos_poll_for_tsinit_complete(
 		if ((*mac_tcr & EQOS_MAC_TCR_TSINIT) == 0U) {
 			cond = COND_MET;
 		}
+
 		count++;
-		osi_core->osd_ops.udelay(1000U);
+		osi_core->osd_ops.udelay(OSI_DELAY_1000US);
 	}
 
-	return 0;
+	return -1;
 }
 
 /**
@@ -2779,6 +2780,7 @@ static nve32_t eqos_set_systime_to_mac(
 	nveu32_t mac_tcr;
 	nve32_t ret;
 
+	/* To be sure previous write was flushed (if Any) */
 	ret = eqos_poll_for_tsinit_complete(osi_core, &mac_tcr);
 	if (ret == -1) {
 		return -1;
@@ -2852,11 +2854,12 @@ static inline nve32_t eqos_poll_for_addend_complete(
 		if ((*mac_tcr & EQOS_MAC_TCR_TSADDREG) == 0U) {
 			cond = COND_MET;
 		}
+
 		count++;
-		osi_core->osd_ops.udelay(1000U);
+		osi_core->osd_ops.udelay(OSI_DELAY_1000US);
 	}
 
-	return 0;
+	return -1;
 }
 
 /**
@@ -2886,6 +2889,7 @@ static nve32_t eqos_config_addend(struct osi_core_priv_data *const osi_core,
 	nveu32_t mac_tcr;
 	nve32_t ret;
 
+	/* To be sure previous write was flushed (if Any) */
 	ret = eqos_poll_for_addend_complete(osi_core, &mac_tcr);
 	if (ret == -1) {
 		return -1;
@@ -2955,11 +2959,12 @@ static inline nve32_t eqos_poll_for_update_ts_complete(
 		if ((*mac_tcr & EQOS_MAC_TCR_TSUPDT) == 0U) {
 			cond = COND_MET;
 		}
+
 		count++;
-		osi_core->osd_ops.udelay(1000U);
+		osi_core->osd_ops.udelay(OSI_DELAY_1000US);
 	}
 
-	return 0;
+	return -1;
 
 }
 
@@ -3082,58 +3087,54 @@ static void eqos_config_tscr(struct osi_core_priv_data *const osi_core,
 	void *addr = osi_core->base;
 	nveu32_t mac_tcr = 0U, i = 0U, temp = 0U;
 
-	if (ptp_filter == OSI_DISABLE) {
+	if (ptp_filter != OSI_DISABLE) {
+		mac_tcr = (OSI_MAC_TCR_TSENA	|
+				OSI_MAC_TCR_TSCFUPDT |
+				OSI_MAC_TCR_TSCTRLSSR);
+
+		for (i = 0U; i < 32U; i++) {
+			temp = ptp_filter & OSI_BIT(i);
+
+			switch (temp) {
+				case OSI_MAC_TCR_SNAPTYPSEL_1:
+					mac_tcr |= OSI_MAC_TCR_SNAPTYPSEL_1;
+					break;
+				case OSI_MAC_TCR_SNAPTYPSEL_2:
+					mac_tcr |= OSI_MAC_TCR_SNAPTYPSEL_2;
+					break;
+				case OSI_MAC_TCR_TSIPV4ENA:
+					mac_tcr |= OSI_MAC_TCR_TSIPV4ENA;
+					break;
+				case OSI_MAC_TCR_TSIPV6ENA:
+					mac_tcr |= OSI_MAC_TCR_TSIPV6ENA;
+					break;
+				case OSI_MAC_TCR_TSEVENTENA:
+					mac_tcr |= OSI_MAC_TCR_TSEVENTENA;
+					break;
+				case OSI_MAC_TCR_TSMASTERENA:
+					mac_tcr |= OSI_MAC_TCR_TSMASTERENA;
+					break;
+				case OSI_MAC_TCR_TSVER2ENA:
+					mac_tcr |= OSI_MAC_TCR_TSVER2ENA;
+					break;
+				case OSI_MAC_TCR_TSIPENA:
+					mac_tcr |= OSI_MAC_TCR_TSIPENA;
+					break;
+				case OSI_MAC_TCR_AV8021ASMEN:
+					mac_tcr |= OSI_MAC_TCR_AV8021ASMEN;
+					break;
+				case OSI_MAC_TCR_TSENALL:
+					mac_tcr |= OSI_MAC_TCR_TSENALL;
+					break;
+				default:
+					/* To avoid MISRA violation */
+					mac_tcr |= mac_tcr;
+					break;
+			}
+		}
+	} else {
 		/* Disabling the MAC time stamping */
 		mac_tcr = OSI_DISABLE;
-		eqos_core_safety_writel(osi_core, mac_tcr,
-					(nveu8_t *)addr + EQOS_MAC_TCR,
-					EQOS_MAC_TCR_IDX);
-		return;
-	}
-
-	mac_tcr = (OSI_MAC_TCR_TSENA	|
-		   OSI_MAC_TCR_TSCFUPDT |
-		   OSI_MAC_TCR_TSCTRLSSR);
-
-	for (i = 0U; i < 32U; i++) {
-		temp = ptp_filter & OSI_BIT(i);
-
-		switch (temp) {
-		case OSI_MAC_TCR_SNAPTYPSEL_1:
-			mac_tcr |= OSI_MAC_TCR_SNAPTYPSEL_1;
-			break;
-		case OSI_MAC_TCR_SNAPTYPSEL_2:
-			mac_tcr |= OSI_MAC_TCR_SNAPTYPSEL_2;
-			break;
-		case OSI_MAC_TCR_TSIPV4ENA:
-			mac_tcr |= OSI_MAC_TCR_TSIPV4ENA;
-			break;
-		case OSI_MAC_TCR_TSIPV6ENA:
-			mac_tcr |= OSI_MAC_TCR_TSIPV6ENA;
-			break;
-		case OSI_MAC_TCR_TSEVENTENA:
-			mac_tcr |= OSI_MAC_TCR_TSEVENTENA;
-			break;
-		case OSI_MAC_TCR_TSMASTERENA:
-			mac_tcr |= OSI_MAC_TCR_TSMASTERENA;
-			break;
-		case OSI_MAC_TCR_TSVER2ENA:
-			mac_tcr |= OSI_MAC_TCR_TSVER2ENA;
-			break;
-		case OSI_MAC_TCR_TSIPENA:
-			mac_tcr |= OSI_MAC_TCR_TSIPENA;
-			break;
-		case OSI_MAC_TCR_AV8021ASMEN:
-			mac_tcr |= OSI_MAC_TCR_AV8021ASMEN;
-			break;
-		case OSI_MAC_TCR_TSENALL:
-			mac_tcr |= OSI_MAC_TCR_TSENALL;
-			break;
-		default:
-			/* To avoid MISRA violation */
-			mac_tcr |= mac_tcr;
-			break;
-		}
 	}
 
 	eqos_core_safety_writel(osi_core, mac_tcr,
@@ -3154,12 +3155,12 @@ static void eqos_config_tscr(struct osi_core_priv_data *const osi_core,
  * - Run time: Yes
  * - De-initialization: No
  */
-static void eqos_config_ssir(struct osi_core_priv_data *const osi_core)
+static void eqos_config_ssir(struct osi_core_priv_data *const osi_core,
+			     const unsigned int ptp_clock)
 {
 	nveul64_t val;
 	nveu32_t mac_tcr;
 	void *addr = osi_core->base;
-	nveu32_t ptp_clock = osi_core->ptp_config.ptp_clock;
 
 	mac_tcr = osi_readla(osi_core, (nveu8_t *)addr + EQOS_MAC_TCR);
 

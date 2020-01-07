@@ -44,6 +44,10 @@ struct desc_ops {
 	/** Called to get rx HASH from descriptor */
 	void (*get_rx_hash)(struct osi_rx_desc *rx_desc,
 			    struct osi_rx_pkt_cx *rx_pkt_cx);
+	/** Called to get RX hw timestamp */
+	int (*get_rx_hwstamp)(struct osi_rx_desc *rx_desc,
+			      struct osi_rx_desc *context_desc,
+			      struct osi_rx_pkt_cx *rx_pkt_cx);
 };
 
 /**
