@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -70,7 +70,7 @@ int nvgpu_strnadd_u32(char *dst, const u32 value, size_t size, u32 radix)
 	v = value;
 	do {
 		digit = v % radix;
-		*p = "0123456789abdcef"[digit];
+		*p = "0123456789abcdef"[digit];
 		v = v / radix;
 		p--;
 	}
