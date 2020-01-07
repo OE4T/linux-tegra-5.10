@@ -802,6 +802,7 @@ int test_channel_setup_bind(struct unit_module *m, struct gk20a *g, void *vargs)
 			F_CHANNEL_SETUP_BIND_USERMODE_POWER_REF_COUNT_FAIL) {
 			bind_args.flags |=
 				NVGPU_SETUP_BIND_FLAGS_SUPPORT_DETERMINISTIC;
+			ch->usermode_submit_enabled = true;
 			nvgpu_posix_enable_fault_injection(l_nvgpu_fi, true, 0);
 		}
 
@@ -1754,6 +1755,9 @@ int test_channel_from_invalid_id(struct unit_module *m, struct gk20a *g,
 	ret = UNIT_SUCCESS;
 
 done:
+	if (ret != UNIT_SUCCESS) {
+		unit_err(m, "%s failed\n", __func__);
+	}
 	return ret;
 }
 
@@ -1786,6 +1790,9 @@ int test_channel_put_warn(struct unit_module *m, struct gk20a *g, void *vargs)
 	ret = UNIT_SUCCESS;
 
 done:
+	if (ret != UNIT_SUCCESS) {
+		unit_err(m, "%s failed\n", __func__);
+	}
 	if (ch != NULL) {
 		nvgpu_atomic_set(&ch->ref_count, 1);
 		nvgpu_channel_close(ch);
@@ -1804,16 +1811,13 @@ int test_ch_referenceable_cleanup(struct unit_module *m, struct gk20a *g,
 	u32 runlist_id = NVGPU_INVALID_RUNLIST_ID;
 	bool privileged = false;
 
-	err = nvgpu_channel_setup_sw(g);
-	assert(err == 0);
-
 	ch = nvgpu_channel_open_new(g, runlist_id,
 			privileged, getpid(), getpid());
 	assert(ch != NULL);
 	assert(f->num_channels > 0U);
 
 	nvgpu_channel_cleanup_sw(g);
-	assert(ch->referenceable == false);
+	assert(f->channel == NULL);
 
 	/* Reset environment variables */
 	err = nvgpu_channel_setup_sw(g);
@@ -1821,6 +1825,9 @@ int test_ch_referenceable_cleanup(struct unit_module *m, struct gk20a *g,
 
 	ret = UNIT_SUCCESS;
 done:
+	if (ret != UNIT_SUCCESS) {
+		unit_err(m, "%s failed\n", __func__);
+	}
 	return ret;
 }
 
@@ -1871,6 +1878,9 @@ int test_channel_abort_cleanup(struct unit_module *m, struct gk20a *g,
 
 	ret = UNIT_SUCCESS;
 done:
+	if (ret != UNIT_SUCCESS) {
+		unit_err(m, "%s failed\n", __func__);
+	}
 	return ret;
 }
 
