@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -105,8 +105,8 @@
  */
 #define nvgpu_timeout_expired_msg_impl(timeout, caller, fmt, arg...)	\
 ({									\
-	int ret_timeout = 0;						\
-	if (is_fault_injection_set != 0) {				\
+	int ret_timeout = is_fault_injection_set;			\
+	if (ret_timeout == -1) {					\
 	if (((timeout)->flags & NVGPU_TIMER_RETRY_TIMER) != 0U) {	\
 		ret_timeout = nvgpu_timeout_expired_msg_retry((timeout),\
 						caller, fmt, ##arg);	\

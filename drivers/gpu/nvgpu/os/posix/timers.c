@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -47,13 +47,18 @@ struct nvgpu_posix_fault_inj *nvgpu_timers_get_fault_injection(void)
 
 int nvgpu_timeout_expired_fault_injection(void)
 {
-	if (nvgpu_posix_fault_injection_handle_call(
-				nvgpu_timers_get_fault_injection()) ||
-		nvgpu_posix_is_fault_injection_cntr_set(
-				nvgpu_timers_get_fault_injection())) {
+	bool count_set = nvgpu_posix_is_fault_injection_cntr_set(
+				nvgpu_timers_get_fault_injection());
+
+	bool fault_enabled = nvgpu_posix_fault_injection_handle_call(
+				nvgpu_timers_get_fault_injection());
+
+	if (count_set) {
 		return 0;
 	}
-
+	if (fault_enabled) {
+		return -ETIMEDOUT;
+	}
 	return -1;
 }
 #endif /* NVGPU_UNITTEST_FAULT_INJECTION_ENABLEMENT */
