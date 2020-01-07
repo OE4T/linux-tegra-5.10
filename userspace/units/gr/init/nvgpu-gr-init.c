@@ -28,16 +28,21 @@
 
 #include <nvgpu/posix/io.h>
 #include <nvgpu/posix/kmem.h>
+#include <nvgpu/posix/dma.h>
 #include <nvgpu/posix/posix-fault-injection.h>
 
 #include <nvgpu/gk20a.h>
 #include <nvgpu/gr/gr.h>
 #include <nvgpu/gr/config.h>
+#include <nvgpu/gr/gr_falcon.h>
+#include <nvgpu/gr/gr_intr.h>
 
 #include <nvgpu/hw/gv11b/hw_fuse_gv11b.h>
 #include <nvgpu/hw/gv11b/hw_gr_gv11b.h>
 
+#include "common/gr/gr_falcon_priv.h"
 #include "common/gr/gr_priv.h"
+#include "common/gr/obj_ctx_priv.h"
 
 #include "../nvgpu-gr.h"
 #include "nvgpu-gr-init-hal-gv11b.h"
@@ -51,6 +56,88 @@
 #define GR_TEST_FECS_FEATURE_OVERRIDE_ECC1_ONLY		0x0000000A
 #define GR_TEST_FECS_FEATURE_OVERRIDE_ECC1_FAIL1	0x00000002
 #define GR_TEST_FECS_FEATURE_OVERRIDE_ECC1_FAIL2	0x0000000B
+
+static struct gpu_ops gr_init_gops;
+
+struct gr_test_init_org_ptrs {
+	void (*gr_remove_support)(struct gk20a *g);
+	struct nvgpu_gr_global_ctx_buffer_desc *ctx_buffer;
+	struct nvgpu_gr_ctx_desc *ctx;
+	struct nvgpu_gr_config *config;
+	struct nvgpu_gr_obj_ctx_golden_image *golden_image;
+	struct nvgpu_netlist_vars *netlist_vars;
+};
+
+static struct gr_test_init_org_ptrs gr_test_init_ptrs;
+static void gr_test_init_save_gops(struct gk20a *g)
+{
+	gr_init_gops = g->ops;
+
+	gr_test_init_ptrs.ctx_buffer = g->gr->global_ctx_buffer;
+	gr_test_init_ptrs.ctx = g->gr->gr_ctx_desc;
+	gr_test_init_ptrs.config = g->gr->config;
+	gr_test_init_ptrs.golden_image = g->gr->golden_image;
+	gr_test_init_ptrs.netlist_vars = g->netlist_vars;
+}
+
+static void gr_test_init_reset_gr_ptrs(struct gk20a *g)
+{
+	g->gr->global_ctx_buffer = NULL;
+	g->gr->gr_ctx_desc = NULL;
+	g->gr->config = NULL;
+	g->gr->golden_image = NULL;
+	g->netlist_vars = NULL;
+}
+
+static void gr_test_init_restore_gr_ptrs(struct gk20a *g)
+{
+	g->gr->global_ctx_buffer = gr_test_init_ptrs.ctx_buffer;
+	g->gr->gr_ctx_desc = gr_test_init_ptrs.ctx;
+	g->gr->config = gr_test_init_ptrs.config;
+	g->gr->golden_image = gr_test_init_ptrs.golden_image;
+	g->netlist_vars = gr_test_init_ptrs.netlist_vars;
+}
+
+static void gr_test_init_restore_gops(struct gk20a *g)
+{
+	g->ops = gr_init_gops;
+}
+
+static int gr_test_init_load_ctxsw_ucode_fail(struct gk20a *g,
+			struct nvgpu_gr_falcon *falcon)
+{
+	return -EINVAL;
+}
+
+static int gr_test_init_load_ctxsw_ucode_pass(struct gk20a *g,
+			struct nvgpu_gr_falcon *falcon)
+{
+	return 0;
+}
+
+static int gr_test_init_ctx_state(struct gk20a *g,
+		struct nvgpu_gr_falcon_query_sizes *sizes)
+{
+	return -EINVAL;
+}
+
+static int gr_test_init_ctx_state_pass(struct gk20a *g,
+		struct nvgpu_gr_falcon_query_sizes *sizes)
+{
+	return 0;
+}
+
+static int gr_test_init_ecc_scrub_reg(struct gk20a *g,
+		struct nvgpu_gr_config * gr_config)
+{
+	return -EINVAL;
+}
+
+static int gr_test_init_wait_stub_error(struct gk20a *g)
+{
+	return -EINVAL;
+}
+
 
 static int gr_init_ecc_fail_alloc(struct gk20a *g)
 {
@@ -179,6 +266,367 @@ struct gr_init_ecc_stats ecc_stats[] = {
 	return UNIT_SUCCESS;
 }
 
+static int test_gr_alloc_errors(struct gk20a *g)
+{
+	int err;
+	struct nvgpu_posix_fault_inj *kmem_fi =
+		nvgpu_kmem_get_fault_injection();
+	struct nvgpu_gr *local_gr = g->gr;
+
+	/*Set g to NULL */
+	err = nvgpu_gr_alloc(NULL);
+	if (err == 0) {
+		return UNIT_FAIL;
+	}
+
+	/* Free NULL gr */
+	g->gr = NULL;
+	nvgpu_gr_free(g);
+
+	/* Alloc/free errors for nvgpu_gr_alloc */
+	nvgpu_posix_enable_fault_injection(kmem_fi, true, 0);
+	err = nvgpu_gr_alloc(g);
+	if (err == 0) {
+		return UNIT_FAIL;
+	}
+	nvgpu_posix_enable_fault_injection(kmem_fi, false, 0);
+	g->gr = local_gr;
+
+	/* Realloc with valid g->gr */
+	err = nvgpu_gr_alloc(g);
+	if (err != 0) {
+		return UNIT_FAIL;
+	}
+
+	gr_test_init_ptrs.gr_remove_support =
+					g->gr->remove_support;
+	g->gr->remove_support = NULL;
+	nvgpu_gr_remove_support(g);
+	g->gr->remove_support = gr_test_init_ptrs.gr_remove_support;
+
+	return UNIT_SUCCESS;
+}
+
+static int test_gr_prepare_sw(struct gk20a *g)
+{
+	int err, j, locn = 0;
+	bool pass, result;
+	struct nvgpu_gr_falcon *gr_falcon;
+	struct nvgpu_gr_intr *gr_intr;
+	struct nvgpu_netlist_vars *netlist_vars = g->netlist_vars;
+	struct nvgpu_posix_fault_inj *kmem_fi =
+		nvgpu_kmem_get_fault_injection();
+
+	for (j = 0; j < 4; j++) {
+		switch (j) {
+		case 0:
+			g->netlist_valid = false;
+			result = false;
+			break;
+		case 1:
+			g->netlist_valid = true;
+			gr_falcon = g->gr->falcon;
+			g->gr->falcon = NULL;
+			result = false;
+			break;
+		case 2:
+			g->gr->falcon = gr_falcon;
+			g->netlist_vars = netlist_vars;
+			gr_intr = g->gr->intr;
+			g->gr->intr = NULL;
+			result = false;
+			break;
+		case 3:
+			g->gr->intr = gr_intr;
+			result = false;
+			break;
+		}
+		nvgpu_posix_enable_fault_injection(kmem_fi, true, locn);
+		err = nvgpu_gr_prepare_sw(g);
+		if (err) {
+			pass = false;
+		} else {
+			pass = true;
+		}
+		if (result != pass) {
+			return UNIT_FAIL;
+		}
+		nvgpu_posix_enable_fault_injection(kmem_fi, false, 0);
+	}
+
+	return UNIT_SUCCESS;
+
+}
+
+static int test_gr_init_ctxsw_ucode_alloc_error(struct gk20a *g)
+{
+
+	int err;
+
+	g->ops.gr.falcon.load_ctxsw_ucode = gr_test_init_load_ctxsw_ucode_fail;
+
+	err = nvgpu_gr_init_support(g);
+	if (err == 0) {
+		return UNIT_FAIL;
+	}
+
+	g->ops.gr.falcon.load_ctxsw_ucode = gr_test_init_load_ctxsw_ucode_pass;
+	return UNIT_SUCCESS;
+}
+
+static int test_gr_init_enable_hw_error(struct gk20a *g)
+{
+	int err;
+
+	/* fail wait idle */
+	g->ops.gr.init.wait_idle = gr_test_init_wait_stub_error;
+	g->ops.gr.init.wait_empty = gr_test_init_wait_stub_error;
+	err = nvgpu_gr_enable_hw(g);
+	if (err == 0) {
+		return UNIT_FAIL;
+	}
+
+	/* fail me scrubbing */
+	g->ops.gr.falcon.wait_mem_scrubbing =
+			gr_test_init_wait_stub_error;
+	err = nvgpu_gr_enable_hw(g);
+	if (err == 0) {
+		return UNIT_FAIL;
+	}
+
+	err = nvgpu_gr_suspend(g);
+	if (err == 0) {
+		return UNIT_FAIL;
+	}
+
+	g->ops.gr.init.wait_empty =
+		gr_init_gops.gr.init.wait_empty;
+	g->ops.gr.init.wait_idle =
+		gr_init_gops.gr.init.wait_idle;
+	g->ops.gr.falcon.wait_mem_scrubbing =
+			gr_init_gops.gr.falcon.wait_mem_scrubbing;
+	return UNIT_SUCCESS;
+}
+
+static int test_gr_init_setup_hw_error(struct gk20a *g)
+{
+	int err;
+
+	g->ops.priv_ring.set_ppriv_timeout_settings = NULL;
+	g->ops.gr.init.ecc_scrub_reg = NULL;
+	err = nvgpu_gr_init_support(g);
+	if (err != 0) {
+		return UNIT_FAIL;
+	}
+	g->ops.gr.init.ecc_scrub_reg = gr_test_init_ecc_scrub_reg;
+	err = nvgpu_gr_init_support(g);
+	if (err == 0) {
+		return UNIT_FAIL;
+	}
+	g->ops.priv_ring.set_ppriv_timeout_settings =
+		gr_init_gops.priv_ring.set_ppriv_timeout_settings;
+	g->ops.gr.init.ecc_scrub_reg =
+		gr_init_gops.gr.init.ecc_scrub_reg;
+
+	return UNIT_SUCCESS;
+}
+
+static int test_gr_init_ctx_state_error(struct gk20a *g)
+{
+	int err;
+
+	g->gr->golden_image->ready = true;
+	err = nvgpu_gr_init_support(g);
+	if (err != 0) {
+		return UNIT_FAIL;
+	}
+
+	g->gr->golden_image = NULL;
+	g->ops.gr.falcon.init_ctx_state = gr_test_init_ctx_state;
+	err = nvgpu_gr_init_support(g);
+	if (err == 0) {
+		return UNIT_FAIL;
+	}
+
+	gr_test_init_restore_gr_ptrs(g);
+	g->gr->golden_image->ready = false;
+	err = nvgpu_gr_init_support(g);
+	if (err == 0) {
+		return UNIT_FAIL;
+	}
+
+	g->ops.gr.falcon.init_ctx_state =
+			gr_init_gops.gr.falcon.init_ctx_state;
+	g->gr->golden_image->ready = true;
+
+	return UNIT_SUCCESS;
+}
+
+static int test_gr_init_ecc_init_pass(struct gk20a *g)
+{
+	int err;
+
+	g->ecc.initialized = 1;
+	err = nvgpu_gr_prepare_sw(g);
+	g->gr->falcon->sizes.golden_image_size = 0x10;
+
+	err = nvgpu_gr_init_support(g);
+	if (err != 0) {
+		return UNIT_FAIL;
+	}
+
+	g->ops.gr.config.init_sm_id_table =
+		gr_test_init_ecc_scrub_reg;
+	g->ops.gr.ecc.gpc_tpc_ecc_init = NULL;
+	g->ecc.initialized = 0;
+	err = nvgpu_gr_init_support(g);
+	if (err == 0) {
+		return UNIT_FAIL;
+	}
+
+	return UNIT_SUCCESS;
+}
+
+static int test_gr_init_setup_sw_error(struct gk20a *g)
+{
+	int err, j;
+	int ecc_init = g->ecc.initialized;
+	struct nvgpu_posix_fault_inj *kmem_fi =
+		nvgpu_kmem_get_fault_injection();
+	struct nvgpu_posix_fault_inj *dma_fi =
+		nvgpu_dma_alloc_get_fault_injection();
+
+	err = test_gr_init_ctxsw_ucode_alloc_error(g);
+	if (err) {
+		return UNIT_FAIL;
+	}
+
+	gr_test_init_reset_gr_ptrs(g);
+	g->gr->sw_ready = 0;
+	g->ops.gr.falcon.init_ctx_state = gr_test_init_ctx_state_pass;
+	g->ops.gr.ecc.gpc_tpc_ecc_init = gr_test_init_wait_stub_error;
+
+	for (j = 0; j < 16; j++) {
+		if (j > 0) {
+			g->ecc.initialized = 1;
+			err = nvgpu_gr_prepare_sw(g);
+			g->gr->falcon->sizes.golden_image_size = 0x10;
+		}
+
+		if (j > 14) {
+			nvgpu_posix_enable_fault_injection(dma_fi, true, 0);
+		} else {
+			nvgpu_posix_enable_fault_injection(kmem_fi, true, j);
+			g->ecc.initialized = 0;
+		}
+
+		err = nvgpu_gr_init_support(g);
+		if (err == 0) {
+			return UNIT_FAIL;
+		}
+		nvgpu_posix_enable_fault_injection(kmem_fi, false, 0);
+		nvgpu_posix_enable_fault_injection(dma_fi, false, 0);
+	}
+
+	/* branch test - ecc_init*/
+	err = test_gr_init_ecc_init_pass(g);
+	if (err) {
+		return UNIT_FAIL;
+	}
+
+	g->gr->sw_ready = 1;
+	g->ecc.initialized = ecc_init;
+	gr_test_init_restore_gr_ptrs(g);
+	gr_test_init_restore_gops(g);
+
+	return UNIT_SUCCESS;
+}
+
+static int test_gr_init_support_alloc_error(struct gk20a *g)
+{
+	int err;
+
+	/* Fail init_ctx_state */
+	err = test_gr_init_ctx_state_error(g);
+	if (err != 0) {
+		return UNIT_FAIL;
+	}
+
+	/* Fail gr_init_setup_hw */
+	err = test_gr_init_setup_hw_error(g);
+	if (err != 0) {
+		return UNIT_FAIL;
+	}
+
+	/* enable_hw errors */
+	err = test_gr_init_enable_hw_error(g);
+	if (err != 0) {
+		return UNIT_FAIL;
+	}
+
+	/* fail gr_prepare_sw */
+	err = test_gr_init_setup_sw_error(g);
+	if (err) {
+		return UNIT_FAIL;
+	}
+
+	return UNIT_SUCCESS;
+}
+
+static int test_gr_init_support_errors(struct gk20a *g)
+{
+	int err, i;
+	bool pass, alloc_fail_init, alloc_fail_sw;
+
+	for (i = 0; i < 2; i++) {
+		switch (i) {
+		case 0:
+			alloc_fail_sw = true;
+			pass = true;
+			break;
+		case 1:
+			alloc_fail_init = true;
+			pass = true;
+			break;
+		}
+
+		if (alloc_fail_init) {
+			err = test_gr_init_support_alloc_error(g);
+		} else if (alloc_fail_sw) {
+			err = test_gr_prepare_sw(g);
+		}
+
+		if (pass && (err != 0)) {
+			return UNIT_FAIL;
+		} else if ((!pass) && (err == 0)) {
+			return UNIT_FAIL;
+		}
+	}
+	return UNIT_SUCCESS;
+}
+
+int test_gr_init_error_injections(struct unit_module *m,
+				struct gk20a *g, void *args)
+{
+	int err;
+
+	gr_test_init_save_gops(g);
+
+	/* Alloc/free errors for nvgpu_gr_alloc */
+	err = test_gr_alloc_errors(g);
+	if (err != 0) {
+		unit_return_fail(m, "test_gr_alloc failed\n");
+	}
+
+	/* Errors in nvgpu_gr_init_support */
+	err = test_gr_init_support_errors(g);
+	if (err != 0) {
+		unit_return_fail(m, "test_gr_alloc failed\n");
+	}
+
+	return UNIT_SUCCESS;
+}
+
 struct unit_module_test nvgpu_gr_init_tests[] = {
 	UNIT_TEST(gr_init_setup, test_gr_init_setup, NULL, 0),
 	UNIT_TEST(gr_init_prepare, test_gr_init_prepare, NULL, 0),
@@ -192,6 +640,7 @@ struct unit_module_test nvgpu_gr_init_tests[] = {
 	UNIT_TEST(gr_init_hal_config_error_injection, test_gr_init_hal_config_error_injection, NULL, 0),
 	UNIT_TEST(gr_suspend, test_gr_suspend, NULL, 0),
 	UNIT_TEST(gr_ecc_features, test_gr_init_ecc_features, NULL, 0),
+	UNIT_TEST(gr_init_error_injections, test_gr_init_error_injections, NULL, 0),
 	UNIT_TEST(gr_remove_support, test_gr_remove_support, NULL, 0),
 	UNIT_TEST(gr_remove_setup, test_gr_remove_setup, NULL, 0),
 };

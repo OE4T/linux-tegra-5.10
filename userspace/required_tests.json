@@ -2658,6 +2658,12 @@
         "test_level": 0
     },
     {
+        "test": "test_gr_init_error_injections",
+        "case": "gr_init_error_injections",
+        "unit": "nvgpu_gr_init",
+        "test_level": 0
+    },
+    {
         "test": "test_gr_remove_setup",
         "case": "gr_remove_setup",
         "unit": "nvgpu_gr_init",

@@ -211,6 +211,31 @@ int test_gr_init_ecc_features(struct unit_module *m,
 int test_gr_init_setup_ready(struct unit_module *m, struct gk20a *g, void *args);
 
 /**
+ * Test specification for: test_gr_init_error_injections.
+ *
+ * Description: Negative test for common.gr init unit.
+ *
+ * Test Type: Feature, Error Injection
+ *
+ * Input: #test_gr_setup_ready must have been executed successfully.
+ *
+ * Targets: #nvgpu_gr_init_support, #nvgpu_gr_prepare_sw, gr_remove_support.
+ *
+ * Steps:
+ * -  Add various condition to cause failure in #nvgpu_gr_init_support.
+ *    This includes failing of #nvgpu_gr_falcon_init_ctxsw, #nvgpu_gr_init_ctx_state,
+ *    gr_init_setup_sw and gr_init_setup_hw functions.
+ * -  Add various condition to cause failure in #nvgpu_gr_prepare_sw.
+ *    This includes failing of #nvgpu_netlist_init_ctx_vars, #nvgpu_gr_falcon_init_support,
+ *    #nvgpu_gr_intr_init_support and g->ops.gr.ecc.fecs_ecc_init functions.
+ *
+ * Output: Returns PASS if the steps above were executed successfully. FAIL
+ * otherwise.
+ */
+int test_gr_init_error_injections(struct unit_module *m,
+				  struct gk20a *g, void *args);
+
+/**
  * Test specification for: test_gr_setup_cleanup.
  *
  * Description: Cleanup common.gr unit.
