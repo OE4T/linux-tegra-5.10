@@ -77,6 +77,9 @@ echo "Generating GCOV report..."
 python -m gcovr -v -s -e '.+posix/.+' -e '.*userspace/.+' \
 	-r $NVGPU_SRC_ROOT --html-details --output report/index.html &> gcov.log
 
+#Patch the paths to match output from automative runs so that hashes are identical
+sed -i 's/Value\">drivers\//Value\">kernel\/nvgpu\/drivers\//g' report/*.c.html
+
 #Present the results
 if [ "$(uname -m)" = "aarch64" ]; then
 	echo "Running on target, starting a webserver..."
