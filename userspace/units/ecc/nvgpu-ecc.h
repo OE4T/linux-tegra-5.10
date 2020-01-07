@@ -66,7 +66,7 @@ int test_ecc_init_support(struct unit_module *m,
  *
  * Test Type: Feature Based
  *
- * Targets: "nvgpu_ecc_finalize_support"
+ * Targets: nvgpu_ecc_finalize_support
  *
  * Input: None
  *
@@ -93,7 +93,7 @@ int test_ecc_finalize_support(struct unit_module *m,
  *
  * Test Type: Feature Based
  *
- * Targets: nvgpu_ecc_counter_init
+ * Targets: nvgpu_ecc_counter_init, nvgpu_ecc_stat_add
  *
  * Input: nvgpu_ecc_init_support
  *

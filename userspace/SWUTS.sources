@@ -91,3 +91,4 @@ INPUT += ../../../userspace/units/gr/intr/nvgpu-gr-global-ctx.h
 INPUT += ../../../userspace/units/gr/intr/nvgpu-gr-ctx.h
 INPUT += ../../../userspace/units/gr/intr/nvgpu-gr-obj-ctx.h
 INPUT += ../../../userspace/units/gr/config/nvgpu-gr-config.h
+INPUT += ../../../userspace/units/ecc/nvgpu-ecc.h

@@ -119,6 +119,7 @@
  *   - @ref SWUTS-gr-ctx
  *   - @ref SWUTS-gr-obj-ctx
  *   - @ref SWUTS-gr-config
+ *   - @ref SWUTS-ecc
  *
  */
 
