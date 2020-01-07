@@ -37,6 +37,13 @@ struct unit_module;
  *
  * Test Type: Feature
  *
+ * Targets: nvgpu_cg_blcg_fb_ltc_load_enable, nvgpu_cg_blcg_fifo_load_enable,
+ *          nvgpu_cg_blcg_ce_load_enable, nvgpu_cg_blcg_pmu_load_enable,
+ *	    nvgpu_cg_blcg_gr_load_enable, nvgpu_cg_slcg_fb_ltc_load_enable,
+ *	    nvgpu_cg_slcg_priring_load_enable, nvgpu_cg_slcg_fifo_load_enable,
+ *	    nvgpu_cg_slcg_pmu_load_enable, nvgpu_cg_slcg_therm_load_enable,
+ *	    nvgpu_cg_slcg_ce2_load_enable, nvgpu_cg_init_gr_load_gating_prod
+ *
  * Input: The struct specifying type of clock gating, target nvgpu routine
  * that handles the setup, clock gating domain descriptors.
  *
@@ -83,6 +90,8 @@ int test_cg(struct unit_module *m, struct gk20a *g, void *args);
  * values to enable/disable ELCG.
  *
  * Test Type: Feature
+ *
+ * Targets: nvgpu_cg_elcg_enable_no_wait, nvgpu_cg_elcg_disable_no_wait
  *
  * Input: None
  *

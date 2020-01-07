@@ -35,7 +35,10 @@ struct unit_module;
  * Description: The falcon unit shall be able to initialize the falcon's
  * base register address, required software setup for valid falcon ID.
  *
- * Test Type: Feature
+ * Test Type: Feature, Error guessing
+ *
+ * Targets: nvgpu_falcon_get_instance, nvgpu_falcon_sw_init,
+ *	    nvgpu_falcon_sw_free
  *
  * Input: None.
  *
@@ -43,6 +46,7 @@ struct unit_module;
  * - Invoke nvgpu_falcon_sw_init with valid falcon ID before initializing HAL.
  *   - Verify that falcon initialization fails since valid gpu_arch|impl
  *     are not initialized.
+ * - Invoke nvgpu_falcon_sw_free with above falcon ID.
  * - Initialize the test environment:
  *   - Register read/write IO callbacks that handle falcon IO as well.
  *   - Add relevant fuse registers to the register space.
@@ -52,8 +56,10 @@ struct unit_module;
  *   - Create and initialize test buffer with random data.
  * - Invoke nvgpu_falcon_sw_init with invalid falcon ID.
  *   - Verify that falcon initialization fails.
+ * - Invoke nvgpu_falcon_sw_free with above falcon ID.
  * - Invoke nvgpu_falcon_sw_init with valid falcon ID.
  *   - Verify that falcon initialization succeeds.
+ * - Invoke nvgpu_falcon_sw_free with above falcon ID.
  *
  * Output: Returns PASS if the steps above were executed successfully. FAIL
  * otherwise.
@@ -67,7 +73,9 @@ int test_falcon_sw_init_free(struct unit_module *m, struct gk20a *g,
  * Description: The falcon unit shall be able to reset the falcon CPU or trigger
  * engine specific reset for valid falcon ID.
  *
- * Test Type: Feature
+ * Test Type: Feature, Error guessing
+ *
+ * Targets: nvgpu_falcon_reset
  *
  * Input: None.
  *
@@ -91,7 +99,9 @@ int test_falcon_reset(struct unit_module *m, struct gk20a *g, void *__args);
  * Description: The falcon unit shall be able to check and return the falcon
  * memory scrub status.
  *
- * Test Type: Feature
+ * Test Type: Feature, Error guessing, Error injection
+ *
+ * Targets: nvgpu_falcon_mem_scrub_wait
  *
  * Input: None.
  *
@@ -103,6 +113,8 @@ int test_falcon_reset(struct unit_module *m, struct gk20a *g, void *__args);
  *   - Verify that wait succeeds with 0 return value.
  * - Invoke nvgpu_falcon_mem_scrub_wait with initialized falcon struct where
  *   underlying falcon's memory scrub is yet to complete.
+ *   - Verify that wait fails with -ETIMEDOUT return value.
+ * - Enable fault injection for the timer init call for branch coverage.
  *   - Verify that wait fails with -ETIMEDOUT return value.
  *
  * Output: Returns PASS if the steps above were executed successfully. FAIL
@@ -116,9 +128,11 @@ int test_falcon_mem_scrub(struct unit_module *m, struct gk20a *g, void *__args);
  * Description: The falcon unit shall be able to check and return the falcon
  * idle status.
  *
- * Test Type: Feature
+ * Test Type: Feature, Error guessing, Error injection
  *
  * Input: None.
+ *
+ * Targets: nvgpu_falcon_wait_idle
  *
  * Steps:
  * - Invoke nvgpu_falcon_wait_idle with uninitialized falcon struct.
@@ -132,6 +146,8 @@ int test_falcon_mem_scrub(struct unit_module *m, struct gk20a *g, void *__args);
  * - Invoke nvgpu_falcon_wait_idle with initialized falcon struct where
  *   underlying falcon is not idle.
  *   - Verify that wait fails with -ETIMEDOUT return value.
+ * - Enable fault injection for the timer init call for branch coverage.
+ *   - Verify that wait fails with -ETIMEDOUT return value.
  *
  * Output: Returns PASS if the steps above were executed successfully. FAIL
  * otherwise.
@@ -144,7 +160,9 @@ int test_falcon_idle(struct unit_module *m, struct gk20a *g, void *__args);
  * Description: The falcon unit shall be able to check and return the falcon
  * halt status.
  *
- * Test Type: Feature
+ * Test Type: Feature, Error guessing, Error injection
+ *
+ * Targets: nvgpu_falcon_wait_for_halt
  *
  * Input: None.
  *
@@ -156,6 +174,8 @@ int test_falcon_idle(struct unit_module *m, struct gk20a *g, void *__args);
  *   - Verify that wait succeeds with 0 return value.
  * - Invoke nvgpu_falcon_wait_for_halt with initialized falcon struct where
  *   underlying falcon is not halted.
+ *   - Verify that wait fails with -ETIMEDOUT return value.
+ * - Enable fault injection for the timer init call for branch coverage.
  *   - Verify that wait fails with -ETIMEDOUT return value.
  *
  * Output: Returns PASS if the steps above were executed successfully. FAIL
@@ -169,7 +189,9 @@ int test_falcon_halt(struct unit_module *m, struct gk20a *g, void *__args);
  * Description: The falcon unit shall be able to write to falcon's IMEM and
  * DMEM.
  *
- * Test Type: Feature
+ * Test Type: Feature, Error guessing
+ *
+ * Targets: nvgpu_falcon_copy_to_imem, nvgpu_falcon_copy_to_dmem
  *
  * Input: None.
  *
@@ -197,7 +219,9 @@ int test_falcon_mem_rw_init(struct unit_module *m, struct gk20a *g,
  * Description: The falcon unit shall be able to write to falcon's IMEM and
  * DMEM in accessible range.
  *
- * Test Type: Feature
+ * Test Type: Feature, Boundary values
+ *
+ * Targets: nvgpu_falcon_copy_to_imem, nvgpu_falcon_copy_to_dmem.
  *
  * Input: None.
  *
@@ -224,6 +248,8 @@ int test_falcon_mem_rw_range(struct unit_module *m, struct gk20a *g,
  *
  * Test Type: Error injection
  *
+ * Targets: nvgpu_falcon_copy_to_dmem
+ *
  * Input: None.
  *
  * Steps:
@@ -245,7 +271,9 @@ int test_falcon_mem_rw_fault(struct unit_module *m, struct gk20a *g,
  * Description: The falcon unit shall be able to write to falcon's IMEM and
  * DMEM only at aligned offsets.
  *
- * Test Type: Feature
+ * Test Type: Feature, Error guessing
+ *
+ * Targets: nvgpu_falcon_copy_to_imem, nvgpu_falcon_copy_to_dmem
  *
  * Input: None.
  *
@@ -271,7 +299,9 @@ int test_falcon_mem_rw_aligned(struct unit_module *m, struct gk20a *g,
  * Description: The falcon unit shall fail the API call to write zero
  * bytes to falcon memory.
  *
- * Test Type: Feature
+ * Test Type: Error guessing
+ *
+ * Targets: nvgpu_falcon_copy_to_imem, nvgpu_falcon_copy_to_dmem
  *
  * Input: None.
  *
@@ -292,7 +322,9 @@ int test_falcon_mem_rw_zero(struct unit_module *m, struct gk20a *g,
  * Description: The falcon unit shall read and write value of falcon's mailbox
  * registers.
  *
- * Test Type: Feature
+ * Test Type: Feature, Error guessing
+ *
+ * Targets: nvgpu_falcon_mailbox_read, nvgpu_falcon_mailbox_write
  *
  * Input: None.
  *
@@ -316,7 +348,9 @@ int test_falcon_mailbox(struct unit_module *m, struct gk20a *g, void *__args);
  * Description: The falcon unit shall configure the bootstrap parameters into
  * falcon memory and registers.
  *
- * Test Type: Feature
+ * Test Type: Feature, Error guessing
+ *
+ * Targets: nvgpu_falcon_hs_ucode_load_bootstrap
  *
  * Input: None.
  *
@@ -358,6 +392,8 @@ int test_falcon_bootstrap(struct unit_module *m, struct gk20a *g, void *__args);
  *
  * Test Type: Feature
  *
+ * Targets: nvgpu_falcon_copy_to_imem, nvgpu_falcon_copy_to_dmem
+ *
  * Input: None.
  *
  * Steps:
@@ -382,7 +418,9 @@ int test_falcon_mem_rw_unaligned_cpu_buffer(struct unit_module *m,
  * Description: The falcon unit shall not be able to read/write from/to falcon's
  * memory from invalid port.
  *
- * Test Type: Error guessing based
+ * Test Type: Error guessing
+ *
+ * Targets: nvgpu_falcon_copy_to_imem
  *
  * Input: None.
  *
@@ -403,7 +441,9 @@ int test_falcon_mem_rw_inval_port(struct unit_module *m, struct gk20a *g,
  * Description: The falcon unit shall be able to set or clear the falcon irq
  * mask and destination registers for supported falcons.
  *
- * Test Type: Feature based
+ * Test Type: Feature, Error guessing
+ *
+ * Targets: nvgpu_falcon_set_irq
  *
  * Input: None.
  *
