@@ -65,6 +65,7 @@ UNITS :=				\
 	$(UNIT_SRC)/interface/atomic	\
 	$(UNIT_SRC)/interface/rbtree	\
 	$(UNIT_SRC)/interface/static_analysis	\
+	$(UNIT_SRC)/interface/string	\
 	$(UNIT_SRC)/interface/worker	\
 	$(UNIT_SRC)/mc			\
 	$(UNIT_SRC)/mm/nvgpu_sgt	\

@@ -4293,6 +4293,24 @@
         "test_level": 0
     },
     {
+        "test": "test_mem_is_word_aligned",
+        "case": "mem_is_word_aligned",
+        "unit": "string",
+        "test_level": 0
+    },
+    {
+        "test": "test_memcpy_memcmp",
+        "case": "memcpy_memcmp",
+        "unit": "string",
+        "test_level": 0
+    },
+    {
+        "test": "test_strnadd_u32",
+        "case": "strnadd_u32",
+        "unit": "string",
+        "test_level": 0
+    },
+    {
         "test": "test_gv11b_elcg_init_idle_filters",
         "case": "gv11b_elcg_init_idle_filters",
         "unit": "therm",

@@ -518,11 +518,14 @@ nvgpu_mc_intr_nonstall_unit_config
 nvgpu_mc_intr_stall_pause
 nvgpu_mc_intr_stall_resume
 nvgpu_mc_intr_stall_unit_config
+nvgpu_memcmp
+nvgpu_memcpy
 nvgpu_memset
 nvgpu_mem_create_from_phys
 nvgpu_mem_get_addr
 nvgpu_mem_iommu_translate
 nvgpu_mem_is_sysmem
+nvgpu_mem_is_word_aligned
 nvgpu_mem_posix_create_from_list
 nvgpu_mem_rd
 nvgpu_mem_rd32
@@ -683,6 +686,7 @@ nvgpu_sgt_ipa_to_pa
 nvgpu_spinlock_acquire
 nvgpu_spinlock_init
 nvgpu_spinlock_release
+nvgpu_strnadd_u32
 nvgpu_sw_quiesce
 nvgpu_sw_quiesce_remove_support
 nvgpu_thread_create

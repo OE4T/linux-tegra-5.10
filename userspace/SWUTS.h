@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -34,6 +34,7 @@
  *   - @ref SWUTS-interface-bsearch
  *   - @ref SWUTS-interface-lock
  *   - @ref SWUTS-interface-rbtree
+ *   - @ref SWUTS-interface-string
  *   - @ref SWUTS-bus
  *   - @ref SWUTS-falcon
  *   - @ref SWUTS-netlist
