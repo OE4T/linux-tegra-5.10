@@ -667,7 +667,7 @@ nve32_t osi_ptp_configuration(struct osi_core_priv_data *const osi_core,
 		ops_p->config_tscr(osi_core, osi_core->ptp_config.ptp_filter);
 
 		/* Program Sub Second Increment Register */
-		ops_p->config_ssir(osi_core);
+		ops_p->config_ssir(osi_core, osi_core->ptp_config.ptp_clock);
 
 		/* formula for calculating addend value is
 		 * TSAR = (2^32 * 1000) / (ptp_ref_clk_rate in MHz * SSINC)

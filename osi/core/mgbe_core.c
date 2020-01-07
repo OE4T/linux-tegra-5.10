@@ -369,7 +369,6 @@ err_dma_chan:
 	return ret;
 }
 
-
 /**
  * @brief mgbe_update_mac_addr_low_high_reg- Update L2 address in filter
  *	  register
@@ -3383,6 +3382,416 @@ static int mgbe_get_hw_features(struct osi_core_priv_data *osi_core,
 }
 
 /**
+ * @brief mgbe_poll_for_tsinit_complete - Poll for time stamp init complete
+ *
+ * Algorithm: Read TSINIT value from MAC TCR register until it is
+ *	equal to zero.
+ *
+ * @param[in] addr: Base address indicating the start of
+ *	      memory mapped IO region of the MAC.
+ * @param[in] mac_tcr: Address to store time stamp control register read value
+ *
+ * @note MAC should be init and started. see osi_start_mac()
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+static inline int mgbe_poll_for_tsinit_complete(
+					struct osi_core_priv_data *osi_core,
+					unsigned int *mac_tcr)
+{
+	unsigned int retry = 0U;
+
+	while (retry < OSI_POLL_COUNT) {
+		/* Read and Check TSINIT in MAC_Timestamp_Control register */
+		*mac_tcr = osi_readl((unsigned char *)osi_core->base +
+				     MGBE_MAC_TCR);
+		if ((*mac_tcr & MGBE_MAC_TCR_TSINIT) == 0U) {
+			return 0;
+		}
+
+		retry++;
+		osi_core->osd_ops.udelay(OSI_DELAY_1000US);
+	}
+
+	return -1;
+}
+
+/**
+ * @brief mgbe_set_systime - Set system time
+ *
+ * Algorithm: Updates system time (seconds and nano seconds)
+ *	in hardware registers
+ *
+ * @param[in] addr: Base address indicating the start of
+ *	      memory mapped IO region of the MAC.
+ * @param[in] sec: Seconds to be configured
+ * @param[in] nsec: Nano Seconds to be configured
+ *
+ * @note MAC should be init and started. see osi_start_mac()
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+static int mgbe_set_systime_to_mac(struct osi_core_priv_data *osi_core,
+				   unsigned int sec,
+				   unsigned int nsec)
+{
+	unsigned int mac_tcr;
+	void *addr = osi_core->base;
+	int ret;
+
+	/* To be sure previous write was flushed (if Any) */
+	ret = mgbe_poll_for_tsinit_complete(osi_core, &mac_tcr);
+	if (ret == -1) {
+		return -1;
+	}
+
+	/* write seconds value to MAC_System_Time_Seconds_Update register */
+	osi_writel(sec, (unsigned char *)addr + MGBE_MAC_STSUR);
+
+	/* write nano seconds value to MAC_System_Time_Nanoseconds_Update
+	 * register
+	 */
+	osi_writel(nsec, (unsigned char *)addr + MGBE_MAC_STNSUR);
+
+	/* issue command to update the configured secs and nsecs values */
+	mac_tcr |= MGBE_MAC_TCR_TSINIT;
+	osi_writel(mac_tcr, (unsigned char *)addr + MGBE_MAC_TCR);
+
+	ret = mgbe_poll_for_tsinit_complete(osi_core, &mac_tcr);
+	if (ret == -1) {
+		return -1;
+	}
+
+	return 0;
+}
+
+/**
+ * @brief mgbe_poll_for_addend_complete - Poll for addend value write complete
+ *
+ * Algorithm: Read TSADDREG value from MAC TCR register until it is
+ *	equal to zero.
+ *
+ * @param[in] addr: Base address indicating the start of
+ *	      memory mapped IO region of the MAC.
+ * @param[in] mac_tcr: Address to store time stamp control register read value
+ *
+ * @note MAC should be init and started. see osi_start_mac()
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+static inline int mgbe_poll_for_addend_complete(
+					struct osi_core_priv_data *osi_core,
+					unsigned int *mac_tcr)
+{
+	unsigned int retry = 0U;
+
+	/* Poll */
+	while (retry < OSI_POLL_COUNT) {
+		/* Read and Check TSADDREG in MAC_Timestamp_Control register */
+		*mac_tcr = osi_readl((unsigned char *)osi_core->base +
+				     MGBE_MAC_TCR);
+		if ((*mac_tcr & MGBE_MAC_TCR_TSADDREG) == 0U) {
+			return 0;
+		}
+
+		retry++;
+		osi_core->osd_ops.udelay(OSI_DELAY_1000US);
+	}
+
+	return -1;
+}
+
+/**
+ * @brief mgbe_config_addend - Configure addend
+ *
+ * Algorithm: Updates the Addend value in HW register
+ *
+ * @param[in] addr: Base address indicating the start of
+ *	      memory mapped IO region of the MAC.
+ * @param[in] addend: Addend value to be configured
+ *
+ * @note MAC should be init and started. see osi_start_mac()
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+static int mgbe_config_addend(struct osi_core_priv_data *osi_core,
+			      unsigned int addend)
+{
+	unsigned int mac_tcr;
+	void *addr = osi_core->base;
+	int ret;
+
+	/* To be sure previous write was flushed (if Any) */
+	ret = mgbe_poll_for_addend_complete(osi_core, &mac_tcr);
+	if (ret == -1) {
+		return -1;
+	}
+
+	/* write addend value to MAC_Timestamp_Addend register */
+	osi_writel(addend, (unsigned char *)addr + MGBE_MAC_TAR);
+
+	/* issue command to update the configured addend value */
+	mac_tcr |= MGBE_MAC_TCR_TSADDREG;
+	osi_writel(mac_tcr, (unsigned char *)addr + MGBE_MAC_TCR);
+
+	ret = mgbe_poll_for_addend_complete(osi_core, &mac_tcr);
+	if (ret == -1) {
+		return -1;
+	}
+
+	return 0;
+}
+
+/**
+ * @brief mgbe_poll_for_update_ts_complete - Poll for update time stamp
+ *
+ * Algorithm: Read time stamp update value from TCR register until it is
+ *	equal to zero.
+ *
+ * @param[in] addr: Base address indicating the start of
+ *	      memory mapped IO region of the MAC.
+ * @param[in] mac_tcr: Address to store time stamp control register read value
+ *
+ * @note MAC should be init and started. see osi_start_mac()
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+static inline int mgbe_poll_for_update_ts_complete(struct osi_core_priv_data *osi_core,
+						   unsigned int *mac_tcr)
+{
+	unsigned int retry = 0U;
+
+	while (retry < OSI_POLL_COUNT) {
+		/* Read and Check TSUPDT in MAC_Timestamp_Control register */
+		*mac_tcr = osi_readl((unsigned char *)osi_core->base +
+				     MGBE_MAC_TCR);
+		if ((*mac_tcr & MGBE_MAC_TCR_TSUPDT) == 0U) {
+			return 0;
+		}
+
+		retry++;
+		osi_core->osd_ops.udelay(OSI_DELAY_1000US);
+	}
+
+	return -1;
+}
+
+/**
+ * @brief mgbe_adjust_mactime - Adjust MAC time with system time
+ *
+ * Algorithm: Update MAC time with system time
+ *
+ * @param[in] addr: Base address indicating the start of
+ *	      memory mapped IO region of the MAC.
+ * @param[in] sec: Seconds to be configured
+ * @param[in] nsec: Nano seconds to be configured
+ * @param[in] add_sub: To decide on add/sub with system time
+ * @param[in] one_nsec_accuracy: One nano second accuracy
+ *
+ * @note 1) MAC should be init and started. see osi_start_mac()
+ *	 2) osi_core->ptp_config.one_nsec_accuracy need to be set to 1
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+static int mgbe_adjust_mactime(struct osi_core_priv_data *osi_core,
+			       unsigned int sec, unsigned int nsec,
+			       unsigned int add_sub,
+			       unsigned int one_nsec_accuracy)
+{
+	void *addr = osi_core->base;
+	unsigned int mac_tcr;
+	unsigned int value = 0;
+	unsigned long long temp = 0;
+	int ret;
+
+	/* To be sure previous write was flushed (if Any) */
+	ret = mgbe_poll_for_update_ts_complete(osi_core, &mac_tcr);
+	if (ret == -1) {
+		return -1;
+	}
+
+	if (add_sub != 0U) {
+		/* If the new sec value needs to be subtracted with
+		 * the system time, then MAC_STSUR reg should be
+		 * programmed with (2^32 – <new_sec_value>)
+		 */
+		temp = (TWO_POWER_32 - sec);
+		if (temp < UINT_MAX) {
+			sec = (unsigned int)temp;
+		} else {
+			/* do nothing here */
+		}
+
+		/* If the new nsec value need to be subtracted with
+		 * the system time, then MAC_STNSUR.TSSS field should be
+		 * programmed with, (10^9 - <new_nsec_value>) if
+		 * MAC_TCR.TSCTRLSSR is set or
+		 * (2^32 - <new_nsec_value> if MAC_TCR.TSCTRLSSR is reset)
+		 */
+		if (one_nsec_accuracy == OSI_ENABLE) {
+			if (nsec < UINT_MAX) {
+				nsec = (TEN_POWER_9 - nsec);
+			}
+		} else {
+			if (nsec < UINT_MAX) {
+				nsec = (TWO_POWER_31 - nsec);
+			}
+		}
+	}
+
+	/* write seconds value to MAC_System_Time_Seconds_Update register */
+	osi_writel(sec, (unsigned char *)addr + MGBE_MAC_STSUR);
+
+	/* write nano seconds value and add_sub to
+	 * MAC_System_Time_Nanoseconds_Update register
+	 */
+	value |= nsec;
+	value |= (add_sub << MGBE_MAC_STNSUR_ADDSUB_SHIFT);
+	osi_writel(value, (unsigned char *)addr + MGBE_MAC_STNSUR);
+
+	/* issue command to initialize system time with the value
+	 * specified in MAC_STSUR and MAC_STNSUR
+	 */
+	mac_tcr |= MGBE_MAC_TCR_TSUPDT;
+	osi_writel(mac_tcr, (unsigned char *)addr + MGBE_MAC_TCR);
+
+	ret = mgbe_poll_for_update_ts_complete(osi_core, &mac_tcr);
+	if (ret == -1) {
+		return -1;
+	}
+
+	return 0;
+}
+
+/**
+ * @brief mgbe_config_tscr - Configure Time Stamp Register
+ *
+ * @param[in] addr: Base address indicating the start of
+ *	      memory mapped IO region of the MAC.
+ * @param[in] ptp_filter: PTP rx filter parameters
+ *
+ * @note MAC should be init and started. see osi_start_mac()
+ */
+static void mgbe_config_tscr(struct osi_core_priv_data *osi_core,
+			     unsigned int ptp_filter)
+{
+	unsigned int mac_tcr = 0;
+	void *addr = osi_core->base;
+
+	if (ptp_filter != OSI_DISABLE) {
+		mac_tcr = (OSI_MAC_TCR_TSENA	|
+			   OSI_MAC_TCR_TSCFUPDT |
+			   OSI_MAC_TCR_TSCTRLSSR);
+
+		if ((ptp_filter & OSI_MAC_TCR_SNAPTYPSEL_1) ==
+		    OSI_MAC_TCR_SNAPTYPSEL_1) {
+			mac_tcr |= OSI_MAC_TCR_SNAPTYPSEL_1;
+		}
+		if ((ptp_filter & OSI_MAC_TCR_SNAPTYPSEL_2) ==
+		    OSI_MAC_TCR_SNAPTYPSEL_2) {
+			mac_tcr |= OSI_MAC_TCR_SNAPTYPSEL_2;
+		}
+		if ((ptp_filter & OSI_MAC_TCR_SNAPTYPSEL_3) ==
+		    OSI_MAC_TCR_SNAPTYPSEL_3) {
+			mac_tcr |= OSI_MAC_TCR_SNAPTYPSEL_3;
+		}
+		if ((ptp_filter & OSI_MAC_TCR_TSIPV4ENA) ==
+		    OSI_MAC_TCR_TSIPV4ENA) {
+			mac_tcr |= OSI_MAC_TCR_TSIPV4ENA;
+		}
+		if ((ptp_filter & OSI_MAC_TCR_TSIPV6ENA) ==
+		    OSI_MAC_TCR_TSIPV6ENA) {
+			mac_tcr |= OSI_MAC_TCR_TSIPV6ENA;
+		}
+		if ((ptp_filter & OSI_MAC_TCR_TSEVENTENA) ==
+		    OSI_MAC_TCR_TSEVENTENA) {
+			mac_tcr |= OSI_MAC_TCR_TSEVENTENA;
+		}
+		if ((ptp_filter & OSI_MAC_TCR_TSMASTERENA) ==
+		    OSI_MAC_TCR_TSMASTERENA) {
+			mac_tcr |= OSI_MAC_TCR_TSMASTERENA;
+		}
+		if ((ptp_filter & OSI_MAC_TCR_TSVER2ENA) ==
+		    OSI_MAC_TCR_TSVER2ENA) {
+			mac_tcr |= OSI_MAC_TCR_TSVER2ENA;
+		}
+		if ((ptp_filter & OSI_MAC_TCR_TSIPENA) ==
+		    OSI_MAC_TCR_TSIPENA) {
+			mac_tcr |= OSI_MAC_TCR_TSIPENA;
+		}
+		if ((ptp_filter & OSI_MAC_TCR_AV8021ASMEN) ==
+		    OSI_MAC_TCR_AV8021ASMEN) {
+			mac_tcr |= OSI_MAC_TCR_AV8021ASMEN;
+		}
+		if ((ptp_filter & OSI_MAC_TCR_TSENALL) ==
+		    OSI_MAC_TCR_TSENALL) {
+			mac_tcr |= OSI_MAC_TCR_TSENALL;
+		}
+		if ((ptp_filter & OSI_MAC_TCR_CSC) ==
+				OSI_MAC_TCR_CSC) {
+			mac_tcr |= OSI_MAC_TCR_CSC;
+		}
+	} else {
+		/* Disabling the MAC time stamping */
+		mac_tcr = OSI_DISABLE;
+	}
+
+	osi_writel(mac_tcr, (unsigned char *)addr + MGBE_MAC_TCR);
+}
+
+/**
+ * @brief mgbe_config_ssir - Configure SSIR
+ *
+ * @param[in] addr: Base address indicating the start of
+ *	      memory mapped IO region of the MAC.
+ * it compiled earlier 
+ * @param[in] ptp_clock: PTP required clock frequency
+ *
+ * @note MAC should be init and started. see osi_start_mac()
+ */
+static void mgbe_config_ssir(struct osi_core_priv_data *const osi_core,
+			     const unsigned int ptp_clock)
+{
+	unsigned long long val;
+	unsigned int mac_tcr;
+	void *addr = osi_core->base;
+
+	mac_tcr = osi_readl((unsigned char *)addr + MGBE_MAC_TCR);
+
+	/* convert the PTP required clock frequency to nano second.
+	 * formula is : ((1/ptp_clock) * 1000000000)
+	 * where, ptp_clock = OSI_PTP_REQ_CLK_FREQ if FINE correction
+	 * and ptp_clock = PTP reference clock if COARSE correction
+	 */
+
+	if ((mac_tcr & MGBE_MAC_TCR_TSCFUPDT) == MGBE_MAC_TCR_TSCFUPDT) {
+		val = ((1U * OSI_NSEC_PER_SEC) / OSI_PTP_REQ_CLK_FREQ);
+	} else {
+		val = ((1U * OSI_NSEC_PER_SEC) / ptp_clock);
+	}
+
+	/* 0.465ns accurecy */
+	if ((mac_tcr & MGBE_MAC_TCR_TSCTRLSSR) == 0U) {
+		if (val < UINT_MAX) {
+			val = (val * 1000U) / 465U;
+		}
+	}
+
+	val |= (val << MGBE_MAC_SSIR_SSINC_SHIFT);
+	/* update Sub-second Increment Value */
+	if (val < UINT_MAX) {
+		osi_writel((unsigned int)val,
+			   (unsigned char *)addr + MGBE_MAC_SSIR);
+	}
+}
+
+/**
  * @brief mgbe_init_core_ops - Initialize MGBE MAC core operations
  */
 void mgbe_init_core_ops(struct core_ops *ops)
@@ -3421,11 +3830,11 @@ void mgbe_init_core_ops(struct core_ops *ops)
 	ops->update_l4_port_no = mgbe_update_l4_port_no;
 	ops->config_vlan_filtering = mgbe_config_vlan_filtering;
 	ops->update_vlan_id = mgbe_update_vlan_id;
-	ops->set_systime_to_mac = OSI_NULL;
-	ops->config_addend = OSI_NULL;
-	ops->adjust_mactime = OSI_NULL,
-	ops->config_tscr = OSI_NULL;
-	ops->config_ssir = OSI_NULL;
+	ops->set_systime_to_mac = mgbe_set_systime_to_mac;
+	ops->config_addend = mgbe_config_addend;
+	ops->adjust_mactime = mgbe_adjust_mactime;
+	ops->config_tscr = mgbe_config_tscr;
+	ops->config_ssir = mgbe_config_ssir,
 	ops->config_ptp_rxq = mgbe_config_ptp_rxq;
 	ops->write_phy_reg = mgbe_write_phy_reg;
 	ops->read_phy_reg = mgbe_read_phy_reg;

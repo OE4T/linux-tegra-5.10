@@ -132,10 +132,73 @@ static void mgbe_get_rx_hash(struct osi_rx_desc *rx_desc,
 	rx_pkt_cx->flags |= OSI_PKT_CX_RSS;
 }
 
+/** 
+ * @brief mgbe_get_rx_hwstamp - Get Rx HW Time stamp
+ *
+ * Algorithm:
+ *	1) Check for TS availability.
+ *	2) call get_tx_tstamp_status if TS is valid or not.
+ *	3) If yes, set a bit and update nano seconds in rx_pkt_cx so that OSD
+ *	layer can extract the time by checking this bit.
+ *
+ * @param[in] rx_desc: Rx descriptor
+ * @param[in] context_desc: Rx context descriptor
+ * @param[in] rx_pkt_cx: Rx packet context
+ *
+ * @retval -1 if TimeStamp is not available
+ * @retval 0 if TimeStamp is available.
+ */
+static int mgbe_get_rx_hwstamp(struct osi_dma_priv_data *osi_dma,
+			       struct osi_rx_desc *rx_desc,
+			       struct osi_rx_desc *context_desc,
+			       struct osi_rx_pkt_cx *rx_pkt_cx)
+{
+	int retry;
+
+	if ((rx_desc->rdes3 & RDES3_CDA) != RDES3_CDA) {
+		return -1;
+	}
+
+	for (retry = 0; retry < 10; retry++) {
+		if (((context_desc->rdes3 & RDES3_OWN) == 0U) &&
+		    ((context_desc->rdes3 & RDES3_CTXT) == RDES3_CTXT) &&
+		    ((context_desc->rdes3 & RDES3_TSA) == RDES3_TSA) &&
+		    ((context_desc->rdes3 & RDES3_TSD) != RDES3_TSD)) {
+			if ((context_desc->rdes0 == OSI_INVALID_VALUE) &&
+			    (context_desc->rdes1 == OSI_INVALID_VALUE)) {
+				/* Invalid time stamp */
+				return -1;
+			}
+			/* Update rx pkt context flags to indicate PTP */
+			rx_pkt_cx->flags |= OSI_PKT_CX_PTP;
+			/* Time Stamp can be read */
+			break;
+		} else {
+			/* TS not available yet, so retrying */
+			osi_dma->osd_ops.udelay(OSI_DELAY_1US);
+		}
+	}
+
+	if (retry == 10) {
+		/* Timed out waiting for Rx timestamp */
+		return -1;
+	}
+
+	rx_pkt_cx->ns = context_desc->rdes0 +
+			(OSI_NSEC_PER_SEC * context_desc->rdes1);
+	if (rx_pkt_cx->ns < context_desc->rdes0) {
+		/* Will not hit this case */
+		return -1;
+	}
+
+	return 0;
+}
+
 void mgbe_init_desc_ops(struct desc_ops *d_ops)
 {
         d_ops->get_rx_csum = mgbe_get_rx_csum;
 	d_ops->update_rx_err_stats = mgbe_update_rx_err_stats;
 	d_ops->get_rx_vlan = mgbe_get_rx_vlan;
 	d_ops->get_rx_hash = mgbe_get_rx_hash;
+	d_ops->get_rx_hwstamp = mgbe_get_rx_hwstamp;
 }

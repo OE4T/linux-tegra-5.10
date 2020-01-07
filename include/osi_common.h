@@ -130,6 +130,8 @@
 #define OSI_PTP_REQ_CLK_FREQ		250000000U
 #define OSI_FLOW_CTRL_DISABLE		0U
 
+#define OSI_POLL_COUNT			1000U
+
 #define OSI_ADDRESS_32BIT		0
 #define OSI_ADDRESS_40BIT		1
 #define OSI_ADDRESS_48BIT		2
@@ -143,7 +145,6 @@
 #endif
 /** @} */
 
-
 /**
  * @addtogroup Helper Helper MACROS
  *
@@ -154,11 +155,15 @@
 
 /* Logging defines */
 /* log levels */
+
+#define OSI_LOG_INFO                    1U
+#define OSI_LOG_WARN			2U
 #define OSI_LOG_ERR			3U
 /* Error types */
+#define OSI_LOG_ARG_OUTOFBOUND          1U
 #define OSI_LOG_ARG_INVALID		2U
+#define OSI_LOG_ARG_HW_FAIL		4U
 #ifndef OSI_STRIPPED_LIB
-#define OSI_LOG_WARN			2U
 #define OSI_LOG_ARG_OPNOTSUPP		3U
 #endif /* !OSI_STRIPPED_LIB */
 /* Default maximum Giant Packet Size Limit is 16K */

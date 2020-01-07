@@ -26,6 +26,19 @@
 #include <osi_common.h>
 #include "osi_dma_txrx.h"
 
+/*
+ * @addtogroup Helper Helper MACROS
+ *
+ * @brief These flags are used for PTP time synchronization
+ * @{
+ */
+#define OSI_PTP_SYNC_MASTER		OSI_BIT(0)
+#define OSI_PTP_SYNC_SLAVE		OSI_BIT(1)
+#define OSI_PTP_SYNC_ONESTEP		OSI_BIT(2)
+#define OSI_PTP_SYNC_TWOSTEP		OSI_BIT(3)
+#define OSI_DELAY_1US			1U
+/** @} */
+
 /**
  * @addtogroup Helper Helper MACROS
  *
@@ -82,8 +95,8 @@
  * whether checksum offload is to be enabled for the packet upon transmit,
  * whether IP checksum offload is to be enabled for the packet upon transmit,
  * whether TCP segmentation offload is to be enabled for the packet,
- * whether the HW should timestamp transmit/arrival of a packet respectively,
- * whether tx payload length to be updated
+ * whether the HW should timestamp transmit/arrival of a packet respectively
+ * whether a paged buffer.
  * @{
  */
 /** VLAN packet */
@@ -94,8 +107,10 @@
 #define OSI_PKT_CX_TSO			OSI_BIT(2)
 /** PTP packet */
 #define OSI_PKT_CX_PTP			OSI_BIT(3)
+/** Paged buffer */
+#define OSI_PKT_CX_PAGED_BUF		OSI_BIT(4)
 /** Rx packet has RSS hash */
-#define OSI_PKT_CX_RSS			OSI_BIT(4)
+#define OSI_PKT_CX_RSS			OSI_BIT(5)
 /** Valid packet */
 #define OSI_PKT_CX_VALID		OSI_BIT(10)
 /** Update Packet Length in Tx Desc3 */
@@ -324,6 +339,11 @@ struct osi_tx_swcx {
 	/** Flag to keep track of whether buffer pointed by buf_phy_addr
 	 * is a paged buffer/linear buffer */
 	nveu32_t is_paged_buf;
+	/** Flag to keep track of SWCX
+	 * Bit 0 is_paged_buf - whether buffer pointed by buf_phy_addr
+	 * is a paged buffer/linear buffer
+	 * Bit 1 PTP hwtime form timestamp registers */
+	unsigned int flags;
 };
 
 /**
@@ -519,6 +539,10 @@ struct osi_dma_priv_data {
 	nveu64_t resv_buf_phy_addr;
 	/** Tegra Pre-si platform info */
 	nveu32_t pre_si;
+	/** PTP flags
+	 * bit 0 PTP mode master(1) slave(0)
+	 * bit 1 PTP sync method twostep(1) onestep(0) */
+	unsigned int ptp_flag;
 };
 
 
