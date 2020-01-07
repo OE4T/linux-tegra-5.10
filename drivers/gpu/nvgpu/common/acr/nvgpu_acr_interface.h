@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -29,8 +29,8 @@
  * Blob construct interfaces:
  * NVGPU creates LS ucode blob in system/FB's non-WPR memory. LS ucodes
  * will be read from filesystem and added to blob for the detected chip.
- * Below are the structs needs to be filled by NvGPU for each LS Falcon
- * ucode supported for the detected chip. Upon successful filling structs,
+ * Below are the structs that need to be filled by NvGPU for each LS Falcon
+ * ucode supported for the detected chip. After filling structures successfully,
  * NvGPU should copy below structs along with ucode to the non-WPR blob
  * in below mentioned pattern. LS ucodes blob is required by the ACR HS
  * ucode to authenticate & load LS ucode on to respective engine's LS Falcon.
@@ -54,13 +54,21 @@
 /**
  * Light Secure WPR Content Alignments
  */
+/** WPR header should be aligned to 256 bytes */
 #define LSF_WPR_HEADER_ALIGNMENT        (256U)
+/** SUB WPR header should be aligned to 256 bytes */
 #define LSF_SUB_WPR_HEADER_ALIGNMENT    (256U)
+/** LSB header should be aligned to 256 bytes */
 #define LSF_LSB_HEADER_ALIGNMENT        (256U)
+/** BL DATA should be aligned to 256 bytes */
 #define LSF_BL_DATA_ALIGNMENT           (256U)
+/** BL DATA size should be aligned to 256 bytes */
 #define LSF_BL_DATA_SIZE_ALIGNMENT      (256U)
+/** BL CODE size should be aligned to 256 bytes */
 #define LSF_BL_CODE_SIZE_ALIGNMENT      (256U)
+/** LSF DATA size should be aligned to 256 bytes */
 #define LSF_DATA_SIZE_ALIGNMENT         (256U)
+/** LSF CODE size should be aligned to 256 bytes */
 #define LSF_CODE_SIZE_ALIGNMENT         (256U)
 
 /** UCODE surface should be aligned to 4k PAGE_SIZE */
@@ -142,7 +150,11 @@ enum {
  * Defines state allowing Light Secure Falcon bootstrapping.
  */
 struct lsf_wpr_header {
-	/** LS falcon ID */
+	 /**
+	 * LS Falcon ID
+	 * FALCON_ID_FECS  - 2
+	 * FALCON_ID_GPCCS - 3
+	 */
 	u32 falcon_id;
 	/**
 	 * LS Falcon LSB header offset from non-WPR base, below equation used
@@ -158,7 +170,6 @@ struct lsf_wpr_header {
 	 * supported LS Falcon from ACR HS ucode. Below are the bootstrapping
 	 * supporting Falcon owners.
 	 *  + Falcon #FALCON_ID_PMU
-	 *  + Falcon #FALCON_ID_GSPLITE
 	 *
 	 * On GV11B, bootstrap_owner set to #FALCON_ID_PMU as ACR HS ucode
 	 * runs on PMU Engine Falcon.
@@ -167,8 +178,10 @@ struct lsf_wpr_header {
 	u32 bootstrap_owner;
 	/**
 	 * Skip bootstrapping by ACR HS ucode,
-	 * 1 - skip LS Falcon bootstrapping by ACR HS ucode
+	 * 1 - skip LS Falcon bootstrapping by ACR HS ucode.
 	 * 0 - LS Falcon bootstrapping is done by ACR HS ucode.
+	 *
+	 * On GV11B, always set 0.
 	 */
 	u32 lazy_bootstrap;
 	/** LS ucode bin version*/
@@ -180,6 +193,12 @@ struct lsf_wpr_header {
 	u32 status;
 };
 
+/** @} */
+
+/**
+ * @ingroup NVGPURM_BLOB_CONSTRUCT
+ */
+/** @{*/
 /**
  * Code/data signature details of LS falcon
  */
@@ -200,7 +219,11 @@ struct lsf_ucode_desc {
 	 * 0 - debug signature not present
 	 */
 	u32 b_dbg_present;
-	/** LS Falcon ID */
+	/**
+	 * LS Falcon ID
+	 * FALCON_ID_FECS  - 2
+	 * FALCON_ID_GPCCS - 3
+	 */
 	u32 falcon_id;
 	/**
 	 * include version in signature calculation if supported
@@ -220,6 +243,13 @@ struct lsf_ucode_desc {
 	/** Message used to derive key */
 	u8  kdf[16];
 };
+
+/** @} */
+
+/**
+ * @ingroup NVGPURM_BLOB_CONSTRUCT
+ */
+/** @{*/
 
 /**
  * Light Secure Bootstrap Header
@@ -245,18 +275,23 @@ struct lsf_lsb_header {
 	 */
 	u32 ucode_off;
 	/**
-	 * Size of ucode, ucode will be copied to LS Falcon IMEM of this
-	 * size. Copy is done by ACR HS ucode upon signature verification
-	 * pass on ucode.
+	 * Size of LS Falcon ucode, required to perform signature verification
+	 * of LS Falcon ucode by ACR HS.
 	 */
 	u32 ucode_size;
 	/**
-	 * Size of ucode data, ucode will be copied to LS Falcon DMEM of this
-	 * size. Copy is done by ACR HS ucode upon signature verification
-	 * pass on ucode data.
+	 * Size of LS Falcon ucode data, required to perform signature
+	 * verification of LS Falcon ucode data by ACR HS.
 	 */
 	u32 data_size;
-	/** Size of bootloader that needs to be loaded by bootstrap owner */
+	/**
+	 * Size of bootloader that needs to be loaded by bootstrap owner.
+	 *
+	 * On GV11B, respective LS Falcon BL code size should not exceed
+	 * below mentioned size.
+	 * FALCON_ID_FECS IMEM size  - 32k
+	 * FALCON_ID_GPCCS IMEM size - 16k
+	 */
 	u32 bl_code_size;
 	/** BL starting virtual address. Need for tagging */
 	u32 bl_imem_off;
@@ -270,6 +305,11 @@ struct lsf_lsb_header {
 	/**
 	 * Size of BL data, BL data will be copied to LS Falcon DMEM of
 	 * bl data size
+	 *
+	 * On GV11B, respective LS Falcon BL data size should not exceed
+	 * below mentioned size.
+	 * FALCON_ID_FECS DMEM size  - 8k
+	 * FALCON_ID_GPCCS DMEM size - 5k
 	 */
 	u32 bl_data_size;
 	/**
@@ -277,14 +317,28 @@ struct lsf_lsb_header {
 	 * located.
 	 */
 	u32 app_code_off;
-	/** Size of UCODE Application code */
+	/**
+	 * Size of UCODE Application code.
+	 *
+	 * On GV11B, FECS/GPCCS LS Falcon app code size should not exceed
+	 * below mentioned size.
+	 * FALCON_ID_FECS IMEM size  - 32k
+	 * FALCON_ID_GPCCS IMEM size - 16k
+	 */
 	u32 app_code_size;
 	/**
 	 * Offset from non-WPR base address where UCODE Application data
 	 * is located
 	 */
 	u32 app_data_off;
-	/** Size of UCODE Application data */
+	/**
+	 * Size of UCODE Application data.
+	 *
+	 * On GV11B, respective LS Falcon app data size should not exceed
+	 * below mentioned size.
+	 * FALCON_ID_FECS DMEM size  - 8k
+	 * FALCON_ID_GPCCS DMEM size - 5k
+	 */
 	u32 app_data_size;
 	/**
 	 * NV_FLCN_ACR_LSF_FLAG_LOAD_CODE_AT_0 - Load BL at 0th IMEM offset
@@ -296,6 +350,12 @@ struct lsf_lsb_header {
 	u32 flags;
 };
 
+/** @} */
+
+/**
+ * @ingroup NVGPURM_BLOB_CONSTRUCT
+ */
+/** @{*/
 /**
  * Structure used by the boot-loader to load the rest of the LS Falcon code.
  *
@@ -315,30 +375,57 @@ struct flcn_bl_dmem_desc {
 	 * while loading code/data.
 	 */
 	u32 ctx_dma;
-	/** 256B aligned physical sysmem/FB address where code is located. */
+	/**
+	 * 256B aligned physical sysmem(iGPU)/FB(dGPU) address where code
+	 * is located.
+	 */
 	struct falc_u64 code_dma_base;
 	/**
 	 * Offset from code_dma_base where the nonSecure code is located.
 	 * The offset must be multiple of 256 to help performance.
 	 */
 	u32 non_sec_code_off;
-	/** The size of the non-secure code part. */
+	/**
+	 * The size of the non-secure code part.
+	 *
+	 * On GV11B, FECS/GPCCS LS Falcon non-secure + secure code size
+	 * should not exceed below mentioned size.
+	 * FALCON_ID_FECS IMEM size  - 32k
+	 * FALCON_ID_GPCCS IMEM size - 16k
+	 */
 	u32 non_sec_code_size;
 	/**
 	 * Offset from code_dma_base where the secure code is located.
 	 * The offset must be multiple of 256 to help performance.
 	 */
 	u32 sec_code_off;
-	/** The size of the secure code part. */
+	/**
+	 * The size of the secure code part.
+	 *
+	 * On GV11B, FECS/GPCCS LS Falcon non-secure + secure code size
+	 * should not exceed below mentioned size.
+	 * FALCON_ID_FECS IMEM size  - 32k
+	 * FALCON_ID_GPCCS IMEM size - 16k
+	 */
 	u32 sec_code_size;
 	/**
 	 * Code entry point which will be invoked by BL after code is
 	 * loaded.
 	 */
 	u32 code_entry_point;
-	/** 256B aligned Physical sysmem/FB Address where data is located. */
+	/**
+	 * 256B aligned Physical sysmem(iGPU)/FB(dGPU) Address where data
+	 * is located.
+	 */
 	struct falc_u64 data_dma_base;
-	/** Size of data block. Should be multiple of 256B. */
+	/**
+	 * Size of data block. Should be multiple of 256B.
+	 *
+	 * On GV11B, respective LS Falcon data size should not exceed
+	 * below mentioned size.
+	 * FALCON_ID_FECS DMEM size  - 8k
+	 * FALCON_ID_GPCCS DMEM size - 5k
+	 */
 	u32 data_size;
 	/** Arguments to be passed to the target firmware being loaded. */
 	u32 argc;
@@ -374,6 +461,7 @@ struct flcn_bl_dmem_desc {
  * This is needed to pre-allocate space in DMEM
  */
 #define NVGPU_FLCN_ACR_MAX_REGIONS                (2U)
+/** Reserve 512 bytes for bootstrap owner LS ucode data */
 #define LSF_BOOTSTRAP_OWNER_RESERVED_DMEM_SIZE    (0x200U)
 
 /**
@@ -397,8 +485,8 @@ struct flcn_acr_region_prop {
 	/** Bit map of all clients currently using this region */
 	u32 client_mask;
 	/**
-	 * sysmem/FB location from where contents need to be copied to
-	 * startAddress
+	 * sysmem(iGPU)/FB(dGPU) location from where contents need to
+	 * be copied to startAddress
 	 */
 	u32 shadowmMem_startaddress;
 };
@@ -408,7 +496,13 @@ struct flcn_acr_region_prop {
  * its properties.
  */
 struct flcn_acr_regions {
-	/** Number of regions used by NVGPU.*/
+	/**
+	 * Number of regions used by NVGPU from the total number of ACR
+	 * regions supported in chip.
+	 *
+	 * On GV11B, 1 ACR region supported and should always be greater
+	 * than 0.
+	 */
 	u32 no_regions;
 	/** Region properties */
 	struct flcn_acr_region_prop region_props[NVGPU_FLCN_ACR_MAX_REGIONS];
@@ -452,11 +546,16 @@ struct flcn_acr_desc {
 	 * to indicate to ACR HS ucode to fetch WPR region details from H/W.
 	 */
 	struct flcn_acr_regions regions;
-	/** stores the size of the ucode blob. */
+	/**
+	 * stores the size of the ucode blob.
+	 *
+	 * On GV11B, size is calculated at runtime & aligned to 256 bytes.
+	 * Size varies based on number of LS falcon supports.
+	 */
 	u32 nonwpr_ucode_blob_size;
 	/**
-	 * stores sysmem/FB's non-WPR start address where kernel stores
-	 * ucode blob
+	 * stores sysmem(iGPU)/FB's(dGPU) non-WPR start address where
+	 * kernel stores ucode blob
 	 */
 	u64 nonwpr_ucode_blob_start;
 	/** dummy space, not used by iGPU */
