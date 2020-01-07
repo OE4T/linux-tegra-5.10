@@ -75,6 +75,10 @@ struct nvgpu_posix_fault_inj_container {
 	struct nvgpu_posix_fault_inj nvmap_useddesc_fi;
 	struct nvgpu_posix_fault_inj nvmap_munmap_fi;
 	struct nvgpu_posix_fault_inj nvmap_importid_fi;
+	struct nvgpu_posix_fault_inj nvmap_unmap_user_mode_fi;
+	struct nvgpu_posix_fault_inj nvmap_user_mode_fi;
+	struct nvgpu_posix_fault_inj nvmap_user_mode_addr_fi;
+	struct nvgpu_posix_fault_inj nvmap_user_mode_size_fi;
 	struct nvgpu_posix_fault_inj nvgpu_hv_ipa_pa_var;
 	struct nvgpu_posix_fault_inj nvgpu_io_map_var;
 	struct nvgpu_posix_fault_inj nvgpu_readl_fi;
