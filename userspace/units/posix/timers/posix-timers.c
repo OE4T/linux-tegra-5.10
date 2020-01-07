@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -27,6 +27,7 @@
 #include <unit/unit.h>
 
 #include <nvgpu/timers.h>
+#include <nvgpu/posix/posix-fault-injection.h>
 #include "posix-timers.h"
 
 struct test_timer_args {
@@ -207,6 +208,20 @@ int test_timer_duration(struct unit_module *m,
 		unit_return_fail(m, "Timer init failed %d\n", ret);
 	}
 
+	/*
+	 * Timer should not be expired.
+	 * However, test execution may not be atomic and might get preempted.
+	 * In that scenario, the return value might not be zero.
+	 * Reading timer value also takes many cycles, hence it is difficult
+	 * to confirm if timer timedout before set timeout value.
+	 * So, here we print an error message if return value is not zero.
+	 */
+	ret = nvgpu_timeout_expired(&test_timeout);
+	if (ret != 0) {
+		unit_err(m,
+			"Duration timer expired when not expected %d\n", ret);
+	}
+
 	/* Sleep for TEST_TIMER_DURATION */
 	usleep((TEST_TIMER_DURATION * 1000));
 
@@ -222,6 +237,60 @@ int test_timer_duration(struct unit_module *m,
 
 	if (!nvgpu_timeout_peek_expired(&test_timeout)) {
 		unit_return_fail(m, "Duration failure\n");
+	}
+
+	return UNIT_SUCCESS;
+}
+
+int test_timer_fault_injection(struct unit_module *m,
+			      struct gk20a *g, void *args)
+{
+	int ret;
+	struct nvgpu_posix_fault_inj *timers_fi =
+					nvgpu_timers_get_fault_injection();
+
+	memset(&test_timeout, 0, sizeof(struct nvgpu_timeout));
+
+	ret = nvgpu_timeout_init(g, &test_timeout,
+			TEST_TIMER_DURATION,
+			NVGPU_TIMER_CPU_TIMER);
+
+	if (ret != 0) {
+		unit_return_fail(m, "Timer init failed %d\n", ret);
+	}
+
+	nvgpu_posix_enable_fault_injection(timers_fi, true, 1);
+
+	/* Timer should not be expired */
+	ret = nvgpu_timeout_expired(&test_timeout);
+	if (ret != 0) {
+		unit_return_fail(m,
+			"Fault injected timer expired when not expected %d\n",
+			ret);
+	}
+
+	/* Timer should be expired */
+	ret = nvgpu_timeout_expired(&test_timeout);
+	if (ret != -ETIMEDOUT) {
+		unit_return_fail(m,
+			"Fault injected timer expired when not expected %d\n",
+			ret);
+	}
+
+	nvgpu_posix_enable_fault_injection(timers_fi, false, 0);
+
+	/* Sleep for TEST_TIMER_DURATION */
+	usleep((TEST_TIMER_DURATION * 1000));
+
+	do {
+		usleep(10);
+		ret = nvgpu_timeout_expired(&test_timeout);
+
+	} while (ret == 0);
+
+	if (ret != -ETIMEDOUT) {
+		unit_return_fail(m, "Fault injected timer not expired %d\n",
+			ret);
 	}
 
 	return UNIT_SUCCESS;
@@ -336,6 +405,7 @@ struct unit_module_test posix_timers_tests[] = {
 	UNIT_TEST(init_err,  test_timer_init_err, NULL, 0),
 	UNIT_TEST(counter,   test_timer_counter, NULL, 0),
 	UNIT_TEST(duration,  test_timer_duration, NULL, 0),
+	UNIT_TEST(fault_injection,  test_timer_fault_injection, NULL, 0),
 	UNIT_TEST(delay,     test_timer_delay, NULL, 0),
 	UNIT_TEST(msleep,    test_timer_msleep, NULL, 0),
 	UNIT_TEST(hr_cycles, test_timer_hrtimestamp, NULL, 0),

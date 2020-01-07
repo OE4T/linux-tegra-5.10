@@ -142,19 +142,53 @@ int test_timer_counter(struct unit_module *m,
  * 1) Reset the global nvgpu_timeout structure to all 0s.
  * 2) Initialise the timeout structure.
  * 3) Check the return value for error.
- * 4) Sleep for the required duration + 500ms to ensure the timer expires.
- * 5) Check for the timer status.
- * 6) Reconfirm the timer status.
+ * 4) Check for timer status. Confirm that timer has not expired.
+ * 5) Sleep for the required duration + 500ms to ensure the timer expires.
+ * 6) Check for the timer status.
+ * 7) Reconfirm the timer status.
  *
  * Output:
  * Test returns PASS if the timer expires after the programmed
  * duration.
- * Test returns FAIL if the initialisation routine returns error or if
- * the timer does not expire even after the programmed duration.
+ * Test returns FAIL if initialisation routine returns error, if the timer
+ * does not expire after programmed duration or if timer expires before
+ * programmed duration.
  *
  */
 int test_timer_duration(struct unit_module *m,
 		struct gk20a *g, void *args);
+
+/**
+ * Test specification for test_timer_duration
+ *
+ * Description: Test fault injection timer functionality.
+ *
+ * Test Type: Feature
+ *
+ * Input:
+ * 1) Global nvgpu_timeout structure instance.
+ * 2) Global defines for flag and duration parameters.
+ *
+ * Steps:
+ * 1) Reset the global nvgpu_timeout structure to all 0s.
+ * 2) Initialise the timeout structure.
+ * 3) Check the return value for error.
+ * 4) Initialize fault injection counter and enable fault injection.
+ * 5) Check for the timer status. Confirm that return value is 0.
+ * 6) Check for the timer status. Confirm that return value is 0.
+ * 7) Sleep for the required duration + 500ms to ensure the timer expires.
+ * 8) Check for the timer status.
+ *
+ * Output:
+ * Test returns PASS if the timer expires after the programmed
+ * duration.
+ * Test returns FAIL if the initialisation routine returns error, if function
+ * returns non-zero value when fault injection is enabled or if the timer does
+ * not expire even after the programmed duration.
+ *
+ */
+int test_timer_fault_injection(struct unit_module *m,
+			      struct gk20a *g, void *args);
 
 /**
  * Test specification for test_timer_delay
