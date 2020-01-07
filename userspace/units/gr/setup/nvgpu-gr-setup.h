@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -69,7 +69,7 @@ int test_gr_setup_alloc_obj_ctx(struct unit_module *m,
  *
  * Description: This test helps to verify set_preemption_mode.
  *
- * Test Type: Feature
+ * Test Type: Feature, Safety
  *
  * Targets: #nvgpu_gr_setup_set_preemption_mode,
  *          #nvgpu_gr_obj_ctx_set_ctxsw_preemption_mode,
