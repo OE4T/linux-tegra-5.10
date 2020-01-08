@@ -435,21 +435,6 @@ static int stub_runlist_update_for_channel_EINVAL(
 	return 0;
 }
 
-static bool unbind_pruned(u32 branches, u32 fail)
-{
-	u32 branches_init = branches;
-
-	if ((branches & fail) == 0) {
-		branches &= ~F_TSG_UNBIND_CHANNEL_ABORT_RUNLIST_UPDATE_FAIL;
-	}
-
-	if (branches < branches_init) {
-		return true;
-	}
-
-	return pruned(branches, fail);
-}
-
 int test_tsg_unbind_channel(struct unit_module *m,
 		struct gk20a *g, void *args)
 {
@@ -477,13 +462,22 @@ int test_tsg_unbind_channel(struct unit_module *m,
 		F_TSG_UNBIND_CHANNEL_RUNLIST_UPDATE_FAIL |
 		F_TSG_UNBIND_CHANNEL_UNBIND_HAL_FAIL;
 
-	for (branches = 0U; branches < F_TSG_UNBIND_CHANNEL_LAST; branches++) {
+	/*
+	 * do not prune F_TSG_UNBIND_CHANNEL_UNBIND_HAL_FAIL, to
+	 * exercise following abort path.
+	 */
+	u32 prune =
+		F_TSG_UNBIND_CHANNEL_PREEMPT_TSG_FAIL |
+		F_TSG_UNBIND_CHANNEL_CHECK_HW_STATE_FAIL |
+		F_TSG_UNBIND_CHANNEL_RUNLIST_UPDATE_FAIL;
 
-		if (unbind_pruned(branches, fail)) {
+	for (branches = 0U; branches < F_TSG_UNBIND_CHANNEL_LAST; branches++) {
+		if (pruned(branches, prune)) {
 			unit_verbose(m, "%s branches=%s (pruned)\n", __func__,
 				branches_str(branches, labels));
 			continue;
 		}
+
 		subtest_setup(branches);
 		unit_verbose(m, "%s branches=%s\n", __func__,
 			branches_str(branches, labels));
