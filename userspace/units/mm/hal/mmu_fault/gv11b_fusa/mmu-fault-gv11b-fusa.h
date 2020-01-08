@@ -58,7 +58,9 @@ int test_env_init(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Test Type: Feature
  *
- * Targets: gv11b_mm_mmu_fault_setup_sw, gv11b_mm_mmu_fault_info_mem_destroy
+ * Targets: gops_mm.gops_mm_mmu_fault.setup_sw, gv11b_mm_mmu_fault_setup_sw,
+ * gops_mm.gops_mm_mmu_fault.info_mem_destroy,
+ * gv11b_mm_mmu_fault_info_mem_destroy
  *
  * Input: test_env_init
  *
@@ -79,7 +81,7 @@ int test_gv11b_mm_mmu_fault_setup_sw(struct unit_module *m, struct gk20a *g, voi
  *
  * Test Type: Feature
  *
- * Targets: gv11b_mm_mmu_fault_setup_hw
+ * Targets: gops_mm.gops_mm_mmu_fault.setup_hw, gv11b_mm_mmu_fault_setup_hw
  *
  * Input: test_env_init
  *
@@ -100,7 +102,7 @@ int test_gv11b_mm_mmu_fault_setup_hw(struct unit_module *m, struct gk20a *g,
  *
  * Test Type: Feature
  *
- * Targets: gv11b_mm_mmu_fault_disable_hw
+ * Targets: gops_mm.gops_mm_mmu_fault.disable_hw, gv11b_mm_mmu_fault_disable_hw
  *
  * Input: test_env_init
  *

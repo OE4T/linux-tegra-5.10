@@ -88,6 +88,8 @@ struct test_parameters {
  *
  * Test Type: Other (Init)
  *
+ * Targets: nvgpu_init_mm_support, gk20a_as_alloc_share, nvgpu_ref_init
+ *
  * Input: None
  *
  * Steps:
@@ -110,6 +112,8 @@ int test_init_mm(struct unit_module *m, struct gk20a *g, void *args);
  * required flags, or report appropriate error codes in case of failures.
  *
  * Test Type: Feature
+ *
+ * Targets: gk20a_as_alloc_share, gk20a_as_release_share
  *
  * Input:
  * - The test_init_mm must have been executed

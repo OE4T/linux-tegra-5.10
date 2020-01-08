@@ -58,7 +58,7 @@ int test_env_init(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Test Type: Feature
  *
- * Targets: gv11b_mm_init_inst_block
+ * Targets: gops_mm.init_inst_block, gv11b_mm_init_inst_block
  *
  * Input: test_env_init, args (value can be F_INIT_INST_BLOCK_SET_BIG_PAGE_ZERO,
  *        F_INIT_INST_BLOCK_SET_BIG_PAGE_SIZE_NULL or
@@ -81,7 +81,7 @@ int test_gv11b_mm_init_inst_block(struct unit_module *m, struct gk20a *g,
  *
  * Test Type: Feature
  *
- * Targets: gv11b_mm_is_bar1_supported
+ * Targets: gops_mm.is_bar1_supported, gv11b_mm_is_bar1_supported
  *
  * Input: test_env_init
  *

@@ -68,7 +68,7 @@ int test_page_faults_init(struct unit_module *m, struct gk20a *g, void *__args);
  *
  * Test Type: Feature
  *
- * Targets: gv11b_mc_is_mmu_fault_pending
+ * Targets: gops_mc.is_mmu_fault_pending, gv11b_mc_is_mmu_fault_pending
  *
  * Input: test_page_faults_init
  *
@@ -92,7 +92,8 @@ int test_page_faults_pending(struct unit_module *m, struct gk20a *g,
  *
  * Test Type: Feature
  *
- * Targets: gv11b_mm_mmu_fault_disable_hw, gv11b_fb_is_fault_buf_enabled
+ * Targets: gops_mm.gops_mm_mmu_fault.disable_hw, gv11b_mm_mmu_fault_disable_hw,
+ * gops_fb.is_fault_buf_enabled, gv11b_fb_is_fault_buf_enabled
  *
  * Input: test_page_faults_init
  *
@@ -119,8 +120,9 @@ int test_page_faults_disable_hw(struct unit_module *m, struct gk20a *g,
  *
  * Test Type: Feature
  *
- * Targets: gp10b_mm_get_default_big_page_size, nvgpu_alloc_inst_block,
- * gv11b_mm_init_inst_block
+ * Targets: gops_mm.gops_mm_gmmu.get_default_big_page_size,
+ * gp10b_mm_get_default_big_page_size, nvgpu_alloc_inst_block,
+ * gops_mm.init_inst_block, gv11b_mm_init_inst_block
  *
  * Input: test_page_faults_init
  *
@@ -146,7 +148,8 @@ int test_page_faults_inst_block(struct unit_module *m, struct gk20a *g,
  *
  * Test Type: De-init
  *
- * Targets: gv11b_mm_mmu_fault_info_mem_destroy, nvgpu_vm_put
+ * Targets: gops_mm.gops_mm_mmu_fault.info_mem_destroy,
+ * gv11b_mm_mmu_fault_info_mem_destroy, nvgpu_vm_put
  *
  * Input: test_page_faults_init
  *

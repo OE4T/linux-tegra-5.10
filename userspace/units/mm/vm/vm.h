@@ -40,6 +40,11 @@ struct unit_module;
  *
  * Test Type: Feature
  *
+ * Targets: nvgpu_vm_init, nvgpu_vm_get_buffers, nvgpu_big_pages_possible,
+ * nvgpu_vm_area_alloc, nvgpu_vm_map, nvgpu_vm_find_mapped_buf_range,
+ * nvgpu_vm_find_mapped_buf_less_than, nvgpu_get_pte, nvgpu_vm_put_buffers,
+ * nvgpu_vm_unmap, nvgpu_vm_area_free, nvgpu_vm_put
+ *
  * Input: None
  *
  * Steps:
@@ -82,6 +87,12 @@ int test_map_buf(struct unit_module *m, struct gk20a *g, void *__args);
  *
  * Test Type: Feature
  *
+ * Targets: nvgpu_vm_init, nvgpu_vm_get_buffers, nvgpu_big_pages_possible,
+ * nvgpu_vm_area_alloc, nvgpu_vm_map, nvgpu_vm_find_mapped_buf_range,
+ * nvgpu_vm_find_mapped_buf_less_than, nvgpu_get_pte, nvgpu_vm_put_buffers,
+ * nvgpu_vm_unmap, nvgpu_vm_area_free, nvgpu_vm_put,
+ * nvgpu_gmmu_va_small_page_limit
+ *
  * Input: None
  *
  * Steps:
@@ -123,6 +134,12 @@ int test_map_buf_gpu_va(struct unit_module *m, struct gk20a *g, void *__args);
  *
  * Test Type: Feature
  *
+ * Targets: nvgpu_vm_init, nvgpu_vm_mapping_batch_start, nvgpu_vm_area_alloc,
+ * nvgpu_vm_map, nvgpu_vm_find_mapped_buf_range,
+ * nvgpu_vm_find_mapped_buf_less_than, nvgpu_get_pte, nvgpu_vm_put_buffers,
+ * nvgpu_vm_unmap, nvgpu_vm_area_free, nvgpu_vm_put,
+ * nvgpu_vm_mapping_batch_finish
+ *
  * Input: None
  *
  * Steps:
@@ -147,6 +164,8 @@ int test_batch(struct unit_module *m, struct gk20a *g, void *__args);
  * a number of error paths.
  *
  * Test Type: Feature, Error injection
+ *
+ * Targets: nvgpu_vm_init, nvgpu_vm_do_init
  *
  * Input: None
  *
@@ -191,6 +210,8 @@ int test_init_error_paths(struct unit_module *m, struct gk20a *g, void *__args);
  *
  * Test Type: Error injection
  *
+ * Targets: nvgpu_vm_init, nvgpu_vm_map, nvgpu_vm_put
+ *
  * Input: None
  *
  * Steps:
@@ -226,6 +247,8 @@ int test_map_buffer_error_cases(struct unit_module *m, struct gk20a *g,
  *
  * Test Type: Feature, Error injection
  *
+ * Targets: nvgpu_vm_alloc_va
+ *
  * Input: None
  *
  * Steps:
@@ -260,6 +283,8 @@ int test_nvgpu_vm_alloc_va(struct unit_module *m, struct gk20a *g,
  *
  * Test Type: Feature
  *
+ * Targets: nvgpu_vm_bind_channel
+ *
  * Input: None
  *
  * Steps:
@@ -285,6 +310,8 @@ int test_vm_bind(struct unit_module *m, struct gk20a *g, void *__args);
  * Description: This test targets the vm_aspace_id API.
  *
  * Test Type: Feature
+ *
+ * Targets: vm_aspace_id
  *
  * Input: None
  *
@@ -313,6 +340,9 @@ int test_vm_aspace_id(struct unit_module *m, struct gk20a *g, void *__args);
  * nvgpu_vm_area_alloc APIs.
  *
  * Test Type: Feature, Error injection
+ *
+ * Targets: nvgpu_vm_area_validate_buffer, nvgpu_vm_area_alloc,
+ * nvgpu_vm_area_free
  *
  * Input: None
  *

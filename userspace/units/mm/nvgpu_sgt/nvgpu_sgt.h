@@ -39,6 +39,10 @@ struct unit_module;
  *
  * Test Type: Feature
  *
+ * Targets: nvgpu_mem_posix_create_from_list, nvgpu_sgt_create_from_mem,
+ * nvgpu_sgt_get_phys, nvgpu_sgt_get_dma, nvgpu_sgt_iommuable,
+ * nvgpu_sgt_get_gpu_addr, nvgpu_sgt_get_ipa, nvgpu_sgt_ipa_to_pa
+ *
  * Input: None
  *
  * Steps:
@@ -81,6 +85,8 @@ int test_nvgpu_sgt_basic_apis(struct unit_module *m, struct gk20a *g,
  *
  * Test Type: Feature
  *
+ * Targets: nvgpu_mem_sgt_posix_create_from_list, nvgpu_sgt_get_next
+ *
  * Input: None
  *
  * Steps:
@@ -101,6 +107,9 @@ int test_nvgpu_sgt_get_next(struct unit_module *m, struct gk20a *g,
  * Description: Test the alignment API for the case where there is no IOMMU.
  *
  * Test Type: Feature
+ *
+ * Targets: nvgpu_mem_sgt_posix_create_from_list, nvgpu_sgt_alignment,
+ * nvgpu_sgt_free
  *
  * Input: Static sgt_align_test_array table of alignment combinations.
  *
@@ -127,6 +136,8 @@ int test_nvgpu_sgt_alignment_non_iommu(struct unit_module *m,
  * Description: Test the alignment API for the case where there is an IOMMU.
  *
  * Test Type: Feature
+ *
+ * Targets: nvgpu_sgt_create_from_mem, nvgpu_sgt_alignment, nvgpu_sgt_free
  *
  * Input: None
  *

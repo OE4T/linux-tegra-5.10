@@ -58,7 +58,7 @@ int test_env_init(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Test Type: Feature
  *
- * Targets: gk20a_mm_fb_flush
+ * Targets: gops_mm.gops_mm_cache.fb_flush, gk20a_mm_fb_flush
  *
  * Input: test_env_init, args (value can be F_GK20A_FB_FLUSH_DEFAULT_INPUT,
  *        F_GK20A_FB_FLUSH_GET_RETRIES, F_GK20A_FB_FLUSH_PENDING_TRUE,
@@ -84,7 +84,8 @@ int test_gk20a_mm_fb_flush(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Test Type: Feature
  *
- * Targets: gk20a_mm_l2_flush, gk20a_mm_l2_invalidate_locked
+ * Targets: gops_mm.gops_mm_cache.l2_flush, gk20a_mm_l2_flush,
+ * gk20a_mm_l2_invalidate_locked
  *
  * Input: test_env_init, args (value can be F_GK20A_L2_FLUSH_DEFAULT_INPUT,
  *        F_GK20A_L2_FLUSH_GET_RETRIES, F_GK20A_L2_FLUSH_PENDING_TRUE,
@@ -109,7 +110,8 @@ int test_gk20a_mm_l2_flush(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Test Type: Feature
  *
- * Targets: gk20a_mm_l2_invalidate, gk20a_mm_l2_invalidate_locked
+ * Targets: gops_mm.gops_mm_cache.l2_invalidate, gk20a_mm_l2_invalidate,
+ * gk20a_mm_l2_invalidate_locked
  *
  * Input: test_env_init, args (value can be F_GK20A_L2_INVALIDATE_DEFAULT_INPUT,
  *        F_GK20A_L2_INVALIDATE_PENDING_TRUE,

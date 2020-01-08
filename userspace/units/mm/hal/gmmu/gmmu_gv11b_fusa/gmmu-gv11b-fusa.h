@@ -39,7 +39,7 @@ struct unit_module;
  *
  * Test Type: Feature
  *
- * Targets: gk20a_get_pte_pgsz
+ * Targets: gops_mm.gops_mm_gmmu.gpu_phys_addr, gv11b_gpu_phys_addr
  *
  * Input: args (value can be F_GV11B_GPU_PHYS_ADDR_GMMU_ATTRS_NULL,
  *        F_GV11B_GPU_PHYS_ADDR_L3_ALLOC_FALSE or

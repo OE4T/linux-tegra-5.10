@@ -39,7 +39,7 @@ struct unit_module;
  *
  * Test Type: Feature
  *
- * Targets: gm20b_mm_get_big_page_sizes
+ * Targets: gops_mm.gops_mm_gmmu.get_big_page_sizes, gm20b_mm_get_big_page_sizes
  *
  * Input: test_env_init
  *

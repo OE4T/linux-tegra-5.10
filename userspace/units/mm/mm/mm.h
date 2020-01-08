@@ -40,6 +40,8 @@ struct unit_module;
  *
  * Test Type: Other (Init)
  *
+ * Targets: gops_mm.init_bar2_vm, gops_mm.is_bar1_supported
+ *
  * Input: None
  *
  * Steps:
@@ -68,6 +70,8 @@ int test_mm_init_hal(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Test Type: Feature, Error guessing
  *
+ * Targets: nvgpu_init_mm_support
+ *
  * Input: test_mm_init_hal must have been executed successfully.
  *
  * Steps:
@@ -93,6 +97,8 @@ int test_nvgpu_init_mm(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Test Type: Feature, Error guessing
  *
+ * Targets: nvgpu_mm_setup_hw
+ *
  * Input: test_mm_init_hal and test_nvgpu_init_mm must have been executed
  * successfully.
  *
@@ -116,6 +122,8 @@ int test_nvgpu_mm_setup_hw(struct unit_module *m, struct gk20a *g, void *args);
  * and disable MMU fault handling.
  *
  * Test Type: Feature
+ *
+ * Targets: nvgpu_set_power_state, nvgpu_mm_suspend
  *
  * Input: test_mm_init_hal, test_nvgpu_init_mm and test_nvgpu_mm_setup_hw must
  * have been executed successfully.
@@ -144,6 +152,8 @@ int test_mm_suspend(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Test Type: Feature
  *
+ * Targets: nvgpu_pd_cache_init, gops_mm.remove_support
+ *
  * Input: test_mm_init_hal, test_nvgpu_init_mm and test_nvgpu_mm_setup_hw must
  * have been executed successfully
  *
@@ -168,6 +178,9 @@ int test_mm_remove_mm_support(struct unit_module *m, struct gk20a *g,
  * about big page sizes available.
  *
  * Test Type: Feature
+ *
+ * Targets: nvgpu_mm_get_default_big_page_size,
+ * nvgpu_mm_get_available_big_page_sizes
  *
  * Input: test_mm_init_hal, test_nvgpu_init_mm and test_nvgpu_mm_setup_hw must
  * have been executed successfully.
@@ -197,6 +210,8 @@ int test_mm_page_sizes(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Test Type: Feature
  *
+ * Targets: nvgpu_inst_block_ptr, gops_ramin.base_shift
+ *
  * Input: test_mm_init_hal, test_nvgpu_init_mm and test_nvgpu_mm_setup_hw must
  * have been executed successfully.
  *
@@ -222,6 +237,8 @@ int test_mm_inst_block(struct unit_module *m, struct gk20a *g, void *args);
  * given block.
  *
  * Test Type: Feature
+ *
+ * Targets: nvgpu_alloc_inst_block
  *
  * Input: test_mm_init_hal, test_nvgpu_init_mm and test_nvgpu_mm_setup_hw must
  * have been executed successfully.

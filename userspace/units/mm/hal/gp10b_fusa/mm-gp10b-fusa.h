@@ -58,7 +58,8 @@ int test_env_init(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Test Type: Feature
  *
- * Targets: gp10b_mm_init_bar2_vm, gp10b_mm_remove_bar2_vm
+ * Targets: gops_mm.init_bar2_vm, gp10b_mm_init_bar2_vm, gops_mm.remove_bar2_vm,
+ * gp10b_mm_remove_bar2_vm
  *
  * Input: test_env_init, args (value can be F_INIT_BAR2_VM_DEFAULT,
  *        F_INIT_BAR2_VM_INIT_VM_FAIL or F_INIT_BAR2_VM_ALLOC_INST_BLOCK_FAIL)

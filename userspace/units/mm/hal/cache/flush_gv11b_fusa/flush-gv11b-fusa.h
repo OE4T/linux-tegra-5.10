@@ -58,7 +58,7 @@ int test_env_init(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Test Type: Feature
  *
- * Targets: gv11b_mm_l2_flush
+ * Targets: gops_mm.gops_mm_cache.l2_flush, gv11b_mm_l2_flush
  *
  * Input: test_env_init, args (value can be
  *        F_GV11B_L2_FLUSH_PASS_BAR1_BIND_NOT_NULL,
