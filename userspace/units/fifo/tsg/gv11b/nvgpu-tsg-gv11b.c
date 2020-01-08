@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -238,10 +238,10 @@ int test_gv11b_tsg_bind_channel_eng_method_buffers(struct unit_module *m,
 
 		if (branches & F_TSG_BIND_BUF_FAST_CE_RUNLIST_ID) {
 			tsg->runlist_id = nvgpu_engine_get_fast_ce_runlist_id(g);
-			gpu_va = tsg->eng_method_buffers[ASYNC_CE_RUNQUE].gpu_va;
+			gpu_va = eng_method_buffers[ASYNC_CE_RUNQUE].gpu_va;
 		} else {
 			tsg->runlist_id = nvgpu_engine_get_gr_runlist_id(g);
-			gpu_va = tsg->eng_method_buffers[GR_RUNQUE].gpu_va;
+			gpu_va = eng_method_buffers[GR_RUNQUE].gpu_va;
 		}
 
 		nvgpu_mem_wr32(g, &ch->inst_block,
@@ -259,7 +259,7 @@ int test_gv11b_tsg_bind_channel_eng_method_buffers(struct unit_module *m,
 
 		} else {
 			assert(nvgpu_mem_rd32(g, &ch->inst_block,
-				ram_in_eng_method_buffer_addr_lo_w()) !=
+				ram_in_eng_method_buffer_addr_lo_w()) ==
 					u64_lo32(gpu_va));
 			assert(nvgpu_mem_rd32(g, &ch->inst_block,
 				ram_in_eng_method_buffer_addr_hi_w()) ==
@@ -378,6 +378,8 @@ struct unit_module_test nvgpu_tsg_gv11b_tests[] = {
 	UNIT_TEST(init_support, test_fifo_init_support, &unit_ctx, 0),
 	UNIT_TEST(gv11b_tsg_init_eng_method_buffers, \
 			test_gv11b_tsg_init_eng_method_buffers, &unit_ctx, 0),
+	UNIT_TEST(gv11b_tsg_bind_channel_eng_method_buffers,
+			test_gv11b_tsg_bind_channel_eng_method_buffers, &unit_ctx, 0),
 	UNIT_TEST(gv11b_tsg_unbind_channel_check_eng_faulted, \
 			test_gv11b_tsg_unbind_channel_check_eng_faulted, &unit_ctx, 0),
 	UNIT_TEST(remove_support, test_fifo_remove_support, &unit_ctx, 0),

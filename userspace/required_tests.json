@@ -3366,6 +3366,12 @@
         "test_level": 0
     },
     {
+        "test": "test_gv11b_tsg_bind_channel_eng_method_buffers",
+        "case": "gv11b_tsg_bind_channel_eng_method_buffers",
+        "unit": "nvgpu_tsg_gv11b",
+        "test_level": 0
+    },
+    {
         "test": "test_gv11b_tsg_init_eng_method_buffers",
         "case": "gv11b_tsg_init_eng_method_buffers",
         "unit": "nvgpu_tsg_gv11b",
