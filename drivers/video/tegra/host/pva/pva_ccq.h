@@ -1,7 +1,7 @@
 /*
- * PVA Command header
+ * PVA Command Queue Interface handling
  *
- * Copyright (c) 2016-2019, NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2017, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -16,29 +16,15 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifndef PVA_CCQ_H
+#define PVA_CCQ_H
 
-#ifndef __PVA_STATUS_REGS_H__
-#define __PVA_STATUS_REGS_H__
+#include <linux/kernel.h>
 
-#define PVA_CMD_STATUS_REGS 5
+#include "pva.h"
 
-#define PVA_CMD_STATUS3_INDEX 0u
-#define PVA_CMD_STATUS4_INDEX 1u
-#define PVA_CMD_STATUS5_INDEX 2u
-#define PVA_CMD_STATUS6_INDEX 3u
-#define PVA_CMD_STATUS7_INDEX 4u
+struct platform_device;
 
-enum pva_cmd_status {
-	PVA_CMD_STATUS_INVALID = 0,
-	PVA_CMD_STATUS_WFI     = 1,
-	PVA_CMD_STATUS_DONE    = 2,
-	PVA_CMD_STATUS_ABORTED = 3,
-};
-
-struct pva_cmd_status_regs {
-	uint32_t status[PVA_CMD_STATUS_REGS];
-	uint32_t error;
-	uint32_t cmd;
-};
+int pva_ccq_send(struct pva *pva, u64 cmd);
 
 #endif

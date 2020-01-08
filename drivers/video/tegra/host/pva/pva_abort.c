@@ -1,7 +1,7 @@
 /*
  * PVA abort handler
  *
- * Copyright (c) 2019, NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2017, NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -33,16 +33,15 @@ static void pva_abort_handler(struct work_struct *work)
 
 	/* First, lock mailbox mutex to avoid synchronous communication. */
 	do {
-		if (pva->cmd_status[PVA_MAILBOX_INDEX] == PVA_CMD_STATUS_WFI) {
-			pva->cmd_status[PVA_MAILBOX_INDEX] =
-						PVA_CMD_STATUS_ABORTED;
-			wake_up(&pva->cmd_waitqueue[PVA_MAILBOX_INDEX]);
+		if (pva->mailbox_status == PVA_MBOX_STATUS_WFI) {
+			pva->mailbox_status = PVA_MBOX_STATUS_ABORTED;
+			wake_up(&pva->mailbox_waitqueue);
 			schedule();
 		}
 	} while (mutex_trylock(&pva->mailbox_mutex) == false);
 
 	/* There is no ongoing activity anymore. Update mailbox status */
-	pva->cmd_status[PVA_MAILBOX_INDEX] = PVA_CMD_STATUS_INVALID;
+	pva->mailbox_status = PVA_MBOX_STATUS_INVALID;
 
 	/* Lock CCQ mutex to avoid asynchornous communication */
 	mutex_lock(&pva->ccq_mutex);
@@ -60,7 +59,7 @@ static void pva_abort_handler(struct work_struct *work)
 	 * If we use channel submit mode, nvhost handles the channel
 	 * clean-up and syncpoint increments
 	 */
-	if (pva->submit_task_mode == PVA_SUBMIT_MODE_CHANNEL_CCQ) {
+	if (pva->submit_mode == PVA_SUBMIT_MODE_CHANNEL_CCQ) {
 		nvhost_warn(&pdev->dev, "Recovery skipped: Submit mode does not require clean-up");
 		goto skip_recovery;
 	}
@@ -81,14 +80,12 @@ skip_recovery:
 void pva_abort(struct pva *pva)
 {
 	struct platform_device *pdev = pva->pdev;
-	size_t i;
+
 	/* For selftest mode to finish the test */
 	if (host1x_readl(pdev, hsp_ss0_state_r())
 		& PVA_TEST_MODE) {
-		for (i = 0; i < pva->version_config->irq_count; i++) {
-			pva->cmd_status[i] = PVA_CMD_STATUS_DONE;
-			wake_up(&pva->cmd_waitqueue[i]);
-		}
+		pva->mailbox_status = PVA_MBOX_STATUS_DONE;
+		wake_up(&pva->mailbox_waitqueue);
 		return;
 	}
 

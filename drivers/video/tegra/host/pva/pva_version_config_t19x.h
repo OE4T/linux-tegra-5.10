@@ -17,6 +17,7 @@
 #ifndef __PVA_VERSION_CONFIG_T19x_H__
 #define __PVA_VERSION_CONFIG_T19x_H__
 
+#include "pva_mailbox_t19x.h"
 #include "pva.h"
 
 extern struct pva_version_config pva_t19x_config;

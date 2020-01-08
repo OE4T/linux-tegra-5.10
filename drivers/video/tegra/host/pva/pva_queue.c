@@ -44,6 +44,7 @@
 #include "nvhost_buffer.h"
 #include "nvhost_queue.h"
 #include "pva_mailbox.h"
+#include "pva_ccq.h"
 #include "pva_queue.h"
 #include "dev.h"
 #include "pva_regs.h"
@@ -65,7 +66,7 @@
  */
 #define INPUT_ACTION_BUFFER_SIZE ( \
 	ALIGN((PVA_MAX_PREFENCES + 10) * ACTION_LIST_FENCE_SIZE + \
-	      PVA_MAX_INPUT_STATUS * ACTION_LIST_STATUS_OPERATION_SIZE	+ \
+	      PVA_MAX_INPUT_STATUS * ACTION_LIST_STATUS_OPERATION_SIZE  + \
 	      ACTION_LIST_TERMINATION_SIZE, 256))
 
 /*
@@ -326,7 +327,7 @@ static int pva_task_pin_mem(struct pva_submit_task *task)
 		if (task->output_surfaces[i].surface_handle == 0) {
 			/* HACK: To support the MISR test
 			 * Kernel is not suppose to convert the address being
-			 * passed from the UMD. So setting dma_addr as	the
+			 * passed from the UMD. So setting dma_addr as  the
 			 * offset passed from KMD and size to 4MB
 			 */
 			u32 offset = task->output_surfaces[i].surface_offset;
@@ -1493,8 +1494,9 @@ static int pva_task_submit_mmio_ccq(struct pva_submit_task *task,
 	struct nvhost_queue *queue = task->queue;
 	u32 old_maxval, new_maxval;
 	u64 fifo_flags = PVA_FIFO_INT_ON_ERR;
-	struct pva_cmd cmd;
-	u32 nregs = 0;
+	u64 fifo_cmd = pva_fifo_submit(queue->id,
+				       task->dma_addr,
+				       fifo_flags);
 	int err = 0;
 
 	/* Increment syncpoint to capture threshold */
@@ -1502,10 +1504,8 @@ static int pva_task_submit_mmio_ccq(struct pva_submit_task *task,
 	new_maxval = nvhost_syncpt_incr_max_ext(host1x_pdev,
 						queue->syncpt_id,
 						task->fence_num);
-	nregs = pva_cmd_submit(&cmd, queue->id, task->dma_addr,
-			fifo_flags << PVA_CMD_MBOX_TO_FIFO_FLAG_SHIFT);
-	err = task->pva->version_config->ccq_send_task(task->pva, &cmd);
 
+	err = pva_ccq_send(task->pva, fifo_cmd);
 	if (err < 0)
 		goto err_submit;
 
@@ -1525,7 +1525,7 @@ static int pva_task_submit_mailbox(struct pva_submit_task *task,
 	struct platform_device *host1x_pdev =
 			to_platform_device(task->pva->pdev->dev.parent);
 	struct nvhost_queue *queue = task->queue;
-	struct pva_cmd_status_regs status;
+	struct pva_mailbox_status_regs status;
 	u32 old_maxval, new_maxval;
 	struct pva_cmd cmd;
 	u32 flags, nregs;
@@ -1598,7 +1598,7 @@ static int pva_task_submit(struct pva_submit_task *task,
 	timestamp = arch_counter_get_cntvct();
 
 	/* Choose the submit policy based on the mode */
-	switch (task->pva->submit_task_mode) {
+	switch (task->pva->submit_mode) {
 	case PVA_SUBMIT_MODE_MAILBOX:
 		err = pva_task_submit_mailbox(task, &thresh);
 		break;
@@ -1702,7 +1702,7 @@ static int pva_queue_set_attribute(struct nvhost_queue *queue, void *args)
 	uint32_t flags = PVA_CMD_INT_ON_ERR | PVA_CMD_INT_ON_COMPLETE;
 	struct pva_queue_set_attribute *set_attr = args;
 	struct pva_queue_attribute *attr = set_attr->attr;
-	struct pva_cmd_status_regs status_regs;
+	struct pva_mailbox_status_regs status;
 	struct pva_cmd cmd;
 	int err = 0;
 	u32 nregs;
@@ -1712,19 +1712,16 @@ static int pva_queue_set_attribute(struct nvhost_queue *queue, void *args)
 			flags);
 
 	/* Submit request to PVA and wait for response */
-	if (set_attr->bootup) {
-		err = set_attr->pva->version_config->submit_cmd_sync_locked(
-							set_attr->pva,
-							&cmd,
-							nregs,
-							&status_regs);
-	} else {
-		err = set_attr->pva->version_config->submit_cmd_sync(
-							set_attr->pva,
-							&cmd,
-							nregs,
-							&status_regs);
-	}
+	if (set_attr->bootup)
+		err = pva_mailbox_send_cmd_sync_locked(set_attr->pva,
+						       &cmd,
+						       nregs,
+						       &status);
+	else
+		err = pva_mailbox_send_cmd_sync(set_attr->pva,
+						&cmd,
+						nregs,
+						&status);
 	if (err < 0) {
 		nvhost_warn(&set_attr->pva->pdev->dev,
 			    "Failed to set attributes: %d\n",
@@ -1733,10 +1730,10 @@ static int pva_queue_set_attribute(struct nvhost_queue *queue, void *args)
 	}
 
 	/* Ensure that response is valid */
-	if (status_regs.error != PVA_ERR_NO_ERROR) {
+	if (status.error != PVA_ERR_NO_ERROR) {
 		nvhost_warn(&set_attr->pva->pdev->dev,
 			    "PVA Q attribute rejected: %u\n",
-			    status_regs.error);
+			    status.error);
 		err = -EINVAL;
 	}
 

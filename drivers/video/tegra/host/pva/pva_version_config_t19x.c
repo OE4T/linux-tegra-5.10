@@ -17,14 +17,10 @@
 #include "pva_mailbox_t19x.h"
 #include "pva_interface_regs_t19x.h"
 #include "pva_version_config_t19x.h"
-#include "pva_ccq_t19x.h"
 
 struct pva_version_config pva_t19x_config = {
 	.read_mailbox = pva_read_mailbox_t19x,
 	.write_mailbox = pva_write_mailbox_t19x,
 	.read_status_interface = read_status_interface_t19x,
-	.ccq_send_task = pva_ccq_send_task_t19x,
-	.submit_cmd_sync_locked = pva_mailbox_send_cmd_sync_locked,
-	.submit_cmd_sync = pva_mailbox_send_cmd_sync,
 	.irq_count = 1,
 };

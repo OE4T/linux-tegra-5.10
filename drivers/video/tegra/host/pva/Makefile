@@ -19,7 +19,7 @@ nvhost-pva-objs  = \
 		pva_debug.o \
 		pva_trace.o \
 		pva_abort.o \
-		pva_ccq_t19x.o \
+		pva_ccq.o \
 		pva_selftest.o
 
 obj-$(CONFIG_TEGRA_GRHOST_PVA) += nvhost-pva.o

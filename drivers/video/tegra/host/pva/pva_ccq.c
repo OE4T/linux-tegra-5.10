@@ -25,7 +25,7 @@
 
 #include "dev.h"
 #include "pva.h"
-#include "pva_ccq_t19x.h"
+#include "pva_ccq.h"
 
 #include "pva_regs.h"
 
@@ -34,6 +34,7 @@
 static int pva_ccq_wait(struct pva *pva, int timeout)
 {
 	unsigned long end_jiffies = jiffies + msecs_to_jiffies(timeout);
+
 	/*
 	 * Wait until there is free room in the CCQ. Otherwise the writes
 	 * could stall the CPU. Ignore the timeout in simulation.
@@ -42,8 +43,8 @@ static int pva_ccq_wait(struct pva *pva, int timeout)
 	while (time_before(jiffies, end_jiffies) ||
 	       (pva->timeout_enabled == false)) {
 		u32 val = host1x_readl(pva->pdev,
-					cfg_ccq_status_r(pva->version,
-					0, PVA_CCQ_STATUS2_INDEX));
+			cfg_ccq_status_r(pva->version, 0, 2));
+
 		if (val <= MAX_CCQ_ELEMENTS)
 			return 0;
 
@@ -53,33 +54,20 @@ static int pva_ccq_wait(struct pva *pva, int timeout)
 	return -ETIMEDOUT;
 }
 
-int pva_ccq_send_task_t19x(struct pva *pva, struct pva_cmd *cmd)
+int pva_ccq_send(struct pva *pva, u64 cmd)
 {
 	int err = 0;
-	u64 fifo_cmd;
-	u64 fifo_flags;
-	unsigned int queue_id;
-	uint64_t address;
 
-	queue_id = PVA_EXTRACT(cmd->mbox[0], 15, 8, unsigned int);
-	address = PVA_INSERT64(PVA_EXTRACT(cmd->mbox[0], 23, 16, uint32_t),
-		39, 32) | PVA_INSERT64(cmd->mbox[1], 32, 0);
-
-	fifo_flags = cmd->mbox[0] &
-		    (PVA_CMD_INT_ON_ERR | PVA_CMD_INT_ON_COMPLETE)
-		    >> PVA_CMD_MBOX_TO_FIFO_FLAG_SHIFT;
-
-	fifo_cmd = pva_fifo_submit(queue_id, address, fifo_flags);
 	mutex_lock(&pva->ccq_mutex);
+
 	err = pva_ccq_wait(pva, 100);
 	if (err < 0)
 		goto err_wait_ccq;
 
 	/* Make the writes to CCQ */
+	host1x_writel(pva->pdev, cfg_ccq_r(pva->version, 0), (u32)(cmd >> 32));
 	host1x_writel(pva->pdev,
-		cfg_ccq_r(pva->version, 0), (u32)(fifo_cmd >> 32));
-	host1x_writel(pva->pdev,
-		cfg_ccq_r(pva->version, 0), (u32)(fifo_cmd & 0xffffffff));
+		cfg_ccq_r(pva->version, 0), (u32)(cmd & 0xffffffff));
 
 	mutex_unlock(&pva->ccq_mutex);
 

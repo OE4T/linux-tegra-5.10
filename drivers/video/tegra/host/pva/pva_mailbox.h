@@ -22,21 +22,20 @@
 #include <linux/platform_device.h>
 
 #include "pva-interface.h"
-#include "pva_status_regs.h"
 
 /* Total CCQ status registers */
 #define PVA_CCQ_STATUS_REGS    9
 
 // Symbolic definitions of the CCQ status registers
-#define PVA_CCQ_STATUS0_INDEX	0
-#define PVA_CCQ_STATUS1_INDEX	1
-#define PVA_CCQ_STATUS2_INDEX	2
-#define PVA_CCQ_STATUS3_INDEX	3
-#define PVA_CCQ_STATUS4_INDEX	4
-#define PVA_CCQ_STATUS5_INDEX	5
-#define PVA_CCQ_STATUS6_INDEX	6
-#define PVA_CCQ_STATUS7_INDEX	7
-#define PVA_CCQ_STATUS8_INDEX	8
+#define PVA_CCQ_STATUS0_INDEX   0
+#define PVA_CCQ_STATUS1_INDEX   1
+#define PVA_CCQ_STATUS2_INDEX   2
+#define PVA_CCQ_STATUS3_INDEX   3
+#define PVA_CCQ_STATUS4_INDEX   4
+#define PVA_CCQ_STATUS5_INDEX   5
+#define PVA_CCQ_STATUS6_INDEX   6
+#define PVA_CCQ_STATUS7_INDEX   7
+#define PVA_CCQ_STATUS8_INDEX   8
 
 
 /* Number of valid MBOX registers used for sending commands */
@@ -72,13 +71,14 @@ struct pva_mailbox_status_regs {
 };
 
 /**
- *
  * pva_mailbox_send_cmd_sync() - Send a command and wait for response
  *
  * @pva:		Pointer to PVA structure
  * @pva_cmd:		Pointer to the pva command struct
  * @nregs:		Number of valid mailbox registers for the command
- * @status_regs:	Pointer to pva_cmd_status_regs struct
+ * @mb_status_regs:	Pointer to pva_mailbox_status_regs struct
+ *
+ * Return:	0 on Success or negative error code
  *
  * This function called by OS to pass the mailbox commands to
  * the PVA uCode. The function returns the output status from PVA
@@ -87,18 +87,19 @@ struct pva_mailbox_status_regs {
  * The caller is responsible to ensure that PVA has been powered
  * up through nvhost_module_busy() API prior calling this function.
  */
-
 int pva_mailbox_send_cmd_sync(struct pva *pva,
-				struct pva_cmd *cmd, u32 nregs,
-				struct pva_cmd_status_regs *status_regs);
+			struct pva_cmd *cmd, u32 nregs,
+			struct pva_mailbox_status_regs *mb_status_regs);
+
 /**
- *
  * pva_mailbox_send_cmd_sync_locked() - Send a command and wait for response
  *
  * @pva:		Pointer to PVA structure
  * @pva_cmd:		Pointer to the pva command struct
  * @nregs:		Number of valid mailbox registers for the command
- * @status_regs:	Pointer to pva_cmd_status_regs struct
+ * @mb_status_regs:	Pointer to pva_mailbox_status_regs struct
+ *
+ * Return:	0 on Success or negative error code
  *
  * This function called by OS to pass the mailbox commands to
  * the PVA uCode. The function returns the output status from PVA
@@ -107,8 +108,8 @@ int pva_mailbox_send_cmd_sync(struct pva *pva,
  * the function can be called during PVA boot-up).
  */
 int pva_mailbox_send_cmd_sync_locked(struct pva *pva,
-				struct pva_cmd *cmd, u32 nregs,
-				struct pva_cmd_status_regs *status_regs);
+			struct pva_cmd *cmd, u32 nregs,
+			struct pva_mailbox_status_regs *mailbox_status_regs);
 
 /**
  * pva_mailbox_isr() - Handle interrupt for PVA ISR
@@ -123,8 +124,8 @@ void pva_mailbox_isr(struct pva *pva);
 /**
  * pva_mailbox_wait_event() - mailbox wait event
  *
- * @pva:»	Pointer to PVA structure
- * @wait_time»	     WaitTime Interval for the event
+ * @pva:»       Pointer to PVA structure
+ * @wait_time»       WaitTime Interval for the event
  *
  * This function do the wait until the mailbox isr get invoked based on
  * the mailbox register set by the ucode.

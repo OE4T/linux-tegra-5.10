@@ -29,6 +29,7 @@
 #include "pva_mailbox_t19x.h"
 #include "pva_regs.h"
 
+
 static u32 pva_get_mb_reg_ex(u32 i)
 {
 	u32 mb_reg[VALID_MB_INPUT_REGS_EX] = {
@@ -74,3 +75,4 @@ void pva_write_mailbox_t19x(struct platform_device *pdev,
 	host1x_writel(pdev, side_channel_addr, side_bits);
 	host1x_writel(pdev, pva_get_mb_reg_ex(mbox_id), value);
 }
+
