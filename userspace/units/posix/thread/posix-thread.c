@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -75,16 +75,29 @@ int test_thread_cycle(struct unit_module *m, struct gk20a *g, void *args)
 	}
 
 	if (test_args->use_priority == false) {
-		ret = nvgpu_thread_create(&test_thread, &test_data,
-				test_thread_fn,
-				"test_thread");
+		if (test_args->use_name == true) {
+			ret = nvgpu_thread_create(&test_thread, &test_data,
+					test_thread_fn,
+					"test_thread");
+		} else {
+			ret = nvgpu_thread_create(&test_thread, &test_data,
+					test_thread_fn,
+					NULL);
+		}
 	} else {
 		test_data.check_priority = 1;
 
-		ret = nvgpu_thread_create_priority(&test_thread,
-				&test_data, test_thread_fn,
-				UNIT_TEST_THREAD_PRIORITY,
-				"test_thread_priority");
+		if (test_args->use_name == true) {
+			ret = nvgpu_thread_create_priority(&test_thread,
+					&test_data, test_thread_fn,
+					UNIT_TEST_THREAD_PRIORITY,
+					"test_thread_priority");
+		} else {
+			ret = nvgpu_thread_create_priority(&test_thread,
+					&test_data, test_thread_fn,
+					UNIT_TEST_THREAD_PRIORITY,
+					NULL);
+		}
 	}
 
 	if (ret != 0) {
@@ -122,6 +135,18 @@ int test_thread_cycle(struct unit_module *m, struct gk20a *g, void *args)
 			if (!test_data.callback_invoked) {
 				unit_return_fail(m, "Callback not invoked\n");
 			}
+
+			if (test_args->stop_repeat == true) {
+				test_data.callback_invoked = 0;
+				nvgpu_thread_stop_graceful(&test_thread,
+					test_thread_stop_graceful_callback,
+					&test_data);
+				if (test_data.callback_invoked) {
+					unit_return_fail(m,
+						"Callback invoked\n");
+				}
+			}
+
 		}
 	}
 
@@ -129,10 +154,13 @@ int test_thread_cycle(struct unit_module *m, struct gk20a *g, void *args)
 }
 
 struct unit_module_test posix_thread_tests[] = {
-	UNIT_TEST(create,            test_thread_cycle, &create_normal, 0),
-	UNIT_TEST(create_priority,   test_thread_cycle, &create_priority, 0),
-	UNIT_TEST(cycle,             test_thread_cycle, &check_stop, 0),
-	UNIT_TEST(stop_graceful,     test_thread_cycle, &stop_graceful, 0),
+	UNIT_TEST(create,                   test_thread_cycle, &create_normal, 0),
+	UNIT_TEST(create_noname,            test_thread_cycle, &create_normal_noname, 0),
+	UNIT_TEST(create_priority,          test_thread_cycle, &create_priority, 0),
+	UNIT_TEST(create_priority_noname,   test_thread_cycle, &create_priority_noname, 0),
+	UNIT_TEST(cycle,                    test_thread_cycle, &check_stop, 0),
+	UNIT_TEST(stop_graceful,            test_thread_cycle, &stop_graceful, 0),
+	UNIT_TEST(stop_graceful_repeat,     test_thread_cycle, &stop_graceful_repeat, 0),
 };
 
 UNIT_MODULE(posix_thread, posix_thread_tests, UNIT_PRIO_POSIX_TEST);

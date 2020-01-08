@@ -37,30 +37,64 @@ struct test_thread_args {
         bool use_priority;
         bool check_stop;
         bool stop_graceful;
+        bool use_name;
+        bool stop_repeat;
 };
 
 static struct test_thread_args create_normal = {
         .use_priority = false,
         .check_stop = false,
-        .stop_graceful = false
+        .stop_graceful = false,
+	.use_name = true,
+	.stop_repeat = false
+};
+
+static struct test_thread_args create_normal_noname = {
+        .use_priority = false,
+        .check_stop = false,
+        .stop_graceful = false,
+	.use_name = false,
+	.stop_repeat = false
 };
 
 static struct test_thread_args create_priority = {
         .use_priority = true,
         .check_stop = false,
-        .stop_graceful = false
+        .stop_graceful = false,
+	.use_name = true,
+	.stop_repeat = false
+};
+
+static struct test_thread_args create_priority_noname = {
+        .use_priority = true,
+        .check_stop = false,
+        .stop_graceful = false,
+	.use_name = false,
+	.stop_repeat = false
 };
 
 static struct test_thread_args check_stop = {
         .use_priority = false,
         .check_stop = true,
-        .stop_graceful = false
+        .stop_graceful = false,
+	.use_name = true,
+	.stop_repeat = false
 };
 
 static struct test_thread_args stop_graceful = {
         .use_priority = false,
         .check_stop = true,
-        .stop_graceful = true
+        .stop_graceful = true,
+	.use_name = true,
+	.stop_repeat = false
+};
+
+static struct test_thread_args stop_graceful_repeat = {
+        .use_priority = false,
+        .check_stop = true,
+        .stop_graceful = true,
+	.use_name = true,
+	.stop_repeat = true
 };
 
 struct unit_test_thread_data {
