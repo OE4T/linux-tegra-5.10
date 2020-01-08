@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -40,7 +40,7 @@ struct gk20a;
  *
  * Test Type: Feature
  *
- * Targets: gk20a_fifo_intr_1_enable
+ * Targets: gops_fifo.intr_1_enable, gk20a_fifo_intr_1_enable
  *
  * Input: test_fifo_init_support() run for this GPU
  *
@@ -63,7 +63,7 @@ int test_gk20a_fifo_intr_1_enable(struct unit_module *m,
  *
  * Test Type: Feature
  *
- * Targets: gk20a_fifo_intr_1_isr
+ * Targets: gops_fifo.intr_1_isr, gk20a_fifo_intr_1_isr
  *
  * Input: test_fifo_init_support() run for this GPU
  *
@@ -85,7 +85,8 @@ int test_gk20a_fifo_intr_1_isr(struct unit_module *m,
  *
  * Test Type: Feature
  *
- * Targets: gk20a_fifo_intr_handle_chsw_error
+ * Targets: gops_fifo.intr_handle_chsw_error,
+ *          gk20a_fifo_intr_handle_chsw_error
  *
  * Input: test_fifo_init_support() run for this GPU
  *
@@ -110,7 +111,8 @@ int test_gk20a_fifo_intr_handle_chsw_error(struct unit_module *m,
  *
  * Test Type: Feature
  *
- * Targets: gk20a_fifo_intr_handle_runlist_event
+ * Targets: gops_fifo.intr_handle_runlist_event,
+ *          gk20a_fifo_intr_handle_runlist_event
  *
  * Input: test_fifo_init_support() run for this GPU
  *
@@ -133,7 +135,7 @@ int test_gk20a_fifo_intr_handle_runlist_event(struct unit_module *m,
  *
  * Test Type: Feature
  *
- * Targets: gk20a_fifo_pbdma_isr
+ * Targets: gk20a_fifo_pbdma_isr, gops_fifo.pbdma_isr
  *
  * Input: test_fifo_init_support() run for this GPU
  *

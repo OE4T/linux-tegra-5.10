@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -40,7 +40,7 @@ struct gk20a;
  *
  * Test Type: Feature
  *
- * Targets: gm20b_channel_bind
+ * Targets: gops_channel.bind, gm20b_channel_bind
  *
  * Input: test_fifo_init_support() run for this GPU
  *
@@ -59,8 +59,6 @@ struct gk20a;
 int test_gm20b_channel_bind(struct unit_module *m,
 		struct gk20a *g, void *args);
 
-
-
 /**
  * Test specification for: test_gm20b_channel_force_ctx_reload
  *
@@ -68,7 +66,7 @@ int test_gm20b_channel_bind(struct unit_module *m,
  *
  * Test Type: Feature
  *
- * Targets: gm20b_channel_force_ctx_reload
+ * Targets: gops_channel.force_ctx_reload, gm20b_channel_force_ctx_reload
  *
  * Input: test_fifo_init_support() run for this GPU
  *
@@ -84,7 +82,6 @@ int test_gm20b_channel_bind(struct unit_module *m,
  */
 int test_gm20b_channel_force_ctx_reload(struct unit_module *m,
 		struct gk20a *g, void *args);
-
 
 /**
  * @}

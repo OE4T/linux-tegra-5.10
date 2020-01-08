@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -40,6 +40,8 @@ struct gk20a;
  *
  * Test Type: Feature
  *
+ * Targets: gops_channel.enable, gk20a_channel_enable
+ *
  * Input: test_fifo_init_support() run for this GPU
  *
  * Steps:
@@ -58,6 +60,8 @@ int test_gk20a_channel_enable(struct unit_module *m,
  * Description: Branch coverage for gk20a_channel_disable
  *
  * Test Type: Feature
+ *
+ * Targets: gops_channel.disable, gk20a_channel_disable
  *
  * Input: test_fifo_init_support() run for this GPU
  *
@@ -78,6 +82,8 @@ int test_gk20a_channel_disable(struct unit_module *m,
  *
  * Test Type: Feature
  *
+ * Targets: gops_channel.read_state, gk20a_channel_read_state
+ *
  * Input: test_fifo_init_support() run for this GPU
  *
  * Steps:
@@ -85,7 +91,7 @@ int test_gk20a_channel_disable(struct unit_module *m,
  * - Build ccsr_channel_r with all combinations of next, enable,
  *   status and busy fields.
  * - Check that interpreted status for next, enabled, busy, ctx_reload
- *   and pending_acquire are in accordaance with fields read from H/W.
+ *   and pending_acquire are in accordance with fields read from H/W.
  *
  * Output: Returns PASS if all branches gave expected results. FAIL otherwise.
  */

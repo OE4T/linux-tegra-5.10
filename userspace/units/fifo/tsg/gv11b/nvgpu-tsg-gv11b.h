@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -40,6 +40,9 @@ struct gk20a;
  *
  * Test Type: Feature
  *
+ * Targets: gops_tsg.init_eng_method_buffers,
+ *          gv11b_tsg_init_eng_method_buffers
+ *
  * Input: test_fifo_init_support() run for this GPU
  *
  * Steps:
@@ -73,6 +76,9 @@ int test_gv11b_tsg_init_eng_method_buffers(struct unit_module *m,
  *
  * Test Type: Feature
  *
+ * Targets: gops_tsg.bind_channel_eng_method_buffers,
+ *          gv11b_tsg_bind_channel_eng_method_buffers
+ *
  * Input: test_fifo_init_support() run for this GPU
  *
  * Steps:
@@ -99,6 +105,9 @@ int test_gv11b_tsg_bind_channel_eng_method_buffers(struct unit_module *m,
  * Description: Branch coverage for gv11b_tsg_unbind_channel_check_eng_faulted
  *
  * Test Type: Feature
+ *
+ * Targets: gops_tsg.unbind_channel_check_eng_faulted
+ *          gv11b_tsg_unbind_channel_check_eng_faulted
  *
  * Input: test_fifo_init_support() run for this GPU
  *

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -40,7 +40,7 @@ struct gk20a;
  *
  * Test Type: Feature based
  *
- * Targets: gv11b_ramfc_setup
+ * Targets: gops_ramfc.setup, gv11b_ramfc_setup
  *
  * Input: None
  *
@@ -59,7 +59,7 @@ int test_gv11b_ramfc_setup(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Test Type: Feature based
  *
- * Targets: gv11b_ramfc_capture_ram_dump
+ * Targets: gops_ramfc.capture_ram_dump, gv11b_ramfc_capture_ram_dump
  *
  * Input: None
  *

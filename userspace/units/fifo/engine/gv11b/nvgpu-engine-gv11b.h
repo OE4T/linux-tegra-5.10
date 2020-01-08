@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -39,6 +39,9 @@ struct gk20a;
  * Description: Branch coverage for gv11b_is_fault_engine_subid_gpc
  *
  * Test Type: Feature
+ *
+ * Targets: gops_engine.is_fault_engine_subid_gpc,
+ *          gv11b_is_fault_engine_subid_gpc
  *
  * Input: test_fifo_init_support() run for this GPU
  *

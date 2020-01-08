@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -40,7 +40,7 @@ struct gk20a;
  *
  * Test Type: Feature
  *
- * Targets: gv11b_fifo_intr_0_enable
+ * Targets: gops_fifo.intr_0_enable, gv11b_fifo_intr_0_enable
  *
  * Input: test_fifo_init_support() run for this GPU
  *
@@ -69,7 +69,7 @@ int test_gv11b_fifo_intr_0_enable(struct unit_module *m,
  *
  * Test Type: Feature
  *
- * Targets: gv11b_fifo_handle_sched_error
+ * Targets: gops_fifo.handle_sched_error, gv11b_fifo_handle_sched_error
  *
  * Input: test_fifo_init_support() run for this GPU
  *
@@ -92,7 +92,7 @@ int test_gv11b_fifo_handle_sched_error(struct unit_module *m,
  *
  * Test Type: Feature
  *
- * Targets: gv11b_fifo_intr_0_isr
+ * Targets: gops_fifo.intr_0_isr, gv11b_fifo_intr_0_isr
  *
  * Input: test_fifo_init_support() run for this GPU
  *
@@ -118,7 +118,10 @@ int test_gv11b_fifo_intr_0_isr(struct unit_module *m,
  *
  * Test Type: Feature
  *
- * Targets: gv11b_fifo_intr_set_recover_mask, gv11b_fifo_intr_unset_recover_mask
+ * Targets: gops_fifo.intr_set_recover_mask,
+ *          gv11b_fifo_intr_set_recover_mask,
+ *          gops_fifo.intr_unset_recover_mask,
+ *          gv11b_fifo_intr_unset_recover_mask
  *
  * Input: test_fifo_init_support() run for this GPU
  *

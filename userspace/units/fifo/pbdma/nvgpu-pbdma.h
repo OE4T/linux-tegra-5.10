@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -40,6 +40,8 @@ struct gk20a;
  *
  * Test Type: Feature
  *
+ * Targets: nvgpu_pbdma_setup_sw, nvgpu_pbdma_cleanup_sw
+ *
  * Input: none.
  *
  * Steps:
@@ -66,6 +68,8 @@ int test_pbdma_setup_sw(struct unit_module *m,
  *
  * Test Type: Feature
  *
+ * Targets: nvgpu_pbdma_find_for_runlist, nvgpu_engine_is_valid_runlist_id
+ *
  * Input: test_fifo_init_support() run for this GPU.
  *
  * Steps:
@@ -87,6 +91,11 @@ int test_pbdma_find_for_runlist(struct unit_module *m,
  * Description: Branch coverage for nvgpu_pbdma_status_* functions.
  *
  * Test Type: Feature
+ *
+ * Targets: nvgpu_pbdma_status_is_chsw_switch, nvgpu_pbdma_status_is_chsw_load,
+ *          nvgpu_pbdma_status_is_chsw_save, nvgpu_pbdma_status_is_chsw_valid,
+ *          nvgpu_pbdma_status_is_id_type_tsg,
+ *          nvgpu_pbdma_status_is_next_id_type_tsg
  *
  * Input: test_fifo_init_support() run for this GPU.
  *

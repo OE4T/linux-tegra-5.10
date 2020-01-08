@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -34,13 +34,13 @@ struct gk20a;
  */
 
 /**
- * Test specification for: test_gv11b_ramin_set_gr_ptr
+ * Test specification for: test_gp10b_ramin_set_gr_ptr
  *
  * Description: Initialize instance block's PDB
  *
  * Test Type: Feature based
  *
- * Targets: gv11b_ramin_set_gr_ptr
+ * Targets: gops_ramin.set_gr_ptr, gp10b_ramin_set_gr_ptr
  *
  * Input: None
  *

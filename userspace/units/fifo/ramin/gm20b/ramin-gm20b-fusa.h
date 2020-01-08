@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -40,7 +40,7 @@ struct gk20a;
  *
  * Test Type: Feature based
  *
- * Targets: gm20b_ramin_set_big_page_size
+ * Targets: gops_ramin.set_big_page_size, gm20b_ramin_set_big_page_size
  *
  * Input: None
  *

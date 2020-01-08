@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -40,8 +40,10 @@ struct gk20a;
  *
  * Test Type: Feature
  *
- * Targets: gv11b_usermode_base, gv11b_usermode_bus_base,
- *          gv11b_usermode_doorbell_token, gv11b_usermode_ring_doorbell
+ * Targets: gops_usermode.base, gv11b_usermode_base,
+ *          gops_usermode.bus_base, gv11b_usermode_bus_base,
+ *          gops_usermode.doorbell_token, gv11b_usermode_doorbell_token,
+ *          gops_usermode.ring_doorbell, gv11b_usermode_ring_doorbell
  *
  * Input: test_fifo_init_support() run for this GPU
  *

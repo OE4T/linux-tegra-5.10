@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -40,7 +40,7 @@ struct gk20a;
  *
  * Test Type: Feature
  *
- * Targets: gk20a_fifo_init_pbdma_map
+ * Targets: gops_fifo.init_pbdma_map, gk20a_fifo_init_pbdma_map
  *
  * Input: test_fifo_init_support() run for this GPU
  *
@@ -62,7 +62,8 @@ int test_gk20a_init_pbdma_map(struct unit_module *m,
  *
  * Test Type: Feature
  *
- * Targets: gk20a_fifo_get_runlist_timeslice, gk20a_fifo_get_pb_timeslice
+ * Targets: gops_fifo.get_runlist_timeslice, gk20a_fifo_get_runlist_timeslice,
+ *          gops_fifo.get_pb_timeslice, gk20a_fifo_get_pb_timeslice
  *
  * Input: test_fifo_init_support() run for this GPU
  *

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -48,6 +48,8 @@
  *
  * Test Type: Feature
  *
+ * Targets: nvgpu_fifo_init_support, nvgpu_fifo_cleanup_sw_common
+ *
  * Input: None
  *
  * Steps:
@@ -78,6 +80,9 @@ int test_fifo_init_support(struct unit_module *m,
  * Description: The FIFO unit shall de-initialize all sub-units.
  *
  * Test Type: Feature
+ *
+ * Targets: nvgpu_fifo_remove_support, nvgpu_fifo_cleanup_sw,
+ *          nvgpu_fifo_cleanup_sw_common
  *
  * Input: test_fifo_init_support() called for this GPU.
  *

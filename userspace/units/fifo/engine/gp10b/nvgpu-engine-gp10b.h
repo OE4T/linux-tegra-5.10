@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -39,6 +39,8 @@ struct gk20a;
  * Description: Branch coverage for gp10b_engine_init_ce_info
  *
  * Test Type: Feature
+ *
+ * Targets: gp10b_engine_init_ce_info
  *
  * Input: test_fifo_init_support has run..
  *

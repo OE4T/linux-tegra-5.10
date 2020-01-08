@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -40,6 +40,8 @@ struct gk20a;
  *
  * Test Type: Feature
  *
+ * Targets: gops_runlist.length_max, gk20a_runlist_length_max
+ *
  * Input: test_fifo_init_support() run for this GPU
  *
  * Steps:
@@ -56,6 +58,8 @@ int test_gk20a_runlist_length_max(struct unit_module *m,
  * Description: Branch coverage for gk20a_runlist_hw_submit
  *
  * Test Type: Feature
+ *
+ * Targets: gops_runlist.hw_submit, gk20a_runlist_hw_submit
  *
  * Input: test_fifo_init_support() run for this GPU
  *
@@ -75,6 +79,8 @@ int test_gk20a_runlist_hw_submit(struct unit_module *m,
  * Description: Branch coverage for gk20a_runlist_wait_pending
  *
  * Test Type: Feature
+ *
+ * Targets: gops_runlist.wait_pending, gk20a_runlist_wait_pending
  *
  * Input: test_fifo_init_support() run for this GPU
  *
@@ -105,6 +111,8 @@ int test_gk20a_runlist_wait_pending(struct unit_module *m,
  * Description: Branch coverage for gk20a_runlist_write_state
  *
  * Test Type: Feature
+ *
+ * Targets: gops_runlist.write_state, gk20a_runlist_write_state
  *
  * Input: test_fifo_init_support() run for this GPU
  *

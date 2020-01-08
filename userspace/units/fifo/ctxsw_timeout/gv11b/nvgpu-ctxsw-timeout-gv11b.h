@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -40,7 +40,7 @@ struct gk20a;
  *
  * Test Type: Feature based
  *
- * Targets: gv11b_fifo_ctxsw_timeout_enable
+ * Targets: gops_fifo.ctxsw_timeout_enable, gv11b_fifo_ctxsw_timeout_enable
  *
  * Input: test_fifo_init_support() run for this GPU
  *
@@ -61,7 +61,8 @@ int test_gv11b_fifo_ctxsw_timeout_enable(struct unit_module *m,
  *
  * Test Type: Feature based
  *
- * Targets: gv11b_fifo_handle_ctxsw_timeout, gv11b_fifo_ctxsw_timeout_info
+ * Targets: gops_fifo.handle_ctxsw_timeout, gv11b_fifo_handle_ctxsw_timeout,
+ *          gops_fifo.ctxsw_timeout_info, gv11b_fifo_ctxsw_timeout_info
  *
  * Input: test_fifo_init_support() run for this GPU
  *

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -40,7 +40,7 @@ struct gk20a;
  *
  * Test Type: Feature
  *
- * Targets: gv11b_pbdma_setup_hw
+ * Targets: gops_pbdma.setup_hw, gv11b_pbdma_setup_hw
  *
  * Input: test_fifo_init_support() run for this GPU
  *
@@ -61,7 +61,7 @@ int test_gv11b_pbdma_setup_hw(struct unit_module *m,
  *
  * Test Type: Feature
  *
- * Targets: test_gv11b_pbdma_intr_enable
+ * Targets: gops_pbdma.intr_enable, gv11b_pbdma_intr_enable
  *
  * Input: test_fifo_init_support() run for this GPU
  *
@@ -96,7 +96,7 @@ int test_gv11b_pbdma_intr_enable(struct unit_module *m,
  *
  * Test Type: Feature
  *
- * Targets: gv11b_pbdma_handle_intr_0
+ * Targets: gops_pbdma.handle_intr_0, gv11b_pbdma_handle_intr_0
  *
  * Input: test_fifo_init_support() run for this GPU
  *
@@ -121,7 +121,7 @@ int test_gv11b_pbdma_handle_intr_0(struct unit_module *m,
  *
  * Test Type: Feature
  *
- * Targets: gv11b_pbdma_handle_intr_1
+ * Targets: gops_pbdma.handle_intr_1, gv11b_pbdma_handle_intr_1
  *
  * Input: test_fifo_init_support() run for this GPU
  *
@@ -145,7 +145,8 @@ int test_gv11b_pbdma_handle_intr_1(struct unit_module *m,
  *
  * Test Type: Feature
  *
- * Targets: gv11b_pbdma_channel_fatal_0_intr_descs.
+ * Targets: gops_pbdma.channel_fatal_0_intr_descs,
+ *          gv11b_pbdma_channel_fatal_0_intr_descs
  *
  * Input: test_fifo_init_support() run for this GPU
  *
@@ -165,7 +166,8 @@ int test_gv11b_pbdma_intr_descs(struct unit_module *m,
  *
  * Test Type: Feature
  *
- * Targets: gv11b_pbdma_get_fc_pb_header, gv11b_pbdma_get_fc_target
+ * Targets: gops_pbdma.get_fc_pb_header, gv11b_pbdma_get_fc_pb_header,
+ *          gops_pbdma.get_fc_target, gv11b_pbdma_get_fc_target
  *
  * Input: test_fifo_init_support() run for this GPU
  *
@@ -187,7 +189,8 @@ int test_gv11b_pbdma_get_fc(struct unit_module *m,
  *
  * Test Type: Feature
  *
- * Targets: gv11b_pbdma_set_channel_info_veid
+ * Targets: gops_pbdma.set_channel_info_veid,
+ *          gv11b_pbdma_set_channel_info_veid
  *
  * Input: test_fifo_init_support() run for this GPU
  *
@@ -207,7 +210,8 @@ int test_gv11b_pbdma_set_channel_info_veid(struct unit_module *m,
  *
  * Test Type: Feature
  *
- * Targets: gv11b_pbdma_config_userd_writeback_enable
+ * Targets: gops_pbdma.config_userd_writeback_enable
+ *          gv11b_pbdma_config_userd_writeback_enable
  *
  * Input: test_fifo_init_support() run for this GPU
  *

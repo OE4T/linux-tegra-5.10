@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -40,6 +40,8 @@ struct gk20a;
  *
  * Test Type: Feature
  *
+ * Targets: gops_runlist.entry_size, gv11b_runlist_entry_size
+ *
  * Input: test_fifo_init_support() run for this GPU
  *
  * Steps:
@@ -56,6 +58,8 @@ int test_gv11b_runlist_entry_size(struct unit_module *m,
  * Description: Branch coverage for gv11b_runlist_get_tsg_entry
  *
  * Test Type: Feature
+ *
+ * Targets: gops_runlist.get_tsg_entry, gv11b_runlist_get_tsg_entry
  *
  * Input: test_fifo_init_support() run for this GPU
  *
@@ -78,6 +82,8 @@ int test_gv11b_runlist_get_tsg_entry(struct unit_module *m,
  * Description: Branch coverage for gv11b_runlist_get_ch_entry
  *
  * Test Type: Feature
+ *
+ * Targets: gops_runlist.get_ch_entry, gv11b_runlist_get_ch_entry
  *
  * Input: test_fifo_init_support() run for this GPU
  *

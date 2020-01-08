@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -40,7 +40,7 @@ struct gk20a;
  *
  * Test Type: Feature based
  *
- * Targets: gv11b_ramin_set_gr_ptr
+ * Targets: gops_ramin.set_gr_ptr, gv11b_ramin_set_gr_ptr
  *
  * Input: None
  *
@@ -61,8 +61,8 @@ int test_gv11b_ramin_set_gr_ptr(struct unit_module *m, struct gk20a *g,
  *
  * Test Type: Feature based
  *
- * Targets: gv11b_ramin_init_subctx_pdb, gv11b_subctx_commit_pdb,
- *          gv11b_subctx_commit_valid_mask
+ * Targets: gops_ramin.init_subctx_pdb, gv11b_ramin_init_subctx_pdb,
+ *          gv11b_subctx_commit_pdb, gv11b_subctx_commit_valid_mask
  *
  * Input: None
  *
@@ -85,7 +85,7 @@ int test_gv11b_ramin_init_subctx_pdb(struct unit_module *m, struct gk20a *g,
  *
  * Test Type: Feature based
  *
- * Targets: gv11b_ramin_set_eng_method_buffer
+ * Targets: gops_ramin.set_eng_method_buffer, gv11b_ramin_set_eng_method_buffer
  *
  * Input: None
  *

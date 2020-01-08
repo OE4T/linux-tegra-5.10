@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -40,7 +40,8 @@ struct gk20a;
  *
  * Test Type: Feature
  *
- * Targets: gv11b_init_fifo_reset_enable_hw, gv11b_init_fifo_setup_hw
+ * Targets: gops_fifo.reset_enable_hw, gv11b_init_fifo_reset_enable_hw,
+ *          gops_fifo.init_fifo_setup_hw, gv11b_init_fifo_setup_hw
  *
  * Input: test_fifo_init_support() run for this GPU
  *
@@ -63,7 +64,8 @@ int test_gv11b_fifo_init_hw(struct unit_module *m,
  *
  * Test Type: Feature
  *
- * Targets: gv11b_fifo_mmu_fault_id_to_pbdma_id
+ * Targets: gops_fifo.mmu_fault_id_to_pbdma_id,
+ *          gv11b_fifo_mmu_fault_id_to_pbdma_id
  *
  * Input: test_fifo_init_support() run for this GPU
  *

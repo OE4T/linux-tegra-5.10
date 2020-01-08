@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -40,6 +40,9 @@ struct gk20a;
  *
  * Test Type: Feature
  *
+ * Targets: gops_engine_status.read_engine_status_info,
+ *          gv100_read_engine_status_info
+ *
  * Input: test_fifo_init_support() run for this GPU
  *
  * Steps:
@@ -58,6 +61,8 @@ int test_gv100_read_engine_status_info(struct unit_module *m,
  * Description: Branch coverage for gv100_dump_engine_status
  *
  * Test Type: Feature
+ *
+ * Targets: gops_engine_status.dump_engine_status, gv100_dump_engine_status
  *
  * Input: test_fifo_init_support() run for this GPU
  *

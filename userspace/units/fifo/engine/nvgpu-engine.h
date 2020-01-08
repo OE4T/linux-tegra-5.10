@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -36,20 +36,24 @@ struct gk20a;
  */
 
 /**
- * Test specification for: test_engines_setup_sw
+ * Test specification for: test_engine_setup_sw
  *
- * Description: Branch coverage for nvgpu_channel_setup/cleanup_sw.
+ * Description: Branch coverage for nvgpu_engine_setup/cleanup_sw.
  *
  * Test Type: Feature
+ *
+ * Targets: nvgpu_engine_setup_sw, nvgpu_engine_cleanup_sw
  *
  * Input: None
  *
  * Steps:
- * - Check valid case for nvgpu_channel_setup_sw.
- * - Check valid case for nvgpu_channel_cleanup_sw.
- * - Check invalid case for nvgpu_channel_setup_sw.
- *   - Failure to allocate channel contexts (by using fault injection for
- *     vzalloc).
+ * - Check valid case for nvgpu_engine_setup_sw.
+ * - Check valid case for nvgpu_engine_cleanup_sw.
+ * - Check invalid case for nvgpu_engine_setup_sw.
+ *   - Failure to allocate engine contexts (w/ fault injection)
+ *   - Failure to allocate active engines list (w/ fault injection)
+ *   - Failure to initialize engine info (using stub for
+ *     g->ops.engine.init_info)
  *
  * Output: Returns PASS if all branches gave expected results. FAIL otherwise.
  */
@@ -62,6 +66,8 @@ int test_engine_setup_sw(struct unit_module *m,
  * Description: Branch coverage for nvgpu_engine_init_info
  *
  * Test Type: Feature
+ *
+ * Targets: nvgpu_engine_init_info
  *
  * Input: test_fifo_init_support must have run.
  *
@@ -82,11 +88,12 @@ int test_engine_init_info(struct unit_module *m,
 /**
  * Test specification for: test_engine_ids
  *
- * Description: Branch coverage for nvgpu_engine_get_ids,
- *              nvgpu_engine_check_valid_id and
- *              nvgpu_engine_get_gr_id
+ * Description: Branch coverage for engine ids
  *
  * Test Type: Feature
+ *
+ * Targets: nvgpu_engine_get_ids, nvgpu_engine_check_valid_id,
+ *          nvgpu_engine_get_gr_id
  *
  * Input: test_fifo_init_support must have run.
  *
@@ -112,6 +119,8 @@ int test_engine_ids(struct unit_module *m,
   *
  * Test Type: Feature
  *
+ * Targets: nvgpu_engine_get_active_eng_info, nvgpu_engine_check_valid_id
+ *
  * Input: test_engine_ids must have run.
  *
  * Steps:
@@ -133,6 +142,8 @@ int test_engine_get_active_eng_info(struct unit_module *m,
  * Description: Branch coverage for nvgpu_engine_enum_from_type
   *
  * Test Type: Feature
+ *
+ * Targets: nvgpu_engine_enum_from_type
  *
  * Input: test_engine_ids must have run.
  *
@@ -177,9 +188,6 @@ int test_engine_enum_from_type(struct unit_module *m,
  */
 int test_engine_interrupt_mask(struct unit_module *m,
 		struct gk20a *g, void *args);
-
-
-
 
 /**
  * @}
