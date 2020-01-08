@@ -619,6 +619,12 @@ nvgpu_posix_is_fault_injection_cntr_set
 nvgpu_posix_is_fault_injection_triggered
 nvgpu_posix_probe
 nvgpu_posix_register_io
+nvgpu_queue_alloc
+nvgpu_queue_free
+nvgpu_queue_in
+nvgpu_queue_in_locked
+nvgpu_queue_out
+nvgpu_queue_out_locked
 nvgpu_preempt_channel
 nvgpu_preempt_get_timeout
 nvgpu_preempt_poll_tsg_on_pbdma
