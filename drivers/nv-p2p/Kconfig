@@ -1,0 +1,10 @@
+#
+#
+#
+
+menuconfig TEGRA_RDMA
+	tristate "TEGRA_RDMA_DRIVER"
+	depends on GK20A
+	default m
+	help
+	    If in doubt, say N.
