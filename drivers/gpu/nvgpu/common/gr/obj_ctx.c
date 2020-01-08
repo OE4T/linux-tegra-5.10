@@ -899,6 +899,10 @@ int nvgpu_gr_obj_ctx_init(struct gk20a *g,
 void nvgpu_gr_obj_ctx_deinit(struct gk20a *g,
 	struct nvgpu_gr_obj_ctx_golden_image *golden_image)
 {
+	if (golden_image == NULL) {
+		return;
+	}
+
 	if (golden_image->local_golden_image != NULL) {
 		nvgpu_gr_global_ctx_deinit_local_golden_image(g,
 			golden_image->local_golden_image);

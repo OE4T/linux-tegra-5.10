@@ -94,6 +94,10 @@ void nvgpu_gr_global_ctx_buffer_free(struct gk20a *g,
 {
 	u32 i;
 
+	if (desc == NULL) {
+		return;
+	}
+
 	for (i = 0; i < NVGPU_GR_GLOBAL_CTX_COUNT; i++) {
 		if (desc[i].destroy != NULL) {
 			desc[i].destroy(g, &desc[i].mem);

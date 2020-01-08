@@ -267,12 +267,14 @@ static int gr_init_setup_hw(struct gk20a *g)
 	g->ops.gr.init.su_coalesce(g, 0);
 	g->ops.gr.init.lg_coalesce(g, 0);
 
+#ifdef CONFIG_NVGPU_GRAPHICS
 	if (g->ops.gr.init.preemption_state != NULL) {
 		err = g->ops.gr.init.preemption_state(g);
 		if (err != 0) {
 			goto out;
 		}
 	}
+#endif
 
 	/* floorsweep anything left */
 	err = nvgpu_gr_fs_state_init(g, gr->config);

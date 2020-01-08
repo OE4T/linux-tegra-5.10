@@ -594,6 +594,10 @@ u32 nvgpu_gr_config_get_gpc_zcb_count(struct nvgpu_gr_config *config,
 
 void nvgpu_gr_config_deinit(struct gk20a *g, struct nvgpu_gr_config *config)
 {
+	if (config == NULL) {
+		return;
+	}
+
 	gr_config_free_mem(g, config);
 #ifdef CONFIG_NVGPU_GRAPHICS
 	nvgpu_kfree(g, config->map_tiles);

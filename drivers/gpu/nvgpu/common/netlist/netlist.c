@@ -610,6 +610,10 @@ void nvgpu_netlist_deinit_ctx_vars(struct gk20a *g)
 {
 	struct nvgpu_netlist_vars *netlist_vars = g->netlist_vars;
 
+	if (netlist_vars == NULL) {
+		return;
+	}
+
 	g->netlist_valid = false;
 	nvgpu_kfree(g, netlist_vars->ucode.fecs.inst.l);
 	nvgpu_kfree(g, netlist_vars->ucode.fecs.data.l);
