@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -351,9 +351,8 @@ nvgpu_gr_global_ctx_init_local_golden_image(struct gk20a *g,
 
 	local_golden_image->size = size;
 
-	nvgpu_assert(size <= U64(U32_MAX));
 	nvgpu_mem_rd_n(g, source_mem, 0, local_golden_image->context,
-		       U32(size));
+		nvgpu_safe_cast_u64_to_u32(size));
 
 	return local_golden_image;
 }
@@ -421,9 +420,8 @@ void nvgpu_gr_global_ctx_load_local_golden_image(struct gk20a *g,
 		nvgpu_err(g, "l2_flush failed");
 	}
 
-	nvgpu_assert(local_golden_image->size <= U64(U32_MAX));
 	nvgpu_mem_wr_n(g, target_mem, 0, local_golden_image->context,
-					U32(local_golden_image->size));
+		nvgpu_safe_cast_u64_to_u32(local_golden_image->size));
 }
 
 void nvgpu_gr_global_ctx_deinit_local_golden_image(struct gk20a *g,
