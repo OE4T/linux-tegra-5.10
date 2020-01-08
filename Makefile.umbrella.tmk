@@ -32,6 +32,18 @@
 NV_REPOSITORY_COMPONENTS :=
 
 ifneq ($(NV_BUILD_CONFIGURATION_OS_IS_INTEGRITY),1)
+
+ifeq ($(NV_BUILD_CONFIGURATION_OS_IS_QNX),1)
+ifeq ($(NV_BUILD_CONFIGURATION_IS_SAFETY),1)
+# On QNX, the unit tests are built only for safety profile.
+build_nvgpu_ut := 1
+endif
+else
+# On L4T, the unit tests are built with safety profile forced.
+build_nvgpu_ut := 1
+endif
+
+ifeq ($(build_nvgpu_ut),1)
 NV_REPOSITORY_COMPONENTS := drivers/gpu/nvgpu
 NV_REPOSITORY_COMPONENTS += userspace
 NV_REPOSITORY_COMPONENTS += userspace/units/posix/bitops
@@ -147,6 +159,7 @@ NV_REPOSITORY_COMPONENTS += userspace/units/cg
 NV_REPOSITORY_COMPONENTS += userspace/units/sync
 NV_REPOSITORY_COMPONENTS += userspace/units/mock-iospace
 NV_REPOSITORY_COMPONENTS += userspace/units/ecc
+endif
 endif
 
 # Local Variables:
