@@ -51,6 +51,8 @@ struct gk20a;
  * - Check that ccsr_channel_inst_r and ccsr_channel_r have
  *   been programmed.
  * - Check that ch->bound is set.
+ * - Check that BUG() occurs when passing invalid ch->chid
+ *   (as ccsr_channel_inst_r computation overflows).
  *
  * Output: Returns PASS if all branches gave expected results. FAIL otherwise.
  */
@@ -75,6 +77,8 @@ int test_gm20b_channel_bind(struct unit_module *m,
  * - Write 0 to ccsr_channel_r.
  * - Call gm20b_channel_force_ctx_reload
  * - Check that ccsr_channel_force_ctx_reload_true_f is set in ccsr_channel_r.
+ * - Check that BUG() occurs when passing invalid ch->chid
+ *   (as ccsr_channel_r computation overflows).
  *
  * Output: Returns PASS if all branches gave expected results. FAIL otherwise.
  */

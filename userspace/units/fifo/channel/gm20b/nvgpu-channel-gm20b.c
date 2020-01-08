@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -36,6 +36,8 @@
 #include <nvgpu/dma.h>
 #include <nvgpu/io.h>
 
+#include <nvgpu/posix/bug.h>
+
 #include "hal/fifo/channel_gm20b.h"
 #include <nvgpu/hw/gm20b/hw_ccsr_gm20b.h>
 
@@ -63,6 +65,8 @@ int test_gm20b_channel_bind(struct unit_module *m,
 	u32 runlist_id = NVGPU_INVALID_RUNLIST_ID;
 	struct nvgpu_channel *ch;
 	int ret = UNIT_FAIL;
+	u32 chid;
+	int err;
 
 	ch = nvgpu_channel_open_new(g, runlist_id,
 		privileged, getpid(), getpid());
@@ -80,6 +84,12 @@ int test_gm20b_channel_bind(struct unit_module *m,
 
 	nvgpu_atomic_set(&ch->bound, 0);
 
+	chid = ch->chid;
+	ch->chid = U32_MAX;
+	err = EXPECT_BUG(gm20b_channel_bind(ch));
+	ch->chid = chid;
+	assert(err != 0);
+
 	ret = UNIT_SUCCESS;
 done:
 	if (ch) {
@@ -96,6 +106,8 @@ int test_gm20b_channel_force_ctx_reload(struct unit_module *m,
 	u32 runlist_id = NVGPU_INVALID_RUNLIST_ID;
 	struct nvgpu_channel *ch;
 	int ret = UNIT_FAIL;
+	u32 chid;
+	int err;
 
 	ch = nvgpu_channel_open_new(g, runlist_id,
 		privileged, getpid(), getpid());
@@ -105,6 +117,12 @@ int test_gm20b_channel_force_ctx_reload(struct unit_module *m,
 	gm20b_channel_force_ctx_reload(ch);
 	assert((nvgpu_readl(g, ccsr_channel_r(ch->chid)) &
 		ccsr_channel_force_ctx_reload_true_f()) != 0);
+
+	chid = ch->chid;
+	ch->chid = U32_MAX;
+	err = EXPECT_BUG(gm20b_channel_force_ctx_reload(ch));
+	ch->chid = chid;
+	assert(err != 0);
 
 	ret = UNIT_SUCCESS;
 done:
