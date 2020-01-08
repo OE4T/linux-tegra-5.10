@@ -72,7 +72,7 @@ ecc:
   deps:
 
 log:
-  safe: yes
+  safe: no
   owner: Vedashree V
   sources: [ common/log_common.c ]
   deps:

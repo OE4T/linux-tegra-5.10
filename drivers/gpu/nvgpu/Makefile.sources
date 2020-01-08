@@ -105,7 +105,6 @@ srcs +=	common/utils/enabled.c \
 	common/fbp/fbp.c \
 	common/io/io.c \
 	common/ecc.c \
-	common/log_common.c \
 	common/falcon/falcon.c \
 	common/falcon/falcon_sw_gk20a.c \
 	common/gr/gr.c \
