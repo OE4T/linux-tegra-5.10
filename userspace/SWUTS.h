@@ -35,6 +35,7 @@
  *   - @ref SWUTS-interface-lock
  *   - @ref SWUTS-interface-rbtree
  *   - @ref SWUTS-interface-string
+ *   - @ref SWUTS-interface-worker
  *   - @ref SWUTS-bus
  *   - @ref SWUTS-falcon
  *   - @ref SWUTS-netlist
@@ -73,6 +74,7 @@
  *   - @ref SWUTS-init
  *   - @ref SWUTS-interface-atomic
  *   - @ref SWUTS-ltc
+ *   - @ref SWUTS-mc
  *   - @ref SWUTS-mm-allocators-bitmap-allocator
  *   - @ref SWUTS-mm-allocators-buddy-allocator
  *   - @ref SWUTS-mm-as
@@ -104,7 +106,9 @@
  *   - @ref SWUTS-priv_ring
  *   - @ref SWUTS-ptimer
  *   - @ref SWUTS-sdl
+ *   - @ref SWUTS-therm
  *   - @ref SWUTS-acr
+ *   - @ref SWUTS-ce
  *   - @ref SWUTS-cg
  *   - @ref SWUTS-init_test
  *   - @ref SWUTS-channel_os
