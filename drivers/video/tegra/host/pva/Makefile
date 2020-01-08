@@ -8,10 +8,7 @@ ccflags-y += -I$(srctree.nvidia)/include
 ccflags-y += -Werror
 
 nvhost-pva-t23x-objs  = \
-		pva_isr_t23x.o \
-		pva_mailbox_t23x.o \
-		pva_interface_regs_t23x.o \
-		pva_version_config_t23x.o
+		pva_isr_t23x.o
 
 obj-$(CONFIG_TEGRA_GRHOST_PVA) += nvhost-pva-t23x.o
 
