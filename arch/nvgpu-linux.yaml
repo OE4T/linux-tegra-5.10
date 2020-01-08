@@ -135,9 +135,6 @@ nvhost:
   sources: [ os/linux/nvhost.c,
              os/linux/nvhost_priv.h ]
 
-nvidia_p2p:
-  sources: [ os/linux/nvidia_p2p.c ]
-
 nvlink:
   sources: [ os/linux/nvlink.c,
              os/linux/nvlink.h ]
