@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -263,7 +263,7 @@ struct nvgpu_gr_config *nvgpu_gr_config_init(struct gk20a *g)
 
 	config = nvgpu_kzalloc(g, sizeof(*config));
 	if (config == NULL) {
-		return NULL;;
+		return NULL;
 	}
 
 	config->g = g;
