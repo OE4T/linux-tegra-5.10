@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -53,6 +53,8 @@ struct gk20a;
  * - Check that delta between expected and actual values is lower than
  *   1024 * (1 << exponent).
  * - Check that BUG_ON occurs on overflow while converting ms to ns.
+ * - Check that enable bit is not set when 0 is passed to
+ *   gm20b_pbdma_acquire_val.
  *
  * Output: Returns PASS if all branches gave expected results. FAIL otherwise.
  */
@@ -116,6 +118,8 @@ int test_gm20b_pbdma_handle_intr(struct unit_module *m,
  *   - pbdma_intr_0_device: Check that all pbdma subch methods and header
  *     have been reset and that recover is true.
  * - Check that recover is false, when none of above interrupt is raised.
+ * - Check that BUG() occurs when passing an invalid pbdma_id that
+ *   causes an overflow in register computation.
  *
  * Output: Returns PASS if all branches gave expected results. FAIL otherwise.
  */

@@ -145,6 +145,9 @@ int test_gm20b_pbdma_acquire_val(struct unit_module *m,
 	int i;
 	int err;
 
+	timeout = gm20b_pbdma_acquire_val(0);
+	assert(is_timeout_valid(m, timeout, 0));
+
 	for (i = 0; i < 32; i++) {
 		ms = (1ULL << i);
 		timeout = gm20b_pbdma_acquire_val(ms);
@@ -300,6 +303,7 @@ int test_gm20b_pbdma_handle_intr_0(struct unit_module *m,
 	u32 err_notifier;
 	bool recover;
 	int i;
+	int err;
 
 	assert((f->intr.pbdma.device_fatal_0 & pbdma_intr_0_memreq_pending_f()) != 0);
 
@@ -367,8 +371,18 @@ int test_gm20b_pbdma_handle_intr_0(struct unit_module *m,
 			assert(nvgpu_readl(g, pbdma_method2_r(pbdma_id)) != METHOD_SUBCH6);
 			assert(nvgpu_readl(g, pbdma_method3_r(pbdma_id)) != METHOD_SUBCH7);
 		}
-
 	}
+
+
+	/* trigger assert in pbdma_method1_r() */
+	pbdma_id = (0x100000000ULL - (u64)pbdma_method1_r(0) + 8191ULL) / 8192ULL;
+	err = EXPECT_BUG(
+		recover = gm20b_pbdma_handle_intr_0(g,
+			pbdma_id, /* invalid pbdma_id */
+			pbdma_intr_0_device_pending_f(),
+			&err_notifier)
+	);
+	assert(err != 0);
 
 	ret = UNIT_SUCCESS;
 done:
