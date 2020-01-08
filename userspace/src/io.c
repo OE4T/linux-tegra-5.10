@@ -45,6 +45,7 @@ static void __core_print_file(struct unit_fw *fw, FILE *filp,
 	fprintf(filp, "[%s%s%s] %s%s%s",
 		color, prefix, reset,
 		color, msg, reset);
+	fflush(stdout);
 }
 
 __attribute__((format (printf, 3, 4)))
