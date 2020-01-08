@@ -29,7 +29,7 @@
  * DAMAGE.
  * ========================================================================= */
 /*
- * Copyright (c) 2015-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2015-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -1529,6 +1529,8 @@ struct eqos_prv_data {
 	tegra_isomgr_handle isomgr_handle;
 	struct tegra_prod       *prod_list;
 	uint	max_platform_mtu; /* Max platform mtu supported */
+	/** Clocks enable check */
+	bool clks_enable;
 };
 
 typedef enum {
