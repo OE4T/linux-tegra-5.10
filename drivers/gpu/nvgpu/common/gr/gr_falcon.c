@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -277,7 +277,7 @@ static void nvgpu_gr_falcon_copy_ctxsw_ucode_segments(
 
 	/* compute a "checksum" for the boot binary to detect its version */
 	segments->boot_signature = 0;
-	for (i = 0; i < segments->boot.size / sizeof(u32); i++) {
+	for (i = 0; i < (segments->boot.size / sizeof(u32)); i++) {
 		segments->boot_signature = nvgpu_gr_checksum_u32(
 				segments->boot_signature, bootimage[i]);
 	}

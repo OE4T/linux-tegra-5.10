@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -391,7 +391,7 @@ static int nvgpu_gr_init_ctx_state(struct gk20a *g)
 {
 	int err = 0;
 
-	if (g->gr->golden_image != NULL &&
+	if ((g->gr->golden_image != NULL) &&
 		nvgpu_gr_obj_ctx_is_golden_image_ready(g->gr->golden_image)) {
 		return err;
 	}
@@ -452,7 +452,7 @@ static int gr_init_ecc_init(struct gk20a *g)
 {
 	int err = 0;
 
-	if (g->ops.gr.ecc.gpc_tpc_ecc_init != NULL && !g->ecc.initialized) {
+	if ((g->ops.gr.ecc.gpc_tpc_ecc_init != NULL) && !g->ecc.initialized) {
 		err = g->ops.gr.ecc.gpc_tpc_ecc_init(g);
 		if (err != 0) {
 			nvgpu_err(g, "failed to init gr gpc/tpc ecc");
@@ -611,7 +611,7 @@ int nvgpu_gr_prepare_sw(struct gk20a *g)
 	 * FECS ECC errors during FECS load need to be handled and reported
 	 * using the ECC counters.
 	 */
-	if (g->ops.gr.ecc.fecs_ecc_init != NULL && !g->ecc.initialized) {
+	if ((g->ops.gr.ecc.fecs_ecc_init != NULL) && !g->ecc.initialized) {
 		err = g->ops.gr.ecc.fecs_ecc_init(g);
 		if (err != 0) {
 			nvgpu_err(g, "failed to init gr fecs ecc");

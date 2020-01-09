@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -188,7 +188,7 @@ static int gr_intr_handle_illegal_method(struct gk20a *g,
 static void gr_intr_handle_class_error(struct gk20a *g,
 				       struct nvgpu_gr_isr_data *isr_data)
 {
-	u32 chid = isr_data->ch != NULL ?
+	u32 chid = (isr_data->ch != NULL) ?
 		isr_data->ch->chid : NVGPU_INVALID_CHANNEL_ID;
 
 	nvgpu_log_fn(g, " ");
@@ -214,7 +214,7 @@ static void gr_intr_report_sm_exception(struct gk20a *g, u32 gpc, u32 tpc,
 	}
 
 	ch = nvgpu_gr_intr_get_channel_from_ctx(g, curr_ctx, &tsgid);
-	chid = ch != NULL ? ch->chid : NVGPU_INVALID_CHANNEL_ID;
+	chid = (ch != NULL) ? ch->chid : NVGPU_INVALID_CHANNEL_ID;
 	if (ch != NULL) {
 		nvgpu_channel_put(ch);
 	}
@@ -329,7 +329,7 @@ void nvgpu_gr_intr_report_exception(struct gk20a *g, u32 inst,
 	if (curr_ctx != 0U) {
 		ch = nvgpu_gr_intr_get_channel_from_ctx(g, curr_ctx, &tsgid);
 	}
-	chid = ch != NULL ? ch->chid : NVGPU_INVALID_CHANNEL_ID;
+	chid = (ch != NULL) ? ch->chid : NVGPU_INVALID_CHANNEL_ID;
 	if (ch != NULL) {
 		nvgpu_channel_put(ch);
 	}
@@ -519,7 +519,7 @@ int nvgpu_gr_intr_handle_fecs_error(struct gk20a *g, struct nvgpu_channel *ch,
 	u32 gr_fecs_intr, mailbox_value;
 	int ret = 0;
 	struct nvgpu_fecs_host_intr_status fecs_host_intr;
-	u32 chid = isr_data->ch != NULL ?
+	u32 chid = (isr_data->ch != NULL) ?
 		isr_data->ch->chid : NVGPU_INVALID_CHANNEL_ID;
 	u32 mailbox_id = NVGPU_GR_FALCON_FECS_CTXSW_MAILBOX6;
 
@@ -896,7 +896,7 @@ static u32 gr_intr_handle_error_interrupts(struct gk20a *g,
 	/* this one happens if someone tries to hit a non-whitelisted
 	 * register using set_falcon[4] */
 	if (intr_info->fw_method != 0U) {
-		u32 ch_id = isr_data->ch != NULL ?
+		u32 ch_id = (isr_data->ch != NULL) ?
 			isr_data->ch->chid : NVGPU_INVALID_CHANNEL_ID;
 		nvgpu_err(g,
 		   "firmware method 0x%08x, offset 0x%08x for channel %u",
@@ -938,7 +938,7 @@ static struct nvgpu_tsg *gr_intr_get_channel_from_ctx(struct gk20a *g,
 
 	ch = nvgpu_gr_intr_get_channel_from_ctx(g, isr_data->curr_ctx, &tsgid);
 	isr_data->ch = ch;
-	channel_id = ch != NULL ? ch->chid : NVGPU_INVALID_CHANNEL_ID;
+	channel_id = (ch != NULL) ? ch->chid : NVGPU_INVALID_CHANNEL_ID;
 
 	if (ch == NULL) {
 		nvgpu_err(g,

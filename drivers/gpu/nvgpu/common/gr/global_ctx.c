@@ -156,15 +156,15 @@ static int nvgpu_gr_global_ctx_buffer_alloc_vpr(struct gk20a *g,
 static bool nvgpu_gr_global_ctx_buffer_sizes_are_valid(struct gk20a *g,
 				struct nvgpu_gr_global_ctx_buffer_desc *desc)
 {
-	if (desc[NVGPU_GR_GLOBAL_CTX_CIRCULAR].size == 0U ||
-	    desc[NVGPU_GR_GLOBAL_CTX_PAGEPOOL].size == 0U ||
-	    desc[NVGPU_GR_GLOBAL_CTX_ATTRIBUTE].size == 0U ||
+	if ((desc[NVGPU_GR_GLOBAL_CTX_CIRCULAR].size == 0U) ||
+		(desc[NVGPU_GR_GLOBAL_CTX_PAGEPOOL].size == 0U) ||
+		(desc[NVGPU_GR_GLOBAL_CTX_ATTRIBUTE].size == 0U) ||
 #ifdef CONFIG_NVGPU_VPR
-	    desc[NVGPU_GR_GLOBAL_CTX_CIRCULAR_VPR].size == 0U ||
-	    desc[NVGPU_GR_GLOBAL_CTX_PAGEPOOL_VPR].size == 0U ||
-	    desc[NVGPU_GR_GLOBAL_CTX_ATTRIBUTE_VPR].size == 0U ||
+		(desc[NVGPU_GR_GLOBAL_CTX_CIRCULAR_VPR].size == 0U) ||
+		(desc[NVGPU_GR_GLOBAL_CTX_PAGEPOOL_VPR].size == 0U) ||
+		(desc[NVGPU_GR_GLOBAL_CTX_ATTRIBUTE_VPR].size == 0U) ||
 #endif
-	    desc[NVGPU_GR_GLOBAL_CTX_PRIV_ACCESS_MAP].size == 0U) {
+		(desc[NVGPU_GR_GLOBAL_CTX_PRIV_ACCESS_MAP].size == 0U)) {
 		return false;
 	}
 

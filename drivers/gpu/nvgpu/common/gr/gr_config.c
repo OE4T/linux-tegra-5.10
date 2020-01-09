@@ -66,12 +66,12 @@ static void gr_config_init_gpc_skip_mask(struct nvgpu_gr_config *config,
 	}
 
 	pes_tpc_cnt = nvgpu_safe_add_u32(
-			config->pes_tpc_count[0][gpc_index],
-			config->pes_tpc_count[1][gpc_index]);
+		config->pes_tpc_count[0][gpc_index],
+		config->pes_tpc_count[1][gpc_index]);
 
 	pes_heavy_index =
-			config->pes_tpc_count[0][gpc_index] >
-			config->pes_tpc_count[1][gpc_index] ? 0U : 1U;
+		(config->pes_tpc_count[0][gpc_index] >
+			config->pes_tpc_count[1][gpc_index]) ? 0U : 1U;
 
 	if ((pes_tpc_cnt == 5U) || ((pes_tpc_cnt == 4U) &&
 		   (config->pes_tpc_count[0][gpc_index] !=
