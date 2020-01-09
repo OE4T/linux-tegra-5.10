@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -88,6 +88,10 @@ struct unit_test_thread_data test_data;
  *
  * Test Type: Feature
  *
+ * Targets: nvgpu_thread_create, nvgpu_thread_create_priority,
+ *          nvgpu_thread_is_running, nvgpu_thread_stop,
+ *          nvgpu_thread_stop_graceful, nvgpu_thread_should_stop,
+ *          nvgpu_thread_join
  * Inputs:
  * 1) Pointer to test_thread_args as function parameter
  * 2) Global instance of struct nvgpu_thread

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -36,6 +36,8 @@
  * Description: Test cond init and cleanup routine.
  *
  * Test Type: Feature
+ *
+ * Targets: nvgpu_cond_init, nvgpu_cond_destroy
  *
  * Inputs:
  * 1) Global instance of struct nvgpu_cond.
@@ -74,6 +76,15 @@ int test_cond_init_destroy(struct unit_module *m,
  * - Waiting and signaling using a condition check.
  *
  * Test Type: Feature
+ *
+ * Targets: nvgpu_cond_signal, nvgpu_cond_signal_locked,
+ *          nvgpu_cond_broadcast, nvgpu_cond_broadcast_locked,
+ *          nvgpu_cond_signal_interruptible,
+ *          nvgpu_cond_broadcast_interruptible,
+ *          nvgpu_cond_lock, nvgpu_cond_unlock, nvgpu_cond_timedwait,
+ *          NVGPU_COND_WAIT, NVGPU_COND_WAIT_LOCKED,
+ *          NVGPU_COND_WAIT_INTERRUPTIBLE,
+ *          NVGPU_COND_WAIT_TIMEOUT_LOCKED
  *
  * Inputs:
  * 1) Global instance of struct nvgpu_cond.

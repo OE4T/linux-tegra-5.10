@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -38,6 +38,8 @@
  *
  * Test Type: Feature
  *
+ * Targets: nvgpu_rwsem_init
+ *
  * Inputs:
  * 1) Global nvgpu_rwsem instance.
  *
@@ -59,6 +61,9 @@ int test_rwsem_init(struct unit_module *m,
  * Description: Testing the locking of a rwlock by multiple read threads.
  *
  * Test Type: Feature
+ *
+ * Targets: nvgpu_rwsem_init, nvgpu_rwsem_down_read,
+ *          nvgpu_rwsem_up_read
  *
  * Inputs:
  * 1) Global nvgpu_rwsem instance.
@@ -110,6 +115,9 @@ int test_rwsem_read(struct unit_module *m,
  * Description: Testing the locking of a rwlock by multiple write threads.
  *
  * Test Type: Feature
+ *
+ * Targets: nvgpu_rwsem_init, nvgpu_rwsem_down_write,
+ *          nvgpu_rwsem_up_write
  *
  * Inputs:
  * 1) Global nvgpu_rwsem instance.

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -39,6 +39,8 @@
  *
  * Test Type: Feature
  *
+ * Targets: nvgpu_current_pid
+ *
  * Inputs:
  *
  * Steps:
@@ -61,6 +63,8 @@ int test_current_pid(struct unit_module *m,
  *
  * Test Type: Feature
  *
+ * Targets: nvgpu_current_tid
+ *
  * Inputs:
  *
  * Steps:
@@ -82,6 +86,8 @@ int test_current_tid(struct unit_module *m,
  * Description: Print the current thread name.
  *
  * Test Type: Feature
+ *
+ * Targets: nvgpu_print_current, nvgpu_print_current_impl
  *
  * Inputs:
  *

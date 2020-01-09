@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -49,6 +49,8 @@ struct unit_module;
  *
  * Test Type: Feature
  *
+ * Targets: nvgpu_mutex_init, nvgpu_mutex_destroy
+ *
  * Input: None
  *
  * Steps:
@@ -66,6 +68,10 @@ int test_mutex_init(struct unit_module *m, struct gk20a *g, void *args);
  * Description: Test to verify the behavior of mutex tryacquire function.
  *
  * Test Type: Feature
+ *
+ * Targets: nvgpu_mutex_init, nvgpu_mutex_acquire, nvgpu_mutex_tryacquire,
+ *          nvgpu_mutex_release, nvgpu_mutex_destroy,
+ *          nvgpu_posix_lock_try_acquire, nvgpu_posix_lock_release
  *
  * Input: None
  *
@@ -92,6 +98,12 @@ int test_mutex_tryacquire(struct unit_module *m, struct gk20a *g, void *args);
  * involved: the regular main thread, and a worker thread.
  *
  * Test Type: Feature
+ *
+ * Targets: nvgpu_mutex_init, nvgpu_spinlock_init, nvgpu_raw_spinlock_init,
+ *          nvgpu_mutex_acquire, nvgpu_spinlock_acquire,
+ *          nvgpu_raw_spinlock_acquire, nvgpu_mutex_release,
+ *          nvgpu_spinlock_release, nvgpu_raw_spinlock_release,
+ *          nvgpu_posix_lock_acquire, nvgpu_posix_lock_release
  *
  * Input: @param args [in] Type of lock as defined by TYPE_* macros.
  *

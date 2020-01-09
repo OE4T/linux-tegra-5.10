@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -39,6 +39,8 @@ struct unit_module;
  *
  * Test Type: Other - informational
  *
+ * Targets: None
+ *
  * Input: None
  *
  * Steps:
@@ -55,6 +57,8 @@ int test_bitmap_info(struct unit_module *m, struct gk20a *g, void *args);
  * Description: Test the API nvgpu_ffs() (Find First Set [bit]).
  *
  * Test Type: Feature, Boundary values
+ *
+ * Targets: nvgpu_ffs
  *
  * Input: None
  *
@@ -79,6 +83,8 @@ int test_ffs(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Test Type: Feature, Boundary values
  *
+ * Targets: nvgpu_fls
+ *
  * Input: None
  *
  * Steps:
@@ -101,6 +107,8 @@ int test_fls(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Test Type: Feature, Boundary values
  *
+ * Targets: ffz
+ *
  * Input: None
  *
  * Steps:
@@ -120,6 +128,8 @@ int test_ffz(struct unit_module *m, struct gk20a *g, void *args);
  * Description: Test the APIs find_first_zero_bit() and find_first_bit().
  *
  * Test Type: Feature, Boundary values
+ *
+ * Targets: find_first_zero_bit, find_first_bit
  *
  * Input: Pointer to struct test_find_bit_args as function parameter.
  * - The parameter test_find_bit_args is used to select between testing of:
@@ -149,6 +159,8 @@ int test_find_first_bit(struct unit_module *m, struct gk20a *g, void *__args);
  *
  * Test Type: Feature, Boundary values
  *
+ * Targets: find_next_bit
+ *
  * Input: None.
  *
  * Steps:
@@ -176,6 +188,8 @@ int test_find_next_bit(struct unit_module *m, struct gk20a *g, void *__args);
  * Description: Test the API bitmap_find_next_zero_area_off().
  *
  * Test Type: Feature, Boundary values
+ *
+ * Targets: bitmap_find_next_zero_area_off
  *
  * Input: None.
  *
@@ -252,6 +266,8 @@ int test_find_zero_area(struct unit_module *m, struct gk20a *g, void *unused);
  *
  * Test Type: Feature
  *
+ * Targets: nvgpu_set_bit, nvgpu_clear_bit, nvgpu_test_bit
+ *
  * Input: None.
  *
  * Steps:
@@ -278,6 +294,8 @@ int test_single_bitops(struct unit_module *m, struct gk20a *g, void *__args);
  *
  * Test Type: Feature
  *
+ * Targets: nvgpu_set_bit, nvgpu_clear_bit
+ *
  * Input: Pointer to struct test_find_bit_args as function parameter.
  * - The parameter test_find_bit_args is used to select between testing of:
  *   - nvgpu_clear_bit()
@@ -302,6 +320,8 @@ int test_bit_setclear(struct unit_module *m, struct gk20a *g, void *__args);
  *              nvgpu_test_and_set_bit().
  *
  * Test Type: Feature
+ *
+ * Targets: nvgpu_test_and_clear_bit, nvgpu_test_and_set_bit
  *
  * Input: Pointer to struct test_find_bit_args as function parameter.
  * - The parameter test_find_bit_args is used to select between testing of:
@@ -337,6 +357,8 @@ int test_test_and_setclear_bit(struct unit_module *m, struct gk20a *g,
  * Description: Test the APIs nvgpu_bitmap_clear() and nvgpu_bitmap_set().
  *
  * Test Type: Feature
+ *
+ * Targets: nvgpu_bitmap_clear, nvgpu_bitmap_set
  *
  * Input: Pointer to struct test_find_bit_args as function parameter.
  * - The parameter test_find_bit_args is used to select between testing of:

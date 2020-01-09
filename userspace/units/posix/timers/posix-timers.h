@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -36,6 +36,8 @@
  *
  * Test Type: Feature
  *
+ * Targets: nvgpu_timeout_init
+ *
  * Inputs:
  * 1) The type of timer to be tested is passed as an argument to the test.
  * 2) Global defines for flag and duration values.
@@ -67,6 +69,8 @@ int test_timer_init(struct unit_module *m,
  *
  * Test Type: Boundary values
  *
+ * Targets: nvgpu_timeout_init
+ *
  * Inputs:
  * 1) Global nvgpu_timeout structure instance.
  *
@@ -93,6 +97,9 @@ int test_timer_init_err(struct unit_module *m,
  * Description: Test the counter based timer functionality.
  *
  * Test Type: Feature
+ *
+ * Targets: nvgpu_timeout_init, nvgpu_timeout_expired,
+ *          nvgpu_timeout_peek_expired
  *
  * Input:
  * 1) Global nvgpu_timeout structure instance.
@@ -124,6 +131,9 @@ int test_timer_counter(struct unit_module *m,
  *
  * Test Type: Feature
  *
+ * Targets: nvgpu_timeout_init, nvgpu_timeout_expired,
+ *          nvgpu_timeout_peek_expired
+ *
  * Input:
  * 1) Global nvgpu_timeout structure instance.
  * 2) Global defines for flag and duration parameters.
@@ -152,6 +162,9 @@ int test_timer_duration(struct unit_module *m,
  * Description: Test the delay functionality.
  *
  * Test Type: Feature
+ *
+ * Targets: nvgpu_current_time_us, nvgpu_udelay,
+ *          nvgpu_usleep_range
  *
  * Input: None.
  *
@@ -185,6 +198,8 @@ int test_timer_delay(struct unit_module *m,
  *
  * Test Type: Feature
  *
+ * Targets: nvgpu_current_time_ms, nvgpu_msleep
+ *
  * Input: None.
  *
  * Steps:
@@ -209,6 +224,8 @@ int test_timer_msleep(struct unit_module *m,
  * Description: Test the high resolution counter based functionalities.
  *
  * Test Type: Feature
+ *
+ * Targets: nvgpu_hr_timestamp
  *
  * Input: None.
  *
@@ -238,6 +255,8 @@ int test_timer_hrtimestamp(struct unit_module *m,
  * Description: Compare the timers in various resoutions.
  *
  * Test Type: Feature
+ *
+ * Targets: nvgpu_current_time_ms, nvgpu_current_time_ns
  *
  * Input: None.
  *

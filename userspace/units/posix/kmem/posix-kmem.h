@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -37,6 +37,8 @@
  *
  * Test Type: Feature
  *
+ * Targets: nvgpu_kmem_cache_create, nvgpu_kmem_cache_destroy
+ *
  * Inputs:
  * 1) GPU driver struct g.
  * 2) Global define for cache size to alloc.
@@ -67,6 +69,9 @@ int test_kmem_cache_create(struct unit_module *m,
  * Description: Test the allocation of memory from kmem cache.
  *
  * Test Type: Feature
+ *
+ * Targets: nvgpu_kmem_cache_create, nvgpu_kmem_cache_alloc,
+ *          nvgpu_kmem_cache_free, nvgpu_kmem_cache_destroy
  *
  * Inputs:
  * 1) GPU driver struct g.
@@ -101,6 +106,8 @@ int test_kmem_cache_alloc(struct unit_module *m,
  *
  * Test Type: Feature
  *
+ * Targets: nvgpu_kmalloc_impl, nvgpu_kfree_impl
+ *
  * Inputs:
  * 1) GPU driver struct g.
  * 2) Global define for size to alloc.
@@ -125,6 +132,8 @@ int test_kmem_kmalloc(struct unit_module *m,
  * Description: Test the allocation of memory using kzalloc.
  *
  * Test Type: Feature
+ *
+ * Targets: nvgpu_kzalloc_impl, nvgpu_kfree_impl
  *
  * Inputs:
  * 1) GPU driver struct g.
@@ -153,6 +162,8 @@ int test_kmem_kzalloc(struct unit_module *m,
  *
  * Test Type: Feature
  *
+ * Targets: nvgpu_kcalloc_impl, nvgpu_kfree_impl
+ *
  * Inputs:
  * 1) GPU driver struct g.
  * 2) Global define for size to alloc.
@@ -180,6 +191,9 @@ int test_kmem_kcalloc(struct unit_module *m,
  * Description: Test the allocation of memory using virtual alloc APIs.
  *
  * Test Type: Feature
+ *
+ * Targets: nvgpu_vmalloc_impl, nvgpu_vfree_impl,
+ *          nvgpu_vzalloc_impl
  *
  * Inputs:
  * 1) GPU driver struct g.
@@ -214,6 +228,8 @@ int test_kmem_virtual_alloc(struct unit_module *m,
  * Description: Test the allocation of memory using big alloc APIs.
  *
  * Test Type: Feature
+ *
+ * Targets: nvgpu_big_alloc_impl, nvgpu_big_free
  *
  * Inputs:
  * 1) GPU driver struct g.

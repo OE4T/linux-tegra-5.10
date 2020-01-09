@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -39,6 +39,9 @@ struct unit_module;
  *
  * Test Type: Feature
  *
+ * Targets: nvgpu_atomic_set, nvgpu_atomic64_set,
+ *          nvgpu_atomic_read, nvgpu_atomic64_read
+ *
  * Input: struct atomic_test_args passed via the __args parameter.
  *
  * Steps:
@@ -58,6 +61,20 @@ int test_atomic_set_and_read(struct unit_module *m,
  *              (except add_unless) single threaded for proper functionality.
  *
  * Test Type: Feature
+ *
+ * Targets: nvgpu_atomic_inc, nvgpu_atomic64_inc,
+ *          nvgpu_atomic_inc_return, nvgpu_atomic64_inc_return,
+ *          nvgpu_atomic_inc_and_test, nvgpu_atomic64_inc_and_test,
+ *          nvgpu_atomic_dec, nvgpu_atomic64_dec,
+ *          nvgpu_atomic_dec_return, nvgpu_atomic64_dec_return,
+ *          nvgpu_atomic_dec_and_test, nvgpu_atomic64_dec_and_test,
+ *          nvgpu_atomic_add, nvgpu_atomic64_add,
+ *          nvgpu_atomic_add_return, nvgpu_atomic64_add_return,
+ *          nvgpu_atomic_sub, nvgpu_atomic64_sub,
+ *          nvgpu_atomic_sub_return, nvgpu_atomic64_sub_return,
+ *          nvgpu_atomic_sub_and_test, nvgpu_atomic64_sub_and_test,
+ *          nvgpu_atomic_read, nvgpu_atomic64_read,
+ *          nvgpu_atomic_set, nvgpu_atomic64_set
  *
  * Input: struct atomic_test_args passed via the __args parameter.
  *        For *_and_test ops, the args should make sure the loop traverses
@@ -82,6 +99,19 @@ int test_atomic_arithmetic(struct unit_module *m,
  *
  * Test Type: Feature
  *
+ * Targets: nvgpu_atomic_cmpxchg, nvgpu_atomic64_cmpxchg,
+ *          nvgpu_atomic_inc, nvgpu_atomic64_inc,
+ *          nvgpu_atomic_inc_and_test, nvgpu_atomic64_inc_and_test,
+ *          nvgpu_atomic_dec, nvgpu_atomic64_dec,
+ *          nvgpu_atomic_dec_and_test, nvgpu_atomic64_dec_and_test,
+ *          nvgpu_atomic_add, nvgpu_atomic64_add,
+ *          nvgpu_atomic_add_return, nvgpu_atomic64_add_return,
+ *          nvgpu_atomic_sub, nvgpu_atomic64_sub,
+ *          nvgpu_atomic_sub_and_test, nvgpu_atomic64_sub_and_test,
+ *          nvgpu_atomic_read, nvgpu_atomic64_read,
+ *          nvgpu_atomic_set, nvgpu_atomic64_set,
+ *          nvgpu_atomic_add_unless, nvgpu_atomic64_add_unless
+ *
  * Input: struct atomic_test_args passed via the __args parameter.
  *
  * Steps:
@@ -104,6 +134,12 @@ int test_atomic_arithmetic_threaded(struct unit_module *m,
  *              atomicity.
  *
  * Test Type: Feature
+ *
+ * Targets: nvgpu_atomic_inc_and_test, nvgpu_atomic64_inc_and_test,
+ *          nvgpu_atomic_dec_and_test, nvgpu_atomic64_dec_and_test,
+ *          nvgpu_atomic_sub_and_test, nvgpu_atomic64_sub_and_test,
+ *          nvgpu_atomic_read, nvgpu_atomic64_read,
+ *          nvgpu_atomic_set, nvgpu_atomic64_set
  *
  * Input: struct atomic_test_args passed via the __args parameter.
  *
@@ -129,6 +165,10 @@ int test_atomic_arithmetic_and_test_threaded(struct unit_module *m,
  *
  * Test Type: Feature
  *
+ * Targets: nvgpu_atomic_xchg, nvgpu_atomic64_xchg,
+ *          nvgpu_atomic_set, nvgpu_atomic64_set,
+ *          nvgpu_atomic_read, nvgpu_atomic64_read
+ *
  * Input: struct atomic_test_args passed via the __args parameter.
  *
  * Steps:
@@ -147,6 +187,10 @@ int test_atomic_xchg(struct unit_module *m,
  * Description: Test atomic exchange operation with threads to test atomicity.
  *
  * Test Type: Feature
+ *
+ * Targets: nvgpu_atomic_xchg, nvgpu_atomic64_xchg,
+ *          nvgpu_atomic_set, nvgpu_atomic64_set,
+ *          nvgpu_atomic_read, nvgpu_atomic64_read
  *
  * Input: struct atomic_test_args passed via the __args parameter.
  *
@@ -170,6 +214,10 @@ int test_atomic_xchg_threaded(struct unit_module *m,
  *
  * Test Type: Feature
  *
+ * Targets: nvgpu_atomic_cmpxchg, nvgpu_atomic64_cmpxchg,
+ *          nvgpu_atomic_set, nvgpu_atomic64_set,
+ *          nvgpu_atomic_read, nvgpu_atomic64_read
+ *
  * Input: struct atomic_test_args passed via the __args parameter.
  *
  * Steps:
@@ -188,6 +236,8 @@ int test_atomic_cmpxchg(struct unit_module *m,
  * Description: Test add_unless op single threaded for proper functionality.
  *
  * Test Type: Feature
+ *
+ * Targets: nvgpu_atomic_add_unless, nvgpu_atomic64_add_unless
  *
  * Input: struct atomic_test_args passed via the __args parameter.
  *
