@@ -102,6 +102,8 @@ u64 initial_key_start[] = {50, 30, 80, 100, 170, 10, 200, DUPLICATE_VALUE,
  *
  * Test Type: Feature
  *
+ * Targets: nvgpu_rbtree_insert
+ *
  * Input: None
  *
  * Steps:
@@ -127,6 +129,8 @@ int test_insert(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Test Type: Feature
  *
+ * Targets: nvgpu_rbtree_search, nvgpu_rbtree_unlink
+ *
  * Input: None
  *
  * Steps:
@@ -151,6 +155,8 @@ int test_unlink(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Test Type: Feature
  *
+ * Targets: nvgpu_rbtree_search, nvgpu_rbtree_range_search
+ *
  * Input: None
  *
  * Steps:
@@ -174,6 +180,8 @@ int test_search(struct unit_module *m, struct gk20a *g, void *args);
  * some error handling.
  *
  * Test Type: Feature
+ *
+ * Targets: nvgpu_rbtree_enum_start
  *
  * Input: None
  *
@@ -200,6 +208,8 @@ int test_enum(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Test Type: Feature
  *
+ * Targets: nvgpu_rbtree_enum_next
+ *
  * Input: None
  *
  * Steps:
@@ -221,12 +231,14 @@ int test_enum(struct unit_module *m, struct gk20a *g, void *args);
 int test_enum_next(struct unit_module *m, struct gk20a *g, void *args);
 
 /**
- * Test specification for: test_enum_next
+ * Test specification for: test_search_less
  *
  * Description: Test to check the nvgpu_rbtree_less_than_search routine: given
  * a key_start value, find a node with a lower key_start value.
  *
  * Test Type: Feature
+ *
+ * Targets: nvgpu_rbtree_less_than_search
  *
  * Input: None
  *
@@ -253,6 +265,8 @@ int test_search_less(struct unit_module *m, struct gk20a *g, void *args);
  * increase branch and line coverage.
  *
  * Test Type: Feature
+ *
+ * Targets: nvgpu_rbtree_insert, nvgpu_rbtree_unlink
  *
  * Input: None
  *
