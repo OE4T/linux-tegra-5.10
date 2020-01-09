@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -37,7 +37,9 @@ struct unit_module;
  *
  * Description: Initialize GPU enabled_flags
  *
- * Test Type: Feature
+ * Test Type: Feature, Error guessing
+ *
+ * Targets: nvgpu_init_enabled_flags
  *
  * Input: None
  *
@@ -61,6 +63,8 @@ int test_nvgpu_init_enabled_flags(struct unit_module *m, struct gk20a *g,
  *
  * Test Type: Feature
  *
+ * Targets: nvgpu_is_enabled
+ *
  * Input: test_nvgpu_init_enabled_flags
  *
  * Steps:
@@ -81,6 +85,8 @@ int test_nvgpu_enabled_flags_false_check(struct unit_module *m,
  *
  * Test Type: Feature
  *
+ * Targets: nvgpu_is_enabled, nvgpu_set_enabled
+ *
  * Input: test_nvgpu_init_enabled_flags
  *
  * Steps:
@@ -100,7 +106,9 @@ int test_nvgpu_set_enabled(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Description: Free enabled_flags
  *
- * Test Type: Other (cleanup)
+ * Test Type: Feature
+ *
+ * Targets: nvgpu_free_enabled_flags
  *
  * Input: test_nvgpu_init_enabled_flags
  *
