@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -37,8 +37,6 @@
 
 #include "../../nvgpu-fifo-common.h"
 #include "nvgpu-ramfc-gp10b.h"
-
-#define assert(cond)	unit_assert(cond, goto done)
 
 struct stub_ctx {
 	u32 addr_lo;
@@ -85,7 +83,7 @@ int test_gp10b_ramfc_commit_userd(struct unit_module *m, struct gk20a *g,
 	/* Aperture should be fixed = SYSMEM */
 	nvgpu_set_enabled(g, NVGPU_MM_HONORS_APERTURE, true);
 	err = nvgpu_alloc_inst_block(g, &ch.inst_block);
-	assert(err == 0);
+	unit_assert(err == 0, goto done);
 
 	ch.g = g;
 	ch.chid = 0;
@@ -93,14 +91,14 @@ int test_gp10b_ramfc_commit_userd(struct unit_module *m, struct gk20a *g,
 			USERD_IOVA_ADDR_LO) << ram_userd_base_shift_v();
 
 	gp10b_ramfc_commit_userd(&ch);
-	assert(stub[0].addr_lo == USERD_IOVA_ADDR_LO);
-	assert(stub[0].addr_hi == (USERD_IOVA_ADDR_HI) <<
-			ram_userd_base_shift_v());
-	assert(nvgpu_mem_rd32(g, &ch.inst_block,
+	unit_assert(stub[0].addr_lo == USERD_IOVA_ADDR_LO, goto done);
+	unit_assert(stub[0].addr_hi == (USERD_IOVA_ADDR_HI) <<
+			ram_userd_base_shift_v(), goto done);
+	unit_assert(nvgpu_mem_rd32(g, &ch.inst_block,
 			ram_in_ramfc_w() + ram_fc_userd_w()) ==
-			pbdma_userd_target_sys_mem_ncoh_f());
-	assert(nvgpu_mem_rd32(g, &ch.inst_block,
-			ram_in_ramfc_w() + ram_fc_userd_hi_w()) == 1U);
+			pbdma_userd_target_sys_mem_ncoh_f(), goto done);
+	unit_assert(nvgpu_mem_rd32(g, &ch.inst_block, ram_in_ramfc_w() +
+			ram_fc_userd_hi_w()) == 1U, goto done);
 
 	ret = UNIT_SUCCESS;
 done:

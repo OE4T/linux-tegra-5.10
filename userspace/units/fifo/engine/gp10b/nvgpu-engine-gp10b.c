@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -54,8 +54,6 @@
 		} \
 	} while (0)
 #endif
-
-#define assert(cond)	unit_assert(cond, goto done)
 
 #define branches_str test_fifo_flags_str
 #define pruned test_fifo_subtest_pruned
@@ -198,8 +196,9 @@ int test_gp10b_engine_init_ce_info(struct unit_module *m,
 	u.m = m;
 	u.gops = g->ops;
 
-	assert(f->num_engines > 0);
-	assert(f->engine_info[0].engine_enum == NVGPU_ENGINE_GR);
+	unit_assert(f->num_engines > 0, goto done);
+	unit_assert(f->engine_info[0].engine_enum == NVGPU_ENGINE_GR,
+			goto done);
 
 	g->ops.top.get_device_info = wrap_top_get_device_info;
 	g->ops.pbdma.find_for_runlist = wrap_pbdma_find_for_runlist;
@@ -237,11 +236,11 @@ int test_gp10b_engine_init_ce_info(struct unit_module *m,
 		}
 
 		if (branches & fail) {
-			assert(err != 0);
-			assert(f->num_engines < (1 + num_lce));
+			unit_assert(err != 0, goto done);
+			unit_assert(f->num_engines < (1 + num_lce), goto done);
 		} else {
-			assert(err == 0);
-			assert(f->num_engines = (1 + num_lce));
+			unit_assert(err == 0, goto done);
+			unit_assert(f->num_engines = (1 + num_lce), goto done);
 		}
 	}
 

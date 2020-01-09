@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -55,8 +55,6 @@
 		} \
 	} while (0)
 #endif
-
-#define assert(cond)	unit_assert(cond, goto done)
 
 #define MAX_STUB	2
 
@@ -127,7 +125,7 @@ int test_preempt(struct unit_module *m, struct gk20a *g, void *args)
 
 	ch = nvgpu_channel_open_new(g, runlist_id,
 			privileged, getpid(), getpid());
-	assert(ch != NULL);
+	unit_assert(ch != NULL, goto done);
 
 	g->ops.fifo.preempt_tsg = stub_fifo_preempt_tsg;
 	g->ops.fifo.preempt_channel = stub_fifo_preempt_channel;
@@ -142,12 +140,12 @@ int test_preempt(struct unit_module *m, struct gk20a *g, void *args)
 						NVGPU_INVALID_TSG_ID : 0;
 
 		err = nvgpu_preempt_channel(g, ch);
-		assert(err == 0);
+		unit_assert(err == 0, goto done);
 
 		if (branches & F_PREEMPT_CHANNEL) {
-			assert(stub[0].chid == ch->chid);
+			unit_assert(stub[0].chid == ch->chid, goto done);
 		} else {
-			assert(stub[0].tsgid == ch->tsgid);
+			unit_assert(stub[0].tsgid == ch->tsgid, goto done);
 		}
 	}
 
@@ -202,7 +200,7 @@ int test_preempt_poll_tsg_on_pbdma(struct unit_module *m, struct gk20a *g,
 	u32 prune = F_PREEMPT_POLL_PBDMA_NULL | F_PREEMPT_POLL_TSG_NULL;
 
 	tsg = nvgpu_tsg_open(g, getpid());
-	assert(tsg != NULL);
+	unit_assert(tsg != NULL, goto done);
 	tsg->runlist_id = 0;
 
 	for (branches = 0U; branches < F_PREEMPT_POLL_LAST;
@@ -230,11 +228,13 @@ int test_preempt_poll_tsg_on_pbdma(struct unit_module *m, struct gk20a *g,
 		}
 
 		if (branches & F_PREEMPT_POLL_TSG_NULL) {
-			assert(stub[0].tsgid == NVGPU_INVALID_TSG_ID);
+			unit_assert(stub[0].tsgid == NVGPU_INVALID_TSG_ID,
+				goto done);
 		} else if (!(branches & F_PREEMPT_POLL_PBDMA_NULL)) {
-			assert(stub[0].tsgid == 0);
-			assert(stub[0].pbdma_id ==
-				nvgpu_ffs(f->runlist_info[0]->pbdma_bitmask));
+			unit_assert(stub[0].tsgid == 0, goto done);
+			unit_assert(stub[0].pbdma_id ==
+				nvgpu_ffs(f->runlist_info[0]->pbdma_bitmask),
+				goto done);
 		}
 	}
 
@@ -254,7 +254,7 @@ int test_preempt_get_timeout(struct unit_module *m, struct gk20a *g, void *args)
 	int ret = UNIT_FAIL;
 
 	timeout = nvgpu_preempt_get_timeout(g);
-	assert(timeout == 0U);
+	unit_assert(timeout == 0U, goto done);
 
 	ret = UNIT_SUCCESS;
 done:

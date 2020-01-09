@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -59,8 +59,6 @@
 	} while (0)
 #endif
 
-#define assert(cond)	unit_assert(cond, goto done)
-
 #define branches_str test_fifo_flags_str
 #define pruned test_fifo_subtest_pruned
 
@@ -81,22 +79,22 @@ int test_gv11b_channel_unbind(struct unit_module *m,
 
 	ch = nvgpu_channel_open_new(g, runlist_id,
 		privileged, getpid(), getpid());
-	assert(ch);
-	assert(nvgpu_atomic_read(&ch->bound) == 0);
+	unit_assert(ch, goto done);
+	unit_assert(nvgpu_atomic_read(&ch->bound) == 0, goto done);
 
 	nvgpu_writel(g, ccsr_channel_inst_r(ch->chid), 0);
 	nvgpu_writel(g, ccsr_channel_r(ch->chid), 0);
 
 	g->ops.channel.bind(ch);
-	assert(nvgpu_atomic_read(&ch->bound) == 1);
+	unit_assert(nvgpu_atomic_read(&ch->bound) == 1, goto done);
 
 	gv11b_channel_unbind(ch);
 
-	assert(nvgpu_readl(g, (ccsr_channel_inst_r(ch->chid)) &
-		ccsr_channel_inst_bind_false_f()) != 0);
-	assert(nvgpu_readl(g, (ccsr_channel_r(ch->chid)) &
-		ccsr_channel_enable_clr_true_f()) != 0);
-	assert(nvgpu_atomic_read(&ch->bound) == 0);
+	unit_assert(nvgpu_readl(g, (ccsr_channel_inst_r(ch->chid)) &
+		ccsr_channel_inst_bind_false_f()) != 0, goto done);
+	unit_assert(nvgpu_readl(g, (ccsr_channel_r(ch->chid)) &
+		ccsr_channel_enable_clr_true_f()) != 0, goto done);
+	unit_assert(nvgpu_atomic_read(&ch->bound) == 0, goto done);
 
 	ret = UNIT_SUCCESS;
 done:
@@ -112,7 +110,8 @@ int test_gv11b_channel_count(struct unit_module *m,
 {
 	int ret = UNIT_FAIL;
 
-	assert(gv11b_channel_count(g) == ccsr_channel__size_1_v());
+	unit_assert(gv11b_channel_count(g) == ccsr_channel__size_1_v(),
+		goto done);
 	ret = UNIT_SUCCESS;
 done:
 	return ret;
@@ -139,7 +138,7 @@ int test_gv11b_channel_read_state(struct unit_module *m,
 
 	ch = nvgpu_channel_open_new(g, runlist_id,
 		privileged, getpid(), getpid());
-	assert(ch);
+	unit_assert(ch, goto done);
 
 	for (branches = 0U; branches < F_CHANNEL_READ_STATE_LAST; branches++) {
 
@@ -157,7 +156,7 @@ int test_gv11b_channel_read_state(struct unit_module *m,
 		nvgpu_writel(g, ccsr_channel_r(ch->chid), v);
 
 		gv11b_channel_read_state(g, ch, &state);
-		assert(state.eng_faulted == eng_faulted);
+		unit_assert(state.eng_faulted == eng_faulted, goto done);
 	}
 
 	ret = UNIT_SUCCESS;
@@ -189,7 +188,7 @@ int test_gv11b_channel_reset_faulted(struct unit_module *m,
 
 	ch = nvgpu_channel_open_new(g, runlist_id,
 		privileged, getpid(), getpid());
-	assert(ch);
+	unit_assert(ch, goto done);
 
 	for (branches = 0U; branches < F_CHANNEL_RESET_FAULTED_LAST; branches++) {
 
@@ -208,8 +207,12 @@ int test_gv11b_channel_reset_faulted(struct unit_module *m,
 		gv11b_channel_reset_faulted(g, ch, eng, pbdma);
 
 		v = nvgpu_readl(g, ccsr_channel_r(ch->chid));
-		assert(!eng || ((v & ccsr_channel_eng_faulted_reset_f()) != 0));
-		assert(!pbdma || ((v & ccsr_channel_pbdma_faulted_reset_f()) != 0));
+		unit_assert(!eng ||
+			((v & ccsr_channel_eng_faulted_reset_f()) != 0),
+			goto done);
+		unit_assert(!pbdma ||
+			((v & ccsr_channel_pbdma_faulted_reset_f()) != 0),
+			goto done);
 	}
 
 	ret = UNIT_SUCCESS;
@@ -266,7 +269,7 @@ int test_gv11b_channel_debug_dump(struct unit_module *m,
 
 	ch = nvgpu_channel_open_new(g, runlist_id,
 		privileged, getpid(), getpid());
-	assert(ch);
+	unit_assert(ch, goto done);
 
 	for (branches = 0U; branches < F_CHANNEL_DUMP_LAST; branches++) {
 
@@ -291,8 +294,8 @@ int test_gv11b_channel_debug_dump(struct unit_module *m,
 		gv11b_channel_debug_dump(g, &o, info);
 
 #ifdef CONFIG_DEBUG_FS
-		assert(unit_ctx.count > 4);
-		assert(unit_ctx.err == 0);
+		unit_assert(unit_ctx.count > 4, goto done);
+		unit_assert(unit_ctx.err == 0, goto done);
 #endif
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -73,8 +73,6 @@ static void subtest_setup(u32 branches)
 #define subtest_pruned	test_fifo_subtest_pruned
 #define branches_str	test_fifo_flags_str
 
-#define assert(cond)	unit_assert(cond, goto done)
-
 #define F_CHANNEL_SETUP_SW_VZALLOC_FAIL				BIT(0)
 #define F_CHANNEL_SETUP_SW_REF_COND_FAIL			BIT(1)
 #define F_CHANNEL_SETUP_SW_LAST					BIT(2)
@@ -135,10 +133,10 @@ int test_channel_setup_sw(struct unit_module *m, struct gk20a *g, void *vargs)
 		if (branches & fail) {
 			nvgpu_posix_enable_fault_injection(kmem_fi, false, 0);
 			nvgpu_posix_enable_fault_injection(l_cond_fi, false, 0);
-			assert(err != 0);
-			assert(f->channel == NULL);
+			unit_assert(err != 0, goto done);
+			unit_assert(f->channel == NULL, goto done);
 		} else {
-			assert(err == 0);
+			unit_assert(err == 0, goto done);
 			nvgpu_channel_cleanup_sw(g);
 		}
 	}
@@ -226,7 +224,7 @@ int test_channel_open(struct unit_module *m, struct gk20a *g, void *vargs)
 			nvgpu_list_empty(&f->free_chs) ? NULL :
 			nvgpu_list_first_entry(&f->free_chs,
 				nvgpu_channel, free_chs);
-		assert(next_ch != NULL);
+		unit_assert(next_ch != NULL, goto done);
 
 		runlist_id =
 			branches & F_CHANNEL_OPEN_ENGINE_NOT_VALID ?
@@ -277,9 +275,9 @@ int test_channel_open(struct unit_module *m, struct gk20a *g, void *vargs)
 
 		if (branches & F_CHANNEL_OPEN_BUG_ON) {
 			next_ch->g = NULL;
-			assert(err != 0);
+			unit_assert(err != 0, goto done);
 		} else {
-			assert(err == 0);
+			unit_assert(err == 0, goto done);
 		};
 
 		if (branches & F_CHANNEL_OPEN_ALLOC_CH_WARN1) {
@@ -289,7 +287,7 @@ int test_channel_open(struct unit_module *m, struct gk20a *g, void *vargs)
 		if (branches & F_CHANNEL_OPEN_ALLOC_CH_AGGRESSIVE) {
 			g->aggressive_sync_destroy_thresh -= 1U;
 			f->used_channels -= 2U;
-			assert(g->aggressive_sync_destroy);
+			unit_assert(g->aggressive_sync_destroy, goto done);
 			g->aggressive_sync_destroy = false;
 		}
 
@@ -302,11 +300,11 @@ int test_channel_open(struct unit_module *m, struct gk20a *g, void *vargs)
 			if (branches & F_CHANNEL_OPEN_ALLOC_CH_WARN0) {
 				nvgpu_atomic_dec(&ch->ref_count);
 			}
-			assert(ch == NULL);
+			unit_assert(ch == NULL, goto done);
 		} else {
-			assert(ch != NULL);
-			assert(ch->g == g);
-			assert(nvgpu_list_empty(&ch->free_chs));
+			unit_assert(ch != NULL, goto done);
+			unit_assert(ch->g == g, goto done);
+			unit_assert(nvgpu_list_empty(&ch->free_chs), goto done);
 
 			nvgpu_channel_close(ch);
 			ch = NULL;
@@ -427,7 +425,7 @@ int test_channel_close(struct unit_module *m, struct gk20a *g, void *vargs)
 	struct vm_gk20a vm;
 
 	tsg = nvgpu_tsg_open(g, getpid());
-	assert(tsg != NULL);
+	unit_assert(tsg != NULL, goto done);
 
 	g->ops.gr.intr.flush_channel_tlb = stub_gr_intr_flush_channel_tlb;
 
@@ -445,7 +443,7 @@ int test_channel_close(struct unit_module *m, struct gk20a *g, void *vargs)
 
 		ch = nvgpu_channel_open_new(g, runlist_id,
 				privileged, getpid(), getpid());
-		assert(ch != NULL);
+		unit_assert(ch != NULL, goto done);
 
 		ch->usermode_submit_enabled = true;
 
@@ -465,7 +463,7 @@ int test_channel_close(struct unit_module *m, struct gk20a *g, void *vargs)
 
 		if (branches & F_CHANNEL_CLOSE_TSG_BOUND) {
 			err = nvgpu_tsg_bind_channel(tsg, ch);
-			assert(err == 0);
+			unit_assert(err == 0, goto done);
 		}
 
 		ch->referenceable =
@@ -526,19 +524,19 @@ int test_channel_close(struct unit_module *m, struct gk20a *g, void *vargs)
 		}
 
 		if (branches & F_CHANNEL_CLOSE_ALREADY_FREED) {
-			assert(err != 0);
-			assert(ch->g == NULL);
+			unit_assert(err != 0, goto done);
+			unit_assert(ch->g == NULL, goto done);
 			continue;
 		}
 
 		if ((branches & F_CHANNEL_CLOSE_USER_SYNC) != 0U) {
-			assert(stub[0].chid == 1U);
+			unit_assert(stub[0].chid == 1U, goto done);
 			ch->user_sync = NULL;
 		}
 
 		if (branches & fail) {
-			assert(ch->g != NULL);
-			assert(nvgpu_list_empty(&ch->free_chs));
+			unit_assert(ch->g != NULL, goto done);
+			unit_assert(nvgpu_list_empty(&ch->free_chs), goto done);
 
 			if (branches & F_CHANNEL_CLOSE_ALREADY_FREED) {
 				continue;
@@ -553,12 +551,13 @@ int test_channel_close(struct unit_module *m, struct gk20a *g, void *vargs)
 			nvgpu_init_list_node(&tsg->ch_list);
 			nvgpu_ref_put(&tsg->refcount, nvgpu_tsg_release);
 		} else {
-			assert(!nvgpu_list_empty(&ch->free_chs));
-			assert(nvgpu_list_empty(&tsg->ch_list));
+			unit_assert(!nvgpu_list_empty(&ch->free_chs),
+				goto done);
+			unit_assert(nvgpu_list_empty(&tsg->ch_list), goto done);
 		}
 
 		if (branches & F_CHANNEL_CLOSE_OS_CLOSE) {
-			assert(stub[0].chid == ch->chid);
+			unit_assert(stub[0].chid == ch->chid, goto done);
 		}
 
 		if (!(branches & F_CHANNEL_CLOSE_AS_BOUND)) {
@@ -566,7 +565,7 @@ int test_channel_close(struct unit_module *m, struct gk20a *g, void *vargs)
 		}
 
 		if (branches & F_CHANNEL_CLOSE_FREE_SUBCTX) {
-			assert(ch->subctx == NULL);
+			unit_assert(ch->subctx == NULL, goto done);
 		}
 
 		if (ch->subctx != NULL) {
@@ -578,12 +577,12 @@ int test_channel_close(struct unit_module *m, struct gk20a *g, void *vargs)
 
 		ch->deterministic = false;
 		ch->deterministic_railgate_allowed = false;
-		assert(ch->usermode_submit_enabled == false);
+		unit_assert(ch->usermode_submit_enabled == false, goto done);
 
 		/* we took an extra reference to avoid nvgpu_vm_remove_ref */
-		assert(nvgpu_ref_put_return(&vm.ref, NULL));
+		unit_assert(nvgpu_ref_put_return(&vm.ref, NULL), goto done);
 
-		assert(ch->user_sync == NULL);
+		unit_assert(ch->user_sync == NULL, goto done);
 
 unbind:
 		/*
@@ -594,9 +593,9 @@ unbind:
 		 * - free pre-allocated resources
 		 * - channel refcount tracking
 		 */
-		assert(ch->g == NULL);
-		assert(!ch->referenceable);
-		assert(!nvgpu_list_empty(&ch->free_chs));
+		unit_assert(ch->g == NULL, goto done);
+		unit_assert(!ch->referenceable, goto done);
+		unit_assert(!nvgpu_list_empty(&ch->free_chs), goto done);
 
 		ch = NULL;
 	}
@@ -736,14 +735,14 @@ int test_channel_setup_bind(struct unit_module *m, struct gk20a *g, void *vargs)
 	struct nvgpu_setup_bind_args bind_args;
 
 	tsg = nvgpu_tsg_open(g, getpid());
-	assert(tsg != NULL);
+	unit_assert(tsg != NULL, goto done);
 
 	ch = nvgpu_channel_open_new(g, runlist_id,
 			privileged, getpid(), getpid());
-	assert(ch != NULL);
+	unit_assert(ch != NULL, goto done);
 
 	err = nvgpu_tsg_bind_channel(tsg, ch);
-	assert(err == 0);
+	unit_assert(err == 0, goto done);
 
 	g->ops.gr.intr.flush_channel_tlb = stub_gr_intr_flush_channel_tlb;
 	g->ops.mm.cache.l2_flush = stub_mm_l2_flush;	/* bug 2621189 */
@@ -754,7 +753,7 @@ int test_channel_setup_bind(struct unit_module *m, struct gk20a *g, void *vargs)
 	vm.mm = &mm;
 	ch->vm = &vm;
 	err = nvgpu_dma_alloc(g, PAGE_SIZE, &pdb_mem);
-	assert(err == 0);
+	unit_assert(err == 0, goto done);
 	vm.pdb.mem = &pdb_mem;
 
 	memset(&bind_args, 0, sizeof(bind_args));
@@ -842,19 +841,24 @@ int test_channel_setup_bind(struct unit_module *m, struct gk20a *g, void *vargs)
 		if (branches & fail) {
 			nvgpu_posix_enable_fault_injection(
 							l_nvgpu_fi, false, 0);
-			assert(err != 0);
-			assert(!nvgpu_mem_is_valid(&ch->usermode_userd));
-			assert(!nvgpu_mem_is_valid(&ch->usermode_gpfifo));
+			unit_assert(err != 0, goto done);
+			unit_assert(!nvgpu_mem_is_valid(&ch->usermode_userd),
+				goto done);
+			unit_assert(!nvgpu_mem_is_valid(&ch->usermode_gpfifo),
+				goto done);
 			ch->usermode_submit_enabled = false;
-			assert(nvgpu_atomic_read(&ch->bound) == false);
+			unit_assert(nvgpu_atomic_read(&ch->bound) == false,
+				goto done);
 			g->os_channel.free_usermode_buffers = NULL;
 		} else {
-			assert(err == 0);
-			assert(stub[0].chid == ch->chid);
-			assert(ch->usermode_submit_enabled == true);
-			assert(ch->userd_iova != 0U);
-			assert(stub[1].chid == ch->chid);
-			assert(nvgpu_atomic_read(&ch->bound) == true);
+			unit_assert(err == 0, goto done);
+			unit_assert(stub[0].chid == ch->chid, goto done);
+			unit_assert(ch->usermode_submit_enabled == true,
+				goto done);
+			unit_assert(ch->userd_iova != 0U, goto done);
+			unit_assert(stub[1].chid == ch->chid, goto done);
+			unit_assert(nvgpu_atomic_read(&ch->bound) == true,
+				goto done);
 			nvgpu_dma_free(g, &ch->usermode_userd);
 			nvgpu_dma_free(g, &ch->usermode_gpfifo);
 			ch->userd_iova = 0U;
@@ -904,7 +908,7 @@ int test_channel_alloc_inst(struct unit_module *m, struct gk20a *g, void *vargs)
 
 	ch = nvgpu_channel_open_new(g, runlist_id,
 			privileged, getpid(), getpid());
-	assert(ch != NULL);
+	unit_assert(ch != NULL, goto done);
 
 	for (branches = 0U; branches < F_CHANNEL_ALLOC_INST_LAST; branches++) {
 
@@ -925,17 +929,18 @@ int test_channel_alloc_inst(struct unit_module *m, struct gk20a *g, void *vargs)
 		err = nvgpu_channel_alloc_inst(g, ch);
 
 		if (branches & fail) {
-			assert(err != 0);
-			assert(ch->inst_block.aperture ==
-					APERTURE_INVALID);
+			unit_assert(err != 0, goto done);
+			unit_assert(ch->inst_block.aperture ==
+					APERTURE_INVALID, goto done);
 		} else {
-			assert(err == 0);
-			assert(ch->inst_block.aperture !=
-					APERTURE_INVALID);
+			unit_assert(err == 0, goto done);
+			unit_assert(ch->inst_block.aperture !=
+					APERTURE_INVALID, goto done);
 		}
 
 		nvgpu_channel_free_inst(g, ch);
-		assert(ch->inst_block.aperture == APERTURE_INVALID);
+		unit_assert(ch->inst_block.aperture == APERTURE_INVALID,
+			goto done);
 	}
 	ret = UNIT_SUCCESS;
 
@@ -989,13 +994,13 @@ int test_channel_from_inst(struct unit_module *m, struct gk20a *g, void *vargs)
 
 	chA = nvgpu_channel_open_new(g, runlist_id,
 			privileged, getpid(), getpid());
-	assert(chA != NULL);
+	unit_assert(chA != NULL, goto done);
 
 	chB = nvgpu_channel_open_new(g, runlist_id,
 			privileged, getpid(), getpid());
-	assert(chB != NULL);
+	unit_assert(chB != NULL, goto done);
 
-	assert(f->num_channels > 0U);
+	unit_assert(f->num_channels > 0U, goto done);
 
 	for (branches = 0U; branches < F_CHANNEL_FROM_INST_LAST; branches++) {
 
@@ -1031,17 +1036,18 @@ int test_channel_from_inst(struct unit_module *m, struct gk20a *g, void *vargs)
 
 		if (branches & found) {
 			if (branches & F_CHANNEL_FROM_INST_MATCH_A) {
-				assert(ch == chA);
+				unit_assert(ch == chA, goto done);
 			}
 			if (branches & F_CHANNEL_FROM_INST_MATCH_B) {
-				assert(ch == chB);
+				unit_assert(ch == chB, goto done);
 			}
-			assert(nvgpu_atomic_read(&ch->ref_count) == 2);
+			unit_assert(nvgpu_atomic_read(&ch->ref_count) == 2,
+				goto done);
 			nvgpu_channel_put(ch);
 		} else {
 			f->channel = fifo.channel;
 			f->num_channels = fifo.num_channels;
-			assert(ch == NULL);
+			unit_assert(ch == NULL, goto done);
 		}
 	}
 	ret = UNIT_SUCCESS;
@@ -1083,14 +1089,14 @@ int test_channel_enable_disable_tsg(struct unit_module *m,
 	int ret = UNIT_FAIL;
 
 	tsg = nvgpu_tsg_open(g, getpid());
-	assert(tsg != NULL);
+	unit_assert(tsg != NULL, goto done);
 
 	ch = nvgpu_channel_open_new(g, runlist_id,
 			privileged, getpid(), getpid());
-	assert(ch != NULL);
+	unit_assert(ch != NULL, goto done);
 
 	err = nvgpu_tsg_bind_channel(tsg, ch);
-	assert(err == 0);
+	unit_assert(err == 0, goto done);
 
 	g->ops.tsg.enable = stub_tsg_enable;
 	g->ops.tsg.disable = stub_tsg_disable;
@@ -1098,21 +1104,21 @@ int test_channel_enable_disable_tsg(struct unit_module *m,
 	subtest_setup(branches);
 
 	err = nvgpu_channel_enable_tsg(g, ch);
-	assert(stub[0].tsgid = tsg->tsgid);
+	unit_assert(stub[0].tsgid = tsg->tsgid, goto done);
 
 	err = nvgpu_channel_disable_tsg(g, ch);
-	assert(stub[1].tsgid = tsg->tsgid);
+	unit_assert(stub[1].tsgid = tsg->tsgid, goto done);
 
 	subtest_setup(branches);
 
 	err = nvgpu_tsg_unbind_channel(tsg, ch);
-	assert(err == 0);
+	unit_assert(err == 0, goto done);
 
 	err = nvgpu_channel_enable_tsg(g, ch);
-	assert(err != 0);
+	unit_assert(err != 0, goto done);
 
 	err = nvgpu_channel_disable_tsg(g, ch);
-	assert(err != 0);
+	unit_assert(err != 0, goto done);
 
 	ret = UNIT_SUCCESS;
 
@@ -1145,11 +1151,11 @@ int test_channel_abort(struct unit_module *m, struct gk20a *g, void *vargs)
 	int err;
 
 	tsg = nvgpu_tsg_open(g, getpid());
-	assert(tsg != NULL);
+	unit_assert(tsg != NULL, goto done);
 
 	ch = nvgpu_channel_open_new(g, runlist_id,
 			privileged, getpid(), getpid());
-	assert(ch != NULL);
+	unit_assert(ch != NULL, goto done);
 
 	for (branches = 0U; branches < F_CHANNEL_ABORT_LAST; branches++) {
 		subtest_setup(branches);
@@ -1158,11 +1164,11 @@ int test_channel_abort(struct unit_module *m, struct gk20a *g, void *vargs)
 
 		if ((branches & F_CHANNEL_ABORT_TSG) != 0U) {
 			err = nvgpu_tsg_bind_channel(tsg, ch);
-			assert(err == 0);
+			unit_assert(err == 0, goto done);
 		}
 
 		nvgpu_channel_abort(ch, false);
-		assert(ch->unserviceable == true);
+		unit_assert(ch->unserviceable == true, goto done);
 	}
 	ret = UNIT_SUCCESS;
 
@@ -1199,7 +1205,7 @@ int test_channel_mark_error(struct unit_module *m, struct gk20a *g, void *vargs)
 
 	ch = nvgpu_channel_open_new(g, runlist_id,
 			privileged, getpid(), getpid());
-	assert(ch != NULL);
+	unit_assert(ch != NULL, goto done);
 
 	for (branches = 0U; branches < F_CHANNEL_MARK_ERROR_LAST; branches++) {
 
@@ -1214,8 +1220,8 @@ int test_channel_mark_error(struct unit_module *m, struct gk20a *g, void *vargs)
 		}
 
 		err = nvgpu_channel_mark_error(g, ch);
-		assert(err == false);
-		assert(ch->unserviceable == true);
+		unit_assert(err == false, goto done);
+		unit_assert(ch->unserviceable == true, goto done);
 
 		ch->semaphore_wq.initialized = true;
 		ch->notifier_wq.initialized = true;
@@ -1245,12 +1251,12 @@ int test_channel_sw_quiesce(struct unit_module *m, struct gk20a *g, void *vargs)
 
 	ch = nvgpu_channel_open_new(g, runlist_id,
 			privileged, getpid(), getpid());
-	assert(ch != NULL);
-	assert(f->num_channels > 0U);
+	unit_assert(ch != NULL, goto done);
+	unit_assert(f->num_channels > 0U, goto done);
 
 #ifndef CONFIG_NVGPU_RECOVERY
 	nvgpu_channel_sw_quiesce(g);
-	assert(ch->unserviceable == true);
+	unit_assert(ch->unserviceable == true, goto done);
 #endif
 
 	ret = UNIT_SUCCESS;
@@ -1293,14 +1299,14 @@ int test_channel_deterministic_idle_unidle(struct unit_module *m,
 	struct nvgpu_setup_bind_args bind_args;
 
 	tsg = nvgpu_tsg_open(g, getpid());
-	assert(tsg != NULL);
+	unit_assert(tsg != NULL, goto done);
 
 	ch = nvgpu_channel_open_new(g, runlist_id,
 			privileged, getpid(), getpid());
-	assert(ch != NULL);
+	unit_assert(ch != NULL, goto done);
 
 	err = nvgpu_tsg_bind_channel(tsg, ch);
-	assert(err == 0);
+	unit_assert(err == 0, goto done);
 
 	memset(&mm, 0, sizeof(mm));
 	memset(&vm, 0, sizeof(vm));
@@ -1308,7 +1314,7 @@ int test_channel_deterministic_idle_unidle(struct unit_module *m,
 	vm.mm = &mm;
 	ch->vm = &vm;
 	err = nvgpu_dma_alloc(g, PAGE_SIZE, &pdb_mem);
-	assert(err == 0);
+	unit_assert(err == 0, goto done);
 	vm.pdb.mem = &pdb_mem;
 
 	g->ops.gr.intr.flush_channel_tlb = stub_gr_intr_flush_channel_tlb;
@@ -1340,8 +1346,8 @@ int test_channel_deterministic_idle_unidle(struct unit_module *m,
 		}
 
 		err = nvgpu_channel_setup_bind(ch, &bind_args);
-		assert(err == 0);
-		assert(nvgpu_atomic_read(&ch->bound) == true);
+		unit_assert(err == 0, goto done);
+		unit_assert(nvgpu_atomic_read(&ch->bound) == true, goto done);
 
 		ch->deterministic_railgate_allowed = (branches &
 			F_CHANNEL_DETERMINISTIC_IDLE_RAILGATE_ALLOWED) ?
@@ -1357,21 +1363,23 @@ int test_channel_deterministic_idle_unidle(struct unit_module *m,
 		if ((u64)(branches & 0x3U) ==
 			(F_CHANNEL_DETERMINISTIC_IDLE_UNIDLE &
 			~F_CHANNEL_DETERMINISTIC_IDLE_RAILGATE_ALLOWED)) {
-			assert(g->usage_count.v ==
-						(gpu_usage_count_initial - 1));
+			unit_assert(g->usage_count.v ==
+				(gpu_usage_count_initial - 1), goto done);
 		} else {
 
-			assert(g->usage_count.v == gpu_usage_count_initial);
+			unit_assert(g->usage_count.v == gpu_usage_count_initial,
+				goto done);
 		}
 
 		nvgpu_channel_deterministic_unidle(g);
 		if (branches == ((F_CHANNEL_DETERMINISTIC_IDLE_UNIDLE |
 			F_CHANNEL_DETERMINISTIC_UNIDLE_GK20ABUSY_FAIL) &
 			~F_CHANNEL_DETERMINISTIC_IDLE_RAILGATE_ALLOWED)) {
-			assert(g->usage_count.v ==
-						(gpu_usage_count_initial - 1));
+			unit_assert(g->usage_count.v ==
+				(gpu_usage_count_initial - 1), goto done);
 		} else {
-			assert(g->usage_count.v == gpu_usage_count_initial);
+			unit_assert(g->usage_count.v == gpu_usage_count_initial,
+				goto done);
 		}
 
 		nvgpu_dma_free(g, &ch->usermode_userd);
@@ -1444,13 +1452,13 @@ int test_channel_suspend_resume_serviceable_chs(struct unit_module *m,
 	int ret = UNIT_FAIL;
 
 	tsg = nvgpu_tsg_open(g, getpid());
-	assert(tsg != NULL);
+	unit_assert(tsg != NULL, goto done);
 	ch = nvgpu_channel_open_new(g, runlist_id,
 			privileged, getpid(), getpid());
-	assert(ch != NULL);
+	unit_assert(ch != NULL, goto done);
 
 	err = nvgpu_tsg_bind_channel(tsg, ch);
-	assert(err == 0);
+	unit_assert(err == 0, goto done);
 
 	g->ops.fifo.preempt_tsg = stub_fifo_preempt_tsg;
 	g->ops.fifo.preempt_channel = stub_fifo_preempt_channel;
@@ -1483,16 +1491,16 @@ int test_channel_suspend_resume_serviceable_chs(struct unit_module *m,
 				NVGPU_INVALID_TSG_ID : orig_ch_tsgid;
 
 		err = nvgpu_channel_suspend_all_serviceable_ch(g);
-		assert(err == 0);
+		unit_assert(err == 0, goto done);
 		err = nvgpu_channel_resume_all_serviceable_ch(g);
 
 		if (branches & F_CHANNEL_SUSPEND_RESUME_INVALID_TSGID) {
-			assert(stub[0].chid == ch->chid);
+			unit_assert(stub[0].chid == ch->chid, goto done);
 		} else if (branches &
 				F_CHANNEL_SUSPEND_RESUME_UNSERVICEABLE_CH) {
-			assert(err == 0);
+			unit_assert(err == 0, goto done);
 		} else {
-			assert(stub[0].tsgid == ch->tsgid);
+			unit_assert(stub[0].tsgid == ch->tsgid, goto done);
 		}
 	}
 	ret = UNIT_SUCCESS;
@@ -1562,14 +1570,14 @@ int test_channel_debug_dump(struct unit_module *m, struct gk20a *g, void *vargs)
 	int ret = UNIT_FAIL;
 
 	tsg = nvgpu_tsg_open(g, getpid());
-	assert(tsg != NULL);
+	unit_assert(tsg != NULL, goto done);
 
 	ch = nvgpu_channel_open_new(g, runlist_id,
 			privileged, getpid(), getpid());
-	assert(ch != NULL);
+	unit_assert(ch != NULL, goto done);
 
 	err = nvgpu_tsg_bind_channel(tsg, ch);
-	assert(err == 0);
+	unit_assert(err == 0, goto done);
 
 	kmem_fi = nvgpu_kmem_get_fault_injection();
 
@@ -1599,8 +1607,8 @@ int test_channel_debug_dump(struct unit_module *m, struct gk20a *g, void *vargs)
 		if (branches & fail) {
 			nvgpu_posix_enable_fault_injection(kmem_fi, false, 0);
 		} else {
-			assert(stub[0].chid == ch->chid);
-			assert(stub[1].chid == ch->chid);
+			unit_assert(stub[0].chid == ch->chid, goto done);
+			unit_assert(stub[1].chid == ch->chid, goto done);
 		}
 	}
 	ret = UNIT_SUCCESS;
@@ -1661,14 +1669,14 @@ int test_channel_semaphore_wakeup(struct unit_module *m,
 	global_count = 0;
 
 	tsg = nvgpu_tsg_open(g, getpid());
-	assert(tsg != NULL);
+	unit_assert(tsg != NULL, goto done);
 
 	ch = nvgpu_channel_open_new(g, runlist_id,
 			privileged, getpid(), getpid());
-	assert(ch != NULL);
+	unit_assert(ch != NULL, goto done);
 
 	err = nvgpu_tsg_bind_channel(tsg, ch);
-	assert(err == 0);
+	unit_assert(err == 0, goto done);
 
 	memset(&mm, 0, sizeof(mm));
 	memset(&vm, 0, sizeof(vm));
@@ -1676,7 +1684,7 @@ int test_channel_semaphore_wakeup(struct unit_module *m,
 	vm.mm = &mm;
 	ch->vm = &vm;
 	err = nvgpu_dma_alloc(g, PAGE_SIZE, &pdb_mem);
-	assert(err == 0);
+	unit_assert(err == 0, goto done);
 	vm.pdb.mem = &pdb_mem;
 
 	g->ops.gr.intr.flush_channel_tlb = stub_gr_intr_flush_channel_tlb;
@@ -1692,8 +1700,8 @@ int test_channel_semaphore_wakeup(struct unit_module *m,
 	bind_args.flags |= NVGPU_SETUP_BIND_FLAGS_USERMODE_SUPPORT;
 
 	err = nvgpu_channel_setup_bind(ch, &bind_args);
-	assert(err == 0);
-	assert(nvgpu_atomic_read(&ch->bound) == true);
+	unit_assert(err == 0, goto done);
+	unit_assert(nvgpu_atomic_read(&ch->bound) == true, goto done);
 
 	for (branches = 0U; branches < F_CHANNEL_SEMAPHORRE_WAKEUP_LAST;
 								branches++) {
@@ -1722,7 +1730,7 @@ int test_channel_semaphore_wakeup(struct unit_module *m,
 		}
 
 		nvgpu_channel_semaphore_wakeup(g, false);
-		assert(stub[0].count == (global_count - 1U));
+		unit_assert(stub[0].count == (global_count - 1U), goto done);
 
 		ch->deterministic = false;
 	}
@@ -1750,7 +1758,7 @@ int test_channel_from_invalid_id(struct unit_module *m, struct gk20a *g,
 	int ret = UNIT_FAIL;
 
 	ch = nvgpu_channel_from_id(g, NVGPU_INVALID_CHANNEL_ID);
-	assert(ch == NULL);
+	unit_assert(ch == NULL, goto done);
 
 	ret = UNIT_SUCCESS;
 
@@ -1771,8 +1779,8 @@ int test_channel_put_warn(struct unit_module *m, struct gk20a *g, void *vargs)
 
 	ch = nvgpu_channel_open_new(g, runlist_id,
 			privileged, getpid(), getpid());
-	assert(ch != NULL);
-	assert(f->num_channels > 0U);
+	unit_assert(ch != NULL, goto done);
+	unit_assert(f->num_channels > 0U, goto done);
 
 	/* condition broadcast fail */
 	ch->ref_count_dec_wq.initialized = false;
@@ -1813,15 +1821,15 @@ int test_ch_referenceable_cleanup(struct unit_module *m, struct gk20a *g,
 
 	ch = nvgpu_channel_open_new(g, runlist_id,
 			privileged, getpid(), getpid());
-	assert(ch != NULL);
-	assert(f->num_channels > 0U);
+	unit_assert(ch != NULL, goto done);
+	unit_assert(f->num_channels > 0U, goto done);
 
 	nvgpu_channel_cleanup_sw(g);
-	assert(f->channel == NULL);
+	unit_assert(f->channel == NULL, goto done);
 
 	/* Reset environment variables */
 	err = nvgpu_channel_setup_sw(g);
-	assert(err == 0);
+	unit_assert(err == 0, goto done);
 
 	ret = UNIT_SUCCESS;
 done:
@@ -1844,13 +1852,13 @@ int test_channel_abort_cleanup(struct unit_module *m, struct gk20a *g,
 	bool privileged = false;
 
 	tsg = nvgpu_tsg_open(g, getpid());
-	assert(tsg != NULL);
+	unit_assert(tsg != NULL, goto done);
 
 	g->ops.gr.intr.flush_channel_tlb = stub_gr_intr_flush_channel_tlb;
 
 	ch = nvgpu_channel_open_new(g, runlist_id,
 				privileged, getpid(), getpid());
-	assert(ch != NULL);
+	unit_assert(ch != NULL, goto done);
 	ch->usermode_submit_enabled = true;
 
 	/* Channel requires to be as_bound */
@@ -1863,7 +1871,7 @@ int test_channel_abort_cleanup(struct unit_module *m, struct gk20a *g,
 	nvgpu_ref_get(&vm.ref);
 
 	err = nvgpu_tsg_bind_channel(tsg, ch);
-	assert(err == 0);
+	unit_assert(err == 0, goto done);
 
 	ch->user_sync = nvgpu_kzalloc(g,
 			sizeof(struct nvgpu_channel_sync));
@@ -1872,7 +1880,7 @@ int test_channel_abort_cleanup(struct unit_module *m, struct gk20a *g,
 	ch->user_sync->destroy = stub_channel_sync_destroy;
 
 	err = nvgpu_tsg_unbind_channel(tsg, ch);
-	assert(err == 0);
+	unit_assert(err == 0, goto done);
 
 	nvgpu_channel_close(ch);
 

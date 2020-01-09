@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -31,8 +31,6 @@
 #include "../../nvgpu-fifo-common.h"
 #include "ramin-gk20a-fusa.h"
 
-#define assert(cond)	unit_assert(cond, goto done)
-
 int test_gk20a_ramin_base_shift(struct unit_module *m, struct gk20a *g,
 								void *args)
 {
@@ -40,7 +38,7 @@ int test_gk20a_ramin_base_shift(struct unit_module *m, struct gk20a *g,
 	u32 base_shift = 0U;
 
 	base_shift = gk20a_ramin_base_shift();
-	assert(base_shift == ram_in_base_shift_v());
+	unit_assert(base_shift == ram_in_base_shift_v(), goto done);
 
 	ret = UNIT_SUCCESS;
 done:
@@ -57,7 +55,7 @@ int test_gk20a_ramin_alloc_size(struct unit_module *m, struct gk20a *g,
 	u32 alloc_size = 0U;
 
 	alloc_size = gk20a_ramin_alloc_size();
-	assert(alloc_size == ram_in_alloc_size_v());
+	unit_assert(alloc_size == ram_in_alloc_size_v(), goto done);
 
 	ret = UNIT_SUCCESS;
 done:

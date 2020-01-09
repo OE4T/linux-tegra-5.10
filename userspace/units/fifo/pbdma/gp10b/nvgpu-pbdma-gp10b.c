@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -57,15 +57,13 @@
 	} while (0)
 #endif
 
-#define assert(cond)	unit_assert(cond, goto done)
-
 int test_gp10b_pbdma_get_signature(struct unit_module *m,
 		struct gk20a *g, void *args)
 {
 	int ret = UNIT_FAIL;
-	assert(gp10b_pbdma_get_signature(g) ==
+	unit_assert(gp10b_pbdma_get_signature(g) ==
 		(g->ops.get_litter_value(g, GPU_LIT_GPFIFO_CLASS) |
-			pbdma_signature_sw_zero_f()));
+			pbdma_signature_sw_zero_f()), goto done);
 
 	ret = UNIT_SUCCESS;
 done:
@@ -85,9 +83,9 @@ int test_gp10b_pbdma_get_fc_runlist_timeslice(struct unit_module *m,
 	u32 timescale = (timeslice >> 12) & 0xF;
 	bool enabled = ((timeslice & pbdma_runlist_timeslice_enable_true_f()) != 0);
 
-	assert(timeout <= RL_MAX_TIMESLICE_TIMEOUT);
-	assert(timescale <= RL_MAX_TIMESLICE_SCALE);
-	assert(enabled);
+	unit_assert(timeout <= RL_MAX_TIMESLICE_TIMEOUT, goto done);
+	unit_assert(timescale <= RL_MAX_TIMESLICE_SCALE, goto done);
+	unit_assert(enabled, goto done);
 
 	ret = UNIT_SUCCESS;
 done:
@@ -99,8 +97,8 @@ int test_gp10b_pbdma_get_config_auth_level_privileged(struct unit_module *m,
 {
 	int ret = UNIT_FAIL;
 
-	assert(gp10b_pbdma_get_config_auth_level_privileged() ==
-		pbdma_config_auth_level_privileged_f());
+	unit_assert(gp10b_pbdma_get_config_auth_level_privileged() ==
+		pbdma_config_auth_level_privileged_f(), goto done);
 
 	ret = UNIT_SUCCESS;
 done:

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -52,18 +52,16 @@
 	} while (0)
 #endif
 
-#define assert(cond)	unit_assert(cond, goto done)
-
 int test_gv11b_is_fault_engine_subid_gpc(struct unit_module *m,
 		struct gk20a *g, void *args)
 {
 
 	int ret = UNIT_FAIL;
 
-	assert(gv11b_is_fault_engine_subid_gpc(g,
-		gmmu_fault_client_type_gpc_v()) == true);
-	assert(gv11b_is_fault_engine_subid_gpc(g,
-		gmmu_fault_client_type_hub_v()) == false);
+	unit_assert(gv11b_is_fault_engine_subid_gpc(g,
+		gmmu_fault_client_type_gpc_v()) == true, goto done);
+	unit_assert(gv11b_is_fault_engine_subid_gpc(g,
+		gmmu_fault_client_type_hub_v()) == false, goto done);
 
 	ret = UNIT_SUCCESS;
 done:

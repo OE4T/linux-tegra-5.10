@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -55,7 +55,6 @@
 	} while (0)
 #endif
 
-#define assert(cond)	unit_assert(cond, goto done)
 #define branches_str 	test_fifo_flags_str
 
 int test_gk20a_userd_entry_size(struct unit_module *m,
@@ -64,7 +63,7 @@ int test_gk20a_userd_entry_size(struct unit_module *m,
 	int ret = UNIT_FAIL;
 	u32 size = gk20a_userd_entry_size(g);
 
-	assert(size == ram_userd_chan_size_v());
+	unit_assert(size == ram_userd_chan_size_v(), goto done);
 	ret = UNIT_SUCCESS;
 done:
 	return ret;

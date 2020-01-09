@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -72,8 +72,6 @@ static void subtest_setup(u32 branches)
 #define subtest_pruned	test_fifo_subtest_pruned
 #define branches_str	test_fifo_flags_str
 
-#define assert(cond)	unit_assert(cond, goto done)
-
 #define F_ENGINE_SETUP_SW_ENGINE_INFO_ENOMEM	BIT(0)
 #define F_ENGINE_SETUP_SW_ENGINE_LIST_ENOMEM	BIT(1)
 #define F_ENGINE_SETUP_SW_INIT_INFO_FAIL	BIT(2)
@@ -110,7 +108,7 @@ int test_engine_setup_sw(struct unit_module *m,
 	u32 prune = fail;
 
 	err = test_fifo_setup_gv11b_reg_space(m, g);
-	assert(err == 0);
+	unit_assert(err == 0, goto done);
 
 	gv11b_init_hal(g);
 
@@ -144,13 +142,13 @@ int test_engine_setup_sw(struct unit_module *m,
 		err = nvgpu_engine_setup_sw(g);
 
 		if (branches & fail) {
-			assert(err != 0);
-			assert(f->active_engines_list == NULL);
-			assert(f->engine_info == NULL);
+			unit_assert(err != 0, goto done);
+			unit_assert(f->active_engines_list == NULL, goto done);
+			unit_assert(f->engine_info == NULL, goto done);
 		} else {
-			assert(err == 0);
-			assert(f->active_engines_list != NULL);
-			assert(f->engine_info != NULL);
+			unit_assert(err == 0, goto done);
+			unit_assert(f->active_engines_list != NULL, goto done);
+			unit_assert(f->engine_info != NULL, goto done);
 			nvgpu_engine_cleanup_sw(g);
 		}
 	}
@@ -245,10 +243,10 @@ int test_engine_init_info(struct unit_module *m,
 		err = nvgpu_engine_init_info(f);
 
 		if (branches & fail) {
-			assert(err != 0);
+			unit_assert(err != 0, goto done);
 		} else {
-			assert(err == 0);
-			assert(f->num_engines > 0);
+			unit_assert(err == 0, goto done);
+			unit_assert(f->num_engines > 0, goto done);
 		}
 	}
 
@@ -277,18 +275,21 @@ int test_engine_ids(struct unit_module *m,
 	unit_ctx.ce_mask = 0;
 	unit_ctx.eng_mask = 0;
 
-	assert(nvgpu_engine_check_valid_id(g, U32_MAX) == false);
+	unit_assert(nvgpu_engine_check_valid_id(g, U32_MAX) == false,
+				goto done);
 
-	assert(nvgpu_engine_get_ids(g, &engine_id, 1, NVGPU_ENGINE_INVAL) == 0);
+	unit_assert(nvgpu_engine_get_ids(g, &engine_id, 1,
+				NVGPU_ENGINE_INVAL) == 0, goto done);
 
 	for (e = NVGPU_ENGINE_GR; e < NVGPU_ENGINE_INVAL; e++) {
 
 		n = nvgpu_engine_get_ids(g, engine_ids, MAX_ENGINE_IDS, e);
-		assert(n > 0);
+		unit_assert(n > 0, goto done);
 		for (i = 0; i < n; i++) {
 			engine_id = engine_ids[i];
 
-			assert(nvgpu_engine_check_valid_id(g, engine_id) == true);
+			unit_assert(nvgpu_engine_check_valid_id(g, engine_id) ==
+							true, goto done);
 			unit_ctx.eng_mask |= BIT(engine_id);
 			if (e == NVGPU_ENGINE_ASYNC_CE || e == NVGPU_ENGINE_GRCE) {
 				unit_ctx.ce_mask |= BIT(engine_id);
@@ -296,10 +297,11 @@ int test_engine_ids(struct unit_module *m,
 		}
 	}
 
-	assert(nvgpu_engine_get_ids(g, &engine_id, 1, NVGPU_ENGINE_GR) == 1);
-	assert(engine_id == nvgpu_engine_get_gr_id(g));
-	assert(unit_ctx.eng_mask != 0);
-	assert(unit_ctx.ce_mask != 0);
+	unit_assert(nvgpu_engine_get_ids(g, &engine_id, 1,
+					NVGPU_ENGINE_GR) == 1, goto done);
+	unit_assert(engine_id == nvgpu_engine_get_gr_id(g), goto done);
+	unit_assert(unit_ctx.eng_mask != 0, goto done);
+	unit_assert(unit_ctx.ce_mask != 0, goto done);
 
 	ret = UNIT_SUCCESS;
 done:
@@ -320,16 +322,16 @@ int test_engine_get_active_eng_info(struct unit_module *m,
 		unit_verbose(m, "engine_id=%u\n", engine_id);
 		info = nvgpu_engine_get_active_eng_info(g, engine_id);
 		if (nvgpu_engine_check_valid_id(g, engine_id)) {
-			assert(info != NULL);
-			assert(info->engine_id == engine_id);
+			unit_assert(info != NULL, goto done);
+			unit_assert(info->engine_id == engine_id, goto done);
 			eng_mask |= BIT(engine_id);
 		} else {
-			assert(info == NULL);
+			unit_assert(info == NULL, goto done);
 		}
 	}
 	unit_verbose(m, "eng_mask=%x\n", eng_mask);
 	unit_verbose(m, "unit_ctx.eng_mask=%x\n", unit_ctx.eng_mask);
-	assert(eng_mask == unit_ctx.eng_mask);
+	unit_assert(eng_mask == unit_ctx.eng_mask, goto done);
 
 	ret = UNIT_SUCCESS;
 done:
@@ -344,14 +346,14 @@ int test_engine_enum_from_type(struct unit_module *m,
 
 	engine_enum = nvgpu_engine_enum_from_type(g,
 		top_device_info_type_enum_graphics_v());
-	assert(engine_enum == NVGPU_ENGINE_GR);
+	unit_assert(engine_enum == NVGPU_ENGINE_GR, goto done);
 
 	engine_enum = nvgpu_engine_enum_from_type(g,
 		top_device_info_type_enum_lce_v());
-	assert(engine_enum == NVGPU_ENGINE_ASYNC_CE);
+	unit_assert(engine_enum == NVGPU_ENGINE_ASYNC_CE, goto done);
 
 	engine_enum = nvgpu_engine_enum_from_type(g, 0xff);
-	assert(engine_enum == NVGPU_ENGINE_INVAL);
+	unit_assert(engine_enum == NVGPU_ENGINE_INVAL, goto done);
 
 	ret = UNIT_SUCCESS;
 done:
@@ -371,22 +373,22 @@ int test_engine_interrupt_mask(struct unit_module *m,
 	u32 engine_id;
 	struct nvgpu_fifo *f = &g->fifo;
 
-	assert(intr_mask != 0U);
+	unit_assert(intr_mask != 0U, goto done);
 	for (engine_id = 0; engine_id < f->max_engines; engine_id++) {
 		unit_verbose(m, "engine_id=%u\n", engine_id);
 		mask = nvgpu_engine_act_interrupt_mask(g, engine_id);
 		if (nvgpu_engine_check_valid_id(g, engine_id)) {
-			assert(mask != 0);
-			assert((mask & intr_mask) == mask);
+			unit_assert(mask != 0, goto done);
+			unit_assert((mask & intr_mask) == mask, goto done);
 			all_mask |= mask;
 		} else {
-			assert(mask == 0);
+			unit_assert(mask == 0, goto done);
 		}
 	}
-	assert(intr_mask == all_mask);
+	unit_assert(intr_mask == all_mask, goto done);
 
 	ce_reset_mask = nvgpu_engine_get_all_ce_reset_mask(g);
-	assert(ce_reset_mask != 0);;
+	unit_assert(ce_reset_mask != 0, goto done);;
 
 	ret = UNIT_SUCCESS;
 done:

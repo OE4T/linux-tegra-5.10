@@ -61,8 +61,6 @@
 	} while (0)
 #endif
 
-#define assert(cond)	unit_assert(cond, goto done)
-
 struct tsg_unit_ctx {
 	u32 branches;
 };
@@ -163,15 +161,19 @@ int test_gv11b_tsg_init_eng_method_buffers(struct unit_module *m,
 		err = g->ops.tsg.init_eng_method_buffers(g, tsg);
 
 		if (branches & fail) {
-			assert(err != 0);
-			assert(tsg->eng_method_buffers == NULL);
+			unit_assert(err != 0, goto done);
+			unit_assert(tsg->eng_method_buffers == NULL, goto done);
 		} else {
-			assert(err == 0);
+			unit_assert(err == 0, goto done);
 			if ((branches & F_TSG_INIT_ENG_BUF_ALREADY_EXISTS) == 0) {
-				assert(tsg->eng_method_buffers != NULL);
-				assert(tsg->eng_method_buffers[ASYNC_CE_RUNQUE].gpu_va != 0UL);
+				unit_assert(tsg->eng_method_buffers != NULL,
+						goto done);
+				unit_assert(tsg->eng_method_buffers[
+					ASYNC_CE_RUNQUE].gpu_va != 0UL,
+					goto done);
 				g->ops.tsg.deinit_eng_method_buffers(g, tsg);
-				assert(tsg->eng_method_buffers == NULL);
+				unit_assert(tsg->eng_method_buffers == NULL,
+					goto done);
 			}
 		}
 	}
@@ -211,13 +213,13 @@ int test_gv11b_tsg_bind_channel_eng_method_buffers(struct unit_module *m,
 	};
 
 	tsg = nvgpu_tsg_open(g, getpid());
-	assert(tsg != NULL);
+	unit_assert(tsg != NULL, goto done);
 
 	ch = nvgpu_channel_open_new(g, ~0U, false, getpid(), getpid());
-	assert(ch != NULL);
+	unit_assert(ch != NULL, goto done);
 
 	err = nvgpu_tsg_bind_channel(tsg, ch);
-	assert(err == 0);
+	unit_assert(err == 0, goto done);
 
 	eng_method_buffers = tsg->eng_method_buffers;
 
@@ -252,18 +254,20 @@ int test_gv11b_tsg_bind_channel_eng_method_buffers(struct unit_module *m,
 		g->ops.tsg.bind_channel_eng_method_buffers(tsg, ch);
 
 		if (branches & F_TSG_BIND_BUF_NO_METHOD_BUF) {
-			assert(nvgpu_mem_rd32(g, &ch->inst_block,
-				ram_in_eng_method_buffer_addr_lo_w()) == 0U);
-			assert(nvgpu_mem_rd32(g, &ch->inst_block,
-				ram_in_eng_method_buffer_addr_hi_w()) == 0U);
+			unit_assert(nvgpu_mem_rd32(g, &ch->inst_block,
+				ram_in_eng_method_buffer_addr_lo_w()) == 0U,
+				goto done);
+			unit_assert(nvgpu_mem_rd32(g, &ch->inst_block,
+				ram_in_eng_method_buffer_addr_hi_w()) == 0U,
+				goto done);
 
 		} else {
-			assert(nvgpu_mem_rd32(g, &ch->inst_block,
+			unit_assert(nvgpu_mem_rd32(g, &ch->inst_block,
 				ram_in_eng_method_buffer_addr_lo_w()) ==
-					u64_lo32(gpu_va));
-			assert(nvgpu_mem_rd32(g, &ch->inst_block,
+					u64_lo32(gpu_va), goto done);
+			unit_assert(nvgpu_mem_rd32(g, &ch->inst_block,
 				ram_in_eng_method_buffer_addr_hi_w()) ==
-					u64_hi32(gpu_va));
+					u64_hi32(gpu_va), goto done);
 		}
 
 		tsg->eng_method_buffers = eng_method_buffers;
@@ -308,17 +312,18 @@ int test_gv11b_tsg_unbind_channel_check_eng_faulted(struct unit_module *m,
 	};
 
 	tsg = nvgpu_tsg_open(g, getpid());
-	assert(tsg != NULL);
-	assert(tsg->eng_method_buffers != NULL);
+	unit_assert(tsg != NULL, goto done);
+	unit_assert(tsg->eng_method_buffers != NULL, goto done);
 	eng_method_buffers = tsg->eng_method_buffers;
 
 	ch = nvgpu_channel_open_new(g, ~0U, false, getpid(), getpid());
-	assert(ch != NULL);
+	unit_assert(ch != NULL, goto done);
 
 	err = nvgpu_tsg_bind_channel(tsg, ch);
-	assert(err == 0);
+	unit_assert(err == 0, goto done);
 
-	assert(g->ops.tsg.unbind_channel_check_eng_faulted != NULL);
+	unit_assert(g->ops.tsg.unbind_channel_check_eng_faulted != NULL,
+			goto done);
 
 	for (branches = 0U; branches < F_TSG_UNBIND_BUF_LAST; branches++) {
 
@@ -348,12 +353,14 @@ int test_gv11b_tsg_unbind_channel_check_eng_faulted(struct unit_module *m,
 
 		if (branches & F_TSG_UNBIND_BUF_CH_SAVED) {
 			/* check that method count has been set to 0 */
-			assert(nvgpu_mem_rd32(g,
-				&eng_method_buffers[ASYNC_CE_RUNQUE], 0) == 0);
+			unit_assert(nvgpu_mem_rd32(g,
+				&eng_method_buffers[ASYNC_CE_RUNQUE], 0) == 0,
+				goto done);
 		} else {
 			/* check that method countis unchanged */
-			assert(nvgpu_mem_rd32(g,
-				&eng_method_buffers[ASYNC_CE_RUNQUE], 0) == 1);
+			unit_assert(nvgpu_mem_rd32(g,
+				&eng_method_buffers[ASYNC_CE_RUNQUE], 0) == 1,
+				goto done);
 		}
 
 		tsg->eng_method_buffers = eng_method_buffers;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -60,7 +60,6 @@
 	} while (0)
 #endif
 
-#define assert(cond)	unit_assert(cond, goto done)
 #define branches_str	test_fifo_flags_str
 
 struct unit_ctx {
@@ -90,16 +89,17 @@ int test_gv11b_fifo_intr_0_enable(struct unit_module *m,
 	g->ops.pbdma.intr_enable = stub_pbdma_intr_enable;
 
 	gv11b_fifo_intr_0_enable(g, true);
-	assert(u.fifo_ctxsw_timeout_enable);
-	assert(u.pbdma_intr_enable);
-	assert(nvgpu_readl(g, fifo_intr_runlist_r()) == U32_MAX);
-	assert(nvgpu_readl(g, fifo_intr_0_r()) == U32_MAX);
-	assert(nvgpu_readl(g, fifo_intr_en_0_r()) != 0);
+	unit_assert(u.fifo_ctxsw_timeout_enable, goto done);
+	unit_assert(u.pbdma_intr_enable, goto done);
+	unit_assert(nvgpu_readl(g, fifo_intr_runlist_r()) == U32_MAX,
+			goto done);
+	unit_assert(nvgpu_readl(g, fifo_intr_0_r()) == U32_MAX, goto done);
+	unit_assert(nvgpu_readl(g, fifo_intr_en_0_r()) != 0, goto done);
 
 	gv11b_fifo_intr_0_enable(g, false);
-	assert(!u.fifo_ctxsw_timeout_enable);
-	assert(!u.pbdma_intr_enable);
-	assert(nvgpu_readl(g, fifo_intr_en_0_r()) == 0);
+	unit_assert(!u.fifo_ctxsw_timeout_enable, goto done);
+	unit_assert(!u.pbdma_intr_enable, goto done);
+	unit_assert(nvgpu_readl(g, fifo_intr_en_0_r()) == 0, goto done);
 
 	ret = UNIT_SUCCESS;
 done:
@@ -126,7 +126,7 @@ int test_gv11b_fifo_handle_sched_error(struct unit_module *m,
 	nvgpu_writel(g, fifo_intr_sched_error_r(), SCHED_ERROR_CODE_BAD_TSG);
 	gv11b_fifo_handle_sched_error(g);
 
-	assert(ret != UNIT_SUCCESS);
+	unit_assert(ret != UNIT_SUCCESS, goto done);
 	ret = UNIT_SUCCESS;
 done:
 	return ret;
@@ -218,7 +218,7 @@ int test_gv11b_fifo_intr_0_isr(struct unit_module *m,
 	g->ops.gr.falcon.dump_stats =
 		stub_gr_falcon_dump_stats;
 
-	assert(f->sw_ready);
+	unit_assert(f->sw_ready, goto done);
 	for (branches = 0; branches < BIT(FIFO_NUM_INTRS_0); branches++) {
 
 		unit_verbose(m, "%s branches=%s\n", __func__,
@@ -234,15 +234,16 @@ int test_gv11b_fifo_intr_0_isr(struct unit_module *m,
 			fifo_intr_0);
 		gv11b_fifo_intr_0_isr(g);
 		val = nvgpu_posix_io_readl_reg_space(g, fifo_intr_0_r());
-		assert((val & intr_0_handled_mask) == 0);
-		assert((val & ~intr_0_handled_mask) ==
-			(fifo_intr_0 & ~intr_0_handled_mask));
+		unit_assert((val & intr_0_handled_mask) == 0, goto done);
+		unit_assert((val & ~intr_0_handled_mask) ==
+			(fifo_intr_0 & ~intr_0_handled_mask), goto done);
 	}
 
 	f->sw_ready = false;
 	nvgpu_posix_io_writel_reg_space(g, fifo_intr_0_r(), 0xcafe);
 	gv11b_fifo_intr_0_isr(g);
-	assert(nvgpu_posix_io_readl_reg_space(g, fifo_intr_0_r()) == 0);
+	unit_assert(nvgpu_posix_io_readl_reg_space(g, fifo_intr_0_r()) == 0,
+			goto done);
 	f->sw_ready = true;
 
 	ret = UNIT_SUCCESS;
@@ -268,19 +269,22 @@ int test_gv11b_fifo_intr_recover_mask(struct unit_module *m,
 
 	gv11b_fifo_intr_0_enable(g, true);
 	intr_en_0 = nvgpu_posix_io_readl_reg_space(g, fifo_intr_en_0_r());
-	assert((intr_en_0 & fifo_intr_0_ctxsw_timeout_pending_f()) != 0);
+	unit_assert((intr_en_0 & fifo_intr_0_ctxsw_timeout_pending_f()) != 0,
+			goto done);
 
 	nvgpu_posix_io_writel_reg_space(g,
 		fifo_intr_ctxsw_timeout_r(), 0xcafe);
 	gv11b_fifo_intr_set_recover_mask(g);
 	intr_en_0 = nvgpu_posix_io_readl_reg_space(g, fifo_intr_en_0_r());
-	assert((intr_en_0 & fifo_intr_0_ctxsw_timeout_pending_f()) == 0);
+	unit_assert((intr_en_0 & fifo_intr_0_ctxsw_timeout_pending_f()) == 0,
+			goto done);
 	val = nvgpu_posix_io_readl_reg_space(g, fifo_intr_ctxsw_timeout_r());
-	assert(val == 0);
+	unit_assert(val == 0, goto done);
 
 	gv11b_fifo_intr_unset_recover_mask(g);
 	intr_en_0 = nvgpu_posix_io_readl_reg_space(g, fifo_intr_en_0_r());
-	assert((intr_en_0 & fifo_intr_0_ctxsw_timeout_pending_f()) != 0);
+	unit_assert((intr_en_0 & fifo_intr_0_ctxsw_timeout_pending_f()) != 0,
+			goto done);
 
 	ret = UNIT_SUCCESS;
 done:

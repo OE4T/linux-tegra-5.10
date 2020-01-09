@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -47,8 +47,6 @@
 	} while (0)
 #endif
 
-#define assert(cond)	unit_assert(cond, goto done)
-
 #define branches_str test_fifo_flags_str
 #define pruned test_fifo_subtest_pruned
 
@@ -70,12 +68,14 @@ int test_gv11b_ramin_set_gr_ptr(struct unit_module *m, struct gk20a *g,
 	g->ops.ramin.alloc_size = gk20a_ramin_alloc_size;
 
 	err = nvgpu_alloc_inst_block(g, &inst_block);
-	assert(err == 0);
+	unit_assert(err == 0, goto done);
 	data_ptr = inst_block.cpu_va;
 
 	gv11b_ramin_set_gr_ptr(g, &inst_block, addr);
-	assert(data_ptr[ram_in_engine_wfi_target_w()] == data_lo);
-	assert(data_ptr[ram_in_engine_wfi_ptr_hi_w()] == data_hi);
+	unit_assert(data_ptr[ram_in_engine_wfi_target_w()] == data_lo,
+			goto done);
+	unit_assert(data_ptr[ram_in_engine_wfi_ptr_hi_w()] == data_hi,
+			goto done);
 
 	ret = UNIT_SUCCESS;
 done:
@@ -115,10 +115,10 @@ int test_gv11b_ramin_init_subctx_pdb(struct unit_module *m, struct gk20a *g,
 	/* Aperture should be fixed = SYSMEM */
 	nvgpu_set_enabled(g, NVGPU_MM_HONORS_APERTURE, true);
 	err = nvgpu_alloc_inst_block(g, &inst_block);
-	assert(err == 0);
+	unit_assert(err == 0, goto done);
 
 	err = nvgpu_dma_alloc(g, g->ops.ramin.alloc_size(), &pdb_mem);
-	assert(err == 0);
+	unit_assert(err == 0, goto done);
 
 	pdb_addr = nvgpu_mem_get_addr(g, &pdb_mem);
 	pdb_addr_lo = u64_lo32(pdb_addr >> ram_in_base_shift_v());
@@ -152,17 +152,17 @@ int test_gv11b_ramin_init_subctx_pdb(struct unit_module *m, struct gk20a *g,
 		for (subctx_id = 0; subctx_id < max_subctx_count; subctx_id++) {
 			addr_lo = ram_in_sc_page_dir_base_vol_w(subctx_id);
 			addr_hi = ram_in_sc_page_dir_base_hi_w(subctx_id);
-			assert(nvgpu_mem_rd32(g, &inst_block, addr_lo) ==
-							format_data);
-			assert(nvgpu_mem_rd32(g, &inst_block, addr_hi) ==
-							pdb_addr_hi);
+			unit_assert(nvgpu_mem_rd32(g, &inst_block, addr_lo) ==
+							format_data, goto done);
+			unit_assert(nvgpu_mem_rd32(g, &inst_block, addr_hi) ==
+							pdb_addr_hi, goto done);
 		}
 
 		for (subctx_id = 0; subctx_id < ram_in_sc_pdb_valid__size_1_v();
 							subctx_id += 32U) {
-			assert(nvgpu_mem_rd32(g, &inst_block,
+			unit_assert(nvgpu_mem_rd32(g, &inst_block,
 				ram_in_sc_pdb_valid_long_w(subctx_id)) ==
-								U32_MAX);
+							U32_MAX, goto done);
 		}
 
 	}
@@ -194,12 +194,14 @@ int test_gv11b_ramin_set_eng_method_buffer(struct unit_module *m,
 	g->ops.ramin.alloc_size = gk20a_ramin_alloc_size;
 
 	err = nvgpu_alloc_inst_block(g, &inst_block);
-	assert(err == 0);
+	unit_assert(err == 0, goto done);
 	data_ptr = inst_block.cpu_va;
 
 	gv11b_ramin_set_eng_method_buffer(g, &inst_block, addr);
-	assert(data_ptr[ram_in_eng_method_buffer_addr_lo_w()] == addr_lo);
-	assert(data_ptr[ram_in_eng_method_buffer_addr_hi_w()] == addr_hi);
+	unit_assert(data_ptr[ram_in_eng_method_buffer_addr_lo_w()] == addr_lo,
+			goto done);
+	unit_assert(data_ptr[ram_in_eng_method_buffer_addr_hi_w()] == addr_hi,
+			goto done);
 
 	ret = UNIT_SUCCESS;
 done:

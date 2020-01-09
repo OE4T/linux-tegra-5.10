@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -55,8 +55,6 @@
 		} \
 	} while (0)
 #endif
-
-#define assert(cond)	unit_assert(cond, goto done)
 
 struct runlist_unit_ctx {
 	u32 branches;
@@ -364,13 +362,13 @@ int test_tsg_format_gen(struct unit_module *m, struct gk20a *g, void *args)
 				test_args->level, get_log2(branches)-1, rl_data,
 				test_args->expect_header,
 				test_args->expect_channel);
-			assert(err != 0);
+			unit_assert(err != 0, goto done);
 		} else {
 			err = run_format_test(m, f, &tsgs[0], chs,
 				test_args->level, test_args->channels, rl_data,
 				test_args->expect_header,
 				test_args->expect_channel);
-			assert(err == 0);
+			unit_assert(err == 0, goto done);
 		}
 
 	}
@@ -645,9 +643,9 @@ int test_interleave_dual(struct unit_module *m, struct gk20a *g, void *args)
 				dual_args->expected, dual_args->n_expected);
 
 		if (branches & fail) {
-			assert(err != UNIT_SUCCESS);
+			unit_assert(err != UNIT_SUCCESS, goto done);
 		} else {
-			assert(err == UNIT_SUCCESS);
+			unit_assert(err == UNIT_SUCCESS, goto done);
 		}
 	}
 
@@ -781,9 +779,9 @@ int test_runlist_interleave_level_name(struct unit_module *m,
 
 		interleave_level_name =
 			nvgpu_runlist_interleave_level_name(get_log2(branches));
-		assert(strcmp(interleave_level_name,
+		unit_assert(strcmp(interleave_level_name,
 			f_runlist_interleave_level_name[
-						get_log2(branches)]) == 0);
+					get_log2(branches)]) == 0, goto done);
 	}
 
 	ret = UNIT_SUCCESS;
@@ -833,10 +831,10 @@ int test_runlist_set_state(struct unit_module *m, struct gk20a *g, void *args)
 
 		if (branches & F_RUNLIST_SET_STATE_DISABLED) {
 			nvgpu_runlist_set_state(g, 0U, RUNLIST_DISABLED);
-			assert(stub[0].count == 0U);
+			unit_assert(stub[0].count == 0U, goto done);
 		} else {
 			nvgpu_runlist_set_state(g, 1U, RUNLIST_ENABLED);
-			assert(stub[0].count == 1U);
+			unit_assert(stub[0].count == 1U, goto done);
 		}
 	}
 
@@ -864,7 +862,7 @@ int test_runlist_lock_unlock_active_runlists(struct unit_module *m,
 	u32 prune = fail;
 
 	err = nvgpu_runlist_setup_sw(g);
-	assert(err == 0);
+	unit_assert(err == 0, goto done);
 
 	for (branches = 0U;
 		branches < F_RUNLIST_LOCK_UNLOCK_ACTIVE_RUNLISTS_LAST;
@@ -923,7 +921,7 @@ int test_runlist_get_mask(struct unit_module *m, struct gk20a *g, void *args)
 	u32 prune = fail;
 
 	err = nvgpu_runlist_setup_sw(g);
-	assert(err == 0);
+	unit_assert(err == 0, goto done);
 
 	for (branches = 0U; branches < F_RUNLIST_GET_MASK_LAST; branches++) {
 
@@ -955,9 +953,9 @@ int test_runlist_get_mask(struct unit_module *m, struct gk20a *g, void *args)
 	}
 
 	if (branches == 0U) {
-		assert(ret_mask == 3U);
+		unit_assert(ret_mask == 3U, goto done);
 	} else {
-		assert(ret_mask == 1U);
+		unit_assert(ret_mask == 1U, goto done);
 	}
 
 	ret = UNIT_SUCCESS;
@@ -1039,9 +1037,9 @@ int test_runlist_setup_sw(struct unit_module *m, struct gk20a *g, void *args)
 		nvgpu_posix_enable_fault_injection(dma_fi, false, 0);
 
 		if (branches & fail) {
-			assert(err != 0);
+			unit_assert(err != 0, goto done);
 		} else {
-			assert(err == 0);
+			unit_assert(err == 0, goto done);
 			nvgpu_runlist_cleanup_sw(g);
 		}
 	}
@@ -1114,7 +1112,7 @@ int test_runlist_reload_ids(struct unit_module *m, struct gk20a *g, void *args)
 
 	g->ops.runlist.hw_submit = stub_runlist_hw_submit;
 	err = nvgpu_runlist_setup_sw(g);
-	assert(err == 0);
+	unit_assert(err == 0, goto done);
 
 	for (branches = 1U; branches < F_RUNLIST_RELOAD_IDS_LAST;
 		branches++) {
@@ -1150,9 +1148,9 @@ int test_runlist_reload_ids(struct unit_module *m, struct gk20a *g, void *args)
 		}
 
 		if (branches & fail) {
-			assert(err != 0);
+			unit_assert(err != 0, goto done);
 		} else {
-			assert(err == 0);
+			unit_assert(err == 0, goto done);
 		}
 
 	}
@@ -1246,7 +1244,7 @@ int test_runlist_update_locked(struct unit_module *m, struct gk20a *g,
 		if (branches & F_RUNLIST_UPDATE_ADD_AGAIN) {
 			err = nvgpu_runlist_update_locked(g,
 							0U, ch, true, false);
-			assert(err == 0);
+			unit_assert(err == 0, goto done);
 
 			add = true;
 		}
@@ -1274,11 +1272,11 @@ int test_runlist_update_locked(struct unit_module *m, struct gk20a *g,
 
 			err = nvgpu_runlist_update_locked(g,
 							0U, chA, true, false);
-			assert(err == 0);
+			unit_assert(err == 0, goto done);
 
 			err = nvgpu_runlist_update_locked(g,
 							0U, chA, false, false);
-			assert(err == 0);
+			unit_assert(err == 0, goto done);
 
 			err = nvgpu_tsg_unbind_channel(tsg, chA);
 			if (err != 0) {
@@ -1298,9 +1296,9 @@ int test_runlist_update_locked(struct unit_module *m, struct gk20a *g,
 		}
 
 		if (branches & fail) {
-			assert(err != 0);
+			unit_assert(err != 0, goto done);
 		} else {
-			assert(err == 0);
+			unit_assert(err == 0, goto done);
 		}
 		ch->tsgid = ch_tsgid_orig;
 	}

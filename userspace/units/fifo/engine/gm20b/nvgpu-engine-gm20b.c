@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -53,8 +53,6 @@
 	} while (0)
 #endif
 
-#define assert(cond)	unit_assert(cond, goto done)
-
 #define branches_str test_fifo_flags_str
 #define pruned	test_fifo_subtest_pruned
 
@@ -91,12 +89,13 @@ int test_gm20b_read_engine_status_info(struct unit_module *m,
 	};
 	char *ctxsw_status_label = NULL;
 
-	assert(f->num_engines > 0);
-	assert(f->engine_info[0].engine_enum == NVGPU_ENGINE_GR);
+	unit_assert(f->num_engines > 0, goto done);
+	unit_assert(f->engine_info[0].engine_enum == NVGPU_ENGINE_GR,
+		goto done);
 
 	nvgpu_writel(g, fifo_engine_status_r(engine_id), 0xbeef);
 	gm20b_read_engine_status_info(g, NVGPU_INVALID_ENG_ID, &status);
-	assert(status.reg_data == 0);
+	unit_assert(status.reg_data == 0, goto done);
 
 	for (branches = 0; branches < F_ENGINE_READ_STATUS_LAST; branches++) {
 
@@ -201,14 +200,22 @@ int test_gm20b_read_engine_status_info(struct unit_module *m,
 
 			gm20b_read_engine_status_info(g, engine_id, &status);
 
-			assert(status.is_busy == expected.is_busy);
-			assert(status.is_faulted == expected.is_faulted);
-			assert(status.ctxsw_in_progress == expected.ctxsw_in_progress);
-			assert(status.ctxsw_status == expected.ctxsw_status);
-			assert(status.ctx_id == expected.ctx_id);
-			assert(status.ctx_id_type == expected.ctx_id_type);
-			assert(status.ctx_next_id == expected.ctx_next_id);
-			assert(status.ctx_next_id_type == expected.ctx_next_id_type);
+			unit_assert(status.is_busy == expected.is_busy,
+					goto done);
+			unit_assert(status.is_faulted == expected.is_faulted,
+					goto done);
+			unit_assert(status.ctxsw_in_progress ==
+					expected.ctxsw_in_progress, goto done);
+			unit_assert(status.ctxsw_status ==
+					expected.ctxsw_status, goto done);
+			unit_assert(status.ctx_id ==
+					expected.ctx_id, goto done);
+			unit_assert(status.ctx_id_type ==
+					expected.ctx_id_type, goto done);
+			unit_assert(status.ctx_next_id ==
+					expected.ctx_next_id, goto done);
+			unit_assert(status.ctx_next_id_type ==
+					expected.ctx_next_id_type, goto done);
 		}
 	}
 	ret = UNIT_SUCCESS;

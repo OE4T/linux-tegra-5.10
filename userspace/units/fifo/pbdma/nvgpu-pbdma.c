@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -55,8 +55,6 @@
 	} while (0)
 #endif
 
-#define assert(cond)	unit_assert(cond, goto done)
-
 #define pruned		test_fifo_subtest_pruned
 #define branches_str	test_fifo_flags_str
 
@@ -105,7 +103,7 @@ int test_pbdma_setup_sw(struct unit_module *m,
 	kmem_fi = nvgpu_kmem_get_fault_injection();
 
 	err = test_fifo_setup_gv11b_reg_space(m, g);
-	assert(err == 0);
+	unit_assert(err == 0, goto done);
 
 	gv11b_init_hal(g);
 
@@ -142,19 +140,22 @@ int test_pbdma_setup_sw(struct unit_module *m,
 		err = nvgpu_pbdma_setup_sw(g);
 
 		if (branches & fail) {
-			assert(err != 0);
-			assert(f->pbdma_map == NULL);
+			unit_assert(err != 0, goto done);
+			unit_assert(f->pbdma_map == NULL, goto done);
 		} else {
-			assert(err == 0);
-			assert(f->pbdma_map != NULL);
-			assert(f->intr.pbdma.device_fatal_0 ==
-				(branches & F_PBDMA_SETUP_SW_DEVICE_FATAL_0));
-			assert(f->intr.pbdma.channel_fatal_0 ==
-				(branches & F_PBDMA_SETUP_SW_CHANNEL_FATAL_0));
-			assert(f->intr.pbdma.restartable_0 ==
-				(branches & F_PBDMA_SETUP_SW_RESTARTABLE_0));
+			unit_assert(err == 0, goto done);
+			unit_assert(f->pbdma_map != NULL, goto done);
+			unit_assert(f->intr.pbdma.device_fatal_0 ==
+				(branches & F_PBDMA_SETUP_SW_DEVICE_FATAL_0),
+				goto done);
+			unit_assert(f->intr.pbdma.channel_fatal_0 ==
+				(branches & F_PBDMA_SETUP_SW_CHANNEL_FATAL_0),
+				goto done);
+			unit_assert(f->intr.pbdma.restartable_0 ==
+				(branches & F_PBDMA_SETUP_SW_RESTARTABLE_0),
+				goto done);
 			nvgpu_pbdma_cleanup_sw(g);
-			assert(f->pbdma_map == NULL);
+			unit_assert(f->pbdma_map == NULL, goto done);
 		}
 	}
 	ret = UNIT_SUCCESS;
@@ -188,17 +189,18 @@ int test_pbdma_find_for_runlist(struct unit_module *m,
 		found = nvgpu_pbdma_find_for_runlist(g, runlist_id, &pbdma_id);
 
 		if (active) {
-			assert(found);
-			assert(pbdma_id != U32_MAX);
-			assert((f->pbdma_map[pbdma_id] & BIT(runlist_id)) != 0);
+			unit_assert(found, goto done);
+			unit_assert(pbdma_id != U32_MAX, goto done);
+			unit_assert((f->pbdma_map[pbdma_id] &
+				BIT(runlist_id)) != 0, goto done);
 		} else {
-			assert(!found);
-			assert(pbdma_id == U32_MAX);
+			unit_assert(!found, goto done);
+			unit_assert(pbdma_id == U32_MAX, goto done);
 		}
 	}
 
 	f->num_pbdma = 0;
-	assert(!nvgpu_pbdma_find_for_runlist(g, 0, &pbdma_id));
+	unit_assert(!nvgpu_pbdma_find_for_runlist(g, 0, &pbdma_id), goto done);
 
 	ret = UNIT_SUCCESS;
 
@@ -219,29 +221,39 @@ int test_pbdma_status(struct unit_module *m,
 		pbdma_status.chsw_status <= NVGPU_PBDMA_CHSW_STATUS_SWITCH;
 		pbdma_status.chsw_status++)
 	{
-		assert(nvgpu_pbdma_status_is_chsw_switch(&pbdma_status) ==
-			(pbdma_status.chsw_status == NVGPU_PBDMA_CHSW_STATUS_SWITCH));
-		assert(nvgpu_pbdma_status_is_chsw_load(&pbdma_status) ==
-			(pbdma_status.chsw_status == NVGPU_PBDMA_CHSW_STATUS_LOAD));
-		assert(nvgpu_pbdma_status_is_chsw_save(&pbdma_status) ==
-			(pbdma_status.chsw_status == NVGPU_PBDMA_CHSW_STATUS_SAVE));
-		assert(nvgpu_pbdma_status_is_chsw_valid(&pbdma_status) ==
-			(pbdma_status.chsw_status == NVGPU_PBDMA_CHSW_STATUS_VALID));
+		unit_assert(nvgpu_pbdma_status_is_chsw_switch(&pbdma_status) ==
+			(pbdma_status.chsw_status ==
+				NVGPU_PBDMA_CHSW_STATUS_SWITCH), goto done);
+		unit_assert(nvgpu_pbdma_status_is_chsw_load(&pbdma_status) ==
+			(pbdma_status.chsw_status ==
+				NVGPU_PBDMA_CHSW_STATUS_LOAD), goto done);
+		unit_assert(nvgpu_pbdma_status_is_chsw_save(&pbdma_status) ==
+			(pbdma_status.chsw_status ==
+				NVGPU_PBDMA_CHSW_STATUS_SAVE), goto done);
+		unit_assert(nvgpu_pbdma_status_is_chsw_valid(&pbdma_status) ==
+			(pbdma_status.chsw_status ==
+				NVGPU_PBDMA_CHSW_STATUS_VALID), goto done);
 	}
 
 	pbdma_status.id_type = PBDMA_STATUS_ID_TYPE_CHID;
-	assert(nvgpu_pbdma_status_is_id_type_tsg(&pbdma_status) == false);
+	unit_assert(nvgpu_pbdma_status_is_id_type_tsg(&pbdma_status) == false,
+			goto done);
 	pbdma_status.id_type = PBDMA_STATUS_ID_TYPE_TSGID;
-	assert(nvgpu_pbdma_status_is_id_type_tsg(&pbdma_status) == true);
+	unit_assert(nvgpu_pbdma_status_is_id_type_tsg(&pbdma_status) == true,
+			goto done);
 	pbdma_status.id_type = PBDMA_STATUS_ID_TYPE_INVALID;
-	assert(nvgpu_pbdma_status_is_id_type_tsg(&pbdma_status) == false);
+	unit_assert(nvgpu_pbdma_status_is_id_type_tsg(&pbdma_status) == false,
+			goto done);
 
 	pbdma_status.next_id_type = PBDMA_STATUS_ID_TYPE_CHID;
-	assert(nvgpu_pbdma_status_is_next_id_type_tsg(&pbdma_status) == false);
+	unit_assert(nvgpu_pbdma_status_is_next_id_type_tsg(&pbdma_status) ==
+			false, goto done);
 	pbdma_status.next_id_type = PBDMA_STATUS_ID_TYPE_TSGID;
-	assert(nvgpu_pbdma_status_is_next_id_type_tsg(&pbdma_status) == true);
+	unit_assert(nvgpu_pbdma_status_is_next_id_type_tsg(&pbdma_status) ==
+			true, goto done);
 	pbdma_status.next_id_type = PBDMA_STATUS_ID_TYPE_INVALID;
-	assert(nvgpu_pbdma_status_is_next_id_type_tsg(&pbdma_status) == false);
+	unit_assert(nvgpu_pbdma_status_is_next_id_type_tsg(&pbdma_status) ==
+			false, goto done);
 
 	ret = UNIT_SUCCESS;
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -54,7 +54,6 @@
 	} while (0)
 #endif
 
-#define assert(cond)	unit_assert(cond, goto done)
 #define branches_str 	test_fifo_flags_str
 
 int test_gk20a_channel_enable(struct unit_module *m,
@@ -67,11 +66,11 @@ int test_gk20a_channel_enable(struct unit_module *m,
 
 	ch = nvgpu_channel_open_new(g, runlist_id,
 		privileged, getpid(), getpid());
-	assert(ch);
+	unit_assert(ch, goto done);
 
 	gk20a_channel_enable(ch);
-	assert((nvgpu_readl(ch->g, ccsr_channel_r(ch->chid))
-		& ccsr_channel_enable_set_true_f()) != 0);
+	unit_assert((nvgpu_readl(ch->g, ccsr_channel_r(ch->chid))
+		& ccsr_channel_enable_set_true_f()) != 0, goto done);
 
 	ret = UNIT_SUCCESS;
 done:
@@ -92,11 +91,11 @@ int test_gk20a_channel_disable(struct unit_module *m,
 
 	ch = nvgpu_channel_open_new(g, runlist_id,
 		privileged, getpid(), getpid());
-	assert(ch);
+	unit_assert(ch, goto done);
 
 	gk20a_channel_disable(ch);
-	assert((nvgpu_readl(ch->g, ccsr_channel_r(ch->chid))
-		& ccsr_channel_enable_clr_true_f()) != 0);
+	unit_assert((nvgpu_readl(ch->g, ccsr_channel_r(ch->chid))
+		& ccsr_channel_enable_clr_true_f()) != 0, goto done);
 
 	ret = UNIT_SUCCESS;
 done:
@@ -131,7 +130,7 @@ int test_gk20a_channel_read_state(struct unit_module *m,
 
 	ch = nvgpu_channel_open_new(g, runlist_id,
 		privileged, getpid(), getpid());
-	assert(ch);
+	unit_assert(ch, goto done);
 
 	for (branches = 0U; branches < F_CHANNEL_READ_STATE_LAST; branches++) {
 
@@ -198,11 +197,12 @@ int test_gk20a_channel_read_state(struct unit_module *m,
 
 			gk20a_channel_read_state(g, ch, &state);
 
-			assert(state.next == next);
-			assert(state.enabled == enabled);
-			assert(state.busy == busy);
-			assert(state.ctx_reload == ctx_reload);
-			assert(state.pending_acquire == pending_acquire);
+			unit_assert(state.next == next, goto done);
+			unit_assert(state.enabled == enabled, goto done);
+			unit_assert(state.busy == busy, goto done);
+			unit_assert(state.ctx_reload == ctx_reload, goto done);
+			unit_assert(state.pending_acquire == pending_acquire,
+				goto done);
 		}
 	}
 

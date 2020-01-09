@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -35,8 +35,6 @@
 #include "../../nvgpu-fifo-common.h"
 #include "ramin-gp10b-fusa.h"
 
-#define assert(cond)	unit_assert(cond, goto done)
-
 int test_gp10b_ramin_init_pdb(struct unit_module *m, struct gk20a *g,
 								void *args)
 {
@@ -54,10 +52,10 @@ int test_gp10b_ramin_init_pdb(struct unit_module *m, struct gk20a *g,
 	/* Aperture should be fixed = SYSMEM */
 	nvgpu_set_enabled(g, NVGPU_MM_HONORS_APERTURE, true);
 	err = nvgpu_alloc_inst_block(g, &inst_block);
-	assert(err == 0);
+	unit_assert(err == 0, goto done);
 
 	err = nvgpu_dma_alloc(g, g->ops.ramin.alloc_size(), &pdb_mem);
-	assert(err == 0);
+	unit_assert(err == 0, goto done);
 
 	pdb_addr = nvgpu_mem_get_addr(g, &pdb_mem);
 	pdb_addr_lo = u64_lo32(pdb_addr >> ram_in_base_shift_v());
@@ -72,10 +70,11 @@ int test_gp10b_ramin_init_pdb(struct unit_module *m, struct gk20a *g,
 
 	gp10b_ramin_init_pdb(g, &inst_block, pdb_addr, &pdb_mem);
 
-	assert(nvgpu_mem_rd32(g, &inst_block, ram_in_page_dir_base_lo_w()) ==
-						data);
-	assert(nvgpu_mem_rd32(g, &inst_block, ram_in_page_dir_base_hi_w()) ==
-					ram_in_page_dir_base_hi_f(pdb_addr_hi));
+	unit_assert(nvgpu_mem_rd32(g, &inst_block,
+			ram_in_page_dir_base_lo_w()) ==	data, goto done);
+	unit_assert(nvgpu_mem_rd32(g, &inst_block,
+			ram_in_page_dir_base_hi_w()) ==
+			ram_in_page_dir_base_hi_f(pdb_addr_hi), goto done);
 
 	ret = UNIT_SUCCESS;
 done:

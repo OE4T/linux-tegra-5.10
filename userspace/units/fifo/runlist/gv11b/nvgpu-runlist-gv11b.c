@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -60,14 +60,13 @@
 	} while (0)
 #endif
 
-#define assert(cond)	unit_assert(cond, goto done)
-
 int test_gv11b_runlist_entry_size(struct unit_module *m,
 		struct gk20a *g, void *args)
 {
 	int ret = UNIT_FAIL;
 
-	assert(gv11b_runlist_entry_size(g) == ram_rl_entry_size_v());
+	unit_assert(gv11b_runlist_entry_size(g) == ram_rl_entry_size_v(),
+			goto done);
 	ret = UNIT_SUCCESS;
 done:
 	return ret;
@@ -85,27 +84,35 @@ int test_gv11b_runlist_get_tsg_entry(struct unit_module *m,
 	u32 runlist[4];
 
 	tsg = nvgpu_tsg_open(g, getpid());
-	assert(tsg != NULL);
+	unit_assert(tsg != NULL, goto done);
 
 	/* no scaling */
 	timeslice = RL_MAX_TIMESLICE_TIMEOUT / 2;
 	gv11b_runlist_get_tsg_entry(tsg, runlist, timeslice);
-	assert(ram_rl_entry_tsg_timeslice_timeout_v(runlist[0]) == timeslice);
-	assert(ram_rl_entry_tsg_timeslice_scale_v(runlist[0]) == 0U);
-	assert(runlist[1] == ram_rl_entry_tsg_length_f(tsg->num_active_channels));
-	assert(runlist[2] == ram_rl_entry_tsg_tsgid_f(tsg->tsgid));
+	unit_assert(ram_rl_entry_tsg_timeslice_timeout_v(runlist[0]) ==
+			timeslice, goto done);
+	unit_assert(ram_rl_entry_tsg_timeslice_scale_v(runlist[0]) == 0U,
+			goto done);
+	unit_assert(runlist[1] == ram_rl_entry_tsg_length_f(
+			tsg->num_active_channels), goto done);
+	unit_assert(runlist[2] == ram_rl_entry_tsg_tsgid_f(tsg->tsgid),
+			goto done);
 
 	/* scaling */
 	timeslice = RL_MAX_TIMESLICE_TIMEOUT + 1;
 	gv11b_runlist_get_tsg_entry(tsg, runlist, timeslice);
-	assert(ram_rl_entry_tsg_timeslice_timeout_v(runlist[0]) == (timeslice >> 1U));
-	assert(ram_rl_entry_tsg_timeslice_scale_v(runlist[0]) == 1U);
+	unit_assert(ram_rl_entry_tsg_timeslice_timeout_v(runlist[0]) ==
+			(timeslice >> 1U), goto done);
+	unit_assert(ram_rl_entry_tsg_timeslice_scale_v(runlist[0]) == 1U,
+			goto done);
 
 	/* oversize */
 	timeslice = U32_MAX;
 	gv11b_runlist_get_tsg_entry(tsg, runlist, timeslice);
-	assert(ram_rl_entry_tsg_timeslice_timeout_v(runlist[0]) == RL_MAX_TIMESLICE_TIMEOUT);
-	assert(ram_rl_entry_tsg_timeslice_scale_v(runlist[0]) == RL_MAX_TIMESLICE_SCALE);
+	unit_assert(ram_rl_entry_tsg_timeslice_timeout_v(runlist[0]) ==
+			RL_MAX_TIMESLICE_TIMEOUT, goto done);
+	unit_assert(ram_rl_entry_tsg_timeslice_scale_v(runlist[0]) ==
+			RL_MAX_TIMESLICE_SCALE, goto done);
 
 	ret = UNIT_SUCCESS;
 
@@ -126,16 +133,17 @@ int test_gv11b_runlist_get_ch_entry(struct unit_module *m,
 
 	ch = nvgpu_channel_open_new(g, NVGPU_INVALID_RUNLIST_ID,
 			false, getpid(), getpid());
-	assert(ch);
+	unit_assert(ch, goto done);
 
 	ch->userd_mem = &mem;
 	mem.aperture = APERTURE_SYSMEM;
 	ch->userd_iova = 0x1000beef;
 
 	gv11b_runlist_get_ch_entry(ch, runlist);
-	assert(runlist[1] == u64_hi32(ch->userd_iova));
-	assert(ram_rl_entry_chid_f(runlist[2]) == ch->chid);
-	assert(runlist[3] == u64_hi32(nvgpu_inst_block_addr(g, &ch->inst_block)));
+	unit_assert(runlist[1] == u64_hi32(ch->userd_iova), goto done);
+	unit_assert(ram_rl_entry_chid_f(runlist[2]) == ch->chid, goto done);
+	unit_assert(runlist[3] == u64_hi32(nvgpu_inst_block_addr(g,
+			&ch->inst_block)), goto done);
 
 	ch->userd_mem = NULL;
 

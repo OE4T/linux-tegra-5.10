@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -57,8 +57,6 @@
 	} while (0)
 #endif
 
-#define assert(cond)	unit_assert(cond, goto done)
-
 int test_gv11b_fifo_init_hw(struct unit_module *m,
 		struct gk20a *g, void *args)
 {
@@ -77,12 +75,14 @@ int test_gv11b_fifo_init_hw(struct unit_module *m,
 		gv11b_init_fifo_reset_enable_hw(g);
 
 		if (!nvgpu_platform_is_silicon(g)) {
-			assert(nvgpu_readl(g, fifo_fb_timeout_r()) != 0);
+			unit_assert(nvgpu_readl(g, fifo_fb_timeout_r()) != 0,
+				goto done);
 		}
 
 		nvgpu_writel(g, fifo_userd_writeback_r(), 0);
 		gv11b_init_fifo_setup_hw(g);
-		assert(nvgpu_readl(g, fifo_userd_writeback_r()) != 0);
+		unit_assert(nvgpu_readl(g, fifo_userd_writeback_r()) != 0,
+				goto done);
 	}
 
 	ret = UNIT_SUCCESS;
@@ -107,15 +107,15 @@ int test_gv11b_fifo_mmu_fault_id_to_pbdma_id(struct unit_module *m,
 	nvgpu_writel(g, fifo_cfg0_r(), reg_val);
 
 	pbdma_id = gv11b_fifo_mmu_fault_id_to_pbdma_id(g, 1);
-	assert(pbdma_id == INVALID_ID);
+	unit_assert(pbdma_id == INVALID_ID, goto done);
 
 	pbdma_id = gv11b_fifo_mmu_fault_id_to_pbdma_id(g, fault_id_pbdma0 + num_pbdma);
-	assert(pbdma_id == INVALID_ID);
+	unit_assert(pbdma_id == INVALID_ID, goto done);
 
 	for (i = 0; i < num_pbdma; i++) {
 		fault_id = fault_id_pbdma0 + i;
 		pbdma_id = gv11b_fifo_mmu_fault_id_to_pbdma_id(g, fault_id);
-		assert(pbdma_id == i);
+		unit_assert(pbdma_id == i, goto done);
 	}
 
 	ret = UNIT_SUCCESS;

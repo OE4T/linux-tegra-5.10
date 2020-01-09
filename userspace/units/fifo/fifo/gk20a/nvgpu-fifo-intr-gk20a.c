@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -56,8 +56,6 @@
 	} while (0)
 #endif
 
-#define assert(cond)	unit_assert(cond, goto done)
-
 struct unit_ctx {
 	u32 count;
 	bool fail;
@@ -73,14 +71,14 @@ int test_gk20a_fifo_intr_1_enable(struct unit_module *m,
 
 	nvgpu_writel(g, fifo_intr_en_1_r(), 0);
 	gk20a_fifo_intr_1_enable(g, true);
-	assert((nvgpu_readl(g, fifo_intr_en_1_r()) &
-		fifo_intr_0_channel_intr_pending_f()) != 0);
+	unit_assert((nvgpu_readl(g, fifo_intr_en_1_r()) &
+		fifo_intr_0_channel_intr_pending_f()) != 0, goto done);
 
 	gk20a_fifo_intr_1_enable(g, false);
-	assert((nvgpu_readl(g, fifo_intr_en_1_r()) &
-		fifo_intr_0_channel_intr_pending_f()) == 0);
+	unit_assert((nvgpu_readl(g, fifo_intr_en_1_r()) &
+		fifo_intr_0_channel_intr_pending_f()) == 0, goto done);
 
-	assert(ret == UNIT_FAIL);
+	unit_assert(ret == UNIT_FAIL, goto done);
 	ret = UNIT_SUCCESS;
 done:
 	return ret;
@@ -94,12 +92,13 @@ int test_gk20a_fifo_intr_1_isr(struct unit_module *m,
 	/* no channel intr pending */
 	nvgpu_writel(g, fifo_intr_0_r(), ~fifo_intr_0_channel_intr_pending_f());
 	gk20a_fifo_intr_1_isr(g);
-	assert(nvgpu_readl(g, fifo_intr_0_r()) == 0);
+	unit_assert(nvgpu_readl(g, fifo_intr_0_r()) == 0, goto done);
 
 	/* channel intr pending */
 	nvgpu_writel(g, fifo_intr_0_r(), U32_MAX);
 	gk20a_fifo_intr_1_isr(g);
-	assert(nvgpu_readl(g, fifo_intr_0_r()) == fifo_intr_0_channel_intr_pending_f());
+	unit_assert(nvgpu_readl(g, fifo_intr_0_r()) ==
+			fifo_intr_0_channel_intr_pending_f(), goto done);
 
 	ret = UNIT_SUCCESS;
 done:
@@ -123,8 +122,9 @@ int test_gk20a_fifo_intr_handle_chsw_error(struct unit_module *m,
 	u.count = 0;
 	nvgpu_writel(g, fifo_intr_chsw_error_r(), 0xcafe);
 	gk20a_fifo_intr_handle_chsw_error(g);
-	assert(u.count > 0);
-	assert(nvgpu_readl(g, fifo_intr_chsw_error_r()) == 0xcafe);
+	unit_assert(u.count > 0, goto done);
+	unit_assert(nvgpu_readl(g, fifo_intr_chsw_error_r()) == 0xcafe,
+				goto done);
 
 	ret = UNIT_SUCCESS;
 done:
@@ -163,7 +163,7 @@ int test_gk20a_fifo_intr_handle_runlist_event(struct unit_module *m,
 	u.fail = false;
 	old_io = nvgpu_posix_register_io(g, &new_io);
 	gk20a_fifo_intr_handle_runlist_event(g);
-	assert(!u.fail);
+	unit_assert(!u.fail, goto done);
 
 	ret = UNIT_SUCCESS;
 done:
@@ -194,7 +194,7 @@ int test_gk20a_fifo_pbdma_isr(struct unit_module *m,
 	u32 num_pbdma = nvgpu_get_litter_value(g, GPU_LIT_HOST_NUM_PBDMA);
 	struct gpu_ops gops = g->ops;
 
-	assert(num_pbdma > 0);
+	unit_assert(num_pbdma > 0, goto done);
 
 	g->ops.pbdma.handle_intr = stub_pbdma_handle_intr;
 
@@ -205,9 +205,10 @@ int test_gk20a_fifo_pbdma_isr(struct unit_module *m,
 			nvgpu_writel(g, fifo_intr_pbdma_id_r(), BIT(pbdma_id));
 			u.count = 0;
 			pending = gk20a_fifo_pbdma_isr(g);
-			assert(pending == fifo_intr_0_pbdma_intr_pending_f());
-			assert(!u.fail);
-			assert(u.count == 1);
+			unit_assert(pending ==
+				fifo_intr_0_pbdma_intr_pending_f(), goto done);
+			unit_assert(!u.fail, goto done);
+			unit_assert(u.count == 1, goto done);
 		}
 	}
 	ret = UNIT_SUCCESS;

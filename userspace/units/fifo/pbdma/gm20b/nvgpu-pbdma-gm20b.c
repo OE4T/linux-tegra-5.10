@@ -57,8 +57,6 @@
 	} while (0)
 #endif
 
-#define assert(cond)	unit_assert(cond, goto done)
-
 #define branches_str test_fifo_flags_str
 #define pruned test_fifo_subtest_pruned
 
@@ -105,13 +103,15 @@ static bool is_timeout_valid(struct unit_module *m, u32 timeout, u64 ms) {
 	u64 max_ns = ((1024UL * (u64)pbdma_acquire_timeout_man_max_v()) <<
 			pbdma_acquire_timeout_exp_max_v());
 
-	assert((timeout & 0x3ff) ==
-		(pbdma_acquire_retry_man_2_f() | pbdma_acquire_retry_exp_2_f()));
+	unit_assert((timeout & 0x3ff) == (pbdma_acquire_retry_man_2_f() |
+				pbdma_acquire_retry_exp_2_f()), goto done);
 	if (ms == 0) {
-		assert((timeout & pbdma_acquire_timeout_en_enable_f()) == 0);
+		unit_assert((timeout & pbdma_acquire_timeout_en_enable_f()) ==
+				0, goto done);
 		return true;
 	} else {
-		assert((timeout & pbdma_acquire_timeout_en_enable_f()) != 0);
+		unit_assert((timeout & pbdma_acquire_timeout_en_enable_f()) !=
+				0, goto done);
 	}
 
 	unit_verbose(m, "ms = %llu\n", ms);
@@ -129,7 +129,7 @@ static bool is_timeout_valid(struct unit_module *m, u32 timeout, u64 ms) {
 			expected_ns - actual_ns : actual_ns - expected_ns);
 	unit_verbose(m, "max delta = %llu\n", max_delta);
 	unit_verbose(m, "delta = %llu\n", delta);
-	assert(delta < max_delta);
+	unit_assert(delta < max_delta, goto done);
 
 	return true;
 done:
@@ -146,16 +146,16 @@ int test_gm20b_pbdma_acquire_val(struct unit_module *m,
 	int err;
 
 	timeout = gm20b_pbdma_acquire_val(0);
-	assert(is_timeout_valid(m, timeout, 0));
+	unit_assert(is_timeout_valid(m, timeout, 0), goto done);
 
 	for (i = 0; i < 32; i++) {
 		ms = (1ULL << i);
 		timeout = gm20b_pbdma_acquire_val(ms);
-		assert(is_timeout_valid(m, timeout, ms));
+		unit_assert(is_timeout_valid(m, timeout, ms), goto done);
 	}
 
 	err = EXPECT_BUG(gm20b_pbdma_acquire_val(U64_MAX));
-	assert(err != 0);
+	unit_assert(err != 0, goto done);
 
 	ret = UNIT_SUCCESS;
 done:
@@ -239,21 +239,24 @@ int test_gm20b_pbdma_handle_intr(struct unit_module *m,
 		recover = gm20b_pbdma_handle_intr(g, pbdma_id, err_notifier, &pbdma_status);
 
 		if (branches & F_PBDMA_HANDLE_INTR_0_PENDING) {
-			assert(u.stubs.pbdma_handle_intr_0.count > 0);
+			unit_assert(u.stubs.pbdma_handle_intr_0.count > 0,
+					goto done);
 			if (branches & F_PBDMA_HANDLE_INTR_0_RECOVER) {
-				assert(recover);
+				unit_assert(recover, goto done);
 			}
 		}
 
 		if (branches & F_PBDMA_HANDLE_INTR_1_PENDING) {
-			assert(u.stubs.pbdma_handle_intr_1.count > 0);
+			unit_assert(u.stubs.pbdma_handle_intr_1.count > 0,
+					goto done);
 			if (branches & F_PBDMA_HANDLE_INTR_1_RECOVER) {
-				assert(recover);
+				unit_assert(recover, goto done);
 			}
 		}
 
 		if (branches & F_PBDMA_HANDLE_INTR_ERR_NOTIFIER) {
-			assert(*err_notifier != INVALID_ERR_NOTIFIER);
+			unit_assert(*err_notifier != INVALID_ERR_NOTIFIER,
+					goto done);
 		}
 
 	}
@@ -305,7 +308,8 @@ int test_gm20b_pbdma_handle_intr_0(struct unit_module *m,
 	int i;
 	int err;
 
-	assert((f->intr.pbdma.device_fatal_0 & pbdma_intr_0_memreq_pending_f()) != 0);
+	unit_assert((f->intr.pbdma.device_fatal_0 &
+			pbdma_intr_0_memreq_pending_f()) != 0, goto done);
 
 	for (branches = 0; branches < BIT(PBDMA_NUM_INTRS); branches++) {
 
@@ -331,45 +335,61 @@ int test_gm20b_pbdma_handle_intr_0(struct unit_module *m,
 		recover = gm20b_pbdma_handle_intr_0(g, pbdma_id, pbdma_intr_0, &err_notifier);
 
 		if (pbdma_intr_0 == 0) {
-			assert(!recover);
+			unit_assert(!recover, goto done);
 		}
 
 		if (pbdma_intr_0 & pbdma_intr_0_memreq_pending_f()) {
-			assert(recover);
+			unit_assert(recover, goto done);
 		}
 
 		if (pbdma_intr_0 & pbdma_intr_0_acquire_pending_f()) {
 			if (nvgpu_is_timeouts_enabled(g)) {
-				assert(recover);
-				assert(err_notifier != INVALID_ERR_NOTIFIER);
+				unit_assert(recover, goto done);
+				unit_assert(err_notifier !=
+					INVALID_ERR_NOTIFIER, goto done);
 			} else {
-				assert(!recover);
+				unit_assert(!recover, goto done);
 			}
 		}
 
 		if (pbdma_intr_0 & pbdma_intr_0_pbentry_pending_f()) {
-			assert(recover);
-			assert(nvgpu_readl(g, pbdma_pb_header_r(pbdma_id)) != 0);
-			assert(nvgpu_readl(g, pbdma_method0_r(pbdma_id)) != METHOD_SUBCH5);
+			unit_assert(recover, goto done);
+			unit_assert(nvgpu_readl(g,
+				pbdma_pb_header_r(pbdma_id)) != 0, goto done);
+			unit_assert(nvgpu_readl(g,
+				pbdma_method0_r(pbdma_id)) != METHOD_SUBCH5,
+				goto done);
 		}
 
 		if (pbdma_intr_0 & pbdma_intr_0_method_pending_f()) {
-			assert(recover);
-			assert(nvgpu_readl(g, pbdma_method0_r(pbdma_id)) != METHOD_SUBCH5);
+			unit_assert(recover, goto done);
+			unit_assert(nvgpu_readl(g,
+				pbdma_method0_r(pbdma_id)) != METHOD_SUBCH5,
+				goto done);
 		}
 
 		if (pbdma_intr_0 & pbdma_intr_0_pbcrc_pending_f()) {
-			assert(recover);
-			assert(err_notifier != INVALID_ERR_NOTIFIER);
+			unit_assert(recover, goto done);
+			unit_assert(err_notifier != INVALID_ERR_NOTIFIER,
+				goto done);
 		}
 
 		if (pbdma_intr_0 & pbdma_intr_0_device_pending_f()) {
-			assert(recover);
-			assert(nvgpu_readl(g, pbdma_pb_header_r(pbdma_id)) != 0);
-			assert(nvgpu_readl(g, pbdma_method0_r(pbdma_id)) != METHOD_SUBCH5);
-			assert(nvgpu_readl(g, pbdma_method1_r(pbdma_id)) == METHOD_NO_SUBCH);
-			assert(nvgpu_readl(g, pbdma_method2_r(pbdma_id)) != METHOD_SUBCH6);
-			assert(nvgpu_readl(g, pbdma_method3_r(pbdma_id)) != METHOD_SUBCH7);
+			unit_assert(recover, goto done);
+			unit_assert(nvgpu_readl(g,
+				pbdma_pb_header_r(pbdma_id)) != 0, goto done);
+			unit_assert(nvgpu_readl(g,
+				pbdma_method0_r(pbdma_id)) != METHOD_SUBCH5,
+				goto done);
+			unit_assert(nvgpu_readl(g,
+				pbdma_method1_r(pbdma_id)) == METHOD_NO_SUBCH,
+				goto done);
+			unit_assert(nvgpu_readl(g,
+				pbdma_method2_r(pbdma_id)) != METHOD_SUBCH6,
+				goto done);
+			unit_assert(nvgpu_readl(g,
+				pbdma_method3_r(pbdma_id)) != METHOD_SUBCH7,
+				goto done);
 		}
 	}
 
@@ -382,7 +402,7 @@ int test_gm20b_pbdma_handle_intr_0(struct unit_module *m,
 			pbdma_intr_0_device_pending_f(),
 			&err_notifier)
 	);
-	assert(err != 0);
+	unit_assert(err != 0, goto done);
 
 	ret = UNIT_SUCCESS;
 done:
@@ -404,7 +424,8 @@ int test_gm20b_pbdma_read_data(struct unit_module *m,
 	for (pbdma_id = 0; pbdma_id < f->num_pbdma; pbdma_id++) {
 		u32 pattern = (0xbeef << 16) + pbdma_id;
 		nvgpu_writel(g, pbdma_hdr_shadow_r(pbdma_id), pattern);
-		assert(gm20b_pbdma_read_data(g, pbdma_id) == pattern);
+		unit_assert(gm20b_pbdma_read_data(g, pbdma_id) == pattern,
+				goto done);
 	}
 
 	ret = UNIT_SUCCESS;
@@ -423,10 +444,10 @@ int test_gm20b_pbdma_intr_descs(struct unit_module *m,
 	u32 fatal_0 = gm20b_pbdma_device_fatal_0_intr_descs();
 	u32 restartable_0 = gm20b_pbdma_restartable_0_intr_descs();
 
-	assert(fatal_0 != 0);
-	assert(restartable_0 != 0);
-	assert((intr_descs & fatal_0) == fatal_0);
-	assert((intr_descs & restartable_0) == restartable_0);
+	unit_assert(fatal_0 != 0, goto done);
+	unit_assert(restartable_0 != 0, goto done);
+	unit_assert((intr_descs & fatal_0) == fatal_0, goto done);
+	unit_assert((intr_descs & restartable_0) == restartable_0, goto done);
 
 	ret = UNIT_SUCCESS;
 done:
@@ -443,8 +464,9 @@ int test_gm20b_pbdma_format_gpfifo_entry(struct unit_module *m,
 
 	memset(&gpfifo_entry, 0, sizeof(gpfifo_entry));
 	gm20b_pbdma_format_gpfifo_entry(g, &gpfifo_entry, pb_gpu_va, method_size);
-	assert(gpfifo_entry.entry0 == 0xdeadbeef);
-	assert(gpfifo_entry.entry1 == (0x12 | pbdma_gp_entry1_length_f(method_size)));
+	unit_assert(gpfifo_entry.entry0 == 0xdeadbeef, goto done);
+	unit_assert(gpfifo_entry.entry1 == (0x12 |
+		pbdma_gp_entry1_length_f(method_size)), goto done);
 
 	ret = UNIT_SUCCESS;
 done:
@@ -462,16 +484,17 @@ int test_gm20b_pbdma_get_gp_base(struct unit_module *m,
 	int err;
 
 	err =  EXPECT_BUG(gm20b_pbdma_get_gp_base_hi(gpfifo_base, 0));
-	assert(err != 0);
+	unit_assert(err != 0, goto done);
 
 	for (n = 1; n < 16; n++) {
 		base_lo = gm20b_pbdma_get_gp_base(gpfifo_base);
 		base_hi = gm20b_pbdma_get_gp_base_hi(gpfifo_base, 1 << n);
-		assert(base_lo == pbdma_gp_base_offset_f(
-			u64_lo32(gpfifo_base >> pbdma_gp_base_rsvd_s())));
-		assert(base_hi ==
+		unit_assert(base_lo == pbdma_gp_base_offset_f(
+			u64_lo32(gpfifo_base >> pbdma_gp_base_rsvd_s())),
+			goto done);
+		unit_assert(base_hi ==
 			(pbdma_gp_base_hi_offset_f(u64_hi32(gpfifo_base)) |
-			 pbdma_gp_base_hi_limit2_f(n)));
+			 pbdma_gp_base_hi_limit2_f(n)), goto done);
 	}
 
 	ret = UNIT_SUCCESS;
@@ -486,10 +509,10 @@ int test_gm20b_pbdma_get_fc_subdevice(struct unit_module *m,
 {
 	int ret = UNIT_FAIL;
 
-	assert(gm20b_pbdma_get_fc_subdevice() ==
+	unit_assert(gm20b_pbdma_get_fc_subdevice() ==
 		(pbdma_subdevice_id_f(PBDMA_SUBDEVICE_ID) |
 		 pbdma_subdevice_status_active_f() |
-		 pbdma_subdevice_channel_dma_enable_f()));
+		 pbdma_subdevice_channel_dma_enable_f()), goto done);
 
 	ret = UNIT_SUCCESS;
 done:
@@ -501,8 +524,8 @@ int test_gm20b_pbdma_get_ctrl_hce_priv_mode_yes(struct unit_module *m,
 {
 	int ret = UNIT_FAIL;
 
-	assert(gm20b_pbdma_get_ctrl_hce_priv_mode_yes() ==
-		pbdma_hce_ctrl_hce_priv_mode_yes_f());
+	unit_assert(gm20b_pbdma_get_ctrl_hce_priv_mode_yes() ==
+		pbdma_hce_ctrl_hce_priv_mode_yes_f(), goto done);
 
 	ret = UNIT_SUCCESS;
 done:
@@ -520,28 +543,36 @@ int test_gm20b_pbdma_get_userd(struct unit_module *m,
 	u32 mask = 0xaaaa;
 	int err;
 
-	assert(gm20b_pbdma_get_userd_addr(addr_lo) == pbdma_userd_addr_f(addr_lo));
-	assert(gm20b_pbdma_get_userd_hi_addr(addr_hi) == pbdma_userd_hi_addr_f(addr_hi));
+	unit_assert(gm20b_pbdma_get_userd_addr(addr_lo) ==
+			pbdma_userd_addr_f(addr_lo), goto done);
+	unit_assert(gm20b_pbdma_get_userd_hi_addr(addr_hi) ==
+			pbdma_userd_hi_addr_f(addr_hi), goto done);
 
 	mem.aperture = APERTURE_INVALID;
 	err = EXPECT_BUG(mask = gm20b_pbdma_get_userd_aperture_mask(g, &mem));
-	assert(err != 0);
-	assert(mask == 0xaaaa);
+	unit_assert(err != 0, goto done);
+	unit_assert(mask == 0xaaaa, goto done);
 
 	if (nvgpu_is_enabled(g, NVGPU_MM_HONORS_APERTURE)) {
 		mem.aperture = APERTURE_SYSMEM;
-		assert(gm20b_pbdma_get_userd_aperture_mask(g, &mem) == pbdma_userd_target_sys_mem_ncoh_f());
+		unit_assert(gm20b_pbdma_get_userd_aperture_mask(g, &mem) ==
+				pbdma_userd_target_sys_mem_ncoh_f(), goto done);
 		mem.aperture = APERTURE_SYSMEM_COH;
-		assert(gm20b_pbdma_get_userd_aperture_mask(g, &mem) == pbdma_userd_target_sys_mem_coh_f());
+		unit_assert(gm20b_pbdma_get_userd_aperture_mask(g, &mem) ==
+				pbdma_userd_target_sys_mem_coh_f(), goto done);
 		mem.aperture = APERTURE_VIDMEM;
-		assert(gm20b_pbdma_get_userd_aperture_mask(g, &mem) == pbdma_userd_target_vid_mem_f());
+		unit_assert(gm20b_pbdma_get_userd_aperture_mask(g, &mem) ==
+				pbdma_userd_target_vid_mem_f(), goto done);
 	} else {
 		mem.aperture = APERTURE_SYSMEM;
-		assert(gm20b_pbdma_get_userd_aperture_mask(g, &mem) == pbdma_userd_target_vid_mem_f());
+		unit_assert(gm20b_pbdma_get_userd_aperture_mask(g, &mem) ==
+				pbdma_userd_target_vid_mem_f(), goto done);
 		mem.aperture = APERTURE_SYSMEM_COH;
-		assert(gm20b_pbdma_get_userd_aperture_mask(g, &mem) == pbdma_userd_target_vid_mem_f());
+		unit_assert(gm20b_pbdma_get_userd_aperture_mask(g, &mem) ==
+				pbdma_userd_target_vid_mem_f(), goto done);
 		mem.aperture = APERTURE_VIDMEM;
-		assert(gm20b_pbdma_get_userd_aperture_mask(g, &mem) == pbdma_userd_target_vid_mem_f());
+		unit_assert(gm20b_pbdma_get_userd_aperture_mask(g, &mem) ==
+				pbdma_userd_target_vid_mem_f(), goto done);
 	}
 
 	ret = UNIT_SUCCESS;

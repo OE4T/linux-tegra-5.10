@@ -60,14 +60,13 @@
 	} while (0)
 #endif
 
-#define assert(cond)	unit_assert(cond, goto done)
-
 int test_gk20a_runlist_length_max(struct unit_module *m,
 		struct gk20a *g, void *args)
 {
 	int ret = UNIT_FAIL;
 
-	assert(gk20a_runlist_length_max(g) == fifo_eng_runlist_length_max_v());
+	unit_assert(gk20a_runlist_length_max(g) ==
+			fifo_eng_runlist_length_max_v(), goto done);
 	ret = UNIT_SUCCESS;
 done:
 	return ret;
@@ -88,13 +87,15 @@ int test_gk20a_runlist_hw_submit(struct unit_module *m,
 
 		gk20a_runlist_hw_submit(g, runlist_id, count, buffer_index);
 		if (count == 0) {
-			assert(nvgpu_readl(g, fifo_runlist_base_r()) == 0);
+			unit_assert(nvgpu_readl(g, fifo_runlist_base_r()) == 0,
+					goto done);
 		} else {
-			assert(nvgpu_readl(g, fifo_runlist_base_r()) != 0);
+			unit_assert(nvgpu_readl(g, fifo_runlist_base_r()) != 0,
+					goto done);
 		}
-		assert(nvgpu_readl(g, fifo_runlist_r()) ==
+		unit_assert(nvgpu_readl(g, fifo_runlist_r()) ==
 			(fifo_runlist_engine_f(runlist_id) |
-				fifo_eng_runlist_length_f(count)));
+				fifo_eng_runlist_length_f(count)), goto done);
 	}
 
 	ret = UNIT_SUCCESS;
@@ -168,7 +169,7 @@ int test_gk20a_runlist_wait_pending(struct unit_module *m,
 	/* nvgpu_timeout_init failure */
 	nvgpu_posix_enable_fault_injection(timer_fi, true, 0);
 	err = gk20a_runlist_wait_pending(g, runlist_id);
-	assert(err == -ETIMEDOUT);
+	unit_assert(err == -ETIMEDOUT, goto done);
 	nvgpu_posix_enable_fault_injection(timer_fi, false, 0);
 
 	g->poll_timeout_default = 10; /* ms */
@@ -181,22 +182,22 @@ int test_gk20a_runlist_wait_pending(struct unit_module *m,
 	/* no wait */
 	ctx->count = 0;
 	err = gk20a_runlist_wait_pending(g, runlist_id);
-	assert(err == 0);
+	unit_assert(err == 0, goto done);
 
 	/* 1 loop */
 	ctx->count = 1;
 	err = gk20a_runlist_wait_pending(g, runlist_id);
-	assert(err == 0);
+	unit_assert(err == 0, goto done);
 
 	/* 2 loops */
 	ctx->count = 2;
 	err = gk20a_runlist_wait_pending(g, runlist_id);
-	assert(err == 0);
+	unit_assert(err == 0, goto done);
 
 	/* timeout  */
 	ctx->count = U32_MAX;
 	err = gk20a_runlist_wait_pending(g, runlist_id);
-	assert(err == -ETIMEDOUT);
+	unit_assert(err == -ETIMEDOUT, goto done);
 
 	ret = UNIT_SUCCESS;
 
@@ -218,11 +219,13 @@ int test_gk20a_runlist_write_state(struct unit_module *m,
 		for (mask = 0; mask < 4; mask++) {
 			nvgpu_writel(g, fifo_sched_disable_r(), v);
 			gk20a_runlist_write_state(g, mask, RUNLIST_DISABLED);
-			assert(nvgpu_readl(g, fifo_sched_disable_r()) == (v | mask));
+			unit_assert(nvgpu_readl(g, fifo_sched_disable_r()) == (v | mask),
+					goto done);
 
 			nvgpu_writel(g, fifo_sched_disable_r(), v);
 			gk20a_runlist_write_state(g, mask, RUNLIST_ENABLED);
-			assert(nvgpu_readl(g, fifo_sched_disable_r()) == (v & ~mask));
+			unit_assert(nvgpu_readl(g, fifo_sched_disable_r()) == (v & ~mask),
+					goto done);
 		}
 	}
 

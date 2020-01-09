@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -47,8 +47,6 @@
 	} while (0)
 #endif
 
-#define assert(cond)	unit_assert(cond, goto done)
-
 #define pruned test_fifo_subtest_pruned
 
 #define branches_str test_fifo_flags_str
@@ -79,8 +77,8 @@ int test_decode_pbdma_ch_eng_status(struct unit_module *m, struct gk20a *g,
 		pbdma_ch_eng_status =
 				nvgpu_fifo_decode_pbdma_ch_eng_status(index);
 
-		assert(strcmp(pbdma_ch_eng_status,
-				f_fifo_decode_status[index]) == 0);
+		unit_assert(strcmp(pbdma_ch_eng_status,
+				f_fifo_decode_status[index]) == 0, goto done);
 	}
 
 	ret = UNIT_SUCCESS;
@@ -120,13 +118,13 @@ int test_fifo_suspend(struct unit_module *m, struct gk20a *g, void *args)
 	u32 prune = F_FIFO_SUSPEND_BAR1_SUPPORTED;
 
 	err = test_fifo_setup_gv11b_reg_space(m, g);
-	assert(err == 0);
+	unit_assert(err == 0, goto done);
 
 	gv11b_init_hal(g);
 	gops = g->ops;
 	g->ops.fifo.bar1_snooping_disable = stub_fifo_bar1_snooping_disable;
 	err = nvgpu_fifo_init_support(g);
-	assert(err == 0);
+	unit_assert(err == 0, goto done);
 
 	for (branches = 0U; branches < F_FIFO_SUSPEND_LAST; branches++) {
 
@@ -145,8 +143,8 @@ int test_fifo_suspend(struct unit_module *m, struct gk20a *g, void *args)
 		err = nvgpu_fifo_suspend(g);
 		reg0_val = nvgpu_readl(g, fifo_intr_en_0_r());
 		reg1_val = nvgpu_readl(g, fifo_intr_en_1_r());
-		assert(reg0_val == 0U);
-		assert(reg1_val == 0U);
+		unit_assert(reg0_val == 0U, goto done);
+		unit_assert(reg1_val == 0U, goto done);
 	}
 
 	ret = UNIT_SUCCESS;
@@ -170,17 +168,17 @@ int test_fifo_sw_quiesce(struct unit_module *m, struct gk20a *g, void *args)
 	int err;
 
 	err = test_fifo_setup_gv11b_reg_space(m, g);
-	assert(err == 0);
+	unit_assert(err == 0, goto done);
 
 	gv11b_init_hal(g);
 	gops = g->ops;
 	err = nvgpu_fifo_init_support(g);
-	assert(err == 0);
+	unit_assert(err == 0, goto done);
 
 #ifndef CONFIG_NVGPU_RECOVERY
 		nvgpu_fifo_sw_quiesce(g);
 		reg_val = nvgpu_readl(g, fifo_sched_disable_r());
-		assert(reg_val == 3U);
+		unit_assert(reg_val == 3U, goto done);
 #endif
 	ret = UNIT_SUCCESS;
 
@@ -261,7 +259,7 @@ int test_init_support(struct unit_module *m, struct gk20a *g, void *args)
 	kmem_fi = nvgpu_kmem_get_fault_injection();
 
 	err = test_fifo_setup_gv11b_reg_space(m, g);
-	assert(err == 0);
+	unit_assert(err == 0, goto done);
 
 	gv11b_init_hal(g);
 	gops = g->ops;
@@ -282,7 +280,7 @@ int test_init_support(struct unit_module *m, struct gk20a *g, void *args)
 
 		if (branches & F_FIFO_SETUP_SW_READY) {
 			err = nvgpu_fifo_init_support(g);
-			assert(err == 0);
+			unit_assert(err == 0, goto done);
 		}
 
 		g->ops.fifo.init_fifo_setup_hw =
@@ -315,9 +313,9 @@ int test_init_support(struct unit_module *m, struct gk20a *g, void *args)
 			if (branches & F_FIFO_CLEANUP_SW_PBDMA_NULL) {
 				gops.pbdma.cleanup_sw(g);
 			}
-			assert(err != 0);
+			unit_assert(err != 0, goto done);
 		} else {
-			assert(err == 0);
+			unit_assert(err == 0, goto done);
 			nvgpu_fifo_cleanup_sw_common(g);
 		}
 

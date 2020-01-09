@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -53,7 +53,6 @@
 	} while (0)
 #endif
 
-#define assert(cond)	unit_assert(cond, goto done)
 #define branches_str 	test_fifo_flags_str
 
 int test_gv11b_usermode(struct unit_module *m,
@@ -70,21 +69,22 @@ int test_gv11b_usermode(struct unit_module *m,
 	u32 token;
 	u32 val;
 
-	assert(base == usermode_cfg0_r());
-	assert(bus_base == usermode_cfg0_r());
+	unit_assert(base == usermode_cfg0_r(), goto done);
+	unit_assert(bus_base == usermode_cfg0_r(), goto done);
 
 	ch = nvgpu_channel_open_new(g, runlist_id,
 			privileged, getpid(), getpid());
-	assert(ch != NULL);
+	unit_assert(ch != NULL, goto done);
 	hw_chid = f->channel_base + ch->chid;
 
 	token = gv11b_usermode_doorbell_token(ch);
-	assert(token == usermode_notify_channel_pending_id_f(hw_chid));
+	unit_assert(token == usermode_notify_channel_pending_id_f(hw_chid),
+			goto done);
 
 	nvgpu_usermode_writel(g, usermode_notify_channel_pending_r(), 0);
 	gv11b_usermode_ring_doorbell(ch);
 	val = nvgpu_readl(g, usermode_notify_channel_pending_r());
-	assert(val == token);
+	unit_assert(val == token, goto done);
 
 	ret = UNIT_SUCCESS;
 done:

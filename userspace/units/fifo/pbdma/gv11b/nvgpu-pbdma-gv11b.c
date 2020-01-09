@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -57,8 +57,6 @@
 	} while (0)
 #endif
 
-#define assert(cond)	unit_assert(cond, goto done)
-
 #define branches_str test_fifo_flags_str
 #define pruned test_fifo_subtest_pruned
 
@@ -75,15 +73,15 @@ int test_gv11b_pbdma_setup_hw(struct unit_module *m,
 	u32 timeout;
 
 	num_pbdma = nvgpu_get_litter_value(g, GPU_LIT_HOST_NUM_PBDMA);
-	assert(num_pbdma > 0);
+	unit_assert(num_pbdma > 0, goto done);
 
 	gv11b_pbdma_setup_hw(g);
 	if (nvgpu_platform_is_silicon(g)) {
 		for (pbdma_id = 0; pbdma_id < num_pbdma; pbdma_id++)
 		{
 			timeout = nvgpu_readl(g, pbdma_timeout_r(pbdma_id));
-			assert(get_field(timeout, pbdma_timeout_period_m()) ==
-				pbdma_timeout_period_max_f());
+			unit_assert(get_field(timeout, pbdma_timeout_period_m()) ==
+				pbdma_timeout_period_max_f(), goto done);
 		}
 	}
 
@@ -103,7 +101,7 @@ int test_gv11b_pbdma_intr_enable(struct unit_module *m,
 	u32 i;
 
 	num_pbdma = nvgpu_get_litter_value(g, GPU_LIT_HOST_NUM_PBDMA);
-	assert(num_pbdma > 0);
+	unit_assert(num_pbdma > 0, goto done);
 
 	for (i = 0 ; i < 2; i++) {
 		enable = (i > 0);
@@ -127,15 +125,16 @@ int test_gv11b_pbdma_intr_enable(struct unit_module *m,
 			u32 intr_en_1 = nvgpu_readl(g, pbdma_intr_en_1_r(pbdma_id));
 
 			if (enable) {
-				assert(intr_en_0 == pattern);
-				assert(intr_en_1 == (pattern &
-					~pbdma_intr_stall_1_hce_illegal_op_enabled_f()));
+				unit_assert(intr_en_0 == pattern, goto done);
+				unit_assert(intr_en_1 == (pattern &
+					~pbdma_intr_stall_1_hce_illegal_op_enabled_f()),
+					goto done);
 			} else {
-				assert(intr_en_0 == 0);
-				assert(intr_en_1 == 0);
+				unit_assert(intr_en_0 == 0, goto done);
+				unit_assert(intr_en_1 == 0, goto done);
 			}
-			assert(intr_0 != 0);
-			assert(intr_1 != 0);
+			unit_assert(intr_0 != 0, goto done);
+			unit_assert(intr_1 != 0, goto done);
 		}
 	}
 
@@ -177,7 +176,8 @@ int test_gv11b_pbdma_handle_intr_0(struct unit_module *m,
 	bool recover;
 	int i;
 
-	assert((f->intr.pbdma.device_fatal_0 & pbdma_intr_0_memreq_pending_f()) != 0);
+	unit_assert((f->intr.pbdma.device_fatal_0 &
+			pbdma_intr_0_memreq_pending_f()) != 0, goto done);
 
 	for (branches = 0; branches < BIT(PBDMA_NUM_INTRS_0); branches++) {
 
@@ -198,22 +198,24 @@ int test_gv11b_pbdma_handle_intr_0(struct unit_module *m,
 		recover = gv11b_pbdma_handle_intr_0(g, pbdma_id, pbdma_intr_0, &err_notifier);
 
 		if (pbdma_intr_0 == 0) {
-			assert(!recover);
+			unit_assert(!recover, goto done);
 		}
 
 		if (pbdma_intr_0 & pbdma_intr_0_memreq_pending_f()) {
-			assert(recover);
+			unit_assert(recover, goto done);
 		}
 
 		if (pbdma_intr_0 & pbdma_intr_0_clear_faulted_error_pending_f()) {
-			assert(recover);
-			assert(nvgpu_readl(g, pbdma_method_r(pbdma_id, 0)) != 0);
+			unit_assert(recover, goto done);
+			unit_assert(nvgpu_readl(g,
+				pbdma_method_r(pbdma_id, 0)) != 0, goto done);
 		} else {
-			assert(nvgpu_readl(g, pbdma_method_r(pbdma_id, 0)) == 0);
+			unit_assert(nvgpu_readl(g,
+				pbdma_method_r(pbdma_id, 0)) == 0, goto done);
 		}
 
 		if (pbdma_intr_0 & pbdma_intr_0_eng_reset_pending_f()) {
-			assert(recover);
+			unit_assert(recover, goto done);
 		}
 	}
 
@@ -283,15 +285,15 @@ int test_gv11b_pbdma_handle_intr_1(struct unit_module *m,
 		recover = gv11b_pbdma_handle_intr_1(g, pbdma_id, pbdma_intr_1, &err_notifier);
 
 		if (pbdma_intr_1 == 0) {
-			assert(!recover);
+			unit_assert(!recover, goto done);
 		}
 
 		if (((branches & F_PBDMA_INTR_1_CTXNOTVALID_IN) &&
 			(branches & F_PBDMA_INTR_1_CTXNOTVALID_READ)) ||
 			(branches & F_PBDMA_INTR_1_HCE)) {
-			assert(recover);
+			unit_assert(recover, goto done);
 		} else {
-			assert(!recover);
+			unit_assert(!recover, goto done);
 		}
 	}
 
@@ -314,8 +316,9 @@ int test_gv11b_pbdma_intr_descs(struct unit_module *m,
 			  f->intr.pbdma.restartable_0);
 	u32 channel_fatal_0 = gv11b_pbdma_channel_fatal_0_intr_descs();
 
-	assert(channel_fatal_0 != 0);
-	assert((intr_descs & channel_fatal_0) == channel_fatal_0);
+	unit_assert(channel_fatal_0 != 0, goto done);
+	unit_assert((intr_descs & channel_fatal_0) == channel_fatal_0,
+		goto done);
 
 	ret = UNIT_SUCCESS;
 done:
@@ -328,17 +331,17 @@ int test_gv11b_pbdma_get_fc(struct unit_module *m,
 {
 	int ret = UNIT_FAIL;
 
-	assert(gv11b_pbdma_get_fc_pb_header() ==
+	unit_assert(gv11b_pbdma_get_fc_pb_header() ==
 		(pbdma_pb_header_method_zero_f() |
 		 pbdma_pb_header_subchannel_zero_f() |
 		 pbdma_pb_header_level_main_f() |
 		 pbdma_pb_header_first_true_f() |
-		 pbdma_pb_header_type_inc_f()));
+		 pbdma_pb_header_type_inc_f()), goto done);
 
-	assert(gv11b_pbdma_get_fc_target() ==
+	unit_assert(gv11b_pbdma_get_fc_target() ==
 		(pbdma_target_engine_sw_f() |
 		 pbdma_target_eng_ctx_valid_true_f() |
-		 pbdma_target_ce_ctx_valid_true_f()));
+		 pbdma_target_ce_ctx_valid_true_f()), goto done);
 
 	ret = UNIT_SUCCESS;
 done:
@@ -352,8 +355,8 @@ int test_gv11b_pbdma_set_channel_info_veid(struct unit_module *m,
 	u32 subctx_id;
 
 	for (subctx_id = 0; subctx_id < 64; subctx_id ++) {
-		assert(gv11b_pbdma_set_channel_info_veid(subctx_id) ==
-			pbdma_set_channel_info_veid_f(subctx_id));
+		unit_assert(gv11b_pbdma_set_channel_info_veid(subctx_id) ==
+			pbdma_set_channel_info_veid_f(subctx_id), goto done);
 	}
 
 	ret = UNIT_SUCCESS;
@@ -366,8 +369,8 @@ int test_gv11b_pbdma_config_userd_writeback_enable(struct unit_module *m,
 {
 	int ret = UNIT_FAIL;
 
-	assert(gv11b_pbdma_config_userd_writeback_enable() ==
-		pbdma_config_userd_writeback_enable_f());
+	unit_assert(gv11b_pbdma_config_userd_writeback_enable() ==
+		pbdma_config_userd_writeback_enable_f(), goto done);
 
 	ret = UNIT_SUCCESS;
 done:

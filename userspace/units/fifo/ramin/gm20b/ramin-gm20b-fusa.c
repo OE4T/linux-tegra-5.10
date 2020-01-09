@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -46,8 +46,6 @@
 	} while (0)
 #endif
 
-#define assert(cond)	unit_assert(cond, goto done)
-
 #define branches_str test_fifo_flags_str
 #define pruned test_fifo_subtest_pruned
 
@@ -71,7 +69,7 @@ int test_gm20b_ramin_set_big_page_size(struct unit_module *m, struct gk20a *g,
 	g->ops.ramin.alloc_size = gk20a_ramin_alloc_size;
 
 	err = nvgpu_dma_alloc(g, g->ops.ramin.alloc_size(), &mem);
-	assert(err == 0);
+	unit_assert(err == 0, goto done);
 
 	for (branches = 0U; branches < F_SET_BIG_PAGE_SIZE_LAST; branches++) {
 		unit_verbose(m, "%s branches=%s\n",
@@ -85,13 +83,15 @@ int test_gm20b_ramin_set_big_page_size(struct unit_module *m, struct gk20a *g,
 		gm20b_ramin_set_big_page_size(g, &mem, size);
 
 		if (branches & F_SET_BIG_PAGE_SIZE_64K) {
-			assert(nvgpu_mem_rd32(g, &mem,
+			unit_assert(nvgpu_mem_rd32(g, &mem,
 				ram_in_big_page_size_w()) ==
-				(data | ram_in_big_page_size_64kb_f()));
+				(data | ram_in_big_page_size_64kb_f()),
+				goto done);
 		} else {
-			assert(nvgpu_mem_rd32(g, &mem,
+			unit_assert(nvgpu_mem_rd32(g, &mem,
 				ram_in_big_page_size_w()) ==
-				(data | ram_in_big_page_size_128kb_f()));
+				(data | ram_in_big_page_size_128kb_f()),
+				goto done);
 		}
 	}
 

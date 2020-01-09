@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -54,8 +54,6 @@
 	} while (0)
 #endif
 
-#define assert(cond)	unit_assert(cond, goto done)
-
 #define branches_str test_fifo_flags_str
 #define pruned test_fifo_subtest_pruned
 
@@ -78,11 +76,11 @@ int test_gv100_read_engine_status_info(struct unit_module *m,
 
 	nvgpu_writel(g, fifo_engine_status_r(engine_id), 0);
 	gv100_read_engine_status_info(g, engine_id, &status);
-	assert(status.in_reload_status == false);
+	unit_assert(status.in_reload_status == false, goto done);
 
 	nvgpu_writel(g, fifo_engine_status_r(engine_id), BIT(29));
 	gv100_read_engine_status_info(g, engine_id, &status);
-	assert(status.in_reload_status == true);
+	unit_assert(status.in_reload_status == true, goto done);
 
 	ret = UNIT_SUCCESS;
 done:
@@ -156,12 +154,12 @@ int test_gv100_dump_engine_status(struct unit_module *m,
 
 	unit_ctx.engine_id = 0;
 	gv100_dump_engine_status(g, &o);
-	assert(unit_ctx.engine_id == (num_engines - 1));
+	unit_assert(unit_ctx.engine_id == (num_engines - 1), goto done);
 
 	unit_ctx.engine_id = (u32)~0;
 	g->ops.get_litter_value = stub_get_litter_value_0;
 	gv100_dump_engine_status(g, &o);
-	assert(unit_ctx.engine_id == (u32)~0);
+	unit_assert(unit_ctx.engine_id == (u32)~0, goto done);
 
 	ret = UNIT_SUCCESS;
 done:

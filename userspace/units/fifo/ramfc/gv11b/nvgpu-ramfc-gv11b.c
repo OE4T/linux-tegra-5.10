@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -47,8 +47,6 @@
 		} \
 	} while (0)
 #endif
-
-#define assert(cond)	unit_assert(cond, goto done)
 
 #define branches_str test_fifo_flags_str
 #define pruned test_fifo_subtest_pruned
@@ -179,7 +177,7 @@ int test_gv11b_ramfc_setup(struct unit_module *m, struct gk20a *g, void *args)
 	/* Aperture should be fixed = SYSMEM */
 	nvgpu_set_enabled(g, NVGPU_MM_HONORS_APERTURE, true);
 	err = nvgpu_alloc_inst_block(g, &ch.inst_block);
-	assert(err == 0);
+	unit_assert(err == 0, goto done);
 
 	ch.g = g;
 	ch.subctx_id = 1;
@@ -196,14 +194,14 @@ int test_gv11b_ramfc_setup(struct unit_module *m, struct gk20a *g, void *args)
 				true : false;
 
 		err = gv11b_ramfc_setup(&ch, 0U, 0U, 0ULL, 0U);
-		assert(err == 0);
-		assert(nvgpu_mem_rd32(g, &ch.inst_block,
-				ram_fc_config_w()) == 5U);
+		unit_assert(err == 0, goto done);
+		unit_assert(nvgpu_mem_rd32(g, &ch.inst_block,
+				ram_fc_config_w()) == 5U, goto done);
 
 		if (branches & F_RAMFC_SETUP_PRIVILEDGED_CH) {
-			assert(global_count == 15U);
+			unit_assert(global_count == 15U, goto done);
 		} else {
-			assert(global_count == 13U);
+			unit_assert(global_count == 13U, goto done);
 		}
 	}
 
@@ -231,13 +229,14 @@ int test_gv11b_ramfc_capture_ram_dump(struct unit_module *m,
 	g->ops.ramin.alloc_size = gk20a_ramin_alloc_size;
 
 	err = nvgpu_alloc_inst_block(g, &ch.inst_block);
-	assert(err == 0);
+	unit_assert(err == 0, goto done);
 
 	nvgpu_memset(g, &ch.inst_block, 0U, 0xa5U, 256U);
 
 	gv11b_ramfc_capture_ram_dump(g, &ch, &info);
-	assert(info.inst.pb_top_level_get == 0xa5a5a5a5a5a5a5a5);
-	assert(info.inst.pb_count == 0xa5a5a5a5);
+	unit_assert(info.inst.pb_top_level_get == 0xa5a5a5a5a5a5a5a5,
+			goto done);
+	unit_assert(info.inst.pb_count == 0xa5a5a5a5, goto done);
 
 	ret = UNIT_SUCCESS;
 done:

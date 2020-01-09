@@ -56,8 +56,6 @@
 	} while (0)
 #endif
 
-#define assert(cond)	unit_assert(cond, goto done)
-
 int test_gm20b_channel_bind(struct unit_module *m,
 		struct gk20a *g, void *args)
 {
@@ -70,17 +68,17 @@ int test_gm20b_channel_bind(struct unit_module *m,
 
 	ch = nvgpu_channel_open_new(g, runlist_id,
 		privileged, getpid(), getpid());
-	assert(ch);
-	assert(nvgpu_atomic_read(&ch->bound) == 0);
+	unit_assert(ch, goto done);
+	unit_assert(nvgpu_atomic_read(&ch->bound) == 0, goto done);
 
 	nvgpu_writel(g, ccsr_channel_inst_r(ch->chid), 0);
 	nvgpu_writel(g, ccsr_channel_r(ch->chid), 0);
 
 	gm20b_channel_bind(ch);
 
-	assert(nvgpu_readl(g, ccsr_channel_inst_r(ch->chid)) != 0);
-	assert(nvgpu_readl(g, ccsr_channel_r(ch->chid)) != 0);
-	assert(nvgpu_atomic_read(&ch->bound) == 1);
+	unit_assert(nvgpu_readl(g, ccsr_channel_inst_r(ch->chid)) != 0, goto done);
+	unit_assert(nvgpu_readl(g, ccsr_channel_r(ch->chid)) != 0, goto done);
+	unit_assert(nvgpu_atomic_read(&ch->bound) == 1, goto done);
 
 	nvgpu_atomic_set(&ch->bound, 0);
 
@@ -88,7 +86,7 @@ int test_gm20b_channel_bind(struct unit_module *m,
 	ch->chid = U32_MAX;
 	err = EXPECT_BUG(gm20b_channel_bind(ch));
 	ch->chid = chid;
-	assert(err != 0);
+	unit_assert(err != 0, goto done);
 
 	ret = UNIT_SUCCESS;
 done:
@@ -111,18 +109,18 @@ int test_gm20b_channel_force_ctx_reload(struct unit_module *m,
 
 	ch = nvgpu_channel_open_new(g, runlist_id,
 		privileged, getpid(), getpid());
-	assert(ch);
+	unit_assert(ch, goto done);
 
 	nvgpu_writel(g, ccsr_channel_r(ch->chid), 0);
 	gm20b_channel_force_ctx_reload(ch);
-	assert((nvgpu_readl(g, ccsr_channel_r(ch->chid)) &
-		ccsr_channel_force_ctx_reload_true_f()) != 0);
+	unit_assert((nvgpu_readl(g, ccsr_channel_r(ch->chid)) &
+		ccsr_channel_force_ctx_reload_true_f()) != 0, goto done);
 
 	chid = ch->chid;
 	ch->chid = U32_MAX;
 	err = EXPECT_BUG(gm20b_channel_force_ctx_reload(ch));
 	ch->chid = chid;
-	assert(err != 0);
+	unit_assert(err != 0, goto done);
 
 	ret = UNIT_SUCCESS;
 done:

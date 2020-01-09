@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -56,8 +56,6 @@
 	} while (0)
 #endif
 
-#define assert(cond)	unit_assert(cond, goto done)
-
 #define UNIT_MAX_PBDMA	32
 
 int test_gk20a_init_pbdma_map(struct unit_module *m,
@@ -67,14 +65,14 @@ int test_gk20a_init_pbdma_map(struct unit_module *m,
 	u32 num_pbdma = nvgpu_get_litter_value(g, GPU_LIT_HOST_NUM_PBDMA);
 	u32 pbdma_map[UNIT_MAX_PBDMA];
 	u32 id;
-	assert(num_pbdma > 0);
-	assert(num_pbdma <= UNIT_MAX_PBDMA);
+	unit_assert(num_pbdma > 0, goto done);
+	unit_assert(num_pbdma <= UNIT_MAX_PBDMA, goto done);
 
 	memset(pbdma_map, 0, sizeof(pbdma_map));
 	gk20a_fifo_init_pbdma_map(g, pbdma_map, num_pbdma);
 	for (id = 0; id < num_pbdma; id++) {
 		unit_verbose(m, "id=%u map=%08x\n", id, pbdma_map[id]);
-		assert(pbdma_map[id] != 0);
+		unit_assert(pbdma_map[id] != 0, goto done);
 	}
 
 	ret = UNIT_SUCCESS;
@@ -90,12 +88,14 @@ int test_gk20a_get_timeslices(struct unit_module *m,
 	u32 pb_timeslice = gk20a_fifo_get_pb_timeslice(g);
 
 	/* check that timeslices are enabled */
-	assert((rl_timeslice & fifo_runlist_timeslice_enable_true_f()) != 0);
-	assert((pb_timeslice & fifo_pb_timeslice_enable_true_f()) != 0);
+	unit_assert((rl_timeslice & fifo_runlist_timeslice_enable_true_f()) !=
+				0, goto done);
+	unit_assert((pb_timeslice & fifo_pb_timeslice_enable_true_f()) != 0,
+				goto done);
 
 	/* check that timeslices are non-zero */
-	assert((rl_timeslice & 0xFF) != 0);
-	assert((pb_timeslice & 0xFF) != 0);
+	unit_assert((rl_timeslice & 0xFF) != 0, goto done);
+	unit_assert((pb_timeslice & 0xFF) != 0, goto done);
 
 	ret = UNIT_SUCCESS;
 done:
