@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -78,6 +78,8 @@ int test_free_env(struct unit_module *m,
  *
  * Test Type: Feature Based
  *
+ * Targets: gops_ptimer.read_ptimer
+ *
  * Input: None
  *
  * Steps:
@@ -115,6 +117,8 @@ int test_read_ptimer(struct unit_module *m,
  *              cause errors.
  *
  * Test Type: Feature Based
+ *
+ * Targets: gops_ptimer.isr
  *
  * Input: None
  *
@@ -154,7 +158,9 @@ int test_ptimer_isr(struct unit_module *m,
  *
  * Description: Verify the scale_ptimer() and ptimer_scalingfactor10x() APIs.
  *
- * Test Type: Feature Based
+ * Test Type: Feature Based, Boundary Values
+ *
+ * Targets: scale_ptimer, ptimer_scalingfactor10x
  *
  * Input: None
  *
