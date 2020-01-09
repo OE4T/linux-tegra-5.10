@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -35,9 +35,9 @@
  *
  * Description: The ltc unit gets initialized
  *
- * Test Type: Feature
+ * Test Type: Feature, Error guessing
  *
- * Targets: nvgpu_init_ltc_support
+ * Targets: nvgpu_init_ltc_support, gops_ltc.init_ltc_support
  *
  * Input: None
  *
@@ -66,10 +66,10 @@ int test_ltc_init_support(struct unit_module *m,
  *
  * Description: Validate ltc unit initialization of ecc counters.
  *
- * Test Type: Feature
+ * Test Type: Feature, Error guessing
  *
- * Targets: nvgpu_ecc_counter_init_per_lts, gv11b_lts_ecc_init,
- *          nvgpu_ltc_ecc_free
+ * Targets: nvgpu_ecc_counter_init_per_lts, nvgpu_ltc_ecc_free,
+ *          gops_ltc.ecc_init
  *
  * Input: test_ltc_init_support must have completed successfully.
  *
@@ -131,7 +131,7 @@ int test_ltc_functionality_tests(struct unit_module *m,
  *
  * Description: This test covers negative paths in ltc unit.
  *
- * Test Type: Feature
+ * Test Type: Feature, Error guessing
  *
  * Targets: nvgpu_ltc_sync_enabled, nvgpu_ltc_remove_support,
  *          nvgpu_init_ltc_support
@@ -175,7 +175,7 @@ int test_ltc_remove_support(struct unit_module *m,
  *
  * Test Type: Feature
  *
- * Targets: gv11b_ltc_intr_isr
+ * Targets: gops_ltc_intr.isr
  *
  * Input: test_ltc_init_support must have completed successfully.
  *
@@ -253,7 +253,7 @@ int test_ltc_intr(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Test Type: Feature
  *
- * Targets: gv11b_ltc_intr_en_illegal_compstat
+ * Targets: gops_ltc_intr.en_illegal_compstat
  *
  * Input: None
  *
@@ -276,12 +276,12 @@ int test_ltc_intr_en_illegal_compstat(struct unit_module *m,
  *
  * Test Type: Feature
  *
- * Targets: gv11b_ltc_intr_configure
+ * Targets: gops_ltc_intr.configure
  *
  * Input: None
  *
  * Steps:
- * - Call the gv11b_ltc_intr_configure HAL.
+ * - Call the gops_ltc_intr.configure HAL.
  * - Verify correct setting in LTC intr register (NV_PLTCG_LTCS_LTSS_INTR).
  * - For branch coverage, verify handling when en_illegal_compstat HAL is NULL.
  *   - Set en_illegal_compstat HAL to NULL.
@@ -300,13 +300,13 @@ int test_ltc_intr_configure(struct unit_module *m,
  *
  * Test Type: Feature
  *
- * Targets: gp10b_determine_L2_size_bytes
+ * Targets: gops_ltc.determine_L2_size_bytes
  *
  * Input: test_ltc_init_support must have completed successfully.
  *
  * Steps:
  * - Set the L2 configuration in the ltc NV_PLTCG_LTC0_LTSS_TSTG_INFO_ register.
- * - Call the gp10b_determine_L2_size_bytes HAL.
+ * - Call the gops_ltc.determine_L2_size_bytes HAL.
  * - Verify the correct L2 size is returned.
  *
  * Output: Returns PASS if correct size returned. FAIL otherwise.
@@ -321,16 +321,16 @@ int test_determine_L2_size_bytes(struct unit_module *m,
  *
  * Test Type: Feature
  *
- * Targets: gp10b_ltc_set_enabled
+ * Targets: gops_ltc.set_enabled
  *
  * Input: None
  *
  * Steps:
  * - Clear the NV_PLTCG_LTCS_LTSS_TSTG_SET_MGMT_2 register
- * - Call the gp10b_ltc_set_enabled HAL requesting enable.
+ * - Call the gops_ltc.set_enabled HAL requesting enable.
  * - Verify the L2 bypass mode is disabled in NV_PLTCG_LTCS_LTSS_TSTG_SET_MGMT_2.
  * - Clear the NV_PLTCG_LTCS_LTSS_TSTG_SET_MGMT_2 register
- * - Call the gp10b_ltc_set_enabled HAL requesting disable.
+ * - Call the gops_ltc.set_enabled HAL requesting disable.
  * - Verify the L2 bypass mode is enabled in NV_PLTCG_LTCS_LTSS_TSTG_SET_MGMT_2.
  *
  * Output: Returns PASS if register is configured correctly. FAIL otherwise.
@@ -342,9 +342,9 @@ int test_ltc_set_enabled(struct unit_module *m,	struct gk20a *g, void *args);
  *
  * Description: Validate the ltc API to flush the cache.
  *
- * Test Type: Feature
+ * Test Type: Feature, Error guessing
  *
- * Targets: gm20b_flush_ltc
+ * Targets: gops_ltc.flush
  *
  * Input: None
  *
