@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -40,10 +40,16 @@
 #include "../nvgpu-gr.h"
 #include "nvgpu-gr-fs-state.h"
 
+static u32 gr_get_number_of_sm(struct gk20a *g)
+{
+	return 0;
+}
+
 int test_gr_fs_state_error_injection(struct unit_module *m,
 		struct gk20a *g, void *args)
 {
 	int err;
+	struct gpu_ops gops = g->ops;
 	struct nvgpu_gr_config *config = nvgpu_gr_get_config_ptr(g);
 	struct nvgpu_posix_fault_inj *kmem_fi =
 		nvgpu_kmem_get_fault_injection();
@@ -68,6 +74,16 @@ int test_gr_fs_state_error_injection(struct unit_module *m,
 	if (err != 0) {
 		return UNIT_FAIL;
 	}
+
+	/* No SM is detected - failing case */
+	g->ops.gr.init.get_no_of_sm = gr_get_number_of_sm;
+	err = EXPECT_BUG(nvgpu_gr_fs_state_init(g, config));
+	if (err == 0) {
+		return UNIT_FAIL;
+	}
+
+	/* Restore gops */
+	g->ops = gops;
 
 	return UNIT_SUCCESS;
 }

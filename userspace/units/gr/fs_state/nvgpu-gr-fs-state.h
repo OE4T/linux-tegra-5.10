@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -50,6 +50,9 @@ struct unit_module;
  *     functions called from #nvgpu_gr_fs_state_init.
  *   - Call #nvgpu_gr_fs_state_init and ensure that function returns
  *     error.
+ *   - Set stub function for g->ops.gr.init.get_no_of_sm() which returns 0,
+ *     meaning no SM was detected. nvgpu_gr_fs_state_init() should return
+ *     error, and also a BUG is detected.
  *
  * - Positive test.
  *   - Disable all fault injections.
