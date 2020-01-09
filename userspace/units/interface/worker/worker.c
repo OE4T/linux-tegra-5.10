@@ -60,6 +60,15 @@ static void wakeup_post_process(struct nvgpu_worker *worker)
 	nvgpu_atomic_inc(&wakeup_post_process_val);
 }
 
+static void wakeup_post_process_stop_thread(struct nvgpu_worker *worker)
+{
+	struct nvgpu_posix_fault_inj *thread_fi =
+			nvgpu_thread_get_fault_injection();
+
+	nvgpu_posix_enable_fault_injection(thread_fi, true, 0);
+	nvgpu_atomic_inc(&wakeup_post_process_val);
+}
+
 static bool stall_processing = false;
 static nvgpu_atomic_t item_count;
 static void wakeup_process_item(struct nvgpu_list_node *work_item)
@@ -182,7 +191,7 @@ int test_branches(struct unit_module *m, struct gk20a *g, void *args)
 	int err;
 	struct nvgpu_list_node work_item;
 	int last_item_count;
-	struct nvgpu_posix_fault_inj *thread_create_fi =
+	struct nvgpu_posix_fault_inj *thread_fi =
 			nvgpu_thread_get_fault_injection();
 	struct nvgpu_posix_fault_inj *thread_running_fi =
 			nvgpu_thread_running_true_get_fault_injection();
@@ -262,11 +271,11 @@ int test_branches(struct unit_module *m, struct gk20a *g, void *args)
 	 * starting the thread fails.
 	 */
 	nvgpu_init_list_node(&work_item);
-	nvgpu_posix_enable_fault_injection(thread_create_fi, true, 0);
+	nvgpu_posix_enable_fault_injection(thread_fi, true, 0);
 	if (!EXPECT_BUG(nvgpu_worker_enqueue(&worker, &work_item))) {
 		unit_return_fail(m, "should have failed to enqueue\n");
 	}
-	nvgpu_posix_enable_fault_injection(thread_create_fi, false, 0);
+	nvgpu_posix_enable_fault_injection(thread_fi, false, 0);
 
 	/*
 	 * While the thread is stopped, we can hit a branch in the worker start
@@ -278,6 +287,37 @@ int test_branches(struct unit_module *m, struct gk20a *g, void *args)
 	err = nvgpu_worker_enqueue(&worker, &work_item);
 	unit_assert(err == 0, return UNIT_FAIL);
 	nvgpu_posix_enable_fault_injection(thread_running_fi, false, 0);
+
+	/* Re-init the worker to start the thread for next test. */
+	worker_ops.pre_process = pre_process;
+	nvgpu_atomic_set(&pre_process_count, 0);
+	nvgpu_worker_init(g, &worker, &worker_ops);
+	unit_assert(err == 0, return UNIT_FAIL);
+	/* make sure thread has started */
+	while (nvgpu_atomic_read(&pre_process_count) < 1) {
+		nvgpu_udelay(5);
+	}
+
+	/*
+	 * Test for loop checking for thread_should_stop. The
+	 * wakeup_post_process callback will enable the thread fault inject
+	 * so nvgpu_thread_should_stop will return true.
+	 * This will exit the thread.
+	 */
+	worker_ops.wakeup_post_process = wakeup_post_process_stop_thread;
+	nvgpu_atomic_set(&wakeup_post_process_val, 0);
+	nvgpu_init_list_node(&work_item);
+	err = nvgpu_worker_enqueue(&worker, &work_item);
+	unit_assert(err == 0, return UNIT_FAIL);
+	while (nvgpu_atomic_read(&wakeup_post_process_val) < 1) {
+		nvgpu_udelay(5);
+	}
+	/* there's no way to know the thread has exited, so wait a little */
+	nvgpu_udelay(1000);
+	worker_ops.wakeup_post_process = wakeup_post_process;
+	nvgpu_posix_enable_fault_injection(thread_fi, false, 0);
+	/* when the thread exists, we need sync some state */
+	nvgpu_thread_stop(&worker.poll_task);
 
 	/* Re-init the worker to start the thread for de-init testing. */
 	worker_ops.pre_process = pre_process;

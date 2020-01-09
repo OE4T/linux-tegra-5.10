@@ -137,7 +137,13 @@ int test_enqueue(struct unit_module *m, struct gk20a *g, void *args);
  *   - Enqueue a work item (which will try to restart the thread).
  *   - Verify no error is returned.
  *   - Disable fault injection for checking if thread is running.
- * - Re-init the worker to restart the thread properly.
+ * - Re-init the worker to restart the thread properly for next test.
+ * - Case 8: Test thread stopping when thread_should_stop is set.
+ *   - Enqueue a work item.
+ *   - In, the wakeup_post_process callback, set the thread fault injection.
+ *   - Wait until thread exits.
+ *   - Disable thread fault injection.
+ * - Re-init the worker to restart the thread properly for next test.
  *
  * Output: Returns PASS if expected result is met, FAIL otherwise.
  */
