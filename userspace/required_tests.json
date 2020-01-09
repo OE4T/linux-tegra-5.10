@@ -4549,5 +4549,17 @@
         "case": "init",
         "unit": "worker",
         "test_level": 0
+    },
+    {
+        "test": "test_arithmetic",
+        "case": "arithmetic",
+        "unit": "static_analysis",
+        "test_level": 0
+    },
+    {
+        "test": "test_cast",
+        "case": "cast",
+        "unit": "static_analysis",
+        "test_level": 0
     }
 ]

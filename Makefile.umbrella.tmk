@@ -51,6 +51,7 @@ NV_REPOSITORY_COMPONENTS += userspace/units/interface/bsearch
 NV_REPOSITORY_COMPONENTS += userspace/units/interface/lock
 NV_REPOSITORY_COMPONENTS += userspace/units/interface/atomic
 NV_REPOSITORY_COMPONENTS += userspace/units/interface/rbtree
+NV_REPOSITORY_COMPONENTS += userspace/units/interface/static_analysis
 NV_REPOSITORY_COMPONENTS += userspace/units/interface/worker
 NV_REPOSITORY_COMPONENTS += userspace/units/bus
 NV_REPOSITORY_COMPONENTS += userspace/units/pramin
