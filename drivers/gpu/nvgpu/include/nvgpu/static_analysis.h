@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -61,7 +61,7 @@ static inline s64 nvgpu_safe_cast_u64_to_s64(u64 ul_a);
  */
 static inline u32 nvgpu_safe_add_u32(u32 ui_a, u32 ui_b)
 {
-	if (UINT_MAX - ui_a < ui_b) {
+	if ((UINT_MAX - ui_a) < ui_b) {
 		BUG();
 	} else {
 		return ui_a + ui_b;
@@ -103,7 +103,7 @@ static inline s32 nvgpu_safe_add_s32(s32 si_a, s32 si_b)
 static inline u64 nvgpu_safe_add_u64(u64 ul_a, u64 ul_b)
 {
 NVGPU_COV_WHITELIST(false_positive, NVGPU_CERT(INT30_C), "Bug 2643092")
-	if (ULONG_MAX - ul_a < ul_b) {
+	if ((ULONG_MAX - ul_a) < ul_b) {
 		BUG();
 	} else {
 		return ul_a + ul_b;
@@ -184,8 +184,8 @@ static inline u32 nvgpu_safe_sub_u32(u32 ui_a, u32 ui_b)
  */
 static inline s32 nvgpu_safe_sub_s32(s32 si_a, s32 si_b)
 {
-	if ((si_b > 0 && si_a < INT_MIN + si_b) ||
-		(si_b < 0 && si_a > INT_MAX + si_b)) {
+	if (((si_b > 0) && (si_a < (INT_MIN + si_b))) ||
+		((si_b < 0) && (si_a > (INT_MAX + si_b)))) {
 		BUG();
 	} else {
 		return si_a - si_b;
@@ -225,8 +225,8 @@ static inline u64 nvgpu_safe_sub_u64(u64 ul_a, u64 ul_b)
  */
 static inline s64 nvgpu_safe_sub_s64(s64 si_a, s64 si_b)
 {
-	if ((si_b > 0 && si_a < LONG_MIN + si_b) ||
-		(si_b < 0 && si_a > LONG_MAX + si_b)) {
+	if (((si_b > 0) && (si_a < (LONG_MIN + si_b))) ||
+		((si_b < 0) && (si_a > (LONG_MAX + si_b)))) {
 		BUG();
 	} else {
 		return si_a - si_b;
@@ -246,9 +246,9 @@ static inline s64 nvgpu_safe_sub_s64(s64 si_a, s64 si_b)
  */
 static inline u32 nvgpu_safe_mult_u32(u32 ui_a, u32 ui_b)
 {
-	if (ui_a == 0U || ui_b == 0U) {
+	if ((ui_a == 0U) || (ui_b == 0U)) {
 		return 0U;
-	} else if (ui_a > UINT_MAX / ui_b) {
+	} else if (ui_a > (UINT_MAX / ui_b)) {
 		BUG();
 	} else {
 		return ui_a * ui_b;
@@ -268,9 +268,9 @@ static inline u32 nvgpu_safe_mult_u32(u32 ui_a, u32 ui_b)
  */
 static inline u64 nvgpu_safe_mult_u64(u64 ul_a, u64 ul_b)
 {
-	if (ul_a == 0UL || ul_b == 0UL) {
+	if ((ul_a == 0UL) || (ul_b == 0UL)) {
 		return 0UL;
-	} else if (ul_a > ULONG_MAX / ul_b) {
+	} else if (ul_a > (ULONG_MAX / ul_b)) {
 		BUG();
 	} else {
 		return ul_a * ul_b;
@@ -420,7 +420,7 @@ static inline u64 nvgpu_safe_cast_s64_to_u64(s64 l_a)
  */
 static inline u32 nvgpu_safe_cast_bool_to_u32(bool bl_a)
 {
-	return bl_a == true ? 1U : 0U;
+	return (bl_a == true) ? 1U : 0U;
 }
 
 /**
@@ -608,7 +608,7 @@ NVGPU_COV_WHITELIST(false_positive, NVGPU_MISRA(Rule, 14_3), "Bug 2615925")
  */
 static inline s32 nvgpu_safe_cast_s64_to_s32(s64 sl_a)
 {
-	if (sl_a > INT_MAX || sl_a < INT_MIN) {
+	if ((sl_a > INT_MAX) || (sl_a < INT_MIN)) {
 		BUG();
 	} else {
 		return (s32)sl_a;
@@ -670,7 +670,7 @@ static inline void nvgpu_safety_checks(void)
 	 * Check compatibility between size (in bytes) and precision
 	 * (in bits) of unsigned int. BUG() if two are not same.
 	 */
-	if (sizeof(unsigned int) * 8U !=
+	if ((sizeof(unsigned int) * 8U) !=
 		nvgpu_safe_cast_s32_to_u64(NVGPU_PRECISION(UINT_MAX))) {
 		BUG();
 	}
@@ -680,11 +680,11 @@ static inline void nvgpu_safety_checks(void)
 	 * Check precision of unsigned types. Shift operands have been
 	 * checked to be less than these values.
 	 */
-	if (NVGPU_PRECISION(UCHAR_MAX) != 8 ||
-		NVGPU_PRECISION(USHRT_MAX) != 16 ||
-		NVGPU_PRECISION(UINT_MAX) != 32 ||
-		NVGPU_PRECISION(ULONG_MAX) != 64 ||
-		NVGPU_PRECISION(ULLONG_MAX) != 64) {
+	if ((NVGPU_PRECISION(UCHAR_MAX) != 8) ||
+		(NVGPU_PRECISION(USHRT_MAX) != 16) ||
+		(NVGPU_PRECISION(UINT_MAX) != 32) ||
+		(NVGPU_PRECISION(ULONG_MAX) != 64) ||
+		(NVGPU_PRECISION(ULLONG_MAX) != 64)) {
 		BUG();
 	}
 }
