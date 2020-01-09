@@ -40,51 +40,6 @@ static u32 pva_get_mb_reg_id(u32 i)
 	return mb_reg_id[i];
 }
 
-static u32 pva_get_mb_reg_ex(u32 i)
-{
-	u32 mb_reg[VALID_MB_INPUT_REGS_EX] = {
-		hsp_sm0_r(),
-		hsp_sm1_r(),
-		hsp_sm2_r(),
-		hsp_sm3_r(),
-		hsp_sm4_r(),
-		hsp_sm5_r(),
-		hsp_sm6_r(),
-		hsp_sm7_r()
-	};
-
-	return mb_reg[i];
-}
-
-u32 pva_read_mailbox(struct platform_device *pdev, u32 mbox_id)
-{
-	u32 side_bits = 0;
-	u32 mbox_value = 0;
-	u32 side_channel_addr =
-		pva_get_mb_reg_ex(PVA_MBOX_SIDE_CHANNEL_HOST_RD);
-
-	side_bits = host1x_readl(pdev, side_channel_addr);
-	mbox_value = host1x_readl(pdev, pva_get_mb_reg_ex(mbox_id));
-	side_bits = ((side_bits >> mbox_id) & 0x1) << PVA_SIDE_CHANNEL_MBOX_BIT;
-	mbox_value = (mbox_value & PVA_SIDE_CHANNEL_MBOX_BIT_MASK) | side_bits;
-
-	return mbox_value;
-}
-
-void pva_write_mailbox(struct platform_device *pdev, u32 mbox_id, u32 value)
-{
-	u32 side_bits = 0;
-	u32 side_channel_addr =
-		pva_get_mb_reg_ex(PVA_MBOX_SIDE_CHANNEL_HOST_WR);
-
-	side_bits = host1x_readl(pdev, side_channel_addr);
-	side_bits &= ~(1 << mbox_id);
-	side_bits |= ((value >> PVA_SIDE_CHANNEL_MBOX_BIT) & 0x1) << mbox_id;
-	value = (value & PVA_SIDE_CHANNEL_MBOX_BIT_MASK);
-	host1x_writel(pdev, side_channel_addr, side_bits);
-	host1x_writel(pdev, pva_get_mb_reg_ex(mbox_id), value);
-}
-
 static int pva_mailbox_send_cmd(struct pva *pva, struct pva_cmd *cmd,
 				u32 nregs)
 {
@@ -98,7 +53,7 @@ static int pva_mailbox_send_cmd(struct pva *pva, struct pva_cmd *cmd,
 	}
 
 	/* Make sure the state is what we expect it to be. */
-	status = pva_read_mailbox(pdev, PVA_MBOX_ISR);
+	status = pva->version_config->read_mailbox(pdev, PVA_MBOX_ISR);
 
 	WARN_ON((status & PVA_INT_PENDING));
 	WARN_ON((status & PVA_READY) == 0);
@@ -109,7 +64,7 @@ static int pva_mailbox_send_cmd(struct pva *pva, struct pva_cmd *cmd,
 	 */
 	for (i = (nregs - 1); i >= 0; i--) {
 		reg = pva_get_mb_reg_id(i);
-		pva_write_mailbox(pdev, reg, cmd->mbox[i]);
+		pva->version_config->write_mailbox(pdev, reg, cmd->mbox[i]);
 	}
 
 	return 0;
@@ -119,7 +74,6 @@ int pva_mailbox_wait_event(struct pva *pva, int wait_time)
 {
 	int timeout = 1;
 	int err;
-
 	/* Wait for the event being triggered in ISR */
 	if (pva->timeout_enabled == true)
 		timeout = wait_event_timeout(pva->mailbox_waitqueue,
@@ -145,7 +99,7 @@ int pva_mailbox_wait_event(struct pva *pva, int wait_time)
 void pva_mailbox_isr(struct pva *pva)
 {
 	struct platform_device *pdev = pva->pdev;
-	u32 int_status = pva_read_mailbox(pdev, PVA_MBOX_ISR);
+	u32 int_status = pva->version_config->read_mailbox(pdev, PVA_MBOX_ISR);
 
 	if (pva->mailbox_status != PVA_MBOX_STATUS_WFI) {
 		nvhost_warn(&pdev->dev, "Unexpected PVA ISR (%x)", int_status);
@@ -153,44 +107,13 @@ void pva_mailbox_isr(struct pva *pva)
 	}
 
 	/* Save the current command and subcommand for later processing */
-	pva->mailbox_status_regs.cmd = pva_read_mailbox(pdev, PVA_MBOX_COMMAND);
-
-	/* Get all the valid status register data */
-	if (int_status & PVA_VALID_STATUS3) {
-		pva->mailbox_status_regs.status[PVA_CCQ_STATUS3_INDEX] =
-			host1x_readl(pdev,
-			cfg_ccq_status_r(pva->version, 0, 3));
-
-		if (int_status & PVA_CMD_ERROR)
-			pva->mailbox_status_regs.error =
-			PVA_GET_ERROR_CODE(
-			pva->mailbox_status_regs.status[PVA_CCQ_STATUS3_INDEX]
-			);
-	}
-
-	if (int_status & PVA_VALID_STATUS4)
-		pva->mailbox_status_regs.status[PVA_CCQ_STATUS4_INDEX] =
-			host1x_readl(pdev,
-			cfg_ccq_status_r(pva->version, 0, 4));
-
-	if (int_status & PVA_VALID_STATUS5)
-		pva->mailbox_status_regs.status[PVA_CCQ_STATUS5_INDEX] =
-			host1x_readl(pdev,
-			cfg_ccq_status_r(pva->version, 0, 5));
-
-	if (int_status & PVA_VALID_STATUS6)
-		pva->mailbox_status_regs.status[PVA_CCQ_STATUS6_INDEX] =
-			host1x_readl(pdev,
-			cfg_ccq_status_r(pva->version, 0, 6));
-
-	if (int_status & PVA_VALID_STATUS7)
-		pva->mailbox_status_regs.status[PVA_CCQ_STATUS7_INDEX] =
-			host1x_readl(pdev,
-			cfg_ccq_status_r(pva->version, 0, 7));
-
+	pva->mailbox_status_regs.cmd =
+		pva->version_config->read_mailbox(pdev, PVA_MBOX_COMMAND);
+	pva->version_config->read_status_interface(pva, PVA_MBOX_INTERFACE,
+					int_status, &pva->mailbox_status_regs);
 	/* Clear the mailbox interrupt status */
 	int_status = int_status & PVA_READY;
-	pva_write_mailbox(pdev, PVA_MBOX_ISR, int_status);
+	pva->version_config->write_mailbox(pdev, PVA_MBOX_ISR, int_status);
 
 	/* Wake up the waiters */
 	pva->mailbox_status = PVA_MBOX_STATUS_DONE;
@@ -232,7 +155,6 @@ int pva_mailbox_send_cmd_sync_locked(struct pva *pva,
 				sizeof(struct pva_mailbox_status_regs));
 
 	pva->mailbox_status = PVA_MBOX_STATUS_INVALID;
-
 	return err;
 
 err_wait_response:

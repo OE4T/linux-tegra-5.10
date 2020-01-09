@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2018, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -59,6 +59,20 @@
 #define PVA_MBOX_AISR			5U
 #define PVA_MBOX_SIDE_CHANNEL_HOST_RD	6U
 #define PVA_MBOX_ISR			7U
+
+#define PVA_MBOX_STATUS_REGS    5
+
+/*
+ * Number of status registers
+ */
+
+#define NUM_STATUS_REGS 5
+
+/*
+ * Mailbox Interface
+ */
+
+#define PVA_MBOX_INTERFACE      0
 
  /*
   * Mailbox side channel bit definitions

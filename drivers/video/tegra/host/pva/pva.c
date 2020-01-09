@@ -43,12 +43,17 @@
 #include "t194/t194.h"
 #ifdef CONFIG_TEGRA_T23X_GRHOST
 #include "t23x/t23x.h"
+#include "pva_mailbox_t23x.h"
+#include "pva_interface_regs_t23x.h"
+#include "pva_version_config_t23x.h"
 #endif
 #include "nvhost_queue.h"
 #include "pva_queue.h"
 #include "pva.h"
 #include "pva_regs.h"
-
+#include "pva_mailbox_t19x.h"
+#include "pva_interface_regs_t19x.h"
+#include "pva_version_config_t19x.h"
 #include "class_ids_t194.h"
 
 /* Map PVA-A and PVA-B to respective configuration items in nvhost */
@@ -68,14 +73,6 @@ static struct of_device_id tegra_pva_of_match[] = {
 		.data = (struct nvhost_device_data *)&t23x_pva0_info },
 #endif
 	{ },
-};
-
-static struct pva_version_config pva_v1_config = {
-	.irq_count = 1,
-};
-
-static struct pva_version_config pva_v2_config = {
-	.irq_count = 9,
 };
 
 #define EVP_REG_NUM 8
@@ -735,11 +732,17 @@ static int pva_probe(struct platform_device *pdev)
 	/* Initialize PVA private data */
 	if (tegra_get_chipid() == TEGRA_CHIPID_TEGRA23) {
 		pva->version = 2;
-		pva->version_config = &pva_v2_config;
+#ifdef CONFIG_TEGRA_T23X_GRHOST
+		pva->version_config = &pva_t23x_config;
+#else
+		dev_err(dev, "No T23x config available\n");
+		err = -ENODEV;
+		goto err_no_ip;
+#endif
 		nvhost_dbg_info("PVA gen2 detected.");
 	} else {
 		pva->version = 1;
-		pva->version_config = &pva_v1_config;
+		pva->version_config = &pva_t19x_config;
 		nvhost_dbg_info("PVA gen1 detected.");
 	}
 	pva->pdev = pdev;
@@ -762,13 +765,14 @@ static int pva_probe(struct platform_device *pdev)
 	init_waitqueue_head(&pva->mailbox_waitqueue);
 	mutex_init(&pva->mailbox_mutex);
 	mutex_init(&pva->ccq_mutex);
-	if (pva->version == 2)
+	if (pva->version == 2) {
 		/* Default to mailbox until CCQ submission is supported in PVA
 		 * gen 2
 		 */
 		pva->submit_mode = PVA_SUBMIT_MODE_MAILBOX;
-	else
+	} else {
 		pva->submit_mode = PVA_SUBMIT_MODE_MMIO_CCQ;
+	}
 	pva->slcg_disable = 0;
 	pva->vmem_war_disable = 0;
 	pva->vpu_perf_counters_enable = false;
