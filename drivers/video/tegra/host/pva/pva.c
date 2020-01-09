@@ -46,6 +46,7 @@
 #include "pva_mailbox_t23x.h"
 #include "pva_interface_regs_t23x.h"
 #include "pva_version_config_t23x.h"
+#include "pva_ccq_t23x.h"
 #endif
 #include "nvhost_queue.h"
 #include "pva_queue.h"
@@ -54,6 +55,7 @@
 #include "pva_mailbox_t19x.h"
 #include "pva_interface_regs_t19x.h"
 #include "pva_version_config_t19x.h"
+#include "pva_ccq_t19x.h"
 #include "class_ids_t194.h"
 
 /* Map PVA-A and PVA-B to respective configuration items in nvhost */
@@ -185,7 +187,7 @@ static int pva_init_fw(struct platform_device *pdev)
 	}
 
 	/* Indicate the OS is waiting for PVA ready Interrupt */
-	pva->mailbox_status = PVA_MBOX_STATUS_WFI;
+	pva->cmd_status[PVA_MAILBOX_INDEX] = PVA_CMD_STATUS_WFI;
 
 	if (pva->r5_dbg_wait) {
 		sema_value = PVA_WAIT_DEBUG;
@@ -212,7 +214,7 @@ static int pva_init_fw(struct platform_device *pdev)
 	if (err)
 		goto wait_timeout;
 
-	pva->mailbox_status = PVA_MBOX_STATUS_INVALID;
+	pva->cmd_status[PVA_MAILBOX_INDEX] = PVA_CMD_STATUS_INVALID;
 
 	nvhost_dbg_fn("PVA boot returned: %d", err);
 
@@ -440,7 +442,7 @@ static int pva_alloc_vpu_function_table(struct pva *pva,
 					struct pva_func_table *fn_table)
 {
 	uint32_t flags = PVA_CMD_INT_ON_ERR | PVA_CMD_INT_ON_COMPLETE;
-	struct pva_mailbox_status_regs status;
+	struct pva_cmd_status_regs status;
 	dma_addr_t dma_handle;
 	uint32_t table_size;
 	struct pva_cmd cmd;
@@ -451,15 +453,15 @@ static int pva_alloc_vpu_function_table(struct pva *pva,
 
 	nregs = pva_cmd_get_vpu_func_table(&cmd, 0, 0, flags);
 
-	err = pva_mailbox_send_cmd_sync(pva, &cmd, nregs, &status);
+	err = pva->version_config->submit_cmd_sync(pva, &cmd, nregs, &status);
 	if (err < 0) {
 		nvhost_warn(&pva->pdev->dev,
 			"mbox function table cmd failed: %d\n", err);
 		goto end;
 	}
 
-	table_size = status.status[PVA_CCQ_STATUS4_INDEX];
-	entries = status.status[PVA_CCQ_STATUS5_INDEX];
+	table_size = status.status[PVA_CMD_STATUS4_INDEX];
+	entries = status.status[PVA_CMD_STATUS5_INDEX];
 
 	va = dma_alloc_coherent(&pva->pdev->dev, table_size,
 				&dma_handle, GFP_KERNEL);
@@ -482,7 +484,7 @@ static int pva_get_vpu_function_table(struct pva *pva,
 					struct pva_func_table *fn_table)
 {
 	uint32_t flags = PVA_CMD_INT_ON_ERR | PVA_CMD_INT_ON_COMPLETE;
-	struct pva_mailbox_status_regs status;
+	struct pva_cmd_status_regs status;
 	dma_addr_t dma_handle;
 	uint32_t table_size;
 	struct pva_cmd cmd;
@@ -495,7 +497,7 @@ static int pva_get_vpu_function_table(struct pva *pva,
 	nregs = pva_cmd_get_vpu_func_table(&cmd, table_size, dma_handle, flags);
 
 	/* Submit request to PVA and wait for response */
-	err = pva_mailbox_send_cmd_sync(pva, &cmd, nregs, &status);
+	err = pva->version_config->submit_cmd_sync(pva, &cmd, nregs, &status);
 	if (err < 0)
 		nvhost_warn(&pva->pdev->dev,
 			"mbox function table cmd failed: %d\n", err);
@@ -508,7 +510,7 @@ int pva_get_firmware_version(struct pva *pva,
 			     struct pva_version_info *info)
 {
 	uint32_t flags = PVA_CMD_INT_ON_ERR | PVA_CMD_INT_ON_COMPLETE;
-	struct pva_mailbox_status_regs status;
+	struct pva_cmd_status_regs status;
 	struct pva_cmd cmd;
 	int err = 0;
 	u32 nregs;
@@ -516,7 +518,7 @@ int pva_get_firmware_version(struct pva *pva,
 	nregs = pva_cmd_R5_version(&cmd, flags);
 
 	/* Submit request to PVA and wait for response */
-	err = pva_mailbox_send_cmd_sync(pva, &cmd, nregs, &status);
+	err = pva->version_config->submit_cmd_sync(pva, &cmd, nregs, &status);
 	if (err < 0) {
 		nvhost_warn(&pva->pdev->dev,
 			"mbox get firmware version cmd failed: %d\n", err);
@@ -524,10 +526,10 @@ int pva_get_firmware_version(struct pva *pva,
 		return err;
 	}
 
-	info->pva_r5_version = status.status[PVA_CCQ_STATUS4_INDEX];
-	info->pva_compat_version = status.status[PVA_CCQ_STATUS5_INDEX];
-	info->pva_revision = status.status[PVA_CCQ_STATUS6_INDEX];
-	info->pva_built_on = status.status[PVA_CCQ_STATUS7_INDEX];
+	info->pva_r5_version = status.status[PVA_CMD_STATUS4_INDEX];
+	info->pva_compat_version = status.status[PVA_CMD_STATUS5_INDEX];
+	info->pva_revision = status.status[PVA_CMD_STATUS6_INDEX];
+	info->pva_built_on = status.status[PVA_CMD_STATUS7_INDEX];
 
 	return err;
 }
@@ -570,14 +572,14 @@ int pva_set_log_level(struct pva *pva,
 			     u32 log_level)
 {
 	uint32_t flags = PVA_CMD_INT_ON_ERR | PVA_CMD_INT_ON_COMPLETE;
-	struct pva_mailbox_status_regs status;
+	struct pva_cmd_status_regs status;
 	struct pva_cmd cmd;
 	int err = 0;
 	u32 nregs;
 
 	nregs = pva_cmd_set_logging_level(&cmd, log_level, flags);
 
-	err = pva_mailbox_send_cmd_sync(pva, &cmd, nregs, &status);
+	err = pva->version_config->submit_cmd_sync(pva, &cmd, nregs, &status);
 	if (err < 0)
 		nvhost_warn(&pva->pdev->dev,
 			"mbox set log level failed: %d\n", err);
@@ -695,7 +697,7 @@ static int pva_probe(struct platform_device *pdev)
 	const struct of_device_id *match;
 	struct pva *pva;
 	int err = 0;
-
+	size_t i;
 	nvhost_dbg_fn("%s", __func__);
 
 	match = of_match_device(tegra_pva_of_match, dev);
@@ -762,16 +764,13 @@ static int pva_probe(struct platform_device *pdev)
 	mutex_init(&pdata->lock);
 	pdata->private_data = pva;
 	platform_set_drvdata(pdev, pdata);
-	init_waitqueue_head(&pva->mailbox_waitqueue);
 	mutex_init(&pva->mailbox_mutex);
 	mutex_init(&pva->ccq_mutex);
+	pva->submit_task_mode = PVA_SUBMIT_MODE_MMIO_CCQ;
 	if (pva->version == 2) {
-		/* Default to mailbox until CCQ submission is supported in PVA
-		 * gen 2
-		 */
-		pva->submit_mode = PVA_SUBMIT_MODE_MAILBOX;
+		pva->submit_cmd_mode = PVA_SUBMIT_MODE_MMIO_CCQ;
 	} else {
-		pva->submit_mode = PVA_SUBMIT_MODE_MMIO_CCQ;
+		pva->submit_cmd_mode = PVA_SUBMIT_MODE_MAILBOX;
 	}
 	pva->slcg_disable = 0;
 	pva->vmem_war_disable = 0;
@@ -812,6 +811,9 @@ static int pva_probe(struct platform_device *pdev)
 	err = pva_register_isr(pdev);
 	if (err < 0)
 		goto err_isr_init;
+
+	for (i = 0; i < pva->version_config->irq_count; i++)
+		init_waitqueue_head(&pva->cmd_waitqueue[i]);
 
 	pva_abort_init(pva);
 

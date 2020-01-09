@@ -25,6 +25,8 @@
 #include "dev.h"
 #include "pva.h"
 
+#define PVA_MASK_LOW_16BITS 0xff
+
 #ifdef CONFIG_TEGRA_T23X_GRHOST
 #include "pva_isr_t23x.h"
 #endif

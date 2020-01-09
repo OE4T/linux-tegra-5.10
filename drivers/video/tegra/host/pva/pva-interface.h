@@ -120,6 +120,8 @@
 #define PVA_AISR_CRASH_LOG		PVA_BIT(23)
 #define PVA_AISR_ABORT			PVA_BIT(0)
 
+#define PVA_VALID_CCQ_ISR		PVA_BIT(8)
+#define PVA_VALID_CCQ_AISR		PVA_BIT(12)
 #define PVA_GET_ERROR_CODE(_s_)		PVA_EXTRACT(_s_, 15, 0, enum pva_errors)
 
 /*
@@ -372,6 +374,7 @@ pva_set_sched_attr_fixed(struct pva_sched_attr * const attrs,
  * Generic fields in a command sent through the command FIFO interface.
  */
 #define PVA_FIFO_GET_COMMAND(_c_)	PVA_EXTRACT64(_c_, 63, 56, enum pva_cmds)
+#define PVA_CMD_MBOX_TO_FIFO_FLAG_SHIFT	29U
 #define PVA_FIFO_INT_ON_ERR		PVA_BIT64(1)
 #define PVA_FIFO_INT_ON_COMPLETE	PVA_BIT64(0)
 

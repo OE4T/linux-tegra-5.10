@@ -30,6 +30,6 @@
 
 void read_status_interface_t19x(struct pva *pva,
 				uint32_t interface_id, u32 isr_status,
-				struct pva_mailbox_status_regs *status_output);
+				struct pva_cmd_status_regs *status_output);
 
 #endif
