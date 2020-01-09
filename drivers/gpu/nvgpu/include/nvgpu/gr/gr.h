@@ -227,16 +227,6 @@ int nvgpu_gr_enable_hw(struct gk20a *g);
 int nvgpu_gr_init_support(struct gk20a *g);
 
 /**
- * @brief Wait for GR engine to be initialized
- *
- * @param g [in]	Pointer to GPU driver struct.
- *
- * Calling this function ensures that GR engine initialization i.e.
- * nvgpu_gr_init_support() function call is complete.
- */
-void nvgpu_gr_wait_initialized(struct gk20a *g);
-
-/**
  * @brief Set GR s/w ready status.
  *
  * @param g [in]	Pointer to GPU driver struct.
@@ -326,6 +316,18 @@ u32 nvgpu_gr_tpc_offset(struct gk20a *g, u32 tpc);
  * @return base register offset of a given SM.
  */
 u32 nvgpu_gr_sm_offset(struct gk20a *g, u32 sm);
+
+#ifdef CONFIG_NVGPU_HAL_NON_FUSA
+/**
+ * @brief Wait for GR engine to be initialized
+ *
+ * @param g [in]	Pointer to GPU driver struct.
+ *
+ * Calling this function ensures that GR engine initialization i.e.
+ * nvgpu_gr_init_support() function call is complete.
+ */
+void nvgpu_gr_wait_initialized(struct gk20a *g);
+#endif
 
 #if defined(CONFIG_NVGPU_RECOVERY) || defined(CONFIG_NVGPU_DEBUGGER)
 int nvgpu_gr_disable_ctxsw(struct gk20a *g);

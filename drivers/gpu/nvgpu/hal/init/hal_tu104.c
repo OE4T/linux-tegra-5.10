@@ -553,7 +553,6 @@ static const struct gpu_ops tu104_ops = {
 			.get_no_of_sm = nvgpu_gr_get_no_of_sm,
 			.get_nonpes_aware_tpc =
 					gv11b_gr_init_get_nonpes_aware_tpc,
-			.wait_initialized = nvgpu_gr_wait_initialized,
 			.ecc_scrub_reg = NULL,
 			.lg_coalesce = gm20b_gr_init_lg_coalesce,
 			.su_coalesce = gm20b_gr_init_su_coalesce,
@@ -643,6 +642,9 @@ static const struct gpu_ops tu104_ops = {
 				gp10b_gr_init_get_supported_preemption_modes,
 			.get_default_preemption_modes =
 				gp10b_gr_init_get_default_preemption_modes,
+#ifdef CONFIG_NVGPU_HAL_NON_FUSA
+			.wait_initialized = nvgpu_gr_wait_initialized,
+#endif
 #ifdef CONFIG_NVGPU_GRAPHICS
 			.get_ctx_attrib_cb_size =
 				gp10b_gr_init_get_ctx_attrib_cb_size,

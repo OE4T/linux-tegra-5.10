@@ -768,12 +768,6 @@ int nvgpu_gr_init_support(struct gk20a *g)
 	return 0;
 }
 
-/* Wait until GR is initialized */
-void nvgpu_gr_wait_initialized(struct gk20a *g)
-{
-	NVGPU_COND_WAIT(&g->gr->init_wq, g->gr->initialized, 0U);
-}
-
 int nvgpu_gr_alloc(struct gk20a *g)
 {
 	struct nvgpu_gr *gr = NULL;
@@ -911,3 +905,11 @@ void nvgpu_gr_sw_ready(struct gk20a *g, bool enable)
 {
 	g->gr->sw_ready = enable;
 }
+
+#ifdef CONFIG_NVGPU_HAL_NON_FUSA
+/* Wait until GR is initialized */
+void nvgpu_gr_wait_initialized(struct gk20a *g)
+{
+	NVGPU_COND_WAIT(&g->gr->init_wq, g->gr->initialized, 0U);
+}
+#endif
