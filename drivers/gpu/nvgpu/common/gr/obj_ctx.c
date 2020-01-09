@@ -728,8 +728,8 @@ static int nvgpu_gr_obj_ctx_gr_ctx_alloc(struct gk20a *g,
 	nvgpu_log_fn(g, " ");
 
 	size = nvgpu_gr_obj_ctx_get_golden_image_size(golden_image);
-	nvgpu_assert(size <= U64(U32_MAX));
-	nvgpu_gr_ctx_set_size(gr_ctx_desc, NVGPU_GR_CTX_CTX, U32(size));
+	nvgpu_gr_ctx_set_size(gr_ctx_desc, NVGPU_GR_CTX_CTX,
+		nvgpu_safe_cast_u64_to_u32(size));
 
 	err = nvgpu_gr_ctx_alloc(g, gr_ctx, gr_ctx_desc, vm);
 	if (err != 0) {
