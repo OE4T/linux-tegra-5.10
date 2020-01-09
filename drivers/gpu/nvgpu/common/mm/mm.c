@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -543,7 +543,7 @@ static int nvgpu_init_mm_setup_sw(struct gk20a *g)
 		}
 	}
 
-	if (g->ops.fb.fb_ecc_init != NULL && !g->ecc.initialized) {
+	if ((g->ops.fb.fb_ecc_init != NULL) && !g->ecc.initialized) {
 		err = g->ops.fb.fb_ecc_init(g);
 		if (err != 0) {
 			return err;
@@ -621,8 +621,8 @@ int nvgpu_mm_setup_hw(struct gk20a *g)
 		}
 	}
 
-	if (g->ops.mm.cache.fb_flush(g) != 0 ||
-	    g->ops.mm.cache.fb_flush(g) != 0) {
+	if ((g->ops.mm.cache.fb_flush(g) != 0) ||
+		(g->ops.mm.cache.fb_flush(g) != 0)) {
 		return -EBUSY;
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -69,7 +69,7 @@ int nvgpu_vm_area_validate_buffer(struct vm_gk20a *vm,
 	/* Find the space reservation, but it's ok to have none for
 	 * userspace-managed address spaces */
 	vm_area = nvgpu_vm_area_find(vm, map_addr);
-	if (vm_area == NULL && !vm->userspace_managed) {
+	if ((vm_area == NULL) && !vm->userspace_managed) {
 		nvgpu_warn(g, "fixed offset mapping without space allocation");
 		return -EINVAL;
 	}
@@ -125,7 +125,7 @@ static int nvgpu_vm_area_alloc_get_pagesize_index(struct vm_gk20a *vm,
 	 */
 	nvgpu_speculation_barrier();
 
-	if (!vm->big_pages && pgsz_idx == GMMU_PAGE_SIZE_BIG) {
+	if (!vm->big_pages && (pgsz_idx == GMMU_PAGE_SIZE_BIG)) {
 		return -EINVAL;
 	}
 

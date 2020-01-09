@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -171,8 +171,8 @@ static void balloc_buddy_list_do_add(struct nvgpu_buddy_allocator *a,
 	 * This lets the code that checks if there are available blocks check
 	 * without cycling through the entire list.
 	 */
-	if ((a->flags & GPU_ALLOC_GVA_SPACE) != 0ULL &&
-	    b->pte_size == BALLOC_PTE_SIZE_BIG) {
+	if (((a->flags & GPU_ALLOC_GVA_SPACE) != 0ULL) &&
+		(b->pte_size == BALLOC_PTE_SIZE_BIG)) {
 		nvgpu_list_add_tail(&b->buddy_entry, list);
 	} else {
 		nvgpu_list_add(&b->buddy_entry, list);
@@ -466,8 +466,8 @@ static int balloc_split_buddy(struct nvgpu_buddy_allocator *a,
 	 * we can leave the buddies PTE field alone since the PDE block has yet
 	 * to be assigned a PTE size.
 	 */
-	if ((a->flags & GPU_ALLOC_GVA_SPACE) != 0ULL &&
-	    left->order < a->pte_blk_order) {
+	if (((a->flags & GPU_ALLOC_GVA_SPACE) != 0ULL) &&
+		(left->order < a->pte_blk_order)) {
 		left->pte_size = pte_size;
 		right->pte_size = pte_size;
 	}
@@ -533,13 +533,13 @@ static struct nvgpu_buddy *balloc_find_buddy(struct nvgpu_buddy_allocator *a,
 {
 	struct nvgpu_buddy *bud;
 
-	if (order > a->max_order ||
+	if ((order > a->max_order) ||
 	    nvgpu_list_empty(balloc_get_order_list(a, order))) {
 		return NULL;
 	}
 
-	if ((a->flags & GPU_ALLOC_GVA_SPACE) != 0ULL &&
-	    pte_size == BALLOC_PTE_SIZE_BIG) {
+	if (((a->flags & GPU_ALLOC_GVA_SPACE) != 0ULL) &&
+		(pte_size == BALLOC_PTE_SIZE_BIG)) {
 		bud = nvgpu_list_last_entry(balloc_get_order_list(a, order),
 				      nvgpu_buddy, buddy_entry);
 	} else {
@@ -547,9 +547,9 @@ static struct nvgpu_buddy *balloc_find_buddy(struct nvgpu_buddy_allocator *a,
 				       nvgpu_buddy, buddy_entry);
 	}
 
-	if (pte_size != BALLOC_PTE_SIZE_ANY &&
-	    pte_size != bud->pte_size &&
-	    bud->pte_size != BALLOC_PTE_SIZE_ANY) {
+	if ((pte_size != BALLOC_PTE_SIZE_ANY) &&
+		(pte_size != bud->pte_size) &&
+		(bud->pte_size != BALLOC_PTE_SIZE_ANY)) {
 		return NULL;
 	}
 
@@ -618,8 +618,8 @@ static bool balloc_is_range_free(struct nvgpu_buddy_allocator *a,
 	bud = nvgpu_buddy_from_rbtree_node(node);
 
 	while (bud->start < end) {
-		if ((bud->start > base && bud->start < end) ||
-		    (bud->end   > base && bud->end   < end)) {
+		if (((bud->start > base) && (bud->start < end)) ||
+			((bud->end > base) && (bud->end < end))) {
 			return false;
 		}
 
@@ -693,7 +693,7 @@ static struct nvgpu_buddy *balloc_get_target_buddy(
 				u64 base, u64 order, u32 pte_size)
 {
 	/* Split this buddy as necessary until we get the target buddy. */
-	while (bud->start != base || bud->order != order) {
+	while ((bud->start != base) || (bud->order != order)) {
 		if (balloc_split_buddy(a, bud, pte_size) != 0) {
 			alloc_dbg(balloc_owner(a),
 				  "split buddy failed? {0x%llx, %llu}",
@@ -743,9 +743,10 @@ static struct nvgpu_buddy *balloc_make_fixed_buddy(
 				 * Make sure page size matches if it's smaller
 				 * than a PDE sized buddy.
 				 */
-				if (bud->order <= a->pte_blk_order &&
-				    bud->pte_size != BALLOC_PTE_SIZE_ANY &&
-				    bud->pte_size != pte_size) {
+				if ((bud->order <= a->pte_blk_order) &&
+					(bud->pte_size !=
+						BALLOC_PTE_SIZE_ANY) &&
+					(bud->pte_size != pte_size)) {
 					/* Welp, that's the end of that. */
 					alloc_dbg(balloc_owner(a),
 						  "Fixed buddy PTE "
@@ -937,11 +938,11 @@ static u64 nvgpu_buddy_balloc_pte(struct nvgpu_allocator *na, u64 len,
 		a->bytes_alloced += len;
 		a->bytes_alloced_real += balloc_order_to_len(a, order);
 		alloc_dbg(balloc_owner(a),
-			  "Alloc 0x%-10llx %3lld:0x%-10llx pte_size=%s",
-			  addr, order, len,
-			  pte_size == BALLOC_PTE_SIZE_BIG   ? "big" :
-			  pte_size == BALLOC_PTE_SIZE_SMALL ? "small" :
-			  "NA/any");
+			"Alloc 0x%-10llx %3lld:0x%-10llx pte_size=%s",
+			addr, order, len,
+			(pte_size == BALLOC_PTE_SIZE_BIG) ? "big" :
+			(pte_size == BALLOC_PTE_SIZE_SMALL) ? "small" :
+			"NA/any");
 		a->alloc_made = true;
 	} else {
 		alloc_dbg(balloc_owner(a), "Alloc failed: no mem!");
@@ -1131,8 +1132,8 @@ static bool nvgpu_buddy_reserve_is_possible(struct nvgpu_buddy_allocator *a,
 				nvgpu_alloc_carveout, co_entry) {
 		u64 tmp_end = nvgpu_safe_add_u64(tmp->base, tmp->length);
 
-		if ((co_base >= tmp->base && co_base < tmp_end) ||
-		    (co_end >= tmp->base && co_end < tmp_end)) {
+		if (((co_base >= tmp->base) && (co_base < tmp_end)) ||
+			((co_end >= tmp->base) && (co_end < tmp_end))) {
 			return false;
 		}
 	}
@@ -1374,7 +1375,7 @@ static int nvgpu_buddy_check_argument_limits(struct vm_gk20a *vm, u64 size,
 	}
 
 	/* If this is to manage a GVA space we need a VM. */
-	if (is_gva_space && vm == NULL) {
+	if (is_gva_space && (vm == NULL)) {
 		return -EINVAL;
 	}
 
@@ -1424,7 +1425,7 @@ static int nvgpu_buddy_set_attributes(struct nvgpu_buddy_allocator *a,
 		base_big_page = a->base & big_page_mask;
 		size_big_page = a->length & big_page_mask;
 		if (vm->big_pages &&
-			(base_big_page != 0ULL || size_big_page != 0ULL)) {
+			((base_big_page != 0ULL) || (size_big_page != 0ULL))) {
 			return -EINVAL;
 		}
 	}

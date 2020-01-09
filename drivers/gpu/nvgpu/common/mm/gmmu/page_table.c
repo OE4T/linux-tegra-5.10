@@ -567,7 +567,7 @@ static int nvgpu_gmmu_do_update_page_table_sgl(struct vm_gk20a *vm,
 	u64 sgl_length = sgl_length_val;
 	int err;
 
-	while (sgl_length > 0ULL && length > 0ULL) {
+	while ((sgl_length > 0ULL) && (length > 0ULL)) {
 		/*
 		 * Holds the size of the portion of SGL that is backed
 		 * with physically contiguous memory.
@@ -675,8 +675,8 @@ static int nvgpu_gmmu_do_update_page_table_no_iommu(struct vm_gk20a *vm,
 		/*
 		 * Cut out sgl ents for space_to_skip.
 		 */
-		if (space_to_skip != 0ULL &&
-		    space_to_skip >= nvgpu_sgt_get_length(sgt, sgl)) {
+		if ((space_to_skip != 0ULL) &&
+			(space_to_skip >= nvgpu_sgt_get_length(sgt, sgl))) {
 			space_to_skip -= nvgpu_sgt_get_length(sgt, sgl);
 			continue;
 		}
@@ -849,7 +849,7 @@ static int nvgpu_gmmu_update_page_table(struct vm_gk20a *vm,
 	page_size = vm->gmmu_page_sizes[attrs->pgsz];
 
 	if ((page_size == 0U) ||
-	    (space_to_skip & (U64(page_size) - U64(1))) != 0ULL) {
+		((space_to_skip & (U64(page_size) - U64(1))) != 0ULL)) {
 		return -EINVAL;
 	}
 

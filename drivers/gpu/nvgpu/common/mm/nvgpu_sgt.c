@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -74,7 +74,7 @@ bool nvgpu_sgt_iommuable(struct gk20a *g, struct nvgpu_sgt *sgt)
 
 void nvgpu_sgt_free(struct gk20a *g, struct nvgpu_sgt *sgt)
 {
-	if (sgt != NULL && sgt->ops->sgt_free != NULL) {
+	if ((sgt != NULL) && (sgt->ops->sgt_free != NULL)) {
 		sgt->ops->sgt_free(g, sgt);
 	}
 }
@@ -98,8 +98,8 @@ u64 nvgpu_sgt_alignment(struct gk20a *g, struct nvgpu_sgt *sgt)
 	 * IOMMU we know that this DMA address is contiguous.
 	 */
 	if (nvgpu_iommuable(g) &&
-	    nvgpu_sgt_iommuable(g, sgt) &&
-	    nvgpu_sgt_get_dma(sgt, sgt->sgl) != 0ULL) {
+		nvgpu_sgt_iommuable(g, sgt) &&
+		(nvgpu_sgt_get_dma(sgt, sgt->sgl) != 0ULL)) {
 		return 1ULL << (nvgpu_ffs(nvgpu_sgt_get_dma(sgt, sgt->sgl))
 						- 1UL);
 	}

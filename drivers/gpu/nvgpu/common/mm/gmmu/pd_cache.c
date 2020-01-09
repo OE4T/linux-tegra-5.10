@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -177,7 +177,7 @@ static int nvgpu_pd_cache_alloc_direct(struct gk20a *g,
 	 * going to be virtually contiguous and we don't have to force the
 	 * underlying allocations to be physically contiguous as well.
 	 */
-	if (!nvgpu_iommuable(g) && bytes > PAGE_SIZE) {
+	if (!nvgpu_iommuable(g) && (bytes > PAGE_SIZE)) {
 		flags = NVGPU_DMA_PHYSICALLY_ADDRESSED;
 	}
 

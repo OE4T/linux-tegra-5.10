@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -134,7 +134,7 @@ static u32 nvgpu_vm_get_pte_size(struct vm_gk20a *vm, u64 base, u64 size)
 		return nvgpu_vm_get_pte_size_fixed_map(vm, base);
 	}
 
-	if (size >= vm->gmmu_page_sizes[GMMU_PAGE_SIZE_BIG] &&
+	if ((size >= vm->gmmu_page_sizes[GMMU_PAGE_SIZE_BIG]) &&
 	    nvgpu_iommuable(g)) {
 		return GMMU_PAGE_SIZE_BIG;
 	}
@@ -319,7 +319,7 @@ bool nvgpu_big_pages_possible(struct vm_gk20a *vm, u64 base, u64 size)
 	u64 base_big_page = base & mask;
 	u64 size_big_page = size & mask;
 
-	if (base_big_page != 0ULL || size_big_page != 0ULL) {
+	if ((base_big_page != 0ULL) || (size_big_page != 0ULL)) {
 		return false;
 	}
 	return true;
@@ -522,7 +522,8 @@ static int nvgpu_vm_init_check_vma_limits(struct gk20a *g, struct vm_gk20a *vm,
 {
 	if ((user_vma_start > user_vma_limit) ||
 		(user_lp_vma_start > user_lp_vma_limit) ||
-		(!vm->guest_managed && kernel_vma_start >= kernel_vma_limit)) {
+		(!vm->guest_managed &&
+			(kernel_vma_start >= kernel_vma_limit))) {
 		nvgpu_err(g, "Invalid vm configuration");
 		nvgpu_do_assert();
 		return -EINVAL;
@@ -534,8 +535,8 @@ static int nvgpu_vm_init_check_vma_limits(struct gk20a *g, struct vm_gk20a *vm,
 	 * user_vma_limit (i.e a 0 sized space). In such a situation the kernel
 	 * area must be non-zero in length.
 	 */
-	if (user_vma_start >= user_vma_limit &&
-	    kernel_vma_start >= kernel_vma_limit) {
+	if ((user_vma_start >= user_vma_limit) &&
+		(kernel_vma_start >= kernel_vma_limit)) {
 		return -EINVAL;
 	}
 
@@ -602,9 +603,9 @@ static int nvgpu_vm_init_vma(struct gk20a *g, struct vm_gk20a *vm,
 		goto clean_up_page_tables;
 	}
 
-	kernel_vma_flags = nvgpu_safe_add_u64(kernel_reserved, low_hole) ==
-					aperture_size ?
-					0ULL : GPU_ALLOC_GVA_SPACE;
+	kernel_vma_flags =
+		(nvgpu_safe_add_u64(kernel_reserved, low_hole) ==
+			aperture_size) ? 0ULL : GPU_ALLOC_GVA_SPACE;
 
 	nvgpu_vm_init_check_big_pages(vm, user_vma_start, user_vma_limit,
 				user_lp_vma_start, user_lp_vma_limit,
@@ -646,7 +647,7 @@ static int nvgpu_vm_init_attributes(struct mm_gk20a *mm,
 		return -ENOMEM;
 	}
 
-	if (vm->guest_managed && kernel_reserved != 0U) {
+	if (vm->guest_managed && (kernel_reserved != 0U)) {
 		nvgpu_do_assert_print(g,
 			"Cannot use guest managed VM with kernel space");
 		return -EINVAL;
@@ -864,7 +865,7 @@ static void nvgpu_vm_remove(struct vm_gk20a *vm)
 #endif
 
 	if (nvgpu_mem_is_valid(&g->syncpt_mem) &&
-			vm->syncpt_ro_map_gpu_va != 0ULL) {
+		(vm->syncpt_ro_map_gpu_va != 0ULL)) {
 		nvgpu_gmmu_unmap(vm, &g->syncpt_mem,
 				vm->syncpt_ro_map_gpu_va);
 	}
@@ -1325,7 +1326,7 @@ static int nvgpu_vm_map_check_attributes(struct vm_gk20a *vm,
 	struct gk20a *g = gk20a_from_vm(vm);
 
 	if (vm->userspace_managed &&
-	    (flags & NVGPU_VM_MAP_FIXED_OFFSET) == 0U) {
+		((flags & NVGPU_VM_MAP_FIXED_OFFSET) == 0U)) {
 		nvgpu_err(g,
 			  "non-fixed-offset mapping not available on "
 			  "userspace managed address spaces");

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -86,7 +86,7 @@ u32 nvgpu_aperture_mask(struct gk20a *g, struct nvgpu_mem *mem,
 
 bool nvgpu_aperture_is_sysmem(enum nvgpu_aperture ap)
 {
-	return ap == APERTURE_SYSMEM_COH || ap == APERTURE_SYSMEM;
+	return (ap == APERTURE_SYSMEM_COH) || (ap == APERTURE_SYSMEM);
 }
 
 bool nvgpu_mem_is_sysmem(struct nvgpu_mem *mem)
@@ -101,8 +101,8 @@ u64 nvgpu_mem_iommu_translate(struct gk20a *g, u64 phys)
 	WARN_ON(nvgpu_addr_is_vidmem_page_alloc(phys));
 #endif
 
-	if (nvgpu_iommuable(g) && g->ops.mm.gmmu.get_iommu_bit != NULL) {
-		return phys | 1ULL << g->ops.mm.gmmu.get_iommu_bit(g);
+	if (nvgpu_iommuable(g) && (g->ops.mm.gmmu.get_iommu_bit != NULL)) {
+		return phys | (1ULL << g->ops.mm.gmmu.get_iommu_bit(g));
 	}
 
 	return phys;
@@ -392,7 +392,7 @@ int nvgpu_mem_create_from_phys(struct gk20a *g, struct nvgpu_mem *dest,
 	 */
 	sgt = nvgpu_kzalloc(g, sizeof(*sgt));
 	sgl = nvgpu_kzalloc(g, sizeof(*sgl));
-	if (sgt == NULL || sgl == NULL) {
+	if ((sgt == NULL) || (sgl == NULL)) {
 		nvgpu_kfree(g, sgt);
 		nvgpu_kfree(g, sgl);
 		return -ENOMEM;

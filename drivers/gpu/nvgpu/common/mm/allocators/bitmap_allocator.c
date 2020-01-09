@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -329,7 +329,7 @@ static void nvgpu_bitmap_free(struct nvgpu_allocator *na, u64 addr)
 	a->bytes_freed = nvgpu_safe_add_u64(a->bytes_freed, alloc->length);
 
 done:
-	if (a->meta_data_cache != NULL && alloc != NULL) {
+	if ((a->meta_data_cache != NULL) && (alloc != NULL)) {
 		nvgpu_kmem_cache_free(a->meta_data_cache, alloc);
 	}
 	alloc_unlock(na);
