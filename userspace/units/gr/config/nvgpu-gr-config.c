@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -86,7 +86,7 @@ static u32 gr_test_config_get_pes_tpc_mask(struct gk20a *g,
 	if (gr_test_config_lits.pes_tpc_mask == 2) {
 		return 0x1F;
 	}else if (gr_test_config_lits.pes_tpc_mask == 3) {
-		return 0;
+		return 0x2F;
 	}else if (gr_test_config_lits.pes_tpc_mask > 3) {
 		return 0xF;
 	}else {
@@ -483,15 +483,20 @@ int test_gr_config_error_injection(struct unit_module *m,
 			"gr_test_invalid_gpc_count test failed\n");
 	}
 
-	/* Pass with diff pes_tpc_mask */
-	err = gr_test_diff_pes_tpc_mask(g);
+	/* Pass with diff gpc_skip_mask */
+	err = gr_test_diff_gpc_skip_mask(g);
 	if (err != 0) {
 		unit_return_fail(m,
 			"gr_test_invalid_pes_tpc_mask test failed\n");
 	}
 
-	/* Pass with diff gpc_skip_mask */
-	err = gr_test_diff_gpc_skip_mask(g);
+	/*
+	 * Pass with diff pes_tpc_mask.
+	 * Run this after gr_test_diff_gpc_skip_mask() so that this
+	 * test receives appropriate pes_tpc_mask from
+	 * gr_test_config_get_pes_tpc_mask().
+	 */
+	err = gr_test_diff_pes_tpc_mask(g);
 	if (err != 0) {
 		unit_return_fail(m,
 			"gr_test_invalid_pes_tpc_mask test failed\n");
