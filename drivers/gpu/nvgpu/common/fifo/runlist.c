@@ -427,7 +427,7 @@ int nvgpu_runlist_update_locked(struct gk20a *g, u32 runlist_id,
 
 	runlist = f->runlist_info[runlist_id];
 	/* double buffering, swap to next */
-	buf_id = runlist->cur_buffer == 0U ? 1U : 0U;
+	buf_id = (runlist->cur_buffer == 0U) ? 1U : 0U;
 
 	ret = gk20a_runlist_reconstruct_locked(g, runlist_id, buf_id,
 			add_entries);
@@ -851,7 +851,8 @@ u32 nvgpu_runlist_get_runlists_mask(struct gk20a *g, u32 id,
 	struct nvgpu_fifo *f = &g->fifo;
 	struct nvgpu_runlist_info *runlist;
 
-	bool bitmask_disabled = (act_eng_bitmask == 0U && pbdma_bitmask == 0U);
+	bool bitmask_disabled = ((act_eng_bitmask == 0U) &&
+				(pbdma_bitmask == 0U));
 
 	/* engine and/or pbdma ids are known */
 	if (!bitmask_disabled) {

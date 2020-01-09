@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -773,11 +773,11 @@ u32 nvgpu_engine_get_mask_on_id(struct gk20a *g, u32 id, bool is_tsg)
 
 		busy = engine_status.is_busy;
 
-		if (busy && ctx_id == id) {
-			if ((is_tsg && type ==
-					ENGINE_STATUS_CTX_ID_TYPE_TSGID) ||
-					(!is_tsg && type ==
-					ENGINE_STATUS_CTX_ID_TYPE_CHID)) {
+		if (busy && (ctx_id == id)) {
+			if ((is_tsg && (type ==
+					ENGINE_STATUS_CTX_ID_TYPE_TSGID)) ||
+				(!is_tsg && (type ==
+					ENGINE_STATUS_CTX_ID_TYPE_CHID))) {
 				engines |= BIT32(engine_id);
 			}
 		}
@@ -944,7 +944,7 @@ u32 nvgpu_engine_get_runlist_busy_engines(struct gk20a *g, u32 runlist_id)
 			&engine_status);
 		engine_busy = engine_status.is_busy;
 
-		if (engine_busy && engine_runlist == runlist_id) {
+		if (engine_busy && (engine_runlist == runlist_id)) {
 			eng_bitmask |= BIT32(engine_id);
 		}
 	}
@@ -1004,9 +1004,9 @@ u32 nvgpu_engine_mmu_fault_id_to_veid(struct gk20a *g, u32 mmu_fault_id,
 
 	num_subctx = f->max_subctx_count;
 
-	if (mmu_fault_id >= gr_eng_fault_id &&
-			mmu_fault_id < nvgpu_safe_add_u32(gr_eng_fault_id,
-						num_subctx)) {
+	if ((mmu_fault_id >= gr_eng_fault_id) &&
+		(mmu_fault_id < nvgpu_safe_add_u32(gr_eng_fault_id,
+						num_subctx))) {
 		veid = mmu_fault_id - gr_eng_fault_id;
 	}
 

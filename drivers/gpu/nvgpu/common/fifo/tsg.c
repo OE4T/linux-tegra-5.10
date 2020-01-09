@@ -791,9 +791,9 @@ void nvgpu_tsg_release(struct nvgpu_ref *ref)
 	struct nvgpu_tsg *tsg = tsg_gk20a_from_ref(ref);
 	struct gk20a *g = tsg->g;
 
-	if (tsg->gr_ctx != NULL && nvgpu_mem_is_valid(
-			nvgpu_gr_ctx_get_ctx_mem(tsg->gr_ctx)) &&
-			tsg->vm != NULL) {
+	if ((tsg->gr_ctx != NULL) &&
+		nvgpu_mem_is_valid(nvgpu_gr_ctx_get_ctx_mem(tsg->gr_ctx)) &&
+		(tsg->vm != NULL)) {
 		g->ops.gr.setup.free_gr_ctx(g, tsg->vm, tsg->gr_ctx);
 	}
 
