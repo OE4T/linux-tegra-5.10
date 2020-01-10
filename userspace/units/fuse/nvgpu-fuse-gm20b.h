@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -40,6 +40,8 @@ extern struct fuse_test_args gm20b_init_args;
  *
  * Test Type: Feature
  *
+ * Targets: gops_fuse.check_priv_security
+ *
  * Input: test_fuse_device_common_init() must be called for this GPU.
  *
  * Steps:
@@ -62,6 +64,8 @@ int test_fuse_gm20b_check_sec(struct unit_module *m,
  *
  * Test Type: Feature
  *
+ * Targets: gops_fuse.check_priv_security
+ *
  * Input: test_fuse_device_common_init() must be called for this GPU.
  *
  * Steps:
@@ -82,6 +86,8 @@ int test_fuse_gm20b_check_gcplex_fail(struct unit_module *m,
  *              configurations of WPR and VPR bits.
  *
  * Test Type: Feature
+ *
+ * Targets: gops_fuse.check_priv_security
  *
  * Input: test_fuse_device_common_init() must be called for this GPU.
  *
@@ -109,6 +115,8 @@ int test_fuse_gm20b_check_sec_invalid_gcplex(struct unit_module *m,
  *
  * Test Type: Feature
  *
+ * Targets: gops_fuse.check_priv_security
+ *
  * Input: test_fuse_device_common_init() must be called for this GPU.
  *
  * Steps:
@@ -128,6 +136,11 @@ int test_fuse_gm20b_check_non_sec(struct unit_module *m,
  * Description:  Verify fuse reads for basic value-return APIs.
  *
  * Test Type: Feature
+ *
+ * Targets: gops_fuse.fuse_status_opt_fbio, gops_fuse.fuse_status_opt_fbp,
+ *          gops_fuse.fuse_status_opt_rop_l2_fbp, gops_fuse.fuse_status_opt_tpc_gpc,
+ *          gops_fuse.fuse_opt_sec_debug_en, gops_fuse.fuse_opt_priv_sec_en,
+ *          gops_fuse.fuse_ctrl_opt_tpc_gpc
  *
  * Input: test_fuse_device_common_init() must be called for this GPU.
  *

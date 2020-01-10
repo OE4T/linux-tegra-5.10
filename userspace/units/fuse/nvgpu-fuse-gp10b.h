@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -40,6 +40,8 @@ extern struct fuse_test_args gp10b_init_args;
  *
  * Test Type: Feature
  *
+ * Targets: gops_fuse.check_priv_security, gops_fuse.read_gcplex_config_fuse
+ *
  * Input: test_fuse_device_common_init() must be called for this GPU.
  *
  * Steps:
@@ -61,6 +63,8 @@ int test_fuse_gp10b_check_sec(struct unit_module *m,
  *
  * Test Type: Feature
  *
+ * Targets: gops_fuse.check_priv_security
+ *
  * Input: test_fuse_device_common_init() must be called for this GPU.
  *
  * Steps:
@@ -81,6 +85,8 @@ int test_fuse_gp10b_check_gcplex_fail(struct unit_module *m,
  *              configurations of WPR and VPR bits.
  *
  * Test Type: Feature
+ *
+ * Targets: gops_fuse.check_priv_security
  *
  * Input: test_fuse_device_common_init() must be called for this GPU.
  *
@@ -108,6 +114,8 @@ int test_fuse_gp10b_check_sec_invalid_gcplex(struct unit_module *m,
  *
  * Test Type: Feature
  *
+ * Targets: gops_fuse.check_priv_security
+ *
  * Input: test_fuse_device_common_init() must be called for this GPU.
  *
  * Steps:
@@ -127,6 +135,8 @@ int test_fuse_gp10b_check_non_sec(struct unit_module *m,
  * Description: Verify fuse reports ECC enable correctly.
  *
  * Test Type: Feature
+ *
+ * Targets: gops_fuse.is_opt_ecc_enable
  *
  * Input: test_fuse_device_common_init() must be called for this GPU.
  *
@@ -148,6 +158,8 @@ int test_fuse_gp10b_ecc(struct unit_module *m,
  * Description: Verify fuse reports Feature Override enable correctly.
  *
  * Test Type: Feature
+ *
+ * Targets: gops_fuse.is_opt_feature_override_disable
  *
  * Input: test_fuse_device_common_init() must be called for this GPU.
  *
