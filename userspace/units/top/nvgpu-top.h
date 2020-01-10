@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -77,6 +77,8 @@ int test_top_free_reg_space(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Test Type: Feature, Error injection
  *
+ * Targets: gops_top.device_info_parse_enum, gm20b_device_info_parse_enum
+ *
  * Input: test_top_setup() has been executed.
  *
  * Steps:
@@ -117,6 +119,8 @@ int test_device_info_parse_enum(struct unit_module *m, struct gk20a *g,
  *
  * Test Type: Feature
  *
+ * Targets: gops_top.get_max_gpc_count, gm20b_top_get_max_gpc_count
+ *
  * Input: test_top_setup() has been executed.
  *
  * Steps:
@@ -141,6 +145,8 @@ int test_get_max_gpc_count(struct unit_module *m, struct gk20a *g,
  *
  * Test Type: Feature
  *
+ * Targets: gops_top.is_engine_gr, gm20b_is_engine_gr
+ *
  * Input: test_top_setup() has been executed.
  *
  * Steps:
@@ -162,6 +168,9 @@ int test_is_engine_gr(struct unit_module *m, struct gk20a *g, void *args);
  * Description: Verify the top.get_max_tpc_per_gpc_count HAL.
  *
  * Test Type: Feature
+ *
+ * Targets: gops_top.get_max_tpc_per_gpc_count,
+ *          gm20b_top_get_max_tpc_per_gpc_count
  *
  * Input: test_top_setup() has been executed.
  *
@@ -187,6 +196,8 @@ int test_get_max_tpc_per_gpc_count(struct unit_module *m, struct gk20a *g,
  *
  * Test Type: Feature
  *
+ * Targets: gops_top.get_max_fbps_count, gm20b_top_get_max_fbps_count
+ *
  * Input: test_top_setup() has been executed.
  *
  * Steps:
@@ -210,6 +221,8 @@ int test_get_max_fbps_count(struct unit_module *m, struct gk20a *g,
  * Description: Verify the top.get_max_ltc_per_fbp HAL.
  *
  * Test Type: Feature
+ *
+ * Targets: gops_top.get_max_ltc_per_fbp, gm20b_top_get_max_ltc_per_fbp
  *
  * Input: test_top_setup() has been executed.
  *
@@ -235,6 +248,8 @@ int test_get_max_ltc_per_fbp(struct unit_module *m, struct gk20a *g,
  *
  * Test Type: Feature
  *
+ * Targets: gops_top.get_max_lts_per_ltc, gm20b_top_get_max_lts_per_ltc
+ *
  * Input: test_top_setup() has been executed.
  *
  * Steps:
@@ -259,6 +274,8 @@ int test_get_max_lts_per_ltc(struct unit_module *m, struct gk20a *g,
  *
  * Test Type: Feature
  *
+ * Targets: gops_top.get_num_ltcs, gm20b_top_get_num_ltcs
+ *
  * Input: test_top_setup() has been executed.
  *
  * Steps:
@@ -281,6 +298,8 @@ int test_get_num_ltcs(struct unit_module *m, struct gk20a *g, void *args);
  * Description: Verify the top.device_info_parse_data HAL.
  *
  * Test Type: Feature, Error injection
+ *
+ * Targets: gops_top.device_info_parse_data, gv11b_device_info_parse_data
  *
  * Input: test_top_setup() has been executed.
  *
@@ -325,6 +344,9 @@ int test_device_info_parse_data(struct unit_module *m, struct gk20a *g,
  *
  * Test Type: Feature
  *
+ * Targets: gops_top.get_num_engine_type_entries,
+ *          gp10b_get_num_engine_type_entries
+ *
  * Input: test_top_setup() has been executed.
  *
  * Steps:
@@ -347,6 +369,8 @@ int test_get_num_engine_type_entries(struct unit_module *m, struct gk20a *g,
  * Description: Verify top.get_device_info HAL.
  *
  * Test Type: Feature
+ *
+ * Targets: gops_top.get_device_info, gp10b_get_device_info
  *
  * Input: test_top_setup() has been executed.
  *
@@ -379,6 +403,8 @@ int test_get_device_info(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Test Type: Feature
  *
+ * Targets: gops_top.is_engine_ce, gp10b_is_engine_ce
+ *
  * Input: test_top_setup() has been executed.
  *
  * Steps:
@@ -400,6 +426,8 @@ int test_is_engine_ce(struct unit_module *m, struct gk20a *g, void *args);
  * Description: Verify the top.get_num_lce HAL.
  *
  * Test Type: Feature
+ *
+ * Targets: gops_top.get_num_lce, gv11b_top_get_num_lce
  *
  * Input: test_top_setup() has been executed.
  *
