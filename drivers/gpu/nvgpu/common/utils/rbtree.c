@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -410,8 +410,8 @@ void nvgpu_rbtree_range_search(u64 key,
 	struct nvgpu_rbtree_node *curr = root;
 
 	while (curr != NULL) {
-		if (key >= curr->key_start &&
-				key < curr->key_end) {
+		if ((key >= curr->key_start) &&
+			(key < curr->key_end)) {
 			*node = curr;
 			return;
 		} else if (key < curr->key_start) {

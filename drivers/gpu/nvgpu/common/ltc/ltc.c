@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -63,7 +63,7 @@ int nvgpu_init_ltc_support(struct gk20a *g)
 		g->ops.ltc.init_fs_state(g);
 	}
 
-	if (g->ops.ltc.ecc_init != NULL && !g->ecc.initialized) {
+	if ((g->ops.ltc.ecc_init != NULL) && !g->ecc.initialized) {
 		err = g->ops.ltc.ecc_init(g);
 		if (err != 0) {
 			nvgpu_kfree(g, ltc);

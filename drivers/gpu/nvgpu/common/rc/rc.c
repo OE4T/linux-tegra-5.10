@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -299,7 +299,7 @@ void nvgpu_rc_mmu_fault(struct gk20a *g, u32 act_eng_bitmask,
 	g->ops.fifo.recover(g, act_eng_bitmask,
 		id, id_type, rc_type, mmufault);
 #else
-	if (id != INVAL_ID && id_type == ID_TYPE_TSG) {
+	if ((id != INVAL_ID) && (id_type == ID_TYPE_TSG)) {
 		struct nvgpu_tsg *tsg = &g->fifo.tsg[id];
 		nvgpu_tsg_set_ctx_mmu_error(g, tsg);
 		nvgpu_tsg_mark_error(g, tsg);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -74,7 +74,7 @@ static int pmu_enable_hw(struct nvgpu_pmu *pmu, bool enable)
 
 void nvgpu_pmu_enable_irq(struct gk20a *g, bool enable)
 {
-	if (g->pmu != NULL && g->ops.pmu.pmu_enable_irq != NULL) {
+	if ((g->pmu != NULL) && (g->ops.pmu.pmu_enable_irq != NULL)) {
 		nvgpu_mutex_acquire(&g->pmu->isr_mutex);
 		g->ops.pmu.pmu_enable_irq(g->pmu, enable);
 		g->pmu->isr_enabled = enable;
@@ -180,7 +180,7 @@ int nvgpu_pmu_early_init(struct gk20a *g)
 	pmu->g = g;
 	pmu->flcn = &g->pmu_flcn;
 
-	if (g->ops.pmu.ecc_init != NULL && !g->ecc.initialized) {
+	if ((g->ops.pmu.ecc_init != NULL) && !g->ecc.initialized) {
 		err = g->ops.pmu.ecc_init(g);
 		if (err != 0) {
 			nvgpu_kfree(g, pmu);

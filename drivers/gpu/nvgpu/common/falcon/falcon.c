@@ -204,7 +204,7 @@ static int falcon_memcpy_params_check(struct nvgpu_falcon *flcn,
 
 	mem_size = g->ops.falcon.get_mem_size(flcn, mem_type);
 
-	if (!(offset < mem_size && (offset + size) <= mem_size)) {
+	if (!((offset < mem_size) && ((offset + size) <= mem_size))) {
 		nvgpu_err(g, "flcn-id 0x%x, copy overflow ",
 			flcn->flcn_id);
 		nvgpu_err(g, "total size 0x%x, offset 0x%x, copy size 0x%x",

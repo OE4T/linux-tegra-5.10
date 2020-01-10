@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -450,7 +450,7 @@ clean_up:
 
 static bool nvgpu_netlist_is_valid(int net, u32 major_v, u32 major_v_hw)
 {
-	if (net != NETLIST_FINAL && major_v != major_v_hw) {
+	if ((net != NETLIST_FINAL) && (major_v != major_v_hw)) {
 		return false;
 	}
 	return true;
