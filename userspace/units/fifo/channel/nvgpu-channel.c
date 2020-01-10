@@ -629,7 +629,8 @@ done:
 #define F_CHANNEL_SETUP_BIND_USERMODE_POWER_REF_COUNT_FAIL	BIT(8)
 #define F_CHANNEL_SETUP_BIND_NON_USERMODE_DETERMINISTIC		BIT(9)
 #define F_CHANNEL_SETUP_BIND_USERMODE_OS_CH_USERMODE_BUF	BIT(10)
-#define F_CHANNEL_SETUP_BIND_LAST				BIT(11)
+#define F_CHANNEL_SETUP_GPFIFO_ENTRIES_OUT_OF_BOUND		BIT(11)
+#define F_CHANNEL_SETUP_BIND_LAST				BIT(12)
 
 static const char *f_channel_setup_bind[] = {
 	"no_as",
@@ -719,7 +720,8 @@ int test_channel_setup_bind(struct unit_module *m, struct gk20a *g, void *vargs)
 		F_CHANNEL_SETUP_BIND_USERMODE_TSGID_INVALID |
 		F_CHANNEL_SETUP_BIND_USERMODE_POWER_REF_COUNT_FAIL |
 		F_CHANNEL_SETUP_BIND_NON_USERMODE_DETERMINISTIC |
-		F_CHANNEL_SETUP_BIND_USERMODE_OS_CH_USERMODE_BUF;
+		F_CHANNEL_SETUP_BIND_USERMODE_OS_CH_USERMODE_BUF |
+		F_CHANNEL_SETUP_GPFIFO_ENTRIES_OUT_OF_BOUND;
 	u32 prune = (u32)(F_CHANNEL_SETUP_BIND_USERMODE_SUPPORT_DETERMINISTIC) |
 			fail;
 	u32 runlist_id = NVGPU_INVALID_RUNLIST_ID;
@@ -816,6 +818,10 @@ int test_channel_setup_bind(struct unit_module *m, struct gk20a *g, void *vargs)
 				NVGPU_SETUP_BIND_FLAGS_USERMODE_SUPPORT;
 		}
 
+		if (branches & F_CHANNEL_SETUP_GPFIFO_ENTRIES_OUT_OF_BOUND) {
+			bind_args.num_gpfifo_entries = -1;
+		}
+
 		ch->tsgid = branches &
 			F_CHANNEL_SETUP_BIND_USERMODE_TSGID_INVALID ?
 				NVGPU_INVALID_TSG_ID : tsgid_orig;
@@ -850,6 +856,7 @@ int test_channel_setup_bind(struct unit_module *m, struct gk20a *g, void *vargs)
 			unit_assert(nvgpu_atomic_read(&ch->bound) == false,
 				goto done);
 			g->os_channel.free_usermode_buffers = NULL;
+			bind_args.num_gpfifo_entries = 32;
 		} else {
 			unit_assert(err == 0, goto done);
 			unit_assert(stub[0].chid == ch->chid, goto done);

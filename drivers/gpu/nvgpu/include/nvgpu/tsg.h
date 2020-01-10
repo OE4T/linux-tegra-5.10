@@ -312,6 +312,7 @@ void nvgpu_tsg_disable(struct nvgpu_tsg *tsg);
  *
  * - Make sure channel is not already bound to a TSG.
  * - Make sure channel is not part of any runlists.
+ * - If channel had ASYNC subctx id, then set runqueue selector to 1.
  * - Set runlist id of TSG to channel's runlist_id if runlist_id of TSG
  *   is set to #NVGPU_INVALID_TSG_ID.
  * - Call HAL to bind channel to TSG.

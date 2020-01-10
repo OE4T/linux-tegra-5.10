@@ -1025,6 +1025,7 @@ struct nvgpu_channel *nvgpu_channel_open_new(struct gk20a *g,
  * @return 0 in case of success, < 0 in case of failure.
  * @retval -EINVAL if channel is not bound to an address space.
  * @retval -EINVAL if attempting to use kernel mode submit in a safety build.
+ * @retval -EINVAL if num_gpfifo_entries in #args is greater than 2^31.
  * @retval -EEXIST if gpfifo has already been allocated for this channel.
  * @retval -E2BIG if there is no space available to append channel to runlist.
  * @retval -ETIMEDOUT if runlist update timed out.

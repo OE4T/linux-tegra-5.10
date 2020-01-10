@@ -262,7 +262,8 @@ done:
 #define F_TSG_BIND_CHANNEL_BIND_HAL		BIT(3)
 #define F_TSG_BIND_CHANNEL_BIND_HAL_ERR		BIT(4)
 #define F_TSG_BIND_CHANNEL_ENG_METHOD_BUFFER	BIT(5)
-#define F_TSG_BIND_CHANNEL_LAST			BIT(6)
+#define F_TSG_BIND_CHANNEL_ASYNC_ID		BIT(6)
+#define F_TSG_BIND_CHANNEL_LAST			BIT(7)
 
 static const char *f_tsg_bind[] = {
 	"ch_bound",
@@ -325,6 +326,12 @@ int test_tsg_bind_channel(struct unit_module *m,
 		}
 		subtest_setup(branches);
 		ch = chB;
+
+		if (branches & F_TSG_BIND_CHANNEL_ASYNC_ID) {
+			ch->subctx_id = CHANNEL_INFO_VEID0 + 1;
+		} else {
+			ch->subctx_id = 0U;
+		}
 
 		/* ch already bound */
 		if (branches & F_TSG_BIND_CHANNEL_CH_BOUND) {

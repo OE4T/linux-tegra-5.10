@@ -104,6 +104,11 @@ int nvgpu_tsg_bind_channel(struct nvgpu_tsg *tsg, struct nvgpu_channel *ch)
 		return -EINVAL;
 	}
 
+	/* Use runqueue selector 1 for all ASYNC ids */
+	if (ch->subctx_id > CHANNEL_INFO_VEID0) {
+		ch->runqueue_sel = 1;
+	}
+
 	/* all the channel part of TSG should need to be same runlist_id */
 	if (tsg->runlist_id == NVGPU_INVALID_TSG_ID) {
 		tsg->runlist_id = ch->runlist_id;
