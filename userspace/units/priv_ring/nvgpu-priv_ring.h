@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -77,7 +77,7 @@ int test_priv_ring_free_reg_space(struct unit_module *m, struct gk20a *g, void *
  *
  * Test Type: Feature
  *
- * Targets: gm20b_enable_priv_ring
+ * Targets: gops_priv_ring.enable_priv_ring, gm20b_enable_priv_ring
  *
  * Input: test_priv_ring_setup() has been executed.
  *
@@ -100,7 +100,8 @@ int test_enable_priv_ring(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Test Type: Feature
  *
- * Targets: gm20b_priv_set_timeout_settings
+ * Targets: gops_priv_ring.set_ppriv_timeout_settings,
+ *          gm20b_priv_set_timeout_settings
  *
  * Input: test_priv_ring_setup() has been executed.
  *
@@ -122,7 +123,7 @@ int test_set_ppriv_timeout_settings(struct unit_module *m, struct gk20a *g,
  *
  * Test Type: Feature
  *
- * Targets: gm20b_priv_ring_enum_ltc.
+ * Targets: gops_priv_ring.enum_ltc, gm20b_priv_ring_enum_ltc.
  *
  * Input: test_priv_ring_setup() has been executed.
  *
@@ -145,7 +146,7 @@ int test_enum_ltc(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Test Type: Feature
  *
- * Targets: gm20b_priv_ring_get_gpc_count
+ * Targets: gops_priv_ring.get_gpc_count, gm20b_priv_ring_get_gpc_count
  *
  * Input: test_priv_ring_setup() has been executed.
  *
@@ -168,7 +169,7 @@ int test_get_gpc_count(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Test Type: Feature
  *
- * Targets: gm20b_priv_ring_get_fbp_count
+ * Targets: gops_priv_ring.get_fbp_count, gm20b_priv_ring_get_fbp_count
  *
  * Input: test_priv_ring_setup() has been executed.
  *
@@ -191,7 +192,7 @@ int test_get_fbp_count(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Test Type: Feature, Error injection
  *
- * Targets: gp10b_priv_ring_isr
+ * Targets: gops_priv_ring.isr, gp10b_priv_ring_isr
  *
  * Input: test_priv_ring_setup() has been executed.
  *
@@ -225,7 +226,7 @@ int test_isr(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Test Type: Feature, Error injection
  *
- * Targets: gp10b_decode_error_code
+ * Targets: gops_priv_ring.decode_error_code, gp10b_decode_error_code
  *
  * Input: test_priv_ring_setup() has been executed.
  *
