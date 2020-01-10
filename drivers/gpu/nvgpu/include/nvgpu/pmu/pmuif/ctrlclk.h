@@ -97,9 +97,8 @@
 #define CTRL_CLK_CLK_VF_POINT_TYPE_35_VOLT_SEC                  0x06U
 #define CTRL_CLK_CLK_VF_POINT_TYPE_UNKNOWN                      255U
 
-#define CTRL_CLK_CLK_DOMAIN_CLIENT_MAX_DOMAINS  16
-#define CTRL_CLK_CLK_DOMAIN_ARCH_MAX_DOMAINS			12U
-#define CLK_CLOCK_MON_REG_TYPE_COUNT				4U
+#define CTRL_CLK_CLK_DOMAIN_CLIENT_MAX_DOMAINS			16
+#define CLK_CLOCK_MON_DOMAIN_COUNT				0x32U
 
 struct ctrl_clk_domain_control_35_prog_clk_mon {
 	u32 flags;
@@ -290,15 +289,10 @@ struct clk_domain_mon_status {
 	u32 clk_domain_fault_status;
 };
 
-struct clk_mon_address_map {
-	u32 clk_api_domain;
-	u32 reg_add[CLK_CLOCK_MON_REG_TYPE_COUNT];
-};
-
 struct clk_domains_mon_status_params {
-	u32 clk_mon_list_size;
+	u32 clk_mon_domain_mask;
 	struct clk_domain_mon_status
-		clk_mon_list[CTRL_CLK_CLK_DOMAIN_ARCH_MAX_DOMAINS];
+		clk_mon_list[CLK_CLOCK_MON_DOMAIN_COUNT];
 };
 
 #define CTRL_CLK_VF_PAIR_FREQ_MHZ_GET(pvfpair)                          \

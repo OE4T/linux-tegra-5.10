@@ -25,6 +25,16 @@
 #include <nvgpu/lock.h>
 #include <nvgpu/gk20a.h>
 
+/**
+ * FMON register types
+ */
+#define FMON_THRESHOLD_HIGH				0x0U
+#define FMON_THRESHOLD_LOW				0x1U
+#define FMON_FAULT_STATUS				0x2U
+#define FMON_FAULT_STATUS_PRIV_MASK			0x3U
+#define CLK_CLOCK_MON_REG_TYPE_COUNT			0x4U
+#define CLK_MON_BITS_PER_BYTE				0x8U
+
 u32 tu104_get_rate_cntr(struct gk20a *g, struct namemap_cfg *c);
 int tu104_init_clk_support(struct gk20a *g);
 u32 tu104_crystal_clk_hz(struct gk20a *g);
@@ -40,6 +50,6 @@ void tu104_get_change_seq_time(struct gk20a *g, s64 *change_time);
 void tu104_change_host_clk_source(struct gk20a *g);
 bool nvgpu_clk_mon_check_master_fault_status(struct gk20a *g);
 int nvgpu_clk_mon_check_status(struct gk20a *g, struct
-		clk_domains_mon_status_params	*clk_mon_status);
-
+		clk_domains_mon_status_params	*clk_mon_status,
+		u32 domain_mask);
 #endif /* CLK_TU104_H */

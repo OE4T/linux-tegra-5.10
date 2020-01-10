@@ -60,158 +60,91 @@
 #define BOOT_GPCCLK_MHZ 645U
 
 /**
- * FMON register types
+ * Mapping between the clk domain and the various clock monitor registers
+ * The rows represent clock domains starting from index 0 and column represent
+ * the various registers each domain has, non available domains are set to 0
+ * for easy accessing, refer nvgpu_clk_mon_init_domains() for valid domains.
  */
-#define FMON_THRESHOLD_HIGH		0x0U
-#define FMON_THRESHOLD_LOW		0x1U
-#define FMON_FAULT_STATUS		0x2U
-#define FMON_FAULT_STATUS_PRIV_MASK	0x3U
-
-
-/**
- * Mapping between the clk api domain and the various clock monitor registers
- */
-static struct clk_mon_address_map clock_mon_map_tu104[] = {
+static  u32 clock_mon_map_tu104[CLK_CLOCK_MON_DOMAIN_COUNT]
+				[CLK_CLOCK_MON_REG_TYPE_COUNT] = {
 	{
-		CTRL_CLK_DOMAIN_GPCCLK,
-		{
-			trim_gpcclk_fault_threshold_high_r(),
-			trim_gpcclk_fault_threshold_low_r(),
-			trim_gpcclk_fault_status_r(),
-			trim_gpcclk_fault_priv_level_mask_r(),
-		}
+		trim_gpcclk_fault_threshold_high_r(),
+		trim_gpcclk_fault_threshold_low_r(),
+		trim_gpcclk_fault_status_r(),
+		trim_gpcclk_fault_priv_level_mask_r(),
 	},
 	{
-		CTRL_CLK_DOMAIN_SYSCLK,
-		{
-			trim_sysclk_fault_threshold_high_r(),
-			trim_sysclk_fault_threshold_low_r(),
-			trim_sysclk_fault_status_r(),
-			trim_sysclk_fault_priv_level_mask_r(),
-		}
+		trim_xbarclk_fault_threshold_high_r(),
+		trim_xbarclk_fault_threshold_low_r(),
+		trim_xbarclk_fault_status_r(),
+		trim_xbarclk_fault_priv_level_mask_r(),
 	},
 	{
-		CTRL_CLK_DOMAIN_HUBCLK,
-		{
-			trim_hubclk_fault_threshold_high_r(),
-			trim_hubclk_fault_threshold_low_r(),
-			trim_hubclk_fault_status_r(),
-			trim_hubclk_fault_priv_level_mask_r(),
-		}
+		trim_sysclk_fault_threshold_high_r(),
+		trim_sysclk_fault_threshold_low_r(),
+		trim_sysclk_fault_status_r(),
+		trim_sysclk_fault_priv_level_mask_r(),
 	},
 	{
-		CTRL_CLK_DOMAIN_HOSTCLK,
-		{
-			trim_hostclk_fault_threshold_high_r(),
-			trim_hostclk_fault_threshold_low_r(),
-			trim_hostclk_fault_status_r(),
-			trim_hostclk_fault_priv_level_mask_r(),
-		}
+		trim_hubclk_fault_threshold_high_r(),
+		trim_hubclk_fault_threshold_low_r(),
+		trim_hubclk_fault_status_r(),
+		trim_hubclk_fault_priv_level_mask_r(),
 	},
 	{
-		CTRL_CLK_DOMAIN_XBARCLK,
-		{
-			trim_xbarclk_fault_threshold_high_r(),
-			trim_xbarclk_fault_threshold_low_r(),
-			trim_xbarclk_fault_status_r(),
-			trim_xbarclk_fault_priv_level_mask_r(),
-		}
+		trim_dramclk_fault_threshold_high_r(),
+		trim_dramclk_fault_threshold_low_r(),
+		trim_dramclk_fault_status_r(),
+		trim_dramclk_fault_priv_level_mask_r(),
 	},
 	{
-		CTRL_CLK_DOMAIN_NVDCLK,
-		{
-			trim_nvdclk_fault_threshold_high_r(),
-			trim_nvdclk_fault_threshold_low_r(),
-			trim_nvdclk_fault_status_r(),
-			trim_nvdclk_fault_priv_level_mask_r(),
-		}
+		trim_hostclk_fault_threshold_high_r(),
+		trim_hostclk_fault_threshold_low_r(),
+		trim_hostclk_fault_status_r(),
+		trim_hostclk_fault_priv_level_mask_r(),
+	},
+	{0,0,0,0}, {0,0,0,0}, {0,0,0,0}, {0,0,0,0},
+	{0,0,0,0}, {0,0,0,0}, {0,0,0,0}, {0,0,0,0},
+	{0,0,0,0}, {0,0,0,0}, {0,0,0,0}, {0,0,0,0},
+	{
+		trim_utilsclk_fault_threshold_high_r(),
+		trim_utilsclk_fault_threshold_low_r(),
+		trim_utilsclk_fault_status_r(),
+		trim_utilsclk_fault_priv_level_mask_r(),
 	},
 	{
-		CTRL_CLK_DOMAIN_MCLK,
-		{
-			trim_dramclk_fault_threshold_high_r(),
-			trim_dramclk_fault_threshold_low_r(),
-			trim_dramclk_fault_status_r(),
-			trim_dramclk_fault_priv_level_mask_r(),
-		}
+		trim_pwrclk_fault_threshold_high_r(),
+		trim_pwrclk_fault_threshold_low_r(),
+		trim_pwrclk_fault_status_r(),
+		trim_pwrclk_fault_priv_level_mask_r(),
 	},
 	{
-		CTRL_CLK_DOMAIN_PWRCLK,
-		{
-			trim_pwrclk_fault_threshold_high_r(),
-			trim_pwrclk_fault_threshold_low_r(),
-			trim_pwrclk_fault_status_r(),
-			trim_pwrclk_fault_priv_level_mask_r(),
-		}
+		trim_nvdclk_fault_threshold_high_r(),
+		trim_nvdclk_fault_threshold_low_r(),
+		trim_nvdclk_fault_status_r(),
+		trim_nvdclk_fault_priv_level_mask_r(),
+	},
+	{0,0,0,0}, {0,0,0,0}, {0,0,0,0}, {0,0,0,0}, {0,0,0,0},
+	{
+		trim_xclk_fault_threshold_high_r(),
+		trim_xclk_fault_threshold_low_r(),
+		trim_xclk_fault_status_r(),
+		trim_xclk_fault_priv_level_mask_r(),
 	},
 	{
-		CTRL_CLK_DOMAIN_UTILSCLK,
-		{
-			trim_utilsclk_fault_threshold_high_r(),
-			trim_utilsclk_fault_threshold_low_r(),
-			trim_utilsclk_fault_status_r(),
-			trim_utilsclk_fault_priv_level_mask_r(),
-		}
+		trim_nvl_commonclk_fault_threshold_high_r(),
+		trim_nvl_commonclk_fault_threshold_low_r(),
+		trim_nvl_commonclk_fault_status_r(),
+		trim_nvl_commonclk_fault_priv_level_mask_r(),
 	},
 	{
-		CTRL_CLK_DOMAIN_PEX_REFCLK,
-		{
-			trim_pex_refclk_fault_threshold_high_r(),
-			trim_pex_refclk_fault_threshold_low_r(),
-			trim_pex_refclk_fault_status_r(),
-			trim_pex_refclk_fault_priv_level_mask_r(),
-		}
+		trim_pex_refclk_fault_threshold_high_r(),
+		trim_pex_refclk_fault_threshold_low_r(),
+		trim_pex_refclk_fault_status_r(),
+		trim_pex_refclk_fault_priv_level_mask_r(),
 	},
-	{
-		CTRL_CLK_DOMAIN_NVL_COMMON,
-		{
-			trim_nvl_commonclk_fault_threshold_high_r(),
-			trim_nvl_commonclk_fault_threshold_low_r(),
-			trim_nvl_commonclk_fault_status_r(),
-			trim_nvl_commonclk_fault_priv_level_mask_r(),
-		}
-	},
-	{
-		CTRL_CLK_DOMAIN_XCLK,
-		{
-			trim_xclk_fault_threshold_high_r(),
-			trim_xclk_fault_threshold_low_r(),
-			trim_xclk_fault_status_r(),
-			trim_xclk_fault_priv_level_mask_r(),
-		}
-	},
+	{0,0,0,0}, {0,0,0,0}, {0,0,0,0}
 };
-
-static int nvgpu_clk_mon_idx_get(struct gk20a *g, u32 clk_api_domain, u8 *idx)
-{
-	u8 index;
-
-	for (index = 0; index < CTRL_CLK_CLK_DOMAIN_ARCH_MAX_DOMAINS; index++) {
-		if (clock_mon_map_tu104[index].clk_api_domain ==
-				clk_api_domain) {
-			*idx = index;
-			return 0;
-		}
-	}
-
-	return -EINVAL;
-}
-
-static int nvgpu_clk_mon_reg_get(struct gk20a *g, u32 clk_api_domain,
-		u32 *reg_address, u32 reg_type)
-{
-	u8 index = 0;
-	int status;
-
-	status = nvgpu_clk_mon_idx_get(g, clk_api_domain, &index);
-	if (status != 0) {
-		nvgpu_err(g, "Failed to get clk_domain index");
-		return -EINVAL;
-	}
-	*reg_address = clock_mon_map_tu104[index].reg_add[reg_type];
-
-	return 0;
-}
 
 static u32 nvgpu_check_for_dc_fault(u32 data)
 {
@@ -257,28 +190,15 @@ static int nvgpu_clk_mon_get_fault(struct gk20a *g, u32 i, u32 data,
 		clk_mon_status->clk_mon_list[i].clk_api_domain,
 		clk_mon_status->clk_mon_list[i].
 		clk_domain_fault_status);
-	/* Get the low threshold limit */
-	status = nvgpu_clk_mon_reg_get(g, clock_mon_map_tu104[i].
-			clk_api_domain, &reg_address,
-			FMON_THRESHOLD_LOW);
-	if (status != 0) {
-		nvgpu_err(g, "Failed to get register address");
-			return -EINVAL;
-	}
 
+	/* Get the low threshold limit */
+	reg_address = clock_mon_map_tu104[i][FMON_THRESHOLD_LOW];
 	data = nvgpu_readl(g, reg_address);
 	clk_mon_status->clk_mon_list[i].low_threshold =
 		trim_fault_threshold_low_count_v(data);
 
 	/* Get the high threshold limit */
-	status = nvgpu_clk_mon_reg_get(g, clock_mon_map_tu104[i].
-			clk_api_domain, &reg_address,
-			FMON_THRESHOLD_HIGH);
-	if (status != 0) {
-		nvgpu_err(g, "Failed to get register address");
-			return -EINVAL;
-	}
-
+	reg_address = clock_mon_map_tu104[i][FMON_THRESHOLD_HIGH];
 	data = nvgpu_readl(g, reg_address);
 	clk_mon_status->clk_mon_list[i].high_threshold =
 		trim_fault_threshold_high_count_v(data);
@@ -298,36 +218,39 @@ bool nvgpu_clk_mon_check_master_fault_status(struct gk20a *g)
 }
 
 int nvgpu_clk_mon_check_status(struct gk20a *g,
-		struct clk_domains_mon_status_params *clk_mon_status)
+		struct clk_domains_mon_status_params *clk_mon_status,
+		u32 domain_mask)
 {
-	u32 reg_address;
-	u32 data, i;
+	u32 reg_address, bit_pos;
+	u32 data;
 	int status;
 
-	clk_mon_status->clk_mon_list_size =
-			CTRL_CLK_CLK_DOMAIN_ARCH_MAX_DOMAINS;
+	clk_mon_status->clk_mon_domain_mask = domain_mask;
+	/*
+	 * Parse through each domain and check for faults, each bit set
+	 * represents a domain here
+	 */
+	for (bit_pos = 0U; bit_pos < (sizeof(domain_mask) * BITS_PER_BYTE);
+			bit_pos++) {
+		if (nvgpu_test_bit(bit_pos, (void *)&domain_mask)) {
+			clk_mon_status->clk_mon_list[bit_pos].clk_api_domain =
+					BIT(bit_pos);
 
-	for (i = 0; i < clk_mon_status->clk_mon_list_size; i++) {
-		clk_mon_status->clk_mon_list[i].clk_api_domain =
-				clock_mon_map_tu104[i].clk_api_domain;
-		status = nvgpu_clk_mon_reg_get(g,
-				clk_mon_status->clk_mon_list[i].clk_api_domain,
-				&reg_address, FMON_FAULT_STATUS);
-		if (status != 0) {
-			nvgpu_err(g, "Failed to get register address");
-			return -EINVAL;
-		}
-		data = nvgpu_readl(g, reg_address);
+			reg_address = clock_mon_map_tu104[bit_pos]
+					[FMON_FAULT_STATUS];
+			data = nvgpu_readl(g, reg_address);
 
-		clk_mon_status->clk_mon_list[i].clk_domain_fault_status = 0U;
-		/* Check FMON fault status, fault_out field is same for all */
-		if (trim_fault_status_fault_out_v(data) ==
+			clk_mon_status->clk_mon_list[bit_pos].
+				clk_domain_fault_status = 0U;
+			/* Check FMON fault status, field is same for all */
+			if (trim_fault_status_fault_out_v(data) ==
 				trim_fault_status_fault_out_true_v()) {
-			status = nvgpu_clk_mon_get_fault(g, i, data,
-					clk_mon_status);
-			if (status != 0) {
-				nvgpu_err(g, "Failed to get fault status");
-				return -EINVAL;
+				status = nvgpu_clk_mon_get_fault(g, bit_pos,
+						data, clk_mon_status);
+				if (status != 0) {
+					nvgpu_err(g, "Failed to get status");
+					return -EINVAL;
+				}
 			}
 		}
 	}

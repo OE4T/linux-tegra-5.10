@@ -93,3 +93,22 @@ void nvgpu_clk_free_pmupstate(struct gk20a *g)
 	nvgpu_kfree(g, g->pmu->clk_pmu);
 	g->pmu->clk_pmu = NULL;
 }
+
+u32 nvgpu_clk_mon_init_domains(struct gk20a *g)
+{
+	u32 domain_mask;
+
+	domain_mask = (CTRL_CLK_DOMAIN_MCLK |
+			CTRL_CLK_DOMAIN_XBARCLK 	|
+			CTRL_CLK_DOMAIN_SYSCLK		|
+			CTRL_CLK_DOMAIN_HUBCLK		|
+			CTRL_CLK_DOMAIN_GPCCLK		|
+			CTRL_CLK_DOMAIN_HOSTCLK		|
+			CTRL_CLK_DOMAIN_UTILSCLK	|
+			CTRL_CLK_DOMAIN_PWRCLK		|
+			CTRL_CLK_DOMAIN_NVDCLK		|
+			CTRL_CLK_DOMAIN_XCLK		|
+			CTRL_CLK_DOMAIN_NVL_COMMON	|
+			CTRL_CLK_DOMAIN_PEX_REFCLK	);
+	return domain_mask;
+}

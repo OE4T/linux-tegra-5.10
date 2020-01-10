@@ -217,6 +217,7 @@
 #include <nvgpu/gr/gr_intr.h>
 #include <nvgpu/pmu/pmu_perfmon.h>
 #include <nvgpu/nvgpu_init.h>
+#include <nvgpu/pmu/clk/clk.h>
 
 #include <nvgpu/hw/tu104/hw_pwr_tu104.h>
 
@@ -1260,6 +1261,7 @@ static const struct gpu_ops tu104_ops = {
 		.clk_mon_check_master_fault_status =
 				nvgpu_clk_mon_check_master_fault_status,
 		.clk_mon_check_status = nvgpu_clk_mon_check_status,
+		.clk_mon_init_domains = nvgpu_clk_mon_init_domains,
 	},
 #ifdef CONFIG_NVGPU_CLK_ARB
 	.clk_arb = {
