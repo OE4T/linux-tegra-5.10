@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -39,8 +39,8 @@ struct unit_module;
  *
  * Test Type: Feature
  *
- * Targets: #gv11b_class_is_valid_compute,
- *          #gv11b_class_is_valid.
+ * Targets: gops_class.is_valid_compute, gv11b_class_is_valid_compute,
+ *          gops_class.is_valid, gv11b_class_is_valid
  *
  * Input: None
  *
