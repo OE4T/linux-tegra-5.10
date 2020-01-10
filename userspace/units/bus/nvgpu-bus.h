@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -76,7 +76,8 @@ int test_bus_free_reg_space(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Test Type: Feature
  *
- * Targets: gk20a_bus_init_hw, gv11b_bus_configure_debug_bus.
+ * Targets: gops_bus.init_hw, gk20a_bus_init_hw,
+ *          gops_bus.configure_debug_bus, gv11b_bus_configure_debug_bus
  *
  * Input: test_bus_setup() has been executed.
  *
@@ -114,7 +115,8 @@ int test_init_hw(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Test Type: Feature, Error injection
  *
- * Targets: gm20b_bus_bar1_bind, gp10b_bus_bar2_bind.
+ * Targets: gops_bus.bar1_bind, gm20b_bus_bar1_bind,
+ *          gops_bus.bar2_bind, gp10b_bus_bar2_bind
  *
  * Input: test_bus_setup() has been executed.
  *
@@ -155,7 +157,7 @@ int test_bar_bind(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Test Type: Feature, Error injection
  *
- * Targets: gk20a_bus_isr
+ * Targets: gops_bus.isr, gk20a_bus_isr
  *
  * Input: test_bus_setup() has been executed.
  *
