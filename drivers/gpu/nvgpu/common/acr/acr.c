@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -50,8 +50,8 @@ bool nvgpu_acr_is_lsf_lazy_bootstrap(struct gk20a *g, struct nvgpu_acr *acr,
 		return false;
 	}
 
-	if (falcon_id == FALCON_ID_FECS || falcon_id == FALCON_ID_PMU ||
-		falcon_id == FALCON_ID_GPCCS) {
+	if ((falcon_id == FALCON_ID_FECS) || (falcon_id == FALCON_ID_PMU) ||
+		(falcon_id == FALCON_ID_GPCCS)) {
 		return acr->lsf[falcon_id].is_lazy_bootstrap;
 	} else {
 		nvgpu_err(g, "Invalid falcon id\n");

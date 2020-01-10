@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -449,7 +449,7 @@ static int lsfm_discover_ucode_images(struct gk20a *g,
 	 */
 	for (i = 0U; i < FALCON_ID_END; i++) {
 		if (nvgpu_test_bit(i, (void *)&acr->lsf_enable_mask) &&
-			acr->lsf[i].get_lsf_ucode_details != NULL) {
+			(acr->lsf[i].get_lsf_ucode_details != NULL)) {
 
 			(void) memset(&ucode_img, 0, sizeof(ucode_img));
 			err = acr->lsf[i].get_lsf_ucode_details(g,

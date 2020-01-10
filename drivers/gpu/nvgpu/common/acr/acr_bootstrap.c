@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -132,7 +132,7 @@ static int acr_ucode_patch_sig(struct gk20a *g,
 
 	/* Patching logic:*/
 	sig_size = sig_size / 4U;
-	for (i = 0U; i < sizeof(*p_patch_loc)>>2U; i++) {
+	for (i = 0U; i < (sizeof(*p_patch_loc)>>2U); i++) {
 		for (j = 0U; j < sig_size; j++) {
 			p_img[nvgpu_safe_add_u32((p_patch_loc[i]>>2U), j)] =
 				p_sig[nvgpu_safe_add_u32((p_patch_ind[i]<<2U), j)];
