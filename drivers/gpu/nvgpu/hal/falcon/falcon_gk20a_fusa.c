@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -64,8 +64,8 @@ bool gk20a_is_falcon_idle(struct nvgpu_falcon *flcn)
 
 	unit_status = gk20a_falcon_readl(flcn, falcon_falcon_idlestate_r());
 
-	if (falcon_falcon_idlestate_falcon_busy_v(unit_status) == 0U &&
-		falcon_falcon_idlestate_ext_busy_v(unit_status) == 0U) {
+	if ((falcon_falcon_idlestate_falcon_busy_v(unit_status) == 0U) &&
+		(falcon_falcon_idlestate_ext_busy_v(unit_status) == 0U)) {
 		status = true;
 	} else {
 		status = false;
@@ -233,7 +233,7 @@ static void falcon_copy_to_imem_unaligned_src(struct nvgpu_falcon *flcn,
 		nvgpu_memcpy((u8 *)&src_tmp[0], &src[offset],
 			     sizeof(src_tmp));
 		for (i = 0; i < ARRAY_SIZE(src_tmp); i++) {
-			if (j++ % 64U == 0U) {
+			if ((j++ % 64U) == 0U) {
 				/* tag is always 256B aligned */
 				gk20a_falcon_writel(flcn,
 					falcon_falcon_imemt_r(port), tag);
@@ -256,7 +256,7 @@ static void falcon_copy_to_imem_unaligned_src(struct nvgpu_falcon *flcn,
 		nvgpu_memcpy((u8 *)&src_tmp[0], &src[offset],
 			     (u64)elems * elem_size);
 		for (i = 0; i < elems; i++) {
-			if (j++ % 64U == 0U) {
+			if ((j++ % 64U) == 0U) {
 				/* tag is always 256B aligned */
 				gk20a_falcon_writel(flcn,
 					falcon_falcon_imemt_r(port), tag);
@@ -270,7 +270,7 @@ static void falcon_copy_to_imem_unaligned_src(struct nvgpu_falcon *flcn,
 	}
 
 	/* WARNING : setting remaining bytes in block to 0x0 */
-	while (j % 64U != 0U) {
+	while ((j % 64U) != 0U) {
 		gk20a_falcon_writel(flcn,
 				    falcon_falcon_imemd_r(port), 0);
 		j++;
@@ -305,7 +305,7 @@ NVGPU_COV_WHITELIST(deviate, NVGPU_MISRA(Rule, 11_3), "TID-415")
 		src_u32 = (u32 *)src;
 
 		for (i = 0U; i < words; i++) {
-			if (i % 64U == 0U) {
+			if ((i % 64U) == 0U) {
 				/* tag is always 256B aligned */
 				gk20a_falcon_writel(flcn,
 					falcon_falcon_imemt_r(port), tag);
@@ -317,7 +317,7 @@ NVGPU_COV_WHITELIST(deviate, NVGPU_MISRA(Rule, 11_3), "TID-415")
 		}
 
 		/* WARNING : setting remaining bytes in block to 0x0 */
-		while (i % 64U != 0U) {
+		while ((i % 64U) != 0U) {
 			gk20a_falcon_writel(flcn,
 					    falcon_falcon_imemd_r(port), 0);
 			i++;
@@ -348,7 +348,7 @@ void gk20a_falcon_bootstrap(struct nvgpu_falcon *flcn,
 u32 gk20a_falcon_mailbox_read(struct nvgpu_falcon *flcn,
 		u32 mailbox_index)
 {
-	return gk20a_falcon_readl(flcn, mailbox_index != 0U ?
+	return gk20a_falcon_readl(flcn, (mailbox_index != 0U) ?
 					falcon_falcon_mailbox1_r() :
 					falcon_falcon_mailbox0_r());
 }
@@ -356,7 +356,7 @@ u32 gk20a_falcon_mailbox_read(struct nvgpu_falcon *flcn,
 void gk20a_falcon_mailbox_write(struct nvgpu_falcon *flcn,
 		u32 mailbox_index, u32 data)
 {
-	gk20a_falcon_writel(flcn, mailbox_index != 0U ?
+	gk20a_falcon_writel(flcn, (mailbox_index != 0U) ?
 					falcon_falcon_mailbox1_r() :
 					falcon_falcon_mailbox0_r(), data);
 }

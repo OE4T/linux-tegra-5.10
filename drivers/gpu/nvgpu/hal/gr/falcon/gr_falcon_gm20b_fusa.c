@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -448,8 +448,8 @@ static int gm20b_gr_falcon_ctx_wait_ucode(struct gk20a *g, u32 mailbox_id,
 		 * Exit with success if opcode status is set to skip for both
 		 * success and failure.
 		 */
-		if (opc_success == GR_IS_UCODE_OP_SKIP &&
-				opc_fail == GR_IS_UCODE_OP_SKIP) {
+		if ((opc_success == GR_IS_UCODE_OP_SKIP) &&
+			(opc_fail == GR_IS_UCODE_OP_SKIP)) {
 			check = WAIT_UCODE_OK;
 			break;
 		}

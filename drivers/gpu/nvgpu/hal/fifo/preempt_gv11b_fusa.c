@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2015-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -243,9 +243,8 @@ static int fifo_check_eng_intr_pending(struct gk20a *g, u32 id,
 			ret = 0;
 		}
 
-	} else if (ctx_stat == fifo_engine_status_ctx_status_valid_v() ||
-			ctx_stat ==
-				fifo_engine_status_ctx_status_ctxsw_save_v()) {
+	} else if ((ctx_stat == fifo_engine_status_ctx_status_valid_v()) ||
+		(ctx_stat == fifo_engine_status_ctx_status_ctxsw_save_v())) {
 
 		if (id == fifo_engine_status_id_v(eng_stat)) {
 			if (eng_intr_pending != 0U) {
@@ -421,7 +420,7 @@ int gv11b_fifo_is_preempt_pending(struct gk20a *g, u32 id,
 		err = gv11b_fifo_preempt_poll_eng(g,
 			tsgid, engine_id,
 			&f->runlist_info[runlist_id]->reset_eng_bitmask);
-		if (err != 0 && ret == 0) {
+		if ((err != 0) && (ret == 0)) {
 			ret = err;
 		}
 	}

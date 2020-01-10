@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -573,8 +573,8 @@ void gv11b_mm_mmu_fault_handle_nonreplay_replay_fault(struct gk20a *g,
 		return;
 	}
 	nvgpu_log(g, gpu_dbg_intr, "%s MMU FAULT",
-			index == NVGPU_MMU_FAULT_REPLAY_REG_INDX ?
-					"REPLAY" : "NON-REPLAY");
+		(index == NVGPU_MMU_FAULT_REPLAY_REG_INDX) ?
+		"REPLAY" : "NON-REPLAY");
 
 	nvgpu_log(g, gpu_dbg_intr, "get ptr = %d", get_indx);
 

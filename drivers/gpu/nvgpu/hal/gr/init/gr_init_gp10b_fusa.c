@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -47,8 +47,8 @@ static bool gr_activity_empty_or_preempted(u32 val)
 	while (val != 0U) {
 		u32 v = val & 7U;
 
-		if (v != gr_activity_4_gpc0_empty_v() &&
-		    v != gr_activity_4_gpc0_preempted_v()) {
+		if ((v != gr_activity_4_gpc0_empty_v()) &&
+			(v != gr_activity_4_gpc0_preempted_v())) {
 			return false;
 		}
 		val >>= 3;
@@ -89,9 +89,9 @@ int gp10b_gr_init_wait_empty(struct gk20a *g)
 		activity4 = nvgpu_readl(g, gr_activity_4_r());
 
 		gr_busy = !(gr_activity_empty_or_preempted(activity0) &&
-			    gr_activity_empty_or_preempted(activity1) &&
-			    activity2 == 0U &&
-			    gr_activity_empty_or_preempted(activity4));
+			gr_activity_empty_or_preempted(activity1) &&
+			(activity2 == 0U) &&
+			gr_activity_empty_or_preempted(activity4));
 
 		if (!gr_busy && !ctxsw_active) {
 			nvgpu_log_fn(g, "done");

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -147,7 +147,7 @@ void gm20b_gr_init_pd_skip_table_gpc(struct gk20a *g,
 	u32 skip_mask = 0;
 
 	for (gpc_index = 0;
-	     gpc_index < gr_pd_dist_skip_table__size_1_v() * 4U;
+	     gpc_index < (gr_pd_dist_skip_table__size_1_v() * 4U);
 	     gpc_index += 4U) {
 		if ((gr_pd_dist_skip_table_gpc_4n0_mask_f(
 			nvgpu_gr_config_get_gpc_skip_mask(gr_config,

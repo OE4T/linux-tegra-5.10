@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -295,7 +295,7 @@ void gv11b_fb_write_mmu_fault_status(struct gk20a *g, u32 reg_val)
 void gv11b_fb_mmu_fault_info_dump(struct gk20a *g,
 			 struct mmu_fault_info *mmufault)
 {
-	if (mmufault != NULL && mmufault->valid) {
+	if ((mmufault != NULL) && mmufault->valid) {
 		nvgpu_err(g, "[MMU FAULT] "
 			"mmu engine id:  %d, "
 			"ch id:  %d, "

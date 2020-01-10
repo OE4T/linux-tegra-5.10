@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -71,9 +71,9 @@ static bool gm20b_pbdma_is_sw_method_subch(struct gk20a *g, u32 pbdma_id,
 	pbdma_method_subch = pbdma_method0_subch_v(
 			nvgpu_readl(g, pbdma_method_reg));
 
-	if (pbdma_method_subch == 5U ||
-	    pbdma_method_subch == 6U ||
-	    pbdma_method_subch == 7U) {
+	if ((pbdma_method_subch == 5U) ||
+		(pbdma_method_subch == 6U) ||
+		(pbdma_method_subch == 7U)) {
 		return true;
 	}
 
@@ -251,7 +251,7 @@ u32 gm20b_pbdma_acquire_val(u64 timeout)
 	do_div(timeout, 1024U); /* in unit of 1024ns */
 
 	exponent = 0;
-	while (timeout > pbdma_acquire_timeout_man_max_v() &&
+	while ((timeout > pbdma_acquire_timeout_man_max_v()) &&
 		(exponent <= pbdma_acquire_timeout_exp_max_v())) {
 		timeout >>= 1;
 		exponent++;

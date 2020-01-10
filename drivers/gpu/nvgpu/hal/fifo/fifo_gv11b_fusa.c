@@ -1,7 +1,7 @@
 /*
  * GV11B fifo
  *
- * Copyright (c) 2015-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2015-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -105,10 +105,10 @@ u32 gv11b_fifo_mmu_fault_id_to_pbdma_id(struct gk20a *g, u32 mmu_fault_id)
 	num_pbdma = fifo_cfg0_num_pbdma_v(reg_val);
 	fault_id_pbdma0 = fifo_cfg0_pbdma_fault_id_v(reg_val);
 
-	if (mmu_fault_id >= fault_id_pbdma0 &&
-			mmu_fault_id <= nvgpu_safe_sub_u32(
+	if ((mmu_fault_id >= fault_id_pbdma0) &&
+		(mmu_fault_id <= nvgpu_safe_sub_u32(
 					nvgpu_safe_add_u32(fault_id_pbdma0,
-						num_pbdma), 1U)) {
+							num_pbdma), 1U))) {
 		return mmu_fault_id - fault_id_pbdma0;
 	}
 

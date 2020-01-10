@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -100,10 +100,10 @@ static u32 gv11b_fifo_ctxsw_timeout_info(struct gk20a *g, u32 active_eng_id,
 
 		tsgid = fifo_intr_ctxsw_timeout_info_next_tsgid_v(timeout_info);
 
-	} else if (ctx_status ==
-		       fifo_intr_ctxsw_timeout_info_ctxsw_state_switch_v() ||
-			ctx_status ==
-			fifo_intr_ctxsw_timeout_info_ctxsw_state_save_v()) {
+	} else if ((ctx_status ==
+			fifo_intr_ctxsw_timeout_info_ctxsw_state_switch_v()) ||
+		(ctx_status ==
+			fifo_intr_ctxsw_timeout_info_ctxsw_state_save_v())) {
 
 		tsgid = fifo_intr_ctxsw_timeout_info_prev_tsgid_v(timeout_info);
 	} else {

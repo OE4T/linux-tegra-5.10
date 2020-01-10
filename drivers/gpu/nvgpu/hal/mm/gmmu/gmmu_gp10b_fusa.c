@@ -185,7 +185,7 @@ static void update_pte(struct vm_gk20a *vm,
 		gmmu_new_pte_valid_true_f() :
 		gmmu_new_pte_valid_false_f();
 	u64 phys_shifted = phys_addr >> gmmu_new_pte_address_shift_v();
-	u32 pte_addr = attrs->aperture == APERTURE_SYSMEM ?
+	u32 pte_addr = (attrs->aperture == APERTURE_SYSMEM) ?
 		gmmu_new_pte_address_sys_f(u64_lo32(phys_shifted)) :
 		gmmu_new_pte_address_vid_f(u64_lo32(phys_shifted));
 	u32 pte_tgt = gmmu_aperture_mask(g,
@@ -333,7 +333,7 @@ static u32 gp10b_get_pde0_pgsz(struct gk20a *g, const struct gk20a_mmu_level *l,
 		return pgsz;
 	}
 
-	for (idx = 0; idx < GP10B_PDE0_ENTRY_SIZE >> 2; idx++) {
+	for (idx = 0; idx < (GP10B_PDE0_ENTRY_SIZE >> 2); idx++) {
 		pde_v[idx] =
 			nvgpu_mem_rd32(g, pd->mem, (u64)pde_offset + (u64)idx);
 	}

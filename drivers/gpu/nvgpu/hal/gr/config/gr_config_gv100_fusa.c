@@ -154,7 +154,7 @@ remove_tpc_err:
 
 static u32 gr_gv100_find_max_gpc(u32 *num_tpc_gpc, u32 gpc_id, u32 max_tpc_gpc)
 {
-	return num_tpc_gpc[gpc_id] > max_tpc_gpc ?
+	return (num_tpc_gpc[gpc_id] > max_tpc_gpc) ?
 				num_tpc_gpc[gpc_id] : max_tpc_gpc;
 }
 

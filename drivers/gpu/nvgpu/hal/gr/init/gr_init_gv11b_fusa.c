@@ -537,7 +537,7 @@ void gv11b_gr_init_fs_state(struct gk20a *g)
 		gr_gpcs_tpcs_sm_texio_control_oor_addr_check_mode_arm_63_48_match_f());
 	nvgpu_writel(g, gr_gpcs_tpcs_sm_texio_control_r(), data);
 
-	if (ver == NVGPU_GPUID_GV11B && nvgpu_is_soc_t194_a01(g)) {
+	if ((ver == NVGPU_GPUID_GV11B) && nvgpu_is_soc_t194_a01(g)) {
 		/*
 		 * For t194 A01, Disable CBM alpha and beta invalidations
 		 * Disable SCC pagepool invalidates
@@ -810,8 +810,8 @@ int gv11b_gr_init_load_sw_veid_bundle(struct gk20a *g,
 	for (i = 0U; i < sw_veid_bundle_init->count; i++) {
 		nvgpu_log_fn(g, "veid bundle count: %d", i);
 
-		if (i == 0U || last_bundle_data !=
-				sw_veid_bundle_init->l[i].value) {
+		if ((i == 0U) || (last_bundle_data !=
+					sw_veid_bundle_init->l[i].value)) {
 			nvgpu_writel(g, gr_pipe_bundle_data_r(),
 				sw_veid_bundle_init->l[i].value);
 			last_bundle_data = sw_veid_bundle_init->l[i].value;
@@ -940,7 +940,8 @@ int gv11b_gr_init_load_sw_bundle_init(struct gk20a *g,
 	u32 bundle_data = 0;
 
 	for (i = 0U; i < sw_bundle_init->count; i++) {
-		if (i == 0U || last_bundle_data != sw_bundle_init->l[i].value) {
+		if ((i == 0U) || (last_bundle_data !=
+					sw_bundle_init->l[i].value)) {
 			bundle_data = sw_bundle_init->l[i].value;
 			/*
 			 * For safety golden context comparison,

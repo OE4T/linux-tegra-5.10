@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -79,16 +79,23 @@ void gk20a_channel_read_state(struct gk20a *g, struct nvgpu_channel *ch,
 	state->enabled = ccsr_channel_enable_v(reg) ==
 			    ccsr_channel_enable_in_use_v();
 	state->ctx_reload =
-		status_v == ccsr_channel_status_pending_ctx_reload_v() ||
-		status_v == ccsr_channel_status_pending_acq_ctx_reload_v() ||
-		status_v == ccsr_channel_status_on_pbdma_ctx_reload_v() ||
-		status_v == ccsr_channel_status_on_pbdma_and_eng_ctx_reload_v() ||
-		status_v == ccsr_channel_status_on_eng_ctx_reload_v() ||
-		status_v == ccsr_channel_status_on_eng_pending_ctx_reload_v() ||
-		status_v == ccsr_channel_status_on_eng_pending_acq_ctx_reload_v();
+		(status_v ==
+			ccsr_channel_status_pending_ctx_reload_v()) ||
+		(status_v ==
+			ccsr_channel_status_pending_acq_ctx_reload_v()) ||
+		(status_v ==
+			ccsr_channel_status_on_pbdma_ctx_reload_v()) ||
+		(status_v ==
+			ccsr_channel_status_on_pbdma_and_eng_ctx_reload_v()) ||
+		(status_v ==
+			ccsr_channel_status_on_eng_ctx_reload_v()) ||
+		(status_v ==
+			ccsr_channel_status_on_eng_pending_ctx_reload_v()) ||
+		(status_v ==
+			ccsr_channel_status_on_eng_pending_acq_ctx_reload_v());
 	state->busy = ccsr_channel_busy_v(reg) == ccsr_channel_busy_true_v();
 	state->pending_acquire =
-		status_v == ccsr_channel_status_pending_acquire_v() ||
-		status_v == ccsr_channel_status_on_eng_pending_acquire_v();
+		(status_v == ccsr_channel_status_pending_acquire_v()) ||
+		(status_v == ccsr_channel_status_on_eng_pending_acquire_v());
 	state->status_string = ccsr_chan_status_str[status_v];
 }

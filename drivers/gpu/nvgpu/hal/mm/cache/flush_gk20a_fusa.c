@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -75,10 +75,10 @@ int gk20a_mm_fb_flush(struct gk20a *g)
 	do {
 		data = nvgpu_readl(g, flush_fb_flush_r());
 
-		if (flush_fb_flush_outstanding_v(data) ==
-			flush_fb_flush_outstanding_true_v() ||
-		    flush_fb_flush_pending_v(data) ==
-			flush_fb_flush_pending_busy_v()) {
+		if ((flush_fb_flush_outstanding_v(data) ==
+				flush_fb_flush_outstanding_true_v()) ||
+			(flush_fb_flush_pending_v(data) ==
+				flush_fb_flush_pending_busy_v())) {
 				nvgpu_log_info(g, "fb_flush 0x%x", data);
 				nvgpu_udelay(5);
 		} else {
@@ -132,10 +132,10 @@ static void gk20a_mm_l2_invalidate_locked(struct gk20a *g)
 	do {
 		data = nvgpu_readl(g, flush_l2_system_invalidate_r());
 
-		if (flush_l2_system_invalidate_outstanding_v(data) ==
-			flush_l2_system_invalidate_outstanding_true_v() ||
-		    flush_l2_system_invalidate_pending_v(data) ==
-			flush_l2_system_invalidate_pending_busy_v()) {
+		if ((flush_l2_system_invalidate_outstanding_v(data) ==
+			flush_l2_system_invalidate_outstanding_true_v()) ||
+			(flush_l2_system_invalidate_pending_v(data) ==
+				flush_l2_system_invalidate_pending_busy_v())) {
 				nvgpu_log_info(g, "l2_system_invalidate 0x%x",
 						data);
 				nvgpu_udelay(5);
@@ -201,10 +201,10 @@ int gk20a_mm_l2_flush(struct gk20a *g, bool invalidate)
 	do {
 		data = nvgpu_readl(g, flush_l2_flush_dirty_r());
 
-		if (flush_l2_flush_dirty_outstanding_v(data) ==
-			flush_l2_flush_dirty_outstanding_true_v() ||
-		    flush_l2_flush_dirty_pending_v(data) ==
-			flush_l2_flush_dirty_pending_busy_v()) {
+		if ((flush_l2_flush_dirty_outstanding_v(data) ==
+				flush_l2_flush_dirty_outstanding_true_v()) ||
+			(flush_l2_flush_dirty_pending_v(data) ==
+				flush_l2_flush_dirty_pending_busy_v())) {
 				nvgpu_log_info(g, "l2_flush_dirty 0x%x", data);
 				nvgpu_udelay(5);
 		} else {
