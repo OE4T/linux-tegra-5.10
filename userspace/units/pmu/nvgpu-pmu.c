@@ -30,10 +30,12 @@
 #include <nvgpu/hal_init.h>
 #include <nvgpu/hw/gp10b/hw_fuse_gp10b.h>
 #include <nvgpu/hw/gk20a/hw_falcon_gk20a.h>
+#include <nvgpu/hw/gv11b/hw_pwr_gv11b.h>
 #include <nvgpu/gr/gr.h>
 #include <nvgpu/posix/soc_fuse.h>
 
 #include "hal/fuse/fuse_gm20b.h"
+#include "hal/pmu/pmu_gk20a.h"
 
 #include "../falcon/falcon_utf.h"
 #include "../gr/nvgpu-gr-gv11b.h"
@@ -488,6 +490,48 @@ static int test_pmu_reset(struct unit_module *m,
 	return UNIT_SUCCESS;
 }
 
+static int test_pmu_isr(struct unit_module *m,
+				struct gk20a *g, void *args)
+{	int err;
+	struct nvgpu_pmu *pmu = g->pmu;
+	pmu->isr_enabled = true;
+
+	/*
+	 * initialize falcon
+	 */
+	if (init_pmu_falcon_test_env(m, g) != 0) {
+		unit_return_fail(m, "Module init failed\n");
+	}
+
+	err = g->ops.ecc.ecc_init_support(g);
+	if (err != 0) {
+		unit_return_fail(m, "ecc init failed\n");
+	}
+
+	/*
+	 * initialize PMU
+	 */
+	err =  nvgpu_pmu_early_init(g);
+	if (err != 0) {
+		unit_return_fail(m, "nvgpu_pmu_early_init failed\n");
+	}
+
+	/*
+	 * Set the IRQ stat and mask registers
+	 */
+	nvgpu_posix_io_writel_reg_space(g, pwr_falcon_irqstat_r(),
+				pwr_falcon_irqstat_ext_ecc_parity_true_f());
+
+	nvgpu_posix_io_writel_reg_space(g, pwr_falcon_irqmask_r(),
+				pwr_falcon_irqstat_ext_ecc_parity_true_f());
+
+	nvgpu_posix_io_writel_reg_space(g, pwr_falcon_irqdest_r(),
+				pwr_falcon_irqstat_ext_ecc_parity_true_f());
+
+	g->ops.pmu.pmu_isr(g);
+
+	return UNIT_SUCCESS;
+}
 static int free_falcon_test_env(struct unit_module *m, struct gk20a *g,
 					void *__args)
 {
@@ -507,6 +551,7 @@ struct unit_module_test nvgpu_pmu_tests[] = {
 	UNIT_TEST(pmu_early_init, test_pmu_early_init, NULL, 0),
 	UNIT_TEST(pmu_remove_support, test_pmu_remove_support, NULL, 0),
 	UNIT_TEST(pmu_reset, test_pmu_reset, NULL, 0),
+	UNIT_TEST(pmu_isr, test_pmu_isr, NULL, 0),
 
 	UNIT_TEST(falcon_free_test_env, free_falcon_test_env, NULL, 0),
 };

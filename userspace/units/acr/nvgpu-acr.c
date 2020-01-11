@@ -36,18 +36,18 @@
 
 #include <common/acr/acr_wpr.h>
 #include <common/acr/acr_priv.h>
+
 #include <nvgpu/hw/gv11b/hw_fuse_gv11b.h>
 #include <nvgpu/hw/gv11b/hw_gr_gv11b.h>
 #include <nvgpu/hw/gv11b/hw_mc_gv11b.h>
 #include <nvgpu/hw/gv11b/hw_fb_gv11b.h>
 #include <nvgpu/hw/gv11b/hw_flush_gv11b.h>
 #include <nvgpu/hw/gv11b/hw_falcon_gv11b.h>
+#include <nvgpu/hw/gv11b/hw_pwr_gv11b.h>
 
 #include "nvgpu-acr.h"
 #include "../falcon/falcon_utf.h"
 #include "../gr/nvgpu-gr-gv11b.h"
-
-struct utf_falcon *pmu_flcn, *gpccs_flcn;
 
 #define NV_PMC_BOOT_0_ARCHITECTURE_GV110        (0x00000015 << \
 						NVGPU_GPU_ARCHITECTURE_SHIFT)
@@ -58,6 +58,10 @@ struct utf_falcon *pmu_flcn, *gpccs_flcn;
 #define NV_PMC_BOOT_0_IMPLEMENTATION_INVALID	0xD
 
 #define NV_PBB_FBHUB_REGSPACE 0x100B00
+
+#define BAR0_ERRORS_NUM 6
+
+struct utf_falcon *pmu_flcn, *gpccs_flcn;
 
 static int stub_gv11b_bar0_error_status(struct gk20a *g, u32 *bar0_status,
 	u32 *etype)
@@ -198,7 +202,6 @@ static int init_acr_falcon_test_env(struct unit_module *m, struct gk20a *g)
 		unit_return_fail(m, "BAR1 is not supported on Volta+\n");
 	}
 
-
 	/*
 	 * Initialize utf & nvgpu falcon
 	 * for test usage
@@ -207,6 +210,7 @@ static int init_acr_falcon_test_env(struct unit_module *m, struct gk20a *g)
 	if (pmu_flcn == NULL) {
 		return -ENODEV;
 	}
+
 	gpccs_flcn = nvgpu_utf_falcon_init(m, g, FALCON_ID_GPCCS);
 	if (gpccs_flcn == NULL) {
 		return -ENODEV;
@@ -303,10 +307,18 @@ int test_acr_bootstrap_hs_acr(struct unit_module *m,
 				struct gk20a *g, void *args)
 
 {
-	int err;
+	int err, i;
 	struct nvgpu_reg_access access;
 	struct nvgpu_posix_fault_inj *kmem_fi =
 		nvgpu_kmem_get_fault_injection();
+	u64 pmu_bar0_error[BAR0_ERRORS_NUM] = {
+		pwr_pmu_bar0_error_status_timeout_host_m(),
+		pwr_pmu_bar0_error_status_timeout_fecs_m(),
+		pwr_pmu_bar0_error_status_cmd_hwerr_m(),
+		pwr_pmu_bar0_error_status_fecserr_m(),
+		pwr_pmu_bar0_error_status_hosterr_m(),
+		0xFF
+	};
 
 	/*
 	 * Initialise the test env
@@ -314,6 +326,12 @@ int test_acr_bootstrap_hs_acr(struct unit_module *m,
 	 */
 	if (init_test_env(m, g) != 0) {
 		unit_return_fail(m, "Test env init failed\n");
+	}
+
+	if (nvgpu_posix_io_add_reg_space(g,
+			pwr_pmu_bar0_error_status_r(), 0x4) != 0) {
+		unit_err(m, "Add pwr_pmu_bar0_error_status reg space failed!\n");
+		return -ENOMEM;
 	}
 
 	nvgpu_mutex_acquire(&g->tpc_pg_lock);
@@ -412,9 +430,31 @@ int test_acr_bootstrap_hs_acr(struct unit_module *m,
 	}
 
 	/*
-	 * Case 7: branch coverage
+	 * Adding test cases to test gv11b_pmu_bar0_error_status()
 	 */
 	pmu_flcn->flcn->is_falcon_supported = true;
+	g->acr->acr.acr_engine_bus_err_status = g->ops.pmu.bar0_error_status;
+	for (i = 0; i < BAR0_ERRORS_NUM; i++) {
+		/*
+		 * Write error values to the
+		 * pwr_pmu_bar0_error_status_r() register
+		 */
+		nvgpu_posix_io_writel_reg_space(g,
+			pwr_pmu_bar0_error_status_r(), pmu_bar0_error[i]);
+		err = nvgpu_acr_bootstrap_hs_acr(g, g->acr);
+
+		if (err != -EIO) {
+			unit_return_fail(m, "bar0_error_status error conditions"
+						"failed");
+		}
+	}
+
+	/*
+	 * Case 7: branch coverage
+	 */
+	nvgpu_posix_io_writel_reg_space(g,
+			pwr_pmu_bar0_error_status_r(), 0);
+
 	g->acr->acr.acr_engine_bus_err_status = g->ops.pmu.bar0_error_status;
 	g->acr->acr.acr_validate_mem_integrity = NULL;
 	err = nvgpu_acr_bootstrap_hs_acr(g, g->acr);
@@ -699,7 +739,7 @@ int test_acr_prepare_ucode_blob(struct unit_module *m,
 	}
 
 	/*
-	 * case:pass scenario
+	 * Case 3: pass scenario
 	 */
 	g->params.gpu_arch = NV_PMC_BOOT_0_ARCHITECTURE_GV110;
 	g->params.gpu_impl = NV_PMC_BOOT_0_IMPLEMENTATION_B;
