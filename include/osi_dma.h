@@ -84,7 +84,11 @@
  * @addtogroup EQOS-CHK Checksum offload results
  *
  * @brief Flag to indicate the result from checksum offload engine
- * to SW network stack in receive path
+ * to SW network stack in receive path.
+ * OSI_CHECKSUM_NONE indicates that HW checksum offload
+ * engine did not verify the checksum, SW network stack has to do it.
+ * OSI_CHECKSUM_UNNECESSARY indicates that HW validated the
+ * checksum already, network stack can skip validation.
  * @{
  */
 /* Checksum offload result flags */

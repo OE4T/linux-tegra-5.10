@@ -391,16 +391,6 @@
 				 (TEGRA_SID_EQOS))
 /** @} */
 
-/**
- * @brief update_ehfc_rfa_rfd - Update EHFC, RFD and RSA values
- *
- * Algorithm: Calculates and stores the RSD (Threshold for Deactivating
- *	  Flow control) and RSA (Threshold for Activating Flow Control) values
- *	  based on the Rx FIFO size and also enables HW flow control
- *
- * @param[in] rx_fifo: Rx FIFO size.
- * @param[in] value: Stores RFD and RSA values
- */
 void update_ehfc_rfa_rfd(unsigned int rx_fifo, unsigned int *value);
 
 /**
