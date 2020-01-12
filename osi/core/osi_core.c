@@ -473,6 +473,20 @@ int osi_l2_filter(struct osi_core_priv_data *osi_core,
 	return ret;
 }
 
+/**
+ * @brief helper_l4_filter helper function for l4 filtering
+ *
+ * @param[in] osi_core: OSI Core private data structure.
+ * @param[in] l_filter: filter structure
+ * @param[in] type: filter type l3 or l4
+ * @param[in] dma_routing_enable: dma routing enable (1) or disable (0)
+ * @param[in] dma_chan: dma channel
+ *
+ * @note MAC needs to be out of reset and proper clock configured.
+ *
+ * @retval 0 on Success
+ * @retval -1 on Failure
+ */
 static inline int helper_l4_filter(struct osi_core_priv_data *osi_core,
 				   struct osi_l3_l4_filter l_filter,
 				   unsigned int type,
@@ -511,6 +525,20 @@ static inline int helper_l4_filter(struct osi_core_priv_data *osi_core,
 
 }
 
+/**
+ * @brief helper_l3_filter helper function for l3 filtering
+ *
+ * @param[in] osi_core: OSI Core private data structure.
+ * @param[in] l_filter: filter structure
+ * @param[in] type: filter type l3 or l4
+ * @param[in] dma_routing_enable: dma routing enable (1) or disable (0)
+ * @param[in] dma_chan: dma channel
+ *
+ * @note MAC needs to be out of reset and proper clock configured.
+ *
+ * @retval 0 on Success
+ * @retval -1 on Failure
+ */
 static inline int helper_l3_filter(struct osi_core_priv_data *osi_core,
 				   struct osi_l3_l4_filter l_filter,
 				   unsigned int type,

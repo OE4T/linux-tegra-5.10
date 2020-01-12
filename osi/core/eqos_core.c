@@ -3366,7 +3366,7 @@ static inline void eqos_disable_tx_lpi(void *addr)
  *	are used in this routine.
  *
  * @param[in] osi_core: OSI core private data structure.
- * @param[in] tx_lpi_enable: enable (1)/disable (0) flag for Tx lpi
+ * @param[in] tx_lpi_enabled: enable (1)/disable (0) flag for Tx lpi
  * @param[in] tx_lpi_timer: Tx LPI entry timer in usec. Valid upto
  *	      OSI_MAX_TX_LPI_TIMER in steps of 8usec.
  *
