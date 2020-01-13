@@ -1,6 +1,6 @@
 ##################### tell Emacs this is a -*- makefile-gmake -*-
 #
-# Copyright (c) 2019 NVIDIA CORPORATION.  All Rights Reserved.
+# Copyright (c) 2019-2020 NVIDIA CORPORATION.  All Rights Reserved.
 #
 # NVIDIA CORPORATION and its licensors retain all intellectual property
 # and proprietary rights in and to this software, related documentation
@@ -38,6 +38,15 @@ doxygen/sources: $(ARCH) $(ARCH_YAML)
 	$(ARCH) --arch-file $(NVGPU_ARCH)/nvgpu.yaml files	\
 		--safe --gpu igpu --gpu both			\
 		--prefix 'INPUT += ' > doxygen/Doxyfile.sources.safety
+	@if [ ! -z "$(EXTRA_PATH)" ] ; then \
+		$(ARCH) --arch-file $(NVGPU_ARCH)/nvgpu.yaml \
+			--include-path $(EXTRA_PATH) files	\
+		--safe --gpu igpu --gpu both			\
+		--prefix 'INPUT += $(EXTRA_PATH)/' \
+		>> doxygen/Doxyfile.sources.safety ; \
+		cat $(EXTRA_PATH)/unit-tests/SWUTS.sources \
+			 >> doxygen/Doxyfile.sources.safety ; \
+	fi
 
 clean:
 	rm -rf doxygen/Doxyfile.sources.safety
