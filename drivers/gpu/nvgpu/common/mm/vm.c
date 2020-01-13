@@ -1040,7 +1040,9 @@ int nvgpu_vm_get_buffers(struct vm_gk20a *vm,
 		nvgpu_rbtree_enum_next(&node, node);
 	}
 
-	BUG_ON(i != vm->num_user_mapped_buffers);
+	if (i != vm->num_user_mapped_buffers) {
+		BUG();
+	}
 
 	*num_buffers = vm->num_user_mapped_buffers;
 	*mapped_buffers = buffer_list;
