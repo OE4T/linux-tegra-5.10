@@ -23,157 +23,27 @@
 #include <osi_core.h>
 #include <osd.h>
 
-/**
- * @addtogroup MDIO Macros
- * @brief Helper MACROS for MDIO
- * @{
- */
-#define MAC_MDIO_ADDRESS	0x200
-#define MAC_GMII_BUSY		0x00000001U
-
-#define MAC_MDIO_DATA		0x204
-
-#define MAC_GMIIDR_GD_WR_MASK	0xffff0000U
-#define MAC_GMIIDR_GD_MASK	0xffffU
-
-#define MDIO_PHY_ADDR_SHIFT	21U
-#define MDIO_PHY_REG_SHIFT	16U
-#define MDIO_MII_WRITE		OSI_BIT(2)
-/** @} */
-
-/**
- * @brief poll_for_mii_idle Query the status of an ongoing DMA transfer
- *
- * @param[in] osi_core: OSI Core private data structure.
- *
- * @note MAC needs to be out of reset and proper clock configured.
- *
- * @retval 0 on Success
- * @retval -1 on Failure
- */
-static inline int poll_for_mii_idle(struct osi_core_priv_data *osi_core)
-{
-	/* half sec timeout */
-	unsigned int retry = 50000;
-	unsigned int mac_gmiiar;
-	unsigned int count;
-	int cond = 1;
-
-	count = 0;
-	while (cond == 1) {
-		if (count > retry) {
-			OSI_ERR(osi_core->osd,
-				OSI_LOG_ARG_HW_FAIL,
-				"MII operation timed out\n",
-				0ULL);
-			return -1;
-		}
-
-		count++;
-
-		mac_gmiiar = osi_readl((unsigned char *)osi_core->base +
-				       MAC_MDIO_ADDRESS);
-
-		if ((mac_gmiiar & MAC_GMII_BUSY) == 0U) {
-			cond = 0;
-		} else {
-			/* wait on GMII Busy set */
-			osd_udelay(10U);
-		}
-	}
-
-	return 0;
-}
-
 int osi_write_phy_reg(struct osi_core_priv_data *osi_core, unsigned int phyaddr,
 		      unsigned int phyreg, unsigned short phydata)
 {
-	unsigned int mac_gmiiar;
-	unsigned int mac_gmiidr;
-	int ret = 0;
-
-	if (osi_core == OSI_NULL) {
-		return -1;
+	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
+	    (osi_core->ops->write_phy_reg != OSI_NULL)) {
+		return osi_core->ops->write_phy_reg(osi_core,
+						    phyaddr, phyreg, phydata);
 	}
 
-	/* wait for any previous MII read/write operation to complete */
-	ret = poll_for_mii_idle(osi_core);
-	if (ret < 0) {
-		return ret;
-	}
-
-	mac_gmiidr = osi_readl((unsigned char *)osi_core->base + MAC_MDIO_DATA);
-
-	mac_gmiidr = ((mac_gmiidr & MAC_GMIIDR_GD_WR_MASK) |
-		      (((phydata) & MAC_GMIIDR_GD_MASK) << 0));
-
-	osi_writel(mac_gmiidr, (unsigned char *)osi_core->base + MAC_MDIO_DATA);
-
-	/* initiate the MII write operation by updating desired */
-	/* phy address/id (0 - 31) */
-	/* phy register offset */
-	/* CSR Clock Range (20 - 35MHz) */
-	/* Select write operation */
-	/* set busy bit */
-	mac_gmiiar = osi_readl((unsigned char *)osi_core->base + MAC_MDIO_ADDRESS);
-	mac_gmiiar = (mac_gmiiar & 0x12U);
-	mac_gmiiar = (mac_gmiiar | ((phyaddr) << MDIO_PHY_ADDR_SHIFT) |
-		     ((phyreg) << MDIO_PHY_REG_SHIFT) |
-		     ((osi_core->mdc_cr) << 8U) |
-		     MDIO_MII_WRITE | MAC_GMII_BUSY);
-
-	osi_writel(mac_gmiiar, (unsigned char *)osi_core->base + MAC_MDIO_ADDRESS);
-
-	/* wait for MII write operation to complete */
-	ret = poll_for_mii_idle(osi_core);
-	if (ret < 0) {
-		return ret;
-	}
-
-	return ret;
+	return -1;
 }
 
 int osi_read_phy_reg(struct osi_core_priv_data *osi_core, unsigned int phyaddr,
 		     unsigned int phyreg)
 {
-	unsigned int mac_gmiiar;
-	unsigned int mac_gmiidr;
-	unsigned int data;
-	int ret = 0;
-
-	if (osi_core == OSI_NULL) {
-		return -1;
+	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
+	    (osi_core->ops->read_phy_reg != OSI_NULL)) {
+		return osi_core->ops->read_phy_reg(osi_core, phyaddr, phyreg);
 	}
 
-	/* wait for any previous MII read/write operation to complete */
-	ret = poll_for_mii_idle(osi_core);
-	if (ret < 0) {
-		return ret;
-	}
-
-	mac_gmiiar = osi_readl((unsigned char *)osi_core->base + MAC_MDIO_ADDRESS);
-	/* initiate the MII read operation by updating desired */
-	/* phy address/id (0 - 31) */
-	/* phy register offset */
-	/* CSR Clock Range (20 - 35MHz) */
-	/* Select read operation */
-	/* set busy bit */
-	mac_gmiiar = (mac_gmiiar & 0x12U);
-	mac_gmiiar = mac_gmiiar | ((phyaddr) << MDIO_PHY_ADDR_SHIFT) |
-		     ((phyreg) << MDIO_PHY_REG_SHIFT) |
-		     (osi_core->mdc_cr) << 8U | ((0x3U) << 2U) | MAC_GMII_BUSY;
-	osi_writel(mac_gmiiar, (unsigned char *)osi_core->base + MAC_MDIO_ADDRESS);
-
-	/* wait for MII write operation to complete */
-	ret = poll_for_mii_idle(osi_core);
-	if (ret < 0) {
-		return ret;
-	}
-
-	mac_gmiidr = osi_readl((unsigned char *)osi_core->base + MAC_MDIO_DATA);
-	data = (mac_gmiidr & 0x0000FFFFU);
-
-	return (int)data;
+	return -1;
 }
 
 int osi_init_core_ops(struct osi_core_priv_data *osi_core)

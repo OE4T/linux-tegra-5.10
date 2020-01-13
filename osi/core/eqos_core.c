@@ -3468,6 +3468,160 @@ static inline void eqos_restore_registers(struct osi_core_priv_data *osi_core)
 }
 
 /**
+ * @brief poll_for_mii_idle Query the status of an ongoing DMA transfer
+ *
+ * @param[in] osi_core: OSI Core private data structure.
+ *
+ * @note MAC needs to be out of reset and proper clock configured.
+ *
+ * @retval 0 on Success
+ * @retval -1 on Failure
+ */
+static inline int poll_for_mii_idle(struct osi_core_priv_data *osi_core)
+{
+	/* half sec timeout */
+	unsigned int retry = 50000;
+	unsigned int mac_gmiiar;
+	unsigned int count;
+	int cond = 1;
+
+	count = 0;
+	while (cond == 1) {
+		if (count > retry) {
+			OSI_ERR(osi_core->osd,
+				OSI_LOG_ARG_HW_FAIL,
+				"MII operation timed out\n",
+				0ULL);
+			return -1;
+		}
+		count++;
+
+		mac_gmiiar = osi_readl((unsigned char *)osi_core->base +
+				       EQOS_MAC_MDIO_ADDRESS);
+		if ((mac_gmiiar & EQOS_MAC_GMII_BUSY) == 0U) {
+			/* exit loop */
+			cond = 0;
+		} else {
+			/* wait on GMII Busy set */
+			osd_udelay(10U);
+		}
+	}
+
+	return 0;
+}
+
+static int eqos_write_phy_reg(struct osi_core_priv_data *osi_core,
+			      unsigned int phyaddr,
+			      unsigned int phyreg,
+			      unsigned short phydata)
+{
+	unsigned int mac_gmiiar;
+	unsigned int mac_gmiidr;
+	int ret = 0;
+
+	if (osi_core == OSI_NULL) {
+		OSI_ERR(OSI_NULL, OSI_LOG_ARG_INVALID, "osi_core is NULL\n",
+			0ULL);
+		return -1;
+	}
+
+	/* Wait for any previous MII read/write operation to complete */
+	ret = poll_for_mii_idle(osi_core);
+	if (ret < 0) {
+		/* poll_for_mii_idle fail */
+		return ret;
+	}
+
+	mac_gmiidr = osi_readl((unsigned char *)osi_core->base +
+			       EQOS_MAC_MDIO_DATA);
+	mac_gmiidr = ((mac_gmiidr & EQOS_MAC_GMIIDR_GD_WR_MASK) |
+		      ((phydata) & EQOS_MAC_GMIIDR_GD_MASK));
+
+	osi_writel(mac_gmiidr, (unsigned char *)osi_core->base +
+		   EQOS_MAC_MDIO_DATA);
+
+	/* initiate the MII write operation by updating desired */
+	/* phy address/id (0 - 31) */
+	/* phy register offset */
+	/* CSR Clock Range (20 - 35MHz) */
+	/* Select write operation */
+	/* set busy bit */
+	mac_gmiiar = osi_readl((unsigned char *)osi_core->base +
+			       EQOS_MAC_MDIO_ADDRESS);
+	mac_gmiiar = (mac_gmiiar & (EQOS_MDIO_PHY_REG_SKAP |
+		      EQOS_MDIO_PHY_REG_C45E));
+	mac_gmiiar = (mac_gmiiar | ((phyaddr) << EQOS_MDIO_PHY_ADDR_SHIFT) |
+		      ((phyreg) << EQOS_MDIO_PHY_REG_SHIFT) |
+		      ((osi_core->mdc_cr) << EQOS_MDIO_PHY_REG_CR_SHIF) |
+		      (EQOS_MDIO_PHY_REG_WRITE) | EQOS_MAC_GMII_BUSY);
+
+	osi_writel(mac_gmiiar, (unsigned char *)osi_core->base +
+		   EQOS_MAC_MDIO_ADDRESS);
+
+	/* wait for MII write operation to complete */
+	ret = poll_for_mii_idle(osi_core);
+	if (ret < 0) {
+		/* poll_for_mii_idle fail */
+		return ret;
+	}
+
+	return ret;
+}
+
+static int eqos_read_phy_reg(struct osi_core_priv_data *osi_core,
+			     unsigned int phyaddr,
+			     unsigned int phyreg)
+{
+	unsigned int mac_gmiiar;
+	unsigned int mac_gmiidr;
+	unsigned int data;
+	int ret = 0;
+
+	if (osi_core == OSI_NULL) {
+		OSI_ERR(OSI_NULL, OSI_LOG_ARG_INVALID, "osi_core is NULL\n",
+			0ULL);
+		return -1;
+	}
+
+	/* wait for any previous MII read/write operation to complete */
+	ret = poll_for_mii_idle(osi_core);
+	if (ret < 0) {
+		/* poll_for_mii_idle fail */
+		return ret;
+	}
+
+	mac_gmiiar = osi_readl((unsigned char *)osi_core->base +
+			       EQOS_MAC_MDIO_ADDRESS);
+	/* initiate the MII read operation by updating desired */
+	/* phy address/id (0 - 31) */
+	/* phy register offset */
+	/* CSR Clock Range (20 - 35MHz) */
+	/* Select read operation */
+	/* set busy bit */
+	mac_gmiiar = (mac_gmiiar & (EQOS_MDIO_PHY_REG_SKAP |
+		      EQOS_MDIO_PHY_REG_C45E));
+	mac_gmiiar = mac_gmiiar | ((phyaddr) << EQOS_MDIO_PHY_ADDR_SHIFT) |
+		     ((phyreg) << EQOS_MDIO_PHY_REG_SHIFT) |
+		     (osi_core->mdc_cr) << EQOS_MDIO_PHY_REG_CR_SHIF |
+		     (EQOS_MDIO_PHY_REG_GOC_READ) | EQOS_MAC_GMII_BUSY;
+	osi_writel(mac_gmiiar, (unsigned char *)osi_core->base +
+		   EQOS_MAC_MDIO_ADDRESS);
+
+	/* wait for MII write operation to complete */
+	ret = poll_for_mii_idle(osi_core);
+	if (ret < 0) {
+		/* poll_for_mii_idle fail */
+		return ret;
+	}
+
+	mac_gmiidr = osi_readl((unsigned char *)osi_core->base +
+			       EQOS_MAC_MDIO_DATA);
+	data = (mac_gmiidr & EQOS_MAC_GMIIDR_GD_MASK);
+
+	return (int)data;
+}
+
+/**
  * @brief eqos_core_ops - EQOS MAC core operations
  */
 static struct osi_core_ops eqos_core_ops = {
@@ -3513,6 +3667,8 @@ static struct osi_core_ops eqos_core_ops = {
 	.configure_eee = eqos_configure_eee,
 	.save_registers = eqos_save_registers,
 	.restore_registers = eqos_restore_registers,
+	.write_phy_reg = eqos_write_phy_reg,
+	.read_phy_reg = eqos_read_phy_reg,
 };
 
 /**

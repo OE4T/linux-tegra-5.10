@@ -253,6 +253,15 @@ struct osi_core_ops {
 	void (*save_registers)(struct osi_core_priv_data *osi_core);
 	/** Called to restore MAC control registers during SOC resume */
 	void (*restore_registers)(struct osi_core_priv_data *osi_core);
+	/** Called to write into a PHY reg over MDIO bus */
+	int (*write_phy_reg)(struct osi_core_priv_data *osi_core,
+			     unsigned int phyaddr,
+			     unsigned int phyreg,
+			     unsigned short phydata);
+	/** Called to read from a PHY reg over MDIO bus */
+	int (*read_phy_reg)(struct osi_core_priv_data *osi_core,
+			    unsigned int phyaddr,
+			    unsigned int phyreg);
 };
 
 /**
