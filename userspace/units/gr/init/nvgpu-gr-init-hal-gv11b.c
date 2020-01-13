@@ -828,6 +828,14 @@ int test_gr_init_hal_error_injection(struct unit_module *m,
 		unit_return_fail(m, "expected size not set");
 	}
 
+	/*
+	 * Trigger these HALs with tpc_count = 0, only for code coverage.
+	 * We are not interested in return values since tpc_count cannot be
+	 * 0 in any practical case.
+	 */
+	EXPECT_BUG(g->ops.gr.init.get_attrib_cb_size(g, 0));
+	EXPECT_BUG(g->ops.gr.init.get_alpha_cb_size(g, 0));
+
 	/* cleanup */
 	nvgpu_gr_ctx_free_patch_ctx(g, vm, gr_ctx);
 	nvgpu_free_gr_ctx_struct(g, gr_ctx);

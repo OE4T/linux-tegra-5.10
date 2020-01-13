@@ -258,6 +258,10 @@ int test_gr_init_hal_config_error_injection(struct unit_module *m,
  *
  * Targets: gops_gr_init.commit_global_pagepool,
  *          gp10b_gr_init_commit_global_pagepool
+ *          gops_gr_init.get_attrib_cb_size,
+ *          gv11b_gr_init_get_attrib_cb_size,
+ *          gops_gr_init.get_alpha_cb_size,
+ *          gv11b_gr_init_get_alpha_cb_size
  *
  * Input: gr_init_setup, gr_init_prepare, gr_init_support must have
  *        been executed successfully.
@@ -268,6 +272,9 @@ int test_gr_init_hal_config_error_injection(struct unit_module *m,
  * - Call g->ops.gr.init.commit_global_pagepool with global_ctx flag set
  *   to false and with arbitrary size.
  * - Read back size from register and ensure correct size is set.
+ * - Call g->ops.gr.init.get_attrib_cb_size and g->ops.gr.init.get_alpha_cb_size
+ *   with tpc_count = 0 for code coverage. Ensure that a BUG() is triggered.
+ *   We are not interested in return value since tpc_count can never be 0.
  * - Cleanup temporary resources.
  *
  * Output: Returns PASS if the steps above were executed successfully. FAIL
