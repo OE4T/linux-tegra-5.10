@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -59,9 +59,9 @@
 				ret;					\
 			})
 
-#define is_power_of_2(x)					\
-	(bool)({						\
-		typeof(x) __x__ = (x);				\
-		(__x__ != 0U && ((__x__ & (__x__ - 1U)) == 0U));\
+#define is_power_of_2(x)						\
+	(bool)({							\
+		typeof(x) __x__ = (x);					\
+		((__x__ != 0U) && ((__x__ & (__x__ - 1U)) == 0U));	\
 	})
 #endif /* NVGPU_POSIX_LOG2_H */
