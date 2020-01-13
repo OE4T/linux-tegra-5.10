@@ -37,7 +37,7 @@
  *
  * Test Type: Feature, Error guessing
  *
- * Targets: nvgpu_init_ltc_support, gops_ltc.init_ltc_support
+ * Targets: gops_ltc.init_ltc_support
  *
  * Input: None
  *
@@ -47,12 +47,12 @@
  *   - Register read/write IO callbacks.
  *   - Setup init parameters to setup gv11b arch.
  *   - Initialize hal to setup the hal functions.
- * - Call nvgpu_init_ltc_support to initialize ltc unit.
- * - Call nvgpu_init_ltc_support a second time to get branch coverage for
+ * - Call gops_ltc.init_ltc_support to initialize ltc unit.
+ * - Call gops_ltc.init_ltc_support a second time to get branch coverage for
  *   already initialzed ltc. Call should not fail.
- * - Call nvgpu_init_ltc_support with the init_fs_state HAL set to zero. Call
+ * - Call gops_ltc.init_ltc_support with the init_fs_state HAL set to zero. Call
  *   should not fail.
- * - Call nvgpu_init_ltc_support with fault injection enabled for
+ * - Call gops_ltc.init_ltc_support with fault injection enabled for
  *   nvgpu_kzalloc. Call should fail, but not crash.
  *
  * Output: Returns PASS if the steps above were executed successfully. FAIL
@@ -133,15 +133,15 @@ int test_ltc_functionality_tests(struct unit_module *m,
  *
  * Test Type: Feature, Error guessing
  *
- * Targets: nvgpu_ltc_sync_enabled, nvgpu_ltc_remove_support,
- *          nvgpu_init_ltc_support
+ * Targets: nvgpu_ltc_sync_enabled, gops_ltc.ltc_remove_support,
+ *          gops_ltc.init_ltc_support
  *
  * Input: None
  *
  * Steps:
  * - Set ltc.set_enabled to NULL and then call nvgpu_ltc_sync_enabled
- * - Call nvgpu_ltc_remove_support twice
- * - Call nvgpu_init_ltc_support
+ * - Call gops_ltc.ltc_remove_support twice
+ * - Call gops_ltc.init_ltc_support
  *
  * Output: Returns PASS if expected result is met, FAIL otherwise.
  */
@@ -155,12 +155,12 @@ int test_ltc_negative_tests(struct unit_module *m,
  *
  * Test Type: Feature
  *
- * Targets: nvgpu_ltc_remove_support
+ * Targets: gops_ltc.ltc_remove_support
  *
  * Input: None
  *
  * Steps:
- * - Call nvgpu_ltc_remove_support
+ * - Call gops_ltc.ltc_remove_support
  *
  * Output: Returns PASS
  */

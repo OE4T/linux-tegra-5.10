@@ -146,17 +146,17 @@ int test_ltc_init_support(struct unit_module *m,
 	 */
 	g->ops.priv_ring.enum_ltc = mock_enum_ltc;
 
-	err = nvgpu_init_ltc_support(g);
+	err = g->ops.ltc.init_ltc_support(g);
 	if (err != 0) {
-		unit_return_fail(m, "nvgpu_init_ltc_support failed\n");
+		unit_return_fail(m, "g->ops.ltc.init_ltc_support failed\n");
 	}
 
 	/*
 	 * Call init again after init to get branch coverage.
 	 */
-	err = nvgpu_init_ltc_support(g);
+	err = g->ops.ltc.init_ltc_support(g);
 	if (err != 0) {
-		unit_return_fail(m, "nvgpu_init_ltc_support failed\n");
+		unit_return_fail(m, "g->ops.ltc.init_ltc_support failed\n");
 	}
 
 	/*
@@ -164,9 +164,9 @@ int test_ltc_init_support(struct unit_module *m,
 	 */
 	save_void_func = g->ops.ltc.init_fs_state;
 	g->ops.ltc.init_fs_state = NULL;
-	err = nvgpu_init_ltc_support(g);
+	err = g->ops.ltc.init_ltc_support(g);
 	if (err != 0) {
-		unit_return_fail(m, "nvgpu_init_ltc_support failed\n");
+		unit_return_fail(m, "g->ops.ltc.init_ltc_support failed\n");
 	}
 	/* and restore the HAL */
 	g->ops.ltc.init_fs_state = save_void_func;
@@ -176,9 +176,9 @@ int test_ltc_init_support(struct unit_module *m,
 	 */
 	save_void_func = g->ops.ltc.intr.configure;
 	g->ops.ltc.intr.configure = NULL;
-	err = nvgpu_init_ltc_support(g);
+	err = g->ops.ltc.init_ltc_support(g);
 	if (err != 0) {
-		unit_return_fail(m, "nvgpu_init_ltc_support failed\n");
+		unit_return_fail(m, "g->ops.ltc.init_ltc_support failed\n");
 	}
 	/* and restore the HAL */
 	g->ops.ltc.intr.configure = save_void_func;
@@ -188,9 +188,9 @@ int test_ltc_init_support(struct unit_module *m,
 	 */
 	save_ecc_func = g->ops.ltc.ecc_init;
 	g->ops.ltc.ecc_init = NULL;
-	err = nvgpu_init_ltc_support(g);
+	err = g->ops.ltc.init_ltc_support(g);
 	if (err != 0) {
-		unit_return_fail(m, "nvgpu_init_ltc_support failed\n");
+		unit_return_fail(m, "g->ops.ltc.init_ltc_support failed\n");
 	}
 
 	/*
@@ -198,9 +198,9 @@ int test_ltc_init_support(struct unit_module *m,
 	 * state in gk20a, so we'll need to init again.
 	 */
 	g->ops.ltc.ecc_init = mock_ecc_init_fail;
-	err = nvgpu_init_ltc_support(g);
+	err = g->ops.ltc.init_ltc_support(g);
 	if (err == 0) {
-		unit_return_fail(m, "nvgpu_init_ltc_support failed\n");
+		unit_return_fail(m, "g->ops.ltc.init_ltc_support failed\n");
 	}
 	/* and restore the HAL */
 	g->ops.ltc.ecc_init = save_ecc_func;
@@ -209,9 +209,9 @@ int test_ltc_init_support(struct unit_module *m,
 	 * Call init with ecc flag set to initialzed for branch coverage.
 	 */
 	g->ecc.initialized = true;
-	err = nvgpu_init_ltc_support(g);
+	err = g->ops.ltc.init_ltc_support(g);
 	if (err != 0) {
-		unit_return_fail(m, "nvgpu_init_ltc_support failed\n");
+		unit_return_fail(m, "g->ops.ltc.init_ltc_support failed\n");
 	}
 	g->ecc.initialized = false;
 
@@ -221,10 +221,10 @@ int test_ltc_init_support(struct unit_module *m,
 	save_ptr = g->ltc;
 	g->ltc = NULL;
 	nvgpu_posix_enable_fault_injection(kmem_fi, true, 0);
-	err = nvgpu_init_ltc_support(g);
+	err = g->ops.ltc.init_ltc_support(g);
 	if (err == 0) {
 		unit_return_fail(m,
-			"nvgpu_init_ltc_support incorrectly succeeded\n");
+			"g->ops.ltc.init_ltc_support incorrectly succeeded\n");
 	}
 	/* and restore everything */
 	nvgpu_posix_enable_fault_injection(kmem_fi, false, 0);
@@ -234,9 +234,9 @@ int test_ltc_init_support(struct unit_module *m,
 	 * Call init one final time to setup the state variable properly for
 	 * future tests.
 	 */
-	err = nvgpu_init_ltc_support(g);
+	err = g->ops.ltc.init_ltc_support(g);
 	if (err != 0) {
-		unit_return_fail(m, "nvgpu_init_ltc_support failed\n");
+		unit_return_fail(m, "g->ops.ltc.init_ltc_support failed\n");
 	}
 
 	return UNIT_SUCCESS;
@@ -359,11 +359,11 @@ int test_ltc_negative_tests(struct unit_module *m,
 	nvgpu_ltc_sync_enabled(g);
 	g->ops.ltc.set_enabled = NULL;
 	nvgpu_ltc_sync_enabled(g);
-	nvgpu_ltc_remove_support(g);
-	nvgpu_ltc_remove_support(g);
-	err = nvgpu_init_ltc_support(g);
+	g->ops.ltc.ltc_remove_support(g);
+	g->ops.ltc.ltc_remove_support(g);
+	err = g->ops.ltc.init_ltc_support(g);
 	if (err != 0) {
-		unit_return_fail(m, "nvgpu_init_ltc_support failed\n");
+		unit_return_fail(m, "g->ops.ltc.init_ltc_support failed\n");
 	}
 
 	return UNIT_SUCCESS;
@@ -372,7 +372,7 @@ int test_ltc_negative_tests(struct unit_module *m,
 int test_ltc_remove_support(struct unit_module *m,
 		struct gk20a *g, void *args)
 {
-	nvgpu_ltc_remove_support(g);
+	g->ops.ltc.ltc_remove_support(g);
 
 	return UNIT_SUCCESS;
 }
