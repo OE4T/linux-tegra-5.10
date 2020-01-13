@@ -41,6 +41,7 @@ struct nvgpu_posix_fault_inj_container {
 	struct nvgpu_posix_fault_inj thread_running_true_fi;
 	struct nvgpu_posix_fault_inj thread_serial_fi;
 	struct nvgpu_posix_fault_inj cond_fi;
+	struct nvgpu_posix_fault_inj cond_broadcast_fi;
 	struct nvgpu_posix_fault_inj fstat_op;
 	struct nvgpu_posix_fault_inj fread_op;
 	struct nvgpu_posix_fault_inj kmem_fi;

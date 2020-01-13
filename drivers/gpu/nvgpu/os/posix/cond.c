@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -33,6 +33,14 @@ struct nvgpu_posix_fault_inj *nvgpu_cond_get_fault_injection(void)
 			nvgpu_posix_fault_injection_get_container();
 
 	return &c->cond_fi;
+}
+
+struct nvgpu_posix_fault_inj *nvgpu_cond_broadcast_get_fault_injection(void)
+{
+	struct nvgpu_posix_fault_inj_container *c =
+			nvgpu_posix_fault_injection_get_container();
+
+	return &c->cond_broadcast_fi;
 }
 #endif
 
@@ -93,6 +101,13 @@ void nvgpu_cond_signal_interruptible(struct nvgpu_cond *cond)
 int nvgpu_cond_broadcast(struct nvgpu_cond *cond)
 {
 	int ret;
+
+#ifdef NVGPU_UNITTEST_FAULT_INJECTION_ENABLEMENT
+	if (nvgpu_posix_fault_injection_handle_call(
+				nvgpu_cond_broadcast_get_fault_injection())) {
+		return -EINVAL;
+	}
+#endif
 
 	if ((cond == NULL) || !(cond->initialized)) {
 		return -EINVAL;
