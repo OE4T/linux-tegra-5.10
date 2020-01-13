@@ -261,7 +261,9 @@ int test_gr_init_hal_config_error_injection(struct unit_module *m,
  *          gops_gr_init.get_attrib_cb_size,
  *          gv11b_gr_init_get_attrib_cb_size,
  *          gops_gr_init.get_alpha_cb_size,
- *          gv11b_gr_init_get_alpha_cb_size
+ *          gv11b_gr_init_get_alpha_cb_size,
+ *          gops_gr_init.commit_global_bundle_cb,
+ *          gp10b_gr_init_commit_global_bundle_cb
  *
  * Input: gr_init_setup, gr_init_prepare, gr_init_support must have
  *        been executed successfully.
@@ -275,6 +277,10 @@ int test_gr_init_hal_config_error_injection(struct unit_module *m,
  * - Call g->ops.gr.init.get_attrib_cb_size and g->ops.gr.init.get_alpha_cb_size
  *   with tpc_count = 0 for code coverage. Ensure that a BUG() is triggered.
  *   We are not interested in return value since tpc_count can never be 0.
+ * - Stub g->ops.gr.init.get_min_gpm_fifo_depth so that it returns 0. This will
+ *   make g->ops.gr.init.commit_global_bundle_cb to write 0 in data field in
+ *   register gr_pd_ab_dist_cfg2_r(). Verify same by reading back the register.
+ * - Restore all the gops operations.
  * - Cleanup temporary resources.
  *
  * Output: Returns PASS if the steps above were executed successfully. FAIL

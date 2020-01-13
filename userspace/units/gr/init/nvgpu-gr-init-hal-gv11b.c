@@ -777,6 +777,11 @@ fail:
 	return ret;
 }
 
+static u32 test_gr_get_min_gpm_fifo_depth(struct gk20a *g)
+{
+	return 0;
+}
+
 int test_gr_init_hal_error_injection(struct unit_module *m,
 		struct gk20a *g, void *args)
 {
@@ -785,6 +790,7 @@ int test_gr_init_hal_error_injection(struct unit_module *m,
 	struct nvgpu_gr_ctx_desc *desc;
 	struct nvgpu_gr_ctx *gr_ctx = NULL;
 	u32 size;
+	struct gpu_ops gops = g->ops;
 
 	g->ops.mm.cache.l2_flush = dummy_l2_flush;
 
@@ -835,6 +841,22 @@ int test_gr_init_hal_error_injection(struct unit_module *m,
 	 */
 	EXPECT_BUG(g->ops.gr.init.get_attrib_cb_size(g, 0));
 	EXPECT_BUG(g->ops.gr.init.get_alpha_cb_size(g, 0));
+
+	/*
+	 * Make g->ops.gr.init.get_min_gpm_fifo_depth return zero, so that
+	 * we choose data as 0 in gp10b_gr_init_commit_global_bundle_cb()
+	 * and program it.
+	 * Ensure that 0 was programmed in corresponding field in
+	 * register gr_pd_ab_dist_cfg2_r() by reading it back.
+	 */
+	g->ops.gr.init.get_min_gpm_fifo_depth = test_gr_get_min_gpm_fifo_depth;
+	g->ops.gr.init.commit_global_bundle_cb(g, gr_ctx, 0xffff, 0xffff, false);
+	if (nvgpu_readl(g, gr_pd_ab_dist_cfg2_r()) !=
+			g->ops.gr.init.get_bundle_cb_token_limit(g)) {
+		unit_return_fail(m, "expected value not set");
+	}
+
+	g->ops = gops;
 
 	/* cleanup */
 	nvgpu_gr_ctx_free_patch_ctx(g, vm, gr_ctx);
