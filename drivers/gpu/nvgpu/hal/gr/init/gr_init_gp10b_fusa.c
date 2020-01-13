@@ -121,14 +121,10 @@ void gp10b_gr_init_commit_global_bundle_cb(struct gk20a *g,
 	nvgpu_log_info(g, "bundle cb addr : 0x%016llx, size : %u",
 		addr, size);
 
-	nvgpu_assert(u64_hi32(addr) == 0U);
-
-	cb_addr = (u32)addr;
+	cb_addr = nvgpu_safe_cast_u64_to_u32(addr);
 	nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_scc_bundle_cb_base_r(),
 		gr_scc_bundle_cb_base_addr_39_8_f(cb_addr), patch);
 
-	NVGPU_COV_WHITELIST(false_positive, NVGPU_MISRA(Rule, 14_3), "Bug 2615925")
-	nvgpu_assert(size <= U32_MAX);
 	nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_scc_bundle_cb_size_r(),
 		gr_scc_bundle_cb_size_div_256b_f(size) |
 		gr_scc_bundle_cb_size_valid_true_f(), patch);
@@ -178,11 +174,10 @@ void gp10b_gr_init_commit_global_pagepool(struct gk20a *g,
 		size = gr_scc_pagepool_total_pages_hwmax_v();
 	}
 
-	nvgpu_assert(u64_hi32(addr) == 0U);
 	nvgpu_log_info(g, "pagepool buffer addr : 0x%016llx, size : %lu",
 		addr, size);
 
-	pp_addr = (u32)addr;
+	pp_addr = nvgpu_safe_cast_u64_to_u32(addr);
 	pp_size = nvgpu_safe_cast_u64_to_u32(size);
 	nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_scc_pagepool_base_r(),
 		gr_scc_pagepool_base_addr_39_8_f(pp_addr), patch);

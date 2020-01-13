@@ -715,9 +715,7 @@ void gv11b_gr_init_commit_global_attrib_cb(struct gk20a *g,
 
 	attrBufferSize /= gr_gpcs_tpcs_tex_rm_cb_1_size_div_128b_granularity_f();
 
-	nvgpu_assert(u64_hi32(addr) == 0U);
-
-	cb_addr = (u32)addr;
+	cb_addr = nvgpu_safe_cast_u64_to_u32(addr);
 	nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_gpcs_tpcs_mpc_vtg_cb_global_base_addr_r(),
 		gr_gpcs_tpcs_mpc_vtg_cb_global_base_addr_v_f(cb_addr) |
 		gr_gpcs_tpcs_mpc_vtg_cb_global_base_addr_valid_true_f(), patch);

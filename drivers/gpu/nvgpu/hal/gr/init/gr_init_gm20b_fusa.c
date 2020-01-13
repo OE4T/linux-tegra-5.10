@@ -420,9 +420,8 @@ void gm20b_gr_init_commit_global_attrib_cb(struct gk20a *g,
 	addr = addr >> gr_gpcs_setup_attrib_cb_base_addr_39_12_align_bits_v();
 
 	nvgpu_log_info(g, "attrib cb addr : 0x%016llx", addr);
-	nvgpu_assert(u64_hi32(addr) == 0U);
 
-	cb_addr = (u32)addr;
+	cb_addr = nvgpu_safe_cast_u64_to_u32(addr);
 	nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_gpcs_setup_attrib_cb_base_r(),
 		gr_gpcs_setup_attrib_cb_base_addr_39_12_f(cb_addr) |
 		gr_gpcs_setup_attrib_cb_base_valid_true_f(), patch);
