@@ -113,6 +113,9 @@
  *   - @ref SWUTS-ce
  *   - @ref SWUTS-cg
  *   - @ref SWUTS-init_test
+ *   - @ref SWUTS-power_mgmt
+ *   - @ref SWUTS-qnx-fuse
+ *   - @ref SWUTS-nvrm_dev_os
  *   - @ref SWUTS-channel_os
  *   - @ref SWUTS-top
  *   - @ref SWUTS-class
