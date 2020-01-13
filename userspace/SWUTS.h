@@ -125,6 +125,7 @@
  *   - @ref SWUTS-power_mgmt
  *   - @ref SWUTS-qnx-fuse
  *   - @ref SWUTS-nvrm_dev_os
+ *   - @ref SWUTS-devctl_ctrl
  *   - @ref SWUTS-channel_os
  *   - @ref SWUTS-top
  *   - @ref SWUTS-class
