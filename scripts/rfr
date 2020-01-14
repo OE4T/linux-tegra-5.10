@@ -1,6 +1,6 @@
 #!/usr/bin/python
 #
-# Copyright (c) 2018, NVIDIA CORPORATION.  All Rights Reserved.
+# Copyright (c) 2018-2020, NVIDIA CORPORATION.  All Rights Reserved.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -52,7 +52,8 @@ gr_fmts = [ r'http://git-master/r/(\d+)',
             r'https://git-master/r/#/c/(\d+)/',
             r'https://git-master.nvidia.com/r/(\d+)',
             r'https://git-master.nvidia.com/r/#/c/(\d+)',
-            r'https://git-master.nvidia.com/r/#/c/(\d+)/' ]
+            r'https://git-master.nvidia.com/r/#/c/(\d+)/',
+            r'https://git-master.nvidia.com/r/c/(?:[\w\-_\/]+?)\+/(\d+)' ]
 
 # The user to use. May be overridden but the default comes from the environment.
 user = os.environ['USER']
