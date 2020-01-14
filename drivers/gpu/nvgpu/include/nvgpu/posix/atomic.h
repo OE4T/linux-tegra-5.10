@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -108,10 +108,13 @@ typedef struct __nvgpu_posix_atomic64 {
 			NVGPU_CERT(DCL37_C), "Bug 200584380")		\
 		NVGPU_COV_WHITELIST_BLOCK_BEGIN(false_positive, 1,	\
 			NVGPU_CERT(EXP37_C), "Bug 200584380")		\
+		NVGPU_COV_WHITELIST_BLOCK_BEGIN(deviate, 1,		\
+			NVGPU_MISRA(Rule, 10_3), "TID 374")		\
 		tmp = (typeof((v)->v))atomic_fetch_add(&((v)->v), (i));	\
 		NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_CERT(INT31_C))	\
 		NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_CERT(DCL37_C))	\
 		NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_CERT(EXP37_C))	\
+		NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Rule, 10_3))	\
 		tmp = __builtin_choose_expr(				\
 				IS_SIGNED_LONG_TYPE(i),			\
 				(nvgpu_safe_add_s64((tmp), (i))),	\
@@ -137,10 +140,13 @@ typedef struct __nvgpu_posix_atomic64 {
 			NVGPU_CERT(DCL37_C), "Bug 200584380")		\
 		NVGPU_COV_WHITELIST_BLOCK_BEGIN(false_positive, 1,	\
 			NVGPU_CERT(EXP37_C), "Bug 200584380")		\
+		NVGPU_COV_WHITELIST_BLOCK_BEGIN(deviate, 1,		\
+			NVGPU_MISRA(Rule, 10_3), "TID 374")        	\
 		tmp = (typeof((v)->v))atomic_fetch_sub(&((v)->v), (i));	\
 		NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_CERT(INT31_C))	\
 		NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_CERT(DCL37_C))	\
 		NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_CERT(EXP37_C))	\
+		NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Rule, 10_3))	\
 		tmp = __builtin_choose_expr(				\
 				IS_SIGNED_LONG_TYPE(i),			\
 				(nvgpu_safe_sub_s64((tmp), (i))),	\
@@ -167,9 +173,15 @@ typedef struct __nvgpu_posix_atomic64 {
 			NVGPU_CERT(DCL37_C), "Bug 200584380")		\
 		NVGPU_COV_WHITELIST_BLOCK_BEGIN(false_positive, 1,	\
 			NVGPU_CERT(EXP37_C), "Bug 200584380")		\
+		NVGPU_COV_WHITELIST_BLOCK_BEGIN(false_positive, 1,	\
+			NVGPU_MISRA(Rule, 17_7), "Bug 2793032")   	\
+		NVGPU_COV_WHITELIST_BLOCK_BEGIN(deviate, 1,		\
+			NVGPU_MISRA(Rule, 10_3), "TID 374")		\
 		atomic_compare_exchange_strong(&((v)->v), &tmp, (new));	\
 		NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_CERT(DCL37_C))	\
 		NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_CERT(EXP37_C))	\
+		NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Rule, 17_7))	\
+		NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Rule, 10_3))	\
 		tmp;							\
 	})
 
@@ -427,8 +439,14 @@ static inline int nvgpu_atomic_add_unless_impl(nvgpu_atomic_t *v, int a, int u)
 		}
 		NVGPU_COV_WHITELIST_BLOCK_BEGIN(false_positive, 1, \
 			NVGPU_CERT(DCL37_C), "Bug 200584380")
+		NVGPU_COV_WHITELIST_BLOCK_BEGIN(false_positive, 1, \
+			NVGPU_MISRA(Rule, 17_7), "Bug 2793032")
+		NVGPU_COV_WHITELIST_BLOCK_BEGIN(deviate, 1, \
+			NVGPU_MISRA(Rule, 10_3), "TID 374")
 	} while (!atomic_compare_exchange_strong(&((v)->v), &old, old + (a)));
 		NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_CERT(DCL37_C))
+		NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Rule, 17_7))
+		NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Rule, 10_3))
 
 	return old;
 }
@@ -511,8 +529,14 @@ static inline long nvgpu_atomic64_add_unless_impl(nvgpu_atomic64_t *v, long a,
 		}
 		NVGPU_COV_WHITELIST_BLOCK_BEGIN(false_positive, 1, \
 			NVGPU_CERT(DCL37_C), "Bug 200584380")
+		NVGPU_COV_WHITELIST_BLOCK_BEGIN(false_positive, 1, \
+			NVGPU_MISRA(Rule, 17_7), "Bug 2793032")
+		NVGPU_COV_WHITELIST_BLOCK_BEGIN(deviate, 1, \
+			NVGPU_MISRA(Rule, 10_3), "TID 374")
 	} while (!atomic_compare_exchange_strong(&((v)->v), &old, old + (a)));
 		NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_CERT(DCL37_C))
+		NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Rule, 17_7))
+		NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Rule, 10_3))
 
 	return old;
 }
