@@ -26,6 +26,10 @@
 #include "dt-bindings/soc/tegra194-powergate.h"
 #include <dt-bindings/interrupt-controller/irq.h>
 #include <dt-bindings/gpio/tegra194-gpio.h>
+#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
+#include <dt-bindings/memory/tegra186-mc.h>
+#include <dt-bindings/memory/tegra194-mc.h>
+#endif
 #include <dt-bindings/memory/tegra-swgroup.h>
 #include <dt-bindings/memory/tegra194-swgroup.h>
 #include "dt-bindings/soc/tegra194-powergate.h"
@@ -58,7 +62,9 @@
 	interrupt-parent = <&intc>;
 	#address-cells = <2>;
 	#size-cells = <2>;
+#if TEGRA_IOMMU_DT_VERSION < DT_VERSION_2
 	dma-ranges = <0x0 0x0 0x0 0x0 0x7f 0xffff0000>;
+#endif
 
 	tegra-cvnas {
 		compatible = "nvidia,tegra-cvnas";
@@ -320,6 +326,13 @@
 		#clock-cells = <1>;
 		#reset-cells = <1>;
 		#power-domain-cells = <1>;
+#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
+		interconnects = <&mc TEGRA194_MEMORY_CLIENT_BPMPR &emc>,
+				<&mc TEGRA194_MEMORY_CLIENT_BPMPW &emc>,
+				<&mc TEGRA194_MEMORY_CLIENT_BPMPDMAR &emc>,
+				<&mc TEGRA194_MEMORY_CLIENT_BPMPDMAW &emc>;
+		interconnect-names = "dma-mem", "dma-mem", "dma-mem", "dma-mem";
+#endif
 
 		pwr_i2c: i2c {
 			compatible = "nvidia,tegra186-bpmp-i2c";
@@ -394,7 +407,12 @@
 			 <&smmu TEGRA_SID_HC_VM7>;
 		dma-coherent;
 
+#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
+		interconnects = <&mc TEGRA194_MEMORY_CLIENT_HOST1XDMAR &emc>;
+		interconnect-names = "dma-mem";
+#else
 		dma-ranges = <0x0 0x0 0x0 0x0 0x7f 0xffff0000>;
+#endif
 
 		#address-cells = <2>;
 		#size-cells = <2>;
@@ -652,6 +670,11 @@
 			fb_reserved = <&fb0_reserved>;
 			iommu-direct-regions = <&fb0_reserved &fb1_reserved
 						&fb2_reserved &fb3_reserved>;
+#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
+			interconnects = <&mc TEGRA194_MEMORY_CLIENT_NVDISPLAYR &emc>,
+					<&mc TEGRA194_MEMORY_CLIENT_NVDISPLAYR1 &emc>;
+			interconnect-names = "dma-mem", "dma-mem";
+#endif
 
 			pinctrl-names = "hdmi-dp0-dpd-disable", "hdmi-dp0-dpd-enable",
 					"hdmi-dp1-dpd-disable", "hdmi-dp1-dpd-enable",
@@ -713,6 +736,11 @@
 			fb_reserved = <&fb1_reserved>;
 			iommu-direct-regions = <&fb0_reserved &fb1_reserved
 						&fb2_reserved &fb3_reserved>;
+#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
+			interconnects = <&mc TEGRA194_MEMORY_CLIENT_NVDISPLAYR &emc>,
+					<&mc TEGRA194_MEMORY_CLIENT_NVDISPLAYR1 &emc>;
+			interconnect-names = "dma-mem", "dma-mem";
+#endif
 
 			pinctrl-names = "hdmi-dp0-dpd-disable", "hdmi-dp0-dpd-enable",
 					"hdmi-dp1-dpd-disable", "hdmi-dp1-dpd-enable",
@@ -774,6 +802,11 @@
 			fb_reserved = <&fb2_reserved>;
 			iommu-direct-regions = <&fb0_reserved &fb1_reserved
 						&fb2_reserved &fb3_reserved>;
+#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
+			interconnects = <&mc TEGRA194_MEMORY_CLIENT_NVDISPLAYR &emc>,
+					<&mc TEGRA194_MEMORY_CLIENT_NVDISPLAYR1 &emc>;
+			interconnect-names = "dma-mem", "dma-mem";
+#endif
 
 			pinctrl-names = "hdmi-dp0-dpd-disable", "hdmi-dp0-dpd-enable",
 					"hdmi-dp1-dpd-disable", "hdmi-dp1-dpd-enable",
@@ -835,6 +868,11 @@
 			fb_reserved = <&fb3_reserved>;
 			iommu-direct-regions = <&fb0_reserved &fb1_reserved
 						&fb2_reserved &fb3_reserved>;
+#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
+			interconnects = <&mc TEGRA194_MEMORY_CLIENT_NVDISPLAYR &emc>,
+					<&mc TEGRA194_MEMORY_CLIENT_NVDISPLAYR1 &emc>;
+			interconnect-names = "dma-mem", "dma-mem";
+#endif
 
 			pinctrl-names = "hdmi-dp0-dpd-disable", "hdmi-dp0-dpd-enable",
 					"hdmi-dp1-dpd-disable", "hdmi-dp1-dpd-enable",

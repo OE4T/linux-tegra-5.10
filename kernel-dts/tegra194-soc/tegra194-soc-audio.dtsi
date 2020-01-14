@@ -734,6 +734,11 @@
 		clock-names = "pllp_out0", "maud", "hda",
 				"hda2codec_2x",	"hda2hdmi";
 		interrupts = <0 161 0x04>;
+#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
+		interconnects = <&mc TEGRA194_MEMORY_CLIENT_HDAR &emc>,
+				<&mc TEGRA194_MEMORY_CLIENT_HDAW &emc>;
+		interconnect-names = "dma-mem", "dma-mem";
+#endif
 		status = "disabled";
 	};
 

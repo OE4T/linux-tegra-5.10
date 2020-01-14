@@ -149,16 +149,65 @@
 		};
 	};
 
-	mc_sid@2c00000 {
 #if TEGRA_IOMMU_DT_VERSION < DT_VERSION_2
+	mc: mc_sid@2c00000 {
+		status = "disabled";
 		compatible = "nvidia,tegra194-mc-sid";
 		reg = <0x0 0x02c00000 0x0 0x00010000>; /* MC_SID_BASE */
-#else
-		compatible = "nvidia,tegra186-mc";
-		reg = <0x0 0x02c00000 0x0 0xb0000>;
-#endif
-		status = "disabled";
 	};
+#else
+	/* control backbone */
+	cbb@0 {
+		compatible = "simple-bus";
+		#address-cells = <1>;
+		#size-cells = <1>;
+		ranges = <0x0 0x0 0x0 0x40000000>;
+
+		mc: mc_sid@2c00000 {
+			compatible = "nvidia,tegra194-mc";
+			reg = <0x0 0x02c00000 0x0 0x100000>,
+			      <0x0 0x02b80000 0x0 0x040000>,
+			      <0x0 0x01700000 0x0 0x100000>;
+			#interconnect-cells = <1>;
+
+			#address-cells = <2>;
+			#size-cells = <2>;
+
+			ranges = <0x01700000 0x0 0x01700000 0x0 0x100000>,
+				 <0x02b80000 0x0 0x02b80000 0x0 0x040000>,
+				 <0x02c00000 0x0 0x02c00000 0x0 0x100000>;
+
+			/*
+			 * Bit 39 of addresses passing through the memory
+			 * controller selects the XBAR format used when memory
+			 * is accessed. This is used to transparently access
+			 * memory in the XBAR format used by the discrete GPU
+			 * (bit 39 set) or Tegra (bit 39 clear).
+			 *
+			 * As a consequence, the operating system must ensure
+			 * that bit 39 is never used implicitly, for example
+			 * via an I/O virtual address mapping of an IOMMU. If
+			 * devices require access to the XBAR switch, their
+			 * drivers must set this bit explicitly.
+			 *
+			 * Limit the DMA range for memory clients to [38:0].
+			 */
+			dma-ranges = <0x0 0x0 0x0 0x80 0x0>;
+
+			emc: external-memory-controller@2c60000 {
+				compatible = "nvidia,tegra194-emc";
+				reg = <0x0 0x02c60000 0x0 0x90000>,
+				      <0x0 0x01780000 0x0 0x80000>;
+				clocks = <&bpmp TEGRA194_CLK_EMC>;
+				clock-names = "emc";
+
+				#interconnect-cells = <0>;
+
+				nvidia,bpmp = <&bpmp>;
+			};
+		};
+	};
+#endif
 
 	smmu: iommu@12000000{
 #if TEGRA_IOMMU_DT_VERSION < DT_VERSION_2

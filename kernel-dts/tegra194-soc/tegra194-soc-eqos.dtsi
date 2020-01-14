@@ -61,6 +61,13 @@
 			 <&bpmp_clks TEGRA194_CLK_AXI_CBB>;
 		clock-names = "pllrefe_vcoout", "eqos_axi", "eqos_rx", "eqos_ptp_ref", "eqos_tx", "axi_cbb";
 		resets = <&bpmp_resets TEGRA194_RESET_EQOS>;
+
+#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
+		interconnects = <&mc TEGRA194_MEMORY_CLIENT_EQOSR &emc>,
+			        <&mc TEGRA194_MEMORY_CLIENT_EQOSW &emc>;
+		interconnect-names = "dma-mem", "dma-mem";
+#endif
+
 		reset-names = "mac_rst";
 		nvidia,promisc_mode = <1>;
 		nvidia,num-dma-chans = <4>;
