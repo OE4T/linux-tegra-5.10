@@ -197,6 +197,10 @@ int gv11b_fifo_preempt_poll_pbdma(struct gk20a *g, u32 tsgid,
 			}
 			loop_count++;
 		}
+
+		g->ops.pbdma_status.read_pbdma_status_info(g,
+			pbdma_id, &pbdma_status);
+
 		/*
 		 * If the PBDMA has a stalling interrupt and receives a NACK,
 		 * the PBDMA won't save out until the STALLING interrupt is

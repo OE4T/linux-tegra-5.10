@@ -35,7 +35,7 @@ struct nvgpu_debug_context;
 
 struct gops_pbdma_status {
 	void (*read_pbdma_status_info)(struct gk20a *g,
-		u32 engine_id, struct nvgpu_pbdma_status_info *status);
+		u32 pbdma_id, struct nvgpu_pbdma_status_info *status);
 };
 
 struct gops_pbdma {
