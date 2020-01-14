@@ -140,6 +140,7 @@ static int max77620_wdt_probe(struct platform_device *pdev)
 	wdt_dev->max_hw_heartbeat_ms = 128 * 1000;
 
 	platform_set_drvdata(pdev, wdt);
+	watchdog_set_drvdata(wdt_dev, wdt);
 
 	/* Enable WD_RST_WK - WDT expire results in a restart */
 	ret = regmap_update_bits(wdt->rmap, MAX77620_REG_ONOFFCNFG2,
@@ -157,6 +158,12 @@ static int max77620_wdt_probe(struct platform_device *pdev)
 	if (ret < 0) {
 		dev_err(wdt->dev, "Failed to set WDT OFF mode: %d\n", ret);
 		return ret;
+	}
+
+	/* start watchdog when "wdt-boot-init" flag is set */
+	if (of_property_read_bool(np, "maxim,wdt-boot-init")) {
+		if (max77620_wdt_start(wdt_dev) < 0)
+			dev_err(&pdev->dev, "Failed to start watchdog on booting\n");
 	}
 
 	/* Check if WDT running and if yes then set flags properly */
@@ -185,7 +192,6 @@ static int max77620_wdt_probe(struct platform_device *pdev)
 		set_bit(WDOG_HW_RUNNING, &wdt_dev->status);
 
 	watchdog_set_nowayout(wdt_dev, nowayout);
-	watchdog_set_drvdata(wdt_dev, wdt);
 
 	watchdog_stop_on_unregister(wdt_dev);
 	return devm_watchdog_register_device(dev, wdt_dev);
