@@ -137,6 +137,7 @@ enum nvgpu_unit;
 #include <nvgpu/bios.h>
 #include <nvgpu/semaphore.h>
 #include <nvgpu/fifo.h>
+#include <nvgpu/sched.h>
 
 #include <nvgpu/gops_class.h>
 #include <nvgpu/gops_ce.h>
@@ -736,6 +737,9 @@ struct gk20a {
 	struct nvgpu_ecc ecc;
 	struct pmgr_pmupstate *pmgr_pmu;
 	struct nvgpu_sec2 sec2;
+#ifdef CONFIG_NVGPU_CHANNEL_TSG_SCHEDULING
+	struct nvgpu_sched_ctrl sched_ctrl;
+#endif
 
 #ifdef CONFIG_DEBUG_FS
 	struct railgate_stats pstats;

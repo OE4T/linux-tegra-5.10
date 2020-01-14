@@ -172,6 +172,11 @@ ptimer:
              include/nvgpu/gops_ptimer.h ]
   deps:
 
+sched:
+  safe: no
+  owner: Thomas F
+  sources: [ include/nvgpu/sched.h ]
+
 semaphore:
   safe: no
   owner: Alex W
