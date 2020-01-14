@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -45,7 +45,7 @@ struct unit_module;
  * Targets: #nvgpu_gr_intr_stall_isr,
  *          #nvgpu_gr_intr_init_support,
  *          #nvgpu_gr_intr_handle_fecs_error,
- *          nvgpu_gr_intr_remove_support.
+ *          #nvgpu_gr_intr_remove_support
  *
  * Input: #test_gr_init_setup_ready must have been executed successfully.
  *
@@ -78,7 +78,11 @@ int test_gr_intr_without_channel(struct unit_module *m,
  *
  * Test Type: Feature, Error guessing
  *
- * Targets: #nvgpu_gr_intr_stall_isr.
+ * Targets: #nvgpu_gr_intr_stall_isr,
+ *          #nvgpu_gr_intr_handle_notify_pending,
+ *          #nvgpu_gr_intr_handle_semaphore_pending,
+ *          #nvgpu_gr_intr_get_channel_from_ctx,
+ *          #nvgpu_gr_intr_remove_support
  *
  * Input: #test_gr_init_setup_ready must have been executed successfully.
  *
@@ -112,7 +116,10 @@ int test_gr_intr_setup_channel(struct unit_module *m,
  *
  * Test Type: Feature, Error guessing
  *
- * Targets: #nvgpu_gr_intr_stall_isr.
+ * Targets: #nvgpu_gr_intr_stall_isr,
+ *          #nvgpu_gr_intr_flush_channel_tlb,
+ *          #nvgpu_gr_intr_set_error_notifier,
+ *          #nvgpu_gr_intr_report_exception
  *
  * Input: #test_gr_init_setup_ready must have been executed successfully.
  *
@@ -140,7 +147,9 @@ int test_gr_intr_sw_exceptions(struct unit_module *m,
  *
  * Test Type: Feature, Error guessing
  *
- * Targets: #nvgpu_gr_intr_stall_isr.
+ * Targets: #nvgpu_gr_intr_stall_isr,
+ *          #nvgpu_gr_intr_set_error_notifier,
+ *          #nvgpu_gr_intr_report_exception
  *
  * Input: #test_gr_init_setup_ready must have been executed successfully.
  *
@@ -163,8 +172,10 @@ int test_gr_intr_fecs_exceptions(struct unit_module *m,
  *
  * Test Type: Feature, Error guessing
  *
- * Targets: #nvgpu_gr_intr_stall_isr,
- *          #nvgpu_gr_intr_handle_gpc_exception.
+ * Targets: #nvgpu_gr_intr_handle_gpc_exception,
+ *          #nvgpu_gr_intr_handle_sm_exception,
+ *          #nvgpu_gr_intr_set_error_notifier,
+ *          #nvgpu_gr_intr_stall_isr
  *
  * Input: #test_gr_init_setup_ready must have been executed successfully.
  *

@@ -473,6 +473,7 @@ nvgpu_gr_init_support
 nvgpu_gr_intr_init_support
 nvgpu_gr_intr_remove_support
 nvgpu_gr_intr_handle_fecs_error
+nvgpu_gr_intr_flush_channel_tlb
 nvgpu_gr_obj_ctx_alloc
 nvgpu_gr_obj_ctx_deinit
 nvgpu_gr_obj_ctx_init

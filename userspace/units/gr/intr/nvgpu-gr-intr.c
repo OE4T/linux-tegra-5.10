@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -237,6 +237,8 @@ static int gr_test_intr_cache_current_ctx(struct gk20a *g,
 {
 	int i;
 	struct nvgpu_gr_intr *intr = g->gr->intr;
+
+	nvgpu_gr_intr_flush_channel_tlb(g);
 
 	nvgpu_posix_io_writel_reg_space(g, gr_fecs_current_ctx_r(),
 							pid);
