@@ -2,7 +2,7 @@
 /*
  * mods_pci.c - This file is part of NVIDIA MODS kernel driver.
  *
- * Copyright (c) 2008-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2008-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * NVIDIA MODS kernel driver is free software: you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -100,11 +100,11 @@ static int find_pci_dev_impl(struct mods_client            *client,
 
 	LOG_ENT();
 
-	mods_debug_printk(DEBUG_PCI,
-			  "find pci dev %04x:%04x, index %d\n",
-			  (int) p->vendor_id,
-			  (int) p->device_id,
-			  (int) p->index);
+	cl_debug(DEBUG_PCI,
+		 "find pci dev %04x:%04x, index %u\n",
+		 p->vendor_id,
+		 p->device_id,
+		 p->index);
 
 	do {
 		dev = pci_get_device(p->vendor_id, p->device_id, dev);
@@ -163,8 +163,10 @@ static int mods_find_pci_class_code(struct mods_client                *client,
 
 	LOG_ENT();
 
-	mods_debug_printk(DEBUG_PCI, "find pci class code %04x, index %d\n",
-			  (unsigned int)p->class_code, (int)p->index);
+	cl_debug(DEBUG_PCI,
+		 "find pci class code %04x, index %u\n",
+		 p->class_code,
+		 p->index);
 
 	do {
 		dev = pci_get_class(p->class_code, dev);
@@ -232,13 +234,13 @@ int esc_mods_pci_get_bar_info_2(struct mods_client             *client,
 		return err;
 	}
 
-	mods_debug_printk(DEBUG_PCI,
-			  "pci get bar info %04x:%02x:%02x:%x, bar index %d\n",
-			  p->pci_device.domain,
-			  p->pci_device.bus,
-			  p->pci_device.device,
-			  p->pci_device.function,
-			  p->bar_index);
+	cl_debug(DEBUG_PCI,
+		 "pci get bar info dev %04x:%02x:%02x:%x, bar index %u\n",
+		 p->pci_device.domain,
+		 p->pci_device.bus,
+		 p->pci_device.device,
+		 p->pci_device.function,
+		 p->bar_index);
 
 #if defined(CONFIG_PPC64)
 	if (unlikely(mutex_lock_interruptible(mods_get_irq_mutex()))) {
@@ -250,11 +252,11 @@ int esc_mods_pci_get_bar_info_2(struct mods_client             *client,
 	/* Enable device on the PCI bus */
 	err = mods_enable_device(client, dev, NULL);
 	if (err) {
-		mods_error_printk("unable to enable dev %04x:%02x:%02x.%x\n",
-				  p->pci_device.domain,
-				  p->pci_device.bus,
-				  p->pci_device.device,
-				  p->pci_device.function);
+		cl_error("unable to enable dev %04x:%02x:%02x.%x\n",
+			 p->pci_device.domain,
+			 p->pci_device.bus,
+			 p->pci_device.device,
+			 p->pci_device.function);
 		mutex_unlock(mods_get_irq_mutex());
 		pci_dev_put(dev);
 		LOG_EXT();
@@ -325,13 +327,13 @@ int esc_mods_pci_get_irq_2(struct mods_client        *client,
 		return err;
 	}
 
-	mods_debug_printk(DEBUG_PCI,
-			  "pci get irq %04x:%02x:%02x:%x irq=%u\n",
-			  p->pci_device.domain,
-			  p->pci_device.bus,
-			  p->pci_device.device,
-			  p->pci_device.function,
-			  dev->irq);
+	cl_debug(DEBUG_PCI,
+		 "pci get irq dev %04x:%02x:%02x:%x irq=%u\n",
+		 p->pci_device.domain,
+		 p->pci_device.bus,
+		 p->pci_device.device,
+		 p->pci_device.function,
+		 dev->irq);
 
 	p->irq = dev->irq;
 
@@ -372,15 +374,6 @@ int esc_mods_pci_read_2(struct mods_client *client, struct MODS_PCI_READ_2 *p)
 		return err;
 	}
 
-	mods_debug_printk(DEBUG_PCI,
-			  "pci read %04x:%02x:%02x.%x, addr 0x%04x, size %d\n",
-			  p->pci_device.domain,
-			  p->pci_device.bus,
-			  p->pci_device.device,
-			  p->pci_device.function,
-			  p->address,
-			  p->data_size);
-
 	p->data = 0;
 	switch (p->data_size) {
 	case 1: {
@@ -404,6 +397,30 @@ int esc_mods_pci_read_2(struct mods_client *client, struct MODS_PCI_READ_2 *p)
 		err = -EINVAL;
 		break;
 	}
+
+	cl_debug(DEBUG_PCI | DEBUG_DETAILED,
+		 "pci read dev %04x:%02x:%02x.%x, addr 0x%04x, size %u, data 0x%x\n",
+		 p->pci_device.domain,
+		 p->pci_device.bus,
+		 p->pci_device.device,
+		 p->pci_device.function,
+		 p->address,
+		 p->data_size,
+		 p->data);
+
+	/* Usually one of the first reads from PCI config space occurs
+	 * at address 0 and or 2 to read PCI device vendor/id.
+	 * If this reads all Fs, the device probably fell off the bus.
+	 */
+	if (p->address <= 4 && (p->data == ~0U || p->data == 0xFFFFU))
+		cl_warn("pci read dev %04x:%02x:%02x.%x, addr 0x%04x, size %u, data 0x%x\n",
+			p->pci_device.domain,
+			p->pci_device.bus,
+			p->pci_device.device,
+			p->pci_device.function,
+			p->address,
+			p->data_size,
+			p->data);
 
 	pci_dev_put(dev);
 	LOG_EXT();
@@ -437,24 +454,24 @@ int esc_mods_pci_write_2(struct mods_client *client, struct MODS_PCI_WRITE_2 *p)
 
 	LOG_ENT();
 
-	mods_debug_printk(DEBUG_PCI,
-			  "pci write %04x:%02x:%02x.%x, addr 0x%04x, size %d, data 0x%x\n",
-			  p->pci_device.domain,
-			  p->pci_device.bus,
-			  p->pci_device.device,
-			  p->pci_device.function,
-			  p->address,
-			  p->data_size,
-			  p->data);
+	cl_debug(DEBUG_PCI | DEBUG_DETAILED,
+		 "pci write dev %04x:%02x:%02x.%x, addr 0x%04x, size %u, data 0x%x\n",
+		 p->pci_device.domain,
+		 p->pci_device.bus,
+		 p->pci_device.device,
+		 p->pci_device.function,
+		 p->address,
+		 p->data_size,
+		 p->data);
 
 	err = mods_find_pci_dev(client, &p->pci_device, &dev);
 	if (unlikely(err)) {
 		if (err == -ENODEV)
-			mods_error_printk("PCI device %04x:%02x:%02x.%x not found\n",
-					  p->pci_device.domain,
-					  p->pci_device.bus,
-					  p->pci_device.device,
-					  p->pci_device.function);
+			cl_error("dev %04x:%02x:%02x.%x not found\n",
+				 p->pci_device.domain,
+				 p->pci_device.bus,
+				 p->pci_device.device,
+				 p->pci_device.function);
 		LOG_EXT();
 		return err;
 	}
@@ -512,8 +529,7 @@ int esc_mods_pci_bus_rescan(struct mods_client         *client,
 
 	LOG_ENT();
 
-	mods_info_printk("scanning pci bus %04x:%02x\n",
-			 rescan->domain, rescan->bus);
+	cl_info("scanning pci bus %04x:%02x\n", rescan->domain, rescan->bus);
 
 	bus = pci_find_bus(rescan->domain, rescan->bus);
 
@@ -526,8 +542,9 @@ int esc_mods_pci_bus_rescan(struct mods_client         *client,
 		pci_unlock_rescan_remove();
 #endif
 	} else {
-		mods_error_printk("bus %04x:%02x not found\n",
-				  rescan->domain, rescan->bus);
+		cl_error("bus %04x:%02x not found\n",
+			 rescan->domain,
+			 rescan->bus);
 		err = -EINVAL;
 	}
 
@@ -548,41 +565,43 @@ int esc_mods_pci_hot_reset(struct mods_client        *client,
 
 	LOG_ENT();
 
-	mods_debug_printk(DEBUG_PCI,
-			  "pci_hot_reset %04x:%02x:%02x.%x\n",
-			  p->pci_device.domain,
-			  p->pci_device.bus,
-			  p->pci_device.device,
-			  p->pci_device.function);
+	cl_debug(DEBUG_PCI,
+		 "pci_hot_reset dev %04x:%02x:%02x.%x\n",
+		 p->pci_device.domain,
+		 p->pci_device.bus,
+		 p->pci_device.device,
+		 p->pci_device.function);
 
 	err = mods_find_pci_dev(client, &p->pci_device, &dev);
 	if (unlikely(err)) {
 		if (err == -ENODEV)
-			mods_error_printk("pci_hot_reset cannot find pci device %04x:%02x:%02x.%x\n",
-					  p->pci_device.domain,
-					  p->pci_device.bus,
-					  p->pci_device.device,
-					  p->pci_device.function);
+			cl_error(
+				"pci_hot_reset cannot find dev %04x:%02x:%02x.%x\n",
+				p->pci_device.domain,
+				p->pci_device.bus,
+				p->pci_device.device,
+				p->pci_device.function);
 		LOG_EXT();
 		return err;
 	}
 
 	err = pci_set_pcie_reset_state(dev, pcie_hot_reset);
 	if (unlikely(err))
-		mods_error_printk("pci_hot_reset failed on %04x:%02x:%02x.%x\n",
-				  p->pci_device.domain,
-				  p->pci_device.bus,
-				  p->pci_device.device,
-				  p->pci_device.function);
+		cl_error("pci_hot_reset failed on dev %04x:%02x:%02x.%x\n",
+			 p->pci_device.domain,
+			 p->pci_device.bus,
+			 p->pci_device.device,
+			 p->pci_device.function);
 	else {
 
 		err = pci_set_pcie_reset_state(dev, pcie_deassert_reset);
 		if (unlikely(err))
-			mods_error_printk("pci_hot_reset deassert failed on %04x:%02x:%02x.%x\n",
-					  p->pci_device.domain,
-					  p->pci_device.bus,
-					  p->pci_device.device,
-					  p->pci_device.function);
+			cl_error(
+				"pci_hot_reset deassert failed on dev %04x:%02x:%02x.%x\n",
+				p->pci_device.domain,
+				p->pci_device.bus,
+				p->pci_device.device,
+				p->pci_device.function);
 	}
 
 	pci_dev_put(dev);
@@ -605,21 +624,22 @@ int esc_mods_pci_bus_remove_dev(struct mods_client             *client,
 	err = mods_find_pci_dev(client, &p->pci_device, &dev);
 	if (unlikely(err)) {
 		if (err == -ENODEV)
-			mods_error_printk("pci_remove cannot find pci device %04x:%02x:%02x.%x\n",
-					  p->pci_device.domain,
-					  p->pci_device.bus,
-					  p->pci_device.device,
-					  p->pci_device.function);
+			cl_error(
+				"pci_remove cannot find dev %04x:%02x:%02x.%x\n",
+				p->pci_device.domain,
+				p->pci_device.bus,
+				p->pci_device.device,
+				p->pci_device.function);
 		LOG_EXT();
 		return err;
 	}
 
-	mods_debug_printk(DEBUG_PCI,
-			  "pci remove on %04x:%02x:%02x.%x\n",
-			  p->pci_device.domain,
-			  p->pci_device.bus,
-			  p->pci_device.device,
-			  p->pci_device.function);
+	cl_debug(DEBUG_PCI,
+		 "pci remove on dev %04x:%02x:%02x.%x\n",
+		 p->pci_device.domain,
+		 p->pci_device.bus,
+		 p->pci_device.device,
+		 p->pci_device.function);
 
 	pci_stop_and_remove_bus_device(dev);
 	LOG_EXT();
@@ -684,11 +704,11 @@ int esc_mods_device_numa_info_3(struct mods_client             *client,
 	err = mods_find_pci_dev(client, &p->pci_device, &dev);
 	if (unlikely(err)) {
 		if (err == -ENODEV)
-			mods_error_printk("PCI device %04x:%02x:%02x.%x not found\n",
-					  p->pci_device.domain,
-					  p->pci_device.bus,
-					  p->pci_device.device,
-					  p->pci_device.function);
+			cl_error("dev %04x:%02x:%02x.%x not found\n",
+				 p->pci_device.domain,
+				 p->pci_device.bus,
+				 p->pci_device.device,
+				 p->pci_device.function);
 		LOG_EXT();
 		return err;
 	}
@@ -722,8 +742,8 @@ int esc_mods_device_numa_info_3(struct mods_client             *client,
 
 			if (cur_mask && mask_idx >= MAX_CPU_MASKS_3) {
 
-				mods_error_printk("too many CPUs (%d) for mask bits\n",
-						  nr_cpumask_bits);
+				cl_error("too many CPUs (%d) for mask bits\n",
+					 nr_cpumask_bits);
 				pci_dev_put(dev);
 				LOG_EXT();
 				return -EINVAL;
@@ -770,8 +790,8 @@ int esc_mods_device_numa_info_2(struct mods_client             *client,
 					     numa_info.first_cpu_mask_offset;
 
 			if (cur_mask && dst >= MAX_CPU_MASKS) {
-				mods_error_printk("too many CPUs (%d) for mask bits\n",
-						  nr_cpumask_bits);
+				cl_error("too many CPUs (%d) for mask bits\n",
+					 nr_cpumask_bits);
 				err = -EINVAL;
 				break;
 			}
@@ -814,8 +834,8 @@ int esc_mods_device_numa_info(struct mods_client           *client,
 					     numa_info.first_cpu_mask_offset;
 
 			if (cur_mask && dst >= MAX_CPU_MASKS) {
-				mods_error_printk("too many CPUs (%d) for mask bits\n",
-						  nr_cpumask_bits);
+				cl_error("too many CPUs (%d) for mask bits\n",
+					 nr_cpumask_bits);
 				err = -EINVAL;
 				break;
 			}
@@ -893,8 +913,8 @@ int esc_mods_pci_set_dma_mask(struct mods_client       *client,
 	LOG_ENT();
 
 	if (unlikely(dma_mask->num_bits > 64)) {
-		mods_error_printk("num_bits=%u exceeds 64\n",
-				  dma_mask->num_bits);
+		cl_error("num_bits=%u exceeds 64\n",
+			 dma_mask->num_bits);
 		LOG_EXT();
 		return -EINVAL;
 	}
@@ -902,11 +922,11 @@ int esc_mods_pci_set_dma_mask(struct mods_client       *client,
 	err = mods_find_pci_dev(client, &dma_mask->pci_device, &dev);
 	if (unlikely(err)) {
 		if (err == -ENODEV)
-			mods_error_printk("PCI device %04x:%02x:%02x.%x not found\n",
-					  dma_mask->pci_device.domain,
-					  dma_mask->pci_device.bus,
-					  dma_mask->pci_device.device,
-					  dma_mask->pci_device.function);
+			cl_error("dev %04x:%02x:%02x.%x not found\n",
+				 dma_mask->pci_device.domain,
+				 dma_mask->pci_device.bus,
+				 dma_mask->pci_device.device,
+				 dma_mask->pci_device.function);
 		LOG_EXT();
 		return err;
 	}
@@ -915,19 +935,39 @@ int esc_mods_pci_set_dma_mask(struct mods_client       *client,
 
 	err = pci_set_dma_mask(dev, mask);
 	if (err) {
-		mods_error_printk("failed to set dma mask 0x%llx for dev %04x:%02x:%02x.%x\n",
-				  mask,
-				  dma_mask->pci_device.domain,
-				  dma_mask->pci_device.bus,
-				  dma_mask->pci_device.device,
-				  dma_mask->pci_device.function);
+		cl_error(
+			"failed to set dma mask 0x%llx (%u) for dev %04x:%02x:%02x.%x\n",
+			mask,
+			dma_mask->num_bits,
+			dma_mask->pci_device.domain,
+			dma_mask->pci_device.bus,
+			dma_mask->pci_device.device,
+			dma_mask->pci_device.function);
 #if defined(CONFIG_PPC64)
 		/* Ignore error if TCE bypass is on */
 		if (dev->dma_mask == ~0ULL)
 			err = OK;
 #endif
-	} else
+	} else {
 		err = pci_set_consistent_dma_mask(dev, mask);
+		if (err)
+			cl_error(
+				"failed to set consistent dma mask 0x%llx (%u) for dev %04x:%02x:%02x.%x\n",
+				mask,
+				dma_mask->num_bits,
+				dma_mask->pci_device.domain,
+				dma_mask->pci_device.bus,
+				dma_mask->pci_device.device,
+				dma_mask->pci_device.function);
+	}
+
+	if (!err)
+		cl_info("set dma mask %u for dev %04x:%02x:%02x.%x\n",
+			dma_mask->num_bits,
+			dma_mask->pci_device.domain,
+			dma_mask->pci_device.bus,
+			dma_mask->pci_device.device,
+			dma_mask->pci_device.function);
 
 	pci_dev_put(dev);
 	LOG_EXT();

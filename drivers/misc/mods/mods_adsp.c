@@ -1,7 +1,7 @@
 /*
  * mods_adsp.c - This file is part of NVIDIA MODS kernel driver.
  *
- * Copyright (c) 2014-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * NVIDIA MODS kernel driver is free software: you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -48,7 +48,7 @@ int esc_mods_adsp_run_app(struct mods_client *client,
 
 	handle = nvadsp_app_load(p->app_name,  p->app_file_name);
 	if (!handle) {
-		mods_error_printk("load adsp app fail");
+		cl_error("load adsp app fail");
 		return -1;
 	}
 
@@ -60,14 +60,14 @@ int esc_mods_adsp_run_app(struct mods_client *client,
 		p_app_info = nvadsp_app_init(handle, NULL);
 
 	if (!p_app_info) {
-		mods_error_printk("init adsp app fail");
+		cl_error("init adsp app fail");
 		nvadsp_app_unload(handle);
 		return -1;
 	}
 
 	rc = nvadsp_app_start(p_app_info);
 	if (rc) {
-		mods_error_printk("start adsp app fail");
+		cl_error("start adsp app fail");
 		goto failed;
 	}
 
@@ -77,10 +77,10 @@ int esc_mods_adsp_run_app(struct mods_client *client,
 		if (rc == -ERESTARTSYS)
 			continue;
 		else if (rc == 0) {
-			mods_error_printk("app timeout(%d)", p->timeout);
+			cl_error("app timeout(%d)", p->timeout);
 			rc = -1;
 		} else if (rc < 0) {
-			mods_error_printk("run app failed, err=%d\n", rc);
+			cl_error("run app failed, err=%d\n", rc);
 			rc = -1;
 		} else
 			rc = 0;

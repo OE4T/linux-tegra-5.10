@@ -1,7 +1,7 @@
 /*
  * mods_dmabuf.c - This file is part of NVIDIA MODS kernel driver.
  *
- * Copyright (c) 2014-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * NVIDIA MODS kernel driver is free software: you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -29,10 +29,6 @@
 
 #include "mods_internal.h"
 
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 14, 0)
-extern const struct dma_map_ops swiotlb_dma_ops;
-#endif
-
 static struct device *dummy_device;
 
 static bool dummy_device_registered;
@@ -54,13 +50,13 @@ int esc_mods_dmabuf_get_phys_addr(struct mods_client *client,
 
 	LOG_ENT();
 
-	mods_debug_printk(DEBUG_MEM_DETAILED, "%s: fd=%d offs=0x%llx\n",
-			  __func__, op->buf_fd, (unsigned long long)op->offset);
+	cl_debug(DEBUG_MEM_DETAILED,
+		 "dmabuf get phys addr fd=%d offs=0x%llx\n",
+		 op->buf_fd, (unsigned long long)op->offset);
 
 	dmabuf = dma_buf_get(op->buf_fd);
 	if (IS_ERR_OR_NULL(dmabuf)) {
-		mods_error_printk("%s: failed to get dma buf from fd %d\n",
-				  __func__, op->buf_fd);
+		cl_error("failed to get dma buf from fd %d\n", op->buf_fd);
 		LOG_EXT();
 		return IS_ERR(dmabuf) ? PTR_ERR(dmabuf) : -EINVAL;
 	}
@@ -68,14 +64,14 @@ int esc_mods_dmabuf_get_phys_addr(struct mods_client *client,
 	WARN_ON(!dummy_device_registered);
 	attachment = dma_buf_attach(dmabuf, dummy_device);
 	if (IS_ERR_OR_NULL(attachment)) {
-		mods_error_printk("%s: failed to attach dma buf\n", __func__);
+		cl_error("failed to attach dma buf fd %d\n", op->buf_fd);
 		err = IS_ERR(attachment) ? PTR_ERR(attachment) : -EFAULT;
 		goto buf_attach_fail;
 	}
 
 	sgt = dma_buf_map_attachment(attachment, DMA_BIDIRECTIONAL);
 	if (IS_ERR_OR_NULL(sgt)) {
-		mods_error_printk("%s: failed to map dma buf\n", __func__);
+		cl_error("failed to map dma buf fd %d\n", op->buf_fd);
 		err = IS_ERR(sgt) ? PTR_ERR(sgt) : -EFAULT;
 		goto buf_map_fail;
 	}
@@ -100,14 +96,16 @@ int esc_mods_dmabuf_get_phys_addr(struct mods_client *client,
 		}
 	}
 
-	mods_debug_printk(DEBUG_MEM_DETAILED, "%s: traversed %u segments, 0x%llx size\n",
-			  __func__, total_segments,
-			  (unsigned long long) total_size);
+	cl_debug(DEBUG_MEM_DETAILED, "traversed %u segments, 0x%llx size\n",
+		 total_segments,
+		 (unsigned long long)total_size);
 
 	if (segment_size == 0) {
-		mods_error_printk("%s: offset 0x%llx exceeds allocation size 0x%llx\n",
-				  __func__, (unsigned long long)op->offset,
-				  total_size);
+		cl_error(
+			"offset 0x%llx exceeds allocation size 0x%llx, fd %d\n",
+			(unsigned long long)op->offset,
+			(unsigned long long)total_size,
+			op->buf_fd);
 		err = -EINVAL;
 	} else {
 		op->physical_address = physical_address;

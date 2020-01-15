@@ -2,7 +2,7 @@
 /*
  * mods_acpi.c - This file is part of NVIDIA MODS kernel driver.
  *
- * Copyright (c) 2008-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2008-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * NVIDIA MODS kernel driver is free software: you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -35,7 +35,9 @@ static acpi_status mods_acpi_find_acpi_handler(acpi_handle,
  *********************/
 
 /* store handle if found. */
-static void mods_acpi_handle_init(char *method_name, acpi_handle *handler)
+static void mods_acpi_handle_init(struct mods_client *client,
+				  char               *method_name,
+				  acpi_handle        *handler)
 {
 	MODS_ACPI_WALK_NAMESPACE(ACPI_TYPE_ANY,
 				 ACPI_ROOT_OBJECT,
@@ -45,9 +47,9 @@ static void mods_acpi_handle_init(char *method_name, acpi_handle *handler)
 				 handler);
 
 	if (!(*handler)) {
-		mods_debug_printk(DEBUG_ACPI, "ACPI method %s not found\n",
-				  method_name);
-		return;
+		cl_debug(DEBUG_ACPI,
+			 "ACPI method %s not found\n",
+			 method_name);
 	}
 }
 
@@ -66,12 +68,11 @@ static acpi_status mods_acpi_find_acpi_handler(
 	return OK;
 }
 
-static int mods_extract_acpi_object(
-	char *method,
-	union acpi_object *obj,
-	u8 **buf,
-	u8 *buf_end
-)
+static int mods_extract_acpi_object(struct mods_client *client,
+				    char               *method,
+				    union acpi_object  *obj,
+				    u8                **buf,
+				    u8                 *buf_end)
 {
 	int err = OK;
 
@@ -79,8 +80,9 @@ static int mods_extract_acpi_object(
 
 	case ACPI_TYPE_BUFFER:
 		if (obj->buffer.length == 0) {
-			mods_error_printk("empty ACPI output buffer from ACPI method %s\n",
-					  method);
+			cl_error(
+				"empty ACPI output buffer from ACPI method %s\n",
+				method);
 			err = -EINVAL;
 		} else if (obj->buffer.length <= buf_end-*buf) {
 			u32 size = obj->buffer.length;
@@ -88,8 +90,8 @@ static int mods_extract_acpi_object(
 			memcpy(*buf, obj->buffer.pointer, size);
 			*buf += size;
 		} else {
-			mods_error_printk("output buffer too small for ACPI method %s\n",
-					  method);
+			cl_error("output buffer too small for ACPI method %s\n",
+				 method);
 			err = -EINVAL;
 		}
 		break;
@@ -97,24 +99,26 @@ static int mods_extract_acpi_object(
 	case ACPI_TYPE_INTEGER:
 		if (buf_end - *buf >= 4) {
 			if (obj->integer.value > 0xFFFFFFFFU) {
-				mods_error_printk("integer value from ACPI method %s out of range\n",
-						  method);
+				cl_error(
+					"integer value from ACPI method %s out of range\n",
+					method);
 				err = -EINVAL;
 			} else {
 				memcpy(*buf, &obj->integer.value, 4);
 				*buf += 4;
 			}
 		} else {
-			mods_error_printk("output buffer too small for ACPI method %s\n",
-					  method);
+			cl_error("output buffer too small for ACPI method %s\n",
+				 method);
 			err = -EINVAL;
 		}
 		break;
 
 	case ACPI_TYPE_PACKAGE:
 		if (obj->package.count == 0) {
-			mods_error_printk("empty ACPI output package from ACPI method %s\n",
-					  method);
+			cl_error(
+				"empty ACPI output package from ACPI method %s\n",
+				method);
 			err = -EINVAL;
 		} else {
 			union acpi_object *elements = obj->package.elements;
@@ -125,7 +129,8 @@ static int mods_extract_acpi_object(
 				u8 *old_buf = *buf;
 				u32 new_size;
 
-				err = mods_extract_acpi_object(method,
+				err = mods_extract_acpi_object(client,
+							       method,
 							       &elements[i],
 							       buf,
 							       buf_end);
@@ -137,8 +142,9 @@ static int mods_extract_acpi_object(
 				if (size == 0) {
 					size = new_size;
 				} else if (size != new_size) {
-					mods_error_printk("ambiguous package element size from ACPI method %s\n",
-							  method);
+					cl_error(
+						"ambiguous package element size from ACPI method %s\n",
+						method);
 					err = -EINVAL;
 				}
 			}
@@ -146,8 +152,9 @@ static int mods_extract_acpi_object(
 		break;
 
 	default:
-		mods_error_printk("unsupported ACPI output type 0x%02x from method %s\n",
-				  (unsigned int)obj->type, method);
+		cl_error("unsupported ACPI output type 0x%02x from method %s\n",
+			 (unsigned int)obj->type,
+			 method);
 		err = -EINVAL;
 		break;
 
@@ -176,42 +183,45 @@ static int mods_eval_acpi_method(struct mods_client           *client,
 	LOG_ENT();
 
 	if (p->argument_count >= ACPI_MAX_ARGUMENT_NUMBER) {
-		mods_error_printk("invalid argument count for ACPI call\n");
+		cl_error("invalid argument count for ACPI call\n");
 		LOG_EXT();
 		return -EINVAL;
 	}
 
 	if (pdevice) {
-		mods_debug_printk(DEBUG_ACPI,
-				  "ACPI %s for device %04x:%02x:%02x.%x\n",
-				  p->method_name,
-				  pdevice->domain,
-				  pdevice->bus,
-				  pdevice->device,
-				  pdevice->function);
+		cl_debug(DEBUG_ACPI,
+			 "ACPI %s for dev %04x:%02x:%02x.%x\n",
+			 p->method_name,
+			 pdevice->domain,
+			 pdevice->bus,
+			 pdevice->device,
+			 pdevice->function);
 
 		err = mods_find_pci_dev(client, pdevice, &dev);
 		if (unlikely(err)) {
 			if (err == -ENODEV)
-				mods_error_printk("ACPI: PCI device %04x:%02x:%02x.%x not found\n",
-					  pdevice->domain,
-					  pdevice->bus,
-					  pdevice->device,
-					  pdevice->function);
+				cl_error(
+					"ACPI: dev %04x:%02x:%02x.%x not found\n",
+					pdevice->domain,
+					pdevice->bus,
+					pdevice->device,
+					pdevice->function);
 			LOG_EXT();
 			return err;
 		}
 		acpi_method_handler = MODS_ACPI_HANDLE(&dev->dev);
 	} else {
-		mods_debug_printk(DEBUG_ACPI, "ACPI %s\n", p->method_name);
-		mods_acpi_handle_init(p->method_name, &acpi_method_handler);
+		cl_debug(DEBUG_ACPI, "ACPI %s\n", p->method_name);
+		mods_acpi_handle_init(client,
+				      p->method_name,
+				      &acpi_method_handler);
 	}
 
 	if (acpi_id != ACPI_MODS_IGNORE_ACPI_ID) {
 		status = acpi_bus_get_device(acpi_method_handler, &acpi_dev);
 		if (ACPI_FAILURE(status) || !acpi_dev) {
-			mods_error_printk("ACPI: device for %s not found\n",
-					   p->method_name);
+			cl_error("ACPI: device for %s not found\n",
+				 p->method_name);
 			pci_dev_put(dev);
 			LOG_EXT();
 			return -EINVAL;
@@ -237,22 +247,23 @@ static int mods_eval_acpi_method(struct mods_client           *client,
 
 			if (device_id == acpi_id) {
 				acpi_method_handler = acpi_dev->handle;
-				mods_debug_printk(DEBUG_ACPI,
-						  "ACPI: Found %s (id = 0x%x) on device %04x:%02x:%02x.%x\n",
-						  p->method_name,
-						  (unsigned int)device_id,
-						  pdevice->domain,
-						  pdevice->bus,
-						  pdevice->device,
-						  pdevice->function);
+				cl_debug(DEBUG_ACPI,
+					 "ACPI: found %s (id = 0x%x) on dev %04x:%02x:%02x.%x\n",
+					 p->method_name,
+					 (unsigned int)device_id,
+					 pdevice->domain,
+					 pdevice->bus,
+					 pdevice->device,
+					 pdevice->function);
 				break;
 			}
 		}
 	}
 
 	if (!acpi_method_handler) {
-		mods_debug_printk(DEBUG_ACPI, "ACPI: handle for %s not found\n",
-				  p->method_name);
+		cl_debug(DEBUG_ACPI,
+			 "ACPI: handle for %s not found\n",
+			 p->method_name);
 		pci_dev_put(dev);
 		LOG_EXT();
 		return -EINVAL;
@@ -275,7 +286,7 @@ static int mods_eval_acpi_method(struct mods_client           *client,
 			break;
 		}
 		default: {
-			mods_error_printk("unsupported ACPI argument type\n");
+			cl_error("unsupported ACPI argument type\n");
 			pci_dev_put(dev);
 			LOG_EXT();
 			return -EINVAL;
@@ -292,7 +303,7 @@ static int mods_eval_acpi_method(struct mods_client           *client,
 				      &output);
 
 	if (ACPI_FAILURE(status)) {
-		mods_error_printk("ACPI method %s failed\n", p->method_name);
+		cl_error("ACPI method %s failed\n", p->method_name);
 		pci_dev_put(dev);
 		LOG_EXT();
 		return -EINVAL;
@@ -300,13 +311,14 @@ static int mods_eval_acpi_method(struct mods_client           *client,
 
 	acpi_method = output.pointer;
 	if (!acpi_method) {
-		mods_error_printk("missing output from ACPI method %s\n",
-				  p->method_name);
+		cl_error("missing output from ACPI method %s\n",
+			 p->method_name);
 		err = -EINVAL;
 	} else {
 		u8 *buf = p->out_buffer;
 
-		err = mods_extract_acpi_object(p->method_name,
+		err = mods_extract_acpi_object(client,
+					       p->method_name,
 					       acpi_method,
 					       &buf,
 					       buf+sizeof(p->out_buffer));
@@ -339,29 +351,28 @@ static int mods_acpi_get_ddc(struct mods_client         *client,
 
 	LOG_ENT();
 
-	mods_debug_printk(DEBUG_ACPI,
-			  "ACPI _DDC (EDID) for device %04x:%02x:%02x.%x\n",
-			  pci_device->domain,
-			  pci_device->bus,
-			  pci_device->device,
-			  pci_device->function);
+	cl_debug(DEBUG_ACPI,
+		 "ACPI _DDC (EDID) for dev %04x:%02x:%02x.%x\n",
+		 pci_device->domain,
+		 pci_device->bus,
+		 pci_device->device,
+		 pci_device->function);
 
 	err = mods_find_pci_dev(client, pci_device, &dev);
 	if (unlikely(err)) {
 		if (err == -ENODEV)
-			mods_error_printk("ACPI: PCI device %04x:%02x:%02x.%x not found\n",
-					  pci_device->domain,
-					  pci_device->bus,
-					  pci_device->device,
-					  pci_device->function);
+			cl_error("ACPI: dev %04x:%02x:%02x.%x not found\n",
+				 pci_device->domain,
+				 pci_device->bus,
+				 pci_device->device,
+				 pci_device->function);
 		LOG_EXT();
 		return err;
 	}
 
 	dev_handle = MODS_ACPI_HANDLE(&dev->dev);
 	if (!dev_handle) {
-		mods_debug_printk(DEBUG_ACPI,
-				  "ACPI: handle for _DDC not found\n");
+		cl_debug(DEBUG_ACPI, "ACPI: handle for _DDC not found\n");
 		pci_dev_put(dev);
 		LOG_EXT();
 		return -EINVAL;
@@ -369,7 +380,7 @@ static int mods_acpi_get_ddc(struct mods_client         *client,
 
 	status = acpi_bus_get_device(dev_handle, &device);
 	if (ACPI_FAILURE(status) || !device) {
-		mods_error_printk("ACPI: device for _DDC not found\n");
+		cl_error("ACPI: device for _DDC not found\n");
 		pci_dev_put(dev);
 		LOG_EXT();
 		return -EINVAL;
@@ -399,25 +410,24 @@ static int mods_acpi_get_ddc(struct mods_client         *client,
 		    (device_id == 0x0400)) {
 
 			lcd_dev_handle = dev->handle;
-			mods_debug_printk(DEBUG_ACPI,
-			    "ACPI: Found LCD 0x%x on device %04x:%02x:%02x.%x\n",
-			    (unsigned int)device_id,
-			    p->device.domain,
-			    p->device.bus,
-			    p->device.device,
-			    p->device.function);
+			cl_debug(DEBUG_ACPI,
+				 "ACPI: Found LCD 0x%llx on dev %04x:%02x:%02x.%x\n",
+				 device_id,
+				 p->device.domain,
+				 p->device.bus,
+				 p->device.device,
+				 p->device.function);
 			break;
 		}
 
 	}
 
 	if (lcd_dev_handle == NULL) {
-		mods_error_printk(
-			"ACPI: LCD not found for device %04x:%02x:%02x.%x\n",
-			p->device.domain,
-			p->device.bus,
-			p->device.device,
-			p->device.function);
+		cl_error("ACPI: LCD not found for dev %04x:%02x:%02x.%x\n",
+			 p->device.domain,
+			 p->device.bus,
+			 p->device.device,
+			 p->device.function);
 		pci_dev_put(dev);
 		LOG_EXT();
 		return -EINVAL;
@@ -439,7 +449,7 @@ static int mods_acpi_get_ddc(struct mods_client         *client,
 	}
 
 	if (ACPI_FAILURE(status)) {
-		mods_error_printk("ACPI method _DDC (EDID) failed\n");
+		cl_error("ACPI method _DDC (EDID) failed\n");
 		pci_dev_put(dev);
 		LOG_EXT();
 		return -EINVAL;
@@ -456,12 +466,12 @@ static int mods_acpi_get_ddc(struct mods_client         *client,
 			       p->out_data_size);
 			err = OK;
 		} else {
-			mods_error_printk(
-		       "output buffer too small for ACPI method _DDC (EDID)\n");
+			cl_error(
+				"output buffer too small for ACPI method _DDC (EDID)\n");
 			err = -EINVAL;
 		}
 	} else {
-		mods_error_printk("unsupported ACPI output type\n");
+		cl_error("unsupported ACPI output type\n");
 		err = -EINVAL;
 	}
 

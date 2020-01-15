@@ -59,6 +59,9 @@ struct en_dev_entry {
 	struct msix_entry   *msix_entries;
 	u32                  irq_flags;
 	u32                  nvecs;
+#ifdef MODS_HAS_SRIOV
+	u32                  num_vfs;
+#endif
 	u8                   client_id;
 };
 
@@ -253,14 +256,30 @@ struct NVL_TRAINED {
 			pr_info("mods debug: " fmt, ##args); \
 	})
 
+#define cl_debug(level, fmt, args...)\
+	({ \
+		if (mods_check_debug_level(level)) \
+			pr_info("mods [%u] debug: " fmt, client->client_id, \
+				##args); \
+	})
+
 #define mods_info_printk(fmt, args...)\
 	pr_info("mods: " fmt, ##args)
 
+#define cl_info(fmt, args...)\
+	pr_info("mods [%u]: " fmt, client->client_id, ##args)
+
 #define mods_error_printk(fmt, args...)\
-	pr_info("mods error: " fmt, ##args)
+	pr_err("mods error: " fmt, ##args)
+
+#define cl_error(fmt, args...)\
+	pr_err("mods [%u] error: " fmt, client->client_id, ##args)
 
 #define mods_warning_printk(fmt, args...)\
-	pr_info("mods warning: " fmt, ##args)
+	pr_notice("mods warning: " fmt, ##args)
+
+#define cl_warn(fmt, args...)\
+	pr_notice("mods [%u] warning: " fmt, client->client_id, ##args)
 
 struct irq_mask_info {
 	u32	*dev_irq_mask_reg;  /*IRQ mask register, read-only reg*/
@@ -374,7 +393,8 @@ int mods_unregister_all_nvlink_sysmem_trained(struct mods_client *client);
 int mods_enable_device(struct mods_client   *client,
 		       struct pci_dev       *dev,
 		       struct en_dev_entry **dev_entry);
-void mods_disable_device(struct pci_dev *pdev);
+void mods_disable_device(struct mods_client *client,
+			 struct pci_dev     *pdev);
 #endif
 
 #ifdef CONFIG_PCI

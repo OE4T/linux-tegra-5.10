@@ -1,7 +1,7 @@
 /*
  * mods_net.c - This file is part of NVIDIA MODS kernel driver.
  *
- * Copyright (c) 2015-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2015-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * NVIDIA MODS kernel driver is free software: you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -29,19 +29,17 @@ int esc_mods_net_force_link(struct mods_client *client,
 	if (!p ||
 	    (strnlen(p->device_name, MAX_NET_DEVICE_NAME_LENGTH) == 0) ||
 	    (!memchr(p->device_name, '\0', MAX_NET_DEVICE_NAME_LENGTH))) {
-		mods_error_printk("invalid device name\n");
+		cl_error("invalid device name\n");
 		return -EINVAL;
 	}
 
 	for_each_netdev(&init_net, ndev)
 		if (!strcmp(ndev->name, p->device_name)) {
 			netif_carrier_on(ndev);
-			mods_info_printk("carrier forced on: %s\n",
-					 p->device_name);
+			cl_info("carrier forced on: %s\n", p->device_name);
 			return OK;
 		}
 
-	mods_error_printk("failed to find network device %s\n",
-			  p->device_name);
+	cl_error("failed to find network device %s\n", p->device_name);
 	return -EINVAL;
 }
