@@ -50,6 +50,7 @@ NV_REPOSITORY_COMPONENTS += userspace/units/posix/rwsem
 NV_REPOSITORY_COMPONENTS += userspace/units/posix/queue
 NV_REPOSITORY_COMPONENTS += userspace/units/interface/bsearch
 NV_REPOSITORY_COMPONENTS += userspace/units/interface/lock
+NV_REPOSITORY_COMPONENTS += userspace/units/interface/nvgpu_gk20a
 NV_REPOSITORY_COMPONENTS += userspace/units/interface/atomic
 NV_REPOSITORY_COMPONENTS += userspace/units/interface/rbtree
 NV_REPOSITORY_COMPONENTS += userspace/units/interface/static_analysis

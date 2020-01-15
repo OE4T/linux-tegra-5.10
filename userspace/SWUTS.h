@@ -33,6 +33,7 @@
  *   - @ref SWUTS-enabled
  *   - @ref SWUTS-interface-bsearch
  *   - @ref SWUTS-interface-lock
+ *   - @ref SWUTS-interface-nvgpu-gk20a
  *   - @ref SWUTS-interface-rbtree
  *   - @ref SWUTS-interface-static_analysis
  *   - @ref SWUTS-interface-string

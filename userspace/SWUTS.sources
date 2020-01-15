@@ -4,6 +4,7 @@ INPUT += ../../../userspace/units/cg/nvgpu-cg.h
 INPUT += ../../../userspace/units/enabled/nvgpu-enabled.h
 INPUT += ../../../userspace/units/interface/bsearch/bsearch.h
 INPUT += ../../../userspace/units/interface/lock/lock.h
+INPUT += ../../../userspace/units/interface/nvgpu_gk20a/nvgpu_gk20a.h
 INPUT += ../../../userspace/units/interface/rbtree/rbtree.h
 INPUT += ../../../userspace/units/interface/static_analysis/static_analysis.h
 INPUT += ../../../userspace/units/interface/string/nvgpu-string.h

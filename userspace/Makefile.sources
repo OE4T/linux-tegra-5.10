@@ -63,6 +63,7 @@ UNITS :=				\
 	$(UNIT_SRC)/init		\
 	$(UNIT_SRC)/interface/bsearch	\
 	$(UNIT_SRC)/interface/lock	\
+	$(UNIT_SRC)/interface/nvgpu_gk20a	\
 	$(UNIT_SRC)/interface/atomic	\
 	$(UNIT_SRC)/interface/rbtree	\
 	$(UNIT_SRC)/interface/static_analysis	\
