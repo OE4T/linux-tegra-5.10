@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -157,7 +157,7 @@ int test_get_put(struct unit_module *m,
  * Input:
  * - test_setup_env() must be called before.
  *
- * Targets: nvgpu_check_gpu_state
+ * Targets: nvgpu_check_gpu_state, gops_mc.get_chip_details
  *
  * Steps:
  * - Test valid case.

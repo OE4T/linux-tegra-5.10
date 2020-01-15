@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -77,9 +77,10 @@ int test_free_env(struct unit_module *m, struct gk20a *g, void *args);
  * Description: Validate function of nvgpu_mc_intr_stall_unit_config and
  *              nvgpu_mc_intr_nonstall_unit_config.
  *
- * Test Type: Feature
+ * Test Type: Feature, Error guessing
  *
- * Targets: nvgpu_mc_intr_stall_unit_config, nvgpu_mc_intr_nonstall_unit_config
+ * Targets: nvgpu_mc_intr_stall_unit_config, nvgpu_mc_intr_nonstall_unit_config,
+ *          mc_gp10b_intr_stall_unit_config, mc_gp10b_intr_nonstall_unit_config
  *
  * Input: test_setup_env must have been run.
  *
@@ -119,7 +120,9 @@ int test_unit_config(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Targets: nvgpu_mc_intr_stall_pause, nvgpu_mc_intr_stall_resume,
  *          nvgpu_mc_intr_nonstall_pause, nvgpu_mc_intr_nonstall_resume,
- *          nvgpu_mc_intr_mask
+ *          nvgpu_mc_intr_mask, mc_gp10b_intr_stall_pause,
+ *          mc_gp10b_intr_stall_resume, mc_gp10b_intr_nonstall_pause,
+ *          mc_gp10b_intr_nonstall_resume, mc_gp10b_intr_mask
  *
  * Input: test_setup_env must have been run.
  *
@@ -153,7 +156,7 @@ int test_pause_resume_mask(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Test Type: Feature
  *
- * Targets: mc_gp10b_intr_stall
+ * Targets: gops_mc.intr_stall, mc_gp10b_intr_stall
  *
  * Input: test_setup_env must have been run.
  *
@@ -173,7 +176,7 @@ int test_intr_stall(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Test Type: Feature
  *
- * Targets: gv11b_mc_is_stall_and_eng_intr_pending
+ * Targets: gops_mc.is_stall_and_eng_intr_pending, mc_gp10b_is_intr1_pending
  *
  * Input: test_setup_env must have been run.
  *
@@ -196,7 +199,7 @@ int test_is_stall_and_eng_intr_pending(struct unit_module *m, struct gk20a *g,
  *
  * Test Type: Feature
  *
- * Targets: mc_gp10b_isr_stall
+ * Targets: gops_mc.isr_stall, mc_gp10b_isr_stall
  *
  * Input: test_setup_env must have been run.
  *
@@ -234,7 +237,8 @@ int test_isr_stall(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Test Type: Feature
  *
- * Targets: gm20b_mc_isr_nonstall
+ * Targets: gops_mc.isr_nonstall, gm20b_mc_isr_nonstall, gops_mc.intr_nonstall,
+ *          mc_gp10b_intr_nonstall
  *
  * Input: test_setup_env must have been run.
  *
@@ -261,7 +265,7 @@ int test_isr_nonstall(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Test Type: Feature
  *
- * Targets: mc_gp10b_is_intr1_pending
+ * Targets: gops_mc.is_intr1_pending, mc_gp10b_is_intr1_pending
  *
  * Input: test_setup_env must have been run.
  *
@@ -286,7 +290,8 @@ int test_is_intr1_pending(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Test Type: Feature
  *
- * Targets: gm20b_mc_enable, gm20b_mc_disable, gm20b_mc_reset
+ * Targets: gops_mc.enable, gops_mc.disable, gops_mc.reset, gm20b_mc_enable,
+ *           gm20b_mc_disable, gm20b_mc_reset
  *
  * Input: test_setup_env must have been run.
  *
@@ -307,9 +312,9 @@ int test_enable_disable_reset(struct unit_module *m, struct gk20a *g, void *args
  *
  * Description: Validate functionality of HAL to get reset mask for a unit.
  *
- * Test Type: Feature
+ * Test Type: Feature, Error guessing
  *
- * Targets: gm20b_mc_reset_mask
+ * Targets: gops_mc.reset_mask, gm20b_mc_reset_mask
  *
  * Input: test_setup_env must have been run.
  *
