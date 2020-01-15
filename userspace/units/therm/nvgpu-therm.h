@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -75,29 +75,30 @@ int test_free_env(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Test Type: Feature based, Error guessing.
  *
- * Targets: nvgpu_init_therm_support
+ * Targets: gops_therm.init_therm_support, gops_therm.init_therm_setup_hw,
+ *          nvgpu_init_therm_support, gv11b_init_therm_setup_hw
  *
  * Input: test_setup_env has run.
  *
  * Steps:
- * - Call API nvgpu_init_therm_support and verify it returns success.
+ * - Call API gops_therm.init_therm_support and verify it returns success.
  * - Set the HAL init_therm_setup_hw to NULL.
- * - Call API nvgpu_init_therm_support and verify it returns success.
+ * - Call API gops_therm.init_therm_support and verify it returns success.
  * - Set the HAL init_therm_setup_hw to a mock function that returns failure.
- * - Call API nvgpu_init_therm_support and verify it returns err.
+ * - Call API gops_therm.init_therm_support and verify it returns err.
  *
  * Output: Returns PASS if expected result is met, FAIL otherwise.
  */
 int test_therm_init_support(struct unit_module *m, struct gk20a *g, void *args);
 
 /**
- * Test specification for: test_gv11b_therm_init_elcg_mode
+ * Test specification for: test_therm_init_elcg_mode
  *
- * Description: Validate HAL gv11b_therm_init_elcg_mode.
+ * Description: Validate HAL init_elcg_mode.
  *
  * Test Type: Feature based, Error guessing.
  *
- * Targets: gv11b_therm_init_elcg_mode
+ * Targets: gops_therm.init_elcg_mode, gv11b_therm_init_elcg_mode
  *
  * Test Type: Feature based, Error guessing.
  *
@@ -106,27 +107,27 @@ int test_therm_init_support(struct unit_module *m, struct gk20a *g, void *args);
  * - Loop through 2 engines:
  *   - Loop through all Gate modes (RUN, AUTO, STOP), for each iteration:
  *     - Set the THERM_GATE_CTRL register to 0.
- *     - Call the HAL gv11b_therm_init_elcg_mode.
+ *     - Call the HAL gops_therm.init_elcg_mode.
  *     - Read the THERM_GATE_CTRL register and verify register setting.
  *   - Repeat for an Invalid Gate mode for branch coverage.
  * - Disable ELCG flag.
  * - Set the THERM_GATE_CTRL register to 0.
- * - Call the HAL gv11b_therm_init_elcg_mode.
+ * - Call the HAL gops_therm.init_elcg_mode.
  * - Read the THERM_GATE_CTRL register and verify register setting were
  *   unchanged.
  * Output: Returns PASS if expected result is met, FAIL otherwise.
  */
-int test_gv11b_therm_init_elcg_mode(struct unit_module *m, struct gk20a *g,
+int test_therm_init_elcg_mode(struct unit_module *m, struct gk20a *g,
 					void *args);
 
 /**
- * Test specification for: test_gv11b_elcg_init_idle_filters
+ * Test specification for: test_elcg_init_idle_filters
  *
- * Description: Validate HAL gv11b_elcg_init_idle_filters.
+ * Description: Validate HAL elcg_init_idle_filters.
  *
  * Test Type: Feature based, Error guessing.
  *
- * Targets: gv11b_elcg_init_idle_filters
+ * Targets: gops_therm.elcg_init_idle_filters, gv11b_elcg_init_idle_filters
  *
  * Input: test_setup_env has run.
  *
@@ -135,15 +136,15 @@ int test_gv11b_therm_init_elcg_mode(struct unit_module *m, struct gk20a *g,
  * - Set the THERM_GATE_CTRL, THERM_FECS_IDLE_FILTER and
  *   THERM_HUBMMU_IDLE_FILTER registers to 0.
  * - Set the mock flag for simulation mode.
- * - Call the HAL gv11b_elcg_init_idle_filters.
+ * - Call the HAL gops_therm.elcg_init_idle_filters.
  * - Verify the API returns success and no register values were changed.
  * - Clear the mock flag for simulation mode.
- * - Call the HAL gv11b_elcg_init_idle_filters.
+ * - Call the HAL gops_therm.elcg_init_idle_filters.
  * - Verify the API returns success and the register values were correct.
  *
  * Output: Returns PASS if expected result is met, FAIL otherwise.
  */
-int test_gv11b_elcg_init_idle_filters(struct unit_module *m, struct gk20a *g,
+int test_elcg_init_idle_filters(struct unit_module *m, struct gk20a *g,
 					void *args);
 
 /**

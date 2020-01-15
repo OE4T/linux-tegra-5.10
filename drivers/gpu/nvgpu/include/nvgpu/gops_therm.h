@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -87,21 +87,6 @@ struct gops_therm {
 	void (*init_elcg_mode)(struct gk20a *g, u32 mode, u32 engine);
 
 	/**
-	 * @brief Control BLCG mode of an engine.
-	 *
-	 * @param g [in]	The GPU driver struct.
-	 * @param mode [in]	BLCG mode.
-	 * @param engine [in]	Engine index for control reg.
-	 *
-	 * The HAL controls Block level clock gating (BLCG) of an engine with
-	 * following steps:
-	 * - Skip BLCG if NVGPU_GPU_CAN_BLCG is not enabled
-	 * - Update NV_THERM_GATE_CTRL register with either "RUN:clk always
-	 *   runs" or "AUTO:clk runs when non-idle" mode
-	 */
-	void (*init_blcg_mode)(struct gk20a *g, u32 mode, u32 engine);
-
-	/**
 	 * @brief Init ELCG idle filters of GPU engines, FECS and HUBMMU.
 	 *
 	 * @param g [in]	The GPU driver struct.
@@ -117,6 +102,21 @@ struct gops_therm {
 	int (*elcg_init_idle_filters)(struct gk20a *g);
 
 	/** @cond DOXYGEN_SHOULD_SKIP_THIS */
+	/**
+	 * @brief Control BLCG mode of an engine.
+	 *
+	 * @param g [in]	The GPU driver struct.
+	 * @param mode [in]	BLCG mode.
+	 * @param engine [in]	Engine index for control reg.
+	 *
+	 * The HAL controls Block level clock gating (BLCG) of an engine with
+	 * following steps:
+	 * - Skip BLCG if NVGPU_GPU_CAN_BLCG is not enabled
+	 * - Update NV_THERM_GATE_CTRL register with either "RUN:clk always
+	 *   runs" or "AUTO:clk runs when non-idle" mode
+	 */
+	void (*init_blcg_mode)(struct gk20a *g, u32 mode, u32 engine);
+
 	void (*get_internal_sensor_limits)(s32 *max_24_8,
 							s32 *min_24_8);
 	void (*throttle_enable)(struct gk20a *g, u32 val);

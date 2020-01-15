@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -37,7 +37,7 @@
 #define NUM_ENGINES 2
 #define INVALID_GATE_MODE 100
 
-int test_gv11b_therm_init_elcg_mode(struct unit_module *m, struct gk20a *g,
+int test_therm_init_elcg_mode(struct unit_module *m, struct gk20a *g,
 					void *args)
 {
 	int ret = UNIT_FAIL;
@@ -86,7 +86,7 @@ done:
 	return ret;
 }
 
-int test_gv11b_elcg_init_idle_filters(struct unit_module *m, struct gk20a *g,
+int test_elcg_init_idle_filters(struct unit_module *m, struct gk20a *g,
 					void *args)
 {
 	int ret = UNIT_FAIL;

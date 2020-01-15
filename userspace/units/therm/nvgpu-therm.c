@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -87,6 +87,7 @@ int test_setup_env(struct unit_module *m,
 	(void)nvgpu_posix_register_io(g, &test_reg_callbacks);
 
 	/* setup HALs */
+	g->ops.therm.init_therm_support = nvgpu_init_therm_support;
 	g->ops.therm.init_therm_setup_hw = gv11b_init_therm_setup_hw;
 	g->ops.therm.init_elcg_mode = gv11b_therm_init_elcg_mode;
 	g->ops.therm.elcg_init_idle_filters = gv11b_elcg_init_idle_filters;
@@ -110,17 +111,17 @@ int test_therm_init_support(struct unit_module *m, struct gk20a *g, void *args)
 	save_hal = g->ops.therm.init_therm_setup_hw;
 
 	/* default case */
-	err = nvgpu_init_therm_support(g);
+	err = g->ops.therm.init_therm_support(g);
 	unit_assert(err == 0, goto done);
 
 	/* set this HAL to NULL for branch coverage */
 	g->ops.therm.init_therm_setup_hw = NULL;
-	err = nvgpu_init_therm_support(g);
+	err = g->ops.therm.init_therm_support(g);
 	unit_assert(err == 0, goto done);
 
 	/* make this HAL return error */
 	g->ops.therm.init_therm_setup_hw = mock_hal_fail;
-	err = nvgpu_init_therm_support(g);
+	err = g->ops.therm.init_therm_support(g);
 	unit_assert(err != 0, goto done);
 
 	ret = UNIT_SUCCESS;
@@ -134,8 +135,8 @@ done:
 struct unit_module_test therm_tests[] = {
 	UNIT_TEST(therm_setup_env,		test_setup_env,				NULL, 0),
 	UNIT_TEST(therm_init_support,		test_therm_init_support,		NULL, 0),
-	UNIT_TEST(gv11b_therm_init_elcg_mode,	test_gv11b_therm_init_elcg_mode,	NULL, 0),
-	UNIT_TEST(gv11b_elcg_init_idle_filters,	test_gv11b_elcg_init_idle_filters,	NULL, 0),
+	UNIT_TEST(gv11b_therm_init_elcg_mode,	test_therm_init_elcg_mode,		NULL, 0),
+	UNIT_TEST(gv11b_elcg_init_idle_filters,	test_elcg_init_idle_filters,		NULL, 0),
 	UNIT_TEST(therm_free_env,		test_free_env,				NULL, 0),
 };
 
