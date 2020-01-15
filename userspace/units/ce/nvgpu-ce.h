@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -75,7 +75,7 @@ int test_free_env(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Test Type: Feature
  *
- * Targets: nvgpu_ce_init_support
+ * Targets: gops_ce.ce_init_support, nvgpu_ce_init_support
  *
  * Input: test_setup_env must have been run.
  *
@@ -97,18 +97,18 @@ int test_ce_init_support(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Test Type: Feature
  *
- * Targets: gv11b_ce_stall_isr
+ * Targets: gops_ce.isr_stall, gv11b_ce_stall_isr
  *
  * Input: test_setup_env must have been run.
  *
  * Steps:
  * - Set all CE interrupt sources pending in the interrupt status reg for each
  *   instance.
- * - Call gv11b_ce_stall_isr.
+ * - Call gops_ce.isr_stall.
  * - Verify all (and only) the stall interrupts are cleared.
  * - Set no CE interrupt sources pending in the interrupt status reg for each
  *   instance.
- * - Call gv11b_ce_stall_isr.
+ * - Call gops_ce.isr_stall.
  * - Verify no interrupts are cleared.
  *
  * Output: Returns PASS if expected result is met, FAIL otherwise.
@@ -122,19 +122,19 @@ int test_ce_stall_isr(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Test Type: Feature
  *
- * Targets: gp10b_ce_nonstall_isr
+ * Targets: gops_ce.isr_nonstall, gp10b_ce_nonstall_isr
  *
  * Input: test_setup_env must have been run.
  *
  * Steps:
  * - Set all CE interrupt sources pending in the interrupt status reg for each
  *   instance.
- * - Call gp10b_ce_nonstall_isr.
+ * - Call gops_ce.isr_nonstall.
  * - Verify only the nonstall interrupt is cleared and the expected ops are
  *   returned.
  * - Set no CE interrupt sources pending in the interrupt status reg for each
  *   instance.
- * - Call gp10b_ce_nonstall_isr.
+ * - Call gops_ce.isr_nonstall.
  * - Verify no interrupts are cleared and no ops are returned.
  *
  * Output: Returns PASS if expected result is met, FAIL otherwise.
@@ -148,18 +148,19 @@ int test_ce_nonstall_isr(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Test Type: Feature
  *
- * Targets: gv11b_ce_mthd_buffer_fault_in_bar2_fault
+ * Targets: gops_ce.mthd_buffer_fault_in_bar2_fault,
+ *          gv11b_ce_mthd_buffer_fault_in_bar2_fault
  *
  * Input: test_setup_env must have been run.
  *
  * Steps:
  * - Set all CE interrupt sources pending in the interrupt status reg for each
  *   instance.
- * - Call gv11b_ce_mthd_buffer_fault_in_bar2_fault.
+ * - Call gops_ce.mthd_buffer_fault_in_bar2_fault.
  * - Verify only the correct interrupt is cleared.
  * - Set no CE interrupt sources pending in the interrupt status reg for each
  *   instance.
- * - Call gv11b_ce_mthd_buffer_fault_in_bar2_fault.
+ * - Call gops_ce.mthd_buffer_fault_in_bar2_fault.
  * - Verify no interrupts are cleared.
  *
  * Output: Returns PASS if expected result is met, FAIL otherwise.
@@ -170,18 +171,18 @@ int test_mthd_buffer_fault_in_bar2_fault(struct unit_module *m, struct gk20a *g,
 /**
  * Test specification for: test_get_num_pce
  *
- * Description: Validate function of gv11b_ce_get_num_pce.
+ * Description: Validate function of gops_ce.get_num_pce.
  *
  * Test Type: Feature
  *
- * Targets: gv11b_ce_get_num_pce
+ * Targets: gops_ce.get_num_pce, gv11b_ce_get_num_pce
  *
  * Input: test_setup_env must have been run.
  *
  * Steps:
  * - Loop through all possible 16 bit values for the PCE Map register.
  *   - For each value, write to the PCE Map register.
- *   - Call gv11b_ce_get_num_pce and verify the correct number of PCEs is
+ *   - Call gops_ce.get_num_pce and verify the correct number of PCEs is
  *     returned.
  *
  * Output: Returns PASS if expected result is met, FAIL otherwise.
@@ -195,13 +196,13 @@ int test_get_num_pce(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Test Type: Feature
  *
- * Targets: gv11b_ce_init_prod_values
+ * Targets: gops_ce.init_prod_values, gv11b_ce_init_prod_values
  *
  * Input: test_setup_env must have been run.
  *
  * Steps:
  * - Clear the LCE Options register for all instances.
- * - Call gv11b_ce_init_prod_values.
+ * - Call gops_ce.init_prod_values.
  * - Verify all instances of the LCE Options register are set properly.
  *
  * Output: Returns PASS if expected result is met, FAIL otherwise.

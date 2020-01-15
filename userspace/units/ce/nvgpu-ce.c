@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -180,12 +180,13 @@ int test_ce_stall_isr(struct unit_module *m, struct gk20a *g, void *args)
 	int inst_id;
 	u32 intr_val;
 
+	g->ops.ce.isr_stall = gv11b_ce_stall_isr;
 	for (inst_id = 0; inst_id < NUM_INST; inst_id++) {
 		intr_status_written[inst_id] = 0;
 		intr_val = 0x1f; /* all intr sources */
 		nvgpu_posix_io_writel_reg_space(g, ce_intr_status_r(inst_id),
 						intr_val);
-		gv11b_ce_stall_isr(g, inst_id, 0);
+		g->ops.ce.isr_stall(g, inst_id, 0);
 		if (intr_status_written[inst_id] != (intr_val &
 				 ~ce_intr_status_nonblockpipe_pending_f())) {
 			ret = UNIT_FAIL;
@@ -198,7 +199,7 @@ int test_ce_stall_isr(struct unit_module *m, struct gk20a *g, void *args)
 		intr_val = 0x0;
 		nvgpu_posix_io_writel_reg_space(g, ce_intr_status_r(inst_id),
 						intr_val);
-		gv11b_ce_stall_isr(g, inst_id, 0);
+		g->ops.ce.isr_stall(g, inst_id, 0);
 		if (intr_status_written[inst_id] != intr_val) {
 			ret = UNIT_FAIL;
 			unit_err(m, "intr_status not cleared, only 0x%08x\n",
@@ -218,12 +219,13 @@ int test_ce_nonstall_isr(struct unit_module *m, struct gk20a *g, void *args)
 	u32 intr_val;
 	u32 val;
 
+	g->ops.ce.isr_nonstall = gp10b_ce_nonstall_isr;
 	for (inst_id = 0; inst_id < NUM_INST; inst_id++) {
 		intr_status_written[inst_id] = 0;
 		intr_val = 0x1f; /* all intr sources */
 		nvgpu_posix_io_writel_reg_space(g, ce_intr_status_r(inst_id),
 						intr_val);
-		val = gp10b_ce_nonstall_isr(g, inst_id, 0);
+		val = g->ops.ce.isr_nonstall(g, inst_id, 0);
 		if (val != (NVGPU_NONSTALL_OPS_WAKEUP_SEMAPHORE |
 			    NVGPU_NONSTALL_OPS_POST_EVENTS)) {
 			ret = UNIT_FAIL;
@@ -242,7 +244,7 @@ int test_ce_nonstall_isr(struct unit_module *m, struct gk20a *g, void *args)
 		intr_val = 0x0;
 		nvgpu_posix_io_writel_reg_space(g, ce_intr_status_r(inst_id),
 						intr_val);
-		val = gp10b_ce_nonstall_isr(g, inst_id, 0);
+		val = g->ops.ce.isr_nonstall(g, inst_id, 0);
 		if (val != 0U) {
 			ret = UNIT_FAIL;
 			unit_err(m, "incorrect ops returned 0x%08x\n", val);
@@ -272,6 +274,8 @@ int test_mthd_buffer_fault_in_bar2_fault(struct unit_module *m, struct gk20a *g,
 	int inst_id;
 	u32 intr_val;
 
+	g->ops.ce.mthd_buffer_fault_in_bar2_fault =
+				gv11b_ce_mthd_buffer_fault_in_bar2_fault;
 	g->ops.top.get_num_lce = mock_get_num_lce;
 
 	intr_val = 0x1f; /* all intr sources */
@@ -280,7 +284,7 @@ int test_mthd_buffer_fault_in_bar2_fault(struct unit_module *m, struct gk20a *g,
 		nvgpu_posix_io_writel_reg_space(g, ce_intr_status_r(inst_id),
 						intr_val);
 	}
-	gv11b_ce_mthd_buffer_fault_in_bar2_fault(g);
+	g->ops.ce.mthd_buffer_fault_in_bar2_fault(g);
 	for (inst_id = 0; inst_id < NUM_INST; inst_id++) {
 		if (intr_status_written[inst_id] !=
 			ce_intr_status_mthd_buffer_fault_pending_f()) {
@@ -297,7 +301,7 @@ int test_mthd_buffer_fault_in_bar2_fault(struct unit_module *m, struct gk20a *g,
 		nvgpu_posix_io_writel_reg_space(g, ce_intr_status_r(inst_id),
 						intr_val);
 	}
-	gv11b_ce_mthd_buffer_fault_in_bar2_fault(g);
+	g->ops.ce.mthd_buffer_fault_in_bar2_fault(g);
 	for (inst_id = 0; inst_id < NUM_INST; inst_id++) {
 		if (intr_status_written[inst_id] != 0) {
 			ret = UNIT_FAIL;
@@ -316,10 +320,11 @@ int test_get_num_pce(struct unit_module *m, struct gk20a *g, void *args)
 	u32 pce_map_val; /* 16 bit bitmap */
 	u32 val;
 
+	g->ops.ce.get_num_pce = gv11b_ce_get_num_pce;
 	for (pce_map_val = 0; pce_map_val <= U16_MAX; pce_map_val++) {
 		nvgpu_posix_io_writel_reg_space(g, ce_pce_map_r(),
 						pce_map_val);
-		val = gv11b_ce_get_num_pce(g);
+		val = g->ops.ce.get_num_pce(g);
 		if (val != hweight32(pce_map_val)) {
 			unit_return_fail(m, "incorrect value %u\n", val);
 		}
@@ -333,11 +338,12 @@ int test_init_prod_values(struct unit_module *m, struct gk20a *g, void *args)
 	int inst_id;
 	u32 val;
 
+	g->ops.ce.init_prod_values = gv11b_ce_init_prod_values;
 	for (inst_id = 0; inst_id < NUM_INST; inst_id++) {
 		/* init reg to known state */
 		nvgpu_posix_io_writel_reg_space(g, ce_lce_opt_r(inst_id), 0U);
 	}
-	gv11b_ce_init_prod_values(g);
+	g->ops.ce.init_prod_values(g);
 	for (inst_id = 0; inst_id < NUM_INST; inst_id++) {
 		/* verify written correctly */
 		val = nvgpu_posix_io_readl_reg_space(g, ce_lce_opt_r(inst_id));
