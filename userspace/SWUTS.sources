@@ -5,6 +5,7 @@ INPUT += ../../../userspace/units/cg/nvgpu-cg.h
 =======
 >>>>>>> gpu: nvgpu: unit: improve coverage for engines
 INPUT += ../../../userspace/units/enabled/nvgpu-enabled.h
+INPUT += ../../../userspace/units/interface/bit-utils/bit-utils.h
 INPUT += ../../../userspace/units/interface/bsearch/bsearch.h
 INPUT += ../../../userspace/units/interface/lock/lock.h
 INPUT += ../../../userspace/units/interface/nvgpu_gk20a/nvgpu_gk20a.h

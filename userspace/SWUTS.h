@@ -31,6 +31,7 @@
  * to test the NVGPU driver.
  *
  *   - @ref SWUTS-enabled
+ *   - @ref SWUTS-interface-bit-utils
  *   - @ref SWUTS-interface-bsearch
  *   - @ref SWUTS-interface-lock
  *   - @ref SWUTS-interface-nvgpu-gk20a

@@ -61,6 +61,7 @@ UNITS :=				\
 	$(UNIT_SRC)/ptimer		\
 	$(UNIT_SRC)/priv_ring		\
 	$(UNIT_SRC)/init		\
+	$(UNIT_SRC)/interface/bit-utils	\
 	$(UNIT_SRC)/interface/bsearch	\
 	$(UNIT_SRC)/interface/lock	\
 	$(UNIT_SRC)/interface/nvgpu_gk20a	\
