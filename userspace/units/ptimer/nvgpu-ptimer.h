@@ -78,7 +78,7 @@ int test_free_env(struct unit_module *m,
  *
  * Test Type: Feature Based
  *
- * Targets: gops_ptimer.read_ptimer
+ * Targets: gops_ptimer.read_ptimer, gk20a_read_ptimer
  *
  * Input: None
  *
@@ -118,7 +118,7 @@ int test_read_ptimer(struct unit_module *m,
  *
  * Test Type: Feature Based
  *
- * Targets: gops_ptimer.isr
+ * Targets: gops_ptimer.isr, gk20a_ptimer_isr
  *
  * Input: None
  *

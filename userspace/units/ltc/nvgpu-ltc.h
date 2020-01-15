@@ -37,7 +37,7 @@
  *
  * Test Type: Feature, Error guessing
  *
- * Targets: gops_ltc.init_ltc_support
+ * Targets: gops_ltc.init_ltc_support, nvgpu_init_ltc_support
  *
  * Input: None
  *
@@ -69,7 +69,7 @@ int test_ltc_init_support(struct unit_module *m,
  * Test Type: Feature, Error guessing
  *
  * Targets: nvgpu_ecc_counter_init_per_lts, nvgpu_ltc_ecc_free,
- *          gops_ltc.ecc_init
+ *          gops_ltc.ecc_init, gv11b_lts_ecc_init
  *
  * Input: test_ltc_init_support must have completed successfully.
  *
@@ -134,7 +134,8 @@ int test_ltc_functionality_tests(struct unit_module *m,
  * Test Type: Feature, Error guessing
  *
  * Targets: nvgpu_ltc_sync_enabled, gops_ltc.ltc_remove_support,
- *          gops_ltc.init_ltc_support
+ *          gops_ltc.init_ltc_support, nvgpu_init_ltc_support,
+ *          nvgpu_ltc_remove_support
  *
  * Input: None
  *
@@ -155,7 +156,7 @@ int test_ltc_negative_tests(struct unit_module *m,
  *
  * Test Type: Feature
  *
- * Targets: gops_ltc.ltc_remove_support
+ * Targets: gops_ltc.ltc_remove_support, nvgpu_ltc_remove_support
  *
  * Input: None
  *
@@ -175,7 +176,8 @@ int test_ltc_remove_support(struct unit_module *m,
  *
  * Test Type: Feature
  *
- * Targets: gops_ltc_intr.isr
+ * Targets: gops_ltc_intr.isr, gv11b_ltc_intr_isr,
+ *          gp10b_ltc_intr_handle_lts_interrupts
  *
  * Input: test_ltc_init_support must have completed successfully.
  *
@@ -253,7 +255,7 @@ int test_ltc_intr(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Test Type: Feature
  *
- * Targets: gops_ltc_intr.en_illegal_compstat
+ * Targets: gops_ltc_intr.en_illegal_compstat, gv11b_ltc_intr_en_illegal_compstat
  *
  * Input: None
  *
@@ -276,7 +278,7 @@ int test_ltc_intr_en_illegal_compstat(struct unit_module *m,
  *
  * Test Type: Feature
  *
- * Targets: gops_ltc_intr.configure
+ * Targets: gops_ltc_intr.configure, gv11b_ltc_intr_configure
  *
  * Input: None
  *
@@ -300,7 +302,7 @@ int test_ltc_intr_configure(struct unit_module *m,
  *
  * Test Type: Feature
  *
- * Targets: gops_ltc.determine_L2_size_bytes
+ * Targets: gops_ltc.determine_L2_size_bytes, gp10b_determine_L2_size_bytes
  *
  * Input: test_ltc_init_support must have completed successfully.
  *
@@ -321,7 +323,7 @@ int test_determine_L2_size_bytes(struct unit_module *m,
  *
  * Test Type: Feature
  *
- * Targets: gops_ltc.set_enabled
+ * Targets: gops_ltc.set_enabled, gp10b_ltc_set_enabled
  *
  * Input: None
  *
@@ -344,7 +346,7 @@ int test_ltc_set_enabled(struct unit_module *m,	struct gk20a *g, void *args);
  *
  * Test Type: Feature, Error guessing
  *
- * Targets: gops_ltc.flush
+ * Targets: gops_ltc.flush, gm20b_flush_ltc
  *
  * Input: None
  *
