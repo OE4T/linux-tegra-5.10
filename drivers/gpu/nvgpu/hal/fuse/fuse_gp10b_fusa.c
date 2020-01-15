@@ -53,7 +53,7 @@ int gp10b_fuse_check_priv_security(struct gk20a *g)
 		return -EINVAL;
 	}
 
-	if (nvgpu_readl(g, fuse_opt_priv_sec_en_r()) != 0U) {
+	if (g->ops.fuse.fuse_opt_priv_sec_en(g) != 0U) {
 		/*
 		 * all falcons have to boot in LS mode and this needs
 		 * wpr_enabled set to 1 and vpr_auto_fetch_disable
@@ -67,7 +67,7 @@ int gp10b_fuse_check_priv_security(struct gk20a *g)
 		is_auto_fetch_disable =
 			(gcplex_config & GCPLEX_CONFIG_VPR_AUTO_FETCH_DISABLE_MASK) != 0U;
 		if (is_wpr_enabled && !is_auto_fetch_disable) {
-			if (nvgpu_readl(g, fuse_opt_sec_debug_en_r()) != 0U) {
+			if (g->ops.fuse.fuse_opt_sec_debug_en(g) != 0U) {
 				nvgpu_log(g, gpu_dbg_info,
 						"gcplex_config = 0x%08x, "
 						"secure mode: ACR debug",
