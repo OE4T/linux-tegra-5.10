@@ -266,9 +266,17 @@ int test_cast(struct unit_module *m, struct gk20a *g, void *args)
 	return  UNIT_SUCCESS;
 }
 
+int test_safety_checks(struct unit_module *m, struct gk20a *g, void *args)
+{
+	nvgpu_safety_checks();
+
+	return  UNIT_SUCCESS;
+}
+
 struct unit_module_test static_analysis_tests[] = {
 	UNIT_TEST(arithmetic,		test_arithmetic,	NULL, 0),
 	UNIT_TEST(cast,			test_cast,		NULL, 0),
+	UNIT_TEST(safety_checks,	test_safety_checks,	NULL, 0),
 };
 
 UNIT_MODULE(static_analysis, static_analysis_tests, UNIT_PRIO_NVGPU_TEST);

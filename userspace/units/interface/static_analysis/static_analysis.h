@@ -85,7 +85,25 @@ int test_arithmetic(struct unit_module *m, struct gk20a *g, void *args);
 int test_cast(struct unit_module *m, struct gk20a *g, void *args);
 
 /**
+ * Test specification for: test_safety_checks
+ *
+ * Description: Verify functionality of static analysis safety_check() API.
+ *
+ * Test Type: Feature
+ *
+ * Targets: nvgpu_safety_checks
+ *
+ * Input: None
+ *
+ * Steps:
+ * - Call the API nvgpu_safety_checks(). No error should occur.
+ *
+ * Output: Returns PASS if expected result is met, FAIL otherwise.
+ */
+int test_safety_checks(struct unit_module *m, struct gk20a *g, void *args);
+
+/**
  * @}
  */
 
-#endif /* UNIT_WORKER_H */
+#endif /* UNIT_STATIC_ANALYSIS_H */
