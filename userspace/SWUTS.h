@@ -34,6 +34,7 @@
  *   - @ref SWUTS-interface-bsearch
  *   - @ref SWUTS-interface-lock
  *   - @ref SWUTS-interface-rbtree
+ *   - @ref SWUTS-interface-static_analysis
  *   - @ref SWUTS-interface-string
  *   - @ref SWUTS-interface-worker
  *   - @ref SWUTS-bus
@@ -95,6 +96,7 @@
  *   - @ref SWUTS-mm-page_table_faults
  *   - @ref SWUTS-mm-mm
  *   - @ref SWUTS-mm-vm
+ *   - @ref SWUTS-nvgpu-sync
  *   - @ref SWUTS-fb
  *   - @ref SWUTS-fbp
  *   - @ref SWUTS-fuse
