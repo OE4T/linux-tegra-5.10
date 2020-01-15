@@ -40,7 +40,9 @@ struct unit_module;
  *
  * Test Type: Feature, Error injection
  *
- * Targets: #nvgpu_gr_falcon_init_support.
+ * Targets: #nvgpu_gr_falcon_init_support,
+ *          #nvgpu_gr_falcon_load_secure_ctxsw_ucode,
+ *          gops_gr_falcon.load_ctxsw_ucode
  *
  * Input: #test_gr_init_setup_ready must have been executed successfully.
  *
@@ -66,7 +68,7 @@ int test_gr_falcon_init(struct unit_module *m,
  *
  * Test Type: Feature, Error injection
  *
- * Targets: #nvgpu_gr_falcon_remove_support.
+ * Targets: #nvgpu_gr_falcon_remove_support
  *
  * Input: #test_gr_falcon_init must have been executed successfully.
  *
@@ -88,7 +90,7 @@ int test_gr_falcon_deinit(struct unit_module *m,
  *
  * Test Type: Feature
  *
- * Targets: #nvgpu_gr_falcon_init_ctxsw.
+ * Targets: #nvgpu_gr_falcon_init_ctxsw
  *
  * Input: #test_gr_falcon_init must have been executed successfully.
  *
@@ -111,7 +113,7 @@ int test_gr_falcon_init_ctxsw(struct unit_module *m,
  *
  * Test Type: Feature
  *
- * Targets: #nvgpu_gr_falcon_init_ctx_state.
+ * Targets: #nvgpu_gr_falcon_init_ctx_state
  *
  * Input: #test_gr_falcon_init must have been executed successfully.
  *
@@ -134,7 +136,7 @@ int test_gr_falcon_init_ctx_state(struct unit_module *m,
  *
  * Targets: #nvgpu_gr_falcon_get_fecs_ucode_segments,
  *          #nvgpu_gr_falcon_get_gpccs_ucode_segments,
- *          #nvgpu_gr_falcon_get_surface_desc_cpu_va.
+ *          #nvgpu_gr_falcon_get_surface_desc_cpu_va
  *
  * Input: #test_gr_falcon_init must have been executed successfully.
  *
@@ -157,7 +159,8 @@ int test_gr_falcon_query_test(struct unit_module *m,
  *
  * Test Type: Error injection
  *
- * Targets: #nvgpu_gr_falcon_init_ctxsw_ucode.
+ * Targets: #nvgpu_gr_falcon_init_ctxsw_ucode,
+ *          gops_gr_falcon.load_ctxsw_ucode
  *
  * Input: #test_gr_falcon_init must have been executed successfully.
  *

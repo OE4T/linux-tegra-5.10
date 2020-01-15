@@ -42,9 +42,9 @@ struct unit_module;
  *
  * Test Type: Feature
  *
- * Input: None
+ * Targets: #nvgpu_gr_config_init
  *
- * Targets: #nvgpu_gr_config_init.
+ * Input: None
  *
  * Steps:
  * -  Call nvgpu_gr_config_init
@@ -61,7 +61,7 @@ int test_gr_config_init(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Test Type: Feature
  *
- * Targets: #nvgpu_gr_config_deinit.
+ * Targets: #nvgpu_gr_config_deinit
  *
  * Input: #test_gr_init_setup and #test_gr_config_init
  *        must have been executed successfully.
@@ -83,9 +83,6 @@ int test_gr_config_deinit(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Test Type: Feature, Error guessing
  *
- * Input: #test_gr_init_setup and #test_gr_config_init
- *        must have been executed successfully.
- *
  * Targets: #nvgpu_gr_config_get_max_gpc_count,
  *          #nvgpu_gr_config_get_max_tpc_count,
  *          #nvgpu_gr_config_get_max_tpc_per_gpc_count,
@@ -100,8 +97,11 @@ int test_gr_config_deinit(struct unit_module *m, struct gk20a *g, void *args);
  *          #nvgpu_gr_config_get_gpc_tpc_count,
  *          #nvgpu_gr_config_get_pes_tpc_count,
  *          #nvgpu_gr_config_get_pes_tpc_mask,
- *          #nvgpu_gr_config_get_gpc_tpc_mask_base,
- *          #nvgpu_gr_config_get_gpc_tpc_count_base.
+ *          #nvgpu_gr_config_get_gpc_tpc_count_base,
+ *          #nvgpu_gr_config_get_gpc_tpc_mask_base
+ *
+ * Input: #test_gr_init_setup and #test_gr_config_init
+ *        must have been executed successfully.
  *
  * Steps:
  * -  Read configuration count and mask informations from the driver
@@ -123,12 +123,18 @@ int test_gr_config_count(struct unit_module *m, struct gk20a *g, void *args);
  * Test Type: Feature, Error guessing
  *
  * Targets: #nvgpu_gr_config_set_no_of_sm,
+ *          #nvgpu_gr_config_get_no_of_sm,
  *          #nvgpu_gr_config_get_sm_info,
+ *          #nvgpu_gr_config_set_sm_info_gpc_index,
+ *          #nvgpu_gr_config_get_sm_info_gpc_index,
  *          #nvgpu_gr_config_set_sm_info_tpc_index,
+ *          #nvgpu_gr_config_get_sm_info_tpc_index,
  *          #nvgpu_gr_config_set_sm_info_global_tpc_index,
+ *          #nvgpu_gr_config_get_sm_info_global_tpc_index,
  *          #nvgpu_gr_config_set_sm_info_sm_index,
+ *          #nvgpu_gr_config_get_sm_info_sm_index,
  *          #nvgpu_gr_config_set_gpc_tpc_mask,
- *          #nvgpu_gr_config_get_gpc_tpc_mask.
+ *          #nvgpu_gr_config_get_gpc_tpc_mask
  *
  * Input: #test_gr_init_setup and #test_gr_config_init
  *        must have been executed successfully.
@@ -151,10 +157,12 @@ int test_gr_config_set_get(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Test Type: Feature, Error guessing
  *
- * Input: #test_gr_init_setup must have been executed successfully.
- *
  * Targets: #nvgpu_gr_config_init,
  *          #nvgpu_gr_config_deinit,
+ *          gops_gr_config.init_sm_id_table,
+ *          gv100_gr_config_init_sm_id_table
+ *
+ * Input: #test_gr_init_setup must have been executed successfully.
  *
  * Steps:
  * -  Force memory allocation failures for various structures within
