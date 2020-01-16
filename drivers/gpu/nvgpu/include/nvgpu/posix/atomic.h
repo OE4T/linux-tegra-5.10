@@ -27,6 +27,7 @@
 #include <nvgpu/types.h>
 #include <nvgpu/static_analysis.h>
 #include <nvgpu/utils.h>
+#include <nvgpu/cov_whitelist.h>
 
 /*
  * Note: this code uses the GCC builtins to implement atomics.
@@ -66,14 +67,28 @@ typedef struct __nvgpu_posix_atomic64 {
  * @param v	Atomic variable to be set.
  * @param i	Value to set in atomic variable.
  */
-#define NVGPU_POSIX_ATOMIC_SET(v, i) atomic_store(&((v)->v), (i))
+#define NVGPU_POSIX_ATOMIC_SET(v, i) \
+	NVGPU_COV_WHITELIST_BLOCK_BEGIN(false_positive, 1,		\
+			NVGPU_CERT(DCL37_C), "Bug 200584380")		\
+	NVGPU_COV_WHITELIST_BLOCK_BEGIN(false_positive, 1,		\
+			NVGPU_CERT(EXP37_C), "Bug 200584380")		\
+	atomic_store(&((v)->v), (i))					\
+	NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_CERT(DCL37_C))		\
+	NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_CERT(EXP37_C))
 
 /**
  * @brief Define for atomic read.
  *
  * @param v	Atomic variable to be read.
  */
-#define NVGPU_POSIX_ATOMIC_READ(v) atomic_load(&((v)->v))
+#define NVGPU_POSIX_ATOMIC_READ(v) \
+	NVGPU_COV_WHITELIST_BLOCK_BEGIN(false_positive, 1,		\
+			NVGPU_CERT(DCL37_C), "Bug 200584380")		\
+	NVGPU_COV_WHITELIST_BLOCK_BEGIN(false_positive, 1,		\
+			NVGPU_CERT(EXP37_C), "Bug 200584380")		\
+	atomic_load(&((v)->v))						\
+	NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_CERT(DCL37_C))		\
+	NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_CERT(EXP37_C))
 
 /**
  * @brief Define for atomic add and return.
@@ -87,7 +102,16 @@ typedef struct __nvgpu_posix_atomic64 {
 	({								\
 		typeof((v)->v) tmp;					\
 									\
+		NVGPU_COV_WHITELIST_BLOCK_BEGIN(false_positive, 1,	\
+			NVGPU_CERT(INT31_C), "Bug 200584380")		\
+		NVGPU_COV_WHITELIST_BLOCK_BEGIN(false_positive, 1,	\
+			NVGPU_CERT(DCL37_C), "Bug 200584380")		\
+		NVGPU_COV_WHITELIST_BLOCK_BEGIN(false_positive, 1,	\
+			NVGPU_CERT(EXP37_C), "Bug 200584380")		\
 		tmp = (typeof((v)->v))atomic_fetch_add(&((v)->v), (i));	\
+		NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_CERT(INT31_C))	\
+		NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_CERT(DCL37_C))	\
+		NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_CERT(EXP37_C))	\
 		tmp = __builtin_choose_expr(				\
 				IS_SIGNED_LONG_TYPE(i),			\
 				(nvgpu_safe_add_s64((tmp), (i))),	\
@@ -107,7 +131,16 @@ typedef struct __nvgpu_posix_atomic64 {
 	({								\
 		typeof((v)->v) tmp;					\
 									\
+		NVGPU_COV_WHITELIST_BLOCK_BEGIN(false_positive, 1,	\
+			NVGPU_CERT(INT31_C), "Bug 200584380")		\
+		NVGPU_COV_WHITELIST_BLOCK_BEGIN(false_positive, 1,	\
+			NVGPU_CERT(DCL37_C), "Bug 200584380")		\
+		NVGPU_COV_WHITELIST_BLOCK_BEGIN(false_positive, 1,	\
+			NVGPU_CERT(EXP37_C), "Bug 200584380")		\
 		tmp = (typeof((v)->v))atomic_fetch_sub(&((v)->v), (i));	\
+		NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_CERT(INT31_C))	\
+		NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_CERT(DCL37_C))	\
+		NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_CERT(EXP37_C))	\
 		tmp = __builtin_choose_expr(				\
 				IS_SIGNED_LONG_TYPE(i),			\
 				(nvgpu_safe_sub_s64((tmp), (i))),	\
@@ -130,7 +163,13 @@ typedef struct __nvgpu_posix_atomic64 {
 	({								\
 		typeof((v)->v) tmp = (old);				\
 									\
+		NVGPU_COV_WHITELIST_BLOCK_BEGIN(false_positive, 1,	\
+			NVGPU_CERT(DCL37_C), "Bug 200584380")		\
+		NVGPU_COV_WHITELIST_BLOCK_BEGIN(false_positive, 1,	\
+			NVGPU_CERT(EXP37_C), "Bug 200584380")		\
 		atomic_compare_exchange_strong(&((v)->v), &tmp, (new));	\
+		NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_CERT(DCL37_C))	\
+		NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_CERT(EXP37_C))	\
 		tmp;							\
 	})
 
@@ -142,7 +181,14 @@ typedef struct __nvgpu_posix_atomic64 {
  *
  * @return Original value in the atomic variable.
  */
-#define NVGPU_POSIX_ATOMIC_XCHG(v, new) atomic_exchange(&((v)->v), (new))
+#define NVGPU_POSIX_ATOMIC_XCHG(v, new) \
+	NVGPU_COV_WHITELIST_BLOCK_BEGIN(false_positive, 1,		\
+			NVGPU_CERT(DCL37_C), "Bug 200584380")		\
+	NVGPU_COV_WHITELIST_BLOCK_BEGIN(false_positive, 1,		\
+			NVGPU_CERT(EXP37_C), "Bug 200584380")		\
+	atomic_exchange(&((v)->v), (new))				\
+	NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_CERT(DCL37_C))		\
+	NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_CERT(EXP37_C))
 
 /**
  * @brief POSIX implementation of atomic set.
@@ -379,7 +425,10 @@ static inline int nvgpu_atomic_add_unless_impl(nvgpu_atomic_t *v, int a, int u)
 		if (old == (u)) {
 			break;
 		}
+		NVGPU_COV_WHITELIST_BLOCK_BEGIN(false_positive, 1, \
+			NVGPU_CERT(DCL37_C), "Bug 200584380")
 	} while (!atomic_compare_exchange_strong(&((v)->v), &old, old + (a)));
+		NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_CERT(DCL37_C))
 
 	return old;
 }
@@ -460,7 +509,10 @@ static inline long nvgpu_atomic64_add_unless_impl(nvgpu_atomic64_t *v, long a,
 		if (old == (u)) {
 			break;
 		}
+		NVGPU_COV_WHITELIST_BLOCK_BEGIN(false_positive, 1, \
+			NVGPU_CERT(DCL37_C), "Bug 200584380")
 	} while (!atomic_compare_exchange_strong(&((v)->v), &old, old + (a)));
+		NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_CERT(DCL37_C))
 
 	return old;
 }
