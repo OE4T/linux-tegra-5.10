@@ -40,7 +40,7 @@ struct unit_module;
  *
  * Test Type: Feature, Error guessing
  *
- * Targets: g->ops.gr.init.wait_empty.
+ * Targets: gops_gr_init.wait_empty, gp10b_gr_init_wait_empty
  *
  * Input: gr_init_setup, gr_init_prepare, gr_init_support must have
  *        been executed successfully.
@@ -65,7 +65,7 @@ int test_gr_init_hal_wait_empty(struct unit_module *m,
  *
  * Test Type: Feature, Error guessing
  *
- * Targets: g->ops.gr.init.wait_idle.
+ * Targets: gops_gr_init.wait_idle, gm20b_gr_init_wait_idle
  *
  * Input: gr_init_setup, gr_init_prepare, gr_init_support must have
  *        been executed successfully.
@@ -107,7 +107,7 @@ int test_gr_init_hal_wait_idle(struct unit_module *m,
  *
  * Test Type: Feature, Error guessing
  *
- * Targets: g->ops.gr.init.wait_fe_idle.
+ * Targets: gops_gr_init.wait_fe_idle, gm20b_gr_init_wait_fe_idle
  *
  * Input: gr_init_setup, gr_init_prepare, gr_init_support must have
  *        been executed successfully.
@@ -133,7 +133,8 @@ int test_gr_init_hal_wait_fe_idle(struct unit_module *m,
  *
  * Test Type: Feature, Error guessing
  *
- * Targets: g->ops.gr.init.fe_pwr_mode_force_on.
+ * Targets: gops_gr_init.fe_pwr_mode_force_on,
+ *          gm20b_gr_init_fe_pwr_mode_force_on
  *
  * Input: gr_init_setup, gr_init_prepare, gr_init_support must have
  *        been executed successfully.
@@ -163,7 +164,7 @@ int test_gr_init_hal_fe_pwr_mode(struct unit_module *m,
  *
  * Test Type: Feature, Error guessing
  *
- * Targets: g->ops.gr.init.ecc_scrub_reg.
+ * Targets: gops_gr_init.ecc_scrub_reg, gv11b_gr_init_ecc_scrub_reg
  *
  * Input: gr_init_setup, gr_init_prepare, gr_init_support must have
  *        been executed successfully.
@@ -194,15 +195,26 @@ int test_gr_init_hal_ecc_scrub_reg(struct unit_module *m,
  *
  * Test Type: Feature, Error guessing
  *
- * Targets: g->ops.gr.init.get_nonpes_aware_tpc,
- *          g->ops.gr.init.sm_id_config,
- *          g->ops.gr.init.fs_state,
- *          g->ops.gr.init.get_attrib_cb_size,
- *          g->ops.gr.init.get_alpha_cb_size,
- *          g->ops.gr.init.pd_skip_table_gpc,
- *          g->ops.gr.init.load_sw_veid_bundle,
- *          g->ops.gr.init.load_sw_bundle_init,
- *          g->ops.gr.init.load_method_init.
+ * Targets: gops_gr_init.get_nonpes_aware_tpc,
+ *          gv11b_gr_init_get_nonpes_aware_tpc,
+ *          gops_gr_init.sm_id_config,
+ *          gv11b_gr_init_sm_id_config,
+ *          gops_gr_init.get_sm_id_size,
+ *          gp10b_gr_init_get_sm_id_size,
+ *          gops_gr_init.fs_state,
+ *          gv11b_gr_init_fs_state,
+ *          gops_gr_init.get_attrib_cb_size,
+ *          gv11b_gr_init_get_attrib_cb_size,
+ *          gops_gr_init.get_alpha_cb_size,
+ *          gv11b_gr_init_get_alpha_cb_size,
+ *          gops_gr_init.pd_skip_table_gpc,
+ *          gm20b_gr_init_pd_skip_table_gpc,
+ *          gops_gr_init.load_sw_veid_bundle,
+ *          gv11b_gr_init_load_sw_veid_bundle,
+ *          gops_gr_init.load_sw_bundle_init,
+ *          gv11b_gr_init_load_sw_bundle_init,
+ *          gops_gr_init.load_method_init,
+ *          gm20b_gr_init_load_method_init
  *
  * Input: gr_init_setup, gr_init_prepare, gr_init_support must have
  *        been executed successfully.
@@ -244,7 +256,8 @@ int test_gr_init_hal_config_error_injection(struct unit_module *m,
  *
  * Test Type: Feature, Error guessing
  *
- * Targets: g->ops.gr.init.commit_global_pagepool.
+ * Targets: gops_gr_init.commit_global_pagepool,
+ *          gp10b_gr_init_commit_global_pagepool
  *
  * Input: gr_init_setup, gr_init_prepare, gr_init_support must have
  *        been executed successfully.

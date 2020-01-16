@@ -40,9 +40,9 @@ struct unit_module;
  *
  * Test Type: Feature
  *
- * Input: None.
+ * Targets: #nvgpu_gr_alloc
  *
- * Targets: #nvgpu_gr_alloc.
+ * Input: None.
  *
  * Steps:
  * -  Initialize the test environment for common.gr unit testing:
@@ -64,7 +64,7 @@ int test_gr_init_setup(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Test Type: Feature
  *
- * Targets: #nvgpu_gr_free.
+ * Targets: #nvgpu_gr_free
  *
  * Input: test_gr_init_setup must have been executed successfully.
  *
@@ -83,7 +83,16 @@ int test_gr_remove_setup(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Test Type: Feature
  *
- * Targets: #nvgpu_gr_prepare_sw, #nvgpu_gr_prepare_hw.
+ * Targets: gops_gr.gr_prepare_sw, #nvgpu_gr_prepare_sw,
+ *          gops_gr.gr_enable_hw, #nvgpu_gr_enable_hw,
+ *          gops_gr_intr.enable_hww_exceptions,
+ *          gv11b_gr_intr_enable_hww_exceptions,
+ *          gops_gr_intr.enable_interrupts,
+ *          gm20b_gr_intr_enable_interrupts,
+ *          gops_gr_intr.enable_gpc_exceptions,
+ *          gv11b_gr_intr_enable_gpc_exceptions,
+ *          gops_gr_intr.enable_exceptions,
+ *          gv11b_gr_intr_enable_exceptions
  *
  * Input: test_gr_init_setup must have been executed successfully.
  *
@@ -102,7 +111,8 @@ int test_gr_init_prepare(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Test Type: Feature
  *
- * Targets: #nvgpu_gr_init_support.
+ * Targets: gops_gr.gr_init_support, #nvgpu_gr_init_support,
+ *          #nvgpu_gr_init
  *
  * Input: test_gr_init_setup and test_gr_init_prepare
  *        must have been executed successfully.
@@ -128,7 +138,7 @@ int test_gr_init_support(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Test Type: Feature
  *
- * Targets: #nvgpu_gr_suspend.
+ * Targets: gops_gr.gr_suspend, #nvgpu_gr_suspend
  *
  * Input: #test_gr_init_setup, #test_gr_init_prepare and #test_gr_init_support
  *        must have been executed successfully.
@@ -147,7 +157,10 @@ int test_gr_suspend(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Test Type: Feature
  *
- * Targets: #nvgpu_gr_remove_support.
+ * Targets: #nvgpu_gr_remove_support,
+ *          #gops_ecc.ecc_remove_support,
+ *          #nvgpu_ecc_remove_support,
+ *          #nvgpu_gr_ecc_free
  *
  * Input: #test_gr_init_setup, #test_gr_init_prepare and #test_gr_init_support
  *        must have been executed successfully.
@@ -167,11 +180,14 @@ int test_gr_remove_support(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Test Type: Feature, Error Injection
  *
+ * Targets: gops_gr_ecc.gpc_tpc_ecc_init, gv11b_gr_gpc_tpc_ecc_init,
+ *          gops_gr_ecc.fecs_ecc_init, gv11b_gr_fecs_ecc_init,
+ *	    gops_gr_ecc.detect, gv11b_ecc_detect_enabled_units,
+ *          #nvgpu_ecc_counter_init_per_tpc,
+ *          #nvgpu_ecc_counter_init_per_gpc
+ *
  * Input: #test_gr_init_setup, #test_gr_init_prepare and #test_gr_init_support
  *        must have been executed successfully.
- *
- * Targets: gv11b_gr_gpc_tpc_ecc_init, gv11b_gr_fecs_ecc_init and
- *	    gv11b_ecc_detect_enabled_units.
  *
  * Steps:
  * -  Array with various combinations setting register bits for
@@ -193,10 +209,15 @@ int test_gr_init_ecc_features(struct unit_module *m,
  *
  * Test Type: Feature
  *
- * Input: None
+ * Targets: #nvgpu_gr_prepare_sw, #nvgpu_gr_enable_hw,
+ *          #nvgpu_gr_init_support, #nvgpu_gr_sw_ready,
+ *          gops_gr_init.lg_coalesce, gm20b_gr_init_lg_coalesce,
+ *          gops_gr_init.su_coalesce, gm20b_gr_init_su_coalesce,
+ *          gops_gr_init.pes_vsc_stream, gm20b_gr_init_pes_vsc_stream,
+ *          gops_gr_init.fifo_access, gm20b_gr_init_fifo_access,
+ *          gops_gr_init.gpc_mmu, gv11b_gr_init_gpc_mmu,
  *
- * Targets: #nvgpu_gr_prepare_sw, #nvgpu_gr_prepare_hw,
- *          and #nvgpu_gr_init_support.
+ * Input: None
  *
  * Steps:
  * -  Call #test_gr_init_setup.
@@ -208,7 +229,8 @@ int test_gr_init_ecc_features(struct unit_module *m,
  * Output: Returns PASS if the steps above were executed successfully. FAIL
  * otherwise.
  */
-int test_gr_init_setup_ready(struct unit_module *m, struct gk20a *g, void *args);
+int test_gr_init_setup_ready(struct unit_module *m,
+			     struct gk20a *g, void *args);
 
 /**
  * Test specification for: test_gr_init_error_injections.
@@ -217,16 +239,19 @@ int test_gr_init_setup_ready(struct unit_module *m, struct gk20a *g, void *args)
  *
  * Test Type: Feature, Error Injection
  *
- * Input: #test_gr_setup_ready must have been executed successfully.
+ * Targets: gops_gr.gr_init_support, #nvgpu_gr_init_support,
+ *          gops_gr.gr_prepare_sw, #nvgpu_gr_prepare_sw, gr_remove_support
  *
- * Targets: #nvgpu_gr_init_support, #nvgpu_gr_prepare_sw, gr_remove_support.
+ * Input: #test_gr_setup_ready must have been executed successfully.
  *
  * Steps:
  * -  Add various condition to cause failure in #nvgpu_gr_init_support.
- *    This includes failing of #nvgpu_gr_falcon_init_ctxsw, #nvgpu_gr_init_ctx_state,
+ *    This includes failing of #nvgpu_gr_falcon_init_ctxsw,
+ *    #nvgpu_gr_init_ctx_state,
  *    gr_init_setup_sw and gr_init_setup_hw functions.
  * -  Add various condition to cause failure in #nvgpu_gr_prepare_sw.
- *    This includes failing of #nvgpu_netlist_init_ctx_vars, #nvgpu_gr_falcon_init_support,
+ *    This includes failing of #nvgpu_netlist_init_ctx_vars,
+ *    #nvgpu_gr_falcon_init_support,
  *    #nvgpu_gr_intr_init_support and g->ops.gr.ecc.fecs_ecc_init functions.
  *
  * Output: Returns PASS if the steps above were executed successfully. FAIL
@@ -242,9 +267,9 @@ int test_gr_init_error_injections(struct unit_module *m,
  *
  * Test Type: Feature
  *
- * Input: #test_gr_setup_ready must have been executed successfully.
+ * Targets: #nvgpu_gr_free, #nvgpu_gr_remove_support
  *
- * Targets: #nvgpu_gr_free, #nvgpu_gr_remove_support.
+ * Input: #test_gr_setup_ready must have been executed successfully.
  *
  * Steps:
  * -  Call #test_gr_remove_support.
@@ -253,8 +278,8 @@ int test_gr_init_error_injections(struct unit_module *m,
  * Output: Returns PASS if the steps above were executed successfully. FAIL
  * otherwise.
  */
-int test_gr_init_setup_cleanup(struct unit_module *m, struct gk20a *g, void *args);
-
+int test_gr_init_setup_cleanup(struct unit_module *m,
+			       struct gk20a *g, void *args);
 #endif /* UNIT_NVGPU_GR_H */
 
 /**
