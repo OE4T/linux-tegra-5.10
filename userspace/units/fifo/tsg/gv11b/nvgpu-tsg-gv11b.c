@@ -96,6 +96,64 @@ static void subtest_setup(u32 branches)
 #define branches_str test_fifo_flags_str
 #define pruned test_fifo_subtest_pruned
 
+static void stub_channel_enable(struct nvgpu_channel *ch)
+{
+	stub[0].chid = ch->chid;
+	stub[0].count++;
+}
+
+static void stub_usermode_ring_doorbell(struct nvgpu_channel *ch)
+{
+	stub[1].chid = ch->chid;
+	stub[1].count++;
+}
+
+int test_gv11b_tsg_enable(struct unit_module *m,
+		struct gk20a *g, void *args)
+{
+	struct gpu_ops gops = g->ops;
+	struct nvgpu_tsg *tsg = NULL;
+	struct nvgpu_channel *ch = NULL;
+	int ret = UNIT_FAIL;
+	int err;
+
+	memset(stub, 0, sizeof(stub));
+	g->ops.channel.enable = stub_channel_enable;
+	g->ops.usermode.ring_doorbell = stub_usermode_ring_doorbell;
+
+	tsg = nvgpu_tsg_open(g, getpid());
+	unit_assert(tsg != NULL, goto done);
+
+	/* standalone TSG */
+	gv11b_tsg_enable(tsg);
+	unit_assert(stub[0].count == 0, goto done);
+	unit_assert(stub[1].count == 0, goto done);
+
+	ch = nvgpu_channel_open_new(g, ~0U, false, getpid(), getpid());
+	unit_assert(ch != NULL, goto done);
+
+	err = nvgpu_tsg_bind_channel(tsg, ch);
+	unit_assert(err == 0, goto done);
+
+	/* TSG with bound channel */
+	gv11b_tsg_enable(tsg);
+	unit_assert(stub[0].count == 1, goto done);
+	unit_assert(stub[0].chid == ch->chid, goto done);
+	unit_assert(stub[1].count == 1, goto done);
+	unit_assert(stub[1].chid == ch->chid, goto done);
+
+	ret = UNIT_SUCCESS;
+done:
+	if (ch != NULL) {
+		nvgpu_channel_close(ch);
+	}
+	if (tsg != NULL) {
+		nvgpu_ref_put(&tsg->refcount, nvgpu_tsg_release);
+	}
+	g->ops = gops;
+	return ret;
+}
+
 #define GR_RUNQUE			0U	/* pbdma 0 */
 #define ASYNC_CE_RUNQUE			2U	/* pbdma 2 */
 
@@ -383,6 +441,7 @@ done:
 
 struct unit_module_test nvgpu_tsg_gv11b_tests[] = {
 	UNIT_TEST(init_support, test_fifo_init_support, &unit_ctx, 0),
+	UNIT_TEST(gv11b_tsg_enable, test_gv11b_tsg_enable, &unit_ctx, 0),
 	UNIT_TEST(gv11b_tsg_init_eng_method_buffers, \
 			test_gv11b_tsg_init_eng_method_buffers, &unit_ctx, 0),
 	UNIT_TEST(gv11b_tsg_bind_channel_eng_method_buffers,

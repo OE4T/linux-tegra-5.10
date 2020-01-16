@@ -34,6 +34,33 @@ struct gk20a;
  */
 
 /**
+ * Test specification for: test_gv11b_tsg_enable
+ *
+ * Description: Enable TSG
+ *
+ * Test Type: Feature
+ *
+ * Targets: gops_tsg.enable, gv11b_tsg_enable
+ *
+ * Input: test_fifo_init_support() run for this GPU
+ *
+ * Steps:
+ * - Use stubs for gops_channel.enable and gops_usermode.ring_doorbell.
+ * - Call gv11b for a standalone TSG:
+ *   - Check that gops_channel.enable is not called.
+ *   - Check that gops_usermode.ring_doorbell is not called.
+ * - Call gv11b for a TSG with one bound channel:
+ *   - Check that gops_channel.enable is called for this channel.
+ *   - Check that gops_usermode.ring_doorbell is called for this
+ *     channel.
+ *
+ * Output: Returns PASS if all branches gave expected results. FAIL otherwise.
+ */
+int test_gv11b_tsg_enable(struct unit_module *m,
+		struct gk20a *g, void *args);
+
+
+/**
  * Test specification for: test_gv11b_tsg_init_eng_method_buffers
  *
  * Description: Branch coverage for gv11b_tsg_init_eng_method_buffers

@@ -192,6 +192,7 @@ gv11b_runlist_entry_size
 gv11b_runlist_get_tsg_entry
 gv11b_runlist_get_ch_entry
 gv11b_therm_init_elcg_mode
+gv11b_tsg_enable
 gv11b_usermode_base
 gv11b_usermode_bus_base
 gv11b_usermode_doorbell_token
