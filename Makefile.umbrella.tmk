@@ -156,6 +156,7 @@ NV_REPOSITORY_COMPONENTS += userspace/units/gr/intr
 NV_REPOSITORY_COMPONENTS += userspace/units/acr
 NV_REPOSITORY_COMPONENTS += userspace/units/ce
 NV_REPOSITORY_COMPONENTS += userspace/units/cg
+NV_REPOSITORY_COMPONENTS += userspace/units/rc
 NV_REPOSITORY_COMPONENTS += userspace/units/sync
 NV_REPOSITORY_COMPONENTS += userspace/units/mock-iospace
 NV_REPOSITORY_COMPONENTS += userspace/units/ecc

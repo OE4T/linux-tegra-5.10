@@ -790,3 +790,12 @@ nvgpu_free_nvhost_dev
 nvgpu_ecc_free
 nvgpu_ecc_counter_init
 nvgpu_ecc_finalize_support
+nvgpu_rc_fifo_recover
+nvgpu_rc_ctxsw_timeout
+nvgpu_rc_pbdma_fault
+nvgpu_rc_runlist_update
+nvgpu_rc_preempt_timeout
+nvgpu_rc_gr_fault
+nvgpu_rc_sched_error_bad_tsg
+nvgpu_rc_tsg_and_related_engines
+nvgpu_rc_mmu_fault

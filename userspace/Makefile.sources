@@ -154,5 +154,6 @@ UNITS :=				\
 	$(UNIT_SRC)/acr			\
 	$(UNIT_SRC)/ce			\
 	$(UNIT_SRC)/cg                  \
+	$(UNIT_SRC)/rc                  \
 	$(UNIT_SRC)/sync		\
 	$(UNIT_SRC)/ecc
