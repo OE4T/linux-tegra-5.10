@@ -103,26 +103,15 @@ static int tegra_hv_wdt_ping(struct watchdog_device *wdt)
 	return 0;
 }
 
-static int tegra_hv_wdt_notified(struct tegra_hv_wdt *hv)
-{
-	int ret;
-
-	mutex_lock(&hv->lock);
-	ret = tegra_hv_ivc_channel_notified(hv->ivc);
-	mutex_unlock(&hv->lock);
-
-	return ret;
-}
-
 static int tegra_hv_wdt_loop(void *arg)
 {
 	struct tegra_hv_wdt *hv = (struct tegra_hv_wdt *)arg;
 
 	mutex_lock(&hv->lock);
 	tegra_hv_ivc_channel_reset(hv->ivc);
+	wait_event(hv->notify, tegra_hv_ivc_channel_notified(hv->ivc) == 0);
 	mutex_unlock(&hv->lock);
 
-	wait_event(hv->notify, tegra_hv_wdt_notified(hv) == 0);
 	dev_info(&hv->pdev->dev, "ivc channel ready\n");
 
 	/*
