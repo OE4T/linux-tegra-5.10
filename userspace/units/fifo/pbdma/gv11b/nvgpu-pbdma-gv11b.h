@@ -210,7 +210,7 @@ int test_gv11b_pbdma_set_channel_info_veid(struct unit_module *m,
  *
  * Test Type: Feature
  *
- * Targets: gops_pbdma.config_userd_writeback_enable
+ * Targets: gops_pbdma.config_userd_writeback_enable,
  *          gv11b_pbdma_config_userd_writeback_enable
  *
  * Input: test_fifo_init_support() run for this GPU

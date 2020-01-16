@@ -2988,6 +2988,12 @@
         "test_level": 0
     },
     {
+        "test": "test_gm20b_pbdma_get_ctrl_hce_priv_mode_yes",
+        "case": "pbdma_get_ctrl_hce_priv_mode_yes",
+        "unit": "nvgpu_pbdma_gm20b",
+        "test_level": 0
+    },
+    {
         "test": "test_gm20b_pbdma_get_fc_subdevice",
         "case": "pbdma_get_fc_subdevice",
         "unit": "nvgpu_pbdma_gm20b",
@@ -3131,7 +3137,7 @@
         "unit": "nvgpu_pbdma_gv11b",
         "test_level": 0
     },
-        {
+    {
         "test": "test_preempt_get_timeout",
         "case": "get_timeout",
         "unit": "nvgpu_preempt",
@@ -3398,6 +3404,12 @@
     {
         "test": "test_tsg_enable",
         "case": "enable_disable",
+        "unit": "nvgpu_tsg",
+        "test_level": 0
+    },
+    {
+        "test": "test_tsg_enable_sched",
+        "case": "enable_disable_sched",
         "unit": "nvgpu_tsg",
         "test_level": 0
     },

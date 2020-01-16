@@ -73,6 +73,8 @@ struct stub_ctx {
 	u32 count;
 	u32 chid;
 	u32 tsgid;
+	u32 runlist_mask;
+	u32 runlist_state;
 };
 
 struct stub_ctx stub[MAX_STUB];
@@ -163,6 +165,12 @@ int test_tsg_open(struct unit_module *m,
 
 	kmem_fi = nvgpu_kmem_get_fault_injection();
 
+	unit_assert(nvgpu_tsg_default_timeslice_us(g) ==
+		NVGPU_TSG_TIMESLICE_DEFAULT_US, goto done);
+
+	unit_assert(nvgpu_tsg_check_and_get_from_id(g, NVGPU_INVALID_TSG_ID) ==
+		NULL, goto done);
+
 	for (branches = 0U; branches < F_TSG_OPEN_LAST; branches++) {
 
 		if (pruned(branches, prune)) {
@@ -224,6 +232,10 @@ int test_tsg_open(struct unit_module *m,
 			unit_assert(tsg == NULL, goto done);
 		} else {
 			unit_assert(tsg != NULL, goto done);
+			unit_assert(nvgpu_tsg_get_from_id(g, tsg->tsgid) ==
+				tsg, goto done);
+			unit_assert(nvgpu_tsg_check_and_get_from_id(g,
+				tsg->tsgid) == tsg, goto done);
 			nvgpu_ref_put(&tsg->refcount, nvgpu_tsg_release);
 			tsg = NULL;
 		}
@@ -349,11 +361,16 @@ int test_tsg_bind_channel(struct unit_module *m,
 		err = nvgpu_tsg_bind_channel(tsg, ch);
 
 		if (branches & fail) {
+			if (!(branches & F_TSG_BIND_CHANNEL_CH_BOUND)) {
+				unit_assert(nvgpu_tsg_from_ch(ch) == NULL,
+					goto done);
+			}
 			unit_assert(err != 0, goto done);
 		} else {
 			unit_assert(err == 0, goto done);
 			unit_assert(!nvgpu_list_empty(&tsg->ch_list),
 				goto done);
+			unit_assert(nvgpu_tsg_from_ch(ch) == tsg, goto done);
 
 			err = nvgpu_tsg_unbind_channel(tsg, ch);
 			unit_assert(err == 0, goto done);
@@ -1041,6 +1058,55 @@ done:
 	return ret;
 }
 
+static void stub_runlist_write_state(struct gk20a *g,
+	u32 runlists_mask, u32 runlist_state)
+{
+	stub[0].runlist_mask = runlists_mask;
+	stub[0].runlist_state = runlist_state;
+}
+
+int test_tsg_enable_sched(struct unit_module *m,
+		struct gk20a *g, void *args)
+{
+	struct gpu_ops gops = g->ops;
+	struct nvgpu_tsg *tsg = NULL;
+	struct nvgpu_channel *ch = NULL;
+	int ret = UNIT_FAIL;
+	int err;
+
+	g->ops.runlist.write_state = stub_runlist_write_state;
+
+	tsg = nvgpu_tsg_open(g, getpid());
+	unit_assert(tsg != NULL, goto done);
+
+	ch = nvgpu_channel_open_new(g, ~0U, false, getpid(), getpid());
+	unit_assert(ch != NULL, goto done);
+
+	err = nvgpu_tsg_bind_channel(tsg, ch);
+	unit_assert(err == 0, goto done);
+
+	memset(stub, 0, sizeof(stub));
+	nvgpu_tsg_enable_sched(g, tsg);
+	unit_assert(stub[0].runlist_mask == BIT(tsg->runlist_id), goto done);
+	unit_assert(stub[0].runlist_state == RUNLIST_ENABLED, goto done);
+
+	memset(stub, 0, sizeof(stub));
+	nvgpu_tsg_disable_sched(g, tsg);
+	unit_assert(stub[0].runlist_mask == BIT(tsg->runlist_id), goto done);
+	unit_assert(stub[0].runlist_state == RUNLIST_DISABLED, goto done);
+
+	ret = UNIT_SUCCESS;
+done:
+	if (ch != NULL) {
+		nvgpu_channel_close(ch);
+	}
+	if (tsg != NULL) {
+		nvgpu_ref_put(&tsg->refcount, nvgpu_tsg_release);
+	}
+	g->ops = gops;
+	return ret;
+}
+
 int test_tsg_check_and_get_from_id(struct unit_module *m,
 		struct gk20a *g, void *args)
 {
@@ -1473,6 +1539,7 @@ struct unit_module_test nvgpu_tsg_tests[] = {
 	UNIT_TEST(unbind_channel_check_ctx_reload,
 		test_tsg_unbind_channel_check_ctx_reload, &unit_ctx, 0),
 	UNIT_TEST(enable_disable, test_tsg_enable, &unit_ctx, 0),
+	UNIT_TEST(enable_disable_sched, test_tsg_enable_sched, &unit_ctx, 0),
 	UNIT_TEST(abort, test_tsg_abort, &unit_ctx, 0),
 	UNIT_TEST(mark_error, test_tsg_mark_error, &unit_ctx, 0),
 	UNIT_TEST(set_ctx_mmu_error, test_tsg_set_ctx_mmu_error, &unit_ctx, 0),

@@ -40,14 +40,24 @@ struct gk20a;
  *
  * Test Type: Feature
  *
- * Targets: nvgpu_tsg_open
+ * Targets: nvgpu_tsg_open, nvgpu_tsg_open_common,
+ *          nvgpu_tsg_alloc_sm_error_states_mem,
+ *          nvgpu_tsg_default_timeslice_us,
+ *          nvgpu_tsg_get_from_id,
+ *          nvgpu_tsg_check_and_get_from_id
  *
  * Input: test_fifo_init_support() run for this GPU
  *
  * Steps:
+ * - Check that nvgpu_tsg_default_timeslice_us returns
+ *   NVGPU_TSG_TIMESLICE_DEFAULT_US.
+ * - Check that nvgpu_tsg_check_and_get_from_id return NULL for
+ *   NVGPU_INVALID_TSG_ID.
  * - Check that TSG can be allocated with nvgpu_tsg_open.
  *    - Check that nvgpu_tsg_open returns a non NULL value.
- *    - Decrement ref_count in order to invoke nvgpu_tsg_releases.
+ *    - Check that tsg can be retrieved from tsgid with nvgpu_tsg_get_from_id.
+ *    - Check that nvgpu_tsg_check_and_get_from_id return tsg from its id.
+ *    - Decrement ref_count in order to invoke nvgpu_tsg_release.
  * - Check TSG allocation failures cases:
  *   - failure to acquire unused TSG (by forcing f->num_channels to 0).
  *   - failure to allocate sm error state:
@@ -71,7 +81,7 @@ int test_tsg_open(struct unit_module *m,
  *
  * Test Type: Feature
  *
- * Targets: nvgpu_tsg_bind_channel
+ * Targets: nvgpu_tsg_bind_channel, nvgpu_tsg_from_ch
  *
  * Input: test_fifo_init_support() run for this GPU
  *
@@ -83,6 +93,7 @@ int test_tsg_open(struct unit_module *m,
  *   - Check that TSG's list of channel is not empty.
  *   - Unbind channel with nvgpu_tsg_unbind_channel.
  *   - Check that ch->tsgid is now invalid.
+ *   - Check that tsg can be retrieved from ch using nvgpu_tsg_from_ch.
  * - Check TSG bind failure cases:
  *   - Attempt to bind an already bound channel (by binding a channel to a
  *     TSG, then attempting to bind it to another TSG).
@@ -90,6 +101,8 @@ int test_tsg_open(struct unit_module *m,
  *     TSG's runlist_id to a different value).
  *   - Attempt to bind a channel that is already active (by forcing related
  *     bit in the runlist->active_channels bitmask).
+ *   - Check that nvgpu_tsg_from_ch return NULL when bind failed.
+
  *   In negative testing case, original state is restored after checking
  *   that test_tsg_bind_channel failed.
  * - Additionally, the following cases are checked:
@@ -153,7 +166,7 @@ int test_tsg_unbind_channel(struct unit_module *m,
  *
  * Test Type: Feature
  *
- * Targets: nvgpu_tsg_release
+ * Targets: nvgpu_tsg_release, nvgpu_tsg_release_common
  *
  * Input: test_fifo_init_support() run for this GPU
  *
@@ -262,6 +275,31 @@ int test_tsg_enable(struct unit_module *m,
 		struct gk20a *g, void *args);
 
 /**
+ * Test specification for: test_tsg_enable_sched
+ *
+ * Description: Enable/disable TSG scheduling
+ *
+ * Test Type: Feature
+ *
+ * Targets: nvgpu_tsg_enable_sched, nvgpu_tsg_disable_sched
+ *
+ * Input: test_fifo_init_support() run for this GPU
+ *
+ * Steps:
+ * - Create a TSG with a bound channel.
+ * - Use stub for g->ops.runlist.write_state to store runlist_mask
+ *   and runlist_state.
+ * - Call nvgpu_tsg_enable_sched and check that runlist_mask matches
+ *   TSG's runlist_id and runlist_state is RUNLIST_ENABLED.
+ * - Call nvgpu_tsg_diable_sched and check that runlist_mask matches
+ *   TSG's runlist_id and runlist_state is RUNLIST_DISABLED.
+ *
+ * Output: Returns PASS if all branches gave expected results. FAIL otherwise.
+ */
+int test_tsg_enable_sched(struct unit_module *m,
+		struct gk20a *g, void *args);
+
+/**
  * Test specification for: test_tsg_check_and_get_from_id
  *
  * Description: Get TSG context from id
@@ -318,7 +356,7 @@ int test_tsg_abort(struct unit_module *m,
  *
  * Test Type: Feature
  *
- * Targets: nvgpu_tsg_setup_sw
+ * Targets: nvgpu_tsg_setup_sw, nvgpu_tsg_cleanup_sw
  *
  * Input: None
  *
@@ -340,7 +378,7 @@ int test_tsg_setup_sw(struct unit_module *m,
  *
  * Test Type: Feature
  *
- * Targets: nvgpu_tsg_mark_error
+ * Targets: nvgpu_tsg_mark_error, nvgpu_tsg_set_error_notifier
  *
  * Input: None
  *

@@ -39,7 +39,8 @@ struct gk20a;
  *
  * Test Type: Feature based
  *
- * Targets: nvgpu_fifo_init_support, nvgpu_fifo_setup_sw,
+ * Targets: gops_fifo.fifo_init_support, nvgpu_fifo_init_support,
+ *          gops_fifo.setup_sw, nvgpu_fifo_setup_sw,
  *          nvgpu_fifo_setup_sw_common, nvgpu_fifo_cleanup_sw,
  *          nvgpu_fifo_cleanup_sw_common
  *
@@ -84,7 +85,7 @@ int test_decode_pbdma_ch_eng_status(struct unit_module *m, struct gk20a *g,
  *
  * Test Type: Feature based
  *
- * Targets: nvgpu_fifo_suspend
+ * Targets: gops_fifo.fifo_suspend, nvgpu_fifo_suspend
  *
  * Input: None
  *
