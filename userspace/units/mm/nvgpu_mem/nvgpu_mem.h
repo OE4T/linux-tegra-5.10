@@ -41,6 +41,9 @@ struct unit_module;
  *
  * Targets: nvgpu_mem_create_from_phys
  *
+ * Targets: nvgpu_mem_create_from_phys, nvgpu_mem_get_phys_addr,
+ * nvgpu_mem_get_addr
+ *
  * Input: None
  *
  * Steps:
@@ -163,7 +166,8 @@ int test_nvgpu_mem_iommu_translate(struct unit_module *m,
  *
  * Test Type: Feature
  *
- * Targets: nvgpu_aperture_mask, nvgpu_aperture_mask_raw
+ * Targets: nvgpu_aperture_mask, nvgpu_aperture_mask_raw,
+ * nvgpu_aperture_is_sysmem
  *
  * Input: test_nvgpu_mem_create_from_phys
  *

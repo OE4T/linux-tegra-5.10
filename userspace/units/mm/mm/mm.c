@@ -687,6 +687,25 @@ cleanup:
 	return result;
 }
 
+int test_gk20a_from_mm(struct unit_module *m, struct gk20a *g, void *args)
+{
+	if (g != gk20a_from_mm(&(g->mm))) {
+		unit_return_fail(m, "ptr mismatch in gk20a_from_mm\n");
+	}
+
+	return UNIT_SUCCESS;
+}
+
+int test_bar1_aperture_size_mb_gk20a(struct unit_module *m, struct gk20a *g,
+	void *args)
+{
+	if (g->mm.bar1.aperture_size != (bar1_aperture_size_mb_gk20a() << 20)) {
+		unit_return_fail(m, "mismatch in bar1_aperture_size\n");
+	}
+
+	return UNIT_SUCCESS;
+}
+
 struct unit_module_test nvgpu_mm_mm_tests[] = {
 	UNIT_TEST(init_hal, test_mm_init_hal, NULL, 0),
 	UNIT_TEST(init_mm, test_nvgpu_init_mm, NULL, 0),
@@ -696,6 +715,9 @@ struct unit_module_test nvgpu_mm_mm_tests[] = {
 	UNIT_TEST(page_sizes, test_mm_page_sizes, NULL, 0),
 	UNIT_TEST(inst_block, test_mm_inst_block, NULL, 0),
 	UNIT_TEST(alloc_inst_block, test_mm_alloc_inst_block, NULL, 0),
+	UNIT_TEST(gk20a_from_mm, test_gk20a_from_mm, NULL, 0),
+	UNIT_TEST(bar1_aperture_size, test_bar1_aperture_size_mb_gk20a, NULL,
+		0),
 };
 
 UNIT_MODULE(mm.mm, nvgpu_mm_mm_tests, UNIT_PRIO_NVGPU_TEST);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -40,7 +40,7 @@ struct unit_module;
  *
  * Test Type: Feature, Other (setup)
  *
- * Targets: nvgpu_vm_init
+ * Targets: nvgpu_vm_init, nvgpu_iommuable
  *
  * Input: None
  *
@@ -68,7 +68,8 @@ int test_mm_dma_init(struct unit_module *m, struct gk20a *g, void *__args);
  *
  * Test Type: Feature
  *
- * Targets: nvgpu_dma_alloc_flags_sys, nvgpu_dma_free, nvgpu_dma_alloc_flags_vid
+ * Targets: nvgpu_dma_alloc_flags_sys, nvgpu_dma_free,
+ * nvgpu_dma_alloc_flags_vid, nvgpu_dma_alloc, nvgpu_dma_alloc_sys
  *
  * Input: test_mm_dma_init
  *
@@ -95,7 +96,8 @@ int test_mm_dma_alloc(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Test Type: Feature
  *
- * Targets: nvgpu_dma_alloc_flags_sys, nvgpu_dma_free, nvgpu_dma_alloc_flags_vid
+ * Targets: nvgpu_dma_alloc_flags_sys, nvgpu_dma_free,
+ * nvgpu_dma_alloc_flags_vid, nvgpu_dma_free_sys, nvgpu_dma_alloc_flags
  *
  * Input: test_mm_dma_init
  *
@@ -124,7 +126,8 @@ int test_mm_dma_alloc_flags(struct unit_module *m, struct gk20a *g, void *args);
  * Test Type: Feature
  *
  * Targets: nvgpu_dma_alloc_map, nvgpu_dma_unmap_free, nvgpu_dma_alloc_map_sys,
- * nvgpu_dma_alloc_map_vid
+ * nvgpu_dma_alloc_map_vid, nvgpu_dma_alloc_map_flags,
+ * nvgpu_dma_alloc_map_flags_sys
  *
  * Input: test_mm_dma_init
  *

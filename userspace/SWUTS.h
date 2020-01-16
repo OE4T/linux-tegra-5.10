@@ -85,6 +85,7 @@
  *   - @ref SWUTS-mm-as
  *   - @ref SWUTS-mm-dma
  *   - @ref SWUTS-mm-gmmu-page_table
+ *   - @ref SWUTS-mm-gmmu-pd_cache
  *   - @ref SWUTS-mm-hal-cache-flush-gk20a-fusa
  *   - @ref SWUTS-mm-hal-cache-flush-gv11b-fusa
  *   - @ref SWUTS-mm-hal-gmmu-gmmu_gk20a_fusa

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -39,7 +39,7 @@ struct unit_module;
  *
  * Test Type: Feature, Error Injection
  *
- * Targets: nvgpu_pd_cache_init
+ * Targets: gops_mm.pd_cache_init, nvgpu_pd_cache_init
  *
  * Input: None
  *
@@ -112,8 +112,8 @@ int test_pd_cache_valid_alloc(struct unit_module *m, struct gk20a *g,
  *
  * Test Type: Feature
  *
- * Targets: nvgpu_pd_cache_init, nvgpu_pd_alloc, nvgpu_pd_free,
- * nvgpu_pd_cache_fini
+ * Targets: gops_mm.pd_cache_init, nvgpu_pd_cache_init, nvgpu_pd_alloc,
+ * nvgpu_pd_free, nvgpu_pd_cache_fini
  *
  * Input: None
  *
@@ -141,8 +141,8 @@ int test_per_pd_size(struct unit_module *m, struct gk20a *g, void *__args);
  *
  * Test Type: Feature
  *
- * Targets: gp10b_mm_get_mmu_levels, nvgpu_pd_cache_init, nvgpu_pd_alloc,
- * nvgpu_pd_offset_from_index, nvgpu_pd_write, nvgpu_pd_free,
+ * Targets: gp10b_mm_get_mmu_levels, gops_mm.pd_cache_init, nvgpu_pd_cache_init,
+ * nvgpu_pd_alloc, nvgpu_pd_offset_from_index, nvgpu_pd_write, nvgpu_pd_free,
  * nvgpu_pd_cache_fini
  *
  * Input: None
@@ -171,8 +171,8 @@ int test_pd_write(struct unit_module *m, struct gk20a *g, void *__args);
  *
  * Test Type: Feature
  *
- * Targets: nvgpu_pd_cache_init, nvgpu_pd_alloc, nvgpu_pd_gpu_addr,
- * nvgpu_pd_free, nvgpu_pd_cache_fini
+ * Targets: gops_mm.pd_cache_init, nvgpu_pd_cache_init, nvgpu_pd_alloc,
+ * nvgpu_pd_gpu_addr, nvgpu_pd_free, nvgpu_pd_cache_fini
  *
  * Input: None
  *
@@ -222,8 +222,8 @@ int test_offset_computation(struct unit_module *m, struct gk20a *g,
  *
  * Test Type: Feature, Error injection
  *
- * Targets: nvgpu_pd_cache_init, nvgpu_pd_alloc, nvgpu_pd_cache_fini,
- * nvgpu_pd_free
+ * Targets: gops_mm.pd_cache_init, nvgpu_pd_cache_init, nvgpu_pd_alloc,
+ * nvgpu_pd_cache_fini, nvgpu_pd_free
  *
  * Input: None
  *
@@ -258,8 +258,8 @@ int test_init_deinit(struct unit_module *m, struct gk20a *g, void *__args);
  *
  * Test Type: Feature
  *
- * Targets: nvgpu_pd_cache_init, nvgpu_pd_alloc, nvgpu_pd_cache_fini,
- * nvgpu_pd_free
+ * Targets: gops_mm.pd_cache_init, nvgpu_pd_cache_init, nvgpu_pd_alloc,
+ * nvgpu_pd_cache_fini, nvgpu_pd_free
  *
  * Input: None
  *
@@ -291,8 +291,8 @@ int test_pd_cache_alloc_gen(struct unit_module *m, struct gk20a *g,
  *
  * Test Type: Feature, Error injection
  *
- * Targets: nvgpu_pd_cache_init, nvgpu_pd_alloc, nvgpu_pd_cache_fini,
- * nvgpu_pd_free
+ * Targets: gops_mm.pd_cache_init, nvgpu_pd_cache_init, nvgpu_pd_alloc,
+ * nvgpu_pd_cache_fini, nvgpu_pd_free
  *
  * Input: None
  *
@@ -323,7 +323,8 @@ int test_pd_free_empty_pd(struct unit_module *m, struct gk20a *g,
  *
  * Test Type: Error injection
  *
- * Targets: nvgpu_pd_cache_init, nvgpu_pd_alloc, nvgpu_pd_cache_fini
+ * Targets: gops_mm.pd_cache_init, nvgpu_pd_cache_init, nvgpu_pd_alloc,
+ * nvgpu_pd_cache_fini
  *
  * Input: None
  *
@@ -349,7 +350,8 @@ int test_pd_alloc_invalid_input(struct unit_module *m, struct gk20a *g,
  *
  * Test Type: Error injection
  *
- * Targets: nvgpu_pd_cache_init, nvgpu_pd_alloc, nvgpu_pd_cache_fini
+ * Targets: nvgpu_pd_cache_init, nvgpu_pd_alloc, gops_mm.pd_cache_init,
+ * nvgpu_pd_cache_fini
  *
  * Input: None
  *
@@ -376,7 +378,8 @@ int test_pd_alloc_direct_fi(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Test Type: Error injection
  *
- * Targets: nvgpu_pd_cache_init, nvgpu_pd_alloc, nvgpu_pd_cache_fini
+ * Targets: gops_mm.pd_cache_init, nvgpu_pd_cache_init, nvgpu_pd_alloc,
+ * nvgpu_pd_cache_fini
  *
  * Input: None
  *

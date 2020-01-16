@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -70,7 +70,7 @@ int test_mm_init_hal(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Test Type: Feature, Error guessing
  *
- * Targets: nvgpu_init_mm_support
+ * Targets: gops_mm.init_mm_support, nvgpu_init_mm_support
  *
  * Input: test_mm_init_hal must have been executed successfully.
  *
@@ -97,7 +97,7 @@ int test_nvgpu_init_mm(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Test Type: Feature, Error guessing
  *
- * Targets: nvgpu_mm_setup_hw
+ * Targets: gops_mm.setup_hw, nvgpu_mm_setup_hw
  *
  * Input: test_mm_init_hal and test_nvgpu_init_mm must have been executed
  * successfully.
@@ -123,7 +123,7 @@ int test_nvgpu_mm_setup_hw(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Test Type: Feature
  *
- * Targets: nvgpu_set_power_state, nvgpu_mm_suspend
+ * Targets: nvgpu_set_power_state, gops_mm.mm_suspend, nvgpu_mm_suspend
  *
  * Input: test_mm_init_hal, test_nvgpu_init_mm and test_nvgpu_mm_setup_hw must
  * have been executed successfully.
@@ -152,7 +152,7 @@ int test_mm_suspend(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Test Type: Feature
  *
- * Targets: nvgpu_pd_cache_init, gops_mm.remove_support
+ * Targets: gops_mm.pd_cache_init, nvgpu_pd_cache_init, gops_mm.remove_support
  *
  * Input: test_mm_init_hal, test_nvgpu_init_mm and test_nvgpu_mm_setup_hw must
  * have been executed successfully
@@ -255,4 +255,44 @@ int test_mm_inst_block(struct unit_module *m, struct gk20a *g, void *args);
 int test_mm_alloc_inst_block(struct unit_module *m, struct gk20a *g,
 				void *args);
 
+/**
+ * Test specification for: test_gk20a_from_mm
+ *
+ * Description: Simple test to check gk20a_from_mm.
+ *
+ * Test Type: Feature
+ *
+ * Targets: gk20a_from_mm
+ *
+ * Input: None
+ *
+ * Steps:
+ * - Call gk20a_from_mm with the g->mm pointer and ensure it returns a
+ *   pointer on g.
+ *
+ * Output: Returns PASS if the steps above were executed successfully. FAIL
+ * otherwise.
+ */
+int test_gk20a_from_mm(struct unit_module *m, struct gk20a *g, void *args);
+
+/**
+ * Test specification for: test_bar1_aperture_size_mb_gk20a
+ *
+ * Description: Simple test to check bar1_aperture_size_mb_gk20a.
+ *
+ * Test Type: Feature
+ *
+ * Targets: bar1_aperture_size_mb_gk20a
+ *
+ * Input: None
+ *
+ * Steps:
+ * - Ensure that g->mm.bar1.aperture_size matches the expected value from
+ *   bar1_aperture_size_mb_gk20a
+ *
+ * Output: Returns PASS if the steps above were executed successfully. FAIL
+ * otherwise.
+ */
+int test_bar1_aperture_size_mb_gk20a(struct unit_module *m, struct gk20a *g,
+	void *args);
 #endif /* UNIT_MM_MM_H */

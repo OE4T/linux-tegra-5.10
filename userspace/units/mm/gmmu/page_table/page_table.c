@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -49,13 +49,14 @@
 
 #include <nvgpu/hw/gv11b/hw_gmmu_gv11b.h>
 
-#define TEST_PA_ADDRESS     0xEFAD80000000
-#define TEST_GPU_VA         0x102040600000
-#define TEST_PA_ADDRESS_64K 0x1FAD80010000
-#define TEST_PA_ADDRESS_4K  0x2FAD80001000
-#define TEST_HOLE_SIZE      0x100000
-#define TEST_COMP_TAG 0xEF
+#define TEST_PA_ADDRESS      0xEFAD80000000
+#define TEST_GPU_VA          0x102040600000
+#define TEST_PA_ADDRESS_64K  0x1FAD80010000
+#define TEST_PA_ADDRESS_4K   0x2FAD80001000
+#define TEST_HOLE_SIZE       0x100000
+#define TEST_COMP_TAG        0xEF
 #define TEST_INVALID_ADDRESS 0xAAC0000000
+#define TEST_PTE_SIZE        2U
 
 /* Size of the buffer to map. It must be a multiple of 4KB */
 #define TEST_SIZE (1 * SZ_1M)
@@ -366,13 +367,7 @@ static int init_mm(struct unit_module *m, struct gk20a *g)
 	return UNIT_SUCCESS;
 }
 
-/*
- * Test: test_nvgpu_gmmu_init
- * This test must be run once and be the first oneas it initializes the MM
- * subsystem.
- */
-static int test_nvgpu_gmmu_init(struct unit_module *m,
-					struct gk20a *g, void *args)
+int test_nvgpu_gmmu_init(struct unit_module *m, struct gk20a *g, void *args)
 {
 	int debug_level = verbose_lvl(m);
 
@@ -396,12 +391,7 @@ static int test_nvgpu_gmmu_init(struct unit_module *m,
 	return UNIT_SUCCESS;
 }
 
-/*
- * Test: test_nvgpu_gmmu_clean
- * This test should be the last one to run as it de-initializes components.
- */
-static int test_nvgpu_gmmu_clean(struct unit_module *m,
-					struct gk20a *g, void *args)
+int test_nvgpu_gmmu_clean(struct unit_module *m, struct gk20a *g, void *args)
 {
 	g->log_mask = 0;
 	nvgpu_vm_put(g->mm.pmu.vm);
@@ -455,7 +445,7 @@ int test_nvgpu_gmmu_map_unmap(struct unit_module *m, struct gk20a *g,
 	void *args)
 {
 	struct nvgpu_mem mem = { };
-	u32 pte[2];
+	u32 pte[TEST_PTE_SIZE];
 	int result;
 	struct nvgpu_os_posix *p = nvgpu_os_posix_from_gk20a(g);
 	struct test_parameters *params = (struct test_parameters *) args;
@@ -624,12 +614,7 @@ int test_nvgpu_gmmu_map_unmap_map_fail(struct unit_module *m, struct gk20a *g,
 	return UNIT_SUCCESS;
 }
 
-/*
- * Test: test_nvgpu_gmmu_init_page_table_fail
- * Test special corner cases causing nvgpu_gmmu_init_page_table to fail
- * Mostly to cover error handling and some branches.
- */
-static int test_nvgpu_gmmu_init_page_table_fail(struct unit_module *m,
+int test_nvgpu_gmmu_init_page_table_fail(struct unit_module *m,
 					struct gk20a *g, void *args)
 {
 	int err;
@@ -648,16 +633,11 @@ static int test_nvgpu_gmmu_init_page_table_fail(struct unit_module *m,
 	return UNIT_SUCCESS;
 }
 
-/*
- * Test: test_nvgpu_gmmu_set_pte
- * This test targets the nvgpu_set_pte() function by mapping a buffer, and
- * then trying to alter the validity bit of the corresponding PTE.
- */
-static int test_nvgpu_gmmu_set_pte(struct unit_module *m,
-					struct gk20a *g, void *args)
+int test_nvgpu_gmmu_set_pte(struct unit_module *m, struct gk20a *g, void *args)
 {
 	struct nvgpu_mem mem = { };
-	u32 pte[2];
+	u32 pte[TEST_PTE_SIZE];
+	u32 pte_size;
 	int result;
 	struct nvgpu_os_posix *p = nvgpu_os_posix_from_gk20a(g);
 	struct test_parameters *params = (struct test_parameters *) args;
@@ -671,6 +651,12 @@ static int test_nvgpu_gmmu_set_pte(struct unit_module *m,
 
 	if (mem.gpu_va == 0) {
 		unit_return_fail(m, "Failed to map GMMU page");
+	}
+
+	pte_size = nvgpu_pte_words(g);
+	if (pte_size != TEST_PTE_SIZE) {
+		unit_return_fail(m, "PTE size unexpected: %d/%d\n", pte_size,
+			TEST_PTE_SIZE);
 	}
 
 	result = nvgpu_get_pte(g, g->mm.pmu.vm, mem.gpu_va, &pte[0]);
@@ -869,11 +855,6 @@ int test_nvgpu_gmmu_map_unmap_adv(struct unit_module *m,
 	return UNIT_SUCCESS;
 }
 
-/*
- * Test: test_nvgpu_gmmu_map_unmap_batched
- * This tests uses the batch mode and maps 2 buffers. Then it checks that
- * the flags in the batch structure were set correctly.
- */
 int test_nvgpu_gmmu_map_unmap_batched(struct unit_module *m,
 					struct gk20a *g, void *args)
 {
@@ -933,7 +914,7 @@ int test_nvgpu_gmmu_map_unmap_batched(struct unit_module *m,
 static int check_pte_valid(struct unit_module *m, struct gk20a *g,
 			struct vm_gk20a *vm, struct nvgpu_mem *mem)
 {
-	u32 pte[2];
+	u32 pte[TEST_PTE_SIZE];
 	int result;
 
 	result = nvgpu_get_pte(g, vm, mem->gpu_va, &pte[0]);
@@ -953,7 +934,7 @@ static int check_pte_valid(struct unit_module *m, struct gk20a *g,
 static int check_pte_invalidated(struct unit_module *m, struct gk20a *g,
 			struct vm_gk20a *vm, struct nvgpu_mem *mem)
 {
-	u32 pte[2];
+	u32 pte[TEST_PTE_SIZE];
 	int result;
 
 	result = nvgpu_get_pte(g, vm, mem->gpu_va, &pte[0]);
@@ -1179,6 +1160,36 @@ int test_nvgpu_page_table_c2_full(struct unit_module *m, struct gk20a *g,
 	return UNIT_SUCCESS;
 }
 
+int test_nvgpu_gmmu_perm_str(struct unit_module *m, struct gk20a *g, void *args)
+{
+	int ret = UNIT_FAIL;
+	const char *str;
+
+	str = nvgpu_gmmu_perm_str(gk20a_mem_flag_none);
+	if (strcmp(str, "RW") != 0) {
+		unit_return_fail(m, "nvgpu_gmmu_perm_str failed (1)\n");
+	}
+
+	str = nvgpu_gmmu_perm_str(gk20a_mem_flag_write_only);
+	if (strcmp(str, "WO") != 0) {
+		unit_return_fail(m, "nvgpu_gmmu_perm_str failed (2)\n");
+	}
+
+	str = nvgpu_gmmu_perm_str(gk20a_mem_flag_read_only);
+	if (strcmp(str, "RO") != 0) {
+		unit_return_fail(m, "nvgpu_gmmu_perm_str failed (3)\n");
+	}
+
+	str = nvgpu_gmmu_perm_str(0xFF);
+	if (strcmp(str, "??") != 0) {
+		unit_return_fail(m, "nvgpu_gmmu_perm_str failed (4)\n");
+	}
+
+	ret = UNIT_SUCCESS;
+
+
+	return ret;
+}
 
 struct unit_module_test nvgpu_gmmu_tests[] = {
 	UNIT_TEST(gmmu_init, test_nvgpu_gmmu_init, (void *) 1, 0),
@@ -1285,6 +1296,7 @@ struct unit_module_test nvgpu_gmmu_tests[] = {
 			req_fixed_address, test_nvgpu_page_table_c2_full,
 			NULL, 0),
 
+	UNIT_TEST(gmmu_perm_str, test_nvgpu_gmmu_perm_str, NULL, 0),
 	UNIT_TEST(gmmu_clean, test_nvgpu_gmmu_clean, NULL, 0),
 };
 

@@ -62,6 +62,9 @@
 #define SPECIAL_CASE_NO_VM_AREA		4
 #define SPECIAL_CASE_TIMEOUT_INIT_FAIL	8
 
+/* Expected bit count from nvgpu_vm_pde_coverage_bit_count() */
+#define GP10B_PDE_BIT_COUNT		21U
+
 /*
  * Helper function used to create custom SGTs from a list of SGLs.
  * The created SGT needs to be explicitly free'd.
@@ -184,6 +187,7 @@ static int init_test_env(struct unit_module *m, struct gk20a *g)
 	g->ops.mm.cache.fb_flush = gk20a_mm_fb_flush;
 	g->ops.mm.init_inst_block = hal_mm_init_inst_block;
 	g->ops.mm.vm_as_free_share = hal_vm_as_free_share;
+	g->ops.mm.vm_bind_channel = nvgpu_vm_bind_channel;
 
 	if (nvgpu_pd_cache_init(g) != 0) {
 		unit_return_fail(m, "PD cache init failed.\n");
@@ -272,6 +276,9 @@ int test_nvgpu_vm_alloc_va(struct unit_module *m, struct gk20a *g,
 		ret = UNIT_FAIL;
 		goto exit;
 	}
+
+	/* And now free it */
+	nvgpu_vm_free_va(vm, addr, 0);
 
 	ret = UNIT_SUCCESS;
 exit:
@@ -571,6 +578,11 @@ static int map_buffer(struct unit_module *m,
 				ret = UNIT_FAIL;
 				goto free_vm_area;
 			}
+			if (nvgpu_vm_area_find(vm, gpu_va) == NULL) {
+				unit_err(m, "VM area not found\n");
+				ret = UNIT_FAIL;
+				goto free_vm_area;
+			}
 		}
 	}
 
@@ -655,6 +667,17 @@ static int map_buffer(struct unit_module *m,
 		unit_err(m, "Can't find mapped buffer via less-than search\n");
 		ret = UNIT_FAIL;
 		goto free_mapped_buf;
+	}
+
+	/* Check if we can find the mapped buffer via nvgpu_vm_find_mapping */
+	if (fixed_gpu_va) {
+		mapped_buf_check = nvgpu_vm_find_mapping(vm, &os_buf, gpu_va,
+			flags, compr_kind);
+		if (mapped_buf_check == NULL) {
+			unit_err(m, "Can't find buf nvgpu_vm_find_mapping\n");
+			ret = UNIT_FAIL;
+			goto free_mapped_buf;
+		}
 	}
 
 	/*
@@ -798,7 +821,7 @@ int test_vm_bind(struct unit_module *m, struct gk20a *g, void *__args)
 
 	vm = create_test_vm(m, g);
 
-	nvgpu_vm_bind_channel(vm, channel);
+	g->ops.mm.vm_bind_channel(vm, channel);
 
 	if (channel->vm != vm) {
 		ret = UNIT_FAIL;
@@ -1066,6 +1089,25 @@ int test_init_error_paths(struct unit_module *m, struct gk20a *g, void *__args)
 				false, false, __func__);
 	if (ret != 0) {
 		unit_err(m, "nvgpu_vm_do_init did not succeed as expected (D).\n");
+		ret = UNIT_FAIL;
+		goto exit;
+	}
+
+	/* Ref count */
+	if (vm->ref.refcount.v != 1U) {
+		unit_err(m, "Invalid ref count. (1)\n");
+		ret = UNIT_FAIL;
+		goto exit;
+	}
+	nvgpu_vm_get(vm);
+	if (vm->ref.refcount.v != 2U) {
+		unit_err(m, "Invalid ref count. (2)\n");
+		ret = UNIT_FAIL;
+		goto exit;
+	}
+	nvgpu_vm_put(vm);
+	if (vm->ref.refcount.v != 1U) {
+		unit_err(m, "Invalid ref count. (3)\n");
 		ret = UNIT_FAIL;
 		goto exit;
 	}
@@ -1892,6 +1934,108 @@ exit:
 	return ret;
 }
 
+int test_gk20a_from_vm(struct unit_module *m, struct gk20a *g, void *args)
+{
+	struct vm_gk20a *vm = create_test_vm(m, g);
+	int ret = UNIT_FAIL;
+
+	if (g != gk20a_from_vm(vm)) {
+		unit_err(m, "ptr mismatch in gk20a_from_vm\n");
+		goto exit;
+	}
+
+	ret = UNIT_SUCCESS;
+
+exit:
+	nvgpu_vm_put(vm);
+
+	return ret;
+}
+
+static bool is_overlapping_mapping(struct nvgpu_rbtree_node *root, u64 addr,
+	u64 size)
+{
+	struct nvgpu_rbtree_node *node = NULL;
+	struct nvgpu_mapped_buf *buffer;
+
+	nvgpu_rbtree_search(addr, &node, root);
+	if (!node)
+		return false;
+
+	buffer = mapped_buffer_from_rbtree_node(node);
+	if (addr + size > buffer->addr)
+		return true;
+
+	return false;
+}
+
+
+int test_nvgpu_insert_mapped_buf(struct unit_module *m, struct gk20a *g,
+	void *args)
+{
+	int ret = UNIT_FAIL;
+	struct vm_gk20a *vm = create_test_vm(m, g);
+	struct nvgpu_mapped_buf *mapped_buffer = NULL;
+	u64 map_addr = BUF_CPU_PA;
+	u64 size = SZ_64K;
+
+	if (is_overlapping_mapping(vm->mapped_buffers, map_addr, size)) {
+		unit_err(m, "addr already mapped");
+		ret = UNIT_FAIL;
+		goto done;
+	}
+
+	mapped_buffer = malloc(sizeof(*mapped_buffer));
+	if (!mapped_buffer) {
+		ret = UNIT_FAIL;
+		goto done;
+	}
+
+	mapped_buffer->addr	= map_addr;
+	mapped_buffer->size	= size;
+	mapped_buffer->pgsz_idx	= GMMU_PAGE_SIZE_BIG;
+	mapped_buffer->vm	= vm;
+	nvgpu_init_list_node(&mapped_buffer->buffer_list);
+	nvgpu_ref_init(&mapped_buffer->ref);
+
+	nvgpu_insert_mapped_buf(vm, mapped_buffer);
+
+	if (!is_overlapping_mapping(vm->mapped_buffers, map_addr, size)) {
+		unit_err(m, "addr NOT already mapped");
+		ret = UNIT_FAIL;
+		goto done;
+	}
+
+	ret = UNIT_SUCCESS;
+
+done:
+	nvgpu_vm_free_va(vm, map_addr, 0);
+
+	return ret;
+}
+
+int test_vm_pde_coverage_bit_count(struct unit_module *m, struct gk20a *g,
+	void *args)
+{
+	u32 bit_count;
+	int ret = UNIT_FAIL;
+	struct vm_gk20a *vm = create_test_vm(m, g);
+
+	bit_count = nvgpu_vm_pde_coverage_bit_count(vm);
+
+	if (bit_count != GP10B_PDE_BIT_COUNT) {
+		unit_err(m, "invalid PDE bit count\n");
+		goto done;
+	}
+
+	ret = UNIT_SUCCESS;
+
+done:
+	nvgpu_vm_put(vm);
+
+	return ret;
+}
+
 struct unit_module_test vm_tests[] = {
 	/*
 	 * Requirement verification tests
@@ -1924,6 +2068,11 @@ struct unit_module_test vm_tests[] = {
 		  test_batch,
 		  NULL,
 		  0),
+	UNIT_TEST(gk20a_from_vm, test_gk20a_from_vm, NULL, 0),
+	UNIT_TEST(nvgpu_insert_mapped_buf, test_nvgpu_insert_mapped_buf, NULL,
+		0),
+	UNIT_TEST(vm_pde_coverage_bit_count, test_vm_pde_coverage_bit_count,
+		NULL, 0),
 };
 
 UNIT_MODULE(vm, vm_tests, UNIT_PRIO_NVGPU_TEST);

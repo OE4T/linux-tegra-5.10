@@ -195,6 +195,9 @@ int test_nvgpu_aperture_mask(struct unit_module *m,
 
 	/* Case: APERTURE_SYSMEM */
 	test_mem->aperture = APERTURE_SYSMEM;
+	if (!nvgpu_aperture_is_sysmem(test_mem->aperture)) {
+		unit_return_fail(m, "Invalid aperture enum\n");
+	}
 	ret_ap_mask = nvgpu_aperture_mask(g, test_mem, sysmem_mask,
 				sysmem_coh_mask, vidmem_mask);
 	if (ret_ap_mask != sysmem_mask) {
@@ -650,6 +653,14 @@ int test_nvgpu_mem_create_from_phys(struct unit_module *m,
 
 	if (err != 0) {
 		unit_return_fail(m, "nvgpu_mem_create_from_phys init failed\n");
+	}
+
+	if (nvgpu_mem_get_phys_addr(g, test_mem) != ((u64) test_mem->cpu_va)) {
+		unit_return_fail(m, "invalid physical address\n");
+	}
+
+	if (nvgpu_mem_get_addr(g, test_mem) != ((u64) test_mem->cpu_va)) {
+		unit_return_fail(m, "invalid nvgpu_mem_get_addr address\n");
 	}
 
 	/* Allocate cpu_va for later tests */

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -69,8 +69,8 @@ int test_nvgpu_gmmu_map_unmap_map_fail(struct unit_module *m, struct gk20a *g,
  *
  * Test Type: Feature
  *
- * Targets: nvgpu_gmmu_map_fixed, nvgpu_gmmu_map, nvgpu_get_pte,
- * nvgpu_gmmu_unmap
+ * Targets: nvgpu_gmmu_map_fixed, gops_mm.gops_mm_gmmu.map, nvgpu_gmmu_map,
+ * nvgpu_get_pte, gops_mm.gops_mm_gmmu.unmap, nvgpu_gmmu_unmap
  *
  * Input: args as a struct test_parameters to hold scenario and test parameters.
  *
@@ -103,7 +103,8 @@ int test_nvgpu_gmmu_map_unmap(struct unit_module *m, struct gk20a *g,
  *
  * Test Type: Feature
  *
- * Targets: nvgpu_gmmu_map_locked, nvgpu_gmmu_unmap
+ * Targets: gops_mm.gops_mm_gmmu.map, nvgpu_gmmu_map_locked,
+ * gops_mm.gops_mm_gmmu.unmap, nvgpu_gmmu_unmap, gk20a_from_vm
  *
  * Input: args as a struct test_parameters to hold scenario and test parameters.
  *
@@ -128,7 +129,8 @@ int test_nvgpu_gmmu_map_unmap_adv(struct unit_module *m, struct gk20a *g,
  *
  * Test Type: Feature
  *
- * Targets: nvgpu_gmmu_map_locked, nvgpu_gmmu_unmap
+ * Targets: nvgpu_gmmu_map_locked, nvgpu_gmmu_unmap, gops_mm.gops_mm_gmmu.unmap,
+ * nvgpu_gmmu_unmap_locked
  *
  * Input: args as a struct test_parameters to hold scenario and test parameters.
  *
@@ -157,8 +159,9 @@ int test_nvgpu_gmmu_map_unmap_batched(struct unit_module *m, struct gk20a *g,
  *
  * Test Type: Feature
  *
- * Targets: nvgpu_vm_init, nvgpu_gmmu_map, nvgpu_gmmu_map_locked,
- * nvgpu_gmmu_unmap, nvgpu_vm_put
+ * Targets: nvgpu_vm_init, nvgpu_gmmu_map, gops_mm.gops_mm_gmmu.map,
+ * nvgpu_gmmu_map_locked, gops_mm.gops_mm_gmmu.unmap, nvgpu_gmmu_unmap,
+ * nvgpu_vm_put
  *
  * Input: None
  *
@@ -189,8 +192,8 @@ int test_nvgpu_page_table_c1_full(struct unit_module *m, struct gk20a *g,
  *
  * Test Type: Feature
  *
- * Targets: nvgpu_vm_init, nvgpu_gmmu_map_fixed, nvgpu_gmmu_unmap,
- * nvgpu_vm_put
+ * Targets: nvgpu_vm_init, gops_mm.gops_mm_gmmu.map, nvgpu_gmmu_map_fixed,
+ * gops_mm.gops_mm_gmmu.unmap, nvgpu_gmmu_unmap, nvgpu_vm_put
  *
  * Input: None
  *
@@ -211,5 +214,132 @@ int test_nvgpu_page_table_c1_full(struct unit_module *m, struct gk20a *g,
 int test_nvgpu_page_table_c2_full(struct unit_module *m, struct gk20a *g,
 	void *args);
 
+/**
+ * Test specification for: test_nvgpu_gmmu_init_page_table_fail
+ *
+ * Description: Test special corner cases causing nvgpu_gmmu_init_page_table
+ * to fail, mostly to cover error handling and some branches.
+ *
+ * Test Type: Error injection
+ *
+ * Targets: nvgpu_gmmu_init_page_table
+ *
+ * Input: None
+ *
+ * Steps:
+ * - Enable KMEM fault injection.
+ * - Call nvgpu_gmmu_init_page_table.
+ * - Disable KMEM fault injection.
+ * - Ensure that nvgpu_gmmu_init_page_table failed as expected.
+ *
+ * Output: Returns PASS if the steps above were executed successfully. FAIL
+ * otherwise.
+ */
+int test_nvgpu_gmmu_init_page_table_fail(struct unit_module *m,
+					struct gk20a *g, void *args);
+
+/**
+ * Test specification for: test_nvgpu_gmmu_set_pte
+ *
+ * Description: This test targets the nvgpu_set_pte() function by mapping a
+ * buffer, and then trying to alter the validity bit of the corresponding PTE.
+ *
+ * Test Type: Feature, Error injection
+ *
+ * Targets: nvgpu_get_pte, nvgpu_set_pte, nvgpu_pte_words
+ *
+ * Input: None
+ *
+ * Steps:
+ * - Map a test buffer (dynamic) and get the assigned GPU VA.
+ * - Ensure the mapping succeeded.
+ * - Check that nvgpu_pte_words returns the expected value (2).
+ * - Use nvgpu_get_pte to retrieve the PTE from the assigned GPU VA, ensure
+ *   it is valid.
+ * - Call nvgpu_set_pte with an invalid address and ensure it failed.
+ * - Using nvgpu_set_pte, rewrite the PTE with the validity bit flipped and
+ *   ensure it reports success.
+ * - Retrieve the PTE again, ensure it succeeds and then check that the PTE
+ *   is invalid.
+ *
+ * Output: Returns PASS if the steps above were executed successfully. FAIL
+ * otherwise.
+ */
+static int test_nvgpu_gmmu_set_pte(struct unit_module *m,
+					struct gk20a *g, void *args);
+
+/**
+ * Test specification for: test_nvgpu_gmmu_init
+ *
+ * Description: This test must be run once and be the first one as it
+ * initializes the MM subsystem.
+ *
+ * Test Type: Other (setup), Feature
+ *
+ * Targets: nvgpu_gmmu_init_page_table, nvgpu_vm_init
+ *
+ * Input: None
+ *
+ * Steps:
+ * - Set debug log masks if needed.
+ * - For iGPU, enable the following flags: NVGPU_MM_UNIFIED_MEMORY,
+ *   NVGPU_USE_COHERENT_SYSMEM, NVGPU_SUPPORT_NVLINK
+ * - Setup all the needed HALs.
+ * - Create a test PMU VM to be used by other tests which will cause the
+ *   nvgpu_gmmu_init_page_table function to be called.
+ *
+ * Output: Returns PASS if the steps above were executed successfully. FAIL
+ * otherwise.
+ */
+int test_nvgpu_gmmu_init(struct unit_module *m, struct gk20a *g, void *args);
+
+/**
+ * Test specification for: test_nvgpu_gmmu_clean
+ *
+ * Description: This test should be the last one to run as it de-initializes
+ * components.
+ *
+ * Test Type: Other (cleanup)
+ *
+ * Targets: None
+ *
+ * Input: None
+ *
+ * Steps:
+ * - Set log mask to 0.
+ * - Call nvgpu_vm_put to remove the test VM.
+ *
+ * Output: Returns PASS if the steps above were executed successfully. FAIL
+ * otherwise.
+ */
+int test_nvgpu_gmmu_clean(struct unit_module *m, struct gk20a *g, void *args);
+
+/**
+ * Test specification for: test_nvgpu_gmmu_perm_str
+ *
+ * Description: Tests all supported combinations of permissions on the
+ * nvgpu_gmmu_perm_str function.
+ *
+ * Test Type: Feature
+ *
+ * Targets: nvgpu_gmmu_perm_str
+ *
+ * Input: None
+ *
+ * Steps:
+ * - Call nvgpu_gmmu_perm_str with flag gk20a_mem_flag_none and ensure it
+ *   returns "RW"
+ * - Call nvgpu_gmmu_perm_str with flag gk20a_mem_flag_write_only and ensure it
+ *   returns "WO"
+ * - Call nvgpu_gmmu_perm_str with flag gk20a_mem_flag_read_only and ensure it
+ *   returns "RO"
+ * - Call nvgpu_gmmu_perm_str with an invalid flag and ensure it
+ *   returns "??"
+ *
+ * Output: Returns PASS if the steps above were executed successfully. FAIL
+ * otherwise.
+ */
+int test_nvgpu_gmmu_perm_str(struct unit_module *m, struct gk20a *g,
+	void *args);
 /** }@ */
 #endif /* UNIT_PAGE_TABLE_H */

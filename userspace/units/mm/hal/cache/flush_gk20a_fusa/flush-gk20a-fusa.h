@@ -59,7 +59,8 @@ int test_env_init_flush_gk20a_fusa(struct unit_module *m, struct gk20a *g,
  *
  * Test Type: Feature
  *
- * Targets: gops_mm.gops_mm_cache.fb_flush, gk20a_mm_fb_flush
+ * Targets: gops_mm.gops_mm_cache.fb_flush, gk20a_mm_fb_flush,
+ * gops_mm.get_flush_retries
  *
  * Input: test_env_init, args (value can be F_GK20A_FB_FLUSH_DEFAULT_INPUT,
  *        F_GK20A_FB_FLUSH_GET_RETRIES, F_GK20A_FB_FLUSH_PENDING_TRUE,

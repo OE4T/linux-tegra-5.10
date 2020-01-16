@@ -19,6 +19,7 @@ gk20a_fifo_intr_1_isr
 gk20a_fifo_intr_handle_chsw_error
 gk20a_fifo_intr_handle_runlist_event
 gk20a_fifo_pbdma_isr
+gk20a_from_as
 gk20a_get_pde_pgsz
 gk20a_get_pte_pgsz
 gk20a_mm_fb_flush
@@ -268,6 +269,7 @@ nvgpu_alloc_release_carveout
 nvgpu_alloc_reserve_carveout
 nvgpu_alloc_space
 nvgpu_allocator_init
+nvgpu_aperture_is_sysmem
 nvgpu_aperture_mask
 nvgpu_bar1_readl
 nvgpu_bar1_writel
@@ -352,6 +354,7 @@ nvgpu_dma_alloc_map
 nvgpu_dma_alloc_map_sys
 nvgpu_dma_alloc_sys
 nvgpu_dma_free
+nvgpu_dma_free_sys
 nvgpu_dma_unmap_free
 nvgpu_ecc_counter_init_per_lts
 nvgpu_ecc_init_support
@@ -517,7 +520,9 @@ nvgpu_init_hal
 nvgpu_init_ltc_support
 nvgpu_init_mm_support
 nvgpu_init_therm_support
+nvgpu_insert_mapped_buf
 nvgpu_inst_block_addr
+nvgpu_iommuable
 nvgpu_free_inst_block
 nvgpu_inst_block_ptr
 nvgpu_is_enabled
@@ -551,6 +556,7 @@ nvgpu_memset
 nvgpu_mem_create_from_mem
 nvgpu_mem_create_from_phys
 nvgpu_mem_get_addr
+nvgpu_mem_get_phys_addr
 nvgpu_mem_iommu_translate
 nvgpu_mem_is_sysmem
 nvgpu_mem_is_word_aligned
@@ -642,6 +648,7 @@ nvgpu_posix_is_fault_injection_cntr_set
 nvgpu_posix_is_fault_injection_triggered
 nvgpu_posix_probe
 nvgpu_posix_register_io
+nvgpu_pte_words
 nvgpu_queue_alloc
 nvgpu_queue_free
 nvgpu_queue_in
@@ -743,6 +750,7 @@ nvgpu_usleep_range
 nvgpu_vfree_impl
 nvgpu_vm_alloc_va
 nvgpu_vm_area_alloc
+nvgpu_vm_area_find
 nvgpu_vm_area_free
 nvgpu_vm_area_validate_buffer
 nvgpu_vm_bind_channel
@@ -750,11 +758,15 @@ nvgpu_vm_do_init
 nvgpu_vm_find_mapped_buf
 nvgpu_vm_find_mapped_buf_less_than
 nvgpu_vm_find_mapped_buf_range
+nvgpu_vm_find_mapping
+nvgpu_vm_free_va
+nvgpu_vm_get
 nvgpu_vm_get_buffers
 nvgpu_vm_init
 nvgpu_vm_map
 nvgpu_vm_mapping_batch_finish
 nvgpu_vm_mapping_batch_start
+nvgpu_vm_pde_coverage_bit_count
 nvgpu_vm_put
 nvgpu_vm_put_buffers
 nvgpu_vm_unmap

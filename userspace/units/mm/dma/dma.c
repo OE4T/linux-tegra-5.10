@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -152,6 +152,10 @@ static int init_mm(struct unit_module *m, struct gk20a *g)
 
 	p->mm_is_iommuable = true;
 
+	if (!nvgpu_iommuable(g)) {
+		unit_return_fail(m, "Mismatch on nvgpu_iommuable\n");
+	}
+
 	g->ops.mm.gmmu.get_default_big_page_size =
 		gp10b_mm_get_default_big_page_size;
 	g->ops.mm.gmmu.get_mmu_levels = gp10b_mm_get_mmu_levels;
@@ -265,10 +269,6 @@ static struct nvgpu_mem *create_test_mem(void)
 	return mem;
 }
 
-/*
- * Test to target nvgpu_dma_alloc_flags_* functions, testing several possible
- * flags and SYSMEM/VIDMEM.
- */
 int test_mm_dma_alloc_flags(struct unit_module *m, struct gk20a *g, void *args)
 {
 	int err;
@@ -300,7 +300,7 @@ int test_mm_dma_alloc_flags(struct unit_module *m, struct gk20a *g, void *args)
 		unit_err(m, "allocation not in SYSMEM\n");
 		goto end;
 	}
-	nvgpu_dma_free(g, mem);
+	nvgpu_dma_free_sys(g, mem);
 
 	/* Force allocation in VIDMEM and READ_ONLY */
 #ifdef CONFIG_NVGPU_DGPU

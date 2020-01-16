@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -43,7 +43,9 @@ struct unit_module;
  * Targets: nvgpu_vm_init, nvgpu_vm_get_buffers, nvgpu_big_pages_possible,
  * nvgpu_vm_area_alloc, nvgpu_vm_map, nvgpu_vm_find_mapped_buf_range,
  * nvgpu_vm_find_mapped_buf_less_than, nvgpu_get_pte, nvgpu_vm_put_buffers,
- * nvgpu_vm_unmap, nvgpu_vm_area_free, nvgpu_vm_put
+ * nvgpu_vm_unmap, nvgpu_vm_area_free, nvgpu_vm_put, nvgpu_vm_find_mapped_buf,
+ * nvgpu_vm_area_find, nvgpu_vm_unmap_ref_internal, nvgpu_vm_unmap_system,
+ * nvgpu_os_buf_get_size
  *
  * Input: None
  *
@@ -91,7 +93,7 @@ int test_map_buf(struct unit_module *m, struct gk20a *g, void *__args);
  * nvgpu_vm_area_alloc, nvgpu_vm_map, nvgpu_vm_find_mapped_buf_range,
  * nvgpu_vm_find_mapped_buf_less_than, nvgpu_get_pte, nvgpu_vm_put_buffers,
  * nvgpu_vm_unmap, nvgpu_vm_area_free, nvgpu_vm_put,
- * nvgpu_gmmu_va_small_page_limit
+ * nvgpu_gmmu_va_small_page_limit, nvgpu_vm_find_mapping
  *
  * Input: None
  *
@@ -138,7 +140,7 @@ int test_map_buf_gpu_va(struct unit_module *m, struct gk20a *g, void *__args);
  * nvgpu_vm_map, nvgpu_vm_find_mapped_buf_range,
  * nvgpu_vm_find_mapped_buf_less_than, nvgpu_get_pte, nvgpu_vm_put_buffers,
  * nvgpu_vm_unmap, nvgpu_vm_area_free, nvgpu_vm_put,
- * nvgpu_vm_mapping_batch_finish
+ * nvgpu_vm_mapping_batch_finish, nvgpu_vm_mapping_batch_finish_locked
  *
  * Input: None
  *
@@ -161,11 +163,11 @@ int test_batch(struct unit_module *m, struct gk20a *g, void *__args);
  * Test specification for: test_init_error_paths
  *
  * Description: This test exercises the VM unit initialization code and covers
- * a number of error paths.
+ * a number of error paths as well as reference counting mechanisms.
  *
  * Test Type: Feature, Error injection
  *
- * Targets: nvgpu_vm_init, nvgpu_vm_do_init
+ * Targets: nvgpu_vm_init, nvgpu_vm_do_init, nvgpu_vm_get, nvgpu_vm_put
  *
  * Input: None
  *
@@ -196,6 +198,9 @@ int test_batch(struct unit_module *m, struct gk20a *g, void *__args);
  *   unified VA space.
  * - Ensure that nvgpu_vm_do_init succeeds with big pages disabled.
  * - Ensure that nvgpu_vm_do_init succeeds with no user VMA.
+ * - Ensure that reference count of the VM is 1. Then increment it using
+ *   nvgpu_vm_get and ensure it is 2. Decrement it with nvgpu_vm_put and ensure
+ *   it is back to 1.
  * - Uninitialize the VM
  *
  * Output: Returns PASS if the steps above were executed successfully. FAIL
@@ -247,7 +252,7 @@ int test_map_buffer_error_cases(struct unit_module *m, struct gk20a *g,
  *
  * Test Type: Feature, Error injection
  *
- * Targets: nvgpu_vm_alloc_va
+ * Targets: nvgpu_vm_alloc_va, nvgpu_vm_free_va
  *
  * Input: None
  *
@@ -283,7 +288,7 @@ int test_nvgpu_vm_alloc_va(struct unit_module *m, struct gk20a *g,
  *
  * Test Type: Feature
  *
- * Targets: nvgpu_vm_bind_channel
+ * Targets: gops_mm.vm_bind_channel, nvgpu_vm_bind_channel
  *
  * Input: None
  *
@@ -379,5 +384,79 @@ int test_vm_aspace_id(struct unit_module *m, struct gk20a *g, void *__args);
  */
 int test_vm_area_error_cases(struct unit_module *m, struct gk20a *g,
 	void *__args);
+
+/**
+ * Test specification for: test_gk20a_from_vm
+ *
+ * Description: Simple test to check gk20a_from_vm.
+ *
+ * Test Type: Feature
+ *
+ * Targets: gk20a_from_vm
+ *
+ * Input: None
+ *
+ * Steps:
+ * - Create a test VM.
+ * - Call gk20a_from_vm with the test vm pointer and ensure it returns a
+ *   pointer on g.
+ * - Uninitialize the VM.
+ *
+ * Output: Returns PASS if the steps above were executed successfully. FAIL
+ * otherwise.
+ */
+int test_gk20a_from_vm(struct unit_module *m, struct gk20a *g, void *args);
+
+/**
+ * Test specification for: test_nvgpu_insert_mapped_buf
+ *
+ * Description: Tests the logic of nvgpu_insert_mapped_buf
+ *
+ * Test Type: Feature
+ *
+ * Targets: nvgpu_insert_mapped_buf, mapped_buffer_from_rbtree_node
+ *
+ * Input: None
+ *
+ * Steps:
+ * - Create a test VM.
+ * - Set an arbitrary test address.
+ * - Search in the vm->mapped_buffers RBTree to ensure that the arbitrary test
+ *   address has no mapped buffers already.
+ * - Instantiate a struct nvgpu_mapped_buf and set its address to the arbitrary
+ *   address with a size of 64KB and big pages.
+ * - Call nvgpu_insert_mapped_buf on the struct nvgpu_mapped_buf.
+ * - Search again the vm->mapped_buffers RBTree and ensure the buffer can be
+ *   found.
+ * - Uninitialize the VM.
+ *
+ * Output: Returns PASS if the steps above were executed successfully. FAIL
+ * otherwise.
+ */
+int test_nvgpu_insert_mapped_buf(struct unit_module *m, struct gk20a *g,
+	void *args);
+
+/**
+ * Test specification for: test_vm_pde_coverage_bit_count
+ *
+ * Description: Tests the logic of nvgpu_vm_pde_coverage_bit_count
+ *
+ * Test Type: Feature
+ *
+ * Targets: nvgpu_vm_pde_coverage_bit_count
+ *
+ * Input: None
+ *
+ * Steps:
+ * - Create a test VM.
+ * - Call nvgpu_vm_pde_coverage_bit_count and ensure it returns the expected
+ *   value of 21 (for GP10B and following chips).
+ * - Uninitialize the VM.
+ *
+ * Output: Returns PASS if the steps above were executed successfully. FAIL
+ * otherwise.
+ */
+int test_vm_pde_coverage_bit_count(struct unit_module *m, struct gk20a *g,
+	void *args);
 /** }@ */
 #endif /* UNIT_VM_H */

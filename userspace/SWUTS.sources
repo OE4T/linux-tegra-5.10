@@ -64,6 +64,7 @@ INPUT += ../../../userspace/units/mm/allocators/buddy_allocator/buddy_allocator.
 INPUT += ../../../userspace/units/mm/as/as.h
 INPUT += ../../../userspace/units/mm/dma/dma.h
 INPUT += ../../../userspace/units/mm/gmmu/page_table/page_table.h
+INPUT += ../../../userspace/units/mm/gmmu/pd_cache/pd_cache.h
 INPUT += ../../../userspace/units/mm/hal/cache/flush_gk20a_fusa/flush-gk20a-fusa.h
 INPUT += ../../../userspace/units/mm/hal/cache/flush_gv11b_fusa/flush-gv11b-fusa.h
 INPUT += ../../../userspace/units/mm/hal/gmmu/gmmu_gk20a_fusa/gmmu-gk20a-fusa.h
