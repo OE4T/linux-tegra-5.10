@@ -42,7 +42,8 @@ struct unit_module;
  *
  * Test Type: Feature, Error guessing
  *
- * Targets: #nvgpu_gr_intr_stall_isr,
+ * Targets: gops_gr_intr.stall_isr, #nvgpu_gr_intr_stall_isr,
+ *          gops_gr_intr.nonstall_isr, gm20b_gr_intr_nonstall_isr,
  *          #nvgpu_gr_intr_init_support,
  *          #nvgpu_gr_intr_handle_fecs_error,
  *          #nvgpu_gr_intr_remove_support
@@ -79,9 +80,14 @@ int test_gr_intr_without_channel(struct unit_module *m,
  * Test Type: Feature, Error guessing
  *
  * Targets: #nvgpu_gr_intr_stall_isr,
+ *          gops_gr_intr.handle_notify_pending,
  *          #nvgpu_gr_intr_handle_notify_pending,
+ *          gops_gr_intr.handle_semaphore_pending,
  *          #nvgpu_gr_intr_handle_semaphore_pending,
+ *          gops_gr_intr.handle_class_error,
+ *          gm20b_gr_intr_handle_class_error,
  *          #nvgpu_gr_intr_get_channel_from_ctx,
+ *          #nvgpu_gr_get_intr_ptr,
  *          #nvgpu_gr_intr_remove_support
  *
  * Input: #test_gr_init_setup_ready must have been executed successfully.
@@ -116,8 +122,14 @@ int test_gr_intr_setup_channel(struct unit_module *m,
  *
  * Test Type: Feature, Error guessing
  *
- * Targets: #nvgpu_gr_intr_stall_isr,
- *          #nvgpu_gr_intr_flush_channel_tlb,
+ * Targets: gops_gr_intr.stall_isr, #nvgpu_gr_intr_stall_isr,
+ *          gops_gr_intr.flush_channel_tlb, #nvgpu_gr_intr_flush_channel_tlb,
+ *          gops_gr_intr.handle_sw_method,
+ *          gv11b_gr_intr_handle_sw_method,
+ *          gv11b_gr_intr_set_skedcheck,
+ *          gv11b_gr_intr_set_shader_cut_collector,
+ *          gops_gr_intr.trapped_method_info,
+ *          gm20b_gr_intr_get_trapped_method_info,
  *          #nvgpu_gr_intr_set_error_notifier,
  *          #nvgpu_gr_intr_report_exception
  *
@@ -147,7 +159,11 @@ int test_gr_intr_sw_exceptions(struct unit_module *m,
  *
  * Test Type: Feature, Error guessing
  *
- * Targets: #nvgpu_gr_intr_stall_isr,
+ * Targets: gops_gr_intr.stall_isr, #nvgpu_gr_intr_stall_isr,
+ *          gops_gr_intr.handle_fecs_error, gv11b_gr_intr_handle_fecs_error,
+ *          gp10b_gr_intr_handle_fecs_error,
+ *          gops_gr_intr.get_ctxsw_checksum_mismatch_mailbox_val,
+ *          gv11b_gr_intr_ctxsw_checksum_mismatch_mailbox_val,
  *          #nvgpu_gr_intr_set_error_notifier,
  *          #nvgpu_gr_intr_report_exception
  *
@@ -173,9 +189,60 @@ int test_gr_intr_fecs_exceptions(struct unit_module *m,
  * Test Type: Feature, Error guessing
  *
  * Targets: #nvgpu_gr_intr_handle_gpc_exception,
+ *          gops_gr_intr.read_gpc_exception,
+ *          gm20b_gr_intr_read_gpc_exception,
+ *          gops_gr_intr.read_exception1, gm20b_gr_intr_read_exception1,
+ *          gops_gr_intr.handle_exceptions,
+ *          gm20b_gr_intr_handle_exceptions,
+ *          gops_gr_intr.read_gpc_tpc_exception,
+ *          gm20b_gr_intr_read_gpc_tpc_exception,
+ *          gops_gr_intr.handle_gpc_gpccs_exception,
+ *          gv11b_gr_intr_handle_gpc_gpccs_exception,
+ *          gops_gr_intr.handle_gpc_gpcmmu_exception,
+ *          gv11b_gr_intr_handle_gpc_gpcmmu_exception,
+ *          gops_gr_intr.handle_gcc_exception,
+ *          gv11b_gr_intr_handle_gcc_exception,
+ *          gops_gr_intr.handle_sm_exception,
  *          #nvgpu_gr_intr_handle_sm_exception,
+ *          gops_gr_intr.get_tpc_exception, gm20b_gr_intr_get_tpc_exception,
+ *          gops_gr_intr.handle_gpc_setup_exception,
+ *          gv11b_gr_intr_handle_gpc_setup_exception,
+ *          gops_gr_intr.handle_gpc_prop_exception,
+ *          gv11b_gr_intr_handle_gpc_prop_exception,
+ *          gops_gr_intr.handle_gpc_pes_exception,
+ *          gv11b_gr_intr_handle_gpc_pes_exception,
+ *          gops_gr_intr.handle_gpc_zcull_exception,
+ *          gv11b_gr_intr_handle_gpc_zcull_exception,
+ *          gops_gr_intr.handle_tpc_sm_ecc_exception,
+ *          gv11b_gr_intr_handle_tpc_sm_ecc_exception,
+ *          gops_gr_intr.handle_tpc_mpc_exception,
+ *          gv11b_gr_intr_handle_tpc_mpc_exception,
+ *          gops_gr_intr.handle_tpc_pe_exception,
+ *          gv11b_gr_intr_handle_tpc_pe_exception,
+ *          gops_gr_intr.set_hww_esr_report_mask,
+ *          gv11b_gr_intr_set_hww_esr_report_mask,
+ *          gops_gr_intr.get_esr_sm_sel, gv11b_gr_intr_get_esr_sm_sel,
+ *          gops_gr_intr.clear_sm_hww, gv11b_gr_intr_clear_sm_hww,
+ *          gops_gr_intr.handle_ssync_hww, gv11b_gr_intr_handle_ssync_hww,
+ *          gops_gr_intr.record_sm_error_state,
+ *          gv11b_gr_intr_record_sm_error_state,
+ *          gops_gr_intr.get_sm_hww_warp_esr,
+ *          gv11b_gr_intr_get_sm_hww_warp_esr,
+ *          gops_gr_intr.get_sm_hww_warp_esr_pc,
+ *          gv11b_gr_intr_get_sm_hww_warp_esr_pc,
+ *          gops_gr_intr.get_sm_hww_global_esr,
+ *          gv11b_gr_intr_get_sm_hww_global_esr,
+ *          gops_gr_intr.get_sm_no_lock_down_hww_global_esr_mask,
+ *          gv11b_gr_intr_get_sm_no_lock_down_hww_global_esr_mask,
  *          #nvgpu_gr_intr_set_error_notifier,
- *          #nvgpu_gr_intr_stall_isr
+ *          #nvgpu_gr_intr_stall_isr,
+ *          gops_gr_intr.read_pending_interrupts,
+ *          gm20b_gr_intr_read_pending_interrupts,
+ *          gops_gr_intr.clear_pending_interrupts,
+ *          gm20b_gr_intr_clear_pending_interrupts,
+ *          #nvgpu_gr_gpc_offset,
+ *          #nvgpu_gr_tpc_offset,
+ *          #nvgpu_gr_sm_offset,
  *
  * Input: #test_gr_init_setup_ready must have been executed successfully.
  *
