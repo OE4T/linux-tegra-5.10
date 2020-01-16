@@ -1,4 +1,4 @@
-# Copyright (c) 2019, NVIDIA CORPORATION.  All Rights Reserved.
+# Copyright (c) 2019-2020, NVIDIA CORPORATION.  All Rights Reserved.
 #
 # POSIX elements and units in nvgpu.
 #
@@ -34,8 +34,7 @@ all:
              os/posix/posix-vidmem.c,
              os/posix/fecs_trace_posix.c,
              os/posix/stubs.c,
-             os/posix/posix-vpr.c,
-             os/posix/queue.c ]
+             os/posix/posix-vpr.c ]
 
 headers:
   safe: no
@@ -54,8 +53,13 @@ headers:
              include/nvgpu/posix/soc_fuse.h,
              include/nvgpu/posix/vm.h,
              include/nvgpu/posix/posix_vidmem.h,
-             include/nvgpu/posix/queue.h,
              include/nvgpu/posix/posix-nvhost.h ]
+
+queue:
+  safe: yes
+  owner: Rajesh D
+  sources: [ os/posix/queue.c,
+             include/nvgpu/posix/queue.h ]
 
 sort:
   safe: yes
