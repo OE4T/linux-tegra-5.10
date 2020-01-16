@@ -372,7 +372,7 @@
         "test_level": 0
     },
     {
-        "test": "test_isr",
+        "test": "test_bus_isr",
         "case": "bus_isr",
         "unit": "bus",
         "test_level": 0
@@ -1974,7 +1974,7 @@
         "test_level": 0
     },
     {
-        "test": "test_isr",
+        "test": "test_priv_ring_isr",
         "case": "priv_ring_isr",
         "unit": "priv_ring",
         "test_level": 0

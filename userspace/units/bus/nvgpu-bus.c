@@ -320,7 +320,7 @@ done:
 	return ret;
 }
 
-int test_isr(struct unit_module *m, struct gk20a *g, void *args)
+int test_bus_isr(struct unit_module *m, struct gk20a *g, void *args)
 {
 	int ret = UNIT_SUCCESS;
 
@@ -343,7 +343,7 @@ struct unit_module_test bus_tests[] = {
 	UNIT_TEST(bus_setup,	       test_bus_setup,             NULL, 0),
 	UNIT_TEST(bus_init_hw,         test_init_hw,               NULL, 0),
 	UNIT_TEST(bus_bar_bind,        test_bar_bind,              NULL, 0),
-	UNIT_TEST(bus_isr,             test_isr,                   NULL, 0),
+	UNIT_TEST(bus_isr,             test_bus_isr,               NULL, 0),
 	UNIT_TEST(bus_free_reg_space,  test_bus_free_reg_space,    NULL, 0),
 };
 

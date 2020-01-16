@@ -186,7 +186,7 @@ int test_get_gpc_count(struct unit_module *m, struct gk20a *g, void *args);
 int test_get_fbp_count(struct unit_module *m, struct gk20a *g, void *args);
 
 /**
- * Test specification for: test_isr
+ * Test specification for: test_priv_ring_isr
  *
  * Description: Verify the priv_ring.isr HAL.
  *
@@ -217,7 +217,7 @@ int test_get_fbp_count(struct unit_module *m, struct gk20a *g, void *args);
  * Output:
  * - UNIT_SUCCESS
  */
-int test_isr(struct unit_module *m, struct gk20a *g, void *args);
+int test_priv_ring_isr(struct unit_module *m, struct gk20a *g, void *args);
 
 /**
  * Test specification for: test_decode_error_code

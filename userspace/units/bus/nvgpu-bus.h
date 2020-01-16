@@ -151,7 +151,7 @@ int test_init_hw(struct unit_module *m, struct gk20a *g, void *args);
 int test_bar_bind(struct unit_module *m, struct gk20a *g, void *args);
 
 /**
- * Test specification for: test_isr
+ * Test specification for: test_bus_isr
  *
  * Description: Verify the bus.isr HAL.
  *
@@ -174,5 +174,5 @@ int test_bar_bind(struct unit_module *m, struct gk20a *g, void *args);
  * Output:
  * - UNIT_SUCCESS.
  */
-int test_isr(struct unit_module *m, struct gk20a *g, void *args);
+int test_bus_isr(struct unit_module *m, struct gk20a *g, void *args);
 #endif /* UNIT_NVGPU_BUS_H */

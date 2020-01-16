@@ -273,7 +273,7 @@ int test_get_fbp_count(struct unit_module *m, struct gk20a *g, void *args)
 	return ret;
 }
 
-int test_isr(struct unit_module *m, struct gk20a *g, void *args)
+int test_priv_ring_isr(struct unit_module *m, struct gk20a *g, void *args)
 {
 	int ret = UNIT_SUCCESS;
 
@@ -358,7 +358,7 @@ struct unit_module_test priv_ring_tests[] = {
 	UNIT_TEST(priv_ring_get_gpc_count,     test_get_gpc_count,     NULL, 0),
 	UNIT_TEST(priv_ring_get_fbp_count,     test_get_fbp_count,     NULL, 0),
 	UNIT_TEST(priv_ring_decode_error_code, test_decode_error_code, NULL, 0),
-	UNIT_TEST(priv_ring_isr,               test_isr,               NULL, 0),
+	UNIT_TEST(priv_ring_isr,               test_priv_ring_isr,     NULL, 0),
 	UNIT_TEST(priv_ring_free_reg_space,
 				    test_priv_ring_free_reg_space,     NULL, 0),
 };
