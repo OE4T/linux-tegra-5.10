@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -190,12 +190,22 @@ int test_gr_ctx_error_injection(struct unit_module *m,
 
 	/* Update the patch buffer */
 	nvgpu_gr_ctx_patch_write_begin(g, gr_ctx, true);
+
 	/* Increase data count so that patch write fails */
 	gr_ctx->patch_ctx.data_count = 1000;
 	nvgpu_gr_ctx_patch_write(g, gr_ctx, 0, 0, true);
+
 	/* Restore data count so that patch write passes */
 	gr_ctx->patch_ctx.data_count = 0;
 	nvgpu_gr_ctx_patch_write(g, gr_ctx, 0, 0, true);
+
+	/*
+	 * Trigger patch write with NULL context, should fail.
+	 * We currently don't have API to read contents of patch buffer
+	 * hence can't verify yet.
+	 */
+	nvgpu_gr_ctx_patch_write(g, NULL, 0, 0xDEADBEEF, true);
+
 	nvgpu_gr_ctx_patch_write_end(g, gr_ctx, true);
 
 	/* cleanup */

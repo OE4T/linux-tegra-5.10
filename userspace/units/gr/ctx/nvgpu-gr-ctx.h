@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -72,6 +72,9 @@ struct unit_module;
  * - Disable error injection and map, should pass.
  * - Increase data count in patch context beyond max, write should fail.
  * - Set data count to 0, write should pass.
+ * - Trigger patch write with NULL context pointer. Should fail. But since
+ *   we don't have any API to read contents of Patch buffer, can't be
+ *   verified yet.
  * - Cleanup all the local resources.
  *
  * Output: Returns PASS if the steps above were executed successfully. FAIL
