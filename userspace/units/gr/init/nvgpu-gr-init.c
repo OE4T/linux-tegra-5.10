@@ -311,8 +311,8 @@ static int test_gr_prepare_sw(struct gk20a *g)
 {
 	int err, j, locn = 0;
 	bool pass, result;
-	struct nvgpu_gr_falcon *gr_falcon;
-	struct nvgpu_gr_intr *gr_intr;
+	struct nvgpu_gr_falcon *gr_falcon = g->gr->falcon;
+	struct nvgpu_gr_intr *gr_intr = g->gr->intr;
 	struct nvgpu_netlist_vars *netlist_vars = g->netlist_vars;
 	struct nvgpu_posix_fault_inj *kmem_fi =
 		nvgpu_kmem_get_fault_injection();
@@ -325,14 +325,12 @@ static int test_gr_prepare_sw(struct gk20a *g)
 			break;
 		case 1:
 			g->netlist_valid = true;
-			gr_falcon = g->gr->falcon;
 			g->gr->falcon = NULL;
 			result = false;
 			break;
 		case 2:
 			g->gr->falcon = gr_falcon;
 			g->netlist_vars = netlist_vars;
-			gr_intr = g->gr->intr;
 			g->gr->intr = NULL;
 			result = false;
 			break;
@@ -576,7 +574,7 @@ static int test_gr_init_support_alloc_error(struct gk20a *g)
 static int test_gr_init_support_errors(struct gk20a *g)
 {
 	int err, i;
-	bool pass, alloc_fail_init, alloc_fail_sw;
+	bool pass = false, alloc_fail_init = false, alloc_fail_sw = false;
 
 	for (i = 0; i < 2; i++) {
 		switch (i) {
