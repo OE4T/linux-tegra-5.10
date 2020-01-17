@@ -433,14 +433,11 @@ static int gr_test_invalid_pes_with_sm_id(struct gk20a *g,
 
 	/* Set pes tpc mask same */
 	u32 pes_tpc_mask = gr_conf->pes_tpc_mask[1][0];
-	u32 gpc_count = nvgpu_gr_config_get_gpc_count(gr_conf);
 
 	gr_conf->pes_tpc_mask[1][0] = gr_conf->pes_tpc_mask[0][0];
-	gr_conf->gpc_count = 2;
 	err = g->ops.gr.config.init_sm_id_table(g, gr_conf);
 
 	gr_conf->pes_tpc_mask[1][0] = pes_tpc_mask;
-	gr_conf->gpc_count = gpc_count;
 
 	return err;
 }
