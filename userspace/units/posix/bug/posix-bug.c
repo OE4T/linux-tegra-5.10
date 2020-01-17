@@ -30,6 +30,8 @@
 
 #include <nvgpu/types.h>
 
+#include "posix-bug.h"
+
 /*
  * Simple wrapper function to call BUG() or not. It was not strictly necessary
  * to wrap the call to BUG() in a function but it better ressembles the way
@@ -51,7 +53,7 @@ static void bug_caller(struct unit_module *m, bool call)
  * In the event that EXPECT_BUG is completely broken, the call to BUG() would
  * cause the unit to crash and report a failure correctly.
  */
-static int test_expect_bug(struct unit_module *m,
+int test_expect_bug(struct unit_module *m,
 				  struct gk20a *g, void *args)
 {
 
@@ -91,7 +93,7 @@ static void other_bug_cb(void *arg)
 	other_cb_called = true;
 }
 
-static int test_bug_cb(struct unit_module *m,
+int test_bug_cb(struct unit_module *m,
 		struct gk20a *g, void *args)
 {
 	struct nvgpu_bug_cb callback;
@@ -135,7 +137,6 @@ static int test_bug_cb(struct unit_module *m,
 
 	return UNIT_SUCCESS;
 }
-
 
 struct unit_module_test posix_bug_tests[] = {
 	UNIT_TEST(expect_bug, test_expect_bug, NULL, 0),

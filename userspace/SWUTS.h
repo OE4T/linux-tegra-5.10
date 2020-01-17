@@ -109,6 +109,7 @@
  *   - @ref SWUTS-posix-thread
  *   - @ref SWUTS-posix-timers
  *   - @ref SWUTS-posix-queue
+ *   - @ref SWUTS-posix-bug
  *   - @ref SWUTS-priv_ring
  *   - @ref SWUTS-ptimer
  *   - @ref SWUTS-sdl
