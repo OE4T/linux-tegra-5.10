@@ -307,15 +307,33 @@ int test_poweroff(struct unit_module *m, struct gk20a *g, void *args);
  * Test Type: Feature
  *
  * Targets: nvgpu_sw_quiesce_init_support, nvgpu_sw_quiesce_remove_support,
- *          nvgpu_sw_quiesce_thread, nvgpu_sw_quiesce
+ *          nvgpu_sw_quiesce_thread, nvgpu_sw_quiesce, nvgpu_sw_quiesce_bug_cb
  *
  * Input:
  * - test_setup_env() must be called before.
  *
  * Steps:
+ * - Use stub for g->ops.mc.intr_mask, g->ops.runlist.write_state and
+ *   g->ops.fifo.preempt_runlists_for_rc.
+ * - Call nvgpu_sw_quiesce, wait for SW quiesce threads to complete,
+ *   and check that interrupts have been disabled.
+ * - Check SW quiesce invoked from BUG().
+ * - Check cases where nvgpu_sw_quiesce does not wake up threads:
+ *   - NVGPU_DISABLE_SW_QUIESCE is set.
+ *   - g->sw_quiesce_pending is already true.
+ *   - g->sw_quiesce_init_done is false.
+ * - Check cases where nvgpu_sw_quiesce_thread skips quiescing:
+ *   - nvgpu_thread_should_stop is true (using fault injection).
+ *   - g->is_virtual is true.
+ *   - g->powered_on is false.
+ * - Check failure cases in nvgpu_sw_quiesce_init_support:
+ *   - sw_quiesce_cond initialization failure (using cond fault injection).
+ *   - sw_quiesce already initialized.
+ *   - sw_quiesce_thread creation failure (using thread fault injection).
+ *   - sw_quiesce_wdog creation failure (using thread fault injection).
  *
  * Output:
- * - UNIT_FAIL if nvgpu_finalize_poweron() ever returns the unexpected value.
+ * - UNIT_FAIL if SW quiesce did not behave as expected.
  * - UNIT_SUCCESS otherwise
  */
 int test_quiesce(struct unit_module *m, struct gk20a *g, void *args);

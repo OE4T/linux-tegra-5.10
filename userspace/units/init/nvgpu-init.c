@@ -740,8 +740,11 @@ int test_quiesce(struct unit_module *m, struct gk20a *g, void *args)
 	nvgpu_thread_join(&g->sw_quiesce_thread);
 
 	if (!intr_masked) {
-		unit_err(m, "quiesce failed to mask interrupts\n");
-		ret = UNIT_FAIL;
+		unit_return_fail(m, "quiesce failed to mask interrupts\n");
+	}
+
+	if (nvgpu_can_busy(g)) {
+		unit_return_fail(m, "nvgpu_can_busy() should be false\n");
 	}
 
 	/* setup quiesce again */
@@ -767,6 +770,30 @@ int test_quiesce(struct unit_module *m, struct gk20a *g, void *args)
 		unit_return_fail(m, "failed to re-enable quiesce\n");
 	}
 
+	/* setup quiesce again */
+	nvgpu_sw_quiesce_remove_support(g);
+	set_poweron_funcs_success(g);
+	err = nvgpu_finalize_poweron(g);
+	if (err != 0) {
+		unit_return_fail(m, "failed to re-enable quiesce\n");
+	}
+
+	/* make sure we simulate interrupts enabled */
+	intr_masked = false;
+
+	err = EXPECT_BUG(BUG());
+	if (err == 0) {
+		unit_return_fail(m, "BUG() was expected\n");
+	}
+
+	/* wait for quiesce thread to complete */
+	nvgpu_thread_join(&g->sw_quiesce_thread);
+
+	if (!intr_masked) {
+		unit_err(m, "BUG() was expected to quiesce\n");
+		ret = UNIT_FAIL;
+	}
+
 	/* branch coverage for error states when requesting quiesce */
 	g->is_virtual = true;
 	nvgpu_sw_quiesce(g);
@@ -782,6 +809,19 @@ int test_quiesce(struct unit_module *m, struct gk20a *g, void *args)
 	/* don't wait for quiesce thread to complete since this is error */
 	nvgpu_set_enabled(g, NVGPU_DISABLE_SW_QUIESCE, false);
 	/* Note: quiesce should still be configured */
+
+	/* coverage for quiesce already requested */
+	g->sw_quiesce_pending = true;
+	nvgpu_sw_quiesce(g);
+	g->sw_quiesce_pending = false;
+
+	/* coverage for quiesce not initialized */
+	g->sw_quiesce_init_done = false;
+	nvgpu_sw_quiesce(g);
+	g->sw_quiesce_init_done = true;
+	if (g->sw_quiesce_pending) {
+		unit_return_fail(m, "unexpected quiesce pending\n");
+	}
 
 	/* coverage for device powered off when quiesce requested */
 	nvgpu_set_power_state(g, NVGPU_STATE_POWERED_OFF);
