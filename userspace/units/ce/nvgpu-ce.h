@@ -97,7 +97,7 @@ int test_ce_init_support(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Test Type: Feature
  *
- * Targets: gops_ce.isr_stall, gv11b_ce_stall_isr
+ * Targets: gops_ce.isr_stall, gv11b_ce_stall_isr, gp10b_ce_stall_isr
  *
  * Input: test_setup_env must have been run.
  *
