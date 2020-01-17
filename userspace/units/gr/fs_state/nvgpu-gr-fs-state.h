@@ -40,7 +40,8 @@ struct unit_module;
  *
  * Test Type: Feature, Error guessing
  *
- * Targets: #nvgpu_gr_fs_state_init.
+ * Targets: nvgpu_gr_fs_state_init,
+ *          gv11b_gr_init_tpc_mask
  *
  * Input: gr_fs_state_setup must have been executed successfully.
  *

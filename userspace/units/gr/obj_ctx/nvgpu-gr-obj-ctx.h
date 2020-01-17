@@ -40,11 +40,34 @@ struct unit_module;
  *
  * Test Type: Feature, Error guessing
  *
- * Targets: #nvgpu_gr_obj_ctx_init,
- *          #nvgpu_gr_obj_ctx_alloc,
- *          #nvgpu_gr_obj_ctx_is_golden_image_ready
- *          #nvgpu_gr_obj_ctx_deinit,
- *          #nvgpu_gr_obj_ctx_set_ctxsw_preemption_mode.
+ * Targets: nvgpu_gr_obj_ctx_init,
+ *          nvgpu_gr_obj_ctx_alloc,
+ *          nvgpu_gr_obj_ctx_commit_global_ctx_buffer,
+ *          gv11b_gr_init_get_patch_slots,
+ *          gm20b_gr_init_get_patch_slots,
+ *          gops_gr_init.get_max_subctx_count,
+ *          gv11b_gr_init_get_max_subctx_count,
+ *          nvgpu_gr_obj_ctx_is_golden_image_ready,
+ *          nvgpu_gr_obj_ctx_deinit,
+ *          nvgpu_gr_obj_ctx_set_ctxsw_preemption_mode,
+ *          nvgpu_gr_subctx_free,
+ *          nvgpu_gr_obj_ctx_commit_inst,
+ *          nvgpu_gr_obj_ctx_commit_inst_gpu_va,
+ *          nvgpu_gr_ctx_get_patch_ctx_mem,
+ *          nvgpu_gr_subctx_get_ctx_header,
+ *          nvgpu_gr_subctx_load_ctx_header,
+ *          nvgpu_gr_global_ctx_get_size,
+ *          nvgpu_gr_obj_ctx_set_golden_image_size,
+ *          nvgpu_gr_obj_ctx_commit_global_ctx_buffers,
+ *          nvgpu_gr_ctx_init_compute_preemption_mode,
+ *          gp10b_ctxsw_prog_init_ctxsw_hdr_data,
+ *          gm20b_ctxsw_prog_init_ctxsw_hdr_data,
+ *          gv11b_ctxsw_prog_set_context_buffer_ptr,
+ *          gv11b_ctxsw_prog_set_type_per_veid_header,
+ *          gp10b_gr_init_get_ctx_attrib_cb_size,
+ *          gops_gr_falcon.ctrl_ctxsw,
+ *          gp10b_gr_falcon_ctrl_ctxsw,
+ *          gm20b_gr_falcon_ctrl_ctxsw
  *
  * Input: gr_obj_ctx_setup must have been executed successfully.
  *

@@ -42,11 +42,16 @@ struct unit_module;
  *
  * Test Type: Feature, Error guessing
  *
- * Targets: gops_gr_intr.stall_isr, #nvgpu_gr_intr_stall_isr,
+ * Targets: gops_gr_intr.stall_isr, nvgpu_gr_intr_stall_isr,
  *          gops_gr_intr.nonstall_isr, gm20b_gr_intr_nonstall_isr,
- *          #nvgpu_gr_intr_init_support,
- *          #nvgpu_gr_intr_handle_fecs_error,
- *          #nvgpu_gr_intr_remove_support
+ *          nvgpu_gr_intr_init_support,
+ *          nvgpu_gr_intr_handle_fecs_error,
+ *          gops_gr_falcon.dump_stats,
+ *          gm20b_gr_falcon_fecs_dump_stats,
+ *          gm20b_gr_falcon_read_fecs_ctxsw_status1,
+ *          gm20b_gr_falcon_get_fecs_ctxsw_mailbox_size,
+ *          gm20b_gr_falcon_fecs_host_clear_intr,
+ *          nvgpu_gr_intr_remove_support
  *
  * Input: #test_gr_init_setup_ready must have been executed successfully.
  *
@@ -79,16 +84,18 @@ int test_gr_intr_without_channel(struct unit_module *m,
  *
  * Test Type: Feature, Error guessing
  *
- * Targets: #nvgpu_gr_intr_stall_isr,
+ * Targets: nvgpu_gr_intr_stall_isr,
  *          gops_gr_intr.handle_notify_pending,
- *          #nvgpu_gr_intr_handle_notify_pending,
+ *          nvgpu_gr_intr_handle_notify_pending,
  *          gops_gr_intr.handle_semaphore_pending,
- *          #nvgpu_gr_intr_handle_semaphore_pending,
+ *          nvgpu_gr_intr_handle_semaphore_pending,
  *          gops_gr_intr.handle_class_error,
  *          gm20b_gr_intr_handle_class_error,
- *          #nvgpu_gr_intr_get_channel_from_ctx,
- *          #nvgpu_gr_get_intr_ptr,
- *          #nvgpu_gr_intr_remove_support
+ *          gm20b_gr_falcon_get_current_ctx,
+ *          gm20b_gr_falcon_get_ctx_ptr,
+ *          nvgpu_gr_intr_get_channel_from_ctx,
+ *          nvgpu_gr_get_intr_ptr,
+ *          nvgpu_gr_intr_remove_support
  *
  * Input: #test_gr_init_setup_ready must have been executed successfully.
  *
@@ -122,16 +129,16 @@ int test_gr_intr_setup_channel(struct unit_module *m,
  *
  * Test Type: Feature, Error guessing
  *
- * Targets: gops_gr_intr.stall_isr, #nvgpu_gr_intr_stall_isr,
- *          gops_gr_intr.flush_channel_tlb, #nvgpu_gr_intr_flush_channel_tlb,
+ * Targets: gops_gr_intr.stall_isr, nvgpu_gr_intr_stall_isr,
+ *          gops_gr_intr.flush_channel_tlb, nvgpu_gr_intr_flush_channel_tlb,
  *          gops_gr_intr.handle_sw_method,
  *          gv11b_gr_intr_handle_sw_method,
  *          gv11b_gr_intr_set_skedcheck,
  *          gv11b_gr_intr_set_shader_cut_collector,
  *          gops_gr_intr.trapped_method_info,
  *          gm20b_gr_intr_get_trapped_method_info,
- *          #nvgpu_gr_intr_set_error_notifier,
- *          #nvgpu_gr_intr_report_exception
+ *          nvgpu_gr_intr_set_error_notifier,
+ *          nvgpu_gr_intr_report_exception
  *
  * Input: #test_gr_init_setup_ready must have been executed successfully.
  *
@@ -159,13 +166,23 @@ int test_gr_intr_sw_exceptions(struct unit_module *m,
  *
  * Test Type: Feature, Error guessing
  *
- * Targets: gops_gr_intr.stall_isr, #nvgpu_gr_intr_stall_isr,
+ * Targets: gops_gr_intr.stall_isr, nvgpu_gr_intr_stall_isr,
  *          gops_gr_intr.handle_fecs_error, gv11b_gr_intr_handle_fecs_error,
  *          gp10b_gr_intr_handle_fecs_error,
  *          gops_gr_intr.get_ctxsw_checksum_mismatch_mailbox_val,
  *          gv11b_gr_intr_ctxsw_checksum_mismatch_mailbox_val,
- *          #nvgpu_gr_intr_set_error_notifier,
- *          #nvgpu_gr_intr_report_exception
+ *          gops_gr_falcon.read_fecs_ctxsw_mailbox,
+ *          gm20b_gr_falcon_read_fecs_ctxsw_mailbox,
+ *          gops_gr_falcon.dump_stats,
+ *          gm20b_gr_falcon_fecs_dump_stats,
+ *          gm20b_gr_falcon_read_fecs_ctxsw_status1,
+ *          gm20b_gr_falcon_read_fecs_ctxsw_status0,
+ *          gm20b_gr_falcon_get_fecs_ctxsw_mailbox_size,
+ *          gm20b_gr_falcon_fecs_host_clear_intr,
+ *          gm20b_gr_falcon_fecs_host_intr_status,
+ *          gv11b_gr_falcon_handle_fecs_ecc_error,
+ *          nvgpu_gr_intr_set_error_notifier,
+ *          nvgpu_gr_intr_report_exception
  *
  * Input: #test_gr_init_setup_ready must have been executed successfully.
  *
@@ -188,7 +205,7 @@ int test_gr_intr_fecs_exceptions(struct unit_module *m,
  *
  * Test Type: Feature, Error guessing
  *
- * Targets: #nvgpu_gr_intr_handle_gpc_exception,
+ * Targets: nvgpu_gr_intr_handle_gpc_exception,
  *          gops_gr_intr.read_gpc_exception,
  *          gm20b_gr_intr_read_gpc_exception,
  *          gops_gr_intr.read_exception1, gm20b_gr_intr_read_exception1,
@@ -203,7 +220,7 @@ int test_gr_intr_fecs_exceptions(struct unit_module *m,
  *          gops_gr_intr.handle_gcc_exception,
  *          gv11b_gr_intr_handle_gcc_exception,
  *          gops_gr_intr.handle_sm_exception,
- *          #nvgpu_gr_intr_handle_sm_exception,
+ *          nvgpu_gr_intr_handle_sm_exception,
  *          gops_gr_intr.get_tpc_exception, gm20b_gr_intr_get_tpc_exception,
  *          gops_gr_intr.handle_gpc_setup_exception,
  *          gv11b_gr_intr_handle_gpc_setup_exception,
@@ -234,15 +251,15 @@ int test_gr_intr_fecs_exceptions(struct unit_module *m,
  *          gv11b_gr_intr_get_sm_hww_global_esr,
  *          gops_gr_intr.get_sm_no_lock_down_hww_global_esr_mask,
  *          gv11b_gr_intr_get_sm_no_lock_down_hww_global_esr_mask,
- *          #nvgpu_gr_intr_set_error_notifier,
- *          #nvgpu_gr_intr_stall_isr,
+ *          nvgpu_gr_intr_set_error_notifier,
+ *          nvgpu_gr_intr_stall_isr,
  *          gops_gr_intr.read_pending_interrupts,
  *          gm20b_gr_intr_read_pending_interrupts,
  *          gops_gr_intr.clear_pending_interrupts,
  *          gm20b_gr_intr_clear_pending_interrupts,
- *          #nvgpu_gr_gpc_offset,
- *          #nvgpu_gr_tpc_offset,
- *          #nvgpu_gr_sm_offset,
+ *          nvgpu_gr_gpc_offset,
+ *          nvgpu_gr_tpc_offset,
+ *          nvgpu_gr_sm_offset
  *
  * Input: #test_gr_init_setup_ready must have been executed successfully.
  *

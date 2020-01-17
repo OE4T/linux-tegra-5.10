@@ -40,10 +40,29 @@ struct unit_module;
  *
  * Test Type: Feature
  *
- * Targets: #nvgpu_gr_setup_alloc_obj_ctx,
- *          #nvgpu_gr_obj_ctx_alloc,
- *          #nvgpu_gr_ctx_set_tsgid,
- *          #nvgpu_gr_ctx_get_tsgid.
+ * Targets: nvgpu_gr_setup_alloc_obj_ctx,
+ *          nvgpu_gr_obj_ctx_alloc,
+ *          nvgpu_gr_ctx_get_ctx_mem,
+ *          nvgpu_gr_ctx_set_tsgid,
+ *          nvgpu_gr_ctx_get_tsgid,
+ *          nvgpu_gr_ctx_get_global_ctx_va,
+ *          gops_gr_setup.alloc_obj_ctx,
+ *          nvgpu_gr_ctx_load_golden_ctx_image,
+ *          gm20b_ctxsw_prog_set_priv_access_map_config_mode,
+ *          gm20b_ctxsw_prog_set_priv_access_map_addr,
+ *          gm20b_ctxsw_prog_set_patch_addr,
+ *          gm20b_ctxsw_prog_disable_verif_features,
+ *          gv11b_gr_init_commit_global_attrib_cb,
+ *          gm20b_gr_init_commit_global_attrib_cb,
+ *          gv11b_gr_init_commit_global_timeslice,
+ *          gv11b_gr_init_restore_stats_counter_bundle_data,
+ *          gv11b_gr_init_commit_cbes_reserve,
+ *          gm20b_gr_init_fe_go_idle_timeout,
+ *          gm20b_gr_init_override_context_reset,
+ *          gm20b_gr_init_pipe_mode_override,
+ *          gp10b_gr_init_commit_global_bundle_cb,
+ *          gm20b_gr_falcon_set_current_ctx_invalid,
+ *          gm20b_gr_falcon_get_fecs_current_ctx_data
  *
  * Input: #test_gr_init_setup_ready must have been executed successfully.
  *
@@ -71,13 +90,24 @@ int test_gr_setup_alloc_obj_ctx(struct unit_module *m,
  *
  * Test Type: Feature, Safety
  *
- * Targets: #nvgpu_gr_setup_set_preemption_mode,
- *          #nvgpu_gr_obj_ctx_set_ctxsw_preemption_mode,
- *          #nvgpu_gr_obj_ctx_update_ctxsw_preemption_mode,
- *          #nvgpu_gr_ctx_patch_write_begin,
- *          #nvgpu_gr_ctx_patch_write_end,
+ * Targets: nvgpu_gr_setup_set_preemption_mode,
+ *          nvgpu_gr_obj_ctx_set_ctxsw_preemption_mode,
+ *          nvgpu_gr_ctx_check_valid_preemption_mode,
+ *          nvgpu_gr_obj_ctx_update_ctxsw_preemption_mode,
+ *          nvgpu_gr_ctx_get_compute_preemption_mode,
+ *          nvgpu_gr_ctx_set_preemption_modes,
+ *          nvgpu_gr_ctx_patch_write_begin,
+ *          nvgpu_gr_ctx_patch_write_end,
  *          gp10b_gr_init_commit_global_cb_manager,
- *          #nvgpu_gr_ctx_patch_write.
+ *          nvgpu_gr_ctx_patch_write,
+ *          gm20b_ctxsw_prog_get_patch_count,
+ *          gm20b_ctxsw_prog_set_patch_count,
+ *          gops_gr_init.get_default_preemption_modes,
+ *          gp10b_gr_init_get_default_preemption_modes,
+ *          gops_gr_setup.set_preemption_mode,
+ *          gp10b_ctxsw_prog_set_compute_preemption_mode_cta,
+ *          gops_gr_init.get_supported__preemption_modes,
+ *          gp10b_gr_init_get_supported_preemption_modes
  *
  * Input: #test_gr_init_setup_ready and #test_gr_setup_alloc_obj_ctx
  *        must have been executed successfully.
@@ -98,8 +128,10 @@ int test_gr_setup_set_preemption_mode(struct unit_module *m,
  *
  * Test Type: Feature
  *
- * Targets: #nvgpu_gr_setup_free_subctx,
- *          #nvgpu_gr_setup_free_gr_ctx.
+ * Targets: nvgpu_gr_setup_free_subctx,
+ *          nvgpu_gr_setup_free_gr_ctx,
+ *          gops_gr_setup.free_gr_ctx,
+ *          gops_gr_setup.free_subctx
  *
  * Input: #test_gr_init_setup_ready and #test_gr_setup_alloc_obj_ctx
  *        must have been executed successfully.
@@ -119,12 +151,12 @@ int test_gr_setup_free_obj_ctx(struct unit_module *m,
  * Test specification for: test_gr_setup_preemption_mode_errors.
  *
  * Description: Helps to verify error paths in
- *              g->ops.gr.setup.set_preemption_mode call.
+ *              gops_gr_setup.set_preemption_mode call.
  *
  * Test Type: Error injection, Boundary values
  *
- * Targets: #nvgpu_gr_setup_set_preemption_mode,
- *          #nvgpu_gr_obj_ctx_set_ctxsw_preemption_mode.
+ * Targets: nvgpu_gr_setup_set_preemption_mode,
+ *          nvgpu_gr_obj_ctx_set_ctxsw_preemption_mode
  *
  * Input: #test_gr_init_setup_ready and #test_gr_setup_alloc_obj_ctx
  *        must have been executed successfully.
@@ -145,15 +177,18 @@ int test_gr_setup_preemption_mode_errors(struct unit_module *m,
  * Test specification for: test_gr_setup_alloc_obj_ctx_error_injections.
  *
  * Description: Helps to verify error paths in
- *              g->ops.gr.setup.alloc_obj_ctx call.
+ *              gops_gr_setup.alloc_obj_ctx call.
  *
  * Test Type: Error injection, Boundary values
  *
- * Targets: #nvgpu_gr_setup_alloc_obj_ctx,
- *          #nvgpu_gr_subctx_alloc, #nvgpu_gr_obj_ctx_alloc,
- *          #nvgpu_gr_obj_ctx_alloc_golden_ctx_image,
- *          #nvgpu_gr_setup_free_subctx,
- *          #nvgpu_gr_setup_free_gr_ctx.
+ * Targets: nvgpu_gr_setup_alloc_obj_ctx,
+ *          nvgpu_gr_subctx_alloc, nvgpu_gr_obj_ctx_alloc,
+ *          nvgpu_gr_obj_ctx_alloc_golden_ctx_image,
+ *          nvgpu_gr_obj_ctx_get_golden_image_size,
+ *          nvgpu_gr_obj_ctx_commit_global_ctx_buffers,
+ *          nvgpu_gr_ctx_set_patch_ctx_data_count,
+ *          nvgpu_gr_setup_free_subctx, nvgpu_gr_setup_free_gr_ctx,
+ *          gm20b_ctxsw_prog_hw_get_fecs_header_size
  *
  * Input: #test_gr_init_setup_ready must have been executed successfully.
  *

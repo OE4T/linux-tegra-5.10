@@ -40,15 +40,15 @@ struct unit_module;
  *
  * Test Type: Feature, Error guessing
  *
- * Targets: #nvgpu_gr_global_ctx_buffer_alloc,
- *          #nvgpu_gr_global_ctx_buffer_free,
- *          #nvgpu_gr_global_ctx_desc_alloc,
- *          #nvgpu_gr_global_ctx_desc_free,
- *          #nvgpu_gr_global_ctx_set_size,
- *          #nvgpu_gr_global_ctx_buffer_map,
- *          #nvgpu_gr_global_ctx_buffer_unmap,
- *          #nvgpu_gr_global_ctx_buffer_get_mem,
- *          #nvgpu_gr_global_ctx_buffer_ready.
+ * Targets: nvgpu_gr_global_ctx_buffer_alloc,
+ *          nvgpu_gr_global_ctx_buffer_free,
+ *          nvgpu_gr_global_ctx_desc_alloc,
+ *          nvgpu_gr_global_ctx_desc_free,
+ *          nvgpu_gr_global_ctx_set_size,
+ *          nvgpu_gr_global_ctx_buffer_map,
+ *          nvgpu_gr_global_ctx_buffer_unmap,
+ *          nvgpu_gr_global_ctx_buffer_get_mem,
+ *          nvgpu_gr_global_ctx_buffer_ready
  *
  * Input: gr_global_ctx_setup must have been executed successfully.
  *
@@ -81,10 +81,10 @@ int test_gr_global_ctx_alloc_error_injection(struct unit_module *m,
  *
  * Test Type: Feature, Error guessing
  *
- * Targets: #nvgpu_gr_global_ctx_init_local_golden_image,
- *          #nvgpu_gr_global_ctx_load_local_golden_image,
- *          #nvgpu_gr_global_ctx_compare_golden_images,
- *          #nvgpu_gr_global_ctx_deinit_local_golden_image.
+ * Targets: nvgpu_gr_global_ctx_init_local_golden_image,
+ *          nvgpu_gr_global_ctx_load_local_golden_image,
+ *          nvgpu_gr_global_ctx_compare_golden_images,
+ *          nvgpu_gr_global_ctx_deinit_local_golden_image
  *
  * Input: gr_global_ctx_setup must have been executed successfully.
  *

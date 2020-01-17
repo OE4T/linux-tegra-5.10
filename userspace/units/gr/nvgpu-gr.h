@@ -40,7 +40,7 @@ struct unit_module;
  *
  * Test Type: Feature
  *
- * Targets: #nvgpu_gr_alloc
+ * Targets: nvgpu_gr_alloc
  *
  * Input: None.
  *
@@ -64,7 +64,7 @@ int test_gr_init_setup(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Test Type: Feature
  *
- * Targets: #nvgpu_gr_free
+ * Targets: nvgpu_gr_free
  *
  * Input: test_gr_init_setup must have been executed successfully.
  *
@@ -83,8 +83,8 @@ int test_gr_remove_setup(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Test Type: Feature
  *
- * Targets: gops_gr.gr_prepare_sw, #nvgpu_gr_prepare_sw,
- *          gops_gr.gr_enable_hw, #nvgpu_gr_enable_hw,
+ * Targets: gops_gr.gr_prepare_sw, nvgpu_gr_prepare_sw,
+ *          gops_gr.gr_enable_hw, nvgpu_gr_enable_hw,
  *          gops_gr_intr.enable_hww_exceptions,
  *          gv11b_gr_intr_enable_hww_exceptions,
  *          gops_gr_intr.enable_interrupts,
@@ -111,8 +111,28 @@ int test_gr_init_prepare(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Test Type: Feature
  *
- * Targets: gops_gr.gr_init_support, #nvgpu_gr_init_support,
- *          #nvgpu_gr_init
+ * Targets: gops_gr.gr_init_support, nvgpu_gr_init_support,
+ *          nvgpu_gr_init,
+ *          gops_gr_init.detect_sm_arch, gv11b_gr_init_detect_sm_arch,
+ *          gv11b_gr_init_get_global_attr_cb_size,
+ *          gv11b_gr_init_preemption_state,
+ *          gv11b_gr_init_get_min_gpm_fifo_depth,
+ *          gv11b_gr_init_get_attrib_cb_default_size,
+ *          gv11b_gr_init_sm_id_numbering,
+ *          gv11b_gr_init_get_bundle_cb_token_limit,
+ *          gv11b_gr_init_get_bundle_cb_default_size,
+ *          gv11b_gr_init_get_alpha_cb_default_size,
+ *          gv11b_gr_init_tpc_mask,
+ *          gops_gr_init.get_no_of_sm,
+ *          nvgpu_gr_get_no_of_sm,
+ *          gm20b_gr_init_pd_tpc_per_gpc,
+ *          gm20b_gr_init_cwd_gpcs_tpcs_num,
+ *          gm20b_gr_init_get_global_ctx_cb_buffer_size,
+ *          gm20b_gr_init_get_global_ctx_pagepool_buffer_size,
+ *          gp10b_gr_init_pagepool_default_size,
+ *          gv11b_gr_falcon_fecs_host_int_enable,
+ *          nvgpu_gr_falcon_get_golden_image_size,
+ *          gm20b_gr_falcon_start_fecs
  *
  * Input: test_gr_init_setup and test_gr_init_prepare
  *        must have been executed successfully.
@@ -138,7 +158,7 @@ int test_gr_init_support(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Test Type: Feature
  *
- * Targets: gops_gr.gr_suspend, #nvgpu_gr_suspend
+ * Targets: gops_gr.gr_suspend, nvgpu_gr_suspend
  *
  * Input: #test_gr_init_setup, #test_gr_init_prepare and #test_gr_init_support
  *        must have been executed successfully.
@@ -157,10 +177,10 @@ int test_gr_suspend(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Test Type: Feature
  *
- * Targets: #nvgpu_gr_remove_support,
- *          #gops_ecc.ecc_remove_support,
- *          #nvgpu_ecc_remove_support,
- *          #nvgpu_gr_ecc_free
+ * Targets: nvgpu_gr_remove_support,
+ *          gops_ecc.ecc_remove_support,
+ *          nvgpu_ecc_remove_support,
+ *          nvgpu_gr_ecc_free
  *
  * Input: #test_gr_init_setup, #test_gr_init_prepare and #test_gr_init_support
  *        must have been executed successfully.
@@ -183,8 +203,8 @@ int test_gr_remove_support(struct unit_module *m, struct gk20a *g, void *args);
  * Targets: gops_gr_ecc.gpc_tpc_ecc_init, gv11b_gr_gpc_tpc_ecc_init,
  *          gops_gr_ecc.fecs_ecc_init, gv11b_gr_fecs_ecc_init,
  *	    gops_gr_ecc.detect, gv11b_ecc_detect_enabled_units,
- *          #nvgpu_ecc_counter_init_per_tpc,
- *          #nvgpu_ecc_counter_init_per_gpc
+ *          nvgpu_ecc_counter_init_per_tpc,
+ *          nvgpu_ecc_counter_init_per_gpc
  *
  * Input: #test_gr_init_setup, #test_gr_init_prepare and #test_gr_init_support
  *        must have been executed successfully.
@@ -209,13 +229,13 @@ int test_gr_init_ecc_features(struct unit_module *m,
  *
  * Test Type: Feature
  *
- * Targets: #nvgpu_gr_prepare_sw, #nvgpu_gr_enable_hw,
- *          #nvgpu_gr_init_support, #nvgpu_gr_sw_ready,
- *          gops_gr_init.lg_coalesce, gm20b_gr_init_lg_coalesce,
- *          gops_gr_init.su_coalesce, gm20b_gr_init_su_coalesce,
- *          gops_gr_init.pes_vsc_stream, gm20b_gr_init_pes_vsc_stream,
+ * Targets: nvgpu_gr_prepare_sw, nvgpu_gr_enable_hw,
+ *          nvgpu_gr_init_support, nvgpu_gr_sw_ready,
+ *          gm20b_gr_init_lg_coalesce,
+ *          gm20b_gr_init_su_coalesce,
+ *          gm20b_gr_init_pes_vsc_stream,
  *          gops_gr_init.fifo_access, gm20b_gr_init_fifo_access,
- *          gops_gr_init.gpc_mmu, gv11b_gr_init_gpc_mmu,
+ *          gv11b_gr_init_gpc_mmu
  *
  * Input: None
  *
@@ -239,8 +259,8 @@ int test_gr_init_setup_ready(struct unit_module *m,
  *
  * Test Type: Feature, Error Injection
  *
- * Targets: gops_gr.gr_init_support, #nvgpu_gr_init_support,
- *          gops_gr.gr_prepare_sw, #nvgpu_gr_prepare_sw, gr_remove_support
+ * Targets: gops_gr.gr_init_support, nvgpu_gr_init_support,
+ *          gops_gr.gr_prepare_sw, nvgpu_gr_prepare_sw, gr_remove_support
  *
  * Input: #test_gr_setup_ready must have been executed successfully.
  *
@@ -267,7 +287,7 @@ int test_gr_init_error_injections(struct unit_module *m,
  *
  * Test Type: Feature
  *
- * Targets: #nvgpu_gr_free, #nvgpu_gr_remove_support
+ * Targets: nvgpu_gr_free, nvgpu_gr_remove_support
  *
  * Input: #test_gr_setup_ready must have been executed successfully.
  *
