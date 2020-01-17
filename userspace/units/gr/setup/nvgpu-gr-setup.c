@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -396,6 +396,13 @@ static int gr_setup_fail_alloc(struct unit_module *m, struct gk20a *g)
 	gr_setup_ch->vm = vm;
 	if (err == 0) {
 		unit_err(m, "setup alloc SUBTEST-3 failed\n");
+		goto obj_ctx_fail_end;
+	}
+
+	/* SUBTEST-4 for graphics class num */
+	err = g->ops.gr.setup.alloc_obj_ctx(gr_setup_ch, 0xC397U, 0);
+	if (err == 0) {
+		unit_err(m, "setup alloc SUBTEST-4 failed\n");
 		goto obj_ctx_fail_end;
 	}
 
