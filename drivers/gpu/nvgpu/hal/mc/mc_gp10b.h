@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -37,13 +37,18 @@ void mc_gp10b_isr_stall(struct gk20a *g);
 bool mc_gp10b_is_intr1_pending(struct gk20a *g,
 				      enum nvgpu_unit unit, u32 mc_intr_1);
 
+#ifdef CONFIG_NVGPU_NON_FUSA
 void mc_gp10b_log_pending_intrs(struct gk20a *g);
+#endif
 u32  mc_gp10b_intr_stall(struct gk20a *g);
 void mc_gp10b_intr_stall_pause(struct gk20a *g);
 void mc_gp10b_intr_stall_resume(struct gk20a *g);
 u32  mc_gp10b_intr_nonstall(struct gk20a *g);
 void mc_gp10b_intr_nonstall_pause(struct gk20a *g);
 void mc_gp10b_intr_nonstall_resume(struct gk20a *g);
+
+/** @cond DOXYGEN_SHOULD_SKIP_THIS */
 void mc_gp10b_ltc_isr(struct gk20a *g);
+/** @endcond DOXYGEN_SHOULD_SKIP_THIS */
 
 #endif

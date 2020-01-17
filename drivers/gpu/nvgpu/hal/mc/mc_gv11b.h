@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -27,9 +27,12 @@
 
 struct gk20a;
 
-bool gv11b_mc_is_intr_hub_pending(struct gk20a *g, u32 mc_intr_0);
 bool gv11b_mc_is_stall_and_eng_intr_pending(struct gk20a *g, u32 engine_id,
 			u32 *eng_intr_pending);
 bool gv11b_mc_is_mmu_fault_pending(struct gk20a *g);
+
+/** @cond DOXYGEN_SHOULD_SKIP_THIS */
+bool gv11b_mc_is_intr_hub_pending(struct gk20a *g, u32 mc_intr_0);
+/** @endcond DOXYGEN_SHOULD_SKIP_THIS */
 
 #endif

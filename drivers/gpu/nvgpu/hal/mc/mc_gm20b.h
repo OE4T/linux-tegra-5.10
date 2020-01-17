@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -39,7 +39,9 @@ void gm20b_mc_enable(struct gk20a *g, u32 units);
 void gm20b_mc_disable(struct gk20a *g, u32 units);
 void gm20b_mc_reset(struct gk20a *g, u32 units);
 u32  gm20b_mc_reset_mask(struct gk20a *g, enum nvgpu_unit unit);
+#ifdef CONFIG_NVGPU_LS_PMU
 bool gm20b_mc_is_enabled(struct gk20a *g, enum nvgpu_unit unit);
+#endif
 
 #ifdef CONFIG_NVGPU_HAL_NON_FUSA
 void gm20b_mc_intr_mask(struct gk20a *g);

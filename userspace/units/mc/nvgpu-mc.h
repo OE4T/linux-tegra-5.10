@@ -176,7 +176,8 @@ int test_intr_stall(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Test Type: Feature
  *
- * Targets: gops_mc.is_stall_and_eng_intr_pending, mc_gp10b_is_intr1_pending
+ * Targets: gops_mc.is_stall_and_eng_intr_pending,
+ *          gv11b_mc_is_stall_and_eng_intr_pending
  *
  * Input: test_setup_env must have been run.
  *
