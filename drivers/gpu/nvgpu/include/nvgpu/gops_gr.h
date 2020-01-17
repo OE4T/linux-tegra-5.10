@@ -539,18 +539,6 @@ struct gops_gr_init {
 				    struct nvgpu_gr_config *gr_config);
 
 	/**
-	 * @brief Wait for GR engine to be initialized.
-	 *
-	 * @param g [in]	Pointer to GPU driver struct.
-	 *
-	 * Calling this function ensures that GR engine initialization
-	 * is complete. This HAL maps to #nvgpu_gr_wait_initialized.
-	 *
-	 * @see nvgpu_gr_wait_initialized
-	 */
-	void (*wait_initialized)(struct gk20a *g);
-
-	/**
 	 * @brief Control access to GR FIFO.
 	 *
 	 * @param g [in]	Pointer to GPU driver struct.
@@ -728,6 +716,19 @@ struct gops_gr_init {
 	u32 (*get_ctx_pagepool_size)(struct gk20a *g);
 	u32 (*get_ctx_betacb_size)(struct gk20a *g);
 #endif /* CONFIG_NVGPU_GRAPHICS */
+#ifdef CONFIG_NVGPU_HAL_NON_FUSA
+	/**
+	 * @brief Wait for GR engine to be initialized.
+	 *
+	 * @param g [in]	Pointer to GPU driver struct.
+	 *
+	 * Calling this function ensures that GR engine initialization
+	 * is complete. This HAL maps to #nvgpu_gr_wait_initialized.
+	 *
+	 * @see nvgpu_gr_wait_initialized
+	 */
+	void (*wait_initialized)(struct gk20a *g);
+#endif
 	/** @endcond */
 };
 
