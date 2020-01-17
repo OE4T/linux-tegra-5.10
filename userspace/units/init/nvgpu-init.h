@@ -157,7 +157,8 @@ int test_get_put(struct unit_module *m,
  * Input:
  * - test_setup_env() must be called before.
  *
- * Targets: nvgpu_check_gpu_state, gops_mc.get_chip_details
+ * Targets: nvgpu_check_gpu_state, is_nvgpu_gpu_state_valid,
+ *          gops_mc.get_chip_details
  *
  * Steps:
  * - Test valid case.
@@ -224,7 +225,7 @@ int test_hal_init(struct unit_module *m,
  *
  * Test Type: Feature
  *
- * Targets: nvgpu_finalize_poweron
+ * Targets: nvgpu_finalize_poweron, nvgpu_init_gpu_characteristics
  *
  * Input:
  * - test_setup_env() must be called before.
