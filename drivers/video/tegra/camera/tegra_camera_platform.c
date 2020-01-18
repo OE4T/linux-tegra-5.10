@@ -1,7 +1,7 @@
 /*
  * drivers/video/tegra/camera/tegra_camera_platform.c
  *
- * Copyright (c) 2015-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2015-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -367,6 +367,9 @@ int tegra_camera_update_isobw(void)
 	if (info->bypass_mode_isobw > info->active_iso_bw)
 		bw = info->bypass_mode_isobw;
 
+	if (info->bypass_mode_isobw > 0)
+		info->num_active_streams++;
+
 	/* Bug 200323801 consider iso bw of both vi mode and vi-bypass mode */
 	if (bw >= info->max_bw) {
 		dev_info(info->dev,
@@ -391,6 +394,7 @@ int tegra_camera_update_isobw(void)
 		if (ret) {
 			dev_err(info->dev, "%s: set la failed: %d\n",
 				__func__, ret);
+			mutex_unlock(&info->update_bw_lock);
 			return ret;
 		}
 	}
@@ -425,6 +429,10 @@ int tegra_camera_update_isobw(void)
 	vi_mode_d = bw;
 	bypass_mode_d = info->bypass_mode_isobw;
 #endif
+
+	if (info->bypass_mode_isobw > 0)
+		info->num_active_streams--;
+
 	mutex_unlock(&info->update_bw_lock);
 	return ret;
 }
