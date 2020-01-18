@@ -132,6 +132,7 @@
  *   - @ref SWUTS-gr-intr
  *   - @ref SWUTS-gr-init-hal-gv11b
  *   - @ref SWUTS-gr-falcon
+ *   - @ref SWUTS-gr-falcon-gk20a
  *   - @ref SWUTS-gr-fs-state
  *   - @ref SWUTS-gr-global-ctx
  *   - @ref SWUTS-gr-ctx

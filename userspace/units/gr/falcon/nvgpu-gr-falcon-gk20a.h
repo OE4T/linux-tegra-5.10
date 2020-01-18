@@ -27,7 +27,7 @@
 struct unit_module;
 struct gk20a;
 
-/** @addtogroup SWUTS-gr-falcon
+/** @addtogroup SWUTS-gr-falcon-gk20a
  *  @{
  *
  * Software Unit Test Specification for common.gr.falcon
@@ -47,7 +47,8 @@ struct gk20a;
  *          gm20b_gr_falcon_wait_ctxsw_ready,
  *          gm20b_gr_falcon_init_ctx_state,
  *          gm20b_gr_falcon_submit_fecs_method_op,
- *          gm20b_gr_falcon_ctrl_ctxsw.
+ *          nvgpu_gr_get_falcon_ptr,
+ *          gm20b_gr_falcon_ctrl_ctxsw
  *
  * Steps:
  * -  Call g->ops.gr.falcon.ctrl_ctxsw with Invalid Method.
