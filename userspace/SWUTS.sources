@@ -1,9 +1,6 @@
 INPUT += ../../../userspace/SWUTS.h
-<<<<<<< d9538d12c25f23f90bfb5978be79cdc4ff69f114
 INPUT += ../../../userspace/units/ce/nvgpu-ce.h
 INPUT += ../../../userspace/units/cg/nvgpu-cg.h
-=======
->>>>>>> gpu: nvgpu: unit: improve coverage for engines
 INPUT += ../../../userspace/units/enabled/nvgpu-enabled.h
 INPUT += ../../../userspace/units/interface/bit-utils/bit-utils.h
 INPUT += ../../../userspace/units/interface/bsearch/bsearch.h

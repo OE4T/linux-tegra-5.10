@@ -139,6 +139,7 @@
  *   - @ref SWUTS-gr-obj-ctx
  *   - @ref SWUTS-gr-config
  *   - @ref SWUTS-ecc
+ *   - @ref SWUTS-channel_devctl_qnx
  *
  */
 
