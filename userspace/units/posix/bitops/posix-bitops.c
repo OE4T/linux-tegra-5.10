@@ -325,6 +325,29 @@ int test_find_zero_area(struct unit_module *m, struct gk20a *g, void *unused)
 	unsigned long words[NUM_WORDS];
 
 	for (i = 0; i < TEST_BITMAP_SIZE; i++) {
+		result = bitmap_find_next_zero_area(bmap_all_zeros,
+						TEST_BITMAP_SIZE, i,
+						TEST_BITMAP_SIZE - i, 0);
+		if (result != i)
+			unit_return_fail(m, FAIL_MSG,
+					 "bmap_zeros: alloc-to-end", i);
+
+		result = bitmap_find_next_zero_area(bmap_all_zeros,
+						TEST_BITMAP_SIZE,
+						i, 1, 0);
+		if (result != i)
+			unit_return_fail(m, FAIL_MSG,
+					 "bmap_zeros: alloc-one-bit", i);
+
+		result = bitmap_find_next_zero_area(bmap_all_zeros,
+						TEST_BITMAP_SIZE, 0,
+						TEST_BITMAP_SIZE - i, 0);
+		if (result != 0)
+			unit_return_fail(m, FAIL_MSG,
+					 "bmap_zeros: alloc-i-bits-at-0", i);
+	}
+
+	for (i = 0; i < TEST_BITMAP_SIZE; i++) {
 		result = bitmap_find_next_zero_area_off(bmap_all_zeros,
 							TEST_BITMAP_SIZE,
 							i,

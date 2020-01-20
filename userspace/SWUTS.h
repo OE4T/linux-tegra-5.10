@@ -111,6 +111,8 @@
  *   - @ref SWUTS-posix-timers
  *   - @ref SWUTS-posix-queue
  *   - @ref SWUTS-posix-bug
+ *   - @ref SWUTS-posix-ossched
+ *   - @ref SWUTS-posix-rwsem
  *   - @ref SWUTS-priv_ring
  *   - @ref SWUTS-ptimer
  *   - @ref SWUTS-sdl

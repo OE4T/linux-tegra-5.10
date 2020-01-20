@@ -58,7 +58,7 @@ int test_bitmap_info(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Test Type: Feature, Boundary values
  *
- * Targets: nvgpu_ffs
+ * Targets: nvgpu_ffs, nvgpu_posix_ffs
  *
  * Input: None
  *
@@ -83,7 +83,7 @@ int test_ffs(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Test Type: Feature, Boundary values
  *
- * Targets: nvgpu_fls
+ * Targets: nvgpu_fls, nvgpu_posix_fls
  *
  * Input: None
  *
@@ -189,11 +189,33 @@ int test_find_next_bit(struct unit_module *m, struct gk20a *g, void *__args);
  *
  * Test Type: Feature, Boundary values
  *
- * Targets: bitmap_find_next_zero_area_off
+ * Targets: bitmap_find_next_zero_area, bitmap_find_next_zero_area_off
  *
  * Input: None.
  *
  * Steps:
+ * - Loop through array of all zeros:
+ *   - Call bitmap_find_next_zero_area() with:
+ *     - array of zeros
+ *     - size of array (in bits)
+ *     - start value of loop index
+ *     - size of bitmap as size of array - 1 (bit)
+ *     - 0 for alignment parameters
+ *   - Verify returns loop index.
+ *   - Call bitmap_find_next_zero_area() with:
+ *     - array of zeros
+ *     - size of array (in bits)
+ *     - start value of loop index
+ *     - size of bitmap as 1 (bit)
+ *     - 0 for alignment parameters
+ *   - Verify returns loop index.
+ *   - Call bitmap_find_next_zero_area() with:
+ *     - array of zeros
+ *     - size of array (in bits)
+ *     - start value of 0
+ *     - size of bitmap as size of array - loop index
+ *     - 0 for alignment parameters
+ *   - Verify returns 0.
  * - Loop through array of all zeros:
  *   - Call bitmap_find_next_zero_area_off() with:
  *     - array of zeros
