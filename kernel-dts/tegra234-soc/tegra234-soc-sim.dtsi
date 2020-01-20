@@ -27,10 +27,6 @@
 		status = "okay";
 	};
 
-	tegra-cvnas {
-		status = "okay";
-	};
-
 	power-domain {
 		status = "okay";
 	};
