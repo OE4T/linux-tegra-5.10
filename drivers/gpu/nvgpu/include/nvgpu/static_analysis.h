@@ -687,6 +687,27 @@ static inline void nvgpu_safety_checks(void)
 		(NVGPU_PRECISION(ULLONG_MAX) != 64)) {
 		BUG();
 	}
+
+#if defined(__QNX__)
+	/*
+	 * For CERT-C EXP37-C rule
+	 * Check sizes of same types considered for EXP37-C deviation record.
+	 * If the sizes of data types are same, a compiler results in using same
+	 * size and same precision base data type like int, long or long long,
+	 * etc for redefined data types.
+	 */
+	if ((sizeof(s64) != sizeof(long) ||
+		sizeof(s64) != sizeof(int64_t) ||
+		sizeof(u64) != sizeof(uint64_t) ||
+		sizeof(u64) != sizeof(_Uint64t) ||
+		sizeof(u64) != sizeof(uintptr_t) ||
+		sizeof(u64) != sizeof(unsigned long) ||
+		sizeof(size_t) != sizeof(u64) ||
+		sizeof(size_t) != sizeof(unsigned long long) ||
+		sizeof(unsigned long long) != sizeof(unsigned long))) {
+		BUG();
+	}
+#endif
 }
 
 /**
