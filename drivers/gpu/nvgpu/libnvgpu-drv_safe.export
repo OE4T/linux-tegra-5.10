@@ -616,6 +616,7 @@ nvgpu_pmu_early_init
 nvgpu_pmu_remove_support
 nvgpu_pmu_reset
 nvgpu_posix_bug
+nvgpu_posix_warn
 nvgpu_posix_cleanup
 nvgpu_posix_enable_fault_injection
 nvgpu_posix_fault_injection_get_container

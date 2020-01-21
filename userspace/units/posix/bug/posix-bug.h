@@ -86,4 +86,31 @@ int test_expect_bug(struct unit_module *m, struct gk20a *g, void *args);
  */
 int test_bug_cb(struct unit_module *m, struct gk20a *g, void *args);
 
+/**
+ * Test specification for test_warn_msg
+ *
+ * Description: Test the warn message functionality.
+ *
+ * Test Type: Feature
+ *
+ * Targets: nvgpu_posix_warn
+ *
+ * Inputs: None
+ *
+ * Steps:
+ * 1) Call nvgpu_posix_warn function with cond as 0.
+ * 2) Check the return value from function nvgpu_posix_warn. If it is not
+ *    equal to 0, return FAIL.
+ * 3) Call nvgpu_posix_warn function with cond as 1.
+ * 4) Check the return value from function nvgpu_posix_warn. If it is not
+ *    equal to 1, return FAIL.
+ * 5) Return PASS.
+ *
+ * Output:
+ * The test returns PASS if both the calls of nvgpu_posix_warn function returns
+ * the expected return value. Otherwise, the test returns FAIL.
+ *
+ */
+int test_warn_msg(struct unit_module *m, struct gk20a *g, void *args);
+
 #endif /* __UNIT_POSIX_BUG_H__ */

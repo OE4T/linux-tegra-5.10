@@ -138,9 +138,28 @@ int test_bug_cb(struct unit_module *m,
 	return UNIT_SUCCESS;
 }
 
+int test_warn_msg(struct unit_module *m,
+		struct gk20a *g, void *args)
+{
+	bool ret;
+
+	ret = nvgpu_posix_warn(0, "");
+	if (ret != 0) {
+		unit_return_fail(m, "nvgpu_posix_warn failed for cond 0\n");
+	}
+
+	ret = nvgpu_posix_warn(1, "");
+	if (ret != 1) {
+		unit_return_fail(m, "nvgpu_posix_warn failed for cond 1\n");
+	}
+
+	return UNIT_SUCCESS;
+}
+
 struct unit_module_test posix_bug_tests[] = {
 	UNIT_TEST(expect_bug, test_expect_bug, NULL, 0),
 	UNIT_TEST(bug_cb, test_bug_cb, NULL, 0),
+	UNIT_TEST(warn_msg, test_warn_msg, NULL, 0),
 };
 
 UNIT_MODULE(posix_bug, posix_bug_tests, UNIT_PRIO_POSIX_TEST);
