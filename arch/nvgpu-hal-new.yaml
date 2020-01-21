@@ -1,4 +1,4 @@
-# Copyright (c) 2019, NVIDIA CORPORATION.  All Rights Reserved.
+# Copyright (c) 2019-2020, NVIDIA CORPORATION.  All Rights Reserved.
 #
 # HAL units. These are the units that have access to HW.
 #
@@ -161,7 +161,6 @@ fifo:
     ramfc_fusa:
       safe: yes
       sources: [ hal/fifo/ramin_gk20a_fusa.c,
-                 hal/fifo/ramfc_gk20a.h,
                  hal/fifo/ramfc_gp10b_fusa.c,
                  hal/fifo/ramfc_gp10b.h,
                  hal/fifo/ramfc_gv11b_fusa.c,
@@ -170,6 +169,7 @@ fifo:
     ramfc:
       safe: no
       sources: [ hal/fifo/ramfc_gk20a.c,
+                 hal/fifo/ramfc_gk20a.h,
                  hal/fifo/ramfc_gp10b.c,
                  hal/fifo/ramfc_tu104.c,
                  hal/fifo/ramfc_tu104.h ]
@@ -198,8 +198,6 @@ fifo:
                  hal/fifo/runlist_fifo_gv11b.c,
                  hal/fifo/runlist_fifo_gv11b_fusa.c,
                  hal/fifo/runlist_fifo_gv11b.h,
-                 hal/fifo/runlist_ram_gk20a.c,
-                 hal/fifo/runlist_ram_gk20a.h,
                  hal/fifo/runlist_ram_gv11b_fusa.c,
                  hal/fifo/runlist_ram_gv11b.h ]
 
@@ -209,6 +207,8 @@ fifo:
                  hal/fifo/runlist_fifo_gv100.h,
                  hal/fifo/runlist_fifo_tu104.c,
                  hal/fifo/runlist_fifo_tu104.h,
+                 hal/fifo/runlist_ram_gk20a.c,
+                 hal/fifo/runlist_ram_gk20a.h,
                  hal/fifo/runlist_ram_tu104.c,
                  hal/fifo/runlist_ram_tu104.h ]
 
