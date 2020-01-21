@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -27,6 +27,8 @@
 #else
 #include <nvgpu/posix/types.h>
 #endif
+
+#include <nvgpu/cov_whitelist.h>
 
 /*
  * These macros exist to make integer literals used in certain arithmetic
@@ -119,6 +121,7 @@
 #define U64_MAX		U64(~U64(0))
 #endif
 
+NVGPU_COV_WHITELIST_BLOCK_BEGIN(false_positive, 2, NVGPU_MISRA(Rule, 21_1), "Bug 2799838")
 #if defined(__KERNEL__) && !defined(UCHAR_MAX)
 /* Linux doesn't define these max values, and we can't use limits.h */
 
@@ -132,5 +135,6 @@
  */
 #define SCHAR_MAX (U8_MAX/2)
 #endif
+NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Rule, 21_1))
 
 #endif /* NVGPU_TYPES_H */
