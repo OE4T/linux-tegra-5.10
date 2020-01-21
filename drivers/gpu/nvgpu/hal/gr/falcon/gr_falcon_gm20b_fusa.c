@@ -43,7 +43,11 @@
 #define CTXSW_MEM_SCRUBBING_TIMEOUT_MAX_US 1000U
 #define CTXSW_MEM_SCRUBBING_TIMEOUT_DEFAULT_US 10U
 
+#ifdef CONFIG_NVGPU_CTXSW_FW_ERROR_WDT_TESTING
+#define CTXSW_WDT_DEFAULT_VALUE 0x1U
+#else
 #define CTXSW_WDT_DEFAULT_VALUE 0x7FFFFFFFU
+#endif
 #define CTXSW_INTR0 BIT32(0)
 #define CTXSW_INTR1 BIT32(1)
 
@@ -541,14 +545,22 @@ int gm20b_gr_falcon_init_ctx_state(struct gk20a *g,
 			   "query golden image size failed");
 		return ret;
 	}
-#ifdef CONFIG_NVGPU_DEBUGGER
+
+#if defined(CONFIG_NVGPU_DEBUGGER) || \
+defined(CONFIG_NVGPU_CTXSW_FW_ERROR_CODE_TESTING)
 	ret = gm20b_gr_falcon_ctrl_ctxsw(g,
 		NVGPU_GR_FALCON_METHOD_CTXSW_DISCOVER_PM_IMAGE_SIZE,
+#ifndef CONFIG_NVGPU_CTXSW_FW_ERROR_CODE_TESTING
 		0, &sizes->pm_ctxsw_image_size);
+#else
+		0, NULL);
+#endif
 	if (ret != 0) {
 		nvgpu_err(g,
 			   "query pm ctx image size failed");
+#ifndef CONFIG_NVGPU_CTXSW_FW_ERROR_CODE_TESTING
 		return ret;
+#endif
 	}
 #endif
 
@@ -715,7 +727,8 @@ int gm20b_gr_falcon_ctrl_ctxsw(struct gk20a *g, u32 fecs_method,
 		break;
 #endif
 
-#ifdef CONFIG_NVGPU_DEBUGGER
+#if defined(CONFIG_NVGPU_DEBUGGER) || \
+defined(CONFIG_NVGPU_CTXSW_FW_ERROR_CODE_TESTING)
 	case NVGPU_GR_FALCON_METHOD_CTXSW_DISCOVER_PM_IMAGE_SIZE:
 		op.method.addr =
 			gr_fecs_method_push_adr_discover_pm_image_size_v();

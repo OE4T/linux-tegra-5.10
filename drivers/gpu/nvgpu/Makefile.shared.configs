@@ -71,6 +71,14 @@ NVGPU_COMMON_CFLAGS             +=      \
 	-DCONFIG_NVGPU_GR_GOLDEN_CTX_VERIFICATION     \
 	-DCONFIG_NVGPU_BUILD_CONFIGURATION_IS_SAFETY
 
+## For tesing of CTXSW FW error codes manually, enable below configs in safety build.
+## Enable only one config at a time, because only one error can be tested at a time.
+# NVGPU_COMMON_CFLAGS             +=      \
+# 	-DCONFIG_NVGPU_CTXSW_FW_ERROR_WDT_TESTING
+#
+# NVGPU_COMMON_CFLAGS             +=      \
+# 	-DCONFIG_NVGPU_CTXSW_FW_ERROR_CODE_TESTING
+
 endif
 
 #
