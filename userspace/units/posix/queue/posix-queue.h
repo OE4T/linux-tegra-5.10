@@ -34,7 +34,7 @@
  * Test specification for: test_nvgpu_queue_alloc_and_free
  *
  * Description: Functionalities of posix queue such as allocating and freeing
- * of the message queue are are tested.
+ * of the message queue are tested.
  *
  * Test Type: Feature, Error guessing, Boundary values
  *
@@ -93,11 +93,13 @@ int test_nvgpu_queue_alloc_and_free(struct unit_module *m, struct gk20a *g,
  * - Update "in" and "out" indexes and enqueue message of length BUF_LEN such
  *   that we wrap around the Queue while enqueuing the message using
  *   nvgpu_queue_in() API. Check that the API returns "BUF_LEN".
- * - Reset "in" and "out" indexes and enueue message of length "BUF_LEN" with
+ * - Reset "in" and "out" indexes and enqueue message of length "BUF_LEN" with
  *   the lock using nvgpu_queue_in_locked() API. Check that the API returns
  *   "BUF_LEN".
- * - Enueue message of length "BUF_LEN" again using nvgpu_queue_in_locked() API.
- *   Check that the API returns error "-ENOMEM".
+ * - Enqueue message of length "BUF_LEN" again using nvgpu_queue_in_locked()
+ *   API. Check that the API returns error "-ENOMEM".
+ * - Enqueue message of length "BUF_LEN" again using nvgpu_queue_in() API. Check
+ *   that the API returns error "-ENOMEM".
  * - Uninitialize the allocated resources.
  *
  * Output: Returns PASS if the steps above were executed successfully. FAIL
@@ -109,7 +111,7 @@ int test_nvgpu_queue_in(struct unit_module *m, struct gk20a *g, void *args);
  * Test specification for: test_nvgpu_queue_out
  *
  * Description: Functionalities of posix queue such as allocating queue and
- * dequeueing messages from the queue are tested.
+ * dequeuing messages from the queue are tested.
  *
  * Test Type: Feature, Error guessing, Boundary values
  *
@@ -127,9 +129,9 @@ int test_nvgpu_queue_in(struct unit_module *m, struct gk20a *g, void *args);
  * - Dequeue message of length "BUF_LEN" from the empty queue calling
  *   nvgpu_queue_out_locked() API and check that the API returns "-ENOMEM"
  *   error.
- * - Advance "in" index by "BUF_LEN" and deueue message of length BUF_LEN by
+ * - Advance "in" index by "BUF_LEN" and dequeue message of length BUF_LEN by
  *   calling nvgpu_queue_out() API and check that the API returns "BUF_LEN".
- * - Advance "in" index by "BUF_LEN" and deueue message of length BUF_LEN by
+ * - Advance "in" index by "BUF_LEN" and dequeue message of length BUF_LEN by
  *   calling nvgpu_queue_out_locked() API and check that the API returns
  *   "BUF_LEN".
  * - Update "in" and "out" indexes and dequeue message of length BUF_LEN such

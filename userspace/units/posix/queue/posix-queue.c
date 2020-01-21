@@ -141,7 +141,7 @@ int test_nvgpu_queue_in(struct unit_module *m, struct gk20a *g, void *args)
 	}
 
 	/*
-	 * Reset "in" and "out" indexes and enueue message of length BUF_LEN
+	 * Reset "in" and "out" indexes and enqueue message of length BUF_LEN
 	 * with the lock.
 	 */
 	q.in = 0;
@@ -153,8 +153,18 @@ int test_nvgpu_queue_in(struct unit_module *m, struct gk20a *g, void *args)
 		goto fail;
 	}
 
-	/* Enueue message of length BUF_LEN again and expect memory full */
+	/* Enqueue message of length BUF_LEN again and expect memory full */
 	ret = nvgpu_queue_in_locked(&q, buf, BUF_LEN, &lock);
+	if (ret != -ENOMEM) {
+		err = UNIT_FAIL;
+		unit_err(m, "%d. queue_in failed err=%d\n", __LINE__,  ret);
+		goto fail;
+	}
+
+	/* Enqueue message of length BUF_LEN again (without lock) and expect
+	 * memory full.
+	 */
+	ret = nvgpu_queue_in(&q, buf, BUF_LEN);
 	if (ret != -ENOMEM) {
 		err = UNIT_FAIL;
 		unit_err(m, "%d. queue_in failed err=%d\n", __LINE__,  ret);
@@ -203,7 +213,7 @@ int test_nvgpu_queue_out(struct unit_module *m, struct gk20a *g, void *args)
 	}
 
 	/*
-	 * Advance "in" index by "BUF_LEN" and deueue message of length BUF_LEN.
+	 * Advance "in" index by "BUF_LEN" and dequeue message of length BUF_LEN
 	 */
 	q.in = BUF_LEN;
 	q.out = 0;
@@ -215,7 +225,7 @@ int test_nvgpu_queue_out(struct unit_module *m, struct gk20a *g, void *args)
 	}
 
 	/*
-	 * Advance "in" index by "BUF_LEN" and deueue message of length BUF_LEN
+	 * Advance "in" index by "BUF_LEN" and dequeue message of length BUF_LEN
 	 * with the lock.
 	 */
 	q.in = BUF_LEN;

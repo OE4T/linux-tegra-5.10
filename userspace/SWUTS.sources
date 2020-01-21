@@ -82,6 +82,7 @@ INPUT += ../../../userspace/units/sync/nvgpu-sync.h
 INPUT += ../../../userspace/units/posix/bitops/posix-bitops.h
 INPUT += ../../../userspace/units/posix/bug/posix-bug.h
 INPUT += ../../../userspace/units/posix/cond/posix-cond.h
+INPUT += ../../../userspace/units/posix/queue/posix-queue.h
 INPUT += ../../../userspace/units/posix/fault-injection/posix-fault-injection.h
 INPUT += ../../../userspace/units/posix/fault-injection/posix-fault-injection-kmem.h
 INPUT += ../../../userspace/units/posix/fault-injection/posix-fault-injection-dma-alloc.h
